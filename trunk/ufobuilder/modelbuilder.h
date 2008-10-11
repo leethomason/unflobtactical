@@ -25,8 +25,8 @@ public:
 
 	void AddTri( const grinliz::Vector3F* vertices, 
 				 const grinliz::Vector2F* uv,
-				 const grinliz::Vector3F& normal );
-	void AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 );
+				 const grinliz::Vector3F& normal )							{ GLASSERT( 0 ); }
+	void AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 )		{ GLASSERT( 0 ); }
 
 	void Optimize();
 	const std::vector< VertexGroup >& GetGroups()	{ return group; }

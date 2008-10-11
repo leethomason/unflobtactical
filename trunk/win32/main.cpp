@@ -10,18 +10,12 @@
 #include "../engine/engine.h"
 #include "../engine/text.h"
 #include "../engine/surface.h"
+#include "../game/game.h"
 
 using namespace grinliz;
 
 int multisample = 4;
 bool fullscreen = false;
-int WIDTH  = 480;
-int HEIGHT = 320;
-int GLOW_SOURCE = 1024;
-int GLOW_TARGET = 256;
-float FOV = 45.0f;
-float ASPECT = (float)(WIDTH) / (float)(HEIGHT);
-
 
 int main( int argc, char **argv )
 {    
@@ -101,38 +95,10 @@ int main( int argc, char **argv )
 	glEnable( GL_DEPTH_TEST );
 	glDepthFunc( GL_LEQUAL );
 
-	U32 startTime = SDL_GetTicks();
-	U32 markFrame = startTime;
-	U32 frameCountSinceMark = 0;
-	float framesPerSecond = 0.0f;
-
 	bool done = false;
     SDL_Event event;
 
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
-	glDisable( GL_DEPTH_TEST );
-
-	Surface* s = new Surface();
-
-	FILE* fp = fopen( "./res/green.tex", "rb" );
-	U32 textureID = s->LoadTexture( fp );
-	fclose( fp );
-
-	fp = fopen( "./res/stdfont.tex", "rb" );
-	U32 textTextureID = s->LoadTexture( fp );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-	UFOInitDrawText( textTextureID );
-	fclose( fp );
-
-	EngineData engineData;
-	Engine* engine = new Engine( WIDTH, HEIGHT, engineData );
-	//float fov = 30.0f;
-	//engine->SetPerspective( 1.f, 100.f, fov );
-
-	//Vector3F mouseYPlane = { 0.f, 0.f, 0.f };
+	Game* game = new Game();
 
 	// ---- Main Loop --- //
 	while ( !done )
@@ -151,38 +117,41 @@ int main( int argc, char **argv )
 							done = true;
 							break;
 
-						case SDLK_PAGEDOWN:		engine->camera.DeltaTilt( 2.0f );				break;
-						case SDLK_PAGEUP:		engine->camera.DeltaTilt( -2.0f );				break;
-						case SDLK_UP:			engine->camera.DeltaPosWC( 0.0f, 1.0f, 0.0f);	break;
-						case SDLK_DOWN:			engine->camera.DeltaPosWC( 0.0f, -1.0f, 0.0f);	break;
+						case SDLK_PAGEDOWN:		game->engine.camera.DeltaTilt( 2.0f );				break;
+						case SDLK_PAGEUP:		game->engine.camera.DeltaTilt( -2.0f );				break;
+						case SDLK_UP:			game->engine.camera.DeltaPosWC( 0.0f, 1.0f, 0.0f);	break;
+						case SDLK_DOWN:			game->engine.camera.DeltaPosWC( 0.0f, -1.0f, 0.0f);	break;
 
 						case SDLK_RIGHT:
-							engine->fov += 2.0f;
-							engine->SetPerspective();
+							game->engine.fov += 2.0f;
+							game->engine.SetPerspective();
 							break;
 
 						case SDLK_LEFT:
-							engine->fov -= 2.0f;
-							engine->SetPerspective();
+							game->engine.fov -= 2.0f;
+							game->engine.SetPerspective();
 							break;
 
 						default:
 							break;
 					}
-					GLOUTPUT(( "fov=%.1f rot=%.1f h=%.1f\n", engine->fov, engine->camera.Tilt(), engine->camera.PosWC().y ));
+					GLOUTPUT(( "fov=%.1f rot=%.1f h=%.1f\n", 
+								game->engine.fov, 
+								game->engine.camera.Tilt(), 
+								game->engine.camera.PosWC().y ));
 				}
 				break;
 
 				case SDL_MOUSEBUTTONDOWN:
 				{
-					engine->DragStart( event.button.x, HEIGHT-1-event.button.y );
+					game->engine.DragStart( event.button.x, HEIGHT-1-event.button.y );
 				}
 				break;
 
 				case SDL_MOUSEBUTTONUP:
 				{
-					if ( engine->IsDragging() ) {
-						engine->DragEnd( event.button.x, HEIGHT-1-event.button.y );
+					if ( game->engine.IsDragging() ) {
+						game->engine.DragEnd( event.button.x, HEIGHT-1-event.button.y );
 					}
 				}
 				break;
@@ -191,8 +160,8 @@ int main( int argc, char **argv )
 				{
 					//engine->RayFromScreenToYPlane( event.motion.x, HEIGHT-1-event.motion.y, &mouseYPlane );
 					//GLOUTPUT(( "world (%.1f, %.1f, %.1f)\n", mouseYPlane.x, mouseYPlane.y, mouseYPlane.z ));
-					if ( engine->IsDragging() && event.motion.state == SDL_PRESSED ) {
-						engine->DragMove( event.motion.x, HEIGHT-1-event.motion.y );
+					if ( game->engine.IsDragging() && event.motion.state == SDL_PRESSED ) {
+						game->engine.DragMove( event.motion.x, HEIGHT-1-event.motion.y );
 					}
 				}
 				break;
@@ -207,42 +176,10 @@ int main( int argc, char **argv )
 					break;
 			}
 		}
-
-		// And check the key downs:
- 		const Uint8 *keystate = SDL_GetKeyState( NULL );
-
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glBindTexture( GL_TEXTURE_2D, textureID );
-		engine->Draw();
-
-		/*{
-			const float D=0.1f;
-			float v[12] = {	mouseYPlane.x-D, 0.001f, mouseYPlane.z-D, 
-							mouseYPlane.x+D, 0.001f, mouseYPlane.z-D, 
-							mouseYPlane.x+D, 0.001f, mouseYPlane.z+D, 
-							mouseYPlane.x-D, 0.001f, mouseYPlane.z+D };
-
-			glColor3f( 1.f, 1.f, 1.f );
-			glBindTexture( GL_TEXTURE_2D, 0 );
-			glVertexPointer( 3, GL_FLOAT, 0, v );
-			glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
-		}*/
-		++frameCountSinceMark;
-		U32 currentTime = SDL_GetTicks();
-
-		if ( currentTime - markFrame > 500 ) {
-			framesPerSecond = 1000.0f*(float)(frameCountSinceMark) / ((float)(currentTime - markFrame));
-			markFrame = currentTime;
-			frameCountSinceMark = 0;
-		}
-
-		UFODrawText( 0, 0, "UFO Attack! %.1ffps", framesPerSecond );
+		game->DoTick( SDL_GetTicks() );
 		SDL_GL_SwapBuffers();
 	}
-	delete engine;
-	delete s;
-	glDeleteTextures( 1, &textureID );
-	glDeleteTextures( 1, &textTextureID );
+	delete game;
 	SDL_Quit();
 
 	MemLeakCheck();

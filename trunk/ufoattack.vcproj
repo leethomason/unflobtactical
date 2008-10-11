@@ -166,6 +166,14 @@
 		<Filter
 			Name="game"
 			>
+			<File
+				RelativePath=".\game\game.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\game\game.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="win32"
