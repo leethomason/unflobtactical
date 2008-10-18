@@ -32,6 +32,8 @@ void Surface::Set( int w, int h, int bpp )
 U32 Surface::LoadTexture( FILE* fp )
 {
 	int _format, _type, _w, _h;
+	char name[16];
+	fread( name, 16, 1, fp );		// not currently used.
 	fread( &_format, 4, 1, fp );
 	fread( &_type, 4, 1, fp );
 	fread( &_w, 4, 1, fp );
@@ -52,6 +54,13 @@ U32 Surface::LoadTexture( FILE* fp )
 	}
 
 	fread( pixels, 1, w*h*bpp, fp );
+	switch ( bpp ) {
+		case 1:													break;
+		case 2:	grinliz::SwapBufferBE16( (U16*)pixels, w*h );	break;
+		default:
+			GLASSERT( 0 );
+			break;
+	}
 
 	return LowerCreateTexture( _format, _type );
 }

@@ -2,4 +2,5 @@
 	<texture filename="green.tga" />
 	<texture filename="green32.tga" />
 	<texture filename="stdfont.tga" />
+	<model filename="test.ac" />
 </resource>

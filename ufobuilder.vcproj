@@ -347,6 +347,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\ufobuilder\builder.h"
+			>
+		</File>
+		<File
 			RelativePath=".\ufobuilder\modelbuilder.cpp"
 			>
 		</File>

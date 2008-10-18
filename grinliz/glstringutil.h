@@ -33,6 +33,7 @@ distribution.
 #endif
 
 #include <string>
+#include <stdlib.h>
 #include "gldebug.h"
 #include "gltypes.h"
 
@@ -43,6 +44,14 @@ namespace grinliz
     if the file could not be found.
 */
 bool LoadTextFile( const char* filename, std::string* str );
+
+void StrSplitFilename(	const std::string& fullPath, 
+						std::string* basePath,
+						std::string* name,
+						std::string* extension );
+
+void StrFillBuffer( const std::string& str, char* buffer, int bufferSize );
+void StrFillBuffer( const char* str, char* buffer, int bufferSize );
 
 };	// namespace grinliz
 

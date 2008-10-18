@@ -88,6 +88,7 @@ ACObject *new_object()
     ob->surfaces = NULL;
     ob->num_surf = 0;
     ob->texture = -1;
+	ob->textureName = 0;
     ob->texture_repeat_x = ob->texture_repeat_y = 1.0;
     ob->texture_offset_x = ob->texture_offset_y = 0.0;
     ob->kids = NULL;

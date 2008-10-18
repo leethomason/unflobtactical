@@ -5,7 +5,6 @@ extern "C" {
 	#include "ac3d.h"
 }
 
-using namespace alteraorbis;
 using namespace grinliz;
 
 void ProcessAC3D( ACObject* ob, ModelBuilder* builder, const Matrix4& parent )
@@ -15,7 +14,7 @@ void ProcessAC3D( ACObject* ob, ModelBuilder* builder, const Matrix4& parent )
 
 	MultMatrix4( parent, m, &matrix );
 	builder->SetMatrix( matrix );
-	builder->SetTexture( ob->textureName );
+	builder->SetTexture( ob->textureName ? ob->textureName : "" );
 
 	Vertex vertex[16];
 
@@ -60,7 +59,7 @@ void ProcessAC3D( ACObject* ob, ModelBuilder* builder, const Matrix4& parent )
 }
 
 
-bool alteraorbis::ImportAC3D( const std::string& filename, ModelBuilder* builder )
+bool ImportAC3D( const std::string& filename, ModelBuilder* builder )
 {
 	ACObject* acObject = ac_load_ac3d( (char*) filename.c_str() );
 	GLASSERT( acObject );
