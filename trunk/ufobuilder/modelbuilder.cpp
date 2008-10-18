@@ -1,20 +1,54 @@
 #include "modelbuilder.h"
 
+using namespace grinliz;
+
 void ModelBuilder::SetTexture( const char* textureName )
 {
 	GLASSERT( strlen( textureName ) < 16 );
 	current = 0;
 
-	for( unsigned i=0; i<group.size(); ++i ) {
+	for( int i=0; i<nGroup; ++i ) {
 		if ( strcmp( textureName, group[i].textureName ) == 0 ) {
 			current = &group[i];
 			break;
 		}
 	}
 	if ( !current ) {
-		VertexGroup vg;
-		group.push_back( vg );
-		current = &group[group.size()-1];
-		strcpy( current->textureName, textureName );
+		GLASSERT( nGroup < MAX_GROUP );
+		strcpy( group[nGroup].textureName, textureName );
+		current = &group[nGroup];
+		++nGroup;
+	}
+}
+
+
+void ModelBuilder::AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 )
+{
+	GLASSERT( current );
+	GLASSERT( current->nIndex < VertexGroup::MAX_INDEX-3 );
+
+	Vertex v[3];
+	MultMatrix4( matrix, v0.pos, &v[0].pos );
+	MultMatrix4( matrix, v1.pos, &v[1].pos );
+	MultMatrix4( matrix, v2.pos, &v[2].pos );
+
+	for( int i=0; i<3; ++i ) 
+	{
+		int start = grinliz::Max( (int)0, current->nVertex - SCAN_BACK );
+		bool added = false;
+
+		for( int j=start; j<current->nVertex; ++j ) 
+		{
+			if ( current->vertex[j].Equal( v[i] ) ) {
+				added = true;
+				current->index[ current->nIndex++ ] = j;
+				break;
+			}
+		}
+		if ( !added ) {
+			GLASSERT( current->nVertex < VertexGroup::MAX_VERTEX );
+			current->index[ current->nIndex++ ] = current->nVertex;
+			current->vertex[ current->nVertex++ ] = v[i];
+		}
 	}
 }

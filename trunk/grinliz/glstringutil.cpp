@@ -41,3 +41,65 @@ bool grinliz::LoadTextFile( const char* filename, std::string* str )
 	fclose( fp );
 	return true;
 }
+
+
+void grinliz::StrSplitFilename(	const std::string& fullPath, 
+								std::string* base,
+								std::string* name,
+								std::string* extension )
+{
+	std::string path = fullPath;
+	*base = "";
+	*name = "";
+	*extension = "";
+
+	unsigned dotPos = path.rfind( '.' );
+	if ( dotPos < path.size() ) {
+		*extension = path.substr( dotPos, path.size() );
+		path = path.substr( 0, dotPos );
+	}
+
+	unsigned slashPos = path.rfind( '/' );
+	unsigned backPos = path.rfind( '\\' );
+	unsigned colonPos = path.rfind( ':' );
+
+	unsigned pos = 0;
+	if ( slashPos < path.size() && slashPos > pos ) {
+		pos = slashPos;
+	}
+	if ( backPos < path.size() && backPos > pos ) {
+		pos = backPos;
+	}
+	if ( colonPos < path.size() && colonPos > pos ) {
+		pos = colonPos;
+	}
+	if ( pos < path.size() ) {
+		*base = path.substr( 0, pos+1 );
+		path = path.substr( pos+1, path.size() );
+	}
+	*name = path;
+}
+
+
+void grinliz::StrFillBuffer( const std::string& str, char* buffer, int bufferSize )
+{
+	strncpy( buffer, str.c_str(), bufferSize );
+
+	if ( bufferSize - 1 - (int)str.size() > 0 ) {
+		memset( buffer + str.size() + 1, 0, bufferSize - str.size() - 1 );
+	}
+	GLASSERT( buffer[bufferSize-1] == 0 );
+}
+
+
+void grinliz::StrFillBuffer( const char* str, char* buffer, int bufferSize )
+{
+	strncpy( buffer, str, bufferSize );
+
+	int size = strlen( str );
+
+	if ( bufferSize - 1 - size > 0 ) {
+		memset( buffer + size + 1, 0, bufferSize - size - 1 );
+	}
+	GLASSERT( buffer[bufferSize-1] == 0 );
+}

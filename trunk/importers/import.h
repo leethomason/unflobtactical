@@ -7,12 +7,8 @@
 #include "../engine/vertex.h"
 #include "../ufobuilder/modelbuilder.h"
 
-namespace alteraorbis {
-
-	bool ImportAC3D(	const std::string& filename, 
-						ModelBuilder* builder );
-
-};
+bool ImportAC3D(	const std::string& filename, 
+					ModelBuilder* builder );
 
 
 #endif // ALTERAORBIS_IMPORT_INCLUDED

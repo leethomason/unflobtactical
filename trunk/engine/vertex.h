@@ -12,6 +12,16 @@ struct Vertex
 	grinliz::Vector3F	pos;
 	grinliz::Vector3F	normal;
 	grinliz::Vector2F	tex;
+
+	bool Equal( const Vertex& v ) const {
+		if (    pos == v.pos 
+			 && normal == v.normal
+			 && tex == v.tex )
+		{
+			return true;
+		}
+		return false;
+	}
 };
 
 
