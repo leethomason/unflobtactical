@@ -44,6 +44,7 @@ static grinliz::U8ToFloatInit u8ToFloatInit;
 void grinliz::SwapBufferBE16( U16* buffer, int size )
 {
 	for( int i=0; i<size; ++i ) {
-		
+		*buffer = SwapBE16( *buffer );
+		buffer++;
 	}
 }

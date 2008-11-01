@@ -16,11 +16,59 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 	camera.SetTilt( engineData.cameraTilt );
 	fov = engineData.fov;
 
+	// model[0] is the sentinel for the available model pool
+	modelPool[0].next = &modelPool[1];
+	modelPool[0].prev = &modelPool[EL_MAX_MODELS-1];
+	modelPool[EL_MAX_MODELS-1].next = &modelPool[0];
+	modelPool[EL_MAX_MODELS-1].prev = &modelPool[EL_MAX_MODELS-2];
+
+	for( int i=1; i<(EL_MAX_MODELS-1); ++i ) {
+		modelPool[i].prev = &modelPool[i-1];
+		modelPool[i].next = &modelPool[i+1];
+	}
+
 	SetPerspective();
 }
 
 Engine::~Engine()
 {
+#ifdef DEBUG
+	// Un-released models?
+	int count = 0;
+	for( Model* model=modelPool[0].next; model != &modelPool[0]; model=model->next ) {
+		++count;
+	}
+	GLASSERT( count == EL_MAX_MODELS-1 );
+#endif
+}
+
+Model* Engine::GetModel( ModelResource* resource )
+{
+	GLASSERT( resource );
+	GLASSERT( modelPool[0].next != &modelPool[0] );
+
+	if ( modelPool[0].next != &modelPool[0] ) {
+		Model* model = modelPool[0].next;
+		// Unlink.
+		model->prev->next = model->next;
+		model->next->prev = model->prev;
+		model->next = model->prev = 0;
+
+		model->Init( resource );
+		return model;
+	}
+	return 0;
+}
+
+void Engine::ReleaseModel( Model* model )
+{
+	GLASSERT( model->next == 0 );
+	GLASSERT( model->prev == 0 );
+	// Link
+	model->prev = &modelPool[0];
+	model->next = modelPool[0].next;
+	modelPool[0].next->prev = model;
+	modelPool[0].next = model;
 }
 
 

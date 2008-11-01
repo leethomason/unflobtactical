@@ -219,9 +219,10 @@ void ProcessTexture( TiXmlElement* texture )
 					U32 c = GetPixel( surface, i, j );
 					SDL_GetRGBA( c, surface->format, &r, &g, &b, &a );
 
-					U16 p =   ( ( b>>4 ) << 4)
+					U16 p =
+							  ( ( r>>4 ) << 12 )
 							| ( ( g>>4 ) << 8 )
-							| ( ( r>>4 ) << 12 )
+							| ( ( b>>4 ) << 4)
 							| ( ( a>>4 ) << 0 );
 
 					SDL_WriteBE16( fp, p );
@@ -241,9 +242,10 @@ void ProcessTexture( TiXmlElement* texture )
 					U32 c = GetPixel( surface, i, j );
 					SDL_GetRGBA( c, surface->format, &r, &g, &b, &a );
 
-					U16 p =   ( ( b>>3 ) )
+					U16 p = 
+							  ( ( r>>3 ) << 11 )
 							| ( ( g>>2 ) << 5 )
-							| ( ( r>>3 ) << 11 );
+							| ( ( b>>3 ) );
 
 					SDL_WriteBE16( fp, p );
 				}

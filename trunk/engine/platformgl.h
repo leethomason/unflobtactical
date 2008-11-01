@@ -11,4 +11,16 @@
 #include "../win32/glew.h"
 
 
+#ifdef DEBUG
+#define CHECK_GL_ERROR	{	GLenum error = glGetError();				\
+							if ( error  != GL_NO_ERROR ) {				\
+								GLOUTPUT(( "GL Error: %x\n", error ));	\
+								GLASSERT( 0 );							\
+							}											\
+						}
+#else
+#define CHECK_GL_ERROR	{}
+#endif
+
+
 #endif // UFOATTACK_PLATFORMGL_INCLUDED
