@@ -1,4 +1,6 @@
 #include "modelbuilder.h"
+#include "../engine/vertex.h"
+
 
 using namespace grinliz;
 
@@ -14,7 +16,7 @@ void ModelBuilder::SetTexture( const char* textureName )
 		}
 	}
 	if ( !current ) {
-		GLASSERT( nGroup < MAX_GROUP );
+		GLASSERT( nGroup < EL_MAX_MODEL_GROUPS );
 		strcpy( group[nGroup].textureName, textureName );
 		current = &group[nGroup];
 		++nGroup;
@@ -25,7 +27,7 @@ void ModelBuilder::SetTexture( const char* textureName )
 void ModelBuilder::AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 )
 {
 	GLASSERT( current );
-	GLASSERT( current->nIndex < VertexGroup::MAX_INDEX-3 );
+	GLASSERT( current->nIndex < EL_MAX_INDEX_IN_GROUP-3 );
 
 	Vertex v[3];
 	MultMatrix4( matrix, v0.pos, &v[0].pos );
@@ -46,7 +48,7 @@ void ModelBuilder::AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 
 			}
 		}
 		if ( !added ) {
-			GLASSERT( current->nVertex < VertexGroup::MAX_VERTEX );
+			GLASSERT( current->nVertex < EL_MAX_VERTEX_IN_GROUP );
 			current->index[ current->nIndex++ ] = current->nVertex;
 			current->vertex[ current->nVertex++ ] = v[i];
 		}

@@ -339,11 +339,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\engine\enginelimits.h"
+				>
+			</File>
+			<File
 				RelativePath=".\engine\map.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\engine\map.h"
+				>
+			</File>
+			<File
+				RelativePath=".\engine\model.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\engine\model.h"
 				>
 			</File>
 			<File

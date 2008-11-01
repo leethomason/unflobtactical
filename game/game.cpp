@@ -1,11 +1,13 @@
 #include "game.h"
 #include "../engine/platformgl.h"
 #include "../engine/text.h"
+#include "../engine/model.h"
 
 
 Game::Game() :
 	engine( WIDTH, HEIGHT, engineData ),
 	nTexture( 0 ),
+	nModelResource( 0 ),
 	markFrameTime( 0 ),
 	frameCountsSinceMark( 0 ),
 	framesPerSecond( 0 )
@@ -13,20 +15,19 @@ Game::Game() :
 	surface.Set( 256, 256, 4 );		// All the memory we will ever need (? or that is the intention)
 
 	LoadTextures();
+	LoadModels();
+
+
+	testModel = engine.GetModel( &modelResource[0] );
 }
 
 
 Game::~Game()
 {
+	engine.ReleaseModel( testModel );
+
+	FreeModels();
 	FreeTextures();
-}
-
-
-void Texture::Set( const char* name, U32 glID )
-{
-	GLASSERT( strlen( name ) < 16 );
-	strcpy( this->name, name );
-	this->glID = glID;
 }
 
 
@@ -55,6 +56,21 @@ void Game::LoadTextures()
 }
 
 
+void Game::LoadModels()
+{
+	ModelLoader* loader = new ModelLoader( texture, nTexture );
+	memset( modelResource, 0, sizeof(ModelResource)*MAX_MODELS );
+
+	FILE* fp = 0;
+
+	fp = fopen( "./res/test.mod", "rb" );
+	GLASSERT( fp );
+	loader->Load( fp, &modelResource[nModelResource++] );
+
+	delete loader;
+}
+
+
 void Game::FreeTextures()
 {
 	for( int i=0; i<nTexture; ++i ) {
@@ -62,6 +78,15 @@ void Game::FreeTextures()
 			glDeleteTextures( 1, &texture[i].glID );
 			texture[i].name[0] = 0;
 		}
+	}
+}
+
+
+void Game::FreeModels()
+{
+	for( int i=0; i<nModelResource; ++i ) {
+		glDeleteBuffers( 1, &modelResource[i].dataID );
+		glDeleteBuffers( 1, &modelResource[i].indexID );		
 	}
 }
 

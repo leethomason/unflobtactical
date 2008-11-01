@@ -36,4 +36,14 @@ private:
 void DrawQuad( float x0, float y0, float x1, float y1, U32 textureID );
 
 
+class Texture
+{
+public:
+	char name[16];
+	U32	 glID;
+
+	void Set( const char* name, U32 glID );
+};
+
+
 #endif // UFOATTACK_SURFACE_INCLUDED

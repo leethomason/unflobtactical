@@ -9,6 +9,11 @@
 
 #include "map.h"
 #include "camera.h"
+#include "enginelimits.h"
+#include "model.h"
+
+class Model;
+class ModelResource;
 
 struct EngineData
 {
@@ -41,6 +46,9 @@ public:
 	void SetPerspective();
 	void Draw();
 
+	Model* GetModel( ModelResource* );
+	void ReleaseModel( Model* );
+
 	static bool UnProject(	const grinliz::Vector3F& window,
 							const grinliz::Rectangle2I& screen,
 							const grinliz::Matrix4& modelViewProjectionInverse,
@@ -65,14 +73,14 @@ private:
 			frustumNear, frustumFar;
 	
 	grinliz::Vector3F dragStart;
-	//grinliz::Vector2I dragStartScreen;
 	grinliz::Vector3F dragStartCameraWC;
 	grinliz::Matrix4  dragMVPI;
 
 	bool isDragging;
-
 	const EngineData& engineData;
+
 	Map map;
+	Model modelPool[EL_MAX_MODELS];
 };
 
 #endif // UFOATTACK_ENGINE_INCLUDED

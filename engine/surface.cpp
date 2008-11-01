@@ -124,3 +124,11 @@ void DrawQuad( float x0, float y0, float x1, float y1, U32 textureID )
 	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
 }
 
+
+
+void Texture::Set( const char* name, U32 glID )
+{
+	GLASSERT( strlen( name ) < 16 );
+	strcpy( this->name, name );
+	this->glID = glID;
+}
