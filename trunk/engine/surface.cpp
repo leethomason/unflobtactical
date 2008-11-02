@@ -1,6 +1,7 @@
 #include "surface.h"
 #include "platformgl.h"
 #include "../grinliz/glutil.h"
+#include <string.h>
 
 Surface::Surface() : w( 0 ), h( 0 ), bpp( 0 ), allocated( 0 ), pixels( 0 )
 {}
@@ -115,7 +116,7 @@ void DrawQuad( float x0, float y0, float x1, float y1, U32 textureID )
 	float v[8] = { x0, y0, x1, y0, x1, y1, x0, y1 };
 	float t[8] = { 0.f, 0.f, 1.f, 0.f, 1.f, 1.f, 0.f, 1.f };
 
-	glColor3f( 1.f, 1.f, 1.f );
+	glColor4f( 1.f, 1.f, 1.f, 1.f );
 	glVertexPointer( 2, GL_FLOAT, 0, v );
 	if ( textureID ) {
 		glTexCoordPointer( 2, GL_FLOAT, 0, t );

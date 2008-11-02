@@ -48,7 +48,6 @@ distribution.
 	
 #else
 	#include "SDL_types.h"
-	//#include <SDL/SDL_types.h>
 	
 	typedef Uint8			U8;
 	typedef Sint8		    S8;

@@ -27,10 +27,13 @@ distribution.
 #pragma warning( disable : 4786 )
 #endif
 
+#ifndef __APPLE__
 #include "SDL_loadso.h"
 #include "SDL_error.h"
+#endif 
 
 #include <string>
+#include <dlfcn.h>
 
 #include "gldebug.h"
 #include "gldynamic.h"
@@ -41,27 +44,22 @@ using namespace std;
 void* grinliz::grinlizLoadLibrary( const char* name )
 {
 	string libraryName;
+	void* handle = 0;
 
 	#if defined( _WIN32 )
-	libraryName = name;
+		libraryName = name;
+		handle = SDL_LoadObject( libraryName.c_str() );
+		
+		if ( !handle ) {
+			GLLOG(( "ERROR: could not load %s. Reason: %s\n", libraryName.c_str(), SDL_GetError() ));
+		}
 	#elif defined(__APPLE__)
-	//libraryName = "lib";
-	libraryName += name;
-	//libraryName += ".dylib";
-	#else
-	libraryName = "lib";
-	libraryName += name;
-	libraryName += ".so";
+		libraryName = name;
+		handle = dlopen ( libraryName.c_str(), RTLD_LAZY);
+		if (!handle) {
+			GLLOG(( "ERROR: could not load %s.\n", libraryName.c_str() ));
+		}
 	#endif
-	void* handle = SDL_LoadObject( libraryName.c_str() );
-
-	if ( !handle ) {
-		//#if defined (__APPLE__)
-		//GLLOG(( "ERROR: could not load %s. Reason: %s\n", libraryName.c_str(), dlerror() ));
-		//#else
-		GLLOG(( "ERROR: could not load %s. Reason: %s\n", libraryName.c_str(), SDL_GetError() ));
-		//#endif
-	}
 	return handle;
 }
 
@@ -70,11 +68,11 @@ void* grinliz::grinlizLoadFunction( void* handle, const char* functionName )
 {
 	void* func = 0;
 
-	//#ifdef __APPLE__
-	//func = dlsym( handle, functionName );
-	//#else
-	func = SDL_LoadFunction( handle, functionName );
-	//#endif
+	#ifdef __APPLE__
+		func = dlsym( handle, functionName );
+	#else
+		func = SDL_LoadFunction( handle, functionName );
+	#endif
 
 	return func;
 }

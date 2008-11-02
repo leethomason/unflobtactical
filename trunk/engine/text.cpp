@@ -1,5 +1,8 @@
 #include "text.h"
 #include "platformgl.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 static U32 textureID = 0;
 const float CONSOLE_XSCALE = 2.0f / (float)(CONSOLE_WIDTH);
@@ -72,7 +75,6 @@ void UFOTextOut( const char* str, int x, int _y )
 		++str;
 		++x;
 	}
-	glEnd();
 
 
 	glPopMatrix();					// model

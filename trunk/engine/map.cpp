@@ -16,7 +16,7 @@ void Map::Draw()
 					dx,  0.f,
 					0.f, 0.f };
 
-	glColor3f( 1.f, 1.f, 1.f );
+	glColor4f( 1.f, 1.f, 1.f, 1.f );
 	glVertexPointer( 3, GL_FLOAT, 0, v );
 	glTexCoordPointer( 2, GL_FLOAT, 0, t );
 

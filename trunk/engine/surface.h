@@ -3,6 +3,7 @@
 
 #include "../grinliz/gltypes.h"
 #include "../grinliz/gldebug.h"
+#include <stdio.h>
 
 class Surface
 {
