@@ -23,6 +23,8 @@ distribution.
 */
 
 #include "glcontainer.h"
+#include <memory.h>
+#include <stdlib.h>
 
 #ifdef GRINLIZ_DEBUG_MEM
 // Trick to get more info from the debug tracking system. Doesn't work in headers, regrettably.

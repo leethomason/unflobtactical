@@ -54,8 +54,8 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 
 	
 	// Load to VBO
-	glGenBuffers( 1, &res->dataID );
-	glGenBuffers( 1, &res->indexID );
+	glGenBuffers( 1, (GLuint*) &res->dataID );
+	glGenBuffers( 1, (GLuint*) &res->indexID );
 	CHECK_GL_ERROR
 
 	glBindBuffer( GL_ARRAY_BUFFER, res->dataID );

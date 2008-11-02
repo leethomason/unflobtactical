@@ -8,7 +8,12 @@
 						}										\
 					}
 
-#include "../win32/glew.h"
+#ifdef __APPLE__
+	#import <OpenGLES/ES1/gl.h>
+	#import <OpenGLES/ES1/glext.h>
+#else
+	#include "../win32/glew.h"
+#endif
 
 
 #ifdef DEBUG

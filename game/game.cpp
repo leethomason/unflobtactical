@@ -75,7 +75,7 @@ void Game::FreeTextures()
 {
 	for( int i=0; i<nTexture; ++i ) {
 		if ( texture[i].glID ) {
-			glDeleteTextures( 1, &texture[i].glID );
+			glDeleteTextures( 1, (const GLuint*) &texture[i].glID );
 			texture[i].name[0] = 0;
 		}
 	}
@@ -85,8 +85,8 @@ void Game::FreeTextures()
 void Game::FreeModels()
 {
 	for( int i=0; i<nModelResource; ++i ) {
-		glDeleteBuffers( 1, &modelResource[i].dataID );
-		glDeleteBuffers( 1, &modelResource[i].indexID );		
+		glDeleteBuffers( 1, (const GLuint*) &modelResource[i].dataID );
+		glDeleteBuffers( 1, (const GLuint*) &modelResource[i].indexID );		
 	}
 }
 

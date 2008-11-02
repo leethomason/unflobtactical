@@ -28,6 +28,7 @@ distribution.
 
 #include "gldebug.h"
 #include "glvector.h"
+#include <memory.h>
 
 namespace grinliz {
 

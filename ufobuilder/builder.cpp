@@ -2,6 +2,9 @@
 #include <stdlib.h>
 
 #include "SDL.h"
+#if defined(__APPLE__)
+#include "SDL_image.h"
+#endif
 #include "SDL_loadso.h"
 
 #include <string>
@@ -27,17 +30,17 @@ string inputPath;
 
 void LoadLibrary()
 {
-	//#if defined(__APPLE__)
-	//libIMG_Load = &IMG_Load;
-	//#else
-	void* handle = grinliz::grinlizLoadLibrary( "SDL_image" );
-	if ( !handle )
-	{	
-		exit( 1 );
-	}
-	libIMG_Load = (PFN_IMG_LOAD) grinliz::grinlizLoadFunction( handle, "IMG_Load" );
-	GLASSERT( libIMG_Load );
-	//#endif
+	#if defined(__APPLE__)
+		libIMG_Load = &IMG_Load;
+	#else
+		void* handle = grinliz::grinlizLoadLibrary( "SDL_image" );
+		if ( !handle )
+		{	
+			exit( 1 );
+		}
+		libIMG_Load = (PFN_IMG_LOAD) grinliz::grinlizLoadFunction( handle, "IMG_Load" );
+		GLASSERT( libIMG_Load );
+	#endif
 }
 
 
@@ -71,6 +74,12 @@ U32 GetPixel(SDL_Surface *surface, int x, int y)
 
 void ProcessModel( TiXmlElement* model )
 {
+
+	int nTotalIndex = 0;
+	int nTotalVertex = 0;
+	int startIndex = 0;
+	int startVertex = 0;
+
 	printf( "Model\n" );
 
 	string filename;
@@ -95,9 +104,7 @@ void ProcessModel( TiXmlElement* model )
 	else {
 		printf( "  Writing: '%s', '%s'\n", name.c_str(), fullOut.c_str() );
 	}
-
-	int nTotalIndex = 0;
-	int nTotalVertex = 0;
+	
 	for( int i=0; i<builder->NumGroups(); ++i ) {
 		nTotalIndex += vertexGroup[i].nIndex;
 		nTotalVertex += vertexGroup[i].nVertex;
@@ -111,9 +118,6 @@ void ProcessModel( TiXmlElement* model )
 	SDL_WriteBE32( fp, builder->NumGroups() );
 	SDL_WriteBE32( fp, nTotalIndex );
 	SDL_WriteBE32( fp, nTotalVertex );	
-
-	int startIndex = 0;
-	int startVertex = 0;
 
 	for( int i=0; i<builder->NumGroups(); ++i ) {
 		printf( "    %d: '%s' nVertex=%d nIndex=%d\n",
