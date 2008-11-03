@@ -11,10 +11,7 @@ class Engine;
 class Surface;
 
 
-const int WIDTH  = 480;
-const int HEIGHT = 320;
 const float FOV = 45.0f;
-const float ASPECT = (float)(WIDTH) / (float)(HEIGHT);
 const int MAX_TEXTURES = 32;
 const int MAX_MODELS = 256;
 

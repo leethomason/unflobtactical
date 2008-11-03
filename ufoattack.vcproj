@@ -167,6 +167,14 @@
 			Name="game"
 			>
 			<File
+				RelativePath=".\game\cgame.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\game\cgame.h"
+				>
+			</File>
+			<File
 				RelativePath=".\game\game.cpp"
 				>
 			</File>

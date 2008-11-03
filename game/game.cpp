@@ -1,11 +1,12 @@
 #include "game.h"
+#include "cgame.h"
 #include "../engine/platformgl.h"
 #include "../engine/text.h"
 #include "../engine/model.h"
 
 
 Game::Game() :
-	engine( WIDTH, HEIGHT, engineData ),
+	engine( SCREEN_WIDTH, SCREEN_HEIGHT, engineData ),
 	nTexture( 0 ),
 	nModelResource( 0 ),
 	markFrameTime( 0 ),
