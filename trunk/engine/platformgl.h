@@ -9,10 +9,16 @@
 					}
 
 #ifdef __APPLE__
+	// Really iPhone, not apple...
 	#import <OpenGLES/ES1/gl.h>
 	#import <OpenGLES/ES1/glext.h>
+
+	#define glFrustumfX		glFrustumf
 #else
 	#include "../win32/glew.h"
+
+	#define glFrustumfX		glFrustum
+
 #endif
 
 

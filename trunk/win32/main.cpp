@@ -5,14 +5,17 @@
 
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
+#include "../game/cgame.h"
+/*
 #include "../grinliz/glvector.h"
 #include "../grinliz/glmatrix.h"
 #include "../engine/engine.h"
 #include "../engine/text.h"
 #include "../engine/surface.h"
 #include "../game/game.h"
+*/
 
-using namespace grinliz;
+//using namespace grinliz;
 
 int multisample = 4;
 bool fullscreen = false;
@@ -54,7 +57,7 @@ int main( int argc, char **argv )
 	if ( fullscreen )
 		videoFlags |= SDL_FULLSCREEN;
 
-	surface = SDL_SetVideoMode( WIDTH, HEIGHT, 32, videoFlags );
+	surface = SDL_SetVideoMode( SCREEN_WIDTH, SCREEN_HEIGHT, 32, videoFlags );
 	GLASSERT( surface );
 
 	int stencil = 0;
@@ -89,23 +92,24 @@ int main( int argc, char **argv )
 	GLLOG(( "OpenGL %s: Vendor: '%s'  Renderer: '%s'  Version: '%s'\n", system, vendor, renderer, version ));
 
 	// Set the viewport to be the entire window
-    glViewport(0, 0, WIDTH, HEIGHT);
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	//engine->SetPerspective( NEAR_PLANE, FAR_PLANE, FOV );
 	glEnable( GL_DEPTH_TEST );
 	glDepthFunc( GL_LEQUAL );
 
 	bool done = false;
+	bool dragging = false;
     SDL_Event event;
 
-	Game* game = new Game();
+	//Game* game = new Game();
+	void* game = NewGame();
 
 	// ---- Main Loop --- //
 	while ( !done )
 	{
 		// Clean out all the SDL events waiting for processing.
 		while ( SDL_PollEvent( &event ) )
-		//SDL_WaitEvent( &event );
 		{
 			switch( event.type )
 			{
@@ -117,6 +121,13 @@ int main( int argc, char **argv )
 							done = true;
 							break;
 
+						case SDLK_PAGEDOWN:		GameTiltCamera( game, 2.0f );				break;
+						case SDLK_PAGEUP:		GameTiltCamera( game, -2.0f );				break;
+						case SDLK_UP:			GameMoveCamera( game, 0.0f, 1.0f, 0.0f);	break;
+						case SDLK_DOWN:			GameMoveCamera( game, 0.0f, -1.0f, 0.0f);	break;
+						case SDLK_RIGHT:		GameAdjustPerspective( game, 2.0f );		break;
+						case SDLK_LEFT:			GameAdjustPerspective( game, -2.0f );		break;
+/*
 						case SDLK_PAGEDOWN:		game->engine.camera.DeltaTilt( 2.0f );				break;
 						case SDLK_PAGEUP:		game->engine.camera.DeltaTilt( -2.0f );				break;
 						case SDLK_UP:			game->engine.camera.DeltaPosWC( 0.0f, 1.0f, 0.0f);	break;
@@ -131,37 +142,39 @@ int main( int argc, char **argv )
 							game->engine.fov -= 2.0f;
 							game->engine.SetPerspective();
 							break;
-
+*/
 						default:
 							break;
 					}
-					GLOUTPUT(( "fov=%.1f rot=%.1f h=%.1f\n", 
+/*					GLOUTPUT(( "fov=%.1f rot=%.1f h=%.1f\n", 
 								game->engine.fov, 
 								game->engine.camera.Tilt(), 
 								game->engine.camera.PosWC().y ));
+*/
 				}
 				break;
 
 				case SDL_MOUSEBUTTONDOWN:
 				{
-					game->engine.DragStart( event.button.x, HEIGHT-1-event.button.y );
+					//game->engine.DragStart( event.button.x, HEIGHT-1-event.button.y );
+					GameDragStart( game, event.button.x, SCREEN_HEIGHT-1-event.button.y );
+					dragging = true;
 				}
 				break;
 
 				case SDL_MOUSEBUTTONUP:
 				{
-					if ( game->engine.IsDragging() ) {
-						game->engine.DragEnd( event.button.x, HEIGHT-1-event.button.y );
+					if ( dragging ) {
+						GameDragEnd( game, event.button.x, SCREEN_HEIGHT-1-event.button.y );
+						dragging = false;
 					}
 				}
 				break;
 
 				case SDL_MOUSEMOTION:
 				{
-					//engine->RayFromScreenToYPlane( event.motion.x, HEIGHT-1-event.motion.y, &mouseYPlane );
-					//GLOUTPUT(( "world (%.1f, %.1f, %.1f)\n", mouseYPlane.x, mouseYPlane.y, mouseYPlane.z ));
-					if ( game->engine.IsDragging() && event.motion.state == SDL_PRESSED ) {
-						game->engine.DragMove( event.motion.x, HEIGHT-1-event.motion.y );
+					if ( dragging && event.motion.state == SDL_PRESSED ) {
+						GameDragMove( game, event.motion.x, SCREEN_HEIGHT-1-event.motion.y );
 					}
 				}
 				break;
@@ -176,10 +189,12 @@ int main( int argc, char **argv )
 					break;
 			}
 		}
-		game->DoTick( SDL_GetTicks() );
+		//game->DoTick( SDL_GetTicks() );
+		GameDoTick( game, SDL_GetTicks() );
 		SDL_GL_SwapBuffers();
 	}
-	delete game;
+	//delete game;
+	DeleteGame( game );
 	SDL_Quit();
 
 	MemLeakCheck();

@@ -28,12 +28,13 @@ distribution.
 #endif
 
 #ifndef __APPLE__
-#include "SDL_loadso.h"
-#include "SDL_error.h"
+	#include "SDL_loadso.h"
+	#include "SDL_error.h"
+#else
+	#include <dlfcn.h>
 #endif 
 
 #include <string>
-#include <dlfcn.h>
 
 #include "gldebug.h"
 #include "gldynamic.h"

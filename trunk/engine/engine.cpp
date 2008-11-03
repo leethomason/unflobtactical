@@ -123,7 +123,7 @@ void Engine::SetPerspective()
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glFrustumf( frustumLeft, frustumRight, frustumBottom, frustumTop, frustumNear, frustumFar );
+	glFrustumfX( frustumLeft, frustumRight, frustumBottom, frustumTop, frustumNear, frustumFar );
 	
 	glMatrixMode(GL_MODELVIEW);
 }
