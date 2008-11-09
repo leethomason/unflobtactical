@@ -9,8 +9,8 @@ extern "C" {
 #define SCREEN_HEIGHT	320
 #define SCREEN_ASPECT   ((float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT))
 
-
-void* NewGame();
+// --- Platform to Core --- //
+void* NewGame( int width, int height );
 void DeleteGame( void* handle );
 
 // Input
@@ -24,6 +24,9 @@ void GameDoTick( void* handle, unsigned int timeInMSec );
 void GameTiltCamera( void* handle, float degrees );
 void GameMoveCamera( void* handle, float dx, float dy, float dz );
 void GameAdjustPerspective( void* handle, float dFOV );
+	
+// --- Core to platform --- //
+void PlatformPathToResource( const char* name, const char* extension, char* buffer, int bufferLen );
 
 
 #ifdef __cplusplus

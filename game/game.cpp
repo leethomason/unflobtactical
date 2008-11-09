@@ -5,8 +5,8 @@
 #include "../engine/model.h"
 
 
-Game::Game() :
-	engine( SCREEN_WIDTH, SCREEN_HEIGHT, engineData ),
+Game::Game( int width, int height ) :
+	engine( width, height, engineData ),
 	nTexture( 0 ),
 	nModelResource( 0 ),
 	markFrameTime( 0 ),
@@ -38,8 +38,10 @@ void Game::LoadTextures()
 
 	U32 textureID = 0;
 	FILE* fp = 0;
-
-	fp = fopen( "./res/stdfont.tex", "rb" );
+	char buffer[512];
+	
+	PlatformPathToResource( "stdfont", "tex", buffer, 512 );
+	fp = fopen( buffer, "rb" );
 	GLASSERT( fp );
 	textureID = surface.LoadTexture( fp );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
@@ -47,7 +49,8 @@ void Game::LoadTextures()
 	texture[ nTexture++ ].Set( "stdfont", textureID );
 	fclose( fp );
 
-	fp = fopen( "./res/green.tex", "rb" );
+	PlatformPathToResource( "green", "tex", buffer, 512 );
+	fp = fopen( buffer, "rb" );
 	GLASSERT( fp );
 	textureID = surface.LoadTexture( fp );
 	texture[ nTexture++ ].Set( "testTile", textureID );
@@ -59,16 +62,18 @@ void Game::LoadTextures()
 
 void Game::LoadModels()
 {
-	ModelLoader* loader = new ModelLoader( texture, nTexture );
-	memset( modelResource, 0, sizeof(ModelResource)*MAX_MODELS );
+	/*
+	 ModelLoader* loader = new ModelLoader( texture, nTexture );
+	 memset( modelResource, 0, sizeof(ModelResource)*MAX_MODELS );
 
-	FILE* fp = 0;
+	 FILE* fp = 0;
 
-	fp = fopen( "./res/test.mod", "rb" );
-	GLASSERT( fp );
-	loader->Load( fp, &modelResource[nModelResource++] );
+	 fp = fopen( "./res/test.mod", "rb" );
+	 GLASSERT( fp );
+	 loader->Load( fp, &modelResource[nModelResource++] );
 
-	delete loader;
+	 delete loader;
+	 */
 }
 
 
@@ -85,10 +90,12 @@ void Game::FreeTextures()
 
 void Game::FreeModels()
 {
+	/*
 	for( int i=0; i<nModelResource; ++i ) {
 		glDeleteBuffers( 1, (const GLuint*) &modelResource[i].dataID );
 		glDeleteBuffers( 1, (const GLuint*) &modelResource[i].indexID );		
 	}
+	 */
 }
 
 
