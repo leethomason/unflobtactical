@@ -1,16 +1,21 @@
+#include "../grinliz/gldebug.h"
 #include "cgame.h"
 #include "game.h"
 
-void* NewGame()
+#include <CoreFoundation/CoreFoundation.h>
+
+void* NewGame( int width, int height )
 {
-	Game* game = new Game();
+	Game* game = new Game( width, height );
 	return game;
 }
 
-void DeleteGame( void* _game )
+void DeleteGame( void* handle )
 {
-	Game* game = (Game*)_game;
-	delete game;
+	if ( handle ) {
+		Game* game = (Game*)handle;
+		delete game;
+	}
 }
 
 void GameDragStart( void* handle, int x, int y )
@@ -56,3 +61,25 @@ void GameAdjustPerspective( void* handle, float dFOV )
 	game->engine.fov += dFOV;
 	game->engine.SetPerspective();
 }
+
+
+void PlatformPathToResource( const char* name, const char* extension, char* buffer, int bufferLen )
+{
+#ifdef __APPLE__
+#ifdef DEBUG
+	int debug = 1;
+#endif
+	CFStringRef nameRef = CFStringCreateWithCString( 0, name, kCFStringEncodingWindowsLatin1 );
+	CFStringRef extensionRef = CFStringCreateWithCString( 0, extension, kCFStringEncodingWindowsLatin1 );
+	
+	CFBundleRef mainBundle = CFBundleGetMainBundle();	
+	CFURLRef imageURL = CFBundleCopyResourceURL( mainBundle, nameRef, extensionRef, NULL );
+	GLASSERT( imageURL );
+		
+	CFURLGetFileSystemRepresentation( imageURL, true, (unsigned char*)buffer, bufferLen );
+#else
+	std::string fullname = std::string( name ) + std::string( "." ) + std::string( extension );
+	strncpy( buffer, fullname.c_str(), bufferLen );
+#endif
+}
+

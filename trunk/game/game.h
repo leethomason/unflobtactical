@@ -22,7 +22,7 @@ private:
 	EngineData engineData;
 
 public:
-	Game();
+	Game( int width, int height );
 	~Game();
 
 	void DoTick( U32 msec );

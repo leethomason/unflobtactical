@@ -27,8 +27,10 @@ distribution.
 #ifndef GRINLIZ_DEBUG_INCLUDED
 #define GRINLIZ_DEBUG_INCLUDED
 
-#if defined( _DEBUG ) && !defined( DEBUG )
-	#define DEBUG
+#if defined( _DEBUG ) || defined( DEBUG ) || defined (__DEBUG__)
+	#ifndef DEBUG
+		#define DEBUG
+	#endif
 #endif
 
 #if defined(DEBUG)
