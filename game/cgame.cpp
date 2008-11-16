@@ -6,6 +6,9 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
+static int dragStartX = 0;
+static int dragStartY = 0;
+
 void* NewGame( int width, int height )
 {
 	Game* game = new Game( width, height );
@@ -22,8 +25,11 @@ void DeleteGame( void* handle )
 
 void GameDragStart( void* handle, int x, int y )
 {
+	GLOUTPUT(( "DragStart %d,%d\n", x, y ));
 	Game* game = (Game*)handle;
 	game->engine.DragStart( x, y );
+	dragStartX = x;
+	dragStartY = y;
 }
 
 void GameDragMove( void* handle, int x, int y )
@@ -37,6 +43,12 @@ void GameDragEnd( void* handle, int x, int y )
 {
 	Game* game = (Game*)handle;
 	game->engine.DragEnd( x, y );
+}
+
+void GameDragCancelled( void* handle )
+{
+	Game* game = (Game*)handle;
+	game->engine.DragEnd( dragStartX, dragStartY );	
 }
 
 void GameDoTick( void* handle, unsigned int timeInMSec )

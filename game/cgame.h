@@ -14,6 +14,8 @@ void DeleteGame( void* handle );
 void GameDragStart( void* handle, int x, int y );
 void GameDragMove( void* handle, int x, int y );
 void GameDragEnd( void* handle, int x, int y );
+void GameDragCancelled( void* handle );	
+	
 void GameRotate( void* handle, int rotation );
 
 void GameDoTick( void* handle, unsigned int timeInMSec );
