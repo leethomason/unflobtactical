@@ -3,7 +3,7 @@
 
 using namespace grinliz;
 
-Camera::Camera() : valid( false ), tilt( 45.f )
+Camera::Camera() : valid( false ), tilt( 45.f ), yRotation( 0.0f ), viewRotation( 0 )
 {
 	posWC.Set( 0.f, 0.f, 0.f );
 }
@@ -12,11 +12,12 @@ Camera::Camera() : valid( false ), tilt( 45.f )
 void Camera::MakeValid()
 {
 	if ( !valid ) {
-		Matrix4		rot, rot1, rot2;
+		Matrix4		rot, rotY, rotZ;
 
-		rot1.SetYRotation( 45.0f );
-		rot2.SetZRotation( tilt );
-		MultMatrix4( rot2, rot1, &rot );
+		rotY.SetYRotation( yRotation );
+		rotZ.SetZRotation( tilt );
+
+		rot = rotZ * rotY;
 
 		Vector3F x, y, z;
 
@@ -26,8 +27,9 @@ void Camera::MakeValid()
 		// z = eye - center
 		z.Set( -rot.m11, -rot.m12, -rot.m13 );	// Inverse of the axial direction
 		
-		y.Set( 0.0f, 1.0f, 0.0f );	// The up vector is positive z.
-
+		// The up direction.
+		y.Set( 0.0f, 1.0f, 0.0f );
+		
 		// X = Y cross Z
 		CrossProduct( y, z, &x );
 		// Y = Z cross X
@@ -52,6 +54,10 @@ void Camera::MakeValid()
 		m.m33 = z.z;
 		m.m34 = 0.0f;
 
+		Matrix4 vm;
+		vm.SetZRotation( 90.0f * (float)viewRotation );
+
+		m = vm * m;
 		valid = true;
 	}
 }

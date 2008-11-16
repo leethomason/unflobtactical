@@ -3,8 +3,8 @@
 
 void Map::Draw()
 {
-	const float dx = 64.f;
-	const float dy = 64.f;
+	const float dx = (float)Map::SIZE;
+	const float dy = (float)Map::SIZE;
 
 	float v[12] = {	0.f, 0.f, 0.f, 
 					dx,  0.f, 0.f, 

@@ -4,10 +4,7 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 
-const int CONSOLE_WIDTH = 40;
-const int CONSOLE_HEIGHT = 15;
-
-void UFOInitDrawText( U32 textTextureID );
+void UFOInitDrawText( U32 textTextureID, int screenWidth, int screenHeight, int rotation );
 void UFODrawText( int x, int y, const char* format, ... );
 
 

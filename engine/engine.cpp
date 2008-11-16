@@ -12,7 +12,8 @@ using namespace grinliz;
 Engine::Engine( int _width, int _height, const EngineData& _engineData ) 
 	: width( _width ), height( _height ), isDragging( false ), engineData( _engineData )
 {
-	camera.SetPosWC( 0.0f, engineData.cameraHeight, 0.0f );
+	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)Map::SIZE+5.0f );
+	camera.SetYRotation( -45.f );
 	camera.SetTilt( engineData.cameraTilt );
 	fov = engineData.fov;
 

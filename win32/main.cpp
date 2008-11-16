@@ -5,20 +5,36 @@
 
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
+#include "../grinliz/glutil.h"
 #include "../game/cgame.h"
-/*
-#include "../grinliz/glvector.h"
-#include "../grinliz/glmatrix.h"
-#include "../engine/engine.h"
-#include "../engine/text.h"
-#include "../engine/surface.h"
-#include "../game/game.h"
-*/
 
-//using namespace grinliz;
+#define SCREEN_WIDTH	320
+#define SCREEN_HEIGHT	480
+#define SCREEN_ASPECT   ((float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT))
 
 int multisample = 4;
 bool fullscreen = false;
+
+/*
+unsigned CreateTexture( int size )
+{
+	unsigned int textureID;
+
+	glGenTextures( 1, &textureID );
+	glBindTexture( GL_TEXTURE_2D, textureID );
+
+	glTexImage2D(	GL_TEXTURE_2D, 
+					0, 
+					GL_RGBA8, 
+					size, 
+					size, 
+					0, 
+					GL_BGRA, 
+					GL_UNSIGNED_INT_8_8_8_8_REV, 
+					0 );
+	return textureID;
+}
+*/
 
 int main( int argc, char **argv )
 {    
@@ -94,16 +110,16 @@ int main( int argc, char **argv )
 	// Set the viewport to be the entire window
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	//engine->SetPerspective( NEAR_PLANE, FAR_PLANE, FOV );
 	glEnable( GL_DEPTH_TEST );
 	glDepthFunc( GL_LEQUAL );
 
 	bool done = false;
 	bool dragging = false;
     SDL_Event event;
+	int rotation = 1;
 
-	//Game* game = new Game();
-	void* game = NewGame();
+	void* game = NewGame( SCREEN_WIDTH, SCREEN_HEIGHT );
+	GameRotate( game, rotation );
 
 	// ---- Main Loop --- //
 	while ( !done )
@@ -125,24 +141,11 @@ int main( int argc, char **argv )
 						case SDLK_PAGEUP:		GameTiltCamera( game, -2.0f );				break;
 						case SDLK_UP:			GameMoveCamera( game, 0.0f, 1.0f, 0.0f);	break;
 						case SDLK_DOWN:			GameMoveCamera( game, 0.0f, -1.0f, 0.0f);	break;
-						case SDLK_RIGHT:		GameAdjustPerspective( game, 2.0f );		break;
-						case SDLK_LEFT:			GameAdjustPerspective( game, -2.0f );		break;
-/*
-						case SDLK_PAGEDOWN:		game->engine.camera.DeltaTilt( 2.0f );				break;
-						case SDLK_PAGEUP:		game->engine.camera.DeltaTilt( -2.0f );				break;
-						case SDLK_UP:			game->engine.camera.DeltaPosWC( 0.0f, 1.0f, 0.0f);	break;
-						case SDLK_DOWN:			game->engine.camera.DeltaPosWC( 0.0f, -1.0f, 0.0f);	break;
+						//case SDLK_RIGHT:		GameAdjustPerspective( game, 2.0f );		break;
+						//case SDLK_LEFT:			GameAdjustPerspective( game, -2.0f );		break;
+						case SDLK_RIGHT:		GameRotate( game, --rotation );				break;
+						case SDLK_LEFT:			GameRotate( game, ++rotation );				break;
 
-						case SDLK_RIGHT:
-							game->engine.fov += 2.0f;
-							game->engine.SetPerspective();
-							break;
-
-						case SDLK_LEFT:
-							game->engine.fov -= 2.0f;
-							game->engine.SetPerspective();
-							break;
-*/
 						default:
 							break;
 					}
@@ -189,11 +192,9 @@ int main( int argc, char **argv )
 					break;
 			}
 		}
-		//game->DoTick( SDL_GetTicks() );
 		GameDoTick( game, SDL_GetTicks() );
 		SDL_GL_SwapBuffers();
 	}
-	//delete game;
 	DeleteGame( game );
 	SDL_Quit();
 

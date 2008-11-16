@@ -15,6 +15,13 @@
 class Model;
 class ModelResource;
 
+/*
+	Standard state:
+	Z-Write		enabled
+	Z-Test		enabled
+	Blend		disabled
+*/
+
 struct EngineData
 {
 	EngineData() : 
@@ -61,6 +68,9 @@ public:
 	void DragMove( int x, int y );
 	void DragEnd( int x, int y );
 	bool IsDragging() { return isDragging; }
+
+	int Width()		{ return width; }
+	int Height()	{ return height; }
 
 private:
 	void DrawCamera();

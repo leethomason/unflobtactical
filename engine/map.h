@@ -7,6 +7,10 @@
 class Map
 {
 public:
+	enum {
+		SIZE = 64
+	};
+
 	Map()	{}
 	~Map()	{}
 

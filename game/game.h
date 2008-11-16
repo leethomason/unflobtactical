@@ -27,6 +27,8 @@ public:
 
 	void DoTick( U32 msec );
 
+	void SetRotation( int i );
+	
 	int NumTextures()	{ return nTexture; }
 
 	Texture texture[MAX_TEXTURES];
@@ -40,6 +42,7 @@ private:
 	void LoadModels();
 	void FreeModels();
 
+	int rotation;
 	int nTexture;
 	int nModelResource;
 	U32 markFrameTime;

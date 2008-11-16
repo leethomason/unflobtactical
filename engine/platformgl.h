@@ -1,6 +1,8 @@
 #ifndef UFOATTACK_PLATFORMGL_INCLUDED
 #define UFOATTACK_PLATFORMGL_INCLUDED
 
+#include "../grinliz/gldebug.h"
+
 #define TESTGLERR()	{	GLenum err = glGetError();				\
 						if ( err != GL_NO_ERROR ) {				\
 							GLOUTPUT(( "GL ERR=0x%x\n", err )); \
