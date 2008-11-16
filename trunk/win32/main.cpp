@@ -7,34 +7,61 @@
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glutil.h"
 #include "../game/cgame.h"
+#include "framebuffer.h"
 
-#define SCREEN_WIDTH	320
-#define SCREEN_HEIGHT	480
-#define SCREEN_ASPECT   ((float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT))
+#define IPOD_SCREEN_WIDTH	320
+#define IPOD_SCREEN_HEIGHT	480
+#define FRAMEBUFFER_ROTATE
 
-int multisample = 4;
+int multisample = 0;
 bool fullscreen = false;
 
-/*
-unsigned CreateTexture( int size )
+
+void XferTexture( U32 id, int _w, int _h )
 {
-	unsigned int textureID;
+	float x = 0.f;
+	float y = 0.f;
+	float w = (float)_w;
+	float h = (float)_h;
 
-	glGenTextures( 1, &textureID );
-	glBindTexture( GL_TEXTURE_2D, textureID );
+	glEnable( GL_TEXTURE_2D );
+	glBindTexture( GL_TEXTURE_2D, id );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-	glTexImage2D(	GL_TEXTURE_2D, 
-					0, 
-					GL_RGBA8, 
-					size, 
-					size, 
-					0, 
-					GL_BGRA, 
-					GL_UNSIGNED_INT_8_8_8_8_REV, 
-					0 );
-	return textureID;
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();					// save projection
+	glLoadIdentity();				// projection
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();					// model
+	glLoadIdentity();				// model
+
+	int viewport[ 4 ];
+	glGetIntegerv( GL_VIEWPORT, viewport );
+	glOrtho( viewport[0], viewport[2], viewport[1], viewport[3], -1, 1 );
+
+	glBegin( GL_QUADS );
+	glTexCoord2f( 1.0f, 0.0f );
+	glVertex2f( x, y );
+
+	glTexCoord2f( 1.0f, 1.0f );
+	glVertex2f( x+w, y );
+
+	glTexCoord2f( 0.0f, 1.0f );
+	glVertex2f( x+w, y+h );
+
+	glTexCoord2f( 0.0f, 0.0f );
+	glVertex2f( x, y+h );
+	glEnd();
+
+	glPopMatrix();					// model
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();					// projection
+	glMatrixMode(GL_MODELVIEW);
 }
-*/
+
+
 
 int main( int argc, char **argv )
 {    
@@ -73,7 +100,12 @@ int main( int argc, char **argv )
 	if ( fullscreen )
 		videoFlags |= SDL_FULLSCREEN;
 
-	surface = SDL_SetVideoMode( SCREEN_WIDTH, SCREEN_HEIGHT, 32, videoFlags );
+	// Note that our output surface is rotated from the iPod.
+#ifdef FRAMEBUFFER_ROTATE
+	surface = SDL_SetVideoMode( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, 32, videoFlags );
+#else
+	surface = SDL_SetVideoMode( IPOD_SCREEN_WIDTH, IPOD_SCREEN_HEIGHT, 32, videoFlags );
+#endif
 	GLASSERT( surface );
 
 	int stencil = 0;
@@ -108,17 +140,17 @@ int main( int argc, char **argv )
 	GLLOG(( "OpenGL %s: Vendor: '%s'  Renderer: '%s'  Version: '%s'\n", system, vendor, renderer, version ));
 
 	// Set the viewport to be the entire window
-    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-	glEnable( GL_DEPTH_TEST );
-	glDepthFunc( GL_LEQUAL );
-
+    glViewport(0, 0, surface->w, surface->h );
+	#ifdef FRAMEBUFFER_ROTATE
+	FrameBuffer* frameBuffer = new FrameBuffer( IPOD_SCREEN_WIDTH, IPOD_SCREEN_HEIGHT );
+	#endif
+	
 	bool done = false;
 	bool dragging = false;
     SDL_Event event;
 	int rotation = 1;
 
-	void* game = NewGame( SCREEN_WIDTH, SCREEN_HEIGHT );
+	void* game = NewGame( IPOD_SCREEN_WIDTH, IPOD_SCREEN_HEIGHT );
 	GameRotate( game, rotation );
 
 	// ---- Main Loop --- //
@@ -159,8 +191,13 @@ int main( int argc, char **argv )
 
 				case SDL_MOUSEBUTTONDOWN:
 				{
-					//game->engine.DragStart( event.button.x, HEIGHT-1-event.button.y );
-					GameDragStart( game, event.button.x, SCREEN_HEIGHT-1-event.button.y );
+					int x = event.button.x;
+					int y = IPOD_SCREEN_HEIGHT-1-event.button.y;
+#ifdef FRAMEBUFFER_ROTATE	
+					x = event.button.y;
+					y = event.button.x;
+#endif
+					GameDragStart( game, x, y );
 					dragging = true;
 				}
 				break;
@@ -168,7 +205,13 @@ int main( int argc, char **argv )
 				case SDL_MOUSEBUTTONUP:
 				{
 					if ( dragging ) {
-						GameDragEnd( game, event.button.x, SCREEN_HEIGHT-1-event.button.y );
+						int x = event.button.x;
+						int y = IPOD_SCREEN_HEIGHT-1-event.button.y;
+#ifdef FRAMEBUFFER_ROTATE	
+						x = event.button.y;
+						y = event.button.x;
+#endif
+						GameDragEnd( game, x, y );
 						dragging = false;
 					}
 				}
@@ -177,7 +220,13 @@ int main( int argc, char **argv )
 				case SDL_MOUSEMOTION:
 				{
 					if ( dragging && event.motion.state == SDL_PRESSED ) {
-						GameDragMove( game, event.motion.x, SCREEN_HEIGHT-1-event.motion.y );
+						int x = event.button.x;
+						int y = IPOD_SCREEN_HEIGHT-1-event.button.y;
+#ifdef FRAMEBUFFER_ROTATE	
+						x = event.button.y;
+						y = event.button.x;
+#endif
+						GameDragMove( game, x, y );
 					}
 				}
 				break;
@@ -192,10 +241,26 @@ int main( int argc, char **argv )
 					break;
 			}
 		}
+
+#ifdef FRAMEBUFFER_ROTATE
+		frameBuffer->Bind();
+#endif
+		glEnable( GL_DEPTH_TEST );
+		glDepthFunc( GL_LEQUAL );
+
 		GameDoTick( game, SDL_GetTicks() );
+
+#ifdef FRAMEBUFFER_ROTATE
+		frameBuffer->UnBind();				
+		XferTexture( frameBuffer->TextureID(), IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH );
+#endif
 		SDL_GL_SwapBuffers();
 	}
 	DeleteGame( game );
+
+#ifdef FRAMEBUFFER_ROTATE
+	delete frameBuffer;
+#endif
 	SDL_Quit();
 
 	MemLeakCheck();
