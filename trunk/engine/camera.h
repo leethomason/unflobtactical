@@ -13,7 +13,9 @@ public:
 	~Camera()	{}
 
 	float Tilt()						{ return tilt; }
-	void  SetTilt( float value )		{ valid = false; tilt = value; }
+	void SetTilt( float value )			{ valid = false; tilt = value; }
+	void SetYRotation( float value )	{ valid = false; yRotation = value; }
+	void SetViewRotation( int v )		{ valid = false; viewRotation = v; }
 	const grinliz::Vector3F& PosWC()	{ return posWC; }
 	
 	void SetPosWC( const grinliz::Vector3F& value )	{ valid = false; posWC = value; }
@@ -30,6 +32,8 @@ private:
 
 	bool valid;
 	float tilt;
+	int viewRotation;
+	float yRotation;
 	grinliz::Vector3F posWC;
 	grinliz::Matrix4 m;
 };

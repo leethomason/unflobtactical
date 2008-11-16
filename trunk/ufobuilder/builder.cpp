@@ -212,6 +212,7 @@ void ProcessTexture( TiXmlElement* texture )
 
 	switch( surface->format->BitsPerPixel ) {
 		case 32:
+			printf( "  RGBA\n" );
 			SDL_WriteBE32( fp, GL_RGBA );
 			SDL_WriteBE32( fp, GL_UNSIGNED_SHORT_4_4_4_4 );
 			SDL_WriteBE32( fp, surface->w );
@@ -235,6 +236,7 @@ void ProcessTexture( TiXmlElement* texture )
 			break;
 
 		case 24:
+			printf( "  RGB\n" );
 			SDL_WriteBE32( fp, GL_RGB );
 			SDL_WriteBE32( fp, GL_UNSIGNED_SHORT_5_6_5 );
 			SDL_WriteBE32( fp, surface->w );
@@ -255,7 +257,23 @@ void ProcessTexture( TiXmlElement* texture )
 				}
 			}
 			break;
-		
+
+		case 8:
+			printf( "  Alpha\n" );
+			SDL_WriteBE32( fp, GL_ALPHA );
+			SDL_WriteBE32( fp, GL_UNSIGNED_BYTE );
+			SDL_WriteBE32( fp, surface->w );
+			SDL_WriteBE32( fp, surface->h );
+
+			// Bottom up!
+			for( int j=surface->h-1; j>=0; --j ) {
+				for( int i=0; i<surface->w; ++i ) {
+				    U8 *p = (U8 *)surface->pixels + j*surface->pitch + i;
+					SDL_RWwrite( fp, p, 1, 1 );
+				}
+			}
+			break;
+
 		default:
 			printf( "Unsupported bit depth!\n" );
 			break;

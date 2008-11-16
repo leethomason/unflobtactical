@@ -2,7 +2,9 @@
 #include "cgame.h"
 #include "game.h"
 
+#ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
+#endif
 
 void* NewGame( int width, int height )
 {
@@ -62,6 +64,12 @@ void GameAdjustPerspective( void* handle, float dFOV )
 	game->engine.SetPerspective();
 }
 
+void GameRotate( void* handle, int rotation )
+{
+ 	Game* game = (Game*)handle;
+	game->SetRotation( rotation );
+}
+
 
 void PlatformPathToResource( const char* name, const char* extension, char* buffer, int bufferLen )
 {
@@ -78,7 +86,10 @@ void PlatformPathToResource( const char* name, const char* extension, char* buff
 		
 	CFURLGetFileSystemRepresentation( imageURL, true, (unsigned char*)buffer, bufferLen );
 #else
-	std::string fullname = std::string( name ) + std::string( "." ) + std::string( extension );
+	std::string fullname = "./res/";
+	fullname += name;
+	fullname += ".";
+	fullname += extension;
 	strncpy( buffer, fullname.c_str(), bufferLen );
 #endif
 }

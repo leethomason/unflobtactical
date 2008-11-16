@@ -7,6 +7,7 @@
 
 Game::Game( int width, int height ) :
 	engine( width, height, engineData ),
+	rotation( 0 ),
 	nTexture( 0 ),
 	nModelResource( 0 ),
 	markFrameTime( 0 ),
@@ -39,24 +40,43 @@ void Game::LoadTextures()
 	U32 textureID = 0;
 	FILE* fp = 0;
 	char buffer[512];
+
+	const char* names[] = 
+	{
+		"stdfont2",
+		"green",
+		0
+	};
 	
-	PlatformPathToResource( "stdfont", "tex", buffer, 512 );
+	/*PlatformPathToResource( "stdfont2", "tex", buffer, 512 );
 	fp = fopen( buffer, "rb" );
 	GLASSERT( fp );
 	textureID = surface.LoadTexture( fp );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	UFOInitDrawText( textureID );
 	texture[ nTexture++ ].Set( "stdfont", textureID );
 	fclose( fp );
+	*/
 
-	PlatformPathToResource( "green", "tex", buffer, 512 );
-	fp = fopen( buffer, "rb" );
-	GLASSERT( fp );
-	textureID = surface.LoadTexture( fp );
-	texture[ nTexture++ ].Set( "testTile", textureID );
-	fclose( fp );
-
+	for( int i=0; names[i]; ++i ) {
+		PlatformPathToResource( names[i], "tex", buffer, 512 );
+		fp = fopen( buffer, "rb" );
+		GLASSERT( fp );
+		textureID = surface.LoadTexture( fp );
+		texture[ nTexture++ ].Set( names[i], textureID );
+		fclose( fp );
+	}
 	GLASSERT( nTexture <= MAX_TEXTURES );
+	UFOInitDrawText( texture[0].glID, engine.Width(), engine.Height(), rotation );
+}
+
+
+void Game::SetRotation( int value ) 
+{
+	rotation = ((unsigned)value)%4;
+
+	UFOInitDrawText( 0, engine.Width(), engine.Height(), rotation );
+	engine.camera.SetViewRotation( rotation );
 }
 
 
