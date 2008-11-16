@@ -70,6 +70,29 @@ template <class T> inline T		Mean( T t0, T t1 )	{ return (t0 + t1)/static_cast<T
 /// Average (mean) value
 template <class T> inline T		Mean( T t0, T t1, T t2 )	{ return (t0+t1+t2)/static_cast<T>( 3 ); }
 
+/// Round down to the next power of 2
+inline U32 FloorPowerOf2( U32 v )
+{
+	v = v | (v>>1);
+	v = v | (v>>2);
+	v = v | (v>>4);
+	v = v | (v>>8);
+	v = v | (v>>16);
+	return v - (v>>1);
+}
+
+/// Round up to the next power of 2
+inline U32 CeilPowerOf2( U32 v )
+{
+	v = v - 1;
+	v = v | (v>>1);
+	v = v | (v>>2);
+	v = v | (v>>4);
+	v = v | (v>>8);
+	v = v | (v>>16);
+	return v + 1;
+}
+
 /// Linear interpolation.
 template <class A, class B> inline B Interpolate( A x0, B q0, A x1, B q1, A x )
 {
