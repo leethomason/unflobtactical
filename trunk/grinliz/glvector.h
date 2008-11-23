@@ -277,7 +277,8 @@ struct Vector3
 
 	void Normalize()	
 	{ 
-		GLASSERT( grinliz::Length( x, y, z ) > 0.001f );
+
+		GLASSERT( grinliz::Length( x, y, z ) > 0.00001f );
 		T lenInv = static_cast<T>(1) / grinliz::Length( x, y, z );
 		x *= lenInv; 
 		y *= lenInv;

@@ -2,6 +2,9 @@
 #include "surface.h"
 #include "platformgl.h"
 #include "enginelimits.h"
+#include "../grinliz/glvector.h"
+
+using namespace grinliz;
 
 void ModelLoader::Load( FILE* fp, ModelResource* res )
 {
@@ -48,10 +51,41 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 		res->startIndex[i] = grinliz::SwapBE32( res->startIndex[i] );
 		res->nIndex[i] = grinliz::SwapBE32( res->nIndex[i] );
 	}
-	fread( vertex, sizeof(Vertex), nTotalVertices, fp );
+	size_t r = fread( vertex, sizeof(VertexX), nTotalVertices, fp );
+	GLASSERT( r == nTotalVertices );
+	grinliz::SwapBufferBE32( (U32*)vertex, nTotalVertices*8 );
+
+	GLASSERT( sizeof(VertexX) == sizeof(Vertex) );
+	GLASSERT( sizeof(VertexX) == sizeof(U32)*8 );
+
+#ifndef __APPLE
+	// Convert to float.
+	for( U32 i=0; i<nTotalVertices*8; ++i ) {
+		S32 u = *(((S32*)vertex)+i);
+		float f = FixedToFloat( u );
+		*(((float*)vertex)+i) = f;
+
+	}
+	#ifdef DEBUG
+	for( U32 i=0; i<nTotalVertices; ++i ) {
+		const Vertex& v = *(((Vertex*)vertex) + i);;
+		GLOUTPUT(( "Vertex %d: pos=(%.2f, %.2f, %.2f) normal=(%.1f, %.1f, %.1f) tex=(%.1f, %.1f)\n", 
+					i,
+					v.pos.x, v.pos.y, v.pos.z,
+					v.normal.x, v.normal.y, v.normal.z,
+					v.tex.x, v.tex.y ));
+	}
+	#endif
+#endif
+
 	fread( index, sizeof(U16), nTotalIndices, fp );
 	grinliz::SwapBufferBE16( index, nTotalIndices );
 
+#ifdef DEBUG
+	for( U32 i=0; i<nTotalIndices; i+=3 ) {
+		GLOUTPUT(( "%d %d %d\n", index[i+0], index[i+1], index[i+2] ));
+	}
+#endif
 	
 	// Load to VBO
 	glGenBuffers( 1, (GLuint*) &res->dataID );
@@ -63,7 +97,7 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	CHECK_GL_ERROR
 
 	// Data (vertex) buffer
-	U32 dataSize = sizeof(Vertex)*nTotalVertices;
+	U32 dataSize  = sizeof(VertexX)*nTotalVertices;
 	U32 indexSize = sizeof(U16)*nTotalIndices;
 
 	glBufferData( GL_ARRAY_BUFFER, dataSize, vertex, GL_STATIC_DRAW );
@@ -80,9 +114,31 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 
 void Model::Draw()
 {
-	//glEnable( GL_LIGHTING );
-	//glEnable( GL_LIGHT0 );
+	glEnable( GL_LIGHTING );
+
+	const float white[4]	= { 1.0f, 1.0f, 1.0f, 1.0f };
+	const float black[4]	= { 0.0f, 0.0f, 0.0f, 1.0f };
+	const float ambient[4]  = { 0.3f, 0.3f, 0.3f, 1.0f };
+	const float diffuse[4]	= { 0.7f, 0.7f, 0.7f, 1.0f };
+
+	Vector3F lightDirection = { 1.0f, 3.0f, 2.0f };
+	lightDirection.Normalize();
+	float lightVector4[4] = { lightDirection.x, lightDirection.y, lightDirection.z, 0.0 };	// parallel
+
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+
+	// Light 0. The Sun or Moon.
+	glEnable(GL_LIGHT0);
+	glLightfv(GL_LIGHT0, GL_POSITION, lightVector4 );
+	glLightfv(GL_LIGHT0, GL_AMBIENT,  ambient );
+	glLightfv(GL_LIGHT0, GL_DIFFUSE,  diffuse );
+	glLightfv(GL_LIGHT0, GL_SPECULAR, black );
+
+	// The material.
+	glMaterialfv( GL_FRONT, GL_SPECULAR, black );
+	glMaterialfv( GL_FRONT, GL_EMISSION, black );
+	glMaterialfv( GL_FRONT, GL_AMBIENT,  white );
+	glMaterialfv( GL_FRONT, GL_DIFFUSE,  white );
 
 	glBindBuffer(GL_ARRAY_BUFFER, resource->dataID );			// for vertex coordinates
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indexID );	// for indices
@@ -90,11 +146,23 @@ void Model::Draw()
 
 	glPushMatrix();
 	glTranslatef( pos.x, pos.y, pos.z );
+	glRotatef( rot, 0.f, 1.f, 0.f );
+
+	glEnable( GL_TEXTURE_2D );
+	glEnable( GL_DEPTH_TEST );
+	glDepthMask( GL_TRUE );
 
 	for( U32 i=0; i<resource->nGroups; ++i ) {
-		glVertexPointer(3, GL_FLOAT, 0, (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
-		glNormalPointer( GL_FLOAT, 0, (const GLvoid*)Vertex::NORMAL_OFFSET);		
-		glTexCoordPointer( 3, GL_FLOAT, 0, (const GLvoid*)Vertex::TEXTURE_OFFSET);  
+		if ( resource->texture[i] ) {
+			glBindTexture( GL_TEXTURE_2D, resource->texture[i]->glID );
+		}
+		else {
+			glBindTexture( GL_TEXTURE_2D, 0 );
+		}
+
+		glVertexPointer(   3, VERTEX_TYPE, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
+		glNormalPointer(      VERTEX_TYPE, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
+		glTexCoordPointer( 3, VERTEX_TYPE, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
 		CHECK_GL_ERROR;
 
 		// mode, count, type, indices
@@ -109,6 +177,6 @@ void Model::Draw()
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 	glPopMatrix();
 
-	//glDisable( GL_LIGHTING );
+	glDisable( GL_LIGHTING );
 }
 

@@ -79,7 +79,7 @@ void GameAdjustPerspective( void* handle, float dFOV )
 void GameRotate( void* handle, int rotation )
 {
  	Game* game = (Game*)handle;
-	game->SetRotation( rotation );
+	game->SetScreenRotation( rotation );
 }
 
 

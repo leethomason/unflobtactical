@@ -22,6 +22,10 @@ void ProcessAC3D( ACObject* ob, ModelBuilder* builder, const Matrix4& parent )
 	{
 		ACSurface *surf = &ob->surfaces[i];
 		Vector3F normal = { surf->normal.x, surf->normal.y, surf->normal.z };
+		if ( normal.Length() == 0.f ) {
+			GLASSERT( 0 );
+			normal.Set( 0.0f, 1.0f, 0.0f );
+		}
 
 		int st = surf->flags & 0xf;
 		if ( st == SURFACE_TYPE_POLYGON && surf->num_vertref<16 )		// hopefully convex and simple
@@ -54,8 +58,9 @@ void ProcessAC3D( ACObject* ob, ModelBuilder* builder, const Matrix4& parent )
 			GLASSERT( 0 );
 		}
 	}
-	for ( int n = 0; n < ob->num_kids; n++)
+	for ( int n = 0; n < ob->num_kids; n++) {
 	    ProcessAC3D(ob->kids[n], builder, matrix ); 
+	}
 }
 
 

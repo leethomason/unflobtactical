@@ -43,6 +43,7 @@ Engine::~Engine()
 #endif
 }
 
+
 Model* Engine::GetModel( ModelResource* resource )
 {
 	GLASSERT( resource );
@@ -95,6 +96,7 @@ void Engine::Draw()
 	DrawCamera();
 	// Render components
 	map.Draw();
+	modelPool[1].Draw();
 }
 
 void Engine::SetPerspective()
