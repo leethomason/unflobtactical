@@ -1,5 +1,9 @@
 <resource output="./res/">
 	<texture filename="green.tga" />
 	<texture filename="stdfont2.tga" />
-	<model filename="test.ac" />
+
+	<model filename="test0.ac" />
+	<model filename="test1.ac" />
+	<model filename="test2.ac" />
+	<model filename="teapot.off" />
 </resource>

@@ -103,3 +103,49 @@ void grinliz::StrFillBuffer( const char* str, char* buffer, int bufferSize )
 	}
 	GLASSERT( buffer[bufferSize-1] == 0 );
 }
+
+static const char* SkipWhiteSpace( const char* p ) 
+{
+	while( p && *p && isspace( *p ) ) {
+		++p;
+	}
+	return p;
+}
+
+static const char* FindWhiteSpace( const char* p ) 
+{
+	while( p && *p && !isspace( *p ) ) {
+		++p;
+	}
+	return p;
+}
+
+void grinliz::StrTokenize( const std::string& in, std::vector< StrToken > *tokens )
+{
+	const char* p = in.c_str();
+	p = SkipWhiteSpace( p );
+	const char* q = FindWhiteSpace( p );
+
+	tokens->clear();
+
+	while ( p && *p && q ) {
+		StrToken token;
+
+		std::string str;
+		str.assign( p, q-p );
+
+		if ( isalpha( *p ) ) {
+			token.InitString( str );
+		}
+		else if (    isdigit( *p ) 
+			      || *p == '-' 
+				  || *p == '+' ) {
+			token.InitNumber( atof( str.c_str() ) );
+		}
+		tokens->push_back( token );
+
+		p = SkipWhiteSpace( q );
+		q = FindWhiteSpace( p );
+	}
+}
+

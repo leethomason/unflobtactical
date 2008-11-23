@@ -18,6 +18,7 @@ public:
 private:
 	U32 textureID;
 	U32 frameBufferObject;
+	U32 depthbuffer;
 	U32 w2, h2;
 };
 

@@ -5,8 +5,8 @@
 
 	name				char[16]
 	nGroups				BE32
-	nTotalIndices		BE32
 	nTotalVertices		BE32
+	nTotalIndices		BE32
 	
 	Group[]
 		textureName		char[16]
@@ -15,7 +15,7 @@
 		startIndex		BE32
 		nIndex			BE32
 
-	vertexData			Vertex[]
+	vertexData			VertexX[]
 	indexData			BE16[]
 */
 

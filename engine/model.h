@@ -38,7 +38,7 @@ private:
 	int nTextures;
 
 	U16		index[EL_MAX_INDEX_IN_MODEL];
-	Vertex	vertex[EL_MAX_VERTEX_IN_MODEL];
+	VertexX	vertex[EL_MAX_VERTEX_IN_MODEL];
 };
 
 
@@ -57,7 +57,9 @@ public:
 	void Draw();
 	
 	void SetPos( const grinliz::Vector3F& pos )	{ this->pos = pos; }
-	void SetRotationY( float rot )				{ this->rot = rot; }
+	void SetPos( float x, float y, float z )	{ grinliz::Vector3F vec = { x, y, z }; SetPos( vec ); }
+	void SetYRotation( float rot )				{ this->rot = rot; }
+	const float GetYRotation()					{ return rot; }
 
 public:
 	Model* next;

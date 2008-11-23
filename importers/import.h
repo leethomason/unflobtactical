@@ -10,5 +10,8 @@
 bool ImportAC3D(	const std::string& filename, 
 					ModelBuilder* builder );
 
+bool ImportOFF(		const std::string& filename, 
+					ModelBuilder* builder );
+
 
 #endif // ALTERAORBIS_IMPORT_INCLUDED

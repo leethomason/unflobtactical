@@ -91,8 +91,17 @@ void ProcessModel( TiXmlElement* model )
 
 	string fullOut = outputPath + name + ".mod";
 
-	ModelBuilder* builder = new ModelBuilder();;
-	ImportAC3D(	fullIn, builder );
+	ModelBuilder* builder = new ModelBuilder();
+	if ( extension == ".ac" ) {
+		ImportAC3D(	fullIn, builder );
+	}
+	else if ( extension == ".off" ) {
+		ImportOFF( fullIn, builder );
+	}
+	else {
+		printf( "**Unrecognized model file.\n" );
+		goto graceful_exit;
+	}
 
 	const VertexGroup* vertexGroup = builder->Groups();
 
@@ -116,15 +125,19 @@ void ProcessModel( TiXmlElement* model )
 	SDL_RWwrite( fp, buffer, 16, 1 );
 
 	SDL_WriteBE32( fp, builder->NumGroups() );
-	SDL_WriteBE32( fp, nTotalIndex );
 	SDL_WriteBE32( fp, nTotalVertex );	
+	SDL_WriteBE32( fp, nTotalIndex );
+	int totalMemory = 0;
 
 	for( int i=0; i<builder->NumGroups(); ++i ) {
-		printf( "    %d: '%s' nVertex=%d nIndex=%d\n",
+		int mem = (vertexGroup[i].nVertex*sizeof(VertexX) + vertexGroup[i].nIndex*2)/1024;
+		totalMemory += mem;
+		printf( "    %d: '%s' nVertex=%d nIndex=%d memory=%dk\n",
 				i,
 				vertexGroup[i].textureName,
 				vertexGroup[i].nVertex,
-				vertexGroup[i].nIndex );
+				vertexGroup[i].nIndex,
+				mem );
 
 		grinliz::StrFillBuffer( vertexGroup[i].textureName, buffer, 16 );
 		SDL_RWwrite( fp, buffer, 16, 1 );
@@ -139,13 +152,31 @@ void ProcessModel( TiXmlElement* model )
 	}
 
 	for( int i=0; i<builder->NumGroups(); ++i ) {
-		SDL_RWwrite( fp, vertexGroup[i].vertex, sizeof( Vertex ), vertexGroup[i].nVertex );
+		//printf( "    group=%d\n", i );
+		for( int j=0; j<vertexGroup[i].nVertex; ++j ) {
+			const VertexX& v = vertexGroup[i].vertex[j];	
+			//printf( "      vertex pos(%.1f,%.1f,%.1f) normal(%.1f,%.1f,%.1f) tex(%.1f,%.1f)\n", 
+			//		FixedToFloat( v.pos.x ), FixedToFloat( v.pos.y ), FixedToFloat( v.pos.z ),
+			//		FixedToFloat( v.normal.x ), FixedToFloat( v.normal.y ), FixedToFloat( v.normal.z ),
+			//		FixedToFloat( v.tex.x ), FixedToFloat( v.tex.y ) );
+
+			SDL_WriteBE32( fp, v.pos.x );
+			SDL_WriteBE32( fp, v.pos.y );
+			SDL_WriteBE32( fp, v.pos.z );
+			SDL_WriteBE32( fp, v.normal.x );
+			SDL_WriteBE32( fp, v.normal.y );
+			SDL_WriteBE32( fp, v.normal.z );
+			SDL_WriteBE32( fp, v.tex.x );
+			SDL_WriteBE32( fp, v.tex.y );
+		}
+
 	}
 	for( int i=0; i<builder->NumGroups(); ++i ) {
 		for( int j=0; j<vertexGroup[i].nIndex; ++j ) {
 			SDL_WriteBE16( fp, vertexGroup[i].index[j] );
 		}
 	}
+	printf( "  memory=%dk\n", totalMemory / 1024 );
 	
 
 graceful_exit:
@@ -212,7 +243,7 @@ void ProcessTexture( TiXmlElement* texture )
 
 	switch( surface->format->BitsPerPixel ) {
 		case 32:
-			printf( "  RGBA\n" );
+			printf( "  RGBA memory=%dk\n", (surface->w * surface->h * 2)/1024 );
 			SDL_WriteBE32( fp, GL_RGBA );
 			SDL_WriteBE32( fp, GL_UNSIGNED_SHORT_4_4_4_4 );
 			SDL_WriteBE32( fp, surface->w );
@@ -236,7 +267,7 @@ void ProcessTexture( TiXmlElement* texture )
 			break;
 
 		case 24:
-			printf( "  RGB\n" );
+			printf( "  RGB memory=%dk\n", (surface->w * surface->h * 2)/1024 );
 			SDL_WriteBE32( fp, GL_RGB );
 			SDL_WriteBE32( fp, GL_UNSIGNED_SHORT_5_6_5 );
 			SDL_WriteBE32( fp, surface->w );
@@ -259,7 +290,7 @@ void ProcessTexture( TiXmlElement* texture )
 			break;
 
 		case 8:
-			printf( "  Alpha\n" );
+			printf( "  Alpha memory=%dk\n", (surface->w * surface->h * 1)/1024 );
 			SDL_WriteBE32( fp, GL_ALPHA );
 			SDL_WriteBE32( fp, GL_UNSIGNED_BYTE );
 			SDL_WriteBE32( fp, surface->w );

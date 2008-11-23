@@ -341,6 +341,10 @@
 				RelativePath=".\importers\import.h"
 				>
 			</File>
+			<File
+				RelativePath=".\importers\off.cpp"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\ufobuilder\builder.cpp"

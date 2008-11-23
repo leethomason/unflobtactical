@@ -29,10 +29,18 @@ void ModelBuilder::AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 
 	GLASSERT( current );
 	GLASSERT( current->nIndex < EL_MAX_INDEX_IN_GROUP-3 );
 
-	Vertex v[3];
-	MultMatrix4( matrix, v0.pos, &v[0].pos );
-	MultMatrix4( matrix, v1.pos, &v[1].pos );
-	MultMatrix4( matrix, v2.pos, &v[2].pos );
+	const Vertex v[3] = { v0, v1, v2 };
+	VertexX vX[3];
+
+	for( int i=0; i<3; ++i ) {
+		Vertex vert = v[i];
+		MultMatrix4( matrix, v[i].pos, &vert.pos );
+		//Trouble if there is ever rotation.
+		//MultMatrix4( matrix, v[i].normal, &vert.normal );
+		vert.normal.Normalize();
+
+		vX[i].From( vert );
+	}
 
 	for( int i=0; i<3; ++i ) 
 	{
@@ -41,7 +49,7 @@ void ModelBuilder::AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 
 
 		for( int j=start; j<current->nVertex; ++j ) 
 		{
-			if ( current->vertex[j].Equal( v[i] ) ) {
+			if ( current->vertex[j].Equal( vX[i] ) ) {
 				added = true;
 				current->index[ current->nIndex++ ] = j;
 				break;
@@ -50,7 +58,9 @@ void ModelBuilder::AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 
 		if ( !added ) {
 			GLASSERT( current->nVertex < EL_MAX_VERTEX_IN_GROUP );
 			current->index[ current->nIndex++ ] = current->nVertex;
-			current->vertex[ current->nVertex++ ] = v[i];
+			current->vertex[ current->nVertex++ ] = vX[i];
 		}
 	}
+	// Always add 3 indices.
+	GLASSERT( current->nIndex % 3 == 0 );
 }

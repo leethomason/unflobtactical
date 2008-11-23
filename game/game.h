@@ -26,13 +26,10 @@ public:
 	~Game();
 
 	void DoTick( U32 msec );
-
-	void SetRotation( int i );
+	void SetScreenRotation( int i );
 	
-	int NumTextures()	{ return nTexture; }
+	ModelResource* GetResource( const char* name );
 
-	Texture texture[MAX_TEXTURES];
-	ModelResource modelResource[MAX_MODELS];
 	Engine engine;
 	Surface surface;
 
@@ -41,6 +38,9 @@ private:
 	void FreeTextures();
 	void LoadModels();
 	void FreeModels();
+
+	Texture texture[MAX_TEXTURES];
+	ModelResource modelResource[MAX_MODELS];
 
 	int rotation;
 	int nTexture;

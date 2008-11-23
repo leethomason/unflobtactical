@@ -217,7 +217,7 @@ inline float U8ToFloat( U8 v )
 #endif
 
 inline U16 Swap16( U16 x ) { return ((x<<8)|(x>>8)); }
-inline U16 Swap32( U32 x ) { return ((x<<24)|((x<<8)&0x00FF0000)|((x>>8)&0x0000FF00)|(x>>24)); }
+inline U32 Swap32( U32 x ) { return ((x<<24)|((x<<8)&0x00FF0000)|((x>>8)&0x0000FF00)|(x>>24)); }
 
 #ifdef GRINLIZ_LITTLE_ENDIAN
 	inline U16 SwapLE16( U16 x )	{ return x; }
@@ -225,12 +225,14 @@ inline U16 Swap32( U32 x ) { return ((x<<24)|((x<<8)&0x00FF0000)|((x>>8)&0x0000F
 	inline U16 SwapBE16( U16 x )	{ return Swap16(x); }
 	inline U32 SwapBE32( U32 x )	{ return Swap32(x); }
 	void SwapBufferBE16( U16* buffer, int size );
+	void SwapBufferBE32( U32* buffer, int size );
 #else
 	inline U16 SwapLE16( U16 x )	{ return Swap16(x); }
 	inline U32 SwapLE32( U32 x )	{ return Swap32(x); }
 	inline U16 SwapBE16( U16 x )	{ return x; }
 	inline U32 SwapBE32( U32 x )	{ return x; }
 	void SwapBufferBE16( U16* buffer, int size )	{}
+	void SwapBufferBE32( U32* buffer, int size )	{}
 #endif
 
 /*	A class to store a set of bit flags, and set and get them in a standard way.

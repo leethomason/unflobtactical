@@ -48,3 +48,11 @@ void grinliz::SwapBufferBE16( U16* buffer, int size )
 		buffer++;
 	}
 }
+
+void grinliz::SwapBufferBE32( U32* buffer, int size )
+{
+	for( int i=0; i<size; ++i ) {
+		*buffer = SwapBE32( *buffer );
+		buffer++;
+	}
+}

@@ -5,6 +5,15 @@
 #include "../engine/model.h"
 
 
+const char* const gModelNames[] = 
+{
+	"test1",
+	"test2",
+	"teapot",
+	0
+};
+
+
 Game::Game( int width, int height ) :
 	engine( width, height, engineData ),
 	rotation( 0 ),
@@ -19,8 +28,9 @@ Game::Game( int width, int height ) :
 	LoadTextures();
 	LoadModels();
 
-
-	testModel = engine.GetModel( &modelResource[0] );
+	ModelResource* resource = GetResource( "teapot" );
+	testModel = engine.GetModel( resource );
+	testModel->SetPos( 5.f, 0.0f, 60.f );
 }
 
 
@@ -47,16 +57,6 @@ void Game::LoadTextures()
 		"green",
 		0
 	};
-	
-	/*PlatformPathToResource( "stdfont2", "tex", buffer, 512 );
-	fp = fopen( buffer, "rb" );
-	GLASSERT( fp );
-	textureID = surface.LoadTexture( fp );
-	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-	UFOInitDrawText( textureID );
-	texture[ nTexture++ ].Set( "stdfont", textureID );
-	fclose( fp );
-	*/
 
 	for( int i=0; names[i]; ++i ) {
 		PlatformPathToResource( names[i], "tex", buffer, 512 );
@@ -71,7 +71,7 @@ void Game::LoadTextures()
 }
 
 
-void Game::SetRotation( int value ) 
+void Game::SetScreenRotation( int value ) 
 {
 	rotation = ((unsigned)value)%4;
 
@@ -80,20 +80,34 @@ void Game::SetRotation( int value )
 }
 
 
+ModelResource* Game::GetResource( const char* name )
+{
+	for( int i=0; gModelNames[i]; ++i ) {
+		if ( strcmp( gModelNames[i], name ) == 0 ) {
+			return &modelResource[i];
+		}
+	}
+	GLASSERT( 0 );
+	return 0;
+}
+
+
 void Game::LoadModels()
 {
-	/*
-	 ModelLoader* loader = new ModelLoader( texture, nTexture );
-	 memset( modelResource, 0, sizeof(ModelResource)*MAX_MODELS );
+	ModelLoader* loader = new ModelLoader( texture, nTexture );
+	memset( modelResource, 0, sizeof(ModelResource)*MAX_MODELS );
 
-	 FILE* fp = 0;
+	FILE* fp = 0;
+	char buffer[512];
 
-	 fp = fopen( "./res/test.mod", "rb" );
-	 GLASSERT( fp );
-	 loader->Load( fp, &modelResource[nModelResource++] );
-
-	 delete loader;
-	 */
+	for( int i=0; gModelNames[i]; ++i ) {
+		PlatformPathToResource( gModelNames[i], "mod", buffer, 512 );
+		fp = fopen( buffer, "rb" );
+		GLASSERT( fp );
+		loader->Load( fp, &modelResource[i] );
+		fclose( fp );
+	}
+	delete loader;
 }
 
 
@@ -110,12 +124,10 @@ void Game::FreeTextures()
 
 void Game::FreeModels()
 {
-	/*
 	for( int i=0; i<nModelResource; ++i ) {
 		glDeleteBuffers( 1, (const GLuint*) &modelResource[i].dataID );
 		glDeleteBuffers( 1, (const GLuint*) &modelResource[i].indexID );		
 	}
-	 */
 }
 
 
@@ -135,18 +147,21 @@ void Game::DoTick( U32 currentTime )
 		}
 	}
 
+	testModel->SetYRotation( testModel->GetYRotation() + 0.5f );
+
 	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_NORMAL_ARRAY );
 	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable( GL_DEPTH_TEST );
+	glEnable( GL_CULL_FACE );
 
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
 
 	glBindTexture( GL_TEXTURE_2D, texture[1].glID );
 	engine.Draw();
-
 
 	glDisable( GL_DEPTH_TEST );
 	UFODrawText( 0, 0, "UFO Attack! %.1ffps rot=%d", framesPerSecond, rotation );

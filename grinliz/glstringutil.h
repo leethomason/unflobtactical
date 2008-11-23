@@ -33,7 +33,10 @@ distribution.
 #endif
 
 #include <string>
+#include <vector>
+
 #include <stdlib.h>
+
 #include "gldebug.h"
 #include "gltypes.h"
 
@@ -52,6 +55,31 @@ void StrSplitFilename(	const std::string& fullPath,
 
 void StrFillBuffer( const std::string& str, char* buffer, int bufferSize );
 void StrFillBuffer( const char* str, char* buffer, int bufferSize );
+
+struct StrToken {
+	enum {
+		UNKNOWN,
+		STRING,
+		NUMBER
+	};
+
+	int type;
+	std::string str;
+	double number;
+
+	StrToken() : type( 0 ), number( 0.0 ) {}
+
+	void InitString( const std::string& str ) {
+		type = STRING;
+		this->str = str;
+	}
+	void InitNumber( double num ) {
+		type = NUMBER;
+		this->number = num;
+	}
+};
+
+void StrTokenize( const std::string& in, std::vector< StrToken > *tokens );
 
 };	// namespace grinliz
 

@@ -31,6 +31,11 @@ FrameBuffer::FrameBuffer( int width, int height )
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, frameBufferObject );
 	GLASSERT( glGetError() == GL_NO_ERROR );	
 
+	glGenRenderbuffersEXT(1, &depthbuffer);
+	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depthbuffer);
+	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, w2, h2 );
+	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, depthbuffer);
+
 	glBindTexture(GL_TEXTURE_2D, textureID );
 	GLASSERT( glGetError() == GL_NO_ERROR );	
 
@@ -52,6 +57,7 @@ FrameBuffer::FrameBuffer( int width, int height )
 FrameBuffer::~FrameBuffer()
 {
 	glDeleteFramebuffersEXT(1, &frameBufferObject);
+	glDeleteRenderbuffersEXT( 1, &depthbuffer );
 }
 
 
