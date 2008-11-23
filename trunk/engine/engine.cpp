@@ -17,18 +17,18 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 	camera.SetTilt( engineData.cameraTilt );
 	fov = engineData.fov;
 
-	// model[0] is the sentinel for the available model pool
-	modelPool[0].next = &modelPool[1];
-	modelPool[0].prev = &modelPool[EL_MAX_MODELS-1];
-	modelPool[EL_MAX_MODELS-1].next = &modelPool[0];
-	modelPool[EL_MAX_MODELS-1].prev = &modelPool[EL_MAX_MODELS-2];
-
-	for( int i=1; i<(EL_MAX_MODELS-1); ++i ) {
-		modelPool[i].prev = &modelPool[i-1];
-		modelPool[i].next = &modelPool[i+1];
+	// Link up the circular list of models.
+	// First, link the sentinel to itself:
+	modelPoolRoot.next = &modelPoolRoot;
+	modelPoolRoot.prev = &modelPoolRoot;
+	// Then everyone else:
+	for( int i=0; i<EL_MAX_MODELS; ++i ) {
+		modelPool[i].Link( &modelPoolRoot );
 	}
 
 	SetPerspective();
+	lightDirection.Set( 1.0f, 3.0f, 2.0f );
+	lightDirection.Normalize();
 }
 
 Engine::~Engine()
@@ -36,10 +36,10 @@ Engine::~Engine()
 #ifdef DEBUG
 	// Un-released models?
 	int count = 0;
-	for( Model* model=modelPool[0].next; model != &modelPool[0]; model=model->next ) {
+	for( Model* model=modelPoolRoot.next; model != &modelPoolRoot; model=model->next ) {
 		++count;
 	}
-	GLASSERT( count == EL_MAX_MODELS-1 );
+	GLASSERT( count == EL_MAX_MODELS );
 #endif
 }
 
@@ -47,15 +47,11 @@ Engine::~Engine()
 Model* Engine::GetModel( ModelResource* resource )
 {
 	GLASSERT( resource );
-	GLASSERT( modelPool[0].next != &modelPool[0] );
+	GLASSERT( modelPoolRoot.next != &modelPoolRoot );	// All tapped out!!
 
-	if ( modelPool[0].next != &modelPool[0] ) {
-		Model* model = modelPool[0].next;
-		// Unlink.
-		model->prev->next = model->next;
-		model->next->prev = model->prev;
-		model->next = model->prev = 0;
-
+	if ( modelPoolRoot.next != &modelPoolRoot ) {
+		Model* model = modelPoolRoot.next;
+		model->UnLink();
 		model->Init( resource );
 		return model;
 	}
@@ -67,10 +63,7 @@ void Engine::ReleaseModel( Model* model )
 	GLASSERT( model->next == 0 );
 	GLASSERT( model->prev == 0 );
 	// Link
-	model->prev = &modelPool[0];
-	model->next = modelPool[0].next;
-	modelPool[0].next->prev = model;
-	modelPool[0].next = model;
+	model->Link( &modelPoolRoot );
 }
 
 
@@ -94,10 +87,118 @@ void Engine::DrawCamera()
 void Engine::Draw()
 {
 	DrawCamera();
-	// Render components
+
+	/*
+		Render phases.					z-write	z-test	lights		notes
+
+		Ground plane lighted			yes		no		light
+		Shadow casters/ground plane		no		no		shadow
+		Model							yes		yes		light
+
+		(Tree)
+		(Particle)
+
+	*/
+
+	// -- Ground plane lighted -- //
+	EnableLights( true, false );
+	glDisable( GL_DEPTH_TEST );
+	
 	map.Draw();
-	modelPool[1].Draw();
+
+	// -- Shadow casters/ground plane -- //
+	glDepthMask( GL_FALSE );
+
+	Matrix4 m;
+	m.m12 = -lightDirection.x/lightDirection.y;
+	m.m22 = 0.0f;
+	m.m32 = -lightDirection.z/lightDirection.y;
+	glPushMatrix();
+	glMultMatrixf( m.x );
+
+	glColor4f( 1.0f, 0.0f, 0.0f, 0.0f );
+	glDisable( GL_TEXTURE_2D );
+	glDisable( GL_LIGHTING );
+
+	for( int i=0; i<EL_MAX_MODELS; ++i ) {	// OPT: not all models are always used.
+		if ( modelPool[i].ShouldDraw() ) {
+			modelPool[i].Draw( false );
+		}
+	}
+
+	glPopMatrix();
+
+	EnableLights( true, true );
+	glEnable( GL_TEXTURE_2D );
+	glEnable( GL_LIGHTING );
+
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA );
+	map.Draw();
+	glDisable( GL_BLEND );
+
+	// -- Model -- //
+	EnableLights( true, false );
+	glEnable( GL_DEPTH_TEST );
+	glDepthMask( GL_TRUE );
+
+	for( int i=0; i<EL_MAX_MODELS; ++i ) {	// OPT: not all models are always used.
+		if ( modelPool[i].ShouldDraw() ) {
+			modelPool[i].Draw();
+		}
+	}
+	
+
+	EnableLights( false );
 }
+
+
+void Engine::EnableLights( bool enable, bool inShadow )
+{
+	CHECK_GL_ERROR;
+	if ( !enable ) {
+		glDisable( GL_LIGHTING );
+	}
+	else {
+		glEnable( GL_LIGHTING );
+		CHECK_GL_ERROR;
+
+		const float white[4]	= { 1.0f, 1.0f, 1.0f, 1.0f };
+		const float black[4]	= { 0.0f, 0.0f, 0.0f, 1.0f };
+		const float ambient[4]  = { 0.3f, 0.3f, 0.3f, 1.0f };
+		float diffuse[4]	= { 0.7f, 0.7f, 0.7f, 1.0f };
+		Vector3F lightDir = lightDirection;
+
+		if ( inShadow ) {
+			const float SHADOW_FACTOR = 0.2f;
+			diffuse[0] *= SHADOW_FACTOR;
+			diffuse[1] *= SHADOW_FACTOR;
+			diffuse[2] *= SHADOW_FACTOR;
+			diffuse[3] = 1.0f;
+		}
+
+		float lightVector4[4] = { lightDir.x, lightDir.y, lightDir.z, 0.0 };	// parallel
+
+		CHECK_GL_ERROR;
+		glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+
+		// Light 0. The Sun or Moon.
+		glEnable(GL_LIGHT0);
+		glLightfv(GL_LIGHT0, GL_POSITION, lightVector4 );
+		glLightfv(GL_LIGHT0, GL_AMBIENT,  ambient );
+		glLightfv(GL_LIGHT0, GL_DIFFUSE,  diffuse );
+		glLightfv(GL_LIGHT0, GL_SPECULAR, black );
+		CHECK_GL_ERROR;
+
+		// The material.
+		glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, black );
+		glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, black );
+		glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,  white );
+		glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,  white );
+		CHECK_GL_ERROR;
+	}
+}
+
 
 void Engine::SetPerspective()
 {

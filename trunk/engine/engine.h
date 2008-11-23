@@ -75,12 +75,15 @@ public:
 private:
 	void DrawCamera();
 	void CalcCameraRotation( grinliz::Matrix4* );
+	void EnableLights( bool enable, bool inShadow=false );
 
 	int		width;
 	int		height;
 	float	frustumLeft, frustumRight, 
 			frustumTop, frustumBottom, 
 			frustumNear, frustumFar;
+	
+	grinliz::Vector3F lightDirection;
 	
 	grinliz::Vector3F dragStart;
 	grinliz::Vector3F dragStartCameraWC;
@@ -91,6 +94,7 @@ private:
 
 	Map map;
 	Model modelPool[EL_MAX_MODELS];
+	Model modelPoolRoot;
 };
 
 #endif // UFOATTACK_ENGINE_INCLUDED
