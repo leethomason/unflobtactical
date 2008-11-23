@@ -18,8 +18,11 @@
 		9A11BDBD0ECFE24000ABFA03 /* stdfont2.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A11BDBC0ECFE24000ABFA03 /* stdfont2.tex */; };
 		9A5B8C4A0EBEA60600BA5C70 /* cgame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B8C480EBEA60600BA5C70 /* cgame.cpp */; };
 		9A5B8D690EC6C9FA00BA5C70 /* green.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A5B8D650EC6C9FA00BA5C70 /* green.tex */; };
-		9A5B8D6C0EC6C9FA00BA5C70 /* test.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A5B8D680EC6C9FA00BA5C70 /* test.mod */; };
 		9A8F7F4B0EBD3D8F00742BF0 /* model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A8F7F490EBD3D8F00742BF0 /* model.cpp */; };
+		9AE624460ED8DEB400A44607 /* teapot.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9AE624420ED8DEB400A44607 /* teapot.mod */; };
+		9AE624470ED8DEB400A44607 /* test0.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9AE624430ED8DEB400A44607 /* test0.mod */; };
+		9AE624480ED8DEB400A44607 /* test1.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9AE624440ED8DEB400A44607 /* test1.mod */; };
+		9AE624490ED8DEB400A44607 /* test2.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9AE624450ED8DEB400A44607 /* test2.mod */; };
 		9AF644700EAA906D004FB696 /* glcontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AF644530EAA906D004FB696 /* glcontainer.cpp */; };
 		9AF644710EAA906D004FB696 /* gldebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AF644550EAA906D004FB696 /* gldebug.cpp */; };
 		9AF644720EAA906D004FB696 /* gldynamic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AF644570EAA906D004FB696 /* gldynamic.cpp */; };
@@ -62,10 +65,13 @@
 		9A5B8C480EBEA60600BA5C70 /* cgame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = cgame.cpp; path = ../game/cgame.cpp; sourceTree = SOURCE_ROOT; };
 		9A5B8C490EBEA60600BA5C70 /* cgame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cgame.h; path = ../game/cgame.h; sourceTree = SOURCE_ROOT; };
 		9A5B8D650EC6C9FA00BA5C70 /* green.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = green.tex; path = ../res/green.tex; sourceTree = SOURCE_ROOT; };
-		9A5B8D680EC6C9FA00BA5C70 /* test.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = test.mod; path = ../res/test.mod; sourceTree = SOURCE_ROOT; };
 		9A8F7F480EBD3D8F00742BF0 /* enginelimits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = enginelimits.h; path = ../engine/enginelimits.h; sourceTree = SOURCE_ROOT; };
 		9A8F7F490EBD3D8F00742BF0 /* model.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = model.cpp; path = ../engine/model.cpp; sourceTree = SOURCE_ROOT; };
 		9A8F7F4A0EBD3D8F00742BF0 /* model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = model.h; path = ../engine/model.h; sourceTree = SOURCE_ROOT; };
+		9AE624420ED8DEB400A44607 /* teapot.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = teapot.mod; path = ../res/teapot.mod; sourceTree = SOURCE_ROOT; };
+		9AE624430ED8DEB400A44607 /* test0.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = test0.mod; path = ../res/test0.mod; sourceTree = SOURCE_ROOT; };
+		9AE624440ED8DEB400A44607 /* test1.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = test1.mod; path = ../res/test1.mod; sourceTree = SOURCE_ROOT; };
+		9AE624450ED8DEB400A44607 /* test2.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = test2.mod; path = ../res/test2.mod; sourceTree = SOURCE_ROOT; };
 		9AF644510EAA906D004FB696 /* glbitarray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glbitarray.h; path = ../grinliz/glbitarray.h; sourceTree = SOURCE_ROOT; };
 		9AF644520EAA906D004FB696 /* glcolor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glcolor.h; path = ../grinliz/glcolor.h; sourceTree = SOURCE_ROOT; };
 		9AF644530EAA906D004FB696 /* glcontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = glcontainer.cpp; path = ../grinliz/glcontainer.cpp; sourceTree = SOURCE_ROOT; };
@@ -181,9 +187,12 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9AE624420ED8DEB400A44607 /* teapot.mod */,
+				9AE624430ED8DEB400A44607 /* test0.mod */,
+				9AE624440ED8DEB400A44607 /* test1.mod */,
+				9AE624450ED8DEB400A44607 /* test2.mod */,
 				9A11BDBC0ECFE24000ABFA03 /* stdfont2.tex */,
 				9A5B8D650EC6C9FA00BA5C70 /* green.tex */,
-				9A5B8D680EC6C9FA00BA5C70 /* test.mod */,
 				28AD733E0D9D9553002E5188 /* MainWindow.xib */,
 				8D1107310486CEB800E47090 /* Info.plist */,
 			);
@@ -329,8 +338,11 @@
 			files = (
 				28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */,
 				9A5B8D690EC6C9FA00BA5C70 /* green.tex in Resources */,
-				9A5B8D6C0EC6C9FA00BA5C70 /* test.mod in Resources */,
 				9A11BDBD0ECFE24000ABFA03 /* stdfont2.tex in Resources */,
+				9AE624460ED8DEB400A44607 /* teapot.mod in Resources */,
+				9AE624470ED8DEB400A44607 /* test0.mod in Resources */,
+				9AE624480ED8DEB400A44607 /* test1.mod in Resources */,
+				9AE624490ED8DEB400A44607 /* test2.mod in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -406,7 +418,10 @@
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Lee Thomason";
 				GCC_C_LANGUAGE_STANDARD = c99;
-				GCC_PREPROCESSOR_DEFINITIONS = GL_NO_SDL;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					_DEBUG,
+					GL_NO_SDL,
+				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				ONLY_ACTIVE_ARCH = YES;

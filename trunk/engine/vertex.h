@@ -49,12 +49,6 @@ inline float FixedToFloat( S32 v ) {
 	return (float)v / 65536.0f;
 }
 
-#ifdef __APPLE__
-#	define VERTEX_TYPE GL_FIXED
-#else
-#	define VERTEX_TYPE GL_FLOAT
-#endif
-
 struct VertexX
 {
 	enum {
