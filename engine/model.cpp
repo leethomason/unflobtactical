@@ -58,14 +58,15 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	GLASSERT( sizeof(VertexX) == sizeof(Vertex) );
 	GLASSERT( sizeof(VertexX) == sizeof(U32)*8 );
 
-#ifndef __APPLE
-	// Convert to float.
+	#ifndef TARGET_OS_IPHONE
+	// Convert to float if NOT the ipod. The ipod uses fixed - everything else is float.
 	for( U32 i=0; i<nTotalVertices*8; ++i ) {
 		S32 u = *(((S32*)vertex)+i);
 		float f = FixedToFloat( u );
 		*(((float*)vertex)+i) = f;
 
 	}
+	/*
 	#ifdef DEBUG
 	for( U32 i=0; i<nTotalVertices; ++i ) {
 		const Vertex& v = *(((Vertex*)vertex) + i);;
@@ -76,15 +77,18 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 					v.tex.x, v.tex.y ));
 	}
 	#endif
-#endif
+	 */
+	#endif
 
 	fread( index, sizeof(U16), nTotalIndices, fp );
 	grinliz::SwapBufferBE16( index, nTotalIndices );
 
 #ifdef DEBUG
+	/*
 	for( U32 i=0; i<nTotalIndices; i+=3 ) {
 		GLOUTPUT(( "%d %d %d\n", index[i+0], index[i+1], index[i+2] ));
 	}
+	 */
 #endif
 	
 	// Load to VBO
@@ -114,7 +118,9 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 
 void Model::Draw()
 {
+	CHECK_GL_ERROR;
 	glEnable( GL_LIGHTING );
+	CHECK_GL_ERROR;
 
 	const float white[4]	= { 1.0f, 1.0f, 1.0f, 1.0f };
 	const float black[4]	= { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -125,6 +131,7 @@ void Model::Draw()
 	lightDirection.Normalize();
 	float lightVector4[4] = { lightDirection.x, lightDirection.y, lightDirection.z, 0.0 };	// parallel
 
+	CHECK_GL_ERROR;
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 
 	// Light 0. The Sun or Moon.
@@ -133,12 +140,14 @@ void Model::Draw()
 	glLightfv(GL_LIGHT0, GL_AMBIENT,  ambient );
 	glLightfv(GL_LIGHT0, GL_DIFFUSE,  diffuse );
 	glLightfv(GL_LIGHT0, GL_SPECULAR, black );
+	CHECK_GL_ERROR;
 
 	// The material.
-	glMaterialfv( GL_FRONT, GL_SPECULAR, black );
-	glMaterialfv( GL_FRONT, GL_EMISSION, black );
-	glMaterialfv( GL_FRONT, GL_AMBIENT,  white );
-	glMaterialfv( GL_FRONT, GL_DIFFUSE,  white );
+	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, black );
+	glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, black );
+	glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,  white );
+	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,  white );
+	CHECK_GL_ERROR;
 
 	glBindBuffer(GL_ARRAY_BUFFER, resource->dataID );			// for vertex coordinates
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indexID );	// for indices
@@ -160,9 +169,15 @@ void Model::Draw()
 			glBindTexture( GL_TEXTURE_2D, 0 );
 		}
 
-		glVertexPointer(   3, VERTEX_TYPE, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
-		glNormalPointer(      VERTEX_TYPE, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
-		glTexCoordPointer( 3, VERTEX_TYPE, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
+		#if TARGET_OS_IPHONE		
+		glVertexPointer(   3, GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
+		glNormalPointer(      GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
+		glTexCoordPointer( 3, GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
+		#else
+		glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
+		glNormalPointer(      GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
+		glTexCoordPointer( 3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
+		#endif
 		CHECK_GL_ERROR;
 
 		// mode, count, type, indices

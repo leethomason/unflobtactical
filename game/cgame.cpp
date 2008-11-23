@@ -12,6 +12,8 @@ static int dragStartY = 0;
 void* NewGame( int width, int height )
 {
 	Game* game = new Game( width, height );
+	printf( "Hello new game.\n" );
+	GLOUTPUT(( "Hello new game debug.\n" ));
 	return game;
 }
 
@@ -86,9 +88,6 @@ void GameRotate( void* handle, int rotation )
 void PlatformPathToResource( const char* name, const char* extension, char* buffer, int bufferLen )
 {
 #ifdef __APPLE__
-#ifdef DEBUG
-	int debug = 1;
-#endif
 	CFStringRef nameRef = CFStringCreateWithCString( 0, name, kCFStringEncodingWindowsLatin1 );
 	CFStringRef extensionRef = CFStringCreateWithCString( 0, extension, kCFStringEncodingWindowsLatin1 );
 	

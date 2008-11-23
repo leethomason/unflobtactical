@@ -100,7 +100,7 @@ void ProcessModel( TiXmlElement* model )
 	}
 	else {
 		printf( "**Unrecognized model file.\n" );
-		goto graceful_exit;
+		exit( 1 );
 	}
 
 	const VertexGroup* vertexGroup = builder->Groups();
@@ -108,7 +108,7 @@ void ProcessModel( TiXmlElement* model )
 	SDL_RWops* fp = SDL_RWFromFile( fullOut.c_str(), "wb" );
 	if ( !fp ) {
 		printf( "**Could not open for writing: %s\n", fullOut.c_str() );
-		goto graceful_exit;
+		exit( 1 );
 	}
 	else {
 		printf( "  Writing: '%s', '%s'\n", name.c_str(), fullOut.c_str() );
@@ -178,8 +178,6 @@ void ProcessModel( TiXmlElement* model )
 	}
 	printf( "  memory=%dk\n", totalMemory / 1024 );
 	
-
-graceful_exit:
 	delete builder;
 	if ( fp ) {
 		SDL_FreeRW( fp );
