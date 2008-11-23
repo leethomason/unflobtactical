@@ -139,9 +139,8 @@ void DebugDelete( void* mem, bool arrayType )
 		GLASSERT( tail->magic == MEM_MAGIC1 );
 		
 		// A bug in the OpenGL driver on Mac fires this.
-		#if !defined( __APPLE__ )
+		// And other code on WIN32. Giving up on getting this to work:
 		//GLASSERT( head->arrayType == arrayType );
-		#endif
 
 		if ( head->prev )
 			head->prev->next = head->next;

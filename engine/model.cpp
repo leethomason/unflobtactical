@@ -116,57 +116,23 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 }
 
 
-void Model::Draw()
+void Model::Draw( bool useTexture )
 {
-	CHECK_GL_ERROR;
-	glEnable( GL_LIGHTING );
-	CHECK_GL_ERROR;
-
-	const float white[4]	= { 1.0f, 1.0f, 1.0f, 1.0f };
-	const float black[4]	= { 0.0f, 0.0f, 0.0f, 1.0f };
-	const float ambient[4]  = { 0.3f, 0.3f, 0.3f, 1.0f };
-	const float diffuse[4]	= { 0.7f, 0.7f, 0.7f, 1.0f };
-
-	Vector3F lightDirection = { 1.0f, 3.0f, 2.0f };
-	lightDirection.Normalize();
-	float lightVector4[4] = { lightDirection.x, lightDirection.y, lightDirection.z, 0.0 };	// parallel
-
-	CHECK_GL_ERROR;
-	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
-
-	// Light 0. The Sun or Moon.
-	glEnable(GL_LIGHT0);
-	glLightfv(GL_LIGHT0, GL_POSITION, lightVector4 );
-	glLightfv(GL_LIGHT0, GL_AMBIENT,  ambient );
-	glLightfv(GL_LIGHT0, GL_DIFFUSE,  diffuse );
-	glLightfv(GL_LIGHT0, GL_SPECULAR, black );
-	CHECK_GL_ERROR;
-
-	// The material.
-	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, black );
-	glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, black );
-	glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,  white );
-	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,  white );
-	CHECK_GL_ERROR;
-
-	glBindBuffer(GL_ARRAY_BUFFER, resource->dataID );			// for vertex coordinates
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, resource->indexID );	// for indices
-	CHECK_GL_ERROR;
-
 	glPushMatrix();
 	glTranslatef( pos.x, pos.y, pos.z );
 	glRotatef( rot, 0.f, 1.f, 0.f );
 
-	glEnable( GL_TEXTURE_2D );
-	glEnable( GL_DEPTH_TEST );
-	glDepthMask( GL_TRUE );
-
 	for( U32 i=0; i<resource->nGroups; ++i ) {
-		if ( resource->texture[i] ) {
-			glBindTexture( GL_TEXTURE_2D, resource->texture[i]->glID );
-		}
-		else {
-			glBindTexture( GL_TEXTURE_2D, 0 );
+		glBindBuffer( GL_ARRAY_BUFFER, resource->dataID );
+		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, resource->indexID );
+
+		if ( useTexture ) {
+			if ( resource->texture[i] ) {
+				glBindTexture( GL_TEXTURE_2D, resource->texture[i]->glID );
+			}
+			else {
+				glBindTexture( GL_TEXTURE_2D, 0 );
+			}
 		}
 
 		#if TARGET_OS_IPHONE		
@@ -191,7 +157,5 @@ void Model::Draw()
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 	glPopMatrix();
-
-	glDisable( GL_LIGHTING );
 }
 

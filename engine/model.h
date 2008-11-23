@@ -54,12 +54,29 @@ public:
 		pos.Set( 0.0f, 0.0f, 0.0f ); 
 		rot = 0.0f;
 	}
-	void Draw();
+	bool ShouldDraw()	{
+		return resource && !next;
+	}
+	void Draw( bool useTexture = true );
 	
 	void SetPos( const grinliz::Vector3F& pos )	{ this->pos = pos; }
 	void SetPos( float x, float y, float z )	{ grinliz::Vector3F vec = { x, y, z }; SetPos( vec ); }
 	void SetYRotation( float rot )				{ this->rot = rot; }
 	const float GetYRotation()					{ return rot; }
+
+	void Link( Model* afterThis ) {
+		prev = afterThis;
+		next = afterThis->next;
+		afterThis->next->prev = this;
+		afterThis->next = this;
+	}
+	void UnLink() {
+		GLASSERT( next );
+		GLASSERT( prev );
+		prev->next = next;
+		next->prev = prev;
+		prev = next = 0;
+	}
 
 public:
 	Model* next;
