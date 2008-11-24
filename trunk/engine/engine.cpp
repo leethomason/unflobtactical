@@ -10,7 +10,7 @@ using namespace grinliz;
 
 
 Engine::Engine( int _width, int _height, const EngineData& _engineData ) 
-	: width( _width ), height( _height ), isDragging( false ), engineData( _engineData )
+	: width( _width ), height( _height ), shadowMode( SHADOW_Z ), isDragging( false ), engineData( _engineData )
 {
 	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)Map::SIZE+5.0f );
 	camera.SetYRotation( -45.f );
@@ -102,16 +102,25 @@ void Engine::Draw()
 
 	// -- Ground plane lighted -- //
 	EnableLights( true, false );
-	glDisable( GL_DEPTH_TEST );
+	glEnable( GL_DEPTH_TEST );
+	glDepthMask( GL_TRUE );
 	
 	map.Draw();
 
 	// -- Shadow casters/ground plane -- //
-	glDepthMask( GL_FALSE );
+	if ( shadowMode == SHADOW_DST_BLEND ) {
+		glDepthMask( GL_FALSE );
+	}
+	else if ( shadowMode == SHADOW_Z ) {
+		glDepthMask( GL_TRUE );
+	}
 
 	Matrix4 m;
 	m.m12 = -lightDirection.x/lightDirection.y;
 	m.m22 = 0.0f;
+	if ( shadowMode == SHADOW_Z ) {
+		m.m24 = -0.05f;
+	}
 	m.m32 = -lightDirection.z/lightDirection.y;
 	glPushMatrix();
 	glMultMatrixf( m.x );
@@ -119,6 +128,7 @@ void Engine::Draw()
 	glColor4f( 1.0f, 0.0f, 0.0f, 0.0f );
 	glDisable( GL_TEXTURE_2D );
 	glDisable( GL_LIGHTING );
+	glDepthFunc( GL_ALWAYS );
 
 	for( int i=0; i<EL_MAX_MODELS; ++i ) {	// OPT: not all models are always used.
 		if ( modelPool[i].ShouldDraw() ) {
@@ -132,11 +142,23 @@ void Engine::Draw()
 	glEnable( GL_TEXTURE_2D );
 	glEnable( GL_LIGHTING );
 
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA );
-	map.Draw();
-	glDisable( GL_BLEND );
-
+	if ( shadowMode == SHADOW_DST_BLEND ) {
+		glEnable( GL_BLEND );
+		glBlendFunc( GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA );
+		map.Draw();
+		glDisable( GL_BLEND );
+	}
+	else if ( shadowMode == SHADOW_Z ) {
+		glDepthMask( GL_TRUE );
+		glEnable( GL_DEPTH_TEST );
+		glDepthFunc( GL_LESS );
+		//glPushMatrix();
+		//glTranslatef( 0.0f, .05f, 0.0f );
+		map.Draw();
+		//glPopMatrix();
+	}
+	glDepthFunc( GL_LESS );
+	
 	// -- Model -- //
 	EnableLights( true, false );
 	glEnable( GL_DEPTH_TEST );
@@ -165,7 +187,7 @@ void Engine::EnableLights( bool enable, bool inShadow )
 
 		const float white[4]	= { 1.0f, 1.0f, 1.0f, 1.0f };
 		const float black[4]	= { 0.0f, 0.0f, 0.0f, 1.0f };
-		const float ambient[4]  = { 0.3f, 0.3f, 0.3f, 1.0f };
+		float ambient[4]  = { 0.3f, 0.3f, 0.3f, 1.0f };
 		float diffuse[4]	= { 0.7f, 0.7f, 0.7f, 1.0f };
 		Vector3F lightDir = lightDirection;
 
@@ -306,6 +328,7 @@ void Engine::DragStart( int x, int y )
 	RayFromScreenToYPlane( x, y, dragMVPI, &dragStart );
 	dragStartCameraWC = camera.PosWC();
 	GLOUTPUT(( "Drag start %.1f,%.1f\n", dragStart.x, dragStart.z ));
+	ToggleShadowMode();
 }
 
 

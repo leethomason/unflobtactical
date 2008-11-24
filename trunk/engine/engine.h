@@ -71,6 +71,9 @@ public:
 
 	int Width()		{ return width; }
 	int Height()	{ return height; }
+	
+	void ToggleShadowMode()		{ shadowMode++; if ( shadowMode == SHADOW_COUNT ) shadowMode = 0; }
+	int  ShadowMode()			{ return shadowMode; }
 
 private:
 	void DrawCamera();
@@ -89,6 +92,12 @@ private:
 	grinliz::Vector3F dragStartCameraWC;
 	grinliz::Matrix4  dragMVPI;
 
+	enum {
+		SHADOW_DST_BLEND,
+		SHADOW_Z,
+		SHADOW_COUNT
+	};
+	int shadowMode;
 	bool isDragging;
 	const EngineData& engineData;
 
