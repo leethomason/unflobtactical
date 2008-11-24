@@ -48,7 +48,8 @@ private:
 	U32 markFrameTime;
 	U32 frameCountsSinceMark;
 	float framesPerSecond;
-	Model* testModel;
+	Model* testModel0;
+	Model* testModel1;
 };
 
 #endif

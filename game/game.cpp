@@ -29,14 +29,19 @@ Game::Game( int width, int height ) :
 	LoadModels();
 
 	ModelResource* resource = GetResource( "teapot" );
-	testModel = engine.GetModel( resource );
-	testModel->SetPos( 5.f, 0.0f, 60.f );
+	testModel0 = engine.GetModel( resource );
+	testModel0->SetPos( 5.f, 0.0f, 60.f );
+
+	resource = GetResource( "test2" );
+	testModel1 = engine.GetModel( resource );
+	testModel1->SetPos( 2.0f, 0.0f, 60.f );
 }
 
 
 Game::~Game()
 {
-	engine.ReleaseModel( testModel );
+	engine.ReleaseModel( testModel0 );
+	engine.ReleaseModel( testModel1 );
 
 	FreeModels();
 	FreeTextures();
@@ -147,7 +152,7 @@ void Game::DoTick( U32 currentTime )
 		}
 	}
 
-	testModel->SetYRotation( testModel->GetYRotation() + 0.5f );
+	testModel0->SetYRotation( testModel0->GetYRotation() + 0.5f );
 
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_NORMAL_ARRAY );

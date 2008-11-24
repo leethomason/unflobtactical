@@ -16,6 +16,7 @@ void GameDragMove( void* handle, int x, int y );
 void GameDragEnd( void* handle, int x, int y );
 void GameDragCancelled( void* handle );	
 	
+// Screen rotation.
 void GameRotate( void* handle, int rotation );
 
 void GameDoTick( void* handle, unsigned int timeInMSec );
@@ -25,6 +26,7 @@ void GameDoTick( void* handle, unsigned int timeInMSec );
 void GameTiltCamera( void* handle, float degrees );
 void GameMoveCamera( void* handle, float dx, float dy, float dz );
 void GameAdjustPerspective( void* handle, float dFOV );
+void GameShadowMode( void* handle );
 	
 // --- Core to platform --- //
 void PlatformPathToResource( const char* name, const char* extension, char* buffer, int bufferLen );

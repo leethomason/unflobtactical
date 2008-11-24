@@ -178,6 +178,8 @@ int main( int argc, char **argv )
 						case SDLK_RIGHT:		GameRotate( game, --rotation );				break;
 						case SDLK_LEFT:			GameRotate( game, ++rotation );				break;
 
+						case SDLK_s:			GameShadowMode( game );						break;
+
 						default:
 							break;
 					}

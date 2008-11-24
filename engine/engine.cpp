@@ -102,24 +102,23 @@ void Engine::Draw()
 
 	// -- Ground plane lighted -- //
 	EnableLights( true, false );
+
+	// The depth mask and the depth test should be completely
+	// independent. But there seems to be bugs across systems 
+	// on this. Rather than figure it all out, set them as one
+	// state.
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
 	
 	map.Draw();
 
 	// -- Shadow casters/ground plane -- //
-	if ( shadowMode == SHADOW_DST_BLEND ) {
-		glDepthMask( GL_FALSE );
-	}
-	else if ( shadowMode == SHADOW_Z ) {
-		glDepthMask( GL_TRUE );
-	}
-
 	Matrix4 m;
 	m.m12 = -lightDirection.x/lightDirection.y;
 	m.m22 = 0.0f;
 	if ( shadowMode == SHADOW_Z ) {
-		m.m24 = -0.05f;
+		m.m24 = -0.05f;		// y term down
+		m.m34 = -0.05f;		// z term - hide the shift error.
 	}
 	m.m32 = -lightDirection.z/lightDirection.y;
 	glPushMatrix();
@@ -128,6 +127,10 @@ void Engine::Draw()
 	glColor4f( 1.0f, 0.0f, 0.0f, 0.0f );
 	glDisable( GL_TEXTURE_2D );
 	glDisable( GL_LIGHTING );
+
+	// Not clear what the default is (from the driver): LEQUAL or LESS. So query.
+	int depthFunc;
+	glGetIntegerv( GL_DEPTH_FUNC, &depthFunc );
 	glDepthFunc( GL_ALWAYS );
 
 	for( int i=0; i<EL_MAX_MODELS; ++i ) {	// OPT: not all models are always used.
@@ -135,9 +138,9 @@ void Engine::Draw()
 			modelPool[i].Draw( false );
 		}
 	}
-
 	glPopMatrix();
 
+	
 	EnableLights( true, true );
 	glEnable( GL_TEXTURE_2D );
 	glEnable( GL_LIGHTING );
@@ -152,12 +155,12 @@ void Engine::Draw()
 		glDepthMask( GL_TRUE );
 		glEnable( GL_DEPTH_TEST );
 		glDepthFunc( GL_LESS );
-		//glPushMatrix();
-		//glTranslatef( 0.0f, .05f, 0.0f );
 		map.Draw();
-		//glPopMatrix();
 	}
-	glDepthFunc( GL_LESS );
+	
+	glEnable( GL_TEXTURE_2D );
+	glEnable( GL_LIGHTING );
+	glDepthFunc( depthFunc );
 	
 	// -- Model -- //
 	EnableLights( true, false );
@@ -328,7 +331,7 @@ void Engine::DragStart( int x, int y )
 	RayFromScreenToYPlane( x, y, dragMVPI, &dragStart );
 	dragStartCameraWC = camera.PosWC();
 	GLOUTPUT(( "Drag start %.1f,%.1f\n", dragStart.x, dragStart.z ));
-	ToggleShadowMode();
+	//ToggleShadowMode();
 }
 
 

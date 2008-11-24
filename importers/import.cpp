@@ -74,6 +74,7 @@ bool ImportAC3D( const std::string& filename, ModelBuilder* builder )
 		Matrix4 matrix;
 		ProcessAC3D( acObject, builder, matrix );	
 	}
+	builder->Flush();
 
 	bool importOk = ( acObject != 0 );
 	if ( acObject ) 

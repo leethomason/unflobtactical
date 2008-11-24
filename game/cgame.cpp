@@ -84,6 +84,11 @@ void GameRotate( void* handle, int rotation )
 	game->SetScreenRotation( rotation );
 }
 
+void GameShadowMode( void* handle )
+{
+ 	Game* game = (Game*)handle;
+	game->engine.ToggleShadowMode();
+}
 
 void PlatformPathToResource( const char* name, const char* extension, char* buffer, int bufferLen )
 {
