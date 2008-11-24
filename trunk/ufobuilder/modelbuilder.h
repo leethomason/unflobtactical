@@ -11,7 +11,8 @@ struct VertexGroup {
 	VertexGroup() : nVertex( 0 ), nIndex( 0 ) { textureName[0] = 0; }
 
 	char textureName[EL_FILE_STRING_LEN];
-	VertexX vertex[EL_MAX_VERTEX_IN_GROUP];
+	VertexX	vertex[EL_MAX_VERTEX_IN_GROUP];
+	grinliz::Vector3F normalSum[EL_MAX_VERTEX_IN_GROUP];
 	int nVertex;
 	U16 index[EL_MAX_INDEX_IN_GROUP];
 	int nIndex;
@@ -30,7 +31,8 @@ public:
 
 	void AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 );
 
-	void Optimize();
+	void Flush();
+
 	const VertexGroup* Groups()		{ return group; }
 	int NumGroups()					{ return nGroup; }
 
