@@ -164,6 +164,7 @@ void Game::DoTick( U32 currentTime )
 	engine.Draw();
 
 	glDisable( GL_DEPTH_TEST );
-	UFODrawText( 0, 0, "UFO Attack! %.1ffps rot=%d", framesPerSecond, rotation );
+	UFODrawText( 0, 0, "UFO Attack! %.1ffps rot=%d shadow=%d", 
+				framesPerSecond, rotation, engine.ShadowMode() );
 	glEnable( GL_DEPTH_TEST );
 }
