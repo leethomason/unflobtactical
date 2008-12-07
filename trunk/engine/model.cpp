@@ -3,6 +3,7 @@
 #include "platformgl.h"
 #include "enginelimits.h"
 #include "../grinliz/glvector.h"
+#include "../grinliz/glstringutil.h"
 
 using namespace grinliz;
 
@@ -24,6 +25,7 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	GLASSERT( nTotalVertices <= EL_MAX_VERTEX_IN_GROUP );
 	GLASSERT( nTotalIndices <= EL_MAX_INDEX_IN_GROUP );
 
+	GLOUTPUT(( "Load Model: %s\n", res->name ));
 	for( U32 i=0; i<res->nGroups; ++i )
 	{
 		char textureName[16];
@@ -31,8 +33,12 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 
 		const Texture* t = 0;
 		if ( textureName[0] ) {
+			// Remove extension.
+			std::string base, name, extension;
+			StrSplitFilename( std::string( textureName ), &base, &name, &extension );
+
 			for( int j=0; j<nTextures; ++j ) {
-				if ( strcmp( textureName, texture[j].name ) ) {
+				if ( strcmp( name.c_str(), texture[j].name ) == 0 ) {
 					t = &texture[j];
 					break;
 				}
@@ -40,16 +46,12 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 		}
 		res->texture[i] = t;
 
-		U32 startVertex, nVertex;
-		fread( &startVertex, 4, 1, fp );
-		fread( &nVertex, 4, 1, fp );
-		startVertex = grinliz::SwapBE32( startVertex );
-		nVertex = grinliz::SwapBE32( nVertex );
-
-		fread( &res->startIndex[i], 4, 1, fp );
+		fread( &res->nVertex[i], 4, 1, fp );
 		fread( &res->nIndex[i], 4, 1, fp );
-		res->startIndex[i] = grinliz::SwapBE32( res->startIndex[i] );
+		res->nVertex[i] = grinliz::SwapBE32( res->nVertex[i] );
 		res->nIndex[i] = grinliz::SwapBE32( res->nIndex[i] );
+
+		GLOUTPUT(( "  '%s' vertices=%d tris=%d\n", textureName, res->nVertex[i], res->nIndex[i]/3 ));
 	}
 	size_t r = fread( vertex, sizeof(VertexX), nTotalVertices, fp );
 	GLASSERT( r == nTotalVertices );
@@ -66,8 +68,9 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 		*(((float*)vertex)+i) = f;
 
 	}
-	/*
 	#ifdef DEBUG
+	
+	GLOUTPUT(( "Model: %s\n", res->name ));
 	for( U32 i=0; i<nTotalVertices; ++i ) {
 		const Vertex& v = *(((Vertex*)vertex) + i);;
 		GLOUTPUT(( "Vertex %d: pos=(%.2f, %.2f, %.2f) normal=(%.1f, %.1f, %.1f) tex=(%.1f, %.1f)\n", 
@@ -76,40 +79,43 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 					v.normal.x, v.normal.y, v.normal.z,
 					v.tex.x, v.tex.y ));
 	}
+	
 	#endif
-	 */
 	#endif
 
 	fread( index, sizeof(U16), nTotalIndices, fp );
 	grinliz::SwapBufferBE16( index, nTotalIndices );
 
 #ifdef DEBUG
-	/*
+	
 	for( U32 i=0; i<nTotalIndices; i+=3 ) {
 		GLOUTPUT(( "%d %d %d\n", index[i+0], index[i+1], index[i+2] ));
 	}
-	 */
+	
 #endif
 	
+
 	// Load to VBO
-	glGenBuffers( 1, (GLuint*) &res->dataID );
-	glGenBuffers( 1, (GLuint*) &res->indexID );
-	CHECK_GL_ERROR
+	int vOffset = 0;
+	int iOffset = 0;
+	for( U32 i=0; i<res->nGroups; ++i )
+	{
+		// Index buffer
+		glGenBuffers( 1, (GLuint*) &res->indexID[i] );
+		glGenBuffers( 1, (GLuint*) &res->vertexID[i] );
+		CHECK_GL_ERROR
+		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, res->indexID[i] );
+		glBindBuffer( GL_ARRAY_BUFFER, res->vertexID[i] );
+		CHECK_GL_ERROR
+		U32 indexSize = sizeof(U16)*res->nIndex[i];
+		U32 dataSize  = sizeof(VertexX)*res->nVertex[i];
+		glBufferData( GL_ELEMENT_ARRAY_BUFFER, indexSize, index+iOffset, GL_STATIC_DRAW );
+		glBufferData( GL_ARRAY_BUFFER, dataSize, vertex+vOffset, GL_STATIC_DRAW );
+		CHECK_GL_ERROR
 
-	glBindBuffer( GL_ARRAY_BUFFER, res->dataID );
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, res->indexID );
-	CHECK_GL_ERROR
-
-	// Data (vertex) buffer
-	U32 dataSize  = sizeof(VertexX)*nTotalVertices;
-	U32 indexSize = sizeof(U16)*nTotalIndices;
-
-	glBufferData( GL_ARRAY_BUFFER, dataSize, vertex, GL_STATIC_DRAW );
-	CHECK_GL_ERROR
-
-	// Index buffer
-	glBufferData( GL_ELEMENT_ARRAY_BUFFER, indexSize, index, GL_STATIC_DRAW );
-
+		iOffset += res->nIndex[i];
+		vOffset += res->nVertex[i];
+	}
 	// unbind
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
@@ -122,13 +128,15 @@ void Model::Draw( bool useTexture )
 	glTranslatef( pos.x, pos.y, pos.z );
 	glRotatef( rot, 0.f, 1.f, 0.f );
 
-	for( U32 i=0; i<resource->nGroups; ++i ) {
-		glBindBuffer( GL_ARRAY_BUFFER, resource->dataID );
-		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, resource->indexID );
+	for( U32 i=0; i<resource->nGroups; ++i ) 
+	{
+		glBindBuffer( GL_ARRAY_BUFFER, resource->vertexID[i] );
+		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, resource->indexID[i] );
 
 		if ( useTexture ) {
 			if ( resource->texture[i] ) {
 				glBindTexture( GL_TEXTURE_2D, resource->texture[i]->glID );
+				GLASSERT( glIsEnabled( GL_TEXTURE_2D ) );
 			}
 			else {
 				glBindTexture( GL_TEXTURE_2D, 0 );
@@ -138,11 +146,11 @@ void Model::Draw( bool useTexture )
 		#if TARGET_OS_IPHONE		
 		glVertexPointer(   3, GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
 		glNormalPointer(      GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
-		glTexCoordPointer( 3, GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
+		glTexCoordPointer( 2, GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
 		#else
 		glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
 		glNormalPointer(      GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
-		glTexCoordPointer( 3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
+		glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
 		#endif
 		CHECK_GL_ERROR;
 
@@ -150,7 +158,7 @@ void Model::Draw( bool useTexture )
 		glDrawElements( GL_TRIANGLES, 
 						resource->nIndex[i],
 						GL_UNSIGNED_SHORT, 
-						(const GLvoid*)(resource->startIndex[i]*sizeof(U16) ) );
+						0 );
 		CHECK_GL_ERROR;
 	}
 

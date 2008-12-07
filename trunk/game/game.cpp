@@ -10,9 +10,20 @@ const char* const gModelNames[] =
 	"test1",
 	"test2",
 	"teapot",
+	"crate",
+	"Yohko",
 	0
 };
 
+const char* const gTextureNames[] = 
+{
+	"stdfont2",
+	"green",
+	"woodDark",
+	"woodDarkUFO",
+	"Yohko",
+	0
+};
 
 Game::Game( int width, int height ) :
 	engine( width, height, engineData ),
@@ -28,20 +39,35 @@ Game::Game( int width, int height ) :
 	LoadTextures();
 	LoadModels();
 
-	ModelResource* resource = GetResource( "teapot" );
-	testModel0 = engine.GetModel( resource );
-	testModel0->SetPos( 5.f, 0.0f, 60.f );
+	memset( testModel, 0, NUM_TEST_MODEL*sizeof(Model*) );
+
+	int n = 0;
+	ModelResource* resource = 0;
+	resource = GetResource( "teapot" );
+	testModel[n] = engine.GetModel( resource );
+	testModel[n++]->SetPos( 5.f, 0.0f, 60.f );
 
 	resource = GetResource( "test2" );
-	testModel1 = engine.GetModel( resource );
-	testModel1->SetPos( 2.0f, 0.0f, 60.f );
+	testModel[n] = engine.GetModel( resource );
+	testModel[n++]->SetPos( 2.0f, 0.0f, 60.f );
+
+	resource = GetResource( "crate" );
+	testModel[n] = engine.GetModel( resource );
+	testModel[n++]->SetPos( 3.0f, 0.0f, 58.f );
+
+	resource = GetResource( "Yohko" );
+	testModel[n] = engine.GetModel( resource );
+	testModel[n++]->SetPos( 3.0f, 0.0f, 62.f );
 }
 
 
 Game::~Game()
 {
-	engine.ReleaseModel( testModel0 );
-	engine.ReleaseModel( testModel1 );
+	for( int i=0; i<NUM_TEST_MODEL; ++i ) {
+		if ( testModel[i] ) {
+			engine.ReleaseModel( testModel[i] );
+		}
+	}
 
 	FreeModels();
 	FreeTextures();
@@ -56,19 +82,12 @@ void Game::LoadTextures()
 	FILE* fp = 0;
 	char buffer[512];
 
-	const char* names[] = 
-	{
-		"stdfont2",
-		"green",
-		0
-	};
-
-	for( int i=0; names[i]; ++i ) {
-		PlatformPathToResource( names[i], "tex", buffer, 512 );
+	for( int i=0; gTextureNames[i]; ++i ) {
+		PlatformPathToResource( gTextureNames[i], "tex", buffer, 512 );
 		fp = fopen( buffer, "rb" );
 		GLASSERT( fp );
 		textureID = surface.LoadTexture( fp );
-		texture[ nTexture++ ].Set( names[i], textureID );
+		texture[ nTexture++ ].Set( gTextureNames[i], textureID );
 		fclose( fp );
 	}
 	GLASSERT( nTexture <= MAX_TEXTURES );
@@ -130,8 +149,10 @@ void Game::FreeTextures()
 void Game::FreeModels()
 {
 	for( int i=0; i<nModelResource; ++i ) {
-		glDeleteBuffers( 1, (const GLuint*) &modelResource[i].dataID );
-		glDeleteBuffers( 1, (const GLuint*) &modelResource[i].indexID );		
+		for( U32 j=0; j<modelResource[i].nGroups; ++j ) {
+			glDeleteBuffers( 1, (const GLuint*) &modelResource[i].indexID[j] );		
+		}
+		glDeleteBuffers( 1, (const GLuint*) &modelResource[i].vertexID );
 	}
 }
 
@@ -152,7 +173,10 @@ void Game::DoTick( U32 currentTime )
 		}
 	}
 
-	testModel0->SetYRotation( testModel0->GetYRotation() + 0.5f );
+	testModel[0]->SetYRotation( testModel[0]->GetYRotation() + 0.5f );
+	//if ( testModel[3] ) {
+	//	testModel[3]->SetYRotation( testModel[3]->GetYRotation() + 0.1f );
+	//}
 
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_NORMAL_ARRAY );

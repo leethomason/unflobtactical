@@ -118,7 +118,7 @@ void ProcessModel( TiXmlElement* model )
 		nTotalIndex += vertexGroup[i].nIndex;
 		nTotalVertex += vertexGroup[i].nVertex;
 	}
-	printf( "  groups=%d nVertex=%d nIndex=%d\n", builder->NumGroups(), nTotalVertex, nTotalIndex );
+	printf( "  groups=%d nVertex=%d nTri=%d\n", builder->NumGroups(), nTotalVertex, nTotalIndex/3 );
 
 	char buffer[16];
 	grinliz::StrFillBuffer( name, buffer, 16 );
@@ -127,30 +127,30 @@ void ProcessModel( TiXmlElement* model )
 	SDL_WriteBE32( fp, builder->NumGroups() );
 	SDL_WriteBE32( fp, nTotalVertex );	
 	SDL_WriteBE32( fp, nTotalIndex );
+	
 	int totalMemory = 0;
 
 	for( int i=0; i<builder->NumGroups(); ++i ) {
-		int mem = (vertexGroup[i].nVertex*sizeof(VertexX) + vertexGroup[i].nIndex*2)/1024;
+		int mem = vertexGroup[i].nVertex*sizeof(VertexX) + vertexGroup[i].nIndex*2;
 		totalMemory += mem;
-		printf( "    %d: '%s' nVertex=%d nIndex=%d memory=%dk\n",
+		printf( "    %d: '%s' nVertex=%d nTri=%d memory=%.1fk\n",
 				i,
 				vertexGroup[i].textureName,
 				vertexGroup[i].nVertex,
-				vertexGroup[i].nIndex,
-				mem );
+				vertexGroup[i].nIndex / 3,
+				(float)mem/1024.0f );
 
 		grinliz::StrFillBuffer( vertexGroup[i].textureName, buffer, 16 );
 		SDL_RWwrite( fp, buffer, 16, 1 );
 
-		SDL_WriteBE32( fp, startVertex );	
 		SDL_WriteBE32( fp, vertexGroup[i].nVertex );	
 		startVertex += vertexGroup[i].nVertex;
 
-		SDL_WriteBE32( fp, startIndex );	
 		SDL_WriteBE32( fp, vertexGroup[i].nIndex );	
 		startIndex += vertexGroup[i].nIndex;
 	}
 
+	// Write the vertices in each group:
 	for( int i=0; i<builder->NumGroups(); ++i ) {
 		//printf( "    group=%d\n", i );
 		for( int j=0; j<vertexGroup[i].nVertex; ++j ) {
@@ -171,12 +171,13 @@ void ProcessModel( TiXmlElement* model )
 		}
 
 	}
+	// Write the indices in each group:
 	for( int i=0; i<builder->NumGroups(); ++i ) {
 		for( int j=0; j<vertexGroup[i].nIndex; ++j ) {
 			SDL_WriteBE16( fp, vertexGroup[i].index[j] );
 		}
 	}
-	printf( "  memory=%dk\n", totalMemory / 1024 );
+	printf( "  memory=%.1fk\n", (float)totalMemory / 1024.f );
 	
 	delete builder;
 	if ( fp ) {

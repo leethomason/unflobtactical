@@ -13,13 +13,15 @@ class ModelResource
 {
 public:
 	char name[16];
-	U32 dataID;
-	U32 indexID;
-
 	U32 nGroups;
+
 	const Texture* texture[EL_MAX_MODEL_GROUPS];
-	U32 startIndex[EL_MAX_MODEL_GROUPS];
+
+	U32 vertexID[EL_MAX_MODEL_GROUPS];
+	U32 indexID[EL_MAX_MODEL_GROUPS];
+
 	U32 nIndex[EL_MAX_MODEL_GROUPS];
+	U32 nVertex[EL_MAX_MODEL_GROUPS];
 };
 
 class ModelLoader
