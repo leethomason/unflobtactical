@@ -10,9 +10,7 @@
 	
 	Group[]
 		textureName		char[16]
-		startVertex		BE32
 		nVertex			BE32
-		startIndex		BE32
 		nIndex			BE32
 
 	vertexData			VertexX[]

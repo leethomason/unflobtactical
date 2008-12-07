@@ -123,5 +123,6 @@ bool ImportOFF( const std::string& filename, ModelBuilder* builder )
 		}
 	}
 	fclose( fp );
+	builder->Flush();
 	return true;
 }

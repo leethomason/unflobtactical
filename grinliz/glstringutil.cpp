@@ -64,16 +64,20 @@ void grinliz::StrSplitFilename(	const std::string& fullPath,
 	unsigned colonPos = path.rfind( ':' );
 
 	unsigned pos = 0;
+	bool found = false;
 	if ( slashPos < path.size() && slashPos > pos ) {
 		pos = slashPos;
+		found = true;
 	}
 	if ( backPos < path.size() && backPos > pos ) {
 		pos = backPos;
+		found = true;
 	}
 	if ( colonPos < path.size() && colonPos > pos ) {
 		pos = colonPos;
+		found = true;
 	}
-	if ( pos < path.size() ) {
+	if ( found && pos < path.size() ) {
 		*base = path.substr( 0, pos+1 );
 		path = path.substr( pos+1, path.size() );
 	}

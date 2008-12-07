@@ -100,6 +100,8 @@ void Engine::Draw()
 
 	*/
 
+	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+
 	// -- Ground plane lighted -- //
 	EnableLights( true, false );
 
@@ -124,7 +126,6 @@ void Engine::Draw()
 	glPushMatrix();
 	glMultMatrixf( m.x );
 
-	glColor4f( 1.0f, 0.0f, 0.0f, 0.0f );
 	glDisable( GL_TEXTURE_2D );
 	glDisable( GL_LIGHTING );
 
@@ -173,7 +174,6 @@ void Engine::Draw()
 		}
 	}
 	
-
 	EnableLights( false );
 }
 

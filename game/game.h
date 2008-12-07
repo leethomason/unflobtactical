@@ -48,8 +48,9 @@ private:
 	U32 markFrameTime;
 	U32 frameCountsSinceMark;
 	float framesPerSecond;
-	Model* testModel0;
-	Model* testModel1;
+
+	enum { NUM_TEST_MODEL = 8 };
+	Model* testModel[NUM_TEST_MODEL];
 };
 
 #endif
