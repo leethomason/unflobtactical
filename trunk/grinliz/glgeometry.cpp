@@ -1097,22 +1097,26 @@ int grinliz::IntersectRayAABB( const Vector3F& origin,
 }	
 
 
-int grinliz::IntersectRayZPlane( const Vector3F& origin, const Vector3F& dir,
-								 float z,
-								 Vector3F* intersect )
+int grinliz::IntersectRayPlane(	const Vector3F& origin, const Vector3F& dir,
+								int plane, float x,
+								Vector3F* intersect )
 {
-	if ( dir.z > -EPSILON && dir.z < EPSILON )
+	GLASSERT( plane >=0 && plane < 3 );
+
+	if ( dir.X(plane) > -EPSILON && dir.X(plane) < EPSILON )
 		return REJECT;
-	if ( dir.z > 0.0f && origin.z >= z )
+	if ( dir.X(plane) > 0.0f && origin.X(plane) >= x )
 		return REJECT;
-	if ( dir.z < 0.0f && origin.z <= z )
+	if ( dir.X(plane) < 0.0f && origin.X(plane) <= x )
 		return REJECT;
 
-	float t = ( z - origin.z ) / dir.z;
+	float t = ( x - origin.X(plane) ) / dir.X(plane);
 
-	intersect->x = origin.x + dir.x * t;
-	intersect->y = origin.y + dir.y * t;
-	intersect->z = origin.z + dir.z * t;
+	if ( intersect ) {
+		intersect->x = origin.x + dir.x * t;
+		intersect->y = origin.y + dir.y * t;
+		intersect->z = origin.z + dir.z * t;
+	}
 	return INTERSECT;
 }
 

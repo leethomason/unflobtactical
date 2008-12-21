@@ -26,9 +26,11 @@ struct EngineData
 {
 	EngineData() : 
 		fov( 20.f ),
-		farPlane( 100.f ),
+		farPlane( 240.f ),
 		nearPlane( 2.f ),
-		cameraTilt( 50.f ),
+		cameraTilt( -50.f ),
+		cameraMin( 8.0f ),
+		cameraMax( 140.0f ),
 		cameraHeight( 15.f )
 		{}
 
@@ -36,6 +38,8 @@ struct EngineData
 	float farPlane;
 	float nearPlane;
 	float cameraTilt;		// degrees
+	float cameraMin;
+	float cameraMax;
 	float cameraHeight;
 
 };
@@ -69,6 +73,10 @@ public:
 	void DragEnd( int x, int y );
 	bool IsDragging() { return isDragging; }
 
+	float GetZoom()				{ return zoom; }
+	// 0.0 far, 1.0 close
+	void SetZoom( float z );
+
 	int Width()		{ return width; }
 	int Height()	{ return height; }
 	
@@ -77,6 +85,7 @@ public:
 
 private:
 	void DrawCamera();
+	void RestrictCamera();
 	void CalcCameraRotation( grinliz::Matrix4* );
 	void EnableLights( bool enable, bool inShadow=false );
 
@@ -85,6 +94,8 @@ private:
 	float	frustumLeft, frustumRight, 
 			frustumTop, frustumBottom, 
 			frustumNear, frustumFar;
+	grinliz::Ray cameraRay;		// origin isn't normally valid
+	float	zoom, defaultZoom;
 	
 	grinliz::Vector3F lightDirection;
 	

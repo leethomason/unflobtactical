@@ -149,6 +149,7 @@ int main( int argc, char **argv )
 	bool dragging = false;
     SDL_Event event;
 	int rotation = 1;
+	float yRotation = 45.0f;
 
 	void* game = NewGame( IPOD_SCREEN_WIDTH, IPOD_SCREEN_HEIGHT );
 	GameRotate( game, rotation );
@@ -169,14 +170,26 @@ int main( int argc, char **argv )
 							done = true;
 							break;
 
-						case SDLK_PAGEDOWN:		GameTiltCamera( game, 2.0f );				break;
-						case SDLK_PAGEUP:		GameTiltCamera( game, -2.0f );				break;
-						case SDLK_UP:			GameMoveCamera( game, 0.0f, 1.0f, 0.0f);	break;
-						case SDLK_DOWN:			GameMoveCamera( game, 0.0f, -1.0f, 0.0f);	break;
+						case SDLK_KP_PLUS:
+						case SDLK_KP_MINUS:
+							{
+								float zoom;
+								GameCameraGet( game, GAME_CAMERA_ZOOM, &zoom );
+								zoom += event.key.keysym.sym == SDLK_KP_PLUS ? 0.1f : -0.1f;
+								GameCameraSet( game, GAME_CAMERA_ZOOM, zoom );
+							}
+							break;
+
+						//case SDLK_PAGEDOWN:		GameTiltCamera( game, 2.0f );				break;
+						//case SDLK_PAGEUP:		GameTiltCamera( game, -2.0f );				break;
+						//case SDLK_UP:			GameMoveCamera( game, 0.0f, 1.0f, 0.0f);	break;
+						//case SDLK_DOWN:			GameMoveCamera( game, 0.0f, -1.0f, 0.0f);	break;
 						//case SDLK_RIGHT:		GameAdjustPerspective( game, 2.0f );		break;
 						//case SDLK_LEFT:			GameAdjustPerspective( game, -2.0f );		break;
-						case SDLK_RIGHT:		GameRotate( game, --rotation );				break;
-						case SDLK_LEFT:			GameRotate( game, ++rotation );				break;
+						//case SDLK_RIGHT:		GameRotate( game, --rotation );				break;
+						//case SDLK_LEFT:			GameRotate( game, ++rotation );				break;
+						//case SDLK_RIGHT:		yRotation += 2.0f; GameYRotateCamera( game, yRotation );		break;
+						//case SDLK_LEFT:			yRotation -= 2.0f; GameYRotateCamera( game, yRotation );		break;
 
 						case SDLK_s:			GameShadowMode( game );						break;
 

@@ -17,10 +17,17 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	fread( &res->nGroups, 4, 1, fp );
 	fread( &nTotalVertices, 4, 1, fp );
 	fread( &nTotalIndices, 4, 1, fp );
+	fread( res->bounds, 4, 6, fp );
 
 	res->nGroups = grinliz::SwapBE32( res->nGroups );
 	nTotalVertices = grinliz::SwapBE32( nTotalVertices );
 	nTotalIndices = grinliz::SwapBE32( nTotalIndices );
+
+	for( int i=0; i<2; i++ ) {
+		res->bounds[i].x = grinliz::SwapBE32( res->bounds[i].x );
+		res->bounds[i].y = grinliz::SwapBE32( res->bounds[i].y );
+		res->bounds[i].z = grinliz::SwapBE32( res->bounds[i].z );
+	}
 
 	GLASSERT( nTotalVertices <= EL_MAX_VERTEX_IN_GROUP );
 	GLASSERT( nTotalIndices <= EL_MAX_INDEX_IN_GROUP );

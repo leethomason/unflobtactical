@@ -11,7 +11,7 @@ const char* const gModelNames[] =
 	"test2",
 	"teapot",
 	"crate",
-	"Yohko",
+	//"Yohko",
 	0
 };
 
@@ -21,7 +21,7 @@ const char* const gTextureNames[] =
 	"green",
 	"woodDark",
 	"woodDarkUFO",
-	"Yohko",
+	//"Yohko",
 	0
 };
 
@@ -45,7 +45,7 @@ Game::Game( int width, int height ) :
 	ModelResource* resource = 0;
 	resource = GetResource( "teapot" );
 	testModel[n] = engine.GetModel( resource );
-	testModel[n++]->SetPos( 5.f, 0.0f, 60.f );
+	testModel[n++]->SetPos( 5.f, -(float)resource->bounds[0].y/65536.0f, 60.f );
 
 	resource = GetResource( "test2" );
 	testModel[n] = engine.GetModel( resource );
@@ -55,9 +55,9 @@ Game::Game( int width, int height ) :
 	testModel[n] = engine.GetModel( resource );
 	testModel[n++]->SetPos( 3.0f, 0.0f, 58.f );
 
-	resource = GetResource( "Yohko" );
-	testModel[n] = engine.GetModel( resource );
-	testModel[n++]->SetPos( 3.0f, 0.0f, 62.f );
+	//resource = GetResource( "Yohko" );
+	//testModel[n] = engine.GetModel( resource );
+	//testModel[n++]->SetPos( 3.0f, 0.0f, 62.f );
 }
 
 

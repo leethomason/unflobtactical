@@ -7,6 +7,7 @@
 	nGroups				BE32
 	nTotalVertices		BE32
 	nTotalIndices		BE32
+	bounds				Vector3X[2] min, max in BE32
 	
 	Group[]
 		textureName		char[16]
