@@ -14,6 +14,7 @@ class ModelResource
 public:
 	char name[16];
 	U32 nGroups;
+	Vector3X bounds[2];
 
 	const Texture* texture[EL_MAX_MODEL_GROUPS];
 

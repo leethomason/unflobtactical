@@ -436,11 +436,11 @@ int IntersectionRayAABB(	const Ray& ray,
 							const Rectangle3F& aabb,
 							Rectangle3F* result );
 
-/** Intersect a ray with the Z plane (at offset z.)
+/** Intersect a ray with the plane (at offset x.) Plane x=0, y=1, z=2.
 	@return REJECT or INTERSECT
 */
-int IntersectRayZPlane( const Vector3F& origin, const Vector3F& dir,
-						float z,
+int IntersectRayPlane(	const Vector3F& origin, const Vector3F& dir,
+						int plane, float x,
 						Vector3F* intersect );
 
 /** Intersection of a line and a plane (general case).

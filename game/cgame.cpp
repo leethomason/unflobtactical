@@ -59,11 +59,43 @@ void GameDoTick( void* handle, unsigned int timeInMSec )
 	game->DoTick( timeInMSec );
 }
 
-void GameTiltCamera( void* handle, float degrees )
+void GameCameraGet( void* handle, int param, float* value ) 
 {
 	Game* game = (Game*)handle;
-	game->engine.camera.DeltaTilt( degrees );
+	switch( param ) {
+		case GAME_CAMERA_TILT:
+			*value = game->engine.camera.GetTilt();
+			break;
+		case GAME_CAMERA_YROTATE:
+			*value = game->engine.camera.GetYRotation();
+			break;
+		case GAME_CAMERA_ZOOM:
+			*value = game->engine.GetZoom();
+			break;
+		default:
+			GLASSERT( 0 );
+	}
 }
+
+
+void GameCameraSet( void* handle, int param, float value ) 
+{
+	Game* game = (Game*)handle;
+	switch( param ) {
+		case GAME_CAMERA_TILT:
+			game->engine.camera.SetTilt( value );
+			break;
+		case GAME_CAMERA_YROTATE:
+			game->engine.camera.SetYRotation( value );
+			break;
+		case GAME_CAMERA_ZOOM:
+			game->engine.SetZoom( value );
+			break;
+		default:
+			GLASSERT( 0 );
+	}
+}
+
 
 void GameMoveCamera( void* handle, float dx, float dy, float dz )
 {

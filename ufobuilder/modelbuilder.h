@@ -5,9 +5,6 @@
 #include "../engine/enginelimits.h"
 
 struct VertexGroup {
-	enum {
-		NAME_BYTES = 16,
-	};
 	VertexGroup() : nVertex( 0 ), nIndex( 0 ) { textureName[0] = 0; }
 
 	char textureName[EL_FILE_STRING_LEN];
@@ -37,19 +34,17 @@ public:
 	const VertexGroup* Groups()		{ return group; }
 	int NumGroups()					{ return nGroup; }
 
+	const Vector3X& Bounds( int i)	{ return bounds[i]; }
+
 private:
 	float MemoryACMR( const U16* index, int nIndex );
 	void ReOrderVertices( VertexGroup* group );
 
 	VertexGroup* current;
 	grinliz::Matrix4 matrix;
+	Vector3X bounds[2];
 	VertexGroup group[EL_MAX_MODEL_GROUPS];
 
-	/*
-	VertexX	targetVertex[EL_MAX_VERTEX_IN_GROUP];
-	U16 targetIndex[EL_MAX_INDEX_IN_GROUP];
-	int indexMap[EL_MAX_INDEX_IN_GROUP];
-	*/
 	int nGroup;
 };
 

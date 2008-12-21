@@ -98,7 +98,7 @@ void ModelBuilder::Flush()
 	int i;
 
 	// We've been keeping the normals as a sum. In this code, compute the final normal and assign it.
-	for( i=0; i<nGroup; ++i ) {
+	for( int i=0; i<nGroup; ++i ) {
 		for( int j=0; j<group[i].nVertex; ++j ) {
 			group[i].normalSum[j].Normalize();
 			group[i].vertex[j].normal.Set(	FloatToFixed( group[i].normalSum[j].x ),
@@ -121,6 +121,21 @@ void ModelBuilder::Flush()
 			++i;
 		}
 	}
+
+	bounds[0] = bounds[1] = group[0].vertex[0].pos;
+	for( i=0; i<nGroup; ++i ) {
+		for( int j=0; j<group[i].nVertex; ++j ) {
+			bounds[0].x = Min( bounds[0].x, group[i].vertex[j].pos.x );
+			bounds[0].y = Min( bounds[0].y, group[i].vertex[j].pos.y );
+			bounds[0].z = Min( bounds[0].z, group[i].vertex[j].pos.z );
+
+			bounds[1].x = Max( bounds[1].x, group[i].vertex[j].pos.x );
+			bounds[1].y = Max( bounds[1].y, group[i].vertex[j].pos.y );
+			bounds[1].z = Max( bounds[1].z, group[i].vertex[j].pos.z );
+		}
+	}
+
+
 
 	// Either none of this code works, or it happens as a consequence of how I implemented
 	// vertex filtering. But I'm frustrating with getting it all to work, so I'm commenting

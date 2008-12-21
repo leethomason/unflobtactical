@@ -1,63 +1,65 @@
+#include "platformgl.h"
 #include "camera.h"
 #include "../grinliz/glgeometry.h"
 
 using namespace grinliz;
 
-Camera::Camera() : valid( false ), tilt( 45.f ), yRotation( 0.0f ), viewRotation( 0 )
+Camera::Camera() : 
+	tilt( 45.f ), 
+	yRotation( 0.0f ), 
+	viewRotation( 0 )
 {
 	posWC.Set( 0.f, 0.f, 0.f );
 }
 
 
-void Camera::MakeValid()
+void Camera::CalcWorldXForm( Matrix4* xform )
 {
-	if ( !valid ) {
-		Matrix4		rot, rotY, rotZ;
+	Matrix4 translation, rotationY, rotationTilt;
 
-		rotY.SetYRotation( yRotation );
-		rotZ.SetZRotation( tilt );
+	/* Test values:
+	translation.SetTranslation( -5.0f, 5.0f, -5.0f );
+	rotationY.SetYRotation( 225.0f );
+	rotationTilt.SetXRotation( -5.0f );
+	*/
 
-		rot = rotZ * rotY;
+	translation.SetTranslation( posWC );
+	rotationY.SetYRotation( yRotation );
+	rotationTilt.SetXRotation( tilt );
 
-		Vector3F x, y, z;
-
-		// Make a rotation matrix
-		// The camera looks down the (-z) axis. 
-		// This algorithm (based on the gluLookAt code) uses
-		// z = eye - center
-		z.Set( -rot.m11, -rot.m12, -rot.m13 );	// Inverse of the axial direction
-		
-		// The up direction.
-		y.Set( 0.0f, 1.0f, 0.0f );
-		
-		// X = Y cross Z
-		CrossProduct( y, z, &x );
-		// Y = Z cross X
-		CrossProduct( z, x, &y );
-
-		x.Normalize();
-		y.Normalize();
-		z.Normalize();
-
-		m.m11 = x.x;
-		m.m12 = x.y;
-		m.m13 = x.z;
-		m.m14 = 0.0f;
-
-		m.m21 = y.x;
-		m.m22 = y.y;
-		m.m23 = y.z;
-		m.m24 = 0.0f;
-
-		m.m31 = z.x;
-		m.m32 = z.y;
-		m.m33 = z.z;
-		m.m34 = 0.0f;
-
-		Matrix4 vm;
-		vm.SetZRotation( 90.0f * (float)viewRotation );
-
-		m = vm * m;
-		valid = true;
-	}
+	// Done in world: we tilt it down, turn it around y, then move it.
+	Matrix4 world = translation * rotationY * rotationTilt;
+	*xform = world;
 }
+
+
+void Camera::DrawCamera()
+{
+	Matrix4 world;
+	CalcWorldXForm( &world );
+
+	Matrix4 m, view;
+	world.Invert( &m );
+
+	view.SetZRotation( (float)(viewRotation)*90.0f );
+	m = view * m;
+
+	glMultMatrixf( m.x );
+}
+
+
+void Camera::CalcEyeRay( Ray* ray )
+{
+	ray->origin = posWC;
+	ray->length = 1.0f;
+	
+	Matrix4 m;
+	CalcWorldXForm( &m );
+	Vector4F v = { 0.0f, 0.0f, -1.0f, 0.0f };
+	Vector4F vOut = m * v;
+
+	ray->direction.x = vOut.x;
+	ray->direction.y = vOut.y;
+	ray->direction.z = vOut.z;
+}
+

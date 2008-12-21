@@ -10,12 +10,32 @@ using namespace grinliz;
 
 
 Engine::Engine( int _width, int _height, const EngineData& _engineData ) 
-	: width( _width ), height( _height ), shadowMode( SHADOW_Z ), isDragging( false ), engineData( _engineData )
+	:	width( _width ), 
+		height( _height ), 
+		shadowMode( SHADOW_Z ), 
+		isDragging( false ), 
+		engineData( _engineData )
 {
-	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)Map::SIZE+5.0f );
+	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)Map::SIZE + 5.0f );
 	camera.SetYRotation( -45.f );
 	camera.SetTilt( engineData.cameraTilt );
 	fov = engineData.fov;
+
+	// The ray runs from the min to the max, with the current (and default)
+	// zoom specified in the engineData.
+	Ray ray;
+	camera.CalcEyeRay( &ray );
+	
+	float t1 = ( engineData.cameraMin - ray.origin.y ) / ray.direction.y;
+	float t0 = ( engineData.cameraMax - ray.origin.y ) / ray.direction.y;
+
+	cameraRay.origin = ray.origin + t0*ray.direction;
+	cameraRay.direction = ray.direction;
+	cameraRay.length = t1-t0;
+
+	zoom = ( engineData.cameraHeight - cameraRay.origin.y ) / cameraRay.direction.y;
+	zoom /= cameraRay.length;
+	defaultZoom = zoom;
 
 	// Link up the circular list of models.
 	// First, link the sentinel to itself:
@@ -72,15 +92,7 @@ void Engine::DrawCamera()
 	// ---- Model-View --- //
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-
-	const Matrix4& m = camera.CameraMat();
-
-	// Rotation step
-	glMultMatrixf(m.x);
-
-	// Translate the eye to the origin
-	const Vector3F& cameraWC = camera.PosWC();
-	glTranslatef( -cameraWC.x, -cameraWC.y, -cameraWC.z );
+	camera.DrawCamera();
 }
 
 
@@ -341,7 +353,7 @@ void Engine::DragMove( int x, int y )
 
 	Vector3F drag;
 	RayFromScreenToYPlane( x, y, dragMVPI, &drag );
-
+	
 	Vector3F delta = drag - dragStart;
 	delta.y = 0.0f;
 
@@ -349,6 +361,7 @@ void Engine::DragMove( int x, int y )
 	//		   deltaC.x, deltaC.y, deltaC.z ));
 
 	camera.SetPosWC( dragStartCameraWC - delta );
+	RestrictCamera();
 }
 
 
@@ -358,4 +371,40 @@ void Engine::DragEnd( int x, int y )
 	DragMove( x, y );
 	isDragging = false;
 	GLOUTPUT(( "Drag end\n" ));
+}
+
+
+void Engine::RestrictCamera()
+{
+	Ray ray;
+	camera.CalcEyeRay( &ray );
+	Vector3F intersect;
+	IntersectRayPlane( ray.origin, ray.direction, XZ_PLANE, 0.0f, &intersect );
+	GLOUTPUT(( "Intersect %.1f, %.1f, %.1f\n", intersect.x, intersect.y, intersect.z ));
+
+	const float SIZE = (float)Map::SIZE;
+
+	if ( intersect.x < 0.0f ) {
+		camera.DeltaPosWC( -intersect.x, 0.0f, 0.0f );
+	}
+	if ( intersect.x > SIZE ) {
+		camera.DeltaPosWC( -(intersect.x-SIZE), 0.0f, 0.0f );
+	}
+	if ( intersect.z < 0.0f ) {
+		camera.DeltaPosWC( 0.0f, 0.0f, -intersect.z );
+	}
+	if ( intersect.z > SIZE ) {
+		camera.DeltaPosWC( 0.0f, 0.0f, -(intersect.z-SIZE) );
+	}
+}
+
+
+void Engine::SetZoom( float z )
+{
+	z = Clamp( z, 0.0f, 1.0f );
+
+	cameraRay.origin = camera.PosWC() - zoom*cameraRay.length*cameraRay.direction;
+	zoom = z;
+	camera.SetPosWC( cameraRay.origin + zoom*cameraRay.length*cameraRay.direction );
+	GLOUTPUT(( "zoom=%.2f y=%.2f\n", zoom, camera.PosWC().y ));
 }

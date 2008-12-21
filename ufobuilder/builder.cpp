@@ -127,6 +127,12 @@ void ProcessModel( TiXmlElement* model )
 	SDL_WriteBE32( fp, builder->NumGroups() );
 	SDL_WriteBE32( fp, nTotalVertex );	
 	SDL_WriteBE32( fp, nTotalIndex );
+
+	for( int i=0; i<2; ++i ) {
+		SDL_WriteBE32( fp, builder->Bounds(i).x );
+		SDL_WriteBE32( fp, builder->Bounds(i).y );
+		SDL_WriteBE32( fp, builder->Bounds(i).z );
+	}
 	
 	int totalMemory = 0;
 

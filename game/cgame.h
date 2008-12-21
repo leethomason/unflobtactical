@@ -11,6 +11,11 @@ void* NewGame( int width, int height );
 void DeleteGame( void* handle );
 
 // Input
+// Mimics the iPhone input. UFOAttack procesess:
+//		Touch and drag. (scrolling, movement)
+//		2 finger zoom in/out
+//		Taps (buttons, UI)
+//
 void GameDragStart( void* handle, int x, int y );
 void GameDragMove( void* handle, int x, int y );
 void GameDragEnd( void* handle, int x, int y );
@@ -23,7 +28,14 @@ void GameDoTick( void* handle, unsigned int timeInMSec );
 
 
 // Debugging and adjustment
-void GameTiltCamera( void* handle, float degrees );
+enum {
+	GAME_CAMERA_TILT,
+	GAME_CAMERA_YROTATE,
+	GAME_CAMERA_ZOOM
+};
+void GameCameraGet( void* handle, int param, float* value );
+void GameCameraSet( void* handle, int param, float value );
+
 void GameMoveCamera( void* handle, float dx, float dy, float dz );
 void GameAdjustPerspective( void* handle, float dFOV );
 void GameShadowMode( void* handle );
