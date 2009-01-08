@@ -6,6 +6,7 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glutil.h"
+#include "../grinliz/glvector.h"
 #include "../game/cgame.h"
 #include "framebuffer.h"
 
@@ -150,6 +151,7 @@ int main( int argc, char **argv )
     SDL_Event event;
 	int rotation = 1;
 	float yRotation = 45.0f;
+	grinliz::Vector2I mouseDown = { 0, 0 };
 
 	void* game = NewGame( IPOD_SCREEN_WIDTH, IPOD_SCREEN_HEIGHT );
 	GameRotate( game, rotation );
@@ -212,36 +214,62 @@ int main( int argc, char **argv )
 					x = event.button.y;
 					y = event.button.x;
 #endif
-					GameDragStart( game, x, y );
-					dragging = true;
+					mouseDown.Set( x, y );
+
+					if ( event.button.button == 1 ) {
+						GameDrag( game, GAME_DRAG_START, x, y );
+						dragging = true;
+					}
+					else if ( event.button.button == 3 ) {
+						int dx = IPOD_SCREEN_HEIGHT/2 - y;
+						GLOUTPUT(( "x=%d y=%d\n", x, y ));
+						GameZoom( game, GAME_ZOOM_START, (int) sqrtf( (float)(dx*dx) ) );
+					}
 				}
 				break;
 
 				case SDL_MOUSEBUTTONUP:
 				{
-					if ( dragging ) {
-						int x = event.button.x;
-						int y = IPOD_SCREEN_HEIGHT-1-event.button.y;
+					int x = event.button.x;
+					int y = IPOD_SCREEN_HEIGHT-1-event.button.y;
 #ifdef FRAMEBUFFER_ROTATE	
-						x = event.button.y;
-						y = event.button.x;
+					x = event.button.y;
+					y = event.button.x;
 #endif
-						GameDragEnd( game, x, y );
-						dragging = false;
+					if ( dragging ) {
+						if ( event.button.button == 1 ) {
+							GameDrag( game, GAME_DRAG_END, x, y );
+							dragging = false;
+						}
+					}
+					if (    event.button.button == 1 
+						 && abs( mouseDown.x - x ) < 3 
+						 && abs( mouseDown.y - y ) < 3 ) 
+					{
+						GameTap( game, 1, x, y );
 					}
 				}
 				break;
 
 				case SDL_MOUSEMOTION:
 				{
-					if ( dragging && event.motion.state == SDL_PRESSED ) {
-						int x = event.button.x;
-						int y = IPOD_SCREEN_HEIGHT-1-event.button.y;
+					int state = SDL_GetMouseState(NULL, NULL);
+
+					int x = event.button.x;
+					int y = IPOD_SCREEN_HEIGHT-1-event.button.y;
 #ifdef FRAMEBUFFER_ROTATE	
-						x = event.button.y;
-						y = event.button.x;
+					x = event.button.y;
+					y = event.button.x;
 #endif
-						GameDragMove( game, x, y );
+					if ( dragging && ( state & SDL_BUTTON(1) ) )
+					{
+						if ( event.button.button == 1 ) {
+							GameDrag( game, GAME_DRAG_MOVE, x, y );
+						}
+					}
+					else if ( state & SDL_BUTTON(3) ) {
+						int dx = IPOD_SCREEN_HEIGHT/2 - y;
+						GameZoom( game, GAME_ZOOM_MOVE, (int) sqrtf( (float)(dx*dx) ) );
 					}
 				}
 				break;

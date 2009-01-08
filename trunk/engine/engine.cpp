@@ -5,6 +5,7 @@
 #include "../grinliz/glvector.h"
 #include "../grinliz/glgeometry.h"
 #include "platformgl.h"
+#include "../game/cgame.h"
 
 using namespace grinliz;
 
@@ -14,7 +15,8 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 		height( _height ), 
 		shadowMode( SHADOW_Z ), 
 		isDragging( false ), 
-		engineData( _engineData )
+		engineData( _engineData ),
+		initZoomDistance( 0 )
 {
 	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)Map::SIZE + 5.0f );
 	camera.SetYRotation( -45.f );
@@ -332,45 +334,76 @@ void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Vector3F*
 }
 
 
-void Engine::DragStart( int x, int y )
+void Engine::Drag( int action, int x, int y )
 {
+	switch ( action ) 
+	{
+		case GAME_DRAG_START:
+		{
+			GLASSERT( !isDragging );
+			isDragging = true;
 
-	GLASSERT( !isDragging );
-	isDragging = true;
+			Matrix4 mvpi;
+			CalcModelViewProjectionInverse( &dragMVPI );
+			RayFromScreenToYPlane( x, y, dragMVPI, &dragStart );
+			dragStartCameraWC = camera.PosWC();
+			GLOUTPUT(( "Drag start %.1f,%.1f\n", dragStart.x, dragStart.z ));
+		}
+		break;
 
-	Matrix4 mvpi;
-	CalcModelViewProjectionInverse( &dragMVPI );
-	RayFromScreenToYPlane( x, y, dragMVPI, &dragStart );
-	dragStartCameraWC = camera.PosWC();
-	GLOUTPUT(( "Drag start %.1f,%.1f\n", dragStart.x, dragStart.z ));
-	//ToggleShadowMode();
+		case GAME_DRAG_MOVE:
+		{
+			GLASSERT( isDragging );
+
+			Vector3F drag;
+			RayFromScreenToYPlane( x, y, dragMVPI, &drag );
+			
+			Vector3F delta = drag - dragStart;
+			delta.y = 0.0f;
+
+			camera.SetPosWC( dragStartCameraWC - delta );
+			RestrictCamera();
+		}
+		break;
+
+		case GAME_DRAG_END:
+		{
+			GLASSERT( isDragging );
+			Drag( GAME_DRAG_MOVE, x, y );
+			isDragging = false;
+			GLOUTPUT(( "Drag end\n" ));
+		}
+		break;
+
+		default:
+			GLASSERT( 0 );
+			break;
+	}
 }
 
 
-void Engine::DragMove( int x, int y )
+void Engine::Zoom( int action, int distance )
 {
-	GLASSERT( isDragging );
+	switch ( action )
+	{
+		case GAME_ZOOM_START:
+			initZoomDistance = distance;
+			initZoom = zoom;
+			GLOUTPUT(( "initZoomStart=%.2f distance=%d initDist=%d\n", initZoom, distance, initZoomDistance ));
+			break;
 
-	Vector3F drag;
-	RayFromScreenToYPlane( x, y, dragMVPI, &drag );
-	
-	Vector3F delta = drag - dragStart;
-	delta.y = 0.0f;
+		case GAME_ZOOM_MOVE:
+			{
+				float z = initZoom * (float)distance / (float)initZoomDistance;
+				GLOUTPUT(( "initZoom=%.2f distance=%d initDist=%d\n", initZoom, distance, initZoomDistance ));
+				SetZoom( z );
+			}
+			break;
 
-	//GLOUTPUT(( "delta %.1f,%.1f  deltaC %.1f,%.1f,%.f\n", delta.x, delta.z,
-	//		   deltaC.x, deltaC.y, deltaC.z ));
-
-	camera.SetPosWC( dragStartCameraWC - delta );
-	RestrictCamera();
-}
-
-
-void Engine::DragEnd( int x, int y )
-{
-	GLASSERT( isDragging );
-	DragMove( x, y );
-	isDragging = false;
-	GLOUTPUT(( "Drag end\n" ));
+		default:
+			GLASSERT( 0 );
+			break;
+	}
 }
 
 
@@ -397,6 +430,7 @@ void Engine::RestrictCamera()
 		camera.DeltaPosWC( 0.0f, 0.0f, -(intersect.z-SIZE) );
 	}
 }
+
 
 
 void Engine::SetZoom( float z )
