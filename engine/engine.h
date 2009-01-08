@@ -68,9 +68,11 @@ public:
 	void CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjectionInverse );
 	void RayFromScreenToYPlane( int x, int y, const grinliz::Matrix4& modelViewProjectionInverse, grinliz::Vector3F* out );
 
-	void DragStart( int x, int y );
-	void DragMove( int x, int y );
-	void DragEnd( int x, int y );
+	void Drag( int action, int x, int y );
+	void Zoom( int action, int distance );
+	void Tap( int count )					{}
+	void CancelInput()						{ isDragging = false; }
+
 	bool IsDragging() { return isDragging; }
 
 	float GetZoom()				{ return zoom; }
@@ -95,7 +97,8 @@ private:
 			frustumTop, frustumBottom, 
 			frustumNear, frustumFar;
 	grinliz::Ray cameraRay;		// origin isn't normally valid
-	float	zoom, defaultZoom;
+	float	zoom, defaultZoom, initZoom;
+	int		initZoomDistance;
 	
 	grinliz::Vector3F lightDirection;
 	
