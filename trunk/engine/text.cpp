@@ -7,17 +7,13 @@
 
 static U32 textureID = 0;
 
-// 			Width	Height
-//	Screen	480		320
-//	Glyph	 16		 16
-static float CONSOLE_WIDTH  = 480.f/16.f;
-static float CONSOLE_HEIGHT = 320.f/16.f;
-static float CONSOLE_ADVANCE = 0.55f;
-static float CONSOLE_XSCALE = 2.0f / CONSOLE_WIDTH;
-static float CONSOLE_YSCALE = 2.0f / CONSOLE_HEIGHT;
-
-static const int STDFONT_ROW = 8;	//6;
-static const int STDFONT_COL = 16;
+const int ADVANCE = 10;
+const int GLYPH_CX = 16;
+const int GLYPH_CY = 8;
+static int GLYPH_WIDTH = 256 / GLYPH_CX;
+static int GLYPH_HEIGHT = 128 / GLYPH_CY;
+static int width;
+static int height;
 
 // 0 screen up
 // 1 90 degree turn positive y, etc.
@@ -32,21 +28,18 @@ void UFOInitDrawText( U32 textTextureID, int w, int h, int r )
 		GLASSERT( textureID );
 	}
 
-	CONSOLE_WIDTH  = w/16.f;
-	CONSOLE_HEIGHT = h/16.f;
+	width = w;
+	height = h;
 
 	if ( r&0x01 ) {
-		grinliz::Swap( &CONSOLE_WIDTH, &CONSOLE_HEIGHT );
+		grinliz::Swap( &width, &height );
 	}
 
-	CONSOLE_ADVANCE = 0.55f;
-	CONSOLE_XSCALE = 2.0f / CONSOLE_WIDTH;
-	CONSOLE_YSCALE = 2.0f / CONSOLE_HEIGHT;
 	rotation = r&0x03;
 
 }
 
-void UFOTextOut( const char* str, int x, int _y )
+void UFOTextOut( const char* str, int x, int y )
 {
 	GLASSERT( textureID );
 	if ( !textureID )
@@ -68,10 +61,9 @@ void UFOTextOut( const char* str, int x, int _y )
 	glLoadIdentity();				// model
 
 	glRotatef( 90.0f * (float)rotation, 0.0f, 0.0f, 1.0f );
-	glTranslatef(-1.0f, -1.0f, 0.0f);
-
-	glScalef( CONSOLE_XSCALE, CONSOLE_YSCALE, 1.0f );
-	float y = CONSOLE_HEIGHT - (float)_y - 1.f;
+	//glTranslatef(-1.0f, -1.0f, 0.0f);
+	//glScalef( 2.0f/(float)width, 2.0f/(float)height, 1.0f );
+	glOrtho( 0, width, 0, height, -1, 1 );
 
 	glBindTexture( GL_TEXTURE_2D, textureID );
 
@@ -83,31 +75,30 @@ void UFOTextOut( const char* str, int x, int _y )
 		int c = *str - 32;
 		if ( c >= 1 && c < 128-32 )
 		{
-			float tx0 = ( 1.0f / float( STDFONT_COL ) ) * ( c % STDFONT_COL );
-			float ty0 = 1.0f - ( 1.0f / float( STDFONT_ROW ) ) * ( c / STDFONT_COL + 1 );
-			float tx1 = tx0 + ( 1.0f / float( STDFONT_COL ) );
-			float ty1 = ty0 + ( 1.0f / float( STDFONT_ROW ) );
+			float tx0 = ( 1.0f / float( GLYPH_CX ) ) * ( c % GLYPH_CX );
+			float tx1 = tx0 + ( 1.0f / float( GLYPH_CX ) );
 
-			float xa = (float)x * CONSOLE_ADVANCE;
+			float ty0 = 1.0f - ( 1.0f / float( GLYPH_CY ) ) * (float)( c / GLYPH_CX + 1 );
+			float ty1 = ty0 + ( 1.0f / float( GLYPH_CY ) );
 
-			t[0] = tx0;			t[1] = ty0;
-			v[0] = xa;			v[1] = y;
+			t[0] = tx0;						t[1] = ty0;
+			v[0] = (float)x;				v[1] = (float)y;
 		
-			t[2] = tx1;			t[3] = ty0;
-			v[2] = xa+1.f;		v[3] = y;
+			t[2] = tx1;						t[3] = ty0;
+			v[2] = (float)(x+GLYPH_WIDTH);	v[3] = (float)y;
 
-			t[4] = tx1;			t[5] = ty1;
-			v[4] = xa+1.f;		v[5] = y+1.f;
+			t[4] = tx1;						t[5] = ty1;
+			v[4] = (float)(x+GLYPH_WIDTH);	v[5] = (float)(y+GLYPH_HEIGHT);
 
-			t[6] = tx0;			t[7] = ty1;
-			v[6] = xa;			v[7] = y+1.f;
+			t[6] = tx0;						t[7] = ty1;
+			v[6] = (float)x;				v[7] = (float)(y+GLYPH_HEIGHT);
 
 			glVertexPointer( 2, GL_FLOAT, 0, v );
 			glTexCoordPointer( 2, GL_FLOAT, 0, t );
 			glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
 		}
 		++str;
-		++x;
+		x += ADVANCE;
 	}
 
 

@@ -148,8 +148,10 @@ int main( int argc, char **argv )
 	
 	bool done = false;
 	bool dragging = false;
+	bool zooming = false;
     SDL_Event event;
 	int rotation = 1;
+
 	float yRotation = 45.0f;
 	grinliz::Vector2I mouseDown = { 0, 0 };
 
@@ -188,8 +190,8 @@ int main( int argc, char **argv )
 						//case SDLK_DOWN:			GameMoveCamera( game, 0.0f, -1.0f, 0.0f);	break;
 						//case SDLK_RIGHT:		GameAdjustPerspective( game, 2.0f );		break;
 						//case SDLK_LEFT:			GameAdjustPerspective( game, -2.0f );		break;
-						//case SDLK_RIGHT:		GameRotate( game, --rotation );				break;
-						//case SDLK_LEFT:			GameRotate( game, ++rotation );				break;
+						case SDLK_RIGHT:		GameRotate( game, --rotation );				break;
+						case SDLK_LEFT:			GameRotate( game, ++rotation );				break;
 						//case SDLK_RIGHT:		yRotation += 2.0f; GameYRotateCamera( game, yRotation );		break;
 						//case SDLK_LEFT:			yRotation -= 2.0f; GameYRotateCamera( game, yRotation );		break;
 
@@ -223,6 +225,7 @@ int main( int argc, char **argv )
 					else if ( event.button.button == 3 ) {
 						int dx = IPOD_SCREEN_HEIGHT/2 - y;
 						GLOUTPUT(( "x=%d y=%d\n", x, y ));
+						zooming = true;
 						GameZoom( game, GAME_ZOOM_START, (int) sqrtf( (float)(dx*dx) ) );
 					}
 				}
@@ -242,11 +245,20 @@ int main( int argc, char **argv )
 							dragging = false;
 						}
 					}
-					if (    event.button.button == 1 
-						 && abs( mouseDown.x - x ) < 3 
-						 && abs( mouseDown.y - y ) < 3 ) 
-					{
-						GameTap( game, 1, x, y );
+					if ( event.button.button == 3 ) {
+						zooming = false;
+					}
+					if ( event.button.button == 1 ) {
+						if (    abs( mouseDown.x - x ) < 3 
+							 && abs( mouseDown.y - y ) < 3 ) 
+						{
+							Uint8 *keystate = SDL_GetKeyState(NULL);
+							int tap = 1;
+							if ( SDL_GetModState() & (KMOD_LSHIFT|KMOD_RSHIFT) ) {
+								tap = 2;
+							}
+							GameTap( game, tap, x, y );
+						}
 					}
 				}
 				break;
@@ -267,7 +279,7 @@ int main( int argc, char **argv )
 							GameDrag( game, GAME_DRAG_MOVE, x, y );
 						}
 					}
-					else if ( state & SDL_BUTTON(3) ) {
+					else if ( zooming && (state & SDL_BUTTON(3)) ) {
 						int dx = IPOD_SCREEN_HEIGHT/2 - y;
 						GameZoom( game, GAME_ZOOM_MOVE, (int) sqrtf( (float)(dx*dx) ) );
 					}

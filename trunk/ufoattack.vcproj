@@ -395,6 +395,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\engine\uirendering.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\engine\uirendering.h"
+				>
+			</File>
+			<File
 				RelativePath=".\engine\vertex.h"
 				>
 			</File>
