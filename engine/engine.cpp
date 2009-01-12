@@ -66,6 +66,14 @@ Engine::~Engine()
 }
 
 
+void Engine::MoveCameraHome()
+{
+	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)Map::SIZE + 5.0f );
+	camera.SetYRotation( -45.f );
+	camera.SetTilt( engineData.cameraTilt );
+}
+
+
 Model* Engine::GetModel( ModelResource* resource )
 {
 	GLASSERT( resource );

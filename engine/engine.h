@@ -56,6 +56,7 @@ public:
 
 	void SetPerspective();
 	void Draw();
+	void MoveCameraHome();
 
 	Model* GetModel( ModelResource* );
 	void ReleaseModel( Model* );
@@ -70,7 +71,6 @@ public:
 
 	void Drag( int action, int x, int y );
 	void Zoom( int action, int distance );
-	void Tap( int count )					{}
 	void CancelInput()						{ isDragging = false; }
 
 	bool IsDragging() { return isDragging; }

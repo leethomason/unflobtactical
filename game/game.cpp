@@ -3,6 +3,7 @@
 #include "../engine/platformgl.h"
 #include "../engine/text.h"
 #include "../engine/model.h"
+#include "../engine/uirendering.h"
 
 
 const char* const gModelNames[] = 
@@ -11,19 +12,30 @@ const char* const gModelNames[] =
 	"test2",
 	"teapot",
 	"crate",
-	//"Yohko",
 	0
 };
 
 const char* const gTextureNames[] = 
 {
 	"stdfont2",
+	"icons",
 	"green",
 	"woodDark",
 	"woodDarkUFO",
-	//"Yohko",
 	0
 };
+
+enum {
+	ICON_NONE,
+	ICON_CAMERA_HOME
+};
+
+IconInfo gIcon[] = 
+{
+	{ ICON_CAMERA_HOME, { 0, 270 }, { 50, 50 }, { 0, 0 }, { FIXED_1/4, FIXED_1/4 } },
+	{ 0, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } },
+};
+
 
 Game::Game( int width, int height ) :
 	engine( width, height, engineData ),
@@ -38,6 +50,9 @@ Game::Game( int width, int height ) :
 
 	LoadTextures();
 	LoadModels();
+
+	iconTexture = &texture[1];
+	mapTexture = &texture[2];
 
 	memset( testModel, 0, NUM_TEST_MODEL*sizeof(Model*) );
 
@@ -189,11 +204,46 @@ void Game::DoTick( U32 currentTime )
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
 
-	glBindTexture( GL_TEXTURE_2D, texture[1].glID );
+	glBindTexture( GL_TEXTURE_2D, mapTexture->glID );	// FIXME!! should be in map
 	engine.Draw();
 
 	glDisable( GL_DEPTH_TEST );
+
+	int w = engine.Width();
+	int h = engine.Height();
+	if ( rotation&1 ) grinliz::Swap( &w, &h );
+
 	UFODrawText( 0, 0, "UFO Attack! %.1ffps rot=%d shadow=%d", 
 				framesPerSecond, rotation, engine.ShadowMode() );
+
+	glBindTexture( GL_TEXTURE_2D, iconTexture->glID );
+	UFODrawIcons( gIcon, w, h, rotation );
+
 	glEnable( GL_DEPTH_TEST );
+
+}
+
+
+void Game::Tap( int count, int _x, int _y )
+{
+	int x = _y;
+	int y = engine.Width() - _x;
+
+	GLOUTPUT(( "Tap count=%d x=%d y=%d\n", count, x, y ));
+	for( const IconInfo* icon = gIcon; icon->iconID > 0; ++icon ) {
+		if (    grinliz::InRange( x, icon->pos.x, icon->pos.x+icon->size.x )
+			 && grinliz::InRange( y, icon->pos.y, icon->pos.y+icon->size.y ) ) 
+		{
+			switch( icon->iconID ) {
+				case ICON_CAMERA_HOME:
+					if ( count == 1 )
+						engine.MoveCameraHome();
+					break;
+
+				default:
+					GLASSERT( 0 );
+					break;
+			}
+		}
+	}
 }

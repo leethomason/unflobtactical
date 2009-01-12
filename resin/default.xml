@@ -1,11 +1,15 @@
 <resource output="./res/">
-
+	<!-- Icon and UI -->
+	<texture filename="icons.png" />
+	
+	<!-- Model textures -->
 	<texture filename="stdfont2.tga" />
 	<texture filename="green.tga" />
 	<texture filename="Yohko.bmp" />
 	<texture filename="woodDark.tga" />
 	<texture filename="woodDarkUFO.tga" />
 
+	<!-- Models -->
 	<model filename="test1.ac" />
 	<model filename="test2.ac" />
 	<model filename="teapot.off" />
@@ -18,7 +22,6 @@
 	<model filename="knight.ac" />
 	<model filename="mushroom.off" />
 	<model filename="test4.ac" />
-
 	-->
 
 </resource>

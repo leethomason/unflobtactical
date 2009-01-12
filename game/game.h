@@ -27,6 +27,7 @@ public:
 
 	void DoTick( U32 msec );
 	void SetScreenRotation( int i );
+	void Tap( int count, int x, int y );
 	
 	ModelResource* GetResource( const char* name );
 
@@ -48,6 +49,9 @@ private:
 	U32 markFrameTime;
 	U32 frameCountsSinceMark;
 	float framesPerSecond;
+
+	Texture* mapTexture;
+	Texture* iconTexture;
 
 	enum { NUM_TEST_MODEL = 8 };
 	Model* testModel[NUM_TEST_MODEL];

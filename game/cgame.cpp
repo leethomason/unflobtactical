@@ -38,7 +38,7 @@ void GameZoom( void* handle, int action, int distance )
 void GameTap( void* handle, int count, int x, int y )
 {
 	Game* game = (Game*)handle;
-	game->engine.Tap( count );
+	game->Tap( count, x, y );
 }
 
 void GameInputCancelled( void* handle )
