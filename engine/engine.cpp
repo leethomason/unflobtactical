@@ -1,11 +1,15 @@
-#include "engine.h"
+
 #include "../grinliz/glutil.h"
 #include "../grinliz/glmath.h"
 #include "../grinliz/glmatrix.h"
 #include "../grinliz/glvector.h"
 #include "../grinliz/glgeometry.h"
-#include "platformgl.h"
+
 #include "../game/cgame.h"
+
+#include "platformgl.h"
+#include "engine.h"
+#include "loosequadtree.h"
 
 using namespace grinliz;
 
@@ -18,6 +22,9 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 		engineData( _engineData ),
 		initZoomDistance( 0 )
 {
+	map = new Map();
+	spaceTree = new SpaceTree( -FIXED_1, 4*FIXED_1 );
+
 	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)Map::SIZE + 5.0f );
 	camera.SetYRotation( -45.f );
 	camera.SetTilt( engineData.cameraTilt );
@@ -26,7 +33,7 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 	// The ray runs from the min to the max, with the current (and default)
 	// zoom specified in the engineData.
 	Ray ray;
-	camera.CalcEyeRay( &ray );
+	camera.CalcEyeRay( &ray, 0, 0 );
 	
 	float t1 = ( engineData.cameraMin - ray.origin.y ) / ray.direction.y;
 	float t0 = ( engineData.cameraMax - ray.origin.y ) / ray.direction.y;
@@ -39,15 +46,6 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 	zoom /= cameraRay.length;
 	defaultZoom = zoom;
 
-	// Link up the circular list of models.
-	// First, link the sentinel to itself:
-	modelPoolRoot.next = &modelPoolRoot;
-	modelPoolRoot.prev = &modelPoolRoot;
-	// Then everyone else:
-	for( int i=0; i<EL_MAX_MODELS; ++i ) {
-		modelPool[i].Link( &modelPoolRoot );
-	}
-
 	SetPerspective();
 	lightDirection.Set( 1.0f, 3.0f, 2.0f );
 	lightDirection.Normalize();
@@ -55,14 +53,8 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 
 Engine::~Engine()
 {
-#ifdef DEBUG
-	// Un-released models?
-	int count = 0;
-	for( Model* model=modelPoolRoot.next; model != &modelPoolRoot; model=model->next ) {
-		++count;
-	}
-	GLASSERT( count == EL_MAX_MODELS );
-#endif
+	delete map;
+	delete spaceTree;
 }
 
 
@@ -71,29 +63,20 @@ void Engine::MoveCameraHome()
 	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)Map::SIZE + 5.0f );
 	camera.SetYRotation( -45.f );
 	camera.SetTilt( engineData.cameraTilt );
+	zoom = defaultZoom;
 }
 
 
 Model* Engine::GetModel( ModelResource* resource )
 {
 	GLASSERT( resource );
-	GLASSERT( modelPoolRoot.next != &modelPoolRoot );	// All tapped out!!
-
-	if ( modelPoolRoot.next != &modelPoolRoot ) {
-		Model* model = modelPoolRoot.next;
-		model->UnLink();
-		model->Init( resource );
-		return model;
-	}
-	return 0;
+	return spaceTree->AllocModel( resource );
 }
+
 
 void Engine::ReleaseModel( Model* model )
 {
-	GLASSERT( model->next == 0 );
-	GLASSERT( model->prev == 0 );
-	// Link
-	model->Link( &modelPoolRoot );
+	spaceTree->FreeModel( model );
 }
 
 
@@ -134,7 +117,7 @@ void Engine::Draw()
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
 	
-	map.Draw();
+	map->Draw();
 
 	// -- Shadow casters/ground plane -- //
 	Matrix4 m;
@@ -156,10 +139,19 @@ void Engine::Draw()
 	glGetIntegerv( GL_DEPTH_FUNC, &depthFunc );
 	glDepthFunc( GL_ALWAYS );
 
-	for( int i=0; i<EL_MAX_MODELS; ++i ) {	// OPT: not all models are always used.
-		if ( modelPool[i].ShouldDraw() ) {
-			modelPool[i].Draw( false );
-		}
+	// Compute the planes
+	Plane planes[6];
+	CalcFrustumPlanes( planes );
+	PlaneX planesX[6];
+	for( int i=0; i<6; ++i ) {
+		planesX[i].Convert( planes[i] );
+	}
+
+
+	Model* modelRoot = spaceTree->Query( planesX, 6 );
+
+	for( Model* model=modelRoot; model; model=model->next ) {
+		model->Draw( false );
 	}
 	glPopMatrix();
 
@@ -171,14 +163,14 @@ void Engine::Draw()
 	if ( shadowMode == SHADOW_DST_BLEND ) {
 		glEnable( GL_BLEND );
 		glBlendFunc( GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA );
-		map.Draw();
+		map->Draw();
 		glDisable( GL_BLEND );
 	}
 	else if ( shadowMode == SHADOW_Z ) {
 		glDepthMask( GL_TRUE );
 		glEnable( GL_DEPTH_TEST );
 		glDepthFunc( GL_LESS );
-		map.Draw();
+		map->Draw();
 	}
 	
 	glEnable( GL_TEXTURE_2D );
@@ -190,10 +182,8 @@ void Engine::Draw()
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
 
-	for( int i=0; i<EL_MAX_MODELS; ++i ) {	// OPT: not all models are always used.
-		if ( modelPool[i].ShouldDraw() ) {
-			modelPool[i].Draw();
-		}
+	for( Model* model=modelRoot; model; model=model->next ) {
+		model->Draw( true );
 	}
 	
 	EnableLights( false );
@@ -264,8 +254,6 @@ void Engine::SetPerspective()
 
 	// left, right, top, & bottom are on the near clipping
 	// plane. (Not an obvious point to my mind.)
-	//
-
 	float aspect = (float)(width) / (float)(height);
 	frustumTop		= tan(theta) * nearPlane;
 	frustumBottom	= -frustumTop;
@@ -319,7 +307,7 @@ void Engine::CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjecti
 }
 
 
-void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Vector3F* out )
+void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray, Vector3F* out )
 {	
 	Rectangle2I screen;
 	screen.Set( 0, 0, width-1, height-1 );
@@ -337,8 +325,59 @@ void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Vector3F*
 	
 	Vector3F dir = p1 - p0;
 
+	ray->origin = p0;
+	ray->direction = dir;
+	ray->length = 1.0f;
+
 	float t;
 	IntersectLinePlane( p0, p1, plane, out, &t );
+}
+
+
+void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
+{
+	Ray forward, up, right;
+	camera.CalcEyeRay( &forward, &up, &right );
+
+	Vector3F ntl = forward.origin + forward.direction*frustumNear + up.direction*frustumTop + right.direction*frustumLeft;
+	Vector3F ntr = forward.origin + forward.direction*frustumNear + up.direction*frustumTop + right.direction*frustumRight;
+	Vector3F nbl = forward.origin + forward.direction*frustumNear + up.direction*frustumBottom + right.direction*frustumLeft;
+	Vector3F nbr = forward.origin + forward.direction*frustumNear + up.direction*frustumBottom + right.direction*frustumRight;
+
+	Plane::CreatePlane( forward.direction,  forward.origin + forward.direction*frustumNear, &planes[NEAR] );
+	Plane::CreatePlane( -forward.direction, forward.origin + forward.direction*frustumFar,  &planes[FAR] );
+
+	Plane::CreatePlane( camera.PosWC(), nbl, ntl, &planes[LEFT] );
+	Plane::CreatePlane( camera.PosWC(), ntr, nbr, &planes[RIGHT] );
+	Plane::CreatePlane( camera.PosWC(), ntl, ntr, &planes[TOP] );
+	Plane::CreatePlane( camera.PosWC(), nbr, nbl, &planes[BOTTOM] );
+}
+
+
+Model* Engine::IntersectModel( const grinliz::Ray& ray )
+{
+/*	FIXED close = FIXED_MAX;
+	Model* m = 0;
+
+	for( Model* model=&modelPoolRoot; model; model=model->next )
+	{
+		Vector3X origin, dir;
+		SphereX spherex;
+
+		model->CalcBoundSphere( &spherex );
+		ConvertVector3( ray.origin, &origin );
+		ConvertVector3( ray.direction, &dir );
+
+		FIXED t;
+		IntersectRaySphereX( spherex, origin, dir, &t );
+		if ( t < close ) {
+			close = t;
+			m = model;
+		}
+	}
+	return m;
+	*/
+	return 0;
 }
 
 
@@ -352,10 +391,16 @@ void Engine::Drag( int action, int x, int y )
 			isDragging = true;
 
 			Matrix4 mvpi;
+			Ray ray;
+
 			CalcModelViewProjectionInverse( &dragMVPI );
-			RayFromScreenToYPlane( x, y, dragMVPI, &dragStart );
+			RayFromScreenToYPlane( x, y, dragMVPI, &ray, &dragStart );
+
+			Model* m = IntersectModel( ray );
+			GLOUTPUT(( "Model=%x\n", m ));
+
 			dragStartCameraWC = camera.PosWC();
-			GLOUTPUT(( "Drag start %.1f,%.1f\n", dragStart.x, dragStart.z ));
+//			GLOUTPUT(( "Drag start %.1f,%.1f\n", dragStart.x, dragStart.z ));
 		}
 		break;
 
@@ -364,13 +409,19 @@ void Engine::Drag( int action, int x, int y )
 			GLASSERT( isDragging );
 
 			Vector3F drag;
-			RayFromScreenToYPlane( x, y, dragMVPI, &drag );
+			Ray ray;
+			RayFromScreenToYPlane( x, y, dragMVPI, &ray, &drag );
 			
 			Vector3F delta = drag - dragStart;
 			delta.y = 0.0f;
 
 			camera.SetPosWC( dragStartCameraWC - delta );
 			RestrictCamera();
+
+			Vector3X origin, dir;
+			ConvertVector3( ray.origin, &origin );
+			ConvertVector3( ray.direction, &dir );
+			spaceTree->Query( origin, dir );
 		}
 		break;
 
@@ -379,7 +430,7 @@ void Engine::Drag( int action, int x, int y )
 			GLASSERT( isDragging );
 			Drag( GAME_DRAG_MOVE, x, y );
 			isDragging = false;
-			GLOUTPUT(( "Drag end\n" ));
+//			GLOUTPUT(( "Drag end\n" ));
 		}
 		break;
 
@@ -397,13 +448,13 @@ void Engine::Zoom( int action, int distance )
 		case GAME_ZOOM_START:
 			initZoomDistance = distance;
 			initZoom = zoom;
-			GLOUTPUT(( "initZoomStart=%.2f distance=%d initDist=%d\n", initZoom, distance, initZoomDistance ));
+//			GLOUTPUT(( "initZoomStart=%.2f distance=%d initDist=%d\n", initZoom, distance, initZoomDistance ));
 			break;
 
 		case GAME_ZOOM_MOVE:
 			{
 				float z = initZoom * (float)distance / (float)initZoomDistance;
-				GLOUTPUT(( "initZoom=%.2f distance=%d initDist=%d\n", initZoom, distance, initZoomDistance ));
+//				GLOUTPUT(( "initZoom=%.2f distance=%d initDist=%d\n", initZoom, distance, initZoomDistance ));
 				SetZoom( z );
 			}
 			break;
@@ -418,10 +469,10 @@ void Engine::Zoom( int action, int distance )
 void Engine::RestrictCamera()
 {
 	Ray ray;
-	camera.CalcEyeRay( &ray );
+	camera.CalcEyeRay( &ray, 0, 0 );
 	Vector3F intersect;
 	IntersectRayPlane( ray.origin, ray.direction, XZ_PLANE, 0.0f, &intersect );
-	GLOUTPUT(( "Intersect %.1f, %.1f, %.1f\n", intersect.x, intersect.y, intersect.z ));
+//	GLOUTPUT(( "Intersect %.1f, %.1f, %.1f\n", intersect.x, intersect.y, intersect.z ));
 
 	const float SIZE = (float)Map::SIZE;
 
@@ -448,5 +499,5 @@ void Engine::SetZoom( float z )
 	cameraRay.origin = camera.PosWC() - zoom*cameraRay.length*cameraRay.direction;
 	zoom = z;
 	camera.SetPosWC( cameraRay.origin + zoom*cameraRay.length*cameraRay.direction );
-	GLOUTPUT(( "zoom=%.2f y=%.2f\n", zoom, camera.PosWC().y ));
+//	GLOUTPUT(( "zoom=%.2f y=%.2f\n", zoom, camera.PosWC().y ));
 }

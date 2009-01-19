@@ -2,8 +2,11 @@
 #include "surface.h"
 #include "platformgl.h"
 #include "enginelimits.h"
+#include "loosequadtree.h"
+
 #include "../grinliz/glvector.h"
 #include "../grinliz/glstringutil.h"
+
 
 using namespace grinliz;
 
@@ -28,6 +31,17 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 		res->bounds[i].y = grinliz::SwapBE32( res->bounds[i].y );
 		res->bounds[i].z = grinliz::SwapBE32( res->bounds[i].z );
 	}
+
+	res->boundSphere.origin.x = FixedMean( res->bounds[0].x, res->bounds[1].x );
+	res->boundSphere.origin.y = FixedMean( res->bounds[0].y, res->bounds[1].y );
+	res->boundSphere.origin.z = FixedMean( res->bounds[0].z, res->bounds[1].z );
+
+	FIXED dx = res->bounds[1].x - res->boundSphere.origin.x;
+	FIXED dy = res->bounds[1].y - res->boundSphere.origin.y;
+	FIXED dz = res->bounds[1].z - res->boundSphere.origin.z;
+	FIXED d2 = FixedMul( dx, dx ) + FixedMul( dy, dy ) + FixedMul( dz, dz );
+
+	res->boundSphere.radius = FixedSqrt( d2 );
 
 	GLASSERT( nTotalVertices <= EL_MAX_VERTEX_IN_GROUP );
 	GLASSERT( nTotalIndices <= EL_MAX_INDEX_IN_GROUP );
@@ -126,6 +140,34 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	// unbind
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+}
+
+
+void Model::Init( ModelResource* resource, SpaceTree* tree )
+{
+	this->resource = resource; 
+	this->tree = tree;
+	pos.Set( 0.0f, 0.0f, 0.0f ); 
+	rot = 0.0f;
+	if ( tree ) {
+		tree->Update( this );
+	}
+}
+
+
+void Model::SetPos( const grinliz::Vector3F& pos )
+{ 
+	this->pos = pos;	
+	tree->Update( this ); 
+}
+
+
+void Model::CalcBoundSphere( SphereX* spherex )
+{
+	*spherex = resource->boundSphere;
+	spherex->origin.x += FloatToFixed( pos.x );
+	spherex->origin.y += FloatToFixed( pos.y );
+	spherex->origin.z += FloatToFixed( pos.z );
 }
 
 

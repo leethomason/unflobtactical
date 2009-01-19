@@ -68,11 +68,7 @@ Game::Game( int width, int height ) :
 
 	resource = GetResource( "crate" );
 	testModel[n] = engine.GetModel( resource );
-	testModel[n++]->SetPos( 3.0f, 0.0f, 58.f );
-
-	//resource = GetResource( "Yohko" );
-	//testModel[n] = engine.GetModel( resource );
-	//testModel[n++]->SetPos( 3.0f, 0.0f, 62.f );
+	testModel[n++]->SetPos( 3.5f, 0.0f, 58.5f );
 }
 
 

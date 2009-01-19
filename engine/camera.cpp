@@ -7,7 +7,8 @@ using namespace grinliz;
 Camera::Camera() : 
 	tilt( 45.f ), 
 	yRotation( 0.0f ), 
-	viewRotation( 0 )
+	viewRotation( 0 ),
+	valid( false )
 {
 	posWC.Set( 0.f, 0.f, 0.f );
 }
@@ -15,21 +16,24 @@ Camera::Camera() :
 
 void Camera::CalcWorldXForm( Matrix4* xform )
 {
-	Matrix4 translation, rotationY, rotationTilt;
+	if ( !valid ) {
+		Matrix4 translation, rotationY, rotationTilt;
 
-	/* Test values:
-	translation.SetTranslation( -5.0f, 5.0f, -5.0f );
-	rotationY.SetYRotation( 225.0f );
-	rotationTilt.SetXRotation( -5.0f );
-	*/
+		/* Test values:
+		translation.SetTranslation( -5.0f, 5.0f, -5.0f );
+		rotationY.SetYRotation( 225.0f );
+		rotationTilt.SetXRotation( -5.0f );
+		*/
 
-	translation.SetTranslation( posWC );
-	rotationY.SetYRotation( yRotation );
-	rotationTilt.SetXRotation( tilt );
+		translation.SetTranslation( posWC );
+		rotationY.SetYRotation( yRotation );
+		rotationTilt.SetXRotation( tilt );
 
-	// Done in world: we tilt it down, turn it around y, then move it.
-	Matrix4 world = translation * rotationY * rotationTilt;
-	*xform = world;
+		// Done in world: we tilt it down, turn it around y, then move it.
+		worldXForm = translation * rotationY * rotationTilt;
+		valid = true;
+	}
+	*xform = worldXForm;
 }
 
 
@@ -48,18 +52,31 @@ void Camera::DrawCamera()
 }
 
 
-void Camera::CalcEyeRay( Ray* ray )
+void Camera::CalcEyeRay( Ray* ray, Ray* up, Ray* right )
 {
-	ray->origin = posWC;
-	ray->length = 1.0f;
 	
 	Matrix4 m;
 	CalcWorldXForm( &m );
-	Vector4F v = { 0.0f, 0.0f, -1.0f, 0.0f };
-	Vector4F vOut = m * v;
 
-	ray->direction.x = vOut.x;
-	ray->direction.y = vOut.y;
-	ray->direction.z = vOut.z;
+	Ray* rays[3] = { ray, up, right };
+	Vector4F dir[3] = {
+		{ 0.0f, 0.0f, -1.0f, 0.0f },	// ray
+		{ 0.0f, 1.0f, 0.0f, 0.0f },		// up (y axis)
+		{ 1.0f, 0.0f, 0.0f, 0.0f },		// right (x axis)
+	};
+
+	for( int i=0; i<3; ++i ) {
+		Ray* r = rays[i];
+		if ( r ) {
+			r->origin = posWC;
+			r->length = 1.0f;
+
+			Vector4F vOut = m * dir[i];
+
+			r->direction.x = vOut.x;
+			r->direction.y = vOut.y;
+			r->direction.z = vOut.z;
+		}
+	}
 }
 

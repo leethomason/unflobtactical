@@ -112,6 +112,19 @@ void DegDelta( float angle0, float angle1, float* distance, float* bias )
 	#endif
 }
 
+
+
+/*static*/ void Plane::CreatePlane( const Vector3F& normal, const Vector3F& point, Plane* plane )
+{
+	// n * p + d = 0
+	// so: d = -n*p
+
+	GLASSERT( Equal( normal.Length(), 1.0f, 0.001f ) );
+	plane->n = normal;
+	plane->d = -DotProduct( normal, point );
+}
+
+
 void Plane::ProjectToPlane( const Vector3F& _vector, Vector3F* projected ) const
 {
 	// A || B = B x (Ax B / |B|) / |B|

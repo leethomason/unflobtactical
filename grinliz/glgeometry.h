@@ -136,6 +136,14 @@ struct Plane
 {
 	/// Create a plane from 3 points.
 	static void CreatePlane( const Vector3F* vertices, Plane* plane );
+	/// Create a plane from 3 points.
+	static void CreatePlane( const Vector3F& v0, const Vector3F& v1, const Vector3F& v2, Plane* plane )
+	{
+		Vector3F v[3] = { v0, v1, v2 };
+		CreatePlane( v, plane );
+	}
+	//// Create a plane from a normal vector and a point.
+	static void CreatePlane( const Vector3F& normal, const Vector3F& point, Plane* plane );
 
 	Vector3F	n;	///< normal
 	float		d;	///< offset

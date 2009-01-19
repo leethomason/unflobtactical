@@ -4,6 +4,7 @@
 #include <vector>
 #include "../grinliz/glvector.h"
 #include "../grinliz/glmatrix.h"
+#include "fixedgeom.h"
 
 class Texture;
 
@@ -31,23 +32,6 @@ struct Vertex
 	}
 };
 
-typedef S32 FIXED;
-typedef grinliz::Vector3< FIXED > Vector3X;
-typedef grinliz::Vector2< FIXED > Vector2X;
-
-const FIXED FIXED_1 = 0x10000;
-
-inline FIXED FloatToFixed( float f ) {
-	return grinliz::LRintf( f * 65536.0f );
-}
-
-inline FIXED FloatToFixed( double f ) {
-	return grinliz::LRint( f * 65536.0 );
-}
-
-inline float FixedToFloat( S32 v ) {
-	return (float)v / 65536.0f;
-}
 
 struct VertexX
 {

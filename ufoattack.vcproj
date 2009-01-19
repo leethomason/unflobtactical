@@ -359,6 +359,22 @@
 				>
 			</File>
 			<File
+				RelativePath=".\engine\fixedgeom.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\engine\fixedgeom.h"
+				>
+			</File>
+			<File
+				RelativePath=".\engine\loosequadtree.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\engine\loosequadtree.h"
+				>
+			</File>
+			<File
 				RelativePath=".\engine\map.cpp"
 				>
 			</File>
