@@ -56,6 +56,7 @@ public:
 
 	void SetPerspective();
 	void Draw();
+
 	void MoveCameraHome();
 
 	Model* GetModel( ModelResource* );
@@ -67,7 +68,20 @@ public:
 							grinliz::Vector3F* world );
 
 	void CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjectionInverse );
-	void RayFromScreenToYPlane( int x, int y, const grinliz::Matrix4& modelViewProjectionInverse, grinliz::Vector3F* out );
+	void RayFromScreenToYPlane( int x, int y, 
+								const grinliz::Matrix4& modelViewProjectionInverse, 
+								grinliz::Ray* ray,
+								grinliz::Vector3F* out );
+
+	enum {
+		NEAR,
+		FAR,
+		LEFT,
+		RIGHT,
+		BOTTOM,
+		TOP
+	};
+	void CalcFrustumPlanes( grinliz::Plane* planes );
 
 	void Drag( int action, int x, int y );
 	void Zoom( int action, int distance );
@@ -90,10 +104,11 @@ private:
 	void RestrictCamera();
 	void CalcCameraRotation( grinliz::Matrix4* );
 	void EnableLights( bool enable, bool inShadow=false );
+	Model* IntersectModel( const grinliz::Ray& ray );
 
 	int		width;
 	int		height;
-	float	frustumLeft, frustumRight, 
+ 	float	frustumLeft, frustumRight, 
 			frustumTop, frustumBottom, 
 			frustumNear, frustumFar;
 	grinliz::Ray cameraRay;		// origin isn't normally valid
@@ -115,9 +130,8 @@ private:
 	bool isDragging;
 	const EngineData& engineData;
 
-	Map map;
-	Model modelPool[EL_MAX_MODELS];
-	Model modelPoolRoot;
+	Map* map;
+	SpaceTree* spaceTree;
 };
 
 #endif // UFOATTACK_ENGINE_INCLUDED

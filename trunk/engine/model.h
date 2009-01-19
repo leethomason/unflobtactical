@@ -8,13 +8,15 @@
 #include "enginelimits.h"
 
 class Texture;
+class SpaceTree;
 
 class ModelResource
 {
 public:
-	char name[16];
-	U32 nGroups;
-	Vector3X bounds[2];
+	char name[16];			// loaded
+	U32 nGroups;			// loaded
+	Vector3X bounds[2];		// loaded
+	SphereX boundSphere;	// computed
 
 	const Texture* texture[EL_MAX_MODEL_GROUPS];
 
@@ -48,43 +50,25 @@ private:
 class Model
 {
 public:
-	Model( ModelResource* resource=0 )		{	Init( resource ); }
-	~Model()								{}
+	Model()		{	Init( 0, 0 ); }
+	~Model()	{}
 
-	void Init( ModelResource* resource ) 
-	{
-		this->resource = resource; 
-		pos.Set( 0.0f, 0.0f, 0.0f ); 
-		rot = 0.0f;
-	}
-	bool ShouldDraw()	{
-		return resource && !next;
-	}
+	void Init( ModelResource* resource, SpaceTree* tree );
 	void Draw( bool useTexture = true );
 	
-	void SetPos( const grinliz::Vector3F& pos )	{ this->pos = pos; }
+	void SetPos( const grinliz::Vector3F& pos );
 	void SetPos( float x, float y, float z )	{ grinliz::Vector3F vec = { x, y, z }; SetPos( vec ); }
 	void SetYRotation( float rot )				{ this->rot = rot; }
 	const float GetYRotation()					{ return rot; }
 
-	void Link( Model* afterThis ) {
-		prev = afterThis;
-		next = afterThis->next;
-		afterThis->next->prev = this;
-		afterThis->next = this;
-	}
-	void UnLink() {
-		GLASSERT( next );
-		GLASSERT( prev );
-		prev->next = next;
-		next->prev = prev;
-		prev = next = 0;
-	}
+	void CalcBoundSphere( SphereX* spherex );
+	ModelResource* GetResource()				{ return resource; }
+	bool Sentinel()								{ return resource==0 && tree==0; }
 
-public:
 	Model* next;
-	Model* prev;
+
 private:
+	SpaceTree* tree;
 	ModelResource* resource;
 	grinliz::Vector3F pos;
 	float rot;
