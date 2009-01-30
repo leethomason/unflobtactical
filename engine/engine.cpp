@@ -23,7 +23,7 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 		initZoomDistance( 0 )
 {
 	map = new Map();
-	spaceTree = new SpaceTree( -FIXED_1, 4*FIXED_1 );
+	spaceTree = new SpaceTree( Fixed(-1), Fixed(4) );
 
 	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)Map::SIZE + 5.0f );
 	camera.SetYRotation( -45.f );
@@ -356,28 +356,36 @@ void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
 
 Model* Engine::IntersectModel( const grinliz::Ray& ray )
 {
-/*	FIXED close = FIXED_MAX;
+	int FAR = 10*1000;
+	Fixed close( FAR );
 	Model* m = 0;
 
-	for( Model* model=&modelPoolRoot; model; model=model->next )
+	Vector3X origin, dir;
+	ConvertVector3( ray.origin, &origin );
+	ConvertVector3( ray.direction, &dir );
+
+	Model* root = spaceTree->Query( origin, dir );
+
+	for( ; root; root=root->next )
 	{
-		Vector3X origin, dir;
-		SphereX spherex;
+		Vector3X intersect;
+		Rectangle3X aabb;
+		Fixed t;
 
-		model->CalcBoundSphere( &spherex );
-		ConvertVector3( ray.origin, &origin );
-		ConvertVector3( ray.direction, &dir );
-
-		FIXED t;
-		IntersectRaySphereX( spherex, origin, dir, &t );
-		if ( t < close ) {
-			close = t;
-			m = model;
+		root->CalcHitAABB( &aabb );
+		//GLOUTPUT(( "AABB: %.2f,%.2f,%.2f  %.2f,%.2f,%.2f\n", (float)aabb.min.x, (float)aabb.min.y, (float)aabb.min.z,
+		//			(float)aabb.max.x, (float)aabb.max.y, (float)aabb.max.z ));
+		
+		int result = IntersectRayAABBX( origin, dir, aabb, &intersect, &t );
+		//GLOUTPUT(( "  result=%d\n", result ));
+		if ( result == grinliz::INTERSECT ) {
+			if ( t < close ) {
+				m = root;
+				close = t;
+			}
 		}
 	}
 	return m;
-	*/
-	return 0;
 }
 
 
@@ -389,6 +397,7 @@ void Engine::Drag( int action, int x, int y )
 		{
 			GLASSERT( !isDragging );
 			isDragging = true;
+			draggingModel = 0;
 
 			Matrix4 mvpi;
 			Ray ray;
@@ -396,10 +405,15 @@ void Engine::Drag( int action, int x, int y )
 			CalcModelViewProjectionInverse( &dragMVPI );
 			RayFromScreenToYPlane( x, y, dragMVPI, &ray, &dragStart );
 
-			Model* m = IntersectModel( ray );
-			GLOUTPUT(( "Model=%x\n", m ));
+			draggingModel = IntersectModel( ray );
+			GLOUTPUT(( "Model=%x\n", draggingModel ));
 
-			dragStartCameraWC = camera.PosWC();
+			if ( draggingModel ) {
+				draggingModelOrigin = draggingModel->Pos();
+			}
+			else {
+				dragStartCameraWC = camera.PosWC();
+			}
 //			GLOUTPUT(( "Drag start %.1f,%.1f\n", dragStart.x, dragStart.z ));
 		}
 		break;
@@ -411,17 +425,21 @@ void Engine::Drag( int action, int x, int y )
 			Vector3F drag;
 			Ray ray;
 			RayFromScreenToYPlane( x, y, dragMVPI, &ray, &drag );
-			
+
 			Vector3F delta = drag - dragStart;
 			delta.y = 0.0f;
 
-			camera.SetPosWC( dragStartCameraWC - delta );
-			RestrictCamera();
-
-			Vector3X origin, dir;
-			ConvertVector3( ray.origin, &origin );
-			ConvertVector3( ray.direction, &dir );
-			spaceTree->Query( origin, dir );
+			if ( draggingModel ) {
+				int dx = LRintf( delta.x );
+				int dz = LRintf( delta.z );
+				draggingModel->SetPos(	draggingModelOrigin.x + Fixed(dx),
+										draggingModelOrigin.y,
+										draggingModelOrigin.z + Fixed(dz) );
+			}
+			else {
+				camera.SetPosWC( dragStartCameraWC - delta );
+				RestrictCamera();
+			}
 		}
 		break;
 

@@ -120,6 +120,8 @@ private:
 	grinliz::Vector3F dragStart;
 	grinliz::Vector3F dragStartCameraWC;
 	grinliz::Matrix4  dragMVPI;
+	Model* draggingModel;
+	Vector3X draggingModelOrigin;
 
 	enum {
 		SHADOW_DST_BLEND,

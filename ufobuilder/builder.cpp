@@ -128,10 +128,12 @@ void ProcessModel( TiXmlElement* model )
 	SDL_WriteBE32( fp, nTotalVertex );	
 	SDL_WriteBE32( fp, nTotalIndex );
 
+	printf( "  bounds:\n" );
 	for( int i=0; i<2; ++i ) {
-		SDL_WriteBE32( fp, builder->Bounds(i).x );
-		SDL_WriteBE32( fp, builder->Bounds(i).y );
-		SDL_WriteBE32( fp, builder->Bounds(i).z );
+		SDL_WriteBE32( fp, builder->Bounds(i).x.x );
+		SDL_WriteBE32( fp, builder->Bounds(i).y.x );
+		SDL_WriteBE32( fp, builder->Bounds(i).z.x );
+		printf( "  %.1f,%.1f,%.1f\n", (float)builder->Bounds(i).x, (float)builder->Bounds(i).y, (float)builder->Bounds(i).z );
 	}
 	
 	int totalMemory = 0;
@@ -166,14 +168,14 @@ void ProcessModel( TiXmlElement* model )
 			//		FixedToFloat( v.normal.x ), FixedToFloat( v.normal.y ), FixedToFloat( v.normal.z ),
 			//		FixedToFloat( v.tex.x ), FixedToFloat( v.tex.y ) );
 
-			SDL_WriteBE32( fp, v.pos.x );
-			SDL_WriteBE32( fp, v.pos.y );
-			SDL_WriteBE32( fp, v.pos.z );
-			SDL_WriteBE32( fp, v.normal.x );
-			SDL_WriteBE32( fp, v.normal.y );
-			SDL_WriteBE32( fp, v.normal.z );
-			SDL_WriteBE32( fp, v.tex.x );
-			SDL_WriteBE32( fp, v.tex.y );
+			SDL_WriteBE32( fp, v.pos.x.x );
+			SDL_WriteBE32( fp, v.pos.y.x );
+			SDL_WriteBE32( fp, v.pos.z.x );
+			SDL_WriteBE32( fp, v.normal.x.x );
+			SDL_WriteBE32( fp, v.normal.y.x);
+			SDL_WriteBE32( fp, v.normal.z.x );
+			SDL_WriteBE32( fp, v.tex.x.x );
+			SDL_WriteBE32( fp, v.tex.y.x );
 		}
 
 	}

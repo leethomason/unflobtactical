@@ -1,5 +1,6 @@
 #include "uirendering.h"
 #include "platformgl.h"
+using namespace grinliz;
 
 void UFODrawIcons( const IconInfo* icons, int width, int height, int rotation )
 {
@@ -19,8 +20,8 @@ void UFODrawIcons( const IconInfo* icons, int width, int height, int rotation )
 	glRotatef( 90.0f * (float)rotation, 0.0f, 0.0f, 1.0f );
 	glOrtho( 0, width, 0, height, -1, 1 );
 
-	FIXED v[8];
-	FIXED t[8];
+	int v[8];
+	Fixed t[8];
 
 	while( icons && icons->size.x > 0 )
 	{
@@ -41,7 +42,7 @@ void UFODrawIcons( const IconInfo* icons, int width, int height, int rotation )
 		{
 			float tF[8];
 			for( int j=0; j<8; ++j ) {
-				tF[j] = FixedToFloat( t[j] );
+				tF[j] = t[j];
 			}
 			glVertexPointer(   2, GL_INT, 0, v );
 			glTexCoordPointer( 2, GL_FLOAT, 0, tF );  

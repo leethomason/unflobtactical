@@ -1012,11 +1012,11 @@ int grinliz::IntersectLinePlane( const Vector3F& p1, const Vector3F& p2,
 }
 
 
-int grinliz::IntersectRayAABB( const Vector3F& origin, 
-						const Vector3F& dir,
-						const Rectangle3F& aabb,
-						Vector3F* intersect,
-						float* t )
+int grinliz::IntersectRayAABB(	const Vector3F& origin, 
+								const Vector3F& dir,
+								const Rectangle3F& aabb,
+								Vector3F* intersect,
+								float* t )
 {
 	enum
 	{

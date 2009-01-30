@@ -43,16 +43,16 @@ struct VertexX
 
 	void From( const Vertex& v )
 	{
-		pos.x = FloatToFixed( v.pos.x );
-		pos.y = FloatToFixed( v.pos.y );
-		pos.z = FloatToFixed( v.pos.z );
+		pos.x = v.pos.x;
+		pos.y = v.pos.y;
+		pos.z = v.pos.z;
 
-		normal.x = FloatToFixed( v.normal.x );
-		normal.y = FloatToFixed( v.normal.y );
-		normal.z = FloatToFixed( v.normal.z );
+		normal.x = v.normal.x;
+		normal.y = v.normal.y;
+		normal.z = v.normal.z;
 
-		tex.x = FloatToFixed( v.tex.x );
-		tex.y = FloatToFixed( v.tex.y );
+		tex.x = v.tex.x;
+		tex.y = v.tex.y;
 	}
 
 	Vector3X	pos;

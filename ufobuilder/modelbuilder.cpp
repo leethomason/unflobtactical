@@ -63,10 +63,10 @@ void ModelBuilder::AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 
 			{
 				// We might have a match. Look at the normals. Are they
 				// similar enough?
-				Vector3F normal0 = { FixedToFloat( vc.normal.x ), FixedToFloat( vc.normal.y ), FixedToFloat( vc.normal.z ) };
-				Vector3F normal1 = {	FixedToFloat( vX[i].normal.x ), 
-										FixedToFloat( vX[i].normal.y ), 
-										FixedToFloat( vX[i].normal.z ) };
+				Vector3F normal0 = { vc.normal.x, vc.normal.y, vc.normal.z };
+				Vector3F normal1 = {	vX[i].normal.x, 
+										vX[i].normal.y, 
+										vX[i].normal.z };
 
 				float dot = DotProduct( normal0, normal1 );
 
@@ -81,9 +81,9 @@ void ModelBuilder::AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 
 		}
 		if ( !added ) {
 			GLASSERT( current->nVertex < EL_MAX_VERTEX_IN_GROUP );
-			current->normalSum[ current->nVertex ].Set( FixedToFloat( vX[i].normal.x ), 
-														FixedToFloat( vX[i].normal.y ), 
-														FixedToFloat( vX[i].normal.z ) );
+			current->normalSum[ current->nVertex ].Set( vX[i].normal.x, 
+														vX[i].normal.y, 
+														vX[i].normal.z );
 			current->index[ current->nIndex++ ] = current->nVertex;
 			current->vertex[ current->nVertex++ ] = vX[i];
 		}
@@ -101,10 +101,10 @@ void ModelBuilder::Flush()
 	for( int i=0; i<nGroup; ++i ) {
 		for( int j=0; j<group[i].nVertex; ++j ) {
 			group[i].normalSum[j].Normalize();
-			group[i].vertex[j].normal.Set(	FloatToFixed( group[i].normalSum[j].x ),
-											FloatToFixed( group[i].normalSum[j].y ),
-											FloatToFixed( group[i].normalSum[j].z ) );
 
+			group[i].vertex[j].normal.x = group[i].normalSum[j].x;
+			group[i].vertex[j].normal.y = group[i].normalSum[j].y;
+			group[i].vertex[j].normal.z = group[i].normalSum[j].z;
 		}
 	}
 

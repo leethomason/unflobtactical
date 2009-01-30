@@ -1,7 +1,8 @@
 #include "loosequadtree.h"
 #include "map.h"
+using namespace grinliz;
 
-SpaceTree::SpaceTree( FIXED yMin, FIXED yMax )
+SpaceTree::SpaceTree( Fixed yMin, Fixed yMax )
 {
 	allocated = 0;
 	this->yMin = yMin;
@@ -122,10 +123,10 @@ void SpaceTree::Update( Model* model )
 	// Get basics.
 	SphereX bSphereX;
 	model->CalcBoundSphere( &bSphereX );
-	int modelSize = FixedToIntCeil( bSphereX.radius );
+	int modelSize = bSphereX.radius.Ceil();
 
-	int x = FixedToInt( bSphereX.origin.x );
-	int z = FixedToInt( bSphereX.origin.z );
+	int x = bSphereX.origin.x;
+	int z = bSphereX.origin.z;
 
 	/* 
 	I've used a scheme which is like an octree, but tweaked to make it
@@ -221,8 +222,8 @@ void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersect
 	else if ( intersection == grinliz::INTERSECT ) 
 	{
 		Rectangle3X aabb;
-		aabb.Set( IntToFixed( node->looseX ), yMin, IntToFixed( node->looseY ),
-				  IntToFixed( node->looseX + node->looseSize ), yMax, IntToFixed( node->looseY + node->looseSize ) );
+		aabb.Set( Fixed( node->looseX ), yMin, Fixed( node->looseY ),
+				  Fixed( node->looseX + node->looseSize ), yMax, Fixed( node->looseY + node->looseSize ) );
 		
 		int intersection = grinliz::POSITIVE;
 		for( int i=0; i<nPlanes; ++i ) {
@@ -264,6 +265,9 @@ void SpaceTree::QueryPlanesRec(	const Vector3X& origin, const Vector3X& directio
 {
 	bool callChildrenAndAddModels = false;
 
+	// Note there isn't an obvious way for this to be positive. Rays always INTERSECT,
+	// unless you do something tricky to detect special cases.
+
 	if ( intersection == grinliz::POSITIVE ) 
 	{
 		// we are fully inside, and don't need to check.
@@ -273,11 +277,12 @@ void SpaceTree::QueryPlanesRec(	const Vector3X& origin, const Vector3X& directio
 	else if ( intersection == grinliz::INTERSECT ) 
 	{
 		Rectangle3X aabb;
-		aabb.Set( IntToFixed( node->looseX ), yMin, IntToFixed( node->looseY ),
-				  IntToFixed( node->looseX + node->looseSize ), yMax, IntToFixed( node->looseY + node->looseSize ) );
+		aabb.Set( Fixed( node->looseX ), yMin, Fixed( node->looseY ),
+				  Fixed( node->looseX + node->looseSize ), yMax, Fixed( node->looseY + node->looseSize ) );
+		//GLOUTPUT(( "  l=%d rect: ", node->depth )); DumpRectangle( aabb ); GLOUTPUT(( "\n" ));
 		
 		Vector3X intersect;
-		FIXED t;
+		Fixed t;
 
 		int comp = IntersectRayAABBX( origin, direction, aabb, &intersect, &t );
 		if ( comp == grinliz::INTERSECT || comp == grinliz::INSIDE ) {
