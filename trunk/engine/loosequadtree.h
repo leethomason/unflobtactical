@@ -8,7 +8,7 @@ class SpaceTree
 	friend class TreeLock;
 
 public:
-	SpaceTree( FIXED yMin, FIXED yMax );
+	SpaceTree( grinliz::Fixed yMin, grinliz::Fixed yMax );
 	~SpaceTree();
 
 	Model* AllocModel( ModelResource* );
@@ -62,7 +62,7 @@ private:
 	Item freeMemSentinel;
 	int allocated;
 	Model* modelRoot;
-	FIXED yMin, yMax;
+	grinliz::Fixed yMin, yMax;
 
 	int nodesChecked;
 	int modelsFound;

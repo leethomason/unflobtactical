@@ -11,8 +11,22 @@ struct IconInfo
 	grinliz::Vector2I	pos;	// pixel position
 	grinliz::Vector2I	size;
 
-	Vector2X	tMin;
+	Vector2X	tMin;	// texture
 	Vector2X	tMax;
+
+	void Set( int iconID, int posX, int posY, int sizeX, int sizeY,
+			  float tx0, float ty0, float tx1, float ty1 )
+	{
+		this->iconID = iconID;
+		this->pos.x = posX;
+		this->pos.y = posY;
+		this->size.x = sizeX;
+		this->size.y = sizeY;
+		this->tMin.x = tx0;
+		this->tMin.y = ty0;
+		this->tMax.x = tx1;
+		this->tMax.y = ty1;
+	}
 };
 
 // set texture and color before calling

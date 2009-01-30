@@ -30,12 +30,6 @@ enum {
 	ICON_CAMERA_HOME
 };
 
-IconInfo gIcon[] = 
-{
-	{ ICON_CAMERA_HOME, { 0, 270 }, { 50, 50 }, { 0, 0 }, { FIXED_1/4, FIXED_1/4 } },
-	{ 0, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } },
-};
-
 
 Game::Game( int width, int height ) :
 	engine( width, height, engineData ),
@@ -46,6 +40,9 @@ Game::Game( int width, int height ) :
 	frameCountsSinceMark( 0 ),
 	framesPerSecond( 0 )
 {
+	iconInfo[0].Set( ICON_CAMERA_HOME, 0, 270, 50, 50, 0.0f, 0.0f, 0.25f, 0.25f );
+	iconInfo[1].Set( 0, 0, 0, 0, 0, 0.f, 0.f, 0.f, 0.f );
+
 	surface.Set( 256, 256, 4 );		// All the memory we will ever need (? or that is the intention)
 
 	LoadTextures();
@@ -68,6 +65,7 @@ Game::Game( int width, int height ) :
 
 	resource = GetResource( "crate" );
 	testModel[n] = engine.GetModel( resource );
+	testModel[n]->SetDraggable( true );
 	testModel[n++]->SetPos( 3.5f, 0.0f, 58.5f );
 }
 
@@ -213,7 +211,7 @@ void Game::DoTick( U32 currentTime )
 				framesPerSecond, rotation, engine.ShadowMode() );
 
 	glBindTexture( GL_TEXTURE_2D, iconTexture->glID );
-	UFODrawIcons( gIcon, w, h, rotation );
+	UFODrawIcons( iconInfo, w, h, rotation );
 
 	glEnable( GL_DEPTH_TEST );
 
@@ -226,7 +224,7 @@ void Game::Tap( int count, int _x, int _y )
 	int y = engine.Width() - _x;
 
 	GLOUTPUT(( "Tap count=%d x=%d y=%d\n", count, x, y ));
-	for( const IconInfo* icon = gIcon; icon->iconID > 0; ++icon ) {
+	for( const IconInfo* icon = iconInfo; icon->iconID > 0; ++icon ) {
 		if (    grinliz::InRange( x, icon->pos.x, icon->pos.x+icon->size.x )
 			 && grinliz::InRange( y, icon->pos.y, icon->pos.y+icon->size.y ) ) 
 		{

@@ -16,7 +16,9 @@ public:
 	char name[16];			// loaded
 	U32 nGroups;			// loaded
 	Vector3X bounds[2];		// loaded
+
 	SphereX boundSphere;	// computed
+	Rectangle3X hitBounds;	// for picking - a bounds approximation
 
 	const Texture* texture[EL_MAX_MODEL_GROUPS];
 
@@ -55,13 +57,22 @@ public:
 
 	void Init( ModelResource* resource, SpaceTree* tree );
 	void Draw( bool useTexture = true );
+
+	bool IsDraggable()	{ return isDraggable; }
+	void SetDraggable( bool drag )	{ isDraggable = drag; }
 	
-	void SetPos( const grinliz::Vector3F& pos );
-	void SetPos( float x, float y, float z )	{ grinliz::Vector3F vec = { x, y, z }; SetPos( vec ); }
+	const Vector3X& Pos()						{ return pos; }
+	void SetPos( const Vector3X& pos );
+	void SetPos( float x, float y, float z )	{ Vector3X vec = { grinliz::Fixed(x), grinliz::Fixed(y), grinliz::Fixed(z) }; SetPos( vec ); }
+	void SetPos( grinliz::Fixed x, grinliz::Fixed y, grinliz::Fixed z )	{ Vector3X vec = { grinliz::Fixed(x), grinliz::Fixed(y), grinliz::Fixed(z) }; SetPos( vec ); }
+
+	void SetYRotation( grinliz::Fixed rot )		{ this->rot = rot; }
 	void SetYRotation( float rot )				{ this->rot = rot; }
-	const float GetYRotation()					{ return rot; }
+	const grinliz::Fixed GetYRotation()			{ return rot; }
 
 	void CalcBoundSphere( SphereX* spherex );
+	void CalcHitAABB( Rectangle3X* aabb );
+
 	ModelResource* GetResource()				{ return resource; }
 	bool Sentinel()								{ return resource==0 && tree==0; }
 
@@ -70,8 +81,9 @@ public:
 private:
 	SpaceTree* tree;
 	ModelResource* resource;
-	grinliz::Vector3F pos;
-	float rot;
+	Vector3X pos;
+	grinliz::Fixed rot;
+	bool isDraggable;
 };
 
 

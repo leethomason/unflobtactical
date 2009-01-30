@@ -243,6 +243,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\grinliz\glfixed.h"
+				>
+			</File>
+			<File
 				RelativePath=".\grinliz\glgeometry.cpp"
 				>
 			</File>

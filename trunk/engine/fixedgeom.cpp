@@ -1,36 +1,44 @@
-#include "fixedgeom.h"
+#include "Fixedgeom.h"
+using namespace grinliz;
+
+void DumpRectangle( const Rectangle3X& r ) {
+	GLOUTPUT(( "(%.2f,%.2f,%.2f)-(%.2f,%.2f,%.2f)", 
+			(float)r.min.x, (float)r.min.y, (float)r.min.z,
+			(float)r.max.x, (float)r.max.y, (float)r.max.z ));
+}
+
+
+void DumpRectangle( const Rectangle2X& r ) {
+	GLOUTPUT(( "(%.2f,%.2f)-(%.2f,%.2f)", 
+			(float)r.min.x, (float)r.min.y,
+			(float)r.max.x, (float)r.max.y ));
+}
 
 
 void PlaneX::Convert( const grinliz::Plane& plane )
 {
-	n.x = FloatToFixed( plane.n.x );
-	n.y = FloatToFixed( plane.n.y );
-	n.z = FloatToFixed( plane.n.z );
-	d   = FloatToFixed( plane.d );
+	n.x = plane.n.x;
+	n.y = plane.n.y;
+	n.z = plane.n.z;
+	d = plane.d;
 }
 
 
 
-FIXED PlanePointDistanceSquared( const PlaneX& plane, const Vector3X& point )
+Fixed PlanePointDistanceSquared( const PlaneX& plane, const Vector3X& point )
 {
 	// http://mathworld.wolfram.com/Point-PlaneDistance.html
-	FIXED num =   FixedMul( plane.n.x, point.x ) 
-				+ FixedMul( plane.n.y, point.y )
-				+ FixedMul( plane.n.z, point.z )
-				+ plane.d;
-	FIXED denom =   FixedMul( plane.n.x, plane.n.x )
-				  + FixedMul( plane.n.y, plane.n.y )
-				  + FixedMul( plane.n.z, plane.n.z );
-
-	FIXED d2 = FixedDiv( FixedMul( num, num ), denom );
+	Fixed num = plane.n.x*point.x + plane.n.y*point.y + plane.n.z*point.z + plane.d;
+	Fixed denom = plane.n.x*plane.n.x + plane.n.y*plane.n.y + plane.n.z*plane.n.z;
+	Fixed d2 = num*num/denom;
 	return d2;
 }
 
 
 int ComparePlaneSphereX( const PlaneX& plane, const SphereX& sphere )
 {
-	FIXED d2 = PlanePointDistanceSquared( plane, sphere.origin );
-	FIXED r2 = FixedMul( sphere.radius, sphere.radius );
+	Fixed d2 = PlanePointDistanceSquared( plane, sphere.origin );
+	Fixed r2 = sphere.radius*sphere.radius;
 
 	if ( d2 <= 0 ) {
 		if ( d2 > r2 ) {
@@ -47,11 +55,11 @@ int ComparePlaneSphereX( const PlaneX& plane, const SphereX& sphere )
 int IntersectRaySphereX(	const SphereX& sphere,
 							const Vector3X& p,
 							const Vector3X& dir,
-							FIXED* t )
+							Fixed* t )
 {
 	Vector3X raySphere = sphere.origin - p;
-	FIXED raySphereLen2 = DotProductX( raySphere, raySphere );
-	FIXED sphereR2 = FixedMul( sphere.radius, sphere.radius );
+	Fixed raySphereLen2 = DotProduct( raySphere, raySphere );
+	Fixed sphereR2 = sphere.radius*sphere.radius;
 
 	if (raySphereLen2 < sphereR2) 
 	{	
@@ -63,14 +71,14 @@ int IntersectRaySphereX(	const SphereX& sphere,
 		// Clever idea: what is the rays closest approach to the sphere?
 		// see: http://www.devmaster.net/wiki/Ray-sphere_intersection
 
-		FIXED closest = DotProductX(raySphere, dir);
+		Fixed closest = DotProduct(raySphere, dir);
 		if (closest < 0) {
 			// Then we are pointing away from the sphere (and we know we aren't inside.)
 			return grinliz::REJECT;
 		}
-		FIXED halfCordLen = FixedDiv( (sphereR2 - raySphereLen2), DotProductX(dir, dir)) + (closest*closest);
+		Fixed halfCordLen = (sphereR2 - raySphereLen2) / DotProduct(dir, dir) + (closest*closest);
 		if ( halfCordLen > 0 ) {
-			*t = closest - FixedSqrt( halfCordLen );
+			*t = closest - halfCordLen.Sqrt();
 			return grinliz::INTERSECT;
 		}
 	}
@@ -115,13 +123,13 @@ int ComparePlaneAABBX( const PlaneX& plane, const Rectangle3X& aabb )
 
 	// If the most negative point is still on the positive
 	// side, it is a positive, and vice versa.
-	FIXED fp = DotProductX( plane.n, negPoint ) + plane.d;
+	Fixed fp = DotProduct( plane.n, negPoint ) + plane.d;
 	if ( fp > 0 )
 	{
 		return grinliz::POSITIVE;
 	}
 
-	fp = DotProductX( plane.n, posPoint ) + plane.d;
+	fp = DotProduct( plane.n, posPoint ) + plane.d;
 	if ( fp < 0 )
 	{
 		return grinliz::NEGATIVE;
@@ -134,7 +142,7 @@ int IntersectRayAABBX( const Vector3X& origin,
 						const Vector3X& dir,
 						const Rectangle3X& aabb,
 						Vector3X* intersect,
-						FIXED* t )
+						Fixed* t )
 {
 	enum
 	{
@@ -147,14 +155,14 @@ int IntersectRayAABBX( const Vector3X& origin,
 	int quadrant[3];
 	int i;
 	int whichPlane;
-	FIXED maxT[3];
-	FIXED candidatePlane[3];
+	Fixed maxT[3];
+	Fixed candidatePlane[3];
 
-	const FIXED *pOrigin = &origin.x;
-	const FIXED *pBoxMin = &aabb.min.x;
-	const FIXED *pBoxMax = &aabb.max.x;
-	const FIXED *pDir    = &dir.x;
-	FIXED *pIntersect = &intersect->x;
+	const Fixed *pOrigin = &origin.x;
+	const Fixed *pBoxMin = &aabb.min.x;
+	const Fixed *pBoxMax = &aabb.max.x;
+	const Fixed *pDir    = &dir.x;
+	Fixed *pIntersect = &intersect->x;
 
 	// Find candidate planes
 	for (i=0; i<3; ++i)
@@ -190,13 +198,13 @@ int IntersectRayAABBX( const Vector3X& origin,
 	for (i = 0; i < 3; i++)
 	{
 		if (   quadrant[i] != MIDDLE 
-		    && ( pDir[i] > FIXED_EPSILON || pDir[i] < -FIXED_EPSILON ) )
+			&& ( pDir[i].x > Fixed::EPSILON || pDir[i].x < -Fixed::EPSILON ) )
 		{
-			maxT[i] = FixedDiv( ( candidatePlane[i]-pOrigin[i] ), pDir[i] );
+			maxT[i] = ( candidatePlane[i]-pOrigin[i] ) / pDir[i];
 		}
 		else
 		{
-			maxT[i] = -FIXED_1;
+			maxT[i] = -1;
 		}
 	}
 
@@ -214,7 +222,7 @@ int IntersectRayAABBX( const Vector3X& origin,
 	{
 		if (whichPlane != i ) 
 		{
-			pIntersect[i] = pOrigin[i] + FixedMul( maxT[whichPlane], pDir[i] );
+			pIntersect[i] = pOrigin[i] + maxT[whichPlane]*pDir[i];
 			if (pIntersect[i] < pBoxMin[i] || pIntersect[i] > pBoxMax[i])
 				return grinliz::REJECT;
 		} 

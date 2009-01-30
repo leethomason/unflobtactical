@@ -27,26 +27,47 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	nTotalIndices = grinliz::SwapBE32( nTotalIndices );
 
 	for( int i=0; i<2; i++ ) {
-		res->bounds[i].x = grinliz::SwapBE32( res->bounds[i].x );
-		res->bounds[i].y = grinliz::SwapBE32( res->bounds[i].y );
-		res->bounds[i].z = grinliz::SwapBE32( res->bounds[i].z );
+		res->bounds[i].x.x = grinliz::SwapBE32( res->bounds[i].x.x );
+		res->bounds[i].y.x = grinliz::SwapBE32( res->bounds[i].y.x );
+		res->bounds[i].z.x = grinliz::SwapBE32( res->bounds[i].z.x );
 	}
 
-	res->boundSphere.origin.x = FixedMean( res->bounds[0].x, res->bounds[1].x );
-	res->boundSphere.origin.y = FixedMean( res->bounds[0].y, res->bounds[1].y );
-	res->boundSphere.origin.z = FixedMean( res->bounds[0].z, res->bounds[1].z );
+	// Compute the bounding sphere
+	res->boundSphere.origin.x = ( res->bounds[0].x + res->bounds[1].x ) / 2;
+	res->boundSphere.origin.y = ( res->bounds[0].y + res->bounds[1].y ) / 2;
+	res->boundSphere.origin.z = ( res->bounds[0].z + res->bounds[1].z ) / 2;
 
-	FIXED dx = res->bounds[1].x - res->boundSphere.origin.x;
-	FIXED dy = res->bounds[1].y - res->boundSphere.origin.y;
-	FIXED dz = res->bounds[1].z - res->boundSphere.origin.z;
-	FIXED d2 = FixedMul( dx, dx ) + FixedMul( dy, dy ) + FixedMul( dz, dz );
+	Fixed dx = res->bounds[1].x - res->boundSphere.origin.x;
+	Fixed dy = res->bounds[1].y - res->boundSphere.origin.y;
+	Fixed dz = res->bounds[1].z - res->boundSphere.origin.z;
+	Fixed d2 = dx*dx + dy*dy + dz*dz;
 
-	res->boundSphere.radius = FixedSqrt( d2 );
+	res->boundSphere.radius = d2.Sqrt();
+
+	// compute the hit testing AABB
+	GLASSERT( res->bounds[1].x >= res->bounds[0].x );
+	GLASSERT( res->bounds[1].z >= res->bounds[0].z );
+
+	Fixed ave = (( res->bounds[1].x - res->bounds[0].x ) + ( res->bounds[1].z - res->bounds[0].z )) >> 1;
+	res->hitBounds.min.Set( res->boundSphere.origin.x - ave/2, res->bounds[0].y, res->boundSphere.origin.z - ave/2 );
+	res->hitBounds.max.Set( res->boundSphere.origin.x + ave/2, res->bounds[1].y, res->boundSphere.origin.z + ave/2 );
 
 	GLASSERT( nTotalVertices <= EL_MAX_VERTEX_IN_GROUP );
 	GLASSERT( nTotalIndices <= EL_MAX_INDEX_IN_GROUP );
 
 	GLOUTPUT(( "Load Model: %s\n", res->name ));
+	GLOUTPUT(( "  sphere (%.2f,%.2f,%.2f) rad=%.2f  hit(%.2f,%.2f,%.2f)-(%.2f,%.2f,%.2f)\n",
+				(float)res->boundSphere.origin.x,
+				(float)res->boundSphere.origin.y,
+				(float)res->boundSphere.origin.z,
+				(float)res->boundSphere.radius,
+				(float)res->hitBounds.min.x,
+				(float)res->hitBounds.min.y,
+				(float)res->hitBounds.min.z,
+				(float)res->hitBounds.max.x,
+				(float)res->hitBounds.max.y,
+				(float)res->hitBounds.max.z ));
+
 	for( U32 i=0; i<res->nGroups; ++i )
 	{
 		char textureName[16];
@@ -85,12 +106,12 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	// Convert to float if NOT the ipod. The ipod uses fixed - everything else is float.
 	for( U32 i=0; i<nTotalVertices*8; ++i ) {
 		S32 u = *(((S32*)vertex)+i);
-		float f = FixedToFloat( u );
+		float f = Fixed::FixedToFloat( u );
 		*(((float*)vertex)+i) = f;
 
 	}
+	/*
 	#ifdef DEBUG
-	
 	GLOUTPUT(( "Model: %s\n", res->name ));
 	for( U32 i=0; i<nTotalVertices; ++i ) {
 		const Vertex& v = *(((Vertex*)vertex) + i);;
@@ -102,17 +123,18 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	}
 	
 	#endif
+	*/
 	#endif
 
 	fread( index, sizeof(U16), nTotalIndices, fp );
 	grinliz::SwapBufferBE16( index, nTotalIndices );
 
 #ifdef DEBUG
-	
+	/*
 	for( U32 i=0; i<nTotalIndices; i+=3 ) {
 		GLOUTPUT(( "%d %d %d\n", index[i+0], index[i+1], index[i+2] ));
 	}
-	
+	*/
 #endif
 	
 
@@ -147,15 +169,16 @@ void Model::Init( ModelResource* resource, SpaceTree* tree )
 {
 	this->resource = resource; 
 	this->tree = tree;
-	pos.Set( 0.0f, 0.0f, 0.0f ); 
-	rot = 0.0f;
+	pos.Set( Fixed(0), Fixed(0), Fixed(0) ); 
+	rot = Fixed(0);
 	if ( tree ) {
 		tree->Update( this );
 	}
+	isDraggable = false;
 }
 
 
-void Model::SetPos( const grinliz::Vector3F& pos )
+void Model::SetPos( const Vector3X& pos )
 { 
 	this->pos = pos;	
 	tree->Update( this ); 
@@ -165,17 +188,39 @@ void Model::SetPos( const grinliz::Vector3F& pos )
 void Model::CalcBoundSphere( SphereX* spherex )
 {
 	*spherex = resource->boundSphere;
-	spherex->origin.x += FloatToFixed( pos.x );
-	spherex->origin.y += FloatToFixed( pos.y );
-	spherex->origin.z += FloatToFixed( pos.z );
+	spherex->origin += pos;
+	/*
+	spherex->origin.x += pos.x;
+	spherex->origin.y += pos.y;
+	spherex->origin.z += pos.z;
+	*/
+}
+
+
+void Model::CalcHitAABB( Rectangle3X* aabb )
+{
+	// This is already an approximation - ignore rotation.
+	aabb->min = pos + resource->hitBounds.min;
+	aabb->max = pos + resource->hitBounds.max;
 }
 
 
 void Model::Draw( bool useTexture )
 {
 	glPushMatrix();
-	glTranslatef( pos.x, pos.y, pos.z );
-	glRotatef( rot, 0.f, 1.f, 0.f );
+	#if TARGET_OS_IPHONE		
+	glTranslatex( pos.x, pos.y, pos.z );
+	glRotatex( rot, 0.f, 1.f, 0.f );
+	#else
+	{
+		Vector3F posf;
+		float rotf = rot;
+		ConvertVector3( pos, &posf );
+
+		glTranslatef( pos.x, pos.y, pos.z );
+		glRotatef( rot, 0.f, 1.f, 0.f );
+	}
+	#endif
 
 	for( U32 i=0; i<resource->nGroups; ++i ) 
 	{

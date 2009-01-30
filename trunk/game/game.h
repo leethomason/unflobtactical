@@ -6,6 +6,7 @@
 #include "../engine/engine.h"
 #include "../engine/surface.h"
 #include "../engine/model.h"
+#include "../engine/uirendering.h"
 
 class Engine;
 class Surface;
@@ -42,6 +43,11 @@ private:
 
 	Texture texture[MAX_TEXTURES];
 	ModelResource modelResource[MAX_MODELS];
+
+	enum {
+		NUM_ICONS=2
+	};
+	IconInfo iconInfo[NUM_ICONS];
 
 	int rotation;
 	int nTexture;

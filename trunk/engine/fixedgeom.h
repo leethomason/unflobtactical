@@ -1,18 +1,22 @@
 #ifndef FIXEDGEOM_INCLUDED
 #define FIXEDGEOM_INCLUDED
 
+#include "../grinliz/glfixed.h"
 #include "../grinliz/glgeometry.h"
 
-typedef S32 FIXED;
-typedef grinliz::Vector3< FIXED > Vector3X;
-typedef grinliz::Vector2< FIXED > Vector2X;
-typedef grinliz::Rectangle2< FIXED > Rectangle2X;
-typedef grinliz::Rectangle3< FIXED > Rectangle3X;
+typedef grinliz::Vector3< grinliz::Fixed > Vector3X;
+typedef grinliz::Vector2< grinliz::Fixed > Vector2X;
+
+typedef grinliz::Rectangle2< grinliz::Fixed > Rectangle2X;
+typedef grinliz::Rectangle3< grinliz::Fixed > Rectangle3X;
+
+void DumpRectangle( const Rectangle3X& r );
+void DumpRectangle( const Rectangle2X& r );
 
 struct SphereX
 {
 	Vector3X origin;
-	FIXED radius;
+	grinliz::Fixed radius;
 };
 
 struct PlaneX
@@ -20,73 +24,26 @@ struct PlaneX
 	void Convert( const grinliz::Plane& plane );
 
 	Vector3X	n;	///< normal
-	FIXED		d;	///< offset
+	grinliz::Fixed		d;	///< offset
 };
-
-
-
-const FIXED FIXED_1   =    0x10000;
-const FIXED FIXED_MAX = 0x7FFF0000;
-const FIXED FIXED_EPSILON = (int)(0.000001f * 65536.0f);
-
-inline FIXED FloatToFixed( float f ) {
-	return grinliz::LRintf( f * 65536.0f );
-}
-
-inline FIXED FloatToFixed( double f ) {
-	return grinliz::LRint( f * 65536.0 );
-}
-
-inline float FixedToFloat( S32 v ) {
-	return (float)v / 65536.0f;
-}
-
-inline int32_t FixedToInt( FIXED f ) {
-	return f>>16;
-}
-
-inline FIXED IntToFixed( int i ) {
-	return i<<16;
-}
-
-inline int32_t FixedToIntCeil( FIXED f ) {
-	return ( f + FIXED_1 - 1 ) >> 16;
-}
-
-inline FIXED FixedMul( FIXED a, FIXED b ) {
-	int64_t c = (int64_t)a * (int64_t)b;
-	return (FIXED)(c>>16);
-}
-
-inline FIXED FixedDiv( FIXED a, FIXED b ) {
-	int64_t c = ((int64_t)(a)<<32) / ((int64_t)(b)<<16);
-	return (FIXED) c;
-}
-
-inline FIXED FixedMean( FIXED a, FIXED b ) {
-	return (a + b)>>1;
-}
-
-inline FIXED FixedSqrt( FIXED a ) {
-	return FloatToFixed( sqrtf( FixedToFloat( a ) ) );
-}
 
 
 inline void ConvertVector3( const grinliz::Vector3F& f, Vector3X* v ) 
 {
-	v->x = FloatToFixed( f.x );
-	v->y = FloatToFixed( f.y );
-	v->z = FloatToFixed( f.z );
+	v->x = f.x;
+	v->y = f.y;
+	v->z = f.z;
 }
 
-
-inline FIXED DotProductX( const Vector3X& v0, const Vector3X& v1 )
+inline void ConvertVector3( const Vector3X& f, grinliz::Vector3F* v ) 
 {
-	return FixedMul( v0.x, v1.x ) + FixedMul( v0.y, v1.y ) + FixedMul( v0.z, v1.z );
+	v->x = f.x;
+	v->y = f.y;
+	v->z = f.z;
 }
 
 
-FIXED PlanePointDistanceSquared( const PlaneX& plane, const Vector3X& point );
+grinliz::Fixed PlanePointDistanceSquared( const PlaneX& plane, const Vector3X& point );
 int ComparePlaneAABBX( const PlaneX& plane, const Rectangle3X& aabb );
 
 /*	Intersect a ray with a sphere.
@@ -95,7 +52,7 @@ int ComparePlaneAABBX( const PlaneX& plane, const Rectangle3X& aabb );
 int IntersectRaySphereX(	const SphereX& sphere,
 							const Vector3X& p,			// ray origin
 							const Vector3X& dir,		// does not need to be unit.
-							FIXED* t );
+							grinliz::Fixed* t );
 
 						 
 /** Intersect a ray with an Axis-Aligned Bounding Box. If the origin of the ray
@@ -105,7 +62,7 @@ int IntersectRaySphereX(	const SphereX& sphere,
 int IntersectRayAABBX(	const Vector3X& origin, const Vector3X& dir,
 						const Rectangle3X& aabb,
 						Vector3X* intersect,
-						FIXED* t );
+						grinliz::Fixed* t );
 
 /** Compare a sphere to a Axis-Aligned Bounding Box.
 	@return INTERSECT, POSITIVE, NEGATIVE
