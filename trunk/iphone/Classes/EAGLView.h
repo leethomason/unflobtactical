@@ -35,8 +35,13 @@ Note that setting the view non-opaque will only work if the EAGL surface has an 
     
     NSTimer *animationTimer;
     NSTimeInterval animationInterval;
+	
 	void* game;
 	double startTime;
+	
+	bool isDragging;
+	bool isZooming;
+	CGPoint lastDrag;
 }
 
 @property NSTimeInterval animationInterval;
@@ -44,5 +49,6 @@ Note that setting the view non-opaque will only work if the EAGL surface has an 
 - (void)startAnimation;
 - (void)stopAnimation;
 - (void)drawView;
+- (float)calcLength:(CGPoint)p0 p1:(CGPoint)p1;
 
 @end

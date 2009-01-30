@@ -18,9 +18,13 @@ void UFODrawIcons( const IconInfo* icons, int width, int height, int rotation )
 	glLoadIdentity();				// model
 
 	glRotatef( 90.0f * (float)rotation, 0.0f, 0.0f, 1.0f );
+#ifdef __APPLE__
+	glOrthof( 0.f, (float)width, 0.f, (float)height, -1.0f, 1.0f );
+#else
 	glOrtho( 0, width, 0, height, -1, 1 );
+#endif
 
-	int v[8];
+	int16_t v[8];
 	Fixed t[8];
 
 	while( icons && icons->size.x > 0 )
@@ -44,7 +48,7 @@ void UFODrawIcons( const IconInfo* icons, int width, int height, int rotation )
 			for( int j=0; j<8; ++j ) {
 				tF[j] = t[j];
 			}
-			glVertexPointer(   2, GL_INT, 0, v );
+			glVertexPointer(   2, GL_SHORT, 0, v );
 			glTexCoordPointer( 2, GL_FLOAT, 0, tF );  
 		}
 		#endif

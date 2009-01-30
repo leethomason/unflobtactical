@@ -88,6 +88,8 @@ public:
 	void CancelInput()						{ isDragging = false; }
 
 	bool IsDragging() { return isDragging; }
+	int InitZoomDistance()  { return initZoomDistance; }
+	int LastZoomDistance()	{ return lastZoomDistance; }
 
 	float GetZoom()				{ return zoom; }
 	// 0.0 far, 1.0 close
@@ -113,7 +115,7 @@ private:
 			frustumNear, frustumFar;
 	grinliz::Ray cameraRay;		// origin isn't normally valid
 	float	zoom, defaultZoom, initZoom;
-	int		initZoomDistance;
+	int		initZoomDistance, lastZoomDistance;
 	
 	grinliz::Vector3F lightDirection;
 	
