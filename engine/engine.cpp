@@ -483,6 +483,8 @@ void Engine::Zoom( int action, int distance )
 			GLASSERT( 0 );
 			break;
 	}
+	GLOUTPUT(( "Zoom action=%d distance=%d initZoomDistance=%d lastZoomDistance=%d z=%.2f\n",
+			   action, distance, initZoomDistance, lastZoomDistance, GetZoom() ));
 }
 
 
