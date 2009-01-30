@@ -463,7 +463,7 @@ void Engine::Drag( int action, int x, int y )
 void Engine::Zoom( int action, int distance )
 {
 	switch ( action )
-	{
+	{file://localhost/Users/leethomason/src/unflobtactical/game/game.cpp
 		case GAME_ZOOM_START:
 			initZoomDistance = distance;
 			initZoom = zoom;
@@ -473,7 +473,13 @@ void Engine::Zoom( int action, int distance )
 		case GAME_ZOOM_MOVE:
 			{
 				lastZoomDistance = distance;
-				float z = initZoom * (float)distance / (float)initZoomDistance;
+				//float z = initZoom * (float)distance / (float)initZoomDistance;	// original. wrong feel.
+				float z = initZoom + (float)(distance-initZoomDistance)/800.0f;	// better, but slow out zoom-out, fast at zoom-in
+				
+				//float z0 = initZoom + (float)(distance-initZoomDistance)/1600.0f;
+				//float z1 = initZoom + (float)(distance-initZoomDistance)/200.0f;
+				//float z = (1.0f-GetZoom())*z0 + (GetZoom())*z1;
+				
 //				GLOUTPUT(( "initZoom=%.2f distance=%d initDist=%d\n", initZoom, distance, initZoomDistance ));
 				SetZoom( z );
 			}
