@@ -25,6 +25,7 @@
 		9A6909840F3375EE005AE44E /* icons.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A6909810F3375EE005AE44E /* icons.tex */; };
 		9A6909850F3375EE005AE44E /* woodDark.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A6909820F3375EE005AE44E /* woodDark.tex */; };
 		9A6909860F3375EE005AE44E /* woodDarkUFO.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A6909830F3375EE005AE44E /* woodDarkUFO.tex */; };
+		9A690B990F33BB18005AE44E /* mainIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 9A690B980F33BB18005AE44E /* mainIcon.png */; };
 		9A8F7F4B0EBD3D8F00742BF0 /* model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A8F7F490EBD3D8F00742BF0 /* model.cpp */; };
 		9AE624460ED8DEB400A44607 /* teapot.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9AE624420ED8DEB400A44607 /* teapot.mod */; };
 		9AE624480ED8DEB400A44607 /* test1.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9AE624440ED8DEB400A44607 /* test1.mod */; };
@@ -82,6 +83,7 @@
 		9A6909810F3375EE005AE44E /* icons.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = icons.tex; path = ../res/icons.tex; sourceTree = SOURCE_ROOT; };
 		9A6909820F3375EE005AE44E /* woodDark.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodDark.tex; path = ../res/woodDark.tex; sourceTree = SOURCE_ROOT; };
 		9A6909830F3375EE005AE44E /* woodDarkUFO.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodDarkUFO.tex; path = ../res/woodDarkUFO.tex; sourceTree = SOURCE_ROOT; };
+		9A690B980F33BB18005AE44E /* mainIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = mainIcon.png; path = ../resin/mainIcon.png; sourceTree = SOURCE_ROOT; };
 		9A8F7F480EBD3D8F00742BF0 /* enginelimits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = enginelimits.h; path = ../engine/enginelimits.h; sourceTree = SOURCE_ROOT; };
 		9A8F7F490EBD3D8F00742BF0 /* model.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = model.cpp; path = ../engine/model.cpp; sourceTree = SOURCE_ROOT; };
 		9A8F7F4A0EBD3D8F00742BF0 /* model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = model.h; path = ../engine/model.h; sourceTree = SOURCE_ROOT; };
@@ -203,6 +205,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9A690B980F33BB18005AE44E /* mainIcon.png */,
 				9A6909810F3375EE005AE44E /* icons.tex */,
 				9A6909820F3375EE005AE44E /* woodDark.tex */,
 				9A6909830F3375EE005AE44E /* woodDarkUFO.tex */,
@@ -372,6 +375,7 @@
 				9A6909840F3375EE005AE44E /* icons.tex in Resources */,
 				9A6909850F3375EE005AE44E /* woodDark.tex in Resources */,
 				9A6909860F3375EE005AE44E /* woodDarkUFO.tex in Resources */,
+				9A690B990F33BB18005AE44E /* mainIcon.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

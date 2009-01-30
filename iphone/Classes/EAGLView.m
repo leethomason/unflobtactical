@@ -46,6 +46,7 @@
     if ((self = [super initWithCoder:coder])) {
         // Get the layer
         CAEAGLLayer *eaglLayer = (CAEAGLLayer *)self.layer;
+		self.multipleTouchEnabled = YES;
         
         eaglLayer.opaque = YES;
         eaglLayer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -203,8 +204,11 @@
 		isZooming = false;
 	}
 
+	//NSLog(@"Began isZooming=%d isDragging=%d touchCount=%d", isZooming?1:0, isDragging?1:0, touchCount );
+	
 	// Process touch
 	if ( touchCount == 1 ) {
+		// NSLog(@"  dragging" );
 		GameDrag( game, GAME_DRAG_START, x, y );
 		isDragging = true;
 		lastDrag.x = x;
@@ -215,6 +219,7 @@
 		UITouch *touch2 = [[[event allTouches] allObjects] objectAtIndex:1];
 		
 		float distance = [self calcLength:[touch1 locationInView:self] p1:[touch2 locationInView:self]];	
+		//NSLog(@"  zooming distance=%.2f", distance );
 		
 		GameZoom( game, GAME_ZOOM_START, distance );
 		isZooming = true;
@@ -229,13 +234,16 @@
 	int y = backingHeight-1-location.y;
 	int touchCount = [[event allTouches] count];
 	
+	//NSLog(@"Moved isZooming=%d isDragging=%d touchCount=%d", isZooming?1:0, isDragging?1:0, touchCount );
+	
 	if ( isDragging ) {
 		if ( touchCount == 1 ) {
 			// Still dragging!
 			GameDrag( game, GAME_DRAG_MOVE, x, y );
 			lastDrag.x = x; lastDrag.y = y;
+			//NSLog(@"  dragging" );
 		}
-		else if ( touchCount == 2 ) {
+		else if ( touchCount > 1 ) {
 			// Stop and switch to zoom.
 			GameDrag( game, GAME_DRAG_END, lastDrag.x, lastDrag.y );
 			isDragging = false;
@@ -244,6 +252,7 @@
 			UITouch *touch2 = [[[event allTouches] allObjects] objectAtIndex:1];
 			
 			float distance = [self calcLength:[touch1 locationInView:self] p1:[touch2 locationInView:self]];	
+			//NSLog(@"  zooming distance=%.2f", distance );
 			
 			GameZoom( game, GAME_ZOOM_START, distance );
 			isZooming = true;
@@ -253,15 +262,18 @@
 		if ( touchCount < 2 ) {
 			// Lost a connection in there. End the zoom.
 			isZooming = false;
+			//NSLog(@"  Zoom lost" );
 		}
-		else if ( touchCount == 2 ) { 
+		else { 
 			// The normal zoom case.
-			UITouch *touch1 = [[[event allTouches] allObjects] objectAtIndex:0];
-			UITouch *touch2 = [[[event allTouches] allObjects] objectAtIndex:1];
+			NSArray *touchesArray = [[event allTouches] allObjects];
+			CGPoint p0 = [[touchesArray objectAtIndex:0] locationInView:self];
+			CGPoint p1 = [[touchesArray objectAtIndex:1] locationInView:self];
 			
-			float distance = [self calcLength:[touch1 locationInView:self] p1:[touch2 locationInView:self]];	
+			float distance = [self calcLength:p0 p1:p1];	
 			
 			GameZoom( game, GAME_ZOOM_MOVE, distance );
+			//NSLog(@"  zoom distance=%.2f", distance );
 		}
 	}
 }
@@ -273,6 +285,8 @@
 	int y = backingHeight-1-location.y;
 	int touchCount = [[event allTouches] count];
 
+	//NSLog(@"End isZooming=%d isDragging=%d touchCount=%d", isZooming?1:0, isDragging?1:0, touchCount );
+	
 	if ( isZooming && touchCount < 2 ) {
 		isZooming = false;
 	}
