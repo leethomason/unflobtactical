@@ -36,7 +36,7 @@ public:
 	}
 
 public:
-   S32 x;
+   int32_t x;
 
    Fixed() : x(0)												{}
    Fixed(const Fixed &f) : x(f.x)								{}
@@ -45,7 +45,7 @@ public:
    explicit Fixed(const float f) : x(FloatToFixed(f))			{}
 
    operator int() const                      { return FixedToInt( x ); }
-   operator unsigned int() const             { return FixedToInt( x ); }
+   operator unsigned int() const             { return (unsigned) FixedToInt( x ); }
    operator float() const                    { return FixedToFloat( x ); }
 
    int Ceil() const							 { return FixedToIntCeil( x ); }
@@ -102,9 +102,9 @@ public:
 
    inline friend Fixed operator /  (const Fixed a, const Fixed b)	{ Fixed t;	t.x = FixedDiv( a.x, b.x ); return t; }
    inline friend Fixed operator /  (const Fixed a, const int b)		{ Fixed t;	t.x = a.x / b; return t; }
-   inline friend Fixed operator /  (const int a, const Fixed b)		{ Fixed t;	t.x = FixedDiv( IntToFixed( a ), b ); return t; }
-   inline friend Fixed operator /  (const Fixed a, const float b)	{ Fixed t;	t.x = FixedDiv( a, FloatToFixed( b ) ); return t; }
-   inline friend Fixed operator /  (const float a, const Fixed b)	{ Fixed t;	t.x = FixedDiv( FloatToFixed( a ), b ); return t; }
+   //inline friend Fixed operator /  (const int a, const Fixed b)		{ Fixed t;	t.x = FixedDiv( IntToFixed( a ), b ); return t; }
+   //inline friend Fixed operator /  (const Fixed a, const float b)	{ Fixed t;	t.x = FixedDiv( a, FloatToFixed( b ) ); return t; }
+   //inline friend Fixed operator /  (const float a, const Fixed b)	{ Fixed t;	t.x = FixedDiv( FloatToFixed( a ), b ); return t; }
 
    inline friend Fixed operator << (const Fixed a, const int b)		{ Fixed t; t.x = a.x << b; return t; }
    inline friend Fixed operator >> (const Fixed a, const int b)		{ Fixed t; t.x = a.x >> b; return t; }

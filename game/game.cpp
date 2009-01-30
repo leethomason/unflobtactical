@@ -207,8 +207,8 @@ void Game::DoTick( U32 currentTime )
 	int h = engine.Height();
 	if ( rotation&1 ) grinliz::Swap( &w, &h );
 
-	UFODrawText( 0, 0, "UFO Attack! %.1ffps rot=%d shadow=%d", 
-				framesPerSecond, rotation, engine.ShadowMode() );
+	UFODrawText( 0,  0, "UFO Attack! %.1ffps rot=%d shadow=%d", framesPerSecond, rotation, engine.ShadowMode() );
+	UFODrawText( 0, 20, "isDragging=%d zoom init=%d last=%d", engine.IsDragging(), engine.InitZoomDistance(), engine.LastZoomDistance() );
 
 	glBindTexture( GL_TEXTURE_2D, iconTexture->glID );
 	UFODrawIcons( iconInfo, w, h, rotation );

@@ -63,7 +63,11 @@ void UFOTextOut( const char* str, int x, int y )
 	glRotatef( 90.0f * (float)rotation, 0.0f, 0.0f, 1.0f );
 	//glTranslatef(-1.0f, -1.0f, 0.0f);
 	//glScalef( 2.0f/(float)width, 2.0f/(float)height, 1.0f );
+#ifdef __APPLE__
+	glOrthof( 0.f, (float)width, 0.f, (float)height, -1.f, 1.f );
+#else
 	glOrtho( 0, width, 0, height, -1, 1 );
+#endif
 
 	glBindTexture( GL_TEXTURE_2D, textureID );
 

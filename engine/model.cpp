@@ -218,7 +218,7 @@ void Model::Draw( bool useTexture )
 		ConvertVector3( pos, &posf );
 
 		glTranslatef( pos.x, pos.y, pos.z );
-		glRotatef( rot, 0.f, 1.f, 0.f );
+		glRotatef( rotf, 0.f, 1.f, 0.f );
 	}
 	#endif
 

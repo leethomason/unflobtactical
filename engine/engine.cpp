@@ -20,7 +20,8 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 		shadowMode( SHADOW_Z ), 
 		isDragging( false ), 
 		engineData( _engineData ),
-		initZoomDistance( 0 )
+		initZoomDistance( 0 ),
+		lastZoomDistance( 0 )
 {
 	map = new Map();
 	spaceTree = new SpaceTree( Fixed(-1), Fixed(4) );
@@ -471,6 +472,7 @@ void Engine::Zoom( int action, int distance )
 
 		case GAME_ZOOM_MOVE:
 			{
+				lastZoomDistance = distance;
 				float z = initZoom * (float)distance / (float)initZoomDistance;
 //				GLOUTPUT(( "initZoom=%.2f distance=%d initDist=%d\n", initZoom, distance, initZoomDistance ));
 				SetZoom( z );

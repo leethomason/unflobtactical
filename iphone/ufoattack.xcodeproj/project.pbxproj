@@ -18,9 +18,15 @@
 		9A11BDBD0ECFE24000ABFA03 /* stdfont2.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A11BDBC0ECFE24000ABFA03 /* stdfont2.tex */; };
 		9A5B8C4A0EBEA60600BA5C70 /* cgame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B8C480EBEA60600BA5C70 /* cgame.cpp */; };
 		9A5B8D690EC6C9FA00BA5C70 /* green.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A5B8D650EC6C9FA00BA5C70 /* green.tex */; };
+		9A69091E0F3372CB005AE44E /* fixedgeom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A6909180F3372CB005AE44E /* fixedgeom.cpp */; };
+		9A69091F0F3372CB005AE44E /* loosequadtree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A69091A0F3372CB005AE44E /* loosequadtree.cpp */; };
+		9A6909200F3372CB005AE44E /* uirendering.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A69091C0F3372CB005AE44E /* uirendering.cpp */; };
+		9A69095E0F33751A005AE44E /* crate.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A69095D0F33751A005AE44E /* crate.mod */; };
+		9A6909840F3375EE005AE44E /* icons.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A6909810F3375EE005AE44E /* icons.tex */; };
+		9A6909850F3375EE005AE44E /* woodDark.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A6909820F3375EE005AE44E /* woodDark.tex */; };
+		9A6909860F3375EE005AE44E /* woodDarkUFO.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A6909830F3375EE005AE44E /* woodDarkUFO.tex */; };
 		9A8F7F4B0EBD3D8F00742BF0 /* model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A8F7F490EBD3D8F00742BF0 /* model.cpp */; };
 		9AE624460ED8DEB400A44607 /* teapot.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9AE624420ED8DEB400A44607 /* teapot.mod */; };
-		9AE624470ED8DEB400A44607 /* test0.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9AE624430ED8DEB400A44607 /* test0.mod */; };
 		9AE624480ED8DEB400A44607 /* test1.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9AE624440ED8DEB400A44607 /* test1.mod */; };
 		9AE624490ED8DEB400A44607 /* test2.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9AE624450ED8DEB400A44607 /* test2.mod */; };
 		9AF644700EAA906D004FB696 /* glcontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AF644530EAA906D004FB696 /* glcontainer.cpp */; };
@@ -65,11 +71,21 @@
 		9A5B8C480EBEA60600BA5C70 /* cgame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = cgame.cpp; path = ../game/cgame.cpp; sourceTree = SOURCE_ROOT; };
 		9A5B8C490EBEA60600BA5C70 /* cgame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cgame.h; path = ../game/cgame.h; sourceTree = SOURCE_ROOT; };
 		9A5B8D650EC6C9FA00BA5C70 /* green.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = green.tex; path = ../res/green.tex; sourceTree = SOURCE_ROOT; };
+		9A6909110F3371AF005AE44E /* glfixed.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glfixed.h; path = ../grinliz/glfixed.h; sourceTree = SOURCE_ROOT; };
+		9A6909180F3372CB005AE44E /* fixedgeom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = fixedgeom.cpp; path = ../engine/fixedgeom.cpp; sourceTree = SOURCE_ROOT; };
+		9A6909190F3372CB005AE44E /* fixedgeom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fixedgeom.h; path = ../engine/fixedgeom.h; sourceTree = SOURCE_ROOT; };
+		9A69091A0F3372CB005AE44E /* loosequadtree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = loosequadtree.cpp; path = ../engine/loosequadtree.cpp; sourceTree = SOURCE_ROOT; };
+		9A69091B0F3372CB005AE44E /* loosequadtree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = loosequadtree.h; path = ../engine/loosequadtree.h; sourceTree = SOURCE_ROOT; };
+		9A69091C0F3372CB005AE44E /* uirendering.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = uirendering.cpp; path = ../engine/uirendering.cpp; sourceTree = SOURCE_ROOT; };
+		9A69091D0F3372CB005AE44E /* uirendering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = uirendering.h; path = ../engine/uirendering.h; sourceTree = SOURCE_ROOT; };
+		9A69095D0F33751A005AE44E /* crate.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = crate.mod; path = ../res/crate.mod; sourceTree = SOURCE_ROOT; };
+		9A6909810F3375EE005AE44E /* icons.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = icons.tex; path = ../res/icons.tex; sourceTree = SOURCE_ROOT; };
+		9A6909820F3375EE005AE44E /* woodDark.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodDark.tex; path = ../res/woodDark.tex; sourceTree = SOURCE_ROOT; };
+		9A6909830F3375EE005AE44E /* woodDarkUFO.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodDarkUFO.tex; path = ../res/woodDarkUFO.tex; sourceTree = SOURCE_ROOT; };
 		9A8F7F480EBD3D8F00742BF0 /* enginelimits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = enginelimits.h; path = ../engine/enginelimits.h; sourceTree = SOURCE_ROOT; };
 		9A8F7F490EBD3D8F00742BF0 /* model.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = model.cpp; path = ../engine/model.cpp; sourceTree = SOURCE_ROOT; };
 		9A8F7F4A0EBD3D8F00742BF0 /* model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = model.h; path = ../engine/model.h; sourceTree = SOURCE_ROOT; };
 		9AE624420ED8DEB400A44607 /* teapot.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = teapot.mod; path = ../res/teapot.mod; sourceTree = SOURCE_ROOT; };
-		9AE624430ED8DEB400A44607 /* test0.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = test0.mod; path = ../res/test0.mod; sourceTree = SOURCE_ROOT; };
 		9AE624440ED8DEB400A44607 /* test1.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = test1.mod; path = ../res/test1.mod; sourceTree = SOURCE_ROOT; };
 		9AE624450ED8DEB400A44607 /* test2.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = test2.mod; path = ../res/test2.mod; sourceTree = SOURCE_ROOT; };
 		9AF644510EAA906D004FB696 /* glbitarray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glbitarray.h; path = ../grinliz/glbitarray.h; sourceTree = SOURCE_ROOT; };
@@ -187,8 +203,11 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9A6909810F3375EE005AE44E /* icons.tex */,
+				9A6909820F3375EE005AE44E /* woodDark.tex */,
+				9A6909830F3375EE005AE44E /* woodDarkUFO.tex */,
+				9A69095D0F33751A005AE44E /* crate.mod */,
 				9AE624420ED8DEB400A44607 /* teapot.mod */,
-				9AE624430ED8DEB400A44607 /* test0.mod */,
 				9AE624440ED8DEB400A44607 /* test1.mod */,
 				9AE624450ED8DEB400A44607 /* test2.mod */,
 				9A11BDBC0ECFE24000ABFA03 /* stdfont2.tex */,
@@ -213,6 +232,7 @@
 		9AF644500EAA9050004FB696 /* grinliz */ = {
 			isa = PBXGroup;
 			children = (
+				9A6909110F3371AF005AE44E /* glfixed.h */,
 				9AF644510EAA906D004FB696 /* glbitarray.h */,
 				9AF644520EAA906D004FB696 /* glcolor.h */,
 				9AF644530EAA906D004FB696 /* glcontainer.cpp */,
@@ -249,6 +269,12 @@
 		9AF644A70EAAFCBB004FB696 /* engine */ = {
 			isa = PBXGroup;
 			children = (
+				9A6909180F3372CB005AE44E /* fixedgeom.cpp */,
+				9A6909190F3372CB005AE44E /* fixedgeom.h */,
+				9A69091A0F3372CB005AE44E /* loosequadtree.cpp */,
+				9A69091B0F3372CB005AE44E /* loosequadtree.h */,
+				9A69091C0F3372CB005AE44E /* uirendering.cpp */,
+				9A69091D0F3372CB005AE44E /* uirendering.h */,
 				9A8F7F480EBD3D8F00742BF0 /* enginelimits.h */,
 				9A8F7F490EBD3D8F00742BF0 /* model.cpp */,
 				9A8F7F4A0EBD3D8F00742BF0 /* model.h */,
@@ -340,9 +366,12 @@
 				9A5B8D690EC6C9FA00BA5C70 /* green.tex in Resources */,
 				9A11BDBD0ECFE24000ABFA03 /* stdfont2.tex in Resources */,
 				9AE624460ED8DEB400A44607 /* teapot.mod in Resources */,
-				9AE624470ED8DEB400A44607 /* test0.mod in Resources */,
 				9AE624480ED8DEB400A44607 /* test1.mod in Resources */,
 				9AE624490ED8DEB400A44607 /* test2.mod in Resources */,
+				9A69095E0F33751A005AE44E /* crate.mod in Resources */,
+				9A6909840F3375EE005AE44E /* icons.tex in Resources */,
+				9A6909850F3375EE005AE44E /* woodDark.tex in Resources */,
+				9A6909860F3375EE005AE44E /* woodDarkUFO.tex in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -380,6 +409,9 @@
 				9AF6455C0EAC5048004FB696 /* tinyxmlparser.cpp in Sources */,
 				9A8F7F4B0EBD3D8F00742BF0 /* model.cpp in Sources */,
 				9A5B8C4A0EBEA60600BA5C70 /* cgame.cpp in Sources */,
+				9A69091E0F3372CB005AE44E /* fixedgeom.cpp in Sources */,
+				9A69091F0F3372CB005AE44E /* loosequadtree.cpp in Sources */,
+				9A6909200F3372CB005AE44E /* uirendering.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
