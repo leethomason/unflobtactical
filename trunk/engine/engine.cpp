@@ -68,6 +68,21 @@ void Engine::MoveCameraHome()
 }
 
 
+void Engine::MoveCameraXZ( float x, float z )
+{
+	Ray ray;
+	camera.CalcEyeRay( &ray, 0, 0 );
+
+	Vector3F start = { x, 0.0f, z };
+	Vector3F pos = start - ray.direction*engineData.cameraHeight*1.4f;
+
+	camera.SetPosWC( pos.x, pos.y, pos.z );
+	camera.SetYRotation( -45.f );
+	camera.SetTilt( engineData.cameraTilt );
+	zoom = defaultZoom;
+}
+
+
 Model* Engine::GetModel( ModelResource* resource )
 {
 	GLASSERT( resource );
@@ -407,7 +422,7 @@ void Engine::Drag( int action, int x, int y )
 			RayFromScreenToYPlane( x, y, dragMVPI, &ray, &dragStart );
 
 			draggingModel = IntersectModel( ray );
-			GLOUTPUT(( "Model=%x\n", draggingModel ));
+			//GLOUTPUT(( "Model=%x\n", draggingModel ));
 
 			if ( draggingModel ) {
 				draggingModelOrigin = draggingModel->Pos();
@@ -463,7 +478,7 @@ void Engine::Drag( int action, int x, int y )
 void Engine::Zoom( int action, int distance )
 {
 	switch ( action )
-	{file://localhost/Users/leethomason/src/unflobtactical/game/game.cpp
+	{
 		case GAME_ZOOM_START:
 			initZoomDistance = distance;
 			initZoom = zoom;
@@ -489,8 +504,8 @@ void Engine::Zoom( int action, int distance )
 			GLASSERT( 0 );
 			break;
 	}
-	GLOUTPUT(( "Zoom action=%d distance=%d initZoomDistance=%d lastZoomDistance=%d z=%.2f\n",
-			   action, distance, initZoomDistance, lastZoomDistance, GetZoom() ));
+	//GLOUTPUT(( "Zoom action=%d distance=%d initZoomDistance=%d lastZoomDistance=%d z=%.2f\n",
+	//		   action, distance, initZoomDistance, lastZoomDistance, GetZoom() ));
 }
 
 

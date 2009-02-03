@@ -4,6 +4,7 @@
 #include "../engine/text.h"
 #include "../engine/model.h"
 #include "../engine/uirendering.h"
+#include "../grinliz/glmatrix.h"
 
 
 const char* const gModelNames[] = 
@@ -208,7 +209,7 @@ void Game::DoTick( U32 currentTime )
 	if ( rotation&1 ) grinliz::Swap( &w, &h );
 
 	UFODrawText( 0,  0, "UFO Attack! %.1ffps rot=%d shadow=%d", framesPerSecond, rotation, engine.ShadowMode() );
-	UFODrawText( 0, 20, "isDragging=%d zoom init=%d last=%d", engine.IsDragging(), engine.InitZoomDistance(), engine.LastZoomDistance() );
+	//UFODrawText( 0, 20, "isDragging=%d zoom init=%d last=%d", engine.IsDragging(), engine.InitZoomDistance(), engine.LastZoomDistance() );
 
 	glBindTexture( GL_TEXTURE_2D, iconTexture->glID );
 	UFODrawIcons( iconInfo, w, h, rotation );
@@ -218,26 +219,69 @@ void Game::DoTick( U32 currentTime )
 }
 
 
-void Game::Tap( int count, int _x, int _y )
+void Game::TransformScreen( int x0, int y0, int *x1, int *y1 )
 {
-	int x = _y;
-	int y = engine.Width() - _x;
+	switch ( rotation ) {
+		case 0:
+			*x1 = x0;
+			*y1 = y0;
+			break;
 
-	GLOUTPUT(( "Tap count=%d x=%d y=%d\n", count, x, y ));
-	for( const IconInfo* icon = iconInfo; icon->iconID > 0; ++icon ) {
-		if (    grinliz::InRange( x, icon->pos.x, icon->pos.x+icon->size.x )
-			 && grinliz::InRange( y, icon->pos.y, icon->pos.y+icon->size.y ) ) 
-		{
-			switch( icon->iconID ) {
-				case ICON_CAMERA_HOME:
-					if ( count == 1 )
+		case 1:
+			*x1 = y0;
+			*y1 = engine.Width() - 1 - x0;
+			break;
+
+		case 2:
+			*x1 = engine.Width() - 1 - x0;
+			*y1 = y0;
+			break;
+
+		case 3:
+			*x1 = engine.Height() - 1 - y0;
+			*y1 = x0;
+			break;
+
+		default:
+			GLASSERT( 0 );
+			break;
+	}
+}
+
+
+
+void Game::Tap( int tap, int x, int y )
+{
+	if ( tap == 1 ) {
+		// In the double-tap case, the inverse computation will take care
+		// of the coordinate transform. Here we do it explicity via TransformScreen.
+		int x0, y0;
+		TransformScreen( x, y, &x0, &y0 );
+		//GLOUTPUT(( "Screen: %d,%d\n", x0, y0 ));
+
+		for( const IconInfo* icon = iconInfo; icon->iconID > 0; ++icon ) {
+			if (    grinliz::InRange( x0, icon->pos.x, icon->pos.x+icon->size.x )
+				 && grinliz::InRange( y0, icon->pos.y, icon->pos.y+icon->size.y ) ) 
+			{
+				switch( icon->iconID ) {
+					case ICON_CAMERA_HOME:
 						engine.MoveCameraHome();
-					break;
+						break;
 
-				default:
-					GLASSERT( 0 );
-					break;
+					default:
+						GLASSERT( 0 );
+						break;
+				}
 			}
 		}
+	}
+	else if ( tap == 2 ) {
+		grinliz::Matrix4 mvpi;
+		grinliz::Ray ray;
+		grinliz::Vector3F p;
+
+		engine.CalcModelViewProjectionInverse( &mvpi );
+		engine.RayFromScreenToYPlane( x, y, mvpi, &ray, &p );
+		engine.MoveCameraXZ( p.x, p.z ); 
 	}
 }

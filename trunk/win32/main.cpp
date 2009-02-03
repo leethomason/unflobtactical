@@ -154,6 +154,8 @@ int main( int argc, char **argv )
 
 	float yRotation = 45.0f;
 	grinliz::Vector2I mouseDown = { 0, 0 };
+	grinliz::Vector2I prevMouseDown = { 0, 0 };
+	U32 prevMouseDownTime = 0;
 
 	void* game = NewGame( IPOD_SCREEN_WIDTH, IPOD_SCREEN_HEIGHT );
 	GameRotate( game, rotation );
@@ -223,10 +225,11 @@ int main( int argc, char **argv )
 						dragging = true;
 					}
 					else if ( event.button.button == 3 ) {
-						int dx = IPOD_SCREEN_HEIGHT/2 - y;
-						GLOUTPUT(( "x=%d y=%d\n", x, y ));
+						//int dx = IPOD_SCREEN_HEIGHT/2 - y;
+						//GLOUTPUT(( "x=%d y=%d\n", x, y ));
+						int dx = y;
 						zooming = true;
-						GameZoom( game, GAME_ZOOM_START, (int) sqrtf( (float)(dx*dx) ) );
+						GameZoom( game, GAME_ZOOM_START, dx ); //(int) sqrtf( (float)(dx*dx) ) );
 					}
 				}
 				break;
@@ -257,7 +260,15 @@ int main( int argc, char **argv )
 							if ( SDL_GetModState() & (KMOD_LSHIFT|KMOD_RSHIFT) ) {
 								tap = 2;
 							}
+							if (	abs( mouseDown.x - prevMouseDown.x ) < 3
+								 && abs( mouseDown.y - prevMouseDown.y ) < 3
+								 && ( SDL_GetTicks() - prevMouseDownTime ) < 300 ) {
+									 tap =2 ;
+							}
 							GameTap( game, tap, x, y );
+
+							prevMouseDown = mouseDown;
+							prevMouseDownTime = SDL_GetTicks();
 						}
 					}
 				}
@@ -280,8 +291,9 @@ int main( int argc, char **argv )
 						}
 					}
 					else if ( zooming && (state & SDL_BUTTON(3)) ) {
-						int dx = IPOD_SCREEN_HEIGHT/2 - y;
-						GameZoom( game, GAME_ZOOM_MOVE, (int) sqrtf( (float)(dx*dx) ) );
+						//int dx = IPOD_SCREEN_HEIGHT/2 - y;
+						int dx = y;
+						GameZoom( game, GAME_ZOOM_MOVE, dx ); //(int) sqrtf( (float)(dx*dx) ) );
 					}
 				}
 				break;
