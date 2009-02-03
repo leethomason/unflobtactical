@@ -31,6 +31,7 @@ public:
 	void Tap( int count, int x, int y );
 	
 	ModelResource* GetResource( const char* name );
+	void TransformScreen( int x0, int y0, int *x1, int *y1 );
 
 	Engine engine;
 	Surface surface;

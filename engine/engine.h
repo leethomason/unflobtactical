@@ -58,6 +58,7 @@ public:
 	void Draw();
 
 	void MoveCameraHome();
+	void MoveCameraXZ( float x, float z );
 
 	Model* GetModel( ModelResource* );
 	void ReleaseModel( Model* );
