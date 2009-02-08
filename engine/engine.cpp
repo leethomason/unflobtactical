@@ -10,6 +10,7 @@
 #include "platformgl.h"
 #include "engine.h"
 #include "loosequadtree.h"
+#include "renderQueue.h"
 
 using namespace grinliz;
 
@@ -25,6 +26,7 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 {
 	map = new Map();
 	spaceTree = new SpaceTree( Fixed(-1), Fixed(4) );
+	renderQueue = new RenderQueue();
 
 	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)Map::SIZE + 5.0f );
 	camera.SetYRotation( -45.f );
@@ -54,6 +56,7 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 
 Engine::~Engine()
 {
+	delete renderQueue;
 	delete map;
 	delete spaceTree;
 }
@@ -61,7 +64,7 @@ Engine::~Engine()
 
 void Engine::MoveCameraHome()
 {
-	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)Map::SIZE + 5.0f );
+	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)map->Height() + 5.0f );
 	camera.SetYRotation( -45.f );
 	camera.SetTilt( engineData.cameraTilt );
 	zoom = defaultZoom;
@@ -136,6 +139,8 @@ void Engine::Draw()
 	map->Draw();
 
 	// -- Shadow casters/ground plane -- //
+	// Set up the planar projection matrix, with a little z offset
+	// to help with z resolution fighting.
 	Matrix4 m;
 	m.m12 = -lightDirection.x/lightDirection.y;
 	m.m22 = 0.0f;
@@ -155,7 +160,7 @@ void Engine::Draw()
 	glGetIntegerv( GL_DEPTH_FUNC, &depthFunc );
 	glDepthFunc( GL_ALWAYS );
 
-	// Compute the planes
+	// Compute the frustum planes
 	Plane planes[6];
 	CalcFrustumPlanes( planes );
 	PlaneX planesX[6];
@@ -165,10 +170,16 @@ void Engine::Draw()
 
 
 	Model* modelRoot = spaceTree->Query( planesX, 6 );
+	GLASSERT( renderQueue->Empty() );
 
+	glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );	// keeps white from bleeding outside the map.
 	for( Model* model=modelRoot; model; model=model->next ) {
-		model->Draw( false );
+		//model->Draw( false );	// shadow pass.
+		model->Queue( renderQueue, false );
 	}
+	renderQueue->Flush();
+
+	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 	glPopMatrix();
 
 	
@@ -199,8 +210,10 @@ void Engine::Draw()
 	glDepthMask( GL_TRUE );
 
 	for( Model* model=modelRoot; model; model=model->next ) {
-		model->Draw( true );
+		//model->Draw( true );
+		model->Queue( renderQueue, true );
 	}
+	renderQueue->Flush();
 	
 	EnableLights( false );
 }
@@ -370,7 +383,7 @@ void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
 }
 
 
-Model* Engine::IntersectModel( const grinliz::Ray& ray )
+Model* Engine::IntersectModel( const grinliz::Ray& ray, bool onlyDraggable )
 {
 	int FAR = 10*1000;
 	Fixed close( FAR );
@@ -384,20 +397,22 @@ Model* Engine::IntersectModel( const grinliz::Ray& ray )
 
 	for( ; root; root=root->next )
 	{
-		Vector3X intersect;
-		Rectangle3X aabb;
-		Fixed t;
+		if ( !onlyDraggable || root->IsDraggable() ) {
+			Vector3X intersect;
+			Rectangle3X aabb;
+			Fixed t;
 
-		root->CalcHitAABB( &aabb );
-		//GLOUTPUT(( "AABB: %.2f,%.2f,%.2f  %.2f,%.2f,%.2f\n", (float)aabb.min.x, (float)aabb.min.y, (float)aabb.min.z,
-		//			(float)aabb.max.x, (float)aabb.max.y, (float)aabb.max.z ));
-		
-		int result = IntersectRayAABBX( origin, dir, aabb, &intersect, &t );
-		//GLOUTPUT(( "  result=%d\n", result ));
-		if ( result == grinliz::INTERSECT ) {
-			if ( t < close ) {
-				m = root;
-				close = t;
+			root->CalcHitAABB( &aabb );
+			//GLOUTPUT(( "AABB: %.2f,%.2f,%.2f  %.2f,%.2f,%.2f\n", (float)aabb.min.x, (float)aabb.min.y, (float)aabb.min.z,
+			//			(float)aabb.max.x, (float)aabb.max.y, (float)aabb.max.z ));
+			
+			int result = IntersectRayAABBX( origin, dir, aabb, &intersect, &t );
+			//GLOUTPUT(( "  result=%d\n", result ));
+			if ( result == grinliz::INTERSECT ) {
+				if ( t < close ) {
+					m = root;
+					close = t;
+				}
 			}
 		}
 	}
@@ -421,7 +436,7 @@ void Engine::Drag( int action, int x, int y )
 			CalcModelViewProjectionInverse( &dragMVPI );
 			RayFromScreenToYPlane( x, y, dragMVPI, &ray, &dragStart );
 
-			draggingModel = IntersectModel( ray );
+			draggingModel = IntersectModel( ray, true );
 			//GLOUTPUT(( "Model=%x\n", draggingModel ));
 
 			if ( draggingModel ) {
@@ -517,19 +532,20 @@ void Engine::RestrictCamera()
 	IntersectRayPlane( ray.origin, ray.direction, XZ_PLANE, 0.0f, &intersect );
 //	GLOUTPUT(( "Intersect %.1f, %.1f, %.1f\n", intersect.x, intersect.y, intersect.z ));
 
-	const float SIZE = (float)Map::SIZE;
+	const float SIZEX = (float)map->Width();
+	const float SIZEZ = (float)map->Height();
 
 	if ( intersect.x < 0.0f ) {
 		camera.DeltaPosWC( -intersect.x, 0.0f, 0.0f );
 	}
-	if ( intersect.x > SIZE ) {
-		camera.DeltaPosWC( -(intersect.x-SIZE), 0.0f, 0.0f );
+	if ( intersect.x > SIZEX ) {
+		camera.DeltaPosWC( -(intersect.x-SIZEX), 0.0f, 0.0f );
 	}
 	if ( intersect.z < 0.0f ) {
 		camera.DeltaPosWC( 0.0f, 0.0f, -intersect.z );
 	}
-	if ( intersect.z > SIZE ) {
-		camera.DeltaPosWC( 0.0f, 0.0f, -(intersect.z-SIZE) );
+	if ( intersect.z > SIZEZ ) {
+		camera.DeltaPosWC( 0.0f, 0.0f, -(intersect.z-SIZEZ) );
 	}
 }
 

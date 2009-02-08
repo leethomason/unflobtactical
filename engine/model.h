@@ -9,6 +9,7 @@
 
 class Texture;
 class SpaceTree;
+class RenderQueue;
 
 class ModelResource
 {
@@ -56,10 +57,17 @@ public:
 	~Model()	{}
 
 	void Init( ModelResource* resource, SpaceTree* tree );
+	// Draws the model, and sets texture
 	void Draw( bool useTexture = true );
+	// Draws the model but texture already set
+	void DrawLow( int group );
+	// Queued rendering
+	void Queue( RenderQueue* queue, bool useTexture );
 
 	bool IsDraggable()	{ return isDraggable; }
 	void SetDraggable( bool drag )	{ isDraggable = drag; }
+	bool IsHiddenFromTree()			{ return hiddenFromTree; }
+	void HideFromTree( bool hide )  { hiddenFromTree = hide; }
 	
 	const Vector3X& Pos()						{ return pos; }
 	void SetPos( const Vector3X& pos );
@@ -83,7 +91,9 @@ private:
 	ModelResource* resource;
 	Vector3X pos;
 	grinliz::Fixed rot;
+
 	bool isDraggable;
+	bool hiddenFromTree;
 };
 
 

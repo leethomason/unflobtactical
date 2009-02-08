@@ -31,6 +31,7 @@ public:
 	void Tap( int count, int x, int y );
 	
 	ModelResource* GetResource( const char* name );
+	Texture* GetTexture( const char* name );
 	void TransformScreen( int x0, int y0, int *x1, int *y1 );
 
 	Engine engine;
@@ -57,11 +58,11 @@ private:
 	U32 frameCountsSinceMark;
 	float framesPerSecond;
 
-	Texture* mapTexture;
 	Texture* iconTexture;
 
 	enum { NUM_TEST_MODEL = 8 };
 	Model* testModel[NUM_TEST_MODEL];
+	Model* mapModel;
 };
 
 #endif

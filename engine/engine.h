@@ -12,8 +12,7 @@
 #include "enginelimits.h"
 #include "model.h"
 
-class Model;
-class ModelResource;
+class RenderQueue;
 
 /*
 	Standard state:
@@ -62,6 +61,7 @@ public:
 
 	Model* GetModel( ModelResource* );
 	void ReleaseModel( Model* );
+	Map* GetMap() { return map; }
 
 	static bool UnProject(	const grinliz::Vector3F& window,
 							const grinliz::Rectangle2I& screen,
@@ -107,7 +107,7 @@ private:
 	void RestrictCamera();
 	void CalcCameraRotation( grinliz::Matrix4* );
 	void EnableLights( bool enable, bool inShadow=false );
-	Model* IntersectModel( const grinliz::Ray& ray );
+	Model* IntersectModel( const grinliz::Ray& ray, bool onlyDraggable );
 
 	int		width;
 	int		height;
@@ -137,6 +137,7 @@ private:
 
 	Map* map;
 	SpaceTree* spaceTree;
+	RenderQueue* renderQueue;
 };
 
 #endif // UFOATTACK_ENGINE_INCLUDED

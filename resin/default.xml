@@ -4,7 +4,9 @@
 	
 	<!-- Model textures -->
 	<texture filename="stdfont2.tga" />
-	<texture filename="green.tga" />
+	<texture filename="grass2.png" />
+	<texture filename="dirtGrass.png" />
+	<texture filename="alienFloor.png" />
 	<texture filename="woodDark.tga" />
 	<texture filename="woodDarkUFO.tga" />
 
@@ -13,6 +15,7 @@
 	<model filename="test2.ac" />
 	<model filename="teapot.off" />
 	<model filename="crate.ac" />
+	<model filename="farmland.ac" />
 
 	<!--
 	<texture filename="Yohko.bmp" />

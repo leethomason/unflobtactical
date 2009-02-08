@@ -80,7 +80,7 @@ void ProcessModel( TiXmlElement* model )
 	int startIndex = 0;
 	int startVertex = 0;
 
-	printf( "Model\n" );
+	printf( "Model " );
 
 	string filename;
 	model->QueryStringAttribute( "filename", &filename );
@@ -111,14 +111,15 @@ void ProcessModel( TiXmlElement* model )
 		exit( 1 );
 	}
 	else {
-		printf( "  Writing: '%s', '%s'\n", name.c_str(), fullOut.c_str() );
+		//printf( "  Writing: '%s', '%s'", name.c_str(), fullOut.c_str() );
+		printf( "  '%s'", name.c_str() );
 	}
 	
 	for( int i=0; i<builder->NumGroups(); ++i ) {
 		nTotalIndex += vertexGroup[i].nIndex;
 		nTotalVertex += vertexGroup[i].nVertex;
 	}
-	printf( "  groups=%d nVertex=%d nTri=%d\n", builder->NumGroups(), nTotalVertex, nTotalIndex/3 );
+	printf( " groups=%d nVertex=%d nTri=%d\n", builder->NumGroups(), nTotalVertex, nTotalIndex/3 );
 
 	char buffer[16];
 	grinliz::StrFillBuffer( name, buffer, 16 );
@@ -185,7 +186,7 @@ void ProcessModel( TiXmlElement* model )
 			SDL_WriteBE16( fp, vertexGroup[i].index[j] );
 		}
 	}
-	printf( "  memory=%.1fk\n", (float)totalMemory / 1024.f );
+	printf( "  total memory=%.1fk\n", (float)totalMemory / 1024.f );
 	
 	delete builder;
 	if ( fp ) {
@@ -196,7 +197,7 @@ void ProcessModel( TiXmlElement* model )
 
 void ProcessTexture( TiXmlElement* texture )
 {
-	printf( "Texture\n" );
+	printf( "Texture" );
 
 	string filename;
 	texture->QueryStringAttribute( "filename", &filename );
@@ -207,6 +208,7 @@ void ProcessTexture( TiXmlElement* texture )
 	grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
 
 	string fullOut = outputPath + name + ".tex";
+	SDL_RWops* fp = 0;
 
 
 	SDL_Surface* surface = libIMG_Load( fullIn.c_str() );
@@ -215,20 +217,20 @@ void ProcessTexture( TiXmlElement* texture )
 		goto graceful_exit;
 	}
 	else {
-		printf( "  Loaded: '%s' bpp=%d width=%d height=%d\n", 
-				fullIn.c_str(),
+		printf( "  Loaded: '%s' bpp=%d width=%d height=%d", 
+				name.c_str(), //fullIn.c_str(),
 				surface->format->BitsPerPixel,
 				surface->w,
 				surface->h );
 	}
 
-	SDL_RWops* fp = SDL_RWFromFile( fullOut.c_str(), "wb" );
+	fp = SDL_RWFromFile( fullOut.c_str(), "wb" );
 	if ( !fp ) {
 		printf( "**Could not open for writing: %s\n", fullOut.c_str() );
 		goto graceful_exit;
 	}
 	else {
-		printf( "  Writing: '%s'\n", fullOut.c_str() );
+		//printf( "  Writing: '%s'\n", fullOut.c_str() );
 	}
 
 	char buffer[16];

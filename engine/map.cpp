@@ -1,37 +1,21 @@
 #include "platformgl.h"
 #include "map.h"
+#include "model.h"
 
 void Map::Draw()
 {
-	const float dx = (float)Map::SIZE;
-	const float dy = (float)Map::SIZE;
-
-	float v[12] = {	
-					0.f, 0.f, dy,	  
-					dx,  0.f, dy,
-					dx,  0.f, 0.f, 
-					0.f, 0.f, 0.f 
-				  };
-
-	float t[8] = {	
-					0.f, 0.f, 
-					dx,  0.f,
-					dx,	 dy,
-					0.f, dy
-				 };
-	float n[12] = {	
-					0.f, 1.f, 0.f,
-					0.f, 1.f, 0.f,
-					0.f, 1.f, 0.f,
-					0.f, 1.f, 0.f
-				  };
-
-	glColor4f( 1.f, 1.f, 1.f, 1.f );
-
-	glVertexPointer( 3, GL_FLOAT, 0, v );
-	glTexCoordPointer( 2, GL_FLOAT, 0, t );
-	glNormalPointer( GL_FLOAT, 0, n );
-
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+	model->Draw();
 }
+
+
+void Map::SetModel( Model* m )
+{
+	model = m;
+	model->SetDraggable( false );
+	ModelResource* res = model->GetResource();
+
+	width = res->bounds[1].x - res->bounds[0].x;
+	height = res->bounds[1].z - res->bounds[0].z;
+}
+
 
