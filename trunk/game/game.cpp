@@ -13,16 +13,21 @@ const char* const gModelNames[] =
 	"test2",
 	"teapot",
 	"crate",
+	"farmland",
 	0
 };
 
 const char* const gTextureNames[] = 
 {
-	"stdfont2",
 	"icons",
-	"green",
+
+	"stdfont2",
+	"grass2",
+	"dirtGrass",
+	"alienFloor",
 	"woodDark",
 	"woodDarkUFO",
+
 	0
 };
 
@@ -49,25 +54,38 @@ Game::Game( int width, int height ) :
 	LoadTextures();
 	LoadModels();
 
-	iconTexture = &texture[1];
-	mapTexture = &texture[2];
+	iconTexture = GetTexture( "icons" );
+	Texture* textTexture = GetTexture( "stdfont2" );
+	GLASSERT( textTexture );
+	UFOInitDrawText( textTexture->glID, engine.Width(), engine.Height(), rotation );
 
 	memset( testModel, 0, NUM_TEST_MODEL*sizeof(Model*) );
 
 	int n = 0;
 	ModelResource* resource = 0;
+
+	// Load the map!
+	resource = GetResource( "farmland" );
+	mapModel = engine.GetModel( resource );
+	mapModel->HideFromTree( true );				// don't want to double render
+	engine.GetMap()->SetModel( mapModel );
+	//float mx = (float)engine.GetMap()->Width();
+	float mz = (float)engine.GetMap()->Height();
+	engine.camera.SetPosWC( -5.0f, engineData.cameraHeight, mz + 5.0f );
+
+
 	resource = GetResource( "teapot" );
 	testModel[n] = engine.GetModel( resource );
-	testModel[n++]->SetPos( 5.f, -(float)resource->bounds[0].y/65536.0f, 60.f );
+	testModel[n++]->SetPos( 5.f, -(float)resource->bounds[0].y/65536.0f, mz-4.0f );
 
 	resource = GetResource( "test2" );
 	testModel[n] = engine.GetModel( resource );
-	testModel[n++]->SetPos( 2.0f, 0.0f, 60.f );
+	testModel[n++]->SetPos( 2.0f, 0.0f, mz-4.0f );
 
 	resource = GetResource( "crate" );
 	testModel[n] = engine.GetModel( resource );
 	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 3.5f, 0.0f, 58.5f );
+	testModel[n++]->SetPos( 3.5f, 0.0f, mz-5.5f );
 }
 
 
@@ -78,6 +96,7 @@ Game::~Game()
 			engine.ReleaseModel( testModel[i] );
 		}
 	}
+	engine.ReleaseModel( mapModel );
 
 	FreeModels();
 	FreeTextures();
@@ -92,6 +111,13 @@ void Game::LoadTextures()
 	FILE* fp = 0;
 	char buffer[512];
 
+	// Create the default texture "white"
+	surface.Set( 2, 2, 3 );
+	memset( surface.Pixels(), 255, 16 );
+	textureID = surface.CreateTexture();
+	texture[ nTexture++ ].Set( "white", textureID );
+
+	// Load the textures from the array:
 	for( int i=0; gTextureNames[i]; ++i ) {
 		PlatformPathToResource( gTextureNames[i], "tex", buffer, 512 );
 		fp = fopen( buffer, "rb" );
@@ -101,7 +127,6 @@ void Game::LoadTextures()
 		fclose( fp );
 	}
 	GLASSERT( nTexture <= MAX_TEXTURES );
-	UFOInitDrawText( texture[0].glID, engine.Width(), engine.Height(), rotation );
 }
 
 
@@ -119,6 +144,18 @@ ModelResource* Game::GetResource( const char* name )
 	for( int i=0; gModelNames[i]; ++i ) {
 		if ( strcmp( gModelNames[i], name ) == 0 ) {
 			return &modelResource[i];
+		}
+	}
+	GLASSERT( 0 );
+	return 0;
+}
+
+
+Texture* Game::GetTexture( const char* name )
+{
+	for( int i=0; i<nTexture; ++i ) {
+		if ( strcmp( texture[i].name, name ) == 0 ) {
+			return &texture[i];
 		}
 	}
 	GLASSERT( 0 );
@@ -199,7 +236,6 @@ void Game::DoTick( U32 currentTime )
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
 
-	glBindTexture( GL_TEXTURE_2D, mapTexture->glID );	// FIXME!! should be in map
 	engine.Draw();
 
 	glDisable( GL_DEPTH_TEST );

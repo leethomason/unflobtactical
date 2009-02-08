@@ -16,7 +16,7 @@ public:
 	U8* Pixels()			{ return pixels; }
 	int BytesPerPixel()		{ return bpp; }
 
-	void Set( int w, int h, int bpp );
+	void Set( int w, int h, int bytesPP );
 
 	// Create an opengl texture from this surface.
 	U32 CreateTexture();

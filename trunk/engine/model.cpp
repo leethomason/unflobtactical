@@ -3,6 +3,7 @@
 #include "platformgl.h"
 #include "enginelimits.h"
 #include "loosequadtree.h"
+#include "renderQueue.h"
 
 #include "../grinliz/glvector.h"
 #include "../grinliz/glstringutil.h"
@@ -52,8 +53,8 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	res->hitBounds.min.Set( res->boundSphere.origin.x - ave/2, res->bounds[0].y, res->boundSphere.origin.z - ave/2 );
 	res->hitBounds.max.Set( res->boundSphere.origin.x + ave/2, res->bounds[1].y, res->boundSphere.origin.z + ave/2 );
 
-	GLASSERT( nTotalVertices <= EL_MAX_VERTEX_IN_GROUP );
-	GLASSERT( nTotalIndices <= EL_MAX_INDEX_IN_GROUP );
+	//GLASSERT( nTotalVertices <= EL_MAX_VERTEX_IN_GROUP );
+	//GLASSERT( nTotalIndices <= EL_MAX_INDEX_IN_GROUP );
 
 	GLOUTPUT(( "Load Model: %s\n", res->name ));
 	GLOUTPUT(( "  sphere (%.2f,%.2f,%.2f) rad=%.2f  hit(%.2f,%.2f,%.2f)-(%.2f,%.2f,%.2f)\n",
@@ -70,22 +71,26 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 
 	for( U32 i=0; i<res->nGroups; ++i )
 	{
-		char textureName[16];
-		fread( textureName, 16, 1, fp );
+		char textureNameBuf[16];
+		fread( textureNameBuf, 16, 1, fp );
 
 		const Texture* t = 0;
-		if ( textureName[0] ) {
-			// Remove extension.
-			std::string base, name, extension;
-			StrSplitFilename( std::string( textureName ), &base, &name, &extension );
+		const char* textureName = textureNameBuf;
+		if ( !textureName[0] ) {
+			textureName = "white";
+		}
+		
+		// Remove extension.
+		std::string base, name, extension;
+		StrSplitFilename( std::string( textureName ), &base, &name, &extension );
 
-			for( int j=0; j<nTextures; ++j ) {
-				if ( strcmp( name.c_str(), texture[j].name ) == 0 ) {
-					t = &texture[j];
-					break;
-				}
+		for( int j=0; j<nTextures; ++j ) {
+			if ( strcmp( name.c_str(), texture[j].name ) == 0 ) {
+				t = &texture[j];
+				break;
 			}
 		}
+		GLASSERT( t );                       
 		res->texture[i] = t;
 
 		fread( &res->nVertex[i], 4, 1, fp );
@@ -175,6 +180,7 @@ void Model::Init( ModelResource* resource, SpaceTree* tree )
 		tree->Update( this );
 	}
 	isDraggable = false;
+	hiddenFromTree = false;
 }
 
 
@@ -205,6 +211,17 @@ void Model::CalcHitAABB( Rectangle3X* aabb )
 }
 
 
+void Model::Queue( RenderQueue* queue, bool useTexture )
+{
+	for( U32 i=0; i<resource->nGroups; ++i ) {
+		if ( useTexture )
+			queue->Add( 0, resource->texture[i]->glID, this, i );
+		else
+			queue->Add( 0, 0, this, i );
+	}
+}
+
+
 void Model::Draw( bool useTexture )
 {
 	glPushMatrix();
@@ -228,13 +245,9 @@ void Model::Draw( bool useTexture )
 		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, resource->indexID[i] );
 
 		if ( useTexture ) {
-			if ( resource->texture[i] ) {
-				glBindTexture( GL_TEXTURE_2D, resource->texture[i]->glID );
-				GLASSERT( glIsEnabled( GL_TEXTURE_2D ) );
-			}
-			else {
-				glBindTexture( GL_TEXTURE_2D, 0 );
-			}
+			GLASSERT( resource->texture[i] );
+			glBindTexture( GL_TEXTURE_2D, resource->texture[i]->glID );
+			GLASSERT( glIsEnabled( GL_TEXTURE_2D ) );
 		}
 
 		#if TARGET_OS_IPHONE		
@@ -261,3 +274,48 @@ void Model::Draw( bool useTexture )
 	glPopMatrix();
 }
 
+
+void Model::DrawLow( int i )
+{
+	glPushMatrix();
+	#if TARGET_OS_IPHONE		
+	glTranslatex( pos.x, pos.y, pos.z );
+	if ( rot != 0 ) {
+		glRotatex( rot, 0.f, 1.f, 0.f );
+	}
+	#else
+	{
+		Vector3F posf;
+		float rotf = rot;
+		ConvertVector3( pos, &posf );
+
+		glTranslatef( pos.x, pos.y, pos.z );
+		if ( rot != 0 ) {
+			glRotatef( rotf, 0.f, 1.f, 0.f );
+		}
+	}
+	#endif
+
+	glBindBuffer( GL_ARRAY_BUFFER, resource->vertexID[i] );
+	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, resource->indexID[i] );
+
+	#if TARGET_OS_IPHONE		
+	glVertexPointer(   3, GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
+	glNormalPointer(      GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
+	glTexCoordPointer( 2, GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
+	#else
+	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
+	glNormalPointer(      GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
+	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
+	#endif
+	CHECK_GL_ERROR;
+
+	// mode, count, type, indices
+	glDrawElements( GL_TRIANGLES, 
+					resource->nIndex[i],
+					GL_UNSIGNED_SHORT, 
+					0 );
+	CHECK_GL_ERROR;
+
+	glPopMatrix();
+}

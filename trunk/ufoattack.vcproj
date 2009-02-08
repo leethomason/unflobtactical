@@ -399,6 +399,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\engine\renderqueue.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\engine\renderqueue.h"
+				>
+			</File>
+			<File
 				RelativePath=".\engine\surface.cpp"
 				>
 			</File>

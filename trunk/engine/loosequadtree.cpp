@@ -246,9 +246,11 @@ void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersect
 		for( Item* item=node->sentinel.next; item != &node->sentinel; item=item->next ) 
 		{
 			Model* m = &item->model;
-			m->next = modelRoot;
-			modelRoot = m;
-			++modelsFound;
+			if ( !m->IsHiddenFromTree() ) {
+				m->next = modelRoot;
+				modelRoot = m;
+				++modelsFound;
+			}
 		}
 		
 		if ( node->depth+1<DEPTH)  {
@@ -296,9 +298,11 @@ void SpaceTree::QueryPlanesRec(	const Vector3X& origin, const Vector3X& directio
 		for( Item* item=node->sentinel.next; item != &node->sentinel; item=item->next ) 
 		{
 			Model* m = &item->model;
-			m->next = modelRoot;
-			modelRoot = m;
-			++modelsFound;
+			if ( !m->IsHiddenFromTree() ) {
+				m->next = modelRoot;
+				modelRoot = m;
+				++modelsFound;
+			}
 		}
 		
 		if ( node->depth+1<DEPTH)  {
