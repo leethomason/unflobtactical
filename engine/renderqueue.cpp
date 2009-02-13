@@ -14,7 +14,7 @@ RenderQueue::~RenderQueue()
 }
 
 
-RenderQueue::Item* RenderQueue::FindState( U32 flags, U32 textureID )
+RenderQueue::Item* RenderQueue::FindState( const State& state )
 {
 	int low = 0;
 	int high = nState - 1;
@@ -24,7 +24,7 @@ RenderQueue::Item* RenderQueue::FindState( U32 flags, U32 textureID )
 
 	while (low <= high) {
 		mid = low + (high - low) / 2;
-		int compare = Compare( statePool[mid].state.flags, statePool[mid].state.textureID, flags, textureID );
+		int compare = Compare( statePool[mid].state, state );
 
 		if (compare > 0) {
 			high = mid - 1;
@@ -51,7 +51,7 @@ RenderQueue::Item* RenderQueue::FindState( U32 flags, U32 textureID )
 	}
 	else {
 		while (    insert < nState
-			    && Compare( statePool[insert].state.flags, statePool[insert].state.textureID, flags, textureID ) < 0 ) 
+			    && Compare( statePool[insert].state, state ) < 0 ) 
 		{
 			++insert;
 		}
@@ -62,40 +62,41 @@ RenderQueue::Item* RenderQueue::FindState( U32 flags, U32 textureID )
 		statePool[i] = statePool[i-1];
 	}
 	// and insert
-	statePool[insert].state.flags = flags;
-	statePool[insert].state.textureID = textureID;
-	statePool[insert].next = 0;
+	statePool[insert].state = state;
+	statePool[insert].nextModel = 0;
 	nState++;
 
 #ifdef DEBUG
 	for( int i=0; i<nState-1; ++i ) {
-		GLASSERT( Compare( statePool[i].state.flags, statePool[i].state.textureID, 
-						   statePool[i+1].state.flags, statePool[i+1].state.textureID) < 0 );
+		//GLOUTPUT(( " %d:%d:%x", statePool[i].state.flags, statePool[i].state.textureID, statePool[i].state.atom ));
+		GLASSERT( Compare( statePool[i].state, statePool[i+1].state ) < 0 );
 	}
+	//GLOUTPUT(( "\n" ));
 #endif
 
 	return &statePool[insert];
 }
 
 
-void RenderQueue::Add( U32 flags, U32 textureID, Model* model, int group )
+void RenderQueue::Add( U32 flags, U32 textureID, const Model* model, const ModelAtom* atom )
 {
 	if ( nModel == MAX_MODELS ) {
 		Flush();
 	}
 
-	Item* state = FindState( flags, textureID );
+	State s0 = { flags, textureID, atom };
+
+	Item* state = FindState( s0 );
 	if ( !state ) {
 		Flush();
-		state = FindState( flags, textureID );
+		state = FindState( s0 );
 	}
 	GLASSERT( state );
 
 	Item* modelItem = &modelPool[nModel++];
-	modelItem->model.model = model;
-	modelItem->model.group = group;
-	modelItem->next = state->next;
-	state->next = modelItem;
+	modelItem->model = model;
+	modelItem->nextModel = state->nextModel;
+	state->nextModel = modelItem;
 }
 
 
@@ -103,12 +104,21 @@ void RenderQueue::Flush()
 {
 	U32 flags = (U32)(-1);
 	U32 textureID = (U32)(-1);
+	const ModelAtom* atom = 0;
+
+	int states = 0;
+	int textures = 0;
+	int atoms = 0;
+	int models = 0;
+
 	//GLOUTPUT(( "RenderQueue::Flush nState=%d nModel=%d\n", nState, nModel ));
 
 	for( int i=0; i<nState; ++i ) {
 		// Handle state change.
 		if ( flags != statePool[i].state.flags ) {
 			flags = statePool[i].state.flags;
+			++states;
+
 			switch ( flags ) {
 				case 0:
 					// do nothing.
@@ -123,6 +133,8 @@ void RenderQueue::Flush()
 		if ( textureID != statePool[i].state.textureID ) 
 		{
 			textureID = statePool[i].state.textureID;
+			++textures;
+
 			if ( textureID ) {
 				glBindTexture( GL_TEXTURE_2D, textureID );
 				GLASSERT( glIsEnabled( GL_TEXTURE_2D ) );
@@ -132,20 +144,34 @@ void RenderQueue::Flush()
 			}
 		}
 
+		// Handle atom change
+		if ( atom != statePool[i].state.atom ) {
+			atom = statePool[i].state.atom;
+			++atoms;
+
+			atom->Bind();
+		}
+
 		// Send down the VBOs
-		Item* item = statePool[i].next;
+		Item* item = statePool[i].nextModel;
 		while( item ) {
-			Model* model = item->model.model;
-			if ( model ) {
-				model->DrawLow( item->model.group );
-			}
-			item = item->next;
+			++models;
+			const Model* model = item->model;
+			GLASSERT( model );
+
+			model->PushMatrix();
+			atom->Draw();
+			model->PopMatrix();
+
+			item = item->nextModel;
 		}
 	}
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 	nState = 0;
 	nModel = 0;
+
+	GLOUTPUT(( "states=%d textures=%d atoms=%d models=%d\n", states, textures, atoms, models ));
 }
 
 

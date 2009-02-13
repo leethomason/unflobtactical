@@ -14,6 +14,9 @@ const char* const gModelNames[] =
 	"teapot",
 	"crate",
 	"farmland",
+	"maleMarine",
+	"femaleMarine",
+
 	0
 };
 
@@ -27,6 +30,7 @@ const char* const gTextureNames[] =
 	"alienFloor",
 	"woodDark",
 	"woodDarkUFO",
+	"marine",
 
 	0
 };
@@ -86,6 +90,17 @@ Game::Game( int width, int height ) :
 	testModel[n] = engine.GetModel( resource );
 	testModel[n]->SetDraggable( true );
 	testModel[n++]->SetPos( 3.5f, 0.0f, mz-5.5f );
+
+	resource = GetResource( "maleMarine" );
+	for( int i=0; i<4; ++i ) {
+		testModel[n] = engine.GetModel( resource );
+		testModel[n]->SetPos( (float)(i*2)+1.5f, 0.0f, mz-7.5f );
+		++n;
+	}
+	testModel[n-4]->SetSkin( 1, 1, 1 );
+	testModel[n-3]->SetSkin( 2, 1, 1 );
+	testModel[n-2]->SetSkin( 1, 0, 0 );
+	testModel[n-1]->SetSkin( 1, 0, 2 );
 }
 
 
@@ -197,9 +212,9 @@ void Game::FreeModels()
 {
 	for( int i=0; i<nModelResource; ++i ) {
 		for( U32 j=0; j<modelResource[i].nGroups; ++j ) {
-			glDeleteBuffers( 1, (const GLuint*) &modelResource[i].indexID[j] );		
+			glDeleteBuffers( 1, (const GLuint*) &modelResource[i].atom[i].indexID );		
 		}
-		glDeleteBuffers( 1, (const GLuint*) &modelResource[i].vertexID );
+		glDeleteBuffers( 1, (const GLuint*) &modelResource[i].atom[i].vertexID );
 	}
 }
 
