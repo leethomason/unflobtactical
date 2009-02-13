@@ -91,14 +91,14 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 			}
 		}
 		GLASSERT( t );                       
-		res->texture[i] = t;
+		res->atom[i].texture = t;
 
-		fread( &res->nVertex[i], 4, 1, fp );
-		fread( &res->nIndex[i], 4, 1, fp );
-		res->nVertex[i] = grinliz::SwapBE32( res->nVertex[i] );
-		res->nIndex[i] = grinliz::SwapBE32( res->nIndex[i] );
+		fread( &res->atom[i].nVertex, 4, 1, fp );
+		fread( &res->atom[i].nIndex, 4, 1, fp );
+		res->atom[i].nVertex = grinliz::SwapBE32( res->atom[i].nVertex );
+		res->atom[i].nIndex = grinliz::SwapBE32( res->atom[i].nIndex );
 
-		GLOUTPUT(( "  '%s' vertices=%d tris=%d\n", textureName, res->nVertex[i], res->nIndex[i]/3 ));
+		GLOUTPUT(( "  '%s' vertices=%d tris=%d\n", textureName, res->atom[i].nVertex, res->atom[i].nIndex/3 ));
 	}
 	size_t r = fread( vertex, sizeof(VertexX), nTotalVertices, fp );
 	GLASSERT( r == nTotalVertices );
@@ -149,20 +149,20 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	for( U32 i=0; i<res->nGroups; ++i )
 	{
 		// Index buffer
-		glGenBuffers( 1, (GLuint*) &res->indexID[i] );
-		glGenBuffers( 1, (GLuint*) &res->vertexID[i] );
+		glGenBuffers( 1, (GLuint*) &res->atom[i].indexID );
+		glGenBuffers( 1, (GLuint*) &res->atom[i].vertexID );
 		CHECK_GL_ERROR
-		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, res->indexID[i] );
-		glBindBuffer( GL_ARRAY_BUFFER, res->vertexID[i] );
+		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, res->atom[i].indexID );
+		glBindBuffer( GL_ARRAY_BUFFER, res->atom[i].vertexID );
 		CHECK_GL_ERROR
-		U32 indexSize = sizeof(U16)*res->nIndex[i];
-		U32 dataSize  = sizeof(VertexX)*res->nVertex[i];
+		U32 indexSize = sizeof(U16)*res->atom[i].nIndex;
+		U32 dataSize  = sizeof(VertexX)*res->atom[i].nVertex;
 		glBufferData( GL_ELEMENT_ARRAY_BUFFER, indexSize, index+iOffset, GL_STATIC_DRAW );
 		glBufferData( GL_ARRAY_BUFFER, dataSize, vertex+vOffset, GL_STATIC_DRAW );
 		CHECK_GL_ERROR
 
-		iOffset += res->nIndex[i];
-		vOffset += res->nVertex[i];
+		iOffset += res->atom[i].nIndex;
+		vOffset += res->atom[i].nVertex;
 	}
 	// unbind
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
@@ -176,6 +176,8 @@ void Model::Init( ModelResource* resource, SpaceTree* tree )
 	this->tree = tree;
 	pos.Set( Fixed(0), Fixed(0), Fixed(0) ); 
 	rot = Fixed(0);
+	textureOffsetX = Fixed( 0 );
+
 	if ( tree ) {
 		tree->Update( this );
 	}
@@ -188,6 +190,20 @@ void Model::SetPos( const Vector3X& pos )
 { 
 	this->pos = pos;	
 	tree->Update( this ); 
+}
+
+
+void Model::SetSkin( int armor, int skin, int hair )
+{
+	textureOffsetX = Fixed( 0 );
+
+	armor = Clamp( armor, 0, 3 );
+	skin = Clamp( skin, 0, 3 );
+	hair = Clamp( hair, 0, 3 );
+
+	textureOffsetX += Fixed( armor ) / Fixed( 4 );
+	textureOffsetX += Fixed( skin ) / Fixed( 16 );
+	textureOffsetX += Fixed( hair ) / Fixed( 64 );
 }
 
 
@@ -214,10 +230,10 @@ void Model::CalcHitAABB( Rectangle3X* aabb )
 void Model::Queue( RenderQueue* queue, bool useTexture )
 {
 	for( U32 i=0; i<resource->nGroups; ++i ) {
-		if ( useTexture )
-			queue->Add( 0, resource->texture[i]->glID, this, i );
-		else
-			queue->Add( 0, 0, this, i );
+		queue->Add( 0, 
+					(useTexture) ? resource->atom[i].texture->glID : 0,
+					this, 
+					&resource->atom[i] );
 	}
 }
 
@@ -226,8 +242,8 @@ void Model::Draw( bool useTexture )
 {
 	glPushMatrix();
 	#if TARGET_OS_IPHONE		
-	glTranslatex( pos.x, pos.y, pos.z );
-	glRotatex( rot, 0.f, 1.f, 0.f );
+	glTranslatex( pos.x.x, pos.y.x, pos.z.x );
+	glRotatex( rot.x, 0.f, 1.f, 0.f );
 	#else
 	{
 		Vector3F posf;
@@ -239,14 +255,24 @@ void Model::Draw( bool useTexture )
 	}
 	#endif
 
+	if ( textureOffsetX > 0 ) {
+		glMatrixMode(GL_TEXTURE);
+		glPushMatrix();
+		#if TARGET_OS_IPHONE
+		glTranslatex( textureOffsetX.x, 0, 0 );
+		#else
+		glTranslatef( (float) textureOffsetX, 0.0f, 0.0f );
+		#endif
+	}
+
 	for( U32 i=0; i<resource->nGroups; ++i ) 
 	{
-		glBindBuffer( GL_ARRAY_BUFFER, resource->vertexID[i] );
-		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, resource->indexID[i] );
+		glBindBuffer( GL_ARRAY_BUFFER, resource->atom[i].vertexID );
+		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, resource->atom[i].indexID );
 
 		if ( useTexture ) {
-			GLASSERT( resource->texture[i] );
-			glBindTexture( GL_TEXTURE_2D, resource->texture[i]->glID );
+			GLASSERT( resource->atom[i].texture );
+			glBindTexture( GL_TEXTURE_2D, resource->atom[i].texture->glID );
 			GLASSERT( glIsEnabled( GL_TEXTURE_2D ) );
 		}
 
@@ -263,25 +289,58 @@ void Model::Draw( bool useTexture )
 
 		// mode, count, type, indices
 		glDrawElements( GL_TRIANGLES, 
-						resource->nIndex[i],
+						resource->atom[i].nIndex,
 						GL_UNSIGNED_SHORT, 
 						0 );
 		CHECK_GL_ERROR;
 	}
 
+	if ( textureOffsetX > 0 ) {
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+	}
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 	glPopMatrix();
 }
 
 
-void Model::DrawLow( int i )
+void ModelAtom::Bind() const
+{
+	glBindBuffer( GL_ARRAY_BUFFER, vertexID );
+	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, indexID );
+
+	#if TARGET_OS_IPHONE		
+	glVertexPointer(   3, GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
+	glNormalPointer(      GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
+	glTexCoordPointer( 2, GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
+	#else
+	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
+	glNormalPointer(      GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
+	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
+	#endif
+	CHECK_GL_ERROR;
+}
+
+
+void ModelAtom::Draw() const
+{
+	// mode, count, type, indices
+	glDrawElements( GL_TRIANGLES, 
+					nIndex,
+					GL_UNSIGNED_SHORT, 
+					0 );
+	CHECK_GL_ERROR;
+}
+
+
+void Model::PushMatrix() const
 {
 	glPushMatrix();
 	#if TARGET_OS_IPHONE		
-	glTranslatex( pos.x, pos.y, pos.z );
+	glTranslatex( pos.x.x, pos.y.x, pos.z.x );
 	if ( rot != 0 ) {
-		glRotatex( rot, 0.f, 1.f, 0.f );
+		glRotatex( rot.x, 0.f, 1.f, 0.f );
 	}
 	#else
 	{
@@ -296,26 +355,24 @@ void Model::DrawLow( int i )
 	}
 	#endif
 
-	glBindBuffer( GL_ARRAY_BUFFER, resource->vertexID[i] );
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, resource->indexID[i] );
+	if ( textureOffsetX > 0 ) {
+		glMatrixMode(GL_TEXTURE);
+		glPushMatrix();
+		#if TARGET_OS_IPHONE
+		glTranslatex( textureOffsetX.x, 0, 0 );
+		#else
+		glTranslatef( (float) textureOffsetX, 0.0f, 0.0f );
+		#endif
+	}
+}
 
-	#if TARGET_OS_IPHONE		
-	glVertexPointer(   3, GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
-	glNormalPointer(      GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
-	glTexCoordPointer( 2, GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
-	#else
-	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
-	glNormalPointer(      GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
-	#endif
-	CHECK_GL_ERROR;
 
-	// mode, count, type, indices
-	glDrawElements( GL_TRIANGLES, 
-					resource->nIndex[i],
-					GL_UNSIGNED_SHORT, 
-					0 );
-	CHECK_GL_ERROR;
-
+void Model::PopMatrix() const
+{
+	if ( textureOffsetX > 0 ) {
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+	}
 	glPopMatrix();
 }
+

@@ -11,6 +11,19 @@ class Texture;
 class SpaceTree;
 class RenderQueue;
 
+struct ModelAtom 
+{
+	const Texture* texture;
+	U32 vertexID;
+	U32 indexID;
+	U32 nVertex;
+	U32 nIndex;
+
+	void Bind() const;
+	void Draw() const;
+};
+
+
 class ModelResource
 {
 public:
@@ -21,13 +34,7 @@ public:
 	SphereX boundSphere;	// computed
 	Rectangle3X hitBounds;	// for picking - a bounds approximation
 
-	const Texture* texture[EL_MAX_MODEL_GROUPS];
-
-	U32 vertexID[EL_MAX_MODEL_GROUPS];
-	U32 indexID[EL_MAX_MODEL_GROUPS];
-
-	U32 nIndex[EL_MAX_MODEL_GROUPS];
-	U32 nVertex[EL_MAX_MODEL_GROUPS];
+	ModelAtom atom[EL_MAX_MODEL_GROUPS];
 };
 
 class ModelLoader
@@ -59,10 +66,12 @@ public:
 	void Init( ModelResource* resource, SpaceTree* tree );
 	// Draws the model, and sets texture
 	void Draw( bool useTexture = true );
-	// Draws the model but texture already set
-	void DrawLow( int group );
 	// Queued rendering
 	void Queue( RenderQueue* queue, bool useTexture );
+
+	// Used by the queued rendering system:
+	void PushMatrix() const;
+	void PopMatrix() const;
 
 	bool IsDraggable()	{ return isDraggable; }
 	void SetDraggable( bool drag )	{ isDraggable = drag; }
@@ -78,6 +87,8 @@ public:
 	void SetYRotation( float rot )				{ this->rot = rot; }
 	const grinliz::Fixed GetYRotation()			{ return rot; }
 
+	void SetSkin( int armor, int skin, int hair );
+
 	void CalcBoundSphere( SphereX* spherex );
 	void CalcHitAABB( Rectangle3X* aabb );
 
@@ -91,6 +102,7 @@ private:
 	ModelResource* resource;
 	Vector3X pos;
 	grinliz::Fixed rot;
+	grinliz::Fixed textureOffsetX;
 
 	bool isDraggable;
 	bool hiddenFromTree;

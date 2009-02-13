@@ -7,8 +7,9 @@
 	<texture filename="grass2.png" />
 	<texture filename="dirtGrass.png" />
 	<texture filename="alienFloor.png" />
-	<texture filename="woodDark.tga" />
+	<texture filename="woodDark.png" />
 	<texture filename="woodDarkUFO.tga" />
+	<texture filename="marine.png" />
 
 	<!-- Models -->
 	<model filename="test1.ac" />
@@ -16,6 +17,8 @@
 	<model filename="teapot.off" />
 	<model filename="crate.ac" />
 	<model filename="farmland.ac" />
+	<model filename="maleMarine.ac" />
+	<model filename="femaleMarine.ac" />
 
 	<!--
 	<texture filename="Yohko.bmp" />

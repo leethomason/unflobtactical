@@ -5,6 +5,7 @@
 #include "../grinliz/gltypes.h"
 
 class Model;
+struct ModelAtom;
 
 /* 
 	The prevailing wisdom for GPU performance is to group the submission by 1)render state
@@ -30,41 +31,45 @@ public:
 	RenderQueue();
 	~RenderQueue();
 
-	void Add( U32 flags, U32 textureID, Model* model, int group );
+	void Add( U32 flags, U32 textureID, const Model* model, const ModelAtom* atom );
+
 	void Flush();
 	bool Empty() { return nState == 0 && nModel == 0; }
 
 private:
+	struct State {
+		U32 flags;
+		U32 textureID;
+		const ModelAtom* atom;
+	};
 	struct Item {
 		union {
-			struct {
-				U32 flags;
-				U32 textureID;
-			} state;
-			struct {
-				Model* model;
-				int group;
-			} model;
+			State state;
+			const Model* model;
 		};
-		Item* next;
+		Item* nextModel;
 	};
 
-	int Compare( U32 flags0, U32 id0, U32 flags1, U32 id1 ) 
+	int Compare( const State& s0, const State& s1 ) 
 	{
-		if ( flags0 < flags1 ) 
-			return -1;
-		else if ( flags0 > flags1 )
-			return 1;
-		else {
-			if ( id0 < id1 ) 
+		if ( s0.flags == s1.flags ) 
+			if ( s0.textureID == s1.textureID )
+				if ( s0.atom == s1.atom ) 
+					return 0;
+				else if ( s0.atom < s1.atom )
+					return -1;
+				else
+					return 1;
+			else if ( s0.textureID < s1.textureID )
 				return -1;
-			else if ( id0 > id1 )
+			else 
 				return 1;
-		}
-		return 0;
+		else if ( s0.flags < s1.flags )
+			return -1;
+		return 1;
 	}
 
-	Item* FindState( U32 flags, U32 textureID );
+	Item* FindState( const State& state );
 	
 
 	int nState;
