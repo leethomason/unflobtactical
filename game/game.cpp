@@ -4,7 +4,9 @@
 #include "../engine/text.h"
 #include "../engine/model.h"
 #include "../engine/uirendering.h"
+
 #include "../grinliz/glmatrix.h"
+#include "../grinliz/glutil.h"
 
 
 const char* const gModelNames[] = 
@@ -16,6 +18,11 @@ const char* const gModelNames[] =
 	"farmland",
 	"maleMarine",
 	"femaleMarine",
+	"alien0",
+	"alien1",
+	"alien2",
+	"alien3",
+	"selection",
 
 	0
 };
@@ -31,6 +38,7 @@ const char* const gTextureNames[] =
 	"woodDark",
 	"woodDarkUFO",
 	"marine",
+	"palette",
 
 	0
 };
@@ -68,6 +76,12 @@ Game::Game( int width, int height ) :
 	int n = 0;
 	ModelResource* resource = 0;
 
+#ifdef MAPMAKER
+	resource = GetResource( "selection" );
+	selection = engine.GetModel( resource );
+	selection->SetPos( 0.5f, 0.0f, 0.5f );
+#endif
+
 	// Load the map!
 	resource = GetResource( "farmland" );
 	mapModel = engine.GetModel( resource );
@@ -101,6 +115,28 @@ Game::Game( int width, int height ) :
 	testModel[n-3]->SetSkin( 2, 1, 1 );
 	testModel[n-2]->SetSkin( 1, 0, 0 );
 	testModel[n-1]->SetSkin( 1, 0, 2 );
+
+	resource = GetResource( "femaleMarine" );
+	testModel[n] = engine.GetModel( resource );
+	rotTestStart = n;
+	rotTestCount = 5;
+	testModel[n++]->SetPos( 9.5f, 0.0f, mz-9.5f );
+	
+	resource = GetResource( "alien0" );
+	testModel[n] = engine.GetModel( resource );
+	testModel[n++]->SetPos( 9.5f, 0.0f, mz-7.5f );
+
+	resource = GetResource( "alien1" );
+	testModel[n] = engine.GetModel( resource );
+	testModel[n++]->SetPos( 9.5f, 0.0f, mz-5.5f );
+
+	resource = GetResource( "alien2" );
+	testModel[n] = engine.GetModel( resource );
+	testModel[n++]->SetPos( 9.5f, 0.0f, mz-3.5f );
+
+	resource = GetResource( "alien3" );
+	testModel[n] = engine.GetModel( resource );
+	testModel[n++]->SetPos( 9.5f, 0.0f, mz-1.5f );
 }
 
 
@@ -112,6 +148,9 @@ Game::~Game()
 		}
 	}
 	engine.ReleaseModel( mapModel );
+#ifdef MAPMAKER
+	engine.ReleaseModel( selection );
+#endif
 
 	FreeModels();
 	FreeTextures();
@@ -235,10 +274,10 @@ void Game::DoTick( U32 currentTime )
 		}
 	}
 
-	testModel[0]->SetYRotation( testModel[0]->GetYRotation() + 0.5f );
-	//if ( testModel[3] ) {
-	//	testModel[3]->SetYRotation( testModel[3]->GetYRotation() + 0.1f );
-	//}
+	for( int i=0; i<rotTestCount; ++i ) {
+		Model* m = testModel[rotTestStart+i];
+		m->SetYRotation( m->GetYRotation() + 0.3f );
+	}
 
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_NORMAL_ARRAY );
@@ -336,3 +375,22 @@ void Game::Tap( int tap, int x, int y )
 		engine.MoveCameraXZ( p.x, p.z ); 
 	}
 }
+
+
+#ifdef MAPMAKER
+
+void Game::MouseMove( int x, int y )
+{
+	grinliz::Matrix4 mvpi;
+	grinliz::Ray ray;
+	grinliz::Vector3F p;
+
+	engine.CalcModelViewProjectionInverse( &mvpi );
+	engine.RayFromScreenToYPlane( x, y, mvpi, &ray, &p );
+
+	int newX = (int)( p.x );
+	int newZ = (int)( p.z );
+	selection->SetPos( (float)newX + 0.5f, 0.0f, (float)newZ + 0.5f );
+}
+
+#endif

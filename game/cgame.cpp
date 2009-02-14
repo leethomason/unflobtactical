@@ -48,36 +48,6 @@ void GameInputCancelled( void* handle )
 }
 
 
-/*
-void GameDragStart( void* handle, int x, int y )
-{
-	GLOUTPUT(( "DragStart %d,%d\n", x, y ));
-	Game* game = (Game*)handle;
-	game->engine.DragStart( x, y );
-	dragStartX = x;
-	dragStartY = y;
-}
-
-void GameDragMove( void* handle, int x, int y )
-{
-	Game* game = (Game*)handle;
-	game->engine.DragMove( x, y );
-
-}
-
-void GameDragEnd( void* handle, int x, int y )
-{
-	Game* game = (Game*)handle;
-	game->engine.DragEnd( x, y );
-}
-
-void GameDragCancelled( void* handle )
-{
-	Game* game = (Game*)handle;
-	game->engine.DragEnd( dragStartX, dragStartY );	
-}
-*/
-
 void GameDoTick( void* handle, unsigned int timeInMSec )
 {
 	Game* game = (Game*)handle;

@@ -1,7 +1,7 @@
 AC3Db
 MATERIAL "ac3dmat1" rgb 1 1 1  amb 0.2 0.2 0.2  emis 0 0 0  spec 0 0 0  shi 10  trans 0
 OBJECT world
-kids 212
+kids 214
 OBJECT poly
 name "mesh"
 loc -0.25 0 0
@@ -6553,12 +6553,12 @@ kids 0
 OBJECT poly
 name "rect"
 texture "grass2.png"
-texrep 24 19
+texrep 20 15
 crease 45.000000
 numvert 4
 0 0 20
-25 0 20
-25 0 40
+15 0 20
+15 0 40
 0 0 40
 numsurf 1
 SURF 0x30
@@ -9731,6 +9731,46 @@ numvert 4
 40 0 0
 40 0 24
 27 0 24
+numsurf 1
+SURF 0x30
+mat 0
+refs 4
+3 0 0
+2 1 0
+1 1 1
+0 0 1
+kids 0
+OBJECT poly
+name "rect"
+loc 20 0 23
+texture "woodDark.png"
+texrep 10 6
+crease 45.000000
+numvert 4
+-5 0 -3
+5 0 -3
+5 0 3
+-5 0 3
+numsurf 1
+SURF 0x30
+mat 0
+refs 4
+3 0 0
+2 1 0
+1 1 1
+0 0 1
+kids 0
+OBJECT poly
+name "rect"
+loc 20 0 33
+texture "grass2.png"
+texrep 10 14
+crease 45.000000
+numvert 4
+-5 0 -7
+5 0 -7
+5 0 7
+-5 0 7
 numsurf 1
 SURF 0x30
 mat 0
