@@ -7,14 +7,19 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ufobuilder", "ufobuilder.vc
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug Mapmaker|Win32 = Debug Mapmaker|Win32
 		Debug|Win32 = Debug|Win32
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{26527007-5B22-4080-8459-76330876BC26}.Debug Mapmaker|Win32.ActiveCfg = Debug Mapmaker|Win32
+		{26527007-5B22-4080-8459-76330876BC26}.Debug Mapmaker|Win32.Build.0 = Debug Mapmaker|Win32
 		{26527007-5B22-4080-8459-76330876BC26}.Debug|Win32.ActiveCfg = Debug|Win32
 		{26527007-5B22-4080-8459-76330876BC26}.Debug|Win32.Build.0 = Debug|Win32
 		{26527007-5B22-4080-8459-76330876BC26}.Release|Win32.ActiveCfg = Release|Win32
 		{26527007-5B22-4080-8459-76330876BC26}.Release|Win32.Build.0 = Release|Win32
+		{9DD68418-EE20-4197-AB3A-9F51B99B9834}.Debug Mapmaker|Win32.ActiveCfg = Debug|Win32
+		{9DD68418-EE20-4197-AB3A-9F51B99B9834}.Debug Mapmaker|Win32.Build.0 = Debug|Win32
 		{9DD68418-EE20-4197-AB3A-9F51B99B9834}.Debug|Win32.ActiveCfg = Debug|Win32
 		{9DD68418-EE20-4197-AB3A-9F51B99B9834}.Debug|Win32.Build.0 = Debug|Win32
 		{9DD68418-EE20-4197-AB3A-9F51B99B9834}.Release|Win32.ActiveCfg = Release|Win32

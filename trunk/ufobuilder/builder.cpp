@@ -27,6 +27,8 @@ PFN_IMG_LOAD libIMG_Load;
 
 string outputPath;
 string inputPath;
+int totalModelMem = 0;
+int totalTextureMem = 0;
 
 void LoadLibrary()
 {
@@ -99,7 +101,8 @@ void ProcessModel( TiXmlElement* model )
 		ImportOFF( fullIn, builder );
 	}
 	else {
-		printf( "**Unrecognized model file.\n" );
+		printf( "**Unrecognized model file. full='%s' base='%s' name='%s' extension='%s'\n",
+				 fullIn.c_str(), base.c_str(), name.c_str(), extension.c_str() );
 		exit( 1 );
 	}
 
@@ -187,6 +190,7 @@ void ProcessModel( TiXmlElement* model )
 		}
 	}
 	printf( "  total memory=%.1fk\n", (float)totalMemory / 1024.f );
+	totalModelMem += totalMemory;
 	
 	delete builder;
 	if ( fp ) {
@@ -253,6 +257,7 @@ void ProcessTexture( TiXmlElement* texture )
 	switch( surface->format->BitsPerPixel ) {
 		case 32:
 			printf( "  RGBA memory=%dk\n", (surface->w * surface->h * 2)/1024 );
+			totalTextureMem += (surface->w * surface->h * 2);
 			SDL_WriteBE32( fp, GL_RGBA );
 			SDL_WriteBE32( fp, GL_UNSIGNED_SHORT_4_4_4_4 );
 			SDL_WriteBE32( fp, surface->w );
@@ -277,6 +282,7 @@ void ProcessTexture( TiXmlElement* texture )
 
 		case 24:
 			printf( "  RGB memory=%dk\n", (surface->w * surface->h * 2)/1024 );
+			totalTextureMem += (surface->w * surface->h * 2);
 			SDL_WriteBE32( fp, GL_RGB );
 			SDL_WriteBE32( fp, GL_UNSIGNED_SHORT_5_6_5 );
 			SDL_WriteBE32( fp, surface->w );
@@ -300,6 +306,7 @@ void ProcessTexture( TiXmlElement* texture )
 
 		case 8:
 			printf( "  Alpha memory=%dk\n", (surface->w * surface->h * 1)/1024 );
+			totalTextureMem += (surface->w * surface->h * 1);
 			SDL_WriteBE32( fp, GL_ALPHA );
 			SDL_WriteBE32( fp, GL_UNSIGNED_BYTE );
 			SDL_WriteBE32( fp, surface->w );
@@ -374,6 +381,7 @@ int main( int argc, char* argv[] )
 		}
 	}
 
+	printf( "Total memory=%dk Texture=%dk Model=%dk\n", (totalTextureMem+totalModelMem)/1024, totalTextureMem/1024, totalModelMem/1024 );
 	printf( "All done.\n" );
 	SDL_Quit();
 

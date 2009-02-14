@@ -10,6 +10,10 @@
 #include "../game/cgame.h"
 #include "framebuffer.h"
 
+#ifdef MAPMAKER
+#include "../game/game.h"
+#endif
+
 #define IPOD_SCREEN_WIDTH	320
 #define IPOD_SCREEN_HEIGHT	480
 #define FRAMEBUFFER_ROTATE
@@ -295,6 +299,11 @@ int main( int argc, char **argv )
 						int dx = y;
 						GameZoom( game, GAME_ZOOM_MOVE, dx ); //(int) sqrtf( (float)(dx*dx) ) );
 					}
+#ifdef MAPMAKER
+					else {
+						((Game*)game)->MouseMove( x, y );
+					}
+#endif
 				}
 				break;
 

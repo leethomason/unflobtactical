@@ -37,6 +37,10 @@ public:
 	Engine engine;
 	Surface surface;
 
+#ifdef MAPMAKER
+	void MouseMove( int x, int y );
+#endif
+
 private:
 	void LoadTextures();
 	void FreeTextures();
@@ -60,9 +64,15 @@ private:
 
 	Texture* iconTexture;
 
-	enum { NUM_TEST_MODEL = 8 };
+	enum { NUM_TEST_MODEL = 256 };
 	Model* testModel[NUM_TEST_MODEL];
 	Model* mapModel;
+	int rotTestStart;
+	int rotTestCount;
+
+#ifdef MAPMAKER
+	Model* selection;
+#endif
 };
 
 #endif
