@@ -24,8 +24,8 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 		initZoomDistance( 0 ),
 		lastZoomDistance( 0 )
 {
-	map = new Map();
-	spaceTree = new SpaceTree( Fixed(-1), Fixed(4) );
+	spaceTree = new SpaceTree( Fixed(-0.1f), Fixed(3) );
+	map = new Map( spaceTree );
 	renderQueue = new RenderQueue();
 
 	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)Map::SIZE + 5.0f );
@@ -50,7 +50,7 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 	defaultZoom = zoom;
 
 	SetPerspective();
-	lightDirection.Set( 1.0f, 3.0f, 2.0f );
+	lightDirection.Set( 0.7f, 3.0f, 1.4f );
 	lightDirection.Normalize();
 }
 
@@ -216,6 +216,26 @@ void Engine::Draw()
 	renderQueue->Flush();
 	
 	EnableLights( false );
+
+/*
+#ifdef DEBUG
+	{
+		glEnable( GL_BLEND );
+		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+
+		glDisable( GL_TEXTURE_2D );
+		glDisableClientState( GL_NORMAL_ARRAY );
+		glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+
+		spaceTree->Draw();
+
+		glEnableClientState( GL_NORMAL_ARRAY );
+		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+		glEnable( GL_TEXTURE_2D );
+		glDisable( GL_BLEND );
+	}
+#endif
+*/
 }
 
 
@@ -362,14 +382,14 @@ void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray,
 	IntersectLinePlane( p0, p1, plane, out, &t );
 }
 
-
+/*
 void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
 {
 	Ray forward, up, right;
 	camera.CalcEyeRay( &forward, &up, &right );
 
-	Vector3F ntl = forward.origin + forward.direction*frustumNear + up.direction*frustumTop + right.direction*frustumLeft;
-	Vector3F ntr = forward.origin + forward.direction*frustumNear + up.direction*frustumTop + right.direction*frustumRight;
+	Vector3F ntl = forward.origin + forward.direction*frustumNear + up.direction*frustumTop    + right.direction*frustumLeft;
+	Vector3F ntr = forward.origin + forward.direction*frustumNear + up.direction*frustumTop    + right.direction*frustumRight;
 	Vector3F nbl = forward.origin + forward.direction*frustumNear + up.direction*frustumBottom + right.direction*frustumLeft;
 	Vector3F nbr = forward.origin + forward.direction*frustumNear + up.direction*frustumBottom + right.direction*frustumRight;
 
@@ -380,6 +400,71 @@ void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
 	Plane::CreatePlane( camera.PosWC(), ntr, nbr, &planes[RIGHT] );
 	Plane::CreatePlane( camera.PosWC(), ntl, ntr, &planes[TOP] );
 	Plane::CreatePlane( camera.PosWC(), nbr, nbl, &planes[BOTTOM] );
+}
+*/
+
+
+void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
+{
+	Matrix4 projection;
+	glGetFloatv( GL_PROJECTION_MATRIX, projection.x );
+	Matrix4 modelView;
+	glGetFloatv( GL_MODELVIEW_MATRIX, modelView.x );
+
+	// --------- Compute the view frustum ----------- //
+	// A strange and ill-documented algorithm from Real Time Rendering, 2nd ed, pg.613
+	Matrix4 m;
+	MultMatrix4( projection, modelView, &m );
+
+	// m is the matrix from multiplying projection and model. The
+	// subscript is the row.
+
+	// Left
+	// -(m3 + m0) * (x,y,z,0) = 0
+	planes[0].n.x = ( m.x[3+0]  + m.x[0+0] );
+	planes[0].n.y = ( m.x[3+4]  + m.x[0+4] );
+	planes[0].n.z = ( m.x[3+8]  + m.x[0+8] );
+	planes[0].d   = ( m.x[3+12] + m.x[0+12] );
+	planes[0].Normalize();
+
+	// right
+	planes[1].n.x = ( m.x[3+0]  - m.x[0+0] );
+	planes[1].n.y = ( m.x[3+4]  - m.x[0+4] );
+	planes[1].n.z = ( m.x[3+8]  - m.x[0+8] );
+	planes[1].d   = ( m.x[3+12] - m.x[0+12] );
+	planes[1].Normalize();
+
+	// bottom
+	planes[2].n.x = ( m.x[3+0]  + m.x[1+0] );
+	planes[2].n.y = ( m.x[3+4]  + m.x[1+4] );
+	planes[2].n.z = ( m.x[3+8]  + m.x[1+8] );
+	planes[2].d   = ( m.x[3+12] + m.x[1+12] );
+	planes[2].Normalize();
+
+	// top
+	planes[3].n.x = ( m.x[3+0]  - m.x[1+0] );
+	planes[3].n.y = ( m.x[3+4]  - m.x[1+4] );
+	planes[3].n.z = ( m.x[3+8]  - m.x[1+8] );
+	planes[3].d   = ( m.x[3+12] - m.x[1+12] );
+	planes[3].Normalize();
+
+	// near
+	planes[4].n.x = ( m.x[3+0]  + m.x[2+0] );
+	planes[4].n.y = ( m.x[3+4]  + m.x[2+4] );
+	planes[4].n.z = ( m.x[3+8]  + m.x[2+8] );
+	planes[4].d   = ( m.x[3+12] + m.x[2+12] );
+	planes[4].Normalize();
+
+	// far
+	planes[5].n.x = ( m.x[3+0]  - m.x[2+0] );
+	planes[5].n.y = ( m.x[3+4]  - m.x[2+4] );
+	planes[5].n.z = ( m.x[3+8]  - m.x[2+8] );
+	planes[5].d   = ( m.x[3+12] - m.x[2+12] );
+	planes[5].Normalize();
+
+	GLASSERT( DotProduct( planes[LEFT].n, planes[RIGHT].n ) < 0.0f );
+	GLASSERT( DotProduct( planes[TOP].n, planes[BOTTOM].n ) < 0.0f );
+	GLASSERT( DotProduct( planes[NEAR].n, planes[FAR].n ) < 0.0f );
 }
 
 

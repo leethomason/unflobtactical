@@ -73,6 +73,15 @@ int main( int argc, char **argv )
 	MemStartCheck();
 	{ char* test = new char[16]; delete [] test; }
 
+#ifdef MAPMAKER	
+	std::string filename = "./resin/";
+	if ( argc > 1 ) {
+		filename += argv[1];
+		filename += ".map";
+	}
+#endif
+
+
 	SDL_Surface *surface = 0;
 
 	// SDL initialization steps.
@@ -196,12 +205,44 @@ int main( int argc, char **argv )
 						//case SDLK_DOWN:			GameMoveCamera( game, 0.0f, -1.0f, 0.0f);	break;
 						//case SDLK_RIGHT:		GameAdjustPerspective( game, 2.0f );		break;
 						//case SDLK_LEFT:			GameAdjustPerspective( game, -2.0f );		break;
-						case SDLK_RIGHT:		GameRotate( game, --rotation );				break;
-						case SDLK_LEFT:			GameRotate( game, ++rotation );				break;
 						//case SDLK_RIGHT:		yRotation += 2.0f; GameYRotateCamera( game, yRotation );		break;
 						//case SDLK_LEFT:			yRotation -= 2.0f; GameYRotateCamera( game, yRotation );		break;
+						//case SDLK_s:			GameShadowMode( game );						break;
 
-						case SDLK_s:			GameShadowMode( game );						break;
+#ifdef MAPMAKER	
+						case SDLK_r:			((Game*)game)->RotateSelection();			break;
+						case SDLK_s:			
+							{
+								FILE* fp = fopen( filename.c_str(), "wb" );
+								((Game*)game)->SaveMap( fp );
+								fclose( fp );
+							}
+							break;
+						case SDLK_l:
+							{
+								FILE* fp = fopen( filename.c_str(), "rb" );
+								if ( fp ) {
+									((Game*)game)->LoadMap( fp );
+								}
+								fclose( fp );
+							}
+							break;
+						case SDLK_c:
+							{
+								((Game*)game)->ClearMap();
+							}
+							break;
+						case SDLK_DELETE:	((Game*)game)->DeleteAtSelection(); break;
+
+
+						case SDLK_UP:			((Game*)game)->DeltaCurrentMapItem(10);		break;
+						case SDLK_DOWN:			((Game*)game)->DeltaCurrentMapItem(-10);		break;
+						case SDLK_RIGHT:		((Game*)game)->DeltaCurrentMapItem(1); 	break;
+						case SDLK_LEFT:			((Game*)game)->DeltaCurrentMapItem(-1);	break;
+#else
+						case SDLK_RIGHT:		GameRotate( game, --rotation );				break;
+						case SDLK_LEFT:			GameRotate( game, ++rotation );				break;
+#endif
 
 						default:
 							break;

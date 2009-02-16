@@ -32,6 +32,7 @@ public:
 	Vector3X bounds[2];		// loaded
 
 	SphereX boundSphere;	// computed
+	grinliz::Fixed boundRadius2D;	// computed, bounding 2D radius centered at 0,0
 	Rectangle3X hitBounds;	// for picking - a bounds approximation
 
 	ModelAtom atom[EL_MAX_MODEL_GROUPS];
@@ -83,13 +84,18 @@ public:
 	void SetPos( float x, float y, float z )	{ Vector3X vec = { grinliz::Fixed(x), grinliz::Fixed(y), grinliz::Fixed(z) }; SetPos( vec ); }
 	void SetPos( grinliz::Fixed x, grinliz::Fixed y, grinliz::Fixed z )	{ Vector3X vec = { grinliz::Fixed(x), grinliz::Fixed(y), grinliz::Fixed(z) }; SetPos( vec ); }
 
-	void SetYRotation( grinliz::Fixed rot )		{ this->rot = rot; }
-	void SetYRotation( float rot )				{ this->rot = rot; }
+	void SetYRotation( grinliz::Fixed rot )		{
+		while( rot < 0 )		{ rot += 360; }
+		while( rot >= 360 )		{ rot -= 360; }
+		this->rot = rot;
+	}
+	void SetYRotation( float rot )				{ SetYRotation( grinliz::Fixed( rot ) ); }
 	const grinliz::Fixed GetYRotation()			{ return rot; }
 
 	void SetSkin( int armor, int skin, int hair );
 
 	void CalcBoundSphere( SphereX* spherex );
+	void CalcBoundCircle( CircleX* circlex );
 	void CalcHitAABB( Rectangle3X* aabb );
 
 	ModelResource* GetResource()				{ return resource; }

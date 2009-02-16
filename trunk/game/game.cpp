@@ -15,32 +15,69 @@ const char* const gModelNames[] =
 	"test2",
 	"teapot",
 	"crate",
+	
+	// Maps (need to move out?)
 	"farmland",
+
+	// Characters
 	"maleMarine",
 	"femaleMarine",
 	"alien0",
 	"alien1",
 	"alien2",
 	"alien3",
+	
+	// mapmaker
 	"selection",
+
+	// Farmland tiles
+	"wallWoodSh",
+	"doorWoodOpen",
+	"doorWoodCl",
+	
+	// UFO tiles
+	"wallUFO",
+	"diagUFO",
+	"doorUFOOp",
+	"doorUFOCl",
+	"wallUFOInner",
+
+	// decor
+	"bed",
+	"table",
+	"tree",
+	"wheat",
 
 	0
 };
 
-const char* const gTextureNames[] = 
+struct TextureDef
 {
-	"icons",
+	const char* name;
+	U32 flags;
+};
 
-	"stdfont2",
-	"grass2",
-	"dirtGrass",
-	"alienFloor",
-	"woodDark",
-	"woodDarkUFO",
-	"marine",
-	"palette",
+enum {
+	ALPHA_TEST = 0x01,
+};
 
-	0
+const TextureDef gTextureDef[] = 
+{
+	{	"icons",		0	},
+	{	"stdfont2",		0	},
+	{	"grass2",		0	},
+	{	"dirtGrass",	0	},
+	{	"alienFloor",	0	},
+	{	"woodDark",		0	},
+	{	"woodDarkUFO",	0	},
+	{	"woodPlank",	0	},
+	{	"marine",		0	},
+	{	"palette",		0	},
+	{	"ufoOuter",		0	},
+	{	"ufoInner",		0	},
+	{	"tree",			ALPHA_TEST	},
+	{	"wheat",		ALPHA_TEST	},
+	{  0, 0 }
 };
 
 enum {
@@ -56,7 +93,8 @@ Game::Game( int width, int height ) :
 	nModelResource( 0 ),
 	markFrameTime( 0 ),
 	frameCountsSinceMark( 0 ),
-	framesPerSecond( 0 )
+	framesPerSecond( 0 ),
+	currentMapItem( 1 )
 {
 	iconInfo[0].Set( ICON_CAMERA_HOME, 0, 270, 50, 50, 0.0f, 0.0f, 0.25f, 0.25f );
 	iconInfo[1].Set( 0, 0, 0, 0, 0, 0.f, 0.f, 0.f, 0.f );
@@ -65,6 +103,7 @@ Game::Game( int width, int height ) :
 
 	LoadTextures();
 	LoadModels();
+	LoadMapResources();
 
 	iconTexture = GetTexture( "icons" );
 	Texture* textTexture = GetTexture( "stdfont2" );
@@ -80,15 +119,20 @@ Game::Game( int width, int height ) :
 	resource = GetResource( "selection" );
 	selection = engine.GetModel( resource );
 	selection->SetPos( 0.5f, 0.0f, 0.5f );
+#else
+	// If we aren't the map maker, then we need to load a map.
+	LoadMap( "farmland" );
 #endif
 
-	// Load the map!
+	// Load the map base.
 	resource = GetResource( "farmland" );
 	mapModel = engine.GetModel( resource );
 	mapModel->HideFromTree( true );				// don't want to double render
 	engine.GetMap()->SetModel( mapModel );
 	//float mx = (float)engine.GetMap()->Width();
 	float mz = (float)engine.GetMap()->Height();
+
+	//engine.camera.SetPosWC( -19.4f, 62.0f, 57.2f );
 	engine.camera.SetPosWC( -5.0f, engineData.cameraHeight, mz + 5.0f );
 
 
@@ -109,6 +153,7 @@ Game::Game( int width, int height ) :
 	for( int i=0; i<4; ++i ) {
 		testModel[n] = engine.GetModel( resource );
 		testModel[n]->SetPos( (float)(i*2)+1.5f, 0.0f, mz-7.5f );
+		testModel[n]->SetDraggable( true );
 		++n;
 	}
 	testModel[n-4]->SetSkin( 1, 1, 1 );
@@ -119,23 +164,28 @@ Game::Game( int width, int height ) :
 	resource = GetResource( "femaleMarine" );
 	testModel[n] = engine.GetModel( resource );
 	rotTestStart = n;
-	rotTestCount = 5;
+	rotTestCount = 0;
+	testModel[n]->SetDraggable( true );
 	testModel[n++]->SetPos( 9.5f, 0.0f, mz-9.5f );
 	
 	resource = GetResource( "alien0" );
 	testModel[n] = engine.GetModel( resource );
+	testModel[n]->SetDraggable( true );
 	testModel[n++]->SetPos( 9.5f, 0.0f, mz-7.5f );
 
 	resource = GetResource( "alien1" );
 	testModel[n] = engine.GetModel( resource );
+	testModel[n]->SetDraggable( true );
 	testModel[n++]->SetPos( 9.5f, 0.0f, mz-5.5f );
 
 	resource = GetResource( "alien2" );
 	testModel[n] = engine.GetModel( resource );
+	testModel[n]->SetDraggable( true );
 	testModel[n++]->SetPos( 9.5f, 0.0f, mz-3.5f );
 
 	resource = GetResource( "alien3" );
 	testModel[n] = engine.GetModel( resource );
+	testModel[n]->SetDraggable( true );
 	testModel[n++]->SetPos( 9.5f, 0.0f, mz-1.5f );
 }
 
@@ -157,6 +207,23 @@ Game::~Game()
 }
 
 
+void Game::LoadMapResources()
+{
+	Map* map = engine.GetMap();
+	map->SetItemDef( 1, GetResource( "wallWoodSh" ) );
+	map->SetItemDef( 2, GetResource( "doorWoodCl" ) );
+	map->SetItemDef( 3, GetResource( "table" ) );
+	map->SetItemDef( 4, GetResource( "bed" ) );
+	map->SetItemDef( 5, GetResource( "diagUFO" ) );
+	map->SetItemDef( 6, GetResource( "wallUFO" ) );
+	map->SetItemDef( 7, GetResource( "doorUFOOp" ) );
+	map->SetItemDef( 8, GetResource( "doorUFOCl" ) );
+	map->SetItemDef( 9, GetResource( "wallUFOInner" ) );
+	map->SetItemDef( 10, GetResource( "tree" ) );
+	map->SetItemDef( 11, GetResource( "wheat" ) );
+}
+
+
 void Game::LoadTextures()
 {
 	memset( texture, 0, sizeof(Texture)*MAX_TEXTURES );
@@ -172,12 +239,13 @@ void Game::LoadTextures()
 	texture[ nTexture++ ].Set( "white", textureID );
 
 	// Load the textures from the array:
-	for( int i=0; gTextureNames[i]; ++i ) {
-		PlatformPathToResource( gTextureNames[i], "tex", buffer, 512 );
+	for( int i=0; gTextureDef[i].name; ++i ) {
+		PlatformPathToResource( gTextureDef[i].name, "tex", buffer, 512 );
 		fp = fopen( buffer, "rb" );
 		GLASSERT( fp );
 		textureID = surface.LoadTexture( fp );
-		texture[ nTexture++ ].Set( gTextureNames[i], textureID );
+		bool alphaTest = (gTextureDef[i].flags & ALPHA_TEST ) ? true : false;
+		texture[ nTexture++ ].Set( gTextureDef[i].name, textureID, alphaTest );
 		fclose( fp );
 	}
 	GLASSERT( nTexture <= MAX_TEXTURES );
@@ -214,6 +282,19 @@ Texture* Game::GetTexture( const char* name )
 	}
 	GLASSERT( 0 );
 	return 0;
+}
+
+
+void Game::LoadMap( const char* name )
+{
+	char buffer[512];
+
+	PlatformPathToResource( name, "map", buffer, 512 );
+	FILE* fp = fopen( buffer, "rb" );
+	GLASSERT( fp );
+
+	LoadMap( fp );
+	fclose( fp );
 }
 
 
@@ -279,6 +360,7 @@ void Game::DoTick( U32 currentTime )
 		m->SetYRotation( m->GetYRotation() + 0.3f );
 	}
 
+	// FIXME: check that all client state is always submitted
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_NORMAL_ARRAY );
 	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
@@ -299,8 +381,9 @@ void Game::DoTick( U32 currentTime )
 	if ( rotation&1 ) grinliz::Swap( &w, &h );
 
 	UFODrawText( 0,  0, "UFO Attack! %.1ffps rot=%d shadow=%d", framesPerSecond, rotation, engine.ShadowMode() );
-	//UFODrawText( 0, 20, "isDragging=%d zoom init=%d last=%d", engine.IsDragging(), engine.InitZoomDistance(), engine.LastZoomDistance() );
-
+#ifdef MAPMAKER
+	UFODrawText( 0,  16, "%3d:'%s'", currentMapItem, engine.GetMap()->GetItemDefName( currentMapItem ) );
+#endif
 	glBindTexture( GL_TEXTURE_2D, iconTexture->glID );
 	UFODrawIcons( iconInfo, w, h, rotation );
 
@@ -349,6 +432,7 @@ void Game::Tap( int tap, int x, int y )
 		TransformScreen( x, y, &x0, &y0 );
 		//GLOUTPUT(( "Screen: %d,%d\n", x0, y0 ));
 
+		bool iconFound = false;
 		for( const IconInfo* icon = iconInfo; icon->iconID > 0; ++icon ) {
 			if (    grinliz::InRange( x0, icon->pos.x, icon->pos.x+icon->size.x )
 				 && grinliz::InRange( y0, icon->pos.y, icon->pos.y+icon->size.y ) ) 
@@ -356,6 +440,7 @@ void Game::Tap( int tap, int x, int y )
 				switch( icon->iconID ) {
 					case ICON_CAMERA_HOME:
 						engine.MoveCameraHome();
+						iconFound = true;
 						break;
 
 					default:
@@ -364,6 +449,15 @@ void Game::Tap( int tap, int x, int y )
 				}
 			}
 		}
+
+#ifdef MAPMAKER
+		if ( !iconFound ) {
+			const Vector3X& pos = selection->Pos();
+			int rotation = (int) (selection->GetYRotation() / grinliz::Fixed(90) );
+			engine.GetMap()->AddToTile( (int)pos.x, (int)pos.z, currentMapItem, rotation );
+		}
+#endif	
+
 	}
 	else if ( tap == 2 ) {
 		grinliz::Matrix4 mvpi;
@@ -392,5 +486,27 @@ void Game::MouseMove( int x, int y )
 	int newZ = (int)( p.z );
 	selection->SetPos( (float)newX + 0.5f, 0.0f, (float)newZ + 0.5f );
 }
+
+void Game::RotateSelection()
+{
+	grinliz::Fixed rot = selection->GetYRotation() + grinliz::Fixed(90);
+	selection->SetYRotation( rot );
+}
+
+void Game::DeleteAtSelection()
+{
+	Vector3X pos = selection->Pos();
+	engine.GetMap()->DeleteAt( (int)pos.x, (int)pos.z );
+}
+
+
+void Game::DeltaCurrentMapItem( int d )
+{
+	currentMapItem += d;
+	while ( currentMapItem < 0 ) { currentMapItem += Map::MAX_ITEM_DEF; }
+	while ( currentMapItem >= Map::MAX_ITEM_DEF ) { currentMapItem -= Map::MAX_ITEM_DEF; }
+	if ( currentMapItem == 0 ) currentMapItem = 1;
+}
+
 
 #endif

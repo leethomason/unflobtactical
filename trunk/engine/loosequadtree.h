@@ -2,10 +2,10 @@
 #define LOOSEQUADTREE_INCLUDED
 
 #include "model.h"
+#include "fixedgeom.h"
 
 class SpaceTree
 {
-	friend class TreeLock;
 
 public:
 	SpaceTree( grinliz::Fixed yMin, grinliz::Fixed yMax );
@@ -18,6 +18,10 @@ public:
 
 	Model* Query( const PlaneX* planes, int nPlanes );
 	Model* Query( const Vector3X& origin, const Vector3X& direction );
+
+#ifdef DEBUG
+	void Draw();
+#endif
 
 private:
 	struct Item {
@@ -46,13 +50,19 @@ private:
 
 	struct Node
 	{
-		int x, y;
+		int x, z;
 		int size;
-		int looseX, looseY;
+		int looseX, looseZ;
 		int looseSize;
 		int depth;
 		Item sentinel;
 		Node* child[4];
+
+#ifdef DEBUG
+		mutable int hit;
+#endif
+
+		void CalcAABB( Rectangle3X* aabb, const grinliz::Fixed yMin, const grinliz::Fixed yMax ) const;
 	};
 
 	void InitNode();
@@ -65,6 +75,7 @@ private:
 	grinliz::Fixed yMin, yMax;
 
 	int nodesChecked;
+	int nodesComputed;
 	int modelsFound;
 
 	Item modelPool[EL_MAX_MODELS];
@@ -72,37 +83,11 @@ private:
 		DEPTH = 5,
 		NUM_NODES = 1+4+16+64+256
 	};
-	Node* GetNode( int depth, int nx, int ny ) 
-	{
-		GLASSERT( depth >=0 && depth < DEPTH );
 
-		const int base[] = { 0, 1, 5, 21, 85 };
-		int dx = (1<<depth);
-		GLASSERT( nx < dx );
-		GLASSERT( ny < dx );
+	Node* GetNode( int depth, int x, int z ); 
 
-		Node* result = &nodeArr[ base[depth] + ny*dx+nx ];
-		GLASSERT( result >= nodeArr && result < &nodeArr[NUM_NODES] );
-		return result;
-	}
+	int nodeAddedAtDepth[DEPTH];
 	Node nodeArr[NUM_NODES];
 };
 
-/*
-class TreeLock
-{
-public:
-	TreeLock( SpaceTree* tree ) 	{ 
-		this->tree = tree;
-		GLASSERT( !tree->locked );
-		tree->locked = true;
-	}
-	~TreeLock() {
-		tree->locked = false;
-	}
-
-private:
-	SpaceTree* tree;
-};
-*/
 #endif // LOOSEQUADTREE_INCLUDED

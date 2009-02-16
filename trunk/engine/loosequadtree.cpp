@@ -1,6 +1,17 @@
 #include "loosequadtree.h"
 #include "map.h"
+
+#ifdef DEBUG
+#include "platformgl.h"
+#endif
 using namespace grinliz;
+
+/*
+	Tuning:
+	Unit tree:  Query checked=153, computed=145 of 341 nodes, models=347 [35,44,40,26,606]
+	Classic:	Query checked=209, computed=209 of 341 nodes, models=361 [1,36,36,51,627]
+	Unit tree has less compution and fewer models, slightly less balanced. 
+*/
 
 SpaceTree::SpaceTree( Fixed yMin, Fixed yMax )
 {
@@ -15,6 +26,8 @@ SpaceTree::SpaceTree( Fixed yMin, Fixed yMax )
 		modelPool[i].Link( &freeMemSentinel );
 	}
 	InitNode();
+	for( int i=0; i<DEPTH; ++i )
+		nodeAddedAtDepth[i] = 0;
 }
 
 
@@ -35,23 +48,30 @@ SpaceTree::~SpaceTree()
 void SpaceTree::InitNode()
 {
 	int depth = 0;
+	int nodeSize = Map::SIZE;
 
 	while ( depth < DEPTH ) 
 	{
-		int dx = 1<<depth;
-		for( int j=0; j<dx; ++j ) 
+		for( int j=0; j<Map::SIZE; j+=nodeSize ) 
 		{
-			for( int i=0; i<dx; ++i ) 
+			for( int i=0; i<Map::SIZE; i+=nodeSize ) 
 			{
-				int nodeSize = Map::SIZE / dx;
 				Node* node = GetNode( depth, i, j );
-				node->x = i*nodeSize;
-				node->y = j*nodeSize;
+				node->x = i;
+				node->z = j;
 				node->size = nodeSize;
 
+				/*
+				// looseSize = size*2, "classic" tree.
 				node->looseX = node->x - nodeSize/2;
-				node->looseY = node->y - nodeSize/2;
+				node->looseZ = node->z - nodeSize/2;
 				node->looseSize = nodeSize*2;
+				*/
+
+				// Most objects are 1x1. Take advantage of that:
+				node->looseX = node->x - 1;
+				node->looseZ = node->z - 1;
+				node->looseSize = nodeSize+2;
 
 				node->depth = depth;
 				GLASSERT( node->sentinel.model.Sentinel() );
@@ -59,10 +79,10 @@ void SpaceTree::InitNode()
 				node->sentinel.prev = &node->sentinel;
 
 				if ( depth+1 < DEPTH ) {
-					node->child[0] = GetNode( depth+1, i*2, j*2 );
-					node->child[1] = GetNode( depth+1, i*2+1, j*2 );
-					node->child[2] = GetNode( depth+1, i*2, j*2+1 );
-					node->child[3] = GetNode( depth+1, i*2+1, j*2+1 );
+					node->child[0] = GetNode( depth+1, i,				j );
+					node->child[1] = GetNode( depth+1, i+nodeSize/2,	j );
+					node->child[2] = GetNode( depth+1, i,				j+nodeSize/2 );
+					node->child[3] = GetNode( depth+1, i+nodeSize/2,	j+nodeSize/2 );
 				}
 				else { 
 					node->child[0] = 0;
@@ -73,6 +93,7 @@ void SpaceTree::InitNode()
 			}
 		}
 		++depth;
+		nodeSize >>= 1;
 	}
 }
 
@@ -94,6 +115,9 @@ Model* SpaceTree::AllocModel( ModelResource* resource )
 	item->next = 0;	// very important to clear pointers before Init() - which will cause Link to occur.
 	item->prev = 0;
 	item->model.Init( resource, this );
+
+	allocated++;
+	GLOUTPUT(( "Alloc model: %d/%d\n", allocated, EL_MAX_MODELS ));
 	return &item->model;
 }
 
@@ -106,6 +130,9 @@ void SpaceTree::FreeModel( Model* model )
 
 	item->Unlink();
 	item->Link( &freeMemSentinel );
+
+	allocated--;
+	GLOUTPUT(( "Free model: %d/%d\n", allocated, EL_MAX_MODELS ));
 }
 
 
@@ -121,12 +148,12 @@ void SpaceTree::Update( Model* model )
 	item->Unlink();
 
 	// Get basics.
-	SphereX bSphereX;
-	model->CalcBoundSphere( &bSphereX );
-	int modelSize = bSphereX.radius.Ceil();
+	CircleX circlex;
+	model->CalcBoundCircle( &circlex );
+	int modelSize = circlex.radius.Ceil();
 
-	int x = bSphereX.origin.x;
-	int z = bSphereX.origin.z;
+	int x = circlex.origin.x;
+	int z = circlex.origin.y;
 
 	/* 
 	I've used a scheme which is like an octree, but tweaked to make it
@@ -157,41 +184,87 @@ void SpaceTree::Update( Model* model )
 	http://world.std.com/~ulrich
 	*/
 
-	// compute the depth
-	int size = Map::SIZE;
-	int depth = 0;
+	// Since the tree is somewhat modified from the ideal, start with the 
+	// most idea node and work up. Note that everything fits at the top node.
+	int depth = DEPTH-1;
 
-	// Handle big or out of range:
-	if ( x < 0 || x >= Map::SIZE || z < 0 || z >= Map::SIZE || modelSize >= Map::SIZE ) {
-		// stay on top
-		x = z = 0;
-	}
-	else {
-		while ( modelSize <= ( size >> 1 ) ) { 
-			++depth;
-			size /= 2;
-			if ( depth == DEPTH-1 ) {
-				break;
-			}
+	Node* node = 0;
+	while( depth > 0 ) {
+		node = GetNode( depth, x, z );
+		if (    circlex.origin.x - circlex.radius >= Fixed( node->looseX )
+			 && circlex.origin.y - circlex.radius >= Fixed( node->looseZ )
+			 && circlex.origin.x + circlex.radius <= Fixed( node->looseX + node->looseSize )
+			 && circlex.origin.y + circlex.radius <= Fixed( node->looseX + node->looseSize ) )
+		{
+			// fits.
+			break;
 		}
+		--depth;
 	}
-	int nx = x / size;
-	int nz = z / size;
-	Node* node = GetNode( depth, nx, nz );
+	++nodeAddedAtDepth[depth];
+
+#ifdef DEBUG
+	if ( depth > 0 ) {
+		CircleX c;
+		Rectangle3X aabb;
+		node->CalcAABB( &aabb, yMin, yMax );
+
+		model->CalcBoundCircle( &c );
+
+		GLASSERT( c.origin.x - c.radius >= aabb.min.x );
+		GLASSERT( c.origin.y - c.radius >= aabb.min.z );
+		GLASSERT( c.origin.x + c.radius <= aabb.max.x );
+		GLASSERT( c.origin.y + c.radius <= aabb.max.z );
+	}
+#endif
 
 	// Link it in.
 	item->Link( &node->sentinel );
 }
 
 
+
+SpaceTree::Node* SpaceTree::GetNode( int depth, int x, int z )
+{
+	GLASSERT( depth >=0 && depth < DEPTH );
+	int size = Map::SIZE >> depth;
+	int nx = x / size;	// FIXME: do it all with shifts
+	int nz = z / size;
+
+	const int base[] = { 0, 1, 5, 21, 85 };
+	int dx = (1<<depth);
+	GLASSERT( nx < dx );
+	GLASSERT( nz < dx );
+
+	Node* result = &nodeArr[ base[depth] + nz*dx+nx ];
+	GLASSERT( result >= nodeArr && result < &nodeArr[NUM_NODES] );
+	return result;
+}
+
+
+
 Model* SpaceTree::Query( const PlaneX* planes, int nPlanes )
 {
 	modelRoot = 0;
 	nodesChecked = 0;
+	nodesComputed = 0;
 	modelsFound = 0;
 
+#ifdef DEBUG
+	for( int i=0; i<NUM_NODES; ++i ) {
+		nodeArr[i].hit = 0;
+	}
+#endif
+
 	QueryPlanesRec( planes, nPlanes, grinliz::INTERSECT, &nodeArr[0] );
-	//GLOUTPUT(( "Query %d/%d nodes, models=%d\n", nodesChecked, NUM_NODES, modelsFound ));
+	/*
+	GLOUTPUT(( "Query checked=%d, computed=%d of %d nodes, models=%d [%d,%d,%d,%d,%d]\n", nodesChecked, nodesComputed, NUM_NODES, modelsFound,
+				nodeAddedAtDepth[0],
+				nodeAddedAtDepth[1],
+				nodeAddedAtDepth[2],
+				nodeAddedAtDepth[3],
+				nodeAddedAtDepth[4] ));
+	*/
 	return modelRoot;
 }
 
@@ -209,40 +282,76 @@ Model* SpaceTree::Query( const Vector3X& origin, const Vector3X& direction )
 }
 
 
+void SpaceTree::Node::CalcAABB( Rectangle3X* aabb, const Fixed yMin, const Fixed yMax ) const
+{
+	GLASSERT( yMin < yMax );
+	GLASSERT( looseSize > 0 );
+
+	aabb->Set(	Fixed( looseX ), 
+				yMin, 
+				Fixed( looseZ ),
+				
+				Fixed( looseX + looseSize ), 
+				yMax, 
+				Fixed( looseZ + looseSize ) );
+/*
+	aabb->Set(	Fixed( x ), 
+				yMin, 
+				Fixed( z ),
+				
+				Fixed( x + size ), 
+				yMax, 
+				Fixed( z + size ) );
+*/
+}
+
 void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersection, const Node* node )
 {
-	bool callChildrenAndAddModels = false;
-
 	if ( intersection == grinliz::POSITIVE ) 
 	{
 		// we are fully inside, and don't need to check.
-		callChildrenAndAddModels = true;
 		++nodesChecked;
 	}
 	else if ( intersection == grinliz::INTERSECT ) 
 	{
 		Rectangle3X aabb;
-		aabb.Set( Fixed( node->looseX ), yMin, Fixed( node->looseY ),
-				  Fixed( node->looseX + node->looseSize ), yMax, Fixed( node->looseY + node->looseSize ) );
+		node->CalcAABB( &aabb, yMin, yMax );
 		
-		int intersection = grinliz::POSITIVE;
+		int nPositive = 0;
+
 		for( int i=0; i<nPlanes; ++i ) {
 			int comp = ComparePlaneAABBX( planes[i], aabb );
+
+			// If the aabb is negative of any plane, it is culled.
 			if ( comp == grinliz::NEGATIVE ) {
 				intersection = grinliz::NEGATIVE;
 				break;
 			}
-			else if ( comp == grinliz::INTERSECT ) {
-				intersection = grinliz::INTERSECT;
+			// If the aabb intersects the plane, the result is subtle:
+			// intersecting a plane doesn't meen it is in the frustrum. 
+			// The intersection of the aabb and the plane is often 
+			// completely outside the frustum.
+
+			// If the aabb is positive of ALL the planes then we are in good shape.
+			else if ( comp == grinliz::POSITIVE ) {
+				++nPositive;
 			}
 		}
-		if ( intersection != grinliz::NEGATIVE ) {
-			callChildrenAndAddModels = true;
+		if ( nPositive == nPlanes ) {
+			// All positive is quick:
+			intersection = grinliz::POSITIVE;
 		}
 		++nodesChecked;
+		++nodesComputed;
 	}
-	if ( callChildrenAndAddModels ) 
+	if ( intersection != grinliz::NEGATIVE ) 
 	{
+#ifdef DEBUG
+		if ( intersection == grinliz::INTERSECT )
+			node->hit = 1;
+		else if ( intersection == grinliz::POSITIVE )
+			node->hit = 2;
+#endif
 		for( Item* item=node->sentinel.next; item != &node->sentinel; item=item->next ) 
 		{
 			Model* m = &item->model;
@@ -253,7 +362,7 @@ void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersect
 			}
 		}
 		
-		if ( node->depth+1<DEPTH)  {
+		if ( node->child[0] )  {
 			QueryPlanesRec( planes, nPlanes, intersection, node->child[0] );
 			QueryPlanesRec( planes, nPlanes, intersection, node->child[1] );
 			QueryPlanesRec( planes, nPlanes, intersection, node->child[2] );
@@ -279,8 +388,8 @@ void SpaceTree::QueryPlanesRec(	const Vector3X& origin, const Vector3X& directio
 	else if ( intersection == grinliz::INTERSECT ) 
 	{
 		Rectangle3X aabb;
-		aabb.Set( Fixed( node->looseX ), yMin, Fixed( node->looseY ),
-				  Fixed( node->looseX + node->looseSize ), yMax, Fixed( node->looseY + node->looseSize ) );
+		aabb.Set( Fixed( node->looseX ), yMin, Fixed( node->looseZ ),
+				  Fixed( node->looseX + node->looseSize ), yMax, Fixed( node->looseZ + node->looseSize ) );
 		//GLOUTPUT(( "  l=%d rect: ", node->depth )); DumpRectangle( aabb ); GLOUTPUT(( "\n" ));
 		
 		Vector3X intersect;
@@ -313,3 +422,37 @@ void SpaceTree::QueryPlanesRec(	const Vector3X& origin, const Vector3X& directio
 		}
 	}
 }
+
+
+#ifdef DEBUG
+void SpaceTree::Draw()
+{
+	for( int i=0; i<NUM_NODES; ++i ) {
+		if ( nodeArr[i].hit )
+		{
+			const Node& node = nodeArr[i];
+			if ( node.depth < 4 )
+				continue;
+
+			const float y = 0.2f;
+			const float offset = 0.05f;
+			float v[12] = {	
+							(float)node.x+offset, y, (float)node.z+offset,
+							(float)node.x+offset, y, (float)(node.z+node.size)-offset,
+							(float)(node.x+node.size)-offset, y, (float)(node.z+node.size)-offset,
+							(float)(node.x+node.size)-offset, y, (float)node.z+offset
+						  };
+
+			if ( node.hit == 1 )
+				glColor4f( 1.f, 0.f, 0.f, 0.5f );
+			else
+				glColor4f( 0.f, 1.f, 0.f, 0.5f );
+
+			glVertexPointer( 3, GL_FLOAT, 0, v );
+
+ 			glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );	
+			CHECK_GL_ERROR;
+		}
+	}
+}
+#endif
