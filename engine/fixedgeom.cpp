@@ -94,7 +94,7 @@ int ComparePlaneAABBX( const PlaneX& plane, const Rectangle3X& aabb )
 
 	Vector3X posPoint, negPoint;
 
-	if ( plane.n.x > 0.0f )	{
+	if ( plane.n.x > 0 )	{
 		posPoint.x = aabb.max.x;
 		negPoint.x = aabb.min.x;
 	} else {
@@ -102,7 +102,7 @@ int ComparePlaneAABBX( const PlaneX& plane, const Rectangle3X& aabb )
 		negPoint.x = aabb.max.x;
 	}
 
-	if ( plane.n.y > 0.0f )	{
+	if ( plane.n.y > 0 )	{
 		posPoint.y = aabb.max.y;
 		negPoint.y = aabb.min.y;
 	} else {
@@ -110,7 +110,7 @@ int ComparePlaneAABBX( const PlaneX& plane, const Rectangle3X& aabb )
 		negPoint.y = aabb.max.y;
 	}
 
-	if ( plane.n.z > 0.0f ) {
+	if ( plane.n.z > 0 ) {
 		posPoint.z = aabb.max.z;
 		negPoint.z = aabb.min.z;
 	} else {

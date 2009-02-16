@@ -41,9 +41,10 @@ class Texture
 {
 public:
 	char name[16];
+	bool alphaTest;
 	U32	 glID;
 
-	void Set( const char* name, U32 glID );
+	void Set( const char* name, U32 glID, bool alphaTest=false );
 };
 
 

@@ -116,16 +116,16 @@ void RenderQueue::Flush()
 	for( int i=0; i<nState; ++i ) {
 		// Handle state change.
 		if ( flags != statePool[i].state.flags ) {
+			
 			flags = statePool[i].state.flags;
 			++states;
 
-			switch ( flags ) {
-				case 0:
-					// do nothing.
-					break;
-				default:
-					GLASSERT( 0 );
-					break;
+			if ( flags & ALPHA_TEST ) {
+				glEnable( GL_ALPHA_TEST );
+				glAlphaFunc( GL_GEQUAL, 0.5f );
+			}
+			else {
+				glDisable( GL_ALPHA_TEST );
 			}
 		}
 
@@ -166,12 +166,14 @@ void RenderQueue::Flush()
 			item = item->nextModel;
 		}
 	}
+	glDisable( GL_ALPHA_TEST );
+
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 	nState = 0;
 	nModel = 0;
 
-	GLOUTPUT(( "states=%d textures=%d atoms=%d models=%d\n", states, textures, atoms, models ));
+//	GLOUTPUT(( "states=%d textures=%d atoms=%d models=%d\n", states, textures, atoms, models ));
 }
 
 

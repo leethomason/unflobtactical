@@ -19,6 +19,12 @@ struct SphereX
 	grinliz::Fixed radius;
 };
 
+struct CircleX
+{
+	Vector2X origin;
+	grinliz::Fixed radius;
+};
+
 struct PlaneX
 {
 	void Convert( const grinliz::Plane& plane );

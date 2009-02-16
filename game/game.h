@@ -39,13 +39,21 @@ public:
 
 #ifdef MAPMAKER
 	void MouseMove( int x, int y );
+	void RotateSelection();
+	void DeleteAtSelection();
+	void DeltaCurrentMapItem( int d );
 #endif
 
+	void SaveMap( FILE* fp )	{ engine.GetMap()->Save( fp ); }
+	void LoadMap( FILE* fp )	{ engine.GetMap()->Load( fp ); }
+	void ClearMap()				{ engine.GetMap()->Clear(); }
 private:
 	void LoadTextures();
 	void FreeTextures();
 	void LoadModels();
 	void FreeModels();
+	void LoadMapResources();
+	void LoadMap( const char* name );
 
 	Texture texture[MAX_TEXTURES];
 	ModelResource modelResource[MAX_MODELS];
@@ -70,9 +78,9 @@ private:
 	int rotTestStart;
 	int rotTestCount;
 
-#ifdef MAPMAKER
+	// Mapmaker:
 	Model* selection;
-#endif
+	int currentMapItem;
 };
 
 #endif

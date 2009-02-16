@@ -140,9 +140,10 @@ void DrawQuad( float x0, float y0, float x1, float y1, U32 textureID )
 
 
 
-void Texture::Set( const char* name, U32 glID )
+void Texture::Set( const char* name, U32 glID, bool alphaTest )
 {
 	GLASSERT( strlen( name ) < 16 );
 	strcpy( this->name, name );
 	this->glID = glID;
+	this->alphaTest = alphaTest;
 }

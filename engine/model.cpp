@@ -33,17 +33,46 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 		res->bounds[i].z.x = grinliz::SwapBE32( res->bounds[i].z.x );
 	}
 
-	// Compute the bounding sphere
-	res->boundSphere.origin.x = ( res->bounds[0].x + res->bounds[1].x ) / 2;
+	// Compute the bounding sphere. The model is always rotated around the
+	// Y axis, so be sure to put the sphere there, else it won't be invariant
+	// to rotation. Then check the 8 corners for the furthest.
+	res->boundSphere.origin.x = 0;
 	res->boundSphere.origin.y = ( res->bounds[0].y + res->bounds[1].y ) / 2;
-	res->boundSphere.origin.z = ( res->bounds[0].z + res->bounds[1].z ) / 2;
+	res->boundSphere.origin.z = 0;
 
-	Fixed dx = res->bounds[1].x - res->boundSphere.origin.x;
-	Fixed dy = res->bounds[1].y - res->boundSphere.origin.y;
-	Fixed dz = res->bounds[1].z - res->boundSphere.origin.z;
-	Fixed d2 = dx*dx + dy*dy + dz*dz;
+	Fixed longestR2( 0 );
 
-	res->boundSphere.radius = d2.Sqrt();
+	for( int k=0; k<2; ++k ) {
+		for( int j=0; j<2; ++j ) {
+			for( int i=0; i<2; ++i ) {
+				Fixed dx = res->bounds[i].x - res->boundSphere.origin.x;
+				Fixed dy = res->bounds[j].y - res->boundSphere.origin.y;
+				Fixed dz = res->bounds[k].z - res->boundSphere.origin.z;
+				Fixed d2 = dx*dx + dy*dy + dz*dz;
+
+				if ( d2 > longestR2 ) {
+					longestR2 = d2;
+				}
+			}
+		}
+	}
+	res->boundSphere.radius = longestR2.Sqrt();
+
+	// And the bounding circle.
+	longestR2 = 0;
+
+	for( int k=0; k<2; ++k ) {
+		for( int i=0; i<2; ++i ) {
+			Fixed dx = res->bounds[i].x - res->boundSphere.origin.x;
+			Fixed dz = res->bounds[k].z - res->boundSphere.origin.z;
+			Fixed d2 = dx*dx + dz*dz;
+
+			if ( d2 > longestR2 ) {
+				longestR2 = d2;
+			}
+		}
+	}
+	res->boundRadius2D = longestR2.Sqrt();
 
 	// compute the hit testing AABB
 	GLASSERT( res->bounds[1].x >= res->bounds[0].x );
@@ -211,11 +240,14 @@ void Model::CalcBoundSphere( SphereX* spherex )
 {
 	*spherex = resource->boundSphere;
 	spherex->origin += pos;
-	/*
-	spherex->origin.x += pos.x;
-	spherex->origin.y += pos.y;
-	spherex->origin.z += pos.z;
-	*/
+}
+
+
+void Model::CalcBoundCircle( CircleX* circlex )
+{
+	circlex->origin.x = pos.x;
+	circlex->origin.y = pos.z;
+	circlex->radius = resource->boundRadius2D;
 }
 
 
@@ -230,7 +262,16 @@ void Model::CalcHitAABB( Rectangle3X* aabb )
 void Model::Queue( RenderQueue* queue, bool useTexture )
 {
 	for( U32 i=0; i<resource->nGroups; ++i ) {
-		queue->Add( 0, 
+
+		int flags = 0;
+
+		// FIXME: If alpha test is in use, we need the texture for the shadow phase.
+		if ( resource->atom[i].texture->alphaTest & RenderQueue::ALPHA_TEST ) {
+			flags |= RenderQueue::ALPHA_TEST;
+			//useTexture = true;
+		}
+
+		queue->Add( flags, 
 					(useTexture) ? resource->atom[i].texture->glID : 0,
 					this, 
 					&resource->atom[i] );

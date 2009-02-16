@@ -102,9 +102,9 @@ public:
 
    inline friend Fixed operator /  (const Fixed a, const Fixed b)	{ Fixed t;	t.x = FixedDiv( a.x, b.x ); return t; }
    inline friend Fixed operator /  (const Fixed a, const int b)		{ Fixed t;	t.x = a.x / b; return t; }
-   //inline friend Fixed operator /  (const int a, const Fixed b)		{ Fixed t;	t.x = FixedDiv( IntToFixed( a ), b ); return t; }
-   //inline friend Fixed operator /  (const Fixed a, const float b)	{ Fixed t;	t.x = FixedDiv( a, FloatToFixed( b ) ); return t; }
-   //inline friend Fixed operator /  (const float a, const Fixed b)	{ Fixed t;	t.x = FixedDiv( FloatToFixed( a ), b ); return t; }
+   inline friend Fixed operator /  (const int a, const Fixed b)		{ Fixed t;	t.x = FixedDiv( IntToFixed( a ), b.x ); return t; }
+   inline friend Fixed operator /  (const Fixed a, const float b)	{ Fixed t;	t.x = FixedDiv( a.x, FloatToFixed( b ) ); return t; }
+   inline friend Fixed operator /  (const float a, const Fixed b)	{ Fixed t;	t.x = FixedDiv( FloatToFixed( a ), b.x ); return t; }
 
    inline friend Fixed operator << (const Fixed a, const int b)		{ Fixed t; t.x = a.x << b; return t; }
    inline friend Fixed operator >> (const Fixed a, const int b)		{ Fixed t; t.x = a.x >> b; return t; }

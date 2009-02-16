@@ -29,6 +29,7 @@ string outputPath;
 string inputPath;
 int totalModelMem = 0;
 int totalTextureMem = 0;
+int totalMapMem = 0;
 
 void LoadLibrary()
 {
@@ -74,6 +75,46 @@ U32 GetPixel(SDL_Surface *surface, int x, int y)
 }
 
 
+void ProcessMap( TiXmlElement* map )
+{
+
+	string filename;
+	map->QueryStringAttribute( "filename", &filename );
+	string fullIn = inputPath + filename;
+
+	string base, name, extension;
+	grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
+	string fullOut = outputPath + name + ".map";
+
+	// copy the entire file.
+	FILE* read = fopen( fullIn.c_str(), "rb" );
+	if ( !read ) {
+		printf( "**Unrecognized map file. full='%s' base='%s' name='%s' extension='%s'\n",
+				 fullIn.c_str(), base.c_str(), name.c_str(), extension.c_str() );
+		exit( 1 );
+	}
+
+	FILE* write = fopen( fullOut.c_str(), "wb" );
+	GLASSERT( write );
+
+	// length of file.
+	fseek( read, 0, SEEK_END );
+	int len = ftell( read );
+	fseek( read, 0, SEEK_SET );
+
+	char* mem = new char[len];
+	fread( mem, len, 1, read );
+	fwrite( mem, len, 1, write );
+	delete [] mem;
+
+	printf( "Map '%s' memory=%dk\n", filename.c_str(), len/1024 );
+	totalMapMem += len;
+
+	fclose( read );
+	fclose( write );
+}
+
+
 void ProcessModel( TiXmlElement* model )
 {
 
@@ -90,7 +131,6 @@ void ProcessModel( TiXmlElement* model )
 
 	string base, name, extension;
 	grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
-
 	string fullOut = outputPath + name + ".mod";
 
 	ModelBuilder* builder = new ModelBuilder();
@@ -376,12 +416,18 @@ int main( int argc, char* argv[] )
 		else if ( child->ValueStr() == "model" ) {
 			ProcessModel( child );
 		}
+		else if ( child->ValueStr() == "map" ) {
+			ProcessMap( child );
+		}
 		else {
 			printf( "Unrecognized element: %s\n", child->Value() );
 		}
 	}
 
-	printf( "Total memory=%dk Texture=%dk Model=%dk\n", (totalTextureMem+totalModelMem)/1024, totalTextureMem/1024, totalModelMem/1024 );
+	int total = totalTextureMem + totalModelMem + totalMapMem;
+
+	printf( "Total memory=%dk Texture=%dk Model=%dk Map=%dk\n", 
+			total/1024, totalTextureMem/1024, totalModelMem/1024, totalMapMem/1024 );
 	printf( "All done.\n" );
 	SDL_Quit();
 

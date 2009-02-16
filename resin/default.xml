@@ -12,6 +12,10 @@
 	<texture filename="woodPlank.png" />
 	<texture filename="marine.png" />
 	<texture filename="palette.png" />
+	<texture filename="ufoInner.png" />
+	<texture filename="ufoOuter.png" />
+	<texture filename="wheat.tga" />
+	<texture filename="tree.tga" />
 
 	<!-- Models -->
 	<model filename="test1.ac" />
@@ -30,8 +34,23 @@
 
 	<model filename="selection.ac" />
 	<model filename="wallWoodSh.ac" />
-	<model filename="wallWoodMe.ac" />
+	<model filename="doorWoodOpen.ac" />
+	<model filename="doorWoodCl.ac" />
 
+	<model filename="wallUFO.ac" />
+	<model filename="diagUFO.ac" />
+	<model filename="doorUFOOp.ac" />
+	<model filename="doorUFOCl.ac" />
+	
+	<model filename="wallUFOInner.ac" />
+
+	<model filename="table.ac" />
+	<model filename="bed.ac" />
+	<model filename="wheat.ac" />
+	<model filename="tree.ac" />
+
+	<map filename="farmland.map" />
+	
 	<!--
 	<texture filename="Yohko.bmp" />
 
