@@ -278,7 +278,7 @@ void Model::Queue( RenderQueue* queue, bool useTexture )
 	}
 }
 
-
+/*
 void Model::Draw( bool useTexture )
 {
 	glPushMatrix();
@@ -344,7 +344,7 @@ void Model::Draw( bool useTexture )
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 	glPopMatrix();
 }
-
+*/
 
 void ModelAtom::Bind() const
 {

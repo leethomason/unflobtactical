@@ -108,7 +108,7 @@ void Engine::DrawCamera()
 }
 
 
-void Engine::Draw()
+void Engine::Draw( int* triCount )
 {
 	DrawCamera();
 
@@ -136,7 +136,7 @@ void Engine::Draw()
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
 	
-	map->Draw();
+	map->Draw( renderQueue );
 
 	// -- Shadow casters/ground plane -- //
 	// Set up the planar projection matrix, with a little z offset
@@ -187,17 +187,20 @@ void Engine::Draw()
 	glEnable( GL_TEXTURE_2D );
 	glEnable( GL_LIGHTING );
 
+	/*
 	if ( shadowMode == SHADOW_DST_BLEND ) {
 		glEnable( GL_BLEND );
 		glBlendFunc( GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA );
 		map->Draw();
 		glDisable( GL_BLEND );
 	}
-	else if ( shadowMode == SHADOW_Z ) {
+	else if ( shadowMode == SHADOW_Z ) 
+	*/
+	{
 		glDepthMask( GL_TRUE );
 		glEnable( GL_DEPTH_TEST );
 		glDepthFunc( GL_LESS );
-		map->Draw();
+		map->Draw( renderQueue );
 	}
 	
 	glEnable( GL_TEXTURE_2D );
@@ -216,6 +219,9 @@ void Engine::Draw()
 	renderQueue->Flush();
 	
 	EnableLights( false );
+
+	*triCount = renderQueue->GetTriCount();
+	renderQueue->ClearTriCount();
 
 /*
 #ifdef DEBUG

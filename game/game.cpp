@@ -94,6 +94,8 @@ Game::Game( int width, int height ) :
 	markFrameTime( 0 ),
 	frameCountsSinceMark( 0 ),
 	framesPerSecond( 0 ),
+	trianglesPerSecond( 0 ),
+	trianglesSinceMark( 0 ),
 	currentMapItem( 1 )
 {
 	iconInfo[0].Set( ICON_CAMERA_HOME, 0, 270, 50, 50, 0.0f, 0.0f, 0.25f, 0.25f );
@@ -133,9 +135,11 @@ Game::Game( int width, int height ) :
 	float mz = (float)engine.GetMap()->Height();
 
 	//engine.camera.SetPosWC( -19.4f, 62.0f, 57.2f );
-	engine.camera.SetPosWC( -5.0f, engineData.cameraHeight, mz + 5.0f );
+	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
+	//engine.camera.SetPosWC( -5.0f, engineData.cameraHeight, mz + 5.0f );
 
 
+	/*
 	resource = GetResource( "teapot" );
 	testModel[n] = engine.GetModel( resource );
 	testModel[n++]->SetPos( 5.f, -(float)resource->bounds[0].y/65536.0f, mz-4.0f );
@@ -143,7 +147,7 @@ Game::Game( int width, int height ) :
 	resource = GetResource( "test2" );
 	testModel[n] = engine.GetModel( resource );
 	testModel[n++]->SetPos( 2.0f, 0.0f, mz-4.0f );
-
+	*/
 	resource = GetResource( "crate" );
 	testModel[n] = engine.GetModel( resource );
 	testModel[n]->SetDraggable( true );
@@ -152,7 +156,7 @@ Game::Game( int width, int height ) :
 	resource = GetResource( "maleMarine" );
 	for( int i=0; i<4; ++i ) {
 		testModel[n] = engine.GetModel( resource );
-		testModel[n]->SetPos( (float)(i*2)+1.5f, 0.0f, mz-7.5f );
+		testModel[n]->SetPos( (float)(i*2)+10.5f, 0.0f, mz-7.5f );
 		testModel[n]->SetDraggable( true );
 		++n;
 	}
@@ -166,27 +170,27 @@ Game::Game( int width, int height ) :
 	rotTestStart = n;
 	rotTestCount = 0;
 	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 9.5f, 0.0f, mz-9.5f );
+	testModel[n++]->SetPos( 19.5f, 0.0f, mz-9.5f );
 	
 	resource = GetResource( "alien0" );
 	testModel[n] = engine.GetModel( resource );
 	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 9.5f, 0.0f, mz-7.5f );
+	testModel[n++]->SetPos( 19.5f, 0.0f, mz-7.5f );
 
 	resource = GetResource( "alien1" );
 	testModel[n] = engine.GetModel( resource );
 	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 9.5f, 0.0f, mz-5.5f );
+	testModel[n++]->SetPos( 19.5f, 0.0f, mz-5.5f );
 
 	resource = GetResource( "alien2" );
 	testModel[n] = engine.GetModel( resource );
 	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 9.5f, 0.0f, mz-3.5f );
+	testModel[n++]->SetPos( 19.5f, 0.0f, mz-3.5f );
 
 	resource = GetResource( "alien3" );
 	testModel[n] = engine.GetModel( resource );
 	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 9.5f, 0.0f, mz-1.5f );
+	testModel[n++]->SetPos( 19.5f, 0.0f, mz-1.5f );
 }
 
 
@@ -345,13 +349,18 @@ void Game::DoTick( U32 currentTime )
 		markFrameTime			= currentTime;
 		frameCountsSinceMark	= 0;
 		framesPerSecond			= 0.0f;
+		trianglesPerSecond		= 0;
+		trianglesSinceMark		= 0;
 	}
 	else {
 		++frameCountsSinceMark;
 		if ( currentTime - markFrameTime > 500 ) {
 			framesPerSecond		= 1000.0f*(float)(frameCountsSinceMark) / ((float)(currentTime - markFrameTime));
+			// actually K-tris/second
+			trianglesPerSecond  = trianglesSinceMark / (currentTime - markFrameTime);
 			markFrameTime		= currentTime;
 			frameCountsSinceMark = 0;
+			trianglesSinceMark = 0;
 		}
 	}
 
@@ -372,7 +381,9 @@ void Game::DoTick( U32 currentTime )
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
 
-	engine.Draw();
+	int triCount = 0;
+	engine.Draw( &triCount );
+	trianglesSinceMark += triCount;
 
 	glDisable( GL_DEPTH_TEST );
 
@@ -380,7 +391,8 @@ void Game::DoTick( U32 currentTime )
 	int h = engine.Height();
 	if ( rotation&1 ) grinliz::Swap( &w, &h );
 
-	UFODrawText( 0,  0, "UFO Attack! %.1ffps rot=%d shadow=%d", framesPerSecond, rotation, engine.ShadowMode() );
+	UFODrawText( 0,  0, "UFO Attack! %.1ffps tris: %dK/s %dK/frame", 
+				 framesPerSecond, trianglesPerSecond, triCount/1000 );
 #ifdef MAPMAKER
 	UFODrawText( 0,  16, "%3d:'%s'", currentMapItem, engine.GetMap()->GetItemDefName( currentMapItem ) );
 #endif

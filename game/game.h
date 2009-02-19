@@ -69,6 +69,8 @@ private:
 	U32 markFrameTime;
 	U32 frameCountsSinceMark;
 	float framesPerSecond;
+	int trianglesPerSecond;
+	int trianglesSinceMark;
 
 	Texture* iconTexture;
 
