@@ -7,6 +7,7 @@
 class Model;
 class ModelResource;
 class SpaceTree;
+class RenderQueue;
 
 class Map
 {
@@ -41,7 +42,7 @@ public:
 	~Map();
 
 	void SetModel( Model* m );
-	void Draw();
+	void Draw( RenderQueue* queue );
 
 	int Width()		{ return width; }	// the size in use
 	int Height()	{ return height; }	

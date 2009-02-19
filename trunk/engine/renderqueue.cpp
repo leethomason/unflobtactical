@@ -6,6 +6,7 @@ RenderQueue::RenderQueue()
 {
 	nState = 0;
 	nModel = 0;
+	triCount = 0;
 }
 
 
@@ -97,6 +98,8 @@ void RenderQueue::Add( U32 flags, U32 textureID, const Model* model, const Model
 	modelItem->model = model;
 	modelItem->nextModel = state->nextModel;
 	state->nextModel = modelItem;
+
+	triCount += atom->nIndex / 3;
 }
 
 

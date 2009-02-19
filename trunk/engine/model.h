@@ -66,7 +66,7 @@ public:
 
 	void Init( ModelResource* resource, SpaceTree* tree );
 	// Draws the model, and sets texture
-	void Draw( bool useTexture = true );
+	//void Draw( bool useTexture = true );
 	// Queued rendering
 	void Queue( RenderQueue* queue, bool useTexture );
 

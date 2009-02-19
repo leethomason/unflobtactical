@@ -54,7 +54,7 @@ public:
 	float fov;
 
 	void SetPerspective();
-	void Draw();
+	void Draw( int* trianglesDrawn );
 
 	void MoveCameraHome();
 	void MoveCameraXZ( float x, float z );

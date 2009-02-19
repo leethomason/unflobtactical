@@ -2,6 +2,7 @@
 #include "map.h"
 #include "model.h"
 #include "loosequadtree.h"
+#include "renderqueue.h"
 
 using namespace grinliz;
 
@@ -34,9 +35,10 @@ void Map::Clear()
 	}
 }
 
-void Map::Draw()
+void Map::Draw( RenderQueue* queue )
 {
-	model->Draw();
+	model->Queue( queue, true );
+	queue->Flush();
 }
 
 
