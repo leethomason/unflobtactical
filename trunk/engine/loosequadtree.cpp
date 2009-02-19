@@ -150,7 +150,7 @@ void SpaceTree::Update( Model* model )
 	// Get basics.
 	CircleX circlex;
 	model->CalcBoundCircle( &circlex );
-	int modelSize = circlex.radius.Ceil();
+	//int modelSize = circlex.radius.Ceil();
 
 	int x = circlex.origin.x;
 	int z = circlex.origin.y;

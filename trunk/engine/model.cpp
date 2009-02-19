@@ -136,7 +136,7 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	GLASSERT( sizeof(VertexX) == sizeof(Vertex) );
 	GLASSERT( sizeof(VertexX) == sizeof(U32)*8 );
 
-	#ifndef TARGET_OS_IPHONE
+	#if !defined(TARGET_OS_IPHONE)
 	// Convert to float if NOT the ipod. The ipod uses fixed - everything else is float.
 	for( U32 i=0; i<nTotalVertices*8; ++i ) {
 		S32 u = *(((S32*)vertex)+i);
@@ -351,7 +351,7 @@ void ModelAtom::Bind() const
 	glBindBuffer( GL_ARRAY_BUFFER, vertexID );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, indexID );
 
-	#if TARGET_OS_IPHONE		
+	#if defined(TARGET_OS_IPHONE)
 	glVertexPointer(   3, GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
 	glNormalPointer(      GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
 	glTexCoordPointer( 2, GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
@@ -378,7 +378,7 @@ void ModelAtom::Draw() const
 void Model::PushMatrix() const
 {
 	glPushMatrix();
-	#if TARGET_OS_IPHONE		
+	#if defined(TARGET_OS_IPHONE)
 	glTranslatex( pos.x.x, pos.y.x, pos.z.x );
 	if ( rot != 0 ) {
 		glRotatex( rot.x, 0.f, 1.f, 0.f );
@@ -399,7 +399,7 @@ void Model::PushMatrix() const
 	if ( textureOffsetX > 0 ) {
 		glMatrixMode(GL_TEXTURE);
 		glPushMatrix();
-		#if TARGET_OS_IPHONE
+		#if defined(TARGET_OS_IPHONE)
 		glTranslatex( textureOffsetX.x, 0, 0 );
 		#else
 		glTranslatef( (float) textureOffsetX, 0.0f, 0.0f );

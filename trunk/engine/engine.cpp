@@ -14,6 +14,24 @@
 
 using namespace grinliz;
 
+/*
+	Optimization notes:
+	This all starts with tri-counts way high and frame rates way low.
+	
+ Baseline: Standard test: 11.3 fps, 25K/frame, 290K/sec
+ 
+	Ouch, that's a lot of triangles. Roughly 1600 in the map, and another 10,000 in models. Thats all rendered twice,
+	once for the shadow pass and once normally, and it gets to 25K.
+ 
+	1. Fix the renderQueue size. Incremental improvement.
+	2. Was using FLOAT instead of FIXED. No difference. Considering switching everything back to float.
+	3. Using BLEND instead of ALPHA_TEST does help a little. Up to about 12fps. Since character models get rendered
+	   before the alpha pass, this is a good one to keep.
+ 
+	
+	
+*/
+
 
 Engine::Engine( int _width, int _height, const EngineData& _engineData ) 
 	:	width( _width ), 

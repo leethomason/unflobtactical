@@ -25,6 +25,33 @@
 		9A6909850F3375EE005AE44E /* woodDark.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A6909820F3375EE005AE44E /* woodDark.tex */; };
 		9A6909860F3375EE005AE44E /* woodDarkUFO.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A6909830F3375EE005AE44E /* woodDarkUFO.tex */; };
 		9A690B990F33BB18005AE44E /* mainIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 9A690B980F33BB18005AE44E /* mainIcon.png */; };
+		9A75DC870F454464006B1523 /* femaleMarine.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A75DC840F454464006B1523 /* femaleMarine.mod */; };
+		9A75DC880F454464006B1523 /* maleMarine.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A75DC850F454464006B1523 /* maleMarine.mod */; };
+		9A75DC890F454464006B1523 /* marine.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A75DC860F454464006B1523 /* marine.tex */; };
+		9A7ACE1A0F4A331D00297FA3 /* alien0.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE020F4A331D00297FA3 /* alien0.mod */; };
+		9A7ACE1B0F4A331D00297FA3 /* alien1.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE030F4A331D00297FA3 /* alien1.mod */; };
+		9A7ACE1C0F4A331D00297FA3 /* alien2.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE040F4A331D00297FA3 /* alien2.mod */; };
+		9A7ACE1D0F4A331D00297FA3 /* alien3.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE050F4A331D00297FA3 /* alien3.mod */; };
+		9A7ACE1E0F4A331D00297FA3 /* bed.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE060F4A331D00297FA3 /* bed.mod */; };
+		9A7ACE1F0F4A331D00297FA3 /* diagUFO.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE070F4A331D00297FA3 /* diagUFO.mod */; };
+		9A7ACE200F4A331D00297FA3 /* doorUFOCl.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE080F4A331D00297FA3 /* doorUFOCl.mod */; };
+		9A7ACE210F4A331D00297FA3 /* doorUFOOp.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE090F4A331D00297FA3 /* doorUFOOp.mod */; };
+		9A7ACE220F4A331D00297FA3 /* doorWoodCl.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE0A0F4A331D00297FA3 /* doorWoodCl.mod */; };
+		9A7ACE230F4A331D00297FA3 /* doorWoodOpen.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE0B0F4A331D00297FA3 /* doorWoodOpen.mod */; };
+		9A7ACE240F4A331D00297FA3 /* farmland.map in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE0C0F4A331D00297FA3 /* farmland.map */; };
+		9A7ACE250F4A331D00297FA3 /* palette.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE0D0F4A331D00297FA3 /* palette.tex */; };
+		9A7ACE260F4A331D00297FA3 /* selection.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE0E0F4A331D00297FA3 /* selection.mod */; };
+		9A7ACE270F4A331D00297FA3 /* table.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE0F0F4A331D00297FA3 /* table.mod */; };
+		9A7ACE280F4A331D00297FA3 /* tree.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE100F4A331D00297FA3 /* tree.mod */; };
+		9A7ACE290F4A331D00297FA3 /* tree.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE110F4A331D00297FA3 /* tree.tex */; };
+		9A7ACE2A0F4A331D00297FA3 /* ufoInner.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE120F4A331D00297FA3 /* ufoInner.tex */; };
+		9A7ACE2B0F4A331D00297FA3 /* ufoOuter.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE130F4A331D00297FA3 /* ufoOuter.tex */; };
+		9A7ACE2C0F4A331D00297FA3 /* wallUFO.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE140F4A331D00297FA3 /* wallUFO.mod */; };
+		9A7ACE2D0F4A331D00297FA3 /* wallUFOInner.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE150F4A331D00297FA3 /* wallUFOInner.mod */; };
+		9A7ACE2E0F4A331D00297FA3 /* wallWoodSh.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE160F4A331D00297FA3 /* wallWoodSh.mod */; };
+		9A7ACE2F0F4A331D00297FA3 /* wheat.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE170F4A331D00297FA3 /* wheat.mod */; };
+		9A7ACE300F4A331D00297FA3 /* wheat.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE180F4A331D00297FA3 /* wheat.tex */; };
+		9A7ACE310F4A331D00297FA3 /* woodPlank.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE190F4A331D00297FA3 /* woodPlank.tex */; };
 		9A8EE7E20F3F76C5005FDF47 /* alienFloor.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A8EE7DE0F3F76C5005FDF47 /* alienFloor.tex */; };
 		9A8EE7E30F3F76C5005FDF47 /* dirtGrass.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A8EE7DF0F3F76C5005FDF47 /* dirtGrass.tex */; };
 		9A8EE7E40F3F76C5005FDF47 /* farmland.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A8EE7E00F3F76C5005FDF47 /* farmland.mod */; };
@@ -83,6 +110,33 @@
 		9A6909820F3375EE005AE44E /* woodDark.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodDark.tex; path = ../res/woodDark.tex; sourceTree = SOURCE_ROOT; };
 		9A6909830F3375EE005AE44E /* woodDarkUFO.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodDarkUFO.tex; path = ../res/woodDarkUFO.tex; sourceTree = SOURCE_ROOT; };
 		9A690B980F33BB18005AE44E /* mainIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = mainIcon.png; path = ../resin/mainIcon.png; sourceTree = SOURCE_ROOT; };
+		9A75DC840F454464006B1523 /* femaleMarine.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = femaleMarine.mod; path = ../res/femaleMarine.mod; sourceTree = SOURCE_ROOT; };
+		9A75DC850F454464006B1523 /* maleMarine.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = maleMarine.mod; path = ../res/maleMarine.mod; sourceTree = SOURCE_ROOT; };
+		9A75DC860F454464006B1523 /* marine.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = marine.tex; path = ../res/marine.tex; sourceTree = SOURCE_ROOT; };
+		9A7ACE020F4A331D00297FA3 /* alien0.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = alien0.mod; path = ../res/alien0.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE030F4A331D00297FA3 /* alien1.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = alien1.mod; path = ../res/alien1.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE040F4A331D00297FA3 /* alien2.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = alien2.mod; path = ../res/alien2.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE050F4A331D00297FA3 /* alien3.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = alien3.mod; path = ../res/alien3.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE060F4A331D00297FA3 /* bed.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = bed.mod; path = ../res/bed.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE070F4A331D00297FA3 /* diagUFO.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = diagUFO.mod; path = ../res/diagUFO.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE080F4A331D00297FA3 /* doorUFOCl.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = doorUFOCl.mod; path = ../res/doorUFOCl.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE090F4A331D00297FA3 /* doorUFOOp.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = doorUFOOp.mod; path = ../res/doorUFOOp.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE0A0F4A331D00297FA3 /* doorWoodCl.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = doorWoodCl.mod; path = ../res/doorWoodCl.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE0B0F4A331D00297FA3 /* doorWoodOpen.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = doorWoodOpen.mod; path = ../res/doorWoodOpen.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE0C0F4A331D00297FA3 /* farmland.map */ = {isa = PBXFileReference; lastKnownFileType = file; name = farmland.map; path = ../res/farmland.map; sourceTree = SOURCE_ROOT; };
+		9A7ACE0D0F4A331D00297FA3 /* palette.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = palette.tex; path = ../res/palette.tex; sourceTree = SOURCE_ROOT; };
+		9A7ACE0E0F4A331D00297FA3 /* selection.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = selection.mod; path = ../res/selection.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE0F0F4A331D00297FA3 /* table.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = table.mod; path = ../res/table.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE100F4A331D00297FA3 /* tree.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = tree.mod; path = ../res/tree.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE110F4A331D00297FA3 /* tree.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = tree.tex; path = ../res/tree.tex; sourceTree = SOURCE_ROOT; };
+		9A7ACE120F4A331D00297FA3 /* ufoInner.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = ufoInner.tex; path = ../res/ufoInner.tex; sourceTree = SOURCE_ROOT; };
+		9A7ACE130F4A331D00297FA3 /* ufoOuter.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = ufoOuter.tex; path = ../res/ufoOuter.tex; sourceTree = SOURCE_ROOT; };
+		9A7ACE140F4A331D00297FA3 /* wallUFO.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = wallUFO.mod; path = ../res/wallUFO.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE150F4A331D00297FA3 /* wallUFOInner.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = wallUFOInner.mod; path = ../res/wallUFOInner.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE160F4A331D00297FA3 /* wallWoodSh.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = wallWoodSh.mod; path = ../res/wallWoodSh.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE170F4A331D00297FA3 /* wheat.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = wheat.mod; path = ../res/wheat.mod; sourceTree = SOURCE_ROOT; };
+		9A7ACE180F4A331D00297FA3 /* wheat.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = wheat.tex; path = ../res/wheat.tex; sourceTree = SOURCE_ROOT; };
+		9A7ACE190F4A331D00297FA3 /* woodPlank.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodPlank.tex; path = ../res/woodPlank.tex; sourceTree = SOURCE_ROOT; };
 		9A8EE7DE0F3F76C5005FDF47 /* alienFloor.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = alienFloor.tex; path = ../res/alienFloor.tex; sourceTree = SOURCE_ROOT; };
 		9A8EE7DF0F3F76C5005FDF47 /* dirtGrass.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = dirtGrass.tex; path = ../res/dirtGrass.tex; sourceTree = SOURCE_ROOT; };
 		9A8EE7E00F3F76C5005FDF47 /* farmland.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = farmland.mod; path = ../res/farmland.mod; sourceTree = SOURCE_ROOT; };
@@ -203,6 +257,33 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9A7ACE020F4A331D00297FA3 /* alien0.mod */,
+				9A7ACE030F4A331D00297FA3 /* alien1.mod */,
+				9A7ACE040F4A331D00297FA3 /* alien2.mod */,
+				9A7ACE050F4A331D00297FA3 /* alien3.mod */,
+				9A7ACE060F4A331D00297FA3 /* bed.mod */,
+				9A7ACE070F4A331D00297FA3 /* diagUFO.mod */,
+				9A7ACE080F4A331D00297FA3 /* doorUFOCl.mod */,
+				9A7ACE090F4A331D00297FA3 /* doorUFOOp.mod */,
+				9A7ACE0A0F4A331D00297FA3 /* doorWoodCl.mod */,
+				9A7ACE0B0F4A331D00297FA3 /* doorWoodOpen.mod */,
+				9A7ACE0C0F4A331D00297FA3 /* farmland.map */,
+				9A7ACE0D0F4A331D00297FA3 /* palette.tex */,
+				9A7ACE0E0F4A331D00297FA3 /* selection.mod */,
+				9A7ACE0F0F4A331D00297FA3 /* table.mod */,
+				9A7ACE100F4A331D00297FA3 /* tree.mod */,
+				9A7ACE110F4A331D00297FA3 /* tree.tex */,
+				9A7ACE120F4A331D00297FA3 /* ufoInner.tex */,
+				9A7ACE130F4A331D00297FA3 /* ufoOuter.tex */,
+				9A7ACE140F4A331D00297FA3 /* wallUFO.mod */,
+				9A7ACE150F4A331D00297FA3 /* wallUFOInner.mod */,
+				9A7ACE160F4A331D00297FA3 /* wallWoodSh.mod */,
+				9A7ACE170F4A331D00297FA3 /* wheat.mod */,
+				9A7ACE180F4A331D00297FA3 /* wheat.tex */,
+				9A7ACE190F4A331D00297FA3 /* woodPlank.tex */,
+				9A75DC840F454464006B1523 /* femaleMarine.mod */,
+				9A75DC850F454464006B1523 /* maleMarine.mod */,
+				9A75DC860F454464006B1523 /* marine.tex */,
 				9A8EE7DE0F3F76C5005FDF47 /* alienFloor.tex */,
 				9A8EE7DF0F3F76C5005FDF47 /* dirtGrass.tex */,
 				9A8EE7E00F3F76C5005FDF47 /* farmland.mod */,
@@ -369,6 +450,33 @@
 				9A8EE7E30F3F76C5005FDF47 /* dirtGrass.tex in Resources */,
 				9A8EE7E40F3F76C5005FDF47 /* farmland.mod in Resources */,
 				9A8EE7E50F3F76C5005FDF47 /* grass2.tex in Resources */,
+				9A75DC870F454464006B1523 /* femaleMarine.mod in Resources */,
+				9A75DC880F454464006B1523 /* maleMarine.mod in Resources */,
+				9A75DC890F454464006B1523 /* marine.tex in Resources */,
+				9A7ACE1A0F4A331D00297FA3 /* alien0.mod in Resources */,
+				9A7ACE1B0F4A331D00297FA3 /* alien1.mod in Resources */,
+				9A7ACE1C0F4A331D00297FA3 /* alien2.mod in Resources */,
+				9A7ACE1D0F4A331D00297FA3 /* alien3.mod in Resources */,
+				9A7ACE1E0F4A331D00297FA3 /* bed.mod in Resources */,
+				9A7ACE1F0F4A331D00297FA3 /* diagUFO.mod in Resources */,
+				9A7ACE200F4A331D00297FA3 /* doorUFOCl.mod in Resources */,
+				9A7ACE210F4A331D00297FA3 /* doorUFOOp.mod in Resources */,
+				9A7ACE220F4A331D00297FA3 /* doorWoodCl.mod in Resources */,
+				9A7ACE230F4A331D00297FA3 /* doorWoodOpen.mod in Resources */,
+				9A7ACE240F4A331D00297FA3 /* farmland.map in Resources */,
+				9A7ACE250F4A331D00297FA3 /* palette.tex in Resources */,
+				9A7ACE260F4A331D00297FA3 /* selection.mod in Resources */,
+				9A7ACE270F4A331D00297FA3 /* table.mod in Resources */,
+				9A7ACE280F4A331D00297FA3 /* tree.mod in Resources */,
+				9A7ACE290F4A331D00297FA3 /* tree.tex in Resources */,
+				9A7ACE2A0F4A331D00297FA3 /* ufoInner.tex in Resources */,
+				9A7ACE2B0F4A331D00297FA3 /* ufoOuter.tex in Resources */,
+				9A7ACE2C0F4A331D00297FA3 /* wallUFO.mod in Resources */,
+				9A7ACE2D0F4A331D00297FA3 /* wallUFOInner.mod in Resources */,
+				9A7ACE2E0F4A331D00297FA3 /* wallWoodSh.mod in Resources */,
+				9A7ACE2F0F4A331D00297FA3 /* wheat.mod in Resources */,
+				9A7ACE300F4A331D00297FA3 /* wheat.tex in Resources */,
+				9A7ACE310F4A331D00297FA3 /* woodPlank.tex in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -445,6 +553,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Lee Thomason";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_PREPROCESSOR_DEFINITIONS = (
+					TARGET_OS_IPHONE,
 					_DEBUG,
 					GL_NO_SDL,
 				);
