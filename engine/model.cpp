@@ -1,7 +1,6 @@
 #include "model.h"
 #include "surface.h"
 #include "platformgl.h"
-#include "enginelimits.h"
 #include "loosequadtree.h"
 #include "renderQueue.h"
 
@@ -131,18 +130,20 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	}
 	size_t r = fread( vertex, sizeof(VertexX), nTotalVertices, fp );
 	GLASSERT( r == nTotalVertices );
+
+#if (EL_USE_FLOAT==0)
 	grinliz::SwapBufferBE32( (U32*)vertex, nTotalVertices*8 );
+#endif
 
 	GLASSERT( sizeof(VertexX) == sizeof(Vertex) );
 	GLASSERT( sizeof(VertexX) == sizeof(U32)*8 );
 
-	#if !defined(TARGET_OS_IPHONE)
+	#if !defined(TARGET_OS_IPHONE) && (EL_USE_FLOAT==0)
 	// Convert to float if NOT the ipod. The ipod uses fixed - everything else is float.
 	for( U32 i=0; i<nTotalVertices*8; ++i ) {
 		S32 u = *(((S32*)vertex)+i);
 		float f = Fixed::FixedToFloat( u );
 		*(((float*)vertex)+i) = f;
-
 	}
 	/*
 	#ifdef DEBUG
@@ -351,7 +352,7 @@ void ModelAtom::Bind() const
 	glBindBuffer( GL_ARRAY_BUFFER, vertexID );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, indexID );
 
-	#if defined(TARGET_OS_IPHONE)
+	#if defined(TARGET_OS_IPHONE) && (EL_USE_FLOAT==0)
 	glVertexPointer(   3, GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
 	glNormalPointer(      GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
 	glTexCoordPointer( 2, GL_FIXED, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
