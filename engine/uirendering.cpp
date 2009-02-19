@@ -40,7 +40,7 @@ void UFODrawIcons( const IconInfo* icons, int width, int height, int rotation )
 		v[6] = icons->pos.x;				v[7] = icons->pos.y+icons->size.y;
 
 		#if TARGET_OS_IPHONE		
-		glVertexPointer(   2, GL_INT, 0, v );
+		glVertexPointer(   2, GL_SHORT, 0, v );
 		glTexCoordPointer( 2, GL_FIXED, 0, t );  
 		#else
 		{

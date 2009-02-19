@@ -24,8 +24,8 @@ public:
 	};
 
 	enum {
-		MAX_STATE  = 16,
-		MAX_MODELS = 64
+		MAX_STATE  = 128,
+		MAX_MODELS = 1024
 	};
 
 	RenderQueue();

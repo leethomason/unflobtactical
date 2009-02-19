@@ -1,6 +1,7 @@
 #ifndef UFOATTACK_MAP_INCLUDED
 #define UFOATTACK_MAP_INCLUDED
 
+#include <stdio.h>
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 

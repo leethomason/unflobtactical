@@ -124,11 +124,14 @@ void RenderQueue::Flush()
 			++states;
 
 			if ( flags & ALPHA_TEST ) {
-				glEnable( GL_ALPHA_TEST );
-				glAlphaFunc( GL_GEQUAL, 0.5f );
+				//glEnable( GL_ALPHA_TEST );
+				//glAlphaFunc( GL_GEQUAL, 0.5f );
+				glEnable( GL_BLEND );
+				glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 			}
 			else {
-				glDisable( GL_ALPHA_TEST );
+				//glDisable( GL_ALPHA_TEST );
+				glDisable( GL_BLEND );
 			}
 		}
 
