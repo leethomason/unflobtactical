@@ -369,7 +369,7 @@ void ModelAtom::Draw() const
 {
 	// mode, count, type, indices
 	glDrawElements( GL_TRIANGLES, 
-					nIndex,
+					nIndex,				//(nIndex/6)*3,
 					GL_UNSIGNED_SHORT, 
 					0 );
 	CHECK_GL_ERROR;

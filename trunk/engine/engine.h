@@ -117,6 +117,7 @@ private:
 	grinliz::Ray cameraRay;		// origin isn't normally valid
 	float	zoom, defaultZoom, initZoom;
 	int		initZoomDistance, lastZoomDistance;
+	int		depthFunc;
 	
 	grinliz::Vector3F lightDirection;
 	

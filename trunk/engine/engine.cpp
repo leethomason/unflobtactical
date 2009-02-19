@@ -27,8 +27,15 @@ using namespace grinliz;
 	2. Was using FLOAT instead of FIXED. No difference. Considering switching everything back to float.
 	3. Using BLEND instead of ALPHA_TEST does help a little. Up to about 12fps. Since character models get rendered
 	   before the alpha pass, this is a good one to keep.
+	4. Switched to FLOAT. Makes no difference - handled in VBOs anyway?
  
-	
+	Various tests:
+	Baseline				11
+	1/2 Triangles/model:	20
+	1/2 Models:				20
+	No background draw:		14
+	No shadows:				18
+ 
 	
 */
 
@@ -70,6 +77,8 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 	SetPerspective();
 	lightDirection.Set( 0.7f, 3.0f, 1.4f );
 	lightDirection.Normalize();
+
+	glGetIntegerv( GL_DEPTH_FUNC, &depthFunc );	
 }
 
 Engine::~Engine()
@@ -153,6 +162,15 @@ void Engine::Draw( int* triCount )
 	// state.
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
+
+	// Compute the frustum planes
+	Plane planes[6];
+	CalcFrustumPlanes( planes );
+	PlaneX planesX[6];
+	for( int i=0; i<6; ++i ) {
+		planesX[i].Convert( planes[i] );
+	}
+	Model* modelRoot = spaceTree->Query( planesX, 6 );
 	
 	map->Draw( renderQueue );
 
@@ -174,32 +192,21 @@ void Engine::Draw( int* triCount )
 	glDisable( GL_LIGHTING );
 
 	// Not clear what the default is (from the driver): LEQUAL or LESS. So query.
-	int depthFunc;
-	glGetIntegerv( GL_DEPTH_FUNC, &depthFunc );
 	glDepthFunc( GL_ALWAYS );
 
-	// Compute the frustum planes
-	Plane planes[6];
-	CalcFrustumPlanes( planes );
-	PlaneX planesX[6];
-	for( int i=0; i<6; ++i ) {
-		planesX[i].Convert( planes[i] );
-	}
-
-
-	Model* modelRoot = spaceTree->Query( planesX, 6 );
 	GLASSERT( renderQueue->Empty() );
 
 	glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );	// keeps white from bleeding outside the map.
+	
+	//int debug=0;
 	for( Model* model=modelRoot; model; model=model->next ) {
-		//model->Draw( false );	// shadow pass.
+		//if ( (debug++)&1 )
 		model->Queue( renderQueue, false );
 	}
 	renderQueue->Flush();
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 	glPopMatrix();
-
 	
 	EnableLights( true, true );
 	glEnable( GL_TEXTURE_2D );
@@ -230,8 +237,9 @@ void Engine::Draw( int* triCount )
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
 
+	//debug = 0;
 	for( Model* model=modelRoot; model; model=model->next ) {
-		//model->Draw( true );
+		//if ( (debug++)&1 )
 		model->Queue( renderQueue, true );
 	}
 	renderQueue->Flush();
