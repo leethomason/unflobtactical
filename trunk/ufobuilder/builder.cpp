@@ -6,6 +6,7 @@
 #include "SDL_image.h"
 #endif
 #include "SDL_loadso.h"
+#include "../engine/enginelimits.h"
 
 #include <string>
 
@@ -44,6 +45,12 @@ void LoadLibrary()
 		libIMG_Load = (PFN_IMG_LOAD) grinliz::grinlizLoadFunction( handle, "IMG_Load" );
 		GLASSERT( libIMG_Load );
 	#endif
+}
+
+
+void WriteFloat( SDL_RWops* ctx, float f )
+{
+	SDL_RWwrite( ctx, &f, sizeof(float), 1 );
 }
 
 
@@ -211,7 +218,7 @@ void ProcessModel( TiXmlElement* model )
 			//		FixedToFloat( v.pos.x ), FixedToFloat( v.pos.y ), FixedToFloat( v.pos.z ),
 			//		FixedToFloat( v.normal.x ), FixedToFloat( v.normal.y ), FixedToFloat( v.normal.z ),
 			//		FixedToFloat( v.tex.x ), FixedToFloat( v.tex.y ) );
-
+#if (EL_USE_FLOAT==0)
 			SDL_WriteBE32( fp, v.pos.x.x );
 			SDL_WriteBE32( fp, v.pos.y.x );
 			SDL_WriteBE32( fp, v.pos.z.x );
@@ -220,8 +227,20 @@ void ProcessModel( TiXmlElement* model )
 			SDL_WriteBE32( fp, v.normal.z.x );
 			SDL_WriteBE32( fp, v.tex.x.x );
 			SDL_WriteBE32( fp, v.tex.y.x );
-		}
+#elif (EL_USE_FLOAT==1)
+			WriteFloat( fp, v.pos.x );
+			WriteFloat( fp, v.pos.y );
+			WriteFloat( fp, v.pos.z );
+			WriteFloat( fp, v.normal.x );
+			WriteFloat( fp, v.normal.y );
+			WriteFloat( fp, v.normal.z );
+			WriteFloat( fp, v.tex.x );
+			WriteFloat( fp, v.tex.y );
 
+#else
+#	error Need EL_USE_FLOAT
+#endif
+		}
 	}
 	// Write the indices in each group:
 	for( int i=0; i<builder->NumGroups(); ++i ) {

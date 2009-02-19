@@ -11,4 +11,7 @@ enum {
 	EL_FILE_STRING_LEN		= 16,
 };
 
+#define EL_USE_FLOAT 1
+
+
 #endif

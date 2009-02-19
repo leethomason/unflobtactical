@@ -29,6 +29,7 @@ class ModelResource
 public:
 	char name[16];			// loaded
 	U32 nGroups;			// loaded
+
 	Vector3X bounds[2];		// loaded
 
 	SphereX boundSphere;	// computed
@@ -54,7 +55,13 @@ private:
 	int nTextures;
 
 	U16		index[EL_MAX_INDEX_IN_MODEL];
+#if (EL_USE_FLOAT==0)
 	VertexX	vertex[EL_MAX_VERTEX_IN_MODEL];
+#elif (EL_USE_FLOAT==1)
+	Vertex	vertex[EL_MAX_VERTEX_IN_MODEL];
+#else
+#	error USE FLOAT undefined.
+#endif
 };
 
 
