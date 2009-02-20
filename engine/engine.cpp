@@ -77,8 +77,7 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 	SetPerspective();
 	lightDirection.Set( 0.7f, 3.0f, 1.4f );
 	lightDirection.Normalize();
-
-	glGetIntegerv( GL_DEPTH_FUNC, &depthFunc );	
+	depthFunc = 0;
 }
 
 Engine::~Engine()
@@ -162,6 +161,9 @@ void Engine::Draw( int* triCount )
 	// state.
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
+	if ( depthFunc == 0 ) {
+		glGetIntegerv( GL_DEPTH_FUNC, &depthFunc );	
+	}
 
 	// Compute the frustum planes
 	Plane planes[6];

@@ -12,6 +12,6 @@ enum {
 };
 
 #define EL_USE_FLOAT 1
-
+#define EL_BATCH_VERTICES 1
 
 #endif

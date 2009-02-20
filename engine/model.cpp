@@ -173,6 +173,7 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 #endif
 	
 
+#if (EL_BATCH_VERTICES==0)
 	// Load to VBO
 	int vOffset = 0;
 	int iOffset = 0;
@@ -197,6 +198,26 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	// unbind
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+#elif (EL_BATCH_VERTICES==1)
+	int vOffset = 0;
+	int iOffset = 0;
+	for( U32 i=0; i<res->nGroups; ++i )
+	{
+		res->atom[i].vertex = new Vertex[ res->atom[i].nVertex ];
+		res->atom[i].index  = new U16[ res->atom[i].nIndex ];
+
+		U32 indexSize = sizeof(U16)*res->atom[i].nIndex;
+		U32 dataSize  = sizeof(Vertex)*res->atom[i].nVertex;
+
+		memcpy( res->atom[i].vertex, vertex+vOffset, dataSize );
+		memcpy( res->atom[i].index, index+iOffset, indexSize );
+
+		iOffset += res->atom[i].nIndex;
+		vOffset += res->atom[i].nVertex;
+	}
+#else
+#	error Vertex buffers not defined.
+#endif
 }
 
 
@@ -349,6 +370,7 @@ void Model::Draw( bool useTexture )
 
 void ModelAtom::Bind() const
 {
+#if (EL_BATCH_VERTICES==0)
 	glBindBuffer( GL_ARRAY_BUFFER, vertexID );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, indexID );
 
@@ -362,17 +384,30 @@ void ModelAtom::Bind() const
 	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
 	#endif
 	CHECK_GL_ERROR;
+#endif
 }
 
 
 void ModelAtom::Draw() const
 {
+#if (EL_BATCH_VERTICES==0)
 	// mode, count, type, indices
 	glDrawElements( GL_TRIANGLES, 
-					nIndex,				//(nIndex/6)*3,
+					nIndex,
 					GL_UNSIGNED_SHORT, 
 					0 );
 	CHECK_GL_ERROR;
+#endif
+}
+
+
+void Model::GetXForm( grinliz::Matrix4* matrix, grinliz::Matrix4* rotation ) const
+{
+	Matrix4 t, r;
+	t.SetTranslation( pos.x, pos.y, pos.z );
+	r.SetYRotation( rot );
+	*rotation = r;
+	*matrix = t*r;
 }
 
 

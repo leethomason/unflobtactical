@@ -19,6 +19,11 @@ struct ModelAtom
 	U32 nVertex;
 	U32 nIndex;
 
+	#if (EL_BATCH_VERTICES==1)
+	Vertex* vertex;
+	U16* index;
+	#endif
+
 	void Bind() const;
 	void Draw() const;
 };
@@ -27,6 +32,16 @@ struct ModelAtom
 class ModelResource
 {
 public:
+	#if (EL_BATCH_VERTICES==1)
+	ModelResource()		{ nGroups = 0; }
+	~ModelResource()	{
+		for( unsigned i=0; i<nGroups; ++i ) {
+			delete [] atom[i].vertex;
+			delete [] atom[i].index;
+		}
+	}
+	#endif
+
 	char name[16];			// loaded
 	U32 nGroups;			// loaded
 
@@ -80,6 +95,7 @@ public:
 	// Used by the queued rendering system:
 	void PushMatrix() const;
 	void PopMatrix() const;
+	void GetXForm( grinliz::Matrix4* matrix, grinliz::Matrix4* rotation ) const;
 
 	bool IsDraggable()	{ return isDraggable; }
 	void SetDraggable( bool drag )	{ isDraggable = drag; }
@@ -119,6 +135,7 @@ private:
 
 	bool isDraggable;
 	bool hiddenFromTree;
+
 };
 
 
