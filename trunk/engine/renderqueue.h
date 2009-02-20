@@ -3,6 +3,8 @@
 
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
+#include "enginelimits.h"
+#include "vertex.h"
 
 class Model;
 struct ModelAtom;
@@ -25,7 +27,10 @@ public:
 
 	enum {
 		MAX_STATE  = 128,
-		MAX_MODELS = 1024
+		MAX_MODELS = 1024,
+
+		INDEX_BUFFER_SIZE = 64*1024,
+		VERTEX_BUFFER_SIZE = 64*1024
 	};
 
 	RenderQueue();
@@ -73,14 +78,22 @@ private:
 	}
 
 	Item* FindState( const State& state );
-	
 
 	int nState;
 	int nModel;
 	int triCount;
-
+#if (EL_BATCH_VERTICES==1)
+	void FlushBuffers();
+	int nVertex;
+	int nIndex;
+#endif
 	Item statePool[MAX_STATE];
 	Item modelPool[MAX_MODELS];
+
+#if (EL_BATCH_VERTICES==1)
+	Vertex vertexBuffer[VERTEX_BUFFER_SIZE];
+	U16    indexBuffer[INDEX_BUFFER_SIZE];
+#endif
 };
 
 

@@ -117,7 +117,7 @@ Model* SpaceTree::AllocModel( ModelResource* resource )
 	item->model.Init( resource, this );
 
 	allocated++;
-	GLOUTPUT(( "Alloc model: %d/%d\n", allocated, EL_MAX_MODELS ));
+	//GLOUTPUT(( "Alloc model: %d/%d\n", allocated, EL_MAX_MODELS ));
 	return &item->model;
 }
 
@@ -132,7 +132,7 @@ void SpaceTree::FreeModel( Model* model )
 	item->Link( &freeMemSentinel );
 
 	allocated--;
-	GLOUTPUT(( "Free model: %d/%d\n", allocated, EL_MAX_MODELS ));
+	//GLOUTPUT(( "Free model: %d/%d\n", allocated, EL_MAX_MODELS ));
 }
 
 
@@ -276,7 +276,7 @@ Model* SpaceTree::Query( const Vector3X& origin, const Vector3X& direction )
 	modelsFound = 0;
 
 	QueryPlanesRec( origin, direction, grinliz::INTERSECT, &nodeArr[0] );
-	GLOUTPUT(( "Query %d/%d nodes, models=%d\n", nodesChecked, NUM_NODES, modelsFound ));
+	//GLOUTPUT(( "Query %d/%d nodes, models=%d\n", nodesChecked, NUM_NODES, modelsFound ));
 	return modelRoot;
 
 }
