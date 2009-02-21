@@ -397,6 +397,7 @@ void ModelAtom::Draw() const
 					GL_UNSIGNED_SHORT, 
 					0 );
 	CHECK_GL_ERROR;
+	trisRendered += nIndex / 3;
 #endif
 }
 

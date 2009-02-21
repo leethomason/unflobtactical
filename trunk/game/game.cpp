@@ -305,17 +305,19 @@ void Game::LoadMap( const char* name )
 void Game::LoadModels()
 {
 	ModelLoader* loader = new ModelLoader( texture, nTexture );
-	memset( modelResource, 0, sizeof(ModelResource)*MAX_MODELS );
+	memset( modelResource, 0, sizeof(ModelResource)*EL_MAX_MODEL_RESOURCES );
 
 	FILE* fp = 0;
 	char buffer[512];
 
 	for( int i=0; gModelNames[i]; ++i ) {
+		GLASSERT( i < EL_MAX_MODEL_RESOURCES );
 		PlatformPathToResource( gModelNames[i], "mod", buffer, 512 );
 		fp = fopen( buffer, "rb" );
 		GLASSERT( fp );
 		loader->Load( fp, &modelResource[i] );
 		fclose( fp );
+		nModelResource++;
 	}
 	delete loader;
 }
@@ -364,6 +366,14 @@ void Game::DoTick( U32 currentTime )
 		}
 	}
 
+	/*
+	for( int i=0; i<nModelResource; ++i ) {
+		for ( unsigned k=0; k<modelResource[i].nGroups; ++ k ) {
+			modelResource[i].atom[k].trisRendered = 0;
+		}
+	}
+	*/
+
 	for( int i=0; i<rotTestCount; ++i ) {
 		Model* m = testModel[rotTestStart+i];
 		m->SetYRotation( m->GetYRotation() + 0.3f );
@@ -393,6 +403,18 @@ void Game::DoTick( U32 currentTime )
 
 	UFODrawText( 0,  0, "UFO Attack! %.1ffps tris: %dK/s %dK/frame", 
 				 framesPerSecond, trianglesPerSecond, triCount/1000 );
+
+	/*
+	int k=0;
+	while ( k < nModelResource ) {
+		int total = 0;
+		for( unsigned i=0; i<modelResource[k].nGroups; ++i ) {
+			total += modelResource[k].atom[i].trisRendered;
+		}
+		UFODrawText( 0, 12+12*k, "%16s %5d K", modelResource[k].name, total );
+		++k;
+	}
+	*/
 #ifdef MAPMAKER
 	UFODrawText( 0,  16, "%3d:'%s'", currentMapItem, engine.GetMap()->GetItemDefName( currentMapItem ) );
 #endif

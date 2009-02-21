@@ -18,6 +18,7 @@ struct ModelAtom
 	U32 indexID;
 	U32 nVertex;
 	U32 nIndex;
+	mutable int trisRendered;
 
 	#if (EL_BATCH_VERTICES==1)
 	Vertex* vertex;
