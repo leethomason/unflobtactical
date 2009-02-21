@@ -366,13 +366,13 @@ void Game::DoTick( U32 currentTime )
 		}
 	}
 
-	/*
+#ifdef EL_SHOW_MODELS
 	for( int i=0; i<nModelResource; ++i ) {
 		for ( unsigned k=0; k<modelResource[i].nGroups; ++ k ) {
 			modelResource[i].atom[k].trisRendered = 0;
 		}
 	}
-	*/
+#endif
 
 	for( int i=0; i<rotTestCount; ++i ) {
 		Model* m = testModel[rotTestStart+i];
@@ -404,7 +404,7 @@ void Game::DoTick( U32 currentTime )
 	UFODrawText( 0,  0, "UFO Attack! %.1ffps tris: %dK/s %dK/frame", 
 				 framesPerSecond, trianglesPerSecond, triCount/1000 );
 
-	/*
+#ifdef EL_SHOW_MODELS
 	int k=0;
 	while ( k < nModelResource ) {
 		int total = 0;
@@ -414,7 +414,7 @@ void Game::DoTick( U32 currentTime )
 		UFODrawText( 0, 12+12*k, "%16s %5d K", modelResource[k].name, total );
 		++k;
 	}
-	*/
+#endif
 #ifdef MAPMAKER
 	UFODrawText( 0,  16, "%3d:'%s'", currentMapItem, engine.GetMap()->GetItemDefName( currentMapItem ) );
 #endif
