@@ -17,7 +17,6 @@ public:
 		SIZE = 64,					// maximum size
 		MAX_ITEM_DEF = 256,
 		LAYER_PER_TILE = 4,
-		MAX_MODELS = 1024
 	};
 
 	struct ItemDef {

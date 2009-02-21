@@ -56,7 +56,7 @@ private:
 	void LoadMap( const char* name );
 
 	Texture texture[MAX_TEXTURES];
-	ModelResource modelResource[MAX_MODELS];
+	ModelResource modelResource[EL_MAX_MODEL_RESOURCES];
 
 	enum {
 		NUM_ICONS=2
