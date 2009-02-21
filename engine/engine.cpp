@@ -35,8 +35,25 @@ using namespace grinliz;
 	1/2 Models:				20
 	No background draw:		14
 	No shadows:				18
+	Background one quad:	13
  
+	5. Vertex buffering. In theory sounds smart. The docs say do it. In practice, re-transforming every vertex an extra time.
+	   A silly and impractical optimization.
 	
+	Reducing art to 13K tri/second - 20fps!!
+	Its all about the # of triangles, it seems.
+ 
+	From 20 to 30!
+	Less triangles in the farmland doesn't help...nor does taking out the character models. Magic framerate #? Removing all
+	model drawing gets to 40, so the timer isn't the issue.
+ 
+	New baseline:			20.0 fps
+ 
+	Ideas:	1. Better bounding tests. Bounding boxes are still quite loose.
+			2. Replace characters with billboards.
+			3. Triangle reduction of the background.
+			4. Background as a single texture.
+			5. Is it possible to do planar shadows in one pass? Map from vertex to texture coordinates?
 */
 
 
@@ -202,7 +219,6 @@ void Engine::Draw( int* triCount )
 	
 	//int debug=0;
 	for( Model* model=modelRoot; model; model=model->next ) {
-		//if ( (debug++)&1 )
 		model->Queue( renderQueue, false );
 	}
 	renderQueue->Flush();
@@ -241,7 +257,6 @@ void Engine::Draw( int* triCount )
 
 	//debug = 0;
 	for( Model* model=modelRoot; model; model=model->next ) {
-		//if ( (debug++)&1 )
 		model->Queue( renderQueue, true );
 	}
 	renderQueue->Flush();
