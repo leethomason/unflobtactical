@@ -52,6 +52,7 @@
 		9A7ACE2F0F4A331D00297FA3 /* wheat.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE170F4A331D00297FA3 /* wheat.mod */; };
 		9A7ACE300F4A331D00297FA3 /* wheat.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE180F4A331D00297FA3 /* wheat.tex */; };
 		9A7ACE310F4A331D00297FA3 /* woodPlank.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A7ACE190F4A331D00297FA3 /* woodPlank.tex */; };
+		9A8062AE0F51F3CE006556FA /* farmland.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A8062AD0F51F3CE006556FA /* farmland.tex */; };
 		9A8EE7E20F3F76C5005FDF47 /* alienFloor.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A8EE7DE0F3F76C5005FDF47 /* alienFloor.tex */; };
 		9A8EE7E30F3F76C5005FDF47 /* dirtGrass.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A8EE7DF0F3F76C5005FDF47 /* dirtGrass.tex */; };
 		9A8EE7E40F3F76C5005FDF47 /* farmland.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A8EE7E00F3F76C5005FDF47 /* farmland.mod */; };
@@ -137,6 +138,7 @@
 		9A7ACE170F4A331D00297FA3 /* wheat.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = wheat.mod; path = ../res/wheat.mod; sourceTree = SOURCE_ROOT; };
 		9A7ACE180F4A331D00297FA3 /* wheat.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = wheat.tex; path = ../res/wheat.tex; sourceTree = SOURCE_ROOT; };
 		9A7ACE190F4A331D00297FA3 /* woodPlank.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodPlank.tex; path = ../res/woodPlank.tex; sourceTree = SOURCE_ROOT; };
+		9A8062AD0F51F3CE006556FA /* farmland.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = farmland.tex; path = ../res/farmland.tex; sourceTree = SOURCE_ROOT; };
 		9A8EE7DE0F3F76C5005FDF47 /* alienFloor.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = alienFloor.tex; path = ../res/alienFloor.tex; sourceTree = SOURCE_ROOT; };
 		9A8EE7DF0F3F76C5005FDF47 /* dirtGrass.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = dirtGrass.tex; path = ../res/dirtGrass.tex; sourceTree = SOURCE_ROOT; };
 		9A8EE7E00F3F76C5005FDF47 /* farmland.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = farmland.mod; path = ../res/farmland.mod; sourceTree = SOURCE_ROOT; };
@@ -257,6 +259,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9A8062AD0F51F3CE006556FA /* farmland.tex */,
 				9A7ACE020F4A331D00297FA3 /* alien0.mod */,
 				9A7ACE030F4A331D00297FA3 /* alien1.mod */,
 				9A7ACE040F4A331D00297FA3 /* alien2.mod */,
@@ -477,6 +480,7 @@
 				9A7ACE2F0F4A331D00297FA3 /* wheat.mod in Resources */,
 				9A7ACE300F4A331D00297FA3 /* wheat.tex in Resources */,
 				9A7ACE310F4A331D00297FA3 /* woodPlank.tex in Resources */,
+				9A8062AE0F51F3CE006556FA /* farmland.tex in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

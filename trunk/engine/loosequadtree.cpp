@@ -356,7 +356,24 @@ void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersect
 		for( Item* item=node->sentinel.next; item != &node->sentinel; item=item->next ) 
 		{
 			Model* m = &item->model;
+			
 			if ( !m->IsHiddenFromTree() ) {
+				/*
+				if ( intersection == grinliz::INTERSECT ) {
+					SphereX sphere;
+					m->CalcBoundSphere( &sphere );
+					
+					int compare = grinliz::INTERSECT;
+					for( int k=0; k<nPlanes; ++k ) {
+						compare = ComparePlaneSphereX( planes[k], sphere );
+						if ( compare == grinliz::NEGATIVE ) {
+							break;
+						}
+					}
+					if ( compare == grinliz::NEGATIVE )
+						continue;
+				}
+				 */
 				m->next = modelRoot;
 				modelRoot = m;
 				++modelsFound;

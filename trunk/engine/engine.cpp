@@ -53,7 +53,29 @@ using namespace grinliz;
 			2. Replace characters with billboards.
 			3. Triangle reduction of the background.	[done - switched to texture]
 			4. Background as a single texture.			[done]
-			5. Is it possible to do planar shadows in one pass? Map from vertex to texture coordinates?
+			5. Is it possible to do planar shadows in one pass? Map from vertex to texture coordinates? [HECK YEAH - complex, but done]
+*/
+
+/*	Notes
+
+	Shadows.
+ 
+	The engine supports planar shadows. The obvious way to implement this is to:
+		1. render the background in light
+		2. render the shadows to stencil / depth / destination-alpha
+		3. render the background in shadow, testing against stencil / depth /destination-alpha
+ 
+	The iphone doesn't have stencil. Testing dest-alpha (blending) vs. depth indicated that depth is *much* faster. So depth
+	is supported as SHADOW_Z.
+ 
+	Once I switched the background plane to a single texture, it opened up a new possibility. Transform the shadow coordinates 
+	to ground texture coordinates. Tricky as hell on the fixed pipeline.
+ 
+	1. Feed vertex coordinates to texture coordinates.
+	2. Transform the texture/vertex coordinates to the ground plane (shadow)
+	3. Transform from ground plane coordinates to texture (uv) coordinates.
+
+	Simple in theory, simple on a shader, tricky in fixed pipeline. But does work.
 */
 
 
