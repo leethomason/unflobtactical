@@ -49,11 +49,13 @@ using namespace grinliz;
  
 	New baseline:			20.0 fps
  
-	Ideas:	1. Better bounding tests. Bounding boxes are still quite loose.
-			2. Replace characters with billboards.
+	Ideas:	1. Better bounding tests. Bounding boxes are still quite loose. [done]
+			2. Replace characters with billboards.		[pass]
 			3. Triangle reduction of the background.	[done - switched to texture]
 			4. Background as a single texture.			[done]
 			5. Is it possible to do planar shadows in one pass? Map from vertex to texture coordinates? [HECK YEAH - complex, but done]
+ 
+			ALL THAT! Gets it back to 30.0fps, 7.6K tris/frame. Yay!
 */
 
 /*	Notes
