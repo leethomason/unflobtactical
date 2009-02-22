@@ -25,27 +25,14 @@ void PlaneX::Convert( const grinliz::Plane& plane )
 
 
 
-Fixed PlanePointDistanceSquared( const PlaneX& plane, const Vector3X& point )
-{
-	// http://mathworld.wolfram.com/Point-PlaneDistance.html
-	Fixed num = plane.n.x*point.x + plane.n.y*point.y + plane.n.z*point.z + plane.d;
-	Fixed denom = plane.n.x*plane.n.x + plane.n.y*plane.n.y + plane.n.z*plane.n.z;
-	Fixed d2 = num*num/denom;
-	return d2;
-}
-
-
 int ComparePlaneSphereX( const PlaneX& plane, const SphereX& sphere )
 {
-	Fixed d2 = PlanePointDistanceSquared( plane, sphere.origin );
-	Fixed r2 = sphere.radius*sphere.radius;
+	Fixed d = plane.n.x*sphere.origin.x + plane.n.y*sphere.origin.y + plane.n.z*sphere.origin.z + plane.d;
 
-	if ( d2 <= 0 ) {
-		if ( d2 > r2 ) {
-			return grinliz::POSITIVE;
-		}
+	if ( d > sphere.radius ) {
+		return grinliz::POSITIVE;
 	}
-	else if ( d2 < -r2 ) {
+	else if ( d < -sphere.radius ) {
 		return grinliz::NEGATIVE;
 	}
 	return grinliz::INTERSECT;

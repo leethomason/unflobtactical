@@ -17,6 +17,10 @@ struct SphereX
 {
 	Vector3X origin;
 	grinliz::Fixed radius;
+	void Dump() {
+		GLOUTPUT(( "origin=(%.2f,%.2f,%.2f) radius=%.2f\n", 
+					(float)origin.x, (float)origin.y, (float)origin.z, (float)radius ));
+	}
 };
 
 struct CircleX
