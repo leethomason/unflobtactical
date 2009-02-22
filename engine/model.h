@@ -91,15 +91,15 @@ public:
 
 	// Queued rendering
 	enum {
-		MODEL_TEXTURE,
-		NO_TEXTURE,
-		TEXTURE_SET
+		MODEL_TEXTURE,	// use the texture of the models
+		NO_TEXTURE,		// no texture at all - shadow pass Z
+		TEXTURE_SET		// used for background texture tricks - shadow pass ONE_PASS
 	};
 	void Queue( RenderQueue* queue, int textureState=MODEL_TEXTURE );
 
 	// Used by the queued rendering system:
-	void PushMatrix( const grinliz::Matrix4* textureMatrix ) const;
-	void PopMatrix( const grinliz::Matrix4* textureMatrix ) const;
+	void PushMatrix( bool bindTextureToVertex ) const;
+	void PopMatrix( bool bindTextureToVertex ) const;
 
 	bool IsDraggable()	{ return isDraggable; }
 	void SetDraggable( bool drag )	{ isDraggable = drag; }

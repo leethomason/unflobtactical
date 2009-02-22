@@ -11,10 +11,6 @@ RenderQueue::RenderQueue()
 	triCount = 0;
 	bindTextureToVertex = false;
 	textureMatrix = 0;
-//#if (EL_BATCH_VERTICES==1)
-//	nVertex = 0;
-//	nIndex = 0;
-//#endif
 }
 
 
@@ -122,31 +118,12 @@ void RenderQueue::Flush()
 	int atoms = 0;
 	int models = 0;
 
-/*
-#if (EL_BATCH_VERTICES==1)
-	GLASSERT( nVertex == 0 );
-	GLASSERT( nIndex == 0 );
-	U8* vPtr = (U8*)vertexBuffer + Vertex::POS_OFFSET;
-	U8* nPtr = (U8*)vertexBuffer + Vertex::NORMAL_OFFSET;
-	U8* tPtr = (U8*)vertexBuffer + Vertex::TEXTURE_OFFSET;
-
-	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)vPtr);
-	glNormalPointer(      GL_FLOAT, sizeof(Vertex), (const GLvoid*)nPtr);		
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (const GLvoid*)tPtr);  
-	Matrix4 m, r;
-#endif
-	*/
-
 	//GLOUTPUT(( "RenderQueue::Flush nState=%d nModel=%d\n", nState, nModel ));
 
 	for( int i=0; i<nState; ++i ) {
 		// Handle state change.
 		if ( flags != statePool[i].state.flags ) {
 			
-//#if (EL_BATCH_VERTICES==1)
-//			FlushBuffers();
-//#endif
-
 			flags = statePool[i].state.flags;
 			++states;
 
@@ -165,10 +142,6 @@ void RenderQueue::Flush()
 		// Handle texture change.
 		if ( textureID != statePool[i].state.textureID ) 
 		{
-//#if (EL_BATCH_VERTICES==1)
-//			FlushBuffers();
-//#endif
-
 			textureID = statePool[i].state.textureID;
 			++textures;
 
@@ -183,9 +156,7 @@ void RenderQueue::Flush()
 			atom = statePool[i].state.atom;
 			++atoms;
 
-//#if (EL_BATCH_VERTICES==0)
 			atom->Bind( bindTextureToVertex );
-//#endif
 		}
 
 		// Send down the VBOs
@@ -195,46 +166,14 @@ void RenderQueue::Flush()
 			const Model* model = item->model;
 			GLASSERT( model );
 
-//#if (EL_BATCH_VERTICES==0)
-			model->PushMatrix( textureMatrix );
+			model->PushMatrix( bindTextureToVertex );
 			atom->Draw();
-			model->PopMatrix( textureMatrix );
-//#else
-/*
-			if (    nIndex + atom->nIndex > INDEX_BUFFER_SIZE
-				 || nVertex + atom->nVertex > VERTEX_BUFFER_SIZE )
-			{
-				FlushBuffers();
-			}
-			GLASSERT( nIndex + atom->nIndex      < INDEX_BUFFER_SIZE 
-				      && nVertex + atom->nVertex < VERTEX_BUFFER_SIZE );
-
-			model->GetXForm( &m, &r );
-			U16 offset = (U16)nVertex;
-
-			for( unsigned k=0; k<atom->nVertex; ++k ) {
-				vertexBuffer[nVertex].pos		= m * atom->vertex[k].pos;
-				vertexBuffer[nVertex].normal	= r * atom->vertex[k].normal;
-				vertexBuffer[nVertex].tex		= atom->vertex[k].tex;
-				++nVertex;
-			}
-
-			for( unsigned k=0; k<atom->nIndex; ++k ) {
-				indexBuffer[nIndex] = atom->index[k] + offset;
-				++nIndex;
-			}
-*/
-//#endif
-
+			model->PopMatrix( bindTextureToVertex );
 			item = item->nextModel;
 		}
 	}
-//#if (EL_BATCH_VERTICES==0)
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-//#else
-//	FlushBuffers();
-//#endif
 	nState = 0;
 	nModel = 0;
 	glDisable( GL_ALPHA_TEST );
@@ -242,19 +181,3 @@ void RenderQueue::Flush()
 
 //	GLOUTPUT(( "states=%d textures=%d atoms=%d models=%d\n", states, textures, atoms, models ));
 }
-
-/*
-#if (EL_BATCH_VERTICES==1)
-void RenderQueue::FlushBuffers()
-{
-	if ( nIndex > 0 ) {
-		glDrawElements( GL_TRIANGLES, 
-						nIndex,
-						GL_UNSIGNED_SHORT, 
-						indexBuffer );
-	}
-	nIndex = 0;
-	nVertex = 0;
-}
-#endif
-*/

@@ -198,28 +198,6 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	// unbind
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-/*
-#elif (EL_BATCH_VERTICES==1)
-	int vOffset = 0;
-	int iOffset = 0;
-	for( U32 i=0; i<res->nGroups; ++i )
-	{
-		res->atom[i].vertex = new Vertex[ res->atom[i].nVertex ];
-		res->atom[i].index  = new U16[ res->atom[i].nIndex ];
-
-		U32 indexSize = sizeof(U16)*res->atom[i].nIndex;
-		U32 dataSize  = sizeof(Vertex)*res->atom[i].nVertex;
-
-		memcpy( res->atom[i].vertex, vertex+vOffset, dataSize );
-		memcpy( res->atom[i].index, index+iOffset, indexSize );
-
-		iOffset += res->atom[i].nIndex;
-		vOffset += res->atom[i].nVertex;
-	}
-#else
-#	error Vertex buffers not defined.
-#endif
-*/
 }
 
 
@@ -409,18 +387,7 @@ void ModelAtom::Draw() const
 }
 
 
-/*
-void Model::GetXForm( grinliz::Matrix4* matrix, grinliz::Matrix4* rotation ) const
-{
-	Matrix4 t, r;
-	t.SetTranslation( pos.x, pos.y, pos.z );
-	r.SetYRotation( rot );
-	*rotation = r;
-	*matrix = t*r;
-}
-*/
-
-void Model::PushMatrix( const grinliz::Matrix4* textureMat ) const
+void Model::PushMatrix( bool bindTextureToVertex ) const
 {
 	glPushMatrix();
 	#if defined(TARGET_OS_IPHONE)
@@ -437,8 +404,8 @@ void Model::PushMatrix( const grinliz::Matrix4* textureMat ) const
 	}
 	#endif
 
-	if ( textureMat ) {
-		
+	if ( bindTextureToVertex ) {
+		/*
 		// This code is correct, if too slow. But good reference!
 		Vector3F lightDirection = { 0.7f, 3.0f, 1.4f };
 		lightDirection.Normalize();
@@ -447,7 +414,7 @@ void Model::PushMatrix( const grinliz::Matrix4* textureMat ) const
 		light.m12 = -lightDirection.x/lightDirection.y;
 		light.m22 = 0.0f;
 		light.m32 = -lightDirection.z/lightDirection.y;
-		/*
+		
 		r.SetYRotation( rot );
 		t.SetTranslation( pos.x, pos.y, pos.z );
 
@@ -462,8 +429,8 @@ void Model::PushMatrix( const grinliz::Matrix4* textureMat ) const
 		glMatrixMode(GL_TEXTURE);
 		glPushMatrix();
 
-		glMultMatrixf( textureMat->x );
-		glMultMatrixf( light.x );
+		//glMultMatrixf( textureMat->x );
+		//glMultMatrixf( light.x );
 		glTranslatef( pos.x, pos.y, pos.z );
 		if ( rot != 0 ) {
 			glRotatef( rot, 0.f, 1.f, 0.f );
@@ -481,9 +448,9 @@ void Model::PushMatrix( const grinliz::Matrix4* textureMat ) const
 }
 
 
-void Model::PopMatrix( const grinliz::Matrix4* textureMat ) const
+void Model::PopMatrix( bool bindTextureToVertex ) const
 {
-	if ( textureOffsetX > 0 || textureMat ) {
+	if ( textureOffsetX > 0 || bindTextureToVertex ) {
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 	}
