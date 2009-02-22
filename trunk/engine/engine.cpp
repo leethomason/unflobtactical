@@ -169,18 +169,24 @@ void Engine::PushShadowMatrix()
 }
 
 
-void Engine::ShadowTextureMatrix( Matrix4* c )
+void Engine::PopShadowTextureMatrix()
+{
+	glMatrixMode(GL_TEXTURE);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);	
+}
+
+
+void Engine::PushShadowTextureMatrix()
 {
 	Matrix4 t, m;
 
 	float SIZEinv = 1.0f / (float)Map::SIZE;
 
 	// XYZ -> Planar XZ
-	/*
 	m.m12 = -lightDirection.x/lightDirection.y;
 	m.m22 = 0.0f;
 	m.m32 = -lightDirection.z/lightDirection.y;
-	*/
 
 	// Planar XZ -> UV
 	t.m11 = SIZEinv;
@@ -199,7 +205,11 @@ void Engine::ShadowTextureMatrix( Matrix4* c )
 	//Vector3F testIn = { 64.0f, 1.0f, 64.0f };
 	//Vector3F testOut = c * testIn;
 
-	*c = t;	//t*m;
+	Matrix4 c = t*m;
+	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	glMultMatrixf( c.x );
+	glMatrixMode(GL_MODELVIEW);
 }
 
 
@@ -272,8 +282,7 @@ void Engine::Draw( int* triCount )
 		textureState = Model::TEXTURE_SET;
 
 		renderQueue->BindTextureToVertex( true );
-		ShadowTextureMatrix( &textureMatrix );
-		renderQueue->SetTextureMatrix( &textureMatrix );
+		PushShadowTextureMatrix();
 		LightSimple( true );
 
 		//glDisable( GL_DEPTH_TEST );
@@ -288,9 +297,10 @@ void Engine::Draw( int* triCount )
 
 	renderQueue->Flush();
 	renderQueue->BindTextureToVertex( false );
+	if ( shadowMode == SHADOW_ONE_PASS ) {
+		PopShadowTextureMatrix();
+	}
 	CHECK_GL_ERROR;
-
-	renderQueue->SetTextureMatrix( 0 );
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 	glPopMatrix();

@@ -110,7 +110,9 @@ private:
 	void LightSimple( bool inShadow );
 	Model* IntersectModel( const grinliz::Ray& ray, bool onlyDraggable );
 	void PushShadowMatrix();
-	void ShadowTextureMatrix( grinliz::Matrix4* m );
+
+	void PushShadowTextureMatrix();
+	void PopShadowTextureMatrix();
 
 	int		width;
 	int		height;
