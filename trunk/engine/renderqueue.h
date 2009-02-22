@@ -22,7 +22,7 @@ class RenderQueue
 {
 public:
 	enum {
-		ALPHA_TEST = 0x0001,
+		ALPHA_TEST		= 0x02,
 	};
 
 	enum {
@@ -40,6 +40,9 @@ public:
 
 	void Flush();
 	bool Empty() { return nState == 0 && nModel == 0; }
+
+	void BindTextureToVertex( bool bind )				{ bindTextureToVertex = bind; }
+	void SetTextureMatrix( const grinliz::Matrix4* m )	{ textureMatrix = m; }
 
 	int GetTriCount()		{ return triCount; }
 	void ClearTriCount()	{ triCount = 0; }
@@ -82,18 +85,21 @@ private:
 	int nState;
 	int nModel;
 	int triCount;
-#if (EL_BATCH_VERTICES==1)
+	bool bindTextureToVertex;
+	const grinliz::Matrix4 *textureMatrix;
+
+//#if (EL_BATCH_VERTICES==1)
 	void FlushBuffers();
 	int nVertex;
 	int nIndex;
-#endif
+//#endif
 	Item statePool[MAX_STATE];
 	Item modelPool[MAX_MODELS];
 
-#if (EL_BATCH_VERTICES==1)
-	Vertex vertexBuffer[VERTEX_BUFFER_SIZE];
-	U16    indexBuffer[INDEX_BUFFER_SIZE];
-#endif
+//#if (EL_BATCH_VERTICES==1)
+//	Vertex vertexBuffer[VERTEX_BUFFER_SIZE];
+//	U16    indexBuffer[INDEX_BUFFER_SIZE];
+//#endif
 };
 
 

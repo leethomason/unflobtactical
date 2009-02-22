@@ -16,6 +16,7 @@
 	<texture filename="ufoOuter.png" />
 	<texture filename="wheat.tga" />
 	<texture filename="tree.tga" />
+	<texture filename="farmland.png" />
 
 	<!-- Models -->
 	<model filename="test1.ac" />

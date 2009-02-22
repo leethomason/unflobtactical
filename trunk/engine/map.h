@@ -42,6 +42,7 @@ public:
 	~Map();
 
 	void SetModel( Model* m );
+	U32 GetMapGUID();
 	void Draw( RenderQueue* queue );
 
 	int Width()		{ return width; }	// the size in use

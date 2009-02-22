@@ -178,10 +178,10 @@ class Matrix4
 		if ( !name ) {
 			name = empty;
 		}
-		GLOUTPUT(( "Mat%4s: %6.2f %6.2f %6.2f %6.2f\n"
-				  "         %6.2f %6.2f %6.2f %6.2f\n"			
-				  "         %6.2f %6.2f %6.2f %6.2f\n"			
-				  "         %6.2f %6.2f %6.2f %6.2f\n",
+		GLOUTPUT(( "Mat%4s: %7.3f %7.3f %7.3f %7.3f\n"
+				  "         %7.3f %7.3f %7.3f %7.3f\n"			
+				  "         %7.3f %7.3f %7.3f %7.3f\n"			
+				  "         %7.3f %7.3f %7.3f %7.3f\n",
 				  name,
 				  x[0], x[4], x[8], x[12], 
 				  x[1], x[5], x[9], x[13], 			
