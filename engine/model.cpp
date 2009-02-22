@@ -173,7 +173,7 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 #endif
 	
 
-#if (EL_BATCH_VERTICES==0)
+//#if (EL_BATCH_VERTICES==0)
 	// Load to VBO
 	int vOffset = 0;
 	int iOffset = 0;
@@ -198,6 +198,7 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	// unbind
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+/*
 #elif (EL_BATCH_VERTICES==1)
 	int vOffset = 0;
 	int iOffset = 0;
@@ -218,6 +219,7 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 #else
 #	error Vertex buffers not defined.
 #endif
+*/
 }
 
 
@@ -281,20 +283,21 @@ void Model::CalcHitAABB( Rectangle3X* aabb )
 }
 
 
-void Model::Queue( RenderQueue* queue, bool useTexture )
+void Model::Queue( RenderQueue* queue, int textureMode )
 {
-	for( U32 i=0; i<resource->nGroups; ++i ) {
-
+	for( U32 i=0; i<resource->nGroups; ++i ) 
+	{
 		int flags = 0;
-
-		// FIXME: If alpha test is in use, we need the texture for the shadow phase.
-		if ( resource->atom[i].texture->alphaTest & RenderQueue::ALPHA_TEST ) {
+		if (    textureMode != Model::NO_TEXTURE 
+			 && resource->atom[i].texture->alphaTest ) 
+		{
 			flags |= RenderQueue::ALPHA_TEST;
-			//useTexture = true;
 		}
 
+		U32 textureID = (textureMode == Model::MODEL_TEXTURE) ? resource->atom[i].texture->glID : 0;
+
 		queue->Add( flags, 
-					(useTexture) ? resource->atom[i].texture->glID : 0,
+					textureID,
 					this, 
 					&resource->atom[i] );
 	}
@@ -368,9 +371,9 @@ void Model::Draw( bool useTexture )
 }
 */
 
-void ModelAtom::Bind() const
+void ModelAtom::Bind( bool bindTextureToVertex ) const
 {
-#if (EL_BATCH_VERTICES==0)
+//#if (EL_BATCH_VERTICES==0)
 	glBindBuffer( GL_ARRAY_BUFFER, vertexID );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, indexID );
 
@@ -381,16 +384,20 @@ void ModelAtom::Bind() const
 	#else
 	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
 	glNormalPointer(      GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
+
+	if ( bindTextureToVertex ) 
+		glTexCoordPointer( 3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);  
+	else
+		glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
 	#endif
 	CHECK_GL_ERROR;
-#endif
+//#endif
 }
 
 
 void ModelAtom::Draw() const
 {
-#if (EL_BATCH_VERTICES==0)
+//#if (EL_BATCH_VERTICES==0)
 	// mode, count, type, indices
 	glDrawElements( GL_TRIANGLES, 
 					nIndex,
@@ -398,10 +405,11 @@ void ModelAtom::Draw() const
 					0 );
 	CHECK_GL_ERROR;
 	trisRendered += nIndex / 3;
-#endif
+//#endif
 }
 
 
+/*
 void Model::GetXForm( grinliz::Matrix4* matrix, grinliz::Matrix4* rotation ) const
 {
 	Matrix4 t, r;
@@ -410,9 +418,9 @@ void Model::GetXForm( grinliz::Matrix4* matrix, grinliz::Matrix4* rotation ) con
 	*rotation = r;
 	*matrix = t*r;
 }
+*/
 
-
-void Model::PushMatrix() const
+void Model::PushMatrix( const grinliz::Matrix4* textureMat ) const
 {
 	glPushMatrix();
 	#if defined(TARGET_OS_IPHONE)
@@ -422,18 +430,46 @@ void Model::PushMatrix() const
 	}
 	#else
 	{
-		Vector3F posf;
-		float rotf = rot;
-		ConvertVector3( pos, &posf );
-
 		glTranslatef( pos.x, pos.y, pos.z );
 		if ( rot != 0 ) {
-			glRotatef( rotf, 0.f, 1.f, 0.f );
+			glRotatef( rot, 0.f, 1.f, 0.f );
 		}
 	}
 	#endif
 
-	if ( textureOffsetX > 0 ) {
+	if ( textureMat ) {
+		
+		// This code is correct, if too slow. But good reference!
+		Vector3F lightDirection = { 0.7f, 3.0f, 1.4f };
+		lightDirection.Normalize();
+		Matrix4 light, r, t, mat;
+
+		light.m12 = -lightDirection.x/lightDirection.y;
+		light.m22 = 0.0f;
+		light.m32 = -lightDirection.z/lightDirection.y;
+		/*
+		r.SetYRotation( rot );
+		t.SetTranslation( pos.x, pos.y, pos.z );
+
+		mat = (*textureMat)*light*t*r;
+
+		glMatrixMode(GL_TEXTURE);
+		glPushMatrix();
+		
+		glMultMatrixf( mat.x );
+		*/
+
+		glMatrixMode(GL_TEXTURE);
+		glPushMatrix();
+
+		glMultMatrixf( textureMat->x );
+		glMultMatrixf( light.x );
+		glTranslatef( pos.x, pos.y, pos.z );
+		if ( rot != 0 ) {
+			glRotatef( rot, 0.f, 1.f, 0.f );
+		} 
+	}
+	else if ( textureOffsetX > 0 ) {
 		glMatrixMode(GL_TEXTURE);
 		glPushMatrix();
 		#if defined(TARGET_OS_IPHONE)
@@ -445,9 +481,9 @@ void Model::PushMatrix() const
 }
 
 
-void Model::PopMatrix() const
+void Model::PopMatrix( const grinliz::Matrix4* textureMat ) const
 {
-	if ( textureOffsetX > 0 ) {
+	if ( textureOffsetX > 0 || textureMat ) {
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 	}

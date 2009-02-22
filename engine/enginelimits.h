@@ -13,7 +13,7 @@ enum {
 };
 
 #define EL_USE_FLOAT		1
-#define EL_BATCH_VERTICES	0
-//#define EL_SHOW_MODELS		1
+//#define EL_BATCH_VERTICES	0
+//#define EL_SHOW_MODELS
 
 #endif

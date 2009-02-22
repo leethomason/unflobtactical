@@ -51,8 +51,8 @@ using namespace grinliz;
  
 	Ideas:	1. Better bounding tests. Bounding boxes are still quite loose.
 			2. Replace characters with billboards.
-			3. Triangle reduction of the background.
-			4. Background as a single texture.
+			3. Triangle reduction of the background.	[done - switched to texture]
+			4. Background as a single texture.			[done]
 			5. Is it possible to do planar shadows in one pass? Map from vertex to texture coordinates?
 */
 
@@ -60,7 +60,8 @@ using namespace grinliz;
 Engine::Engine( int _width, int _height, const EngineData& _engineData ) 
 	:	width( _width ), 
 		height( _height ), 
-		shadowMode( SHADOW_Z ), 
+		shadowMode( SHADOW_ONE_PASS ), 
+		//shadowMode( SHADOW_Z ), 
 		isDragging( false ), 
 		engineData( _engineData ),
 		initZoomDistance( 0 ),
@@ -96,6 +97,7 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 	lightDirection.Normalize();
 	depthFunc = 0;
 }
+
 
 Engine::~Engine()
 {
@@ -151,9 +153,66 @@ void Engine::DrawCamera()
 }
 
 
+void Engine::PushShadowMatrix()
+{
+	Matrix4 m;
+	m.m12 = -lightDirection.x/lightDirection.y;
+	m.m22 = 0.0f;
+	if ( shadowMode == SHADOW_Z ) {
+		m.m24 = -0.05f;		// y term down
+		m.m34 = -0.05f;		// z term - hide the shift error.
+	}
+	m.m32 = -lightDirection.z/lightDirection.y;
+
+	glPushMatrix();
+	glMultMatrixf( m.x );
+}
+
+
+void Engine::ShadowTextureMatrix( Matrix4* c )
+{
+	Matrix4 t, m;
+
+	float SIZEinv = 1.0f / (float)Map::SIZE;
+
+	// XYZ -> Planar XZ
+	/*
+	m.m12 = -lightDirection.x/lightDirection.y;
+	m.m22 = 0.0f;
+	m.m32 = -lightDirection.z/lightDirection.y;
+	*/
+
+	// Planar XZ -> UV
+	t.m11 = SIZEinv;
+
+	t.m21 = 0.0f;
+	t.m22 = 0.0f;
+	t.m23 = -SIZEinv;
+	t.m24 = 1.0f;
+
+	t.m33 = 0.0f;
+	
+	//m.Dump();
+	//t.Dump();
+	//c.Dump();
+
+	//Vector3F testIn = { 64.0f, 1.0f, 64.0f };
+	//Vector3F testOut = c * testIn;
+
+	*c = t;	//t*m;
+}
+
+
 void Engine::Draw( int* triCount )
 {
+	Matrix4 textureMatrix;
+
 	DrawCamera();
+	glEnable( GL_DEPTH_TEST );
+	if ( depthFunc == 0 ) {
+		// Not clear what the default is (from the driver): LEQUAL or LESS. So query and cache.
+		glGetIntegerv( GL_DEPTH_FUNC, &depthFunc );	
+	}
 
 	/*
 		Render phases.					z-write	z-test	lights		notes
@@ -166,20 +225,22 @@ void Engine::Draw( int* triCount )
 		(Particle)
 
 	*/
-
-	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+	glDisable( GL_LIGHTING );
 
 	// -- Ground plane lighted -- //
-	EnableLights( true, false );
+	LightSimple( false );
 
 	// The depth mask and the depth test should be completely
 	// independent. But there seems to be bugs across systems 
 	// on this. Rather than figure it all out, set them as one
 	// state.
-	glEnable( GL_DEPTH_TEST );
-	glDepthMask( GL_TRUE );
-	if ( depthFunc == 0 ) {
-		glGetIntegerv( GL_DEPTH_FUNC, &depthFunc );	
+	if ( shadowMode == SHADOW_ONE_PASS ) {
+		glDisable( GL_DEPTH_TEST );
+		glDepthMask( GL_FALSE );
+	}
+	else {
+		glEnable( GL_DEPTH_TEST );
+		glDepthMask( GL_TRUE );
 	}
 
 	// Compute the frustum planes
@@ -196,60 +257,68 @@ void Engine::Draw( int* triCount )
 	// -- Shadow casters/ground plane -- //
 	// Set up the planar projection matrix, with a little z offset
 	// to help with z resolution fighting.
-	Matrix4 m;
-	m.m12 = -lightDirection.x/lightDirection.y;
-	m.m22 = 0.0f;
+	PushShadowMatrix();
+
+	int textureState = 0;
 	if ( shadowMode == SHADOW_Z ) {
-		m.m24 = -0.05f;		// y term down
-		m.m34 = -0.05f;		// z term - hide the shift error.
+		glDisable( GL_TEXTURE_2D );
+		glDisable( GL_LIGHTING );
+		glDepthFunc( GL_ALWAYS );
+		textureState = Model::NO_TEXTURE;
+		glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );	// keeps white from bleeding outside the map.
 	}
-	m.m32 = -lightDirection.z/lightDirection.y;
-	glPushMatrix();
-	glMultMatrixf( m.x );
+	else {
+		glBindTexture( GL_TEXTURE_2D, map->GetMapGUID() );
+		textureState = Model::TEXTURE_SET;
 
-	glDisable( GL_TEXTURE_2D );
-	glDisable( GL_LIGHTING );
+		renderQueue->BindTextureToVertex( true );
+		ShadowTextureMatrix( &textureMatrix );
+		renderQueue->SetTextureMatrix( &textureMatrix );
+		LightSimple( true );
 
-	// Not clear what the default is (from the driver): LEQUAL or LESS. So query.
-	glDepthFunc( GL_ALWAYS );
-
+		//glDisable( GL_DEPTH_TEST );
+		//glDepthMask( GL_FALSE );
+	}
 	GLASSERT( renderQueue->Empty() );
-
-	glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );	// keeps white from bleeding outside the map.
 	
-	//int debug=0;
 	for( Model* model=modelRoot; model; model=model->next ) {
-		model->Queue( renderQueue, false );
+		// Draw model shadows.
+		model->Queue( renderQueue, textureState );
 	}
+
 	renderQueue->Flush();
+	renderQueue->BindTextureToVertex( false );
+	CHECK_GL_ERROR;
+
+	renderQueue->SetTextureMatrix( 0 );
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 	glPopMatrix();
 	
-	EnableLights( true, true );
-	glEnable( GL_TEXTURE_2D );
-	glEnable( GL_LIGHTING );
-
-	/*
-	if ( shadowMode == SHADOW_DST_BLEND ) {
-		glEnable( GL_BLEND );
-		glBlendFunc( GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA );
-		map->Draw();
-		glDisable( GL_BLEND );
-	}
-	else if ( shadowMode == SHADOW_Z ) 
-	*/
+	// Redraw the map, checking z, in shadow.
+	if ( shadowMode == SHADOW_Z )
 	{
+		EnableLights( true, true );
+		glEnable( GL_TEXTURE_2D );
+		glEnable( GL_LIGHTING );
+		CHECK_GL_ERROR;
+
 		glDepthMask( GL_TRUE );
 		glEnable( GL_DEPTH_TEST );
 		glDepthFunc( GL_LESS );
+
 		map->Draw( renderQueue );
+		CHECK_GL_ERROR;
 	}
-	
+
+	CHECK_GL_ERROR;
 	glEnable( GL_TEXTURE_2D );
 	glEnable( GL_LIGHTING );
+	glEnable( GL_DEPTH_TEST );
+	glDepthMask( GL_TRUE );
 	glDepthFunc( depthFunc );
-	
+	CHECK_GL_ERROR;
+
 	// -- Model -- //
 	EnableLights( true, false );
 	glEnable( GL_DEPTH_TEST );
@@ -257,7 +326,7 @@ void Engine::Draw( int* triCount )
 
 	//debug = 0;
 	for( Model* model=modelRoot; model; model=model->next ) {
-		model->Queue( renderQueue, true );
+		model->Queue( renderQueue, Model::MODEL_TEXTURE );
 	}
 	renderQueue->Flush();
 	
@@ -288,8 +357,14 @@ void Engine::Draw( int* triCount )
 }
 
 
+const float gAMBIENT = 0.3f;
+const float gDIFFUSE = 0.7f;
+const float gSHADOW  = 0.3f;
+	
 void Engine::EnableLights( bool enable, bool inShadow )
 {
+
+
 	CHECK_GL_ERROR;
 	if ( !enable ) {
 		glDisable( GL_LIGHTING );
@@ -300,15 +375,14 @@ void Engine::EnableLights( bool enable, bool inShadow )
 
 		const float white[4]	= { 1.0f, 1.0f, 1.0f, 1.0f };
 		const float black[4]	= { 0.0f, 0.0f, 0.0f, 1.0f };
-		float ambient[4]  = { 0.3f, 0.3f, 0.3f, 1.0f };
-		float diffuse[4]	= { 0.7f, 0.7f, 0.7f, 1.0f };
+		float ambient[4] = { gAMBIENT, gAMBIENT, gAMBIENT, 1.0f };
+		float diffuse[4] = { gDIFFUSE, gDIFFUSE, gDIFFUSE, 1.0f };
 		Vector3F lightDir = lightDirection;
 
 		if ( inShadow ) {
-			const float SHADOW_FACTOR = 0.2f;
-			diffuse[0] *= SHADOW_FACTOR;
-			diffuse[1] *= SHADOW_FACTOR;
-			diffuse[2] *= SHADOW_FACTOR;
+			diffuse[0] *= gSHADOW;
+			diffuse[1] *= gSHADOW;
+			diffuse[2] *= gSHADOW;
 			diffuse[3] = 1.0f;
 		}
 
@@ -332,6 +406,27 @@ void Engine::EnableLights( bool enable, bool inShadow )
 		glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,  white );
 		CHECK_GL_ERROR;
 	}
+}
+
+
+void Engine::LightSimple( bool inShadow )
+{
+	const Vector3F normal = { 0.0f, 1.0f, 0.0f };	
+	float dot = DotProduct( lightDirection, normal );
+
+	float diffuse = gDIFFUSE;
+	if ( inShadow ) {
+		// FIXME: not sure what I'm missing in the light equation, but this is too dark.
+		// The main reason LightSimple is here is that lighting doesn't look correct in shadows.
+		// Something is getting tweaked in the state. (Not a bug, just the difficulties of
+		// fixed pipeline lightning. Oh how I miss shaders.)
+		//diffuse *= SHADOW;
+		diffuse *= 0.6f;
+	}
+	float light = gAMBIENT + diffuse*dot;
+
+	CHECK_GL_ERROR;
+	glColor4f( light, light, light, 1.0f );
 }
 
 

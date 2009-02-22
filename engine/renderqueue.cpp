@@ -9,10 +9,12 @@ RenderQueue::RenderQueue()
 	nState = 0;
 	nModel = 0;
 	triCount = 0;
-#if (EL_BATCH_VERTICES==1)
-	nVertex = 0;
-	nIndex = 0;
-#endif
+	bindTextureToVertex = false;
+	textureMatrix = 0;
+//#if (EL_BATCH_VERTICES==1)
+//	nVertex = 0;
+//	nIndex = 0;
+//#endif
 }
 
 
@@ -120,6 +122,7 @@ void RenderQueue::Flush()
 	int atoms = 0;
 	int models = 0;
 
+/*
 #if (EL_BATCH_VERTICES==1)
 	GLASSERT( nVertex == 0 );
 	GLASSERT( nIndex == 0 );
@@ -132,6 +135,7 @@ void RenderQueue::Flush()
 	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (const GLvoid*)tPtr);  
 	Matrix4 m, r;
 #endif
+	*/
 
 	//GLOUTPUT(( "RenderQueue::Flush nState=%d nModel=%d\n", nState, nModel ));
 
@@ -139,9 +143,9 @@ void RenderQueue::Flush()
 		// Handle state change.
 		if ( flags != statePool[i].state.flags ) {
 			
-#if (EL_BATCH_VERTICES==1)
-			FlushBuffers();
-#endif
+//#if (EL_BATCH_VERTICES==1)
+//			FlushBuffers();
+//#endif
 
 			flags = statePool[i].state.flags;
 			++states;
@@ -161,9 +165,9 @@ void RenderQueue::Flush()
 		// Handle texture change.
 		if ( textureID != statePool[i].state.textureID ) 
 		{
-#if (EL_BATCH_VERTICES==1)
-			FlushBuffers();
-#endif
+//#if (EL_BATCH_VERTICES==1)
+//			FlushBuffers();
+//#endif
 
 			textureID = statePool[i].state.textureID;
 			++textures;
@@ -172,9 +176,6 @@ void RenderQueue::Flush()
 				glBindTexture( GL_TEXTURE_2D, textureID );
 				GLASSERT( glIsEnabled( GL_TEXTURE_2D ) );
 			}
-			else {
-				GLASSERT( !glIsEnabled( GL_TEXTURE_2D ) );
-			}
 		}
 
 		// Handle atom change
@@ -182,9 +183,9 @@ void RenderQueue::Flush()
 			atom = statePool[i].state.atom;
 			++atoms;
 
-#if (EL_BATCH_VERTICES==0)
-			atom->Bind();
-#endif
+//#if (EL_BATCH_VERTICES==0)
+			atom->Bind( bindTextureToVertex );
+//#endif
 		}
 
 		// Send down the VBOs
@@ -194,11 +195,12 @@ void RenderQueue::Flush()
 			const Model* model = item->model;
 			GLASSERT( model );
 
-#if (EL_BATCH_VERTICES==0)
-			model->PushMatrix();
+//#if (EL_BATCH_VERTICES==0)
+			model->PushMatrix( textureMatrix );
 			atom->Draw();
-			model->PopMatrix();
-#else
+			model->PopMatrix( textureMatrix );
+//#else
+/*
 			if (    nIndex + atom->nIndex > INDEX_BUFFER_SIZE
 				 || nVertex + atom->nVertex > VERTEX_BUFFER_SIZE )
 			{
@@ -221,17 +223,18 @@ void RenderQueue::Flush()
 				indexBuffer[nIndex] = atom->index[k] + offset;
 				++nIndex;
 			}
-#endif
+*/
+//#endif
 
 			item = item->nextModel;
 		}
 	}
-#if (EL_BATCH_VERTICES==0)
+//#if (EL_BATCH_VERTICES==0)
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-#else
-	FlushBuffers();
-#endif
+//#else
+//	FlushBuffers();
+//#endif
 	nState = 0;
 	nModel = 0;
 	glDisable( GL_ALPHA_TEST );
@@ -240,7 +243,7 @@ void RenderQueue::Flush()
 //	GLOUTPUT(( "states=%d textures=%d atoms=%d models=%d\n", states, textures, atoms, models ));
 }
 
-
+/*
 #if (EL_BATCH_VERTICES==1)
 void RenderQueue::FlushBuffers()
 {
@@ -254,3 +257,4 @@ void RenderQueue::FlushBuffers()
 	nVertex = 0;
 }
 #endif
+*/

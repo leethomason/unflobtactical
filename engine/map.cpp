@@ -3,6 +3,7 @@
 #include "model.h"
 #include "loosequadtree.h"
 #include "renderqueue.h"
+#include "surface.h"
 
 using namespace grinliz;
 
@@ -35,9 +36,16 @@ void Map::Clear()
 	}
 }
 
+
+U32 Map::GetMapGUID()
+{
+	return model->GetResource()->atom[0].texture->glID;
+}
+
+
 void Map::Draw( RenderQueue* queue )
 {
-	model->Queue( queue, true );
+	model->Queue( queue );
 	queue->Flush();
 }
 

@@ -20,12 +20,12 @@ struct ModelAtom
 	U32 nIndex;
 	mutable int trisRendered;
 
-	#if (EL_BATCH_VERTICES==1)
-	Vertex* vertex;
-	U16* index;
-	#endif
+	//#if (EL_BATCH_VERTICES==1)
+	//Vertex* vertex;
+	//U16* index;
+	//#endif
 
-	void Bind() const;
+	void Bind( bool bindTextureToVertex ) const;
 	void Draw() const;
 };
 
@@ -33,15 +33,15 @@ struct ModelAtom
 class ModelResource
 {
 public:
-	#if (EL_BATCH_VERTICES==1)
-	ModelResource()		{ nGroups = 0; }
-	~ModelResource()	{
-		for( unsigned i=0; i<nGroups; ++i ) {
-			delete [] atom[i].vertex;
-			delete [] atom[i].index;
-		}
-	}
-	#endif
+	//#if (EL_BATCH_VERTICES==1)
+	//ModelResource()		{ nGroups = 0; }
+	//~ModelResource()	{
+	//	for( unsigned i=0; i<nGroups; ++i ) {
+	//		delete [] atom[i].vertex;
+	//		delete [] atom[i].index;
+	//	}
+	//}
+	//#endif
 
 	char name[16];			// loaded
 	U32 nGroups;			// loaded
@@ -88,15 +88,18 @@ public:
 	~Model()	{}
 
 	void Init( ModelResource* resource, SpaceTree* tree );
-	// Draws the model, and sets texture
-	//void Draw( bool useTexture = true );
+
 	// Queued rendering
-	void Queue( RenderQueue* queue, bool useTexture );
+	enum {
+		MODEL_TEXTURE,
+		NO_TEXTURE,
+		TEXTURE_SET
+	};
+	void Queue( RenderQueue* queue, int textureState=MODEL_TEXTURE );
 
 	// Used by the queued rendering system:
-	void PushMatrix() const;
-	void PopMatrix() const;
-	void GetXForm( grinliz::Matrix4* matrix, grinliz::Matrix4* rotation ) const;
+	void PushMatrix( const grinliz::Matrix4* textureMatrix ) const;
+	void PopMatrix( const grinliz::Matrix4* textureMatrix ) const;
 
 	bool IsDraggable()	{ return isDraggable; }
 	void SetDraggable( bool drag )	{ isDraggable = drag; }
@@ -136,7 +139,6 @@ private:
 
 	bool isDraggable;
 	bool hiddenFromTree;
-
 };
 
 

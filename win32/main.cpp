@@ -207,7 +207,7 @@ int main( int argc, char **argv )
 						//case SDLK_LEFT:			GameAdjustPerspective( game, -2.0f );		break;
 						//case SDLK_RIGHT:		yRotation += 2.0f; GameYRotateCamera( game, yRotation );		break;
 						//case SDLK_LEFT:			yRotation -= 2.0f; GameYRotateCamera( game, yRotation );		break;
-						//case SDLK_s:			GameShadowMode( game );						break;
+						case SDLK_s:			GameShadowMode( game );						break;
 
 #ifdef MAPMAKER	
 						case SDLK_r:			((Game*)game)->RotateSelection();			break;

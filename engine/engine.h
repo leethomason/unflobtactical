@@ -107,7 +107,10 @@ private:
 	void RestrictCamera();
 	void CalcCameraRotation( grinliz::Matrix4* );
 	void EnableLights( bool enable, bool inShadow=false );
+	void LightSimple( bool inShadow );
 	Model* IntersectModel( const grinliz::Ray& ray, bool onlyDraggable );
+	void PushShadowMatrix();
+	void ShadowTextureMatrix( grinliz::Matrix4* m );
 
 	int		width;
 	int		height;
@@ -128,7 +131,7 @@ private:
 	Vector3X draggingModelOrigin;
 
 	enum {
-		SHADOW_DST_BLEND,
+		SHADOW_ONE_PASS,
 		SHADOW_Z,
 		SHADOW_COUNT
 	};

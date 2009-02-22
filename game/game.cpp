@@ -31,6 +31,7 @@ const char* const gModelNames[] =
 	"selection",
 
 	// Farmland tiles
+	"farmland",
 	"wallWoodSh",
 	"doorWoodOpen",
 	"doorWoodCl",
@@ -77,6 +78,7 @@ const TextureDef gTextureDef[] =
 	{	"ufoInner",		0	},
 	{	"tree",			ALPHA_TEST	},
 	{	"wheat",		ALPHA_TEST	},
+	{	"farmland",		0	},
 	{  0, 0 }
 };
 
@@ -132,7 +134,7 @@ Game::Game( int width, int height ) :
 	mapModel->HideFromTree( true );				// don't want to double render
 	engine.GetMap()->SetModel( mapModel );
 	//float mx = (float)engine.GetMap()->Width();
-	float mz = (float)engine.GetMap()->Height();
+	float mz = 40.0f; //(float)engine.GetMap()->Height();
 
 	//engine.camera.SetPosWC( -19.4f, 62.0f, 57.2f );
 	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
@@ -401,8 +403,11 @@ void Game::DoTick( U32 currentTime )
 	int h = engine.Height();
 	if ( rotation&1 ) grinliz::Swap( &w, &h );
 
-	UFODrawText( 0,  0, "UFO Attack! %.1ffps tris: %dK/s %dK/frame", 
-				 framesPerSecond, trianglesPerSecond, triCount/1000 );
+	UFODrawText( 0,  0, "UFO Attack! s=%d %4.1ffps %5.1fK/f %4dK/s", 
+				 engine.ShadowMode(),
+				 framesPerSecond, 
+				 (float)triCount/1000.0f,
+				 trianglesPerSecond );
 
 #ifdef EL_SHOW_MODELS
 	int k=0;
