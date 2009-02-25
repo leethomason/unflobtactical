@@ -82,10 +82,7 @@ const TextureDef gTextureDef[] =
 	{  0, 0 }
 };
 
-enum {
-	ICON_NONE,
-	ICON_CAMERA_HOME
-};
+
 
 
 Game::Game( int width, int height ) :
@@ -100,9 +97,7 @@ Game::Game( int width, int height ) :
 	trianglesSinceMark( 0 ),
 	currentMapItem( 1 )
 {
-	iconInfo[0].Set( ICON_CAMERA_HOME, 0, 270, 50, 50, 0.0f, 0.0f, 0.25f, 0.25f );
-	iconInfo[1].Set( 0, 0, 0, 0, 0, 0.f, 0.f, 0.f, 0.f );
-
+	widgets = new UIWidgets();
 	surface.Set( 256, 256, 4 );		// All the memory we will ever need (? or that is the intention)
 
 	LoadTextures();
@@ -132,9 +127,12 @@ Game::Game( int width, int height ) :
 	resource = GetResource( "farmland" );
 	mapModel = engine.GetModel( resource );
 	mapModel->HideFromTree( true );				// don't want to double render
-	engine.GetMap()->SetModel( mapModel );
-	//float mx = (float)engine.GetMap()->Width();
-	float mz = 40.0f; //(float)engine.GetMap()->Height();
+
+	engine.GetMap()->SetSize( 40, 40 );
+	engine.GetMap()->SetTexture( GetTexture("farmland" ) );
+	
+	
+	float mz = (float)engine.GetMap()->Height();
 
 	//engine.camera.SetPosWC( -19.4f, 62.0f, 57.2f );
 	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
@@ -208,6 +206,7 @@ Game::~Game()
 	engine.ReleaseModel( selection );
 #endif
 
+	delete widgets;
 	FreeModels();
 	FreeTextures();
 }
@@ -239,9 +238,9 @@ void Game::LoadTextures()
 	char buffer[512];
 
 	// Create the default texture "white"
-	surface.Set( 2, 2, 3 );
-	memset( surface.Pixels(), 255, 16 );
-	textureID = surface.CreateTexture();
+	surface.Set( 2, 2, 2 );
+	memset( surface.Pixels(), 255, 8 );
+	textureID = surface.CreateTexture( false );
 	texture[ nTexture++ ].Set( "white", textureID );
 
 	// Load the textures from the array:
@@ -381,7 +380,6 @@ void Game::DoTick( U32 currentTime )
 		m->SetYRotation( m->GetYRotation() + 0.3f );
 	}
 
-	// FIXME: check that all client state is always submitted
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_NORMAL_ARRAY );
 	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
@@ -424,7 +422,8 @@ void Game::DoTick( U32 currentTime )
 	UFODrawText( 0,  16, "%3d:'%s'", currentMapItem, engine.GetMap()->GetItemDefName( currentMapItem ) );
 #endif
 	glBindTexture( GL_TEXTURE_2D, iconTexture->glID );
-	UFODrawIcons( iconInfo, w, h, rotation );
+	widgets->Draw( w, h, rotation );
+	//UFODrawIcons( iconInfo, w, h, rotation );
 
 	glEnable( GL_DEPTH_TEST );
 
@@ -470,23 +469,15 @@ void Game::Tap( int tap, int x, int y )
 		int x0, y0;
 		TransformScreen( x, y, &x0, &y0 );
 		//GLOUTPUT(( "Screen: %d,%d\n", x0, y0 ));
+		int icon = widgets->QueryTap( x0, y0 );
 
-		bool iconFound = false;
-		for( const IconInfo* icon = iconInfo; icon->iconID > 0; ++icon ) {
-			if (    grinliz::InRange( x0, icon->pos.x, icon->pos.x+icon->size.x )
-				 && grinliz::InRange( y0, icon->pos.y, icon->pos.y+icon->size.y ) ) 
-			{
-				switch( icon->iconID ) {
-					case ICON_CAMERA_HOME:
-						engine.MoveCameraHome();
-						iconFound = true;
-						break;
+		switch( icon ) {
+			case UIWidgets::ICON_CAMERA_HOME:
+				engine.MoveCameraHome();
+				break;
 
-					default:
-						GLASSERT( 0 );
-						break;
-				}
-			}
+			default:
+				break;
 		}
 
 #ifdef MAPMAKER

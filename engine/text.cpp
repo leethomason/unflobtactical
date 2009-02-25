@@ -49,6 +49,7 @@ void UFOTextOut( const char* str, int x, int y )
 	glDepthMask( GL_FALSE );
 	glEnable( GL_BLEND );
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisableClientState( GL_NORMAL_ARRAY );
 
 	glColor4f( 1.f, 1.f, 1.f, 1.f );
 
@@ -99,11 +100,13 @@ void UFOTextOut( const char* str, int x, int y )
 
 			glVertexPointer( 2, GL_FLOAT, 0, v );
 			glTexCoordPointer( 2, GL_FLOAT, 0, t );
+
 			glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
 		}
 		++str;
 		x += ADVANCE;
 	}
+	glEnableClientState( GL_NORMAL_ARRAY );
 
 
 	glPopMatrix();					// model

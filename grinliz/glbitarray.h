@@ -27,6 +27,7 @@ distribution.
 
 
 #include "gltypes.h"
+#include "glrectangle.h"
 
 namespace grinliz {
 

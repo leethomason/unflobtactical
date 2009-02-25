@@ -58,11 +58,6 @@ private:
 	Texture texture[MAX_TEXTURES];
 	ModelResource modelResource[EL_MAX_MODEL_RESOURCES];
 
-	enum {
-		NUM_ICONS=2
-	};
-	IconInfo iconInfo[NUM_ICONS];
-
 	int rotation;
 	int nTexture;
 	int nModelResource;
@@ -73,6 +68,7 @@ private:
 	int trianglesSinceMark;
 
 	Texture* iconTexture;
+	UIWidgets* widgets;
 
 	enum { NUM_TEST_MODEL = 256 };
 	Model* testModel[NUM_TEST_MODEL];

@@ -2,12 +2,36 @@
 #include "platformgl.h"
 using namespace grinliz;
 
-void UFODrawIcons( const IconInfo* icons, int width, int height, int rotation )
+const int XSTART = 0;
+const int YSTART = 270;
+const int SIZE = 50;
+
+UIWidgets::UIWidgets()
+{
+	for( int i=0; i<ICON_COUNT; ++i ) {
+		pos[i*4+0].Set( XSTART+i*SIZE,		YSTART );		
+		pos[i*4+1].Set( XSTART+i*SIZE+SIZE, YSTART );		
+		pos[i*4+2].Set( XSTART+i*SIZE+SIZE, YSTART+SIZE );		
+		pos[i*4+3].Set( XSTART+i*SIZE,		YSTART+SIZE );		
+
+		float dx = (float)(i%4)*0.25f;
+		float dy = (i/4)*0.25f;
+
+		tex[i*4+0].Set( dx,			dy );
+		tex[i*4+1].Set( dx+0.25f,	dy );
+		tex[i*4+2].Set( dx+0.25f,	dy+0.25f );
+		tex[i*4+3].Set( dx,			dy+0.25f );
+	}
+}
+
+
+void UIWidgets::Draw( int width, int height, int rotation )
 {
 	glDisable( GL_DEPTH_TEST );
 	glDepthMask( GL_FALSE );
 	glEnable( GL_BLEND );
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisableClientState( GL_NORMAL_ARRAY );
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();					// save projection
@@ -24,37 +48,31 @@ void UFODrawIcons( const IconInfo* icons, int width, int height, int rotation )
 	glOrtho( 0, width, 0, height, -1, 1 );
 #endif
 
-	int16_t v[8];
-	float t[8];
-
-	while( icons && icons->size.x > 0 )
-	{
-		t[0] = icons->tMin.x;				t[1] = icons->tMin.y;
-		t[2] = icons->tMax.x;				t[3] = icons->tMin.y;
-		t[4] = icons->tMax.x;				t[5] = icons->tMax.y;
-		t[6] = icons->tMin.x;				t[7] = icons->tMax.y;
-
-		v[0] = icons->pos.x;				v[1] = icons->pos.y;
-		v[2] = icons->pos.x+icons->size.x;	v[3] = icons->pos.y;
-		v[4] = icons->pos.x+icons->size.x;	v[5] = icons->pos.y+icons->size.y;
-		v[6] = icons->pos.x;				v[7] = icons->pos.y+icons->size.y;
-
-		glVertexPointer(   2, GL_SHORT, 0, v );
-		glTexCoordPointer( 2, GL_FLOAT, 0, t );  
-
-		CHECK_GL_ERROR;
-		glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+	glVertexPointer(   2, GL_INT, 0, pos );
+	glTexCoordPointer( 2, GL_FLOAT, 0, tex );  
+	CHECK_GL_ERROR;
+	glDrawArrays( GL_QUADS, 0, ICON_COUNT*4 );
+	CHECK_GL_ERROR;
 		
-		++icons;
-	}
-
 
 	glPopMatrix();					// model
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();					// projection
 	glMatrixMode(GL_MODELVIEW);
 
+	glEnableClientState( GL_NORMAL_ARRAY );
 	glDisable( GL_BLEND );
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
+}
+
+
+int UIWidgets::QueryTap( int x, int y )
+{
+	int dx = ( x - XSTART ) / SIZE;
+	int dy = ( y - YSTART ) / SIZE;
+
+	if ( dy == 0 && dx >= 0 && dx < ICON_COUNT )
+		return dx;
+	return ICON_COUNT;
 }

@@ -3,7 +3,7 @@
 
 #include "vertex.h"
 
-
+/*
 struct IconInfo
 {
 	int iconID;
@@ -28,9 +28,32 @@ struct IconInfo
 		this->tMax.y = ty1;
 	}
 };
+*/
+
+
+class UIWidgets
+{
+public:
+	UIWidgets();
+	~UIWidgets()	{}
+
+	enum {
+		ICON_CAMERA_HOME,
+		ICON_FOG_OF_WAR,
+		ICON_COUNT
+	};
+
+	int QueryTap( int x, int y );	
+	void Draw( int width, int height, int rotation );
+
+private:
+	grinliz::Vector2I pos[ICON_COUNT*4];
+	grinliz::Vector2F tex[ICON_COUNT*4];
+};
+
 
 // set texture and color before calling
-void UFODrawIcons( const IconInfo* icons, int screenWidth, int screenHeight, int rotation );
+//void UFODrawIcons( const IconInfo* icons, int screenWidth, int screenHeight, int rotation );
 
 
 #endif // UIRENDERING_INCLUDED

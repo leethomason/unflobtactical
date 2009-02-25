@@ -68,16 +68,40 @@ U32 Surface::LoadTexture( FILE* fp )
 }
 
 
-U32 Surface::CreateTexture()
+void Surface::CalcFormat( bool alpha, int* format, int* type )
 {
-	int format = GL_RGB;
-	int type = GL_UNSIGNED_BYTE;
-	if ( bpp == 4 ) {
-		format = GL_RGBA;
-	}
+	*format = GL_RGB;
+	*type = GL_UNSIGNED_BYTE;
 
+	if ( bpp == 2 ) {
+		if ( alpha ) {
+			*format = GL_RGBA;
+			*type = GL_UNSIGNED_SHORT_4_4_4_4;
+		}
+		else {
+			*format = GL_RGB;
+			*type = GL_UNSIGNED_SHORT_5_6_5;
+		}
+	}
+	else if ( bpp == 3 ) {
+		GLASSERT( !alpha );
+		*format = GL_RGB;
+		*type = GL_UNSIGNED_BYTE;
+	}
+	else if ( bpp == 4 ) {
+		GLASSERT( alpha );
+		*format = GL_RGBA;
+	}
+}
+
+
+U32 Surface::CreateTexture( bool alpha )
+{
+	int format, type;
+	CalcFormat( alpha, &format, &type );
 	return LowerCreateTexture( format, type );
 }
+
 
 U32 Surface::LowerCreateTexture( int format, int type )
 {
@@ -96,14 +120,15 @@ U32 Surface::LowerCreateTexture( int format, int type )
 						GL_GENERATE_MIPMAP,
 						GL_TRUE );
 
-	/*
+
 	glTexParameteri(	GL_TEXTURE_2D,
 						GL_TEXTURE_MAG_FILTER,
 						GL_LINEAR );
 
 	glTexParameteri(	GL_TEXTURE_2D,
 						GL_TEXTURE_MIN_FILTER,
-						GL_NEAREST_MIPMAP_LINEAR );
+						GL_LINEAR_MIPMAP_NEAREST );
+	/*
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	*/
@@ -124,7 +149,28 @@ U32 Surface::LowerCreateTexture( int format, int type )
 }
 
 
-void DrawQuad( float x0, float y0, float x1, float y1, U32 textureID )
+void Surface::UpdateTexture( bool alpha, U32 glID )
+{
+	int format, type;
+	CalcFormat( alpha, &format, &type );
+
+	glBindTexture( GL_TEXTURE_2D, glID );
+
+	glTexImage2D(	GL_TEXTURE_2D,
+					0,
+					format,
+					w,
+					h,
+					0,
+					format,
+					type,
+					pixels );
+
+	TESTGLERR();
+}
+
+
+/*void DrawQuad( float x0, float y0, float x1, float y1, U32 textureID )
 {
 	float v[8] = { x0, y0, x1, y0, x1, y1, x0, y1 };
 	float t[8] = { 0.f, 0.f, 1.f, 0.f, 1.f, 1.f, 0.f, 1.f };
@@ -137,7 +183,7 @@ void DrawQuad( float x0, float y0, float x1, float y1, U32 textureID )
 
 	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
 }
-
+*/
 
 
 void Texture::Set( const char* name, U32 glID, bool alphaTest )
