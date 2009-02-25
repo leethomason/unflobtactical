@@ -19,13 +19,15 @@ public:
 	void Set( int w, int h, int bytesPP );
 
 	// Create an opengl texture from this surface.
-	U32 CreateTexture();
+	U32 CreateTexture( bool alpha );
+	// Update an opengl texture from this surface.
+	void UpdateTexture( bool alpha, U32 glID );
 	// Load the file
 	U32 LoadTexture( FILE* fp );
 
 private:
+	void CalcFormat( bool alpha, int* format, int* type );
 	U32 LowerCreateTexture( int format, int type );
-
 
 	int w;
 	int h;
@@ -34,7 +36,7 @@ private:
 	U8* pixels;
 };
 
-void DrawQuad( float x0, float y0, float x1, float y1, U32 textureID );
+//void DrawQuad( float x0, float y0, float x1, float y1, U32 textureID );
 
 
 class Texture

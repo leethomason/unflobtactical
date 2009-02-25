@@ -11,6 +11,7 @@
 #include "engine.h"
 #include "loosequadtree.h"
 #include "renderQueue.h"
+#include "surface.h"
 
 using namespace grinliz;
 
@@ -56,6 +57,8 @@ using namespace grinliz;
 			5. Is it possible to do planar shadows in one pass? Map from vertex to texture coordinates? [HECK YEAH - complex, but done]
  
 			ALL THAT! Gets it back to 30.0fps, 7.6K tris/frame. Yay!
+
+	Ideas:	1. Remove all down facing triangles.
 */
 
 /*	Notes
@@ -120,6 +123,8 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 	lightDirection.Set( 0.7f, 3.0f, 1.4f );
 	lightDirection.Normalize();
 	depthFunc = 0;
+
+	fogOfWar.SetAll();
 }
 
 
@@ -239,7 +244,11 @@ void Engine::PushShadowTextureMatrix()
 
 void Engine::Draw( int* triCount )
 {
-	Matrix4 textureMatrix;
+	Rectangle2I rect;
+	rect.Set( 1, 33, 4, 36 );
+
+	fogOfWar.ClearRect( rect );
+	map->GenerateLightMap( fogOfWar );
 
 	DrawCamera();
 	glEnable( GL_DEPTH_TEST );
@@ -302,7 +311,7 @@ void Engine::Draw( int* triCount )
 		glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );	// keeps white from bleeding outside the map.
 	}
 	else {
-		glBindTexture( GL_TEXTURE_2D, map->GetMapGUID() );
+		glBindTexture( GL_TEXTURE_2D, map->GetTexture()->glID );
 		textureState = Model::TEXTURE_SET;
 
 		renderQueue->BindTextureToVertex( true );

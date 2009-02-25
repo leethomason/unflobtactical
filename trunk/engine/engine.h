@@ -6,6 +6,7 @@
 #include "../grinliz/glvector.h"
 #include "../grinliz/glrectangle.h"
 #include "../grinliz/glmatrix.h"
+#include "../grinliz/glbitarray.h"
 
 #include "map.h"
 #include "camera.h"
@@ -61,7 +62,11 @@ public:
 
 	Model* GetModel( ModelResource* );
 	void ReleaseModel( Model* );
+	
 	Map* GetMap() { return map; }
+
+	grinliz::BitArray<Map::SIZE, Map::SIZE>* GetFogOfWar()	{ return &fogOfWar; }
+	void UpdateFogOfWar();
 
 	static bool UnProject(	const grinliz::Vector3F& window,
 							const grinliz::Rectangle2I& screen,
@@ -144,6 +149,8 @@ private:
 	Map* map;
 	SpaceTree* spaceTree;
 	RenderQueue* renderQueue;
+
+	grinliz::BitArray<Map::SIZE, Map::SIZE> fogOfWar;
 };
 
 #endif // UFOATTACK_ENGINE_INCLUDED
