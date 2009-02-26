@@ -1,0 +1,18 @@
+= Engine =
+
+  * fog of war (FoW)
+  * night time / day time
+  * particle system - fire, smoke, sparkle
+  * UI: day/night, FoW on/off, standard test
+  * fix zoom start, min, max
+  * object intersection testing
+  * resource loading on demand
+
+= Game =
+  * visibility computation
+  * pathing
+  * pathing+animation
+  * pathing+animation+FoW
+  * serialization
+  * weapons
+  * GL Swap management (only render when needed)
