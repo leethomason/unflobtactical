@@ -1,5 +1,3 @@
-#summary One-sentence summary of this page.
-
 = Introduction =
 
 UFO Tactical (working title) is a turned based strategy game for the iPhone. It is influenced by X-COM and the iPhone interface. The game also runs on the PC.
