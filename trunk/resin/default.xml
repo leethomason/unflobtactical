@@ -4,9 +4,6 @@
 	
 	<!-- Model textures -->
 	<texture filename="stdfont2.tga" />
-	<texture filename="grass2.png" />
-	<texture filename="dirtGrass.png" />
-	<texture filename="alienFloor.png" />
 	<texture filename="woodDark.png" />
 	<texture filename="woodDarkUFO.tga" />
 	<texture filename="woodPlank.png" />
@@ -16,15 +13,9 @@
 	<texture filename="ufoOuter.png" />
 	<texture filename="wheat.tga" />
 	<texture filename="tree.tga" />
-	<texture filename="farmland.png" />
 
 	<!-- Models -->
-	<model filename="test1.ac" />
-	<model filename="test2.ac" />
-	<model filename="teapot.off" />
 	<model filename="crate.ac" />
-	
-	<model filename="farmland.ac" />
 	
 	<model filename="maleMarine.ac" />
 	<model filename="femaleMarine.ac" />
@@ -50,17 +41,9 @@
 	<model filename="wheat.ac" />
 	<model filename="tree.ac" />
 
+	<!-- Maps -->
+	<texture filename="farmland.png" />
+	<texture filename="farmlandN.png" />
 	<map filename="farmland.map" />
-	
-	<!--
-	<texture filename="Yohko.bmp" />
-
-	<model filename="test3.ac" />
-	<model filename="test0.ac" />
-	<model filename="knight.ac" />
-	<model filename="mushroom.off" />
-	<model filename="test4.ac" />
-	<model filename="Yohko.ac" />
-	-->
 
 </resource>

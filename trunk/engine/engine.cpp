@@ -70,11 +70,11 @@ using namespace grinliz;
 		2. render the shadows to stencil / depth / destination-alpha
 		3. render the background in shadow, testing against stencil / depth /destination-alpha
  
-	The iphone doesn't have stencil. Testing dest-alpha (blending) vs. depth indicated that depth is *much* faster. So depth
-	is supported as SHADOW_Z.
+	The iphone doesn't have stencil. Testing dest-alpha (blending) vs. depth indicated that depth is *much* 
+	faster. So depth is supported as SHADOW_Z.
  
-	Once I switched the background plane to a single texture, it opened up a new possibility. Transform the shadow coordinates 
-	to ground texture coordinates. Tricky as hell on the fixed pipeline.
+	Once I switched the background plane to a single texture, it opened up a new possibility. Transform the 
+	shadow coordinates to ground texture coordinates. Tricky as hell on the fixed pipeline.
  
 	1. Feed vertex coordinates to texture coordinates.
 	2. Transform the texture/vertex coordinates to the ground plane (shadow)
@@ -82,8 +82,9 @@ using namespace grinliz;
 
 	Simple in theory, simple on a shader, tricky in fixed pipeline. But does work.
  
-	When modulation is added in (for shadows) 2 texture units have to be set. That makes the z-buffer path faster again. *sigh*
-	All that work and I'm back to the first approach. The single texture approach would be much simpler with shaders. Oh well.
+	When modulation is added in (for shadows) 2 texture units have to be set. That makes the z-buffer path 
+	faster again. *sigh* All that work and I'm back to the first approach. The single texture approach 
+	would be much simpler with shaders. Oh well. Still at 30fps.
 */
 
 
@@ -352,15 +353,14 @@ void Engine::Draw( int* triCount )
 	// Redraw the map, checking z, in shadow.
 	if ( shadowMode == SHADOW_Z )
 	{
-		EnableLights( true, true );
 		glEnable( GL_TEXTURE_2D );
-		glEnable( GL_LIGHTING );
 		CHECK_GL_ERROR;
 
 		glDepthMask( GL_TRUE );
 		glEnable( GL_DEPTH_TEST );
 		glDepthFunc( GL_LESS );
 
+		LightSimple( true );
 		map->Draw( renderQueue );
 		CHECK_GL_ERROR;
 	}
@@ -374,7 +374,11 @@ void Engine::Draw( int* triCount )
 	CHECK_GL_ERROR;
 
 	// -- Model -- //
-	EnableLights( true, false );
+	Vector3F dayNight = { 1.0f, 1.0f, 1.0f };
+	if ( map->GetLightMap() ) {
+		dayNight.Set( 131.f/255.f, 125.f/255.f, 1.0f );
+	}
+	EnableLights( true, false, dayNight );
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
 
@@ -384,7 +388,7 @@ void Engine::Draw( int* triCount )
 	}
 	renderQueue->Flush();
 	
-	EnableLights( false );
+	EnableLights( false, false, dayNight );
 
 	*triCount = renderQueue->GetTriCount();
 	renderQueue->ClearTriCount();
@@ -415,10 +419,8 @@ const float gAMBIENT = 0.3f;
 const float gDIFFUSE = 0.7f;
 const float gSHADOW  = 0.3f;
 	
-void Engine::EnableLights( bool enable, bool inShadow )
+void Engine::EnableLights( bool enable, bool inShadow, const Vector3F& dayNight )
 {
-
-
 	CHECK_GL_ERROR;
 	if ( !enable ) {
 		glDisable( GL_LIGHTING );
@@ -427,10 +429,18 @@ void Engine::EnableLights( bool enable, bool inShadow )
 		glEnable( GL_LIGHTING );
 		CHECK_GL_ERROR;
 
+		const float RED = 131.f/255.f;
+		const float GREEN = 125.f/255.f;
+		const float BLUE = 1.f;
+
 		const float white[4]	= { 1.0f, 1.0f, 1.0f, 1.0f };
 		const float black[4]	= { 0.0f, 0.0f, 0.0f, 1.0f };
 		float ambient[4] = { gAMBIENT, gAMBIENT, gAMBIENT, 1.0f };
 		float diffuse[4] = { gDIFFUSE, gDIFFUSE, gDIFFUSE, 1.0f };
+		diffuse[0] *= dayNight.x;
+		diffuse[1] *= dayNight.y;
+		diffuse[2] *= dayNight.z;
+
 		Vector3F lightDir = lightDirection;
 
 		if ( inShadow ) {
@@ -474,7 +484,7 @@ void Engine::LightSimple( bool inShadow )
 		// The main reason LightSimple is here is that lighting doesn't look correct in shadows.
 		// Something is getting tweaked in the state. (Not a bug, just the difficulties of
 		// fixed pipeline lightning. Oh how I miss shaders.)
-		//diffuse *= SHADOW;
+		//diffuse *= gSHADOW;
 		diffuse *= 0.6f;
 	}
 	float light = gAMBIENT + diffuse*dot;
