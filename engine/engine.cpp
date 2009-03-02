@@ -81,14 +81,17 @@ using namespace grinliz;
 	3. Transform from ground plane coordinates to texture (uv) coordinates.
 
 	Simple in theory, simple on a shader, tricky in fixed pipeline. But does work.
+ 
+	When modulation is added in (for shadows) 2 texture units have to be set. That makes the z-buffer path faster again. *sigh*
+	All that work and I'm back to the first approach. The single texture approach would be much simpler with shaders. Oh well.
 */
 
 
 Engine::Engine( int _width, int _height, const EngineData& _engineData ) 
 	:	width( _width ), 
 		height( _height ), 
-		shadowMode( SHADOW_ONE_PASS ), 
-		//shadowMode( SHADOW_Z ), 
+		//shadowMode( SHADOW_ONE_PASS ), 
+		shadowMode( SHADOW_Z ), 
 		isDragging( false ), 
 		engineData( _engineData ),
 		initZoomDistance( 0 ),
