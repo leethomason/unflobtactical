@@ -20,11 +20,6 @@ struct ModelAtom
 	U32 nIndex;
 	mutable int trisRendered;
 
-	//#if (EL_BATCH_VERTICES==1)
-	//Vertex* vertex;
-	//U16* index;
-	//#endif
-
 	void Bind( bool bindTextureToVertex ) const;
 	void Draw() const;
 };

@@ -31,10 +31,10 @@ Map::Map( SpaceTree* tree )
 	vertex[2].normal.Set( 0.0f, 1.0f, 0.0f );
 	vertex[3].normal.Set( 0.0f, 1.0f, 0.0f );
 
-	texture1[0].Set( 0.0f, 0.0f );
-	texture1[1].Set( 0.0f, 1.0f );
-	texture1[2].Set( 1.0f, 1.0f );
-	texture1[3].Set( 1.0f, 0.0f );
+	texture1[0].Set( 0.0f, 1.0f );
+	texture1[1].Set( 0.0f, 0.0f );
+	texture1[2].Set( 1.0f, 0.0f );
+	texture1[3].Set( 1.0f, 1.0f );
 
 	lightMap.Set( SIZE, SIZE, 2 );
 	memset( lightMap.Pixels(), 255, SIZE*SIZE*2 );
@@ -72,11 +72,11 @@ void Map::Draw( RenderQueue* queue )
 	//model->Queue( queue );
 	//queue->Flush();
 
-	/* Texture 0 */
 	U8* v = (U8*)vertex + Vertex::POS_OFFSET;
 	U8* n = (U8*)vertex + Vertex::NORMAL_OFFSET;
 	U8* t = (U8*)vertex + Vertex::TEXTURE_OFFSET;
 
+	/* Texture 0 */
 	glBindTexture( GL_TEXTURE_2D, texture->glID );
 
 	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), v);			// last param is offset, not ptr
@@ -104,14 +104,47 @@ void Map::Draw( RenderQueue* queue )
 	CHECK_GL_ERROR
 }
 
+void Map::BindTextureUnits()
+{
+	/* Texture 0 */
+	glBindTexture( GL_TEXTURE_2D, texture->glID );
+
+	/* Texture 1 */
+	glActiveTexture( GL_TEXTURE1 );
+	glClientActiveTexture( GL_TEXTURE1 );
+	glEnable( GL_TEXTURE_2D );
+	glBindTexture( GL_TEXTURE_2D, finalMapTex.glID );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+	glTexCoordPointer( 2, GL_FLOAT, 0, texture1 );
+
+	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+	
+	CHECK_GL_ERROR
+}
+
+
+void Map::UnBindTextureUnits()
+{
+	glActiveTexture( GL_TEXTURE1 );
+	glClientActiveTexture( GL_TEXTURE1 );
+	glDisable( GL_TEXTURE_2D );
+
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+	glClientActiveTexture( GL_TEXTURE0 );
+	glActiveTexture( GL_TEXTURE0 );
+}
+
+
 
 void Map::GenerateLightMap( const grinliz::BitArray<SIZE, SIZE>& fogOfWar )
 {
 	BitArrayRowIterator<SIZE, SIZE> it( fogOfWar ); 
-	const U16* src = (U16*) lightMap.Pixels();
-	U16* dst = (U16*) finalMap.Pixels();
+	const U16* src =   (U16*)lightMap.Pixels();
 
 	for( int j=0; j<SIZE; ++j ) {
+		// Flip to account for origin in upper left.
+		U16* dst = (U16*)finalMap.Pixels() + finalMap.Height()*finalMap.Width() - (j+1)*finalMap.Width();
+
 		for( int i=0; i<SIZE; ++i ) {
 			*dst = fogOfWar.IsSet( i, j ) ? *src : 0;
 			++src;

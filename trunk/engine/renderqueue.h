@@ -42,7 +42,7 @@ public:
 	bool Empty() { return nState == 0 && nModel == 0; }
 
 	// Attaches texture 3 coordinates to the vertex data. Used for shadow creation tricks.
-	void BindTextureToVertex( bool bind )				{ bindTextureToVertex = bind; }
+	void BindTextureToVertex( bool bind )		{ bindTextureToVertex = bind; }
 
 	int GetTriCount()		{ return triCount; }
 	void ClearTriCount()	{ triCount = 0; }
