@@ -37,7 +37,6 @@ public:
 	struct Tile
 	{
 		Layer layer[LAYER_PER_TILE];
-
 		int CountLayers();
 	};
 

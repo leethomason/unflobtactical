@@ -81,8 +81,8 @@ void Map::Draw( RenderQueue* queue )
 
 	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), v);			// last param is offset, not ptr
 	glNormalPointer(      GL_FLOAT, sizeof(Vertex), n);		
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), t);  
-
+	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), t); 
+	
 	/* Texture 1 */
 	glActiveTexture( GL_TEXTURE1 );
 	glClientActiveTexture( GL_TEXTURE1 );
@@ -94,7 +94,7 @@ void Map::Draw( RenderQueue* queue )
 	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 	CHECK_GL_ERROR
 
-	glDrawArrays( GL_QUADS, 0, 4 );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
 
 	glDisable( GL_TEXTURE_2D );
 	glDisableClientState( GL_TEXTURE_COORD_ARRAY );

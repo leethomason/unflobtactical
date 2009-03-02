@@ -21,6 +21,15 @@ UIWidgets::UIWidgets()
 		tex[i*4+1].Set( dx+0.25f,	dy );
 		tex[i*4+2].Set( dx+0.25f,	dy+0.25f );
 		tex[i*4+3].Set( dx,			dy+0.25f );
+		
+		U16 idx = i*4;
+		index[i*6+0] = idx+0;
+		index[i*6+1] = idx+1;
+		index[i*6+2] = idx+2;
+
+		index[i*6+3] = idx+0;
+		index[i*6+4] = idx+2;
+		index[i*6+5] = idx+3;
 	}
 }
 
@@ -48,10 +57,10 @@ void UIWidgets::Draw( int width, int height, int rotation )
 	glOrtho( 0, width, 0, height, -1, 1 );
 #endif
 
-	glVertexPointer(   2, GL_INT, 0, pos );
+	glVertexPointer(   2, GL_SHORT, 0, pos );
 	glTexCoordPointer( 2, GL_FLOAT, 0, tex );  
 	CHECK_GL_ERROR;
-	glDrawArrays( GL_QUADS, 0, ICON_COUNT*4 );
+	glDrawElements( GL_TRIANGLES, ICON_COUNT*6, GL_UNSIGNED_SHORT, index );
 	CHECK_GL_ERROR;
 		
 
