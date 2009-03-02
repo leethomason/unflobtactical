@@ -351,7 +351,6 @@ void Model::Draw( bool useTexture )
 
 void ModelAtom::Bind( bool bindTextureToVertex ) const
 {
-//#if (EL_BATCH_VERTICES==0)
 	glBindBuffer( GL_ARRAY_BUFFER, vertexID );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, indexID );
 
@@ -363,13 +362,18 @@ void ModelAtom::Bind( bool bindTextureToVertex ) const
 	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
 	glNormalPointer(      GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
 
-	if ( bindTextureToVertex ) 
-		glTexCoordPointer( 3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);  
-	else
+	if ( bindTextureToVertex ) {
+		for( int i=0; i<2; ++i ) {
+			glClientActiveTexture( GL_TEXTURE0+i );
+			glTexCoordPointer( 3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);  
+		}
+	}
+	else {
 		glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
+	}
 	#endif
+
 	CHECK_GL_ERROR;
-//#endif
 }
 
 
@@ -425,16 +429,16 @@ void Model::PushMatrix( bool bindTextureToVertex ) const
 		
 		glMultMatrixf( mat.x );
 		*/
-
 		glMatrixMode(GL_TEXTURE);
-		glPushMatrix();
+		for( int i=1; i>=0; --i ) {
+			glActiveTexture( GL_TEXTURE0 + i );
+			glPushMatrix();
 
-		//glMultMatrixf( textureMat->x );
-		//glMultMatrixf( light.x );
-		glTranslatef( pos.x, pos.y, pos.z );
-		if ( rot != 0 ) {
-			glRotatef( rot, 0.f, 1.f, 0.f );
-		} 
+			glTranslatef( pos.x, pos.y, pos.z );
+			if ( rot != 0 ) {
+				glRotatef( rot, 0.f, 1.f, 0.f );
+			} 
+		}
 	}
 	else if ( textureOffsetX > 0 ) {
 		glMatrixMode(GL_TEXTURE);
@@ -445,15 +449,24 @@ void Model::PushMatrix( bool bindTextureToVertex ) const
 		glTranslatef( (float) textureOffsetX, 0.0f, 0.0f );
 		#endif
 	}
+	CHECK_GL_ERROR;
 }
 
 
 void Model::PopMatrix( bool bindTextureToVertex ) const
 {
-	if ( textureOffsetX > 0 || bindTextureToVertex ) {
+	if ( bindTextureToVertex ) {
+		glActiveTexture( GL_TEXTURE1 );
+		glPopMatrix();
+		glActiveTexture( GL_TEXTURE0 );
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+	}
+	else if ( textureOffsetX > 0 ) {
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 	}
 	glPopMatrix();
+	CHECK_GL_ERROR;
 }
 

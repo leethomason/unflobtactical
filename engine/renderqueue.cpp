@@ -110,7 +110,7 @@ void RenderQueue::Add( U32 flags, U32 textureID, const Model* model, const Model
 void RenderQueue::Flush()
 {
 	U32 flags = (U32)(-1);
-	U32 textureID = (U32)(-1);
+	U32 textureID = 0;
 	const ModelAtom* atom = 0;
 
 	int states = 0;
@@ -142,6 +142,7 @@ void RenderQueue::Flush()
 		// Handle texture change.
 		if ( textureID != statePool[i].state.textureID ) 
 		{
+			GLASSERT( bindTextureToVertex == false );
 			textureID = statePool[i].state.textureID;
 			++textures;
 

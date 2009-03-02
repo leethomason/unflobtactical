@@ -201,7 +201,10 @@ void Engine::PushShadowMatrix()
 void Engine::PopShadowTextureMatrix()
 {
 	glMatrixMode(GL_TEXTURE);
-	glPopMatrix();
+	for( int i=1; i>=0; --i ) {
+		glActiveTexture( GL_TEXTURE0+i );
+		glPopMatrix();
+	}
 	glMatrixMode(GL_MODELVIEW);	
 }
 
@@ -236,8 +239,11 @@ void Engine::PushShadowTextureMatrix()
 
 	Matrix4 c = t*m;
 	glMatrixMode(GL_TEXTURE);
-	glPushMatrix();
-	glMultMatrixf( c.x );
+	for( int i=1; i>=0; --i ) {
+		glActiveTexture( GL_TEXTURE0+i );
+		glPushMatrix();
+		glMultMatrixf( c.x );
+	}
 	glMatrixMode(GL_MODELVIEW);
 }
 
@@ -245,9 +251,10 @@ void Engine::PushShadowTextureMatrix()
 void Engine::Draw( int* triCount )
 {
 	Rectangle2I rect;
-	rect.Set( 1, 33, 4, 36 );
-
+	//rect.Set( 1, 33, 4, 36 );
+	rect.Set( 1, 1, 4, 4 );
 	fogOfWar.ClearRect( rect );
+
 	map->GenerateLightMap( fogOfWar );
 
 	DrawCamera();
@@ -311,15 +318,13 @@ void Engine::Draw( int* triCount )
 		glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );	// keeps white from bleeding outside the map.
 	}
 	else {
-		glBindTexture( GL_TEXTURE_2D, map->GetTexture()->glID );
 		textureState = Model::TEXTURE_SET;
 
 		renderQueue->BindTextureToVertex( true );
 		PushShadowTextureMatrix();
 		LightSimple( true );
 
-		//glDisable( GL_DEPTH_TEST );
-		//glDepthMask( GL_FALSE );
+		map->BindTextureUnits();
 	}
 	GLASSERT( renderQueue->Empty() );
 	
@@ -330,7 +335,10 @@ void Engine::Draw( int* triCount )
 
 	renderQueue->Flush();
 	renderQueue->BindTextureToVertex( false );
-	if ( shadowMode == SHADOW_ONE_PASS ) {
+
+	if ( shadowMode == SHADOW_ONE_PASS ) 
+	{
+		map->UnBindTextureUnits();
 		PopShadowTextureMatrix();
 	}
 	CHECK_GL_ERROR;

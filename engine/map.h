@@ -51,7 +51,9 @@ public:
 	void SetSize( int w, int h )					{ width = w; height = h; }
 
 	void SetTexture( const Texture* texture )		{ this->texture = texture; }
-	const Texture* GetTexture()						{ return texture; }
+	void BindTextureUnits();
+	void UnBindTextureUnits();
+
 	void GenerateLightMap( const grinliz::BitArray<SIZE, SIZE>& fogOfWar );
 	
 	void Draw( RenderQueue* queue );
