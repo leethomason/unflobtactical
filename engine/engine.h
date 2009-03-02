@@ -111,7 +111,7 @@ private:
 	void DrawCamera();
 	void RestrictCamera();
 	void CalcCameraRotation( grinliz::Matrix4* );
-	void EnableLights( bool enable, bool inShadow=false );
+	void EnableLights( bool enable, bool inShadow, const grinliz::Vector3F& dayNight );
 	void LightSimple( bool inShadow );
 	Model* IntersectModel( const grinliz::Ray& ray, bool onlyDraggable );
 	void PushShadowMatrix();

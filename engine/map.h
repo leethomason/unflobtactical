@@ -53,6 +53,8 @@ public:
 	void BindTextureUnits();
 	void UnBindTextureUnits();
 
+	void SetLightMap( Surface* surface );
+	Surface* GetLightMap()	{ return lightMap; }
 	void GenerateLightMap( const grinliz::BitArray<SIZE, SIZE>& fogOfWar );
 	
 	void Draw( RenderQueue* queue );
@@ -78,7 +80,7 @@ private:
 
 	Texture finalMapTex;
 	Surface finalMap;
-	Surface lightMap;
+	Surface* lightMap;
 
 	ItemDef itemDefArr[MAX_ITEM_DEF];
 	Tile    tileArr[ SIZE*SIZE ];

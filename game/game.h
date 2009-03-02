@@ -47,6 +47,7 @@ public:
 	void SaveMap( FILE* fp )	{ engine.GetMap()->Save( fp ); }
 	void LoadMap( FILE* fp )	{ engine.GetMap()->Load( fp ); }
 	void ClearMap()				{ engine.GetMap()->Clear(); }
+
 private:
 	void LoadTextures();
 	void FreeTextures();
@@ -57,6 +58,7 @@ private:
 
 	Texture texture[MAX_TEXTURES];
 	ModelResource modelResource[EL_MAX_MODEL_RESOURCES];
+	Surface lightMap;
 
 	int rotation;
 	int nTexture;
@@ -72,7 +74,6 @@ private:
 
 	enum { NUM_TEST_MODEL = 256 };
 	Model* testModel[NUM_TEST_MODEL];
-	Model* mapModel;
 	int rotTestStart;
 	int rotTestCount;
 

@@ -36,8 +36,9 @@ Map::Map( SpaceTree* tree )
 	texture1[2].Set( 1.0f, 0.0f );
 	texture1[3].Set( 1.0f, 1.0f );
 
-	lightMap.Set( SIZE, SIZE, 2 );
-	memset( lightMap.Pixels(), 255, SIZE*SIZE*2 );
+//	lightMap.Set( SIZE, SIZE, 2 );
+//	memset( lightMap.Pixels(), 255, SIZE*SIZE*2 );
+	lightMap = 0;
 
 	finalMap.Set( SIZE, SIZE, 2 );
 	memset( finalMap.Pixels(), 255, SIZE*SIZE*2 );
@@ -136,19 +137,42 @@ void Map::UnBindTextureUnits()
 
 
 
+void Map::SetLightMap( Surface* surface )
+{
+	if ( surface ) {
+		GLASSERT( surface->Width() == Map::SIZE );
+		GLASSERT( surface->Height() == Map::SIZE );
+	}
+	lightMap = surface;
+}
+
+	
 void Map::GenerateLightMap( const grinliz::BitArray<SIZE, SIZE>& fogOfWar )
 {
 	BitArrayRowIterator<SIZE, SIZE> it( fogOfWar ); 
-	const U16* src =   (U16*)lightMap.Pixels();
+	U16* dst = (U16*) finalMap.Pixels();
 
-	for( int j=0; j<SIZE; ++j ) {
-		// Flip to account for origin in upper left.
-		U16* dst = (U16*)finalMap.Pixels() + finalMap.Height()*finalMap.Width() - (j+1)*finalMap.Width();
+	if ( lightMap ) {
+		const U16* src =   (U16*)lightMap->Pixels();
 
-		for( int i=0; i<SIZE; ++i ) {
-			*dst = fogOfWar.IsSet( i, j ) ? *src : 0;
-			++src;
-			++dst;
+		for( int j=0; j<SIZE; ++j ) {
+			// Flip to account for origin in upper left.
+			//U16* dst = (U16*)finalMap.Pixels() + finalMap.Height()*finalMap.Width() - (j+1)*finalMap.Width();
+
+			for( int i=0; i<SIZE; ++i ) {
+				*dst = fogOfWar.IsSet( i, SIZE-1-j ) ? *src : 0;
+				++src;
+				++dst;
+			}
+		}
+	}
+	else {
+		for( int j=0; j<SIZE; ++j ) {
+			// Flip to account for origin in upper left.
+			for( int i=0; i<SIZE; ++i ) {
+				*dst = fogOfWar.IsSet( i, SIZE-1-j ) ? 0xffff : 0;
+				++dst;
+			}
 		}
 	}
 	finalMap.UpdateTexture( false, finalMapTex.glID );

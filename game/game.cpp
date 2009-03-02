@@ -11,14 +11,8 @@
 
 const char* const gModelNames[] = 
 {
-	"test1",
-	"test2",
-	"teapot",
 	"crate",
 	
-	// Maps (need to move out?)
-	"farmland",
-
 	// Characters
 	"maleMarine",
 	"femaleMarine",
@@ -31,7 +25,6 @@ const char* const gModelNames[] =
 	"selection",
 
 	// Farmland tiles
-	"farmland",
 	"wallWoodSh",
 	"doorWoodOpen",
 	"doorWoodCl",
@@ -52,6 +45,12 @@ const char* const gModelNames[] =
 	0
 };
 
+//const char* const gLightMapNames[] =
+//{
+//	"farmlandN",
+//	0
+//};
+
 struct TextureDef
 {
 	const char* name;
@@ -66,9 +65,6 @@ const TextureDef gTextureDef[] =
 {
 	{	"icons",		0	},
 	{	"stdfont2",		0	},
-	{	"grass2",		0	},
-	{	"dirtGrass",	0	},
-	{	"alienFloor",	0	},
 	{	"woodDark",		0	},
 	{	"woodDarkUFO",	0	},
 	{	"woodPlank",	0	},
@@ -123,14 +119,17 @@ Game::Game( int width, int height ) :
 	LoadMap( "farmland" );
 #endif
 
-	// Load the map base.
-	resource = GetResource( "farmland" );
-	mapModel = engine.GetModel( resource );
-	mapModel->HideFromTree( true );				// don't want to double render
+	// Load the map.
+	char buffer[512];
+	PlatformPathToResource( "farmlandN", "tex", buffer, 512 );
+	FILE* fp = fopen( buffer, "rb" );
+	GLASSERT( fp );
+	lightMap.LoadTexture( fp );
+	fclose( fp );
 
 	engine.GetMap()->SetSize( 40, 40 );
 	engine.GetMap()->SetTexture( GetTexture("farmland" ) );
-	
+	engine.GetMap()->SetLightMap( &lightMap );
 	
 	float mz = (float)engine.GetMap()->Height();
 
@@ -201,7 +200,6 @@ Game::~Game()
 			engine.ReleaseModel( testModel[i] );
 		}
 	}
-	engine.ReleaseModel( mapModel );
 #ifdef MAPMAKER
 	engine.ReleaseModel( selection );
 #endif
@@ -474,6 +472,13 @@ void Game::Tap( int tap, int x, int y )
 		switch( icon ) {
 			case UIWidgets::ICON_CAMERA_HOME:
 				engine.MoveCameraHome();
+				break;
+
+			case UIWidgets::ICON_FOG_OF_WAR:
+				if ( engine.GetMap()->GetLightMap() )
+					engine.GetMap()->SetLightMap( 0 );
+				else
+					engine.GetMap()->SetLightMap( &lightMap );
 				break;
 
 			default:
