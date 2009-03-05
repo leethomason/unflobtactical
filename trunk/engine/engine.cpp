@@ -89,11 +89,18 @@ using namespace grinliz;
 
 
 Engine::Engine( int _width, int _height, const EngineData& _engineData ) 
-	:	width( _width ), 
+	:	AMBIENT( 0.3f ),
+		DIFFUSE( 0.7f ),
+		DIFFUSE_SHADOW( 0.3f ),
+		NIGHT_RED( 131.f/255.f ),
+		NIGHT_GREEN( 125.f/255.f ),
+		NIGHT_BLUE( 1.0f ),
+		width( _width ), 
 		height( _height ), 
 		//shadowMode( SHADOW_ONE_PASS ), 
 		shadowMode( SHADOW_Z ), 
 		isDragging( false ), 
+		dayNight( DAY_TIME ),
 		engineData( _engineData ),
 		initZoomDistance( 0 ),
 		lastZoomDistance( 0 )
@@ -129,6 +136,10 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 	depthFunc = 0;
 
 	fogOfWar.SetAll();
+	Rectangle2I rect;
+	rect.Set( 1, 1, 4, 4 );
+	fogOfWar.ClearRect( rect );
+	map->GenerateLightMap( fogOfWar );
 }
 
 
@@ -192,8 +203,11 @@ void Engine::PushShadowMatrix()
 	m.m12 = -lightDirection.x/lightDirection.y;
 	m.m22 = 0.0f;
 	if ( shadowMode == SHADOW_Z ) {
-		m.m24 = -0.05f;		// y term down
-		m.m34 = -0.05f;		// z term - hide the shift error.
+		//const float DEPTH = 0.5f;
+		//m.m14 = -lightDirection.x/lightDirection.y * DEPTH;	// x hide the shift 
+		//m.m24 = -DEPTH;										// y term down
+		//m.m34 = -lightDirection.z/lightDirection.y * DEPTH;	// z hide the shift
+		m.m24 = -0.05f;
 	}
 	m.m32 = -lightDirection.z/lightDirection.y;
 
@@ -217,7 +231,7 @@ void Engine::PushShadowTextureMatrix()
 {
 	Matrix4 t, m;
 
-	float SIZEinv = 1.0f / (float)Map::SIZE;
+	const float SIZEinv = 1.0f / (float)Map::SIZE;
 
 	// XYZ -> Planar XZ
 	m.m12 = -lightDirection.x/lightDirection.y;
@@ -254,14 +268,19 @@ void Engine::PushShadowTextureMatrix()
 
 void Engine::Draw( int* triCount )
 {
-	Rectangle2I rect;
-	//rect.Set( 1, 33, 4, 36 );
-	rect.Set( 1, 1, 4, 4 );
-	fogOfWar.ClearRect( rect );
-
-	map->GenerateLightMap( fogOfWar );
-
+	// -- Camera & Frustum -- //
 	DrawCamera();
+
+	// Compute the frustum planes
+	Plane planes[6];
+	CalcFrustumPlanes( planes );
+	PlaneX planesX[6];
+	for( int i=0; i<6; ++i ) {
+		planesX[i].Convert( planes[i] );
+	}
+	Model* modelRoot = spaceTree->Query( planesX, 6 );
+
+
 	glEnable( GL_DEPTH_TEST );
 	if ( depthFunc == 0 ) {
 		// Not clear what the default is (from the driver): LEQUAL or LESS. So query and cache.
@@ -279,15 +298,12 @@ void Engine::Draw( int* triCount )
 		(Particle)
 
 	*/
-	glDisable( GL_LIGHTING );
-
 	// -- Ground plane lighted -- //
-	LightSimple( false );
+	LightSimple( dayNight, OPEN_LIGHT );
 
 	// The depth mask and the depth test should be completely
-	// independent. But there seems to be bugs across systems 
-	// on this. Rather than figure it all out, set them as one
-	// state.
+	// independent...but it's not. Very subtle point of how
+	// OpenGL works.
 	if ( shadowMode == SHADOW_ONE_PASS ) {
 		glDisable( GL_DEPTH_TEST );
 		glDepthMask( GL_FALSE );
@@ -296,17 +312,8 @@ void Engine::Draw( int* triCount )
 		glEnable( GL_DEPTH_TEST );
 		glDepthMask( GL_TRUE );
 	}
-
-	// Compute the frustum planes
-	Plane planes[6];
-	CalcFrustumPlanes( planes );
-	PlaneX planesX[6];
-	for( int i=0; i<6; ++i ) {
-		planesX[i].Convert( planes[i] );
-	}
-	Model* modelRoot = spaceTree->Query( planesX, 6 );
 	
-	map->Draw( renderQueue );
+	map->Draw();
 
 	// -- Shadow casters/ground plane -- //
 	// Set up the planar projection matrix, with a little z offset
@@ -316,7 +323,6 @@ void Engine::Draw( int* triCount )
 	int textureState = 0;
 	if ( shadowMode == SHADOW_Z ) {
 		glDisable( GL_TEXTURE_2D );
-		glDisable( GL_LIGHTING );
 		glDepthFunc( GL_ALWAYS );
 		textureState = Model::NO_TEXTURE;
 		glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );	// keeps white from bleeding outside the map.
@@ -326,7 +332,7 @@ void Engine::Draw( int* triCount )
 
 		renderQueue->BindTextureToVertex( true );
 		PushShadowTextureMatrix();
-		LightSimple( true );
+		LightSimple( dayNight, IN_SHADOW );
 
 		map->BindTextureUnits();
 	}
@@ -360,35 +366,50 @@ void Engine::Draw( int* triCount )
 		glEnable( GL_DEPTH_TEST );
 		glDepthFunc( GL_LESS );
 
-		LightSimple( true );
-		map->Draw( renderQueue );
+		LightSimple( dayNight, IN_SHADOW );
+		map->Draw();
 		CHECK_GL_ERROR;
 	}
 
 	CHECK_GL_ERROR;
 	glEnable( GL_TEXTURE_2D );
-	glEnable( GL_LIGHTING );
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
 	glDepthFunc( depthFunc );
 	CHECK_GL_ERROR;
 
 	// -- Model -- //
-	Vector3F dayNight = { 1.0f, 1.0f, 1.0f };
-	if ( map->GetLightMap() ) {
-		dayNight.Set( 131.f/255.f, 125.f/255.f, 1.0f );
-	}
-	EnableLights( true, false, dayNight );
+	EnableLights( true, dayNight );
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
 
-	//debug = 0;
+	Model* fogRoot = 0;
+
+	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 	for( Model* model=modelRoot; model; model=model->next ) {
-		model->Queue( renderQueue, Model::MODEL_TEXTURE );
+		const Vector3X& pos = model->Pos();
+		int x = pos.x;
+		int y = pos.z;
+
+		if ( fogOfWar.IsSet( x, y ) ) {
+			model->Queue( renderQueue, Model::MODEL_TEXTURE );
+		}
+		else {
+			model->next0 = fogRoot;
+			fogRoot = model;
+		}
 	}
 	renderQueue->Flush();
-	
-	EnableLights( false, false, dayNight );
+	EnableLights( false, dayNight );
+	glBindTexture( GL_TEXTURE_2D, 0 );
+
+	glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );
+	for( Model* model=fogRoot; model; model=model->next0 ) {
+		model->Queue( renderQueue, Model::NO_TEXTURE );
+	}
+	renderQueue->Flush();
+
+	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 
 	*triCount = renderQueue->GetTriCount();
 	renderQueue->ClearTriCount();
@@ -415,11 +436,7 @@ void Engine::Draw( int* triCount )
 }
 
 
-const float gAMBIENT = 0.3f;
-const float gDIFFUSE = 0.7f;
-const float gSHADOW  = 0.3f;
-	
-void Engine::EnableLights( bool enable, bool inShadow, const Vector3F& dayNight )
+void Engine::EnableLights( bool enable, DayNight dayNight )
 {
 	CHECK_GL_ERROR;
 	if ( !enable ) {
@@ -429,26 +446,18 @@ void Engine::EnableLights( bool enable, bool inShadow, const Vector3F& dayNight 
 		glEnable( GL_LIGHTING );
 		CHECK_GL_ERROR;
 
-		const float RED = 131.f/255.f;
-		const float GREEN = 125.f/255.f;
-		const float BLUE = 1.f;
-
 		const float white[4]	= { 1.0f, 1.0f, 1.0f, 1.0f };
 		const float black[4]	= { 0.0f, 0.0f, 0.0f, 1.0f };
-		float ambient[4] = { gAMBIENT, gAMBIENT, gAMBIENT, 1.0f };
-		float diffuse[4] = { gDIFFUSE, gDIFFUSE, gDIFFUSE, 1.0f };
-		diffuse[0] *= dayNight.x;
-		diffuse[1] *= dayNight.y;
-		diffuse[2] *= dayNight.z;
+
+		float ambient[4] = { AMBIENT, AMBIENT, AMBIENT, 1.0f };
+		float diffuse[4] = { DIFFUSE, DIFFUSE, DIFFUSE, 1.0f };
+		if ( dayNight == NIGHT_TIME ) {
+			diffuse[0] *= NIGHT_RED;
+			diffuse[1] *= NIGHT_GREEN;
+			diffuse[2] *= NIGHT_BLUE;
+		}
 
 		Vector3F lightDir = lightDirection;
-
-		if ( inShadow ) {
-			diffuse[0] *= gSHADOW;
-			diffuse[1] *= gSHADOW;
-			diffuse[2] *= gSHADOW;
-			diffuse[3] = 1.0f;
-		}
 
 		float lightVector4[4] = { lightDir.x, lightDir.y, lightDir.z, 0.0 };	// parallel
 
@@ -473,13 +482,25 @@ void Engine::EnableLights( bool enable, bool inShadow, const Vector3F& dayNight 
 }
 
 
-void Engine::LightSimple( bool inShadow )
+void Engine::SetDayNight( bool dayTime, Surface* lightMap )
+{
+	dayNight = dayTime ? DAY_TIME : NIGHT_TIME;
+	map->SetLightMap( lightMap );
+	map->GenerateLightMap( fogOfWar );
+}      
+
+
+
+void Engine::LightSimple( DayNight dayNight, ShadowState shadows )
 {
 	const Vector3F normal = { 0.0f, 1.0f, 0.0f };	
 	float dot = DotProduct( lightDirection, normal );
+	if ( dayNight == NIGHT_TIME ) {
+		dot = 1.0f;	// Light map accounts for normal.
+	}
 
-	float diffuse = gDIFFUSE;
-	if ( inShadow ) {
+	float diffuse = DIFFUSE;
+	if ( shadows == IN_SHADOW ) {
 		// FIXME: not sure what I'm missing in the light equation, but this is too dark.
 		// The main reason LightSimple is here is that lighting doesn't look correct in shadows.
 		// Something is getting tweaked in the state. (Not a bug, just the difficulties of
@@ -487,7 +508,7 @@ void Engine::LightSimple( bool inShadow )
 		//diffuse *= gSHADOW;
 		diffuse *= 0.6f;
 	}
-	float light = gAMBIENT + diffuse*dot;
+	float light = AMBIENT + diffuse*dot;
 
 	CHECK_GL_ERROR;
 	glColor4f( light, light, light, 1.0f );

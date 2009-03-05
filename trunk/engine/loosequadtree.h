@@ -66,7 +66,7 @@ private:
 	};
 
 	void InitNode();
-	void QueryPlanesRec( const PlaneX* planes, int nPlanes, int intersection, const Node* node );
+	void QueryPlanesRec( const PlaneX* planes, int nPlanes, int intersection, const Node* node, U32  );
 	void QueryPlanesRec( const Vector3X& origin, const Vector3X& direction, int intersection, const Node* node );
 
 	Item freeMemSentinel;
@@ -74,8 +74,9 @@ private:
 	Model* modelRoot;
 	grinliz::Fixed yMin, yMax;
 
-	int nodesChecked;
-	int nodesComputed;
+	int nodesVisited;
+	int planesComputed;
+	int spheresComputed;
 	int modelsFound;
 
 	Item modelPool[EL_MAX_MODELS];

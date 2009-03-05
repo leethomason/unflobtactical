@@ -57,7 +57,7 @@ public:
 	Surface* GetLightMap()	{ return lightMap; }
 	void GenerateLightMap( const grinliz::BitArray<SIZE, SIZE>& fogOfWar );
 	
-	void Draw( RenderQueue* queue );
+	void Draw();
 
 	void SetItemDef( int i, ModelResource* mr );
 	const char* GetItemDefName( int i );
