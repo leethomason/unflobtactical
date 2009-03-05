@@ -1,12 +1,17 @@
 = Engine =
 
-  * fog of war (FoW)
-  * night time / day time
+== Open == 
+
   * particle system - fire, smoke, sparkle
   * UI: day/night, FoW on/off, standard test
   * fix zoom start, min, max
   * object intersection testing
   * resource loading on demand
+
+== Resolved ==
+
+  * [done 3/09] fog of war (FoW)
+  * [done 3/09] night time / day time
 
 = Game =
   * visibility computation
