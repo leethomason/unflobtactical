@@ -458,7 +458,6 @@ void Game::TransformScreen( int x0, int y0, int *x1, int *y1 )
 }
 
 
-
 void Game::Tap( int tap, int x, int y )
 {
 	if ( tap == 1 ) {
@@ -475,10 +474,10 @@ void Game::Tap( int tap, int x, int y )
 				break;
 
 			case UIWidgets::ICON_FOG_OF_WAR:
-				if ( engine.GetMap()->GetLightMap() )
-					engine.GetMap()->SetLightMap( 0 );
+				if ( engine.GetDayTime() )
+					engine.SetDayNight( false, &lightMap );
 				else
-					engine.GetMap()->SetLightMap( &lightMap );
+					engine.SetDayNight( true, 0 );
 				break;
 
 			default:

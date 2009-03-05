@@ -68,7 +68,7 @@ void Map::Clear()
 }
 
 
-void Map::Draw( RenderQueue* queue )
+void Map::Draw()
 {
 	//model->Queue( queue );
 	//queue->Flush();

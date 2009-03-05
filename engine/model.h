@@ -123,7 +123,8 @@ public:
 	ModelResource* GetResource()				{ return resource; }
 	bool Sentinel()								{ return resource==0 && tree==0; }
 
-	Model* next;
+	Model* next;	// used by the SpaceTree query
+	Model* next0;	// used by the Engine sub-sorting
 
 private:
 	SpaceTree* tree;

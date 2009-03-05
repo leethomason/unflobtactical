@@ -247,8 +247,9 @@ SpaceTree::Node* SpaceTree::GetNode( int depth, int x, int z )
 Model* SpaceTree::Query( const PlaneX* planes, int nPlanes )
 {
 	modelRoot = 0;
-	nodesChecked = 0;
-	nodesComputed = 0;
+	nodesVisited = 0;
+	planesComputed = 0;
+	spheresComputed = 0;
 	modelsFound = 0;
 
 #ifdef DEBUG
@@ -257,15 +258,21 @@ Model* SpaceTree::Query( const PlaneX* planes, int nPlanes )
 	}
 #endif
 
-	QueryPlanesRec( planes, nPlanes, grinliz::INTERSECT, &nodeArr[0] );
+	QueryPlanesRec( planes, nPlanes, grinliz::INTERSECT, &nodeArr[0], 0 );
+	
 	/*
-	GLOUTPUT(( "Query checked=%d, computed=%d of %d nodes, models=%d [%d,%d,%d,%d,%d]\n", nodesChecked, nodesComputed, NUM_NODES, modelsFound,
+	GLOUTPUT(( "Query visited=%d of %d nodes, comptued planes=%d spheres=%d models=%d [%d,%d,%d,%d,%d]\n", 
+				nodesVisited, NUM_NODES, 
+				planesComputed,
+				spheresComputed,
+				modelsFound,
 				nodeAddedAtDepth[0],
 				nodeAddedAtDepth[1],
 				nodeAddedAtDepth[2],
 				nodeAddedAtDepth[3],
 				nodeAddedAtDepth[4] ));
 	*/
+	
 	return modelRoot;
 }
 
@@ -273,7 +280,7 @@ Model* SpaceTree::Query( const PlaneX* planes, int nPlanes )
 Model* SpaceTree::Query( const Vector3X& origin, const Vector3X& direction )
 {
 	modelRoot = 0;
-	nodesChecked = 0;
+	nodesVisited = 0;
 	modelsFound = 0;
 
 	QueryPlanesRec( origin, direction, grinliz::INTERSECT, &nodeArr[0] );
@@ -306,12 +313,14 @@ void SpaceTree::Node::CalcAABB( Rectangle3X* aabb, const Fixed yMin, const Fixed
 */
 }
 
-void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersection, const Node* node )
+void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersection, const Node* node, U32 positive )
 {
+	#define POSITIVE( pos, i ) ( pos & (1<<i) )
+
 	if ( intersection == grinliz::POSITIVE ) 
 	{
 		// we are fully inside, and don't need to check.
-		++nodesChecked;
+		++nodesVisited;
 	}
 	else if ( intersection == grinliz::INTERSECT ) 
 	{
@@ -321,20 +330,29 @@ void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersect
 		int nPositive = 0;
 
 		for( int i=0; i<nPlanes; ++i ) {
-			int comp = ComparePlaneAABBX( planes[i], aabb );
+			// Assume positive bit is set, check if not. Once we go POSITIVE, we don't need 
+			// to check the sub-nodes. They will still be POSITIVE. Saves about 1/2 the Plane
+			// and Sphere checks.
+			//
+			int comp = grinliz::POSITIVE;
+			if ( POSITIVE( positive, i ) == 0 ) {
+				comp = ComparePlaneAABBX( planes[i], aabb );
+				++planesComputed;
+			}
 
 			// If the aabb is negative of any plane, it is culled.
 			if ( comp == grinliz::NEGATIVE ) {
 				intersection = grinliz::NEGATIVE;
 				break;
 			}
-			// If the aabb intersects the plane, the result is subtle:
-			// intersecting a plane doesn't meen it is in the frustrum. 
-			// The intersection of the aabb and the plane is often 
-			// completely outside the frustum.
-
-			// If the aabb is positive of ALL the planes then we are in good shape.
 			else if ( comp == grinliz::POSITIVE ) {
+				// If the aabb intersects the plane, the result is subtle:
+				// intersecting a plane doesn't meen it is in the frustrum. 
+				// The intersection of the aabb and the plane is often 
+				// completely outside the frustum.
+
+				// If the aabb is positive of ALL the planes then we are in good shape.
+				positive |= (1<<i);
 				++nPositive;
 			}
 		}
@@ -342,8 +360,7 @@ void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersect
 			// All positive is quick:
 			intersection = grinliz::POSITIVE;
 		}
-		++nodesChecked;
-		++nodesComputed;
+		++nodesVisited;
 	}
 	if ( intersection != grinliz::NEGATIVE ) 
 	{
@@ -362,13 +379,17 @@ void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersect
 				if ( intersection == grinliz::INTERSECT ) {
 					SphereX sphere;
 					m->CalcBoundSphere( &sphere );
-					//sphere.Dump();
 					
 					int compare = grinliz::INTERSECT;
 					for( int k=0; k<nPlanes; ++k ) {
-						compare = ComparePlaneSphereX( planes[k], sphere );
-						if ( compare == grinliz::NEGATIVE ) {
-							break;
+						// Since the bounding sphere is in the AABB, we
+						// can check for the positive plane again.
+						if ( POSITIVE( positive, k ) == 0 ) {
+							compare = ComparePlaneSphereX( planes[k], sphere );
+							++spheresComputed;
+							if ( compare == grinliz::NEGATIVE ) {
+								break;
+							}
 						}
 					}
 					if ( compare == grinliz::NEGATIVE )
@@ -382,12 +403,13 @@ void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersect
 		}
 		
 		if ( node->child[0] )  {
-			QueryPlanesRec( planes, nPlanes, intersection, node->child[0] );
-			QueryPlanesRec( planes, nPlanes, intersection, node->child[1] );
-			QueryPlanesRec( planes, nPlanes, intersection, node->child[2] );
-			QueryPlanesRec( planes, nPlanes, intersection, node->child[3] );
+			QueryPlanesRec( planes, nPlanes, intersection, node->child[0], positive );
+			QueryPlanesRec( planes, nPlanes, intersection, node->child[1], positive );
+			QueryPlanesRec( planes, nPlanes, intersection, node->child[2], positive );
+			QueryPlanesRec( planes, nPlanes, intersection, node->child[3], positive );
 		}
 	}
+	#undef POSITIVE
 }
 
 
@@ -402,7 +424,7 @@ void SpaceTree::QueryPlanesRec(	const Vector3X& origin, const Vector3X& directio
 	{
 		// we are fully inside, and don't need to check.
 		callChildrenAndAddModels = true;
-		++nodesChecked;
+		++nodesVisited;
 	}
 	else if ( intersection == grinliz::INTERSECT ) 
 	{
@@ -419,7 +441,8 @@ void SpaceTree::QueryPlanesRec(	const Vector3X& origin, const Vector3X& directio
 			intersection = grinliz::INTERSECT;
 			callChildrenAndAddModels = true;
 		}
-		++nodesChecked;
+		++planesComputed;
+		++nodesVisited;
 	}
 	if ( callChildrenAndAddModels ) 
 	{

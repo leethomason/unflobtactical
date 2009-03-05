@@ -51,6 +51,13 @@ public:
 	Engine( int _width, int _height, const EngineData& engineData );
 	~Engine();
 
+	const float AMBIENT;
+	const float DIFFUSE;
+	const float DIFFUSE_SHADOW;
+	const float NIGHT_RED;
+	const float NIGHT_GREEN;
+	const float NIGHT_BLUE;
+
 	Camera camera;
 	float fov;
 
@@ -103,16 +110,30 @@ public:
 
 	int Width()		{ return width; }
 	int Height()	{ return height; }
-	
+
+	void SetDayNight( bool dayTime, Surface* lightMap );
+	bool GetDayTime()							{ return (dayNight == DAY_TIME); }
+
 	void ToggleShadowMode()		{ shadowMode++; if ( shadowMode == SHADOW_COUNT ) shadowMode = 0; }
 	int  ShadowMode()			{ return shadowMode; }
 
 private:
+	enum ShadowState {
+		IN_SHADOW,
+		OPEN_LIGHT
+	};
+
+	enum DayNight {
+		DAY_TIME,
+		NIGHT_TIME
+	};
+
 	void DrawCamera();
 	void RestrictCamera();
 	void CalcCameraRotation( grinliz::Matrix4* );
-	void EnableLights( bool enable, bool inShadow, const grinliz::Vector3F& dayNight );
-	void LightSimple( bool inShadow );
+	void EnableLights( bool enable, DayNight dayNight );
+	void LightSimple( DayNight dayNight, ShadowState shadows );
+
 	Model* IntersectModel( const grinliz::Ray& ray, bool onlyDraggable );
 	void PushShadowMatrix();
 
@@ -144,6 +165,7 @@ private:
 	};
 	int shadowMode;
 	bool isDragging;
+	DayNight dayNight;
 	const EngineData& engineData;
 
 	Map* map;
