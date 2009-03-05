@@ -10,8 +10,8 @@
 
 == Resolved ==
 
-  * [done 3/09] fog of war (FoW)
-  * [done 3/09] night time / day time
+  * 3/09 fog of war (FoW)
+  * 3/09 night time / day time
 
 = Game =
   * visibility computation
