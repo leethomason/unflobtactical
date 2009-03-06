@@ -469,6 +469,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\engine\particle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\engine\particle.h"
+				>
+			</File>
+			<File
 				RelativePath=".\engine\platformgl.h"
 				>
 			</File>
