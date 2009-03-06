@@ -27,44 +27,25 @@ distribution.
 */
 
 #include "glrandom.h"
-#include "glutil.h"
-
+#include <math.h>
 using namespace grinliz;
 
-Random::Random(	U32 _seed )
+void Random::NormalVector( float* v, int dim )
 {
-	SetSeed( _seed );
-}
+	GLASSERT( dim > 0 );
 
-
-U16 Random::Randomize()
-{
-	CalcSeed();
-	U32 slot = ( seed & 0xffff ) / SLOTWIDTH;
-	GLASSERT( slot < TABLESIZE );
-
-	U16 ret = seedTable[slot];
-	seedTable[slot] = U16( seed );
-	return ret;
-}
-
-
-void Random::SetSeed( U32 _seed ) 
-{
-	int i;
-	seed = _seed;
-	
-	// Initial values:
-	for ( i=0; i<TABLESIZE; i++ )
-	{
-		CalcSeed();
-		seedTable[i] = (U16)seed;	// intentionally truncate
+	float len2 = 0.0f;
+	for( int i=0; i<dim; ++i ) {
+		v[i] = -1.0f + 2.0f*Uniform();
+		len2 += v[i]*v[i];
 	}
-
-	// Shuffle:
-	for ( i=0; i<TABLESIZE; i++ )
-	{
-		CalcSeed();
-		Swap( &seedTable[i], &seedTable[ ( seed & 0xffff ) / SLOTWIDTH ] );
+	// exceedingly unlikely error case:
+	if ( len2 == 0.0f ) {
+		v[0] = 1.0;
+		len2 = 1.0;
+	}
+	float lenInv = 1.0f / sqrtf( len2 );
+	for( int i=0; i<dim; ++i ) {
+		v[i] *= lenInv;
 	}
 }

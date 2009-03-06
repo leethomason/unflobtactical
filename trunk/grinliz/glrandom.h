@@ -40,63 +40,66 @@ class Random
 {
   public:
 	/// Constructor, with optional seed value.
-	Random( U32 _seed = 0 );
+	Random( U32 seed = 0 )		{ SetSeed( seed ); }
 
-	/** The current seed can be set at any time. This does 
-		put the random number generator in a consistent state,
-		even though the random numbers are actually partially
-		cached.
+	/** The current seed can be set at any time to
+		guarentee a certain sequence of random numbers.
 	*/
-	void SetSeed( U32 _seed );
+	void SetSeed( U32 seed )	{	m_w = 521288629 + seed;
+									m_z = 362436069 + seed;
+								}									
 
-	/// Returns a 16bit random number.
-	U16 Rand()						{ return Randomize();	}
+	/// Returns a 32 bit random number.
+	U32 Rand()						
+		// Based on the very very clever multiply with carry by George Marsaglia
+		// http://www.bobwheeler.com/statistics/Password/MarsagliaPost.txt
+		{
+			m_z = 36969 * (m_z & 65535) + (m_z >> 16);
+			m_w = 18000 * (m_w & 65535) + (m_w >> 16);
+			return (m_z << 16) + (m_w&65535);
+		}
+
 	/** Returns a random number greater than or equal to 0, and less 
 		that 'upperBound'.
 	*/	
-	U16 Rand( U16 upperBound )		{ return Randomize() % upperBound; }
+	U32 Rand( U32 upperBound )		{ return Rand() % upperBound; }
 
-	/** "Roll two dice." Return a result from [0,upperBound).
-		This has the same bell curve distribution as 2 dice.
+	/** "Roll dice." Has the same bell curve distribution as N dice. Dice start with the 
+		value '1', so RandD2( 2, 6 ) returns a value from 2-12
 	*/
-	U16 RandD2( U16 upperBound )	{ U16 d1 = upperBound / 2 + 1;
-									  U16 d2 = upperBound - d1 + 1;
-									  U16 r  = Rand( d1 ) + Rand( d2 );
-									  GLASSERT( r < upperBound );
-									  return r;
-									}
+	U32 Dice( U32 nDice, U32 sides ) {	
+		U32 total = 0;
+		for( U32 i=0; i<nDice; ++i ) { total += Rand(sides)+1; }
+		return total;
+	}
 
-	/** "Roll three dice." Return a result from [0,upperBound).
-		This has the same bell curve distribution as 3 dice.
-	*/
-	U16 RandD3( U16 upperBound )	{ U16 d1 = upperBound / 3 + 2;
-									  U16 d2 = upperBound / 3 + 2;
-									  U16 d3 = upperBound - d1 - d2 + 2;
-									  U16 r = Rand( d1 ) + Rand( d2 ) + Rand( d3 );
-									  GLASSERT( r < upperBound );
-									  return r;
-									}
-
-	/// Return a random number from 0 to upper: [0,upper].
-	double DRand( double upper )	{ return upper * double( Randomize() ) / 65535.0; }
-
-	/// Return a random number from 0 to upper: [0,upper].
-	float FRand( float upper )		{ return upper * float( Randomize() ) / 65535.0f; }
+	/// Return a random number from 0 to upper: [0.0,1.0].
+	float Uniform()	{ 
+		const float INV = 1.0f / 65535.0f;	
+		return (float)( Rand() & 65535 ) * INV;
+	}
 
 	/// Return a random boolean.
-	bool Boolean()					{ return Rand( 100 ) >= 50; }
+	bool Boolean()					
+	{ 
+		// It seems like all bits in all pseudo sequences have a problem...choose some bit and go with it.
+		const int BIT = 7;
+		return (Rand() & (1<<BIT)) ? true : false;
+	}
 
-  private:
-	U32 seed;
-	inline void CalcSeed()		{ seed = seed * 39421 + 1; }
-	U16 Randomize();
+	/// Return +1 or -1
+	int Sign()					
+	{ 
+		// It seems like all bits in all pseudo sequences have a problem...choose some bit and go with it.
+		const int BIT = 9;
+		return -1 + 2*( (Rand()&(1<<BIT) >> BIT ) );
+	}
 
-	enum {
-		TABLESIZE = 16,
-		SLOTWIDTH = 0x10000 / TABLESIZE
-	};
+	/// Return a random unit normal vector. 'dimension' is usual 2 (2D) or 3 (3D)
+	void NormalVector( float* v, int dimension );
 
-	U16 seedTable[ TABLESIZE ];
+private:
+	U32 m_z, m_w;
 };
 
 };	// namespace grinliz
