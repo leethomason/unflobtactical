@@ -203,11 +203,20 @@ void Engine::PushShadowMatrix()
 	m.m12 = -lightDirection.x/lightDirection.y;
 	m.m22 = 0.0f;
 	if ( shadowMode == SHADOW_Z ) {
-		//const float DEPTH = 0.5f;
-		//m.m14 = -lightDirection.x/lightDirection.y * DEPTH;	// x hide the shift 
-		//m.m24 = -DEPTH;										// y term down
-		//m.m34 = -lightDirection.z/lightDirection.y * DEPTH;	// z hide the shift
-		m.m24 = -0.05f;
+		// The shadow needs a depth to use the Z-buffer. More depth is good,
+		// more resolution, but intoduces an error in eye space. Try to correct
+		// for the error in eye space using the camera ray. (The correct answer
+		// is per-vertex, but we won't pay for that). Combine that with a smallish
+		// depth value to try to minimize shadow errors.
+		Ray ray;
+		camera.CalcEyeRay( &ray, 0, 0 );
+
+		const float DEPTH = 0.2f;
+		m.m14 = -ray.direction.x/ray.direction.y * DEPTH;	// x hide the shift 
+		m.m24 = -DEPTH;										// y term down
+		m.m34 = -ray.direction.z/ray.direction.y * DEPTH;	// z hide the shift
+		
+		//m.m24 = -0.05f;
 	}
 	m.m32 = -lightDirection.z/lightDirection.y;
 
