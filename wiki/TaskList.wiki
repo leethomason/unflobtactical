@@ -13,7 +13,7 @@
   * 3/09 night time / day time
   * 3/09 fixed shadow offset in z-path
 
-= MapMaker = 
+= Map Maker = 
 === Open ===
   * support for impassible squares
   * support for landing vehicle
