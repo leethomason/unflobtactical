@@ -1,6 +1,5 @@
 = Engine =
-
-== Open == 
+=== Open === 
 
   * particle system - fire, smoke, sparkle
   * UI: day/night, FoW on/off, standard test
@@ -8,12 +7,19 @@
   * object intersection testing
   * resource loading on demand
 
-== Resolved ==
+=== Resolved ===
 
   * 3/09 fog of war (FoW)
   * 3/09 night time / day time
+  * 3/09 fixed shadow offset in z-path
+
+= MapMaker = 
+=== Open ===
+  * support for impassible squares
+  * support for landing vehicle
 
 = Game =
+=== Open ===
   * visibility computation
   * pathing
   * pathing+animation
