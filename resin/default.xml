@@ -40,6 +40,10 @@
 	<model filename="bed.ac" />
 	<model filename="wheat.ac" />
 	<model filename="tree.ac" />
+	
+	<!-- Particles -->
+	<texture filename="particleQuad.png" />
+	<texture filename="particleSparkle.png" />
 
 	<!-- Maps -->
 	<texture filename="farmland.png" />

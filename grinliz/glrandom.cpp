@@ -30,6 +30,24 @@ distribution.
 #include <math.h>
 using namespace grinliz;
 
+
+// Very clever post by: George Marsaglia
+// http://www.bobwheeler.com/statistics/Password/MarsagliaPost.txt
+// The basic MWC is extremely attractive for its simplicity. But in
+// its lower 16 bits, its period is shorted (since it is independent
+// of the upper bits.) KISS is still simple and compelling.
+U32 Random::Rand()
+{
+	#define znew  ((z=36969*(z&65535)+(z>>16))<<16)
+	#define wnew  ((w=18000*(w&65535)+(w>>16))&65535)
+	#define MWC   (znew+wnew)
+	#define SHR3  (jsr=(jsr=(jsr=jsr^(jsr<<17))^(jsr>>13))^(jsr<<5))
+	#define CONG  (jcong=69069*jcong+1234567)
+	#define KISS  ((MWC^CONG)+SHR3)
+	return KISS;
+}
+
+
 void Random::NormalVector( float* v, int dim )
 {
 	GLASSERT( dim > 0 );

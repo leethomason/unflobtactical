@@ -29,7 +29,7 @@ Camera::Camera() :
 }
 
 
-void Camera::CalcWorldXForm( Matrix4* xform )
+void Camera::CalcWorldXForm()
 {
 	if ( !valid ) {
 		Matrix4 translation, rotationY, rotationTilt;
@@ -46,19 +46,18 @@ void Camera::CalcWorldXForm( Matrix4* xform )
 
 		// Done in world: we tilt it down, turn it around y, then move it.
 		worldXForm = translation * rotationY * rotationTilt;
+		CalcEyeDir();
 		valid = true;
 	}
-	*xform = worldXForm;
 }
 
 
 void Camera::DrawCamera()
 {
-	Matrix4 world;
-	CalcWorldXForm( &world );
+	CalcWorldXForm();
 
 	Matrix4 m, view;
-	world.Invert( &m );
+	worldXForm.Invert( &m );
 
 	view.SetZRotation( (float)(viewRotation)*90.0f );
 	m = view * m;
@@ -67,13 +66,8 @@ void Camera::DrawCamera()
 }
 
 
-void Camera::CalcEyeRay( Ray* ray, Ray* up, Ray* right )
+void Camera::CalcEyeDir()
 {
-	
-	Matrix4 m;
-	CalcWorldXForm( &m );
-
-	Ray* rays[3] = { ray, up, right };
 	Vector4F dir[3] = {
 		{ 0.0f, 0.0f, -1.0f, 0.0f },	// ray
 		{ 0.0f, 1.0f, 0.0f, 0.0f },		// up (y axis)
@@ -81,17 +75,10 @@ void Camera::CalcEyeRay( Ray* ray, Ray* up, Ray* right )
 	};
 
 	for( int i=0; i<3; ++i ) {
-		Ray* r = rays[i];
-		if ( r ) {
-			r->origin = posWC;
-			r->length = 1.0f;
-
-			Vector4F vOut = m * dir[i];
-
-			r->direction.x = vOut.x;
-			r->direction.y = vOut.y;
-			r->direction.z = vOut.z;
-		}
+		eyeDir[i] = worldXForm * dir[i];
+		eyeDir3[i].x = eyeDir[i].x;
+		eyeDir3[i].y = eyeDir[i].y;
+		eyeDir3[i].z = eyeDir[i].z;
 	}
 }
 

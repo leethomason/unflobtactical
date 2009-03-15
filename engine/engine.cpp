@@ -130,14 +130,14 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 
 	// The ray runs from the min to the max, with the current (and default)
 	// zoom specified in the engineData.
-	Ray ray;
-	camera.CalcEyeRay( &ray, 0, 0 );
+	const Vector3F& eyePos = camera.PosWC();
+	const Vector3F* eyeDir = camera.EyeDir3();
 	
-	float t1 = ( engineData.cameraMin - ray.origin.y ) / ray.direction.y;
-	float t0 = ( engineData.cameraMax - ray.origin.y ) / ray.direction.y;
+	float t1 = ( engineData.cameraMin - eyePos.y ) / eyeDir[0].y;
+	float t0 = ( engineData.cameraMax - eyePos.y ) / eyeDir[0].y;
 
-	cameraRay.origin = ray.origin + t0*ray.direction;
-	cameraRay.direction = ray.direction;
+	cameraRay.origin = eyePos + t0*eyeDir[0];
+	cameraRay.direction = eyeDir[0];
 	cameraRay.length = t1-t0;
 
 	zoom = ( engineData.cameraHeight - cameraRay.origin.y ) / cameraRay.direction.y;
@@ -176,11 +176,10 @@ void Engine::MoveCameraHome()
 
 void Engine::MoveCameraXZ( float x, float z )
 {
-	Ray ray;
-	camera.CalcEyeRay( &ray, 0, 0 );
+	const Vector3F* eyeDir = camera.EyeDir3();
 
 	Vector3F start = { x, 0.0f, z };
-	Vector3F pos = start - ray.direction*engineData.cameraHeight*1.4f;
+	Vector3F pos = start - eyeDir[0]*engineData.cameraHeight*1.4f;
 
 	camera.SetPosWC( pos.x, pos.y, pos.z );
 	camera.SetYRotation( -45.f );
@@ -222,13 +221,12 @@ void Engine::PushShadowMatrix()
 		// for the error in eye space using the camera ray. (The correct answer
 		// is per-vertex, but we won't pay for that). Combine that with a smallish
 		// depth value to try to minimize shadow errors.
-		Ray ray;
-		camera.CalcEyeRay( &ray, 0, 0 );
+		const Vector3F* eyeDir = camera.EyeDir3();
 
 		const float DEPTH = 0.2f;
-		m.m14 = -ray.direction.x/ray.direction.y * DEPTH;	// x hide the shift 
+		m.m14 = -eyeDir[0].x/eyeDir[0].y * DEPTH;	// x hide the shift 
 		m.m24 = -DEPTH;										// y term down
-		m.m34 = -ray.direction.z/ray.direction.y * DEPTH;	// z hide the shift
+		m.m34 = -eyeDir[0].z/eyeDir[0].y * DEPTH;	// z hide the shift
 		
 		//m.m24 = -0.05f;
 	}
@@ -387,7 +385,7 @@ void Engine::Draw( int* triCount )
 
 		glDepthMask( GL_TRUE );
 		glEnable( GL_DEPTH_TEST );
-		glDepthFunc( GL_LESS );
+		glDepthFunc( depthFunc );
 
 		LightSimple( dayNight, IN_SHADOW );
 		map->Draw();
@@ -396,6 +394,7 @@ void Engine::Draw( int* triCount )
 
 	CHECK_GL_ERROR;
 	glEnable( GL_TEXTURE_2D );
+
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
 	glDepthFunc( depthFunc );
@@ -403,9 +402,6 @@ void Engine::Draw( int* triCount )
 
 	// -- Model -- //
 	EnableLights( true, dayNight );
-	glEnable( GL_DEPTH_TEST );
-	glDepthMask( GL_TRUE );
-
 	Model* fogRoot = 0;
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
@@ -863,10 +859,10 @@ void Engine::Zoom( int action, int distance )
 
 void Engine::RestrictCamera()
 {
-	Ray ray;
-	camera.CalcEyeRay( &ray, 0, 0 );
+	const Vector3F* eyeDir = camera.EyeDir3();
+
 	Vector3F intersect;
-	IntersectRayPlane( ray.origin, ray.direction, XZ_PLANE, 0.0f, &intersect );
+	IntersectRayPlane( camera.PosWC(), eyeDir[0], XZ_PLANE, 0.0f, &intersect );
 //	GLOUTPUT(( "Intersect %.1f, %.1f, %.1f\n", intersect.x, intersect.y, intersect.z ));
 
 	const float SIZEX = (float)map->Width();
