@@ -16,6 +16,11 @@
 #ifndef UFO_BUILDER_INCLUDED
 #define UFO_BUILDER_INCLUDED
 
+
+/*	WARNING everything assumes little endian. Nead to rework
+	save/load if this changes.
+*/
+
 /*	MODEL
 
 	name				char[16]
@@ -33,15 +38,7 @@
 	indexData			BE16[]
 */
 
-/*	TEXTURE
+/*	TEXTURE  */
 
-	name				char[16]
-	format				BE32	(OpenGL constants)
-	type				BE32	(OpenGL constants)
-	width				BE32
-	height				BE32
-
-	pixel data			BE16
-*/
 
 #endif // UFO_BUILDER_INCLUDED
