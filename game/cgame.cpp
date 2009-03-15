@@ -140,6 +140,9 @@ void PlatformPathToResource( const char* name, const char* extension, char* buff
 	
 	CFBundleRef mainBundle = CFBundleGetMainBundle();	
 	CFURLRef imageURL = CFBundleCopyResourceURL( mainBundle, nameRef, extensionRef, NULL );
+	if ( !imageURL ) {
+		GLOUTPUT(( "Error loading '%s' '%s'\n", name, extension ));
+	}
 	GLASSERT( imageURL );
 		
 	CFURLGetFileSystemRepresentation( imageURL, true, (unsigned char*)buffer, bufferLen );
