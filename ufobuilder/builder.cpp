@@ -35,6 +35,7 @@ using namespace std;
 #include "../tinyxml/tinyxml.h"
 
 #include "modelbuilder.h"
+#include "../engine/serialize.h"
 #include "../importers/import.h"
 
 
@@ -63,9 +64,30 @@ void LoadLibrary()
 }
 
 
+
 void WriteFloat( SDL_RWops* ctx, float f )
 {
 	SDL_RWwrite( ctx, &f, sizeof(float), 1 );
+}
+
+
+void TextureHeader::Save( SDL_RWops* fp )
+{
+	SDL_RWwrite( fp, name, EL_FILE_STRING_LEN, 1 );
+	SDL_WriteLE32( fp, format );
+	SDL_WriteLE32( fp, type );
+	SDL_WriteLE16( fp, width );
+	SDL_WriteLE16( fp, height );
+}
+
+void TextureHeader::Set( const char* name, U32 format, U32 type, U16 width, U16 height )
+{
+	memset( this->name, 0, EL_FILE_STRING_LEN );
+	strncpy( this->name, name, EL_FILE_STRING_LEN );
+	this->format = format;
+	this->type = type;
+	this->width = width;
+	this->height = height;
 }
 
 
@@ -311,9 +333,7 @@ void ProcessTexture( TiXmlElement* texture )
 		//printf( "  Writing: '%s'\n", fullOut.c_str() );
 	}
 
-	char buffer[16];
-	grinliz::StrFillBuffer( name, buffer, 16 );
-	SDL_RWwrite( fp, buffer, 16, 1 );
+	TextureHeader header;
 
 	/* PixelFormat */
 	#define GL_ALPHA                          0x1906
@@ -332,10 +352,8 @@ void ProcessTexture( TiXmlElement* texture )
 		case 32:
 			printf( "  RGBA memory=%dk\n", (surface->w * surface->h * 2)/1024 );
 			totalTextureMem += (surface->w * surface->h * 2);
-			SDL_WriteBE32( fp, GL_RGBA );
-			SDL_WriteBE32( fp, GL_UNSIGNED_SHORT_4_4_4_4 );
-			SDL_WriteBE32( fp, surface->w );
-			SDL_WriteBE32( fp, surface->h );
+			header.Set( name.c_str(), GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4, surface->w, surface->h );
+			header.Save( fp );
 
 			// Bottom up!
 			for( int j=surface->h-1; j>=0; --j ) {
@@ -357,10 +375,8 @@ void ProcessTexture( TiXmlElement* texture )
 		case 24:
 			printf( "  RGB memory=%dk\n", (surface->w * surface->h * 2)/1024 );
 			totalTextureMem += (surface->w * surface->h * 2);
-			SDL_WriteBE32( fp, GL_RGB );
-			SDL_WriteBE32( fp, GL_UNSIGNED_SHORT_5_6_5 );
-			SDL_WriteBE32( fp, surface->w );
-			SDL_WriteBE32( fp, surface->h );
+			header.Set( name.c_str(), GL_RGB, GL_UNSIGNED_SHORT_5_6_5, surface->w, surface->h );
+			header.Save( fp );
 
 			// Bottom up!
 			for( int j=surface->h-1; j>=0; --j ) {
@@ -381,10 +397,8 @@ void ProcessTexture( TiXmlElement* texture )
 		case 8:
 			printf( "  Alpha memory=%dk\n", (surface->w * surface->h * 1)/1024 );
 			totalTextureMem += (surface->w * surface->h * 1);
-			SDL_WriteBE32( fp, GL_ALPHA );
-			SDL_WriteBE32( fp, GL_UNSIGNED_BYTE );
-			SDL_WriteBE32( fp, surface->w );
-			SDL_WriteBE32( fp, surface->h );
+			header.Set( name.c_str(), GL_ALPHA, GL_UNSIGNED_BYTE, surface->w, surface->h );
+			header.Save( fp );
 
 			// Bottom up!
 			for( int j=surface->h-1; j>=0; --j ) {

@@ -17,6 +17,7 @@
 #include "platformgl.h"
 #include "../grinliz/glutil.h"
 #include <string.h>
+#include "serialize.h"
 
 Surface::Surface() : w( 0 ), h( 0 ), bpp( 0 ), allocated( 0 ), pixels( 0 )
 {}
@@ -47,6 +48,7 @@ void Surface::Set( int w, int h, int bpp )
 
 U32 Surface::LoadTexture( FILE* fp )
 {
+	/*
 	int _format, _type, _w, _h;
 	char name[16];
 	fread( name, 16, 1, fp );		// not currently used.
@@ -59,11 +61,15 @@ U32 Surface::LoadTexture( FILE* fp )
 	_type = grinliz::SwapBE32( _type );
 	_w = grinliz::SwapBE32( _w );
 	_h = grinliz::SwapBE32( _h );
+	*/
 
-	switch ( _format ) {
-		case GL_ALPHA:	Set( _w, _h, 1 );	break;
-		case GL_RGB:	Set( _w, _h, 2 );	break;
-		case GL_RGBA:	Set( _w, _h, 2 );	break;
+	TextureHeader header;
+	header.Load( fp );
+
+	switch ( header.format ) {
+		case GL_ALPHA:	Set( header.width, header.height, 1 );	break;
+		case GL_RGB:	Set( header.width, header.height, 2 );	break;
+		case GL_RGBA:	Set( header.width, header.height, 2 );	break;
 		default:
 			GLASSERT( 0 );
 			break;
@@ -77,9 +83,9 @@ U32 Surface::LoadTexture( FILE* fp )
 			GLASSERT( 0 );
 			break;
 	}
-	GLOUTPUT(( "Load texture: %s\n", name ));
+	GLOUTPUT(( "Load texture: %s\n", header.name ));
 
-	return LowerCreateTexture( _format, _type );
+	return LowerCreateTexture( header.format, header.type );
 }
 
 

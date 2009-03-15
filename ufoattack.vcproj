@@ -489,6 +489,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\engine\serialize.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\engine\serialize.h"
+				>
+			</File>
+			<File
 				RelativePath=".\engine\surface.cpp"
 				>
 			</File>
