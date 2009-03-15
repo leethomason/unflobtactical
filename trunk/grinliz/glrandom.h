@@ -45,19 +45,14 @@ class Random
 	/** The current seed can be set at any time to
 		guarentee a certain sequence of random numbers.
 	*/
-	void SetSeed( U32 seed )	{	m_w = 521288629 + seed;
-									m_z = 362436069 + seed;
+	void SetSeed( U32 seed )	{	w = 521288629 + seed;
+									z = 362436069 + seed;
+									jsr = 123456789;
+									jcong = 380116160;
 								}									
 
 	/// Returns a 32 bit random number.
-	U32 Rand()						
-		// Based on the very very clever multiply with carry by George Marsaglia
-		// http://www.bobwheeler.com/statistics/Password/MarsagliaPost.txt
-		{
-			m_z = 36969 * (m_z & 65535) + (m_z >> 16);
-			m_w = 18000 * (m_w & 65535) + (m_w >> 16);
-			return (m_z << 16) + (m_w&65535);
-		}
+	U32 Rand();						
 
 	/** Returns a random number greater than or equal to 0, and less 
 		that 'upperBound'.
@@ -79,27 +74,29 @@ class Random
 		return (float)( Rand() & 65535 ) * INV;
 	}
 
+	/// Return 0 or 1
+	int Bit()
+	{
+		return Rand()>>31;
+	}
+
 	/// Return a random boolean.
 	bool Boolean()					
 	{ 
-		// It seems like all bits in all pseudo sequences have a problem...choose some bit and go with it.
-		const int BIT = 7;
-		return (Rand() & (1<<BIT)) ? true : false;
+		return Bit() ? true : false;
 	}
 
 	/// Return +1 or -1
 	int Sign()					
 	{ 
-		// It seems like all bits in all pseudo sequences have a problem...choose some bit and go with it.
-		const int BIT = 9;
-		return -1 + 2*( (Rand()&(1<<BIT) >> BIT ) );
+		return -1 + 2*Bit();
 	}
 
 	/// Return a random unit normal vector. 'dimension' is usual 2 (2D) or 3 (3D)
 	void NormalVector( float* v, int dimension );
 
 private:
-	U32 m_z, m_w;
+	U32 z, w, jsr, jcong;
 };
 
 };	// namespace grinliz

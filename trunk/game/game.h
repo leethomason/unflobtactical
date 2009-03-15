@@ -23,8 +23,7 @@
 #include "../engine/model.h"
 #include "../engine/uirendering.h"
 
-class Engine;
-class Surface;
+class ParticleSystem;
 
 
 const float FOV = 45.0f;
@@ -51,6 +50,7 @@ public:
 
 	Engine engine;
 	Surface surface;
+	ParticleSystem* particleSystem;
 
 #ifdef MAPMAKER
 	void MouseMove( int x, int y );
@@ -84,6 +84,7 @@ private:
 	int trianglesPerSecond;
 	int trianglesSinceMark;
 
+	U32 previousTime;
 	Texture* iconTexture;
 	UIWidgets* widgets;
 

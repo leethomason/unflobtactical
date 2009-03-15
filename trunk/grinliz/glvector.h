@@ -303,6 +303,7 @@ struct Vector3
 	#endif
 };
 
+
 inline void DegreeToVector( float degree, Vector3<float>* vec )
 {
 	Vector2<float> v;
@@ -318,29 +319,127 @@ inline void Convert( const Vector3<T>& v3, Vector2<T>* v2 )
 }
 
 
-typedef Vector3< int > Vector3I;
-typedef Vector3< float > Vector3F;
-
-
-struct Vector4F
+template< class T >
+struct Vector4
 {
-	// w=1 for points, 0 for vectors
-	float x, y, z, w;
+	enum { COMPONENTS = 4 };
 
-	void FromVector3F( const Vector3F& v3, float _w ) {
-		x = v3.x;
-		y = v3.y;
-		z = v3.z;
-		w = _w;
+	T x;
+	T y;
+	T z;
+	T w;
+
+	// I avoid non-const references - but this one is just so handy! And, in
+	// use in the code, it is clear it is an assignment.
+	T& X( int i )    		{	GLASSERT( InRange( i, 0, COMPONENTS-1 ));
+								return *( &x + i ); }
+	T  X( int i ) const		{	GLASSERT( InRange( i, 0, COMPONENTS-1 ));
+								return *( &x + i ); }
+
+	void Add( const Vector4<T>& vec ) {
+		x += vec.x;
+		y += vec.y;
+		z += vec.z;
+		w += vec.w;
 	}
 
-	void ToVector3F( Vector3F* v3 ) {
-		v3->x = x;
-		v3->y = y;
-		v3->z = z;
+	friend void Add( const Vector4<T>& a, const Vector4<T>& b, Vector4<T>* c )
+	{
+		c->x = a.x + b.x;
+		c->y = a.y + b.y;
+		c->z = a.z + b.z;
+		c->w = a.w + b.w;
+	}
+
+	void Subtract( const Vector4<T>& vec ) {
+		x -= vec.x;
+		y -= vec.y;
+		z -= vec.z;
+		w -= vec.w;
+	}
+
+	void Multiply( T scalar ) {
+		x *= scalar;
+		y *= scalar;
+		z *= scalar;
+		w *= scalar;
+	}
+
+	friend Vector4<T> operator-( const Vector4<T>& head, const Vector4<T>& tail ) {
+		Vector3<T> vec = {
+			vec.x = head.x - tail.x,
+			vec.y = head.y - tail.y,
+			vec.z = head.z - tail.z,
+			vec.w = head.w - tail.w
+		};
+		return vec;
+	}
+
+	friend Vector4<T> operator+( const Vector4<T>& head, const Vector4<T>& tail ) {
+		Vector3<T> vec = {
+			vec.x = head.x + tail.x,
+			vec.y = head.y + tail.y,
+			vec.z = head.z + tail.z,
+			vec.w = head.w + tail.w,
+		};
+		return vec;
+	}
+	
+	friend Vector4<T> operator*( Vector4<T> head, T scalar ) { head.Multiply( scalar ); return head; }
+	friend Vector4<T> operator*( T scalar, Vector4<T> head ) { head.Multiply( scalar ); return head; }
+
+	Vector4<T> operator-() const {
+		Vector4<T> vec = { -x, -y, -z, -w };
+		return vec;
+	}
+
+	void operator+=( const Vector4<T>& vec )		{ Add( vec ); }
+	void operator-=( const Vector4<T>& vec )		{ Subtract( vec ); }
+	bool operator==( const Vector4<T>& rhs ) const	{ return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w; }
+	bool operator!=( const Vector4<T>& rhs ) const	{ return x != rhs.x || y != rhs.y || z != rhs.z || w != rhs.w; }
+
+	void Set( T _x, T _y, T _z, T _w ) {
+		this->x = _x;
+		this->y = _y;
+		this->z = _z;
+		this->w = _w;
+	}
+
+	void Zero() {
+		x = (T)0;
+		y = (T)0;
+		z = (T)0;
+		w = (T)0;
+	}
+
+	void Normalize()	
+	{ 
+
+		GLASSERT( grinliz::Length( x, y, z, w ) > 0.00001f );
+		T lenInv = static_cast<T>(1) / grinliz::Length( x, y, z, w );
+		x *= lenInv; 
+		y *= lenInv;
+		z *= lenInv;
+		w *= lenInv;
+		#ifdef DEBUG
+		T len = x*x + y*y + z*z + w*w;
+		GLASSERT( len > (T)(.9999) && len < (T)(1.0001) );
+		#endif
+	}
+
+	T Length() const { return grinliz::Length( x, y, z, w ); };
+
+	friend T Length( const Vector4<T>& a, const Vector4<T>& b ) {
+		return grinliz::Length( a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w );
 	}
 };
 
+
+typedef Vector3< int > Vector3I;
+typedef Vector3< float > Vector3F;
+
+typedef Vector4< int > Vector4I;
+typedef Vector4< float > Vector4F;
 
 
 };	// namespace grinliz

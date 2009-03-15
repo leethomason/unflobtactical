@@ -19,6 +19,7 @@
 #include "../engine/text.h"
 #include "../engine/model.h"
 #include "../engine/uirendering.h"
+#include "../engine/particle.h"
 
 #include "../grinliz/glmatrix.h"
 #include "../grinliz/glutil.h"
@@ -60,11 +61,6 @@ const char* const gModelNames[] =
 	0
 };
 
-//const char* const gLightMapNames[] =
-//{
-//	"farmlandN",
-//	0
-//};
 
 struct TextureDef
 {
@@ -90,9 +86,10 @@ const TextureDef gTextureDef[] =
 	{	"tree",			ALPHA_TEST	},
 	{	"wheat",		ALPHA_TEST	},
 	{	"farmland",		0	},
+	{	"particleQuad",	0	},
+	{	"particleSparkle",	0	},
 	{  0, 0 }
 };
-
 
 
 
@@ -106,6 +103,7 @@ Game::Game( int width, int height ) :
 	framesPerSecond( 0 ),
 	trianglesPerSecond( 0 ),
 	trianglesSinceMark( 0 ),
+	previousTime( 0 ),
 	currentMapItem( 1 )
 {
 	widgets = new UIWidgets();
@@ -152,6 +150,10 @@ Game::Game( int width, int height ) :
 	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 	//engine.camera.SetPosWC( -5.0f, engineData.cameraHeight, mz + 5.0f );
 
+
+	particleSystem = new ParticleSystem();
+	particleSystem->InitPoint( GetTexture( "particleSparkle" ) );
+	particleSystem->InitQuad( GetTexture( "particleQuad" ) );
 
 	/*
 	resource = GetResource( "teapot" );
@@ -220,6 +222,7 @@ Game::~Game()
 #endif
 
 	delete widgets;
+	delete particleSystem;
 	FreeModels();
 	FreeTextures();
 }
@@ -361,6 +364,14 @@ void Game::FreeModels()
 
 void Game::DoTick( U32 currentTime )
 {
+	GLASSERT( currentTime > 0 );
+	if ( previousTime == 0 ) {
+		previousTime = currentTime-1;
+	}
+	U32 deltaTime = currentTime - previousTime;
+	U32 previousTimeSec = previousTime / 1000;
+	U32 currentTimeSec  = currentTime  / 1000;
+
 	if ( markFrameTime == 0 ) {
 		markFrameTime			= currentTime;
 		frameCountsSinceMark	= 0;
@@ -393,6 +404,25 @@ void Game::DoTick( U32 currentTime )
 		m->SetYRotation( m->GetYRotation() + 0.3f );
 	}
 
+	if ( currentTimeSec != previousTimeSec ) {
+
+		grinliz::Vector3F pos = { 10.0f, 1.0f, 28.0f };
+		grinliz::Vector3F vel = { 0.0f, 1.0f, 0.0f };
+		Color4F col = { 1.0f, -0.5f, 0.0f, 1.0f };
+		Color4F colVel = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+		particleSystem->Emit(	ParticleSystem::POINT,
+								0,		// type
+								40,		// count
+								ParticleSystem::PARTICLE_SPHERE,
+								col,	colVel,
+								pos,	0.1f,	
+								vel,	0.1f,
+								1200 );
+	}
+	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
+	particleSystem->EmitFlame( deltaTime, pos );
+
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_NORMAL_ARRAY );
 	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
@@ -406,6 +436,11 @@ void Game::DoTick( U32 currentTime )
 
 	int triCount = 0;
 	engine.Draw( &triCount );
+	
+	const grinliz::Vector3F* eyeDir = engine.camera.EyeDir3();
+	particleSystem->Update( deltaTime );
+	particleSystem->Draw( eyeDir );
+
 	trianglesSinceMark += triCount;
 
 	glDisable( GL_DEPTH_TEST );
@@ -439,7 +474,7 @@ void Game::DoTick( U32 currentTime )
 	//UFODrawIcons( iconInfo, w, h, rotation );
 
 	glEnable( GL_DEPTH_TEST );
-
+	previousTime = currentTime;
 }
 
 

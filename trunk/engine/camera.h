@@ -49,19 +49,31 @@ public:
 
 	// Draws the camera and submits the glMultMatrix to OpenGL
 	void DrawCamera();
+								
 
 	// any of ray, up, or right can be null
-	void CalcEyeRay( grinliz::Ray* ray, grinliz::Ray* up, grinliz::Ray* right );
+	enum {
+		NORMAL,
+		UP,
+		RIGHT
+	};
+	const grinliz::Vector4F* EyeDir()				{ if ( !valid ) CalcWorldXForm();
+													  return eyeDir; }	
+	const grinliz::Vector3F* EyeDir3()				{ if ( !valid ) CalcWorldXForm();
+													  return eyeDir3; }
 
 private:
 	// Position of the camera in the world - no view rotation, no inverse.
-	void CalcWorldXForm( grinliz::Matrix4* m );
+	void CalcWorldXForm();
+	void CalcEyeDir();
 
 	float tilt;
 	float yRotation;
 	int viewRotation;
 	bool valid;
 	grinliz::Vector3F posWC;
+	grinliz::Vector4F eyeDir[3];
+	grinliz::Vector3F eyeDir3[3];
 	grinliz::Matrix4 worldXForm;
 };
 
