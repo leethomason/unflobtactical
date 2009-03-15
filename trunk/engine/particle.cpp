@@ -293,9 +293,11 @@ void ParticleSystem::DrawPointParticles()
 	
 	glEnable( GL_TEXTURE_2D );
 
+#ifndef __APPLE__	
 	glEnable(GL_POINT_SPRITE);
 	glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
-
+#endif
+	
 	CHECK_GL_ERROR;
 	if ( nParticles[POINT] > 0 ) {
 		glBindTexture( GL_TEXTURE_2D, particleTypeArr[POINT].texture->glID );
@@ -304,8 +306,10 @@ void ParticleSystem::DrawPointParticles()
 		glPointParameterfv( GL_POINT_SIZE_MAX, &maxSize );
 		CHECK_GL_ERROR;
 
+#ifndef __APPLE__	
 	    float quadratic[] =  { 1.0f, 0.0f, 0.01f };
 		glPointParameterfv( GL_POINT_DISTANCE_ATTENUATION_ARB, quadratic );
+#endif
 		CHECK_GL_ERROR;
 		
 		U8* vPtr = (U8*)pointBuffer + 0;
@@ -318,8 +322,9 @@ void ParticleSystem::DrawPointParticles()
 		CHECK_GL_ERROR;
 	}
 
+#ifndef __APPLE__	
 	glDisable( GL_POINT_SPRITE );
-
+#endif
 	// Restore standard state.
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_NORMAL_ARRAY );
