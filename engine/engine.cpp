@@ -114,8 +114,7 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 		isDragging( false ), 
 		dayNight( DAY_TIME ),
 		engineData( _engineData ),
-		initZoomDistance( 0 ),
-		lastZoomDistance( 0 )
+		initZoomDistance( 0 )
 {
 	spaceTree = new SpaceTree( Fixed(-0.1f), Fixed(3) );
 	map = new Map( spaceTree );
@@ -124,7 +123,6 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)Map::SIZE + 5.0f );
 	camera.SetYRotation( -45.f );
 	camera.SetTilt( engineData.cameraTilt );
-	fov = engineData.fov;
 
 	// The ray runs from the min to the max, with the current (and default)
 	// zoom specified in the engineData.
@@ -134,13 +132,13 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 	float t1 = ( engineData.cameraMin - eyePos.y ) / eyeDir[0].y;
 	float t0 = ( engineData.cameraMax - eyePos.y ) / eyeDir[0].y;
 
-	cameraRay.origin = eyePos + t0*eyeDir[0];
-	cameraRay.direction = eyeDir[0];
-	cameraRay.length = t1-t0;
+	//cameraRay.origin = eyePos + t0*eyeDir[0];
+	//cameraRay.direction = eyeDir[0];
+	//cameraRay.length = t1-t0;
 
-	zoom = ( engineData.cameraHeight - cameraRay.origin.y ) / cameraRay.direction.y;
-	zoom /= cameraRay.length;
-	defaultZoom = zoom;
+	//zoom = ( engineData.cameraHeight - cameraRay.origin.y ) / cameraRay.direction.y;
+	//zoom /= cameraRay.length;
+//	defaultZoom = Get;
 
 	SetPerspective();
 	lightDirection.Set( 0.7f, 3.0f, 1.4f );
@@ -168,7 +166,7 @@ void Engine::MoveCameraHome()
 	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)map->Height() + 5.0f );
 	camera.SetYRotation( -45.f );
 	camera.SetTilt( engineData.cameraTilt );
-	zoom = defaultZoom;
+	//zoom = defaultZoom;
 }
 
 
@@ -182,7 +180,7 @@ void Engine::MoveCameraXZ( float x, float z )
 	camera.SetPosWC( pos.x, pos.y, pos.z );
 	camera.SetYRotation( -45.f );
 	camera.SetTilt( engineData.cameraTilt );
-	zoom = defaultZoom;
+	//zoom = defaultZoom;
 }
 
 
@@ -502,13 +500,13 @@ void Engine::SetPerspective()
 
 	GLASSERT( nearPlane > 0.0f );
 	GLASSERT( farPlane > nearPlane );
-	GLASSERT( fov > 0.0f && fov < 90.0f );
+	//GLASSERT( fov > 0.0f && fov < 90.0f );
 
 	frustumNear = nearPlane;
 	frustumFar = farPlane;
 
 	// Convert from the FOV to the half angle.
-	float theta = ToRadian( fov ) * 0.5f;
+	float theta = ToRadian( engineData.fov ) * 0.5f;
 
 	// left, right, top, & bottom are on the near clipping
 	// plane. (Not an obvious point to my mind.)
@@ -790,19 +788,14 @@ void Engine::Zoom( int action, int distance )
 	{
 		case GAME_ZOOM_START:
 			initZoomDistance = distance;
-			initZoom = zoom;
+			initZoom = GetZoom();
 //			GLOUTPUT(( "initZoomStart=%.2f distance=%d initDist=%d\n", initZoom, distance, initZoomDistance ));
 			break;
 
 		case GAME_ZOOM_MOVE:
 			{
-				lastZoomDistance = distance;
 				//float z = initZoom * (float)distance / (float)initZoomDistance;	// original. wrong feel.
 				float z = initZoom + (float)(distance-initZoomDistance)/800.0f;	// better, but slow out zoom-out, fast at zoom-in
-				
-				//float z0 = initZoom + (float)(distance-initZoomDistance)/1600.0f;
-				//float z1 = initZoom + (float)(distance-initZoomDistance)/200.0f;
-				//float z = (1.0f-GetZoom())*z0 + (GetZoom())*z1;
 				
 //				GLOUTPUT(( "initZoom=%.2f distance=%d initDist=%d\n", initZoom, distance, initZoomDistance ));
 				SetZoom( z );
@@ -849,8 +842,22 @@ void Engine::SetZoom( float z )
 {
 	z = Clamp( z, 0.0f, 1.0f );
 
-	cameraRay.origin = camera.PosWC() - zoom*cameraRay.length*cameraRay.direction;
-	zoom = z;
-	camera.SetPosWC( cameraRay.origin + zoom*cameraRay.length*cameraRay.direction );
-//	GLOUTPUT(( "zoom=%.2f y=%.2f\n", zoom, camera.PosWC().y ));
+	const Vector3F* eyeDir = camera.EyeDir3();
+	Vector3F origin;
+	int result = IntersectRayPlane( camera.PosWC(), eyeDir[0], 1, 0.0f, &origin );
+	if ( result != grinliz::INTERSECT ) {
+		MoveCameraHome();
+	}
+	else {
+		float len = ( engineData.cameraMin + z*(engineData.cameraMax-engineData.cameraMin) ) / eyeDir[0].y;
+		Vector3F pos = origin + len*eyeDir[0];
+		camera.SetPosWC( pos );
+	}
+}
+
+
+float Engine::GetZoom() 
+{
+	float z = ( camera.PosWC().y - engineData.cameraMin ) / ( engineData.cameraMax - engineData.cameraMin );
+	return z;
 }

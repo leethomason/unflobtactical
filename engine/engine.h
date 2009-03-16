@@ -74,7 +74,7 @@ public:
 	const float NIGHT_BLUE;
 
 	Camera camera;
-	float fov;
+	//float fov;
 
 	void SetPerspective();
 	void Draw( int* trianglesDrawn );
@@ -117,9 +117,9 @@ public:
 
 	bool IsDragging() { return isDragging; }
 	int InitZoomDistance()  { return initZoomDistance; }
-	int LastZoomDistance()	{ return lastZoomDistance; }
+	//int LastZoomDistance()	{ return lastZoomDistance; }
 
-	float GetZoom()				{ return zoom; }
+	float GetZoom();
 	// 0.0 far, 1.0 close
 	void SetZoom( float z );
 
@@ -157,9 +157,8 @@ private:
  	float	frustumLeft, frustumRight, 
 			frustumTop, frustumBottom, 
 			frustumNear, frustumFar;
-	grinliz::Ray cameraRay;		// origin isn't normally valid
-	float	zoom, defaultZoom, initZoom;
-	int		initZoomDistance, lastZoomDistance;
+	float	initZoom;
+	int		initZoomDistance;
 	int		depthFunc;
 	
 	grinliz::Vector3F lightDirection;
@@ -170,7 +169,6 @@ private:
 	Model* draggingModel;
 	Vector3X draggingModelOrigin;
 
-	int shadowMode;
 	bool isDragging;
 	DayNight dayNight;
 	const EngineData& engineData;
