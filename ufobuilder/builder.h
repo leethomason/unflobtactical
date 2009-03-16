@@ -17,28 +17,5 @@
 #define UFO_BUILDER_INCLUDED
 
 
-/*	WARNING everything assumes little endian. Nead to rework
-	save/load if this changes.
-*/
-
-/*	MODEL
-
-	name				char[16]
-	nGroups				BE32
-	nTotalVertices		BE32
-	nTotalIndices		BE32
-	bounds				Vector3X[2] min, max in BE32
-	
-	Group[]
-		textureName		char[16]
-		nVertex			BE32
-		nIndex			BE32
-
-	vertexData			VertexX[]
-	indexData			BE16[]
-*/
-
-/*	TEXTURE  */
-
 
 #endif // UFO_BUILDER_INCLUDED

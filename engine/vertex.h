@@ -48,43 +48,6 @@ struct Vertex
 };
 
 
-struct VertexX
-{
-	enum {
-		POS_OFFSET = 0,
-		NORMAL_OFFSET = 12,
-		TEXTURE_OFFSET = 24
-	};
-
-	void From( const Vertex& v )
-	{
-		pos.x = v.pos.x;
-		pos.y = v.pos.y;
-		pos.z = v.pos.z;
-
-		normal.x = v.normal.x;
-		normal.y = v.normal.y;
-		normal.z = v.normal.z;
-
-		tex.x = v.tex.x;
-		tex.y = v.tex.y;
-	}
-
-	Vector3X	pos;
-	Vector3X	normal;
-	Vector2X	tex;
-
-	bool Equal( const VertexX& v ) const {
-		if (    pos == v.pos 
-			 && normal == v.normal
-			 && tex == v.tex )
-		{
-			return true;
-		}
-		return false;
-	}
-};
-
 typedef grinliz::Vector3< U8 > Color3U;
 typedef grinliz::Vector4< U8 > Color4U;
 typedef grinliz::Vector3< float > Color3F;

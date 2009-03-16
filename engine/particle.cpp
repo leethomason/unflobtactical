@@ -293,7 +293,7 @@ void ParticleSystem::DrawPointParticles()
 	
 	glEnable( GL_TEXTURE_2D );
 
-#ifndef __APPLE__	
+#ifdef USING_GL	
 	glEnable(GL_POINT_SPRITE);
 	glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
 #endif
@@ -306,7 +306,7 @@ void ParticleSystem::DrawPointParticles()
 		glPointParameterfv( GL_POINT_SIZE_MAX, &maxSize );
 		CHECK_GL_ERROR;
 
-#ifndef __APPLE__	
+#ifdef USING_GL	
 	    float quadratic[] =  { 1.0f, 0.0f, 0.01f };
 		glPointParameterfv( GL_POINT_DISTANCE_ATTENUATION_ARB, quadratic );
 #endif
@@ -322,7 +322,7 @@ void ParticleSystem::DrawPointParticles()
 		CHECK_GL_ERROR;
 	}
 
-#ifndef __APPLE__	
+#ifdef USING_GL
 	glDisable( GL_POINT_SPRITE );
 #endif
 	// Restore standard state.

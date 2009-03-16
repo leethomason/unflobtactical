@@ -209,7 +209,7 @@ const char* Map::GetItemDefName( int i )
 	const char* result = "";
 	if ( i > 0 && i < MAX_ITEM_DEF ) {
 		if ( itemDefArr[i].modelResource ) {
-			result = itemDefArr[i].modelResource->name;
+			result = itemDefArr[i].modelResource->header.name;
 		}
 	}
 	return result;

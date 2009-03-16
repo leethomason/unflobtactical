@@ -33,7 +33,7 @@ using namespace grinliz;
 	Optimization notes:
 	This all starts with tri-counts way high and frame rates way low.
 	
- Baseline: Standard test: 11.3 fps, 25K/frame, 290K/sec
+	Baseline: Standard test: 11.3 fps, 25K/frame, 290K/sec
  
 	Ouch, that's a lot of triangles. Roughly 1600 in the map, and another 10,000 in models. Thats all rendered twice,
 	once for the shadow pass and once normally, and it gets to 25K.
@@ -111,8 +111,6 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 		NIGHT_BLUE( 1.0f ),
 		width( _width ), 
 		height( _height ), 
-		//shadowMode( SHADOW_ONE_PASS ), 
-		shadowMode( SHADOW_Z ), 
 		isDragging( false ), 
 		dayNight( DAY_TIME ),
 		engineData( _engineData ),
@@ -215,21 +213,20 @@ void Engine::PushShadowMatrix()
 	Matrix4 m;
 	m.m12 = -lightDirection.x/lightDirection.y;
 	m.m22 = 0.0f;
-	if ( shadowMode == SHADOW_Z ) {
-		// The shadow needs a depth to use the Z-buffer. More depth is good,
-		// more resolution, but intoduces an error in eye space. Try to correct
-		// for the error in eye space using the camera ray. (The correct answer
-		// is per-vertex, but we won't pay for that). Combine that with a smallish
-		// depth value to try to minimize shadow errors.
-		const Vector3F* eyeDir = camera.EyeDir3();
 
-		const float DEPTH = 0.2f;
-		m.m14 = -eyeDir[0].x/eyeDir[0].y * DEPTH;	// x hide the shift 
-		m.m24 = -DEPTH;										// y term down
-		m.m34 = -eyeDir[0].z/eyeDir[0].y * DEPTH;	// z hide the shift
-		
-		//m.m24 = -0.05f;
-	}
+	// The shadow needs a depth to use the Z-buffer. More depth is good,
+	// more resolution, but intoduces an error in eye space. Try to correct
+	// for the error in eye space using the camera ray. (The correct answer
+	// is per-vertex, but we won't pay for that). Combine that with a smallish
+	// depth value to try to minimize shadow errors.
+	const Vector3F* eyeDir = camera.EyeDir3();
+
+	const float DEPTH = 0.2f;
+	m.m14 = -eyeDir[0].x/eyeDir[0].y * DEPTH;	// x hide the shift 
+	m.m24 = -DEPTH;										// y term down
+	m.m34 = -eyeDir[0].z/eyeDir[0].y * DEPTH;	// z hide the shift
+	
+	//m.m24 = -0.05f;
 	m.m32 = -lightDirection.z/lightDirection.y;
 
 	glPushMatrix();
@@ -237,6 +234,7 @@ void Engine::PushShadowMatrix()
 }
 
 
+/*
 void Engine::PopShadowTextureMatrix()
 {
 	glMatrixMode(GL_TEXTURE);
@@ -285,11 +283,12 @@ void Engine::PushShadowTextureMatrix()
 	}
 	glMatrixMode(GL_MODELVIEW);
 }
+*/
 
 
 void Engine::Draw( int* triCount )
 {
-	// -- Camera & Frustum -- //
+	// -------- Camera & Frustum -------- //
 	DrawCamera();
 
 	// Compute the frustum planes
@@ -301,110 +300,72 @@ void Engine::Draw( int* triCount )
 	}
 	Model* modelRoot = spaceTree->Query( planesX, 6 );
 
+#	ifdef USING_GL
+#		ifdef DEBUG
+			GLASSERT( glIsEnabled( GL_DEPTH_TEST ) );
+			int depthMask = 0;
+			glGetIntegerv( GL_DEPTH_WRITEMASK, &depthMask );
+			GLASSERT( depthMask );
+#		endif
+#	endif
 
-	glEnable( GL_DEPTH_TEST );
 	if ( depthFunc == 0 ) {
 		// Not clear what the default is (from the driver): LEQUAL or LESS. So query and cache.
 		glGetIntegerv( GL_DEPTH_FUNC, &depthFunc );	
 	}
 
-	/*
-		Render phases.					z-write	z-test	lights		notes
-
-		Ground plane lighted			yes		no		light
-		Shadow casters/ground plane		no		no		shadow
-		Model							yes		yes		light
-
-		(Tree)
-		(Particle)
-
-	*/
-	// -- Ground plane lighted -- //
+	// -------- Ground plane lighted -------- //
 	LightSimple( dayNight, OPEN_LIGHT );
 
 	// The depth mask and the depth test should be completely
 	// independent...but it's not. Very subtle point of how
 	// OpenGL works.
-	if ( shadowMode == SHADOW_ONE_PASS ) {
-		glDisable( GL_DEPTH_TEST );
-		glDepthMask( GL_FALSE );
-	}
-	else {
-		glEnable( GL_DEPTH_TEST );
-		glDepthMask( GL_TRUE );
-	}
-	
 	map->Draw();
 
-	// -- Shadow casters/ground plane -- //
+	// -------- Shadow casters/ground plane ---------- //
 	// Set up the planar projection matrix, with a little z offset
 	// to help with z resolution fighting.
 	PushShadowMatrix();
 
 	int textureState = 0;
-	if ( shadowMode == SHADOW_Z ) {
-		glDisable( GL_TEXTURE_2D );
-		glDepthFunc( GL_ALWAYS );
-		textureState = Model::NO_TEXTURE;
-		glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );	// keeps white from bleeding outside the map.
-	}
-	else {
-		textureState = Model::TEXTURE_SET;
+	glDisable( GL_TEXTURE_2D );
+	glDepthFunc( GL_ALWAYS );
+	textureState = Model::NO_TEXTURE;
+	glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );	// keeps white from bleeding outside the map.
 
-		renderQueue->BindTextureToVertex( true );
-		PushShadowTextureMatrix();
-		LightSimple( dayNight, IN_SHADOW );
-
-		map->BindTextureUnits();
-	}
 	GLASSERT( renderQueue->Empty() );
 	
 	for( Model* model=modelRoot; model; model=model->next ) {
 		// Draw model shadows.
 		model->Queue( renderQueue, textureState );
 	}
-
 	renderQueue->Flush();
 	renderQueue->BindTextureToVertex( false );
 
-	if ( shadowMode == SHADOW_ONE_PASS ) 
-	{
-		map->UnBindTextureUnits();
-		PopShadowTextureMatrix();
-	}
-	CHECK_GL_ERROR;
-
-	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
-	glPopMatrix();
-	
-	// Redraw the map, checking z, in shadow.
-	if ( shadowMode == SHADOW_Z )
-	{
-		glEnable( GL_TEXTURE_2D );
-		CHECK_GL_ERROR;
-
-		glDepthMask( GL_TRUE );
-		glEnable( GL_DEPTH_TEST );
-		glDepthFunc( depthFunc );
-
-		LightSimple( dayNight, IN_SHADOW );
-		map->Draw();
-		CHECK_GL_ERROR;
-	}
-
 	CHECK_GL_ERROR;
 	glEnable( GL_TEXTURE_2D );
+	glPopMatrix();
+	
+	// -------- Ground plane shadow ---------- //
+	// Redraw the map, checking z, in shadow.
+	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+	CHECK_GL_ERROR;
 
-	glEnable( GL_DEPTH_TEST );
-	glDepthMask( GL_TRUE );
+	LightSimple( dayNight, IN_SHADOW );
+	glDepthFunc( GL_LESS );
+	map->Draw();
+	glDepthFunc( depthFunc );
+
+	// -------- Models in light ---------- //
+	CHECK_GL_ERROR;
+	glEnable( GL_TEXTURE_2D );
 	glDepthFunc( depthFunc );
 	CHECK_GL_ERROR;
 
-	// -- Model -- //
+	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 	EnableLights( true, dayNight );
 	Model* fogRoot = 0;
 
-	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 	for( Model* model=modelRoot; model; model=model->next ) {
 		const Vector3X& pos = model->Pos();
 		int x = pos.x;

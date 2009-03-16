@@ -129,9 +129,6 @@ public:
 	void SetDayNight( bool dayTime, Surface* lightMap );
 	bool GetDayTime()							{ return (dayNight == DAY_TIME); }
 
-	void ToggleShadowMode()		{ shadowMode++; if ( shadowMode == SHADOW_COUNT ) shadowMode = 0; }
-	int  ShadowMode()			{ return shadowMode; }
-
 private:
 	enum ShadowState {
 		IN_SHADOW,
@@ -152,8 +149,8 @@ private:
 	Model* IntersectModel( const grinliz::Ray& ray, bool onlyDraggable );
 	void PushShadowMatrix();
 
-	void PushShadowTextureMatrix();
-	void PopShadowTextureMatrix();
+	//void PushShadowTextureMatrix();
+	//void PopShadowTextureMatrix();
 
 	int		width;
 	int		height;
@@ -173,11 +170,6 @@ private:
 	Model* draggingModel;
 	Vector3X draggingModelOrigin;
 
-	enum {
-		SHADOW_ONE_PASS,
-		SHADOW_Z,
-		SHADOW_COUNT
-	};
 	int shadowMode;
 	bool isDragging;
 	DayNight dayNight;

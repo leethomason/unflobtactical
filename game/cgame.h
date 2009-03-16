@@ -65,7 +65,7 @@ void GameCameraSet( void* handle, int param, float value );
 
 void GameMoveCamera( void* handle, float dx, float dy, float dz );
 void GameAdjustPerspective( void* handle, float dFOV );
-void GameShadowMode( void* handle );
+//void GameShadowMode( void* handle );
 	
 // --- Core to platform --- //
 void PlatformPathToResource( const char* name, const char* extension, char* buffer, int bufferLen );
