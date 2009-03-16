@@ -113,12 +113,12 @@ void GameMoveCamera( void* handle, float dx, float dy, float dz )
 	game->engine.camera.DeltaPosWC( dx, dy, dz );
 }
 
-void GameAdjustPerspective( void* handle, float dFOV )
-{
-	Game* game = (Game*)handle;
-	game->engine.fov += dFOV;
-	game->engine.SetPerspective();
-}
+//void GameAdjustPerspective( void* handle, float dFOV )
+//{
+//	Game* game = (Game*)handle;
+//	game->engine.fov += dFOV;
+//	game->engine.SetPerspective();
+//}
 
 void GameRotate( void* handle, int rotation )
 {

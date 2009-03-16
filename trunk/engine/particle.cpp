@@ -185,7 +185,7 @@ void ParticleSystem::EmitFlame( U32 delta, const Vector3F& _pos )
 {
 	// flame, smoke, particle
 	U32 count[3];
-	const U32 interval[3] = { 350, 600, 200 };
+	const U32 interval[3] = { 500, 600, 200 };
 
 	// If the delta is 200, there is a 200/250 chance of it being in this delta
 	for( int i=0; i<3; ++i ) {
@@ -230,7 +230,7 @@ void ParticleSystem::EmitFlame( U32 delta, const Vector3F& _pos )
 		pos.y += 1.0f;
 
 		const Color4F color		= { 0.5f, 0.5f, 0.5f, 1.0f };
-		const Color4F colorVec	= { -0.1f, -0.1f, -0.1f, -0.07f };
+		const Color4F colorVec	= { -0.1f, -0.1f, -0.1f, 0.0f };
 		Vector3F velocity		= { 0.0f, 0.8f, 0.0f };
 
 		for( U32 i=0; i<count[1]; ++i ) {
