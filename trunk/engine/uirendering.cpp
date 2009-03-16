@@ -66,7 +66,7 @@ void UIWidgets::Draw( int width, int height, int rotation )
 	glLoadIdentity();				// model
 
 	glRotatef( 90.0f * (float)rotation, 0.0f, 0.0f, 1.0f );
-#ifdef __APPLE__
+#ifdef USING_ES
 	glOrthof( 0.f, (float)width, 0.f, (float)height, -1.0f, 1.0f );
 #else
 	glOrtho( 0, width, 0, height, -1, 1 );

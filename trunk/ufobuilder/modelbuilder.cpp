@@ -46,7 +46,7 @@ void ModelBuilder::AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 
 	GLASSERT( current->nIndex < EL_MAX_INDEX_IN_GROUP-3 );
 
 	const Vertex v[3] = { v0, v1, v2 };
-	VertexX vX[3];
+	Vertex vX[3];
 
 	// Transform the vertex into the current coordinate space.
 	for( int i=0; i<3; ++i ) {
@@ -56,7 +56,7 @@ void ModelBuilder::AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 
 		GLASSERT( matrix.IsTranslationOnly() );
 		vert.normal.Normalize();
 
-		vX[i].From( vert );
+		vX[i] = vert;
 	}
 
 	const float CLOSE = 0.7f;
@@ -71,7 +71,7 @@ void ModelBuilder::AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 
 
 		for( int j=start; j<current->nVertex; ++j ) 
 		{
-			const VertexX& vc = current->vertex[j];
+			const Vertex& vc = current->vertex[j];
 
 			if (    vc.pos == vX[i].pos
 				 && vc.tex == vX[i].tex )
@@ -137,16 +137,16 @@ void ModelBuilder::Flush()
 		}
 	}
 
-	bounds[0] = bounds[1] = group[0].vertex[0].pos;
+	bounds.min = bounds.max = group[0].vertex[0].pos;
 	for( i=0; i<nGroup; ++i ) {
 		for( int j=0; j<group[i].nVertex; ++j ) {
-			bounds[0].x = Min( bounds[0].x, group[i].vertex[j].pos.x );
-			bounds[0].y = Min( bounds[0].y, group[i].vertex[j].pos.y );
-			bounds[0].z = Min( bounds[0].z, group[i].vertex[j].pos.z );
+			bounds.min.x = Min( bounds.min.x, group[i].vertex[j].pos.x );
+			bounds.min.y = Min( bounds.min.y, group[i].vertex[j].pos.y );
+			bounds.min.z = Min( bounds.min.z, group[i].vertex[j].pos.z );
 
-			bounds[1].x = Max( bounds[1].x, group[i].vertex[j].pos.x );
-			bounds[1].y = Max( bounds[1].y, group[i].vertex[j].pos.y );
-			bounds[1].z = Max( bounds[1].z, group[i].vertex[j].pos.z );
+			bounds.max.x = Max( bounds.max.x, group[i].vertex[j].pos.x );
+			bounds.max.y = Max( bounds.max.y, group[i].vertex[j].pos.y );
+			bounds.max.z = Max( bounds.max.z, group[i].vertex[j].pos.z );
 		}
 	}
 

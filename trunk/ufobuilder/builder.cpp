@@ -73,11 +73,7 @@ void WriteFloat( SDL_RWops* ctx, float f )
 
 void TextureHeader::Save( SDL_RWops* fp )
 {
-	SDL_RWwrite( fp, name, EL_FILE_STRING_LEN, 1 );
-	SDL_WriteLE32( fp, format );
-	SDL_WriteLE32( fp, type );
-	SDL_WriteLE16( fp, width );
-	SDL_WriteLE16( fp, height );
+	SDL_RWwrite( fp, this, sizeof(TextureHeader), 1 );
 }
 
 void TextureHeader::Set( const char* name, U32 format, U32 type, U16 width, U16 height )
@@ -88,6 +84,50 @@ void TextureHeader::Set( const char* name, U32 format, U32 type, U16 width, U16 
 	this->type = type;
 	this->width = width;
 	this->height = height;
+}
+
+
+void ModelHeader::Save( SDL_RWops* fp )
+{
+	SDL_RWwrite( fp, this, sizeof(ModelHeader), 1 );
+}
+
+void ModelHeader::Set(	const char* name, int nGroups, int nTotalVertices, int nTotalIndices,
+						const grinliz::Rectangle3F& bounds )
+{
+	GLASSERT( nGroups > 0 && nGroups < EL_MAX_MODEL_GROUPS );
+	GLASSERT( nTotalVertices > 0 && nTotalVertices < EL_MAX_VERTEX_IN_MODEL );
+	GLASSERT( EL_MAX_VERTEX_IN_MODEL <= 0xffff );
+	GLASSERT( nTotalIndices > 0 && nTotalIndices < EL_MAX_INDEX_IN_MODEL );
+	GLASSERT( EL_MAX_INDEX_IN_MODEL <= 0xffff );
+	GLASSERT( nTotalVertices <= nTotalIndices );
+
+	memset( this->name, 0, EL_FILE_STRING_LEN );
+	strncpy( this->name, name, EL_FILE_STRING_LEN );
+	this->nGroups = nGroups;
+	this->nTotalVertices = nTotalVertices;
+	this->nTotalIndices = nTotalIndices;
+	this->bounds = bounds;
+}
+
+
+void ModelGroup::Save( SDL_RWops* fp )
+{
+	SDL_RWwrite( fp, this, sizeof(ModelGroup), 1 );
+}
+
+
+void ModelGroup::Set( const char* textureName, int nVertex, int nIndex )
+{
+	GLASSERT( nVertex > 0 && nVertex < EL_MAX_VERTEX_IN_MODEL );
+	GLASSERT( nIndex > 0 && nIndex < EL_MAX_INDEX_IN_MODEL );
+	GLASSERT( nVertex <= nIndex );
+
+	memset( this->textureName, 0, EL_FILE_STRING_LEN );
+	strncpy( this->textureName, textureName, EL_FILE_STRING_LEN );
+
+	this->nVertex = nVertex;
+	this->nIndex = nIndex;
 }
 
 
@@ -161,7 +201,6 @@ void ProcessMap( TiXmlElement* map )
 
 void ProcessModel( TiXmlElement* model )
 {
-
 	int nTotalIndex = 0;
 	int nTotalVertex = 0;
 	int startIndex = 0;
@@ -207,27 +246,15 @@ void ProcessModel( TiXmlElement* model )
 		nTotalVertex += vertexGroup[i].nVertex;
 	}
 	printf( " groups=%d nVertex=%d nTri=%d\n", builder->NumGroups(), nTotalVertex, nTotalIndex/3 );
-
-	char buffer[16];
-	grinliz::StrFillBuffer( name, buffer, 16 );
-	SDL_RWwrite( fp, buffer, 16, 1 );
-
-	SDL_WriteBE32( fp, builder->NumGroups() );
-	SDL_WriteBE32( fp, nTotalVertex );	
-	SDL_WriteBE32( fp, nTotalIndex );
-
-	//printf( "  bounds:\n" );
-	for( int i=0; i<2; ++i ) {
-		SDL_WriteBE32( fp, builder->Bounds(i).x.x );
-		SDL_WriteBE32( fp, builder->Bounds(i).y.x );
-		SDL_WriteBE32( fp, builder->Bounds(i).z.x );
-		//printf( "  %.1f,%.1f,%.1f\n", (float)builder->Bounds(i).x, (float)builder->Bounds(i).y, (float)builder->Bounds(i).z );
-	}
 	
+	ModelHeader header;
+	header.Set( name.c_str(), builder->NumGroups(), nTotalVertex, nTotalIndex, builder->Bounds() );
+	header.Save( fp );
+
 	int totalMemory = 0;
 
 	for( int i=0; i<builder->NumGroups(); ++i ) {
-		int mem = vertexGroup[i].nVertex*sizeof(VertexX) + vertexGroup[i].nIndex*2;
+		int mem = vertexGroup[i].nVertex*sizeof(Vertex) + vertexGroup[i].nIndex*2;
 		totalMemory += mem;
 		printf( "    %d: '%s' nVertex=%d nTri=%d memory=%.1fk\n",
 				i,
@@ -236,54 +263,21 @@ void ProcessModel( TiXmlElement* model )
 				vertexGroup[i].nIndex / 3,
 				(float)mem/1024.0f );
 
-		grinliz::StrFillBuffer( vertexGroup[i].textureName, buffer, 16 );
-		SDL_RWwrite( fp, buffer, 16, 1 );
+		ModelGroup group;
+		group.Set( vertexGroup[i].textureName, vertexGroup[i].nVertex, vertexGroup[i].nIndex );
+		group.Save( fp );
 
-		SDL_WriteBE32( fp, vertexGroup[i].nVertex );	
 		startVertex += vertexGroup[i].nVertex;
-
-		SDL_WriteBE32( fp, vertexGroup[i].nIndex );	
 		startIndex += vertexGroup[i].nIndex;
 	}
 
 	// Write the vertices in each group:
 	for( int i=0; i<builder->NumGroups(); ++i ) {
-		//printf( "    group=%d\n", i );
-		for( int j=0; j<vertexGroup[i].nVertex; ++j ) {
-			const VertexX& v = vertexGroup[i].vertex[j];	
-			//printf( "      vertex pos(%.1f,%.1f,%.1f) normal(%.1f,%.1f,%.1f) tex(%.1f,%.1f)\n", 
-			//		FixedToFloat( v.pos.x ), FixedToFloat( v.pos.y ), FixedToFloat( v.pos.z ),
-			//		FixedToFloat( v.normal.x ), FixedToFloat( v.normal.y ), FixedToFloat( v.normal.z ),
-			//		FixedToFloat( v.tex.x ), FixedToFloat( v.tex.y ) );
-#if (EL_USE_FLOAT==0)
-			SDL_WriteBE32( fp, v.pos.x.x );
-			SDL_WriteBE32( fp, v.pos.y.x );
-			SDL_WriteBE32( fp, v.pos.z.x );
-			SDL_WriteBE32( fp, v.normal.x.x );
-			SDL_WriteBE32( fp, v.normal.y.x);
-			SDL_WriteBE32( fp, v.normal.z.x );
-			SDL_WriteBE32( fp, v.tex.x.x );
-			SDL_WriteBE32( fp, v.tex.y.x );
-#elif (EL_USE_FLOAT==1)
-			WriteFloat( fp, v.pos.x );
-			WriteFloat( fp, v.pos.y );
-			WriteFloat( fp, v.pos.z );
-			WriteFloat( fp, v.normal.x );
-			WriteFloat( fp, v.normal.y );
-			WriteFloat( fp, v.normal.z );
-			WriteFloat( fp, v.tex.x );
-			WriteFloat( fp, v.tex.y );
-
-#else
-#	error Need EL_USE_FLOAT
-#endif
-		}
+		SDL_RWwrite( fp, vertexGroup[i].vertex, sizeof(Vertex), vertexGroup[i].nVertex );
 	}
 	// Write the indices in each group:
 	for( int i=0; i<builder->NumGroups(); ++i ) {
-		for( int j=0; j<vertexGroup[i].nIndex; ++j ) {
-			SDL_WriteBE16( fp, vertexGroup[i].index[j] );
-		}
+		SDL_RWwrite( fp, vertexGroup[i].index, sizeof(U16), vertexGroup[i].nIndex );
 	}
 	printf( "  total memory=%.1fk\n", (float)totalMemory / 1024.f );
 	totalModelMem += totalMemory;
@@ -367,7 +361,7 @@ void ProcessTexture( TiXmlElement* texture )
 							| ( ( b>>4 ) << 4)
 							| ( ( a>>4 ) << 0 );
 
-					SDL_WriteBE16( fp, p );
+					SDL_WriteLE16( fp, p );
 				}
 			}
 			break;
@@ -389,7 +383,7 @@ void ProcessTexture( TiXmlElement* texture )
 							| ( ( g>>2 ) << 5 )
 							| ( ( b>>3 ) );
 
-					SDL_WriteBE16( fp, p );
+					SDL_WriteLE16( fp, p );
 				}
 			}
 			break;

@@ -18,12 +18,13 @@
 
 #include "../engine/vertex.h"
 #include "../engine/enginelimits.h"
+#include "../grinliz/glrectangle.h"
 
 struct VertexGroup {
 	VertexGroup() : nVertex( 0 ), nIndex( 0 ) { textureName[0] = 0; }
 
 	char textureName[EL_FILE_STRING_LEN];
-	VertexX	vertex[EL_MAX_VERTEX_IN_GROUP];
+	Vertex	vertex[EL_MAX_VERTEX_IN_GROUP];
 	grinliz::Vector3F normalSum[EL_MAX_VERTEX_IN_GROUP];
 	int nVertex;
 	U16 index[EL_MAX_INDEX_IN_GROUP];
@@ -49,7 +50,7 @@ public:
 	const VertexGroup* Groups()		{ return group; }
 	int NumGroups()					{ return nGroup; }
 
-	const Vector3X& Bounds( int i)	{ return bounds[i]; }
+	const grinliz::Rectangle3F& Bounds()	{ return bounds; }
 
 private:
 	float MemoryACMR( const U16* index, int nIndex );
@@ -57,7 +58,7 @@ private:
 
 	VertexGroup* current;
 	grinliz::Matrix4 matrix;
-	Vector3X bounds[2];
+	grinliz::Rectangle3F bounds;
 	VertexGroup group[EL_MAX_MODEL_GROUPS];
 
 	int nGroup;

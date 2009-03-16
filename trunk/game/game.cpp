@@ -354,7 +354,7 @@ void Game::FreeTextures()
 void Game::FreeModels()
 {
 	for( int i=0; i<nModelResource; ++i ) {
-		for( U32 j=0; j<modelResource[i].nGroups; ++j ) {
+		for( U32 j=0; j<modelResource[i].header.nGroups; ++j ) {
 			glDeleteBuffers( 1, (const GLuint*) &modelResource[i].atom[i].indexID );		
 		}
 		glDeleteBuffers( 1, (const GLuint*) &modelResource[i].atom[i].vertexID );
@@ -449,8 +449,7 @@ void Game::DoTick( U32 currentTime )
 	int h = engine.Height();
 	if ( rotation&1 ) grinliz::Swap( &w, &h );
 
-	UFODrawText( 0,  0, "UFO Attack! s=%d %4.1ffps %5.1fK/f %4dK/s", 
-				 engine.ShadowMode(),
+	UFODrawText( 0,  0, "UFO Attack! %4.1ffps %5.1fK/f %4dK/s", 
 				 framesPerSecond, 
 				 (float)triCount/1000.0f,
 				 trianglesPerSecond );

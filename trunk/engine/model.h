@@ -21,6 +21,7 @@
 #include "../grinliz/gltypes.h"
 #include "vertex.h"
 #include "enginelimits.h"
+#include "serialize.h"
 
 class Texture;
 class SpaceTree;
@@ -43,27 +44,15 @@ struct ModelAtom
 class ModelResource
 {
 public:
-	//#if (EL_BATCH_VERTICES==1)
-	//ModelResource()		{ nGroups = 0; }
-	//~ModelResource()	{
-	//	for( unsigned i=0; i<nGroups; ++i ) {
-	//		delete [] atom[i].vertex;
-	//		delete [] atom[i].index;
-	//	}
-	//}
-	//#endif
+	ModelHeader header;				// loaded
 
-	char name[16];			// loaded
-	U32 nGroups;			// loaded
-
-	Vector3X bounds[2];		// loaded
-
-	SphereX boundSphere;	// computed
+	SphereX boundSphere;			// computed
 	grinliz::Fixed boundRadius2D;	// computed, bounding 2D radius centered at 0,0
-	Rectangle3X hitBounds;	// for picking - a bounds approximation
+	Rectangle3X hitBounds;			// for picking - a bounds approximation
 
 	ModelAtom atom[EL_MAX_MODEL_GROUPS];
 };
+
 
 class ModelLoader
 {
@@ -81,13 +70,7 @@ private:
 	int nTextures;
 
 	U16		index[EL_MAX_INDEX_IN_MODEL];
-#if (EL_USE_FLOAT==0)
-	VertexX	vertex[EL_MAX_VERTEX_IN_MODEL];
-#elif (EL_USE_FLOAT==1)
 	Vertex	vertex[EL_MAX_VERTEX_IN_MODEL];
-#else
-#	error USE FLOAT undefined.
-#endif
 };
 
 

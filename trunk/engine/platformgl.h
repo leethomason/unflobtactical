@@ -31,11 +31,12 @@
 	#import <OpenGLES/ES1/glext.h>
 
 	#define glFrustumfX		glFrustumf
+	#define USING_ES
 #else
 	#include "../win32/glew.h"
 
 	#define glFrustumfX		glFrustum
-
+	#define USING_GL
 #endif
 
 
