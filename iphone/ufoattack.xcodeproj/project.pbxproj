@@ -55,6 +55,7 @@
 		9A8062AE0F51F3CE006556FA /* farmland.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A8062AD0F51F3CE006556FA /* farmland.tex */; };
 		9A8EE7E90F3F770F005FDF47 /* renderqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A8EE7E70F3F770F005FDF47 /* renderqueue.cpp */; };
 		9A8F7F4B0EBD3D8F00742BF0 /* model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A8F7F490EBD3D8F00742BF0 /* model.cpp */; };
+		9A969EAD0F6DA8F10063A7A6 /* serialize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A969EAB0F6DA8F10063A7A6 /* serialize.cpp */; };
 		9AF644700EAA906D004FB696 /* glcontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AF644530EAA906D004FB696 /* glcontainer.cpp */; };
 		9AF644710EAA906D004FB696 /* gldebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AF644550EAA906D004FB696 /* gldebug.cpp */; };
 		9AF644720EAA906D004FB696 /* gldynamic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AF644570EAA906D004FB696 /* gldynamic.cpp */; };
@@ -141,6 +142,8 @@
 		9A8F7F480EBD3D8F00742BF0 /* enginelimits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = enginelimits.h; path = ../engine/enginelimits.h; sourceTree = SOURCE_ROOT; };
 		9A8F7F490EBD3D8F00742BF0 /* model.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = model.cpp; path = ../engine/model.cpp; sourceTree = SOURCE_ROOT; };
 		9A8F7F4A0EBD3D8F00742BF0 /* model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = model.h; path = ../engine/model.h; sourceTree = SOURCE_ROOT; };
+		9A969EAB0F6DA8F10063A7A6 /* serialize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = serialize.cpp; path = ../engine/serialize.cpp; sourceTree = SOURCE_ROOT; };
+		9A969EAC0F6DA8F10063A7A6 /* serialize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = serialize.h; path = ../engine/serialize.h; sourceTree = SOURCE_ROOT; };
 		9AF644510EAA906D004FB696 /* glbitarray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glbitarray.h; path = ../grinliz/glbitarray.h; sourceTree = SOURCE_ROOT; };
 		9AF644520EAA906D004FB696 /* glcolor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glcolor.h; path = ../grinliz/glcolor.h; sourceTree = SOURCE_ROOT; };
 		9AF644530EAA906D004FB696 /* glcontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = glcontainer.cpp; path = ../grinliz/glcontainer.cpp; sourceTree = SOURCE_ROOT; };
@@ -348,6 +351,8 @@
 		9AF644A70EAAFCBB004FB696 /* engine */ = {
 			isa = PBXGroup;
 			children = (
+				9A969EAB0F6DA8F10063A7A6 /* serialize.cpp */,
+				9A969EAC0F6DA8F10063A7A6 /* serialize.h */,
 				9AF8D0A10F6D6C5B000B778E /* particle.cpp */,
 				9AF8D0A20F6D6C5B000B778E /* particle.h */,
 				9A8EE7E70F3F770F005FDF47 /* renderqueue.cpp */,
@@ -508,6 +513,7 @@
 				9A6909200F3372CB005AE44E /* uirendering.cpp in Sources */,
 				9A8EE7E90F3F770F005FDF47 /* renderqueue.cpp in Sources */,
 				9AF8D0A30F6D6C5B000B778E /* particle.cpp in Sources */,
+				9A969EAD0F6DA8F10063A7A6 /* serialize.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

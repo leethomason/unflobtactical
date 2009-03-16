@@ -246,6 +246,7 @@ void ProcessModel( TiXmlElement* model )
 		nTotalVertex += vertexGroup[i].nVertex;
 	}
 	printf( " groups=%d nVertex=%d nTri=%d\n", builder->NumGroups(), nTotalVertex, nTotalIndex/3 );
+
 	
 	ModelHeader header;
 	header.Set( name.c_str(), builder->NumGroups(), nTotalVertex, nTotalIndex, builder->Bounds() );
@@ -273,7 +274,9 @@ void ProcessModel( TiXmlElement* model )
 
 	// Write the vertices in each group:
 	for( int i=0; i<builder->NumGroups(); ++i ) {
+
 		SDL_RWwrite( fp, vertexGroup[i].vertex, sizeof(Vertex), vertexGroup[i].nVertex );
+
 	}
 	// Write the indices in each group:
 	for( int i=0; i<builder->NumGroups(); ++i ) {
