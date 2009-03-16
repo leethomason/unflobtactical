@@ -124,22 +124,6 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 	camera.SetYRotation( -45.f );
 	camera.SetTilt( engineData.cameraTilt );
 
-	// The ray runs from the min to the max, with the current (and default)
-	// zoom specified in the engineData.
-	const Vector3F& eyePos = camera.PosWC();
-	const Vector3F* eyeDir = camera.EyeDir3();
-	
-	float t1 = ( engineData.cameraMin - eyePos.y ) / eyeDir[0].y;
-	float t0 = ( engineData.cameraMax - eyePos.y ) / eyeDir[0].y;
-
-	//cameraRay.origin = eyePos + t0*eyeDir[0];
-	//cameraRay.direction = eyeDir[0];
-	//cameraRay.length = t1-t0;
-
-	//zoom = ( engineData.cameraHeight - cameraRay.origin.y ) / cameraRay.direction.y;
-	//zoom /= cameraRay.length;
-//	defaultZoom = Get;
-
 	SetPerspective();
 	lightDirection.Set( 0.7f, 3.0f, 1.4f );
 	lightDirection.Normalize();
@@ -795,7 +779,7 @@ void Engine::Zoom( int action, int distance )
 		case GAME_ZOOM_MOVE:
 			{
 				//float z = initZoom * (float)distance / (float)initZoomDistance;	// original. wrong feel.
-				float z = initZoom + (float)(distance-initZoomDistance)/800.0f;	// better, but slow out zoom-out, fast at zoom-in
+				float z = initZoom - (float)(distance-initZoomDistance)/800.0f;	// better, but slow out zoom-out, fast at zoom-in
 				
 //				GLOUTPUT(( "initZoom=%.2f distance=%d initDist=%d\n", initZoom, distance, initZoomDistance ));
 				SetZoom( z );
