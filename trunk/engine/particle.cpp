@@ -296,19 +296,23 @@ void ParticleSystem::DrawPointParticles()
 #ifdef USING_GL	
 	glEnable(GL_POINT_SPRITE);
 	glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
+#else
+	glEnable(GL_POINT_SPRITE_OES);
+	glTexEnvx(GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE);
 #endif
-	
 	CHECK_GL_ERROR;
 	if ( nParticles[POINT] > 0 ) {
 		glBindTexture( GL_TEXTURE_2D, particleTypeArr[POINT].texture->glID );
-		glPointSize( particleTypeArr[POINT].size );
-		float maxSize = 40.0f;
-		glPointParameterfv( GL_POINT_SIZE_MAX, &maxSize );
+		//float maxSize = 40.0f;
+		//glPointParameterfv( GL_POINT_SIZE_MAX, &maxSize );
 		CHECK_GL_ERROR;
 
 #ifdef USING_GL	
+		glPointSize( particleTypeArr[POINT].size );
 	    float quadratic[] =  { 1.0f, 0.0f, 0.01f };
 		glPointParameterfv( GL_POINT_DISTANCE_ATTENUATION_ARB, quadratic );
+#else
+		glPointSize( 2.0f );
 #endif
 		CHECK_GL_ERROR;
 		
@@ -324,7 +328,11 @@ void ParticleSystem::DrawPointParticles()
 
 #ifdef USING_GL
 	glDisable( GL_POINT_SPRITE );
+#else
+	glDisable( GL_POINT_SPRITE_OES );
 #endif
+	CHECK_GL_ERROR;
+	
 	// Restore standard state.
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_NORMAL_ARRAY );
