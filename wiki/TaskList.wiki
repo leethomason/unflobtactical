@@ -1,7 +1,6 @@
 = Engine =
 === Open === 
 
-  * UI: day/night, FoW on/off, standard test
   * object intersection testing
   * resource loading on demand
 
@@ -12,6 +11,7 @@
   * 3/09 fixed shadow offset in z-path
   * 3/09 particle system - fire, smoke, sparkle
   * 3/09 fix zoom start, min, max
+  * [deferred] UI: day/night, FoW on/off, standard test
 
 = Map Maker = 
 === Open ===
