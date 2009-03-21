@@ -74,7 +74,6 @@ public:
 	const float NIGHT_BLUE;
 
 	Camera camera;
-	//float fov;
 
 	void SetPerspective();
 	void Draw( int* trianglesDrawn );
@@ -96,10 +95,16 @@ public:
 							grinliz::Vector3F* world );
 
 	void CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjectionInverse );
+	void RayFromScreen( int x, int y, 
+						const grinliz::Matrix4& modelViewProjectionInverse, 
+						grinliz::Ray* ray );
+
 	void RayFromScreenToYPlane( int x, int y, 
 								const grinliz::Matrix4& modelViewProjectionInverse, 
 								grinliz::Ray* ray,
-								grinliz::Vector3F* out );
+								grinliz::Vector3F* intersection );
+
+	Model* IntersectModel( const grinliz::Ray& ray, bool onlyDraggable );
 
 	enum {
 		NEAR,
@@ -111,14 +116,6 @@ public:
 	};
 	void CalcFrustumPlanes( grinliz::Plane* planes );
 
-	void Drag( int action, int x, int y );
-	void Zoom( int action, int distance );
-	void CancelInput()						{ isDragging = false; }
-
-	bool IsDragging() { return isDragging; }
-	int InitZoomDistance()  { return initZoomDistance; }
-	//int LastZoomDistance()	{ return lastZoomDistance; }
-
 	float GetZoom();
 	// 0.0 far, 1.0 close
 	void SetZoom( float z );
@@ -128,6 +125,9 @@ public:
 
 	void SetDayNight( bool dayTime, Surface* lightMap );
 	bool GetDayTime()							{ return (dayNight == DAY_TIME); }
+
+	// FIXME - automatic??
+	void RestrictCamera();
 
 private:
 	enum ShadowState {
@@ -141,12 +141,10 @@ private:
 	};
 
 	void DrawCamera();
-	void RestrictCamera();
 	void CalcCameraRotation( grinliz::Matrix4* );
 	void EnableLights( bool enable, DayNight dayNight );
 	void LightSimple( DayNight dayNight, ShadowState shadows );
 
-	Model* IntersectModel( const grinliz::Ray& ray, bool onlyDraggable );
 	void PushShadowMatrix();
 
 	//void PushShadowTextureMatrix();
@@ -162,14 +160,6 @@ private:
 	int		depthFunc;
 	
 	grinliz::Vector3F lightDirection;
-	
-	grinliz::Vector3F dragStart;
-	grinliz::Vector3F dragStartCameraWC;
-	grinliz::Matrix4  dragMVPI;
-	Model* draggingModel;
-	Vector3X draggingModelOrigin;
-
-	bool isDragging;
 	DayNight dayNight;
 	const EngineData& engineData;
 

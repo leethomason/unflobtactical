@@ -15,6 +15,9 @@
 
 #include "game.h"
 #include "cgame.h"
+#include "scene.h"
+#include "battlescene.h"
+
 #include "../engine/platformgl.h"
 #include "../engine/text.h"
 #include "../engine/model.h"
@@ -24,6 +27,7 @@
 #include "../grinliz/glmatrix.h"
 #include "../grinliz/glutil.h"
 
+using namespace grinliz;
 
 const char* const gModelNames[] = 
 {
@@ -92,6 +96,12 @@ const TextureDef gTextureDef[] =
 };
 
 
+const char* gLightMapNames[ Game::NUM_LIGHT_MAPS ] = 
+{
+	"farmlandN",
+};
+
+
 
 Game::Game( int width, int height ) :
 	engine( width, height, engineData ),
@@ -104,29 +114,19 @@ Game::Game( int width, int height ) :
 	trianglesPerSecond( 0 ),
 	trianglesSinceMark( 0 ),
 	previousTime( 0 ),
-	currentMapItem( 1 )
+	isDragging( false )
 {
-	widgets = new UIWidgets();
 	surface.Set( 256, 256, 4 );		// All the memory we will ever need (? or that is the intention)
 
 	LoadTextures();
 	LoadModels();
 	LoadMapResources();
 
-	iconTexture = GetTexture( "icons" );
 	Texture* textTexture = GetTexture( "stdfont2" );
 	GLASSERT( textTexture );
 	UFOInitDrawText( textTexture->glID, engine.Width(), engine.Height(), rotation );
 
-	memset( testModel, 0, NUM_TEST_MODEL*sizeof(Model*) );
-
-	int n = 0;
-	ModelResource* resource = 0;
-
 #ifdef MAPMAKER
-	resource = GetResource( "selection" );
-	selection = engine.GetModel( resource );
-	selection->SetPos( 0.5f, 0.0f, 0.5f );
 #else
 	// If we aren't the map maker, then we need to load a map.
 	LoadMap( "farmland" );
@@ -134,94 +134,37 @@ Game::Game( int width, int height ) :
 
 	// Load the map.
 	char buffer[512];
-	PlatformPathToResource( "farmlandN", "tex", buffer, 512 );
-	FILE* fp = fopen( buffer, "rb" );
-	GLASSERT( fp );
-	lightMap.LoadTexture( fp );
-	fclose( fp );
+	for( int i=0; i<NUM_LIGHT_MAPS; ++i ) {
+		PlatformPathToResource( gLightMapNames[i], "tex", buffer, 512 );
+		FILE* fp = fopen( buffer, "rb" );
+		GLASSERT( fp );
+		lightMaps[i].LoadTexture( fp );
+		fclose( fp );
+	}
 
 	engine.GetMap()->SetSize( 40, 40 );
 	engine.GetMap()->SetTexture( GetTexture("farmland" ) );
-	engine.GetMap()->SetLightMap( &lightMap );
+	engine.GetMap()->SetLightMap( &lightMaps[0] );
 	
-	float mz = (float)engine.GetMap()->Height();
-
 	//engine.camera.SetPosWC( -19.4f, 62.0f, 57.2f );
 	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 	//engine.camera.SetPosWC( -5.0f, engineData.cameraHeight, mz + 5.0f );
-
 
 	particleSystem = new ParticleSystem();
 	particleSystem->InitPoint( GetTexture( "particleSparkle" ) );
 	particleSystem->InitQuad( GetTexture( "particleQuad" ) );
 
-	/*
-	resource = GetResource( "teapot" );
-	testModel[n] = engine.GetModel( resource );
-	testModel[n++]->SetPos( 5.f, -(float)resource->bounds[0].y/65536.0f, mz-4.0f );
-
-	resource = GetResource( "test2" );
-	testModel[n] = engine.GetModel( resource );
-	testModel[n++]->SetPos( 2.0f, 0.0f, mz-4.0f );
-	*/
-	resource = GetResource( "crate" );
-	testModel[n] = engine.GetModel( resource );
-	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 3.5f, 0.0f, mz-5.5f );
-
-	resource = GetResource( "maleMarine" );
-	for( int i=0; i<4; ++i ) {
-		testModel[n] = engine.GetModel( resource );
-		testModel[n]->SetPos( (float)(i*2)+10.5f, 0.0f, mz-7.5f );
-		testModel[n]->SetDraggable( true );
-		++n;
-	}
-	testModel[n-4]->SetSkin( 1, 1, 1 );
-	testModel[n-3]->SetSkin( 2, 1, 1 );
-	testModel[n-2]->SetSkin( 1, 0, 0 );
-	testModel[n-1]->SetSkin( 1, 0, 2 );
-
-	resource = GetResource( "femaleMarine" );
-	testModel[n] = engine.GetModel( resource );
-	rotTestStart = n;
-	rotTestCount = 0;
-	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 19.5f, 0.0f, mz-9.5f );
-	
-	resource = GetResource( "alien0" );
-	testModel[n] = engine.GetModel( resource );
-	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 19.5f, 0.0f, mz-7.5f );
-
-	resource = GetResource( "alien1" );
-	testModel[n] = engine.GetModel( resource );
-	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 19.5f, 0.0f, mz-5.5f );
-
-	resource = GetResource( "alien2" );
-	testModel[n] = engine.GetModel( resource );
-	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 19.5f, 0.0f, mz-3.5f );
-
-	resource = GetResource( "alien3" );
-	testModel[n] = engine.GetModel( resource );
-	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 19.5f, 0.0f, mz-1.5f );
+	scenes[BATTLE_SCENE] = new BattleScene( this );
+	currentScene = scenes[BATTLE_SCENE];
 }
 
 
 Game::~Game()
 {
-	for( int i=0; i<NUM_TEST_MODEL; ++i ) {
-		if ( testModel[i] ) {
-			engine.ReleaseModel( testModel[i] );
-		}
+	for( int i=0; i<NUM_SCENES; ++i ) {
+		delete scenes[i];
 	}
-#ifdef MAPMAKER
-	engine.ReleaseModel( selection );
-#endif
 
-	delete widgets;
 	delete particleSystem;
 	FreeModels();
 	FreeTextures();
@@ -270,6 +213,17 @@ void Game::LoadTextures()
 		fclose( fp );
 	}
 	GLASSERT( nTexture <= MAX_TEXTURES );
+}
+
+
+Surface* Game::GetLightMap( const char* name )
+{
+	for( int i=0; i<NUM_LIGHT_MAPS; ++i ) {
+		if ( strcmp( name, gLightMapNames[i] ) == 0 ) {
+			return &lightMaps[i];
+		}
+	}
+	return 0;
 }
 
 
@@ -399,11 +353,6 @@ void Game::DoTick( U32 currentTime )
 	}
 #endif
 
-	for( int i=0; i<rotTestCount; ++i ) {
-		Model* m = testModel[rotTestStart+i];
-		m->SetYRotation( m->GetYRotation() + 0.3f );
-	}
-
 	if ( currentTimeSec != previousTimeSec ) {
 
 		grinliz::Vector3F pos = { 10.0f, 1.0f, 28.0f };
@@ -422,6 +371,8 @@ void Game::DoTick( U32 currentTime )
 	}
 	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
 	particleSystem->EmitFlame( deltaTime, pos );
+
+	currentScene->DoTick( currentTime, deltaTime );
 
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_NORMAL_ARRAY );
@@ -443,11 +394,7 @@ void Game::DoTick( U32 currentTime )
 
 	trianglesSinceMark += triCount;
 
-	glDisable( GL_DEPTH_TEST );
-
-	int w = engine.Width();
-	int h = engine.Height();
-	if ( rotation&1 ) grinliz::Swap( &w, &h );
+	currentScene->DrawHUD();
 
 	UFODrawText( 0,  0, "UFO Attack! %4.1ffps %5.1fK/f %4dK/s", 
 				 framesPerSecond, 
@@ -465,12 +412,6 @@ void Game::DoTick( U32 currentTime )
 		++k;
 	}
 #endif
-#ifdef MAPMAKER
-	UFODrawText( 0,  16, "%3d:'%s'", currentMapItem, engine.GetMap()->GetItemDefName( currentMapItem ) );
-#endif
-	glBindTexture( GL_TEXTURE_2D, iconTexture->glID );
-	widgets->Draw( w, h, rotation );
-	//UFODrawIcons( iconInfo, w, h, rotation );
 
 	glEnable( GL_DEPTH_TEST );
 	previousTime = currentTime;
@@ -509,48 +450,65 @@ void Game::TransformScreen( int x0, int y0, int *x1, int *y1 )
 
 void Game::Tap( int tap, int x, int y )
 {
-	if ( tap == 1 ) {
-		// In the double-tap case, the inverse computation will take care
-		// of the coordinate transform. Here we do it explicity via TransformScreen.
-		int x0, y0;
-		TransformScreen( x, y, &x0, &y0 );
-		//GLOUTPUT(( "Screen: %d,%d\n", x0, y0 ));
-		int icon = widgets->QueryTap( x0, y0 );
+	grinliz::Matrix4 mvpi;
+	grinliz::Ray world;
 
-		switch( icon ) {
-			case UIWidgets::ICON_CAMERA_HOME:
-				engine.MoveCameraHome();
-				break;
+	grinliz::Vector2I screen;
+	TransformScreen( x, y, &screen.x, &screen.y );
 
-			case UIWidgets::ICON_FOG_OF_WAR:
-				if ( engine.GetDayTime() )
-					engine.SetDayNight( false, &lightMap );
-				else
-					engine.SetDayNight( true, 0 );
-				break;
+	engine.CalcModelViewProjectionInverse( &mvpi );
+	engine.RayFromScreen( x, y, mvpi, &world );
 
-			default:
-				break;
+	currentScene->Tap( tap, screen, world );
+}
+
+
+void Game::Drag( int action, int x, int y )
+{
+	Vector2I screenRaw = { x, y };
+
+	switch ( action ) 
+	{
+		case GAME_DRAG_START:
+		{
+			GLASSERT( !isDragging );
+			isDragging = true;
+			currentScene->Drag( action, screenRaw );
 		}
+		break;
 
-#ifdef MAPMAKER
-		if ( !iconFound ) {
-			const Vector3X& pos = selection->Pos();
-			int rotation = (int) (selection->GetYRotation() / grinliz::Fixed(90) );
-			engine.GetMap()->AddToTile( (int)pos.x, (int)pos.z, currentMapItem, rotation );
+		case GAME_DRAG_MOVE:
+		{
+			GLASSERT( isDragging );
+			currentScene->Drag( action, screenRaw );
 		}
-#endif	
+		break;
 
-	}
-	else if ( tap == 2 ) {
-		grinliz::Matrix4 mvpi;
-		grinliz::Ray ray;
-		grinliz::Vector3F p;
+		case GAME_DRAG_END:
+		{
+			GLASSERT( isDragging );
+			currentScene->Drag( GAME_DRAG_MOVE, screenRaw );
+			currentScene->Drag( GAME_DRAG_END, screenRaw );
+			isDragging = false;
+		}
+		break;
 
-		engine.CalcModelViewProjectionInverse( &mvpi );
-		engine.RayFromScreenToYPlane( x, y, mvpi, &ray, &p );
-		engine.MoveCameraXZ( p.x, p.z ); 
+		default:
+			GLASSERT( 0 );
+			break;
 	}
+}
+
+
+void Game::Zoom( int action, int distance )
+{
+	currentScene->Zoom( action, distance );
+}
+
+
+void Game::CancelInput()
+{
+	isDragging = false;
 }
 
 
@@ -558,38 +516,31 @@ void Game::Tap( int tap, int x, int y )
 
 void Game::MouseMove( int x, int y )
 {
-	grinliz::Matrix4 mvpi;
-	grinliz::Ray ray;
-	grinliz::Vector3F p;
-
-	engine.CalcModelViewProjectionInverse( &mvpi );
-	engine.RayFromScreenToYPlane( x, y, mvpi, &ray, &p );
-
-	int newX = (int)( p.x );
-	int newZ = (int)( p.z );
-	selection->SetPos( (float)newX + 0.5f, 0.0f, (float)newZ + 0.5f );
+	if ( currentScene == scenes[BATTLE_SCENE] ) {
+		((BattleScene*)currentScene)->MouseMove( x, y );
+	}
 }
 
 void Game::RotateSelection()
 {
-	grinliz::Fixed rot = selection->GetYRotation() + grinliz::Fixed(90);
-	selection->SetYRotation( rot );
+	if ( currentScene == scenes[BATTLE_SCENE] ) {
+		((BattleScene*)currentScene)->RotateSelection();
+	}
 }
 
 void Game::DeleteAtSelection()
 {
-	Vector3X pos = selection->Pos();
-	engine.GetMap()->DeleteAt( (int)pos.x, (int)pos.z );
+	if ( currentScene == scenes[BATTLE_SCENE] ) {
+		((BattleScene*)currentScene)->DeleteAtSelection();
+	}
 }
 
 
 void Game::DeltaCurrentMapItem( int d )
 {
-	currentMapItem += d;
-	while ( currentMapItem < 0 ) { currentMapItem += Map::MAX_ITEM_DEF; }
-	while ( currentMapItem >= Map::MAX_ITEM_DEF ) { currentMapItem -= Map::MAX_ITEM_DEF; }
-	if ( currentMapItem == 0 ) currentMapItem = 1;
+	if ( currentScene == scenes[BATTLE_SCENE] ) {
+		((BattleScene*)currentScene)->DeltaCurrentMapItem(d);
+	}
 }
-
 
 #endif

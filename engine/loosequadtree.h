@@ -95,6 +95,7 @@ private:
 	int modelsFound;
 
 	Item modelPool[EL_MAX_MODELS];
+
 	enum {
 		// Depth 6 dropped the count from 13.8K to 13.5K tris. Not worth it.
 		//DEPTH = 6,

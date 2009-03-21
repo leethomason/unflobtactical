@@ -49,11 +49,15 @@ struct ModelGroup
 */
 struct ModelHeader
 {
+	enum {
+		BILLBOARD = 0x01,
+	};
+
 	char					name[EL_FILE_STRING_LEN];
+	U16						flags;
 	U16						nGroups;
 	U16						nTotalVertices;		// in all groups
 	U16						nTotalIndices;
-	U16						_pad0;
 	grinliz::Rectangle3F	bounds;
 
 	void Set( const char* name, int nGroups, int nTotalVertices, int nTotalIndices,

@@ -107,11 +107,12 @@ public:
 	void SetYRotation( grinliz::Fixed rot )		{
 		while( rot < 0 )		{ rot += 360; }
 		while( rot >= 360 )		{ rot -= 360; }
-		this->rot = rot;
+		this->rot = rot;		// won't change tree location, don't need to call Update()
 	}
 	void SetYRotation( float rot )				{ SetYRotation( grinliz::Fixed( rot ) ); }
 	const grinliz::Fixed GetYRotation()			{ return rot; }
 
+	int IsBillboard() { return resource->header.flags & ModelHeader::BILLBOARD; }
 	void SetSkin( int armor, int skin, int hair );
 
 	void CalcBoundSphere( SphereX* spherex );
@@ -121,8 +122,8 @@ public:
 	ModelResource* GetResource()				{ return resource; }
 	bool Sentinel()								{ return resource==0 && tree==0; }
 
-	Model* next;	// used by the SpaceTree query
-	Model* next0;	// used by the Engine sub-sorting
+	Model* next;			// used by the SpaceTree query
+	Model* next0;			// used by the Engine sub-sorting
 
 private:
 	SpaceTree* tree;

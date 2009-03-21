@@ -29,7 +29,8 @@ public:
 
 	enum {
 		MAX_POINT_PARTICLES = 400,
-		MAX_QUAD_PARTICLES = 100
+		MAX_QUAD_PARTICLES = 100,
+		MAX_DECALS = 16
 	};
 
 	ParticleSystem();
@@ -43,6 +44,14 @@ public:
 		FIRE,			
 		SMOKE,
 		NUM_TYPE,
+
+		SELECTION = 2,
+	};
+
+	enum {
+		DECAL_DIR,
+		DECAL_SELECTED,
+		NUM_DECAL
 	};
 
 	enum {
@@ -70,6 +79,7 @@ public:
 				U32 lifetime );					// lifetime in milliseconds
 
 	void EmitFlame( U32 delta, const grinliz::Vector3F& pos );
+	void EmitDecal( int id, const grinliz::Vector3F& pos, float alpha, float rotation );
 
 	void Update( U32 timePassed );
 	void Draw( const grinliz::Vector3F* eyeDir );
@@ -101,6 +111,14 @@ private:
 		U8	subType;
 	};
 
+	struct Decal
+	{
+		grinliz::Vector3F	pos;		
+		Color4F				color;
+		float				rotation;
+		int					subType;
+	};
+
 	struct QuadVertex
 	{
 		grinliz::Vector3F	pos;
@@ -110,13 +128,16 @@ private:
 
 	void DrawPointParticles();
 	void DrawQuadParticles( const grinliz::Vector3F* eyeDir );
+	void DrawDecalParticles();
 
 	grinliz::Random rand;
 	int nParticles[NUM_PRIMITIVES];
+	int nDecals;
 
 	ParticleType	particleTypeArr[ NUM_PRIMITIVES ];
 	Particle		pointBuffer[ MAX_POINT_PARTICLES ];
 	Particle		quadBuffer[ MAX_QUAD_PARTICLES ];
+	Decal			decalBuffer[ MAX_DECALS ];
 
 	QuadVertex		vertexBuffer[ MAX_QUAD_PARTICLES*4];
 	U16				quadIndexBuffer[ MAX_QUAD_PARTICLES*6 ];

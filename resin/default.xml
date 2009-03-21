@@ -38,8 +38,8 @@
 
 	<model filename="table.ac" />
 	<model filename="bed.ac" />
-	<model filename="wheat.ac" />
-	<model filename="tree.ac" />
+	<model filename="wheat.ac" billboard="true" />
+	<model filename="tree.ac" billboard="true" />
 	
 	<!-- Particles -->
 	<texture filename="particleQuad.png" />
