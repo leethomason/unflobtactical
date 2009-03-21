@@ -38,6 +38,8 @@ public:
 
 	float GetYRotation() const						{ return yRotation; }
 	void SetYRotation( float value )				{ yRotation = value;  valid = false; }
+	float GetBillboardYRotation() const				{	return yRotation;
+													}
 
 	// 0-3, in view space (corresponds to device rotation). Normally one.
 	void SetViewRotation( int v )					{ viewRotation = v; valid = false; }

@@ -51,6 +51,8 @@ UIWidgets::UIWidgets()
 
 void UIWidgets::Draw( int width, int height, int rotation )
 {
+	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+
 	glDisable( GL_DEPTH_TEST );
 	glDepthMask( GL_FALSE );
 	glEnable( GL_BLEND );

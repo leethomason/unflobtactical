@@ -24,7 +24,7 @@
 #include "../engine/uirendering.h"
 
 class ParticleSystem;
-
+class Scene;
 
 const float FOV = 45.0f;
 const int MAX_TEXTURES = 32;
@@ -42,10 +42,16 @@ public:
 
 	void DoTick( U32 msec );
 	void SetScreenRotation( int i );
+	int Rotation() { return rotation; }
+
 	void Tap( int count, int x, int y );
+	void Drag( int action, int x, int y );
+	void Zoom( int action, int distance );
+	void CancelInput();
 	
-	ModelResource* GetResource( const char* name );
-	Texture* GetTexture( const char* name );
+	ModelResource*	GetResource( const char* name );
+	Texture*		GetTexture( const char* name );
+	Surface*		GetLightMap( const char* name );
 	void TransformScreen( int x0, int y0, int *x1, int *y1 );
 
 	Engine engine;
@@ -63,7 +69,14 @@ public:
 	void LoadMap( FILE* fp )	{ engine.GetMap()->Load( fp ); }
 	void ClearMap()				{ engine.GetMap()->Clear(); }
 
+	enum { NUM_LIGHT_MAPS = 1,
+
+		   BATTLE_SCENE = 0,
+		   NUM_SCENES,
+		 };
+
 private:
+
 	void LoadTextures();
 	void FreeTextures();
 	void LoadModels();
@@ -73,7 +86,7 @@ private:
 
 	Texture texture[MAX_TEXTURES];
 	ModelResource modelResource[EL_MAX_MODEL_RESOURCES];
-	Surface lightMap;
+	Surface lightMaps[NUM_LIGHT_MAPS];
 
 	int rotation;
 	int nTexture;
@@ -84,18 +97,14 @@ private:
 	int trianglesPerSecond;
 	int trianglesSinceMark;
 
-	U32 previousTime;
-	Texture* iconTexture;
-	UIWidgets* widgets;
+	Scene* currentScene;
+	Scene* scenes[NUM_SCENES];
 
-	enum { NUM_TEST_MODEL = 256 };
-	Model* testModel[NUM_TEST_MODEL];
+	U32 previousTime;
+	bool isDragging;
+
 	int rotTestStart;
 	int rotTestCount;
-
-	// Mapmaker:
-	Model* selection;
-	int currentMapItem;
 };
 
 #endif

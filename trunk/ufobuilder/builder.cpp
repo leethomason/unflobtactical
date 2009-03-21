@@ -48,6 +48,13 @@ int totalModelMem = 0;
 int totalTextureMem = 0;
 int totalMapMem = 0;
 
+
+bool StrEqual( const char* a, const char* b ) {
+	if ( a && b && strcmp( a, b ) == 0 )
+		return true;
+	return false;
+}
+
 void LoadLibrary()
 {
 	#if defined(__APPLE__)
@@ -104,6 +111,7 @@ void ModelHeader::Set(	const char* name, int nGroups, int nTotalVertices, int nT
 
 	memset( this->name, 0, EL_FILE_STRING_LEN );
 	strncpy( this->name, name, EL_FILE_STRING_LEN );
+	this->flags = 0;
 	this->nGroups = nGroups;
 	this->nTotalVertices = nTotalVertices;
 	this->nTotalIndices = nTotalIndices;
@@ -250,6 +258,11 @@ void ProcessModel( TiXmlElement* model )
 	
 	ModelHeader header;
 	header.Set( name.c_str(), builder->NumGroups(), nTotalVertex, nTotalIndex, builder->Bounds() );
+
+	if ( StrEqual( model->Attribute( "billboard" ), "true" ) ) {
+		header.flags |= ModelHeader::BILLBOARD;
+	}
+
 	header.Save( fp );
 
 	int totalMemory = 0;

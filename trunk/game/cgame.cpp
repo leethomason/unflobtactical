@@ -40,13 +40,13 @@ void DeleteGame( void* handle )
 void GameDrag( void* handle, int action, int x, int y )
 {
 	Game* game = (Game*)handle;
-	game->engine.Drag( action, x, y );
+	game->Drag( action, x, y );
 }
 
 void GameZoom( void* handle, int action, int distance )
 {
 	Game* game = (Game*)handle;
-	game->engine.Zoom( action, distance );
+	game->Zoom( action, distance );
 }
 
 // count is 1 or 2
@@ -59,7 +59,7 @@ void GameTap( void* handle, int count, int x, int y )
 void GameInputCancelled( void* handle )
 {
 	Game* game = (Game*)handle;
-	game->engine.CancelInput();
+	game->CancelInput();
 }
 
 
@@ -68,6 +68,7 @@ void GameDoTick( void* handle, unsigned int timeInMSec )
 	Game* game = (Game*)handle;
 	game->DoTick( timeInMSec );
 }
+
 
 void GameCameraGet( void* handle, int param, float* value ) 
 {

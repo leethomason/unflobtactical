@@ -27,6 +27,7 @@ ParticleSystem::ParticleSystem()
 		nParticles[i] = 0;
 		particleTypeArr[i].Init( 0, 1.0f );
 	}
+	nDecals = 0;
 }
 
 
@@ -97,7 +98,7 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 	GLASSERT( config >= 0 && config <= PARTICLE_SPHERE );
 
 	const int MAX_PARTICLES[2] = { MAX_POINT_PARTICLES, MAX_QUAD_PARTICLES };
-	Particle* particles[3] = { pointBuffer, quadBuffer };
+	Particle* particles[2] = { pointBuffer, quadBuffer };
 
 	GLASSERT( count < MAX_PARTICLES[primitive] );
 	lifetime = grinliz::Clamp( lifetime, (U32)16, (U32)0xffff );
@@ -178,6 +179,24 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 		p->type = (U8)type;
 		p->subType = (U8)(rand.Rand()>>30);
 	}
+}
+
+
+
+void ParticleSystem::EmitDecal( int id, const grinliz::Vector3F& pos, float alpha, float rotation )
+{
+	GLASSERT( id >= 0 && id < NUM_DECAL );
+	const Color4F color		= { 1.0f, 1.0f, 1.0f, 1.0f };
+
+	if ( nDecals == MAX_DECALS ) {
+		nDecals--;
+	}
+	decalBuffer[nDecals].pos = pos;
+	decalBuffer[nDecals].color = color;
+	decalBuffer[nDecals].color.w = alpha ;
+	decalBuffer[nDecals].subType = id;
+	decalBuffer[nDecals].rotation = rotation;
+	nDecals++;
 }
 
 
@@ -274,6 +293,7 @@ void ParticleSystem::Draw( const Vector3F* eyeDir )
 
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	DrawPointParticles();
+	DrawDecalParticles();
 
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE );
 	DrawQuadParticles( eyeDir );
@@ -354,11 +374,17 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 	base[1].pos =  eyeDir[Camera::RIGHT]*0.5f - eyeDir[Camera::UP]*0.5f;
 	base[2].pos =  eyeDir[Camera::RIGHT]*0.5f + eyeDir[Camera::UP]*0.5f;
 	base[3].pos = -eyeDir[Camera::RIGHT]*0.5f + eyeDir[Camera::UP]*0.5f;
-	
+
+	const Vector2F tex[4] = {
+		{ 0.0f, 0.0f },
+		{ 0.25f, 0.0f },
+		{ 0.25f, 0.25f },
+		{ 0.0f, 0.25f }
+	};
+
 	int index = 0;
 	int vertex = 0;
 	GLASSERT( nParticles[QUAD] <= MAX_QUAD_PARTICLES );
-
 
 	for( int i=0; i<nParticles[QUAD]; ++i ) 
 	{
@@ -383,25 +409,12 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 
 		QuadVertex* pV = &vertexBuffer[vertex];
 
-		pV->pos = base[0].pos*size + pos;
-		pV->tex.Set( tx, ty );
-		pV->color = color;
-		++pV;
-
-		pV->pos = base[1].pos*size + pos;
-		pV->tex.Set( tx+0.25f, ty );
-		pV->color = color;
-		++pV;
-
-		pV->pos = base[2].pos*size + pos;
-		pV->tex.Set( tx+0.25f, ty+0.25f );
-		pV->color = color;
-		++pV;
-
-		pV->pos = base[3].pos*size + pos;
-		pV->tex.Set( tx, ty+0.25f );
-		pV->color = color;
-		++pV;
+		for( int j=0; j<4; ++j ) {
+			pV->pos = base[j].pos + pos;
+			pV->tex.Set( tx+tex[j].x, ty+tex[j].y );
+			pV->color = color;
+			++pV;
+		}
 
 		vertex += 4;
 	}
@@ -434,4 +447,92 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 	glDisableClientState( GL_COLOR_ARRAY );
 	CHECK_GL_ERROR;
+}
+
+	
+void ParticleSystem::DrawDecalParticles()
+{
+	if ( nDecals == 0 ) {
+		return;
+	}
+
+	const float EPS = 0.05f;
+	const float DSIZE = 0.7f;
+	QuadVertex base[4];
+	base[0].pos.Set( -DSIZE, EPS,  DSIZE );
+	base[1].pos.Set(  DSIZE, EPS,  DSIZE );
+	base[2].pos.Set(  DSIZE, EPS, -DSIZE );
+	base[3].pos.Set( -DSIZE, EPS, -DSIZE );
+
+	const Vector2F tex[4] = {
+		{ 0.0f,  0.25f },
+		{ 0.25f, 0.25f },
+		{ 0.25f, 0.0f },
+		{ 0.0f,  0.0f }
+	};
+
+	int index = 0;
+	int vertex = 0;
+
+	for( int i=0; i<nDecals; ++i ) 
+	{
+		const int type	  = SELECTION;
+		const int subType = decalBuffer[i].subType;
+
+		const float tx = 0.25f * (float)subType;
+		const float ty = 0.25f * (float)type;
+		
+		const Vector3F& pos  = decalBuffer[i].pos;
+		const Color4F& color = decalBuffer[i].color;
+
+		// Set up the particle that everything else is derived from:
+		quadIndexBuffer[index++] = vertex+0;
+		quadIndexBuffer[index++] = vertex+1;
+		quadIndexBuffer[index++] = vertex+2;
+
+		quadIndexBuffer[index++] = vertex+0;
+		quadIndexBuffer[index++] = vertex+2;
+		quadIndexBuffer[index++] = vertex+3;
+
+		QuadVertex* pV = &vertexBuffer[vertex];
+
+		for( int j=0; j<4; ++j ) {
+			pV->pos = base[j].pos + pos;
+			pV->tex.Set( tx+tex[j].x, ty+tex[j].y );
+			pV->color = color;
+			++pV;
+		}
+		vertex += 4;
+	}
+
+	CHECK_GL_ERROR;
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glDisableClientState( GL_NORMAL_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+	glEnableClientState( GL_COLOR_ARRAY );
+
+	glEnable( GL_TEXTURE_2D );
+	glBindTexture( GL_TEXTURE_2D, particleTypeArr[QUAD].texture->glID );
+
+	CHECK_GL_ERROR;
+	U8* vPtr = (U8*)vertexBuffer + 0;
+	U8* tPtr = (U8*)vertexBuffer + 12;
+	U8* cPtr = (U8*)vertexBuffer + 20;
+
+	CHECK_GL_ERROR;
+	glVertexPointer(   3, GL_FLOAT, sizeof(QuadVertex), vPtr );
+	glTexCoordPointer( 2, GL_FLOAT, sizeof(QuadVertex), tPtr );
+	glColorPointer(    4, GL_FLOAT, sizeof(QuadVertex), cPtr );
+
+	glDrawElements( GL_TRIANGLES, nDecals*6, GL_UNSIGNED_SHORT, quadIndexBuffer );
+	CHECK_GL_ERROR;
+
+	// Restore standard state.
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_NORMAL_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+	glDisableClientState( GL_COLOR_ARRAY );
+	CHECK_GL_ERROR;
+
+	nDecals = 0;
 }

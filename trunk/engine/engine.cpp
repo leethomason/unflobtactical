@@ -111,7 +111,6 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 		NIGHT_BLUE( 1.0f ),
 		width( _width ), 
 		height( _height ), 
-		isDragging( false ), 
 		dayNight( DAY_TIME ),
 		engineData( _engineData ),
 		initZoomDistance( 0 )
@@ -272,6 +271,7 @@ void Engine::Draw( int* triCount )
 {
 	// -------- Camera & Frustum -------- //
 	DrawCamera();
+	Fixed bbRotation = Fixed( camera.GetBillboardYRotation() );
 
 	// Compute the frustum planes
 	Plane planes[6];
@@ -318,6 +318,12 @@ void Engine::Draw( int* triCount )
 	GLASSERT( renderQueue->Empty() );
 	
 	for( Model* model=modelRoot; model; model=model->next ) {
+		// Take advantage of this walk to adjust the billboard rotations. Note that the rotation
+		// will never change it's position in the space tree, which is why we can set it here.
+		if ( model->IsBillboard() && model->GetYRotation() != bbRotation ) {
+			model->SetYRotation( bbRotation );
+		}
+
 		// Draw model shadows.
 		model->Queue( renderQueue, textureState );
 	}
@@ -573,6 +579,31 @@ void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray,
 	IntersectLinePlane( p0, p1, plane, out, &t );
 }
 
+
+void Engine::RayFromScreen( int x, int y, const Matrix4& mvpi, Ray* ray )
+{	
+	Rectangle2I screen;
+	screen.Set( 0, 0, width-1, height-1 );
+	Vector3F win0 ={ (float)x, (float)y, 0.0f };
+	Vector3F win1 ={ (float)x, (float)y, 1.0f };
+
+	Vector3F p0, p1;
+
+	UnProject( win0, screen, mvpi, &p0 );
+	UnProject( win1, screen, mvpi, &p1 );
+
+	Plane plane;
+	plane.n.Set( 0.0f, 1.0f, 0.0f );
+	plane.d = 0.0;
+	
+	Vector3F dir = p1 - p0;
+
+	ray->origin = p0;
+	ray->direction = dir;
+	ray->length = 1.0f;
+}
+
+
 /*
 void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
 {
@@ -695,7 +726,7 @@ Model* Engine::IntersectModel( const grinliz::Ray& ray, bool onlyDraggable )
 	return m;
 }
 
-
+/*
 void Engine::Drag( int action, int x, int y )
 {
 	switch ( action ) 
@@ -764,8 +795,9 @@ void Engine::Drag( int action, int x, int y )
 			break;
 	}
 }
+*/
 
-
+/*
 void Engine::Zoom( int action, int distance )
 {
 	switch ( action )
@@ -793,7 +825,7 @@ void Engine::Zoom( int action, int distance )
 	//GLOUTPUT(( "Zoom action=%d distance=%d initZoomDistance=%d lastZoomDistance=%d z=%.2f\n",
 	//		   action, distance, initZoomDistance, lastZoomDistance, GetZoom() ));
 }
-
+*/
 
 void Engine::RestrictCamera()
 {

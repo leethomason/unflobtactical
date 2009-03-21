@@ -241,6 +241,14 @@
 			Name="game"
 			>
 			<File
+				RelativePath=".\game\battlescene.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\game\battlescene.h"
+				>
+			</File>
+			<File
 				RelativePath=".\game\cgame.cpp"
 				>
 			</File>
@@ -254,6 +262,10 @@
 			</File>
 			<File
 				RelativePath=".\game\game.h"
+				>
+			</File>
+			<File
+				RelativePath=".\game\scene.h"
 				>
 			</File>
 		</Filter>
