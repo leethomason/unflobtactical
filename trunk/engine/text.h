@@ -19,8 +19,31 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 
-void UFOInitDrawText( U32 textTextureID, int screenWidth, int screenHeight, int rotation );
 
-void UFODrawText( int x, int y, const char* format, ... );
+class UFOText
+{
+public:
+	static void InitTexture( U32 textTextureID );
+	static void InitScreen( int screenWidth, int screenHeight, int rotation );
+
+	static int ScreenWidth()		{ return width; }
+	static int ScreenHeight()		{ return height; }
+	static int Rotation()			{ return rotation; }
+	static void GlyphSize( const char* str, int* width, int* height );
+
+	static void Begin();
+	static void Stream( int x, int y, const char* format, ... );
+	static void End();
+
+	static void Draw( int x, int y, const char* format, ... );
+
+private:
+	static void TextOut( const char* str, int x, int y );
+
+	static int width;
+	static int height;
+	static int rotation;
+	static U32 textureID;
+};
 
 #endif // UFOATTACK_TEXT_INCLUDED

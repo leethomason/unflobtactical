@@ -114,7 +114,8 @@ Game::Game( int width, int height ) :
 	trianglesPerSecond( 0 ),
 	trianglesSinceMark( 0 ),
 	previousTime( 0 ),
-	isDragging( false )
+	isDragging( false ),
+	nSceneStack( 0 )
 {
 	surface.Set( 256, 256, 4 );		// All the memory we will ever need (? or that is the intention)
 
@@ -124,7 +125,8 @@ Game::Game( int width, int height ) :
 
 	Texture* textTexture = GetTexture( "stdfont2" );
 	GLASSERT( textTexture );
-	UFOInitDrawText( textTexture->glID, engine.Width(), engine.Height(), rotation );
+	UFOText::InitTexture( textTexture->glID );
+	UFOText::InitScreen( engine.Width(), engine.Height(), rotation );
 
 #ifdef MAPMAKER
 #else
@@ -231,7 +233,7 @@ void Game::SetScreenRotation( int value )
 {
 	rotation = ((unsigned)value)%4;
 
-	UFOInitDrawText( 0, engine.Width(), engine.Height(), rotation );
+	UFOText::InitScreen( engine.Width(), engine.Height(), rotation );
 	engine.camera.SetViewRotation( rotation );
 }
 
@@ -396,10 +398,10 @@ void Game::DoTick( U32 currentTime )
 
 	currentScene->DrawHUD();
 
-	UFODrawText( 0,  0, "UFO Attack! %4.1ffps %5.1fK/f %4dK/s", 
-				 framesPerSecond, 
-				 (float)triCount/1000.0f,
-				 trianglesPerSecond );
+	UFOText::Draw(	0,  0, "UFO Attack! %4.1ffps %5.1fK/f %4dK/s", 
+					framesPerSecond, 
+					(float)triCount/1000.0f,
+					trianglesPerSecond );
 
 #ifdef EL_SHOW_MODELS
 	int k=0;

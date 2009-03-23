@@ -5,7 +5,7 @@
 #include "../engine/fixedgeom.h"
 
 class Model;
-class UIWidgets;
+class UIButtonBox;
 class Engine;
 class Texture;
 
@@ -15,6 +15,9 @@ class BattleScene : public Scene
 public:
 	BattleScene( Game* );
 	virtual ~BattleScene();
+
+	virtual void Activate();
+	virtual void DeActivate();
 
 	virtual void Tap(	int count, 
 						const grinliz::Vector2I& screen,
@@ -46,9 +49,8 @@ private:
 	int		initZoomDistance;
 	float	initZoom;
 
-	Texture* iconTexture;
 	Model* draggingModel;
-	UIWidgets* widgets;
+	UIButtonBox* widgets;
 	Engine* engine;
 
 	enum { NUM_TEST_MODEL = 256 };

@@ -19,25 +19,41 @@
 #include "vertex.h"
 
 
-class UIWidgets
+class UIButtonBox
 {
 public:
-	UIWidgets();
-	~UIWidgets()	{}
+	UIButtonBox( const Texture* texture );
+	~UIButtonBox()	{}
 
 	enum {
-		ICON_CAMERA_HOME,
-		ICON_FOG_OF_WAR,
-		ICON_COUNT
+		ICON_PLAIN,
+		ICON_CHARACTER,
+		NUM_ICONS,
+
+		MAX_ICONS = 16,
+		MAX_TEXT_LEN = 12,
 	};
 
+	void SetButtons( const int* icons, const char** text, int nIcons );
+
+	// returns the icon INDEX, or nIcons if not clicked
 	int QueryTap( int x, int y );	
 	void Draw( int width, int height, int rotation );
 
 private:
-	grinliz::Vector2< S16 > pos[ICON_COUNT*4];
-	grinliz::Vector2F tex[ICON_COUNT*4];
-	U16 index[6*ICON_COUNT];
+	struct Icon
+	{
+		int						id;
+		char					text[MAX_TEXT_LEN];
+		grinliz::Vector2I		textPos;
+	};
+	const Texture* texture;
+	int nIcons;
+
+	Icon					icons[MAX_ICONS];
+	grinliz::Vector2< S16 > pos[MAX_ICONS*4];
+	grinliz::Vector2F		tex[MAX_ICONS*4];
+	U16						index[6*MAX_ICONS];
 };
 
 

@@ -73,6 +73,8 @@ public:
 
 		   BATTLE_SCENE = 0,
 		   NUM_SCENES,
+
+		   MAX_SCENE_STACK = 4,
 		 };
 
 private:
@@ -83,10 +85,6 @@ private:
 	void FreeModels();
 	void LoadMapResources();
 	void LoadMap( const char* name );
-
-	Texture texture[MAX_TEXTURES];
-	ModelResource modelResource[EL_MAX_MODEL_RESOURCES];
-	Surface lightMaps[NUM_LIGHT_MAPS];
 
 	int rotation;
 	int nTexture;
@@ -99,12 +97,19 @@ private:
 
 	Scene* currentScene;
 	Scene* scenes[NUM_SCENES];
+	Scene* sceneStack[MAX_SCENE_STACK];
+	int nSceneStack;
 
 	U32 previousTime;
 	bool isDragging;
 
 	int rotTestStart;
 	int rotTestCount;
+
+	Texture			texture[MAX_TEXTURES];
+	ModelResource	modelResource[EL_MAX_MODEL_RESOURCES];
+	Surface			lightMaps[NUM_LIGHT_MAPS];
+
 };
 
 #endif

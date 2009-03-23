@@ -7,7 +7,9 @@
 #include "../engine/particle.h"
 #include "../engine/text.h"
 
+
 using namespace grinliz;
+
 
 BattleScene::BattleScene( Game* game ) : Scene( game )
 {
@@ -16,8 +18,14 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 #endif
 
 	engine  = &game->engine;
-	widgets = new UIWidgets();
-	iconTexture = game->GetTexture( "icons" );
+
+	Texture* t = game->GetTexture( "icons" );
+	
+	widgets = new UIButtonBox( t );
+
+	int icons[] = { UIButtonBox::ICON_PLAIN, UIButtonBox::ICON_PLAIN, UIButtonBox::ICON_CHARACTER };
+	const char* iconText[] = { "home", "d/n", 0 };
+	widgets->SetButtons( icons, iconText, 3 );
 
 	int n = 0;
 	ModelResource* resource = 0;
@@ -89,6 +97,16 @@ BattleScene::~BattleScene()
 }
 
 
+void BattleScene::Activate()
+{
+}
+
+
+void BattleScene::DeActivate()
+{
+}
+
+
 void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 {
 	grinliz::Vector3F v;
@@ -105,11 +123,11 @@ void BattleScene::Tap(	int tap,
 		int icon = widgets->QueryTap( screen.x, screen.y );
 
 		switch( icon ) {
-			case UIWidgets::ICON_CAMERA_HOME:
+			case 0:
 				engine->MoveCameraHome();
 				break;
 
-			case UIWidgets::ICON_FOG_OF_WAR:
+			case 1:
 				if ( engine->GetDayTime() )
 					engine->SetDayNight( false, game->GetLightMap( "farmlandN" ) );
 				else
@@ -226,12 +244,9 @@ void BattleScene::Zoom( int action, int distance )
 
 void BattleScene::DrawHUD()
 {
-	glBindTexture( GL_TEXTURE_2D, iconTexture->glID );
-
 	int h = engine->Width();
 	int w = engine->Height();
 	int rotation = game->Rotation();
-
 	widgets->Draw( w, h, rotation );
 
 #ifdef MAPMAKER
