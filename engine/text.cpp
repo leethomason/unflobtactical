@@ -20,8 +20,6 @@
 #include <stdarg.h>
 #include "../grinliz/glutil.h"
 
-static U32 textureID = 0;
-
 const int ADVANCE = 10;
 const int GLYPH_CX = 16;
 const int GLYPH_CY = 8;
@@ -32,33 +30,34 @@ static int height;
 
 // 0 screen up
 // 1 90 degree turn positive y, etc.
-static int rotation = 0;
 
-void UFOInitDrawText( U32 textTextureID, int w, int h, int r )
+int UFOText::width = 0;
+int UFOText::height = 0;
+int UFOText::rotation = 0;
+U32 UFOText::textureID = 0;
+
+void UFOText::InitScreen( int w, int h, int r )
 {
-	if ( textTextureID ) {
-		textureID = textTextureID;
-	}
-	else {
-		GLASSERT( textureID );
-	}
-
 	width = w;
 	height = h;
 
 	if ( r&0x01 ) {
 		grinliz::Swap( &width, &height );
 	}
-
 	rotation = r&0x03;
-
 }
 
-void UFOTextOut( const char* str, int x, int y )
+
+void UFOText::InitTexture( U32 textTextureID )
+{
+	GLASSERT( textTextureID );
+	textureID = textTextureID;
+}
+
+
+void UFOText::Begin()
 {
 	GLASSERT( textureID );
-	if ( !textureID )
-		return;
 
 	glDisable( GL_DEPTH_TEST );
 	glDepthMask( GL_FALSE );
@@ -77,16 +76,32 @@ void UFOTextOut( const char* str, int x, int y )
 	glLoadIdentity();				// model
 
 	glRotatef( 90.0f * (float)rotation, 0.0f, 0.0f, 1.0f );
-	//glTranslatef(-1.0f, -1.0f, 0.0f);
-	//glScalef( 2.0f/(float)width, 2.0f/(float)height, 1.0f );
 #ifdef USING_ES
 	glOrthof( 0.f, (float)width, 0.f, (float)height, -1.f, 1.f );
 #else
 	glOrtho( 0, width, 0, height, -1, 1 );
 #endif
-
 	glBindTexture( GL_TEXTURE_2D, textureID );
+}
 
+
+void UFOText::End()
+{
+	glEnableClientState( GL_NORMAL_ARRAY );
+
+	glPopMatrix();					// model
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();					// projection
+	glMatrixMode(GL_MODELVIEW);
+
+	glDisable( GL_BLEND );
+	glEnable( GL_DEPTH_TEST );
+	glDepthMask( GL_TRUE );
+}
+
+
+void UFOText::TextOut( const char* str, int x, int y )
+{
 	float v[8];
 	float t[8];
 
@@ -121,20 +136,43 @@ void UFOTextOut( const char* str, int x, int y )
 		++str;
 		x += ADVANCE;
 	}
-	glEnableClientState( GL_NORMAL_ARRAY );
-
-
-	glPopMatrix();					// model
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();					// projection
-	glMatrixMode(GL_MODELVIEW);
-
-	glDisable( GL_BLEND );
-	glEnable( GL_DEPTH_TEST );
-	glDepthMask( GL_TRUE );
 }
 
-void UFODrawText( int x, int y, const char* format, ... )
+
+void UFOText::GlyphSize( const char* str, int* width, int* height )
+{
+	*width = 0;
+	*height = 0;
+
+	int len = strlen( str );
+	if ( len == 0 ) {
+		return;
+	}
+	*width = GLYPH_WIDTH + ADVANCE*(len-1);
+	*height = GLYPH_HEIGHT;
+}
+
+
+void UFOText::Draw( int x, int y, const char* format, ... )
+{
+	Begin();
+
+    va_list     va;
+    char		buffer[1024];
+
+    //
+    //  format and output the message..
+    //
+    va_start( va, format );
+    vsprintf( buffer, format, va );
+    va_end( va );
+
+    TextOut( buffer, x, y );
+	End();
+}
+
+
+void UFOText::Stream( int x, int y, const char* format, ... )
 {
     va_list     va;
     char		buffer[1024];
@@ -146,5 +184,5 @@ void UFODrawText( int x, int y, const char* format, ... )
     vsprintf( buffer, format, va );
     va_end( va );
 
-    UFOTextOut( buffer, x, y );
+    TextOut( buffer, x, y );
 }

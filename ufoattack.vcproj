@@ -257,6 +257,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\game\characterscene.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\game\characterscene.h"
+				>
+			</File>
+			<File
 				RelativePath=".\game\game.cpp"
 				>
 			</File>

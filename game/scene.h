@@ -10,8 +10,11 @@ class Engine;
 class Scene
 {
 public:
-	Scene( Game* _game ) : game( _game ) {}
-	virtual ~Scene()								{}
+	Scene( Game* _game ) : game( _game )						{}
+	virtual ~Scene()											{}
+
+	virtual void Activate()										{}
+	virtual void DeActivate()									{}
 
 	// UI
 	virtual void Tap(	int count, 
@@ -20,13 +23,13 @@ public:
 
 	virtual void Drag(	int action,
 						const grinliz::Vector2I& screenRaw )	{}
-	virtual void Zoom( int action, int distance )	{}
-	virtual void CancelInput()						{}
+	virtual void Zoom( int action, int distance )				{}
+	virtual void CancelInput()									{}
 
 	// Rendering
-	virtual void DoTick( U32 currentTime, U32 deltaTime )	{}
-	// Occurs after engine rendering, depth test off
-	virtual void DrawHUD()	{}
+	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
+	// Occurs after engine rendering.
+	virtual void DrawHUD()										{}
 
 protected:
 	Game* game;
