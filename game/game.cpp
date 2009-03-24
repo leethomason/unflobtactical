@@ -168,7 +168,7 @@ Game::Game( int width, int height ) :
 
 Game::~Game()
 {
-	if ( nSceneStack ) {
+	while ( nSceneStack ) {
 		PopScene();
 	}
 	for( int i=0; i<NUM_SCENES; ++i ) {

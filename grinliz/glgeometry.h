@@ -111,11 +111,17 @@ inline T DotProduct( const Vector3<T>& v0, const Vector3<T>& v1 )
 }
 
 
-struct BoundingSphere
+struct Sphere
 {
-	Vector3F	point;
-	float		rad;
+	Vector3F	origin;
+	float		radius;
+};
 
+
+struct Circle
+{
+	Vector2F	origin;
+	float		radius;
 };
 
 
@@ -498,6 +504,14 @@ float PointBetweenPoints( const Vector3F& p0, const Vector3F& p1, const Vector3F
 */
 int Intersect3Planes( const Plane& p0, const Plane& p1, const Plane& p2, Vector3F* intersection );
 
+
+/** Compare a sphere relative to a plane.
+	@return POSITIVE, NEGATIVE, or INTERSECT
+*/
+int ComparePlaneSphere( const Plane& plane, const Sphere& sphere );
+
+
 };	// namespace grinliz
+
 #endif
 

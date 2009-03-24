@@ -116,7 +116,7 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 		initZoomDistance( 0 ),
 		enableMap( true )
 {
-	spaceTree = new SpaceTree( Fixed(-0.1f), Fixed(3) );
+	spaceTree = new SpaceTree( -0.1f, 3.0f );
 	map = new Map( spaceTree );
 	renderQueue = new RenderQueue();
 
@@ -220,16 +220,12 @@ void Engine::Draw( int* triCount )
 {
 	// -------- Camera & Frustum -------- //
 	DrawCamera();
-	Fixed bbRotation = Fixed( camera.GetBillboardYRotation() );
+	float bbRotation = camera.GetBillboardYRotation();
 
 	// Compute the frustum planes
 	Plane planes[6];
 	CalcFrustumPlanes( planes );
-	PlaneX planesX[6];
-	for( int i=0; i<6; ++i ) {
-		planesX[i].Convert( planes[i] );
-	}
-	Model* modelRoot = spaceTree->Query( planesX, 6 );
+	Model* modelRoot = spaceTree->Query( planes, 6 );
 
 #	ifdef USING_GL
 #		ifdef DEBUG
@@ -310,9 +306,9 @@ void Engine::Draw( int* triCount )
 		if ( !enableMap && model->IsOwnedByMap() )
 			continue;
 
-		const Vector3X& pos = model->Pos();
-		int x = pos.x;
-		int y = pos.z;
+		const Vector3F& pos = model->Pos();
+		int x = LRintf( pos.x );
+		int y = LRintf( pos.z );
 
 		if ( fogOfWar.IsSet( x, y ) ) {
 			model->Queue( renderQueue, Model::MODEL_TEXTURE );
@@ -648,27 +644,23 @@ void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
 Model* Engine::IntersectModel( const grinliz::Ray& ray, bool onlyDraggable )
 {
 	int FAR = 10*1000;
-	Fixed close( FAR );
+	float close = (float)FAR;
 	Model* m = 0;
 
-	Vector3X origin, dir;
-	ConvertVector3( ray.origin, &origin );
-	ConvertVector3( ray.direction, &dir );
-
-	Model* root = spaceTree->Query( origin, dir );
+	Model* root = spaceTree->Query( ray.origin, ray.direction );
 
 	for( ; root; root=root->next )
 	{
 		if ( !onlyDraggable || root->IsDraggable() ) {
-			Vector3X intersect;
-			Rectangle3X aabb;
-			Fixed t;
+			Vector3F intersect;
+			Rectangle3F aabb;
+			float t;
 
 			root->CalcHitAABB( &aabb );
 			//GLOUTPUT(( "AABB: %.2f,%.2f,%.2f  %.2f,%.2f,%.2f\n", (float)aabb.min.x, (float)aabb.min.y, (float)aabb.min.z,
 			//			(float)aabb.max.x, (float)aabb.max.y, (float)aabb.max.z ));
 			
-			int result = IntersectRayAABBX( origin, dir, aabb, &intersect, &t );
+			int result = IntersectRayAABB( ray.origin, ray.direction, aabb, &intersect, &t );
 			//GLOUTPUT(( "  result=%d\n", result ));
 			if ( result == grinliz::INTERSECT ) {
 				if ( t < close ) {

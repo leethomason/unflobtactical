@@ -72,8 +72,8 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 
 	// compute the hit testing AABB
 	float ave = ( res->header.bounds.SizeX() + res->header.bounds.SizeZ() ) * 0.5f;
-	res->hitBounds.min.Set( res->boundSphere.origin.x - ave/2, Fixed( res->header.bounds.min.y ), res->boundSphere.origin.z - ave/2 );
-	res->hitBounds.max.Set( res->boundSphere.origin.x + ave/2, Fixed( res->header.bounds.max.y ), res->boundSphere.origin.z + ave/2 );
+	res->hitBounds.min.Set( res->boundSphere.origin.x - ave/2, res->header.bounds.min.y, res->boundSphere.origin.z - ave/2 );
+	res->hitBounds.max.Set( res->boundSphere.origin.x + ave/2, res->header.bounds.max.y, res->boundSphere.origin.z + ave/2 );
 
 	//GLASSERT( nTotalVertices <= EL_MAX_VERTEX_IN_GROUP );
 	//GLASSERT( nTotalIndices <= EL_MAX_INDEX_IN_GROUP );
@@ -167,59 +167,59 @@ void Model::Init( ModelResource* resource, SpaceTree* tree )
 {
 	this->resource = resource; 
 	this->tree = tree;
-	pos.Set( Fixed(0), Fixed(0), Fixed(0) ); 
-	rot = Fixed(0);
-	textureOffsetX = Fixed( 0 );
+	pos.Set( 0, 0, 0 );
+	rot = 0;
+	textureOffsetX = 0;
 
 	if ( tree ) {
 		tree->Update( this );
 	}
 
-	xformValid = false;
+	//xformValid = false;
 	isDraggable = false;
 	hiddenFromTree = false;
 	isOwnedByMap = false;
 }
 
 
-void Model::SetPos( const Vector3X& pos )
+void Model::SetPos( const grinliz::Vector3F& pos )
 { 
 	this->pos = pos;	
 	tree->Update( this ); 
-	xformValid = false;
+	//xformValid = false;
 }
 
 
 void Model::SetSkin( int armor, int skin, int hair )
 {
-	textureOffsetX = Fixed( 0 );
+	textureOffsetX = 0.0f;
 
 	armor = Clamp( armor, 0, 3 );
 	skin = Clamp( skin, 0, 3 );
 	hair = Clamp( hair, 0, 3 );
 
-	textureOffsetX += Fixed( armor ) / Fixed( 4 );
-	textureOffsetX += Fixed( skin ) / Fixed( 16 );
-	textureOffsetX += Fixed( hair ) / Fixed( 64 );
+	textureOffsetX += float( armor ) / float( 4 );
+	textureOffsetX += float( skin ) / float( 16 );
+	textureOffsetX += float( hair ) / float( 64 );
 }
 
 
-void Model::CalcBoundSphere( SphereX* spherex )
+void Model::CalcBoundSphere( Sphere* sphere )
 {
-	*spherex = resource->boundSphere;
-	spherex->origin += pos;
+	*sphere = resource->boundSphere;
+	sphere->origin += pos;
 }
 
 
-void Model::CalcBoundCircle( CircleX* circlex )
+void Model::CalcBoundCircle( Circle* circle )
 {
-	circlex->origin.x = pos.x;
-	circlex->origin.y = pos.z;
-	circlex->radius = resource->boundRadius2D;
+	circle->origin.x = pos.x;
+	circle->origin.y = pos.z;
+	circle->radius = resource->boundRadius2D;
 }
 
 
-void Model::CalcHitAABB( Rectangle3X* aabb )
+void Model::CalcHitAABB( Rectangle3F* aabb )
 {
 	// This is already an approximation - ignore rotation.
 	aabb->min = pos + resource->hitBounds.min;

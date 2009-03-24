@@ -38,7 +38,7 @@ ParticleSystem::~ParticleSystem()
 
 void ParticleSystem::InitPoint( const Texture* texture )
 {
-	particleTypeArr[POINT].Init( texture, 20.0f );
+	particleTypeArr[POINT].Init( texture, 4.0f );
 }
 
 
@@ -336,13 +336,7 @@ void ParticleSystem::DrawPointParticles()
 		//glPointParameterfv( GL_POINT_SIZE_MAX, &maxSize );
 		CHECK_GL_ERROR;
 
-#ifdef USING_GL	
 		glPointSize( particleTypeArr[POINT].size );
-	    float quadratic[] =  { 1.0f, 0.0f, 0.01f };
-		glPointParameterfv( GL_POINT_DISTANCE_ATTENUATION_ARB, quadratic );
-#else
-		glPointSize( 2.0f );
-#endif
 		CHECK_GL_ERROR;
 		
 		U8* vPtr = (U8*)pointBuffer + 0;

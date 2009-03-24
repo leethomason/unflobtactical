@@ -1490,3 +1490,18 @@ int grinliz::Intersect3Planes( const Plane& p1, const Plane& p2, const Plane& p3
 	intersect->Set( num.x*inv, num.y*inv, num.z*inv );
 	return INTERSECT;
 }
+
+
+int grinliz::ComparePlaneSphere( const Plane& plane, const Sphere& sphere )
+{
+	// Take advantage of the unit normally to get the distance.
+	float d = plane.n.x*sphere.origin.x + plane.n.y*sphere.origin.y + plane.n.z*sphere.origin.z + plane.d;
+
+	if ( d > sphere.radius ) {
+		return grinliz::POSITIVE;
+	}
+	else if ( d < -sphere.radius ) {
+		return grinliz::NEGATIVE;
+	}
+	return grinliz::INTERSECT;
+}
