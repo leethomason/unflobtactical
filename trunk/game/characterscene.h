@@ -2,7 +2,6 @@
 #define UFO_ATTACK_CHARACTER_SCENE_INCLUDED
 
 #include "scene.h"
-#include "../engine/fixedgeom.h"
 
 class UIButtonBox;
 

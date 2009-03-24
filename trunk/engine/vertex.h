@@ -19,7 +19,6 @@
 #include <vector>
 #include "../grinliz/glvector.h"
 #include "../grinliz/glmatrix.h"
-#include "fixedgeom.h"
 
 class Texture;
 

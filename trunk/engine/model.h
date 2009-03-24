@@ -18,7 +18,7 @@
 
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
-#include "../grinliz/gltypes.h"
+#include "../grinliz/glgeometry.h"
 #include "vertex.h"
 #include "enginelimits.h"
 #include "serialize.h"
@@ -46,9 +46,9 @@ class ModelResource
 public:
 	ModelHeader header;				// loaded
 
-	SphereX boundSphere;			// computed
-	grinliz::Fixed boundRadius2D;	// computed, bounding 2D radius centered at 0,0
-	Rectangle3X hitBounds;			// for picking - a bounds approximation
+	grinliz::Sphere			boundSphere;	// computed
+	float					boundRadius2D;	// computed, bounding 2D radius centered at 0,0
+	grinliz::Rectangle3F	hitBounds;		// for picking - a bounds approximation
 
 	ModelAtom atom[EL_MAX_MODEL_GROUPS];
 };
@@ -101,26 +101,24 @@ public:
 	int IsOwnedByMap()				{ return isOwnedByMap; }
 	void OwnedByMap( bool map )		{ isOwnedByMap = map; }
 	
-	const Vector3X& Pos()						{ return pos; }
-	void SetPos( const Vector3X& pos );
-	void SetPos( float x, float y, float z )	{ Vector3X vec = { grinliz::Fixed(x), grinliz::Fixed(y), grinliz::Fixed(z) }; SetPos( vec ); }
-	void SetPos( grinliz::Fixed x, grinliz::Fixed y, grinliz::Fixed z )	{ Vector3X vec = { grinliz::Fixed(x), grinliz::Fixed(y), grinliz::Fixed(z) }; SetPos( vec ); }
+	const grinliz::Vector3F& Pos()						{ return pos; }
+	void SetPos( const grinliz::Vector3F& pos );
+	void SetPos( float x, float y, float z )	{ grinliz::Vector3F vec = { x, y, z }; SetPos( vec ); }
 
-	void SetYRotation( grinliz::Fixed rot )		{
-		while( rot < 0 )		{ rot += 360; }
-		while( rot >= 360 )		{ rot -= 360; }
+	void SetYRotation( float rot )		{
+		while( rot < 0 )		{ rot += 360.0f; }
+		while( rot >= 360 )		{ rot -= 360.0f; }
 		this->rot = rot;		// won't change tree location, don't need to call Update()
-		xformValid = false;
+		//xformValid = false;
 	}
-	void SetYRotation( float rot )				{ SetYRotation( grinliz::Fixed( rot ) ); }
-	const grinliz::Fixed GetYRotation()			{ return rot; }
+	const float GetYRotation()			{ return rot; }
 
 	int IsBillboard() { return resource->header.flags & ModelHeader::BILLBOARD; }
 	void SetSkin( int armor, int skin, int hair );
 
-	void CalcBoundSphere( SphereX* spherex );
-	void CalcBoundCircle( CircleX* circlex );
-	void CalcHitAABB( Rectangle3X* aabb );
+	void CalcBoundSphere( grinliz::Sphere* sphere );
+	void CalcBoundCircle( grinliz::Circle* circle );
+	void CalcHitAABB( grinliz::Rectangle3F* aabb );
 
 	ModelResource* GetResource()				{ return resource; }
 	bool Sentinel()								{ return resource==0 && tree==0; }
@@ -131,13 +129,13 @@ public:
 private:
 	SpaceTree* tree;
 	ModelResource* resource;
-	Vector3X pos;
-	grinliz::Fixed rot;
-	grinliz::Fixed textureOffsetX;
-	mutable grinliz::Matrix4 xform;
+	grinliz::Vector3F pos;
+	float rot;
+	float textureOffsetX;
+	//mutable grinliz::Matrix4 xform;
 
 	// FIXME flags
-	mutable bool xformValid;
+	//mutable bool xformValid;
 	bool isDraggable;
 	bool hiddenFromTree;
 	bool isOwnedByMap;

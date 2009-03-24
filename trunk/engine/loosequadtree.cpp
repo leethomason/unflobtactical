@@ -28,7 +28,7 @@ using namespace grinliz;
 	Unit tree has less compution and fewer models, slightly less balanced. 
 */
 
-SpaceTree::SpaceTree( Fixed yMin, Fixed yMax )
+SpaceTree::SpaceTree( float yMin, float yMax )
 {
 	allocated = 0;
 	this->yMin = yMin;
@@ -163,12 +163,12 @@ void SpaceTree::Update( Model* model )
 	item->Unlink();
 
 	// Get basics.
-	CircleX circlex;
-	model->CalcBoundCircle( &circlex );
+	Circle circle;
+	model->CalcBoundCircle( &circle );
 	//int modelSize = circlex.radius.Ceil();
 
-	int x = circlex.origin.x;
-	int z = circlex.origin.y;
+	int x = (int)circle.origin.x;
+	int z = (int)circle.origin.y;
 
 	/* 
 	I've used a scheme which is like an octree, but tweaked to make it
@@ -206,10 +206,10 @@ void SpaceTree::Update( Model* model )
 	Node* node = 0;
 	while( depth > 0 ) {
 		node = GetNode( depth, x, z );
-		if (    circlex.origin.x - circlex.radius >= Fixed( node->looseX )
-			 && circlex.origin.y - circlex.radius >= Fixed( node->looseZ )
-			 && circlex.origin.x + circlex.radius <= Fixed( node->looseX + node->looseSize )
-			 && circlex.origin.y + circlex.radius <= Fixed( node->looseX + node->looseSize ) )
+		if (    circle.origin.x - circle.radius >= float( node->looseX )
+			 && circle.origin.y - circle.radius >= float( node->looseZ )
+			 && circle.origin.x + circle.radius <= float( node->looseX + node->looseSize )
+			 && circle.origin.y + circle.radius <= float( node->looseX + node->looseSize ) )
 		{
 			// fits.
 			break;
@@ -220,8 +220,8 @@ void SpaceTree::Update( Model* model )
 
 #ifdef DEBUG
 	if ( depth > 0 ) {
-		CircleX c;
-		Rectangle3X aabb;
+		Circle c;
+		Rectangle3F aabb;
 		node->CalcAABB( &aabb, yMin, yMax );
 
 		model->CalcBoundCircle( &c );
@@ -259,7 +259,7 @@ SpaceTree::Node* SpaceTree::GetNode( int depth, int x, int z )
 
 
 
-Model* SpaceTree::Query( const PlaneX* planes, int nPlanes )
+Model* SpaceTree::Query( const Plane* planes, int nPlanes )
 {
 	modelRoot = 0;
 	nodesVisited = 0;
@@ -292,7 +292,7 @@ Model* SpaceTree::Query( const PlaneX* planes, int nPlanes )
 }
 
 
-Model* SpaceTree::Query( const Vector3X& origin, const Vector3X& direction )
+Model* SpaceTree::Query( const Vector3F& origin, const Vector3F& direction )
 {
 	modelRoot = 0;
 	nodesVisited = 0;
@@ -305,18 +305,18 @@ Model* SpaceTree::Query( const Vector3X& origin, const Vector3X& direction )
 }
 
 
-void SpaceTree::Node::CalcAABB( Rectangle3X* aabb, const Fixed yMin, const Fixed yMax ) const
+void SpaceTree::Node::CalcAABB( Rectangle3F* aabb, const float yMin, const float yMax ) const
 {
 	GLASSERT( yMin < yMax );
 	GLASSERT( looseSize > 0 );
 
-	aabb->Set(	Fixed( looseX ), 
+	aabb->Set(	float( looseX ), 
 				yMin, 
-				Fixed( looseZ ),
+				float( looseZ ),
 				
-				Fixed( looseX + looseSize ), 
+				float( looseX + looseSize ), 
 				yMax, 
-				Fixed( looseZ + looseSize ) );
+				float( looseZ + looseSize ) );
 /*
 	aabb->Set(	Fixed( x ), 
 				yMin, 
@@ -328,7 +328,7 @@ void SpaceTree::Node::CalcAABB( Rectangle3X* aabb, const Fixed yMin, const Fixed
 */
 }
 
-void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersection, const Node* node, U32 positive )
+void SpaceTree::QueryPlanesRec(	const Plane* planes, int nPlanes, int intersection, const Node* node, U32 positive )
 {
 	#define POSITIVE( pos, i ) ( pos & (1<<i) )
 
@@ -339,7 +339,7 @@ void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersect
 	}
 	else if ( intersection == grinliz::INTERSECT ) 
 	{
-		Rectangle3X aabb;
+		Rectangle3F aabb;
 		node->CalcAABB( &aabb, yMin, yMax );
 		
 		int nPositive = 0;
@@ -351,7 +351,7 @@ void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersect
 			//
 			int comp = grinliz::POSITIVE;
 			if ( POSITIVE( positive, i ) == 0 ) {
-				comp = ComparePlaneAABBX( planes[i], aabb );
+				comp = ComparePlaneAABB( planes[i], aabb );
 				++planesComputed;
 			}
 
@@ -392,7 +392,7 @@ void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersect
 			if ( !m->IsHiddenFromTree() ) {
 				
 				if ( intersection == grinliz::INTERSECT ) {
-					SphereX sphere;
+					Sphere sphere;
 					m->CalcBoundSphere( &sphere );
 					
 					int compare = grinliz::INTERSECT;
@@ -400,7 +400,7 @@ void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersect
 						// Since the bounding sphere is in the AABB, we
 						// can check for the positive plane again.
 						if ( POSITIVE( positive, k ) == 0 ) {
-							compare = ComparePlaneSphereX( planes[k], sphere );
+							compare = ComparePlaneSphere( planes[k], sphere );
 							++spheresComputed;
 							if ( compare == grinliz::NEGATIVE ) {
 								break;
@@ -428,7 +428,7 @@ void SpaceTree::QueryPlanesRec(	const PlaneX* planes, int nPlanes, int intersect
 }
 
 
-void SpaceTree::QueryPlanesRec(	const Vector3X& origin, const Vector3X& direction, int intersection, const Node* node )
+void SpaceTree::QueryPlanesRec(	const Vector3F& origin, const Vector3F& direction, int intersection, const Node* node )
 {
 	bool callChildrenAndAddModels = false;
 
@@ -443,15 +443,15 @@ void SpaceTree::QueryPlanesRec(	const Vector3X& origin, const Vector3X& directio
 	}
 	else if ( intersection == grinliz::INTERSECT ) 
 	{
-		Rectangle3X aabb;
-		aabb.Set( Fixed( node->looseX ), yMin, Fixed( node->looseZ ),
-				  Fixed( node->looseX + node->looseSize ), yMax, Fixed( node->looseZ + node->looseSize ) );
+		Rectangle3F aabb;
+		aabb.Set( float( node->looseX ), yMin, float( node->looseZ ),
+				  float( node->looseX + node->looseSize ), yMax, float( node->looseZ + node->looseSize ) );
 		//GLOUTPUT(( "  l=%d rect: ", node->depth )); DumpRectangle( aabb ); GLOUTPUT(( "\n" ));
 		
-		Vector3X intersect;
-		Fixed t;
+		Vector3F intersect;
+		float t;
 
-		int comp = IntersectRayAABBX( origin, direction, aabb, &intersect, &t );
+		int comp = IntersectRayAABB( origin, direction, aabb, &intersect, &t );
 		if ( comp == grinliz::INTERSECT || comp == grinliz::INSIDE ) {
 			intersection = grinliz::INTERSECT;
 			callChildrenAndAddModels = true;

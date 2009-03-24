@@ -128,9 +128,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
 	game->particleSystem->EmitFlame( deltaTime, pos );
 
-	grinliz::Vector3F v;
-	ConvertVector3( testModel[7]->Pos(), &v );
-	game->particleSystem->EmitDecal( 1, v, 0.7f, testModel[7]->GetYRotation() );
+	game->particleSystem->EmitDecal( 1, testModel[7]->Pos(), 0.7f, testModel[7]->GetYRotation() );
 }
 
 
@@ -211,11 +209,9 @@ void BattleScene::Drag( int action, const grinliz::Vector2I& screenRaw )
 			delta.y = 0.0f;
 
 			if ( draggingModel ) {
-				int dx = LRintf( delta.x );
-				int dz = LRintf( delta.z );
-				draggingModel->SetPos(	draggingModelOrigin.x + Fixed(dx),
+				draggingModel->SetPos(	draggingModelOrigin.x + delta.x,
 										draggingModelOrigin.y,
-										draggingModelOrigin.z + Fixed(dz) );
+										draggingModelOrigin.z + delta.z );
 			}
 			else {
 				engine->camera.SetPosWC( dragStartCameraWC - delta );

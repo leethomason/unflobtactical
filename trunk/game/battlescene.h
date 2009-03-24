@@ -2,7 +2,6 @@
 #define UFOATTACK_BATTLE_SCENE_INCLUDED
 
 #include "scene.h"
-#include "../engine/fixedgeom.h"
 
 class Model;
 class UIButtonBox;
@@ -44,7 +43,7 @@ private:
 	grinliz::Vector3F dragStart;
 	grinliz::Vector3F dragStartCameraWC;
 	grinliz::Matrix4  dragMVPI;
-	Vector3X draggingModelOrigin;
+	grinliz::Vector3F draggingModelOrigin;
 
 	int		initZoomDistance;
 	float	initZoom;

@@ -16,6 +16,7 @@
 #include "Fixedgeom.h"
 using namespace grinliz;
 
+
 void DumpRectangle( const Rectangle3X& r ) {
 	GLOUTPUT(( "(%.2f,%.2f,%.2f)-(%.2f,%.2f,%.2f)", 
 			(float)r.min.x, (float)r.min.y, (float)r.min.z,
