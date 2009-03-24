@@ -84,6 +84,8 @@ public:
 	void Update( U32 timePassed );
 	void Draw( const grinliz::Vector3F* eyeDir );
 
+	void Clear();
+
 private:
 
 	struct ParticleType 

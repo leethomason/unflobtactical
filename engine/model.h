@@ -94,10 +94,12 @@ public:
 	void PushMatrix( bool bindTextureToVertex ) const;
 	void PopMatrix( bool bindTextureToVertex ) const;
 
-	bool IsDraggable()	{ return isDraggable; }
+	int IsDraggable()				{ return isDraggable; }
 	void SetDraggable( bool drag )	{ isDraggable = drag; }
-	bool IsHiddenFromTree()			{ return hiddenFromTree; }
+	int IsHiddenFromTree()			{ return hiddenFromTree; }
 	void HideFromTree( bool hide )  { hiddenFromTree = hide; }
+	int IsOwnedByMap()				{ return isOwnedByMap; }
+	void OwnedByMap( bool map )		{ isOwnedByMap = map; }
 	
 	const Vector3X& Pos()						{ return pos; }
 	void SetPos( const Vector3X& pos );
@@ -108,6 +110,7 @@ public:
 		while( rot < 0 )		{ rot += 360; }
 		while( rot >= 360 )		{ rot -= 360; }
 		this->rot = rot;		// won't change tree location, don't need to call Update()
+		xformValid = false;
 	}
 	void SetYRotation( float rot )				{ SetYRotation( grinliz::Fixed( rot ) ); }
 	const grinliz::Fixed GetYRotation()			{ return rot; }
@@ -131,9 +134,13 @@ private:
 	Vector3X pos;
 	grinliz::Fixed rot;
 	grinliz::Fixed textureOffsetX;
+	mutable grinliz::Matrix4 xform;
 
+	// FIXME flags
+	mutable bool xformValid;
 	bool isDraggable;
 	bool hiddenFromTree;
+	bool isOwnedByMap;
 };
 
 

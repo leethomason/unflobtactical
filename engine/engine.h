@@ -84,6 +84,7 @@ public:
 	Model* GetModel( ModelResource* );
 	void ReleaseModel( Model* );
 	
+	void EnableMap( bool enable )	{ enableMap = enable; }
 	Map* GetMap() { return map; }
 
 	grinliz::BitArray<Map::SIZE, Map::SIZE>* GetFogOfWar()	{ return &fogOfWar; }
@@ -166,6 +167,7 @@ private:
 	Map* map;
 	SpaceTree* spaceTree;
 	RenderQueue* renderQueue;
+	bool enableMap;
 
 	grinliz::BitArray<Map::SIZE, Map::SIZE> fogOfWar;
 };

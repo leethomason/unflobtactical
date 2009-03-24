@@ -113,7 +113,8 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 		height( _height ), 
 		dayNight( DAY_TIME ),
 		engineData( _engineData ),
-		initZoomDistance( 0 )
+		initZoomDistance( 0 ),
+		enableMap( true )
 {
 	spaceTree = new SpaceTree( Fixed(-0.1f), Fixed(3) );
 	map = new Map( spaceTree );
@@ -215,58 +216,6 @@ void Engine::PushShadowMatrix()
 }
 
 
-/*
-void Engine::PopShadowTextureMatrix()
-{
-	glMatrixMode(GL_TEXTURE);
-	for( int i=1; i>=0; --i ) {
-		glActiveTexture( GL_TEXTURE0+i );
-		glPopMatrix();
-	}
-	glMatrixMode(GL_MODELVIEW);	
-}
-
-
-void Engine::PushShadowTextureMatrix()
-{
-	Matrix4 t, m;
-
-	const float SIZEinv = 1.0f / (float)Map::SIZE;
-
-	// XYZ -> Planar XZ
-	m.m12 = -lightDirection.x/lightDirection.y;
-	m.m22 = 0.0f;
-	m.m32 = -lightDirection.z/lightDirection.y;
-
-	// Planar XZ -> UV
-	t.m11 = SIZEinv;
-
-	t.m21 = 0.0f;
-	t.m22 = 0.0f;
-	t.m23 = -SIZEinv;
-	t.m24 = 1.0f;
-
-	t.m33 = 0.0f;
-	
-	//m.Dump();
-	//t.Dump();
-	//c.Dump();
-
-	//Vector3F testIn = { 64.0f, 1.0f, 64.0f };
-	//Vector3F testOut = c * testIn;
-
-	Matrix4 c = t*m;
-	glMatrixMode(GL_TEXTURE);
-	for( int i=1; i>=0; --i ) {
-		glActiveTexture( GL_TEXTURE0+i );
-		glPushMatrix();
-		glMultMatrixf( c.x );
-	}
-	glMatrixMode(GL_MODELVIEW);
-}
-*/
-
-
 void Engine::Draw( int* triCount )
 {
 	// -------- Camera & Frustum -------- //
@@ -296,53 +245,55 @@ void Engine::Draw( int* triCount )
 		glGetIntegerv( GL_DEPTH_FUNC, &depthFunc );	
 	}
 
-	// -------- Ground plane lighted -------- //
-	LightSimple( dayNight, OPEN_LIGHT );
+	if ( enableMap ) {
+		// -------- Ground plane lighted -------- //
+		LightSimple( dayNight, OPEN_LIGHT );
 
-	// The depth mask and the depth test should be completely
-	// independent...but it's not. Very subtle point of how
-	// OpenGL works.
-	map->Draw();
+		// The depth mask and the depth test should be completely
+		// independent...but it's not. Very subtle point of how
+		// OpenGL works.
+		map->Draw();
 
-	// -------- Shadow casters/ground plane ---------- //
-	// Set up the planar projection matrix, with a little z offset
-	// to help with z resolution fighting.
-	PushShadowMatrix();
+		// -------- Shadow casters/ground plane ---------- //
+		// Set up the planar projection matrix, with a little z offset
+		// to help with z resolution fighting.
+		PushShadowMatrix();
 
-	int textureState = 0;
-	glDisable( GL_TEXTURE_2D );
-	glDepthFunc( GL_ALWAYS );
-	textureState = Model::NO_TEXTURE;
-	glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );	// keeps white from bleeding outside the map.
+		int textureState = 0;
+		glDisable( GL_TEXTURE_2D );
+		glDepthFunc( GL_ALWAYS );
+		textureState = Model::NO_TEXTURE;
+		glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );	// keeps white from bleeding outside the map.
 
-	GLASSERT( renderQueue->Empty() );
-	
-	for( Model* model=modelRoot; model; model=model->next ) {
-		// Take advantage of this walk to adjust the billboard rotations. Note that the rotation
-		// will never change it's position in the space tree, which is why we can set it here.
-		if ( model->IsBillboard() && model->GetYRotation() != bbRotation ) {
-			model->SetYRotation( bbRotation );
+		GLASSERT( renderQueue->Empty() );
+		
+		for( Model* model=modelRoot; model; model=model->next ) {
+			// Take advantage of this walk to adjust the billboard rotations. Note that the rotation
+			// will never change it's position in the space tree, which is why we can set it here.
+			if ( model->IsBillboard() && model->GetYRotation() != bbRotation ) {
+				model->SetYRotation( bbRotation );
+			}
+
+			// Draw model shadows.
+			model->Queue( renderQueue, textureState );
 		}
+		renderQueue->Flush();
+		renderQueue->BindTextureToVertex( false );
 
-		// Draw model shadows.
-		model->Queue( renderQueue, textureState );
+		CHECK_GL_ERROR;
+		glEnable( GL_TEXTURE_2D );
+		glPopMatrix();
+		
+		// -------- Ground plane shadow ---------- //
+		// Redraw the map, checking z, in shadow.
+		glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+		CHECK_GL_ERROR;
+
+		LightSimple( dayNight, IN_SHADOW );
+		glDepthFunc( GL_LESS );
+		map->Draw();
+		glDepthFunc( depthFunc );
 	}
-	renderQueue->Flush();
-	renderQueue->BindTextureToVertex( false );
-
-	CHECK_GL_ERROR;
-	glEnable( GL_TEXTURE_2D );
-	glPopMatrix();
-	
-	// -------- Ground plane shadow ---------- //
-	// Redraw the map, checking z, in shadow.
-	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
-	CHECK_GL_ERROR;
-
-	LightSimple( dayNight, IN_SHADOW );
-	glDepthFunc( GL_LESS );
-	map->Draw();
-	glDepthFunc( depthFunc );
 
 	// -------- Models in light ---------- //
 	CHECK_GL_ERROR;
@@ -354,7 +305,11 @@ void Engine::Draw( int* triCount )
 	EnableLights( true, dayNight );
 	Model* fogRoot = 0;
 
-	for( Model* model=modelRoot; model; model=model->next ) {
+	for( Model* model=modelRoot; model; model=model->next ) 
+	{
+		if ( !enableMap && model->IsOwnedByMap() )
+			continue;
+
 		const Vector3X& pos = model->Pos();
 		int x = pos.x;
 		int y = pos.z;
@@ -726,106 +681,6 @@ Model* Engine::IntersectModel( const grinliz::Ray& ray, bool onlyDraggable )
 	return m;
 }
 
-/*
-void Engine::Drag( int action, int x, int y )
-{
-	switch ( action ) 
-	{
-		case GAME_DRAG_START:
-		{
-			GLASSERT( !isDragging );
-			isDragging = true;
-			draggingModel = 0;
-
-			Matrix4 mvpi;
-			Ray ray;
-
-			CalcModelViewProjectionInverse( &dragMVPI );
-			RayFromScreenToYPlane( x, y, dragMVPI, &ray, &dragStart );
-
-			draggingModel = IntersectModel( ray, true );
-			//GLOUTPUT(( "Model=%x\n", draggingModel ));
-
-			if ( draggingModel ) {
-				draggingModelOrigin = draggingModel->Pos();
-			}
-			else {
-				dragStartCameraWC = camera.PosWC();
-			}
-//			GLOUTPUT(( "Drag start %.1f,%.1f\n", dragStart.x, dragStart.z ));
-		}
-		break;
-
-		case GAME_DRAG_MOVE:
-		{
-			GLASSERT( isDragging );
-
-			Vector3F drag;
-			Ray ray;
-			RayFromScreenToYPlane( x, y, dragMVPI, &ray, &drag );
-
-			Vector3F delta = drag - dragStart;
-			delta.y = 0.0f;
-
-			if ( draggingModel ) {
-				int dx = LRintf( delta.x );
-				int dz = LRintf( delta.z );
-				draggingModel->SetPos(	draggingModelOrigin.x + Fixed(dx),
-										draggingModelOrigin.y,
-										draggingModelOrigin.z + Fixed(dz) );
-			}
-			else {
-				camera.SetPosWC( dragStartCameraWC - delta );
-				RestrictCamera();
-			}
-		}
-		break;
-
-		case GAME_DRAG_END:
-		{
-			GLASSERT( isDragging );
-			Drag( GAME_DRAG_MOVE, x, y );
-			isDragging = false;
-//			GLOUTPUT(( "Drag end\n" ));
-		}
-		break;
-
-		default:
-			GLASSERT( 0 );
-			break;
-	}
-}
-*/
-
-/*
-void Engine::Zoom( int action, int distance )
-{
-	switch ( action )
-	{
-		case GAME_ZOOM_START:
-			initZoomDistance = distance;
-			initZoom = GetZoom();
-//			GLOUTPUT(( "initZoomStart=%.2f distance=%d initDist=%d\n", initZoom, distance, initZoomDistance ));
-			break;
-
-		case GAME_ZOOM_MOVE:
-			{
-				//float z = initZoom * (float)distance / (float)initZoomDistance;	// original. wrong feel.
-				float z = initZoom - (float)(distance-initZoomDistance)/800.0f;	// better, but slow out zoom-out, fast at zoom-in
-				
-//				GLOUTPUT(( "initZoom=%.2f distance=%d initDist=%d\n", initZoom, distance, initZoomDistance ));
-				SetZoom( z );
-			}
-			break;
-
-		default:
-			GLASSERT( 0 );
-			break;
-	}
-	//GLOUTPUT(( "Zoom action=%d distance=%d initZoomDistance=%d lastZoomDistance=%d z=%.2f\n",
-	//		   action, distance, initZoomDistance, lastZoomDistance, GetZoom() ));
-}
-*/
 
 void Engine::RestrictCamera()
 {

@@ -266,6 +266,7 @@ void Map::AddToTile( int x, int y, int defIndex, int rotation )
 		
 		layer->model = tree->AllocModel( itemDefArr[defIndex].modelResource );
 
+		layer->model->OwnedByMap( true );
 		layer->model->SetPos( (float)x+0.5f, 0.0f, (float)y+0.5f );
 		layer->model->SetYRotation( Fixed(90) * rotation );
 	}
@@ -340,6 +341,7 @@ void Map::Load( FILE* fp )
 				fread( &layer->rotation, 1, 1, fp );
 
 				layer->model = tree->AllocModel( itemDefArr[layer->defIndex].modelResource );
+				layer->model->OwnedByMap( true );
 				layer->model->SetPos( (float)i+0.5f, 0.0f, (float)j+0.5f );
 				layer->model->SetYRotation( Fixed(90) * Fixed(layer->rotation) );
 			}

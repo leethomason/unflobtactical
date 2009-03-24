@@ -72,10 +72,14 @@ public:
 	enum { NUM_LIGHT_MAPS = 1,
 
 		   BATTLE_SCENE = 0,
+		   CHARACTER_SCENE,
 		   NUM_SCENES,
 
 		   MAX_SCENE_STACK = 4,
 		 };
+
+	void PushScene( int sceneID );
+	void PopScene();
 
 private:
 

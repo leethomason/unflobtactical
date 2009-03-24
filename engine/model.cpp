@@ -174,8 +174,11 @@ void Model::Init( ModelResource* resource, SpaceTree* tree )
 	if ( tree ) {
 		tree->Update( this );
 	}
+
+	xformValid = false;
 	isDraggable = false;
 	hiddenFromTree = false;
+	isOwnedByMap = false;
 }
 
 
@@ -183,6 +186,7 @@ void Model::SetPos( const Vector3X& pos )
 { 
 	this->pos = pos;	
 	tree->Update( this ); 
+	xformValid = false;
 }
 
 
@@ -279,12 +283,26 @@ void ModelAtom::Draw() const
 
 void Model::PushMatrix( bool bindTextureToVertex ) const
 {
+#if 1
+	if ( !xformValid ) {
+		Matrix4 t, r;
+		t.SetTranslation( pos.x, pos.y, pos.z );
+		if ( rot != 0 )
+			r.SetYRotation( rot );
+		xform = t*r;
+		xformValid = true;
+	}
+	glPushMatrix();
+	glMultMatrixf( xform.x );
+#else
 	glPushMatrix();
 	glTranslatef( pos.x, pos.y, pos.z );
 	if ( rot != 0 ) {
 		glRotatef( rot, 0.f, 1.f, 0.f );
 	}
+#endif
 
+#if 0
 	if ( bindTextureToVertex ) {
 		/*
 		// This code is correct, if too slow. But good reference!
@@ -317,14 +335,13 @@ void Model::PushMatrix( bool bindTextureToVertex ) const
 			} 
 		}
 	}
-	else if ( textureOffsetX > 0 ) {
+	else 
+#endif
+		
+	if ( textureOffsetX > 0 ) {
 		glMatrixMode(GL_TEXTURE);
 		glPushMatrix();
-		#if defined(TARGET_OS_IPHONE)
-		glTranslatex( textureOffsetX.x, 0, 0 );
-		#else
 		glTranslatef( (float) textureOffsetX, 0.0f, 0.0f );
-		#endif
 	}
 	CHECK_GL_ERROR;
 }

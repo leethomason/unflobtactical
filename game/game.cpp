@@ -16,7 +16,9 @@
 #include "game.h"
 #include "cgame.h"
 #include "scene.h"
+
 #include "battlescene.h"
+#include "characterscene.h"
 
 #include "../engine/platformgl.h"
 #include "../engine/text.h"
@@ -156,13 +158,19 @@ Game::Game( int width, int height ) :
 	particleSystem->InitPoint( GetTexture( "particleSparkle" ) );
 	particleSystem->InitQuad( GetTexture( "particleQuad" ) );
 
+	currentScene = 0;
 	scenes[BATTLE_SCENE] = new BattleScene( this );
-	currentScene = scenes[BATTLE_SCENE];
+	scenes[CHARACTER_SCENE] = new CharacterScene( this );
+
+	PushScene( BATTLE_SCENE );
 }
 
 
 Game::~Game()
 {
+	if ( nSceneStack ) {
+		PopScene();
+	}
 	for( int i=0; i<NUM_SCENES; ++i ) {
 		delete scenes[i];
 	}
@@ -170,6 +178,34 @@ Game::~Game()
 	delete particleSystem;
 	FreeModels();
 	FreeTextures();
+}
+
+
+void Game::PushScene( int id ) 
+{
+	GLASSERT( id >= 0 && id < NUM_SCENES );
+	GLASSERT( nSceneStack < MAX_SCENE_STACK );
+	if ( nSceneStack > 0 ) {
+		sceneStack[nSceneStack-1]->DeActivate();
+	}
+	sceneStack[nSceneStack] = scenes[id];
+	sceneStack[nSceneStack]->Activate();
+	currentScene = sceneStack[nSceneStack];
+	nSceneStack++;
+}
+
+
+void Game::PopScene()
+{
+	GLASSERT( nSceneStack > 0 );
+	nSceneStack--;
+	sceneStack[nSceneStack]->DeActivate();
+	currentScene = 0;
+
+	if ( nSceneStack > 0 ) {
+		sceneStack[nSceneStack-1]->Activate();
+		currentScene = sceneStack[nSceneStack-1];
+	}
 }
 
 
@@ -354,25 +390,6 @@ void Game::DoTick( U32 currentTime )
 		}
 	}
 #endif
-
-	if ( currentTimeSec != previousTimeSec ) {
-
-		grinliz::Vector3F pos = { 10.0f, 1.0f, 28.0f };
-		grinliz::Vector3F vel = { 0.0f, 1.0f, 0.0f };
-		Color4F col = { 1.0f, -0.5f, 0.0f, 1.0f };
-		Color4F colVel = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-		particleSystem->Emit(	ParticleSystem::POINT,
-								0,		// type
-								40,		// count
-								ParticleSystem::PARTICLE_SPHERE,
-								col,	colVel,
-								pos,	0.1f,	
-								vel,	0.1f,
-								1200 );
-	}
-	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
-	particleSystem->EmitFlame( deltaTime, pos );
 
 	currentScene->DoTick( currentTime, deltaTime );
 
