@@ -19,13 +19,24 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 
 	engine  = &game->engine;
 
-	Texture* t = game->GetTexture( "icons" );
-	
+	Texture* t = game->GetTexture( "icons" );	
 	widgets = new UIButtonBox( t );
 
 	int icons[] = { UIButtonBox::ICON_PLAIN, UIButtonBox::ICON_PLAIN, UIButtonBox::ICON_CHARACTER };
 	const char* iconText[] = { "home", "d/n", 0 };
 	widgets->SetButtons( icons, iconText, 3 );
+}
+
+
+BattleScene::~BattleScene()
+{
+	delete widgets;
+}
+
+
+void BattleScene::Activate()
+{
+	engine->EnableMap( true );
 
 	int n = 0;
 	ModelResource* resource = 0;
@@ -82,33 +93,41 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 }
 
 
-BattleScene::~BattleScene()
+void BattleScene::DeActivate()
 {
 #ifdef MAPMAKER
 	engine->ReleaseModel( selection );
 #endif
 
-	delete widgets;
 	for( int i=0; i<NUM_TEST_MODEL; ++i ) {
 		if ( testModel[i] ) {
 			engine->ReleaseModel( testModel[i] );
 		}
 	}
-}
-
-
-void BattleScene::Activate()
-{
-}
-
-
-void BattleScene::DeActivate()
-{
+	game->particleSystem->Clear();
 }
 
 
 void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 {
+	if ( currentTime/1000 != (currentTime-deltaTime)/1000 ) {
+		grinliz::Vector3F pos = { 10.0f, 1.0f, 28.0f };
+		grinliz::Vector3F vel = { 0.0f, 1.0f, 0.0f };
+		Color4F col = { 1.0f, -0.5f, 0.0f, 1.0f };
+		Color4F colVel = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+		game->particleSystem->Emit(	ParticleSystem::POINT,
+									0,		// type
+									40,		// count
+									ParticleSystem::PARTICLE_SPHERE,
+									col,	colVel,
+									pos,	0.1f,	
+									vel,	0.1f,
+									1200 );
+	}
+	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
+	game->particleSystem->EmitFlame( deltaTime, pos );
+
 	grinliz::Vector3F v;
 	ConvertVector3( testModel[7]->Pos(), &v );
 	game->particleSystem->EmitDecal( 1, v, 0.7f, testModel[7]->GetYRotation() );
@@ -132,6 +151,10 @@ void BattleScene::Tap(	int tap,
 					engine->SetDayNight( false, game->GetLightMap( "farmlandN" ) );
 				else
 					engine->SetDayNight( true, 0 );
+				break;
+
+			case 2:
+				game->PushScene( Game::CHARACTER_SCENE );
 				break;
 
 			default:

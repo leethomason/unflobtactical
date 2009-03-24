@@ -48,6 +48,15 @@ void ParticleSystem::InitQuad( const Texture* texture )
 }
 
 
+void ParticleSystem::Clear()
+{
+	for( int i=0; i<NUM_PRIMITIVES; ++i ) {
+		nParticles[i] = 0;
+	}
+	nDecals = 0;
+}
+
+
 void ParticleSystem::Update( U32 msec )
 {
 	float sec = (float)msec / 1000.0f;
