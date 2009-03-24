@@ -283,7 +283,7 @@ void ModelAtom::Draw() const
 
 void Model::PushMatrix( bool bindTextureToVertex ) const
 {
-#if 1
+#if 0
 	if ( !xformValid ) {
 		Matrix4 t, r;
 		t.SetTranslation( pos.x, pos.y, pos.z );

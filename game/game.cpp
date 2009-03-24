@@ -361,8 +361,6 @@ void Game::DoTick( U32 currentTime )
 		previousTime = currentTime-1;
 	}
 	U32 deltaTime = currentTime - previousTime;
-	U32 previousTimeSec = previousTime / 1000;
-	U32 currentTimeSec  = currentTime  / 1000;
 
 	if ( markFrameTime == 0 ) {
 		markFrameTime			= currentTime;

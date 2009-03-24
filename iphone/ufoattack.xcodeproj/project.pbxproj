@@ -25,6 +25,8 @@
 		9A6909850F3375EE005AE44E /* woodDark.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A6909820F3375EE005AE44E /* woodDark.tex */; };
 		9A6909860F3375EE005AE44E /* woodDarkUFO.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A6909830F3375EE005AE44E /* woodDarkUFO.tex */; };
 		9A690B990F33BB18005AE44E /* mainIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 9A690B980F33BB18005AE44E /* mainIcon.png */; };
+		9A73A4150F75500200DADEEA /* battlescene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A73A4120F75500200DADEEA /* battlescene.cpp */; };
+		9A73A42C0F7891F400DADEEA /* characterscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A73A42A0F7891F400DADEEA /* characterscene.cpp */; };
 		9A75DC870F454464006B1523 /* femaleMarine.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A75DC840F454464006B1523 /* femaleMarine.mod */; };
 		9A75DC880F454464006B1523 /* maleMarine.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A75DC850F454464006B1523 /* maleMarine.mod */; };
 		9A75DC890F454464006B1523 /* marine.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A75DC860F454464006B1523 /* marine.tex */; };
@@ -109,6 +111,11 @@
 		9A6909820F3375EE005AE44E /* woodDark.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodDark.tex; path = ../res/woodDark.tex; sourceTree = SOURCE_ROOT; };
 		9A6909830F3375EE005AE44E /* woodDarkUFO.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodDarkUFO.tex; path = ../res/woodDarkUFO.tex; sourceTree = SOURCE_ROOT; };
 		9A690B980F33BB18005AE44E /* mainIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = mainIcon.png; path = ../resin/mainIcon.png; sourceTree = SOURCE_ROOT; };
+		9A73A4120F75500200DADEEA /* battlescene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = battlescene.cpp; path = ../game/battlescene.cpp; sourceTree = SOURCE_ROOT; };
+		9A73A4130F75500200DADEEA /* battlescene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = battlescene.h; path = ../game/battlescene.h; sourceTree = SOURCE_ROOT; };
+		9A73A4140F75500200DADEEA /* scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = scene.h; path = ../game/scene.h; sourceTree = SOURCE_ROOT; };
+		9A73A42A0F7891F400DADEEA /* characterscene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = characterscene.cpp; path = ../game/characterscene.cpp; sourceTree = SOURCE_ROOT; };
+		9A73A42B0F7891F400DADEEA /* characterscene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = characterscene.h; path = ../game/characterscene.h; sourceTree = SOURCE_ROOT; };
 		9A75DC840F454464006B1523 /* femaleMarine.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = femaleMarine.mod; path = ../res/femaleMarine.mod; sourceTree = SOURCE_ROOT; };
 		9A75DC850F454464006B1523 /* maleMarine.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = maleMarine.mod; path = ../res/maleMarine.mod; sourceTree = SOURCE_ROOT; };
 		9A75DC860F454464006B1523 /* marine.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = marine.tex; path = ../res/marine.tex; sourceTree = SOURCE_ROOT; };
@@ -387,6 +394,11 @@
 		9AF6454A0EAC4FA4004FB696 /* game */ = {
 			isa = PBXGroup;
 			children = (
+				9A73A42A0F7891F400DADEEA /* characterscene.cpp */,
+				9A73A42B0F7891F400DADEEA /* characterscene.h */,
+				9A73A4120F75500200DADEEA /* battlescene.cpp */,
+				9A73A4130F75500200DADEEA /* battlescene.h */,
+				9A73A4140F75500200DADEEA /* scene.h */,
 				9A5B8C480EBEA60600BA5C70 /* cgame.cpp */,
 				9A5B8C490EBEA60600BA5C70 /* cgame.h */,
 				9AF6454C0EAC4FB4004FB696 /* game.cpp */,
@@ -514,6 +526,8 @@
 				9A8EE7E90F3F770F005FDF47 /* renderqueue.cpp in Sources */,
 				9AF8D0A30F6D6C5B000B778E /* particle.cpp in Sources */,
 				9A969EAD0F6DA8F10063A7A6 /* serialize.cpp in Sources */,
+				9A73A4150F75500200DADEEA /* battlescene.cpp in Sources */,
+				9A73A42C0F7891F400DADEEA /* characterscene.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
