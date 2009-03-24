@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 #include "../grinliz/glutil.h"
 
 const int ADVANCE = 10;
@@ -25,8 +26,7 @@ const int GLYPH_CX = 16;
 const int GLYPH_CY = 8;
 static int GLYPH_WIDTH = 256 / GLYPH_CX;
 static int GLYPH_HEIGHT = 128 / GLYPH_CY;
-static int width;
-static int height;
+
 
 // 0 screen up
 // 1 90 degree turn positive y, etc.
