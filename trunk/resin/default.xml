@@ -19,6 +19,8 @@
 	
 	<model filename="maleMarine.ac" />
 	<model filename="femaleMarine.ac" />
+	<model filename="maleCiv.ac" />
+	<model filename="femaleCiv.ac" />
 	<model filename="alien0.ac" />
 	<model filename="alien1.ac" />
 	<model filename="alien2.ac" />

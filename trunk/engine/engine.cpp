@@ -168,14 +168,14 @@ void Engine::MoveCameraXZ( float x, float z )
 }
 
 
-Model* Engine::GetModel( ModelResource* resource )
+Model* Engine::AllocModel( ModelResource* resource )
 {
 	GLASSERT( resource );
 	return spaceTree->AllocModel( resource );
 }
 
 
-void Engine::ReleaseModel( Model* model )
+void Engine::FreeModel( Model* model )
 {
 	spaceTree->FreeModel( model );
 }
@@ -724,3 +724,22 @@ float Engine::GetZoom()
 	float z = ( camera.PosWC().y - engineData.cameraMin ) / ( engineData.cameraMax - engineData.cameraMin );
 	return z;
 }
+
+
+void Engine::Save( Stream* s )
+{
+	camera.Save( s );
+	s->Write( lightDirection );
+	s->WriteU8( (U8)dayNight );
+	//s->Write( fogOfWar );
+}
+
+
+void Engine::Load( Stream* s )
+{
+	camera.Load( s );
+	s->Read( &lightDirection );
+	dayNight = (DayNight) s->ReadU8();
+	//s->Read( &fogOfWar );
+}
+

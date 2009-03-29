@@ -324,7 +324,7 @@ void ProcessTexture( TiXmlElement* texture )
 	SDL_Surface* surface = libIMG_Load( fullIn.c_str() );
 	if ( !surface ) {
 		printf( "**Could not load: %s\n", fullIn.c_str() );
-		goto graceful_exit;
+		exit( 1 );
 	}
 	else {
 		printf( "  Loaded: '%s' bpp=%d width=%d height=%d", 
@@ -337,7 +337,7 @@ void ProcessTexture( TiXmlElement* texture )
 	fp = SDL_RWFromFile( fullOut.c_str(), "wb" );
 	if ( !fp ) {
 		printf( "**Could not open for writing: %s\n", fullOut.c_str() );
-		goto graceful_exit;
+		exit( 1 );
 	}
 	else {
 		//printf( "  Writing: '%s'\n", fullOut.c_str() );
@@ -421,11 +421,10 @@ void ProcessTexture( TiXmlElement* texture )
 
 		default:
 			printf( "Unsupported bit depth!\n" );
+			exit( 1 );
 			break;
 	}
 
-
-graceful_exit:
 	if ( surface ) { 
 		SDL_FreeSurface( surface );
 	}

@@ -2,6 +2,7 @@
 #define UFOATTACK_BATTLE_SCENE_INCLUDED
 
 #include "scene.h"
+#include "unit.h"
 
 class Model;
 class UIButtonBox;
@@ -39,6 +40,7 @@ public:
 #endif
 
 private:
+	void InitUnits();
 
 	grinliz::Vector3F dragStart;
 	grinliz::Vector3F dragStartCameraWC;
@@ -52,8 +54,21 @@ private:
 	UIButtonBox* widgets;
 	Engine* engine;
 
-	enum { NUM_TEST_MODEL = 256 };
-	Model* testModel[NUM_TEST_MODEL];
+	enum {
+		MAX_TERRANS = 8,
+		MAX_CIVS = 16,
+		MAX_ALIENS = 16,
+
+		TERRAN_UNITS_START	= 0,
+		TERRAN_UNITS_END	= 8,
+		CIV_UNITS_START		= TERRAN_UNITS_END,
+		CIV_UNITS_END		= CIV_UNITS_START+MAX_CIVS,
+		ALIEN_UNITS_START	= CIV_UNITS_END,
+		ALIEN_UNITS_END		= ALIEN_UNITS_START+MAX_ALIENS,
+		MAX_UNITS			= ALIEN_UNITS_END
+	};
+	Unit units[MAX_UNITS];
+	Model* crateTest;
 
 #ifdef MAPMAKER
 	// Mapmaker:

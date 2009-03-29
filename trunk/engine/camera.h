@@ -22,6 +22,8 @@
 #include "../grinliz/glmatrix.h"
 #include "../grinliz/glgeometry.h"
 
+class Stream;
+
 /*	By default, the camera is looking down the -z axis with y up.
 	View rotation is handled by this class to account for device
 	turning.
@@ -64,16 +66,22 @@ public:
 	const grinliz::Vector3F* EyeDir3()				{ if ( !valid ) CalcWorldXForm();
 													  return eyeDir3; }
 
+	// Saves camera position but not view rotation (which comes from the device.)
+	void Save( Stream* );
+	void Load( Stream* );
+
 private:
 	// Position of the camera in the world - no view rotation, no inverse.
 	void CalcWorldXForm();
 	void CalcEyeDir();
 
+	int viewRotation;
+
 	float tilt;
 	float yRotation;
-	int viewRotation;
-	bool valid;
 	grinliz::Vector3F posWC;
+
+	bool valid;
 	grinliz::Vector4F eyeDir[3];
 	grinliz::Vector3F eyeDir3[3];
 	grinliz::Matrix4 worldXForm;

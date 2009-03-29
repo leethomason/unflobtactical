@@ -34,76 +34,72 @@ BattleScene::~BattleScene()
 }
 
 
+void BattleScene::InitUnits()
+{
+	int Z = engine->GetMap()->Height();
+	Random random(5);
+
+	for( int i=0; i<6; ++i ) {
+		Vector2I pos = { (i*2)+10, Z-10 };
+		units[TERRAN_UNITS_START+i].GenerateTerran( random.Rand() );
+		units[TERRAN_UNITS_START+i].CreateModel( game, engine );
+		units[TERRAN_UNITS_START+i].SetPos( pos.x, pos.y );
+		units[TERRAN_UNITS_START+i].GetModel()->SetDraggable( true );
+	}
+	
+	for( int i=0; i<4; ++i ) {
+		Vector2I pos = { (i*2)+10, Z-8 };
+		units[ALIEN_UNITS_START+i].GenerateAlien( i&3, random.Rand() );
+		units[ALIEN_UNITS_START+i].CreateModel( game, engine );
+		units[ALIEN_UNITS_START+i].SetPos( pos.x, pos.y );
+	}
+
+	for( int i=0; i<4; ++i ) {
+		Vector2I pos = { (i*2)+10, Z-12 };
+		units[CIV_UNITS_START+i].GenerateCiv( random.Rand() );
+		units[CIV_UNITS_START+i].CreateModel( game, engine );
+		units[CIV_UNITS_START+i].SetPos( pos.x, pos.y );
+		units[CIV_UNITS_START+i].GetModel()->SetDraggable( true );
+	}
+}
+
+
 void BattleScene::Activate()
 {
 	engine->EnableMap( true );
 
 	int n = 0;
 	ModelResource* resource = 0;
-	float mz = (float)engine->GetMap()->Height();
-	memset( testModel, 0, NUM_TEST_MODEL*sizeof(Model*) );
 
 #ifdef MAPMAKER
 	resource = game->GetResource( "selection" );
-	selection = engine->GetModel( resource );
+	selection = engine->AllocModel( resource );
 	selection->SetPos( 0.5f, 0.0f, 0.5f );
 #endif
 
 	resource = game->GetResource( "crate" );
-	testModel[n] = engine->GetModel( resource );
-	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 3.5f, 0.0f, mz-5.5f );
+	crateTest = engine->AllocModel( resource );
+	crateTest->SetDraggable( true );
+	crateTest->SetPos( 3.5f, 0.0f, 20.0f );
 
-	resource = game->GetResource( "maleMarine" );
-	for( int i=0; i<4; ++i ) {
-		testModel[n] = engine->GetModel( resource );
-		testModel[n]->SetPos( (float)(i*2)+10.5f, 0.0f, mz-7.5f );
-		testModel[n]->SetDraggable( true );
-		++n;
+	// Do we have a saved state?
+	Stream* stream = game->OpenStream( "BattleScene", false );
+	if ( !stream ) {
+		InitUnits();
 	}
-	testModel[n-4]->SetSkin( 1, 1, 1 );
-	testModel[n-3]->SetSkin( 2, 1, 1 );
-	testModel[n-2]->SetSkin( 1, 0, 0 );
-	testModel[n-1]->SetSkin( 1, 0, 2 );
-
-	resource = game->GetResource( "femaleMarine" );
-	testModel[n] = engine->GetModel( resource );
-	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 19.5f, 0.0f, mz-9.5f );
-	
-	resource = game->GetResource( "alien0" );
-	testModel[n] = engine->GetModel( resource );
-	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 19.5f, 0.0f, mz-7.5f );
-
-	resource = game->GetResource( "alien1" );
-	testModel[n] = engine->GetModel( resource );
-	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 19.5f, 0.0f, mz-5.5f );
-
-	resource = game->GetResource( "alien2" );
-	testModel[n] = engine->GetModel( resource );
-	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 19.5f, 0.0f, mz-3.5f );
-
-	resource = game->GetResource( "alien3" );
-	testModel[n] = engine->GetModel( resource );
-	testModel[n]->SetDraggable( true );
-	testModel[n++]->SetPos( 19.5f, 0.0f, mz-1.5f );
 }
 
 
 void BattleScene::DeActivate()
 {
 #ifdef MAPMAKER
-	engine->ReleaseModel( selection );
+	engine->FreeModel( selection );
 #endif
-
-	for( int i=0; i<NUM_TEST_MODEL; ++i ) {
-		if ( testModel[i] ) {
-			engine->ReleaseModel( testModel[i] );
-		}
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		units[i].FreeModel();
 	}
+
+	engine->FreeModel( crateTest );
 	game->particleSystem->Clear();
 }
 
@@ -128,7 +124,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
 	game->particleSystem->EmitFlame( deltaTime, pos );
 
-	game->particleSystem->EmitDecal( 1, testModel[7]->Pos(), 0.7f, testModel[7]->GetYRotation() );
+	//game->particleSystem->EmitDecal( 1, testModel[7]->Pos(), 0.7f, testModel[7]->GetYRotation() );
 }
 
 

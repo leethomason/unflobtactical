@@ -38,6 +38,8 @@ const char* const gModelNames[] =
 	// Characters
 	"maleMarine",
 	"femaleMarine",
+	"maleCiv",
+	"femaleCiv",
 	"alien0",
 	"alien1",
 	"alien2",
@@ -119,6 +121,7 @@ Game::Game( int width, int height ) :
 	isDragging( false ),
 	nSceneStack( 0 )
 {
+	memset( memStream, 0, sizeof(MemStream)*MAX_STREAMS );
 	surface.Set( 256, 256, 4 );		// All the memory we will ever need (? or that is the intention)
 
 	LoadTextures();
@@ -178,6 +181,33 @@ Game::~Game()
 	delete particleSystem;
 	FreeModels();
 	FreeTextures();
+
+	for( int i=0; i<MAX_STREAMS; ++i ) {
+		delete memStream[i].stream;
+	}
+}
+
+
+Stream* Game::OpenStream( const char* name, bool create )
+{
+	GLASSERT( strlen( name ) < EL_FILE_STRING_LEN );
+	int i=0;
+	for( ; i<MAX_STREAMS; ++i ) {
+		if ( memStream[i].stream == 0 )
+			break;
+		if ( strcmp( name, memStream[i].name ) == 0 ) {
+			GLASSERT( memStream[i].stream );
+			memStream[i].stream->SeekSet( 0 );
+			return memStream[i].stream;
+		}
+	}
+	if ( create ) {
+		GLASSERT( i < MAX_STREAMS );
+		strcpy( memStream[i].name, name );
+		memStream[i].stream = new Stream();
+		return memStream[i].stream;
+	}
+	return 0;
 }
 
 

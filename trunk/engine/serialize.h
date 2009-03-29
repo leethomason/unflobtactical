@@ -8,6 +8,7 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glrectangle.h"
+#include "../grinliz/glvector.h"
 #include "enginelimits.h"
 
 struct SDL_RWops;
@@ -66,5 +67,62 @@ struct ModelHeader
 	void Load( FILE* fp );
 };
 
+
+class Stream
+{
+public:
+	Stream();
+	~Stream();
+
+	void SeekSet( int offset )	{ GLASSERT( offset < size ); if ( offset < size ) ptr = buffer + offset; }
+	int Size()					{ return size; }
+	int Tell()					{ GLASSERT( ptr ); GLASSERT( buffer ); return ptr - buffer; }
+
+	template< typename T > void Read( T* value ) 
+	{
+		GLASSERT( ptr + sizeof(T) < EndSize() );
+		if ( ptr + sizeof(T) < EndSize() ) {
+			*value = *((T*)ptr);
+			ptr += sizeof( T );
+		}
+	}
+	U8		ReadU8();
+	U16		ReadU16();
+	U32		ReadU32();	
+	float	ReadFloat();
+
+	const char*	ReadStr();
+
+	template< typename T > void Write( const T& value ) 
+	{
+		Ensure( size + sizeof(value) );
+		GLASSERT( ptr + sizeof(T) < buffer + cap );
+		
+		T* p = (T*)ptr;
+		*p = value;
+		ptr += sizeof( T );
+
+		if ( Tell() > size ) {
+			size = Tell();
+		}
+	}
+
+	void WriteU8( U32 value );
+	void WriteU16( U32 value );
+	void WriteU32( U32 value );
+	void WriteFloat( float value );
+
+	void WriteStr( const char* str );
+
+private:
+	void Ensure( int newCap );
+
+	U8* buffer;
+	U8* ptr;
+	int cap;
+	int size;
+	const U8*	EndCap()	{ GLASSERT( buffer ); return buffer + cap; }
+	const U8*	EndSize()	{ GLASSERT( buffer ); return buffer + size; }
+};
 
 #endif // UFOATTACK_SERIALIZE_INCLUDED
