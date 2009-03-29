@@ -16,6 +16,7 @@
 #include "platformgl.h"
 #include "camera.h"
 #include "../grinliz/glgeometry.h"
+#include "serialize.h"
 
 using namespace grinliz;
 
@@ -82,3 +83,18 @@ void Camera::CalcEyeDir()
 	}
 }
 
+
+void Camera::Save( Stream* s )
+{
+	s->WriteFloat( tilt );
+	s->WriteFloat( yRotation );
+	s->Write( posWC );
+}
+
+void Camera::Load( Stream* s )
+{
+	tilt = s->ReadFloat();
+	yRotation  = s->ReadFloat();
+	s->Read( &posWC );
+	valid = false;
+}

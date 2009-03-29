@@ -276,6 +276,14 @@
 				RelativePath=".\game\scene.h"
 				>
 			</File>
+			<File
+				RelativePath=".\game\unit.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\game\unit.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="win32"

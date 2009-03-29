@@ -81,8 +81,8 @@ public:
 	void MoveCameraHome();
 	void MoveCameraXZ( float x, float z );
 
-	Model* GetModel( ModelResource* );
-	void ReleaseModel( Model* );
+	Model* AllocModel( ModelResource* );
+	void FreeModel( Model* );
 	
 	void EnableMap( bool enable )	{ enableMap = enable; }
 	Map* GetMap() { return map; }
@@ -130,6 +130,9 @@ public:
 	// FIXME - automatic??
 	void RestrictCamera();
 
+	void Save( Stream* s );
+	void Load( Stream* s );
+
 private:
 	enum ShadowState {
 		IN_SHADOW,
@@ -160,16 +163,19 @@ private:
 	int		initZoomDistance;
 	int		depthFunc;
 	
-	grinliz::Vector3F lightDirection;
-	DayNight dayNight;
 	const EngineData& engineData;
 
 	Map* map;
 	SpaceTree* spaceTree;
 	RenderQueue* renderQueue;
 	bool enableMap;
-
 	grinliz::BitArray<Map::SIZE, Map::SIZE> fogOfWar;
+
+	// <serialize>
+	// camera
+	grinliz::Vector3F lightDirection;
+	DayNight dayNight;
+	// </serialize>
 };
 
 #endif // UFOATTACK_ENGINE_INCLUDED

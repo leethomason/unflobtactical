@@ -76,12 +76,22 @@ public:
 		   NUM_SCENES,
 
 		   MAX_SCENE_STACK = 4,
+		   MAX_STREAMS = MAX_SCENE_STACK*2,
 		 };
+
+
+	Stream* OpenStream( const char* name, bool createIfDoesNotExist = true );
 
 	void PushScene( int sceneID );
 	void PopScene();
 
 private:
+
+	struct MemStream {
+		char name[EL_FILE_STRING_LEN];
+		Stream* stream;
+	};
+	MemStream memStream[MAX_STREAMS];
 
 	void LoadTextures();
 	void FreeTextures();
@@ -113,7 +123,6 @@ private:
 	Texture			texture[MAX_TEXTURES];
 	ModelResource	modelResource[EL_MAX_MODEL_RESOURCES];
 	Surface			lightMaps[NUM_LIGHT_MAPS];
-
 };
 
 #endif
