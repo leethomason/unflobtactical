@@ -38,7 +38,7 @@ distribution.
 		void dprintf( const char* format, ... );
 		void WinDebugBreak();
 		
-		#define GLASSERT( x )		if ( !(x)) WinDebugBreak()
+		#define GLASSERT( x )		if ( !(x)) { _asm { int 3 } } //if ( !(x)) WinDebugBreak()
 		#define GLOUTPUT( x )		dprintf x
 		#define GLLOG( x )			dprintf x
 	#else

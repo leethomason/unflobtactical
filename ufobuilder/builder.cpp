@@ -262,6 +262,9 @@ void ProcessModel( TiXmlElement* model )
 	if ( StrEqual( model->Attribute( "billboard" ), "true" ) ) {
 		header.flags |= ModelHeader::BILLBOARD;
 	}
+	if ( StrEqual( model->Attribute( "origin" ), "upperLeft" ) ) {
+		header.flags |= ModelHeader::UPPER_LEFT;
+	}
 
 	header.Save( fp );
 

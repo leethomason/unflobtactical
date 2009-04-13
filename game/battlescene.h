@@ -32,15 +32,20 @@ public:
 	virtual void DoTick( U32 currentTime, U32 deltaTime );
 	virtual void DrawHUD();
 
+	void Save( UFOStream* s );
+	void Load( UFOStream* s );
+
 #ifdef MAPMAKER
 	void MouseMove( int x, int y );
-	void RotateSelection();
+	void RotateSelection( int delta );
 	void DeleteAtSelection();
 	void DeltaCurrentMapItem( int d );
 #endif
 
 private:
 	void InitUnits();
+	void SetUnitsDraggable();
+	int UnitFromModel( Model* m );
 
 	grinliz::Vector3F dragStart;
 	grinliz::Vector3F dragStartCameraWC;
@@ -67,12 +72,15 @@ private:
 		ALIEN_UNITS_END		= ALIEN_UNITS_START+MAX_ALIENS,
 		MAX_UNITS			= ALIEN_UNITS_END
 	};
-	Unit units[MAX_UNITS];
 	Model* crateTest;
+	int selected;
+	Unit units[MAX_UNITS];
 
 #ifdef MAPMAKER
 	// Mapmaker:
+	void UpdatePreview();
 	Model* selection;
+	Model* preview;
 	int currentMapItem;
 #endif
 };

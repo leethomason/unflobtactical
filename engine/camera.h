@@ -22,7 +22,7 @@
 #include "../grinliz/glmatrix.h"
 #include "../grinliz/glgeometry.h"
 
-class Stream;
+class UFOStream;
 
 /*	By default, the camera is looking down the -z axis with y up.
 	View rotation is handled by this class to account for device
@@ -67,8 +67,8 @@ public:
 													  return eyeDir3; }
 
 	// Saves camera position but not view rotation (which comes from the device.)
-	void Save( Stream* );
-	void Load( Stream* );
+	void Save( UFOStream* );
+	void Load( UFOStream* );
 
 private:
 	// Position of the camera in the world - no view rotation, no inverse.

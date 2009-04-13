@@ -226,7 +226,6 @@ int main( int argc, char **argv )
 						//case SDLK_s:			GameShadowMode( game );						break;
 
 #ifdef MAPMAKER	
-						case SDLK_r:			((Game*)game)->RotateSelection();			break;
 						case SDLK_s:			
 							{
 								FILE* fp = fopen( filename.c_str(), "wb" );
@@ -248,13 +247,34 @@ int main( int argc, char **argv )
 								((Game*)game)->ClearMap();
 							}
 							break;
-						case SDLK_DELETE:	((Game*)game)->DeleteAtSelection(); break;
+						case SDLK_DELETE:	
+							((Game*)game)->DeleteAtSelection(); 
+							break;
 
+						case SDLK_KP9:			
+							((Game*)game)->RotateSelection( -1 );			
+							break;
+						case SDLK_r:
+						case SDLK_KP7:			
+							((Game*)game)->RotateSelection( 1 );			
+							break;
 
-						case SDLK_UP:			((Game*)game)->DeltaCurrentMapItem(10);		break;
-						case SDLK_DOWN:			((Game*)game)->DeltaCurrentMapItem(-10);		break;
-						case SDLK_RIGHT:		((Game*)game)->DeltaCurrentMapItem(1); 	break;
-						case SDLK_LEFT:			((Game*)game)->DeltaCurrentMapItem(-1);	break;
+						case SDLK_UP:			
+						case SDLK_KP8:			
+							((Game*)game)->DeltaCurrentMapItem(16);			
+							break;
+						case SDLK_KP5:			
+						case SDLK_DOWN:			
+							((Game*)game)->DeltaCurrentMapItem(-16);		
+							break;
+						case SDLK_KP6:			
+						case SDLK_RIGHT:		
+							((Game*)game)->DeltaCurrentMapItem(1); 			
+							break;
+						case SDLK_KP4:			
+						case SDLK_LEFT:			
+							((Game*)game)->DeltaCurrentMapItem(-1);			
+							break;
 #else
 						case SDLK_RIGHT:		GameRotate( game, --rotation );				break;
 						case SDLK_LEFT:			GameRotate( game, ++rotation );				break;

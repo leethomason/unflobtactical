@@ -49,19 +49,37 @@ void Unit::GenerateTerran( U32 seed )
 	status = STATUS_ALIVE;
 	team = TERRAN_MARINE;
 	body = seed;
+}
 
-	const int mfnLen = sizeof(gMaleFirstNames)/sizeof(const char*);
-	const int ffnLen = sizeof(gFemaleFirstNames)/sizeof(const char*);
-	const int lnLen  = sizeof(gLastNames)/sizeof(const char*);
 
-	grinliz::Random random( seed );
-	if ( Gender() == MALE ) {
-		firstName = gMaleFirstNames[ random.Rand(mfnLen) ];
+const char* Unit::FirstName()
+{
+	const char* str = "";
+	if ( team == TERRAN_MARINE ) {
+		const int mfnLen = sizeof(gMaleFirstNames)/sizeof(const char*);
+		const int ffnLen = sizeof(gFemaleFirstNames)/sizeof(const char*);
+
+		U32 r = (body>>NAME0_SHIFT)&NAME0_MASK;
+
+		if ( Gender() == MALE )
+			str = gMaleFirstNames[ r % mfnLen ];
+		else
+			str = gFemaleFirstNames[ r % ffnLen ];
 	}
-	else {
-		firstName = gFemaleFirstNames[ random.Rand(ffnLen) ];
+	return str;
+}
+
+
+const char* Unit::LastName()
+{
+	const char* str = "";
+	if ( team == TERRAN_MARINE ) {
+		const int lnLen  = sizeof(gLastNames)/sizeof(const char*);
+
+		U32 r = (body>>NAME1_SHIFT)&NAME1_MASK;
+		str = gLastNames[ r % lnLen ];
 	}
-	lastName = gLastNames[ random.Rand(lnLen) ];
+	return str;
 }
 
 
@@ -70,8 +88,6 @@ void Unit::GenerateCiv( U32 seed )
 	status = STATUS_ALIVE;
 	team = CIVILIAN;
 	body = seed;	// only gender...
-	firstName = "";
-	lastName = "";
 }
 
 
@@ -81,9 +97,6 @@ void Unit::GenerateAlien( int type, U32 seed )
 	team = ALIEN;
 	body = seed & (~ALIEN_TYPE_MASK);
 	body |= (type & ALIEN_TYPE_MASK);
-
-	firstName = "";
-	lastName = "";
 }
 
 
@@ -105,7 +118,7 @@ void Unit::SetPos( int x, int z )
 	}
 }
 
-void Unit::CreateModel( Game* game, Engine* engine )
+Model* Unit::CreateModel( Game* game, Engine* engine )
 {
 	this->game = game;
 	this->engine = engine;
@@ -116,6 +129,7 @@ void Unit::CreateModel( Game* game, Engine* engine )
 	}
 	if ( status == STATUS_UNUSED ) {
 		GLASSERT( 0 );
+		return 0;
 	}
 
 	ModelResource* resource = 0;
@@ -147,6 +161,7 @@ void Unit::CreateModel( Game* game, Engine* engine )
 	GLASSERT( resource );
 	model = engine->AllocModel( resource );
 	UpdateModel();
+	return model;
 }
 
 
@@ -175,5 +190,26 @@ void Unit::UpdateModel()
 			GLASSERT( 0 );
 			break;
 	};
+}
+
+
+void Unit::Save( UFOStream* s )
+{
+	s->WriteU8( status );
+	if ( status != STATUS_UNUSED ) {
+		s->WriteU8( team );
+		s->WriteU32( body );
+	}
+}
+
+
+void Unit::Load( UFOStream* s )
+{
+	status = s->ReadU8();
+	GLASSERT( status == STATUS_UNUSED || status == STATUS_ALIVE || status == STATUS_DEAD );
+	if ( status != STATUS_UNUSED ) {
+		team = s->ReadU8();
+		body = s->ReadU32();
+	}
 }
 

@@ -37,7 +37,7 @@ class RenderQueue
 {
 public:
 	enum {
-		ALPHA_TEST		= 0x02,
+		ALPHA_TEST		= 0x01,
 	};
 
 	enum {

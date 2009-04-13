@@ -143,6 +143,7 @@ void RenderQueue::Flush()
 			++states;
 
 			if ( flags & ALPHA_TEST ) {
+				// Docs say alpha test is slow. Fake it with blend.
 				//glEnable( GL_ALPHA_TEST );
 				//glAlphaFunc( GL_GEQUAL, 0.5f );
 				glEnable( GL_BLEND );

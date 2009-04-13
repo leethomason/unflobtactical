@@ -84,14 +84,14 @@ void Camera::CalcEyeDir()
 }
 
 
-void Camera::Save( Stream* s )
+void Camera::Save( UFOStream* s )
 {
 	s->WriteFloat( tilt );
 	s->WriteFloat( yRotation );
 	s->Write( posWC );
 }
 
-void Camera::Load( Stream* s )
+void Camera::Load( UFOStream* s )
 {
 	tilt = s->ReadFloat();
 	yRotation  = s->ReadFloat();

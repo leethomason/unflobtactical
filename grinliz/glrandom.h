@@ -45,11 +45,14 @@ class Random
 	/** The current seed can be set at any time to
 		guarentee a certain sequence of random numbers.
 	*/
-	void SetSeed( U32 seed )	{	w = 521288629 + seed;
-									z = 362436069 + seed;
-									jsr = 123456789;
-									jcong = 380116160;
-								}									
+	void SetSeed( U32 seed )	{	x = 123456789 + seed;	// 0<=x<2^32
+									y = 362436;
+									z = 521288629;
+									
+									c = 7654321;	// Range restricted - change carefully!
+								}		
+
+	void SetSeed( const char* str );
 
 	/// Returns a 32 bit random number.
 	U32 Rand();						
@@ -95,8 +98,11 @@ class Random
 	/// Return a random unit normal vector. 'dimension' is usual 2 (2D) or 3 (3D)
 	void NormalVector( float* v, int dimension );
 
+	/// Fast hash
+	static U32 SuperFastHash( const void* data, U32 len );
+
 private:
-	U32 z, w, jsr, jcong;
+	U32 x, y, z, c;
 };
 
 };	// namespace grinliz

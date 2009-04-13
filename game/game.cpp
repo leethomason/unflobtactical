@@ -31,79 +31,6 @@
 
 using namespace grinliz;
 
-const char* const gModelNames[] = 
-{
-	"crate",
-	
-	// Characters
-	"maleMarine",
-	"femaleMarine",
-	"maleCiv",
-	"femaleCiv",
-	"alien0",
-	"alien1",
-	"alien2",
-	"alien3",
-	
-	// mapmaker
-	"selection",
-
-	// Farmland tiles
-	"wallWoodSh",
-	"doorWoodOpen",
-	"doorWoodCl",
-	
-	// UFO tiles
-	"wallUFO",
-	"diagUFO",
-	"doorUFOOp",
-	"doorUFOCl",
-	"wallUFOInner",
-
-	// decor
-	"bed",
-	"table",
-	"tree",
-	"wheat",
-
-	0
-};
-
-
-struct TextureDef
-{
-	const char* name;
-	U32 flags;
-};
-
-enum {
-	ALPHA_TEST = 0x01,
-};
-
-const TextureDef gTextureDef[] = 
-{
-	{	"icons",		0	},
-	{	"stdfont2",		0	},
-	{	"woodDark",		0	},
-	{	"woodDarkUFO",	0	},
-	{	"woodPlank",	0	},
-	{	"marine",		0	},
-	{	"palette",		0	},
-	{	"ufoOuter",		0	},
-	{	"ufoInner",		0	},
-	{	"tree",			ALPHA_TEST	},
-	{	"wheat",		ALPHA_TEST	},
-	{	"farmland",		0	},
-	{	"particleQuad",	0	},
-	{	"particleSparkle",	0	},
-	{  0, 0 }
-};
-
-
-const char* gLightMapNames[ Game::NUM_LIGHT_MAPS ] = 
-{
-	"farmlandN",
-};
 
 
 
@@ -125,8 +52,13 @@ Game::Game( int width, int height ) :
 	surface.Set( 256, 256, 4 );		// All the memory we will ever need (? or that is the intention)
 
 	LoadTextures();
+	modelLoader = new ModelLoader( texture, nTexture );
 	LoadModels();
+	LoadLightMaps();
 	LoadMapResources();
+
+	delete modelLoader;
+	modelLoader = 0;
 
 	Texture* textTexture = GetTexture( "stdfont2" );
 	GLASSERT( textTexture );
@@ -138,16 +70,6 @@ Game::Game( int width, int height ) :
 	// If we aren't the map maker, then we need to load a map.
 	LoadMap( "farmland" );
 #endif
-
-	// Load the map.
-	char buffer[512];
-	for( int i=0; i<NUM_LIGHT_MAPS; ++i ) {
-		PlatformPathToResource( gLightMapNames[i], "tex", buffer, 512 );
-		FILE* fp = fopen( buffer, "rb" );
-		GLASSERT( fp );
-		lightMaps[i].LoadTexture( fp );
-		fclose( fp );
-	}
 
 	engine.GetMap()->SetSize( 40, 40 );
 	engine.GetMap()->SetTexture( GetTexture("farmland" ) );
@@ -183,12 +105,15 @@ Game::~Game()
 	FreeTextures();
 
 	for( int i=0; i<MAX_STREAMS; ++i ) {
-		delete memStream[i].stream;
+		if ( memStream[i].stream ) {
+			memStream[i].stream->Dump( memStream[i].name );
+			delete memStream[i].stream;
+		}
 	}
 }
 
 
-Stream* Game::OpenStream( const char* name, bool create )
+UFOStream* Game::OpenStream( const char* name, bool create )
 {
 	GLASSERT( strlen( name ) < EL_FILE_STRING_LEN );
 	int i=0;
@@ -204,7 +129,7 @@ Stream* Game::OpenStream( const char* name, bool create )
 	if ( create ) {
 		GLASSERT( i < MAX_STREAMS );
 		strcpy( memStream[i].name, name );
-		memStream[i].stream = new Stream();
+		memStream[i].stream = new UFOStream();
 		return memStream[i].stream;
 	}
 	return 0;
@@ -239,92 +164,12 @@ void Game::PopScene()
 }
 
 
-void Game::LoadMapResources()
-{
-	Map* map = engine.GetMap();
-	map->SetItemDef( 1, GetResource( "wallWoodSh" ) );
-	map->SetItemDef( 2, GetResource( "doorWoodCl" ) );
-	map->SetItemDef( 3, GetResource( "table" ) );
-	map->SetItemDef( 4, GetResource( "bed" ) );
-	map->SetItemDef( 5, GetResource( "diagUFO" ) );
-	map->SetItemDef( 6, GetResource( "wallUFO" ) );
-	map->SetItemDef( 7, GetResource( "doorUFOOp" ) );
-	map->SetItemDef( 8, GetResource( "doorUFOCl" ) );
-	map->SetItemDef( 9, GetResource( "wallUFOInner" ) );
-	map->SetItemDef( 10, GetResource( "tree" ) );
-	map->SetItemDef( 11, GetResource( "wheat" ) );
-}
-
-
-void Game::LoadTextures()
-{
-	memset( texture, 0, sizeof(Texture)*MAX_TEXTURES );
-
-	U32 textureID = 0;
-	FILE* fp = 0;
-	char buffer[512];
-
-	// Create the default texture "white"
-	surface.Set( 2, 2, 2 );
-	memset( surface.Pixels(), 255, 8 );
-	textureID = surface.CreateTexture( false );
-	texture[ nTexture++ ].Set( "white", textureID );
-
-	// Load the textures from the array:
-	for( int i=0; gTextureDef[i].name; ++i ) {
-		PlatformPathToResource( gTextureDef[i].name, "tex", buffer, 512 );
-		fp = fopen( buffer, "rb" );
-		GLASSERT( fp );
-		textureID = surface.LoadTexture( fp );
-		bool alphaTest = (gTextureDef[i].flags & ALPHA_TEST ) ? true : false;
-		texture[ nTexture++ ].Set( gTextureDef[i].name, textureID, alphaTest );
-		fclose( fp );
-	}
-	GLASSERT( nTexture <= MAX_TEXTURES );
-}
-
-
-Surface* Game::GetLightMap( const char* name )
-{
-	for( int i=0; i<NUM_LIGHT_MAPS; ++i ) {
-		if ( strcmp( name, gLightMapNames[i] ) == 0 ) {
-			return &lightMaps[i];
-		}
-	}
-	return 0;
-}
-
-
 void Game::SetScreenRotation( int value ) 
 {
 	rotation = ((unsigned)value)%4;
 
 	UFOText::InitScreen( engine.Width(), engine.Height(), rotation );
 	engine.camera.SetViewRotation( rotation );
-}
-
-
-ModelResource* Game::GetResource( const char* name )
-{
-	for( int i=0; gModelNames[i]; ++i ) {
-		if ( strcmp( gModelNames[i], name ) == 0 ) {
-			return &modelResource[i];
-		}
-	}
-	GLASSERT( 0 );
-	return 0;
-}
-
-
-Texture* Game::GetTexture( const char* name )
-{
-	for( int i=0; i<nTexture; ++i ) {
-		if ( strcmp( texture[i].name, name ) == 0 ) {
-			return &texture[i];
-		}
-	}
-	GLASSERT( 0 );
-	return 0;
 }
 
 
@@ -338,27 +183,6 @@ void Game::LoadMap( const char* name )
 
 	LoadMap( fp );
 	fclose( fp );
-}
-
-
-void Game::LoadModels()
-{
-	ModelLoader* loader = new ModelLoader( texture, nTexture );
-	memset( modelResource, 0, sizeof(ModelResource)*EL_MAX_MODEL_RESOURCES );
-
-	FILE* fp = 0;
-	char buffer[512];
-
-	for( int i=0; gModelNames[i]; ++i ) {
-		GLASSERT( i < EL_MAX_MODEL_RESOURCES );
-		PlatformPathToResource( gModelNames[i], "mod", buffer, 512 );
-		fp = fopen( buffer, "rb" );
-		GLASSERT( fp );
-		loader->Load( fp, &modelResource[i] );
-		fclose( fp );
-		nModelResource++;
-	}
-	delete loader;
 }
 
 
@@ -568,10 +392,10 @@ void Game::MouseMove( int x, int y )
 	}
 }
 
-void Game::RotateSelection()
+void Game::RotateSelection( int delta )
 {
 	if ( currentScene == scenes[BATTLE_SCENE] ) {
-		((BattleScene*)currentScene)->RotateSelection();
+		((BattleScene*)currentScene)->RotateSelection( delta );
 	}
 }
 

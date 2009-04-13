@@ -141,6 +141,7 @@ void SpaceTree::FreeModel( Model* model )
 {
 	Item* item = (Item*)model;	// cast depends on model being first in the structure.
 	GLASSERT( item >= &modelPool[0] );
+
 	GLASSERT( item < &modelPool[EL_MAX_MODELS] );
 
 	item->Unlink();
@@ -209,7 +210,7 @@ void SpaceTree::Update( Model* model )
 		if (    circle.origin.x - circle.radius >= float( node->looseX )
 			 && circle.origin.y - circle.radius >= float( node->looseZ )
 			 && circle.origin.x + circle.radius <= float( node->looseX + node->looseSize )
-			 && circle.origin.y + circle.radius <= float( node->looseX + node->looseSize ) )
+			 && circle.origin.y + circle.radius <= float( node->looseZ + node->looseSize ) )
 		{
 			// fits.
 			break;

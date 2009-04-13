@@ -17,6 +17,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	currentMapItem = 1;
 #endif
 
+	selected = -1;
 	engine  = &game->engine;
 
 	Texture* t = game->GetTexture( "icons" );	
@@ -44,7 +45,6 @@ void BattleScene::InitUnits()
 		units[TERRAN_UNITS_START+i].GenerateTerran( random.Rand() );
 		units[TERRAN_UNITS_START+i].CreateModel( game, engine );
 		units[TERRAN_UNITS_START+i].SetPos( pos.x, pos.y );
-		units[TERRAN_UNITS_START+i].GetModel()->SetDraggable( true );
 	}
 	
 	for( int i=0; i<4; ++i ) {
@@ -59,8 +59,66 @@ void BattleScene::InitUnits()
 		units[CIV_UNITS_START+i].GenerateCiv( random.Rand() );
 		units[CIV_UNITS_START+i].CreateModel( game, engine );
 		units[CIV_UNITS_START+i].SetPos( pos.x, pos.y );
-		units[CIV_UNITS_START+i].GetModel()->SetDraggable( true );
 	}
+	SetUnitsDraggable();
+}
+
+
+void BattleScene::SetUnitsDraggable()
+{
+	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+		Model* m = units[i].GetModel();
+		if ( m ) {
+			m->SetDraggable( units[i].Status() == Unit::STATUS_ALIVE );
+		}
+	}
+}
+
+
+void BattleScene::Save( UFOStream* s )
+{
+	s->WriteU32( UFOStream::MAGIC0 );
+	s->WriteU32( selected );
+
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		units[i].Save( s );
+		if ( units[i].Status() != Unit::STATUS_UNUSED ) {
+			Model* model = units[i].GetModel();
+			GLASSERT( model );
+
+			s->WriteFloat( model->Pos().x );
+			s->WriteFloat( model->Pos().z );
+			s->WriteFloat( model->GetYRotation() );
+		}
+	}
+	s->WriteU32( UFOStream::MAGIC1 );
+}
+
+
+void BattleScene::Load( UFOStream* s )
+{
+	U32 magic = s->ReadU32();
+	GLASSERT( magic == UFOStream::MAGIC0 );
+	selected = s->ReadU32();
+
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		units[i].Load( s );
+		if ( units[i].Status() != Unit::STATUS_UNUSED ) {
+			Model* model = units[i].CreateModel( game, engine );
+			Vector3F pos = { 0, 0, 0 };
+			float rot;
+
+			pos.x = s->ReadFloat();
+			pos.z = s->ReadFloat();
+			rot   = s->ReadFloat();
+
+			model->SetPos( pos );
+			model->SetYRotation( rot );
+		}
+	}
+	magic = s->ReadU32();
+	GLASSERT( magic == UFOStream::MAGIC1 );
+	SetUnitsDraggable();
 }
 
 
@@ -75,6 +133,7 @@ void BattleScene::Activate()
 	resource = game->GetResource( "selection" );
 	selection = engine->AllocModel( resource );
 	selection->SetPos( 0.5f, 0.0f, 0.5f );
+	preview = 0;
 #endif
 
 	resource = game->GetResource( "crate" );
@@ -83,17 +142,26 @@ void BattleScene::Activate()
 	crateTest->SetPos( 3.5f, 0.0f, 20.0f );
 
 	// Do we have a saved state?
-	Stream* stream = game->OpenStream( "BattleScene", false );
+	UFOStream* stream = game->OpenStream( "BattleScene", false );
 	if ( !stream ) {
 		InitUnits();
+	}
+	else {
+		Load( stream );
 	}
 }
 
 
 void BattleScene::DeActivate()
 {
+	UFOStream* s =game->OpenStream( "BattleScene" );
+	Save( s );
+
 #ifdef MAPMAKER
 	engine->FreeModel( selection );
+	if ( preview ) {
+		engine->FreeModel( preview );
+	}
 #endif
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		units[i].FreeModel();
@@ -124,7 +192,19 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
 	game->particleSystem->EmitFlame( deltaTime, pos );
 
-	//game->particleSystem->EmitDecal( 1, testModel[7]->Pos(), 0.7f, testModel[7]->GetYRotation() );
+	if (    selected >= 0 && selected < MAX_UNITS 
+		 && units[selected].Status() == Unit::STATUS_ALIVE
+		 && units[selected].Team() == Unit::TERRAN_MARINE ) 
+	{
+		Model* m = units[selected].GetModel();
+		if ( m ) {
+			//const U32 INTERVAL = 500;
+			float alpha = 0.7f;	//0.5f + 0.4f*(float)(currentTime%500)/(float)(INTERVAL);
+			game->particleSystem->EmitDecal( ParticleSystem::DECAL_SELECTED, 
+											 m->Pos(), alpha,
+											 m->GetYRotation() );
+		}
+	}
 }
 
 
@@ -156,9 +236,9 @@ void BattleScene::Tap(	int tap,
 		}
 
 #ifdef MAPMAKER
-		if ( icon == UIWidgets::ICON_COUNT ) {
-			const Vector3X& pos = selection->Pos();
-			int rotation = (int) (selection->GetYRotation() / grinliz::Fixed(90) );
+		if ( icon < 0 ) {
+			const Vector3F& pos = selection->Pos();
+			int rotation = (int) (selection->GetYRotation() / 90.0f );
 			engine->GetMap()->AddToTile( (int)pos.x, (int)pos.z, currentMapItem, rotation );
 		}
 #endif	
@@ -175,6 +255,16 @@ void BattleScene::Tap(	int tap,
 }
 
 
+int BattleScene::UnitFromModel( Model* m )
+{
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		if ( units[i].GetModel() == m )
+			return i;
+	}
+	return -1;
+}
+
+
 void BattleScene::Drag( int action, const grinliz::Vector2I& screenRaw )
 {
 	switch ( action ) 
@@ -188,6 +278,7 @@ void BattleScene::Drag( int action, const grinliz::Vector2I& screenRaw )
 			draggingModel = engine->IntersectModel( ray, true );
 			if ( draggingModel ) {
 				draggingModelOrigin = draggingModel->Pos();
+				selected = UnitFromModel( draggingModel );
 			}
 			else {
 				dragStartCameraWC = engine->camera.PosWC();
@@ -265,12 +356,34 @@ void BattleScene::DrawHUD()
 	widgets->Draw( w, h, rotation );
 
 #ifdef MAPMAKER
-	UFODrawText( 0,  16, "%3d:'%s'", currentMapItem, engine->GetMap()->GetItemDefName( currentMapItem ) );
+	engine->GetMap()->DumpTile( (int)selection->X(), (int)selection->Z() );
+	UFOText::Draw( 0,  16, "0x%2x:'%s'", currentMapItem, engine->GetMap()->GetItemDefName( currentMapItem ) );
 #endif
 }
 
 
 #ifdef MAPMAKER
+
+
+void BattleScene::UpdatePreview()
+{
+	if ( preview ) {
+		engine->FreeModel( preview );
+		preview = 0;
+	}
+	if ( currentMapItem >= 0 ) {
+		preview = engine->GetMap()->CreatePreview(	(int)selection->X(), 
+													(int)selection->Z(), 
+													currentMapItem, 
+													(int)(selection->GetYRotation()/90.0f) );
+
+		if ( preview ) {
+			const Texture* t = game->GetTexture( "translucent" );
+			preview->SetTexture( t );
+		}
+	}
+}
+
 
 void BattleScene::MouseMove( int x, int y )
 {
@@ -283,19 +396,25 @@ void BattleScene::MouseMove( int x, int y )
 
 	int newX = (int)( p.x );
 	int newZ = (int)( p.z );
+	newX = Clamp( newX, 0, Map::SIZE-1 );
+	newZ = Clamp( newZ, 0, Map::SIZE-1 );
 	selection->SetPos( (float)newX + 0.5f, 0.0f, (float)newZ + 0.5f );
+	
+	UpdatePreview();
 }
 
-void BattleScene::RotateSelection()
+void BattleScene::RotateSelection( int delta )
 {
-	grinliz::Fixed rot = selection->GetYRotation() + grinliz::Fixed(90);
+	float rot = selection->GetYRotation() + 90.0f*(float)delta;
 	selection->SetYRotation( rot );
+	UpdatePreview();
 }
 
 void BattleScene::DeleteAtSelection()
 {
-	Vector3X pos = selection->Pos();
+	const Vector3F& pos = selection->Pos();
 	engine->GetMap()->DeleteAt( (int)pos.x, (int)pos.z );
+	UpdatePreview();
 }
 
 
@@ -305,6 +424,7 @@ void BattleScene::DeltaCurrentMapItem( int d )
 	while ( currentMapItem < 0 ) { currentMapItem += Map::MAX_ITEM_DEF; }
 	while ( currentMapItem >= Map::MAX_ITEM_DEF ) { currentMapItem -= Map::MAX_ITEM_DEF; }
 	if ( currentMapItem == 0 ) currentMapItem = 1;
+	UpdatePreview();
 }
 
 #endif

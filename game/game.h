@@ -60,7 +60,7 @@ public:
 
 #ifdef MAPMAKER
 	void MouseMove( int x, int y );
-	void RotateSelection();
+	void RotateSelection( int delta );
 	void DeleteAtSelection();
 	void DeltaCurrentMapItem( int d );
 #endif
@@ -80,25 +80,44 @@ public:
 		 };
 
 
-	Stream* OpenStream( const char* name, bool createIfDoesNotExist = true );
+	UFOStream* OpenStream( const char* name, bool createIfDoesNotExist = true );
 
 	void PushScene( int sceneID );
 	void PopScene();
 
 private:
 
+	struct ItemInit 
+	{
+		const char* Name() const { return model; }
+
+		const char* model;
+		const char* modelOpen;
+		const char* modelDestroyed;
+		int cx;
+		int cy;
+		int hp;
+		int flammable;
+		int explosive;
+		const char* pather0;
+		const char* pather1;
+	};
+
 	struct MemStream {
 		char name[EL_FILE_STRING_LEN];
-		Stream* stream;
+		UFOStream* stream;
 	};
 	MemStream memStream[MAX_STREAMS];
 
 	void LoadTextures();
 	void FreeTextures();
 	void LoadModels();
+	void LoadModel( const char* name );
 	void FreeModels();
+	void LoadLightMaps();
 	void LoadMapResources();
 	void LoadMap( const char* name );
+	void InitItemDef( int startIndex, const ItemInit* );
 
 	int rotation;
 	int nTexture;
@@ -108,6 +127,7 @@ private:
 	float framesPerSecond;
 	int trianglesPerSecond;
 	int trianglesSinceMark;
+	ModelLoader* modelLoader;
 
 	Scene* currentScene;
 	Scene* scenes[NUM_SCENES];
