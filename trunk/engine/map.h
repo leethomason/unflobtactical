@@ -22,6 +22,7 @@
 #include "../grinliz/glbitarray.h"
 #include "vertex.h"
 #include "surface.h"
+#include "enginelimits.h"
 
 class Model;
 class ModelResource;
@@ -35,24 +36,60 @@ public:
 	enum {
 		SIZE = 64,					// maximum size
 		MAX_ITEM_DEF = 256,
-		LAYER_PER_TILE = 4,
+		ITEM_PER_TILE = 4,
 	};
 
-	struct ItemDef {
-		ModelResource* modelResource;
-	};
-
-	struct Layer
+	struct ItemDef 
 	{
-		U8 defIndex;
-		U8 rotation;
-		Model* model;
+		enum { MAX_CX = 6, MAX_CY = 6 };
+
+		void Init() {	name[0] = 0;
+						
+						cx = 1; 
+						cy = 1; 
+						hp = 0; 
+						flammable = 0; 
+						explosive = 0;
+
+						modelResource			= 0;
+						modelResourceOpen		= 0;
+						modelResourceDestroyed	= 0;
+					}
+
+		U16		cx, cy;
+		U16		hp;					// 0 infinite, >0 can be damaged
+		U16		flammable;			// 0: none, 1: wood, 2: gas
+		U16		explosive;			// 0: no, >0 blast radius
+
+		ModelResource* modelResource;
+		ModelResource* modelResourceOpen;
+		ModelResource* modelResourceDestroyed;
+
+		char	name[EL_FILE_STRING_LEN];
+		U8		pather[2][MAX_CX][MAX_CY];
+	};
+
+	struct Item
+	{
+		U8		itemDefIndex;	// 0: not in use, >0 is the index
+		U8		rotation;		// 0-3: rotation, 255: reference	
+		U16		_pad0;
+
+		union {
+			Model*	model;
+			const Item*	ref;
+		};
+
+		bool InUse() const			{ return itemDefIndex > 0; }
+		bool IsReference() const	{ return (rotation == 255); }
 	};
 
 	struct Tile
 	{
-		Layer layer[LAYER_PER_TILE];
-		int CountLayers();
+		Item item[ITEM_PER_TILE];
+
+		int CountItems() const;
+		int FindFreeItem() const;
 	};
 
 
@@ -68,25 +105,38 @@ public:
 	void BindTextureUnits();
 	void UnBindTextureUnits();
 
-	void SetLightMap( Surface* surface );
-	Surface* GetLightMap()	{ return lightMap; }
-	void GenerateLightMap( const grinliz::BitArray<SIZE, SIZE>& fogOfWar );
+	void		SetLightMap( Surface* surface );
+	Surface*	GetLightMap()	{ return lightMap; }
+	void		GenerateLightMap( const grinliz::BitArray<SIZE, SIZE>& fogOfWar );
 	
 	void Draw();
 
-	void SetItemDef( int i, ModelResource* mr );
+	Map::ItemDef* InitItemDef( int i );
 	const char* GetItemDefName( int i );
 
-	void AddToTile( int x, int y, int itemDefIndex, int rotation );
+#ifdef MAPMAKER
+	Model* CreatePreview( int x, int y, int itemDefIndex, int rotation );
+#endif
+	bool AddToTile( int x, int y, int itemDefIndex, int rotation );
 	void DeleteAt( int x, int y );
 
 	void Save( FILE* fp );
 	void Load( FILE* fp );
 	void Clear();
 
-private:
-	int width, height;
+	void DumpTile( int x, int y );
 
+private:
+	void CalcModelPos(	int x, int y, int r, const ItemDef& itemDef, 
+						grinliz::Rectangle2I* mapBounds,
+						grinliz::Vector2F* origin );
+
+	//void SetModel( Model* model, int x, int y, const Item& item );
+
+	// Performs no translation of references.
+	Tile* GetTileFromItem( const Item* item, int* layer, int* x, int *y );
+	
+	int width, height;
 	const Texture* texture;
 	SpaceTree* tree;
 

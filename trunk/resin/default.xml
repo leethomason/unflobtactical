@@ -6,7 +6,8 @@
 	<texture filename="stdfont2.tga" />
 	<texture filename="woodDark.png" />
 	<texture filename="woodDarkUFO.tga" />
-	<texture filename="woodPlank.png" />
+  <texture filename="woodPlank.png" />
+  <texture filename="woodPlankD.png" />
 	<texture filename="marine.png" />
 	<texture filename="palette.png" />
 	<texture filename="ufoInner.png" />
@@ -14,36 +15,51 @@
 	<texture filename="wheat.tga" />
 	<texture filename="tree.tga" />
 
-	<!-- Models -->
-	<model filename="crate.ac" />
-	
-	<model filename="maleMarine.ac" />
+	<!-- Models
+       Model naming:
+             group. 4 chars. wood, ufo_, stor, etc.
+             type.  4 chars. wall, diag, crnr, etc.
+             sub.   3 chars. opn, cld, etc.
+  -->
+  
+  <model filename="alien0.ac" />
+  <model filename="alien1.ac" />
+  <model filename="alien2.ac" />
+  <model filename="alien3.ac" />
+  <model filename="crate.ac" />
+
+  <model filename="farmBed.ac" />
+  <model filename="farmTable.ac" />
+  <model filename="farmTable2x1.ac" origin="upperLeft"/>
+  <model filename="farmWheat.ac" billboard="true" />
+
+  <model filename="lander.ac" origin="upperLeft" />
+
+  <model filename="maleMarine.ac" />
 	<model filename="femaleMarine.ac" />
 	<model filename="maleCiv.ac" />
 	<model filename="femaleCiv.ac" />
-	<model filename="alien0.ac" />
-	<model filename="alien1.ac" />
-	<model filename="alien2.ac" />
-	<model filename="alien3.ac" />
-
 	<model filename="selection.ac" />
-	<model filename="wallWoodSh.ac" />
-	<model filename="doorWoodOpen.ac" />
-	<model filename="doorWoodCl.ac" />
 
-	<model filename="wallUFO.ac" />
-	<model filename="diagUFO.ac" />
-	<model filename="doorUFOOp.ac" />
-	<model filename="doorUFOCl.ac" />
-	
-	<model filename="wallUFOInner.ac" />
+  <model filename="tree.ac" billboard="true" />
 
-	<model filename="table.ac" />
-	<model filename="bed.ac" />
-	<model filename="wheat.ac" billboard="true" />
-	<model filename="tree.ac" billboard="true" />
-	
-	<!-- Particles -->
+  <model filename="ufo_Diag.ac" />
+  <model filename="ufo_DoorCld.ac" />
+  <model filename="ufo_DoorOpn.ac" />
+  <model filename="ufo_WallInn.ac" />
+  <model filename="ufo_CrnrInn.ac" />
+  <model filename="ufo_WallOut.ac" />
+  <model filename="ufo_Join0.ac" origin="upperLeft" />
+  <model filename="ufo_Join1.ac" origin="upperLeft" />
+
+  <model filename="woodCrnr.ac" />
+  <model filename="woodCrnrD.ac" />
+  <model filename="woodDoorCld.ac" />
+  <model filename="woodDoorOpn.ac" />
+  <model filename="woodWall.ac" />
+  <model filename="woodWallWin.ac" />
+
+  <!-- Particles -->
 	<texture filename="particleQuad.png" />
 	<texture filename="particleSparkle.png" />
 
@@ -51,5 +67,5 @@
 	<texture filename="farmland.png" />
 	<texture filename="farmlandN.png" />
 	<map filename="farmland.map" />
-
+  
 </resource>

@@ -6,7 +6,7 @@
 #include "../grinliz/glrandom.h"
 #include "../engine/enginelimits.h"
 
-class Stream;
+class UFOStream;
 class Model;
 class ModelResounce;
 class Engine;
@@ -39,15 +39,15 @@ public:
 		FEMALE
 	};
 
-	Unit() : status( STATUS_UNUSED ), model( 0 ), game( 0 ), engine( 0 ) {}
+	Unit() : status( STATUS_UNUSED ), team( 0 ), body( 0 ), model( 0 ), game( 0 ), engine( 0 ) {}
 	~Unit()	{ FreeModel(); }
 
 	int Status()			{ return status; }
 	int Team()				{ return team; }
 	int AlienType()			{ return (body>>ALIEN_TYPE_SHIFT) & ALIEN_TYPE_MASK; }
 	int Gender()			{ return (body>>GENDER_SHIFT) & GENDER_MASK; }
-	const char* FirstName()	{ return firstName; }
-	const char* LastName()	{ return lastName; }
+	const char* FirstName();
+	const char* LastName();
 
 	// only works if model is in existence!!
 	void SetPos( int x, int z );
@@ -56,9 +56,12 @@ public:
 	void GenerateCiv( U32 seed );
 	void GenerateAlien( int type, U32 seed );
 
-	void CreateModel( Game* game, Engine* engine );
+	Model* CreateModel( Game* game, Engine* engine );
 	void FreeModel();
 	Model* GetModel() { return model; }
+
+	void Save( UFOStream* s );
+	void Load( UFOStream* s );
 
 private:
 	enum {	
@@ -75,16 +78,17 @@ private:
 		HAIR_SHIFT = 1,
 		SKIN_MASK = 0x03,
 		SKIN_SHIFT = 3,
+		NAME0_MASK = 0xff,
+		NAME0_SHIFT = 16,
+		NAME1_MASK = 0xff,
+		NAME1_SHIFT = 24,
 	};
 
 	void UpdateModel();	// make the model current with the unit status - armor, etc.
 
 	int status;
 	int team;	// terran, alien, civ
-	int body;	// describes physical appearence
-
-	const char* firstName;
-	const char* lastName;
+	U32 body;	// describes everything! a random #
 
 	Game* game;
 	Engine* engine;

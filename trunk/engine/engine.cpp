@@ -726,7 +726,7 @@ float Engine::GetZoom()
 }
 
 
-void Engine::Save( Stream* s )
+void Engine::Save( UFOStream* s )
 {
 	camera.Save( s );
 	s->Write( lightDirection );
@@ -735,7 +735,7 @@ void Engine::Save( Stream* s )
 }
 
 
-void Engine::Load( Stream* s )
+void Engine::Load( UFOStream* s )
 {
 	camera.Load( s );
 	s->Read( &lightDirection );

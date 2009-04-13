@@ -130,8 +130,8 @@ public:
 	// FIXME - automatic??
 	void RestrictCamera();
 
-	void Save( Stream* s );
-	void Load( Stream* s );
+	void Save( UFOStream* s );
+	void Load( UFOStream* s );
 
 private:
 	enum ShadowState {

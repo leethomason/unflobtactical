@@ -50,6 +50,8 @@ public:
 	float					boundRadius2D;	// computed, bounding 2D radius centered at 0,0
 	grinliz::Rectangle3F	hitBounds;		// for picking - a bounds approximation
 
+	int IsOriginUpperLeft()	{ return header.flags & ModelHeader::UPPER_LEFT; }
+
 	ModelAtom atom[EL_MAX_MODEL_GROUPS];
 };
 
@@ -104,21 +106,26 @@ public:
 	const grinliz::Vector3F& Pos()						{ return pos; }
 	void SetPos( const grinliz::Vector3F& pos );
 	void SetPos( float x, float y, float z )	{ grinliz::Vector3F vec = { x, y, z }; SetPos( vec ); }
+	float X() { return pos.x; }
+	float Y() { return pos.y; }
+	float Z() { return pos.z; }
 
 	void SetYRotation( float rot )		{
 		while( rot < 0 )		{ rot += 360.0f; }
 		while( rot >= 360 )		{ rot -= 360.0f; }
 		this->rot = rot;		// won't change tree location, don't need to call Update()
-		//xformValid = false;
 	}
 	const float GetYRotation()			{ return rot; }
 
-	int IsBillboard() { return resource->header.flags & ModelHeader::BILLBOARD; }
+	int IsBillboard()		{ return resource->header.flags & ModelHeader::BILLBOARD; }
+	int IsOriginUpperLeft()	{ return resource->header.flags & ModelHeader::UPPER_LEFT; }
 	void SetSkin( int armor, int skin, int hair );
 
 	void CalcBoundSphere( grinliz::Sphere* sphere );
 	void CalcBoundCircle( grinliz::Circle* circle );
 	void CalcHitAABB( grinliz::Rectangle3F* aabb );
+
+	void SetTexture( const Texture* t )			{ setTexture = t; }
 
 	ModelResource* GetResource()				{ return resource; }
 	bool Sentinel()								{ return resource==0 && tree==0; }
@@ -132,10 +139,9 @@ private:
 	grinliz::Vector3F pos;
 	float rot;
 	float textureOffsetX;
-	//mutable grinliz::Matrix4 xform;
+	const Texture* setTexture;	// overrides the default texture
 
-	// FIXME flags
-	//mutable bool xformValid;
+	// FIXME condense flags
 	bool isDraggable;
 	bool hiddenFromTree;
 	bool isOwnedByMap;

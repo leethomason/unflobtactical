@@ -31,20 +31,37 @@ distribution.
 using namespace grinliz;
 
 
+void Random::SetSeed( const char* str )
+{
+	int len = strlen( str );
+	U32 seed = SuperFastHash( str, len );
+	SetSeed( seed );
+}
+
+
 // Very clever post by: George Marsaglia
 // http://www.bobwheeler.com/statistics/Password/MarsagliaPost.txt
-// The basic MWC is extremely attractive for its simplicity. But in
-// its lower 16 bits, its period is shorted (since it is independent
-// of the upper bits.) KISS is still simple and compelling.
+// And also the paper:
+// http://tbf.coe.wayne.edu/jmasm/vol2_no1.pdf
+// and post:
+// http://oldmill.uchicago.edu/~wilder/Code/random/Papers/Marsaglia_2003.html
+// Simple, elegant, effective!
+
 U32 Random::Rand()
 {
-	#define znew  ((z=36969*(z&65535)+(z>>16))<<16)
-	#define wnew  ((w=18000*(w&65535)+(w>>16))&65535)
-	#define MWC   (znew+wnew)
-	#define SHR3  (jsr=(jsr=(jsr=jsr^(jsr<<17))^(jsr>>13))^(jsr<<5))
-	#define CONG  (jcong=69069*jcong+1234567)
-	#define KISS  ((MWC^CONG)+SHR3)
-	return KISS;
+	U64 t;
+	U64 a=698769069;
+
+	x = 69069*x + 12345;
+	y ^= (y<<13);  
+	y ^= (y>>17); 
+	y ^= (y<<5);
+
+	t = a*(U64)z + (U64)c; 
+	c = (U32)(t>>32);
+	z = (U32)t;
+
+	return x+y+z;
 }
 
 
@@ -66,4 +83,65 @@ void Random::NormalVector( float* v, int dim )
 	for( int i=0; i<dim; ++i ) {
 		v[i] *= lenInv;
 	}
+}
+
+// Another great work:
+// http://www.azillionmonkeys.com/qed/hash.html
+// by Paul Hsieh
+//
+U32 Random::SuperFastHash (const void* _data, U32 len) 
+{
+#ifdef GRINLIZ_LITTLE_ENDIAN
+	#define get16bits(d) (*((const U16 *) (d)))
+#endif
+
+#if	!defined (get16bits)
+	#define get16bits(d) ((((U32)(((const U8 *)(d))[1])) << 8)\
+						   +(U32)(((const U8 *)(d))[0]) )
+#endif
+
+	const U8* data = (const U8*)_data;
+	U32 hash = len, tmp;
+	S32 rem;
+
+    if (len <= 0 || data == NULL) 
+		return 0;
+
+    rem = len & 3;
+    len >>= 2;
+
+    // Main loop 
+    for (;len > 0; len--) {
+        hash  += get16bits (data);
+        tmp    = (get16bits (data+2) << 11) ^ hash;
+        hash   = (hash << 16) ^ tmp;
+        data  += 2*sizeof (uint16_t);
+        hash  += hash >> 11;
+    }
+
+    // Handle end cases
+    switch (rem) {
+        case 3: hash += get16bits (data);
+                hash ^= hash << 16;
+                hash ^= data[sizeof (uint16_t)] << 18;
+                hash += hash >> 11;
+                break;
+        case 2: hash += get16bits (data);
+                hash ^= hash << 11;
+                hash += hash >> 17;
+                break;
+        case 1: hash += *data;
+                hash ^= hash << 10;
+                hash += hash >> 1;
+    }
+
+    // Force "avalanching" of final 127 bits
+    hash ^= hash << 3;
+    hash += hash >> 5;
+    hash ^= hash << 4;
+    hash += hash >> 17;
+    hash ^= hash << 25;
+    hash += hash >> 6;
+
+    return hash;
 }

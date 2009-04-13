@@ -43,6 +43,26 @@ struct ModelGroup
 };
 
 /*
+// Associated with a model in a stream. Specifically, a model
+// that can be used on the path.
+struct ItemResource
+{
+	enum {
+		STREAM_SIZE			= 0x01,		// if the size isn't 1x1
+		ORIGIN_UPPER_LEFT	= 0x02,
+		STREAM_HP			= 0x04,
+		STREAM_FLAMMABLE	= 0x08,
+		STREAM_EXPLOSIVE	= 0x10,
+		STREAM_PATHER_0		= 0x20,
+		STREAM_PATHER_1		= 0x40
+	};
+	U8 cx;
+	U8 cz;
+	int hp;	// 0 is destroyed,
+};
+*/
+
+/*
 	ModelHeader
 	ModelGroups	groups[]
 	Vertex		vertexData[]	// all groups
@@ -50,8 +70,10 @@ struct ModelGroup
 */
 struct ModelHeader
 {
+	// flags
 	enum {
-		BILLBOARD = 0x01,
+		BILLBOARD	= 0x01,
+		UPPER_LEFT	= 0x02,
 	};
 
 	char					name[EL_FILE_STRING_LEN];
@@ -68,20 +90,28 @@ struct ModelHeader
 };
 
 
-class Stream
+class UFOStream
 {
 public:
-	Stream();
-	~Stream();
+	enum {
+		MAGIC0 = 0x01234567,
+		MAGIC1 = 0xfedcba98,
+	};
+
+	UFOStream();
+	~UFOStream();
 
 	void SeekSet( int offset )	{ GLASSERT( offset < size ); if ( offset < size ) ptr = buffer + offset; }
 	int Size()					{ return size; }
 	int Tell()					{ GLASSERT( ptr ); GLASSERT( buffer ); return ptr - buffer; }
+	void Dump( const char* name ) {
+		GLOUTPUT(( "Stream '%s' size=%d cap=%d\n", name, size, cap ));
+	}
 
 	template< typename T > void Read( T* value ) 
 	{
-		GLASSERT( ptr + sizeof(T) < EndSize() );
-		if ( ptr + sizeof(T) < EndSize() ) {
+		GLASSERT( ptr + sizeof(T) <= EndSize() );
+		if ( ptr + sizeof(T) <= EndSize() ) {
 			*value = *((T*)ptr);
 			ptr += sizeof( T );
 		}
@@ -96,7 +126,7 @@ public:
 	template< typename T > void Write( const T& value ) 
 	{
 		Ensure( size + sizeof(value) );
-		GLASSERT( ptr + sizeof(T) < buffer + cap );
+		GLASSERT( ptr + sizeof(T) <= buffer + cap );
 		
 		T* p = (T*)ptr;
 		*p = value;

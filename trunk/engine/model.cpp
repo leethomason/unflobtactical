@@ -170,6 +170,7 @@ void Model::Init( ModelResource* resource, SpaceTree* tree )
 	pos.Set( 0, 0, 0 );
 	rot = 0;
 	textureOffsetX = 0;
+	setTexture = 0;
 
 	if ( tree ) {
 		tree->Update( this );
@@ -186,7 +187,6 @@ void Model::SetPos( const grinliz::Vector3F& pos )
 { 
 	this->pos = pos;	
 	tree->Update( this ); 
-	//xformValid = false;
 }
 
 
@@ -232,13 +232,14 @@ void Model::Queue( RenderQueue* queue, int textureMode )
 	for( U32 i=0; i<resource->header.nGroups; ++i ) 
 	{
 		int flags = 0;
-		if (    textureMode != Model::NO_TEXTURE 
-			 && resource->atom[i].texture->alphaTest ) 
-		{
-			flags |= RenderQueue::ALPHA_TEST;
+		const Texture* texture = setTexture ? setTexture : resource->atom[i].texture;
+
+		if ( textureMode != Model::NO_TEXTURE ) {
+			if ( texture->alphaTest ) 
+				flags |= RenderQueue::ALPHA_TEST;
 		}
 
-		U32 textureID = (textureMode == Model::MODEL_TEXTURE) ? resource->atom[i].texture->glID : 0;
+		U32 textureID = (textureMode == Model::MODEL_TEXTURE) ? texture->glID : 0;
 
 		queue->Add( flags, 
 					textureID,
