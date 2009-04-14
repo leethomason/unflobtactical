@@ -15,9 +15,13 @@
 
 = Map Maker = 
 === Open ===
-  * support for impassible squares
-  * support for landing vehicle
   * support for non 1x1 map items
+
+=== Resolved ===
+
+  * 4/09 support for impassible squares
+  * 4/09 support for landing vehicle
+
 
 = Game =
 === Open ===
