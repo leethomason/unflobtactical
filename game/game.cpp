@@ -66,6 +66,7 @@ Game::Game( int width, int height ) :
 	UFOText::InitScreen( engine.Width(), engine.Height(), rotation );
 
 #ifdef MAPMAKER
+	showPathing = false;
 #else
 	// If we aren't the map maker, then we need to load a map.
 	LoadMap( "farmland" );
@@ -257,7 +258,19 @@ void Game::DoTick( U32 currentTime )
 	glLoadIdentity();
 
 	int triCount = 0;
+
+#ifdef MAPMAKER
+	if ( showPathing ) 
+		engine.EnableMap( false );
 	engine.Draw( &triCount );
+	if ( showPathing ) {
+		engine.GetMap()->DrawPath();
+	}
+	if ( showPathing ) 
+		engine.EnableMap( true );
+#else
+	engine.Draw( &triCount );
+#endif
 	
 	const grinliz::Vector3F* eyeDir = engine.camera.EyeDir3();
 	particleSystem->Update( deltaTime );

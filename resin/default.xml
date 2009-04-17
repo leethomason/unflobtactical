@@ -14,6 +14,7 @@
 	<texture filename="ufoOuter.png" />
 	<texture filename="wheat.tga" />
 	<texture filename="tree.tga" />
+  <texture filename="lannder.png" />
 
 	<!-- Models
        Model naming:

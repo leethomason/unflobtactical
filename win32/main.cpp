@@ -275,6 +275,10 @@ int main( int argc, char **argv )
 						case SDLK_LEFT:			
 							((Game*)game)->DeltaCurrentMapItem(-1);			
 							break;
+
+						case SDLK_p:
+							((Game*)game)->ShowPathing( !((Game*)game)->IsShowingPathing() );
+							break;
 #else
 						case SDLK_RIGHT:		GameRotate( game, --rotation );				break;
 						case SDLK_LEFT:			GameRotate( game, ++rotation );				break;

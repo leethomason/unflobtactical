@@ -42,6 +42,7 @@ const TextureDef gTextureDef[] =
 	{	"palette",		0	},
 	{	"ufoOuter",		0	},
 	{	"ufoInner",		0	},
+	{	"lannder",		0	},
 	{	"tree",			ALPHA_TEST	},
 	{	"wheat",		ALPHA_TEST	},
 	{	"farmland",		0	},
@@ -234,7 +235,7 @@ void Game::InitItemDef( int index, const ItemInit* init )
 					++i;
 				}
 				else if ( *p >= 'a' && *p <= 'f' ) {
-					itemDef->pather[k][i/init->cx][i%init->cx] = *p - 'a';
+					itemDef->pather[k][i/init->cx][i%init->cx] = 10 + *p - 'a';
 					++i;
 				}
 				else if ( *p == ' ' ) {
@@ -289,7 +290,7 @@ void Game::LoadMapResources()
 		{	"farmBed",		0,				0,			1,	1,	HP_MED,	BURNS,	0,		"f",	"0" },
 		{	"farmTable",	0,				0,			1,	1,	HP_MED,	BURNS,	0,		"f",	"0" },
 		{	"farmTable2x1",	0,				0,			2,	1,	HP_MED,	BURNS,	0,		"ff",	"0" },
-		{	"farmWheat",	0,				0,			1,	1,	HP_LOW,	BURNS_FAST,	0,	"f",	"0" },
+		{	"farmWheat",	0,				0,			1,	1,	HP_LOW,	BURNS_FAST,	0,	"0",	"0" },
 		{	0	}
 	};
 	InitItemDef( FARM_SET, farmSet );
@@ -297,7 +298,7 @@ void Game::LoadMapResources()
 	const ItemInit marineSet[] =
 	{
 			// model		open			destroyed	cx, cz	hp		flam	ex		pather0	pather1
-		{	"lander",		0,				0,			6,	6,	INDESTRUCTABLE,	0,	0,	"00ffff 00ffff ff0000 ff0000 00ffff 00ffff",	"0" },
+		{	"lander",		0,				0,			6,	6,	INDESTRUCTABLE,	0,	0,	"00ff00 00ff00 ff00ff ff00ff ff00ff ff00ff",	"0" },
 		{	0	}
 	};
 	InitItemDef( MARINE_SET, marineSet );
