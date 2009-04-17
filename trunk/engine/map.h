@@ -110,31 +110,48 @@ public:
 	void		GenerateLightMap( const grinliz::BitArray<SIZE, SIZE>& fogOfWar );
 	
 	void Draw();
+	void DrawPath();
 
 	Map::ItemDef* InitItemDef( int i );
 	const char* GetItemDefName( int i );
 
 #ifdef MAPMAKER
-	Model* CreatePreview( int x, int y, int itemDefIndex, int rotation );
+	Model* CreatePreview( int x, int z, int itemDefIndex, int rotation );
 #endif
-	bool AddToTile( int x, int y, int itemDefIndex, int rotation );
-	void DeleteAt( int x, int y );
+	bool AddToTile( int x, int z, int itemDefIndex, int rotation );
+	void DeleteAt( int x, int z );
+	int GetPathMask( int x, int z ) const;
 
 	void Save( FILE* fp );
 	void Load( FILE* fp );
 	void Clear();
 
-	void DumpTile( int x, int y );
+	void DumpTile( int x, int z );
 
 private:
+	struct IMat
+	{
+		int a, b, c, d, x, z;
+
+		void Init( int w, int h, int r );
+		void Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out );
+	};
+
 	void CalcModelPos(	int x, int y, int r, const ItemDef& itemDef, 
 						grinliz::Rectangle2I* mapBounds,
 						grinliz::Vector2F* origin );
 
-	//void SetModel( Model* model, int x, int y, const Item& item );
-
 	// Performs no translation of references.
-	Tile* GetTileFromItem( const Item* item, int* layer, int* x, int *y );
+	// item: input
+	// output layer (to get item from returned tile)
+	// x and y: map locations
+	Tile* GetTileFromItem( const Item* item, int* layer, int* x, int *y ) const;
+
+	// resolve a reference:
+	// outItem: item referred to
+	// outTile: tile referred to
+	// dx, dy: position of inItem relative to outItem. (Will be >= 0 )
+	void ResolveReference( const Item* inTtem, Item** outItem, Tile** outTile, int *dx, int* dy ) const;
 	
 	int width, height;
 	const Texture* texture;

@@ -232,7 +232,115 @@ int Map::Tile::CountItems() const
 }
 
 
-Map::Tile* Map::GetTileFromItem( const Item* item, int* _layer, int* x, int *y )
+void Map::ResolveReference( const Item* inItem, Item** outItem, Tile** outTile, int *dx, int* dy ) const
+{
+
+	if ( !inItem->IsReference() ) {
+		*outItem = const_cast<Item*>( inItem );
+		*outTile = GetTileFromItem( inItem, 0, 0, 0 );
+		*dx = 0;
+		*dy = 0;
+	}
+	else {
+		int layer, parentX, parentY;
+		*outTile = GetTileFromItem( inItem->ref, &layer, &parentX, &parentY );
+		*outItem = &((*outTile)->item[ layer ]);
+
+		int childX, childY;
+		GetTileFromItem( inItem, 0, &childX, &childY );
+		*dx = childX - parentX;
+		*dy = childY - parentY;
+	}
+	GLASSERT( *dx >= 0 && *dx < ItemDef::MAX_CX );
+	GLASSERT( *dy >= 0 && *dy < ItemDef::MAX_CY );
+}
+
+
+void Map::IMat::Init( int w, int h, int r )
+{
+	x = 0;
+	z = 0;
+
+	// Matrix to map from map coordinates
+	// back to object coordinates.
+	switch ( r ) {
+		case 0:
+			a = 1;	b = 0;	x = 0;
+			c = 0;	d = 1;	z = 0;
+			break;
+		
+		case 1:
+			a = 0;	b = -1;	x = w-1;
+			c = 1;	d = 0;	z = 0;
+			break;
+
+		case 2:
+			a = -1;	b = 0;	x = w-1;
+			c = 0;	d = -1;	z = h-1;
+			break;
+
+		case 3:
+			a = 0;	b = 1;	x = 0;
+			c = -1;	d = 0;	z = h-1;
+			break;
+
+		default:
+			break;
+	};
+}
+
+
+void Map::IMat::Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out  )
+{
+	out->x = a*in.x + b*in.y + x;
+	out->y = c*in.x + d*in.y + z;
+}
+
+
+
+int Map::GetPathMask( int x, int y ) const
+{
+	int index = y*SIZE+x;
+	const Tile& tile = tileArr[index];
+
+	int path = 0;
+	for( int i=0; i<ITEM_PER_TILE; ++i ) {
+		const Item* inItem = &tile.item[i];
+		if ( inItem->itemDefIndex == 0 ) {
+			continue;
+		}
+
+		Item* item = 0;
+		Tile* tile = 0;
+		Vector2I origin;
+		ResolveReference( inItem, &item, &tile, &origin.x, &origin.y );
+		int rot = item->rotation;
+
+		GLASSERT( rot >= 0 && rot < 4 );
+
+		// size
+		const ItemDef& itemDef = itemDefArr[item->itemDefIndex];
+		Vector2I size = { itemDef.cx, itemDef.cy };
+		Vector2I prime = { 0, 0 };
+
+		IMat iMat;
+		if ( size.x > 1 || size.y > 1 ) {
+			iMat.Init( size.x, size.y, rot );
+			iMat.Mult( origin, &prime );
+		}
+		GLASSERT( prime.x >= 0 && prime.x < itemDef.cx );
+		GLASSERT( prime.y >= 0 && prime.y < itemDef.cy );
+
+		U32 p = ( itemDef.pather[0][prime.y][prime.x] << rot );
+		p = p | (p>>4);
+		path |= (U8)(p&0xf);
+	}
+	return path;
+}
+
+
+
+Map::Tile* Map::GetTileFromItem( const Item* item, int* _layer, int* x, int *y ) const
 {
 	int index = ((const U8*)item - (const U8*)tileArr) / sizeof( Tile );
 	GLASSERT( index >= 0 && index < SIZE*SIZE );
@@ -248,10 +356,11 @@ Map::Tile* Map::GetTileFromItem( const Item* item, int* _layer, int* x, int *y )
 		GLASSERT( *x >=0 && *x < SIZE );
 		GLASSERT( *y >=0 && *y < SIZE );
 	}
-	return tileArr + index;
+	return const_cast< Tile* >(tileArr + index);
 }
 
 
+#ifdef MAPMAKER
 Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 {
 	Model* model = 0;
@@ -266,6 +375,7 @@ Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 	}
 	return model;
 }
+#endif
 
 
 bool Map::AddToTile( int x, int y, int defIndex, int rotation )
@@ -598,4 +708,76 @@ void Map::DumpTile( int x, int y )
 			}
 		}
 	}
+}
+
+
+void Map::DrawPath()
+{
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+
+	glDisable( GL_TEXTURE_2D );
+	glDisableClientState( GL_NORMAL_ARRAY );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+
+	for( int j=0; j<SIZE; ++j ) {
+		for( int i=0; i<SIZE; ++i ) {
+			float x = (float)i;
+			float y = (float)j;
+
+			const Tile& tile = tileArr[j*SIZE+i];
+			int path = GetPathMask( i, j );
+
+			if ( path == 0 ) 
+				continue;
+
+			Vector3F red[12];
+			Vector3F green[12];
+			int	nRed = 0, nGreen = 0;	
+			const float EPS = 0.2f;
+
+			Vector3F edge[5] = {
+				{ x, EPS, y+1.0f },
+				{ x+1.0f, EPS, y+1.0f },
+				{ x+1.0f, EPS, y },
+				{ x, EPS, y },
+				{ x, EPS, y+1.0f }
+			};
+			Vector3F center = { x+0.5f, 0, y+0.5f };
+
+			for( int k=0; k<4; ++k ) {
+				int mask = (1<<k);
+
+				if ( path & mask ) {
+					red[nRed+0] = edge[k];
+					red[nRed+1] = edge[k+1];
+					red[nRed+2] = center;
+					nRed += 3;
+				}
+				else {
+					green[nGreen+0] = edge[k];
+					green[nGreen+1] = edge[k+1];
+					green[nGreen+2] = center;
+					nGreen += 3;
+				}
+			}
+			GLASSERT( nRed <= 12 );
+			GLASSERT( nGreen <= 12 );
+
+			glColor4f( 1.f, 0.f, 0.f, 0.5f );
+			glVertexPointer( 3, GL_FLOAT, 0, red );
+ 			glDrawArrays( GL_TRIANGLES, 0, nRed );	
+			CHECK_GL_ERROR;
+
+			glColor4f( 0.f, 1.f, 0.f, 0.5f );
+			glVertexPointer( 3, GL_FLOAT, 0, green );
+ 			glDrawArrays( GL_TRIANGLES, 0, nGreen );	
+			CHECK_GL_ERROR;
+		}
+	}
+
+	glEnableClientState( GL_NORMAL_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+	glEnable( GL_TEXTURE_2D );
+	glDisable( GL_BLEND );
 }

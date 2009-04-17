@@ -63,6 +63,8 @@ public:
 	void RotateSelection( int delta );
 	void DeleteAtSelection();
 	void DeltaCurrentMapItem( int d );
+	void ShowPathing( bool show )	{ showPathing = show; }
+	bool IsShowingPathing()			{ return showPathing; }
 #endif
 
 	void SaveMap( FILE* fp )	{ engine.GetMap()->Save( fp ); }
@@ -139,6 +141,10 @@ private:
 
 	int rotTestStart;
 	int rotTestCount;
+
+#ifdef MAPMAKER	
+	bool showPathing;
+#endif
 
 	Texture			texture[MAX_TEXTURES];
 	ModelResource	modelResource[EL_MAX_MODEL_RESOURCES];
