@@ -491,6 +491,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\micropather\micropather.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\micropather\micropather.h"
+				>
+			</File>
+			<File
 				RelativePath=".\engine\model.cpp"
 				>
 			</File>

@@ -505,6 +505,17 @@ void ParticleSystem::DrawDecalParticles()
 			pV->color = color;
 			++pV;
 		}
+		if ( decalBuffer[i].rotation != 0.0f ) {
+			Matrix4 m;
+			Vector3F prime;
+			m.SetYRotation( decalBuffer[i].rotation );
+			pV -= 4;
+			for( int j=0; j<4; ++j ) {
+				prime = m * base[j].pos;
+				pV->pos = prime + pos;
+				++pV;
+			}
+		}
 		vertex += 4;
 	}
 

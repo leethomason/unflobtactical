@@ -20,6 +20,7 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glbitarray.h"
+#include "../micropather/micropather.h"
 #include "vertex.h"
 #include "surface.h"
 #include "enginelimits.h"
@@ -30,13 +31,24 @@ class SpaceTree;
 class RenderQueue;
 class Texture;
 
-class Map
+class Map : public micropather::Graph
 {
 public:
 	enum {
 		SIZE = 64,					// maximum size
 		MAX_ITEM_DEF = 256,
 		ITEM_PER_TILE = 4,
+
+		SOUTH_BIT		= 0,
+		EAST_BIT		= 1,
+		NORTH_BIT		= 2,
+		WEST_BIT		= 3,
+		SOUTHEAST_BIT	= 4,
+		NORTHEAST_BIT	= 5,
+		NORTHWEST_BIT	= 6,
+		SOUTHWEST_BIT	= 7,
+
+		
 	};
 
 	struct ItemDef 
@@ -86,6 +98,8 @@ public:
 
 	struct Tile
 	{
+		U32 pathMask;	// bits 0-3 bits are the mask.
+						//      4-31 is the query id
 		Item item[ITEM_PER_TILE];
 
 		int CountItems() const;
@@ -94,7 +108,7 @@ public:
 
 
 	Map( SpaceTree* tree );
-	~Map();
+	virtual ~Map();
 
 	int Height() { return height; }
 	int Width()  { return width; }
@@ -120,13 +134,24 @@ public:
 #endif
 	bool AddToTile( int x, int z, int itemDefIndex, int rotation );
 	void DeleteAt( int x, int z );
-	int GetPathMask( int x, int z ) const;
+	int GetPathMask( int x, int z );
 
 	void Save( FILE* fp );
 	void Load( FILE* fp );
 	void Clear();
 
 	void DumpTile( int x, int z );
+
+	// Solves a path on the map. Returns total cost. 
+	// returns MicroPather::SOLVED, NO_SOLUTION, START_END_SAME, or OUT_OF_MEMORY
+	int SolvePath(	const grinliz::Vector2<S16>& start,
+					const grinliz::Vector2<S16>& end,
+					float* cost,
+					grinliz::Vector2<S16>* path, int* nPath, int maxPath );
+
+	virtual float LeastCostEstimate( void* stateStart, void* stateEnd );
+	virtual void AdjacentCost( void* state, micropather::StateCost *adjacent, int* nAdjacent );
+	virtual void  PrintStateInfo( void* state );
 
 private:
 	struct IMat
@@ -136,6 +161,16 @@ private:
 		void Init( int w, int h, int r );
 		void Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out );
 	};
+
+	int InvertPathMask( U32 m ) {
+		U32 m0 = (m<<2) | (m>>2);
+		return m0 & 0xf;
+	}
+
+	bool Connected( int x, int y, int dir );
+
+	void StateToVec( const void* state, grinliz::Vector2<S16>* vec ) { *vec = *((grinliz::Vector2<S16>*)&state); }
+	void* VecToState( const grinliz::Vector2<S16>& vec )			 { return (void*)(*(int*)&vec); }
 
 	void CalcModelPos(	int x, int y, int r, const ItemDef& itemDef, 
 						grinliz::Rectangle2I* mapBounds,
@@ -163,7 +198,12 @@ private:
 	Texture finalMapTex;
 	Surface finalMap;
 	Surface* lightMap;
+	U32 queryID;
 
+	micropather::MicroPather* microPather;
+
+	enum { PATHER_MEM32 = 32*1024 };	// 128K
+	U32 patherMem[ PATHER_MEM32 ];
 	ItemDef itemDefArr[MAX_ITEM_DEF];
 	Tile    tileArr[ SIZE*SIZE ];
 };

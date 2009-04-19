@@ -70,11 +70,17 @@ private:
 		CIV_UNITS_END		= CIV_UNITS_START+MAX_CIVS,
 		ALIEN_UNITS_START	= CIV_UNITS_END,
 		ALIEN_UNITS_END		= ALIEN_UNITS_START+MAX_ALIENS,
-		MAX_UNITS			= ALIEN_UNITS_END
+		MAX_UNITS			= ALIEN_UNITS_END,
+
+		MAX_PATH			= 100
 	};
 	Model* crateTest;
 	int selected;
 	Unit units[MAX_UNITS];
+
+	grinliz::Vector2<S16> pathStart, pathEnd;
+	grinliz::Vector2<S16> path[MAX_PATH];
+	int pathLen;
 
 #ifdef MAPMAKER
 	// Mapmaker:

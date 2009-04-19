@@ -19,6 +19,9 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 
 	selected = -1;
 	engine  = &game->engine;
+	pathLen = 0;
+	pathStart.Set( -1, -1 );
+	pathEnd.Set( -1, -1 );
 
 	Texture* t = game->GetTexture( "icons" );	
 	widgets = new UIButtonBox( t );
@@ -205,6 +208,22 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 											 m->GetYRotation() );
 		}
 	}
+	if ( pathLen > 0 ) {
+		float rot = 0.0f;
+		for( int i=0; i<pathLen; ++i ) {
+			float alpha = 0.7f;
+			Vector3F pos = { (float)(path[i].x)+0.5f, 0.0f, (float)(path[i].y)+0.5f };
+			if ( i<pathLen-1 ) {
+				int dx = path[i+1].x - path[i].x;
+				int dy = path[i+1].y - path[i].y;
+				rot = ToDegree( atan2( (float)dx, (float)dy ) );
+			}
+
+			game->particleSystem->EmitDecal( ParticleSystem::DECAL_PATH, 
+											 pos, alpha,
+											 rot );
+		}
+	}
 }
 
 
@@ -279,6 +298,7 @@ void BattleScene::Drag( int action, const grinliz::Vector2I& screenRaw )
 			if ( draggingModel ) {
 				draggingModelOrigin = draggingModel->Pos();
 				selected = UnitFromModel( draggingModel );
+				pathLen = 0;
 			}
 			else {
 				dragStartCameraWC = engine->camera.PosWC();
@@ -296,9 +316,21 @@ void BattleScene::Drag( int action, const grinliz::Vector2I& screenRaw )
 			delta.y = 0.0f;
 
 			if ( draggingModel ) {
-				draggingModel->SetPos(	draggingModelOrigin.x + delta.x,
-										draggingModelOrigin.y,
-										draggingModelOrigin.z + delta.z );
+				//draggingModel->SetPos(	draggingModelOrigin.x + delta.x,
+				//						draggingModelOrigin.y,
+				//						draggingModelOrigin.z + delta.z );
+				Vector2<S16> start = { (S16)draggingModelOrigin.x, (S16)draggingModelOrigin.z };
+				Vector2<S16> end   = { (S16)(draggingModelOrigin.x+delta.x), (S16)(draggingModelOrigin.z+delta.z) };
+				if ( pathStart != start || pathEnd != end ) {
+					pathLen = 0;
+					pathStart = start;
+					pathEnd = end;
+
+					if ( start != end ) {
+						float cost;
+						engine->GetMap()->SolvePath( start, end, &cost, path, &pathLen, MAX_PATH );
+					}
+				}
 			}
 			else {
 				engine->camera.SetPosWC( dragStartCameraWC - delta );
