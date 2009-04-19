@@ -30,7 +30,7 @@ public:
 	enum {
 		MAX_POINT_PARTICLES = 400,
 		MAX_QUAD_PARTICLES = 100,
-		MAX_DECALS = 16
+		MAX_DECALS = 48
 	};
 
 	ParticleSystem();
@@ -51,6 +51,7 @@ public:
 	enum {
 		DECAL_DIR,
 		DECAL_SELECTED,
+		DECAL_PATH,
 		NUM_DECAL
 	};
 

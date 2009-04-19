@@ -22,12 +22,17 @@
 #include "text.h"
 
 using namespace grinliz;
+using namespace micropather;
 
 
 Map::Map( SpaceTree* tree )
 {
 	memset( itemDefArr, 0, sizeof(ItemDef)*MAX_ITEM_DEF );
 	memset( tileArr, 0, sizeof(Tile)*SIZE*SIZE );
+	microPather = new MicroPather(	this,									// graph interface
+									&patherMem, PATHER_MEM32*sizeof(U32),	// memory
+									8 );									// max adjacent states
+
 	this->tree = tree;
 	width = height = SIZE;
 	texture = 0;
@@ -53,6 +58,7 @@ Map::Map( SpaceTree* tree )
 	texture1[3].Set( 1.0f, 1.0f );
 
 	lightMap = 0;
+	queryID = 1;
 
 	finalMap.Set( SIZE, SIZE, 2 );
 	memset( finalMap.Pixels(), 255, SIZE*SIZE*2 );
@@ -64,6 +70,7 @@ Map::Map( SpaceTree* tree )
 Map::~Map()
 {
 	Clear();
+	delete microPather;
 }
 
 
@@ -295,49 +302,6 @@ void Map::IMat::Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out  )
 	out->x = a*in.x + b*in.y + x;
 	out->y = c*in.x + d*in.y + z;
 }
-
-
-
-int Map::GetPathMask( int x, int y ) const
-{
-	int index = y*SIZE+x;
-	const Tile& tile = tileArr[index];
-
-	int path = 0;
-	for( int i=0; i<ITEM_PER_TILE; ++i ) {
-		const Item* inItem = &tile.item[i];
-		if ( inItem->itemDefIndex == 0 ) {
-			continue;
-		}
-
-		Item* item = 0;
-		Tile* tile = 0;
-		Vector2I origin;
-		ResolveReference( inItem, &item, &tile, &origin.x, &origin.y );
-		int rot = item->rotation;
-
-		GLASSERT( rot >= 0 && rot < 4 );
-
-		// size
-		const ItemDef& itemDef = itemDefArr[item->itemDefIndex];
-		Vector2I size = { itemDef.cx, itemDef.cy };
-		Vector2I prime = { 0, 0 };
-
-		IMat iMat;
-		if ( size.x > 1 || size.y > 1 ) {
-			iMat.Init( size.x, size.y, rot );
-			iMat.Mult( origin, &prime );
-		}
-		GLASSERT( prime.x >= 0 && prime.x < itemDef.cx );
-		GLASSERT( prime.y >= 0 && prime.y < itemDef.cy );
-
-		U32 p = ( itemDef.pather[0][prime.y][prime.x] << rot );
-		p = p | (p>>4);
-		path |= (U8)(p&0xf);
-	}
-	return path;
-}
-
 
 
 Map::Tile* Map::GetTileFromItem( const Item* item, int* _layer, int* x, int *y ) const
@@ -780,4 +744,186 @@ void Map::DrawPath()
 	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 	glEnable( GL_TEXTURE_2D );
 	glDisable( GL_BLEND );
+}
+
+
+int Map::GetPathMask( int x, int y )
+{
+	int index = y*SIZE+x;
+	Tile* originTile = &tileArr[index];
+
+	U32 id = originTile->pathMask >> 4;
+	if ( id != queryID ) {
+		U32 path = 0;
+		for( int i=0; i<ITEM_PER_TILE; ++i ) {
+			const Item* inItem = &originTile->item[i];
+			if ( inItem->itemDefIndex == 0 ) {
+				continue;
+			}
+
+			Item* item = 0;
+			Tile* tile = 0;
+			Vector2I origin;
+			ResolveReference( inItem, &item, &tile, &origin.x, &origin.y );
+			int rot = item->rotation;
+
+			GLASSERT( rot >= 0 && rot < 4 );
+
+			// size
+			const ItemDef& itemDef = itemDefArr[item->itemDefIndex];
+			Vector2I size = { itemDef.cx, itemDef.cy };
+			Vector2I prime = { 0, 0 };
+
+			IMat iMat;
+			if ( size.x > 1 || size.y > 1 ) {
+				iMat.Init( size.x, size.y, rot );
+				iMat.Mult( origin, &prime );
+			}
+			GLASSERT( prime.x >= 0 && prime.x < itemDef.cx );
+			GLASSERT( prime.y >= 0 && prime.y < itemDef.cy );
+
+			U32 p = ( itemDef.pather[0][prime.y][prime.x] << rot );
+			p = p | (p>>4);
+			path |= (U8)(p&0xf);
+		}
+
+		GLASSERT( ( path & 0xfffffff0 ) == 0 );
+		originTile->pathMask = path | (queryID<<4);
+	}
+	return originTile->pathMask & 0xf;
+}
+
+
+float Map::LeastCostEstimate( void* stateStart, void* stateEnd )
+{
+	Vector2<S16> start, end;
+	StateToVec( stateStart, &start );
+	StateToVec( stateEnd, &end );
+
+	float dx = (float)(start.x-end.x);
+	float dy = (float)(start.y-end.y);
+
+	return sqrtf( dx*dx + dy*dy );
+}
+
+
+bool Map::Connected( int x, int y, int dir )
+{
+	const Vector2I next[4] = {
+		{ 0, 1 },
+		{ 1, 0 },
+		{ 0, -1 },
+		{ -1, 0 } 
+	};
+
+	int bit = 1<<dir;
+	Vector2I pos = { x, y };
+	Vector2I nextPos = pos + next[dir];
+
+	if ( InRange( pos.x, 0, SIZE-1 ) && InRange( pos.y, 0, SIZE-1 ) &&
+		 InRange( nextPos.x, 0, SIZE-1 ) && InRange( nextPos.y, 0, SIZE-1 ) ) 
+	{
+		int mask0 = GetPathMask( pos.x, pos.y );
+		int maskN = GetPathMask( nextPos.x, nextPos.y );
+		int inv = InvertPathMask( bit );
+
+		if ( (( mask0 & bit ) == 0 ) && (( maskN & inv ) == 0 ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+void Map::AdjacentCost( void* state, micropather::StateCost *adjacent, int* nAdjacent )
+{
+	Vector2<S16> pos;
+	StateToVec( state, &pos );
+
+	const Vector2<S16> next[8] = {
+		{ 0, 1 },
+		{ 1, 0 },
+		{ 0, -1 },
+		{ -1, 0 },
+
+		{ 1, 1 },
+		{ 1, -1 },
+		{ -1, -1 },
+		{ -1, 1 },
+	};
+	const float SQRT2 = 1.414f;
+	const float cost[8] = {	1.0f, 1.0f, 1.0f, 1.0f, SQRT2, SQRT2, SQRT2, SQRT2 };
+
+	*nAdjacent = 0;
+	// N S E W
+	for( int i=0; i<4; i++ ) {
+		if ( Connected( pos.x, pos.y, i ) ) {
+			Vector2<S16> nextPos = pos + next[i];
+			adjacent[*nAdjacent].cost = cost[i];
+			adjacent[*nAdjacent].state = VecToState( nextPos );
+			(*nAdjacent)++;
+		}
+	}
+	// Diagonals. Need to check if all the NSEW connections work. If
+	// so, then the diagonal connection works too.
+	for( int i=0; i<4; i++ ) {
+		int j=(i+1)&3;
+		Vector2<S16> nextPos = pos + next[i+4];
+		int iInv = (i+2)&3;
+		int jInv = (j+2)&3;
+		 
+		if (    Connected( pos.x, pos.y, i ) 
+			 && Connected( pos.x, pos.y, j )
+			 && Connected( nextPos.x, nextPos.y, iInv )
+			 && Connected( nextPos.x, nextPos.y, jInv ) ) 
+		{
+			adjacent[*nAdjacent].cost = cost[i+4];
+			adjacent[*nAdjacent].state = VecToState( nextPos );
+			(*nAdjacent)++;
+		}
+	}
+}
+
+
+void Map::PrintStateInfo( void* state )
+{
+	Vector2<S16> pos;
+	StateToVec( state, &pos );
+	GLOUTPUT(( "[%d,%d]", pos.x, pos.y ));
+}
+
+
+int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *cost, Vector2<S16>* path, int* nPath, int maxPath )
+{
+	GLASSERT( sizeof( int ) == sizeof( void* ));	// fix this for 64 bit
+	GLASSERT( sizeof(Vector2<S16>) == sizeof( void* ) );
+	++queryID;
+
+	unsigned pathNodesAllocated = microPather->PathNodesAllocated();
+	int result = microPather->Solve(	VecToState( start ),
+										VecToState( end ),
+										maxPath, 
+										(void**)path, nPath, cost );
+
+	if ( pathNodesAllocated > 0 && result == MicroPather::OUT_OF_MEMORY ) {
+		// MicroPather as of April09 doesn't free memory aggressively enough. This works
+		// around the problem by reset (frees all memory) and solving again.
+		// This makes the worse case - a long path consumes all the memory - by
+		// doing it again.
+		microPather->Reset();
+		result = microPather->Solve(	VecToState( start ),
+										VecToState( end ),
+										maxPath, 
+										(void**)path, nPath, cost );
+	}
+	
+	switch( result ) {
+		case MicroPather::SOLVED:			GLOUTPUT(( "Solved nPath=%d\n", *nPath ));			break;
+		case MicroPather::NO_SOLUTION:		GLOUTPUT(( "NoSolution nPath=%d\n", *nPath ));		break;
+		case MicroPather::START_END_SAME:	GLOUTPUT(( "StartEndSame nPath=%d\n", *nPath ));	break;
+		case MicroPather::OUT_OF_MEMORY:	GLOUTPUT(( "OutOfMemory nPath=%d\n", *nPath ));		break;
+		default:	GLASSERT( 0 );	break;
+	}
+	
+	return result;
 }
