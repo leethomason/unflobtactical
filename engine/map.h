@@ -135,6 +135,7 @@ public:
 	bool AddToTile( int x, int z, int itemDefIndex, int rotation );
 	void DeleteAt( int x, int z );
 	int GetPathMask( int x, int z );
+	void ResetPath();	// normally called automatically
 
 	void Save( FILE* fp );
 	void Load( FILE* fp );
@@ -149,6 +150,7 @@ public:
 					float* cost,
 					grinliz::Vector2<S16>* path, int* nPath, int maxPath );
 
+	// micropather:
 	virtual float LeastCostEstimate( void* stateStart, void* stateEnd );
 	virtual void AdjacentCost( void* state, micropather::StateCost *adjacent, int* nAdjacent );
 	virtual void  PrintStateInfo( void* state );
