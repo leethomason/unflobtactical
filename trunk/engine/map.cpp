@@ -393,6 +393,7 @@ bool Map::AddToTile( int x, int y, int defIndex, int rotation )
 	}
 
 	// Finally add!!
+	ResetPath();
 	Item* mainItem = 0;
 	for( int i=mapBounds.min.x; i<=mapBounds.max.x; ++i ) 
 	{
@@ -449,7 +450,7 @@ void Map::DeleteAt( int x, int y )
 	if ( layer < 0 || layer >= ITEM_PER_TILE ) {
 		return;
 	}
-
+	ResetPath();
 	const Item* mainItem = &tile->item[layer];
 
 	Rectangle2I bounds;
@@ -545,37 +546,6 @@ void Map::CalcModelPos(	int x, int y, int r, const ItemDef& itemDef,
 		}
 	}
 }
-
-/*
-void Map::SetModel( Model* model, int x, int y, const Item& item )
-{
-	Rectangle2I mapBounds;
-	Vector2F	origin;
-
-	CalcModelPos( x, y, item.rotation, itemDefArr[item.itemDefIndex], &mapBounds, &origin );
-
-	model->SetPos( origin.x, 0.0f, origin.y );
-	model->SetYRotation( 90.0f * (float)item.rotation );
-
-	for( int j=mapBounds.min.y; j<=mapBounds.max.y; ++j ) {
-		for( int i=mapBounds.min.x; i<=mapBounds.max.x; ++i ) {
-			if ( i != mapBounds.min.x && j != mapBounds.min.y ) 
-			{
-				Tile* tile = &tileArr[SIZE*j+i];
-				GLASSERT( tile->CountItems() < ITEM_PER_TILE );
-
-				int count = tile->FindFreeItem();
-				GLASSERT( count >= 0 );
-				if ( count >= 0 ) {
-					tile->item[count].itemDefIndex = item.itemDefIndex;
-					tile->item[count].rotation = 255;
-					tile->item[count].ref = &item;
-				}
-			}
-		}
-	}
-}
-*/
 
 
 void Map::Save( FILE* fp )
@@ -747,12 +717,23 @@ void Map::DrawPath()
 }
 
 
+void Map::ResetPath()
+{
+	microPather->Reset();
+}
+
+
 int Map::GetPathMask( int x, int y )
 {
+	// Handles both rotation of the object and rotation of the masks
+	// in the object. And tile resulotion. Tweaky function to get right.
+	//
 	int index = y*SIZE+x;
 	Tile* originTile = &tileArr[index];
 
 	U32 id = originTile->pathMask >> 4;
+	GLASSERT( id < 0xffffff );	// how did it get this big??
+
 	if ( id != queryID ) {
 		U32 path = 0;
 		for( int i=0; i<ITEM_PER_TILE; ++i ) {
@@ -769,11 +750,11 @@ int Map::GetPathMask( int x, int y )
 
 			GLASSERT( rot >= 0 && rot < 4 );
 
-			// size
 			const ItemDef& itemDef = itemDefArr[item->itemDefIndex];
 			Vector2I size = { itemDef.cx, itemDef.cy };
 			Vector2I prime = { 0, 0 };
 
+			// Account for object rotation (if needed)
 			IMat iMat;
 			if ( size.x > 1 || size.y > 1 ) {
 				iMat.Init( size.x, size.y, rot );
@@ -782,11 +763,13 @@ int Map::GetPathMask( int x, int y )
 			GLASSERT( prime.x >= 0 && prime.x < itemDef.cx );
 			GLASSERT( prime.y >= 0 && prime.y < itemDef.cy );
 
+			// Account for tile rotation. (Actually a bit rotation too, which is handy.)
 			U32 p = ( itemDef.pather[0][prime.y][prime.x] << rot );
 			p = p | (p>>4);
 			path |= (U8)(p&0xf);
 		}
 
+		// Write the information - and the query ID - back to the originalTile and cache it.
 		GLASSERT( ( path & 0xfffffff0 ) == 0 );
 		originTile->pathMask = path | (queryID<<4);
 	}
@@ -816,11 +799,16 @@ bool Map::Connected( int x, int y, int dir )
 		{ -1, 0 } 
 	};
 
+	GLASSERT( dir >= 0 && dir < 4 );
+	GLASSERT( x >=0 && x < SIZE );
+	GLASSERT( y >=0 && y < SIZE );
+
 	int bit = 1<<dir;
 	Vector2I pos = { x, y };
 	Vector2I nextPos = pos + next[dir];
 
-	if ( InRange( pos.x, 0, SIZE-1 ) && InRange( pos.y, 0, SIZE-1 ) &&
+	// To be connected, it must be clear from a->b and b->a
+	if ( InRange( pos.x, 0, SIZE-1 )     && InRange( pos.y, 0, SIZE-1 ) &&
 		 InRange( nextPos.x, 0, SIZE-1 ) && InRange( nextPos.y, 0, SIZE-1 ) ) 
 	{
 		int mask0 = GetPathMask( pos.x, pos.y );
@@ -916,7 +904,7 @@ int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *c
 										maxPath, 
 										(void**)path, nPath, cost );
 	}
-	
+	/*
 	switch( result ) {
 		case MicroPather::SOLVED:			GLOUTPUT(( "Solved nPath=%d\n", *nPath ));			break;
 		case MicroPather::NO_SOLUTION:		GLOUTPUT(( "NoSolution nPath=%d\n", *nPath ));		break;
@@ -924,6 +912,6 @@ int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *c
 		case MicroPather::OUT_OF_MEMORY:	GLOUTPUT(( "OutOfMemory nPath=%d\n", *nPath ));		break;
 		default:	GLASSERT( 0 );	break;
 	}
-	
+	*/
 	return result;
 }
