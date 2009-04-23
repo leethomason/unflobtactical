@@ -566,6 +566,7 @@ ACObject *ac_load_ac3d(char *fname)
     if (f == NULL)
     {
 	printf("can't open %s\n", fname);
+		exit(1);
 	return(NULL);
     }
 

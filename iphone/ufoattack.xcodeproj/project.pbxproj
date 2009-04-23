@@ -16,6 +16,33 @@
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
 		9A11BDBD0ECFE24000ABFA03 /* stdfont2.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A11BDBC0ECFE24000ABFA03 /* stdfont2.tex */; };
+		9A221E090F9C0D820012CE00 /* micropather.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A221E070F9C0D820012CE00 /* micropather.cpp */; };
+		9A221E2C0F9C0EB00012CE00 /* gameresources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A221E290F9C0EB00012CE00 /* gameresources.cpp */; };
+		9A221E2D0F9C0EB00012CE00 /* unit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A221E2A0F9C0EB00012CE00 /* unit.cpp */; };
+		9A221E620F9C0F4D0012CE00 /* farmBed.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E4B0F9C0F4D0012CE00 /* farmBed.mod */; };
+		9A221E630F9C0F4D0012CE00 /* farmTable.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E4C0F9C0F4D0012CE00 /* farmTable.mod */; };
+		9A221E640F9C0F4D0012CE00 /* farmTable2x1.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E4D0F9C0F4D0012CE00 /* farmTable2x1.mod */; };
+		9A221E650F9C0F4D0012CE00 /* farmWheat.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E4E0F9C0F4D0012CE00 /* farmWheat.mod */; };
+		9A221E660F9C0F4D0012CE00 /* femaleCiv.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E4F0F9C0F4D0012CE00 /* femaleCiv.mod */; };
+		9A221E670F9C0F4D0012CE00 /* lander.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E500F9C0F4D0012CE00 /* lander.mod */; };
+		9A221E680F9C0F4D0012CE00 /* lannder.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E510F9C0F4D0012CE00 /* lannder.tex */; };
+		9A221E690F9C0F4D0012CE00 /* maleCiv.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E520F9C0F4D0012CE00 /* maleCiv.mod */; };
+		9A221E6A0F9C0F4D0012CE00 /* ufo_CrnrInn.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E530F9C0F4D0012CE00 /* ufo_CrnrInn.mod */; };
+		9A221E6B0F9C0F4D0012CE00 /* ufo_Diag.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E540F9C0F4D0012CE00 /* ufo_Diag.mod */; };
+		9A221E6C0F9C0F4D0012CE00 /* ufo_DoorCld.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E550F9C0F4D0012CE00 /* ufo_DoorCld.mod */; };
+		9A221E6D0F9C0F4D0012CE00 /* ufo_DoorOpn.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E560F9C0F4D0012CE00 /* ufo_DoorOpn.mod */; };
+		9A221E6E0F9C0F4D0012CE00 /* ufo_Join0.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E570F9C0F4D0012CE00 /* ufo_Join0.mod */; };
+		9A221E6F0F9C0F4D0012CE00 /* ufo_Join1.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E580F9C0F4D0012CE00 /* ufo_Join1.mod */; };
+		9A221E700F9C0F4D0012CE00 /* ufo_WallInn.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E590F9C0F4D0012CE00 /* ufo_WallInn.mod */; };
+		9A221E710F9C0F4D0012CE00 /* ufo_WallOut.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E5A0F9C0F4D0012CE00 /* ufo_WallOut.mod */; };
+		9A221E720F9C0F4D0012CE00 /* woodCrnr.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E5B0F9C0F4D0012CE00 /* woodCrnr.mod */; };
+		9A221E730F9C0F4D0012CE00 /* woodCrnrD.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E5C0F9C0F4D0012CE00 /* woodCrnrD.mod */; };
+		9A221E740F9C0F4D0012CE00 /* woodDoorCld.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E5D0F9C0F4D0012CE00 /* woodDoorCld.mod */; };
+		9A221E750F9C0F4D0012CE00 /* woodDoorOpn.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E5E0F9C0F4D0012CE00 /* woodDoorOpn.mod */; };
+		9A221E760F9C0F4D0012CE00 /* woodPlankD.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E5F0F9C0F4D0012CE00 /* woodPlankD.tex */; };
+		9A221E770F9C0F4D0012CE00 /* woodWall.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E600F9C0F4D0012CE00 /* woodWall.mod */; };
+		9A221E780F9C0F4D0012CE00 /* woodWallWin.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E610F9C0F4D0012CE00 /* woodWallWin.mod */; };
+		9A221EC10FA0104A0012CE00 /* translucent.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A221EC00FA0104A0012CE00 /* translucent.tex */; };
 		9A5B8C4A0EBEA60600BA5C70 /* cgame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B8C480EBEA60600BA5C70 /* cgame.cpp */; };
 		9A69091E0F3372CB005AE44E /* fixedgeom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A6909180F3372CB005AE44E /* fixedgeom.cpp */; };
 		9A69091F0F3372CB005AE44E /* loosequadtree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A69091A0F3372CB005AE44E /* loosequadtree.cpp */; };
@@ -97,6 +124,35 @@
 		32CA4F630368D1EE00C91783 /* ufoattack_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ufoattack_Prefix.pch; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9A11BDBC0ECFE24000ABFA03 /* stdfont2.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = stdfont2.tex; path = ../res/stdfont2.tex; sourceTree = SOURCE_ROOT; };
+		9A221E070F9C0D820012CE00 /* micropather.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = micropather.cpp; path = ../micropather/micropather.cpp; sourceTree = SOURCE_ROOT; };
+		9A221E080F9C0D820012CE00 /* micropather.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = micropather.h; path = ../micropather/micropather.h; sourceTree = SOURCE_ROOT; };
+		9A221E290F9C0EB00012CE00 /* gameresources.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gameresources.cpp; path = ../game/gameresources.cpp; sourceTree = SOURCE_ROOT; };
+		9A221E2A0F9C0EB00012CE00 /* unit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = unit.cpp; path = ../game/unit.cpp; sourceTree = SOURCE_ROOT; };
+		9A221E2B0F9C0EB00012CE00 /* unit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = unit.h; path = ../game/unit.h; sourceTree = SOURCE_ROOT; };
+		9A221E4B0F9C0F4D0012CE00 /* farmBed.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = farmBed.mod; path = ../res/farmBed.mod; sourceTree = SOURCE_ROOT; };
+		9A221E4C0F9C0F4D0012CE00 /* farmTable.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = farmTable.mod; path = ../res/farmTable.mod; sourceTree = SOURCE_ROOT; };
+		9A221E4D0F9C0F4D0012CE00 /* farmTable2x1.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = farmTable2x1.mod; path = ../res/farmTable2x1.mod; sourceTree = SOURCE_ROOT; };
+		9A221E4E0F9C0F4D0012CE00 /* farmWheat.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = farmWheat.mod; path = ../res/farmWheat.mod; sourceTree = SOURCE_ROOT; };
+		9A221E4F0F9C0F4D0012CE00 /* femaleCiv.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = femaleCiv.mod; path = ../res/femaleCiv.mod; sourceTree = SOURCE_ROOT; };
+		9A221E500F9C0F4D0012CE00 /* lander.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = lander.mod; path = ../res/lander.mod; sourceTree = SOURCE_ROOT; };
+		9A221E510F9C0F4D0012CE00 /* lannder.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = lannder.tex; path = ../res/lannder.tex; sourceTree = SOURCE_ROOT; };
+		9A221E520F9C0F4D0012CE00 /* maleCiv.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = maleCiv.mod; path = ../res/maleCiv.mod; sourceTree = SOURCE_ROOT; };
+		9A221E530F9C0F4D0012CE00 /* ufo_CrnrInn.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = ufo_CrnrInn.mod; path = ../res/ufo_CrnrInn.mod; sourceTree = SOURCE_ROOT; };
+		9A221E540F9C0F4D0012CE00 /* ufo_Diag.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = ufo_Diag.mod; path = ../res/ufo_Diag.mod; sourceTree = SOURCE_ROOT; };
+		9A221E550F9C0F4D0012CE00 /* ufo_DoorCld.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = ufo_DoorCld.mod; path = ../res/ufo_DoorCld.mod; sourceTree = SOURCE_ROOT; };
+		9A221E560F9C0F4D0012CE00 /* ufo_DoorOpn.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = ufo_DoorOpn.mod; path = ../res/ufo_DoorOpn.mod; sourceTree = SOURCE_ROOT; };
+		9A221E570F9C0F4D0012CE00 /* ufo_Join0.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = ufo_Join0.mod; path = ../res/ufo_Join0.mod; sourceTree = SOURCE_ROOT; };
+		9A221E580F9C0F4D0012CE00 /* ufo_Join1.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = ufo_Join1.mod; path = ../res/ufo_Join1.mod; sourceTree = SOURCE_ROOT; };
+		9A221E590F9C0F4D0012CE00 /* ufo_WallInn.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = ufo_WallInn.mod; path = ../res/ufo_WallInn.mod; sourceTree = SOURCE_ROOT; };
+		9A221E5A0F9C0F4D0012CE00 /* ufo_WallOut.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = ufo_WallOut.mod; path = ../res/ufo_WallOut.mod; sourceTree = SOURCE_ROOT; };
+		9A221E5B0F9C0F4D0012CE00 /* woodCrnr.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodCrnr.mod; path = ../res/woodCrnr.mod; sourceTree = SOURCE_ROOT; };
+		9A221E5C0F9C0F4D0012CE00 /* woodCrnrD.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodCrnrD.mod; path = ../res/woodCrnrD.mod; sourceTree = SOURCE_ROOT; };
+		9A221E5D0F9C0F4D0012CE00 /* woodDoorCld.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodDoorCld.mod; path = ../res/woodDoorCld.mod; sourceTree = SOURCE_ROOT; };
+		9A221E5E0F9C0F4D0012CE00 /* woodDoorOpn.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodDoorOpn.mod; path = ../res/woodDoorOpn.mod; sourceTree = SOURCE_ROOT; };
+		9A221E5F0F9C0F4D0012CE00 /* woodPlankD.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodPlankD.tex; path = ../res/woodPlankD.tex; sourceTree = SOURCE_ROOT; };
+		9A221E600F9C0F4D0012CE00 /* woodWall.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodWall.mod; path = ../res/woodWall.mod; sourceTree = SOURCE_ROOT; };
+		9A221E610F9C0F4D0012CE00 /* woodWallWin.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodWallWin.mod; path = ../res/woodWallWin.mod; sourceTree = SOURCE_ROOT; };
+		9A221EC00FA0104A0012CE00 /* translucent.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = translucent.tex; path = ../res/translucent.tex; sourceTree = SOURCE_ROOT; };
 		9A5B8C480EBEA60600BA5C70 /* cgame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = cgame.cpp; path = ../game/cgame.cpp; sourceTree = SOURCE_ROOT; };
 		9A5B8C490EBEA60600BA5C70 /* cgame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cgame.h; path = ../game/cgame.h; sourceTree = SOURCE_ROOT; };
 		9A6909110F3371AF005AE44E /* glfixed.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glfixed.h; path = ../grinliz/glfixed.h; sourceTree = SOURCE_ROOT; };
@@ -264,6 +320,30 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9A221EC00FA0104A0012CE00 /* translucent.tex */,
+				9A221E4B0F9C0F4D0012CE00 /* farmBed.mod */,
+				9A221E4C0F9C0F4D0012CE00 /* farmTable.mod */,
+				9A221E4D0F9C0F4D0012CE00 /* farmTable2x1.mod */,
+				9A221E4E0F9C0F4D0012CE00 /* farmWheat.mod */,
+				9A221E4F0F9C0F4D0012CE00 /* femaleCiv.mod */,
+				9A221E500F9C0F4D0012CE00 /* lander.mod */,
+				9A221E510F9C0F4D0012CE00 /* lannder.tex */,
+				9A221E520F9C0F4D0012CE00 /* maleCiv.mod */,
+				9A221E530F9C0F4D0012CE00 /* ufo_CrnrInn.mod */,
+				9A221E540F9C0F4D0012CE00 /* ufo_Diag.mod */,
+				9A221E550F9C0F4D0012CE00 /* ufo_DoorCld.mod */,
+				9A221E560F9C0F4D0012CE00 /* ufo_DoorOpn.mod */,
+				9A221E570F9C0F4D0012CE00 /* ufo_Join0.mod */,
+				9A221E580F9C0F4D0012CE00 /* ufo_Join1.mod */,
+				9A221E590F9C0F4D0012CE00 /* ufo_WallInn.mod */,
+				9A221E5A0F9C0F4D0012CE00 /* ufo_WallOut.mod */,
+				9A221E5B0F9C0F4D0012CE00 /* woodCrnr.mod */,
+				9A221E5C0F9C0F4D0012CE00 /* woodCrnrD.mod */,
+				9A221E5D0F9C0F4D0012CE00 /* woodDoorCld.mod */,
+				9A221E5E0F9C0F4D0012CE00 /* woodDoorOpn.mod */,
+				9A221E5F0F9C0F4D0012CE00 /* woodPlankD.tex */,
+				9A221E600F9C0F4D0012CE00 /* woodWall.mod */,
+				9A221E610F9C0F4D0012CE00 /* woodWallWin.mod */,
 				9AF8D0BD0F6D6D91000B778E /* farmlandN.tex */,
 				9AF8D0BE0F6D6D91000B778E /* particleQuad.tex */,
 				9AF8D0BF0F6D6D91000B778E /* particleSparkle.tex */,
@@ -358,6 +438,8 @@
 		9AF644A70EAAFCBB004FB696 /* engine */ = {
 			isa = PBXGroup;
 			children = (
+				9A221E070F9C0D820012CE00 /* micropather.cpp */,
+				9A221E080F9C0D820012CE00 /* micropather.h */,
 				9A969EAB0F6DA8F10063A7A6 /* serialize.cpp */,
 				9A969EAC0F6DA8F10063A7A6 /* serialize.h */,
 				9AF8D0A10F6D6C5B000B778E /* particle.cpp */,
@@ -394,6 +476,9 @@
 		9AF6454A0EAC4FA4004FB696 /* game */ = {
 			isa = PBXGroup;
 			children = (
+				9A221E290F9C0EB00012CE00 /* gameresources.cpp */,
+				9A221E2A0F9C0EB00012CE00 /* unit.cpp */,
+				9A221E2B0F9C0EB00012CE00 /* unit.h */,
 				9A73A42A0F7891F400DADEEA /* characterscene.cpp */,
 				9A73A42B0F7891F400DADEEA /* characterscene.h */,
 				9A73A4120F75500200DADEEA /* battlescene.cpp */,
@@ -487,6 +572,30 @@
 				9AF8D0C00F6D6D91000B778E /* farmlandN.tex in Resources */,
 				9AF8D0C10F6D6D91000B778E /* particleQuad.tex in Resources */,
 				9AF8D0C20F6D6D91000B778E /* particleSparkle.tex in Resources */,
+				9A221E620F9C0F4D0012CE00 /* farmBed.mod in Resources */,
+				9A221E630F9C0F4D0012CE00 /* farmTable.mod in Resources */,
+				9A221E640F9C0F4D0012CE00 /* farmTable2x1.mod in Resources */,
+				9A221E650F9C0F4D0012CE00 /* farmWheat.mod in Resources */,
+				9A221E660F9C0F4D0012CE00 /* femaleCiv.mod in Resources */,
+				9A221E670F9C0F4D0012CE00 /* lander.mod in Resources */,
+				9A221E680F9C0F4D0012CE00 /* lannder.tex in Resources */,
+				9A221E690F9C0F4D0012CE00 /* maleCiv.mod in Resources */,
+				9A221E6A0F9C0F4D0012CE00 /* ufo_CrnrInn.mod in Resources */,
+				9A221E6B0F9C0F4D0012CE00 /* ufo_Diag.mod in Resources */,
+				9A221E6C0F9C0F4D0012CE00 /* ufo_DoorCld.mod in Resources */,
+				9A221E6D0F9C0F4D0012CE00 /* ufo_DoorOpn.mod in Resources */,
+				9A221E6E0F9C0F4D0012CE00 /* ufo_Join0.mod in Resources */,
+				9A221E6F0F9C0F4D0012CE00 /* ufo_Join1.mod in Resources */,
+				9A221E700F9C0F4D0012CE00 /* ufo_WallInn.mod in Resources */,
+				9A221E710F9C0F4D0012CE00 /* ufo_WallOut.mod in Resources */,
+				9A221E720F9C0F4D0012CE00 /* woodCrnr.mod in Resources */,
+				9A221E730F9C0F4D0012CE00 /* woodCrnrD.mod in Resources */,
+				9A221E740F9C0F4D0012CE00 /* woodDoorCld.mod in Resources */,
+				9A221E750F9C0F4D0012CE00 /* woodDoorOpn.mod in Resources */,
+				9A221E760F9C0F4D0012CE00 /* woodPlankD.tex in Resources */,
+				9A221E770F9C0F4D0012CE00 /* woodWall.mod in Resources */,
+				9A221E780F9C0F4D0012CE00 /* woodWallWin.mod in Resources */,
+				9A221EC10FA0104A0012CE00 /* translucent.tex in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -528,6 +637,9 @@
 				9A969EAD0F6DA8F10063A7A6 /* serialize.cpp in Sources */,
 				9A73A4150F75500200DADEEA /* battlescene.cpp in Sources */,
 				9A73A42C0F7891F400DADEEA /* characterscene.cpp in Sources */,
+				9A221E090F9C0D820012CE00 /* micropather.cpp in Sources */,
+				9A221E2C0F9C0EB00012CE00 /* gameresources.cpp in Sources */,
+				9A221E2D0F9C0EB00012CE00 /* unit.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

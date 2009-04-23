@@ -41,6 +41,7 @@ Note that setting the view non-opaque will only work if the EAGL surface has an 
 	
 	bool isDragging;
 	bool isZooming;
+	float orbitStart;
 	CGPoint lastDrag;
 }
 

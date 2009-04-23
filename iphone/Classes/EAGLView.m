@@ -223,6 +223,13 @@
 		
 		GameZoom( game, GAME_ZOOM_START, distance );
 		isZooming = true;
+
+		//NSArray *touchesArray = [[event allTouches] allObjects];
+		CGPoint p0 = [touch1 locationInView:self];
+		CGPoint p1 = [touch2 locationInView:self];
+		orbitStart = -atan2( p0.x-p1.x, p0.y-p1.y )*180.0f/3.14159f;
+		NSLog(@"orbitStart=%.2f", orbitStart );
+		GameCameraRotate( game, GAME_ROTATE_START, orbitStart ); 
 	}
 }
 
@@ -256,6 +263,13 @@
 			
 			GameZoom( game, GAME_ZOOM_START, distance );
 			isZooming = true;
+			
+			NSArray *touchesArray = [[event allTouches] allObjects];
+			CGPoint p0 = [[touchesArray objectAtIndex:0] locationInView:self];
+			CGPoint p1 = [[touchesArray objectAtIndex:1] locationInView:self];
+			orbitStart = -atan2( p0.x-p1.x, p0.y-p1.y )*180.0f/3.14159f;
+			NSLog(@"orbitStart=%.2f", orbitStart );
+			GameCameraRotate( game, GAME_ROTATE_START, orbitStart ); 
 		}
 	}
 	else if ( isZooming ) {
@@ -274,6 +288,9 @@
 			
 			GameZoom( game, GAME_ZOOM_MOVE, distance );
 			//NSLog(@"  zoom distance=%.2f", distance );
+			float r = -atan2( p0.x-p1.x, p0.y-p1.y )*180.0f/3.14159f;
+			GameCameraRotate( game, GAME_ROTATE_MOVE, r-orbitStart ); 
+			NSLog(@"r=%.2f", r );
 		}
 	}
 }
