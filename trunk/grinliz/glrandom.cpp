@@ -28,6 +28,8 @@ distribution.
 
 #include "glrandom.h"
 #include <math.h>
+#include <string.h>
+	
 using namespace grinliz;
 
 

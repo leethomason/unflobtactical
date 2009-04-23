@@ -592,7 +592,7 @@ void Map::Load( FILE* fp )
 
 	for( int j=0; j<SIZE; ++j ) {
 		for( int i=0; i<SIZE; ++i ) {
-			Tile* tile = tileArr + ((j*SIZE)+i);
+			//Tile* tile = tileArr + ((j*SIZE)+i);
 			
 			U8 count;
 			fread( &count, 1, 1, fp );
@@ -606,6 +606,7 @@ void Map::Load( FILE* fp )
 				if ( defIndex > 0 ) {
 					bool result = AddToTile( i, j, defIndex, rotation ); 
 					GLASSERT( result );
+					(void)result;
 				}
 			}
 		}
@@ -659,7 +660,7 @@ void Map::DrawPath()
 			float x = (float)i;
 			float y = (float)j;
 
-			const Tile& tile = tileArr[j*SIZE+i];
+			//const Tile& tile = tileArr[j*SIZE+i];
 			int path = GetPathMask( i, j );
 
 			if ( path == 0 ) 

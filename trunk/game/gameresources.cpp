@@ -132,7 +132,7 @@ void Game::LoadModels()
 {
 	memset( modelResource, 0, sizeof(ModelResource)*EL_MAX_MODEL_RESOURCES );
 
-	FILE* fp = 0;
+	//FILE* fp = 0;
 
 	for( int i=0; gModelNames[i]; ++i ) {
 		LoadModel( gModelNames[i] );
