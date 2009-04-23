@@ -151,26 +151,7 @@ void SpaceTree::FreeModel( Model* model )
 	//GLOUTPUT(( "Free model: %d/%d\n", allocated, EL_MAX_MODELS ));
 }
 
-
-void SpaceTree::Update( Model* model )
-{
-	// Unlink if currently in tree.
-	Item* item = (Item*)model;	// cast depends on model being first in the structure.
-	GLASSERT( item >= &modelPool[0] );
-	GLASSERT( item < &modelPool[EL_MAX_MODELS] );
-
-	// circular list - this always works.
-	GLASSERT( !model->Sentinel() );
-	item->Unlink();
-
-	// Get basics.
-	Circle circle;
-	model->CalcBoundCircle( &circle );
-	//int modelSize = circlex.radius.Ceil();
-
-	int x = (int)circle.origin.x;
-	int z = (int)circle.origin.y;
-
+// Based on this idea:
 	/* 
 	I've used a scheme which is like an octree, but tweaked to make it
 	easy to move objects.  Basically, I used a fixed level of subdivision
@@ -200,29 +181,75 @@ void SpaceTree::Update( Model* model )
 	http://world.std.com/~ulrich
 	*/
 
+void SpaceTree::Update( Model* model )
+{
+	// Unlink if currently in tree.
+	Item* item = (Item*)model;	// cast depends on model being first in the structure.
+	GLASSERT( item >= &modelPool[0] );
+	GLASSERT( item < &modelPool[EL_MAX_MODELS] );
+
+	// circular list - this always works.
+	GLASSERT( !model->Sentinel() );
+	item->Unlink();
+
 	// Since the tree is somewhat modified from the ideal, start with the 
 	// most idea node and work up. Note that everything fits at the top node.
 	int depth = DEPTH-1;
-
+	//Rectangle3F aabb;
 	Node* node = 0;
-	while( depth > 0 ) {
-		node = GetNode( depth, x, z );
-		if (    circle.origin.x - circle.radius >= float( node->looseX )
-			 && circle.origin.y - circle.radius >= float( node->looseZ )
-			 && circle.origin.x + circle.radius <= float( node->looseX + node->looseSize )
-			 && circle.origin.y + circle.radius <= float( node->looseZ + node->looseSize ) )
-		{
-			// fits.
-			break;
-		}
-		--depth;
-	}
-	++nodeAddedAtDepth[depth];
+	
+	/*
+	// Works, doesn't seem to help.
+	// Needs more testnig.
+	if ( model->CalcAABB( &aabb ) ) {
+		// use the tight bounds.
+		int x = (int)((aabb.min.x));	// + aabb.max.x)*0.5f);
+		int z = (int)((aabb.min.z));	// + aabb.max.z)*0.5f);
 
+		while( depth > 0 ) {
+			node = GetNode( depth, x, z );
+			if (    aabb.min.x >= float( node->looseX )
+				 && aabb.min.z >= float( node->looseZ )
+				 && aabb.max.x <= float( node->looseX + node->looseSize )
+				 && aabb.max.z <= float( node->looseZ + node->looseSize ) )
+			{
+				// fits.
+				break;
+			}
+			--depth;
+		}
+		++nodeAddedAtDepth[depth];
+	}
+	else */
+	{
+		// Use the loser circle bounds.
+		// Get basics.
+		Circle circle;
+		model->CalcBoundCircle( &circle );
+		//int modelSize = circlex.radius.Ceil();
+
+		int x = (int)circle.origin.x;
+		int z = (int)circle.origin.y;
+
+		while( depth > 0 ) {
+			node = GetNode( depth, x, z );
+			if (    circle.origin.x - circle.radius >= float( node->looseX )
+				 && circle.origin.y - circle.radius >= float( node->looseZ )
+				 && circle.origin.x + circle.radius <= float( node->looseX + node->looseSize )
+				 && circle.origin.y + circle.radius <= float( node->looseZ + node->looseSize ) )
+			{
+				// fits.
+				break;
+			}
+			--depth;
+		}
+		++nodeAddedAtDepth[depth];
+	}
+
+	/*
 #ifdef DEBUG
 	if ( depth > 0 ) {
 		Circle c;
-		Rectangle3F aabb;
 		node->CalcAABB( &aabb, yMin, yMax );
 
 		model->CalcBoundCircle( &c );
@@ -233,6 +260,7 @@ void SpaceTree::Update( Model* model )
 		GLASSERT( c.origin.y + c.radius <= aabb.max.z );
 	}
 #endif
+	*/
 
 	// Link it in.
 	item->Link( &node->sentinel );

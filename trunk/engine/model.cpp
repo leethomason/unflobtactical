@@ -71,7 +71,8 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	res->boundRadius2D = sqrtf( longestR2 );
 
 	// compute the hit testing AABB
-	float ave = ( res->header.bounds.SizeX() + res->header.bounds.SizeZ() ) * 0.5f;
+	//float ave = ( res->header.bounds.SizeX() + res->header.bounds.SizeZ() ) * 0.5f;
+	float ave = Max( res->header.bounds.SizeX(), res->header.bounds.SizeZ() );
 	res->hitBounds.min.Set( res->boundSphere.origin.x - ave/2, res->header.bounds.min.y, res->boundSphere.origin.z - ave/2 );
 	res->hitBounds.max.Set( res->boundSphere.origin.x + ave/2, res->header.bounds.max.y, res->boundSphere.origin.z + ave/2 );
 
@@ -245,6 +246,59 @@ void Model::CalcHitAABB( Rectangle3F* aabb )
 	// This is already an approximation - ignore rotation.
 	aabb->min = pos + resource->hitBounds.min;
 	aabb->max = pos + resource->hitBounds.max;
+}
+
+
+bool Model::CalcAABB( grinliz::Rectangle3F* aabb )
+{
+	const Vector3F& a = resource->header.bounds.max;
+	const Vector3F& b = resource->header.bounds.min;
+	Vector3F min = { 0, 0, 0 };
+	Vector3F max = { 0, 0, 0 };
+	bool result = false;
+
+	if ( rot == 0.0f ) {
+		// x' = x
+		// z' = z
+		min = b;
+		max = a;
+		result = true;
+	}
+	else if ( rot == 90.0f ) {
+		// x' = z
+		// z' = -x;
+		min.x = b.z;
+		min.z = -a.x;
+		max.x = a.z;
+		max.z = -b.x;
+		result = true;
+	}
+	else if ( rot == 180.0f ) {
+		// x' = -x
+		// z' = -z
+		min.x = -a.x;
+		min.z = -a.z;
+		max.x = -b.x;
+		max.z = -b.z;
+		result = true;
+	}
+	else if ( rot == 270.0f ) {
+		// x' = -z
+		// z' = x
+		min.x = -a.z;
+		min.z = b.x;
+		max.x = -b.z;
+		max.z = a.x;
+		result = true;
+	}
+	if ( result ) {
+		GLASSERT( min.x <= max.x );
+		GLASSERT( min.y <= max.y );
+		GLASSERT( min.z <= max.z );
+		aabb->min = pos + min;
+		aabb->max = pos + max;
+	}
+	return result;
 }
 
 
