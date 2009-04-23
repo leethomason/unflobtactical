@@ -192,7 +192,7 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 
 
 
-void ParticleSystem::EmitDecal( int id, const grinliz::Vector3F& pos, float alpha, float rotation )
+void ParticleSystem::EmitDecal( int id, int flags, const grinliz::Vector3F& pos, float alpha, float rotation )
 {
 	GLASSERT( id >= 0 && id < NUM_DECAL );
 	const Color4F color		= { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -205,6 +205,7 @@ void ParticleSystem::EmitDecal( int id, const grinliz::Vector3F& pos, float alph
 	decalBuffer[nDecals].color.w = alpha ;
 	decalBuffer[nDecals].subType = id;
 	decalBuffer[nDecals].rotation = rotation;
+	decalBuffer[nDecals].flags = flags;
 	nDecals++;
 }
 
@@ -302,7 +303,12 @@ void ParticleSystem::Draw( const Vector3F* eyeDir )
 
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	DrawPointParticles();
-	DrawDecalParticles();
+
+	DrawDecalParticles( DECAL_BOTTOM );
+	glDisable( GL_DEPTH_TEST );
+	DrawDecalParticles( DECAL_TOP );
+	glEnable( GL_DEPTH_TEST );
+	nDecals = 0;
 
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE );
 	DrawQuadParticles( eyeDir );
@@ -453,7 +459,7 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 }
 
 	
-void ParticleSystem::DrawDecalParticles()
+void ParticleSystem::DrawDecalParticles( int flag )
 {
 	if ( nDecals == 0 ) {
 		return;
@@ -476,77 +482,81 @@ void ParticleSystem::DrawDecalParticles()
 
 	int index = 0;
 	int vertex = 0;
+	int count = 0;
 
 	for( int i=0; i<nDecals; ++i ) 
 	{
-		const int type	  = SELECTION;
-		const int subType = decalBuffer[i].subType;
+		if ( decalBuffer[i].flags & flag ) {
+			const int type	  = SELECTION;
+			const int subType = decalBuffer[i].subType;
 
-		const float tx = 0.25f * (float)subType;
-		const float ty = 0.25f * (float)type;
-		
-		const Vector3F& pos  = decalBuffer[i].pos;
-		const Color4F& color = decalBuffer[i].color;
+			const float tx = 0.25f * (float)subType;
+			const float ty = 0.25f * (float)type;
+			
+			const Vector3F& pos  = decalBuffer[i].pos;
+			const Color4F& color = decalBuffer[i].color;
 
-		// Set up the particle that everything else is derived from:
-		quadIndexBuffer[index++] = vertex+0;
-		quadIndexBuffer[index++] = vertex+1;
-		quadIndexBuffer[index++] = vertex+2;
+			// Set up the particle that everything else is derived from:
+			quadIndexBuffer[index++] = vertex+0;
+			quadIndexBuffer[index++] = vertex+1;
+			quadIndexBuffer[index++] = vertex+2;
 
-		quadIndexBuffer[index++] = vertex+0;
-		quadIndexBuffer[index++] = vertex+2;
-		quadIndexBuffer[index++] = vertex+3;
+			quadIndexBuffer[index++] = vertex+0;
+			quadIndexBuffer[index++] = vertex+2;
+			quadIndexBuffer[index++] = vertex+3;
 
-		QuadVertex* pV = &vertexBuffer[vertex];
+			QuadVertex* pV = &vertexBuffer[vertex];
 
-		for( int j=0; j<4; ++j ) {
-			pV->pos = base[j].pos + pos;
-			pV->tex.Set( tx+tex[j].x, ty+tex[j].y );
-			pV->color = color;
-			++pV;
-		}
-		if ( decalBuffer[i].rotation != 0.0f ) {
-			Matrix4 m;
-			Vector3F prime;
-			m.SetYRotation( decalBuffer[i].rotation );
-			pV -= 4;
 			for( int j=0; j<4; ++j ) {
-				prime = m * base[j].pos;
-				pV->pos = prime + pos;
+				pV->pos = base[j].pos + pos;
+				pV->tex.Set( tx+tex[j].x, ty+tex[j].y );
+				pV->color = color;
 				++pV;
 			}
+			if ( decalBuffer[i].rotation != 0.0f ) {
+				Matrix4 m;
+				Vector3F prime;
+				m.SetYRotation( decalBuffer[i].rotation );
+				pV -= 4;
+				for( int j=0; j<4; ++j ) {
+					prime = m * base[j].pos;
+					pV->pos = prime + pos;
+					++pV;
+				}
+			}
+			vertex += 4;
+			++count;
 		}
-		vertex += 4;
 	}
 
-	CHECK_GL_ERROR;
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glDisableClientState( GL_NORMAL_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-	glEnableClientState( GL_COLOR_ARRAY );
+	if ( count ) {
+		CHECK_GL_ERROR;
+		glEnableClientState( GL_VERTEX_ARRAY );
+		glDisableClientState( GL_NORMAL_ARRAY );
+		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+		glEnableClientState( GL_COLOR_ARRAY );
 
-	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, particleTypeArr[QUAD].texture->glID );
+		glEnable( GL_TEXTURE_2D );
+		glBindTexture( GL_TEXTURE_2D, particleTypeArr[QUAD].texture->glID );
 
-	CHECK_GL_ERROR;
-	U8* vPtr = (U8*)vertexBuffer + 0;
-	U8* tPtr = (U8*)vertexBuffer + 12;
-	U8* cPtr = (U8*)vertexBuffer + 20;
+		CHECK_GL_ERROR;
+		U8* vPtr = (U8*)vertexBuffer + 0;
+		U8* tPtr = (U8*)vertexBuffer + 12;
+		U8* cPtr = (U8*)vertexBuffer + 20;
 
-	CHECK_GL_ERROR;
-	glVertexPointer(   3, GL_FLOAT, sizeof(QuadVertex), vPtr );
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(QuadVertex), tPtr );
-	glColorPointer(    4, GL_FLOAT, sizeof(QuadVertex), cPtr );
+		CHECK_GL_ERROR;
+		glVertexPointer(   3, GL_FLOAT, sizeof(QuadVertex), vPtr );
+		glTexCoordPointer( 2, GL_FLOAT, sizeof(QuadVertex), tPtr );
+		glColorPointer(    4, GL_FLOAT, sizeof(QuadVertex), cPtr );
 
-	glDrawElements( GL_TRIANGLES, nDecals*6, GL_UNSIGNED_SHORT, quadIndexBuffer );
-	CHECK_GL_ERROR;
+		glDrawElements( GL_TRIANGLES, count*6, GL_UNSIGNED_SHORT, quadIndexBuffer );
+		CHECK_GL_ERROR;
 
-	// Restore standard state.
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_NORMAL_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-	glDisableClientState( GL_COLOR_ARRAY );
-	CHECK_GL_ERROR;
-
-	nDecals = 0;
+		// Restore standard state.
+		glEnableClientState( GL_VERTEX_ARRAY );
+		glEnableClientState( GL_NORMAL_ARRAY );
+		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+		glDisableClientState( GL_COLOR_ARRAY );
+		CHECK_GL_ERROR;
+	}
 }

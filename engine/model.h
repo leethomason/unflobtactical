@@ -44,13 +44,14 @@ struct ModelAtom
 class ModelResource
 {
 public:
-	ModelHeader header;				// loaded
+	ModelHeader header;						// loaded
 
 	grinliz::Sphere			boundSphere;	// computed
 	float					boundRadius2D;	// computed, bounding 2D radius centered at 0,0
 	grinliz::Rectangle3F	hitBounds;		// for picking - a bounds approximation
 
-	int IsOriginUpperLeft()	{ return header.flags & ModelHeader::UPPER_LEFT; }
+	int IsOriginUpperLeft()				{ return header.flags & ModelHeader::UPPER_LEFT; }
+	const grinliz::Rectangle3F& AABB()	{ return header.bounds; }
 
 	ModelAtom atom[EL_MAX_MODEL_GROUPS];
 };
@@ -134,7 +135,8 @@ public:
 	void CalcBoundSphere( grinliz::Sphere* sphere );
 	void CalcBoundCircle( grinliz::Circle* circle );
 	void CalcHitAABB( grinliz::Rectangle3F* aabb );
-
+	// Warning: will fail if rotation not a multiple of 90.
+	bool CalcAABB( grinliz::Rectangle3F* aabb ) ;
 
 	ModelResource* GetResource()				{ return resource; }
 	bool Sentinel()								{ return resource==0 && tree==0; }
@@ -147,6 +149,7 @@ private:
 		float a, d, x, y;
 		void Identity() { a=1.0f; d=1.0f; x=0.0f; y=0.0f; }
 	};
+
 	SpaceTree* tree;
 	ModelResource* resource;
 	grinliz::Vector3F pos;

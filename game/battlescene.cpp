@@ -209,8 +209,9 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		Model* m = units[selected].GetModel();
 		if ( m ) {
 			//const U32 INTERVAL = 500;
-			float alpha = 0.7f;	//0.5f + 0.4f*(float)(currentTime%500)/(float)(INTERVAL);
+			float alpha = 0.5f;	//0.5f + 0.4f*(float)(currentTime%500)/(float)(INTERVAL);
 			game->particleSystem->EmitDecal( ParticleSystem::DECAL_SELECTED, 
+											 ParticleSystem::DECAL_BOTTOM,
 											 m->Pos(), alpha,
 											 m->GetYRotation() );
 		}
@@ -218,14 +219,15 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	if ( pathLen > 0 ) {
 		float rot = 0.0f;
 		for( int i=0; i<pathLen-1; ++i ) {
-			float alpha = 0.7f;
 			Vector3F pos = { (float)(path[i].x)+0.5f, 0.0f, (float)(path[i].y)+0.5f };
 
 			int dx = path[i+1].x - path[i].x;
 			int dy = path[i+1].y - path[i].y;
 			rot = ToDegree( atan2( (float)dx, (float)dy ) );
 
+			const float alpha = 0.2f;
 			game->particleSystem->EmitDecal( ParticleSystem::DECAL_PATH, 
+											 ParticleSystem::DECAL_BOTH,
 											 pos, alpha,
 											 rot );
 		}

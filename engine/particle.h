@@ -67,6 +67,12 @@ public:
 		PARTICLE_SPHERE
 	};
 
+	enum {
+		DECAL_BOTTOM = 0x01,
+		DECAL_TOP = 0x02,
+		DECAL_BOTH = 0x03
+	};
+
 	void Emit(	int primitive,					// POINT or QUAD
 				int type,						// FIRE, SMOKE
 				int count,						// number of particles to create
@@ -80,7 +86,7 @@ public:
 				U32 lifetime );					// lifetime in milliseconds
 
 	void EmitFlame( U32 delta, const grinliz::Vector3F& pos );
-	void EmitDecal( int id, const grinliz::Vector3F& pos, float alpha, float rotation );
+	void EmitDecal( int id, int flags, const grinliz::Vector3F& pos, float alpha, float rotation );
 
 	void Update( U32 timePassed );
 	void Draw( const grinliz::Vector3F* eyeDir );
@@ -120,6 +126,7 @@ private:
 		Color4F				color;
 		float				rotation;
 		int					subType;
+		int					flags;
 	};
 
 	struct QuadVertex
@@ -131,7 +138,7 @@ private:
 
 	void DrawPointParticles();
 	void DrawQuadParticles( const grinliz::Vector3F* eyeDir );
-	void DrawDecalParticles();
+	void DrawDecalParticles( int flag );
 
 	grinliz::Random rand;
 	int nParticles[NUM_PRIMITIVES];
