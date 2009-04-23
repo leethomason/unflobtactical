@@ -27,6 +27,7 @@ public:
 						const grinliz::Vector2I& screenRaw );
 
 	virtual void Zoom( int action, int distance );
+	virtual void Rotate( int aciton, float degreesFromStart );
 	virtual void CancelInput() {}
 
 	virtual void DoTick( U32 currentTime, U32 deltaTime );
@@ -54,6 +55,9 @@ private:
 
 	int		initZoomDistance;
 	float	initZoom;
+	
+	grinliz::Vector3F orbitPole;
+	float	orbitStart;
 
 	Model* draggingModel;
 	UIButtonBox* widgets;
@@ -78,9 +82,10 @@ private:
 	int selected;
 	Unit units[MAX_UNITS];
 
-	grinliz::Vector2<S16> pathStart, pathEnd;
-	grinliz::Vector2<S16> path[MAX_PATH];
-	int pathLen;
+	Model*					pathEndModel;
+	grinliz::Vector2<S16>	pathStart, pathEnd;
+	grinliz::Vector2<S16>	path[MAX_PATH];
+	int						pathLen;
 
 #ifdef MAPMAKER
 	// Mapmaker:

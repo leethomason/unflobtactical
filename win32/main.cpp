@@ -312,9 +312,15 @@ int main( int argc, char **argv )
 					else if ( event.button.button == 3 ) {
 						//int dx = IPOD_SCREEN_HEIGHT/2 - y;
 						//GLOUTPUT(( "x=%d y=%d\n", x, y ));
+						
 						int dx = y;
+						int dy = IPOD_SCREEN_WIDTH-x;
+
 						zooming = true;
-						GameZoom( game, GAME_ZOOM_START, dx ); //(int) sqrtf( (float)(dx*dx) ) );
+						GameZoom( game, GAME_ZOOM_START, dy );
+
+						//GLOUTPUT(( "x,y=%d,%d  down=%d,%d\n", x, y, mouseDown.x, mouseDown.y ));
+						GameCameraRotate( game, GAME_ROTATE_START, 0.0f );
 					}
 				}
 				break;
@@ -376,9 +382,12 @@ int main( int argc, char **argv )
 						}
 					}
 					else if ( zooming && (state & SDL_BUTTON(3)) ) {
-						//int dx = IPOD_SCREEN_HEIGHT/2 - y;
 						int dx = y;
-						GameZoom( game, GAME_ZOOM_MOVE, dx ); //(int) sqrtf( (float)(dx*dx) ) );
+						int dy = IPOD_SCREEN_WIDTH-x;
+						GameZoom( game, GAME_ZOOM_MOVE, dy );
+						
+						//GLOUTPUT(( "x,y=%d,%d  down=%d,%d\n", x, y, mouseDown.x, mouseDown.y ));
+						GameCameraRotate( game, GAME_ROTATE_MOVE, (float)(y-mouseDown.y)*0.5f );
 					}
 #ifdef MAPMAKER
 					else {

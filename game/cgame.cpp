@@ -49,6 +49,13 @@ void GameZoom( void* handle, int action, int distance )
 	game->Zoom( action, distance );
 }
 
+void GameCameraRotate( void* handle, int action, float degrees )
+{
+	Game* game = (Game*)handle;
+	game->Rotate( action, degrees );
+}
+
+
 // count is 1 or 2
 void GameTap( void* handle, int count, int x, int y )
 {

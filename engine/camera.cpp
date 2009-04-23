@@ -16,6 +16,7 @@
 #include "platformgl.h"
 #include "camera.h"
 #include "../grinliz/glgeometry.h"
+#include "../grinliz/glmatrix.h"
 #include "serialize.h"
 
 using namespace grinliz;
@@ -98,3 +99,41 @@ void Camera::Load( UFOStream* s )
 	s->Read( &posWC );
 	valid = false;
 }
+
+
+void Camera::Orbit( const Vector3F& _pole, float rotation )
+{
+	Vector3F pole = { _pole.x, 0.0f, _pole.z };
+	Matrix4 r;
+	r.SetYRotation( rotation );
+
+	float length = sqrtf( (pole.x-posWC.x)*(pole.x-posWC.x) + (pole.z-posWC.z)*(pole.z-posWC.z) );
+
+	Vector3F vec = { 0.0f, 0.0f, length };
+	Vector3F vecPrime = r * vec;
+	vecPrime.y = posWC.y;
+
+	posWC = pole + vecPrime;
+
+	/*
+
+	float dx = pole.x - posWC.x;
+	float dz = pole.z - posWC.z;
+
+	Matrix4 t0, t1, r;
+	t0.SetTranslation( dx, 0, dz );
+	t1.SetTranslation( -dx, 0, -dz );
+
+	Matrix4 m = t0 * r * t1;
+
+	Vector4F pos = { posWC.x, posWC.y, posWC.z, 1.0 };
+	Vector4F posPrime = m * pos;
+	posWC.Set( posPrime.x, posPrime.y, posPrime.z );
+	*/
+
+	//yRotation = ToDegree( atan2f( posPrime.x-pole.x, posPrime.z-pole.z ) );
+	yRotation = rotation;
+
+	valid = false;
+}
+

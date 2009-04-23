@@ -36,7 +36,7 @@ struct ModelAtom
 	U32 nIndex;
 	mutable int trisRendered;
 
-	void Bind( bool bindTextureToVertex ) const;
+	void Bind( /*bool bindTextureToVertex*/ ) const;
 	void Draw() const;
 };
 
@@ -93,16 +93,20 @@ public:
 	void Queue( RenderQueue* queue, int textureState=MODEL_TEXTURE );
 
 	// Used by the queued rendering system:
-	void PushMatrix( bool bindTextureToVertex ) const;
-	void PopMatrix( bool bindTextureToVertex ) const;
+	void PushMatrix() const;
+	void PopMatrix() const;
 
-	int IsDraggable()				{ return isDraggable; }
-	void SetDraggable( bool drag )	{ isDraggable = drag; }
-	int IsHiddenFromTree()			{ return hiddenFromTree; }
-	void HideFromTree( bool hide )  { hiddenFromTree = hide; }
-	int IsOwnedByMap()				{ return isOwnedByMap; }
-	void OwnedByMap( bool map )		{ isOwnedByMap = map; }
-	
+	enum {
+		MODEL_DRAGGABLE				= 0x01,
+		MODEL_HIDDEN_FROM_TREE		= 0x02,
+		MODEL_OWNED_BY_MAP			= 0x04,
+	};
+
+	int IsSet( int f )			{ return flags & f; }
+	void Set( int f )			{ flags |= f; }
+	void Clear( int f )			{ flags &= (~f); }
+
+
 	const grinliz::Vector3F& Pos()						{ return pos; }
 	void SetPos( const grinliz::Vector3F& pos );
 	void SetPos( float x, float y, float z )	{ grinliz::Vector3F vec = { x, y, z }; SetPos( vec ); }
@@ -119,13 +123,18 @@ public:
 
 	int IsBillboard()		{ return resource->header.flags & ModelHeader::BILLBOARD; }
 	int IsOriginUpperLeft()	{ return resource->header.flags & ModelHeader::UPPER_LEFT; }
+	
+	// Set the skin texture
 	void SetSkin( int armor, int skin, int hair );
+	void SetTexXForm( float a=1.0f, float d=1.0f, float x=0.0f, float y=0.0f );
+
+	// Set the texture - overrides all textures
+	void SetTexture( const Texture* t )			{ setTexture = t; }
 
 	void CalcBoundSphere( grinliz::Sphere* sphere );
 	void CalcBoundCircle( grinliz::Circle* circle );
 	void CalcHitAABB( grinliz::Rectangle3F* aabb );
 
-	void SetTexture( const Texture* t )			{ setTexture = t; }
 
 	ModelResource* GetResource()				{ return resource; }
 	bool Sentinel()								{ return resource==0 && tree==0; }
@@ -134,17 +143,19 @@ public:
 	Model* next0;			// used by the Engine sub-sorting
 
 private:
+	struct TexMat {
+		float a, d, x, y;
+		void Identity() { a=1.0f; d=1.0f; x=0.0f; y=0.0f; }
+	};
 	SpaceTree* tree;
 	ModelResource* resource;
 	grinliz::Vector3F pos;
 	float rot;
-	float textureOffsetX;
+	bool texMatSet;
+	TexMat texMat;
 	const Texture* setTexture;	// overrides the default texture
 
-	// FIXME condense flags
-	bool isDraggable;
-	bool hiddenFromTree;
-	bool isOwnedByMap;
+	int flags;
 };
 
 

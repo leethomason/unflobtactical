@@ -15,6 +15,7 @@
 	<texture filename="wheat.tga" />
 	<texture filename="tree.tga" />
   <texture filename="lannder.png" />
+  <texture filename="translucent.png" />
 
 	<!-- Models
        Model naming:

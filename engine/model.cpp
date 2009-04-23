@@ -169,7 +169,7 @@ void Model::Init( ModelResource* resource, SpaceTree* tree )
 	this->tree = tree;
 	pos.Set( 0, 0, 0 );
 	rot = 0;
-	textureOffsetX = 0;
+	texMatSet = false;
 	setTexture = 0;
 
 	if ( tree ) {
@@ -177,9 +177,7 @@ void Model::Init( ModelResource* resource, SpaceTree* tree )
 	}
 
 	//xformValid = false;
-	isDraggable = false;
-	hiddenFromTree = false;
-	isOwnedByMap = false;
+	flags = 0;
 }
 
 
@@ -192,16 +190,39 @@ void Model::SetPos( const grinliz::Vector3F& pos )
 
 void Model::SetSkin( int armor, int skin, int hair )
 {
-	textureOffsetX = 0.0f;
+	texMatSet = false;
+	if ( armor > 0 || skin > 0 || hair > 0 ) {
+	
+		float textureOffsetX = 0.0f;
 
-	armor = Clamp( armor, 0, 3 );
-	skin = Clamp( skin, 0, 3 );
-	hair = Clamp( hair, 0, 3 );
+		armor = Clamp( armor, 0, 3 );
+		skin = Clamp( skin, 0, 3 );
+		hair = Clamp( hair, 0, 3 );
 
-	textureOffsetX += float( armor ) / float( 4 );
-	textureOffsetX += float( skin ) / float( 16 );
-	textureOffsetX += float( hair ) / float( 64 );
+		textureOffsetX += float( armor ) / float( 4 );
+		textureOffsetX += float( skin ) / float( 16 );
+		textureOffsetX += float( hair ) / float( 64 );
+
+		texMat.Identity();
+		texMat.x = textureOffsetX;
+		texMatSet = true;
+	}
 }
+
+
+void Model::SetTexXForm( float a, float d, float x, float y )
+{
+	texMat.Identity();
+	texMatSet = false;
+	if ( a!=1.0f || d!=1.0f || x!=0.0f || y!=0.0f ){
+		texMat.a = a;
+		texMat.d = d;
+		texMat.x = x;
+		texMat.y = y;
+		texMatSet = true;
+	}
+}
+
 
 
 void Model::CalcBoundSphere( Sphere* sphere )
@@ -236,9 +257,8 @@ void Model::Queue( RenderQueue* queue, int textureMode )
 
 		if ( textureMode != Model::NO_TEXTURE ) {
 			if ( texture->alphaTest ) 
-				flags |= RenderQueue::ALPHA_TEST;
+				flags |= RenderQueue::ALPHA_BLEND;
 		}
-
 		U32 textureID = (textureMode == Model::MODEL_TEXTURE) ? texture->glID : 0;
 
 		queue->Add( flags, 
@@ -249,7 +269,7 @@ void Model::Queue( RenderQueue* queue, int textureMode )
 }
 
 
-void ModelAtom::Bind( bool bindTextureToVertex ) const
+void ModelAtom::Bind( /*bool bindTextureToVertex*/ ) const
 {
 	glBindBuffer( GL_ARRAY_BUFFER, vertexID );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, indexID );
@@ -257,15 +277,15 @@ void ModelAtom::Bind( bool bindTextureToVertex ) const
 	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
 	glNormalPointer(      GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
 
-	if ( bindTextureToVertex ) {
-		for( int i=0; i<2; ++i ) {
-			glClientActiveTexture( GL_TEXTURE0+i );
-			glTexCoordPointer( 3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);  
-		}
-	}
-	else {
+//	if ( bindTextureToVertex ) {
+//		for( int i=0; i<2; ++i ) {
+//			glClientActiveTexture( GL_TEXTURE0+i );
+//			glTexCoordPointer( 3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);  
+//		}
+//	}
+//	else {
 		glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
-	}
+//	}
 	CHECK_GL_ERROR;
 }
 
@@ -282,7 +302,7 @@ void ModelAtom::Draw() const
 }
 
 
-void Model::PushMatrix( bool bindTextureToVertex ) const
+void Model::PushMatrix( /*bool bindTextureToVertex*/ ) const
 {
 #if 0
 	if ( !xformValid ) {
@@ -339,25 +359,25 @@ void Model::PushMatrix( bool bindTextureToVertex ) const
 	else 
 #endif
 		
-	if ( textureOffsetX > 0 ) {
+	if ( texMatSet ) {
 		glMatrixMode(GL_TEXTURE);
 		glPushMatrix();
-		glTranslatef( (float) textureOffsetX, 0.0f, 0.0f );
+		
+		float m[16] = {
+			texMat.a, 0,	0,	0,		// column 1
+			0,	texMat.d, 0, 0,
+			0, 0, 0, 0,
+			texMat.x, texMat.y, 0, 1
+		};
+		glMultMatrixf( m );
 	}
 	CHECK_GL_ERROR;
 }
 
 
-void Model::PopMatrix( bool bindTextureToVertex ) const
+void Model::PopMatrix( /*bool bindTextureToVertex*/ ) const
 {
-	if ( bindTextureToVertex ) {
-		glActiveTexture( GL_TEXTURE1 );
-		glPopMatrix();
-		glActiveTexture( GL_TEXTURE0 );
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-	}
-	else if ( textureOffsetX > 0 ) {
+	if ( texMatSet ) {
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 	}

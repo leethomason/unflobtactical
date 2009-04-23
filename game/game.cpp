@@ -390,6 +390,12 @@ void Game::Zoom( int action, int distance )
 }
 
 
+void Game::Rotate( int action, float degrees )
+{
+	currentScene->Rotate( action, degrees );
+}
+
+
 void Game::CancelInput()
 {
 	isDragging = false;
