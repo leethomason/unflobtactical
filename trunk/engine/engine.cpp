@@ -243,11 +243,13 @@ void Engine::Draw( int* triCount )
 
 	if ( enableMap ) {
 		// -------- Ground plane lighted -------- //
-		LightSimple( dayNight, OPEN_LIGHT );
+		Color4F color;
+		LightSimple( dayNight, OPEN_LIGHT, &color );
 
 		// The depth mask and the depth test should be completely
 		// independent...but it's not. Very subtle point of how
 		// OpenGL works.
+		glColor4f( color.x, color.y, color.z, 1.0f );
 		map->Draw();
 
 		// -------- Shadow casters/ground plane ---------- //
@@ -258,9 +260,10 @@ void Engine::Draw( int* triCount )
 		int textureState = 0;
 		glDisable( GL_TEXTURE_2D );
 		glDepthFunc( GL_ALWAYS );
-		textureState = Model::NO_TEXTURE;
-		glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );	// keeps white from bleeding outside the map.
 
+		textureState = Model::NO_TEXTURE;
+
+		renderQueue->SetColor( 0, 0, 0 );
 		GLASSERT( renderQueue->Empty() );
 		
 		for( Model* model=modelRoot; model; model=model->next ) {
@@ -274,7 +277,7 @@ void Engine::Draw( int* triCount )
 			model->Queue( renderQueue, textureState );
 		}
 		renderQueue->Flush();
-		renderQueue->BindTextureToVertex( false );
+		//renderQueue->BindTextureToVertex( false );
 
 		CHECK_GL_ERROR;
 		glEnable( GL_TEXTURE_2D );
@@ -285,8 +288,9 @@ void Engine::Draw( int* triCount )
 		glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 		CHECK_GL_ERROR;
 
-		LightSimple( dayNight, IN_SHADOW );
+		LightSimple( dayNight, IN_SHADOW, &color );
 		glDepthFunc( GL_LESS );
+		glColor4f( color.x, color.y, color.z, 1.0f );
 		map->Draw();
 		glDepthFunc( depthFunc );
 	}
@@ -297,13 +301,14 @@ void Engine::Draw( int* triCount )
 	glDepthFunc( depthFunc );
 	CHECK_GL_ERROR;
 
-	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+	//glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+	renderQueue->SetColor( 1, 1, 1 );
 	EnableLights( true, dayNight );
 	Model* fogRoot = 0;
 
 	for( Model* model=modelRoot; model; model=model->next ) 
 	{
-		if ( !enableMap && model->IsOwnedByMap() )
+		if ( !enableMap && model->IsSet( Model::MODEL_OWNED_BY_MAP ) )
 			continue;
 
 		const Vector3F& pos = model->Pos();
@@ -322,7 +327,8 @@ void Engine::Draw( int* triCount )
 	EnableLights( false, dayNight );
 	glBindTexture( GL_TEXTURE_2D, 0 );
 
-	glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );
+	//glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );
+	renderQueue->SetColor( 0, 0, 0 );
 	for( Model* model=fogRoot; model; model=model->next0 ) {
 		model->Queue( renderQueue, Model::NO_TEXTURE );
 	}
@@ -381,7 +387,7 @@ void Engine::EnableLights( bool enable, DayNight dayNight )
 		float lightVector4[4] = { lightDir.x, lightDir.y, lightDir.z, 0.0 };	// parallel
 
 		CHECK_GL_ERROR;
-		glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+		//glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 
 		// Light 0. The Sun or Moon.
 		glEnable(GL_LIGHT0);
@@ -410,7 +416,7 @@ void Engine::SetDayNight( bool dayTime, Surface* lightMap )
 
 
 
-void Engine::LightSimple( DayNight dayNight, ShadowState shadows )
+void Engine::LightSimple( DayNight dayNight, ShadowState shadows, Color4F* color )
 {
 	const Vector3F normal = { 0.0f, 1.0f, 0.0f };	
 	float dot = DotProduct( lightDirection, normal );
@@ -430,7 +436,8 @@ void Engine::LightSimple( DayNight dayNight, ShadowState shadows )
 	float light = AMBIENT + diffuse*dot;
 
 	CHECK_GL_ERROR;
-	glColor4f( light, light, light, 1.0f );
+	//glColor4f( light, light, light, 1.0f );
+	color->Set( light, light, light, 1.0f );
 }
 
 
@@ -651,7 +658,7 @@ Model* Engine::IntersectModel( const grinliz::Ray& ray, bool onlyDraggable )
 
 	for( ; root; root=root->next )
 	{
-		if ( !onlyDraggable || root->IsDraggable() ) {
+		if ( !onlyDraggable || root->IsSet( Model::MODEL_DRAGGABLE ) ) {
 			Vector3F intersect;
 			Rectangle3F aabb;
 			float t;

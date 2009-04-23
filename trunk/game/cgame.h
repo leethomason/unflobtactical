@@ -42,6 +42,10 @@ void GameDrag( void* handle, int action, int x, int y );
 //#define GAME_ZOOM_END	2
 void GameZoom( void* handle, int action, int distance );
 
+#define GAME_ROTATE_START 0
+#define GAME_ROTATE_MOVE  1
+void GameCameraRotate( void* handle, int action, float degreesFromStart );
+
 // count is 1 or 2
 void GameTap( void* handle, int count, int x, int y );
 

@@ -38,7 +38,7 @@ public:
 	// Update an opengl texture from this surface.
 	void UpdateTexture( bool alpha, U32 glID );
 	// Load the file
-	U32 LoadTexture( FILE* fp );
+	U32 LoadTexture( FILE* fp, bool* alpha );
 
 private:
 	void CalcFormat( bool alpha, int* format, int* type );

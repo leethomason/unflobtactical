@@ -24,8 +24,9 @@ RenderQueue::RenderQueue()
 	nState = 0;
 	nModel = 0;
 	triCount = 0;
-	bindTextureToVertex = false;
+	//bindTextureToVertex = false;
 	textureMatrix = 0;
+	color.Set( 1.0f, 1.0f, 1.0f );
 }
 
 
@@ -133,6 +134,8 @@ void RenderQueue::Flush()
 	int atoms = 0;
 	int models = 0;
 
+	glColor4f( color.x, color.y, color.z, 1.0f );
+
 	//GLOUTPUT(( "RenderQueue::Flush nState=%d nModel=%d\n", nState, nModel ));
 
 	for( int i=0; i<nState; ++i ) {
@@ -142,15 +145,11 @@ void RenderQueue::Flush()
 			flags = statePool[i].state.flags;
 			++states;
 
-			if ( flags & ALPHA_TEST ) {
-				// Docs say alpha test is slow. Fake it with blend.
-				//glEnable( GL_ALPHA_TEST );
-				//glAlphaFunc( GL_GEQUAL, 0.5f );
+			if ( flags & ALPHA_BLEND) {
 				glEnable( GL_BLEND );
 				glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 			}
 			else {
-				//glDisable( GL_ALPHA_TEST );
 				glDisable( GL_BLEND );
 			}
 		}
@@ -158,7 +157,7 @@ void RenderQueue::Flush()
 		// Handle texture change.
 		if ( textureID != statePool[i].state.textureID ) 
 		{
-			GLASSERT( bindTextureToVertex == false );
+			//GLASSERT( bindTextureToVertex == false );
 			textureID = statePool[i].state.textureID;
 			++textures;
 
@@ -173,7 +172,7 @@ void RenderQueue::Flush()
 			atom = statePool[i].state.atom;
 			++atoms;
 
-			atom->Bind( bindTextureToVertex );
+			atom->Bind( /*bindTextureToVertex*/ );
 		}
 
 		// Send down the VBOs
@@ -183,9 +182,9 @@ void RenderQueue::Flush()
 			const Model* model = item->model;
 			GLASSERT( model );
 
-			model->PushMatrix( bindTextureToVertex );
+			model->PushMatrix( /*bindTextureToVertex*/ );
 			atom->Draw();
-			model->PopMatrix( bindTextureToVertex );
+			model->PopMatrix( /*bindTextureToVertex*/ );
 			item = item->nextModel;
 		}
 	}

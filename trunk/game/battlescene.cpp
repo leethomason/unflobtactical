@@ -18,6 +18,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 #endif
 
 	selected = -1;
+	pathEndModel = 0;
 	engine  = &game->engine;
 	pathLen = 0;
 	pathStart.Set( -1, -1 );
@@ -71,8 +72,8 @@ void BattleScene::SetUnitsDraggable()
 {
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		Model* m = units[i].GetModel();
-		if ( m ) {
-			m->SetDraggable( units[i].Status() == Unit::STATUS_ALIVE );
+		if ( m && units[i].Status() == Unit::STATUS_ALIVE ) {
+			m->Set( Model::MODEL_DRAGGABLE );
 		}
 	}
 }
@@ -131,6 +132,8 @@ void BattleScene::Activate()
 
 	int n = 0;
 	ModelResource* resource = 0;
+	pathEndModel = 0;
+	pathLen = 0;
 
 #ifdef MAPMAKER
 	resource = game->GetResource( "selection" );
@@ -141,7 +144,8 @@ void BattleScene::Activate()
 
 	resource = game->GetResource( "crate" );
 	crateTest = engine->AllocModel( resource );
-	crateTest->SetDraggable( true );
+	//crateTest->SetDraggable( true );
+	crateTest->Set( Model::MODEL_DRAGGABLE );
 	crateTest->SetPos( 3.5f, 0.0f, 20.0f );
 
 	// Do we have a saved state?
@@ -169,7 +173,10 @@ void BattleScene::DeActivate()
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		units[i].FreeModel();
 	}
-
+	if ( pathEndModel ) {
+		engine->FreeModel( pathEndModel );
+		pathEndModel = 0;
+	}
 	engine->FreeModel( crateTest );
 	game->particleSystem->Clear();
 }
@@ -210,14 +217,13 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	}
 	if ( pathLen > 0 ) {
 		float rot = 0.0f;
-		for( int i=0; i<pathLen; ++i ) {
+		for( int i=0; i<pathLen-1; ++i ) {
 			float alpha = 0.7f;
 			Vector3F pos = { (float)(path[i].x)+0.5f, 0.0f, (float)(path[i].y)+0.5f };
-			if ( i<pathLen-1 ) {
-				int dx = path[i+1].x - path[i].x;
-				int dy = path[i+1].y - path[i].y;
-				rot = ToDegree( atan2( (float)dx, (float)dy ) );
-			}
+
+			int dx = path[i+1].x - path[i].x;
+			int dy = path[i+1].y - path[i].y;
+			rot = ToDegree( atan2( (float)dx, (float)dy ) );
 
 			game->particleSystem->EmitDecal( ParticleSystem::DECAL_PATH, 
 											 pos, alpha,
@@ -330,6 +336,20 @@ void BattleScene::Drag( int action, const grinliz::Vector2I& screenRaw )
 						float cost;
 						engine->GetMap()->SolvePath( start, end, &cost, path, &pathLen, MAX_PATH );
 					}
+					if ( pathEndModel ) {
+						engine->FreeModel( pathEndModel );
+						pathEndModel = 0;
+					}
+					if ( pathLen > 1 ) {
+						pathEndModel = engine->AllocModel( draggingModel->GetResource() );
+						pathEndModel->SetPos( (float)end.x + 0.5f, 0.0f, (float)end.y + 0.5f );
+						pathEndModel->SetTexture( game->GetTexture( "translucent" ) );
+						pathEndModel->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.5f );
+						int dx = path[pathLen-1].x - path[pathLen-2].x;
+						int dy = path[pathLen-1].y - path[pathLen-2].y;
+						float rot = ToDegree( atan2( (float)dx, (float)dy ) );
+						pathEndModel->SetYRotation( rot );
+					}
 				}
 			}
 			else {
@@ -377,6 +397,26 @@ void BattleScene::Zoom( int action, int distance )
 	}
 	//GLOUTPUT(( "Zoom action=%d distance=%d initZoomDistance=%d lastZoomDistance=%d z=%.2f\n",
 	//		   action, distance, initZoomDistance, lastZoomDistance, GetZoom() ));
+}
+
+
+void BattleScene::Rotate( int action, float degrees )
+{
+	if ( action == GAME_ROTATE_START ) {
+		orbitPole.Set( 0.0f, 0.0f, 0.0f );
+
+		const Vector3F* dir = engine->camera.EyeDir3();
+		const Vector3F& pos = engine->camera.PosWC();
+
+		IntersectRayPlane( pos, dir[0], 1, 0.0f, &orbitPole );	
+		//orbitPole.Dump( "pole" );
+
+		orbitStart = ToDegree( atan2f( pos.x-orbitPole.x, pos.z-orbitPole.z ) );
+	}
+	else {
+		//GLOUTPUT(( "degrees=%.2f\n", degrees ));
+		engine->camera.Orbit( orbitPole, orbitStart + degrees );
+	}
 }
 
 

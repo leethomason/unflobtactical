@@ -43,6 +43,8 @@ public:
 	float GetBillboardYRotation() const				{	return yRotation;
 													}
 
+	void Orbit( const grinliz::Vector3F& pole, float delta );
+
 	// 0-3, in view space (corresponds to device rotation). Normally one.
 	void SetViewRotation( int v )					{ viewRotation = v; valid = false; }
 
@@ -54,7 +56,6 @@ public:
 	// Draws the camera and submits the glMultMatrix to OpenGL
 	void DrawCamera();
 								
-
 	// any of ray, up, or right can be null
 	enum {
 		NORMAL,

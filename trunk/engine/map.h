@@ -38,17 +38,6 @@ public:
 		SIZE = 64,					// maximum size
 		MAX_ITEM_DEF = 256,
 		ITEM_PER_TILE = 4,
-
-		SOUTH_BIT		= 0,
-		EAST_BIT		= 1,
-		NORTH_BIT		= 2,
-		WEST_BIT		= 3,
-		SOUTHEAST_BIT	= 4,
-		NORTHEAST_BIT	= 5,
-		NORTHWEST_BIT	= 6,
-		SOUTHWEST_BIT	= 7,
-
-		
 	};
 
 	struct ItemDef 

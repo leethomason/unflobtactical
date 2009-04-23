@@ -390,7 +390,7 @@ void SpaceTree::QueryPlanesRec(	const Plane* planes, int nPlanes, int intersecti
 		{
 			Model* m = &item->model;
 			
-			if ( !m->IsHiddenFromTree() ) {
+			if ( !m->IsSet( Model::MODEL_HIDDEN_FROM_TREE ) ) {
 				
 				if ( intersection == grinliz::INTERSECT ) {
 					Sphere sphere;
@@ -465,7 +465,7 @@ void SpaceTree::QueryPlanesRec(	const Vector3F& origin, const Vector3F& directio
 		for( Item* item=node->sentinel.next; item != &node->sentinel; item=item->next ) 
 		{
 			Model* m = &item->model;
-			if ( !m->IsHiddenFromTree() ) {
+			if ( !m->IsSet( Model::MODEL_HIDDEN_FROM_TREE ) ) {
 				m->next = modelRoot;
 				modelRoot = m;
 				++modelsFound;

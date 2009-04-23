@@ -24,6 +24,7 @@ public:
 	virtual void Drag(	int action,
 						const grinliz::Vector2I& screenRaw )	{}
 	virtual void Zoom( int action, int distance )				{}
+	virtual void Rotate( int action, float degrees )			{}
 	virtual void CancelInput()									{}
 
 	// Rendering

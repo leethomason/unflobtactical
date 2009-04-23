@@ -29,7 +29,14 @@ class Scene;
 const float FOV = 45.0f;
 const int MAX_TEXTURES = 32;
 const int MAX_MODELS = 256;
-
+const float ONE8 = 1.0f / 8.0f;
+const float ONE16 = 1.0f / 16.0f;
+const float TRANSLUCENT_WHITE	= ONE8*0.0f + ONE16;
+const float TRANSLUCENT_GREEN	= ONE8*1.0f + ONE16;
+const float TRANSLUCENT_BLUE	= ONE8*2.0f + ONE16;
+const float TRANSLUCENT_RED		= ONE8*3.0f + ONE16;
+const float TRANSLUCENT_YELLOW	= ONE8*4.0f + ONE16;
+const float TRANSLUCENT_GREY	= ONE8*5.0f + ONE16;
 
 class Game
 {
@@ -47,6 +54,7 @@ public:
 	void Tap( int count, int x, int y );
 	void Drag( int action, int x, int y );
 	void Zoom( int action, int distance );
+	void Rotate( int action, float degreesFromStart );
 	void CancelInput();
 	
 	ModelResource*	GetResource( const char* name );

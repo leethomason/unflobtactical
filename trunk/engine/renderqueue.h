@@ -37,15 +37,12 @@ class RenderQueue
 {
 public:
 	enum {
-		ALPHA_TEST		= 0x01,
+		ALPHA_BLEND		= 0x01,
 	};
 
 	enum {
 		MAX_STATE  = 128,
 		MAX_MODELS = 1024,
-
-		INDEX_BUFFER_SIZE = 64*1024,
-		VERTEX_BUFFER_SIZE = 64*1024
 	};
 
 	RenderQueue();
@@ -53,11 +50,14 @@ public:
 
 	void Add( U32 flags, U32 textureID, const Model* model, const ModelAtom* atom );
 
+	// The color is set for everything in the queue (although alpha can be set later.)
+	void SetColor( float r, float g, float b )	{ color.Set( r, g, b ); }
+
 	void Flush();
 	bool Empty() { return nState == 0 && nModel == 0; }
 
 	// Attaches texture 3 coordinates to the vertex data. Used for shadow creation tricks.
-	void BindTextureToVertex( bool bind )		{ bindTextureToVertex = bind; }
+	//void BindTextureToVertex( bool bind )		{ bindTextureToVertex = bind; }
 
 	int GetTriCount()		{ return triCount; }
 	void ClearTriCount()	{ triCount = 0; }
@@ -100,12 +100,12 @@ private:
 	int nState;
 	int nModel;
 	int triCount;
-	bool bindTextureToVertex;
 	const grinliz::Matrix4 *textureMatrix;
 
 	void FlushBuffers();
 	int nVertex;
 	int nIndex;
+	grinliz::Vector3F color;
 
 	Item statePool[MAX_STATE];
 	Item modelPool[MAX_MODELS];

@@ -48,6 +48,7 @@ const TextureDef gTextureDef[] =
 	{	"farmland",		0	},
 	{	"particleQuad",	0	},
 	{	"particleSparkle",	0	},
+	{	"translucent", 0 },
 	{  0, 0 }
 };
 
@@ -85,23 +86,16 @@ void Game::LoadTextures()
 	textureID = surface.CreateTexture( false );
 	texture[ nTexture++ ].Set( "white", textureID );
 
-	surface.Set( 2, 2, 4 );
-	const U32 TC = 0x90ffffff;
-	*((U32*)(surface.Pixels())+0) = TC;
-	*((U32*)(surface.Pixels())+1) = TC;
-	*((U32*)(surface.Pixels())+2) = TC;
-	*((U32*)(surface.Pixels())+3) = TC;
-	textureID = surface.CreateTexture( true );
-	texture[ nTexture++].Set( "translucent", textureID, true );
-
 	// Load the textures from the array:
 	for( int i=0; gTextureDef[i].name; ++i ) {
 		PlatformPathToResource( gTextureDef[i].name, "tex", buffer, 512 );
 		fp = fopen( buffer, "rb" );
 		GLASSERT( fp );
-		textureID = surface.LoadTexture( fp );
-		bool alphaTest = (gTextureDef[i].flags & ALPHA_TEST ) ? true : false;
-		texture[ nTexture++ ].Set( gTextureDef[i].name, textureID, alphaTest );
+		bool alpha;
+		textureID = surface.LoadTexture( fp, &alpha );
+		//bool alphaTest = (gTextureDef[i].flags & ALPHA_TEST ) ? true : false;
+
+		texture[ nTexture++ ].Set( gTextureDef[i].name, textureID, alpha );
 		fclose( fp );
 	}
 	GLASSERT( nTexture <= MAX_TEXTURES );
@@ -165,7 +159,9 @@ void Game::LoadLightMaps()
 		PlatformPathToResource( gLightMapNames[i], "tex", buffer, 512 );
 		FILE* fp = fopen( buffer, "rb" );
 		GLASSERT( fp );
-		lightMaps[i].LoadTexture( fp );
+		bool alpha;
+		lightMaps[i].LoadTexture( fp, &alpha );
+		GLASSERT( alpha == false );
 		fclose( fp );
 	}
 }
