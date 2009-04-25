@@ -173,10 +173,7 @@ void BattleScene::DeActivate()
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		units[i].FreeModel();
 	}
-	if ( pathEndModel ) {
-		engine->FreeModel( pathEndModel );
-		pathEndModel = 0;
-	}
+	FreePathEndModel();
 	engine->FreeModel( crateTest );
 	game->particleSystem->Clear();
 }
@@ -253,12 +250,19 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		if ( action.pathStep == path.len-1 ) {
 			action.Clear();
 			path.Clear();
-			engine->FreeModel( pathEndModel );	pathEndModel = 0;
+			FreePathEndModel();
 		}
 	}
 }
 
 
+void BattleScene::FreePathEndModel()
+{
+	if ( pathEndModel ) {
+		engine->FreeModel( pathEndModel );
+		pathEndModel = 0;
+	}
+}
 
 
 void BattleScene::Tap(	int tap, 
@@ -303,18 +307,31 @@ void BattleScene::Tap(	int tap,
 
 	if ( icon < 0 && action.NoAction() ) {
 		// We didn't tap a button.
-		// What got tapped?
+		// What got tapped? First look to see if a SELECTABLE model was tapped. If not, 
+		// look for a selectable model from the tile.
+
+		Vector3F intersect;
+		Vector2I tilePos = { 0, 0 };
+		int result = IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &intersect );
+		if ( result == grinliz::INTERSECT ) {
+			tilePos.Set( (int)intersect.x, (int) intersect.z );
+		}
+
 		Model* model = engine->IntersectModel( world, true );
+		if ( !model && result == grinliz::INTERSECT && pathEndModel ) {
+			// check the path end model.
+			if ( (int)pathEndModel->X() == tilePos.x && (int)pathEndModel->Z() == tilePos.y ) {
+				model = pathEndModel;
+			}
+		}
+
 		if ( model ) {
 			Model* selected = (selectedUnit >= 0) ? units[selectedUnit].GetModel() : 0;
 			if ( model == selected ) {
 				// If there is a path, clear it.
 				// If there is no path, go to rotate mode.
 				path.Clear();
-				if ( pathEndModel ) {
-					engine->FreeModel( pathEndModel );
-					pathEndModel = 0;
-				}		
+				FreePathEndModel();
 			}
 			else if ( model == pathEndModel ) {
 				// Go!
@@ -323,10 +340,7 @@ void BattleScene::Tap(	int tap,
 			else {
 				path.Clear();
 				selectedUnit = UnitFromModel( model );
-				if ( pathEndModel ) {
-					engine->FreeModel( pathEndModel );
-					pathEndModel = 0;
-				}
+				FreePathEndModel();
 			}
 		}
 		else {
@@ -336,8 +350,6 @@ void BattleScene::Tap(	int tap,
 			if ( selected ) {
 				Vector2<S16> start   = { (S16)selected->X(), (S16)selected->Z() };
 
-				Vector3F intersect;
-				int result = IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &intersect );
 				if ( result == grinliz::INTERSECT ) {
 
 					Vector2<S16> end = { (S16)intersect.x, (S16)intersect.z };
@@ -352,10 +364,7 @@ void BattleScene::Tap(	int tap,
 								float cost;
 								engine->GetMap()->SolvePath( start, end, &cost, path.path, &path.len, path.MAX_PATH );
 							}
-							if ( pathEndModel ) {
-								engine->FreeModel( pathEndModel );
-								pathEndModel = 0;
-							}
+							FreePathEndModel();
 
 							if ( path.len > 1 ) {
 								pathEndModel = engine->AllocModel( selected->GetResource() );
@@ -384,6 +393,23 @@ int BattleScene::UnitFromModel( Model* m )
 			return i;
 	}
 	return -1;
+}
+
+
+Unit* BattleScene::GetUnitFromTile( int x, int z )
+{
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		if ( units[i].GetModel() ) {
+			int ux = (int)units[i].GetModel()->X();
+			if ( ux == x ) {
+				int uz = (int)units[i].GetModel()->Z();
+				if ( uz == z ) { 
+					return &units[i];
+				}
+			}
+		}
+	}
+	return 0;
 }
 
 

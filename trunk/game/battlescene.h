@@ -79,6 +79,8 @@ private:
 	void InitUnits();
 	void SetUnitsDraggable();
 	int UnitFromModel( Model* m );
+	Unit* GetUnitFromTile( int x, int z );
+	void FreePathEndModel();
 
 	grinliz::Vector3F dragStart;
 	grinliz::Vector3F dragStartCameraWC;
