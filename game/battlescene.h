@@ -44,6 +44,38 @@ public:
 #endif
 
 private:
+	enum {
+		ACTION_NONE,
+		ACTION_MOVE
+	};
+	struct Action
+	{
+		int action;
+		int pathStep;
+		float pathFraction;
+
+		void Clear() { action = ACTION_NONE; }
+		void Move()  { action = ACTION_MOVE; pathStep = 0; pathFraction = 0; }
+		bool NoAction() { return action == ACTION_NONE; }
+	};
+	Action action;
+
+	struct Path
+	{
+		enum { MAX_PATH			= 100 };
+		grinliz::Vector2<S16>	start, end;
+		int						len;
+		grinliz::Vector2<S16>	path[MAX_PATH];
+
+		void Clear() { len = 0; start.Set( -1, -1 ); end.Set( -1, -1 ); }
+		void CalcDelta( int i0, int i1, grinliz::Vector2I* vec, float* rot );
+		void Travel( float* travelDistance, int* pathPos, float* fraction );
+		void GetPos( int step, float fraction, float* x, float* z, float* rot );
+	private:
+		float DeltaToRotation( int dx, int dy );
+	};
+	Path path;
+
 	void InitUnits();
 	void SetUnitsDraggable();
 	int UnitFromModel( Model* m );
@@ -51,7 +83,7 @@ private:
 	grinliz::Vector3F dragStart;
 	grinliz::Vector3F dragStartCameraWC;
 	grinliz::Matrix4  dragMVPI;
-	grinliz::Vector3F draggingModelOrigin;
+	//grinliz::Vector3F draggingModelOrigin;
 
 	int		initZoomDistance;
 	float	initZoom;
@@ -59,7 +91,7 @@ private:
 	grinliz::Vector3F orbitPole;
 	float	orbitStart;
 
-	Model* draggingModel;
+	//Model* draggingModel;
 	UIButtonBox* widgets;
 	Engine* engine;
 
@@ -75,17 +107,12 @@ private:
 		ALIEN_UNITS_START	= CIV_UNITS_END,
 		ALIEN_UNITS_END		= ALIEN_UNITS_START+MAX_ALIENS,
 		MAX_UNITS			= ALIEN_UNITS_END,
-
-		MAX_PATH			= 100
 	};
-	Model* crateTest;
-	int selected;
-	Unit units[MAX_UNITS];
-
+	Model*					crateTest;
+	int						selectedUnit;
 	Model*					pathEndModel;
-	grinliz::Vector2<S16>	pathStart, pathEnd;
-	grinliz::Vector2<S16>	path[MAX_PATH];
-	int						pathLen;
+
+	Unit units[MAX_UNITS];
 
 #ifdef MAPMAKER
 	// Mapmaker:

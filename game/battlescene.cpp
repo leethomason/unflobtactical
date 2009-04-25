@@ -17,12 +17,12 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	currentMapItem = 1;
 #endif
 
-	selected = -1;
+	selectedUnit = -1;
 	pathEndModel = 0;
+	action.Clear();
 	engine  = &game->engine;
-	pathLen = 0;
-	pathStart.Set( -1, -1 );
-	pathEnd.Set( -1, -1 );
+
+	path.Clear();
 
 	Texture* t = game->GetTexture( "icons" );	
 	widgets = new UIButtonBox( t );
@@ -82,7 +82,7 @@ void BattleScene::SetUnitsDraggable()
 void BattleScene::Save( UFOStream* s )
 {
 	s->WriteU32( UFOStream::MAGIC0 );
-	s->WriteU32( selected );
+	s->WriteU32( selectedUnit );
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		units[i].Save( s );
@@ -103,7 +103,7 @@ void BattleScene::Load( UFOStream* s )
 {
 	U32 magic = s->ReadU32();
 	GLASSERT( magic == UFOStream::MAGIC0 );
-	selected = s->ReadU32();
+	selectedUnit = s->ReadU32();
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		units[i].Load( s );
@@ -132,8 +132,8 @@ void BattleScene::Activate()
 
 	int n = 0;
 	ModelResource* resource = 0;
-	pathEndModel = 0;
-	pathLen = 0;
+	path.Clear();
+	action.Clear();
 
 #ifdef MAPMAKER
 	resource = game->GetResource( "selection" );
@@ -202,11 +202,11 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
 	game->particleSystem->EmitFlame( deltaTime, pos );
 
-	if (    selected >= 0 && selected < MAX_UNITS 
-		 && units[selected].Status() == Unit::STATUS_ALIVE
-		 && units[selected].Team() == Unit::TERRAN_MARINE ) 
+	if (    selectedUnit >= 0 && selectedUnit < MAX_UNITS 
+		 && units[selectedUnit].Status() == Unit::STATUS_ALIVE
+		 && units[selectedUnit].Team() == Unit::TERRAN_MARINE ) 
 	{
-		Model* m = units[selected].GetModel();
+		Model* m = units[selectedUnit].GetModel();
 		if ( m ) {
 			//const U32 INTERVAL = 500;
 			float alpha = 0.5f;	//0.5f + 0.4f*(float)(currentTime%500)/(float)(INTERVAL);
@@ -216,31 +216,58 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 											 m->GetYRotation() );
 		}
 	}
-	if ( pathLen > 0 ) {
-		float rot = 0.0f;
-		for( int i=0; i<pathLen-1; ++i ) {
-			Vector3F pos = { (float)(path[i].x)+0.5f, 0.0f, (float)(path[i].y)+0.5f };
+	if ( action.action == ACTION_NONE ) {
+		// Show the path.
 
-			int dx = path[i+1].x - path[i].x;
-			int dy = path[i+1].y - path[i].y;
-			rot = ToDegree( atan2( (float)dx, (float)dy ) );
+		if ( path.len > 0 ) {
+			float rot = 0.0f;
+			for( int i=0; i<path.len-1; ++i ) {
+				Vector3F pos = { (float)(path.path[i].x)+0.5f, 0.0f, (float)(path.path[i].y)+0.5f };
+				float rot;
+				path.CalcDelta( i, i+1, 0, &rot );
 
-			const float alpha = 0.2f;
-			game->particleSystem->EmitDecal( ParticleSystem::DECAL_PATH, 
-											 ParticleSystem::DECAL_BOTH,
-											 pos, alpha,
-											 rot );
+				const float alpha = 0.2f;
+				game->particleSystem->EmitDecal( ParticleSystem::DECAL_PATH, 
+												 ParticleSystem::DECAL_BOTH,
+												 pos, alpha,
+												 rot );
+			}
+		}
+	}
+	else if ( action.action == ACTION_MOVE ) {
+		// Move the unit.
+
+		const float SPEED = 3.0f;
+		float travel = SPEED * (float)deltaTime / 1000.0f;
+
+		while( action.pathStep < path.len-1 && travel > 0.0f ) {
+			path.Travel( &travel, &action.pathStep, &action.pathFraction );
+		}
+		float x, z, r;
+		path.GetPos( action.pathStep, action.pathFraction, &x, &z, &r );
+
+		Model* selected = units[selectedUnit].GetModel();
+		selected->SetPos( x+0.5f, 0.0f, z+0.5f );
+		selected->SetYRotation( r );
+
+		if ( action.pathStep == path.len-1 ) {
+			action.Clear();
+			path.Clear();
+			engine->FreeModel( pathEndModel );	pathEndModel = 0;
 		}
 	}
 }
+
+
 
 
 void BattleScene::Tap(	int tap, 
 						const grinliz::Vector2I& screen,
 						const grinliz::Ray& world )
 {
+	int icon = -1;
 	if ( tap == 1 ) {
-		int icon = widgets->QueryTap( screen.x, screen.y );
+		icon = widgets->QueryTap( screen.x, screen.y );
 
 		switch( icon ) {
 			case 0:
@@ -255,7 +282,9 @@ void BattleScene::Tap(	int tap,
 				break;
 
 			case 2:
-				game->PushScene( Game::CHARACTER_SCENE );
+				if ( action.action == ACTION_NONE ) {
+					game->PushScene( Game::CHARACTER_SCENE );
+				}
 				break;
 
 			default:
@@ -267,16 +296,82 @@ void BattleScene::Tap(	int tap,
 			const Vector3F& pos = selection->Pos();
 			int rotation = (int) (selection->GetYRotation() / 90.0f );
 			engine->GetMap()->AddToTile( (int)pos.x, (int)pos.z, currentMapItem, rotation );
+			icon = 0;	// don't keep processing
 		}
 #endif	
-
 	}
-	else if ( tap == 2 ) {
-		Vector3F p;
 
-		if ( grinliz::INTERSECT == IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &p ) )
-		{
-			engine->MoveCameraXZ( p.x, p.z ); 
+	if ( icon < 0 && action.NoAction() ) {
+		// We didn't tap a button.
+		// What got tapped?
+		Model* model = engine->IntersectModel( world, true );
+		if ( model ) {
+			Model* selected = (selectedUnit >= 0) ? units[selectedUnit].GetModel() : 0;
+			if ( model == selected ) {
+				// If there is a path, clear it.
+				// If there is no path, go to rotate mode.
+				path.Clear();
+				if ( pathEndModel ) {
+					engine->FreeModel( pathEndModel );
+					pathEndModel = 0;
+				}		
+			}
+			else if ( model == pathEndModel ) {
+				// Go!
+				action.Move();
+			}
+			else {
+				path.Clear();
+				selectedUnit = UnitFromModel( model );
+				if ( pathEndModel ) {
+					engine->FreeModel( pathEndModel );
+					pathEndModel = 0;
+				}
+			}
+		}
+		else {
+			// Not a model - which tile?
+			Model* selected = (selectedUnit >= 0) ? units[selectedUnit].GetModel() : 0;
+
+			if ( selected ) {
+				Vector2<S16> start   = { (S16)selected->X(), (S16)selected->Z() };
+
+				Vector3F intersect;
+				int result = IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &intersect );
+				if ( result == grinliz::INTERSECT ) {
+
+					Vector2<S16> end = { (S16)intersect.x, (S16)intersect.z };
+					if ( end.x >= 0 && end.y >=0 && end.x < Map::SIZE && end.y < Map::SIZE ) {
+					
+						if ( start != path.start || end != path.end ) {
+							path.len = 0;
+							path.start = start;
+							path.end = end;
+
+							if ( start != end ) {
+								float cost;
+								engine->GetMap()->SolvePath( start, end, &cost, path.path, &path.len, path.MAX_PATH );
+							}
+							if ( pathEndModel ) {
+								engine->FreeModel( pathEndModel );
+								pathEndModel = 0;
+							}
+
+							if ( path.len > 1 ) {
+								pathEndModel = engine->AllocModel( selected->GetResource() );
+								pathEndModel->SetPos( (float)path.end.x + 0.5f, 0.0f, (float)path.end.y + 0.5f );
+								pathEndModel->SetTexture( game->GetTexture( "translucent" ) );
+								pathEndModel->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.5f );
+								pathEndModel->Set( Model::MODEL_DRAGGABLE );	// FIXME not needed, remove entire draggable thing
+
+								float rot;
+								path.CalcDelta( path.len-2, path.len-1, 0, &rot );
+								pathEndModel->SetYRotation( rot );
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 }
@@ -301,16 +396,7 @@ void BattleScene::Drag( int action, const grinliz::Vector2I& screenRaw )
 			Ray ray;
 			engine->CalcModelViewProjectionInverse( &dragMVPI );
 			engine->RayFromScreenToYPlane( screenRaw.x, screenRaw.y, dragMVPI, &ray, &dragStart );
-
-			draggingModel = engine->IntersectModel( ray, true );
-			if ( draggingModel ) {
-				draggingModelOrigin = draggingModel->Pos();
-				selected = UnitFromModel( draggingModel );
-				pathLen = 0;
-			}
-			else {
-				dragStartCameraWC = engine->camera.PosWC();
-			}
+			dragStartCameraWC = engine->camera.PosWC();
 		}
 		break;
 
@@ -323,41 +409,8 @@ void BattleScene::Drag( int action, const grinliz::Vector2I& screenRaw )
 			Vector3F delta = drag - dragStart;
 			delta.y = 0.0f;
 
-			if ( draggingModel ) {
-				//draggingModel->SetPos(	draggingModelOrigin.x + delta.x,
-				//						draggingModelOrigin.y,
-				//						draggingModelOrigin.z + delta.z );
-				Vector2<S16> start = { (S16)draggingModelOrigin.x, (S16)draggingModelOrigin.z };
-				Vector2<S16> end   = { (S16)(draggingModelOrigin.x+delta.x), (S16)(draggingModelOrigin.z+delta.z) };
-				if ( pathStart != start || pathEnd != end ) {
-					pathLen = 0;
-					pathStart = start;
-					pathEnd = end;
-
-					if ( start != end ) {
-						float cost;
-						engine->GetMap()->SolvePath( start, end, &cost, path, &pathLen, MAX_PATH );
-					}
-					if ( pathEndModel ) {
-						engine->FreeModel( pathEndModel );
-						pathEndModel = 0;
-					}
-					if ( pathLen > 1 ) {
-						pathEndModel = engine->AllocModel( draggingModel->GetResource() );
-						pathEndModel->SetPos( (float)end.x + 0.5f, 0.0f, (float)end.y + 0.5f );
-						pathEndModel->SetTexture( game->GetTexture( "translucent" ) );
-						pathEndModel->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.5f );
-						int dx = path[pathLen-1].x - path[pathLen-2].x;
-						int dy = path[pathLen-1].y - path[pathLen-2].y;
-						float rot = ToDegree( atan2( (float)dx, (float)dy ) );
-						pathEndModel->SetYRotation( rot );
-					}
-				}
-			}
-			else {
-				engine->camera.SetPosWC( dragStartCameraWC - delta );
-				engine->RestrictCamera();
-			}
+			engine->camera.SetPosWC( dragStartCameraWC - delta );
+			engine->RestrictCamera();
 		}
 		break;
 
@@ -434,6 +487,99 @@ void BattleScene::DrawHUD()
 	UFOText::Draw( 0,  16, "0x%2x:'%s'", currentMapItem, engine->GetMap()->GetItemDefName( currentMapItem ) );
 #endif
 }
+
+
+float BattleScene::Path::DeltaToRotation( int dx, int dy )
+{
+	float rot = 0.0f;
+	GLASSERT( dx || dy );
+	GLASSERT( dx >= -1 && dx <= 1 );
+	GLASSERT( dy >= -1 && dy <= 1 );
+
+	if ( dx == 1 ) 
+		if ( dy == 1 )
+			rot = 45.0f;
+		else if ( dy == 0 )
+			rot = 90.0f;
+		else
+			rot = 135.0f;
+	else if ( dx == 0 )
+		if ( dy == 1 )
+			rot = 0.0f;
+		else
+			rot = 180.0f;
+	else
+		if ( dy == 1 )
+			rot = 315.0f;
+		else if ( dy == 0 )
+			rot = 270.0f;
+		else
+			rot = 225.0f;
+	return rot;
+}
+
+void BattleScene::Path::CalcDelta( int i0, int i1, grinliz::Vector2I* vec, float* rot )
+{
+	GLASSERT( i0>=0 && i0<len-1 );
+	GLASSERT( i1>=1 && i1<len );
+
+	int dx = path[i1].x - path[i0].x;
+	int dy = path[i1].y - path[i0].y;
+	if ( vec ) {
+		vec->x = dx;
+		vec->y = dy;
+	}
+	if ( rot ) {
+		*rot = DeltaToRotation( dx, dy );
+	}
+}
+
+
+void BattleScene::Path::Travel(	float* travel,
+								int* pos,
+								float* fraction )
+{
+	// fraction is a bit funny. It is the lerp value between 2 path locations,
+	// so it isn't a constant distance.
+
+	GLASSERT( *pos < len-1 );
+
+	Vector2I vec;
+	CalcDelta( *pos, *pos+1, &vec, 0 );
+
+	float distBetween = 1.0f;
+	if ( vec.x && vec.y ) {
+		distBetween = 1.41f;
+	}
+	float distRemain = (1.0f-*fraction) * distBetween;
+
+	if ( *travel >= distRemain ) {
+		*travel -= distRemain;
+		(*pos)++;
+		*fraction = 0.0f;
+	}
+	else {
+		*fraction += *travel / distBetween;
+		*travel = 0.0f;
+	}
+}
+
+
+void BattleScene::Path::GetPos( int step, float fraction, float* x, float* z, float* rot )
+{
+	GLASSERT( step < len );
+	GLASSERT( fraction >= 0.0f && fraction < 1.0f );
+	if ( step == len-1 ) {
+		step = len-2;
+		fraction = 1.0f;
+	}
+	int dx = path[step+1].x - path[step].x;
+	int dy = path[step+1].y - path[step].y;
+	*x = (float)path[step].x + fraction*(float)( dx );
+	*z = (float)path[step].y + fraction*(float)( dy );
+	*rot = DeltaToRotation( dx, dy );
+}
+
 
 
 #ifdef MAPMAKER
