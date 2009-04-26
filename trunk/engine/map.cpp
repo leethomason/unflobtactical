@@ -724,8 +724,26 @@ void Map::ResetPath()
 }
 
 
+
+void Map::ClearPathBlocks()
+{
+	pathBlock.ClearAll();
+}
+
+
+void Map::SetPathBlock( int x, int y )
+{
+	pathBlock.Set( x, y );
+}
+
+
 int Map::GetPathMask( int x, int y )
 {
+	// fast return: if the pathBlock is set, we're done.
+	if ( pathBlock.IsSet( x, y ) ) {
+		return 0xf;
+	}
+
 	// Handles both rotation of the object and rotation of the masks
 	// in the object. And tile resulotion. Tweaky function to get right.
 	//

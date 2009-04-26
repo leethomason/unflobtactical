@@ -98,7 +98,7 @@ public:
 	void PopMatrix() const;
 
 	enum {
-		MODEL_DRAGGABLE				= 0x01,
+		MODEL_SELECTABLE			= 0x01,
 		MODEL_HIDDEN_FROM_TREE		= 0x02,
 		MODEL_OWNED_BY_MAP			= 0x04,
 	};
