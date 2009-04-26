@@ -115,6 +115,9 @@ public:
 	void Draw();
 	void DrawPath();
 
+	void ClearPathBlocks();
+	void SetPathBlock( int x, int y );
+
 	Map::ItemDef* InitItemDef( int i );
 	const char* GetItemDefName( int i );
 
@@ -194,6 +197,7 @@ private:
 	micropather::MicroPather* microPather;
 
 	enum { PATHER_MEM32 = 32*1024 };	// 128K
+	grinliz::BitArray<SIZE, SIZE> pathBlock;
 	U32 patherMem[ PATHER_MEM32 ];
 	ItemDef itemDefArr[MAX_ITEM_DEF];
 	Tile    tileArr[ SIZE*SIZE ];

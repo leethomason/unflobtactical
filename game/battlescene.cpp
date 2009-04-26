@@ -73,7 +73,7 @@ void BattleScene::SetUnitsDraggable()
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		Model* m = units[i].GetModel();
 		if ( m && units[i].Status() == Unit::STATUS_ALIVE ) {
-			m->Set( Model::MODEL_DRAGGABLE );
+			m->Set( Model::MODEL_SELECTABLE );
 		}
 	}
 }
@@ -145,7 +145,7 @@ void BattleScene::Activate()
 	resource = game->GetResource( "crate" );
 	crateTest = engine->AllocModel( resource );
 	//crateTest->SetDraggable( true );
-	crateTest->Set( Model::MODEL_DRAGGABLE );
+	crateTest->Set( Model::MODEL_SELECTABLE );
 	crateTest->SetPos( 3.5f, 0.0f, 20.0f );
 
 	// Do we have a saved state?
@@ -361,8 +361,21 @@ void BattleScene::Tap(	int tap,
 							path.end = end;
 
 							if ( start != end ) {
+								Map* map = engine->GetMap();
+								map->ClearPathBlocks();
+
+								for( int i=0; i<MAX_UNITS; ++i ) {
+									if (    units[i].Status() == Unit::STATUS_ALIVE 
+										 && units[i].GetModel() 
+										 && units[i].GetModel() != selected ) // oops - don't cause self to not path
+									{
+										int x = (int)units[i].GetModel()->X();
+										int z = (int)units[i].GetModel()->Z();
+										map->SetPathBlock( x, z );
+									}
+								}
 								float cost;
-								engine->GetMap()->SolvePath( start, end, &cost, path.path, &path.len, path.MAX_PATH );
+								map->SolvePath( start, end, &cost, path.path, &path.len, path.MAX_PATH );
 							}
 							FreePathEndModel();
 
@@ -371,7 +384,7 @@ void BattleScene::Tap(	int tap,
 								pathEndModel->SetPos( (float)path.end.x + 0.5f, 0.0f, (float)path.end.y + 0.5f );
 								pathEndModel->SetTexture( game->GetTexture( "translucent" ) );
 								pathEndModel->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.5f );
-								pathEndModel->Set( Model::MODEL_DRAGGABLE );	// FIXME not needed, remove entire draggable thing
+								pathEndModel->Set( Model::MODEL_SELECTABLE );	// FIXME not needed, remove entire draggable thing
 
 								float rot;
 								path.CalcDelta( path.len-2, path.len-1, 0, &rot );

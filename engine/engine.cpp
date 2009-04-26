@@ -658,7 +658,7 @@ Model* Engine::IntersectModel( const grinliz::Ray& ray, bool onlyDraggable )
 
 	for( ; root; root=root->next )
 	{
-		if ( !onlyDraggable || root->IsSet( Model::MODEL_DRAGGABLE ) ) {
+		if ( !onlyDraggable || root->IsSet( Model::MODEL_SELECTABLE ) ) {
 			Vector3F intersect;
 			Rectangle3F aabb;
 			float t;
