@@ -130,7 +130,7 @@ void BattleScene::Activate()
 {
 	engine->EnableMap( true );
 
-	int n = 0;
+	//int n = 0;
 	ModelResource* resource = 0;
 	path.Clear();
 	action.Clear();
@@ -217,7 +217,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		// Show the path.
 
 		if ( path.len > 0 ) {
-			float rot = 0.0f;
+			//float rot = 0.0f;
 			for( int i=0; i<path.len-1; ++i ) {
 				Vector3F pos = { (float)(path.path[i].x)+0.5f, 0.0f, (float)(path.path[i].y)+0.5f };
 				float rot;

@@ -41,6 +41,7 @@ Note that setting the view non-opaque will only work if the EAGL surface has an 
 	
 	bool isDragging;
 	bool isZooming;
+	bool isMoving;
 	float orbitStart;
 	CGPoint lastDrag;
 }
@@ -51,5 +52,6 @@ Note that setting the view non-opaque will only work if the EAGL surface has an 
 - (void)stopAnimation;
 - (void)drawView;
 - (float)calcLength:(CGPoint)p0 p1:(CGPoint)p1;
+- (void)dumpTouch:(UITouch*)touch;
 
 @end

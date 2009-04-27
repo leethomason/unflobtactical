@@ -343,7 +343,6 @@ void Game::Tap( int tap, int x, int y )
 	engine.CalcModelViewProjectionInverse( &mvpi );
 	engine.RayFromScreen( x, y, mvpi, &world );
 
-	grinliz::Vector2I screenRaw = { x, y };
 	currentScene->Tap( tap, screen, world );
 }
 

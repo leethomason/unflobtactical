@@ -186,6 +186,23 @@
 	return sqrt( x*x + y*y );
 }
 
+-(void)dumpTouch:(UITouch*) touch
+{
+#ifdef _DEBUG
+	const char* phase = "";
+	switch ([touch phase]) {
+		case UITouchPhaseBegan:			phase = "UITouchPhaseBegan";			break;
+		case UITouchPhaseMoved:			phase = "UITouchPhaseMoved";			break;
+		case UITouchPhaseStationary:	phase = "UITouchPhaseStationary";			break;
+		case UITouchPhaseEnded:			phase = "UITouchPhaseEnded";			break;
+		case UITouchPhaseCancelled:		phase = "UITouchPhaseCancelled";			break;
+		default:
+			break;
+	}
+	NSLog(@"phase='%s'", phase );	
+#endif
+}
+
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
 	UITouch *touch = [touches anyObject];
@@ -194,6 +211,7 @@
 	int x = location.x;
 	int y = backingHeight-1-location.y;
 	int touchCount = [[event allTouches] count];
+	isMoving = false;
 	
 	// Handle errors.
 	if ( isDragging ) {
@@ -205,6 +223,8 @@
 	}
 
 	//NSLog(@"Began isZooming=%d isDragging=%d touchCount=%d", isZooming?1:0, isDragging?1:0, touchCount );
+	//NSLog(@"Began phase=%d", [touch phase] );
+	[self dumpTouch:touch];
 	
 	// Process touch
 	if ( touchCount == 1 ) {
@@ -228,18 +248,20 @@
 		CGPoint p0 = [touch1 locationInView:self];
 		CGPoint p1 = [touch2 locationInView:self];
 		orbitStart = -atan2( p0.x-p1.x, p0.y-p1.y )*180.0f/3.14159f;
-		NSLog(@"orbitStart=%.2f", orbitStart );
+		//NSLog(@"orbitStart=%.2f", orbitStart );
 		GameCameraRotate( game, GAME_ROTATE_START, orbitStart ); 
 	}
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
 	UITouch *touch = [touches anyObject];
+	[self dumpTouch:touch];
 	
 	CGPoint location = [touch locationInView:self];
 	int x = location.x;
 	int y = backingHeight-1-location.y;
 	int touchCount = [[event allTouches] count];
+	isMoving = true;
 	
 	//NSLog(@"Moved isZooming=%d isDragging=%d touchCount=%d", isZooming?1:0, isDragging?1:0, touchCount );
 	
@@ -268,7 +290,7 @@
 			CGPoint p0 = [[touchesArray objectAtIndex:0] locationInView:self];
 			CGPoint p1 = [[touchesArray objectAtIndex:1] locationInView:self];
 			orbitStart = -atan2( p0.x-p1.x, p0.y-p1.y )*180.0f/3.14159f;
-			NSLog(@"orbitStart=%.2f", orbitStart );
+			//NSLog(@"orbitStart=%.2f", orbitStart );
 			GameCameraRotate( game, GAME_ROTATE_START, orbitStart ); 
 		}
 	}
@@ -290,13 +312,15 @@
 			//NSLog(@"  zoom distance=%.2f", distance );
 			float r = -atan2( p0.x-p1.x, p0.y-p1.y )*180.0f/3.14159f;
 			GameCameraRotate( game, GAME_ROTATE_MOVE, r-orbitStart ); 
-			NSLog(@"r=%.2f", r );
+			//NSLog(@"r=%.2f", r );
 		}
 	}
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
 	UITouch *touch = [touches anyObject];
+	[self dumpTouch:touch];
+	
 	CGPoint location = [touch locationInView:self];
 	int x = location.x;
 	int y = backingHeight-1-location.y;
@@ -316,8 +340,11 @@
 	}
 	
 	int tapCount = [touch tapCount];
-	if ( tapCount > 0 ) {
+	if ( tapCount > 0 && !isMoving) {
 		GameTap( game, tapCount, x, y );
+	}
+	if ( touchCount == 1 ) {
+		isMoving = false;
 	}
 }
 
