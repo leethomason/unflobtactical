@@ -403,7 +403,7 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 		const float tx = 0.25f * (float)subType;
 		const float ty = 0.25f * (float)type;
 		
-		const float size = particleTypeArr[QUAD].size;
+		//const float size = particleTypeArr[QUAD].size;
 		const Vector3F& pos  = quadBuffer[i].pos;
 		const Color4F& color = quadBuffer[i].color;
 

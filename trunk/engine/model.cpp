@@ -122,6 +122,7 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 		GLOUTPUT(( "  '%s' vertices=%d tris=%d\n", textureName, res->atom[i].nVertex, res->atom[i].nIndex/3 ));
 	}
 	size_t r = fread( vertex, sizeof(Vertex), res->header.nTotalVertices, fp );
+	(void)r;
 	GLASSERT( r == res->header.nTotalVertices );
 
 	GLASSERT( sizeof(Vertex) == sizeof(U32)*8 );
