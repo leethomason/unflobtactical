@@ -143,10 +143,9 @@ void BattleScene::Activate()
 #endif
 
 	resource = game->GetResource( "crate" );
-	crateTest = engine->AllocModel( resource );
-	//crateTest->SetDraggable( true );
-	crateTest->Set( Model::MODEL_SELECTABLE );
-	crateTest->SetPos( 3.5f, 0.0f, 20.0f );
+	//crateTest = engine->AllocModel( resource );
+	//crateTest->Set( Model::MODEL_SELECTABLE );
+	//crateTest->SetPos( 3.5f, 0.0f, 20.0f );
 
 	// Do we have a saved state?
 	UFOStream* stream = game->OpenStream( "BattleScene", false );
@@ -174,7 +173,7 @@ void BattleScene::DeActivate()
 		units[i].FreeModel();
 	}
 	FreePathEndModel();
-	engine->FreeModel( crateTest );
+	//engine->FreeModel( crateTest );
 	game->particleSystem->Clear();
 }
 
@@ -639,6 +638,7 @@ void BattleScene::UpdatePreview()
 		if ( preview ) {
 			const Texture* t = game->GetTexture( "translucent" );
 			preview->SetTexture( t );
+			preview->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.0f );
 		}
 	}
 }

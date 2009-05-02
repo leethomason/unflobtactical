@@ -72,8 +72,9 @@ struct ModelHeader
 {
 	// flags
 	enum {
-		BILLBOARD	= 0x01,
-		UPPER_LEFT	= 0x02,
+		BILLBOARD		= 0x01,		// if this is a billboard and always faces the camera
+		UPPER_LEFT		= 0x02,		// if the origin is upper left (center is standard)
+		ROTATE_SHADOWS	= 0x04,		// for billboards, the shadow turns to face the light
 	};
 
 	char					name[EL_FILE_STRING_LEN];

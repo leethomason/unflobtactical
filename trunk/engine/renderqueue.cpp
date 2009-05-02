@@ -17,6 +17,8 @@
 #include "platformgl.h"
 #include "model.h"    
 
+#include "../grinliz/glperformance.h"
+
 using namespace grinliz;
 
 RenderQueue::RenderQueue()
@@ -125,6 +127,8 @@ void RenderQueue::Add( U32 flags, U32 textureID, const Model* model, const Model
 
 void RenderQueue::Flush()
 {
+	GRINLIZ_PERFTRACK	
+
 	U32 flags = (U32)(-1);
 	U32 textureID = 0;
 	const ModelAtom* atom = 0;
