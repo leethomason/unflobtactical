@@ -147,7 +147,7 @@ private:
 	void DrawCamera();
 	void CalcCameraRotation( grinliz::Matrix4* );
 	void EnableLights( bool enable, DayNight dayNight );
-	void LightSimple( DayNight dayNight, ShadowState shadows, Color4F* color );
+	void LightSimple( DayNight dayNight, ShadowState shadows, Color4F* color, float shadowAmount );
 
 	void PushShadowMatrix();
 
