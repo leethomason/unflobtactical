@@ -50,6 +50,8 @@ Game::Game( int width, int height ) :
 	nSceneStack( 0 )
 {
 	memset( memStream, 0, sizeof(MemStream)*MAX_STREAMS );
+	currentFrame = 0;
+	memset( &profile, 0, sizeof( ProfileData ) );
 	surface.Set( 256, 256, 4 );		// All the memory we will ever need (? or that is the intention)
 
 	LoadTextures();
@@ -299,14 +301,22 @@ void Game::DoTick( U32 currentTime )
 #endif
 
 #ifdef GRINLIZ_PROFILE
-	const grinliz::ProfileData& profile = Performance::GetData( false );
+	const int SAMPLE = 2;
+	if ( (currentFrame & (SAMPLE-1)) == 0 ) {
+		memcpy( &profile, &Performance::GetData( false ), sizeof( ProfileData ) );
+		Performance::Clear();
+	}
 	for( unsigned i=0; i<profile.count; ++i ) {
-		UFOText::Draw( 0, 20+i*12, "%20s %4.1f", profile.item[i].name, profile.NormalTime( profile.item[i].functionTime ) );
+		UFOText::Draw( 0, 20+i*12, "%12s %6.2f %4d", 
+					  profile.item[i].name, 
+					  100.0f*profile.NormalTime( profile.item[i].functionTime ),
+					  profile.item[i].functionCalls/SAMPLE );
 	}
 #endif
 
 	glEnable( GL_DEPTH_TEST );
 	previousTime = currentTime;
+	++currentFrame;
 }
 
 

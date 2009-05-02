@@ -31,6 +31,9 @@ distribution.
 #pragma warning( disable : 4530 )
 #pragma warning( disable : 4786 )
 #endif
+#if defined(__APPLE__)
+#include <CoreFoundation/CoreFoundation.h>
+# endif
 
 #include "gldebug.h"
 #include "gltypes.h"
@@ -118,7 +121,10 @@ struct ProfileData
 	grinliz::ProfileItem item[ GL_MAX_PROFILE_ITEM*2 ];
 
 	float NormalTime( timeUnit t ) const {
-		return (float)( (double)t / (double)totalTime );
+		if ( totalTime > 0 )
+			return 0.0f;
+		else
+			return (float)( (double)t / (double)totalTime );
 	}
 };
 
