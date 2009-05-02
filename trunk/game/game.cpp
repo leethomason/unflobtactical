@@ -301,13 +301,13 @@ void Game::DoTick( U32 currentTime )
 #endif
 
 #ifdef GRINLIZ_PROFILE
-	const int SAMPLE = 2;
+	const int SAMPLE = 8;
 	if ( (currentFrame & (SAMPLE-1)) == 0 ) {
 		memcpy( &profile, &Performance::GetData( false ), sizeof( ProfileData ) );
 		Performance::Clear();
 	}
 	for( unsigned i=0; i<profile.count; ++i ) {
-		UFOText::Draw( 0, 20+i*12, "%12s %6.2f %4d", 
+		UFOText::Draw( 0, 20+i*12, "%20s %6.1f %4d", 
 					  profile.item[i].name, 
 					  100.0f*profile.NormalTime( profile.item[i].functionTime ),
 					  profile.item[i].functionCalls/SAMPLE );
