@@ -245,7 +245,7 @@ void Engine::Draw( int* triCount )
 	if ( enableMap ) {
 		// -------- Ground plane lighted -------- //
 		Color4F color;
-		LightSimple( dayNight, OPEN_LIGHT, &color );
+		LightSimple( dayNight, OPEN_LIGHT, &color, 1.0f );
 
 		// The depth mask and the depth test should be completely
 		// independent...but it's not. Very subtle point of how
@@ -256,42 +256,49 @@ void Engine::Draw( int* triCount )
 		// -------- Shadow casters/ground plane ---------- //
 		// Set up the planar projection matrix, with a little z offset
 		// to help with z resolution fighting.
-		PushShadowMatrix();
-
-		int textureState = 0;
-		glDisable( GL_TEXTURE_2D );
-		glDepthFunc( GL_ALWAYS );
-
-		textureState = Model::NO_TEXTURE;
-
-		renderQueue->SetColor( 0, 0, 0 );
-		GLASSERT( renderQueue->Empty() );
-		
-		for( Model* model=modelRoot; model; model=model->next ) {
-			// Take advantage of this walk to adjust the billboard rotations. Note that the rotation
-			// will never change it's position in the space tree, which is why we can set it here.
-			if ( model->IsBillboard() ) {
-				if ( model->GetYRotation() != bbRotation )
-					model->SetYRotation( bbRotation );
-				if ( model->IsShadowRotated() )
-					model->SetYRotation( shadowRotation );
-			}
-
-			// Draw model shadows.
-			model->Queue( renderQueue, textureState );
+		const float SHADOW_START_HEIGHT = 80.0f;
+		const float SHADOW_END_HEIGHT   = SHADOW_START_HEIGHT + 5.0f;
+		float shadowAmount = 1.0f;
+		if ( camera.PosWC().y > SHADOW_START_HEIGHT ) {
+			shadowAmount = 1.0f - ( camera.PosWC().y - SHADOW_START_HEIGHT ) / ( SHADOW_END_HEIGHT - SHADOW_START_HEIGHT );
 		}
-		renderQueue->Flush();
+		if ( shadowAmount > 0.0f ) {
+			PushShadowMatrix();
 
-		CHECK_GL_ERROR;
-		glEnable( GL_TEXTURE_2D );
-		glPopMatrix();
-		
+			int textureState = 0;
+			glDisable( GL_TEXTURE_2D );
+			glDepthFunc( GL_ALWAYS );
+
+			textureState = Model::NO_TEXTURE;
+
+			renderQueue->SetColor( 0, 0, 0 );
+			GLASSERT( renderQueue->Empty() );
+			
+			for( Model* model=modelRoot; model; model=model->next ) {
+				// Take advantage of this walk to adjust the billboard rotations. Note that the rotation
+				// will never change it's position in the space tree, which is why we can set it here.
+				if ( model->IsBillboard() ) {
+					if ( model->GetYRotation() != bbRotation )
+						model->SetYRotation( bbRotation );
+					if ( model->IsShadowRotated() )
+						model->SetYRotation( shadowRotation );
+				}
+
+				// Draw model shadows.
+				model->Queue( renderQueue, textureState );
+			}
+			renderQueue->Flush();
+
+			CHECK_GL_ERROR;
+			glEnable( GL_TEXTURE_2D );
+			glPopMatrix();
+		}
 		// -------- Ground plane shadow ---------- //
 		// Redraw the map, checking z, in shadow.
 		glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 		CHECK_GL_ERROR;
 
-		LightSimple( dayNight, IN_SHADOW, &color );
+		LightSimple( dayNight, IN_SHADOW, &color, shadowAmount );
 		glDepthFunc( GL_LESS );
 		glColor4f( color.x, color.y, color.z, 1.0f );
 		map->Draw();
@@ -424,7 +431,7 @@ void Engine::SetDayNight( bool dayTime, Surface* lightMap )
 
 
 
-void Engine::LightSimple( DayNight dayNight, ShadowState shadows, Color4F* color )
+void Engine::LightSimple( DayNight dayNight, ShadowState shadows, Color4F* color, float shadowAmount )
 {
 	const Vector3F normal = { 0.0f, 1.0f, 0.0f };	
 	float dot = DotProduct( lightDirection, normal );
@@ -439,7 +446,7 @@ void Engine::LightSimple( DayNight dayNight, ShadowState shadows, Color4F* color
 		// Something is getting tweaked in the state. (Not a bug, just the difficulties of
 		// fixed pipeline lightning. Oh how I miss shaders.)
 		//diffuse *= gSHADOW;
-		diffuse *= 0.6f;
+		diffuse *= 0.7f + 0.3f*(1.0f-shadowAmount);
 	}
 	float light = AMBIENT + diffuse*dot;
 
