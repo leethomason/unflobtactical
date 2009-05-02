@@ -121,7 +121,7 @@ struct ProfileData
 	grinliz::ProfileItem item[ GL_MAX_PROFILE_ITEM*2 ];
 
 	float NormalTime( timeUnit t ) const {
-		if ( totalTime > 0 )
+		if ( totalTime == 0 )
 			return 0.0f;
 		else
 			return (float)( (double)t / (double)totalTime );
