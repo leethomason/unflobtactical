@@ -134,7 +134,7 @@ void Performance::Dump( FILE* fp, const char* desc )
 	fprintf( fp, "                                                    calls     time    time/call percent\n" );
 	for( U32 i=0; i<pd.count; ++i )
 	{
-		U32 functionCalls = (pd.item[i].functionCalls>0) ? pd.item[i].functionCalls : 1;
+		//U32 functionCalls = (pd.item[i].functionCalls>0) ? pd.item[i].functionCalls : 1;
 
 		//fprintf( fp, "%48s %8d %10d %10d %.1f%%\n",
 		fprintf( fp, "%48s %10d %.1f%%\n",

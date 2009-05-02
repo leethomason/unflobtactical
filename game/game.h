@@ -22,6 +22,7 @@
 #include "../engine/surface.h"
 #include "../engine/model.h"
 #include "../engine/uirendering.h"
+#include "../grinliz/glperformance.h"
 
 class ParticleSystem;
 class Scene;
@@ -132,6 +133,7 @@ private:
 	int rotation;
 	int nTexture;
 	int nModelResource;
+	int currentFrame;
 	U32 markFrameTime;
 	U32 frameCountsSinceMark;
 	float framesPerSecond;
@@ -153,6 +155,7 @@ private:
 #ifdef MAPMAKER	
 	bool showPathing;
 #endif
+	grinliz::ProfileData profile;
 
 	Texture			texture[MAX_TEXTURES];
 	ModelResource	modelResource[EL_MAX_MODEL_RESOURCES];

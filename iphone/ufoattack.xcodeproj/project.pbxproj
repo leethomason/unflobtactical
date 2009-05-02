@@ -43,6 +43,7 @@
 		9A221E770F9C0F4D0012CE00 /* woodWall.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E600F9C0F4D0012CE00 /* woodWall.mod */; };
 		9A221E780F9C0F4D0012CE00 /* woodWallWin.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A221E610F9C0F4D0012CE00 /* woodWallWin.mod */; };
 		9A221EC10FA0104A0012CE00 /* translucent.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A221EC00FA0104A0012CE00 /* translucent.tex */; };
+		9A5636F40FAC052A00789C61 /* glperformance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A5636F20FAC052A00789C61 /* glperformance.cpp */; };
 		9A5B8C4A0EBEA60600BA5C70 /* cgame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A5B8C480EBEA60600BA5C70 /* cgame.cpp */; };
 		9A69091E0F3372CB005AE44E /* fixedgeom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A6909180F3372CB005AE44E /* fixedgeom.cpp */; };
 		9A69091F0F3372CB005AE44E /* loosequadtree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A69091A0F3372CB005AE44E /* loosequadtree.cpp */; };
@@ -153,6 +154,8 @@
 		9A221E600F9C0F4D0012CE00 /* woodWall.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodWall.mod; path = ../res/woodWall.mod; sourceTree = SOURCE_ROOT; };
 		9A221E610F9C0F4D0012CE00 /* woodWallWin.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = woodWallWin.mod; path = ../res/woodWallWin.mod; sourceTree = SOURCE_ROOT; };
 		9A221EC00FA0104A0012CE00 /* translucent.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = translucent.tex; path = ../res/translucent.tex; sourceTree = SOURCE_ROOT; };
+		9A5636F20FAC052A00789C61 /* glperformance.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = glperformance.cpp; path = ../grinliz/glperformance.cpp; sourceTree = SOURCE_ROOT; };
+		9A5636F30FAC052A00789C61 /* glperformance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glperformance.h; path = ../grinliz/glperformance.h; sourceTree = SOURCE_ROOT; };
 		9A5B8C480EBEA60600BA5C70 /* cgame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = cgame.cpp; path = ../game/cgame.cpp; sourceTree = SOURCE_ROOT; };
 		9A5B8C490EBEA60600BA5C70 /* cgame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cgame.h; path = ../game/cgame.h; sourceTree = SOURCE_ROOT; };
 		9A6909110F3371AF005AE44E /* glfixed.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glfixed.h; path = ../grinliz/glfixed.h; sourceTree = SOURCE_ROOT; };
@@ -401,6 +404,8 @@
 		9AF644500EAA9050004FB696 /* grinliz */ = {
 			isa = PBXGroup;
 			children = (
+				9A5636F20FAC052A00789C61 /* glperformance.cpp */,
+				9A5636F30FAC052A00789C61 /* glperformance.h */,
 				9A6909110F3371AF005AE44E /* glfixed.h */,
 				9AF644510EAA906D004FB696 /* glbitarray.h */,
 				9AF644520EAA906D004FB696 /* glcolor.h */,
@@ -640,6 +645,7 @@
 				9A221E090F9C0D820012CE00 /* micropather.cpp in Sources */,
 				9A221E2C0F9C0EB00012CE00 /* gameresources.cpp in Sources */,
 				9A221E2D0F9C0EB00012CE00 /* unit.cpp in Sources */,
+				9A5636F40FAC052A00789C61 /* glperformance.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -679,7 +685,6 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Lee Thomason";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					TARGET_OS_IPHONE,
 					_DEBUG,
 					GL_NO_SDL,
 				);
