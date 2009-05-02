@@ -32,7 +32,8 @@ distribution.
 #pragma warning( disable : 4786 )
 #endif
 #if defined(__APPLE__)
-#include <CoreFoundation/CoreFoundation.h>
+//#include <CoreFoundation/CoreFoundation.h>
+#include <mach/mach_time.h>
 # endif
 
 #include "gldebug.h"
@@ -78,10 +79,15 @@ namespace grinliz {
 		 return val;
 	}
 #elif defined (__APPLE__)
-	typedef double timeUnit;
+	/*typedef double timeUnit;
 	
 	inline double FastTime() {
 		return CFAbsoluteTimeGetCurrent();
+	}
+	*/
+	typedef U64 timeUnit;
+	inline U64 FastTime() {
+		return mach_absolute_time();
 	}
 #else
 #	error Platform not supported for profiling.

@@ -186,9 +186,9 @@ void RenderQueue::Flush()
 			const Model* model = item->model;
 			GLASSERT( model );
 
-			model->PushMatrix( /*bindTextureToVertex*/ );
+			//model->PushMatrix( /*bindTextureToVertex*/ );
 			atom->Draw();
-			model->PopMatrix( /*bindTextureToVertex*/ );
+			//model->PopMatrix( /*bindTextureToVertex*/ );
 			item = item->nextModel;
 		}
 	}
