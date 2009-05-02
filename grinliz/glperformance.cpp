@@ -35,7 +35,6 @@ distribution.
 #include <stdio.h>
 #include <vector>
 #include <algorithm>
-//#include <functional>
 
 #include "gldebug.h"
 #include "glperformance.h"
@@ -86,7 +85,7 @@ struct PDIgreater {
 {
 	// Compute the total time, and the highest bit.
 	profile.totalTime = 0;
-	profile.totalTimeMSec = 0;
+	//profile.totalTimeMSec = 0;
 
 	profile.count = 0;
 	for( int i=0; i<numMap; ++i )
@@ -111,13 +110,13 @@ struct PDIgreater {
 			++profile.count;
 		}
 	}
-	for( unsigned i=0; i<profile.count; ++i ) {
-		profile.item[i].functionTimeMSec = (U32)(profile.item[i].functionTime / U64(LILITH_CONVERT_TO_MSEC));
-	}
-	profile.totalTimeMSec = (U32)(profile.totalTime / (U64)LILITH_CONVERT_TO_MSEC);
-	if ( profile.totalTimeMSec == 0 ) {
-		profile.totalTimeMSec = 1;
-	}
+	//for( unsigned i=0; i<profile.count; ++i ) {
+	//	profile.item[i].functionTimeMSec = (U32)(profile.item[i].functionTime / U64(LILITH_CONVERT_TO_MSEC));
+	//}
+	//profile.totalTimeMSec = (U32)(profile.totalTime / (U64)LILITH_CONVERT_TO_MSEC);
+	//if ( profile.totalTimeMSec == 0 ) {
+		//profile.totalTimeMSec = 1;
+	//}
 
 	if ( sortOnTime ) {
 		sort( &profile.item[0], 
@@ -137,15 +136,16 @@ void Performance::Dump( FILE* fp, const char* desc )
 	{
 		U32 functionCalls = (pd.item[i].functionCalls>0) ? pd.item[i].functionCalls : 1;
 
-		fprintf( fp, "%48s %8d %10d %10d %.1f%%\n",
+		//fprintf( fp, "%48s %8d %10d %10d %.1f%%\n",
+		fprintf( fp, "%48s %10d %.1f%%\n",
 				pd.item[i].name,
 				//pd.item[i].id,
 				pd.item[i].functionCalls,
-				pd.item[i].functionTimeMSec,
-				(U32)( pd.item[i].functionTime / functionCalls / (U64)(LILITH_CONVERT_TO_MSEC) ),
+				//pd.item[i].functionTimeMSec,
+				//(U32)( pd.item[i].functionTime / functionCalls / (U64)(LILITH_CONVERT_TO_MSEC) ),
 				100.0 * double( pd.item[i].functionTime ) / double( pd.totalTime ) );
 	}
-	fprintf( fp, "Total time: %d\n", pd.totalTimeMSec );
+	//fprintf( fp, "Total time: %d\n", pd.totalTimeMSec );
 
 	//int maxFrame = grinliz::Min( (nFrames+1), GL_MAX_PROFILE_FRAMES );
 	//fprintf( fp, "    " );

@@ -43,7 +43,7 @@
 	<model filename="femaleCiv.ac" />
 	<model filename="selection.ac" />
 
-  <model filename="tree.ac" billboard="true" />
+  <model filename="tree.ac" billboard="true" shadow="rotate"/>
 
   <model filename="ufo_Diag.ac" />
   <model filename="ufo_DoorCld.ac" />

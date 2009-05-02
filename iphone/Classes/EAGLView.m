@@ -2,10 +2,6 @@
 //  EAGLView.m
 //  ufoattack
 //
-//  Created by Lee Thomason on 10/12/08.
-//  Copyright __MyCompanyName__ 2008. All rights reserved.
-//
-
 
 
 #import <QuartzCore/QuartzCore.h>

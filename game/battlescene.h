@@ -85,7 +85,6 @@ private:
 	grinliz::Vector3F dragStart;
 	grinliz::Vector3F dragStartCameraWC;
 	grinliz::Matrix4  dragMVPI;
-	//grinliz::Vector3F draggingModelOrigin;
 
 	int		initZoomDistance;
 	float	initZoom;
@@ -93,9 +92,8 @@ private:
 	grinliz::Vector3F orbitPole;
 	float	orbitStart;
 
-	//Model* draggingModel;
-	UIButtonBox* widgets;
-	Engine* engine;
+	UIButtonBox*	widgets;
+	Engine*			engine;
 
 	enum {
 		MAX_TERRANS = 8,
@@ -110,9 +108,8 @@ private:
 		ALIEN_UNITS_END		= ALIEN_UNITS_START+MAX_ALIENS,
 		MAX_UNITS			= ALIEN_UNITS_END,
 	};
-	Model*					crateTest;
-	int						selectedUnit;
-	Model*					pathEndModel;
+	int		selectedUnit;
+	Model*	pathEndModel;
 
 	Unit units[MAX_UNITS];
 

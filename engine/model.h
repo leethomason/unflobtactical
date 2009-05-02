@@ -124,6 +124,7 @@ public:
 
 	int IsBillboard()		{ return resource->header.flags & ModelHeader::BILLBOARD; }
 	int IsOriginUpperLeft()	{ return resource->header.flags & ModelHeader::UPPER_LEFT; }
+	int IsShadowRotated()	{ return resource->header.flags & ModelHeader::ROTATE_SHADOWS; }
 	
 	// Set the skin texture
 	void SetSkin( int armor, int skin, int hair );

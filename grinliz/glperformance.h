@@ -34,11 +34,12 @@ distribution.
 
 #include "gldebug.h"
 #include "gltypes.h"
-#include "SDL.h"
 
 namespace grinliz {
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
+	typedef U64 timeUnit;
+
 	inline U64 FastTime()
 	{
 		union 
@@ -64,20 +65,23 @@ namespace grinliz {
 	}
 	#define LILITH_CONVERT_TO_MSEC (10000)
 
-#else
+#elif defined(__GNUC__) && !defined(__APPLE__) 
+	typedef U64 timeUnit;
+
 	inline U64 FastTime()
 	{
-		#if defined (__GNUC__) && !defined( __APPLE__ )
-
-			U64 val;
-    		 __asm__ __volatile__ ("rdtsc" : "=A" (val));
-    		 return val;
-			#define LILITH_CONVERT_TO_MSEC (10000)
-    	#else
-			return SDL_GetTicks();
-			#define LILITH_CONVERT_TO_MSEC (1)
-		#endif
+		U64 val;
+		 __asm__ __volatile__ ("rdtsc" : "=A" (val));
+		 return val;
 	}
+#elif defined (__APPLE__)
+	typedef double timeUnit;
+	
+	inline double FastTime() {
+		return CFAbsoluteTimeGetCurrent();
+	}
+#else
+#	error Platform not supported for profiling.
 #endif
 
 
@@ -92,9 +96,9 @@ struct PerformanceData
 	const char* subName;
 	int id;
 	U32 functionCallsTop;
-	U64 functionTimeTop;
+	timeUnit functionTimeTop;
 	U32 functionCallsSub;
-	U64 functionTimeSub;
+	timeUnit functionTimeSub;
 
 	void Clear();
 };
@@ -104,16 +108,18 @@ struct ProfileItem
 {
 	const char* name;
 	U32 functionCalls;	// # of calls
-	U64 functionTime;	// total time - in no particular unit (multiple of clock cycle)
-	U32 functionTimeMSec;
+	timeUnit functionTime;	// total time - in no particular unit (multiple of clock cycle)
 };
 
 struct ProfileData
 {
-	U64 totalTime;		// total time of all items (in CPU clocks)
-	U32 totalTimeMSec;
+	timeUnit totalTime;		// total time of all items (in CPU clocks)
 	U32 count;			// number of items
 	grinliz::ProfileItem item[ GL_MAX_PROFILE_ITEM*2 ];
+
+	float NormalTime( timeUnit t ) const {
+		return (float)( (double)t / (double)totalTime );
+	}
 };
 
 
@@ -174,10 +180,10 @@ class Performance
 	U64 start;
 };
 
-#ifdef L3PERF
-	#define L3PERFTRACK static PerformanceData data( __FUNCTION__, __FUNCTION__ ); Performance perf( &data );
+#ifdef GRINLIZ_PROFILE
+	#define GRINLIZ_PERFTRACK static PerformanceData data( __FUNCTION__, __FUNCTION__ ); Performance perf( &data );
 #else
-	#define L3PERFTRACK {}
+	#define GRINLIZ_PERFTRACK {}
 #endif
 
 

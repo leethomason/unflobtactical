@@ -221,6 +221,7 @@ void Engine::Draw( int* triCount )
 	// -------- Camera & Frustum -------- //
 	DrawCamera();
 	float bbRotation = camera.GetBillboardYRotation();
+	float shadowRotation = ToDegree( atan2f( lightDirection.x, lightDirection.z ) );
 
 	// Compute the frustum planes
 	Plane planes[6];
@@ -269,15 +270,17 @@ void Engine::Draw( int* triCount )
 		for( Model* model=modelRoot; model; model=model->next ) {
 			// Take advantage of this walk to adjust the billboard rotations. Note that the rotation
 			// will never change it's position in the space tree, which is why we can set it here.
-			if ( model->IsBillboard() && model->GetYRotation() != bbRotation ) {
-				model->SetYRotation( bbRotation );
+			if ( model->IsBillboard() ) {
+				if ( model->GetYRotation() != bbRotation )
+					model->SetYRotation( bbRotation );
+				if ( model->IsShadowRotated() )
+					model->SetYRotation( shadowRotation );
 			}
 
 			// Draw model shadows.
 			model->Queue( renderQueue, textureState );
 		}
 		renderQueue->Flush();
-		//renderQueue->BindTextureToVertex( false );
 
 		CHECK_GL_ERROR;
 		glEnable( GL_TEXTURE_2D );
@@ -310,6 +313,11 @@ void Engine::Draw( int* triCount )
 	{
 		if ( !enableMap && model->IsSet( Model::MODEL_OWNED_BY_MAP ) )
 			continue;
+
+		// Remove the shadow rotation for this pass.
+		if ( model->IsBillboard() && model->IsShadowRotated() ) {
+			model->SetYRotation( bbRotation );
+		}
 
 		const Vector3F& pos = model->Pos();
 		int x = LRintf( pos.x );

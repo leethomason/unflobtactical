@@ -28,6 +28,7 @@
 
 #include "../grinliz/glmatrix.h"
 #include "../grinliz/glutil.h"
+#include "../grinliz/glperformance.h"
 
 using namespace grinliz;
 
@@ -294,6 +295,13 @@ void Game::DoTick( U32 currentTime )
 		}
 		UFODrawText( 0, 12+12*k, "%16s %5d K", modelResource[k].name, total );
 		++k;
+	}
+#endif
+
+#ifdef GRINLIZ_PROFILE
+	const grinliz::ProfileData& profile = Performance::GetData( false );
+	for( unsigned i=0; i<profile.count; ++i ) {
+		UFOText::Draw( 0, 20+i*12, "%20s %4.1f", profile.item[i].name, profile.NormalTime( profile.item[i].functionTime ) );
 	}
 #endif
 

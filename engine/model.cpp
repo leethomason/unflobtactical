@@ -21,6 +21,7 @@
 
 #include "../grinliz/glvector.h"
 #include "../grinliz/glstringutil.h"
+#include "../grinliz/glperformance.h"
 
 
 using namespace grinliz;
@@ -347,6 +348,7 @@ void ModelAtom::Bind( /*bool bindTextureToVertex*/ ) const
 
 void ModelAtom::Draw() const
 {
+	GRINLIZ_PERFTRACK
 	// mode, count, type, indices
 	glDrawElements( GL_TRIANGLES, 
 					nIndex,
