@@ -36,8 +36,9 @@ public:
 	void Save( UFOStream* s );
 	void Load( UFOStream* s );
 
-#ifdef MAPMAKER
+	// debugging / MapMaker
 	void MouseMove( int x, int y );
+#ifdef MAPMAKER
 	void RotateSelection( int delta );
 	void DeleteAtSelection();
 	void DeltaCurrentMapItem( int d );
@@ -81,6 +82,8 @@ private:
 	int UnitFromModel( Model* m );
 	Unit* GetUnitFromTile( int x, int z );
 	void FreePathEndModel();
+	void TestHitTesting();
+
 
 	grinliz::Vector3F dragStart;
 	grinliz::Vector3F dragStartCameraWC;

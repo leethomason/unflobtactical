@@ -25,7 +25,7 @@
 #include "../game/cgame.h"
 #include "framebuffer.h"
 
-#ifdef MAPMAKER
+#if defined(MAPMAKER) || defined(_MSC_VER)
 #include "../game/game.h"
 #endif
 
@@ -389,7 +389,7 @@ int main( int argc, char **argv )
 						//GLOUTPUT(( "x,y=%d,%d  down=%d,%d\n", x, y, mouseDown.x, mouseDown.y ));
 						GameCameraRotate( game, GAME_ROTATE_MOVE, (float)(y-mouseDown.y)*0.5f );
 					}
-#ifdef MAPMAKER
+#if defined(MAPMAKER) || defined(_MSC_VER)
 					else {
 						((Game*)game)->MouseMove( x, y );
 					}

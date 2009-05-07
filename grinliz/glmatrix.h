@@ -130,6 +130,8 @@ class Matrix4
 	void Adjoint( Matrix4* adjoint ) const;
 	/// Invert
 	void Invert( Matrix4* inverse ) const;
+	/// Inverte, assuming this is only rotation and translation. Results will be incorrect for scale or skew.
+	void InvertRotationMat( Matrix4* inverse ) const;
 	/// Cofactor
 	void Cofactor( Matrix4* cofactor ) const;
 

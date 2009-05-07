@@ -67,8 +67,9 @@ public:
 	Surface surface;
 	ParticleSystem* particleSystem;
 
-#ifdef MAPMAKER
+	// debugging / testing / mapmaker
 	void MouseMove( int x, int y );
+#ifdef MAPMAKER
 	void RotateSelection( int delta );
 	void DeleteAtSelection();
 	void DeltaCurrentMapItem( int d );

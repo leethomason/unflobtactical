@@ -607,7 +607,7 @@ void grinliz::TessellateCube(	const Vector3F& center,
 							{ 0.f, -1.f, 0.f } };
 								
 	for( int i=0; i<6; ++i ) {
-		U32 index = _vertex->size();
+		U32 index = (U32)_vertex->size();
 		_vertex->push_back( xyz[ face[i*4+0] ] );
 		_vertex->push_back( xyz[ face[i*4+1] ] );
 		_vertex->push_back( xyz[ face[i*4+2] ] );
@@ -1504,4 +1504,38 @@ int grinliz::ComparePlaneSphere( const Plane& plane, const Sphere& sphere )
 		return grinliz::NEGATIVE;
 	}
 	return grinliz::INTERSECT;
+}
+
+
+int grinliz::IntersectRaySphere(	const Sphere& sphere,
+									const Vector3F& p,
+									const Vector3F& dir )
+{
+	Vector3F raySphere = sphere.origin - p;
+	float raySphereLen2 = DotProduct( raySphere, raySphere );
+	float sphereR2 = sphere.radius*sphere.radius;
+
+	if (raySphereLen2 < sphereR2) 
+	{	
+		// Origin is inside the sphere.
+		return INSIDE;
+	} 
+	else 
+	{
+		// Clever idea: what is the rays closest approach to the sphere?
+		// see: http://www.devmaster.net/wiki/Ray-sphere_intersection
+
+		float closest = DotProduct(raySphere, dir);
+		if (closest < 0) {
+			// Then we are pointing away from the sphere (and we know we aren't inside.)
+			return REJECT;
+		}
+
+		float halfCordLen = (sphereR2 - raySphereLen2) / DotProduct(dir, dir) + (closest*closest);
+		if ( halfCordLen > 0 ) {
+			//*t = closest - halfCordLen.Sqrt();
+			return INTERSECT;
+		}
+	}
+	return REJECT;
 }

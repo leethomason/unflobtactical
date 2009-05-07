@@ -279,6 +279,34 @@ void Matrix4::Invert( Matrix4* inverse ) const
 }
 
 
+void Matrix4::InvertRotationMat( Matrix4* inverse ) const
+{
+	// http://graphics.stanford.edu/courses/cs248-98-fall/Final/q4.html
+	*inverse = *this;
+
+	// Transpose the rotation terms.
+	Swap( &inverse->m12, &inverse->m21 );
+	Swap( &inverse->m13, &inverse->m31 );
+	Swap( &inverse->m23, &inverse->m32 );
+
+	const Vector3F* u = (const Vector3F*)(&x[0]);
+	const Vector3F* v = (const Vector3F*)(&x[4]);
+	const Vector3F* w = (const Vector3F*)(&x[8]);
+	const Vector3F* t = (const Vector3F*)(&x[12]);
+
+	inverse->m14 = -DotProduct( *u, *t );
+	inverse->m24 = -DotProduct( *v, *t );
+	inverse->m34 = -DotProduct( *w, *t );
+
+	#ifdef DEBUG
+	Matrix4 result;
+	Matrix4 identity;
+	MultMatrix4( *this, *inverse, &result );
+	GLASSERT( Equal( identity, result, 0.001f ) );
+	#endif
+}
+
+
 void Matrix4::Cofactor( Matrix4* cofactor ) const
 {
     int i = 1;

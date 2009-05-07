@@ -38,17 +38,30 @@ struct ModelAtom
 
 	void Bind( /*bool bindTextureToVertex*/ ) const;
 	void Draw() const;
+
+	const U16* index;
+	const Vertex* vertex;
 };
 
 
 class ModelResource
 {
 public:
+	void Free();
+
+	// In the coordinate space of the resource! (Object space.)
+	int Intersect(	const grinliz::Vector3F& point,
+					const grinliz::Vector3F& dir,
+					grinliz::Vector3F* intersect );
+
+
 	ModelHeader header;						// loaded
 
 	grinliz::Sphere			boundSphere;	// computed
 	float					boundRadius2D;	// computed, bounding 2D radius centered at 0,0
 	grinliz::Rectangle3F	hitBounds;		// for picking - a bounds approximation
+	U16*					allIndex;
+	Vertex*					allVertex;
 
 	int IsOriginUpperLeft()				{ return header.flags & ModelHeader::UPPER_LEFT; }
 	const grinliz::Rectangle3F& AABB()	{ return header.bounds; }
@@ -72,8 +85,8 @@ private:
 	const Texture* texture;
 	int nTextures;
 
-	U16		index[EL_MAX_INDEX_IN_MODEL];
-	Vertex	vertex[EL_MAX_VERTEX_IN_MODEL];
+	//U16		index[EL_MAX_INDEX_IN_MODEL];
+	//Vertex	vertex[EL_MAX_VERTEX_IN_MODEL];
 };
 
 
@@ -103,10 +116,10 @@ public:
 		MODEL_OWNED_BY_MAP			= 0x04,
 	};
 
-	int IsSet( int f )			{ return flags & f; }
+	int IsSet( int f ) const	{ return flags & f; }
 	void Set( int f )			{ flags |= f; }
 	void Clear( int f )			{ flags &= (~f); }
-
+	int Flags()	const			{ return flags; }
 
 	const grinliz::Vector3F& Pos()						{ return pos; }
 	void SetPos( const grinliz::Vector3F& pos );
@@ -119,6 +132,7 @@ public:
 		while( rot < 0 )		{ rot += 360.0f; }
 		while( rot >= 360 )		{ rot -= 360.0f; }
 		this->rot = rot;		// won't change tree location, don't need to call Update()
+		Modify();
 	}
 	const float GetYRotation()			{ return rot; }
 
@@ -136,8 +150,14 @@ public:
 	void CalcBoundSphere( grinliz::Sphere* sphere );
 	void CalcBoundCircle( grinliz::Circle* circle );
 	void CalcHitAABB( grinliz::Rectangle3F* aabb );
-	// Warning: will fail if rotation not a multiple of 90.
+
+	// Calcs the AABB if the rotation is Nx90. Returs true for success.
 	bool CalcAABB( grinliz::Rectangle3F* aabb ) ;
+
+	// Returns grinliz::INTERSECT or grinliz::REJECT
+	int IntersectRay(	const grinliz::Vector3F& origin, 
+						const grinliz::Vector3F& dir,
+						grinliz::Vector3F* intersect );
 
 	ModelResource* GetResource()				{ return resource; }
 	bool Sentinel()								{ return resource==0 && tree==0; }
@@ -151,6 +171,10 @@ private:
 		void Identity() { a=1.0f; d=1.0f; x=0.0f; y=0.0f; }
 	};
 
+	void Modify() { xformValid = false; invValid = false; }
+	const grinliz::Matrix4& XForm() const;
+	const grinliz::Matrix4& InvXForm() const;
+
 	SpaceTree* tree;
 	ModelResource* resource;
 	grinliz::Vector3F pos;
@@ -158,8 +182,13 @@ private:
 	bool texMatSet;
 	TexMat texMat;
 	const Texture* setTexture;	// overrides the default texture
-
 	int flags;
+	
+	mutable bool xformValid;
+	mutable bool invValid;
+
+	mutable grinliz::Matrix4 _xform;
+	mutable grinliz::Matrix4 _invXForm;
 };
 
 

@@ -511,6 +511,13 @@ int Intersect3Planes( const Plane& p0, const Plane& p1, const Plane& p2, Vector3
 int ComparePlaneSphere( const Plane& plane, const Sphere& sphere );
 
 
+/** Tests a ray to a sphere.
+	@return REJECT or INTERSECT
+*/
+int IntersectRaySphere(	const Sphere& sphere,
+						const Vector3F& origin,
+						const Vector3F& dir );
+
 };	// namespace grinliz
 
 #endif

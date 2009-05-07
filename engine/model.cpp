@@ -23,8 +23,60 @@
 #include "../grinliz/glstringutil.h"
 #include "../grinliz/glperformance.h"
 
+#include <float.h>
 
 using namespace grinliz;
+
+
+
+void ModelResource::Free()
+{
+	for( int i=0; i<header.nGroups; ++i ) {
+		glDeleteBuffers( 1, (const GLuint*) &atom[i].indexID );		
+		glDeleteBuffers( 1, (const GLuint*) &atom[i].vertexID );
+		memset( &atom[i], 0, sizeof( ModelAtom ) );
+		CHECK_GL_ERROR;
+	}
+	delete [] allVertex;
+	delete [] allIndex;
+}
+
+
+
+int ModelResource::Intersect(	const grinliz::Vector3F& point,
+								const grinliz::Vector3F& dir,
+								grinliz::Vector3F* intersect )
+{
+	float t;
+	if ( IntersectRayAABB( point, dir, header.bounds, intersect, &t ) == grinliz::INTERSECT ) {
+		float close2 = FLT_MAX;
+		Vector3F test;
+
+		for( int i=0; i<header.nGroups; ++i ) {
+			for( unsigned j=0; j<atom[i].nIndex; j+=3 ) {
+				int r = IntersectRayTri( point, dir, 
+										 atom[i].vertex[ atom[i].index[j+0] ].pos,
+										 atom[i].vertex[ atom[i].index[j+1] ].pos,
+										 atom[i].vertex[ atom[i].index[j+2] ].pos,
+										 &test );
+				if ( r == grinliz::INTERSECT ) {
+					float c2 =  (point.x-test.x)*(point.x-test.x) +
+								(point.y-test.y)*(point.y-test.y) +
+								(point.z-test.z)*(point.z-test.z);
+					if ( c2 < close2 ) {
+						close2 = c2;
+						*intersect = test;
+					}
+				}
+			}
+		}
+		if ( close2 < FLT_MAX ) {
+			return grinliz::INTERSECT;
+		}
+	}
+	return grinliz::REJECT;
+}
+
 
 void ModelLoader::Load( FILE* fp, ModelResource* res )
 {
@@ -122,13 +174,15 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 
 		GLOUTPUT(( "  '%s' vertices=%d tris=%d\n", textureName, res->atom[i].nVertex, res->atom[i].nIndex/3 ));
 	}
-	size_t r = fread( vertex, sizeof(Vertex), res->header.nTotalVertices, fp );
+
+	res->allVertex = new Vertex[ res->header.nTotalVertices ];
+	res->allIndex  = new U16[ res->header.nTotalIndices ];
+
+	size_t r = fread( res->allVertex, sizeof(Vertex), res->header.nTotalVertices, fp );
 	(void)r;
 	GLASSERT( r == res->header.nTotalVertices );
-
 	GLASSERT( sizeof(Vertex) == sizeof(U32)*8 );
-
-	fread( index, sizeof(U16), res->header.nTotalIndices, fp );
+	fread( res->allIndex, sizeof(U16), res->header.nTotalIndices, fp );
 
 #ifdef DEBUG
 	/*
@@ -153,8 +207,12 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 		CHECK_GL_ERROR
 		U32 indexSize = sizeof(U16)*res->atom[i].nIndex;
 		U32 dataSize  = sizeof(Vertex)*res->atom[i].nVertex;
-		glBufferData( GL_ELEMENT_ARRAY_BUFFER, indexSize, index+iOffset, GL_STATIC_DRAW );
-		glBufferData( GL_ARRAY_BUFFER, dataSize, vertex+vOffset, GL_STATIC_DRAW );
+
+		res->atom[i].index  = res->allIndex+iOffset;
+		res->atom[i].vertex = res->allVertex+vOffset;
+
+		glBufferData( GL_ELEMENT_ARRAY_BUFFER, indexSize, res->atom[i].index, GL_STATIC_DRAW );
+		glBufferData( GL_ARRAY_BUFFER, dataSize, res->atom[i].vertex, GL_STATIC_DRAW );
 		CHECK_GL_ERROR
 
 		iOffset += res->atom[i].nIndex;
@@ -174,6 +232,7 @@ void Model::Init( ModelResource* resource, SpaceTree* tree )
 	rot = 0;
 	texMatSet = false;
 	setTexture = 0;
+	Modify();
 
 	if ( tree ) {
 		tree->Update( this );
@@ -186,6 +245,7 @@ void Model::Init( ModelResource* resource, SpaceTree* tree )
 
 void Model::SetPos( const grinliz::Vector3F& pos )
 { 
+	Modify();
 	this->pos = pos;	
 	tree->Update( this ); 
 }
@@ -374,10 +434,13 @@ void Model::PushMatrix( /*bool bindTextureToVertex*/ ) const
 	glMultMatrixf( xform.x );
 #else
 	glPushMatrix();
-	glTranslatef( pos.x, pos.y, pos.z );
-	if ( rot != 0 ) {
-		glRotatef( rot, 0.f, 1.f, 0.f );
-	}
+	//glTranslatef( pos.x, pos.y, pos.z );
+	//if ( rot != 0 ) {
+	//	glRotatef( rot, 0.f, 1.f, 0.f );
+	//}
+	const Matrix4& xform = XForm();
+	glMultMatrixf( xform.x );
+
 #endif
 
 #if 0
@@ -442,3 +505,82 @@ void Model::PopMatrix( /*bool bindTextureToVertex*/ ) const
 	CHECK_GL_ERROR;
 }
 
+
+const grinliz::Matrix4& Model::XForm() const
+{
+	if ( !xformValid ) {
+		Matrix4 t;
+		t.SetTranslation( pos );
+
+		Matrix4 r;
+		r.SetYRotation( rot );
+
+		_xform = t*r;
+		xformValid = true;
+	}
+	return _xform;
+}
+
+
+const grinliz::Matrix4& Model::InvXForm() const
+{
+	if ( !invValid ) {
+		const Matrix4& xform = XForm();
+
+		const Vector3F& u = *((const Vector3F*)&xform.x[0]);
+		const Vector3F& v = *((const Vector3F*)&xform.x[4]);
+		const Vector3F& w = *((const Vector3F*)&xform.x[8]);
+
+		_invXForm.m11 = u.x;	_invXForm.m12 = u.y;	_invXForm.m13 = u.z;	_invXForm.m14 = -DotProduct( u, pos );
+		_invXForm.m21 = v.x;	_invXForm.m22 = v.y;	_invXForm.m23 = v.z;	_invXForm.m24 = -DotProduct( v, pos );
+		_invXForm.m31 = w.x;	_invXForm.m32 = w.y;	_invXForm.m33 = w.z;	_invXForm.m34 = -DotProduct( w, pos );
+		_invXForm.m41 = 0;		_invXForm.m42 = 0;		_invXForm.m43 = 0;		_invXForm.m44 = 1;
+
+		invValid = true;
+	}
+	return _invXForm;
+}
+
+
+// TestHitTest(PC)
+// 1.4 fps (eek!)
+// sphere test: 4.4
+// tweaking: 4.5
+// AABB testing in model: 8.0
+// cache the xform: 8.4
+// goal: 30. Better but ouchie.
+
+int Model::IntersectRay(	const Vector3F& _origin, 
+							const Vector3F& _dir,
+							Vector3F* intersect )
+{
+	Vector4F origin = { _origin.x, _origin.y, _origin.z, 1.0f };
+	Vector4F dir    = { _dir.x, _dir.y, _dir.z, 0.0f };
+	int result = grinliz::REJECT;
+
+	Sphere sphere;
+	CalcBoundSphere( &sphere );
+	if ( IntersectRaySphere( sphere, _origin, _dir ) == grinliz::INTERSECT )
+	{
+		// inlining the matrix inversion takes it from 17-22.6
+		const Matrix4& inv = InvXForm();
+
+		Vector4F objOrigin4 = inv * origin;
+		Vector4F objDir4    = inv * dir;
+
+		Vector3F objOrigin = { objOrigin4.x, objOrigin4.y, objOrigin4.z };
+		Vector3F objDir    = { objDir4.x, objDir4.y, objDir4.z };
+		Vector3F objIntersect;
+
+		result = resource->Intersect( objOrigin, objDir, &objIntersect );
+		if ( result == grinliz::INTERSECT ) {
+			// Back to this coordinate system. What a pain.
+			const Matrix4& xform = XForm();
+
+			Vector4F objIntersect4 = { objIntersect.x, objIntersect.y, objIntersect.z, 1.0f };
+			Vector4F intersect4 = xform*objIntersect4;
+			intersect->Set( intersect4.x, intersect4.y, intersect4.z );
+		}
+	}
+	return result;
+}

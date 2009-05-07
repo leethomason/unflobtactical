@@ -18,6 +18,7 @@
 #include "../grinliz/glmatrix.h"
 #include "../grinliz/glvector.h"
 #include "../grinliz/glgeometry.h"
+#include "../grinliz/glperformance.h"
 
 #include "../game/cgame.h"
 
@@ -226,7 +227,7 @@ void Engine::Draw( int* triCount )
 	// Compute the frustum planes
 	Plane planes[6];
 	CalcFrustumPlanes( planes );
-	Model* modelRoot = spaceTree->Query( planes, 6 );
+	Model* modelRoot = spaceTree->Query( planes, 6, 0, 0 );
 
 #	ifdef USING_GL
 #		ifdef DEBUG
@@ -663,36 +664,19 @@ void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
 }
 
 
-Model* Engine::IntersectModel( const grinliz::Ray& ray, bool onlyDraggable )
+Model* Engine::IntersectModel( const grinliz::Ray& ray, HitTestMethod method, int required, int exclude, Vector3F* intersection )
 {
+	GRINLIZ_PERFTRACK
+
 	int FAR = 10*1000;
 	float close = (float)FAR;
 	Model* m = 0;
 
-	Model* root = spaceTree->Query( ray.origin, ray.direction );
-
-	for( ; root; root=root->next )
-	{
-		if ( !onlyDraggable || root->IsSet( Model::MODEL_SELECTABLE ) ) {
-			Vector3F intersect;
-			Rectangle3F aabb;
-			float t;
-
-			root->CalcHitAABB( &aabb );
-			//GLOUTPUT(( "AABB: %.2f,%.2f,%.2f  %.2f,%.2f,%.2f\n", (float)aabb.min.x, (float)aabb.min.y, (float)aabb.min.z,
-			//			(float)aabb.max.x, (float)aabb.max.y, (float)aabb.max.z ));
-			
-			int result = IntersectRayAABB( ray.origin, ray.direction, aabb, &intersect, &t );
-			//GLOUTPUT(( "  result=%d\n", result ));
-			if ( result == grinliz::INTERSECT ) {
-				if ( t < close ) {
-					m = root;
-					close = t;
-				}
-			}
-		}
-	}
-	return m;
+	Model* model = spaceTree->QueryRay(	ray.origin, ray.direction, 
+										required, exclude,
+										method,
+										intersection );
+	return model;
 }
 
 
