@@ -34,6 +34,7 @@ SpaceTree::SpaceTree( float yMin, float yMax )
 	allocated = 0;
 	this->yMin = yMin;
 	this->yMax = yMax;
+	queryID = 0;
 
 	freeMemSentinel.next = &freeMemSentinel;
 	freeMemSentinel.prev = &freeMemSentinel;
@@ -76,6 +77,11 @@ void SpaceTree::InitNode()
 				node->x = i;
 				node->z = j;
 				node->size = nodeSize;
+				node->queryID = 0;
+				node->parent = 0;
+				if ( depth > 0 ) {
+					node->parent = GetNode( depth-1, i, j );
+				}
 
 				/*
 				// looseSize = size*2, "classic" tree.
@@ -199,53 +205,28 @@ void SpaceTree::Update( Model* model )
 	//Rectangle3F aabb;
 	Node* node = 0;
 	
-	/*
-	// Works, doesn't seem to help.
-	// Needs more testnig.
-	if ( model->CalcAABB( &aabb ) ) {
-		// use the tight bounds.
-		int x = (int)((aabb.min.x));	// + aabb.max.x)*0.5f);
-		int z = (int)((aabb.min.z));	// + aabb.max.z)*0.5f);
+	// Use the loser circle bounds.
+	// Get basics.
+	Circle circle;
+	model->CalcBoundCircle( &circle );
+	//int modelSize = circlex.radius.Ceil();
 
-		while( depth > 0 ) {
-			node = GetNode( depth, x, z );
-			if (    aabb.min.x >= float( node->looseX )
-				 && aabb.min.z >= float( node->looseZ )
-				 && aabb.max.x <= float( node->looseX + node->looseSize )
-				 && aabb.max.z <= float( node->looseZ + node->looseSize ) )
-			{
-				// fits.
-				break;
-			}
-			--depth;
+	int x = (int)circle.origin.x;
+	int z = (int)circle.origin.y;
+
+	while( depth > 0 ) {
+		node = GetNode( depth, x, z );
+		if (    circle.origin.x - circle.radius >= float( node->looseX )
+			 && circle.origin.y - circle.radius >= float( node->looseZ )
+			 && circle.origin.x + circle.radius <= float( node->looseX + node->looseSize )
+			 && circle.origin.y + circle.radius <= float( node->looseZ + node->looseSize ) )
+		{
+			// fits.
+			break;
 		}
-		++nodeAddedAtDepth[depth];
+		--depth;
 	}
-	else */
-	{
-		// Use the loser circle bounds.
-		// Get basics.
-		Circle circle;
-		model->CalcBoundCircle( &circle );
-		//int modelSize = circlex.radius.Ceil();
-
-		int x = (int)circle.origin.x;
-		int z = (int)circle.origin.y;
-
-		while( depth > 0 ) {
-			node = GetNode( depth, x, z );
-			if (    circle.origin.x - circle.radius >= float( node->looseX )
-				 && circle.origin.y - circle.radius >= float( node->looseZ )
-				 && circle.origin.x + circle.radius <= float( node->looseX + node->looseSize )
-				 && circle.origin.y + circle.radius <= float( node->looseZ + node->looseSize ) )
-			{
-				// fits.
-				break;
-			}
-			--depth;
-		}
-		++nodeAddedAtDepth[depth];
-	}
+	++nodeAddedAtDepth[depth];
 
 	/*
 #ifdef DEBUG
@@ -289,7 +270,7 @@ SpaceTree::Node* SpaceTree::GetNode( int depth, int x, int z )
 
 
 
-Model* SpaceTree::Query( const Plane* planes, int nPlanes )
+Model* SpaceTree::Query( const Plane* planes, int nPlanes, int required, int excluded )
 {
 	GRINLIZ_PERFTRACK
 	
@@ -298,6 +279,8 @@ Model* SpaceTree::Query( const Plane* planes, int nPlanes )
 	planesComputed = 0;
 	spheresComputed = 0;
 	modelsFound = 0;
+	requiredFlags = required;
+	excludedFlags = excluded | Model::MODEL_HIDDEN_FROM_TREE;
 
 #ifdef DEBUG
 	for( int i=0; i<NUM_NODES; ++i ) {
@@ -324,18 +307,6 @@ Model* SpaceTree::Query( const Plane* planes, int nPlanes )
 }
 
 
-Model* SpaceTree::Query( const Vector3F& origin, const Vector3F& direction )
-{
-	modelRoot = 0;
-	nodesVisited = 0;
-	modelsFound = 0;
-
-	QueryPlanesRec( origin, direction, grinliz::INTERSECT, &nodeArr[0] );
-	//GLOUTPUT(( "Query %d/%d nodes, models=%d\n", nodesChecked, NUM_NODES, modelsFound ));
-	return modelRoot;
-
-}
-
 
 void SpaceTree::Node::CalcAABB( Rectangle3F* aabb, const float yMin, const float yMax ) const
 {
@@ -349,20 +320,11 @@ void SpaceTree::Node::CalcAABB( Rectangle3F* aabb, const float yMin, const float
 				float( looseX + looseSize ), 
 				yMax, 
 				float( looseZ + looseSize ) );
-/*
-	aabb->Set(	Fixed( x ), 
-				yMin, 
-				Fixed( z ),
-				
-				Fixed( x + size ), 
-				yMax, 
-				Fixed( z + size ) );
-*/
 }
 
 void SpaceTree::QueryPlanesRec(	const Plane* planes, int nPlanes, int intersection, const Node* node, U32 positive )
 {
-	#define POSITIVE( pos, i ) ( pos & (1<<i) )
+	#define IS_POSITIVE( pos, i ) ( pos & (1<<i) )
 
 	if ( intersection == grinliz::POSITIVE ) 
 	{
@@ -382,7 +344,7 @@ void SpaceTree::QueryPlanesRec(	const Plane* planes, int nPlanes, int intersecti
 			// and Sphere checks.
 			//
 			int comp = grinliz::POSITIVE;
-			if ( POSITIVE( positive, i ) == 0 ) {
+			if ( IS_POSITIVE( positive, i ) == 0 ) {
 				comp = ComparePlaneAABB( planes[i], aabb );
 				++planesComputed;
 			}
@@ -420,19 +382,35 @@ void SpaceTree::QueryPlanesRec(	const Plane* planes, int nPlanes, int intersecti
 		for( Item* item=node->sentinel.next; item != &node->sentinel; item=item->next ) 
 		{
 			Model* m = &item->model;
-			
-			if ( !m->IsSet( Model::MODEL_HIDDEN_FROM_TREE ) ) {
-				
+			int flags = m->Flags();
+
+			if (    ( (requiredFlags & flags) == requiredFlags)
+				 && ( (excludedFlags & flags) == 0 ) )
+			{	
 				if ( intersection == grinliz::INTERSECT ) {
+					Rectangle3F aabb;
 					Sphere sphere;
-					m->CalcBoundSphere( &sphere );
-					
+
+					// The AABB bounds are tighter and faster, but are
+					// only computed when the object is 0, 90, 180, or
+					// 270 degrees. Still, trims off a few more objects, 
+					// which are a few more draw calls, where all the time
+					// is going.
+
+					bool useAABB = m->CalcAABB( &aabb );
+					if ( !useAABB ) {
+						m->CalcBoundSphere( &sphere );
+					}
 					int compare = grinliz::INTERSECT;
+
 					for( int k=0; k<nPlanes; ++k ) {
 						// Since the bounding sphere is in the AABB, we
 						// can check for the positive plane again.
-						if ( POSITIVE( positive, k ) == 0 ) {
-							compare = ComparePlaneSphere( planes[k], sphere );
+						if ( IS_POSITIVE( positive, k ) == 0 ) {
+							if ( useAABB )
+								compare = ComparePlaneAABB( planes[k], aabb );
+							else
+								compare = ComparePlaneSphere( planes[k], sphere );
 							++spheresComputed;
 							if ( compare == grinliz::NEGATIVE ) {
 								break;
@@ -460,56 +438,141 @@ void SpaceTree::QueryPlanesRec(	const Plane* planes, int nPlanes, int intersecti
 }
 
 
-void SpaceTree::QueryPlanesRec(	const Vector3F& origin, const Vector3F& direction, int intersection, const Node* node )
+
+
+Model* SpaceTree::QueryRay( const Vector3F& _origin, 
+							const Vector3F& _direction, 
+							int required, int excluded, 
+							HitTestMethod testType,
+							Vector3F* intersection )
 {
-	bool callChildrenAndAddModels = false;
-
-	// Note there isn't an obvious way for this to be positive. Rays always INTERSECT,
-	// unless you do something tricky to detect special cases.
-
-	if ( intersection == grinliz::POSITIVE ) 
-	{
-		// we are fully inside, and don't need to check.
-		callChildrenAndAddModels = true;
-		++nodesVisited;
+	modelRoot = 0;
+	nodesVisited = 0;
+	modelsFound = 0;
+	requiredFlags = required;
+	excludedFlags = excluded | Model::MODEL_HIDDEN_FROM_TREE;
+	++queryID;
+	Vector3F dummy;
+	if ( !intersection ) {
+		intersection = &dummy;
 	}
-	else if ( intersection == grinliz::INTERSECT ) 
-	{
-		Rectangle3F aabb;
-		aabb.Set( float( node->looseX ), yMin, float( node->looseZ ),
-				  float( node->looseX + node->looseSize ), yMax, float( node->looseZ + node->looseSize ) );
-		//GLOUTPUT(( "  l=%d rect: ", node->depth )); DumpRectangle( aabb ); GLOUTPUT(( "\n" ));
-		
-		Vector3F intersect;
-		float t;
 
-		int comp = IntersectRayAABB( origin, direction, aabb, &intersect, &t );
-		if ( comp == grinliz::INTERSECT || comp == grinliz::INSIDE ) {
-			intersection = grinliz::INTERSECT;
-			callChildrenAndAddModels = true;
-		}
-		++planesComputed;
-		++nodesVisited;
+	Vector3F dir = _direction;
+	dir.Normalize();
+	Vector3F origin = _origin;
+
+	Rectangle3F aabb;
+	aabb.min.Set( 0, yMin, 0 );
+	aabb.max.Set( Map::SIZE, yMax, Map::SIZE );
+
+	float length = sqrtf( aabb.SizeX()*aabb.SizeX() + aabb.SizeY()*aabb.SizeY() + aabb.SizeZ()*aabb.SizeZ() );
+
+	// Where does this ray enter and leave the spaceTree?
+	// It enters at 'origin' and leaves at 'dest'
+	float t;
+
+	Vector3F start;
+	int r0 = IntersectRayAABB( origin, dir, aabb, &start, &t );
+	if ( r0 == grinliz::REJECT ) {
+		return 0;
 	}
-	if ( callChildrenAndAddModels ) 
-	{
-		for( Item* item=node->sentinel.next; item != &node->sentinel; item=item->next ) 
-		{
-			Model* m = &item->model;
-			if ( !m->IsSet( Model::MODEL_HIDDEN_FROM_TREE ) ) {
-				m->next = modelRoot;
-				modelRoot = m;
-				++modelsFound;
+	else if ( r0 == grinliz::INTERSECT ) {
+		origin = start;
+	}
+	// if INSIDE, then we're good. Do nothing.
+
+	// Find the exit point by reversing...
+	Vector3F far = origin + dir*length;
+	Vector3F negDir = -dir;
+	Vector3F dest;
+
+	int r1 = IntersectRayAABB( far, negDir, aabb, &dest, &t );
+	//GLASSERT( r1 == grinliz::INTERSECT );
+	if ( r1 != grinliz::INTERSECT ) {
+		return 0;	// Probably occurs in some strange floating point edge case at the corner of the world.
+	}
+
+
+	// Now we step. Any step will work, but the larger the step, the more extra we check. The smaller
+	// the step (if too small) the more memory gets walked.
+	Vector3F v = dest - origin;
+	int nStep = (int)ceilf( v.Length() );
+	float stepLen = v.Length() / (float)nStep;
+	Vector3F step = dir * stepLen;
+	Vector3F P = origin;
+
+
+	for( int s=0; s<nStep; ++s, P += step ) {
+		Vector3I start = { (int)P.x, (int)P.y, (int)P.z };
+		Vector3I end   = { (int)(P.x+step.x), (int)(P.y+step.y), (int)(P.z+step.z) };
+		start.x = Clamp( start.x, 0, Map::SIZE-1 );
+		start.z = Clamp( start.z, 0, Map::SIZE-1 );
+		end.x = Clamp( end.x, 0, Map::SIZE-1 );
+		end.z = Clamp( end.z, 0, Map::SIZE-1 );
+
+		modelRoot = 0;
+		for( int i=start.x; i<=end.x; ++i ) {
+			for( int k=start.z; k<=end.z; ++k ) {
+				Node* node = GetNode( DEPTH-1, i, k );
+				for( ; node; node=node->parent ) {
+					if ( node->queryID == queryID ) {
+						// already checked.
+						break;
+					}
+					node->queryID = queryID;
+
+					for( Item* item=node->sentinel.next; item != &node->sentinel; item=item->next ) {
+						Model* m = &item->model;
+						int flags = m->Flags();
+
+						if (    ( (requiredFlags & flags) == requiredFlags)
+							 && ( (excludedFlags & flags) == 0 ) )
+						{
+							m->next = modelRoot;
+							modelRoot = m;
+						}
+					}
+				}
 			}
 		}
-		
-		if ( node->depth+1<DEPTH)  {
-			QueryPlanesRec( origin, direction, intersection, node->child[0] );
-			QueryPlanesRec( origin, direction, intersection, node->child[1] );
-			QueryPlanesRec( origin, direction, intersection, node->child[2] );
-			QueryPlanesRec( origin, direction, intersection, node->child[3] );
+		// We now have a batch of models. Are any of them a hit??
+		GLASSERT( testType == TEST_HIT_AABB || testType == TEST_TRI );
+
+		float close = FLT_MAX;
+		Model* closeModel = 0;
+		Vector3F testInt;
+
+		for( Model* root=modelRoot; root; root=root->next ) {
+			int result = grinliz::REJECT;
+
+			if ( testType == TEST_HIT_AABB ) {
+				Rectangle3F modelAABB;
+
+				root->CalcHitAABB( &modelAABB );
+				result = IntersectRayAABB( origin, dir, modelAABB, &testInt, &t );
+			}
+			else if ( testType == TEST_TRI ) {
+				t = FLT_MAX;
+				result = root->IntersectRay( origin, dir, &testInt );
+				if ( result == grinliz::INTERSECT ) {
+					Vector3F delta = origin - *intersection;
+					t = delta.x*delta.x + delta.y*delta.y + delta.z*delta.z;
+				}	
+			}
+
+			if ( result == grinliz::INTERSECT ) {
+				if ( t < close ) {
+					closeModel = root;
+					*intersection = testInt;
+					close = t;
+				}
+			}
+		}
+		if ( closeModel ) {
+			return closeModel;
 		}
 	}
+	return 0;
 }
 
 

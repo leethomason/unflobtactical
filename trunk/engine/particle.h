@@ -64,7 +64,7 @@ public:
 	enum {
 		PARTICLE_RAY,
 		PARTICLE_HEMISPHERE,
-		PARTICLE_SPHERE
+		PARTICLE_SPHERE,
 	};
 
 	enum {

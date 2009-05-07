@@ -6,6 +6,7 @@
 #include "../engine/platformgl.h"
 #include "../engine/particle.h"
 #include "../engine/text.h"
+ 
 
 
 using namespace grinliz;
@@ -178,8 +179,42 @@ void BattleScene::DeActivate()
 }
 
 
+void BattleScene::TestHitTesting()
+{
+	/*
+	GRINLIZ_PERFTRACK
+	for ( int i=0; i<MAX_UNITS; ++i ) {
+		if ( units[i].Status() == Unit::STATUS_ALIVE ) {
+			int cx = (int)units[i].GetModel()->X();
+			int cz = (int)units[i].GetModel()->Z();
+			const int DELTA = 10;
+
+			Ray ray;
+			ray.origin.Set( (float)cx+0.5f, 1.0f, (float)cz+0.5f );
+
+			for( int x=cx-DELTA; x<cx+DELTA; ++x ) {
+				for( int z=cz-DELTA; z<cz+DELTA; ++z ) {
+					if ( x>=0 && z>=0 && x<engine->GetMap()->Width() && z<engine->GetMap()->Height() ) {
+
+						Vector3F dest = {(float)x, 1.0f, (float)z};
+
+						ray.direction = dest - ray.origin;
+						ray.length = 1.0f;
+
+						Vector3F intersection;
+						engine->IntersectModel( ray, TEST_TRI, 0, 0, &intersection );
+					}
+				}
+			}
+		}
+	}
+	*/
+}
+
 void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 {
+	TestHitTesting();
+
 	if ( currentTime/1000 != (currentTime-deltaTime)/1000 ) {
 		grinliz::Vector3F pos = { 10.0f, 1.0f, 28.0f };
 		grinliz::Vector3F vel = { 0.0f, 1.0f, 0.0f };
@@ -316,7 +351,7 @@ void BattleScene::Tap(	int tap,
 			tilePos.Set( (int)intersect.x, (int) intersect.z );
 		}
 
-		Model* model = engine->IntersectModel( world, true );
+		Model* model = engine->IntersectModel( world, TEST_HIT_AABB, Model::MODEL_SELECTABLE, 0, 0 );
 		if ( !model && result == grinliz::INTERSECT && pathEndModel ) {
 			// check the path end model.
 			if ( (int)pathEndModel->X() == tilePos.x && (int)pathEndModel->Z() == tilePos.y ) {
@@ -617,6 +652,54 @@ void BattleScene::Path::GetPos( int step, float fraction, float* x, float* z, fl
 	*z = (float)path[step].y + fraction*(float)( dy );
 	*rot = DeltaToRotation( dx, dy );
 }
+
+
+#if !defined(MAPMAKER) && defined(_MSC_VER)
+// TEST CODE
+void BattleScene::MouseMove( int x, int y )
+{
+	/*
+	grinliz::Matrix4 mvpi;
+	grinliz::Ray ray;
+	Vector3F intersection;
+
+	engine->CalcModelViewProjectionInverse( &mvpi );
+	engine->RayFromScreen( x, y, mvpi, &ray );
+	Model* model = engine->IntersectModel( ray, TEST_TRI, Model::MODEL_SELECTABLE, 0, &intersection );
+
+	if ( model ) {
+		Color4F color = { 1.0f, 0.0f, 0.0f, 1.0f };
+		Color4F colorVel = { 0.0f, 0.0f, 0.0f, 0.0f };
+		Vector3F vel = { 0, -0.5, 0 };
+
+		game->particleSystem->Emit(	ParticleSystem::POINT,
+									0, 1, ParticleSystem::PARTICLE_RAY,
+									color,
+									colorVel,
+									intersection,
+									0.0f,			// posFuzz
+									vel,
+									0.0f,			// velFuzz
+									2000 );
+
+
+		vel.y = 0;
+		intersection.y = 0;
+		color.Set( 0, 0, 1, 1 );
+
+		game->particleSystem->Emit(	ParticleSystem::POINT,
+									0, 1, ParticleSystem::PARTICLE_RAY,
+									color,
+									colorVel,
+									intersection,
+									0.0f,			// posFuzz
+									vel,
+									0.0f,			// velFuzz
+									2000 );
+	}	
+	*/
+}
+#endif
 
 
 

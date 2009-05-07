@@ -126,8 +126,13 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 	Color4F colP;
 	U16 lifeP;
 	const float len = vel.Length();
-	normal = vel;
-	normal.Normalize();
+	if ( len > 0.0f ) {
+		normal = vel;
+		normal.Normalize();
+	}
+	else {
+		normal.Set( 0, 1, 0 );
+	}
 
 	for( int i=0; i<count; ++i ) {
 		switch (config) {

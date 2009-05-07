@@ -204,10 +204,7 @@ void Game::FreeTextures()
 void Game::FreeModels()
 {
 	for( int i=0; i<nModelResource; ++i ) {
-		for( U32 j=0; j<modelResource[i].header.nGroups; ++j ) {
-			glDeleteBuffers( 1, (const GLuint*) &modelResource[i].atom[i].indexID );		
-		}
-		glDeleteBuffers( 1, (const GLuint*) &modelResource[i].atom[i].vertexID );
+		modelResource[i].Free();
 	}
 }
 
@@ -420,14 +417,15 @@ void Game::CancelInput()
 }
 
 
-#ifdef MAPMAKER
-
 void Game::MouseMove( int x, int y )
 {
 	if ( currentScene == scenes[BATTLE_SCENE] ) {
 		((BattleScene*)currentScene)->MouseMove( x, y );
 	}
 }
+
+
+#ifdef MAPMAKER
 
 void Game::RotateSelection( int delta )
 {

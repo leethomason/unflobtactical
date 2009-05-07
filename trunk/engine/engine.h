@@ -56,7 +56,6 @@ struct EngineData
 	float cameraMin;
 	float cameraMax;
 	float cameraHeight;
-
 };
 
 
@@ -105,7 +104,10 @@ public:
 								grinliz::Ray* ray,
 								grinliz::Vector3F* intersection );
 
-	Model* IntersectModel( const grinliz::Ray& ray, bool onlyDraggable );
+	Model* IntersectModel(	const grinliz::Ray& ray, 
+							HitTestMethod testMethod,
+							int required, int exclude, 
+							grinliz::Vector3F* intersection );
 
 	enum {
 		NEAR,

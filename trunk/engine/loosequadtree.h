@@ -16,6 +16,7 @@
 #ifndef LOOSEQUADTREE_INCLUDED
 #define LOOSEQUADTREE_INCLUDED
 
+#include "enginelimits.h"
 #include "model.h"
 
 class SpaceTree
@@ -30,8 +31,14 @@ public:
 
 	void   Update( Model* );
 
-	Model* Query( const grinliz::Plane* planes, int nPlanes );
-	Model* Query( const grinliz::Vector3F& origin, const grinliz::Vector3F& direction );
+	// Returns all the models in the planes.
+	Model* Query( const grinliz::Plane* planes, int nPlanes, int requiredFlags, int excludedFlags );
+
+	// Returns the FIRST model impacted.
+	Model* QueryRay( const grinliz::Vector3F& origin, const grinliz::Vector3F& direction, 
+					 int required, int excluded,
+					 HitTestMethod method,
+					 grinliz::Vector3F* intersection );
 
 #ifdef DEBUG
 	void Draw();
@@ -69,7 +76,9 @@ private:
 		int looseX, looseZ;
 		int looseSize;
 		int depth;
+		int queryID;
 		Item sentinel;
+		Node* parent;
 		Node* child[4];
 
 #ifdef DEBUG
@@ -81,7 +90,7 @@ private:
 
 	void InitNode();
 	void QueryPlanesRec( const grinliz::Plane* planes, int nPlanes, int intersection, const Node* node, U32  );
-	void QueryPlanesRec( const grinliz::Vector3F& origin, const grinliz::Vector3F& direction, int intersection, const Node* node );
+	//void QueryRayRec( const grinliz::Vector3F& origin, const grinliz::Vector3F& direction, int intersection, const Node* node );
 
 	Item freeMemSentinel;
 	int allocated;
@@ -92,6 +101,10 @@ private:
 	int planesComputed;
 	int spheresComputed;
 	int modelsFound;
+
+	int requiredFlags;
+	int excludedFlags;
+	int queryID;
 
 	Item modelPool[EL_MAX_MODELS];
 
