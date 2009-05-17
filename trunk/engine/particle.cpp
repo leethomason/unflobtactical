@@ -144,7 +144,7 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 				break;
 
 			case PARTICLE_HEMISPHERE:
-				rand.NormalVector( &velP.x, 3 );
+				rand.NormalVector3D( &velP.x );
 				if ( DotProduct( velP, normal ) < 0.0f ) {
 					velP = -velP;
 				}
@@ -154,7 +154,7 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 				break;
 
 			case PARTICLE_SPHERE:
-				rand.NormalVector( &velP.x, 3 );
+				rand.NormalVector3D( &velP.x );
 				velP.x = velP.x*len + velFuzz*(-0.5f + rand.Uniform());
 				velP.y = velP.y*len + velFuzz*(-0.5f + rand.Uniform());
 				velP.z = velP.z*len + velFuzz*(-0.5f + rand.Uniform());

@@ -411,7 +411,7 @@ bool Map::AddToTile( int x, int y, int defIndex, int rotation )
 				item->rotation = rotation;
 				item->model = tree->AllocModel( itemDefArr[defIndex].modelResource );
 
-				item->model->Set( Model::MODEL_OWNED_BY_MAP );
+				item->model->SetFlag( Model::MODEL_OWNED_BY_MAP );
 				item->model->SetPos( modelPos.x, 0.0f, modelPos.y );
 				item->model->SetYRotation( 90.0f * rotation );
 			}

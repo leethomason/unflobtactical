@@ -116,9 +116,9 @@ public:
 		MODEL_OWNED_BY_MAP			= 0x04,
 	};
 
-	int IsSet( int f ) const	{ return flags & f; }
-	void Set( int f )			{ flags |= f; }
-	void Clear( int f )			{ flags &= (~f); }
+	int IsFlagSet( int f ) const	{ return flags & f; }
+	void SetFlag( int f )			{ flags |= f; }
+	void ClearFlag( int f )			{ flags &= (~f); }
 	int Flags()	const			{ return flags; }
 
 	const grinliz::Vector3F& Pos()						{ return pos; }

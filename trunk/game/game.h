@@ -26,10 +26,12 @@
 
 class ParticleSystem;
 class Scene;
+struct ItemDef;
 
 const float FOV = 45.0f;
 const int MAX_TEXTURES = 32;
 const int MAX_MODELS = 256;
+
 const float ONE8 = 1.0f / 8.0f;
 const float ONE16 = 1.0f / 16.0f;
 const float TRANSLUCENT_WHITE	= ONE8*0.0f + ONE16;
@@ -99,7 +101,7 @@ public:
 
 private:
 
-	struct ItemInit 
+	struct MapItemInit 
 	{
 		const char* Name() const { return model; }
 
@@ -128,8 +130,10 @@ private:
 	void FreeModels();
 	void LoadLightMaps();
 	void LoadMapResources();
+	void LoadItemResources();
 	void LoadMap( const char* name );
-	void InitItemDef( int startIndex, const ItemInit* );
+
+	void InitMapItemDef( int startIndex, const MapItemInit* );
 
 	int rotation;
 	int nTexture;
@@ -158,6 +162,8 @@ private:
 #endif
 	grinliz::ProfileData profile;
 
+	int				nItemDefs;
+	ItemDef*		itemDefArr;
 	Texture			texture[MAX_TEXTURES];
 	ModelResource	modelResource[EL_MAX_MODEL_RESOURCES];
 	Surface			lightMaps[NUM_LIGHT_MAPS];

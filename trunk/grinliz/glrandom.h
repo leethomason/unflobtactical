@@ -95,14 +95,24 @@ class Random
 		return -1 + 2*Bit();
 	}
 
-	/// Return a random unit normal vector. 'dimension' is usual 2 (2D) or 3 (3D)
-	void NormalVector( float* v, int dimension );
+	// Return a random unit normal vector. 'dimension' is usual 2 (2D) or 3 (3D)
+	// This is hard to get correct. Generating a random x,y,z favors the corners of the 
+	// box. Geometrically easy to see if you think that there is more length - and therefore
+	// more likelihood in the corners as opposed to the centers. Trig is slow.
+	// void NormalVector( float* v, int dimension );
+
+	void NormalVector2D( float* v );
+	void NormalVector3D( float* v );
 
 	/// Fast hash
 	static U32 SuperFastHash( const void* data, U32 len );
 
 private:
 	U32 x, y, z, c;
+	enum { 
+		COUNT_2D = 256
+	};
+	static float normal2D[COUNT_2D*3];
 };
 
 };	// namespace grinliz

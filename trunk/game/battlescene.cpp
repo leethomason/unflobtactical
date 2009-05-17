@@ -18,8 +18,6 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	currentMapItem = 1;
 #endif
 
-	selectedUnit = -1;
-	pathEndModel = 0;
 	action.Clear();
 	engine  = &game->engine;
 
@@ -47,22 +45,19 @@ void BattleScene::InitUnits()
 
 	for( int i=0; i<6; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-10 };
-		units[TERRAN_UNITS_START+i].GenerateTerran( random.Rand() );
-		units[TERRAN_UNITS_START+i].CreateModel( game, engine );
+		units[TERRAN_UNITS_START+i].Init( engine, game, Unit::SOLDIER, 0, random.Rand() );
 		units[TERRAN_UNITS_START+i].SetPos( pos.x, pos.y );
 	}
 	
 	for( int i=0; i<4; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-8 };
-		units[ALIEN_UNITS_START+i].GenerateAlien( i&3, random.Rand() );
-		units[ALIEN_UNITS_START+i].CreateModel( game, engine );
+		units[ALIEN_UNITS_START+i].Init( engine, game, Unit::ALIEN, i&3, random.Rand() );
 		units[ALIEN_UNITS_START+i].SetPos( pos.x, pos.y );
 	}
 
 	for( int i=0; i<4; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-12 };
-		units[CIV_UNITS_START+i].GenerateCiv( random.Rand() );
-		units[CIV_UNITS_START+i].CreateModel( game, engine );
+		units[CIV_UNITS_START+i].Init( engine, game, Unit::CIVILIAN, 0, random.Rand() );
 		units[CIV_UNITS_START+i].SetPos( pos.x, pos.y );
 	}
 	SetUnitsDraggable();
@@ -74,7 +69,7 @@ void BattleScene::SetUnitsDraggable()
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		Model* m = units[i].GetModel();
 		if ( m && units[i].Status() == Unit::STATUS_ALIVE ) {
-			m->Set( Model::MODEL_SELECTABLE );
+			m->SetFlag( Model::MODEL_SELECTABLE );
 		}
 	}
 }
@@ -83,18 +78,11 @@ void BattleScene::SetUnitsDraggable()
 void BattleScene::Save( UFOStream* s )
 {
 	s->WriteU32( UFOStream::MAGIC0 );
-	s->WriteU32( selectedUnit );
+	// FIXME
+	//s->WriteU32( selectedUnit );
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		units[i].Save( s );
-		if ( units[i].Status() != Unit::STATUS_UNUSED ) {
-			Model* model = units[i].GetModel();
-			GLASSERT( model );
-
-			s->WriteFloat( model->Pos().x );
-			s->WriteFloat( model->Pos().z );
-			s->WriteFloat( model->GetYRotation() );
-		}
 	}
 	s->WriteU32( UFOStream::MAGIC1 );
 }
@@ -104,22 +92,11 @@ void BattleScene::Load( UFOStream* s )
 {
 	U32 magic = s->ReadU32();
 	GLASSERT( magic == UFOStream::MAGIC0 );
-	selectedUnit = s->ReadU32();
+	// FIXME
+	//selectedUnit = s->ReadU32();
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
-		units[i].Load( s );
-		if ( units[i].Status() != Unit::STATUS_UNUSED ) {
-			Model* model = units[i].CreateModel( game, engine );
-			Vector3F pos = { 0, 0, 0 };
-			float rot;
-
-			pos.x = s->ReadFloat();
-			pos.z = s->ReadFloat();
-			rot   = s->ReadFloat();
-
-			model->SetPos( pos );
-			model->SetYRotation( rot );
-		}
+		units[i].Load( s, engine, game );
 	}
 	magic = s->ReadU32();
 	GLASSERT( magic == UFOStream::MAGIC1 );
@@ -171,7 +148,7 @@ void BattleScene::DeActivate()
 	}
 #endif
 	for( int i=0; i<MAX_UNITS; ++i ) {
-		units[i].FreeModel();
+		units[i].Free();
 	}
 	FreePathEndModel();
 	//engine->FreeModel( crateTest );
@@ -233,11 +210,11 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
 	game->particleSystem->EmitFlame( deltaTime, pos );
 
-	if (    selectedUnit >= 0 && selectedUnit < MAX_UNITS 
-		 && units[selectedUnit].Status() == Unit::STATUS_ALIVE
-		 && units[selectedUnit].Team() == Unit::TERRAN_MARINE ) 
+	if (    SelectedTerran()
+		 && SelectedTerranUnit()->Status() == Unit::STATUS_ALIVE
+		 && SelectedTerranUnit()->Team() == Unit::SOLDIER ) 
 	{
-		Model* m = units[selectedUnit].GetModel();
+		Model* m = SelectedTerranModel();
 		if ( m ) {
 			//const U32 INTERVAL = 500;
 			float alpha = 0.5f;	//0.5f + 0.4f*(float)(currentTime%500)/(float)(INTERVAL);
@@ -277,7 +254,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		float x, z, r;
 		path.GetPos( action.pathStep, action.pathFraction, &x, &z, &r );
 
-		Model* selected = units[selectedUnit].GetModel();
+		Model* selected = SelectedTerranModel();
 		selected->SetPos( x+0.5f, 0.0f, z+0.5f );
 		selected->SetYRotation( r );
 
@@ -287,15 +264,72 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 			FreePathEndModel();
 		}
 	}
+
+	if ( AlienTargeted() ) {
+		Vector3F pos = { 0, 0, 0 };
+		AlienUnit()->CalcPos( &pos );
+
+		const float ALPHA = 0.3f;
+		game->particleSystem->EmitDecal( ParticleSystem::DECALTARGET,
+										 ParticleSystem::DECAL_BOTH,
+										 pos, ALPHA, 0 );
+
+
+	}
 }
 
 
 void BattleScene::FreePathEndModel()
 {
-	if ( pathEndModel ) {
-		engine->FreeModel( pathEndModel );
-		pathEndModel = 0;
+	if ( selection.pathEndModel ) {
+		engine->FreeModel( selection.pathEndModel );
+		selection.pathEndModel = 0;
 	}
+}
+
+
+void BattleScene::SetSelection( int unit ) 
+{
+	FreePathEndModel();
+	if ( unit >= TERRAN_UNITS_START && unit < TERRAN_UNITS_END ) {
+		selection.terranUnit = unit;
+		selection.targetUnit = -1;
+	}
+	else if ( unit >= ALIEN_UNITS_START && unit < ALIEN_UNITS_END ) {
+		GLASSERT( SelectedTerran() );
+		selection.targetUnit = unit;
+	}
+}
+
+
+bool BattleScene::HandleIconTap( int screenX, int screenY )
+{
+	bool iconTapped = true;
+	int icon = widgets->QueryTap( screenX, screenY );
+
+	switch( icon ) {
+		case 0:
+			engine->MoveCameraHome();
+			break;
+
+		case 1:
+			if ( engine->GetDayTime() )
+				engine->SetDayNight( false, game->GetLightMap( "farmlandN" ) );
+			else
+				engine->SetDayNight( true, 0 );
+			break;
+
+		case 2:
+			if ( action.action == ACTION_NONE ) {
+				game->PushScene( Game::CHARACTER_SCENE );
+			}
+			break;
+
+		default:
+			iconTapped = false;
+			break;
+	}
+	return iconTapped;
 }
 
 
@@ -303,43 +337,21 @@ void BattleScene::Tap(	int tap,
 						const grinliz::Vector2I& screen,
 						const grinliz::Ray& world )
 {
-	int icon = -1;
+	bool iconSelected = false;
 	if ( tap == 1 ) {
-		icon = widgets->QueryTap( screen.x, screen.y );
-
-		switch( icon ) {
-			case 0:
-				engine->MoveCameraHome();
-				break;
-
-			case 1:
-				if ( engine->GetDayTime() )
-					engine->SetDayNight( false, game->GetLightMap( "farmlandN" ) );
-				else
-					engine->SetDayNight( true, 0 );
-				break;
-
-			case 2:
-				if ( action.action == ACTION_NONE ) {
-					game->PushScene( Game::CHARACTER_SCENE );
-				}
-				break;
-
-			default:
-				break;
-		}
-
-#ifdef MAPMAKER
-		if ( icon < 0 ) {
-			const Vector3F& pos = selection->Pos();
-			int rotation = (int) (selection->GetYRotation() / 90.0f );
-			engine->GetMap()->AddToTile( (int)pos.x, (int)pos.z, currentMapItem, rotation );
-			icon = 0;	// don't keep processing
-		}
-#endif	
+		iconSelected = HandleIconTap( screen.x, screen.y );
 	}
 
-	if ( icon < 0 && action.NoAction() ) {
+#ifdef MAPMAKER
+	if ( !iconSelected ) {
+		const Vector3F& pos = selection->Pos();
+		int rotation = (int) (selection->GetYRotation() / 90.0f );
+		engine->GetMap()->AddToTile( (int)pos.x, (int)pos.z, currentMapItem, rotation );
+		icon = 0;	// don't keep processing
+	}
+#endif	
+
+	if ( !iconSelected && action.NoAction() ) {
 		// We didn't tap a button.
 		// What got tapped? First look to see if a SELECTABLE model was tapped. If not, 
 		// look for a selectable model from the tile.
@@ -351,35 +363,48 @@ void BattleScene::Tap(	int tap,
 			tilePos.Set( (int)intersect.x, (int) intersect.z );
 		}
 
+		// If there is a selected model, then we can tap a target model.
+		bool canSelectAlien =    SelectedTerran()			// a soldier is selected
+			                  && !PathEndModel();			// there is not a path
+
+		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+			if ( units[i].GetModel() ) {
+				if ( canSelectAlien )
+					units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
+				else
+					units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
+			}	
+		}
+
 		Model* model = engine->IntersectModel( world, TEST_HIT_AABB, Model::MODEL_SELECTABLE, 0, 0 );
-		if ( !model && result == grinliz::INTERSECT && pathEndModel ) {
+		if ( !model && result == grinliz::INTERSECT && PathEndModel() ) {
 			// check the path end model.
-			if ( (int)pathEndModel->X() == tilePos.x && (int)pathEndModel->Z() == tilePos.y ) {
-				model = pathEndModel;
+			if ( (int)PathEndModel()->X() == tilePos.x && (int)PathEndModel()->Z() == tilePos.y ) {
+				model = PathEndModel();
 			}
 		}
 
 		if ( model ) {
-			Model* selected = (selectedUnit >= 0) ? units[selectedUnit].GetModel() : 0;
+			Model* selected = SelectedTerranModel();
 			if ( model == selected ) {
 				// If there is a path, clear it.
 				// If there is no path, go to rotate mode.
 				path.Clear();
 				FreePathEndModel();
 			}
-			else if ( model == pathEndModel ) {
+			else if ( model == PathEndModel() ) {
 				// Go!
 				action.Move();
 			}
 			else {
 				path.Clear();
-				selectedUnit = UnitFromModel( model );
-				FreePathEndModel();
+				int unit = UnitFromModel( model );
+				SetSelection( unit );
 			}
 		}
 		else {
 			// Not a model - which tile?
-			Model* selected = (selectedUnit >= 0) ? units[selectedUnit].GetModel() : 0;
+			Model* selected = SelectedTerranModel();
 
 			if ( selected ) {
 				Vector2<S16> start   = { (S16)selected->X(), (S16)selected->Z() };
@@ -414,15 +439,16 @@ void BattleScene::Tap(	int tap,
 							FreePathEndModel();
 
 							if ( path.len > 1 ) {
-								pathEndModel = engine->AllocModel( selected->GetResource() );
-								pathEndModel->SetPos( (float)path.end.x + 0.5f, 0.0f, (float)path.end.y + 0.5f );
-								pathEndModel->SetTexture( game->GetTexture( "translucent" ) );
-								pathEndModel->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.5f );
-								pathEndModel->Set( Model::MODEL_SELECTABLE );	// FIXME not needed, remove entire draggable thing
+								selection.targetUnit = -1;
+								selection.pathEndModel = engine->AllocModel( selected->GetResource() );
+								selection.pathEndModel->SetPos( (float)path.end.x + 0.5f, 0.0f, (float)path.end.y + 0.5f );
+								selection.pathEndModel->SetTexture( game->GetTexture( "translucent" ) );
+								selection.pathEndModel->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.5f );
+								selection.pathEndModel->SetFlag( Model::MODEL_SELECTABLE );	// FIXME not needed, remove entire draggable thing
 
 								float rot;
 								path.CalcDelta( path.len-2, path.len-1, 0, &rot );
-								pathEndModel->SetYRotation( rot );
+								selection.pathEndModel->SetYRotation( rot );
 							}
 						}
 					}

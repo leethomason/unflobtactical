@@ -49,6 +49,7 @@ private:
 		ACTION_NONE,
 		ACTION_MOVE
 	};
+
 	struct Action
 	{
 		int action;
@@ -79,11 +80,32 @@ private:
 
 	void InitUnits();
 	void SetUnitsDraggable();
-	int UnitFromModel( Model* m );
-	Unit* GetUnitFromTile( int x, int z );
-	void FreePathEndModel();
 	void TestHitTesting();
 
+	int UnitFromModel( Model* m );
+	Unit* GetUnitFromTile( int x, int z );
+	bool HandleIconTap( int screenX, int screenY );
+
+	struct Selection
+	{
+		Selection()	: terranUnit( -1 ), targetUnit( -1 ), pathEndModel( 0 ) {}
+		int		terranUnit;
+		int		targetUnit;
+		Model*	pathEndModel;
+	};
+	Selection selection;
+
+	bool	SelectedTerran()		{ return selection.terranUnit >= 0; }
+	Unit*	SelectedTerranUnit()	{ return (selection.terranUnit >= 0 ) ? &units[selection.terranUnit] : 0; }
+	Model*	SelectedTerranModel()	{ Unit* unit = SelectedTerranUnit(); if ( unit ) return unit->GetModel(); return 0; }
+
+	bool	AlienTargeted()			{ return selection.targetUnit >= 0; }
+	Unit*	AlienUnit()				{ return (selection.targetUnit >= 0 ) ? &units[selection.targetUnit] : 0; }
+	Model*	AlienModel()			{ Unit* unit = AlienUnit(); if ( unit ) return unit->GetModel(); return 0; }
+
+	Model*	PathEndModel()			{ return selection.pathEndModel; }
+	void	SetSelection( int unit );
+	void	FreePathEndModel();
 
 	grinliz::Vector3F dragStart;
 	grinliz::Vector3F dragStartCameraWC;
@@ -111,8 +133,6 @@ private:
 		ALIEN_UNITS_END		= ALIEN_UNITS_START+MAX_ALIENS,
 		MAX_UNITS			= ALIEN_UNITS_END,
 	};
-	int		selectedUnit;
-	Model*	pathEndModel;
 
 	Unit units[MAX_UNITS];
 
