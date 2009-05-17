@@ -116,6 +116,9 @@ void ModelHeader::Set(	const char* name, int nGroups, int nTotalVertices, int nT
 	this->nTotalVertices = nTotalVertices;
 	this->nTotalIndices = nTotalIndices;
 	this->bounds = bounds;
+	trigger.Set( 0, 0, 0 );
+	eye = 0;
+	target = 0;
 }
 
 
@@ -267,6 +270,15 @@ void ProcessModel( TiXmlElement* model )
 	}
 	if ( StrEqual( model->Attribute( "origin" ), "upperLeft" ) ) {
 		header.flags |= ModelHeader::UPPER_LEFT;
+	}
+	if ( model->Attribute( "trigger" ) ) {
+		sscanf( model->Attribute( "trigger" ), "%f %f %f", &header.trigger.x, &header.trigger.y, &header.trigger.z );
+	}
+	if ( model->Attribute( "eye" ) ) {
+		model->QueryFloatAttribute( "eye", &header.eye );
+	}
+	if ( model->Attribute( "target" ) ) {
+		model->QueryFloatAttribute( "target", &header.target );
 	}
 
 	header.Save( fp );

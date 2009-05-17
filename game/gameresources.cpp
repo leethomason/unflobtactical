@@ -1,5 +1,6 @@
 #include "game.h"
 #include "cgame.h"
+#include "unit.h"
 
 // Only need non-item models.
 const char* const gModelNames[] = 
@@ -14,6 +15,10 @@ const char* const gModelNames[] =
 	"femaleMarine",
 	"maleCiv",
 	"femaleCiv",
+
+	"gun0",
+	"gun1",
+
 	"selection",
 
 	0
@@ -167,7 +172,7 @@ void Game::LoadLightMaps()
 }
 
 
-void Game::InitItemDef( int index, const ItemInit* init )
+void Game::InitMapItemDef( int index, const MapItemInit* init )
 {
 	while( init->model ) 
 	{
@@ -280,7 +285,7 @@ void Game::LoadMapResources()
 	const int MARINE_SET = 0x60;
 
 
-	const ItemInit farmSet[] =
+	const MapItemInit farmSet[] =
 	{
 			// model		open			destroyed	cx, cz	hp		flam	ex		pather0	pather1
 		{	"farmBed",		0,				0,			1,	1,	HP_MED,	BURNS,	0,		"f",	"0" },
@@ -289,25 +294,25 @@ void Game::LoadMapResources()
 		{	"farmWheat",	0,				0,			1,	1,	HP_LOW,	BURNS_FAST,	0,	"0",	"0" },
 		{	0	}
 	};
-	InitItemDef( FARM_SET, farmSet );
+	InitMapItemDef( FARM_SET, farmSet );
   
-	const ItemInit marineSet[] =
+	const MapItemInit marineSet[] =
 	{
 			// model		open			destroyed	cx, cz	hp		flam	ex		pather0	pather1
 		{	"lander",		0,				0,			6,	6,	INDESTRUCTABLE,	0,	0,	"00ff00 00ff00 ff00ff ff00ff ff00ff ff00ff",	"0" },
 		{	0	}
 	};
-	InitItemDef( MARINE_SET, marineSet );
+	InitMapItemDef( MARINE_SET, marineSet );
 
-	const ItemInit forestSet[] = 
+	const MapItemInit forestSet[] = 
 	{
 			// model		open			destroyed	cx, cz	hp		flam	ex		pather0	pather1
 		{	"tree",			0,				0,			1,	1,	HP_HIGH, BURNS,	0,		"f",	"0" },
 		{	0	}
 	};
-	InitItemDef( FOREST_SET, forestSet );
+	InitMapItemDef( FOREST_SET, forestSet );
 
-	const ItemInit ufoSet[] = 
+	const MapItemInit ufoSet[] = 
 	{
 			// model		open			destroyed	cx, cz	hp		flam	ex		pather0	pather1
 		{	"ufo_Diag",		0,				0,			1,	1,	HP_STEEL,0,		0,		"f",	"0" },
@@ -319,9 +324,9 @@ void Game::LoadMapResources()
 		{	"ufo_Join1",	0,				0,			1,	2,	HP_STEEL,0,		0,		"2f",	"0" },
 		{	0	}
 	};
-	InitItemDef( UFO_SET0, ufoSet );
+	InitMapItemDef( UFO_SET0, ufoSet );
 
-	const ItemInit woodSet[] =
+	const MapItemInit woodSet[] =
 	{
 			// model		open			destroyed	cx, cz	hp		flam	ex		pather0	pather1
 		{	"woodCrnr",		0,				"woodCrnrD",1,	1,	HP_MED,	BURNS,	0,		"3",	"0" },
@@ -330,5 +335,15 @@ void Game::LoadMapResources()
 		{	"woodWallWin",	"woodWallWin",	0,			1,	1,	HP_MED,	BURNS,	0,		"1",	"0" },
 		{	0	}
 	};
-	InitItemDef(  WOOD_SET, woodSet );
+	InitMapItemDef(  WOOD_SET, woodSet );
+}
+
+
+void Game::LoadItemResources()
+{
+	nItemDefs = 2;
+	itemDefArr = new ItemDef[nItemDefs];
+
+	itemDefArr[0].Init( ItemDef::TYPE_WEAPON, "gun0", GetResource( "gun0" ) );
+	itemDefArr[1].Init( ItemDef::TYPE_WEAPON, "gun1", GetResource( "gun1" ) );
 }

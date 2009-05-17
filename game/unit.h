@@ -4,25 +4,47 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glrandom.h"
+#include "../grinliz/glvector.h"
 #include "../engine/enginelimits.h"
 
 class UFOStream;
 class Model;
-class ModelResounce;
+class ModelResource;
 class Engine;
 class Game;
+
+
+struct ItemDef
+{
+	enum {
+		TYPE_WEAPON,
+		TYPE_ARMOR
+	};
+
+	int				type;
+	const char*		name;
+	ModelResource*	resource;
+
+	void Init( int _type, const char* _name, ModelResource* _resource ) {
+		GLASSERT( _resource );
+		type = _type;
+		name = _name;
+		resource = _resource;
+	}
+};
+
 
 class Unit
 {
 public:
 	enum {
-		STATUS_UNUSED,
+		STATUS_NOT_INIT,
 		STATUS_ALIVE,
 		STATUS_DEAD
 	};
 
 	enum {
-		TERRAN_MARINE,
+		SOLDIER,
 		CIVILIAN,
 		ALIEN
 	};
@@ -39,9 +61,16 @@ public:
 		FEMALE
 	};
 
-	Unit() : status( STATUS_UNUSED ), team( 0 ), body( 0 ), model( 0 ), game( 0 ), engine( 0 ) {}
-	~Unit()	{ FreeModel(); }
+	Unit() : status( STATUS_NOT_INIT ), model( 0 ) {}
+	~Unit();
 
+	void Init(	Engine* engine, Game* game, 
+				int team,	 
+				int alienType,	// if alien...
+				U32 seed );
+	void Free();
+
+	bool InUse()			{ return status != STATUS_NOT_INIT; }
 	int Status()			{ return status; }
 	int Team()				{ return team; }
 	int AlienType()			{ return (body>>ALIEN_TYPE_SHIFT) & ALIEN_TYPE_MASK; }
@@ -49,19 +78,14 @@ public:
 	const char* FirstName();
 	const char* LastName();
 
-	// only works if model is in existence!!
 	void SetPos( int x, int z );
+	void CalcPos( grinliz::Vector3F* );
 
-	void GenerateTerran( U32 seed );
-	void GenerateCiv( U32 seed );
-	void GenerateAlien( int type, U32 seed );
-
-	Model* CreateModel( Game* game, Engine* engine );
-	void FreeModel();
+	void SetWeapon( const ItemDef* itemDef );	
 	Model* GetModel() { return model; }
 
 	void Save( UFOStream* s );
-	void Load( UFOStream* s );
+	void Load( UFOStream* s, Engine* engine, Game* game );
 
 private:
 	enum {	
@@ -84,6 +108,11 @@ private:
 		NAME1_SHIFT = 24,
 	};
 
+	void GenerateSoldier( U32 seed );
+	void GenerateCiv( U32 seed );
+	void GenerateAlien( int type, U32 seed );
+	void CreateModel();
+
 	void UpdateModel();	// make the model current with the unit status - armor, etc.
 
 	int status;
@@ -93,27 +122,8 @@ private:
 	Game* game;
 	Engine* engine;
 	Model* model;
+	ItemDef* weapon;	// temporary - needs inventory system
 };
 
-/*
-class Sprite
-{
-public:
-	Sprite();
-	~Sprite();
-
-
-
-	void Init(	Engine* engine, const Unit
-				ModelResource* resource,
-				int team );
-
-	void Save( Stream* );
-	void Load( Stream* );
-
-private:
-	Model* model;
-};
-*/
 
 #endif // UFOATTACK_SPRITE_INCLUDED

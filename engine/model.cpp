@@ -133,6 +133,7 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	//GLASSERT( nTotalIndices <= EL_MAX_INDEX_IN_GROUP );
 
 	GLOUTPUT(( "Load Model: %s\n", res->header.name ));
+	/*
 	GLOUTPUT(( "  sphere (%.2f,%.2f,%.2f) rad=%.2f  hit(%.2f,%.2f,%.2f)-(%.2f,%.2f,%.2f)\n",
 				(float)res->boundSphere.origin.x,
 				(float)res->boundSphere.origin.y,
@@ -144,6 +145,7 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 				(float)res->hitBounds.max.x,
 				(float)res->hitBounds.max.y,
 				(float)res->hitBounds.max.z ));
+	*/
 
 	for( U32 i=0; i<res->header.nGroups; ++i )
 	{

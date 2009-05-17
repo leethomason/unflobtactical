@@ -2,6 +2,7 @@
 #include "game.h"
 #include "../engine/engine.h"
 
+using namespace grinliz;
 
 const char* gMaleFirstNames[9] = 
 {
@@ -44,18 +45,10 @@ const char* gLastNames[8] =
 };
 
 
-void Unit::GenerateTerran( U32 seed )
-{
-	status = STATUS_ALIVE;
-	team = TERRAN_MARINE;
-	body = seed;
-}
-
-
 const char* Unit::FirstName()
 {
 	const char* str = "";
-	if ( team == TERRAN_MARINE ) {
+	if ( team == SOLDIER ) {
 		const int mfnLen = sizeof(gMaleFirstNames)/sizeof(const char*);
 		const int ffnLen = sizeof(gFemaleFirstNames)/sizeof(const char*);
 
@@ -73,13 +66,21 @@ const char* Unit::FirstName()
 const char* Unit::LastName()
 {
 	const char* str = "";
-	if ( team == TERRAN_MARINE ) {
+	if ( team == SOLDIER ) {
 		const int lnLen  = sizeof(gLastNames)/sizeof(const char*);
 
 		U32 r = (body>>NAME1_SHIFT)&NAME1_MASK;
 		str = gLastNames[ r % lnLen ];
 	}
 	return str;
+}
+
+
+void Unit::GenerateSoldier( U32 seed )
+{
+	status = STATUS_ALIVE;
+	team = SOLDIER;
+	body = seed;
 }
 
 
@@ -100,41 +101,70 @@ void Unit::GenerateAlien( int type, U32 seed )
 }
 
 
-
-void Unit::FreeModel()
+void Unit::Init(	Engine* engine, Game* game, 
+					int team,	 
+					int alienType,	// if alien...
+					U32 seed )
 {
+	GLASSERT( status == STATUS_NOT_INIT );
+	this->engine = engine;
+	this->game = game;
+	this->team = team;
+
+	switch( team ) {
+		case SOLDIER:	GenerateSoldier( seed );			break;
+		case ALIEN:		GenerateAlien( alienType, seed );	break;
+		case CIVILIAN:	GenerateCiv( seed );				break;
+		default:
+			GLASSERT( 0 );
+	}
+	CreateModel();
+}
+
+
+Unit::~Unit()
+{
+	Free();
+}
+
+
+void Unit::Free()
+{
+	if ( status == STATUS_NOT_INIT )
+		return;
+
 	if ( model ) {
 		engine->FreeModel( model );
 		model = 0;
 	}
+	status = STATUS_NOT_INIT;
 }
 
 
 void Unit::SetPos( int x, int z )
 {
-	if ( model ) {
-		grinliz::Vector3F p = { (float)x + 0.5f, 0.0f, (float)z + 0.5f };
-		model->SetPos( p );
-	}
+	GLASSERT( status != STATUS_NOT_INIT );
+	GLASSERT( model );
+
+	grinliz::Vector3F p = { (float)x + 0.5f, 0.0f, (float)z + 0.5f };
+	model->SetPos( p );
 }
 
-Model* Unit::CreateModel( Game* game, Engine* engine )
+
+void Unit::CalcPos( grinliz::Vector3F* vec )
 {
-	this->game = game;
-	this->engine = engine;
+	GLASSERT( status != STATUS_NOT_INIT );
+	GLASSERT( model );
 
-	if ( model ) {
-		engine->FreeModel( model );
-		model = 0;
-	}
-	if ( status == STATUS_UNUSED ) {
-		GLASSERT( 0 );
-		return 0;
-	}
+	*vec = model->Pos();
+}
 
+
+void Unit::CreateModel()
+{
 	ModelResource* resource = 0;
 	switch ( team ) {
-		case TERRAN_MARINE:
+		case SOLDIER:
 			resource = game->GetResource( ( Gender() == MALE ) ? "maleMarine" : "femaleMarine" );
 			break;
 
@@ -161,17 +191,16 @@ Model* Unit::CreateModel( Game* game, Engine* engine )
 	GLASSERT( resource );
 	model = engine->AllocModel( resource );
 	UpdateModel();
-	return model;
 }
 
 
 void Unit::UpdateModel()
 {
-	if ( !model || status == STATUS_UNUSED ) {
-		return;
-	}
+	GLASSERT( status != STATUS_NOT_INIT );
+	GLASSERT( model );
+
 	switch ( team ) {
-		case TERRAN_MARINE:
+		case SOLDIER:
 			{
 				int armor = 0;
 				int hair = ( body >> HAIR_SHIFT ) & HAIR_MASK;
@@ -196,20 +225,36 @@ void Unit::UpdateModel()
 void Unit::Save( UFOStream* s )
 {
 	s->WriteU8( status );
-	if ( status != STATUS_UNUSED ) {
+	if ( status != STATUS_NOT_INIT ) {
 		s->WriteU8( team );
 		s->WriteU32( body );
+
+		s->WriteFloat( model->Pos().x );
+		s->WriteFloat( model->Pos().z );
+		s->WriteFloat( model->GetYRotation() );
 	}
 }
 
 
-void Unit::Load( UFOStream* s )
+void Unit::Load( UFOStream* s, Engine* engine, Game* game )
 {
 	status = s->ReadU8();
-	GLASSERT( status == STATUS_UNUSED || status == STATUS_ALIVE || status == STATUS_DEAD );
-	if ( status != STATUS_UNUSED ) {
+	GLASSERT( status == STATUS_NOT_INIT || status == STATUS_ALIVE || status == STATUS_DEAD );
+	if ( status != STATUS_NOT_INIT ) {
 		team = s->ReadU8();
 		body = s->ReadU32();
+
+		Init( engine, game, team, ((body>>ALIEN_TYPE_SHIFT) & ALIEN_TYPE_MASK), body );
+		
+		Vector3F pos = { 0, 0, 0 };
+		float rot;
+
+		pos.x = s->ReadFloat();
+		pos.z = s->ReadFloat();
+		rot   = s->ReadFloat();
+
+		model->SetPos( pos );
+		model->SetYRotation( rot );
 	}
 }
 

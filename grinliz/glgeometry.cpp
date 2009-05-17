@@ -551,7 +551,7 @@ void grinliz::TessellateSphere( int iterations, float radius, bool innerNormals,
 
 	// Apply the radius
 	for( unsigned i=0; i<vertex.size(); ++i ) {
-		vertex[i] = vertex[i] * radius * 0.5f;	// Default radius is 2.0
+		vertex[i] = vertex[i] * radius;
 	}
 	// If we are *inside* the sphere, then flip the normals by re-ordering the indices
 	if ( innerNormals ) {
@@ -1536,6 +1536,13 @@ int grinliz::IntersectRaySphere(	const Sphere& sphere,
 			//*t = closest - halfCordLen.Sqrt();
 			return INTERSECT;
 		}
+		/*
+		// haldCordLen *= Dot
+		float det = (sphereR2 - raySphereLen2) + (closest*closest)*DotProduct( dir, dir );
+		if ( det > 0 ) {
+			return INTERSECT;
+		}	
+		*/
 	}
 	return REJECT;
 }

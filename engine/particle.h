@@ -52,6 +52,7 @@ public:
 		DECAL_DIR,
 		DECAL_SELECTED,
 		DECAL_PATH,
+		DECALTARGET,
 		NUM_DECAL
 	};
 

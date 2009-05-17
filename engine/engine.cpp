@@ -319,7 +319,7 @@ void Engine::Draw( int* triCount )
 
 	for( Model* model=modelRoot; model; model=model->next ) 
 	{
-		if ( !enableMap && model->IsSet( Model::MODEL_OWNED_BY_MAP ) )
+		if ( !enableMap && model->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) )
 			continue;
 
 		// Remove the shadow rotation for this pass.
