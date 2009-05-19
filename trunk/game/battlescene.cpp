@@ -307,8 +307,11 @@ void BattleScene::SetSelection( int unit )
 }
 
 
-bool BattleScene::HandleIconTap( int screenX, int screenY )
+bool BattleScene::HandleIconTap( int vX, int vY )
 {
+	int screenX, screenY;
+	engine->GetScreenport().ViewToUI( vX, vY, &screenX, &screenY );
+
 	bool iconTapped = true;
 	int icon = widgets->QueryTap( screenX, screenY );
 
@@ -491,7 +494,7 @@ Unit* BattleScene::GetUnitFromTile( int x, int z )
 }
 
 
-void BattleScene::Drag( int action, const grinliz::Vector2I& screenRaw )
+void BattleScene::Drag( int action, const grinliz::Vector2I& view )
 {
 	switch ( action ) 
 	{
@@ -499,7 +502,7 @@ void BattleScene::Drag( int action, const grinliz::Vector2I& screenRaw )
 		{
 			Ray ray;
 			engine->CalcModelViewProjectionInverse( &dragMVPI );
-			engine->RayFromScreenToYPlane( screenRaw.x, screenRaw.y, dragMVPI, &ray, &dragStart );
+			engine->RayFromScreenToYPlane( view.x, view.y, dragMVPI, &ray, &dragStart );
 			dragStartCameraWC = engine->camera.PosWC();
 		}
 		break;
@@ -508,7 +511,7 @@ void BattleScene::Drag( int action, const grinliz::Vector2I& screenRaw )
 		{
 			Vector3F drag;
 			Ray ray;
-			engine->RayFromScreenToYPlane( screenRaw.x, screenRaw.y, dragMVPI, &ray, &drag );
+			engine->RayFromScreenToYPlane( view.x, view.y, dragMVPI, &ray, &drag );
 
 			Vector3F delta = drag - dragStart;
 			delta.y = 0.0f;

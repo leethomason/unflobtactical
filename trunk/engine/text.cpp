@@ -62,7 +62,7 @@ void UFOText::Begin()
 
 	glColor4f( 1.f, 1.f, 1.f, 1.f );
 
-	screenport.PushView();
+	screenport.PushUI();
 	glBindTexture( GL_TEXTURE_2D, textureID );
 }
 
@@ -70,7 +70,7 @@ void UFOText::Begin()
 void UFOText::End()
 {
 	glEnableClientState( GL_NORMAL_ARRAY );
-	screenport.PopView();
+	screenport.PopUI();
 
 	glDisable( GL_BLEND );
 	glEnable( GL_DEPTH_TEST );

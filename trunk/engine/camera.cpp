@@ -62,8 +62,9 @@ void Camera::DrawCamera()
 	worldXForm.Invert( &m );
 
 	view.SetZRotation( (float)(viewRotation)*90.0f );
-	m = view * m;
+	//m = view * m;
 
+	glMultMatrixf( view.x );
 	glMultMatrixf( m.x );
 }
 

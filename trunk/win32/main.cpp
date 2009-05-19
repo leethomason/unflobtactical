@@ -35,7 +35,11 @@
 
 int multisample = 0;
 bool fullscreen = false;
-const int rotation = 0;
+#ifdef FRAMEBUFFER_ROTATE
+	const int rotation = 1;
+#else
+	const int rotation = 0;
+#endif
 
 void TransformXY( int x0, int y0, int* x1, int* y1 )
 {
