@@ -20,19 +20,25 @@
 
 using namespace grinliz;
 
-const int XSTART = 0;
-const int YSTART = 270;
-const int SIZE = 50;
 
-UIButtonBox::UIButtonBox( const Texture* texture )
+UIButtonBox::UIButtonBox( const Texture* texture, const Screenport& port ) : screenport( port )
 {
 	this->texture = texture;
 	nIcons = 0;
+
+	const int SIZE = 50;
+	origin.Set( 0, screenport.ViewHeight()-SIZE );
+	size.Set( SIZE, SIZE );
+	columns = 1;
 }
 
-void UIButtonBox::SetButtons( const int* _icons, const char** _text, int _nIcons )
+
+void UIButtonBox::CalcButtons( const int* _icons, const char** _text, int _nIcons )
 {
 	nIcons = _nIcons;
+	int row = 0;
+	int col = 0;
+
 	for( int i=0; i<nIcons; ++i ) 
 	{
 		icons[i].id = _icons[i];
@@ -41,13 +47,13 @@ void UIButtonBox::SetButtons( const int* _icons, const char** _text, int _nIcons
 			strncpy( icons[i].text, _text[i], MAX_TEXT_LEN );
 		}
 
-		int x = XSTART+i*SIZE;
-		int y = YSTART;
+		int x = origin.x + col*size.x;
+		int y = origin.y + row*size.y;
 
-		pos[i*4+0].Set( x,		y );		
-		pos[i*4+1].Set( x+SIZE, y );		
-		pos[i*4+2].Set( x+SIZE, y+SIZE );		
-		pos[i*4+3].Set( x,		y+SIZE );		
+		pos[i*4+0].Set( x,			y );		
+		pos[i*4+1].Set( x+size.x,	y );		
+		pos[i*4+2].Set( x+size.x,	y+size.y );		
+		pos[i*4+3].Set( x,			y+size.y );		
 
 		int id = icons[i].id;
 		float dx = (float)(id%4)*0.25f;
@@ -70,14 +76,20 @@ void UIButtonBox::SetButtons( const int* _icons, const char** _text, int _nIcons
 		if ( _text && _text[i] ) {
 			int w, h;
 			UFOText::GlyphSize( _text[i], &w, &h );
-			icons[i].textPos.x = x + SIZE/2 - w/2;
-			icons[i].textPos.y = y + SIZE/2 - h/2;
+			icons[i].textPos.x = x + size.x/2 - w/2;
+			icons[i].textPos.y = y + size.y/2 - h/2;
+		}
+
+		col++;
+		if ( col >= columns ) {
+			col = 0;
+			++row;
 		}
 	}
 }
 
 
-void UIButtonBox::Draw( int width, int height, int rotation )
+void UIButtonBox::Draw()
 {
 	if ( nIcons == 0 )
 		return;
@@ -93,20 +105,7 @@ void UIButtonBox::Draw( int width, int height, int rotation )
 	glEnable( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, texture->glID );
 
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();					// save projection
-	glLoadIdentity();				// projection
-
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();					// model
-	glLoadIdentity();				// model
-
-	glRotatef( 90.0f * (float)rotation, 0.0f, 0.0f, 1.0f );
-#ifdef USING_ES
-	glOrthof( 0.f, (float)width, 0.f, (float)height, -1.0f, 1.0f );
-#else
-	glOrtho( 0, width, 0, height, -1, 1 );
-#endif
+	screenport.PushView();
 
 	glVertexPointer(   2, GL_SHORT, 0, pos );
 	glTexCoordPointer( 2, GL_FLOAT, 0, tex );  
@@ -114,11 +113,7 @@ void UIButtonBox::Draw( int width, int height, int rotation )
 	glDrawElements( GL_TRIANGLES, nIcons*6, GL_UNSIGNED_SHORT, index );
 	CHECK_GL_ERROR;
 		
-
-	glPopMatrix();					// model
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();					// projection
-	glMatrixMode(GL_MODELVIEW);
+	screenport.PopView();
 
 	glEnableClientState( GL_NORMAL_ARRAY );
 	glDisable( GL_BLEND );
@@ -137,10 +132,14 @@ void UIButtonBox::Draw( int width, int height, int rotation )
 
 int UIButtonBox::QueryTap( int x, int y )
 {
-	int dx = ( x - XSTART ) / SIZE;
-	int dy = ( y - YSTART ) / SIZE;
+	int dx = ( x - origin.x ) / size.x;
+	int dy = ( y - origin.y ) / size.y;
 
-	if ( dy == 0 && dx >= 0 && dx < nIcons )
-		return dx;
+	if ( dx >= 0 && dx < columns && dy >=0 ) {
+		int icon = dy * columns + dx;
+		if ( icon >=0 && icon < nIcons ) {
+			return icon;
+		}
+	}
 	return -1;
 }

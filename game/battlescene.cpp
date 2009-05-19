@@ -24,11 +24,11 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	path.Clear();
 
 	Texture* t = game->GetTexture( "icons" );	
-	widgets = new UIButtonBox( t );
+	widgets = new UIButtonBox( t, engine->GetScreenport() );
 
 	int icons[] = { UIButtonBox::ICON_PLAIN, UIButtonBox::ICON_PLAIN, UIButtonBox::ICON_CHARACTER };
 	const char* iconText[] = { "home", "d/n", 0 };
-	widgets->SetButtons( icons, iconText, 3 );
+	widgets->CalcButtons( icons, iconText, 3 );
 }
 
 
@@ -46,19 +46,21 @@ void BattleScene::InitUnits()
 	for( int i=0; i<6; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-10 };
 		units[TERRAN_UNITS_START+i].Init( engine, game, Unit::SOLDIER, 0, random.Rand() );
-		units[TERRAN_UNITS_START+i].SetPos( pos.x, pos.y );
+		units[TERRAN_UNITS_START+i].SetWeapon( game->GetItemDef( "gun0" ) );
+		units[TERRAN_UNITS_START+i].SetMapPos( pos.x, pos.y );
 	}
 	
 	for( int i=0; i<4; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-8 };
 		units[ALIEN_UNITS_START+i].Init( engine, game, Unit::ALIEN, i&3, random.Rand() );
-		units[ALIEN_UNITS_START+i].SetPos( pos.x, pos.y );
+		units[ALIEN_UNITS_START+i].SetWeapon( game->GetItemDef( "gun1" ) );
+		units[ALIEN_UNITS_START+i].SetMapPos( pos.x, pos.y );
 	}
 
 	for( int i=0; i<4; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-12 };
 		units[CIV_UNITS_START+i].Init( engine, game, Unit::CIVILIAN, 0, random.Rand() );
-		units[CIV_UNITS_START+i].SetPos( pos.x, pos.y );
+		units[CIV_UNITS_START+i].SetMapPos( pos.x, pos.y );
 	}
 	SetUnitsDraggable();
 }
@@ -254,9 +256,12 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		float x, z, r;
 		path.GetPos( action.pathStep, action.pathFraction, &x, &z, &r );
 
-		Model* selected = SelectedTerranModel();
-		selected->SetPos( x+0.5f, 0.0f, z+0.5f );
-		selected->SetYRotation( r );
+		//Model* selected = SelectedTerranModel();
+		//selected->SetPos( x+0.5f, 0.0f, z+0.5f );
+		//selected->SetYRotation( r );
+		Vector3F v = { x+0.5f, 0.0f, z+0.5f };
+		Unit* unit = SelectedTerranUnit();
+		unit->SetPos( v, r );
 
 		if ( action.pathStep == path.len-1 ) {
 			action.Clear();
@@ -576,10 +581,7 @@ void BattleScene::Rotate( int action, float degrees )
 
 void BattleScene::DrawHUD()
 {
-	int h = engine->Width();
-	int w = engine->Height();
-	int rotation = game->Rotation();
-	widgets->Draw( w, h, rotation );
+	widgets->Draw();
 
 #ifdef MAPMAKER
 	engine->GetMap()->DumpTile( (int)selection->X(), (int)selection->Z() );

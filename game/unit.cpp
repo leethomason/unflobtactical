@@ -110,6 +110,8 @@ void Unit::Init(	Engine* engine, Game* game,
 	this->engine = engine;
 	this->game = game;
 	this->team = team;
+	weapon = 0;
+	weaponItem = 0;
 
 	switch( team ) {
 		case SOLDIER:	GenerateSoldier( seed );			break;
@@ -137,17 +139,67 @@ void Unit::Free()
 		engine->FreeModel( model );
 		model = 0;
 	}
+	if ( weapon ) {
+		engine->FreeModel( weapon );
+		weapon = 0;
+	}
 	status = STATUS_NOT_INIT;
 }
 
 
-void Unit::SetPos( int x, int z )
+void Unit::SetMapPos( int x, int z )
 {
 	GLASSERT( status != STATUS_NOT_INIT );
 	GLASSERT( model );
 
 	grinliz::Vector3F p = { (float)x + 0.5f, 0.0f, (float)z + 0.5f };
 	model->SetPos( p );
+	UpdateWeapon();
+}
+
+
+void Unit::SetPos( const grinliz::Vector3F& pos, float rotation )
+{
+	GLASSERT( status != STATUS_NOT_INIT );
+	GLASSERT( model );
+	model->SetPos( pos );
+	model->SetYRotation( rotation );
+	UpdateWeapon();
+}
+
+
+void Unit::SetWeapon( const ItemDef* itemDef ) 
+{
+	GLASSERT( status != STATUS_NOT_INIT );
+	GLASSERT( model );
+	GLASSERT( itemDef );
+
+	if ( weapon ) {
+		engine->FreeModel( weapon );
+	}
+
+	weapon = 0;	// don't render non-weapon items
+	if ( itemDef->type == ItemDef::TYPE_WEAPON ) {
+		weapon = engine->AllocModel( itemDef->resource );
+		weapon->SetFlag( Model::MODEL_NO_SHADOW );
+	}
+	UpdateWeapon();
+}
+
+
+void Unit::UpdateWeapon()
+{
+	if ( weapon ) {
+		Matrix4 r;
+		r.SetYRotation( model->GetYRotation() );
+		Vector4F mPos, gPos, pos4;
+
+		mPos.Set( model->Pos(), 1 );
+		gPos.Set( model->GetResource()->header.trigger, 1.0 );
+		pos4 = mPos + r*gPos;
+		weapon->SetPos( pos4.x, pos4.y, pos4.z );
+		weapon->SetYRotation( model->GetYRotation() );
+	}
 }
 
 

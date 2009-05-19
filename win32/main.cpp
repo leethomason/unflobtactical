@@ -31,10 +31,22 @@
 
 #define IPOD_SCREEN_WIDTH	320
 #define IPOD_SCREEN_HEIGHT	480
-#define FRAMEBUFFER_ROTATE
+//#define FRAMEBUFFER_ROTATE
 
 int multisample = 0;
 bool fullscreen = false;
+const int rotation = 0;
+
+void TransformXY( int x0, int y0, int* x1, int* y1 )
+{
+#ifdef FRAMEBUFFER_ROTATE
+	*x1 = y0;
+	*y1 = IPOD_SCREEN_HEIGHT-1-x0;
+#else
+	*x1 = x0;
+	*y1 = y0;
+#endif	
+}
 
 
 void XferTexture( U32 id, int _w, int _h )
@@ -179,15 +191,13 @@ int main( int argc, char **argv )
 	bool dragging = false;
 	bool zooming = false;
     SDL_Event event;
-	int rotation = 1;
 
 	float yRotation = 45.0f;
 	grinliz::Vector2I mouseDown = { 0, 0 };
 	grinliz::Vector2I prevMouseDown = { 0, 0 };
 	U32 prevMouseDownTime = 0;
 
-	void* game = NewGame( IPOD_SCREEN_WIDTH, IPOD_SCREEN_HEIGHT );
-	GameRotate( game, rotation );
+	void* game = NewGame( IPOD_SCREEN_WIDTH, IPOD_SCREEN_HEIGHT, rotation );
 
 	// ---- Main Loop --- //
 	while ( !done )
@@ -280,8 +290,8 @@ int main( int argc, char **argv )
 							((Game*)game)->ShowPathing( !((Game*)game)->IsShowingPathing() );
 							break;
 #else
-						case SDLK_RIGHT:		GameRotate( game, --rotation );				break;
-						case SDLK_LEFT:			GameRotate( game, ++rotation );				break;
+//						case SDLK_RIGHT:		GameRotate( game, --rotation );				break;
+//						case SDLK_LEFT:			GameRotate( game, ++rotation );				break;
 #endif
 
 						default:
@@ -297,29 +307,18 @@ int main( int argc, char **argv )
 
 				case SDL_MOUSEBUTTONDOWN:
 				{
-					int x = event.button.x;
-					int y = IPOD_SCREEN_HEIGHT-1-event.button.y;
-#ifdef FRAMEBUFFER_ROTATE	
-					x = event.button.y;
-					y = event.button.x;
-#endif
-					mouseDown.Set( x, y );
+					int x, y;
+					TransformXY( event.button.x, event.button.y, &x, &y );
+
+					mouseDown.Set( event.button.x, event.button.y );
 
 					if ( event.button.button == 1 ) {
 						GameDrag( game, GAME_DRAG_START, x, y );
 						dragging = true;
 					}
 					else if ( event.button.button == 3 ) {
-						//int dx = IPOD_SCREEN_HEIGHT/2 - y;
-						//GLOUTPUT(( "x=%d y=%d\n", x, y ));
-						
-						int dx = y;
-						int dy = IPOD_SCREEN_WIDTH-x;
-
 						zooming = true;
-						GameZoom( game, GAME_ZOOM_START, dy );
-
-						//GLOUTPUT(( "x,y=%d,%d  down=%d,%d\n", x, y, mouseDown.x, mouseDown.y ));
+						GameZoom( game, GAME_ZOOM_START, -event.button.y );
 						GameCameraRotate( game, GAME_ROTATE_START, 0.0f );
 					}
 				}
@@ -327,12 +326,9 @@ int main( int argc, char **argv )
 
 				case SDL_MOUSEBUTTONUP:
 				{
-					int x = event.button.x;
-					int y = IPOD_SCREEN_HEIGHT-1-event.button.y;
-#ifdef FRAMEBUFFER_ROTATE	
-					x = event.button.y;
-					y = event.button.x;
-#endif
+					int x, y;
+					TransformXY( event.button.x, event.button.y, &x, &y );
+
 					if ( dragging ) {
 						if ( event.button.button == 1 ) {
 							GameDrag( game, GAME_DRAG_END, x, y );
@@ -343,8 +339,8 @@ int main( int argc, char **argv )
 						zooming = false;
 					}
 					if ( event.button.button == 1 ) {
-						if (    abs( mouseDown.x - x ) < 3 
-							 && abs( mouseDown.y - y ) < 3 ) 
+						if (    abs( mouseDown.x - event.button.x ) < 3 
+							 && abs( mouseDown.y - event.button.y ) < 3 ) 
 						{
 							Uint8 *keystate = SDL_GetKeyState(NULL);
 							int tap = 1;
@@ -368,13 +364,10 @@ int main( int argc, char **argv )
 				case SDL_MOUSEMOTION:
 				{
 					int state = SDL_GetMouseState(NULL, NULL);
+					int x, y;
+					TransformXY( event.button.x, event.button.y, &x, &y );
+					GLOUTPUT(( "move: ipod=%d,%d\n", x, y ));
 
-					int x = event.button.x;
-					int y = IPOD_SCREEN_HEIGHT-1-event.button.y;
-#ifdef FRAMEBUFFER_ROTATE	
-					x = event.button.y;
-					y = event.button.x;
-#endif
 					if ( dragging && ( state & SDL_BUTTON(1) ) )
 					{
 						if ( event.button.button == 1 ) {
@@ -382,12 +375,11 @@ int main( int argc, char **argv )
 						}
 					}
 					else if ( zooming && (state & SDL_BUTTON(3)) ) {
-						int dx = y;
-						int dy = IPOD_SCREEN_WIDTH-x;
-						GameZoom( game, GAME_ZOOM_MOVE, dy );
+
+						GameZoom( game, GAME_ZOOM_MOVE, -event.button.y );
 						
 						//GLOUTPUT(( "x,y=%d,%d  down=%d,%d\n", x, y, mouseDown.x, mouseDown.y ));
-						GameCameraRotate( game, GAME_ROTATE_MOVE, (float)(y-mouseDown.y)*0.5f );
+						GameCameraRotate( game, GAME_ROTATE_MOVE, (float)(event.button.x-mouseDown.x)*0.5f );
 					}
 #if defined(MAPMAKER) || defined(_MSC_VER)
 					else {

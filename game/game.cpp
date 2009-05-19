@@ -35,9 +35,9 @@ using namespace grinliz;
 
 
 
-Game::Game( int width, int height ) :
-	engine( width, height, engineData ),
-	rotation( 0 ),
+Game::Game( const Screenport& sp ) :
+	engine( sp, engineData ),
+	screenport( sp ),
 	nTexture( 0 ),
 	nModelResource( 0 ),
 	markFrameTime( 0 ),
@@ -61,6 +61,7 @@ Game::Game( int width, int height ) :
 	LoadModels();
 	LoadLightMaps();
 	LoadMapResources();
+	LoadItemResources();
 
 	delete modelLoader;
 	modelLoader = 0;
@@ -68,7 +69,7 @@ Game::Game( int width, int height ) :
 	Texture* textTexture = GetTexture( "stdfont2" );
 	GLASSERT( textTexture );
 	UFOText::InitTexture( textTexture->glID );
-	UFOText::InitScreen( engine.Width(), engine.Height(), rotation );
+	UFOText::InitScreen( engine.GetScreenport() );
 
 #ifdef MAPMAKER
 	showPathing = false;
@@ -171,14 +172,14 @@ void Game::PopScene()
 }
 
 
-void Game::SetScreenRotation( int value ) 
+/*void Game::SetScreenRotation( int value ) 
 {
 	rotation = ((unsigned)value)%4;
 
 	UFOText::InitScreen( engine.Width(), engine.Height(), rotation );
 	engine.camera.SetViewRotation( rotation );
 }
-
+*/
 
 void Game::LoadMap( const char* name )
 {
@@ -320,54 +321,29 @@ void Game::DoTick( U32 currentTime )
 }
 
 
-void Game::TransformScreen( int x0, int y0, int *x1, int *y1 )
+void Game::Tap( int tap, int sx, int sy )
 {
-	switch ( rotation ) {
-		case 0:
-			*x1 = x0;
-			*y1 = y0;
-			break;
+	Vector2I view;
+	screenport.ScreenToView( sx, sy, &view.x, &view.y );
 
-		case 1:
-			*x1 = y0;
-			*y1 = engine.Width() - 1 - x0;
-			break;
-
-		case 2:
-			*x1 = engine.Width() - 1 - x0;
-			*y1 = y0;
-			break;
-
-		case 3:
-			*x1 = engine.Height() - 1 - y0;
-			*y1 = x0;
-			break;
-
-		default:
-			GLASSERT( 0 );
-			break;
-	}
-}
-
-
-void Game::Tap( int tap, int x, int y )
-{
 	grinliz::Matrix4 mvpi;
 	grinliz::Ray world;
 
-	grinliz::Vector2I screen;
-	TransformScreen( x, y, &screen.x, &screen.y );
+	//grinliz::Vector2I screen;
+	//TransformScreen( x, y, &screen.x, &screen.y );
+	//grinliz::Vector2I screen = { x, y };
 
 	engine.CalcModelViewProjectionInverse( &mvpi );
-	engine.RayFromScreen( x, y, mvpi, &world );
+	engine.RayFromScreen( view.x, view.y, mvpi, &world );
 
-	currentScene->Tap( tap, screen, world );
+	currentScene->Tap( tap, view, world );
 }
 
 
-void Game::Drag( int action, int x, int y )
+void Game::Drag( int action, int sx, int sy )
 {
-	Vector2I screenRaw = { x, y };
+	Vector2I view;
+	screenport.ScreenToView( sx, sy, &view.x, &view.y );
 
 	switch ( action ) 
 	{
@@ -375,22 +351,22 @@ void Game::Drag( int action, int x, int y )
 		{
 			GLASSERT( !isDragging );
 			isDragging = true;
-			currentScene->Drag( action, screenRaw );
+			currentScene->Drag( action, view );
 		}
 		break;
 
 		case GAME_DRAG_MOVE:
 		{
 			GLASSERT( isDragging );
-			currentScene->Drag( action, screenRaw );
+			currentScene->Drag( action, view );
 		}
 		break;
 
 		case GAME_DRAG_END:
 		{
 			GLASSERT( isDragging );
-			currentScene->Drag( GAME_DRAG_MOVE, screenRaw );
-			currentScene->Drag( GAME_DRAG_END, screenRaw );
+			currentScene->Drag( GAME_DRAG_MOVE, view );
+			currentScene->Drag( GAME_DRAG_END, view );
 			isDragging = false;
 		}
 		break;
@@ -420,10 +396,13 @@ void Game::CancelInput()
 }
 
 
-void Game::MouseMove( int x, int y )
+void Game::MouseMove( int sx, int sy )
 {
+	Vector2I view;
+	screenport.ScreenToView( sx, sy, &view.x, &view.y );
+
 	if ( currentScene == scenes[BATTLE_SCENE] ) {
-		((BattleScene*)currentScene)->MouseMove( x, y );
+		((BattleScene*)currentScene)->MouseMove( view.x, view.y );
 	}
 }
 

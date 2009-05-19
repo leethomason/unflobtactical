@@ -114,6 +114,7 @@ public:
 		MODEL_SELECTABLE			= 0x01,
 		MODEL_HIDDEN_FROM_TREE		= 0x02,
 		MODEL_OWNED_BY_MAP			= 0x04,
+		MODEL_NO_SHADOW				= 0x08,
 	};
 
 	int IsFlagSet( int f ) const	{ return flags & f; }

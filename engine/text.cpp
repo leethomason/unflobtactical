@@ -31,20 +31,15 @@ static int GLYPH_HEIGHT = 128 / GLYPH_CY;
 // 0 screen up
 // 1 90 degree turn positive y, etc.
 
-int UFOText::width = 0;
-int UFOText::height = 0;
-int UFOText::rotation = 0;
+//int UFOText::width = 0;
+//int UFOText::height = 0;
+//int UFOText::rotation = 0;
+Screenport UFOText::screenport( 320, 480, 1 );
 U32 UFOText::textureID = 0;
 
-void UFOText::InitScreen( int w, int h, int r )
+void UFOText::InitScreen( const Screenport& sp )
 {
-	width = w;
-	height = h;
-
-	if ( r&0x01 ) {
-		grinliz::Swap( &width, &height );
-	}
-	rotation = r&0x03;
+	screenport = sp;
 }
 
 
@@ -67,20 +62,7 @@ void UFOText::Begin()
 
 	glColor4f( 1.f, 1.f, 1.f, 1.f );
 
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();					// save projection
-	glLoadIdentity();				// projection
-
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();					// model
-	glLoadIdentity();				// model
-
-	glRotatef( 90.0f * (float)rotation, 0.0f, 0.0f, 1.0f );
-#ifdef USING_ES
-	glOrthof( 0.f, (float)width, 0.f, (float)height, -1.f, 1.f );
-#else
-	glOrtho( 0, width, 0, height, -1, 1 );
-#endif
+	screenport.PushView();
 	glBindTexture( GL_TEXTURE_2D, textureID );
 }
 
@@ -88,11 +70,7 @@ void UFOText::Begin()
 void UFOText::End()
 {
 	glEnableClientState( GL_NORMAL_ARRAY );
-
-	glPopMatrix();					// model
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();					// projection
-	glMatrixMode(GL_MODELVIEW);
+	screenport.PopView();
 
 	glDisable( GL_BLEND );
 	glEnable( GL_DEPTH_TEST );

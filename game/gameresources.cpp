@@ -347,3 +347,15 @@ void Game::LoadItemResources()
 	itemDefArr[0].Init( ItemDef::TYPE_WEAPON, "gun0", GetResource( "gun0" ) );
 	itemDefArr[1].Init( ItemDef::TYPE_WEAPON, "gun1", GetResource( "gun1" ) );
 }
+
+
+const ItemDef* Game::GetItemDef( const char* name )
+{
+	for( int i=0; i<nItemDefs; ++i ) {
+		if ( strcmp( itemDefArr[i].name, name ) == 0 ) {
+			return &itemDefArr[i];
+		}
+	}
+	GLASSERT( 0 );
+	return 0;
+}

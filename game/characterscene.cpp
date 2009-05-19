@@ -9,11 +9,11 @@ CharacterScene::CharacterScene( Game* _game ) : Scene( _game )
 	engine = &_game->engine;
 
 	Texture* t = game->GetTexture( "icons" );	
-	widgets = new UIButtonBox( t );
+	widgets = new UIButtonBox( t, engine->GetScreenport() );
 
 	int icons[] = { UIButtonBox::ICON_PLAIN };
 	const char* iconText[] = { "back" };
-	widgets->SetButtons( icons, iconText, 1 );
+	widgets->CalcButtons( icons, iconText, 1 );
 }
 
 
@@ -31,10 +31,7 @@ void CharacterScene::Activate()
 
 void CharacterScene::DrawHUD()
 {
-	int h = engine->Width();
-	int w = engine->Height();
-	int rotation = game->Rotation();
-	widgets->Draw( w, h, rotation );
+	widgets->Draw();
 }
 
 void CharacterScene::Tap(	int count, 

@@ -17,12 +17,13 @@
 #define UIRENDERING_INCLUDED
 
 #include "vertex.h"
+#include "screenport.h"
 
 
 class UIButtonBox
 {
 public:
-	UIButtonBox( const Texture* texture );
+	UIButtonBox( const Texture* texture, const Screenport& port );
 	~UIButtonBox()	{}
 
 	enum {
@@ -34,11 +35,15 @@ public:
 		MAX_TEXT_LEN = 12,
 	};
 
-	void SetButtons( const int* icons, const char** text, int nIcons );
+	void SetOrigin( int x, int y )				{ origin.Set( x, y ); }
+	void SetColumns( int columns  )				{ this->columns = columns; }
+	void SetButtonSize( int dx, int dy )		{ size.x = dx; size.y = dy; }
 
-	// returns the icon INDEX, or nIcons if not clicked
+	void CalcButtons( const int* icons, const char** text, int nIcons );
+
+	// returns the icon INDEX, or -1 if not clicked
 	int QueryTap( int x, int y );	
-	void Draw( int width, int height, int rotation );
+	void Draw();
 
 private:
 	struct Icon
@@ -49,6 +54,11 @@ private:
 	};
 	const Texture* texture;
 	int nIcons;
+
+	Screenport screenport;
+	int columns;
+	grinliz::Vector2I		origin;
+	grinliz::Vector2I		size;
 
 	Icon					icons[MAX_ICONS];
 	grinliz::Vector2< S16 > pos[MAX_ICONS*4];
