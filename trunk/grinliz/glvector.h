@@ -366,7 +366,7 @@ struct Vector4
 	}
 
 	friend Vector4<T> operator-( const Vector4<T>& head, const Vector4<T>& tail ) {
-		Vector3<T> vec = {
+		Vector4<T> vec = {
 			vec.x = head.x - tail.x,
 			vec.y = head.y - tail.y,
 			vec.z = head.z - tail.z,
@@ -376,7 +376,7 @@ struct Vector4
 	}
 
 	friend Vector4<T> operator+( const Vector4<T>& head, const Vector4<T>& tail ) {
-		Vector3<T> vec = {
+		Vector4<T> vec = {
 			vec.x = head.x + tail.x,
 			vec.y = head.y + tail.y,
 			vec.z = head.z + tail.z,
@@ -402,6 +402,13 @@ struct Vector4
 		this->x = _x;
 		this->y = _y;
 		this->z = _z;
+		this->w = _w;
+	}
+
+	void Set( const Vector3<T>& v, T _w ) {
+		this->x = v.x;
+		this->y = v.y;
+		this->z = v.z;
 		this->w = _w;
 	}
 

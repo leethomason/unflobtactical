@@ -21,13 +21,14 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
-void* NewGame( int width, int height )
+void* NewGame( int width, int height, int rotation )
 {
-	Game* game = new Game( width, height );
-	printf( "Hello new game.\n" );
-	GLOUTPUT(( "Hello new game debug.\n" ));
+	Screenport port( width, height, rotation );
+	Game* game = new Game( port );
+	GLOUTPUT(( "NewGame.\n" ));
 	return game;
 }
+
 
 void DeleteGame( void* handle )
 {
@@ -128,11 +129,11 @@ void GameMoveCamera( void* handle, float dx, float dy, float dz )
 //	game->engine.SetPerspective();
 //}
 
-void GameRotate( void* handle, int rotation )
-{
- 	Game* game = (Game*)handle;
-	game->SetScreenRotation( rotation );
-}
+//void GameRotate( void* handle, int rotation )
+//{
+// 	Game* game = (Game*)handle;
+//	game->SetScreenRotation( rotation );
+//}
 
 void PlatformPathToResource( const char* name, const char* extension, char* buffer, int bufferLen )
 {

@@ -286,17 +286,8 @@ inline void MultMatrix4( const Matrix4& m, const Vector4F& v, Vector4F* w )
 	}
 }
 
+}
 
-/** Convert from screen (pixel) coordinates to world coordinates. Useful
-    for mouse to world conversion.
-*/
-bool ScreenToWorld( const Vector3F& screen,
-				    const Matrix4& modelView,
-					const Matrix4& projection,
-					const Rectangle2F& viewport,
-					Vector3F* world );
-
-
-};	// namespace grinliz
+// namespace grinliz
 
 #endif

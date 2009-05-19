@@ -402,6 +402,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\engine\screenport.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\engine\screenport.h"
+				>
+			</File>
+			<File
 				RelativePath=".\engine\serialize.cpp"
 				>
 			</File>

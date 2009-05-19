@@ -47,12 +47,10 @@ private:
 	EngineData engineData;
 
 public:
-	Game( int width, int height );
+	Game( const Screenport& screenport );
 	~Game();
 
 	void DoTick( U32 msec );
-	void SetScreenRotation( int i );
-	int Rotation() { return rotation; }
 
 	void Tap( int count, int x, int y );
 	void Drag( int action, int x, int y );
@@ -63,7 +61,7 @@ public:
 	ModelResource*	GetResource( const char* name );
 	Texture*		GetTexture( const char* name );
 	Surface*		GetLightMap( const char* name );
-	void TransformScreen( int x0, int y0, int *x1, int *y1 );
+	const ItemDef*  GetItemDef( const char* name );
 
 	Engine engine;
 	Surface surface;
@@ -135,7 +133,6 @@ private:
 
 	void InitMapItemDef( int startIndex, const MapItemInit* );
 
-	int rotation;
 	int nTexture;
 	int nModelResource;
 	int currentFrame;
@@ -156,6 +153,7 @@ private:
 
 	int rotTestStart;
 	int rotTestCount;
+	Screenport screenport;
 
 #ifdef MAPMAKER	
 	bool showPathing;

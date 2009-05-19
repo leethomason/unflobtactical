@@ -27,8 +27,10 @@
 #include "camera.h"
 #include "enginelimits.h"
 #include "model.h"
+#include "screenport.h"
 
 class RenderQueue;
+
 
 /*
 	Standard state:
@@ -62,7 +64,7 @@ struct EngineData
 class Engine
 {
 public:
-	Engine( int _width, int _height, const EngineData& engineData );
+	Engine( const Screenport& screenport, const EngineData& engineData );
 	~Engine();
 
 	const float AMBIENT;
@@ -123,8 +125,7 @@ public:
 	// 0.0 far, 1.0 close
 	void SetZoom( float z );
 
-	int Width()		{ return width; }
-	int Height()	{ return height; }
+	const Screenport& GetScreenport() { return screenport; }
 
 	void SetDayNight( bool dayTime, Surface* lightMap );
 	bool GetDayTime()							{ return (dayNight == DAY_TIME); }
@@ -156,8 +157,7 @@ private:
 	//void PushShadowTextureMatrix();
 	//void PopShadowTextureMatrix();
 
-	int		width;
-	int		height;
+	Screenport screenport;
  	float	frustumLeft, frustumRight, 
 			frustumTop, frustumBottom, 
 			frustumNear, frustumFar;

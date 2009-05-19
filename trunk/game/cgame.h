@@ -22,7 +22,7 @@ extern "C" {
 
 
 // --- Platform to Core --- //
-void* NewGame( int width, int height );
+void* NewGame( int width, int height, int rotation );
 void DeleteGame( void* handle );
 
 // Input
@@ -31,6 +31,10 @@ void DeleteGame( void* handle );
 //		2 finger zoom in/out
 //		Taps (buttons, UI)
 //
+
+// Coordinates.
+// All coordinates (x,y) are in the iphone coordinate space.
+// (see screenport.h). Rotation has no impact on the coordinates.
 
 #define GAME_DRAG_START	0
 #define GAME_DRAG_MOVE	1
@@ -53,7 +57,7 @@ void GameInputCancelled( void* handle );
 
 
 // Screen rotation.
-void GameRotate( void* handle, int rotation );
+//void GameRotate( void* handle, int rotation );
 
 void GameDoTick( void* handle, unsigned int timeInMSec );
 

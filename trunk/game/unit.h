@@ -78,7 +78,8 @@ public:
 	const char* FirstName();
 	const char* LastName();
 
-	void SetPos( int x, int z );
+	void SetMapPos( int x, int z );
+	void SetPos( const grinliz::Vector3F& pos, float rotation );
 	void CalcPos( grinliz::Vector3F* );
 
 	void SetWeapon( const ItemDef* itemDef );	
@@ -113,16 +114,18 @@ private:
 	void GenerateAlien( int type, U32 seed );
 	void CreateModel();
 
-	void UpdateModel();	// make the model current with the unit status - armor, etc.
+	void UpdateModel();		// make the model current with the unit status - armor, etc.
+	void UpdateWeapon();	// set the gun position
 
 	int status;
 	int team;	// terran, alien, civ
 	U32 body;	// describes everything! a random #
 
-	Game* game;
-	Engine* engine;
-	Model* model;
-	ItemDef* weapon;	// temporary - needs inventory system
+	Game*		game;
+	Engine*		engine;
+	Model*		model;
+	Model*		weapon;
+	ItemDef*	weaponItem;	// temporary - needs inventory system
 };
 
 

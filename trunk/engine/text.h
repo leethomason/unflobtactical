@@ -18,17 +18,14 @@
 
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
+#include "screenport.h"
 
 
 class UFOText
 {
 public:
 	static void InitTexture( U32 textTextureID );
-	static void InitScreen( int screenWidth, int screenHeight, int rotation );
-
-	static int ScreenWidth()		{ return width; }
-	static int ScreenHeight()		{ return height; }
-	static int Rotation()			{ return rotation; }
+	static void InitScreen( const Screenport& sp );
 	static void GlyphSize( const char* str, int* width, int* height );
 
 	static void Begin();
@@ -40,9 +37,7 @@ public:
 private:
 	static void TextOut( const char* str, int x, int y );
 
-	static int width;
-	static int height;
-	static int rotation;
+	static Screenport screenport;
 	static U32 textureID;
 };
 

@@ -103,15 +103,16 @@ using namespace grinliz;
 */
 
 
-Engine::Engine( int _width, int _height, const EngineData& _engineData ) 
+Engine::Engine( const Screenport& port, const EngineData& _engineData ) 
 	:	AMBIENT( 0.3f ),
 		DIFFUSE( 0.7f ),
 		DIFFUSE_SHADOW( 0.3f ),
 		NIGHT_RED( 131.f/255.f ),
 		NIGHT_GREEN( 125.f/255.f ),
 		NIGHT_BLUE( 1.0f ),
-		width( _width ), 
-		height( _height ), 
+		//width( _width ), 
+		//height( _height ), 
+		screenport( port ),
 		dayNight( DAY_TIME ),
 		engineData( _engineData ),
 		initZoomDistance( 0 ),
@@ -121,6 +122,7 @@ Engine::Engine( int _width, int _height, const EngineData& _engineData )
 	map = new Map( spaceTree );
 	renderQueue = new RenderQueue();
 
+	camera.SetViewRotation( screenport.Rotation() );
 	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)Map::SIZE + 5.0f );
 	camera.SetYRotation( -45.f );
 	camera.SetTilt( engineData.cameraTilt );
@@ -284,6 +286,8 @@ void Engine::Draw( int* triCount )
 					if ( model->IsShadowRotated() )
 						model->SetYRotation( shadowRotation );
 				}
+				if ( model->IsFlagSet( Model::MODEL_NO_SHADOW ) )
+					continue;
 
 				// Draw model shadows.
 				model->Queue( renderQueue, textureState );
@@ -474,7 +478,7 @@ void Engine::SetPerspective()
 
 	// left, right, top, & bottom are on the near clipping
 	// plane. (Not an obvious point to my mind.)
-	float aspect = (float)(width) / (float)(height);
+	float aspect = (float)(screenport.PhysicalWidth()) / (float)(screenport.PhysicalHeight());
 	frustumTop		= tan(theta) * nearPlane;
 	frustumBottom	= -frustumTop;
 	frustumLeft		= aspect * frustumBottom;
@@ -492,10 +496,6 @@ bool Engine::UnProject(	const Vector3F& window,
 						const Matrix4& modelViewProjectionInverse,
 						Vector3F* world )
 {
-	//in[0] = (winx - viewport[0]) * 2 / viewport[2] - 1.0;
-	//in[1] = (winy - viewport[1]) * 2 / viewport[3] - 1.0;
-	//in[2] = 2 * winz - 1.0;
-	//in[3] = 1.0;
 	Vector4F in = { (window.x-(float)screen.min.x)*2.0f / float(screen.Width())-1.0f,
 					(window.y-(float)screen.min.y)*2.0f / float(screen.Height())-1.0f,
 					window.z*2.0f-1.f,
@@ -530,7 +530,7 @@ void Engine::CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjecti
 void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray, Vector3F* out )
 {	
 	Rectangle2I screen;
-	screen.Set( 0, 0, width-1, height-1 );
+	screen.Set( 0, 0, screenport.ViewWidth()-1, screenport.ViewHeight()-1 );
 	Vector3F win0 ={ (float)x, (float)y, 0.0f };
 	Vector3F win1 ={ (float)x, (float)y, 1.0f };
 
@@ -557,7 +557,7 @@ void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray,
 void Engine::RayFromScreen( int x, int y, const Matrix4& mvpi, Ray* ray )
 {	
 	Rectangle2I screen;
-	screen.Set( 0, 0, width-1, height-1 );
+	screen.Set( 0, 0, screenport.ViewWidth()-1, screenport.ViewHeight()-1 );
 	Vector3F win0 ={ (float)x, (float)y, 0.0f };
 	Vector3F win1 ={ (float)x, (float)y, 1.0f };
 
