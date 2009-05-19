@@ -27,7 +27,7 @@ UIButtonBox::UIButtonBox( const Texture* texture, const Screenport& port ) : scr
 	nIcons = 0;
 
 	const int SIZE = 50;
-	origin.Set( 0, screenport.ViewHeight()-SIZE );
+	origin.Set( 0, port.UIHeight()-SIZE );		// fixme
 	size.Set( SIZE, SIZE );
 	columns = 1;
 }
@@ -48,7 +48,7 @@ void UIButtonBox::CalcButtons( const int* _icons, const char** _text, int _nIcon
 		}
 
 		int x = origin.x + col*size.x;
-		int y = origin.y + row*size.y;
+		int y = origin.y - row*size.y;
 
 		pos[i*4+0].Set( x,			y );		
 		pos[i*4+1].Set( x+size.x,	y );		
@@ -105,7 +105,7 @@ void UIButtonBox::Draw()
 	glEnable( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, texture->glID );
 
-	screenport.PushView();
+	screenport.PushUI();
 
 	glVertexPointer(   2, GL_SHORT, 0, pos );
 	glTexCoordPointer( 2, GL_FLOAT, 0, tex );  
@@ -113,7 +113,7 @@ void UIButtonBox::Draw()
 	glDrawElements( GL_TRIANGLES, nIcons*6, GL_UNSIGNED_SHORT, index );
 	CHECK_GL_ERROR;
 		
-	screenport.PopView();
+	screenport.PopUI();
 
 	glEnableClientState( GL_NORMAL_ARRAY );
 	glDisable( GL_BLEND );

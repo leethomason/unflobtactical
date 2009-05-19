@@ -22,7 +22,7 @@ public:
 						const grinliz::Ray& world )				{}
 
 	virtual void Drag(	int action,
-						const grinliz::Vector2I& screenRaw )	{}
+						const grinliz::Vector2I& view )			{}
 	virtual void Zoom( int action, int distance )				{}
 	virtual void Rotate( int action, float degrees )			{}
 	virtual void CancelInput()									{}

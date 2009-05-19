@@ -5,6 +5,8 @@
 #include "../grinliz/gltypes.h"
 
 /*
+	PHYSICAL / SCREEN coordinates:
+
 	The default iPhone coordinate system:
 	0--->x
 	|
@@ -18,6 +20,13 @@
 	y-----0
 		  |
 		  x
+
+  VIEW coordinates:
+  y
+  |
+  |
+  0----x
+
 */
 class Screenport
 {
@@ -40,18 +49,26 @@ public:
 
 	int Rotation() const		{ return rotation; }
 
-	// These values reflect the rotated screen:
-	int ViewWidth()	const	{ return (rotation&1) ? physicalHeight : physicalWidth; }
-	int ViewHeight() const	{ return (rotation&1) ? physicalWidth : physicalHeight; }
+	// These values reflect the rotated screen. A very simple transform that moves
+	// the origin to the lower left, independent of rotation.
 	void ScreenToView( int physicalX, int physicalY, int* viewX, int* viewY ) const;
+
 
 	// These reflect the physical screen:
 	int PhysicalWidth() const	{ return physicalWidth; }
 	int PhysicalHeight() const	{ return physicalHeight; }
 
-	void PushView() const;
-	void PopView() const;
+	// UI: origin in lower left, oriented with device.
+	void PushUI() const;
+	void PopUI() const;
+	void ViewToUI( int physicalX, int physicalY, int* viewX, int* viewY ) const;
+	int UIWidth() const	{ return ViewWidth(); }
+	int UIHeight() const	{ return ViewHeight(); }
 private:
+	// too easy to screw up
+	int ViewWidth()	const	{ return (rotation&1) ? physicalHeight : physicalWidth; }
+	int ViewHeight() const	{ return (rotation&1) ? physicalWidth : physicalHeight; }
+
 	int rotation;			// 1
 	int physicalWidth;		// 480 
 	int physicalHeight;		// 320

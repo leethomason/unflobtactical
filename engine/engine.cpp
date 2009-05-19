@@ -530,7 +530,7 @@ void Engine::CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjecti
 void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray, Vector3F* out )
 {	
 	Rectangle2I screen;
-	screen.Set( 0, 0, screenport.ViewWidth()-1, screenport.ViewHeight()-1 );
+	screen.Set( 0, 0, screenport.PhysicalWidth()-1, screenport.PhysicalHeight()-1 );
 	Vector3F win0 ={ (float)x, (float)y, 0.0f };
 	Vector3F win1 ={ (float)x, (float)y, 1.0f };
 
@@ -557,7 +557,7 @@ void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray,
 void Engine::RayFromScreen( int x, int y, const Matrix4& mvpi, Ray* ray )
 {	
 	Rectangle2I screen;
-	screen.Set( 0, 0, screenport.ViewWidth()-1, screenport.ViewHeight()-1 );
+	screen.Set( 0, 0, screenport.PhysicalWidth()-1, screenport.PhysicalHeight()-1 );
 	Vector3F win0 ={ (float)x, (float)y, 0.0f };
 	Vector3F win1 ={ (float)x, (float)y, 1.0f };
 

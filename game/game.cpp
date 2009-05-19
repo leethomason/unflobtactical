@@ -329,10 +329,6 @@ void Game::Tap( int tap, int sx, int sy )
 	grinliz::Matrix4 mvpi;
 	grinliz::Ray world;
 
-	//grinliz::Vector2I screen;
-	//TransformScreen( x, y, &screen.x, &screen.y );
-	//grinliz::Vector2I screen = { x, y };
-
 	engine.CalcModelViewProjectionInverse( &mvpi );
 	engine.RayFromScreen( view.x, view.y, mvpi, &world );
 
@@ -344,6 +340,7 @@ void Game::Drag( int action, int sx, int sy )
 {
 	Vector2I view;
 	screenport.ScreenToView( sx, sy, &view.x, &view.y );
+	GLOUTPUT(( "View %d,%d\n", view.x, view.y ));
 
 	switch ( action ) 
 	{
@@ -400,6 +397,18 @@ void Game::MouseMove( int sx, int sy )
 {
 	Vector2I view;
 	screenport.ScreenToView( sx, sy, &view.x, &view.y );
+
+	grinliz::Matrix4 mvpi;
+	grinliz::Ray world;
+
+	engine.CalcModelViewProjectionInverse( &mvpi );
+	engine.RayFromScreen( view.x, view.y, mvpi, &world );
+	Vector3F p;
+	IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &p );
+
+	GLOUTPUT(( "world (%.1f,%.1f,%.1f)  plane (%.1f,%.1f,%.1f)\n", 
+				world.origin.x, world.origin.y, world.origin.z,
+				p.x, p.y, p.z ));
 
 	if ( currentScene == scenes[BATTLE_SCENE] ) {
 		((BattleScene*)currentScene)->MouseMove( view.x, view.y );
