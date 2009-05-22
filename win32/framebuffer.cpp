@@ -24,8 +24,13 @@ FrameBuffer::FrameBuffer( int width, int height )
 	glGenTextures( 1, &textureID );
 	glBindTexture( GL_TEXTURE_2D, textureID );
 
+#ifdef NEED_POWER_OF_2
 	w2 = grinliz::CeilPowerOf2( width );
 	h2 = grinliz::CeilPowerOf2( height );
+#else
+	w2 = width;
+	h2 = height;
+#endif
 
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );

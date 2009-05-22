@@ -23,17 +23,29 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 
 	path.Clear();
 
+	// On screen menu.
 	Texture* t = game->GetTexture( "icons" );	
 	widgets = new UIButtonBox( t, engine->GetScreenport() );
+	
+	int x, y, w, h;
 
-	int icons[] = { UIButtonBox::ICON_PLAIN, UIButtonBox::ICON_PLAIN, UIButtonBox::ICON_CHARACTER };
+	const int icons[] = { UIButtonBox::ICON_PLAIN, UIButtonBox::ICON_PLAIN, UIButtonBox::ICON_CHARACTER };
 	const char* iconText[] = { "home", "d/n", 0 };
-	widgets->CalcButtons( icons, iconText, 3 );
+	widgets->SetButtons( icons, 3 );
+	widgets->SetText( iconText );
+	widgets->CalcDimensions( &x, &y, &w, &h );
+	widgets->SetOrigin( 0, engine->GetScreenport().UIHeight()-h );
+
+	// When enemy targeted.
+	fireWidget = new UIButtonBox( t, engine->GetScreenport() );
+	const int fireIcons[] = { UIButtonBox::ICON_AUTO, UIButtonBox::ICON_SNAP, UIButtonBox::ICON_AIM };
+	fireWidget->SetButtons( fireIcons, 3 );
 }
 
 
 BattleScene::~BattleScene()
 {
+	delete fireWidget;
 	delete widgets;
 }
 
@@ -279,7 +291,33 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 										 ParticleSystem::DECAL_BOTH,
 										 pos, ALPHA, 0 );
 
+		Vector2F r;
+		engine->WorldToScreen( pos, &r );
+		//GLOUTPUT(( "View: %.1f,%.1f\n", r.x, r.y ));
+		int uiX, uiY;
+		const Screenport& port = engine->GetScreenport();
+		port.ViewToUI( (int)r.x, (int)r.y, &uiX, &uiY );
 
+		int x, y, w, h;
+		const int DX = 10;
+
+		// Make sure it fits on the screen.
+		fireWidget->CalcDimensions( 0, 0, 0, &h );
+		fireWidget->SetOrigin( uiX+DX, uiY-h/2 );
+		fireWidget->CalcDimensions( &x, &y, &w, &h );
+		if ( x < 0 ) {
+			x = 0;
+		}
+		else if ( x+w >= port.UIWidth() ) {
+			x = port.UIWidth() - w;
+		}
+		if ( y < 0 ) {
+			y = 0;
+		}
+		else if ( y+h >= port.UIHeight() ) {
+			y = port.UIHeight() - h;
+		}
+		fireWidget->SetOrigin( x, y );
 	}
 }
 
@@ -312,32 +350,48 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 	int screenX, screenY;
 	engine->GetScreenport().ViewToUI( vX, vY, &screenX, &screenY );
 
-	bool iconTapped = true;
-	int icon = widgets->QueryTap( screenX, screenY );
+	int icon = -1;
 
-	switch( icon ) {
-		case 0:
-			engine->MoveCameraHome();
-			break;
+	if ( AlienTargeted() ) {
+		icon = fireWidget->QueryTap( screenX, screenY );
+		switch ( icon ) {
+			case 0:	//aut0
+			case 1: //snap
+			case 2: //aim
+				selection.targetUnit = -1;
+				break;
 
-		case 1:
-			if ( engine->GetDayTime() )
-				engine->SetDayNight( false, game->GetLightMap( "farmlandN" ) );
-			else
-				engine->SetDayNight( true, 0 );
-			break;
-
-		case 2:
-			if ( action.action == ACTION_NONE ) {
-				game->PushScene( Game::CHARACTER_SCENE );
-			}
-			break;
-
-		default:
-			iconTapped = false;
-			break;
+			default:
+				break;
+		}
 	}
-	return iconTapped;
+
+	if ( icon == -1 ) {
+		icon = widgets->QueryTap( screenX, screenY );
+
+		switch( icon ) {
+			case 0:
+				engine->MoveCameraHome();
+				break;
+
+			case 1:
+				if ( engine->GetDayTime() )
+					engine->SetDayNight( false, game->GetLightMap( "farmlandN" ) );
+				else
+					engine->SetDayNight( true, 0 );
+				break;
+
+			case 2:
+				if ( action.action == ACTION_NONE ) {
+					game->PushScene( Game::CHARACTER_SCENE );
+				}
+				break;
+
+			default:
+				break;
+		}
+	}
+	return icon >= 0;
 }
 
 
@@ -585,6 +639,9 @@ void BattleScene::Rotate( int action, float degrees )
 void BattleScene::DrawHUD()
 {
 	widgets->Draw();
+	if ( AlienTargeted() ) {
+		fireWidget->Draw();
+	}
 
 #ifdef MAPMAKER
 	engine->GetMap()->DumpTile( (int)selection->X(), (int)selection->Z() );

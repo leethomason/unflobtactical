@@ -26,29 +26,84 @@ UIButtonBox::UIButtonBox( const Texture* texture, const Screenport& port ) : scr
 	this->texture = texture;
 	nIcons = 0;
 
-	const int SIZE = 50;
-	origin.Set( 0, port.UIHeight()-SIZE );		// fixme
+	const int SIZE = 45;
+	const int PAD = 5;
+	cacheValid = false;
+
+	origin.Set( 0, 0 );
 	size.Set( SIZE, SIZE );
 	columns = 1;
+	pad.Set( PAD, PAD );
 }
 
 
-void UIButtonBox::CalcButtons( const int* _icons, const char** _text, int _nIcons )
+void UIButtonBox::CalcDimensions( int *x, int *y, int *w, int *h )
+{
+	if ( x ) 
+		*x = origin.x;
+	if ( y )
+		*y = origin.y;
+	int rows = nIcons / columns;
+
+	if ( w ) {
+		if ( columns > 1 )
+			*w = columns*size.x + (columns-1)*pad.x;
+		else
+			*w = size.x;
+	}
+	if ( h ) {
+		if ( rows > 1 )
+			*h = rows*size.y + (rows-1)*pad.y;
+		else
+			*h = rows*size.y;
+	}
+}
+
+
+void UIButtonBox::SetButtons( const int* _icons, int _nIcons )
 {
 	nIcons = _nIcons;
+	GLASSERT( nIcons <= MAX_ICONS );
+
+	for( int i=0; i<nIcons; ++i ) {
+		icons[i].id = _icons[i];
+	}
+
+	cacheValid = false;
+}
+
+
+void UIButtonBox::SetText( const char** text ) 
+{
+	for( int i=0; i<nIcons; ++i ) {
+		icons[i].text[0] = 0;
+	}
+	if ( text ) {
+		for( int i=0; i<nIcons; ++i ) {
+			if ( text[i] ) {
+				strncpy( icons[i].text, text[i], MAX_TEXT_LEN );
+
+				int w, h;
+				UFOText::GlyphSize( icons[i].text, &w, &h );
+				icons[i].textPos.x = size.x/2 - w/2;
+				icons[i].textPos.y = size.y/2 - h/2;
+			}
+		}
+	}
+	// Do NOT invalidate the cache. Just a text change.
+}
+
+
+void UIButtonBox::CalcButtons()
+{
+	// Don't apply the origin here. It is applied at render.
 	int row = 0;
 	int col = 0;
 
 	for( int i=0; i<nIcons; ++i ) 
 	{
-		icons[i].id = _icons[i];
-		icons[i].text[0] = 0;
-		if ( _text && _text[i] ) {
-			strncpy( icons[i].text, _text[i], MAX_TEXT_LEN );
-		}
-
-		int x = origin.x + col*size.x;
-		int y = origin.y - row*size.y;
+		int x = col*size.x + col*pad.x;
+		int y = row*size.y + row*pad.x;
 
 		pos[i*4+0].Set( x,			y );		
 		pos[i*4+1].Set( x+size.x,	y );		
@@ -73,19 +128,13 @@ void UIButtonBox::CalcButtons( const int* _icons, const char** _text, int _nIcon
 		index[i*6+4] = idx+2;
 		index[i*6+5] = idx+3;
 
-		if ( _text && _text[i] ) {
-			int w, h;
-			UFOText::GlyphSize( _text[i], &w, &h );
-			icons[i].textPos.x = x + size.x/2 - w/2;
-			icons[i].textPos.y = y + size.y/2 - h/2;
-		}
-
 		col++;
 		if ( col >= columns ) {
 			col = 0;
 			++row;
 		}
 	}
+	cacheValid = true;
 }
 
 
@@ -93,6 +142,8 @@ void UIButtonBox::Draw()
 {
 	if ( nIcons == 0 )
 		return;
+	if (!cacheValid)
+		CalcButtons();
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 
@@ -106,6 +157,7 @@ void UIButtonBox::Draw()
 	glBindTexture( GL_TEXTURE_2D, texture->glID );
 
 	screenport.PushUI();
+	glTranslatef( (float)origin.x, (float)origin.y, 0.0f );
 
 	glVertexPointer(   2, GL_SHORT, 0, pos );
 	glTexCoordPointer( 2, GL_FLOAT, 0, tex );  
@@ -123,7 +175,9 @@ void UIButtonBox::Draw()
 	UFOText::Begin();
 	for( int i=0; i<nIcons; ++i ) {
 		if ( icons[i].text[0] ) {
-			UFOText::Stream( icons[i].textPos.x, icons[i].textPos.y, "%s", icons[i].text );
+			int x = pos[i*4].x + origin.x;
+			int y = pos[i*4].y + origin.y;
+			UFOText::Stream( x+icons[i].textPos.x, y+icons[i].textPos.y, "%s", icons[i].text );
 		}
 	}
 	UFOText::End();
@@ -132,13 +186,24 @@ void UIButtonBox::Draw()
 
 int UIButtonBox::QueryTap( int x, int y )
 {
-	int dx = ( x - origin.x ) / size.x;
-	int dy = ( y - origin.y ) / size.y;
+	int dx = ( x - origin.x ) / (size.x + pad.x);
+	int dy = ( y - origin.y ) / (size.y + pad.y);
 
 	if ( dx >= 0 && dx < columns && dy >=0 ) {
-		int icon = dy * columns + dx;
-		if ( icon >=0 && icon < nIcons ) {
-			return icon;
+
+		// local coordinates:
+		int buttonX = x - origin.x - dx*(size.x+pad.x);
+		int buttonY = y - origin.y - dy*(size.y+pad.y);
+
+		if (    buttonX >= 0 && buttonX < size.x
+			 && buttonY >= 0 && buttonY < size.y ) {
+
+			int icon = dy * columns + dx;
+
+			if ( icon >=0 && icon < nIcons ) 
+			{
+				return icon;
+			}
 		}
 	}
 	return -1;

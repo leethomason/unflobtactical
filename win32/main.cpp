@@ -31,7 +31,7 @@
 
 #define IPOD_SCREEN_WIDTH	320
 #define IPOD_SCREEN_HEIGHT	480
-//#define FRAMEBUFFER_ROTATE
+#define FRAMEBUFFER_ROTATE
 
 int multisample = 0;
 bool fullscreen = false;
@@ -40,6 +40,9 @@ bool fullscreen = false;
 #else
 	const int rotation = 0;
 #endif
+
+void ScreenCapture( const char* baseFilename );
+
 
 void TransformXY( int x0, int y0, int* x1, int* y1 )
 {
@@ -238,6 +241,17 @@ int main( int argc, char **argv )
 						//case SDLK_RIGHT:		yRotation += 2.0f; GameYRotateCamera( game, yRotation );		break;
 						//case SDLK_LEFT:			yRotation -= 2.0f; GameYRotateCamera( game, yRotation );		break;
 						//case SDLK_s:			GameShadowMode( game );						break;
+						case SDLK_p:
+							{
+								#ifdef FRAMEBUFFER_ROTATE
+									frameBuffer->Bind();
+								#endif
+								ScreenCapture( "cap" );
+								#ifdef FRAMEBUFFER_ROTATE
+									frameBuffer->Bind();
+								#endif
+							}
+							break;
 
 #ifdef MAPMAKER	
 						case SDLK_s:			
@@ -370,7 +384,7 @@ int main( int argc, char **argv )
 					int state = SDL_GetMouseState(NULL, NULL);
 					int x, y;
 					TransformXY( event.button.x, event.button.y, &x, &y );
-					GLOUTPUT(( "move: ipod=%d,%d\n", x, y ));
+					//GLOUTPUT(( "move: ipod=%d,%d\n", x, y ));
 
 					if ( dragging && ( state & SDL_BUTTON(1) ) )
 					{
@@ -427,4 +441,58 @@ int main( int argc, char **argv )
 
 	MemLeakCheck();
 	return 0;
+}
+
+
+
+void ScreenCapture( const char* baseFilename )
+{
+	int viewPort[4];
+	glGetIntegerv(GL_VIEWPORT, viewPort);
+	int width  = viewPort[2]-viewPort[0];
+	int height = viewPort[3]-viewPort[1];
+
+	SDL_Surface* surface = SDL_CreateRGBSurface( SDL_SWSURFACE, width, height, 
+												 32, 0xff, 0xff<<8, 0xff<<16, 0xff<<24 );
+	if ( !surface )
+		return;
+
+	glReadPixels( 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels );
+
+	// This is a fancy swap, for the screen pixels:
+	int i;
+	U32* buffer = new U32[width];
+
+	for( i=0; i<height/2; ++i )
+	{
+		memcpy( buffer, 
+				( (U32*)surface->pixels + i*width ), 
+				width*4 );
+		memcpy( ( (U32*)surface->pixels + i*width ), 
+				( (U32*)surface->pixels + (height-1-i)*width ),
+				width*4 );
+		memcpy( ( (U32*)surface->pixels + (height-1-i)*width ),
+				buffer,
+				width*4 );
+	}
+	delete [] buffer;
+
+	// And now, set all the alphas to opaque:
+	for( i=0; i<width*height; ++i )
+		*( (U32*)surface->pixels + i ) |= 0xff000000;
+
+	int index = 0;
+	char buf[ 256 ];
+	for( index = 0; index<100; ++index )
+	{
+		sprintf( buf, "%s%02d.bmp", baseFilename, index );
+		FILE* fp = fopen( buf, "rb" );
+		if ( fp )
+			fclose( fp );
+		else
+			break;
+	}
+	if ( index < 100 )
+		SDL_SaveBMP( surface, buf );
+	SDL_FreeSurface( surface );
 }

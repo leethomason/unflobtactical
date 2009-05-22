@@ -76,7 +76,9 @@ public:
 
 	Camera camera;
 
+	// Sets the opengl perspective matrices.
 	void SetPerspective();
+	// Render everything. Return triangles drawn. (Currently excludes UI and particles in tri-count.)
 	void Draw( int* trianglesDrawn );
 
 	void MoveCameraHome();
@@ -88,6 +90,7 @@ public:
 	void EnableMap( bool enable )	{ enableMap = enable; }
 	Map* GetMap() { return map; }
 
+	// Gets the fog of war object. When done changing, use UpdateFogOfWar to submit.
 	grinliz::BitArray<Map::SIZE, Map::SIZE>* GetFogOfWar()	{ return &fogOfWar; }
 	void UpdateFogOfWar();
 
@@ -97,6 +100,7 @@ public:
 							grinliz::Vector3F* world );
 
 	void CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjectionInverse );
+	void WorldToScreen( const grinliz::Vector3F& p, grinliz::Vector2F* view );
 	void RayFromScreen( int x, int y, 
 						const grinliz::Matrix4& modelViewProjectionInverse, 
 						grinliz::Ray* ray );

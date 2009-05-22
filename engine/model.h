@@ -27,6 +27,7 @@ class Texture;
 class SpaceTree;
 class RenderQueue;
 
+// The smallest draw unit: texture, vertex, index.
 struct ModelAtom 
 {
 	const Texture* texture;
@@ -36,11 +37,11 @@ struct ModelAtom
 	U32 nIndex;
 	mutable int trisRendered;
 
-	void Bind( /*bool bindTextureToVertex*/ ) const;
+	void Bind() const;
 	void Draw() const;
 
-	const U16* index;
-	const Vertex* vertex;
+	const U16* index;		// points back to ModelResource memory.
+	const Vertex* vertex;	// points back to ModelResource memory.
 };
 
 
@@ -60,7 +61,7 @@ public:
 	grinliz::Sphere			boundSphere;	// computed
 	float					boundRadius2D;	// computed, bounding 2D radius centered at 0,0
 	grinliz::Rectangle3F	hitBounds;		// for picking - a bounds approximation
-	U16*					allIndex;
+	U16*					allIndex;		// memory store for vertices and indices. Used for hit-testing.
 	Vertex*					allVertex;
 
 	int IsOriginUpperLeft()				{ return header.flags & ModelHeader::UPPER_LEFT; }
@@ -84,9 +85,6 @@ public:
 private:
 	const Texture* texture;
 	int nTextures;
-
-	//U16		index[EL_MAX_INDEX_IN_MODEL];
-	//Vertex	vertex[EL_MAX_VERTEX_IN_MODEL];
 };
 
 
@@ -102,7 +100,6 @@ public:
 	enum {
 		MODEL_TEXTURE,	// use the texture of the models
 		NO_TEXTURE,		// no texture at all - shadow pass Z
-		TEXTURE_SET		// used for background texture tricks - shadow pass ONE_PASS
 	};
 	void Queue( RenderQueue* queue, int textureState=MODEL_TEXTURE );
 
@@ -141,8 +138,9 @@ public:
 	int IsOriginUpperLeft()	{ return resource->header.flags & ModelHeader::UPPER_LEFT; }
 	int IsShadowRotated()	{ return resource->header.flags & ModelHeader::ROTATE_SHADOWS; }
 	
-	// Set the skin texture
+	// Set the skin texture (which is a special texture xform)
 	void SetSkin( int armor, int skin, int hair );
+	// Set the texture xform for rendering tricks
 	void SetTexXForm( float a=1.0f, float d=1.0f, float x=0.0f, float y=0.0f );
 
 	// Set the texture - overrides all textures

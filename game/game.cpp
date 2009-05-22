@@ -340,7 +340,7 @@ void Game::Drag( int action, int sx, int sy )
 {
 	Vector2I view;
 	screenport.ScreenToView( sx, sy, &view.x, &view.y );
-	GLOUTPUT(( "View %d,%d\n", view.x, view.y ));
+	//GLOUTPUT(( "View %d,%d\n", view.x, view.y ));
 
 	switch ( action ) 
 	{
@@ -406,9 +406,9 @@ void Game::MouseMove( int sx, int sy )
 	Vector3F p;
 	IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &p );
 
-	GLOUTPUT(( "world (%.1f,%.1f,%.1f)  plane (%.1f,%.1f,%.1f)\n", 
-				world.origin.x, world.origin.y, world.origin.z,
-				p.x, p.y, p.z ));
+//	GLOUTPUT(( "world (%.1f,%.1f,%.1f)  plane (%.1f,%.1f,%.1f)\n", 
+//				world.origin.x, world.origin.y, world.origin.z,
+//				p.x, p.y, p.z ));
 
 	if ( currentScene == scenes[BATTLE_SCENE] ) {
 		((BattleScene*)currentScene)->MouseMove( view.x, view.y );

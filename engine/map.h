@@ -99,22 +99,27 @@ public:
 	Map( SpaceTree* tree );
 	virtual ~Map();
 
+	// The size of the map in use, which is <=SIZE
 	int Height() { return height; }
 	int Width()  { return width; }
-
 	void SetSize( int w, int h )					{ width = w; height = h; }
 
+	// The background texture of the map. The map is just one big tetxure.
 	void SetTexture( const Texture* texture )		{ this->texture = texture; }
-	void BindTextureUnits();
-	void UnBindTextureUnits();
-
+	// The light map is a 64x64 texture of the lighting at each point. Without
+	// a light map, full white (daytime) is used. GenerateLightMap creates the
+	// resulting map by combining light with FogOfWar.
 	void		SetLightMap( Surface* surface );
 	Surface*	GetLightMap()	{ return lightMap; }
 	void		GenerateLightMap( const grinliz::BitArray<SIZE, SIZE>& fogOfWar );
 	
+	// Rendering.
+	void BindTextureUnits();
+	void UnBindTextureUnits();
 	void Draw();
 	void DrawPath();
 
+	// Sets objects to block the path (usually other sprites) that the map doesn't know about.
 	void ClearPathBlocks();
 	void SetPathBlock( int x, int y );
 

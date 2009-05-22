@@ -51,8 +51,6 @@ private:
 	U8* pixels;
 };
 
-//void DrawQuad( float x0, float y0, float x1, float y1, U32 textureID );
-
 
 class Texture
 {

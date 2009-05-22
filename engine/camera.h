@@ -40,14 +40,16 @@ public:
 
 	float GetYRotation() const						{ return yRotation; }
 	void SetYRotation( float value )				{ yRotation = value;  valid = false; }
-	float GetBillboardYRotation() const				{	return yRotation;
-													}
+	// The rotation used by billboards (about y) to look at he camera.
+	float GetBillboardYRotation() const				{	return yRotation; }
 
+	// Move the camera around a center pole. The idea of rotation from the users point of view.
 	void Orbit( const grinliz::Vector3F& pole, float delta );
 
 	// 0-3, in view space (corresponds to device rotation). Normally one.
 	void SetViewRotation( int v )					{ viewRotation = v; valid = false; }
 
+	// Position in world coordinates.
 	const grinliz::Vector3F& PosWC() const			{ return posWC; }
 	void SetPosWC( const grinliz::Vector3F& value )	{ posWC = value; valid = false; }
 	void SetPosWC( float x, float y, float z )		{ posWC.Set( x, y, z ); valid = false; }
@@ -56,7 +58,6 @@ public:
 	// Draws the camera and submits the glMultMatrix to OpenGL
 	void DrawCamera();
 								
-	// any of ray, up, or right can be null
 	enum {
 		NORMAL,
 		UP,

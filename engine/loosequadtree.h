@@ -19,6 +19,11 @@
 #include "enginelimits.h"
 #include "model.h"
 
+/*
+	A loose quad tree for culling models. Also stores all the models in the world,
+	and models are allocated and free'd from the Tree.
+
+*/
 class SpaceTree
 {
 
@@ -29,6 +34,7 @@ public:
 	Model* AllocModel( ModelResource* );
 	void   FreeModel( Model* );
 
+	// Called whenever a model moves. (Usually called automatically be the model.)
 	void   Update( Model* );
 
 	// Returns all the models in the planes.
@@ -41,6 +47,7 @@ public:
 					 grinliz::Vector3F* intersection );
 
 #ifdef DEBUG
+	// Draws debugging info about the spacetree.
 	void Draw();
 #endif
 
