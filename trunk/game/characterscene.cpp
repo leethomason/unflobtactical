@@ -13,7 +13,8 @@ CharacterScene::CharacterScene( Game* _game ) : Scene( _game )
 
 	int icons[] = { UIButtonBox::ICON_PLAIN };
 	const char* iconText[] = { "back" };
-	widgets->CalcButtons( icons, iconText, 1 );
+	widgets->SetButtons( icons, 1 );
+	widgets->SetText( iconText );
 }
 
 

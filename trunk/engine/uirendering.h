@@ -27,25 +27,47 @@ public:
 	~UIButtonBox()	{}
 
 	enum {
-		ICON_PLAIN,
-		ICON_CHARACTER,
-		NUM_ICONS,
+		ICON_PLAIN			= 0,
+		ICON_CHARACTER		= 1,
+		ICON_AIM			= 4,
+		ICON_SNAP			= 5,
+		ICON_AUTO			= 6,
 
 		MAX_ICONS = 16,
 		MAX_TEXT_LEN = 12,
 	};
 
-	void SetOrigin( int x, int y )				{ origin.Set( x, y ); }
-	void SetColumns( int columns  )				{ this->columns = columns; }
-	void SetButtonSize( int dx, int dy )		{ size.x = dx; size.y = dy; }
+	void SetOrigin( int x, int y )				{	origin.Set( x, y ); }
+	void SetColumns( int columns  )				{	if ( this->columns != columns ) {
+														this->columns = columns; 
+														cacheValid = false; 
+													}
+												}
 
-	void CalcButtons( const int* icons, const char** text, int nIcons );
+	void SetButtonSize( int dx, int dy )		{	if ( size.x != dx || size.y != dy ) {
+														size.x = dx; size.y = dy; 
+														cacheValid = false; 
+													}
+												}
+	void SetPadding( int dx, int dy )			{	if ( pad.x != dx || pad.y != dy ) {
+														pad.x = dx; pad.y = dy; 
+														cacheValid = false;		
+													}
+												}
+
+	void SetButtons( const int* icons, int nIcons );
+	void SetText( const char** text );
+
+	void CalcDimensions( int *x, int *y, int *w, int *h );
 
 	// returns the icon INDEX, or -1 if not clicked
 	int QueryTap( int x, int y );	
 	void Draw();
 
 private:
+	void CalcButtons();
+	int INV( int i ) { return nIcons-i-1; }
+
 	struct Icon
 	{
 		int						id;
@@ -55,10 +77,12 @@ private:
 	const Texture* texture;
 	int nIcons;
 
+	bool cacheValid;
 	Screenport screenport;
 	int columns;
 	grinliz::Vector2I		origin;
 	grinliz::Vector2I		size;
+	grinliz::Vector2I		pad;
 
 	Icon					icons[MAX_ICONS];
 	grinliz::Vector2< S16 > pos[MAX_ICONS*4];

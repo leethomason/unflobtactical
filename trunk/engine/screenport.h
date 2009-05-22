@@ -15,8 +15,9 @@
 	|
 	y
 	   O
+    Independent of rotation.
 
-	At rotation=1
+	So at rotation=1, from the viewpoint of the person holding the device:
 	y-----0
 		  |
 		  x
@@ -26,6 +27,11 @@
   |
   |
   0----x
+  Independent of rotation.
+
+  UI coordinates:
+  Put the origin in the lower left accounting for rotation. So the lower left
+  from the point of view of the person holding the device.
 
 */
 class Screenport
@@ -61,7 +67,7 @@ public:
 	// UI: origin in lower left, oriented with device.
 	void PushUI() const;
 	void PopUI() const;
-	void ViewToUI( int physicalX, int physicalY, int* viewX, int* viewY ) const;
+	void ViewToUI( int vX, int vY, int* uiX, int* uiY ) const;
 	int UIWidth() const	{ return ViewWidth(); }
 	int UIHeight() const	{ return ViewHeight(); }
 private:

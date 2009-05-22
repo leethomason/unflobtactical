@@ -118,6 +118,7 @@ private:
 	float	orbitStart;
 
 	UIButtonBox*	widgets;
+	UIButtonBox*	fireWidget;
 	Engine*			engine;
 
 	enum {

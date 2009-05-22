@@ -514,6 +514,24 @@ bool Engine::UnProject(	const Vector3F& window,
 }
 
 
+void Engine::WorldToScreen( const grinliz::Vector3F& p0, grinliz::Vector2F* view )
+{
+	Matrix4 modelView;
+	glGetFloatv( GL_MODELVIEW_MATRIX, &modelView.x[0] );
+	Matrix4 projection;
+	glGetFloatv( GL_PROJECTION_MATRIX, &projection.x[0] );
+
+	Matrix4 mvp;
+	MultMatrix4( projection, modelView, &mvp );
+	Vector4F p, r;
+	p.Set( p0, 1 );
+
+	r = mvp * p;
+	view->x = (r.x / r.w + 1.0f)*(float)screenport.PhysicalWidth()*0.5f;;
+	view->y = (r.y / r.w + 1.0f)*(float)screenport.PhysicalHeight()*0.5f;
+}
+
+
 void Engine::CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjectionInverse )
 {
 	Matrix4 modelView;

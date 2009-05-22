@@ -43,26 +43,6 @@ struct ModelGroup
 };
 
 /*
-// Associated with a model in a stream. Specifically, a model
-// that can be used on the path.
-struct ItemResource
-{
-	enum {
-		STREAM_SIZE			= 0x01,		// if the size isn't 1x1
-		ORIGIN_UPPER_LEFT	= 0x02,
-		STREAM_HP			= 0x04,
-		STREAM_FLAMMABLE	= 0x08,
-		STREAM_EXPLOSIVE	= 0x10,
-		STREAM_PATHER_0		= 0x20,
-		STREAM_PATHER_1		= 0x40
-	};
-	U8 cx;
-	U8 cz;
-	int hp;	// 0 is destroyed,
-};
-*/
-
-/*
 	ModelHeader
 	ModelGroups	groups[]
 	Vertex		vertexData[]	// all groups
