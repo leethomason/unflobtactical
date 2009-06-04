@@ -3,6 +3,7 @@
 
 #include "scene.h"
 #include "unit.h"
+#include "../engine/ufoutil.h"
 
 class Model;
 class UIButtonBox;
@@ -47,20 +48,30 @@ public:
 private:
 	enum {
 		ACTION_NONE,
-		ACTION_MOVE
+		ACTION_MOVE,
+		ACTION_ROTATE,
+		ACTION_SHOOT,
 	};
 
 	struct Action
 	{
 		int action;
-		int pathStep;
-		float pathFraction;
+		Unit* unit;				// unit performing action
+		int pathStep;			// move
+		float pathFraction;		// move
+		float rotation;			// rotate
+		Unit* target;			// shoot
 
-		void Clear() { action = ACTION_NONE; }
-		void Move()  { action = ACTION_MOVE; pathStep = 0; pathFraction = 0; }
-		bool NoAction() { return action == ACTION_NONE; }
+		void Clear()							{ action = ACTION_NONE; }
+		void Move( Unit* unit )					{ GLASSERT( unit ); this->unit = unit; action = ACTION_MOVE; pathStep = 0; pathFraction = 0; }
+		void Rotate( Unit* unit, float r )		{ GLASSERT( unit ); this->unit = unit; action = ACTION_ROTATE; rotation = r; }
+		void Shoot( Unit* unit, Unit* target )	{ GLASSERT( unit ); GLASSERT( target ); this->unit = unit; this->target = target; action = ACTION_SHOOT; }
+		bool NoAction()							{ return action == ACTION_NONE; }
 	};
-	Action action;
+	CStack< Action > actionStack;
+	void RotateAction( Unit* src, const Unit* dst, bool quantize );
+	void ShootAction( Unit* src, Unit* dst );
+	void ProcessAction( U32 deltaTime );
 
 	struct Path
 	{
@@ -78,33 +89,35 @@ private:
 	};
 	Path path;
 
+	float Travel( U32 timeMSec, float speed ) { return speed * (float)timeMSec / 1000.0f; }
+
 	void InitUnits();
 	void SetUnitsDraggable();
 	void TestHitTesting();
 
-	int UnitFromModel( Model* m );
+	Unit* UnitFromModel( Model* m );
 	Unit* GetUnitFromTile( int x, int z );
 	bool HandleIconTap( int screenX, int screenY );
 
 	struct Selection
 	{
-		Selection()	: terranUnit( -1 ), targetUnit( -1 ), pathEndModel( 0 ) {}
-		int		terranUnit;
-		int		targetUnit;
+		Selection()	: soldierUnit( 0 ), targetUnit( 0 ), pathEndModel( 0 ) {}
+		Unit*	soldierUnit;
+		Unit*	targetUnit;
 		Model*	pathEndModel;
 	};
 	Selection selection;
 
-	bool	SelectedTerran()		{ return selection.terranUnit >= 0; }
-	Unit*	SelectedTerranUnit()	{ return (selection.terranUnit >= 0 ) ? &units[selection.terranUnit] : 0; }
-	Model*	SelectedTerranModel()	{ Unit* unit = SelectedTerranUnit(); if ( unit ) return unit->GetModel(); return 0; }
+	bool	SelectedSoldier()		{ return selection.soldierUnit != 0; }
+	Unit*	SelectedSoldierUnit()	{ return selection.soldierUnit; }
+	Model*	SelectedSoldierModel()	{ if ( selection.soldierUnit ) return selection.soldierUnit->GetModel(); return 0; }
 
-	bool	AlienTargeted()			{ return selection.targetUnit >= 0; }
-	Unit*	AlienUnit()				{ return (selection.targetUnit >= 0 ) ? &units[selection.targetUnit] : 0; }
-	Model*	AlienModel()			{ Unit* unit = AlienUnit(); if ( unit ) return unit->GetModel(); return 0; }
+	bool	AlienTargeted()			{ return selection.targetUnit != 0; }
+	Unit*	AlienUnit()				{ return selection.targetUnit; }
+	Model*	AlienModel()			{ if ( selection.targetUnit ) return selection.targetUnit->GetModel(); return 0; }
 
 	Model*	PathEndModel()			{ return selection.pathEndModel; }
-	void	SetSelection( int unit );
+	void	SetSelection( Unit* unit );
 	void	FreePathEndModel();
 
 	grinliz::Vector3F dragStart;

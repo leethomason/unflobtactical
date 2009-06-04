@@ -290,14 +290,14 @@ void Model::SetTexXForm( float a, float d, float x, float y )
 
 
 
-void Model::CalcBoundSphere( Sphere* sphere )
+void Model::CalcBoundSphere( Sphere* sphere ) const
 {
 	*sphere = resource->boundSphere;
 	sphere->origin += pos;
 }
 
 
-void Model::CalcBoundCircle( Circle* circle )
+void Model::CalcBoundCircle( Circle* circle ) const 
 {
 	circle->origin.x = pos.x;
 	circle->origin.y = pos.z;
@@ -305,7 +305,7 @@ void Model::CalcBoundCircle( Circle* circle )
 }
 
 
-void Model::CalcHitAABB( Rectangle3F* aabb )
+void Model::CalcHitAABB( Rectangle3F* aabb ) const
 {
 	// This is already an approximation - ignore rotation.
 	aabb->min = pos + resource->hitBounds.min;
@@ -313,7 +313,22 @@ void Model::CalcHitAABB( Rectangle3F* aabb )
 }
 
 
-bool Model::CalcAABB( grinliz::Rectangle3F* aabb )
+void Model::CalcTrigger( grinliz::Vector3F* trigger ) const
+{
+	const Matrix4& xform = XForm();
+	*trigger = xform * resource->header.trigger;
+}
+
+
+void Model::CalcTarget( grinliz::Vector3F* target ) const
+{
+	const Matrix4& xform = XForm();
+	Vector3F t = { 0, resource->header.target, 0 };
+	*target = xform * t;
+}
+
+
+bool Model::CalcAABB( grinliz::Rectangle3F* aabb ) const
 {
 	const Vector3F& a = resource->header.bounds.max;
 	const Vector3F& b = resource->header.bounds.min;
@@ -554,7 +569,7 @@ const grinliz::Matrix4& Model::InvXForm() const
 
 int Model::IntersectRay(	const Vector3F& _origin, 
 							const Vector3F& _dir,
-							Vector3F* intersect )
+							Vector3F* intersect ) const
 {
 	Vector4F origin = { _origin.x, _origin.y, _origin.z, 1.0f };
 	Vector4F dir    = { _dir.x, _dir.y, _dir.z, 0.0f };

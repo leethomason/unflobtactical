@@ -434,6 +434,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\engine\ufoutil.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\engine\ufoutil.h"
+				>
+			</File>
+			<File
 				RelativePath=".\engine\uirendering.cpp"
 				>
 			</File>

@@ -17,8 +17,6 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 #ifdef MAPMAKER
 	currentMapItem = 1;
 #endif
-
-	action.Clear();
 	engine  = &game->engine;
 
 	path.Clear();
@@ -125,7 +123,7 @@ void BattleScene::Activate()
 	//int n = 0;
 	ModelResource* resource = 0;
 	path.Clear();
-	action.Clear();
+	actionStack.Clear();
 
 #ifdef MAPMAKER
 	resource = game->GetResource( "selection" );
@@ -212,33 +210,31 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		Color4F col = { 1.0f, -0.5f, 0.0f, 1.0f };
 		Color4F colVel = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-		game->particleSystem->Emit(	ParticleSystem::POINT,
-									0,		// type
-									40,		// count
-									ParticleSystem::PARTICLE_SPHERE,
-									col,	colVel,
-									pos,	0.1f,	
-									vel,	0.1f,
-									1200 );
+		game->particleSystem->EmitPoint(	40,		// count
+											ParticleSystem::PARTICLE_SPHERE,
+											col,	colVel,
+											pos,	0.1f,	
+											vel,	0.1f,
+											1200 );
 	}
 	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
 	game->particleSystem->EmitFlame( deltaTime, pos );
 
-	if (    SelectedTerran()
-		 && SelectedTerranUnit()->Status() == Unit::STATUS_ALIVE
-		 && SelectedTerranUnit()->Team() == Unit::SOLDIER ) 
+	if (    SelectedSoldier()
+		 && SelectedSoldierUnit()->Status() == Unit::STATUS_ALIVE
+		 && SelectedSoldierUnit()->Team() == Unit::SOLDIER ) 
 	{
-		Model* m = SelectedTerranModel();
+		Model* m = SelectedSoldierModel();
 		if ( m ) {
 			//const U32 INTERVAL = 500;
 			float alpha = 0.5f;	//0.5f + 0.4f*(float)(currentTime%500)/(float)(INTERVAL);
-			game->particleSystem->EmitDecal( ParticleSystem::DECAL_SELECTED, 
+			game->particleSystem->EmitDecal( ParticleSystem::DECAL_SELECTION, 
 											 ParticleSystem::DECAL_BOTTOM,
 											 m->Pos(), alpha,
 											 m->GetYRotation() );
 		}
 	}
-	if ( action.action == ACTION_NONE ) {
+	if ( actionStack.Empty() ) {
 		// Show the path.
 
 		if ( path.len > 0 ) {
@@ -256,38 +252,14 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 			}
 		}
 	}
-	else if ( action.action == ACTION_MOVE ) {
-		// Move the unit.
-
-		const float SPEED = 3.0f;
-		float travel = SPEED * (float)deltaTime / 1000.0f;
-
-		while( action.pathStep < path.len-1 && travel > 0.0f ) {
-			path.Travel( &travel, &action.pathStep, &action.pathFraction );
-		}
-		float x, z, r;
-		path.GetPos( action.pathStep, action.pathFraction, &x, &z, &r );
-
-		//Model* selected = SelectedTerranModel();
-		//selected->SetPos( x+0.5f, 0.0f, z+0.5f );
-		//selected->SetYRotation( r );
-		Vector3F v = { x+0.5f, 0.0f, z+0.5f };
-		Unit* unit = SelectedTerranUnit();
-		unit->SetPos( v, r );
-
-		if ( action.pathStep == path.len-1 ) {
-			action.Clear();
-			path.Clear();
-			FreePathEndModel();
-		}
-	}
+	ProcessAction( deltaTime );
 
 	if ( AlienTargeted() ) {
 		Vector3F pos = { 0, 0, 0 };
 		AlienUnit()->CalcPos( &pos );
 
 		const float ALPHA = 0.3f;
-		game->particleSystem->EmitDecal( ParticleSystem::DECALTARGET,
+		game->particleSystem->EmitDecal( ParticleSystem::DECAL_TARGET,
 										 ParticleSystem::DECAL_BOTH,
 										 pos, ALPHA, 0 );
 
@@ -331,16 +303,125 @@ void BattleScene::FreePathEndModel()
 }
 
 
-void BattleScene::SetSelection( int unit ) 
+void BattleScene::SetSelection( Unit* unit ) 
 {
 	FreePathEndModel();
-	if ( unit >= TERRAN_UNITS_START && unit < TERRAN_UNITS_END ) {
-		selection.terranUnit = unit;
-		selection.targetUnit = -1;
+
+	GLASSERT( unit->IsAlive() );
+
+	if ( unit->Team() == Unit::SOLDIER ) {
+		selection.soldierUnit = unit;
+		selection.targetUnit = 0;
 	}
-	else if ( unit >= ALIEN_UNITS_START && unit < ALIEN_UNITS_END ) {
-		GLASSERT( SelectedTerran() );
+	else if ( unit->Team() == Unit::ALIEN ) {
+		GLASSERT( SelectedSoldier() );
 		selection.targetUnit = unit;
+	}
+	else {
+		GLASSERT( 0 );
+	}
+}
+
+
+void BattleScene::RotateAction( Unit* src, const Unit* dst, bool quantize )
+{
+	GLASSERT( src->GetModel() );
+	GLASSERT( dst->GetModel() );
+
+	float rot = src->AngleBetween( dst, quantize );
+	if ( src->GetModel()->GetYRotation() != rot ) {
+		Action action;
+		action.Rotate( src, rot );
+		actionStack.Push( action );
+	}
+}
+
+
+void BattleScene::ShootAction( Unit* src, Unit* dst )
+{
+	Action action;
+	action.Shoot( src, dst );
+	actionStack.Push( action );
+}
+
+
+void BattleScene::ProcessAction( U32 deltaTime )
+{
+	if ( !actionStack.Empty() )
+	{
+		Action* action = &actionStack.Top();
+		if ( !action->unit || !action->unit->IsAlive() || !action->unit->GetModel() ) 
+			return;
+
+		Unit* unit = action->unit;
+		Model* model = action->unit->GetModel();
+
+		switch ( action->action ) {
+			case ACTION_MOVE: 
+				{
+					// Move the unit.
+
+					const float SPEED = 3.0f;
+					float travel = Travel( deltaTime, SPEED );
+
+					while( action->pathStep < path.len-1 && travel > 0.0f ) {
+						path.Travel( &travel, &action->pathStep, &action->pathFraction );
+					}
+					float x, z, r;
+					path.GetPos( action->pathStep, action->pathFraction, &x, &z, &r );
+
+					Vector3F v = { x+0.5f, 0.0f, z+0.5f };
+					unit->SetPos( v, r );
+
+					if ( action->pathStep == path.len-1 ) {
+						actionStack.Pop();
+						path.Clear();
+						FreePathEndModel();
+					}
+				}
+				break;
+
+			case ACTION_ROTATE:
+				{
+					const float ROTSPEED = 400.0f;
+					float travel = Travel( deltaTime, ROTSPEED );
+
+					float delta, bias;
+					MinDeltaDegrees( model->GetYRotation(), action->rotation, &delta, &bias );
+
+					if ( delta <= travel ) {
+						unit->SetYRotation( action->rotation );
+						actionStack.Pop();
+					}
+					else {
+						unit->SetYRotation( model->GetYRotation() + bias*travel );
+					}
+				}
+				break;
+
+			case ACTION_SHOOT:
+				{
+					Unit* targetUnit = action->target;
+					Model* targetModel = action->target->GetModel();
+					if ( targetUnit && targetModel && unit && model ) {
+						Vector3F p0, p1;
+						model->CalcTrigger( &p0 );
+						targetModel->CalcTarget( &p1 );
+
+						const float GREY = 0.8f;
+						Vector4F color = { GREY, GREY, GREY, 1 };
+						Vector4F colorVel = { 0, 0, 0, -3.0f };
+
+						game->particleSystem->EmitBeam( color, colorVel, p0, p1, 0.07f, 700 );
+					}
+					actionStack.Pop();
+				}
+				break;
+
+			default:
+				GLASSERT( 0 );
+				break;
+		}
 	}
 }
 
@@ -358,7 +439,14 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 			case 0:	//aut0
 			case 1: //snap
 			case 2: //aim
-				selection.targetUnit = -1;
+				// shooting creates a turn action then a shoot action.
+				GLASSERT( selection.soldierUnit >= 0 );
+				GLASSERT( selection.targetUnit >= 0 );
+
+				// Stack - push in reverse order.
+				ShootAction( selection.soldierUnit, selection.targetUnit );
+				RotateAction( selection.soldierUnit, selection.targetUnit, true );
+				selection.targetUnit = 0;
 				break;
 
 			default:
@@ -382,7 +470,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 				break;
 
 			case 2:
-				if ( action.action == ACTION_NONE ) {
+				if ( actionStack.Empty() ) {
 					game->PushScene( Game::CHARACTER_SCENE );
 				}
 				break;
@@ -413,7 +501,7 @@ void BattleScene::Tap(	int tap,
 	}
 #endif	
 
-	if ( !iconSelected && action.NoAction() ) {
+	if ( !iconSelected && actionStack.Empty() ) {
 		// We didn't tap a button.
 		// What got tapped? First look to see if a SELECTABLE model was tapped. If not, 
 		// look for a selectable model from the tile.
@@ -426,7 +514,7 @@ void BattleScene::Tap(	int tap,
 		}
 
 		// If there is a selected model, then we can tap a target model.
-		bool canSelectAlien =    SelectedTerran()			// a soldier is selected
+		bool canSelectAlien =    SelectedSoldier()			// a soldier is selected
 			                  && !PathEndModel();			// there is not a path
 
 		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
@@ -447,7 +535,7 @@ void BattleScene::Tap(	int tap,
 		}
 
 		if ( model ) {
-			Model* selected = SelectedTerranModel();
+			Model* selected = SelectedSoldierModel();
 			if ( model == selected ) {
 				// If there is a path, clear it.
 				// If there is no path, go to rotate mode.
@@ -456,17 +544,18 @@ void BattleScene::Tap(	int tap,
 			}
 			else if ( model == PathEndModel() ) {
 				// Go!
-				action.Move();
+				Action action;
+				action.Move( SelectedSoldierUnit() );
+				actionStack.Push( action );
 			}
 			else {
 				path.Clear();
-				int unit = UnitFromModel( model );
-				SetSelection( unit );
+				SetSelection( UnitFromModel( model ) );
 			}
 		}
 		else {
 			// Not a model - which tile?
-			Model* selected = SelectedTerranModel();
+			Model* selected = SelectedSoldierModel();
 
 			if ( selected ) {
 				Vector2<S16> start   = { (S16)selected->X(), (S16)selected->Z() };
@@ -501,7 +590,7 @@ void BattleScene::Tap(	int tap,
 							FreePathEndModel();
 
 							if ( path.len > 1 ) {
-								selection.targetUnit = -1;
+								selection.targetUnit = 0;
 								selection.pathEndModel = engine->AllocModel( selected->GetResource() );
 								selection.pathEndModel->SetPos( (float)path.end.x + 0.5f, 0.0f, (float)path.end.y + 0.5f );
 								selection.pathEndModel->SetTexture( game->GetTexture( "translucent" ) );
@@ -521,13 +610,13 @@ void BattleScene::Tap(	int tap,
 }
 
 
-int BattleScene::UnitFromModel( Model* m )
+Unit* BattleScene::UnitFromModel( Model* m )
 {
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if ( units[i].GetModel() == m )
-			return i;
+			return &units[i];
 	}
-	return -1;
+	return 0;
 }
 
 

@@ -22,10 +22,11 @@
 
 class Texture;
 
+/*	Class to render all sorts of particle effects.
+*/
 class ParticleSystem
 {
 public:
-
 
 	enum {
 		MAX_POINT_PARTICLES = 400,
@@ -41,19 +42,15 @@ public:
 
 	// texture particles
 	enum {
-		FIRE,			
-		SMOKE,
-		NUM_TYPE,
+		FIRE			= 0,
+		NUM_FIRE		= 2,
+		SMOKE			= 4,
+		NUM_SMOKE		= 2,
+		BEAM			= 2,
 
-		SELECTION = 2,
-	};
-
-	enum {
-		DECAL_DIR,
-		DECAL_SELECTED,
-		DECAL_PATH,
-		DECALTARGET,
-		NUM_DECAL
+		DECAL_SELECTION	= 9,
+		DECAL_PATH		= 10,
+		DECAL_TARGET	= 11,
 	};
 
 	enum {
@@ -74,24 +71,51 @@ public:
 		DECAL_BOTH = 0x03
 	};
 
-	void Emit(	int primitive,					// POINT or QUAD
-				int type,						// FIRE, SMOKE
-				int count,						// number of particles to create
-				int configuration,				// PARTICLE_RAY, etc.
-				const Color4F& color,
-				const Color4F& colorVelocity,
-				const grinliz::Vector3F& pos,	// origin
-				float posFuzz,
-				const grinliz::Vector3F& vel,	// velocity
-				float velFuzz,
-				U32 lifetime );					// lifetime in milliseconds
+	// Emit N point particles.
+	void EmitPoint(	int count,						// number of particles to create
+					int configuration,				// PARTICLE_RAY, etc.
+					const Color4F& color,			// color of the particle
+					const Color4F& colorVelocity,	// change in color / second
+					const grinliz::Vector3F& pos,	// origin
+					float posFuzz,					// fuzz in the position
+					const grinliz::Vector3F& vel,	// velocity
+					float velFuzz,					// fuzz in the velocity
+					U32 lifetime );					// lifetime in milliseconds
 
+	// Emit one quad particle.
+	void EmitQuad(	int type,						// FIRE, SMOKE
+					const Color4F& color,			// color of the particle
+					const Color4F& colorVelocity,	// change in color / second
+					const grinliz::Vector3F& pos,	// origin
+					float posFuzz,					// fuzz in the position
+					const grinliz::Vector3F& vel,	// velocity
+					float velFuzz,					// fuzz in the velocity
+					U32 lifetime );					// lifetime in milliseconds
+
+	// Simple call to emit a point at a location.
+	void EmitOnePoint(	const Color4F& color, 
+						const Color4F& colorVelocity,
+						const grinliz::Vector3F& pos,
+						U32 lifetime );
+
+	void EmitBeam(	const Color4F& color,			// color of the particle
+					const Color4F& colorVelocity,	// change in color / second
+					const grinliz::Vector3F& p0,	// beginning
+					const grinliz::Vector3F& p1,	// end
+					float beamWidth,
+					U32 lifetime );
+
+
+
+	// Emits a compound flame system.
 	void EmitFlame( U32 delta, const grinliz::Vector3F& pos );
+
+	// Place a decal for a frame (decals don't have lifetimes.)
 	void EmitDecal( int id, int flags, const grinliz::Vector3F& pos, float alpha, float rotation );
+
 
 	void Update( U32 timePassed );
 	void Draw( const grinliz::Vector3F* eyeDir );
-
 	void Clear();
 
 private:
@@ -113,12 +137,14 @@ private:
 		grinliz::Vector3F	pos;		
 		Color4F				color;
 
+		// extra data
 		grinliz::Vector3F vel;			// units / second
 		grinliz::Vector4F colorVel;		// units / second
+		grinliz::Vector3F pos1;			// for rays
+		float			  halfWidth;	// for rays
 		U16 age;						// milliseconds
 		U16 lifetime;					// milliseconds
 		U8	type;	
-		U8	subType;
 	};
 
 	struct Decal
@@ -126,7 +152,7 @@ private:
 		grinliz::Vector3F	pos;		
 		Color4F				color;
 		float				rotation;
-		int					subType;
+		int					type;
 		int					flags;
 	};
 
@@ -136,6 +162,21 @@ private:
 		grinliz::Vector2F	tex;
 		Color4F				color;
 	};
+
+	// General do-all for emmitting all kinds of particles (except decals.)
+	void Emit(	int primitive,					// POINT or QUAD
+				int type,						// FIRE, SMOKE, BEAM (location in the texture)
+				int count,						// number of particles to create
+				int configuration,				// PARTICLE_RAY, QUAD_BEAM, etc.
+				const Color4F& color,			// color of the particle
+				const Color4F& colorVelocity,	// change in color / second
+				const grinliz::Vector3F& pos0,	// origin
+				const grinliz::Vector3F* pos1,	// dst, used for rays
+				float posFuzz,					// fuzz in the position
+				const grinliz::Vector3F& vel,	// velocity
+				float velFuzz,					// fuzz in the velocity
+				float halfWidth,				// half width of beams
+				U32 lifetime );					// lifetime in milliseconds
 
 	void DrawPointParticles();
 	void DrawQuadParticles( const grinliz::Vector3F* eyeDir );

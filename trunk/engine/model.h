@@ -132,11 +132,11 @@ public:
 		this->rot = rot;		// won't change tree location, don't need to call Update()
 		Modify();
 	}
-	const float GetYRotation()			{ return rot; }
+	const float GetYRotation() const			{ return rot; }
 
-	int IsBillboard()		{ return resource->header.flags & ModelHeader::BILLBOARD; }
-	int IsOriginUpperLeft()	{ return resource->header.flags & ModelHeader::UPPER_LEFT; }
-	int IsShadowRotated()	{ return resource->header.flags & ModelHeader::ROTATE_SHADOWS; }
+	int IsBillboard() const 		{ return resource->header.flags & ModelHeader::BILLBOARD; }
+	int IsOriginUpperLeft() const	{ return resource->header.flags & ModelHeader::UPPER_LEFT; }
+	int IsShadowRotated() const		{ return resource->header.flags & ModelHeader::ROTATE_SHADOWS; }
 	
 	// Set the skin texture (which is a special texture xform)
 	void SetSkin( int armor, int skin, int hair );
@@ -146,20 +146,23 @@ public:
 	// Set the texture - overrides all textures
 	void SetTexture( const Texture* t )			{ setTexture = t; }
 
-	void CalcBoundSphere( grinliz::Sphere* sphere );
-	void CalcBoundCircle( grinliz::Circle* circle );
-	void CalcHitAABB( grinliz::Rectangle3F* aabb );
+	void CalcBoundSphere( grinliz::Sphere* sphere ) const;
+	void CalcBoundCircle( grinliz::Circle* circle ) const;
+	void CalcHitAABB( grinliz::Rectangle3F* aabb ) const;
 
 	// Calcs the AABB if the rotation is Nx90. Returs true for success.
-	bool CalcAABB( grinliz::Rectangle3F* aabb ) ;
+	bool CalcAABB( grinliz::Rectangle3F* aabb ) const;
+
+	void CalcTrigger( grinliz::Vector3F* trigger ) const;
+	void CalcTarget( grinliz::Vector3F* target ) const;
 
 	// Returns grinliz::INTERSECT or grinliz::REJECT
 	int IntersectRay(	const grinliz::Vector3F& origin, 
 						const grinliz::Vector3F& dir,
-						grinliz::Vector3F* intersect );
+						grinliz::Vector3F* intersect ) const;
 
 	ModelResource* GetResource()				{ return resource; }
-	bool Sentinel()								{ return resource==0 && tree==0; }
+	bool Sentinel()	const						{ return resource==0 && tree==0; }
 
 	Model* next;			// used by the SpaceTree query
 	Model* next0;			// used by the Engine sub-sorting

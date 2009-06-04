@@ -96,14 +96,16 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 							int config,						// PARTICLE_RAY, etc.
 							const Color4F& color,
 							const Color4F& colorVelocity,
-							const grinliz::Vector3F& pos,	// origin
+							const grinliz::Vector3F& pos0,	// origin
+							const grinliz::Vector3F* pos1,	// origin
 							float posFuzz,
 							const grinliz::Vector3F& vel,	// velocity
 							float velFuzz,
+							float halfWidth,
 							U32 lifetime )
 {
 	GLASSERT( primitive >= 0 && primitive < NUM_PRIMITIVES );
-	GLASSERT( type >=0 && type < NUM_TYPE );
+	GLASSERT( type >=0 && type < 16 );
 	GLASSERT( config >= 0 && config <= PARTICLE_SPHERE );
 
 	const int MAX_PARTICLES[2] = { MAX_POINT_PARTICLES, MAX_QUAD_PARTICLES };
@@ -165,9 +167,9 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 				break;
 		};
 
-		posP.x = pos.x + posFuzz*(-0.5f + rand.Uniform() );
-		posP.y = pos.y + posFuzz*(-0.5f + rand.Uniform() );
-		posP.z = pos.z + posFuzz*(-0.5f + rand.Uniform() );
+		posP.x = pos0.x + posFuzz*(-0.5f + rand.Uniform() );
+		posP.y = pos0.y + posFuzz*(-0.5f + rand.Uniform() );
+		posP.z = pos0.z + posFuzz*(-0.5f + rand.Uniform() );
 
 		const int LFUZZ = 64;
 		lifeP = (lifetime * ((256-LFUZZ) + (rand.Rand()&(LFUZZ-1)))) >> 8;
@@ -185,21 +187,83 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 		++insert;
 
 		p->pos = posP;
+		if ( pos1 ) {
+			GLASSERT( type == BEAM );
+			p->pos1 = *pos1;
+		}
+		else {
+			p->pos1.Set( 0, 0, 0 );
+		}
+		p->halfWidth = halfWidth;
 		p->color = colP;
 		p->vel = velP;
 		p->colorVel = colorVelocity;
 		p->age = 0;
 		p->lifetime = lifeP;
+
+		if ( type == FIRE ) {
+			type += rand.Rand(NUM_FIRE);
+		}
+		else if ( type == SMOKE ) {
+			type += rand.Rand(NUM_SMOKE);
+		}
 		p->type = (U8)type;
-		p->subType = (U8)(rand.Rand()>>30);
 	}
 }
 
 
+void ParticleSystem::EmitPoint(	int count,						
+								int configuration,				
+								const Color4F& color,			
+								const Color4F& colorVelocity,	
+								const grinliz::Vector3F& pos,	
+								float posFuzz,					
+								const grinliz::Vector3F& vel,	
+								float velFuzz,					
+								U32 lifetime )					
+{
+	Emit( POINT, 0, count, configuration, color, colorVelocity, pos, 0, posFuzz, vel, velFuzz, 0, lifetime );
+}
+
+
+void ParticleSystem::EmitQuad(	int type,						
+								const Color4F& color,			
+								const Color4F& colorVelocity,	
+								const grinliz::Vector3F& pos,	
+								float posFuzz,					
+								const grinliz::Vector3F& vel,	
+								float velFuzz,					
+								U32 lifetime )			
+{
+	Emit( QUAD, type, 1, 0, color, colorVelocity, pos, 0, posFuzz, vel, velFuzz, 0, lifetime );
+}
+
+
+void ParticleSystem::EmitOnePoint(	const Color4F& color, 
+									const Color4F& colorVelocity,
+									const grinliz::Vector3F& pos,
+									U32 lifetime )
+{
+	grinliz::Vector3F vel = { 0, 0, 0 };
+	Emit( POINT, 0, 1, PARTICLE_RAY, color, colorVelocity, pos, 0, 0, vel, 0, 0, lifetime );
+}
+
+
+void ParticleSystem::EmitBeam(	const Color4F& color,			// color of the particle
+								const Color4F& colorVelocity,	// change in color / second
+								const grinliz::Vector3F& p0,	// beginning
+								const grinliz::Vector3F& p1,	// end
+								float beamWidth,
+								U32 lifetime )
+{
+	Vector3F vel = { 0, 0, 0 };
+	Emit( QUAD, BEAM, 1, 0, color, colorVelocity, p0, &p1, 0, vel, 0, beamWidth*0.5f, lifetime );
+}
+
 
 void ParticleSystem::EmitDecal( int id, int flags, const grinliz::Vector3F& pos, float alpha, float rotation )
 {
-	GLASSERT( id >= 0 && id < NUM_DECAL );
+	GLASSERT( id >= 0 && id < 16 );
 	const Color4F color		= { 1.0f, 1.0f, 1.0f, 1.0f };
 
 	if ( nDecals == MAX_DECALS ) {
@@ -208,7 +272,7 @@ void ParticleSystem::EmitDecal( int id, int flags, const grinliz::Vector3F& pos,
 	decalBuffer[nDecals].pos = pos;
 	decalBuffer[nDecals].color = color;
 	decalBuffer[nDecals].color.w = alpha ;
-	decalBuffer[nDecals].subType = id;
+	decalBuffer[nDecals].type = id;
 	decalBuffer[nDecals].rotation = rotation;
 	decalBuffer[nDecals].flags = flags;
 	nDecals++;
@@ -252,8 +316,9 @@ void ParticleSystem::EmitFlame( U32 delta, const Vector3F& _pos )
 					1,
 					ParticleSystem::PARTICLE_RAY,
 					color,		colorVec,
-					pos,		0.4f,	
+					pos, 0,		0.4f,	
 					velocity,	0.3f,
+					0,
 					2000 );		
 		}
 	}
@@ -273,8 +338,9 @@ void ParticleSystem::EmitFlame( U32 delta, const Vector3F& _pos )
 					1,
 					ParticleSystem::PARTICLE_RAY,
 					color,		colorVec,
-					pos,		0.6f,	
+					pos, 0,		0.6f,	
 					velocity,	0.2f,
+					0,
 					5000 );		
 		}
 	}
@@ -293,8 +359,9 @@ void ParticleSystem::EmitFlame( U32 delta, const Vector3F& _pos )
 					1,
 					ParticleSystem::PARTICLE_RAY,
 					color,		colorVec,
-					pos,		0.05f,	
+					pos, 0,		0.05f,	
 					velocity,	0.3f,
+					0,
 					2000 );		
 		}
 	}
@@ -315,7 +382,7 @@ void ParticleSystem::Draw( const Vector3F* eyeDir )
 	glEnable( GL_DEPTH_TEST );
 	nDecals = 0;
 
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE );
+	//glBlendFunc( GL_SRC_ALPHA, GL_ONE );
 	DrawQuadParticles( eyeDir );
 
 	glDepthMask( GL_TRUE );
@@ -403,10 +470,8 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 	for( int i=0; i<nParticles[QUAD]; ++i ) 
 	{
 		const int type	  = quadBuffer[i].type;
-		const int subType = quadBuffer[i].subType;
-
-		const float tx = 0.25f * (float)subType;
-		const float ty = 0.25f * (float)type;
+		const float tx = 0.25f * (float)(type&0x03);
+		const float ty = 0.25f * (float)(type>>2);
 		
 		//const float size = particleTypeArr[QUAD].size;
 		const Vector3F& pos  = quadBuffer[i].pos;
@@ -423,13 +488,37 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 
 		QuadVertex* pV = &vertexBuffer[vertex];
 
-		for( int j=0; j<4; ++j ) {
-			pV->pos = base[j].pos + pos;
-			pV->tex.Set( tx+tex[j].x, ty+tex[j].y );
-			pV->color = color;
-			++pV;
-		}
+		if ( type == BEAM ) {
+			const Vector3F pos1 = quadBuffer[i].pos1;
+			Vector3F right;
+			CrossProduct( eyeDir[Camera::NORMAL], pos1-pos, &right );
+			right.Normalize();
+			float halfWidth = quadBuffer[i].halfWidth;
 
+			pV[0].pos = pos - right*halfWidth;
+			pV[0].tex.Set( tx+0.0f, ty+0.0f );
+			pV[0].color = color;
+			
+			pV[1].pos = pos + right*halfWidth;
+			pV[1].tex.Set( tx+0.25f, ty+0.0f );
+			pV[1].color = color;
+
+			pV[2].pos = pos1 + right*halfWidth;
+			pV[2].tex.Set( tx+0.25f, ty+0.25f );
+			pV[2].color = color;
+
+			pV[3].pos = pos1 - right*halfWidth;
+			pV[3].tex.Set( tx+0.0f, ty+0.25f );
+			pV[3].color = color;
+		}
+		else {
+			for( int j=0; j<4; ++j ) {
+				pV->pos = base[j].pos + pos;
+				pV->tex.Set( tx+tex[j].x, ty+tex[j].y );
+				pV->color = color;
+				++pV;
+			}
+		}
 		vertex += 4;
 	}
 
@@ -492,11 +581,8 @@ void ParticleSystem::DrawDecalParticles( int flag )
 	for( int i=0; i<nDecals; ++i ) 
 	{
 		if ( decalBuffer[i].flags & flag ) {
-			const int type	  = SELECTION;
-			const int subType = decalBuffer[i].subType;
-
-			const float tx = 0.25f * (float)subType;
-			const float ty = 0.25f * (float)type;
+			const float tx = 0.25f * (float)(decalBuffer[i].type&0x03);
+			const float ty = 0.25f * (float)(decalBuffer[i].type>>2);
 			
 			const Vector3F& pos  = decalBuffer[i].pos;
 			const Color4F& color = decalBuffer[i].color;

@@ -64,7 +64,7 @@ void SphericalXZ::ToCartesian( Matrix4* out )
 }
 
 
-void DegDelta( float angle0, float angle1, float* distance, float* bias )
+void grinliz::MinDeltaDegrees( float angle0, float angle1, float* distance, float* bias )
 {
 	float delta = angle1 - angle0;
 

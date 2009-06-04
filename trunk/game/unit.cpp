@@ -158,6 +158,15 @@ void Unit::SetMapPos( int x, int z )
 }
 
 
+void Unit::SetYRotation( float rotation )
+{
+	GLASSERT( status != STATUS_NOT_INIT );
+	GLASSERT( model );
+	model->SetYRotation( rotation );
+	UpdateWeapon();
+}
+
+
 void Unit::SetPos( const grinliz::Vector3F& pos, float rotation )
 {
 	GLASSERT( status != STATUS_NOT_INIT );
@@ -203,12 +212,22 @@ void Unit::UpdateWeapon()
 }
 
 
-void Unit::CalcPos( grinliz::Vector3F* vec )
+void Unit::CalcPos( grinliz::Vector3F* vec ) const
 {
 	GLASSERT( status != STATUS_NOT_INIT );
 	GLASSERT( model );
 
 	*vec = model->Pos();
+}
+
+
+void Unit::CalcMapPos( grinliz::Vector2I* vec ) const
+{
+	GLASSERT( status != STATUS_NOT_INIT );
+	GLASSERT( model );
+
+	vec->x = (int)model->X();
+	vec->y = (int)model->Z();
 }
 
 
@@ -308,5 +327,25 @@ void Unit::Load( UFOStream* s, Engine* engine, Game* game )
 		model->SetPos( pos );
 		model->SetYRotation( rot );
 	}
+}
+
+
+float Unit::AngleBetween( const Unit* target, bool quantize ) const 
+{
+	Vector2I p0, p1;
+	CalcMapPos( &p0 );
+	target->CalcMapPos( &p1 );
+
+	float angle = atan2( (float)(p1.x-p0.x), (float)(p1.y-p0.y) );
+	angle = ToDegree( angle );
+
+	if ( quantize ) {
+		if ( angle < 0.0f ) angle += 360.0f;
+		if ( angle >= 360.0f ) angle -= 360.0f;
+
+		int r = (int)( (angle+45.0f/2.0f) / 45.0f );
+		return (float)(r*45.0f);
+	}
+	return angle;
 }
 

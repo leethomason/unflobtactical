@@ -4,7 +4,7 @@ OBJECT world
 kids 10
 OBJECT poly
 name "sphere"
-loc 0.15016 1.33341 0.351392
+loc 0.141708 1.33341 0.229676
 texture "palette.png"
 crease 45.000000
 numvert 14
@@ -130,7 +130,7 @@ refs 3
 kids 0
 OBJECT poly
 name "sphere"
-loc 0.203912 0.599092 0.0634273
+loc 0.19546 0.599092 -0.0582886
 texture "palette.png"
 crease 45.000000
 numvert 14
@@ -256,7 +256,7 @@ refs 4
 kids 0
 OBJECT poly
 name "sphere"
-loc -0.199322 0.626004 0.110592
+loc -0.207774 0.626004 -0.0111239
 texture "palette.png"
 crease 45.000000
 numvert 14
@@ -382,7 +382,7 @@ refs 3
 kids 0
 OBJECT poly
 name "box"
-loc -0.194282 0.760993 0.0751005
+loc -0.202734 0.760993 -0.0466154
 texture "palette.png"
 crease 45.000000
 numvert 8
@@ -440,7 +440,7 @@ refs 4
 kids 0
 OBJECT poly
 name "box"
-loc -0.204362 0.62052 0.211685
+loc -0.212814 0.62052 0.0899691
 texture "palette.png"
 crease 45.000000
 numvert 8
@@ -498,7 +498,7 @@ refs 4
 kids 0
 OBJECT poly
 name "box"
-loc 0.208952 0.470559 0.0928075
+loc 0.2005 0.470559 -0.0289084
 texture "palette.png"
 crease 45.000000
 numvert 8
@@ -556,7 +556,7 @@ refs 4
 kids 0
 OBJECT poly
 name "box"
-loc 0.198872 0.766177 0.0844461
+loc 0.19042 0.766177 -0.0372698
 texture "palette.png"
 crease 45.000000
 numvert 8
@@ -614,7 +614,7 @@ refs 4
 kids 0
 OBJECT poly
 name "sphere"
-loc 0.00882722 1.33556 0.111972
+loc 0.000374725 1.33556 -0.00974394
 texture "palette.png"
 crease 45.000000
 numvert 32
@@ -894,7 +894,7 @@ refs 4
 kids 0
 OBJECT poly
 name "sphere"
-loc -0.127119 1.34594 0.342977
+loc -0.135571 1.34594 0.221261
 texture "palette.png"
 crease 45.000000
 numvert 14
@@ -1020,7 +1020,7 @@ refs 4
 kids 0
 OBJECT poly
 name "box"
-loc -0.000971168 0.458646 0.13543
+loc -0.00942366 0.458646 0.0137141
 texture "palette.png"
 crease 45.000000
 numvert 8

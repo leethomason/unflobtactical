@@ -71,6 +71,8 @@ public:
 	void Free();
 
 	bool InUse()			{ return status != STATUS_NOT_INIT; }
+	bool IsAlive()			{ return status == STATUS_ALIVE; }
+
 	int Status()			{ return status; }
 	int Team()				{ return team; }
 	int AlienType()			{ return (body>>ALIEN_TYPE_SHIFT) & ALIEN_TYPE_MASK; }
@@ -80,10 +82,15 @@ public:
 
 	void SetMapPos( int x, int z );
 	void SetPos( const grinliz::Vector3F& pos, float rotation );
-	void CalcPos( grinliz::Vector3F* );
+	void SetYRotation( float rotation );
+	void CalcPos( grinliz::Vector3F* ) const;
+	void CalcMapPos( grinliz::Vector2I* ) const;
 
 	void SetWeapon( const ItemDef* itemDef );	
 	Model* GetModel() { return model; }
+	const Model* GetModel() const { return model; }
+
+	float AngleBetween( const Unit* target, bool quantize ) const;
 
 	void Save( UFOStream* s );
 	void Load( UFOStream* s, Engine* engine, Game* game );

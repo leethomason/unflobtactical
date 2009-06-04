@@ -81,7 +81,7 @@ inline bool EqualInt( float a, float epsilon = EPSILON )
 	@param distance	The distance in degrees between the 2 angles - always positive.
 	@param bias		The direction of travel - either +1.0 or -1.0
 */
-void DegDelta( float angle0, float angle1, float* distance, float* bias );
+void MinDeltaDegrees( float angle0, float angle1, float* distance, float* bias );
 
 /** A length that is reasonably accurate. (24 bits or better.) */
 inline float Length( float x, float y )
