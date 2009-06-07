@@ -289,7 +289,8 @@ struct Vector3
 		#endif
 	}
 
-	T Length() const { return grinliz::Length( x, y, z ); };
+	T Length() const		{ return grinliz::Length( x, y, z ); };
+	T LengthSquared() const { return x*x + y*y + z*z; }
 
 	friend T Length( const Vector3<T>& a, const Vector3<T>& b ) {
 		return grinliz::Length( a.x-b.x, a.y-b.y, a.z-b.z );

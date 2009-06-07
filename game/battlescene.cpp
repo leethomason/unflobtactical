@@ -337,7 +337,7 @@ void BattleScene::RotateAction( Unit* src, const Unit* dst, bool quantize )
 }
 
 
-void BattleScene::ShootAction( Unit* src, Unit* dst )
+void BattleScene::ShootAction( Unit* src, const grinliz::Vector3F& dst )
 {
 	Action action;
 	action.Shoot( src, dst );
@@ -350,11 +350,16 @@ void BattleScene::ProcessAction( U32 deltaTime )
 	if ( !actionStack.Empty() )
 	{
 		Action* action = &actionStack.Top();
-		if ( !action->unit || !action->unit->IsAlive() || !action->unit->GetModel() ) 
-			return;
 
-		Unit* unit = action->unit;
-		Model* model = action->unit->GetModel();
+		Unit* unit = 0;
+		Model* model = 0;
+		if ( action->action != ACTION_DELAY ) {
+			if ( !action->unit || !action->unit->IsAlive() || !action->unit->GetModel() ) 
+				return;
+
+			unit = action->unit;
+			model = action->unit->GetModel();
+		}
 
 		switch ( action->action ) {
 			case ACTION_MOVE: 
@@ -364,16 +369,16 @@ void BattleScene::ProcessAction( U32 deltaTime )
 					const float SPEED = 3.0f;
 					float travel = Travel( deltaTime, SPEED );
 
-					while( action->pathStep < path.len-1 && travel > 0.0f ) {
-						path.Travel( &travel, &action->pathStep, &action->pathFraction );
+					while( action->move.pathStep < path.len-1 && travel > 0.0f ) {
+						path.Travel( &travel, &action->move.pathStep, &action->move.pathFraction );
 					}
 					float x, z, r;
-					path.GetPos( action->pathStep, action->pathFraction, &x, &z, &r );
+					path.GetPos( action->move.pathStep, action->move.pathFraction, &x, &z, &r );
 
 					Vector3F v = { x+0.5f, 0.0f, z+0.5f };
 					unit->SetPos( v, r );
 
-					if ( action->pathStep == path.len-1 ) {
+					if ( action->move.pathStep == path.len-1 ) {
 						actionStack.Pop();
 						path.Clear();
 						FreePathEndModel();
@@ -400,21 +405,17 @@ void BattleScene::ProcessAction( U32 deltaTime )
 				break;
 
 			case ACTION_SHOOT:
+				ProcessActionShoot( action, unit, model );
+				break;
+
+			case ACTION_DELAY:
 				{
-					Unit* targetUnit = action->target;
-					Model* targetModel = action->target->GetModel();
-					if ( targetUnit && targetModel && unit && model ) {
-						Vector3F p0, p1;
-						model->CalcTrigger( &p0 );
-						targetModel->CalcTarget( &p1 );
-
-						const float GREY = 0.8f;
-						Vector4F color = { GREY, GREY, GREY, 1 };
-						Vector4F colorVel = { 0, 0, 0, -3.0f };
-
-						game->particleSystem->EmitBeam( color, colorVel, p0, p1, 0.07f, 700 );
+					if ( deltaTime >= action->delay ) {
+						actionStack.Pop();
 					}
-					actionStack.Pop();
+					else {
+						action->delay -= deltaTime;
+					}
 				}
 				break;
 
@@ -423,6 +424,97 @@ void BattleScene::ProcessAction( U32 deltaTime )
 				break;
 		}
 	}
+}
+
+
+void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
+{
+	if ( unit && model && unit->IsAlive() ) {
+		Vector3F p0, p1;
+		model->CalcTrigger( &p0 );
+		p1 = action->target;
+
+		Ray ray;
+		ray.origin = p0;
+		ray.direction = p1-p0;
+
+		// What can we hit?
+		// model
+		//		unit, alive (does damage)
+		//		unit, dead (does nothing)
+		//		model, world (does damage)
+		//		gun, ???
+		// ground / bounds
+
+		Vector3F hit;
+		// Don't hit the shooter:
+		if ( unit->GetModel() )
+			unit->GetModel()->SetFlag( Model::MODEL_HIDDEN_FROM_TREE );
+		if ( unit->GetWeaponModel() )
+			unit->GetWeaponModel()->SetFlag( Model::MODEL_HIDDEN_FROM_TREE );
+
+		Model* m = engine->IntersectModel( ray, TEST_TRI, 0, 0, &hit );
+
+		if ( unit->GetModel() )
+			unit->GetModel()->ClearFlag( Model::MODEL_HIDDEN_FROM_TREE );
+		if ( unit->GetWeaponModel() )
+			unit->GetWeaponModel()->ClearFlag( Model::MODEL_HIDDEN_FROM_TREE );
+
+		if ( hit.y < 0.0f ) {
+			// hit ground first.
+			m = 0;
+		}
+
+		if ( m ) {
+			const float GREY = 0.8f;
+			Vector4F color = { GREY, GREY, GREY, 1 };
+			Vector4F colorVel = { 0, 0, 0, -3.0f };
+
+			game->particleSystem->EmitBeam( color, colorVel, p0, hit, 0.07f, 700 );
+
+			color.Set( 1, 0, 0, 1 );
+			colorVel.Set( 0, 0, 0, -1.0f );
+			Vector3F vel = p0 - hit;
+			vel.Normalize();
+
+			game->particleSystem->EmitPoint( 20, ParticleSystem::PARTICLE_HEMISPHERE, color, colorVel, hit, 0.1f, vel, 0.4f, 1000 );
+
+			Unit* hitUnit = UnitFromModel( m );
+			if ( hitUnit && hitUnit->IsAlive() ) {
+				hitUnit->Kill();
+			}
+			// FIXME: handle damaging world.
+		}
+		else {		
+			Vector3F in, out;
+			int inResult, outResult;
+			Rectangle3F worldBounds;
+			worldBounds.Set( 0, 0, 0, (float)engine->GetMap()->Width(), 4.0f, (float)engine->GetMap()->Height() );	// FIXME: who owns these constants???
+
+			int result = IntersectRayAllAABB( ray.origin, ray.direction, worldBounds, 
+											  &inResult, &in, &outResult, &out );
+
+			GLASSERT( result == grinliz::INTERSECT );
+			if ( result == grinliz::INTERSECT ) {
+				const float GREY = 0.8f;
+				Vector4F color = { GREY, GREY, GREY, 1 };
+				Vector4F colorVel = { 0, 0, 0, -3.0f };
+
+				game->particleSystem->EmitBeam( color, colorVel, p0, out, 0.07f, 700 );
+
+				if ( out.y < 0.01 ) {
+					// hit the ground
+					color.Set( 1, 0, 0, 1 );
+					colorVel.Set( 0, 0, 0, -1.0f );
+					Vector3F vel = out - in;
+					vel.Normalize();
+
+					game->particleSystem->EmitPoint( 20, ParticleSystem::PARTICLE_RAY, color, colorVel, hit, 0.1f, vel, 0.4f, 1000 );
+				}
+			}
+		}
+	}
+	actionStack.Pop();
 }
 
 
@@ -442,9 +534,21 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 				// shooting creates a turn action then a shoot action.
 				GLASSERT( selection.soldierUnit >= 0 );
 				GLASSERT( selection.targetUnit >= 0 );
+				Vector3F target;
+				selection.targetUnit->GetModel()->CalcTarget( &target );
 
 				// Stack - push in reverse order.
-				ShootAction( selection.soldierUnit, selection.targetUnit );
+				if ( icon == 0 ) {
+					Action delay;
+					delay.Delay( 500 );
+
+
+					ShootAction( selection.soldierUnit, target );
+					actionStack.Push( delay );
+					ShootAction( selection.soldierUnit, target );
+					actionStack.Push( delay );
+				}
+				ShootAction( selection.soldierUnit, target );
 				RotateAction( selection.soldierUnit, selection.targetUnit, true );
 				selection.targetUnit = 0;
 				break;

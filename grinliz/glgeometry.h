@@ -131,7 +131,7 @@ struct Ray
 {
 	Vector3F	origin;
 	Vector3F	direction;	// should always have a length of 1.0f
-	float		length;
+	//float		length;
 };
 
 /** Plane
@@ -430,6 +430,19 @@ int IntersectRayAABB(	const Vector3F& origin, const Vector3F& dir,
 						const Rectangle3F& aabb,
 						Vector3F* intersect,
 						float* t );
+						
+/** Intersect a ray with an Axis-Aligned Bounding Box and find 0, 1, or 2 intersections.
+	inTest: REJECT, INTERSECT, or INSIDE
+	outTest: REJECT or INTERSECT
+
+	@return REJECT or INTERSECT.
+*/
+int IntersectRayAllAABB(const Vector3F& origin, const Vector3F& dir,
+						const Rectangle3F& aabb,
+						int* inTest,
+						Vector3F* inIntersect,
+						int *outTest,
+						Vector3F* outIntersect );
 
 /** Intersect a ray with an Axis-Aligned Bounding Box. If the origin of the ray
 	is inside the box, the intersection point will be the origin and t=0. Also optionally
@@ -446,9 +459,9 @@ int IntersectRayAABB(	const Vector2F& origin, const Vector2F& dir,
 	the smaller box of interest.
 	@return REJECT, INTERSECT
 */
-int IntersectionRayAABB(	const Ray& ray,
-							const Rectangle3F& aabb,
-							Rectangle3F* result );
+//int IntersectionRayAABB(	const Ray& ray,
+//							const Rectangle3F& aabb,
+//							Rectangle3F* result );
 
 /** Intersect a ray with the plane (at offset x.) Plane x=0, y=1, z=2.
 	@return REJECT or INTERSECT

@@ -120,7 +120,7 @@ void Unit::Init(	Engine* engine, Game* game,
 		default:
 			GLASSERT( 0 );
 	}
-	CreateModel();
+	CreateModel( true );
 }
 
 
@@ -231,25 +231,47 @@ void Unit::CalcMapPos( grinliz::Vector2I* vec ) const
 }
 
 
-void Unit::CreateModel()
+void Unit::Kill()
+{
+	GLASSERT( status == STATUS_ALIVE );
+	GLASSERT( model );
+	float r = model->GetYRotation();
+	Vector3F pos = model->Pos();
+
+	Free();
+	status = STATUS_DEAD;
+	CreateModel( false );
+	
+	model->SetYRotation( r );
+	model->SetPos( pos );
+	model->SetFlag( Model::MODEL_NO_SHADOW );
+}
+
+void Unit::CreateModel( bool alive )
 {
 	ModelResource* resource = 0;
 	switch ( team ) {
 		case SOLDIER:
-			resource = game->GetResource( ( Gender() == MALE ) ? "maleMarine" : "femaleMarine" );
+			if ( alive )
+				resource = game->GetResource( ( Gender() == MALE ) ? "maleMarine" : "femaleMarine" );
+			else
+				resource = game->GetResource( ( Gender() == MALE ) ? "maleMarine_D" : "femaleMarine_D" );
 			break;
 
 		case CIVILIAN:
-			resource = game->GetResource( ( Gender() == MALE ) ? "maleCiv" : "femaleCiv" );
+			if ( alive )
+				resource = game->GetResource( ( Gender() == MALE ) ? "maleCiv" : "femaleCiv" );
+			else
+				resource = game->GetResource( ( Gender() == MALE ) ? "maleCiv_D" : "femaleCiv_D" );
 			break;
 
 		case ALIEN:
 			{
 				switch( AlienType() ) {
-					case 0:	resource = game->GetResource( "alien0" );	break;
-					case 1:	resource = game->GetResource( "alien1" );	break;
-					case 2:	resource = game->GetResource( "alien2" );	break;
-					case 3:	resource = game->GetResource( "alien3" );	break;
+					case 0:	resource = game->GetResource( alive ? "alien0" : "alien0_D" );	break;
+					case 1:	resource = game->GetResource( alive ? "alien1" : "alien1_D" );	break;
+					case 2:	resource = game->GetResource( alive ? "alien2" : "alien2_D" );	break;
+					case 3:	resource = game->GetResource( alive ? "alien3" : "alien3_D" );	break;
 					default: GLASSERT( 0 );	break;
 				}
 			}

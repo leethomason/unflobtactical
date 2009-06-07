@@ -85,11 +85,11 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	// Compute the bounding sphere. The model is always rotated around the
 	// Y axis, so be sure to put the sphere there, else it won't be invariant
 	// to rotation. Then check the 8 corners for the furthest.
-	res->boundSphere.origin.x = 0;
-	res->boundSphere.origin.y = ( res->header.bounds.min.y + res->header.bounds.max.y )*0.5f;
-	res->boundSphere.origin.z = 0;
+	//res->boundSphere.origin.x = 0;
+	//res->boundSphere.origin.y = ( res->header.bounds.min.y + res->header.bounds.max.y )*0.5f;
+	//res->boundSphere.origin.z = 0;
 
-	float longestR2 = 0.0f;
+	/*float longestR2 = 0.0f;
 
 	for( int k=0; k<2; ++k ) {
 		for( int j=0; j<2; ++j ) {
@@ -106,9 +106,9 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 		}
 	}
 	res->boundSphere.radius = sqrtf( longestR2 );
-
+*/
 	// And the bounding circle.
-	longestR2 = 0;
+/*	longestR2 = 0;
 
 	for( int k=0; k<2; ++k ) {
 		for( int i=0; i<2; ++i ) {
@@ -122,12 +122,12 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 		}
 	}
 	res->boundRadius2D = sqrtf( longestR2 );
-
+*/
 	// compute the hit testing AABB
-	//float ave = ( res->header.bounds.SizeX() + res->header.bounds.SizeZ() ) * 0.5f;
-	float ave = Max( res->header.bounds.SizeX(), res->header.bounds.SizeZ() );
-	res->hitBounds.min.Set( res->boundSphere.origin.x - ave/2, res->header.bounds.min.y, res->boundSphere.origin.z - ave/2 );
-	res->hitBounds.max.Set( res->boundSphere.origin.x + ave/2, res->header.bounds.max.y, res->boundSphere.origin.z + ave/2 );
+	float ave = grinliz::Max( res->header.bounds.SizeX(), res->header.bounds.SizeZ() )*0.5f;
+	//float ave = Max( res->header.bounds.SizeX(), res->header.bounds.SizeZ() );
+	res->hitBounds.min.Set( -ave, res->header.bounds.min.y, -ave );
+	res->hitBounds.max.Set( ave, res->header.bounds.max.y, ave );
 
 	//GLASSERT( nTotalVertices <= EL_MAX_VERTEX_IN_GROUP );
 	//GLASSERT( nTotalIndices <= EL_MAX_INDEX_IN_GROUP );
@@ -247,9 +247,24 @@ void Model::Init( ModelResource* resource, SpaceTree* tree )
 
 void Model::SetPos( const grinliz::Vector3F& pos )
 { 
-	Modify();
-	this->pos = pos;	
-	tree->Update( this ); 
+	if ( pos != this->pos ) {
+		Modify();
+		this->pos = pos;	
+		tree->Update( this ); 
+	}
+}
+
+
+void Model::SetYRotation( float rot )
+{
+	while( rot < 0 )		{ rot += 360.0f; }
+	while( rot >= 360 )		{ rot -= 360.0f; }
+
+	if ( rot != this->rot ) {
+		Modify();
+		this->rot = rot;		
+		tree->Update( this );	// call because bound computation changes with rotation
+	}
 }
 
 
@@ -290,19 +305,22 @@ void Model::SetTexXForm( float a, float d, float x, float y )
 
 
 
+/*
 void Model::CalcBoundSphere( Sphere* sphere ) const
 {
 	*sphere = resource->boundSphere;
 	sphere->origin += pos;
 }
+*/
 
-
+/*
 void Model::CalcBoundCircle( Circle* circle ) const 
 {
 	circle->origin.x = pos.x;
 	circle->origin.y = pos.z;
 	circle->radius = resource->boundRadius2D;
 }
+*/
 
 
 void Model::CalcHitAABB( Rectangle3F* aabb ) const
@@ -328,6 +346,7 @@ void Model::CalcTarget( grinliz::Vector3F* target ) const
 }
 
 
+/*
 bool Model::CalcAABB( grinliz::Rectangle3F* aabb ) const
 {
 	const Vector3F& a = resource->header.bounds.max;
@@ -379,6 +398,7 @@ bool Model::CalcAABB( grinliz::Rectangle3F* aabb ) const
 	}
 	return result;
 }
+*/
 
 
 void Model::Queue( RenderQueue* queue, int textureMode )
@@ -523,6 +543,13 @@ void Model::PopMatrix( /*bool bindTextureToVertex*/ ) const
 }
 
 
+const grinliz::Rectangle3F& Model::AABB() const
+{
+	XForm();	// just makes sure the cache is good.
+	return aabb;
+}
+
+
 const grinliz::Matrix4& Model::XForm() const
 {
 	if ( !xformValid ) {
@@ -533,6 +560,22 @@ const grinliz::Matrix4& Model::XForm() const
 		r.SetYRotation( rot );
 
 		_xform = t*r;
+
+		// compute the AABB. Take advatage that we only have translation and y-rotation.
+		Vector3F p[4], q;
+		const Rectangle3F& resB = resource->header.bounds;
+		float y = resB.min.y;
+		p[0] = resB.min;
+		p[1].Set( resB.max.x, y, resB.min.z );
+		p[2] = resB.max;
+		p[3].Set( resB.min.x, y, resB.max.z );
+
+		aabb.max = aabb.min = _xform * p[0];
+		for( int i=1; i<4; ++i ) {
+			q = _xform*p[i];
+			aabb.DoUnion( q );
+		}
+		
 		xformValid = true;
 	}
 	return _xform;
@@ -575,11 +618,15 @@ int Model::IntersectRay(	const Vector3F& _origin,
 	Vector4F dir    = { _dir.x, _dir.y, _dir.z, 0.0f };
 	int result = grinliz::REJECT;
 
-	Sphere sphere;
-	CalcBoundSphere( &sphere );
-	if ( IntersectRaySphere( sphere, _origin, _dir ) == grinliz::INTERSECT )
+	//Sphere sphere;
+	//CalcBoundSphere( &sphere );
+	//int initTest = IntersectRaySphere( sphere, _origin, _dir );
+	Vector3F dv;
+	float dt;
+	int initTest = IntersectRayAABB( _origin, _dir, AABB(), &dv, &dt );
+
+	if ( initTest == grinliz::INTERSECT || initTest == grinliz::INSIDE )
 	{
-		// inlining the matrix inversion takes it from 17-22.6
 		const Matrix4& inv = InvXForm();
 
 		Vector4F objOrigin4 = inv * origin;

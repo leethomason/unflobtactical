@@ -102,6 +102,7 @@ public:
 	// The size of the map in use, which is <=SIZE
 	int Height() { return height; }
 	int Width()  { return width; }
+
 	void SetSize( int w, int h )					{ width = w; height = h; }
 
 	// The background texture of the map. The map is just one big tetxure.
@@ -188,6 +189,7 @@ private:
 	void ResolveReference( const Item* inTtem, Item** outItem, Tile** outTile, int *dx, int* dy ) const;
 	
 	int width, height;
+	grinliz::Rectangle3F bounds;
 	const Texture* texture;
 	SpaceTree* tree;
 

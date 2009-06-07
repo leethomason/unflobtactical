@@ -72,6 +72,7 @@ public:
 
 	bool InUse()			{ return status != STATUS_NOT_INIT; }
 	bool IsAlive()			{ return status == STATUS_ALIVE; }
+	void Kill();
 
 	int Status()			{ return status; }
 	int Team()				{ return team; }
@@ -86,9 +87,12 @@ public:
 	void CalcPos( grinliz::Vector3F* ) const;
 	void CalcMapPos( grinliz::Vector2I* ) const;
 
-	void SetWeapon( const ItemDef* itemDef );	
-	Model* GetModel() { return model; }
-	const Model* GetModel() const { return model; }
+	void SetWeapon( const ItemDef* itemDef );
+
+	Model* GetModel()				{ return model; }
+	const Model* GetModel() const	{ return model; }
+	Model* GetWeaponModel()					{ return weapon; }
+	const Model* GetWeaponModel() const		{ return weapon; }
 
 	float AngleBetween( const Unit* target, bool quantize ) const;
 
@@ -119,7 +123,7 @@ private:
 	void GenerateSoldier( U32 seed );
 	void GenerateCiv( U32 seed );
 	void GenerateAlien( int type, U32 seed );
-	void CreateModel();
+	void CreateModel( bool alive );
 
 	void UpdateModel();		// make the model current with the unit status - armor, etc.
 	void UpdateWeapon();	// set the gun position

@@ -38,7 +38,7 @@ public:
 	void   Update( Model* );
 
 	// Returns all the models in the planes.
-	Model* Query( const grinliz::Plane* planes, int nPlanes, int requiredFlags, int excludedFlags );
+	Model* Query( const grinliz::Plane* planes, int nPlanes, int requiredFlags, int excludedFlags, bool debug=false );
 
 	// Returns the FIRST model impacted.
 	Model* QueryRay( const grinliz::Vector3F& origin, const grinliz::Vector3F& direction, 
@@ -97,7 +97,6 @@ private:
 
 	void InitNode();
 	void QueryPlanesRec( const grinliz::Plane* planes, int nPlanes, int intersection, const Node* node, U32  );
-	//void QueryRayRec( const grinliz::Vector3F& origin, const grinliz::Vector3F& direction, int intersection, const Node* node );
 
 	Item freeMemSentinel;
 	int allocated;
@@ -112,13 +111,11 @@ private:
 	int requiredFlags;
 	int excludedFlags;
 	int queryID;
+	bool debug;
 
 	Item modelPool[EL_MAX_MODELS];
 
 	enum {
-		// Depth 6 dropped the count from 13.8K to 13.5K tris. Not worth it.
-		//DEPTH = 6,
-		//NUM_NODES = 1+4+16+64+256+1024
 		DEPTH = 5,
 		NUM_NODES = 1+4+16+64+256
 	};

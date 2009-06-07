@@ -51,27 +51,37 @@ private:
 		ACTION_MOVE,
 		ACTION_ROTATE,
 		ACTION_SHOOT,
+		ACTION_DELAY,
 	};
 
 	struct Action
 	{
 		int action;
 		Unit* unit;				// unit performing action
-		int pathStep;			// move
-		float pathFraction;		// move
-		float rotation;			// rotate
-		Unit* target;			// shoot
+
+		union {
+			struct {
+				int pathStep;			// move
+				float pathFraction;		// move
+			} move;
+			float rotation;
+			grinliz::Vector3F target;
+			U32 delay;
+		};
 
 		void Clear()							{ action = ACTION_NONE; }
-		void Move( Unit* unit )					{ GLASSERT( unit ); this->unit = unit; action = ACTION_MOVE; pathStep = 0; pathFraction = 0; }
+		void Move( Unit* unit )					{ GLASSERT( unit ); this->unit = unit; action = ACTION_MOVE; move.pathStep = 0; move.pathFraction = 0; }
 		void Rotate( Unit* unit, float r )		{ GLASSERT( unit ); this->unit = unit; action = ACTION_ROTATE; rotation = r; }
-		void Shoot( Unit* unit, Unit* target )	{ GLASSERT( unit ); GLASSERT( target ); this->unit = unit; this->target = target; action = ACTION_SHOOT; }
+		void Shoot( Unit* unit, const grinliz::Vector3F& target )	
+												{ GLASSERT( unit ); this->unit = unit; this->target = target; action = ACTION_SHOOT; }
+		void Delay( U32 msec )					{ unit = 0; action = ACTION_DELAY; delay = msec; }
 		bool NoAction()							{ return action == ACTION_NONE; }
 	};
 	CStack< Action > actionStack;
 	void RotateAction( Unit* src, const Unit* dst, bool quantize );
-	void ShootAction( Unit* src, Unit* dst );
+	void ShootAction( Unit* src, const grinliz::Vector3F& dst );
 	void ProcessAction( U32 deltaTime );
+	void ProcessActionShoot( Action* action, Unit* unit, Model* model );
 
 	struct Path
 	{
