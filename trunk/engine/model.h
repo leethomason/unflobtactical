@@ -58,8 +58,7 @@ public:
 
 	ModelHeader header;						// loaded
 
-	grinliz::Sphere			boundSphere;	// computed
-	float					boundRadius2D;	// computed, bounding 2D radius centered at 0,0
+//	grinliz::Sphere			boundSphere;	// computed
 	grinliz::Rectangle3F	hitBounds;		// for picking - a bounds approximation
 	U16*					allIndex;		// memory store for vertices and indices. Used for hit-testing.
 	Vertex*					allVertex;
@@ -126,12 +125,7 @@ public:
 	float Y() { return pos.y; }
 	float Z() { return pos.z; }
 
-	void SetYRotation( float rot )		{
-		while( rot < 0 )		{ rot += 360.0f; }
-		while( rot >= 360 )		{ rot -= 360.0f; }
-		this->rot = rot;		// won't change tree location, don't need to call Update()
-		Modify();
-	}
+	void SetYRotation( float rot );
 	const float GetYRotation() const			{ return rot; }
 
 	int IsBillboard() const 		{ return resource->header.flags & ModelHeader::BILLBOARD; }
@@ -146,12 +140,12 @@ public:
 	// Set the texture - overrides all textures
 	void SetTexture( const Texture* t )			{ setTexture = t; }
 
-	void CalcBoundSphere( grinliz::Sphere* sphere ) const;
-	void CalcBoundCircle( grinliz::Circle* circle ) const;
+	//void CalcBoundSphere( grinliz::Sphere* sphere ) const;
+	//void CalcBoundCircle( grinliz::Circle* circle ) const;
 	void CalcHitAABB( grinliz::Rectangle3F* aabb ) const;
 
 	// Calcs the AABB if the rotation is Nx90. Returs true for success.
-	bool CalcAABB( grinliz::Rectangle3F* aabb ) const;
+	const grinliz::Rectangle3F& AABB() const;
 
 	void CalcTrigger( grinliz::Vector3F* trigger ) const;
 	void CalcTarget( grinliz::Vector3F* target ) const;
@@ -188,6 +182,7 @@ private:
 	
 	mutable bool xformValid;
 	mutable bool invValid;
+	mutable grinliz::Rectangle3F aabb;
 
 	mutable grinliz::Matrix4 _xform;
 	mutable grinliz::Matrix4 _invXForm;

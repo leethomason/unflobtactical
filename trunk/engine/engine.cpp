@@ -229,7 +229,8 @@ void Engine::Draw( int* triCount )
 	// Compute the frustum planes
 	Plane planes[6];
 	CalcFrustumPlanes( planes );
-	Model* modelRoot = spaceTree->Query( planes, 6, 0, 0 );
+
+	Model* modelRoot = spaceTree->Query( planes, 6, 0, 0, false );
 
 #	ifdef USING_GL
 #		ifdef DEBUG
@@ -565,7 +566,7 @@ void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray,
 
 	ray->origin = p0;
 	ray->direction = dir;
-	ray->length = 1.0f;
+//	ray->length = 1.0f;
 
 	float t;
 	IntersectLinePlane( p0, p1, plane, out, &t );
@@ -592,7 +593,7 @@ void Engine::RayFromScreen( int x, int y, const Matrix4& mvpi, Ray* ray )
 
 	ray->origin = p0;
 	ray->direction = dir;
-	ray->length = 1.0f;
+//	ray->length = 1.0f;
 }
 
 

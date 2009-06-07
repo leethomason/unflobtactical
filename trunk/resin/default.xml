@@ -28,6 +28,10 @@
   <model filename="alien1.ac" trigger="-0.25 0.85 0.30" eye="1.74" target="1.09" />
   <model filename="alien2.ac" trigger="-0.31 0.85 0.11" eye="1.57" target="1.10" />
   <model filename="alien3.ac" trigger="-0.20 0.64 0.31" eye="1.41" target="1.35" />
+  <model filename="alien0_D.ac" />
+  <model filename="alien1_D.ac" />
+  <model filename="alien2_D.ac" />
+  <model filename="alien3_D.ac" />  
   <model filename="crate.ac" />
 
   <model filename="farmBed.ac" />
@@ -41,7 +45,13 @@
 	<model filename="femaleMarine.ac" trigger="-0.26 1.17 0.40" eye="1.81" target="1.43"/>
 	<model filename="maleCiv.ac"      target="1.39" />
 	<model filename="femaleCiv.ac"    target="1.47" />
-	<model filename="selection.ac" />
+
+  <model filename="maleMarine_D.ac"   />
+  <model filename="femaleMarine_D.ac" />
+  <model filename="maleCiv_D.ac"      />
+  <model filename="femaleCiv_D.ac"    />
+
+  <model filename="selection.ac" />
 
   <model filename="gun0.ac" />
   <model filename="gun1.ac" />

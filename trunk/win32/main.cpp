@@ -241,6 +241,7 @@ int main( int argc, char **argv )
 						//case SDLK_RIGHT:		yRotation += 2.0f; GameYRotateCamera( game, yRotation );		break;
 						//case SDLK_LEFT:			yRotation -= 2.0f; GameYRotateCamera( game, yRotation );		break;
 						//case SDLK_s:			GameShadowMode( game );						break;
+
 						case SDLK_p:
 							{
 								#ifdef FRAMEBUFFER_ROTATE
