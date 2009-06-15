@@ -1,8 +1,10 @@
 = Engine =
 === Open === 
 
-  * object intersection testing
+  * fire and smoke placement and spread
   * resource loading on demand
+  * Fog of War, line of site, visibility
+  * AI, simple unit movement
 
 === Resolved ===
 
@@ -11,24 +13,35 @@
   * 3/09 fixed shadow offset in z-path
   * 3/09 particle system - fire, smoke, sparkle
   * 3/09 fix zoom start, min, max
+  * 6/09 object intersection testing
   * deferred: UI: day/night, FoW on/off, standard test
 
 = Map Maker = 
 === Open ===
-  * support for non 1x1 map items
 
 === Resolved ===
 
   * 4/09 support for impassible squares
   * 4/09 support for landing vehicle
-
+  * 5/09 support for non 1x1 map items (crazy hard)
 
 = Game =
 === Open ===
   * visibility computation
-  * pathing
   * pathing+animation
   * pathing+animation+FoW
-  * serialization
-  * weapons
+  * serialization (some work done. Still need general serialization and screen strategy)
   * GL Swap management (only render when needed)
+  * UI screen: inventory
+  * UI screen: statistics
+  * accuracy computation, display, and random spread
+  * turns, turn based actions, UI, timeunits
+  * rotation UI
+  * aiming UI
+  * save / load strategy
+  * start game, scenario & difficulty
+  * end game, score
+
+=== Resolved ===
+  * pathing - micropather integrated
+  * weapons - attached to unit
