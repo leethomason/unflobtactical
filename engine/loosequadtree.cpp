@@ -29,19 +29,13 @@ using namespace grinliz;
 	Unit tree has less compution and fewer models, slightly less balanced. 
 */
 
-SpaceTree::SpaceTree( float yMin, float yMax )
+SpaceTree::SpaceTree( float yMin, float yMax ) 
+	:	modelPool( "SpaceTreeModelPool", sizeof( Item ), EL_ALLOCATED_MODELS*sizeof( Item ), true )
 {
-	allocated = 0;
 	this->yMin = yMin;
 	this->yMax = yMax;
 	queryID = 0;
 
-	freeMemSentinel.next = &freeMemSentinel;
-	freeMemSentinel.prev = &freeMemSentinel;
-
-	for( int i=0; i<EL_MAX_MODELS; ++i ) {
-		modelPool[i].Link( &freeMemSentinel );
-	}
 	InitNode();
 	for( int i=0; i<DEPTH; ++i )
 		nodeAddedAtDepth[i] = 0;
@@ -50,15 +44,7 @@ SpaceTree::SpaceTree( float yMin, float yMax )
 
 SpaceTree::~SpaceTree()
 {
-#ifdef DEBUG
-	// Un-released models?
-	int count = 0;
-
-	for( Item* item=freeMemSentinel.next; item != &freeMemSentinel; item=item->next ) {
-		++count;
-	}
-	GLASSERT( count == EL_MAX_MODELS );
-#endif
+	GLASSERT( modelPool.Empty() );
 }
 
 
@@ -132,23 +118,12 @@ void SpaceTree::InitNode()
 Model* SpaceTree::AllocModel( ModelResource* resource )
 {
 	GLASSERT( resource );
-	GLASSERT( allocated < EL_MAX_MODELS );
-	if ( allocated == EL_MAX_MODELS ) {
-		return 0;
-	}
-
-	GLASSERT( freeMemSentinel.next != &freeMemSentinel );
-
-	Item* item = freeMemSentinel.next;
-	GLASSERT( item->next && item->prev );
-	item->Unlink();
+	Item* item = (Item*) modelPool.Alloc();
 
 	item->next = 0;	// very important to clear pointers before Init() - which will cause Link to occur.
 	item->prev = 0;
 	item->model.Init( resource, this );
 
-	allocated++;
-	//GLOUTPUT(( "Alloc model: %d/%d\n", allocated, EL_MAX_MODELS ));
 	return &item->model;
 }
 
@@ -156,15 +131,8 @@ Model* SpaceTree::AllocModel( ModelResource* resource )
 void SpaceTree::FreeModel( Model* model )
 {
 	Item* item = (Item*)model;	// cast depends on model being first in the structure.
-	GLASSERT( item >= &modelPool[0] );
-
-	GLASSERT( item < &modelPool[EL_MAX_MODELS] );
-
 	item->Unlink();
-	item->Link( &freeMemSentinel );
-
-	allocated--;
-	//GLOUTPUT(( "Free model: %d/%d\n", allocated, EL_MAX_MODELS ));
+	modelPool.Free( item );
 }
 
 // Based on this idea:
@@ -201,8 +169,6 @@ void SpaceTree::Update( Model* model )
 {
 	// Unlink if currently in tree.
 	Item* item = (Item*)model;	// cast depends on model being first in the structure.
-	GLASSERT( item >= &modelPool[0] );
-	GLASSERT( item < &modelPool[EL_MAX_MODELS] );
 
 	// circular list - this always works.
 	GLASSERT( !model->Sentinel() );
@@ -512,6 +478,11 @@ Model* SpaceTree::QueryRay( const Vector3F& _origin,
 		int z0 = (int) start.z;
 		int z1 = (int) end.z;
 		if ( z0 > z1 ) Swap( &z0, &z1 );
+
+		x0 = Clamp( x0, 0, Map::SIZE-1 );
+		x1 = Clamp( x1, 0, Map::SIZE-1 );
+		z0 = Clamp( z0, 0, Map::SIZE-1 );
+		z1 = Clamp( z1, 0, Map::SIZE-1 );
 
 		//GLOUTPUT(( "step %d (%d,%d)-(%d,%d)\n", s, x0, z0, x1, z1 ));
 

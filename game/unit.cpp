@@ -81,6 +81,7 @@ void Unit::GenerateSoldier( U32 seed )
 	status = STATUS_ALIVE;
 	team = SOLDIER;
 	body = seed;
+	stats.Init( 50 );
 }
 
 
@@ -89,6 +90,7 @@ void Unit::GenerateCiv( U32 seed )
 	status = STATUS_ALIVE;
 	team = CIVILIAN;
 	body = seed;	// only gender...
+	stats.Init( 25 );
 }
 
 
@@ -98,6 +100,15 @@ void Unit::GenerateAlien( int type, U32 seed )
 	team = ALIEN;
 	body = seed & (~ALIEN_TYPE_MASK);
 	body |= (type & ALIEN_TYPE_MASK);
+
+	switch ( type ) {
+		case 0:	stats.Init( 40 );	break;
+		case 1: stats.Init( 60 );	break;
+		case 2: stats.Init( 150 );	break;
+		case 3:
+		default:
+				stats.Init( 80 );	break;
+	}
 }
 
 
@@ -240,12 +251,24 @@ void Unit::Kill()
 
 	Free();
 	status = STATUS_DEAD;
-	CreateModel( false );
 	
+	CreateModel( false );
+
+	stats.ZeroHP();
 	model->SetYRotation( r );
 	model->SetPos( pos );
 	model->SetFlag( Model::MODEL_NO_SHADOW );
 }
+
+
+void Unit::DoDamange( int hp )
+{
+	stats.DoDamage( hp );
+	if ( !stats.HP() ) {
+		Kill();
+	}
+}
+
 
 void Unit::CreateModel( bool alive )
 {
@@ -283,6 +306,8 @@ void Unit::CreateModel( bool alive )
 	};
 	GLASSERT( resource );
 	model = engine->AllocModel( resource );
+	GLASSERT( model->stats == 0 );
+	model->stats = &stats;
 	UpdateModel();
 }
 

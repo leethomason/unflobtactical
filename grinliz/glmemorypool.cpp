@@ -1,3 +1,4 @@
+
 /*
 Copyright (c) 2000-2003 Lee Thomason (www.grinninglizard.com)
 
@@ -29,29 +30,33 @@ distribution.
 #include <stdlib.h>
 #include <memory.h>
 #include "gldebug.h"
+#include "gltypes.h"
 #include "glmemorypool.h"
 
 using namespace grinliz;
 
-MemoryPool::MemoryPool( const char* _name, unsigned _objectSize, unsigned _blockSize )
+MemoryPool::MemoryPool( const char* _name, unsigned _objectSize, unsigned _blockSize, bool _warn )
 {
 	name = _name;
+	warn = _warn;
 
-	chunkSize = _objectSize;
-	if ( chunkSize < sizeof( Chunk ) )
-		chunkSize = sizeof( Chunk );
-	chunkSize = ( ( chunkSize + 3 )  / 4 ) * 4;
-	blockSize = ( ( _blockSize + 3 ) / 4 ) * 4;
+	objectSize = _objectSize;
+	if ( sizeof(void*) > objectSize )
+		objectSize = sizeof(void*);
+
+	objectSize = ( ( objectSize + 3 )  / 4 ) * 4;
+	blockSize  = ( ( _blockSize + 3 ) / 4 ) * 4;
 
 	// Reserve 4 bytes for "nextBlock" pointer.
-	chunksPerBlock = ( blockSize - sizeof(Block*) ) / chunkSize;
-	GLASSERT( chunksPerBlock > 1 );
+	objectsPerBlock = ( blockSize - sizeof(Block) ) / objectSize;
+	GLASSERT( objectsPerBlock > 1 );
 
 	numBlocks = 0;
-	numChunks = 0;
-
+	numObjects = 0;
+	numObjectsWatermark = 0;
 	rootBlock = 0;
 	head = 0;
+
 	GLOUTPUT(( "Memory pool '%s' created.\n", _name ));
 }
 
@@ -59,8 +64,9 @@ MemoryPool::MemoryPool( const char* _name, unsigned _objectSize, unsigned _block
 MemoryPool::~MemoryPool()
 {
 	#ifdef DEBUG
-	GLOUTPUT(( "Memory pool '%s' destroyed. #blocks=%d usedKB=%d\n", name, numBlocks, MemoryUsed()/1024 ));
-	GLASSERT( numChunks == 0 );
+	GLOUTPUT(( "Memory pool '%s' destroyed. #blocks=%d usedKB=%d/%d\n", 
+			   name, numBlocks, MemoryInUseWatermark()/1024, MemoryAllocated()/1024 ));
+	GLASSERT( numObjects == 0 );
 	#endif
 	FreePool();
 }
@@ -75,18 +81,20 @@ void MemoryPool::NewBlock()
 	block->nextBlock = rootBlock;
 	rootBlock = block;
 
+	if ( numBlocks > 0 && warn ) {
+		GLOUTPUT(( "WARNING: memory pool '%s' growing.\n" ));
+		GLASSERT( 0 );
+	}
 	++numBlocks;
 
-	Chunk** pp = &block->chunk;
-	int increment = chunkSize / 4;
-	unsigned i;
-	for( i=0; i<chunksPerBlock-1; ++i )
+	for( unsigned i=0; i<objectsPerBlock-1; ++i )
 	{
-		*( pp+i*increment ) = (Chunk*) ( pp+(i+1)*increment );
+		GetObject( block, i )->next = GetObject( block, i+1 );
 	}
-	*( pp+i*increment ) = 0;
-	head = block->chunk;
+	GetObject( block, objectsPerBlock-1 )->next = 0;
+	head = (Object*)MemStart( block );
 }
+
 
 void MemoryPool::FreePool()
 {
@@ -97,50 +105,83 @@ void MemoryPool::FreePool()
 		free( block );
 		block = temp;
 	}
-	numBlocks = numChunks = 0;
+	numBlocks = 0;
+	numObjects = 0;
 	rootBlock = 0;
 	head = 0;
 }
 
 
-LinearMemoryPool::LinearMemoryPool( unsigned totalMemory )
+void* MemoryPool::Alloc()
 {
-	base = (char* ) malloc( totalMemory );
-	GLASSERT( base );
+	void* mem = 0;
 
-	current = base;
-	end = base + totalMemory;
+	if ( !head ) {
+		NewBlock();
+		GLASSERT( head );
+	}
+
+	mem = head;
+	head = head->next;
+
+	++numObjects;
+	if ( numObjects > numObjectsWatermark )
+		numObjectsWatermark = numObjects;
 
 	#ifdef DEBUG
-		memset( base, 0xaa, totalMemory );
+	// Is this in a memory block?
+	Block* block=0;
+	for( block=rootBlock; block; block=block->nextBlock ) {
+		if ( mem >= MemStart( block ) && mem < MemEnd( block ) )
+			break;
+	}
+	GLASSERT( block );
+	GLASSERT( mem >= MemStart( block ) && mem < MemEnd( block ) );
+	memset( mem, 0xaa, objectSize );
 	#endif
+
+	return mem;
 }
 
 
-LinearMemoryPool::~LinearMemoryPool()
+bool MemoryPool::MemoryInPool( void* mem )
 {
-	free( base );
+	// Is this in a memory block?
+	Block* block=0;
+	for( block=rootBlock; block; block=block->nextBlock ) {
+		if ( mem >= MemStart( block ) && mem < MemEnd( block ) )
+			break;
+	}
+
+	if ( block ) {
+		// Does it map to a proper address?
+#ifdef DEBUG
+		int offset = (U8*)mem - (U8*)MemStart( block );
+		GLASSERT( offset % objectSize == 0 );
+#endif
+		return true;
+	}
+	return false;
 }
 
 
-void* LinearMemoryPool::Alloc( unsigned allocate )
+void MemoryPool::Free( void* mem ) 
 {
-	if ( current < end )
-	{
-		char* ret = current;
-		current += allocate;
+	if ( !mem )
+		return;
 
-		// Out of memory check.
-		GLASSERT( current <= end );
-		if ( current <= end )
-			return ret;
-		else
-			return 0;
-	}
-	else
-	{
-		// Out of memory!
-		GLASSERT( 0 );
-		return 0;
-	}
+	GLASSERT( numObjects > 0 );
+	--numObjects;
+
+	#ifdef DEBUG
+	GLASSERT( MemoryInPool( mem ) );
+
+	memset( mem, 0xbb, objectSize );
+	#endif
+
+	((Object*)mem)->next = head;
+	head = (Object*)mem;
 }
+
+
+

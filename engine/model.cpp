@@ -230,6 +230,7 @@ void Model::Init( ModelResource* resource, SpaceTree* tree )
 {
 	this->resource = resource; 
 	this->tree = tree;
+	stats = 0;
 	pos.Set( 0, 0, 0 );
 	rot = 0;
 	texMatSet = false;

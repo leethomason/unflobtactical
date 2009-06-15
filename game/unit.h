@@ -7,6 +7,8 @@
 #include "../grinliz/glvector.h"
 #include "../engine/enginelimits.h"
 
+#include "stats.h"
+
 class UFOStream;
 class Model;
 class ModelResource;
@@ -50,10 +52,10 @@ public:
 	};
 
 	enum {
-		ALIEN_0,
-		ALIEN_1,
-		ALIEN_2,
-		ALIEN_3
+		ALIEN_0,	// grey
+		ALIEN_1,	// mind zapper
+		ALIEN_2,	// trooper
+		ALIEN_3		// elit
 	};
 
 	enum {
@@ -72,7 +74,7 @@ public:
 
 	bool InUse()			{ return status != STATUS_NOT_INIT; }
 	bool IsAlive()			{ return status == STATUS_ALIVE; }
-	void Kill();
+	void DoDamange( int hp );
 
 	int Status()			{ return status; }
 	int Team()				{ return team; }
@@ -89,10 +91,11 @@ public:
 
 	void SetWeapon( const ItemDef* itemDef );
 
-	Model* GetModel()				{ return model; }
-	const Model* GetModel() const	{ return model; }
+	Model* GetModel()						{ return model; }
+	const Model* GetModel() const			{ return model; }
 	Model* GetWeaponModel()					{ return weapon; }
 	const Model* GetWeaponModel() const		{ return weapon; }
+	const Stats& GetStats() const			{ return stats; }
 
 	float AngleBetween( const Unit* target, bool quantize ) const;
 
@@ -128,6 +131,8 @@ private:
 	void UpdateModel();		// make the model current with the unit status - armor, etc.
 	void UpdateWeapon();	// set the gun position
 
+	void Kill();
+
 	int status;
 	int team;	// terran, alien, civ
 	U32 body;	// describes everything! a random #
@@ -137,6 +142,8 @@ private:
 	Model*		model;
 	Model*		weapon;
 	ItemDef*	weaponItem;	// temporary - needs inventory system
+
+	Stats		stats;
 };
 
 

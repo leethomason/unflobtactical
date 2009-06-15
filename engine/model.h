@@ -140,11 +140,9 @@ public:
 	// Set the texture - overrides all textures
 	void SetTexture( const Texture* t )			{ setTexture = t; }
 
-	//void CalcBoundSphere( grinliz::Sphere* sphere ) const;
-	//void CalcBoundCircle( grinliz::Circle* circle ) const;
+	// AABB for user selection (bigger than the true AABB)
 	void CalcHitAABB( grinliz::Rectangle3F* aabb ) const;
-
-	// Calcs the AABB if the rotation is Nx90. Returs true for success.
+	// The bounding box
 	const grinliz::Rectangle3F& AABB() const;
 
 	void CalcTrigger( grinliz::Vector3F* trigger ) const;
@@ -160,6 +158,7 @@ public:
 
 	Model* next;			// used by the SpaceTree query
 	Model* next0;			// used by the Engine sub-sorting
+	void* stats;			// essentially a "userdata" to hang off the state
 
 private:
 	struct TexMat {
