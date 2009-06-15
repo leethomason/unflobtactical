@@ -40,74 +40,66 @@ namespace grinliz {
 class MemoryPool
 {
   public:
-	MemoryPool( const char* _name, unsigned objectSize, unsigned blockSize = 4096 );
+	MemoryPool( const char* _name, unsigned objectSize, unsigned blockSize = 4096, bool warnOnGrowth=false );
 	~MemoryPool();
 
-	void* Alloc() {
-		void* ret = 0;
-
-		if ( !head ) {
-			NewBlock();
-			GLASSERT( head );
-		}
-
-		ret = head;
-		head = head->nextChunk;
-
-		++numChunks;
-		#ifdef DEBUG
-			memset( ret, 0xaa, chunkSize );
-		#endif
-
-		return ret;
-	}
-
-	void Free( void* mem ) {
-		if ( !mem )
-			return;
-
-		Chunk* chunk = (Chunk*) mem;
-
-		--numChunks;
-		#ifdef DEBUG
-			memset( mem, 0xbb, chunkSize );
-		#endif
-
-		chunk->nextChunk = head;
-		head = chunk;
-	}
+	void* Alloc();
+	void Free( void* mem );
 
 	void FreePool();
 
-	unsigned Blocks()	{ return numBlocks; }
-	unsigned Chunks()	{ return numChunks; }
-	unsigned MemoryUsed()	{ return numBlocks * blockSize; }
+	unsigned Blocks()			{ return numBlocks; }
+	unsigned NumObjects()		{ return numObjects; }
+	unsigned ObjectWatermark()	{ return numObjectsWatermark; }
+
+	unsigned MemoryInUse()		{ return numObjects * objectSize; }
+	unsigned MemoryInUseWatermark()		{ return numObjectsWatermark * objectSize; }
+	unsigned MemoryAllocated()	{ return numBlocks * blockSize; }
+
+	bool Empty()				{ return numObjects == 0; }
+	bool MemoryInPool( void* mem );
 
   private:
-	struct Chunk
-	{
-		Chunk* nextChunk;
-	};
-
 	struct Block
 	{
 		Block* nextBlock;
-		Chunk* chunk;		// treated as an array of chunks.
+	};
+	struct Object
+	{
+		Object* next;
 	};
 
 	void NewBlock();
 
-	unsigned chunkSize;			// size of chunk in bytes
+	void* MemStart( Block* block )		
+	{ 
+		return block+1; 
+	}
+	void* MemEnd( Block* block )		
+	{ 
+		return (U8*)MemStart( block ) + objectsPerBlock*objectSize;
+	}
+	Object* GetObject( Block* block, unsigned i )	
+	{	
+		GLASSERT( i<objectsPerBlock );
+		U8* mem = (U8*)MemStart( block ) + i*objectSize;
+		return (Object*)mem;
+	}
+
+
+	unsigned objectSize;		// size of chunk in bytes
 	unsigned blockSize;			// size of block in bytes
-	unsigned chunksPerBlock;
+	unsigned objectsPerBlock;
 	
 	unsigned numBlocks;
-	unsigned numChunks;
+	unsigned numObjects;
+	unsigned numObjectsWatermark;
 	
 	Block* rootBlock;
-	Chunk* head;
+	Object* head;
 
 	const char* name;
+	bool warn;
 };
 
 /*	A memory pool that has a fixed allocation.
@@ -173,35 +165,6 @@ class FixedMemoryPool
 	Chunk* root;
 };
 
-
-/* 	This is memory allocation for when you know exactly how much 
-	memory is going to be needed. So it's a way to pre-allocate 
-	while still using the new and delete operators.
-
-	FIXME 16 byte align
-*/
-class LinearMemoryPool
-{
-  public:
-	/// Construct, and pass in the amount of memory needed, in bytes.
-	LinearMemoryPool( unsigned totalMemory );
-	~LinearMemoryPool();
-
-	/// Allocate a chunk of memory.
-	void* Alloc( unsigned allocate );
-
-	/** Note this does nothing.
-	*/
-	void Free( void* )		{}
-
-	/// Return true of this is out of memory.
-	bool OutOfMemory()			{ return current == end; }
-
-  public:
-	char*	base;
-	char*	current;
-	char*	end;
-};
 
 };
 

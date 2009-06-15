@@ -282,6 +282,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\game\stats.h"
+				>
+			</File>
+			<File
 				RelativePath=".\game\unit.cpp"
 				>
 			</File>

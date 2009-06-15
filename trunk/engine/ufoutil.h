@@ -6,14 +6,16 @@
 
 void CStackEnsureCap( unsigned needInBytes, unsigned* capInBytes, void** stack );
 
+/* A stack class for c-structs. (No constructor, no destructor, can be copied.)
+ */
 template < class T >
 class CStack
 {
 public:
 	CStack( int allocate = 16 ) : stack( 0 ), size( 0 ), capInBytes( 0 ) 
 	{
-		//CStackEnsureCap( allocate*sizeof(T), &capInBytes, (void**) &stack );	
-		CStackEnsureCap( 1, &capInBytes, (void**) &stack );	
+		CStackEnsureCap( allocate*sizeof(T), &capInBytes, (void**) &stack );	
+		//CStackEnsureCap( 1, &capInBytes, (void**) &stack );	
 	}
 	~CStack() {
 		free( stack );

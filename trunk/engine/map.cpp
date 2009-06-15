@@ -25,7 +25,9 @@ using namespace grinliz;
 using namespace micropather;
 
 
-Map::Map( SpaceTree* tree )
+Map::Map( SpaceTree* tree ) :
+	statePool( "MapStatePool", sizeof( MapItemState ), EL_ALLOCATED_MODELS*sizeof(MapItemState)/4 )
+
 {
 	memset( itemDefArr, 0, sizeof(ItemDef)*MAX_ITEM_DEF );
 	memset( tileArr, 0, sizeof(Tile)*SIZE*SIZE );
@@ -324,6 +326,41 @@ Map::Tile* Map::GetTileFromItem( const Item* item, int* _layer, int* x, int *y )
 }
 
 
+void Map::DoDamage( Model* m, int hp )
+{
+	if ( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) 
+	{
+		GLASSERT( m->stats && statePool.MemoryInPool( m->stats ) );
+		MapItemState* state = (MapItemState*)m->stats;
+
+		if ( state->CanDamage() && state->DoDamage( hp ) ) {
+			GLASSERT( state->item );
+			Item* item = state->item;
+
+			// Destroy the current model. Replace it with "destroyed"
+			// model if there is one.
+			Vector3F pos = item->model->Pos();
+			float rot = item->model->GetYRotation();
+			tree->FreeModel( item->model );
+			item->model = 0;
+
+			const ItemDef& itemDef = itemDefArr[item->itemDefIndex];
+			if ( itemDef.modelResourceDestroyed ) {
+				item->model = tree->AllocModel( itemDef.modelResourceDestroyed );
+				item->model->SetFlag( Model::MODEL_OWNED_BY_MAP );
+				item->model->SetPos( pos );
+				item->model->SetYRotation( rot );
+				item->model->stats = state;			
+			}
+			else {
+				// don't have a state any more - the model is completely gone.
+				statePool.Free( state );
+			}
+		}
+	}
+}
+
+
 #ifdef MAPMAKER
 Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 {
@@ -414,6 +451,11 @@ bool Map::AddToTile( int x, int y, int defIndex, int rotation )
 				item->model->SetFlag( Model::MODEL_OWNED_BY_MAP );
 				item->model->SetPos( modelPos.x, 0.0f, modelPos.y );
 				item->model->SetYRotation( 90.0f * rotation );
+
+				MapItemState* state = (MapItemState*) statePool.Alloc();
+				state->Init( itemDefArr[defIndex] );
+				state->item = item;
+				item->model->stats = state;
 			}
 			else {
 				item->itemDefIndex	= defIndex;
@@ -458,8 +500,10 @@ void Map::DeleteAt( int x, int y )
 	CalcModelPos( x, y, mainItem->rotation, itemDefArr[mainItem->itemDefIndex], &bounds, &p );
 	
 	// Free the main item.
-	GLASSERT( tile->item[layer].model );
-	tree->FreeModel( tile->item[layer].model );
+	if ( tile->item[layer].model ) {
+		statePool.Free( tile->item[layer].model->stats );
+		tree->FreeModel( tile->item[layer].model );
+	}
 
 	tile->item[layer].itemDefIndex = 0;
 	tile->item[layer].rotation = 0;
@@ -934,3 +978,34 @@ int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *c
 	*/
 	return result;
 }
+
+
+void MapItemState::Init( const Map::ItemDef& itemDef )
+{
+	this->itemDef = &itemDef;
+	hp = itemDef.hp;
+	onFire = false;
+}
+
+
+bool MapItemState::DoDamage( int hit )
+{
+	if ( hit < hp ) {
+		hp -= hit;
+		return false;
+	}
+	else {
+		hp = 0;
+		return true;
+	}
+}
+
+
+bool MapItemState::CanDamage()
+{
+	if ( itemDef->hp > 0 && hp > 0 )
+		return true;
+	return false;
+}
+
+

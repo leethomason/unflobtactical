@@ -20,6 +20,7 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glbitarray.h"
+#include "../grinliz/glmemorypool.h"
 #include "../micropather/micropather.h"
 #include "vertex.h"
 #include "surface.h"
@@ -30,6 +31,7 @@ class ModelResource;
 class SpaceTree;
 class RenderQueue;
 class Texture;
+
 
 class Map : public micropather::Graph
 {
@@ -120,6 +122,9 @@ public:
 	void Draw();
 	void DrawPath();
 
+	// Explosions impacts and such.
+	void DoDamage( Model* m, int hp );
+
 	// Sets objects to block the path (usually other sprites) that the map doesn't know about.
 	void ClearPathBlocks();
 	void SetPathBlock( int x, int y );
@@ -200,14 +205,32 @@ private:
 	Surface finalMap;
 	Surface* lightMap;
 	U32 queryID;
+	grinliz::MemoryPool statePool;
 
 	micropather::MicroPather* microPather;
 
-	enum { PATHER_MEM32 = 32*1024 };	// 128K
-	grinliz::BitArray<SIZE, SIZE> pathBlock;
-	U32 patherMem[ PATHER_MEM32 ];
-	ItemDef itemDefArr[MAX_ITEM_DEF];
-	Tile    tileArr[ SIZE*SIZE ];
+	enum { PATHER_MEM32 = 32*1024 };			// 128K
+	grinliz::BitArray<SIZE, SIZE>	pathBlock;	// spaces the pather can't use (units are there)	
+	U32								patherMem[ PATHER_MEM32 ];	// big block of memory for the pather.
+	ItemDef							itemDefArr[MAX_ITEM_DEF];
+	Tile							tileArr[ SIZE*SIZE ];
 };
+
+
+class MapItemState
+{
+public:
+	void Init( const Map::ItemDef& itemDef );
+	bool DoDamage( int hp );	// return true if the object is destroyed
+	bool CanDamage();			// return true if the object can take damage
+
+	Map::Item* item;
+
+private:
+	const Map::ItemDef* itemDef;
+	U16 hp;
+	bool onFire;
+};
+
 
 #endif // UFOATTACK_MAP_INCLUDED

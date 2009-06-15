@@ -18,6 +18,7 @@
 
 #include "enginelimits.h"
 #include "model.h"
+#include "../grinliz/glmemorypool.h"
 
 /*
 	A loose quad tree for culling models. Also stores all the models in the world,
@@ -52,9 +53,10 @@ public:
 #endif
 
 private:
+
 	struct Item {
 		Model model;	// Must be first! Gets cast back to Item in destructor.
-		Item* next;
+		Item* next;		// used in the node list.
 		Item* prev;
 
 		void Unlink() {
@@ -98,8 +100,6 @@ private:
 	void InitNode();
 	void QueryPlanesRec( const grinliz::Plane* planes, int nPlanes, int intersection, const Node* node, U32  );
 
-	Item freeMemSentinel;
-	int allocated;
 	Model* modelRoot;
 	float yMin, yMax;
 
@@ -113,7 +113,7 @@ private:
 	int queryID;
 	bool debug;
 
-	Item modelPool[EL_MAX_MODELS];
+	grinliz::MemoryPool modelPool;
 
 	enum {
 		DEPTH = 5,

@@ -27,9 +27,9 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	
 	int x, y, w, h;
 
-	const int icons[] = { UIButtonBox::ICON_PLAIN, UIButtonBox::ICON_PLAIN, UIButtonBox::ICON_CHARACTER };
-	const char* iconText[] = { "home", "d/n", 0 };
-	widgets->SetButtons( icons, 3 );
+	const int icons[] = { UIButtonBox::ICON_PLAIN, UIButtonBox::ICON_PLAIN, UIButtonBox::ICON_CHARACTER, UIButtonBox::ICON_PLAIN };
+	const char* iconText[] = { "home", "d/n", 0, "fow" };
+	widgets->SetButtons( icons, 4 );
 	widgets->SetText( iconText );
 	widgets->CalcDimensions( &x, &y, &w, &h );
 	widgets->SetOrigin( 0, engine->GetScreenport().UIHeight()-h );
@@ -480,10 +480,16 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 			game->particleSystem->EmitPoint( 20, ParticleSystem::PARTICLE_HEMISPHERE, color, colorVel, hit, 0.1f, vel, 0.4f, 1000 );
 
 			Unit* hitUnit = UnitFromModel( m );
-			if ( hitUnit && hitUnit->IsAlive() ) {
-				hitUnit->Kill();
+			if ( hitUnit ) {
+				if ( hitUnit->IsAlive() ) {
+					hitUnit->DoDamange( 50 );
+					GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", hitUnit, hitUnit->GetStats().HP(), hitUnit->GetStats().TotalHP() ));
+				}
 			}
-			// FIXME: handle damaging world.
+			else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
+				// Hit world object.
+				engine->GetMap()->DoDamage( m, 50 );
+			}
 		}
 		else {		
 			Vector3F in, out;
@@ -623,7 +629,7 @@ void BattleScene::Tap(	int tap,
 
 		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
 			if ( units[i].GetModel() ) {
-				if ( canSelectAlien )
+				if ( canSelectAlien && units[i].IsAlive() )
 					units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
 				else
 					units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
