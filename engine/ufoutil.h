@@ -4,7 +4,7 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 
-void CStackEnsureCap( unsigned needInBytes, unsigned* capInBytes, void** stack );
+void CEnsureCap( unsigned needInBytes, unsigned* capInBytes, void** stack );
 
 /* A stack class for c-structs. (No constructor, no destructor, can be copied.)
  */
@@ -14,8 +14,7 @@ class CStack
 public:
 	CStack( int allocate = 16 ) : stack( 0 ), size( 0 ), capInBytes( 0 ) 
 	{
-		CStackEnsureCap( allocate*sizeof(T), &capInBytes, (void**) &stack );	
-		//CStackEnsureCap( 1, &capInBytes, (void**) &stack );	
+		CEnsureCap( allocate*sizeof(T), &capInBytes, (void**) &stack );	
 	}
 	~CStack() {
 		free( stack );
@@ -23,7 +22,7 @@ public:
 
 	void Push( T t ) {
 		if ( capInBytes <= (size+1)*sizeof(T) ) {
-			CStackEnsureCap( (size+1)*sizeof(T), &capInBytes, (void**) &stack );	
+			CEnsureCap( (size+1)*sizeof(T), &capInBytes, (void**) &stack );	
 		}
 		stack[size++] = t;
 	}
@@ -41,5 +40,41 @@ private:
 	unsigned size;
 	unsigned capInBytes;
 };
+
+
+/* A stack class for c-structs. (No constructor, no destructor, can be copied.)
+ */
+template < class T >
+class CDynArray
+{
+public:
+	CDynArray( int allocate = 16 ) : vec( 0 ), size( 0 ), capInBytes( 0 ) 
+	{
+		CEnsureCap( allocate*sizeof(T), &capInBytes, (void**) &vec );	
+	}
+	~CDynArray() {
+		free( vec );
+	}
+
+	T& operator[]( int i )				{ GLASSERT( i>=0 && i<(int)size ); return vec[i]; }
+	const T& operator[]( int i ) const	{ GLASSERT( i>=0 && i<(int)size ); return vec[i]; }
+
+	void Push( T t ) {
+		if ( capInBytes <= (size+1)*sizeof(T) ) {
+			CEnsureCap( (size+1)*sizeof(T), &capInBytes, (void**) &vec );	
+		}
+		vec[size++] = t;
+	}
+	unsigned Size()	{ return size; }
+	
+	void Clear()	{ size = 0; }
+	bool Empty()	{ return size==0; }
+
+private:
+	T* vec;
+	unsigned size;
+	unsigned capInBytes;
+};
+
 
 #endif

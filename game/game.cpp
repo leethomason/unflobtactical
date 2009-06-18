@@ -47,9 +47,7 @@ Game::Game( const Screenport& sp ) :
 	trianglesSinceMark( 0 ),
 	previousTime( 0 ),
 	isDragging( false ),
-	nSceneStack( 0 ),
-	nItemDefs( 0 ),
-	itemDefArr( 0 )
+	nSceneStack( 0 )
 {
 	memset( memStream, 0, sizeof(MemStream)*MAX_STREAMS );
 	currentFrame = 0;
@@ -110,7 +108,6 @@ Game::~Game()
 	delete particleSystem;
 	FreeModels();
 	FreeTextures();
-	delete [] itemDefArr;
 
 	for( int i=0; i<MAX_STREAMS; ++i ) {
 		if ( memStream[i].stream ) {

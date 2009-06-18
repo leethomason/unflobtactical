@@ -25,13 +25,14 @@
 #include "vertex.h"
 #include "surface.h"
 #include "enginelimits.h"
+#include "../game/material.h"	// FIXME FIXME: need to move 'map' to the 'game' directory. This is a forward include.
 
 class Model;
 class ModelResource;
 class SpaceTree;
 class RenderQueue;
 class Texture;
-
+struct ItemDef;
 
 class Map : public micropather::Graph
 {
@@ -42,7 +43,7 @@ public:
 		ITEM_PER_TILE = 4,
 	};
 
-	struct ItemDef 
+	struct MapItemDef 
 	{
 		enum { MAX_CX = 6, MAX_CY = 6 };
 
@@ -123,13 +124,13 @@ public:
 	void DrawPath();
 
 	// Explosions impacts and such.
-	void DoDamage( Model* m, int hp );
+	void DoDamage( int damageBase, Model* m, const ItemDef* weapon );
 
 	// Sets objects to block the path (usually other sprites) that the map doesn't know about.
 	void ClearPathBlocks();
 	void SetPathBlock( int x, int y );
 
-	Map::ItemDef* InitItemDef( int i );
+	MapItemDef* InitItemDef( int i );
 	const char* GetItemDefName( int i );
 
 #ifdef MAPMAKER
@@ -177,7 +178,7 @@ private:
 	void StateToVec( const void* state, grinliz::Vector2<S16>* vec ) { *vec = *((grinliz::Vector2<S16>*)&state); }
 	void* VecToState( const grinliz::Vector2<S16>& vec )			 { return (void*)(*(int*)&vec); }
 
-	void CalcModelPos(	int x, int y, int r, const ItemDef& itemDef, 
+	void CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef, 
 						grinliz::Rectangle2I* mapBounds,
 						grinliz::Vector2F* origin );
 
@@ -212,7 +213,7 @@ private:
 	enum { PATHER_MEM32 = 32*1024 };			// 128K
 	grinliz::BitArray<SIZE, SIZE>	pathBlock;	// spaces the pather can't use (units are there)	
 	U32								patherMem[ PATHER_MEM32 ];	// big block of memory for the pather.
-	ItemDef							itemDefArr[MAX_ITEM_DEF];
+	MapItemDef						itemDefArr[MAX_ITEM_DEF];
 	Tile							tileArr[ SIZE*SIZE ];
 };
 
@@ -220,14 +221,14 @@ private:
 class MapItemState
 {
 public:
-	void Init( const Map::ItemDef& itemDef );
+	void Init( const Map::MapItemDef& itemDef );
 	bool DoDamage( int hp );	// return true if the object is destroyed
 	bool CanDamage();			// return true if the object can take damage
 
 	Map::Item* item;
 
 private:
-	const Map::ItemDef* itemDef;
+	const Map::MapItemDef* itemDef;
 	U16 hp;
 	bool onFire;
 };

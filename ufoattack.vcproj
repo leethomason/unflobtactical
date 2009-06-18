@@ -278,6 +278,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\game\material.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\game\material.h"
+				>
+			</File>
+			<File
 				RelativePath=".\game\scene.h"
 				>
 			</File>

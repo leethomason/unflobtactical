@@ -20,19 +20,23 @@ struct ItemDef
 {
 	enum {
 		TYPE_WEAPON,
-		TYPE_ARMOR
+		TYPE_ARMOR,
+
+		AIMED = 0,
+		SNAP  = 1,
+		AUTO  = 2
 	};
 
 	int				type;
 	const char*		name;
 	ModelResource*	resource;
+	int				flags;
+	int				damage;
 
-	void Init( int _type, const char* _name, ModelResource* _resource ) {
-		GLASSERT( _resource );
-		type = _type;
-		name = _name;
-		resource = _resource;
-	}
+	void Init( int _type, const char* _name, ModelResource* _resource );
+	void InitWeapon( const char* _name, ModelResource* _resource, int flags, int damage );
+
+	void QueryWeaponRender( grinliz::Vector4F* beamColor, float* beamDecay, float* beamWidth, grinliz::Vector4F* impactColor ) const;
 };
 
 
@@ -74,7 +78,7 @@ public:
 
 	bool InUse()			{ return status != STATUS_NOT_INIT; }
 	bool IsAlive()			{ return status == STATUS_ALIVE; }
-	void DoDamange( int hp );
+	void DoDamage( const ItemDef* weapon );
 
 	int Status()			{ return status; }
 	int Team()				{ return team; }
@@ -90,6 +94,7 @@ public:
 	void CalcMapPos( grinliz::Vector2I* ) const;
 
 	void SetWeapon( const ItemDef* itemDef );
+	const ItemDef* GetWeapon()				{ return weaponItem; }
 
 	Model* GetModel()						{ return model; }
 	const Model* GetModel() const			{ return model; }
@@ -141,7 +146,7 @@ private:
 	Engine*		engine;
 	Model*		model;
 	Model*		weapon;
-	ItemDef*	weaponItem;	// temporary - needs inventory system
+	const ItemDef*	weaponItem;	// temporary - needs inventory system
 
 	Stats		stats;
 };

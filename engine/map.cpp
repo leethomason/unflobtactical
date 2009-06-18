@@ -20,7 +20,7 @@
 #include "renderqueue.h"
 #include "surface.h"
 #include "text.h"
-
+#include "../game/unit.h"
 using namespace grinliz;
 using namespace micropather;
 
@@ -202,7 +202,7 @@ void Map::GenerateLightMap( const grinliz::BitArray<SIZE, SIZE>& fogOfWar )
 
 
 
-Map::ItemDef* Map::InitItemDef( int i )
+Map::MapItemDef* Map::InitItemDef( int i )
 {
 	GLASSERT( i > 0 );				// 0 is reserved
 	GLASSERT( i < MAX_ITEM_DEF );
@@ -260,8 +260,8 @@ void Map::ResolveReference( const Item* inItem, Item** outItem, Tile** outTile, 
 		*dx = childX - parentX;
 		*dy = childY - parentY;
 	}
-	GLASSERT( *dx >= 0 && *dx < ItemDef::MAX_CX );
-	GLASSERT( *dy >= 0 && *dy < ItemDef::MAX_CY );
+	GLASSERT( *dx >= 0 && *dx < MapItemDef::MAX_CX );
+	GLASSERT( *dy >= 0 && *dy < MapItemDef::MAX_CY );
 }
 
 
@@ -326,12 +326,14 @@ Map::Tile* Map::GetTileFromItem( const Item* item, int* _layer, int* x, int *y )
 }
 
 
-void Map::DoDamage( Model* m, int hp )
+void Map::DoDamage( int baseDamage, Model* m, const ItemDef* weapon )
 {
 	if ( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) 
 	{
 		GLASSERT( m->stats && statePool.MemoryInPool( m->stats ) );
 		MapItemState* state = (MapItemState*)m->stats;
+
+		int hp = baseDamage;	// FIXME
 
 		if ( state->CanDamage() && state->DoDamage( hp ) ) {
 			GLASSERT( state->item );
@@ -344,7 +346,7 @@ void Map::DoDamage( Model* m, int hp )
 			tree->FreeModel( item->model );
 			item->model = 0;
 
-			const ItemDef& itemDef = itemDefArr[item->itemDefIndex];
+			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 			if ( itemDef.modelResourceDestroyed ) {
 				item->model = tree->AllocModel( itemDef.modelResourceDestroyed );
 				item->model->SetFlag( Model::MODEL_OWNED_BY_MAP );
@@ -533,7 +535,7 @@ void Map::DeleteAt( int x, int y )
 }
 
 
-void Map::CalcModelPos(	int x, int y, int r, const ItemDef& itemDef, 
+void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef, 
 						grinliz::Rectangle2I* mapBounds,
 						grinliz::Vector2F* origin )
 {
@@ -667,7 +669,7 @@ void Map::DumpTile( int x, int y )
 
 		for( int i=0; i<ITEM_PER_TILE; ++i ) {
 			int index = tile.item[i].itemDefIndex;
-			const ItemDef& itemDef = itemDefArr[index];
+			const MapItemDef& itemDef = itemDefArr[index];
 
 			if ( tile.item[i].IsReference() ) {
 				int rx, ry, layer;
@@ -813,7 +815,7 @@ int Map::GetPathMask( int x, int y )
 
 			GLASSERT( rot >= 0 && rot < 4 );
 
-			const ItemDef& itemDef = itemDefArr[item->itemDefIndex];
+			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 			Vector2I size = { itemDef.cx, itemDef.cy };
 			Vector2I prime = { 0, 0 };
 
@@ -980,7 +982,7 @@ int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *c
 }
 
 
-void MapItemState::Init( const Map::ItemDef& itemDef )
+void MapItemState::Init( const Map::MapItemDef& itemDef )
 {
 	this->itemDef = &itemDef;
 	hp = itemDef.hp;
