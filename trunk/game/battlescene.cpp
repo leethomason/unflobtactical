@@ -488,14 +488,13 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 			Unit* hitUnit = UnitFromModel( m );
 			if ( hitUnit ) {
 				if ( hitUnit->IsAlive() ) {
-					hitUnit->DoDamage( weaponDef );
+					hitUnit->DoDamage( weaponDef->damage, weaponDef->material );
 					GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", hitUnit, hitUnit->GetStats().HP(), hitUnit->GetStats().TotalHP() ));
 				}
 			}
 			else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
 				// Hit world object.
-
-				engine->GetMap()->DoDamage( 50, m, weaponDef );	// FIXME
+				engine->GetMap()->DoDamage( weaponDef->damage, m, weaponDef->material );
 			}
 		}
 		else {		

@@ -25,7 +25,6 @@
 #include "vertex.h"
 #include "surface.h"
 #include "enginelimits.h"
-#include "../game/material.h"	// FIXME FIXME: need to move 'map' to the 'game' directory. This is a forward include.
 
 class Model;
 class ModelResource;
@@ -52,8 +51,7 @@ public:
 						cx = 1; 
 						cy = 1; 
 						hp = 0; 
-						flammable = 0; 
-						explosive = 0;
+						materialFlags = 0;
 
 						modelResource			= 0;
 						modelResourceOpen		= 0;
@@ -62,8 +60,7 @@ public:
 
 		U16		cx, cy;
 		U16		hp;					// 0 infinite, >0 can be damaged
-		U16		flammable;			// 0: none, 1: wood, 2: gas
-		U16		explosive;			// 0: no, >0 blast radius
+		U32		materialFlags;
 
 		ModelResource* modelResource;
 		ModelResource* modelResourceOpen;
@@ -124,7 +121,7 @@ public:
 	void DrawPath();
 
 	// Explosions impacts and such.
-	void DoDamage( int damageBase, Model* m, const ItemDef* weapon );
+	void DoDamage( int damageBase, Model* m, int shellFlags );
 
 	// Sets objects to block the path (usually other sprites) that the map doesn't know about.
 	void ClearPathBlocks();

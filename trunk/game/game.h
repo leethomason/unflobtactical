@@ -110,8 +110,7 @@ private:
 		int cx;
 		int cy;
 		int hp;
-		int flammable;
-		int explosive;
+		int materialFlags;
 		const char* pather0;
 		const char* pather1;
 	};
