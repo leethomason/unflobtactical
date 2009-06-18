@@ -30,7 +30,7 @@ struct ItemDef
 	int				type;
 	const char*		name;
 	ModelResource*	resource;
-	int				flags;
+	int				material;
 	int				damage;
 
 	void Init( int _type, const char* _name, ModelResource* _resource );
@@ -78,7 +78,7 @@ public:
 
 	bool InUse()			{ return status != STATUS_NOT_INIT; }
 	bool IsAlive()			{ return status == STATUS_ALIVE; }
-	void DoDamage( const ItemDef* weapon );
+	void DoDamage( int damageBase, int shellFlags );
 
 	int Status()			{ return status; }
 	int Team()				{ return team; }

@@ -1,6 +1,7 @@
 #include "unit.h"
 #include "game.h"
 #include "../engine/engine.h"
+#include "material.h"
 
 using namespace grinliz;
 
@@ -262,13 +263,14 @@ void Unit::Kill()
 }
 
 
-void Unit::DoDamage( const ItemDef* weapon )
+void Unit::DoDamage( int damageBase, int shell )
 {
-	GLASSERT( 0 );	// fix
-	//stats.DoDamage( hp );
-	//if ( !stats.HP() ) {
-	//	Kill();
-	//}
+	int hp = MaterialDef::CalcDamage( damageBase, shell, MaterialDef::MAT_GENERIC );
+
+	stats.DoDamage( hp );
+	if ( !stats.HP() ) {
+		Kill();
+	}
 }
 
 
@@ -405,14 +407,14 @@ void ItemDef::Init( int _type, const char* _name, ModelResource* _resource )
 	type = _type;
 	name = _name;
 	resource = _resource;
-	flags = 0;
+	material = 0;
 }
 
 
 void ItemDef::InitWeapon( const char* _name, ModelResource* _resource, int _flags, int damage )
 {
 	Init( TYPE_WEAPON, _name, _resource );
-	flags = _flags;
+	material = _flags;
 	this->damage = damage;
 }
 
@@ -421,13 +423,13 @@ void ItemDef::QueryWeaponRender( grinliz::Vector4F* beamColor, float* beamDecay,
 {
 	GLASSERT( type == TYPE_WEAPON );
 
-	if ( flags & MaterialDef::SH_KINETIC ) {
+	if ( material & MaterialDef::SH_KINETIC ) {
 		beamColor->Set( 0.8f, 0.8f, 0.8f, 1.0f );
 		*beamDecay = -3.0f;
 		*beamWidth = 0.07f;
 		impactColor->Set( 0.3f, 0.3f, 0.9f, 1.0f );
 	}
-	if ( flags & MaterialDef::SH_ENERGY ) {
+	if ( material & MaterialDef::SH_ENERGY ) {
 		beamColor->Set( 1, 1, 0.8f, 1.0f );
 		*beamDecay = -2.0f;
 		*beamWidth = 0.12f;

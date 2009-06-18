@@ -20,7 +20,9 @@
 #include "renderqueue.h"
 #include "surface.h"
 #include "text.h"
-#include "../game/unit.h"
+#include "../game/material.h"		// bad call to less general directory. FIXME. Move map to game?
+#include "../game/unit.h"		// bad call to less general directory. FIXME. Move map to game?
+
 using namespace grinliz;
 using namespace micropather;
 
@@ -326,18 +328,19 @@ Map::Tile* Map::GetTileFromItem( const Item* item, int* _layer, int* x, int *y )
 }
 
 
-void Map::DoDamage( int baseDamage, Model* m, const ItemDef* weapon )
+void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 {
 	if ( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) 
 	{
 		GLASSERT( m->stats && statePool.MemoryInPool( m->stats ) );
 		MapItemState* state = (MapItemState*)m->stats;
 
-		int hp = baseDamage;	// FIXME
+		Item* item = state->item;
+		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
+		int hp = MaterialDef::CalcDamage( baseDamage, shellFlags, itemDef.materialFlags );
 
 		if ( state->CanDamage() && state->DoDamage( hp ) ) {
 			GLASSERT( state->item );
-			Item* item = state->item;
 
 			// Destroy the current model. Replace it with "destroyed"
 			// model if there is one.
@@ -346,7 +349,6 @@ void Map::DoDamage( int baseDamage, Model* m, const ItemDef* weapon )
 			tree->FreeModel( item->model );
 			item->model = 0;
 
-			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 			if ( itemDef.modelResourceDestroyed ) {
 				item->model = tree->AllocModel( itemDef.modelResourceDestroyed );
 				item->model->SetFlag( Model::MODEL_OWNED_BY_MAP );
