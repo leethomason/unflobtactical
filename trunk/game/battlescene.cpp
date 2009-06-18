@@ -431,6 +431,21 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 {
 	if ( unit && model && unit->IsAlive() ) {
 		Vector3F p0, p1;
+
+		Vector3F beam0 = { 0, 0, 0 }, beam1 = { 0, 0, 0 };
+		
+		Vector4F	beamColor	= { 1, 1, 1, 1 };
+		float		beamDecay	= -3.0f;
+		Vector4F	impactColor	= { 1, 1, 1, 1 };
+		float		beamWidth = 0.01f;
+		bool hitSomething = false;
+
+		const ItemDef* weaponDef = unit->GetWeapon();
+		GLASSERT( weaponDef );
+		if ( weaponDef ) {
+			weaponDef->QueryWeaponRender( &beamColor, &beamDecay, &beamWidth, &impactColor );
+		}
+
 		model->CalcTrigger( &p0 );
 		p1 = action->target;
 
@@ -443,7 +458,7 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		//		unit, alive (does damage)
 		//		unit, dead (does nothing)
 		//		model, world (does damage)
-		//		gun, ???
+		//		gun, does nothing
 		// ground / bounds
 
 		Vector3F hit;
@@ -466,29 +481,21 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		}
 
 		if ( m ) {
-			const float GREY = 0.8f;
-			Vector4F color = { GREY, GREY, GREY, 1 };
-			Vector4F colorVel = { 0, 0, 0, -3.0f };
-
-			game->particleSystem->EmitBeam( color, colorVel, p0, hit, 0.07f, 700 );
-
-			color.Set( 1, 0, 0, 1 );
-			colorVel.Set( 0, 0, 0, -1.0f );
-			Vector3F vel = p0 - hit;
-			vel.Normalize();
-
-			game->particleSystem->EmitPoint( 20, ParticleSystem::PARTICLE_HEMISPHERE, color, colorVel, hit, 0.1f, vel, 0.4f, 1000 );
+			hitSomething = true;
+			beam0 = p0;
+			beam1 = hit;
 
 			Unit* hitUnit = UnitFromModel( m );
 			if ( hitUnit ) {
 				if ( hitUnit->IsAlive() ) {
-					hitUnit->DoDamange( 50 );
+					hitUnit->DoDamage( weaponDef );
 					GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", hitUnit, hitUnit->GetStats().HP(), hitUnit->GetStats().TotalHP() ));
 				}
 			}
 			else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
 				// Hit world object.
-				engine->GetMap()->DoDamage( m, 50 );
+
+				engine->GetMap()->DoDamage( 50, m, weaponDef );	// FIXME
 			}
 		}
 		else {		
@@ -502,22 +509,27 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 
 			GLASSERT( result == grinliz::INTERSECT );
 			if ( result == grinliz::INTERSECT ) {
-				const float GREY = 0.8f;
-				Vector4F color = { GREY, GREY, GREY, 1 };
-				Vector4F colorVel = { 0, 0, 0, -3.0f };
-
-				game->particleSystem->EmitBeam( color, colorVel, p0, out, 0.07f, 700 );
+				beam0 = p0;
+				beam1 = out;
 
 				if ( out.y < 0.01 ) {
 					// hit the ground
-					color.Set( 1, 0, 0, 1 );
-					colorVel.Set( 0, 0, 0, -1.0f );
-					Vector3F vel = out - in;
-					vel.Normalize();
-
-					game->particleSystem->EmitPoint( 20, ParticleSystem::PARTICLE_RAY, color, colorVel, hit, 0.1f, vel, 0.4f, 1000 );
+					hitSomething = true;
 				}
 			}
+		}
+
+		if ( beam0 != beam1 ) {
+			Vector4F colorVel = { 0, 0, 0, beamDecay };
+			game->particleSystem->EmitBeam( beamColor, colorVel, beam0, beam1, beamWidth, 1000 );
+		}
+		if ( hitSomething ) {
+			Vector4F colorVel = { 0, 0, 0, -1.0f };
+			Vector3F velocity = beam1 - beam0;
+			velocity.Normalize();
+
+			game->particleSystem->EmitPoint( 20, ParticleSystem::PARTICLE_HEMISPHERE, 
+											 impactColor, colorVel, beam1, 0.1f, velocity, 0.4f, 1000 );
 		}
 	}
 	actionStack.Pop();

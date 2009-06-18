@@ -1,6 +1,7 @@
 #include "game.h"
 #include "cgame.h"
 #include "unit.h"
+#include "material.h"
 
 // Only need non-item models.
 const char* const gModelNames[] = 
@@ -184,7 +185,7 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 {
 	while( init->model ) 
 	{
-		Map::ItemDef* itemDef = engine.GetMap()->InitItemDef( index );
+		Map::MapItemDef* itemDef = engine.GetMap()->InitItemDef( index );
 		itemDef->Init();
 
 		itemDef->cx = init->cx;
@@ -349,17 +350,19 @@ void Game::LoadMapResources()
 
 void Game::LoadItemResources()
 {
-	nItemDefs = 2;
-	itemDefArr = new ItemDef[nItemDefs];
+	ItemDef item;
 
-	itemDefArr[0].Init( ItemDef::TYPE_WEAPON, "gun0", GetResource( "gun0" ) );
-	itemDefArr[1].Init( ItemDef::TYPE_WEAPON, "gun1", GetResource( "gun1" ) );
+	item.InitWeapon( "gun0", GetResource( "gun0" ),		MaterialDef::SH_KINETIC,	50 );
+	itemDefArr.Push( item );
+
+	item.InitWeapon( "gun1", GetResource( "gun1" ),		MaterialDef::SH_ENERGY,	70 );
+	itemDefArr.Push( item );
 }
 
 
 const ItemDef* Game::GetItemDef( const char* name )
 {
-	for( int i=0; i<nItemDefs; ++i ) {
+	for( unsigned i=0; i<itemDefArr.Size(); ++i ) {
 		if ( strcmp( itemDefArr[i].name, name ) == 0 ) {
 			return &itemDefArr[i];
 		}

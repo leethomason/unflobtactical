@@ -23,6 +23,7 @@
 #include "../engine/model.h"
 #include "../engine/uirendering.h"
 #include "../grinliz/glperformance.h"
+#include "../engine/ufoutil.h"
 
 class ParticleSystem;
 class Scene;
@@ -160,8 +161,7 @@ private:
 #endif
 	grinliz::ProfileData profile;
 
-	int				nItemDefs;
-	ItemDef*		itemDefArr;
+	CDynArray<ItemDef>		itemDefArr;
 	Texture			texture[MAX_TEXTURES];
 	ModelResource	modelResource[EL_MAX_MODEL_RESOURCES];
 	Surface			lightMaps[NUM_LIGHT_MAPS];
