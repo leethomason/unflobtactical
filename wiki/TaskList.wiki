@@ -5,6 +5,8 @@
   * resource loading on demand
   * Fog of War, line of site, visibility
   * AI, simple unit movement
+  * Effects when structure destroyed.
+  * Effects when unit killed.
 
 === Resolved ===
 
