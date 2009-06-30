@@ -8,6 +8,7 @@
   * Effects when structure destroyed.
   * Effects when unit killed.
   * Fix edge detection in builder. (Switch to smooth/hard poly model?)
+  * Another pass at the particle system. Can quad particles be sorted correctly? Improve smoke / flame.
 
 === Resolved ===
 
