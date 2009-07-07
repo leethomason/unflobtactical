@@ -75,9 +75,18 @@ void ParticleSystem::Update( U32 msec )
 		while( p < pEnd ) {
 			p->age += msec;
 			if ( p->age > p->lifetime ) {
-				// swap with end.
-				grinliz::Swap( p, pEnd-1);
-				--pEnd;
+				if ( i==POINT ) {
+					// swap with end.
+					grinliz::Swap( p, pEnd-1);
+					--pEnd;
+				}
+				else {
+					// for quads, keep the same order so there isn't visual popping as they resort.
+					for( Particle* q = p; (q+1)<pEnd; ++q ) {
+						*q = *(q+1);
+					}
+					--pEnd;
+				}
 				continue;
 			}
 			// apply effect of time
@@ -201,12 +210,6 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 		p->age = 0;
 		p->lifetime = lifeP;
 
-		if ( type == FIRE ) {
-			type += rand.Rand(NUM_FIRE);
-		}
-		else if ( type == SMOKE ) {
-			type += rand.Rand(NUM_SMOKE);
-		}
 		p->type = (U8)type;
 	}
 }
@@ -283,7 +286,7 @@ void ParticleSystem::EmitFlame( U32 delta, const Vector3F& _pos )
 {
 	// flame, smoke, particle
 	U32 count[3];
-	const U32 interval[3] = { 500, 600, 200 };
+	const U32 interval[3] = { 500, 800, 200 };
 
 	// If the delta is 200, there is a 200/250 chance of it being in this delta
 	for( int i=0; i<3; ++i ) {
@@ -303,7 +306,7 @@ void ParticleSystem::EmitFlame( U32 delta, const Vector3F& _pos )
 		pos.y += 0.3f;
 
 		const Color4F color		= { 1.0f, 1.0f, 1.0f, 1.0f };
-		const Color4F colorVec	= { 0.0f, 0.0f, 0.0f, -0.4f };
+		const Color4F colorVec	= { 0.0f, -0.1f, -0.1f, -0.4f };
 		Vector3F velocity		= { 0.0f, 1.0f, 0.0f };
 
 		if ( (rand.Rand()>>28)==0 ) {
@@ -312,36 +315,36 @@ void ParticleSystem::EmitFlame( U32 delta, const Vector3F& _pos )
 
 		for( U32 i=0; i<count[0]; ++i ) {
 			Emit(	ParticleSystem::QUAD,
-					ParticleSystem::FIRE,
+					ParticleSystem::FIRE + rand.Rand( NUM_FIRE ),
 					1,
 					ParticleSystem::PARTICLE_RAY,
 					color,		colorVec,
 					pos, 0,		0.4f,	
 					velocity,	0.3f,
 					0,
-					2000 );		
+					4000 );		
 		}
 	}
 	
 	// Smoke
 	{
 		Vector3F pos = _pos;
-		pos.y += 1.0f;
+		pos.y -= 1.0f;
 
 		const Color4F color		= { 0.5f, 0.5f, 0.5f, 1.0f };
-		const Color4F colorVec	= { -0.1f, -0.1f, -0.1f, 0.0f };
+		const Color4F colorVec	= { -0.1f, -0.1f, -0.1f, -0.2f };
 		Vector3F velocity		= { 0.0f, 0.8f, 0.0f };
 
 		for( U32 i=0; i<count[1]; ++i ) {
 			Emit(	ParticleSystem::QUAD,
-					ParticleSystem::SMOKE,
+					ParticleSystem::SMOKE + rand.Rand( NUM_SMOKE ),
 					1,
 					ParticleSystem::PARTICLE_RAY,
 					color,		colorVec,
 					pos, 0,		0.6f,	
 					velocity,	0.2f,
 					0,
-					5000 );		
+					7000 );		
 		}
 	}
 	

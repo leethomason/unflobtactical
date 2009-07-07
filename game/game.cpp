@@ -47,7 +47,10 @@ Game::Game( const Screenport& sp ) :
 	trianglesSinceMark( 0 ),
 	previousTime( 0 ),
 	isDragging( false ),
-	nSceneStack( 0 )
+	currentScene( 0 ),
+	sceneStack(),
+	scenePopQueued( false ),
+	scenePushQueued( -1 )
 {
 	memset( memStream, 0, sizeof(MemStream)*MAX_STREAMS );
 	currentFrame = 0;
@@ -89,21 +92,15 @@ Game::Game( const Screenport& sp ) :
 	particleSystem->InitQuad( GetTexture( "particleQuad" ) );
 
 	currentScene = 0;
-	scenes[BATTLE_SCENE] = new BattleScene( this );
-	scenes[CHARACTER_SCENE] = new CharacterScene( this );
-
-	PushScene( BATTLE_SCENE );
+	scenePushQueued = BATTLE_SCENE;
+	PushPopScene();
 }
 
 
 Game::~Game()
 {
-	while ( nSceneStack ) {
-		PopScene();
-	}
-	for( int i=0; i<NUM_SCENES; ++i ) {
-		delete scenes[i];
-	}
+	delete currentScene;
+	currentScene = 0;
 
 	delete particleSystem;
 	FreeModels();
@@ -143,40 +140,57 @@ UFOStream* Game::OpenStream( const char* name, bool create )
 
 void Game::PushScene( int id ) 
 {
-	GLASSERT( id >= 0 && id < NUM_SCENES );
-	GLASSERT( nSceneStack < MAX_SCENE_STACK );
-	if ( nSceneStack > 0 ) {
-		sceneStack[nSceneStack-1]->DeActivate();
-	}
-	sceneStack[nSceneStack] = scenes[id];
-	sceneStack[nSceneStack]->Activate();
-	currentScene = sceneStack[nSceneStack];
-	nSceneStack++;
+	GLASSERT( scenePushQueued == -1 );
+	scenePushQueued = id;
 }
 
 
 void Game::PopScene()
 {
-	GLASSERT( nSceneStack > 0 );
-	nSceneStack--;
-	sceneStack[nSceneStack]->DeActivate();
-	currentScene = 0;
+	GLASSERT( scenePopQueued == false );
+	scenePopQueued = true;
+}
 
-	if ( nSceneStack > 0 ) {
-		sceneStack[nSceneStack-1]->Activate();
-		currentScene = sceneStack[nSceneStack-1];
+void Game::PushPopScene() 
+{
+	if ( scenePushQueued >= 0 ) {
+		GLASSERT( scenePushQueued < NUM_SCENES );
+
+		if ( currentScene ) {
+			GLASSERT( !sceneStack.Empty() );
+			delete currentScene;
+			currentScene = 0;
+		}
+		sceneStack.Push( scenePushQueued );
+		CreateScene( scenePushQueued );
+	}
+	if ( scenePopQueued ) {
+		GLASSERT( !sceneStack.Empty() );
+		GLASSERT( currentScene );
+
+		delete currentScene;
+		currentScene = 0;
+
+		sceneStack.Pop();
+		GLASSERT( !sceneStack.Empty() );
+		CreateScene( sceneStack.Top() );
+	}
+	scenePushQueued = -1;
+	scenePopQueued = false;
+}
+
+
+void Game::CreateScene( int id )
+{
+	switch ( id ) {
+		case BATTLE_SCENE:		currentScene = new BattleScene( this );			break;
+		case CHARACTER_SCENE:	currentScene = new CharacterScene( this );		break;
+		default:
+			GLASSERT( 0 );
+			break;
 	}
 }
 
-
-/*void Game::SetScreenRotation( int value ) 
-{
-	rotation = ((unsigned)value)%4;
-
-	UFOText::InitScreen( engine.Width(), engine.Height(), rotation );
-	engine.camera.SetViewRotation( rotation );
-}
-*/
 
 void Game::LoadMap( const char* name )
 {
@@ -315,6 +329,8 @@ void Game::DoTick( U32 currentTime )
 	glEnable( GL_DEPTH_TEST );
 	previousTime = currentTime;
 	++currentFrame;
+
+	PushPopScene();
 }
 
 
@@ -407,7 +423,7 @@ void Game::MouseMove( int sx, int sy )
 //				world.origin.x, world.origin.y, world.origin.z,
 //				p.x, p.y, p.z ));
 
-	if ( currentScene == scenes[BATTLE_SCENE] ) {
+	if ( sceneStack.Top() == BATTLE_SCENE ) {
 		((BattleScene*)currentScene)->MouseMove( view.x, view.y );
 	}
 }

@@ -15,18 +15,13 @@ CharacterScene::CharacterScene( Game* _game ) : Scene( _game )
 	const char* iconText[] = { "back" };
 	widgets->SetButtons( icons, 1 );
 	widgets->SetText( iconText );
+	engine->EnableMap( false );
 }
 
 
 CharacterScene::~CharacterScene()
 {
 	delete widgets;
-}
-
-
-void CharacterScene::Activate()
-{
-	engine->EnableMap( false );
 }
 
 

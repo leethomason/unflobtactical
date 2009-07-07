@@ -38,11 +38,33 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	fireWidget = new UIButtonBox( t, engine->GetScreenport() );
 	const int fireIcons[] = { UIButtonBox::ICON_AUTO, UIButtonBox::ICON_SNAP, UIButtonBox::ICON_AIM };
 	fireWidget->SetButtons( fireIcons, 3 );
+
+	engine->EnableMap( true );
+
+#ifdef MAPMAKER
+	resource = game->GetResource( "selection" );
+	selection = engine->AllocModel( resource );
+	selection->SetPos( 0.5f, 0.0f, 0.5f );
+	preview = 0;
+#endif
+
+	// Do we have a saved state?
+	UFOStream* stream = game->OpenStream( "BattleScene", false );
+	if ( !stream ) {
+		InitUnits();
+	}
+	else {
+		Load( stream );
+	}
 }
 
 
 BattleScene::~BattleScene()
 {
+	UFOStream* stream = game->OpenStream( "BattleScene" );
+	Save( stream );
+	game->particleSystem->Clear();
+
 	delete fireWidget;
 	delete widgets;
 }
@@ -89,13 +111,21 @@ void BattleScene::SetUnitsDraggable()
 
 void BattleScene::Save( UFOStream* s )
 {
+	// Selection
+	// Units[]
+
 	s->WriteU32( UFOStream::MAGIC0 );
-	// FIXME
-	//s->WriteU32( selectedUnit );
+
+	U32 selectionIndex = MAX_UNITS;
+	if ( selection.soldierUnit ) {
+		selectionIndex = selection.soldierUnit - units;
+	}
+	s->WriteU32( selectionIndex );
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		units[i].Save( s );
 	}
+
 	s->WriteU32( UFOStream::MAGIC1 );
 }
 
@@ -104,8 +134,13 @@ void BattleScene::Load( UFOStream* s )
 {
 	U32 magic = s->ReadU32();
 	GLASSERT( magic == UFOStream::MAGIC0 );
-	// FIXME
-	//selectedUnit = s->ReadU32();
+	
+	U32 selectedUnit = s->ReadU32();
+	selection.Clear();
+
+	if ( selectedUnit < MAX_UNITS ) {
+		selection.soldierUnit = &units[selectedUnit];
+	}
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		units[i].Load( s, engine, game );
@@ -115,7 +150,7 @@ void BattleScene::Load( UFOStream* s )
 	SetUnitsDraggable();
 }
 
-
+/*
 void BattleScene::Activate()
 {
 	engine->EnableMap( true );
@@ -133,9 +168,6 @@ void BattleScene::Activate()
 #endif
 
 	resource = game->GetResource( "crate" );
-	//crateTest = engine->AllocModel( resource );
-	//crateTest->Set( Model::MODEL_SELECTABLE );
-	//crateTest->SetPos( 3.5f, 0.0f, 20.0f );
 
 	// Do we have a saved state?
 	UFOStream* stream = game->OpenStream( "BattleScene", false );
@@ -166,7 +198,7 @@ void BattleScene::DeActivate()
 	//engine->FreeModel( crateTest );
 	game->particleSystem->Clear();
 }
-
+*/
 
 void BattleScene::TestHitTesting()
 {

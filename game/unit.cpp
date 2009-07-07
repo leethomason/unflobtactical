@@ -360,13 +360,15 @@ void Unit::Save( UFOStream* s )
 
 void Unit::Load( UFOStream* s, Engine* engine, Game* game )
 {
-	status = s->ReadU8();
-	GLASSERT( status == STATUS_NOT_INIT || status == STATUS_ALIVE || status == STATUS_DEAD );
-	if ( status != STATUS_NOT_INIT ) {
+	Free();
+	int _status = s->ReadU8();
+	GLASSERT( _status == STATUS_NOT_INIT || _status == STATUS_ALIVE || _status == STATUS_DEAD );
+	if ( _status != STATUS_NOT_INIT ) {
 		team = s->ReadU8();
 		body = s->ReadU32();
 
 		Init( engine, game, team, ((body>>ALIEN_TYPE_SHIFT) & ALIEN_TYPE_MASK), body );
+		status = _status;
 		
 		Vector3F pos = { 0, 0, 0 };
 		float rot;

@@ -11,8 +11,8 @@ public:
 	CharacterScene( Game* _game );
 	virtual ~CharacterScene();
 
-	virtual void Activate();
-	virtual void DeActivate()									{}
+	//virtual void Activate();
+	//virtual void DeActivate()									{}
 
 	// UI
 	virtual void Tap(	int count, 

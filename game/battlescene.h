@@ -17,8 +17,8 @@ public:
 	BattleScene( Game* );
 	virtual ~BattleScene();
 
-	virtual void Activate();
-	virtual void DeActivate();
+	//virtual void Activate();
+	//virtual void DeActivate();
 
 	virtual void Tap(	int count, 
 						const grinliz::Vector2I& screen,
@@ -34,8 +34,8 @@ public:
 	virtual void DoTick( U32 currentTime, U32 deltaTime );
 	virtual void DrawHUD();
 
-	void Save( UFOStream* s );
-	void Load( UFOStream* s );
+	virtual void Save( UFOStream* s );
+	virtual void Load( UFOStream* s );
 
 	// debugging / MapMaker
 	void MouseMove( int x, int y );
@@ -111,7 +111,8 @@ private:
 
 	struct Selection
 	{
-		Selection()	: soldierUnit( 0 ), targetUnit( 0 ), pathEndModel( 0 ) {}
+		Selection()	{ Clear(); }
+		void Clear() { soldierUnit = 0; targetUnit = 0; pathEndModel = 0; }
 		Unit*	soldierUnit;
 		Unit*	targetUnit;
 		Model*	pathEndModel;
