@@ -6,6 +6,7 @@
 
 class Game;
 class Engine;
+class UFOStream;
 
 class Scene
 {
@@ -13,8 +14,8 @@ public:
 	Scene( Game* _game ) : game( _game )						{}
 	virtual ~Scene()											{}
 
-	virtual void Activate()										{}
-	virtual void DeActivate()									{}
+	//virtual void Activate()										{}
+	//virtual void DeActivate()									{}
 
 	// UI
 	virtual void Tap(	int count, 
@@ -26,6 +27,9 @@ public:
 	virtual void Zoom( int action, int distance )				{}
 	virtual void Rotate( int action, float degrees )			{}
 	virtual void CancelInput()									{}
+
+	virtual void Save( UFOStream* s )							{}
+	virtual void Load( UFOStream* s )							{}
 
 	// Rendering
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}

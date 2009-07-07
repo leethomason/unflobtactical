@@ -99,6 +99,10 @@ public:
 	void PopScene();
 
 private:
+	void CreateScene( int id );
+	void PushPopScene();
+	bool scenePopQueued;
+	int scenePushQueued;
 
 	struct MapItemInit 
 	{
@@ -144,9 +148,7 @@ private:
 	ModelLoader* modelLoader;
 
 	Scene* currentScene;
-	Scene* scenes[NUM_SCENES];
-	Scene* sceneStack[MAX_SCENE_STACK];
-	int nSceneStack;
+	CStack<int> sceneStack;
 
 	U32 previousTime;
 	bool isDragging;
