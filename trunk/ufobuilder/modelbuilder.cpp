@@ -59,8 +59,6 @@ void ModelBuilder::AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 
 		vX[i] = vert;
 	}
 
-	const float CLOSE = 0.7f;
-
 	for( int i=0; i<3; ++i ) 
 	{
 		// Good idea that doesn't work: try to limit the scan back.
@@ -73,19 +71,25 @@ void ModelBuilder::AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 
 		{
 			const Vertex& vc = current->vertex[j];
 
-			if (    vc.pos == vX[i].pos
-				 && vc.tex == vX[i].tex )
+			const float EPS_POS = 0.01f;
+			const float EPS_TEX = 0.001f;
+
+			if ( Equal( vc.pos, vX[i].pos, EPS_POS ) && Equal( vc.tex, vX[i].tex, EPS_TEX ) )
 			{
-				// We might have a match. Look at the normals. Are they
-				// similar enough?
 				Vector3F normal0 = { vc.normal.x, vc.normal.y, vc.normal.z };
-				Vector3F normal1 = {	vX[i].normal.x, 
-										vX[i].normal.y, 
-										vX[i].normal.z };
+				Vector3F normal1 = vX[i].normal;
+				GLASSERT( Equal( normal0.Length(), 1.0f, 0.00001f ));
+				GLASSERT( Equal( normal1.Length(), 1.0f, 0.00001f ));
+				
+				// we always match if smooth.
+				float dot = 1.0f;
+				dot = DotProduct( normal0, normal1 );
+				if ( smooth ) {
+					if ( dot > 0.2f )
+						dot = 1.0f;
+				}
 
-				float dot = DotProduct( normal0, normal1 );
-
-				if ( dot > CLOSE ) {
+				if ( dot > 0.95f ) {
 					added = true;
 					current->index[ current->nIndex ] = j;
 					current->normalSum[j] = current->normalSum[j] + normal1;
@@ -96,9 +100,7 @@ void ModelBuilder::AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 
 		}
 		if ( !added ) {
 			GLASSERT( current->nVertex < EL_MAX_VERTEX_IN_GROUP );
-			current->normalSum[ current->nVertex ].Set( vX[i].normal.x, 
-														vX[i].normal.y, 
-														vX[i].normal.z );
+			current->normalSum[ current->nVertex ] = vX[i].normal;
 			current->index[ current->nIndex++ ] = current->nVertex;
 			current->vertex[ current->nVertex++ ] = vX[i];
 		}

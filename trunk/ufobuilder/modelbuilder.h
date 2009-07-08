@@ -34,12 +34,15 @@ struct VertexGroup {
 
 class ModelBuilder {
 public:
-	ModelBuilder() : current( 0 ), nGroup( 0 )	{}
+	ModelBuilder() : current( 0 ), nGroup( 0 ), smooth( false )	{}
 
 	void SetMatrix( const grinliz::Matrix4& mat )		{ matrix = mat; }
 
 	// Set the current texture. Can be empty string. Must be called before AddTri.
 	void SetTexture( const char* textureName );
+
+	// Set smooth shading, generally true for characters and false for buildings.
+	void SetShading( bool smooth )	{ this->smooth = smooth; }
 
 	// Add the tri for the current texture.
 	void AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 );
@@ -62,6 +65,7 @@ private:
 	VertexGroup group[EL_MAX_MODEL_GROUPS];
 
 	int nGroup;
+	bool smooth;
 };
 
 

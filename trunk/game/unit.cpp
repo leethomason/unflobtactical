@@ -123,7 +123,7 @@ void Unit::Init(	Engine* engine, Game* game,
 	this->game = game;
 	this->team = team;
 	weapon = 0;
-	weaponItem = 0;
+	//weaponItem = 0;
 
 	switch( team ) {
 		case SOLDIER:	GenerateSoldier( seed );			break;
@@ -189,20 +189,31 @@ void Unit::SetPos( const grinliz::Vector3F& pos, float rotation )
 }
 
 
-void Unit::SetWeapon( const ItemDef* itemDef ) 
+Item* Unit::GetWeapon()
+{
+	return inventory.ArmedWeapon();
+}
+
+
+Inventory* Unit::GetInventory()
+{
+	return &inventory;
+}
+
+
+void Unit::UpdateInventory() 
 {
 	GLASSERT( status != STATUS_NOT_INIT );
 	GLASSERT( model );
-	GLASSERT( itemDef );
 
-	weaponItem = itemDef;
 	if ( weapon ) {
 		engine->FreeModel( weapon );
 	}
-
 	weapon = 0;	// don't render non-weapon items
-	if ( itemDef->type == ItemDef::TYPE_WEAPON ) {
-		weapon = engine->AllocModel( itemDef->resource );
+
+	const Item* weaponItem = inventory.ArmedWeapon();
+	if ( weaponItem  ) {
+		weapon = engine->AllocModel( weaponItem->itemDef->resource );
 		weapon->SetFlag( Model::MODEL_NO_SHADOW );
 	}
 	UpdateWeapon();
@@ -348,12 +359,15 @@ void Unit::Save( UFOStream* s )
 {
 	s->WriteU8( status );
 	if ( status != STATUS_NOT_INIT ) {
+		s->WriteU8( 1 );	// version
 		s->WriteU8( team );
 		s->WriteU32( body );
 
 		s->WriteFloat( model->Pos().x );
 		s->WriteFloat( model->Pos().z );
 		s->WriteFloat( model->GetYRotation() );
+
+		inventory.Save( s );
 	}
 }
 
@@ -364,21 +378,27 @@ void Unit::Load( UFOStream* s, Engine* engine, Game* game )
 	int _status = s->ReadU8();
 	GLASSERT( _status == STATUS_NOT_INIT || _status == STATUS_ALIVE || _status == STATUS_DEAD );
 	if ( _status != STATUS_NOT_INIT ) {
-		team = s->ReadU8();
-		body = s->ReadU32();
-
-		Init( engine, game, team, ((body>>ALIEN_TYPE_SHIFT) & ALIEN_TYPE_MASK), body );
-		status = _status;
-		
 		Vector3F pos = { 0, 0, 0 };
 		float rot;
+
+		int version = s->ReadU8();
+		GLASSERT( version == 1 );
+
+		team = s->ReadU8();
+		body = s->ReadU32();
 
 		pos.x = s->ReadFloat();
 		pos.z = s->ReadFloat();
 		rot   = s->ReadFloat();
 
+		Init( engine, game, team, ((body>>ALIEN_TYPE_SHIFT) & ALIEN_TYPE_MASK), body );
+		status = _status;
+		
 		model->SetPos( pos );
 		model->SetYRotation( rot );
+
+		inventory.Load( s, engine, game );
+		UpdateInventory();
 	}
 }
 
@@ -403,39 +423,3 @@ float Unit::AngleBetween( const Unit* target, bool quantize ) const
 }
 
 
-void ItemDef::Init( int _type, const char* _name, ModelResource* _resource )
-{
-	GLASSERT( _resource );
-	type = _type;
-	name = _name;
-	resource = _resource;
-	material = 0;
-}
-
-
-void ItemDef::InitWeapon( const char* _name, ModelResource* _resource, int _flags, int damage )
-{
-	Init( TYPE_WEAPON, _name, _resource );
-	material = _flags;
-	this->damage = damage;
-}
-
-
-void ItemDef::QueryWeaponRender( grinliz::Vector4F* beamColor, float* beamDecay, float* beamWidth, grinliz::Vector4F* impactColor ) const
-{
-	GLASSERT( type == TYPE_WEAPON );
-
-	if ( material & MaterialDef::SH_KINETIC ) {
-		beamColor->Set( 0.8f, 0.8f, 0.8f, 1.0f );
-		*beamDecay = -3.0f;
-		*beamWidth = 0.07f;
-		impactColor->Set( 0.3f, 0.3f, 0.9f, 1.0f );
-	}
-	if ( material & MaterialDef::SH_ENERGY ) {
-		beamColor->Set( 1, 1, 0.8f, 1.0f );
-		*beamDecay = -2.0f;
-		*beamWidth = 0.12f;
-		const float INV=1.0f/255.0f;
-		impactColor->Set( 242.0f*INV, 101.0f*INV, 34.0f*INV, 1.0f );
-	}
-}

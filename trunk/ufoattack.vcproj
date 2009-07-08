@@ -278,6 +278,22 @@
 				>
 			</File>
 			<File
+				RelativePath=".\game\inventory.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\game\inventory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\game\item.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\game\item.h"
+				>
+			</File>
+			<File
 				RelativePath=".\game\material.cpp"
 				>
 			</File>

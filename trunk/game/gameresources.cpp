@@ -353,11 +353,11 @@ void Game::LoadMapResources()
 void Game::LoadItemResources()
 {
 	ItemDef item;
-
-	item.InitWeapon( "gun0", GetResource( "gun0" ),		MaterialDef::SH_KINETIC,	50 );
+														// material				damage, rounds, size
+	item.InitWeapon( "gun0", GetResource( "gun0" ),		MaterialDef::SH_KINETIC,	50,	10, 2 );
 	itemDefArr.Push( item );
 
-	item.InitWeapon( "gun1", GetResource( "gun1" ),		MaterialDef::SH_ENERGY,	70 );
+	item.InitWeapon( "gun1", GetResource( "gun1" ),		MaterialDef::SH_ENERGY,		70, 8, 2 );
 	itemDefArr.Push( item );
 }
 

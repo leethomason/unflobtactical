@@ -2,6 +2,7 @@
 #define UFO_ATTACK_CHARACTER_SCENE_INCLUDED
 
 #include "scene.h"
+#include "unit.h"
 
 class UIButtonBox;
 
@@ -31,6 +32,7 @@ public:
 protected:
 	Engine* engine;
 	UIButtonBox* widgets;
+	Unit unit;
 };
 
 
