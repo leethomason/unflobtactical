@@ -67,6 +67,7 @@ void UIButtonBox::SetButtons( const int* _icons, int _nIcons )
 
 	for( int i=0; i<nIcons; ++i ) {
 		icons[i].id = _icons[i];
+		icons[i].enabled = true;
 	}
 
 	cacheValid = false;
@@ -94,6 +95,16 @@ void UIButtonBox::SetText( const char** text )
 }
 
 
+void UIButtonBox::SetEnabled( int index, bool enabled )
+{
+	GLASSERT( index >=0 && index < nIcons );
+	if ( icons[index].enabled != enabled ) {
+		icons[index].enabled = enabled;
+		cacheValid = false;
+	}
+}
+
+
 void UIButtonBox::CalcButtons()
 {
 	// Don't apply the origin here. It is applied at render.
@@ -118,6 +129,12 @@ void UIButtonBox::CalcButtons()
 		tex[i*4+1].Set( dx+0.25f,	dy );
 		tex[i*4+2].Set( dx+0.25f,	dy+0.25f );
 		tex[i*4+3].Set( dx,			dy+0.25f );
+
+		Vector4F c = { 1.0f, 1.0f, 1.0f, 1.0f };
+		if ( !icons[i].enabled ) {
+			c.Set( 1.0f, 1.0f, 1.0f, 0.3f );
+		}
+		color[i*4+0] = color[i*4+1] = color[i*4+2] = color[i*4+3] = c;
 		
 		U16 idx = i*4;
 		index[i*6+0] = idx+0;
@@ -152,6 +169,7 @@ void UIButtonBox::Draw()
 	glEnable( GL_BLEND );
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisableClientState( GL_NORMAL_ARRAY );
+	glEnableClientState( GL_COLOR_ARRAY );
 
 	glEnable( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, texture->glID );
@@ -160,7 +178,9 @@ void UIButtonBox::Draw()
 	glTranslatef( (float)origin.x, (float)origin.y, 0.0f );
 
 	glVertexPointer(   2, GL_SHORT, 0, pos );
-	glTexCoordPointer( 2, GL_FLOAT, 0, tex );  
+	glTexCoordPointer( 2, GL_FLOAT, 0, tex ); 
+	glColorPointer( 4, GL_FLOAT, 0, color );
+
 	CHECK_GL_ERROR;
 	glDrawElements( GL_TRIANGLES, nIcons*6, GL_UNSIGNED_SHORT, index );
 	CHECK_GL_ERROR;
@@ -168,6 +188,7 @@ void UIButtonBox::Draw()
 	screenport.PopUI();
 
 	glEnableClientState( GL_NORMAL_ARRAY );
+	glDisableClientState( GL_COLOR_ARRAY );
 	glDisable( GL_BLEND );
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
@@ -200,7 +221,7 @@ int UIButtonBox::QueryTap( int x, int y )
 
 			int icon = dy * columns + dx;
 
-			if ( icon >=0 && icon < nIcons ) 
+			if ( icon >=0 && icon < nIcons && icons[icon].enabled ) 
 			{
 				return icon;
 			}

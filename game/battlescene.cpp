@@ -75,18 +75,32 @@ void BattleScene::InitUnits()
 	int Z = engine->GetMap()->Height();
 	Random random(5);
 
+	Item gun0;
+	Item gun1;
+
+	gun0.Init( game->GetItemDef( "gun0" ) );
+	gun1.Init( game->GetItemDef( "gun1" ) );
+
 	for( int i=0; i<6; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-10 };
-		units[TERRAN_UNITS_START+i].Init( engine, game, Unit::SOLDIER, 0, random.Rand() );
-		units[TERRAN_UNITS_START+i].SetWeapon( game->GetItemDef( "gun0" ) );
-		units[TERRAN_UNITS_START+i].SetMapPos( pos.x, pos.y );
+		Unit* unit = &units[TERRAN_UNITS_START+i];
+
+		unit->Init( engine, game, Unit::SOLDIER, 0, random.Rand() );
+		Inventory* inventory = unit->GetInventory();
+		inventory->AddItem( Inventory::WEAPON_SLOT, gun0 );
+		unit->UpdateInventory();
+		unit->SetMapPos( pos.x, pos.y );
 	}
 	
 	for( int i=0; i<4; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-8 };
-		units[ALIEN_UNITS_START+i].Init( engine, game, Unit::ALIEN, i&3, random.Rand() );
-		units[ALIEN_UNITS_START+i].SetWeapon( game->GetItemDef( "gun1" ) );
-		units[ALIEN_UNITS_START+i].SetMapPos( pos.x, pos.y );
+		Unit* unit = &units[ALIEN_UNITS_START+i];
+
+		unit->Init( engine, game, Unit::ALIEN, i&3, random.Rand() );
+		Inventory* inventory = unit->GetInventory();
+		inventory->AddItem( Inventory::WEAPON_SLOT, gun1 );
+		unit->UpdateInventory();
+		unit->SetMapPos( pos.x, pos.y );
 	}
 
 	for( int i=0; i<4; ++i ) {
@@ -150,55 +164,6 @@ void BattleScene::Load( UFOStream* s )
 	SetUnitsDraggable();
 }
 
-/*
-void BattleScene::Activate()
-{
-	engine->EnableMap( true );
-
-	//int n = 0;
-	ModelResource* resource = 0;
-	path.Clear();
-	actionStack.Clear();
-
-#ifdef MAPMAKER
-	resource = game->GetResource( "selection" );
-	selection = engine->AllocModel( resource );
-	selection->SetPos( 0.5f, 0.0f, 0.5f );
-	preview = 0;
-#endif
-
-	resource = game->GetResource( "crate" );
-
-	// Do we have a saved state?
-	UFOStream* stream = game->OpenStream( "BattleScene", false );
-	if ( !stream ) {
-		InitUnits();
-	}
-	else {
-		Load( stream );
-	}
-}
-
-
-void BattleScene::DeActivate()
-{
-	UFOStream* s =game->OpenStream( "BattleScene" );
-	Save( s );
-
-#ifdef MAPMAKER
-	engine->FreeModel( selection );
-	if ( preview ) {
-		engine->FreeModel( preview );
-	}
-#endif
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		units[i].Free();
-	}
-	FreePathEndModel();
-	//engine->FreeModel( crateTest );
-	game->particleSystem->Clear();
-}
-*/
 
 void BattleScene::TestHitTesting()
 {
@@ -472,11 +437,9 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		float		beamWidth = 0.01f;
 		bool hitSomething = false;
 
-		const ItemDef* weaponDef = unit->GetWeapon();
-		GLASSERT( weaponDef );
-		if ( weaponDef ) {
-			weaponDef->QueryWeaponRender( &beamColor, &beamDecay, &beamWidth, &impactColor );
-		}
+		const Item* weaponItem = unit->GetWeapon();
+		const ItemDef* weaponDef = weaponItem->itemDef;
+		weaponDef->QueryWeaponRender( &beamColor, &beamDecay, &beamWidth, &impactColor );
 
 		model->CalcTrigger( &p0 );
 		p1 = action->target;
@@ -520,13 +483,13 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 			Unit* hitUnit = UnitFromModel( m );
 			if ( hitUnit ) {
 				if ( hitUnit->IsAlive() ) {
-					hitUnit->DoDamage( weaponDef->damage, weaponDef->material );
+					hitUnit->DoDamage( weaponDef->damageBase, weaponDef->material );
 					GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", hitUnit, hitUnit->GetStats().HP(), hitUnit->GetStats().TotalHP() ));
 				}
 			}
 			else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
 				// Hit world object.
-				engine->GetMap()->DoDamage( weaponDef->damage, m, weaponDef->material );
+				engine->GetMap()->DoDamage( weaponDef->damageBase, m, weaponDef->material );
 			}
 		}
 		else {		
@@ -623,7 +586,9 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 				break;
 
 			case 2:
-				if ( actionStack.Empty() ) {
+				if ( actionStack.Empty() && SelectedSoldierUnit() ) {
+					UFOStream* stream = game->OpenStream( "SingleUnit" );
+					SelectedSoldierUnit()->Save( stream );
 					game->PushScene( Game::CHARACTER_SCENE );
 				}
 				break;
@@ -880,7 +845,10 @@ void BattleScene::Rotate( int action, float degrees )
 
 void BattleScene::DrawHUD()
 {
+	// { "home", "d/n", character screen, "fow" };
+	widgets->SetEnabled( 2, SelectedSoldierUnit() && actionStack.Empty() );
 	widgets->Draw();
+
 	if ( AlienTargeted() ) {
 		fireWidget->Draw();
 	}

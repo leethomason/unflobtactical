@@ -42,6 +42,8 @@ const float TRANSLUCENT_RED		= ONE8*3.0f + ONE16;
 const float TRANSLUCENT_YELLOW	= ONE8*4.0f + ONE16;
 const float TRANSLUCENT_GREY	= ONE8*5.0f + ONE16;
 
+
+
 class Game
 {
 private:
@@ -162,10 +164,10 @@ private:
 #endif
 	grinliz::ProfileData profile;
 
-	CDynArray<ItemDef>		itemDefArr;
-	Texture			texture[MAX_TEXTURES];
-	ModelResource	modelResource[EL_MAX_MODEL_RESOURCES];
-	Surface			lightMaps[NUM_LIGHT_MAPS];
+	CDynArray<ItemDef>	itemDefArr;
+	Texture				texture[MAX_TEXTURES];
+	ModelResource		modelResource[EL_MAX_MODEL_RESOURCES];
+	Surface				lightMaps[NUM_LIGHT_MAPS];
 };
 
 #endif

@@ -59,6 +59,7 @@ public:
 	void SetText( const char** text );
 
 	void CalcDimensions( int *x, int *y, int *w, int *h );
+	void SetEnabled( int index, bool enabled );
 
 	// returns the icon INDEX, or -1 if not clicked
 	int QueryTap( int x, int y );	
@@ -72,6 +73,7 @@ private:
 	{
 		int						id;
 		char					text[MAX_TEXT_LEN];
+		bool					enabled;
 		grinliz::Vector2I		textPos;
 	};
 	const Texture* texture;
@@ -87,6 +89,7 @@ private:
 	Icon					icons[MAX_ICONS];
 	grinliz::Vector2< S16 > pos[MAX_ICONS*4];
 	grinliz::Vector2F		tex[MAX_ICONS*4];
+	grinliz::Vector4F		color[MAX_ICONS*4];
 	U16						index[6*MAX_ICONS];
 };
 

@@ -227,7 +227,14 @@ void ProcessModel( TiXmlElement* model )
 	grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
 	string fullOut = outputPath + name + ".mod";
 
+	bool smoothShading = false;
+	if ( StrEqual( model->Attribute( "shading" ), "smooth" ) ) {
+		smoothShading = true;
+	}
+
 	ModelBuilder* builder = new ModelBuilder();
+	builder->SetShading( smoothShading );
+
 	if ( extension == ".ac" ) {
 		ImportAC3D(	fullIn, builder );
 	}

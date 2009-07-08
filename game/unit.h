@@ -8,6 +8,7 @@
 #include "../engine/enginelimits.h"
 
 #include "stats.h"
+#include "inventory.h"
 
 class UFOStream;
 class Model;
@@ -15,29 +16,6 @@ class ModelResource;
 class Engine;
 class Game;
 
-
-struct ItemDef
-{
-	enum {
-		TYPE_WEAPON,
-		TYPE_ARMOR,
-
-		AIMED = 0,
-		SNAP  = 1,
-		AUTO  = 2
-	};
-
-	int				type;
-	const char*		name;
-	ModelResource*	resource;
-	int				material;
-	int				damage;
-
-	void Init( int _type, const char* _name, ModelResource* _resource );
-	void InitWeapon( const char* _name, ModelResource* _resource, int flags, int damage );
-
-	void QueryWeaponRender( grinliz::Vector4F* beamColor, float* beamDecay, float* beamWidth, grinliz::Vector4F* impactColor ) const;
-};
 
 
 class Unit
@@ -93,8 +71,10 @@ public:
 	void CalcPos( grinliz::Vector3F* ) const;
 	void CalcMapPos( grinliz::Vector2I* ) const;
 
-	void SetWeapon( const ItemDef* itemDef );
-	const ItemDef* GetWeapon()				{ return weaponItem; }
+	//void SetWeapon( const ItemDef* itemDef );
+	Item* GetWeapon();
+	Inventory* GetInventory();
+	void UpdateInventory();
 
 	Model* GetModel()						{ return model; }
 	const Model* GetModel() const			{ return model; }
@@ -146,7 +126,8 @@ private:
 	Engine*		engine;
 	Model*		model;
 	Model*		weapon;
-	const ItemDef*	weaponItem;	// temporary - needs inventory system
+	//const ItemDef*	weaponItem;	// temporary - needs inventory system
+	Inventory	inventory;
 
 	Stats		stats;
 };
