@@ -27,6 +27,8 @@ const char* const gModelNames[] =
 
 	"gun0",
 	"gun1",
+	"cellClip",
+	"shellClip",
 
 	"selection",
 
@@ -63,6 +65,7 @@ const TextureDef gTextureDef[] =
 	{	"particleQuad",	0	},
 	{	"particleSparkle",	0	},
 	{	"translucent", 0 },
+	{	"clips",		0	},
 	{  0, 0 }
 };
 
@@ -354,10 +357,16 @@ void Game::LoadItemResources()
 {
 	ItemDef item;
 														// material				damage, rounds, size
-	item.InitWeapon( "gun0", GetResource( "gun0" ),		MaterialDef::SH_KINETIC,	50,	10, 2 );
+	item.InitWeapon( "Pst-0", GetResource( "gun0" ),		MaterialDef::SH_KINETIC,	50,	10, 2 );
 	itemDefArr.Push( item );
 
-	item.InitWeapon( "gun1", GetResource( "gun1" ),		MaterialDef::SH_ENERGY,		70, 8, 2 );
+	item.InitWeapon( "Ray-0", GetResource( "gun1" ),		MaterialDef::SH_ENERGY,		70, 8, 2 );
+	itemDefArr.Push( item );
+
+	item.Init( ItemDef::TYPE_GENERAL, "Clip", GetResource( "shellClip" ), 1 );
+	itemDefArr.Push( item );
+
+	item.Init( ItemDef::TYPE_GENERAL, "Cell", GetResource( "cellClip" ), 1 );
 	itemDefArr.Push( item );
 }
 

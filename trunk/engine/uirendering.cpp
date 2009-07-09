@@ -34,6 +34,7 @@ UIButtonBox::UIButtonBox( const Texture* texture, const Screenport& port ) : scr
 	size.Set( SIZE, SIZE );
 	columns = 1;
 	pad.Set( PAD, PAD );
+	alpha = 1.0f;
 }
 
 
@@ -83,15 +84,31 @@ void UIButtonBox::SetText( const char** text )
 		for( int i=0; i<nIcons; ++i ) {
 			if ( text[i] ) {
 				strncpy( icons[i].text, text[i], MAX_TEXT_LEN );
-
-				int w, h;
-				UFOText::GlyphSize( icons[i].text, &w, &h );
-				icons[i].textPos.x = size.x/2 - w/2;
-				icons[i].textPos.y = size.y/2 - h/2;
+				PositionText( i );
 			}
 		}
 	}
 	// Do NOT invalidate the cache. Just a text change.
+}
+
+
+void UIButtonBox::SetText( int index, const char* text ) 
+{
+	GLASSERT( index >=0 && index < nIcons );
+	icons[index].text[0] = 0;
+	if ( text && *text ) {
+		strncpy( icons[index].text, text, MAX_TEXT_LEN );
+		PositionText( index );
+	}
+}
+
+
+void UIButtonBox::PositionText( int index ) 
+{
+	int w, h;
+	UFOText::GlyphSize( icons[index].text, &w, &h );
+	icons[index].textPos.x = size.x/2 - w/2;
+	icons[index].textPos.y = size.y/2 - h/2;
 }
 
 
@@ -130,9 +147,9 @@ void UIButtonBox::CalcButtons()
 		tex[i*4+2].Set( dx+0.25f,	dy+0.25f );
 		tex[i*4+3].Set( dx,			dy+0.25f );
 
-		Vector4F c = { 1.0f, 1.0f, 1.0f, 1.0f };
+		Vector4F c = { 1.0f, 1.0f, 1.0f, alpha };
 		if ( !icons[i].enabled ) {
-			c.Set( 1.0f, 1.0f, 1.0f, 0.3f );
+			c.Set( 1.0f, 1.0f, 1.0f, alpha*0.3f );
 		}
 		color[i*4+0] = color[i*4+1] = color[i*4+2] = color[i*4+3] = c;
 		

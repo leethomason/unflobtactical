@@ -13,6 +13,7 @@ struct ItemDef
 	enum {
 		TYPE_WEAPON,
 		TYPE_ARMOR,
+		TYPE_GENERAL,
 
 		AIMED = 0,
 		SNAP  = 1,
@@ -46,7 +47,7 @@ struct Item
 	void Init( const ItemDef* itemDef );
 	void Save( UFOStream* s ) const;
 	void Load( UFOStream* s, Engine* engine, Game* game );
-	bool None() { return itemDef == 0; }
+	bool None() const										 { return itemDef == 0; }
 };
 
 

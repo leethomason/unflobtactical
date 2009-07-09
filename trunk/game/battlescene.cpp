@@ -75,11 +75,11 @@ void BattleScene::InitUnits()
 	int Z = engine->GetMap()->Height();
 	Random random(5);
 
-	Item gun0;
-	Item gun1;
+	Item gun0, gun1, clip;
 
-	gun0.Init( game->GetItemDef( "gun0" ) );
-	gun1.Init( game->GetItemDef( "gun1" ) );
+	gun0.Init( game->GetItemDef( "Pst-0" ) );
+	gun1.Init( game->GetItemDef( "Ray-0" ) );
+	clip.Init( game->GetItemDef( "Clip" ) );
 
 	for( int i=0; i<6; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-10 };
@@ -88,6 +88,8 @@ void BattleScene::InitUnits()
 		unit->Init( engine, game, Unit::SOLDIER, 0, random.Rand() );
 		Inventory* inventory = unit->GetInventory();
 		inventory->AddItem( Inventory::WEAPON_SLOT, gun0 );
+		inventory->AddItem( Inventory::ANY_SLOT, clip );
+		inventory->AddItem( Inventory::ANY_SLOT, clip );
 		unit->UpdateInventory();
 		unit->SetMapPos( pos.x, pos.y );
 	}
