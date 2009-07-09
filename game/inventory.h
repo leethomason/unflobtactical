@@ -19,17 +19,6 @@ public:
 		WEAPON_SLOT = 0
 	};
 
-	Inventory();
-	// Add an item. 0: weapon slot, -1: any slot available
-	bool AddItem( int slot, const Item& item );
-	
-	Item* ArmedWeapon();	// null if no weapon ready
-
-	void Save( UFOStream* s );
-	void Load( UFOStream* s, Engine* engine, Game* game );
-
-private:
-
 	/*
 		weapon
 			3
@@ -43,6 +32,20 @@ private:
 	enum {
 		NUM_SLOTS = 11
 	};
+
+	Inventory();
+	// Add an item. 0: weapon slot, -1: any slot available
+	bool AddItem( int slot, const Item& item );
+	
+	Item* ArmedWeapon();	// null if no weapon ready
+
+	void Save( UFOStream* s );
+	void Load( UFOStream* s, Engine* engine, Game* game );
+
+	const Item& GetItem( int slot ) const		{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot]; }
+
+private:
+
 	Item slots[NUM_SLOTS];
 	static int slotSize[NUM_SLOTS];
 };

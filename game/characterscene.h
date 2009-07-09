@@ -30,8 +30,11 @@ public:
 	virtual void DrawHUD();
 
 protected:
+	void SetInvWidgetText();
+
 	Engine* engine;
 	UIButtonBox* widgets;
+	UIButtonBox* charInvWidget;
 	Unit unit;
 };
 

@@ -33,10 +33,11 @@ public:
 		ICON_SNAP			= 5,
 		ICON_AUTO			= 6,
 
-		MAX_ICONS = 16,
+		MAX_ICONS = 20,
 		MAX_TEXT_LEN = 12,
 	};
 
+	// Coordinates in pixels.
 	void SetOrigin( int x, int y )				{	origin.Set( x, y ); }
 	void SetColumns( int columns  )				{	if ( this->columns != columns ) {
 														this->columns = columns; 
@@ -57,6 +58,10 @@ public:
 
 	void SetButtons( const int* icons, int nIcons );
 	void SetText( const char** text );
+	void SetText( int index, const char* text );
+
+	// Set the alpha of non-text
+	void SetAlpha( float alpha )		{ this->alpha = alpha; cacheValid = false; }
 
 	void CalcDimensions( int *x, int *y, int *w, int *h );
 	void SetEnabled( int index, bool enabled );
@@ -67,6 +72,7 @@ public:
 
 private:
 	void CalcButtons();
+	void PositionText( int index );
 	int INV( int i ) { return nIcons-i-1; }
 
 	struct Icon
@@ -82,6 +88,7 @@ private:
 	bool cacheValid;
 	Screenport screenport;
 	int columns;
+	float alpha;
 	grinliz::Vector2I		origin;
 	grinliz::Vector2I		size;
 	grinliz::Vector2I		pad;
