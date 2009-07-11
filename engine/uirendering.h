@@ -23,18 +23,30 @@
 class UIButtonBox
 {
 public:
-	UIButtonBox( const Texture* texture, const Screenport& port );
+	UIButtonBox( const Texture* texture, const Texture* decoTexture, const Screenport& port );
 	~UIButtonBox()	{}
 
 	enum {
-		ICON_PLAIN			= 0,
-		ICON_CHARACTER		= 1,
-		ICON_AIM			= 4,
-		ICON_SNAP			= 5,
-		ICON_AUTO			= 6,
+		ICON_GREEN_BUTTON	= 0,
+		ICON_BLUE_BUTTON	= 1,
+		ICON_RED_BUTTON		= 2,
+		ICON_TRANS_RED		= 4,
+		ICON_NONE			= 15,
 
-		MAX_ICONS = 20,
-		MAX_TEXT_LEN = 12,
+		DECO_CHARACTER		= 0,
+		DECO_PISTOL			= 1,
+		DECO_RIFLE			= 2,
+		DECO_AIMED			= 8,
+		DECO_AUTO			= 9,
+		DECO_SNAP			= 10,
+		DECO_NONE			= 31,
+
+		ICON_DX				= 4,
+		ICON_DY				= 4,
+		DECO_DX				= 8,
+		DECO_DY				= 4,
+		MAX_ICONS			= 20,
+		MAX_TEXT_LEN		= 12,
 	};
 
 	// Coordinates in pixels.
@@ -56,7 +68,10 @@ public:
 													}
 												}
 
-	void SetButtons( const int* icons, int nIcons );
+	void InitButtons( const int* icons, int nIcons );
+	void SetButton( int index, int iconID );
+	void SetDeco( int index, int decoID );
+
 	void SetText( const char** text );
 	void SetText( int index, const char* text );
 
@@ -78,11 +93,13 @@ private:
 	struct Icon
 	{
 		int						id;
+		int						decoID;
 		char					text[MAX_TEXT_LEN];
 		bool					enabled;
 		grinliz::Vector2I		textPos;
 	};
 	const Texture* texture;
+	const Texture* decoTexture;
 	int nIcons;
 
 	bool cacheValid;
@@ -96,7 +113,10 @@ private:
 	Icon					icons[MAX_ICONS];
 	grinliz::Vector2< S16 > pos[MAX_ICONS*4];
 	grinliz::Vector2F		tex[MAX_ICONS*4];
-	grinliz::Vector4F		color[MAX_ICONS*4];
+	grinliz::Vector2F		texDeco[MAX_ICONS*4];
+	grinliz::Vector4< U8 >	color[MAX_ICONS*4];
+	grinliz::Vector4< U8 >	colorDeco[MAX_ICONS*4];
+
 	U16						index[6*MAX_ICONS];
 };
 

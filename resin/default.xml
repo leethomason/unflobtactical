@@ -1,8 +1,9 @@
 <resource output="./res/">
 	<!-- Icon and UI -->
 	<texture filename="icons.png" />
-	
-	<!-- Model textures -->
+  <texture filename="iconDeco.png" />
+
+  <!-- Model textures -->
 	<texture filename="stdfont2.tga" />
 	<texture filename="woodDark.png" />
 	<texture filename="woodDarkUFO.tga" />

@@ -22,22 +22,23 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	path.Clear();
 
 	// On screen menu.
-	Texture* t = game->GetTexture( "icons" );	
-	widgets = new UIButtonBox( t, engine->GetScreenport() );
+	widgets = new UIButtonBox( game->GetTexture( "icons" ), game->GetTexture( "iconDeco" ), engine->GetScreenport() );
 	
 	int x, y, w, h;
 
-	const int icons[] = { UIButtonBox::ICON_PLAIN, UIButtonBox::ICON_PLAIN, UIButtonBox::ICON_CHARACTER, UIButtonBox::ICON_PLAIN };
-	const char* iconText[] = { "home", "d/n", 0, "fow" };
-	widgets->SetButtons( icons, 4 );
-	widgets->SetText( iconText );
-	widgets->CalcDimensions( &x, &y, &w, &h );
-	widgets->SetOrigin( 0, engine->GetScreenport().UIHeight()-h );
-
+	{
+		const int icons[] = { UIButtonBox::ICON_GREEN_BUTTON, UIButtonBox::ICON_GREEN_BUTTON, UIButtonBox::ICON_GREEN_BUTTON, UIButtonBox::ICON_GREEN_BUTTON };
+		const char* iconText[] = { "home", "d/n", 0, "fow" };
+		widgets->InitButtons( icons, 4 );
+		widgets->SetDeco( 2, UIButtonBox::DECO_CHARACTER );
+		widgets->SetText( iconText );
+		widgets->CalcDimensions( &x, &y, &w, &h );
+		widgets->SetOrigin( 0, engine->GetScreenport().UIHeight()-h );
+	}
 	// When enemy targeted.
-	fireWidget = new UIButtonBox( t, engine->GetScreenport() );
-	const int fireIcons[] = { UIButtonBox::ICON_AUTO, UIButtonBox::ICON_SNAP, UIButtonBox::ICON_AIM };
-	fireWidget->SetButtons( fireIcons, 3 );
+	fireWidget = new UIButtonBox( game->GetTexture( "icons" ), game->GetTexture( "iconDeco" ), engine->GetScreenport() );
+	const int fireIcons[] = { UIButtonBox::ICON_TRANS_RED, UIButtonBox::ICON_TRANS_RED, UIButtonBox::ICON_TRANS_RED };
+	fireWidget->InitButtons( fireIcons, 3 );
 
 	engine->EnableMap( true );
 
