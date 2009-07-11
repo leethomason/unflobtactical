@@ -21,12 +21,13 @@
 using namespace grinliz;
 
 
-UIButtonBox::UIButtonBox( const Texture* texture, const Screenport& port ) : screenport( port )
+UIButtonBox::UIButtonBox( const Texture* texture, const Texture* decoTexture, const Screenport& port ) : screenport( port )
 {
 	this->texture = texture;
+	this->decoTexture = decoTexture;
 	nIcons = 0;
 
-	const int SIZE = 45;
+	const int SIZE = 50;
 	const int PAD = 5;
 	cacheValid = false;
 
@@ -35,6 +36,8 @@ UIButtonBox::UIButtonBox( const Texture* texture, const Screenport& port ) : scr
 	columns = 1;
 	pad.Set( PAD, PAD );
 	alpha = 1.0f;
+
+	memset( icons, 0, sizeof( Icon )*MAX_ICONS );
 }
 
 
@@ -61,17 +64,44 @@ void UIButtonBox::CalcDimensions( int *x, int *y, int *w, int *h )
 }
 
 
-void UIButtonBox::SetButtons( const int* _icons, int _nIcons )
+void UIButtonBox::InitButtons( const int* _icons, int _nIcons )
 {
 	nIcons = _nIcons;
 	GLASSERT( nIcons <= MAX_ICONS );
 
 	for( int i=0; i<nIcons; ++i ) {
 		icons[i].id = _icons[i];
+		icons[i].decoID = DECO_NONE;
 		icons[i].enabled = true;
+		icons[i].text[0] = 0;
 	}
 
 	cacheValid = false;
+}
+
+
+void UIButtonBox::SetButton( int index, int iconID )
+{
+	GLASSERT( index < MAX_ICONS );
+	if ( index >= nIcons ) {
+		nIcons = index+1;
+		cacheValid = false;
+	}
+
+	if ( icons[index].id != iconID ) {
+		icons[index].id = iconID;
+		cacheValid = false;
+	}
+}
+
+
+void UIButtonBox::SetDeco( int index, int decoID )
+{
+	GLASSERT( index < nIcons );
+	if ( icons[index].decoID != decoID ) {
+		icons[index].decoID = decoID;
+		cacheValid = false;
+	}
 }
 
 
@@ -127,7 +157,13 @@ void UIButtonBox::CalcButtons()
 	// Don't apply the origin here. It is applied at render.
 	int row = 0;
 	int col = 0;
-
+	const float iconTX = 1.0f / (float)ICON_DX;
+	const float iconTY = 1.0f / (float)ICON_DY;
+	const float decoTX = 1.0f / (float)DECO_DX;
+	const float decoTY = 1.0f / (float)DECO_DY;
+	const float ALPHA_DISABLED	= 0.3f;
+	const float ALPHA_DECO		= 0.5f;
+	
 	for( int i=0; i<nIcons; ++i ) 
 	{
 		int x = col*size.x + col*pad.x;
@@ -139,19 +175,31 @@ void UIButtonBox::CalcButtons()
 		pos[i*4+3].Set( x,			y+size.y );		
 
 		int id = icons[i].id;
-		float dx = (float)(id%4)*0.25f;
-		float dy = (id/4)*0.25f;
+		float dx = (float)(id%ICON_DX)*iconTX;
+		float dy = (float)(id/ICON_DX)*iconTY;
 
 		tex[i*4+0].Set( dx,			dy );
-		tex[i*4+1].Set( dx+0.25f,	dy );
-		tex[i*4+2].Set( dx+0.25f,	dy+0.25f );
-		tex[i*4+3].Set( dx,			dy+0.25f );
+		tex[i*4+1].Set( dx+iconTX,	dy );
+		tex[i*4+2].Set( dx+iconTX,	dy+iconTY );
+		tex[i*4+3].Set( dx,			dy+iconTY );
 
-		Vector4F c = { 1.0f, 1.0f, 1.0f, alpha };
+		int decoID = icons[i].decoID;
+		dx = (float)(decoID%DECO_DX)*decoTX;
+		dy = (float)(decoID/DECO_DX)*decoTY;
+
+		texDeco[i*4+0].Set( dx,			dy );
+		texDeco[i*4+1].Set( dx+decoTX,	dy );
+		texDeco[i*4+2].Set( dx+decoTX,	dy+decoTY );
+		texDeco[i*4+3].Set( dx,			dy+decoTY );
+
+		Vector4<U8> c0 = { 255, 255, 255, (U8)LRintf( alpha*255.0f ) };
+		Vector4<U8> c1 = { 255, 255, 255, (U8)LRintf( alpha*255.0f*ALPHA_DECO ) };
 		if ( !icons[i].enabled ) {
-			c.Set( 1.0f, 1.0f, 1.0f, alpha*0.3f );
+			c0.Set( 255, 255, 255, (U8)LRintf( alpha*255.0f*ALPHA_DISABLED ) );
+			c1.Set( 255, 255, 255, (U8)LRintf( alpha*255.0f*ALPHA_DISABLED*ALPHA_DECO ) );
 		}
-		color[i*4+0] = color[i*4+1] = color[i*4+2] = color[i*4+3] = c;
+		color[i*4+0] = color[i*4+1] = color[i*4+2] = color[i*4+3] = c0;
+		colorDeco[i*4+0] = colorDeco[i*4+1] = colorDeco[i*4+2] = colorDeco[i*4+3] = c1;
 		
 		U16 idx = i*4;
 		index[i*6+0] = idx+0;
@@ -196,12 +244,19 @@ void UIButtonBox::Draw()
 
 	glVertexPointer(   2, GL_SHORT, 0, pos );
 	glTexCoordPointer( 2, GL_FLOAT, 0, tex ); 
-	glColorPointer( 4, GL_FLOAT, 0, color );
+	glColorPointer( 4, GL_UNSIGNED_BYTE, 0, color );
 
 	CHECK_GL_ERROR;
 	glDrawElements( GL_TRIANGLES, nIcons*6, GL_UNSIGNED_SHORT, index );
 	CHECK_GL_ERROR;
 		
+	glTexCoordPointer( 2, GL_FLOAT, 0, texDeco ); 
+	glColorPointer( 4, GL_UNSIGNED_BYTE, 0, colorDeco );
+	glBindTexture( GL_TEXTURE_2D, decoTexture->glID );
+	CHECK_GL_ERROR;
+	glDrawElements( GL_TRIANGLES, nIcons*6, GL_UNSIGNED_SHORT, index );
+	CHECK_GL_ERROR;
+
 	screenport.PopUI();
 
 	glEnableClientState( GL_NORMAL_ARRAY );

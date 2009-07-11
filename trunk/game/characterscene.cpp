@@ -11,13 +11,14 @@ CharacterScene::CharacterScene( Game* _game ) : Scene( _game )
 	engine = &_game->engine;
 
 	Texture* t = game->GetTexture( "icons" );	
-	widgets = new UIButtonBox( t, engine->GetScreenport() );
-	charInvWidget = new UIButtonBox( t, engine->GetScreenport() );
+	Texture* t2 = game->GetTexture( "iconDeco" );	
+	widgets = new UIButtonBox( t, t2, engine->GetScreenport() );
+	charInvWidget = new UIButtonBox( t, t2, engine->GetScreenport() );
 
 	{
-		int icons[] = { UIButtonBox::ICON_PLAIN };
+		int icons[] = { UIButtonBox::ICON_GREEN_BUTTON };
 		const char* iconText[] = { "back" };
-		widgets->SetButtons( icons, 1 );
+		widgets->InitButtons( icons, 1 );
 		widgets->SetOrigin( 5, 5 );
 		widgets->SetText( iconText );
 	}
@@ -37,14 +38,15 @@ CharacterScene::CharacterScene( Game* _game ) : Scene( _game )
 	unit.SetYRotation( -18.0f );
 
 	{
-		int icons[20] = { UIButtonBox::ICON_PLAIN };
-		charInvWidget->SetButtons( icons, 20 );
+		int icons[20] = { UIButtonBox::ICON_GREEN_BUTTON };
+		charInvWidget->InitButtons( icons, 20 );
 		charInvWidget->SetColumns( 4 );
 		charInvWidget->SetOrigin( 5, 70 );
 		// 5 letters...
-		charInvWidget->SetButtonSize( 10*4+16, 45 );
+		charInvWidget->SetButtonSize( 10*4+16+5, 45 );
+		charInvWidget->SetPadding( 0, 0 );
 		charInvWidget->SetAlpha( 0.8f );
-		
+
 	}
 	SetInvWidgetText();
 }

@@ -49,6 +49,7 @@ enum {
 const TextureDef gTextureDef[] = 
 {
 	{	"icons",		0	},
+	{	"iconDeco",		0	},
 	{	"stdfont2",		0	},
 	{	"woodDark",		0	},
 	{	"woodDarkUFO",	0	},
