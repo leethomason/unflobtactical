@@ -9,6 +9,13 @@ class Engine;
 class Game;
 
 
+/*  3x4
+
+	M M M	- backpack
+	S S S
+	M S M	- belt
+	S S L   - leg / hand
+*/
 
 class Inventory
 {
@@ -19,21 +26,14 @@ public:
 		WEAPON_SLOT = 0
 	};
 
-	/*
-		weapon
-			3
-		backpack:
-			1221
-		belt
-			2112
-		leg
-			11
-	*/
 	enum {
-		NUM_SLOTS = 11
+		DX = 3,
+		DY = 4,
+		NUM_SLOTS  = 12,
 	};
 
 	Inventory();
+
 	// Add an item. 0: weapon slot, -1: any slot available
 	bool AddItem( int slot, const Item& item );
 	
@@ -43,6 +43,7 @@ public:
 	void Load( UFOStream* s, Engine* engine, Game* game );
 
 	const Item& GetItem( int slot ) const		{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot]; }
+	int GetSlotSize( int slot ) const			{ return slotSize[slot]; }
 
 private:
 

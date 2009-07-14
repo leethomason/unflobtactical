@@ -27,17 +27,17 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	int x, y, w, h;
 
 	{
-		const int icons[] = { UIButtonBox::ICON_GREEN_BUTTON, UIButtonBox::ICON_GREEN_BUTTON, UIButtonBox::ICON_GREEN_BUTTON, UIButtonBox::ICON_GREEN_BUTTON };
+		const int icons[] = { ICON_GREEN_BUTTON, ICON_GREEN_BUTTON, ICON_GREEN_BUTTON, ICON_GREEN_BUTTON };
 		const char* iconText[] = { "home", "d/n", 0, "fow" };
 		widgets->InitButtons( icons, 4 );
-		widgets->SetDeco( 2, UIButtonBox::DECO_CHARACTER );
+		widgets->SetDeco( 2, DECO_CHARACTER );
 		widgets->SetText( iconText );
 		widgets->CalcDimensions( &x, &y, &w, &h );
 		widgets->SetOrigin( 0, engine->GetScreenport().UIHeight()-h );
 	}
 	// When enemy targeted.
 	fireWidget = new UIButtonBox( game->GetTexture( "icons" ), game->GetTexture( "iconDeco" ), engine->GetScreenport() );
-	const int fireIcons[] = { UIButtonBox::ICON_TRANS_RED, UIButtonBox::ICON_TRANS_RED, UIButtonBox::ICON_TRANS_RED };
+	const int fireIcons[] = { ICON_TRANS_RED, ICON_TRANS_RED, ICON_TRANS_RED };
 	fireWidget->InitButtons( fireIcons, 3 );
 
 	engine->EnableMap( true );
@@ -78,8 +78,8 @@ void BattleScene::InitUnits()
 
 	Item gun0, gun1, clip;
 
-	gun0.Init( game->GetItemDef( "Pst-0" ) );
-	gun1.Init( game->GetItemDef( "Ray-0" ) );
+	gun0.Init( game->GetItemDef( "PST-0" ) );
+	gun1.Init( game->GetItemDef( "RAY-0" ) );
 	clip.Init( game->GetItemDef( "Clip" ) );
 
 	for( int i=0; i<6; ++i ) {

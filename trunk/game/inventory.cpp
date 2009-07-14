@@ -2,8 +2,8 @@
 #include "game.h"
 
 int Inventory::slotSize[NUM_SLOTS] = {	3,			// hand
-										1, 2, 2, 1,	// backpack
-										2, 1, 1, 1, // belt
+										2, 2, 2, 1, 1, 1,	// backpack
+										2, 1, 2,	// belt
 										1, 1 };		// leg
 
 

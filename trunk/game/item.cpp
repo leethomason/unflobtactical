@@ -3,6 +3,8 @@
 #include "game.h"
 #include "../engine/serialize.h"
 
+
+/*
 void ItemDef::Init( int _type, const char* _name, ModelResource* _resource, int _size )
 {
 	GLASSERT( _resource );
@@ -21,11 +23,11 @@ void ItemDef::InitWeapon( const char* _name, ModelResource* _resource, int _size
 	this->damageBase = damage;
 	this->rounds = rounds;
 }
-
+*/
 
 void ItemDef::QueryWeaponRender( grinliz::Vector4F* beamColor, float* beamDecay, float* beamWidth, grinliz::Vector4F* impactColor ) const
 {
-	GLASSERT( type == TYPE_WEAPON );
+	GLASSERT( type == ITEM_WEAPON );
 
 	if ( material & MaterialDef::SH_KINETIC ) {
 		beamColor->Set( 0.8f, 0.8f, 0.8f, 1.0f );
@@ -46,7 +48,7 @@ void ItemDef::QueryWeaponRender( grinliz::Vector4F* beamColor, float* beamDecay,
 void Item::Init( const ItemDef* itemDef )
 {
 	this->itemDef = itemDef;
-	this->hp = itemDef->hp;
+	//this->hp = itemDef->hp;
 	this->rounds = itemDef->rounds;
 }
 
@@ -57,7 +59,7 @@ void Item::Save( UFOStream* s ) const
 	if ( itemDef ) {
 		s->WriteU8( 1 );
 		s->WriteStr( itemDef->name );
-		s->WriteU16( hp );
+		//s->WriteU16( hp );
 		s->WriteU16( rounds );
 	}
 	else {
@@ -78,7 +80,7 @@ void Item::Load( UFOStream* s, Engine* engine, Game* game )
 	int filled = s->ReadU8();
 	if ( filled ) {
 		const char* name = s->ReadStr();
-		hp = s->ReadU16();
+		//hp = s->ReadU16();
 		rounds = s->ReadU16();
 
 		itemDef = game->GetItemDef( name );

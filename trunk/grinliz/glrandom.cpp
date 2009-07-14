@@ -147,14 +147,14 @@ void Random::NormalVector( float* v, int dim )
 //
 U32 Random::SuperFastHash (const void* _data, U32 len) 
 {
-#ifdef GRINLIZ_LITTLE_ENDIAN
+//#ifdef GRINLIZ_LITTLE_ENDIAN
 	#define get16bits(d) (*((const U16 *) (d)))
-#endif
+//#endif
 
-#if	!defined (get16bits)
-	#define get16bits(d) ((((U32)(((const U8 *)(d))[1])) << 8)\
-						   +(U32)(((const U8 *)(d))[0]) )
-#endif
+//#if	!defined (get16bits)
+//	#define get16bits(d) ((((U32)(((const U8 *)(d))[1])) << 8)\
+//						   +(U32)(((const U8 *)(d))[0]) )
+//#endif
 
 	const U8* data = (const U8*)_data;
 	U32 hash = len, tmp;

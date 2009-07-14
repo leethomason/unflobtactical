@@ -8,33 +8,34 @@ class UFOStream;
 class Engine;
 class Game;
 
+enum {
+	ITEM_WEAPON,
+	ITEM_ARMOR,
+	ITEM_CLIP,
+	ITEM_GENERAL
+};
+
+		
 struct ItemDef
 {
-	enum {
-		TYPE_WEAPON,
-		TYPE_ARMOR,
-		TYPE_GENERAL,
-
-		AIMED = 0,
-		SNAP  = 1,
-		AUTO  = 2
-	};
-
 	int				type;
 	const char*		name;
+	const char*		desc;
+	int				deco;
 	ModelResource*	resource;
 
-	int				material;
-	int				hp;
-	int				rounds;
-	int				damageBase;
+	//int				hp;			// how tough this is
 	int				size;		// 1-3 unit can carry, 4: big
 
-	void Init( int _type, const char* _name, ModelResource* _resource, int _size );
-	void InitWeapon( const char* _name, ModelResource* _resource, int _size, int flags, int damage, int rounds );
+	int				material;	// what it does damage to
+	int				rounds;		// how many rounds it carries (weapons)
+	int				damageBase;	// how much damage it does.
+
+	//void Init( int _type, const char* _name, ModelResource* _resource, int _size );
+	//void InitWeapon( const char* _name, ModelResource* _resource, int _size, int flags, int damage, int rounds );
 
 	void QueryWeaponRender( grinliz::Vector4F* beamColor, float* beamDecay, float* beamWidth, grinliz::Vector4F* impactColor ) const;
-	bool IsWeapon() const { return type == TYPE_WEAPON; }
+	bool IsWeapon() const { return type == ITEM_WEAPON; }
 };
 
 

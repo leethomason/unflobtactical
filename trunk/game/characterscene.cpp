@@ -16,7 +16,7 @@ CharacterScene::CharacterScene( Game* _game ) : Scene( _game )
 	charInvWidget = new UIButtonBox( t, t2, engine->GetScreenport() );
 
 	{
-		int icons[] = { UIButtonBox::ICON_GREEN_BUTTON };
+		int icons[] = { ICON_GREEN_BUTTON };
 		const char* iconText[] = { "back" };
 		widgets->InitButtons( icons, 1 );
 		widgets->SetOrigin( 5, 5 );
@@ -38,9 +38,9 @@ CharacterScene::CharacterScene( Game* _game ) : Scene( _game )
 	unit.SetYRotation( -18.0f );
 
 	{
-		int icons[20] = { UIButtonBox::ICON_GREEN_BUTTON };
-		charInvWidget->InitButtons( icons, 20 );
-		charInvWidget->SetColumns( 4 );
+		int icons[20] = { ICON_GREEN_BUTTON };
+		charInvWidget->InitButtons( icons, Inventory::NUM_SLOTS );
+		charInvWidget->SetColumns( Inventory::DX );
 		charInvWidget->SetOrigin( 5, 70 );
 		// 5 letters...
 		charInvWidget->SetButtonSize( 10*4+16+5, 45 );
@@ -63,13 +63,26 @@ void CharacterScene::SetInvWidgetText()
 {
 	Inventory* inv = unit.GetInventory();
 	for( int i=0; i<Inventory::NUM_SLOTS; ++i ) {
-		const Item& item = inv->GetItem( i );
+
+		int index = charInvWidget->TopIndex( (i+1)%Inventory::NUM_SLOTS );
+
+		const Item& item = inv->GetItem( index );
+
 		if ( !item.None() ) {
 			charInvWidget->SetText( i, item.itemDef->name );
+			charInvWidget->SetDeco( i, item.itemDef->deco );
 		}
 		else {
 			charInvWidget->SetText( i, 0 );
+			charInvWidget->SetDeco( i, DECO_NONE );
 		}
+		int id = ICON_BLUE_BUTTON;	// size1
+		int size = inv->GetSlotSize(i);
+		if ( size == 2 )
+			id = ICON_GREEN_BUTTON;
+		else if ( size == 3 )
+			id = ICON_RED_BUTTON;
+		charInvWidget->SetButton( i, id );
 	}
 }
 

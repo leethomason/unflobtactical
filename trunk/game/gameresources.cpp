@@ -356,19 +356,73 @@ void Game::LoadMapResources()
 
 void Game::LoadItemResources()
 {
+	struct WeaponInit {
+		const char* name;
+		const char* resName;
+		int deco;
+		int material;
+		int damage;
+		int rounds;
+		int size;
+		const char* desc;
+	};
+
+	const int KINETIC = MaterialDef::SH_KINETIC;
+
+	const WeaponInit weapons[] = {	//			material	 damage, rounds, size,			description
+		{ "PST-0",	"gun0",		DECO_PISTOL,	KINETIC,		50, 10, 2,					"Pistol"	},
+		{ "RAY-0",	"gun1",		DECO_PISTOL,	KINETIC,		50, 10, 2,					"Alien Ray Gun"	},
+		{ 0 }
+	};
+
+
+	struct ItemInit {
+		const char* name;
+		const char* resName;
+		int type;
+		int deco;
+		int size;
+		const char* desc;
+	};
+
+	const ItemInit items[] = {		
+		{ "Clip",	"shellClip",	ITEM_CLIP,	DECO_SHELLS,	1,		"20mm 10 round clip" },
+		{ "Cell",	"cellClip",		ITEM_CLIP,	DECO_CELL,		1,		"10MW cell" },
+		{ 0 }
+	};
+
+
 	ItemDef item;
-														// material				damage, rounds, size
-	item.InitWeapon( "Pst-0", GetResource( "gun0" ),		MaterialDef::SH_KINETIC,	50,	10, 2 );
-	itemDefArr.Push( item );
+	for( int i=0; weapons[i].name; ++i ) {
+		memset( &item, 0, sizeof(item) );
+		item.type = ITEM_WEAPON;
+		item.name = weapons[i].name;
+		item.desc = weapons[i].desc;
+		item.deco = weapons[i].deco;
+		item.resource = GetResource( weapons[i].resName );
 
-	item.InitWeapon( "Ray-0", GetResource( "gun1" ),		MaterialDef::SH_ENERGY,		70, 8, 2 );
-	itemDefArr.Push( item );
+		item.size = weapons[i].size;
 
-	item.Init( ItemDef::TYPE_GENERAL, "Clip", GetResource( "shellClip" ), 1 );
-	itemDefArr.Push( item );
+		item.material = weapons[i].material;
+		item.rounds = weapons[i].rounds;
+		item.damageBase = weapons[i].damage;
 
-	item.Init( ItemDef::TYPE_GENERAL, "Cell", GetResource( "cellClip" ), 1 );
-	itemDefArr.Push( item );
+		itemDefArr.Push( item );
+	}
+
+	for( int i=0; items[i].name; ++i ) {
+		memset( &item, 0, sizeof(item) );
+		item.type = items[i].type;
+		item.name = items[i].name;
+		item.desc = items[i].desc;
+		item.deco = items[i].deco;
+		item.resource = GetResource( items[i].resName );
+
+		item.size = items[i].size;
+
+		itemDefArr.Push( item );
+	}
+
 }
 
 

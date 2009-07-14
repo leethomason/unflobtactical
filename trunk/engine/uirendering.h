@@ -20,6 +20,36 @@
 #include "screenport.h"
 
 
+enum {
+	ICON_GREEN_BUTTON	= 0,
+	ICON_BLUE_BUTTON	= 1,
+	ICON_RED_BUTTON		= 2,
+	ICON_TRANS_RED		= 4,
+	ICON_NONE			= 15,
+
+	DECO_CHARACTER		= 0,
+	DECO_PISTOL			= 1,
+	DECO_RIFLE			= 2,
+	DECO_SHELLS			= 3,
+	DECO_ROCKET			= 4,
+	DECO_CELL			= 5,
+	DECO_RAYGUN			= 6,
+
+	DECO_AIMED			= 8,
+	DECO_AUTO			= 9,
+	DECO_SNAP			= 10,
+	DECO_MEDKIT			= 11,
+	DECO_KNIFE			= 12,
+	DECO_ALIEN			= 13,
+
+	DECO_METAL			= 16,
+	DECO_TECH			= 17,
+	DECO_FUEL			= 18,
+
+	DECO_NONE			= 31,
+};
+
+
 class UIButtonBox
 {
 public:
@@ -27,20 +57,6 @@ public:
 	~UIButtonBox()	{}
 
 	enum {
-		ICON_GREEN_BUTTON	= 0,
-		ICON_BLUE_BUTTON	= 1,
-		ICON_RED_BUTTON		= 2,
-		ICON_TRANS_RED		= 4,
-		ICON_NONE			= 15,
-
-		DECO_CHARACTER		= 0,
-		DECO_PISTOL			= 1,
-		DECO_RIFLE			= 2,
-		DECO_AIMED			= 8,
-		DECO_AUTO			= 9,
-		DECO_SNAP			= 10,
-		DECO_NONE			= 31,
-
 		ICON_DX				= 4,
 		ICON_DY				= 4,
 		DECO_DX				= 8,
@@ -80,6 +96,16 @@ public:
 
 	void CalcDimensions( int *x, int *y, int *w, int *h );
 	void SetEnabled( int index, bool enabled );
+	int TopIndex( int x, int y ) {
+		int dx = columns;
+		int dy = nIcons / dx;
+		return (dy-1-y)*dx+x;
+	}
+	int TopIndex( int i ) {
+		int x = i%columns;
+		int y = i/columns;
+		return TopIndex( x, y );
+	}
 
 	// returns the icon INDEX, or -1 if not clicked
 	int QueryTap( int x, int y );	
