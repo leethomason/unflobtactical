@@ -78,8 +78,8 @@ void BattleScene::InitUnits()
 
 	Item gun0, gun1, clip;
 
-	gun0.Init( game->GetItemDef( "PST-0" ) );
-	gun1.Init( game->GetItemDef( "RAY-0" ) );
+	gun0.Init( game->GetItemDef( "PST-1" ) );
+	gun1.Init( game->GetItemDef( "RAY-1" ) );
 	clip.Init( game->GetItemDef( "Clip" ) );
 
 	for( int i=0; i<6; ++i ) {
@@ -486,13 +486,13 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 			Unit* hitUnit = UnitFromModel( m );
 			if ( hitUnit ) {
 				if ( hitUnit->IsAlive() ) {
-					hitUnit->DoDamage( weaponDef->damageBase, weaponDef->material );
+					hitUnit->DoDamage( weaponDef->weapon[0].damageBase, weaponDef->weapon[0].shell );
 					GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", hitUnit, hitUnit->GetStats().HP(), hitUnit->GetStats().TotalHP() ));
 				}
 			}
 			else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
 				// Hit world object.
-				engine->GetMap()->DoDamage( weaponDef->damageBase, m, weaponDef->material );
+				engine->GetMap()->DoDamage( weaponDef->weapon[0].damageBase, m, weaponDef->weapon[0].shell );
 			}
 		}
 		else {		

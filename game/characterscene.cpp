@@ -64,17 +64,16 @@ void CharacterScene::SetInvWidgetText()
 	Inventory* inv = unit.GetInventory();
 	for( int i=0; i<Inventory::NUM_SLOTS; ++i ) {
 
-		int index = charInvWidget->TopIndex( (i+1)%Inventory::NUM_SLOTS );
-
-		const Item& item = inv->GetItem( index );
+		int index = charInvWidget->TopIndex( (i+Inventory::NUM_SLOTS-1)%Inventory::NUM_SLOTS );
+		const Item& item = inv->GetItem( i );
 
 		if ( !item.None() ) {
-			charInvWidget->SetText( i, item.itemDef->name );
-			charInvWidget->SetDeco( i, item.itemDef->deco );
+			charInvWidget->SetText( index, item.itemDef->name );
+			charInvWidget->SetDeco( index, item.itemDef->deco );
 		}
 		else {
-			charInvWidget->SetText( i, 0 );
-			charInvWidget->SetDeco( i, DECO_NONE );
+			charInvWidget->SetText( index, 0 );
+			charInvWidget->SetDeco( index, DECO_NONE );
 		}
 		int id = ICON_BLUE_BUTTON;	// size1
 		int size = inv->GetSlotSize(i);
@@ -82,7 +81,7 @@ void CharacterScene::SetInvWidgetText()
 			id = ICON_GREEN_BUTTON;
 		else if ( size == 3 )
 			id = ICON_RED_BUTTON;
-		charInvWidget->SetButton( i, id );
+		charInvWidget->SetButton( index, id );
 	}
 }
 

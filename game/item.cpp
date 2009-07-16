@@ -29,13 +29,13 @@ void ItemDef::QueryWeaponRender( grinliz::Vector4F* beamColor, float* beamDecay,
 {
 	GLASSERT( type == ITEM_WEAPON );
 
-	if ( material & MaterialDef::SH_KINETIC ) {
+	if ( weapon[0].shell & SH_KINETIC ) {
 		beamColor->Set( 0.8f, 0.8f, 0.8f, 1.0f );
 		*beamDecay = -3.0f;
 		*beamWidth = 0.07f;
 		impactColor->Set( 0.3f, 0.3f, 0.9f, 1.0f );
 	}
-	if ( material & MaterialDef::SH_ENERGY ) {
+	if ( weapon[0].shell & SH_ENERGY ) {
 		beamColor->Set( 1, 1, 0.8f, 1.0f );
 		*beamDecay = -2.0f;
 		*beamWidth = 0.12f;
@@ -49,7 +49,7 @@ void Item::Init( const ItemDef* itemDef )
 {
 	this->itemDef = itemDef;
 	//this->hp = itemDef->hp;
-	this->rounds = itemDef->rounds;
+	//this->rounds = itemDef->rounds;
 }
 
 
@@ -59,8 +59,7 @@ void Item::Save( UFOStream* s ) const
 	if ( itemDef ) {
 		s->WriteU8( 1 );
 		s->WriteStr( itemDef->name );
-		//s->WriteU16( hp );
-		s->WriteU16( rounds );
+		s->WriteU16( 0 );	// rounds
 	}
 	else {
 		s->WriteU8( 0 );
@@ -71,8 +70,6 @@ void Item::Save( UFOStream* s ) const
 void Item::Load( UFOStream* s, Engine* engine, Game* game )
 {
 	itemDef = 0;
-	hp = 0;
-	rounds = 0;
 
 	int version = s->ReadU8();
 	GLASSERT( version == 1 );
@@ -81,7 +78,7 @@ void Item::Load( UFOStream* s, Engine* engine, Game* game )
 	if ( filled ) {
 		const char* name = s->ReadStr();
 		//hp = s->ReadU16();
-		rounds = s->ReadU16();
+		int rounds = s->ReadU16();
 
 		itemDef = game->GetItemDef( name );
 		GLASSERT( itemDef );

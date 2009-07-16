@@ -11,28 +11,41 @@ class Game;
 enum {
 	ITEM_WEAPON,
 	ITEM_ARMOR,
-	ITEM_CLIP,
-	ITEM_GENERAL
+	ITEM_GENERAL,
+
+	ITEM_CLIP_SHELL,
+	ITEM_CLIP_AUTO,
+	ITEM_CLIP_CELL,
+	ITEM_CLIP_CANON,
+	ITEM_CLIP_GRENADE,
 };
 
-		
 struct ItemDef
 {
+	struct Weapon {
+		int shell;			// type of shell SH_KINETIC, etc.
+		int clip;			// type of clip required
+		int autoRounds;		// 0: no auto
+		int damageBase;		// base damage
+		int range;
+		float accuracy;		// 1.0 is average
+		int power;			// power consumed by cell weapons
+	};
+	struct Clip {
+		int shell;			// modifies the shell of the weapon
+		int rounds;			// rounds in this clip, power of cell (100)
+	};
 	int				type;
 	const char*		name;
 	const char*		desc;
 	int				deco;
-	ModelResource*	resource;
-
-	//int				hp;			// how tough this is
+	ModelResource*	resource;	// can be null, in which case render with crate.
 	int				size;		// 1-3 unit can carry, 4: big
 
-	int				material;	// what it does damage to
-	int				rounds;		// how many rounds it carries (weapons)
-	int				damageBase;	// how much damage it does.
-
-	//void Init( int _type, const char* _name, ModelResource* _resource, int _size );
-	//void InitWeapon( const char* _name, ModelResource* _resource, int _size, int flags, int damage, int rounds );
+	union {
+		Weapon			weapon[2];	// primary fire and secondary fire
+		Clip			clip;
+	};
 
 	void QueryWeaponRender( grinliz::Vector4F* beamColor, float* beamDecay, float* beamWidth, grinliz::Vector4F* impactColor ) const;
 	bool IsWeapon() const { return type == ITEM_WEAPON; }
@@ -42,8 +55,7 @@ struct ItemDef
 struct Item
 {
 	const ItemDef* itemDef;
-	int hp;
-	int rounds;
+	int rounds[2];
 
 	void Init( const ItemDef* itemDef );
 	void Save( UFOStream* s ) const;

@@ -98,7 +98,7 @@ public:
 	void SetEnabled( int index, bool enabled );
 	int TopIndex( int x, int y ) {
 		int dx = columns;
-		int dy = nIcons / dx;
+		int dy = nIcons / columns;
 		return (dy-1-y)*dx+x;
 	}
 	int TopIndex( int i ) {

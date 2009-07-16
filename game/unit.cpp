@@ -276,7 +276,7 @@ void Unit::Kill()
 
 void Unit::DoDamage( int damageBase, int shell )
 {
-	int hp = MaterialDef::CalcDamage( damageBase, shell, MaterialDef::MAT_GENERIC );
+	int hp = MaterialDef::CalcDamage( damageBase, shell, MAT_GENERIC );
 
 	stats.DoDamage( hp );
 	if ( !stats.HP() ) {
