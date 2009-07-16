@@ -3,7 +3,7 @@
 #include "../grinliz/gltypes.h"
 
 
-const float gDamage[MaterialDef::SH_BITS*MaterialDef::MAT_BITS] = 
+const float gDamage[SH_BITS*MAT_BITS] = 
 {
 //	Generic	Steel	Wood
 	0.0f,	0.0f,	0.0f,		// kinetic
@@ -15,8 +15,8 @@ int MaterialDef::CalcDamage( int damage, int shell, int material )
 	if ( damage < 1 )
 		return 0;
 
-	GLASSERT( (shell & SH_MASK) <= shell );		// okay, but make sure using high bits is okay!
-	GLASSERT( (material & MAT_MASK) <= material );		// okay, but make sure using high bits is okay!
+	//GLASSERT( (shell & SH_MASK) <= shell );		// okay, but make sure using high bits is okay!
+	//GLASSERT( (material & MAT_MASK) <= material );		// okay, but make sure using high bits is okay!
 
 	// The damage bonus:
 	// SUMMED for each shell type

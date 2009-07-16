@@ -294,10 +294,10 @@ void Game::LoadMapResources()
 	const int UFO_SET1	 = 0x50;
 	const int MARINE_SET = 0x60;
 
-	const int STEEL		= MaterialDef::MAT_STEEL;
-	const int WOOD		= MaterialDef::MAT_WOOD;
-	const int GENERIC	= MaterialDef::MAT_GENERIC;
-	const int GENERIC_FASTBURN	= MaterialDef::MAT_GENERIC;
+	const int STEEL		= MAT_STEEL;
+	const int WOOD		= MAT_WOOD;
+	const int GENERIC	= MAT_GENERIC;
+	const int GENERIC_FASTBURN	= MAT_GENERIC;
 
 
 	const MapItemInit farmSet[] =
@@ -356,25 +356,88 @@ void Game::LoadMapResources()
 
 void Game::LoadItemResources()
 {
+	const int DAM_LOW = 50;
+	const int DAM_MED = 80;
+	const int DAM_HI  = 120;
+	const int DAM_VHI = 200;
+	const int RANGE_CLOSE = 1;
+	const int RANGE_SHORT = 4;
+	const int RANGE_MED = 8;
+	const int RANGE_FAR = 12;
+	const float ACC_LOW = 0.7f;
+	const float ACC_MED = 1.0f;
+	const float ACC_HI  = 1.3f;
+	const int POW_LOW = 10;
+	const int POW_MED = 20;
+	const int POW_HI  = 50;
+
+	ItemDef item;
+
 	struct WeaponInit {
 		const char* name;
 		const char* resName;
 		int deco;
-		int material;
-		int damage;
-		int rounds;
 		int size;
 		const char* desc;
+		int		shell0, 
+				clip0, 
+				auto0, 
+				damage0, 
+				range0;
+		float	acc0;
+		int		power0;
+
+		int shell1, clip1, auto1, damage1, range1;
+		float acc1;
+		int power1;
 	};
 
-	const int KINETIC = MaterialDef::SH_KINETIC;
-
-	const WeaponInit weapons[] = {	//			material	 damage, rounds, size,			description
-		{ "PST-0",	"gun0",		DECO_PISTOL,	KINETIC,		50, 10, 2,					"Pistol"	},
-		{ "RAY-0",	"gun1",		DECO_PISTOL,	KINETIC,		50, 10, 2,					"Alien Ray Gun"	},
+	const WeaponInit weapons[] = {		
+		{ "PST-1",	"gun0",		DECO_PISTOL,	2,	"Pistol",
+								0, SH_KINETIC,	ITEM_CLIP_SHELL,	DAM_MED,	RANGE_SHORT,	ACC_MED, 0,
+								0 },
+		{ "AR-1",	"gun0",		DECO_RIFLE,		3,	"Assault Rifle Standard Issue",
+								SH_KINETIC,		ITEM_CLIP_AUTO,		3, DAM_LOW,	RANGE_MED,		ACC_MED, 0,
+								0 },
+		{ "AR-2",	"gun0",		DECO_RIFLE,		3,	"Assault Rifle 'Vera'",
+								SH_KINETIC,		ITEM_CLIP_AUTO,		3, DAM_MED,	RANGE_FAR,		ACC_HI,  0,
+								SH_EXPLOSIVE,	ITEM_CLIP_GRENADE,	0, DAM_HI,	RANGE_MED,		ACC_LOW, 0 },
+		{ "AR-3",	"gun0",		DECO_RIFLE,		3,	"Pulse Rifle",
+								SH_KINETIC,		ITEM_CLIP_AUTO,		4, DAM_MED,	RANGE_MED,		ACC_MED, 0,
+								SH_EXPLOSIVE,	ITEM_CLIP_GRENADE,	0, DAM_HI,	RANGE_MED,		ACC_MED, 0 },
+		{ "RAY-1",	"gun1",		DECO_PISTOL,	2,	"Alien Ray Gun",
+								SH_ENERGY,		ITEM_CLIP_CELL,		0, DAM_MED,	RANGE_MED,		ACC_MED, POW_LOW,
+								0 },
 		{ 0 }
 	};
 
+	for( int i=0; weapons[i].name; ++i ) {
+		memset( &item, 0, sizeof(item) );
+		item.type = ITEM_WEAPON;
+		item.name = weapons[i].name;
+		item.desc = weapons[i].desc;
+		item.deco = weapons[i].deco;
+		item.resource = GetResource( weapons[i].resName );
+		item.size = weapons[i].size;
+
+		item.weapon[0].shell		= weapons[i].shell0;
+		item.weapon[0].clip			= weapons[i].clip0;
+		item.weapon[0].autoRounds	= weapons[i].auto0;
+		item.weapon[0].damageBase	= weapons[i].damage0;
+		item.weapon[0].range		= weapons[i].range0;
+		item.weapon[0].accuracy		= weapons[i].acc0;
+		item.weapon[0].power		= weapons[i].power0;
+
+		item.weapon[1].shell		= weapons[i].shell1;
+		item.weapon[1].clip			= weapons[i].clip1;
+		item.weapon[1].autoRounds	= weapons[i].auto1;
+		item.weapon[1].damageBase	= weapons[i].damage1;
+		item.weapon[1].range		= weapons[i].range1;
+		item.weapon[1].accuracy		= weapons[i].acc1;
+		item.weapon[1].power		= weapons[i].power1;
+
+		itemDefArr.Push( item );
+	}
 
 	struct ItemInit {
 		const char* name;
@@ -386,29 +449,9 @@ void Game::LoadItemResources()
 	};
 
 	const ItemInit items[] = {		
-		{ "Clip",	"shellClip",	ITEM_CLIP,	DECO_SHELLS,	1,		"20mm 10 round clip" },
-		{ "Cell",	"cellClip",		ITEM_CLIP,	DECO_CELL,		1,		"10MW cell" },
+		{ "Med",	0,				ITEM_GENERAL,	DECO_MEDKIT,	2,		"Medkit" },
 		{ 0 }
 	};
-
-
-	ItemDef item;
-	for( int i=0; weapons[i].name; ++i ) {
-		memset( &item, 0, sizeof(item) );
-		item.type = ITEM_WEAPON;
-		item.name = weapons[i].name;
-		item.desc = weapons[i].desc;
-		item.deco = weapons[i].deco;
-		item.resource = GetResource( weapons[i].resName );
-
-		item.size = weapons[i].size;
-
-		item.material = weapons[i].material;
-		item.rounds = weapons[i].rounds;
-		item.damageBase = weapons[i].damage;
-
-		itemDefArr.Push( item );
-	}
 
 	for( int i=0; items[i].name; ++i ) {
 		memset( &item, 0, sizeof(item) );
@@ -416,13 +459,47 @@ void Game::LoadItemResources()
 		item.name = items[i].name;
 		item.desc = items[i].desc;
 		item.deco = items[i].deco;
-		item.resource = GetResource( items[i].resName );
+		item.resource = 0;
+		if ( items[i].resName ) {
+			item.resource = GetResource( items[i].resName );
+		}
 
 		item.size = items[i].size;
 
 		itemDefArr.Push( item );
 	}
 
+	struct ClipInit {
+		const char* name;
+		int type;
+		int deco;
+		int size;
+		int rounds;
+		int shell;
+		const char* desc;
+	};
+
+	const ClipInit clips[] = {
+		{ "Clip",	ITEM_CLIP_SHELL,	DECO_SHELLS,	1,	 8,	SH_KINETIC,		"9mm 8 round clip" },
+		{ "AClip",	ITEM_CLIP_AUTO,		DECO_SHELLS,	1,  15,	SH_KINETIC,		"4mm 15 round auto-clip" },
+		{ "Cell",	ITEM_CLIP_CELL,		DECO_CELL,		1, 100, SH_ENERGY,		"10MW cell" },
+		{ 0 }
+	};
+
+	for( int i=0; clips[i].name; ++i ) {
+		memset( &item, 0, sizeof(item) );
+		item.type = clips[i].type;
+		item.name = clips[i].name;
+		item.desc = clips[i].desc;
+		item.deco = clips[i].deco;
+		item.resource = 0;
+		item.size = clips[i].size;
+
+		item.clip.shell = clips[i].shell;
+		item.clip.rounds = clips[i].rounds;
+
+		itemDefArr.Push( item );
+	}
 }
 
 
