@@ -34,6 +34,7 @@ enum {
 	DECO_ROCKET			= 4,
 	DECO_CELL			= 5,
 	DECO_RAYGUN			= 6,
+	DECO_UNLOAD			= 7,
 
 	DECO_AIMED			= 8,
 	DECO_AUTO			= 9,
@@ -41,6 +42,7 @@ enum {
 	DECO_MEDKIT			= 11,
 	DECO_KNIFE			= 12,
 	DECO_ALIEN			= 13,
+	DECO_ARMOR			= 14,
 
 	DECO_METAL			= 16,
 	DECO_TECH			= 17,
@@ -65,8 +67,9 @@ public:
 		MAX_TEXT_LEN		= 12,
 	};
 
-	// Coordinates in pixels.
+	// Coordinates in pixels. Origin in the lower left.
 	void SetOrigin( int x, int y )				{	origin.Set( x, y ); }
+	// Set the columns - rows will be added as needed.
 	void SetColumns( int columns  )				{	if ( this->columns != columns ) {
 														this->columns = columns; 
 														cacheValid = false; 
@@ -90,6 +93,7 @@ public:
 
 	void SetText( const char** text );
 	void SetText( int index, const char* text );
+	void SetText( int index, const char* text0, const char* text1 );
 
 	// Set the alpha of non-text
 	void SetAlpha( float alpha )		{ this->alpha = alpha; cacheValid = false; }
@@ -120,9 +124,11 @@ private:
 	{
 		int						id;
 		int						decoID;
-		char					text[MAX_TEXT_LEN];
+		char					text0[MAX_TEXT_LEN];
+		char					text1[MAX_TEXT_LEN];
 		bool					enabled;
-		grinliz::Vector2I		textPos;
+		grinliz::Vector2I		textPos0;
+		grinliz::Vector2I		textPos1;
 	};
 	const Texture* texture;
 	const Texture* decoTexture;

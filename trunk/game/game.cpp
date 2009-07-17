@@ -112,6 +112,9 @@ Game::~Game()
 			delete memStream[i].stream;
 		}
 	}
+	for( unsigned i=0; i<itemDefArr.Size(); ++i ) {
+		delete itemDefArr[i];
+	}
 }
 
 

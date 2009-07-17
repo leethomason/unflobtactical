@@ -31,7 +31,7 @@ class ModelResource;
 class SpaceTree;
 class RenderQueue;
 class Texture;
-struct ItemDef;
+class ItemDef;
 
 class Map : public micropather::Graph
 {

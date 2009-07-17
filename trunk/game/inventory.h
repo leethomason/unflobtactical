@@ -3,7 +3,7 @@
 
 #include "item.h"
 
-struct ItemDef;
+class ItemDef;
 class UFOStream;
 class Engine;
 class Game;
@@ -23,7 +23,9 @@ public:
 
 	enum {
 		ANY_SLOT = -1,
-		WEAPON_SLOT = 0
+		WEAPON_SLOT = 0,
+		ARMOR_SLOT = 1,
+		GENERAL_SLOT = 2
 	};
 
 	enum {
@@ -43,12 +45,12 @@ public:
 	void Load( UFOStream* s, Engine* engine, Game* game );
 
 	const Item& GetItem( int slot ) const		{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot]; }
-	int GetSlotSize( int slot ) const			{ return slotSize[slot]; }
+	//int GetSlotSize( int slot ) const			{ return slotSize[slot]; }
 
 private:
 
 	Item slots[NUM_SLOTS];
-	static int slotSize[NUM_SLOTS];
+	//static int slotSize[NUM_SLOTS];
 };
 
 
