@@ -1,10 +1,10 @@
 #include "inventory.h"
 #include "game.h"
 
-int Inventory::slotSize[NUM_SLOTS] = {	3,			// hand
-										2, 2, 2, 1, 1, 1,	// backpack
-										2, 1, 2,	// belt
-										1, 1 };		// leg
+//int Inventory::slotSize[NUM_SLOTS] = {	3,			// hand
+//										2, 2, 2, 1, 1, 1,	// backpack
+//										2, 1, 2,	// belt
+//										1, 1 };		// leg
 
 
 Inventory::Inventory()
@@ -17,20 +17,43 @@ bool Inventory::AddItem( int slot, const Item& item )
 {
 	const ItemDef* def = item.itemDef;
 
-	// Is it too big?
-	if ( def->size > 3 ) {
-		return false;
-	}
+//	// Is it too big?
+//	if ( def->size > 3 ) {
+//		return false;
+//	}
 
 	// if the slot was specified:
 	if ( slot != ANY_SLOT ) {
-		if ( slots[slot].None() && def->size <= slotSize[slot] ) {
+		if ( slots[slot].None() /*&& def->size <= slotSize[slot]*/ ) {
+			if ( slot == ARMOR_SLOT && !item.itemDef->IsArmor() )
+				return false;
+			if ( slot == WEAPON_SLOT && !item.itemDef->IsWeapon() ) 
+				return false;
+
 			slots[slot] = item;
 			return true;
 		}
 		return false;
 	}
 
+	if ( item.itemDef->IsArmor() && slots[ARMOR_SLOT].None() ) {
+		slots[ARMOR_SLOT] = item;
+		return true;
+	}
+
+	if ( item.itemDef->IsWeapon() && slots[WEAPON_SLOT].None() ) {
+		slots[WEAPON_SLOT] = item;
+		return true;
+	}
+
+	for( int j=GENERAL_SLOT; j<NUM_SLOTS; ++j ) {
+		if ( slots[j].None() ) {
+			slots[j] = item;
+			return true;
+		}
+	}
+
+/*
 	// Is it the weapon slot only?
 	if ( def->size == 3 ) {
 		if ( slots[0].None() ) {
@@ -53,7 +76,7 @@ bool Inventory::AddItem( int slot, const Item& item )
 				return true;
 			}
 		}
-	}
+	}*/
 	return false;
 }
 

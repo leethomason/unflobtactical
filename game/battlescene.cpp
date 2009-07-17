@@ -76,11 +76,12 @@ void BattleScene::InitUnits()
 	int Z = engine->GetMap()->Height();
 	Random random(5);
 
-	Item gun0, gun1, clip;
+	Item gun0, gun1, clip, medkit;
 
 	gun0.Init( game->GetItemDef( "PST-1" ) );
 	gun1.Init( game->GetItemDef( "RAY-1" ) );
 	clip.Init( game->GetItemDef( "Clip" ) );
+	medkit.Init( game->GetItemDef( "Med" ) );
 
 	for( int i=0; i<6; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-10 };
@@ -91,6 +92,7 @@ void BattleScene::InitUnits()
 		inventory->AddItem( Inventory::WEAPON_SLOT, gun0 );
 		inventory->AddItem( Inventory::ANY_SLOT, clip );
 		inventory->AddItem( Inventory::ANY_SLOT, clip );
+		inventory->AddItem( Inventory::ANY_SLOT, medkit );
 		unit->UpdateInventory();
 		unit->SetMapPos( pos.x, pos.y );
 	}
@@ -441,8 +443,8 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		bool hitSomething = false;
 
 		const Item* weaponItem = unit->GetWeapon();
-		const ItemDef* weaponDef = weaponItem->itemDef;
-		weaponDef->QueryWeaponRender( &beamColor, &beamDecay, &beamWidth, &impactColor );
+		const WeaponItemDef* weaponDef = weaponItem->itemDef->IsWeapon();
+		weaponDef->QueryWeaponRender( 0, &beamColor, &beamDecay, &beamWidth, &impactColor );
 
 		model->CalcTrigger( &p0 );
 		p1 = action->target;

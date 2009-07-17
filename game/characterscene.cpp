@@ -12,15 +12,15 @@ CharacterScene::CharacterScene( Game* _game ) : Scene( _game )
 
 	Texture* t = game->GetTexture( "icons" );	
 	Texture* t2 = game->GetTexture( "iconDeco" );	
-	widgets = new UIButtonBox( t, t2, engine->GetScreenport() );
+	backWidget = new UIButtonBox( t, t2, engine->GetScreenport() );
 	charInvWidget = new UIButtonBox( t, t2, engine->GetScreenport() );
 
 	{
 		int icons[] = { ICON_GREEN_BUTTON };
 		const char* iconText[] = { "back" };
-		widgets->InitButtons( icons, 1 );
-		widgets->SetOrigin( 5, 5 );
-		widgets->SetText( iconText );
+		backWidget->InitButtons( icons, 1 );
+		backWidget->SetOrigin( 5, 5 );
+		backWidget->SetText( iconText );
 	}
 	engine->EnableMap( false );
 
@@ -54,7 +54,7 @@ CharacterScene::CharacterScene( Game* _game ) : Scene( _game )
 
 CharacterScene::~CharacterScene()
 {
-	delete widgets;
+	delete backWidget;
 	delete charInvWidget;
 }
 
@@ -62,32 +62,54 @@ CharacterScene::~CharacterScene()
 void CharacterScene::SetInvWidgetText()
 {
 	Inventory* inv = unit.GetInventory();
-	for( int i=0; i<Inventory::NUM_SLOTS; ++i ) {
 
-		int index = charInvWidget->TopIndex( (i+Inventory::NUM_SLOTS-1)%Inventory::NUM_SLOTS );
+	// Top slots are general items.
+	for( int i=2; i<Inventory::NUM_SLOTS; ++i ) {
+
+		int index = charInvWidget->TopIndex( i-2 );
 		const Item& item = inv->GetItem( i );
+		SetButtonGraphics( index, item );
+	}
 
-		if ( !item.None() ) {
-			charInvWidget->SetText( index, item.itemDef->name );
-			charInvWidget->SetDeco( index, item.itemDef->deco );
+	// Botton slots are special.
+	// Armor, Drop, Weapon
+	SetButtonGraphics( 0, inv->GetItem( Inventory::ARMOR_SLOT ) );
+	charInvWidget->SetDeco( 0, DECO_ARMOR );
+	charInvWidget->SetButton( 0, ICON_RED_BUTTON );
+
+	charInvWidget->SetButton( 1, ICON_RED_BUTTON );
+	charInvWidget->SetDeco( 1, DECO_UNLOAD );
+
+	SetButtonGraphics( 2, inv->GetItem( Inventory::WEAPON_SLOT ) );
+	charInvWidget->SetButton( 2, ICON_RED_BUTTON );
+}
+
+
+void CharacterScene::SetButtonGraphics( int index, const Item& item )
+{
+	char buffer[16];
+
+	if ( !item.None() ) {
+		if ( item.itemDef->IsWeapon() || item.itemDef->IsClip() ) {
+			sprintf( buffer, "%d", item.rounds[0] );
+			charInvWidget->SetText( index, item.itemDef->name, buffer );
 		}
 		else {
-			charInvWidget->SetText( index, 0 );
-			charInvWidget->SetDeco( index, DECO_NONE );
+			charInvWidget->SetText( index, item.itemDef->name );
 		}
-		int id = ICON_BLUE_BUTTON;	// size1
-		int size = inv->GetSlotSize(i);
-		if ( size == 2 )
-			id = ICON_GREEN_BUTTON;
-		else if ( size == 3 )
-			id = ICON_RED_BUTTON;
-		charInvWidget->SetButton( index, id );
+		charInvWidget->SetDeco( index, item.itemDef->deco );
 	}
+	else {
+		charInvWidget->SetText( index, 0 );
+		charInvWidget->SetDeco( index, DECO_NONE );
+	}
+	charInvWidget->SetButton( index, ICON_GREEN_BUTTON );
 }
+
 
 void CharacterScene::DrawHUD()
 {
-	widgets->Draw();
+	backWidget->Draw();
 	charInvWidget->Draw();
 }
 
@@ -95,5 +117,47 @@ void CharacterScene::Tap(	int count,
 							const grinliz::Vector2I& screen,
 							const grinliz::Ray& world )
 {
-	game->PopScene();
+	int ux, uy;
+	engine->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );
+
+	int tap = backWidget->QueryTap( ux, uy );
+	if ( tap >= 0 ) {
+		game->PopScene();
+	}
 }
+
+
+void CharacterScene::Drag( int action, const grinliz::Vector2I& screen )
+{
+	if ( action == GAME_DRAG_MOVE )
+		return;
+
+	int ux, uy;
+	engine->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );
+
+	UIButtonBox* widget = 0;
+
+	int tap = charInvWidget->QueryTap( ux, uy );
+	if ( tap >= 0 ) {
+		widget = charInvWidget;
+	}
+
+	if ( action == GAME_DRAG_START ) {
+		startWidget = widget;
+		startTap = tap;
+	}
+	else {
+		/*
+		if ( startWidget == widget && widget == charInvWidget ) {
+			if ( startTap != tap ) {
+				int i0
+
+				// Swap items:
+				Inventory* inv = unit.GetInventory();
+				grinliz::Swap( &inv->
+			}
+		}
+		*/
+	}
+}
+

@@ -21,7 +21,7 @@ public:
 						const grinliz::Ray& world );
 
 	virtual void Drag(	int action,
-						const grinliz::Vector2I& view )	{}
+						const grinliz::Vector2I& view );
 	virtual void Zoom( int action, int distance )				{}
 	virtual void CancelInput()									{}
 
@@ -31,11 +31,15 @@ public:
 
 protected:
 	void SetInvWidgetText();
+	void SetButtonGraphics( int index, const Item& item );
 
 	Engine* engine;
-	UIButtonBox* widgets;
+	UIButtonBox* backWidget;
 	UIButtonBox* charInvWidget;
 	Unit unit;
+
+	UIButtonBox *startWidget;
+	int startTap;
 };
 
 

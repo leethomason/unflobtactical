@@ -27,7 +27,7 @@
 
 class ParticleSystem;
 class Scene;
-struct ItemDef;
+class ItemDef;
 
 const float FOV = 45.0f;
 const int MAX_TEXTURES = 32;
@@ -164,7 +164,7 @@ private:
 #endif
 	grinliz::ProfileData profile;
 
-	CDynArray<ItemDef>	itemDefArr;
+	CDynArray<ItemDef*>	itemDefArr;
 	Texture				texture[MAX_TEXTURES];
 	ModelResource		modelResource[EL_MAX_MODEL_RESOURCES];
 	Surface				lightMaps[NUM_LIGHT_MAPS];

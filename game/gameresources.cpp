@@ -371,13 +371,11 @@ void Game::LoadItemResources()
 	const int POW_MED = 20;
 	const int POW_HI  = 50;
 
-	ItemDef item;
-
 	struct WeaponInit {
 		const char* name;
 		const char* resName;
 		int deco;
-		int size;
+		//int size;
 		const char* desc;
 		int		shell0, 
 				clip0, 
@@ -393,48 +391,47 @@ void Game::LoadItemResources()
 	};
 
 	const WeaponInit weapons[] = {		
-		{ "PST-1",	"gun0",		DECO_PISTOL,	2,	"Pistol",
+		{ "PST-1",	"gun0",		DECO_PISTOL,	"Pistol",
 								0, SH_KINETIC,	ITEM_CLIP_SHELL,	DAM_MED,	RANGE_SHORT,	ACC_MED, 0,
 								0 },
-		{ "AR-1",	"gun0",		DECO_RIFLE,		3,	"Assault Rifle Standard Issue",
+		{ "AR-1",	"gun0",		DECO_RIFLE,		"Assault Rifle Standard Issue",
 								SH_KINETIC,		ITEM_CLIP_AUTO,		3, DAM_LOW,	RANGE_MED,		ACC_MED, 0,
 								0 },
-		{ "AR-2",	"gun0",		DECO_RIFLE,		3,	"Assault Rifle 'Vera'",
+		{ "AR-2",	"gun0",		DECO_RIFLE,		"Assault Rifle 'Vera'",
 								SH_KINETIC,		ITEM_CLIP_AUTO,		3, DAM_MED,	RANGE_FAR,		ACC_HI,  0,
 								SH_EXPLOSIVE,	ITEM_CLIP_GRENADE,	0, DAM_HI,	RANGE_MED,		ACC_LOW, 0 },
-		{ "AR-3",	"gun0",		DECO_RIFLE,		3,	"Pulse Rifle",
+		{ "AR-3",	"gun0",		DECO_RIFLE,		"Pulse Rifle",
 								SH_KINETIC,		ITEM_CLIP_AUTO,		4, DAM_MED,	RANGE_MED,		ACC_MED, 0,
 								SH_EXPLOSIVE,	ITEM_CLIP_GRENADE,	0, DAM_HI,	RANGE_MED,		ACC_MED, 0 },
-		{ "RAY-1",	"gun1",		DECO_PISTOL,	2,	"Alien Ray Gun",
+		{ "RAY-1",	"gun1",		DECO_PISTOL,	"Alien Ray Gun",
 								SH_ENERGY,		ITEM_CLIP_CELL,		0, DAM_MED,	RANGE_MED,		ACC_MED, POW_LOW,
 								0 },
 		{ 0 }
 	};
 
 	for( int i=0; weapons[i].name; ++i ) {
-		memset( &item, 0, sizeof(item) );
-		item.type = ITEM_WEAPON;
-		item.name = weapons[i].name;
-		item.desc = weapons[i].desc;
-		item.deco = weapons[i].deco;
-		item.resource = GetResource( weapons[i].resName );
-		item.size = weapons[i].size;
+		WeaponItemDef* item = new WeaponItemDef();
+		item->InitBase( ITEM_WEAPON, 
+						weapons[i].name, 
+						weapons[i].desc, 
+						weapons[i].deco,
+						GetResource( weapons[i].resName ) );
 
-		item.weapon[0].shell		= weapons[i].shell0;
-		item.weapon[0].clip			= weapons[i].clip0;
-		item.weapon[0].autoRounds	= weapons[i].auto0;
-		item.weapon[0].damageBase	= weapons[i].damage0;
-		item.weapon[0].range		= weapons[i].range0;
-		item.weapon[0].accuracy		= weapons[i].acc0;
-		item.weapon[0].power		= weapons[i].power0;
+		item->weapon[0].shell		= weapons[i].shell0;
+		item->weapon[0].clip		= weapons[i].clip0;
+		item->weapon[0].autoRounds	= weapons[i].auto0;
+		item->weapon[0].damageBase	= weapons[i].damage0;
+		item->weapon[0].range		= weapons[i].range0;
+		item->weapon[0].accuracy	= weapons[i].acc0;
+		item->weapon[0].power		= weapons[i].power0;
 
-		item.weapon[1].shell		= weapons[i].shell1;
-		item.weapon[1].clip			= weapons[i].clip1;
-		item.weapon[1].autoRounds	= weapons[i].auto1;
-		item.weapon[1].damageBase	= weapons[i].damage1;
-		item.weapon[1].range		= weapons[i].range1;
-		item.weapon[1].accuracy		= weapons[i].acc1;
-		item.weapon[1].power		= weapons[i].power1;
+		item->weapon[1].shell		= weapons[i].shell1;
+		item->weapon[1].clip		= weapons[i].clip1;
+		item->weapon[1].autoRounds	= weapons[i].auto1;
+		item->weapon[1].damageBase	= weapons[i].damage1;
+		item->weapon[1].range		= weapons[i].range1;
+		item->weapon[1].accuracy	= weapons[i].acc1;
+		item->weapon[1].power		= weapons[i].power1;
 
 		itemDefArr.Push( item );
 	}
@@ -454,18 +451,12 @@ void Game::LoadItemResources()
 	};
 
 	for( int i=0; items[i].name; ++i ) {
-		memset( &item, 0, sizeof(item) );
-		item.type = items[i].type;
-		item.name = items[i].name;
-		item.desc = items[i].desc;
-		item.deco = items[i].deco;
-		item.resource = 0;
-		if ( items[i].resName ) {
-			item.resource = GetResource( items[i].resName );
-		}
-
-		item.size = items[i].size;
-
+		ItemDef* item = new ItemDef();
+		item->InitBase( items[i].type,
+						items[i].name,
+						items[i].desc,
+						items[i].deco,
+						items[i].resName ? GetResource( items[i].resName ) : 0 );
 		itemDefArr.Push( item );
 	}
 
@@ -487,16 +478,15 @@ void Game::LoadItemResources()
 	};
 
 	for( int i=0; clips[i].name; ++i ) {
-		memset( &item, 0, sizeof(item) );
-		item.type = clips[i].type;
-		item.name = clips[i].name;
-		item.desc = clips[i].desc;
-		item.deco = clips[i].deco;
-		item.resource = 0;
-		item.size = clips[i].size;
+		ClipItemDef* item = new ClipItemDef();
+		item->InitBase( clips[i].type,
+						clips[i].name,
+						clips[i].desc,
+						clips[i].deco,
+						0 );
 
-		item.clip.shell = clips[i].shell;
-		item.clip.rounds = clips[i].rounds;
+		item->shell = clips[i].shell;
+		item->rounds = clips[i].rounds;
 
 		itemDefArr.Push( item );
 	}
@@ -506,8 +496,8 @@ void Game::LoadItemResources()
 const ItemDef* Game::GetItemDef( const char* name )
 {
 	for( unsigned i=0; i<itemDefArr.Size(); ++i ) {
-		if ( strcmp( itemDefArr[i].name, name ) == 0 ) {
-			return &itemDefArr[i];
+		if ( strcmp( itemDefArr[i]->name, name ) == 0 ) {
+			return itemDefArr[i];
 		}
 	}
 	GLASSERT( 0 );

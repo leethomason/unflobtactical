@@ -73,7 +73,8 @@ void UIButtonBox::InitButtons( const int* _icons, int _nIcons )
 		icons[i].id = _icons[i];
 		icons[i].decoID = DECO_NONE;
 		icons[i].enabled = true;
-		icons[i].text[0] = 0;
+		icons[i].text0[0] = 0;
+		icons[i].text1[0] = 0;
 	}
 
 	cacheValid = false;
@@ -108,12 +109,13 @@ void UIButtonBox::SetDeco( int index, int decoID )
 void UIButtonBox::SetText( const char** text ) 
 {
 	for( int i=0; i<nIcons; ++i ) {
-		icons[i].text[0] = 0;
+		icons[i].text0[0] = 0;
+		icons[i].text1[0] = 0;
 	}
 	if ( text ) {
 		for( int i=0; i<nIcons; ++i ) {
 			if ( text[i] ) {
-				strncpy( icons[i].text, text[i], MAX_TEXT_LEN );
+				strncpy( icons[i].text0, text[i], MAX_TEXT_LEN );
 				PositionText( i );
 			}
 		}
@@ -125,9 +127,27 @@ void UIButtonBox::SetText( const char** text )
 void UIButtonBox::SetText( int index, const char* text ) 
 {
 	GLASSERT( index >=0 && index < nIcons );
-	icons[index].text[0] = 0;
+	icons[index].text0[0] = 0;
+	icons[index].text1[0] = 0;
 	if ( text && *text ) {
-		strncpy( icons[index].text, text, MAX_TEXT_LEN );
+		strncpy( icons[index].text0, text, MAX_TEXT_LEN );
+		PositionText( index );
+	}
+}
+
+
+void UIButtonBox::SetText( int index, const char* text0, const char* text1 )
+{
+	GLASSERT( index >=0 && index < nIcons );
+	icons[index].text0[0] = 0;
+	icons[index].text1[0] = 0;
+
+	if ( text0 && *text0 ) {
+		strncpy( icons[index].text0, text0, MAX_TEXT_LEN );
+		PositionText( index );
+	}
+	if ( text1 && *text1 ) {
+		strncpy( icons[index].text1, text1, MAX_TEXT_LEN );
 		PositionText( index );
 	}
 }
@@ -136,9 +156,22 @@ void UIButtonBox::SetText( int index, const char* text )
 void UIButtonBox::PositionText( int index ) 
 {
 	int w, h;
-	UFOText::GlyphSize( icons[index].text, &w, &h );
-	icons[index].textPos.x = size.x/2 - w/2;
-	icons[index].textPos.y = size.y/2 - h/2;
+	UFOText::GlyphSize( icons[index].text0, &w, &h );
+
+	icons[index].textPos0.x = size.x/2 - w/2;
+	icons[index].textPos0.y = size.y/2 - h/2;
+
+	if ( icons[index].text1[0] ) {
+		int w1, h1;
+		UFOText::GlyphSize( icons[index].text1, &w1, &h1 );
+
+		int s = size.y - (h+h1);
+		
+		icons[index].textPos0.y = size.y - s/2 - h;
+
+		icons[index].textPos1.x = size.x/2 - w/2;
+		icons[index].textPos1.y = size.y - s/2 - (h+h1);
+	}
 }
 
 
@@ -267,10 +300,15 @@ void UIButtonBox::Draw()
 
 	UFOText::Begin();
 	for( int i=0; i<nIcons; ++i ) {
-		if ( icons[i].text[0] ) {
+		if ( icons[i].text0[0] ) {
 			int x = pos[i*4].x + origin.x;
 			int y = pos[i*4].y + origin.y;
-			UFOText::Stream( x+icons[i].textPos.x, y+icons[i].textPos.y, "%s", icons[i].text );
+			UFOText::Stream( x+icons[i].textPos0.x, y+icons[i].textPos0.y, "%s", icons[i].text0 );
+		}
+		if ( icons[i].text1[0] ) {
+			int x = pos[i*4].x + origin.x;
+			int y = pos[i*4].y + origin.y;
+			UFOText::Stream( x+icons[i].textPos1.x, y+icons[i].textPos1.y, "%s", icons[i].text1 );
 		}
 	}
 	UFOText::End();

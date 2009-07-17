@@ -20,8 +20,38 @@ enum {
 	ITEM_CLIP_GRENADE,
 };
 
-struct ItemDef
+class WeaponItemDef;
+class ClipItemDef;
+
+class ItemDef
 {
+public:
+	ItemDef() {};
+	virtual ~ItemDef() {};
+
+	int				type;
+	const char*		name;
+	const char*		desc;
+	int				deco;
+	ModelResource*	resource;	// can be null, in which case render with crate.
+	//int				size;		// 1-3 unit can carry, 4: big
+
+	void InitBase( int type, const char* name, const char* desc, int deco, ModelResource* resource /*,int size*/ )
+	{
+		this->type = type; this->name = name; this->desc = desc; this->deco = deco; this->resource = resource; //this->size = size;
+	}
+
+	virtual const WeaponItemDef* IsWeapon() const { return 0; }
+	virtual const ClipItemDef* IsClip() const  { return 0; }
+
+	bool IsArmor() const { return type == ITEM_ARMOR; }
+};
+
+class WeaponItemDef : public ItemDef
+{
+public:
+	virtual const WeaponItemDef* IsWeapon() const { return this; }
+
 	struct Weapon {
 		int shell;			// type of shell SH_KINETIC, etc.
 		int clip;			// type of clip required
@@ -31,24 +61,17 @@ struct ItemDef
 		float accuracy;		// 1.0 is average
 		int power;			// power consumed by cell weapons
 	};
-	struct Clip {
-		int shell;			// modifies the shell of the weapon
-		int rounds;			// rounds in this clip, power of cell (100)
-	};
-	int				type;
-	const char*		name;
-	const char*		desc;
-	int				deco;
-	ModelResource*	resource;	// can be null, in which case render with crate.
-	int				size;		// 1-3 unit can carry, 4: big
+	Weapon weapon[2];		// primary and secondary
+	void QueryWeaponRender( int select, grinliz::Vector4F* beamColor, float* beamDecay, float* beamWidth, grinliz::Vector4F* impactColor ) const;
+};
 
-	union {
-		Weapon			weapon[2];	// primary fire and secondary fire
-		Clip			clip;
-	};
+class ClipItemDef : public ItemDef
+{
+public:
+	virtual const ClipItemDef* IsClip() const { return this; }
 
-	void QueryWeaponRender( grinliz::Vector4F* beamColor, float* beamDecay, float* beamWidth, grinliz::Vector4F* impactColor ) const;
-	bool IsWeapon() const { return type == ITEM_WEAPON; }
+	int shell;			// modifies the shell of the weapon
+	int rounds;			// rounds in this clip, power of cell (100)
 };
 
 
