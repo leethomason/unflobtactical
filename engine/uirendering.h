@@ -26,6 +26,9 @@ enum {
 	ICON_BLUE_BUTTON	= 1,
 	ICON_RED_BUTTON		= 2,
 	ICON_TRANS_RED		= 4,
+	ICON_GREEN_BUTTON_DOWN	= 8,
+	ICON_BLUE_BUTTON_DOWN	= 9,
+	ICON_RED_BUTTON_DOWN	= 10,
 	ICON_NONE			= 15,
 
 	DECO_CHARACTER		= 0,
@@ -95,6 +98,8 @@ public:
 	void SetText( const char** text );
 	void SetText( int index, const char* text );
 	void SetText( int index, const char* text0, const char* text1 );
+
+	const char* GetText( int index );
 
 	// Set the alpha of non-text
 	void SetAlpha( float alpha )		{ this->alpha = alpha; cacheValid = false; }

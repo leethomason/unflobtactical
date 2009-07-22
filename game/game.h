@@ -65,6 +65,7 @@ public:
 	Texture*		GetTexture( const char* name );
 	Surface*		GetLightMap( const char* name );
 	const ItemDef*  GetItemDef( const char* name );
+	const CDynArray<ItemDef*>& GetItemDefArray() { return itemDefArr; }
 
 	Engine engine;
 	Surface surface;

@@ -33,13 +33,18 @@ protected:
 	};
 
 	void SetInvWidget();
+	void SetStorageWidget();
 	void SetButtonGraphics( int index, const Item& item );
 	void IndexType( int uiIndex, int* type, int* inventorySlot );
 
 	Engine* engine;
 	UIButtonBox* backWidget;
 	UIButtonBox* charInvWidget;
+	UIButtonBox* selectWidget;
+	UIButtonBox* storageWidget;
+	const char* description;
 	Unit unit;
+	int groupSelected;
 
 	UIButtonBox *startWidget;
 	int startTap;

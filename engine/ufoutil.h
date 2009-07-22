@@ -65,10 +65,10 @@ public:
 		}
 		vec[size++] = t;
 	}
-	unsigned Size()	{ return size; }
+	unsigned Size() const	{ return size; }
 	
-	void Clear()	{ size = 0; }
-	bool Empty()	{ return size==0; }
+	void Clear()		{ size = 0; }
+	bool Empty() const	{ return size==0; }
 
 private:
 	T* vec;
