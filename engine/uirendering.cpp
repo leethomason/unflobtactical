@@ -339,3 +339,65 @@ int UIButtonBox::QueryTap( int x, int y )
 	}
 	return -1;
 }
+
+
+/*static*/ void UIRendering::DrawQuad(	const Screenport& screenport,
+										const grinliz::Rectangle2I& pos, 
+										const grinliz::Rectangle2F& uv,
+										const Texture* texture )
+{
+	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+
+	glDisable( GL_DEPTH_TEST );
+	glDepthMask( GL_FALSE );
+	glEnable( GL_BLEND );
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisableClientState( GL_NORMAL_ARRAY );
+	//glEnableClientState( GL_COLOR_ARRAY );
+
+	glEnable( GL_TEXTURE_2D );
+	glBindTexture( GL_TEXTURE_2D, texture->glID );
+
+	screenport.PushUI();
+
+	grinliz::Vector2< S16 > p[4] = {
+		{ pos.min.x, pos.min.y },
+		{ pos.max.x, pos.min.y },
+		{ pos.max.x, pos.max.y },
+		{ pos.min.x, pos.max.y }
+	};
+	grinliz::Vector2F tex[4] = {
+		{ uv.min.x, uv.min.y },
+		{ uv.max.x, uv.min.y },
+		{ uv.max.x, uv.max.y },
+		{ uv.min.x, uv.max.y }
+	};
+
+	glVertexPointer(   2, GL_SHORT, 0, p );
+	glTexCoordPointer( 2, GL_FLOAT, 0, tex ); 
+
+	CHECK_GL_ERROR;
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+	CHECK_GL_ERROR;
+
+	screenport.PopUI();
+
+	glEnableClientState( GL_NORMAL_ARRAY );
+	//glDisableClientState( GL_COLOR_ARRAY );
+	glDisable( GL_BLEND );
+	glEnable( GL_DEPTH_TEST );
+	glDepthMask( GL_TRUE );
+}
+
+
+/*static*/ void UIRendering::GetDecoUV( int decoID, grinliz::Rectangle2F* uv )
+{
+	const float decoTX = 1.0f / (float)UIButtonBox::DECO_DX;
+	const float decoTY = 1.0f / (float)UIButtonBox::DECO_DY;
+
+	float dx = (float)(decoID%UIButtonBox::DECO_DX)*decoTX;
+	float dy = (float)(decoID/UIButtonBox::DECO_DX)*decoTY;
+
+	uv->Set( dx, dy, dx+decoTX,	dy+decoTY );
+}
+

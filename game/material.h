@@ -7,7 +7,7 @@ enum {
 	SH_EXPLOSIVE	= 0x02,
 	SH_ENERGY		= 0x04,
 	SH_AP			= 0x08,
-	SH_INCIN		= 0x10,
+	SH_INCINDIARY	= 0x10,
 
 	SH_BITS = 5,
 };

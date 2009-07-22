@@ -213,7 +213,7 @@ void Unit::UpdateInventory()
 
 	const Item* weaponItem = inventory.ArmedWeapon();
 	if ( weaponItem  ) {
-		weapon = engine->AllocModel( weaponItem->itemDef->resource );
+		weapon = engine->AllocModel( weaponItem->part[0].itemDef->resource );
 		weapon->SetFlag( Model::MODEL_NO_SHADOW );
 	}
 	UpdateWeapon();
