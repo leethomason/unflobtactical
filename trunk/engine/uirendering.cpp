@@ -153,6 +153,13 @@ void UIButtonBox::SetText( int index, const char* text0, const char* text1 )
 }
 
 
+const char* UIButtonBox::GetText( int index )
+{
+	GLASSERT( index >= 0 && index < nIcons );
+	return icons[index].text0;
+}
+
+
 void UIButtonBox::PositionText( int index ) 
 {
 	int w, h;

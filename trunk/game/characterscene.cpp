@@ -2,6 +2,7 @@
 #include "game.h"
 #include "cgame.h"
 #include "../engine/uirendering.h"
+#include "../engine/text.h"
 
 using namespace grinliz;
 
@@ -10,11 +11,14 @@ CharacterScene::CharacterScene( Game* _game ) : Scene( _game )
 {
 	engine = &_game->engine;
 	dragging = false;
+	description = 0;
 
 	Texture* t = game->GetTexture( "icons" );	
 	decoTexture = game->GetTexture( "iconDeco" );	
 	backWidget = new UIButtonBox( t, decoTexture, engine->GetScreenport() );
 	charInvWidget = new UIButtonBox( t, decoTexture, engine->GetScreenport() );
+	selectWidget = new UIButtonBox( t, decoTexture, engine->GetScreenport() );
+	storageWidget = new UIButtonBox( t, decoTexture, engine->GetScreenport() );
 
 	{
 		int icons[] = { ICON_GREEN_BUTTON };
@@ -38,18 +42,40 @@ CharacterScene::CharacterScene( Game* _game ) : Scene( _game )
 	//model->SetYRotation( -18.0f );
 	unit.SetYRotation( -18.0f );
 
+	const int BUTX = 62;	// 61 is min
+	const int BUTY = 60;
 	{
 		int icons[20] = { ICON_GREEN_BUTTON };
 		charInvWidget->InitButtons( icons, Inventory::NUM_SLOTS+1 );
 		charInvWidget->SetColumns( Inventory::DX );
 		charInvWidget->SetOrigin( 5, 70 );
 		// 5 letters...
-		charInvWidget->SetButtonSize( 10*4+16+5, 45 );
+		//charInvWidget->SetButtonSize( 10*4+16+5, 45 );
+		charInvWidget->SetButtonSize( BUTX, BUTY );
 		charInvWidget->SetPadding( 0, 0 );
 		charInvWidget->SetAlpha( 0.8f );
-
 	}
+	{
+		int icons[4] = { ICON_BLUE_BUTTON, ICON_BLUE_BUTTON, ICON_BLUE_BUTTON, ICON_BLUE_BUTTON };
+		selectWidget->InitButtons( icons, 4 );
+		selectWidget->SetColumns( 1 );
+		selectWidget->SetOrigin( 230, 70 );
+		selectWidget->SetButtonSize( BUTX, BUTY );
+		selectWidget->SetPadding( 0, 0 );
+		selectWidget->SetAlpha( 0.8f );
+	}
+	{
+		int icons[12] = { ICON_GREEN_BUTTON };
+		storageWidget->InitButtons( icons, 12 );
+		storageWidget->SetColumns( 3 );
+		storageWidget->SetOrigin( 230+BUTX, 70 );
+		storageWidget->SetButtonSize( BUTX, BUTY );
+		storageWidget->SetPadding( 0, 0 );
+		storageWidget->SetAlpha( 0.8f );
+		groupSelected = 0;
+	}	
 	SetInvWidget();
+	SetStorageWidget();
 }
 
 
@@ -57,6 +83,64 @@ CharacterScene::~CharacterScene()
 {
 	delete backWidget;
 	delete charInvWidget;
+	delete selectWidget;
+	delete storageWidget;
+}
+
+
+void CharacterScene::SetStorageWidget()
+{
+	// First the selection.
+	for( int i=0; i<4; ++i ) {
+		selectWidget->SetButton( i, (i==groupSelected) ? ICON_BLUE_BUTTON_DOWN : ICON_BLUE_BUTTON );
+	}
+	selectWidget->SetDeco( 0, DECO_PISTOL );
+	selectWidget->SetDeco( 1, DECO_RAYGUN );
+	selectWidget->SetDeco( 2, DECO_ARMOR );
+	selectWidget->SetDeco( 3, DECO_ALIEN );
+
+	// Then the storage.
+	const CDynArray<ItemDef*>& itemArr = game->GetItemDefArray();
+	int slot = 0;
+
+	for( unsigned i=0; i<itemArr.Size(); ++i ) {
+		bool add = false;
+		int group = 3;
+
+		const WeaponItemDef* wid = itemArr[i]->IsWeapon();
+		const ClipItemDef* cid = itemArr[i]->IsClip();
+
+		// Terran non-melee weapons and clips.
+		if ( wid && wid->weapon[0].power == 0 && wid->weapon[0].range > 1 )
+			group=0;
+		else if ( cid && cid->type != ITEM_CLIP_CELL )
+			group=0;
+
+		// alien non-melee weapons and clips
+		if ( wid && wid->weapon[0].power > 0 && wid->weapon[0].range > 1 )
+			group=1;
+		else if ( cid && cid->type == ITEM_CLIP_CELL )
+			group=1;
+
+		// armor, melee
+		if ( wid && wid->weapon[0].range == 1 )
+			group=2;
+		if ( itemArr[i]->IsArmor() )
+			group=2;
+
+		if ( group==groupSelected ) {
+			//GLASSERT( slot < 12 );
+			if ( slot < 12 ) {
+				storageWidget->SetDeco( slot, itemArr[i]->deco );
+				storageWidget->SetText( slot, itemArr[i]->name, " " );
+			}
+			++slot;
+		}
+	}
+	for( ; slot<12; ++slot ) {
+		storageWidget->SetDeco( slot, DECO_NONE );
+		storageWidget->SetText( slot, 0, 0 );
+	}
 }
 
 
@@ -120,6 +204,12 @@ void CharacterScene::DrawHUD()
 {
 	backWidget->Draw();
 	charInvWidget->Draw();
+	selectWidget->Draw();
+	storageWidget->Draw();
+
+	if ( description ) {
+		UFOText::Draw( 235, 50, "%s", description );
+	}
 
 	if ( dragging ) {
 		const int SIZE = 30;
@@ -142,6 +232,23 @@ void CharacterScene::Tap(	int count,
 	int tap = backWidget->QueryTap( ux, uy );
 	if ( tap >= 0 ) {
 		game->PopScene();
+	}
+
+	tap = selectWidget->QueryTap( ux, uy );
+	if ( tap >= 0 ) {
+		groupSelected = tap;
+		description = 0;
+		SetStorageWidget();
+	}
+
+	tap = storageWidget->QueryTap( ux, uy );
+	if ( tap >= 0 ) {
+		const char* itemName = storageWidget->GetText( tap );
+		const ItemDef* itemDef = game->GetItemDef( itemName );
+		GLASSERT( itemDef );
+		if ( itemDef ) {
+			description = itemDef->desc;
+		}
 	}
 }
 
