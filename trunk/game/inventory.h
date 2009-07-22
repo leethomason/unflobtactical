@@ -31,13 +31,15 @@ public:
 	enum {
 		DX = 3,
 		DY = 4,
-		NUM_SLOTS  = 12,
+		NUM_SLOTS  = 11,
 	};
 
 	Inventory();
 
 	// Add an item. 0: weapon slot, -1: any slot available
 	bool AddItem( int slot, const Item& item );
+	// Add an item. 0: weapon slot, -1: any slot available
+	bool IsGeneralSlotFree();
 	
 	Item* ArmedWeapon();	// null if no weapon ready
 
@@ -45,12 +47,14 @@ public:
 	void Load( UFOStream* s, Engine* engine, Game* game );
 
 	const Item& GetItem( int slot ) const		{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot]; }
-	//int GetSlotSize( int slot ) const			{ return slotSize[slot]; }
+	Item* AccessItem( int slot )				{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return &slots[slot]; }
+	int GetDeco( int slot ) const;
+
+	bool Swap( int s0, int s1 );
 
 private:
 
 	Item slots[NUM_SLOTS];
-	//static int slotSize[NUM_SLOTS];
 };
 
 

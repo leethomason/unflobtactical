@@ -360,7 +360,7 @@ void Game::LoadItemResources()
 	const int DAM_MED = 80;
 	const int DAM_HI  = 120;
 	const int DAM_VHI = 200;
-	const int RANGE_CLOSE = 1;
+	const int RANGE_MELEE = 1;
 	const int RANGE_SHORT = 4;
 	const int RANGE_MED = 8;
 	const int RANGE_FAR = 12;
@@ -375,8 +375,8 @@ void Game::LoadItemResources()
 		const char* name;
 		const char* resName;
 		int deco;
-		//int size;
 		const char* desc;
+
 		int		shell0, 
 				clip0, 
 				auto0, 
@@ -391,21 +391,51 @@ void Game::LoadItemResources()
 	};
 
 	const WeaponInit weapons[] = {		
+		// Terran
 		{ "PST-1",	"gun0",		DECO_PISTOL,	"Pistol",
-								0, SH_KINETIC,	ITEM_CLIP_SHELL,	DAM_MED,	RANGE_SHORT,	ACC_MED, 0,
-								0 },
+								SH_KINETIC,		ITEM_CLIP_SHELL,	0, DAM_MED,	RANGE_SHORT,	ACC_MED, 0,
+								0  },
 		{ "AR-1",	"gun0",		DECO_RIFLE,		"Assault Rifle Standard Issue",
 								SH_KINETIC,		ITEM_CLIP_AUTO,		3, DAM_LOW,	RANGE_MED,		ACC_MED, 0,
-								0 },
+								0  },
 		{ "AR-2",	"gun0",		DECO_RIFLE,		"Assault Rifle 'Vera'",
 								SH_KINETIC,		ITEM_CLIP_AUTO,		3, DAM_MED,	RANGE_FAR,		ACC_HI,  0,
 								SH_EXPLOSIVE,	ITEM_CLIP_GRENADE,	0, DAM_HI,	RANGE_MED,		ACC_LOW, 0 },
 		{ "AR-3",	"gun0",		DECO_RIFLE,		"Pulse Rifle",
 								SH_KINETIC,		ITEM_CLIP_AUTO,		4, DAM_MED,	RANGE_MED,		ACC_MED, 0,
 								SH_EXPLOSIVE,	ITEM_CLIP_GRENADE,	0, DAM_HI,	RANGE_MED,		ACC_MED, 0 },
-		{ "RAY-1",	"gun1",		DECO_PISTOL,	"Alien Ray Gun",
-								SH_ENERGY,		ITEM_CLIP_CELL,		0, DAM_MED,	RANGE_MED,		ACC_MED, POW_LOW,
+		{ "RKT",	"gun0",		DECO_RIFLE,		"Rocket Launcher",
+								SH_EXPLOSIVE,	ITEM_CLIP_ROCKET,	0, DAM_HI,  RANGE_FAR,		ACC_MED, 0,
+								0  },
+		{ "CANON",	"gun0",		DECO_RIFLE,		"Mini-Canon",
+								SH_KINETIC,		ITEM_CLIP_CANON,	3, DAM_HI,	RANGE_MED,		ACC_MED, 0,
 								0 },
+		{ "KNIFE",	"gun0",		DECO_KNIFE,		"Knife",
+								SH_KINETIC,		0,					0, DAM_MED, RANGE_MELEE,	ACC_MED, 0,
+								0  },
+
+		// Alien
+		{ "RAY-1",	"gun1",		DECO_PISTOL,	"Alien Ray Gun",
+								SH_ENERGY,		ITEM_CLIP_CELL,		0, DAM_LOW,	RANGE_SHORT,	ACC_MED, POW_LOW,
+								0  },
+		{ "RAY-2",	"gun1",		DECO_PISTOL,	"Advanced Alien Ray Gun",
+								SH_ENERGY,		ITEM_CLIP_CELL,		0, DAM_MED,	RANGE_MED,		ACC_MED, POW_LOW,
+								0  },
+		{ "PLS-1",	"gun0",		DECO_RIFLE,		"Plasma Rifle",
+								SH_ENERGY,		ITEM_CLIP_CELL,		3, DAM_MED, RANGE_MED,		ACC_MED, POW_MED,
+								0  },
+		{ "PLS-2",	"gun0",		DECO_RIFLE,		"Plasma Assault Rifle",
+								SH_ENERGY,		ITEM_CLIP_CELL,		3, DAM_MED, RANGE_FAR,		ACC_MED, POW_MED,
+								SH_ENERGY|SH_EXPLOSIVE, ITEM_CLIP_CELL, 0, DAM_HI, RANGE_FAR,   ACC_LOW, POW_HI },
+		{ "PLS-3",	"gun0",		DECO_RIFLE,		"Advanced Plasma Assault",
+								SH_ENERGY,		ITEM_CLIP_CELL,		3, DAM_HI, RANGE_FAR,		ACC_HI, POW_MED,
+								SH_ENERGY|SH_EXPLOSIVE, ITEM_CLIP_CELL, 0, DAM_HI, RANGE_FAR,   ACC_MED, POW_HI },
+		{ "BEAM",	"gun0",		DECO_RIFLE,		"Blade Beam",
+								SH_ENERGY,		ITEM_CLIP_CELL,		0, DAM_MED, RANGE_FAR,		ACC_HI, POW_MED,
+								0  },
+		{ "SWORD",	"gun0",		DECO_KNIFE,		"Plasma Field Sword",
+								SH_ENERGY,		0,					0, DAM_HI, RANGE_MELEE,		ACC_HI, 0,
+								0  },
 		{ 0 }
 	};
 
@@ -418,7 +448,7 @@ void Game::LoadItemResources()
 						GetResource( weapons[i].resName ) );
 
 		item->weapon[0].shell		= weapons[i].shell0;
-		item->weapon[0].clip		= weapons[i].clip0;
+		item->weapon[0].clipType	= weapons[i].clip0;
 		item->weapon[0].autoRounds	= weapons[i].auto0;
 		item->weapon[0].damageBase	= weapons[i].damage0;
 		item->weapon[0].range		= weapons[i].range0;
@@ -426,7 +456,7 @@ void Game::LoadItemResources()
 		item->weapon[0].power		= weapons[i].power0;
 
 		item->weapon[1].shell		= weapons[i].shell1;
-		item->weapon[1].clip		= weapons[i].clip1;
+		item->weapon[1].clipType	= weapons[i].clip1;
 		item->weapon[1].autoRounds	= weapons[i].auto1;
 		item->weapon[1].damageBase	= weapons[i].damage1;
 		item->weapon[1].range		= weapons[i].range1;
@@ -441,12 +471,22 @@ void Game::LoadItemResources()
 		const char* resName;
 		int type;
 		int deco;
-		int size;
 		const char* desc;
 	};
 
 	const ItemInit items[] = {		
-		{ "Med",	0,				ITEM_GENERAL,	DECO_MEDKIT,	2,		"Medkit" },
+		{ "Med",	0,				ITEM_GENERAL,	DECO_MEDKIT,	"Medkit" },
+		{ "Steel",	0,				ITEM_GENERAL,	DECO_METAL,		"Memsteel" },
+		{ "Tech",	0,				ITEM_GENERAL,	DECO_TECH,		"Alien Tech" },
+		{ "Gel",	0,				ITEM_GENERAL,	DECO_FUEL,		"Plasma Gel" },
+		{ "ARM-0",	0,				ITEM_ARMOR,		DECO_ARMOR,		"Composite Armor" },
+		{ "ARM-1",	0,				ITEM_ARMOR,		DECO_ARMOR,		"Memsteel Armor" },
+		{ "ARM-2",	0,				ITEM_ARMOR,		DECO_ARMOR,		"Power Armor" },
+		{ "ARM-3",	0,				ITEM_ARMOR,		DECO_ARMOR,		"Power Shield" },
+		{ "Aln-0",	0,				ITEM_GENERAL,	DECO_ALIEN,		"Alien 0" },
+		{ "Aln-1",	0,				ITEM_GENERAL,	DECO_ALIEN,		"Alien 1" },
+		{ "Aln-2",	0,				ITEM_GENERAL,	DECO_ALIEN,		"Alien 2" },
+		{ "Aln-3",	0,				ITEM_GENERAL,	DECO_ALIEN,		"Alien 3" },
 		{ 0 }
 	};
 
@@ -464,16 +504,19 @@ void Game::LoadItemResources()
 		const char* name;
 		int type;
 		int deco;
-		int size;
 		int rounds;
 		int shell;
 		const char* desc;
 	};
 
 	const ClipInit clips[] = {
-		{ "Clip",	ITEM_CLIP_SHELL,	DECO_SHELLS,	1,	 8,	SH_KINETIC,		"9mm 8 round clip" },
-		{ "AClip",	ITEM_CLIP_AUTO,		DECO_SHELLS,	1,  15,	SH_KINETIC,		"4mm 15 round auto-clip" },
-		{ "Cell",	ITEM_CLIP_CELL,		DECO_CELL,		1, 100, SH_ENERGY,		"10MW cell" },
+		{ "Clip",	ITEM_CLIP_SHELL,	DECO_SHELLS,	8,	 SH_KINETIC,		"9mm 8 round clip" },
+		{ "AClip",	ITEM_CLIP_AUTO,		DECO_SHELLS,	15,	 SH_KINETIC,		"4mm 15 round auto-clip" },
+		{ "Cell",	ITEM_CLIP_CELL,		DECO_CELL,		100, SH_ENERGY,			"10MW Cell" },
+		{ "MinR",	ITEM_CLIP_ROCKET,	DECO_ROCKET,	1,	 SH_EXPLOSIVE,		"Mini Rocket" },
+		{ "MC-AC",	ITEM_CLIP_CANON,	DECO_SHELLS,	1,	 SH_KINETIC,		"Mini Canon Armor Piercing Round" },
+		{ "MC-I",	ITEM_CLIP_CANON,	DECO_SHELLS,	1,	 SH_INCINDIARY,		"Mini Canon Incendiary Round" },
+		{ "RPG",	ITEM_CLIP_GRENADE,	DECO_ROCKET,	4,	 SH_EXPLOSIVE,		"Propelled Grenade Rounds" },
 		{ 0 }
 	};
 

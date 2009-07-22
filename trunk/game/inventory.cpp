@@ -13,9 +13,19 @@ Inventory::Inventory()
 }
 
 
+bool Inventory::IsGeneralSlotFree()
+{
+	for( int i=GENERAL_SLOT; i<NUM_SLOTS; ++i ) {
+		if ( slots[i].IsNothing() )
+			return true;
+	}
+	return false;
+}
+
+
 bool Inventory::AddItem( int slot, const Item& item )
 {
-	const ItemDef* def = item.itemDef;
+	const ItemDef* def = item.part[0].itemDef;
 
 //	// Is it too big?
 //	if ( def->size > 3 ) {
@@ -24,10 +34,10 @@ bool Inventory::AddItem( int slot, const Item& item )
 
 	// if the slot was specified:
 	if ( slot != ANY_SLOT ) {
-		if ( slots[slot].None() /*&& def->size <= slotSize[slot]*/ ) {
-			if ( slot == ARMOR_SLOT && !item.itemDef->IsArmor() )
+		if ( slots[slot].IsNothing() /*&& def->size <= slotSize[slot]*/ ) {
+			if ( slot == ARMOR_SLOT && !item.part[0].itemDef->IsArmor() )
 				return false;
-			if ( slot == WEAPON_SLOT && !item.itemDef->IsWeapon() ) 
+			if ( slot == WEAPON_SLOT && !item.part[0].itemDef->IsWeapon() ) 
 				return false;
 
 			slots[slot] = item;
@@ -36,18 +46,18 @@ bool Inventory::AddItem( int slot, const Item& item )
 		return false;
 	}
 
-	if ( item.itemDef->IsArmor() && slots[ARMOR_SLOT].None() ) {
+	if ( item.part[0].itemDef->IsArmor() && slots[ARMOR_SLOT].IsNothing() ) {
 		slots[ARMOR_SLOT] = item;
 		return true;
 	}
 
-	if ( item.itemDef->IsWeapon() && slots[WEAPON_SLOT].None() ) {
+	if ( item.part[0].itemDef->IsWeapon() && slots[WEAPON_SLOT].IsNothing() ) {
 		slots[WEAPON_SLOT] = item;
 		return true;
 	}
 
 	for( int j=GENERAL_SLOT; j<NUM_SLOTS; ++j ) {
-		if ( slots[j].None() ) {
+		if ( slots[j].IsNothing() ) {
 			slots[j] = item;
 			return true;
 		}
@@ -83,9 +93,50 @@ bool Inventory::AddItem( int slot, const Item& item )
 
 Item* Inventory::ArmedWeapon()
 {
-	if ( !slots[0].None() && slots[0].itemDef->IsWeapon() )
+	if ( !slots[0].part[0].None() && slots[0].part[0].itemDef->IsWeapon() )
 		return &slots[0];
 	return 0;
+}
+
+
+
+int Inventory::GetDeco( int s0 ) const
+{
+	int deco = DECO_NONE;
+	GLASSERT( s0 >= 0 && s0 < NUM_SLOTS );
+	if ( !slots[s0].part[0].None() && slots[s0].part[0].itemDef ) {
+		deco = slots[s0].part[0].itemDef->deco;
+	}
+	return deco;
+}
+
+
+bool Inventory::Swap( int s0, int s1 )
+{
+	GLASSERT( s0 >= 0 && s0 < NUM_SLOTS );
+	GLASSERT( s1 >= 0 && s1 < NUM_SLOTS );
+
+	bool swap = false;
+
+	if ( s0 >= GENERAL_SLOT && s1 >= GENERAL_SLOT ) 
+	{
+		// Can swap anything in the general section:
+		swap = true;
+	}
+	else if (    (s0 == WEAPON_SLOT && (!slots[s1].part[0].itemDef || slots[s1].part[0].itemDef->IsWeapon() ) )
+		      || (s1 == WEAPON_SLOT && (!slots[s0].part[0].itemDef || slots[s0].part[0].itemDef->IsWeapon() ) ) )
+	{
+		swap = true;
+	}
+	else if (    (s0 == ARMOR_SLOT && (!slots[s1].part[0].itemDef || slots[s1].part[0].itemDef->IsArmor() ) )
+			  || (s1 == ARMOR_SLOT && (!slots[s0].part[0].itemDef || slots[s0].part[0].itemDef->IsArmor() ) ) )
+	{
+		swap = true;
+	}
+
+	if ( swap )
+		grinliz::Swap( &slots[s0], &slots[s1] );
+	return swap;
 }
 
 
@@ -106,4 +157,5 @@ void Inventory::Load( UFOStream* s, Engine* engine, Game* game )
 		slots[i].Load( s, engine, game );
 	}
 }
+
 

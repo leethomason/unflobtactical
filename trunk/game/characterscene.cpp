@@ -9,11 +9,12 @@ using namespace grinliz;
 CharacterScene::CharacterScene( Game* _game ) : Scene( _game )
 {
 	engine = &_game->engine;
+	dragging = false;
 
 	Texture* t = game->GetTexture( "icons" );	
-	Texture* t2 = game->GetTexture( "iconDeco" );	
-	backWidget = new UIButtonBox( t, t2, engine->GetScreenport() );
-	charInvWidget = new UIButtonBox( t, t2, engine->GetScreenport() );
+	decoTexture = game->GetTexture( "iconDeco" );	
+	backWidget = new UIButtonBox( t, decoTexture, engine->GetScreenport() );
+	charInvWidget = new UIButtonBox( t, decoTexture, engine->GetScreenport() );
 
 	{
 		int icons[] = { ICON_GREEN_BUTTON };
@@ -39,7 +40,7 @@ CharacterScene::CharacterScene( Game* _game ) : Scene( _game )
 
 	{
 		int icons[20] = { ICON_GREEN_BUTTON };
-		charInvWidget->InitButtons( icons, Inventory::NUM_SLOTS );
+		charInvWidget->InitButtons( icons, Inventory::NUM_SLOTS+1 );
 		charInvWidget->SetColumns( Inventory::DX );
 		charInvWidget->SetOrigin( 5, 70 );
 		// 5 letters...
@@ -48,7 +49,7 @@ CharacterScene::CharacterScene( Game* _game ) : Scene( _game )
 		charInvWidget->SetAlpha( 0.8f );
 
 	}
-	SetInvWidgetText();
+	SetInvWidget();
 }
 
 
@@ -59,14 +60,14 @@ CharacterScene::~CharacterScene()
 }
 
 
-void CharacterScene::SetInvWidgetText()
+void CharacterScene::SetInvWidget()
 {
 	Inventory* inv = unit.GetInventory();
 
 	// Top slots are general items.
-	for( int i=2; i<Inventory::NUM_SLOTS; ++i ) {
-
-		int index = charInvWidget->TopIndex( i-2 );
+	for( int i=2; i<Inventory::NUM_SLOTS; ++i ) 
+	{
+		int index = i+1;	//charInvWidget->TopIndex( i-2 );
 		const Item& item = inv->GetItem( i );
 		SetButtonGraphics( index, item );
 	}
@@ -89,15 +90,23 @@ void CharacterScene::SetButtonGraphics( int index, const Item& item )
 {
 	char buffer[16];
 
-	if ( !item.None() ) {
-		if ( item.itemDef->IsWeapon() || item.itemDef->IsClip() ) {
-			sprintf( buffer, "%d", item.rounds[0] );
-			charInvWidget->SetText( index, item.itemDef->name, buffer );
+	if ( item.IsSomething() ) {
+		if ( item.part[0].itemDef->IsWeapon() ) {
+			const WeaponItemDef* wid = item.part[0].itemDef->IsWeapon();
+			if ( wid->weapon[1].shell )
+				sprintf( buffer, "%d %d", item.part[1].rounds, item.part[2].rounds );
+			else
+				sprintf( buffer, "%d", item.part[1].rounds );
+			charInvWidget->SetText( index, item.part[0].itemDef->name, buffer );
+		}
+		else if ( item.part[0].itemDef->IsClip() ) {
+			sprintf( buffer, "%d", item.part[0].rounds );
+			charInvWidget->SetText( index, item.part[0].itemDef->name, buffer );
 		}
 		else {
-			charInvWidget->SetText( index, item.itemDef->name );
+			charInvWidget->SetText( index, item.part[0].itemDef->name );
 		}
-		charInvWidget->SetDeco( index, item.itemDef->deco );
+		charInvWidget->SetDeco( index, item.part[0].itemDef->deco );
 	}
 	else {
 		charInvWidget->SetText( index, 0 );
@@ -111,6 +120,16 @@ void CharacterScene::DrawHUD()
 {
 	backWidget->Draw();
 	charInvWidget->Draw();
+
+	if ( dragging ) {
+		const int SIZE = 30;
+
+		Rectangle2F uv;
+		UIRendering::GetDecoUV( currentDeco, &uv );
+		Rectangle2I pos;
+		pos.Set( dragPos.x-SIZE, dragPos.y-SIZE, dragPos.x+SIZE, dragPos.y+SIZE );
+		UIRendering::DrawQuad( engine->GetScreenport(), pos, uv, decoTexture  );
+	}
 }
 
 void CharacterScene::Tap(	int count, 
@@ -127,13 +146,35 @@ void CharacterScene::Tap(	int count,
 }
 
 
+void CharacterScene::IndexType( int uiIndex, int* type, int* inventorySlot )
+{
+	if ( uiIndex >= 3 ) {
+		*type = INV;
+		*inventorySlot = uiIndex-1;
+	}
+	else if ( uiIndex == 0 ) {
+		*type = ARMOR;
+		*inventorySlot = Inventory::ARMOR_SLOT;
+	}
+	else if ( uiIndex == 1 ) {
+		*type = UNLOAD;
+	}
+	else if ( uiIndex == 2 ) {
+		*type = WEAPON;
+		*inventorySlot = Inventory::WEAPON_SLOT;
+	}
+}
+
+
 void CharacterScene::Drag( int action, const grinliz::Vector2I& screen )
 {
-	if ( action == GAME_DRAG_MOVE )
-		return;
-
 	int ux, uy;
 	engine->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );
+
+	if ( action == GAME_DRAG_MOVE ) {
+		dragPos.Set( ux, uy );
+		return;
+	}
 
 	UIButtonBox* widget = 0;
 
@@ -142,22 +183,84 @@ void CharacterScene::Drag( int action, const grinliz::Vector2I& screen )
 		widget = charInvWidget;
 	}
 
-	if ( action == GAME_DRAG_START ) {
+	Inventory* inv = unit.GetInventory();
+
+	if ( action == GAME_DRAG_START && tap >= 0 ) {
 		startWidget = widget;
 		startTap = tap;
+		
+		int type, slot;
+		IndexType( tap, &type, &slot );
+		if ( type != UNLOAD ) {
+			currentDeco = inv->GetDeco( slot );
+			dragPos.Set( ux, uy );
+			dragging = true;
+		}
 	}
-	else {
-		/*
-		if ( startWidget == widget && widget == charInvWidget ) {
-			if ( startTap != tap ) {
-				int i0
+	if ( action == GAME_DRAG_END ) {
+		dragging = false;
+		if ( tap >= 0 ) {
+			if ( startWidget == widget && widget == charInvWidget ) {
+				if ( startTap != tap ) {
 
-				// Swap items:
-				Inventory* inv = unit.GetInventory();
-				grinliz::Swap( &inv->
+					int startType, endType, startSlot, endSlot;
+
+					IndexType( startTap, &startType, &startSlot );
+					IndexType( tap, &endType, &endSlot );
+
+					switch ( startType | (endType<<8) ) 
+					{
+						case ( INV    | (INV<<8 ) ):
+						case ( INV    | (ARMOR<<8 ) ):
+						case ( INV    | (WEAPON<<8 ) ):
+						case ( ARMOR  | (INV<<8 ) ):
+						case ( WEAPON | (INV<<8 ) ):
+							{
+								
+								Item* startItem = inv->AccessItem( startSlot );
+								Item* endItem = inv->AccessItem( endSlot );
+
+								bool consumed = false;
+
+								if (    startItem->IsSomething() 
+									 && endItem->IsSomething() 
+									 && endItem->Combine( startItem, &consumed ) ) 
+								{
+									if ( consumed == true )
+										startItem->part[0].Clear();
+								}
+								else {
+									inv->Swap( startSlot, endSlot );
+								}
+							}
+							break;
+
+						case ( WEAPON | (UNLOAD<<8) ):
+						case ( INV    | (UNLOAD<<8) ):
+							{
+								Item* item = inv->AccessItem( startSlot );
+								const WeaponItemDef* weaponDef = item->part[0].IsWeapon();
+								if ( weaponDef ) {
+									for( int i=2; i>=1; --i ) {
+										if ( item->part[i].rounds > 0 && inv->IsGeneralSlotFree() ) {
+											Item clip( item->part[i] );
+											inv->AddItem( Inventory::ANY_SLOT, clip );
+											item->part[i].SetEmpty();
+										}
+									}
+								}
+							}
+							break;
+
+
+						default:
+							break;
+					}
+					SetInvWidget();
+				}
 			}
 		}
-		*/
 	}
+	unit.UpdateInventory();
 }
 

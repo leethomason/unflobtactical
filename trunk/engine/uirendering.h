@@ -18,6 +18,7 @@
 
 #include "vertex.h"
 #include "screenport.h"
+#include "../grinliz/glrectangle.h"
 
 
 enum {
@@ -152,5 +153,15 @@ private:
 	U16						index[6*MAX_ICONS];
 };
 
+
+class UIRendering
+{
+public:
+	static void DrawQuad(	const Screenport& screenport,
+							const grinliz::Rectangle2I& location, 
+							const grinliz::Rectangle2F& textureUV,
+							const Texture* texture );
+	static void GetDecoUV( int deco, grinliz::Rectangle2F* uv );
+};
 
 #endif // UIRENDERING_INCLUDED

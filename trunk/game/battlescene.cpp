@@ -76,12 +76,27 @@ void BattleScene::InitUnits()
 	int Z = engine->GetMap()->Height();
 	Random random(5);
 
-	Item gun0, gun1, clip, medkit;
+	Item gun0, gun1, medkit, armor, fuel, ar3;
+	ItemPart clip, cell, autoClip, rocket;
 
-	gun0.Init( game->GetItemDef( "PST-1" ) );
-	gun1.Init( game->GetItemDef( "RAY-1" ) );
-	clip.Init( game->GetItemDef( "Clip" ) );
+	clip.Init( game->GetItemDef( "Clip" ), -1 );
+	cell.Init( game->GetItemDef( "Cell" ), -1 );
+	autoClip.Init( game->GetItemDef( "AClip" ), -1 );
+	rocket.Init( game->GetItemDef( "MinR" ), -1 );
+
+	gun0.part[0].Init( game->GetItemDef( "PST-1" ) );
+	gun0.part[1] = clip;
+
+	gun1.part[0].Init( game->GetItemDef( "RAY-1" ) );
+	gun1.part[1] = cell;
+
+	ar3.part[0].Init( game->GetItemDef( "AR-3" ) );
+	ar3.part[1] = autoClip;
+	ar3.part[2] = rocket;
+
 	medkit.Init( game->GetItemDef( "Med" ) );
+	armor.Init( game->GetItemDef( "ARM-0" ) );
+	fuel.Init( game->GetItemDef( "Gel" ) );
 
 	for( int i=0; i<6; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-10 };
@@ -90,9 +105,12 @@ void BattleScene::InitUnits()
 		unit->Init( engine, game, Unit::SOLDIER, 0, random.Rand() );
 		Inventory* inventory = unit->GetInventory();
 		inventory->AddItem( Inventory::WEAPON_SLOT, gun0 );
-		inventory->AddItem( Inventory::ANY_SLOT, clip );
-		inventory->AddItem( Inventory::ANY_SLOT, clip );
+		inventory->AddItem( Inventory::ANY_SLOT, Item( clip ));
+		inventory->AddItem( Inventory::ANY_SLOT, Item( clip ));
 		inventory->AddItem( Inventory::ANY_SLOT, medkit );
+		inventory->AddItem( Inventory::ANY_SLOT, armor );
+		inventory->AddItem( Inventory::ANY_SLOT, fuel );
+		inventory->AddItem( Inventory::ANY_SLOT, ar3 );
 		unit->UpdateInventory();
 		unit->SetMapPos( pos.x, pos.y );
 	}
@@ -443,7 +461,7 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		bool hitSomething = false;
 
 		const Item* weaponItem = unit->GetWeapon();
-		const WeaponItemDef* weaponDef = weaponItem->itemDef->IsWeapon();
+		const WeaponItemDef* weaponDef = weaponItem->part[0].itemDef->IsWeapon();
 		weaponDef->QueryWeaponRender( 0, &beamColor, &beamDecay, &beamWidth, &impactColor );
 
 		model->CalcTrigger( &p0 );

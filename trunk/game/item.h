@@ -17,6 +17,7 @@ enum {
 	ITEM_CLIP_AUTO,
 	ITEM_CLIP_CELL,
 	ITEM_CLIP_CANON,
+	ITEM_CLIP_ROCKET,
 	ITEM_CLIP_GRENADE,
 };
 
@@ -43,7 +44,6 @@ public:
 
 	virtual const WeaponItemDef* IsWeapon() const { return 0; }
 	virtual const ClipItemDef* IsClip() const  { return 0; }
-
 	bool IsArmor() const { return type == ITEM_ARMOR; }
 };
 
@@ -54,7 +54,7 @@ public:
 
 	struct Weapon {
 		int shell;			// type of shell SH_KINETIC, etc.
-		int clip;			// type of clip required
+		int clipType;		// type of clip required (ITEM_CLIP_ROCKET for example)
 		int autoRounds;		// 0: no auto
 		int damageBase;		// base damage
 		int range;
@@ -62,7 +62,9 @@ public:
 		int power;			// power consumed by cell weapons
 	};
 	Weapon weapon[2];		// primary and secondary
+
 	void QueryWeaponRender( int select, grinliz::Vector4F* beamColor, float* beamDecay, float* beamWidth, grinliz::Vector4F* impactColor ) const;
+	bool CompatibleClip( const ItemDef* itemDef, int* which ) const;
 };
 
 class ClipItemDef : public ItemDef
@@ -75,15 +77,51 @@ public:
 };
 
 
-struct Item
+struct ItemPart
 {
 	const ItemDef* itemDef;
-	int rounds[2];
+	int rounds;					// rounds, charges, whatever.
 
-	void Init( const ItemDef* itemDef );
+	void Init( const ItemDef* itemDef, int rounds=1 );
+
+	const WeaponItemDef* IsWeapon() const	{ return itemDef->IsWeapon(); }
+	const ClipItemDef* IsClip() const		{ return itemDef->IsClip(); }
+	bool IsArmor() const					{ return itemDef->IsArmor(); }
+
+	bool None() const			{ return itemDef == 0; }
+	void Clear()				{ itemDef = 0; rounds = 0; }
+	void SetEmpty()				{ rounds = 0; }
+};
+
+
+struct Item
+{
+	enum {
+		NUM_PARTS = 3
+	};
+
+	Item()								{ memset( part, 0, sizeof(ItemPart)*NUM_PARTS ); }
+	Item( const ItemPart& itemPart )	{ memset( part, 0, sizeof(ItemPart)*NUM_PARTS ); 
+										  part[0] = itemPart; }
+	Item( const Item& rhs )				{ memcpy( part, rhs.part, sizeof(ItemPart)*NUM_PARTS ); }
+	void operator=( const Item& rhs )	{ memcpy( part, rhs.part, sizeof(ItemPart)*NUM_PARTS ); }
+
+	void Init( const ItemDef* itemDef ) {
+		part[0].Init( itemDef );
+	}
+
+	bool Combine( Item* withThis, bool* consumed );
+
+	// An item can be made up of up to 3 parts. 
+	// 0-weapon, 1-clip, 2-clip
+	// If there isn't a [0] part, then the item is empty.
+	ItemPart part[NUM_PARTS]; 
+
+	bool IsNothing() const { return part[0].None(); }
+	bool IsSomething() const { return !part[0].None(); }
+
 	void Save( UFOStream* s ) const;
 	void Load( UFOStream* s, Engine* engine, Game* game );
-	bool None() const										 { return itemDef == 0; }
 };
 
 

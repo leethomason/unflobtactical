@@ -5,15 +5,13 @@
 #include "unit.h"
 
 class UIButtonBox;
+class Texture;
 
 class CharacterScene : public Scene
 {
 public:
 	CharacterScene( Game* _game );
 	virtual ~CharacterScene();
-
-	//virtual void Activate();
-	//virtual void DeActivate()									{}
 
 	// UI
 	virtual void Tap(	int count, 
@@ -30,8 +28,13 @@ public:
 	virtual void DrawHUD();
 
 protected:
-	void SetInvWidgetText();
+	enum {
+		INV, ARMOR, WEAPON, UNLOAD
+	};
+
+	void SetInvWidget();
 	void SetButtonGraphics( int index, const Item& item );
+	void IndexType( int uiIndex, int* type, int* inventorySlot );
 
 	Engine* engine;
 	UIButtonBox* backWidget;
@@ -40,6 +43,11 @@ protected:
 
 	UIButtonBox *startWidget;
 	int startTap;
+
+	bool dragging;
+	grinliz::Vector2I dragPos;
+	const Texture* decoTexture;
+	int currentDeco;
 };
 
 
