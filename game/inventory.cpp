@@ -25,7 +25,7 @@ bool Inventory::IsGeneralSlotFree()
 
 bool Inventory::AddItem( int slot, const Item& item )
 {
-	const ItemDef* def = item.part[0].itemDef;
+	const ItemDef* def = item.GetItemDef();
 
 //	// Is it too big?
 //	if ( def->size > 3 ) {
@@ -35,9 +35,9 @@ bool Inventory::AddItem( int slot, const Item& item )
 	// if the slot was specified:
 	if ( slot != ANY_SLOT ) {
 		if ( slots[slot].IsNothing() /*&& def->size <= slotSize[slot]*/ ) {
-			if ( slot == ARMOR_SLOT && !item.part[0].itemDef->IsArmor() )
+			if ( slot == ARMOR_SLOT && !item.IsArmor() )
 				return false;
-			if ( slot == WEAPON_SLOT && !item.part[0].itemDef->IsWeapon() ) 
+			if ( slot == WEAPON_SLOT && !item.IsWeapon() ) 
 				return false;
 
 			slots[slot] = item;
@@ -46,12 +46,12 @@ bool Inventory::AddItem( int slot, const Item& item )
 		return false;
 	}
 
-	if ( item.part[0].itemDef->IsArmor() && slots[ARMOR_SLOT].IsNothing() ) {
+	if ( item.IsArmor() && slots[ARMOR_SLOT].IsNothing() ) {
 		slots[ARMOR_SLOT] = item;
 		return true;
 	}
 
-	if ( item.part[0].itemDef->IsWeapon() && slots[WEAPON_SLOT].IsNothing() ) {
+	if ( item.IsWeapon() && slots[WEAPON_SLOT].IsNothing() ) {
 		slots[WEAPON_SLOT] = item;
 		return true;
 	}
@@ -93,7 +93,7 @@ bool Inventory::AddItem( int slot, const Item& item )
 
 Item* Inventory::ArmedWeapon()
 {
-	if ( !slots[0].part[0].None() && slots[0].part[0].itemDef->IsWeapon() )
+	if ( slots[0].IsSomething() && slots[0].IsWeapon() )
 		return &slots[0];
 	return 0;
 }
@@ -104,8 +104,8 @@ int Inventory::GetDeco( int s0 ) const
 {
 	int deco = DECO_NONE;
 	GLASSERT( s0 >= 0 && s0 < NUM_SLOTS );
-	if ( !slots[s0].part[0].None() && slots[s0].part[0].itemDef ) {
-		deco = slots[s0].part[0].itemDef->deco;
+	if ( slots[s0].IsSomething() ) {
+		deco = slots[s0].Deco();
 	}
 	return deco;
 }
@@ -123,13 +123,13 @@ bool Inventory::Swap( int s0, int s1 )
 		// Can swap anything in the general section:
 		swap = true;
 	}
-	else if (    (s0 == WEAPON_SLOT && (!slots[s1].part[0].itemDef || slots[s1].part[0].itemDef->IsWeapon() ) )
-		      || (s1 == WEAPON_SLOT && (!slots[s0].part[0].itemDef || slots[s0].part[0].itemDef->IsWeapon() ) ) )
+	else if (    (s0 == WEAPON_SLOT && (slots[s1].IsNothing() || slots[s1].IsWeapon() ) )
+		      || (s1 == WEAPON_SLOT && (slots[s0].IsNothing() || slots[s0].IsWeapon() ) ) )
 	{
 		swap = true;
 	}
-	else if (    (s0 == ARMOR_SLOT && (!slots[s1].part[0].itemDef || slots[s1].part[0].itemDef->IsArmor() ) )
-			  || (s1 == ARMOR_SLOT && (!slots[s0].part[0].itemDef || slots[s0].part[0].itemDef->IsArmor() ) ) )
+	else if (    (s0 == ARMOR_SLOT && (slots[s1].IsNothing() || slots[s1].IsArmor() ) )
+			  || (s1 == ARMOR_SLOT && (slots[s0].IsNothing() || slots[s0].IsArmor() ) ) )
 	{
 		swap = true;
 	}

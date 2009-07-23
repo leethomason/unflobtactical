@@ -35,7 +35,6 @@ public:
 	const char*		desc;
 	int				deco;
 	ModelResource*	resource;	// can be null, in which case render with crate.
-	//int				size;		// 1-3 unit can carry, 4: big
 
 	void InitBase( int type, const char* name, const char* desc, int deco, ModelResource* resource /*,int size*/ )
 	{
@@ -46,6 +45,7 @@ public:
 	virtual const ClipItemDef* IsClip() const  { return 0; }
 	bool IsArmor() const { return type == ITEM_ARMOR; }
 };
+
 
 class WeaponItemDef : public ItemDef
 {
@@ -67,6 +67,7 @@ public:
 	bool CompatibleClip( const ItemDef* itemDef, int* which ) const;
 };
 
+
 class ClipItemDef : public ItemDef
 {
 public:
@@ -76,7 +77,7 @@ public:
 	int rounds;			// rounds in this clip, power of cell (100)
 };
 
-
+// POD
 struct ItemPart
 {
 	const ItemDef* itemDef;
@@ -94,34 +95,63 @@ struct ItemPart
 };
 
 
-struct Item
+/* POD.
+   An Item is made up of up to 3 parts.
+   The simple case:
+   ARMOR is one part.
+
+   More complex,
+   AR-2 is the main part.
+   AUTOCLIP is part[1]
+   GRENADE is part[2]
+
+   part[0] is what the Item "is" - gun, medket, etc.
+*/
+class Item
 {
+public:
 	enum {
 		NUM_PARTS = 3
 	};
 
 	Item()								{ memset( part, 0, sizeof(ItemPart)*NUM_PARTS ); }
-	Item( const ItemPart& itemPart )	{ memset( part, 0, sizeof(ItemPart)*NUM_PARTS ); 
-										  part[0] = itemPart; }
 	Item( const Item& rhs )				{ memcpy( part, rhs.part, sizeof(ItemPart)*NUM_PARTS ); }
+	Item( const ItemDef* itemDef, int rounds=1 );
+	Item( Game*, const char* name, int rounds=1 );
+
 	void operator=( const Item& rhs )	{ memcpy( part, rhs.part, sizeof(ItemPart)*NUM_PARTS ); }
 
-	void Init( const ItemDef* itemDef ) {
-		part[0].Init( itemDef );
-	}
-
+	// Add rounds to this Item. Returns 'true' if the items combine, and 'consumed' is set
+	// true if the added item (a clip) is fully used up.
 	bool Combine( Item* withThis, bool* consumed );
+	// Works like combine, except the 'withThis' item isn't modified.
+	bool Insert( const Item& withThis );
+	// Remove one of the parts (i=1 or 2)
+	void RemovePart( int i, Item* item );
+	// wipe this item
+	void Clear();
 
-	// An item can be made up of up to 3 parts. 
-	// 0-weapon, 1-clip, 2-clip
-	// If there isn't a [0] part, then the item is empty.
-	ItemPart part[NUM_PARTS]; 
+	const ItemDef* GetItemDef( int i=0 ) const		{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef; }
+	const WeaponItemDef* IsWeapon( int i=0 ) const	{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef->IsWeapon(); }
+	const ClipItemDef* IsClip( int i=0 ) const		{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef->IsClip(); }
+	bool IsArmor( int i=0 ) const					{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef->IsArmor(); }
+
+	int Rounds( int i=0 ) const						{ GLASSERT( i>=0 && i<3 ); return part[i].rounds; }
+	const char* Name() const						{ return part[0].itemDef->name; }
+	const char* Desc() const						{ return part[0].itemDef->desc; }
+	int Deco() const								{ return part[0].itemDef->deco; }
 
 	bool IsNothing() const { return part[0].None(); }
 	bool IsSomething() const { return !part[0].None(); }
 
 	void Save( UFOStream* s ) const;
 	void Load( UFOStream* s, Engine* engine, Game* game );
+
+private:
+	// An item can be made up of up to 3 parts. 
+	// 0-weapon, 1-clip, 2-clip
+	// If there isn't a [0] part, then the item is empty.
+	ItemPart part[NUM_PARTS]; 
 };
 
 

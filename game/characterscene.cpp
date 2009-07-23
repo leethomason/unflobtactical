@@ -175,22 +175,22 @@ void CharacterScene::SetButtonGraphics( int index, const Item& item )
 	char buffer[16];
 
 	if ( item.IsSomething() ) {
-		if ( item.part[0].itemDef->IsWeapon() ) {
-			const WeaponItemDef* wid = item.part[0].itemDef->IsWeapon();
+		if ( item.IsWeapon() ) {
+			const WeaponItemDef* wid = item.IsWeapon();
 			if ( wid->weapon[1].shell )
-				sprintf( buffer, "%d %d", item.part[1].rounds, item.part[2].rounds );
+				sprintf( buffer, "%d %d", item.Rounds(1), item.Rounds(2) );
 			else
-				sprintf( buffer, "%d", item.part[1].rounds );
-			charInvWidget->SetText( index, item.part[0].itemDef->name, buffer );
+				sprintf( buffer, "%d", item.Rounds(1) );
+			charInvWidget->SetText( index, item.Name(), buffer );
 		}
-		else if ( item.part[0].itemDef->IsClip() ) {
-			sprintf( buffer, "%d", item.part[0].rounds );
-			charInvWidget->SetText( index, item.part[0].itemDef->name, buffer );
+		else if ( item.IsClip() ) {
+			sprintf( buffer, "%d", item.Rounds() );
+			charInvWidget->SetText( index, item.Name(), buffer );
 		}
 		else {
-			charInvWidget->SetText( index, item.part[0].itemDef->name );
+			charInvWidget->SetText( index, item.Name() );
 		}
-		charInvWidget->SetDeco( index, item.part[0].itemDef->deco );
+		charInvWidget->SetDeco( index, item.Deco() );
 	}
 	else {
 		charInvWidget->SetText( index, 0 );
@@ -334,7 +334,7 @@ void CharacterScene::Drag( int action, const grinliz::Vector2I& screen )
 									 && endItem->Combine( startItem, &consumed ) ) 
 								{
 									if ( consumed == true )
-										startItem->part[0].Clear();
+										startItem->Clear();
 								}
 								else {
 									inv->Swap( startSlot, endSlot );
@@ -346,13 +346,13 @@ void CharacterScene::Drag( int action, const grinliz::Vector2I& screen )
 						case ( INV    | (UNLOAD<<8) ):
 							{
 								Item* item = inv->AccessItem( startSlot );
-								const WeaponItemDef* weaponDef = item->part[0].IsWeapon();
+								const WeaponItemDef* weaponDef = item->IsWeapon();
 								if ( weaponDef ) {
 									for( int i=2; i>=1; --i ) {
-										if ( item->part[i].rounds > 0 && inv->IsGeneralSlotFree() ) {
-											Item clip( item->part[i] );
+										if ( item->Rounds(i) > 0 && inv->IsGeneralSlotFree() ) {
+											Item clip;
+											item->RemovePart( i, &clip );
 											inv->AddItem( Inventory::ANY_SLOT, clip );
-											item->part[i].SetEmpty();
 										}
 									}
 								}
