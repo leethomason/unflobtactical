@@ -57,6 +57,63 @@ void ItemPart::Init( const ItemDef* itemDef, int rounds )
 }
 
 
+Item::Item( const ItemDef* itemDef, int rounds )
+{
+	part[0].Init( itemDef, rounds );
+	part[1].Clear();
+	part[2].Clear();
+}
+
+Item::Item( Game* game, const char* name, int rounds )
+{
+	part[0].Init( game->GetItemDef( name ), rounds );
+	part[1].Clear();
+	part[2].Clear();
+}
+
+
+/*
+void Item::Init( const ItemDef* itemDef )
+{
+	part[0].Init( itemDef, 1 );
+	part[1].Clear();
+	part[2].Clear();
+}
+*/
+
+
+/*
+void Item::Init( Game* game, const char* name )
+{
+	Init( game->GetItemDef( name ) );
+}
+*/
+
+
+bool Item::Insert( const Item& withThis )
+{
+	Item item( withThis );
+	bool consumed;
+	return Combine( &item, &consumed );
+}
+
+
+void Item::RemovePart( int i, Item* item )
+{
+	GLASSERT( i>0 && i<3 );
+	item->part[0] = part[i];
+	item->part[1].Clear();
+	item->part[2].Clear();
+	part[i].Clear();
+}
+
+void Item::Clear()
+{
+	for( int i=0; i<3; ++i )
+		part[i].Clear();
+}
+
+
 bool Item::Combine( Item* with, bool* consumed )
 {
 	int which = 0;
@@ -66,6 +123,9 @@ bool Item::Combine( Item* with, bool* consumed )
 	if (	wid 
 		 && wid->CompatibleClip( with->part[0].itemDef, &which ) ) 
 	{
+		// weapon0,1 maps to part 1,2
+		which++;
+
 		// The 'with' is the clip, and is defined by with.part[0].
 		// this->part[0] is a weapon
 		// this->part[1] is the primary fire
@@ -74,21 +134,33 @@ bool Item::Combine( Item* with, bool* consumed )
 		const ClipItemDef* clipDef = with->part[0].itemDef->IsClip();
 		GLASSERT( clipDef );
 
-		// have a match
-		int roundsThatFit = clipDef->rounds - part[which+1].rounds;
-		GLASSERT( roundsThatFit >= 0 );
+		// The clip *type* is compatible (ITEM_CLIP_CANON), but maybe not
+		// the specific ammo (MC-AC). Check that.
+		if (    part[which].None()								// ammo not yet set
+			 || part[which].itemDef == with->part[0].itemDef )	// same itemDef means the same exact type.
+		{
+			// then we have a match.
 
-		if ( with->part[0].rounds > roundsThatFit ) {
-			part[which+1].rounds += roundsThatFit;
-			with->part[0].rounds -= roundsThatFit;
-			*consumed = false;
-			result = true;
-		}
-		else { 
-			part[which+1].rounds += with->part[0].rounds;
-			with->part[0].rounds = 0;
-			*consumed = true;
-			result = true;
+			if ( part[which].None() ) {
+				// need to create the part to add to
+				part[which].Init( with->part[0].itemDef, 0 );
+			}
+
+			int roundsThatFit = clipDef->rounds - part[which].rounds;
+			GLASSERT( roundsThatFit >= 0 );
+
+			if ( with->part[0].rounds > roundsThatFit ) {
+				part[which].rounds += roundsThatFit;
+				with->part[0].rounds -= roundsThatFit;
+				*consumed = false;
+				result = true;
+			}
+			else { 
+				part[which].rounds += with->part[0].rounds;
+				with->part[0].rounds = 0;
+				*consumed = true;
+				result = true;
+			}
 		}
 	}
 	return result;
@@ -113,6 +185,8 @@ void Item::Save( UFOStream* s ) const
 
 void Item::Load( UFOStream* s, Engine* engine, Game* game )
 {
+	Clear();
+
 	int version = s->ReadU8();
 	GLASSERT( version == 1 );
 

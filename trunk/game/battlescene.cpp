@@ -76,27 +76,21 @@ void BattleScene::InitUnits()
 	int Z = engine->GetMap()->Height();
 	Random random(5);
 
-	Item gun0, gun1, medkit, armor, fuel, ar3;
-	ItemPart clip, cell, autoClip, grenade;
+	Item gun0( game, "PST-1" ),
+		 gun1( game, "RAY-1" ),
+		 ar3( game, "AR-3" ),
+		 medkit( game, "Med" ),
+		 armor( game, "ARM-1" ),
+		 fuel( game, "Gel" ),
+		 grenade( game, "RPG", -1 ),
+		 autoClip( game, "AClip", -1 ),
+		 cell( game, "Cell", -1 ),
+		 clip( game, "Clip", -1 );
 
-	clip.Init( game->GetItemDef( "Clip" ), -1 );
-	cell.Init( game->GetItemDef( "Cell" ), -1 );
-	autoClip.Init( game->GetItemDef( "AClip" ), -1 );
-	grenade.Init( game->GetItemDef( "RPG" ), -1 );
-
-	gun0.part[0].Init( game->GetItemDef( "PST-1" ) );
-	gun0.part[1] = clip;
-
-	gun1.part[0].Init( game->GetItemDef( "RAY-1" ) );
-	gun1.part[1] = cell;
-
-	ar3.part[0].Init( game->GetItemDef( "AR-3" ) );
-	ar3.part[1] = autoClip;
-	ar3.part[2] = grenade;
-
-	medkit.Init( game->GetItemDef( "Med" ) );
-	armor.Init( game->GetItemDef( "ARM-1" ) );
-	fuel.Init( game->GetItemDef( "Gel" ) );
+	gun0.Insert( clip );
+	gun1.Insert( cell );
+	ar3.Insert( autoClip );
+	ar3.Insert( grenade );
 
 	for( int i=0; i<6; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-10 };
@@ -461,7 +455,7 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		bool hitSomething = false;
 
 		const Item* weaponItem = unit->GetWeapon();
-		const WeaponItemDef* weaponDef = weaponItem->part[0].itemDef->IsWeapon();
+		const WeaponItemDef* weaponDef = weaponItem->GetItemDef()->IsWeapon();
 		weaponDef->QueryWeaponRender( 0, &beamColor, &beamDecay, &beamWidth, &impactColor );
 
 		model->CalcTrigger( &p0 );
