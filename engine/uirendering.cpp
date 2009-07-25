@@ -194,6 +194,9 @@ void UIButtonBox::SetEnabled( int index, bool enabled )
 
 void UIButtonBox::CalcButtons()
 {
+	if ( cacheValid )
+		return;
+
 	// Don't apply the origin here. It is applied at render.
 	int row = 0;
 	int col = 0;
@@ -204,6 +207,8 @@ void UIButtonBox::CalcButtons()
 	const float ALPHA_DISABLED	= 0.3f;
 	const float ALPHA_DECO		= 0.5f;
 	
+	bounds.Set( 0, 0, 0, 0 );
+
 	for( int i=0; i<nIcons; ++i ) 
 	{
 		int x = col*size.x + col*pad.x;
@@ -212,7 +217,9 @@ void UIButtonBox::CalcButtons()
 		pos[i*4+0].Set( x,			y );		
 		pos[i*4+1].Set( x+size.x,	y );		
 		pos[i*4+2].Set( x+size.x,	y+size.y );		
-		pos[i*4+3].Set( x,			y+size.y );		
+		pos[i*4+3].Set( x,			y+size.y );	
+		bounds.DoUnion( x, y );
+		bounds.DoUnion( x+size.x, y+size.y );
 
 		int id = icons[i].id;
 		float dx = (float)(id%ICON_DX)*iconTX;

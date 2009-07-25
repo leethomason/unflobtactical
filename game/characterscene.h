@@ -3,6 +3,8 @@
 
 #include "scene.h"
 #include "unit.h"
+#include "storageWidget.h"
+
 
 class UIButtonBox;
 class Texture;
@@ -33,18 +35,16 @@ protected:
 	};
 
 	void SetInvWidget();
-	void SetStorageWidget();
 	void SetButtonGraphics( int index, const Item& item );
 	void IndexType( int uiIndex, int* type, int* inventorySlot );
 
 	Engine* engine;
 	UIButtonBox* backWidget;
 	UIButtonBox* charInvWidget;
-	UIButtonBox* selectWidget;
-	UIButtonBox* storageWidget;
+	StorageWidget* storageWidget;
+
 	const char* description;
 	Unit unit;
-	int groupSelected;
 
 	UIButtonBox *startWidget;
 	int startTap;
