@@ -73,6 +73,8 @@ public:
 
 	// Coordinates in pixels. Origin in the lower left.
 	void SetOrigin( int x, int y )				{	origin.Set( x, y ); }
+	const grinliz::Vector2I& GetOrigin() const	{	return origin; }
+
 	// Set the columns - rows will be added as needed.
 	void SetColumns( int columns  )				{	if ( this->columns != columns ) {
 														this->columns = columns; 
@@ -85,11 +87,21 @@ public:
 														cacheValid = false; 
 													}
 												}
+	const grinliz::Vector2I& GetButtonSize() const	{	return size; }
+
 	void SetPadding( int dx, int dy )			{	if ( pad.x != dx || pad.y != dy ) {
 														pad.x = dx; pad.y = dy; 
 														cacheValid = false;		
 													}
 												}
+	const grinliz::Vector2I& GetPadding() const	{	return pad; }
+	
+	void CalcBounds( grinliz::Rectangle2I* _bounds )	{	CalcButtons();
+															grinliz::Rectangle2I b = bounds;
+															b.min.x += origin.x;	b.min.y += origin.y;
+															b.max.x += origin.x;	b.max.y += origin.y;
+															*_bounds = b;
+														}
 
 	void InitButtons( const int* icons, int nIcons );
 	void SetButton( int index, int iconID );
@@ -100,6 +112,7 @@ public:
 	void SetText( int index, const char* text0, const char* text1 );
 
 	const char* GetText( int index );
+
 
 	// Set the alpha of non-text
 	void SetAlpha( float alpha )		{ this->alpha = alpha; cacheValid = false; }
@@ -147,6 +160,7 @@ private:
 	grinliz::Vector2I		origin;
 	grinliz::Vector2I		size;
 	grinliz::Vector2I		pad;
+	grinliz::Rectangle2I	bounds;
 
 	Icon					icons[MAX_ICONS];
 	grinliz::Vector2< S16 > pos[MAX_ICONS*4];

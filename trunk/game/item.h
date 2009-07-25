@@ -47,6 +47,12 @@ public:
 };
 
 
+struct ItemDefInfo 
+{
+	int tech;
+	int count;
+};
+
 class WeaponItemDef : public ItemDef
 {
 public:

@@ -310,6 +310,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\game\storageWidget.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\game\storageWidget.h"
+				>
+			</File>
+			<File
 				RelativePath=".\game\unit.cpp"
 				>
 			</File>
