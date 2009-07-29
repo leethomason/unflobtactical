@@ -448,7 +448,8 @@ void Game::LoadItemResources()
 						weapons[i].name, 
 						weapons[i].desc, 
 						weapons[i].deco,
-						GetResource( weapons[i].resName ) );
+						GetResource( weapons[i].resName ),
+						itemDefArr.Size() );
 
 		item->weapon[0].shell		= weapons[i].shell0;
 		item->weapon[0].clipType	= weapons[i].clip0;
@@ -499,7 +500,8 @@ void Game::LoadItemResources()
 						items[i].name,
 						items[i].desc,
 						items[i].deco,
-						items[i].resName ? GetResource( items[i].resName ) : 0 );
+						items[i].resName ? GetResource( items[i].resName ) : 0,
+						itemDefArr.Size() );
 		itemDefArr.Push( item );
 	}
 
@@ -529,7 +531,8 @@ void Game::LoadItemResources()
 						clips[i].name,
 						clips[i].desc,
 						clips[i].deco,
-						0 );
+						0,
+						itemDefArr.Size() );
 
 		item->shell = clips[i].shell;
 		item->rounds = clips[i].rounds;

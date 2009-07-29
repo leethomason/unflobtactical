@@ -67,8 +67,9 @@ public:
 	}
 	unsigned Size() const	{ return size; }
 	
-	void Clear()		{ size = 0; }
-	bool Empty() const	{ return size==0; }
+	void Clear()			{ size = 0; }
+	bool Empty() const		{ return size==0; }
+	const T* Mem() const	{ return vec; }
 
 private:
 	T* vec;

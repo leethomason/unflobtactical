@@ -10,8 +10,7 @@ class StorageWidget
 public:
 	StorageWidget(	const Texture* texture, const Texture* decoTexture, 
 					const Screenport& port,
-					const CDynArray<ItemDef*>& itemDefs,
-					const CDynArray<ItemDefInfo>& info );
+					const Storage* storage );
 
 	~StorageWidget();
 
@@ -24,7 +23,8 @@ public:
 
 	void CalcBounds( grinliz::Rectangle2I* _bounds );
 
-	const ItemDef* TappedItemDef()	{ return itemDef; }
+	const ItemDef* TappedItemDef();
+	int TappedIndex()				{ return index; }
 
 private:
 	void SetButtons();
@@ -36,11 +36,12 @@ private:
 	const Texture* decoTexture;
 
 	int groupSelected;
-	const CDynArray<ItemDef*>& itemArr;
-	const CDynArray<ItemDefInfo>& infoArr;
-	const ItemDef* itemDefMap[12];
+	//const CDynArray<ItemDef*>& itemArr;
+	//const CDynArray<ItemDefInfo>& infoArr;
+	const Storage* storage;
+	int itemDefMap[12];
 
-	const ItemDef* itemDef;
+	int index;
 };
 
 

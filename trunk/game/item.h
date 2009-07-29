@@ -2,6 +2,7 @@
 #define UFOATTACK_ITEM_INCLUDED
 
 #include "../grinliz/glvector.h"
+#include "../engine/ufoutil.h"
 
 class ModelResource;
 class UFOStream;
@@ -36,22 +37,28 @@ public:
 	int				deco;
 	ModelResource*	resource;	// can be null, in which case render with crate.
 
-	void InitBase( int type, const char* name, const char* desc, int deco, ModelResource* resource /*,int size*/ )
+	void InitBase( int type, const char* name, const char* desc, int deco, ModelResource* resource, int index )
 	{
-		this->type = type; this->name = name; this->desc = desc; this->deco = deco; this->resource = resource; //this->size = size;
+		this->type = type; this->name = name; this->desc = desc; this->deco = deco; this->resource = resource; this->index = index;
 	}
 
 	virtual const WeaponItemDef* IsWeapon() const { return 0; }
 	virtual const ClipItemDef* IsClip() const  { return 0; }
+	virtual int Rounds() const { return 1; }
 	bool IsArmor() const { return type == ITEM_ARMOR; }
+
+	// optimization trickiness:
+	int index;
 };
 
-
+/*
 struct ItemDefInfo 
 {
-	int tech;
-	int count;
+	int tech;		// tech=0 undiscovered, >0 known
+	int count;		// # of items
 };
+*/
+
 
 class WeaponItemDef : public ItemDef
 {
@@ -78,6 +85,7 @@ class ClipItemDef : public ItemDef
 {
 public:
 	virtual const ClipItemDef* IsClip() const { return this; }
+	virtual int Rounds() const { return rounds; }
 
 	int shell;			// modifies the shell of the weapon
 	int rounds;			// rounds in this clip, power of cell (100)
@@ -158,6 +166,32 @@ private:
 	// 0-weapon, 1-clip, 2-clip
 	// If there isn't a [0] part, then the item is empty.
 	ItemPart part[NUM_PARTS]; 
+};
+
+
+class Storage
+{
+public:
+	Storage( const CDynArray<ItemDef*>& itemDefs );
+	~Storage();
+
+	void AddItem( const Item& item );
+	void RemoveItem( const ItemDef*, Item* item );
+
+	void SetCount( const ItemDef*, int count );
+	int GetCount( const ItemDef* ) const;
+
+	const CDynArray<ItemDef*>& GetItemDefArray() const { return itemDefs; }
+
+private:
+	int GetIndex( const ItemDef* itemDef ) const {
+		int index = itemDef->index;
+		GLASSERT( index >=0 && index < (int)itemDefs.Size() );
+		return index;
+	}
+
+	const CDynArray<ItemDef*>& itemDefs;
+	CDynArray<int> rounds;
 };
 
 

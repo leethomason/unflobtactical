@@ -176,7 +176,7 @@ void UIButtonBox::PositionText( int index )
 		
 		icons[index].textPos0.y = size.y - s/2 - h;
 
-		icons[index].textPos1.x = size.x/2 - w/2;
+		icons[index].textPos1.x = size.x/2 - w1/2;
 		icons[index].textPos1.y = size.y - s/2 - (h+h1);
 	}
 }
