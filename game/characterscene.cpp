@@ -7,7 +7,9 @@
 using namespace grinliz;
 
 
-CharacterScene::CharacterScene( Game* _game ) : Scene( _game )
+CharacterScene::CharacterScene( Game* _game ) 
+	: Scene( _game ),
+	  storage( _game->GetItemDefArray() )
 {
 	engine = &_game->engine;
 	dragging = false;
@@ -19,14 +21,10 @@ CharacterScene::CharacterScene( Game* _game ) : Scene( _game )
 	backWidget = new UIButtonBox( t, decoTexture, engine->GetScreenport() );
 	charInvWidget = new UIButtonBox( t, decoTexture, engine->GetScreenport() );
 
-	const CDynArray<ItemDef*>& itemDefs = game->GetItemDefArray();
-	CDynArray<ItemDefInfo> info( itemDefs.Size() );
-	for( unsigned i=0; i<info.Size(); ++i ) {
-		info[i].tech = 1;
-		info[i].count = 1;
+	for( unsigned i=0; i<game->GetItemDefArray().Size(); ++i ) {
+		storage.SetCount( game->GetItemDefArray()[i], 1 );
 	}
-
-	storageWidget = new StorageWidget( t, decoTexture, engine->GetScreenport(), itemDefs, info );
+	storageWidget = new StorageWidget( t, decoTexture, engine->GetScreenport(), &storage );
 
 	{
 		int icons[] = { ICON_GREEN_BUTTON };
@@ -217,22 +215,59 @@ void CharacterScene::Drag( int action, const grinliz::Vector2I& screen )
 
 	Inventory* inv = unit.GetInventory();
 
-	if ( action == GAME_DRAG_START && tap >= 0 ) {
-		startWidget = widget;
-		startTap = tap;
-		
-		int type, slot;
-		IndexType( tap, &type, &slot );
-		if ( type != UNLOAD ) {
-			currentDeco = inv->GetDeco( slot );
-			dragPos.Set( ux, uy );
-			dragging = true;
+	if ( action == GAME_DRAG_START ) {
+		if ( storageWidget->Tap( ux, uy ) ) {
+			
+			GLASSERT( storageWidget->TappedItemDef() );
+			startStorage = storageWidget;
+			startTap = storageWidget->TappedIndex();
+
+			//if ( info[startTap].count > 0 ) {
+			//	description = storageWidget->TappedItemDef()->desc;
+			//	currentDeco = storageWidget->TappedItemDef()->deco;
+
+			//	dragPos.Set( ux, uy );
+			//	dragging = true;
+			//}
+		}
+		else if ( tap >= 0 ) {
+			startWidget = widget;
+			startTap = tap;
+			
+			int type, slot;
+			IndexType( tap, &type, &slot );
+			if ( type != UNLOAD ) {
+				currentDeco = inv->GetDeco( slot );
+				dragPos.Set( ux, uy );
+				dragging = true;
+			}
 		}
 	}
 	if ( action == GAME_DRAG_END ) {
 		dragging = false;
 		if ( tap >= 0 ) {
-			if ( startWidget == widget && widget == charInvWidget ) {
+			if ( startStorage == storageWidget && widget == charInvWidget ) {
+/*
+				// Start with the basics: is there an item in the storage, and a slot in the target?
+
+
+				// Drag from the storage (ground, base storage) to the (individual) inventory.
+				// FIXME: First, try to combine. But the storage item needs to be fully consumed,
+				//		  else things are left in an odd state.
+				// Then look for an open slot.
+				int endType, endSlot;
+				IndexType( tap, &endType, &endSlot );
+				Item* endItem = inv->AccessItem( endSlot );
+
+				if ( endItem->IsSomething() ) {
+					// Need to find an empty slot:
+					if ( inv->IsGeneralSlotFree() ) {
+
+				}
+				*/
+
+			}
+			else if ( startWidget == widget && widget == charInvWidget ) {
 				if ( startTap != tap ) {
 
 					int startType, endType, startSlot, endSlot;

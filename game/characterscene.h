@@ -46,13 +46,18 @@ protected:
 	const char* description;
 	Unit unit;
 
-	UIButtonBox *startWidget;
+	union {
+		StorageWidget* startStorage;
+		UIButtonBox *startWidget;
+	};
 	int startTap;
 
 	bool dragging;
 	grinliz::Vector2I dragPos;
 	const Texture* decoTexture;
 	int currentDeco;
+
+	Storage storage;
 };
 
 

@@ -202,3 +202,64 @@ void Item::Load( UFOStream* s, Engine* engine, Game* game )
 	}
 }
 
+
+
+Storage::Storage( const CDynArray<ItemDef*>& _itemDefs ) 
+	: itemDefs( _itemDefs ),
+	  rounds( _itemDefs.Size() )
+{
+	for( unsigned i=0; i<itemDefs.Size(); ++i ) {
+		rounds.Push( 0 );
+	}
+}
+
+
+Storage::~Storage()
+{
+}
+
+
+void Storage::AddItem( const Item& item )
+{
+	if ( item.IsSomething() && item.Rounds() > 0 ) 
+	{
+		int index = GetIndex( item.GetItemDef() );
+		rounds[index] += item.Rounds();
+	}
+}
+
+
+void Storage::RemoveItem( const ItemDef* _itemDef, Item* _item )
+{
+	int index = GetIndex( _item->GetItemDef() );
+	int r = grinliz::Min( rounds[index], _itemDef->Rounds() );
+
+	if ( r == 0 ) {
+		_item->Clear();
+	}
+	else {
+		Item item( itemDefs[index], r );
+		rounds[index] -= r;
+		*_item = item;
+	}
+}
+
+
+void Storage::SetCount( const ItemDef* itemDef, int count )
+{
+	int index = GetIndex( itemDef );
+	rounds[index] = count*itemDef->Rounds();
+}
+
+
+int Storage::GetCount( const ItemDef* itemDef) const
+{
+	int index = GetIndex( itemDef );
+	int r = rounds[index];
+	return (r+itemDef->Rounds()-1)/itemDef->Rounds();
+}
+
+
+
+
+

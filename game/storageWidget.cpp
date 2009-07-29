@@ -3,14 +3,12 @@
 StorageWidget::StorageWidget(	const Texture* texture, 
 								const Texture* decoTexture, 
 								const Screenport& port, 
-								const CDynArray<ItemDef*>& _itemDefs,
-								const CDynArray<ItemDefInfo>& _info )
-	: itemArr( _itemDefs ),
-	  infoArr( _info )
+								const Storage* _storage )
+	: storage( _storage )
 {
 	this->buttonTexture = texture;
 	this->decoTexture = decoTexture;
-	itemDef = 0;
+	index = -1;
 
 	selectWidget = new UIButtonBox( texture, decoTexture, port );
 	boxWidget = new UIButtonBox( texture, decoTexture, port );
@@ -88,10 +86,10 @@ bool StorageWidget::Tap( int ux, int uy )
 	else {
 		tap = boxWidget->QueryTap( ux, uy );
 		if ( tap >= 0 ) {
-			itemDef = itemDefMap[tap];
+			index = itemDefMap[tap];
 		}
 	}
-	return ( itemDef != 0 );
+	return ( index >= 0 );
 }
 
 	
@@ -108,6 +106,8 @@ void StorageWidget::SetButtons()
 
 	// Then the storage.
 	int slot = 0;
+
+	const CDynArray<ItemDef*>& itemArr = storage->GetItemDefArray();
 
 	for( unsigned i=0; i<itemArr.Size(); ++i ) {
 		bool add = false;
@@ -137,15 +137,25 @@ void StorageWidget::SetButtons()
 		if ( group==groupSelected ) {
 			//GLASSERT( slot < 12 );
 			if ( slot < 12 ) {
-				itemDefMap[slot] = itemArr[i];
-				boxWidget->SetDeco( slot, itemArr[i]->deco );
-				boxWidget->SetText( slot, itemArr[i]->name, " " );
+				itemDefMap[slot] = i;
+				//if ( infoArr[i].tech > 0 ) {
+					boxWidget->SetDeco( slot, itemArr[i]->deco );
+
+					char buffer[16];
+					sprintf( buffer, "(%d)", storage->GetCount( itemArr[i] ) );
+					boxWidget->SetText( slot, itemArr[i]->name, buffer );
+				//}
+				//else {
+				//	itemDefMap[slot] = -1;
+				//	boxWidget->SetDeco( slot, DECO_NONE );
+				//	boxWidget->SetText( slot, 0, 0 );
+				//}
 			}
 			++slot;
 		}
 	}
 	for( ; slot<12; ++slot ) {
-		itemDefMap[slot] = 0;
+		itemDefMap[slot] = -1;
 		boxWidget->SetDeco( slot, DECO_NONE );
 		boxWidget->SetText( slot, 0, 0 );
 	}
@@ -156,4 +166,11 @@ void StorageWidget::Draw()
 {
 	selectWidget->Draw();
 	boxWidget->Draw();
+}
+
+
+const ItemDef* StorageWidget::TappedItemDef()
+{
+	const CDynArray<ItemDef*>& itemArr = storage->GetItemDefArray();
+	return index >= 0 ? itemArr[index] : 0; 
 }
