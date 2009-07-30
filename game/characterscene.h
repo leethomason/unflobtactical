@@ -22,6 +22,7 @@ public:
 
 	virtual void Drag(	int action,
 						const grinliz::Vector2I& view );
+
 	virtual void Zoom( int action, int distance )				{}
 	virtual void CancelInput()									{}
 
@@ -37,6 +38,11 @@ protected:
 	void SetInvWidget();
 	void SetButtonGraphics( int index, const Item& item );
 	void IndexType( int uiIndex, int* type, int* inventorySlot );
+	void StartDragging( const ItemDef* itemDef );
+
+	void DragInvToInv( int startTapIndex, int endTapIndex );
+	void DragStorageToInv( const ItemDef* startItemDef, int endTapIndex );
+	void DragInvToStorage( int startTap );
 
 	Engine* engine;
 	UIButtonBox* backWidget;
@@ -46,11 +52,8 @@ protected:
 	const char* description;
 	Unit unit;
 
-	union {
-		StorageWidget* startStorage;
-		UIButtonBox *startWidget;
-	};
-	int startTap;
+	int startInvTap;				// start tap on inventory
+	const ItemDef* startItemDef;	// start tap on storage
 
 	bool dragging;
 	grinliz::Vector2I dragPos;
