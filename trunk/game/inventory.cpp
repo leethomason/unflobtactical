@@ -23,6 +23,16 @@ bool Inventory::IsGeneralSlotFree()
 }
 
 
+bool Inventory::IsSlotFree( const ItemDef* itemDef )
+{
+	if ( itemDef->IsWeapon() && slots[WEAPON_SLOT].IsNothing() )
+		return true;
+	if ( itemDef->IsArmor() && slots[ARMOR_SLOT].IsNothing() )
+		return true;
+	return IsGeneralSlotFree();
+}
+
+
 bool Inventory::AddItem( int slot, const Item& item )
 {
 	const ItemDef* def = item.GetItemDef();

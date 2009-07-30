@@ -221,17 +221,18 @@ Storage::~Storage()
 
 void Storage::AddItem( const Item& item )
 {
-	if ( item.IsSomething() && item.Rounds() > 0 ) 
-	{
-		int index = GetIndex( item.GetItemDef() );
-		rounds[index] += item.Rounds();
+	for( int i=0; i<3; ++i ) {
+		if ( item.GetItemDef( i ) ) {
+			int index = GetIndex( item.GetItemDef(i) );
+			rounds[index] += item.Rounds(i);
+		}
 	}
 }
 
 
 void Storage::RemoveItem( const ItemDef* _itemDef, Item* _item )
 {
-	int index = GetIndex( _item->GetItemDef() );
+	int index = GetIndex( _itemDef );
 	int r = grinliz::Min( rounds[index], _itemDef->Rounds() );
 
 	if ( r == 0 ) {

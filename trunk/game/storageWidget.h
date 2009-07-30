@@ -14,7 +14,7 @@ public:
 
 	~StorageWidget();
 
-	bool Tap( int x, int y );	
+	const ItemDef* Tap( int x, int y );	
 	void Draw();
 
 	void SetOrigin( int x, int y );
@@ -22,13 +22,12 @@ public:
 	void SetPadding( int dx, int dy );
 
 	void CalcBounds( grinliz::Rectangle2I* _bounds );
-
-	const ItemDef* TappedItemDef();
-	int TappedIndex()				{ return index; }
+	void Update()	{ valid = false; }
 
 private:
 	void SetButtons();
 
+	bool valid;
 	UIButtonBox* selectWidget;
 	UIButtonBox* boxWidget;
 
@@ -36,12 +35,8 @@ private:
 	const Texture* decoTexture;
 
 	int groupSelected;
-	//const CDynArray<ItemDef*>& itemArr;
-	//const CDynArray<ItemDefInfo>& infoArr;
 	const Storage* storage;
-	int itemDefMap[12];
-
-	int index;
+	const ItemDef* itemDefMap[12];
 };
 
 

@@ -38,8 +38,9 @@ public:
 
 	// Add an item. 0: weapon slot, -1: any slot available
 	bool AddItem( int slot, const Item& item );
-	// Add an item. 0: weapon slot, -1: any slot available
+
 	bool IsGeneralSlotFree();
+	bool IsSlotFree( const ItemDef* itemDef );
 	
 	Item* ArmedWeapon();	// null if no weapon ready
 
@@ -48,7 +49,9 @@ public:
 
 	const Item& GetItem( int slot ) const		{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot]; }
 	Item* AccessItem( int slot )				{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return &slots[slot]; }
+
 	int GetDeco( int slot ) const;
+	const ItemDef* GetItemDef( int slot ) const	{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot].GetItemDef(); }
 
 	bool Swap( int s0, int s1 );
 

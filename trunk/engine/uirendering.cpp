@@ -20,6 +20,8 @@
 
 using namespace grinliz;
 
+const float ALPHA_DISABLED	= 0.3f;
+const float ALPHA_DECO		= 0.5f;
 
 UIButtonBox::UIButtonBox( const Texture* texture, const Texture* decoTexture, const Screenport& port ) : screenport( port )
 {
@@ -204,8 +206,6 @@ void UIButtonBox::CalcButtons()
 	const float iconTY = 1.0f / (float)ICON_DY;
 	const float decoTX = 1.0f / (float)DECO_DX;
 	const float decoTY = 1.0f / (float)DECO_DY;
-	const float ALPHA_DISABLED	= 0.3f;
-	const float ALPHA_DECO		= 0.5f;
 	
 	bounds.Set( 0, 0, 0, 0 );
 
@@ -314,6 +314,9 @@ void UIButtonBox::Draw()
 
 	UFOText::Begin();
 	for( int i=0; i<nIcons; ++i ) {
+		float c = icons[i].enabled ? 1.0f : ALPHA_DISABLED;
+		glColor3f( c, c, c );
+
 		if ( icons[i].text0[0] ) {
 			int x = pos[i*4].x + origin.x;
 			int y = pos[i*4].y + origin.y;
@@ -326,6 +329,7 @@ void UIButtonBox::Draw()
 		}
 	}
 	UFOText::End();
+	glColor3f( 1.0f, 1.0f, 1.0f );
 }
 
 
