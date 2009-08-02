@@ -86,7 +86,7 @@ public:
 	UFOStream();
 	~UFOStream();
 
-	void SeekSet( int offset )	{ GLASSERT( offset < size ); if ( offset < size ) ptr = buffer + offset; }
+	void SeekSet( int offset )	{ GLASSERT( offset == 0 || offset < size ); if ( offset < size ) ptr = buffer + offset; }
 	int Size()					{ return size; }
 	int Tell()					{ GLASSERT( ptr ); GLASSERT( buffer ); return ptr - buffer; }
 	void Dump( const char* name ) {

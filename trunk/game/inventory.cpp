@@ -150,7 +150,7 @@ bool Inventory::Swap( int s0, int s1 )
 }
 
 
-void Inventory::Save( UFOStream* s )
+void Inventory::Save( UFOStream* s ) const
 {
 	s->WriteU8( 1 );	// version
 	for( int i=0; i<NUM_SLOTS; ++i ) {

@@ -355,7 +355,7 @@ void Unit::UpdateModel()
 }
 
 
-void Unit::Save( UFOStream* s )
+void Unit::Save( UFOStream* s ) const
 {
 	s->WriteU8( status );
 	if ( status != STATUS_NOT_INIT ) {

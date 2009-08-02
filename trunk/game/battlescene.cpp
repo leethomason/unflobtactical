@@ -6,7 +6,8 @@
 #include "../engine/platformgl.h"
 #include "../engine/particle.h"
 #include "../engine/text.h"
- 
+
+#include "battlestream.h"
 
 
 using namespace grinliz;
@@ -140,44 +141,29 @@ void BattleScene::SetUnitsDraggable()
 }
 
 
-void BattleScene::Save( UFOStream* s )
+void BattleScene::Save( UFOStream* /*s*/ )
 {
-	// Selection
-	// Units[]
-
-	s->WriteU32( UFOStream::MAGIC0 );
-
 	U32 selectionIndex = MAX_UNITS;
 	if ( selection.soldierUnit ) {
 		selectionIndex = selection.soldierUnit - units;
 	}
-	s->WriteU32( selectionIndex );
 
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		units[i].Save( s );
-	}
-
-	s->WriteU32( UFOStream::MAGIC1 );
+	BattleSceneStream stream( game );
+	stream.Save( MAX_UNITS, selectionIndex, units );
 }
 
 
-void BattleScene::Load( UFOStream* s )
+void BattleScene::Load( UFOStream* /*s*/ )
 {
-	U32 magic = s->ReadU32();
-	GLASSERT( magic == UFOStream::MAGIC0 );
-	
-	U32 selectedUnit = s->ReadU32();
 	selection.Clear();
+	int selected;
 
-	if ( selectedUnit < MAX_UNITS ) {
-		selection.soldierUnit = &units[selectedUnit];
-	}
+	BattleSceneStream stream( game );
+	stream.Load( MAX_UNITS, &selected, units );
 
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		units[i].Load( s, engine, game );
+	if ( selected < MAX_UNITS ) {
+		selection.soldierUnit = &units[selected];
 	}
-	magic = s->ReadU32();
-	GLASSERT( magic == UFOStream::MAGIC1 );
 	SetUnitsDraggable();
 }
 
@@ -605,6 +591,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 			case 2:
 				if ( actionStack.Empty() && SelectedSoldierUnit() ) {
 					UFOStream* stream = game->OpenStream( "SingleUnit" );
+					stream->WriteU8( (U8)(SelectedSoldierUnit()-units ) );
 					SelectedSoldierUnit()->Save( stream );
 					game->PushScene( Game::CHARACTER_SCENE );
 				}
@@ -1085,3 +1072,5 @@ void BattleScene::DeltaCurrentMapItem( int d )
 }
 
 #endif
+
+

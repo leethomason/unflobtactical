@@ -84,7 +84,7 @@ public:
 
 	float AngleBetween( const Unit* target, bool quantize ) const;
 
-	void Save( UFOStream* s );
+	void Save( UFOStream* s ) const;
 	void Load( UFOStream* s, Engine* engine, Game* game );
 
 private:
