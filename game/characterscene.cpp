@@ -3,6 +3,7 @@
 #include "cgame.h"
 #include "../engine/uirendering.h"
 #include "../engine/text.h"
+#include "battlestream.h"
 
 using namespace grinliz;
 
@@ -35,9 +36,8 @@ CharacterScene::CharacterScene( Game* _game )
 	}
 	engine->EnableMap( false );
 
-	UFOStream* stream = game->OpenStream( "SingleUnit" );
-	unit.Load( stream, &_game->engine, _game );
-
+	BattleSceneStream bss( game );
+	bss.LoadSelectedUnit( &unit );
 
 	Model* model = unit.GetModel();
 
@@ -70,6 +70,9 @@ CharacterScene::CharacterScene( Game* _game )
 
 CharacterScene::~CharacterScene()
 {
+	BattleSceneStream bss( game );
+	bss.SaveSelectedUnit( &unit );
+
 	delete backWidget;
 	delete charInvWidget;
 	delete storageWidget;
@@ -109,6 +112,11 @@ void CharacterScene::SetButtonGraphics( int index, const Item& item )
 	char buffer[16];
 
 	if ( item.IsSomething() ) {
+		/*if ( item.IsWeapon() && item.GetItemDef(1) == 0 ) {
+			// melee weapon.
+			charInvWidget->SetText( index, item.Name(), " " );		
+		}
+		else*/
 		if ( item.IsWeapon() ) {
 			const WeaponItemDef* wid = item.IsWeapon();
 			if ( wid->weapon[1].shell )

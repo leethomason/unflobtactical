@@ -44,7 +44,7 @@ public:
 	
 	Item* ArmedWeapon();	// null if no weapon ready
 
-	void Save( UFOStream* s );
+	void Save( UFOStream* s ) const;
 	void Load( UFOStream* s, Engine* engine, Game* game );
 
 	const Item& GetItem( int slot ) const		{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot]; }
