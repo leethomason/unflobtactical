@@ -86,7 +86,7 @@ void Camera::CalcEyeDir()
 }
 
 
-void Camera::Save( UFOStream* s )
+void Camera::Save( UFOStream* s ) const
 {
 	s->WriteFloat( tilt );
 	s->WriteFloat( yRotation );

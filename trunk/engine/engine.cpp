@@ -118,6 +118,9 @@ Engine::Engine( const Screenport& port, const EngineData& _engineData )
 		initZoomDistance( 0 ),
 		enableMap( true )
 {
+	TextureManager::Create();
+	ModelResourceManager::Create();
+
 	spaceTree = new SpaceTree( -0.1f, 3.0f );
 	map = new Map( spaceTree );
 	renderQueue = new RenderQueue();
@@ -145,6 +148,9 @@ Engine::~Engine()
 	delete renderQueue;
 	delete map;
 	delete spaceTree;
+
+	ModelResourceManager::Destroy();
+	TextureManager::Destroy();
 }
 
 
@@ -171,7 +177,7 @@ void Engine::MoveCameraXZ( float x, float z )
 }
 
 
-Model* Engine::AllocModel( ModelResource* resource )
+Model* Engine::AllocModel( const ModelResource* resource )
 {
 	GLASSERT( resource );
 	return spaceTree->AllocModel( resource );

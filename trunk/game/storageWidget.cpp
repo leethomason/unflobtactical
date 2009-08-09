@@ -1,18 +1,16 @@
 #include "storageWidget.h"
 
-StorageWidget::StorageWidget(	const Texture* texture, 
-								const Texture* decoTexture, 
-								const Screenport& port, 
+StorageWidget::StorageWidget(	const Screenport& port, 
 								const Storage* _storage )
 	: storage( _storage )
 {
-	this->buttonTexture = texture;
-	this->decoTexture = decoTexture;
+	//this->buttonTexture = texture;
+	//this->decoTexture = decoTexture;
 //	index = -1;
 	valid = false;
 
-	selectWidget = new UIButtonBox( texture, decoTexture, port );
-	boxWidget = new UIButtonBox( texture, decoTexture, port );
+	selectWidget = new UIButtonBox( port );
+	boxWidget = new UIButtonBox( port );
 
 	{
 		int icons[4] = { ICON_BLUE_BUTTON, ICON_BLUE_BUTTON, ICON_BLUE_BUTTON, ICON_BLUE_BUTTON };

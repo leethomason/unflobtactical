@@ -4,6 +4,8 @@
 #include "scene.h"
 #include "unit.h"
 #include "storageWidget.h"
+#include "../engine/camera.h"
+#include "gamelimits.h"
 
 
 class UIButtonBox;
@@ -50,17 +52,20 @@ protected:
 	StorageWidget* storageWidget;
 
 	const char* description;
-	Unit unit;
 
 	int startInvTap;				// start tap on inventory
 	const ItemDef* startItemDef;	// start tap on storage
 
 	bool dragging;
 	grinliz::Vector2I dragPos;
-	const Texture* decoTexture;
 	int currentDeco;
 
-	Storage storage;
+	Storage* storage;
+	int selectedUnit;
+	Unit* unit;
+	Camera savedCamera;
+
+	Unit units[MAX_UNITS];
 };
 
 

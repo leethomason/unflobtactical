@@ -16,8 +16,6 @@ class ModelResource;
 class Engine;
 class Game;
 
-
-
 class Unit
 {
 public:
@@ -52,6 +50,7 @@ public:
 				int team,	 
 				int alienType,	// if alien...
 				U32 seed );
+	
 	void Free();
 
 	bool InUse()			{ return status != STATUS_NOT_INIT; }
@@ -126,9 +125,7 @@ private:
 	Engine*		engine;
 	Model*		model;
 	Model*		weapon;
-	//const ItemDef*	weaponItem;	// temporary - needs inventory system
 	Inventory	inventory;
-
 	Stats		stats;
 };
 

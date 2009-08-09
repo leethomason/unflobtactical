@@ -8,8 +8,7 @@
 class StorageWidget
 {
 public:
-	StorageWidget(	const Texture* texture, const Texture* decoTexture, 
-					const Screenport& port,
+	StorageWidget(	const Screenport& port,
 					const Storage* storage );
 
 	~StorageWidget();
@@ -30,9 +29,6 @@ private:
 	bool valid;
 	UIButtonBox* selectWidget;
 	UIButtonBox* boxWidget;
-
-	const Texture* buttonTexture;
-	const Texture* decoTexture;
 
 	int groupSelected;
 	const Storage* storage;

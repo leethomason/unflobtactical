@@ -32,7 +32,7 @@ public:
 	SpaceTree( float yMin, float yMax );
 	~SpaceTree();
 
-	Model* AllocModel( ModelResource* );
+	Model* AllocModel( const ModelResource* );
 	void   FreeModel( Model* );
 
 	// Called whenever a model moves. (Usually called automatically be the model.)

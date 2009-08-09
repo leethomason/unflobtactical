@@ -261,6 +261,38 @@ int Storage::GetCount( const ItemDef* itemDef) const
 }
 
 
+// Return the "best" item for on-screen rendering.
+const ItemDef* Storage::SomeItem() const
+{
+	int bestScore = -1;
+	const ItemDef* best = 0;
+
+	for( unsigned i=0; i<itemDefs.Size(); ++i ) {
+		if ( rounds[i] > 0 ) {
+			int score = rounds[i];
+			if ( itemDefs[i]->IsWeapon() )
+				score *= 20;
+
+			if ( score > bestScore ) {
+				bestScore = score;
+				best = itemDefs[i];
+			}
+		}
+	}
+	return best;
+}
 
 
+void Storage::Save( UFOStream* s ) const
+{
+	s->WriteU8( 1 );	// version
+	s->WriteU32Arary( itemDefs.Size(), (const U32*) rounds.Mem() );
+}
+
+
+void Storage::Load( UFOStream* s )
+{
+	U32 version = s->ReadU8();
+	s->ReadU32Arary( itemDefs.Size(), (U32*) rounds.PushArr( itemDefs.Size() ) );
+}
 

@@ -42,7 +42,7 @@ private:
 };
 
 
-/* A stack class for c-structs. (No constructor, no destructor, can be copied.)
+/* A dynamic array class for c-structs. (No constructor, no destructor, can be copied.)
  */
 template < class T >
 class CDynArray
@@ -65,6 +65,24 @@ public:
 		}
 		vec[size++] = t;
 	}
+
+	T* Push() {
+		if ( capInBytes <= (size+1)*sizeof(T) ) {
+			CEnsureCap( (size+1)*sizeof(T), &capInBytes, (void**) &vec );	
+		}
+		size++;
+		return &vec[size-1];
+	}
+
+	T* PushArr( int count ) {
+		if ( capInBytes <= (size+count)*sizeof(T) ) {
+			CEnsureCap( (size+count)*sizeof(T), &capInBytes, (void**) &vec );	
+		}
+		T* result = &vec[size];
+		size += count;
+		return result;
+	}
+
 	unsigned Size() const	{ return size; }
 	
 	void Clear()			{ size = 0; }
@@ -75,6 +93,39 @@ private:
 	T* vec;
 	unsigned size;
 	unsigned capInBytes;
+};
+
+
+/* A fixed array class for c-structs.
+ */
+template < class T, int CAPACITY >
+class CArray
+{
+public:
+	CArray() : size( 0 )	{}
+	~CArray()				{}
+
+	T& operator[]( int i )				{ GLASSERT( i>=0 && i<(int)size ); return vec[i]; }
+	const T& operator[]( int i ) const	{ GLASSERT( i>=0 && i<(int)size ); return vec[i]; }
+
+	void Push( T t ) {
+		GLASSERT( size < CAPACITY );
+		vec[size++] = t;
+	}
+	T* Push() {
+		GLASSERT( size < CAPACITY );
+		size++;
+		return &vec[size-1];
+	}
+	unsigned Size() const	{ return size; }
+	
+	void Clear()			{ size = 0; }
+	bool Empty() const		{ return size==0; }
+	const T* Mem() const	{ return vec; }
+
+private:
+	T vec[CAPACITY];
+	unsigned size;
 };
 
 

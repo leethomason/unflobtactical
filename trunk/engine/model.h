@@ -22,6 +22,7 @@
 #include "vertex.h"
 #include "enginelimits.h"
 #include "serialize.h"
+#include "ufoutil.h"
 
 class Texture;
 class SpaceTree;
@@ -48,42 +49,64 @@ struct ModelAtom
 class ModelResource
 {
 public:
+	ModelResource()		{ memset( &header, 0, sizeof( header ) ); }
+	~ModelResource()	{ Free(); }
+
 	void Free();
 
 	// In the coordinate space of the resource! (Object space.)
 	int Intersect(	const grinliz::Vector3F& point,
 					const grinliz::Vector3F& dir,
-					grinliz::Vector3F* intersect );
+					grinliz::Vector3F* intersect ) const;
 
 
 	ModelHeader header;						// loaded
 
-//	grinliz::Sphere			boundSphere;	// computed
 	grinliz::Rectangle3F	hitBounds;		// for picking - a bounds approximation
 	U16*					allIndex;		// memory store for vertices and indices. Used for hit-testing.
 	Vertex*					allVertex;
 
-	int IsOriginUpperLeft()				{ return header.flags & ModelHeader::UPPER_LEFT; }
-	const grinliz::Rectangle3F& AABB()	{ return header.bounds; }
+	int IsOriginUpperLeft() const				{ return header.flags & ModelHeader::UPPER_LEFT; }
+	const grinliz::Rectangle3F& AABB() const	{ return header.bounds; }
 
 	ModelAtom atom[EL_MAX_MODEL_GROUPS];
+};
+
+
+class ModelResourceManager
+{
+public:
+	static ModelResourceManager* Instance()	{ GLASSERT( instance ); return instance; }
+	
+	void  AddModelResource( ModelResource* res );
+	const ModelResource* GetModelResource( const char* name, bool errorIfNotFound=true );
+
+	static void Create();
+	static void Destroy();
+private:
+	enum { 
+		MAX_MODELS = 100	// just pointers
+	};
+	ModelResourceManager();
+	~ModelResourceManager();
+
+	static int Compare( const void * elem1, const void * elem2 );
+
+	static ModelResourceManager* instance;
+	CArray< ModelResource*, MAX_MODELS > modelResArr;
+	bool sorted;
 };
 
 
 class ModelLoader
 {
 public:
-	ModelLoader( const Texture* texture, int nTextures ) 	{
-		this->texture = texture;
-		this->nTextures = nTextures;
-	}
-	~ModelLoader()		{}
+	ModelLoader() 	{}
+	~ModelLoader()	{}
 
 	void Load( FILE* fp, ModelResource* res );
 
 private:
-	const Texture* texture;
-	int nTextures;
 };
 
 
@@ -93,7 +116,7 @@ public:
 	Model()		{	Init( 0, 0 ); }
 	~Model()	{}
 
-	void Init( ModelResource* resource, SpaceTree* tree );
+	void Init( const ModelResource* resource, SpaceTree* tree );
 
 	// Queued rendering
 	enum {
@@ -111,6 +134,7 @@ public:
 		MODEL_HIDDEN_FROM_TREE		= 0x02,
 		MODEL_OWNED_BY_MAP			= 0x04,
 		MODEL_NO_SHADOW				= 0x08,
+		MODEL_INVISIBLE				= 0x10,
 	};
 
 	int IsFlagSet( int f ) const	{ return flags & f; }
@@ -153,7 +177,7 @@ public:
 						const grinliz::Vector3F& dir,
 						grinliz::Vector3F* intersect ) const;
 
-	ModelResource* GetResource()				{ return resource; }
+	const ModelResource* GetResource()			{ return resource; }
 	bool Sentinel()	const						{ return resource==0 && tree==0; }
 
 	Model* next;			// used by the SpaceTree query
@@ -171,7 +195,7 @@ private:
 	const grinliz::Matrix4& InvXForm() const;
 
 	SpaceTree* tree;
-	ModelResource* resource;
+	const ModelResource* resource;
 	grinliz::Vector3F pos;
 	float rot;
 	bool texMatSet;

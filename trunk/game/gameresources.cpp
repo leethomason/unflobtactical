@@ -77,32 +77,22 @@ const char* gLightMapNames[ Game::NUM_LIGHT_MAPS ] =
 };
 
 
-
-Texture* Game::GetTexture( const char* name )
-{
-	for( int i=0; i<nTexture; ++i ) {
-		if ( strcmp( texture[i].name, name ) == 0 ) {
-			return &texture[i];
-		}
-	}
-	GLASSERT( 0 );
-	return 0;
-}
-
-
 void Game::LoadTextures()
 {
-	memset( texture, 0, sizeof(Texture)*MAX_TEXTURES );
+	//memset( texture, 0, sizeof(Texture)*MAX_TEXTURES );
 
 	U32 textureID = 0;
 	FILE* fp = 0;
 	char buffer[512];
 
+	TextureManager* texman = TextureManager::Instance();
+
 	// Create the default texture "white"
 	surface.Set( 2, 2, 2 );
 	memset( surface.Pixels(), 255, 8 );
 	textureID = surface.CreateTexture( false );
-	texture[ nTexture++ ].Set( "white", textureID );
+	texman->AddTexture( "white", textureID );
+	//texture[ nTexture++ ].Set( "white", textureID );
 
 	// Load the textures from the array:
 	for( int i=0; gTextureDef[i].name; ++i ) {
@@ -112,14 +102,15 @@ void Game::LoadTextures()
 		bool alpha;
 		textureID = surface.LoadTexture( fp, &alpha );
 		//bool alphaTest = (gTextureDef[i].flags & ALPHA_TEST ) ? true : false;
-
-		texture[ nTexture++ ].Set( gTextureDef[i].name, textureID, alpha );
+		//texture[ nTexture++ ].Set( gTextureDef[i].name, textureID, alpha );
+		texman->AddTexture( gTextureDef[i].name, textureID, alpha );
 		fclose( fp );
 	}
-	GLASSERT( nTexture <= MAX_TEXTURES );
+	//GLASSERT( nTexture <= MAX_TEXTURES );
 }
 
 
+/*
 ModelResource* Game::GetResource( const char* name )
 {
 	for( int i=0; i<nModelResource; ++i ) {
@@ -129,6 +120,7 @@ ModelResource* Game::GetResource( const char* name )
 	}
 	return 0;
 }
+*/
 
 
 void Game::LoadModel( const char* name )
@@ -136,19 +128,20 @@ void Game::LoadModel( const char* name )
 	char buffer[256];
 	GLASSERT( modelLoader );
 
-	GLASSERT( nModelResource < EL_MAX_MODEL_RESOURCES );
+	//GLASSERT( nModelResource < EL_MAX_MODEL_RESOURCES );
 	PlatformPathToResource( name, "mod", buffer, 256 );
 	FILE* fp = fopen( buffer, "rb" );
 	GLASSERT( fp );
-	modelLoader->Load( fp, &modelResource[nModelResource] );
+	ModelResource* res = new ModelResource();
+	modelLoader->Load( fp, res );
+	ModelResourceManager::Instance()->AddModelResource( res );
 	fclose( fp );
-	nModelResource++;
 }
 
 
 void Game::LoadModels()
 {
-	memset( modelResource, 0, sizeof(ModelResource)*EL_MAX_MODEL_RESOURCES );
+	//memset( modelResource, 0, sizeof(ModelResource)*EL_MAX_MODEL_RESOURCES );
 
 	//FILE* fp = 0;
 
@@ -199,36 +192,36 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 		//itemDef->flammable = init->flammable;
 		//itemDef->explosive = init->explosive;
 
-
+		ModelResourceManager* modman = ModelResourceManager::Instance();
 		{
-			ModelResource* resource = 0;
-			resource = GetResource( init->model );
+			const ModelResource* resource = 0;
+			resource = modman->GetModelResource( init->model, false );
 			if ( !resource ) {
 				LoadModel( init->model );
-				resource = GetResource( init->model );
+				resource = modman->GetModelResource( init->model, true );
 			}
 			GLASSERT( resource );
 			itemDef->modelResource = resource;
 		}
 		{
-			ModelResource* resource = 0;
+			const ModelResource* resource = 0;
 			if ( init->modelOpen ) {
-				resource = GetResource( init->modelOpen );
+				resource = modman->GetModelResource( init->modelOpen, false );
 				if ( !resource ) {
 					LoadModel( init->modelOpen );
-					resource = GetResource( init->modelOpen );
+					resource = modman->GetModelResource( init->modelOpen, true );
 				}
 				GLASSERT( resource );
 			}
 			itemDef->modelResourceOpen = resource;
 		}
 		{
-			ModelResource* resource = 0;
+			const ModelResource* resource = 0;
 			if ( init->modelDestroyed ) {
-				resource = GetResource( init->modelDestroyed );
+				resource = modman->GetModelResource( init->modelDestroyed, false );
 				if ( !resource ) {
 					LoadModel( init->modelDestroyed );
-					resource = GetResource( init->modelDestroyed );
+					resource = modman->GetModelResource( init->modelDestroyed, true );
 				}
 				GLASSERT( resource );
 			}
@@ -448,7 +441,7 @@ void Game::LoadItemResources()
 						weapons[i].name, 
 						weapons[i].desc, 
 						weapons[i].deco,
-						GetResource( weapons[i].resName ),
+						ModelResourceManager::Instance()->GetModelResource( weapons[i].resName ),
 						itemDefArr.Size() );
 
 		item->weapon[0].shell		= weapons[i].shell0;
@@ -500,7 +493,7 @@ void Game::LoadItemResources()
 						items[i].name,
 						items[i].desc,
 						items[i].deco,
-						items[i].resName ? GetResource( items[i].resName ) : 0,
+						items[i].resName ? ModelResourceManager::Instance()->GetModelResource( items[i].resName ) : 0,
 						itemDefArr.Size() );
 		itemDefArr.Push( item );
 	}

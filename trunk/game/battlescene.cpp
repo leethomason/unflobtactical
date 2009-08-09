@@ -23,7 +23,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	path.Clear();
 
 	// On screen menu.
-	widgets = new UIButtonBox( game->GetTexture( "icons" ), game->GetTexture( "iconDeco" ), engine->GetScreenport() );
+	widgets = new UIButtonBox( engine->GetScreenport() );
 	
 	int x, y, w, h;
 
@@ -37,7 +37,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		widgets->SetOrigin( 0, engine->GetScreenport().UIHeight()-h );
 	}
 	// When enemy targeted.
-	fireWidget = new UIButtonBox( game->GetTexture( "icons" ), game->GetTexture( "iconDeco" ), engine->GetScreenport() );
+	fireWidget = new UIButtonBox( engine->GetScreenport() );
 	const int fireIcons[] = { ICON_TRANS_RED, ICON_TRANS_RED, ICON_TRANS_RED };
 	fireWidget->InitButtons( fireIcons, 3 );
 
@@ -149,7 +149,7 @@ void BattleScene::Save( UFOStream* /*s*/ )
 	}
 
 	BattleSceneStream stream( game );
-	stream.Save( MAX_UNITS, selectionIndex, units );
+	stream.Save( selectionIndex, units, &engine->camera, engine->GetMap() );
 }
 
 
@@ -159,7 +159,7 @@ void BattleScene::Load( UFOStream* /*s*/ )
 	int selected;
 
 	BattleSceneStream stream( game );
-	stream.Load( MAX_UNITS, &selected, units );
+	stream.Load( &selected, units, true, &engine->camera, engine->GetMap() );
 
 	if ( selected < MAX_UNITS ) {
 		selection.soldierUnit = &units[selected];
@@ -715,7 +715,7 @@ void BattleScene::Tap(	int tap,
 								selection.targetUnit = 0;
 								selection.pathEndModel = engine->AllocModel( selected->GetResource() );
 								selection.pathEndModel->SetPos( (float)path.end.x + 0.5f, 0.0f, (float)path.end.y + 0.5f );
-								selection.pathEndModel->SetTexture( game->GetTexture( "translucent" ) );
+								selection.pathEndModel->SetTexture( TextureManager::Instance()->GetTexture( "translucent" ) );
 								selection.pathEndModel->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.5f );
 								selection.pathEndModel->SetFlag( Model::MODEL_SELECTABLE );	// FIXME not needed, remove entire draggable thing
 
