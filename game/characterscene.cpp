@@ -32,10 +32,15 @@ CharacterScene::CharacterScene( Game* _game )
 		}
 	}
 
-	storage = new Storage( game->GetItemDefArray() );
 	GLASSERT( selectedUnit < MAX_UNITS );	// else how did we get here?
 	unit = &units[selectedUnit];
 
+	Vector2I mapPos;
+	unit->CalcMapPos( &mapPos );
+	storage = engine->GetMap()->RemoveStorage( mapPos.x, mapPos.y );
+	if ( !storage ) {
+		storage = new Storage( game->GetItemDefArray() );
+	}
 	storageWidget = new StorageWidget( engine->GetScreenport(), storage );
 
 	{
@@ -77,14 +82,17 @@ CharacterScene::CharacterScene( Game* _game )
 
 CharacterScene::~CharacterScene()
 {
-	BattleSceneStream bss( game );
-	//bss.SaveSelectedUnit( &unit );
-	bss.Save( selectedUnit, units, &savedCamera, engine->GetMap() );
-
 	delete backWidget;
 	delete charInvWidget;
 	delete storageWidget;
-	delete storage;
+
+	Vector2I mapPos;
+	unit->CalcMapPos( &mapPos );
+	engine->GetMap()->SetStorage( mapPos.x, mapPos.y, storage );
+	storage = 0;
+
+	BattleSceneStream bss( game );
+	bss.Save( selectedUnit, units, &savedCamera, engine->GetMap() );
 }
 
 
