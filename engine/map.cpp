@@ -716,7 +716,9 @@ void Map::SetStorage( int x, int y, Storage* storage )
 			res = ModelResourceManager::Instance()->GetModelResource( "crate" );
 		}
 		tile->debris = tree->AllocModel( res );
-		tile->debris->SetPos( (float)(x)+0.5f, 0.0f, (float)(y)+0.5f );
+		const Rectangle3F& aabb = tile->debris->AABB();
+		tile->debris->SetPos( (float)(x)+0.5f, -aabb.min.y, (float)(y)+0.5f );
+		tile->debris->SetFlag( Model::MODEL_OWNED_BY_MAP );
 	}
 }
 
