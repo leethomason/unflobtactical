@@ -667,8 +667,9 @@ void Map::Load( UFOStream* s, Game* game )
 			if ( version >= 2 ) {
 				bool hasStorage = s->ReadBool();
 				if ( hasStorage ) {
-					tile->storage = new Storage( game->GetItemDefArray() );
-					tile->storage->Load( s );
+					Storage* storage = new Storage( game->GetItemDefArray() );
+					storage->Load( s );
+					SetStorage( i, j, storage );
 				}
 			}
 
