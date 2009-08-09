@@ -84,7 +84,7 @@ public:
 	void MoveCameraHome();
 	void MoveCameraXZ( float x, float z );
 
-	Model* AllocModel( ModelResource* );
+	Model* AllocModel( const ModelResource* );
 	void FreeModel( Model* );
 	
 	void EnableMap( bool enable )	{ enableMap = enable; }

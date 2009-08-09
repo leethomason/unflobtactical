@@ -59,7 +59,7 @@ enum {
 class UIButtonBox
 {
 public:
-	UIButtonBox( const Texture* texture, const Texture* decoTexture, const Screenport& port );
+	UIButtonBox( const Screenport& port );
 	~UIButtonBox()	{}
 
 	enum {

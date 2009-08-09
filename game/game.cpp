@@ -38,8 +38,8 @@ using namespace grinliz;
 Game::Game( const Screenport& sp ) :
 	engine( sp, engineData ),
 	screenport( sp ),
-	nTexture( 0 ),
-	nModelResource( 0 ),
+	//nTexture( 0 ),
+	//nModelResource( 0 ),
 	markFrameTime( 0 ),
 	frameCountsSinceMark( 0 ),
 	framesPerSecond( 0 ),
@@ -52,13 +52,13 @@ Game::Game( const Screenport& sp ) :
 	scenePopQueued( false ),
 	scenePushQueued( -1 )
 {
-	memset( memStream, 0, sizeof(MemStream)*MAX_STREAMS );
+	rootStream = 0;
 	currentFrame = 0;
 	memset( &profile, 0, sizeof( ProfileData ) );
 	surface.Set( 256, 256, 4 );		// All the memory we will ever need (? or that is the intention)
 
 	LoadTextures();
-	modelLoader = new ModelLoader( texture, nTexture );
+	modelLoader = new ModelLoader();
 	LoadModels();
 	LoadLightMaps();
 	LoadMapResources();
@@ -67,7 +67,7 @@ Game::Game( const Screenport& sp ) :
 	delete modelLoader;
 	modelLoader = 0;
 
-	Texture* textTexture = GetTexture( "stdfont2" );
+	const Texture* textTexture = TextureManager::Instance()->GetTexture( "stdfont2" );
 	GLASSERT( textTexture );
 	UFOText::InitTexture( textTexture->glID );
 	UFOText::InitScreen( engine.GetScreenport() );
@@ -80,7 +80,7 @@ Game::Game( const Screenport& sp ) :
 #endif
 
 	engine.GetMap()->SetSize( 40, 40 );
-	engine.GetMap()->SetTexture( GetTexture("farmland" ) );
+	engine.GetMap()->SetTexture( TextureManager::Instance()->GetTexture("farmland" ) );
 	engine.GetMap()->SetLightMap( &lightMaps[0] );
 	
 	//engine.camera.SetPosWC( -19.4f, 62.0f, 57.2f );
@@ -88,8 +88,8 @@ Game::Game( const Screenport& sp ) :
 	//engine.camera.SetPosWC( -5.0f, engineData.cameraHeight, mz + 5.0f );
 
 	particleSystem = new ParticleSystem();
-	particleSystem->InitPoint( GetTexture( "particleSparkle" ) );
-	particleSystem->InitQuad( GetTexture( "particleQuad" ) );
+	//particleSystem->InitPoint( TextureManager::Instance()->GetTexture( "particleSparkle" ) );
+	//particleSystem->InitQuad( GetTexture( "particleQuad" ) );
 
 	currentScene = 0;
 	scenePushQueued = BATTLE_SCENE;
@@ -103,14 +103,13 @@ Game::~Game()
 	currentScene = 0;
 
 	delete particleSystem;
-	FreeModels();
-	FreeTextures();
+	//FreeModels();
+	//FreeTextures();
 
-	for( int i=0; i<MAX_STREAMS; ++i ) {
-		if ( memStream[i].stream ) {
-			memStream[i].stream->Dump( memStream[i].name );
-			delete memStream[i].stream;
-		}
+	while( rootStream ) {
+		UFOStream* temp = rootStream;
+		rootStream = rootStream->next;
+		delete temp;
 	}
 	for( unsigned i=0; i<itemDefArr.Size(); ++i ) {
 		delete itemDefArr[i];
@@ -118,26 +117,34 @@ Game::~Game()
 }
 
 
-UFOStream* Game::OpenStream( const char* name, bool create )
+UFOStream* Game::FindStream( const char* name )
 {
 	GLASSERT( strlen( name ) < EL_FILE_STRING_LEN );
-	int i=0;
-	for( ; i<MAX_STREAMS; ++i ) {
-		if ( memStream[i].stream == 0 )
-			break;
-		if ( strcmp( name, memStream[i].name ) == 0 ) {
-			GLASSERT( memStream[i].stream );
-			memStream[i].stream->SeekSet( 0 );
-			return memStream[i].stream;
+
+	UFOStream* s = rootStream;
+
+	while ( s ) {
+		if ( strcmp( s->Name(), name ) == 0 ) {
+			return s;
 		}
-	}
-	if ( create ) {
-		GLASSERT( i < MAX_STREAMS );
-		strcpy( memStream[i].name, name );
-		memStream[i].stream = new UFOStream();
-		return memStream[i].stream;
+		s = s->next;
 	}
 	return 0;
+}
+
+
+UFOStream* Game::OpenStream( const char* name, bool create )
+{
+	UFOStream* s = FindStream( name );
+	if ( !s && create ) {
+		s = new UFOStream( name );
+		s->next = rootStream;
+		rootStream = s;
+	}
+	if ( s ) {
+		s->SeekSet( 0 );
+	}
+	return s;
 }
 
 
@@ -200,14 +207,16 @@ void Game::LoadMap( const char* name )
 	char buffer[512];
 
 	PlatformPathToResource( name, "map", buffer, 512 );
-	FILE* fp = fopen( buffer, "rb" );
-	GLASSERT( fp );
+	//LoadMap( fp );
+	//fclose( fp );
 
-	LoadMap( fp );
-	fclose( fp );
+	UFOStream s( "map" );
+	s.ReadFromDisk( buffer );
+	engine.GetMap()->Load( &s, this );
 }
 
 
+/*
 void Game::FreeTextures()
 {
 	for( int i=0; i<nTexture; ++i ) {
@@ -217,15 +226,15 @@ void Game::FreeTextures()
 		}
 	}
 }
-
-
+*/
+/*
 void Game::FreeModels()
 {
 	for( int i=0; i<nModelResource; ++i ) {
 		modelResource[i].Free();
 	}
 }
-
+*/
 
 void Game::DoTick( U32 currentTime )
 {

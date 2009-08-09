@@ -5,6 +5,8 @@
 class Game;
 class UFOStream;
 class Unit;
+class Camera;
+class Map;
 
 class BattleSceneStream
 {
@@ -12,15 +14,19 @@ public:
 	BattleSceneStream( Game* _game ) : game( _game )	{}
 	~BattleSceneStream() {}
 
-	void Save(	int nUnit,
-				int selectedUnit,
-				const Unit* units );
-	void Load(	int nUnit,
-				int *selectedUnit,
-				Unit* units );
+	void Save(	int selectedUnit,
+				const Unit* units,
+				const Camera* camera,
+				const Map* map );
 
-	void SaveSelectedUnit( const Unit* unit );
-	void LoadSelectedUnit( Unit* unit );
+	void Load(	int *selectedUnit,
+				Unit* units,
+				bool renderUnit,
+				Camera* camera,
+				Map* map );
+
+	//void SaveSelectedUnit( const Unit* unit );
+	//void LoadSelectedUnit( Unit* unit );
 
 private:
 	Game* game;

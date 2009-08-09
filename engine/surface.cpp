@@ -199,3 +199,75 @@ void Texture::Set( const char* name, U32 glID, bool alphaTest )
 	this->glID = glID;
 	this->alphaTest = alphaTest;
 }
+
+
+/*static*/ void TextureManager::Create()
+{
+	GLASSERT( instance == 0 );
+	instance = new TextureManager();
+}
+
+
+/*static*/ void TextureManager::Destroy()
+{
+	GLASSERT( instance );
+	delete instance;
+	instance = 0;
+}
+
+
+TextureManager::TextureManager()
+{
+	sorted = false;
+}
+
+
+TextureManager::~TextureManager()
+{
+	for( unsigned i=0; i<textureArr.Size(); ++i ) {
+		if ( textureArr[i].glID ) {
+			glDeleteTextures( 1, (const GLuint*) &textureArr[i].glID );
+			textureArr[i].name[0] = 0;
+		}
+	}
+}
+
+
+/*static*/ TextureManager* TextureManager::instance = 0;
+
+
+const Texture* TextureManager::GetTexture( const char* name )
+{
+	if ( !sorted ) {
+		for( unsigned i=0; i<textureArr.Size(); ++i ) {
+			texturePtr[i] = &textureArr[i];
+		}
+		qsort( texturePtr, textureArr.Size(), sizeof( Texture* ), Compare );
+		sorted = true;
+	}
+
+	// sleazy sleazy trick. Only the name is a valid value:
+	const Texture* key = (const Texture*)(name);
+
+	void *vptr = bsearch( &key, texturePtr, textureArr.Size(), sizeof( Texture* ), Compare );	
+	GLASSERT( vptr );
+	Texture* t = *((Texture**)(vptr));
+	return (Texture*) t;
+}
+
+
+/*static*/ int TextureManager::Compare( const void * elem1, const void * elem2 )
+{
+	const Texture* t1 = *((const Texture**)elem1);
+	const Texture* t2 = *((const Texture**)elem2);
+	return strcmp( t1->name, t2->name );
+}
+
+
+
+void TextureManager::AddTexture( const char* name, U32 glID, bool alphaTest )
+{
+	Texture* t = textureArr.Push();
+	t->Set( name, glID, alphaTest );
+	sorted = false;
+}

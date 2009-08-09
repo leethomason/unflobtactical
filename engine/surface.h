@@ -18,6 +18,7 @@
 
 #include "../grinliz/gltypes.h"
 #include "../grinliz/gldebug.h"
+#include "../engine/ufoutil.h"
 #include <stdio.h>
 
 class Surface
@@ -55,12 +56,39 @@ private:
 class Texture
 {
 public:
-	char name[16];
+	char name[16];		// must be first in the class for search to work! (strcmp used in the TextureManager)
 	bool alphaTest;
 	U32	 glID;
 
 	void Set( const char* name, U32 glID, bool alphaTest=false );
 };
 
+
+class TextureManager
+{
+public:
+	static TextureManager* Instance()	{ GLASSERT( instance ); return instance; }
+	
+	const Texture* GetTexture( const char* name );
+	void AddTexture( const char* name, U32 glID, bool alphaTest=false );
+
+	static void Create();
+	static void Destroy();
+private:
+	TextureManager();
+	~TextureManager();
+
+	static int Compare( const void * elem1, const void * elem2 );
+
+	enum {
+		MAX_TEXTURES = 30		// increase as needed
+	};
+
+	static TextureManager* instance;
+	//CDynArray< Texture > textureArr;	// works...except changes texture pointers around after the fact.
+	CArray< Texture, MAX_TEXTURES > textureArr;		// textures
+	Texture* texturePtr[MAX_TEXTURES];				// sorted pointers to textures
+	bool sorted;
+};
 
 #endif // UFOATTACK_SURFACE_INCLUDED

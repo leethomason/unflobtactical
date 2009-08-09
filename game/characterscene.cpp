@@ -9,23 +9,34 @@ using namespace grinliz;
 
 
 CharacterScene::CharacterScene( Game* _game ) 
-	: Scene( _game ),
-	  storage( _game->GetItemDefArray() )
+	: Scene( _game )
 {
 	engine = &_game->engine;
 	dragging = false;
 	description = 0;
+	memset( units, 0, sizeof(Unit)*MAX_UNITS );
 
-	Texture* t = game->GetTexture( "icons" );	
-	decoTexture = game->GetTexture( "iconDeco" );	
+	backWidget = new UIButtonBox( engine->GetScreenport() );
+	charInvWidget = new UIButtonBox( engine->GetScreenport() );
 
-	backWidget = new UIButtonBox( t, decoTexture, engine->GetScreenport() );
-	charInvWidget = new UIButtonBox( t, decoTexture, engine->GetScreenport() );
+	BattleSceneStream bss( game );
+	bss.Load( &selectedUnit, units, false, &savedCamera, game->engine.GetMap() );
 
-	for( unsigned i=0; i<game->GetItemDefArray().Size(); ++i ) {
-		storage.SetCount( game->GetItemDefArray()[i], 1 );
+	// Hide all the models but selected.
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		if ( i != selectedUnit ) {
+			if ( units[i].GetModel() )
+				units[i].GetModel()->SetFlag( Model::MODEL_INVISIBLE );
+			if ( units[i].GetWeaponModel() )
+				units[i].GetWeaponModel()->SetFlag( Model::MODEL_INVISIBLE );
+		}
 	}
-	storageWidget = new StorageWidget( t, decoTexture, engine->GetScreenport(), &storage );
+
+	storage = new Storage( game->GetItemDefArray() );
+	GLASSERT( selectedUnit < MAX_UNITS );	// else how did we get here?
+	unit = &units[selectedUnit];
+
+	storageWidget = new StorageWidget( engine->GetScreenport(), storage );
 
 	{
 		int icons[] = { ICON_GREEN_BUTTON };
@@ -36,17 +47,13 @@ CharacterScene::CharacterScene( Game* _game )
 	}
 	engine->EnableMap( false );
 
-	BattleSceneStream bss( game );
-	bss.LoadSelectedUnit( &unit );
 
-	Model* model = unit.GetModel();
-
+	Model* model = unit->GetModel();
 	const Vector3F* eyeDir = engine->camera.EyeDir3();
 	Vector3F offset = { 0.0f, model->AABB().SizeY()*0.5f, 0.0f };
-
 	engine->camera.SetPosWC( model->Pos() - eyeDir[0]*10.0f + offset );
-	//model->SetYRotation( -18.0f );
-	unit.SetYRotation( -18.0f );
+
+	//unit.SetYRotation( -18.0f );
 
 	const int BUTX = 62;	// 61 is min
 	const int BUTY = 60;
@@ -71,11 +78,13 @@ CharacterScene::CharacterScene( Game* _game )
 CharacterScene::~CharacterScene()
 {
 	BattleSceneStream bss( game );
-	bss.SaveSelectedUnit( &unit );
+	//bss.SaveSelectedUnit( &unit );
+	bss.Save( selectedUnit, units, &savedCamera, engine->GetMap() );
 
 	delete backWidget;
 	delete charInvWidget;
 	delete storageWidget;
+	delete storage;
 }
 
 
@@ -83,7 +92,7 @@ CharacterScene::~CharacterScene()
 
 void CharacterScene::SetInvWidget()
 {
-	Inventory* inv = unit.GetInventory();
+	Inventory* inv = unit->GetInventory();
 
 	// Top slots are general items.
 	for( int i=2; i<Inventory::NUM_SLOTS; ++i ) 
@@ -159,6 +168,8 @@ void CharacterScene::DrawHUD()
 		UIRendering::GetDecoUV( currentDeco, &uv );
 		Rectangle2I pos;
 		pos.Set( dragPos.x-SIZE, dragPos.y-SIZE, dragPos.x+SIZE, dragPos.y+SIZE );
+
+		const Texture* decoTexture = TextureManager::Instance()->GetTexture( "iconDeco" );
 		UIRendering::DrawQuad( engine->GetScreenport(), pos, uv, decoTexture  );
 	}
 }
@@ -226,7 +237,7 @@ void CharacterScene::Drag( int action, const grinliz::Vector2I& screen )
 	Rectangle2I storageBounds;
 	storageWidget->CalcBounds( &storageBounds );
 
-	Inventory* inv = unit.GetInventory();
+	Inventory* inv = unit->GetInventory();
 
 	if ( action == GAME_DRAG_START ) {
 		if ( tappedItemDef ) {
@@ -267,13 +278,13 @@ void CharacterScene::Drag( int action, const grinliz::Vector2I& screen )
 		startInvTap = -1;
 		startItemDef = 0;
 	}
-	unit.UpdateInventory();
+	unit->UpdateInventory();
 }
 
 
 void CharacterScene::DragStorageToInv( const ItemDef* startItemDef, int endTap )
 {
-	Inventory* inv = unit.GetInventory();
+	Inventory* inv = unit->GetInventory();
 	if ( !inv->IsSlotFree( startItemDef ) ) {
 		// can't move.
 		return;
@@ -286,7 +297,7 @@ void CharacterScene::DragStorageToInv( const ItemDef* startItemDef, int endTap )
 	}
 
 	Item item;
-	storage.RemoveItem(	startItemDef, &item );
+	storage->RemoveItem(	startItemDef, &item );
 	GLASSERT( item.IsSomething() );
 	GLASSERT( item.Rounds() );
 
@@ -303,7 +314,7 @@ void CharacterScene::DragStorageToInv( const ItemDef* startItemDef, int endTap )
 
 void CharacterScene::DragInvToStorage( int startTap )
 {
-	Inventory* inv = unit.GetInventory();
+	Inventory* inv = unit->GetInventory();
 	int startType, startSlot=-1;
 	IndexType( startTap, &startType, &startSlot );
 	if ( startType == UNLOAD ) {
@@ -315,7 +326,7 @@ void CharacterScene::DragInvToStorage( int startTap )
 	if ( item->IsNothing() )
 		return;
 
-	storage.AddItem( *item );
+	storage->AddItem( *item );
 	item->Clear();
 
 	SetInvWidget();
@@ -329,7 +340,7 @@ void CharacterScene::DragInvToInv( int startTap, int endTap )
 		return;
 
 	int startType, endType, startSlot, endSlot;
-	Inventory* inv = unit.GetInventory();
+	Inventory* inv = unit->GetInventory();
 
 	IndexType( startTap, &startType, &startSlot );
 	IndexType( endTap, &endType, &endSlot );

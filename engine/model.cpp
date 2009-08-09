@@ -45,7 +45,7 @@ void ModelResource::Free()
 
 int ModelResource::Intersect(	const grinliz::Vector3F& point,
 								const grinliz::Vector3F& dir,
-								grinliz::Vector3F* intersect )
+								grinliz::Vector3F* intersect ) const
 {
 	float t;
 	if ( IntersectRayAABB( point, dir, header.bounds, intersect, &t ) == grinliz::INTERSECT ) {
@@ -82,55 +82,11 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 {
 	res->header.Load( fp );
 
-	// Compute the bounding sphere. The model is always rotated around the
-	// Y axis, so be sure to put the sphere there, else it won't be invariant
-	// to rotation. Then check the 8 corners for the furthest.
-	//res->boundSphere.origin.x = 0;
-	//res->boundSphere.origin.y = ( res->header.bounds.min.y + res->header.bounds.max.y )*0.5f;
-	//res->boundSphere.origin.z = 0;
-
-	/*float longestR2 = 0.0f;
-
-	for( int k=0; k<2; ++k ) {
-		for( int j=0; j<2; ++j ) {
-			for( int i=0; i<2; ++i ) {
-				float dx = res->header.bounds.Vec(i).x - res->boundSphere.origin.x;
-				float dy = res->header.bounds.Vec(j).y - res->boundSphere.origin.y;
-				float dz = res->header.bounds.Vec(k).z - res->boundSphere.origin.z;
-				float d2 = dx*dx + dy*dy + dz*dz;
-
-				if ( d2 > longestR2 ) {
-					longestR2 = d2;
-				}
-			}
-		}
-	}
-	res->boundSphere.radius = sqrtf( longestR2 );
-*/
-	// And the bounding circle.
-/*	longestR2 = 0;
-
-	for( int k=0; k<2; ++k ) {
-		for( int i=0; i<2; ++i ) {
-			float dx = res->header.bounds.Vec(i).x - res->boundSphere.origin.x;
-			float dz = res->header.bounds.Vec(k).z - res->boundSphere.origin.z;
-			float d2 = dx*dx + dz*dz;
-
-			if ( d2 > longestR2 ) {
-				longestR2 = d2;
-			}
-		}
-	}
-	res->boundRadius2D = sqrtf( longestR2 );
-*/
 	// compute the hit testing AABB
 	float ave = grinliz::Max( res->header.bounds.SizeX(), res->header.bounds.SizeZ() )*0.5f;
 	//float ave = Max( res->header.bounds.SizeX(), res->header.bounds.SizeZ() );
 	res->hitBounds.min.Set( -ave, res->header.bounds.min.y, -ave );
 	res->hitBounds.max.Set( ave, res->header.bounds.max.y, ave );
-
-	//GLASSERT( nTotalVertices <= EL_MAX_VERTEX_IN_GROUP );
-	//GLASSERT( nTotalIndices <= EL_MAX_INDEX_IN_GROUP );
 
 	GLOUTPUT(( "Load Model: %s\n", res->header.name ));
 	/*
@@ -162,12 +118,7 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 		std::string base, name, extension;
 		StrSplitFilename( std::string( textureName ), &base, &name, &extension );
 
-		for( int j=0; j<nTextures; ++j ) {
-			if ( strcmp( name.c_str(), texture[j].name ) == 0 ) {
-				t = &texture[j];
-				break;
-			}
-		}
+		t = TextureManager::Instance()->GetTexture( name.c_str() );
 		GLASSERT( t );                       
 		res->atom[i].texture = t;
 
@@ -226,7 +177,7 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 }
 
 
-void Model::Init( ModelResource* resource, SpaceTree* tree )
+void Model::Init( const ModelResource* resource, SpaceTree* tree )
 {
 	this->resource = resource; 
 	this->tree = tree;
@@ -305,25 +256,6 @@ void Model::SetTexXForm( float a, float d, float x, float y )
 }
 
 
-
-/*
-void Model::CalcBoundSphere( Sphere* sphere ) const
-{
-	*sphere = resource->boundSphere;
-	sphere->origin += pos;
-}
-*/
-
-/*
-void Model::CalcBoundCircle( Circle* circle ) const 
-{
-	circle->origin.x = pos.x;
-	circle->origin.y = pos.z;
-	circle->radius = resource->boundRadius2D;
-}
-*/
-
-
 void Model::CalcHitAABB( Rectangle3F* aabb ) const
 {
 	// This is already an approximation - ignore rotation.
@@ -347,63 +279,11 @@ void Model::CalcTarget( grinliz::Vector3F* target ) const
 }
 
 
-/*
-bool Model::CalcAABB( grinliz::Rectangle3F* aabb ) const
-{
-	const Vector3F& a = resource->header.bounds.max;
-	const Vector3F& b = resource->header.bounds.min;
-	Vector3F min = { 0, 0, 0 };
-	Vector3F max = { 0, 0, 0 };
-	bool result = false;
-
-	if ( rot == 0.0f ) {
-		// x' = x
-		// z' = z
-		min = b;
-		max = a;
-		result = true;
-	}
-	else if ( rot == 90.0f ) {
-		// x' = z
-		// z' = -x;
-		min.x = b.z;
-		min.z = -a.x;
-		max.x = a.z;
-		max.z = -b.x;
-		result = true;
-	}
-	else if ( rot == 180.0f ) {
-		// x' = -x
-		// z' = -z
-		min.x = -a.x;
-		min.z = -a.z;
-		max.x = -b.x;
-		max.z = -b.z;
-		result = true;
-	}
-	else if ( rot == 270.0f ) {
-		// x' = -z
-		// z' = x
-		min.x = -a.z;
-		min.z = b.x;
-		max.x = -b.z;
-		max.z = a.x;
-		result = true;
-	}
-	if ( result ) {
-		GLASSERT( min.x <= max.x );
-		GLASSERT( min.y <= max.y );
-		GLASSERT( min.z <= max.z );
-		aabb->min = pos + min;
-		aabb->max = pos + max;
-	}
-	return result;
-}
-*/
-
-
 void Model::Queue( RenderQueue* queue, int textureMode )
 {
+	if ( flags & MODEL_INVISIBLE )
+		return;
+
 	for( U32 i=0; i<resource->header.nGroups; ++i ) 
 	{
 		int flags = 0;
@@ -648,4 +528,68 @@ int Model::IntersectRay(	const Vector3F& _origin,
 		}
 	}
 	return result;
+}
+
+
+void ModelResourceManager::AddModelResource( ModelResource* res )
+{
+	modelResArr.Push( res );
+	sorted = false;
+}
+
+const ModelResource* ModelResourceManager::GetModelResource( const char* name, bool errorIfNotFound )
+{
+	if ( !sorted ) {
+		qsort( &modelResArr[0], modelResArr.Size(), sizeof( ModelResource* ), Compare );
+		sorted = true;
+	}
+
+	// sleazy sleazy trick. Only the name is a valid value:
+	const ModelResource* key = (const ModelResource*)(name);
+
+	void *vptr = bsearch( &key, &modelResArr[0], modelResArr.Size(), sizeof( ModelResource* ), Compare );
+	if ( errorIfNotFound ) {
+		GLASSERT( vptr );
+	}
+	if ( vptr == 0 ) 
+		return 0;
+
+	ModelResource* t = *((ModelResource**)(vptr));
+	return (ModelResource*) t;
+}
+
+
+/*static*/ int ModelResourceManager::Compare( const void * elem1, const void * elem2 )
+{
+	const ModelResource* t1 = *((const ModelResource**)elem1);
+	const ModelResource* t2 = *((const ModelResource**)elem2);
+	return strcmp( t1->header.name, t2->header.name );
+}
+
+
+/*static*/ void ModelResourceManager::Create()
+{
+	GLASSERT( instance == 0 );
+	instance = new ModelResourceManager();
+}
+
+/*static*/ void ModelResourceManager::Destroy()
+{
+	GLASSERT( instance );
+	delete instance;
+	instance = 0;
+}
+
+ModelResourceManager* ModelResourceManager::instance = 0;
+
+ModelResourceManager::ModelResourceManager()
+{
+	sorted = false;
+}
+	
+
+ModelResourceManager::~ModelResourceManager()
+{
+	for( unsigned i=0; i<modelResArr.Size(); ++i )
+		delete modelResArr[i];
 }

@@ -21,7 +21,8 @@
 #include "surface.h"
 #include "text.h"
 #include "../game/material.h"		// bad call to less general directory. FIXME. Move map to game?
-#include "../game/unit.h"		// bad call to less general directory. FIXME. Move map to game?
+#include "../game/unit.h"			// bad call to less general directory. FIXME. Move map to game?
+#include "../game/game.h"			// bad call to less general directory. FIXME. Move map to game?
 
 using namespace grinliz;
 using namespace micropather;
@@ -31,8 +32,8 @@ Map::Map( SpaceTree* tree ) :
 	statePool( "MapStatePool", sizeof( MapItemState ), EL_ALLOCATED_MODELS*sizeof(MapItemState)/4 )
 
 {
-	memset( itemDefArr, 0, sizeof(ItemDef)*MAX_ITEM_DEF );
-	memset( tileArr, 0, sizeof(Tile)*SIZE*SIZE );
+	memset( itemDefArr, 0, sizeof(MapItemDef)*MAX_ITEM_DEF );
+	memset( tileArr, 0, sizeof(MapTile)*SIZE*SIZE );
 	microPather = new MicroPather(	this,									// graph interface
 									&patherMem, PATHER_MEM32*sizeof(U32),	// memory
 									8 );									// max adjacent states
@@ -82,16 +83,23 @@ void Map::Clear()
 {
 	for( int j=0; j<SIZE; ++j ) {
 		for( int i=0; i<SIZE; ++i ) {
-			Tile* tile = &tileArr[j*SIZE+i];
+			MapTile* tile = &tileArr[j*SIZE+i];
 			int count = tile->CountItems();
 			for( int k=0; k<count; ++k ) {
 				GLASSERT( tile->CountItems() > 0 );
 				DeleteAt( i, j );
 			}
 			GLASSERT( tile->CountItems() == 0 );
+
+			if ( tile->storage ) {
+				delete tile->storage;
+			}
+			if ( tile->debris ) {
+				tree->FreeModel( tile->debris );
+			}
 		}
 	}
-	memset( tileArr, 0, sizeof(Tile)*SIZE*SIZE );
+	memset( tileArr, 0, sizeof(MapTile)*SIZE*SIZE );
 }
 
 
@@ -222,7 +230,7 @@ const char* Map::GetItemDefName( int i )
 }
 
 
-int Map::Tile::FindFreeItem() const
+int Map::MapTile::FindFreeItem() const
 {
 	for( int i=0; i<ITEM_PER_TILE; ++i ) {
 		if ( !item[i].InUse() )
@@ -232,7 +240,7 @@ int Map::Tile::FindFreeItem() const
 }
 
 
-int Map::Tile::CountItems() const
+int Map::MapTile::CountItems() const
 {
 	int count = 0;
 	for( int i=0; i<ITEM_PER_TILE; ++i ) {
@@ -243,11 +251,11 @@ int Map::Tile::CountItems() const
 }
 
 
-void Map::ResolveReference( const Item* inItem, Item** outItem, Tile** outTile, int *dx, int* dy ) const
+void Map::ResolveReference( const MapItem* inItem, MapItem** outItem, MapTile** outTile, int *dx, int* dy ) const
 {
 
 	if ( !inItem->IsReference() ) {
-		*outItem = const_cast<Item*>( inItem );
+		*outItem = const_cast<MapItem*>( inItem );
 		*outTile = GetTileFromItem( inItem, 0, 0, 0 );
 		*dx = 0;
 		*dy = 0;
@@ -308,9 +316,9 @@ void Map::IMat::Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out  )
 }
 
 
-Map::Tile* Map::GetTileFromItem( const Item* item, int* _layer, int* x, int *y ) const
+Map::MapTile* Map::GetTileFromItem( const MapItem* item, int* _layer, int* x, int *y ) const
 {
-	int index = ((const U8*)item - (const U8*)tileArr) / sizeof( Tile );
+	int index = ((const U8*)item - (const U8*)tileArr) / sizeof( MapTile );
 	GLASSERT( index >= 0 && index < SIZE*SIZE );
 	int layer = item - tileArr[index].item;
 	GLASSERT( layer >= 0 && layer < ITEM_PER_TILE );
@@ -324,7 +332,7 @@ Map::Tile* Map::GetTileFromItem( const Item* item, int* _layer, int* x, int *y )
 		GLASSERT( *x >=0 && *x < SIZE );
 		GLASSERT( *y >=0 && *y < SIZE );
 	}
-	return const_cast< Tile* >(tileArr + index);
+	return const_cast< MapTile* >(tileArr + index);
 }
 
 
@@ -335,7 +343,7 @@ void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 		GLASSERT( m->stats && statePool.MemoryInPool( m->stats ) );
 		MapItemState* state = (MapItemState*)m->stats;
 
-		Item* item = state->item;
+		MapItem* item = state->item;
 		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 		int hp = MaterialDef::CalcDamage( baseDamage, shellFlags, itemDef.materialFlags );
 
@@ -395,7 +403,7 @@ bool Map::AddToTile( int x, int y, int defIndex, int rotation )
 		return false;
 	}
 
-	Tile* tile = tileArr + ((y*SIZE)+x);
+	MapTile* tile = tileArr + ((y*SIZE)+x);
 
 	Rectangle2I mapBounds;
 	Vector2F modelPos;
@@ -411,7 +419,7 @@ bool Map::AddToTile( int x, int y, int defIndex, int rotation )
 	// This isn't required, but prevents map creation mistakes.
 	for( int nLayer=0; nLayer<ITEM_PER_TILE; ++nLayer )
 	{
-		Item* item = &tile->item[nLayer];
+		MapItem* item = &tile->item[nLayer];
 
 		if ( item->InUse() && !item->IsReference() ) {
 			GLASSERT( item->model );
@@ -435,14 +443,14 @@ bool Map::AddToTile( int x, int y, int defIndex, int rotation )
 
 	// Finally add!!
 	ResetPath();
-	Item* mainItem = 0;
+	MapItem* mainItem = 0;
 	for( int i=mapBounds.min.x; i<=mapBounds.max.x; ++i ) 
 	{
 		for( int j=mapBounds.min.y; j<=mapBounds.max.y; ++j ) 
 		{
-			Tile* refTile	= &tileArr[j*SIZE+i];
+			MapTile* refTile	= &tileArr[j*SIZE+i];
 			GLASSERT( refTile->FindFreeItem() >= 0 );
-			Item* item		= &refTile->item[ refTile->FindFreeItem() ];
+			MapItem* item		= &refTile->item[ refTile->FindFreeItem() ];
 
 			if ( i==mapBounds.min.x && j==mapBounds.min.y ) 
 			{
@@ -481,7 +489,7 @@ void Map::DeleteAt( int x, int y )
 	GLASSERT( x >= 0 && x < width );
 	GLASSERT( y >= 0 && y < height );
 
-	Tile* tile = tileArr + ((y*SIZE)+x);
+	MapTile* tile = tileArr + ((y*SIZE)+x);
 	int layer = tile->CountItems() - 1;
 	if ( layer < 0 ) {
 		return;
@@ -497,7 +505,7 @@ void Map::DeleteAt( int x, int y )
 		return;
 	}
 	ResetPath();
-	const Item* mainItem = &tile->item[layer];
+	const MapItem* mainItem = &tile->item[layer];
 
 	Rectangle2I bounds;
 	Vector2F p;
@@ -551,7 +559,7 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 	float cxf = (float)cx;
 	float cyf = (float)cy;
 
-	ModelResource* resource = itemDef.modelResource;
+	const ModelResource* resource = itemDef.modelResource;
 	// rotates around the upper left, irrespective
 	// of the actual model origin.
 	//
@@ -596,61 +604,82 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 }
 
 
-void Map::Save( FILE* fp )
+void Map::Save( UFOStream* s ) const
 {
-	// Version (so I can load old files.)
-	U8 version = 1;
-	fwrite( &version, 1, 1, fp );
+	s->WriteU8( 2 );	// version
+	s->WriteU32( UFOStream::MAGIC0 );
 
 	for( int j=0; j<SIZE; ++j ) {
 		for( int i=0; i<SIZE; ++i ) {
 
 			// Write every tile. The minimal information is a count of layers.
 			// The layer data is only written if needed.
-
-			Tile* tile = tileArr + ((j*SIZE)+i);
+			const MapTile* tile = GetTile( i, j );
 			
+			s->WriteBool( tile->storage > 0 );	// v2
+			if ( tile->storage ) {
+				tile->storage->Save( s );
+			}
+
 			U8 count = 0;
 			for( int k=0; k<ITEM_PER_TILE; ++k ) {
 				if ( tile->item[k].InUse() && !tile->item[k].IsReference() ) {
 					++count;
 				}
 			}
+			// temporary debugging:
+			if ( i>=40 || j>= 40 ) GLASSERT( count == 0 );
 
-			fwrite( &count, 1, 1, fp );
+			s->WriteU8( count );
 			
 			for( int k=0; k<ITEM_PER_TILE; ++k ) {
 				if ( tile->item[k].InUse() && !tile->item[k].IsReference() ) {
-					Item* item = &tile->item[k];
+					const MapItem* item = &tile->item[k];
 
-					fwrite( &item->itemDefIndex, 1, 1, fp );
-					fwrite( &item->rotation, 1, 1, fp );
+					s->WriteU8( item->itemDefIndex );
+					s->WriteU8( item->rotation );
 				}
 			}
 		}
 	}
-	GLOUTPUT(( "Map saved.\n" ));
+	s->WriteU32( UFOStream::MAGIC1 );
+	//GLOUTPUT(( "Map saved.\n" ));
 }
 
 
-void Map::Load( FILE* fp )
+void Map::Load( UFOStream* s, Game* game )
 {
-	U8 version = 0;
-	fread( &version, 1, 1, fp );
+	Clear();
+
+	int version = s->ReadU8();
+
+	if ( version >= 2 ) {
+		U32 magic = s->ReadU32();
+		GLASSERT( magic == UFOStream::MAGIC0 );
+	}
 
 	for( int j=0; j<SIZE; ++j ) {
 		for( int i=0; i<SIZE; ++i ) {
-			//Tile* tile = tileArr + ((j*SIZE)+i);
-			
-			U8 count;
-			fread( &count, 1, 1, fp );
+
+			MapTile* tile = GetTile( i, j );
+			GLASSERT( tile->storage == 0 && tile->debris == 0 );
+
+			if ( version >= 2 ) {
+				bool hasStorage = s->ReadBool();
+				if ( hasStorage ) {
+					tile->storage = new Storage( game->GetItemDefArray() );
+					tile->storage->Load( s );
+				}
+			}
+
+			int count = s->ReadU8();
+			// temporary debugging:
+			if ( i>=40 || j>= 40 ) GLASSERT( count == 0 );
 
 			for( int k=0; k<count; ++k ) 
 			{
-				U8 defIndex = 0;
-				U8 rotation = 0;
-				fread( &defIndex, 1, 1, fp );
-				fread( &rotation, 1, 1, fp );
+				U8 defIndex = s->ReadU8();
+				U8 rotation = s->ReadU8();
 				if ( defIndex > 0 ) {
 					bool result = AddToTile( i, j, defIndex, rotation ); 
 					GLASSERT( result );
@@ -659,7 +688,48 @@ void Map::Load( FILE* fp )
 			}
 		}
 	}
-	GLOUTPUT(( "Map loaded.\n" ));
+	if ( version >= 2 ) {
+		U32 magic = s->ReadU32();
+		GLASSERT( magic == UFOStream::MAGIC1 );
+	}
+	//GLOUTPUT(( "Map loaded.\n" ));
+}
+
+
+void Map::SetStorage( int x, int y, Storage* storage )
+{
+	RemoveStorage( x, y );	// delete existing
+	MapTile* tile = GetTile( x, y );
+	tile->storage = storage;
+	
+	// Find an item:
+	const ItemDef* itemDef = storage->SomeItem();
+	if ( !itemDef ) {
+		// empty.
+		delete storage;
+		tile->storage = 0;
+	}
+	else { 
+		const ModelResource* res = itemDef->resource;
+		if ( !res ) {
+			res = ModelResourceManager::Instance()->GetModelResource( "crate" );
+		}
+		tile->debris = tree->AllocModel( res );
+		tile->debris->SetPos( (float)(x)+0.5f, 0.0f, (float)(y)+0.5f );
+	}
+}
+
+
+Storage* Map::RemoveStorage( int x, int y )
+{
+	MapTile* tile = GetTile( x, y );
+	if ( tile->debris ) {
+		tree->FreeModel( tile->debris );
+		tile->debris = 0;
+	}
+	Storage* result = tile->storage;
+	tile->storage = 0;
+	return result;
 }
 
 
@@ -667,7 +737,7 @@ void Map::DumpTile( int x, int y )
 {
 	if ( InRange( x, 0, SIZE-1 ) && InRange( y, 0, SIZE-1 )) 
 	{
-		const Tile& tile = tileArr[y*SIZE+x];
+		const MapTile& tile = tileArr[y*SIZE+x];
 
 		for( int i=0; i<ITEM_PER_TILE; ++i ) {
 			int index = tile.item[i].itemDefIndex;
@@ -675,7 +745,7 @@ void Map::DumpTile( int x, int y )
 
 			if ( tile.item[i].IsReference() ) {
 				int rx, ry, layer;
-				Tile* t = GetTileFromItem( tile.item[i].ref, &layer, &rx, &ry );
+				MapTile* t = GetTileFromItem( tile.item[i].ref, &layer, &rx, &ry );
 
 				UFOText::Draw( 0, 100-12*i, "->(%d,%d) %s r=%d", 
 							   rx-x, ry-y, itemDef.name, t->item[layer].rotation );
@@ -796,7 +866,7 @@ int Map::GetPathMask( int x, int y )
 	// in the object. And tile resulotion. Tweaky function to get right.
 	//
 	int index = y*SIZE+x;
-	Tile* originTile = &tileArr[index];
+	MapTile* originTile = &tileArr[index];
 
 	U32 id = originTile->pathMask >> 4;
 	GLASSERT( id < 0xffffff );	// how did it get this big??
@@ -804,13 +874,13 @@ int Map::GetPathMask( int x, int y )
 	if ( id != queryID ) {
 		U32 path = 0;
 		for( int i=0; i<ITEM_PER_TILE; ++i ) {
-			const Item* inItem = &originTile->item[i];
+			const MapItem* inItem = &originTile->item[i];
 			if ( inItem->itemDefIndex == 0 ) {
 				continue;
 			}
 
-			Item* item = 0;
-			Tile* tile = 0;
+			MapItem* item = 0;
+			MapTile* tile = 0;
 			Vector2I origin;
 			ResolveReference( inItem, &item, &tile, &origin.x, &origin.y );
 			int rot = item->rotation;

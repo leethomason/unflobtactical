@@ -204,7 +204,6 @@ Inventory* Unit::GetInventory()
 void Unit::UpdateInventory() 
 {
 	GLASSERT( status != STATUS_NOT_INIT );
-	GLASSERT( model );
 
 	if ( weapon ) {
 		engine->FreeModel( weapon );
@@ -222,7 +221,7 @@ void Unit::UpdateInventory()
 
 void Unit::UpdateWeapon()
 {
-	if ( weapon ) {
+	if ( weapon && model ) {
 		Matrix4 r;
 		r.SetYRotation( model->GetYRotation() );
 		Vector4F mPos, gPos, pos4;
@@ -287,29 +286,31 @@ void Unit::DoDamage( int damageBase, int shell )
 
 void Unit::CreateModel( bool alive )
 {
-	ModelResource* resource = 0;
+	const ModelResource* resource = 0;
+	ModelResourceManager* modman = ModelResourceManager::Instance();
+
 	switch ( team ) {
 		case SOLDIER:
 			if ( alive )
-				resource = game->GetResource( ( Gender() == MALE ) ? "maleMarine" : "femaleMarine" );
+				resource = modman->GetModelResource( ( Gender() == MALE ) ? "maleMarine" : "femaleMarine" );
 			else
-				resource = game->GetResource( ( Gender() == MALE ) ? "maleMarine_D" : "femaleMarine_D" );
+				resource = modman->GetModelResource( ( Gender() == MALE ) ? "maleMarine_D" : "femaleMarine_D" );
 			break;
 
 		case CIVILIAN:
 			if ( alive )
-				resource = game->GetResource( ( Gender() == MALE ) ? "maleCiv" : "femaleCiv" );
+				resource = modman->GetModelResource( ( Gender() == MALE ) ? "maleCiv" : "femaleCiv" );
 			else
-				resource = game->GetResource( ( Gender() == MALE ) ? "maleCiv_D" : "femaleCiv_D" );
+				resource = modman->GetModelResource( ( Gender() == MALE ) ? "maleCiv_D" : "femaleCiv_D" );
 			break;
 
 		case ALIEN:
 			{
 				switch( AlienType() ) {
-					case 0:	resource = game->GetResource( alive ? "alien0" : "alien0_D" );	break;
-					case 1:	resource = game->GetResource( alive ? "alien1" : "alien1_D" );	break;
-					case 2:	resource = game->GetResource( alive ? "alien2" : "alien2_D" );	break;
-					case 3:	resource = game->GetResource( alive ? "alien3" : "alien3_D" );	break;
+					case 0:	resource = modman->GetModelResource( alive ? "alien0" : "alien0_D" );	break;
+					case 1:	resource = modman->GetModelResource( alive ? "alien1" : "alien1_D" );	break;
+					case 2:	resource = modman->GetModelResource( alive ? "alien2" : "alien2_D" );	break;
+					case 3:	resource = modman->GetModelResource( alive ? "alien3" : "alien3_D" );	break;
 					default: GLASSERT( 0 );	break;
 				}
 			}
@@ -375,6 +376,7 @@ void Unit::Save( UFOStream* s ) const
 void Unit::Load( UFOStream* s, Engine* engine, Game* game )
 {
 	Free();
+
 	int _status = s->ReadU8();
 	GLASSERT( _status == STATUS_NOT_INIT || _status == STATUS_ALIVE || _status == STATUS_DEAD );
 	if ( _status != STATUS_NOT_INIT ) {
@@ -394,8 +396,10 @@ void Unit::Load( UFOStream* s, Engine* engine, Game* game )
 		Init( engine, game, team, ((body>>ALIEN_TYPE_SHIFT) & ALIEN_TYPE_MASK), body );
 		status = _status;
 		
-		model->SetPos( pos );
-		model->SetYRotation( rot );
+		if ( model ) {
+			model->SetPos( pos );
+			model->SetYRotation( rot );
+		}
 
 		inventory.Load( s, engine, game );
 		UpdateInventory();

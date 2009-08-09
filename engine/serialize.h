@@ -57,7 +57,7 @@ struct ModelHeader
 		ROTATE_SHADOWS	= 0x04,		// for billboards, the shadow turns to face the light
 	};
 
-	char					name[EL_FILE_STRING_LEN];
+	char					name[EL_FILE_STRING_LEN];	// name must be first - used later in sleazy sort trick in GetModelResource()
 	U16						flags;
 	U16						nGroups;
 	U16						nTotalVertices;		// in all groups
@@ -83,10 +83,16 @@ public:
 		MAGIC1 = 0xfedcba98,
 	};
 
-	UFOStream();
+	UFOStream( const char* name );
 	~UFOStream();
 
-	void SeekSet( int offset )	{ GLASSERT( offset == 0 || offset < size ); if ( offset < size ) ptr = buffer + offset; }
+	const char* Name() const	{ return name; }
+
+	void SeekSet( int offset )	{	GLASSERT( offset == 0 || offset < size ); 
+									if ( offset < size ) 
+										ptr = buffer + offset; 
+									bit = 0;
+								}
 	int Size()					{ return size; }
 	int Tell()					{ GLASSERT( ptr ); GLASSERT( buffer ); return ptr - buffer; }
 	void Dump( const char* name ) {
@@ -101,12 +107,17 @@ public:
 			ptr += sizeof( T );
 		}
 	}
+	bool	ReadBool()	{ return ReadU8() != 0; }
 	U8		ReadU8();
 	U16		ReadU16();
 	U32		ReadU32();	
 	float	ReadFloat();
-
 	const char*	ReadStr();
+	void    ReadU32Arary( U32 len, U32* arr );
+
+	void BeginReadBits();
+	U32 ReadBits( U32 nBits );
+	void EndReadBits();
 
 	template< typename T > void Write( const T& value ) 
 	{
@@ -122,18 +133,30 @@ public:
 		}
 	}
 
+	void WriteBool( bool value )	{ WriteU8( value ? 1 : 0 ); }	// optimize for bit writing in the future?
 	void WriteU8( U32 value );
 	void WriteU16( U32 value );
 	void WriteU32( U32 value );
 	void WriteFloat( float value );
-
 	void WriteStr( const char* str );
+	void WriteU32Arary( U32 len, const U32* arr );
+
+	void BeginWriteBits();
+	void WriteBits( U32 nBits, U32 bits );
+	void EndWriteBits();
+
+	void WriteToDisk();
+	bool ReadFromDisk( const char* fname );	// filename is optional; if not provided, will be constructed from the class name
+
+	UFOStream* next;	// used by the stream manager.
 
 private:
 	void Ensure( int newCap );
 
+	char name[EL_FILE_STRING_LEN];
 	U8* buffer;
 	U8* ptr;
+	U32 bit;
 	int cap;
 	int size;
 	const U8*	EndCap()	{ GLASSERT( buffer ); return buffer + cap; }

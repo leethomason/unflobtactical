@@ -69,7 +69,7 @@ public:
 													  return eyeDir3; }
 
 	// Saves camera position but not view rotation (which comes from the device.)
-	void Save( UFOStream* );
+	void Save( UFOStream* ) const;
 	void Load( UFOStream* );
 
 private:

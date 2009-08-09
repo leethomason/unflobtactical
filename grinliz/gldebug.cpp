@@ -112,8 +112,8 @@ void* DebugNew( size_t size, bool arrayType, const char* name, int line )
 	}
 
 	// #BREAKHERE
-	//if ( head->id == 59828 )
-	//	int debug = 1;
+	if ( head->id == 138 )
+		int debug = 1;
 
 #ifdef GRINLIZ_DEBUG_MEM_DEEP
 	MemHeapCheck();
@@ -197,8 +197,8 @@ void MemLeakCheck()
 	/*
 		If these fire, then a memory leak has been detected. The library doesn't track
 		the source. The best way to find the source is to break in the allocator,
-		search for: #BREAKHERE. Each allocation has a unique ID. Once you know the ID 
-		of the thing you are leaking, you can track the source of the leak.
+		search for: #BREAKHERE. Each allocation has a unique ID and is printed out above.
+		Once you know the ID of the thing you are leaking, you can track the source of the leak.
 
 		It's not elegant, but it does work.
 	*/

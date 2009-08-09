@@ -37,8 +37,8 @@ public:
 	ParticleSystem();
 	~ParticleSystem();
 
-	void InitPoint( const Texture* texture );
-	void InitQuad( const Texture* texture );
+	//void InitPoint( const Texture* texture );
+	//void InitQuad( const Texture* texture );
 
 	// texture particles
 	enum {

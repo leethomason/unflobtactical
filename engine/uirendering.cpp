@@ -23,10 +23,10 @@ using namespace grinliz;
 const float ALPHA_DISABLED	= 0.3f;
 const float ALPHA_DECO		= 0.5f;
 
-UIButtonBox::UIButtonBox( const Texture* texture, const Texture* decoTexture, const Screenport& port ) : screenport( port )
+UIButtonBox::UIButtonBox( const Screenport& port ) : screenport( port )
 {
-	this->texture = texture;
-	this->decoTexture = decoTexture;
+	this->texture     = TextureManager::Instance()->GetTexture( "icons" );
+	this->decoTexture = TextureManager::Instance()->GetTexture( "iconDeco" );
 	nIcons = 0;
 
 	const int SIZE = 50;

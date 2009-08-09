@@ -282,6 +282,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\game\gamelimits.h"
+				>
+			</File>
+			<File
 				RelativePath=".\game\gameresources.cpp"
 				>
 			</File>

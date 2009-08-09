@@ -29,10 +29,6 @@ class ParticleSystem;
 class Scene;
 class ItemDef;
 
-const float FOV = 45.0f;
-const int MAX_TEXTURES = 32;
-const int MAX_MODELS = 256;
-
 const float ONE8 = 1.0f / 8.0f;
 const float ONE16 = 1.0f / 16.0f;
 const float TRANSLUCENT_WHITE	= ONE8*0.0f + ONE16;
@@ -41,7 +37,6 @@ const float TRANSLUCENT_BLUE	= ONE8*2.0f + ONE16;
 const float TRANSLUCENT_RED		= ONE8*3.0f + ONE16;
 const float TRANSLUCENT_YELLOW	= ONE8*4.0f + ONE16;
 const float TRANSLUCENT_GREY	= ONE8*5.0f + ONE16;
-
 
 
 class Game
@@ -61,8 +56,6 @@ public:
 	void Rotate( int action, float degreesFromStart );
 	void CancelInput();
 	
-	ModelResource*	GetResource( const char* name );
-	Texture*		GetTexture( const char* name );
 	Surface*		GetLightMap( const char* name );
 	const ItemDef*  GetItemDef( const char* name );
 
@@ -82,8 +75,8 @@ public:
 	bool IsShowingPathing()			{ return showPathing; }
 #endif
 
-	void SaveMap( FILE* fp )	{ engine.GetMap()->Save( fp ); }
-	void LoadMap( FILE* fp )	{ engine.GetMap()->Load( fp ); }
+	void SaveMap( FILE* fp );
+	void LoadMap( FILE* fp );
 	void ClearMap()				{ engine.GetMap()->Clear(); }
 
 	enum { NUM_LIGHT_MAPS = 1,
@@ -98,6 +91,9 @@ public:
 
 
 	UFOStream* OpenStream( const char* name, bool createIfDoesNotExist = true );
+	UFOStream* FindStream( const char* name );
+	void SaveStreamToDisk( UFOStream* s );
+	void SaveAllStreamsToDisk();
 
 	void PushScene( int sceneID );
 	void PopScene();
@@ -123,26 +119,17 @@ private:
 		const char* pather1;
 	};
 
-	struct MemStream {
-		char name[EL_FILE_STRING_LEN];
-		UFOStream* stream;
-	};
-	MemStream memStream[MAX_STREAMS];
-
 	void LoadTextures();
-	void FreeTextures();
 	void LoadModels();
 	void LoadModel( const char* name );
-	void FreeModels();
 	void LoadLightMaps();
 	void LoadMapResources();
 	void LoadItemResources();
 	void LoadMap( const char* name );
-
 	void InitMapItemDef( int startIndex, const MapItemInit* );
 
-	int nTexture;
-	int nModelResource;
+	UFOStream* rootStream;
+
 	int currentFrame;
 	U32 markFrameTime;
 	U32 frameCountsSinceMark;
@@ -167,8 +154,8 @@ private:
 	grinliz::ProfileData profile;
 
 	CDynArray<ItemDef*>	itemDefArr;
-	Texture				texture[MAX_TEXTURES];
-	ModelResource		modelResource[EL_MAX_MODEL_RESOURCES];
+	//Texture			texture[MAX_TEXTURES];
+	//ModelResource		modelResource[EL_MAX_MODEL_RESOURCES];
 	Surface				lightMaps[NUM_LIGHT_MAPS];
 };
 

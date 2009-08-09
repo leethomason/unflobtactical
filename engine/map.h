@@ -25,6 +25,7 @@
 #include "vertex.h"
 #include "surface.h"
 #include "enginelimits.h"
+#include "serialize.h"
 
 class Model;
 class ModelResource;
@@ -32,6 +33,9 @@ class SpaceTree;
 class RenderQueue;
 class Texture;
 class ItemDef;
+class Storage;
+class Game;
+
 
 class Map : public micropather::Graph
 {
@@ -62,15 +66,15 @@ public:
 		U16		hp;					// 0 infinite, >0 can be damaged
 		U32		materialFlags;
 
-		ModelResource* modelResource;
-		ModelResource* modelResourceOpen;
-		ModelResource* modelResourceDestroyed;
+		const ModelResource* modelResource;
+		const ModelResource* modelResourceOpen;
+		const ModelResource* modelResourceDestroyed;
 
 		char	name[EL_FILE_STRING_LEN];
 		U8		pather[2][MAX_CX][MAX_CY];
 	};
 
-	struct Item
+	struct MapItem
 	{
 		U8		itemDefIndex;	// 0: not in use, >0 is the index
 		U8		rotation;		// 0-3: rotation, 255: reference	
@@ -78,24 +82,32 @@ public:
 
 		union {
 			Model*	model;
-			const Item*	ref;
+			const MapItem*	ref;
 		};
 
 		bool InUse() const			{ return itemDefIndex > 0; }
 		bool IsReference() const	{ return (rotation == 255); }
 	};
 
-	struct Tile
+	struct MapTile
 	{
-		U32 pathMask;	// bits 0-3 bits are the mask.
-						//      4-31 is the query id
-		Item item[ITEM_PER_TILE];
+		U32 pathMask;		// bits 0-3 bits are the mask.
+							//      4-31 is the query id
+		Storage* storage;	// if !null, then Tile has items sitting on it, which creates a Storage object.
+							// A storage object ALSO creates a crate and possible weapons at this location.
+		Model* debris;		// The crate or weapon at this location. (Just use one icon.)
+
+		MapItem item[ITEM_PER_TILE];
 
 		int CountItems() const;
 		int FindFreeItem() const;
 	};
 
 
+	/* FIXME: The map lives between the game and the engine. It should probably be moved
+	   to the Game layer. Until then, it takes an engine primitive (SpaceTree) and the game
+	   basic class (Game) when it loads. Very strange.
+	*/
 	Map( SpaceTree* tree );
 	virtual ~Map();
 
@@ -127,6 +139,9 @@ public:
 	void ClearPathBlocks();
 	void SetPathBlock( int x, int y );
 
+	void SetStorage( int x, int y, Storage* storage );
+	Storage* RemoveStorage( int x, int y );
+
 	MapItemDef* InitItemDef( int i );
 	const char* GetItemDefName( int i );
 
@@ -138,8 +153,8 @@ public:
 	int GetPathMask( int x, int z );
 	void ResetPath();	// normally called automatically
 
-	void Save( FILE* fp );
-	void Load( FILE* fp );
+	void Save( UFOStream* s ) const;
+	void Load( UFOStream* s, Game* game );
 	void Clear();
 
 	void DumpTile( int x, int z );
@@ -179,17 +194,20 @@ private:
 						grinliz::Rectangle2I* mapBounds,
 						grinliz::Vector2F* origin );
 
+	MapTile* GetTile( int x, int y )				{ return &tileArr[y*SIZE+x]; }
+	const MapTile* GetTile( int x, int y ) const	{ return &tileArr[y*SIZE+x]; }
+
 	// Performs no translation of references.
 	// item: input
 	// output layer (to get item from returned tile)
 	// x and y: map locations
-	Tile* GetTileFromItem( const Item* item, int* layer, int* x, int *y ) const;
+	MapTile* GetTileFromItem( const MapItem* item, int* layer, int* x, int *y ) const;
 
 	// resolve a reference:
 	// outItem: item referred to
 	// outTile: tile referred to
 	// dx, dy: position of inItem relative to outItem. (Will be >= 0 )
-	void ResolveReference( const Item* inTtem, Item** outItem, Tile** outTile, int *dx, int* dy ) const;
+	void ResolveReference( const MapItem* inTtem, MapItem** outItem, MapTile** outTile, int *dx, int* dy ) const;
 	
 	int width, height;
 	grinliz::Rectangle3F bounds;
@@ -211,7 +229,7 @@ private:
 	grinliz::BitArray<SIZE, SIZE>	pathBlock;	// spaces the pather can't use (units are there)	
 	U32								patherMem[ PATHER_MEM32 ];	// big block of memory for the pather.
 	MapItemDef						itemDefArr[MAX_ITEM_DEF];
-	Tile							tileArr[ SIZE*SIZE ];
+	MapTile							tileArr[ SIZE*SIZE ];
 };
 
 
@@ -222,7 +240,7 @@ public:
 	bool DoDamage( int hp );	// return true if the object is destroyed
 	bool CanDamage();			// return true if the object can take damage
 
-	Map::Item* item;
+	Map::MapItem* item;
 
 private:
 	const Map::MapItemDef* itemDef;

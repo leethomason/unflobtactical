@@ -28,23 +28,14 @@ ParticleSystem::ParticleSystem()
 		particleTypeArr[i].Init( 0, 1.0f );
 	}
 	nDecals = 0;
+
+	particleTypeArr[POINT].Init( TextureManager::Instance()->GetTexture( "particleSparkle" ), 4.0f );
+	particleTypeArr[QUAD].Init( TextureManager::Instance()->GetTexture( "particleQuad" ), 1.0f );
 }
 
 
 ParticleSystem::~ParticleSystem()
 {
-}
-
-
-void ParticleSystem::InitPoint( const Texture* texture )
-{
-	particleTypeArr[POINT].Init( texture, 4.0f );
-}
-
-
-void ParticleSystem::InitQuad( const Texture* texture )
-{
-	particleTypeArr[QUAD].Init( texture, 1.0f );
 }
 
 

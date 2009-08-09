@@ -4,6 +4,7 @@
 #include "scene.h"
 #include "unit.h"
 #include "../engine/ufoutil.h"
+#include "gamelimits.h"
 
 class Model;
 class UIButtonBox;
@@ -16,9 +17,6 @@ class BattleScene : public Scene
 public:
 	BattleScene( Game* );
 	virtual ~BattleScene();
-
-	//virtual void Activate();
-	//virtual void DeActivate();
 
 	virtual void Tap(	int count, 
 						const grinliz::Vector2I& screen,
@@ -156,7 +154,6 @@ private:
 		CIV_UNITS_END		= CIV_UNITS_START+MAX_CIVS,
 		ALIEN_UNITS_START	= CIV_UNITS_END,
 		ALIEN_UNITS_END		= ALIEN_UNITS_START+MAX_ALIENS,
-		MAX_UNITS			= ALIEN_UNITS_END,
 	};
 
 	Unit units[MAX_UNITS];

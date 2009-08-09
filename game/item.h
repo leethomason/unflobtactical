@@ -35,9 +35,9 @@ public:
 	const char*		name;
 	const char*		desc;
 	int				deco;
-	ModelResource*	resource;	// can be null, in which case render with crate.
+	const ModelResource*	resource;	// can be null, in which case render with crate.
 
-	void InitBase( int type, const char* name, const char* desc, int deco, ModelResource* resource, int index )
+	void InitBase( int type, const char* name, const char* desc, int deco, const ModelResource* resource, int index )
 	{
 		this->type = type; this->name = name; this->desc = desc; this->deco = deco; this->resource = resource; this->index = index;
 	}
@@ -177,11 +177,16 @@ public:
 
 	void AddItem( const Item& item );
 	void RemoveItem( const ItemDef*, Item* item );
+	
+	const ItemDef* SomeItem() const;
 
 	void SetCount( const ItemDef*, int count );
 	int GetCount( const ItemDef* ) const;
 
 	const CDynArray<ItemDef*>& GetItemDefArray() const { return itemDefs; }
+                                                                         
+	void Save( UFOStream* s ) const;
+	void Load( UFOStream* s );
 
 private:
 	int GetIndex( const ItemDef* itemDef ) const {

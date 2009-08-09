@@ -115,7 +115,7 @@ void SpaceTree::InitNode()
 }
 
 
-Model* SpaceTree::AllocModel( ModelResource* resource )
+Model* SpaceTree::AllocModel( const ModelResource* resource )
 {
 	GLASSERT( resource );
 	Item* item = (Item*) modelPool.Alloc();
