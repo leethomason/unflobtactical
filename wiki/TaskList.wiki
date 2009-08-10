@@ -34,7 +34,6 @@
   * visibility computation
   * pathing+animation
   * pathing+animation+FoW
-  * serialization (some work done. Still need general serialization and screen strategy)
   * GL Swap management (only render when needed)
   * UI screen: inventory
   * UI screen: statistics
@@ -42,10 +41,12 @@
   * turns, turn based actions, UI, timeunits
   * rotation UI
   * aiming UI
-  * save / load strategy
+
   * start game, scenario & difficulty
   * end game, score
 
 === Resolved ===
   * pathing - micropather integrated
   * weapons - attached to unit
+  * save / load strategy
+  * serialization (some work done. Still need general serialization and screen strategy)
