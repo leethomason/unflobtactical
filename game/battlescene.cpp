@@ -40,6 +40,9 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	fireWidget = new UIButtonBox( engine->GetScreenport() );
 	const int fireIcons[] = { ICON_TRANS_RED, ICON_TRANS_RED, ICON_TRANS_RED };
 	fireWidget->InitButtons( fireIcons, 3 );
+	fireWidget->SetDeco( 2, DECO_AIMED );
+	fireWidget->SetDeco( 1, DECO_SNAP );
+	fireWidget->SetDeco( 0, DECO_AUTO );
 
 	engine->EnableMap( true );
 
