@@ -88,6 +88,7 @@ public:
 	void Clear()			{ size = 0; }
 	bool Empty() const		{ return size==0; }
 	const T* Mem() const	{ return vec; }
+	T* Mem()				{ return vec; }
 
 private:
 	T* vec;

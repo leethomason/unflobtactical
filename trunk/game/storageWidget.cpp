@@ -136,7 +136,7 @@ void StorageWidget::SetButtons()
 			if ( itemArr[i]->IsArmor() )
 				group=2;
 
-			itemsPerGroup[group]++;
+			itemsPerGroup[group] += storage->GetCount( itemArr[i] );
 
 			if ( group==groupSelected ) {
 				GLASSERT( slot < 12 );

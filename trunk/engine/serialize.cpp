@@ -4,10 +4,12 @@
 #include <string>
 #include "serialize.h"
 
+
 void TextureHeader::Load( FILE* fp )
 {
 	fread( this, sizeof(TextureHeader), 1, fp );
 }
+
 
 void ModelHeader::Load( FILE* fp )
 {
@@ -64,10 +66,12 @@ const char*	UFOStream::ReadStr()
 	return r;
 }
 
+
 U8 UFOStream::ReadU8()			{ U8 v = 0; Read( &v ); return v; }
 U16 UFOStream::ReadU16()		{ U16 v = 0 ; Read( &v ); return v; }
 U32 UFOStream::ReadU32()		{ U32 v = 0; Read( &v ); return v; }
 float UFOStream::ReadFloat()	{ float v = 0.0f; Read( &v ); return v; }
+
 
 void UFOStream::BeginReadBits()
 {
@@ -85,12 +89,17 @@ void UFOStream::EndReadBits()
 
 void UFOStream::ReadU32Arary( U32 len, U32* arr )
 {
+	//U32 magic = ReadU8();
+	//GLASSERT( magic == (MAGIC0 & 0xff) );
 	U32 bits = ReadU8();
 	BeginReadBits();
 	for( U32 i=0; i<len; ++i ) {
-		arr[i] = ReadBits( bits );
+		U32 value = ReadBits( bits );
+		arr[i] = value;
 	}
 	EndReadBits();
+	//magic = ReadU8();
+	//GLASSERT( magic == (MAGIC1 & 0xff) );
 }
 
 
@@ -122,12 +131,14 @@ void UFOStream::WriteU32Arary( U32 len, const U32* arr )
 		++size;
 
 	// Write the data
+	//WriteU8( MAGIC0 & 0xff );
 	WriteU8( size );
 	BeginWriteBits();
 	for( U32 i=0; i<len; ++i ) {
 		WriteBits( size, arr[i] );
 	}
 	EndWriteBits();
+	//WriteU8( MAGIC1 & 0xff );
 }
 
 
@@ -147,6 +158,11 @@ U32 UFOStream::ReadBits( U32 nBits )
 	U32 bitsRemaining = nBits;
 
 	while ( bitsRemaining ) {
+		if ( bit == 8 ) {
+			++ptr;
+			GLASSERT( ptr < EndSize() );
+			bit = 0;
+		}
 		U32 nBitsInChunk = grinliz::Min( bitsRemaining, 8-bit );
 		U32 mask = maskArr[nBitsInChunk-1];
 
@@ -154,11 +170,6 @@ U32 UFOStream::ReadBits( U32 nBits )
 
 		bit				+= nBitsInChunk;
 		bitsRemaining	-= nBitsInChunk;
-
-		if ( bit == 8 ) {
-			++ptr;
-			bit = 0;
-		}
 	}
 	return value;
 }
@@ -175,6 +186,12 @@ void UFOStream::WriteBits( U32 nBits, U32 value )
 
 	while( bitsRemaining > 0 ) 
 	{
+		if ( bit == 8 ) {
+			++ptr;
+			WriteU8( 0 );
+			--ptr;
+			bit = 0;
+		}
 		U32 nBitsInChunk = grinliz::Min( bitsRemaining, 8-bit );
 		U32 mask = maskArr[nBitsInChunk-1];
 
@@ -182,14 +199,6 @@ void UFOStream::WriteBits( U32 nBits, U32 value )
 
 		bit				+= nBitsInChunk;
 		bitsRemaining	-= nBitsInChunk;
-
-		if ( bit == 8 ) {
-			++ptr;
-			WriteU8( 0 );
-			--ptr;
-
-			bit = 0;
-		}
 	}
 }
 

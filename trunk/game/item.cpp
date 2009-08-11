@@ -285,22 +285,12 @@ const ItemDef* Storage::SomeItem() const
 
 void Storage::Save( UFOStream* s ) const
 {
-	s->WriteU8( 1 );	// version
-	for( U32 i=0; i<itemDefs.Size(); ++i ) {
-		GLASSERT( rounds[i] < 256 );
-		s->WriteU8( rounds[i] );
-	}
-
-	// FIXME: s->WriteU32Arary( itemDefs.Size(), (const U32*) rounds.Mem() );
+	s->WriteU32Arary( itemDefs.Size(), (const U32*) rounds.Mem() );
 }
 
 
 void Storage::Load( UFOStream* s )
 {
-	U32 version = s->ReadU8();
-	for( U32 i=0; i<itemDefs.Size(); ++i ) {
-		rounds[i] = s->ReadU8();
-	}
-	// FIXME:: s->ReadU32Arary( itemDefs.Size(), (U32*) rounds.PushArr( itemDefs.Size() ) );
+	s->ReadU32Arary( itemDefs.Size(), (U32*) rounds.Mem() );
 }
 
