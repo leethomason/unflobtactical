@@ -145,8 +145,11 @@ public:
 	void WriteBits( U32 nBits, U32 bits );
 	void EndWriteBits();
 
-	void WriteToDisk();
-	bool ReadFromDisk( const char* fname );	// filename is optional; if not provided, will be constructed from the class name
+	bool LoadFile( const char* name );	// filename is optional; if not provided, will be constructed from the class name
+	bool LoadFile( FILE* fp );
+
+	void SaveFile();
+	void SaveFile( FILE* fp );
 
 	UFOStream* next;	// used by the stream manager.
 

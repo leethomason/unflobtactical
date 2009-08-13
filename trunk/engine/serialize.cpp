@@ -212,7 +212,7 @@ void UFOStream::EndWriteBits()
 }
 
 
-void UFOStream::WriteToDisk()
+void UFOStream::SaveFile()
 {
 	std::string name( Name() );
 	name += std::string( ".ufodat" );
@@ -226,7 +226,7 @@ void UFOStream::WriteToDisk()
 }
 
 
-bool UFOStream::ReadFromDisk( const char* path )
+bool UFOStream::LoadFile( const char* path )
 {
 	std::string name;
 
@@ -240,19 +240,31 @@ bool UFOStream::ReadFromDisk( const char* path )
 
 	FILE* fp = fopen( name.c_str(), "rb" );
 	if ( fp ) {
-		fseek( fp, 0, SEEK_END );
-		size_t sz = ftell( fp );
-		fseek( fp, 0, SEEK_SET );
-
-		Ensure( sz );
-		size = sz;
-		fread( buffer, 1, size, fp );
-		ptr = buffer;
-		bit = 0;
-
-		fwrite( buffer, 1, size, fp );
+		LoadFile( fp );
 		fclose( fp );
-		return true;
 	}
 	return false;
 }
+
+
+bool UFOStream::LoadFile( FILE* fp )
+{
+	fseek( fp, 0, SEEK_END );
+	size_t sz = ftell( fp );
+	fseek( fp, 0, SEEK_SET );
+
+	Ensure( sz );
+	size = sz;
+	fread( buffer, 1, size, fp );
+	ptr = buffer;
+	bit = 0;
+
+	fwrite( buffer, 1, size, fp );
+	return true;	
+}
+
+void UFOStream::SaveFile( FILE* fp )
+{
+	fwrite( buffer, 1, size, fp );
+}
+

@@ -161,7 +161,7 @@ private:
 #ifdef MAPMAKER
 	// Mapmaker:
 	void UpdatePreview();
-	Model* selection;
+	Model* mapSelection;
 	Model* preview;
 	int currentMapItem;
 #endif

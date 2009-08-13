@@ -242,6 +242,7 @@ int main( int argc, char **argv )
 						//case SDLK_LEFT:			yRotation -= 2.0f; GameYRotateCamera( game, yRotation );		break;
 						//case SDLK_s:			GameShadowMode( game );						break;
 
+#if !defined( MAPMAKER )
 						case SDLK_p:
 							{
 								#ifdef FRAMEBUFFER_ROTATE
@@ -253,13 +254,15 @@ int main( int argc, char **argv )
 								#endif
 							}
 							break;
+#endif
 
-#ifdef MAPMAKER	
+#if defined( MAPMAKER )
 						case SDLK_s:			
 							{
 								FILE* fp = fopen( filename.c_str(), "wb" );
 								((Game*)game)->SaveMap( fp );
 								fclose( fp );
+								GLOUTPUT(( "Save\n" ));
 							}
 							break;
 						case SDLK_l:
@@ -269,6 +272,7 @@ int main( int argc, char **argv )
 									((Game*)game)->LoadMap( fp );
 								}
 								fclose( fp );
+								GLOUTPUT(( "Load\n" ));
 							}
 							break;
 						case SDLK_c:

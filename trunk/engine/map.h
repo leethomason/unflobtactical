@@ -71,14 +71,17 @@ public:
 		const ModelResource* modelResourceDestroyed;
 
 		char	name[EL_FILE_STRING_LEN];
-		U8		pather[2][MAX_CX][MAX_CY];
+		U8		pather[MAX_CX][MAX_CY];
+
+		// return true if the object can take damage
+		bool CanDamage() const { return hp > 0; }
 	};
 
 	struct MapItem
 	{
 		U8		itemDefIndex;	// 0: not in use, >0 is the index
 		U8		rotation;		// 0-3: rotation, 255: reference	
-		U16		_pad0;
+		U16		hp;
 
 		union {
 			Model*	model;
@@ -87,6 +90,17 @@ public:
 
 		bool InUse() const			{ return itemDefIndex > 0; }
 		bool IsReference() const	{ return (rotation == 255); }
+		// returns true if destroyed
+		bool DoDamage( int _hp )		
+		{	
+			if ( _hp >= hp ) {
+				hp = 0;
+				return true;
+			}
+			hp -= _hp;
+			return false;						
+		}
+		bool Destroyed( const MapItemDef& itemDef ) { return (itemDef.hp > 0) && (hp == 0); }
 	};
 
 	struct MapTile
@@ -99,7 +113,7 @@ public:
 
 		MapItem item[ITEM_PER_TILE];
 
-		int CountItems() const;
+		int CountItems( bool countReference=true ) const;
 		int FindFreeItem() const;
 	};
 
@@ -148,7 +162,11 @@ public:
 #ifdef MAPMAKER
 	Model* CreatePreview( int x, int z, int itemDefIndex, int rotation );
 #endif
-	bool AddToTile( int x, int z, int itemDefIndex, int rotation );
+	// hp = -1 default
+	//       0 destroyed
+	//		1+ hp remaining
+	bool AddToTile( int x, int z, int itemDefIndex, int rotation, int hp, bool open );
+
 	void DeleteAt( int x, int z );
 	int GetPathMask( int x, int z );
 	void ResetPath();	// normally called automatically
@@ -221,7 +239,6 @@ private:
 	Surface finalMap;
 	Surface* lightMap;
 	U32 queryID;
-	grinliz::MemoryPool statePool;
 
 	micropather::MicroPather* microPather;
 
@@ -231,22 +248,5 @@ private:
 	MapItemDef						itemDefArr[MAX_ITEM_DEF];
 	MapTile							tileArr[ SIZE*SIZE ];
 };
-
-
-class MapItemState
-{
-public:
-	void Init( const Map::MapItemDef& itemDef );
-	bool DoDamage( int hp );	// return true if the object is destroyed
-	bool CanDamage();			// return true if the object can take damage
-
-	Map::MapItem* item;
-
-private:
-	const Map::MapItemDef* itemDef;
-	U16 hp;
-	bool onFire;
-};
-
 
 #endif // UFOATTACK_MAP_INCLUDED

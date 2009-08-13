@@ -28,8 +28,8 @@ using namespace grinliz;
 using namespace micropather;
 
 
-Map::Map( SpaceTree* tree ) :
-	statePool( "MapStatePool", sizeof( MapItemState ), EL_ALLOCATED_MODELS*sizeof(MapItemState)/4 )
+Map::Map( SpaceTree* tree )
+//	statePool( "MapStatePool", sizeof( MapItemState ), EL_ALLOCATED_MODELS*sizeof(MapItemState)/4 )
 
 {
 	memset( itemDefArr, 0, sizeof(MapItemDef)*MAX_ITEM_DEF );
@@ -240,11 +240,11 @@ int Map::MapTile::FindFreeItem() const
 }
 
 
-int Map::MapTile::CountItems() const
+int Map::MapTile::CountItems( bool countReferences ) const
 {
 	int count = 0;
 	for( int i=0; i<ITEM_PER_TILE; ++i ) {
-		if ( item[i].InUse() )
+		if ( item[i].InUse() && ( countReferences || !item[i].IsReference() ) )
 			++count;
 	}
 	return count;
@@ -340,16 +340,13 @@ void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 {
 	if ( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) 
 	{
-		GLASSERT( m->stats && statePool.MemoryInPool( m->stats ) );
-		MapItemState* state = (MapItemState*)m->stats;
+		GLASSERT( m->stats );
 
-		MapItem* item = state->item;
+		MapItem* item = (MapItem*) m->stats;
 		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 		int hp = MaterialDef::CalcDamage( baseDamage, shellFlags, itemDef.materialFlags );
 
-		if ( state->CanDamage() && state->DoDamage( hp ) ) {
-			GLASSERT( state->item );
-
+		if ( itemDef.CanDamage() && item->DoDamage(hp) ) {
 			// Destroy the current model. Replace it with "destroyed"
 			// model if there is one.
 			Vector3F pos = item->model->Pos();
@@ -362,12 +359,9 @@ void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 				item->model->SetFlag( Model::MODEL_OWNED_BY_MAP );
 				item->model->SetPos( pos );
 				item->model->SetYRotation( rot );
-				item->model->stats = state;			
+				item->model->stats = item;			
 			}
-			else {
-				// don't have a state any more - the model is completely gone.
-				statePool.Free( state );
-			}
+			microPather->Reset();
 		}
 	}
 }
@@ -391,7 +385,7 @@ Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 #endif
 
 
-bool Map::AddToTile( int x, int y, int defIndex, int rotation )
+bool Map::AddToTile( int x, int y, int defIndex, int rotation, int hp, bool open )
 {
 	GLASSERT( x >= 0 && x < width );
 	GLASSERT( y >= 0 && y < height );
@@ -458,16 +452,34 @@ bool Map::AddToTile( int x, int y, int defIndex, int rotation )
 				mainItem = item;
 				item->itemDefIndex = defIndex;
 				item->rotation = rotation;
-				item->model = tree->AllocModel( itemDefArr[defIndex].modelResource );
 
-				item->model->SetFlag( Model::MODEL_OWNED_BY_MAP );
-				item->model->SetPos( modelPos.x, 0.0f, modelPos.y );
-				item->model->SetYRotation( 90.0f * rotation );
+				const ModelResource* res = 0;
 
-				MapItemState* state = (MapItemState*) statePool.Alloc();
-				state->Init( itemDefArr[defIndex] );
-				state->item = item;
-				item->model->stats = state;
+				if ( hp == 0 ) {
+					res = itemDefArr[defIndex].modelResourceDestroyed;
+				}
+				else {
+					if ( open )
+						res = itemDefArr[defIndex].modelResourceOpen;
+					else
+						res = itemDefArr[defIndex].modelResource;
+				}
+				if ( res ) {
+					item->model = tree->AllocModel( res );
+					item->model->SetFlag( Model::MODEL_OWNED_BY_MAP );
+					item->model->SetPos( modelPos.x, 0.0f, modelPos.y );
+					item->model->SetYRotation( 90.0f * rotation );
+					item->model->stats = item;
+				}
+				//MapItemState* state = (MapItemState*) statePool.Alloc();
+				//state->Init( itemDefArr[defIndex], hp );
+				//state->item = item;
+				//item->model->stats = state;
+				if ( hp >= 0 )
+					item->hp = hp;
+				else
+					item->hp = itemDefArr[defIndex].hp;
+
 			}
 			else {
 				item->itemDefIndex	= defIndex;
@@ -513,7 +525,7 @@ void Map::DeleteAt( int x, int y )
 	
 	// Free the main item.
 	if ( tile->item[layer].model ) {
-		statePool.Free( tile->item[layer].model->stats );
+		//statePool.Free( tile->item[layer].model->stats );
 		tree->FreeModel( tile->item[layer].model );
 	}
 
@@ -621,12 +633,8 @@ void Map::Save( UFOStream* s ) const
 				tile->storage->Save( s );
 			}
 
-			U8 count = 0;
-			for( int k=0; k<ITEM_PER_TILE; ++k ) {
-				if ( tile->item[k].InUse() && !tile->item[k].IsReference() ) {
-					++count;
-				}
-			}
+			U8 count = tile->CountItems( false );
+
 			// temporary debugging:
 			if ( i>=40 || j>= 40 ) GLASSERT( count == 0 );
 
@@ -638,6 +646,9 @@ void Map::Save( UFOStream* s ) const
 
 					s->WriteU8( item->itemDefIndex );
 					s->WriteU8( item->rotation );
+
+					s->WriteU16( item->hp );	// v2
+					s->WriteBool( item->model && item->model->GetResource() == itemDefArr[item->itemDefIndex].modelResourceOpen );	// v2 - isOpen
 				}
 			}
 		}
@@ -681,8 +692,16 @@ void Map::Load( UFOStream* s, Game* game )
 			{
 				U8 defIndex = s->ReadU8();
 				U8 rotation = s->ReadU8();
+
 				if ( defIndex > 0 ) {
-					bool result = AddToTile( i, j, defIndex, rotation ); 
+					int hp = -1;
+					bool open = false;
+					if ( version >= 2 ) {
+						hp = s->ReadU16();
+						open = s->ReadBool();
+					}
+
+					bool result = AddToTile( i, j, defIndex, rotation, hp, open ); 
 					GLASSERT( result );
 					(void)result;
 				}
@@ -886,26 +905,30 @@ int Map::GetPathMask( int x, int y )
 			MapTile* tile = 0;
 			Vector2I origin;
 			ResolveReference( inItem, &item, &tile, &origin.x, &origin.y );
-			int rot = item->rotation;
-
-			GLASSERT( rot >= 0 && rot < 4 );
-
+			U32 p = 0;	// pather at this location.
 			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
-			Vector2I size = { itemDef.cx, itemDef.cy };
-			Vector2I prime = { 0, 0 };
 
-			// Account for object rotation (if needed)
-			IMat iMat;
-			if ( size.x > 1 || size.y > 1 ) {
-				iMat.Init( size.x, size.y, rot );
-				iMat.Mult( origin, &prime );
+			if ( !item->Destroyed( itemDef ) ) {
+				int rot = item->rotation;
+
+				GLASSERT( rot >= 0 && rot < 4 );
+
+				Vector2I size = { itemDef.cx, itemDef.cy };
+				Vector2I prime = { 0, 0 };
+
+				// Account for object rotation (if needed)
+				IMat iMat;
+				if ( size.x > 1 || size.y > 1 ) {
+					iMat.Init( size.x, size.y, rot );
+					iMat.Mult( origin, &prime );
+				}
+				GLASSERT( prime.x >= 0 && prime.x < itemDef.cx );
+				GLASSERT( prime.y >= 0 && prime.y < itemDef.cy );
+
+				// Account for tile rotation. (Actually a bit rotation too, which is handy.)
+				p = ( itemDef.pather[prime.y][prime.x] << rot );
+				p = p | (p>>4);
 			}
-			GLASSERT( prime.x >= 0 && prime.x < itemDef.cx );
-			GLASSERT( prime.y >= 0 && prime.y < itemDef.cy );
-
-			// Account for tile rotation. (Actually a bit rotation too, which is handy.)
-			U32 p = ( itemDef.pather[0][prime.y][prime.x] << rot );
-			p = p | (p>>4);
 			path |= (U8)(p&0xf);
 		}
 
@@ -1055,34 +1078,3 @@ int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *c
 	*/
 	return result;
 }
-
-
-void MapItemState::Init( const Map::MapItemDef& itemDef )
-{
-	this->itemDef = &itemDef;
-	hp = itemDef.hp;
-	onFire = false;
-}
-
-
-bool MapItemState::DoDamage( int hit )
-{
-	if ( hit < hp ) {
-		hp -= hit;
-		return false;
-	}
-	else {
-		hp = 0;
-		return true;
-	}
-}
-
-
-bool MapItemState::CanDamage()
-{
-	if ( itemDef->hp > 0 && hp > 0 )
-		return true;
-	return false;
-}
-
-
