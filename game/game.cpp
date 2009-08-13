@@ -103,8 +103,6 @@ Game::~Game()
 	currentScene = 0;
 
 	delete particleSystem;
-	//FreeModels();
-	//FreeTextures();
 
 	while( rootStream ) {
 		UFOStream* temp = rootStream;
@@ -207,34 +205,28 @@ void Game::LoadMap( const char* name )
 	char buffer[512];
 
 	PlatformPathToResource( name, "map", buffer, 512 );
-	//LoadMap( fp );
-	//fclose( fp );
 
 	UFOStream s( "map" );
-	s.ReadFromDisk( buffer );
+	s.LoadFile( buffer );
 	engine.GetMap()->Load( &s, this );
 }
 
 
-/*
-void Game::FreeTextures()
+void Game::LoadMap( FILE* fp ) 
 {
-	for( int i=0; i<nTexture; ++i ) {
-		if ( texture[i].glID ) {
-			glDeleteTextures( 1, (const GLuint*) &texture[i].glID );
-			texture[i].name[0] = 0;
-		}
-	}
+	UFOStream s( "map" );
+	s.LoadFile( fp );
+	engine.GetMap()->Load( &s, this );
 }
-*/
-/*
-void Game::FreeModels()
+
+
+void Game::SaveMap( FILE* fp )
 {
-	for( int i=0; i<nModelResource; ++i ) {
-		modelResource[i].Free();
-	}
+	UFOStream s( "map" );
+	engine.GetMap()->Save( &s );
+	s.SaveFile( fp );
 }
-*/
+
 
 void Game::DoTick( U32 currentTime )
 {
@@ -445,14 +437,14 @@ void Game::MouseMove( int sx, int sy )
 
 void Game::RotateSelection( int delta )
 {
-	if ( currentScene == scenes[BATTLE_SCENE] ) {
+	if ( sceneStack.Top() == BATTLE_SCENE ) {
 		((BattleScene*)currentScene)->RotateSelection( delta );
 	}
 }
 
 void Game::DeleteAtSelection()
 {
-	if ( currentScene == scenes[BATTLE_SCENE] ) {
+	if ( sceneStack.Top() == BATTLE_SCENE ) {
 		((BattleScene*)currentScene)->DeleteAtSelection();
 	}
 }
@@ -460,7 +452,7 @@ void Game::DeleteAtSelection()
 
 void Game::DeltaCurrentMapItem( int d )
 {
-	if ( currentScene == scenes[BATTLE_SCENE] ) {
+	if ( sceneStack.Top() == BATTLE_SCENE ) {
 		((BattleScene*)currentScene)->DeltaCurrentMapItem(d);
 	}
 }

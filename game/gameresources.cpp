@@ -233,27 +233,25 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 		// Parse the pathing
 		//	spaces are ignored
 		//	S-1, E-2, N-4, W-8
-		for( int k=0; k<2; ++k ) {
-			const char* p = (k==0) ? init->pather0 : init->pather1;
+		const char* p =init->pather;
 
-			int i=0;
-			while( p && *p ) {
-				if ( *p >= '0' && *p <= '9' ) {
-					itemDef->pather[k][i/init->cx][i%init->cx] = *p - '0';
-					++i;
-				}
-				else if ( *p >= 'a' && *p <= 'f' ) {
-					itemDef->pather[k][i/init->cx][i%init->cx] = 10 + *p - 'a';
-					++i;
-				}
-				else if ( *p == ' ' ) {
-					// nothing.
-				}
-				else {
-					GLASSERT( 0 );
-				}
-				p++;
+		int i=0;
+		while( p && *p ) {
+			if ( *p >= '0' && *p <= '9' ) {
+				itemDef->pather[i/init->cx][i%init->cx] = *p - '0';
+				++i;
 			}
+			else if ( *p >= 'a' && *p <= 'f' ) {
+				itemDef->pather[i/init->cx][i%init->cx] = 10 + *p - 'a';
+				++i;
+			}
+			else if ( *p == ' ' ) {
+				// nothing.
+			}
+			else {
+				GLASSERT( 0 );
+			}
+			p++;
 		}
 		++init;
 		++index;
@@ -295,52 +293,52 @@ void Game::LoadMapResources()
 
 	const MapItemInit farmSet[] =
 	{
-			// model		open			destroyed	cx, cz	hp		material		pather0	pather1
-		{	"farmBed",		0,				0,			1,	1,	HP_MED,	GENERIC,		"f",	"0" },
-		{	"farmTable",	0,				0,			1,	1,	HP_MED,	WOOD,			"f",	"0" },
-		{	"farmTable2x1",	0,				0,			2,	1,	HP_MED,	WOOD,			"ff",	"0" },
-		{	"farmWheat",	0,				0,			1,	1,	HP_LOW,	GENERIC_FASTBURN,"0",	"0" },
+			// model		open			destroyed	cx, cz	hp		material		pather
+		{	"farmBed",		0,				0,			1,	1,	HP_MED,	GENERIC,		"f"	 },
+		{	"farmTable",	0,				0,			1,	1,	HP_MED,	WOOD,			"f"	 },
+		{	"farmTable2x1",	0,				0,			2,	1,	HP_MED,	WOOD,			"ff"	 },
+		{	"farmWheat",	0,				0,			1,	1,	HP_LOW,	GENERIC_FASTBURN,"0"	 },
 		{	0	}
 	};
 	InitMapItemDef( FARM_SET, farmSet );
   
 	const MapItemInit marineSet[] =
 	{
-			// model		open			destroyed	cx, cz	hp			material	pather0	pather1
-		{	"lander",		0,				0,			6,	6,	INDESTRUCT,	STEEL,		"00ff00 00ff00 ff00ff ff00ff ff00ff ff00ff",	"0" },
+			// model		open			destroyed	cx, cz	hp			material	pather
+		{	"lander",		0,				0,			6,	6,	INDESTRUCT,	STEEL,		"00ff00 00ff00 ff00ff ff00ff ff00ff ff00ff" },
 		{	0	}
 	};
 	InitMapItemDef( MARINE_SET, marineSet );
 
 	const MapItemInit forestSet[] = 
 	{
-			// model		open			destroyed	cx, cz	hp		 material		pather0	pather1
-		{	"tree",			0,				0,			1,	1,	HP_HIGH, WOOD,			"f",	"0" },
+			// model		open			destroyed	cx, cz	hp		 material		pather
+		{	"tree",			0,				0,			1,	1,	HP_HIGH, WOOD,			"f" },
 		{	0	}
 	};
 	InitMapItemDef( FOREST_SET, forestSet );
 
 	const MapItemInit ufoSet[] = 
 	{
-			// model		open			destroyed	cx, cz	hp			material		pather0	pather1
-		{	"ufo_Diag",		0,				0,			1,	1,	HP_STEEL,	STEEL,		"f",	"0" },
-		{	"ufo_DoorCld",	"ufo_DoorOpn",	0,			1,	1,	HP_STEEL,	STEEL,		"0",	"0" },
-		{	"ufo_WallInn",	0,				0,			1,	1,	HP_STEEL,	STEEL,		"1",	"0" },
-		{	"ufo_CrnrInn",	0,				0,			1,	1,	HP_STEEL,	STEEL,		"3",	"0" },
-		{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	STEEL,		"1",	"0" },
-		{	"ufo_Join0",	0,				0,			2,	1,	HP_STEEL,	STEEL,		"1f",	"0" },
-		{	"ufo_Join1",	0,				0,			1,	2,	HP_STEEL,	STEEL,		"2f",	"0" },
+			// model		open			destroyed	cx, cz	hp			material		pather
+		{	"ufo_Diag",		0,				0,			1,	1,	HP_STEEL,	STEEL,		"f" },
+		{	"ufo_DoorCld",	"ufo_DoorOpn",	0,			1,	1,	HP_STEEL,	STEEL,		"0" },
+		{	"ufo_WallInn",	0,				0,			1,	1,	HP_STEEL,	STEEL,		"1" },
+		{	"ufo_CrnrInn",	0,				0,			1,	1,	HP_STEEL,	STEEL,		"3" },
+		{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	STEEL,		"1" },
+		{	"ufo_Join0",	0,				0,			2,	1,	HP_STEEL,	STEEL,		"1f" },
+		{	"ufo_Join1",	0,				0,			1,	2,	HP_STEEL,	STEEL,		"2f" },
 		{	0	}
 	};
 	InitMapItemDef( UFO_SET0, ufoSet );
 
 	const MapItemInit woodSet[] =
 	{
-			// model		open			destroyed	cx, cz	hp		material		pather0	pather1
-		{	"woodCrnr",		0,				"woodCrnrD",1,	1,	HP_MED,	WOOD,			"3",	"0" },
-		{	"woodDoorCld",	"woodDoorOpn",	0,			1,	1,	HP_MED,	WOOD,			"0",	"0" },
-		{	"woodWall",		"woodWall",		0,			1,	1,	HP_MED,	WOOD,			"1",	"0" },
-		{	"woodWallWin",	"woodWallWin",	0,			1,	1,	HP_MED,	WOOD,			"1",	"0" },
+			// model		open			destroyed	cx, cz	hp		material		pather
+		{	"woodCrnr",		0,				"woodCrnrD",1,	1,	HP_MED,	WOOD,			"3" },
+		{	"woodDoorCld",	"woodDoorOpn",	0,			1,	1,	HP_MED,	WOOD,			"0" },
+		{	"woodWall",		"woodWall",		0,			1,	1,	HP_MED,	WOOD,			"1" },
+		{	"woodWallWin",	"woodWallWin",	0,			1,	1,	HP_MED,	WOOD,			"1" },
 		{	0	}
 	};
 	InitMapItemDef(  WOOD_SET, woodSet );

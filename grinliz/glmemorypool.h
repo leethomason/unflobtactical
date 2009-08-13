@@ -48,16 +48,16 @@ class MemoryPool
 
 	void FreePool();
 
-	unsigned Blocks()			{ return numBlocks; }
-	unsigned NumObjects()		{ return numObjects; }
-	unsigned ObjectWatermark()	{ return numObjectsWatermark; }
+	unsigned Blocks() const				{ return numBlocks; }
+	unsigned NumObjects() const			{ return numObjects; }
+	unsigned ObjectWatermark() const	{ return numObjectsWatermark; }
 
-	unsigned MemoryInUse()		{ return numObjects * objectSize; }
-	unsigned MemoryInUseWatermark()		{ return numObjectsWatermark * objectSize; }
-	unsigned MemoryAllocated()	{ return numBlocks * blockSize; }
+	unsigned MemoryInUse() const			{ return numObjects * objectSize; }
+	unsigned MemoryInUseWatermark()	const 	{ return numObjectsWatermark * objectSize; }
+	unsigned MemoryAllocated() const		{ return numBlocks * blockSize; }
 
-	bool Empty()				{ return numObjects == 0; }
-	bool MemoryInPool( void* mem );
+	bool Empty() const						{ return numObjects == 0; }
+	bool MemoryInPool( void* mem ) const;
 
   private:
 	struct Block
@@ -71,11 +71,11 @@ class MemoryPool
 
 	void NewBlock();
 
-	void* MemStart( Block* block )		
+	void* MemStart( Block* block ) const
 	{ 
 		return block+1; 
 	}
-	void* MemEnd( Block* block )		
+	void* MemEnd( Block* block ) const		
 	{ 
 		return (U8*)MemStart( block ) + objectsPerBlock*objectSize;
 	}

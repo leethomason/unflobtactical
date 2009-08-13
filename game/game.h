@@ -115,8 +115,7 @@ private:
 		int cy;
 		int hp;
 		int materialFlags;
-		const char* pather0;
-		const char* pather1;
+		const char* pather;
 	};
 
 	void LoadTextures();
@@ -154,8 +153,6 @@ private:
 	grinliz::ProfileData profile;
 
 	CDynArray<ItemDef*>	itemDefArr;
-	//Texture			texture[MAX_TEXTURES];
-	//ModelResource		modelResource[EL_MAX_MODEL_RESOURCES];
 	Surface				lightMaps[NUM_LIGHT_MAPS];
 };
 

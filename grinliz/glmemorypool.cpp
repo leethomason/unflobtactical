@@ -144,7 +144,7 @@ void* MemoryPool::Alloc()
 }
 
 
-bool MemoryPool::MemoryInPool( void* mem )
+bool MemoryPool::MemoryInPool( void* mem ) const
 {
 	// Is this in a memory block?
 	Block* block=0;

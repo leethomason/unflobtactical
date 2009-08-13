@@ -47,10 +47,12 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	engine->EnableMap( true );
 
 #ifdef MAPMAKER
-	resource = game->GetResource( "selection" );
-	selection = engine->AllocModel( resource );
-	selection->SetPos( 0.5f, 0.0f, 0.5f );
-	preview = 0;
+	{
+		const ModelResource* res = ModelResourceManager::Instance()->GetModelResource( "selection" );
+		mapSelection = engine->AllocModel( res );
+		mapSelection->SetPos( 0.5f, 0.0f, 0.5f );
+		preview = 0;
+	}
 #endif
 
 	// Do we have a saved state?
@@ -69,6 +71,14 @@ BattleScene::~BattleScene()
 	UFOStream* stream = game->OpenStream( "BattleScene" );
 	Save( stream );
 	game->particleSystem->Clear();
+	FreePathEndModel();
+
+#if defined( MAPMAKER )
+	if ( mapSelection ) 
+		engine->FreeModel( mapSelection );
+	if ( preview )
+		engine->FreeModel( preview );
+#endif
 
 	delete fireWidget;
 	delete widgets;
@@ -619,10 +629,10 @@ void BattleScene::Tap(	int tap,
 
 #ifdef MAPMAKER
 	if ( !iconSelected ) {
-		const Vector3F& pos = selection->Pos();
-		int rotation = (int) (selection->GetYRotation() / 90.0f );
-		engine->GetMap()->AddToTile( (int)pos.x, (int)pos.z, currentMapItem, rotation );
-		icon = 0;	// don't keep processing
+		const Vector3F& pos = mapSelection->Pos();
+		int rotation = (int) (mapSelection->GetYRotation() / 90.0f );
+		engine->GetMap()->AddToTile( (int)pos.x, (int)pos.z, currentMapItem, rotation, -1, true );
+		iconSelected = 0;	// don't keep processing
 	}
 #endif	
 
@@ -861,7 +871,7 @@ void BattleScene::DrawHUD()
 	}
 
 #ifdef MAPMAKER
-	engine->GetMap()->DumpTile( (int)selection->X(), (int)selection->Z() );
+	engine->GetMap()->DumpTile( (int)mapSelection->X(), (int)mapSelection->Z() );
 	UFOText::Draw( 0,  16, "0x%2x:'%s'", currentMapItem, engine->GetMap()->GetItemDefName( currentMapItem ) );
 #endif
 }
@@ -1018,13 +1028,13 @@ void BattleScene::UpdatePreview()
 		preview = 0;
 	}
 	if ( currentMapItem >= 0 ) {
-		preview = engine->GetMap()->CreatePreview(	(int)selection->X(), 
-													(int)selection->Z(), 
+		preview = engine->GetMap()->CreatePreview(	(int)mapSelection->X(), 
+													(int)mapSelection->Z(), 
 													currentMapItem, 
-													(int)(selection->GetYRotation()/90.0f) );
+													(int)(mapSelection->GetYRotation()/90.0f) );
 
 		if ( preview ) {
-			const Texture* t = game->GetTexture( "translucent" );
+			const Texture* t = TextureManager::Instance()->GetTexture( "translucent" );
 			preview->SetTexture( t );
 			preview->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.0f );
 		}
@@ -1045,21 +1055,21 @@ void BattleScene::MouseMove( int x, int y )
 	int newZ = (int)( p.z );
 	newX = Clamp( newX, 0, Map::SIZE-1 );
 	newZ = Clamp( newZ, 0, Map::SIZE-1 );
-	selection->SetPos( (float)newX + 0.5f, 0.0f, (float)newZ + 0.5f );
+	mapSelection->SetPos( (float)newX + 0.5f, 0.0f, (float)newZ + 0.5f );
 	
 	UpdatePreview();
 }
 
 void BattleScene::RotateSelection( int delta )
 {
-	float rot = selection->GetYRotation() + 90.0f*(float)delta;
-	selection->SetYRotation( rot );
+	float rot = mapSelection->GetYRotation() + 90.0f*(float)delta;
+	mapSelection->SetYRotation( rot );
 	UpdatePreview();
 }
 
 void BattleScene::DeleteAtSelection()
 {
-	const Vector3F& pos = selection->Pos();
+	const Vector3F& pos = mapSelection->Pos();
 	engine->GetMap()->DeleteAt( (int)pos.x, (int)pos.z );
 	UpdatePreview();
 }
