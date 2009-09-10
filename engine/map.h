@@ -41,7 +41,7 @@ class Map : public micropather::Graph
 {
 public:
 	enum {
-		SIZE = 64,					// maximum size
+		SIZE = 64,					// maximum size. FIXME: duplicated in gamelimits.h
 		MAX_ITEM_DEF = 256,
 		ITEM_PER_TILE = 4,
 	};
@@ -133,12 +133,12 @@ public:
 
 	// The background texture of the map. The map is just one big tetxure.
 	void SetTexture( const Texture* texture )		{ this->texture = texture; }
+
 	// The light map is a 64x64 texture of the lighting at each point. Without
 	// a light map, full white (daytime) is used. GenerateLightMap creates the
 	// resulting map by combining light with FogOfWar.
-	void		SetLightMap( Surface* surface );
-	Surface*	GetLightMap()	{ return lightMap; }
-	void		GenerateLightMap( const grinliz::BitArray<SIZE, SIZE>& fogOfWar );
+	void SetLightMap( const Surface* surface );
+	void GenerateLightMap( const grinliz::BitArray<SIZE, SIZE, 1>& fogOfWar );
 	
 	// Rendering.
 	void BindTextureUnits();
@@ -155,6 +155,7 @@ public:
 
 	void SetStorage( int x, int y, Storage* storage );
 	Storage* RemoveStorage( int x, int y );
+	void GetMapBoundsOfModel( const Model* model, grinliz::Rectangle2I* bounds );
 
 	MapItemDef* InitItemDef( int i );
 	const char* GetItemDefName( int i );
@@ -214,6 +215,7 @@ private:
 
 	MapTile* GetTile( int x, int y )				{ return &tileArr[y*SIZE+x]; }
 	const MapTile* GetTile( int x, int y ) const	{ return &tileArr[y*SIZE+x]; }
+	void GetItemPos( const MapItem* item, int* x, int* y, int* cx, int* cy );
 
 	// Performs no translation of references.
 	// item: input
@@ -237,13 +239,13 @@ private:
 
 	Texture finalMapTex;
 	Surface finalMap;
-	Surface* lightMap;
+	Surface lightMap;
 	U32 queryID;
 
 	micropather::MicroPather* microPather;
 
 	enum { PATHER_MEM32 = 32*1024 };			// 128K
-	grinliz::BitArray<SIZE, SIZE>	pathBlock;	// spaces the pather can't use (units are there)	
+	grinliz::BitArray<SIZE, SIZE, 1>	pathBlock;	// spaces the pather can't use (units are there)	
 	U32								patherMem[ PATHER_MEM32 ];	// big block of memory for the pather.
 	MapItemDef						itemDefArr[MAX_ITEM_DEF];
 	MapTile							tileArr[ SIZE*SIZE ];

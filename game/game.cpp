@@ -81,8 +81,8 @@ Game::Game( const Screenport& sp ) :
 
 	engine.GetMap()->SetSize( 40, 40 );
 	engine.GetMap()->SetTexture( TextureManager::Instance()->GetTexture("farmland" ) );
-	engine.GetMap()->SetLightMap( &lightMaps[0] );
-	
+	engine.SetDayNight( true, 0 );
+
 	//engine.camera.SetPosWC( -19.4f, 62.0f, 57.2f );
 	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 	//engine.camera.SetPosWC( -5.0f, engineData.cameraHeight, mz + 5.0f );

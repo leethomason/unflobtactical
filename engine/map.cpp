@@ -29,8 +29,6 @@ using namespace micropather;
 
 
 Map::Map( SpaceTree* tree )
-//	statePool( "MapStatePool", sizeof( MapItemState ), EL_ALLOCATED_MODELS*sizeof(MapItemState)/4 )
-
 {
 	memset( itemDefArr, 0, sizeof(MapItemDef)*MAX_ITEM_DEF );
 	memset( tileArr, 0, sizeof(MapTile)*SIZE*SIZE );
@@ -62,11 +60,14 @@ Map::Map( SpaceTree* tree )
 	texture1[2].Set( 1.0f, 0.0f );
 	texture1[3].Set( 1.0f, 1.0f );
 
-	lightMap = 0;
 	queryID = 1;
 
 	finalMap.Set( SIZE, SIZE, 2 );
+	lightMap.Set( SIZE, SIZE, 2 );
+
 	memset( finalMap.Pixels(), 255, SIZE*SIZE*2 );
+	memset( lightMap.Pixels(), 255, SIZE*SIZE*2 );
+
 	U32 id = finalMap.CreateTexture( false );
 	finalMapTex.Set( "lightmap", id, false );
 }
@@ -167,44 +168,34 @@ void Map::UnBindTextureUnits()
 	glActiveTexture( GL_TEXTURE0 );
 }
 
-
-
-void Map::SetLightMap( Surface* surface )
+	
+void Map::SetLightMap( const Surface* surface )
 {
 	if ( surface ) {
-		GLASSERT( surface->Width() == Map::SIZE );
-		GLASSERT( surface->Height() == Map::SIZE );
-	}
-	lightMap = surface;
-}
-
-	
-void Map::GenerateLightMap( const grinliz::BitArray<SIZE, SIZE>& fogOfWar )
-{
-	BitArrayRowIterator<SIZE, SIZE> it( fogOfWar ); 
-	U16* dst = (U16*) finalMap.Pixels();
-
-	if ( lightMap ) {
-		const U16* src =   (U16*)lightMap->Pixels();
-
-		for( int j=0; j<SIZE; ++j ) {
-			// Flip to account for origin in upper left.
-			//U16* dst = (U16*)finalMap.Pixels() + finalMap.Height()*finalMap.Width() - (j+1)*finalMap.Width();
-
-			for( int i=0; i<SIZE; ++i ) {
-				*dst = fogOfWar.IsSet( i, SIZE-1-j ) ? *src : 0;
-				++src;
-				++dst;
-			}
-		}
+		GLASSERT( surface->BytesPerPixel() == 2 );
+		GLASSERT( surface->Width() == 64 );
+		GLASSERT( surface->Height() == 64 );
+		memcpy( lightMap.Pixels(), surface->Pixels(), SIZE*SIZE*2 );
 	}
 	else {
-		for( int j=0; j<SIZE; ++j ) {
-			// Flip to account for origin in upper left.
-			for( int i=0; i<SIZE; ++i ) {
-				*dst = fogOfWar.IsSet( i, SIZE-1-j ) ? 0xffff : 0;
-				++dst;
-			}
+		memset( lightMap.Pixels(), 255, SIZE*SIZE*2 );
+	}
+}
+
+
+void Map::GenerateLightMap( const grinliz::BitArray<SIZE, SIZE, 1>& fogOfWar )
+{
+	BitArrayRowIterator<SIZE, SIZE, 1> it( fogOfWar ); 
+	U16* dst = (U16*) finalMap.Pixels();
+
+	const U16* src =   (U16*)lightMap.Pixels();
+	GLASSERT( lightMap.BytesPerPixel() == 2 );
+
+	for( int j=0; j<SIZE; ++j ) {
+		for( int i=0; i<SIZE; ++i ) {
+			*dst = fogOfWar.IsSet( i, SIZE-1-j ) ? *src : 0;
+			++src;
+			++dst;
 		}
 	}
 	finalMap.UpdateTexture( false, finalMapTex.glID );
@@ -257,8 +248,10 @@ void Map::ResolveReference( const MapItem* inItem, MapItem** outItem, MapTile** 
 	if ( !inItem->IsReference() ) {
 		*outItem = const_cast<MapItem*>( inItem );
 		*outTile = GetTileFromItem( inItem, 0, 0, 0 );
-		*dx = 0;
-		*dy = 0;
+		if ( dx && dy ) {
+			*dx = 0;
+			*dy = 0;
+		}
 	}
 	else {
 		int layer, parentX, parentY;
@@ -267,11 +260,13 @@ void Map::ResolveReference( const MapItem* inItem, MapItem** outItem, MapTile** 
 
 		int childX, childY;
 		GetTileFromItem( inItem, 0, &childX, &childY );
-		*dx = childX - parentX;
-		*dy = childY - parentY;
+		if ( dx && dy ) {
+			*dx = childX - parentX;
+			*dy = childY - parentY;
+		}
 	}
-	GLASSERT( *dx >= 0 && *dx < MapItemDef::MAX_CX );
-	GLASSERT( *dy >= 0 && *dy < MapItemDef::MAX_CY );
+	GLASSERT( !dx || *dx >= 0 && *dx < MapItemDef::MAX_CX );
+	GLASSERT( !dy || *dy >= 0 && *dy < MapItemDef::MAX_CY );
 }
 
 
@@ -367,6 +362,44 @@ void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 }
 
 
+void Map::GetItemPos( const MapItem* inItem, int* x, int* y, int* cx, int* cy )
+{
+	MapItem* item = 0;
+	MapTile* tile = 0;
+	ResolveReference( inItem, &item, &tile, 0, 0 );	
+
+	const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
+	int rot = item->rotation;
+	GLASSERT( rot >= 0 && rot < 4 );
+
+	Vector2I prime = { 1, 1 };
+
+	if ( itemDef.cx > 1 || itemDef.cy > 1 ) {
+		Vector2I size = { itemDef.cx, itemDef.cy };
+		
+		IMat iMat;
+		iMat.Init( size.x, size.y, rot );
+		Vector2I origin = { size.x-1, size.y-1 };
+		iMat.Mult( origin, &prime );
+	}
+
+	GetTileFromItem( item, 0, x, y );
+	*cx = prime.x;
+	*cy = prime.y;
+}
+
+
+void Map::GetMapBoundsOfModel( const Model* m, Rectangle2I* bounds )
+{
+	GLASSERT( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) );
+	
+	const MapItem* item = (const MapItem*) m->stats;
+	int x, y, cx, cy;
+	GetItemPos( item, &x, &y, &cx, &cy );
+	bounds->Set( x, y, x+cx-1, y+cy-1 );
+}
+
+
 #ifdef MAPMAKER
 Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 {
@@ -394,6 +427,7 @@ bool Map::AddToTile( int x, int y, int defIndex, int rotation, int hp, bool open
 	
 	if ( !itemDefArr[defIndex].modelResource ) {
 		GLOUTPUT(( "No model resource.\n" ));
+		GLASSERT( 0 );
 		return false;
 	}
 
@@ -455,7 +489,7 @@ bool Map::AddToTile( int x, int y, int defIndex, int rotation, int hp, bool open
 
 				const ModelResource* res = 0;
 
-				if ( hp == 0 ) {
+				if ( itemDefArr[defIndex].CanDamage() && hp == 0 ) {
 					res = itemDefArr[defIndex].modelResourceDestroyed;
 				}
 				else {

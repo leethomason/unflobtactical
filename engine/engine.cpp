@@ -110,8 +110,6 @@ Engine::Engine( const Screenport& port, const EngineData& _engineData )
 		NIGHT_RED( 131.f/255.f ),
 		NIGHT_GREEN( 125.f/255.f ),
 		NIGHT_BLUE( 1.0f ),
-		//width( _width ), 
-		//height( _height ), 
 		screenport( port ),
 		dayNight( DAY_TIME ),
 		engineData( _engineData ),
@@ -135,11 +133,8 @@ Engine::Engine( const Screenport& port, const EngineData& _engineData )
 	lightDirection.Normalize();
 	depthFunc = 0;
 
-	fogOfWar.SetAll();
-	Rectangle2I rect;
-	rect.Set( 1, 1, 4, 4 );
-	fogOfWar.ClearRect( rect );
-	map->GenerateLightMap( fogOfWar );
+	fogOfWar.SetAll();		// see everything
+	UpdateFogOfWar();
 }
 
 
@@ -151,6 +146,12 @@ Engine::~Engine()
 
 	ModelResourceManager::Destroy();
 	TextureManager::Destroy();
+}
+
+
+void Engine::UpdateFogOfWar()
+{
+	map->GenerateLightMap( fogOfWar );
 }
 
 
@@ -214,10 +215,9 @@ void Engine::PushShadowMatrix()
 
 	const float DEPTH = 0.2f;
 	m.m14 = -eyeDir[0].x/eyeDir[0].y * DEPTH;	// x hide the shift 
-	m.m24 = -DEPTH;										// y term down
+	m.m24 = -DEPTH;								// y term down
 	m.m34 = -eyeDir[0].z/eyeDir[0].y * DEPTH;	// z hide the shift
 	
-	//m.m24 = -0.05f;
 	m.m32 = -lightDirection.z/lightDirection.y;
 
 	glPushMatrix();
@@ -342,7 +342,21 @@ void Engine::Draw( int* triCount )
 		int x = LRintf( pos.x );
 		int y = LRintf( pos.z );
 
-		if ( fogOfWar.IsSet( x, y ) ) {
+		/*bool queue = false;
+
+		if ( model->IsFlagSet(  Model::MODEL_OWNED_BY_MAP ) ) {
+			Rectangle2I fogRect;
+			map->GetMapBoundsOfModel( model, &fogRect );
+			if ( !fogOfWar.IsRectEmpty( fogRect ) ) {
+				queue = true;
+			}
+		}
+		else if ( fogOfWar.IsSet( x, y ) ) {
+			queue = true;
+		}*/
+		bool queue = true;
+
+		if ( queue ) {
 			model->Queue( renderQueue, Model::MODEL_TEXTURE );
 		}
 		else {
@@ -354,7 +368,6 @@ void Engine::Draw( int* triCount )
 	EnableLights( false, dayNight );
 	glBindTexture( GL_TEXTURE_2D, 0 );
 
-	//glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );
 	renderQueue->SetColor( 0, 0, 0 );
 	for( Model* model=fogRoot; model; model=model->next0 ) {
 		model->Queue( renderQueue, Model::NO_TEXTURE );
@@ -572,7 +585,6 @@ void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray,
 
 	ray->origin = p0;
 	ray->direction = dir;
-//	ray->length = 1.0f;
 
 	float t;
 	IntersectLinePlane( p0, p1, plane, out, &t );
@@ -599,7 +611,6 @@ void Engine::RayFromScreen( int x, int y, const Matrix4& mvpi, Ray* ray )
 
 	ray->origin = p0;
 	ray->direction = dir;
-//	ray->length = 1.0f;
 }
 
 
@@ -689,7 +700,7 @@ void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
 }
 
 
-Model* Engine::IntersectModel( const grinliz::Ray& ray, HitTestMethod method, int required, int exclude, Vector3F* intersection )
+Model* Engine::IntersectModel( const grinliz::Ray& ray, HitTestMethod method, int required, int exclude, const Model* ignore[], Vector3F* intersection )
 {
 	GRINLIZ_PERFTRACK
 
@@ -698,7 +709,7 @@ Model* Engine::IntersectModel( const grinliz::Ray& ray, HitTestMethod method, in
 	Model* m = 0;
 
 	Model* model = spaceTree->QueryRay(	ray.origin, ray.direction, 
-										required, exclude,
+										required, exclude, ignore,
 										method,
 										intersection );
 	return model;
@@ -762,7 +773,6 @@ void Engine::Save( UFOStream* s )
 	camera.Save( s );
 	s->Write( lightDirection );
 	s->WriteU8( (U8)dayNight );
-	//s->Write( fogOfWar );
 }
 
 
@@ -771,6 +781,5 @@ void Engine::Load( UFOStream* s )
 	camera.Load( s );
 	s->Read( &lightDirection );
 	dayNight = (DayNight) s->ReadU8();
-	//s->Read( &fogOfWar );
 }
 

@@ -36,7 +36,7 @@ CharacterScene::CharacterScene( Game* _game )
 	unit = &units[selectedUnit];
 
 	Vector2I mapPos;
-	unit->CalcMapPos( &mapPos );
+	unit->CalcMapPos( &mapPos, 0 );
 	storage = engine->GetMap()->RemoveStorage( mapPos.x, mapPos.y );
 	if ( !storage ) {
 		storage = new Storage( game->GetItemDefArray() );
@@ -87,7 +87,7 @@ CharacterScene::~CharacterScene()
 	delete storageWidget;
 
 	Vector2I mapPos;
-	unit->CalcMapPos( &mapPos );
+	unit->CalcMapPos( &mapPos, 0 );
 	engine->GetMap()->SetStorage( mapPos.x, mapPos.y, storage );
 	storage = 0;
 

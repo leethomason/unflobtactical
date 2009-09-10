@@ -135,6 +135,7 @@ public:
 		MODEL_OWNED_BY_MAP			= 0x04,
 		MODEL_NO_SHADOW				= 0x08,
 		MODEL_INVISIBLE				= 0x10,
+		MODEL_MAP_TRANSPARENT		= 0x20,
 	};
 
 	int IsFlagSet( int f ) const	{ return flags & f; }
@@ -142,9 +143,9 @@ public:
 	void ClearFlag( int f )			{ flags &= (~f); }
 	int Flags()	const			{ return flags; }
 
-	const grinliz::Vector3F& Pos()						{ return pos; }
+	const grinliz::Vector3F& Pos() const			{ return pos; }
 	void SetPos( const grinliz::Vector3F& pos );
-	void SetPos( float x, float y, float z )	{ grinliz::Vector3F vec = { x, y, z }; SetPos( vec ); }
+	void SetPos( float x, float y, float z )		{ grinliz::Vector3F vec = { x, y, z }; SetPos( vec ); }
 	float X() { return pos.x; }
 	float Y() { return pos.y; }
 	float Z() { return pos.z; }

@@ -255,6 +255,14 @@ struct Rectangle3
 		min.x = _xmin; min.y = _ymin; min.z = _zmin; 
 		max.x = _xmax; max.y = _ymax; max.z = _zmax;
 	}
+	void Set( const Vector3<T>& a, const Vector3<T>& b ) {
+		min.x = Min( a.x, b.x );
+		min.y = Min( a.y, b.y );
+		min.z = Min( a.z, b.z );
+		max.x = Max( a.x, b.x );
+		max.y = Max( a.y, b.y );
+		max.z = Max( a.z, b.z );
+	}
 	/// Set all the members to zero.
 	void Zero() {
 		min.x = min.y = max.x = max.y = min.z = max.z = (T) 0;

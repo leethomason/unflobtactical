@@ -33,7 +33,7 @@ distribution.
 
 using namespace grinliz;
 
-
+/*
 MapIdToVoidPtr::MapIdToVoidPtr( U32 _size ) : size( 0 ), population( 0 ), table( 0 )
 {
 	Resize( _size );
@@ -143,4 +143,4 @@ void MapIdToVoidPtr::Resize( U32 newSize )
 	}
 	free( old );
 }
-
+*/

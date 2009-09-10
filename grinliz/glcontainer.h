@@ -31,7 +31,7 @@ distribution.
 
 namespace grinliz
 {
-
+/*
 template< typename T, typename Equal >
 class PtrHashTable
 {
@@ -195,6 +195,6 @@ private:
 	MapIdToVoidPtr map;
 	U32 idPool;
 };
-
+*/
 }	// namespace grinliz
 #endif

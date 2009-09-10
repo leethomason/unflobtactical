@@ -31,99 +31,155 @@ distribution.
 
 namespace grinliz {
 
-/**	A 2 dimensional bit map. Maps a bit to a 2 dimensional
-	coordinate. Very useful for efficiently storing 2 dimensional
+/**	A 3 dimensional bit map. Maps a bit to a 3 dimensional
+	coordinate. Very useful for efficiently storing 3 dimensional
 	boolean information. Constructed with 'size' parameters
 	templatized.
 */
-template< int WIDTH, int HEIGHT >
+template< int WIDTH, int HEIGHT, int DEPTH >
 class BitArray
 {
   public:
 	enum {
-		ROW_WIDTH  = ( ( WIDTH+31 ) / 32 ),	
-		WORDSIZE = ROW_WIDTH * HEIGHT,
+		WIDTH32		= ( ( WIDTH+31 ) / 32 ),
+		PLANE32		= WIDTH32 * HEIGHT,
+		TOTAL_MEM32	= WIDTH32 * HEIGHT * DEPTH,
+		TOTAL_MEM   = TOTAL_MEM32*4
 	};
 
-	BitArray()					{ memset( array, 0, WORDSIZE*4 ); cache = 0; }	
+	BitArray()					{ memset( array, 0, TOTAL_MEM ); }	
 
 	/// Check if (x,y) is set. Returns non-0 if set, 0 if not.
-	U32 IsSet( int x, int y ) const	{ 
+	U32 IsSet( int x, int y, int z=0 ) const	{ 
 		GLASSERT( x >= 0 && x < WIDTH );
 		GLASSERT( y >= 0 && y < HEIGHT );
-		return array[ y*ROW_WIDTH + (x>>5) ] & ( 0x1 << (x & 31)); 
+		GLASSERT( z >= 0 && z < DEPTH );
+		return array[ z*PLANE32 + y*WIDTH32 + (x>>5) ] & ( 0x1 << (x & 31)); 
 	}
 	/// Set (x,y) true.
-	void Set( int x, int y )	{ 
+	void Set( int x, int y, int z=0 )	{ 
 		GLASSERT( x >= 0 && x < WIDTH );
 		GLASSERT( y >= 0 && y < HEIGHT );
-		array[ y*ROW_WIDTH + (x>>5) ] |=   ( 0x1 << ( x & 31 ) ); 
+		GLASSERT( z >= 0 && z < DEPTH );
+		array[ z*PLANE32 + y*WIDTH32 + (x>>5) ] |= ( 0x1 << (x & 31));
 	}
 	/// Clear the bit at (x,y)
-	void Clear( int x, int y )	{ 
+	void Clear( int x, int y, int z=0 )	{ 
 		GLASSERT( x >= 0 && x < WIDTH );
 		GLASSERT( y >= 0 && y < HEIGHT );	
-		array[ y*ROW_WIDTH + (x>>5) ] &= (~( 0x1 << ( x & 31 ) ) ); 
+		GLASSERT( z >= 0 && z < DEPTH );
+		array[ z*PLANE32 + y*WIDTH32 + (x>>5) ] &= (~( 0x1 << ( x & 31 ) ) ); 
 	}
-	/// Clear a rectangle of bits.
-	void ClearRect( const Rectangle2I& rect )	{
+	/// Clear a rectangle of bits
+	void ClearRect( const Rectangle2I& rect, int z=0 )	{
 													// FIXME: use a mask to make this more efficient.
 													for( int j=rect.min.y; j<=rect.max.y; ++j )
 														for( int i=rect.min.x; i<=rect.max.x; ++i )
-															Clear( i, j );
-												}
-	/// Clear a rectangle of bits.
-	void SetRect( const Rectangle2I& rect )	{
-													// FIXME: use a mask to make this more efficient.
-													for( int j=rect.min.y; j<=rect.max.y; ++j )
-														for( int i=rect.min.x; i<=rect.max.x; ++i )
-															Set( i, j );
-												}
-	/// Check if a rectangle is empty.
-	bool IsRectEmpty( const Rectangle2I& rect ) const {
-													// FIXME: use a mask to make this more efficient.
-													for( int j=rect.min.y; j<=rect.max.y; ++j )
-														for( int i=rect.min.x; i<=rect.max.x; ++i )
-															if ( IsSet( i, j ) )
-																return false;
-													return true;
-												}
+															Clear( i, j, z );
+													}
+	void ClearPlane( int z )						
+	{
+		GLASSERT( z >= 0 && z < DEPTH );
+		memset( &array[ z*PLANE32 ], 0, PLANE32*4 );
+	}
 
-	/// Check if a rectangle is completely set.
-	bool IsRectSet( const Rectangle2I& rect ) const {
-													// FIXME: use a mask to make this more efficient.
-													for( int j=rect.min.y; j<=rect.max.y; ++j )
-														for( int i=rect.min.x; i<=rect.max.x; ++i )
-															if ( !IsSet( i, j ) )
-																return false;
-													return true;
-												}
+	/// Clear a rectangle of bits in z=0.
+	void SetRect( const Rectangle2I& rect, int z=0 )	
+	{
+		for( int j=rect.min.y; j<=rect.max.y; ++j )
+			for( int i=rect.min.x; i<=rect.max.x; ++i )	
+				Set( i, j, z );
+	}
+
+
+	/*void SetRect( const Rectangle2I& rect, int z=0 )	
+	{
+		PLAYERASSERT( 0 );	// NEEDS DEBUGGING
+		for( int j=rect.min.y; j<=rect.max.y; ++j ) {
+			int x0 = (rect.min.x+31)&(~31);
+			int x1 = (rect.max.x+32)&(~31);
+
+			for( i=rect.min.x; i<x0; ++i ) {
+				Set( i, j, z );
+			}
+
+			U32* p = &array[ z*PLANE32 + j*WIDTH32 + (i>>5) ];
+			for( ; i <= x1; i+=32, ++p ) {
+				*p = 0xffffffff;
+			}
+
+			for ( ; i<=rect.max.x; ++i ) {
+				Set( i, j, z );
+			}
+		}
+	}*/
+
+
+	/// Check if a rectangle is empty in z=0.
+	bool IsRectEmpty( const Rectangle2I& rect, int z=0 ) const 
+	{
+		for( int j=rect.min.y; j<=rect.max.y; ++j )
+			for( int i=rect.min.x; i<=rect.max.x; ++i )
+				if ( IsSet( i, j, z ) )
+					return false;
+		return true;
+	}
+
+	/// Check if a rectangle is empty in z=0.
+	bool IsRectEmpty( const Rectangle3I& rect, int z=0 ) const 
+	{
+		for( int k=rect.min.z; k<=rect.max.z; ++k )
+			for( int j=rect.min.y; j<=rect.max.y; ++j )
+				for( int i=rect.min.x; i<=rect.max.x; ++i )
+					if ( IsSet( i, j, k ) )
+						return false;
+		return true;
+	}
+	/// Check if a rectangle is completely set in z=0.
+	bool IsRectSet( const Rectangle2I& rect, int z=0 ) const 
+	{
+		// FIXME: use a mask to make this more efficient.
+		for( int j=rect.min.y; j<=rect.max.y; ++j )
+			for( int i=rect.min.x; i<=rect.max.x; ++i )
+				if ( !IsSet( i, j, z ) )
+					return false;
+		return true;
+	}
+
+	/// Check if a rectangle is completely set in z=0.
+	bool IsRectSet( const Rectangle3I& rect ) const 
+	{
+		for( int k=rect.min.z; k<=rect.max.z; ++k )
+			for( int j=rect.min.y; j<=rect.max.y; ++j )
+				for( int i=rect.min.x; i<=rect.max.x; ++i )
+					if ( !IsSet( i, j, z ) )
+						return false;
+	}
+
 	/// Clear all the bits.
-	void ClearAll()				{ memset( array, 0, WORDSIZE*4 ); }
+	void ClearAll()				{ memset( array, 0, TOTAL_MEM ); }
 	/// Set all the bits.
-	void SetAll()				{ memset( array, 0xff, WORDSIZE*4 ); }
+	void SetAll()				{ memset( array, 0xff, TOTAL_MEM ); }
 
-	/// Fast access - cache the y then query the x with IsSetCache
-	void CacheY( int y )		{ cache = &array[ROW_WIDTH*y]; }
-	/// Query the x at the cached y value.
-	U32 IsSetCache( int x )		{ return cache[ x>>5 ] & ( 0x1 << (x & 31)); }
+	const U32* Access32( int x, int y, int z ) { return &array[ z*PLANE32 + y*WIDTH32 + (x>>5) ]; }
 
-	// Private. (But friend iterators are no fun.)
-	U32 array[ WORDSIZE ];
-	U32* cache;
+private:
+	U32 array[ TOTAL_MEM32 ];
 };
 
 /**
 	A class to quickly walk a BitArary.
 */
-template< int WIDTH, int HEIGHT >
+
+template< int WIDTH, int HEIGHT, int DEPTH >
 class BitArrayRowIterator
 {
   public:
-	BitArrayRowIterator( const BitArray<WIDTH, HEIGHT>& _array ) : bitArray( _array ), mask( 0 ), loc( 0 )	{}
+	BitArrayRowIterator( const BitArray<WIDTH, HEIGHT, DEPTH>& _array ) : bitArray( _array ), mask( 0 ), loc( 0 )	{}
 
 	/// Initialize the walk.
-	void Begin( int x, int y)	{	loc = &bitArray.array[ y*bitArray.ROW_WIDTH + (x/32) ];
+	void Begin( int x, int y, int z=0 )	
+								{	loc = bitArray.Access32( x, y, z );
 									U32 bit = x & 31;
 									mask = 0x01 << bit;
 								}
@@ -140,10 +196,11 @@ class BitArrayRowIterator
 	bool WordEmpty()			{	return !(*loc); }
 
   private:
-	const BitArray<WIDTH, HEIGHT>& bitArray;
+	const BitArray<WIDTH, HEIGHT, DEPTH>& bitArray;
 	U32 mask;
 	const U32 *loc;
 };
+
 };
 #endif
 

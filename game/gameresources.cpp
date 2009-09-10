@@ -59,7 +59,7 @@ const TextureDef gTextureDef[] =
 	{	"palette",		0	},
 	{	"ufoOuter",		0	},
 	{	"ufoInner",		0	},
-	{	"lannder",		0	},
+	{	"lander",		0	},
 	{	"tree",			ALPHA_TEST	},
 	{	"wheat",		ALPHA_TEST	},
 	{	"farmland",		0	},
@@ -92,7 +92,6 @@ void Game::LoadTextures()
 	memset( surface.Pixels(), 255, 8 );
 	textureID = surface.CreateTexture( false );
 	texman->AddTexture( "white", textureID );
-	//texture[ nTexture++ ].Set( "white", textureID );
 
 	// Load the textures from the array:
 	for( int i=0; gTextureDef[i].name; ++i ) {
@@ -101,26 +100,12 @@ void Game::LoadTextures()
 		GLASSERT( fp );
 		bool alpha;
 		textureID = surface.LoadTexture( fp, &alpha );
-		//bool alphaTest = (gTextureDef[i].flags & ALPHA_TEST ) ? true : false;
-		//texture[ nTexture++ ].Set( gTextureDef[i].name, textureID, alpha );
 		texman->AddTexture( gTextureDef[i].name, textureID, alpha );
 		fclose( fp );
 	}
 	//GLASSERT( nTexture <= MAX_TEXTURES );
 }
 
-
-/*
-ModelResource* Game::GetResource( const char* name )
-{
-	for( int i=0; i<nModelResource; ++i ) {
-		if ( strcmp( modelResource[i].header.name, name ) == 0 ) {
-			return &modelResource[i];
-		}
-	}
-	return 0;
-}
-*/
 
 
 void Game::LoadModel( const char* name )
@@ -141,10 +126,6 @@ void Game::LoadModel( const char* name )
 
 void Game::LoadModels()
 {
-	//memset( modelResource, 0, sizeof(ModelResource)*EL_MAX_MODEL_RESOURCES );
-
-	//FILE* fp = 0;
-
 	for( int i=0; gModelNames[i]; ++i ) {
 		LoadModel( gModelNames[i] );
 	}
@@ -171,7 +152,7 @@ void Game::LoadLightMaps()
 		FILE* fp = fopen( buffer, "rb" );
 		GLASSERT( fp );
 		bool alpha;
-		lightMaps[i].LoadTexture( fp, &alpha );
+		lightMaps[i].LoadSurface( fp, &alpha );
 		GLASSERT( alpha == false );
 		fclose( fp );
 	}
@@ -189,8 +170,6 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 		itemDef->cy = init->cy;
 		itemDef->hp = init->hp;
 		itemDef->materialFlags = init->materialFlags;
-		//itemDef->flammable = init->flammable;
-		//itemDef->explosive = init->explosive;
 
 		ModelResourceManager* modman = ModelResourceManager::Instance();
 		{

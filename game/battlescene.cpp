@@ -63,6 +63,16 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	else {
 		Load( stream );
 	}
+
+	for( int i=0; i<1; ++i ) {
+		if ( units[i].IsAlive() ) {
+			Vector2I pos;
+			float rotation;
+			units[i].CalcMapPos( &pos, &rotation );
+			CalcVisibility( &units[i], pos.x, pos.y, rotation );
+		}
+	}
+	SetFogOfWar();
 }
 
 
@@ -121,6 +131,7 @@ void BattleScene::InitUnits()
 		inventory->AddItem( Inventory::ANY_SLOT, ar3 );
 		unit->UpdateInventory();
 		unit->SetMapPos( pos.x, pos.y );
+		unit->SetYRotation( (float)(((i+2)%8)*45) );
 	}
 	
 	for( int i=0; i<4; ++i ) {
@@ -178,6 +189,23 @@ void BattleScene::Load( UFOStream* /*s*/ )
 		selection.soldierUnit = &units[selected];
 	}
 	SetUnitsDraggable();
+}
+
+
+void BattleScene::SetFogOfWar()
+{
+	grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fow = engine->GetFogOfWar();
+	for( int j=0; j<MAP_SIZE; ++j ) {
+		for( int i=0; i<MAP_SIZE; ++i ) {
+			Rectangle3I query;
+			query.Set( i, j, TERRAN_UNITS_START, i, j, TERRAN_UNITS_END-1 );
+			if ( !visibilityMap.IsRectEmpty( query ) )
+				fow->Set( i, j );
+			else
+				fow->Clear( i, j );
+		}
+	}
+	engine->UpdateFogOfWar();
 }
 
 
@@ -396,6 +424,8 @@ void BattleScene::ProcessAction( U32 deltaTime )
 						path.Clear();
 						FreePathEndModel();
 					}
+					CalcVisibility( unit, (int)x, (int)z, r );
+					SetFogOfWar();
 				}
 				break;
 
@@ -474,17 +504,8 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 
 		Vector3F hit;
 		// Don't hit the shooter:
-		if ( unit->GetModel() )
-			unit->GetModel()->SetFlag( Model::MODEL_HIDDEN_FROM_TREE );
-		if ( unit->GetWeaponModel() )
-			unit->GetWeaponModel()->SetFlag( Model::MODEL_HIDDEN_FROM_TREE );
-
-		Model* m = engine->IntersectModel( ray, TEST_TRI, 0, 0, &hit );
-
-		if ( unit->GetModel() )
-			unit->GetModel()->ClearFlag( Model::MODEL_HIDDEN_FROM_TREE );
-		if ( unit->GetWeaponModel() )
-			unit->GetWeaponModel()->ClearFlag( Model::MODEL_HIDDEN_FROM_TREE );
+		const Model* ignore[] = { unit->GetModel(), unit->GetWeaponModel(), 0 };
+		Model* m = engine->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &hit );
 
 		if ( hit.y < 0.0f ) {
 			// hit ground first.
@@ -661,7 +682,7 @@ void BattleScene::Tap(	int tap,
 			}	
 		}
 
-		Model* model = engine->IntersectModel( world, TEST_HIT_AABB, Model::MODEL_SELECTABLE, 0, 0 );
+		Model* model = engine->IntersectModel( world, TEST_HIT_AABB, Model::MODEL_SELECTABLE, 0, 0, 0 );
 		if ( !model && result == grinliz::INTERSECT && PathEndModel() ) {
 			// check the path end model.
 			if ( (int)PathEndModel()->X() == tilePos.x && (int)PathEndModel()->Z() == tilePos.y ) {
@@ -731,6 +752,7 @@ void BattleScene::Tap(	int tap,
 								selection.pathEndModel->SetTexture( TextureManager::Instance()->GetTexture( "translucent" ) );
 								selection.pathEndModel->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.5f );
 								selection.pathEndModel->SetFlag( Model::MODEL_SELECTABLE );	// FIXME not needed, remove entire draggable thing
+								selection.pathEndModel->SetFlag( Model::MODEL_MAP_TRANSPARENT);
 
 								float rot;
 								path.CalcDelta( path.len-2, path.len-1, 0, &rot );
@@ -769,6 +791,95 @@ Unit* BattleScene::GetUnitFromTile( int x, int z )
 		}
 	}
 	return 0;
+}
+
+
+void BattleScene::CalcVisibility( const Unit* unit, int x, int y, float rotation )
+{
+	int unitID = unit - units;
+	GLASSERT( unitID >= 0 && unitID < MAX_UNITS );
+
+	// Clear out the old settings.
+	// Walk the area in range around the unit and cast rays.
+	visibilityMap.ClearPlane( unitID );
+
+	Rectangle2I r, b;
+	r.Set( 0, 0, MAP_SIZE-1, MAP_SIZE-1 );
+	b.Set( x-MAX_EYESIGHT_RANGE, y-MAX_EYESIGHT_RANGE, x+MAX_EYESIGHT_RANGE, y+MAX_EYESIGHT_RANGE );
+	b.DoIntersection( r );
+
+	Vector2I facing;
+	facing.x = (int)(10.0f*sinf(ToRadian(rotation)));
+	facing.y = (int)(10.0f*cosf(ToRadian(rotation)));
+	
+	Vector3F eye = { (float)(x+0.5f), EYE_HEIGHT, (float)(y+0.5f) };
+	const Model* ignore[] = { unit->GetModel(), unit->GetWeaponModel(), 0 };
+
+	const int MAX_SIGHT_SQUARED = MAX_EYESIGHT_RANGE*MAX_EYESIGHT_RANGE;
+
+	for( int j=b.min.y; j<=b.max.y; ++j ) {
+		for( int i=b.min.x; i<=b.max.x; ++i ) {
+			if ( i==x && j==y ) {
+				visibilityMap.Set( i, j, unitID );
+			}
+			else {
+				bool visible = false;
+				int dx = i-x;
+				int dy = j-y;
+				int len2 = dx*dx + dy*dy;
+
+				if ( len2 <= MAX_SIGHT_SQUARED ) {
+					Vector2I vec = { dx, dy };
+					int dir = DotProduct( facing, vec );
+					if ( dir >= 0 ) {
+						
+						Vector3F target = { (float)i+0.5f, EYE_HEIGHT, (float)j+0.5f };
+						Ray ray = { eye, target-eye };
+						Vector3F intersection;
+
+						Model* m = engine->IntersectModel(	ray, 
+															TEST_TRI,
+															0, Model::MODEL_MAP_TRANSPARENT, ignore,
+															&intersection );
+
+						if ( !m ) {
+							visible = true;
+						}
+						else {
+							float paddedLen2 = (float)(len2);	// - 1.5f;
+							float intersectionLen2 = (intersection-eye).LengthSquared();
+							if ( intersectionLen2 > paddedLen2 ) {
+								visible = true;
+							}
+						}
+
+						/*if ( !m ) {
+							visible = true;
+						}
+						else {
+							Rectangle3F bounds;
+							bounds.Set( (float)i, 0, (float)j, (float)(i+1), EYE_HEIGHT, (float)(j+1) );
+
+							// hit something...does it overlap with the visible area?
+							if ( m->AABB().Intersect( bounds ) ) {
+								visible = true;
+							}
+							else {
+								float okayLen2 = (float)(len2 - 1);
+								float iLen2 = (intersection-eye).LengthSquared();
+								if ( iLen2 > okayLen2 ) {
+									visible = true;
+								}
+							}
+						}*/
+					}
+				}
+				if ( visible ) {
+					visibilityMap.Set( i, j, unitID );
+				}
+			}
+		}
+	}
 }
 
 

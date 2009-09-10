@@ -48,7 +48,8 @@ int ModelResource::Intersect(	const grinliz::Vector3F& point,
 								grinliz::Vector3F* intersect ) const
 {
 	float t;
-	if ( IntersectRayAABB( point, dir, header.bounds, intersect, &t ) == grinliz::INTERSECT ) {
+	int result = IntersectRayAABB( point, dir, header.bounds, intersect, &t );
+	if ( result == grinliz::INTERSECT || result == grinliz::INSIDE ) {
 		float close2 = FLT_MAX;
 		Vector3F test;
 

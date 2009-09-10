@@ -1,5 +1,5 @@
-#ifndef UFOATTACK_SPRITE_INCLUDED
-#define UFOATTACK_SPRITE_INCLUDED
+#ifndef UFOATTACK_UNIT_INCLUDED
+#define UFOATTACK_UNIT_INCLUDED
 
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
@@ -68,7 +68,7 @@ public:
 	void SetPos( const grinliz::Vector3F& pos, float rotation );
 	void SetYRotation( float rotation );
 	void CalcPos( grinliz::Vector3F* ) const;
-	void CalcMapPos( grinliz::Vector2I* ) const;
+	void CalcMapPos( grinliz::Vector2I*, float* rotation ) const;
 
 	//void SetWeapon( const ItemDef* itemDef );
 	Item* GetWeapon();
@@ -130,4 +130,4 @@ private:
 };
 
 
-#endif // UFOATTACK_SPRITE_INCLUDED
+#endif // UFOATTACK_UNIT_INCLUDED
