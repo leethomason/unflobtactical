@@ -429,7 +429,7 @@ void SpaceTree::QueryPlanesRec(	const Plane* planes, int nPlanes, int intersecti
 
 Model* SpaceTree::QueryRay( const Vector3F& _origin, 
 							const Vector3F& _direction, 
-							int required, int excluded, 
+							int required, int excluded, const Model** ignore,
 							HitTestMethod testType,
 							Vector3F* intersection )
 {
@@ -459,7 +459,18 @@ Model* SpaceTree::QueryRay( const Vector3F& _origin,
 	Vector3F p0, p1;
 	int test = IntersectRayAllAABB( _origin, dir, aabb, &p0Test, &p0, &p1Test, &p1 );
 	GLASSERT( test == grinliz::INTERSECT );
+	if ( test != grinliz::INTERSECT ) {
+		return 0;
+	}
+	Plane planes[6];
+	Rectangle3F rect;
+	rect.Set( p0, p1 );
+	Plane::CreatePlanes( rect, planes );
 
+	Model* modelRoot = Query( planes, 6, required, excluded );
+
+
+	/*
 	// Now we step. Any step will work, but the larger the step, the more extra we check. The smaller
 	// the step (if too small) the more memory gets walked.
 	Vector3F v = p1 - p0;
@@ -497,20 +508,24 @@ Model* SpaceTree::QueryRay( const Vector3F& _origin,
 
 					for( Item* item=node->sentinel.next; item != &node->sentinel; item=item->next ) {
 						Model* m = &item->model;
-						int flags = m->Flags();
+						
+						if ( !Ignore( m, ignore ) ) {
+							int flags = m->Flags();
 
-						if (    ( (requiredFlags & flags) == requiredFlags)
-							 && ( (excludedFlags & flags) == 0 ) )
-						{
-							//GLOUTPUT(( "Test: %s\n", m->GetResource()->header.name ));
-							m->next = modelRoot;
-							modelRoot = m;
+							if (    ( (requiredFlags & flags) == requiredFlags)
+								 && ( (excludedFlags & flags) == 0 ) )
+							{
+								//GLOUTPUT(( "Test: %s\n", m->GetResource()->header.name ));
+								m->next = modelRoot;
+								modelRoot = m;
+							}
 						}
 					}
 				}
 			}
 		}
 	}
+	*/
 	// We now have a batch of models. Are any of them a hit??
 	GLASSERT( testType == TEST_HIT_AABB || testType == TEST_TRI );
 

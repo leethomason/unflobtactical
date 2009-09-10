@@ -5,6 +5,7 @@
 #include "unit.h"
 #include "../engine/ufoutil.h"
 #include "gamelimits.h"
+#include "../grinliz/glbitarray.h"
 
 class Model;
 class UIButtonBox;
@@ -102,10 +103,12 @@ private:
 	void InitUnits();
 	void SetUnitsDraggable();
 	void TestHitTesting();
+	void CalcVisibility( const Unit* unit, int x, int y, float rotation );
 
 	Unit* UnitFromModel( Model* m );
 	Unit* GetUnitFromTile( int x, int z );
 	bool HandleIconTap( int screenX, int screenY );
+	void SetFogOfWar();
 
 	struct Selection
 	{
@@ -154,8 +157,10 @@ private:
 		CIV_UNITS_END		= CIV_UNITS_START+MAX_CIVS,
 		ALIEN_UNITS_START	= CIV_UNITS_END,
 		ALIEN_UNITS_END		= ALIEN_UNITS_START+MAX_ALIENS,
+		// const int MAX_UNITS	= 40
 	};
 
+	grinliz::BitArray< MAP_SIZE, MAP_SIZE, MAX_UNITS > visibilityMap;
 	Unit units[MAX_UNITS];
 
 #ifdef MAPMAKER

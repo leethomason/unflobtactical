@@ -27,10 +27,11 @@ public:
 	Surface();
 	~Surface();
 
-	int Width()				{ return w; }
-	int Height()			{ return h; }
-	U8* Pixels()			{ return pixels; }
-	int BytesPerPixel()		{ return bpp; }
+	int Width()	const			{ return w; }
+	int Height() const			{ return h; }
+	U8* Pixels()				{ return pixels; }
+	const U8* Pixels() const	{ return pixels; }
+	int BytesPerPixel() const	{ return bpp; }
 
 	void Set( int w, int h, int bytesPP );
 
@@ -40,6 +41,8 @@ public:
 	void UpdateTexture( bool alpha, U32 glID );
 	// Load the file
 	U32 LoadTexture( FILE* fp, bool* alpha );
+	// Load the file (no texture)
+	void LoadSurface( FILE* fp, bool* alpha );
 
 private:
 	void CalcFormat( bool alpha, int* format, int* type );

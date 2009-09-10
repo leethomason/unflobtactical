@@ -113,6 +113,35 @@ void grinliz::MinDeltaDegrees( float angle0, float angle1, float* distance, floa
 }
 
 
+/*static*/ void Plane::CreatePlanes( const Rectangle3F& r, Plane* planes )
+{
+	Vector3F normal, point;
+
+	normal.Set( -1, 0, 0 );
+	point = r.max;
+	CreatePlane( normal, point, &planes[0] );
+
+	normal.Set( 1, 0, 0 );
+	point = r.min;
+	CreatePlane( normal, point, &planes[1] );
+
+	normal.Set( 0, -1, 0 );
+	point = r.max;
+	CreatePlane( normal, point, &planes[2] );
+
+	normal.Set( 0, 1, 0 );
+	point = r.min;
+	CreatePlane( normal, point, &planes[3] );
+
+	normal.Set( 0, 0, -1 );
+	point = r.max;
+	CreatePlane( normal, point, &planes[4] );
+
+	normal.Set( 0, 0, 1 );
+	point = r.min;
+	CreatePlane( normal, point, &planes[5] );
+}
+
 
 /*static*/ void Plane::CreatePlane( const Vector3F& normal, const Vector3F& point, Plane* plane )
 {

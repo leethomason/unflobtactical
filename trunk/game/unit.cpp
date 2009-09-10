@@ -214,6 +214,7 @@ void Unit::UpdateInventory()
 	if ( weaponItem  ) {
 		weapon = engine->AllocModel( weaponItem->GetItemDef()->resource );
 		weapon->SetFlag( Model::MODEL_NO_SHADOW );
+		weapon->SetFlag( Model::MODEL_MAP_TRANSPARENT );
 	}
 	UpdateWeapon();
 }
@@ -244,13 +245,18 @@ void Unit::CalcPos( grinliz::Vector3F* vec ) const
 }
 
 
-void Unit::CalcMapPos( grinliz::Vector2I* vec ) const
+void Unit::CalcMapPos( grinliz::Vector2I* vec, float* rot ) const
 {
 	GLASSERT( status != STATUS_NOT_INIT );
 	GLASSERT( model );
 
-	vec->x = (int)model->X();
-	vec->y = (int)model->Z();
+	if ( vec ) {
+		vec->x = (int)model->X();
+		vec->y = (int)model->Z();
+	}
+	if ( rot ) {
+		*rot = model->GetYRotation();
+	}
 }
 
 
@@ -324,6 +330,7 @@ void Unit::CreateModel( bool alive )
 	model = engine->AllocModel( resource );
 	GLASSERT( model->stats == 0 );
 	model->stats = &stats;
+	model->SetFlag( Model::MODEL_MAP_TRANSPARENT );
 	UpdateModel();
 }
 
@@ -410,8 +417,8 @@ void Unit::Load( UFOStream* s, Engine* engine, Game* game )
 float Unit::AngleBetween( const Unit* target, bool quantize ) const 
 {
 	Vector2I p0, p1;
-	CalcMapPos( &p0 );
-	target->CalcMapPos( &p1 );
+	CalcMapPos( &p0, 0 );
+	target->CalcMapPos( &p1, 0 );
 
 	float angle = atan2( (float)(p1.x-p0.x), (float)(p1.y-p0.y) );
 	angle = ToDegree( angle );

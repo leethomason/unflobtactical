@@ -131,7 +131,6 @@ struct Ray
 {
 	Vector3F	origin;
 	Vector3F	direction;	// should always have a length of 1.0f
-	//float		length;
 };
 
 /** Plane
@@ -148,8 +147,11 @@ struct Plane
 		Vector3F v[3] = { v0, v1, v2 };
 		CreatePlane( v, plane );
 	}
-	//// Create a plane from a normal vector and a point.
+	/// Create a plane from a normal vector and a point.
 	static void CreatePlane( const Vector3F& normal, const Vector3F& point, Plane* plane );
+
+	/// Create 6 planes from a rectangle.
+	static void CreatePlanes( const Rectangle3F&, Plane* planes );
 
 	Vector3F	n;	///< normal
 	float		d;	///< offset

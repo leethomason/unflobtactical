@@ -74,6 +74,24 @@ U32 Surface::LoadTexture( FILE* fp, bool *alpha )
 }
 
 
+void Surface::LoadSurface( FILE* fp, bool* alpha )
+{
+	TextureHeader header;
+	header.Load( fp );
+
+	switch ( header.format ) {
+		case GL_ALPHA:	Set( header.width, header.height, 1 );	*alpha = true;	break;
+		case GL_RGB:	Set( header.width, header.height, 2 );	*alpha = false;	break;
+		case GL_RGBA:	Set( header.width, header.height, 2 );	*alpha = true;	break;
+		default:
+			GLASSERT( 0 );
+			break;
+	}
+
+	fread( pixels, 1, w*h*bpp, fp );
+}
+
+
 void Surface::CalcFormat( bool alpha, int* format, int* type )
 {
 	*format = GL_RGB;

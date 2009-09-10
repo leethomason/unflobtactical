@@ -43,7 +43,7 @@ public:
 
 	// Returns the FIRST model impacted.
 	Model* QueryRay( const grinliz::Vector3F& origin, const grinliz::Vector3F& direction, 
-					 int required, int excluded,
+					 int required, int excluded, const Model** ignore,
 					 HitTestMethod method,
 					 grinliz::Vector3F* intersection );
 
@@ -96,6 +96,17 @@ private:
 
 		void CalcAABB( grinliz::Rectangle3F* aabb, const float yMin, const float yMax ) const;
 	};
+
+	bool Ignore( const Model* m, const Model** ignore ) {
+		if ( ignore ) {
+			while ( *ignore ) {
+				if ( *ignore == m )
+					return true;
+				++ignore;
+			}
+		}
+		return false;
+	}
 
 	void InitNode();
 	void QueryPlanesRec( const grinliz::Plane* planes, int nPlanes, int intersection, const Node* node, U32  );
