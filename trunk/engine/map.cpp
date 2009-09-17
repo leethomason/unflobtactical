@@ -60,7 +60,8 @@ Map::Map( SpaceTree* tree )
 	texture1[2].Set( 1.0f, 0.0f );
 	texture1[3].Set( 1.0f, 1.0f );
 
-	queryID = 1;
+	pathQueryID = 1;
+	visibilityQueryID = 1;
 
 	finalMap.Set( SIZE, SIZE, 2 );
 	lightMap.Set( SIZE, SIZE, 2 );
@@ -356,7 +357,7 @@ void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 				item->model->SetYRotation( rot );
 				item->model->stats = item;			
 			}
-			microPather->Reset();
+			ResetPath();
 		}
 	}
 }
@@ -372,20 +373,17 @@ void Map::GetItemPos( const MapItem* inItem, int* x, int* y, int* cx, int* cy )
 	int rot = item->rotation;
 	GLASSERT( rot >= 0 && rot < 4 );
 
-	Vector2I prime = { 1, 1 };
+	Vector2I size = { itemDef.cx, itemDef.cy };
 
 	if ( itemDef.cx > 1 || itemDef.cy > 1 ) {
-		Vector2I size = { itemDef.cx, itemDef.cy };
-		
-		IMat iMat;
-		iMat.Init( size.x, size.y, rot );
-		Vector2I origin = { size.x-1, size.y-1 };
-		iMat.Mult( origin, &prime );
+		if ( rot & 1 ) {
+			Swap( &size.x, &size.y );
+		}
 	}
 
 	GetTileFromItem( item, 0, x, y );
-	*cx = prime.x;
-	*cy = prime.y;
+	*cx = size.x;
+	*cy = size.y;
 }
 
 
@@ -835,7 +833,7 @@ void Map::DrawPath()
 			float y = (float)j;
 
 			//const Tile& tile = tileArr[j*SIZE+i];
-			int path = GetPathMask( i, j );
+			int path = GetPathMask( PATH_TYPE, i, j );
 
 			if ( path == 0 ) 
 				continue;
@@ -895,26 +893,30 @@ void Map::DrawPath()
 void Map::ResetPath()
 {
 	microPather->Reset();
+	++pathQueryID;
+	++visibilityQueryID;
 }
 
 
 
 void Map::ClearPathBlocks()
 {
+	ResetPath();
 	pathBlock.ClearAll();
 }
 
 
 void Map::SetPathBlock( int x, int y )
 {
+	ResetPath();
 	pathBlock.Set( x, y );
 }
 
 
-int Map::GetPathMask( int x, int y )
+int Map::GetPathMask( ConnectionType c, int x, int y )
 {
 	// fast return: if the pathBlock is set, we're done.
-	if ( pathBlock.IsSet( x, y ) ) {
+	if ( c == PATH_TYPE && pathBlock.IsSet( x, y ) ) {
 		return 0xf;
 	}
 
@@ -924,10 +926,11 @@ int Map::GetPathMask( int x, int y )
 	int index = y*SIZE+x;
 	MapTile* originTile = &tileArr[index];
 
-	U32 id = originTile->pathMask >> 4;
+	U32 id = (c==PATH_TYPE) ? (originTile->pathMask >> 4) : (originTile->visibilityMask >> 4);
 	GLASSERT( id < 0xffffff );	// how did it get this big??
+	U32 queryID = ((c==PATH_TYPE) ? pathQueryID : visibilityQueryID ); 
 
-	if ( id != queryID ) {
+	if ( id != queryID)  {
 		U32 path = 0;
 		for( int i=0; i<ITEM_PER_TILE; ++i ) {
 			const MapItem* inItem = &originTile->item[i];
@@ -960,7 +963,11 @@ int Map::GetPathMask( int x, int y )
 				GLASSERT( prime.y >= 0 && prime.y < itemDef.cy );
 
 				// Account for tile rotation. (Actually a bit rotation too, which is handy.)
-				p = ( itemDef.pather[prime.y][prime.x] << rot );
+				if ( c==PATH_TYPE) 
+					p = ( itemDef.pather[prime.y][prime.x] << rot );
+				else
+					p = ( itemDef.visibility[prime.y][prime.x] << rot );
+
 				p = p | (p>>4);
 			}
 			path |= (U8)(p&0xf);
@@ -968,9 +975,12 @@ int Map::GetPathMask( int x, int y )
 
 		// Write the information - and the query ID - back to the originalTile and cache it.
 		GLASSERT( ( path & 0xfffffff0 ) == 0 );
-		originTile->pathMask = path | (queryID<<4);
+		if ( c==PATH_TYPE) 
+			originTile->pathMask = path | (queryID<<4);
+		else
+			originTile->visibilityMask = path | (visibilityQueryID<<4);
 	}
-	return originTile->pathMask & 0xf;
+	return ( c==PATH_TYPE) ? (originTile->pathMask & 0xf) : (originTile->visibilityMask & 0xf);
 }
 
 
@@ -987,7 +997,7 @@ float Map::LeastCostEstimate( void* stateStart, void* stateEnd )
 }
 
 
-bool Map::Connected( int x, int y, int dir )
+bool Map::Connected( ConnectionType c, int x, int y, int dir )
 {
 	const Vector2I next[4] = {
 		{ 0, 1 },
@@ -1008,8 +1018,8 @@ bool Map::Connected( int x, int y, int dir )
 	if ( InRange( pos.x, 0, SIZE-1 )     && InRange( pos.y, 0, SIZE-1 ) &&
 		 InRange( nextPos.x, 0, SIZE-1 ) && InRange( nextPos.y, 0, SIZE-1 ) ) 
 	{
-		int mask0 = GetPathMask( pos.x, pos.y );
-		int maskN = GetPathMask( nextPos.x, nextPos.y );
+		int mask0 = GetPathMask( c, pos.x, pos.y );
+		int maskN = GetPathMask( c, nextPos.x, nextPos.y );
 		int inv = InvertPathMask( bit );
 
 		if ( (( mask0 & bit ) == 0 ) && (( maskN & inv ) == 0 ) ) {
@@ -1042,7 +1052,7 @@ void Map::AdjacentCost( void* state, micropather::StateCost *adjacent, int* nAdj
 	*nAdjacent = 0;
 	// N S E W
 	for( int i=0; i<4; i++ ) {
-		if ( Connected( pos.x, pos.y, i ) ) {
+		if ( Connected( PATH_TYPE, pos.x, pos.y, i ) ) {
 			Vector2<S16> nextPos = pos + next[i];
 			adjacent[*nAdjacent].cost = cost[i];
 			adjacent[*nAdjacent].state = VecToState( nextPos );
@@ -1057,10 +1067,10 @@ void Map::AdjacentCost( void* state, micropather::StateCost *adjacent, int* nAdj
 		int iInv = (i+2)&3;
 		int jInv = (j+2)&3;
 		 
-		if (    Connected( pos.x, pos.y, i ) 
-			 && Connected( pos.x, pos.y, j )
-			 && Connected( nextPos.x, nextPos.y, iInv )
-			 && Connected( nextPos.x, nextPos.y, jInv ) ) 
+		if (    Connected( PATH_TYPE, pos.x, pos.y, i ) 
+			 && Connected( PATH_TYPE, pos.x, pos.y, j )
+			 && Connected( PATH_TYPE, nextPos.x, nextPos.y, iInv )
+			 && Connected( PATH_TYPE, nextPos.x, nextPos.y, jInv ) ) 
 		{
 			adjacent[*nAdjacent].cost = cost[i+4];
 			adjacent[*nAdjacent].state = VecToState( nextPos );
@@ -1082,7 +1092,6 @@ int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *c
 {
 	GLASSERT( sizeof( int ) == sizeof( void* ));	// fix this for 64 bit
 	GLASSERT( sizeof(Vector2<S16>) == sizeof( void* ) );
-	++queryID;
 
 	unsigned pathNodesAllocated = microPather->PathNodesAllocated();
 	int result = microPather->Solve(	VecToState( start ),
@@ -1112,3 +1121,71 @@ int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *c
 	*/
 	return result;
 }
+
+
+bool Map::CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& q )
+{
+	GLASSERT( InRange( q.x-p.x, -1, 1 ) );
+	GLASSERT( InRange( q.y-p.y, -1, 1 ) );
+	GLASSERT( p.x >=0 && p.x < SIZE );
+	GLASSERT( p.y >=0 && p.y < SIZE );
+	GLASSERT( q.x >=0 && q.x < SIZE );
+	GLASSERT( q.y >=0 && q.y < SIZE );
+
+	int dx = q.x-p.x;
+	int dy = q.y-p.y;
+	bool canSee = false;
+	int dir0 = -1;
+	int dir1 = -1;
+
+	switch( dy*4 + dx ) {
+		case 4:		// S
+			dir0 = 0;
+			break;
+		case 5:		// SE
+			dir0 = 0;
+			dir1 = 1;
+			break;
+		case 1:		// E
+			dir0 = 1;
+			break;
+		case -3:	// NE
+			dir0 = 1;
+			dir1 = 2;
+			break;
+		case -4:	// N
+			dir0 = 2;
+			break;
+		case -5:	// NW
+			dir0 = 2;
+			dir1 = 3;
+			break;
+		case -1:	// W
+			dir0 = 3;
+			break;
+		case 3:		// SW
+			dir0 = 3;
+			dir1 = 0;
+			break;
+		default:
+			GLASSERT( 0 );
+			break;
+	}
+	if ( dir1 == -1 ) {
+		canSee = Connected( VISIBILITY_TYPE, p.x, p.y, dir0 );
+	}
+	else {
+		const Vector2I next[4] = {	{ 0, 1 },
+									{ 1, 0 },
+									{ 0, -1 },
+									{ -1, 0 } };
+
+		Vector2I q0 = p+next[dir0];
+		Vector2I q1 = p+next[dir1];
+
+		canSee =  ( Connected( VISIBILITY_TYPE, p.x, p.y, dir0 ) && Connected( VISIBILITY_TYPE, q0.x, q0.y, dir1 ) )
+			   || ( Connected( VISIBILITY_TYPE, p.x, p.y, dir1 ) && Connected( VISIBILITY_TYPE, q1.x, q1.y, dir0 ) );
+	}
+	return canSee;
+}
+

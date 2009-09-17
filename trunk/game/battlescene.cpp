@@ -9,6 +9,8 @@
 
 #include "battlestream.h"
 
+#include "../grinliz/glfixed.h"
+
 
 using namespace grinliz;
 
@@ -64,7 +66,15 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		Load( stream );
 	}
 
-	for( int i=0; i<1; ++i ) {
+	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+		if ( units[i].IsAlive() ) {
+			Vector2I pos;
+			float rotation;
+			units[i].CalcMapPos( &pos, &rotation );
+			CalcVisibility( &units[i], pos.x, pos.y, rotation );
+		}
+	}
+	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
 		if ( units[i].IsAlive() ) {
 			Vector2I pos;
 			float rotation;
@@ -405,27 +415,67 @@ void BattleScene::ProcessAction( U32 deltaTime )
 		switch ( action->action ) {
 			case ACTION_MOVE: 
 				{
-					// Move the unit.
-
+					// Move the unit. Be careful to never move more than one step (Travel() does not)
+					// and be careful to handle rotation between steps so that visibility can update
+					// and game events can happen.
+					// This means that motion is really of 2 types: x,y and rotation.
 					const float SPEED = 3.0f;
-					float travel = Travel( deltaTime, SPEED );
-
-					while( action->move.pathStep < path.len-1 && travel > 0.0f ) {
-						path.Travel( &travel, &action->move.pathStep, &action->move.pathFraction );
-					}
+					const float ROTATION_SPEED = 150.0f;
 					float x, z, r;
+					
+					Vector2I originalPos;
+					float originalRot;
+					unit->CalcMapPos( &originalPos, &originalRot );
+
+					// Do we need to rotate, or move?
 					path.GetPos( action->move.pathStep, action->move.pathFraction, &x, &z, &r );
-
-					Vector3F v = { x+0.5f, 0.0f, z+0.5f };
-					unit->SetPos( v, r );
-
-					if ( action->move.pathStep == path.len-1 ) {
-						actionStack.Pop();
-						path.Clear();
-						FreePathEndModel();
+					if ( model->GetYRotation() != r ) {
+						// We aren't lined up. Rotate first, then move.
+						GLASSERT( model->X() == floorf(x)+0.5f );
+						GLASSERT( model->Z() == floorf(z)+0.5f );
+						
+						float delta, bias;
+						MinDeltaDegrees( model->GetYRotation(), r, &delta, &bias );
+						float travelRotation = Travel( deltaTime, ROTATION_SPEED );
+						delta -= travelRotation;
+						if ( delta <= 0.0f ) {
+							// Done rotating! Next time we'll move.
+							Vector3F p = { model->X(), 0.0f, model->Z() };
+							unit->SetPos( p, r );
+						}
+						else {
+							Vector3F p = { model->X(), 0.0f, model->Z() };
+							unit->SetPos( p, model->GetYRotation() + travelRotation*bias );
+						}
 					}
-					CalcVisibility( unit, (int)x, (int)z, r );
-					SetFogOfWar();
+					else {
+						float travel = Travel( deltaTime, SPEED );
+
+						while( action->move.pathStep < path.len-1 && travel > 0.0f ) {
+							path.Travel( &travel, &action->move.pathStep, &action->move.pathFraction );
+							if ( action->move.pathFraction == 0.0f ) {
+								// crossed a path boundary.
+								break;
+							}
+						}
+						path.GetPos( action->move.pathStep, action->move.pathFraction, &x, &z, &r );
+
+						Vector3F v = { x+0.5f, 0.0f, z+0.5f };
+						unit->SetPos( v, model->GetYRotation() );
+
+						if ( action->move.pathStep == path.len-1 ) {
+							actionStack.Pop();
+							path.Clear();
+							FreePathEndModel();
+						}
+					}
+					Vector2I newPos;
+					float newRot;
+					unit->CalcMapPos( &newPos, &newRot );
+					if ( newPos != originalPos || newRot != originalRot ) {
+						CalcVisibility( unit, newPos.x, newPos.y, newRot );
+						SetFogOfWar();
+					}
 				}
 				break;
 
@@ -797,6 +847,8 @@ Unit* BattleScene::GetUnitFromTile( int x, int z )
 void BattleScene::CalcVisibility( const Unit* unit, int x, int y, float rotation )
 {
 	int unitID = unit - units;
+	if ( unitID != 0 )
+		return;
 	GLASSERT( unitID >= 0 && unitID < MAX_UNITS );
 
 	// Clear out the old settings.
@@ -815,68 +867,75 @@ void BattleScene::CalcVisibility( const Unit* unit, int x, int y, float rotation
 	Vector3F eye = { (float)(x+0.5f), EYE_HEIGHT, (float)(y+0.5f) };
 	const Model* ignore[] = { unit->GetModel(), unit->GetWeaponModel(), 0 };
 
+	/* Previous pass used a true ray casting approach, but this doesn't get good results. Numerical errors,
+	   view stopped by leaves, rays going through cracks. Switching to a line walking approach to 
+	   acheive stability and simplicity. (And probably performance.)
+	*/
+
 	const int MAX_SIGHT_SQUARED = MAX_EYESIGHT_RANGE*MAX_EYESIGHT_RANGE;
 
 	for( int j=b.min.y; j<=b.max.y; ++j ) {
 		for( int i=b.min.x; i<=b.max.x; ++i ) {
+			// Early out the simple cases:
 			if ( i==x && j==y ) {
+				// Can always see yourself.
 				visibilityMap.Set( i, j, unitID );
+				continue;
+			}
+
+			// Max sight
+			int dx = i-x;
+			int dy = j-y;
+			int len2 = dx*dx + dy*dy;
+			if ( len2 > MAX_SIGHT_SQUARED )
+				continue;
+
+			// Correct direction
+			Vector2I vec = { dx, dy };
+			int dot = DotProduct( facing, vec );
+			if ( dot < 0 )
+				continue;
+
+			int axis=0;
+			int axisDir = 1;
+			int steps = abs(dx);
+			Fixed delta( 0 );
+
+			if ( abs( dy ) > abs(dx) ) {
+				// y is major axis. delta = dx per distance y
+				axis = 1;
+				steps = abs(dy);
+				if ( dy < 0 )
+					axisDir = -1;
+				delta = Fixed( dx ) / Fixed( abs(dy) );
+				GLASSERT( delta < 1 && delta > -1 );
 			}
 			else {
-				bool visible = false;
-				int dx = i-x;
-				int dy = j-y;
-				int len2 = dx*dx + dy*dy;
+				// x is the major aris. delta = dy per distance x
+				if ( dx < 0 )
+					axisDir = -1;
+				delta = Fixed( dy ) / Fixed( abs(dx) );
+				GLASSERT( delta <= 1 && delta >= -1 );
+			}
 
-				if ( len2 <= MAX_SIGHT_SQUARED ) {
-					Vector2I vec = { dx, dy };
-					int dir = DotProduct( facing, vec );
-					if ( dir >= 0 ) {
-						
-						Vector3F target = { (float)i+0.5f, EYE_HEIGHT, (float)j+0.5f };
-						Ray ray = { eye, target-eye };
-						Vector3F intersection;
+			Vector2<Fixed> p = { Fixed(x)+Fixed(0.5f), Fixed(y)+Fixed(0.5f) };
+			for( int k=0; k<steps; ++k ) {
+				Vector2<Fixed> q = p;
+				q.X(axis) += axisDir;
+				q.X(!axis) += delta;
 
-						Model* m = engine->IntersectModel(	ray, 
-															TEST_TRI,
-															0, Model::MODEL_MAP_TRANSPARENT, ignore,
-															&intersection );
-
-						if ( !m ) {
-							visible = true;
-						}
-						else {
-							float paddedLen2 = (float)(len2);	// - 1.5f;
-							float intersectionLen2 = (intersection-eye).LengthSquared();
-							if ( intersectionLen2 > paddedLen2 ) {
-								visible = true;
-							}
-						}
-
-						/*if ( !m ) {
-							visible = true;
-						}
-						else {
-							Rectangle3F bounds;
-							bounds.Set( (float)i, 0, (float)j, (float)(i+1), EYE_HEIGHT, (float)(j+1) );
-
-							// hit something...does it overlap with the visible area?
-							if ( m->AABB().Intersect( bounds ) ) {
-								visible = true;
-							}
-							else {
-								float okayLen2 = (float)(len2 - 1);
-								float iLen2 = (intersection-eye).LengthSquared();
-								if ( iLen2 > okayLen2 ) {
-									visible = true;
-								}
-							}
-						}*/
-					}
+				Vector2I p0 = { (int)p.x, (int)p.y };
+				Vector2I q0 = { (int)q.x, (int)q.y };
+				bool canSee = engine->GetMap()->CanSee( p0, q0 );
+				if ( canSee ) {
+					// We are trying to see if the next (q0) can be scene. A unit can always
+					// see itself, and looks out from there.
+					visibilityMap.Set( q0.x, q0.y, unitID );
 				}
-				if ( visible ) {
-					visibilityMap.Set( i, j, unitID );
+				else {
+					break;
 				}
+				p = q;
 			}
 		}
 	}
@@ -983,7 +1042,9 @@ void BattleScene::DrawHUD()
 
 #ifdef MAPMAKER
 	engine->GetMap()->DumpTile( (int)mapSelection->X(), (int)mapSelection->Z() );
-	UFOText::Draw( 0,  16, "0x%2x:'%s'", currentMapItem, engine->GetMap()->GetItemDefName( currentMapItem ) );
+	UFOText::Draw( 0,  16, "(%2d,%2d) 0x%2x:'%s'", 
+				   (int)mapSelection->X(), (int)mapSelection->Z(),
+				   currentMapItem, engine->GetMap()->GetItemDefName( currentMapItem ) );
 #endif
 }
 

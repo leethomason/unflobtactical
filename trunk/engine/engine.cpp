@@ -339,22 +339,27 @@ void Engine::Draw( int* triCount )
 		}
 
 		const Vector3F& pos = model->Pos();
-		int x = LRintf( pos.x );
-		int y = LRintf( pos.z );
+		int x = LRintf( pos.x - 0.5f );
+		int y = LRintf( pos.z - 0.5f );
 
-		/*bool queue = false;
+		bool queue = false;
 
 		if ( model->IsFlagSet(  Model::MODEL_OWNED_BY_MAP ) ) {
 			Rectangle2I fogRect;
 			map->GetMapBoundsOfModel( model, &fogRect );
+			if ( fogRect.min.x > 0 )	fogRect.min.x -= 1;
+			if ( fogRect.min.y > 0 )	fogRect.min.y -= 1;
+			if ( fogRect.max.x < Map::SIZE-1 ) fogRect.max.x += 1;
+			if ( fogRect.max.y < Map::SIZE-1 ) fogRect.max.y += 1;
+
 			if ( !fogOfWar.IsRectEmpty( fogRect ) ) {
 				queue = true;
 			}
 		}
 		else if ( fogOfWar.IsSet( x, y ) ) {
 			queue = true;
-		}*/
-		bool queue = true;
+		}
+		//bool queue = true;
 
 		if ( queue ) {
 			model->Queue( renderQueue, Model::MODEL_TEXTURE );

@@ -189,6 +189,13 @@ struct Rectangle2
 		}
 	}
 
+	void Outset( T dist ) {
+		min.x -= dist;
+		min.y -= dist;
+		max.x += dist;
+		max.y += dist;
+	}
+
 	bool operator==( const Rectangle2<T>& that ) const { return     ( min.x == that.min.x )
 													&& ( max.x == that.max.x )
 													&& ( min.y == that.min.y )

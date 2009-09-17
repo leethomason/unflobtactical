@@ -250,12 +250,15 @@ void Unit::CalcMapPos( grinliz::Vector2I* vec, float* rot ) const
 	GLASSERT( status != STATUS_NOT_INIT );
 	GLASSERT( model );
 
+	// Account that model can be incrementally moved when animating.
 	if ( vec ) {
-		vec->x = (int)model->X();
-		vec->y = (int)model->Z();
+		vec->x = LRintf( model->X() - 0.5f );
+		vec->y = LRintf( model->Z() - 0.5f );
 	}
 	if ( rot ) {
-		*rot = model->GetYRotation();
+		float r = model->GetYRotation() + 45.0f/2.0f;
+		int ir = (int)( r / 45.0f );
+		*rot = (float)(ir*45);
 	}
 }
 
