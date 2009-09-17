@@ -115,7 +115,15 @@ private:
 		int cy;
 		int hp;
 		int materialFlags;
+		/*
+			+----X
+			|			4
+			|		8		2
+			Z			1
+
+		*/
 		const char* pather;
+		const char* visibility;
 	};
 
 	void LoadTextures();

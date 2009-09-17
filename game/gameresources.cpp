@@ -209,7 +209,7 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 
 		strncpy( itemDef->name, init->Name(), EL_FILE_STRING_LEN );
 		
-		// Parse the pathing
+		//  Parse the pathing
 		//	spaces are ignored
 		//	S-1, E-2, N-4, W-8
 		const char* p =init->pather;
@@ -232,6 +232,39 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 			}
 			p++;
 		}
+
+
+		//  Parse the visibility
+		//	spaces are ignored
+		//	S-1, E-2, N-4, W-8
+		p =init->visibility;
+
+		if ( !p || !*p ) {
+			// If not specified, then visibility is the same as pathing. (The common case
+			// when there are windows, or the object is short.)
+			memcpy( itemDef->visibility, itemDef->pather, Map::MapItemDef::MAX_CX*Map::MapItemDef::MAX_CY );
+		}
+		else {
+			i=0;
+			while( p && *p ) {
+				if ( *p >= '0' && *p <= '9' ) {
+					itemDef->visibility[i/init->cx][i%init->cx] = *p - '0';
+					++i;
+				}
+				else if ( *p >= 'a' && *p <= 'f' ) {
+					itemDef->visibility[i/init->cx][i%init->cx] = 10 + *p - 'a';
+					++i;
+				}
+				else if ( *p == ' ' ) {
+					// nothing.
+				}
+				else {
+					GLASSERT( 0 );
+				}
+				p++;
+			}
+		}
+
 		++init;
 		++index;
 	}
@@ -272,11 +305,11 @@ void Game::LoadMapResources()
 
 	const MapItemInit farmSet[] =
 	{
-			// model		open			destroyed	cx, cz	hp		material		pather
-		{	"farmBed",		0,				0,			1,	1,	HP_MED,	GENERIC,		"f"	 },
-		{	"farmTable",	0,				0,			1,	1,	HP_MED,	WOOD,			"f"	 },
-		{	"farmTable2x1",	0,				0,			2,	1,	HP_MED,	WOOD,			"ff"	 },
-		{	"farmWheat",	0,				0,			1,	1,	HP_LOW,	GENERIC_FASTBURN,"0"	 },
+			// model		open			destroyed	cx, cz	hp		material		pather visibility
+		{	"farmBed",		0,				0,			1,	1,	HP_MED,	GENERIC,		"f"	 "0"	},
+		{	"farmTable",	0,				0,			1,	1,	HP_MED,	WOOD,			"f", "0" 	},
+		{	"farmTable2x1",	0,				0,			2,	1,	HP_MED,	WOOD,			"ff","00"	},
+		{	"farmWheat",	0,				0,			1,	1,	HP_LOW,	GENERIC_FASTBURN,"0"		},
 		{	0	}
 	};
 	InitMapItemDef( FARM_SET, farmSet );
@@ -284,7 +317,8 @@ void Game::LoadMapResources()
 	const MapItemInit marineSet[] =
 	{
 			// model		open			destroyed	cx, cz	hp			material	pather
-		{	"lander",		0,				0,			6,	6,	INDESTRUCT,	STEEL,		"00ff00 00ff00 ff00ff ff00ff ff00ff ff00ff" },
+		{	"lander",		0,				0,			6,	6,	INDESTRUCT,	STEEL,		"00ff00 00ff00 ff00ff ff00ff ff00ff ff00ff",
+																						"00ff00 00ff00 0f00f0 0f00f0 0f00f0 0f00f0"},
 		{	0	}
 	};
 	InitMapItemDef( MARINE_SET, marineSet );
@@ -292,7 +326,7 @@ void Game::LoadMapResources()
 	const MapItemInit forestSet[] = 
 	{
 			// model		open			destroyed	cx, cz	hp		 material		pather
-		{	"tree",			0,				0,			1,	1,	HP_HIGH, WOOD,			"f" },
+		{	"tree",			0,				0,			1,	1,	HP_HIGH, WOOD,			"f", "0" },
 		{	0	}
 	};
 	InitMapItemDef( FOREST_SET, forestSet );
@@ -315,9 +349,9 @@ void Game::LoadMapResources()
 	{
 			// model		open			destroyed	cx, cz	hp		material		pather
 		{	"woodCrnr",		0,				"woodCrnrD",1,	1,	HP_MED,	WOOD,			"3" },
-		{	"woodDoorCld",	"woodDoorOpn",	0,			1,	1,	HP_MED,	WOOD,			"0" },
+		{	"woodDoorCld",	"woodDoorOpn",	0,			1,	1,	HP_MED,	WOOD,			"0", "1" },
 		{	"woodWall",		"woodWall",		0,			1,	1,	HP_MED,	WOOD,			"1" },
-		{	"woodWallWin",	"woodWallWin",	0,			1,	1,	HP_MED,	WOOD,			"1" },
+		{	"woodWallWin",	"woodWallWin",	0,			1,	1,	HP_MED,	WOOD,			"1", "0" },
 		{	0	}
 	};
 	InitMapItemDef(  WOOD_SET, woodSet );

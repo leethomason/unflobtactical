@@ -60,6 +60,9 @@ public:
 						modelResource			= 0;
 						modelResourceOpen		= 0;
 						modelResourceDestroyed	= 0;
+
+						memset( pather, 0, MAX_CX*MAX_CY );
+						memset( visibility, 0, MAX_CX*MAX_CY );
 					}
 
 		U16		cx, cy;
@@ -72,6 +75,7 @@ public:
 
 		char	name[EL_FILE_STRING_LEN];
 		U8		pather[MAX_CX][MAX_CY];
+		U8		visibility[MAX_CX][MAX_CY];
 
 		// return true if the object can take damage
 		bool CanDamage() const { return hp > 0; }
@@ -107,6 +111,8 @@ public:
 	{
 		U32 pathMask;		// bits 0-3 bits are the mask.
 							//      4-31 is the query id
+		U32 visibilityMask;	// bits 0-3 are the mask
+							//		4-31 is the query id
 		Storage* storage;	// if !null, then Tile has items sitting on it, which creates a Storage object.
 							// A storage object ALSO creates a crate and possible weapons at this location.
 		Model* debris;		// The crate or weapon at this location. (Just use one icon.)
@@ -169,7 +175,6 @@ public:
 	bool AddToTile( int x, int z, int itemDefIndex, int rotation, int hp, bool open );
 
 	void DeleteAt( int x, int z );
-	int GetPathMask( int x, int z );
 	void ResetPath();	// normally called automatically
 
 	void Save( UFOStream* s ) const;
@@ -190,6 +195,9 @@ public:
 	virtual void AdjacentCost( void* state, micropather::StateCost *adjacent, int* nAdjacent );
 	virtual void  PrintStateInfo( void* state );
 
+	// like pathing, but visibility
+	bool CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& delta );
+
 private:
 	struct IMat
 	{
@@ -199,12 +207,18 @@ private:
 		void Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out );
 	};
 
+	enum ConnectionType {
+		PATH_TYPE,
+		VISIBILITY_TYPE
+	};
+
 	int InvertPathMask( U32 m ) {
 		U32 m0 = (m<<2) | (m>>2);
 		return m0 & 0xf;
 	}
 
-	bool Connected( int x, int y, int dir );
+	int GetPathMask( ConnectionType c, int x, int z );
+	bool Connected( ConnectionType c, int x, int y, int dir );
 
 	void StateToVec( const void* state, grinliz::Vector2<S16>* vec ) { *vec = *((grinliz::Vector2<S16>*)&state); }
 	void* VecToState( const grinliz::Vector2<S16>& vec )			 { return (void*)(*(int*)&vec); }
@@ -240,7 +254,8 @@ private:
 	Texture finalMapTex;
 	Surface finalMap;
 	Surface lightMap;
-	U32 queryID;
+	U32 pathQueryID;
+	U32 visibilityQueryID;
 
 	micropather::MicroPather* microPather;
 

@@ -70,7 +70,6 @@ public:
 	void CalcPos( grinliz::Vector3F* ) const;
 	void CalcMapPos( grinliz::Vector2I*, float* rotation ) const;
 
-	//void SetWeapon( const ItemDef* itemDef );
 	Item* GetWeapon();
 	Inventory* GetInventory();
 	void UpdateInventory();
