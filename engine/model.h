@@ -136,6 +136,7 @@ public:
 		MODEL_NO_SHADOW				= 0x08,
 		MODEL_INVISIBLE				= 0x10,
 		MODEL_MAP_TRANSPARENT		= 0x20,
+		MODEL_ALWAYS_DRAW			= 0x40,
 	};
 
 	int IsFlagSet( int f ) const	{ return flags & f; }

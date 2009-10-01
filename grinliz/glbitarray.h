@@ -126,7 +126,7 @@ class BitArray
 	}
 
 	/// Check if a rectangle is empty in z=0.
-	bool IsRectEmpty( const Rectangle3I& rect, int z=0 ) const 
+	bool IsRectEmpty( const Rectangle3I& rect ) const 
 	{
 		for( int k=rect.min.z; k<=rect.max.z; ++k )
 			for( int j=rect.min.y; j<=rect.max.y; ++j )

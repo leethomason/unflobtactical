@@ -757,6 +757,9 @@ void BattleScene::Tap(	int tap,
 			else {
 				path.Clear();
 				SetSelection( UnitFromModel( model ) );
+
+				Vector2<S16> start   = { (S16)model->X(), (S16)model->Z() };
+				engine->GetMap()->CalcPath( start, 2.0f, 4.0f, 6.0f );
 			}
 		}
 		else {
@@ -796,6 +799,7 @@ void BattleScene::Tap(	int tap,
 							FreePathEndModel();
 
 							if ( path.len > 1 ) {
+
 								selection.targetUnit = 0;
 								selection.pathEndModel = engine->AllocModel( selected->GetResource() );
 								selection.pathEndModel->SetPos( (float)path.end.x + 0.5f, 0.0f, (float)path.end.y + 0.5f );
@@ -803,6 +807,7 @@ void BattleScene::Tap(	int tap,
 								selection.pathEndModel->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.5f );
 								selection.pathEndModel->SetFlag( Model::MODEL_SELECTABLE );	// FIXME not needed, remove entire draggable thing
 								selection.pathEndModel->SetFlag( Model::MODEL_MAP_TRANSPARENT);
+								selection.pathEndModel->SetFlag( Model::MODEL_ALWAYS_DRAW);
 
 								float rot;
 								path.CalcDelta( path.len-2, path.len-1, 0, &rot );

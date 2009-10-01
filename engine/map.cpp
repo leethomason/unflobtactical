@@ -32,13 +32,14 @@ Map::Map( SpaceTree* tree )
 {
 	memset( itemDefArr, 0, sizeof(MapItemDef)*MAX_ITEM_DEF );
 	memset( tileArr, 0, sizeof(MapTile)*SIZE*SIZE );
-	microPather = new MicroPather(	this,									// graph interface
-									&patherMem, PATHER_MEM32*sizeof(U32),	// memory
-									8 );									// max adjacent states
+	microPather = new MicroPather(	this,				// graph interface
+									SIZE*SIZE+1,		// max possible states (+1)
+									true );				// max adjacent states
 
 	this->tree = tree;
 	width = height = SIZE;
 	texture = 0;
+	nWalkingVertex = 0;
 
 	vertex[0].pos.Set( 0.0f,		0.0f, 0.0f );
 	vertex[1].pos.Set( 0.0f,		0.0f, (float)SIZE );
@@ -135,6 +136,32 @@ void Map::Draw()
 	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 	glClientActiveTexture( GL_TEXTURE0 );
 	glActiveTexture( GL_TEXTURE0 );
+
+	CHECK_GL_ERROR
+}
+
+
+void Map::DrawOverlay()
+{
+	if ( nWalkingVertex ) {
+		const Texture* iTex = TextureManager::Instance()->GetTexture( "icons" );
+		GLASSERT( iTex );
+
+		U8* v = (U8*)walkingVertex + Vertex::POS_OFFSET;
+		U8* t = (U8*)walkingVertex + Vertex::TEXTURE_OFFSET;
+
+		glColor4f( 1.0f, 1.0f, 1.0f, 0.5f );
+		glBindTexture( GL_TEXTURE_2D, iTex->glID );
+		glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), v);
+		glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), t); 
+		glDisableClientState( GL_NORMAL_ARRAY );
+		glEnable( GL_BLEND );
+
+		glDrawArrays( GL_TRIANGLES, 0, nWalkingVertex );
+
+		glEnableClientState( GL_NORMAL_ARRAY );
+		glDisable( GL_BLEND );
+	}
 
 	CHECK_GL_ERROR
 }
@@ -1030,7 +1057,7 @@ bool Map::Connected( ConnectionType c, int x, int y, int dir )
 }
 
 
-void Map::AdjacentCost( void* state, micropather::StateCost *adjacent, int* nAdjacent )
+void Map::AdjacentCost( void* state, std::vector< micropather::StateCost > *adjacent )
 {
 	Vector2<S16> pos;
 	StateToVec( state, &pos );
@@ -1049,14 +1076,16 @@ void Map::AdjacentCost( void* state, micropather::StateCost *adjacent, int* nAdj
 	const float SQRT2 = 1.414f;
 	const float cost[8] = {	1.0f, 1.0f, 1.0f, 1.0f, SQRT2, SQRT2, SQRT2, SQRT2 };
 
-	*nAdjacent = 0;
+	adjacent->resize( 0 );
 	// N S E W
 	for( int i=0; i<4; i++ ) {
 		if ( Connected( PATH_TYPE, pos.x, pos.y, i ) ) {
 			Vector2<S16> nextPos = pos + next[i];
-			adjacent[*nAdjacent].cost = cost[i];
-			adjacent[*nAdjacent].state = VecToState( nextPos );
-			(*nAdjacent)++;
+
+			micropather::StateCost stateCost;
+			stateCost.cost = cost[i];
+			stateCost.state = VecToState( nextPos );
+			adjacent->push_back( stateCost );
 		}
 	}
 	// Diagonals. Need to check if all the NSEW connections work. If
@@ -1072,9 +1101,10 @@ void Map::AdjacentCost( void* state, micropather::StateCost *adjacent, int* nAdj
 			 && Connected( PATH_TYPE, nextPos.x, nextPos.y, iInv )
 			 && Connected( PATH_TYPE, nextPos.x, nextPos.y, jInv ) ) 
 		{
-			adjacent[*nAdjacent].cost = cost[i+4];
-			adjacent[*nAdjacent].state = VecToState( nextPos );
-			(*nAdjacent)++;
+			micropather::StateCost stateCost;
+			stateCost.cost = cost[i+4];
+			stateCost.state = VecToState( nextPos );
+			adjacent->push_back( stateCost );
 		}
 	}
 }
@@ -1093,22 +1123,22 @@ int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *c
 	GLASSERT( sizeof( int ) == sizeof( void* ));	// fix this for 64 bit
 	GLASSERT( sizeof(Vector2<S16>) == sizeof( void* ) );
 
-	unsigned pathNodesAllocated = microPather->PathNodesAllocated();
 	int result = microPather->Solve(	VecToState( start ),
 										VecToState( end ),
-										maxPath, 
-										(void**)path, nPath, cost );
+										&mapPath,
+										cost );
 
-	if ( pathNodesAllocated > 0 && result == MicroPather::OUT_OF_MEMORY ) {
-		// MicroPather as of April09 doesn't free memory aggressively enough. This works
-		// around the problem by reset (frees all memory) and solving again.
-		// This makes the worse case - a long path consumes all the memory - by
-		// doing it again.
-		microPather->Reset();
-		result = microPather->Solve(	VecToState( start ),
-										VecToState( end ),
-										maxPath, 
-										(void**)path, nPath, cost );
+	if ( result == MicroPather::OUT_OF_MEMORY ) {
+		// do nothing. Will be returned.
+	}
+	else if ( (int)mapPath.size() > maxPath ) {
+		result = MicroPather::OUT_OF_MEMORY;
+	}
+	else {
+		*nPath = mapPath.size();
+		for( int i=0; i<*nPath; ++i ) {
+			StateToVec( mapPath[i], &path[i] );
+		}
 	}
 	/*
 	switch( result ) {
@@ -1120,6 +1150,85 @@ int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *c
 	}
 	*/
 	return result;
+}
+
+
+void Map::CalcPath(	const grinliz::Vector2<S16>& start,
+					float cost0, float cost1, float cost2 )
+{
+	GLASSERT( cost2 <= (float)MAX_TRAVEL );
+	walkingMap.ClearAll();
+
+	int result = microPather->SolveForNearStates( VecToState( start ), &stateCostArr, cost2 );
+	/*
+	GLOUTPUT(( "Near states, result=%d\n", result ));
+	for( unsigned m=0; m<stateCostArr.size(); ++m ) {
+		Vector2<S16> v;
+		StateToVec( stateCostArr[m].state, &v );
+		GLOUTPUT(( "  (%d,%d) cost=%.1f\n", v.x, v.y, stateCostArr[m].cost ));
+	}
+	*/
+
+	if ( result == MicroPather::SOLVED ) {
+		for( unsigned i=0; i<stateCostArr.size(); ++i ) {
+
+			const micropather::StateCost& stateCost = stateCostArr[i];
+			Vector2<S16> v;
+			StateToVec( stateCost.state, &v );
+
+#ifdef DEBUG
+			{
+				Rectangle3I rect;
+				rect.Set( v.x, v.y, 0, v.x, v.y, 2 );
+				GLASSERT( walkingMap.IsRectEmpty( rect ));
+			}
+#endif
+
+			if ( stateCost.cost <= cost0 ) {
+				walkingMap.Set( v.x, v.y, 0 );
+			}
+			else if ( stateCost.cost <= cost1 ) {
+				walkingMap.Set( v.x, v.y, 1 );
+			}
+			else {
+				walkingMap.Set( v.x, v.y, 2 );
+			}
+		}
+	}
+
+	/*
+	nWalkingVertex = 0;
+	PushWalkingVertex( 0,  0,   0.f,       0.f );
+	PushWalkingVertex( 64, 64, 0.25f, 0.25f );
+	PushWalkingVertex( 64, 0,   0.25f, 0.f );
+
+	PushWalkingVertex( 0,   0,   0.f,       0.f );
+	PushWalkingVertex( 0,   64, 0.f,       0.25f );
+	PushWalkingVertex( 64, 64, 0.25f, 0.25f );
+	*/
+
+	nWalkingVertex = 0;
+	for( int j=0; j<SIZE; ++j ) {
+		for( int i=0; i<SIZE; ++i ) {
+			U32 set = walkingMap.IsSet( i, j, 0 ) | walkingMap.IsSet( i, j, 1 ) | walkingMap.IsSet( i, j, 2 );
+			if ( set ) {
+				float tx = 0.0f;
+				float ty = 0.75f;
+				if ( walkingMap.IsSet( i, j, 1 ) )
+					tx = 0.25f;
+				else if (walkingMap.IsSet( i, j, 2 ) )
+					tx = 0.50f;
+
+				PushWalkingVertex( i,   j,   tx,       ty );
+				PushWalkingVertex( i+1, j+1, tx+0.25f, ty+0.25f );
+				PushWalkingVertex( i+1, j,   tx+0.25f, ty );
+
+				PushWalkingVertex( i,   j,   tx,       ty );
+				PushWalkingVertex( i,   j+1, tx,       ty+0.25f );
+				PushWalkingVertex( i+1, j+1, tx+0.25f, ty+0.25f );
+			}
+		}
+	}
 }
 
 
