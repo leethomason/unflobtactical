@@ -335,7 +335,7 @@ void Game::LoadMapResources()
 	{
 			// model		open			destroyed	cx, cz	hp			material		pather
 		{	"ufo_Diag",		0,				0,			1,	1,	HP_STEEL,	STEEL,		"f" },
-		{	"ufo_DoorCld",	"ufo_DoorOpn",	0,			1,	1,	HP_STEEL,	STEEL,		"0" },
+		{	"ufo_DoorCld",	"ufo_DoorOpn",	0,			1,	1,	HP_STEEL,	STEEL,		"0", "1" },
 		{	"ufo_WallInn",	0,				0,			1,	1,	HP_STEEL,	STEEL,		"1" },
 		{	"ufo_CrnrInn",	0,				0,			1,	1,	HP_STEEL,	STEEL,		"3" },
 		{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	STEEL,		"1" },

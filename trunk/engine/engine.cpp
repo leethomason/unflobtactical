@@ -314,7 +314,12 @@ void Engine::Draw( int* triCount )
 		glDepthFunc( GL_LESS );
 		glColor4f( color.x, color.y, color.z, 1.0f );
 		map->Draw();
+
+		glDepthFunc( GL_ALWAYS );
+		map->DrawOverlay();
+
 		glDepthFunc( depthFunc );
+
 	}
 
 	// -------- Models in light ---------- //
@@ -342,7 +347,8 @@ void Engine::Draw( int* triCount )
 		int x = LRintf( pos.x - 0.5f );
 		int y = LRintf( pos.z - 0.5f );
 
-		bool queue = false;
+		bool queue = false;		// draw in color
+		bool queue0 = false;	// draw in black
 
 		if ( model->IsFlagSet(  Model::MODEL_OWNED_BY_MAP ) ) {
 			Rectangle2I fogRect;
@@ -352,19 +358,26 @@ void Engine::Draw( int* triCount )
 			if ( fogRect.max.x < Map::SIZE-1 ) fogRect.max.x += 1;
 			if ( fogRect.max.y < Map::SIZE-1 ) fogRect.max.y += 1;
 
+			// Map is always rendered, possibly in black.
 			if ( !fogOfWar.IsRectEmpty( fogRect ) ) {
 				queue = true;
 			}
+			else {
+				queue0 = true;
+			}
+		}
+		else if ( model->IsFlagSet( Model::MODEL_ALWAYS_DRAW )) {
+			queue = true;
 		}
 		else if ( fogOfWar.IsSet( x, y ) ) {
 			queue = true;
 		}
-		//bool queue = true;
 
+		GLASSERT( !(queue && queue0) );
 		if ( queue ) {
 			model->Queue( renderQueue, Model::MODEL_TEXTURE );
 		}
-		else {
+		else if ( queue0 ) {
 			model->next0 = fogRoot;
 			fogRoot = model;
 		}

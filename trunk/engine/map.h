@@ -44,6 +44,7 @@ public:
 		SIZE = 64,					// maximum size. FIXME: duplicated in gamelimits.h
 		MAX_ITEM_DEF = 256,
 		ITEM_PER_TILE = 4,
+		MAX_TRAVEL = 16,
 	};
 
 	struct MapItemDef 
@@ -151,6 +152,7 @@ public:
 	void UnBindTextureUnits();
 	void Draw();
 	void DrawPath();
+	void DrawOverlay();
 
 	// Explosions impacts and such.
 	void DoDamage( int damageBase, Model* m, int shellFlags );
@@ -189,10 +191,15 @@ public:
 					const grinliz::Vector2<S16>& end,
 					float* cost,
 					grinliz::Vector2<S16>* path, int* nPath, int maxPath );
+	
+	void CalcPath(	const grinliz::Vector2<S16>& start,
+					float cost0, float cost1, float cost2 );
+
+					
 
 	// micropather:
 	virtual float LeastCostEstimate( void* stateStart, void* stateEnd );
-	virtual void AdjacentCost( void* state, micropather::StateCost *adjacent, int* nAdjacent );
+	virtual void  AdjacentCost( void* state, std::vector< micropather::StateCost > *adjacent );
 	virtual void  PrintStateInfo( void* state );
 
 	// like pathing, but visibility
@@ -259,11 +266,24 @@ private:
 
 	micropather::MicroPather* microPather;
 
-	enum { PATHER_MEM32 = 32*1024 };			// 128K
 	grinliz::BitArray<SIZE, SIZE, 1>	pathBlock;	// spaces the pather can't use (units are there)	
-	U32								patherMem[ PATHER_MEM32 ];	// big block of memory for the pather.
-	MapItemDef						itemDefArr[MAX_ITEM_DEF];
-	MapTile							tileArr[ SIZE*SIZE ];
+	MapItemDef							itemDefArr[MAX_ITEM_DEF];
+	MapTile								tileArr[ SIZE*SIZE ];
+	std::vector<void*>					mapPath;
+	std::vector< micropather::StateCost > stateCostArr;
+	grinliz::BitArray< SIZE, SIZE, 3 >	walkingMap;
+
+	void PushWalkingVertex( int x, int z, float tx, float ty ) 
+	{
+		GLASSERT( nWalkingVertex < 6*MAX_TRAVEL*MAX_TRAVEL );
+		walkingVertex[ nWalkingVertex ].normal.Set( 0.0f, 1.0f, 0.0f );
+		walkingVertex[ nWalkingVertex ].pos.Set( (float)x, 0.0f,(float)(z) );
+		walkingVertex[ nWalkingVertex ].tex.Set( tx, ty );
+		++nWalkingVertex;
+	}
+
+	Vertex								walkingVertex[6*MAX_TRAVEL*MAX_TRAVEL];
+	int									nWalkingVertex;
 };
 
 #endif // UFOATTACK_MAP_INCLUDED
