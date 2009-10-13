@@ -757,6 +757,7 @@ void BattleScene::Tap(	int tap,
 			else {
 				path.Clear();
 				SetSelection( UnitFromModel( model ) );
+				SetPathBlocks();
 
 				Vector2<S16> start   = { (S16)model->X(), (S16)model->Z() };
 				engine->GetMap()->CalcPath( start, 2.0f, 4.0f, 6.0f );
@@ -780,21 +781,9 @@ void BattleScene::Tap(	int tap,
 							path.end = end;
 
 							if ( start != end ) {
-								Map* map = engine->GetMap();
-								map->ClearPathBlocks();
-
-								for( int i=0; i<MAX_UNITS; ++i ) {
-									if (    units[i].Status() == Unit::STATUS_ALIVE 
-										 && units[i].GetModel() 
-										 && units[i].GetModel() != selected ) // oops - don't cause self to not path
-									{
-										int x = (int)units[i].GetModel()->X();
-										int z = (int)units[i].GetModel()->Z();
-										map->SetPathBlock( x, z );
-									}
-								}
+								SetPathBlocks();
 								float cost;
-								map->SolvePath( start, end, &cost, path.path, &path.len, path.MAX_PATH );
+								engine->GetMap()->SolvePath( start, end, &cost, path.path, &path.len, path.MAX_PATH );
 							}
 							FreePathEndModel();
 
@@ -821,6 +810,23 @@ void BattleScene::Tap(	int tap,
 	}
 }
 
+
+void BattleScene::SetPathBlocks()
+{
+	Map* map = engine->GetMap();
+	map->ClearPathBlocks();
+
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		if (    units[i].Status() == Unit::STATUS_ALIVE 
+			 && units[i].GetModel() 
+			 && &units[i] != selection.soldierUnit ) // oops - don't cause self to not path
+		{
+			int x = (int)units[i].GetModel()->X();
+			int z = (int)units[i].GetModel()->Z();
+			map->SetPathBlock( x, z );
+		}
+	}
+}
 
 Unit* BattleScene::UnitFromModel( Model* m )
 {
