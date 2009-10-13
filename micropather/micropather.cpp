@@ -47,13 +47,10 @@ class OpenQueue
 	{ 
 		graph = _graph; 
 		sentinel = (PathNode*) sentinelMem;
-		sentinel->Init( 0, 0, FLT_MAX, FLT_MAX, 0 );
-		sentinel->totalCost = FLT_MAX;
-		sentinel->next = sentinel;
-		sentinel->prev = sentinel;
-			#ifdef DEBUG
-				sentinel->CheckList();
-			#endif
+		sentinel->InitSentinel();
+		#ifdef DEBUG
+			sentinel->CheckList();
+		#endif
 	}
 	~OpenQueue()	{}
 
@@ -76,8 +73,8 @@ class OpenQueue
 void OpenQueue::Push( PathNode* pNode )
 {
 	
-	assert( pNode->inOpen == 0 );
-	assert( pNode->inClosed == 0 );
+	MPASSERT( pNode->inOpen == 0 );
+	MPASSERT( pNode->inClosed == 0 );
 	
 #ifdef DEBUG_PATH_DEEP
 	printf( "Open Push: " );
@@ -87,7 +84,7 @@ void OpenQueue::Push( PathNode* pNode )
 	
 	// Add sorted. Lowest to highest cost path. Note that the sentinel has
 	// a value of FLT_MAX, so it should always be sorted in.
-	assert( pNode->totalCost < FLT_MAX );
+	MPASSERT( pNode->totalCost < FLT_MAX );
 	PathNode* iter = sentinel->next;
 	while ( true )
 	{
@@ -98,7 +95,7 @@ void OpenQueue::Push( PathNode* pNode )
 		}
 		iter = iter->next;
 	}
-	assert( pNode->inOpen );	// make sure this was actually added.
+	MPASSERT( pNode->inOpen );	// make sure this was actually added.
 #ifdef DEBUG
 	sentinel->CheckList();
 #endif
@@ -106,15 +103,15 @@ void OpenQueue::Push( PathNode* pNode )
 
 PathNode* OpenQueue::Pop()
 {
-	assert( sentinel->next != sentinel );
+	MPASSERT( sentinel->next != sentinel );
 	PathNode* pNode = sentinel->next;
 	pNode->Unlink();
 #ifdef DEBUG
 	sentinel->CheckList();
 #endif
 	
-	assert( pNode->inClosed == 0 );
-	assert( pNode->inOpen == 1 );
+	MPASSERT( pNode->inClosed == 0 );
+	MPASSERT( pNode->inOpen == 1 );
 	pNode->inOpen = 0;
 	
 #ifdef DEBUG_PATH_DEEP
@@ -134,7 +131,7 @@ void OpenQueue::Update( PathNode* pNode )
 	printf( " total=%.1f\n", pNode->totalCost );		
 #endif
 	
-	assert( pNode->inOpen );
+	MPASSERT( pNode->inOpen );
 	
 	// If the node now cost less than the one before it,
 	// move it to the front of the list.
@@ -173,8 +170,8 @@ class ClosedSet
 			printf( " total=%.1f\n", pNode->totalCost );		
 		#endif
 		#ifdef DEBUG
-		assert( pNode->inClosed == 0 );
-		assert( pNode->inOpen == 0 );
+		MPASSERT( pNode->inClosed == 0 );
+		MPASSERT( pNode->inOpen == 0 );
 		#endif
 		pNode->inClosed = 1;
 	}
@@ -186,8 +183,8 @@ class ClosedSet
 			graph->PrintStateInfo( pNode->state );
 			printf( " total=%.1f\n", pNode->totalCost );		
 		#endif
-		assert( pNode->inClosed == 1 );
-		assert( pNode->inOpen == 0 );
+		MPASSERT( pNode->inClosed == 1 );
+		MPASSERT( pNode->inOpen == 0 );
 
 		pNode->inClosed = 0;
 	}
@@ -202,26 +199,28 @@ class ClosedSet
 PathNodePool::PathNodePool( unsigned _allocate, unsigned _typicalAdjacent ) 
 	: firstBlock( 0 ),
 	  blocks( 0 ),
+#if defined( MICROPATHER_STRESS )
+	  allocate( 32 ),
+#else
 	  allocate( _allocate ),
+#endif
 	  nAllocated( 0 ),
 	  nAvailable( 0 )
 {
-	sentinel.Init( 0, 0, FLT_MAX, FLT_MAX, 0 );
-	sentinel.totalCost = FLT_MAX;
-	sentinel.next = &sentinel;
-	sentinel.prev = &sentinel;
+	freeMemSentinel.InitSentinel();
 
-	cacheCap = _allocate * _typicalAdjacent;
+	cacheCap = allocate * _typicalAdjacent;
 	cacheSize = 0;
 	cache = (NodeCost*)malloc(cacheCap * sizeof(NodeCost));
 
-	hashSize = 16;
-	while( hashSize*2 <= _allocate )
-		hashSize *= 2;
-	hashTable = (PathNode**)calloc( hashSize, sizeof(PathNode*) );
+	hashShift = 3;	// 8 
+#if !defined( MICROPATHER_STRESS )
+	while( HashSize()*2 <= allocate )
+		++hashShift;
+#endif
+	hashTable = (PathNode**)calloc( HashSize(), sizeof(PathNode*) );
 
-	firstBlock = NewBlock();
-	blocks = firstBlock;
+	blocks = firstBlock = NewBlock();
 }
 
 
@@ -234,12 +233,22 @@ PathNodePool::~PathNodePool()
 }
 
 
+bool PathNodePool::PushCache( const NodeCost* nodes, int nNodes, int* start ) {
+	*start = -1;
+	if ( nNodes+cacheSize <= cacheCap ) {
+		for( int i=0; i<nNodes; ++i ) {
+			cache[i+cacheSize] = nodes[i];
+		}
+		*start = cacheSize;
+		cacheSize += nNodes;
+		return true;
+	}
+	return false;
+}
+
+
 void PathNodePool::Clear()
 {
-	sentinel.next = &sentinel;
-	sentinel.prev = &sentinel;
-	memset( hashTable, 0, sizeof(PathNode*)*hashSize );
-	
 	Block* b = blocks;
 	while( b ) {
 		Block* temp = b->nextBlock;
@@ -248,8 +257,17 @@ void PathNodePool::Clear()
 		}
 		b = temp;
 	}
-	for( unsigned i=0; i<allocate; ++i ) {
-		sentinel.AddBefore( &firstBlock->pathNode[i] );
+	blocks = firstBlock;	// Don't delete the first block (we always need at least that much memory.)
+
+	// Set up for new allocations (but don't do work we don't need to. Reset/Clear can be called frequently.)
+	if ( nAllocated > 0 ) {
+		freeMemSentinel.next = &freeMemSentinel;
+		freeMemSentinel.prev = &freeMemSentinel;
+	
+		memset( hashTable, 0, sizeof(PathNode*)*HashSize() );
+		for( unsigned i=0; i<allocate; ++i ) {
+			freeMemSentinel.AddBefore( &firstBlock->pathNode[i] );
+		}
 	}
 	nAvailable = allocate;
 	nAllocated = 0;
@@ -264,28 +282,27 @@ PathNodePool::Block* PathNodePool::NewBlock()
 
 	nAvailable += allocate;
 	for( unsigned i=0; i<allocate; ++i ) {
-		sentinel.AddBefore( &block->pathNode[i] );
+		freeMemSentinel.AddBefore( &block->pathNode[i] );
 	}
-
 	return block;
 }
 
 
 PathNode* PathNodePool::Alloc()
 {
-	if ( sentinel.next == &sentinel ) {
-		assert( nAvailable == 0 );
+	if ( freeMemSentinel.next == &freeMemSentinel ) {
+		MPASSERT( nAvailable == 0 );
 
 		Block* b = NewBlock();
 		b->nextBlock = blocks;
 		blocks = b;
-		assert( sentinel.next != &sentinel );
+		MPASSERT( freeMemSentinel.next != &freeMemSentinel );
 	}
-	PathNode* pathNode = sentinel.next;
+	PathNode* pathNode = freeMemSentinel.next;
 	pathNode->Unlink();
 
 	++nAllocated;
-	assert( nAvailable > 0 );
+	MPASSERT( nAvailable > 0 );
 	--nAvailable;
 	return pathNode;
 }
@@ -329,18 +346,36 @@ PathNode* PathNodePool::NewPathNode(	unsigned frame,
 		// Found an allocated block of memory - reuse and return.
 		// We can re-use the neighbor cache, since all hash table lookups
 		// fail after a reset.
-		root->Init( frame, state, costFromStart, estToGoal, parent, false );
+		MPASSERT( root->frame != frame );	// If fires, this is actually in use!
+		root->Init( frame, state, costFromStart, estToGoal, parent );
 		return root;
 	}
 
 	// No existing block - open one up.
 	PathNode* pathNode = Alloc();
+	pathNode->Clear();
 	pathNode->Init( frame, state, costFromStart, estToGoal, parent );
 	pathNode->left = hashTable[key];
 	hashTable[key] = pathNode;
 	return pathNode;
 }
 
+
+void PathNode::Init(	unsigned _frame,
+						void* _state,
+						float _costFromStart, 
+						float _estToGoal, 
+						PathNode* _parent )
+{
+	state = _state;
+	costFromStart = _costFromStart;
+	estToGoal = _estToGoal;
+	CalcTotalCost();
+	parent = _parent;
+	frame = _frame;
+	inOpen = 0;
+	inClosed = 0;
+}
 
 MicroPather::MicroPather( Graph* _graph, unsigned allocate, unsigned typicalAdjacent )
 	:	pathNodePool( allocate, typicalAdjacent ),
@@ -449,7 +484,7 @@ void MicroPather::GetNodeNeighbors( PathNode* node, std::vector< NodeCost >* pNo
 			// as its own neighbor state. This is impossible --
 			// bad things will happen.
 			for ( unsigned i=0; i<stateCostVec.size(); ++i )
-				assert( stateCostVec[i].state != node->state );
+				MPASSERT( stateCostVec[i].state != node->state );
 		}
 		#endif
 
@@ -458,21 +493,23 @@ void MicroPather::GetNodeNeighbors( PathNode* node, std::vector< NodeCost >* pNo
 
 		// Now convert to pathNodes.
 		for( unsigned i=0; i<stateCostVec.size(); ++i ) {
-			(*pNodeCost)[i].cost = stateCostVec[i].cost;
-			(*pNodeCost)[i].node = pathNodePool.FindPathNode( frame, stateCostVec[i].state );
-			if ( !(*pNodeCost)[i].node ) {
-				{
-					(*pNodeCost)[i].node = pathNodePool.NewPathNode(	frame,
-																		stateCostVec[i].state, 
-																		FLT_BIG, FLT_BIG, 
-																		0 );
-				}
+			NodeCost nc;
+			void* state = stateCostVec[i].state;
+
+			nc.cost = stateCostVec[i].cost;
+			nc.node = pathNodePool.FindPathNode( frame, state );
+			if ( !nc.node ) {
+				nc.node = pathNodePool.NewPathNode(	frame,
+													state, 
+													FLT_MAX, FLT_MAX, 
+													0 );
 			}
+			(*pNodeCost)[i] = nc;
 		}
 
 		// Can this be cached?
 		int start = 0;
-		if ( pathNodePool.PushCache( &pNodeCost->at(0), pNodeCost->size(), &start ) ) {
+		if ( pNodeCost->size() > 0 && pathNodePool.PushCache( &pNodeCost->at(0), pNodeCost->size(), &start ) ) {
 			node->cacheIndex = start;
 		}
 	}
@@ -480,6 +517,15 @@ void MicroPather::GetNodeNeighbors( PathNode* node, std::vector< NodeCost >* pNo
 		// In the cache!
 		pNodeCost->resize( node->numAdjacent );
 		pathNodePool.GetCache( node->cacheIndex, node->numAdjacent, &pNodeCost->at(0) );
+
+		// A node is uninitialized (even if memory is allocated) if it is from a previous frame.
+		// Check for that, and Init() as necessary.
+		for( int i=0; i<node->numAdjacent; ++i ) {
+			PathNode* pNode = (*pNodeCost)[i].node;
+			if ( pNode->frame != frame ) {
+				pNode->Init( frame, pNode->state, FLT_MAX, FLT_MAX, 0 );
+			}
+		}
 	}
 }
 
@@ -584,10 +630,10 @@ int MicroPather::Solve( void* startNode, void* endNode, vector< void* >* path, f
 
 				PathNode* inOpen   = nodeCostVec[i].node->inOpen ? nodeCostVec[i].node : 0;
 				PathNode* inClosed = nodeCostVec[i].node->inClosed ? nodeCostVec[i].node : 0;
-				assert( !( inOpen && inClosed ) );
+				MPASSERT( !( inOpen && inClosed ) );
 				PathNode* inEither = inOpen ? inOpen : inClosed;
 
-				assert( inEither != node );
+				MPASSERT( inEither != node );
 
 				if ( inEither )
 				{
@@ -615,8 +661,8 @@ int MicroPather::Solve( void* startNode, void* endNode, vector< void* >* path, f
 				}
 				else if (!inEither)
 				{
-					assert( !inEither );
-					assert( nodeCostVec[i].node );
+					MPASSERT( !inEither );
+					MPASSERT( nodeCostVec[i].node );
 
 					PathNode* pNode = nodeCostVec[i].node;
 					pNode->parent = node;
@@ -660,14 +706,19 @@ int MicroPather::SolveForNearStates( void* startState, std::vector< StateCost >*
 		16                  previous[v] := u
 		17      return dist[]
 	*/
-	
+
 	++frame;
 
 	OpenQueue open( graph );			// nodes to look at
-	ClosedSet closed( graph );			// nodes looked at
-	closedSet.clear();
+	ClosedSet closed( graph );
+
 	nodeCostVec.resize(0);
 	stateCostVec.resize(0);
+
+	PathNode closedSentinel;
+	closedSentinel.Clear();
+	closedSentinel.Init( frame, 0, FLT_MAX, FLT_MAX, 0 );
+	closedSentinel.next = closedSentinel.prev = &closedSentinel;
 
 	PathNode* newPathNode = pathNodePool.NewPathNode( frame, startState, 0, 0, 0 );
 	if ( !newPathNode ) {
@@ -680,70 +731,63 @@ int MicroPather::SolveForNearStates( void* startState, std::vector< StateCost >*
 	{
 		PathNode* node = open.Pop();	// smallest dist
 		closed.Add( node );				// add to the things we've looked at
-		closedSet.push_back( node );
+		closedSentinel.AddBefore( node );
 			
+		if ( node->totalCost > maxCost )
+			continue;		// Too far away to ever get here.
+
 		GetNodeNeighbors( node, &nodeCostVec );
 
 		for( int i=0; i<node->numAdjacent; ++i )
 		{
-			// Best cost estimate. If it exceeds max, no use looking at it.
-			if ( nodeCostVec[i].cost > maxCost ) {
-				continue;
-			}
-
+			MPASSERT( node->costFromStart < FLT_MAX );
 			float newCost = node->costFromStart + nodeCostVec[i].cost;
 
 			PathNode* inOpen   = nodeCostVec[i].node->inOpen ? nodeCostVec[i].node : 0;
 			PathNode* inClosed = nodeCostVec[i].node->inClosed ? nodeCostVec[i].node : 0;
-			assert( !( inOpen && inClosed ) );
+			MPASSERT( !( inOpen && inClosed ) );
 			PathNode* inEither = inOpen ? inOpen : inClosed;
+			MPASSERT( inEither != node );
 
-			assert( inEither != node );
-
-			if ( inEither )
-			{
-				// Is this node is in use, and the cost is not an improvement,
-				// continue on.
-				if ( inEither->costFromStart <= newCost )
-					continue;	// Do nothing. This path is not better than existing.
-
-				// Groovy. We have new information or improved information.
-				inEither->parent = node;
-				inEither->costFromStart = newCost;
-				inEither->estToGoal = 0;
-				inEither->totalCost = inEither->costFromStart + inEither->estToGoal;
+			if ( inEither && inEither->costFromStart <= newCost ) {
+				continue;	// Do nothing. This path is not better than existing.
 			}
-			else {
-				assert( nodeCostVec[i].node );
+			// Groovy. We have new information or improved information.
+			PathNode* child = nodeCostVec[i].node;
+			MPASSERT( child->state != newPathNode->state );	// should never re-process the parent.
 
-				PathNode* pNode = nodeCostVec[i].node;
-				pNode->parent = node;
-				pNode->costFromStart = newCost;
-				pNode->estToGoal = 0;
-				pNode->totalCost = pNode->costFromStart + pNode->estToGoal;
-				
-				open.Push( pNode );
-			}
+			child->parent = node;
+			child->costFromStart = newCost;
+			child->estToGoal = 0;
+			child->totalCost = child->costFromStart;
 
-			if ( inOpen )
-			{
-				// Need to update the sort!
+			if ( inOpen ) {
 				open.Update( inOpen );
+			}
+			else if ( !inClosed ) {
+				open.Push( child );
 			}
 		}
 	}	
 	near->clear();
-	for( unsigned i=0; i<closedSet.size(); ++i ) {
-		if ( closedSet[i]->totalCost <= maxCost ) {
-			const PathNode* pn = closedSet[i];
 
+	for( PathNode* pNode=closedSentinel.next; pNode != &closedSentinel; pNode=pNode->next ) {
+		if ( pNode->totalCost <= maxCost ) {
 			StateCost sc;
-			sc.cost = pn->totalCost;
-			sc.state = pn->state;
+			sc.cost = pNode->totalCost;
+			sc.state = pNode->state;
 
 			near->push_back( sc );
 		}
 	}
+#ifdef DEBUG
+	for( unsigned i=0; i<near->size(); ++i ) {
+		for( unsigned k=i+1; k<near->size(); ++k ) {
+			MPASSERT( near->at(i).state != near->at(k).state );
+		}
+	}
+#endif
+
 	return SOLVED;
 }
 

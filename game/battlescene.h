@@ -104,6 +104,7 @@ private:
 	void SetUnitsDraggable();
 	void TestHitTesting();
 	void CalcVisibility( const Unit* unit, int x, int y, float rotation );
+	void SetPathBlocks();
 
 	Unit* UnitFromModel( Model* m );
 	Unit* GetUnitFromTile( int x, int z );

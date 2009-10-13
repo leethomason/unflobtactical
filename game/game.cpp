@@ -32,9 +32,6 @@
 
 using namespace grinliz;
 
-
-
-
 Game::Game( const Screenport& sp ) :
 	engine( sp, engineData ),
 	screenport( sp ),
