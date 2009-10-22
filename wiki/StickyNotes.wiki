@@ -1,0 +1,33 @@
+#Useful code and links from the web
+
+= Considering SQLite DB =
+
+Considering moving to SQLite for file access, and removing the roll-my-own. The only downside is learning a new API; upside is a way to view and edit the save files, and a solid mechanism for file access.
+
+Nice example of simple (but efficient) SQLite that avoids lots of prints to strings.
+
+{{{
+sqlite3* db = NULL;
+sqlite3_open("myfile.db", &db);
+
+sqlite3_stmt* stmt = NULL;
+sqlite3_prepare_v2(db, "select * from foo where a=? and b=?;", &stmt,
+NULL);
+
+sqlite3_bind_int(stmt, 1, 42);
+sqlite3_bind_double(stmt, 2, 4.2);
+
+while (sqlite3_step(stmt) == SQLITE_ROW) {
+  foo row;
+  row.a = sqlite3_column_int(stmt, 0);
+  row.b = sqlite3_column_double(stmt, 1);
+  row.d = sqlite3_column_bytes(stmt, 2);
+  assert(row.d <= sizeof(row.c));
+  memcpy(row.c, sqlite3_column_blob(stmt, 2), row.d);
+
+  // do something with row
+}
+
+sqlite3_finalize(stmt);
+sqlite3_close(db); 
+}}}
