@@ -84,12 +84,14 @@ private:
 
 	struct Path
 	{
-		enum { MAX_PATH			= 100 };
 		grinliz::Vector2<S16>	start, end;
-		int						len;
-		grinliz::Vector2<S16>	path[MAX_PATH];
+		std::vector< void* >	statePath;
 
-		void Clear() { len = 0; start.Set( -1, -1 ); end.Set( -1, -1 ); }
+		grinliz::Vector2<S16> GetPathAt( unsigned i ) {
+			grinliz::Vector2<S16> v = *((grinliz::Vector2<S16>*)&statePath[i] );
+			return v;
+		}
+		void Clear() { start.Set( -1, -1 ); end.Set( -1, -1 ); }
 		void CalcDelta( int i0, int i1, grinliz::Vector2I* vec, float* rot );
 		void Travel( float* travelDistance, int* pathPos, float* fraction );
 		void GetPos( int step, float fraction, float* x, float* z, float* rot );
@@ -114,10 +116,9 @@ private:
 	struct Selection
 	{
 		Selection()	{ Clear(); }
-		void Clear() { soldierUnit = 0; targetUnit = 0; pathEndModel = 0; }
+		void Clear() { soldierUnit = 0; targetUnit = 0; }
 		Unit*	soldierUnit;
 		Unit*	targetUnit;
-		Model*	pathEndModel;
 	};
 	Selection selection;
 
@@ -129,9 +130,7 @@ private:
 	Unit*	AlienUnit()				{ return selection.targetUnit; }
 	Model*	AlienModel()			{ if ( selection.targetUnit ) return selection.targetUnit->GetModel(); return 0; }
 
-	Model*	PathEndModel()			{ return selection.pathEndModel; }
 	void	SetSelection( Unit* unit );
-	void	FreePathEndModel();
 
 	grinliz::Vector3F dragStart;
 	grinliz::Vector3F dragStartCameraWC;

@@ -469,63 +469,6 @@ Model* SpaceTree::QueryRay( const Vector3F& _origin,
 
 	Model* modelRoot = Query( planes, 6, required, excluded );
 
-
-	/*
-	// Now we step. Any step will work, but the larger the step, the more extra we check. The smaller
-	// the step (if too small) the more memory gets walked.
-	Vector3F v = p1 - p0;
-	int nStep = (int)ceilf( v.Length()*0.25f );
-	float stepLen = v.Length() / (float)nStep;
-	Vector3F step = dir * stepLen;
-
-	for( int s=0; s<nStep; ++s ) {
-		Vector3F start = p0 + step*(float)s;
-		Vector3F end   = p0 + step*(float)(s+1);
-
-		int x0 = (int) start.x;
-		int x1 = (int) end.x;
-		if ( x0 > x1 ) Swap( &x0, &x1 );
-
-		int z0 = (int) start.z;
-		int z1 = (int) end.z;
-		if ( z0 > z1 ) Swap( &z0, &z1 );
-
-		x0 = Clamp( x0, 0, Map::SIZE-1 );
-		x1 = Clamp( x1, 0, Map::SIZE-1 );
-		z0 = Clamp( z0, 0, Map::SIZE-1 );
-		z1 = Clamp( z1, 0, Map::SIZE-1 );
-
-		//GLOUTPUT(( "step %d (%d,%d)-(%d,%d)\n", s, x0, z0, x1, z1 ));
-
-		for( int i=x0; i<=x1; ++i ) {
-			for( int k=z0; k<=z1; ++k ) {
-				for( Node* node = GetNode( DEPTH-1, i, k ); node; node=node->parent ) {
-					if ( node->queryID == queryID ) {
-						// already checked (and therefore parents already checked)
-						break;
-					}
-					node->queryID = queryID;
-
-					for( Item* item=node->sentinel.next; item != &node->sentinel; item=item->next ) {
-						Model* m = &item->model;
-						
-						if ( !Ignore( m, ignore ) ) {
-							int flags = m->Flags();
-
-							if (    ( (requiredFlags & flags) == requiredFlags)
-								 && ( (excludedFlags & flags) == 0 ) )
-							{
-								//GLOUTPUT(( "Test: %s\n", m->GetResource()->header.name ));
-								m->next = modelRoot;
-								modelRoot = m;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	*/
 	// We now have a batch of models. Are any of them a hit??
 	GLASSERT( testType == TEST_HIT_AABB || testType == TEST_TRI );
 
@@ -535,6 +478,9 @@ Model* SpaceTree::QueryRay( const Vector3F& _origin,
 	float t;
 
 	for( Model* root=modelRoot; root; root=root->next ) {
+		if ( Ignore( root, ignore ) )
+			continue;
+
 		//GLOUTPUT(( "Consider: %s\n", root->GetResource()->header.name ));
 		int result = grinliz::REJECT;
 

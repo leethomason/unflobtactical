@@ -190,10 +190,11 @@ public:
 	int SolvePath(	const grinliz::Vector2<S16>& start,
 					const grinliz::Vector2<S16>& end,
 					float* cost,
-					grinliz::Vector2<S16>* path, int* nPath, int maxPath );
+					std::vector< void* >* path );
 	
-	void CalcPath(	const grinliz::Vector2<S16>& start,
-					float cost0, float cost1, float cost2 );
+	void ShowNearPath(	const grinliz::Vector2<S16>& start,
+						float cost0, float cost1, float cost2 );
+	void ClearNearPath();
 
 					
 

@@ -55,20 +55,20 @@ distribution.
 #		include <assert.h>
 #		define MPASSERT assert
 #	endif
+#else
+#	define MPASSERT( x ) {}
 #endif
 
 
-#ifndef GRINLIZ_TYPES_INCLUDED
-	#if defined(_MSC_VER) && (_MSC_VER >= 1400 )
-		#include <stdlib.h>
-		typedef uintptr_t		UPTR;
-	#elif defined (__GNUC__) && (__GNUC__ >= 3 )
-		#include <stdlib.h>
-		typedef uintptr_t		UPTR;
-	#else
-		// Assume not 64 bit pointers. Get a new compiler.
-		typedef unsigned UPTR;
-	#endif
+#if defined(_MSC_VER) && (_MSC_VER >= 1400 )
+	#include <stdlib.h>
+	typedef uintptr_t		MP_UPTR;
+#elif defined (__GNUC__) && (__GNUC__ >= 3 )
+	#include <stdlib.h>
+	typedef uintptr_t		MP_UPTR;
+#else
+	// Assume not 64 bit pointers. Get a new compiler.
+	typedef unsigned MP_UPTR;
 #endif
 
 //#define MICROPATHER_STRESS
@@ -127,8 +127,6 @@ namespace micropather
 			This function is only used in DEBUG mode - it dumps output to stdout. Since void* 
 			aren't really human readable, normally you print out some concise info (like "(1,2)") 
 			without an ending newline.
-
-			@note If you are using other grinning lizard utilities, you should use GLOUTPUT for output.
 		*/
 		virtual void  PrintStateInfo( void* state ) = 0;
 	};
@@ -143,6 +141,10 @@ namespace micropather
 	};
 
 
+	/*
+		Every state (void*) is represented by a PathNode in MicroPather. There
+		can only be one PathNode for a given state.
+	*/
 	class PathNode
 	{
 	  public:
@@ -161,7 +163,7 @@ namespace micropather
 			Clear();
 			Init( 0, 0, FLT_MAX, FLT_MAX, 0 );
 			prev = next = this;
-		}
+		}	
 
 		void *state;			// the client state
 		float costFromStart;	// exact
@@ -174,7 +176,7 @@ namespace micropather
 		int numAdjacent;		// -1  is unknown & needs to be queried
 		int cacheIndex;			// position in cache
 
-		PathNode* left;			// Used as a "next" pointer for hash table.
+		PathNode *child[2];		// Binary search in the hash table. [left, right]
 		PathNode *next, *prev;	// used by open queue
 
 		bool inOpen;
@@ -202,7 +204,6 @@ namespace micropather
 		}
 		#endif
 
-	  private:
 		void CalcTotalCost() {
 			if ( costFromStart < FLT_MAX && estToGoal < FLT_MAX )
 				totalCost = costFromStart + estToGoal;
@@ -210,10 +211,13 @@ namespace micropather
 				totalCost = FLT_MAX;
 		}
 
+	  private:
+
 		void operator=( const PathNode& );
 	};
 
 
+	/* Memory manager for the PathNodes. */
 	class PathNodePool
 	{
 	public:
@@ -223,25 +227,39 @@ namespace micropather
 		// Free all the memory except the first block. Resets all memory.
 		void Clear();
 
-		PathNode* FindPathNode(		unsigned frame, 
-									void* state );
-
-		PathNode* NewPathNode(		unsigned frame,
+		// Essentially:
+		// pNode = Find();
+		// if ( !pNode )
+		//		pNode = New();
+		//
+		// Get the PathNode associated with this state. If the PathNode already
+		// exists (allocated and is on the current frame), it will be returned. 
+		// Else a new PathNode is allocated and returned. The returned object
+		// is always fully initialized.
+		//
+		// NOTE: if the pathNode exists (and is current) all the initialization
+		//       parameters are ignored.
+		PathNode* GetPathNode(		unsigned frame,
 									void* _state,
 									float _costFromStart, 
 									float _estToGoal, 
 									PathNode* _parent );
 
-		// Note - always access this with an offset. Can get re-allocated.
+		// Store stuff in cache
 		bool PushCache( const NodeCost* nodes, int nNodes, int* start );
 
+		// Get neighbors from the cache
+		// Note - always access this with an offset. Can get re-allocated.
 		void GetCache( int start, int nNodes, NodeCost* nodes ) {
 			MPASSERT( start >= 0 && start < cacheCap );
 			MPASSERT( nNodes > 0 );
 			MPASSERT( start + nNodes <= cacheCap );
-			for( int i=0; i<nNodes; ++i )
-				nodes[i] = cache[start+i];
+			memcpy( nodes, &cache[start], sizeof(NodeCost)*nNodes );
 		}
+
+		// Return all the allocated states. Useful for visuallizing what
+		// the pather is doing.
+		void AllStates( unsigned frame, std::vector< void* >* stateVec );
 
 	private:
 		struct Block
@@ -250,27 +268,10 @@ namespace micropather
 			PathNode pathNode[1];
 		};
 
-		unsigned Hash( void* voidval ) {
-			// FNV-1a
-			// http://isthe.com/chongo/tech/comp/fnv/
-			// public domain.
-			UPTR val = (UPTR)(voidval);
-			const unsigned char *p = (unsigned char *)(&val);
-			unsigned int h = 2166136261;
-
-			for( int i=0; i<sizeof(UPTR); ++i, ++p ) {
-				h ^= *p;
-				h *= 16777619;
-			}
-
-			// Fold the high bits to the low bits. Doesn't (generally) use all
-			// the bits since the shift is usually < 16, but better than not
-			// using the high bits at all.
-			return ( h ^ ( h >> hashShift ) ) & HashMask();
-		}
+		unsigned Hash( void* voidval );
 		unsigned HashSize() const	{ return 1<<hashShift; }
 		unsigned HashMask()	const	{ return ((1<<hashShift)-1); }
-
+		void AddPathNode( unsigned key, PathNode* p );
 		Block* NewBlock();
 		PathNode* Alloc();
 
@@ -288,6 +289,7 @@ namespace micropather
 		unsigned	nAvailable;				// number available for allocation
 
 		unsigned	hashShift;	
+		unsigned	totalCollide;
 	};
 
 
@@ -305,7 +307,6 @@ namespace micropather
 			SOLVED,
 			NO_SOLUTION,
 			START_END_SAME,
-			OUT_OF_MEMORY
 		};
 
 		/**
@@ -313,19 +314,23 @@ namespace micropather
 			the Graph callbacks.
 
 			@param graph		The "map" that implements the Graph callbacks.
-			@param allocate		The block size that the node cache is allocated from. In some
-								cases setting this parameter will improve the perfomance of
-								the pather.
-								- If you have a small map, for example the size of a chessboard, set allocate
-								  to be the number of states+1. 65 for a chessboard. This will allow
-								  MicroPather to used a fixed amount of memory.
+			@param allocate		How many states should be internally allocated at a time. This
+								can be hard to get correct. The higher the value, the more memory
+								MicroPather will use.
+								- If you have a small map (a few thousand states?) it may make sense
+								  to pass in the maximum value. This will cache everything, and MicroPather
+								  will only need one main memory allocation. For a chess board, allocate 
+								  would be set to 8x8 (64)
 								- If your map is large, something like 1/4 the number of possible
 								  states is good. For example, Lilith3D normally has about 16,000 
 								  states, so 'allocate' should be about 4000.
-			@param noAllocate	If true, then the "allocate" parameter is a hard limit. It will return
-								OUT_OF_MEMORY if enough memory isn't available.
+							    - If your state space is huge, use a multiple (5-10x) of the normal
+								  path. "Occasionally" call Reset() to free unused memory.
+			@param typicalAdjacent	Used to determine cache size. The typical number of adjacent states
+									to a given state. (On a chessboard, 8.) Higher values use a little
+									more memory.
 		*/
-		MicroPather( Graph* graph, unsigned allocate = 250, unsigned typicalAdjacent=4 );
+		MicroPather( Graph* graph, unsigned allocate = 250, unsigned typicalAdjacent=6 );
 		~MicroPather();
 
 		/**
@@ -339,19 +344,29 @@ namespace micropather
 		*/
 		int Solve( void* startState, void* endState, std::vector< void* >* path, float* totalCost );
 
+		/**
+			Find all the states within a given cost from startState.
+
+			@param startState	Input, the starting state for the path.
+			@param near			All the states within 'maxCost' of 'startState', and cost to that state.
+			@param maxCost		Input, the maximum cost that will be returned. (Higher values return
+								larger 'near' sets and take more time to compute.)
+			@return				Success or failure, expressed as SOLVED or NO_SOLUTION.
+		*/
 		int SolveForNearStates( void* startState, std::vector< StateCost >* near, float maxCost );
 
-		/// Should be called whenever the cost between states or the connection between states changes.
+		/** Should be called whenever the cost between states or the connection between states changes.
+			Also frees overhead memory used by MicroPather, and calling will free excess memory.
+		*/
 		void Reset();
 
 		/**
 			Return the "checksum" of the last path returned by Solve(). Useful for debugging,
 			and a quick way to see if 2 paths are the same.
 		*/
-		UPTR Checksum()	{ return checksum; }
+		MP_UPTR Checksum()	{ return checksum; }
 
-		// Debugging function to return all states that were used
-		// by the last "solve" 
+		// Debugging function to return all states that were used by the last "solve" 
 		void StatesInPool( std::vector< void* >* stateVec );
 
 	  private:
@@ -366,14 +381,14 @@ namespace micropather
 		//void DumpStats();
 		#endif
 
-		Graph* graph;
-		unsigned frame;						// incremented with every solve, used to determine
-											// if cached data needs to be refreshed
-		UPTR checksum;						// the checksum of the last successful "Solve".
-
 		PathNodePool				pathNodePool;
 		std::vector< StateCost >	stateCostVec;	// local to Solve, but put here to reduce memory allocation
 		std::vector< NodeCost >		nodeCostVec;	// local to Solve, but put here to reduce memory allocation
+
+		Graph* graph;
+		unsigned frame;						// incremented with every solve, used to determine if cached data needs to be refreshed
+		MP_UPTR checksum;						// the checksum of the last successful "Solve".
+		
 	};
 };	// namespace grinliz
 
