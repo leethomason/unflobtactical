@@ -1118,28 +1118,16 @@ void Map::PrintStateInfo( void* state )
 }
 
 
-int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *cost, Vector2<S16>* path, int* nPath, int maxPath )
+int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *cost, std::vector< void* >* path )
 {
 	GLASSERT( sizeof( int ) == sizeof( void* ));	// fix this for 64 bit
 	GLASSERT( sizeof(Vector2<S16>) == sizeof( void* ) );
 
 	int result = microPather->Solve(	VecToState( start ),
 										VecToState( end ),
-										&mapPath,
+										path,
 										cost );
 
-	if ( result == MicroPather::OUT_OF_MEMORY ) {
-		// do nothing. Will be returned.
-	}
-	else if ( (int)mapPath.size() > maxPath ) {
-		result = MicroPather::OUT_OF_MEMORY;
-	}
-	else {
-		*nPath = mapPath.size();
-		for( int i=0; i<*nPath; ++i ) {
-			StateToVec( mapPath[i], &path[i] );
-		}
-	}
 	/*
 	switch( result ) {
 		case MicroPather::SOLVED:			GLOUTPUT(( "Solved nPath=%d\n", *nPath ));			break;
@@ -1153,8 +1141,7 @@ int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *c
 }
 
 
-void Map::CalcPath(	const grinliz::Vector2<S16>& start,
-					float cost0, float cost1, float cost2 )
+void Map::ShowNearPath(	const grinliz::Vector2<S16>& start, float cost0, float cost1, float cost2 )
 {
 	GLASSERT( cost2 <= (float)MAX_TRAVEL );
 	walkingMap.ClearAll();
@@ -1229,6 +1216,12 @@ void Map::CalcPath(	const grinliz::Vector2<S16>& start,
 			}
 		}
 	}
+}
+
+
+void Map::ClearNearPath()
+{
+	nWalkingVertex = 0;
 }
 
 

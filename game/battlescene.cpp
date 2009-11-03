@@ -91,7 +91,7 @@ BattleScene::~BattleScene()
 	UFOStream* stream = game->OpenStream( "BattleScene" );
 	Save( stream );
 	game->particleSystem->Clear();
-	FreePathEndModel();
+	//FreePathEndModel();
 
 #if defined( MAPMAKER )
 	if ( mapSelection ) 
@@ -285,24 +285,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 											 m->GetYRotation() );
 		}
 	}
-	if ( actionStack.Empty() ) {
-		// Show the path.
 
-		if ( path.len > 0 ) {
-			//float rot = 0.0f;
-			for( int i=0; i<path.len-1; ++i ) {
-				Vector3F pos = { (float)(path.path[i].x)+0.5f, 0.0f, (float)(path.path[i].y)+0.5f };
-				float rot;
-				path.CalcDelta( i, i+1, 0, &rot );
-
-				const float alpha = 0.2f;
-				game->particleSystem->EmitDecal( ParticleSystem::DECAL_PATH, 
-												 ParticleSystem::DECAL_BOTH,
-												 pos, alpha,
-												 rot );
-			}
-		}
-	}
 	ProcessAction( deltaTime );
 
 	if ( AlienTargeted() ) {
@@ -345,18 +328,9 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 }
 
 
-void BattleScene::FreePathEndModel()
-{
-	if ( selection.pathEndModel ) {
-		engine->FreeModel( selection.pathEndModel );
-		selection.pathEndModel = 0;
-	}
-}
-
-
 void BattleScene::SetSelection( Unit* unit ) 
 {
-	FreePathEndModel();
+	//FreePathEndModel();
 
 	GLASSERT( unit->IsAlive() );
 
@@ -451,7 +425,9 @@ void BattleScene::ProcessAction( U32 deltaTime )
 					else {
 						float travel = Travel( deltaTime, SPEED );
 
-						while( action->move.pathStep < path.len-1 && travel > 0.0f ) {
+						while(    (action->move.pathStep < (int)(path.statePath.size()-1))
+							   && travel > 0.0f ) 
+						{
 							path.Travel( &travel, &action->move.pathStep, &action->move.pathFraction );
 							if ( action->move.pathFraction == 0.0f ) {
 								// crossed a path boundary.
@@ -463,10 +439,13 @@ void BattleScene::ProcessAction( U32 deltaTime )
 						Vector3F v = { x+0.5f, 0.0f, z+0.5f };
 						unit->SetPos( v, model->GetYRotation() );
 
-						if ( action->move.pathStep == path.len-1 ) {
+						if ( action->move.pathStep == path.statePath.size()-1 ) {
 							actionStack.Pop();
 							path.Clear();
-							FreePathEndModel();
+
+							SetPathBlocks();
+							Vector2<S16> start   = { (S16)model->X(), (S16)model->Z() };
+							engine->GetMap()->ShowNearPath( start, 2.0f, 4.0f, 6.0f );
 						}
 					}
 					Vector2I newPos;
@@ -707,102 +686,70 @@ void BattleScene::Tap(	int tap,
 	}
 #endif	
 
-	if ( !iconSelected && actionStack.Empty() ) {
-		// We didn't tap a button.
-		// What got tapped? First look to see if a SELECTABLE model was tapped. If not, 
-		// look for a selectable model from the tile.
+	if ( iconSelected || !actionStack.Empty() ) {
+		return;
+	}
 
-		Vector3F intersect;
-		Vector2I tilePos = { 0, 0 };
-		int result = IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &intersect );
-		if ( result == grinliz::INTERSECT ) {
-			tilePos.Set( (int)intersect.x, (int) intersect.z );
-		}
+	// We didn't tap a button.
+	// What got tapped? First look to see if a SELECTABLE model was tapped. If not, 
+	// look for a selectable model from the tile.
 
-		// If there is a selected model, then we can tap a target model.
-		bool canSelectAlien =    SelectedSoldier()			// a soldier is selected
-			                  && !PathEndModel();			// there is not a path
+	Vector3F intersect;
+	Map* map = engine->GetMap();
 
-		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-			if ( units[i].GetModel() ) {
-				if ( canSelectAlien && units[i].IsAlive() )
-					units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
-				else
-					units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
-			}	
-		}
+	Vector2I tilePos = { 0, 0 };
+	int result = IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &intersect );
+	if ( result == grinliz::INTERSECT ) {
+		tilePos.Set( (int)intersect.x, (int) intersect.z );
+	}
 
-		Model* model = engine->IntersectModel( world, TEST_HIT_AABB, Model::MODEL_SELECTABLE, 0, 0, 0 );
-		if ( !model && result == grinliz::INTERSECT && PathEndModel() ) {
-			// check the path end model.
-			if ( (int)PathEndModel()->X() == tilePos.x && (int)PathEndModel()->Z() == tilePos.y ) {
-				model = PathEndModel();
-			}
-		}
+	// If there is a selected model, then we can tap a target model.
+	bool canSelectAlien = SelectedSoldier();			// a soldier is selected
 
-		if ( model ) {
-			Model* selected = SelectedSoldierModel();
-			if ( model == selected ) {
-				// If there is a path, clear it.
-				// If there is no path, go to rotate mode.
-				path.Clear();
-				FreePathEndModel();
-			}
-			else if ( model == PathEndModel() ) {
-				// Go!
-				Action action;
-				action.Move( SelectedSoldierUnit() );
-				actionStack.Push( action );
-			}
-			else {
-				path.Clear();
-				SetSelection( UnitFromModel( model ) );
-				SetPathBlocks();
+	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+		if ( units[i].GetModel() ) {
+			if ( canSelectAlien && units[i].IsAlive() )
+				units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
+			else
+				units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
+		}	
+	}
 
-				Vector2<S16> start   = { (S16)model->X(), (S16)model->Z() };
-				engine->GetMap()->CalcPath( start, 2.0f, 4.0f, 6.0f );
-			}
+	Model* model = engine->IntersectModel( world, TEST_HIT_AABB, Model::MODEL_SELECTABLE, 0, 0, 0 );
+
+	if ( model ) {
+		Model* selected = SelectedSoldierModel();
+		SetSelection( UnitFromModel( model ) );		// sets either the Alien or the Unit
+
+		if ( !selection.targetUnit ) {
+			SetPathBlocks();
+			Vector2<S16> start   = { (S16)model->X(), (S16)model->Z() };
+			map->ShowNearPath( start, 2.0f, 4.0f, 6.0f );
 		}
 		else {
-			// Not a model - which tile?
-			Model* selected = SelectedSoldierModel();
+			map->ClearNearPath();
+		}
+	}
+	else {
+		// Not a model - use the tile
+		if ( SelectedSoldierModel() && !selection.targetUnit ) {
+			Vector2<S16> start   = { (S16)SelectedSoldierModel()->X(), (S16)SelectedSoldierModel()->Z() };
 
-			if ( selected ) {
-				Vector2<S16> start   = { (S16)selected->X(), (S16)selected->Z() };
+			if ( result == grinliz::INTERSECT ) {
+				Vector2<S16> end = { (S16)intersect.x, (S16)intersect.z };
+				if ( end.x >= 0 && end.y >=0 && end.x < Map::SIZE && end.y < Map::SIZE ) {
+					if ( start != path.start || end != path.end ) {
+						// Compute the path:
+						SetPathBlocks();
+						float cost;
+						engine->GetMap()->SolvePath( start, end, &cost, &path.statePath );
 
-				if ( result == grinliz::INTERSECT ) {
+						// Go!
+						Action action;
+						action.Move( SelectedSoldierUnit() );
+						actionStack.Push( action );
 
-					Vector2<S16> end = { (S16)intersect.x, (S16)intersect.z };
-					if ( end.x >= 0 && end.y >=0 && end.x < Map::SIZE && end.y < Map::SIZE ) {
-					
-						if ( start != path.start || end != path.end ) {
-							path.len = 0;
-							path.start = start;
-							path.end = end;
-
-							if ( start != end ) {
-								SetPathBlocks();
-								float cost;
-								engine->GetMap()->SolvePath( start, end, &cost, path.path, &path.len, path.MAX_PATH );
-							}
-							FreePathEndModel();
-
-							if ( path.len > 1 ) {
-
-								selection.targetUnit = 0;
-								selection.pathEndModel = engine->AllocModel( selected->GetResource() );
-								selection.pathEndModel->SetPos( (float)path.end.x + 0.5f, 0.0f, (float)path.end.y + 0.5f );
-								selection.pathEndModel->SetTexture( TextureManager::Instance()->GetTexture( "translucent" ) );
-								selection.pathEndModel->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.5f );
-								selection.pathEndModel->SetFlag( Model::MODEL_SELECTABLE );	// FIXME not needed, remove entire draggable thing
-								selection.pathEndModel->SetFlag( Model::MODEL_MAP_TRANSPARENT);
-								selection.pathEndModel->SetFlag( Model::MODEL_ALWAYS_DRAW);
-
-								float rot;
-								path.CalcDelta( path.len-2, path.len-1, 0, &rot );
-								selection.pathEndModel->SetYRotation( rot );
-							}
-						}
+						engine->GetMap()->ClearNearPath();
 					}
 				}
 			}
@@ -1091,11 +1038,14 @@ float BattleScene::Path::DeltaToRotation( int dx, int dy )
 
 void BattleScene::Path::CalcDelta( int i0, int i1, grinliz::Vector2I* vec, float* rot )
 {
+	int len = (int)statePath.size();
 	GLASSERT( i0>=0 && i0<len-1 );
 	GLASSERT( i1>=1 && i1<len );
+	Vector2<S16> path0 = GetPathAt( i0 );
+	Vector2<S16> path1 = GetPathAt( i1 );
 
-	int dx = path[i1].x - path[i0].x;
-	int dy = path[i1].y - path[i0].y;
+	int dx = path1.x - path0.x;
+	int dy = path1.y - path0.y;
 	if ( vec ) {
 		vec->x = dx;
 		vec->y = dy;
@@ -1113,7 +1063,7 @@ void BattleScene::Path::Travel(	float* travel,
 	// fraction is a bit funny. It is the lerp value between 2 path locations,
 	// so it isn't a constant distance.
 
-	GLASSERT( *pos < len-1 );
+	GLASSERT( *pos < (int)statePath.size()-1 );
 
 	Vector2I vec;
 	CalcDelta( *pos, *pos+1, &vec, 0 );
@@ -1138,16 +1088,20 @@ void BattleScene::Path::Travel(	float* travel,
 
 void BattleScene::Path::GetPos( int step, float fraction, float* x, float* z, float* rot )
 {
+	int len = (int)statePath.size();
 	GLASSERT( step < len );
 	GLASSERT( fraction >= 0.0f && fraction < 1.0f );
 	if ( step == len-1 ) {
 		step = len-2;
 		fraction = 1.0f;
 	}
-	int dx = path[step+1].x - path[step].x;
-	int dy = path[step+1].y - path[step].y;
-	*x = (float)path[step].x + fraction*(float)( dx );
-	*z = (float)path[step].y + fraction*(float)( dy );
+	Vector2<S16> path0 = GetPathAt( step );
+	Vector2<S16> path1 = GetPathAt( step+1 );
+
+	int dx = path1.x - path0.x;
+	int dy = path1.y - path0.y;
+	*x = (float)path0.x + fraction*(float)( dx );
+	*z = (float)path0.y + fraction*(float)( dy );
 	*rot = DeltaToRotation( dx, dy );
 }
 
