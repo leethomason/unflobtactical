@@ -126,7 +126,7 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 		res->atom[i].nVertex = group.nVertex;
 		res->atom[i].nIndex = group.nIndex;
 
-		GLOUTPUT(( "  '%s' vertices=%d tris=%d\n", textureName, res->atom[i].nVertex, res->atom[i].nIndex/3 ));
+		GLOUTPUT(( "  '%s' vertices=%d tris=%d\n", textureName, (int)res->atom[i].nVertex, (int)(res->atom[i].nIndex/3) ));
 	}
 
 	res->allVertex = new Vertex[ res->header.nTotalVertices ];

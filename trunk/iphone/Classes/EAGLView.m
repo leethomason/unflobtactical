@@ -113,8 +113,8 @@
         return NO;
     }
     
-	game = NewGame( backingWidth, backingHeight );
-	GameRotate( game, 1 );
+	game = NewGame( backingWidth, backingHeight, 1 );
+	//GameRotate( game, 1 );
 	
     return YES;
 }
@@ -205,7 +205,8 @@
 	
 	CGPoint location = [touch locationInView:self];
 	int x = location.x;
-	int y = backingHeight-1-location.y;
+	//int y = backingHeight-1-location.y;
+	int y = location.y;
 	int touchCount = [[event allTouches] count];
 	isMoving = false;
 	
@@ -218,7 +219,7 @@
 		isZooming = false;
 	}
 
-	//NSLog(@"Began isZooming=%d isDragging=%d touchCount=%d", isZooming?1:0, isDragging?1:0, touchCount );
+	NSLog(@"Began x=%d y=%d isZooming=%d isDragging=%d touchCount=%d", x, y, isZooming?1:0, isDragging?1:0, touchCount );
 	//NSLog(@"Began phase=%d", [touch phase] );
 	[self dumpTouch:touch];
 	

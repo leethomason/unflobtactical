@@ -152,7 +152,7 @@ class BitArray
 		for( int k=rect.min.z; k<=rect.max.z; ++k )
 			for( int j=rect.min.y; j<=rect.max.y; ++j )
 				for( int i=rect.min.x; i<=rect.max.x; ++i )
-					if ( !IsSet( i, j, z ) )
+					if ( !IsSet( i, j, k ) )
 						return false;
 	}
 

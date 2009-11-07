@@ -14,7 +14,7 @@ void Screenport::PushUI() const
 	glRotatef( 90.0f * (float)Rotation(), 0.0f, 0.0f, 1.0f );
 
 #ifdef USING_ES
-	glOrthof( 0.f, (float)ViewWidth(), 0.f, (float)ViewHeight, -1.f, 1.f );
+	glOrthof( 0.f, (float)ViewWidth(), 0.f, (float)ViewHeight(), -1.f, 1.f );
 #else
 	glOrtho( 0, ViewWidth(), 0, ViewHeight(), -1, 1 );
 #endif

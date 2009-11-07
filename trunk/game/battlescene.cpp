@@ -550,7 +550,7 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 			if ( hitUnit ) {
 				if ( hitUnit->IsAlive() ) {
 					hitUnit->DoDamage( weaponDef->weapon[0].damageBase, weaponDef->weapon[0].shell );
-					GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", hitUnit, hitUnit->GetStats().HP(), hitUnit->GetStats().TotalHP() ));
+					GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", (unsigned)hitUnit, (int)hitUnit->GetStats().HP(), (int)hitUnit->GetStats().TotalHP() ));
 				}
 			}
 			else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
@@ -718,7 +718,6 @@ void BattleScene::Tap(	int tap,
 	Model* model = engine->IntersectModel( world, TEST_HIT_AABB, Model::MODEL_SELECTABLE, 0, 0, 0 );
 
 	if ( model ) {
-		Model* selected = SelectedSoldierModel();
 		SetSelection( UnitFromModel( model ) );		// sets either the Alien or the Unit
 
 		if ( !selection.targetUnit ) {
@@ -822,8 +821,7 @@ void BattleScene::CalcVisibility( const Unit* unit, int x, int y, float rotation
 	facing.x = (int)(10.0f*sinf(ToRadian(rotation)));
 	facing.y = (int)(10.0f*cosf(ToRadian(rotation)));
 	
-	Vector3F eye = { (float)(x+0.5f), EYE_HEIGHT, (float)(y+0.5f) };
-	const Model* ignore[] = { unit->GetModel(), unit->GetWeaponModel(), 0 };
+	//const Model* ignore[] = { unit->GetModel(), unit->GetWeaponModel(), 0 };
 
 	/* Previous pass used a true ray casting approach, but this doesn't get good results. Numerical errors,
 	   view stopped by leaves, rays going through cracks. Switching to a line walking approach to 

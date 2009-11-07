@@ -181,11 +181,6 @@ void SpaceTree::Update( Model* model )
 	
 	Rectangle3F bounds = model->AABB();
 
-	if ( model->X() != 0 )
-		int debug=1;
-	if ( model == (Model*)0x02411d60 )
-		int debug=1;
-
 	// Clamp to tree range.
 	if (bounds.min.y < yMin ) 
 		bounds.min.y = yMin;
@@ -209,8 +204,6 @@ void SpaceTree::Update( Model* model )
 		--depth;
 	}
 	++nodeAddedAtDepth[depth];
-	if ( depth == 0 )
-		int debug=1;
 
 	/*
 #ifdef DEBUG
@@ -373,7 +366,7 @@ void SpaceTree::QueryPlanesRec(	const Plane* planes, int nPlanes, int intersecti
 				 && ( (excludedFlags & flags) == 0 ) )
 			{	
 				if ( debug ) {
-					GLOUTPUT(( "%*s[%d] Testing: 0x%x %s", node->depth, " ", node->depth, m, m->GetResource()->header.name ));
+					GLOUTPUT(( "%*s[%d] Testing: 0x%x %s", node->depth, " ", node->depth, (int)m, m->GetResource()->header.name ));
 				}
 				if ( intersection == grinliz::INTERSECT ) {
 					const Rectangle3F& aabb = m->AABB();

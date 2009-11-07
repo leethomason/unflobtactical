@@ -1,6 +1,7 @@
 #ifndef UFOATTACK_ITEM_INCLUDED
 #define UFOATTACK_ITEM_INCLUDED
 
+#include <string.h>
 #include "../grinliz/glvector.h"
 #include "../engine/ufoutil.h"
 

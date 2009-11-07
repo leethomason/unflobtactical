@@ -315,7 +315,7 @@ void UIButtonBox::Draw()
 	UFOText::Begin();
 	for( int i=0; i<nIcons; ++i ) {
 		float c = icons[i].enabled ? 1.0f : ALPHA_DISABLED;
-		glColor3f( c, c, c );
+		glColor4f( c, c, c, 1.0f );
 
 		if ( icons[i].text0[0] ) {
 			int x = pos[i*4].x + origin.x;
@@ -329,7 +329,7 @@ void UIButtonBox::Draw()
 		}
 	}
 	UFOText::End();
-	glColor3f( 1.0f, 1.0f, 1.0f );
+	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 }
 
 

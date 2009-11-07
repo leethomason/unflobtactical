@@ -15,6 +15,21 @@
 		28FD14FE0DC6FC130079059D /* EAGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 28FD14FD0DC6FC130079059D /* EAGLView.m */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
+		9A10EF7E10A00C1C001AAC0B /* alien0_D.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A10EF6F10A00C1C001AAC0B /* alien0_D.mod */; };
+		9A10EF7F10A00C1C001AAC0B /* alien1_D.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A10EF7010A00C1C001AAC0B /* alien1_D.mod */; };
+		9A10EF8010A00C1C001AAC0B /* alien2_D.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A10EF7110A00C1C001AAC0B /* alien2_D.mod */; };
+		9A10EF8110A00C1C001AAC0B /* alien3_D.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A10EF7210A00C1C001AAC0B /* alien3_D.mod */; };
+		9A10EF8210A00C1C001AAC0B /* cellClip.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A10EF7310A00C1C001AAC0B /* cellClip.mod */; };
+		9A10EF8310A00C1C001AAC0B /* clips.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A10EF7410A00C1C001AAC0B /* clips.tex */; };
+		9A10EF8410A00C1C001AAC0B /* femaleCiv_D.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A10EF7510A00C1C001AAC0B /* femaleCiv_D.mod */; };
+		9A10EF8510A00C1C001AAC0B /* femaleMarine_D.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A10EF7610A00C1C001AAC0B /* femaleMarine_D.mod */; };
+		9A10EF8610A00C1C001AAC0B /* gun0.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A10EF7710A00C1C001AAC0B /* gun0.mod */; };
+		9A10EF8710A00C1C001AAC0B /* gun1.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A10EF7810A00C1C001AAC0B /* gun1.mod */; };
+		9A10EF8810A00C1C001AAC0B /* iconDeco.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A10EF7910A00C1C001AAC0B /* iconDeco.tex */; };
+		9A10EF8910A00C1C001AAC0B /* lander.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A10EF7A10A00C1C001AAC0B /* lander.tex */; };
+		9A10EF8A10A00C1C001AAC0B /* maleCiv_D.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A10EF7B10A00C1C001AAC0B /* maleCiv_D.mod */; };
+		9A10EF8B10A00C1C001AAC0B /* maleMarine_D.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A10EF7C10A00C1C001AAC0B /* maleMarine_D.mod */; };
+		9A10EF8C10A00C1C001AAC0B /* shellClip.mod in Resources */ = {isa = PBXBuildFile; fileRef = 9A10EF7D10A00C1C001AAC0B /* shellClip.mod */; };
 		9A11BDBD0ECFE24000ABFA03 /* stdfont2.tex in Resources */ = {isa = PBXBuildFile; fileRef = 9A11BDBC0ECFE24000ABFA03 /* stdfont2.tex */; };
 		9A221E090F9C0D820012CE00 /* micropather.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A221E070F9C0D820012CE00 /* micropather.cpp */; };
 		9A221E2C0F9C0EB00012CE00 /* gameresources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A221E290F9C0EB00012CE00 /* gameresources.cpp */; };
@@ -86,6 +101,13 @@
 		9A8EE7E90F3F770F005FDF47 /* renderqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A8EE7E70F3F770F005FDF47 /* renderqueue.cpp */; };
 		9A8F7F4B0EBD3D8F00742BF0 /* model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A8F7F490EBD3D8F00742BF0 /* model.cpp */; };
 		9A969EAD0F6DA8F10063A7A6 /* serialize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A969EAB0F6DA8F10063A7A6 /* serialize.cpp */; };
+		9AE90B9110A0087600A92443 /* battlestream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AE90B8510A0087600A92443 /* battlestream.cpp */; };
+		9AE90B9210A0087600A92443 /* inventory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AE90B8810A0087600A92443 /* inventory.cpp */; };
+		9AE90B9310A0087600A92443 /* item.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AE90B8A10A0087600A92443 /* item.cpp */; };
+		9AE90B9410A0087600A92443 /* material.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AE90B8C10A0087600A92443 /* material.cpp */; };
+		9AE90B9510A0087600A92443 /* storageWidget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AE90B8F10A0087600A92443 /* storageWidget.cpp */; };
+		9AE90B9C10A008A800A92443 /* screenport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AE90B9810A008A800A92443 /* screenport.cpp */; };
+		9AE90B9D10A008A800A92443 /* ufoutil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AE90B9A10A008A800A92443 /* ufoutil.cpp */; };
 		9AF644700EAA906D004FB696 /* glcontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AF644530EAA906D004FB696 /* glcontainer.cpp */; };
 		9AF644710EAA906D004FB696 /* gldebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AF644550EAA906D004FB696 /* gldebug.cpp */; };
 		9AF644720EAA906D004FB696 /* gldynamic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AF644570EAA906D004FB696 /* gldynamic.cpp */; };
@@ -124,6 +146,21 @@
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		32CA4F630368D1EE00C91783 /* ufoattack_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ufoattack_Prefix.pch; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9A10EF6F10A00C1C001AAC0B /* alien0_D.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = alien0_D.mod; path = ../res/alien0_D.mod; sourceTree = SOURCE_ROOT; };
+		9A10EF7010A00C1C001AAC0B /* alien1_D.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = alien1_D.mod; path = ../res/alien1_D.mod; sourceTree = SOURCE_ROOT; };
+		9A10EF7110A00C1C001AAC0B /* alien2_D.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = alien2_D.mod; path = ../res/alien2_D.mod; sourceTree = SOURCE_ROOT; };
+		9A10EF7210A00C1C001AAC0B /* alien3_D.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = alien3_D.mod; path = ../res/alien3_D.mod; sourceTree = SOURCE_ROOT; };
+		9A10EF7310A00C1C001AAC0B /* cellClip.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = cellClip.mod; path = ../res/cellClip.mod; sourceTree = SOURCE_ROOT; };
+		9A10EF7410A00C1C001AAC0B /* clips.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = clips.tex; path = ../res/clips.tex; sourceTree = SOURCE_ROOT; };
+		9A10EF7510A00C1C001AAC0B /* femaleCiv_D.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = femaleCiv_D.mod; path = ../res/femaleCiv_D.mod; sourceTree = SOURCE_ROOT; };
+		9A10EF7610A00C1C001AAC0B /* femaleMarine_D.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = femaleMarine_D.mod; path = ../res/femaleMarine_D.mod; sourceTree = SOURCE_ROOT; };
+		9A10EF7710A00C1C001AAC0B /* gun0.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = gun0.mod; path = ../res/gun0.mod; sourceTree = SOURCE_ROOT; };
+		9A10EF7810A00C1C001AAC0B /* gun1.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = gun1.mod; path = ../res/gun1.mod; sourceTree = SOURCE_ROOT; };
+		9A10EF7910A00C1C001AAC0B /* iconDeco.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = iconDeco.tex; path = ../res/iconDeco.tex; sourceTree = SOURCE_ROOT; };
+		9A10EF7A10A00C1C001AAC0B /* lander.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = lander.tex; path = ../res/lander.tex; sourceTree = SOURCE_ROOT; };
+		9A10EF7B10A00C1C001AAC0B /* maleCiv_D.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = maleCiv_D.mod; path = ../res/maleCiv_D.mod; sourceTree = SOURCE_ROOT; };
+		9A10EF7C10A00C1C001AAC0B /* maleMarine_D.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = maleMarine_D.mod; path = ../res/maleMarine_D.mod; sourceTree = SOURCE_ROOT; };
+		9A10EF7D10A00C1C001AAC0B /* shellClip.mod */ = {isa = PBXFileReference; lastKnownFileType = file; name = shellClip.mod; path = ../res/shellClip.mod; sourceTree = SOURCE_ROOT; };
 		9A11BDBC0ECFE24000ABFA03 /* stdfont2.tex */ = {isa = PBXFileReference; lastKnownFileType = file; name = stdfont2.tex; path = ../res/stdfont2.tex; sourceTree = SOURCE_ROOT; };
 		9A221E070F9C0D820012CE00 /* micropather.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = micropather.cpp; path = ../micropather/micropather.cpp; sourceTree = SOURCE_ROOT; };
 		9A221E080F9C0D820012CE00 /* micropather.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = micropather.h; path = ../micropather/micropather.h; sourceTree = SOURCE_ROOT; };
@@ -210,6 +247,22 @@
 		9A8F7F4A0EBD3D8F00742BF0 /* model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = model.h; path = ../engine/model.h; sourceTree = SOURCE_ROOT; };
 		9A969EAB0F6DA8F10063A7A6 /* serialize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = serialize.cpp; path = ../engine/serialize.cpp; sourceTree = SOURCE_ROOT; };
 		9A969EAC0F6DA8F10063A7A6 /* serialize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = serialize.h; path = ../engine/serialize.h; sourceTree = SOURCE_ROOT; };
+		9AE90B8510A0087600A92443 /* battlestream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = battlestream.cpp; path = ../game/battlestream.cpp; sourceTree = SOURCE_ROOT; };
+		9AE90B8610A0087600A92443 /* battlestream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = battlestream.h; path = ../game/battlestream.h; sourceTree = SOURCE_ROOT; };
+		9AE90B8710A0087600A92443 /* gamelimits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gamelimits.h; path = ../game/gamelimits.h; sourceTree = SOURCE_ROOT; };
+		9AE90B8810A0087600A92443 /* inventory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = inventory.cpp; path = ../game/inventory.cpp; sourceTree = SOURCE_ROOT; };
+		9AE90B8910A0087600A92443 /* inventory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = inventory.h; path = ../game/inventory.h; sourceTree = SOURCE_ROOT; };
+		9AE90B8A10A0087600A92443 /* item.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = item.cpp; path = ../game/item.cpp; sourceTree = SOURCE_ROOT; };
+		9AE90B8B10A0087600A92443 /* item.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = item.h; path = ../game/item.h; sourceTree = SOURCE_ROOT; };
+		9AE90B8C10A0087600A92443 /* material.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = material.cpp; path = ../game/material.cpp; sourceTree = SOURCE_ROOT; };
+		9AE90B8D10A0087600A92443 /* material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = material.h; path = ../game/material.h; sourceTree = SOURCE_ROOT; };
+		9AE90B8E10A0087600A92443 /* stats.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stats.h; path = ../game/stats.h; sourceTree = SOURCE_ROOT; };
+		9AE90B8F10A0087600A92443 /* storageWidget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = storageWidget.cpp; path = ../game/storageWidget.cpp; sourceTree = SOURCE_ROOT; };
+		9AE90B9010A0087600A92443 /* storageWidget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = storageWidget.h; path = ../game/storageWidget.h; sourceTree = SOURCE_ROOT; };
+		9AE90B9810A008A800A92443 /* screenport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = screenport.cpp; path = ../engine/screenport.cpp; sourceTree = SOURCE_ROOT; };
+		9AE90B9910A008A800A92443 /* screenport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = screenport.h; path = ../engine/screenport.h; sourceTree = SOURCE_ROOT; };
+		9AE90B9A10A008A800A92443 /* ufoutil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ufoutil.cpp; path = ../engine/ufoutil.cpp; sourceTree = SOURCE_ROOT; };
+		9AE90B9B10A008A800A92443 /* ufoutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ufoutil.h; path = ../engine/ufoutil.h; sourceTree = SOURCE_ROOT; };
 		9AF644510EAA906D004FB696 /* glbitarray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glbitarray.h; path = ../grinliz/glbitarray.h; sourceTree = SOURCE_ROOT; };
 		9AF644520EAA906D004FB696 /* glcolor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glcolor.h; path = ../grinliz/glcolor.h; sourceTree = SOURCE_ROOT; };
 		9AF644530EAA906D004FB696 /* glcontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = glcontainer.cpp; path = ../grinliz/glcontainer.cpp; sourceTree = SOURCE_ROOT; };
@@ -323,6 +376,21 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9A10EF6F10A00C1C001AAC0B /* alien0_D.mod */,
+				9A10EF7010A00C1C001AAC0B /* alien1_D.mod */,
+				9A10EF7110A00C1C001AAC0B /* alien2_D.mod */,
+				9A10EF7210A00C1C001AAC0B /* alien3_D.mod */,
+				9A10EF7310A00C1C001AAC0B /* cellClip.mod */,
+				9A10EF7410A00C1C001AAC0B /* clips.tex */,
+				9A10EF7510A00C1C001AAC0B /* femaleCiv_D.mod */,
+				9A10EF7610A00C1C001AAC0B /* femaleMarine_D.mod */,
+				9A10EF7710A00C1C001AAC0B /* gun0.mod */,
+				9A10EF7810A00C1C001AAC0B /* gun1.mod */,
+				9A10EF7910A00C1C001AAC0B /* iconDeco.tex */,
+				9A10EF7A10A00C1C001AAC0B /* lander.tex */,
+				9A10EF7B10A00C1C001AAC0B /* maleCiv_D.mod */,
+				9A10EF7C10A00C1C001AAC0B /* maleMarine_D.mod */,
+				9A10EF7D10A00C1C001AAC0B /* shellClip.mod */,
 				9A221EC00FA0104A0012CE00 /* translucent.tex */,
 				9A221E4B0F9C0F4D0012CE00 /* farmBed.mod */,
 				9A221E4C0F9C0F4D0012CE00 /* farmTable.mod */,
@@ -443,6 +511,10 @@
 		9AF644A70EAAFCBB004FB696 /* engine */ = {
 			isa = PBXGroup;
 			children = (
+				9AE90B9810A008A800A92443 /* screenport.cpp */,
+				9AE90B9910A008A800A92443 /* screenport.h */,
+				9AE90B9A10A008A800A92443 /* ufoutil.cpp */,
+				9AE90B9B10A008A800A92443 /* ufoutil.h */,
 				9A221E070F9C0D820012CE00 /* micropather.cpp */,
 				9A221E080F9C0D820012CE00 /* micropather.h */,
 				9A969EAB0F6DA8F10063A7A6 /* serialize.cpp */,
@@ -481,6 +553,18 @@
 		9AF6454A0EAC4FA4004FB696 /* game */ = {
 			isa = PBXGroup;
 			children = (
+				9AE90B8510A0087600A92443 /* battlestream.cpp */,
+				9AE90B8610A0087600A92443 /* battlestream.h */,
+				9AE90B8710A0087600A92443 /* gamelimits.h */,
+				9AE90B8810A0087600A92443 /* inventory.cpp */,
+				9AE90B8910A0087600A92443 /* inventory.h */,
+				9AE90B8A10A0087600A92443 /* item.cpp */,
+				9AE90B8B10A0087600A92443 /* item.h */,
+				9AE90B8C10A0087600A92443 /* material.cpp */,
+				9AE90B8D10A0087600A92443 /* material.h */,
+				9AE90B8E10A0087600A92443 /* stats.h */,
+				9AE90B8F10A0087600A92443 /* storageWidget.cpp */,
+				9AE90B9010A0087600A92443 /* storageWidget.h */,
 				9A221E290F9C0EB00012CE00 /* gameresources.cpp */,
 				9A221E2A0F9C0EB00012CE00 /* unit.cpp */,
 				9A221E2B0F9C0EB00012CE00 /* unit.h */,
@@ -601,6 +685,21 @@
 				9A221E770F9C0F4D0012CE00 /* woodWall.mod in Resources */,
 				9A221E780F9C0F4D0012CE00 /* woodWallWin.mod in Resources */,
 				9A221EC10FA0104A0012CE00 /* translucent.tex in Resources */,
+				9A10EF7E10A00C1C001AAC0B /* alien0_D.mod in Resources */,
+				9A10EF7F10A00C1C001AAC0B /* alien1_D.mod in Resources */,
+				9A10EF8010A00C1C001AAC0B /* alien2_D.mod in Resources */,
+				9A10EF8110A00C1C001AAC0B /* alien3_D.mod in Resources */,
+				9A10EF8210A00C1C001AAC0B /* cellClip.mod in Resources */,
+				9A10EF8310A00C1C001AAC0B /* clips.tex in Resources */,
+				9A10EF8410A00C1C001AAC0B /* femaleCiv_D.mod in Resources */,
+				9A10EF8510A00C1C001AAC0B /* femaleMarine_D.mod in Resources */,
+				9A10EF8610A00C1C001AAC0B /* gun0.mod in Resources */,
+				9A10EF8710A00C1C001AAC0B /* gun1.mod in Resources */,
+				9A10EF8810A00C1C001AAC0B /* iconDeco.tex in Resources */,
+				9A10EF8910A00C1C001AAC0B /* lander.tex in Resources */,
+				9A10EF8A10A00C1C001AAC0B /* maleCiv_D.mod in Resources */,
+				9A10EF8B10A00C1C001AAC0B /* maleMarine_D.mod in Resources */,
+				9A10EF8C10A00C1C001AAC0B /* shellClip.mod in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -646,6 +745,13 @@
 				9A221E2C0F9C0EB00012CE00 /* gameresources.cpp in Sources */,
 				9A221E2D0F9C0EB00012CE00 /* unit.cpp in Sources */,
 				9A5636F40FAC052A00789C61 /* glperformance.cpp in Sources */,
+				9AE90B9110A0087600A92443 /* battlestream.cpp in Sources */,
+				9AE90B9210A0087600A92443 /* inventory.cpp in Sources */,
+				9AE90B9310A0087600A92443 /* item.cpp in Sources */,
+				9AE90B9410A0087600A92443 /* material.cpp in Sources */,
+				9AE90B9510A0087600A92443 /* storageWidget.cpp in Sources */,
+				9AE90B9C10A008A800A92443 /* screenport.cpp in Sources */,
+				9AE90B9D10A008A800A92443 /* ufoutil.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -656,6 +762,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Lee Thomason (CZJZVH5EJ5)";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -670,6 +777,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Lee Thomason";
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = ufoattack_Prefix.pch;
@@ -692,7 +800,6 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PREBINDING = NO;
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "A4590E9F-6F08-4744-B0F6-B84AB91290FF";
 				SDKROOT = iphoneos2.1;
 			};
 			name = Debug;
@@ -711,7 +818,6 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "A4590E9F-6F08-4744-B0F6-B84AB91290FF";
 				SDKROOT = iphoneos2.1;
 			};
 			name = Release;
