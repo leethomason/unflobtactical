@@ -722,10 +722,6 @@ Model* Engine::IntersectModel( const grinliz::Ray& ray, HitTestMethod method, in
 {
 	GRINLIZ_PERFTRACK
 
-	int FAR = 10*1000;
-	float close = (float)FAR;
-	Model* m = 0;
-
 	Model* model = spaceTree->QueryRay(	ray.origin, ray.direction, 
 										required, exclude, ignore,
 										method,

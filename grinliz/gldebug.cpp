@@ -112,8 +112,8 @@ void* DebugNew( size_t size, bool arrayType, const char* name, int line )
 	}
 
 	// #BREAKHERE
-	if ( head->id == 138 )
-		int debug = 1;
+//	if ( head->id == 138 )
+//		int debug = 1;
 
 #ifdef GRINLIZ_DEBUG_MEM_DEEP
 	MemHeapCheck();
@@ -185,12 +185,12 @@ void operator delete( void* mem )
 void MemLeakCheck()
 {
 	GLOUTPUT((	"MEMORY REPORT: watermark=%dk new count=%d. delete count=%d. %d allocations leaked.\n",
-				memWatermark/1024, memNewCount, memDeleteCount, memNewCount-memDeleteCount ));
+				(int)(memWatermark/1024), (int)memNewCount, (int)memDeleteCount, (int)(memNewCount-memDeleteCount) ));
 
 	for( MemCheckHead* node = root; node; node=node->next )
 	{
 		GLOUTPUT(( "  size=%d %s id=%d name=%s line=%d\n",
-					node->size, (node->arrayType) ? "array" : "single", node->id,
+					(int)node->size, (node->arrayType) ? "array" : "single", (int)node->id,
 					(node->name) ? node->name :  "(null)", node->line ));
 	}		    
 

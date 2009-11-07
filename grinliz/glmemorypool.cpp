@@ -82,7 +82,7 @@ void MemoryPool::NewBlock()
 	rootBlock = block;
 
 	if ( numBlocks > 0 && warn ) {
-		GLOUTPUT(( "WARNING: memory pool '%s' growing.\n" ));
+		GLOUTPUT(( "WARNING: memory pool '%s' growing.\n", name ));
 		GLASSERT( 0 );
 	}
 	++numBlocks;

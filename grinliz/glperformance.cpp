@@ -139,11 +139,8 @@ void Performance::Dump( FILE* fp, const char* desc )
 		//fprintf( fp, "%48s %8d %10d %10d %.1f%%\n",
 		fprintf( fp, "%48s %10d %.1f%%\n",
 				pd.item[i].name,
-				//pd.item[i].id,
-				pd.item[i].functionCalls,
-				//pd.item[i].functionTimeMSec,
-				//(U32)( pd.item[i].functionTime / functionCalls / (U64)(LILITH_CONVERT_TO_MSEC) ),
-				100.0 * double( pd.item[i].functionTime ) / double( pd.totalTime ) );
+				(int)pd.item[i].functionCalls,
+				(float)(100.0 * double( pd.item[i].functionTime ) / double( pd.totalTime )) );
 	}
 	//fprintf( fp, "Total time: %d\n", pd.totalTimeMSec );
 

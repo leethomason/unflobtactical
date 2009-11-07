@@ -424,9 +424,9 @@ void Game::MouseMove( int sx, int sy )
 //				world.origin.x, world.origin.y, world.origin.z,
 //				p.x, p.y, p.z ));
 
-	if ( sceneStack.Top() == BATTLE_SCENE ) {
-		((BattleScene*)currentScene)->MouseMove( view.x, view.y );
-	}
+//	if ( sceneStack.Top() == BATTLE_SCENE ) {
+//		((BattleScene*)currentScene)->MouseMove( view.x, view.y );
+//	}
 }
 
 

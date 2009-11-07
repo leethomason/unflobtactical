@@ -112,7 +112,7 @@ void StorageWidget::SetButtons()
 		const CDynArray<ItemDef*>& itemArr = storage->GetItemDefArray();
 
 		for( unsigned i=0; i<itemArr.Size(); ++i ) {
-			bool add = false;
+			//bool add = false;
 			int group = 3;
 
 			const WeaponItemDef* wid = itemArr[i]->IsWeapon();
