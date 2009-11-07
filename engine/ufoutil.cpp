@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "ufoutil.h"
 #include "../grinliz/glutil.h"
 

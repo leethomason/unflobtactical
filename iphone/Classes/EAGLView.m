@@ -205,7 +205,6 @@
 	
 	CGPoint location = [touch locationInView:self];
 	int x = location.x;
-	//int y = backingHeight-1-location.y;
 	int y = location.y;
 	int touchCount = [[event allTouches] count];
 	isMoving = false;
@@ -256,7 +255,7 @@
 	
 	CGPoint location = [touch locationInView:self];
 	int x = location.x;
-	int y = backingHeight-1-location.y;
+	int y = location.y;
 	int touchCount = [[event allTouches] count];
 	isMoving = true;
 	
@@ -320,7 +319,7 @@
 	
 	CGPoint location = [touch locationInView:self];
 	int x = location.x;
-	int y = backingHeight-1-location.y;
+	int y = location.y;
 	int touchCount = [[event allTouches] count];
 
 	//NSLog(@"End isZooming=%d isDragging=%d touchCount=%d", isZooming?1:0, isDragging?1:0, touchCount );
@@ -330,7 +329,7 @@
 	}
 	if ( isDragging && touchCount == 1 ) {
 		int x = location.x;
-		int y = backingHeight-1-location.y;
+		int y = location.y;
 		
 		GameDrag( game, GAME_DRAG_END, x, y );
 		isDragging = false;

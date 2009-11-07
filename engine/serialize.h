@@ -5,6 +5,7 @@
 	save/load if this changes.
 */
 
+#include <stdio.h>
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glrectangle.h"

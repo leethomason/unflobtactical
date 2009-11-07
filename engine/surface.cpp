@@ -13,6 +13,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdlib.h>
 #include "surface.h"
 #include "platformgl.h"
 #include "../grinliz/glutil.h"
