@@ -13,10 +13,12 @@
 #include "enginelimits.h"
 
 struct SDL_RWops;
+struct sqlite3;
 
 /*
 	The TextureHeader is followed by pixel data. (Based on the format.)
 */
+/*
 struct TextureHeader
 {
 	char		name[EL_FILE_STRING_LEN];	// name of the texture
@@ -30,7 +32,7 @@ struct TextureHeader
 	void Save( SDL_RWops* ops );
 	void Load( FILE* fp );
 };
-
+*/
 
 struct ModelGroup
 {
@@ -39,16 +41,11 @@ struct ModelGroup
 	U16						nIndex;
 
 	void Set( const char* textureName, int nVertex, int nIndex );
-	void Save( SDL_RWops* ops );
-	void Load( FILE* fp );
+	//void Save( SDL_RWops* ops );
+	void Load( sqlite3* db, int id );
 };
 
-/*
-	ModelHeader
-	ModelGroups	groups[]
-	Vertex		vertexData[]	// all groups
-	U16			indexData[]		// all groups
-*/
+
 struct ModelHeader
 {
 	// flags
@@ -59,10 +56,10 @@ struct ModelHeader
 	};
 
 	char					name[EL_FILE_STRING_LEN];	// name must be first - used later in sleazy sort trick in GetModelResource()
-	U16						flags;
-	U16						nGroups;
 	U16						nTotalVertices;		// in all groups
 	U16						nTotalIndices;
+	U16						flags;
+	U16						nGroups;
 	grinliz::Rectangle3F	bounds;
 	grinliz::Vector3F		trigger;			// location for gun
 	float					eye;				// location model "looks from"
@@ -71,8 +68,11 @@ struct ModelHeader
 	void Set( const char* name, int nGroups, int nTotalVertices, int nTotalIndices,
 			  const grinliz::Rectangle3F& bounds );
 
-	void Save( SDL_RWops* ops );
-	void Load( FILE* fp );
+	void Load(	sqlite3* db,		// database connection
+				const char* name,	// name to load
+				int *groupStart,	// where the groups start in the group table
+				int *vertexID,		// vertex binary data
+				int *indexID );		// index binary data
 };
 
 

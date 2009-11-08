@@ -43,6 +43,14 @@ distribution.
 namespace grinliz 
 {
 	
+inline bool StrEqual( const char* a, const char* b ) 
+{
+	if ( a && b && strcmp( a, b ) == 0 )
+		return true;
+	return false;
+}
+
+
 /** Loads a text file to the given string. Returns true on success, false
     if the file could not be found.
 */

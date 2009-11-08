@@ -28,6 +28,7 @@
 class ParticleSystem;
 class Scene;
 class ItemDef;
+struct sqlite3;
 
 const float ONE8 = 1.0f / 8.0f;
 const float ONE16 = 1.0f / 16.0f;
@@ -79,7 +80,7 @@ public:
 	void LoadMap( FILE* fp );
 	void ClearMap()				{ engine.GetMap()->Clear(); }
 
-	enum { NUM_LIGHT_MAPS = 1,
+	enum { MAX_NUM_LIGHT_MAPS = 16,
 
 		   BATTLE_SCENE = 0,
 		   CHARACTER_SCENE,
@@ -144,6 +145,7 @@ private:
 	int trianglesPerSecond;
 	int trianglesSinceMark;
 	ModelLoader* modelLoader;
+	sqlite3* database;
 
 	Scene* currentScene;
 	CStack<int> sceneStack;
@@ -161,7 +163,7 @@ private:
 	grinliz::ProfileData profile;
 
 	CDynArray<ItemDef*>	itemDefArr;
-	Surface				lightMaps[NUM_LIGHT_MAPS];
+	NamedSurface		lightMaps[MAX_NUM_LIGHT_MAPS];
 };
 
 #endif

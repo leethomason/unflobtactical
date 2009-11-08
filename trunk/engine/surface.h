@@ -27,32 +27,52 @@ public:
 	Surface();
 	~Surface();
 
-	int Width()	const			{ return w; }
-	int Height() const			{ return h; }
-	U8* Pixels()				{ return pixels; }
-	const U8* Pixels() const	{ return pixels; }
-	int BytesPerPixel() const	{ return bpp; }
+	enum {		// channels	bytes
+		RGBA16,	// 4444		2
+		RGB16,	// 565		2
+		ALPHA,	// 8		1
+	};
 
-	void Set( int w, int h, int bytesPP );
+	int			Width()	const			{ return w; }
+	int			Height() const			{ return h; }
+	U8*			Pixels()				{ return pixels; }
+	const U8*	Pixels() const			{ return pixels; }
+	int			BytesPerPixel() const	{ return (format==ALPHA) ? 1 : 2; }
+	int			BytesInImage() const	{ GLASSERT( w*h*BytesPerPixel() <= allocated ); return w*h*BytesPerPixel(); }
+	bool		Alpha() const			{ return (format!=RGB16) ? true : false; }
+
+	// Set the format and allocate memory.
+	void Set( int format, int w, int h );
 
 	// Create an opengl texture from this surface.
-	U32 CreateTexture( bool alpha );
+	U32 CreateTexture();
 	// Update an opengl texture from this surface.
-	void UpdateTexture( bool alpha, U32 glID );
-	// Load the file
-	U32 LoadTexture( FILE* fp, bool* alpha );
-	// Load the file (no texture)
-	void LoadSurface( FILE* fp, bool* alpha );
+	void UpdateTexture( U32 glID );
+
+	// convert a string to one of the supported surface formats
+	static int QueryFormat( const char* formatString );
+	// calculate the opengl format and type
+	void CalcOpenGL(int* glFormat, int* glType );
 
 private:
-	void CalcFormat( bool alpha, int* format, int* type );
-	U32 LowerCreateTexture( int format, int type );
+	//U32 LowerCreateTexture( int format, int type );
 
+	int format;
 	int w;
 	int h;
-	int bpp;
 	int allocated;
 	U8* pixels;
+};
+
+
+class NamedSurface : public Surface
+{
+public:
+	NamedSurface();
+	void SetName( const char* n );
+	const char* GetName()	{ return name; }
+private:
+	char name[16];
 };
 
 
@@ -60,10 +80,10 @@ class Texture
 {
 public:
 	char name[16];		// must be first in the class for search to work! (strcmp used in the TextureManager)
-	bool alphaTest;
+	bool alpha;
 	U32	 glID;
 
-	void Set( const char* name, U32 glID, bool alphaTest=false );
+	void Set( const char* name, U32 glID, bool alpha );
 };
 
 
@@ -73,7 +93,7 @@ public:
 	static TextureManager* Instance()	{ GLASSERT( instance ); return instance; }
 	
 	const Texture* GetTexture( const char* name );
-	void AddTexture( const char* name, U32 glID, bool alphaTest=false );
+	void AddTexture( const char* name, U32 glID, bool alpha );
 
 	static void Create();
 	static void Destroy();
@@ -88,7 +108,6 @@ private:
 	};
 
 	static TextureManager* instance;
-	//CDynArray< Texture > textureArr;	// works...except changes texture pointers around after the fact.
 	CArray< Texture, MAX_TEXTURES > textureArr;		// textures
 	Texture* texturePtr[MAX_TEXTURES];				// sorted pointers to textures
 	bool sorted;

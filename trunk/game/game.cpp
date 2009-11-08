@@ -29,6 +29,7 @@
 #include "../grinliz/glmatrix.h"
 #include "../grinliz/glutil.h"
 #include "../grinliz/glperformance.h"
+#include "../sqlite3/sqlite3.h"
 
 using namespace grinliz;
 
@@ -52,7 +53,13 @@ Game::Game( const Screenport& sp ) :
 	rootStream = 0;
 	currentFrame = 0;
 	memset( &profile, 0, sizeof( ProfileData ) );
-	surface.Set( 256, 256, 4 );		// All the memory we will ever need (? or that is the intention)
+	surface.Set( Surface::RGBA16, 256, 256 );		// All the memory we will ever need (? or that is the intention)
+
+	// Load the database.
+	char buffer[260];
+	PlatformPathToResource( "uforesource", "db", buffer, 260 );
+	int sqlResult = sqlite3_open_v2( buffer, &database, SQLITE_OPEN_READONLY, 0 );
+	GLASSERT( sqlResult == SQLITE_OK );
 
 	LoadTextures();
 	modelLoader = new ModelLoader();
@@ -63,6 +70,8 @@ Game::Game( const Screenport& sp ) :
 
 	delete modelLoader;
 	modelLoader = 0;
+	sqlite3_close(database);
+	database = 0;
 
 	const Texture* textTexture = TextureManager::Instance()->GetTexture( "stdfont2" );
 	GLASSERT( textTexture );
@@ -80,13 +89,9 @@ Game::Game( const Screenport& sp ) :
 	engine.GetMap()->SetTexture( TextureManager::Instance()->GetTexture("farmland" ) );
 	engine.SetDayNight( true, 0 );
 
-	//engine.camera.SetPosWC( -19.4f, 62.0f, 57.2f );
 	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
-	//engine.camera.SetPosWC( -5.0f, engineData.cameraHeight, mz + 5.0f );
 
 	particleSystem = new ParticleSystem();
-	//particleSystem->InitPoint( TextureManager::Instance()->GetTexture( "particleSparkle" ) );
-	//particleSystem->InitQuad( GetTexture( "particleQuad" ) );
 
 	currentScene = 0;
 	scenePushQueued = BATTLE_SCENE;
