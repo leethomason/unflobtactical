@@ -30,6 +30,7 @@
 #include "../grinliz/glutil.h"
 #include "../grinliz/glperformance.h"
 #include "../sqlite3/sqlite3.h"
+#include "../shared/gldatabase.h"
 
 using namespace grinliz;
 
@@ -70,8 +71,6 @@ Game::Game( const Screenport& sp ) :
 
 	delete modelLoader;
 	modelLoader = 0;
-	sqlite3_close(database);
-	database = 0;
 
 	const Texture* textTexture = TextureManager::Instance()->GetTexture( "stdfont2" );
 	GLASSERT( textTexture );
@@ -114,6 +113,8 @@ Game::~Game()
 	for( unsigned i=0; i<itemDefArr.Size(); ++i ) {
 		delete itemDefArr[i];
 	}
+	sqlite3_close(database);
+	database = 0;
 }
 
 
@@ -204,31 +205,42 @@ void Game::CreateScene( int id )
 
 void Game::LoadMap( const char* name )
 {
-	char buffer[512];
+	sqlite3_stmt* stmt = 0;
+	sqlite3_prepare_v2(database, "SELECT * FROM map WHERE name=?;", -1, &stmt, 0 );
+	sqlite3_bind_text( stmt, 1, name, -1, 0 );
 
-	PlatformPathToResource( name, "map", buffer, 512 );
+	int id=0;
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		id = sqlite3_column_int(  stmt, 1 );
+	}
+	else {
+		GLASSERT( 0 );
+	}
+	sqlite3_finalize(stmt);
 
 	UFOStream s( "map" );
-	s.LoadFile( buffer );
+
+	int size;
+	DBReadBinarySize( database, id, &size );
+	U8* mem = s.WriteMem( size );
+	DBReadBinaryData( database, id, size, mem );
+	s.SeekSet( 0 );
+
 	engine.GetMap()->Load( &s, this );
 }
 
 
-void Game::LoadMap( FILE* fp ) 
-{
-	UFOStream s( "map" );
-	s.LoadFile( fp );
-	engine.GetMap()->Load( &s, this );
-}
-
-
-void Game::SaveMap( FILE* fp )
+#ifdef MAPMAKER
+void Game::SaveMap( const char* name )
 {
 	UFOStream s( "map" );
 	engine.GetMap()->Save( &s );
-	s.SaveFile( fp );
-}
 
+	FILE* fp = fopen( "currentMap.map", "wb" );
+	fwrite( s.MemBase(), 1, s.Size(), fp );
+	fclose( fp );
+}
+#endif
 
 void Game::DoTick( U32 currentTime )
 {

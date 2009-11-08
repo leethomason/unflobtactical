@@ -159,6 +159,19 @@ void UFOStream::WriteStr( const char* str )
 	}
 }
 
+
+U8* UFOStream::WriteMem( int len )
+{
+	Ensure( Size() + len );
+	U8* result = ptr;
+	ptr += len;
+	if ( Tell() > size ) {
+		size = Tell();
+	}
+	return result;
+}
+
+
 void UFOStream::WriteU8( U32 value )			{ GLASSERT( value < 256 ); Write( (U8)value ); }
 void UFOStream::WriteU16( U32 value )			{ GLASSERT( value < 0x10000 ); Write( (U16) value ); }
 void UFOStream::WriteU32( U32 value )			{ Write( value ); }
@@ -257,6 +270,7 @@ void UFOStream::EndWriteBits()
 }
 
 
+/*
 void UFOStream::SaveFile()
 {
 	std::string name( Name() );
@@ -312,4 +326,4 @@ void UFOStream::SaveFile( FILE* fp )
 {
 	fwrite( buffer, 1, size, fp );
 }
-
+*/

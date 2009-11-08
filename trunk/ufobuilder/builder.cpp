@@ -50,6 +50,7 @@ string outputPath;
 string outputDB;
 vector<U16> pixelBuffer16;
 vector<U8> pixelBuffer8;
+vector<U8> compressionBuf;
 
 
 string inputPath;
@@ -88,13 +89,22 @@ void CreateDatabase()
 								" nVertex INT, nIndex INT );",
 								0, 0, 0 );
 	GLASSERT( sqlResult == SQLITE_OK );
+
+	sqlResult	= sqlite3_exec(	db,
+								"CREATE TABLE map "
+								"(name TEXT NOT NULL PRIMARY KEY, "
+								" id INT );",
+								0, 0, 0 );
+	GLASSERT( sqlResult == SQLITE_OK );
+
 }
 
 
 void InsertTextureToDB( const char* name, const char* format, bool isImage, int width, int height, const void* pixels, int sizeInBytes )
 {
 	int index = 0;
-	DBWriteBinary( db, pixels, sizeInBytes, &index );
+	compressionBuf.resize( sizeInBytes );
+	DBWriteBinary( db, pixels, sizeInBytes, &index, &compressionBuf[0], compressionBuf.size()*8/10 );
 
 	sqlite3_stmt* stmt = NULL;
 	sqlite3_prepare_v2( db, "INSERT INTO texture VALUES (?, ?, ?, ?, ?, ?);", -1, &stmt, 0 );
@@ -114,7 +124,7 @@ void InsertTextureToDB( const char* name, const char* format, bool isImage, int 
 void InsertModelHeaderToDB( const ModelHeader& header, int groupID, int vertexID, int indexID )
 {
 	int index = 0;
-	DBWriteBinary( db, &header, sizeof(header), &index );
+	DBWriteBinary( db, &header, sizeof(header), &index, 0, 0 );
 
 	sqlite3_stmt* stmt = NULL;
 
@@ -170,28 +180,7 @@ void WriteFloat( SDL_RWops* ctx, float f )
 	SDL_RWwrite( ctx, &f, sizeof(float), 1 );
 }
 
-/*
-void TextureHeader::Save( SDL_RWops* fp )
-{
-	SDL_RWwrite( fp, this, sizeof(TextureHeader), 1 );
-}
-*/
-/*
-void TextureHeader::Set( const char* name, U32 format, U32 type, U16 width, U16 height )
-{
-	memset( this->name, 0, EL_FILE_STRING_LEN );
-	strncpy( this->name, name, EL_FILE_STRING_LEN );
-	this->format = format;
-	this->type = type;
-	this->width = width;
-	this->height = height;
-}
-*/
 
-//void ModelHeader::Save( SDL_RWops* fp )
-//{
-//	SDL_RWwrite( fp, this, sizeof(ModelHeader), 1 );
-//}
 
 void ModelHeader::Set(	const char* name, int nGroups, int nTotalVertices, int nTotalIndices,
 						const grinliz::Rectangle3F& bounds )
@@ -214,12 +203,6 @@ void ModelHeader::Set(	const char* name, int nGroups, int nTotalVertices, int nT
 	eye = 0;
 	target = 0;
 }
-
-
-//void ModelGroup::Save( SDL_RWops* fp )
-//{
-//	SDL_RWwrite( fp, this, sizeof(ModelGroup), 1 );
-//}
 
 
 void ModelGroup::Set( const char* textureName, int nVertex, int nIndex )
@@ -266,25 +249,20 @@ U32 GetPixel(SDL_Surface *surface, int x, int y)
 
 void ProcessMap( TiXmlElement* map )
 {
-
 	string filename;
 	map->QueryStringAttribute( "filename", &filename );
 	string fullIn = inputPath + filename;
 
-	string base, name, extension;
-	grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
-	string fullOut = outputPath + name + ".map";
+	string name;
+	grinliz::StrSplitFilename( fullIn, 0, &name, 0 );
 
 	// copy the entire file.
 	FILE* read = fopen( fullIn.c_str(), "rb" );
 	if ( !read ) {
-		printf( "**Unrecognized map file. full='%s' base='%s' name='%s' extension='%s'\n",
-				 fullIn.c_str(), base.c_str(), name.c_str(), extension.c_str() );
+		printf( "**Unrecognized map file. '%s'\n",
+				 fullIn.c_str() );
 		exit( 1 );
 	}
-
-	FILE* write = fopen( fullOut.c_str(), "wb" );
-	GLASSERT( write );
 
 	// length of file.
 	fseek( read, 0, SEEK_END );
@@ -293,14 +271,25 @@ void ProcessMap( TiXmlElement* map )
 
 	char* mem = new char[len];
 	fread( mem, len, 1, read );
-	fwrite( mem, len, 1, write );
+	//fwrite( mem, len, 1, write );
+
+	int index = 0;
+	compressionBuf.resize( len );
+	DBWriteBinary( db, mem, len, &index, &compressionBuf[0], compressionBuf.size()*8/10 );
+
+	sqlite3_stmt* stmt = NULL;
+	sqlite3_prepare_v2( db, "INSERT INTO map VALUES (?,?);", -1, &stmt, 0 );
+	sqlite3_bind_text( stmt, 1,	name.c_str(), -1, SQLITE_TRANSIENT );
+	sqlite3_bind_int(  stmt, 2, index );
+	sqlite3_step( stmt );
+	sqlite3_finalize(stmt);
+
 	delete [] mem;
 
 	printf( "Map '%s' memory=%dk\n", filename.c_str(), len/1024 );
 	totalMapMem += len;
 
 	fclose( read );
-	fclose( write );
 }
 
 
@@ -443,8 +432,11 @@ void ProcessModel( TiXmlElement* model )
 	GLASSERT( pIndex == pIndexEnd );
 
 	int vertexID = 0, indexID = 0;
-	DBWriteBinary( db, vertexBuf, nTotalVertex*sizeof(Vertex), &vertexID );
-	DBWriteBinary( db, indexBuf,  nTotalIndex*sizeof(U16),     &indexID );
+
+	compressionBuf.resize( grinliz::Max( nTotalVertex*sizeof(Vertex), nTotalIndex*sizeof(U16) ));
+
+	DBWriteBinary( db, vertexBuf, nTotalVertex*sizeof(Vertex), &vertexID, &compressionBuf[0], compressionBuf.size()*8/10 );
+	DBWriteBinary( db, indexBuf,  nTotalIndex*sizeof(U16),     &indexID,  &compressionBuf[0], compressionBuf.size()*8/10 );
 	InsertModelHeaderToDB( header, groupID, vertexID, indexID );
 
 	printf( "  total memory=%.1fk\n", (float)totalMemory / 1024.f );

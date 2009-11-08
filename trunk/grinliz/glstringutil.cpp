@@ -49,13 +49,17 @@ void grinliz::StrSplitFilename(	const std::string& fullPath,
 								std::string* extension )
 {
 	std::string path = fullPath;
-	*base = "";
-	*name = "";
-	*extension = "";
+	if ( base )
+		*base = "";
+	if ( name )
+		*name = "";
+	if ( extension )
+		*extension = "";
 
 	unsigned dotPos = path.rfind( '.' );
 	if ( dotPos < path.size() ) {
-		*extension = path.substr( dotPos, path.size() );
+		if ( extension )
+			*extension = path.substr( dotPos, path.size() );
 		path = path.substr( 0, dotPos );
 	}
 
@@ -78,10 +82,12 @@ void grinliz::StrSplitFilename(	const std::string& fullPath,
 		found = true;
 	}
 	if ( found && pos < path.size() ) {
-		*base = path.substr( 0, pos+1 );
+		if ( base )
+			*base = path.substr( 0, pos+1 );
 		path = path.substr( pos+1, path.size() );
 	}
-	*name = path;
+	if ( name )
+		*name = path;
 }
 
 
