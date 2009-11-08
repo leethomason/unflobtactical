@@ -2,8 +2,11 @@
 #include "cgame.h"
 #include "unit.h"
 #include "material.h"
+#include "../shared/gldatabase.h"
+#include "../grinliz/glstringutil.h"
 
 // Only need non-item models.
+/*
 const char* const gModelNames[] = 
 {
 	"alien0",
@@ -34,18 +37,22 @@ const char* const gModelNames[] =
 
 	0
 };
+*/
 
-
+/*
 struct TextureDef
 {
 	const char* name;
-	U32 flags;
+	U32 flags0;
 };
+*/
 
+/*
 enum {
 	ALPHA_TEST = 0x01,
 };
-
+*/
+/*
 const TextureDef gTextureDef[] = 
 {
 	{	"icons",		0	},
@@ -69,73 +76,94 @@ const TextureDef gTextureDef[] =
 	{	"clips",		0	},
 	{  0, 0 }
 };
+*/
 
-
+/*
 const char* gLightMapNames[ Game::NUM_LIGHT_MAPS ] = 
 {
 	"farmlandN",
 };
+*/
 
 
 void Game::LoadTextures()
 {
-	//memset( texture, 0, sizeof(Texture)*MAX_TEXTURES );
-
 	U32 textureID = 0;
 	FILE* fp = 0;
-	char buffer[512];
+	char name[64];
+	char format[16];
 
 	TextureManager* texman = TextureManager::Instance();
 
 	// Create the default texture "white"
-	surface.Set( 2, 2, 2 );
+	surface.Set( Surface::RGB16, 2, 2 );
 	memset( surface.Pixels(), 255, 8 );
-	textureID = surface.CreateTexture( false );
-	texman->AddTexture( "white", textureID );
+	textureID = surface.CreateTexture();
+	texman->AddTexture( "white", textureID, false );
 
-	// Load the textures from the array:
-	for( int i=0; gTextureDef[i].name; ++i ) {
-		PlatformPathToResource( gTextureDef[i].name, "tex", buffer, 512 );
-		fp = fopen( buffer, "rb" );
-		GLASSERT( fp );
-		bool alpha;
-		textureID = surface.LoadTexture( fp, &alpha );
-		texman->AddTexture( gTextureDef[i].name, textureID, alpha );
-		fclose( fp );
+	// Run through the database, and load all the textures.
+	sqlite3_stmt* stmt = 0;
+	sqlite3_prepare_v2(database, "select * from texture;", -1, &stmt, 0 );
+
+	while (sqlite3_step(stmt) == SQLITE_ROW) 
+	{
+		strcpy( name, (const char*)sqlite3_column_text( stmt, 0 ) );	// name
+		strcpy( format, (const char*)sqlite3_column_text( stmt, 1 ) );	// format
+		//int isImage = sqlite3_column_int( stmt, 2 );					// don't need
+		int w = sqlite3_column_int( stmt, 3 );
+		int h = sqlite3_column_int( stmt, 4 );
+		int id = sqlite3_column_int( stmt, 5 );
+
+		surface.Set( Surface::QueryFormat( format ), w, h );
+		
+		int blobSize = 0;
+		DBReadBinarySize( database, id, &blobSize );
+		GLASSERT( surface.BytesInImage() == blobSize );
+		DBReadBinaryData( database, id, blobSize, surface.Pixels() );
+
+		textureID = surface.CreateTexture();
+		texman->AddTexture( name, textureID, surface.Alpha() );
+		GLOUTPUT(( "Texture %s\n", name ));
 	}
-	//GLASSERT( nTexture <= MAX_TEXTURES );
+
+	sqlite3_finalize(stmt);
 }
 
 
 
 void Game::LoadModel( const char* name )
 {
-	char buffer[256];
 	GLASSERT( modelLoader );
 
-	//GLASSERT( nModelResource < EL_MAX_MODEL_RESOURCES );
-	PlatformPathToResource( name, "mod", buffer, 256 );
-	FILE* fp = fopen( buffer, "rb" );
-	GLASSERT( fp );
 	ModelResource* res = new ModelResource();
-	modelLoader->Load( fp, res );
+	modelLoader->Load( database, name, res );
 	ModelResourceManager::Instance()->AddModelResource( res );
-	fclose( fp );
 }
 
 
 void Game::LoadModels()
 {
-	for( int i=0; gModelNames[i]; ++i ) {
-		LoadModel( gModelNames[i] );
+	char name[64];
+
+	// Run through the database, and load all the textures.
+	sqlite3_stmt* stmt = 0;
+	sqlite3_prepare_v2(database, "select name from model;", -1, &stmt, 0 );
+
+	while (sqlite3_step(stmt) == SQLITE_ROW) 
+	{
+		strcpy( name, (const char*)sqlite3_column_text( stmt, 0 ) );		// name
+		LoadModel( name );
 	}
+
+	sqlite3_finalize(stmt);
+
 }
 
 
 Surface* Game::GetLightMap( const char* name )
 {
-	for( int i=0; i<NUM_LIGHT_MAPS; ++i ) {
-		if ( strcmp( name, gLightMapNames[i] ) == 0 ) {
+	for( int i=0; i<MAX_NUM_LIGHT_MAPS; ++i ) {
+		if ( strcmp( name, lightMaps[i].GetName() ) == 0 ) {
 			return &lightMaps[i];
 		}
 	}
@@ -145,9 +173,10 @@ Surface* Game::GetLightMap( const char* name )
 
 void Game::LoadLightMaps()
 {
+	/*
 	// Load the map.
 	char buffer[512];
-	for( int i=0; i<NUM_LIGHT_MAPS; ++i ) {
+	for( int i=0; i<1; ++i ) {
 		PlatformPathToResource( gLightMapNames[i], "tex", buffer, 512 );
 		FILE* fp = fopen( buffer, "rb" );
 		GLASSERT( fp );
@@ -156,6 +185,47 @@ void Game::LoadLightMaps()
 		GLASSERT( alpha == false );
 		fclose( fp );
 	}
+	*/
+/*
+	sqlite3_stmt* stmt = 0;
+	sqlite3_prepare_v2(database, "select * from texture;", -1, &stmt, 0 );
+
+	while (sqlite3_step(stmt) == SQLITE_ROW) 
+	{
+		strcpy( name, (const char*)sqlite3_column_text( stmt, 0 ) );		// name
+		strcpy( format, (const char*)sqlite3_column_text( stmt, 1 ) );	// format
+		int w = sqlite3_column_int( stmt, 2 );
+		int h = sqlite3_column_int( stmt, 3 );
+		int id = sqlite3_column_int( stmt, 4 );
+
+		bool alpha = false;
+		if ( grinliz::StrEqual( "RGBA16", format ) ) {
+			surface.Set( w, h, 2 );
+			alpha = true;
+		}
+		else if ( grinliz::StrEqual( "RGB16", format ) ) {
+			surface.Set( w, h, 2 );
+			alpha = false;
+		}
+		else if ( grinliz::StrEqual( "ALPHA", format ) ) {
+			surface.Set( w, h, 1 );
+			alpha = true;
+		}
+		else {
+			GLASSERT( 0 );
+		}
+		
+		int blobSize = 0;
+		DBReadBinarySize( database, id, &blobSize );
+		GLASSERT( surface.BytesInImage() == blobSize );
+		DBReadBinaryData( database, id, blobSize, surface.Pixels() );
+
+		textureID = surface.CreateTexture( alpha );
+		texman->AddTexture( name, textureID, alpha );
+	}
+
+	sqlite3_finalize(stmt);
+	*/
 }
 
 

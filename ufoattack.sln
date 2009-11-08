@@ -2,8 +2,16 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual C++ Express 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ufoattack", "ufoattack.vcproj", "{26527007-5B22-4080-8459-76330876BC26}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C420D075-5C6A-4C40-800A-069AECE4B518} = {C420D075-5C6A-4C40-800A-069AECE4B518}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ufobuilder", "ufobuilder.vcproj", "{9DD68418-EE20-4197-AB3A-9F51B99B9834}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C420D075-5C6A-4C40-800A-069AECE4B518} = {C420D075-5C6A-4C40-800A-069AECE4B518}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ufolib", "win32\ufolib\ufolib.vcproj", "{C420D075-5C6A-4C40-800A-069AECE4B518}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,6 +32,12 @@ Global
 		{9DD68418-EE20-4197-AB3A-9F51B99B9834}.Debug|Win32.Build.0 = Debug|Win32
 		{9DD68418-EE20-4197-AB3A-9F51B99B9834}.Release|Win32.ActiveCfg = Release|Win32
 		{9DD68418-EE20-4197-AB3A-9F51B99B9834}.Release|Win32.Build.0 = Release|Win32
+		{C420D075-5C6A-4C40-800A-069AECE4B518}.Debug Mapmaker|Win32.ActiveCfg = Debug|Win32
+		{C420D075-5C6A-4C40-800A-069AECE4B518}.Debug Mapmaker|Win32.Build.0 = Debug|Win32
+		{C420D075-5C6A-4C40-800A-069AECE4B518}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C420D075-5C6A-4C40-800A-069AECE4B518}.Debug|Win32.Build.0 = Debug|Win32
+		{C420D075-5C6A-4C40-800A-069AECE4B518}.Release|Win32.ActiveCfg = Release|Win32
+		{C420D075-5C6A-4C40-800A-069AECE4B518}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

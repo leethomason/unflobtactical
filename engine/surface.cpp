@@ -17,10 +17,11 @@
 #include "surface.h"
 #include "platformgl.h"
 #include "../grinliz/glutil.h"
+#include "../grinliz/glstringutil.h"
 #include <string.h>
 #include "serialize.h"
 
-Surface::Surface() : w( 0 ), h( 0 ), bpp( 0 ), allocated( 0 ), pixels( 0 )
+Surface::Surface() : format( -1 ), w( 0 ), h( 0 ), allocated( 0 ), pixels( 0 )
 {}
 
 Surface::~Surface()
@@ -30,13 +31,13 @@ Surface::~Surface()
 	}
 }
 
-void Surface::Set( int w, int h, int bpp ) 
+void Surface::Set( int f, int w, int h ) 
 {
+	this->format = f;
 	this->w = w;
 	this->h = h;
-	this->bpp = bpp;
 	
-	int needed = w*h*bpp;
+	int needed = w*h*BytesPerPixel();
 
 	if ( allocated < needed ) {
 		if ( pixels ) {
@@ -47,6 +48,24 @@ void Surface::Set( int w, int h, int bpp )
 	}
 }
 
+
+/*static*/ int Surface::QueryFormat( const char* formatString )
+{
+	if ( grinliz::StrEqual( "RGBA16", formatString ) ) {
+		return RGBA16;
+	}
+	else if ( grinliz::StrEqual( "RGB16", formatString ) ) {
+		return RGB16;
+	}
+	else if ( grinliz::StrEqual( "ALPHA", formatString ) ) {
+		return ALPHA;
+	}
+	GLASSERT( 0 );
+	return -1;
+}
+
+
+/*
 U32 Surface::LoadTexture( FILE* fp, bool *alpha )
 {
 	TextureHeader header;
@@ -73,8 +92,9 @@ U32 Surface::LoadTexture( FILE* fp, bool *alpha )
 
 	return LowerCreateTexture( header.format, header.type );
 }
+*/
 
-
+/*
 void Surface::LoadSurface( FILE* fp, bool* alpha )
 {
 	TextureHeader header;
@@ -91,47 +111,43 @@ void Surface::LoadSurface( FILE* fp, bool* alpha )
 
 	fread( pixels, 1, w*h*bpp, fp );
 }
+*/
 
 
-void Surface::CalcFormat( bool alpha, int* format, int* type )
+void Surface::CalcOpenGL( int* glFormat, int* glType )
 {
-	*format = GL_RGB;
-	*type = GL_UNSIGNED_BYTE;
+	*glFormat = GL_RGB;
+	*glType = GL_UNSIGNED_BYTE;
 
-	if ( bpp == 2 ) {
-		if ( alpha ) {
-			*format = GL_RGBA;
-			*type = GL_UNSIGNED_SHORT_4_4_4_4;
-		}
-		else {
-			*format = GL_RGB;
-			*type = GL_UNSIGNED_SHORT_5_6_5;
-		}
-	}
-	else if ( bpp == 3 ) {
-		GLASSERT( !alpha );
-		*format = GL_RGB;
-		*type = GL_UNSIGNED_BYTE;
-	}
-	else if ( bpp == 4 ) {
-		GLASSERT( alpha );
-		*format = GL_RGBA;
+	switch( format ) {
+		case RGBA16:
+			*glFormat = GL_RGBA;
+			*glType = GL_UNSIGNED_SHORT_4_4_4_4;
+			break;
+
+		case RGB16:
+			*glFormat = GL_RGB;
+			*glType = GL_UNSIGNED_SHORT_5_6_5;
+			break;
+
+		case ALPHA:
+			*glFormat = GL_ALPHA;
+			*glType = GL_UNSIGNED_BYTE;
+			break;
+
+		default:
+			GLASSERT( 0 );
 	}
 }
 
 
-U32 Surface::CreateTexture( bool alpha )
+U32 Surface::CreateTexture()
 {
-	int format, type;
-	CalcFormat( alpha, &format, &type );
-	return LowerCreateTexture( format, type );
-}
+	int glFormat, glType;
+	CalcOpenGL( &glFormat, &glType );
 
-
-U32 Surface::LowerCreateTexture( int format, int type )
-{
 	GLASSERT( pixels );
-	GLASSERT( w && h && bpp );
+	GLASSERT( w && h && (format >= 0) );
 	TESTGLERR();
 
 	glEnable( GL_TEXTURE_2D );
@@ -160,12 +176,12 @@ U32 Surface::LowerCreateTexture( int format, int type )
 					
 	glTexImage2D(	GL_TEXTURE_2D,
 					0,
-					format,
+					glFormat,
 					w,
 					h,
 					0,
-					format,
-					type,
+					glFormat,
+					glType,
 					pixels );
 
 	TESTGLERR();
@@ -174,24 +190,36 @@ U32 Surface::LowerCreateTexture( int format, int type )
 }
 
 
-void Surface::UpdateTexture( bool alpha, U32 glID )
+void Surface::UpdateTexture( U32 glID )
 {
-	int format, type;
-	CalcFormat( alpha, &format, &type );
+	int glFormat, glType;
+	CalcOpenGL( &glFormat, &glType );
 
 	glBindTexture( GL_TEXTURE_2D, glID );
 
 	glTexImage2D(	GL_TEXTURE_2D,
 					0,
-					format,
+					glFormat,
 					w,
 					h,
 					0,
-					format,
-					type,
+					glFormat,
+					glType,
 					pixels );
 
 	TESTGLERR();
+}
+
+
+NamedSurface::NamedSurface() : Surface()
+{
+	name[0] = 0;
+}
+
+
+void NamedSurface::SetName( const char* n )
+{
+	strncpy( name, n, 16 );
 }
 
 
@@ -211,12 +239,12 @@ void Surface::UpdateTexture( bool alpha, U32 glID )
 */
 
 
-void Texture::Set( const char* name, U32 glID, bool alphaTest )
+void Texture::Set( const char* name, U32 glID, bool alpha )
 {
 	GLASSERT( strlen( name ) < 16 );
 	strcpy( this->name, name );
 	this->glID = glID;
-	this->alphaTest = alphaTest;
+	this->alpha = alpha;
 }
 
 

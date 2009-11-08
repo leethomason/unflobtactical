@@ -24,6 +24,7 @@
 #include "../engine/enginelimits.h"
 
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -38,22 +39,114 @@ using namespace std;
 #include "../engine/serialize.h"
 #include "../importers/import.h"
 
+#include "../sqlite3/sqlite3.h"
+#include "../shared/gldatabase.h"
+
 
 typedef SDL_Surface* (SDLCALL * PFN_IMG_LOAD) (const char *file);
 PFN_IMG_LOAD libIMG_Load;
 
 string outputPath;
+string outputDB;
+vector<U16> pixelBuffer16;
+vector<U8> pixelBuffer8;
+
+
 string inputPath;
 int totalModelMem = 0;
 int totalTextureMem = 0;
 int totalMapMem = 0;
+sqlite3* db = NULL;
 
 
-bool StrEqual( const char* a, const char* b ) {
-	if ( a && b && strcmp( a, b ) == 0 )
-		return true;
-	return false;
+void CreateDatabase()
+{
+	DBCreateBinaryTable( db );
+	int sqlResult = 0;
+
+	// Set up the database tables.
+	sqlResult = sqlite3_exec(	db, 
+								"CREATE TABLE texture "
+								"(name TEXT NOT NULL PRIMARY KEY, "
+								" format TEXT, image INT, width INT, height INT, id INT);",
+								0, 0, 0 );
+	GLASSERT( sqlResult == SQLITE_OK );
+
+	sqlResult	= sqlite3_exec(	db,
+								"CREATE TABLE model "
+								"(name TEXT NOT NULL PRIMARY KEY, "
+								" headerID INT, "
+								" groupStart INT, nGroup INT, "
+								" vertexID INT, indexID INT );",
+								0, 0, 0 );
+	GLASSERT( sqlResult == SQLITE_OK );
+
+	sqlResult	= sqlite3_exec(	db,
+								"CREATE TABLE modelGroup "
+								"(id INT NOT NULL PRIMARY KEY, "
+								" textureName TEXT, "
+								" nVertex INT, nIndex INT );",
+								0, 0, 0 );
+	GLASSERT( sqlResult == SQLITE_OK );
 }
+
+
+void InsertTextureToDB( const char* name, const char* format, bool isImage, int width, int height, const void* pixels, int sizeInBytes )
+{
+	int index = 0;
+	DBWriteBinary( db, pixels, sizeInBytes, &index );
+
+	sqlite3_stmt* stmt = NULL;
+	sqlite3_prepare_v2( db, "INSERT INTO texture VALUES (?, ?, ?, ?, ?, ?);", -1, &stmt, 0 );
+
+	sqlite3_bind_text( stmt, 1, name, -1, SQLITE_TRANSIENT );
+	sqlite3_bind_text( stmt, 2, format, -1, SQLITE_TRANSIENT );
+	sqlite3_bind_int( stmt, 3, isImage ? 1 : 0 );
+	sqlite3_bind_int( stmt, 4, width );
+	sqlite3_bind_int( stmt, 5, height );
+	sqlite3_bind_int( stmt, 6, index );
+
+	sqlite3_step( stmt );
+	sqlite3_finalize(stmt);
+}
+
+
+void InsertModelHeaderToDB( const ModelHeader& header, int groupID, int vertexID, int indexID )
+{
+	int index = 0;
+	DBWriteBinary( db, &header, sizeof(header), &index );
+
+	sqlite3_stmt* stmt = NULL;
+
+	sqlite3_prepare_v2( db, "INSERT INTO model VALUES (?,?,?,?,?,?);", -1, &stmt, 0 );
+	sqlite3_bind_text( stmt, 1,	header.name, -1, SQLITE_TRANSIENT );
+	sqlite3_bind_int(  stmt, 2, index );
+	sqlite3_bind_int(  stmt, 3, groupID );
+	sqlite3_bind_int(  stmt, 4, header.nGroups );
+	sqlite3_bind_int(  stmt, 5, vertexID );
+	sqlite3_bind_int(  stmt, 6, indexID );
+	sqlite3_step( stmt );
+	sqlite3_finalize(stmt);
+}
+
+
+void InsertModelGroupToDB( const ModelGroup& group, int *groupID )
+{
+	static int groupIDPool = 1;
+	sqlite3_stmt* stmt = NULL;
+	*groupID = groupIDPool;
+
+	sqlite3_prepare_v2( db, "INSERT INTO modelGroup VALUES (?,?,?,?);", -1, &stmt, 0 );
+	sqlite3_bind_int(  stmt, 1, groupIDPool );
+	sqlite3_bind_text( stmt, 2,	group.textureName, -1, SQLITE_TRANSIENT );
+	sqlite3_bind_int(  stmt, 3, group.nVertex );
+	sqlite3_bind_int(  stmt, 4, group.nIndex );
+	sqlite3_step( stmt );
+	sqlite3_finalize(stmt);
+
+	++groupIDPool;
+}
+
 
 void LoadLibrary()
 {
@@ -77,12 +170,13 @@ void WriteFloat( SDL_RWops* ctx, float f )
 	SDL_RWwrite( ctx, &f, sizeof(float), 1 );
 }
 
-
+/*
 void TextureHeader::Save( SDL_RWops* fp )
 {
 	SDL_RWwrite( fp, this, sizeof(TextureHeader), 1 );
 }
-
+*/
+/*
 void TextureHeader::Set( const char* name, U32 format, U32 type, U16 width, U16 height )
 {
 	memset( this->name, 0, EL_FILE_STRING_LEN );
@@ -92,12 +186,12 @@ void TextureHeader::Set( const char* name, U32 format, U32 type, U16 width, U16 
 	this->width = width;
 	this->height = height;
 }
+*/
 
-
-void ModelHeader::Save( SDL_RWops* fp )
-{
-	SDL_RWwrite( fp, this, sizeof(ModelHeader), 1 );
-}
+//void ModelHeader::Save( SDL_RWops* fp )
+//{
+//	SDL_RWwrite( fp, this, sizeof(ModelHeader), 1 );
+//}
 
 void ModelHeader::Set(	const char* name, int nGroups, int nTotalVertices, int nTotalIndices,
 						const grinliz::Rectangle3F& bounds )
@@ -122,10 +216,10 @@ void ModelHeader::Set(	const char* name, int nGroups, int nTotalVertices, int nT
 }
 
 
-void ModelGroup::Save( SDL_RWops* fp )
-{
-	SDL_RWwrite( fp, this, sizeof(ModelGroup), 1 );
-}
+//void ModelGroup::Save( SDL_RWops* fp )
+//{
+//	SDL_RWwrite( fp, this, sizeof(ModelGroup), 1 );
+//}
 
 
 void ModelGroup::Set( const char* textureName, int nVertex, int nIndex )
@@ -228,7 +322,7 @@ void ProcessModel( TiXmlElement* model )
 	string fullOut = outputPath + name + ".mod";
 
 	bool smoothShading = false;
-	if ( StrEqual( model->Attribute( "shading" ), "smooth" ) ) {
+	if ( grinliz::StrEqual( model->Attribute( "shading" ), "smooth" ) ) {
 		smoothShading = true;
 	}
 
@@ -269,7 +363,7 @@ void ProcessModel( TiXmlElement* model )
 	ModelHeader header;
 	header.Set( name.c_str(), builder->NumGroups(), nTotalVertex, nTotalIndex, builder->Bounds() );
 
-	if ( StrEqual( model->Attribute( "billboard" ), "true" ) ) {
+	if ( grinliz::StrEqual( model->Attribute( "billboard" ), "true" ) ) {
 		header.flags |= ModelHeader::BILLBOARD;
 		// Make the bounds square.
 		float d = grinliz::Max( -header.bounds.min.x, -header.bounds.min.z, header.bounds.max.x, header.bounds.max.z );
@@ -278,10 +372,10 @@ void ProcessModel( TiXmlElement* model )
 		header.bounds.max.x = d;
 		header.bounds.max.z = d;
 	}
-	if ( StrEqual( model->Attribute( "shadow" ), "rotate" ) ) {
+	if ( grinliz::StrEqual( model->Attribute( "shadow" ), "rotate" ) ) {
 		header.flags |= ModelHeader::ROTATE_SHADOWS;
 	}
-	if ( StrEqual( model->Attribute( "origin" ), "upperLeft" ) ) {
+	if ( grinliz::StrEqual( model->Attribute( "origin" ), "upperLeft" ) ) {
 		header.flags |= ModelHeader::UPPER_LEFT;
 	}
 	if ( model->Attribute( "trigger" ) ) {
@@ -294,8 +388,8 @@ void ProcessModel( TiXmlElement* model )
 		model->QueryFloatAttribute( "target", &header.target );
 	}
 
-	header.Save( fp );
-
+	//header.Save( fp );
+	int groupID = 0;
 	int totalMemory = 0;
 
 	for( int i=0; i<builder->NumGroups(); ++i ) {
@@ -310,25 +404,54 @@ void ProcessModel( TiXmlElement* model )
 
 		ModelGroup group;
 		group.Set( vertexGroup[i].textureName, vertexGroup[i].nVertex, vertexGroup[i].nIndex );
-		group.Save( fp );
+		//group.Save( fp );
+		int id=0;
+		InsertModelGroupToDB( group, &id );
+		if ( i==0 )
+			groupID = id;
 
 		startVertex += vertexGroup[i].nVertex;
 		startIndex += vertexGroup[i].nIndex;
 	}
 
+	Vertex* vertexBuf = new Vertex[nTotalVertex];
+	U16* indexBuf = new U16[nTotalIndex];
+
+	Vertex* pVertex = vertexBuf;
+	U16* pIndex = indexBuf;
+	
+	const Vertex* pVertexEnd = vertexBuf + nTotalVertex;
+	const U16* pIndexEnd = indexBuf + nTotalIndex;
+
 	// Write the vertices in each group:
 	for( int i=0; i<builder->NumGroups(); ++i ) {
+		//SDL_RWwrite( fp, vertexGroup[i].vertex, sizeof(Vertex), vertexGroup[i].nVertex );
 
-		SDL_RWwrite( fp, vertexGroup[i].vertex, sizeof(Vertex), vertexGroup[i].nVertex );
-
+		GLASSERT( pVertex + vertexGroup[i].nVertex <= pVertexEnd );
+		memcpy( pVertex, vertexGroup[i].vertex, sizeof(Vertex)*vertexGroup[i].nVertex );
+		pVertex += vertexGroup[i].nVertex;
 	}
 	// Write the indices in each group:
 	for( int i=0; i<builder->NumGroups(); ++i ) {
-		SDL_RWwrite( fp, vertexGroup[i].index, sizeof(U16), vertexGroup[i].nIndex );
+		//SDL_RWwrite( fp, vertexGroup[i].index, sizeof(U16), vertexGroup[i].nIndex );
+
+		GLASSERT( pIndex + vertexGroup[i].nIndex <= pIndexEnd );
+		memcpy( pIndex, vertexGroup[i].index, sizeof(U16)*vertexGroup[i].nIndex );
+		pIndex += vertexGroup[i].nIndex;
 	}
+	GLASSERT( pVertex == pVertexEnd );
+	GLASSERT( pIndex == pIndexEnd );
+
+	int vertexID = 0, indexID = 0;
+	DBWriteBinary( db, vertexBuf, nTotalVertex*sizeof(Vertex), &vertexID );
+	DBWriteBinary( db, indexBuf,  nTotalIndex*sizeof(U16),     &indexID );
+	InsertModelHeaderToDB( header, groupID, vertexID, indexID );
+
 	printf( "  total memory=%.1fk\n", (float)totalMemory / 1024.f );
 	totalModelMem += totalMemory;
 	
+	delete [] vertexBuf;
+	delete [] indexBuf;
 	delete builder;
 	if ( fp ) {
 		SDL_FreeRW( fp );
@@ -338,7 +461,14 @@ void ProcessModel( TiXmlElement* model )
 
 void ProcessTexture( TiXmlElement* texture )
 {
-	printf( "Texture" );
+	bool isImage = false;
+	if ( texture->ValueStr() == "image" ) {
+		isImage = true;
+		printf( "Image" );
+	}
+	else {
+		printf( "Texture" );
+	}
 
 	string filename;
 	texture->QueryStringAttribute( "filename", &filename );
@@ -347,10 +477,6 @@ void ProcessTexture( TiXmlElement* texture )
 
 	string base, name, extension;
 	grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
-
-	string fullOut = outputPath + name + ".tex";
-	SDL_RWops* fp = 0;
-
 
 	SDL_Surface* surface = libIMG_Load( fullIn.c_str() );
 	if ( !surface ) {
@@ -365,36 +491,16 @@ void ProcessTexture( TiXmlElement* texture )
 				surface->h );
 	}
 
-	fp = SDL_RWFromFile( fullOut.c_str(), "wb" );
-	if ( !fp ) {
-		printf( "**Could not open for writing: %s\n", fullOut.c_str() );
-		exit( 1 );
-	}
-	else {
-		//printf( "  Writing: '%s'\n", fullOut.c_str() );
-	}
-
-	TextureHeader header;
-
-	/* PixelFormat */
-	#define GL_ALPHA                          0x1906
-	#define GL_RGB                            0x1907
-	#define GL_RGBA                           0x1908
-
-	/* PixelType */
-	#define GL_UNSIGNED_BYTE                  0x1401
-	#define GL_UNSIGNED_SHORT_4_4_4_4         0x8033
-	#define GL_UNSIGNED_SHORT_5_5_5_1         0x8034
-	#define GL_UNSIGNED_SHORT_5_6_5           0x8363
-
 	U8 r, g, b, a;
+	pixelBuffer16.resize(0);
+	pixelBuffer8.resize(0);
 
 	switch( surface->format->BitsPerPixel ) {
 		case 32:
 			printf( "  RGBA memory=%dk\n", (surface->w * surface->h * 2)/1024 );
 			totalTextureMem += (surface->w * surface->h * 2);
-			header.Set( name.c_str(), GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4, surface->w, surface->h );
-			header.Save( fp );
+			//header.Set( name.c_str(), GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4, surface->w, surface->h );
+			//header.Save( fp );
 
 			// Bottom up!
 			for( int j=surface->h-1; j>=0; --j ) {
@@ -408,16 +514,18 @@ void ProcessTexture( TiXmlElement* texture )
 							| ( ( b>>4 ) << 4)
 							| ( ( a>>4 ) << 0 );
 
-					SDL_WriteLE16( fp, p );
+					//SDL_WriteLE16( fp, p );
+					pixelBuffer16.push_back(p);
 				}
 			}
+			InsertTextureToDB( name.c_str(), "RGBA16", isImage, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2 );
 			break;
 
 		case 24:
 			printf( "  RGB memory=%dk\n", (surface->w * surface->h * 2)/1024 );
 			totalTextureMem += (surface->w * surface->h * 2);
-			header.Set( name.c_str(), GL_RGB, GL_UNSIGNED_SHORT_5_6_5, surface->w, surface->h );
-			header.Save( fp );
+			//header.Set( name.c_str(), GL_RGB, GL_UNSIGNED_SHORT_5_6_5, surface->w, surface->h );
+			//header.Save( fp );
 
 			// Bottom up!
 			for( int j=surface->h-1; j>=0; --j ) {
@@ -430,24 +538,28 @@ void ProcessTexture( TiXmlElement* texture )
 							| ( ( g>>2 ) << 5 )
 							| ( ( b>>3 ) );
 
-					SDL_WriteLE16( fp, p );
+					//SDL_WriteLE16( fp, p );
+					pixelBuffer16.push_back(p);
 				}
 			}
+			InsertTextureToDB( name.c_str(), "RGB16", isImage, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2 );
 			break;
 
 		case 8:
 			printf( "  Alpha memory=%dk\n", (surface->w * surface->h * 1)/1024 );
 			totalTextureMem += (surface->w * surface->h * 1);
-			header.Set( name.c_str(), GL_ALPHA, GL_UNSIGNED_BYTE, surface->w, surface->h );
-			header.Save( fp );
+			//header.Set( name.c_str(), GL_ALPHA, GL_UNSIGNED_BYTE, surface->w, surface->h );
+			//header.Save( fp );
 
 			// Bottom up!
 			for( int j=surface->h-1; j>=0; --j ) {
 				for( int i=0; i<surface->w; ++i ) {
 				    U8 *p = (U8 *)surface->pixels + j*surface->pitch + i;
-					SDL_RWwrite( fp, p, 1, 1 );
+					//SDL_RWwrite( fp, p, 1, 1 );
+					pixelBuffer8.push_back(*p);
 				}
 			}
+			InsertTextureToDB( name.c_str(), "ALPHA", isImage, surface->w, surface->h, &pixelBuffer8[0], pixelBuffer8.size() );
 			break;
 
 		default:
@@ -459,9 +571,9 @@ void ProcessTexture( TiXmlElement* texture )
 	if ( surface ) { 
 		SDL_FreeSurface( surface );
 	}
-	if ( fp ) {
-		SDL_FreeRW( fp );
-	}
+	//if ( fp ) {
+	//	SDL_FreeRW( fp );
+	//}
 
 }
 
@@ -490,15 +602,27 @@ int main( int argc, char* argv[] )
 	}
 
 	xmlDoc.FirstChildElement()->QueryStringAttribute( "output", &outputPath );
+	xmlDoc.FirstChildElement()->QueryStringAttribute( "outputDB", &outputDB );
 
-	printf( "Output Path: %s\n", inputPath.c_str() );
+	printf( "Output Path: %s\n", outputPath.c_str() );
+	printf( "Output DataBase: %s\n", outputDB.c_str() );
 	printf( "Processing tags:\n" );
+
+	// Remove the old table.
+	FILE* fp = fopen( outputDB.c_str(), "wb" );
+	fclose( fp );
+
+	int sqlResult = sqlite3_open( outputDB.c_str(), &db);
+	GLASSERT( sqlResult == SQLITE_OK );
+	CreateDatabase();
 
 	for( TiXmlElement* child = xmlDoc.FirstChildElement()->FirstChildElement();
 		 child;
 		 child = child->NextSiblingElement() )
 	{
-		if ( child->ValueStr() == "texture" ) {
+		if (    child->ValueStr() == "texture" 
+			 || child->ValueStr() == "image" ) 
+		{
 			ProcessTexture( child );
 		}
 		else if ( child->ValueStr() == "model" ) {
@@ -519,5 +643,7 @@ int main( int argc, char* argv[] )
 	printf( "All done.\n" );
 	SDL_Quit();
 
+	sqlResult = sqlite3_close( db );
+	GLASSERT( sqlResult == SQLITE_OK );
 	return 0;
 }

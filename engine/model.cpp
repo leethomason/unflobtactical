@@ -22,6 +22,7 @@
 #include "../grinliz/glvector.h"
 #include "../grinliz/glstringutil.h"
 #include "../grinliz/glperformance.h"
+#include "../shared/gldatabase.h"
 
 #include <float.h>
 
@@ -31,7 +32,7 @@ using namespace grinliz;
 
 void ModelResource::Free()
 {
-	for( int i=0; i<header.nGroups; ++i ) {
+	for( unsigned i=0; i<header.nGroups; ++i ) {
 		glDeleteBuffers( 1, (const GLuint*) &atom[i].indexID );		
 		glDeleteBuffers( 1, (const GLuint*) &atom[i].vertexID );
 		memset( &atom[i], 0, sizeof( ModelAtom ) );
@@ -53,7 +54,7 @@ int ModelResource::Intersect(	const grinliz::Vector3F& point,
 		float close2 = FLT_MAX;
 		Vector3F test;
 
-		for( int i=0; i<header.nGroups; ++i ) {
+		for( unsigned i=0; i<header.nGroups; ++i ) {
 			for( unsigned j=0; j<atom[i].nIndex; j+=3 ) {
 				int r = IntersectRayTri( point, dir, 
 										 atom[i].vertex[ atom[i].index[j+0] ].pos,
@@ -79,9 +80,15 @@ int ModelResource::Intersect(	const grinliz::Vector3F& point,
 }
 
 
-void ModelLoader::Load( FILE* fp, ModelResource* res )
+void ModelLoader::Load( sqlite3* db, const char* name, ModelResource* res )
 {
-	res->header.Load( fp );
+	int vertexID=0, indexID=0, groupStart=0;
+	res->header.Load( db, name, &groupStart, &vertexID, &indexID );
+
+	res->allVertex = new Vertex[ res->header.nTotalVertices ];
+	res->allIndex  = new U16[ res->header.nTotalIndices ];
+	DBReadBinaryData( db, vertexID, res->header.nTotalVertices*sizeof(Vertex), res->allVertex );
+	DBReadBinaryData( db, indexID,  res->header.nTotalIndices*sizeof(U16),     res->allIndex );
 
 	// compute the hit testing AABB
 	float ave = grinliz::Max( res->header.bounds.SizeX(), res->header.bounds.SizeZ() )*0.5f;
@@ -90,36 +97,22 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 	res->hitBounds.max.Set( ave, res->header.bounds.max.y, ave );
 
 	GLOUTPUT(( "Load Model: %s\n", res->header.name ));
-	/*
-	GLOUTPUT(( "  sphere (%.2f,%.2f,%.2f) rad=%.2f  hit(%.2f,%.2f,%.2f)-(%.2f,%.2f,%.2f)\n",
-				(float)res->boundSphere.origin.x,
-				(float)res->boundSphere.origin.y,
-				(float)res->boundSphere.origin.z,
-				(float)res->boundSphere.radius,
-				(float)res->hitBounds.min.x,
-				(float)res->hitBounds.min.y,
-				(float)res->hitBounds.min.z,
-				(float)res->hitBounds.max.x,
-				(float)res->hitBounds.max.y,
-				(float)res->hitBounds.max.z ));
-	*/
 
 	for( U32 i=0; i<res->header.nGroups; ++i )
 	{
 		ModelGroup group;
-		group.Load( fp );
+		group.Load( db, groupStart+i );
 
 		const Texture* t = 0;
 		const char* textureName = group.textureName;
 		if ( !textureName[0] ) {
 			textureName = "white";
 		}
-		
-		// Remove extension.
-		std::string base, name, extension;
-		StrSplitFilename( std::string( textureName ), &base, &name, &extension );
 
-		t = TextureManager::Instance()->GetTexture( name.c_str() );
+		std::string base, texname, extension;
+		StrSplitFilename( std::string( textureName ), &base, &texname, &extension );
+		t = TextureManager::Instance()->GetTexture( texname.c_str() );
+
 		GLASSERT( t );                       
 		res->atom[i].texture = t;
 
@@ -128,24 +121,6 @@ void ModelLoader::Load( FILE* fp, ModelResource* res )
 
 		GLOUTPUT(( "  '%s' vertices=%d tris=%d\n", textureName, (int)res->atom[i].nVertex, (int)(res->atom[i].nIndex/3) ));
 	}
-
-	res->allVertex = new Vertex[ res->header.nTotalVertices ];
-	res->allIndex  = new U16[ res->header.nTotalIndices ];
-
-	size_t r = fread( res->allVertex, sizeof(Vertex), res->header.nTotalVertices, fp );
-	(void)r;
-	GLASSERT( r == res->header.nTotalVertices );
-	GLASSERT( sizeof(Vertex) == sizeof(U32)*8 );
-	fread( res->allIndex, sizeof(U16), res->header.nTotalIndices, fp );
-
-#ifdef DEBUG
-	/*
-	for( U32 i=0; i<nTotalIndices; i+=3 ) {
-		GLOUTPUT(( "%d %d %d\n", index[i+0], index[i+1], index[i+2] ));
-	}
-	*/
-#endif
-	
 
 	// Load to VBO
 	int vOffset = 0;
@@ -291,7 +266,7 @@ void Model::Queue( RenderQueue* queue, int textureMode )
 		const Texture* texture = setTexture ? setTexture : resource->atom[i].texture;
 
 		if ( textureMode != Model::NO_TEXTURE ) {
-			if ( texture->alphaTest ) 
+			if ( texture->alpha ) 
 				flags |= RenderQueue::ALPHA_BLEND;
 		}
 		U32 textureID = (textureMode == Model::MODEL_TEXTURE) ? texture->glID : 0;

@@ -64,13 +64,13 @@ Map::Map( SpaceTree* tree )
 	pathQueryID = 1;
 	visibilityQueryID = 1;
 
-	finalMap.Set( SIZE, SIZE, 2 );
-	lightMap.Set( SIZE, SIZE, 2 );
+	finalMap.Set( Surface::RGB16, SIZE, SIZE );
+	lightMap.Set( Surface::RGB16, SIZE, SIZE );
 
 	memset( finalMap.Pixels(), 255, SIZE*SIZE*2 );
 	memset( lightMap.Pixels(), 255, SIZE*SIZE*2 );
 
-	U32 id = finalMap.CreateTexture( false );
+	U32 id = finalMap.CreateTexture();
 	finalMapTex.Set( "lightmap", id, false );
 }
 
@@ -226,7 +226,7 @@ void Map::GenerateLightMap( const grinliz::BitArray<SIZE, SIZE, 1>& fogOfWar )
 			++dst;
 		}
 	}
-	finalMap.UpdateTexture( false, finalMapTex.glID );
+	finalMap.UpdateTexture( finalMapTex.glID );
 }
 
 

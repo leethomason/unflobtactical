@@ -98,13 +98,15 @@ private:
 };
 
 
+struct sqlite3;
+
 class ModelLoader
 {
 public:
 	ModelLoader() 	{}
 	~ModelLoader()	{}
 
-	void Load( FILE* fp, ModelResource* res );
+	void Load( sqlite3* fp, const char* name, ModelResource* res );
 
 private:
 };

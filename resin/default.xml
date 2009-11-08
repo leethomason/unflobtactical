@@ -1,4 +1,4 @@
-<resource output="./res/">
+<resource output="./res/" outputDB="./res/uforesource.db">
 	<!-- Icon and UI -->
 	<texture filename="icons.png" />
   <texture filename="iconDeco.png" />
@@ -84,7 +84,7 @@
 
 	<!-- Maps -->
 	<texture filename="farmland.png" />
-	<texture filename="farmlandN.png" />
+	<image filename="farmlandN.png" />
 	<map filename="farmland.map" />
   
 </resource>
