@@ -76,8 +76,8 @@ public:
 	bool IsShowingPathing()			{ return showPathing; }
 #endif
 
-	void SaveMap( FILE* fp );
-	void LoadMap( FILE* fp );
+	void SaveMap( const char* name );
+	void LoadMap( const char* name );
 	void ClearMap()				{ engine.GetMap()->Clear(); }
 
 	enum { MAX_NUM_LIGHT_MAPS = 16,
@@ -133,7 +133,8 @@ private:
 	void LoadLightMaps();
 	void LoadMapResources();
 	void LoadItemResources();
-	void LoadMap( const char* name );
+
+	//void LoadMap( const char* name );
 	void InitMapItemDef( int startIndex, const MapItemInit* );
 
 	UFOStream* rootStream;

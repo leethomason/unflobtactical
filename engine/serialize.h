@@ -95,6 +95,8 @@ public:
 									bit = 0;
 								}
 	int Size()					{ return size; }
+	const U8* MemBase()			{ return buffer; }
+
 	int Tell()					{ GLASSERT( ptr ); GLASSERT( buffer ); return ptr - buffer; }
 	void Dump( const char* name ) {
 		GLOUTPUT(( "Stream '%s' size=%d cap=%d\n", name, size, cap ));
@@ -141,16 +143,11 @@ public:
 	void WriteFloat( float value );
 	void WriteStr( const char* str );
 	void WriteU32Arary( U32 len, const U32* arr );
+	U8* WriteMem( int size );
 
 	void BeginWriteBits();
 	void WriteBits( U32 nBits, U32 bits );
 	void EndWriteBits();
-
-	bool LoadFile( const char* name );	// filename is optional; if not provided, will be constructed from the class name
-	bool LoadFile( FILE* fp );
-
-	void SaveFile();
-	void SaveFile( FILE* fp );
 
 	UFOStream* next;	// used by the stream manager.
 
