@@ -5,91 +5,10 @@
 #include "../shared/gldatabase.h"
 #include "../grinliz/glstringutil.h"
 
-// Only need non-item models.
-/*
-const char* const gModelNames[] = 
-{
-	"alien0",
-	"alien1",
-	"alien2",
-	"alien3",
-	"alien0_D",
-	"alien1_D",
-	"alien2_D",
-	"alien3_D",
-	"crate",
-
-	"maleMarine",
-	"femaleMarine",
-	"maleCiv",
-	"femaleCiv",
-	"maleMarine_D",
-	"femaleMarine_D",
-	"maleCiv_D",
-	"femaleCiv_D",
-
-	"gun0",
-	"gun1",
-	"cellClip",
-	"shellClip",
-
-	"selection",
-
-	0
-};
-*/
-
-/*
-struct TextureDef
-{
-	const char* name;
-	U32 flags0;
-};
-*/
-
-/*
-enum {
-	ALPHA_TEST = 0x01,
-};
-*/
-/*
-const TextureDef gTextureDef[] = 
-{
-	{	"icons",		0	},
-	{	"iconDeco",		0	},
-	{	"stdfont2",		0	},
-	{	"woodDark",		0	},
-	{	"woodDarkUFO",	0	},
-	{	"woodPlank",	0	},
-	{	"woodPlankD",	0	},
-	{	"marine",		0	},
-	{	"palette",		0	},
-	{	"ufoOuter",		0	},
-	{	"ufoInner",		0	},
-	{	"lander",		0	},
-	{	"tree",			ALPHA_TEST	},
-	{	"wheat",		ALPHA_TEST	},
-	{	"farmland",		0	},
-	{	"particleQuad",	0	},
-	{	"particleSparkle",	0	},
-	{	"translucent", 0 },
-	{	"clips",		0	},
-	{  0, 0 }
-};
-*/
-
-/*
-const char* gLightMapNames[ Game::NUM_LIGHT_MAPS ] = 
-{
-	"farmlandN",
-};
-*/
-
 
 void Game::LoadTextures()
 {
 	U32 textureID = 0;
-	FILE* fp = 0;
 	char name[64];
 	char format[16];
 
@@ -103,7 +22,7 @@ void Game::LoadTextures()
 
 	// Run through the database, and load all the textures.
 	sqlite3_stmt* stmt = 0;
-	sqlite3_prepare_v2(database, "select * from texture;", -1, &stmt, 0 );
+	sqlite3_prepare_v2(database, "SELECT * FROM texture WHERE image=0;", -1, &stmt, 0 );
 
 	while (sqlite3_step(stmt) == SQLITE_ROW) 
 	{
@@ -162,8 +81,8 @@ void Game::LoadModels()
 
 Surface* Game::GetLightMap( const char* name )
 {
-	for( int i=0; i<MAX_NUM_LIGHT_MAPS; ++i ) {
-		if ( strcmp( name, lightMaps[i].GetName() ) == 0 ) {
+	for( int i=0; i<nLightMaps; ++i ) {
+		if ( strcmp( name, lightMaps[i].Name() ) == 0 ) {
 			return &lightMaps[i];
 		}
 	}
@@ -173,59 +92,38 @@ Surface* Game::GetLightMap( const char* name )
 
 void Game::LoadLightMaps()
 {
-	/*
-	// Load the map.
-	char buffer[512];
-	for( int i=0; i<1; ++i ) {
-		PlatformPathToResource( gLightMapNames[i], "tex", buffer, 512 );
-		FILE* fp = fopen( buffer, "rb" );
-		GLASSERT( fp );
-		bool alpha;
-		lightMaps[i].LoadSurface( fp, &alpha );
-		GLASSERT( alpha == false );
-		fclose( fp );
-	}
-	*/
-/*
+	char name[64];
+	char format[16];
+	nLightMaps = 0;
+
+	// Run through the database, and load all the images.
 	sqlite3_stmt* stmt = 0;
-	sqlite3_prepare_v2(database, "select * from texture;", -1, &stmt, 0 );
+	sqlite3_prepare_v2(database, "SELECT * FROM texture WHERE image=1;", -1, &stmt, 0 );
 
 	while (sqlite3_step(stmt) == SQLITE_ROW) 
 	{
-		strcpy( name, (const char*)sqlite3_column_text( stmt, 0 ) );		// name
-		strcpy( format, (const char*)sqlite3_column_text( stmt, 1 ) );	// format
-		int w = sqlite3_column_int( stmt, 2 );
-		int h = sqlite3_column_int( stmt, 3 );
-		int id = sqlite3_column_int( stmt, 4 );
+		GLASSERT( nLightMaps < MAX_NUM_LIGHT_MAPS );
 
-		bool alpha = false;
-		if ( grinliz::StrEqual( "RGBA16", format ) ) {
-			surface.Set( w, h, 2 );
-			alpha = true;
-		}
-		else if ( grinliz::StrEqual( "RGB16", format ) ) {
-			surface.Set( w, h, 2 );
-			alpha = false;
-		}
-		else if ( grinliz::StrEqual( "ALPHA", format ) ) {
-			surface.Set( w, h, 1 );
-			alpha = true;
-		}
-		else {
-			GLASSERT( 0 );
-		}
+		strcpy( name, (const char*)sqlite3_column_text( stmt, 0 ) );	// name
+		strcpy( format, (const char*)sqlite3_column_text( stmt, 1 ) );	// format
+		//int isImage = sqlite3_column_int( stmt, 2 );					// don't need
+		int w = sqlite3_column_int( stmt, 3 );
+		int h = sqlite3_column_int( stmt, 4 );
+		int id = sqlite3_column_int( stmt, 5 );
+
+		lightMaps[nLightMaps].Set( Surface::QueryFormat( format ), w, h );
 		
 		int blobSize = 0;
 		DBReadBinarySize( database, id, &blobSize );
-		GLASSERT( surface.BytesInImage() == blobSize );
-		DBReadBinaryData( database, id, blobSize, surface.Pixels() );
+		GLASSERT( lightMaps[nLightMaps].BytesInImage() == blobSize );
+		DBReadBinaryData( database, id, blobSize, lightMaps[nLightMaps].Pixels() );
+		lightMaps[nLightMaps].SetName( name );
 
-		textureID = surface.CreateTexture( alpha );
-		texman->AddTexture( name, textureID, alpha );
+		GLOUTPUT(( "LightMap %s\n", lightMaps[nLightMaps].Name() ));
+		nLightMaps++;
 	}
 
 	sqlite3_finalize(stmt);
-	*/
 }
 
 

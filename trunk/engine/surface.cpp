@@ -22,7 +22,9 @@
 #include "serialize.h"
 
 Surface::Surface() : format( -1 ), w( 0 ), h( 0 ), allocated( 0 ), pixels( 0 )
-{}
+{
+	name[0] = 0;
+}
 
 Surface::~Surface()
 {
@@ -30,6 +32,13 @@ Surface::~Surface()
 		delete [] pixels;
 	}
 }
+
+
+void Surface::SetName( const char* n )
+{
+	strncpy( name, n, EL_FILE_STRING_LEN );
+}
+
 
 void Surface::Set( int f, int w, int h ) 
 {
@@ -209,34 +218,6 @@ void Surface::UpdateTexture( U32 glID )
 
 	TESTGLERR();
 }
-
-
-NamedSurface::NamedSurface() : Surface()
-{
-	name[0] = 0;
-}
-
-
-void NamedSurface::SetName( const char* n )
-{
-	strncpy( name, n, 16 );
-}
-
-
-/*void DrawQuad( float x0, float y0, float x1, float y1, U32 textureID )
-{
-	float v[8] = { x0, y0, x1, y0, x1, y1, x0, y1 };
-	float t[8] = { 0.f, 0.f, 1.f, 0.f, 1.f, 1.f, 0.f, 1.f };
-
-	glColor4f( 1.f, 1.f, 1.f, 1.f );
-	glVertexPointer( 2, GL_FLOAT, 0, v );
-	if ( textureID ) {
-		glTexCoordPointer( 2, GL_FLOAT, 0, t );
-	}
-
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
-}
-*/
 
 
 void Texture::Set( const char* name, U32 glID, bool alpha )

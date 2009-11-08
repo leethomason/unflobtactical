@@ -19,6 +19,7 @@
 #include "../grinliz/gltypes.h"
 #include "../grinliz/gldebug.h"
 #include "../engine/ufoutil.h"
+#include "enginelimits.h"
 #include <stdio.h>
 
 class Surface
@@ -54,6 +55,9 @@ public:
 	// calculate the opengl format and type
 	void CalcOpenGL(int* glFormat, int* glType );
 
+	void SetName( const char* n );
+	const char* Name() const			{ return name; }
+
 private:
 	//U32 LowerCreateTexture( int format, int type );
 
@@ -61,18 +65,8 @@ private:
 	int w;
 	int h;
 	int allocated;
+	char name[EL_FILE_STRING_LEN];
 	U8* pixels;
-};
-
-
-class NamedSurface : public Surface
-{
-public:
-	NamedSurface();
-	void SetName( const char* n );
-	const char* GetName()	{ return name; }
-private:
-	char name[16];
 };
 
 

@@ -163,7 +163,8 @@ private:
 	grinliz::ProfileData profile;
 
 	CDynArray<ItemDef*>	itemDefArr;
-	NamedSurface		lightMaps[MAX_NUM_LIGHT_MAPS];
+	int					nLightMaps;
+	Surface				lightMaps[MAX_NUM_LIGHT_MAPS];
 };
 
 #endif
