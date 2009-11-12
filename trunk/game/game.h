@@ -76,9 +76,9 @@ public:
 	bool IsShowingPathing()			{ return showPathing; }
 #endif
 
-	void SaveMap( const char* name );
-	void LoadMap( const char* name );
-	void ClearMap()				{ engine.GetMap()->Clear(); }
+	//void SaveMap( const char* name );
+	//void LoadMap( const char* name );
+	//void ClearMap()				{ engine.GetMap()->Clear(); }
 
 	enum { MAX_NUM_LIGHT_MAPS = 16,
 

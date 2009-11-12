@@ -34,7 +34,7 @@ void BattleSceneStream::Save(	int selectedUnit,
 	camera->Save( s );
 
 	// --- Map --- //
-	map->Save( s );
+	//map->Save( s );
 
 	// --- Cleanup --- //
 	s->WriteU32( UFOStream::MAGIC1 );
@@ -68,7 +68,7 @@ void BattleSceneStream::Load(	int *selectedUnit,
 	camera->Load( s );
 
 	// --- Map --- //
-	map->Load( s, game );
+	//map->Load( s, game );
 
 	// --- Cleanup --- //
 	magic = s->ReadU32();

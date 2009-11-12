@@ -112,25 +112,6 @@ public:
 		bool Destroyed() { return hp == 0; }
 	};
 
-	/*
-	struct MapTile
-	{
-		U32 pathMask;		// bits 0-3 bits are the mask.
-							//      4-31 is the query id
-		U32 visibilityMask;	// bits 0-3 are the mask
-							//		4-31 is the query id
-		Storage* storage;	// if !null, then Tile has items sitting on it, which creates a Storage object.
-							// A storage object ALSO creates a crate and possible weapons at this location.
-		Model* debris;		// The crate or weapon at this location. (Just use one icon.)
-
-		MapItem item[ITEM_PER_TILE];
-
-		int CountItems( bool countReference=true ) const;
-		int FindFreeItem() const;
-	};
-	*/
-
-
 	/* FIXME: The map lives between the game and the engine. It should probably be moved
 	   to the Game layer. Until then, it takes an engine primitive (SpaceTree) and the game
 	   basic class (Game) when it loads. Very strange.
@@ -169,7 +150,6 @@ public:
 
 	void SetStorage( int x, int y, Storage* storage );
 	Storage* RemoveStorage( int x, int y );
-	//void GetMapBoundsOfModel( const Model* model, grinliz::Rectangle2I* bounds );
 
 	MapItemDef* InitItemDef( int i );
 	const char* GetItemDefName( int i );
@@ -185,8 +165,10 @@ public:
 	void DeleteAt( int x, int z );
 	void ResetPath();	// normally called automatically
 
-	void Save( UFOStream* s ) const;
-	void Load( UFOStream* s, Game* game );
+	//void Save( UFOStream* s ) const;
+	//void Load( UFOStream* s, Game* game );
+
+	void SyncToDB( sqlite3* db, const char* table );
 	void Clear();
 
 	void DumpTile( int x, int z );
@@ -268,6 +250,9 @@ private:
 	grinliz::Rectangle3F bounds;
 	const Texture* texture;
 	SpaceTree* tree;
+
+	sqlite3* mapDB;
+	std::string dbTableName;
 
 	Vertex vertex[4];
 	grinliz::Vector2F texture1[4];
