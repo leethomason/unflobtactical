@@ -407,6 +407,13 @@ const grinliz::Rectangle3F& Model::AABB() const
 }
 
 
+const grinliz::Rectangle3I& Model::AABBInt() const
+{
+	XForm();	// just makes sure the cache is good.
+	return aabbInt;
+}
+
+
 const grinliz::Matrix4& Model::XForm() const
 {
 	if ( !xformValid ) {
@@ -431,6 +438,12 @@ const grinliz::Matrix4& Model::XForm() const
 		for( int i=1; i<4; ++i ) {
 			q = _xform*p[i];
 			aabb.DoUnion( q );
+		}
+
+		// And the integer approximation:
+		for( int i=0; i<3; ++i ) {
+			aabbInt.min.X(i) = LRintf( aabb.min.X(i) );
+			aabbInt.max.X(i) = LRintf( aabb.max.X(i) );
 		}
 		
 		xformValid = true;

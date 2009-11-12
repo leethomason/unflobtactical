@@ -260,7 +260,7 @@ int main( int argc, char **argv )
 						case SDLK_s:			
 							{
 								FILE* fp = fopen( filename.c_str(), "wb" );
-								((Game*)game)->SaveMap( fp );
+								//((Game*)game)->SaveMap( fp );
 								fclose( fp );
 								GLOUTPUT(( "Save\n" ));
 							}
@@ -269,7 +269,7 @@ int main( int argc, char **argv )
 							{
 								FILE* fp = fopen( filename.c_str(), "rb" );
 								if ( fp ) {
-									((Game*)game)->LoadMap( fp );
+									//((Game*)game)->LoadMap( fp );
 								}
 								fclose( fp );
 								GLOUTPUT(( "Load\n" ));

@@ -331,8 +331,6 @@ void Unit::CreateModel( bool alive )
 	};
 	GLASSERT( resource );
 	model = engine->AllocModel( resource );
-	GLASSERT( model->stats == 0 );
-	model->stats = &stats;
 	model->SetFlag( Model::MODEL_MAP_TRANSPARENT );
 	UpdateModel();
 }

@@ -42,8 +42,10 @@ class Map : public micropather::Graph
 public:
 	enum {
 		SIZE = 64,					// maximum size. FIXME: duplicated in gamelimits.h
+		LOG2_SIZE = 6,
+
 		MAX_ITEM_DEF = 256,
-		ITEM_PER_TILE = 4,
+		//ITEM_PER_TILE = 4,
 		MAX_TRAVEL = 16,
 	};
 
@@ -67,7 +69,7 @@ public:
 					}
 
 		U16		cx, cy;
-		U16		hp;					// 0 infinite, >0 can be damaged
+		U16		hp;					// 0xffff infinite, 0 destroyed
 		U32		materialFlags;
 
 		const ModelResource* modelResource;
@@ -85,16 +87,18 @@ public:
 	struct MapItem
 	{
 		U8		itemDefIndex;	// 0: not in use, >0 is the index
-		U8		rotation;		// 0-3: rotation, 255: reference	
 		U16		hp;
 
-		union {
-			Model*	model;
-			const MapItem*	ref;
-		};
+		Model*	model;
+
+		int x, y, rot;
+		grinliz::Rectangle2I mapBounds;
+		
+		MapItem* next;			// the 'next' after a query
+		MapItem* nextQuad;		// next pointer in the quadTree
 
 		bool InUse() const			{ return itemDefIndex > 0; }
-		bool IsReference() const	{ return (rotation == 255); }
+
 		// returns true if destroyed
 		bool DoDamage( int _hp )		
 		{	
@@ -105,9 +109,10 @@ public:
 			hp -= _hp;
 			return false;						
 		}
-		bool Destroyed( const MapItemDef& itemDef ) { return (itemDef.hp > 0) && (hp == 0); }
+		bool Destroyed() { return hp == 0; }
 	};
 
+	/*
 	struct MapTile
 	{
 		U32 pathMask;		// bits 0-3 bits are the mask.
@@ -123,6 +128,7 @@ public:
 		int CountItems( bool countReference=true ) const;
 		int FindFreeItem() const;
 	};
+	*/
 
 
 	/* FIXME: The map lives between the game and the engine. It should probably be moved
@@ -163,7 +169,7 @@ public:
 
 	void SetStorage( int x, int y, Storage* storage );
 	Storage* RemoveStorage( int x, int y );
-	void GetMapBoundsOfModel( const Model* model, grinliz::Rectangle2I* bounds );
+	//void GetMapBoundsOfModel( const Model* model, grinliz::Rectangle2I* bounds );
 
 	MapItemDef* InitItemDef( int i );
 	const char* GetItemDefName( int i );
@@ -194,16 +200,14 @@ public:
 	
 	void ShowNearPath(	const grinliz::Vector2<S16>& start,
 						float cost0, float cost1, float cost2 );
-	void ClearNearPath();
-
-					
+	void ClearNearPath();	
 
 	// micropather:
 	virtual float LeastCostEstimate( void* stateStart, void* stateEnd );
 	virtual void  AdjacentCost( void* state, std::vector< micropather::StateCost > *adjacent );
 	virtual void  PrintStateInfo( void* state );
 
-	// like pathing, but visibility
+	// visibility (but similar to AdjacentCost conceptually)
 	bool CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& delta );
 
 private:
@@ -231,25 +235,34 @@ private:
 	void StateToVec( const void* state, grinliz::Vector2<S16>* vec ) { *vec = *((grinliz::Vector2<S16>*)&state); }
 	void* VecToState( const grinliz::Vector2<S16>& vec )			 { return (void*)(*(int*)&vec); }
 
+	// Searches through the QuadTree
+	MapItem* FindItems( const grinliz::Rectangle2I& bounds );
+	MapItem* FindItems( int x, int y ) {
+		grinliz::Rectangle2I b;
+		b.Set( x, y, x, y );
+		return FindItems( b );
+	}
+	MapItem* FindItem( const Model* model );
+	int CalcBestNode( const grinliz::Rectangle2I& bounds );
+
 	void CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef, 
 						grinliz::Rectangle2I* mapBounds,
 						grinliz::Vector2F* origin );
 
-	MapTile* GetTile( int x, int y )				{ return &tileArr[y*SIZE+x]; }
-	const MapTile* GetTile( int x, int y ) const	{ return &tileArr[y*SIZE+x]; }
-	void GetItemPos( const MapItem* item, int* x, int* y, int* cx, int* cy );
+	void ClearVisPathMap( grinliz::Rectangle2I& bounds );
+	void CalcVisPathMap( grinliz::Rectangle2I& bounds );
 
 	// Performs no translation of references.
 	// item: input
 	// output layer (to get item from returned tile)
 	// x and y: map locations
-	MapTile* GetTileFromItem( const MapItem* item, int* layer, int* x, int *y ) const;
+//	MapTile* GetTileFromItem( const MapItem* item, int* layer, int* x, int *y ) const;
 
 	// resolve a reference:
 	// outItem: item referred to
 	// outTile: tile referred to
 	// dx, dy: position of inItem relative to outItem. (Will be >= 0 )
-	void ResolveReference( const MapItem* inTtem, MapItem** outItem, MapTile** outTile, int *dx, int* dy ) const;
+//	void ResolveReference( const MapItem* inTtem, MapItem** outItem, MapTile** outTile, int *dx, int* dy ) const;
 	
 	int width, height;
 	grinliz::Rectangle3F bounds;
@@ -268,8 +281,8 @@ private:
 	micropather::MicroPather* microPather;
 
 	grinliz::BitArray<SIZE, SIZE, 1>	pathBlock;	// spaces the pather can't use (units are there)	
-	MapItemDef							itemDefArr[MAX_ITEM_DEF];
-	MapTile								tileArr[ SIZE*SIZE ];
+
+	//MapTile								tileArr[ SIZE*SIZE ];
 	std::vector<void*>					mapPath;
 	std::vector< micropather::StateCost > stateCostArr;
 	grinliz::BitArray< SIZE, SIZE, 3 >	walkingMap;
@@ -285,6 +298,20 @@ private:
 
 	Vertex								walkingVertex[6*MAX_TRAVEL*MAX_TRAVEL];
 	int									nWalkingVertex;
+
+	enum {
+		QUAD_DEPTH = 5,
+		QUAD_NODES = 1+4+16+64+256,
+		MAX_ITEMS = 500
+	};
+
+	U8									visMap[SIZE*SIZE];
+	U8									pathMap[SIZE*SIZE];
+
+	grinliz::MemoryPool					itemPool;
+	int									depthBase[QUAD_DEPTH];
+	MapItem								*quadTree[QUAD_NODES];
+	MapItemDef							itemDefArr[MAX_ITEM_DEF];
 };
 
 #endif // UFOATTACK_MAP_INCLUDED
