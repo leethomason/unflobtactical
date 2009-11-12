@@ -29,12 +29,22 @@ using namespace micropather;
 
 
 Map::Map( SpaceTree* tree )
+	: itemPool( "mapItemPool", sizeof( MapItem ), sizeof( MapItem ) * 200, false )
 {
+	memset( visMap, 0, SIZE*SIZE );
+	memset( pathMap, 0, SIZE*SIZE );
 	memset( itemDefArr, 0, sizeof(MapItemDef)*MAX_ITEM_DEF );
-	memset( tileArr, 0, sizeof(MapTile)*SIZE*SIZE );
-	microPather = new MicroPather(	this,				// graph interface
-									SIZE*SIZE+1,		// max possible states (+1)
-									true );				// max adjacent states
+	memset( quadTree, 0, sizeof(MapItem*)*QUAD_NODES );
+
+	int base = 0;
+	for( int i=0; i<QUAD_DEPTH; ++i ) {
+		depthBase[i] = base;
+		base += (1<<i)*(1<<i);
+	}
+
+	microPather = new MicroPather(	this,			// graph interface
+									SIZE*SIZE,		// max possible states (+1)
+									6 );			// max adjacent states
 
 	this->tree = tree;
 	width = height = SIZE;
@@ -84,6 +94,23 @@ Map::~Map()
 
 void Map::Clear()
 {
+	for( int i=0; i<QUAD_NODES; ++i ) {
+		MapItem* pItem = quadTree[i];
+		while( pItem ) {
+			MapItem* temp = pItem;
+			pItem = pItem->nextQuad;
+			if ( temp->model )
+				tree->FreeModel( temp->model );
+			itemPool.Free( temp );
+		}
+	}
+	memset( visMap, 0, SIZE*SIZE );
+	memset( pathMap, 0, SIZE*SIZE );
+	memset( itemDefArr, 0, sizeof(MapItemDef)*MAX_ITEM_DEF );
+	memset( quadTree, 0, sizeof(MapItem*)*QUAD_NODES );
+
+/*	memset( itemArr, 0, sizeof(MapItem)*MAX_ITEMS );
+
 	for( int j=0; j<SIZE; ++j ) {
 		for( int i=0; i<SIZE; ++i ) {
 			MapTile* tile = &tileArr[j*SIZE+i];
@@ -103,6 +130,7 @@ void Map::Clear()
 		}
 	}
 	memset( tileArr, 0, sizeof(MapTile)*SIZE*SIZE );
+*/
 }
 
 
@@ -221,7 +249,11 @@ void Map::GenerateLightMap( const grinliz::BitArray<SIZE, SIZE, 1>& fogOfWar )
 
 	for( int j=0; j<SIZE; ++j ) {
 		for( int i=0; i<SIZE; ++i ) {
+#ifdef MAPMAKER
+			*dst = *src;
+#else
 			*dst = fogOfWar.IsSet( i, SIZE-1-j ) ? *src : 0;
+#endif
 			++src;
 			++dst;
 		}
@@ -249,6 +281,7 @@ const char* Map::GetItemDefName( int i )
 }
 
 
+/*
 int Map::MapTile::FindFreeItem() const
 {
 	for( int i=0; i<ITEM_PER_TILE; ++i ) {
@@ -296,7 +329,7 @@ void Map::ResolveReference( const MapItem* inItem, MapItem** outItem, MapTile** 
 	GLASSERT( !dx || *dx >= 0 && *dx < MapItemDef::MAX_CX );
 	GLASSERT( !dy || *dy >= 0 && *dy < MapItemDef::MAX_CY );
 }
-
+*/
 
 void Map::IMat::Init( int w, int h, int r )
 {
@@ -339,6 +372,7 @@ void Map::IMat::Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out  )
 }
 
 
+/*
 Map::MapTile* Map::GetTileFromItem( const MapItem* item, int* _layer, int* x, int *y ) const
 {
 	int index = ((const U8*)item - (const U8*)tileArr) / sizeof( MapTile );
@@ -357,14 +391,42 @@ Map::MapTile* Map::GetTileFromItem( const MapItem* item, int* _layer, int* x, in
 	}
 	return const_cast< MapTile* >(tileArr + index);
 }
+*/
+
+/*
+bool Map::ModelToMap( const Model* model, MapTile** tile, MapItem** item )
+{
+	*tile = 0;
+	*item = 0;
+
+	if ( !model->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) 
+		return false;
+
+	int x = LRintf( model->X() );
+	int y = LRintf( model->Z() );
+	*tile = GetTile( x, y );
+	
+	if ( model == (*tile)->debris )
+		return true;
+
+	// 
+	for( int i=0; i<ITEM_PER_TILE; ++i ) {
+		if ( (*tile)->item[i].InUse() ) {
+			if ( (*tile)->item[i].IsReference() ) {
+				const MapItem* ref = (*tile)->item[i].ref;
+				if ( ref->model == model ) {
+					*tile = 
+			
+		}
+	}
+}
+*/
 
 
 void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 {
 	if ( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) 
 	{
-		GLASSERT( m->stats );
-
 		MapItem* item = (MapItem*) m->stats;
 		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 		int hp = MaterialDef::CalcDamage( baseDamage, shellFlags, itemDef.materialFlags );
@@ -390,6 +452,7 @@ void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 }
 
 
+/*
 void Map::GetItemPos( const MapItem* inItem, int* x, int* y, int* cx, int* cy )
 {
 	MapItem* item = 0;
@@ -412,17 +475,89 @@ void Map::GetItemPos( const MapItem* inItem, int* x, int* y, int* cx, int* cy )
 	*cx = size.x;
 	*cy = size.y;
 }
+*/
 
 
+Map::MapItem* Map::FindItems( const Rectangle2I& bounds )
+{
+	// Walk the map and pull out items in bounds.
+	MapItem* root = 0;
+
+	for( int depth=0; depth<QUAD_DEPTH; ++depth ) 
+	{
+		int shift = (LOG2_SIZE-depth);
+		int size = SIZE >> shift;
+
+		int x0 = bounds.min.x >> shift;
+		int x1 = bounds.max.x >> shift;
+		int y0 = bounds.min.y >> shift;
+		int y1 = bounds.max.y >> shift;
+
+		for( int j=y0; j<=y1; ++j ) {
+			for( int i=x0; i<=x1; ++i ) {
+				MapItem* pItem = *(quadTree + depthBase[depth] + (j*size) + i);
+				while( pItem ) { 
+					if ( pItem->mapBounds.Intersect( bounds ) ) {
+						pItem->next = root;
+						root = pItem;
+					}
+					pItem = pItem->nextQuad;
+				}
+			}
+		}
+	}
+	return root;
+}
+
+
+Map::MapItem* Map::FindItem( const Model* model )
+{
+	int x = LRintf( model->X() );
+	int y = LRintf( model->Z() );
+	MapItem* root = FindItems( x, y );
+	while( root ) {
+		if ( root->model == model ) {
+			return root;
+		}
+		root = root->next;
+	}
+	return 0;
+}
+
+
+int Map::CalcBestNode( const Rectangle2I& bounds )
+{
+	int offset = 0;
+
+	for( int depth=QUAD_DEPTH-1; depth>0; --depth ) 
+	{
+		int shift = (LOG2_SIZE-depth);
+		int size = SIZE >> shift;
+
+		Rectangle2I nodeBounds;
+		int x0 = bounds.min.x >> shift;
+		int y0 = bounds.min.y >> shift;
+		nodeBounds.Set( x0, y0, x0 + size-1, y0 + size-1 );
+
+		if ( nodeBounds.Contains( bounds ) ) {
+			offset = depthBase[depth] + y0*size + x0;
+			break;
+		}
+	}
+	return offset;
+}
+
+
+/*
 void Map::GetMapBoundsOfModel( const Model* m, Rectangle2I* bounds )
 {
 	GLASSERT( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) );
 	
-	const MapItem* item = (const MapItem*) m->stats;
-	int x, y, cx, cy;
-	GetItemPos( item, &x, &y, &cx, &cy );
-	bounds->Set( x, y, x+cx-1, y+cy-1 );
+	MapItem* mapItem = FindItem( m );
+	GLASSERT( mapItem );
+	*bounds = mapItem->mapBounds;
 }
+*/
 
 
 #ifdef MAPMAKER
@@ -456,8 +591,6 @@ bool Map::AddToTile( int x, int y, int defIndex, int rotation, int hp, bool open
 		return false;
 	}
 
-	MapTile* tile = tileArr + ((y*SIZE)+x);
-
 	Rectangle2I mapBounds;
 	Vector2F modelPos;
 	CalcModelPos( x, y, rotation, itemDefArr[defIndex], &mapBounds, &modelPos );
@@ -470,87 +603,54 @@ bool Map::AddToTile( int x, int y, int defIndex, int rotation, int hp, bool open
 
 	// Check for duplicate. Only check for exact dupe - same origin & rotation.
 	// This isn't required, but prevents map creation mistakes.
-	for( int nLayer=0; nLayer<ITEM_PER_TILE; ++nLayer )
-	{
-		MapItem* item = &tile->item[nLayer];
-
-		if ( item->InUse() && !item->IsReference() ) {
-			GLASSERT( item->model );
-			if ( item->itemDefIndex == defIndex && item->rotation == rotation ) {
-				GLOUTPUT(( "Duplicate layer.\n" ));
-				return false;
-			}
+	MapItem* root = FindItems( mapBounds );
+	while( root ) {
+		if ( root->x == x && root->y == y && root->rot == rotation && root->itemDefIndex == defIndex ) {
+			GLOUTPUT(( "Duplicate layer.\n" ));
+			return false;
 		}
-	}
-
-	// Check for open slots. This is required, since both the Item and the references
-	// to it consume a map slot.
-	for( int j=mapBounds.min.y; j<=mapBounds.max.y; ++j ) {
-		for( int i=mapBounds.min.x; i<=mapBounds.max.x; ++i ) {
-			if ( tileArr[j*SIZE+i].CountItems() == ITEM_PER_TILE ) {
-				GLOUTPUT(( "Map full at %d,%d.\n", i, j ));
-				return false;
-			}
-		}
+		root = root->next;
 	}
 
 	// Finally add!!
-	ResetPath();
-	MapItem* mainItem = 0;
-	for( int i=mapBounds.min.x; i<=mapBounds.max.x; ++i ) 
-	{
-		for( int j=mapBounds.min.y; j<=mapBounds.max.y; ++j ) 
-		{
-			MapTile* refTile	= &tileArr[j*SIZE+i];
-			GLASSERT( refTile->FindFreeItem() >= 0 );
-			MapItem* item		= &refTile->item[ refTile->FindFreeItem() ];
+	MapItem* item = (MapItem*) itemPool.Alloc();
+	item->model = 0;
 
-			if ( i==mapBounds.min.x && j==mapBounds.min.y ) 
-			{
-				// Main tile (or only tile for 1x1)
-				mainItem = item;
-				item->itemDefIndex = defIndex;
-				item->rotation = rotation;
-
-				const ModelResource* res = 0;
-
-				if ( itemDefArr[defIndex].CanDamage() && hp == 0 ) {
-					res = itemDefArr[defIndex].modelResourceDestroyed;
-				}
-				else {
-					if ( open )
-						res = itemDefArr[defIndex].modelResourceOpen;
-					else
-						res = itemDefArr[defIndex].modelResource;
-				}
-				if ( res ) {
-					item->model = tree->AllocModel( res );
-					item->model->SetFlag( Model::MODEL_OWNED_BY_MAP );
-					item->model->SetPos( modelPos.x, 0.0f, modelPos.y );
-					item->model->SetYRotation( 90.0f * rotation );
-					item->model->stats = item;
-				}
-				//MapItemState* state = (MapItemState*) statePool.Alloc();
-				//state->Init( itemDefArr[defIndex], hp );
-				//state->item = item;
-				//item->model->stats = state;
-				if ( hp >= 0 )
-					item->hp = hp;
-				else
-					item->hp = itemDefArr[defIndex].hp;
-
-			}
-			else {
-				item->itemDefIndex	= defIndex;
-				item->rotation		= 255;
-				GLASSERT( !item->model );
-				GLASSERT( !item->ref );
-
-				GLASSERT( mainItem );
-				item->ref = mainItem;
-			}
-		}
+	const ModelResource* res = 0;
+	if ( itemDefArr[defIndex].CanDamage() && hp == 0 ) {
+		res = itemDefArr[defIndex].modelResourceDestroyed;
 	}
+	else {
+		if ( open )
+			res = itemDefArr[defIndex].modelResourceOpen;
+		else
+			res = itemDefArr[defIndex].modelResource;
+	}
+	if ( res ) {
+		Model* model = tree->AllocModel( res );
+		model->SetFlag( Model::MODEL_OWNED_BY_MAP );
+		model->SetPos( modelPos.x, 0.0f, modelPos.y );
+		model->SetYRotation( 90.0f * rotation );
+		item->model = model;
+	}
+
+	item->itemDefIndex = defIndex;
+	item->hp = hp;
+	item->x = x;
+	item->y = y;
+	item->rot = rotation;
+	item->mapBounds = mapBounds;
+	item->next = 0;
+	
+	int index = CalcBestNode( mapBounds );
+	item->nextQuad = quadTree[index];
+	quadTree[index] = item;
+
+	// Patch the world states:
+	ResetPath();
+	ClearVisPathMap( mapBounds );
+	CalcVisPathMap( mapBounds );
+
 	return true;
 }
 
@@ -560,59 +660,28 @@ void Map::DeleteAt( int x, int y )
 	GLASSERT( x >= 0 && x < width );
 	GLASSERT( y >= 0 && y < height );
 
-	MapTile* tile = tileArr + ((y*SIZE)+x);
-	int layer = tile->CountItems() - 1;
-	if ( layer < 0 ) {
-		return;
-	}
+	Rectangle2I nodeBounds;
+	nodeBounds.Set( x, y, x, y );
+	int index = CalcBestNode( nodeBounds );
 
-	// If reference, change everything to the main object.
-	if ( tile->item[layer].IsReference() ) {
-		tile = GetTileFromItem( tile->item[layer].ref, &layer, &x, &y );
-	}
-
-	GLASSERT( layer >= 0 && layer < ITEM_PER_TILE );
-	if ( layer < 0 || layer >= ITEM_PER_TILE ) {
+	GLASSERT( quadTree[index] );
+	if ( !quadTree[index] )
 		return;
+
+	MapItem* item = quadTree[index];
+	// unlink:
+	quadTree[index] = item->nextQuad;
+
+	Rectangle2I mapBounds = item->mapBounds;
+
+	if ( item->model ) {
+		tree->FreeModel( item->model );
 	}
+	itemPool.Free( item );
+
 	ResetPath();
-	const MapItem* mainItem = &tile->item[layer];
-
-	Rectangle2I bounds;
-	Vector2F p;
-	CalcModelPos( x, y, mainItem->rotation, itemDefArr[mainItem->itemDefIndex], &bounds, &p );
-	
-	// Free the main item.
-	if ( tile->item[layer].model ) {
-		//statePool.Free( tile->item[layer].model->stats );
-		tree->FreeModel( tile->item[layer].model );
-	}
-
-	tile->item[layer].itemDefIndex = 0;
-	tile->item[layer].rotation = 0;
-	tile->item[layer].model = 0;
-
-	// free the references
-	for( int j=bounds.min.y; j<=bounds.max.y; ++j ) {
-		for( int i=bounds.min.x; i<=bounds.max.x; ++i ) {
-			if ( j == bounds.min.y && i == bounds.min.x )
-				continue;
-
-			int k=0;
-			for( k=0; k<ITEM_PER_TILE; ++k ) {
-				if (    tileArr[j*SIZE+i].item[k].IsReference()
-					 && tileArr[j*SIZE+i].item[k].ref == mainItem ) 
-				{
-					// Found it!
-					tileArr[j*SIZE+i].item[k].itemDefIndex = 0;
-					tileArr[j*SIZE+i].item[k].rotation = 0;
-					tileArr[j*SIZE+i].item[k].ref = 0;
-					break;
-				}
-			}
-			GLASSERT( k != ITEM_PER_TILE );
-		}
-	}
+	ClearVisPathMap( mapBounds );
+	CalcVisPathMap( mapBounds );
 }
 
 
@@ -677,106 +746,19 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 
 void Map::Save( UFOStream* s ) const
 {
-	s->WriteU8( 2 );	// version
-	s->WriteU32( UFOStream::MAGIC0 );
-
-	for( int j=0; j<SIZE; ++j ) {
-		for( int i=0; i<SIZE; ++i ) {
-
-			// Write every tile. The minimal information is a count of layers.
-			// The layer data is only written if needed.
-			const MapTile* tile = GetTile( i, j );
-			
-			s->WriteBool( tile->storage > 0 );	// v2
-			if ( tile->storage ) {
-				tile->storage->Save( s );
-			}
-
-			U8 count = tile->CountItems( false );
-
-			// temporary debugging:
-			if ( i>=40 || j>= 40 ) GLASSERT( count == 0 );
-
-			s->WriteU8( count );
-			
-			for( int k=0; k<ITEM_PER_TILE; ++k ) {
-				if ( tile->item[k].InUse() && !tile->item[k].IsReference() ) {
-					const MapItem* item = &tile->item[k];
-
-					s->WriteU8( item->itemDefIndex );
-					s->WriteU8( item->rotation );
-
-					s->WriteU16( item->hp );	// v2
-					s->WriteBool( item->model && item->model->GetResource() == itemDefArr[item->itemDefIndex].modelResourceOpen );	// v2 - isOpen
-				}
-			}
-		}
-	}
-	s->WriteU32( UFOStream::MAGIC1 );
-	//GLOUTPUT(( "Map saved.\n" ));
+	// FIXME
 }
 
 
 void Map::Load( UFOStream* s, Game* game )
 {
-	Clear();
-
-	int version = s->ReadU8();
-
-	if ( version >= 2 ) {
-		U32 magic = s->ReadU32();
-		GLASSERT( magic == UFOStream::MAGIC0 );
-	}
-
-	for( int j=0; j<SIZE; ++j ) {
-		for( int i=0; i<SIZE; ++i ) {
-
-			MapTile* tile = GetTile( i, j );
-			GLASSERT( tile->storage == 0 && tile->debris == 0 );
-
-			if ( version >= 2 ) {
-				bool hasStorage = s->ReadBool();
-				if ( hasStorage ) {
-					Storage* storage = new Storage( game->GetItemDefArray() );
-					storage->Load( s );
-					SetStorage( i, j, storage );
-				}
-			}
-
-			int count = s->ReadU8();
-			// temporary debugging:
-			if ( i>=40 || j>= 40 ) GLASSERT( count == 0 );
-
-			for( int k=0; k<count; ++k ) 
-			{
-				U8 defIndex = s->ReadU8();
-				U8 rotation = s->ReadU8();
-
-				if ( defIndex > 0 ) {
-					int hp = -1;
-					bool open = false;
-					if ( version >= 2 ) {
-						hp = s->ReadU16();
-						open = s->ReadBool();
-					}
-
-					bool result = AddToTile( i, j, defIndex, rotation, hp, open ); 
-					GLASSERT( result );
-					(void)result;
-				}
-			}
-		}
-	}
-	if ( version >= 2 ) {
-		U32 magic = s->ReadU32();
-		GLASSERT( magic == UFOStream::MAGIC1 );
-	}
-	//GLOUTPUT(( "Map loaded.\n" ));
+	// FIXME
 }
 
 
 void Map::SetStorage( int x, int y, Storage* storage )
 {
+	/*
 	RemoveStorage( x, y );	// delete existing
 	MapTile* tile = GetTile( x, y );
 	tile->storage = storage;
@@ -798,11 +780,13 @@ void Map::SetStorage( int x, int y, Storage* storage )
 		tile->debris->SetPos( (float)(x)+0.5f, -aabb.min.y, (float)(y)+0.5f );
 		tile->debris->SetFlag( Model::MODEL_OWNED_BY_MAP );
 	}
+	*/
 }
 
 
 Storage* Map::RemoveStorage( int x, int y )
 {
+	/*
 	MapTile* tile = GetTile( x, y );
 	if ( tile->debris ) {
 		tree->FreeModel( tile->debris );
@@ -811,6 +795,8 @@ Storage* Map::RemoveStorage( int x, int y )
 	Storage* result = tile->storage;
 	tile->storage = 0;
 	return result;
+	*/
+	return 0;
 }
 
 
@@ -818,28 +804,18 @@ void Map::DumpTile( int x, int y )
 {
 	if ( InRange( x, 0, SIZE-1 ) && InRange( y, 0, SIZE-1 )) 
 	{
-		const MapTile& tile = tileArr[y*SIZE+x];
+		int i=0;
+		MapItem* root = FindItems( x, y );
+		while ( root ) {
+			GLASSERT( root->itemDefIndex > 0 );
+			const MapItemDef& itemDef = itemDefArr[ root->itemDefIndex ];
+			GLASSERT( itemDef.name && *itemDef.name );
 
-		for( int i=0; i<ITEM_PER_TILE; ++i ) {
-			int index = tile.item[i].itemDefIndex;
-			const MapItemDef& itemDef = itemDefArr[index];
+			int r = root->rot;
+			UFOText::Draw( 0, 100-12*i, "%s r=%d", itemDef.name, r*90 );
 
-			if ( tile.item[i].IsReference() ) {
-				int rx, ry, layer;
-				MapTile* t = GetTileFromItem( tile.item[i].ref, &layer, &rx, &ry );
-
-				UFOText::Draw( 0, 100-12*i, "->(%d,%d) %s r=%d", 
-							   rx-x, ry-y, itemDef.name, t->item[layer].rotation );
-			}
-			else {
-				if ( itemDef.name[0] ) {
-					int r = tile.item[i].rotation;
-					UFOText::Draw( 0, 100-12*i, "%s r=%d", itemDef.name, r*90 );
-				}
-				else {
-					UFOText::Draw( 0, 100-12*i, "%s", "--" );
-				}
-			}
+			++i;
+			root = root->next;
 		}
 	}
 }
@@ -925,7 +901,6 @@ void Map::ResetPath()
 }
 
 
-
 void Map::ClearPathBlocks()
 {
 	ResetPath();
@@ -940,74 +915,81 @@ void Map::SetPathBlock( int x, int y )
 }
 
 
+void Map::ClearVisPathMap( grinliz::Rectangle2I& bounds )
+{
+	for( int j=bounds.min.y; j<=bounds.max.y; ++j ) {
+		for( int i=bounds.min.x; i<=bounds.max.x; ++i ) {
+			visMap[j*SIZE+i] = 0;
+			pathMap[j*SIZE+i] = 0;
+		}
+	}
+}
+
+
+void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
+{
+	MapItem* item = FindItems( bounds );
+	while( item ) {
+		
+		if ( !item->Destroyed() ) {
+			GLASSERT( item->itemDefIndex > 0 );
+			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
+			
+			int rot = item->rot;
+			GLASSERT( rot >= 0 && rot < 4 );
+
+			const Vector2I size  = { itemDef.cx, itemDef.cy };
+			Vector2I walk = size;
+			if ( rot & 1 )
+				grinliz::Swap( &walk.x, &walk.y );
+
+			Vector2I prime = { 0, 0 };
+
+			for( int y=0; y<walk.y; ++y ) {
+				for( int x=0; x<walk.x; ++x ) {
+
+					Vector2I origin = { x, y };
+
+					// Account for object rotation (if needed). Maps from the world space
+					// back to object space to get the visibility.
+					IMat iMat;
+					if ( size.x > 1 || size.y > 1 ) {
+						iMat.Init( size.x, size.y, rot );
+						iMat.Mult( origin, &prime );
+					}
+					GLASSERT( prime.x >= 0 && prime.x < itemDef.cx );
+					GLASSERT( prime.y >= 0 && prime.y < itemDef.cy );
+
+					// Account for tile rotation. (Actually a bit rotation too, which is handy.)
+					// The OR operation is important. This routine will write outside of the bounds,
+					// and should do no damage.
+					{
+						// Path
+						U32 p = ( itemDef.pather[prime.y][prime.x] << rot );
+						p = p | (p>>4);
+						pathMap[ (y+item->y)*SIZE + (x+item->x) ] |= p;
+					}
+					{
+						// Visibility
+						U32 p = ( itemDef.visibility[prime.y][prime.x] << rot );
+						p = p | (p>>4);
+						visMap[ (y+item->y)*SIZE + (x+item->x) ] |= p;
+					}
+				}
+			}
+		}
+		item = item->next;
+	}
+}
+
+
 int Map::GetPathMask( ConnectionType c, int x, int y )
 {
 	// fast return: if the pathBlock is set, we're done.
 	if ( c == PATH_TYPE && pathBlock.IsSet( x, y ) ) {
 		return 0xf;
 	}
-
-	// Handles both rotation of the object and rotation of the masks
-	// in the object. And tile resulotion. Tweaky function to get right.
-	//
-	int index = y*SIZE+x;
-	MapTile* originTile = &tileArr[index];
-
-	U32 id = (c==PATH_TYPE) ? (originTile->pathMask >> 4) : (originTile->visibilityMask >> 4);
-	GLASSERT( id < 0xffffff );	// how did it get this big??
-	U32 queryID = ((c==PATH_TYPE) ? pathQueryID : visibilityQueryID ); 
-
-	if ( id != queryID)  {
-		U32 path = 0;
-		for( int i=0; i<ITEM_PER_TILE; ++i ) {
-			const MapItem* inItem = &originTile->item[i];
-			if ( inItem->itemDefIndex == 0 ) {
-				continue;
-			}
-
-			MapItem* item = 0;
-			MapTile* tile = 0;
-			Vector2I origin;
-			ResolveReference( inItem, &item, &tile, &origin.x, &origin.y );
-			U32 p = 0;	// pather at this location.
-			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
-
-			if ( !item->Destroyed( itemDef ) ) {
-				int rot = item->rotation;
-
-				GLASSERT( rot >= 0 && rot < 4 );
-
-				Vector2I size = { itemDef.cx, itemDef.cy };
-				Vector2I prime = { 0, 0 };
-
-				// Account for object rotation (if needed)
-				IMat iMat;
-				if ( size.x > 1 || size.y > 1 ) {
-					iMat.Init( size.x, size.y, rot );
-					iMat.Mult( origin, &prime );
-				}
-				GLASSERT( prime.x >= 0 && prime.x < itemDef.cx );
-				GLASSERT( prime.y >= 0 && prime.y < itemDef.cy );
-
-				// Account for tile rotation. (Actually a bit rotation too, which is handy.)
-				if ( c==PATH_TYPE) 
-					p = ( itemDef.pather[prime.y][prime.x] << rot );
-				else
-					p = ( itemDef.visibility[prime.y][prime.x] << rot );
-
-				p = p | (p>>4);
-			}
-			path |= (U8)(p&0xf);
-		}
-
-		// Write the information - and the query ID - back to the originalTile and cache it.
-		GLASSERT( ( path & 0xfffffff0 ) == 0 );
-		if ( c==PATH_TYPE) 
-			originTile->pathMask = path | (queryID<<4);
-		else
-			originTile->visibilityMask = path | (visibilityQueryID<<4);
-	}
-	return ( c==PATH_TYPE) ? (originTile->pathMask & 0xf) : (originTile->visibilityMask & 0xf);
+	return ( c==PATH_TYPE) ? pathMap[y*SIZE+x] : visMap[y*SIZE+x];
 }
 
 

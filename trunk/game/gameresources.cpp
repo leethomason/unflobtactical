@@ -255,7 +255,7 @@ void Game::LoadMapResources()
 	const int HP_MED = 100;
 	const int HP_HIGH = 300;
 	const int HP_STEEL = 1000;
-	const int INDESTRUCT = 0;
+	const int INDESTRUCT = 0xffff;
 
 	const int FOREST_SET = 0x01;
 	const int FARM_SET	 = 0x10;

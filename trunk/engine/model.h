@@ -149,9 +149,9 @@ public:
 	const grinliz::Vector3F& Pos() const			{ return pos; }
 	void SetPos( const grinliz::Vector3F& pos );
 	void SetPos( float x, float y, float z )		{ grinliz::Vector3F vec = { x, y, z }; SetPos( vec ); }
-	float X() { return pos.x; }
-	float Y() { return pos.y; }
-	float Z() { return pos.z; }
+	float X() const { return pos.x; }
+	float Y() const { return pos.y; }
+	float Z() const { return pos.z; }
 
 	void SetYRotation( float rot );
 	const float GetYRotation() const			{ return rot; }
@@ -170,8 +170,11 @@ public:
 
 	// AABB for user selection (bigger than the true AABB)
 	void CalcHitAABB( grinliz::Rectangle3F* aabb ) const;
+
 	// The bounding box
 	const grinliz::Rectangle3F& AABB() const;
+	// The bounding box, approximated to integers
+	const grinliz::Rectangle3I& AABBInt() const;
 
 	void CalcTrigger( grinliz::Vector3F* trigger ) const;
 	void CalcTarget( grinliz::Vector3F* target ) const;
@@ -186,7 +189,7 @@ public:
 
 	Model* next;			// used by the SpaceTree query
 	Model* next0;			// used by the Engine sub-sorting
-	void* stats;			// essentially a "userdata" to hang off the state
+	void*  stats;			// user data
 
 private:
 	struct TexMat {
@@ -209,7 +212,9 @@ private:
 	
 	mutable bool xformValid;
 	mutable bool invValid;
+
 	mutable grinliz::Rectangle3F aabb;
+	mutable grinliz::Rectangle3I aabbInt;
 
 	mutable grinliz::Matrix4 _xform;
 	mutable grinliz::Matrix4 _invXForm;

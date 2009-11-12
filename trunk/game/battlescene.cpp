@@ -57,6 +57,8 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	}
 #endif
 
+#if defined( MAPMAKER )
+#else
 	// Do we have a saved state?
 	UFOStream* stream = game->OpenStream( "BattleScene", false );
 	if ( !stream ) {
@@ -65,6 +67,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	else {
 		Load( stream );
 	}
+#endif
 
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		if ( units[i].IsAlive() ) {
@@ -205,6 +208,9 @@ void BattleScene::Load( UFOStream* /*s*/ )
 void BattleScene::SetFogOfWar()
 {
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fow = engine->GetFogOfWar();
+#ifdef MAPMAKER
+	fow->SetAll();
+#else
 	for( int j=0; j<MAP_SIZE; ++j ) {
 		for( int i=0; i<MAP_SIZE; ++i ) {
 			Rectangle3I query;
@@ -215,6 +221,7 @@ void BattleScene::SetFogOfWar()
 				fow->Clear( i, j );
 		}
 	}
+#endif
 	engine->UpdateFogOfWar();
 }
 
@@ -255,6 +262,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 {
 	TestHitTesting();
 
+	/*
 	if ( currentTime/1000 != (currentTime-deltaTime)/1000 ) {
 		grinliz::Vector3F pos = { 10.0f, 1.0f, 28.0f };
 		grinliz::Vector3F vel = { 0.0f, 1.0f, 0.0f };
@@ -270,6 +278,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	}
 	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
 	game->particleSystem->EmitFlame( deltaTime, pos );
+	*/
 
 	if (    SelectedSoldier()
 		 && SelectedSoldierUnit()->Status() == Unit::STATUS_ALIVE
@@ -681,7 +690,7 @@ void BattleScene::Tap(	int tap,
 	if ( !iconSelected ) {
 		const Vector3F& pos = mapSelection->Pos();
 		int rotation = (int) (mapSelection->GetYRotation() / 90.0f );
-		engine->GetMap()->AddToTile( (int)pos.x, (int)pos.z, currentMapItem, rotation, -1, true );
+		engine->GetMap()->AddToTile( (int)pos.x, (int)pos.z, currentMapItem, rotation, 0xffff, false );
 		iconSelected = 0;	// don't keep processing
 	}
 #endif	
