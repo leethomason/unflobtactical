@@ -203,6 +203,7 @@ void Game::CreateScene( int id )
 }
 
 
+/*
 void Game::LoadMap( const char* name )
 {
 	sqlite3_stmt* stmt = 0;
@@ -228,8 +229,9 @@ void Game::LoadMap( const char* name )
 
 	engine.GetMap()->Load( &s, this );
 }
+*/
 
-
+/*
 #ifdef MAPMAKER
 void Game::SaveMap( const char* name )
 {
@@ -241,6 +243,7 @@ void Game::SaveMap( const char* name )
 	fclose( fp );
 }
 #endif
+*/
 
 void Game::DoTick( U32 currentTime )
 {

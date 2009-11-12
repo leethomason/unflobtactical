@@ -17,10 +17,13 @@ using namespace grinliz;
 
 BattleScene::BattleScene( Game* game ) : Scene( game )
 {
+	engine  = &game->engine;
+
 #ifdef MAPMAKER
 	currentMapItem = 1;
+	sqlite3_open( "map.db", &mapDatabase );
+	engine->GetMap()->SyncToDB( mapDatabase, "farmland" );
 #endif
-	engine  = &game->engine;
 
 	path.Clear();
 
@@ -101,6 +104,7 @@ BattleScene::~BattleScene()
 		engine->FreeModel( mapSelection );
 	if ( preview )
 		engine->FreeModel( preview );
+	sqlite3_close( mapDatabase );
 #endif
 
 	delete fireWidget;

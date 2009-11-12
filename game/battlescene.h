@@ -6,6 +6,7 @@
 #include "../engine/ufoutil.h"
 #include "gamelimits.h"
 #include "../grinliz/glbitarray.h"
+#include "../sqlite3/sqlite3.h"
 
 class Model;
 class UIButtonBox;
@@ -169,6 +170,7 @@ private:
 	Model* mapSelection;
 	Model* preview;
 	int currentMapItem;
+	sqlite3* mapDatabase;
 #endif
 };
 

@@ -23,10 +23,10 @@
 #include "../game/material.h"		// bad call to less general directory. FIXME. Move map to game?
 #include "../game/unit.h"			// bad call to less general directory. FIXME. Move map to game?
 #include "../game/game.h"			// bad call to less general directory. FIXME. Move map to game?
+#include "../sqlite3/sqlite3.h"
 
 using namespace grinliz;
 using namespace micropather;
-
 
 Map::Map( SpaceTree* tree )
 	: itemPool( "mapItemPool", sizeof( MapItem ), sizeof( MapItem ) * 200, false )
@@ -41,6 +41,7 @@ Map::Map( SpaceTree* tree )
 		depthBase[i] = base;
 		base += (1<<i)*(1<<i);
 	}
+	mapDB = 0;
 
 	microPather = new MicroPather(	this,			// graph interface
 									SIZE*SIZE,		// max possible states (+1)
@@ -106,7 +107,6 @@ void Map::Clear()
 	}
 	memset( visMap, 0, SIZE*SIZE );
 	memset( pathMap, 0, SIZE*SIZE );
-	memset( itemDefArr, 0, sizeof(MapItemDef)*MAX_ITEM_DEF );
 	memset( quadTree, 0, sizeof(MapItem*)*QUAD_NODES );
 
 /*	memset( itemArr, 0, sizeof(MapItem)*MAX_ITEMS );
@@ -651,6 +651,50 @@ bool Map::AddToTile( int x, int y, int defIndex, int rotation, int hp, bool open
 	ClearVisPathMap( mapBounds );
 	CalcVisPathMap( mapBounds );
 
+	if ( mapDB ) {
+		sqlite3_stmt* stmt = 0;
+		int result=0;
+
+		// Clear out the existing row.
+		const int BUFSIZE=200;
+		char buf[BUFSIZE];
+		_snprintf_s( buf, BUFSIZE, BUFSIZE, 
+					"DELETE FROM %s WHERE (x=? AND y=? AND r=? AND defIndex=?);",
+					dbTableName.c_str() );
+		GLASSERT( strlen( buf ) < BUFSIZE-1 );
+
+		result = sqlite3_prepare_v2( mapDB,	buf, -1, &stmt, 0 );
+		GLASSERT( result == SQLITE_OK );
+
+		sqlite3_bind_int( stmt, 1, item->x );
+		sqlite3_bind_int( stmt, 2, item->y );
+		sqlite3_bind_int( stmt, 3, item->rot );
+		sqlite3_bind_int( stmt, 4, item->itemDefIndex );
+
+		sqlite3_step(stmt);
+		sqlite3_finalize(stmt);
+
+		// And add the new one.
+		stmt = 0;
+		_snprintf_s( buf, BUFSIZE, BUFSIZE, 
+					"INSERT INTO %s VALUES (?,?,?,?,?);",
+					dbTableName.c_str() );
+		GLASSERT( strlen( buf ) < BUFSIZE-1 );
+
+		result = sqlite3_prepare_v2(mapDB, buf, -1, &stmt, 0 );
+		GLASSERT( result == SQLITE_OK );
+
+		sqlite3_bind_int( stmt, 1, item->x );
+		sqlite3_bind_int( stmt, 2, item->y );
+		sqlite3_bind_int( stmt, 3, item->rot );
+		sqlite3_bind_int( stmt, 4, item->itemDefIndex );		
+		sqlite3_bind_int( stmt, 5, item->hp );		
+
+		sqlite3_step(stmt);
+		result = sqlite3_finalize(stmt);
+		GLASSERT( result == SQLITE_OK );
+	}
+
 	return true;
 }
 
@@ -669,19 +713,24 @@ void Map::DeleteAt( int x, int y )
 		return;
 
 	MapItem* item = quadTree[index];
-	// unlink:
-	quadTree[index] = item->nextQuad;
+	while( item && !item->mapBounds.Intersect( nodeBounds ) )
+		item = item->next;
+	
+	if ( item ) {
+		// unlink:
+		quadTree[index] = item->nextQuad;
 
-	Rectangle2I mapBounds = item->mapBounds;
+		Rectangle2I mapBounds = item->mapBounds;
 
-	if ( item->model ) {
-		tree->FreeModel( item->model );
+		if ( item->model ) {
+			tree->FreeModel( item->model );
+		}
+		itemPool.Free( item );
+
+		ResetPath();
+		ClearVisPathMap( mapBounds );
+		CalcVisPathMap( mapBounds );
 	}
-	itemPool.Free( item );
-
-	ResetPath();
-	ClearVisPathMap( mapBounds );
-	CalcVisPathMap( mapBounds );
 }
 
 
@@ -744,15 +793,59 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 }
 
 
-void Map::Save( UFOStream* s ) const
+void Map::SyncToDB( sqlite3* db, const char* tableName )
 {
-	// FIXME
-}
+	if ( db && tableName ) {
+		Clear();
+		int result=0;
 
+		dbTableName = tableName;
 
-void Map::Load( UFOStream* s, Game* game )
-{
-	// FIXME
+		// Make sure the table exists. Do a full load. From now on, all changes
+		// will be written to this DB. If the table exists, this will fail.
+		sqlite3_stmt* stmt = 0;
+		// This doesn't work. Frustrating:
+		//result = sqlite3_prepare_v2( db, "CREATE TABLE IF NOT EXISTS ? (x INT, y INT, r INT, defIndex INT, hp INT);", -1, &stmt, 0 );
+		
+		const int BUFSIZE=200;
+		char buf[BUFSIZE];
+		_snprintf_s( buf, BUFSIZE, BUFSIZE, 
+					 "CREATE TABLE IF NOT EXISTS %s (x INT, y INT, r INT, defIndex INT, hp INT);",
+					 tableName );
+		GLASSERT( strlen( buf ) < BUFSIZE-1 );
+
+		result = sqlite3_prepare_v2( db, buf,-1, &stmt, 0 );
+		GLASSERT( result == SQLITE_OK );
+
+		sqlite3_step( stmt );
+		result = sqlite3_finalize(stmt);
+
+		// Now walk and add!
+		stmt = 0;
+		
+		_snprintf_s( buf, BUFSIZE, BUFSIZE, 
+					 "SELECT * FROM %s;",
+					 tableName );
+		GLASSERT( strlen( buf ) < BUFSIZE-1 );
+
+		result = sqlite3_prepare_v2( db, buf,-1, &stmt, 0 );
+		GLASSERT( result == SQLITE_OK );
+
+		while (sqlite3_step(stmt) == SQLITE_ROW) {
+			int x	= sqlite3_column_int( stmt, 0 );
+			int y	= sqlite3_column_int( stmt, 1 );
+			int r	= sqlite3_column_int( stmt, 2 );
+			int def = sqlite3_column_int( stmt, 3 );
+			int hp	= sqlite3_column_int( stmt, 4 );
+
+			AddToTile( x, y, def, r, hp, false );
+		}
+		sqlite3_finalize(stmt);
+		mapDB = db;
+	}
+	else {
+		mapDB = 0;
+	}
 }
 
 

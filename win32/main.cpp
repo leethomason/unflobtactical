@@ -275,11 +275,6 @@ int main( int argc, char **argv )
 								GLOUTPUT(( "Load\n" ));
 							}
 							break;
-						case SDLK_c:
-							{
-								((Game*)game)->ClearMap();
-							}
-							break;
 						case SDLK_DELETE:	
 							((Game*)game)->DeleteAtSelection(); 
 							break;
