@@ -29,6 +29,8 @@
 #include "../game/game.h"
 #endif
 
+#include "wglew.h"
+
 #define IPOD_SCREEN_WIDTH	320
 #define IPOD_SCREEN_HEIGHT	480
 #define FRAMEBUFFER_ROTATE
@@ -65,14 +67,17 @@ void XferTexture( U32 id, int _w, int _h )
 
 	glEnable( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, id );
-//	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-//	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
+	// DO NOT ENABLE THIS. BLUESCREENs my ATI card.
+	/*
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glGenerateMipmapEXT(GL_TEXTURE_2D);
+	*/
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();					// save projection
@@ -178,6 +183,7 @@ int main( int argc, char **argv )
 
 	int r = glewInit();
 	GLASSERT( r == GL_NO_ERROR );
+	wglSwapIntervalEXT( 1 );	// vsync
 
 	const unsigned char* vendor   = glGetString( GL_VENDOR );
 	const unsigned char* renderer = glGetString( GL_RENDERER );
@@ -436,10 +442,11 @@ int main( int argc, char **argv )
 #ifdef FRAMEBUFFER_ROTATE
 		frameBuffer->UnBind();	
 
-		glClear( GL_COLOR_BUFFER_BIT );
-		glDisable( GL_DEPTH_TEST );
 		glDepthFunc( GL_ALWAYS );
+		glClear( GL_COLOR_BUFFER_BIT );
 		XferTexture( frameBuffer->TextureID(), IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH );
+		glDepthFunc( GL_LEQUAL );
+
 #endif
 		SDL_GL_SwapBuffers();
 	}
