@@ -452,30 +452,23 @@ void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 }
 
 
-/*
-void Map::GetItemPos( const MapItem* inItem, int* x, int* y, int* cx, int* cy )
+void Map::UnlinkItem( MapItem* item )
 {
-	MapItem* item = 0;
-	MapTile* tile = 0;
-	ResolveReference( inItem, &item, &tile, 0, 0 );	
+	int index = CalcBestNode( item->mapBounds );
+	GLASSERT( quadTree[index] ); // the item should be in the linked list somewhere.
 
-	const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
-	int rot = item->rotation;
-	GLASSERT( rot >= 0 && rot < 4 );
-
-	Vector2I size = { itemDef.cx, itemDef.cy };
-
-	if ( itemDef.cx > 1 || itemDef.cy > 1 ) {
-		if ( rot & 1 ) {
-			Swap( &size.x, &size.y );
+	MapItem* prev = 0;
+	for( MapItem* p=quadTree[index]; p; prev=p, p=p->nextQuad ) {
+		if ( p == item ) {
+			if ( prev )
+				prev->nextQuad = p->nextQuad;
+			else
+				quadTree[index] = p->nextQuad;
+			return;
 		}
 	}
-
-	GetTileFromItem( item, 0, x, y );
-	*cx = size.x;
-	*cy = size.y;
+	GLASSERT( 0 );	// should have found the item.
 }
-*/
 
 
 Map::MapItem* Map::FindItems( const Rectangle2I& bounds )
@@ -578,7 +571,7 @@ Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 #endif
 
 
-bool Map::AddToTile( int x, int y, int defIndex, int rotation, int hp, bool open )
+bool Map::AddItem( int x, int y, int rotation, int defIndex, int hp )
 {
 	GLASSERT( x >= 0 && x < width );
 	GLASSERT( y >= 0 && y < height );
@@ -615,16 +608,15 @@ bool Map::AddToTile( int x, int y, int defIndex, int rotation, int hp, bool open
 	// Finally add!!
 	MapItem* item = (MapItem*) itemPool.Alloc();
 	item->model = 0;
+	if ( hp == -1 )
+		hp = itemDefArr[defIndex].hp;
 
 	const ModelResource* res = 0;
 	if ( itemDefArr[defIndex].CanDamage() && hp == 0 ) {
 		res = itemDefArr[defIndex].modelResourceDestroyed;
 	}
 	else {
-		if ( open )
-			res = itemDefArr[defIndex].modelResourceOpen;
-		else
-			res = itemDefArr[defIndex].modelResource;
+		res = itemDefArr[defIndex].modelResource;
 	}
 	if ( res ) {
 		Model* model = tree->AllocModel( res );
@@ -652,47 +644,8 @@ bool Map::AddToTile( int x, int y, int defIndex, int rotation, int hp, bool open
 	CalcVisPathMap( mapBounds );
 
 	if ( mapDB ) {
-		sqlite3_stmt* stmt = 0;
-		int result=0;
-
-		// Clear out the existing row.
-		const int BUFSIZE=200;
-		char buf[BUFSIZE];
-		_snprintf_s( buf, BUFSIZE, BUFSIZE, 
-					"DELETE FROM %s WHERE (x=? AND y=? AND r=? AND defIndex=?);",
-					dbTableName.c_str() );
-		GLASSERT( strlen( buf ) < BUFSIZE-1 );
-
-		result = sqlite3_prepare_v2( mapDB,	buf, -1, &stmt, 0 );
-		GLASSERT( result == SQLITE_OK );
-
-		sqlite3_bind_int( stmt, 1, item->x );
-		sqlite3_bind_int( stmt, 2, item->y );
-		sqlite3_bind_int( stmt, 3, item->rot );
-		sqlite3_bind_int( stmt, 4, item->itemDefIndex );
-
-		sqlite3_step(stmt);
-		sqlite3_finalize(stmt);
-
-		// And add the new one.
-		stmt = 0;
-		_snprintf_s( buf, BUFSIZE, BUFSIZE, 
-					"INSERT INTO %s VALUES (?,?,?,?,?);",
-					dbTableName.c_str() );
-		GLASSERT( strlen( buf ) < BUFSIZE-1 );
-
-		result = sqlite3_prepare_v2(mapDB, buf, -1, &stmt, 0 );
-		GLASSERT( result == SQLITE_OK );
-
-		sqlite3_bind_int( stmt, 1, item->x );
-		sqlite3_bind_int( stmt, 2, item->y );
-		sqlite3_bind_int( stmt, 3, item->rot );
-		sqlite3_bind_int( stmt, 4, item->itemDefIndex );		
-		sqlite3_bind_int( stmt, 5, item->hp );		
-
-		sqlite3_step(stmt);
-		result = sqlite3_finalize(stmt);
-		GLASSERT( result == SQLITE_OK );
+		DeleteRow( item->x, item->y, item->rot, item->itemDefIndex );
+		InsertRow( item->x, item->y, item->rot, item->itemDefIndex, item->hp, 0, 0 );
 	}
 
 	return true;
@@ -704,28 +657,15 @@ void Map::DeleteAt( int x, int y )
 	GLASSERT( x >= 0 && x < width );
 	GLASSERT( y >= 0 && y < height );
 
-	Rectangle2I nodeBounds;
-	nodeBounds.Set( x, y, x, y );
-	int index = CalcBestNode( nodeBounds );
-
-	GLASSERT( quadTree[index] );
-	if ( !quadTree[index] )
-		return;
-
-	MapItem* item = quadTree[index];
-	while( item && !item->mapBounds.Intersect( nodeBounds ) )
-		item = item->next;
+	MapItem* item = FindItems( x, y );
 	
 	if ( item ) {
-		// unlink:
-		quadTree[index] = item->nextQuad;
-
+		UnlinkItem( item );
 		Rectangle2I mapBounds = item->mapBounds;
 
-		if ( item->model ) {
-			tree->FreeModel( item->model );
+		if ( mapDB ) {
+			DeleteRow( item->x, item->y, item->rot, item->itemDefIndex );
 		}
-		itemPool.Free( item );
 
 		ResetPath();
 		ClearVisPathMap( mapBounds );
@@ -793,6 +733,58 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 }
 
 
+void Map::DeleteRow( int x, int y, int r, int def )
+{
+	sqlite3_stmt* stmt = 0;
+	int result=0;
+
+	// Clear out the existing row.
+	const int BUFSIZE=200;
+	char buf[BUFSIZE];
+	_snprintf_s( buf, BUFSIZE, BUFSIZE, 
+				"DELETE FROM %s WHERE (x=? AND y=? AND r=? AND defIndex=?);",
+				dbTableName.c_str() );
+	GLASSERT( strlen( buf ) < BUFSIZE-1 );
+
+	result = sqlite3_prepare_v2( mapDB,	buf, -1, &stmt, 0 );
+	GLASSERT( result == SQLITE_OK );
+
+	sqlite3_bind_int( stmt, 1, x );
+	sqlite3_bind_int( stmt, 2, y );
+	sqlite3_bind_int( stmt, 3, r );
+	sqlite3_bind_int( stmt, 4, def );
+
+	sqlite3_step(stmt);
+	sqlite3_finalize(stmt);
+}
+
+
+void Map::InsertRow( int x, int y, int r, int def, int hp, int flags, const Storage* storage )
+{
+	// And add the new one.
+	sqlite3_stmt* stmt = 0;
+	const int BUFSIZE=200;
+	char buf[BUFSIZE];
+	_snprintf_s( buf, BUFSIZE, BUFSIZE, 
+				"INSERT INTO %s VALUES (?,?,?,?,?);",
+				dbTableName.c_str() );
+	GLASSERT( strlen( buf ) < BUFSIZE-1 );
+
+	int result = sqlite3_prepare_v2(mapDB, buf, -1, &stmt, 0 );
+	GLASSERT( result == SQLITE_OK );
+
+	sqlite3_bind_int( stmt, 1, x );
+	sqlite3_bind_int( stmt, 2, y );
+	sqlite3_bind_int( stmt, 3, r );
+	sqlite3_bind_int( stmt, 4, def );		
+	sqlite3_bind_int( stmt, 5, hp );		
+
+	sqlite3_step(stmt);
+	result = sqlite3_finalize(stmt);
+	GLASSERT( result == SQLITE_OK );
+}
+		
+
 void Map::SyncToDB( sqlite3* db, const char* tableName )
 {
 	if ( db && tableName ) {
@@ -810,7 +802,8 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 		const int BUFSIZE=200;
 		char buf[BUFSIZE];
 		_snprintf_s( buf, BUFSIZE, BUFSIZE, 
-					 "CREATE TABLE IF NOT EXISTS %s (x INT, y INT, r INT, defIndex INT, hp INT);",
+					 "CREATE TABLE IF NOT EXISTS %s "
+					 "(x INT, y INT, r INT, defIndex INT, hp INT );",	//, onFire INT, store TEXT );",
 					 tableName );
 		GLASSERT( strlen( buf ) < BUFSIZE-1 );
 
@@ -838,7 +831,7 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 			int def = sqlite3_column_int( stmt, 3 );
 			int hp	= sqlite3_column_int( stmt, 4 );
 
-			AddToTile( x, y, def, r, hp, false );
+			AddItem( x, y, r, def, hp );
 		}
 		sqlite3_finalize(stmt);
 		mapDB = db;

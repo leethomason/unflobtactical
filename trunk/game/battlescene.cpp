@@ -694,7 +694,8 @@ void BattleScene::Tap(	int tap,
 	if ( !iconSelected ) {
 		const Vector3F& pos = mapSelection->Pos();
 		int rotation = (int) (mapSelection->GetYRotation() / 90.0f );
-		engine->GetMap()->AddToTile( (int)pos.x, (int)pos.z, currentMapItem, rotation, 0xffff, false );
+
+		engine->GetMap()->AddItem( (int)pos.x, (int)pos.z, rotation, currentMapItem, -1 );
 		iconSelected = 0;	// don't keep processing
 	}
 #endif	

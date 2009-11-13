@@ -28,11 +28,11 @@ public:
 	void Bind();
 	void UnBind();
 
-	U32 TextureID()	{ return textureID; }
+	U32 TextureID()	{ return colorBuffer; }
 
 private:
-	U32 textureID;
 	U32 frameBufferObject;
+	U32 colorBuffer;
 	U32 depthbuffer;
 	U32 w2, h2;
 };
