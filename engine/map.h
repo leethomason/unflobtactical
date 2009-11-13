@@ -160,13 +160,10 @@ public:
 	// hp = -1 default
 	//       0 destroyed
 	//		1+ hp remaining
-	bool AddToTile( int x, int z, int itemDefIndex, int rotation, int hp, bool open );
-
+	bool AddItem( int x, int z, int rotation, int itemDefIndex, int hp );
 	void DeleteAt( int x, int z );
-	void ResetPath();	// normally called automatically
 
-	//void Save( UFOStream* s ) const;
-	//void Load( UFOStream* s, Game* game );
+	void ResetPath();	// normally called automatically
 
 	void SyncToDB( sqlite3* db, const char* table );
 	void Clear();
@@ -225,6 +222,7 @@ private:
 		return FindItems( b );
 	}
 	MapItem* FindItem( const Model* model );
+	void UnlinkItem( MapItem* item );
 	int CalcBestNode( const grinliz::Rectangle2I& bounds );
 
 	void CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef, 
@@ -234,18 +232,10 @@ private:
 	void ClearVisPathMap( grinliz::Rectangle2I& bounds );
 	void CalcVisPathMap( grinliz::Rectangle2I& bounds );
 
-	// Performs no translation of references.
-	// item: input
-	// output layer (to get item from returned tile)
-	// x and y: map locations
-//	MapTile* GetTileFromItem( const MapItem* item, int* layer, int* x, int *y ) const;
+	void InsertRow( int x, int y, int r, int def, int hp, int flags, const Storage* storage );
+	void DeleteRow( int x, int y, int r, int def );
 
-	// resolve a reference:
-	// outItem: item referred to
-	// outTile: tile referred to
-	// dx, dy: position of inItem relative to outItem. (Will be >= 0 )
-//	void ResolveReference( const MapItem* inTtem, MapItem** outItem, MapTile** outTile, int *dx, int* dy ) const;
-	
+
 	int width, height;
 	grinliz::Rectangle3F bounds;
 	const Texture* texture;

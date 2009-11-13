@@ -19,11 +19,10 @@
 #include "framebuffer.h"
 #include "../grinliz/glutil.h"
 
+//#define NEED_POWER_OF_2
+
 FrameBuffer::FrameBuffer( int width, int height )
 {
-	glGenTextures( 1, &textureID );
-	glBindTexture( GL_TEXTURE_2D, textureID );
-
 #ifdef NEED_POWER_OF_2
 	w2 = grinliz::CeilPowerOf2( width );
 	h2 = grinliz::CeilPowerOf2( height );
@@ -31,6 +30,9 @@ FrameBuffer::FrameBuffer( int width, int height )
 	w2 = width;
 	h2 = height;
 #endif
+/*
+	glGenTextures( 1, &textureID );
+	glBindTexture( GL_TEXTURE_2D, textureID );
 
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
@@ -44,33 +46,40 @@ FrameBuffer::FrameBuffer( int width, int height )
 					GL_BGRA, 
 					GL_UNSIGNED_INT_8_8_8_8_REV, 
 					0 );
+*/
 
+	// Create the FBO and Bind it.
 	glGenFramebuffersEXT( 1, &frameBufferObject );
 	GLASSERT( glGetError() == GL_NO_ERROR );	
-
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, frameBufferObject );
 	GLASSERT( glGetError() == GL_NO_ERROR );	
 
-	glGenRenderbuffersEXT(1, &depthbuffer);
-	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depthbuffer);
-	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, w2, h2 );
-	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, depthbuffer);
 
-	glBindTexture(GL_TEXTURE_2D, textureID );
-	GLASSERT( glGetError() == GL_NO_ERROR );	
+	// Create the color buffer.
+	glGenTextures(1, &colorBuffer);
+	glBindTexture(GL_TEXTURE_2D, colorBuffer );
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w2, h2, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
 
 	glFramebufferTexture2DEXT(	GL_FRAMEBUFFER_EXT, 
 								GL_COLOR_ATTACHMENT0_EXT, 
 								GL_TEXTURE_2D, 
-								textureID, 0);
-
+								colorBuffer, 0);
 	GLASSERT( glGetError() == GL_NO_ERROR );	
 
+	// Attach a depth buffer:
+	glGenRenderbuffersEXT(1, &depthbuffer);
+	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depthbuffer);
+	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, w2, h2 );
+	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, depthbuffer);
+	GLASSERT( glGetError() == GL_NO_ERROR );	
+
+	// Confirm the status.
 	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
 	GLASSERT( status == GL_FRAMEBUFFER_COMPLETE_EXT );	
 
-	glBindTexture( GL_TEXTURE_2D, 0 );
+	// Clean up.
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
+	glBindTexture( GL_TEXTURE_2D, 0 );
 	GLASSERT( glGetError() == GL_NO_ERROR );	
 }
 
@@ -84,6 +93,9 @@ FrameBuffer::~FrameBuffer()
 void FrameBuffer::Bind() 
 {
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, frameBufferObject);
+	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+	GLASSERT( status == GL_FRAMEBUFFER_COMPLETE_EXT );	
+
 	glPushAttrib(GL_VIEWPORT_BIT);
 	glViewport(0,0,w2,h2);
 }

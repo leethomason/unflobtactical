@@ -65,8 +65,14 @@ void XferTexture( U32 id, int _w, int _h )
 
 	glEnable( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, id );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+//	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+//	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glGenerateMipmapEXT(GL_TEXTURE_2D);
 
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();					// save projection
@@ -131,7 +137,7 @@ int main( int argc, char **argv )
 	GLOUTPUT(( "SDL: major %d minor %d patch %d\n", sversion->major, sversion->minor, sversion->patch ));
 
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-	SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 0 );
+	//SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 0 );
 	//SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 16 );
 	SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8);
@@ -170,7 +176,8 @@ int main( int argc, char **argv )
 	    exit( 1 );
 	}
 
-	glewInit();
+	int r = glewInit();
+	GLASSERT( r == GL_NO_ERROR );
 
 	const unsigned char* vendor   = glGetString( GL_VENDOR );
 	const unsigned char* renderer = glGetString( GL_RENDERER );
@@ -427,7 +434,11 @@ int main( int argc, char **argv )
 		GameDoTick( game, SDL_GetTicks() );
 
 #ifdef FRAMEBUFFER_ROTATE
-		frameBuffer->UnBind();				
+		frameBuffer->UnBind();	
+
+		glClear( GL_COLOR_BUFFER_BIT );
+		glDisable( GL_DEPTH_TEST );
+		glDepthFunc( GL_ALWAYS );
 		XferTexture( frameBuffer->TextureID(), IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH );
 #endif
 		SDL_GL_SwapBuffers();
