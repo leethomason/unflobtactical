@@ -667,6 +667,10 @@ void Map::DeleteAt( int x, int y )
 			DeleteRow( item->x, item->y, item->rot, item->itemDefIndex );
 		}
 
+		if ( item->model )
+			tree->FreeModel( item->model );
+		itemPool.Free( item );
+
 		ResetPath();
 		ClearVisPathMap( mapBounds );
 		CalcVisPathMap( mapBounds );
