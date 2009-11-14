@@ -37,8 +37,6 @@ using namespace grinliz;
 Game::Game( const Screenport& sp ) :
 	engine( sp, engineData ),
 	screenport( sp ),
-	//nTexture( 0 ),
-	//nModelResource( 0 ),
 	markFrameTime( 0 ),
 	frameCountsSinceMark( 0 ),
 	framesPerSecond( 0 ),
@@ -81,7 +79,9 @@ Game::Game( const Screenport& sp ) :
 	showPathing = false;
 #else
 	// If we aren't the map maker, then we need to load a map.
-	//LoadMap( "farmland" );
+	// For now, always create a new one.
+	sqlite3* mapDB = Map::CreateMap( database );
+	engine.GetMap()->SyncToDB( mapDB, "farmland" );
 #endif
 
 	engine.GetMap()->SetSize( 40, 40 );

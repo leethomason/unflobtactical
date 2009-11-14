@@ -306,7 +306,7 @@ void ProcessModel( TiXmlElement* model )
 
 	string base, name, extension;
 	grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
-	string fullOut = outputPath + name + ".mod";
+	//string fullOut = outputPath + name + ".mod";
 
 	bool smoothShading = false;
 	if ( grinliz::StrEqual( model->Attribute( "shading" ), "smooth" ) ) {
@@ -330,15 +330,15 @@ void ProcessModel( TiXmlElement* model )
 
 	const VertexGroup* vertexGroup = builder->Groups();
 
-	SDL_RWops* fp = SDL_RWFromFile( fullOut.c_str(), "wb" );
-	if ( !fp ) {
-		printf( "**Could not open for writing: %s\n", fullOut.c_str() );
-		exit( 1 );
-	}
-	else {
-		//printf( "  Writing: '%s', '%s'", name.c_str(), fullOut.c_str() );
-		printf( "  '%s'", name.c_str() );
-	}
+	//SDL_RWops* fp = SDL_RWFromFile( fullOut.c_str(), "wb" );
+	//if ( !fp ) {
+	//	printf( "**Could not open for writing: %s\n", fullOut.c_str() );
+	//	exit( 1 );
+	//}
+	//else {
+	//	//printf( "  Writing: '%s', '%s'", name.c_str(), fullOut.c_str() );
+	//	printf( "  '%s'", name.c_str() );
+	//}
 	
 	for( int i=0; i<builder->NumGroups(); ++i ) {
 		nTotalIndex += vertexGroup[i].nIndex;
@@ -441,9 +441,9 @@ void ProcessModel( TiXmlElement* model )
 	delete [] vertexBuf;
 	delete [] indexBuf;
 	delete builder;
-	if ( fp ) {
-		SDL_FreeRW( fp );
-	}
+	//if ( fp ) {
+	//	SDL_FreeRW( fp );
+	//}
 }
 
 

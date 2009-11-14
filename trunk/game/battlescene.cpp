@@ -62,7 +62,12 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 
 #if defined( MAPMAKER )
 #else
-	// Do we have a saved state?
+	// 2 ways to start this:
+	// - creating a new map
+	// - linking up the current map (writeable)
+	// This should really always hook up to the current map, but for
+	// now do a copy over.
+
 	UFOStream* stream = game->OpenStream( "BattleScene", false );
 	if ( !stream ) {
 		InitUnits();
