@@ -50,19 +50,19 @@ string outputPath;
 string outputDB;
 vector<U16> pixelBuffer16;
 vector<U8> pixelBuffer8;
-vector<U8> compressionBuf;
-
 
 string inputPath;
 int totalModelMem = 0;
 int totalTextureMem = 0;
 int totalMapMem = 0;
-sqlite3* db = NULL;
+
+sqlite3* db = 0;
+BinaryDBWriter *writer = 0;
+
 
 
 void CreateDatabase()
 {
-	DBCreateBinaryTable( db );
 	int sqlResult = 0;
 
 	// Set up the database tables.
@@ -103,8 +103,7 @@ void CreateDatabase()
 void InsertTextureToDB( const char* name, const char* format, bool isImage, int width, int height, const void* pixels, int sizeInBytes )
 {
 	int index = 0;
-	compressionBuf.resize( sizeInBytes );
-	DBWriteBinary( db, pixels, sizeInBytes, &index, &compressionBuf[0], compressionBuf.size()*8/10 );
+	writer->Write( pixels, sizeInBytes, &index );
 
 	sqlite3_stmt* stmt = NULL;
 	sqlite3_prepare_v2( db, "INSERT INTO texture VALUES (?, ?, ?, ?, ?, ?);", -1, &stmt, 0 );
@@ -124,7 +123,7 @@ void InsertTextureToDB( const char* name, const char* format, bool isImage, int 
 void InsertModelHeaderToDB( const ModelHeader& header, int groupID, int vertexID, int indexID )
 {
 	int index = 0;
-	DBWriteBinary( db, &header, sizeof(header), &index, 0, 0 );
+	writer->Write( &header, sizeof(header), &index );
 
 	sqlite3_stmt* stmt = NULL;
 
@@ -274,8 +273,7 @@ void ProcessMap( TiXmlElement* map )
 	//fwrite( mem, len, 1, write );
 
 	int index = 0;
-	compressionBuf.resize( len );
-	DBWriteBinary( db, mem, len, &index, &compressionBuf[0], compressionBuf.size()*8/10 );
+	writer->Write( mem, len, &index );
 
 	sqlite3_stmt* stmt = NULL;
 	sqlite3_prepare_v2( db, "INSERT INTO map VALUES (?,?);", -1, &stmt, 0 );
@@ -433,10 +431,8 @@ void ProcessModel( TiXmlElement* model )
 
 	int vertexID = 0, indexID = 0;
 
-	compressionBuf.resize( grinliz::Max( nTotalVertex*sizeof(Vertex), nTotalIndex*sizeof(U16) ));
-
-	DBWriteBinary( db, vertexBuf, nTotalVertex*sizeof(Vertex), &vertexID, &compressionBuf[0], compressionBuf.size()*8/10 );
-	DBWriteBinary( db, indexBuf,  nTotalIndex*sizeof(U16),     &indexID,  &compressionBuf[0], compressionBuf.size()*8/10 );
+	writer->Write( vertexBuf, nTotalVertex*sizeof(Vertex), &vertexID );
+	writer->Write( indexBuf,  nTotalIndex*sizeof(U16),     &indexID );
 	InsertModelHeaderToDB( header, groupID, vertexID, indexID );
 
 	printf( "  total memory=%.1fk\n", (float)totalMemory / 1024.f );
@@ -606,6 +602,7 @@ int main( int argc, char* argv[] )
 
 	int sqlResult = sqlite3_open( outputDB.c_str(), &db);
 	GLASSERT( sqlResult == SQLITE_OK );
+	writer = new BinaryDBWriter( db, true );
 	CreateDatabase();
 
 	for( TiXmlElement* child = xmlDoc.FirstChildElement()->FirstChildElement();
@@ -635,6 +632,7 @@ int main( int argc, char* argv[] )
 	printf( "All done.\n" );
 	SDL_Quit();
 
+	delete writer;
 	sqlResult = sqlite3_close( db );
 	GLASSERT( sqlResult == SQLITE_OK );
 	return 0;

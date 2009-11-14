@@ -39,9 +39,9 @@ CharacterScene::CharacterScene( Game* _game )
 	unit->CalcMapPos( &mapPos, 0 );
 	storage = engine->GetMap()->RemoveStorage( mapPos.x, mapPos.y );
 	if ( !storage ) {
-		storage = new Storage( game->GetItemDefArray() );
+		storage = new Storage();
 	}
-	storageWidget = new StorageWidget( engine->GetScreenport(), storage );
+	storageWidget = new StorageWidget( engine->GetScreenport(), _game->GetItemDefArr(), storage );
 
 	{
 		int icons[] = { ICON_GREEN_BUTTON };

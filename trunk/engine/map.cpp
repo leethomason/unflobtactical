@@ -108,29 +108,6 @@ void Map::Clear()
 	memset( visMap, 0, SIZE*SIZE );
 	memset( pathMap, 0, SIZE*SIZE );
 	memset( quadTree, 0, sizeof(MapItem*)*QUAD_NODES );
-
-/*	memset( itemArr, 0, sizeof(MapItem)*MAX_ITEMS );
-
-	for( int j=0; j<SIZE; ++j ) {
-		for( int i=0; i<SIZE; ++i ) {
-			MapTile* tile = &tileArr[j*SIZE+i];
-			int count = tile->CountItems();
-			for( int k=0; k<count; ++k ) {
-				GLASSERT( tile->CountItems() > 0 );
-				DeleteAt( i, j );
-			}
-			GLASSERT( tile->CountItems() == 0 );
-
-			if ( tile->storage ) {
-				delete tile->storage;
-			}
-			if ( tile->debris ) {
-				tree->FreeModel( tile->debris );
-			}
-		}
-	}
-	memset( tileArr, 0, sizeof(MapTile)*SIZE*SIZE );
-*/
 }
 
 
@@ -281,56 +258,6 @@ const char* Map::GetItemDefName( int i )
 }
 
 
-/*
-int Map::MapTile::FindFreeItem() const
-{
-	for( int i=0; i<ITEM_PER_TILE; ++i ) {
-		if ( !item[i].InUse() )
-			return i;
-	}
-	return -1;
-}
-
-
-int Map::MapTile::CountItems( bool countReferences ) const
-{
-	int count = 0;
-	for( int i=0; i<ITEM_PER_TILE; ++i ) {
-		if ( item[i].InUse() && ( countReferences || !item[i].IsReference() ) )
-			++count;
-	}
-	return count;
-}
-
-
-void Map::ResolveReference( const MapItem* inItem, MapItem** outItem, MapTile** outTile, int *dx, int* dy ) const
-{
-
-	if ( !inItem->IsReference() ) {
-		*outItem = const_cast<MapItem*>( inItem );
-		*outTile = GetTileFromItem( inItem, 0, 0, 0 );
-		if ( dx && dy ) {
-			*dx = 0;
-			*dy = 0;
-		}
-	}
-	else {
-		int layer, parentX, parentY;
-		*outTile = GetTileFromItem( inItem->ref, &layer, &parentX, &parentY );
-		*outItem = &((*outTile)->item[ layer ]);
-
-		int childX, childY;
-		GetTileFromItem( inItem, 0, &childX, &childY );
-		if ( dx && dy ) {
-			*dx = childX - parentX;
-			*dy = childY - parentY;
-		}
-	}
-	GLASSERT( !dx || *dx >= 0 && *dx < MapItemDef::MAX_CX );
-	GLASSERT( !dy || *dy >= 0 && *dy < MapItemDef::MAX_CY );
-}
-*/
-
 void Map::IMat::Init( int w, int h, int r )
 {
 	x = 0;
@@ -372,57 +299,6 @@ void Map::IMat::Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out  )
 }
 
 
-/*
-Map::MapTile* Map::GetTileFromItem( const MapItem* item, int* _layer, int* x, int *y ) const
-{
-	int index = ((const U8*)item - (const U8*)tileArr) / sizeof( MapTile );
-	GLASSERT( index >= 0 && index < SIZE*SIZE );
-	int layer = item - tileArr[index].item;
-	GLASSERT( layer >= 0 && layer < ITEM_PER_TILE );
-
-	if ( _layer ) {
-		*_layer = layer;
-	}
-	if ( x && y ) {
-		*y = index / SIZE;
-		*x = index - (*y) * SIZE;
-		GLASSERT( *x >=0 && *x < SIZE );
-		GLASSERT( *y >=0 && *y < SIZE );
-	}
-	return const_cast< MapTile* >(tileArr + index);
-}
-*/
-
-/*
-bool Map::ModelToMap( const Model* model, MapTile** tile, MapItem** item )
-{
-	*tile = 0;
-	*item = 0;
-
-	if ( !model->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) 
-		return false;
-
-	int x = LRintf( model->X() );
-	int y = LRintf( model->Z() );
-	*tile = GetTile( x, y );
-	
-	if ( model == (*tile)->debris )
-		return true;
-
-	// 
-	for( int i=0; i<ITEM_PER_TILE; ++i ) {
-		if ( (*tile)->item[i].InUse() ) {
-			if ( (*tile)->item[i].IsReference() ) {
-				const MapItem* ref = (*tile)->item[i].ref;
-				if ( ref->model == model ) {
-					*tile = 
-			
-		}
-	}
-}
-*/
-
-
 void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 {
 	if ( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) 
@@ -454,7 +330,10 @@ void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 
 void Map::UnlinkItem( MapItem* item )
 {
-	int index = CalcBestNode( item->mapBounds );
+	Rectangle2I mapBounds;
+	item->MapBounds( &mapBounds );
+
+	int index = CalcBestNode( mapBounds );
 	GLASSERT( quadTree[index] ); // the item should be in the linked list somewhere.
 
 	MapItem* prev = 0;
@@ -476,6 +355,11 @@ Map::MapItem* Map::FindItems( const Rectangle2I& bounds )
 	// Walk the map and pull out items in bounds.
 	MapItem* root = 0;
 
+	GLASSERT( bounds.min.x >= 0 && bounds.max.x < 256 );	// using int8
+	GLASSERT( bounds.min.y >= 0 && bounds.max.y < 256 );	// using int8
+	Rectangle2<U8> bounds8;
+	bounds8.Set( bounds.min.x, bounds.min.y, bounds.max.x, bounds.max.y );
+
 	for( int depth=0; depth<QUAD_DEPTH; ++depth ) 
 	{
 		int shift = (LOG2_SIZE-depth);
@@ -490,7 +374,7 @@ Map::MapItem* Map::FindItems( const Rectangle2I& bounds )
 			for( int i=x0; i<=x1; ++i ) {
 				MapItem* pItem = *(quadTree + depthBase[depth] + (j*size) + i);
 				while( pItem ) { 
-					if ( pItem->mapBounds.Intersect( bounds ) ) {
+					if ( pItem->mapBounds8.Intersect( bounds8 ) ) {
 						pItem->next = root;
 						root = pItem;
 					}
@@ -541,18 +425,6 @@ int Map::CalcBestNode( const Rectangle2I& bounds )
 }
 
 
-/*
-void Map::GetMapBoundsOfModel( const Model* m, Rectangle2I* bounds )
-{
-	GLASSERT( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) );
-	
-	MapItem* mapItem = FindItem( m );
-	GLASSERT( mapItem );
-	*bounds = mapItem->mapBounds;
-}
-*/
-
-
 #ifdef MAPMAKER
 Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 {
@@ -571,7 +443,7 @@ Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 #endif
 
 
-bool Map::AddItem( int x, int y, int rotation, int defIndex, int hp )
+bool Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags, Storage* storage )
 {
 	GLASSERT( x >= 0 && x < width );
 	GLASSERT( y >= 0 && y < height );
@@ -626,13 +498,17 @@ bool Map::AddItem( int x, int y, int rotation, int defIndex, int hp )
 		item->model = model;
 	}
 
-	item->itemDefIndex = defIndex;
-	item->hp = hp;
 	item->x = x;
 	item->y = y;
 	item->rot = rotation;
-	item->mapBounds = mapBounds;
+	item->itemDefIndex = defIndex;
+	item->hp = hp;
+	item->flags = flags;
+	GLASSERT( mapBounds.min.x >= 0 && mapBounds.max.x < 256 );	// using int8
+	GLASSERT( mapBounds.min.y >= 0 && mapBounds.max.y < 256 );	// using int8
+	item->mapBounds8.Set( mapBounds.min.x, mapBounds.min.y, mapBounds.max.x, mapBounds.max.y );
 	item->next = 0;
+	item->storage = storage;
 	
 	int index = CalcBestNode( mapBounds );
 	item->nextQuad = quadTree[index];
@@ -661,7 +537,8 @@ void Map::DeleteAt( int x, int y )
 	
 	if ( item ) {
 		UnlinkItem( item );
-		Rectangle2I mapBounds = item->mapBounds;
+		Rectangle2I mapBounds;
+		item->MapBounds( &mapBounds );
 
 		if ( mapDB ) {
 			DeleteRow( item->x, item->y, item->rot, item->itemDefIndex );
@@ -669,6 +546,9 @@ void Map::DeleteAt( int x, int y )
 
 		if ( item->model )
 			tree->FreeModel( item->model );
+		if ( item->storage )
+			delete item->storage;
+
 		itemPool.Free( item );
 
 		ResetPath();
@@ -770,7 +650,7 @@ void Map::InsertRow( int x, int y, int r, int def, int hp, int flags, const Stor
 	const int BUFSIZE=200;
 	char buf[BUFSIZE];
 	_snprintf_s( buf, BUFSIZE, BUFSIZE, 
-				"INSERT INTO %s VALUES (?,?,?,?,?);",
+				"INSERT INTO %s VALUES (?,?,?,?,?,?,?);",
 				dbTableName.c_str() );
 	GLASSERT( strlen( buf ) < BUFSIZE-1 );
 
@@ -782,7 +662,15 @@ void Map::InsertRow( int x, int y, int r, int def, int hp, int flags, const Stor
 	sqlite3_bind_int( stmt, 3, r );
 	sqlite3_bind_int( stmt, 4, def );		
 	sqlite3_bind_int( stmt, 5, hp );		
+	sqlite3_bind_int( stmt, 6, flags );
 
+	if ( storage ) {
+		int nBytes = sizeof(int)*EL_MAX_ITEM_DEFS;
+		sqlite3_bind_blob( stmt, 7, storage->Rounds(), sizeof(int)*EL_MAX_ITEM_DEFS, 0 );
+	}
+	else {
+		sqlite3_bind_blob( stmt, 7, 0, 0, 0 );
+	}
 	sqlite3_step(stmt);
 	result = sqlite3_finalize(stmt);
 	GLASSERT( result == SQLITE_OK );
@@ -807,7 +695,7 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 		char buf[BUFSIZE];
 		_snprintf_s( buf, BUFSIZE, BUFSIZE, 
 					 "CREATE TABLE IF NOT EXISTS %s "
-					 "(x INT, y INT, r INT, defIndex INT, hp INT );",	//, onFire INT, store TEXT );",
+					 "(x INT, y INT, r INT, defIndex INT, hp INT, flags INT, storage TEXT );",
 					 tableName );
 		GLASSERT( strlen( buf ) < BUFSIZE-1 );
 
@@ -834,8 +722,16 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 			int r	= sqlite3_column_int( stmt, 2 );
 			int def = sqlite3_column_int( stmt, 3 );
 			int hp	= sqlite3_column_int( stmt, 4 );
+			int flags = sqlite3_column_int( stmt, 5 );
 
-			AddItem( x, y, r, def, hp );
+			int nBytes = sqlite3_column_bytes( stmt, 6 );
+			Storage* storage = 0;
+			if ( nBytes ) {
+				storage = new Storage();
+				GLASSERT( nBytes == EL_MAX_ITEM_DEFS*sizeof(int) );
+				storage->Init( (const int*) sqlite3_column_blob( stmt, 6 ) );
+			}
+			AddItem( x, y, r, def, hp, 0, storage );
 		}
 		sqlite3_finalize(stmt);
 		mapDB = db;

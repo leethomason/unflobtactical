@@ -203,17 +203,6 @@ void Item::Load( UFOStream* s, Engine* engine, Game* game )
 }
 
 
-
-Storage::Storage( const CDynArray<ItemDef*>& _itemDefs ) 
-	: itemDefs( _itemDefs ),
-	  rounds( _itemDefs.Size() )
-{
-	for( unsigned i=0; i<itemDefs.Size(); ++i ) {
-		rounds.Push( 0 );
-	}
-}
-
-
 Storage::~Storage()
 {
 }
@@ -239,7 +228,7 @@ void Storage::RemoveItem( const ItemDef* _itemDef, Item* _item )
 		_item->Clear();
 	}
 	else {
-		Item item( itemDefs[index], r );
+		Item item( _itemDef, r );
 		rounds[index] -= r;
 		*_item = item;
 	}
@@ -262,14 +251,15 @@ int Storage::GetCount( const ItemDef* itemDef) const
 
 
 // Return the "best" item for on-screen rendering.
-const ItemDef* Storage::SomeItem() const
+/*const ItemDef* Storage::SomeItem() const
 {
 	int bestScore = -1;
 	const ItemDef* best = 0;
 
-	for( unsigned i=0; i<itemDefs.Size(); ++i ) {
+	for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
 		if ( rounds[i] > 0 ) {
 			int score = rounds[i];
+			
 			if ( itemDefs[i]->IsWeapon() )
 				score *= 20;
 
@@ -281,16 +271,16 @@ const ItemDef* Storage::SomeItem() const
 	}
 	return best;
 }
+*/
 
-
+/*
 void Storage::Save( UFOStream* s ) const
 {
 	s->WriteU32Arary( itemDefs.Size(), (const U32*) rounds.Mem() );
 }
 
-
 void Storage::Load( UFOStream* s )
 {
 	s->ReadU32Arary( itemDefs.Size(), (U32*) rounds.Mem() );
 }
-
+*/

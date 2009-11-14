@@ -110,7 +110,7 @@ Game::~Game()
 		rootStream = rootStream->next;
 		delete temp;
 	}
-	for( unsigned i=0; i<itemDefArr.Size(); ++i ) {
+	for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
 		delete itemDefArr[i];
 	}
 	sqlite3_close(database);

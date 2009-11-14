@@ -29,9 +29,10 @@ void ModelHeader::Load( sqlite3* db, const char* n, int *groupStart, int *vertex
 
 		// Read the binary data for this object before filling out local fields.
 		int size=0;
-		DBReadBinarySize( db, binaryID, &size );
+		BinaryDBReader reader( db );
+		reader.ReadSize( binaryID, &size );
 		GLASSERT( size == sizeof( ModelHeader ) );
-		DBReadBinaryData( db, binaryID, size, this );
+		reader.ReadData( binaryID, size, this );
 
 		*groupStart =	sqlite3_column_int( stmt, 2 );
 		nGroups =		sqlite3_column_int( stmt, 3 );

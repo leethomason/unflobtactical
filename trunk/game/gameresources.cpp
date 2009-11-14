@@ -23,6 +23,7 @@ void Game::LoadTextures()
 	// Run through the database, and load all the textures.
 	sqlite3_stmt* stmt = 0;
 	sqlite3_prepare_v2(database, "SELECT * FROM texture WHERE image=0;", -1, &stmt, 0 );
+	BinaryDBReader reader( database );
 
 	while (sqlite3_step(stmt) == SQLITE_ROW) 
 	{
@@ -36,9 +37,9 @@ void Game::LoadTextures()
 		surface.Set( Surface::QueryFormat( format ), w, h );
 		
 		int blobSize = 0;
-		DBReadBinarySize( database, id, &blobSize );
+		reader.ReadSize( id, &blobSize );
 		GLASSERT( surface.BytesInImage() == blobSize );
-		DBReadBinaryData( database, id, blobSize, surface.Pixels() );
+		reader.ReadData( id, blobSize, surface.Pixels() );
 
 		textureID = surface.CreateTexture();
 		texman->AddTexture( name, textureID, surface.Alpha() );
@@ -95,6 +96,7 @@ void Game::LoadLightMaps()
 	char name[64];
 	char format[16];
 	nLightMaps = 0;
+	BinaryDBReader reader( database );
 
 	// Run through the database, and load all the images.
 	sqlite3_stmt* stmt = 0;
@@ -114,9 +116,9 @@ void Game::LoadLightMaps()
 		lightMaps[nLightMaps].Set( Surface::QueryFormat( format ), w, h );
 		
 		int blobSize = 0;
-		DBReadBinarySize( database, id, &blobSize );
+		reader.ReadSize( id, &blobSize );
 		GLASSERT( lightMaps[nLightMaps].BytesInImage() == blobSize );
-		DBReadBinaryData( database, id, blobSize, lightMaps[nLightMaps].Pixels() );
+		reader.ReadData( id, blobSize, lightMaps[nLightMaps].Pixels() );
 		lightMaps[nLightMaps].SetName( name );
 
 		GLOUTPUT(( "LightMap %s\n", lightMaps[nLightMaps].Name() ));
@@ -343,6 +345,9 @@ void Game::LoadItemResources()
 	const int POW_MED = 20;
 	const int POW_HI  = 50;
 
+	memset( itemDefArr, 0, sizeof( ItemDef* )*EL_MAX_ITEM_DEFS );
+	int nItemDef = 1;	// keep the first entry null
+
 	struct WeaponInit {
 		const char* name;
 		const char* resName;
@@ -421,7 +426,7 @@ void Game::LoadItemResources()
 						weapons[i].desc, 
 						weapons[i].deco,
 						ModelResourceManager::Instance()->GetModelResource( weapons[i].resName ),
-						itemDefArr.Size() );
+						nItemDef );
 
 		item->weapon[0].shell		= weapons[i].shell0;
 		item->weapon[0].clipType	= weapons[i].clip0;
@@ -439,7 +444,7 @@ void Game::LoadItemResources()
 		item->weapon[1].accuracy	= weapons[i].acc1;
 		item->weapon[1].power		= weapons[i].power1;
 
-		itemDefArr.Push( item );
+		itemDefArr[nItemDef++] = item;
 	}
 
 	struct ItemInit {
@@ -473,8 +478,8 @@ void Game::LoadItemResources()
 						items[i].desc,
 						items[i].deco,
 						items[i].resName ? ModelResourceManager::Instance()->GetModelResource( items[i].resName ) : 0,
-						itemDefArr.Size() );
-		itemDefArr.Push( item );
+						nItemDef );
+		itemDefArr[nItemDef++] = item;
 	}
 
 	struct ClipInit {
@@ -504,20 +509,21 @@ void Game::LoadItemResources()
 						clips[i].desc,
 						clips[i].deco,
 						0,
-						itemDefArr.Size() );
+						nItemDef );
 
 		item->shell = clips[i].shell;
 		item->rounds = clips[i].rounds;
 
-		itemDefArr.Push( item );
+		itemDefArr[nItemDef++] = item;
 	}
+	GLASSERT( nItemDef < EL_MAX_ITEM_DEFS );
 }
 
 
 const ItemDef* Game::GetItemDef( const char* name )
 {
-	for( unsigned i=0; i<itemDefArr.Size(); ++i ) {
-		if ( strcmp( itemDefArr[i]->name, name ) == 0 ) {
+	for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+		if ( itemDefArr[i] && strcmp( itemDefArr[i]->name, name ) == 0 ) {
 			return itemDefArr[i];
 		}
 	}

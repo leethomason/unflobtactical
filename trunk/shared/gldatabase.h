@@ -28,15 +28,35 @@ distribution.
 #define SHARED_DATABASE_INCLUDED
 
 #include "../sqlite3/sqlite3.h"
+#include <vector>
 
-int DBCreateBinaryTable( sqlite3* db );
-int DBWriteBinary( sqlite3* db, const void* data, int sizeInBytes, int* index,
-				   void* compressionBuf, int compressionBufSize);
+class BinaryDBWriter
+{
+public:
+	BinaryDBWriter( sqlite3* db, bool compressWrites );
+	~BinaryDBWriter()	{}
+
+	int Write( const void* data, int sizeInBytes, int* index );
+
+private:
+	sqlite3* db;
+	std::vector<unsigned char> buffer;
+	int idPool;
+};
 
 
-int DBReadBinarySize( sqlite3* db, int index, int *sizeInBytes );
-int DBReadBinaryData( sqlite3* db, int index, int sizeInBytes, void* data );
+class BinaryDBReader
+{
+public:
+	BinaryDBReader( sqlite3* db );
+	~BinaryDBReader()	{}
 
-void DBEnableCompression( bool enable );
+	int ReadSize( int index, int *sizeInBytes );
+	int ReadData( int index, int sizeInBytes, void* data );
+
+private:
+	sqlite3* db;
+};
+
 
 #endif // SHARED_DATABASE_INCLUDED

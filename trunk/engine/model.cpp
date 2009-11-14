@@ -87,8 +87,10 @@ void ModelLoader::Load( sqlite3* db, const char* name, ModelResource* res )
 
 	res->allVertex = new Vertex[ res->header.nTotalVertices ];
 	res->allIndex  = new U16[ res->header.nTotalIndices ];
-	DBReadBinaryData( db, vertexID, res->header.nTotalVertices*sizeof(Vertex), res->allVertex );
-	DBReadBinaryData( db, indexID,  res->header.nTotalIndices*sizeof(U16),     res->allIndex );
+
+	BinaryDBReader reader( db );
+	reader.ReadData( vertexID, res->header.nTotalVertices*sizeof(Vertex), res->allVertex );
+	reader.ReadData( indexID,  res->header.nTotalIndices*sizeof(U16),     res->allIndex );
 
 	// compute the hit testing AABB
 	float ave = grinliz::Max( res->header.bounds.SizeX(), res->header.bounds.SizeZ() )*0.5f;

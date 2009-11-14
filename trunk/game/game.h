@@ -59,8 +59,7 @@ public:
 	
 	Surface*		GetLightMap( const char* name );
 	const ItemDef*  GetItemDef( const char* name );
-
-	const CDynArray<ItemDef*>& GetItemDefArray() { return itemDefArr; }
+	ItemDef**		GetItemDefArr()	{ return itemDefArr; }
 
 	Engine engine;
 	Surface surface;
@@ -163,7 +162,7 @@ private:
 #endif
 	grinliz::ProfileData profile;
 
-	CDynArray<ItemDef*>	itemDefArr;
+	ItemDef*			itemDefArr[EL_MAX_ITEM_DEFS];
 	int					nLightMaps;
 	Surface				lightMaps[MAX_NUM_LIGHT_MAPS];
 };
