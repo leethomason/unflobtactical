@@ -173,6 +173,7 @@ public:
 
 	void ResetPath();	// normally called automatically
 
+	static sqlite3* CreateMap( sqlite3* resourceDB );
 	void SyncToDB( sqlite3* db, const char* table );
 	void Clear();
 

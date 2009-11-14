@@ -24,6 +24,7 @@
 #include "../game/unit.h"			// bad call to less general directory. FIXME. Move map to game?
 #include "../game/game.h"			// bad call to less general directory. FIXME. Move map to game?
 #include "../sqlite3/sqlite3.h"
+#include "../shared/gldatabase.h"
 
 using namespace grinliz;
 using namespace micropather;
@@ -740,6 +741,40 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 		mapDB = 0;
 	}
 }
+
+
+/*static*/ sqlite3* Map::CreateMap( sqlite3* res )
+{
+	sqlite3_stmt* stmt = 0;
+	int result = sqlite3_prepare_v2( res, "SELECT * FROM map",-1, &stmt, 0 );
+	GLASSERT( result == SQLITE_OK );
+
+	int id=0;
+
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		id	= sqlite3_column_int( stmt, 1 );
+	}
+	sqlite3_finalize(stmt);
+
+	GLASSERT( id );
+	int size=0;
+
+	BinaryDBReader reader( res );
+	reader.ReadSize( id, &size );
+
+	char* mem = new char[size];
+	reader.ReadData( id, size, mem );
+	FILE* fp = fopen( "currentMap.db", "wb" );
+	fwrite( mem, size, 1, fp );
+	fclose( fp );
+	delete [] mem;
+
+	sqlite3* db = 0;
+	sqlite3_open( "currentMap.db", &db );
+	return db;
+}
+
+
 
 
 void Map::SetStorage( int x, int y, Storage* storage )
