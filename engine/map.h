@@ -45,7 +45,6 @@ public:
 		LOG2_SIZE = 6,
 
 		MAX_ITEM_DEF = 256,
-		//ITEM_PER_TILE = 4,
 		MAX_TRAVEL = 16,
 	};
 
@@ -81,21 +80,29 @@ public:
 		U8		visibility[MAX_CX][MAX_CY];
 
 		// return true if the object can take damage
-		bool CanDamage() const { return hp > 0; }
+		bool CanDamage() const { return hp != 0xffff; }
 	};
 
 	struct MapItem
 	{
+		U8		x, y, rot;
 		U8		itemDefIndex;	// 0: not in use, >0 is the index
 		U16		hp;
+		U16		flags;
 
-		Model*	model;
-
-		int x, y, rot;
-		grinliz::Rectangle2I mapBounds;
+		grinliz::Rectangle2<U8> mapBounds8;
+		
+		Model*	 model;
+		Storage* storage;
 		
 		MapItem* next;			// the 'next' after a query
 		MapItem* nextQuad;		// next pointer in the quadTree
+
+
+		void MapBounds( grinliz::Rectangle2I* r ) const 
+		{
+			r->Set( mapBounds8.min.x, mapBounds8.min.x, mapBounds8.max.x, mapBounds8.max.y );
+		}
 
 		bool InUse() const			{ return itemDefIndex > 0; }
 
@@ -160,7 +167,8 @@ public:
 	// hp = -1 default
 	//       0 destroyed
 	//		1+ hp remaining
-	bool AddItem( int x, int z, int rotation, int itemDefIndex, int hp );
+	// Storage is owned by the map after this call.
+	bool AddItem( int x, int z, int rotation, int itemDefIndex, int hp, int flags, Storage* storage );
 	void DeleteAt( int x, int z );
 
 	void ResetPath();	// normally called automatically
@@ -257,7 +265,6 @@ private:
 
 	grinliz::BitArray<SIZE, SIZE, 1>	pathBlock;	// spaces the pather can't use (units are there)	
 
-	//MapTile								tileArr[ SIZE*SIZE ];
 	std::vector<void*>					mapPath;
 	std::vector< micropather::StateCost > stateCostArr;
 	grinliz::BitArray< SIZE, SIZE, 3 >	walkingMap;

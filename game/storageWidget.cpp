@@ -1,12 +1,11 @@
 #include "storageWidget.h"
 
 StorageWidget::StorageWidget(	const Screenport& port, 
+								ItemDef** _itemDefArr,
 								const Storage* _storage )
-	: storage( _storage )
+	: storage( _storage ),
+	  itemDefArr( _itemDefArr )
 {
-	//this->buttonTexture = texture;
-	//this->decoTexture = decoTexture;
-//	index = -1;
 	valid = false;
 
 	selectWidget = new UIButtonBox( port );
@@ -109,14 +108,14 @@ void StorageWidget::SetButtons()
 		// Then the storage.
 		int slot = 0;
 
-		const CDynArray<ItemDef*>& itemArr = storage->GetItemDefArray();
+		for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+			if ( !itemDefArr[i] )
+				continue;
 
-		for( unsigned i=0; i<itemArr.Size(); ++i ) {
-			//bool add = false;
 			int group = 3;
 
-			const WeaponItemDef* wid = itemArr[i]->IsWeapon();
-			const ClipItemDef* cid = itemArr[i]->IsClip();
+			const WeaponItemDef* wid = itemDefArr[i]->IsWeapon();
+			const ClipItemDef* cid = itemDefArr[i]->IsClip();
 
 			// Terran non-melee weapons and clips.
 			if ( wid && wid->weapon[0].power == 0 && wid->weapon[0].range > 1 )
@@ -133,25 +132,25 @@ void StorageWidget::SetButtons()
 			// armor, melee
 			if ( wid && wid->weapon[0].range == 1 )
 				group=2;
-			if ( itemArr[i]->IsArmor() )
+			if ( itemDefArr[i]->IsArmor() )
 				group=2;
 
-			itemsPerGroup[group] += storage->GetCount( itemArr[i] );
+			itemsPerGroup[group] += storage->GetCount( itemDefArr[i] );
 
 			if ( group==groupSelected ) {
 				GLASSERT( slot < 12 );
 				if ( slot < 12 ) {
-					itemDefMap[slot] = itemArr[i];
-					boxWidget->SetDeco( slot, itemArr[i]->deco );
+					itemDefMap[slot] = itemDefArr[i];
+					boxWidget->SetDeco( slot, itemDefArr[i]->deco );
 
 					char buffer[16];
-					if ( storage->GetCount( itemArr[i] ) ) {
-						sprintf( buffer, "(%d)", storage->GetCount( itemArr[i] ) );
-						boxWidget->SetText( slot, itemArr[i]->name, buffer );
+					if ( storage->GetCount( itemDefArr[i] ) ) {
+						sprintf( buffer, "(%d)", storage->GetCount( itemDefArr[i] ) );
+						boxWidget->SetText( slot, itemDefArr[i]->name, buffer );
 						boxWidget->SetEnabled( slot, true );
 					}
 					else {
-						boxWidget->SetText( slot, itemArr[i]->name, " " );
+						boxWidget->SetText( slot, itemDefArr[i]->name, " " );
 						boxWidget->SetEnabled( slot, false );
 					}
 				}

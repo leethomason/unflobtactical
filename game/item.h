@@ -4,6 +4,7 @@
 #include <string.h>
 #include "../grinliz/glvector.h"
 #include "../engine/ufoutil.h"
+#include "../engine/enginelimits.h"
 
 class ModelResource;
 class UFOStream;
@@ -51,14 +52,6 @@ public:
 	// optimization trickiness:
 	int index;
 };
-
-/*
-struct ItemDefInfo 
-{
-	int tech;		// tech=0 undiscovered, >0 known
-	int count;		// # of items
-};
-*/
 
 
 class WeaponItemDef : public ItemDef
@@ -173,31 +166,31 @@ private:
 class Storage
 {
 public:
-	Storage( const CDynArray<ItemDef*>& itemDefs );
+	Storage()									{ memset( rounds, 0, sizeof(int)*EL_MAX_ITEM_DEFS ); }
 	~Storage();
+
+	void Init( const int* roundArr )			{ memcpy( rounds, roundArr, sizeof(int)*EL_MAX_ITEM_DEFS ); }
+	const int* Rounds() const					{ return rounds; }
 
 	void AddItem( const Item& item );
 	void RemoveItem( const ItemDef*, Item* item );
 	
-	const ItemDef* SomeItem() const;
+	//const ItemDef* SomeItem() const;
 
 	void SetCount( const ItemDef*, int count );
 	int GetCount( const ItemDef* ) const;
 
-	const CDynArray<ItemDef*>& GetItemDefArray() const { return itemDefs; }
-                                                                         
-	void Save( UFOStream* s ) const;
-	void Load( UFOStream* s );
+	//void Save( UFOStream* s ) const;
+	//void Load( UFOStream* s );
 
 private:
 	int GetIndex( const ItemDef* itemDef ) const {
 		int index = itemDef->index;
-		GLASSERT( index >=0 && index < (int)itemDefs.Size() );
+		GLASSERT( index >=0 && index < EL_MAX_ITEM_DEFS );
 		return index;
 	}
 
-	const CDynArray<ItemDef*>& itemDefs;
-	CDynArray<int> rounds;
+	int rounds[EL_MAX_ITEM_DEFS];
 };
 
 

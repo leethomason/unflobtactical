@@ -21,7 +21,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 
 #ifdef MAPMAKER
 	currentMapItem = 1;
-	sqlite3_open( "map.db", &mapDatabase );
+	sqlite3_open( "./resin/map.db", &mapDatabase );
 	engine->GetMap()->SyncToDB( mapDatabase, "farmland" );
 #endif
 
@@ -695,7 +695,7 @@ void BattleScene::Tap(	int tap,
 		const Vector3F& pos = mapSelection->Pos();
 		int rotation = (int) (mapSelection->GetYRotation() / 90.0f );
 
-		engine->GetMap()->AddItem( (int)pos.x, (int)pos.z, rotation, currentMapItem, -1 );
+		engine->GetMap()->AddItem( (int)pos.x, (int)pos.z, rotation, currentMapItem, -1, 0, 0 );
 		iconSelected = 0;	// don't keep processing
 	}
 #endif	

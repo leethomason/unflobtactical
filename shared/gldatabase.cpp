@@ -11,31 +11,36 @@
 		return sqlResult;
 
 
-int DBCreateBinaryTable( sqlite3* db )
+BinaryDBWriter::BinaryDBWriter( sqlite3* db, bool compressWrites )
 {
 	int sqlResult = sqlite3_exec( db, 
-								  "CREATE TABLE binary "
+								  "CREATE TABLE IF NOT EXISTS binary "
 								  "(id INT NOT NULL PRIMARY KEY, size INT, compressed INT, data BLOB);",
 								  0, 0, 0 );
 
-	CHECK_AND_RETURN;
-	return sqlResult;
+	GLASSERT( sqlResult == SQLITE_OK );
+	if ( compressWrites ) {
+		buffer.resize( 200 );
+	}
+
+	idPool = 1;
+	this->db = db;
 }
 
 
-int DBWriteBinary( sqlite3* db, const void* data, int sizeInBytes, int* index, 
-				   void* compressionBuf, int compressionBufSize )
+int BinaryDBWriter::Write( const void* data, int sizeInBytes, int* index )
 {
-	static int idPool=1;
 	int compressed = 0;
-	uLongf compressedSize = compressionBufSize;
+	uLongf compressedSize = 0;
 
-	if ( compressionBuf ) {
-		int result = compress( (Bytef*)compressionBuf, &compressedSize, (const Bytef*)data, sizeInBytes );
+	if ( sizeInBytes > 256 && !buffer.empty() ) {
+		buffer.resize( (sizeInBytes*8) / 10 );
+		compressedSize = buffer.size();
+
+		int result = compress( (Bytef*)&buffer[0], &compressedSize, (const Bytef*)data, sizeInBytes );
 		if ( result == Z_OK )
 			compressed = 1;
 	}
-
 
 	sqlite3_stmt* stmt = 0;
 
@@ -49,9 +54,9 @@ int DBWriteBinary( sqlite3* db, const void* data, int sizeInBytes, int* index,
 	CHECK_AND_RETURN;
 
 	if ( compressed )
-		sqlResult =			sqlite3_bind_blob( stmt, 4, compressionBuf, compressedSize, SQLITE_TRANSIENT );
+		sqlResult =			sqlite3_bind_blob( stmt, 4, &buffer[0], compressedSize, 0 );
 	else
-		sqlResult =			sqlite3_bind_blob( stmt, 4, data, sizeInBytes, SQLITE_TRANSIENT );
+		sqlResult =			sqlite3_bind_blob( stmt, 4, data, sizeInBytes, 0 );
 
 	CHECK_AND_RETURN;
 
@@ -65,7 +70,13 @@ int DBWriteBinary( sqlite3* db, const void* data, int sizeInBytes, int* index,
 }
 
 
-int DBReadBinarySize( sqlite3* db, int index, int *sizeInBytes )
+BinaryDBReader::BinaryDBReader( sqlite3* db )
+{
+	this->db = db;
+}
+
+
+int BinaryDBReader::ReadSize( int index, int *sizeInBytes )
 {
 	sqlite3_stmt* stmt = 0;
 	int sqlResult =		sqlite3_prepare_v2(db, "select * from binary where id=?;", -1, &stmt, 0 );
@@ -90,7 +101,7 @@ int DBReadBinarySize( sqlite3* db, int index, int *sizeInBytes )
 }
 
 
-int DBReadBinaryData( sqlite3* db, int index, int sizeInBytes, void* data )
+int BinaryDBReader::ReadData( int index, int sizeInBytes, void* data )
 {
   	sqlite3_stmt* stmt = 0;
 	int sqlResult =		sqlite3_prepare_v2(db, "select * from binary where id=?;", -1, &stmt, 0 );
