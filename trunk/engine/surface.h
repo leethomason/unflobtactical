@@ -25,6 +25,37 @@
 class Surface
 {
 public:
+	struct RGBA {
+		U8 r, g, b, a;
+	};
+	static void CalcRGB16( U16 color, RGBA* rgb ) {
+		U32 r = (color>>11)& 0x1f;   //5
+		U32 g = (color>>5) & 0x3f;   //6	
+		U32 b = (color)    & 0x1f;   //5
+
+		// 0-15 is the range.
+		// 0  -> 0
+		// 15 -> 255
+		rgb->r = (r<<5)|r;
+		rgb->g = (g<<6)|g;
+		rgb->b = (b<<5)|b;
+		rgb->a = 255;
+	}
+	static void CalcRGBA16( U16 color, RGBA* rgb ) {
+		U32 r = (color>>12);
+		U32 g = (color>>8)&0x0f;
+		U32 b = (color>>4)&0x0f;
+		U32 a = color&0xff;
+
+		// 0-15 is the range.
+		// 0  -> 0
+		// 15 -> 255
+		rgb->r = (r<<4)|r;
+		rgb->g = (g<<4)|g;
+		rgb->b = (b<<4)|b;
+		rgb->a = (a<<4)|a;
+	}
+
 	Surface();
 	~Surface();
 
@@ -41,6 +72,7 @@ public:
 	int			BytesPerPixel() const	{ return (format==ALPHA) ? 1 : 2; }
 	int			BytesInImage() const	{ GLASSERT( w*h*BytesPerPixel() <= allocated ); return w*h*BytesPerPixel(); }
 	bool		Alpha() const			{ return (format!=RGB16) ? true : false; }
+	int			Format() const			{ return format; }
 
 	// Set the format and allocate memory.
 	void Set( int format, int w, int h );

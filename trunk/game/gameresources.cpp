@@ -139,6 +139,7 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 		itemDef->cx = init->cx;
 		itemDef->cy = init->cy;
 		itemDef->hp = init->hp;
+		itemDef->transparency = 255;
 		itemDef->materialFlags = init->materialFlags;
 
 		ModelResourceManager* modman = ModelResourceManager::Instance();
@@ -228,6 +229,12 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 				else if ( *p == ' ' ) {
 					// nothing.
 				}
+				else if ( *p == 'T' ) {
+					// Transparency.
+					++p;
+					GLASSERT( *p && *p >= '0' && *p <= '9' );
+					itemDef->transparency = (*p-'0') * 255 / 10;
+				}				
 				else {
 					GLASSERT( 0 );
 				}
@@ -279,7 +286,7 @@ void Game::LoadMapResources()
 		{	"farmBed",		0,				0,			1,	1,	HP_MED,	GENERIC,		"f"	 "0"	},
 		{	"farmTable",	0,				0,			1,	1,	HP_MED,	WOOD,			"f", "0" 	},
 		{	"farmTable2x1",	0,				0,			2,	1,	HP_MED,	WOOD,			"ff","00"	},
-		{	"farmWheat",	0,				0,			1,	1,	HP_LOW,	GENERIC_FASTBURN,"0"		},
+		{	"farmWheat",	0,				0,			1,	1,	HP_LOW,	GENERIC_FASTBURN,"0", "0 T8" },
 		{	0	}
 	};
 	InitMapItemDef( FARM_SET, farmSet );
@@ -296,7 +303,7 @@ void Game::LoadMapResources()
 	const MapItemInit forestSet[] = 
 	{
 			// model		open			destroyed	cx, cz	hp		 material		pather
-		{	"tree",			0,				0,			1,	1,	HP_HIGH, WOOD,			"f", "0" },
+		{	"tree",			0,				0,			1,	1,	HP_HIGH, WOOD,			"f", "0 T5" },
 		{	0	}
 	};
 	InitMapItemDef( FOREST_SET, forestSet );

@@ -69,7 +69,9 @@ public:
 
 		U16		cx, cy;
 		U16		hp;					// 0xffff infinite, 0 destroyed
-		U32		materialFlags;
+		U8		transparency;		// 0 opaque - 255 transparent
+		U8		_pad;
+		U16		materialFlags;
 
 		const ModelResource* modelResource;
 		const ModelResource* modelResourceOpen;
@@ -137,10 +139,17 @@ public:
 
 	// The light map is a 64x64 texture of the lighting at each point. Without
 	// a light map, full white (daytime) is used. GenerateLightMap creates the
-	// resulting map by combining light with FogOfWar.
+	// resulting map by combining light with FogOfWar and lights in the world.
+	// GenerateLightMap also creates the translucency map, which is used to 
+	// compute the visibility rays.
 	void SetLightMap( const Surface* surface );
-	void GenerateLightMap( const grinliz::BitArray<SIZE, SIZE, 1>& fogOfWar );
-	
+
+	const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>&	GetFogOfWar()		{ return fogOfWar; }
+	grinliz::BitArray<Map::SIZE, Map::SIZE, 1>*			LockFogOfWar();
+	void												ReleaseFogOfWar();
+
+	const Surface* GetLightMap()	{ GenerateLightMap(); return &finalMap; }
+
 	// Rendering.
 	void BindTextureUnits();
 	void UnBindTextureUnits();
@@ -271,8 +280,6 @@ private:
 	void StateToVec( const void* state, grinliz::Vector2<S16>* vec ) { *vec = *((grinliz::Vector2<S16>*)&state); }
 	void* VecToState( const grinliz::Vector2<S16>& vec )			 { return (void*)(*(int*)&vec); }
 
-	// Searches through the QuadTree
-
 	void CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef, 
 						grinliz::Rectangle2I* mapBounds,
 						grinliz::Vector2F* origin );
@@ -295,9 +302,13 @@ private:
 	Vertex vertex[4];
 	grinliz::Vector2F texture1[4];
 
-	Texture finalMapTex;
-	Surface finalMap;
-	Surface lightMap;
+	void GenerateLightMap();
+	Texture finalMapTex;	
+	Surface finalMap;		// final light map, RGB16
+	Surface baseMap;		// base map, RGB16
+	grinliz::Rectangle2I invalidLightMap;	// [x,x0)
+	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWar;
+
 	U32 pathQueryID;
 	U32 visibilityQueryID;
 
