@@ -173,8 +173,6 @@ public:
 
 	// The bounding box
 	const grinliz::Rectangle3F& AABB() const;
-	// The bounding box, approximated to integers
-	const grinliz::Rectangle3I& AABBInt() const;
 
 	void CalcTrigger( grinliz::Vector3F* trigger ) const;
 	void CalcTarget( grinliz::Vector3F* target ) const;
@@ -189,7 +187,10 @@ public:
 
 	Model* next;			// used by the SpaceTree query
 	Model* next0;			// used by the Engine sub-sorting
-	void*  stats;			// user data
+	
+	// Set by the engine. Any xform change will set this
+	// to (-1,-1)-(-1,-1) to then be set by the engine.
+	grinliz::Rectangle2I mapBoundsCache;
 
 private:
 	struct TexMat {
@@ -197,7 +198,7 @@ private:
 		void Identity() { a=1.0f; d=1.0f; x=0.0f; y=0.0f; }
 	};
 
-	void Modify() { xformValid = false; invValid = false; }
+	void Modify() { xformValid = false; invValid = false; mapBoundsCache.Set( -1, -1, -1, -1 ); }
 	const grinliz::Matrix4& XForm() const;
 	const grinliz::Matrix4& InvXForm() const;
 
@@ -214,8 +215,6 @@ private:
 	mutable bool invValid;
 
 	mutable grinliz::Rectangle3F aabb;
-	mutable grinliz::Rectangle3I aabbInt;
-
 	mutable grinliz::Matrix4 _xform;
 	mutable grinliz::Matrix4 _invXForm;
 };
