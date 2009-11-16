@@ -216,7 +216,7 @@ void BattleScene::Load( UFOStream* /*s*/ )
 
 void BattleScene::SetFogOfWar()
 {
-	grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fow = engine->GetFogOfWar();
+	grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fow = engine->GetMap()->LockFogOfWar();
 #ifdef MAPMAKER
 	fow->SetAll();
 #else
@@ -231,7 +231,7 @@ void BattleScene::SetFogOfWar()
 		}
 	}
 #endif
-	engine->UpdateFogOfWar();
+	engine->GetMap()->ReleaseFogOfWar();
 }
 
 
@@ -893,6 +893,14 @@ void BattleScene::CalcVisibility( const Unit* unit, int x, int y, float rotation
 				GLASSERT( delta <= 1 && delta >= -1 );
 			}
 
+			/* Line walking algorithm. Step 1 unit on the major axis,
+			   and occasionally on the minor axis.
+			*/
+			int light = 255;
+			const Surface* lightMap = engine->GetMap()->GetLightMap();
+			GLASSERT( lightMap->Format() == Surface::RGB16 );
+			const U16* pixel = lightMap->Pixels();
+
 			Vector2<Fixed> p = { Fixed(x)+Fixed(0.5f), Fixed(y)+Fixed(0.5f) };
 			for( int k=0; k<steps; ++k ) {
 				Vector2<Fixed> q = p;
@@ -910,6 +918,13 @@ void BattleScene::CalcVisibility( const Unit* unit, int x, int y, float rotation
 				else {
 					break;
 				}
+
+				// Put light at the bottom: if we run out, we can't see the NEXT thing.
+				Surface::RGBA rgba;
+				Surface::CalcRGB16( *(pixel+q0.y*SIZE+q0.x), &rgba );
+				int m = Max( rgba.r, Max( rgba.g, rgba.b ) );
+				light -= (255-m);
+
 				p = q;
 			}
 		}

@@ -91,8 +91,8 @@ public:
 	Map* GetMap() { return map; }
 
 	// Gets the fog of war object. When done changing, use UpdateFogOfWar to submit.
-	grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* GetFogOfWar()	{ return &fogOfWar; }
-	void UpdateFogOfWar();
+//	grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* GetFogOfWar()	{ return &fogOfWar; }
+//	void UpdateFogOfWar();
 
 	static bool UnProject(	const grinliz::Vector3F& window,
 							const grinliz::Rectangle2I& screen,
@@ -175,7 +175,7 @@ private:
 	SpaceTree* spaceTree;
 	RenderQueue* renderQueue;
 	bool enableMap;
-	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWar;
+//	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWar;
 
 	// <serialize>
 	// camera

@@ -502,7 +502,6 @@ void ProcessTexture( TiXmlElement* texture )
 							| ( ( b>>4 ) << 4)
 							| ( ( a>>4 ) << 0 );
 
-					//SDL_WriteLE16( fp, p );
 					pixelBuffer16.push_back(p);
 				}
 			}

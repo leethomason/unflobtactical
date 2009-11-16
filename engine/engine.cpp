@@ -133,8 +133,8 @@ Engine::Engine( const Screenport& port, const EngineData& _engineData )
 	lightDirection.Normalize();
 	depthFunc = 0;
 
-	fogOfWar.SetAll();		// see everything
-	UpdateFogOfWar();
+//	fogOfWar.SetAll();		// see everything
+//	UpdateFogOfWar();
 }
 
 
@@ -149,10 +149,13 @@ Engine::~Engine()
 }
 
 
+/*
 void Engine::UpdateFogOfWar()
 {
-	map->GenerateLightMap( fogOfWar );
+	//map->GenerateLightMap( fogOfWar );
+	map->SetFogOfWar(
 }
+*/
 
 
 void Engine::MoveCameraHome()
@@ -332,6 +335,7 @@ void Engine::Draw( int* triCount )
 	renderQueue->SetColor( 1, 1, 1 );
 	EnableLights( true, dayNight );
 	Model* fogRoot = 0;
+	const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& fogOfWar = map->GetFogOfWar();
 
 	for( Model* model=modelRoot; model; model=model->next ) 
 	{
@@ -472,7 +476,7 @@ void Engine::SetDayNight( bool dayTime, Surface* lightMap )
 {
 	dayNight = dayTime ? DAY_TIME : NIGHT_TIME;
 	map->SetLightMap( lightMap );
-	map->GenerateLightMap( fogOfWar );
+	//map->GenerateLightMap( fogOfWar );
 }      
 
 

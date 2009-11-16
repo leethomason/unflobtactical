@@ -45,6 +45,7 @@ Map::Map( SpaceTree* tree )
 	width = height = SIZE;
 	texture = 0;
 	nWalkingVertex = 0;
+	invalidLightMap.Set( 0, 0, SIZE, SIZE );
 
 	vertex[0].pos.Set( 0.0f,		0.0f, 0.0f );
 	vertex[1].pos.Set( 0.0f,		0.0f, (float)SIZE );
@@ -70,10 +71,13 @@ Map::Map( SpaceTree* tree )
 	visibilityQueryID = 1;
 
 	finalMap.Set( Surface::RGB16, SIZE, SIZE );
-	lightMap.Set( Surface::RGB16, SIZE, SIZE );
+	baseMap.Set( Surface::RGB16, SIZE, SIZE );
+	//transMap.Set( Surface::ALPHA, SIZE, SIZE );
+	fogOfWar.SetAll();
 
 	memset( finalMap.Pixels(), 255, SIZE*SIZE*2 );
-	memset( lightMap.Pixels(), 255, SIZE*SIZE*2 );
+	memset( baseMap.Pixels(), 255, SIZE*SIZE*2 );
+	//memset( transMap.Pixels(), 255, SIZE*SIZE );
 
 	U32 id = finalMap.CreateTexture();
 	finalMapTex.Set( "lightmap", id, false );
@@ -110,6 +114,8 @@ void Map::Clear()
 
 void Map::Draw()
 {
+	GenerateLightMap();
+
 	U8* v = (U8*)vertex + Vertex::POS_OFFSET;
 	U8* n = (U8*)vertex + Vertex::NORMAL_OFFSET;
 	U8* t = (U8*)vertex + Vertex::TEXTURE_OFFSET;
@@ -198,21 +204,70 @@ void Map::UnBindTextureUnits()
 	glActiveTexture( GL_TEXTURE0 );
 }
 
-	
+
 void Map::SetLightMap( const Surface* surface )
 {
 	if ( surface ) {
 		GLASSERT( surface->BytesPerPixel() == 2 );
-		GLASSERT( surface->Width() == 64 );
-		GLASSERT( surface->Height() == 64 );
-		memcpy( lightMap.Pixels(), surface->Pixels(), SIZE*SIZE*2 );
+		GLASSERT( surface->Width() == SIZE );
+		GLASSERT( surface->Height() == SIZE	 );
+		memcpy( finalMap.Pixels(), surface->Pixels(), SIZE*SIZE*2 );
 	}
 	else {
-		memset( lightMap.Pixels(), 255, SIZE*SIZE*2 );
+		memset( finalMap.Pixels(), 255, SIZE*SIZE*2 );
+	}
+	invalidLightMap.Set( 0, 0, SIZE, SIZE );
+}
+
+
+grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* Map::LockFogOfWar()
+{
+	invalidLightMap.Set( 0, 0, SIZE, SIZE );
+	return &fogOfWar;
+}
+
+
+void Map::ReleaseFogOfWar()
+{
+	invalidLightMap.Set( 0, 0, SIZE, SIZE );
+}
+
+
+void Map::GenerateLightMap()
+{
+	if (    invalidLightMap.max.x > invalidLightMap.min.x 
+		 && invalidLightMap.max.y > invalidLightMap.min.y ) 
+	{
+		// Input:
+		//		Basemap - input light colors.
+		//		Lights: add color to basemap
+		//		FogOfWar: flip on or off
+		// Output:
+		//		finalMap: final computed light map (for rendering)
+
+		const U16* src = (const U16*)baseMap.Pixels();
+		U16* dst = (U16*)finalMap.Pixels();
+		//Surface::RGBA rgba;
+
+		for( int j=invalidLightMap.min.y; j<invalidLightMap.max.y; ++j ) {
+			for( int i=invalidLightMap.min.x; i<invalidLightMap.max.x; ++i ) {
+
+				if ( fogOfWar.IsSet( i, SIZE-1-j ) ) {
+					//Surface::RGB16( *(src+j*SIZE+i), &rgba );
+					*(dst+j*SIZE+i) = *(src+j*SIZE+i);
+				}
+				else {
+					*(dst+j*SIZE+i) = 0;
+				}
+			}
+		}
+		finalMap.UpdateTexture( finalMapTex.glID );
+		invalidLightMap.Set( 0, 0, 0, 0 );
 	}
 }
 
 
+/*
 void Map::GenerateLightMap( const grinliz::BitArray<SIZE, SIZE, 1>& fogOfWar )
 {
 	BitArrayRowIterator<SIZE, SIZE, 1> it( fogOfWar ); 
@@ -234,7 +289,7 @@ void Map::GenerateLightMap( const grinliz::BitArray<SIZE, SIZE, 1>& fogOfWar )
 	}
 	finalMap.UpdateTexture( finalMapTex.glID );
 }
-
+*/
 
 
 Map::MapItemDef* Map::InitItemDef( int i )
