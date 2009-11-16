@@ -35,13 +35,6 @@ Map::Map( SpaceTree* tree )
 	memset( visMap, 0, SIZE*SIZE );
 	memset( pathMap, 0, SIZE*SIZE );
 	memset( itemDefArr, 0, sizeof(MapItemDef)*MAX_ITEM_DEF );
-	memset( quadTree, 0, sizeof(MapItem*)*QUAD_NODES );
-
-	int base = 0;
-	for( int i=0; i<QUAD_DEPTH; ++i ) {
-		depthBase[i] = base;
-		base += (1<<i)*(1<<i);
-	}
 	mapDB = 0;
 
 	microPather = new MicroPather(	this,			// graph interface
@@ -96,19 +89,22 @@ Map::~Map()
 
 void Map::Clear()
 {
-	for( int i=0; i<QUAD_NODES; ++i ) {
-		MapItem* pItem = quadTree[i];
-		while( pItem ) {
-			MapItem* temp = pItem;
-			pItem = pItem->nextQuad;
-			if ( temp->model )
-				tree->FreeModel( temp->model );
-			itemPool.Free( temp );
-		}
+	// Find everything:
+	Rectangle2I b;
+	b.Set( 0, 0, SIZE-1, SIZE-1 );
+	MapItem* pItem = quadTree.FindItems( b );
+
+	while( pItem ) {
+		MapItem* temp = pItem;
+		pItem = pItem->next;
+		if ( temp->model )
+			tree->FreeModel( temp->model );
+		itemPool.Free( temp );
 	}
+	quadTree.Clear();
+
 	memset( visMap, 0, SIZE*SIZE );
 	memset( pathMap, 0, SIZE*SIZE );
-	memset( quadTree, 0, sizeof(MapItem*)*QUAD_NODES );
 }
 
 
@@ -304,7 +300,7 @@ void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 {
 	if ( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) 
 	{
-		MapItem* item = (MapItem*) m->stats;
+		MapItem* item = quadTree.FindItem( m );
 		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 		int hp = MaterialDef::CalcDamage( baseDamage, shellFlags, itemDef.materialFlags );
 
@@ -321,108 +317,10 @@ void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 				item->model->SetFlag( Model::MODEL_OWNED_BY_MAP );
 				item->model->SetPos( pos );
 				item->model->SetYRotation( rot );
-				item->model->stats = item;			
 			}
 			ResetPath();
 		}
 	}
-}
-
-
-void Map::UnlinkItem( MapItem* item )
-{
-	Rectangle2I mapBounds;
-	item->MapBounds( &mapBounds );
-
-	int index = CalcBestNode( mapBounds );
-	GLASSERT( quadTree[index] ); // the item should be in the linked list somewhere.
-
-	MapItem* prev = 0;
-	for( MapItem* p=quadTree[index]; p; prev=p, p=p->nextQuad ) {
-		if ( p == item ) {
-			if ( prev )
-				prev->nextQuad = p->nextQuad;
-			else
-				quadTree[index] = p->nextQuad;
-			return;
-		}
-	}
-	GLASSERT( 0 );	// should have found the item.
-}
-
-
-Map::MapItem* Map::FindItems( const Rectangle2I& bounds )
-{
-	// Walk the map and pull out items in bounds.
-	MapItem* root = 0;
-
-	GLASSERT( bounds.min.x >= 0 && bounds.max.x < 256 );	// using int8
-	GLASSERT( bounds.min.y >= 0 && bounds.max.y < 256 );	// using int8
-	Rectangle2<U8> bounds8;
-	bounds8.Set( bounds.min.x, bounds.min.y, bounds.max.x, bounds.max.y );
-
-	for( int depth=0; depth<QUAD_DEPTH; ++depth ) 
-	{
-		int shift = (LOG2_SIZE-depth);
-		int size = SIZE >> shift;
-
-		int x0 = bounds.min.x >> shift;
-		int x1 = bounds.max.x >> shift;
-		int y0 = bounds.min.y >> shift;
-		int y1 = bounds.max.y >> shift;
-
-		for( int j=y0; j<=y1; ++j ) {
-			for( int i=x0; i<=x1; ++i ) {
-				MapItem* pItem = *(quadTree + depthBase[depth] + (j*size) + i);
-				while( pItem ) { 
-					if ( pItem->mapBounds8.Intersect( bounds8 ) ) {
-						pItem->next = root;
-						root = pItem;
-					}
-					pItem = pItem->nextQuad;
-				}
-			}
-		}
-	}
-	return root;
-}
-
-
-Map::MapItem* Map::FindItem( const Model* model )
-{
-	int x = LRintf( model->X() );
-	int y = LRintf( model->Z() );
-	MapItem* root = FindItems( x, y );
-	while( root ) {
-		if ( root->model == model ) {
-			return root;
-		}
-		root = root->next;
-	}
-	return 0;
-}
-
-
-int Map::CalcBestNode( const Rectangle2I& bounds )
-{
-	int offset = 0;
-
-	for( int depth=QUAD_DEPTH-1; depth>0; --depth ) 
-	{
-		int shift = (LOG2_SIZE-depth);
-		int size = SIZE >> shift;
-
-		Rectangle2I nodeBounds;
-		int x0 = bounds.min.x >> shift;
-		int y0 = bounds.min.y >> shift;
-		nodeBounds.Set( x0, y0, x0 + size-1, y0 + size-1 );
-
-		if ( nodeBounds.Contains( bounds ) ) {
-			offset = depthBase[depth] + y0*size + x0;
-			break;
-		}
-	}
-	return offset;
 }
 
 
@@ -469,7 +367,7 @@ bool Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags, 
 
 	// Check for duplicate. Only check for exact dupe - same origin & rotation.
 	// This isn't required, but prevents map creation mistakes.
-	MapItem* root = FindItems( mapBounds );
+	MapItem* root = quadTree.FindItems( mapBounds );
 	while( root ) {
 		if ( root->x == x && root->y == y && root->rot == rotation && root->itemDefIndex == defIndex ) {
 			GLOUTPUT(( "Duplicate layer.\n" ));
@@ -511,9 +409,7 @@ bool Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags, 
 	item->next = 0;
 	item->storage = storage;
 	
-	int index = CalcBestNode( mapBounds );
-	item->nextQuad = quadTree[index];
-	quadTree[index] = item;
+	quadTree.Add( item );
 
 	// Patch the world states:
 	ResetPath();
@@ -534,10 +430,10 @@ void Map::DeleteAt( int x, int y )
 	GLASSERT( x >= 0 && x < width );
 	GLASSERT( y >= 0 && y < height );
 
-	MapItem* item = FindItems( x, y );
+	MapItem* item = quadTree.FindItems( x, y );
 	
 	if ( item ) {
-		UnlinkItem( item );
+		quadTree.UnlinkItem( item );
 		Rectangle2I mapBounds;
 		item->MapBounds( &mapBounds );
 
@@ -826,7 +722,7 @@ void Map::DumpTile( int x, int y )
 	if ( InRange( x, 0, SIZE-1 ) && InRange( y, 0, SIZE-1 )) 
 	{
 		int i=0;
-		MapItem* root = FindItems( x, y );
+		MapItem* root = quadTree.FindItems( x, y );
 		while ( root ) {
 			GLASSERT( root->itemDefIndex > 0 );
 			const MapItemDef& itemDef = itemDefArr[ root->itemDefIndex ];
@@ -949,7 +845,7 @@ void Map::ClearVisPathMap( grinliz::Rectangle2I& bounds )
 
 void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
 {
-	MapItem* item = FindItems( bounds );
+	MapItem* item = quadTree.FindItems( bounds );
 	while( item ) {
 		
 		if ( !item->Destroyed() ) {
@@ -1294,3 +1190,160 @@ bool Map::CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& q )
 	return canSee;
 }
 
+
+void Map::MapBoundsOfModel( const Model* m, grinliz::Rectangle2I* mapBounds )
+{
+	GLASSERT( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) );
+	MapItem* item = quadTree.FindItem( m );
+	GLASSERT( item );
+	item->MapBounds( mapBounds );
+	GLASSERT( mapBounds->min.x <= mapBounds->max.x );
+	GLASSERT( mapBounds->min.y <= mapBounds->max.y );
+}
+
+
+Map::QuadTree::QuadTree()
+{
+	Clear();
+	filterModel = 0;
+
+	int base = 0;
+	for( int i=0; i<QUAD_DEPTH+1; ++i ) {
+		depthBase[i] = base;
+		base += (1<<i)*(1<<i);
+	}
+}
+
+
+void Map::QuadTree::Clear()
+{
+	memset( tree, 0, sizeof(MapItem*)*NUM_QUAD_NODES );
+	memset( depthUse, 0, sizeof(int)*(QUAD_DEPTH+1) );
+}
+
+
+void Map::QuadTree::Add( MapItem* item )
+{
+	int d=0;
+	int i = CalcNode( item->mapBounds8, &d );
+	item->nextQuad = tree[i];
+	tree[i] = item;
+	depthUse[d] += 1;
+
+	GLOUTPUT(( "Depth: %2d %2d %2d %2d %2d\n", 
+			   depthUse[0], depthUse[1], depthUse[2], depthUse[3], depthUse[4] ));
+}
+
+
+void Map::QuadTree::UnlinkItem( MapItem* item )
+{
+	int index = CalcNode( item->mapBounds8, 0 );
+	GLASSERT( tree[index] ); // the item should be in the linked list somewhere.
+
+	MapItem* prev = 0;
+	for( MapItem* p=tree[index]; p; prev=p, p=p->nextQuad ) {
+		if ( p == item ) {
+			if ( prev )
+				prev->nextQuad = p->nextQuad;
+			else
+				tree[index] = p->nextQuad;
+			return;
+		}
+	}
+	GLASSERT( 0 );	// should have found the item.
+}
+
+
+Map::MapItem* Map::QuadTree::FindItems( const Rectangle2I& bounds )
+{
+	// Walk the map and pull out items in bounds.
+	MapItem* root = 0;
+
+	GLASSERT( bounds.min.x >= 0 && bounds.max.x < 256 );	// using int8
+	GLASSERT( bounds.min.y >= 0 && bounds.max.y < 256 );	// using int8
+	Rectangle2<U8> bounds8;
+	bounds8.Set( bounds.min.x, bounds.min.y, bounds.max.x, bounds.max.y );
+
+	for( int depth=0; depth<QUAD_DEPTH; ++depth ) 
+	{
+		// Translate into coordinates for this node level:
+		int x0 = WorldToNode( bounds.min.x, depth );
+		int x1 = WorldToNode( bounds.max.x, depth );
+		int y0 = WorldToNode( bounds.min.y, depth );
+		int y1 = WorldToNode( bounds.max.y, depth );
+
+		// i, j, x0.. all in node coordinates.
+		for( int j=y0; j<=y1; ++j ) {
+			for( int i=x0; i<=x1; ++i ) {
+				MapItem* pItem = *(tree + depthBase[depth] + NodeOffset( i, j, depth ) );
+
+				if ( filterModel ) {
+					while( pItem ) {
+						if ( pItem->model == filterModel ) {
+							pItem->next = 0;
+							return pItem;
+						}
+						pItem = pItem->nextQuad;
+					}
+				}
+				else {
+					while( pItem ) { 
+						if ( pItem->mapBounds8.Intersect( bounds8 ) ) {
+							pItem->next = root;
+							root = pItem;
+						}
+						pItem = pItem->nextQuad;
+					}
+				}
+			}
+		}
+	}
+	return root;
+}
+
+
+Map::MapItem* Map::QuadTree::FindItem( const Model* model )
+{
+	Rectangle2I b;
+	b.min.x = (int)floorf( model->X() );
+	b.min.y = (int)floorf( model->Z() );
+	b.max.x = (int)ceilf( model->X() );
+	b.max.y = (int)ceilf( model->Z() );
+
+	filterModel = model;
+	MapItem* root = FindItems( b );
+	filterModel = 0;
+	return root;
+}
+
+
+int Map::QuadTree::CalcNode( const Rectangle2<U8>& bounds, int* d )
+{
+	int offset = 0;
+
+	for( int depth=QUAD_DEPTH-1; depth>0; --depth ) 
+	{
+		int x0 = WorldToNode( bounds.min.x, depth );
+		int y0 = WorldToNode( bounds.min.y, depth );
+
+		int wSize = SIZE >> depth;
+
+		Rectangle2<U8> wBounds;
+		wBounds.Set(	NodeToWorld( x0, depth ),
+						NodeToWorld( y0, depth ),
+						NodeToWorld( x0, depth ) + wSize - 1,
+						NodeToWorld( y0, depth ) + wSize - 1 );
+
+		if ( wBounds.Contains( bounds ) ) {
+			offset = depthBase[depth] + NodeOffset( x0, y0, depth );
+			if ( d )
+				*d = depth;
+			break;
+		}
+
+		if ( depth == 3 )
+			int debug=1;
+	}
+	GLASSERT( offset >= 0 && offset < NUM_QUAD_NODES );
+	return offset;
+}

@@ -351,10 +351,11 @@ void Engine::Draw( int* triCount )
 		bool queue0 = false;	// draw in black
 
 		if ( model->IsFlagSet(  Model::MODEL_OWNED_BY_MAP ) ) {
-			const Rectangle3I& fogRect3D = model->AABBInt();
-			Rectangle2I fogRect;
-			fogRect.Set( fogRect3D.min.x, fogRect3D.min.y, fogRect3D.max.x, fogRect3D.max.y );
+			if ( model->mapBoundsCache.min.x < 0 ) {
+				map->MapBoundsOfModel( model, &model->mapBoundsCache );
+			}
 
+			Rectangle2I fogRect = model->mapBoundsCache;
 			if ( fogRect.min.x > 0 )	fogRect.min.x -= 1;
 			if ( fogRect.min.y > 0 )	fogRect.min.y -= 1;
 			if ( fogRect.max.x < Map::SIZE-1 ) fogRect.max.x += 1;

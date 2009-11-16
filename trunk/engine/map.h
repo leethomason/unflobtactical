@@ -101,7 +101,7 @@ public:
 
 		void MapBounds( grinliz::Rectangle2I* r ) const 
 		{
-			r->Set( mapBounds8.min.x, mapBounds8.min.x, mapBounds8.max.x, mapBounds8.max.y );
+			r->Set( mapBounds8.min.x, mapBounds8.min.y, mapBounds8.max.x, mapBounds8.max.y );
 		}
 
 		bool InUse() const			{ return itemDefIndex > 0; }
@@ -170,6 +170,7 @@ public:
 	// Storage is owned by the map after this call.
 	bool AddItem( int x, int z, int rotation, int itemDefIndex, int hp, int flags, Storage* storage );
 	void DeleteAt( int x, int z );
+	void MapBoundsOfModel( const Model* m, grinliz::Rectangle2I* mapBounds );
 
 	void ResetPath();	// normally called automatically
 
@@ -217,6 +218,53 @@ private:
 		return m0 & 0xf;
 	}
 
+	class QuadTree
+	{
+	public:
+		enum {
+			QUAD_DEPTH = 5,
+			NUM_QUAD_NODES = 1+4+16+64+256,
+		};
+
+		QuadTree();
+		void Clear();
+
+		void Add( MapItem* );
+		void Unlink( MapItem* );
+
+		MapItem* FindItems( const grinliz::Rectangle2I& bounds );
+		MapItem* FindItems( int x, int y ) { grinliz::Rectangle2I b; b.Set( x, y, x, y ); return FindItems( b ); }
+		MapItem* FindItem( const Model* model );
+
+		void UnlinkItem( MapItem* item );
+
+	private:
+		int WorldToNode( int x, int depth )					
+		{ 
+			GLASSERT( depth >=0 && depth < QUAD_DEPTH );
+			GLASSERT( x>=0 && x < Map::SIZE );
+			return x >> (LOG2_SIZE-depth); 
+		}
+		int NodeToWorld( int x0, int depth )
+		{
+			GLASSERT( x0>=0 && x0 < (1<<depth) );
+			return x0 << (LOG2_SIZE-depth);			
+		}
+		int NodeOffset( int x0, int y0, int depth )	
+		{	
+			GLASSERT( x0>=0 && x0 < (1<<depth) );
+			GLASSERT( y0>=0 && y0 < (1<<depth) );
+			return y0 * (1<<depth) + x0; 
+		}
+
+		int CalcNode( const grinliz::Rectangle2<U8>& bounds, int* depth );
+
+		int			depthUse[QUAD_DEPTH];
+		int			depthBase[QUAD_DEPTH+1];
+		MapItem*	tree[NUM_QUAD_NODES];
+		const Model* filterModel;
+	};
+
 	int GetPathMask( ConnectionType c, int x, int z );
 	bool Connected( ConnectionType c, int x, int y, int dir );
 
@@ -224,15 +272,6 @@ private:
 	void* VecToState( const grinliz::Vector2<S16>& vec )			 { return (void*)(*(int*)&vec); }
 
 	// Searches through the QuadTree
-	MapItem* FindItems( const grinliz::Rectangle2I& bounds );
-	MapItem* FindItems( int x, int y ) {
-		grinliz::Rectangle2I b;
-		b.Set( x, y, x, y );
-		return FindItems( b );
-	}
-	MapItem* FindItem( const Model* model );
-	void UnlinkItem( MapItem* item );
-	int CalcBestNode( const grinliz::Rectangle2I& bounds );
 
 	void CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef, 
 						grinliz::Rectangle2I* mapBounds,
@@ -282,18 +321,11 @@ private:
 	Vertex								walkingVertex[6*MAX_TRAVEL*MAX_TRAVEL];
 	int									nWalkingVertex;
 
-	enum {
-		QUAD_DEPTH = 5,
-		QUAD_NODES = 1+4+16+64+256,
-		MAX_ITEMS = 500
-	};
-
 	U8									visMap[SIZE*SIZE];
 	U8									pathMap[SIZE*SIZE];
 
 	grinliz::MemoryPool					itemPool;
-	int									depthBase[QUAD_DEPTH];
-	MapItem								*quadTree[QUAD_NODES];
+	QuadTree							quadTree;
 	MapItemDef							itemDefArr[MAX_ITEM_DEF];
 };
 
