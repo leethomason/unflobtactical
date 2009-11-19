@@ -577,7 +577,7 @@ void Map::DeleteRow( int x, int y, int r, int def )
 	// Clear out the existing row.
 	const int BUFSIZE=200;
 	char buf[BUFSIZE];
-#ifdef _MSVC_VER
+#ifdef _MSC_VER
 	_snprintf_s( buf, BUFSIZE, BUFSIZE, 
 #else
 	snprintf( buf, BUFSIZE, 
@@ -605,7 +605,7 @@ void Map::InsertRow( int x, int y, int r, int def, int hp, int flags, const Stor
 	sqlite3_stmt* stmt = 0;
 	const int BUFSIZE=200;
 	char buf[BUFSIZE];
-#ifdef _MSVC_VER
+#ifdef _MSC_VER
 	_snprintf_s( buf, BUFSIZE, BUFSIZE, 
 #else
 				snprintf( buf, BUFSIZE, 
@@ -653,7 +653,7 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 		
 		const int BUFSIZE=200;
 		char buf[BUFSIZE];
-#ifdef _MSVC_VER
+#ifdef _MSC_VER
 		_snprintf_s( buf, BUFSIZE, BUFSIZE, 
 #else
 					snprintf( buf, BUFSIZE, 
@@ -672,7 +672,7 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 		// Now walk and add!
 		stmt = 0;
 		
-#ifdef _MSVC_VER
+#ifdef _MSC_VER
 					_snprintf_s( buf, BUFSIZE, BUFSIZE, 
 #else
 								snprintf( buf, BUFSIZE, 

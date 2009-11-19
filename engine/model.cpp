@@ -33,8 +33,10 @@ using namespace grinliz;
 void ModelResource::Free()
 {
 	for( unsigned i=0; i<header.nGroups; ++i ) {
+#ifdef EL_USE_VBO
 		glDeleteBuffers( 1, (const GLuint*) &atom[i].indexID );		
 		glDeleteBuffers( 1, (const GLuint*) &atom[i].vertexID );
+#endif
 		memset( &atom[i], 0, sizeof( ModelAtom ) );
 		CHECK_GL_ERROR;
 	}
@@ -129,6 +131,7 @@ void ModelLoader::Load( sqlite3* db, const char* name, ModelResource* res )
 	int iOffset = 0;
 	for( U32 i=0; i<res->header.nGroups; ++i )
 	{
+#ifdef EL_USE_VBO
 		// Index buffer
 		glGenBuffers( 1, (GLuint*) &res->atom[i].indexID );
 		glGenBuffers( 1, (GLuint*) &res->atom[i].vertexID );
@@ -136,22 +139,26 @@ void ModelLoader::Load( sqlite3* db, const char* name, ModelResource* res )
 		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, res->atom[i].indexID );
 		glBindBuffer( GL_ARRAY_BUFFER, res->atom[i].vertexID );
 		CHECK_GL_ERROR
+#endif
 		U32 indexSize = sizeof(U16)*res->atom[i].nIndex;
 		U32 dataSize  = sizeof(Vertex)*res->atom[i].nVertex;
 
 		res->atom[i].index  = res->allIndex+iOffset;
 		res->atom[i].vertex = res->allVertex+vOffset;
 
+#ifdef EL_USE_VBO
 		glBufferData( GL_ELEMENT_ARRAY_BUFFER, indexSize, res->atom[i].index, GL_STATIC_DRAW );
 		glBufferData( GL_ARRAY_BUFFER, dataSize, res->atom[i].vertex, GL_STATIC_DRAW );
 		CHECK_GL_ERROR
-
+#endif
 		iOffset += res->atom[i].nIndex;
 		vOffset += res->atom[i].nVertex;
 	}
+#ifdef EL_USE_VBO
 	// unbind
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+#endif
 }
 
 
@@ -281,22 +288,21 @@ void Model::Queue( RenderQueue* queue, int textureMode )
 
 void ModelAtom::Bind( /*bool bindTextureToVertex*/ ) const
 {
+#ifdef EL_USE_VBO
 	glBindBuffer( GL_ARRAY_BUFFER, vertexID );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, indexID );
 
 	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
 	glNormalPointer(      GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
 
-//	if ( bindTextureToVertex ) {
-//		for( int i=0; i<2; ++i ) {
-//			glClientActiveTexture( GL_TEXTURE0+i );
-//			glTexCoordPointer( 3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);  
-//		}
-//	}
-//	else {
-		glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
-//	}
+	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
 	CHECK_GL_ERROR;
+#else
+	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), (const U8*)vertex + Vertex::POS_OFFSET);
+	glNormalPointer(      GL_FLOAT, sizeof(Vertex), (const U8*)vertex + Vertex::NORMAL_OFFSET);		
+	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (const U8*)vertex + Vertex::TEXTURE_OFFSET); 
+	CHECK_GL_ERROR;
+#endif
 }
 
 
@@ -304,10 +310,14 @@ void ModelAtom::Draw() const
 {
 	GRINLIZ_PERFTRACK
 	// mode, count, type, indices
+#ifdef EL_USE_VBO
 	glDrawElements( GL_TRIANGLES, 
 					nIndex,
 					GL_UNSIGNED_SHORT, 
 					0 );
+#else
+	glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, index );
+#endif
 	CHECK_GL_ERROR;
 	trisRendered += nIndex / 3;
 }

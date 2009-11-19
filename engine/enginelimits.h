@@ -36,5 +36,6 @@ enum {
 };
 
 //#define EL_SHOW_MODELS
+//#define EL_USE_VBO
 
 #endif

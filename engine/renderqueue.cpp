@@ -192,8 +192,10 @@ void RenderQueue::Flush()
 			item = item->nextModel;
 		}
 	}
+#ifdef EL_USE_VBO
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+#endif
 	nState = 0;
 	nModel = 0;
 	glDisable( GL_ALPHA_TEST );
