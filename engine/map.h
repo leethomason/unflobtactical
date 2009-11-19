@@ -17,6 +17,7 @@
 #define UFOATTACK_MAP_INCLUDED
 
 #include <stdio.h>
+#include <string>
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glbitarray.h"
