@@ -145,7 +145,15 @@ public:
    inline friend bool operator >=  (const Fixed a, const float b)	{ return a.x >= FloatToFixed( b ); }
    inline friend bool operator >=  (const float a, const Fixed b)	{ return FloatToFixed( a ) >= b.x; }
 
-   inline Fixed Sqrt()	{ Fixed t; t.x = FloatToFixed( sqrtf( FixedToFloat( x ) ) ); return t; }
+	inline Fixed Sqrt()	{ Fixed t; t.x = FloatToFixed( sqrtf( FixedToFloat( x ) ) ); return t; }
+
+	// a must be [0,1]
+	Fixed ApproxSqrt();
+
+private:
+	enum { SQRT_TABLE_SIZE = 64 };
+	static bool approxSqrtTableInit;
+	static Fixed approxSqrtTable[ SQRT_TABLE_SIZE ];
 };
 
 };	// grinliz
