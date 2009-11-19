@@ -55,8 +55,8 @@ void Screenport::ViewToUI( int x0, int y0, int *x1, int *y1 ) const
 
 void Screenport::ScreenToView( int x0, int y0, int *x1, int *y1 ) const
 {
-	GLASSERT( x0>=0 && x0<physicalWidth );
-	GLASSERT( y0>=0 && y0<physicalHeight );
+//	GLASSERT( x0>=0 && x0<physicalWidth );
+//	GLASSERT( y0>=0 && y0<physicalHeight );
 
 	*x1 = x0;
 	*y1 = (physicalHeight-1)-y0;
