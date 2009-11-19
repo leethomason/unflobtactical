@@ -32,8 +32,10 @@ class RenderQueue;
 struct ModelAtom 
 {
 	const Texture* texture;
+#ifdef EL_USE_VBO
 	U32 vertexID;
 	U32 indexID;
+#endif
 	U32 nVertex;
 	U32 nIndex;
 	mutable int trisRendered;
