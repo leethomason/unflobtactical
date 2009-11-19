@@ -31,30 +31,31 @@
 
 #include "wglew.h"
 
+
 #define IPOD_SCREEN_WIDTH	320
 #define IPOD_SCREEN_HEIGHT	480
-#define FRAMEBUFFER_ROTATE
+//#define FRAMEBUFFER_ROTATE
 
 int multisample = 0;
 bool fullscreen = false;
-#ifdef FRAMEBUFFER_ROTATE
-	const int rotation = 1;
-#else
+//#ifdef FRAMEBUFFER_ROTATE
+//	const int rotation = 1;
+//#else
 	const int rotation = 0;
-#endif
+//#endif
 
 void ScreenCapture( const char* baseFilename );
 
 
 void TransformXY( int x0, int y0, int* x1, int* y1 )
 {
-#ifdef FRAMEBUFFER_ROTATE
-	*x1 = y0;
-	*y1 = IPOD_SCREEN_HEIGHT-1-x0;
-#else
+//#ifdef FRAMEBUFFER_ROTATE
+//	*x1 = y0;
+//	*y1 = IPOD_SCREEN_HEIGHT-1-x0;
+//#else
 	*x1 = x0;
 	*y1 = y0;
-#endif	
+//#endif	
 }
 
 
@@ -161,11 +162,7 @@ int main( int argc, char **argv )
 		videoFlags |= SDL_FULLSCREEN;
 
 	// Note that our output surface is rotated from the iPod.
-#ifdef FRAMEBUFFER_ROTATE
 	surface = SDL_SetVideoMode( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, 32, videoFlags );
-#else
-	surface = SDL_SetVideoMode( IPOD_SCREEN_WIDTH, IPOD_SCREEN_HEIGHT, 32, videoFlags );
-#endif
 	GLASSERT( surface );
 
 	int stencil = 0;
@@ -203,9 +200,9 @@ int main( int argc, char **argv )
 
 	// Set the viewport to be the entire window
     glViewport(0, 0, surface->w, surface->h );
-	#ifdef FRAMEBUFFER_ROTATE
-	FrameBuffer* frameBuffer = new FrameBuffer( IPOD_SCREEN_WIDTH, IPOD_SCREEN_HEIGHT );
-	#endif
+	//#ifdef FRAMEBUFFER_ROTATE
+	//FrameBuffer* frameBuffer = new FrameBuffer( IPOD_SCREEN_WIDTH, IPOD_SCREEN_HEIGHT );
+	//#endif
 	
 	bool done = false;
 	bool dragging = false;
@@ -217,7 +214,7 @@ int main( int argc, char **argv )
 	grinliz::Vector2I prevMouseDown = { 0, 0 };
 	U32 prevMouseDownTime = 0;
 
-	void* game = NewGame( IPOD_SCREEN_WIDTH, IPOD_SCREEN_HEIGHT, rotation );
+	void* game = NewGame( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, rotation );
 
 	// ---- Main Loop --- //
 	while ( !done )
@@ -258,13 +255,13 @@ int main( int argc, char **argv )
 #if !defined( MAPMAKER )
 						case SDLK_p:
 							{
-								#ifdef FRAMEBUFFER_ROTATE
-									frameBuffer->Bind();
-								#endif
+							//	#ifdef FRAMEBUFFER_ROTATE
+							//		frameBuffer->Bind();
+							//	#endif
 								ScreenCapture( "cap" );
-								#ifdef FRAMEBUFFER_ROTATE
-									frameBuffer->Bind();
-								#endif
+							//	#ifdef FRAMEBUFFER_ROTATE
+							//		frameBuffer->Bind();
+							//	#endif
 							}
 							break;
 #endif
@@ -431,30 +428,29 @@ int main( int argc, char **argv )
 			}
 		}
 
-#ifdef FRAMEBUFFER_ROTATE
-		frameBuffer->Bind();
-#endif
+//#ifdef FRAMEBUFFER_ROTATE
+//		frameBuffer->Bind();
+//#endif
 		glEnable( GL_DEPTH_TEST );
 		glDepthFunc( GL_LEQUAL );
 
 		GameDoTick( game, SDL_GetTicks() );
 
-#ifdef FRAMEBUFFER_ROTATE
-		frameBuffer->UnBind();	
-
-		glDepthFunc( GL_ALWAYS );
-		glClear( GL_COLOR_BUFFER_BIT );
-		XferTexture( frameBuffer->TextureID(), IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH );
-		glDepthFunc( GL_LEQUAL );
-
-#endif
+//#ifdef FRAMEBUFFER_ROTATE
+//		frameBuffer->UnBind();	
+//
+//		glDepthFunc( GL_ALWAYS );
+//		glClear( GL_COLOR_BUFFER_BIT );
+//		XferTexture( frameBuffer->TextureID(), IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH );
+//		glDepthFunc( GL_LEQUAL );
+//#endif
 		SDL_GL_SwapBuffers();
 	}
 	DeleteGame( game );
 
-#ifdef FRAMEBUFFER_ROTATE
-	delete frameBuffer;
-#endif
+//#ifdef FRAMEBUFFER_ROTATE
+//	delete frameBuffer;
+//#endif
 	SDL_Quit();
 
 	MemLeakCheck();

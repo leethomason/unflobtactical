@@ -14,32 +14,32 @@
 	|
 	|
 	y
-	   O
     Independent of rotation.
+	On the iPod, x=320 and y=480
 
 	So at rotation=1, from the viewpoint of the person holding the device:
 	y-----0
 		  |
 		  x
 
-  VIEW coordinates:
-  y
-  |
-  |
-  0----x
-  Independent of rotation.
+	VIEW coordinates:
+	y
+	|
+	|
+	0----x
+	Independent of rotation.
 
-  UI coordinates:
-  Put the origin in the lower left accounting for rotation. So the lower left
-  from the point of view of the person holding the device.
+	UI coordinates:
+	Put the origin in the lower left accounting for rotation. So the lower left
+	from the point of view of the person holding the device.
 
 */
 class Screenport
 {
 public:
 	Screenport( int physWidth, int physHeight, int rotation ) {
-		GLASSERT( physWidth == 320 );	// can change, but need to test
-		GLASSERT( physHeight == 480 );
+		//GLASSERT( physWidth == 320 );	// can change, but need to test
+		//GLASSERT( physHeight == 480 );
 		//GLASSERT( rotation = 1 );
 
 		this->physicalWidth = physWidth;
@@ -59,7 +59,6 @@ public:
 	// the origin to the lower left, independent of rotation.
 	void ScreenToView( int physicalX, int physicalY, int* viewX, int* viewY ) const;
 
-
 	// These reflect the physical screen:
 	int PhysicalWidth() const	{ return physicalWidth; }
 	int PhysicalHeight() const	{ return physicalHeight; }
@@ -67,9 +66,11 @@ public:
 	// UI: origin in lower left, oriented with device.
 	void PushUI() const;
 	void PopUI() const;
+
 	void ViewToUI( int vX, int vY, int* uiX, int* uiY ) const;
 	int UIWidth() const	{ return ViewWidth(); }
 	int UIHeight() const	{ return ViewHeight(); }
+
 private:
 	// too easy to screw up
 	int ViewWidth()	const	{ return (rotation&1) ? physicalHeight : physicalWidth; }

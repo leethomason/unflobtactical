@@ -523,11 +523,20 @@ void Engine::SetPerspective()
 
 	// left, right, top, & bottom are on the near clipping
 	// plane. (Not an obvious point to my mind.)
+	/*
 	float aspect = (float)(screenport.PhysicalWidth()) / (float)(screenport.PhysicalHeight());
 	frustumTop		= tan(theta) * nearPlane;
 	frustumBottom	= -frustumTop;
 	frustumLeft		= aspect * frustumBottom;
 	frustumRight	= aspect * frustumTop;
+	*/
+
+	float ratio = (float)(screenport.PhysicalHeight()) / (float)(screenport.PhysicalWidth());
+	frustumRight = tan(theta) * frustumNear;
+	frustumTop   = ratio * tan(theta) * frustumNear;
+
+	frustumLeft = -frustumRight;
+	frustumBottom = -frustumTop;
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -535,6 +544,7 @@ void Engine::SetPerspective()
 	
 	glMatrixMode(GL_MODELVIEW);
 }
+
 
 bool Engine::UnProject(	const Vector3F& window,
 						const Rectangle2I& screen,
