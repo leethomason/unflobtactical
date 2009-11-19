@@ -840,8 +840,6 @@ void BattleScene::CalcVisibility( const Unit* unit, int x, int y, float rotation
 	facing.x = (int)(10.0f*sinf(ToRadian(rotation)));
 	facing.y = (int)(10.0f*cosf(ToRadian(rotation)));
 	
-	//const Model* ignore[] = { unit->GetModel(), unit->GetWeaponModel(), 0 };
-
 	/* Previous pass used a true ray casting approach, but this doesn't get good results. Numerical errors,
 	   view stopped by leaves, rays going through cracks. Switching to a line walking approach to 
 	   acheive stability and simplicity. (And probably performance.)
@@ -851,6 +849,7 @@ void BattleScene::CalcVisibility( const Unit* unit, int x, int y, float rotation
 
 	for( int j=b.min.y; j<=b.max.y; ++j ) {
 		for( int i=b.min.x; i<=b.max.x; ++i ) {
+
 			// Early out the simple cases:
 			if ( i==x && j==y ) {
 				// Can always see yourself.
@@ -899,34 +898,33 @@ void BattleScene::CalcVisibility( const Unit* unit, int x, int y, float rotation
 			int light = 255;
 			const Surface* lightMap = engine->GetMap()->GetLightMap();
 			GLASSERT( lightMap->Format() == Surface::RGB16 );
-			const U16* pixel = lightMap->Pixels();
+			const U16* pixel = (const U16*) lightMap->Pixels();
 
 			Vector2<Fixed> p = { Fixed(x)+Fixed(0.5f), Fixed(y)+Fixed(0.5f) };
-			for( int k=0; k<steps; ++k ) {
+			bool canSee = true;
+
+			for( int k=0; k<steps && light > 0; ++k ) {
 				Vector2<Fixed> q = p;
 				q.X(axis) += axisDir;
 				q.X(!axis) += delta;
 
 				Vector2I p0 = { (int)p.x, (int)p.y };
 				Vector2I q0 = { (int)q.x, (int)q.y };
-				bool canSee = engine->GetMap()->CanSee( p0, q0 );
-				if ( canSee ) {
-					// We are trying to see if the next (q0) can be scene. A unit can always
-					// see itself, and looks out from there.
-					visibilityMap.Set( q0.x, q0.y, unitID );
-				}
-				else {
+				canSee = engine->GetMap()->CanSee( p0, q0 );
+				if ( !canSee ) {
 					break;
 				}
 
 				// Put light at the bottom: if we run out, we can't see the NEXT thing.
 				Surface::RGBA rgba;
-				Surface::CalcRGB16( *(pixel+q0.y*SIZE+q0.x), &rgba );
+				Surface::CalcRGB16( *(pixel+q0.y*Map::SIZE+q0.x), &rgba );
 				int m = Max( rgba.r, Max( rgba.g, rgba.b ) );
 				light -= (255-m);
 
 				p = q;
 			}
+			if ( canSee )
+				visibilityMap.Set( i, j, unitID );
 		}
 	}
 }
