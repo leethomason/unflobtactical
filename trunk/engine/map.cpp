@@ -577,7 +577,11 @@ void Map::DeleteRow( int x, int y, int r, int def )
 	// Clear out the existing row.
 	const int BUFSIZE=200;
 	char buf[BUFSIZE];
+#ifdef _MSVC_VER
 	_snprintf_s( buf, BUFSIZE, BUFSIZE, 
+#else
+	snprintf( buf, BUFSIZE, 
+#endif
 				"DELETE FROM %s WHERE (x=? AND y=? AND r=? AND defIndex=?);",
 				dbTableName.c_str() );
 	GLASSERT( strlen( buf ) < BUFSIZE-1 );
@@ -601,7 +605,11 @@ void Map::InsertRow( int x, int y, int r, int def, int hp, int flags, const Stor
 	sqlite3_stmt* stmt = 0;
 	const int BUFSIZE=200;
 	char buf[BUFSIZE];
+#ifdef _MSVC_VER
 	_snprintf_s( buf, BUFSIZE, BUFSIZE, 
+#else
+				snprintf( buf, BUFSIZE, 
+#endif
 				"INSERT INTO %s VALUES (?,?,?,?,?,?,?);",
 				dbTableName.c_str() );
 	GLASSERT( strlen( buf ) < BUFSIZE-1 );
@@ -645,8 +653,12 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 		
 		const int BUFSIZE=200;
 		char buf[BUFSIZE];
+#ifdef _MSVC_VER
 		_snprintf_s( buf, BUFSIZE, BUFSIZE, 
-					 "CREATE TABLE IF NOT EXISTS %s "
+#else
+					snprintf( buf, BUFSIZE, 
+#endif
+					"CREATE TABLE IF NOT EXISTS %s "
 					 "(x INT, y INT, r INT, defIndex INT, hp INT, flags INT, storage TEXT );",
 					 tableName );
 		GLASSERT( strlen( buf ) < BUFSIZE-1 );
@@ -660,8 +672,13 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 		// Now walk and add!
 		stmt = 0;
 		
-		_snprintf_s( buf, BUFSIZE, BUFSIZE, 
-					 "SELECT * FROM %s;",
+#ifdef _MSVC_VER
+					_snprintf_s( buf, BUFSIZE, BUFSIZE, 
+#else
+								snprintf( buf, BUFSIZE, 
+#endif
+										 
+					"SELECT * FROM %s;",
 					 tableName );
 		GLASSERT( strlen( buf ) < BUFSIZE-1 );
 
