@@ -37,10 +37,7 @@ public:
 	ParticleSystem();
 	~ParticleSystem();
 
-	//void InitPoint( const Texture* texture );
-	//void InitQuad( const Texture* texture );
-
-	// texture particles
+	// Texture particles. Location in texture follows.
 	enum {
 		FIRE			= 0,
 		NUM_FIRE		= 2,
@@ -119,7 +116,7 @@ public:
 	void Clear();
 
 private:
-
+	/*
 	struct ParticleType 
 	{
 		const Texture* texture;
@@ -130,6 +127,7 @@ private:
 			this->size = size;
 		}
 	};
+	*/
 
 	struct Particle
 	{
@@ -178,15 +176,16 @@ private:
 				float halfWidth,				// half width of beams
 				U32 lifetime );					// lifetime in milliseconds
 
-	void DrawPointParticles();
+	void DrawPointParticles( const grinliz::Vector3F* eyeDir );
 	void DrawQuadParticles( const grinliz::Vector3F* eyeDir );
 	void DrawDecalParticles( int flag );
 
 	grinliz::Random rand;
 	int nParticles[NUM_PRIMITIVES];
 	int nDecals;
+	const Texture* quadTexture;
+	const Texture* pointTexture;
 
-	ParticleType	particleTypeArr[ NUM_PRIMITIVES ];
 	Particle		pointBuffer[ MAX_POINT_PARTICLES ];
 	Particle		quadBuffer[ MAX_QUAD_PARTICLES ];
 	Decal			decalBuffer[ MAX_DECALS ];

@@ -21,6 +21,8 @@
 
 //#define NEED_POWER_OF_2
 
+#ifdef FRAMEBUFFER_ROTATE
+
 FrameBuffer::FrameBuffer( int width, int height )
 {
 #ifdef NEED_POWER_OF_2
@@ -112,3 +114,5 @@ void FrameBuffer::UnBind()
 
 	GLASSERT( glGetError() == GL_NO_ERROR );
 }
+
+#endif // FRAMEBUFFER_ROTATE

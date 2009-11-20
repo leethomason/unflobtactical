@@ -25,12 +25,15 @@ ParticleSystem::ParticleSystem()
 {
 	for( int i=0; i<NUM_PRIMITIVES; ++i ) {
 		nParticles[i] = 0;
-		particleTypeArr[i].Init( 0, 1.0f );
+//		particleTypeArr[i].Init( 0, 1.0f );
 	}
 	nDecals = 0;
 
-	particleTypeArr[POINT].Init( TextureManager::Instance()->GetTexture( "particleSparkle" ), 4.0f );
-	particleTypeArr[QUAD].Init( TextureManager::Instance()->GetTexture( "particleQuad" ), 1.0f );
+//	particleTypeArr[POINT].Init( TextureManager::Instance()->GetTexture( "particleSparkle" ), 4.0f );
+//	particleTypeArr[QUAD].Init( TextureManager::Instance()->GetTexture( "particleQuad" ), 1.0f );
+	
+	pointTexture = TextureManager::Instance()->GetTexture( "particleSparkle" );
+	quadTexture = TextureManager::Instance()->GetTexture( "particleQuad" );
 }
 
 
@@ -368,7 +371,7 @@ void ParticleSystem::Draw( const Vector3F* eyeDir )
 	glDepthMask( GL_FALSE );
 
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	DrawPointParticles();
+	DrawPointParticles( eyeDir );
 
 	DrawDecalParticles( DECAL_BOTTOM );
 	glDisable( GL_DEPTH_TEST );
@@ -384,8 +387,11 @@ void ParticleSystem::Draw( const Vector3F* eyeDir )
 }
 
 
-void ParticleSystem::DrawPointParticles()
+void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 {
+	if ( nParticles[POINT] == 0 )
+		return;
+
 	CHECK_GL_ERROR;
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glDisableClientState( GL_NORMAL_ARRAY );
@@ -394,21 +400,21 @@ void ParticleSystem::DrawPointParticles()
 	
 	glEnable( GL_TEXTURE_2D );
 
-#ifdef USING_GL	
-	glEnable(GL_POINT_SPRITE);
-	glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
-#else
-	glEnable(GL_POINT_SPRITE_OES);
-	glTexEnvx(GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE);
-#endif
-	CHECK_GL_ERROR;
-	if ( nParticles[POINT] > 0 ) {
-		glBindTexture( GL_TEXTURE_2D, particleTypeArr[POINT].texture->glID );
-		//float maxSize = 40.0f;
-		//glPointParameterfv( GL_POINT_SIZE_MAX, &maxSize );
+	if (GLEW_ARB_point_sprite)
+		{
+		#ifdef USING_GL	
+			glEnable(GL_POINT_SPRITE);
+			glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
+		#else
+			glEnable(GL_POINT_SPRITE_OES);
+			glTexEnvx(GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE);
+		#endif
 		CHECK_GL_ERROR;
 
-		glPointSize( particleTypeArr[POINT].size );
+		glBindTexture( GL_TEXTURE_2D, pointTexture->glID );
+		CHECK_GL_ERROR;
+
+		glPointSize( 4.0f );
 		CHECK_GL_ERROR;
 		
 		U8* vPtr = (U8*)pointBuffer + 0;
@@ -419,14 +425,79 @@ void ParticleSystem::DrawPointParticles()
 		CHECK_GL_ERROR;
 		glDrawArrays( GL_POINTS, 0, nParticles[POINT] );
 		CHECK_GL_ERROR;
+
+		#ifdef USING_GL
+			glDisable( GL_POINT_SPRITE );
+		#else
+			glDisable( GL_POINT_SPRITE_OES );
+		#endif
+		CHECK_GL_ERROR;
+	}
+	else {
+		QuadVertex base[4];
+		float SIZE = 0.07f;
+		base[0].pos = -eyeDir[Camera::RIGHT]*SIZE - eyeDir[Camera::UP]*SIZE;
+		base[1].pos =  eyeDir[Camera::RIGHT]*SIZE - eyeDir[Camera::UP]*SIZE;
+		base[2].pos =  eyeDir[Camera::RIGHT]*SIZE + eyeDir[Camera::UP]*SIZE;
+		base[3].pos = -eyeDir[Camera::RIGHT]*SIZE + eyeDir[Camera::UP]*SIZE;
+
+		static const Vector2F tex[4] = {
+			{ 0.0f, 0.0f },
+			{ 1.0f, 0.0f },
+			{ 1.0f, 1.0f },
+			{ 0.0f, 1.0f }
+		};
+
+		int index = 0;
+		int vertex = 0;
+		int skip = nParticles[POINT] / MAX_QUAD_PARTICLES + 1;	// the quad is used to buffer, so we may have
+																// fewer particles.
+
+		for( int i=0; i<nParticles[POINT]; i+=skip ) 
+		{
+			const Vector3F& pos  = pointBuffer[i].pos;
+			const Color4F& color = pointBuffer[i].color;
+
+			// Set up the particle that everything else is derived from:
+			quadIndexBuffer[index++] = vertex+0;
+			quadIndexBuffer[index++] = vertex+1;
+			quadIndexBuffer[index++] = vertex+2;
+
+			quadIndexBuffer[index++] = vertex+0;
+			quadIndexBuffer[index++] = vertex+2;
+			quadIndexBuffer[index++] = vertex+3;
+
+			QuadVertex* pV = &vertexBuffer[vertex];
+
+			for( int j=0; j<4; ++j ) {
+				pV->pos = base[j].pos + pos;
+				pV->tex = tex[j];
+				pV->color = color;
+				++pV;
+			}
+			vertex += 4;
+		}
+
+		CHECK_GL_ERROR;
+		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+		glEnable( GL_TEXTURE_2D );
+		glBindTexture( GL_TEXTURE_2D, pointTexture->glID );
+
+		CHECK_GL_ERROR;
+		U8* vPtr = (U8*)vertexBuffer + 0;
+		U8* tPtr = (U8*)vertexBuffer + 12;
+		U8* cPtr = (U8*)vertexBuffer + 20;
+
+		CHECK_GL_ERROR;
+		glVertexPointer(   3, GL_FLOAT, sizeof(QuadVertex), vPtr );
+		glTexCoordPointer( 2, GL_FLOAT, sizeof(QuadVertex), tPtr );
+		glColorPointer(    4, GL_FLOAT, sizeof(QuadVertex), cPtr );
+
+		glDrawElements( GL_TRIANGLES, nParticles[POINT]*6, GL_UNSIGNED_SHORT, quadIndexBuffer );
+		CHECK_GL_ERROR;
 	}
 
-#ifdef USING_GL
-	glDisable( GL_POINT_SPRITE );
-#else
-	glDisable( GL_POINT_SPRITE_OES );
-#endif
-	CHECK_GL_ERROR;
 	
 	// Restore standard state.
 	glEnableClientState( GL_VERTEX_ARRAY );
@@ -444,13 +515,12 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 	}
 
 	QuadVertex base[4];
-
 	base[0].pos = -eyeDir[Camera::RIGHT]*0.5f - eyeDir[Camera::UP]*0.5f;
 	base[1].pos =  eyeDir[Camera::RIGHT]*0.5f - eyeDir[Camera::UP]*0.5f;
 	base[2].pos =  eyeDir[Camera::RIGHT]*0.5f + eyeDir[Camera::UP]*0.5f;
 	base[3].pos = -eyeDir[Camera::RIGHT]*0.5f + eyeDir[Camera::UP]*0.5f;
 
-	const Vector2F tex[4] = {
+	static const Vector2F tex[4] = {
 		{ 0.0f, 0.0f },
 		{ 0.25f, 0.0f },
 		{ 0.25f, 0.25f },
@@ -523,7 +593,7 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 	glEnableClientState( GL_COLOR_ARRAY );
 
 	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, particleTypeArr[QUAD].texture->glID );
+	glBindTexture( GL_TEXTURE_2D, quadTexture->glID );
 
 	CHECK_GL_ERROR;
 	U8* vPtr = (U8*)vertexBuffer + 0;
@@ -546,7 +616,8 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 	CHECK_GL_ERROR;
 }
 
-	
+
+
 void ParticleSystem::DrawDecalParticles( int flag )
 {
 	if ( nDecals == 0 ) {
@@ -622,7 +693,7 @@ void ParticleSystem::DrawDecalParticles( int flag )
 		glEnableClientState( GL_COLOR_ARRAY );
 
 		glEnable( GL_TEXTURE_2D );
-		glBindTexture( GL_TEXTURE_2D, particleTypeArr[QUAD].texture->glID );
+		glBindTexture( GL_TEXTURE_2D, quadTexture->glID );
 
 		CHECK_GL_ERROR;
 		U8* vPtr = (U8*)vertexBuffer + 0;
