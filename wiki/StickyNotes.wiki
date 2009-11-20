@@ -1,5 +1,11 @@
 #Useful code and links from the web
 
+= Application data =
+
+Add: mac code
+Win Code:
+SHGetSpecialFolderPath
+
 = Considering SQLite DB =
 
 Considering moving to SQLite for file access, and removing the roll-my-own. The only downside is learning a new API; upside is a way to view and edit the save files, and a solid mechanism for file access.
