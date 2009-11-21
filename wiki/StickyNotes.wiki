@@ -2,9 +2,9 @@
 
 = Application data =
 
-Add: mac code
-Win Code:
-SHGetSpecialFolderPath
+Mac Code: wacky NS stuff (already done)
+
+Win Code: SHGetSpecialFolderPath
 
 = Considering SQLite DB =
 
