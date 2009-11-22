@@ -29,6 +29,14 @@ public:
 		U8 r, g, b, a;
 	};
 
+	static U16 CalcColorRGB16( RGBA rgba )
+	{
+		U32 c =   ((rgba.r>>3) << 11)
+				| ((rgba.g>>2) << 5)
+				| ((rgba.b>>3) );
+		return (U16)c;
+	}
+
 	static void CalcRGB16( U16 c, RGBA* rgb ) {
 		U32 r = (c & 0xF800) >> 11;		// 5, 0-31
 		U32 g = (c & 0x07E0) >> 5;		// 6, 0-61

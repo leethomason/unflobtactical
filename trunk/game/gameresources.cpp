@@ -141,6 +141,7 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 		itemDef->hp = init->hp;
 		itemDef->transparency = 255;
 		itemDef->materialFlags = init->materialFlags;
+		itemDef->light = init->lightInit;
 
 		ModelResourceManager* modman = ModelResourceManager::Instance();
 		{
@@ -242,13 +243,6 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 			}
 		}
 
-		if ( init->lightInit ) {
-			itemDef->lightX = init->lightInit->x;
-			itemDef->lightY = init->lightInit->y;
-			itemDef->lightW = init->lightInit->w;
-			itemDef->lightH = init->lightInit->h;
-		}
-
 		++init;
 		++index;
 	}
@@ -299,7 +293,7 @@ void Game::LoadMapResources()
 	};
 	InitMapItemDef( FARM_SET, farmSet );
   
-	MapObjectLightInit lightLander = { 0, 0, 6, 6 };
+	Map::LightItemDef lightLander = { 0, 0, 6, 6 };
 
 	const MapItemInit marineSet[] =
 	{

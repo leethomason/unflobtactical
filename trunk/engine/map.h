@@ -49,6 +49,12 @@ public:
 		MAX_TRAVEL = 16,
 	};
 
+	struct LightItemDef
+	{
+		int x, y;	// image space
+		int w, h;	// image space
+	};
+
 	struct MapItemDef 
 	{
 		enum { MAX_CX = 6, MAX_CY = 6 };
@@ -67,10 +73,7 @@ public:
 						memset( pather, 0, MAX_CX*MAX_CY );
 						memset( visibility, 0, MAX_CX*MAX_CY );
 
-						lightX = 0;
-						lightY = 0;
-						lightW = 0;
-						lightH = 0;
+						light = 0;
 					}
 
 		U16		cx, cy;
@@ -78,10 +81,7 @@ public:
 		U8		transparency;		// 0 opaque - 255 transparent
 		U8		_pad;
 		U16		materialFlags;
-		U8		lightX, 
-				lightY, 
-				lightW, 
-				lightH;
+		const LightItemDef* light;
 
 		const ModelResource* modelResource;
 		const ModelResource* modelResourceOpen;
@@ -93,7 +93,7 @@ public:
 
 		// return true if the object can take damage
 		bool CanDamage() const	{ return hp != 0xffff; }
-		bool HasLight() const	{ return lightW > 0; }
+		bool HasLight() const	{ return light != 0; }
 	};
 
 	struct MapItem
@@ -322,6 +322,8 @@ private:
 	grinliz::Vector2F texture1[4];
 
 	void GenerateLightMap();
+	void InvalidateLightMapFromMapBounds( const grinliz::Rectangle2I& mapBounds );
+
 	Texture lightMapTex;	
 	Surface lightMap[3];
 	grinliz::Rectangle2I invalidLightMap;	// [x,x0)
