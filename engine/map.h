@@ -66,6 +66,11 @@ public:
 
 						memset( pather, 0, MAX_CX*MAX_CY );
 						memset( visibility, 0, MAX_CX*MAX_CY );
+
+						lightX = 0;
+						lightY = 0;
+						lightW = 0;
+						lightH = 0;
 					}
 
 		U16		cx, cy;
@@ -73,6 +78,10 @@ public:
 		U8		transparency;		// 0 opaque - 255 transparent
 		U8		_pad;
 		U16		materialFlags;
+		U8		lightX, 
+				lightY, 
+				lightW, 
+				lightH;
 
 		const ModelResource* modelResource;
 		const ModelResource* modelResourceOpen;
@@ -83,7 +92,8 @@ public:
 		U8		visibility[MAX_CX][MAX_CY];
 
 		// return true if the object can take damage
-		bool CanDamage() const { return hp != 0xffff; }
+		bool CanDamage() const	{ return hp != 0xffff; }
+		bool HasLight() const	{ return lightW > 0; }
 	};
 
 	struct MapItem
@@ -91,6 +101,10 @@ public:
 		U8		x, y, rot;
 		U8		itemDefIndex;	// 0: not in use, >0 is the index
 		U16		hp;
+
+		enum {
+			MI_HAS_LIGHT	= 0x01
+		};
 		U16		flags;
 
 		grinliz::Rectangle2<U8> mapBounds8;
@@ -149,7 +163,11 @@ public:
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1>*			LockFogOfWar();
 	void												ReleaseFogOfWar();
 
-	const Surface* GetLightMap()	{ GenerateLightMap(); return &finalMap; }
+	// Light Map (the one that was set)
+	// 0: Light map that was set in "SetLightMap", or white if none set
+	// 1: Light map 0 + lights
+	// 2: Light map 0 + lights + FogOfWar
+	const Surface* GetLightMap( int i)	{ GLASSERT( i>=0 && i<3 ); GenerateLightMap(); return &lightMap[i]; }
 
 	// Rendering.
 	void BindTextureUnits();
@@ -242,8 +260,8 @@ private:
 		void Add( MapItem* );
 		void Unlink( MapItem* );
 
-		MapItem* FindItems( const grinliz::Rectangle2I& bounds );
-		MapItem* FindItems( int x, int y ) { grinliz::Rectangle2I b; b.Set( x, y, x, y ); return FindItems( b ); }
+		MapItem* FindItems( const grinliz::Rectangle2I& bounds, int required );
+		MapItem* FindItems( int x, int y ) { grinliz::Rectangle2I b; b.Set( x, y, x, y ); return FindItems( b, 0 ); }
 		MapItem* FindItem( const Model* model );
 
 		void UnlinkItem( MapItem* item );
@@ -304,9 +322,8 @@ private:
 	grinliz::Vector2F texture1[4];
 
 	void GenerateLightMap();
-	Texture finalMapTex;	
-	Surface finalMap;		// final light map, RGB16
-	Surface baseMap;		// base map, RGB16
+	Texture lightMapTex;	
+	Surface lightMap[3];
 	grinliz::Rectangle2I invalidLightMap;	// [x,x0)
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWar;
 

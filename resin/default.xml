@@ -85,6 +85,8 @@
 	<!-- Maps -->
 	<texture filename="farmland.png" />
 	<image filename="farmlandN.png" />
+
+  <image filename="objectLightMaps.png" />
   
 	<map filename="map.db" />
   

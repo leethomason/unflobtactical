@@ -242,9 +242,17 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 			}
 		}
 
+		if ( init->lightInit ) {
+			itemDef->lightX = init->lightInit->x;
+			itemDef->lightY = init->lightInit->y;
+			itemDef->lightW = init->lightInit->w;
+			itemDef->lightH = init->lightInit->h;
+		}
+
 		++init;
 		++index;
 	}
+
 }
 
 	
@@ -291,11 +299,13 @@ void Game::LoadMapResources()
 	};
 	InitMapItemDef( FARM_SET, farmSet );
   
+	MapObjectLightInit lightLander = { 0, 0, 6, 6 };
+
 	const MapItemInit marineSet[] =
 	{
 			// model		open			destroyed	cx, cz	hp			material	pather
 		{	"lander",		0,				0,			6,	6,	INDESTRUCT,	STEEL,		"00ff00 00ff00 ff00ff ff00ff ff00ff ff00ff",
-																						"00ff00 00ff00 0f00f0 0f00f0 0f00f0 0f00f0"},
+																						"00ff00 00ff00 0f00f0 0f00f0 0f00f0 0f00f0",	&lightLander },
 		{	0	}
 	};
 	InitMapItemDef( MARINE_SET, marineSet );

@@ -70,9 +70,6 @@ public:
 	const float AMBIENT;
 	const float DIFFUSE;
 	const float DIFFUSE_SHADOW;
-	const float NIGHT_RED;
-	const float NIGHT_GREEN;
-	const float NIGHT_BLUE;
 
 	Camera camera;
 

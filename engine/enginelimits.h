@@ -33,7 +33,15 @@ enum {
 	EL_ALLOCATED_MODELS		= 1024,
 	EL_FILE_STRING_LEN		= 16,
 	EL_MAX_ITEM_DEFS		= 256,
+	EL_NIGHT_RED_U8			= 131,
+	EL_NIGHT_GREEN_U8		= 125,
+	EL_NIGHT_BLUE_U8		= 255,
 };
+
+#define EL_NIGHT_RED		( (float)EL_NIGHT_RED_U8/255.f )
+#define	EL_NIGHT_GREEN		( (float)EL_NIGHT_GREEN_U8/255.f )
+#define	EL_NIGHT_BLUE		( (float)EL_NIGHT_BLUE_U8/255.f )
+
 
 //#define EL_SHOW_MODELS
 
