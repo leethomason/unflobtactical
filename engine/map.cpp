@@ -229,6 +229,20 @@ void Map::ReleaseFogOfWar()
 }
 
 
+void Map::InvalidateLightMapFromMapBounds( const grinliz::Rectangle2I& mapBounds )
+{
+	// Map bounds are inclusive [x0,x1], while invalidate bounds are not [x0,x1)
+	// Translate here and check for empty invalidation bounds.
+	Rectangle2I invalidate;
+	invalidate.Set( mapBounds.min.x, mapBounds.min.y, mapBounds.max.x+1, mapBounds.max.y+1 );
+
+	if ( invalidLightMap.max.x > invalidLightMap.min.x )
+		invalidLightMap.DoUnion( invalidate );
+	else
+		invalidLightMap = invalidate;
+}
+
+
 void Map::GenerateLightMap()
 {
 	if (    invalidLightMap.max.x > invalidLightMap.min.x 
@@ -266,30 +280,6 @@ void Map::GenerateLightMap()
 	}
 }
 
-
-/*
-void Map::GenerateLightMap( const grinliz::BitArray<SIZE, SIZE, 1>& fogOfWar )
-{
-	BitArrayRowIterator<SIZE, SIZE, 1> it( fogOfWar ); 
-	U16* dst = (U16*) finalMap.Pixels();
-
-	const U16* src =   (U16*)lightMap.Pixels();
-	GLASSERT( lightMap.BytesPerPixel() == 2 );
-
-	for( int j=0; j<SIZE; ++j ) {
-		for( int i=0; i<SIZE; ++i ) {
-#ifdef MAPMAKER
-			*dst = *src;
-#else
-			*dst = fogOfWar.IsSet( i, SIZE-1-j ) ? *src : 0;
-#endif
-			++src;
-			++dst;
-		}
-	}
-	finalMap.UpdateTexture( finalMapTex.glID );
-}
-*/
 
 
 Map::MapItemDef* Map::InitItemDef( int i )
@@ -366,6 +356,12 @@ void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 			float rot = item->model->GetYRotation();
 			tree->FreeModel( item->model );
 			item->model = 0;
+
+			if ( item->flags & MapItem::MI_HAS_LIGHT ) {
+				Rectangle2I mapBounds;
+				item->MapBounds( &mapBounds );
+				InvalidateLightMapFromMapBounds( mapBounds );
+			}
 
 			if ( itemDef.modelResourceDestroyed ) {
 				item->model = tree->AllocModel( itemDef.modelResourceDestroyed );
@@ -452,10 +448,6 @@ bool Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags, 
 		item->model = model;
 	}
 
-	if ( itemDefArr[defIndex].HasLight() ) {
-		item->flags |= MapItem::MI_HAS_LIGHT;
-	}
-
 	item->x = x;
 	item->y = y;
 	item->rot = rotation;
@@ -468,6 +460,12 @@ bool Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags, 
 	item->next = 0;
 	item->storage = storage;
 	
+	// Check for lights.
+	if ( itemDefArr[defIndex].HasLight() ) {
+		item->flags |= MapItem::MI_HAS_LIGHT;
+		InvalidateLightMapFromMapBounds( mapBounds );
+	}
+
 	quadTree.Add( item );
 
 	// Patch the world states:
@@ -495,6 +493,11 @@ void Map::DeleteAt( int x, int y )
 		quadTree.UnlinkItem( item );
 		Rectangle2I mapBounds;
 		item->MapBounds( &mapBounds );
+
+		// Reset the lights
+		if ( itemDefArr[item->itemDefIndex].HasLight() ) {
+			InvalidateLightMapFromMapBounds( mapBounds );
+		}
 
 		if ( mapDB ) {
 			DeleteRow( item->x, item->y, item->rot, item->itemDefIndex );

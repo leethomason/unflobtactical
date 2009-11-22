@@ -78,7 +78,7 @@ using namespace grinliz;
 
 /*	Notes
 
-	Shadows.
+///	Shadows.
  
 	The engine supports planar shadows. The obvious way to implement this is to:
 		1. render the background in light
@@ -100,6 +100,10 @@ using namespace grinliz;
 	When modulation is added in (for shadows) 2 texture units have to be set. That makes the z-buffer path 
 	faster again. *sigh* All that work and I'm back to the first approach. The single texture approach 
 	would be much simpler with shaders. Oh well. Still at 30fps.
+
+/// VBOs.
+	A complete waste. Turning them off improved performance on the iPod. From 20 to 27 fps.
+
 */
 
 
@@ -255,7 +259,7 @@ void Engine::Draw( int* triCount )
 	if ( enableMap ) {
 		// -------- Ground plane lighted -------- //
 		Color4F color;
-		LightSimple( dayNight, OPEN_LIGHT, &color, 1.0f );
+		LightGroundPlane( OPEN_LIGHT, 1.0f, &color );
 
 		// The depth mask and the depth test should be completely
 		// independent...but it's not. Very subtle point of how
@@ -310,7 +314,7 @@ void Engine::Draw( int* triCount )
 		glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 		CHECK_GL_ERROR;
 
-		LightSimple( dayNight, IN_SHADOW, &color, shadowAmount );
+		LightGroundPlane( IN_SHADOW, shadowAmount, &color );
 		glDepthFunc( GL_LESS );
 		glColor4f( color.x, color.y, color.z, 1.0f );
 		map->Draw();
@@ -471,34 +475,44 @@ void Engine::EnableLights( bool enable, DayNight dayNight )
 void Engine::SetDayNight( bool dayTime, Surface* lightMap )
 {
 	dayNight = dayTime ? DAY_TIME : NIGHT_TIME;
+
+	// If the lightmap isn't provided, compute it.
+	if ( !lightMap ) {
+		diffuseLightMap.Set( Surface::RGB16, Map::SIZE, Map::SIZE );
+		
+		const Vector3F normal = { 0.0f, 1.0f, 0.0f };	
+		float dot = DotProduct( lightDirection, normal );
+		
+		Vector3F incoming = { 1.0f, 1.0f, 1.0f };
+		if ( dayTime == false ) {
+			incoming.Set( EL_NIGHT_RED, EL_NIGHT_GREEN, EL_NIGHT_BLUE );
+		}
+
+		Vector3F color = DIFFUSE * dot * incoming + AMBIENT * incoming;
+		Surface::RGBA rgba = { (U8)(color.x*255), (U8)(color.y*255), (U8)(color.z*255), 255 };
+		U16 c = Surface::CalcColorRGB16( rgba );
+
+		for( int j=0; j<Map::SIZE; ++j ) {
+			for( int i=0; i<Map::SIZE; ++i ) {
+				*((U16*)diffuseLightMap.Pixels() + j*Map::SIZE + 1) = c;
+			}
+		}
+	}
+
 	map->SetLightMap( lightMap );
-	//map->GenerateLightMap( fogOfWar );
 }      
 
 
 
-void Engine::LightSimple( DayNight dayNight, ShadowState shadows, Color4F* color, float shadowAmount )
+void Engine::LightGroundPlane( ShadowState shadows, float shadowAmount, Color4F* outColor )
 {
-	const Vector3F normal = { 0.0f, 1.0f, 0.0f };	
-	float dot = DotProduct( lightDirection, normal );
-	if ( dayNight == NIGHT_TIME ) {
-		dot = 1.0f;	// Light map accounts for normal.
-	}
-
-	float diffuse = DIFFUSE;
+	// The color (unshadowed) is already committed to the ground plane shadow map.
+	// This just turns shadows on and off.
+	float light = 1.0f;
 	if ( shadows == IN_SHADOW ) {
-		// FIXME: not sure what I'm missing in the light equation, but this is too dark.
-		// The main reason LightSimple is here is that lighting doesn't look correct in shadows.
-		// Something is getting tweaked in the state. (Not a bug, just the difficulties of
-		// fixed pipeline lightning. Oh how I miss shaders.)
-		//diffuse *= gSHADOW;
-		diffuse *= 0.7f + 0.3f*(1.0f-shadowAmount);
+		light = 1.0f - 0.3f*shadowAmount;
 	}
-	float light = AMBIENT + diffuse*dot;
-
-	CHECK_GL_ERROR;
-	//glColor4f( light, light, light, 1.0f );
-	color->Set( light, light, light, 1.0f );
+	outColor->Set( light, light, light, 1.0f );
 }
 
 

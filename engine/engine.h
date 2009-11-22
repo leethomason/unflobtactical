@@ -151,12 +151,9 @@ private:
 	void DrawCamera();
 	void CalcCameraRotation( grinliz::Matrix4* );
 	void EnableLights( bool enable, DayNight dayNight );
-	void LightSimple( DayNight dayNight, ShadowState shadows, Color4F* color, float shadowAmount );
+	void LightGroundPlane( ShadowState shadows, float shadowAmount, Color4F* outColor );
 
 	void PushShadowMatrix();
-
-	//void PushShadowTextureMatrix();
-	//void PopShadowTextureMatrix();
 
 	Screenport screenport;
  	float	frustumLeft, frustumRight, 
@@ -172,13 +169,10 @@ private:
 	SpaceTree* spaceTree;
 	RenderQueue* renderQueue;
 	bool enableMap;
-//	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWar;
+	Surface diffuseLightMap;
 
-	// <serialize>
-	// camera
 	grinliz::Vector3F lightDirection;
 	DayNight dayNight;
-	// </serialize>
 };
 
 #endif // UFOATTACK_ENGINE_INCLUDED
