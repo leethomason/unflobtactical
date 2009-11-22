@@ -625,7 +625,6 @@ void Map::InsertRow( int x, int y, int r, int def, int hp, int flags, const Stor
 	sqlite3_bind_int( stmt, 6, flags );
 
 	if ( storage ) {
-		int nBytes = sizeof(int)*EL_MAX_ITEM_DEFS;
 		sqlite3_bind_blob( stmt, 7, storage->Rounds(), sizeof(int)*EL_MAX_ITEM_DEFS, 0 );
 	}
 	else {
@@ -691,7 +690,7 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 			int r	= sqlite3_column_int( stmt, 2 );
 			int def = sqlite3_column_int( stmt, 3 );
 			int hp	= sqlite3_column_int( stmt, 4 );
-			int flags = sqlite3_column_int( stmt, 5 );
+			//int flags = sqlite3_column_int( stmt, 5 );
 
 			int nBytes = sqlite3_column_bytes( stmt, 6 );
 			Storage* storage = 0;
@@ -711,11 +710,12 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 }
 
 
-/*static*/ sqlite3* Map::CreateMap( sqlite3* res )
+/*static*/ sqlite3* Map::CreateMap( const std::string& savePath, sqlite3* res )
 {
 	sqlite3_stmt* stmt = 0;
 	int result = sqlite3_prepare_v2( res, "SELECT * FROM map",-1, &stmt, 0 );
 	GLASSERT( result == SQLITE_OK );
+	(void)result;
 
 	int id=0;
 
@@ -732,13 +732,17 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 
 	char* mem = new char[size];
 	reader.ReadData( id, size, mem );
-	FILE* fp = fopen( "currentMap.db", "wb" );
+	
+	std::string path = savePath + "currentMap.db";
+	
+	FILE* fp = fopen( path.c_str(), "wb" );
+	GLASSERT( fp );
 	fwrite( mem, size, 1, fp );
 	fclose( fp );
 	delete [] mem;
 
 	sqlite3* db = 0;
-	sqlite3_open( "currentMap.db", &db );
+	sqlite3_open( path.c_str(), &db );
 	return db;
 }
 
@@ -1412,9 +1416,6 @@ int Map::QuadTree::CalcNode( const Rectangle2<U8>& bounds, int* d )
 				*d = depth;
 			break;
 		}
-
-		if ( depth == 3 )
-			int debug=1;
 	}
 	GLASSERT( offset >= 0 && offset < NUM_QUAD_NODES );
 	return offset;

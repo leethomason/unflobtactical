@@ -1068,9 +1068,11 @@ float BattleScene::Path::DeltaToRotation( int dx, int dy )
 
 void BattleScene::Path::CalcDelta( int i0, int i1, grinliz::Vector2I* vec, float* rot )
 {
+#ifdef DEBUG
 	int len = (int)statePath.size();
 	GLASSERT( i0>=0 && i0<len-1 );
 	GLASSERT( i1>=1 && i1<len );
+#endif
 	Vector2<S16> path0 = GetPathAt( i0 );
 	Vector2<S16> path1 = GetPathAt( i1 );
 

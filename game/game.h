@@ -46,7 +46,7 @@ private:
 	EngineData engineData;
 
 public:
-	Game( const Screenport& screenport );
+	Game( const Screenport& screenport, const char* savePath );
 	~Game();
 
 	void DoTick( U32 msec );
@@ -133,7 +133,6 @@ private:
 	void LoadMapResources();
 	void LoadItemResources();
 
-	//void LoadMap( const char* name );
 	void InitMapItemDef( int startIndex, const MapItemInit* );
 
 	UFOStream* rootStream;
@@ -156,7 +155,8 @@ private:
 	int rotTestStart;
 	int rotTestCount;
 	Screenport screenport;
-
+	std::string savePath;
+	
 #ifdef MAPMAKER	
 	bool showPathing;
 #endif

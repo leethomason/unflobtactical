@@ -113,9 +113,8 @@
         return NO;
     }
     
-	game = NewGame( backingWidth, backingHeight, 1 );
-	//GameRotate( game, 1 );
-	
+	NSString* path = [self getSavePath];
+	game = NewGame( backingWidth, backingHeight, 1, [path UTF8String] );	
     return YES;
 }
 
@@ -348,6 +347,14 @@
 	GameInputCancelled( game );
 	isDragging = false;
 	isZooming = false;
+}
+
+- (NSString*)getSavePath {
+	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+	NSString *documentsDirectory = [paths objectAtIndex:0];
+	//NSString *databaseFile = [documentsDirectory stringByAppendingPathComponent:@"game.db"];
+	return documentsDirectory;
+	//GamePathToSave( game, [documentsDirectory UTF8String] );
 }
 
 @end

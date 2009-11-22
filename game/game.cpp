@@ -34,7 +34,7 @@
 
 using namespace grinliz;
 
-Game::Game( const Screenport& sp ) :
+Game::Game( const Screenport& sp, const char* _savePath ) :
 	engine( sp, engineData ),
 	screenport( sp ),
 	markFrameTime( 0 ),
@@ -49,6 +49,16 @@ Game::Game( const Screenport& sp ) :
 	scenePopQueued( false ),
 	scenePushQueued( -1 )
 {
+	savePath = _savePath;
+	char c = savePath[savePath.size()-1];
+	if ( c != '\\' && c != '/' ) {	
+#ifdef WIN32
+		savePath += '\\';
+#else
+		savePath += '/';
+#endif
+	}	
+	
 	rootStream = 0;
 	currentFrame = 0;
 	memset( &profile, 0, sizeof( ProfileData ) );
@@ -59,6 +69,7 @@ Game::Game( const Screenport& sp ) :
 	PlatformPathToResource( "uforesource", "db", buffer, 260 );
 	int sqlResult = sqlite3_open_v2( buffer, &database, SQLITE_OPEN_READONLY, 0 );
 	GLASSERT( sqlResult == SQLITE_OK );
+	(void) sqlResult;
 
 	LoadTextures();
 	modelLoader = new ModelLoader();
@@ -80,7 +91,7 @@ Game::Game( const Screenport& sp ) :
 #else
 	// If we aren't the map maker, then we need to load a map.
 	// For now, always create a new one.
-	sqlite3* mapDB = Map::CreateMap( database );
+	sqlite3* mapDB = Map::CreateMap( savePath, database );
 	engine.GetMap()->SyncToDB( mapDB, "farmland" );
 #endif
 
@@ -451,6 +462,22 @@ void Game::MouseMove( int sx, int sy )
 #endif
 }
 
+/*
+void Game::SetPathToSave( const char* path )
+{
+	GLASSERT( path && *path );
+	std::string str = path;
+	savePath = str;
+	char c = savePath[savePath.size()-1];
+	if ( c != '\\' && c != '/' ) {	
+#ifdef WIN32
+		savePath += '\\';
+#else
+		savePath += '/';
+#endif
+	}
+}
+*/
 
 #ifdef MAPMAKER
 

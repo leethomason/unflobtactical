@@ -142,7 +142,9 @@ void ModelLoader::Load( sqlite3* db, const char* name, ModelResource* res )
 #endif
 		U32 indexSize = sizeof(U16)*res->atom[i].nIndex;
 		U32 dataSize  = sizeof(Vertex)*res->atom[i].nVertex;
-
+		(void) indexSize;
+		(void) dataSize;
+		
 		res->atom[i].index  = res->allIndex+iOffset;
 		res->atom[i].vertex = res->allVertex+vOffset;
 

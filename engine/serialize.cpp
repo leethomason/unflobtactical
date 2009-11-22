@@ -54,8 +54,6 @@ void ModelGroup::Load( sqlite3* db, int id )
 
 	if (sqlite3_step(stmt) == SQLITE_ROW) 
 	{
-		int binaryID = 0;
-
 		// 0: id
 		textureName[0] = 0;
 		strcpy( textureName, (const char*)sqlite3_column_text( stmt, 1 ) );		// name
