@@ -70,17 +70,13 @@ Map::Map( SpaceTree* tree )
 	pathQueryID = 1;
 	visibilityQueryID = 1;
 
-	finalMap.Set( Surface::RGB16, SIZE, SIZE );
-	baseMap.Set( Surface::RGB16, SIZE, SIZE );
-	//transMap.Set( Surface::ALPHA, SIZE, SIZE );
-	fogOfWar.SetAll();
+	for( int i=0; i<3; ++i ) {
+		lightMap[i].Set( Surface::RGB16, SIZE, SIZE );
+		memset( lightMap[i].Pixels(), 255, SIZE*SIZE*2 );
+	}
 
-	memset( finalMap.Pixels(), 255, SIZE*SIZE*2 );
-	memset( baseMap.Pixels(), 255, SIZE*SIZE*2 );
-	//memset( transMap.Pixels(), 255, SIZE*SIZE );
-
-	U32 id = finalMap.CreateTexture();
-	finalMapTex.Set( "lightmap", id, false );
+	U32 id = lightMap[2].CreateTexture();
+	lightMapTex.Set( "lightmap", id, false );
 }
 
 
@@ -96,7 +92,7 @@ void Map::Clear()
 	// Find everything:
 	Rectangle2I b;
 	b.Set( 0, 0, SIZE-1, SIZE-1 );
-	MapItem* pItem = quadTree.FindItems( b );
+	MapItem* pItem = quadTree.FindItems( b, 0 );
 
 	while( pItem ) {
 		MapItem* temp = pItem;
@@ -131,7 +127,7 @@ void Map::Draw()
 	glActiveTexture( GL_TEXTURE1 );
 	glClientActiveTexture( GL_TEXTURE1 );
 	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, finalMapTex.glID );
+	glBindTexture( GL_TEXTURE_2D, lightMapTex.glID );
 	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 	glTexCoordPointer( 2, GL_FLOAT, 0, texture1 );
 
@@ -183,7 +179,7 @@ void Map::BindTextureUnits()
 	glActiveTexture( GL_TEXTURE1 );
 	glClientActiveTexture( GL_TEXTURE1 );
 	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, finalMapTex.glID );
+	glBindTexture( GL_TEXTURE_2D, lightMapTex.glID );
 	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 	glTexCoordPointer( 2, GL_FLOAT, 0, texture1 );
 
@@ -211,10 +207,10 @@ void Map::SetLightMap( const Surface* surface )
 		GLASSERT( surface->BytesPerPixel() == 2 );
 		GLASSERT( surface->Width() == SIZE );
 		GLASSERT( surface->Height() == SIZE	 );
-		memcpy( baseMap.Pixels(), surface->Pixels(), SIZE*SIZE*2 );
+		memcpy( lightMap[0].Pixels(), surface->Pixels(), SIZE*SIZE*2 );
 	}
 	else {
-		memset( baseMap.Pixels(), 255, SIZE*SIZE*2 );
+		memset( lightMap[0].Pixels(), 255, SIZE*SIZE*2 );
 	}
 	invalidLightMap.Set( 0, 0, SIZE, SIZE );
 }
@@ -243,25 +239,29 @@ void Map::GenerateLightMap()
 		//		Lights: add color to basemap
 		//		FogOfWar: flip on or off
 		// Output:
-		//		finalMap: final computed light map (for rendering)
+		//		processedLightMap:	base + light
+		//		finalMap:			base + light + FOW
 
-		const U16* src = (const U16*)baseMap.Pixels();
-		U16* dst = (U16*)finalMap.Pixels();
-		//Surface::RGBA rgba;
+		const U16* src = (const U16*)lightMap[0].Pixels();
+		U16* dst1 = (U16*) lightMap[1].Pixels();
+		U16* dst2 = (U16*) lightMap[2].Pixels();
 
 		for( int j=invalidLightMap.min.y; j<invalidLightMap.max.y; ++j ) {
 			for( int i=invalidLightMap.min.x; i<invalidLightMap.max.x; ++i ) {
 
+				U16 s = *(src+j*SIZE+i);
+
+				*(dst1+j*SIZE+i) = s;
+
 				if ( fogOfWar.IsSet( i, SIZE-1-j ) ) {
-					//Surface::RGB16( *(src+j*SIZE+i), &rgba );
-					*(dst+j*SIZE+i) = *(src+j*SIZE+i);
+					*(dst2+j*SIZE+i) = s;
 				}
 				else {
-					*(dst+j*SIZE+i) = 0;
+					*(dst2+j*SIZE+i) = 0;
 				}
 			}
 		}
-		finalMap.UpdateTexture( finalMapTex.glID );
+		lightMap[2].UpdateTexture( lightMapTex.glID );
 		invalidLightMap.Set( 0, 0, 0, 0 );
 	}
 }
@@ -422,7 +422,7 @@ bool Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags, 
 
 	// Check for duplicate. Only check for exact dupe - same origin & rotation.
 	// This isn't required, but prevents map creation mistakes.
-	MapItem* root = quadTree.FindItems( mapBounds );
+	MapItem* root = quadTree.FindItems( mapBounds, 0 );
 	while( root ) {
 		if ( root->x == x && root->y == y && root->rot == rotation && root->itemDefIndex == defIndex ) {
 			GLOUTPUT(( "Duplicate layer.\n" ));
@@ -450,6 +450,10 @@ bool Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags, 
 		model->SetPos( modelPos.x, 0.0f, modelPos.y );
 		model->SetYRotation( 90.0f * rotation );
 		item->model = model;
+	}
+
+	if ( itemDefArr[defIndex].HasLight() ) {
+		item->flags |= MapItem::MI_HAS_LIGHT;
 	}
 
 	item->x = x;
@@ -921,7 +925,7 @@ void Map::ClearVisPathMap( grinliz::Rectangle2I& bounds )
 
 void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
 {
-	MapItem* item = quadTree.FindItems( bounds );
+	MapItem* item = quadTree.FindItems( bounds, 0 );
 	while( item ) {
 		
 		if ( !item->Destroyed() ) {
@@ -1330,7 +1334,7 @@ void Map::QuadTree::UnlinkItem( MapItem* item )
 }
 
 
-Map::MapItem* Map::QuadTree::FindItems( const Rectangle2I& bounds )
+Map::MapItem* Map::QuadTree::FindItems( const Rectangle2I& bounds, int required )
 {
 	// Walk the map and pull out items in bounds.
 	MapItem* root = 0;
@@ -1364,7 +1368,9 @@ Map::MapItem* Map::QuadTree::FindItems( const Rectangle2I& bounds )
 				}
 				else {
 					while( pItem ) { 
-						if ( pItem->mapBounds8.Intersect( bounds8 ) ) {
+						if (    ( ( pItem->flags & required) == required )
+							 && pItem->mapBounds8.Intersect( bounds8 ) )
+						{
 							pItem->next = root;
 							root = pItem;
 						}
@@ -1387,7 +1393,7 @@ Map::MapItem* Map::QuadTree::FindItem( const Model* model )
 	b.max.y = (int)ceilf( model->Z() );
 
 	filterModel = model;
-	MapItem* root = FindItems( b );
+	MapItem* root = FindItems( b, 0 );
 	filterModel = 0;
 	return root;
 }

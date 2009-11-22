@@ -77,22 +77,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	}
 #endif
 
-	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		if ( units[i].IsAlive() ) {
-			Vector2I pos;
-			float rotation;
-			units[i].CalcMapPos( &pos, &rotation );
-			CalcVisibility( &units[i], pos.x, pos.y, rotation );
-		}
-	}
-	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-		if ( units[i].IsAlive() ) {
-			Vector2I pos;
-			float rotation;
-			units[i].CalcMapPos( &pos, &rotation );
-			CalcVisibility( &units[i], pos.x, pos.y, rotation );
-		}
-	}
+	CalcAllVisibility();
 	SetFogOfWar();
 }
 
@@ -667,6 +652,9 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 					engine->SetDayNight( false, game->GetLightMap( "farmlandN" ) );
 				else
 					engine->SetDayNight( true, 0 );
+
+				CalcAllVisibility();
+				SetFogOfWar();
 				break;
 
 			case 2:
@@ -820,6 +808,28 @@ Unit* BattleScene::GetUnitFromTile( int x, int z )
 }
 
 
+void BattleScene::CalcAllVisibility()
+{
+	visibilityMap.ClearAll();
+	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+		if ( units[i].IsAlive() ) {
+			Vector2I pos;
+			float rotation;
+			units[i].CalcMapPos( &pos, &rotation );
+			CalcVisibility( &units[i], pos.x, pos.y, rotation );
+		}
+	}
+	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+		if ( units[i].IsAlive() ) {
+			Vector2I pos;
+			float rotation;
+			units[i].CalcMapPos( &pos, &rotation );
+			CalcVisibility( &units[i], pos.x, pos.y, rotation );
+		}
+	}
+}
+
+
 void BattleScene::CalcVisibility( const Unit* unit, int x, int y, float rotation )
 {
 	int unitID = unit - units;
@@ -895,35 +905,58 @@ void BattleScene::CalcVisibility( const Unit* unit, int x, int y, float rotation
 			/* Line walking algorithm. Step 1 unit on the major axis,
 			   and occasionally on the minor axis.
 			*/
-			int light = 255;
-			const Surface* lightMap = engine->GetMap()->GetLightMap();
+			float light = 1.0f;
+			const Surface* lightMap = engine->GetMap()->GetLightMap(1);
 			GLASSERT( lightMap->Format() == Surface::RGB16 );
-			const U16* pixel = (const U16*) lightMap->Pixels();
+			//const U16* pixel = (const U16*) lightMap->Pixels();
 
 			Vector2<Fixed> p = { Fixed(x)+Fixed(0.5f), Fixed(y)+Fixed(0.5f) };
-			bool canSee = true;
 
-			for( int k=0; k<steps && light > 0; ++k ) {
+			int k=0;
+			for( ; k<steps; ++k ) {
 				Vector2<Fixed> q = p;
 				q.X(axis) += axisDir;
 				q.X(!axis) += delta;
 
 				Vector2I p0 = { (int)p.x, (int)p.y };
 				Vector2I q0 = { (int)q.x, (int)q.y };
-				canSee = engine->GetMap()->CanSee( p0, q0 );
+				bool canSee = engine->GetMap()->CanSee( p0, q0 );
 				if ( !canSee ) {
 					break;
 				}
 
 				// Put light at the bottom: if we run out, we can't see the NEXT thing.
-				Surface::RGBA rgba;
-				Surface::CalcRGB16( *(pixel+q0.y*Map::SIZE+q0.x), &rgba );
-				int m = Max( rgba.r, Max( rgba.g, rgba.b ) );
-				light -= (255-m);
+				if ( !engine->GetDayTime() ) {
 
+					float dist=1.0f;
+					if ( abs( p0.x-q0.x ) + abs( p0.y-q0.y ) == 2 ) {
+						dist = 1.4f;
+					}
+
+					Surface::RGBA rgba;
+					U16 c = lightMap->ImagePixel16( q0.x, q0.y );
+					Surface::CalcRGB16( c, &rgba );
+
+					const float DARK  = 0.2f;
+					const float LIGHT = 0.1f;
+					const int EPS = 10;
+
+					if (    rgba.r > (EL_NIGHT_RED_U8+EPS)
+						 || rgba.g > (EL_NIGHT_GREEN_U8+EPS)
+						 || rgba.b > (EL_NIGHT_BLUE_U8+EPS) ) 
+					{
+						light -= LIGHT * dist;
+					}
+					else {
+						light -= DARK * dist;
+					}
+
+					if ( light <= 0.0f )
+						break;
+				}
 				p = q;
 			}
-			if ( canSee )
+			if ( k == steps )
 				visibilityMap.Set( i, j, unitID );
 		}
 	}

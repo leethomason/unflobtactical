@@ -107,6 +107,7 @@ private:
 	void SetUnitsDraggable();
 	void TestHitTesting();
 	void CalcVisibility( const Unit* unit, int x, int y, float rotation );
+	void CalcAllVisibility();
 	void SetPathBlocks();
 
 	Unit* UnitFromModel( Model* m );

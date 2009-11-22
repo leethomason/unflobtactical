@@ -104,6 +104,12 @@ private:
 	bool scenePopQueued;
 	int scenePushQueued;
 
+	struct MapObjectLightInit
+	{
+		int x, y;	// image units: 0,0 is upper left
+		int w, h;
+	};
+
 	struct MapItemInit 
 	{
 		const char* Name() const { return model; }
@@ -124,6 +130,7 @@ private:
 		*/
 		const char* pather;
 		const char* visibility;
+		const MapObjectLightInit* lightInit;
 	};
 
 	void LoadTextures();

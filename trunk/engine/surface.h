@@ -28,17 +28,18 @@ public:
 	struct RGBA {
 		U8 r, g, b, a;
 	};
-	static void CalcRGB16( U16 color, RGBA* rgb ) {
-		U32 r = (color>>11)& 0x1f;   //5
-		U32 g = (color>>5) & 0x3f;   //6	
-		U32 b = (color)    & 0x1f;   //5
+
+	static void CalcRGB16( U16 c, RGBA* rgb ) {
+		U32 r = (c & 0xF800) >> 11;		// 5, 0-31
+		U32 g = (c & 0x07E0) >> 5;		// 6, 0-61
+		U32 b = (c & 0x001F);			// 5, 0-31
 
 		// 0-15 is the range.
 		// 0  -> 0
 		// 15 -> 255
-		rgb->r = (r<<5)|r;
-		rgb->g = (g<<6)|g;
-		rgb->b = (b<<5)|b;
+		rgb->r = (r<<3)|(r>>2);
+		rgb->g = (g<<2)|(g>>4);
+		rgb->b = (b<<3)|(b>>2);
 		rgb->a = 255;
 	}
 	static void CalcRGBA16( U16 color, RGBA* rgb ) {
@@ -74,6 +75,14 @@ public:
 	bool		Alpha() const			{ return (format!=RGB16) ? true : false; }
 	int			Format() const			{ return format; }
 
+	// Surfaces are flipped (as are images) for OpenGL. This "unflips" back to map==pixel coordinates.
+	U16	ImagePixel16( int x, int y ) const	{ 
+		GLASSERT( x >=0 && x < Width() );
+		GLASSERT( y >=0 && y < Height() );
+		GLASSERT( BytesPerPixel() == 2 );
+		return *((const U16*)pixels + (h-1-y)*w + x);
+	}
+
 	// Set the format and allocate memory.
 	void Set( int format, int w, int h );
 
@@ -91,8 +100,6 @@ public:
 	const char* Name() const			{ return name; }
 
 private:
-	//U32 LowerCreateTexture( int format, int type );
-
 	int format;
 	int w;
 	int h;

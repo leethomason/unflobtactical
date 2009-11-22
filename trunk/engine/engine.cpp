@@ -107,9 +107,6 @@ Engine::Engine( const Screenport& port, const EngineData& _engineData )
 	:	AMBIENT( 0.3f ),
 		DIFFUSE( 0.7f ),
 		DIFFUSE_SHADOW( 0.3f ),
-		NIGHT_RED( 131.f/255.f ),
-		NIGHT_GREEN( 125.f/255.f ),
-		NIGHT_BLUE( 1.0f ),
 		screenport( port ),
 		dayNight( DAY_TIME ),
 		engineData( _engineData ),
@@ -331,7 +328,6 @@ void Engine::Draw( int* triCount )
 	glDepthFunc( depthFunc );
 	CHECK_GL_ERROR;
 
-	//glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 	renderQueue->SetColor( 1, 1, 1 );
 	EnableLights( true, dayNight );
 	Model* fogRoot = 0;
@@ -442,9 +438,9 @@ void Engine::EnableLights( bool enable, DayNight dayNight )
 		float ambient[4] = { AMBIENT, AMBIENT, AMBIENT, 1.0f };
 		float diffuse[4] = { DIFFUSE, DIFFUSE, DIFFUSE, 1.0f };
 		if ( dayNight == NIGHT_TIME ) {
-			diffuse[0] *= NIGHT_RED;
-			diffuse[1] *= NIGHT_GREEN;
-			diffuse[2] *= NIGHT_BLUE;
+			diffuse[0] *= EL_NIGHT_RED;
+			diffuse[1] *= EL_NIGHT_GREEN;
+			diffuse[2] *= EL_NIGHT_BLUE;
 		}
 
 		Vector3F lightDir = lightDirection;
