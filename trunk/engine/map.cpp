@@ -211,10 +211,10 @@ void Map::SetLightMap( const Surface* surface )
 		GLASSERT( surface->BytesPerPixel() == 2 );
 		GLASSERT( surface->Width() == SIZE );
 		GLASSERT( surface->Height() == SIZE	 );
-		memcpy( finalMap.Pixels(), surface->Pixels(), SIZE*SIZE*2 );
+		memcpy( baseMap.Pixels(), surface->Pixels(), SIZE*SIZE*2 );
 	}
 	else {
-		memset( finalMap.Pixels(), 255, SIZE*SIZE*2 );
+		memset( baseMap.Pixels(), 255, SIZE*SIZE*2 );
 	}
 	invalidLightMap.Set( 0, 0, SIZE, SIZE );
 }

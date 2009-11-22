@@ -214,7 +214,7 @@ int main( int argc, char **argv )
 	grinliz::Vector2I prevMouseDown = { 0, 0 };
 	U32 prevMouseDownTime = 0;
 
-	void* game = NewGame( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, rotation );
+	void* game = NewGame( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, rotation, ".\\" );
 
 	// ---- Main Loop --- //
 	while ( !done )
