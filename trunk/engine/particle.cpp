@@ -400,7 +400,12 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 	
 	glEnable( GL_TEXTURE_2D );
 
-	if (GLEW_ARB_point_sprite)
+	bool usePointSprite = true;
+#ifdef _MSC_VER
+	usePoint = (GLEW_ARB_point_sprite) ? true : false;
+#endif
+	
+	if (usePointSprite)
 		{
 		#ifdef USING_GL	
 			glEnable(GL_POINT_SPRITE);

@@ -36,6 +36,10 @@ enum {
 };
 
 //#define EL_SHOW_MODELS
+
+/* It is much faster, from 20fps to 27fps to run WITHOUT VBOs. Never trust the docs, apparently. 
+   This was removed to get it working on the Intel GMA chip, but accelerated the iPhone.
+ */
 //#define EL_USE_VBO
 
 #endif

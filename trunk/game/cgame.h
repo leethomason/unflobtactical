@@ -22,7 +22,7 @@ extern "C" {
 
 
 // --- Platform to Core --- //
-void* NewGame( int width, int height, int rotation );
+void* NewGame( int width, int height, int rotation, const char* savePath );
 void DeleteGame( void* handle );
 
 // Input
@@ -72,8 +72,8 @@ void GameCameraGet( void* handle, int param, float* value );
 void GameCameraSet( void* handle, int param, float value );
 
 void GameMoveCamera( void* handle, float dx, float dy, float dz );
-//void GameAdjustPerspective( void* handle, float dFOV );
-//void GameShadowMode( void* handle );
+	
+void GamePathToSave( void* handle, const char* path );
 	
 // --- Core to platform --- //
 void PlatformPathToResource( const char* name, const char* extension, char* buffer, int bufferLen );

@@ -21,10 +21,10 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
-void* NewGame( int width, int height, int rotation )
+void* NewGame( int width, int height, int rotation, const char* savePath )
 {
 	Screenport port( width, height, rotation );
-	Game* game = new Game( port );
+	Game* game = new Game( port, savePath );
 	GLOUTPUT(( "NewGame.\n" ));
 	return game;
 }
@@ -122,18 +122,13 @@ void GameMoveCamera( void* handle, float dx, float dy, float dz )
 	game->engine.camera.DeltaPosWC( dx, dy, dz );
 }
 
-//void GameAdjustPerspective( void* handle, float dFOV )
-//{
-//	Game* game = (Game*)handle;
-//	game->engine.fov += dFOV;
-//	game->engine.SetPerspective();
-//}
-
-//void GameRotate( void* handle, int rotation )
-//{
-// 	Game* game = (Game*)handle;
-//	game->SetScreenRotation( rotation );
-//}
+/*
+void GamePathToSave( void* handle, const char* path )
+{
+	Game* game = (Game*)handle;
+	game->SetPathToSave( path );
+}
+*/
 
 void PlatformPathToResource( const char* name, const char* extension, char* buffer, int bufferLen )
 {
@@ -157,4 +152,3 @@ void PlatformPathToResource( const char* name, const char* extension, char* buff
 	strncpy( buffer, fullname.c_str(), bufferLen );
 #endif
 }
-

@@ -53,5 +53,5 @@ Note that setting the view non-opaque will only work if the EAGL surface has an 
 - (void)drawView;
 - (float)calcLength:(CGPoint)p0 p1:(CGPoint)p1;
 - (void)dumpTouch:(UITouch*)touch;
-
+- (NSString*) getSavePath;
 @end
