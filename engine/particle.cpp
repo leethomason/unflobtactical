@@ -402,7 +402,7 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 
 	bool usePointSprite = true;
 #ifdef _MSC_VER
-	usePoint = (GLEW_ARB_point_sprite) ? true : false;
+	usePointSprite = (GLEW_ARB_point_sprite) ? true : false;
 #endif
 	
 	if (usePointSprite)
