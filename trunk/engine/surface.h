@@ -91,6 +91,13 @@ public:
 		return *((const U16*)pixels + (h-1-y)*w + x);
 	}
 
+	U16 Pixel16( int x, int y ) const {
+		GLASSERT( x >=0 && x < Width() );
+		GLASSERT( y >=0 && y < Height() );
+		GLASSERT( BytesPerPixel() == 2 );
+		return *((const U16*)pixels + (h-1-y)*w + x);
+	}
+
 	// Set the format and allocate memory.
 	void Set( int format, int w, int h );
 

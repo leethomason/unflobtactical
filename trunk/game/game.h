@@ -104,6 +104,15 @@ private:
 	bool scenePopQueued;
 	int scenePushQueued;
 
+	struct MapLightInit
+	{
+		const char* name;
+		int x;	// image position
+		int y;
+		int cx;
+		int cy;
+	};
+
 	struct MapItemInit 
 	{
 		const char* Name() const { return model; }
@@ -124,7 +133,7 @@ private:
 		*/
 		const char* pather;
 		const char* visibility;
-		const Map::LightItemDef* lightInit;
+		int lightDef;
 	};
 
 	void LoadTextures();
@@ -134,6 +143,7 @@ private:
 	void LoadMapResources();
 	void LoadItemResources();
 
+	void InitMapLight( int index, const MapLightInit* init );
 	void InitMapItemDef( int startIndex, const MapItemInit* );
 
 	UFOStream* rootStream;

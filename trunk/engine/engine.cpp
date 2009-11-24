@@ -477,29 +477,36 @@ void Engine::SetDayNight( bool dayTime, Surface* lightMap )
 	dayNight = dayTime ? DAY_TIME : NIGHT_TIME;
 
 	// If the lightmap isn't provided, compute it.
-	if ( !lightMap ) {
+	if ( lightMap ) {
+		map->SetLightMap( lightMap );
+	}
+	else {
 		diffuseLightMap.Set( Surface::RGB16, Map::SIZE, Map::SIZE );
 		
 		const Vector3F normal = { 0.0f, 1.0f, 0.0f };	
 		float dot = DotProduct( lightDirection, normal );
 		
 		Vector3F incoming = { 1.0f, 1.0f, 1.0f };
-		if ( dayTime == false ) {
-			incoming.Set( EL_NIGHT_RED, EL_NIGHT_GREEN, EL_NIGHT_BLUE );
+		Vector3F color;
+
+		if ( dayTime == true ) {
+			color = DIFFUSE * dot * incoming + AMBIENT * incoming;
+		}
+		else {
+			// The night is "all ambient" and the diffuse isn't used.
+			color.Set( EL_NIGHT_RED, EL_NIGHT_GREEN, EL_NIGHT_BLUE );
 		}
 
-		Vector3F color = DIFFUSE * dot * incoming + AMBIENT * incoming;
 		Surface::RGBA rgba = { (U8)(color.x*255), (U8)(color.y*255), (U8)(color.z*255), 255 };
 		U16 c = Surface::CalcColorRGB16( rgba );
 
 		for( int j=0; j<Map::SIZE; ++j ) {
 			for( int i=0; i<Map::SIZE; ++i ) {
-				*((U16*)diffuseLightMap.Pixels() + j*Map::SIZE + 1) = c;
+				*((U16*)diffuseLightMap.Pixels() + j*Map::SIZE + i) = c;
 			}
 		}
+		map->SetLightMap( &diffuseLightMap );
 	}
-
-	map->SetLightMap( lightMap );
 }      
 
 
