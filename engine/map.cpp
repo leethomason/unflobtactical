@@ -45,7 +45,7 @@ Map::Map( SpaceTree* tree )
 	width = height = SIZE;
 	texture = 0;
 	nWalkingVertex = 0;
-	invalidLightMap.Set( 0, 0, SIZE, SIZE );
+	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
 
 	vertex[0].pos.Set( 0.0f,		0.0f, 0.0f );
 	vertex[1].pos.Set( 0.0f,		0.0f, (float)SIZE );
@@ -92,7 +92,7 @@ void Map::Clear()
 	// Find everything:
 	Rectangle2I b;
 	b.Set( 0, 0, SIZE-1, SIZE-1 );
-	MapItem* pItem = quadTree.FindItems( b, 0 );
+	MapItem* pItem = quadTree.FindItems( b, 0, 0 );
 
 	while( pItem ) {
 		MapItem* temp = pItem;
@@ -212,41 +212,26 @@ void Map::SetLightMap( const Surface* surface )
 	else {
 		memset( lightMap[0].Pixels(), 255, SIZE*SIZE*2 );
 	}
-	invalidLightMap.Set( 0, 0, SIZE, SIZE );
+	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
 }
 
 
 grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* Map::LockFogOfWar()
 {
-	invalidLightMap.Set( 0, 0, SIZE, SIZE );
+	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
 	return &fogOfWar;
 }
 
 
 void Map::ReleaseFogOfWar()
 {
-	invalidLightMap.Set( 0, 0, SIZE, SIZE );
-}
-
-
-void Map::InvalidateLightMapFromMapBounds( const grinliz::Rectangle2I& mapBounds )
-{
-	// Map bounds are inclusive [x0,x1], while invalidate bounds are not [x0,x1)
-	// Translate here and check for empty invalidation bounds.
-	Rectangle2I invalidate;
-	invalidate.Set( mapBounds.min.x, mapBounds.min.y, mapBounds.max.x+1, mapBounds.max.y+1 );
-
-	if ( invalidLightMap.max.x > invalidLightMap.min.x )
-		invalidLightMap.DoUnion( invalidate );
-	else
-		invalidLightMap = invalidate;
+	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
 }
 
 
 void Map::GenerateLightMap()
 {
-	if (    invalidLightMap.max.x > invalidLightMap.min.x 
-		 && invalidLightMap.max.y > invalidLightMap.min.y ) 
+	if ( invalidLightMap.IsValid() )
 	{
 		// Input:
 		//		Basemap - input light colors.
@@ -256,19 +241,61 @@ void Map::GenerateLightMap()
 		//		processedLightMap:	base + light
 		//		finalMap:			base + light + FOW
 
-		const U16* src = (const U16*)lightMap[0].Pixels();
-		U16* dst1 = (U16*) lightMap[1].Pixels();
+
+		// Copy base to the lm[1], and then add lights.
+		memcpy( lightMap[1].Pixels(), lightMap[0].Pixels(), sizeof(U16)*SIZE*SIZE );
+		MapItem* item = quadTree.FindItems( invalidLightMap, MapItem::MI_IS_LIGHT, 0 );
+
+		for( ; item; item=item->next ) {
+
+			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
+			GLASSERT( itemDef.IsLight() );
+
+			Matrix2I wToObj;
+			item->WorldToObject( &wToObj );
+			Rectangle2I mapBounds;
+			item->MapBounds( &mapBounds );
+
+			for( int j=mapBounds.min.y; j<=mapBounds.max.y; ++j ) {
+				for( int i=mapBounds.min.x; i<=mapBounds.max.x; ++i ) {
+
+					Vector3I world = { i, j, 1 };
+					Vector3I object3 = wToObj * world;
+					Vector2I object = { object3.x, object3.y };
+
+					if (    object.x >= 0 && object.x < itemDef.cx
+						 && object.y >= 0 && object.y < itemDef.cy )
+					{
+						// Now grab the colors from the image.
+						U16 cLight = lightObject->ImagePixel16( object.x+itemDef.lightTX, 
+																object.y+itemDef.lightTY );
+
+						Surface::RGBA rgbLight, rgb;
+						Surface::CalcRGB16( cLight, &rgbLight );
+
+						// Now add it to the light map.
+						U16 c = lightMap[1].Pixel16( i, j );
+						Surface::CalcRGB16( c, &rgb );
+
+						rgb.r = Min( rgb.r + rgbLight.r, 255 );
+						rgb.g = Min( rgb.g + rgbLight.g, 255 );
+						rgb.b = Min( rgb.b + rgbLight.b, 255 );
+
+						U16 cResult = Surface::CalcColorRGB16( rgb );
+						*((U16*)lightMap[i].Pixels() + j*SIZE + i) = cResult;
+					}
+				}
+			}
+		}
+
+		const U16* src = (const U16*)lightMap[1].Pixels();
 		U16* dst2 = (U16*) lightMap[2].Pixels();
 
-		for( int j=invalidLightMap.min.y; j<invalidLightMap.max.y; ++j ) {
-			for( int i=invalidLightMap.min.x; i<invalidLightMap.max.x; ++i ) {
-
-				U16 s = *(src+j*SIZE+i);
-
-				*(dst1+j*SIZE+i) = s;
+		for( int j=invalidLightMap.min.y; j<=invalidLightMap.max.y; ++j ) {
+			for( int i=invalidLightMap.min.x; i<=invalidLightMap.max.x; ++i ) {
 
 				if ( fogOfWar.IsSet( i, SIZE-1-j ) ) {
-					*(dst2+j*SIZE+i) = s;
+					*(dst2+j*SIZE+i) = *(src+j*SIZE+i);
 				}
 				else {
 					*(dst2+j*SIZE+i) = 0;
@@ -276,7 +303,7 @@ void Map::GenerateLightMap()
 			}
 		}
 		lightMap[2].UpdateTexture( lightMapTex.glID );
-		invalidLightMap.Set( 0, 0, 0, 0 );
+		invalidLightMap.Set( 0, 0, -1, -1 );
 	}
 }
 
@@ -346,30 +373,25 @@ void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 	if ( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) 
 	{
 		MapItem* item = quadTree.FindItem( m );
+		GLASSERT( ( item->flags & MapItem::MI_IS_LIGHT ) == 0 );
+
 		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 		int hp = MaterialDef::CalcDamage( baseDamage, shellFlags, itemDef.materialFlags );
 
-		if ( itemDef.CanDamage() && item->DoDamage(hp) ) {
+		if ( itemDef.CanDamage() && item->DoDamage(hp) ) 
+		{
 			// Destroy the current model. Replace it with "destroyed"
-			// model if there is one.
-			Vector3F pos = item->model->Pos();
-			float rot = item->model->GetYRotation();
-			tree->FreeModel( item->model );
-			item->model = 0;
+			// model if there is one. This is as simple as saving off
+			// the properties, deleting it, and re-adding.
+			int x = item->x;
+			int y = item->y;
+			int r = item->rot;
+			int def = item->itemDefIndex;
+			int flags = item->flags;
+			int hp = item->hp;
 
-			if ( item->flags & MapItem::MI_HAS_LIGHT ) {
-				Rectangle2I mapBounds;
-				item->MapBounds( &mapBounds );
-				InvalidateLightMapFromMapBounds( mapBounds );
-			}
-
-			if ( itemDef.modelResourceDestroyed ) {
-				item->model = tree->AllocModel( itemDef.modelResourceDestroyed );
-				item->model->SetFlag( Model::MODEL_OWNED_BY_MAP );
-				item->model->SetPos( pos );
-				item->model->SetYRotation( rot );
-			}
-			ResetPath();
+			DeleteItem( item );
+			AddItem( x, y, r, def, hp, flags, 0 );
 		}
 	}
 }
@@ -393,7 +415,7 @@ Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 #endif
 
 
-bool Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags, Storage* storage )
+Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags, Storage* storage )
 {
 	GLASSERT( x >= 0 && x < width );
 	GLASSERT( y >= 0 && y < height );
@@ -403,7 +425,7 @@ bool Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags, 
 	if ( !itemDefArr[defIndex].modelResource ) {
 		GLOUTPUT(( "No model resource.\n" ));
 		GLASSERT( 0 );
-		return false;
+		return 0;
 	}
 
 	Rectangle2I mapBounds;
@@ -413,16 +435,16 @@ bool Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags, 
 	// Check bounds on map.
 	if ( mapBounds.min.x < 0 || mapBounds.min.y < 0 || mapBounds.max.x >= SIZE || mapBounds.max.y >= SIZE ) {
 		GLOUTPUT(( "Out of bounds.\n" ));
-		return false;
+		return 0;
 	}
 
 	// Check for duplicate. Only check for exact dupe - same origin & rotation.
 	// This isn't required, but prevents map creation mistakes.
-	MapItem* root = quadTree.FindItems( mapBounds, 0 );
+	MapItem* root = quadTree.FindItems( mapBounds, 0, MapItem::MI_IS_LIGHT );
 	while( root ) {
 		if ( root->x == x && root->y == y && root->rot == rotation && root->itemDefIndex == defIndex ) {
 			GLOUTPUT(( "Duplicate layer.\n" ));
-			return false;
+			return 0;
 		}
 		root = root->next;
 	}
@@ -462,8 +484,8 @@ bool Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags, 
 	
 	// Check for lights.
 	if ( itemDefArr[defIndex].HasLight() ) {
-		item->flags |= MapItem::MI_HAS_LIGHT;
-		InvalidateLightMapFromMapBounds( mapBounds );
+		int flags0 = flags | MapItem::MI_NOT_IN_DATABASE | MapItem::MI_IS_LIGHT;
+		item->light = AddItem( x, y, rotation, itemDefArr[defIndex].HasLight(), 0xffff, flags0, 0 );
 	}
 
 	quadTree.Add( item );
@@ -473,12 +495,58 @@ bool Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags, 
 	ClearVisPathMap( mapBounds );
 	CalcVisPathMap( mapBounds );
 
-	if ( mapDB ) {
+	if ( item->IsLight() ) {
+		if ( invalidLightMap.IsValid() )
+			invalidLightMap.DoUnion( mapBounds );
+		else
+			invalidLightMap = mapBounds;
+	}
+
+	if ( mapDB && !(flags & MapItem::MI_NOT_IN_DATABASE )) {
 		DeleteRow( item->x, item->y, item->rot, item->itemDefIndex );
 		InsertRow( item->x, item->y, item->rot, item->itemDefIndex, item->hp, 0, 0 );
 	}
 
-	return true;
+	return item;
+}
+
+
+void Map::DeleteItem( MapItem* item )
+{	
+	GLASSERT( item );
+
+	// Delete the light first, if it exists:
+	if ( item->light ) {
+		DeleteItem( item->light );
+		item->light = 0;
+	}
+
+	quadTree.UnlinkItem( item );
+	Rectangle2I mapBounds;
+	item->MapBounds( &mapBounds );
+
+	// Reset the lights
+	if ( item->IsLight() ) {
+		if ( invalidLightMap.IsValid() )
+			invalidLightMap.DoUnion( mapBounds );
+		else
+			invalidLightMap = mapBounds;
+	}
+
+	if ( mapDB && !(item->flags & MapItem::MI_NOT_IN_DATABASE )) {
+		DeleteRow( item->x, item->y, item->rot, item->itemDefIndex );
+	}
+
+	if ( item->model )
+		tree->FreeModel( item->model );
+	if ( item->storage )
+		delete item->storage;
+
+	itemPool.Free( item );
+
+	ResetPath();
+	ClearVisPathMap( mapBounds );
+	CalcVisPathMap( mapBounds );
 }
 
 
@@ -487,33 +555,8 @@ void Map::DeleteAt( int x, int y )
 	GLASSERT( x >= 0 && x < width );
 	GLASSERT( y >= 0 && y < height );
 
-	MapItem* item = quadTree.FindItems( x, y );
-	
-	if ( item ) {
-		quadTree.UnlinkItem( item );
-		Rectangle2I mapBounds;
-		item->MapBounds( &mapBounds );
-
-		// Reset the lights
-		if ( itemDefArr[item->itemDefIndex].HasLight() ) {
-			InvalidateLightMapFromMapBounds( mapBounds );
-		}
-
-		if ( mapDB ) {
-			DeleteRow( item->x, item->y, item->rot, item->itemDefIndex );
-		}
-
-		if ( item->model )
-			tree->FreeModel( item->model );
-		if ( item->storage )
-			delete item->storage;
-
-		itemPool.Free( item );
-
-		ResetPath();
-		ClearVisPathMap( mapBounds );
-		CalcVisPathMap( mapBounds );
-	}
+	MapItem* item = quadTree.FindItems( x, y, 0, 0 );
+	DeleteItem( item );
 }
 
 
@@ -805,7 +848,7 @@ void Map::DumpTile( int x, int y )
 	if ( InRange( x, 0, SIZE-1 ) && InRange( y, 0, SIZE-1 )) 
 	{
 		int i=0;
-		MapItem* root = quadTree.FindItems( x, y );
+		MapItem* root = quadTree.FindItems( x, y, 0, 0 );
 		while ( root ) {
 			GLASSERT( root->itemDefIndex > 0 );
 			const MapItemDef& itemDef = itemDefArr[ root->itemDefIndex ];
@@ -928,7 +971,7 @@ void Map::ClearVisPathMap( grinliz::Rectangle2I& bounds )
 
 void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
 {
-	MapItem* item = quadTree.FindItems( bounds, 0 );
+	MapItem* item = quadTree.FindItems( bounds, 0, 0 );
 	while( item ) {
 		
 		if ( !item->Destroyed() ) {
@@ -1337,7 +1380,7 @@ void Map::QuadTree::UnlinkItem( MapItem* item )
 }
 
 
-Map::MapItem* Map::QuadTree::FindItems( const Rectangle2I& bounds, int required )
+Map::MapItem* Map::QuadTree::FindItems( const Rectangle2I& bounds, int required, int excluded )
 {
 	// Walk the map and pull out items in bounds.
 	MapItem* root = 0;
@@ -1372,6 +1415,7 @@ Map::MapItem* Map::QuadTree::FindItems( const Rectangle2I& bounds, int required 
 				else {
 					while( pItem ) { 
 						if (    ( ( pItem->flags & required) == required )
+							 && ( ( pItem->flags & excluded ) == 0 )
 							 && pItem->mapBounds8.Intersect( bounds8 ) )
 						{
 							pItem->next = root;
@@ -1396,7 +1440,7 @@ Map::MapItem* Map::QuadTree::FindItem( const Model* model )
 	b.max.y = (int)ceilf( model->Z() );
 
 	filterModel = model;
-	MapItem* root = FindItems( b, 0 );
+	MapItem* root = FindItems( b, 0, 0 );
 	filterModel = 0;
 	return root;
 }

@@ -3,6 +3,7 @@
 
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
+#include "../grinliz/glvector.h"
 
 void CEnsureCap( unsigned needInBytes, unsigned* capInBytes, void** stack );
 
@@ -130,4 +131,67 @@ private:
 };
 
 
+class Matrix2I
+{
+  public:
+	int a, b, c, d, x, y;
+
+	Matrix2I()								{	SetIdentity();	}
+	Matrix2I( const Matrix2I& rhs )			{	a=rhs.a; b=rhs.b; c=rhs.c; d=rhs.d; x=rhs.x; y=rhs.y; }
+	void operator=( const Matrix2I& rhs )	{	a=rhs.a; b=rhs.b; c=rhs.c; d=rhs.d; x=rhs.x; y=rhs.y; }
+
+	/// Set the matrix to identity
+	void SetIdentity()		{	a=1; b=0; c=0; d=1; x=0; y=0; }
+	
+	bool operator==( const Matrix2I& rhs ) const	{ 
+		return ( a==rhs.a && b==rhs.b && c==rhs.c && d==rhs.d && x==rhs.x && y==rhs.y );
+	}
+
+	bool operator!=( const Matrix2I& rhs ) const	{ 
+		return !( a==rhs.a && b==rhs.b && c==rhs.c && d==rhs.d && x==rhs.x && y==rhs.y );
+	}
+
+	friend void MultMatrix2I( const Matrix2I& a, const Matrix2I& b, Matrix2I* c );
+	friend void MultMatrix2I( const Matrix2I& a, const grinliz::Vector3I& b, grinliz::Vector3I* c );
+	
+	friend Matrix2I operator*( const Matrix2I& a, const Matrix2I& b )
+	{	
+		Matrix2I result;
+		MultMatrix2I( a, b, &result );
+		return result;
+	}
+	friend grinliz::Vector3I operator*( const Matrix2I& a, const grinliz::Vector3I& b )
+	{
+		grinliz::Vector3I result;
+		MultMatrix2I( a, b, &result );
+		return result;
+	}
+};
+
+
+inline void MultMatrix2I( const Matrix2I& x, const Matrix2I& y, Matrix2I* w )
+{
+	// This does not support the target being one of the sources.
+	GLASSERT( w != &x && w != &y && &x != &y );
+
+	// a b x
+	// c d y
+	// 0 0 1
+
+	w->a = x.a*y.a + x.b*y.c;
+	w->b = x.a*y.b + x.b*y.d;
+	w->c = x.c*y.a + x.d*y.c;
+	w->d = x.c*y.b + x.d*y.d;
+	w->x = x.a*y.x + x.b*y.y + x.x;
+	w->y = x.c*y.x + x.d*y.y + x.y;
+}
+
+
+inline void MultMatrix2I( const Matrix2I& x, const grinliz::Vector3I& y, grinliz::Vector3I* w )
+{
+	GLASSERT( w != &y );
+	w->x = x.a*y.x + x.b*y.y + x.x*y.z;
+	w->y = x.c*y.x + x.d*y.y + x.y*y.z;
+	w->z =                         y.z;
+}
 #endif

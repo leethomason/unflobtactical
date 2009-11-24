@@ -55,15 +55,23 @@ public:
 		int w, h;	// image space
 	};
 
+	struct Mat2I
+	{
+		int a, b, c, d, tx, ty;
+	};
+
 	struct MapItemDef 
 	{
-		enum { MAX_CX = 6, MAX_CY = 6 };
+		enum {	MAX_CX = 6, 
+				MAX_CY = 6,
+			 };
+
 
 		void Init() {	name[0] = 0;
 						
 						cx = 1; 
 						cy = 1; 
-						hp = 0; 
+						hp = 0xffff; 
 						materialFlags = 0;
 
 						modelResource			= 0;
@@ -73,15 +81,17 @@ public:
 						memset( pather, 0, MAX_CX*MAX_CY );
 						memset( visibility, 0, MAX_CX*MAX_CY );
 
-						light = 0;
+						lightDef = 0;
+						lightTX = 0;
+						lightTY = 0;
 					}
 
 		U16		cx, cy;
 		U16		hp;					// 0xffff infinite, 0 destroyed
-		U8		transparency;		// 0 opaque - 255 transparent
-		U8		_pad;
 		U16		materialFlags;
-		const LightItemDef* light;
+		U8		lightDef;			// itemdef index of the light associated with this (is auto-created)
+		U8		lightTX;			// if a light, x location in texture
+		U8		lightTY;			// if a light, y location in texture
 
 		const ModelResource* modelResource;
 		const ModelResource* modelResourceOpen;
@@ -93,7 +103,8 @@ public:
 
 		// return true if the object can take damage
 		bool CanDamage() const	{ return hp != 0xffff; }
-		bool HasLight() const	{ return light != 0; }
+		int HasLight() const	{ return lightDef; }
+		bool IsLight() const	{ return lightTX || lightTY; }
 	};
 
 	struct MapItem
@@ -103,7 +114,8 @@ public:
 		U16		hp;
 
 		enum {
-			MI_HAS_LIGHT	= 0x01
+			MI_IS_LIGHT				= 0x01,
+			MI_NOT_IN_DATABASE		= 0x02,		// lights are usually generated, and are not stored in the DB
 		};
 		U16		flags;
 
@@ -111,6 +123,7 @@ public:
 		
 		Model*	 model;
 		Storage* storage;
+		MapItem* light;
 		
 		MapItem* next;			// the 'next' after a query
 		MapItem* nextQuad;		// next pointer in the quadTree
@@ -121,7 +134,10 @@ public:
 			r->Set( mapBounds8.min.x, mapBounds8.min.y, mapBounds8.max.x, mapBounds8.max.y );
 		}
 
+		void WorldToObject( Matrix2I* matrix );
+
 		bool InUse() const			{ return itemDefIndex > 0; }
+		bool IsLight() const		{ return flags & MI_IS_LIGHT; }
 
 		// returns true if destroyed
 		bool DoDamage( int _hp )		
@@ -151,6 +167,7 @@ public:
 
 	// The background texture of the map. The map is just one big tetxure.
 	void SetTexture( const Texture* texture )		{ this->texture = texture; }
+	void SetLightObjects( const Surface* surface )	{ this->lightObject = surface; }
 
 	// The light map is a 64x64 texture of the lighting at each point. Without
 	// a light map, full white (daytime) is used. GenerateLightMap creates the
@@ -196,7 +213,7 @@ public:
 	//       0 destroyed
 	//		1+ hp remaining
 	// Storage is owned by the map after this call.
-	bool AddItem( int x, int z, int rotation, int itemDefIndex, int hp, int flags, Storage* storage );
+	MapItem* AddItem( int x, int z, int rotation, int itemDefIndex, int hp, int flags, Storage* storage );
 	void DeleteAt( int x, int z );
 	void MapBoundsOfModel( const Model* m, grinliz::Rectangle2I* mapBounds );
 
@@ -260,8 +277,12 @@ private:
 		void Add( MapItem* );
 		void Unlink( MapItem* );
 
-		MapItem* FindItems( const grinliz::Rectangle2I& bounds, int required );
-		MapItem* FindItems( int x, int y ) { grinliz::Rectangle2I b; b.Set( x, y, x, y ); return FindItems( b, 0 ); }
+		MapItem* FindItems( const grinliz::Rectangle2I& bounds, int required, int excluded );
+		MapItem* FindItems( int x, int y, int required, int excluded ) 
+		{ 
+			grinliz::Rectangle2I b; b.Set( x, y, x, y ); 
+			return FindItems( b, required, excluded ); 
+		}
 		MapItem* FindItem( const Model* model );
 
 		void UnlinkItem( MapItem* item );
@@ -306,9 +327,9 @@ private:
 	void ClearVisPathMap( grinliz::Rectangle2I& bounds );
 	void CalcVisPathMap( grinliz::Rectangle2I& bounds );
 
+	void DeleteItem( MapItem* item );
 	void InsertRow( int x, int y, int r, int def, int hp, int flags, const Storage* storage );
 	void DeleteRow( int x, int y, int r, int def );
-
 
 	int width, height;
 	grinliz::Rectangle3F bounds;
@@ -322,12 +343,12 @@ private:
 	grinliz::Vector2F texture1[4];
 
 	void GenerateLightMap();
-	void InvalidateLightMapFromMapBounds( const grinliz::Rectangle2I& mapBounds );
 
 	Texture lightMapTex;	
 	Surface lightMap[3];
-	grinliz::Rectangle2I invalidLightMap;	// [x,x0)
+	grinliz::Rectangle2I invalidLightMap;
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWar;
+	const Surface* lightObject;
 
 	U32 pathQueryID;
 	U32 visibilityQueryID;

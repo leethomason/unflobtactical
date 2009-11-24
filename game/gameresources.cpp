@@ -129,6 +129,24 @@ void Game::LoadLightMaps()
 }
 
 
+void Game::InitMapLight( int index, const MapLightInit* init )
+{
+	while( init->name ) 
+	{
+		Map::MapItemDef* itemDef = engine.GetMap()->InitItemDef( index );
+		itemDef->Init();
+	
+		GLASSERT( init->x || init->y );
+		itemDef->lightTX = init->x;
+		itemDef->lightTY = init->y;
+		itemDef->cx = init->cx;
+		itemDef->cy = init->cy;
+
+		++init;
+	}
+}
+
+
 void Game::InitMapItemDef( int index, const MapItemInit* init )
 {
 	while( init->model ) 
@@ -139,9 +157,8 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 		itemDef->cx = init->cx;
 		itemDef->cy = init->cy;
 		itemDef->hp = init->hp;
-		itemDef->transparency = 255;
 		itemDef->materialFlags = init->materialFlags;
-		itemDef->light = init->lightInit;
+		itemDef->lightDef = init->lightDef;
 
 		ModelResourceManager* modman = ModelResourceManager::Instance();
 		{
@@ -230,12 +247,6 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 				else if ( *p == ' ' ) {
 					// nothing.
 				}
-				else if ( *p == 'T' ) {
-					// Transparency.
-					++p;
-					GLASSERT( *p && *p >= '0' && *p <= '9' );
-					itemDef->transparency = (*p-'0') * 255 / 10;
-				}				
 				else {
 					GLASSERT( 0 );
 				}
@@ -276,10 +287,23 @@ void Game::LoadMapResources()
 	const int UFO_SET1	 = 0x50;
 	const int MARINE_SET = 0x60;
 
+	const int LIGHT_SET  = 0xD0;
+
 	const int STEEL		= MAT_STEEL;
 	const int WOOD		= MAT_WOOD;
 	const int GENERIC	= MAT_GENERIC;
 	const int GENERIC_FASTBURN	= MAT_GENERIC;
+
+	enum {
+		LANDER_LIGHT = LIGHT_SET
+	};
+	
+	const MapLightInit lights[] = 
+	{
+		{	"landerLight",	1,	0,	6,	6	},
+		{	0	}
+	};
+	InitMapLight( LIGHT_SET, lights );
 
 
 	const MapItemInit farmSet[] =
@@ -299,7 +323,7 @@ void Game::LoadMapResources()
 	{
 			// model		open			destroyed	cx, cz	hp			material	pather
 		{	"lander",		0,				0,			6,	6,	INDESTRUCT,	STEEL,		"00ff00 00ff00 ff00ff ff00ff ff00ff ff00ff",
-																						"00ff00 00ff00 0f00f0 0f00f0 0f00f0 0f00f0",	&lightLander },
+																						"00ff00 00ff00 0f00f0 0f00f0 0f00f0 0f00f0", LANDER_LIGHT },
 		{	0	}
 	};
 	InitMapItemDef( MARINE_SET, marineSet );
@@ -471,7 +495,6 @@ void Game::LoadItemResources()
 		{ "Steel",	0,				ITEM_GENERAL,	DECO_METAL,		"Memsteel" },
 		{ "Tech",	0,				ITEM_GENERAL,	DECO_TECH,		"Alien Tech" },
 		{ "Gel",	0,				ITEM_GENERAL,	DECO_FUEL,		"Plasma Gel" },
-//		{ "ARM-0",	0,				ITEM_ARMOR,		DECO_ARMOR,		"Composite Armor" },
 		{ "ARM-1",	0,				ITEM_ARMOR,		DECO_ARMOR,		"Memsteel Armor" },
 		{ "ARM-2",	0,				ITEM_ARMOR,		DECO_ARMOR,		"Power Armor" },
 		{ "ARM-3",	0,				ITEM_ARMOR,		DECO_ARMOR,		"Power Shield" },
