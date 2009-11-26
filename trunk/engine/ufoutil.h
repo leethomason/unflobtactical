@@ -140,9 +140,14 @@ class Matrix2I
 	Matrix2I( const Matrix2I& rhs )			{	a=rhs.a; b=rhs.b; c=rhs.c; d=rhs.d; x=rhs.x; y=rhs.y; }
 	void operator=( const Matrix2I& rhs )	{	a=rhs.a; b=rhs.b; c=rhs.c; d=rhs.d; x=rhs.x; y=rhs.y; }
 
-	/// Set the matrix to identity
+	// Set the matrix to identity
 	void SetIdentity()		{	a=1; b=0; c=0; d=1; x=0; y=0; }
+
+	// valid inputs are 0, 90, 180, and 270
+	void SetRotation( int r );
 	
+	void Invert( Matrix2I* inverse ) const;
+
 	bool operator==( const Matrix2I& rhs ) const	{ 
 		return ( a==rhs.a && b==rhs.b && c==rhs.c && d==rhs.d && x==rhs.x && y==rhs.y );
 	}

@@ -29,6 +29,7 @@
 using namespace grinliz;
 using namespace micropather;
 
+
 Map::Map( SpaceTree* tree )
 	: itemPool( "mapItemPool", sizeof( MapItem ), sizeof( MapItem ) * 200, false )
 {
@@ -251,8 +252,10 @@ void Map::GenerateLightMap()
 			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 			GLASSERT( itemDef.IsLight() );
 
-			Matrix2I wToObj;
-			item->WorldToObject( &wToObj );
+			Matrix2I xform, wToObj;
+			CalcModelPos( item, 0, 0, &xform );
+			xform.Invert( &wToObj );
+
 			Rectangle2I mapBounds;
 			item->MapBounds( &mapBounds );
 
@@ -274,7 +277,7 @@ void Map::GenerateLightMap()
 						Surface::CalcRGB16( cLight, &rgbLight );
 
 						// Now add it to the light map.
-						U16 c = lightMap[1].Pixel16( i, j );
+						U16 c = lightMap[1].ImagePixel16( i, j );
 						Surface::CalcRGB16( c, &rgb );
 
 						rgb.r = Min( rgb.r + rgbLight.r, 255 );
@@ -282,7 +285,7 @@ void Map::GenerateLightMap()
 						rgb.b = Min( rgb.b + rgbLight.b, 255 );
 
 						U16 cResult = Surface::CalcColorRGB16( rgb );
-						*((U16*)lightMap[i].Pixels() + j*SIZE + i) = cResult;
+						lightMap[1].SetImagePixel16( i, j, cResult );
 					}
 				}
 			}
@@ -404,7 +407,7 @@ Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 	if ( itemDefArr[defIndex].modelResource ) {
 		Rectangle2I mapBounds;
 		Vector2F modelPos;
-		CalcModelPos( x, y, rotation, itemDefArr[defIndex], &mapBounds, &modelPos );
+		CalcModelPos( x, y, rotation, itemDefArr[defIndex], &mapBounds, &modelPos, 0 );
 
 		model = tree->AllocModel( itemDefArr[defIndex].modelResource );
 		model->SetPos( modelPos.x, 0.0f, modelPos.y );
@@ -422,7 +425,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	GLASSERT( defIndex > 0 && defIndex < MAX_ITEM_DEF );
 	GLASSERT( rotation >=0 && rotation < 4 );
 	
-	if ( !itemDefArr[defIndex].modelResource ) {
+	if ( defIndex < Map::LIGHT_START && !itemDefArr[defIndex].modelResource ) {
 		GLOUTPUT(( "No model resource.\n" ));
 		GLASSERT( 0 );
 		return 0;
@@ -430,7 +433,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 
 	Rectangle2I mapBounds;
 	Vector2F modelPos;
-	CalcModelPos( x, y, rotation, itemDefArr[defIndex], &mapBounds, &modelPos );
+	CalcModelPos( x, y, rotation, itemDefArr[defIndex], &mapBounds, &modelPos, 0 );
 	
 	// Check bounds on map.
 	if ( mapBounds.min.x < 0 || mapBounds.min.y < 0 || mapBounds.max.x >= SIZE || mapBounds.max.y >= SIZE ) {
@@ -481,6 +484,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	item->mapBounds8.Set( mapBounds.min.x, mapBounds.min.y, mapBounds.max.x, mapBounds.max.y );
 	item->next = 0;
 	item->storage = storage;
+	item->light = 0;
 	
 	// Check for lights.
 	if ( itemDefArr[defIndex].HasLight() ) {
@@ -555,15 +559,23 @@ void Map::DeleteAt( int x, int y )
 	GLASSERT( x >= 0 && x < width );
 	GLASSERT( y >= 0 && y < height );
 
-	MapItem* item = quadTree.FindItems( x, y, 0, 0 );
+	MapItem* item = quadTree.FindItems( x, y, 0, MapItem::MI_IS_LIGHT );
 	DeleteItem( item );
 }
 
 
 void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef, 
 						grinliz::Rectangle2I* mapBounds,
-						grinliz::Vector2F* origin )
+						grinliz::Vector2F* origin,
+						Matrix2I* matrix )
 {
+	Rectangle2I _mapBounds;
+	Vector2F _origin;
+	if ( !mapBounds )
+		mapBounds = &_mapBounds;
+	if ( !origin )
+		origin = &_origin;
+
 	int cx = itemDef.cx;
 	int cy = itemDef.cy;
 	float halfCX = (float)cx * 0.5f;
@@ -573,9 +585,9 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 	float yf = (float)y;
 	float cxf = (float)cx;
 	float cyf = (float)cy;
+	bool isOriginUpperLeft = itemDef.isUpperLeft ? true : false;
 
-	const ModelResource* resource = itemDef.modelResource;
-	// rotates around the upper left, irrespective
+	// rotates around	the upper left, irrespective
 	// of the actual model origin.
 	//
 	//		 0	 0	
@@ -590,7 +602,7 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 		mapBounds->Set( x, y, x+cx-1, y+cy-1 );
 	}
 
-	if ( resource->IsOriginUpperLeft() ) {
+	if ( isOriginUpperLeft ) {
 		switch( r ) {
 			case 0:		origin->Set( xf,			yf );			break;
 			case 1:		origin->Set( xf,			yf+cxf );		break;
@@ -615,6 +627,14 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 				GLASSERT( 0 );
 				break;
 		}
+	}
+
+	if ( matrix ) {
+		Matrix2I t, rmat;
+		t.x = (int)origin->x;
+		t.y = (int)origin->y;
+		rmat.SetRotation( r*90 );
+		*matrix = t * rmat;
 	}
 }
 

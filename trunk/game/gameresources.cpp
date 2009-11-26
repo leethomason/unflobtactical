@@ -137,10 +137,13 @@ void Game::InitMapLight( int index, const MapLightInit* init )
 		itemDef->Init();
 	
 		GLASSERT( init->x || init->y );
+
+		strncpy( itemDef->name, init->name, EL_FILE_STRING_LEN );
 		itemDef->lightTX = init->x;
 		itemDef->lightTY = init->y;
 		itemDef->cx = init->cx;
 		itemDef->cy = init->cy;
+		itemDef->isUpperLeft = init->upperLeft ? 1 : 0;
 
 		++init;
 	}
@@ -170,6 +173,8 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 			}
 			GLASSERT( resource );
 			itemDef->modelResource = resource;
+
+			itemDef->isUpperLeft = resource->IsOriginUpperLeft() ? 1 : 0;
 		}
 		{
 			const ModelResource* resource = 0;
@@ -287,7 +292,7 @@ void Game::LoadMapResources()
 	const int UFO_SET1	 = 0x50;
 	const int MARINE_SET = 0x60;
 
-	const int LIGHT_SET  = 0xD0;
+	const int LIGHT_SET  = Map::LIGHT_START;
 
 	const int STEEL		= MAT_STEEL;
 	const int WOOD		= MAT_WOOD;
@@ -300,7 +305,8 @@ void Game::LoadMapResources()
 	
 	const MapLightInit lights[] = 
 	{
-		{	"landerLight",	1,	0,	6,	6	},
+		//	name			x   y   cx  cy	upperLeft 
+		{	"landerLight",	1,	0,	6,	6,	true },
 		{	0	}
 	};
 	InitMapLight( LIGHT_SET, lights );
@@ -312,7 +318,7 @@ void Game::LoadMapResources()
 		{	"farmBed",		0,				0,			1,	1,	HP_MED,	GENERIC,		"f"	 "0"	},
 		{	"farmTable",	0,				0,			1,	1,	HP_MED,	WOOD,			"f", "0" 	},
 		{	"farmTable2x1",	0,				0,			2,	1,	HP_MED,	WOOD,			"ff","00"	},
-		{	"farmWheat",	0,				0,			1,	1,	HP_LOW,	GENERIC_FASTBURN,"0", "0 T8" },
+		{	"farmWheat",	0,				0,			1,	1,	HP_LOW,	GENERIC_FASTBURN,"0", "0" },
 		{	0	}
 	};
 	InitMapItemDef( FARM_SET, farmSet );
@@ -323,7 +329,8 @@ void Game::LoadMapResources()
 	{
 			// model		open			destroyed	cx, cz	hp			material	pather
 		{	"lander",		0,				0,			6,	6,	INDESTRUCT,	STEEL,		"00ff00 00ff00 ff00ff ff00ff ff00ff ff00ff",
-																						"00ff00 00ff00 0f00f0 0f00f0 0f00f0 0f00f0", LANDER_LIGHT },
+																						"00ff00 00ff00 0f00f0 0f00f0 0f00f0 0f00f0", 
+																						LANDER_LIGHT },
 		{	0	}
 	};
 	InitMapItemDef( MARINE_SET, marineSet );
@@ -331,7 +338,7 @@ void Game::LoadMapResources()
 	const MapItemInit forestSet[] = 
 	{
 			// model		open			destroyed	cx, cz	hp		 material		pather
-		{	"tree",			0,				0,			1,	1,	HP_HIGH, WOOD,			"f", "0 T5" },
+		{	"tree",			0,				0,			1,	1,	HP_HIGH, WOOD,			"f", "0" },
 		{	0	}
 	};
 	InitMapItemDef( FOREST_SET, forestSet );
