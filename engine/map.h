@@ -47,6 +47,7 @@ public:
 
 		MAX_ITEM_DEF = 256,
 		MAX_TRAVEL = 16,
+		LIGHT_START = 0xD0			// where the lights start in the itemDef array
 	};
 
 	struct LightItemDef
@@ -89,6 +90,7 @@ public:
 		U16		cx, cy;
 		U16		hp;					// 0xffff infinite, 0 destroyed
 		U16		materialFlags;
+		U8		isUpperLeft;
 		U8		lightDef;			// itemdef index of the light associated with this (is auto-created)
 		U8		lightTX;			// if a light, x location in texture
 		U8		lightTY;			// if a light, y location in texture
@@ -134,8 +136,6 @@ public:
 			r->Set( mapBounds8.min.x, mapBounds8.min.y, mapBounds8.max.x, mapBounds8.max.y );
 		}
 
-		void WorldToObject( Matrix2I* matrix );
-
 		bool InUse() const			{ return itemDefIndex > 0; }
 		bool IsLight() const		{ return flags & MI_IS_LIGHT; }
 
@@ -167,7 +167,7 @@ public:
 
 	// The background texture of the map. The map is just one big tetxure.
 	void SetTexture( const Texture* texture )		{ this->texture = texture; }
-	void SetLightObjects( const Surface* surface )	{ this->lightObject = surface; }
+	void SetLightObjects( const Surface* surface )	{ GLASSERT( surface ); this->lightObject = surface; }
 
 	// The light map is a 64x64 texture of the lighting at each point. Without
 	// a light map, full white (daytime) is used. GenerateLightMap creates the
@@ -320,9 +320,17 @@ private:
 	void StateToVec( const void* state, grinliz::Vector2<S16>* vec ) { *vec = *((grinliz::Vector2<S16>*)&state); }
 	void* VecToState( const grinliz::Vector2<S16>& vec )			 { return (void*)(*(int*)&vec); }
 
-	void CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef, 
-						grinliz::Rectangle2I* mapBounds,
-						grinliz::Vector2F* origin );
+	void CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,		// input 
+						grinliz::Rectangle2I* mapBounds,					// optional, output bounds
+						grinliz::Vector2F* origin,							// optional, output origin
+						Matrix2I* xform );									// optional, output xform
+	void CalcModelPos(	const MapItem* item,
+						grinliz::Rectangle2I* mapBounds,					// optional, output bounds
+						grinliz::Vector2F* origin,							// optional, output origin
+						Matrix2I* xform )									// optional, output xform
+	{
+		CalcModelPos( item->x, item->y, item->rot, itemDefArr[item->itemDefIndex], mapBounds, origin, xform );
+	}
 
 	void ClearVisPathMap( grinliz::Rectangle2I& bounds );
 	void CalcVisPathMap( grinliz::Rectangle2I& bounds );

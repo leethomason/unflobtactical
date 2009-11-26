@@ -85,6 +85,7 @@ Game::Game( const Screenport& sp, const char* _savePath ) :
 	GLASSERT( textTexture );
 	UFOText::InitTexture( textTexture->glID );
 	UFOText::InitScreen( engine.GetScreenport() );
+	engine.GetMap()->SetLightObjects( GetLightMap( "objectLightMaps" ) );
 
 #ifdef MAPMAKER
 	showPathing = false;

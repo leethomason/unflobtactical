@@ -111,6 +111,7 @@ private:
 		int y;
 		int cx;
 		int cy;
+		bool upperLeft;
 	};
 
 	struct MapItemInit 
