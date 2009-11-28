@@ -83,6 +83,8 @@ public:
 						memset( visibility, 0, MAX_CX*MAX_CY );
 
 						lightDef = 0;
+						lightOffsetX = 0;
+						lightOffsetY = 0;
 						lightTX = 0;
 						lightTY = 0;
 					}
@@ -92,6 +94,8 @@ public:
 		U16		materialFlags;
 		U8		isUpperLeft;
 		U8		lightDef;			// itemdef index of the light associated with this (is auto-created)
+		S8		lightOffsetX;		// if light, offset of light origin from model origin
+		S8		lightOffsetY;
 		U8		lightTX;			// if a light, x location in texture
 		U8		lightTY;			// if a light, y location in texture
 

@@ -244,9 +244,14 @@ void Map::GenerateLightMap()
 
 
 		// Copy base to the lm[1], and then add lights.
-		memcpy( lightMap[1].Pixels(), lightMap[0].Pixels(), sizeof(U16)*SIZE*SIZE );
-		MapItem* item = quadTree.FindItems( invalidLightMap, MapItem::MI_IS_LIGHT, 0 );
+		for( int j=invalidLightMap.min.y; j<=invalidLightMap.max.y; ++j ) {
+			for( int i=invalidLightMap.min.x; i<=invalidLightMap.max.x; ++i ) {
+				U16 c = lightMap[0].ImagePixel16( i, j );
+				lightMap[1].SetImagePixel16( i, j, c );
+			}
+		}
 
+		MapItem* item = quadTree.FindItems( invalidLightMap, MapItem::MI_IS_LIGHT, 0 );
 		for( ; item; item=item->next ) {
 
 			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
@@ -266,7 +271,7 @@ void Map::GenerateLightMap()
 					Vector3I object3 = wToObj * world;
 					Vector2I object = { object3.x, object3.y };
 
-					if (    object.x >= 0 && object.x < itemDef.cx
+					if (	object.x >= 0 && object.x < itemDef.cx
 						 && object.y >= 0 && object.y < itemDef.cy )
 					{
 						// Now grab the colors from the image.
@@ -291,17 +296,14 @@ void Map::GenerateLightMap()
 			}
 		}
 
-		const U16* src = (const U16*)lightMap[1].Pixels();
-		U16* dst2 = (U16*) lightMap[2].Pixels();
-
 		for( int j=invalidLightMap.min.y; j<=invalidLightMap.max.y; ++j ) {
 			for( int i=invalidLightMap.min.x; i<=invalidLightMap.max.x; ++i ) {
 
 				if ( fogOfWar.IsSet( i, SIZE-1-j ) ) {
-					*(dst2+j*SIZE+i) = *(src+j*SIZE+i);
+					lightMap[2].SetImagePixel16( i, j, lightMap[1].ImagePixel16( i, j ) );
 				}
 				else {
-					*(dst2+j*SIZE+i) = 0;
+					lightMap[2].SetImagePixel16( i, j, 0 );
 				}
 			}
 		}
@@ -431,10 +433,21 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 		return 0;
 	}
 
+	const MapItemDef& itemDef = itemDefArr[defIndex];
 	Rectangle2I mapBounds;
 	Vector2F modelPos;
-	CalcModelPos( x, y, rotation, itemDefArr[defIndex], &mapBounds, &modelPos, 0 );
-	
+	Matrix2I xform;
+	CalcModelPos( x, y, rotation, itemDefArr[defIndex], &mapBounds, &modelPos, &xform );
+
+	if ( itemDef.IsLight() ) {
+		// Adjust the x and y for the light relative to the object, and then recompute.
+		// A little sleazy, but only for lights.
+		Vector3I delta = { itemDef.lightOffsetX, itemDef.lightOffsetY, 0 };
+		x += delta.x;
+		y += delta.y;
+		CalcModelPos( x, y, rotation, itemDefArr[defIndex], &mapBounds, &modelPos, 0 );
+	}
+
 	// Check bounds on map.
 	if ( mapBounds.min.x < 0 || mapBounds.min.y < 0 || mapBounds.max.x >= SIZE || mapBounds.max.y >= SIZE ) {
 		GLOUTPUT(( "Out of bounds.\n" ));
@@ -454,16 +467,17 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 
 	// Finally add!!
 	MapItem* item = (MapItem*) itemPool.Alloc();
+
 	item->model = 0;
 	if ( hp == -1 )
-		hp = itemDefArr[defIndex].hp;
+		hp = itemDef.hp;
 
 	const ModelResource* res = 0;
 	if ( itemDefArr[defIndex].CanDamage() && hp == 0 ) {
-		res = itemDefArr[defIndex].modelResourceDestroyed;
+		res = itemDef.modelResourceDestroyed;
 	}
 	else {
-		res = itemDefArr[defIndex].modelResource;
+		res = itemDef.modelResource;
 	}
 	if ( res ) {
 		Model* model = tree->AllocModel( res );
@@ -477,6 +491,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	item->y = y;
 	item->rot = rotation;
 	item->itemDefIndex = defIndex;
+
 	item->hp = hp;
 	item->flags = flags;
 	GLASSERT( mapBounds.min.x >= 0 && mapBounds.max.x < 256 );	// using int8
@@ -560,7 +575,9 @@ void Map::DeleteAt( int x, int y )
 	GLASSERT( y >= 0 && y < height );
 
 	MapItem* item = quadTree.FindItems( x, y, 0, MapItem::MI_IS_LIGHT );
-	DeleteItem( item );
+	if ( item ) {
+		DeleteItem( item );
+	}
 }
 
 
@@ -631,8 +648,24 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 
 	if ( matrix ) {
 		Matrix2I t, rmat;
-		t.x = (int)origin->x;
-		t.y = (int)origin->y;
+		if ( isOriginUpperLeft ) {
+			switch( r ) {
+				case 0:		t.x = x;		t.y = y;			break;
+				case 1:		t.x = x;		t.y = y + cx-1;		break;
+				case 2:		t.x = x + cx-1;	t.y = y + cy-1;		break;
+				case 3:		t.x = x + cy-1;	t.y = y;			break;
+			}
+		}
+		else {
+			switch ( r ) {
+				case 0:
+				case 2:			
+							t.x = x + (cx-1)/2;	t.y = y + (cy-1)/2;	break;
+				case 1:
+				case 3:			
+							t.x = x + (cy-1)/2;	t.y = y + (cx-1)/2;	break;
+			}
+		};
 		rmat.SetRotation( r*90 );
 		*matrix = t * rmat;
 	}

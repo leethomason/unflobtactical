@@ -139,6 +139,9 @@ void Game::InitMapLight( int index, const MapLightInit* init )
 		GLASSERT( init->x || init->y );
 
 		strncpy( itemDef->name, init->name, EL_FILE_STRING_LEN );
+
+		itemDef->lightOffsetX = init->objectX;
+		itemDef->lightOffsetY = init->objectY;
 		itemDef->lightTX = init->x;
 		itemDef->lightTY = init->y;
 		itemDef->cx = init->cx;
@@ -305,8 +308,8 @@ void Game::LoadMapResources()
 	
 	const MapLightInit lights[] = 
 	{
-		//	name			x   y   cx  cy	upperLeft 
-		{	"landerLight",	1,	0,	6,	6,	true },
+		//	name			object   x  y   cx  cy	upperLeft 
+		{	"landerLight",	-1,	-1,	 1,	0,	8,	8,	true },
 		{	0	}
 	};
 	InitMapLight( LIGHT_SET, lights );
