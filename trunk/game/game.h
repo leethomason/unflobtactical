@@ -107,9 +107,11 @@ private:
 	struct MapLightInit
 	{
 		const char* name;
+		int objectX;	// offset from object origin to light map origin.
+		int objectY;
 		int x;	// image position
 		int y;
-		int cx;
+		int cx;	// light map size
 		int cy;
 		bool upperLeft;
 	};
