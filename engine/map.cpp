@@ -299,7 +299,7 @@ void Map::GenerateLightMap()
 		for( int j=invalidLightMap.min.y; j<=invalidLightMap.max.y; ++j ) {
 			for( int i=invalidLightMap.min.x; i<=invalidLightMap.max.x; ++i ) {
 
-				if ( fogOfWar.IsSet( i, SIZE-1-j ) ) {
+				if ( fogOfWar.IsSet( i, j ) ) {
 					lightMap[2].SetImagePixel16( i, j, lightMap[1].ImagePixel16( i, j ) );
 				}
 				else {
@@ -438,15 +438,6 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	Vector2F modelPos;
 	Matrix2I xform;
 	CalcModelPos( x, y, rotation, itemDefArr[defIndex], &mapBounds, &modelPos, &xform );
-
-	if ( itemDef.IsLight() ) {
-		// Adjust the x and y for the light relative to the object, and then recompute.
-		// A little sleazy, but only for lights.
-		Vector3I delta = { itemDef.lightOffsetX, itemDef.lightOffsetY, 0 };
-		x += delta.x;
-		y += delta.y;
-		CalcModelPos( x, y, rotation, itemDefArr[defIndex], &mapBounds, &modelPos, 0 );
-	}
 
 	// Check bounds on map.
 	if ( mapBounds.min.x < 0 || mapBounds.min.y < 0 || mapBounds.max.x >= SIZE || mapBounds.max.y >= SIZE ) {
@@ -592,6 +583,13 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 		mapBounds = &_mapBounds;
 	if ( !origin )
 		origin = &_origin;
+
+	switch ( r ) {
+		case 0:		x += itemDef.lightOffsetX;	y += itemDef.lightOffsetY;		break;
+		case 1:		x -= itemDef.lightOffsetY;	y += itemDef.lightOffsetX;		break;
+		case 2:		x -= itemDef.lightOffsetX;	y -= itemDef.lightOffsetY;		break;
+		case 3:		x += itemDef.lightOffsetY;	y -= itemDef.lightOffsetX;		break;
+	}
 
 	int cx = itemDef.cx;
 	int cy = itemDef.cy;
