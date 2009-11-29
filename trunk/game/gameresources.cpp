@@ -309,7 +309,7 @@ void Game::LoadMapResources()
 	const MapLightInit lights[] = 
 	{
 		//	name			object   x  y   cx  cy	upperLeft 
-		{	"landerLight",	-1,	-1,	 1,	0,	8,	8,	true },
+		{	"landerLight",	-1,	0,	 1,	0,	8,	10,	true },
 		{	0	}
 	};
 	InitMapLight( LIGHT_SET, lights );
