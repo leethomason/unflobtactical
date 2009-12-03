@@ -63,6 +63,13 @@ class BitArray
 		GLASSERT( z >= 0 && z < DEPTH );
 		array[ z*PLANE32 + y*WIDTH32 + (x>>5) ] |= ( 0x1 << (x & 31));
 	}
+	/// Set (x,y) to 'on'
+	void Set( int x, int y, int z, bool on )	{ 
+		if ( on )
+			Set( x, y, z );
+		else
+			Clear( x, y, z );
+	}
 	/// Clear the bit at (x,y)
 	void Clear( int x, int y, int z=0 )	{ 
 		GLASSERT( x >= 0 && x < WIDTH );

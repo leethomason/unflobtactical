@@ -195,7 +195,7 @@ public:
 	void UnBindTextureUnits();
 	void Draw();
 	void DrawPath();
-	void DrawOverlay();
+	void DrawOverlay();		//< draw the "where can I walk" alpha overlay. Set up by ShowNearPath().
 
 	// Explosions impacts and such.
 	void DoDamage( int damageBase, Model* m, int shellFlags );

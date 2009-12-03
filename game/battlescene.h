@@ -110,6 +110,10 @@ private:
 	void CalcAllVisibility();
 	void SetPathBlocks();
 
+	// Updates what units can and can not see.
+	void CalcTeamTargets();
+	int soliderToAlienTargets;
+
 	Unit* UnitFromModel( Model* m );
 	Unit* GetUnitFromTile( int x, int z );
 	bool HandleIconTap( int screenX, int screenY );
@@ -118,9 +122,10 @@ private:
 	struct Selection
 	{
 		Selection()	{ Clear(); }
-		void Clear() { soldierUnit = 0; targetUnit = 0; }
+		void Clear() { soldierUnit = 0; targetUnit = 0; targetCount=0; }
 		Unit*	soldierUnit;
 		Unit*	targetUnit;
+		int		targetCount;	// number of targets this can see.
 	};
 	Selection selection;
 
