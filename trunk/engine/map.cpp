@@ -155,7 +155,9 @@ void Map::DrawOverlay()
 		U8* v = (U8*)walkingVertex + Vertex::POS_OFFSET;
 		U8* t = (U8*)walkingVertex + Vertex::TEXTURE_OFFSET;
 
-		glColor4f( 1.0f, 1.0f, 1.0f, 0.5f );
+		const float ALPHA = 0.3f;
+		glColor4f( 1.0f, 1.0f, 1.0f, ALPHA );
+
 		glBindTexture( GL_TEXTURE_2D, iTex->glID );
 		glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), v);
 		glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), t); 

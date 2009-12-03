@@ -319,6 +319,7 @@ void Engine::Draw( int* triCount )
 		glColor4f( color.x, color.y, color.z, 1.0f );
 		map->Draw();
 
+		// Draw the "where can I walk" overlay.
 		glDepthFunc( GL_ALWAYS );
 		map->DrawOverlay();
 

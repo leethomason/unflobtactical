@@ -5,7 +5,7 @@ const float FOV = 45.0f;
 const int MAX_MODELS = 256;
 const int MAX_UNITS	= 40;
 const int MAP_SIZE = 64;
-const int MAX_EYESIGHT_RANGE = 14;
+const int MAX_EYESIGHT_RANGE = 12;
 const float EYE_HEIGHT = 1.2f;
 
 #endif // GAMELIMITS_INCLUDED

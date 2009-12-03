@@ -5,10 +5,12 @@
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glrandom.h"
 #include "../grinliz/glvector.h"
+#include "../grinliz/glbitarray.h"
 #include "../engine/enginelimits.h"
 
 #include "stats.h"
 #include "inventory.h"
+#include "gamelimits.h"
 
 class UFOStream;
 class Model;
@@ -84,6 +86,8 @@ public:
 
 	void Save( UFOStream* s ) const;
 	void Load( UFOStream* s, Engine* engine, Game* game );
+
+	//grinliz::BitArray<MAX_UNITS, 1, 1>	targetMap;
 
 private:
 	enum {	

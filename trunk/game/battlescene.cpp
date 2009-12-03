@@ -79,6 +79,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 
 	CalcAllVisibility();
 	SetFogOfWar();
+	CalcTeamTargets();
 }
 
 
@@ -273,19 +274,38 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
 	game->particleSystem->EmitFlame( deltaTime, pos );
 
+	selection.targetCount = 0;
 
 	if (    SelectedSoldier()
 		 && SelectedSoldierUnit()->Status() == Unit::STATUS_ALIVE
 		 && SelectedSoldierUnit()->Team() == Unit::SOLDIER ) 
 	{
 		Model* m = SelectedSoldierModel();
-		if ( m ) {
-			//const U32 INTERVAL = 500;
-			float alpha = 0.5f;	//0.5f + 0.4f*(float)(currentTime%500)/(float)(INTERVAL);
-			game->particleSystem->EmitDecal( ParticleSystem::DECAL_SELECTION, 
-											 ParticleSystem::DECAL_BOTTOM,
-											 m->Pos(), alpha,
-											 m->GetYRotation() );
+		GLASSERT( m );
+
+		float alpha = 0.5f;
+		game->particleSystem->EmitDecal( ParticleSystem::DECAL_SELECTION, 
+										 ParticleSystem::DECAL_BOTTOM,
+										 m->Pos(), alpha,
+										 m->GetYRotation() );
+
+		int unitID = SelectedSoldierUnit() - units;
+
+		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+			if ( units[i].IsAlive() ) {
+				Vector2I pos = { 0, 0 };
+				units[i].CalcMapPos( &pos, 0 );
+
+				if ( visibilityMap.IsSet( pos.x, pos.y, unitID ) ) {				
+					const float ALPHA = 0.3f;
+					Vector3F p;
+					units[i].CalcPos( &p );
+					game->particleSystem->EmitDecal( ParticleSystem::DECAL_TARGET,
+													 ParticleSystem::DECAL_BOTH,
+													 p, ALPHA, 0 );	
+					++selection.targetCount;
+				}
+			}
 		}
 	}
 
@@ -295,6 +315,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		Vector3F pos = { 0, 0, 0 };
 		AlienUnit()->CalcPos( &pos );
 
+		// Double up with previous target indicator.
 		const float ALPHA = 0.3f;
 		game->particleSystem->EmitDecal( ParticleSystem::DECAL_TARGET,
 										 ParticleSystem::DECAL_BOTH,
@@ -457,6 +478,7 @@ void BattleScene::ProcessAction( U32 deltaTime )
 					if ( newPos != originalPos || newRot != originalRot ) {
 						CalcVisibility( unit, newPos.x, newPos.y, newRot );
 						SetFogOfWar();
+						CalcTeamTargets();
 					}
 				}
 				break;
@@ -655,6 +677,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 
 				CalcAllVisibility();
 				SetFogOfWar();
+				CalcTeamTargets();
 				break;
 
 			case 2:
@@ -808,6 +831,26 @@ Unit* BattleScene::GetUnitFromTile( int x, int z )
 }
 
 
+void BattleScene::CalcTeamTargets()
+{
+	soliderToAlienTargets = 0;
+	for( int j=ALIEN_UNITS_START; j<ALIEN_UNITS_END; ++j ) {
+		if ( units[j].IsAlive() ) {
+			Vector2I mapPos;
+			units[j].CalcMapPos( &mapPos, 0 );
+			
+			Rectangle3I r;
+			r.Set( mapPos.x, mapPos.y, TERRAN_UNITS_START,
+				   mapPos.x, mapPos.y, TERRAN_UNITS_END-1 );
+
+			if ( !visibilityMap.IsRectEmpty( r ) ) {
+				++soliderToAlienTargets;
+			}
+		}
+	}
+}
+
+
 void BattleScene::CalcAllVisibility()
 {
 	visibilityMap.ClearAll();
@@ -833,8 +876,8 @@ void BattleScene::CalcAllVisibility()
 void BattleScene::CalcVisibility( const Unit* unit, int x, int y, float rotation )
 {
 	int unitID = unit - units;
-	if ( unitID != 0 )
-		return;
+	//if ( unitID > 0 )
+	//	return;
 	GLASSERT( unitID >= 0 && unitID < MAX_UNITS );
 
 	// Clear out the old settings.
@@ -867,17 +910,17 @@ void BattleScene::CalcVisibility( const Unit* unit, int x, int y, float rotation
 				continue;
 			}
 
-			// Max sight
+			// Correct direction
 			int dx = i-x;
 			int dy = j-y;
-			int len2 = dx*dx + dy*dy;
-			if ( len2 > MAX_SIGHT_SQUARED )
-				continue;
-
-			// Correct direction
 			Vector2I vec = { dx, dy };
 			int dot = DotProduct( facing, vec );
 			if ( dot < 0 )
+				continue;
+
+			// Max sight
+			int len2 = dx*dx + dy*dy;
+			if ( (float)len2 > ((float)MAX_SIGHT_SQUARED * (0.3f+0.7f*dot) ) )
 				continue;
 
 			int axis=0;
@@ -937,8 +980,8 @@ void BattleScene::CalcVisibility( const Unit* unit, int x, int y, float rotation
 					U16 c = lightMap->ImagePixel16( q0.x, q0.y );
 					Surface::CalcRGB16( c, &rgba );
 
-					const float DARK  = 0.2f;
-					const float LIGHT = 0.1f;
+					const float DARK  = 0.16f;
+					const float LIGHT = 0.08f;
 					const int EPS = 10;
 
 					if (    rgba.r > (EL_NIGHT_RED_U8+EPS)
@@ -1059,6 +1102,10 @@ void BattleScene::DrawHUD()
 
 	if ( AlienTargeted() ) {
 		fireWidget->Draw();
+	}
+
+	if ( soliderToAlienTargets ) {
+		UFOText::Draw( 400, 304, "T:%02d/%02d", selection.targetCount, soliderToAlienTargets );
 	}
 
 #ifdef MAPMAKER
