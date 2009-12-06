@@ -3,15 +3,15 @@
 
   * fire and smoke placement and spread
   * resource loading on demand
-  * Fog of War, line of site, visibility
   * AI, simple unit movement
   * Effects when structure destroyed.
   * Effects when unit killed.
-  * Fix edge detection in builder. (Switch to smooth/hard poly model?)
   * Another pass at the particle system. Can quad particles be sorted correctly? Improve smoke / flame.
 
 === Resolved ===
 
+  * 10/09 Fix edge detection in builder. (Switch to smooth/hard poly model?)
+  * 12/09 Fog of War, line of site, visibility
   * 3/09 fog of war (FoW)
   * 3/09 night time / day time
   * 3/09 fixed shadow offset in z-path
@@ -31,9 +31,6 @@
 
 = Game =
 === Open ===
-  * visibility computation
-  * pathing+animation
-  * pathing+animation+FoW
   * GL Swap management (only render when needed)
   * UI screen: inventory
   * UI screen: statistics
@@ -46,6 +43,9 @@
   * end game, score
 
 === Resolved ===
+  * 12/09 visibility computation
+  * 12/09 pathing+animation
+  * 12/09 pathing+animation+FoW
   * pathing - micropather integrated
   * weapons - attached to unit
   * save / load strategy
