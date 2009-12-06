@@ -875,7 +875,7 @@ int BattleScene::Targets::TotalAlienTargets()
 
 void BattleScene::DumpTargetEvents()
 {
-	for( unsigned i=0; i<targetEvents.Size(); ++i ) {
+	for( int i=0; i<targetEvents.Size(); ++i ) {
 		const TargetEvent& e = targetEvents[i];
 		if ( !e.team ) {
 			GLOUTPUT(( "Terran Unit %d %s alien %d\n",

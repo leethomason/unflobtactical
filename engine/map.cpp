@@ -104,6 +104,12 @@ void Map::Clear()
 	}
 	quadTree.Clear();
 
+	for( int i=0; i<debris.Size(); ++i ) {
+		delete debris[i].storage;
+		tree->FreeModel( debris[i].crate );
+	}
+	debris.Clear();
+
 	memset( visMap, 0, SIZE*SIZE );
 	memset( pathMap, 0, SIZE*SIZE );
 }
@@ -398,7 +404,7 @@ void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 			int hp = item->hp;
 
 			DeleteItem( item );
-			AddItem( x, y, r, def, hp, flags, 0 );
+			AddItem( x, y, r, def, hp, flags );
 		}
 	}
 }
@@ -422,7 +428,7 @@ Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 #endif
 
 
-Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags, Storage* storage )
+Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags )
 {
 	GLASSERT( x >= 0 && x < width );
 	GLASSERT( y >= 0 && y < height );
@@ -491,13 +497,13 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	GLASSERT( mapBounds.min.y >= 0 && mapBounds.max.y < 256 );	// using int8
 	item->mapBounds8.Set( mapBounds.min.x, mapBounds.min.y, mapBounds.max.x, mapBounds.max.y );
 	item->next = 0;
-	item->storage = storage;
+	//item->storage = storage;
 	item->light = 0;
 	
 	// Check for lights.
 	if ( itemDefArr[defIndex].HasLight() ) {
 		int flags0 = flags | MapItem::MI_NOT_IN_DATABASE | MapItem::MI_IS_LIGHT;
-		item->light = AddItem( x, y, rotation, itemDefArr[defIndex].HasLight(), 0xffff, flags0, 0 );
+		item->light = AddItem( x, y, rotation, itemDefArr[defIndex].HasLight(), 0xffff, flags0 );
 	}
 
 	quadTree.Add( item );
@@ -516,7 +522,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 
 	if ( mapDB && !(flags & MapItem::MI_NOT_IN_DATABASE )) {
 		DeleteRow( item->x, item->y, item->rot, item->itemDefIndex );
-		InsertRow( item->x, item->y, item->rot, item->itemDefIndex, item->hp, 0, 0 );
+		InsertRow( item->x, item->y, item->rot, item->itemDefIndex, item->hp, 0 );
 	}
 
 	return item;
@@ -551,8 +557,8 @@ void Map::DeleteItem( MapItem* item )
 
 	if ( item->model )
 		tree->FreeModel( item->model );
-	if ( item->storage )
-		delete item->storage;
+	//if ( item->storage )
+	//	delete item->storage;
 
 	itemPool.Free( item );
 
@@ -702,7 +708,7 @@ void Map::DeleteRow( int x, int y, int r, int def )
 }
 
 
-void Map::InsertRow( int x, int y, int r, int def, int hp, int flags, const Storage* storage )
+void Map::InsertRow( int x, int y, int r, int def, int hp, int flags )
 {
 	// And add the new one.
 	sqlite3_stmt* stmt = 0;
@@ -727,12 +733,12 @@ void Map::InsertRow( int x, int y, int r, int def, int hp, int flags, const Stor
 	sqlite3_bind_int( stmt, 5, hp );		
 	sqlite3_bind_int( stmt, 6, flags );
 
-	if ( storage ) {
-		sqlite3_bind_blob( stmt, 7, storage->Rounds(), sizeof(int)*EL_MAX_ITEM_DEFS, 0 );
-	}
-	else {
+//	if ( storage ) {
+//		sqlite3_bind_blob( stmt, 7, storage->Rounds(), sizeof(int)*EL_MAX_ITEM_DEFS, 0 );
+//	}
+//	else {
 		sqlite3_bind_blob( stmt, 7, 0, 0, 0 );
-	}
+//	}
 	sqlite3_step(stmt);
 	result = sqlite3_finalize(stmt);
 	GLASSERT( result == SQLITE_OK );
@@ -802,7 +808,7 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 				GLASSERT( nBytes == EL_MAX_ITEM_DEFS*sizeof(int) );
 				storage->Init( (const int*) sqlite3_column_blob( stmt, 6 ) );
 			}
-			AddItem( x, y, r, def, hp, 0, storage );
+			AddItem( x, y, r, def, hp, 0 );
 		}
 		sqlite3_finalize(stmt);
 		mapDB = db;
@@ -852,47 +858,50 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 
 
 
-void Map::SetStorage( int x, int y, Storage* storage )
+Storage* Map::LockStorage( int x, int y )
 {
-	/*
-	RemoveStorage( x, y );	// delete existing
-	MapTile* tile = GetTile( x, y );
-	tile->storage = storage;
-	
-	// Find an item:
-	const ItemDef* itemDef = storage->SomeItem();
-	if ( !itemDef ) {
-		// empty.
-		delete storage;
-		tile->storage = 0;
-	}
-	else { 
-		const ModelResource* res = itemDef->resource;
-		if ( !res ) {
-			res = ModelResourceManager::Instance()->GetModelResource( "crate" );
+	Storage* s = 0;
+	for( int i=0; i<debris.Size(); ++i ) {
+		if ( debris[i].x == x && debris[i].y ==y ) {
+			s = debris[i].storage;
+			tree->FreeModel( debris[i].crate );
+			debris.SwapRemove( i );
+			break;
 		}
-		tile->debris = tree->AllocModel( res );
-		const Rectangle3F& aabb = tile->debris->AABB();
-		tile->debris->SetPos( (float)(x)+0.5f, -aabb.min.y, (float)(y)+0.5f );
-		tile->debris->SetFlag( Model::MODEL_OWNED_BY_MAP );
 	}
-	*/
+	return s;
 }
 
 
-Storage* Map::RemoveStorage( int x, int y )
+void Map::ReleaseStorage( int x, int y, Storage* storage )
 {
-	/*
-	MapTile* tile = GetTile( x, y );
-	if ( tile->debris ) {
-		tree->FreeModel( tile->debris );
-		tile->debris = 0;
+#ifdef DEBUG
+	for( int i=0; i<debris.Size(); ++i ) {
+		if ( debris[i].x == x && debris[i].y == y ) {
+			GLASSERT( 0 );
+			return;
+		}
 	}
-	Storage* result = tile->storage;
-	tile->storage = 0;
-	return result;
-	*/
-	return 0;
+#endif
+
+	if ( storage && storage->Empty() ) {
+		delete storage;
+		storage = 0;
+	}
+	if ( !storage )
+		return;
+
+	Debris* d = debris.Push();
+	d->storage = storage;
+
+	const ModelResource* res = ModelResourceManager::Instance()->GetModelResource( "crate" );
+
+	Model* model = tree->AllocModel( res );
+	//model->SetFlag( Model::MODEL_OWNED_BY_MAP );	// not really owned by map, in the sense of mapBounds, etc.
+	model->SetPos( (float)x+0.5f, 0.0f, (float)y+0.5f );
+	d->crate = model;
+	d->x = x;
+	d->y = y;
 }
 
 
