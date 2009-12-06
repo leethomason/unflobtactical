@@ -110,10 +110,6 @@ private:
 	void CalcAllVisibility();
 	void SetPathBlocks();
 
-	// Updates what units can and can not see.
-	void CalcTeamTargets();
-	int soliderToAlienTargets;
-
 	Unit* UnitFromModel( Model* m );
 	Unit* GetUnitFromTile( int x, int z );
 	bool HandleIconTap( int screenX, int screenY );
@@ -122,10 +118,9 @@ private:
 	struct Selection
 	{
 		Selection()	{ Clear(); }
-		void Clear() { soldierUnit = 0; targetUnit = 0; targetCount=0; }
+		void Clear() { soldierUnit = 0; targetUnit = 0; }
 		Unit*	soldierUnit;
 		Unit*	targetUnit;
-		int		targetCount;	// number of targets this can see.
 	};
 	Selection selection;
 
@@ -166,6 +161,41 @@ private:
 		ALIEN_UNITS_END		= ALIEN_UNITS_START+MAX_ALIENS,
 		// const int MAX_UNITS	= 40
 	};
+
+
+	struct TargetEvent
+	{
+		U8 team;		// 1: team, 0: unit
+		U8 gain;		// 1: gain, 0: loss
+		U8 viewerID;	// unit id of viewer
+		U8 targetID;	// unit id of target
+	};
+
+	// Note that this structure gets copied POD style.
+	struct Targets
+	{
+		Targets() { Clear(); }
+
+		void Clear() {
+			terran.alienTargets.ClearAll();
+			terran.teamAlienTargets.ClearAll();
+		}
+
+		int AlienTargets( int terranUnitID );
+		int TotalAlienTargets();
+
+		struct {
+			grinliz::BitArray< MAX_TERRANS, MAX_ALIENS, 1 >	alienTargets;
+			grinliz::BitArray< MAX_ALIENS, 1, 1 >			teamAlienTargets;
+		} terran;
+	};
+
+	Targets targets;
+	CDynArray< TargetEvent > targetEvents;
+
+	// Updates what units can and can not see.
+	void CalcTeamTargets();
+	void DumpTargetEvents();
 
 	grinliz::BitArray< MAP_SIZE, MAP_SIZE, MAX_UNITS > visibilityMap;
 	Unit units[MAX_UNITS];

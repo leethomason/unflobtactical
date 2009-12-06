@@ -48,6 +48,8 @@ public:
 		DECAL_SELECTION	= 9,
 		DECAL_PATH		= 10,
 		DECAL_TARGET	= 11,
+		DECAL_UNIT_SIGHT = 12,
+		DECAL_TEAM_SIGHT = 13,
 	};
 
 	enum {
