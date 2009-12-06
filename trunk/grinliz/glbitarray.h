@@ -50,14 +50,14 @@ class BitArray
 	BitArray()					{ memset( array, 0, TOTAL_MEM ); }	
 
 	/// Check if (x,y) is set. Returns non-0 if set, 0 if not.
-	U32 IsSet( int x, int y, int z=0 ) const	{ 
+	U32 IsSet( int x, int y=0, int z=0 ) const	{ 
 		GLASSERT( x >= 0 && x < WIDTH );
 		GLASSERT( y >= 0 && y < HEIGHT );
 		GLASSERT( z >= 0 && z < DEPTH );
 		return array[ z*PLANE32 + y*WIDTH32 + (x>>5) ] & ( 0x1 << (x & 31)); 
 	}
 	/// Set (x,y) true.
-	void Set( int x, int y, int z=0 )	{ 
+	void Set( int x, int y=0, int z=0 )	{ 
 		GLASSERT( x >= 0 && x < WIDTH );
 		GLASSERT( y >= 0 && y < HEIGHT );
 		GLASSERT( z >= 0 && z < DEPTH );
@@ -71,7 +71,7 @@ class BitArray
 			Clear( x, y, z );
 	}
 	/// Clear the bit at (x,y)
-	void Clear( int x, int y, int z=0 )	{ 
+	void Clear( int x, int y=0, int z=0 )	{ 
 		GLASSERT( x >= 0 && x < WIDTH );
 		GLASSERT( y >= 0 && y < HEIGHT );	
 		GLASSERT( z >= 0 && z < DEPTH );
@@ -97,29 +97,6 @@ class BitArray
 			for( int i=rect.min.x; i<=rect.max.x; ++i )	
 				Set( i, j, z );
 	}
-
-
-	/*void SetRect( const Rectangle2I& rect, int z=0 )	
-	{
-		PLAYERASSERT( 0 );	// NEEDS DEBUGGING
-		for( int j=rect.min.y; j<=rect.max.y; ++j ) {
-			int x0 = (rect.min.x+31)&(~31);
-			int x1 = (rect.max.x+32)&(~31);
-
-			for( i=rect.min.x; i<x0; ++i ) {
-				Set( i, j, z );
-			}
-
-			U32* p = &array[ z*PLANE32 + j*WIDTH32 + (i>>5) ];
-			for( ; i <= x1; i+=32, ++p ) {
-				*p = 0xffffffff;
-			}
-
-			for ( ; i<=rect.max.x; ++i ) {
-				Set( i, j, z );
-			}
-		}
-	}*/
 
 
 	/// Check if a rectangle is empty in z=0.
@@ -161,6 +138,17 @@ class BitArray
 				for( int i=rect.min.x; i<=rect.max.x; ++i )
 					if ( !IsSet( i, j, k ) )
 						return false;
+	}
+
+	int NumSet( const Rectangle3I& rect ) const 
+	{
+		int count = 0;
+		for( int k=rect.min.z; k<=rect.max.z; ++k )
+			for( int j=rect.min.y; j<=rect.max.y; ++j )
+				for( int i=rect.min.x; i<=rect.max.x; ++i )
+					if ( IsSet( i, j, k ) )
+						++count;
+		return count;
 	}
 
 	/// Clear all the bits.

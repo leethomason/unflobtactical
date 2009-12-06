@@ -80,6 +80,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	CalcAllVisibility();
 	SetFogOfWar();
 	CalcTeamTargets();
+	targetEvents.Clear();
 }
 
 
@@ -274,8 +275,6 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
 	game->particleSystem->EmitFlame( deltaTime, pos );
 
-	selection.targetCount = 0;
-
 	if (    SelectedSoldier()
 		 && SelectedSoldierUnit()->Status() == Unit::STATUS_ALIVE
 		 && SelectedSoldierUnit()->Team() == Unit::SOLDIER ) 
@@ -290,21 +289,40 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 										 m->GetYRotation() );
 
 		int unitID = SelectedSoldierUnit() - units;
+		const float ALPHA = 0.3f;
+
+		/*
+		// Debug unit targets.
+		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+			if ( targets.terran.alienTargets.IsSet( unitID-TERRAN_UNITS_START, i-ALIEN_UNITS_START ) ) {
+				Vector3F p;
+				units[i].CalcPos( &p );
+				game->particleSystem->EmitDecal( ParticleSystem::DECAL_UNIT_SIGHT,
+												 ParticleSystem::DECAL_BOTH,
+												 p, ALPHA, 0 );	
+			}
+		}
+		*/
+		/*
+		// Debug team targets.
+		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+			if ( targets.terran.teamAlienTargets.IsSet( i-ALIEN_UNITS_START ) ) {
+				Vector3F p;
+				units[i].CalcPos( &p );
+				game->particleSystem->EmitDecal( ParticleSystem::DECAL_TEAM_SIGHT,
+												 ParticleSystem::DECAL_BOTH,
+												 p, ALPHA, 0 );	
+			}
+		}
+		*/
 
 		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-			if ( units[i].IsAlive() ) {
-				Vector2I pos = { 0, 0 };
-				units[i].CalcMapPos( &pos, 0 );
-
-				if ( visibilityMap.IsSet( pos.x, pos.y, unitID ) ) {				
-					const float ALPHA = 0.3f;
-					Vector3F p;
-					units[i].CalcPos( &p );
-					game->particleSystem->EmitDecal( ParticleSystem::DECAL_TARGET,
-													 ParticleSystem::DECAL_BOTH,
-													 p, ALPHA, 0 );	
-					++selection.targetCount;
-				}
+			if ( targets.terran.alienTargets.IsSet( unitID-TERRAN_UNITS_START, i-ALIEN_UNITS_START ) ) {
+				Vector3F p;
+				units[i].CalcPos( &p );
+				game->particleSystem->EmitDecal( ParticleSystem::DECAL_TARGET,
+												 ParticleSystem::DECAL_BOTH,
+												 p, ALPHA, 0 );	
 			}
 		}
 	}
@@ -479,6 +497,8 @@ void BattleScene::ProcessAction( U32 deltaTime )
 						CalcVisibility( unit, newPos.x, newPos.y, newRot );
 						SetFogOfWar();
 						CalcTeamTargets();
+						DumpTargetEvents();
+						targetEvents.Clear();
 					}
 				}
 				break;
@@ -678,6 +698,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 				CalcAllVisibility();
 				SetFogOfWar();
 				CalcTeamTargets();
+				targetEvents.Clear();
 				break;
 
 			case 2:
@@ -831,21 +852,107 @@ Unit* BattleScene::GetUnitFromTile( int x, int z )
 }
 
 
+int BattleScene::Targets::AlienTargets( int id )
+{
+	GLASSERT( id >= TERRAN_UNITS_START && id < TERRAN_UNITS_END );
+	Rectangle3I r;
+	r.Set(	id-TERRAN_UNITS_START, 0, 0,
+			id-TERRAN_UNITS_START, MAX_ALIENS-1, 0 );
+
+	int count = terran.alienTargets.NumSet( r );
+	return count;
+}
+
+
+int BattleScene::Targets::TotalAlienTargets()
+{
+	Rectangle3I r;
+	r.Set(	0, 0, 0, MAX_ALIENS-1, 0, 0 );
+
+	int count = terran.teamAlienTargets.NumSet( r );
+	return count;
+}
+
+void BattleScene::DumpTargetEvents()
+{
+	for( unsigned i=0; i<targetEvents.Size(); ++i ) {
+		const TargetEvent& e = targetEvents[i];
+		if ( !e.team ) {
+			GLOUTPUT(( "Terran Unit %d %s alien %d\n",
+					   e.viewerID, 
+					   e.gain ? "gain" : "loss", 
+					   e.targetID ));
+		}
+		else {
+			GLOUTPUT(( "Terran Team %s alien %d\n",
+					   e.gain ? "gain" : "loss", 
+					   e.targetID ));
+		}
+	}
+}
+
 void BattleScene::CalcTeamTargets()
 {
-	soliderToAlienTargets = 0;
-	for( int j=ALIEN_UNITS_START; j<ALIEN_UNITS_END; ++j ) {
-		if ( units[j].IsAlive() ) {
-			Vector2I mapPos;
-			units[j].CalcMapPos( &mapPos, 0 );
-			
-			Rectangle3I r;
-			r.Set( mapPos.x, mapPos.y, TERRAN_UNITS_START,
-				   mapPos.x, mapPos.y, TERRAN_UNITS_END-1 );
+	// generate events.
+	// - if team gets/loses target
+	// - if unit gets/loses target
 
-			if ( !visibilityMap.IsRectEmpty( r ) ) {
-				++soliderToAlienTargets;
+	Targets old = targets;
+	targets.Clear();
+
+	// Terran to Alien
+	// Go through each alien, and check #terrans that can target it.
+	//
+	for( int j=ALIEN_UNITS_START; j<ALIEN_UNITS_END; ++j ) {
+		// Push IsAlive() checks into the cases below, so that a unit
+		// death creates a visibility change. However, initialization 
+		// happens at the beginning, so we can skip that.
+
+		if ( !units[j].InUse() )
+			continue;
+
+		Vector2I mapPos;
+		units[j].CalcMapPos( &mapPos, 0 );
+		
+		Rectangle3I r;
+		r.Set( mapPos.x, mapPos.y, TERRAN_UNITS_START,
+			   mapPos.x, mapPos.y, TERRAN_UNITS_END-1 );
+
+		for( int k=TERRAN_UNITS_START; k<TERRAN_UNITS_END; ++k ) {
+			// Main test: can a terran see an alien at this location?
+			if ( units[k].IsAlive() && units[j].IsAlive() && visibilityMap.IsSet( mapPos.x, mapPos.y, k ) ) {
+				targets.terran.alienTargets.Set( k-TERRAN_UNITS_START, j-ALIEN_UNITS_START );
+				targets.terran.teamAlienTargets.Set( j-ALIEN_UNITS_START, 0, 0 );
 			}
+
+			// check unit change.
+			if (	old.terran.alienTargets.IsSet( k-TERRAN_UNITS_START, j-ALIEN_UNITS_START )
+				 && !targets.terran.alienTargets.IsSet( k-TERRAN_UNITS_START, j-ALIEN_UNITS_START ) )
+			{	
+				// Lost unit.
+				TargetEvent e = { 0, 0, k, j };
+				targetEvents.Push( e );
+			}
+			else if (	 !old.terran.alienTargets.IsSet( k-TERRAN_UNITS_START, j-ALIEN_UNITS_START )
+					  && targets.terran.alienTargets.IsSet( k-TERRAN_UNITS_START, j-ALIEN_UNITS_START ) )
+			{
+				// Gain unit.
+				TargetEvent e = { 0, 1, k, j };
+				targetEvents.Push( e );
+			}
+		}
+		// Check team change.
+		if (	old.terran.teamAlienTargets.IsSet( j-ALIEN_UNITS_START )
+			 && !targets.terran.teamAlienTargets.IsSet( j-ALIEN_UNITS_START ) )
+		{	
+			TargetEvent e = { 1, 0, 0, j };
+			targetEvents.Push( e );
+		}
+		else if (    !old.terran.teamAlienTargets.IsSet( j-ALIEN_UNITS_START )
+				  && targets.terran.teamAlienTargets.IsSet( j-ALIEN_UNITS_START ) )
+		{	
+			TargetEvent e = { 1, 1, 0, j };
+			targetEvents.Push( e );
 		}
 	}
 }
@@ -1104,8 +1211,9 @@ void BattleScene::DrawHUD()
 		fireWidget->Draw();
 	}
 
-	if ( soliderToAlienTargets ) {
-		UFOText::Draw( 400, 304, "T:%02d/%02d", selection.targetCount, soliderToAlienTargets );
+	if ( SelectedSoldierUnit() ) {
+		int id = SelectedSoldierUnit() - units;
+		UFOText::Draw( 400, 304, "T:%02d/%02d", targets.AlienTargets( id ), targets.TotalAlienTargets() );
 	}
 
 #ifdef MAPMAKER
