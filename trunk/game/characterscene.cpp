@@ -37,7 +37,7 @@ CharacterScene::CharacterScene( Game* _game )
 
 	Vector2I mapPos;
 	unit->CalcMapPos( &mapPos, 0 );
-	storage = engine->GetMap()->RemoveStorage( mapPos.x, mapPos.y );
+	storage = engine->GetMap()->LockStorage( mapPos.x, mapPos.y );
 	if ( !storage ) {
 		storage = new Storage();
 	}
@@ -88,7 +88,7 @@ CharacterScene::~CharacterScene()
 
 	Vector2I mapPos;
 	unit->CalcMapPos( &mapPos, 0 );
-	engine->GetMap()->SetStorage( mapPos.x, mapPos.y, storage );
+	engine->GetMap()->ReleaseStorage( mapPos.x, mapPos.y, storage );
 	storage = 0;
 
 	BattleSceneStream bss( game );

@@ -208,6 +208,16 @@ Storage::~Storage()
 }
 
 
+bool Storage::Empty() const
+{
+	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+		if ( rounds[i] )
+			return false;
+	}
+	return true;
+}
+
+
 void Storage::AddItem( const Item& item )
 {
 	for( int i=0; i<3; ++i ) {

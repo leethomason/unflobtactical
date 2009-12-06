@@ -128,7 +128,6 @@ public:
 		grinliz::Rectangle2<U8> mapBounds8;
 		
 		Model*	 model;
-		Storage* storage;
 		MapItem* light;
 		
 		MapItem* next;			// the 'next' after a query
@@ -204,8 +203,8 @@ public:
 	void ClearPathBlocks();
 	void SetPathBlock( int x, int y );
 
-	void SetStorage( int x, int y, Storage* storage );
-	Storage* RemoveStorage( int x, int y );
+	Storage* LockStorage( int x, int y );					//< can return 0 if none there
+	void ReleaseStorage( int x, int y, Storage* storage );	//< sets the storage
 
 	MapItemDef* InitItemDef( int i );
 	const char* GetItemDefName( int i );
@@ -217,7 +216,7 @@ public:
 	//       0 destroyed
 	//		1+ hp remaining
 	// Storage is owned by the map after this call.
-	MapItem* AddItem( int x, int z, int rotation, int itemDefIndex, int hp, int flags, Storage* storage );
+	MapItem* AddItem( int x, int z, int rotation, int itemDefIndex, int hp, int flags );
 	void DeleteAt( int x, int z );
 	void MapBoundsOfModel( const Model* m, grinliz::Rectangle2I* mapBounds );
 
@@ -340,7 +339,7 @@ private:
 	void CalcVisPathMap( grinliz::Rectangle2I& bounds );
 
 	void DeleteItem( MapItem* item );
-	void InsertRow( int x, int y, int r, int def, int hp, int flags, const Storage* storage );
+	void InsertRow( int x, int y, int r, int def, int hp, int flags );
 	void DeleteRow( int x, int y, int r, int def );
 
 	int width, height;
@@ -366,6 +365,13 @@ private:
 	U32 visibilityQueryID;
 
 	micropather::MicroPather* microPather;
+
+	struct Debris {
+		int x, y;
+		Storage* storage;
+		Model* crate;
+	};
+	CDynArray< Debris > debris;
 
 	grinliz::BitArray<SIZE, SIZE, 1>	pathBlock;	// spaces the pather can't use (units are there)	
 

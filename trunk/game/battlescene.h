@@ -172,6 +172,10 @@ private:
 	};
 
 	// Note that this structure gets copied POD style.
+	//
+	// Terran is enemy of Alien and vice versa. Civs aren't
+	// counted, which means they have to be queried and 
+	// don't impact reaction fire.
 	struct Targets
 	{
 		Targets() { Clear(); }

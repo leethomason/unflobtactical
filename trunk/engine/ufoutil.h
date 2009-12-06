@@ -84,7 +84,19 @@ public:
 		return result;
 	}
 
-	unsigned Size() const	{ return size; }
+	void Pop() {
+		GLASSERT( size > 0 );
+		--size;
+	}
+
+	void SwapRemove( int i ) {
+		GLASSERT( i<(int)size );
+		GLASSERT( size > 0 );
+		grinliz::Swap( &vec[i], &vec[size-1] );
+		Pop();
+	}
+
+	int Size() const		{ return (int)size; }
 	
 	void Clear()			{ size = 0; }
 	bool Empty() const		{ return size==0; }

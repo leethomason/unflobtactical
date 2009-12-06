@@ -172,6 +172,7 @@ public:
 	void Init( const int* roundArr )			{ memcpy( rounds, roundArr, sizeof(int)*EL_MAX_ITEM_DEFS ); }
 	const int* Rounds() const					{ return rounds; }
 
+	bool Empty() const;
 	void AddItem( const Item& item );
 	void RemoveItem( const ItemDef*, Item* item );
 	
@@ -179,9 +180,6 @@ public:
 
 	void SetCount( const ItemDef*, int count );
 	int GetCount( const ItemDef* ) const;
-
-	//void Save( UFOStream* s ) const;
-	//void Load( UFOStream* s );
 
 private:
 	int GetIndex( const ItemDef* itemDef ) const {
