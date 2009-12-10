@@ -28,18 +28,49 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	path.Clear();
 
 	// On screen menu.
-	widgets = new UIButtonBox( engine->GetScreenport() );
+	widgets = new UIButtonGroup( engine->GetScreenport() );
 	
-	int x, y, w, h;
-
 	{
-		const int icons[] = { ICON_GREEN_BUTTON, ICON_GREEN_BUTTON, ICON_GREEN_BUTTON, ICON_GREEN_BUTTON };
-		const char* iconText[] = { "home", "d/n", 0, "fow" };
-		widgets->InitButtons( icons, 4 );
-		widgets->SetDeco( 2, DECO_CHARACTER );
+		const int icons[] = {	ICON_BLUE_BUTTON,		// 0 take-off
+								ICON_GREEN_BUTTON,		// 1 end turn
+								ICON_GREEN_BUTTON,		// 2 next
+								ICON_GREEN_BUTTON,		// 3 next-done
+								ICON_RED_BUTTON,		// 4 target
+								ICON_BLUE_BUTTON,		// 5 left
+								ICON_BLUE_BUTTON,		// 6 right
+								ICON_GREEN_BUTTON		// 7 character
+		};
+
+		const char* iconText[] = {	"X",
+									"O",
+									"N",
+									"ND",
+									"",
+									"<-",
+									"->",
+									""	
+								  };		
+
+		widgets->InitButtons( icons, 8 );
 		widgets->SetText( iconText );
-		widgets->CalcDimensions( &x, &y, &w, &h );
-		widgets->SetOrigin( 0, engine->GetScreenport().UIHeight()-h );
+
+		widgets->SetDeco( 7, DECO_CHARACTER );
+		widgets->SetDeco( 4, DECO_AIMED );
+
+		const Screenport& port = engine->GetScreenport();
+		const Vector2I& pad = widgets->GetPadding();
+		const Vector2I& size = widgets->GetButtonSize();
+		int h = port.UIHeight();
+		int w = port.UIWidth();
+
+		widgets->SetPos( 0,		0, h-size.y );
+		widgets->SetPos( 1,		0, h-(size.y*2+pad.y) );
+		widgets->SetPos( 2,		0, size.y+pad.y );
+		widgets->SetPos( 3,		0, 0 );
+		widgets->SetPos( 4,		size.x+pad.x, 0 );
+		widgets->SetPos( 5,		w-(size.x*2+pad.x), 0 );
+		widgets->SetPos( 6,		w-size.x, 0 );
+		widgets->SetPos( 7,		w-size.x, size.y+pad.y );
 	}
 	// When enemy targeted.
 	fireWidget = new UIButtonBox( engine->GetScreenport() );
@@ -125,7 +156,7 @@ void BattleScene::InitUnits()
 	ar3.Insert( autoClip );
 	ar3.Insert( grenade );
 
-	for( int i=0; i<6; ++i ) {
+	for( int i=0; i<4; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-10 };
 		Unit* unit = &units[TERRAN_UNITS_START+i];
 
@@ -143,15 +174,17 @@ void BattleScene::InitUnits()
 		unit->SetYRotation( (float)(((i+2)%8)*45) );
 	}
 	
+	const Vector2I alienPos[4] = { 
+		{ 16, 21 }, {12, 18 }, { 30, 25 }, { 29, 30 }
+	};
 	for( int i=0; i<4; ++i ) {
-		Vector2I pos = { (i*2)+10, Z-8 };
 		Unit* unit = &units[ALIEN_UNITS_START+i];
 
 		unit->Init( engine, game, Unit::ALIEN, i&3, random.Rand() );
 		Inventory* inventory = unit->GetInventory();
 		inventory->AddItem( Inventory::WEAPON_SLOT, gun1 );
 		unit->UpdateInventory();
-		unit->SetMapPos( pos.x, pos.y );
+		unit->SetMapPos( alienPos[i] );
 	}
 
 	for( int i=0; i<4; ++i ) {
@@ -685,10 +718,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 		icon = widgets->QueryTap( screenX, screenY );
 
 		switch( icon ) {
-			case 0:
-				engine->MoveCameraHome();
-				break;
-
+			/*
 			case 1:
 				if ( engine->GetDayTime() )
 					engine->SetDayNight( false, game->GetLightMap( "farmlandN" ) );
@@ -700,8 +730,9 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 				CalcTeamTargets();
 				targetEvents.Clear();
 				break;
+			*/
 
-			case 2:
+			case BTN_CHAR_SCREEN:
 				if ( actionStack.Empty() && SelectedSoldierUnit() ) {
 					UFOStream* stream = game->OpenStream( "SingleUnit" );
 					stream->WriteU8( (U8)(SelectedSoldierUnit()-units ) );
@@ -732,7 +763,7 @@ void BattleScene::Tap(	int tap,
 		const Vector3F& pos = mapSelection->Pos();
 		int rotation = (int) (mapSelection->GetYRotation() / 90.0f );
 
-		engine->GetMap()->AddItem( (int)pos.x, (int)pos.z, rotation, currentMapItem, -1, 0, 0 );
+		engine->GetMap()->AddItem( (int)pos.x, (int)pos.z, rotation, currentMapItem, -1, 0 );
 		iconSelected = 0;	// don't keep processing
 	}
 #endif	
@@ -1204,7 +1235,20 @@ void BattleScene::Rotate( int action, float degrees )
 void BattleScene::DrawHUD()
 {
 	// { "home", "d/n", character screen, "fow" };
-	widgets->SetEnabled( 2, SelectedSoldierUnit() && actionStack.Empty() );
+	bool enabled = SelectedSoldierUnit() && actionStack.Empty();
+	{
+		widgets->SetEnabled( BTN_TARGET, enabled );
+		widgets->SetEnabled( BTN_LEFT, enabled );
+		widgets->SetEnabled( BTN_RIGHT, enabled );
+		widgets->SetEnabled( BTN_CHAR_SCREEN, enabled );
+	}
+	enabled = actionStack.Empty();
+	{
+		widgets->SetEnabled( BTN_TAKE_OFF, enabled );
+		widgets->SetEnabled( BTN_END_TURN, enabled );
+		widgets->SetEnabled( BTN_NEXT, enabled );
+		widgets->SetEnabled( BTN_NEXT_DONE, enabled );
+	}
 	widgets->Draw();
 
 	if ( AlienTargeted() ) {

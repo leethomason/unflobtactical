@@ -23,7 +23,8 @@ using namespace grinliz;
 const float ALPHA_DISABLED	= 0.3f;
 const float ALPHA_DECO		= 0.5f;
 
-UIButtonBox::UIButtonBox( const Screenport& port ) : screenport( port )
+
+UIButtons::UIButtons( const Screenport& port ) : screenport( port )
 {
 	this->texture     = TextureManager::Instance()->GetTexture( "icons" );
 	this->decoTexture = TextureManager::Instance()->GetTexture( "iconDeco" );
@@ -35,11 +36,17 @@ UIButtonBox::UIButtonBox( const Screenport& port ) : screenport( port )
 
 	origin.Set( 0, 0 );
 	size.Set( SIZE, SIZE );
-	columns = 1;
+
 	pad.Set( PAD, PAD );
 	alpha = 1.0f;
 
 	memset( icons, 0, sizeof( Icon )*MAX_ICONS );
+}
+
+
+UIButtonBox::UIButtonBox( const Screenport& port ) : UIButtons( port )
+{
+	columns = 1;
 }
 
 
@@ -66,7 +73,7 @@ void UIButtonBox::CalcDimensions( int *x, int *y, int *w, int *h )
 }
 
 
-void UIButtonBox::InitButtons( const int* _icons, int _nIcons )
+void UIButtons::InitButtons( const int* _icons, int _nIcons )
 {
 	nIcons = _nIcons;
 	GLASSERT( nIcons <= MAX_ICONS );
@@ -83,7 +90,7 @@ void UIButtonBox::InitButtons( const int* _icons, int _nIcons )
 }
 
 
-void UIButtonBox::SetButton( int index, int iconID )
+void UIButtons::SetButton( int index, int iconID )
 {
 	GLASSERT( index < MAX_ICONS );
 	if ( index >= nIcons ) {
@@ -98,7 +105,7 @@ void UIButtonBox::SetButton( int index, int iconID )
 }
 
 
-void UIButtonBox::SetDeco( int index, int decoID )
+void UIButtons::SetDeco( int index, int decoID )
 {
 	GLASSERT( index < nIcons );
 	if ( icons[index].decoID != decoID ) {
@@ -108,7 +115,7 @@ void UIButtonBox::SetDeco( int index, int decoID )
 }
 
 
-void UIButtonBox::SetText( const char** text ) 
+void UIButtons::SetText( const char** text ) 
 {
 	for( int i=0; i<nIcons; ++i ) {
 		icons[i].text0[0] = 0;
@@ -126,7 +133,7 @@ void UIButtonBox::SetText( const char** text )
 }
 
 
-void UIButtonBox::SetText( int index, const char* text ) 
+void UIButtons::SetText( int index, const char* text ) 
 {
 	GLASSERT( index >=0 && index < nIcons );
 	icons[index].text0[0] = 0;
@@ -138,7 +145,7 @@ void UIButtonBox::SetText( int index, const char* text )
 }
 
 
-void UIButtonBox::SetText( int index, const char* text0, const char* text1 )
+void UIButtons::SetText( int index, const char* text0, const char* text1 )
 {
 	GLASSERT( index >=0 && index < nIcons );
 	icons[index].text0[0] = 0;
@@ -155,14 +162,14 @@ void UIButtonBox::SetText( int index, const char* text0, const char* text1 )
 }
 
 
-const char* UIButtonBox::GetText( int index )
+const char* UIButtons::GetText( int index )
 {
 	GLASSERT( index >= 0 && index < nIcons );
 	return icons[index].text0;
 }
 
 
-void UIButtonBox::PositionText( int index ) 
+void UIButtons::PositionText( int index ) 
 {
 	int w, h;
 	UFOText::GlyphSize( icons[index].text0, &w, &h );
@@ -184,7 +191,7 @@ void UIButtonBox::PositionText( int index )
 }
 
 
-void UIButtonBox::SetEnabled( int index, bool enabled )
+void UIButtons::SetEnabled( int index, bool enabled )
 {
 	GLASSERT( index >=0 && index < nIcons );
 	if ( icons[index].enabled != enabled ) {
@@ -267,7 +274,7 @@ void UIButtonBox::CalcButtons()
 }
 
 
-void UIButtonBox::Draw()
+void UIButtons::Draw()
 {
 	if ( nIcons == 0 )
 		return;
@@ -356,6 +363,102 @@ int UIButtonBox::QueryTap( int x, int y )
 		}
 	}
 	return -1;
+}
+
+
+UIButtonGroup::UIButtonGroup( const Screenport& port ) : UIButtons( port )
+{
+	memset( bPos, 0, sizeof(Vector2I)*MAX_ICONS );
+}
+
+
+void UIButtonGroup::SetPos( int index, int x, int y )
+{
+	GLASSERT( index >= 0 && index < nIcons );
+	bPos[index].Set( x, y );
+}
+
+
+int UIButtonGroup::QueryTap( int x, int y )
+{
+	Rectangle2I b;
+	Vector2I p ={ x, y };
+
+	for( int i=0; i<nIcons; ++i ) {
+		b.Set( bPos[i].x,
+					bPos[i].y,
+					bPos[i].x + size.x,
+					bPos[i].y + size.y );
+		if ( b.Contains( p ) ) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+
+void UIButtonGroup::CalcButtons()
+{
+	if ( cacheValid )
+		return;
+
+	// Don't apply the origin here. It is applied at render.
+	const float iconTX = 1.0f / (float)ICON_DX;
+	const float iconTY = 1.0f / (float)ICON_DY;
+	const float decoTX = 1.0f / (float)DECO_DX;
+	const float decoTY = 1.0f / (float)DECO_DY;
+	
+	bounds.Set( 0, 0, 0, 0 );
+
+	for( int i=0; i<nIcons; ++i ) 
+	{
+		int x = bPos[i].x;
+		int y = bPos[i].y;
+
+		pos[i*4+0].Set( x,			y );		
+		pos[i*4+1].Set( x+size.x,	y );		
+		pos[i*4+2].Set( x+size.x,	y+size.y );		
+		pos[i*4+3].Set( x,			y+size.y );	
+		bounds.DoUnion( x, y );
+		bounds.DoUnion( x+size.x, y+size.y );
+
+		int id = icons[i].id;
+		float dx = (float)(id%ICON_DX)*iconTX;
+		float dy = (float)(id/ICON_DX)*iconTY;
+
+		tex[i*4+0].Set( dx,			dy );
+		tex[i*4+1].Set( dx+iconTX,	dy );
+		tex[i*4+2].Set( dx+iconTX,	dy+iconTY );
+		tex[i*4+3].Set( dx,			dy+iconTY );
+
+		int decoID = icons[i].decoID;
+		dx = (float)(decoID%DECO_DX)*decoTX;
+		dy = (float)(decoID/DECO_DX)*decoTY;
+
+		texDeco[i*4+0].Set( dx,			dy );
+		texDeco[i*4+1].Set( dx+decoTX,	dy );
+		texDeco[i*4+2].Set( dx+decoTX,	dy+decoTY );
+		texDeco[i*4+3].Set( dx,			dy+decoTY );
+
+		Vector4<U8> c0 = { 255, 255, 255, (U8)LRintf( alpha*255.0f ) };
+		Vector4<U8> c1 = { 255, 255, 255, (U8)LRintf( alpha*255.0f*ALPHA_DECO ) };
+		if ( !icons[i].enabled ) {
+			c0.Set( 255, 255, 255, (U8)LRintf( alpha*255.0f*ALPHA_DISABLED ) );
+			c1.Set( 255, 255, 255, (U8)LRintf( alpha*255.0f*ALPHA_DISABLED*ALPHA_DECO ) );
+		}
+		color[i*4+0] = color[i*4+1] = color[i*4+2] = color[i*4+3] = c0;
+		colorDeco[i*4+0] = colorDeco[i*4+1] = colorDeco[i*4+2] = colorDeco[i*4+3] = c1;
+		
+		U16 idx = i*4;
+		index[i*6+0] = idx+0;
+		index[i*6+1] = idx+1;
+		index[i*6+2] = idx+2;
+
+		index[i*6+3] = idx+0;
+		index[i*6+4] = idx+2;
+		index[i*6+5] = idx+3;
+	}
+	cacheValid = true;
 }
 
 

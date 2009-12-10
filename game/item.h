@@ -176,8 +176,6 @@ public:
 	void AddItem( const Item& item );
 	void RemoveItem( const ItemDef*, Item* item );
 	
-	//const ItemDef* SomeItem() const;
-
 	void SetCount( const ItemDef*, int count );
 	int GetCount( const ItemDef* ) const;
 
