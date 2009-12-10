@@ -10,6 +10,7 @@
 
 class Model;
 class UIButtonBox;
+class UIButtonGroup;
 class Engine;
 class Texture;
 
@@ -46,6 +47,17 @@ public:
 #endif
 
 private:
+	enum {
+		BTN_TAKE_OFF,
+		BTN_END_TURN,
+		BTN_NEXT,
+		BTN_NEXT_DONE,
+		BTN_TARGET,
+		BTN_LEFT,
+		BTN_RIGHT,
+		BTN_CHAR_SCREEN
+	};
+
 	enum {
 		ACTION_NONE,
 		ACTION_MOVE,
@@ -144,7 +156,7 @@ private:
 	grinliz::Vector3F orbitPole;
 	float	orbitStart;
 
-	UIButtonBox*	widgets;
+	UIButtonGroup*	widgets;
 	UIButtonBox*	fireWidget;
 	Engine*			engine;
 

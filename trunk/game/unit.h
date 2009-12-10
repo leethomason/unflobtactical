@@ -67,6 +67,7 @@ public:
 	const char* LastName();
 
 	void SetMapPos( int x, int z );
+	void SetMapPos( const grinliz::Vector2I& pos ) { SetMapPos( pos.x, pos.y ); }
 	void SetPos( const grinliz::Vector3F& pos, float rotation );
 	void SetYRotation( float rotation );
 	void CalcPos( grinliz::Vector3F* ) const;
@@ -80,14 +81,14 @@ public:
 	const Model* GetModel() const			{ return model; }
 	Model* GetWeaponModel()					{ return weapon; }
 	const Model* GetWeaponModel() const		{ return weapon; }
-	const Stats& GetStats() const			{ return stats; }
 
 	float AngleBetween( const Unit* target, bool quantize ) const;
+	const Stats& GetStats()	{ return stats; }
 
 	void Save( UFOStream* s ) const;
 	void Load( UFOStream* s, Engine* engine, Game* game );
 
-	//grinliz::BitArray<MAX_UNITS, 1, 1>	targetMap;
+	
 
 private:
 	enum {	
@@ -129,7 +130,8 @@ private:
 	Model*		model;
 	Model*		weapon;
 	Inventory	inventory;
-	Stats		stats;
+
+	Stats stats;
 };
 
 

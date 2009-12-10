@@ -55,12 +55,10 @@ enum {
 	DECO_NONE			= 31,
 };
 
-
-class UIButtonBox
+// Base class for button layouts.
+class UIButtons
 {
 public:
-	UIButtonBox( const Screenport& port );
-	~UIButtonBox()	{}
 
 	enum {
 		ICON_DX				= 4,
@@ -71,16 +69,28 @@ public:
 		MAX_TEXT_LEN		= 12,
 	};
 
+
+	UIButtons( const Screenport& port );
+	virtual ~UIButtons()	{}
+
 	// Coordinates in pixels. Origin in the lower left.
 	void SetOrigin( int x, int y )				{	origin.Set( x, y ); }
 	const grinliz::Vector2I& GetOrigin() const	{	return origin; }
 
-	// Set the columns - rows will be added as needed.
-	void SetColumns( int columns  )				{	if ( this->columns != columns ) {
-														this->columns = columns; 
-														cacheValid = false; 
-													}
-												}
+	void InitButtons( const int* icons, int nIcons );
+	void SetButton( int index, int iconID );
+	void SetDeco( int index, int decoID );
+
+	void SetText( const char** text );
+	void SetText( int index, const char* text );
+	void SetText( int index, const char* text0, const char* text1 );
+
+	const char* GetText( int index );
+
+	// Set the alpha of non-text
+	void SetAlpha( float alpha )		{ this->alpha = alpha; cacheValid = false; }
+
+	void SetEnabled( int index, bool enabled );
 
 	void SetButtonSize( int dx, int dy )		{	if ( size.x != dx || size.y != dy ) {
 														size.x = dx; size.y = dy; 
@@ -95,49 +105,21 @@ public:
 													}
 												}
 	const grinliz::Vector2I& GetPadding() const	{	return pad; }
+
+	void CalcBounds( grinliz::Rectangle2I* _bounds ) {
+		CalcButtons();
+		*_bounds = bounds;
+	}
 	
-	void CalcBounds( grinliz::Rectangle2I* _bounds )	{	CalcButtons();
-															grinliz::Rectangle2I b = bounds;
-															b.min.x += origin.x;	b.min.y += origin.y;
-															b.max.x += origin.x;	b.max.y += origin.y;
-															*_bounds = b;
-														}
-
-	void InitButtons( const int* icons, int nIcons );
-	void SetButton( int index, int iconID );
-	void SetDeco( int index, int decoID );
-
-	void SetText( const char** text );
-	void SetText( int index, const char* text );
-	void SetText( int index, const char* text0, const char* text1 );
-
-	const char* GetText( int index );
-
-
-	// Set the alpha of non-text
-	void SetAlpha( float alpha )		{ this->alpha = alpha; cacheValid = false; }
-
-	void CalcDimensions( int *x, int *y, int *w, int *h );
-	void SetEnabled( int index, bool enabled );
-	int TopIndex( int x, int y ) {
-		int dx = columns;
-		int dy = nIcons / columns;
-		return (dy-1-y)*dx+x;
-	}
-	int TopIndex( int i ) {
-		int x = i%columns;
-		int y = i/columns;
-		return TopIndex( x, y );
-	}
 
 	// returns the icon INDEX, or -1 if not clicked
-	int QueryTap( int x, int y );	
+	virtual int QueryTap( int x, int y ) = 0;
 	void Draw();
 
-private:
-	void CalcButtons();
+protected:
 	void PositionText( int index );
-	int INV( int i ) { return nIcons-i-1; }
+	virtual void CalcButtons() = 0;
+
 
 	struct Icon
 	{
@@ -155,7 +137,7 @@ private:
 
 	bool cacheValid;
 	Screenport screenport;
-	int columns;
+
 	float alpha;
 	grinliz::Vector2I		origin;
 	grinliz::Vector2I		size;
@@ -170,6 +152,60 @@ private:
 	grinliz::Vector4< U8 >	colorDeco[MAX_ICONS*4];
 
 	U16						index[6*MAX_ICONS];
+};
+
+
+// Implements related, but individually positioned buttons.
+class UIButtonGroup : public UIButtons
+{
+public:
+	UIButtonGroup( const Screenport& port );
+	virtual ~UIButtonGroup()	{}
+
+	virtual int QueryTap( int x, int y );	
+
+	void SetPos( int index, int x, int y );
+
+protected:
+	virtual void CalcButtons();
+	grinliz::Vector2I	bPos[MAX_ICONS];
+};
+
+
+// implements buttons in a row/column grid
+class UIButtonBox : public UIButtons
+{
+public:
+	UIButtonBox( const Screenport& port );
+	virtual ~UIButtonBox()	{}
+
+	// Set the columns - rows will be added as needed.
+	void SetColumns( int columns  )				{	if ( this->columns != columns ) {
+														this->columns = columns; 
+														cacheValid = false; 
+													}
+												}
+
+	void CalcDimensions( int *x, int *y, int *w, int *h );
+
+	int TopIndex( int x, int y ) {
+		int dx = columns;
+		int dy = nIcons / columns;
+		return (dy-1-y)*dx+x;
+	}
+	int TopIndex( int i ) {
+		int x = i%columns;
+		int y = i/columns;
+		return TopIndex( x, y );
+	}
+
+	virtual int QueryTap( int x, int y );	
+
+protected:
+	virtual void CalcButtons();
+	int INV( int i ) { return nIcons-i-1; }
+
+	int columns;
 };
 
 
