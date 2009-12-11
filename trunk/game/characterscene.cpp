@@ -136,7 +136,7 @@ void CharacterScene::SetButtonGraphics( int index, const Item& item )
 		else*/
 		if ( item.IsWeapon() ) {
 			const WeaponItemDef* wid = item.IsWeapon();
-			if ( wid->weapon[1].shell )
+			if ( wid->HasWeapon(1) )
 				sprintf( buffer, "%d %d", item.Rounds(1), item.Rounds(2) );
 			else
 				sprintf( buffer, "%d", item.Rounds(1) );

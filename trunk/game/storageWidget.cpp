@@ -118,19 +118,19 @@ void StorageWidget::SetButtons()
 			const ClipItemDef* cid = itemDefArr[i]->IsClip();
 
 			// Terran non-melee weapons and clips.
-			if ( wid && wid->weapon[0].power == 0 && wid->weapon[0].range > 1 )
+			if ( wid && wid->weapon[0].power == 0 && !wid->Melee() )
 				group=0;
 			else if ( cid && cid->type != ITEM_CLIP_CELL )
 				group=0;
 
 			// alien non-melee weapons and clips
-			if ( wid && wid->weapon[0].power > 0 && wid->weapon[0].range > 1 )
+			if ( wid && wid->weapon[0].power > 0 && !wid->Melee() )
 				group=1;
 			else if ( cid && cid->type == ITEM_CLIP_CELL )
 				group=1;
 
 			// armor, melee
-			if ( wid && wid->weapon[0].range == 1 )
+			if ( wid && wid->Melee() )
 				group=2;
 			if ( itemDefArr[i]->IsArmor() )
 				group=2;

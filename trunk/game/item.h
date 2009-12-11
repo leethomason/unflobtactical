@@ -16,12 +16,22 @@ enum {
 	ITEM_ARMOR,
 	ITEM_GENERAL,
 
-	ITEM_CLIP_SHELL,
+	// Clip types - plenty of complexity here already.
+	ITEM_CLIP_SHELL = 1,
 	ITEM_CLIP_AUTO,
 	ITEM_CLIP_CELL,
 	ITEM_CLIP_CANON,
 	ITEM_CLIP_ROCKET,
 	ITEM_CLIP_GRENADE,
+
+	WEAPON_AUTO		= 0x01,
+	WEAPON_MELEE	= 0x02,
+	WEAPON_EXPLOSIVE = 0x04,	// only needed for cell weapons - adds a "feature" to the cell clip
+
+	DAMAGE_KINETIC		= 0,
+	DAMAGE_ENERGY		= 1,
+	DAMAGE_INCINDIARY	= 2,
+	NUM_DAMAGE			= 3
 };
 
 class WeaponItemDef;
@@ -60,28 +70,30 @@ public:
 	virtual const WeaponItemDef* IsWeapon() const { return this; }
 
 	struct Weapon {
-		int shell;			// type of shell SH_KINETIC, etc.
-		int clipType;		// type of clip required (ITEM_CLIP_ROCKET for example)
-		int autoRounds;		// 0: no auto
-		int damageBase;		// base damage
-		int range;
+		int clipType;		// type of clip required (ITEM_CLIP_ROCKET for example). 0 for melee.
+		int flags;			//
+		float damage;		// 
 		float accuracy;		// 1.0 is average
 		int power;			// power consumed by cell weapons
 	};
 	Weapon weapon[2];		// primary and secondary
 
+	bool HasWeapon( int select ) const { GLASSERT( select == 0 || select == 1 ); return weapon[select].damage > 0; }
+	bool Melee() const { return weapon[0].flags & WEAPON_MELEE ? true : false; }
+
 	void QueryWeaponRender( int select, grinliz::Vector4F* beamColor, float* beamDecay, float* beamWidth, grinliz::Vector4F* impactColor ) const;
 	bool CompatibleClip( const ItemDef* itemDef, int* which ) const;
+	void DamageBase( int select, float* damageArray ) const;
 };
 
 
 class ClipItemDef : public ItemDef
 {
 public:
+
 	virtual const ClipItemDef* IsClip() const { return this; }
 	virtual int Rounds() const { return rounds; }
 
-	int shell;			// modifies the shell of the weapon
 	int rounds;			// rounds in this clip, power of cell (100)
 };
 

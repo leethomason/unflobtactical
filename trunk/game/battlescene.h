@@ -116,7 +116,6 @@ private:
 	float Travel( U32 timeMSec, float speed ) { return speed * (float)timeMSec / 1000.0f; }
 
 	void InitUnits();
-	void SetUnitsDraggable();
 	void TestHitTesting();
 	void CalcVisibility( const Unit* unit, int x, int y, float rotation );
 	void CalcAllVisibility();

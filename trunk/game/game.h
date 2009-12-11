@@ -126,7 +126,7 @@ private:
 		int cx;
 		int cy;
 		int hp;
-		int materialFlags;
+		float flammable;		// 0 - 1
 		/*
 			+----X
 			|			4

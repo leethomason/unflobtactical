@@ -10,7 +10,7 @@
 #include "battlestream.h"
 
 #include "../grinliz/glfixed.h"
-
+#include "../micropather/micropather.h"
 
 using namespace grinliz;
 
@@ -140,9 +140,9 @@ void BattleScene::InitUnits()
 	int Z = engine->GetMap()->Height();
 	Random random(5);
 
-	Item gun0( game, "PST-1" ),
+	Item gun0( game, "PST" ),
 		 gun1( game, "RAY-1" ),
-		 ar3( game, "AR-3" ),
+		 ar3( game, "AR-2" ),
 		 medkit( game, "Med" ),
 		 armor( game, "ARM-1" ),
 		 fuel( game, "Gel" ),
@@ -192,18 +192,6 @@ void BattleScene::InitUnits()
 		units[CIV_UNITS_START+i].Init( engine, game, Unit::CIVILIAN, 0, random.Rand() );
 		units[CIV_UNITS_START+i].SetMapPos( pos.x, pos.y );
 	}
-	SetUnitsDraggable();
-}
-
-
-void BattleScene::SetUnitsDraggable()
-{
-	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		Model* m = units[i].GetModel();
-		if ( m && units[i].Status() == Unit::STATUS_ALIVE ) {
-			m->SetFlag( Model::MODEL_SELECTABLE );
-		}
-	}
 }
 
 
@@ -230,7 +218,6 @@ void BattleScene::Load( UFOStream* /*s*/ )
 	if ( selected < MAX_UNITS ) {
 		selection.soldierUnit = &units[selected];
 	}
-	SetUnitsDraggable();
 }
 
 
@@ -405,20 +392,24 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 
 void BattleScene::SetSelection( Unit* unit ) 
 {
-	//FreePathEndModel();
-
-	GLASSERT( unit->IsAlive() );
-
-	if ( unit->Team() == Unit::SOLDIER ) {
-		selection.soldierUnit = unit;
+	if ( !unit ) {
+		selection.soldierUnit = 0;
 		selection.targetUnit = 0;
 	}
-	else if ( unit->Team() == Unit::ALIEN ) {
-		GLASSERT( SelectedSoldier() );
-		selection.targetUnit = unit;
-	}
 	else {
-		GLASSERT( 0 );
+		GLASSERT( unit->IsAlive() );
+
+		if ( unit->Team() == Unit::SOLDIER ) {
+			selection.soldierUnit = unit;
+			selection.targetUnit = 0;
+		}
+		else if ( unit->Team() == Unit::ALIEN ) {
+			GLASSERT( SelectedSoldier() );
+			selection.targetUnit = unit;
+		}
+		else {
+			GLASSERT( 0 );
+		}
 	}
 }
 
@@ -619,6 +610,9 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 			m = 0;
 		}
 
+		float damage[NUM_DAMAGE];
+		weaponDef->DamageBase( 0, damage );
+
 		if ( m ) {
 			hitSomething = true;
 			beam0 = p0;
@@ -627,13 +621,14 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 			Unit* hitUnit = UnitFromModel( m );
 			if ( hitUnit ) {
 				if ( hitUnit->IsAlive() ) {
-					hitUnit->DoDamage( weaponDef->weapon[0].damageBase, weaponDef->weapon[0].shell );
+
+					hitUnit->DoDamage( damage );
 					GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", (unsigned)hitUnit, (int)hitUnit->GetStats().HP(), (int)hitUnit->GetStats().TotalHP() ));
 				}
 			}
 			else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
 				// Hit world object.
-				engine->GetMap()->DoDamage( weaponDef->weapon[0].damageBase, m, weaponDef->weapon[0].shell );
+				engine->GetMap()->DoDamage( m, damage );
 			}
 		}
 		else {		
@@ -776,63 +771,77 @@ void BattleScene::Tap(	int tap,
 	// What got tapped? First look to see if a SELECTABLE model was tapped. If not, 
 	// look for a selectable model from the tile.
 
+	// If there is a selected model, then we can tap a target model.
+	bool canSelectAlien = SelectedSoldier();			// a soldier is selected
+
+	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+		if ( units[i].GetModel() ) units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
+
+		if ( units[i].IsAlive() ) {
+			GLASSERT( units[i].GetModel() );
+			units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
+		}
+	}
+	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+		if ( units[i].GetModel() ) units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
+
+		if ( canSelectAlien && units[i].IsAlive() ) {
+			GLASSERT( units[i].GetModel() );
+			units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
+		}
+	}
+
 	Vector3F intersect;
 	Map* map = engine->GetMap();
 
 	Vector2I tilePos = { 0, 0 };
+	bool hasTilePos = false;
+
 	int result = IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &intersect );
-	if ( result == grinliz::INTERSECT ) {
+	if ( result == grinliz::INTERSECT && intersect.x >= 0 && intersect.x < Map::SIZE && intersect.z >= 0 && intersect.z < Map::SIZE ) {
 		tilePos.Set( (int)intersect.x, (int) intersect.z );
+		hasTilePos = true;
 	}
 
-	// If there is a selected model, then we can tap a target model.
-	bool canSelectAlien = SelectedSoldier();			// a soldier is selected
+	Model* tappedModel = engine->IntersectModel( world, TEST_HIT_AABB, Model::MODEL_SELECTABLE, 0, 0, 0 );
+	const Unit* tappedUnit = UnitFromModel( tappedModel );
 
-	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-		if ( units[i].GetModel() ) {
-			if ( canSelectAlien && units[i].IsAlive() )
-				units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
-			else
-				units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
-		}	
-	}
+	if ( tappedModel && tappedUnit ) {
+		if ( tappedUnit->Team() == Unit::ALIEN ) {
+			SetSelection( UnitFromModel( tappedModel ) );		// sets either the Alien or the Unit
+			map->ClearNearPath();
+		}
+		else if ( tappedUnit->Team() == Unit::SOLDIER ) {
+			SetSelection( UnitFromModel( tappedModel ) );
 
-	Model* model = engine->IntersectModel( world, TEST_HIT_AABB, Model::MODEL_SELECTABLE, 0, 0, 0 );
-
-	if ( model ) {
-		SetSelection( UnitFromModel( model ) );		// sets either the Alien or the Unit
-
-		if ( !selection.targetUnit ) {
+			Vector2<S16> start   = { (S16)tappedModel->X(), (S16)tappedModel->Z() };
 			SetPathBlocks();
-			Vector2<S16> start   = { (S16)model->X(), (S16)model->Z() };
-			map->ShowNearPath( start, 2.0f, 4.0f, 6.0f );
+			const Stats& stats = tappedUnit->GetStats();
+			map->ShowNearPath( start, stats.TU()-4.0f, stats.TU()-2.0f, stats.TU() );
 		}
 		else {
+			SetSelection( 0 );
 			map->ClearNearPath();
 		}
 	}
-	else {
+	else if ( !tappedModel ) {
 		// Not a model - use the tile
-		if ( SelectedSoldierModel() && !selection.targetUnit ) {
+		if ( SelectedSoldierModel() && !selection.targetUnit && hasTilePos ) {
 			Vector2<S16> start   = { (S16)SelectedSoldierModel()->X(), (S16)SelectedSoldierModel()->Z() };
 
-			if ( result == grinliz::INTERSECT ) {
-				Vector2<S16> end = { (S16)intersect.x, (S16)intersect.z };
-				if ( end.x >= 0 && end.y >=0 && end.x < Map::SIZE && end.y < Map::SIZE ) {
-					if ( start != path.start || end != path.end ) {
-						// Compute the path:
-						SetPathBlocks();
-						float cost;
-						engine->GetMap()->SolvePath( start, end, &cost, &path.statePath );
+			Vector2<S16> end = { (S16)tilePos.x, (S16)tilePos.y };
 
-						// Go!
-						Action action;
-						action.Move( SelectedSoldierUnit() );
-						actionStack.Push( action );
+			// Compute the path:
+			float cost;
+			SetPathBlocks();
+			int result = engine->GetMap()->SolvePath( start, end, &cost, &path.statePath );
+			if ( result == micropather::MicroPather::SOLVED ) {
+				// Go!
+				Action action;
+				action.Move( SelectedSoldierUnit() );
+				actionStack.Push( action );
 
-						engine->GetMap()->ClearNearPath();
-					}
-				}
+				engine->GetMap()->ClearNearPath();
 			}
 		}
 	}
@@ -858,9 +867,11 @@ void BattleScene::SetPathBlocks()
 
 Unit* BattleScene::UnitFromModel( Model* m )
 {
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		if ( units[i].GetModel() == m )
-			return &units[i];
+	if ( m ) {
+		for( int i=0; i<MAX_UNITS; ++i ) {
+			if ( units[i].GetModel() == m )
+				return &units[i];
+		}
 	}
 	return 0;
 }
