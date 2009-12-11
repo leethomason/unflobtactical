@@ -57,14 +57,14 @@ public:
 
 	bool InUse()			{ return status != STATUS_NOT_INIT; }
 	bool IsAlive()			{ return status == STATUS_ALIVE; }
-	void DoDamage( int damageBase, int shellFlags );
+	void DoDamage( const float* damage );
 
-	int Status()			{ return status; }
-	int Team()				{ return team; }
-	int AlienType()			{ return (body>>ALIEN_TYPE_SHIFT) & ALIEN_TYPE_MASK; }
-	int Gender()			{ return (body>>GENDER_SHIFT) & GENDER_MASK; }
-	const char* FirstName();
-	const char* LastName();
+	int Status() const			{ return status; }
+	int Team() const			{ return team; }
+	int AlienType()	const		{ return (body>>ALIEN_TYPE_SHIFT) & ALIEN_TYPE_MASK; }
+	int Gender() const			{ return (body>>GENDER_SHIFT) & GENDER_MASK; }
+	const char* FirstName() const;
+	const char* LastName() const;
 
 	void SetMapPos( int x, int z );
 	void SetMapPos( const grinliz::Vector2I& pos ) { SetMapPos( pos.x, pos.y ); }
@@ -83,12 +83,11 @@ public:
 	const Model* GetWeaponModel() const		{ return weapon; }
 
 	float AngleBetween( const Unit* target, bool quantize ) const;
-	const Stats& GetStats()	{ return stats; }
+
+	const Stats& GetStats() const	{ return stats; }
 
 	void Save( UFOStream* s ) const;
 	void Load( UFOStream* s, Engine* engine, Game* game );
-
-	
 
 private:
 	enum {	

@@ -381,7 +381,7 @@ void Map::IMat::Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out  )
 }
 
 
-void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
+void Map::DoDamage( Model* m, const float* damage )
 {
 	if ( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) 
 	{
@@ -389,7 +389,14 @@ void Map::DoDamage( int baseDamage, Model* m, int shellFlags )
 		GLASSERT( ( item->flags & MapItem::MI_IS_LIGHT ) == 0 );
 
 		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
-		int hp = MaterialDef::CalcDamage( baseDamage, shellFlags, itemDef.materialFlags );
+
+		// FIXME: 1st pass, take no incindiary damage.
+		// But need to fix it so it may catch fire.
+		int hp = 0;
+		for( int i=0; i<NUM_DAMAGE; ++i ) {
+			if ( i != DAMAGE_INCINDIARY )
+				hp += (int)damage[i];
+		}
 
 		if ( itemDef.CanDamage() && item->DoDamage(hp) ) 
 		{

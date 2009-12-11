@@ -73,7 +73,7 @@ public:
 						cx = 1; 
 						cy = 1; 
 						hp = 0xffff; 
-						materialFlags = 0;
+						flammable = 0;
 
 						modelResource			= 0;
 						modelResourceOpen		= 0;
@@ -91,7 +91,7 @@ public:
 
 		U16		cx, cy;
 		U16		hp;					// 0xffff infinite, 0 destroyed
-		U16		materialFlags;
+		U8		flammable;			// 0 - 255
 		U8		isUpperLeft;
 		U8		lightDef;			// itemdef index of the light associated with this (is auto-created)
 		S8		lightOffsetX;		// if light, offset of light origin from model origin
@@ -197,7 +197,7 @@ public:
 	void DrawOverlay();		//< draw the "where can I walk" alpha overlay. Set up by ShowNearPath().
 
 	// Explosions impacts and such.
-	void DoDamage( int damageBase, Model* m, int shellFlags );
+	void DoDamage( Model* m, const float* damage );
 
 	// Sets objects to block the path (usually other sprites) that the map doesn't know about.
 	void ClearPathBlocks();
@@ -235,6 +235,7 @@ public:
 					float* cost,
 					std::vector< void* >* path );
 	
+	// Show the path that the unit can walk to.
 	void ShowNearPath(	const grinliz::Vector2<S16>& start,
 						float cost0, float cost1, float cost2 );
 	void ClearNearPath();	

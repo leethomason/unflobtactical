@@ -2,7 +2,7 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 
-
+/*
 const float gDamage[SH_BITS*MAT_BITS] = 
 {
 //	Generic	Steel	Wood
@@ -51,3 +51,4 @@ int MaterialDef::CalcDamage( int damage, int shell, int material )
 		hp = 1;
 	return hp;
 }
+*/

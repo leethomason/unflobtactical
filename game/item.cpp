@@ -7,19 +7,27 @@
 void WeaponItemDef::QueryWeaponRender( int select, grinliz::Vector4F* beamColor, float* beamDecay, float* beamWidth, grinliz::Vector4F* impactColor ) const
 {
 	GLASSERT( type == ITEM_WEAPON );
+	const float INV=1.0f/255.0f;
 
-	if ( weapon[select].shell & SH_KINETIC ) {
-		beamColor->Set( 0.8f, 0.8f, 0.8f, 1.0f );
-		*beamDecay = -3.0f;
-		*beamWidth = 0.07f;
-		impactColor->Set( 0.3f, 0.3f, 0.9f, 1.0f );
-	}
-	if ( weapon[select].shell & SH_ENERGY ) {
-		beamColor->Set( 1, 1, 0.8f, 1.0f );
-		*beamDecay = -2.0f;
-		*beamWidth = 0.12f;
-		const float INV=1.0f/255.0f;
-		impactColor->Set( 242.0f*INV, 101.0f*INV, 34.0f*INV, 1.0f );
+	switch( weapon[select].clipType ) {
+		case ITEM_CLIP_SHELL:
+		case ITEM_CLIP_AUTO:
+			beamColor->Set( 0.8f, 0.8f, 0.8f, 1.0f );
+			*beamDecay = -3.0f;
+			*beamWidth = 0.07f;
+			impactColor->Set( 0.3f, 0.3f, 0.9f, 1.0f );
+			break;
+
+		case ITEM_CLIP_CELL:
+			beamColor->Set( 1, 1, 0.8f, 1.0f );
+			*beamDecay = -2.0f;
+			*beamWidth = 0.12f;
+			impactColor->Set( 242.0f*INV, 101.0f*INV, 34.0f*INV, 1.0f );
+			break;
+
+		default:
+			GLASSERT( 0 );	// need to implement others
+			break;
 	}
 }
 
@@ -39,6 +47,37 @@ bool WeaponItemDef::CompatibleClip( const ItemDef* id, int* which ) const
 	return false;
 }
 
+
+void WeaponItemDef::DamageBase( int select, float* damageArray ) const
+{
+
+	switch( weapon[select].clipType ) {
+		case ITEM_CLIP_SHELL:
+		case ITEM_CLIP_AUTO:
+			damageArray[DAMAGE_KINETIC]		= 1.0f;				
+			damageArray[DAMAGE_ENERGY]		= 0;
+			damageArray[DAMAGE_INCINDIARY]	= 0;
+			break;
+
+		case ITEM_CLIP_CELL:
+			if ( weapon[select].flags & WEAPON_EXPLOSIVE ) {
+				damageArray[DAMAGE_KINETIC]		= 0.5f;				
+				damageArray[DAMAGE_ENERGY]		= 0.5f;
+				damageArray[DAMAGE_INCINDIARY]	= 0;
+			}
+			else {
+				damageArray[DAMAGE_KINETIC]		= 0;				
+				damageArray[DAMAGE_ENERGY]		= 1.0f;
+				damageArray[DAMAGE_INCINDIARY]	= 0;
+			}
+			break;
+
+		default:
+			GLASSERT( 0 );	// need to implement
+	}
+	for( int i=0; i<NUM_DAMAGE; ++i ) 
+		damageArray[i] *= weapon[select].damage;
+}
 
 
 void ItemPart::Init( const ItemDef* itemDef, int rounds )

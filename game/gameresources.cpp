@@ -163,7 +163,7 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 		itemDef->cx = init->cx;
 		itemDef->cy = init->cy;
 		itemDef->hp = init->hp;
-		itemDef->materialFlags = init->materialFlags;
+		itemDef->flammable = (U8)(init->flammable*255.0);
 		itemDef->lightDef = init->lightDef;
 
 		ModelResourceManager* modman = ModelResourceManager::Instance();
@@ -296,11 +296,13 @@ void Game::LoadMapResources()
 	const int MARINE_SET = 0x60;
 
 	const int LIGHT_SET  = Map::LIGHT_START;
+	const float BURN = 0.5f;
+	const float FASTBURN = 1.0f;
 
-	const int STEEL		= MAT_STEEL;
-	const int WOOD		= MAT_WOOD;
-	const int GENERIC	= MAT_GENERIC;
-	const int GENERIC_FASTBURN	= MAT_GENERIC;
+//	const int STEEL		= MAT_STEEL;
+//	const int WOOD		= MAT_WOOD;
+//	const int GENERIC	= MAT_GENERIC;
+//	const int GENERIC_FASTBURN	= MAT_GENERIC;
 
 	enum {
 		LANDER_LIGHT = LIGHT_SET
@@ -318,10 +320,10 @@ void Game::LoadMapResources()
 	const MapItemInit farmSet[] =
 	{
 			// model		open			destroyed	cx, cz	hp		material		pather visibility
-		{	"farmBed",		0,				0,			1,	1,	HP_MED,	GENERIC,		"f"	 "0"	},
-		{	"farmTable",	0,				0,			1,	1,	HP_MED,	WOOD,			"f", "0" 	},
-		{	"farmTable2x1",	0,				0,			2,	1,	HP_MED,	WOOD,			"ff","00"	},
-		{	"farmWheat",	0,				0,			1,	1,	HP_LOW,	GENERIC_FASTBURN,"0", "0" },
+		{	"farmBed",		0,				0,			1,	1,	HP_MED,	BURN,			"f"	 "0"	},
+		{	"farmTable",	0,				0,			1,	1,	HP_MED,	BURN,			"f", "0" 	},
+		{	"farmTable2x1",	0,				0,			2,	1,	HP_MED,	BURN,			"ff","00"	},
+		{	"farmWheat",	0,				0,			1,	1,	HP_LOW,	FASTBURN		,"0", "0" },
 		{	0	}
 	};
 	InitMapItemDef( FARM_SET, farmSet );
@@ -331,7 +333,7 @@ void Game::LoadMapResources()
 	const MapItemInit marineSet[] =
 	{
 			// model		open			destroyed	cx, cz	hp			material	pather
-		{	"lander",		0,				0,			6,	6,	INDESTRUCT,	STEEL,		"00ff00 00ff00 ff00ff ff00ff ff00ff ff00ff",
+		{	"lander",		0,				0,			6,	6,	INDESTRUCT,	0,			"00ff00 00ff00 ff00ff ff00ff ff00ff ff00ff",
 																						"00ff00 00ff00 0f00f0 0f00f0 0f00f0 0f00f0", 
 																						LANDER_LIGHT },
 		{	0	}
@@ -341,21 +343,21 @@ void Game::LoadMapResources()
 	const MapItemInit forestSet[] = 
 	{
 			// model		open			destroyed	cx, cz	hp		 material		pather
-		{	"tree",			0,				0,			1,	1,	HP_HIGH, WOOD,			"f", "0" },
+		{	"tree",			0,				0,			1,	1,	HP_HIGH, BURN,			"f", "0" },
 		{	0	}
 	};
 	InitMapItemDef( FOREST_SET, forestSet );
 
 	const MapItemInit ufoSet[] = 
 	{
-			// model		open			destroyed	cx, cz	hp			material		pather
-		{	"ufo_Diag",		0,				0,			1,	1,	HP_STEEL,	STEEL,		"f" },
-		{	"ufo_DoorCld",	"ufo_DoorOpn",	0,			1,	1,	HP_STEEL,	STEEL,		"0", "1" },
-		{	"ufo_WallInn",	0,				0,			1,	1,	HP_STEEL,	STEEL,		"1" },
-		{	"ufo_CrnrInn",	0,				0,			1,	1,	HP_STEEL,	STEEL,		"3" },
-		{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	STEEL,		"1" },
-		{	"ufo_Join0",	0,				0,			2,	1,	HP_STEEL,	STEEL,		"1f" },
-		{	"ufo_Join1",	0,				0,			1,	2,	HP_STEEL,	STEEL,		"2f" },
+			// model		open			destroyed	cx, cz	hp			material	pather
+		{	"ufo_Diag",		0,				0,			1,	1,	HP_STEEL,	0,			"f" },
+		{	"ufo_DoorCld",	"ufo_DoorOpn",	0,			1,	1,	HP_STEEL,	0,			"0", "1" },
+		{	"ufo_WallInn",	0,				0,			1,	1,	HP_STEEL,	0,			"1" },
+		{	"ufo_CrnrInn",	0,				0,			1,	1,	HP_STEEL,	0,			"3" },
+		{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	0,			"1" },
+		{	"ufo_Join0",	0,				0,			2,	1,	HP_STEEL,	0,			"1f" },
+		{	"ufo_Join1",	0,				0,			1,	2,	HP_STEEL,	0,			"2f" },
 		{	0	}
 	};
 	InitMapItemDef( UFO_SET0, ufoSet );
@@ -363,10 +365,10 @@ void Game::LoadMapResources()
 	const MapItemInit woodSet[] =
 	{
 			// model		open			destroyed	cx, cz	hp		material		pather
-		{	"woodCrnr",		0,				"woodCrnrD",1,	1,	HP_MED,	WOOD,			"3" },
-		{	"woodDoorCld",	"woodDoorOpn",	0,			1,	1,	HP_MED,	WOOD,			"0", "1" },
-		{	"woodWall",		"woodWall",		0,			1,	1,	HP_MED,	WOOD,			"1" },
-		{	"woodWallWin",	"woodWallWin",	0,			1,	1,	HP_MED,	WOOD,			"1", "0" },
+		{	"woodCrnr",		0,				"woodCrnrD",1,	1,	HP_MED,	BURN,			"3" },
+		{	"woodDoorCld",	"woodDoorOpn",	0,			1,	1,	HP_MED,	BURN,			"0", "1" },
+		{	"woodWall",		"woodWall",		0,			1,	1,	HP_MED,	BURN,			"1" },
+		{	"woodWallWin",	"woodWallWin",	0,			1,	1,	HP_MED,	BURN,			"1", "0" },
 		{	0	}
 	};
 	InitMapItemDef(  WOOD_SET, woodSet );
@@ -375,14 +377,14 @@ void Game::LoadMapResources()
 
 void Game::LoadItemResources()
 {
-	const int DAM_LOW = 50;
-	const int DAM_MED = 80;
-	const int DAM_HI  = 120;
-	const int DAM_VHI = 200;
-	const int RANGE_MELEE = 1;
-	const int RANGE_SHORT = 4;
-	const int RANGE_MED = 8;
-	const int RANGE_FAR = 12;
+	const float DAM_LOW =  20.0f;
+	const float DAM_MED =  40.0f;
+	const float DAM_HI  =  60.0f;
+	const float DAM_VHI = 100.0f;
+//	const int RANGE_MELEE = 1;
+//	const int RANGE_SHORT = 4;
+//	const int RANGE_MED = 8;
+//	const int RANGE_FAR = 12;
 	const float ACC_LOW = 0.7f;
 	const float ACC_MED = 1.0f;
 	const float ACC_HI  = 1.3f;
@@ -399,68 +401,67 @@ void Game::LoadItemResources()
 		int deco;
 		const char* desc;
 
-		int		shell0, 
-				clip0, 
-				auto0, 
-				damage0, 
-				range0;
-		float	acc0;
-		int		power0;
+		int		clip0;		// 
+		int		flags0;
+		float	damage0;	// damage modifier of clip - modifies shell
+		float	acc0;		// accuracy modifier - independent of shell
+		int		power0;		// power consumption of cell
 
-		int shell1, clip1, auto1, damage1, range1;
-		float acc1;
-		int power1;
+		int clip1, flags1;
+		float damage1, acc1;
+		int	power1;
 	};
 
 	const WeaponInit weapons[] = {		
-		// Terran
-		{ "PST-1",	"gun0",		DECO_PISTOL,	"Pistol",
-								SH_KINETIC,		ITEM_CLIP_SHELL,	0, DAM_MED,	RANGE_SHORT,	ACC_MED, 0,
-								0  },
-		{ "AR-1",	"gun0",		DECO_RIFLE,		"Assault Rifle Standard Issue",
-								SH_KINETIC,		ITEM_CLIP_AUTO,		3, DAM_LOW,	RANGE_MED,		ACC_MED, 0,
-								0  },
-		{ "AR-2",	"gun0",		DECO_RIFLE,		"Assault Rifle 'Vera'",
-								SH_KINETIC,		ITEM_CLIP_AUTO,		3, DAM_MED,	RANGE_FAR,		ACC_HI,  0,
-								SH_EXPLOSIVE,	ITEM_CLIP_GRENADE,	0, DAM_HI,	RANGE_MED,		ACC_LOW, 0 },
-		{ "AR-3",	"gun0",		DECO_RIFLE,		"Pulse Rifle",
-								SH_KINETIC,		ITEM_CLIP_AUTO,		4, DAM_MED,	RANGE_MED,		ACC_MED, 0,
-								SH_EXPLOSIVE,	ITEM_CLIP_GRENADE,	0, DAM_HI,	RANGE_MED,		ACC_MED, 0 },
+		// Terran	resName		deco			description
+		//				
+		{ "PST",	"gun0",		DECO_PISTOL,	"Pistol",
+				ITEM_CLIP_SHELL,	0,			DAM_MED,	ACC_MED, 0,
+				0  },
+		{ "AR-1",	"gun0",		DECO_RIFLE,		"Klk Assault Rifle",
+				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_LOW,	ACC_LOW, 0,
+				0  },
+		{ "AR-2",	"gun0",		DECO_RIFLE,		"N7 Assault Rifle",
+				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_LOW,	ACC_MED, 0,
+				0  },
+		{ "AR-3P",	"gun0",		DECO_RIFLE,		"Pulse Rifle",
+				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_HI,		ACC_MED, 0,
+				ITEM_CLIP_GRENADE,	0,				DAM_MED,	ACC_LOW, 0 },
+		{ "AR-3L",	"gun0",		DECO_RIFLE,		"Long AR 'Vera'",
+				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MED,	ACC_HI,	0,
+				ITEM_CLIP_GRENADE,	0,				DAM_MED,	ACC_LOW, 0 },
 		{ "RKT",	"gun0",		DECO_RIFLE,		"Rocket Launcher",
-								SH_EXPLOSIVE,	ITEM_CLIP_ROCKET,	0, DAM_HI,  RANGE_FAR,		ACC_MED, 0,
-								0  },
+				ITEM_CLIP_ROCKET,	0,				DAM_MED,	ACC_MED, 0,
+				0  },
 		{ "CANON",	"gun0",		DECO_RIFLE,		"Mini-Canon",
-								SH_KINETIC,		ITEM_CLIP_CANON,	3, DAM_HI,	RANGE_MED,		ACC_MED, 0,
-								0 },
+				ITEM_CLIP_CANON,	WEAPON_AUTO,	DAM_MED,	ACC_MED, 0,
+				0 },
 		{ "KNIFE",	"gun0",		DECO_KNIFE,		"Knife",
-								SH_KINETIC,		0,					0, DAM_MED, RANGE_MELEE,	ACC_MED, 0,
-								0  },
+				0,					WEAPON_MELEE,	DAM_MED,	ACC_MED, 0,
+				0  },
 
 		// Alien
-		{ "RAY-1",	"gun1",		DECO_PISTOL,	"Alien Ray Gun",
-								SH_ENERGY,		ITEM_CLIP_CELL,		0, DAM_LOW,	RANGE_SHORT,	ACC_MED, POW_LOW,
-								0  },
-		{ "RAY-2",	"gun1",		DECO_PISTOL,	"Advanced Alien Ray Gun",
-								SH_ENERGY,		ITEM_CLIP_CELL,		0, DAM_MED,	RANGE_MED,		ACC_MED, POW_LOW,
-								0  },
+		{ "RAY-1",	"gun1",		DECO_PISTOL,	"Ray Gun",
+				ITEM_CLIP_CELL,		0,				DAM_LOW,	ACC_LOW, POW_LOW,
+				0  },
+		{ "RAY-2",	"gun1",		DECO_PISTOL,	"Advanced Ray Gun",
+				ITEM_CLIP_CELL,		0,				DAM_MED,	ACC_LOW, POW_LOW,
+				0  },
 		{ "PLS-1",	"gun0",		DECO_RIFLE,		"Plasma Rifle",
-								SH_ENERGY,		ITEM_CLIP_CELL,		3, DAM_MED, RANGE_MED,		ACC_MED, POW_MED,
-								0  },
+				ITEM_CLIP_CELL,		WEAPON_AUTO,	DAM_MED,	ACC_MED, POW_MED,
+				0  },
 		{ "PLS-2",	"gun0",		DECO_RIFLE,		"Plasma Assault Rifle",
-								SH_ENERGY,		ITEM_CLIP_CELL,		3, DAM_MED, RANGE_FAR,		ACC_MED, POW_MED,
-								SH_ENERGY|SH_EXPLOSIVE, ITEM_CLIP_CELL, 0, DAM_HI, RANGE_FAR,   ACC_LOW, POW_HI },
-		{ "PLS-3",	"gun0",		DECO_RIFLE,		"Advanced Plasma Assault",
-								SH_ENERGY,		ITEM_CLIP_CELL,		3, DAM_HI, RANGE_FAR,		ACC_HI, POW_MED,
-								SH_ENERGY|SH_EXPLOSIVE, ITEM_CLIP_CELL, 0, DAM_HI, RANGE_FAR,   ACC_MED, POW_HI },
+				ITEM_CLIP_CELL,		WEAPON_AUTO,	DAM_MED,	ACC_MED, POW_MED,
+				ITEM_CLIP_CELL,		WEAPON_AUTO | WEAPON_EXPLOSIVE, DAM_MED, ACC_MED, POW_HI },
 		{ "BEAM",	"gun0",		DECO_RIFLE,		"Blade Beam",
-								SH_ENERGY,		ITEM_CLIP_CELL,		0, DAM_MED, RANGE_FAR,		ACC_HI, POW_MED,
-								0  },
+				ITEM_CLIP_CELL,		0,				DAM_HI,		ACC_HI, POW_MED,
+				0  },
 		{ "NULL",	"gun0",		DECO_RIFLE,		"Null Point Blaster",
-								SH_ENERGY|SH_EXPLOSIVE,	ITEM_CLIP_CELL,		0, DAM_HI, RANGE_FAR,	ACC_HI, POW_HI,
-								0  },
+				ITEM_CLIP_CELL,		WEAPON_EXPLOSIVE, DAM_HI, ACC_HI, POW_HI,
+				0  },
 		{ "SWORD",	"gun0",		DECO_KNIFE,		"Plasma Field Sword",
-								SH_ENERGY,		0,					0, DAM_HI, RANGE_MELEE,		ACC_HI, 0,
-								0  },
+				0,					WEAPON_MELEE,	DAM_HI,		ACC_HI, 0,
+				0  },
 		{ 0 }
 	};
 
@@ -473,19 +474,15 @@ void Game::LoadItemResources()
 						ModelResourceManager::Instance()->GetModelResource( weapons[i].resName ),
 						nItemDef );
 
-		item->weapon[0].shell		= weapons[i].shell0;
 		item->weapon[0].clipType	= weapons[i].clip0;
-		item->weapon[0].autoRounds	= weapons[i].auto0;
-		item->weapon[0].damageBase	= weapons[i].damage0;
-		item->weapon[0].range		= weapons[i].range0;
+		item->weapon[0].flags		= weapons[i].flags0;
+		item->weapon[0].damage		= weapons[i].damage0;
 		item->weapon[0].accuracy	= weapons[i].acc0;
 		item->weapon[0].power		= weapons[i].power0;
 
-		item->weapon[1].shell		= weapons[i].shell1;
 		item->weapon[1].clipType	= weapons[i].clip1;
-		item->weapon[1].autoRounds	= weapons[i].auto1;
-		item->weapon[1].damageBase	= weapons[i].damage1;
-		item->weapon[1].range		= weapons[i].range1;
+		item->weapon[1].flags		= weapons[i].flags1;
+		item->weapon[1].damage		= weapons[i].damage1;
 		item->weapon[1].accuracy	= weapons[i].acc1;
 		item->weapon[1].power		= weapons[i].power1;
 
@@ -531,18 +528,17 @@ void Game::LoadItemResources()
 		int type;
 		int deco;
 		int rounds;
-		int shell;
 		const char* desc;
 	};
 
 	const ClipInit clips[] = {
-		{ "Clip",	ITEM_CLIP_SHELL,	DECO_SHELLS,	8,	 SH_KINETIC,		"9mm 8 round clip" },
-		{ "AClip",	ITEM_CLIP_AUTO,		DECO_SHELLS,	15,	 SH_KINETIC,		"4mm 15 round auto-clip" },
-		{ "Cell",	ITEM_CLIP_CELL,		DECO_CELL,		100, SH_ENERGY,			"10MW Cell" },
-		{ "MinR",	ITEM_CLIP_ROCKET,	DECO_ROCKET,	1,	 SH_EXPLOSIVE,		"Mini Rocket" },
-		{ "MC-AC",	ITEM_CLIP_CANON,	DECO_SHELLS,	1,	 SH_KINETIC,		"Mini Canon Armor Piercing Round" },
-		{ "MC-I",	ITEM_CLIP_CANON,	DECO_SHELLS,	1,	 SH_INCINDIARY,		"Mini Canon Incendiary Round" },
-		{ "RPG",	ITEM_CLIP_GRENADE,	DECO_ROCKET,	4,	 SH_EXPLOSIVE,		"Propelled Grenade Rounds" },
+		{ "Clip",	ITEM_CLIP_SHELL,	DECO_SHELLS,	8,	 "9mm 8 round clip" },
+		{ "AClip",	ITEM_CLIP_AUTO,		DECO_SHELLS,	15,	 "4mm 15 round auto-clip" },
+		{ "Cell",	ITEM_CLIP_CELL,		DECO_CELL,		100, "10MW Cell" },
+		{ "MinR",	ITEM_CLIP_ROCKET,	DECO_ROCKET,	1,	 "Mini Rocket" },
+		{ "MC-AC",	ITEM_CLIP_CANON,	DECO_SHELLS,	1,	 "Mini Canon Armor Piercing Round" },
+		{ "MC-I",	ITEM_CLIP_CANON,	DECO_SHELLS,	1,	 "Mini Canon Incendiary Round" },
+		{ "RPG",	ITEM_CLIP_GRENADE,	DECO_ROCKET,	4,	 "Grenade Rounds" },
 		{ 0 }
 	};
 
@@ -555,7 +551,6 @@ void Game::LoadItemResources()
 						0,
 						nItemDef );
 
-		item->shell = clips[i].shell;
 		item->rounds = clips[i].rounds;
 
 		itemDefArr[nItemDef++] = item;

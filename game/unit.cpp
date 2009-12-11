@@ -46,7 +46,7 @@ const char* gLastNames[8] =
 };
 
 
-const char* Unit::FirstName()
+const char* Unit::FirstName() const
 {
 	const char* str = "";
 	if ( team == SOLDIER ) {
@@ -64,7 +64,7 @@ const char* Unit::FirstName()
 }
 
 
-const char* Unit::LastName()
+const char* Unit::LastName() const
 {
 	const char* str = "";
 	if ( team == SOLDIER ) {
@@ -82,7 +82,7 @@ void Unit::GenerateSoldier( U32 seed )
 	status = STATUS_ALIVE;
 	team = SOLDIER;
 	body = seed;
-	stats.Init( 50 );
+	stats.InitStats( 50, 8 );
 }
 
 
@@ -91,7 +91,7 @@ void Unit::GenerateCiv( U32 seed )
 	status = STATUS_ALIVE;
 	team = CIVILIAN;
 	body = seed;	// only gender...
-	stats.Init( 25 );
+	stats.InitStats( 25, 6 );
 }
 
 
@@ -103,12 +103,12 @@ void Unit::GenerateAlien( int type, U32 seed )
 	body |= (type & ALIEN_TYPE_MASK);
 
 	switch ( type ) {
-		case 0:	stats.Init( 40 );	break;
-		case 1: stats.Init( 60 );	break;
-		case 2: stats.Init( 150 );	break;
+		case 0:	stats.InitStats( 40, 8 );	break;
+		case 1: stats.InitStats( 60, 8 );	break;
+		case 2: stats.InitStats( 150, 8 );	break;
 		case 3:
 		default:
-				stats.Init( 80 );	break;
+				stats.InitStats( 80, 8 );	break;
 	}
 }
 
@@ -282,11 +282,14 @@ void Unit::Kill()
 }
 
 
-void Unit::DoDamage( int damageBase, int shell )
+void Unit::DoDamage( const float *damage )
 {
-	int hp = MaterialDef::CalcDamage( damageBase, shell, MAT_GENERIC );
-
-	stats.DoDamage( hp );
+	// FIXME: account for armor
+	int hit = 0;
+	for( int i=0; i<NUM_DAMAGE; ++i ) {
+		hit += (int)(damage[i]);
+	}
+	stats.DoDamage( hit );
 	if ( !stats.HP() ) {
 		Kill();
 	}

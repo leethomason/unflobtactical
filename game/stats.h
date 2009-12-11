@@ -7,8 +7,9 @@ class Stats
 public:
 	Stats() : hp(0), totalHP( 0 ) {}
 
-	void Init( int _hp ) {
+	void InitStats( int _hp, float _tu ) {
 		hp = totalHP = _hp;
+		tu = totalTU = _tu;
 	}
 	void DoDamage( int hitDamage ) {
 		if ( hp < 0xffff ) {
@@ -20,6 +21,7 @@ public:
 	void ZeroHP() { 
 		hp = 0;
 	}
+
 	void UseTU( float t ) {
 		GLASSERT( t >= tu );
 		tu -= t;
