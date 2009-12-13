@@ -318,6 +318,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\game\stats.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\game\stats.h"
 				>
 			</File>

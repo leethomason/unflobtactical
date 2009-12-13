@@ -71,11 +71,12 @@ public:
 
 	struct Weapon {
 		int clipType;		// type of clip required (ITEM_CLIP_ROCKET for example). 0 for melee.
-		int flags;			//
+		int flags;			// WEAPON_AUTO, etc.
 		float damage;		// 
 		float accuracy;		// 1.0 is average
 		int power;			// power consumed by cell weapons
 	};
+	float	speed;			// 1.0 is normal speed (and weight)
 	Weapon weapon[2];		// primary and secondary
 
 	bool HasWeapon( int select ) const { GLASSERT( select == 0 || select == 1 ); return weapon[select].damage > 0; }
@@ -83,7 +84,9 @@ public:
 
 	void QueryWeaponRender( int select, grinliz::Vector4F* beamColor, float* beamDecay, float* beamWidth, grinliz::Vector4F* impactColor ) const;
 	bool CompatibleClip( const ItemDef* itemDef, int* which ) const;
+	
 	void DamageBase( int select, float* damageArray ) const;
+	float TimeBase( int select, int type ) const;
 };
 
 

@@ -508,10 +508,7 @@ void BattleScene::ProcessAction( U32 deltaTime )
 						if ( action->move.pathStep == path.statePath.size()-1 ) {
 							actionStack.Pop();
 							path.Clear();
-
-							SetPathBlocks();
-							Vector2<S16> start   = { (S16)model->X(), (S16)model->Z() };
-							engine->GetMap()->ShowNearPath( start, 2.0f, 4.0f, 6.0f );
+							ShowNearPath( unit );
 						}
 					}
 					Vector2I newPos;
@@ -813,11 +810,7 @@ void BattleScene::Tap(	int tap,
 		}
 		else if ( tappedUnit->Team() == Unit::SOLDIER ) {
 			SetSelection( UnitFromModel( tappedModel ) );
-
-			Vector2<S16> start   = { (S16)tappedModel->X(), (S16)tappedModel->Z() };
-			SetPathBlocks();
-			const Stats& stats = tappedUnit->GetStats();
-			map->ShowNearPath( start, stats.TU()-4.0f, stats.TU()-2.0f, stats.TU() );
+			ShowNearPath( tappedUnit );
 		}
 		else {
 			SetSelection( 0 );
@@ -834,8 +827,12 @@ void BattleScene::Tap(	int tap,
 			// Compute the path:
 			float cost;
 			SetPathBlocks();
+			const Stats& stats = selection.soldierUnit->GetStats();
+
 			int result = engine->GetMap()->SolvePath( start, end, &cost, &path.statePath );
-			if ( result == micropather::MicroPather::SOLVED ) {
+			if ( result == micropather::MicroPather::SOLVED && cost <= stats.TU() ) {
+				selection.soldierUnit->UseTU( cost );
+
 				// Go!
 				Action action;
 				action.Move( SelectedSoldierUnit() );
@@ -845,6 +842,23 @@ void BattleScene::Tap(	int tap,
 			}
 		}
 	}
+}
+
+
+void BattleScene::ShowNearPath( const Unit* unit )
+{
+	GLASSERT( unit );
+	GLASSERT( unit->GetModel() );
+	const Model* model = unit->GetModel();
+	Vector2<S16> start = { (S16)model->X(), (S16)model->Z() };
+
+	SetPathBlocks();
+	const Stats& stats = unit->GetStats();
+
+	float lowTU = unit->FireTime( 0, SNAP_SHOT );
+	float hiTU = Max( unit->FireTime( 0, AIMED_SHOT ), unit->FireTime( 0, AUTO_SHOT ) );
+
+	engine->GetMap()->ShowNearPath( start, stats.TU()-hiTU, stats.TU()-lowTU, stats.TU() );
 }
 
 

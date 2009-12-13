@@ -37,7 +37,7 @@ public:
 		ALIEN_0,	// grey
 		ALIEN_1,	// mind zapper
 		ALIEN_2,	// trooper
-		ALIEN_3		// elit
+		ALIEN_3		// elite
 	};
 
 	enum {
@@ -58,6 +58,7 @@ public:
 	bool InUse()			{ return status != STATUS_NOT_INIT; }
 	bool IsAlive()			{ return status == STATUS_ALIVE; }
 	void DoDamage( const float* damage );
+	void UseTU( float tu )		{ stats.UseTU( tu ); }
 
 	int Status() const			{ return status; }
 	int Team() const			{ return team; }
@@ -74,6 +75,7 @@ public:
 	void CalcMapPos( grinliz::Vector2I*, float* rotation ) const;
 
 	Item* GetWeapon();
+	const Item* GetWeapon() const;
 	Inventory* GetInventory();
 	void UpdateInventory();
 
@@ -81,6 +83,10 @@ public:
 	const Model* GetModel() const			{ return model; }
 	Model* GetWeaponModel()					{ return weapon; }
 	const Model* GetWeaponModel() const		{ return weapon; }
+
+	// Time for the primary(0) or secondary(1) weapon to snap, auto, or aimed shot.
+	// Returns 0.0 if the weapon doesn't support that fire mode.
+	float FireTime( int select, int type ) const;
 
 	float AngleBetween( const Unit* target, bool quantize ) const;
 

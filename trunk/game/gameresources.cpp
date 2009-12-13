@@ -299,11 +299,6 @@ void Game::LoadMapResources()
 	const float BURN = 0.5f;
 	const float FASTBURN = 1.0f;
 
-//	const int STEEL		= MAT_STEEL;
-//	const int WOOD		= MAT_WOOD;
-//	const int GENERIC	= MAT_GENERIC;
-//	const int GENERIC_FASTBURN	= MAT_GENERIC;
-
 	enum {
 		LANDER_LIGHT = LIGHT_SET
 	};
@@ -381,13 +376,12 @@ void Game::LoadItemResources()
 	const float DAM_MED =  40.0f;
 	const float DAM_HI  =  60.0f;
 	const float DAM_VHI = 100.0f;
-//	const int RANGE_MELEE = 1;
-//	const int RANGE_SHORT = 4;
-//	const int RANGE_MED = 8;
-//	const int RANGE_FAR = 12;
 	const float ACC_LOW = 0.7f;
 	const float ACC_MED = 1.0f;
 	const float ACC_HI  = 1.3f;
+	const float SPEED_FAST = 0.8f;
+	const float SPEED_NORMAL = 1.0f;
+	const float SPEED_SLOW	= 1.5f;
 	const int POW_LOW = 10;
 	const int POW_MED = 20;
 	const int POW_HI  = 50;
@@ -400,6 +394,7 @@ void Game::LoadItemResources()
 		const char* resName;
 		int deco;
 		const char* desc;
+		float	speed;		// speed/weight modifier - 1.0 is normal, 2.0 is twice as slow
 
 		int		clip0;		// 
 		int		flags0;
@@ -415,51 +410,51 @@ void Game::LoadItemResources()
 	const WeaponInit weapons[] = {		
 		// Terran	resName		deco			description
 		//				
-		{ "PST",	"gun0",		DECO_PISTOL,	"Pistol",
+		{ "PST",	"gun0",		DECO_PISTOL,	"Pistol",				SPEED_FAST,
 				ITEM_CLIP_SHELL,	0,			DAM_MED,	ACC_MED, 0,
 				0  },
-		{ "AR-1",	"gun0",		DECO_RIFLE,		"Klk Assault Rifle",
+		{ "AR-1",	"gun0",		DECO_RIFLE,		"Klk Assault Rifle",	SPEED_NORMAL,
 				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_LOW,	ACC_LOW, 0,
 				0  },
-		{ "AR-2",	"gun0",		DECO_RIFLE,		"N7 Assault Rifle",
+		{ "AR-2",	"gun0",		DECO_RIFLE,		"N7 Assault Rifle",		SPEED_NORMAL,
 				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_LOW,	ACC_MED, 0,
 				0  },
-		{ "AR-3P",	"gun0",		DECO_RIFLE,		"Pulse Rifle",
+		{ "AR-3P",	"gun0",		DECO_RIFLE,		"Pulse Rifle",			SPEED_NORMAL,
 				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_HI,		ACC_MED, 0,
 				ITEM_CLIP_GRENADE,	0,				DAM_MED,	ACC_LOW, 0 },
-		{ "AR-3L",	"gun0",		DECO_RIFLE,		"Long AR 'Vera'",
+		{ "AR-3L",	"gun0",		DECO_RIFLE,		"Long AR 'Vera'",		SPEED_NORMAL,
 				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MED,	ACC_HI,	0,
 				ITEM_CLIP_GRENADE,	0,				DAM_MED,	ACC_LOW, 0 },
-		{ "RKT",	"gun0",		DECO_RIFLE,		"Rocket Launcher",
+		{ "RKT",	"gun0",		DECO_RIFLE,		"Rocket Launcher",		SPEED_SLOW,
 				ITEM_CLIP_ROCKET,	0,				DAM_MED,	ACC_MED, 0,
 				0  },
-		{ "CANON",	"gun0",		DECO_RIFLE,		"Mini-Canon",
+		{ "CANON",	"gun0",		DECO_RIFLE,		"Mini-Canon",			SPEED_SLOW,
 				ITEM_CLIP_CANON,	WEAPON_AUTO,	DAM_MED,	ACC_MED, 0,
 				0 },
-		{ "KNIFE",	"gun0",		DECO_KNIFE,		"Knife",
+		{ "KNIFE",	"gun0",		DECO_KNIFE,		"Knife",				SPEED_FAST,
 				0,					WEAPON_MELEE,	DAM_MED,	ACC_MED, 0,
 				0  },
 
 		// Alien
-		{ "RAY-1",	"gun1",		DECO_PISTOL,	"Ray Gun",
+		{ "RAY-1",	"gun1",		DECO_PISTOL,	"Ray Gun",				SPEED_FAST,
 				ITEM_CLIP_CELL,		0,				DAM_LOW,	ACC_LOW, POW_LOW,
 				0  },
-		{ "RAY-2",	"gun1",		DECO_PISTOL,	"Advanced Ray Gun",
+		{ "RAY-2",	"gun1",		DECO_PISTOL,	"Advanced Ray Gun",		SPEED_FAST,
 				ITEM_CLIP_CELL,		0,				DAM_MED,	ACC_LOW, POW_LOW,
 				0  },
-		{ "PLS-1",	"gun0",		DECO_RIFLE,		"Plasma Rifle",
+		{ "PLS-1",	"gun0",		DECO_RIFLE,		"Plasma Rifle",			SPEED_NORMAL,
 				ITEM_CLIP_CELL,		WEAPON_AUTO,	DAM_MED,	ACC_MED, POW_MED,
 				0  },
-		{ "PLS-2",	"gun0",		DECO_RIFLE,		"Plasma Assault Rifle",
+		{ "PLS-2",	"gun0",		DECO_RIFLE,		"Plasma Assault Rifle",	SPEED_NORMAL,
 				ITEM_CLIP_CELL,		WEAPON_AUTO,	DAM_MED,	ACC_MED, POW_MED,
 				ITEM_CLIP_CELL,		WEAPON_AUTO | WEAPON_EXPLOSIVE, DAM_MED, ACC_MED, POW_HI },
-		{ "BEAM",	"gun0",		DECO_RIFLE,		"Blade Beam",
+		{ "BEAM",	"gun0",		DECO_RIFLE,		"Blade Beam",			SPEED_NORMAL,
 				ITEM_CLIP_CELL,		0,				DAM_HI,		ACC_HI, POW_MED,
 				0  },
-		{ "NULL",	"gun0",		DECO_RIFLE,		"Null Point Blaster",
+		{ "NULL",	"gun0",		DECO_RIFLE,		"Null Point Blaster",	SPEED_NORMAL,
 				ITEM_CLIP_CELL,		WEAPON_EXPLOSIVE, DAM_HI, ACC_HI, POW_HI,
 				0  },
-		{ "SWORD",	"gun0",		DECO_KNIFE,		"Plasma Field Sword",
+		{ "SWORD",	"gun0",		DECO_KNIFE,		"Plasma Field Sword",	SPEED_FAST,
 				0,					WEAPON_MELEE,	DAM_HI,		ACC_HI, 0,
 				0  },
 		{ 0 }
@@ -473,6 +468,8 @@ void Game::LoadItemResources()
 						weapons[i].deco,
 						ModelResourceManager::Instance()->GetModelResource( weapons[i].resName ),
 						nItemDef );
+
+		item->speed					= weapons[i].speed;
 
 		item->weapon[0].clipType	= weapons[i].clip0;
 		item->weapon[0].flags		= weapons[i].flags0;

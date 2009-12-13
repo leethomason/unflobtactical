@@ -71,6 +71,10 @@ class Random
 		return total;
 	}
 
+	/** Like Dice, but returns a value between 0 and 1.
+	*/
+	float DiceUniform( U32 nDice, U32 sides );
+
 	/// Return a random number from 0 to upper: [0.0,1.0].
 	float Uniform()	{ 
 		const float INV = 1.0f / 65535.0f;	
