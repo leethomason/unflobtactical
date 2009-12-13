@@ -72,6 +72,8 @@ public:
 	void SetPos( const grinliz::Vector3F& pos, float rotation );
 	void SetYRotation( float rotation );
 	void CalcPos( grinliz::Vector3F* ) const;
+
+	// Compute the map pos: x,y (always int) and rotation (always multiple of 45)
 	void CalcMapPos( grinliz::Vector2I*, float* rotation ) const;
 
 	Item* GetWeapon();
