@@ -22,6 +22,7 @@ using namespace grinliz;
 
 const float ALPHA_DISABLED	= 0.3f;
 const float ALPHA_DECO		= 0.5f;
+const int BIAS = 5;
 
 
 UIButtons::UIButtons( const Screenport& port ) : screenport( port )
@@ -201,6 +202,16 @@ void UIButtons::SetEnabled( int index, bool enabled )
 }
 
 
+void UIButtons::SetHighLight( int index, bool highLight )
+{
+	GLASSERT( index >=0 && index < nIcons );
+	if ( icons[index].highLight != highLight ) {
+		icons[index].highLight = highLight;
+		cacheValid = false;
+	}
+}
+
+
 void UIButtonBox::CalcButtons()
 {
 	if ( cacheValid )
@@ -220,11 +231,14 @@ void UIButtonBox::CalcButtons()
 	{
 		int x = col*size.x + col*pad.x;
 		int y = row*size.y + row*pad.x;
+		int bias = 0;
+		if ( icons[i].highLight )
+			bias = BIAS;
 
-		pos[i*4+0].Set( x,			y );		
-		pos[i*4+1].Set( x+size.x,	y );		
-		pos[i*4+2].Set( x+size.x,	y+size.y );		
-		pos[i*4+3].Set( x,			y+size.y );	
+		pos[i*4+0].Set( x-bias,			y-bias );		
+		pos[i*4+1].Set( x+bias+size.x,	y-bias );		
+		pos[i*4+2].Set( x+bias+size.x,	y+bias+size.y );		
+		pos[i*4+3].Set( x-bias,			y+bias+size.y );	
 		bounds.DoUnion( x, y );
 		bounds.DoUnion( x+size.x, y+size.y );
 
@@ -390,7 +404,10 @@ int UIButtonGroup::QueryTap( int x, int y )
 					bPos[i].x + size.x,
 					bPos[i].y + size.y );
 		if ( b.Contains( p ) ) {
-			return i;
+			if ( icons[i].enabled )
+				return i;
+			else
+				return -1;
 		}
 	}
 	return -1;
@@ -414,11 +431,14 @@ void UIButtonGroup::CalcButtons()
 	{
 		int x = bPos[i].x;
 		int y = bPos[i].y;
+		int bias = 0;
+		if ( icons[i].highLight )
+			bias = BIAS;
 
-		pos[i*4+0].Set( x,			y );		
-		pos[i*4+1].Set( x+size.x,	y );		
-		pos[i*4+2].Set( x+size.x,	y+size.y );		
-		pos[i*4+3].Set( x,			y+size.y );	
+		pos[i*4+0].Set( x-bias,			y-bias );		
+		pos[i*4+1].Set( x+bias+size.x,	y-bias );		
+		pos[i*4+2].Set( x+bias+size.x,	y+bias+size.y );		
+		pos[i*4+3].Set( x-bias,			y+bias+size.y );	
 		bounds.DoUnion( x, y );
 		bounds.DoUnion( x+size.x, y+size.y );
 

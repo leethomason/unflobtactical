@@ -18,6 +18,7 @@ using namespace grinliz;
 BattleScene::BattleScene( Game* game ) : Scene( game )
 {
 	engine  = &game->engine;
+	uiMode = UIM_NORMAL;
 
 #ifdef MAPMAKER
 	currentMapItem = 1;
@@ -349,9 +350,15 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 
 	ProcessAction( deltaTime );
 
-	if ( AlienTargeted() ) {
+
+	if ( HasTarget() ) {
 		Vector3F pos = { 0, 0, 0 };
-		AlienUnit()->CalcPos( &pos );
+		if ( AlienUnit() )
+			AlienUnit()->CalcPos( &pos );
+		else
+			pos.Set( (float)(selection.targetPos.x) + 0.5f,
+					 0.02f,
+					 (float)(selection.targetPos.y) + 0.5f );
 
 		// Double up with previous target indicator.
 		const float ALPHA = 0.3f;
@@ -406,6 +413,10 @@ void BattleScene::SetSelection( Unit* unit )
 		else if ( unit->Team() == Unit::ALIEN ) {
 			GLASSERT( SelectedSoldier() );
 			selection.targetUnit = unit;
+			selection.targetPos.Set( -1, -1 );
+
+			GLASSERT( uiMode == UIM_NORMAL );
+			uiMode = UIM_FIRE_MENU;
 		}
 		else {
 			GLASSERT( 0 );
@@ -414,10 +425,11 @@ void BattleScene::SetSelection( Unit* unit )
 }
 
 
-void BattleScene::RotateAction( Unit* src, const Unit* dst, bool quantize )
+void BattleScene::RotateAction( Unit* src, const Vector3F& dst3F, bool quantize )
 {
 	GLASSERT( src->GetModel() );
-	GLASSERT( dst->GetModel() );
+
+	Vector2I dst = { (int)dst3F.x, (int)dst3F.z };
 
 	float rot = src->AngleBetween( dst, quantize );
 	if ( src->GetModel()->GetYRotation() != rot ) {
@@ -690,7 +702,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 
 	int icon = -1;
 
-	if ( AlienTargeted() ) {
+	if ( uiMode == UIM_FIRE_MENU ) {
 		icon = fireWidget->QueryTap( screenX, screenY );
 		switch ( icon ) {
 			case 0:	//aut0
@@ -699,14 +711,19 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 				// shooting creates a turn action then a shoot action.
 				GLASSERT( selection.soldierUnit >= 0 );
 				GLASSERT( selection.targetUnit >= 0 );
+
 				Vector3F target;
-				selection.targetUnit->GetModel()->CalcTarget( &target );
+				if ( selection.targetPos.x >= 0 ) {
+					target.Set( (float)selection.targetPos.x + 0.5f, 1.0f, (float)selection.targetPos.y + 0.5f );
+				}
+				else {
+					selection.targetUnit->GetModel()->CalcTarget( &target );
+				}
 
 				// Stack - push in reverse order.
 				if ( icon == 0 ) {
 					Action delay;
 					delay.Delay( 500 );
-
 
 					ShootAction( selection.soldierUnit, target );
 					actionStack.Push( delay );
@@ -714,7 +731,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 					actionStack.Push( delay );
 				}
 				ShootAction( selection.soldierUnit, target );
-				RotateAction( selection.soldierUnit, selection.targetUnit, true );
+				RotateAction( selection.soldierUnit, target, true );
 				selection.targetUnit = 0;
 				break;
 
@@ -722,8 +739,13 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 				break;
 		}
 	}
-
-	if ( icon == -1 ) {
+	else if ( uiMode == UIM_TARGET_TILE ) {
+		icon = widgets->QueryTap( screenX, screenY );
+		if ( icon == BTN_TARGET ) {
+			uiMode = UIM_NORMAL;
+		}
+	}
+	else {
 		icon = widgets->QueryTap( screenX, screenY );
 
 		switch( icon ) {
@@ -741,12 +763,9 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 				break;
 			*/
 
-			case BTN_CHAR_SCREEN:
-				if ( actionStack.Empty() && SelectedSoldierUnit() ) {
-					UFOStream* stream = game->OpenStream( "SingleUnit" );
-					stream->WriteU8( (U8)(SelectedSoldierUnit()-units ) );
-					SelectedSoldierUnit()->Save( stream );
-					game->PushScene( Game::CHARACTER_SCENE );
+			case BTN_TARGET:
+				{
+					uiMode = UIM_TARGET_TILE;
 				}
 				break;
 
@@ -769,6 +788,15 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 				}
 				break;
 
+			case BTN_CHAR_SCREEN:
+				if ( actionStack.Empty() && SelectedSoldierUnit() ) {
+					UFOStream* stream = game->OpenStream( "SingleUnit" );
+					stream->WriteU8( (U8)(SelectedSoldierUnit()-units ) );
+					SelectedSoldierUnit()->Save( stream );
+					game->PushScene( Game::CHARACTER_SCENE );
+				}
+				break;
+
 			default:
 				break;
 		}
@@ -781,10 +809,17 @@ void BattleScene::Tap(	int tap,
 						const grinliz::Vector2I& screen,
 						const grinliz::Ray& world )
 {
-	bool iconSelected = false;
-	if ( tap == 1 ) {
-		iconSelected = HandleIconTap( screen.x, screen.y );
-	}
+	if ( tap > 1 )
+		return;
+	if ( !actionStack.Empty() )
+		return;
+
+	/* Modes:
+		- if target is up, it needs to be selected or cleared.
+		- if targetMode is on, wait for tile selection or targetMode off
+		- else normal mode
+
+	*/
 
 #ifdef MAPMAKER
 	if ( !iconSelected ) {
@@ -796,9 +831,50 @@ void BattleScene::Tap(	int tap,
 	}
 #endif	
 
-	if ( iconSelected || !actionStack.Empty() ) {
+	if ( uiMode == UIM_NORMAL ) {
+		bool iconSelected = HandleIconTap( screen.x, screen.y );
+		if ( iconSelected )
+			return;
+	}
+	else if ( uiMode == UIM_TARGET_TILE ) {
+		bool iconSelected = HandleIconTap( screen.x, screen.y );
+		// If the mode was turned off, return. Else the selection is handled below.
+		if ( iconSelected )
+			return;
+	}
+	else if ( uiMode == UIM_FIRE_MENU ) {
+		HandleIconTap( screen.x, screen.y );
+		// Whether or not something was selected, drop back to normal mode.
+		uiMode = UIM_NORMAL;
+		selection.targetPos.Set( -1, -1 );
+		selection.targetUnit = 0;
+		ShowNearPath( selection.soldierUnit );
 		return;
 	}
+
+	// Get the map intersection. May be used by TARGET_TILE or NORMAL
+	Vector3F intersect;
+	Map* map = engine->GetMap();
+
+	Vector2I tilePos = { 0, 0 };
+	bool hasTilePos = false;
+
+	int result = IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &intersect );
+	if ( result == grinliz::INTERSECT && intersect.x >= 0 && intersect.x < Map::SIZE && intersect.z >= 0 && intersect.z < Map::SIZE ) {
+		tilePos.Set( (int)intersect.x, (int) intersect.z );
+		hasTilePos = true;
+	}
+
+	if ( uiMode == UIM_TARGET_TILE ) {
+		if ( hasTilePos ) {
+			selection.targetUnit = 0;
+			selection.targetPos.Set( tilePos.x, tilePos.y );
+			uiMode = UIM_FIRE_MENU;
+		}
+		return;
+	}
+
+	GLASSERT( uiMode == UIM_NORMAL );
 
 	// We didn't tap a button.
 	// What got tapped? First look to see if a SELECTABLE model was tapped. If not, 
@@ -822,18 +898,6 @@ void BattleScene::Tap(	int tap,
 			GLASSERT( units[i].GetModel() );
 			units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
 		}
-	}
-
-	Vector3F intersect;
-	Map* map = engine->GetMap();
-
-	Vector2I tilePos = { 0, 0 };
-	bool hasTilePos = false;
-
-	int result = IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &intersect );
-	if ( result == grinliz::INTERSECT && intersect.x >= 0 && intersect.x < Map::SIZE && intersect.z >= 0 && intersect.z < Map::SIZE ) {
-		tilePos.Set( (int)intersect.x, (int) intersect.z );
-		hasTilePos = true;
 	}
 
 	Model* tappedModel = engine->IntersectModel( world, TEST_HIT_AABB, Model::MODEL_SELECTABLE, 0, 0, 0 );
@@ -1295,7 +1359,6 @@ void BattleScene::Rotate( int action, float degrees )
 
 void BattleScene::DrawHUD()
 {
-	// { "home", "d/n", character screen, "fow" };
 	bool enabled = SelectedSoldierUnit() && actionStack.Empty();
 	{
 		widgets->SetEnabled( BTN_TARGET, enabled );
@@ -1310,9 +1373,11 @@ void BattleScene::DrawHUD()
 		widgets->SetEnabled( BTN_NEXT, enabled );
 		widgets->SetEnabled( BTN_NEXT_DONE, enabled );
 	}
+	widgets->SetHighLight( BTN_TARGET, uiMode == UIM_TARGET_TILE ? true : false );
+
 	widgets->Draw();
 
-	if ( AlienTargeted() ) {
+	if ( HasTarget() ) {
 		fireWidget->Draw();
 	}
 

@@ -456,11 +456,12 @@ void Unit::Load( UFOStream* s, Engine* engine, Game* game )
 }
 
 
-float Unit::AngleBetween( const Unit* target, bool quantize ) const 
+float Unit::AngleBetween( const Vector2I& p1, bool quantize ) const 
 {
-	Vector2I p0, p1;
+	Vector2I p0;
 	CalcMapPos( &p0, 0 );
-	target->CalcMapPos( &p1, 0 );
+
+	//target->CalcMapPos( &p1, 0 );
 
 	float angle = atan2( (float)(p1.x-p0.x), (float)(p1.y-p0.y) );
 	angle = ToDegree( angle );
