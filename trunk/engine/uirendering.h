@@ -91,6 +91,7 @@ public:
 	void SetAlpha( float alpha )		{ this->alpha = alpha; cacheValid = false; }
 
 	void SetEnabled( int index, bool enabled );
+	void SetHighLight( int index, bool highLight );
 
 	void SetButtonSize( int dx, int dy )		{	if ( size.x != dx || size.y != dy ) {
 														size.x = dx; size.y = dy; 
@@ -128,6 +129,7 @@ protected:
 		char					text0[MAX_TEXT_LEN];
 		char					text1[MAX_TEXT_LEN];
 		bool					enabled;
+		bool					highLight;
 		grinliz::Vector2I		textPos0;
 		grinliz::Vector2I		textPos1;
 	};

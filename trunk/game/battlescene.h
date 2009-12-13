@@ -90,7 +90,7 @@ private:
 		bool NoAction()							{ return action == ACTION_NONE; }
 	};
 	CStack< Action > actionStack;
-	void RotateAction( Unit* src, const Unit* dst, bool quantize );
+	void RotateAction( Unit* src, const grinliz::Vector3F& dst, bool quantize );
 	void ShootAction( Unit* src, const grinliz::Vector3F& dst );
 	void ProcessAction( U32 deltaTime );
 	void ProcessActionShoot( Action* action, Unit* unit, Model* model );
@@ -130,9 +130,11 @@ private:
 	struct Selection
 	{
 		Selection()	{ Clear(); }
-		void Clear() { soldierUnit = 0; targetUnit = 0; }
+		void Clear() { soldierUnit = 0; targetUnit = 0; targetPos.Set( -1, -1 ); }
 		Unit*	soldierUnit;
-		Unit*	targetUnit;
+		
+		Unit*				targetUnit;
+		grinliz::Vector2I	targetPos;
 	};
 	Selection selection;
 
@@ -140,6 +142,7 @@ private:
 	Unit*	SelectedSoldierUnit()	{ return selection.soldierUnit; }
 	Model*	SelectedSoldierModel()	{ if ( selection.soldierUnit ) return selection.soldierUnit->GetModel(); return 0; }
 
+	bool	HasTarget()				{ return selection.targetUnit || selection.targetPos.x >= 0; }
 	bool	AlienTargeted()			{ return selection.targetUnit != 0; }
 	Unit*	AlienUnit()				{ return selection.targetUnit; }
 	Model*	AlienModel()			{ if ( selection.targetUnit ) return selection.targetUnit->GetModel(); return 0; }
@@ -156,6 +159,13 @@ private:
 	grinliz::Vector3F orbitPole;
 	float	orbitStart;
 
+	enum {
+		UIM_NORMAL,			// normal click and move
+		UIM_TARGET_TILE,	// special target abitrary tile mode
+		UIM_FIRE_MENU		// fire menu is up
+	};
+
+	int uiMode;
 	UIButtonGroup*	widgets;
 	UIButtonBox*	fireWidget;
 	Engine*			engine;

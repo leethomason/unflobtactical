@@ -90,7 +90,7 @@ public:
 	// Returns 0.0 if the weapon doesn't support that fire mode.
 	float FireTime( int select, int type ) const;
 
-	float AngleBetween( const Unit* target, bool quantize ) const;
+	float AngleBetween( const grinliz::Vector2I& dst, bool quantize ) const;
 
 	const Stats& GetStats() const	{ return stats; }
 
