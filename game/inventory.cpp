@@ -109,6 +109,13 @@ Item* Inventory::ArmedWeapon()
 }
 
 
+const Item* Inventory::ArmedWeapon() const
+{
+	if ( slots[0].IsSomething() && slots[0].IsWeapon() )
+		return &slots[0];
+	return 0;
+}
+
 
 int Inventory::GetDeco( int s0 ) const
 {

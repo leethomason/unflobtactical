@@ -43,6 +43,7 @@ public:
 	bool IsSlotFree( const ItemDef* itemDef );
 	
 	Item* ArmedWeapon();	// null if no weapon ready
+	const Item* ArmedWeapon() const;	// null if no weapon ready
 
 	void Save( UFOStream* s ) const;
 	void Load( UFOStream* s, Engine* engine, Game* game );

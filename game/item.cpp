@@ -2,6 +2,7 @@
 #include "material.h"
 #include "game.h"
 #include "../engine/serialize.h"
+#include "gamelimits.h"
 
 
 void WeaponItemDef::QueryWeaponRender( int select, grinliz::Vector4F* beamColor, float* beamDecay, float* beamWidth, grinliz::Vector4F* impactColor ) const
@@ -77,6 +78,37 @@ void WeaponItemDef::DamageBase( int select, float* damageArray ) const
 	}
 	for( int i=0; i<NUM_DAMAGE; ++i ) 
 		damageArray[i] *= weapon[select].damage;
+}
+
+
+float WeaponItemDef::TimeBase( int select, int type ) const
+{
+	GLASSERT( select == 0 || select == 1 );
+	GLASSERT( type >= 0 && type < 3 );
+
+	float s = 0.0f;
+	switch ( type ) {
+		case SNAP_SHOT:		
+			s = TU_SNAP_SHOT;	
+			break;
+		case AUTO_SHOT:		
+			if ( weapon[select].flags & WEAPON_AUTO )
+				s = TU_AUTO_SHOT;	
+			break;
+		case AIMED_SHOT:	
+			s = TU_AIMED_SHOT;	
+			break;
+		default:
+			GLASSERT( 0 );
+	}
+	
+	s *= speed;
+
+	// Secondary weapon is slower:
+	if ( select == 1 )
+		s *= 1.5f;
+
+	return s;
 }
 
 

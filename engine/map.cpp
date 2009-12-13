@@ -1238,6 +1238,8 @@ int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *c
 void Map::ShowNearPath(	const grinliz::Vector2<S16>& start, float cost0, float cost1, float cost2 )
 {
 	GLASSERT( cost2 <= (float)MAX_TRAVEL );
+	GLASSERT( cost2 >= cost1 );
+	GLASSERT( cost1 >= cost0 );
 	walkingMap.ClearAll();
 
 	int result = microPather->SolveForNearStates( VecToState( start ), &stateCostArr, cost2 );

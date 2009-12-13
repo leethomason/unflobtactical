@@ -83,6 +83,11 @@ void Unit::GenerateSoldier( U32 seed )
 	team = SOLDIER;
 	body = seed;
 	stats.InitStats( 50, 8 );
+
+	Random random( seed );
+	stats.SetSTR( stats.GenStat( &random, 20, 80 ) );
+	stats.SetDEX( stats.GenStat( &random, 20, 80 ) );
+	stats.SetPSY( stats.GenStat( &random, 20, 80 ) );
 }
 
 
@@ -92,6 +97,11 @@ void Unit::GenerateCiv( U32 seed )
 	team = CIVILIAN;
 	body = seed;	// only gender...
 	stats.InitStats( 25, 6 );
+
+	Random random( seed );
+	stats.SetSTR( stats.GenStat( &random, 10, 60 ) );
+	stats.SetDEX( stats.GenStat( &random, 10, 60 ) );
+	stats.SetPSY( stats.GenStat( &random, 10, 60 ) );
 }
 
 
@@ -101,14 +111,37 @@ void Unit::GenerateAlien( int type, U32 seed )
 	team = ALIEN;
 	body = seed & (~ALIEN_TYPE_MASK);
 	body |= (type & ALIEN_TYPE_MASK);
+	Random random( seed );
 
 	switch ( type ) {
-		case 0:	stats.InitStats( 40, 8 );	break;
-		case 1: stats.InitStats( 60, 8 );	break;
-		case 2: stats.InitStats( 150, 8 );	break;
+		case 0:	
+			stats.InitStats( 40, 8 );
+			stats.SetSTR( stats.GenStat( &random, 10, 50 ) );
+			stats.SetDEX( stats.GenStat( &random, 20, 80 ) );
+			stats.SetPSY( stats.GenStat( &random, 20, 100 ) );
+			break;
+
+		case 1: 
+			stats.InitStats( 60, 8 );	
+			stats.SetSTR( stats.GenStat( &random, 30, 70 ) );
+			stats.SetDEX( stats.GenStat( &random, 20, 80 ) );
+			stats.SetPSY( stats.GenStat( &random, 40, 120 ) );
+			break;
+
+		case 2: 
+			stats.InitStats( 150, 8 );	
+			stats.SetSTR( stats.GenStat( &random, 60, 140 ) );
+			stats.SetDEX( stats.GenStat( &random, 40, 100 ) );
+			stats.SetPSY( stats.GenStat( &random, 20, 90 ) );
+			break;
+
 		case 3:
 		default:
-				stats.InitStats( 80, 8 );	break;
+			stats.InitStats( 80, 8 );	
+			stats.SetSTR( stats.GenStat( &random, 20, 70 ) );
+			stats.SetDEX( stats.GenStat( &random, 40, 100 ) );
+			stats.SetPSY( stats.GenStat( &random, 80, 140 ) );
+			break;
 	}
 }
 
@@ -194,6 +227,11 @@ Item* Unit::GetWeapon()
 	return inventory.ArmedWeapon();
 }
 
+
+const Item* Unit::GetWeapon() const
+{
+	return inventory.ArmedWeapon();
+}
 
 Inventory* Unit::GetInventory()
 {
@@ -437,4 +475,21 @@ float Unit::AngleBetween( const Unit* target, bool quantize ) const
 	return angle;
 }
 
+
+float Unit::FireTime( int select, int type ) const
+{
+	float time = 0.0f;
+	const Item* item = GetWeapon();
+	if ( item ) {
+		const ItemDef* itemDef = item->GetItemDef();
+		if ( itemDef ) {
+			const WeaponItemDef* weaponItemDef = itemDef->IsWeapon();
+			if ( weaponItemDef ) {
+				time = weaponItemDef->TimeBase( select, type );
+			}
+		}
+	}
+	// FIXME: adjust for stats.
+	return time;
+}
 

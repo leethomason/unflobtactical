@@ -113,6 +113,7 @@ private:
 	};
 	Path path;
 
+	void ShowNearPath( const Unit* unit );
 	float Travel( U32 timeMSec, float speed ) { return speed * (float)timeMSec / 1000.0f; }
 
 	void InitUnits();
