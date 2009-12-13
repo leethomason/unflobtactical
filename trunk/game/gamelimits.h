@@ -12,6 +12,7 @@ const float NORMAL_TU		= 8.0f;
 const float TU_SNAP_SHOT	= 2.0f;
 const float TU_AUTO_SHOT	= 4.0f;
 const float TU_AIMED_SHOT	= 4.0f;
+const float TU_TURN			= 0.4f;
 
 const int SNAP_SHOT = 0;
 const int AUTO_SHOT = 1;

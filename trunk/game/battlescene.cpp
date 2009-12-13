@@ -452,6 +452,14 @@ void BattleScene::ProcessAction( U32 deltaTime )
 			model = action->unit->GetModel();
 		}
 
+		Vector2I originalPos = { 0, 0 };
+		float originalRot = 0.0f;
+		float originalTU = 0.0f;
+		if ( unit ) {
+			unit->CalcMapPos( &originalPos, &originalRot );
+			originalTU = unit->GetStats().TU();
+		}
+
 		switch ( action->action ) {
 			case ACTION_MOVE: 
 				{
@@ -463,9 +471,9 @@ void BattleScene::ProcessAction( U32 deltaTime )
 					const float ROTATION_SPEED = 150.0f;
 					float x, z, r;
 					
-					Vector2I originalPos;
-					float originalRot;
-					unit->CalcMapPos( &originalPos, &originalRot );
+					//Vector2I originalPos;
+					//float originalRot;
+					//unit->CalcMapPos( &originalPos, &originalRot );
 
 					// Do we need to rotate, or move?
 					path.GetPos( action->move.pathStep, action->move.pathFraction, &x, &z, &r );
@@ -508,18 +516,7 @@ void BattleScene::ProcessAction( U32 deltaTime )
 						if ( action->move.pathStep == path.statePath.size()-1 ) {
 							actionStack.Pop();
 							path.Clear();
-							ShowNearPath( unit );
 						}
-					}
-					Vector2I newPos;
-					float newRot;
-					unit->CalcMapPos( &newPos, &newRot );
-					if ( newPos != originalPos || newRot != originalRot ) {
-						CalcVisibility( unit, newPos.x, newPos.y, newRot );
-						SetFogOfWar();
-						CalcTeamTargets();
-						DumpTargetEvents();
-						targetEvents.Clear();
 					}
 				}
 				break;
@@ -560,6 +557,26 @@ void BattleScene::ProcessAction( U32 deltaTime )
 			default:
 				GLASSERT( 0 );
 				break;
+		}
+		if ( unit ) {
+			Vector2I newPos;
+			float newRot;
+			unit->CalcMapPos( &newPos, &newRot );
+
+			// If we changed map position, update UI feedback.
+			if ( newPos != originalPos || newRot != originalRot ) {
+				CalcVisibility( unit, newPos.x, newPos.y, newRot );
+				SetFogOfWar();
+				CalcTeamTargets();
+				DumpTargetEvents();
+				targetEvents.Clear();
+			}
+
+			// If actions are empty and this is the selected unit, update
+			// the path feedback.
+			if ( actionStack.Empty() && unit == SelectedSoldierUnit() ) {
+				ShowNearPath( unit );
+			}
 		}
 	}
 }
@@ -730,6 +747,25 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 					stream->WriteU8( (U8)(SelectedSoldierUnit()-units ) );
 					SelectedSoldierUnit()->Save( stream );
 					game->PushScene( Game::CHARACTER_SCENE );
+				}
+				break;
+
+			case BTN_LEFT:
+			case BTN_RIGHT:
+				if ( actionStack.Empty() && SelectedSoldierUnit() ) {
+					Unit* unit = SelectedSoldierUnit();
+					const Stats& stats = unit->GetStats();
+					if ( stats.TU() >= TU_TURN ) {
+						float r = unit->GetModel()->GetYRotation();
+						r += ( icon == BTN_LEFT ) ? 45.0f : -45.f;
+						r = NormalizeAngleDegrees( r );
+
+						Action action;
+						action.Rotate( unit, r );
+						actionStack.Push( action );
+
+						unit->UseTU( TU_TURN );
+					}
 				}
 				break;
 
