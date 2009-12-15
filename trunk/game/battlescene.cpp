@@ -1014,22 +1014,27 @@ void BattleScene::SetFireWidget()
 		for( int i=0; i<3; ++i ) {
 			float t = 0.0f;
 			int rounds = 0;
+			float fraction = 0;
+			float dptu = 0;
 			
 			if ( item->HasPart(select+1) && item->IsClip( select+1 ) ) {
 				t = unit->FireTime( select, i );
 				rounds = item->Rounds( select+1 );
 
 				float targetRad = distToTarget * unit->FireAccuracy( select, i );
-				float fraction = STANDARD_TARGET_AREA / targetRad;
-
+				fraction = STANDARD_TARGET_AREA / targetRad;
+				if ( t > 0 )
+					dptu = d * fraction / t;
+			}
+			bool enable = item->GetItemDef( select+1 ) && item->IsClip( select+1 ) && (t > 0.0f) && (rounds>0);
+			if ( enable ) {
 				SNPRINTF( buffer0, 16, "%d%%", (int)LRintf( fraction*100.0f ) );
-				fireWidget->SetText( i*2+select, buffer0 );
+				SNPRINTF( buffer1, 16, "%.1f", dptu );
+				fireWidget->SetText( i*2+select, buffer0, buffer1 );
 			}
 			else {
 				fireWidget->SetText( i*2+select, "" );
 			}
-
-			bool enable = item->GetItemDef( select+1 ) && item->IsClip( select+1 ) && (t > 0.0f) && (rounds>0);
 			fireWidget->SetEnabled( i*2+select, enable );
 			fireWidget->SetDeco( i*2+select, id[i] );
 		}
