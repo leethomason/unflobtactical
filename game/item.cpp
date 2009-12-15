@@ -73,13 +73,30 @@ void WeaponItemDef::DamageBase( int select, float* damageArray ) const
 			}
 			break;
 
-		case ITEM_CLIP_CANON:
+		case ITEM_CLIP_FLAME:
+			damageArray[DAMAGE_KINETIC]		= 0;				
+			damageArray[DAMAGE_ENERGY]		= 0;
+			damageArray[DAMAGE_INCINDIARY]	= 1.0f;
+			break;
+
+		case ITEM_CLIP_ROCKET:
+			damageArray[DAMAGE_KINETIC]		= 0.5f;				
+			damageArray[DAMAGE_ENERGY]		= 0;
+			damageArray[DAMAGE_INCINDIARY]	= 0.5f;
+			break;
+
+		case ITEM_CLIP_GRENADE:
+			damageArray[DAMAGE_KINETIC]		= 0.8f;				
+			damageArray[DAMAGE_ENERGY]		= 0;
+			damageArray[DAMAGE_INCINDIARY]	= 0.2f;
+			break;
 
 		default:
 			GLASSERT( 0 );	// need to implement
 	}
-	for( int i=0; i<NUM_DAMAGE; ++i ) 
+	for( int i=0; i<NUM_DAMAGE; ++i ) {
 		damageArray[i] *= weapon[select].damage;
+	}
 }
 
 
@@ -143,24 +160,6 @@ Item::Item( Game* game, const char* name, int rounds )
 	part[1].Clear();
 	part[2].Clear();
 }
-
-
-/*
-void Item::Init( const ItemDef* itemDef )
-{
-	part[0].Init( itemDef, 1 );
-	part[1].Clear();
-	part[2].Clear();
-}
-*/
-
-
-/*
-void Item::Init( Game* game, const char* name )
-{
-	Init( game->GetItemDef( name ) );
-}
-*/
 
 
 bool Item::Insert( const Item& withThis )

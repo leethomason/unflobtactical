@@ -429,8 +429,8 @@ void Game::LoadItemResources()
 				ITEM_CLIP_ROCKET,	0,				DAM_MED,	ACC_MED, 0,
 				0  },
 		{ "CANON",	"gun0",		DECO_RIFLE,		"Mini-Canon",			SPEED_SLOW,
-				ITEM_CLIP_CANON,	WEAPON_AUTO,	DAM_MED,	ACC_MED, 0,
-				0 },
+				ITEM_CLIP_SHELL,	0,				DAM_HI,		ACC_MED, 0,
+				ITEM_CLIP_FLAME,	0,				DAM_HI,		ACC_MED, 0 },
 		{ "KNIFE",	"gun0",		DECO_KNIFE,		"Knife",				SPEED_FAST,
 				0,					WEAPON_MELEE,	DAM_MED,	ACC_MED, 0,
 				0  },
@@ -533,8 +533,7 @@ void Game::LoadItemResources()
 		{ "AClip",	ITEM_CLIP_AUTO,		DECO_SHELLS,	15,	 "4mm 15 round auto-clip" },
 		{ "Cell",	ITEM_CLIP_CELL,		DECO_CELL,		100, "10MW Cell" },
 		{ "MinR",	ITEM_CLIP_ROCKET,	DECO_ROCKET,	1,	 "Mini Rocket" },
-		{ "MC-AC",	ITEM_CLIP_CANON,	DECO_SHELLS,	1,	 "Mini Canon Armor Piercing Round" },
-		{ "MC-I",	ITEM_CLIP_CANON,	DECO_SHELLS,	1,	 "Mini Canon Incendiary Round" },
+		{ "Flame",	ITEM_CLIP_FLAME,	DECO_SHELLS,	1,	 "Incendiary Heavy Round" },
 		{ "RPG",	ITEM_CLIP_GRENADE,	DECO_ROCKET,	4,	 "Grenade Rounds" },
 		{ 0 }
 	};
