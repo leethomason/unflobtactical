@@ -18,4 +18,16 @@ const int SNAP_SHOT = 0;
 const int AUTO_SHOT = 1;
 const int AIMED_SHOT = 2;
 
+const int TRAIT_SOLDIER_LOW = 20;
+const int TRAIT_SOLDIER_HIGH = 80;
+const int TRAIT_LEVEL_BONUS = 5;
+
+const float STANDARD_TARGET_AREA = 0.6f;	// roughly meters
+const float ACC_GOOD_SHOT = 0.05f;
+const float ACC_BAD_SHOT  = 0.20f;
+
+const float ACC_AIMED_SHOT_MULTIPLIER = 1.0f;	// LOWER accuracy is better
+const float ACC_AUTO_SHOT_MULTIPLIER  = 1.3f;
+const float ACC_SNAP_SHOT_MULTIPLIER  = 1.5f;
+
 #endif // GAMELIMITS_INCLUDED

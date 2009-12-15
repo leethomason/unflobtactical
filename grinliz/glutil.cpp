@@ -27,6 +27,25 @@ distribution.
 
 float grinliz::gU8ToFloat[256];
 
+int grinliz::SNPRINTF(char *str, size_t size, const char *format, ...)
+{
+    va_list     va;
+
+    //
+    //  format and output the message..
+    //
+    va_start( va, format );
+#ifdef _MSC_VER
+    int result = vsnprintf_s( str, size, _TRUNCATE, format, va );
+#else
+    int result = vsnprintf( str, size-1, format, va );
+#endif
+    va_end( va );
+
+	return result;
+}
+
+
 namespace grinliz
 {
 	class U8ToFloatInit

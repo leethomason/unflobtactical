@@ -113,7 +113,10 @@ private:
 	};
 	Path path;
 
+	// Show the UI zones arount the selected unit
 	void ShowNearPath( const Unit* unit );
+	// set the fire widget to the primary and secondary weapon
+	void SetFireWidget();
 	float Travel( U32 timeMSec, float speed ) { return speed * (float)timeMSec / 1000.0f; }
 
 	void InitUnits();

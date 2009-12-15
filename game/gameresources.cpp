@@ -376,9 +376,9 @@ void Game::LoadItemResources()
 	const float DAM_MED =  40.0f;
 	const float DAM_HI  =  60.0f;
 	const float DAM_VHI = 100.0f;
-	const float ACC_LOW = 0.7f;
+	const float ACC_LOW = 1.3f;
 	const float ACC_MED = 1.0f;
-	const float ACC_HI  = 1.3f;
+	const float ACC_HI  = 0.7f;
 	const float SPEED_FAST = 0.8f;
 	const float SPEED_NORMAL = 1.0f;
 	const float SPEED_SLOW	= 1.5f;
