@@ -26,6 +26,7 @@ enum {
 	ICON_BLUE_BUTTON	= 1,
 	ICON_RED_BUTTON		= 2,
 	ICON_TRANS_RED		= 4,
+	ICON_TRANS_BLUE		= 5,
 	ICON_GREEN_BUTTON_DOWN	= 8,
 	ICON_BLUE_BUTTON_DOWN	= 9,
 	ICON_RED_BUTTON_DOWN	= 10,
@@ -175,6 +176,12 @@ protected:
 
 
 // implements buttons in a row/column grid
+// ordering (ex: 2 col, 8 icons)
+//  6 7
+//  4 5
+//  2 3
+//	0 1
+//
 class UIButtonBox : public UIButtons
 {
 public:

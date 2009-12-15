@@ -72,7 +72,7 @@ public:
 	struct Weapon {
 		int clipType;		// type of clip required (ITEM_CLIP_ROCKET for example). 0 for melee.
 		int flags;			// WEAPON_AUTO, etc.
-		float damage;		// 
+		float damage;		// damage done by weapon
 		float accuracy;		// 1.0 is average
 		int power;			// power consumed by cell weapons
 	};
@@ -162,10 +162,11 @@ public:
 	int Rounds( int i=0 ) const						{ GLASSERT( i>=0 && i<3 ); return part[i].rounds; }
 	const char* Name() const						{ return part[0].itemDef->name; }
 	const char* Desc() const						{ return part[0].itemDef->desc; }
-	int Deco() const								{ return part[0].itemDef->deco; }
+	int Deco( int i=0 ) const						{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef->deco; }
 
-	bool IsNothing() const { return part[0].None(); }
-	bool IsSomething() const { return !part[0].None(); }
+	bool HasPart( int i ) const		{ return part[i].itemDef != 0; }
+	bool IsNothing() const			{ return part[0].None(); }
+	bool IsSomething() const		{ return !part[0].None(); }
 
 	void Save( UFOStream* s ) const;
 	void Load( UFOStream* s, Engine* engine, Game* game );

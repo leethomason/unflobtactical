@@ -73,6 +73,8 @@ void WeaponItemDef::DamageBase( int select, float* damageArray ) const
 			}
 			break;
 
+		case ITEM_CLIP_CANON:
+
 		default:
 			GLASSERT( 0 );	// need to implement
 	}

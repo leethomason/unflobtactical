@@ -82,12 +82,13 @@ void Unit::GenerateSoldier( U32 seed )
 	status = STATUS_ALIVE;
 	team = SOLDIER;
 	body = seed;
-	stats.InitStats( 50, 8 );
 
 	Random random( seed );
 	stats.SetSTR( stats.GenStat( &random, 20, 80 ) );
 	stats.SetDEX( stats.GenStat( &random, 20, 80 ) );
 	stats.SetPSY( stats.GenStat( &random, 20, 80 ) );
+	stats.SetLevel( 2 );
+	stats.CalcBaselines();
 }
 
 
@@ -96,12 +97,13 @@ void Unit::GenerateCiv( U32 seed )
 	status = STATUS_ALIVE;
 	team = CIVILIAN;
 	body = seed;	// only gender...
-	stats.InitStats( 25, 6 );
 
 	Random random( seed );
+	stats.SetLevel( 0 );
 	stats.SetSTR( stats.GenStat( &random, 10, 60 ) );
 	stats.SetDEX( stats.GenStat( &random, 10, 60 ) );
 	stats.SetPSY( stats.GenStat( &random, 10, 60 ) );
+	stats.CalcBaselines();
 }
 
 
@@ -115,21 +117,21 @@ void Unit::GenerateAlien( int type, U32 seed )
 
 	switch ( type ) {
 		case 0:	
-			stats.InitStats( 40, 8 );
+			stats.SetLevel( 1 );
 			stats.SetSTR( stats.GenStat( &random, 10, 50 ) );
 			stats.SetDEX( stats.GenStat( &random, 20, 80 ) );
 			stats.SetPSY( stats.GenStat( &random, 20, 100 ) );
 			break;
 
 		case 1: 
-			stats.InitStats( 60, 8 );	
+			stats.SetLevel( 1 );
 			stats.SetSTR( stats.GenStat( &random, 30, 70 ) );
 			stats.SetDEX( stats.GenStat( &random, 20, 80 ) );
 			stats.SetPSY( stats.GenStat( &random, 40, 120 ) );
 			break;
 
 		case 2: 
-			stats.InitStats( 150, 8 );	
+			stats.SetLevel( 1 );
 			stats.SetSTR( stats.GenStat( &random, 60, 140 ) );
 			stats.SetDEX( stats.GenStat( &random, 40, 100 ) );
 			stats.SetPSY( stats.GenStat( &random, 20, 90 ) );
@@ -137,12 +139,13 @@ void Unit::GenerateAlien( int type, U32 seed )
 
 		case 3:
 		default:
-			stats.InitStats( 80, 8 );	
+			stats.SetLevel( 1 );
 			stats.SetSTR( stats.GenStat( &random, 20, 70 ) );
 			stats.SetDEX( stats.GenStat( &random, 40, 100 ) );
 			stats.SetPSY( stats.GenStat( &random, 80, 140 ) );
 			break;
 	}
+	stats.CalcBaselines();
 }
 
 
@@ -481,16 +484,27 @@ float Unit::FireTime( int select, int type ) const
 {
 	float time = 0.0f;
 	const Item* item = GetWeapon();
-	if ( item ) {
-		const ItemDef* itemDef = item->GetItemDef();
-		if ( itemDef ) {
-			const WeaponItemDef* weaponItemDef = itemDef->IsWeapon();
-			if ( weaponItemDef ) {
-				time = weaponItemDef->TimeBase( select, type );
-			}
-		}
+	if ( item && item->IsWeapon() ) {
+		const WeaponItemDef* weaponItemDef = item->IsWeapon();
+		time = weaponItemDef->TimeBase( select, type );
 	}
-	// FIXME: adjust for stats.
+	// Note: don't adjust for stats. TU is based on DEX. Adjusting again double-applies.
 	return time;
+}
+
+
+float Unit::FireAccuracy( int select, int type ) const
+{
+	float acc = 0.0f;
+	const float MULT[3] = { ACC_SNAP_SHOT_MULTIPLIER, ACC_AUTO_SHOT_MULTIPLIER, ACC_AIMED_SHOT_MULTIPLIER };
+
+	const Item* item = GetWeapon();
+	if ( item && item->IsWeapon() ) {
+		const WeaponItemDef* weaponItemDef = item->IsWeapon();
+		acc = stats.Accuracy();								// about 0.1?
+		acc *= weaponItemDef->weapon[select].accuracy;		// nominal 1.0
+		acc *= MULT[type];									// nominal 1.0
+	}
+	return acc;
 }
 

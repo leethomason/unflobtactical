@@ -75,11 +75,19 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	}
 	// When enemy targeted.
 	fireWidget = new UIButtonBox( engine->GetScreenport() );
-	const int fireIcons[] = { ICON_TRANS_RED, ICON_TRANS_RED, ICON_TRANS_RED };
-	fireWidget->InitButtons( fireIcons, 3 );
-	fireWidget->SetDeco( 2, DECO_AIMED );
+	const int fireIcons[] = { ICON_TRANS_RED, ICON_TRANS_RED, ICON_TRANS_RED, ICON_TRANS_RED,
+							  ICON_TRANS_RED, ICON_TRANS_RED, ICON_TRANS_BLUE, ICON_TRANS_BLUE };
+	fireWidget->InitButtons( fireIcons, 8 );
+	fireWidget->SetColumns( 2 );
+	fireWidget->SetPadding( 0, 0 );
+	fireWidget->SetDeco( 0, DECO_SNAP );
 	fireWidget->SetDeco( 1, DECO_SNAP );
-	fireWidget->SetDeco( 0, DECO_AUTO );
+	fireWidget->SetDeco( 2, DECO_AUTO );
+	fireWidget->SetDeco( 3, DECO_AUTO );
+	fireWidget->SetDeco( 4, DECO_AIMED );
+	fireWidget->SetDeco( 5, DECO_AIMED );
+	fireWidget->SetDeco( 6, DECO_ROCKET );
+	fireWidget->SetDeco( 7, DECO_SHELLS );
 
 	engine->EnableMap( true );
 
@@ -143,7 +151,7 @@ void BattleScene::InitUnits()
 
 	Item gun0( game, "PST" ),
 		 gun1( game, "RAY-1" ),
-		 ar3( game, "AR-2" ),
+		 ar3( game, "AR-3P" ),
 		 medkit( game, "Med" ),
 		 armor( game, "ARM-1" ),
 		 fuel( game, "Gel" ),
@@ -416,6 +424,7 @@ void BattleScene::SetSelection( Unit* unit )
 			selection.targetPos.Set( -1, -1 );
 
 			GLASSERT( uiMode == UIM_NORMAL );
+			SetFireWidget();
 			uiMode = UIM_FIRE_MENU;
 		}
 		else {
@@ -869,6 +878,7 @@ void BattleScene::Tap(	int tap,
 		if ( hasTilePos ) {
 			selection.targetUnit = 0;
 			selection.targetPos.Set( tilePos.x, tilePos.y );
+			SetFireWidget();
 			uiMode = UIM_FIRE_MENU;
 		}
 		return;
@@ -940,6 +950,88 @@ void BattleScene::Tap(	int tap,
 
 				engine->GetMap()->ClearNearPath();
 			}
+		}
+	}
+}
+
+
+void BattleScene::SetFireWidget()
+{
+	GLASSERT( SelectedSoldierUnit() );
+	GLASSERT( SelectedSoldierModel() );
+
+	Unit* unit = SelectedSoldierUnit();
+	Item* item = unit->GetWeapon();
+	char buffer0[16];
+	char buffer1[16];
+
+	Vector3F target;
+	if ( selection.targetPos.x >= 0 ) {
+		target.Set( (float)selection.targetPos.x+0.5f, 1.0f, (float)selection.targetPos.y+0.5f );
+	}
+	else {
+		target = selection.targetUnit->GetModel()->Pos();
+	}
+	Vector3F distVector = target - SelectedSoldierModel()->Pos();
+	float distToTarget = distVector.Length();
+
+	if ( !item || !item->IsWeapon() ) {
+		fireWidget->SetDeco( 6, DECO_NONE );
+		fireWidget->SetDeco( 7, DECO_NONE );
+		for( int i=0; i<6; ++i ) {
+			fireWidget->SetEnabled( i, false );
+		}
+		return;
+	}
+
+	for( int select=0; select<2; ++select ) {
+
+		const WeaponItemDef* wid = item->IsWeapon();
+		GLASSERT( wid );
+
+		float d=0;
+		if ( item->HasPart( select+1 ) ) {
+			fireWidget->SetDeco( 6+select, item->Deco(select+1) );
+			
+			float damage[NUM_DAMAGE];
+			wid->DamageBase( select, damage );
+
+			for( int k=0; k<NUM_DAMAGE; ++k ) {
+				d += damage[k];
+			}
+
+			SNPRINTF( buffer0, 16, "D%d", (int)d );
+			SNPRINTF( buffer1, 16, "R%d", item->Rounds(select+1) );
+			fireWidget->SetText( 6+select, buffer0, buffer1 );
+		}
+		else {
+			fireWidget->SetDeco( 6+select, DECO_NONE );
+			fireWidget->SetText( 6+select, "" );
+		}
+
+		const int id[] = { DECO_SNAP, DECO_AUTO, DECO_AIMED };
+
+		for( int i=0; i<3; ++i ) {
+			float t = 0.0f;
+			int rounds = 0;
+			
+			if ( item->HasPart(select+1) && item->IsClip( select+1 ) ) {
+				t = unit->FireTime( select, i );
+				rounds = item->Rounds( select+1 );
+
+				float targetRad = distToTarget * unit->FireAccuracy( select, i );
+				float fraction = STANDARD_TARGET_AREA / targetRad;
+
+				SNPRINTF( buffer0, 16, "%d%%", (int)LRintf( fraction*100.0f ) );
+				fireWidget->SetText( i*2+select, buffer0 );
+			}
+			else {
+				fireWidget->SetText( i*2+select, "" );
+			}
+
+			bool enable = item->GetItemDef( select+1 ) && item->IsClip( select+1 ) && (t > 0.0f) && (rounds>0);
+			fireWidget->SetEnabled( i*2+select, enable );
+			fireWidget->SetDeco( i*2+select, id[i] );
 		}
 	}
 }
