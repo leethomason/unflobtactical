@@ -480,30 +480,46 @@ float Unit::AngleBetween( const Vector2I& p1, bool quantize ) const
 }
 
 
-float Unit::FireTime( int select, int type ) const
+float Unit::FireTimeUnits( int select, int type ) const
 {
 	float time = 0.0f;
 	const Item* item = GetWeapon();
 	if ( item && item->IsWeapon() ) {
 		const WeaponItemDef* weaponItemDef = item->IsWeapon();
-		time = weaponItemDef->TimeBase( select, type );
+		time = weaponItemDef->TimeUnits( select, type );
 	}
 	// Note: don't adjust for stats. TU is based on DEX. Adjusting again double-applies.
 	return time;
 }
 
 
+void Unit::FireStatistics( int select, int type, float distance, float* chanceToHit, float* tu, float* damagePerTU )
+{
+	*chanceToHit = 0.0f;
+	*tu = 0.0f;
+	*damagePerTU = 0.0f;
+	float damage;
+
+	if ( GetWeapon() && GetWeapon()->IsWeapon() ) {
+		float acc = FireAccuracy( select, type );
+		if ( acc > 0.0f ) {
+			*tu = FireTimeUnits( select, type );
+			if ( *tu > 0.0f ) 
+				GetWeapon()->IsWeapon()->FireStatistics( select, type, acc, distance, 
+														 chanceToHit, &damage, damagePerTU );
+		}
+	}
+}
+
+
 float Unit::FireAccuracy( int select, int type ) const
 {
 	float acc = 0.0f;
-	const float MULT[3] = { ACC_SNAP_SHOT_MULTIPLIER, ACC_AUTO_SHOT_MULTIPLIER, ACC_AIMED_SHOT_MULTIPLIER };
 
 	const Item* item = GetWeapon();
 	if ( item && item->IsWeapon() ) {
 		const WeaponItemDef* weaponItemDef = item->IsWeapon();
-		acc = stats.Accuracy();								// about 0.1?
-		acc *= weaponItemDef->weapon[select].accuracy;		// nominal 1.0
-		acc *= MULT[type];									// nominal 1.0
+		acc = stats.Accuracy() * weaponItemDef->AccuracyBase( select, type );
 	}
 	return acc;
 }

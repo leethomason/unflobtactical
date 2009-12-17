@@ -53,6 +53,7 @@ void WeaponItemDef::DamageBase( int select, float* damageArray ) const
 {
 
 	switch( weapon[select].clipType ) {
+		case 0:								// melee
 		case ITEM_CLIP_SHELL:
 		case ITEM_CLIP_AUTO:
 			damageArray[DAMAGE_KINETIC]		= 1.0f;				
@@ -100,7 +101,7 @@ void WeaponItemDef::DamageBase( int select, float* damageArray ) const
 }
 
 
-float WeaponItemDef::TimeBase( int select, int type ) const
+float WeaponItemDef::TimeUnits( int select, int type ) const
 {
 	GLASSERT( select == 0 || select == 1 );
 	GLASSERT( type >= 0 && type < 3 );
@@ -125,11 +126,47 @@ float WeaponItemDef::TimeBase( int select, int type ) const
 
 	// Secondary weapon is slower:
 	if ( select == 1 )
-		s *= 1.5f;
+		s *= SECONDARY_SHOT_SPEED_MULT;
 
 	return s;
 }
 
+
+float WeaponItemDef::AccuracyBase( int select, int type ) const
+{
+	GLASSERT( select >= 0 && type >= 0 && select < 2 && type < 3 );
+
+	static const float MULT[3] = { ACC_SNAP_SHOT_MULTIPLIER, ACC_AUTO_SHOT_MULTIPLIER, ACC_AIMED_SHOT_MULTIPLIER };
+	float acc = weapon[select].accuracy * MULT[type];
+	return acc;
+}
+
+
+void WeaponItemDef::FireStatistics( int select, int type, 
+								    float accuracy, float distance, 
+								    float* chanceToHit, float* totalDamage, float* damagePerTU ) const
+{
+	*chanceToHit = 0.0f;
+	*damagePerTU = 0.0f;
+	*totalDamage = 0.0f;
+	float tu = TimeUnits( select, type );
+	float damage[NUM_DAMAGE];
+
+	if ( tu > 0.0f ) {
+		float targetRad = distance * accuracy * AccuracyBase( select, type );
+		*chanceToHit = STANDARD_TARGET_AREA / targetRad;
+		if ( *chanceToHit > 0.98f )
+			*chanceToHit = 0.98f;
+
+		DamageBase( select, damage );
+		for( int i=0; i<NUM_DAMAGE; ++i )
+			*totalDamage += damage[i];
+
+		*damagePerTU = (*chanceToHit) * (*totalDamage) / tu;
+		if ( type == AUTO_SHOT )
+			*damagePerTU *= 3.0f;
+	}
+}
 
 void ItemPart::Init( const ItemDef* itemDef, int rounds )
 {
@@ -273,6 +310,8 @@ void Item::Load( UFOStream* s, Engine* engine, Game* game )
 		}
 	}
 }
+
+
 
 
 Storage::~Storage()
