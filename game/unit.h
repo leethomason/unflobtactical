@@ -88,10 +88,12 @@ public:
 
 	// Time for the primary(0) or secondary(1) weapon to snap, auto, or aimed shot.
 	// Returns 0.0 if the weapon doesn't exist or support that fire mode.
-	float FireTime( int select, int type ) const;
+	float FireTimeUnits( int select, int type ) const;
+
 	// Accuracy of the weapon (0 or 1) at 1 unit of range.
 	// Returns 0.0 if the weapon doesn't exist or support that fire mode.
 	float FireAccuracy( int select, int type ) const;
+	void FireStatistics( int select, int type, float distance, float* chanceToHit, float* tu, float* damagePerTU );
 
 	float AngleBetween( const grinliz::Vector2I& dst, bool quantize ) const;
 

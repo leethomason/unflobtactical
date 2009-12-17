@@ -1011,32 +1011,28 @@ void BattleScene::SetFireWidget()
 
 		const int id[] = { DECO_SNAP, DECO_AUTO, DECO_AIMED };
 
-		for( int i=0; i<3; ++i ) {
-			float t = 0.0f;
-			int rounds = 0;
+		for( int type=0; type<3; ++type ) {
+			float tu = 0.0f;
 			float fraction = 0;
 			float dptu = 0;
 			
-			if ( item->HasPart(select+1) && item->IsClip( select+1 ) ) {
-				t = unit->FireTime( select, i );
-				rounds = item->Rounds( select+1 );
+			bool enable =    item->HasPart(select+1) 
+						  && item->IsClip( select+1 ) 
+						  && item->Rounds(select+1)
+						  && item->IsWeapon()
+						  && item->IsWeapon()->SupportsType( select, type );
 
-				float targetRad = distToTarget * unit->FireAccuracy( select, i );
-				fraction = STANDARD_TARGET_AREA / targetRad;
-				if ( t > 0 )
-					dptu = d * fraction / t;
-			}
-			bool enable = item->GetItemDef( select+1 ) && item->IsClip( select+1 ) && (t > 0.0f) && (rounds>0);
 			if ( enable ) {
+				unit->FireStatistics( select, type, distToTarget, &fraction, &tu, &dptu );
 				SNPRINTF( buffer0, 16, "%d%%", (int)LRintf( fraction*100.0f ) );
 				SNPRINTF( buffer1, 16, "%.1f", dptu );
-				fireWidget->SetText( i*2+select, buffer0, buffer1 );
+				fireWidget->SetText( type*2+select, buffer0, buffer1 );
 			}
 			else {
-				fireWidget->SetText( i*2+select, "" );
+				fireWidget->SetText( type*2+select, "" );
 			}
-			fireWidget->SetEnabled( i*2+select, enable );
-			fireWidget->SetDeco( i*2+select, id[i] );
+			fireWidget->SetEnabled( type*2+select, enable );
+			fireWidget->SetDeco( type*2+select, id[type] );
 		}
 	}
 }
@@ -1052,8 +1048,8 @@ void BattleScene::ShowNearPath( const Unit* unit )
 	SetPathBlocks();
 	const Stats& stats = unit->GetStats();
 
-	float lowTU = unit->FireTime( 0, SNAP_SHOT );
-	float hiTU = Max( unit->FireTime( 0, AIMED_SHOT ), unit->FireTime( 0, AUTO_SHOT ) );
+	float lowTU = unit->FireTimeUnits( 0, SNAP_SHOT );
+	float hiTU = Max( unit->FireTimeUnits( 0, AIMED_SHOT ), unit->FireTimeUnits( 0, AUTO_SHOT ) );
 
 	engine->GetMap()->ShowNearPath( start, stats.TU()-hiTU, stats.TU()-lowTU, stats.TU() );
 }

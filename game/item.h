@@ -5,6 +5,7 @@
 #include "../grinliz/glvector.h"
 #include "../engine/ufoutil.h"
 #include "../engine/enginelimits.h"
+#include "gamelimits.h"
 
 class ModelResource;
 class UFOStream;
@@ -72,21 +73,35 @@ public:
 	struct Weapon {
 		int clipType;		// type of clip required (ITEM_CLIP_ROCKET for example). 0 for melee.
 		int flags;			// WEAPON_AUTO, etc.
-		float damage;		// damage done by weapon
+		float damage;		// damage done by weapon, 1.0 is normal
 		float accuracy;		// 1.0 is average
 		int power;			// power consumed by cell weapons
 	};
 	float	speed;			// 1.0 is normal speed (and weight)
 	Weapon weapon[2];		// primary and secondary
 
-	bool HasWeapon( int select ) const { GLASSERT( select == 0 || select == 1 ); return weapon[select].damage > 0; }
+	bool HasWeapon( int select ) const		{ GLASSERT( select == 0 || select == 1 ); return weapon[select].damage > 0; }
+	bool SupportsType( int select, int type ) const		{ 
+		GLASSERT( type >= 0 && type < 3 && select >= 0 && select <= 1 );  
+		if ( type == AUTO_SHOT ) {
+			return (weapon[select].flags & WEAPON_AUTO) ? true : false;
+		}
+		return true;
+	}
 	bool Melee() const { return weapon[0].flags & WEAPON_MELEE ? true : false; }
 
 	void QueryWeaponRender( int select, grinliz::Vector4F* beamColor, float* beamDecay, float* beamWidth, grinliz::Vector4F* impactColor ) const;
 	bool CompatibleClip( const ItemDef* itemDef, int* which ) const;
 	
+	// Basic damage for this weapon.
 	void DamageBase( int select, float* damageArray ) const;
-	float TimeBase( int select, int type ) const;
+	// Amount of time it takes to use this weapon. (Does not depend on the Unit.)
+	float TimeUnits( int select, int type ) const;
+	// Accuracy base - modified by the unit.
+	float AccuracyBase( int select, int type ) const;
+	// Statistics for this weapon. 
+	void FireStatistics( int select, int type, float shooterAccuracy, float distance, 
+						 float* chanceToHit, float* totalDamage, float* damagePerTU ) const;
 };
 
 

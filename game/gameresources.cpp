@@ -372,13 +372,17 @@ void Game::LoadMapResources()
 
 void Game::LoadItemResources()
 {
-	const float DAM_LOW =  20.0f;
-	const float DAM_MED =  40.0f;
-	const float DAM_HI  =  60.0f;
-	const float DAM_VHI = 100.0f;
-	const float ACC_LOW = 1.3f;
+	const float DAM_LOW		=  20.0f;
+	const float DAM_MEDLOW	=  30.0f;
+	const float DAM_MED		=  40.0f;
+	const float DAM_MEDHI	=  50.0f;
+	const float DAM_HI		=  60.0f;
+	const float DAM_VHI		= 100.0f;
+
+	const float ACC_LOW = 1.4f;
 	const float ACC_MED = 1.0f;
 	const float ACC_HI  = 0.7f;
+
 	const float SPEED_FAST = 0.8f;
 	const float SPEED_NORMAL = 1.0f;
 	const float SPEED_SLOW	= 1.5f;
@@ -411,26 +415,27 @@ void Game::LoadItemResources()
 		// Terran	resName		deco			description
 		//				
 		{ "PST",	"gun0",		DECO_PISTOL,	"Pistol",				SPEED_FAST,
-				ITEM_CLIP_SHELL,	0,			DAM_MED,	ACC_MED, 0,
+				ITEM_CLIP_SHELL,	0,				DAM_LOW,	ACC_MED, 0,
 				0  },
 		{ "AR-1",	"gun0",		DECO_RIFLE,		"Klk Assault Rifle",	SPEED_NORMAL,
 				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_LOW,	ACC_LOW, 0,
 				0  },
 		{ "AR-2",	"gun0",		DECO_RIFLE,		"N7 Assault Rifle",		SPEED_NORMAL,
-				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_LOW,	ACC_MED, 0,
+				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MEDLOW,	ACC_MED, 0,
 				0  },
 		{ "AR-3P",	"gun0",		DECO_RIFLE,		"Pulse Rifle",			SPEED_NORMAL,
-				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_HI,		ACC_MED, 0,
-				ITEM_CLIP_GRENADE,	0,				DAM_MED,	ACC_LOW, 0 },
+				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MEDHI,	ACC_MED, 0,
+				ITEM_CLIP_GRENADE,	0,				DAM_HI,		ACC_LOW, 0 },
 		{ "AR-3L",	"gun0",		DECO_RIFLE,		"Long AR 'Vera'",		SPEED_NORMAL,
 				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MED,	ACC_HI,	0,
 				ITEM_CLIP_GRENADE,	0,				DAM_MED,	ACC_LOW, 0 },
 		{ "RKT",	"gun0",		DECO_RIFLE,		"Rocket Launcher",		SPEED_SLOW,
-				ITEM_CLIP_ROCKET,	0,				DAM_MED,	ACC_MED, 0,
+				ITEM_CLIP_ROCKET,	0,				DAM_HI,		ACC_MED, 0,
 				0  },
 		{ "CANON",	"gun0",		DECO_RIFLE,		"Mini-Canon",			SPEED_SLOW,
 				ITEM_CLIP_SHELL,	0,				DAM_HI,		ACC_MED, 0,
 				ITEM_CLIP_FLAME,	0,				DAM_HI,		ACC_MED, 0 },
+
 		{ "KNIFE",	"gun0",		DECO_KNIFE,		"Knife",				SPEED_FAST,
 				0,					WEAPON_MELEE,	DAM_MED,	ACC_MED, 0,
 				0  },
@@ -442,14 +447,17 @@ void Game::LoadItemResources()
 		{ "RAY-2",	"gun1",		DECO_PISTOL,	"Advanced Ray Gun",		SPEED_FAST,
 				ITEM_CLIP_CELL,		0,				DAM_MED,	ACC_LOW, POW_LOW,
 				0  },
+		{ "RAY-3",	"gun1",		DECO_PISTOL,	"Disinigrator",			SPEED_FAST,
+				ITEM_CLIP_CELL,		0,				DAM_HI,		ACC_LOW, POW_HI,
+				0  },
 		{ "PLS-1",	"gun0",		DECO_RIFLE,		"Plasma Rifle",			SPEED_NORMAL,
 				ITEM_CLIP_CELL,		WEAPON_AUTO,	DAM_MED,	ACC_MED, POW_MED,
 				0  },
 		{ "PLS-2",	"gun0",		DECO_RIFLE,		"Plasma Assault Rifle",	SPEED_NORMAL,
-				ITEM_CLIP_CELL,		WEAPON_AUTO,	DAM_MED,	ACC_MED, POW_MED,
-				ITEM_CLIP_CELL,		WEAPON_AUTO | WEAPON_EXPLOSIVE, DAM_MED, ACC_MED, POW_HI },
+				ITEM_CLIP_CELL,		WEAPON_AUTO,	DAM_MEDHI,	ACC_MED, POW_MED,
+				ITEM_CLIP_CELL,		WEAPON_EXPLOSIVE, DAM_HI,   ACC_MED, POW_HI },
 		{ "BEAM",	"gun0",		DECO_RIFLE,		"Blade Beam",			SPEED_NORMAL,
-				ITEM_CLIP_CELL,		0,				DAM_HI,		ACC_HI, POW_MED,
+				ITEM_CLIP_CELL,		0,				DAM_MEDHI,	ACC_HI, POW_MED,
 				0  },
 		{ "NULL",	"gun0",		DECO_RIFLE,		"Null Point Blaster",	SPEED_NORMAL,
 				ITEM_CLIP_CELL,		WEAPON_EXPLOSIVE, DAM_HI, ACC_HI, POW_HI,
@@ -552,6 +560,51 @@ void Game::LoadItemResources()
 		itemDefArr[nItemDef++] = item;
 	}
 	GLASSERT( nItemDef < EL_MAX_ITEM_DEFS );
+
+#if defined( DEBUG ) && defined( _MSC_VER )
+	// Dump out all the weapon statistics.
+	{
+		FILE* fp = fopen( "weapons.txt", "w" );
+		const float acc = (ACC_GOOD_SHOT+ACC_BAD_SHOT)*0.5f;
+		const float range[] = { 6.0f, 3.0f, 12.0f };
+
+		for( int r=0; r<3; ++r ) {
+			fprintf( fp, "\nRange=%f\n", range[r] );
+			fprintf( fp, "name       PRIMARY                              SECONDARY\n" );
+			fprintf( fp, "           dam snap       auto       aimed      dam snap       auto       aimed\n" );
+			fprintf( fp, "---------- --- ---------  ---------  ---------  --- ---------  ---------  ---------\n" );
+
+			for( int i=1; i<nItemDef; ++i ) {
+				const WeaponItemDef* wid = itemDefArr[i]->IsWeapon();
+				if ( wid ) {
+					fprintf( fp, "%10s ", wid->name );
+					for( int s=0; s<2; ++s ) {
+						if ( wid->HasWeapon(s) ) {
+							float damage[NUM_DAMAGE], d=0.0f;
+							wid->DamageBase( s, damage );
+							for( int count=0; count<NUM_DAMAGE; ++count )
+								d += damage[count];
+
+							fprintf( fp, "%3d ", (int)d );
+
+							for( int j=0; j<3; ++j ) {
+								float fraction, damage, dptu;
+
+								wid->FireStatistics( s, j, acc, range[r], &fraction, &damage, &dptu );
+								if ( fraction > 0.0f )
+									fprintf( fp, "%2d%% %5.1f  ", (int)(fraction*100.0f), dptu );
+								else
+									fprintf( fp, "           " );
+							}
+						}
+					}
+					fprintf( fp, "\n" );
+				}
+			}
+		}
+		fclose( fp );
+	}
+#endif
 }
 
 
