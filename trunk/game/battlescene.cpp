@@ -42,7 +42,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 								ICON_GREEN_BUTTON		// 7 character
 		};
 
-		const char* iconText[] = {	"X",
+		const char* iconText[] = {	"EXIT",
 									"O",
 									"N",
 									"ND",
@@ -80,6 +80,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	fireWidget->InitButtons( fireIcons, 8 );
 	fireWidget->SetColumns( 2 );
 	fireWidget->SetPadding( 0, 0 );
+	fireWidget->SetButtonSize( 60, 60 );
 	fireWidget->SetDeco( 0, DECO_SNAP );
 	fireWidget->SetDeco( 1, DECO_SNAP );
 	fireWidget->SetDeco( 2, DECO_AUTO );
@@ -713,39 +714,56 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 
 	if ( uiMode == UIM_FIRE_MENU ) {
 		icon = fireWidget->QueryTap( screenX, screenY );
-		switch ( icon ) {
-			case 0:	//aut0
-			case 1: //snap
-			case 2: //aim
-				// shooting creates a turn action then a shoot action.
-				GLASSERT( selection.soldierUnit >= 0 );
-				GLASSERT( selection.targetUnit >= 0 );
 
-				Vector3F target;
-				if ( selection.targetPos.x >= 0 ) {
-					target.Set( (float)selection.targetPos.x + 0.5f, 1.0f, (float)selection.targetPos.y + 0.5f );
+		/*
+			pri		sec
+			4aimed	5aimed
+			2auto	3auto
+			0snap	1snap
+		*/
+
+		if ( icon >= 0 && icon < 6 ) {
+			int select = icon & 1;	// primary(0) or secondary(1)
+			int type = icon / 2;
+
+			// shooting creates a turn action then a shoot action.
+			GLASSERT( selection.soldierUnit >= 0 );
+			GLASSERT( selection.targetUnit >= 0 );
+
+			float tu = selection.soldierUnit->FireTimeUnits( select, type );
+			GLASSERT( tu > 0 );
+			float autoTU = tu * 0.33333f;
+
+			Vector3F target;
+			if ( selection.targetPos.x >= 0 ) {
+				target.Set( (float)selection.targetPos.x + 0.5f, 1.0f, (float)selection.targetPos.y + 0.5f );
+			}
+			else {
+				selection.targetUnit->GetModel()->CalcTarget( &target );
+			}
+
+			// Stack - push in reverse order.
+			Action delay;
+			delay.Delay( 500 );
+
+			if ( type == AUTO_SHOT ) {
+				for( int i=0; i<3; ++i ) {
+					if ( selection.soldierUnit->GetStats().TU() >= autoTU ) {
+						ShootAction( selection.soldierUnit, target );
+						actionStack.Push( delay );
+						selection.soldierUnit->UseTU( autoTU );
+					}
 				}
-				else {
-					selection.targetUnit->GetModel()->CalcTarget( &target );
-				}
-
-				// Stack - push in reverse order.
-				if ( icon == 0 ) {
-					Action delay;
-					delay.Delay( 500 );
-
+			}
+			else {
+				if ( selection.soldierUnit->GetStats().TU() >= tu ) {
 					ShootAction( selection.soldierUnit, target );
 					actionStack.Push( delay );
-					ShootAction( selection.soldierUnit, target );
-					actionStack.Push( delay );
+					selection.soldierUnit->UseTU( tu );
 				}
-				ShootAction( selection.soldierUnit, target );
-				RotateAction( selection.soldierUnit, target, true );
-				selection.targetUnit = 0;
-				break;
-
-			default:
-				break;
+			}
+			RotateAction( selection.soldierUnit, target, true );
+			selection.targetUnit = 0;
 		}
 	}
 	else if ( uiMode == UIM_TARGET_TILE ) {
@@ -1025,7 +1043,16 @@ void BattleScene::SetFireWidget()
 			if ( enable ) {
 				unit->FireStatistics( select, type, distToTarget, &fraction, &tu, &dptu );
 				SNPRINTF( buffer0, 16, "%d%%", (int)LRintf( fraction*100.0f ) );
-				SNPRINTF( buffer1, 16, "%.1f %.1f", tu, dptu );
+
+				if ( tu >= 10.0f && dptu >= 10.0f )
+					SNPRINTF( buffer1, 16, "%2d %2d", LRintf(tu), LRintf(dptu) );
+				else if ( tu < 10.0f && dptu >= 10.0f )
+					SNPRINTF( buffer1, 16, "%.1f %2d", tu, LRintf(dptu) );
+				else if ( tu >= 10.0f && dptu < 10.0f )
+					SNPRINTF( buffer1, 16, "%2d %.1f", LRintf(tu), dptu );
+				else if ( tu < 10.0f && dptu < 10.0f )
+					SNPRINTF( buffer1, 16, "%.1f %.1f", tu, dptu );
+
 				fireWidget->SetText( type*2+select, buffer0, buffer1 );
 			}
 			else {
