@@ -22,18 +22,14 @@
 #include "../grinliz/glutil.h"
 
 const int ADVANCE = 10;
+const int ADVANCE_SMALL = 8;
+const float SMALL_SCALE = 0.75f;
 const int GLYPH_CX = 16;
 const int GLYPH_CY = 8;
 static int GLYPH_WIDTH = 256 / GLYPH_CX;
 static int GLYPH_HEIGHT = 128 / GLYPH_CY;
 
 
-// 0 screen up
-// 1 90 degree turn positive y, etc.
-
-//int UFOText::width = 0;
-//int UFOText::height = 0;
-//int UFOText::rotation = 0;
 Screenport UFOText::screenport( 320, 480, 1 );
 U32 UFOText::textureID = 0;
 
@@ -82,9 +78,19 @@ void UFOText::TextOut( const char* str, int x, int y )
 {
 	float v[8];
 	float t[8];
+	bool smallText = false;
 
 	while( *str )
 	{
+		if ( *str == '.' ) {
+			smallText = true;
+			++str;
+			continue;
+		}
+		if ( smallText && !( *str >= '0' && *str <= '9' ) ) {
+			smallText = false;
+		}
+
 		int c = *str - 32;
 		if ( c >= 1 && c < 128-32 )
 		{
@@ -95,24 +101,37 @@ void UFOText::TextOut( const char* str, int x, int y )
 			float ty1 = ty0 + ( 1.0f / float( GLYPH_CY ) );
 
 			t[0] = tx0;						t[1] = ty0;
-			v[0] = (float)x;				v[1] = (float)y;
-		
 			t[2] = tx1;						t[3] = ty0;
-			v[2] = (float)(x+GLYPH_WIDTH);	v[3] = (float)y;
-
 			t[4] = tx1;						t[5] = ty1;
-			v[4] = (float)(x+GLYPH_WIDTH);	v[5] = (float)(y+GLYPH_HEIGHT);
-
 			t[6] = tx0;						t[7] = ty1;
-			v[6] = (float)x;				v[7] = (float)(y+GLYPH_HEIGHT);
+
+			if ( !smallText ) {
+				v[0] = (float)x;				v[1] = (float)y;
+				v[2] = (float)(x+GLYPH_WIDTH);	v[3] = (float)y;
+				v[4] = (float)(x+GLYPH_WIDTH);	v[5] = (float)(y+GLYPH_HEIGHT);
+				v[6] = (float)x;				v[7] = (float)(y+GLYPH_HEIGHT);
+				x += ADVANCE;
+			}
+			else {
+				float y0 = (float)(y+GLYPH_HEIGHT) - (float)GLYPH_HEIGHT * SMALL_SCALE;
+				float x1 = (float)x + (float)GLYPH_WIDTH*SMALL_SCALE;
+
+				v[0] = (float)x;				v[1] = y0;
+				v[2] = x1;						v[3] = y0;
+				v[4] = x1;						v[5] = (float)(y+GLYPH_HEIGHT);
+				v[6] = (float)x;				v[7] = (float)(y+GLYPH_HEIGHT);
+				x += ADVANCE_SMALL;
+			}
 
 			glVertexPointer( 2, GL_FLOAT, 0, v );
 			glTexCoordPointer( 2, GL_FLOAT, 0, t );
 
 			glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
 		}
+		else if ( *str == ' ' ) {
+			x += ADVANCE;
+		}
 		++str;
-		x += ADVANCE;
 	}
 }
 
@@ -122,12 +141,27 @@ void UFOText::GlyphSize( const char* str, int* width, int* height )
 	*width = 0;
 	*height = 0;
 
-	int len = strlen( str );
-	if ( len == 0 ) {
-		return;
+	if ( str && *str ) {
+		*height = GLYPH_HEIGHT;
 	}
-	*width = GLYPH_WIDTH + ADVANCE*(len-1);
-	*height = GLYPH_HEIGHT;
+	bool small = false;
+	for( const char* p = str; p && *p; ++p ) {
+		if ( *p == '.' ) {
+			small = true;
+		}
+		else if ( small ) {
+			if ( *p >= '0' && *p <= '9' ) {
+				*width += ADVANCE_SMALL;
+			}
+			else {
+				*width += ADVANCE;
+				small = false;
+			}
+		}
+		else {
+			*width += ADVANCE;
+		}
+	}
 }
 
 
