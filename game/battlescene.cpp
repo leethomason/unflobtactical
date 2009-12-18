@@ -1025,7 +1025,7 @@ void BattleScene::SetFireWidget()
 			if ( enable ) {
 				unit->FireStatistics( select, type, distToTarget, &fraction, &tu, &dptu );
 				SNPRINTF( buffer0, 16, "%d%%", (int)LRintf( fraction*100.0f ) );
-				SNPRINTF( buffer1, 16, "%.1f", dptu );
+				SNPRINTF( buffer1, 16, "%.1f %.1f", tu, dptu );
 				fireWidget->SetText( type*2+select, buffer0, buffer1 );
 			}
 			else {
