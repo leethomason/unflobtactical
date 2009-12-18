@@ -333,6 +333,7 @@ void UIButtons::Draw()
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
 
+	// Stream out the text.
 	UFOText::Begin();
 	for( int i=0; i<nIcons; ++i ) {
 		float c = icons[i].enabled ? 1.0f : ALPHA_DISABLED;

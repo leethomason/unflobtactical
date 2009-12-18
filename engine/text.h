@@ -35,7 +35,7 @@ public:
 	static void Draw( int x, int y, const char* format, ... );
 
 private:
-	static void TextOut( const char* str, int x, int y );
+	static void TextOut( const char* str, int x, int y, int *w, int *h );
 
 	static Screenport screenport;
 	static U32 textureID;

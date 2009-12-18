@@ -428,7 +428,7 @@ void Game::LoadItemResources()
 				ITEM_CLIP_GRENADE,	0,				DAM_HI,		ACC_LOW, 0 },
 		{ "AR-3L",	"gun0",		DECO_RIFLE,		"Long AR 'Vera'",		SPEED_NORMAL,
 				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MED,	ACC_HI,	0,
-				ITEM_CLIP_GRENADE,	0,				DAM_MED,	ACC_LOW, 0 },
+				ITEM_CLIP_GRENADE,	0,				DAM_HI,		ACC_LOW, 0 },
 		{ "RKT",	"gun0",		DECO_RIFLE,		"Rocket Launcher",		SPEED_SLOW,
 				ITEM_CLIP_ROCKET,	0,				DAM_HI,		ACC_MED, 0,
 				0  },
