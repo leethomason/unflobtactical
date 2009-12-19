@@ -45,7 +45,7 @@ Map::Map( SpaceTree* tree )
 	this->tree = tree;
 	width = height = SIZE;
 	texture = 0;
-	nWalkingVertex = 0;
+	walkingVertex.Clear();
 	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
 
 	vertex[0].pos.Set( 0.0f,		0.0f, 0.0f );
@@ -154,12 +154,12 @@ void Map::Draw()
 
 void Map::DrawOverlay()
 {
-	if ( nWalkingVertex ) {
+	if ( !walkingVertex.Empty() ) {
 		const Texture* iTex = TextureManager::Instance()->GetTexture( "icons" );
 		GLASSERT( iTex );
 
-		U8* v = (U8*)walkingVertex + Vertex::POS_OFFSET;
-		U8* t = (U8*)walkingVertex + Vertex::TEXTURE_OFFSET;
+		U8* v = (U8*)walkingVertex.Mem() + Vertex::POS_OFFSET;
+		U8* t = (U8*)walkingVertex.Mem() + Vertex::TEXTURE_OFFSET;
 
 		const float ALPHA = 0.3f;
 		glColor4f( 1.0f, 1.0f, 1.0f, ALPHA );
@@ -170,7 +170,7 @@ void Map::DrawOverlay()
 		glDisableClientState( GL_NORMAL_ARRAY );
 		glEnable( GL_BLEND );
 
-		glDrawArrays( GL_TRIANGLES, 0, nWalkingVertex );
+		glDrawArrays( GL_TRIANGLES, 0, walkingVertex.Size() );
 
 		glEnableClientState( GL_NORMAL_ARRAY );
 		glDisable( GL_BLEND );
@@ -1237,7 +1237,7 @@ int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *c
 
 void Map::ShowNearPath(	const grinliz::Vector2<S16>& start, float cost0, float cost1, float cost2 )
 {
-	GLASSERT( cost2 <= (float)MAX_TRAVEL );
+//	GLASSERT( cost2 <= (float)MAX_TRAVEL );
 	GLASSERT( cost2 >= cost1 );
 	GLASSERT( cost1 >= cost0 );
 	walkingMap.ClearAll();
@@ -1290,7 +1290,7 @@ void Map::ShowNearPath(	const grinliz::Vector2<S16>& start, float cost0, float c
 	PushWalkingVertex( 64, 64, 0.25f, 0.25f );
 	*/
 
-	nWalkingVertex = 0;
+	walkingVertex.Clear();
 	for( int j=0; j<SIZE; ++j ) {
 		for( int i=0; i<SIZE; ++i ) {
 			U32 set = walkingMap.IsSet( i, j, 0 ) | walkingMap.IsSet( i, j, 1 ) | walkingMap.IsSet( i, j, 2 );
@@ -1317,7 +1317,7 @@ void Map::ShowNearPath(	const grinliz::Vector2<S16>& start, float cost0, float c
 
 void Map::ClearNearPath()
 {
-	nWalkingVertex = 0;
+	walkingVertex.Clear();
 }
 
 

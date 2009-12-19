@@ -499,7 +499,8 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 		glTexCoordPointer( 2, GL_FLOAT, sizeof(QuadVertex), tPtr );
 		glColorPointer(    4, GL_FLOAT, sizeof(QuadVertex), cPtr );
 
-		glDrawElements( GL_TRIANGLES, nParticles[POINT]*6, GL_UNSIGNED_SHORT, quadIndexBuffer );
+		// because of the skip, the #elements can be less than nParticles*6
+		glDrawElements( GL_TRIANGLES, index/6, GL_UNSIGNED_SHORT, quadIndexBuffer );
 		CHECK_GL_ERROR;
 	}
 

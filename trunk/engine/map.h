@@ -27,6 +27,7 @@
 #include "surface.h"
 #include "enginelimits.h"
 #include "serialize.h"
+#include "ufoutil.h"
 
 class Model;
 class ModelResource;
@@ -46,7 +47,7 @@ public:
 		LOG2_SIZE = 6,
 
 		MAX_ITEM_DEF = 256,
-		MAX_TRAVEL = 16,
+//		MAX_TRAVEL = 16,
 		LIGHT_START = 0xD0			// where the lights start in the itemDef array
 	};
 
@@ -382,16 +383,14 @@ private:
 
 	void PushWalkingVertex( int x, int z, float tx, float ty ) 
 	{
-		GLASSERT( nWalkingVertex < 6*MAX_TRAVEL*MAX_TRAVEL );
-		walkingVertex[ nWalkingVertex ].normal.Set( 0.0f, 1.0f, 0.0f );
-		walkingVertex[ nWalkingVertex ].pos.Set( (float)x, 0.0f,(float)(z) );
-		walkingVertex[ nWalkingVertex ].tex.Set( tx, ty );
-		++nWalkingVertex;
+		//GLASSERT( nWalkingVertex < 6*MAX_TRAVEL*MAX_TRAVEL );
+		Vertex* v = walkingVertex.Push();
+		v->normal.Set( 0.0f, 1.0f, 0.0f );
+		v->pos.Set( (float)x, 0.0f,(float)(z) );
+		v->tex.Set( tx, ty );
 	}
 
-	Vertex								walkingVertex[6*MAX_TRAVEL*MAX_TRAVEL];
-	int									nWalkingVertex;
-
+	CDynArray<Vertex>					walkingVertex;
 	U8									visMap[SIZE*SIZE];
 	U8									pathMap[SIZE*SIZE];
 
