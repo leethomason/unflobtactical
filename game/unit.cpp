@@ -5,9 +5,10 @@
 
 using namespace grinliz;
 
-const char* gMaleFirstNames[9] = 
+// Name first name length: 6
+const char* gMaleFirstNames[8] = 
 {
-	"Lee",
+	//"Lee",
 	"Jeff",
 	"Sean",
 	"Vlad",
@@ -18,48 +19,69 @@ const char* gMaleFirstNames[9] =
 	"Jason"
 };
 
-
-const char* gFemaleFirstNames[9] = 
+// Name first name length: 6
+const char* gFemaleFirstNames[8] = 
 {
 	"Rayne",
 	"Anne",
 	"Jade",
 	"Suzie",
 	"Greta",
-	"Lilith",
+	//"Lilith",
 	"Luna",
 	"Riko",
 	"Jane",
 };
 
 
+// Name last name length: 6
 const char* gLastNames[8] = 
 {
 	"Payne",
 	"Havok",
 	"Fury",
-	"Schwartz",
+	"Scharz",
 	"Bourne",
 	"Bond",
 	"Smith",
-	"Anderson",
+	"Andson",
 };
+
+
+const char* gRank[] = {
+	"Rok",
+	"Pri",
+	"Sgt",
+	"Maj",
+	"Cpt",
+	"Cmd"
+};
+
+
+U32 Unit::GetValue( int which ) const
+{
+	const int NBITS[] = { 2, 1, 2, 2, 3, 3 };	// ALIEN_TYPE, GENDER, ...
+
+	int i;
+	U32 shift = 0;
+	for( i=0; i<which; ++i ) {
+		shift += NBITS[i];
+	}
+	U32 mask = (1<<NBITS[which])-1;
+	return (body>>shift) & mask;
+}
 
 
 const char* Unit::FirstName() const
 {
 	const char* str = "";
 	if ( team == SOLDIER ) {
-		const int mfnLen = sizeof(gMaleFirstNames)/sizeof(const char*);
-		const int ffnLen = sizeof(gFemaleFirstNames)/sizeof(const char*);
-
-		U32 r = (body>>NAME0_SHIFT)&NAME0_MASK;
-
 		if ( Gender() == MALE )
-			str = gMaleFirstNames[ r % mfnLen ];
+			str = gMaleFirstNames[ GetValue( FIRST_NAME ) ];
 		else
-			str = gFemaleFirstNames[ r % ffnLen ];
+			str = gFemaleFirstNames[ GetValue( FIRST_NAME ) ];
 	}
+	GLASSERT( strlen( str ) <= 6 );
 	return str;
 }
 
@@ -68,14 +90,18 @@ const char* Unit::LastName() const
 {
 	const char* str = "";
 	if ( team == SOLDIER ) {
-		const int lnLen  = sizeof(gLastNames)/sizeof(const char*);
-
-		U32 r = (body>>NAME1_SHIFT)&NAME1_MASK;
-		str = gLastNames[ r % lnLen ];
+		str = gLastNames[ GetValue( LAST_NAME ) ];
 	}
+	GLASSERT( strlen( str ) <= 6 );
 	return str;
 }
 
+
+const char* Unit::Rank() const
+{
+	GLASSERT( stats.Level() >=0 && stats.Level() < 6 ); 
+	return gRank[ stats.Level() ];
+}
 
 void Unit::GenerateSoldier( U32 seed )
 {
@@ -111,8 +137,9 @@ void Unit::GenerateAlien( int type, U32 seed )
 {
 	status = STATUS_ALIVE;
 	team = ALIEN;
-	body = seed & (~ALIEN_TYPE_MASK);
-	body |= (type & ALIEN_TYPE_MASK);
+	U32 MASK = 0x03;
+	body  = seed & (~MASK);
+	body |= (type & MASK);
 	Random random( seed );
 
 	switch ( type ) {
@@ -389,8 +416,8 @@ void Unit::UpdateModel()
 		case SOLDIER:
 			{
 				int armor = 0;
-				int hair = ( body >> HAIR_SHIFT ) & HAIR_MASK;
-				int skin = ( body >> SKIN_SHIFT ) & SKIN_MASK;
+				int hair = GetValue( HAIR );
+				int skin = GetValue( SKIN );
 				model->SetSkin( armor, skin, hair );
 			}
 			break;
@@ -445,7 +472,7 @@ void Unit::Load( UFOStream* s, Engine* engine, Game* game )
 		pos.z = s->ReadFloat();
 		rot   = s->ReadFloat();
 
-		Init( engine, game, team, ((body>>ALIEN_TYPE_SHIFT) & ALIEN_TYPE_MASK), body );
+		Init( engine, game, team, body&0x03, body );
 		status = _status;
 		
 		if ( model ) {

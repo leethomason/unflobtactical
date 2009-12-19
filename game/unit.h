@@ -62,10 +62,12 @@ public:
 
 	int Status() const			{ return status; }
 	int Team() const			{ return team; }
-	int AlienType()	const		{ return (body>>ALIEN_TYPE_SHIFT) & ALIEN_TYPE_MASK; }
-	int Gender() const			{ return (body>>GENDER_SHIFT) & GENDER_MASK; }
+	int AlienType()	const		{ return GetValue( ALIEN_TYPE ); }
+	int Gender() const			{ return GetValue( GENDER ); }
+
 	const char* FirstName() const;
 	const char* LastName() const;
+	const char* Rank() const;
 
 	void SetMapPos( int x, int z );
 	void SetMapPos( const grinliz::Vector2I& pos ) { SetMapPos( pos.x, pos.y ); }
@@ -104,26 +106,15 @@ public:
 
 private:
 	enum {	
-		// Aliens
-		ALIEN_TYPE_MASK = 0x03,
-		ALIEN_TYPE_SHIFT = 0,
-
-		// Terrans
-		GENDER_MASK = 0x01,
-		GENDER_SHIFT = 0,
-
-		// Marines (also have gender)
-		HAIR_MASK = 0x03,
-		HAIR_SHIFT = 1,
-		SKIN_MASK = 0x03,
-		SKIN_SHIFT = 3,
-		NAME0_MASK = 0xff,
-		NAME0_SHIFT = 16,
-		NAME1_MASK = 0xff,
-		NAME1_SHIFT = 24,
+		ALIEN_TYPE,		// 2, 0-3. Needs to be first for GenerateAlien()
+		GENDER,			// 1, 0-1
+		HAIR,			// 2, 0-3
+		SKIN,			// 2, 0-3
+		LAST_NAME,		// 3, 0-7
+		FIRST_NAME,		// 3, 0-7
 	};
-
 	void GenerateSoldier( U32 seed );
+	U32 GetValue( int which ) const;	// ALIEN_TYPE, etc.
 	void GenerateCiv( U32 seed );
 	void GenerateAlien( int type, U32 seed );
 	void CreateModel( bool alive );

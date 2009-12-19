@@ -113,6 +113,16 @@ void XferTexture( U32 id, int _w, int _h )
 }
 
 
+Uint32 TimerCallback(Uint32 interval, void *param)
+{
+	SDL_Event user;
+	memset( &user, 0, sizeof(user ) );
+	user.type = SDL_USEREVENT;
+
+	SDL_PushEvent( &user );
+	return interval;
+}
+
 
 int main( int argc, char **argv )
 {    
@@ -216,241 +226,229 @@ int main( int argc, char **argv )
 
 	void* game = NewGame( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, rotation, ".\\" );
 
+	SDL_TimerID timerID = SDL_AddTimer( 30, TimerCallback, 0 );
+
 	// ---- Main Loop --- //
-	while ( !done )
+	while ( !done && SDL_WaitEvent( &event ) )
 	{
-		// Clean out all the SDL events waiting for processing.
-		while ( SDL_PollEvent( &event ) )
+		switch( event.type )
 		{
-			switch( event.type )
+			case SDL_KEYDOWN:
 			{
-				case SDL_KEYDOWN:
+				switch ( event.key.keysym.sym )
 				{
-					switch ( event.key.keysym.sym )
-					{
-						case SDLK_ESCAPE:
-							done = true;
-							break;
+					case SDLK_ESCAPE:
+						done = true;
+						break;
 
-						case SDLK_KP_PLUS:
-						case SDLK_KP_MINUS:
-							{
-								float zoom;
-								GameCameraGet( game, GAME_CAMERA_ZOOM, &zoom );
-								zoom += event.key.keysym.sym == SDLK_KP_PLUS ? 0.1f : -0.1f;
-								GameCameraSet( game, GAME_CAMERA_ZOOM, zoom );
-							}
-							break;
+					case SDLK_KP_PLUS:
+					case SDLK_KP_MINUS:
+						{
+							float zoom;
+							GameCameraGet( game, GAME_CAMERA_ZOOM, &zoom );
+							zoom += event.key.keysym.sym == SDLK_KP_PLUS ? 0.1f : -0.1f;
+							GameCameraSet( game, GAME_CAMERA_ZOOM, zoom );
+						}
+						break;
 
-						//case SDLK_PAGEDOWN:		GameTiltCamera( game, 2.0f );				break;
-						//case SDLK_PAGEUP:		GameTiltCamera( game, -2.0f );				break;
-						//case SDLK_UP:			GameMoveCamera( game, 0.0f, 1.0f, 0.0f);	break;
-						//case SDLK_DOWN:			GameMoveCamera( game, 0.0f, -1.0f, 0.0f);	break;
-						//case SDLK_RIGHT:		GameAdjustPerspective( game, 2.0f );		break;
-						//case SDLK_LEFT:			GameAdjustPerspective( game, -2.0f );		break;
-						//case SDLK_RIGHT:		yRotation += 2.0f; GameYRotateCamera( game, yRotation );		break;
-						//case SDLK_LEFT:			yRotation -= 2.0f; GameYRotateCamera( game, yRotation );		break;
-						//case SDLK_s:			GameShadowMode( game );						break;
+					//case SDLK_PAGEDOWN:		GameTiltCamera( game, 2.0f );				break;
+					//case SDLK_PAGEUP:		GameTiltCamera( game, -2.0f );				break;
+					//case SDLK_UP:			GameMoveCamera( game, 0.0f, 1.0f, 0.0f);	break;
+					//case SDLK_DOWN:			GameMoveCamera( game, 0.0f, -1.0f, 0.0f);	break;
+					//case SDLK_RIGHT:		GameAdjustPerspective( game, 2.0f );		break;
+					//case SDLK_LEFT:			GameAdjustPerspective( game, -2.0f );		break;
+					//case SDLK_RIGHT:		yRotation += 2.0f; GameYRotateCamera( game, yRotation );		break;
+					//case SDLK_LEFT:			yRotation -= 2.0f; GameYRotateCamera( game, yRotation );		break;
+					//case SDLK_s:			GameShadowMode( game );						break;
 
 #if !defined( MAPMAKER )
-						case SDLK_p:
-							{
-							//	#ifdef FRAMEBUFFER_ROTATE
-							//		frameBuffer->Bind();
-							//	#endif
-								ScreenCapture( "cap" );
-							//	#ifdef FRAMEBUFFER_ROTATE
-							//		frameBuffer->Bind();
-							//	#endif
-							}
-							break;
+					case SDLK_p:
+						{
+						//	#ifdef FRAMEBUFFER_ROTATE
+						//		frameBuffer->Bind();
+						//	#endif
+							ScreenCapture( "cap" );
+						//	#ifdef FRAMEBUFFER_ROTATE
+						//		frameBuffer->Bind();
+						//	#endif
+						}
+						break;
 #endif
 
 #if defined( MAPMAKER )
-						case SDLK_s:			
-							{
-								FILE* fp = fopen( filename.c_str(), "wb" );
-								//((Game*)game)->SaveMap( fp );
-								fclose( fp );
-								GLOUTPUT(( "Save\n" ));
+					case SDLK_s:			
+						{
+							FILE* fp = fopen( filename.c_str(), "wb" );
+							//((Game*)game)->SaveMap( fp );
+							fclose( fp );
+							GLOUTPUT(( "Save\n" ));
+						}
+						break;
+					case SDLK_l:
+						{
+							FILE* fp = fopen( filename.c_str(), "rb" );
+							if ( fp ) {
+								//((Game*)game)->LoadMap( fp );
 							}
-							break;
-						case SDLK_l:
-							{
-								FILE* fp = fopen( filename.c_str(), "rb" );
-								if ( fp ) {
-									//((Game*)game)->LoadMap( fp );
-								}
-								fclose( fp );
-								GLOUTPUT(( "Load\n" ));
-							}
-							break;
-						case SDLK_DELETE:	
-							((Game*)game)->DeleteAtSelection(); 
-							break;
+							fclose( fp );
+							GLOUTPUT(( "Load\n" ));
+						}
+						break;
+					case SDLK_DELETE:	
+						((Game*)game)->DeleteAtSelection(); 
+						break;
 
-						case SDLK_KP9:			
-							((Game*)game)->RotateSelection( -1 );			
-							break;
-						case SDLK_r:
-						case SDLK_KP7:			
-							((Game*)game)->RotateSelection( 1 );			
-							break;
+					case SDLK_KP9:			
+						((Game*)game)->RotateSelection( -1 );			
+						break;
+					case SDLK_r:
+					case SDLK_KP7:			
+						((Game*)game)->RotateSelection( 1 );			
+						break;
 
-						case SDLK_UP:			
-						case SDLK_KP8:			
-							((Game*)game)->DeltaCurrentMapItem(16);			
-							break;
-						case SDLK_KP5:			
-						case SDLK_DOWN:			
-							((Game*)game)->DeltaCurrentMapItem(-16);		
-							break;
-						case SDLK_KP6:			
-						case SDLK_RIGHT:		
-							((Game*)game)->DeltaCurrentMapItem(1); 			
-							break;
-						case SDLK_KP4:			
-						case SDLK_LEFT:			
-							((Game*)game)->DeltaCurrentMapItem(-1);			
-							break;
+					case SDLK_UP:			
+					case SDLK_KP8:			
+						((Game*)game)->DeltaCurrentMapItem(16);			
+						break;
+					case SDLK_KP5:			
+					case SDLK_DOWN:			
+						((Game*)game)->DeltaCurrentMapItem(-16);		
+						break;
+					case SDLK_KP6:			
+					case SDLK_RIGHT:		
+						((Game*)game)->DeltaCurrentMapItem(1); 			
+						break;
+					case SDLK_KP4:			
+					case SDLK_LEFT:			
+						((Game*)game)->DeltaCurrentMapItem(-1);			
+						break;
 
-						case SDLK_p:
-							((Game*)game)->ShowPathing( !((Game*)game)->IsShowingPathing() );
-							break;
+					case SDLK_p:
+						((Game*)game)->ShowPathing( !((Game*)game)->IsShowingPathing() );
+						break;
 #else
 //						case SDLK_RIGHT:		GameRotate( game, --rotation );				break;
 //						case SDLK_LEFT:			GameRotate( game, ++rotation );				break;
 #endif
 
-						default:
-							break;
-					}
+					default:
+						break;
+				}
 /*					GLOUTPUT(( "fov=%.1f rot=%.1f h=%.1f\n", 
-								game->engine.fov, 
-								game->engine.camera.Tilt(), 
-								game->engine.camera.PosWC().y ));
+							game->engine.fov, 
+							game->engine.camera.Tilt(), 
+							game->engine.camera.PosWC().y ));
 */
-				}
-				break;
-
-				case SDL_MOUSEBUTTONDOWN:
-				{
-					int x, y;
-					TransformXY( event.button.x, event.button.y, &x, &y );
-
-					mouseDown.Set( event.button.x, event.button.y );
-
-					if ( event.button.button == 1 ) {
-						GameDrag( game, GAME_DRAG_START, x, y );
-						dragging = true;
-					}
-					else if ( event.button.button == 3 ) {
-						zooming = true;
-						GameZoom( game, GAME_ZOOM_START, -event.button.y );
-						GameCameraRotate( game, GAME_ROTATE_START, 0.0f );
-					}
-				}
-				break;
-
-				case SDL_MOUSEBUTTONUP:
-				{
-					int x, y;
-					TransformXY( event.button.x, event.button.y, &x, &y );
-
-					if ( dragging ) {
-						if ( event.button.button == 1 ) {
-							GameDrag( game, GAME_DRAG_END, x, y );
-							dragging = false;
-						}
-					}
-					if ( event.button.button == 3 ) {
-						zooming = false;
-					}
-					if ( event.button.button == 1 ) {
-						if (    abs( mouseDown.x - event.button.x ) < 3 
-							 && abs( mouseDown.y - event.button.y ) < 3 ) 
-						{
-							Uint8 *keystate = SDL_GetKeyState(NULL);
-							int tap = 1;
-							if ( SDL_GetModState() & (KMOD_LSHIFT|KMOD_RSHIFT) ) {
-								tap = 2;
-							}
-							if (	abs( mouseDown.x - prevMouseDown.x ) < 3
-								 && abs( mouseDown.y - prevMouseDown.y ) < 3
-								 && ( SDL_GetTicks() - prevMouseDownTime ) < 300 ) {
-									 tap =2 ;
-							}
-							GameTap( game, tap, x, y );
-
-							prevMouseDown = mouseDown;
-							prevMouseDownTime = SDL_GetTicks();
-						}
-					}
-				}
-				break;
-
-				case SDL_MOUSEMOTION:
-				{
-					int state = SDL_GetMouseState(NULL, NULL);
-					int x, y;
-					TransformXY( event.button.x, event.button.y, &x, &y );
-					//GLOUTPUT(( "move: ipod=%d,%d\n", x, y ));
-
-					if ( dragging && ( state & SDL_BUTTON(1) ) )
-					{
-						if ( event.button.button == 1 ) {
-							GameDrag( game, GAME_DRAG_MOVE, x, y );
-						}
-					}
-					else if ( zooming && (state & SDL_BUTTON(3)) ) {
-
-						GameZoom( game, GAME_ZOOM_MOVE, -event.button.y );
-						
-						//GLOUTPUT(( "x,y=%d,%d  down=%d,%d\n", x, y, mouseDown.x, mouseDown.y ));
-						GameCameraRotate( game, GAME_ROTATE_MOVE, (float)(event.button.x-mouseDown.x)*0.5f );
-					}
-#if defined(MAPMAKER) || defined(_MSC_VER)
-					else {
-						((Game*)game)->MouseMove( x, y );
-					}
-#endif
-				}
-				break;
-
-				case SDL_QUIT:
-				{
-					done = true;
-				}
-				break;
-
-				default:
-					break;
 			}
+			break;
+
+			case SDL_MOUSEBUTTONDOWN:
+			{
+				int x, y;
+				TransformXY( event.button.x, event.button.y, &x, &y );
+
+				mouseDown.Set( event.button.x, event.button.y );
+
+				if ( event.button.button == 1 ) {
+					GameDrag( game, GAME_DRAG_START, x, y );
+					dragging = true;
+				}
+				else if ( event.button.button == 3 ) {
+					zooming = true;
+					GameZoom( game, GAME_ZOOM_START, -event.button.y );
+					GameCameraRotate( game, GAME_ROTATE_START, 0.0f );
+				}
+			}
+			break;
+
+			case SDL_MOUSEBUTTONUP:
+			{
+				int x, y;
+				TransformXY( event.button.x, event.button.y, &x, &y );
+
+				if ( dragging ) {
+					if ( event.button.button == 1 ) {
+						GameDrag( game, GAME_DRAG_END, x, y );
+						dragging = false;
+					}
+				}
+				if ( event.button.button == 3 ) {
+					zooming = false;
+				}
+				if ( event.button.button == 1 ) {
+					if (    abs( mouseDown.x - event.button.x ) < 3 
+						 && abs( mouseDown.y - event.button.y ) < 3 ) 
+					{
+						Uint8 *keystate = SDL_GetKeyState(NULL);
+						int tap = 1;
+						if ( SDL_GetModState() & (KMOD_LSHIFT|KMOD_RSHIFT) ) {
+							tap = 2;
+						}
+						if (	abs( mouseDown.x - prevMouseDown.x ) < 3
+							 && abs( mouseDown.y - prevMouseDown.y ) < 3
+							 && ( SDL_GetTicks() - prevMouseDownTime ) < 300 ) {
+								 tap =2 ;
+						}
+						GameTap( game, tap, x, y );
+
+						prevMouseDown = mouseDown;
+						prevMouseDownTime = SDL_GetTicks();
+					}
+				}
+			}
+			break;
+
+			case SDL_MOUSEMOTION:
+			{
+				int state = SDL_GetMouseState(NULL, NULL);
+				int x, y;
+				TransformXY( event.button.x, event.button.y, &x, &y );
+				//GLOUTPUT(( "move: ipod=%d,%d\n", x, y ));
+
+				if ( dragging && ( state & SDL_BUTTON(1) ) )
+				{
+					if ( event.button.button == 1 ) {
+						GameDrag( game, GAME_DRAG_MOVE, x, y );
+					}
+				}
+				else if ( zooming && (state & SDL_BUTTON(3)) ) {
+
+					GameZoom( game, GAME_ZOOM_MOVE, -event.button.y );
+					
+					//GLOUTPUT(( "x,y=%d,%d  down=%d,%d\n", x, y, mouseDown.x, mouseDown.y ));
+					GameCameraRotate( game, GAME_ROTATE_MOVE, (float)(event.button.x-mouseDown.x)*0.5f );
+				}
+#if defined(MAPMAKER) || defined(_MSC_VER)
+				else {
+					((Game*)game)->MouseMove( x, y );
+				}
+#endif
+			}
+			break;
+
+			case SDL_QUIT:
+			{
+				done = true;
+			}
+			break;
+
+			case SDL_USEREVENT:
+			{
+				glEnable( GL_DEPTH_TEST );
+				glDepthFunc( GL_LEQUAL );
+
+				GameDoTick( game, SDL_GetTicks() );
+
+				SDL_GL_SwapBuffers();
+			};
+
+			default:
+				break;
 		}
-
-//#ifdef FRAMEBUFFER_ROTATE
-//		frameBuffer->Bind();
-//#endif
-		glEnable( GL_DEPTH_TEST );
-		glDepthFunc( GL_LEQUAL );
-
-		GameDoTick( game, SDL_GetTicks() );
-
-//#ifdef FRAMEBUFFER_ROTATE
-//		frameBuffer->UnBind();	
-//
-//		glDepthFunc( GL_ALWAYS );
-//		glClear( GL_COLOR_BUFFER_BIT );
-//		XferTexture( frameBuffer->TextureID(), IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH );
-//		glDepthFunc( GL_LEQUAL );
-//#endif
-		SDL_GL_SwapBuffers();
 	}
+	SDL_RemoveTimer( timerID );
 	DeleteGame( game );
 
-//#ifdef FRAMEBUFFER_ROTATE
-//	delete frameBuffer;
-//#endif
 	SDL_Quit();
 
 	MemLeakCheck();

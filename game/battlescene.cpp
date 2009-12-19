@@ -148,7 +148,9 @@ BattleScene::~BattleScene()
 void BattleScene::InitUnits()
 {
 	int Z = engine->GetMap()->Height();
-	Random random(5);
+	Random random(1098305);
+	random.Rand();
+	random.Rand();
 
 	Item gun0( game, "PST" ),
 		 gun1( game, "RAY-1" ),
@@ -170,15 +172,17 @@ void BattleScene::InitUnits()
 		Vector2I pos = { (i*2)+10, Z-10 };
 		Unit* unit = &units[TERRAN_UNITS_START+i];
 
+		random.Rand();
 		unit->Init( engine, game, Unit::SOLDIER, 0, random.Rand() );
+
 		Inventory* inventory = unit->GetInventory();
-		inventory->AddItem( Inventory::WEAPON_SLOT, gun0 );
+		inventory->AddItem( Inventory::WEAPON_SLOT, ar3 );
 		inventory->AddItem( Inventory::ANY_SLOT, Item( clip ));
 		inventory->AddItem( Inventory::ANY_SLOT, Item( clip ));
 		inventory->AddItem( Inventory::ANY_SLOT, medkit );
 		inventory->AddItem( Inventory::ANY_SLOT, armor );
 		inventory->AddItem( Inventory::ANY_SLOT, fuel );
-		inventory->AddItem( Inventory::ANY_SLOT, ar3 );
+		inventory->AddItem( Inventory::ANY_SLOT, gun0 );
 		unit->UpdateInventory();
 		unit->SetMapPos( pos.x, pos.y );
 		unit->SetYRotation( (float)(((i+2)%8)*45) );
@@ -197,11 +201,13 @@ void BattleScene::InitUnits()
 		unit->SetMapPos( alienPos[i] );
 	}
 
+	/*
 	for( int i=0; i<4; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-12 };
 		units[CIV_UNITS_START+i].Init( engine, game, Unit::CIVILIAN, 0, random.Rand() );
 		units[CIV_UNITS_START+i].SetMapPos( pos.x, pos.y );
 	}
+	*/
 }
 
 
@@ -1503,7 +1509,17 @@ void BattleScene::DrawHUD()
 
 	if ( SelectedSoldierUnit() ) {
 		int id = SelectedSoldierUnit() - units;
-		UFOText::Draw( 400, 304, "T:%02d/%02d", targets.AlienTargets( id ), targets.TotalAlienTargets() );
+		const Unit* unit = SelectedSoldierUnit();
+		UFOText::Draw( 55, 304, "%s %s %s", 
+			unit->Rank(),
+			unit->FirstName(),
+			unit->LastName() );
+
+		UFOText::Draw( 260, 304, 
+			"TU:%.1f HP:%d Tgt:%02d/%02d", 
+			unit->GetStats().TU(),
+			unit->GetStats().HP(),
+			targets.AlienTargets( id ), targets.TotalAlienTargets() );
 	}
 
 #ifdef MAPMAKER
