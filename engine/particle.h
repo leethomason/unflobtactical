@@ -118,18 +118,6 @@ public:
 	void Clear();
 
 private:
-	/*
-	struct ParticleType 
-	{
-		const Texture* texture;
-		float size;
-		
-		void Init( const Texture* texture, float size ) {
-			this->texture = texture;
-			this->size = size;
-		}
-	};
-	*/
 
 	struct Particle
 	{

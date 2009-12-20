@@ -25,13 +25,9 @@ ParticleSystem::ParticleSystem()
 {
 	for( int i=0; i<NUM_PRIMITIVES; ++i ) {
 		nParticles[i] = 0;
-//		particleTypeArr[i].Init( 0, 1.0f );
 	}
 	nDecals = 0;
 
-//	particleTypeArr[POINT].Init( TextureManager::Instance()->GetTexture( "particleSparkle" ), 4.0f );
-//	particleTypeArr[QUAD].Init( TextureManager::Instance()->GetTexture( "particleQuad" ), 1.0f );
-	
 	pointTexture = TextureManager::Instance()->GetTexture( "particleSparkle" );
 	quadTexture = TextureManager::Instance()->GetTexture( "particleQuad" );
 }
