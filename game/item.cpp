@@ -52,8 +52,10 @@ void WeaponItemDef::RenderWeapon(	int select,
 			GLASSERT( 0 );	// not set yet
 	}
 
-	BoltEffect* bolt = new BoltEffect( system );
-	bolt->SetDeleteWhenDone( true );
+	BoltEffect* bolt = (BoltEffect*) system->EffectFactory( "BoltEffect" );
+	if ( !bolt ) { 
+		bolt = new BoltEffect( system );
+	}
 
 	bolt->SetColor( color );
 	bolt->SetSpeed( speed );
@@ -64,8 +66,10 @@ void WeaponItemDef::RenderWeapon(	int select,
 	system->AddEffect( bolt );
 
 	if ( useImpact ) {
-		ImpactEffect* impact = new ImpactEffect( system );
-		impact->SetDeleteWhenDone( true );
+		ImpactEffect* impact = (ImpactEffect*) system->EffectFactory( "ImpactEffect" );
+		if ( !impact ) {
+			impact = new ImpactEffect( system );
+		}
 
 		Vector3F n = p0 - p1;
 		n.Normalize();

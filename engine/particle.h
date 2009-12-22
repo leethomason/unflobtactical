@@ -117,6 +117,8 @@ public:
 	void Clear();
 
 	void AddEffect( ParticleEffect* effect );
+	// Not a "real" factory - can return 0. But re-uses when possible.
+	ParticleEffect* EffectFactory( const char* name );
 
 private:
 
