@@ -350,14 +350,10 @@ void Unit::Kill()
 }
 
 
-void Unit::DoDamage( const float *damage )
+void Unit::DoDamage( const DamageDesc& damage )
 {
 	// FIXME: account for armor
-	int hit = 0;
-	for( int i=0; i<NUM_DAMAGE; ++i ) {
-		hit += (int)(damage[i]);
-	}
-	stats.DoDamage( hit );
+	stats.DoDamage( (int)damage.Total() );
 	if ( !stats.HP() ) {
 		Kill();
 	}

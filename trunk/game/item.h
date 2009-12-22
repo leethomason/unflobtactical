@@ -11,6 +11,7 @@ class ModelResource;
 class UFOStream;
 class Engine;
 class Game;
+class ParticleSystem;
 
 enum {
 	ITEM_WEAPON,
@@ -28,15 +29,27 @@ enum {
 	WEAPON_AUTO		= 0x01,
 	WEAPON_MELEE	= 0x02,
 	WEAPON_EXPLOSIVE = 0x04,	// only needed for cell weapons - adds a "feature" to the cell clip
-
-	DAMAGE_KINETIC		= 0,
-	DAMAGE_ENERGY		= 1,
-	DAMAGE_INCINDIARY	= 2,
-	NUM_DAMAGE			= 3
 };
 
 class WeaponItemDef;
 class ClipItemDef;
+
+struct DamageDesc
+{
+	float kinetic;
+	float energy;
+	float incind;
+
+	float Total() const	{ return kinetic + energy + incind; }
+
+	void Clear()	{ kinetic = energy = incind = 0.0f; }
+	void Set( float k, float e, float i )	{ kinetic = k; energy = e; incind = i; }
+	void Scale( float x ) {
+		kinetic *= x;
+		energy *= x;
+		incind *= x;
+	}
+};
 
 class ItemDef
 {
@@ -90,11 +103,18 @@ public:
 	}
 	bool Melee() const { return weapon[0].flags & WEAPON_MELEE ? true : false; }
 
-	void QueryWeaponRender( int select, grinliz::Vector4F* beamColor, float* beamDecay, float* beamWidth, grinliz::Vector4F* impactColor ) const;
+	void RenderWeapon(	int select,
+						ParticleSystem*,
+						const grinliz::Vector3F& p0, 
+						const grinliz::Vector3F& p1,
+						bool impact,
+						U32 currentTime,
+						U32* doneTime ) const;
+
 	bool CompatibleClip( const ItemDef* itemDef, int* which ) const;
 	
 	// Basic damage for this weapon.
-	void DamageBase( int select, float* damageArray ) const;
+	void DamageBase( int select, DamageDesc* damageArray ) const;
 	// Amount of time it takes to use this weapon. (Does not depend on the Unit.)
 	float TimeUnits( int select, int type ) const;
 	// Accuracy base - modified by the unit.
@@ -102,6 +122,7 @@ public:
 	// Statistics for this weapon. 
 	void FireStatistics( int select, int type, float shooterAccuracy, float distance, 
 						 float* chanceToHit, float* totalDamage, float* damagePerTU ) const;
+
 };
 
 
@@ -175,6 +196,16 @@ public:
 	bool IsArmor( int i=0 ) const					{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef->IsArmor(); }
 
 	int Rounds( int i=0 ) const						{ GLASSERT( i>=0 && i<3 ); return part[i].rounds; }
+
+	// --- handle weapons ----//
+	// If this is a weapon (isWeapon) then returns rounds for
+	// the primary(1) or secondary(2) weapon.
+	int RoundsFor( int i ) const;
+	// is there enough rounds to fire this weapon
+	bool EnoughRounds( int i ) const;
+	// consume ronuds for one fire of the weapon
+	void UseRound( int i );
+
 	const char* Name() const						{ return part[0].itemDef->name; }
 	const char* Desc() const						{ return part[0].itemDef->desc; }
 	int Deco( int i=0 ) const						{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef->deco; }

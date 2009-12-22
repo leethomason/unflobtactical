@@ -57,7 +57,7 @@ public:
 
 	bool InUse()				{ return status != STATUS_NOT_INIT; }
 	bool IsAlive()				{ return status == STATUS_ALIVE; }
-	void DoDamage( const float* damage );
+	void DoDamage( const DamageDesc& damage );
 	void UseTU( float tu )		{ stats.UseTU( tu ); }
 
 	int Status() const			{ return status; }

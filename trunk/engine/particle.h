@@ -19,8 +19,10 @@
 #include "../grinliz/glvector.h"
 #include "../grinliz/glrandom.h"
 #include "vertex.h"
+#include "ufoutil.h"
 
 class Texture;
+class ParticleEffect;
 
 /*	Class to render all sorts of particle effects.
 */
@@ -79,7 +81,7 @@ public:
 					float posFuzz,					// fuzz in the position
 					const grinliz::Vector3F& vel,	// velocity
 					float velFuzz,					// fuzz in the velocity
-					U32 lifetime );					// lifetime in milliseconds
+					U32 lifetime );					// lifetime in milliseconds (0 is one frame)
 
 	// Emit one quad particle.
 	void EmitQuad(	int type,						// FIRE, SMOKE
@@ -104,18 +106,17 @@ public:
 					float beamWidth,
 					U32 lifetime );
 
-
-
-	// Emits a compound flame system.
+	// Emits a compound flame system for this frame of animation.
 	void EmitFlame( U32 delta, const grinliz::Vector3F& pos );
 
 	// Place a decal for a frame (decals don't have lifetimes.)
 	void EmitDecal( int id, int flags, const grinliz::Vector3F& pos, float alpha, float rotation );
 
-
-	void Update( U32 timePassed );
+	void Update( U32 deltaTime, U32 currentTime );
 	void Draw( const grinliz::Vector3F* eyeDir );
 	void Clear();
+
+	void AddEffect( ParticleEffect* effect );
 
 private:
 
@@ -175,6 +176,8 @@ private:
 	int nDecals;
 	const Texture* quadTexture;
 	const Texture* pointTexture;
+
+	CDynArray<ParticleEffect*>		effectArr;
 
 	Particle		pointBuffer[ MAX_POINT_PARTICLES ];
 	Particle		quadBuffer[ MAX_QUAD_PARTICLES ];

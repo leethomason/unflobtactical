@@ -98,6 +98,8 @@ public:
 	void PushScene( int sceneID );
 	void PopScene();
 
+	U32 CurrentTime() const	{ return currentTime; }
+
 private:
 	void CreateScene( int id );
 	void PushPopScene();
@@ -163,6 +165,7 @@ private:
 	Scene* currentScene;
 	CStack<int> sceneStack;
 
+	U32 currentTime;
 	U32 previousTime;
 	bool isDragging;
 

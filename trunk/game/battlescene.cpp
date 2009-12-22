@@ -155,6 +155,7 @@ void BattleScene::InitUnits()
 	Item gun0( game, "PST" ),
 		 gun1( game, "RAY-1" ),
 		 ar3( game, "AR-3P" ),
+		 plasmaRifle( game, "PLS-2" ),
 		 medkit( game, "Med" ),
 		 armor( game, "ARM-1" ),
 		 fuel( game, "Gel" ),
@@ -165,6 +166,7 @@ void BattleScene::InitUnits()
 
 	gun0.Insert( clip );
 	gun1.Insert( cell );
+	plasmaRifle.Insert( cell );
 	ar3.Insert( autoClip );
 	ar3.Insert( grenade );
 
@@ -176,7 +178,11 @@ void BattleScene::InitUnits()
 		unit->Init( engine, game, Unit::SOLDIER, 0, random.Rand() );
 
 		Inventory* inventory = unit->GetInventory();
-		inventory->AddItem( Inventory::WEAPON_SLOT, ar3 );
+		if ( (i & 1) == 0 )
+			inventory->AddItem( Inventory::WEAPON_SLOT, ar3 );
+		else
+			inventory->AddItem( Inventory::WEAPON_SLOT, plasmaRifle );
+
 		inventory->AddItem( Inventory::ANY_SLOT, Item( clip ));
 		inventory->AddItem( Inventory::ANY_SLOT, Item( clip ));
 		inventory->AddItem( Inventory::ANY_SLOT, medkit );
@@ -293,8 +299,7 @@ void BattleScene::TestHitTesting()
 void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 {
 	TestHitTesting();
-
-
+/*
 	if ( currentTime/1000 != (currentTime-deltaTime)/1000 ) {
 		grinliz::Vector3F pos = { 10.0f, 1.0f, 28.0f };
 		grinliz::Vector3F vel = { 0.0f, 1.0f, 0.0f };
@@ -310,7 +315,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	}
 	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
 	game->particleSystem->EmitFlame( deltaTime, pos );
-
+*/
 	if (    SelectedSoldier()
 		 && SelectedSoldierUnit()->Status() == Unit::STATUS_ALIVE
 		 && SelectedSoldierUnit()->Team() == Unit::SOLDIER ) 
@@ -450,16 +455,21 @@ void BattleScene::RotateAction( Unit* src, const Vector3F& dst3F, bool quantize 
 	float rot = src->AngleBetween( dst, quantize );
 	if ( src->GetModel()->GetYRotation() != rot ) {
 		Action action;
-		action.Rotate( src, rot );
+		action.Init( ACTION_ROTATE, src );
+		action.type.rotate.rotation = rot;
 		actionStack.Push( action );
 	}
 }
 
 
-void BattleScene::ShootAction( Unit* src, const grinliz::Vector3F& dst )
+void BattleScene::ShootAction( Unit* src, const grinliz::Vector3F& dst, int select )
 {
+	GLASSERT( select == 0 || select == 1 );
+
 	Action action;
-	action.Shoot( src, dst );
+	action.Init( ACTION_SHOOT, src );
+	action.type.shoot.target = dst;
+	action.type.shoot.select = select;
 	actionStack.Push( action );
 }
 
@@ -472,10 +482,12 @@ void BattleScene::ProcessAction( U32 deltaTime )
 
 		Unit* unit = 0;
 		Model* model = 0;
-		if ( action->action != ACTION_DELAY ) {
-			if ( !action->unit || !action->unit->IsAlive() || !action->unit->GetModel() ) 
+		if ( action->unit ) {
+			if ( !action->unit->IsAlive() || !action->unit->GetModel() ) {
+				GLASSERT( 0 );	// may be okay, but untested.
+				actionStack.Pop();
 				return;
-
+			}
 			unit = action->unit;
 			model = action->unit->GetModel();
 		}
@@ -504,7 +516,7 @@ void BattleScene::ProcessAction( U32 deltaTime )
 					//unit->CalcMapPos( &originalPos, &originalRot );
 
 					// Do we need to rotate, or move?
-					path.GetPos( action->move.pathStep, action->move.pathFraction, &x, &z, &r );
+					path.GetPos( action->type.move.pathStep, action->type.move.pathFraction, &x, &z, &r );
 					if ( model->GetYRotation() != r ) {
 						// We aren't lined up. Rotate first, then move.
 						GLASSERT( model->X() == floorf(x)+0.5f );
@@ -527,21 +539,21 @@ void BattleScene::ProcessAction( U32 deltaTime )
 					else {
 						float travel = Travel( deltaTime, SPEED );
 
-						while(    (action->move.pathStep < (int)(path.statePath.size()-1))
+						while(    (action->type.move.pathStep < (int)(path.statePath.size()-1))
 							   && travel > 0.0f ) 
 						{
-							path.Travel( &travel, &action->move.pathStep, &action->move.pathFraction );
-							if ( action->move.pathFraction == 0.0f ) {
+							path.Travel( &travel, &action->type.move.pathStep, &action->type.move.pathFraction );
+							if ( action->type.move.pathFraction == 0.0f ) {
 								// crossed a path boundary.
 								break;
 							}
 						}
-						path.GetPos( action->move.pathStep, action->move.pathFraction, &x, &z, &r );
+						path.GetPos( action->type.move.pathStep, action->type.move.pathFraction, &x, &z, &r );
 
 						Vector3F v = { x+0.5f, 0.0f, z+0.5f };
 						unit->SetPos( v, model->GetYRotation() );
 
-						if ( action->move.pathStep == path.statePath.size()-1 ) {
+						if ( action->type.move.pathStep == path.statePath.size()-1 ) {
 							actionStack.Pop();
 							path.Clear();
 						}
@@ -555,10 +567,10 @@ void BattleScene::ProcessAction( U32 deltaTime )
 					float travel = Travel( deltaTime, ROTSPEED );
 
 					float delta, bias;
-					MinDeltaDegrees( model->GetYRotation(), action->rotation, &delta, &bias );
+					MinDeltaDegrees( model->GetYRotation(), action->type.rotate.rotation, &delta, &bias );
 
 					if ( delta <= travel ) {
-						unit->SetYRotation( action->rotation );
+						unit->SetYRotation( action->type.rotate.rotation );
 						actionStack.Pop();
 					}
 					else {
@@ -571,13 +583,17 @@ void BattleScene::ProcessAction( U32 deltaTime )
 				ProcessActionShoot( action, unit, model );
 				break;
 
+			case ACTION_HIT:
+				ProcessActionHit( action );
+				break;
+
 			case ACTION_DELAY:
 				{
-					if ( deltaTime >= action->delay ) {
+					if ( deltaTime >= action->type.delay.delay ) {
 						actionStack.Pop();
 					}
 					else {
-						action->delay -= deltaTime;
+						action->type.delay.delay -= deltaTime;
 					}
 				}
 				break;
@@ -612,23 +628,21 @@ void BattleScene::ProcessAction( U32 deltaTime )
 
 void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 {
+	DamageDesc damageDesc;
+	bool impact = false;
+	Model* modelHit = 0;
+	Vector3F intersection;
+	U32 delayTime = 0;
+
 	if ( unit && model && unit->IsAlive() ) {
 		Vector3F p0, p1;
-
 		Vector3F beam0 = { 0, 0, 0 }, beam1 = { 0, 0, 0 };
-		
-		Vector4F	beamColor	= { 1, 1, 1, 1 };
-		float		beamDecay	= -3.0f;
-		Vector4F	impactColor	= { 1, 1, 1, 1 };
-		float		beamWidth = 0.01f;
-		bool hitSomething = false;
 
 		const Item* weaponItem = unit->GetWeapon();
 		const WeaponItemDef* weaponDef = weaponItem->GetItemDef()->IsWeapon();
-		weaponDef->QueryWeaponRender( 0, &beamColor, &beamDecay, &beamWidth, &impactColor );
 
 		model->CalcTrigger( &p0 );
-		p1 = action->target;
+		p1 = action->type.shoot.target;
 
 		Ray ray;
 		ray.origin = p0;
@@ -642,36 +656,22 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		//		gun, does nothing
 		// ground / bounds
 
-		Vector3F hit;
 		// Don't hit the shooter:
 		const Model* ignore[] = { unit->GetModel(), unit->GetWeaponModel(), 0 };
-		Model* m = engine->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &hit );
+		Model* m = engine->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &intersection );
 
-		if ( hit.y < 0.0f ) {
+		if ( intersection.y < 0.0f ) {
 			// hit ground first.
-			m = 0;
+			impact = true;
 		}
 
-		float damage[NUM_DAMAGE];
-		weaponDef->DamageBase( 0, damage );
+		weaponDef->DamageBase( 0, &damageDesc );
 
 		if ( m ) {
-			hitSomething = true;
+			impact = true;
 			beam0 = p0;
-			beam1 = hit;
-
-			Unit* hitUnit = UnitFromModel( m );
-			if ( hitUnit ) {
-				if ( hitUnit->IsAlive() ) {
-
-					hitUnit->DoDamage( damage );
-					GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", (unsigned)hitUnit, (int)hitUnit->GetStats().HP(), (int)hitUnit->GetStats().TotalHP() ));
-				}
-			}
-			else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
-				// Hit world object.
-				engine->GetMap()->DoDamage( m, damage );
-			}
+			beam1 = intersection;
+			modelHit = m;
 		}
 		else {		
 			Vector3F in, out;
@@ -689,23 +689,62 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 
 				if ( out.y < 0.01 ) {
 					// hit the ground
-					hitSomething = true;
+					impact = true;
 				}
 			}
 		}
 
 		if ( beam0 != beam1 ) {
-			Vector4F colorVel = { 0, 0, 0, beamDecay };
-			game->particleSystem->EmitBeam( beamColor, colorVel, beam0, beam1, beamWidth, 1000 );
+			weaponDef->RenderWeapon( 0,	// FIXME: which weapon??
+									game->particleSystem,
+									 beam0, beam1, 
+									 impact, 
+									 game->CurrentTime(), 
+									 &delayTime );
 		}
-		if ( hitSomething ) {
-			Vector4F colorVel = { 0, 0, 0, -1.0f };
-			Vector3F velocity = beam1 - beam0;
-			velocity.Normalize();
+	}
+	actionStack.Pop();
 
-			game->particleSystem->EmitPoint( 20, ParticleSystem::PARTICLE_HEMISPHERE, 
-											 impactColor, colorVel, beam1, 0.1f, velocity, 0.4f, 1000 );
+	if ( impact ) {
+		Action h;
+		h.Init( ACTION_HIT, 0 );
+		h.type.hit.damageDesc = damageDesc;
+		h.type.hit.p = intersection;
+		h.type.hit.m = modelHit;
+		actionStack.Push( h );
+	}
+
+	if ( delayTime ) {
+		Action a;
+		a.Init( ACTION_DELAY, 0 );
+		a.type.delay.delay = delayTime;
+		actionStack.Push( a );
+	}
+}
+
+
+void BattleScene::ProcessActionHit( Action* action )
+{
+	Model* m = action->type.hit.m;
+	Unit* hitUnit = 0;
+
+	if ( m ) 
+		hitUnit = UnitFromModel( m );
+	if ( hitUnit ) {
+		if ( hitUnit->IsAlive() ) {
+
+			hitUnit->DoDamage( action->type.hit.damageDesc );
+			if ( !hitUnit->IsAlive() ) {
+				selection.ClearTarget();			
+				CalcTeamTargets();
+				targetEvents.Clear();	// don't need to handle notification of obvious (alien shot)
+			}
+			GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", (unsigned)hitUnit, (int)hitUnit->GetStats().HP(), (int)hitUnit->GetStats().TotalHP() ));
 		}
+	}
+	else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
+		// Hit world object.
+		engine->GetMap()->DoDamage( m, action->type.hit.damageDesc );
 	}
 	actionStack.Pop();
 }
@@ -748,24 +787,18 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 				selection.targetUnit->GetModel()->CalcTarget( &target );
 			}
 
-			// Stack - push in reverse order.
-			Action delay;
-			delay.Delay( 500 );
+			Item* weapon = selection.soldierUnit->GetWeapon();
+			GLASSERT( weapon );	// else how did we get the fire menu??
 
-			if ( type == AUTO_SHOT ) {
-				for( int i=0; i<3; ++i ) {
-					if ( selection.soldierUnit->GetStats().TU() >= autoTU ) {
-						ShootAction( selection.soldierUnit, target );
-						actionStack.Push( delay );
-						selection.soldierUnit->UseTU( autoTU );
-					}
-				}
-			}
-			else {
-				if ( selection.soldierUnit->GetStats().TU() >= tu ) {
-					ShootAction( selection.soldierUnit, target );
-					actionStack.Push( delay );
-					selection.soldierUnit->UseTU( tu );
+			// Stack - push in reverse order.
+			int nShots = ( type == AUTO_SHOT ) ? 3 : 1;
+			for( int i=0; i<nShots; ++i ) {
+				if (    selection.soldierUnit->GetStats().TU() >= autoTU
+					 && weapon->EnoughRounds( select+1 ) ) 
+				{
+					ShootAction( selection.soldierUnit, target, select );
+					selection.soldierUnit->UseTU( autoTU );
+					weapon->UseRound( select+1 );
 				}
 			}
 			RotateAction( selection.soldierUnit, target, true );
@@ -813,7 +846,8 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 						r = NormalizeAngleDegrees( r );
 
 						Action action;
-						action.Rotate( unit, r );
+						action.Init( ACTION_ROTATE, unit );
+						action.type.rotate.rotation = r;
 						actionStack.Push( action );
 
 						unit->UseTU( TU_TURN );
@@ -969,7 +1003,7 @@ void BattleScene::Tap(	int tap,
 
 				// Go!
 				Action action;
-				action.Move( SelectedSoldierUnit() );
+				action.Init( ACTION_MOVE, SelectedSoldierUnit() );
 				actionStack.Push( action );
 
 				engine->GetMap()->ClearNearPath();
@@ -1017,15 +1051,11 @@ void BattleScene::SetFireWidget()
 		if ( item->HasPart( select+1 ) ) {
 			fireWidget->SetDeco( 6+select, item->Deco(select+1) );
 			
-			float damage[NUM_DAMAGE];
-			wid->DamageBase( select, damage );
+			DamageDesc dd;
+			wid->DamageBase( select, &dd );
 
-			for( int k=0; k<NUM_DAMAGE; ++k ) {
-				d += damage[k];
-			}
-
-			SNPRINTF( buffer0, 16, "D%d", (int)d );
-			SNPRINTF( buffer1, 16, "R%d", item->Rounds(select+1) );
+			SNPRINTF( buffer0, 16, "D%d", (int)dd.Total() );
+			SNPRINTF( buffer1, 16, "R%d", item->RoundsFor(select+1) );
 			fireWidget->SetText( 6+select, buffer0, buffer1 );
 		}
 		else {
@@ -1042,7 +1072,7 @@ void BattleScene::SetFireWidget()
 			
 			bool enable =    item->HasPart(select+1) 
 						  && item->IsClip( select+1 ) 
-						  && item->Rounds(select+1)
+						  && item->RoundsFor(select+1)
 						  && item->IsWeapon()
 						  && item->IsWeapon()->SupportsType( select, type );
 

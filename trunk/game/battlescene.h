@@ -64,36 +64,58 @@ private:
 		ACTION_ROTATE,
 		ACTION_SHOOT,
 		ACTION_DELAY,
+		ACTION_HIT,
+	};
+
+	struct MoveAction	{
+		int pathStep;
+		float pathFraction;
+	};
+
+	struct RotateAction {
+		float rotation;
+	};
+
+	struct ShootAction {
+		grinliz::Vector3F target;
+		int select;	// primary{0) or secondary(1)
+	};
+
+	struct HitAction {
+		DamageDesc			damageDesc;		// hit with what??
+		grinliz::Vector3F	p;				// point of impact
+		Model*				m;				// model impacted - may be 0
+	};
+
+	struct DelayAction {
+		U32 delay;
 	};
 
 	struct Action
 	{
 		int action;
-		Unit* unit;				// unit performing action
+		Unit* unit;			// unit performing the action (sometimes null)
 
 		union {
-			struct {
-				int pathStep;			// move
-				float pathFraction;		// move
-			} move;
-			float rotation;
-			grinliz::Vector3F target;
-			U32 delay;
-		};
+			MoveAction		move;
+			RotateAction	rotate;
+			ShootAction		shoot;
+			DelayAction		delay;
+			HitAction		hit;
+		} type;
 
-		void Clear()							{ action = ACTION_NONE; }
-		void Move( Unit* unit )					{ GLASSERT( unit ); this->unit = unit; action = ACTION_MOVE; move.pathStep = 0; move.pathFraction = 0; }
-		void Rotate( Unit* unit, float r )		{ GLASSERT( unit ); this->unit = unit; action = ACTION_ROTATE; rotation = r; }
-		void Shoot( Unit* unit, const grinliz::Vector3F& target )	
-												{ GLASSERT( unit ); this->unit = unit; this->target = target; action = ACTION_SHOOT; }
-		void Delay( U32 msec )					{ unit = 0; action = ACTION_DELAY; delay = msec; }
+		void Clear()							{ action = ACTION_NONE; memset( &type, 0, sizeof( type ) ); }
+		void Init( int id, Unit* unit )			{ Clear(); action = id; this->unit = unit; }
 		bool NoAction()							{ return action == ACTION_NONE; }
 	};
 	CStack< Action > actionStack;
+
 	void RotateAction( Unit* src, const grinliz::Vector3F& dst, bool quantize );
-	void ShootAction( Unit* src, const grinliz::Vector3F& dst );
+	void ShootAction( Unit* src, const grinliz::Vector3F& dst, int select );
+
 	void ProcessAction( U32 deltaTime );
 	void ProcessActionShoot( Action* action, Unit* unit, Model* model );
+	void ProcessActionHit( Action* action );	
 
 	struct Path
 	{
@@ -133,7 +155,8 @@ private:
 	struct Selection
 	{
 		Selection()	{ Clear(); }
-		void Clear() { soldierUnit = 0; targetUnit = 0; targetPos.Set( -1, -1 ); }
+		void Clear()		{ soldierUnit = 0; targetUnit = 0; targetPos.Set( -1, -1 ); }
+		void ClearTarget()	{ targetUnit = 0; targetPos.Set( -1, -1 ); }
 		Unit*	soldierUnit;
 		
 		Unit*				targetUnit;
@@ -222,7 +245,8 @@ private:
 	Targets targets;
 	CDynArray< TargetEvent > targetEvents;
 
-	// Updates what units can and can not see.
+	// Updates what units can and can not see. Sets the 'Targets' structure above,
+	// and generates targetEvents.
 	void CalcTeamTargets();
 	void DumpTargetEvents();
 
