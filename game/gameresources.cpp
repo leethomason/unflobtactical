@@ -580,12 +580,10 @@ void Game::LoadItemResources()
 					fprintf( fp, "%10s ", wid->name );
 					for( int s=0; s<2; ++s ) {
 						if ( wid->HasWeapon(s) ) {
-							float damage[NUM_DAMAGE], d=0.0f;
-							wid->DamageBase( s, damage );
-							for( int count=0; count<NUM_DAMAGE; ++count )
-								d += damage[count];
+							DamageDesc dd;
+							wid->DamageBase( s, &dd );
 
-							fprintf( fp, "%3d ", (int)d );
+							fprintf( fp, "%3d ", (int)dd.Total() );
 
 							for( int j=0; j<3; ++j ) {
 								float fraction, damage, dptu;

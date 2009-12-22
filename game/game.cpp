@@ -257,9 +257,10 @@ void Game::SaveMap( const char* name )
 #endif
 */
 
-void Game::DoTick( U32 currentTime )
+void Game::DoTick( U32 _currentTime )
 {
 	GLASSERT( currentTime > 0 );
+	currentTime = _currentTime;
 	if ( previousTime == 0 ) {
 		previousTime = currentTime-1;
 	}
@@ -321,7 +322,7 @@ void Game::DoTick( U32 currentTime )
 #endif
 	
 	const grinliz::Vector3F* eyeDir = engine.camera.EyeDir3();
-	particleSystem->Update( deltaTime );
+	particleSystem->Update( deltaTime, currentTime );
 	particleSystem->Draw( eyeDir );
 
 	trianglesSinceMark += triCount;

@@ -381,7 +381,7 @@ void Map::IMat::Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out  )
 }
 
 
-void Map::DoDamage( Model* m, const float* damage )
+void Map::DoDamage( Model* m, const DamageDesc& damageDesc )
 {
 	if ( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) 
 	{
@@ -392,11 +392,7 @@ void Map::DoDamage( Model* m, const float* damage )
 
 		// FIXME: 1st pass, take no incindiary damage.
 		// But need to fix it so it may catch fire.
-		int hp = 0;
-		for( int i=0; i<NUM_DAMAGE; ++i ) {
-			if ( i != DAMAGE_INCINDIARY )
-				hp += (int)damage[i];
-		}
+		int hp = (int)(damageDesc.energy + damageDesc.kinetic );
 
 		if ( itemDef.CanDamage() && item->DoDamage(hp) ) 
 		{

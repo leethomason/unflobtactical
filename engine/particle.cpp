@@ -18,6 +18,7 @@
 #include "platformgl.h"
 #include "surface.h"
 #include "camera.h"
+#include "particleeffect.h"
 
 using namespace grinliz;
 
@@ -35,6 +36,7 @@ ParticleSystem::ParticleSystem()
 
 ParticleSystem::~ParticleSystem()
 {
+	Clear();
 }
 
 
@@ -44,11 +46,39 @@ void ParticleSystem::Clear()
 		nParticles[i] = 0;
 	}
 	nDecals = 0;
+	for( int i=0; i<effectArr.Size(); ++i ) {
+		if ( effectArr[i]->DeleteWhenDone() )
+			delete effectArr[i];
+	}
+	effectArr.Clear();
 }
 
 
-void ParticleSystem::Update( U32 msec )
+void ParticleSystem::AddEffect( ParticleEffect* effect )
 {
+	effectArr.Push( effect );
+}
+
+
+void ParticleSystem::Update( U32 msec, U32 currentTime )
+{
+	// Process the effects (may change number of particles, etc.
+	for( int i=0; i<effectArr.Size(); ++i ) {
+		effectArr[i]->DoTick( currentTime );
+	}
+	int dc=0;
+	while ( dc < effectArr.Size() ) {
+		if ( effectArr[dc]->Done() ) {
+			if ( effectArr[dc]->DeleteWhenDone() )
+				delete effectArr[dc];;
+			effectArr.SwapRemove( dc );
+		}
+		else {
+			++dc;
+		}
+	}
+
+	// Process the particles.
 	float sec = (float)msec / 1000.0f;
 
 	for( int i=0; i<NUM_PRIMITIVES; ++i ) {
@@ -64,7 +94,12 @@ void ParticleSystem::Update( U32 msec )
 
 		while( p < pEnd ) {
 			p->age += msec;
-			if ( p->age > p->lifetime ) {
+			if ( p->lifetime == 0 ) {
+				// special case: lifetime of 0 is always a one frame particle.
+				p->age = 2;
+				p->lifetime = 1;	// clean up next time.
+			}
+			else if ( p->age > p->lifetime ) {
 				if ( i==POINT ) {
 					// swap with end.
 					grinliz::Swap( p, pEnd-1);
@@ -111,7 +146,7 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 	Particle* particles[2] = { pointBuffer, quadBuffer };
 
 	GLASSERT( count < MAX_PARTICLES[primitive] );
-	lifetime = grinliz::Clamp( lifetime, (U32)16, (U32)0xffff );
+	//lifetime = grinliz::Clamp( lifetime, (U32)16, (U32)0xffff );
 	
 	int insert = nParticles[primitive];
 	if ( nParticles[primitive] + count > MAX_PARTICLES[primitive] ) {
@@ -170,8 +205,13 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 		posP.y = pos0.y + posFuzz*(-0.5f + rand.Uniform() );
 		posP.z = pos0.z + posFuzz*(-0.5f + rand.Uniform() );
 
-		const int LFUZZ = 64;
-		lifeP = (lifetime * ((256-LFUZZ) + (rand.Rand()&(LFUZZ-1)))) >> 8;
+		if ( lifetime > 0 ) {
+			const int LFUZZ = 64;
+			lifeP = (lifetime * ((256-LFUZZ) + (rand.Rand()&(LFUZZ-1)))) >> 8;
+		}
+		else {
+			lifeP = 0;
+		}
 
 		const float CFUZZ_MUL = 0.90f;
 		const float CFUZZ_ADD = 0.20f;

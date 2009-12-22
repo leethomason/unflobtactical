@@ -3,32 +3,74 @@
 #include "game.h"
 #include "../engine/serialize.h"
 #include "gamelimits.h"
+#include "../engine/particleeffect.h"
+#include "../engine/particle.h"
 
+using namespace grinliz;
 
-void WeaponItemDef::QueryWeaponRender( int select, grinliz::Vector4F* beamColor, float* beamDecay, float* beamWidth, grinliz::Vector4F* impactColor ) const
+void WeaponItemDef::RenderWeapon(	int select,
+									ParticleSystem* system,
+									const Vector3F& p0, 
+									const Vector3F& p1,
+									bool useImpact,
+									U32 currentTime,
+									U32* duration ) const
 {
-	GLASSERT( type == ITEM_WEAPON );
-	const float INV=1.0f/255.0f;
+	// FIXME: want to save memory here, but the effects
+	// can stack right up. Worth implemting c-style stack
+	// to re-use memory?
+	// This is just to save memory. Multiple effects could
+	// be queued up with memory allocation.
+
+	const float SPEED = 0.02f;	// ray gun settings
+	const float WIDTH = 0.3f;
+	const float KBOLT = 6.0f;
+	const float EBOLT = 1.5f;
+
+	Color4F color = { 1, 1, 1, 1 };
+	float speed = SPEED;
+	float width = WIDTH;
+	float length = 1.0f;
 
 	switch( weapon[select].clipType ) {
 		case ITEM_CLIP_SHELL:
 		case ITEM_CLIP_AUTO:
-			beamColor->Set( 0.8f, 0.8f, 0.8f, 1.0f );
-			*beamDecay = -3.0f;
-			*beamWidth = 0.07f;
-			impactColor->Set( 0.3f, 0.3f, 0.9f, 1.0f );
+			color.Set( 0.8f, 1.0f, 0.8f, 0.8f );
+			speed = SPEED * 2.0f;
+			width = WIDTH * 0.5f;
+			length = KBOLT;
 			break;
-
+		
 		case ITEM_CLIP_CELL:
-			beamColor->Set( 1, 1, 0.8f, 1.0f );
-			*beamDecay = -2.0f;
-			*beamWidth = 0.12f;
-			impactColor->Set( 242.0f*INV, 101.0f*INV, 34.0f*INV, 1.0f );
+			color.Set( 0.2f, 1.0f, 0.2f, 0.8f );
+			speed = SPEED;
+			width = WIDTH;
+			length = EBOLT;
 			break;
 
 		default:
-			GLASSERT( 0 );	// need to implement others
-			break;
+			GLASSERT( 0 );	// not set yet
+	}
+
+	BoltEffect* bolt = new BoltEffect( system );
+	bolt->SetDeleteWhenDone( true );
+
+	bolt->SetColor( color );
+	bolt->SetSpeed( speed );
+	bolt->SetLength( length );
+	bolt->SetWidth( width );
+	bolt->Init( p0, p1, currentTime );
+	*duration = bolt->CalcDuration();
+	system->AddEffect( bolt );
+
+	if ( useImpact ) {
+		ImpactEffect* impact = new ImpactEffect( system );
+		impact->SetDeleteWhenDone( true );
+
+		Vector3F n = p0 - p1;
+		n.Normalize();
+		impact->Init( p1, n, color, 1.5f, currentTime + *duration );
+		system->AddEffect( impact );
 	}
 }
 
@@ -49,55 +91,40 @@ bool WeaponItemDef::CompatibleClip( const ItemDef* id, int* which ) const
 }
 
 
-void WeaponItemDef::DamageBase( int select, float* damageArray ) const
+void WeaponItemDef::DamageBase( int select, DamageDesc* d ) const
 {
-
 	switch( weapon[select].clipType ) {
 		case 0:								// melee
 		case ITEM_CLIP_SHELL:
 		case ITEM_CLIP_AUTO:
-			damageArray[DAMAGE_KINETIC]		= 1.0f;				
-			damageArray[DAMAGE_ENERGY]		= 0;
-			damageArray[DAMAGE_INCINDIARY]	= 0;
+			d->Set( 1, 0, 0 );
 			break;
 
 		case ITEM_CLIP_CELL:
 			if ( weapon[select].flags & WEAPON_EXPLOSIVE ) {
-				damageArray[DAMAGE_KINETIC]		= 0.5f;				
-				damageArray[DAMAGE_ENERGY]		= 0.5f;
-				damageArray[DAMAGE_INCINDIARY]	= 0;
+				d->Set( 0.5f, 0.5f, 0 );
 			}
 			else {
-				damageArray[DAMAGE_KINETIC]		= 0;				
-				damageArray[DAMAGE_ENERGY]		= 1.0f;
-				damageArray[DAMAGE_INCINDIARY]	= 0;
+				d->Set( 0, 1, 0 );
 			}
 			break;
 
 		case ITEM_CLIP_FLAME:
-			damageArray[DAMAGE_KINETIC]		= 0;				
-			damageArray[DAMAGE_ENERGY]		= 0;
-			damageArray[DAMAGE_INCINDIARY]	= 1.0f;
+			d->Set( 0, 0, 1 );
 			break;
 
 		case ITEM_CLIP_ROCKET:
-			damageArray[DAMAGE_KINETIC]		= 0.5f;				
-			damageArray[DAMAGE_ENERGY]		= 0;
-			damageArray[DAMAGE_INCINDIARY]	= 0.5f;
+			d->Set( 0.5f, 0, 0.5f );
 			break;
 
 		case ITEM_CLIP_GRENADE:
-			damageArray[DAMAGE_KINETIC]		= 0.8f;				
-			damageArray[DAMAGE_ENERGY]		= 0;
-			damageArray[DAMAGE_INCINDIARY]	= 0.2f;
+			d->Set( 0.8f, 0, 0.2f );
 			break;
 
 		default:
 			GLASSERT( 0 );	// need to implement
 	}
-	for( int i=0; i<NUM_DAMAGE; ++i ) {
-		damageArray[i] *= weapon[select].damage;
-	}
+	d->Scale( weapon[select].damage );
 }
 
 
@@ -150,7 +177,7 @@ void WeaponItemDef::FireStatistics( int select, int type,
 	*damagePerTU = 0.0f;
 	*totalDamage = 0.0f;
 	float tu = TimeUnits( select, type );
-	float damage[NUM_DAMAGE];
+	DamageDesc dd;
 
 	if ( tu > 0.0f ) {
 		float targetRad = distance * accuracy * AccuracyBase( select, type );
@@ -158,9 +185,8 @@ void WeaponItemDef::FireStatistics( int select, int type,
 		if ( *chanceToHit > 0.98f )
 			*chanceToHit = 0.98f;
 
-		DamageBase( select, damage );
-		for( int i=0; i<NUM_DAMAGE; ++i )
-			*totalDamage += damage[i];
+		DamageBase( select, &dd );
+		*totalDamage = dd.Total();
 
 		*damagePerTU = (*chanceToHit) * (*totalDamage) / tu;
 		if ( type == AUTO_SHOT )
@@ -273,6 +299,58 @@ bool Item::Combine( Item* with, bool* consumed )
 		}
 	}
 	return result;
+}
+
+
+int Item::RoundsFor( int i ) const
+{
+	GLASSERT( i==1 || i==2 )
+	GLASSERT( this->IsWeapon() );
+
+	if ( i == 1 )
+		return this->Rounds(1);
+	else if ( i == 2 && this->IsWeapon()->weapon[1].clipType == ITEM_CLIP_CELL )
+		// then use the cell in slot 1
+		return this->Rounds(1);
+	else 
+		// use the rounds in slot 2
+		return this->Rounds(2);
+}
+
+bool Item::EnoughRounds( int i ) const 
+{
+	GLASSERT( i==1 || i==2 )
+	GLASSERT( this->IsWeapon() );
+
+	const WeaponItemDef* wid = this->IsWeapon();
+
+	int needed = 1;
+	if ( wid->weapon[i-1].clipType == ITEM_CLIP_CELL )
+		needed = wid->weapon[i-1].power;
+	if ( RoundsFor( i ) >= needed )
+		return true;
+	return false;
+}
+
+
+void Item::UseRound( int i ) 
+{
+	GLASSERT( i==1 || i==2 )
+	GLASSERT( this->IsWeapon() );
+
+	const WeaponItemDef* wid = this->IsWeapon();
+
+	if ( wid->weapon[i-1].clipType == ITEM_CLIP_CELL ) {
+		int power = wid->weapon[i-1].power;
+		GLASSERT( part[1].IsClip() );
+		GLASSERT( power <= part[1].rounds );
+		part[1].rounds -= power;
+	}
+	else {
+		GLASSERT( part[i].IsClip() );
+		GLASSERT( part[i].rounds > 0 );
+		part[i].rounds--;
+	}
 }
 
 
