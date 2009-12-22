@@ -47,8 +47,7 @@ void ParticleSystem::Clear()
 	}
 	nDecals = 0;
 	for( int i=0; i<effectArr.Size(); ++i ) {
-		if ( effectArr[i]->DeleteWhenDone() )
-			delete effectArr[i];
+		delete effectArr[i];
 	}
 	effectArr.Clear();
 }
@@ -60,21 +59,39 @@ void ParticleSystem::AddEffect( ParticleEffect* effect )
 }
 
 
+ParticleEffect* ParticleSystem::EffectFactory( const char* name )
+{
+	for( int i=0; i<effectArr.Size(); ++i ) {
+		if ( effectArr[i]->Done() && strcmp( effectArr[i]->Name(), name ) == 0 ) {
+			ParticleEffect* effect = effectArr[i];
+			effectArr.SwapRemove( i );
+			return effect;
+		}
+	}
+
+	// Cull the old stuff?
+	if ( effectArr.Size() > 10 ) {
+		int dc=0;
+		while ( dc < effectArr.Size() ) {
+			if ( effectArr[dc]->Done() ) {
+				delete effectArr[dc];
+				effectArr.SwapRemove( dc );
+			}
+			else {
+				++dc;
+			}
+		}
+	}
+	return 0;
+}
+
+
 void ParticleSystem::Update( U32 msec, U32 currentTime )
 {
 	// Process the effects (may change number of particles, etc.
 	for( int i=0; i<effectArr.Size(); ++i ) {
-		effectArr[i]->DoTick( currentTime );
-	}
-	int dc=0;
-	while ( dc < effectArr.Size() ) {
-		if ( effectArr[dc]->Done() ) {
-			if ( effectArr[dc]->DeleteWhenDone() )
-				delete effectArr[dc];;
-			effectArr.SwapRemove( dc );
-		}
-		else {
-			++dc;
+		if ( !effectArr[i]->Done() ) {
+			effectArr[i]->DoTick( currentTime );
 		}
 	}
 
