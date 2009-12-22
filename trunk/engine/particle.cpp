@@ -69,8 +69,9 @@ ParticleEffect* ParticleSystem::EffectFactory( const char* name )
 		}
 	}
 
-	// Cull the old stuff?
-	if ( effectArr.Size() > 10 ) {
+	// If we can't re-use, and there are a few entries, go ahead and
+	// cull the old memory. '20' is the magic random number here.
+	if ( effectArr.Size() > 20 ) {
 		int dc=0;
 		while ( dc < effectArr.Size() ) {
 			if ( effectArr[dc]->Done() ) {
