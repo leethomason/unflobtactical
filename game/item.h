@@ -198,11 +198,16 @@ public:
 	int Rounds( int i=0 ) const						{ GLASSERT( i>=0 && i<3 ); return part[i].rounds; }
 
 	// --- handle weapons ----//
+	// Requires IsWeapon()
 	// If this is a weapon (isWeapon) then returns rounds for
 	// the primary(1) or secondary(2) weapon.
-	int RoundsFor( int i ) const;
-	// is there enough rounds to fire this weapon
-	bool EnoughRounds( int i ) const;
+	int RoundsRequired( int i ) const;
+	// Requires IsWeapon()
+	// How many rounds are needed to fire this weapon once. 
+	// This is 1/3 the cost of auto-mode.
+	// Generally 1 for kinetic weapons, and power level for cell weapons.
+	int RoundsAvailable( int i ) const;
+	// Reqires IsWeapon()
 	// consume ronuds for one fire of the weapon
 	void UseRound( int i );
 

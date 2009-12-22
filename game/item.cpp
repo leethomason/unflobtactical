@@ -299,14 +299,14 @@ bool Item::Combine( Item* with, bool* consumed )
 				with->part[0].rounds = 0;
 				*consumed = true;
 				result = true;
-			}
+			}	
 		}
 	}
 	return result;
 }
 
 
-int Item::RoundsFor( int i ) const
+int Item::RoundsAvailable( int i ) const
 {
 	GLASSERT( i==1 || i==2 )
 	GLASSERT( this->IsWeapon() );
@@ -321,19 +321,17 @@ int Item::RoundsFor( int i ) const
 		return this->Rounds(2);
 }
 
-bool Item::EnoughRounds( int i ) const 
+
+int Item::RoundsRequired( int i ) const 
 {
 	GLASSERT( i==1 || i==2 )
 	GLASSERT( this->IsWeapon() );
 
 	const WeaponItemDef* wid = this->IsWeapon();
 
-	int needed = 1;
 	if ( wid->weapon[i-1].clipType == ITEM_CLIP_CELL )
-		needed = wid->weapon[i-1].power;
-	if ( RoundsFor( i ) >= needed )
-		return true;
-	return false;
+		return wid->weapon[i-1].power;
+	return 1;
 }
 
 

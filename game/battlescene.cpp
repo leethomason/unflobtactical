@@ -775,9 +775,9 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 			GLASSERT( selection.soldierUnit >= 0 );
 			GLASSERT( selection.targetUnit >= 0 );
 
-			float tu = selection.soldierUnit->FireTimeUnits( select, type );
-			GLASSERT( tu > 0 );
-			float autoTU = tu * 0.33333f;
+			//float tu = selection.soldierUnit->FireTimeUnits( select, type );
+			//GLASSERT( tu > 0 );
+			//float autoTU = tu * 0.33333f;
 
 			Vector3F target;
 			if ( selection.targetPos.x >= 0 ) {
@@ -791,13 +791,15 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 			GLASSERT( weapon );	// else how did we get the fire menu??
 
 			// Stack - push in reverse order.
+
 			int nShots = ( type == AUTO_SHOT ) ? 3 : 1;
-			for( int i=0; i<nShots; ++i ) {
-				if (    selection.soldierUnit->GetStats().TU() >= autoTU
-					 && weapon->EnoughRounds( select+1 ) ) 
-				{
+			if (    selection.soldierUnit->GetStats().TU() >= selection.soldierUnit->FireTimeUnits( select, type )
+				 && (weapon->RoundsRequired(select+1)*nShots <= weapon->RoundsAvailable(select+1)) ) 
+			{
+				selection.soldierUnit->UseTU( selection.soldierUnit->FireTimeUnits( select, type ) );
+
+				for( int i=0; i<nShots; ++i ) {
 					ShootAction( selection.soldierUnit, target, select );
-					selection.soldierUnit->UseTU( autoTU );
 					weapon->UseRound( select+1 );
 				}
 			}
@@ -1055,7 +1057,7 @@ void BattleScene::SetFireWidget()
 			wid->DamageBase( select, &dd );
 
 			SNPRINTF( buffer0, 16, "D%d", (int)dd.Total() );
-			SNPRINTF( buffer1, 16, "R%d", item->RoundsFor(select+1) );
+			SNPRINTF( buffer1, 16, "R%d", item->RoundsAvailable(select+1) );
 			fireWidget->SetText( 6+select, buffer0, buffer1 );
 		}
 		else {
@@ -1069,12 +1071,15 @@ void BattleScene::SetFireWidget()
 			float tu = 0.0f;
 			float fraction = 0;
 			float dptu = 0;
+			int nShots = (type==AUTO_SHOT) ? 3 : 1;
 			
-			bool enable =    item->HasPart(select+1) 
-						  && item->IsClip( select+1 ) 
-						  && item->RoundsFor(select+1)
-						  && item->IsWeapon()
-						  && item->IsWeapon()->SupportsType( select, type );
+			// weird syntax aids debugging.
+			bool enable =		item->HasPart(select+1);
+			enable = enable &&	item->IsClip( select+1 );
+			enable = enable &&	item->IsWeapon();
+			enable = enable &&	item->IsWeapon()->SupportsType( select, type );
+			enable = enable &&	(item->RoundsRequired(select+1)*nShots <= item->RoundsAvailable(select+1));
+			enable = enable &&  unit->GetStats().TU() >= unit->FireTimeUnits( select, type );
 
 			if ( enable ) {
 				unit->FireStatistics( select, type, distToTarget, &fraction, &tu, &dptu );
