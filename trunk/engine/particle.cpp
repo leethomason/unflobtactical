@@ -135,6 +135,7 @@ void ParticleSystem::Update( U32 msec, U32 currentTime )
 			// apply effect of time
 			p->pos += p->vel*sec;
 			p->color += p->colorVel*sec;
+			p->halfWidth += p->velHalfWidth*sec;
 			++p;
 		}
 		nParticles[i] = pEnd - pStart;
@@ -154,6 +155,7 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 							const grinliz::Vector3F& vel,	// velocity
 							float velFuzz,
 							float halfWidth,
+							float velHalfWidth,
 							U32 lifetime )
 {
 	GLASSERT( primitive >= 0 && primitive < NUM_PRIMITIVES );
@@ -252,6 +254,7 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 			p->pos1.Set( 0, 0, 0 );
 		}
 		p->halfWidth = halfWidth;
+		p->velHalfWidth = velHalfWidth;
 		p->color = colP;
 		p->vel = velP;
 		p->colorVel = colorVelocity;
@@ -273,7 +276,8 @@ void ParticleSystem::EmitPoint(	int count,
 								float velFuzz,					
 								U32 lifetime )					
 {
-	Emit( POINT, 0, count, configuration, color, colorVelocity, pos, 0, posFuzz, vel, velFuzz, 0, lifetime );
+	Emit( POINT, 0, count, configuration, color, colorVelocity, pos, 0, posFuzz, 
+		  vel, velFuzz, 0.0f, 0.0f, lifetime );
 }
 
 
@@ -284,9 +288,12 @@ void ParticleSystem::EmitQuad(	int type,
 								float posFuzz,					
 								const grinliz::Vector3F& vel,	
 								float velFuzz,					
+								float halfWidth,
+								float velHalfWidth,
 								U32 lifetime )			
 {
-	Emit( QUAD, type, 1, 0, color, colorVelocity, pos, 0, posFuzz, vel, velFuzz, 0, lifetime );
+	Emit( QUAD, type, 1, 0, color, colorVelocity, pos, 0, posFuzz, vel, velFuzz, 
+		  halfWidth, velHalfWidth, lifetime );
 }
 
 
@@ -296,7 +303,7 @@ void ParticleSystem::EmitOnePoint(	const Color4F& color,
 									U32 lifetime )
 {
 	grinliz::Vector3F vel = { 0, 0, 0 };
-	Emit( POINT, 0, 1, PARTICLE_RAY, color, colorVelocity, pos, 0, 0, vel, 0, 0, lifetime );
+	Emit( POINT, 0, 1, PARTICLE_RAY, color, colorVelocity, pos, 0, 0, vel, 0, 0, 0, lifetime );
 }
 
 
@@ -308,7 +315,7 @@ void ParticleSystem::EmitBeam(	const Color4F& color,			// color of the particle
 								U32 lifetime )
 {
 	Vector3F vel = { 0, 0, 0 };
-	Emit( QUAD, BEAM, 1, 0, color, colorVelocity, p0, &p1, 0, vel, 0, beamWidth*0.5f, lifetime );
+	Emit( QUAD, BEAM, 1, 0, color, colorVelocity, p0, &p1, 0, vel, 0, beamWidth*0.5f, 0, lifetime );
 }
 
 
@@ -369,7 +376,7 @@ void ParticleSystem::EmitFlame( U32 delta, const Vector3F& _pos )
 					color,		colorVec,
 					pos, 0,		0.4f,	
 					velocity,	0.3f,
-					0,
+					0.5f,		0.0f,
 					4000 );		
 		}
 	}
@@ -391,7 +398,7 @@ void ParticleSystem::EmitFlame( U32 delta, const Vector3F& _pos )
 					color,		colorVec,
 					pos, 0,		0.6f,	
 					velocity,	0.2f,
-					0,
+					0.5f,		0.0f,
 					7000 );		
 		}
 	}
@@ -412,7 +419,7 @@ void ParticleSystem::EmitFlame( U32 delta, const Vector3F& _pos )
 					color,		colorVec,
 					pos, 0,		0.05f,	
 					velocity,	0.3f,
-					0,
+					0.5f,		0.0f,
 					2000 );		
 		}
 	}
@@ -511,7 +518,6 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 		int vertex = 0;
 		int skip = nParticles[POINT] / MAX_QUAD_PARTICLES + 1;	// the quad is used to buffer, so we may have
 																// fewer particles.
-
 		for( int i=0; i<nParticles[POINT]; i+=skip ) 
 		{
 			const Vector3F& pos  = pointBuffer[i].pos;
@@ -554,7 +560,7 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 		glColorPointer(    4, GL_FLOAT, sizeof(QuadVertex), cPtr );
 
 		// because of the skip, the #elements can be less than nParticles*6
-		glDrawElements( GL_TRIANGLES, index/6, GL_UNSIGNED_SHORT, quadIndexBuffer );
+		glDrawElements( GL_TRIANGLES, index, GL_UNSIGNED_SHORT, quadIndexBuffer );
 		CHECK_GL_ERROR;
 	}
 
@@ -574,11 +580,14 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 		return;
 	}
 
-	QuadVertex base[4];
-	base[0].pos = -eyeDir[Camera::RIGHT]*0.5f - eyeDir[Camera::UP]*0.5f;
-	base[1].pos =  eyeDir[Camera::RIGHT]*0.5f - eyeDir[Camera::UP]*0.5f;
-	base[2].pos =  eyeDir[Camera::RIGHT]*0.5f + eyeDir[Camera::UP]*0.5f;
-	base[3].pos = -eyeDir[Camera::RIGHT]*0.5f + eyeDir[Camera::UP]*0.5f;
+	//QuadVertex base[4];
+	//base[0].pos = -eyeDir[Camera::RIGHT]*0.5f - eyeDir[Camera::UP]*0.5f;
+	//base[1].pos =  eyeDir[Camera::RIGHT]*0.5f - eyeDir[Camera::UP]*0.5f;
+	//base[2].pos =  eyeDir[Camera::RIGHT]*0.5f + eyeDir[Camera::UP]*0.5f;
+	//base[3].pos = -eyeDir[Camera::RIGHT]*0.5f + eyeDir[Camera::UP]*0.5f;
+
+	const static float cornerX[] = { -1, 1, 1, -1 };
+	const static float cornerY[] = { -1, -1, 1, 1 };
 
 	static const Vector2F tex[4] = {
 		{ 0.0f, 0.0f },
@@ -636,8 +645,13 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 			pV[3].color = color;
 		}
 		else {
+			const float hw = quadBuffer[i].halfWidth;
+
 			for( int j=0; j<4; ++j ) {
-				pV->pos = base[j].pos + pos;
+				//pV->pos = base[j].pos + pos;
+				pV->pos =   pos
+						  + cornerX[j]*eyeDir[Camera::RIGHT]*hw 
+					      + cornerY[j]*eyeDir[Camera::UP]*hw;
 				pV->tex.Set( tx+tex[j].x, ty+tex[j].y );
 				pV->color = color;
 				++pV;

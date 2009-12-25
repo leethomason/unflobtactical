@@ -360,6 +360,13 @@ void Unit::DoDamage( const DamageDesc& damage )
 }
 
 
+void Unit::NewTurn()
+{
+	stats.RestoreTU();
+	userDone = false;
+}
+
+
 void Unit::CreateModel( bool alive )
 {
 	const ModelResource* resource = 0;

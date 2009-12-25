@@ -16,11 +16,14 @@ void WeaponItemDef::RenderWeapon(	int select,
 									U32 currentTime,
 									U32* duration ) const
 {
-	// FIXME: want to save memory here, but the effects
-	// can stack right up. Worth implemting c-style stack
-	// to re-use memory?
-	// This is just to save memory. Multiple effects could
-	// be queued up with memory allocation.
+	enum { BEAM, TRAIL, SWING };
+	enum { SPLASH, EXPLOSION, NONE };
+	int first = BEAM;
+	int second = (weapon[select].flags & WEAPON_EXPLOSIVE) ? EXPLOSION : SPLASH;
+
+	// effects: 
+	//		bolt then particle
+	//		beam
 
 	const float SPEED = 0.02f;	// ray gun settings
 	const float WIDTH = 0.3f;
@@ -33,6 +36,12 @@ void WeaponItemDef::RenderWeapon(	int select,
 	float length = 1.0f;
 
 	switch( weapon[select].clipType ) {
+		case 0:
+			GLASSERT( weapon[select].flags & WEAPON_MELEE );
+			first = SWING;
+			second = NONE;
+			break;
+
 		case ITEM_CLIP_SHELL:
 		case ITEM_CLIP_AUTO:
 			color.Set( 0.8f, 1.0f, 0.8f, 0.8f );
@@ -48,24 +57,62 @@ void WeaponItemDef::RenderWeapon(	int select,
 			length = EBOLT;
 			break;
 
+		case ITEM_CLIP_FLAME:
+			color.Set( 1.0f, 0, 0, 0.8f );
+			speed = SPEED * 0.7f;
+			width = WIDTH;
+			length = EBOLT;
+			break;
+
+		case ITEM_CLIP_ROCKET:
+		case ITEM_CLIP_GRENADE:
+			color.Set( 1, 0, 0, 1 );
+			first = TRAIL;
+			break;
+
 		default:
 			GLASSERT( 0 );	// not set yet
 	}
 
-	BoltEffect* bolt = (BoltEffect*) system->EffectFactory( "BoltEffect" );
-	if ( !bolt ) { 
-		bolt = new BoltEffect( system );
+	if ( first == BEAM ) {
+		BoltEffect* bolt = (BoltEffect*) system->EffectFactory( "BoltEffect" );
+		if ( !bolt ) { 
+			bolt = new BoltEffect( system );
+		}
+		
+		bolt->Clear();
+		bolt->SetColor( color );
+		bolt->SetSpeed( speed );
+		bolt->SetLength( length );
+		bolt->SetWidth( width );
+		bolt->Init( p0, p1, currentTime );
+
+		*duration = bolt->CalcDuration();
+		system->AddEffect( bolt );
+	}
+	else if ( first == TRAIL ) {
+		SmokeTrailEffect* trail = (SmokeTrailEffect*) system->EffectFactory( "SmokeTrailEffect" );
+		if ( !trail ) {
+			trail = new SmokeTrailEffect( system );
+		}
+
+		trail->Clear();
+		Color4F c = { 1, 1, 1, 1 };
+		trail->SetColor( c );
+		trail->SetSpeed( speed*0.4f );
+		trail->Init( p0, p1, currentTime );
+		*duration = trail->CalcDuration();
+		system->AddEffect( trail );
+	}
+	else if ( first == SWING ) {
+		GLASSERT( 0 );
+	}
+	else {
+		GLASSERT( 0 );
 	}
 
-	bolt->SetColor( color );
-	bolt->SetSpeed( speed );
-	bolt->SetLength( length );
-	bolt->SetWidth( width );
-	bolt->Init( p0, p1, currentTime );
-	*duration = bolt->CalcDuration();
-	system->AddEffect( bolt );
+	if ( useImpact && second != NONE ) {
 
-	if ( useImpact ) {
 		ImpactEffect* impact = (ImpactEffect*) system->EffectFactory( "ImpactEffect" );
 		if ( !impact ) {
 			impact = new ImpactEffect( system );
@@ -73,7 +120,18 @@ void WeaponItemDef::RenderWeapon(	int select,
 
 		Vector3F n = p0 - p1;
 		n.Normalize();
-		impact->Init( p1, n, color, 1.5f, currentTime + *duration );
+		impact->Clear();
+		impact->Init( p1, currentTime + *duration );
+		impact->SetColor( color );
+		impact->SetNormal( n );
+		if ( second == SPLASH ) {
+			impact->SetRadius( 1.5f );
+		}
+		else {
+			// explosion
+			impact->SetRadius( 3.5f );
+			impact->SetConfig( ParticleSystem::PARTICLE_SPHERE );
+		}
 		system->AddEffect( impact );
 	}
 }

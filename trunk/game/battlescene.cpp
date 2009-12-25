@@ -122,6 +122,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	SetFogOfWar();
 	CalcTeamTargets();
 	targetEvents.Clear();
+	NewTurn( Unit::SOLDIER );
 }
 
 
@@ -217,6 +218,31 @@ void BattleScene::InitUnits()
 }
 
 
+void BattleScene::NewTurn( int team )
+{
+	switch ( team ) {
+		case Unit::SOLDIER:
+			for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i )
+				units[i].NewTurn();
+			break;
+
+		case Unit::ALIEN:
+			for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i )
+				units[i].NewTurn();
+			break;
+
+		case Unit::CIVILIAN:
+			for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i )
+				units[i].NewTurn();
+			break;
+
+		default:
+			GLASSERT( 0 );
+			break;
+	}
+}
+
+
 void BattleScene::Save( UFOStream* /*s*/ )
 {
 	U32 selectionIndex = MAX_UNITS;
@@ -299,23 +325,23 @@ void BattleScene::TestHitTesting()
 void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 {
 	TestHitTesting();
-/*
+
 	if ( currentTime/1000 != (currentTime-deltaTime)/1000 ) {
 		grinliz::Vector3F pos = { 10.0f, 1.0f, 28.0f };
 		grinliz::Vector3F vel = { 0.0f, 1.0f, 0.0f };
 		Color4F col = { 1.0f, -0.5f, 0.0f, 1.0f };
-		Color4F colVel = { 0.0f, 0.0f, 0.0f, 0.0f };
+		Color4F colVel = { 0.0f, 0.0f, 0.0f, -1.0f/1.2f };
 
 		game->particleSystem->EmitPoint(	40,		// count
-											ParticleSystem::PARTICLE_SPHERE,
+											ParticleSystem::PARTICLE_HEMISPHERE,
 											col,	colVel,
 											pos,	0.1f,	
 											vel,	0.1f,
 											1200 );
 	}
-	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
-	game->particleSystem->EmitFlame( deltaTime, pos );
-*/
+//	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
+// 	game->particleSystem->EmitFlame( deltaTime, pos );
+
 	if (    SelectedSoldier()
 		 && SelectedSoldierUnit()->Status() == Unit::STATUS_ALIVE
 		 && SelectedSoldierUnit()->Team() == Unit::SOLDIER ) 
@@ -633,6 +659,8 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 	Model* modelHit = 0;
 	Vector3F intersection;
 	U32 delayTime = 0;
+	int select = action->type.shoot.select;
+	GLASSERT( select == 0 || select == 1 );
 
 	if ( unit && model && unit->IsAlive() ) {
 		Vector3F p0, p1;
@@ -665,7 +693,7 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 			impact = true;
 		}
 
-		weaponDef->DamageBase( 0, &damageDesc );
+		weaponDef->DamageBase( select, &damageDesc );
 
 		if ( m ) {
 			impact = true;
@@ -695,8 +723,8 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		}
 
 		if ( beam0 != beam1 ) {
-			weaponDef->RenderWeapon( 0,	// FIXME: which weapon??
-									game->particleSystem,
+			weaponDef->RenderWeapon( select,
+									 game->particleSystem,
 									 beam0, beam1, 
 									 impact, 
 									 game->CurrentTime(), 
@@ -863,6 +891,37 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 					stream->WriteU8( (U8)(SelectedSoldierUnit()-units ) );
 					SelectedSoldierUnit()->Save( stream );
 					game->PushScene( Game::CHARACTER_SCENE );
+				}
+				break;
+
+			case BTN_END_TURN:
+				SetSelection( 0 );
+				engine->GetMap()->ClearNearPath();
+				NewTurn( Unit::SOLDIER );	// FIXME: should go alien or civ
+				break;
+
+			case BTN_NEXT:
+			case BTN_NEXT_DONE:
+				{
+					int index = TERRAN_UNITS_END-1;
+					if ( SelectedSoldierUnit() ) {
+						index = SelectedSoldierUnit() - units;
+						if ( icon == BTN_NEXT_DONE )
+							units[index].SetUserDone();
+					}
+					int i = index+1;
+					if ( i == TERRAN_UNITS_END )
+						i = TERRAN_UNITS_START;
+					while( i != index ) {
+						if ( units[i].IsAlive() && !units[i].IsUserDone() ) {
+							SetSelection( &units[i] );
+							break;
+						}
+						++i;
+						if ( i == TERRAN_UNITS_END )
+							i = TERRAN_UNITS_START;
+					}
+					ShowNearPath( selection.soldierUnit );
 				}
 				break;
 
@@ -1074,8 +1133,8 @@ void BattleScene::SetFireWidget()
 			int nShots = (type==AUTO_SHOT) ? 3 : 1;
 			
 			// weird syntax aids debugging.
-			bool enable =		item->HasPart(select+1);
-			enable = enable &&	item->IsClip( select+1 );
+			bool enable =		true;	//item->HasPart(select+1); cell weapons don't have part 2
+			enable = enable &&	item->IsClip( 1 );	// cell or clip
 			enable = enable &&	item->IsWeapon();
 			enable = enable &&	item->IsWeapon()->SupportsType( select, type );
 			enable = enable &&	(item->RoundsRequired(select+1)*nShots <= item->RoundsAvailable(select+1));
@@ -1108,6 +1167,11 @@ void BattleScene::SetFireWidget()
 
 void BattleScene::ShowNearPath( const Unit* unit )
 {
+	if ( !unit ) {
+		engine->GetMap()->ClearNearPath();
+		return;
+	}
+
 	GLASSERT( unit );
 	GLASSERT( unit->GetModel() );
 	const Model* model = unit->GetModel();
