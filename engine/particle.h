@@ -91,6 +91,8 @@ public:
 					float posFuzz,					// fuzz in the position
 					const grinliz::Vector3F& vel,	// velocity
 					float velFuzz,					// fuzz in the velocity
+					float halfWidth,				// 1/2 size of the particle
+					float velHalfWidth,				// rate of change of the 1/2 size
 					U32 lifetime );					// lifetime in milliseconds
 
 	// Simple call to emit a point at a location.
@@ -132,7 +134,8 @@ private:
 		grinliz::Vector3F vel;			// units / second
 		grinliz::Vector4F colorVel;		// units / second
 		grinliz::Vector3F pos1;			// for rays
-		float			  halfWidth;	// for rays
+		float			  halfWidth;	// for rays and quads
+		float			  velHalfWidth;	// for quads
 		U16 age;						// milliseconds
 		U16 lifetime;					// milliseconds
 		U8	type;	
@@ -166,7 +169,8 @@ private:
 				float posFuzz,					// fuzz in the position
 				const grinliz::Vector3F& vel,	// velocity
 				float velFuzz,					// fuzz in the velocity
-				float halfWidth,				// half width of beams
+				float halfWidth,				// half width of beams and quads
+				float velHalfWidth,				// rate of change of the width
 				U32 lifetime );					// lifetime in milliseconds
 
 	void DrawPointParticles( const grinliz::Vector3F* eyeDir );

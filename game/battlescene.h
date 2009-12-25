@@ -175,6 +175,8 @@ private:
 
 	void	SetSelection( Unit* unit );
 
+	void NewTurn( int team );
+
 	grinliz::Vector3F dragStart;
 	grinliz::Vector3F dragStartCameraWC;
 	grinliz::Matrix4  dragMVPI;

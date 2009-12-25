@@ -60,6 +60,10 @@ public:
 	void DoDamage( const DamageDesc& damage );
 	void UseTU( float tu )		{ stats.UseTU( tu ); }
 
+	void NewTurn();
+	void SetUserDone()			{ userDone = true; }
+	bool IsUserDone()			{ return userDone; }
+
 	int Status() const			{ return status; }
 	int Team() const			{ return team; }
 	int AlienType()	const		{ return GetValue( ALIEN_TYPE ); }
@@ -127,6 +131,7 @@ private:
 	int status;
 	int team;	// terran, alien, civ
 	U32 body;	// describes everything! a random #
+	bool userDone;	// ui metaphore - flag if the user is done with this unit
 
 	Game*		game;
 	Engine*		engine;
