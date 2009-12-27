@@ -35,13 +35,6 @@ bool Inventory::IsSlotFree( const ItemDef* itemDef )
 
 bool Inventory::AddItem( int slot, const Item& item )
 {
-//	const ItemDef* def = item.GetItemDef();
-
-//	// Is it too big?
-//	if ( def->size > 3 ) {
-//		return false;
-//	}
-
 	// if the slot was specified:
 	if ( slot != ANY_SLOT ) {
 		if ( slots[slot].IsNothing() /*&& def->size <= slotSize[slot]*/ ) {

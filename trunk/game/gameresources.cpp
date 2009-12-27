@@ -282,8 +282,8 @@ void Game::LoadMapResources()
 	*/
 
 	const int HP_LOW = 10;
-	const int HP_MED = 100;
-	const int HP_HIGH = 300;
+	const int HP_MED = 80;
+	const int HP_HIGH = 250;
 	const int HP_STEEL = 1000;
 	const int INDESTRUCT = 0xffff;
 
@@ -470,8 +470,7 @@ void Game::LoadItemResources()
 
 	for( int i=0; weapons[i].name; ++i ) {
 		WeaponItemDef* item = new WeaponItemDef();
-		item->InitBase( ITEM_WEAPON, 
-						weapons[i].name, 
+		item->InitBase( weapons[i].name, 
 						weapons[i].desc, 
 						weapons[i].deco,
 						ModelResourceManager::Instance()->GetModelResource( weapons[i].resName ),
@@ -497,36 +496,49 @@ void Game::LoadItemResources()
 	struct ItemInit {
 		const char* name;
 		const char* resName;
-		int type;
 		int deco;
 		const char* desc;
 	};
 
 	const ItemInit items[] = {		
-		{ "Med",	0,				ITEM_GENERAL,	DECO_MEDKIT,	"Medkit" },
-		{ "Steel",	0,				ITEM_GENERAL,	DECO_METAL,		"Memsteel" },
-		{ "Tech",	0,				ITEM_GENERAL,	DECO_TECH,		"Alien Tech" },
-		{ "Gel",	0,				ITEM_GENERAL,	DECO_FUEL,		"Plasma Gel" },
-		{ "ARM-1",	0,				ITEM_ARMOR,		DECO_ARMOR,		"Memsteel Armor" },
-		{ "ARM-2",	0,				ITEM_ARMOR,		DECO_ARMOR,		"Power Armor" },
-		{ "ARM-3",	0,				ITEM_ARMOR,		DECO_ARMOR,		"Power Shield" },
-		{ "Aln-0",	0,				ITEM_GENERAL,	DECO_ALIEN,		"Alien 0" },
-		{ "Aln-1",	0,				ITEM_GENERAL,	DECO_ALIEN,		"Alien 1" },
-		{ "Aln-2",	0,				ITEM_GENERAL,	DECO_ALIEN,		"Alien 2" },
-		{ "Aln-3",	0,				ITEM_GENERAL,	DECO_ALIEN,		"Alien 3" },
+		{ "Med",	0,				DECO_MEDKIT,	"Medkit" },
+		{ "Steel",	0,				DECO_METAL,		"Memsteel" },
+		{ "Tech",	0,				DECO_TECH,		"Alien Tech" },
+		{ "Gel",	0,				DECO_FUEL,		"Plasma Gel" },
+		{ "Aln-0",	0,				DECO_ALIEN,		"Alien 0" },
+		{ "Aln-1",	0,				DECO_ALIEN,		"Alien 1" },
+		{ "Aln-2",	0,				DECO_ALIEN,		"Alien 2" },
+		{ "Aln-3",	0,				DECO_ALIEN,		"Alien 3" },
 		{ 0 }
 	};
 
 	for( int i=0; items[i].name; ++i ) {
 		ItemDef* item = new ItemDef();
-		item->InitBase( items[i].type,
-						items[i].name,
+		item->InitBase( items[i].name,
 						items[i].desc,
 						items[i].deco,
 						items[i].resName ? ModelResourceManager::Instance()->GetModelResource( items[i].resName ) : 0,
 						nItemDef );
 		itemDefArr[nItemDef++] = item;
 	}
+
+	const ItemInit armor[] = {		
+		{ "ARM-1",	0,				DECO_ARMOR,		"Memsteel Armor" },
+		{ "ARM-2",	0,				DECO_ARMOR,		"Power Armor" },
+		{ "ARM-3",	0,				DECO_ARMOR,		"Power Shield" },
+		{ 0 }
+	};
+
+	for( int i=0; armor[i].name; ++i ) {
+		ArmorItemDef* item = new ArmorItemDef();
+		item->InitBase( armor[i].name,
+						armor[i].desc,
+						armor[i].deco,
+						armor[i].resName ? ModelResourceManager::Instance()->GetModelResource( items[i].resName ) : 0,
+						nItemDef );
+		itemDefArr[nItemDef++] = item;
+	}
+
 
 	struct ClipInit {
 		const char* name;
@@ -548,14 +560,14 @@ void Game::LoadItemResources()
 
 	for( int i=0; clips[i].name; ++i ) {
 		ClipItemDef* item = new ClipItemDef();
-		item->InitBase( clips[i].type,
-						clips[i].name,
+		item->InitBase( clips[i].name,
 						clips[i].desc,
 						clips[i].deco,
 						0,
 						nItemDef );
 
 		item->rounds = clips[i].rounds;
+		item->type = clips[i].type;
 
 		itemDefArr[nItemDef++] = item;
 	}

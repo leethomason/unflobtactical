@@ -14,10 +14,6 @@ class Game;
 class ParticleSystem;
 
 enum {
-	ITEM_WEAPON,
-	ITEM_ARMOR,
-	ITEM_GENERAL,
-
 	// Clip types - plenty of complexity here already.
 	ITEM_CLIP_SHELL = 1,
 	ITEM_CLIP_AUTO,
@@ -33,6 +29,7 @@ enum {
 
 class WeaponItemDef;
 class ClipItemDef;
+class ArmorItemDef;
 
 struct DamageDesc
 {
@@ -57,21 +54,27 @@ public:
 	ItemDef() {};
 	virtual ~ItemDef() {};
 
-	int				type;
+	//int				type;
 	const char*		name;
 	const char*		desc;
 	int				deco;
 	const ModelResource*	resource;	// can be null, in which case render with crate.
 
-	void InitBase( int type, const char* name, const char* desc, int deco, const ModelResource* resource, int index )
+	void InitBase( /*int type, */ const char* name, const char* desc, int deco, const ModelResource* resource, int index )
 	{
-		this->type = type; this->name = name; this->desc = desc; this->deco = deco; this->resource = resource; this->index = index;
+		//GLASSERT( type >= ITEM_WEAPON && type <= ITEM_GENERAL );
+		//this->type = type; 
+		this->name = name; 
+		this->desc = desc; 
+		this->deco = deco; 
+		this->resource = resource; 
+		this->index = index;
 	}
 
 	virtual const WeaponItemDef* IsWeapon() const { return 0; }
 	virtual const ClipItemDef* IsClip() const  { return 0; }
 	virtual int Rounds() const { return 1; }
-	bool IsArmor() const { return type == ITEM_ARMOR; }
+	virtual const ArmorItemDef* IsArmor() const { return 0; }
 
 	// optimization trickiness:
 	int index;
@@ -133,7 +136,15 @@ public:
 	virtual const ClipItemDef* IsClip() const { return this; }
 	virtual int Rounds() const { return rounds; }
 
+	int	type;
 	int rounds;			// rounds in this clip, power of cell (100)
+};
+
+
+class ArmorItemDef : public ItemDef
+{
+public:
+	virtual const ArmorItemDef* IsArmor() const { return this; }
 };
 
 // POD
@@ -146,7 +157,7 @@ struct ItemPart
 
 	const WeaponItemDef* IsWeapon() const	{ return itemDef->IsWeapon(); }
 	const ClipItemDef* IsClip() const		{ return itemDef->IsClip(); }
-	bool IsArmor() const					{ return itemDef->IsArmor(); }
+	const ArmorItemDef* IsArmor() const		{ return itemDef->IsArmor(); }
 
 	bool None() const			{ return itemDef == 0; }
 	void Clear()				{ itemDef = 0; rounds = 0; }
@@ -193,7 +204,7 @@ public:
 	const ItemDef* GetItemDef( int i=0 ) const		{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef; }
 	const WeaponItemDef* IsWeapon( int i=0 ) const	{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef->IsWeapon(); }
 	const ClipItemDef* IsClip( int i=0 ) const		{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef->IsClip(); }
-	bool IsArmor( int i=0 ) const					{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef->IsArmor(); }
+	const ArmorItemDef* IsArmor( int i=0 ) const	{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef->IsArmor(); }
 
 	int Rounds( int i=0 ) const						{ GLASSERT( i>=0 && i<3 ); return part[i].rounds; }
 
