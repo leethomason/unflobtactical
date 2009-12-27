@@ -103,9 +103,14 @@ void CharacterScene::SetInvWidget()
 	Inventory* inv = unit->GetInventory();
 
 	// Top slots are general items.
+	// 9, 10, 11: general (slow)
+	// 6, 7, 8: general (medium)
+	// 3, 4, 5: general (fast)
+	// 0: armor		1: drop		2: weapon
+	//
 	for( int i=2; i<Inventory::NUM_SLOTS; ++i ) 
 	{
-		int index = i+1;	//charInvWidget->TopIndex( i-2 );
+		int index = i+1;
 		const Item& item = inv->GetItem( i );
 		SetButtonGraphics( index, item );
 	}

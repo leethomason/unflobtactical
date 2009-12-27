@@ -325,7 +325,7 @@ void BattleScene::TestHitTesting()
 void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 {
 	TestHitTesting();
-
+/*
 	if ( currentTime/1000 != (currentTime-deltaTime)/1000 ) {
 		grinliz::Vector3F pos = { 10.0f, 1.0f, 28.0f };
 		grinliz::Vector3F vel = { 0.0f, 1.0f, 0.0f };
@@ -339,6 +339,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 											vel,	0.1f,
 											1200 );
 	}
+*/
 //	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
 // 	game->particleSystem->EmitFlame( deltaTime, pos );
 

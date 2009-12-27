@@ -131,6 +131,19 @@ void WeaponItemDef::RenderWeapon(	int select,
 			// explosion
 			impact->SetRadius( 3.5f );
 			impact->SetConfig( ParticleSystem::PARTICLE_SPHERE );
+
+			// 2nd set of particles:
+			ImpactEffect* impact2 = (ImpactEffect*) system->EffectFactory( "ImpactEffect" );
+			if ( !impact2 ) {
+				impact2 = new ImpactEffect( system );
+			}
+			impact2->Clear();
+			impact2->Init( p1, currentTime + *duration + 250 );
+			impact2->SetColor( color );
+			impact2->SetNormal( n );
+			impact2->SetRadius( 3.5f );
+			impact2->SetConfig( ParticleSystem::PARTICLE_SPHERE );
+			system->AddEffect( impact2 );
 		}
 		system->AddEffect( impact );
 	}
@@ -140,11 +153,11 @@ void WeaponItemDef::RenderWeapon(	int select,
 bool WeaponItemDef::CompatibleClip( const ItemDef* id, int* which ) const
 {
 	if ( id->IsClip() ) {
-		if ( weapon[0].clipType == id->type ) {
+		if ( weapon[0].clipType == id->IsClip()->type ) {
 			*which = 0;
 			return true;
 		}
-		else if ( weapon[1].clipType == id->type ) {
+		else if ( weapon[1].clipType == id->IsClip()->type ) {
 			*which = 1;
 			return true;
 		}
