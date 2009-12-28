@@ -22,8 +22,8 @@ enum {
 	ITEM_CLIP_ROCKET,
 	ITEM_CLIP_GRENADE,
 
-	WEAPON_AUTO		= 0x01,
-	WEAPON_MELEE	= 0x02,
+	WEAPON_AUTO		 = 0x01,
+	WEAPON_MELEE	 = 0x02,
 	WEAPON_EXPLOSIVE = 0x04,	// only needed for cell weapons - adds a "feature" to the cell clip
 };
 
@@ -47,6 +47,7 @@ struct DamageDesc
 		incind *= x;
 	}
 };
+
 
 class ItemDef
 {

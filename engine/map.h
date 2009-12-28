@@ -197,8 +197,8 @@ public:
 	void DrawPath();
 	void DrawOverlay();		//< draw the "where can I walk" alpha overlay. Set up by ShowNearPath().
 
-	// Explosions impacts and such.
-	void DoDamage( Model* m, const DamageDesc& damage );
+	// Explosions impacts and such. Returns true if map changed.
+	bool DoDamage( Model* m, const DamageDesc& damage );
 
 	// Sets objects to block the path (usually other sprites) that the map doesn't know about.
 	void ClearPathBlocks();

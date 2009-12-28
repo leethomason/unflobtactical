@@ -381,8 +381,10 @@ void Map::IMat::Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out  )
 }
 
 
-void Map::DoDamage( Model* m, const DamageDesc& damageDesc )
+bool Map::DoDamage( Model* m, const DamageDesc& damageDesc )
 {
+	bool destroyed = false;
+
 	if ( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) 
 	{
 		MapItem* item = quadTree.FindItem( m );
@@ -408,8 +410,10 @@ void Map::DoDamage( Model* m, const DamageDesc& damageDesc )
 
 			DeleteItem( item );
 			AddItem( x, y, r, def, hp, flags );
+			destroyed = true;
 		}
 	}
+	return destroyed;
 }
 
 
