@@ -110,7 +110,10 @@ public:
 
 	void CalcBounds( grinliz::Rectangle2I* _bounds ) {
 		CalcButtons();
-		*_bounds = bounds;
+		_bounds->min.x = bounds.min.x + origin.x;
+		_bounds->min.y = bounds.min.y + origin.y;
+		_bounds->max.x = bounds.max.x + origin.x;
+		_bounds->max.y = bounds.max.y + origin.y;
 	}
 	
 

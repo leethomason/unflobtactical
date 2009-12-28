@@ -94,6 +94,8 @@ Game::Game( const Screenport& sp, const char* _savePath ) :
 	// For now, always create a new one.
 	sqlite3* mapDB = Map::CreateMap( savePath, database );
 	engine.GetMap()->SyncToDB( mapDB, "farmland" );
+
+
 #endif
 
 	engine.GetMap()->SetSize( 40, 40 );

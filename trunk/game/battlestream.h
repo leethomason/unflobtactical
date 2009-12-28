@@ -25,9 +25,6 @@ public:
 				Camera* camera,
 				Map* map );
 
-	//void SaveSelectedUnit( const Unit* unit );
-	//void LoadSelectedUnit( Unit* unit );
-
 private:
 	Game* game;
 };

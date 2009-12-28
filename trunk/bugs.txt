@@ -1,0 +1,17 @@
+Demo bugs:
+- explosive weapons
+- fire - flammability
+- weapon (in)accuracy
+- center on selected unit (w/ scrolling)
+- reaction fire
+- tu in character screen
+
+Wait
+- weird delay when map objects destroyed
+- need correct colors in RenderWeapon()
+- melee weapons
+
+FIXED
+- on object destroyed, re-calc visibility
+- remove double delay on weapon blasts
+- always fires primary weapon

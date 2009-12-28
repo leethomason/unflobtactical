@@ -773,7 +773,12 @@ void BattleScene::ProcessActionHit( Action* action )
 	}
 	else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
 		// Hit world object.
-		engine->GetMap()->DoDamage( m, action->type.hit.damageDesc );
+		bool changed = engine->GetMap()->DoDamage( m, action->type.hit.damageDesc );
+		if ( changed ) {
+			CalcAllVisibility();
+			SetFogOfWar();
+			CalcTeamTargets();
+		}
 	}
 	actionStack.Pop();
 }

@@ -379,6 +379,10 @@ void Game::LoadItemResources()
 	const float DAM_HI		=  60.0f;
 	const float DAM_VHI		= 100.0f;
 
+	const float EXDAM_MED   = 100.0f;
+	const float EXDAM_HI	= 180.0f;
+	const float EXDAM_VHI	= 250.0f;
+
 	const float ACC_LOW = 1.4f;
 	const float ACC_MED = 1.0f;
 	const float ACC_HI  = 0.7f;
@@ -425,16 +429,16 @@ void Game::LoadItemResources()
 				0  },
 		{ "AR-3P",	"gun0",		DECO_RIFLE,		"Pulse Rifle",			SPEED_NORMAL,
 				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MEDHI,	ACC_MED, 0,
-				ITEM_CLIP_GRENADE,	WEAPON_EXPLOSIVE,DAM_HI,		ACC_LOW, 0 },
+				ITEM_CLIP_GRENADE,	WEAPON_EXPLOSIVE,EXDAM_HI,		ACC_LOW, 0 },
 		{ "AR-3L",	"gun0",		DECO_RIFLE,		"Long AR 'Vera'",		SPEED_NORMAL,
 				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MED,	ACC_HI,	0,
-				ITEM_CLIP_GRENADE,	WEAPON_EXPLOSIVE,DAM_HI,		ACC_LOW, 0 },
+				ITEM_CLIP_GRENADE,	WEAPON_EXPLOSIVE,EXDAM_HI,		ACC_LOW, 0 },
 		{ "RKT",	"gun0",		DECO_RIFLE,		"Rocket Launcher",		SPEED_SLOW,
 				ITEM_CLIP_ROCKET,	WEAPON_EXPLOSIVE,DAM_HI,		ACC_MED, 0,
 				0  },
 		{ "CANON",	"gun0",		DECO_RIFLE,		"Mini-Canon",			SPEED_SLOW,
 				ITEM_CLIP_SHELL,	0,				DAM_HI,		ACC_MED, 0,
-				ITEM_CLIP_FLAME,	WEAPON_EXPLOSIVE,DAM_HI,		ACC_MED, 0 },
+				ITEM_CLIP_FLAME,	WEAPON_EXPLOSIVE,EXDAM_MED,		ACC_MED, 0 },
 
 		{ "KNIFE",	"gun0",		DECO_KNIFE,		"Knife",				SPEED_FAST,
 				0,					WEAPON_MELEE,	DAM_MED,	ACC_MED, 0,
@@ -455,12 +459,12 @@ void Game::LoadItemResources()
 				0  },
 		{ "PLS-2",	"gun0",		DECO_RIFLE,		"Plasma Assault Rifle",	SPEED_NORMAL,
 				ITEM_CLIP_CELL,		WEAPON_AUTO,	DAM_MEDHI,	ACC_MED, POW_MED,
-				ITEM_CLIP_CELL,		WEAPON_EXPLOSIVE, DAM_HI,   ACC_MED, POW_HI },
+				ITEM_CLIP_CELL,		WEAPON_EXPLOSIVE, EXDAM_HI,   ACC_MED, POW_HI },
 		{ "BEAM",	"gun0",		DECO_RIFLE,		"Blade Beam",			SPEED_NORMAL,
 				ITEM_CLIP_CELL,		0,				DAM_MEDHI,	ACC_HI, POW_MED,
 				0  },
 		{ "NULL",	"gun0",		DECO_RIFLE,		"Null Point Blaster",	SPEED_NORMAL,
-				ITEM_CLIP_CELL,		WEAPON_EXPLOSIVE, DAM_HI, ACC_HI, POW_HI,
+				ITEM_CLIP_CELL,		WEAPON_EXPLOSIVE, EXDAM_HI, ACC_HI, POW_HI,
 				0  },
 		{ "SWORD",	"gun0",		DECO_KNIFE,		"Plasma Sword",			SPEED_FAST,
 				0,					WEAPON_MELEE,	DAM_HI,		ACC_HI, 0,
