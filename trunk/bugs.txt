@@ -2,7 +2,7 @@ Demo bugs:
 - explosive weapons
 - fire - flammability
 - weapon (in)accuracy
-- center on selected unit (w/ scrolling)
+- center on selected unit (w/ scrolling?)
 - reaction fire
 - tu in character screen
 

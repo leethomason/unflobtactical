@@ -83,7 +83,9 @@ private:
 
 	struct HitAction {
 		DamageDesc			damageDesc;		// hit with what??
+		bool				explosive;
 		grinliz::Vector3F	p;				// point of impact
+		grinliz::Vector3F	n;				// normal from shooter to target
 		Model*				m;				// model impacted - may be 0
 	};
 

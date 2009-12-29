@@ -2,6 +2,8 @@
 #include "ufoutil.h"
 #include "../grinliz/glutil.h"
 
+using namespace grinliz;
+
 void CEnsureCap( unsigned needInBytes, unsigned* capInBytes, void** stack )
 {
 	if ( needInBytes > *capInBytes ) {
@@ -51,3 +53,42 @@ void Matrix2I::Invert( Matrix2I* inverse ) const
 #endif
 }
 
+LineWalk::LineWalk(int x0, int y0, int x1, int y1)
+{
+	int dx = x1-x0;
+	int dy = y1-y0;
+
+	if ( abs( dy ) > abs(dx) ) {
+		// y is major axis. delta = dx per distance y
+		axis = 1;
+		nSteps = abs(dy);
+		if ( dy < 0 )
+			axisDir = -1;
+		delta = Fixed( dx ) / Fixed( abs(dy) );
+		GLASSERT( delta < 1 && delta > -1 );
+	}
+	else {
+		// x is the major aris. delta = dy per distance x
+		axis = 0;
+		nSteps = abs(dx);
+		if ( dx < 0 )
+			axisDir = -1;
+		delta = Fixed( dy ) / Fixed( abs(dx) );
+		GLASSERT( delta <= 1 && delta >= -1 );
+	}
+	step = 0;
+	p.Set( Fixed(x0)+Fixed(0.5f), Fixed(y0)+Fixed(0.5f) );
+	q = p;
+	q.X(axis) += axisDir;
+	q.X(!axis) += delta;
+}
+
+
+void LineWalk::Step()
+{
+	GLASSERT( step < nSteps );
+	p = q;
+	q.X(axis) += axisDir;
+	q.X(!axis) += delta;
+	++step;
+}

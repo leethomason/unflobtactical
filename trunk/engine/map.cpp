@@ -381,6 +381,22 @@ void Map::IMat::Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out  )
 }
 
 
+bool Map::DoDamage( int x, int y, const DamageDesc& damage )
+{
+	bool changed = false;
+	const MapItem* root = quadTree.FindItems( x, y, 0, MapItem::MI_IS_LIGHT );
+	for( ; root; root=root->next ) {
+		if ( root->model ) {
+			GLASSERT( root->model->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) );
+			bool destroyed = DoDamage( root->model, damage );
+			if ( destroyed )
+				changed = true;
+		}
+	}
+	return changed;
+}
+
+
 bool Map::DoDamage( Model* m, const DamageDesc& damageDesc )
 {
 	bool destroyed = false;
@@ -395,6 +411,8 @@ bool Map::DoDamage( Model* m, const DamageDesc& damageDesc )
 		// FIXME: 1st pass, take no incindiary damage.
 		// But need to fix it so it may catch fire.
 		int hp = (int)(damageDesc.energy + damageDesc.kinetic );
+		GLOUTPUT(( "map damage '%s' (%d,%d) dam=%d\n",
+			       itemDef.name, item->x, item->y, hp ));
 
 		if ( itemDef.CanDamage() && item->DoDamage(hp) ) 
 		{

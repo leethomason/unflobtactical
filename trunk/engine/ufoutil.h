@@ -4,6 +4,7 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glvector.h"
+#include "../grinliz/glfixed.h"
 
 void CEnsureCap( unsigned needInBytes, unsigned* capInBytes, void** stack );
 
@@ -211,4 +212,35 @@ inline void MultMatrix2I( const Matrix2I& x, const grinliz::Vector3I& y, grinliz
 	w->y = x.c*y.x + x.d*y.y + x.y*y.z;
 	w->z =                         y.z;
 }
+
+class LineWalk
+{
+public:
+	LineWalk( int x0, int y0, int x1, int y1 );
+	int X() const { return (int)p.x; }
+	int Y() const { return (int)p.y; }
+	int NX() const { return (int)q.x; }
+	int NY() const { return (int)q.y; }
+
+	grinliz::Vector2I P() const { grinliz::Vector2I p = { X(), Y() }; return p; }
+	grinliz::Vector2I Q() const { grinliz::Vector2I q = { NX(), NY() }; return q; }
+
+	void Step();
+	// The current step is a little odd.
+	// If the range is from 0 to 3, there will be
+	// 3 steps. The 4th step is actually value 3.
+	// So it's done when CurrentStep() == NumSteps()
+	int CurrentStep() const		{ return step; }
+	int NumSteps() const		{ return nSteps; }
+
+private:
+	int axis;		// 1 if y is major axis. 0 if x.
+	int axisDir;	// +1 if positive on the major axis, -1 if negative on the major axis
+	int nSteps;		// # of steps in the walk
+	int step;		// step==nSteps then done
+	grinliz::Fixed delta;	// step in fixed point
+	grinliz::Vector2<grinliz::Fixed> p;
+	grinliz::Vector2<grinliz::Fixed> q;
+};
+
 #endif
