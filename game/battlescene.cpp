@@ -662,18 +662,20 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 	U32 delayTime = 0;
 	int select = action->type.shoot.select;
 	GLASSERT( select == 0 || select == 1 );
+	const WeaponItemDef* weaponDef = 0;
+	Ray ray;
 
 	if ( unit && model && unit->IsAlive() ) {
 		Vector3F p0, p1;
 		Vector3F beam0 = { 0, 0, 0 }, beam1 = { 0, 0, 0 };
 
 		const Item* weaponItem = unit->GetWeapon();
-		const WeaponItemDef* weaponDef = weaponItem->GetItemDef()->IsWeapon();
+		weaponDef = weaponItem->GetItemDef()->IsWeapon();
+		GLASSERT( weaponDef );
 
 		model->CalcTrigger( &p0 );
 		p1 = action->type.shoot.target;
 
-		Ray ray;
 		ray.origin = p0;
 		ray.direction = p1-p0;
 
@@ -735,10 +737,17 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 	actionStack.Pop();
 
 	if ( impact ) {
+		GLASSERT( weaponDef );
+
 		Action h;
 		h.Init( ACTION_HIT, 0 );
 		h.type.hit.damageDesc = damageDesc;
+		h.type.hit.explosive = (weaponDef->weapon[select].flags & WEAPON_EXPLOSIVE) ? true : false;
 		h.type.hit.p = intersection;
+		
+		h.type.hit.n = ray.direction;
+		h.type.hit.n.Normalize();
+
 		h.type.hit.m = modelHit;
 		actionStack.Push( h );
 	}
@@ -754,31 +763,92 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 
 void BattleScene::ProcessActionHit( Action* action )
 {
-	Model* m = action->type.hit.m;
-	Unit* hitUnit = 0;
+	bool changed = false;
 
-	if ( m ) 
-		hitUnit = UnitFromModel( m );
-	if ( hitUnit ) {
-		if ( hitUnit->IsAlive() ) {
+	if ( !action->type.hit.explosive ) {
+		// Apply direct hit damage
+		Model* m = action->type.hit.m;
+		Unit* hitUnit = 0;
 
-			hitUnit->DoDamage( action->type.hit.damageDesc );
-			if ( !hitUnit->IsAlive() ) {
-				selection.ClearTarget();			
-				CalcTeamTargets();
-				targetEvents.Clear();	// don't need to handle notification of obvious (alien shot)
+		if ( m ) 
+			hitUnit = UnitFromModel( m );
+		if ( hitUnit ) {
+			if ( hitUnit->IsAlive() ) {
+
+				hitUnit->DoDamage( action->type.hit.damageDesc );
+				if ( !hitUnit->IsAlive() ) {
+					selection.ClearTarget();			
+					targetEvents.Clear();	// don't need to handle notification of obvious (alien shot)
+					changed = true;
+				}
+				GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", (unsigned)hitUnit, (int)hitUnit->GetStats().HP(), (int)hitUnit->GetStats().TotalHP() ));
 			}
-			GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", (unsigned)hitUnit, (int)hitUnit->GetStats().HP(), (int)hitUnit->GetStats().TotalHP() ));
+		}
+		else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
+			// Hit world object.
+			bool destroyed = engine->GetMap()->DoDamage( m, action->type.hit.damageDesc );
+			if ( destroyed )
+				changed = true;
 		}
 	}
-	else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
-		// Hit world object.
-		bool changed = engine->GetMap()->DoDamage( m, action->type.hit.damageDesc );
-		if ( changed ) {
-			CalcAllVisibility();
-			SetFogOfWar();
-			CalcTeamTargets();
+	else {
+		// Explosion
+		const int MAX_RAD = 3;
+		// There is a small offset to move the explosion back towards the shooter.
+		// If it hits a wall (common) this will move it to the previous square.
+		// Also means a model hit may be a "near miss"...but explosions are messy.
+		const int x0 = (int)(action->type.hit.p.x - 0.2f*action->type.hit.n.x);
+		const int y0 = (int)(action->type.hit.p.z - 0.2f*action->type.hit.n.z);
+
+		for( int rad=0; rad<MAX_RAD; ++rad ) {
+			DamageDesc dd = action->type.hit.damageDesc;
+			dd.Scale( (float)(MAX_RAD-rad) / (float)(MAX_RAD) );
+
+			for( int y=y0-rad; y<=y0+rad; ++y ) {
+				for( int x=x0-rad; x<=x0+rad; ++x ) {
+					if ( x==(x0-rad) || x==(x0+rad) || y==(y0-rad) || y==(y0+rad) ) {
+						// can the tile to be damaged be reached by the explosion?
+						// visibility is checked up to the tile before this one, else
+						// it is possible to miss because "you can't see yourself"
+						bool canSee = true;
+						if ( rad > 0 ) {
+							LineWalk walk( x0, y0, x, y );
+							for( ; walk.CurrentStep() < (walk.NumSteps()-1); walk.Step() ) {
+								Vector2I p = walk.P();
+								Vector2I q = walk.Q();
+
+								if ( !engine->GetMap()->CanSee( p, q ) ) {
+									canSee = false;
+									break;
+								}
+							}
+							// Go with the sight check to see if the explosion can
+							// reach this tile.
+							if ( !canSee )
+								continue;
+						}
+
+						Unit* unit = GetUnitFromTile( x, y );
+						if ( unit && unit->IsAlive() ) {
+							unit->DoDamage( dd );
+							if ( !unit->IsAlive() && unit == SelectedSoldierUnit() ) {
+								selection.ClearTarget();			
+								targetEvents.Clear();	// don't need to handle notification of obvious (alien shot)
+								changed = true;
+							}
+						}
+						if ( engine->GetMap()->DoDamage( x, y, dd ) ) {
+							changed = true;
+						}
+					}
+				}
+			}
 		}
+	}
+	if ( changed ) {
+		CalcAllVisibility();
+		SetFogOfWar();
+		CalcTeamTargets();
 	}
 	actionStack.Pop();
 }

@@ -351,7 +351,7 @@ void Game::LoadMapResources()
 		{	"ufo_WallInn",	0,				0,			1,	1,	HP_STEEL,	0,			"1" },
 		{	"ufo_CrnrInn",	0,				0,			1,	1,	HP_STEEL,	0,			"3" },
 		{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	0,			"1" },
-		{	"ufo_Join0",	0,				0,			2,	1,	HP_STEEL,	0,			"1f" },
+		{	"ufo_Join0",	0,				0,			2,	1,	HP_STEEL*2,	0,			"1f" },
 		{	"ufo_Join1",	0,				0,			1,	2,	HP_STEEL,	0,			"2f" },
 		{	0	}
 	};
