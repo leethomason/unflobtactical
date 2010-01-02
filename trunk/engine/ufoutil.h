@@ -111,6 +111,9 @@ private:
 };
 
 
+
+
+
 /* A fixed array class for c-structs.
  */
 template < class T, int CAPACITY >

@@ -113,6 +113,7 @@ struct Vector2
 	}
 
 	T Length() const { return grinliz::Length( x, y ); };
+	T LengthSquared() const { return x*x + y*y; }
 
 	friend T Length( const Vector2<T>& a, const Vector2<T>& b ) {
 		return grinliz::Length( a.x-b.x, a.y-b.y );

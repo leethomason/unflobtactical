@@ -22,12 +22,14 @@
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glbitarray.h"
 #include "../grinliz/glmemorypool.h"
+#include "../grinliz/glrandom.h"
 #include "../micropather/micropather.h"
 #include "vertex.h"
 #include "surface.h"
 #include "enginelimits.h"
 #include "serialize.h"
 #include "ufoutil.h"
+#include "../shared/glmap.h"
 
 class Model;
 class ModelResource;
@@ -38,6 +40,8 @@ class ItemDef;
 class Storage;
 class Game;
 struct DamageDesc;
+class SustainedPyroEffect;
+class ParticleSystem;
 
 class Map : public micropather::Graph
 {
@@ -47,7 +51,6 @@ public:
 		LOG2_SIZE = 6,
 
 		MAX_ITEM_DEF = 256,
-//		MAX_TRAVEL = 16,
 		LIGHT_START = 0xD0			// where the lights start in the itemDef array
 	};
 
@@ -134,7 +137,6 @@ public:
 		MapItem* next;			// the 'next' after a query
 		MapItem* nextQuad;		// next pointer in the quadTree
 
-
 		void MapBounds( grinliz::Rectangle2I* r ) const 
 		{
 			r->Set( mapBounds8.min.x, mapBounds8.min.y, mapBounds8.max.x, mapBounds8.max.y );
@@ -200,7 +202,16 @@ public:
 	// Do damage to a singe map object.
 	bool DoDamage( Model* m, const DamageDesc& damage );
 	// Do damage to an entire map tile.
-	bool DoDamage( int x, int y, const DamageDesc& damage );
+	bool DoDamage( int x, int y, const DamageDesc& damage, bool* hitAnything=0 );
+	
+	// Process a sub-turn: fire moves, smoke goes away, etc.
+	void DoSubTurn();
+
+	// Smoke from weapons, explosions, effects, etc.
+	void AddSmoke( int x, int y, int subturns );
+	// Returns true if view obscured by smoke, fire, etc.
+	bool Obscured( int x, int y ) const		{ return PyroOn( x, y ) ? true : false; }
+	void EmitParticles( U32 deltaTime );
 
 	// Sets objects to block the path (usually other sprites) that the map doesn't know about.
 	void ClearPathBlocks();
@@ -346,11 +357,11 @@ private:
 	void InsertRow( int x, int y, int r, int def, int hp, int flags );
 	void DeleteRow( int x, int y, int r, int def );
 
+	grinliz::Random random;
 	int width, height;
 	grinliz::Rectangle3F bounds;
 	const Texture* texture;
 	SpaceTree* tree;
-
 	sqlite3* mapDB;
 	std::string dbTableName;
 
@@ -376,6 +387,23 @@ private:
 		Model* crate;
 	};
 	CDynArray< Debris > debris;
+
+	// U8:
+	// bits 0-6:	sub-turns remaining (0-127)		(0x7F)
+	// bit    7:	set: fire, clear: smoke			(0x80)
+	U8 pyro[SIZE*SIZE];
+
+	int PyroOn( int x, int y ) const		{ return pyro[y*SIZE+x]; }
+	int PyroFire( int x, int y ) const		{ return pyro[y*SIZE+x] & 0x80; }
+	bool PyroSmoke( int x, int y ) const	{ return PyroOn( x, y ) && !PyroFire( x, y ); }
+	int PyroDuration( int x, int y ) const	{ return pyro[y*SIZE+x] & 0x7F; }
+	void SetPyro( int x, int y, int duration, int fire ) {
+		GLASSERT( x >= 0 && x < SIZE );
+		GLASSERT( y >= 0 && y < SIZE );
+		GLASSERT( ( fire && duration==0) || (duration > 0 && duration < 128 ));
+		int f = (fire) ? 0x80 : 0;
+		pyro[y*SIZE+x] = duration | f;
+	}
 
 	grinliz::BitArray<SIZE, SIZE, 1>	pathBlock;	// spaces the pather can't use (units are there)	
 

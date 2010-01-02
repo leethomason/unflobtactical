@@ -2,6 +2,10 @@
 #define GAMELIMITS_INCLUDED
 
 const float FOV = 45.0f;
+
+const int SUBTURNS_PER_TURN = 3;
+const float FIRE_DAMAGE_PER_SUBTURN = 20.0f;
+
 const int MAX_MODELS = 256;
 const int MAX_UNITS	= 40;
 const int MAP_SIZE = 64;

@@ -63,7 +63,6 @@ public:
 
 	Engine engine;
 	Surface surface;
-	ParticleSystem* particleSystem;
 
 	// debugging / testing / mapmaker
 	void MouseMove( int x, int y );

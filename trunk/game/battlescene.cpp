@@ -130,7 +130,7 @@ BattleScene::~BattleScene()
 {
 	UFOStream* stream = game->OpenStream( "BattleScene" );
 	Save( stream );
-	game->particleSystem->Clear();
+	ParticleSystem::Instance()->Clear();
 	//FreePathEndModel();
 
 #if defined( MAPMAKER )
@@ -222,16 +222,19 @@ void BattleScene::NewTurn( int team )
 {
 	switch ( team ) {
 		case Unit::SOLDIER:
+			GLOUTPUT(( "New Turn: Terran\n" ));
 			for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i )
 				units[i].NewTurn();
 			break;
 
 		case Unit::ALIEN:
+			GLOUTPUT(( "New Turn: Alien\n" ));
 			for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i )
 				units[i].NewTurn();
 			break;
 
 		case Unit::CIVILIAN:
+			GLOUTPUT(( "New Turn: Civ\n" ));
 			for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i )
 				units[i].NewTurn();
 			break;
@@ -240,6 +243,13 @@ void BattleScene::NewTurn( int team )
 			GLASSERT( 0 );
 			break;
 	}
+	// Allow the map to change (fire and smoke)
+	engine->GetMap()->DoSubTurn();
+	
+	// Since the map has changed:
+	CalcAllVisibility();
+	SetFogOfWar();
+	CalcTeamTargets();
 }
 
 
@@ -343,6 +353,8 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 //	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
 // 	game->particleSystem->EmitFlame( deltaTime, pos );
 
+	engine->GetMap()->EmitParticles( deltaTime );
+
 	if (    SelectedSoldier()
 		 && SelectedSoldierUnit()->Status() == Unit::STATUS_ALIVE
 		 && SelectedSoldierUnit()->Team() == Unit::SOLDIER ) 
@@ -351,10 +363,10 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		GLASSERT( m );
 
 		float alpha = 0.5f;
-		game->particleSystem->EmitDecal( ParticleSystem::DECAL_SELECTION, 
-										 ParticleSystem::DECAL_BOTTOM,
-										 m->Pos(), alpha,
-										 m->GetYRotation() );
+		ParticleSystem::Instance()->EmitDecal(	ParticleSystem::DECAL_SELECTION, 
+												ParticleSystem::DECAL_BOTTOM,
+												m->Pos(), alpha,
+												m->GetYRotation() );
 
 		int unitID = SelectedSoldierUnit() - units;
 		const float ALPHA = 0.3f;
@@ -388,15 +400,13 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 			if ( targets.terran.alienTargets.IsSet( unitID-TERRAN_UNITS_START, i-ALIEN_UNITS_START ) ) {
 				Vector3F p;
 				units[i].CalcPos( &p );
-				game->particleSystem->EmitDecal( ParticleSystem::DECAL_TARGET,
-												 ParticleSystem::DECAL_BOTH,
-												 p, ALPHA, 0 );	
+				ParticleSystem::Instance()->EmitDecal(	ParticleSystem::DECAL_TARGET,
+														ParticleSystem::DECAL_BOTH,
+														p, ALPHA, 0 );	
 			}
 		}
 	}
-
 	ProcessAction( deltaTime );
-
 
 	if ( HasTarget() ) {
 		Vector3F pos = { 0, 0, 0 };
@@ -409,9 +419,9 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 
 		// Double up with previous target indicator.
 		const float ALPHA = 0.3f;
-		game->particleSystem->EmitDecal( ParticleSystem::DECAL_TARGET,
-										 ParticleSystem::DECAL_BOTH,
-										 pos, ALPHA, 0 );
+		ParticleSystem::Instance()->EmitDecal(	ParticleSystem::DECAL_TARGET,
+												ParticleSystem::DECAL_BOTH,
+												pos, ALPHA, 0 );
 
 		Vector2F r;
 		engine->WorldToScreen( pos, &r );
@@ -636,7 +646,7 @@ void BattleScene::ProcessAction( U32 deltaTime )
 
 			// If we changed map position, update UI feedback.
 			if ( newPos != originalPos || newRot != originalRot ) {
-				CalcVisibility( unit, newPos.x, newPos.y, newRot );
+				CalcVisibility( unit );
 				SetFogOfWar();
 				CalcTeamTargets();
 				DumpTargetEvents();
@@ -727,7 +737,7 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 
 		if ( beam0 != beam1 ) {
 			weaponDef->RenderWeapon( select,
-									 game->particleSystem,
+									 ParticleSystem::Instance(),
 									 beam0, beam1, 
 									 impact, 
 									 game->CurrentTime(), 
@@ -793,20 +803,27 @@ void BattleScene::ProcessActionHit( Action* action )
 	}
 	else {
 		// Explosion
-		const int MAX_RAD = 3;
+		const int MAX_RAD = 2;
+		const int MAX_RAD_2 = MAX_RAD*MAX_RAD;
+
 		// There is a small offset to move the explosion back towards the shooter.
 		// If it hits a wall (common) this will move it to the previous square.
 		// Also means a model hit may be a "near miss"...but explosions are messy.
 		const int x0 = (int)(action->type.hit.p.x - 0.2f*action->type.hit.n.x);
 		const int y0 = (int)(action->type.hit.p.z - 0.2f*action->type.hit.n.z);
 
-		for( int rad=0; rad<MAX_RAD; ++rad ) {
+		for( int rad=0; rad<=MAX_RAD; ++rad ) {
 			DamageDesc dd = action->type.hit.damageDesc;
-			dd.Scale( (float)(MAX_RAD-rad) / (float)(MAX_RAD) );
+			dd.Scale( (float)(1+MAX_RAD-rad) / (float)(1+MAX_RAD) );
 
 			for( int y=y0-rad; y<=y0+rad; ++y ) {
 				for( int x=x0-rad; x<=x0+rad; ++x ) {
 					if ( x==(x0-rad) || x==(x0+rad) || y==(y0-rad) || y==(y0+rad) ) {
+						
+						int radius2 = (x-x0)*(x-x0) + (y-y0)*(y-y0);
+						if ( radius2 > MAX_RAD_2 )
+							continue;
+						
 						// can the tile to be damaged be reached by the explosion?
 						// visibility is checked up to the tile before this one, else
 						// it is possible to miss because "you can't see yourself"
@@ -837,8 +854,17 @@ void BattleScene::ProcessActionHit( Action* action )
 								changed = true;
 							}
 						}
-						if ( engine->GetMap()->DoDamage( x, y, dd ) ) {
+						bool hitAnything = false;
+						if ( engine->GetMap()->DoDamage( x, y, dd, &hitAnything ) ) {
 							changed = true;
+						}
+
+						// Where to add smoke?
+						// - if we hit anything
+						// - change of smoke anyway
+						if ( hitAnything || random.Bit() ) {
+							int turns = 4 + random.Rand( 4 );
+							engine->GetMap()->AddSmoke( x, y, turns );
 						}
 					}
 				}
@@ -973,6 +999,8 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 			case BTN_END_TURN:
 				SetSelection( 0 );
 				engine->GetMap()->ClearNearPath();
+				NewTurn( Unit::ALIEN );
+				NewTurn( Unit::CIVILIAN );
 				NewTurn( Unit::SOLDIER );	// FIXME: should go alien or civ
 				break;
 
@@ -1414,157 +1442,144 @@ void BattleScene::CalcTeamTargets()
 	}
 }
 
-
+/*	Huge ol' performance bottleneck.
+	The CalcVis() is pretty good (or at least doesn't chew up too much time)
+	but the CalcAll() is terrible.
+	Debug mode.
+	Start: 141 MClocks
+*/
 void BattleScene::CalcAllVisibility()
 {
+	U64 startTime = FastTime();
+
 	visibilityMap.ClearAll();
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		if ( units[i].IsAlive() ) {
-			Vector2I pos;
-			float rotation;
-			units[i].CalcMapPos( &pos, &rotation );
-			CalcVisibility( &units[i], pos.x, pos.y, rotation );
+			CalcVisibility( &units[i] );
 		}
 	}
 	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
 		if ( units[i].IsAlive() ) {
-			Vector2I pos;
-			float rotation;
-			units[i].CalcMapPos( &pos, &rotation );
-			CalcVisibility( &units[i], pos.x, pos.y, rotation );
+			CalcVisibility( &units[i] );
 		}
 	}
+	U64 endTime = FastTime();
+	GLOUTPUT(( "CalcAllVis %d Mclocks\n", (endTime-startTime)/(1000*1000) ));
 }
 
 
-void BattleScene::CalcVisibility( const Unit* unit, int x, int y, float rotation )
+void BattleScene::CalcVisibility( const Unit* unit )
 {
+//	unit = units;
+
 	int unitID = unit - units;
-	//if ( unitID > 0 )
-	//	return;
 	GLASSERT( unitID >= 0 && unitID < MAX_UNITS );
+	Vector2I pos;
+	float rotation;
+	unit->CalcMapPos( &pos, &rotation );
 
 	// Clear out the old settings.
 	// Walk the area in range around the unit and cast rays.
 	visibilityMap.ClearPlane( unitID );
 
-	Rectangle2I r, b;
-	r.Set( 0, 0, MAP_SIZE-1, MAP_SIZE-1 );
-	b.Set( x-MAX_EYESIGHT_RANGE, y-MAX_EYESIGHT_RANGE, x+MAX_EYESIGHT_RANGE, y+MAX_EYESIGHT_RANGE );
-	b.DoIntersection( r );
-
 	Vector2I facing;
 	facing.x = (int)(10.0f*sinf(ToRadian(rotation)));
 	facing.y = (int)(10.0f*cosf(ToRadian(rotation)));
 	
+	// Can always see yourself.
+	int x = pos.x;
+	int y = pos.y;
+	visibilityMap.Set( x, y, unitID );
+
+	const float dist[8] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.4f, 1.4f, 1.4f, 1.4f };
+	const Vector2I next[8] = {
+		{ x+1, y },	{ x-1, y }, { x, y+1 }, {x, y-1},
+		{ x+1, y+1 }, {x-1, y+1}, {x+1, y-1}, { x-1, y-1 }
+	};
+
+	visibilityProcessed.ClearAll();
+	visibilityProcessed.Set( pos.x, pos.y, 0 );
+
+	/* Not a straight up recursion.
+	   Always compute the closest to get the light correct. (Essentially a 
+	   dijkstras algorithm.) Need a heap...very likely the first time
+	   I've hit this as a hard requirement. The heap is sorted on minimum distance,
+	   which guarantees the minimum light path.
+	*/
+	for( int i=0; i<8; ++i ) {
+		if (    !visibilityProcessed.IsSet( next[i].x, next[i].y, 0 )
+			 && engine->GetMap()->CanSee( pos, next[i] ) )
+			CalcVisibilityRec( unitID, next[i], pos, facing, 1.0f, dist[i] );
+	}
+}
+
+
+void BattleScene::CalcVisibilityRec(	int unitID,
+										const Vector2I& pos,
+										const Vector2I& origin, const Vector2I& facing, 
+										float light, float distance )
+{
+	visibilityProcessed.Set( pos.x, pos.y, 0 );
 	/* Previous pass used a true ray casting approach, but this doesn't get good results. Numerical errors,
 	   view stopped by leaves, rays going through cracks. Switching to a line walking approach to 
 	   acheive stability and simplicity. (And probably performance.)
 	*/
+	static const int MAX_SIGHT_SQUARED = MAX_EYESIGHT_RANGE*MAX_EYESIGHT_RANGE;
 
-	const int MAX_SIGHT_SQUARED = MAX_EYESIGHT_RANGE*MAX_EYESIGHT_RANGE;
+	// Correct direction
+	Vector2I vec = pos - origin;
+	int dot = DotProduct( facing, vec );
+	if ( dot < 0 )
+		return;
 
-	for( int j=b.min.y; j<=b.max.y; ++j ) {
-		for( int i=b.min.x; i<=b.max.x; ++i ) {
+	// Max sight
+	int len2 = vec.LengthSquared();
+	if ( len2 > MAX_SIGHT_SQUARED )
+		return;
 
-			// Early out the simple cases:
-			if ( i==x && j==y ) {
-				// Can always see yourself.
-				visibilityMap.Set( i, j, unitID );
-				continue;
+	visibilityMap.Set( pos.x, pos.y, unitID );
+
+	const Surface* lightMap = engine->GetMap()->GetLightMap(1);
+	GLASSERT( lightMap->Format() == Surface::RGB16 );
+
+	// Put light at the bottom: if we run out, we can't see the NEXT thing.
+	Surface::RGBA rgba;
+	U16 c = lightMap->ImagePixel16( pos.x, pos.y );
+	Surface::CalcRGB16( c, &rgba );
+
+	const float OBSCURED = 0.50f;
+	const float DARK  = 0.16f;
+	const float LIGHT = 0.08f;
+	const int EPS = 10;
+
+	if ( engine->GetMap()->Obscured( pos.x, pos.y ) ) {
+		light -= OBSCURED * distance;
+	}
+	else if (   rgba.r > (EL_NIGHT_RED_U8+EPS)
+			 || rgba.g > (EL_NIGHT_GREEN_U8+EPS)
+			 || rgba.b > (EL_NIGHT_BLUE_U8+EPS) ) 
+	{
+		light -= LIGHT * distance;
+	}
+	else {
+		light -= DARK * distance;
+	}
+
+	if ( light > 0.0f ) {
+		const int x = pos.x;
+		const int y = pos.y;
+		const float dist[8] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.4f, 1.4f, 1.4f, 1.4f };
+		const Vector2I next[8] = {
+			{ x+1, y },	{ x-1, y }, { x, y+1 }, {x, y-1},
+			{ x+1, y+1 }, {x-1, y+1}, {x+1, y-1}, { x-1, y-1 }
+		};
+
+		for( int i=0; i<8; ++i ) {
+			if (    !visibilityProcessed.IsSet( next[i].x, next[i].y, 0 )
+				 && engine->GetMap()->CanSee( pos, next[i] ) )
+			{
+				CalcVisibilityRec( unitID, next[i], origin, facing, light, dist[i] );
 			}
-
-			// Correct direction
-			int dx = i-x;
-			int dy = j-y;
-			Vector2I vec = { dx, dy };
-			int dot = DotProduct( facing, vec );
-			if ( dot < 0 )
-				continue;
-
-			// Max sight
-			int len2 = dx*dx + dy*dy;
-			if ( (float)len2 > ((float)MAX_SIGHT_SQUARED * (0.3f+0.7f*dot) ) )
-				continue;
-
-			int axis=0;
-			int axisDir = 1;
-			int steps = abs(dx);
-			Fixed delta( 0 );
-
-			if ( abs( dy ) > abs(dx) ) {
-				// y is major axis. delta = dx per distance y
-				axis = 1;
-				steps = abs(dy);
-				if ( dy < 0 )
-					axisDir = -1;
-				delta = Fixed( dx ) / Fixed( abs(dy) );
-				GLASSERT( delta < 1 && delta > -1 );
-			}
-			else {
-				// x is the major aris. delta = dy per distance x
-				if ( dx < 0 )
-					axisDir = -1;
-				delta = Fixed( dy ) / Fixed( abs(dx) );
-				GLASSERT( delta <= 1 && delta >= -1 );
-			}
-
-			/* Line walking algorithm. Step 1 unit on the major axis,
-			   and occasionally on the minor axis.
-			*/
-			float light = 1.0f;
-			const Surface* lightMap = engine->GetMap()->GetLightMap(1);
-			GLASSERT( lightMap->Format() == Surface::RGB16 );
-			//const U16* pixel = (const U16*) lightMap->Pixels();
-
-			Vector2<Fixed> p = { Fixed(x)+Fixed(0.5f), Fixed(y)+Fixed(0.5f) };
-
-			int k=0;
-			for( ; k<steps; ++k ) {
-				Vector2<Fixed> q = p;
-				q.X(axis) += axisDir;
-				q.X(!axis) += delta;
-
-				Vector2I p0 = { (int)p.x, (int)p.y };
-				Vector2I q0 = { (int)q.x, (int)q.y };
-				bool canSee = engine->GetMap()->CanSee( p0, q0 );
-				if ( !canSee ) {
-					break;
-				}
-
-				// Put light at the bottom: if we run out, we can't see the NEXT thing.
-				if ( !engine->GetDayTime() ) {
-
-					float dist=1.0f;
-					if ( abs( p0.x-q0.x ) + abs( p0.y-q0.y ) == 2 ) {
-						dist = 1.4f;
-					}
-
-					Surface::RGBA rgba;
-					U16 c = lightMap->ImagePixel16( q0.x, q0.y );
-					Surface::CalcRGB16( c, &rgba );
-
-					const float DARK  = 0.16f;
-					const float LIGHT = 0.08f;
-					const int EPS = 10;
-
-					if (    rgba.r > (EL_NIGHT_RED_U8+EPS)
-						 || rgba.g > (EL_NIGHT_GREEN_U8+EPS)
-						 || rgba.b > (EL_NIGHT_BLUE_U8+EPS) ) 
-					{
-						light -= LIGHT * dist;
-					}
-					else {
-						light -= DARK * dist;
-					}
-
-					if ( light <= 0.0f )
-						break;
-				}
-				p = q;
-			}
-			if ( k == steps )
-				visibilityMap.Set( i, j, unitID );
 		}
 	}
 }
