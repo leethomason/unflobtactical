@@ -145,7 +145,11 @@ private:
 
 	void InitUnits();
 	void TestHitTesting();
-	void CalcVisibility( const Unit* unit, int x, int y, float rotation );
+	void CalcVisibility( const Unit* unit );
+	void CalcVisibilityRec( int unitID,
+							const grinliz::Vector2I& p,
+							const grinliz::Vector2I& origin, const grinliz::Vector2I& facing, 
+							float light, float distance );
 	void CalcAllVisibility();
 	void SetPathBlocks();
 
@@ -199,6 +203,7 @@ private:
 	UIButtonGroup*	widgets;
 	UIButtonBox*	fireWidget;
 	Engine*			engine;
+	grinliz::Random random;	// "the" random number generator for the battle
 
 	enum {
 		MAX_TERRANS = 8,
@@ -255,6 +260,7 @@ private:
 	void DumpTargetEvents();
 
 	grinliz::BitArray< MAP_SIZE, MAP_SIZE, MAX_UNITS > visibilityMap;
+	grinliz::BitArray< MAP_SIZE, MAP_SIZE, 1 > visibilityProcessed;
 	Unit units[MAX_UNITS];
 
 #ifdef MAPMAKER

@@ -29,15 +29,16 @@ class ParticleEffect;
 class ParticleSystem
 {
 public:
+	static ParticleSystem* Instance()	{ GLASSERT( instance ); return instance; }
+
+	static void Create();
+	static void Destroy();
 
 	enum {
 		MAX_POINT_PARTICLES = 400,
 		MAX_QUAD_PARTICLES = 100,
 		MAX_DECALS = 48
 	};
-
-	ParticleSystem();
-	~ParticleSystem();
 
 	// Texture particles. Location in texture follows.
 	enum {
@@ -109,7 +110,8 @@ public:
 					U32 lifetime );
 
 	// Emits a compound flame system for this frame of animation.
-	void EmitFlame( U32 delta, const grinliz::Vector3F& pos );
+	void EmitFlame( U32 delta, const grinliz::Vector3F& pos )	{ EmitSmokeAndFlame( delta, pos, true ); }
+	void EmitSmoke( U32 delta, const grinliz::Vector3F& pos )	{ EmitSmokeAndFlame( delta, pos, false ); }
 
 	// Place a decal for a frame (decals don't have lifetimes.)
 	void EmitDecal( int id, int flags, const grinliz::Vector3F& pos, float alpha, float rotation );
@@ -123,6 +125,10 @@ public:
 	ParticleEffect* EffectFactory( const char* name );
 
 private:
+	ParticleSystem();
+	~ParticleSystem();
+
+	static ParticleSystem* instance;
 
 	struct Particle
 	{
@@ -176,6 +182,7 @@ private:
 	void DrawPointParticles( const grinliz::Vector3F* eyeDir );
 	void DrawQuadParticles( const grinliz::Vector3F* eyeDir );
 	void DrawDecalParticles( int flag );
+	void EmitSmokeAndFlame( U32 delta, const grinliz::Vector3F& pos, bool flame );
 
 	grinliz::Random rand;
 	int nParticles[NUM_PRIMITIVES];

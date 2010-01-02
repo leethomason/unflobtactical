@@ -27,6 +27,7 @@
 #include "loosequadtree.h"
 #include "renderQueue.h"
 #include "surface.h"
+#include "particle.h"
 
 using namespace grinliz;
 
@@ -119,6 +120,7 @@ Engine::Engine( const Screenport& port, const EngineData& _engineData )
 {
 	TextureManager::Create();
 	ModelResourceManager::Create();
+	ParticleSystem::Create();
 
 	spaceTree = new SpaceTree( -0.1f, 3.0f );
 	map = new Map( spaceTree );
@@ -133,9 +135,6 @@ Engine::Engine( const Screenport& port, const EngineData& _engineData )
 	lightDirection.Set( 0.7f, 3.0f, 1.4f );
 	lightDirection.Normalize();
 	depthFunc = 0;
-
-//	fogOfWar.SetAll();		// see everything
-//	UpdateFogOfWar();
 }
 
 
@@ -145,18 +144,10 @@ Engine::~Engine()
 	delete map;
 	delete spaceTree;
 
+	ParticleSystem::Destroy();
 	ModelResourceManager::Destroy();
 	TextureManager::Destroy();
 }
-
-
-/*
-void Engine::UpdateFogOfWar()
-{
-	//map->GenerateLightMap( fogOfWar );
-	map->SetFogOfWar(
-}
-*/
 
 
 void Engine::MoveCameraHome()

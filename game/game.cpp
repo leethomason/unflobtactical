@@ -104,8 +104,6 @@ Game::Game( const Screenport& sp, const char* _savePath ) :
 
 	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 
-	particleSystem = new ParticleSystem();
-
 	currentScene = 0;
 	scenePushQueued = BATTLE_SCENE;
 	PushPopScene();
@@ -116,8 +114,6 @@ Game::~Game()
 {
 	delete currentScene;
 	currentScene = 0;
-
-	delete particleSystem;
 
 	while( rootStream ) {
 		UFOStream* temp = rootStream;
@@ -324,6 +320,7 @@ void Game::DoTick( U32 _currentTime )
 #endif
 	
 	const grinliz::Vector3F* eyeDir = engine.camera.EyeDir3();
+	ParticleSystem* particleSystem = ParticleSystem::Instance();
 	particleSystem->Update( deltaTime, currentTime );
 	particleSystem->Draw( eyeDir );
 

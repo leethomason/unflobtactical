@@ -22,15 +22,33 @@
 
 using namespace grinliz;
 
+
+/*static*/ void ParticleSystem::Create()
+{
+	GLASSERT( instance == 0 );
+	instance = new ParticleSystem();
+}
+
+
+/*static*/ void ParticleSystem::Destroy()
+{
+	GLASSERT( instance );
+	delete instance;
+	instance = 0;
+}
+
+
+ParticleSystem* ParticleSystem::instance = 0;
+
+
 ParticleSystem::ParticleSystem()
 {
 	for( int i=0; i<NUM_PRIMITIVES; ++i ) {
 		nParticles[i] = 0;
 	}
 	nDecals = 0;
-
-	pointTexture = TextureManager::Instance()->GetTexture( "particleSparkle" );
-	quadTexture = TextureManager::Instance()->GetTexture( "particleQuad" );
+	pointTexture = 0;
+	quadTexture = 0;
 }
 
 
@@ -87,17 +105,17 @@ ParticleEffect* ParticleSystem::EffectFactory( const char* name )
 }
 
 
-void ParticleSystem::Update( U32 msec, U32 currentTime )
+void ParticleSystem::Update( U32 deltaTime, U32 currentTime )
 {
 	// Process the effects (may change number of particles, etc.
 	for( int i=0; i<effectArr.Size(); ++i ) {
 		if ( !effectArr[i]->Done() ) {
-			effectArr[i]->DoTick( currentTime );
+			effectArr[i]->DoTick( currentTime, deltaTime );
 		}
 	}
 
 	// Process the particles.
-	float sec = (float)msec / 1000.0f;
+	float sec = (float)deltaTime / 1000.0f;
 
 	for( int i=0; i<NUM_PRIMITIVES; ++i ) {
 		Particle* pStart	= 0;
@@ -111,7 +129,7 @@ void ParticleSystem::Update( U32 msec, U32 currentTime )
 		Particle* pEnd	= pStart + nParticles[i];
 
 		while( p < pEnd ) {
-			p->age += msec;
+			p->age += deltaTime;
 			if ( p->lifetime == 0 ) {
 				// special case: lifetime of 0 is always a one frame particle.
 				p->age = 2;
@@ -337,7 +355,7 @@ void ParticleSystem::EmitDecal( int id, int flags, const grinliz::Vector3F& pos,
 }
 
 
-void ParticleSystem::EmitFlame( U32 delta, const Vector3F& _pos )
+void ParticleSystem::EmitSmokeAndFlame( U32 delta, const Vector3F& _pos, bool flame )
 {
 	// flame, smoke, particle
 	U32 count[3];
@@ -356,7 +374,7 @@ void ParticleSystem::EmitFlame( U32 delta, const Vector3F& _pos )
 
 	
 	// Flame
-	{
+	if ( flame ) {
 		Vector3F pos = _pos;
 		pos.y += 0.3f;
 
@@ -384,7 +402,7 @@ void ParticleSystem::EmitFlame( U32 delta, const Vector3F& _pos )
 	// Smoke
 	{
 		Vector3F pos = _pos;
-		pos.y -= 1.0f;
+		//pos.y -= 1.0f;
 
 		const Color4F color		= { 0.5f, 0.5f, 0.5f, 1.0f };
 		const Color4F colorVec	= { -0.1f, -0.1f, -0.1f, -0.2f };
@@ -404,7 +422,7 @@ void ParticleSystem::EmitFlame( U32 delta, const Vector3F& _pos )
 	}
 	
 	// Sparkle
-	{
+	if ( flame ) {
 		Vector3F pos = _pos;
 
 		const Color4F color		= { 1.0f, 0.3f, 0.1f, 1.0f };
@@ -428,6 +446,11 @@ void ParticleSystem::EmitFlame( U32 delta, const Vector3F& _pos )
 
 void ParticleSystem::Draw( const Vector3F* eyeDir )
 {
+	if ( !pointTexture ) {
+		pointTexture = TextureManager::Instance()->GetTexture( "particleSparkle" );
+		quadTexture = TextureManager::Instance()->GetTexture( "particleQuad" );
+	}
+
 	glEnable( GL_BLEND );
 	glDepthMask( GL_FALSE );
 

@@ -1,9 +1,10 @@
 Demo bugs:
-- explosive weapons
-- fire - flammability
+- sort out CalcVis vs. CalcAllVis.
+- sort out when to clear / process Events
+- reaction fire
+- first unit in first slot doesn't seem to do damage correctly with rocket
 - weapon (in)accuracy
 - center on selected unit (w/ scrolling?)
-- reaction fire
 - tu in character screen
 
 Wait
@@ -12,6 +13,10 @@ Wait
 - melee weapons
 
 FIXED
+- fire - flammability
+- smoke from explosive weapons
+- smoke and fire effect visibility
+- explosive weapons
 - on object destroyed, re-calc visibility
 - remove double delay on weapon blasts
 - always fires primary weapon

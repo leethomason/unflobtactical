@@ -395,6 +395,14 @@
 			RelativePath="..\..\shared\gldatabase.h"
 			>
 		</File>
+		<File
+			RelativePath="..\..\shared\glmap.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\shared\glmap.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

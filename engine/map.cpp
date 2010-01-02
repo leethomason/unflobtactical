@@ -25,6 +25,8 @@
 #include "../game/game.h"			// bad call to less general directory. FIXME. Move map to game?
 #include "../sqlite3/sqlite3.h"
 #include "../shared/gldatabase.h"
+#include "../engine/particleeffect.h"
+#include "../engine/particle.h"
 
 using namespace grinliz;
 using namespace micropather;
@@ -110,6 +112,7 @@ void Map::Clear()
 	}
 	debris.Clear();
 
+	memset( pyro, 0, SIZE*SIZE*sizeof(U8) );
 	memset( visMap, 0, SIZE*SIZE );
 	memset( pathMap, 0, SIZE*SIZE );
 }
@@ -381,10 +384,20 @@ void Map::IMat::Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out  )
 }
 
 
-bool Map::DoDamage( int x, int y, const DamageDesc& damage )
+bool Map::DoDamage( int x, int y, const DamageDesc& damage, bool* hitAnything )
 {
+	if ( hitAnything ) {
+		*hitAnything = false;
+	}
+	float hp = damage.Total();
+	if ( hp <= 0.0f )
+		return false;
+
 	bool changed = false;
 	const MapItem* root = quadTree.FindItems( x, y, 0, MapItem::MI_IS_LIGHT );
+	if ( root && hitAnything ) {
+		*hitAnything = true;
+	}
 	for( ; root; root=root->next ) {
 		if ( root->model ) {
 			GLASSERT( root->model->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) );
@@ -408,11 +421,9 @@ bool Map::DoDamage( Model* m, const DamageDesc& damageDesc )
 
 		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 
-		// FIXME: 1st pass, take no incindiary damage.
-		// But need to fix it so it may catch fire.
 		int hp = (int)(damageDesc.energy + damageDesc.kinetic );
-		GLOUTPUT(( "map damage '%s' (%d,%d) dam=%d\n",
-			       itemDef.name, item->x, item->y, hp ));
+		//GLOUTPUT(( "map damage '%s' (%d,%d) dam=%d\n",
+		//	       itemDef.name, item->x, item->y, hp ));
 
 		if ( itemDef.CanDamage() && item->DoDamage(hp) ) 
 		{
@@ -430,8 +441,89 @@ bool Map::DoDamage( Model* m, const DamageDesc& damageDesc )
 			AddItem( x, y, r, def, hp, flags );
 			destroyed = true;
 		}
+		if ( !destroyed && itemDef.CanDamage() && itemDef.flammable > 0 ) {
+			if ( damageDesc.incind > random.Rand( 256-itemDef.flammable )) {
+				SetPyro( item->x, item->y, 0, 1 );
+			}
+		}
 	}
 	return destroyed;
+}
+
+
+void Map::DoSubTurn()
+{
+	for( int i=0; i<SIZE*SIZE; ++i ) {
+		if ( pyro[i] ) {
+			// FIXME: worth making faster? Set up for debugging (uses utility functions)
+			int y = i/SIZE;
+			int x = i-y*SIZE;
+
+			if ( PyroSmoke( x, y ) ) {
+				int duration = PyroDuration( x, y );
+				if ( duration > 0 )
+					duration--;
+				if ( duration == 0 ) 
+					pyro[i] = 0;
+				else
+					SetPyro( x, y, duration, 0 );
+			}
+			else {
+				// Spread? Reduce to smoke?
+				// If there is nothing left, then fire ends. (ouchie.)
+				MapItem* root = quadTree.FindItems( x, y, 0, MapItem::MI_IS_LIGHT );
+				while ( root && root->Destroyed() )
+					root = root->next;
+
+				if ( !root ) {
+					// a few sub-turns of smoke
+					SetPyro( x, y, 3, 0 );
+				}
+				else {
+					// Will torch a building in no time. (Adjacent fires do multiple damage.)
+					DamageDesc d = { FIRE_DAMAGE_PER_SUBTURN*0.5f, FIRE_DAMAGE_PER_SUBTURN*0.5f, 0.0f };
+					DoDamage( x, y, d );
+					DamageDesc f = { 0, 0, FIRE_DAMAGE_PER_SUBTURN };
+					if ( x > 0 ) DoDamage( x-1, y, f );
+					if ( x < SIZE-1 ) DoDamage( x+1, y, f );
+					if ( y > 0 ) DoDamage( x, y-1, f );
+					if ( y < SIZE-1 ) DoDamage( x, y+1, f );
+				}
+			}
+		}
+	}
+}
+
+
+void Map::EmitParticles( U32 delta )
+{
+	ParticleSystem* system = ParticleSystem::Instance();
+	for( int i=0; i<SIZE*SIZE; ++i ) {
+		if ( pyro[i] ) {
+			int y = i/SIZE;
+			int x = i-y*SIZE;
+			bool fire = PyroFire( x, y ) ? true : false;
+			Vector3F pos = { (float)x+0.5f, 0.0f, (float)y+0.5f };
+			if ( fire )
+				system->EmitFlame( delta, pos );
+			else
+				system->EmitSmoke( delta, pos );
+		}
+	}
+}
+
+
+void Map::AddSmoke( int x, int y, int subTurns )
+{
+	if ( PyroOn( x, y ) ) {
+		// If on fire, ignore. Already smokin'
+		if ( !PyroFire( x, y ) ) {
+			SetPyro( x, y, subTurns, 0 );
+		}
+	}
+	else {
+		SetPyro( x, y, subTurns, 0 );
+	}
 }
 
 
@@ -1343,10 +1435,10 @@ bool Map::CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& q )
 {
 	GLASSERT( InRange( q.x-p.x, -1, 1 ) );
 	GLASSERT( InRange( q.y-p.y, -1, 1 ) );
-	GLASSERT( p.x >=0 && p.x < SIZE );
-	GLASSERT( p.y >=0 && p.y < SIZE );
-	GLASSERT( q.x >=0 && q.x < SIZE );
-	GLASSERT( q.y >=0 && q.y < SIZE );
+	if ( p.x < 0 || p.x >= SIZE || p.y < 0 || p.y >= SIZE )
+		return false;
+	if ( q.x < 0 || q.x >= SIZE || q.y < 0 || q.y >= SIZE )
+		return false;
 
 	int dx = q.x-p.x;
 	int dy = q.y-p.y;
@@ -1445,8 +1537,8 @@ void Map::QuadTree::Add( MapItem* item )
 	tree[i] = item;
 	depthUse[d] += 1;
 
-	GLOUTPUT(( "Depth: %2d %2d %2d %2d %2d\n", 
-			   depthUse[0], depthUse[1], depthUse[2], depthUse[3], depthUse[4] ));
+	//GLOUTPUT(( "Depth: %2d %2d %2d %2d %2d\n", 
+	//		   depthUse[0], depthUse[1], depthUse[2], depthUse[3], depthUse[4] ));
 }
 
 
