@@ -57,6 +57,9 @@ LineWalk::LineWalk(int x0, int y0, int x1, int y1)
 {
 	int dx = x1-x0;
 	int dy = y1-y0;
+	axisDir = 1;
+
+	GLASSERT( dx || dy );
 
 	if ( abs( dy ) > abs(dx) ) {
 		// y is major axis. delta = dx per distance y
@@ -84,11 +87,18 @@ LineWalk::LineWalk(int x0, int y0, int x1, int y1)
 }
 
 
-void LineWalk::Step()
+void LineWalk::Step( int n)
 {
-	GLASSERT( step < nSteps );
+	GLASSERT( step+n < nSteps );
+	GLASSERT( n > 0 );
+
+	if ( n > 1 ) {
+		q.X(axis)  += axisDir*(n-1);
+		q.X(!axis) += delta*(n-1);
+	}
 	p = q;
-	q.X(axis) += axisDir;
+	q.X(axis)  += axisDir;
 	q.X(!axis) += delta;
-	++step;
+
+	step += n;
 }

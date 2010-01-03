@@ -57,7 +57,7 @@ unsigned CMapBase::HashVal( const void* _p )
 void CMapBase::Add( const char* key, void* value )
 {
 	if ( nAdds > (nBuckets/2) ) {
-		assert( !recursing );
+		GLASSERT( !recursing );
 		recursing = true;
 		
 		Bucket* tempBuckets = buckets;
@@ -132,7 +132,7 @@ void* CMapBase::Get( const char* key )
 			return buckets[h].value;
 		}
 	}
-	assert( 0 );
+	GLASSERT( 0 );
 	return 0;
 }
 
