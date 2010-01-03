@@ -93,6 +93,22 @@ namespace grinliz {
 #	error Platform not supported for profiling.
 #endif
 
+class QuickProfile
+{
+public:
+	QuickProfile( const char* name)		{ 
+		startTime = FastTime(); 
+		this->name = name;
+	}
+	~QuickProfile()		{ 
+		U64 endTime = FastTime();	
+		GLOUTPUT(( "%s %d MClocks\n", name, (int)((endTime-startTime)/(U64)(1000*1000)) ));
+	}
+
+private:
+	U64 startTime;
+	const char* name;
+};
 
 const int GL_MAX_PROFILE_ITEM = 32;	// Max functions that can be profiled.
 

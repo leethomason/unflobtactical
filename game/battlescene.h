@@ -261,6 +261,15 @@ private:
 
 	grinliz::BitArray< MAP_SIZE, MAP_SIZE, MAX_UNITS > visibilityMap;
 	grinliz::BitArray< MAP_SIZE, MAP_SIZE, 1 > visibilityProcessed;
+	void InitVisDir();
+	enum { 
+		VIS_DIR_SIZE = 20,
+		VIS_E  = 0x01,
+		VIS_NE = 0x02,
+		VIS_N  = 0x04
+	};
+	U8 visDir[VIS_DIR_SIZE*VIS_DIR_SIZE];
+
 	Unit units[MAX_UNITS];
 
 #ifdef MAPMAKER
