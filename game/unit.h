@@ -79,6 +79,10 @@ public:
 	void SetYRotation( float rotation );
 	void CalcPos( grinliz::Vector3F* ) const;
 
+	// Note the visibility is current (or not...) irrespective of the unit being alive.
+	bool VisibilityCurrent() const				{ return visibilityCurrent; }
+	void SetVisibilityCurrent( bool current)	{ visibilityCurrent = current; }
+
 	// Compute the map pos: x,y (always int) and rotation (always multiple of 45)
 	void CalcMapPos( grinliz::Vector2I*, float* rotation ) const;
 
@@ -107,6 +111,7 @@ public:
 
 	void Save( UFOStream* s ) const;
 	void Load( UFOStream* s, Engine* engine, Game* game );
+
 
 private:
 	enum {	
@@ -138,6 +143,7 @@ private:
 	Model*		model;
 	Model*		weapon;
 	Inventory	inventory;
+	bool visibilityCurrent;	// if set, the visibility is current. Can be set by CalcAllVisibility()
 
 	Stats stats;
 };

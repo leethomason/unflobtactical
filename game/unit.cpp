@@ -186,7 +186,7 @@ void Unit::Init(	Engine* engine, Game* game,
 	this->game = game;
 	this->team = team;
 	weapon = 0;
-	//weaponItem = 0;
+	visibilityCurrent = false;
 
 	switch( team ) {
 		case SOLDIER:	GenerateSoldier( seed );			break;
@@ -230,6 +230,7 @@ void Unit::SetMapPos( int x, int z )
 	grinliz::Vector3F p = { (float)x + 0.5f, 0.0f, (float)z + 0.5f };
 	model->SetPos( p );
 	UpdateWeapon();
+	visibilityCurrent = false;
 }
 
 
@@ -239,6 +240,7 @@ void Unit::SetYRotation( float rotation )
 	GLASSERT( model );
 	model->SetYRotation( rotation );
 	UpdateWeapon();
+	visibilityCurrent = false;
 }
 
 
@@ -249,6 +251,7 @@ void Unit::SetPos( const grinliz::Vector3F& pos, float rotation )
 	model->SetPos( pos );
 	model->SetYRotation( rotation );
 	UpdateWeapon();
+	visibilityCurrent = false;
 }
 
 
@@ -347,6 +350,7 @@ void Unit::Kill()
 	model->SetYRotation( r );
 	model->SetPos( pos );
 	model->SetFlag( Model::MODEL_NO_SHADOW );
+	visibilityCurrent = false;
 }
 
 
@@ -356,6 +360,7 @@ void Unit::DoDamage( const DamageDesc& damage )
 	stats.DoDamage( (int)damage.Total() );
 	if ( !stats.HP() ) {
 		Kill();
+		visibilityCurrent = false;
 	}
 }
 

@@ -118,10 +118,8 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	}
 #endif
 
-	CalcAllVisibility();
+	visibilityMap.ClearAll();
 	SetFogOfWar();
-	CalcTeamTargets();
-	targetEvents.Clear();
 	NewTurn( Unit::SOLDIER );
 }
 
@@ -247,9 +245,7 @@ void BattleScene::NewTurn( int team )
 	engine->GetMap()->DoSubTurn();
 	
 	// Since the map has changed:
-	CalcAllVisibility();
 	SetFogOfWar();
-	CalcTeamTargets();
 }
 
 
@@ -281,6 +277,7 @@ void BattleScene::Load( UFOStream* /*s*/ )
 
 void BattleScene::SetFogOfWar()
 {
+	CalcAllVisibility();
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fow = engine->GetMap()->LockFogOfWar();
 #ifdef MAPMAKER
 	fow->SetAll();
@@ -646,11 +643,7 @@ void BattleScene::ProcessAction( U32 deltaTime )
 
 			// If we changed map position, update UI feedback.
 			if ( newPos != originalPos || newRot != originalRot ) {
-				CalcVisibility( unit );
 				SetFogOfWar();
-				CalcTeamTargets();
-				DumpTargetEvents();
-				targetEvents.Clear();
 			}
 
 			// If actions are empty and this is the selected unit, update
@@ -805,6 +798,7 @@ void BattleScene::ProcessActionHit( Action* action )
 		// Explosion
 		const int MAX_RAD = 2;
 		const int MAX_RAD_2 = MAX_RAD*MAX_RAD;
+		changed = true;	// generates smoke.
 
 		// There is a small offset to move the explosion back towards the shooter.
 		// If it hits a wall (common) this will move it to the previous square.
@@ -852,12 +846,10 @@ void BattleScene::ProcessActionHit( Action* action )
 							if ( !unit->IsAlive() && unit == SelectedSoldierUnit() ) {
 								selection.ClearTarget();			
 								targetEvents.Clear();	// don't need to handle notification of obvious (alien shot)
-								changed = true;
 							}
 						}
 						bool hitAnything = false;
 						if ( engine->GetMap()->DoDamage( x, y, dd, &hitAnything ) ) {
-							changed = true;
 						}
 
 						// Where to add smoke?
@@ -873,9 +865,9 @@ void BattleScene::ProcessActionHit( Action* action )
 		}
 	}
 	if ( changed ) {
-		CalcAllVisibility();
+		// The MAP changed - reset all views.
+		InvalidateAllVisibility();
 		SetFogOfWar();
-		CalcTeamTargets();
 	}
 	actionStack.Pop();
 }
@@ -1377,6 +1369,7 @@ void BattleScene::DumpTargetEvents()
 	}
 }
 
+
 void BattleScene::CalcTeamTargets()
 {
 	// generate events.
@@ -1385,6 +1378,7 @@ void BattleScene::CalcTeamTargets()
 
 	Targets old = targets;
 	targets.Clear();
+	CalcAllVisibility();
 
 	// Terran to Alien
 	// Go through each alien, and check #terrans that can target it.
@@ -1443,6 +1437,18 @@ void BattleScene::CalcTeamTargets()
 	}
 }
 
+
+void BattleScene::InvalidateAllVisibility()
+{
+	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+		units[i].SetVisibilityCurrent( false );
+	}
+	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+		units[i].SetVisibilityCurrent( false );
+	}
+}
+
+
 /*	Huge ol' performance bottleneck.
 	The CalcVis() is pretty good (or at least doesn't chew up too much time)
 	but the CalcAll() is terrible.
@@ -1460,21 +1466,38 @@ void BattleScene::CalcAllVisibility()
 {
 	QuickProfile qp( "CalcAllVisibility()" );
 
-	visibilityMap.ClearAll();
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		if ( units[i].IsAlive() ) {
-			CalcVisibility( &units[i] );
+			if ( !units[i].VisibilityCurrent() ) {
+				CalcUnitVisibility( &units[i] );
+				units[i].SetVisibilityCurrent( true );
+			}
+		}
+		else {
+			if ( !units[i].VisibilityCurrent() ) {
+				visibilityMap.ClearPlane( i );
+				units[i].SetVisibilityCurrent( true );
+			}
 		}
 	}
 	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
 		if ( units[i].IsAlive() ) {
-			CalcVisibility( &units[i] );
+			if ( !units[i].VisibilityCurrent() ) {
+				CalcUnitVisibility( &units[i] );
+				units[i].SetVisibilityCurrent( true );
+			}
+		}
+		else {
+			if ( !units[i].VisibilityCurrent() ) {
+				visibilityMap.ClearPlane( i );
+				units[i].SetVisibilityCurrent( true );
+			}
 		}
 	}
 }
 
 
-void BattleScene::CalcVisibility( const Unit* unit )
+void BattleScene::CalcUnitVisibility( const Unit* unit )
 {
 	//unit = units;	// debugging: 1st unit only
 
@@ -1599,10 +1622,7 @@ void BattleScene::CalcVisibilityRay(	int unitID,
 				U16 c = lightMap->ImagePixel16( q.x, q.y );
 				Surface::CalcRGB16( c, &rgba );
 
-				float distance = 1.0;
-				if ( delta.LengthSquared() > 1 ) {
-					distance = 1.4f;
-				}
+				const float distance = ( delta.LengthSquared() > 1 ) ? 1.4f : 1.0f;
 
 				if ( engine->GetMap()->Obscured( q.x, q.y ) ) {
 					light -= OBSCURED * distance;
