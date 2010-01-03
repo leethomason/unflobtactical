@@ -118,7 +118,6 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	}
 #endif
 
-	InitVisDir();
 	CalcAllVisibility();
 	SetFogOfWar();
 	CalcTeamTargets();
@@ -1469,89 +1468,9 @@ void BattleScene::CalcAllVisibility()
 }
 
 
-void BattleScene::InitVisDir()
-{
-	memset( visDir, 0, VIS_DIR_SIZE*VIS_DIR_SIZE );
-	/*
-		Each entry in the array needs exactly one path from the origin
-		to the location P. If there are multiple routes to P then the 
-		algorithm will fall apart. To do this, visit each P and choose
-		only one path to P from a neighbor Q.
-
-	*/
-	visDir[0] = VIS_E | VIS_NE | VIS_N;
-	//const Vector2I east = { 1, 0 };
-	//const Vector2I ne   = { 1, 1 };
-	//const Vector2I north= { 0, 1 };
-	const Vector2F dirVec[3] = { { 1, 0 }, { 0.707f, 0.707f }, { 0, 1 } };
-
-	for( int y=0; y<VIS_DIR_SIZE; ++y ) {
-		for( int x=0; x<VIS_DIR_SIZE; ++x ) {
-			if ( x || y ) {
-/*
-				LineWalk line( 0, 0, x, y );
-				if ( line.NumSteps() > 1 ) {
-					line.Step( line.NumSteps()-1 );
-				}
-				// P->Q is the direction we need.
-				GLASSERT( line.NX() == x && line.NY() == y );
-
-				Vector2I delta = line.Q() - line.P();
-				const Vector2I& p = line.P();
-
-				if ( delta == east ) 
-					visDir[VIS_DIR_SIZE*p.y+p.x] |= VIS_E;
-				else if ( delta == ne )
-					visDir[VIS_DIR_SIZE*p.y+p.x] |= VIS_NE;
-				else if ( delta == north )
-					visDir[VIS_DIR_SIZE*p.y+p.x] |= VIS_N;
-				else {	GLASSERT( 0 );	}
-*/
-
-				// Makes a better view pattern. This a problem with this approach:
-				// the vectors build on a certain pattern that's not quite a straight
-				// line. I haven't figured out the "best" pattern yet.
-
-				Vector2F v = { (float)x, (float)y };
-				v.Normalize();
-
-				float best = 0.0f;
-				int dir = 0;
-				for( int i=0; i<3; ++i ) {
-					float dot = DotProduct( v, dirVec[i] );
-					if ( dot > best ) {
-						best = dot;
-						dir = i;
-					}
-				}
-				if ( dir == 0 ) {
-					GLASSERT( x>0 );
-					visDir[VIS_DIR_SIZE*y+(x-1)] |= VIS_E;
-				}
-				else if ( dir == 1 ) {
-					GLASSERT( x>0 && y>0);
-					visDir[VIS_DIR_SIZE*(y-1)+(x-1)] |= VIS_NE;
-				}
-				else {
-					GLASSERT( y>0 );
-					visDir[VIS_DIR_SIZE*(y-1)+x] |= VIS_N;
-				}
-			}
-		}
-	}
-
-	for( int y=0; y<VIS_DIR_SIZE; ++y ) {
-		for( int x=0; x<VIS_DIR_SIZE; ++x ) {
-			GLOUTPUT(( "%d", visDir[VIS_DIR_SIZE*y+x] ));
-		}
-		GLOUTPUT(( "\n" ));
-	}
-}
-
-
 void BattleScene::CalcVisibility( const Unit* unit )
 {
-	unit = units;	// debugging: 1st unit only
+	//unit = units;	// debugging: 1st unit only
 
 	int unitID = unit - units;
 	GLASSERT( unitID >= 0 && unitID < MAX_UNITS );
@@ -1562,48 +1481,77 @@ void BattleScene::CalcVisibility( const Unit* unit )
 	// Clear out the old settings.
 	// Walk the area in range around the unit and cast rays.
 	visibilityMap.ClearPlane( unitID );
+	visibilityProcessed.ClearAll();
 
 	Vector2I facing;
-	facing.x = (int)(10.0f*sinf(ToRadian(rotation)));
-	facing.y = (int)(10.0f*cosf(ToRadian(rotation)));
-	
+	facing.x = LRintf((float)MAX_EYESIGHT_RANGE*sinf(ToRadian(rotation)));
+	facing.y = LRintf((float)MAX_EYESIGHT_RANGE*cosf(ToRadian(rotation)));
+
+	Rectangle2I mapBounds;
+	mapBounds.Set( 0, 0, MAP_SIZE-1, MAP_SIZE-1 );
+
+	Rectangle2I visBounds;
+	visBounds.Set( pos.x, pos.y, pos.x, pos.y );
+
+	Vector2I fL = facing; fL.RotateNeg90();
+	Vector2I fR = facing; fR.RotatePos90();
+	Vector2I fDelta[4] = { pos+fL, pos+fL+facing, pos+fR, pos+fR+facing };
+
+	for( int i=0; i<4; ++i ) {
+		visBounds.DoUnion( fDelta[i].x, fDelta[i].y );
+	}
+
+	int x0, y0, xBias, yBias;
+	int w = visBounds.Width();
+	int h = visBounds.Height();
+
+	if ( facing.x >= 0 ) {
+		xBias = -1;
+		x0 = visBounds.max.x;
+	}
+	else {
+		xBias = 1;
+		x0 = visBounds.min.x;
+	}
+
+	if ( facing.y >= 0 ) {
+		yBias = -1;
+		y0 = visBounds.max.y;
+	}
+	else {
+		yBias = 1;
+		y0 = visBounds.min.y;
+	}
+
 	// Can always see yourself.
-	int x = pos.x;
-	int y = pos.y;
-	visibilityMap.Set( x, y, unitID );
-
-	const float dist[8] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.4f, 1.4f, 1.4f, 1.4f };
-	const Vector2I next[8] = {
-		{ x+1, y },	{ x-1, y }, { x, y+1 }, {x, y-1},
-		{ x+1, y+1 }, {x-1, y+1}, {x+1, y-1}, { x-1, y-1 }
-	};
-
-	visibilityProcessed.ClearAll();
+	visibilityMap.Set( pos.x, pos.y, unitID );
 	visibilityProcessed.Set( pos.x, pos.y, 0 );
 
-	/* Not a straight up recursion. We use the pre-computed map
-	   to always use minimum paths.	
-	*/
-	for( int i=0; i<8; ++i ) {
-		if ( engine->GetMap()->CanSee( pos, next[i] ) )
-			CalcVisibilityRec( unitID, next[i], pos, facing, 1.0f, dist[i] );
+	// FIXME: This could be smarter: walk x or y first? straight or diagonal?
+	for( int j=0; j<h; ++j ) {
+		for( int i=0; i<w; ++i ) {
+
+			Vector2I p = { x0 + xBias*i, y0 + yBias*j };
+
+			if (    mapBounds.Contains( p )
+				 && !visibilityProcessed.IsSet( p.x, p.y ) ) 
+			{
+				CalcVisibilityRay( unitID, p, pos, facing );
+			}
+		}
 	}
 }
 
 
-void BattleScene::CalcVisibilityRec(	int unitID,
+void BattleScene::CalcVisibilityRay(	int unitID,
 										const Vector2I& pos,
-										const Vector2I& origin, const Vector2I& facing, 
-										float light, float distance )
+										const Vector2I& origin, 
+										const Vector2I& facing )
 {
-	GLASSERT( !visibilityProcessed.IsSet( pos.x, pos.y, 0 ) );
-	visibilityProcessed.Set( pos.x, pos.y, 0 );
-
 	/* Previous pass used a true ray casting approach, but this doesn't get good results. Numerical errors,
 	   view stopped by leaves, rays going through cracks. Switching to a line walking approach to 
 	   acheive stability and simplicity. (And probably performance.)
 	*/
-	static const int MAX_SIGHT_SQUARED = MAX_EYESIGHT_RANGE*MAX_EYESIGHT_RANGE;
 
 	// Correct direction
 	Vector2I vec = pos - origin;
@@ -1612,80 +1560,64 @@ void BattleScene::CalcVisibilityRec(	int unitID,
 		return;
 
 	// Max sight
+	const int MAX_SIGHT_SQUARED = MAX_EYESIGHT_RANGE*MAX_EYESIGHT_RANGE;
 	int len2 = vec.LengthSquared();
 	if ( len2 > MAX_SIGHT_SQUARED )
 		return;
 
-	visibilityMap.Set( pos.x, pos.y, unitID );
-
 	const Surface* lightMap = engine->GetMap()->GetLightMap(1);
 	GLASSERT( lightMap->Format() == Surface::RGB16 );
-
-	// Put light at the bottom: if we run out, we can't see the NEXT thing.
-	Surface::RGBA rgba;
-	U16 c = lightMap->ImagePixel16( pos.x, pos.y );
-	Surface::CalcRGB16( c, &rgba );
 
 	const float OBSCURED = 0.50f;
 	const float DARK  = 0.16f;
 	const float LIGHT = 0.08f;
 	const int EPS = 10;
 
-	if ( engine->GetMap()->Obscured( pos.x, pos.y ) ) {
-		light -= OBSCURED * distance;
-	}
-	else if (   rgba.r > (EL_NIGHT_RED_U8+EPS)
-			 || rgba.g > (EL_NIGHT_GREEN_U8+EPS)
-			 || rgba.b > (EL_NIGHT_BLUE_U8+EPS) ) 
+	float light = 1.0f;
+	bool canSee = true;
+
+	// Always walk the entire line so that the places we can not see are set
+	// as well as the places we can.
+	for( LineWalk line( origin.x, origin.y, pos.x, pos.y ); 
+		 line.CurrentStep() < (line.NumSteps()-1); 
+		 line.Step() ) 
 	{
-		light -= LIGHT * distance;
-	}
-	else {
-		light -= DARK * distance;
-	}
+		int x = line.NX();
+		int y = line.NY();
 
-	if ( light > 0.0f ) {
+		if ( canSee ) {
+			canSee = engine->GetMap()->CanSee( line.P(), line.Q() );
 
-		const int xBias = ((pos.x - origin.x)<0) ? -1 : 1;
-		const int yBias = ((pos.y - origin.y)<0) ? -1 : 1;
-		const int x = pos.x;
-		const int y = pos.y;
+			if ( canSee ) {
+				Surface::RGBA rgba;
+				U16 c = lightMap->ImagePixel16( x, y );
+				Surface::CalcRGB16( c, &rgba );
 
-		const Vector2I delta[3] = {
-			{ 1, 0 },	{ 1, 1 }, { 0, 1 }
-		};
-		const int bit[3] = { 
-			VIS_E, VIS_NE, VIS_N 
-		};
-		const float dist[3] = { 
-			1.0f, 1.4f, 1.0f 
-		};
-
-		int dx = (pos.x - origin.x)*xBias;
-		int dy = (pos.y - origin.y)*yBias;
-		GLASSERT( dx >= 0 && dx < VIS_DIR_SIZE );
-		GLASSERT( dy >= 0 && dy < VIS_DIR_SIZE );
-
-		for( int i=0; i<3; ++i ) {
-			if ( bit[i] & visDir[dy*VIS_DIR_SIZE+dx] ) {
-				Vector2I next = { pos.x + delta[i].x*xBias, pos.y + delta[i].y*yBias };
-
-				if ( engine->GetMap()->CanSee( pos, next ) )
-					CalcVisibilityRec( unitID, next, origin, facing, light, dist[i] );
-
-				// Special case: handle the axis flip.
-				if ( dy == 0 && delta[i].y > 0 ) {
-					next.Set( pos.x + delta[i].x*xBias, pos.y-1 );
-					if ( engine->GetMap()->CanSee( pos, next ) )
-						CalcVisibilityRec( unitID, next, origin, facing, light, dist[i] );
+				float distance = 1.0;
+				if ( (line.X()-line.NX()) && (line.Y()-line.NY()) ) {
+					distance = 1.4f;
 				}
-				else if ( dx == 0 && delta[i].x > 0 ) {
-					next.Set( pos.x-1, pos.y + delta[i].y*yBias );
-					if ( engine->GetMap()->CanSee( pos, next ) )
-						CalcVisibilityRec( unitID, next, origin, facing, light, dist[i] );
+
+				if ( engine->GetMap()->Obscured( x, y ) ) {
+					light -= OBSCURED * distance;
+				}
+				else if (   rgba.r > (EL_NIGHT_RED_U8+EPS)
+						 || rgba.g > (EL_NIGHT_GREEN_U8+EPS)
+						 || rgba.b > (EL_NIGHT_BLUE_U8+EPS) ) 
+				{
+					light -= LIGHT * distance;
+				}
+				else {
+					light -= DARK * distance;
 				}
 			}
 		}
+		visibilityProcessed.Set( x, y );
+		visibilityMap.Set( x, y, unitID, canSee );
+
+		// If all the light is used up, we will see no further.	
+		if ( canSee && light < 0.0f )
+			canSee = false;	
 	}
 }
 
