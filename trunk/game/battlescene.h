@@ -6,6 +6,7 @@
 #include "../engine/ufoutil.h"
 #include "gamelimits.h"
 #include "../grinliz/glbitarray.h"
+#include "../grinliz/glvector.h"
 #include "../sqlite3/sqlite3.h"
 
 class Model;
@@ -146,10 +147,6 @@ private:
 	void InitUnits();
 	void TestHitTesting();
 	void CalcVisibility( const Unit* unit );
-	void CalcVisibilityRec( int unitID,
-							const grinliz::Vector2I& p,
-							const grinliz::Vector2I& origin, const grinliz::Vector2I& facing, 
-							float light, float distance );
 	void CalcAllVisibility();
 	void SetPathBlocks();
 
@@ -261,14 +258,10 @@ private:
 
 	grinliz::BitArray< MAP_SIZE, MAP_SIZE, MAX_UNITS > visibilityMap;
 	grinliz::BitArray< MAP_SIZE, MAP_SIZE, 1 > visibilityProcessed;
-	void InitVisDir();
-	enum { 
-		VIS_DIR_SIZE = 20,
-		VIS_E  = 0x01,
-		VIS_NE = 0x02,
-		VIS_N  = 0x04
-	};
-	U8 visDir[VIS_DIR_SIZE*VIS_DIR_SIZE];
+	void CalcVisibilityRay(	int unitID,
+							const grinliz::Vector2I& pos,
+							const grinliz::Vector2I& origin, 
+							const grinliz::Vector2I& facing );
 
 	Unit units[MAX_UNITS];
 
