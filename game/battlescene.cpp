@@ -1448,6 +1448,8 @@ void BattleScene::CalcTeamTargets()
 	but the CalcAll() is terrible.
 	Debug mode.
 	Start: 141 MClocks
+	Moving to "smart recursion": 18 MClocks - that's good! That's good enough to hide the cost is caching.
+
 */
 void BattleScene::CalcAllVisibility()
 {
@@ -1478,20 +1480,25 @@ void BattleScene::InitVisDir()
 
 	*/
 	visDir[0] = VIS_E | VIS_NE | VIS_N;
-	const Vector2I east = { 1, 0 };
-	const Vector2I ne   = { 1, 1 };
-	const Vector2I north= { 0, 1 };
+	//const Vector2I east = { 1, 0 };
+	//const Vector2I ne   = { 1, 1 };
+	//const Vector2I north= { 0, 1 };
+	const Vector2F dirVec[3] = { { 1, 0 }, { 0.707f, 0.707f }, { 0, 1 } };
 
 	for( int y=0; y<VIS_DIR_SIZE; ++y ) {
 		for( int x=0; x<VIS_DIR_SIZE; ++x ) {
 			if ( x || y ) {
+/*
 				LineWalk line( 0, 0, x, y );
 				if ( line.NumSteps() > 1 ) {
 					line.Step( line.NumSteps()-1 );
 				}
 				// P->Q is the direction we need.
+				GLASSERT( line.NX() == x && line.NY() == y );
+
 				Vector2I delta = line.Q() - line.P();
 				const Vector2I& p = line.P();
+
 				if ( delta == east ) 
 					visDir[VIS_DIR_SIZE*p.y+p.x] |= VIS_E;
 				else if ( delta == ne )
@@ -1499,15 +1506,52 @@ void BattleScene::InitVisDir()
 				else if ( delta == north )
 					visDir[VIS_DIR_SIZE*p.y+p.x] |= VIS_N;
 				else {	GLASSERT( 0 );	}
+*/
+
+				// Makes a better view pattern. This a problem with this approach:
+				// the vectors build on a certain pattern that's not quite a straight
+				// line. I haven't figured out the "best" pattern yet.
+
+				Vector2F v = { (float)x, (float)y };
+				v.Normalize();
+
+				float best = 0.0f;
+				int dir = 0;
+				for( int i=0; i<3; ++i ) {
+					float dot = DotProduct( v, dirVec[i] );
+					if ( dot > best ) {
+						best = dot;
+						dir = i;
+					}
+				}
+				if ( dir == 0 ) {
+					GLASSERT( x>0 );
+					visDir[VIS_DIR_SIZE*y+(x-1)] |= VIS_E;
+				}
+				else if ( dir == 1 ) {
+					GLASSERT( x>0 && y>0);
+					visDir[VIS_DIR_SIZE*(y-1)+(x-1)] |= VIS_NE;
+				}
+				else {
+					GLASSERT( y>0 );
+					visDir[VIS_DIR_SIZE*(y-1)+x] |= VIS_N;
+				}
 			}
 		}
+	}
+
+	for( int y=0; y<VIS_DIR_SIZE; ++y ) {
+		for( int x=0; x<VIS_DIR_SIZE; ++x ) {
+			GLOUTPUT(( "%d", visDir[VIS_DIR_SIZE*y+x] ));
+		}
+		GLOUTPUT(( "\n" ));
 	}
 }
 
 
 void BattleScene::CalcVisibility( const Unit* unit )
 {
-	//unit = units;	// debugging: 1st unit only
+	unit = units;	// debugging: 1st unit only
 
 	int unitID = unit - units;
 	GLASSERT( unitID >= 0 && unitID < MAX_UNITS );
