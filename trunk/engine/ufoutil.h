@@ -225,8 +225,10 @@ inline void MultMatrix2I( const Matrix2I& x, const grinliz::Vector3I& y, grinliz
 			P(0,0), Q(1,0)
 			P(1,0), Q(2,0)
 	In general:
-		for( ; line.CurrentStep() < (line.NumSteps()-1); line.Step() )
-
+		while ( line.CurrentStep() <= line.NumSteps() ) {
+			...
+			line.Step(); 
+		}
 */
 class LineWalk
 {
