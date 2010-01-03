@@ -1,5 +1,4 @@
 Demo bugs:
-- sort out CalcVis vs. CalcAllVis.
 - sort out when to clear / process Events
 - reaction fire
 - first unit in first slot doesn't seem to do damage correctly with rocket
@@ -13,6 +12,7 @@ Wait
 - melee weapons
 
 FIXED
+- sort out CalcVis vs. CalcAllVis.
 - fire - flammability
 - smoke from explosive weapons
 - smoke and fire effect visibility

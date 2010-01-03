@@ -146,8 +146,6 @@ private:
 
 	void InitUnits();
 	void TestHitTesting();
-	void CalcVisibility( const Unit* unit );
-	void CalcAllVisibility();
 	void SetPathBlocks();
 
 	Unit* UnitFromModel( Model* m );
@@ -256,8 +254,14 @@ private:
 	void CalcTeamTargets();
 	void DumpTargetEvents();
 
+	void InvalidateAllVisibility();
+	void CalcAllVisibility();
+
+	// before using 'visibilityMap', bring current with CalcAllVisibility()
 	grinliz::BitArray< MAP_SIZE, MAP_SIZE, MAX_UNITS > visibilityMap;
-	grinliz::BitArray< MAP_SIZE, MAP_SIZE, 1 > visibilityProcessed;
+	
+	grinliz::BitArray< MAP_SIZE, MAP_SIZE, 1 > visibilityProcessed;		// temporary - used in vis calc.
+	void CalcUnitVisibility( const Unit* unit );
 	void CalcVisibilityRay(	int unitID,
 							const grinliz::Vector2I& pos,
 							const grinliz::Vector2I& origin, 
