@@ -830,7 +830,7 @@ void BattleScene::ProcessActionHit( Action* action )
 						bool canSee = true;
 						if ( rad > 0 ) {
 							LineWalk walk( x0, y0, x, y );
-							for( ; walk.CurrentStep() < (walk.NumSteps()-1); walk.Step() ) {
+							while( walk.CurrentStep() <= walk.NumSteps() ) {
 								Vector2I p = walk.P();
 								Vector2I q = walk.Q();
 
@@ -838,6 +838,7 @@ void BattleScene::ProcessActionHit( Action* action )
 									canSee = false;
 									break;
 								}
+								walk.Step();
 							}
 							// Go with the sight check to see if the explosion can
 							// reach this tile.
@@ -1448,7 +1449,12 @@ void BattleScene::CalcTeamTargets()
 	Debug mode.
 	Start: 141 MClocks
 	Moving to "smart recursion": 18 MClocks - that's good! That's good enough to hide the cost is caching.
+		...but also has lots of artifacts in visibility.
+	Switched to a "cached ray" approach. 58 MClocks. Much better, correct results, and can be optimized more.
 
+	In Core clocks:
+	"cached ray" 45 clocks
+	33 clocks after tuning. (About 1/4 of initial cost.)
 */
 void BattleScene::CalcAllVisibility()
 {
@@ -1578,27 +1584,27 @@ void BattleScene::CalcVisibilityRay(	int unitID,
 
 	// Always walk the entire line so that the places we can not see are set
 	// as well as the places we can.
-	for( LineWalk line( origin.x, origin.y, pos.x, pos.y ); 
-		 line.CurrentStep() < (line.NumSteps()-1); 
-		 line.Step() ) 
+	LineWalk line( origin.x, origin.y, pos.x, pos.y ); 
+	while ( line.CurrentStep() <= line.NumSteps() )
 	{
-		int x = line.NX();
-		int y = line.NY();
+		Vector2I p = line.P();
+		Vector2I q = line.Q();
+		Vector2I delta = q-p;
 
 		if ( canSee ) {
-			canSee = engine->GetMap()->CanSee( line.P(), line.Q() );
+			canSee = engine->GetMap()->CanSee( p, q );
 
 			if ( canSee ) {
 				Surface::RGBA rgba;
-				U16 c = lightMap->ImagePixel16( x, y );
+				U16 c = lightMap->ImagePixel16( q.x, q.y );
 				Surface::CalcRGB16( c, &rgba );
 
 				float distance = 1.0;
-				if ( (line.X()-line.NX()) && (line.Y()-line.NY()) ) {
+				if ( delta.LengthSquared() > 1 ) {
 					distance = 1.4f;
 				}
 
-				if ( engine->GetMap()->Obscured( x, y ) ) {
+				if ( engine->GetMap()->Obscured( q.x, q.y ) ) {
 					light -= OBSCURED * distance;
 				}
 				else if (   rgba.r > (EL_NIGHT_RED_U8+EPS)
@@ -1612,12 +1618,16 @@ void BattleScene::CalcVisibilityRay(	int unitID,
 				}
 			}
 		}
-		visibilityProcessed.Set( x, y );
-		visibilityMap.Set( x, y, unitID, canSee );
+		visibilityProcessed.Set( q.x, q.y );
+		if ( canSee ) {
+			visibilityMap.Set( q.x, q.y, unitID, true );
+		}
 
 		// If all the light is used up, we will see no further.	
 		if ( canSee && light < 0.0f )
 			canSee = false;	
+
+		line.Step(); 
 	}
 }
 
