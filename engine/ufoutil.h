@@ -187,24 +187,37 @@ class Matrix2I
 		MultMatrix2I( a, b, &result );
 		return result;
 	}
+	friend grinliz::Vector2I operator*( const Matrix2I& a, const grinliz::Vector2I& b )
+	{
+		grinliz::Vector3I b3 = { b.x, b.y, 1 };
+		grinliz::Vector3I r3;
+		MultMatrix2I( a, b3, &r3 );
+
+		grinliz::Vector2I result = { r3.x, r3.y };
+		return result;
+	}
 };
 
 
 inline void MultMatrix2I( const Matrix2I& x, const Matrix2I& y, Matrix2I* w )
 {
-	// This does not support the target being one of the sources.
-	GLASSERT( w != &x && w != &y && &x != &y );
-
 	// a b x
 	// c d y
 	// 0 0 1
 
-	w->a = x.a*y.a + x.b*y.c;
-	w->b = x.a*y.b + x.b*y.d;
-	w->c = x.c*y.a + x.d*y.c;
-	w->d = x.c*y.b + x.d*y.d;
-	w->x = x.a*y.x + x.b*y.y + x.x;
-	w->y = x.c*y.x + x.d*y.y + x.y;
+	if ( w == &x || w == &y ) {
+		Matrix2I copyX = x;
+		Matrix2I copyY = y;
+		MultMatrix2I( copyX, copyY, w );
+	}
+	else {
+		w->a = x.a*y.a + x.b*y.c;
+		w->b = x.a*y.b + x.b*y.d;
+		w->c = x.c*y.a + x.d*y.c;
+		w->d = x.c*y.b + x.d*y.d;
+		w->x = x.a*y.x + x.b*y.y + x.x;
+		w->y = x.c*y.x + x.d*y.y + x.y;
+	}
 }
 
 

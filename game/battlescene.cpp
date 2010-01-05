@@ -545,10 +545,6 @@ void BattleScene::ProcessAction( U32 deltaTime )
 					const float ROTATION_SPEED = 150.0f;
 					float x, z, r;
 					
-					//Vector2I originalPos;
-					//float originalRot;
-					//unit->CalcMapPos( &originalPos, &originalRot );
-
 					// Do we need to rotate, or move?
 					path.GetPos( action->type.move.pathStep, action->type.move.pathFraction, &x, &z, &r );
 					if ( model->GetYRotation() != r ) {
@@ -898,10 +894,6 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 			GLASSERT( selection.soldierUnit >= 0 );
 			GLASSERT( selection.targetUnit >= 0 );
 
-			//float tu = selection.soldierUnit->FireTimeUnits( select, type );
-			//GLASSERT( tu > 0 );
-			//float autoTU = tu * 0.33333f;
-
 			Vector3F target;
 			if ( selection.targetPos.x >= 0 ) {
 				target.Set( (float)selection.targetPos.x + 0.5f, 1.0f, (float)selection.targetPos.y + 0.5f );
@@ -940,19 +932,6 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 		icon = widgets->QueryTap( screenX, screenY );
 
 		switch( icon ) {
-			/*
-			case 1:
-				if ( engine->GetDayTime() )
-					engine->SetDayNight( false, game->GetLightMap( "farmlandN" ) );
-				else
-					engine->SetDayNight( true, 0 );
-
-				CalcAllVisibility();
-				SetFogOfWar();
-				CalcTeamTargets();
-				targetEvents.Clear();
-				break;
-			*/
 
 			case BTN_TARGET:
 				{
@@ -1461,36 +1440,26 @@ void BattleScene::InvalidateAllVisibility()
 	In Core clocks:
 	"cached ray" 45 clocks
 	33 clocks after tuning. (About 1/4 of initial cost.)
+	Tighter walk: 29 MClocks
 */
 void BattleScene::CalcAllVisibility()
 {
 	QuickProfile qp( "CalcAllVisibility()" );
+	Vector2I range[2] = {{ TERRAN_UNITS_START, TERRAN_UNITS_END }, {ALIEN_UNITS_START, ALIEN_UNITS_END}};
 
-	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		if ( units[i].IsAlive() ) {
-			if ( !units[i].VisibilityCurrent() ) {
-				CalcUnitVisibility( &units[i] );
-				units[i].SetVisibilityCurrent( true );
+	for( int k=0; k<2; ++k ) {
+		for( int i=range[k].x; i<range[k].y; ++i ) {
+			if ( units[i].IsAlive() ) {
+				if ( !units[i].VisibilityCurrent() ) {
+					CalcUnitVisibility( &units[i] );
+					units[i].SetVisibilityCurrent( true );
+				}
 			}
-		}
-		else {
-			if ( !units[i].VisibilityCurrent() ) {
-				visibilityMap.ClearPlane( i );
-				units[i].SetVisibilityCurrent( true );
-			}
-		}
-	}
-	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-		if ( units[i].IsAlive() ) {
-			if ( !units[i].VisibilityCurrent() ) {
-				CalcUnitVisibility( &units[i] );
-				units[i].SetVisibilityCurrent( true );
-			}
-		}
-		else {
-			if ( !units[i].VisibilityCurrent() ) {
-				visibilityMap.ClearPlane( i );
-				units[i].SetVisibilityCurrent( true );
+			else {
+				if ( !units[i].VisibilityCurrent() ) {
+					visibilityMap.ClearPlane( i );
+					units[i].SetVisibilityCurrent( true );
+				}
 			}
 		}
 	}
@@ -1506,19 +1475,101 @@ void BattleScene::CalcUnitVisibility( const Unit* unit )
 	Vector2I pos;
 	float rotation;
 	unit->CalcMapPos( &pos, &rotation );
+	int r = NormalizeAngleDegrees( LRintf( rotation ) );
 
 	// Clear out the old settings.
 	// Walk the area in range around the unit and cast rays.
 	visibilityMap.ClearPlane( unitID );
 	visibilityProcessed.ClearAll();
 
-	Vector2I facing;
+	Vector2I facing = { 0, 0 };	// only used in debug checks and expensive to compute.
+#ifdef DEBUG
 	facing.x = LRintf((float)MAX_EYESIGHT_RANGE*sinf(ToRadian(rotation)));
 	facing.y = LRintf((float)MAX_EYESIGHT_RANGE*cosf(ToRadian(rotation)));
+#endif
 
 	Rectangle2I mapBounds;
-	mapBounds.Set( 0, 0, MAP_SIZE-1, MAP_SIZE-1 );
+	engine->GetMap()->CalcBounds( &mapBounds );
 
+	// Can always see yourself.
+	visibilityMap.Set( pos.x, pos.y, unitID );
+	visibilityProcessed.Set( pos.x, pos.y, 0 );
+
+	// Remembering rotation of 0 is staring down the z axis.
+	Vector2I v;		// the starting (far) point of the view triangle. (2D frustum).
+	Vector2I dV[2];	// change in V per step.
+	Vector2I m;		// direction to walk
+	int      len;	// length to walk
+	int		 steps;
+
+	switch ( r ) {
+		case 0:
+		case 90:
+		case 180:
+		case 270:
+			{
+				Vector2I offset = { -MAX_EYESIGHT_RANGE, MAX_EYESIGHT_RANGE };
+				dV[0].Set( 0, -1 );
+				dV[1].Set( 0, -1 );
+				m.Set( 1, 0 );
+				len = MAX_EYESIGHT_RANGE*2 + 1;
+				steps = MAX_EYESIGHT_RANGE + 1;
+
+				Matrix2I rot;
+				rot.SetRotation( r );
+
+				v = pos + rot*offset;
+				dV[0] = rot * dV[0];
+				dV[1] = rot * dV[1];
+				m = rot * m;
+			}
+			break;
+
+		case 45:
+		case 135:
+		case 225:
+		case 315:
+			{
+				Vector2I offset = { 0, MAX_EYESIGHT_RANGE_45*2 };
+				dV[0].Set( -1, 0 );
+				dV[1].Set( 0, -1 );
+				m.Set( 1, -1 );
+				len = MAX_EYESIGHT_RANGE_45*2+1;
+				steps = MAX_EYESIGHT_RANGE_45*2+1;
+
+				Matrix2I rot;
+				rot.SetRotation( r - 45 );
+
+				v = pos + rot*offset;
+				dV[0] = rot * dV[0];
+				dV[1] = rot * dV[1];
+				m = rot * m;
+			}
+			break;
+
+		default:
+			GLASSERT( 0 );	
+			break;
+	}
+
+	const int MAX_SIGHT_SQUARED = MAX_EYESIGHT_RANGE*MAX_EYESIGHT_RANGE;
+
+	for( int k=0; k<steps; ++k ) {
+		for( int i=0; i<len; ++i ) {
+			Vector2I p = v + m*i;
+
+			if (    mapBounds.Contains( p )
+				 && !visibilityProcessed.IsSet( p.x, p.y )
+				 && (p-pos).LengthSquared() <= MAX_SIGHT_SQUARED ) 
+			{
+				CalcVisibilityRay( unitID, p, pos, facing );
+			}
+		}
+		v += dV[k&1];
+	}
+
+
+	/* This code is worth keeping because it would work for any rotation.
 	Rectangle2I visBounds;
 	visBounds.Set( pos.x, pos.y, pos.x, pos.y );
 
@@ -1552,11 +1603,6 @@ void BattleScene::CalcUnitVisibility( const Unit* unit )
 		y0 = visBounds.min.y;
 	}
 
-	// Can always see yourself.
-	visibilityMap.Set( pos.x, pos.y, unitID );
-	visibilityProcessed.Set( pos.x, pos.y, 0 );
-
-	// FIXME: This could be smarter: walk x or y first? straight or diagonal?
 	for( int j=0; j<h; ++j ) {
 		for( int i=0; i<w; ++i ) {
 
@@ -1569,6 +1615,7 @@ void BattleScene::CalcUnitVisibility( const Unit* unit )
 			}
 		}
 	}
+	*/
 }
 
 
@@ -1582,17 +1629,27 @@ void BattleScene::CalcVisibilityRay(	int unitID,
 	   acheive stability and simplicity. (And probably performance.)
 	*/
 
-	// Correct direction
-	Vector2I vec = pos - origin;
-	int dot = DotProduct( facing, vec );
-	if ( dot < 0 )
-		return;
 
-	// Max sight
-	const int MAX_SIGHT_SQUARED = MAX_EYESIGHT_RANGE*MAX_EYESIGHT_RANGE;
-	int len2 = vec.LengthSquared();
-	if ( len2 > MAX_SIGHT_SQUARED )
-		return;
+#ifdef DEBUG
+	// Because of how the calling walk is done, the direction and sight will always be correct.
+	// For arbitrary rotation this would need to be turned back on for release.
+	{
+		GLASSERT( facing.LengthSquared() > 0 );
+		// Correct direction
+		Vector2I vec = pos - origin;
+		int dot = DotProduct( facing, vec );
+		GLASSERT( dot >= 0 );
+		if ( dot < 0 )
+			return;
+
+		// Max sight
+		const int MAX_SIGHT_SQUARED = MAX_EYESIGHT_RANGE*MAX_EYESIGHT_RANGE;
+		int len2 = vec.LengthSquared();
+		GLASSERT( len2 <= MAX_SIGHT_SQUARED );
+		if ( len2 > MAX_SIGHT_SQUARED )
+			return;
+	}
+#endif
 
 	const Surface* lightMap = engine->GetMap()->GetLightMap(1);
 	GLASSERT( lightMap->Format() == Surface::RGB16 );

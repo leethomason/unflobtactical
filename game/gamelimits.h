@@ -9,7 +9,8 @@ const float FIRE_DAMAGE_PER_SUBTURN = 20.0f;
 const int MAX_MODELS = 256;
 const int MAX_UNITS	= 40;
 const int MAP_SIZE = 64;
-const int MAX_EYESIGHT_RANGE = 13;
+const int MAX_EYESIGHT_RANGE    = 13;
+const int MAX_EYESIGHT_RANGE_45 = 10;	// MAX * cos(45deg), rounded up
 const float EYE_HEIGHT = 1.2f;
 
 const float NORMAL_TU		= 8.0f;

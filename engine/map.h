@@ -166,8 +166,9 @@ public:
 	virtual ~Map();
 
 	// The size of the map in use, which is <=SIZE
-	int Height() { return height; }
-	int Width()  { return width; }
+	int Height() const { return height; }
+	int Width()  const { return width; }
+	void CalcBounds( grinliz::Rectangle2I* b ) const	{ b->Set( 0, 0, width-1, height-1 ); }
 
 	void SetSize( int w, int h )					{ width = w; height = h; }
 

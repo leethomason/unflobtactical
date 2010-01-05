@@ -52,12 +52,17 @@ void SinCosDegree( float degreeTheta, float* sinTheta, float* cosTheta );
 const float EPSILON = 0.000001f;
 
 inline float NormalizeAngleDegrees( float alpha ) {
-	while ( alpha < 0.0f )
-		alpha += 360.0f;
-	while ( alpha >= 360.0f )
-		alpha -= 360.0f;
+	while ( alpha < 0.0f )		alpha += 360.0f;
+	while ( alpha >= 360.0f )	alpha -= 360.0f;
 	return alpha;
 }
+
+inline int NormalizeAngleDegrees( int alpha ) {
+	while ( alpha < 0 )		alpha += 360;
+	while ( alpha >= 360 )	alpha -= 360;
+	return alpha;
+}
+
 
 /** A loose equality check. */
 inline bool Equal( float x, float y, float epsilon )

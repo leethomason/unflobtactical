@@ -1,15 +1,18 @@
-Demo bugs:
+BUGS:
 - sort out when to clear / process Events
 - reaction fire
 - first unit in first slot doesn't seem to do damage correctly with rocket
 - weapon (in)accuracy
 - center on selected unit (w/ scrolling?)
 - tu in character screen
+- doors
 
-Wait
+WAIT
 - weird delay when map objects destroyed
 - need correct colors in RenderWeapon()
 - melee weapons
+- optimize CalcUnitVisibility() to look at a cone.
+- map: check "view bounds" before invalidating a unit.
 
 FIXED
 - sort out CalcVis vs. CalcAllVis.
