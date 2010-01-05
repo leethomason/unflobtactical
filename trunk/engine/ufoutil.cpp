@@ -15,6 +15,9 @@ void CEnsureCap( unsigned needInBytes, unsigned* capInBytes, void** stack )
 
 void Matrix2I::SetRotation( int r )
 {
+	while( r < 0 ) r += 360;
+	while( r >= 360 ) r -= 360;
+
 	switch ( r ) {
 		case 0:		a = 1;	b = 0;	c = 0;	d = 1;	break;
 		case 90:	a = 0;	b = 1;	c = -1;	d = 0;	break;
