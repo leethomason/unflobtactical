@@ -113,12 +113,16 @@ private:
 	};
 	CStack< Action > actionStack;
 
-	void RotateAction( Unit* src, const grinliz::Vector3F& dst, bool quantize );
-	void ShootAction( Unit* src, const grinliz::Vector3F& dst, int select );
+	void PushRotateAction( Unit* src, const grinliz::Vector3F& dst, bool quantize );
+	// Try to shoot. Return true if success.
+	bool PushShootAction( Unit* src, const grinliz::Vector3F& dst, int select, int type );
 
-	void ProcessAction( U32 deltaTime );
-	void ProcessActionShoot( Action* action, Unit* unit, Model* model );
-	void ProcessActionHit( Action* action );	
+	bool ProcessAction( U32 deltaTime );
+	bool ProcessActionShoot( Action* action, Unit* unit, Model* model );
+	bool ProcessActionHit( Action* action );	
+
+	void StopForNewTeamTarget();
+	void DoReactionFire();
 
 	struct Path
 	{
@@ -194,11 +198,12 @@ private:
 		UIM_FIRE_MENU		// fire menu is up
 	};
 
-	int uiMode;
+	int				uiMode;
 	UIButtonGroup*	widgets;
 	UIButtonBox*	fireWidget;
 	Engine*			engine;
 	grinliz::Random random;	// "the" random number generator for the battle
+	int				currentTeamTurn;
 
 	enum {
 		MAX_TERRANS = 8,
@@ -219,7 +224,7 @@ private:
 	{
 		U8 team;		// 1: team, 0: unit
 		U8 gain;		// 1: gain, 0: loss
-		U8 viewerID;	// unit id of viewer
+		U8 viewerID;	// unit id of viewer, or teamID if team event
 		U8 targetID;	// unit id of target
 	};
 
@@ -228,25 +233,59 @@ private:
 	// Terran is enemy of Alien and vice versa. Civs aren't
 	// counted, which means they have to be queried and 
 	// don't impact reaction fire.
-	struct Targets
+	class Targets
 	{
+	public:
 		Targets() { Clear(); }
 
 		void Clear() {
-			terran.alienTargets.ClearAll();
-			terran.teamAlienTargets.ClearAll();
+			targets.ClearAll();
+			teamTargets.ClearAll();
+			memset( teamCount, 0, 9*sizeof(int) );
+		}
+		static int Team( int id ) {
+			if ( id >= TERRAN_UNITS_START && id < TERRAN_UNITS_END )
+				return Unit::SOLDIER;
+			else if ( id >= CIV_UNITS_START && id < CIV_UNITS_END ) 
+				return Unit::CIVILIAN;
+			else if ( id >= ALIEN_UNITS_START && id < ALIEN_UNITS_END ) 
+				return Unit::ALIEN;
+			else { GLASSERT( 0 ); }
+		}
+		void Set( int viewer, int target )		{ 
+			targets.Set( viewer, target, 0 );
+			if ( !teamTargets.IsSet( Team( viewer ), target ) ) 
+				teamCount[ Team( viewer ) ][ Team( target ) ] += 1;
+			teamTargets.Set( Team( viewer ), target );
+		}
+		int CanSee( int viewer, int target )	{
+			return targets.IsSet( viewer, target, 0 );
+		}
+		int TeamCanSee( int viewerTeam, int target ) {
+			return teamTargets.IsSet( viewerTeam, target, 0 );
+		}
+		int TotalTeamCanSee( int viewerTeam, int targetTeam ) {
+			return teamCount[ viewerTeam ][ targetTeam ];
+		}
+		int CalcTotalUnitCanSee( int viewer, int targetTeam ) {
+			int start[] = { TERRAN_UNITS_START, CIV_UNITS_START, ALIEN_UNITS_START };
+			int end[]   = { TERRAN_UNITS_END, CIV_UNITS_END, ALIEN_UNITS_END };
+			int count = 0;
+			GLASSERT( targetTeam >= 0 && targetTeam < 3 );
+			for( int i=start[targetTeam]; i<end[targetTeam]; ++i ) {
+				if ( targets.IsSet( viewer, i, 0 ) )
+					++count;
+			}
+			return count;
 		}
 
-		int AlienTargets( int terranUnitID );
-		int TotalAlienTargets();
-
-		struct {
-			grinliz::BitArray< MAX_TERRANS, MAX_ALIENS, 1 >	alienTargets;
-			grinliz::BitArray< MAX_ALIENS, 1, 1 >			teamAlienTargets;
-		} terran;
+	private:
+		grinliz::BitArray< MAX_UNITS, MAX_UNITS, 1 > targets;
+		grinliz::BitArray< 3, MAX_UNITS, 1 > teamTargets;
+		int teamCount[3][3];
 	};
 
-	Targets targets;
+	Targets m_targets;
 	CDynArray< TargetEvent > targetEvents;
 
 	// Updates what units can and can not see. Sets the 'Targets' structure above,
@@ -255,6 +294,7 @@ private:
 	void DumpTargetEvents();
 
 	void InvalidateAllVisibility();
+	void InvalidateAllVisibility( const grinliz::Rectangle2I& bounds );
 	void CalcAllVisibility();
 
 	// before using 'visibilityMap', bring current with CalcAllVisibility()

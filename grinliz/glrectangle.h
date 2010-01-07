@@ -48,6 +48,11 @@ struct Rectangle2
 		min.x = min.y = max.x = max.y = (T) 0;
 	}
 
+	/// Return true if this is potentially a valid rectangle.
+	bool IsValid() const {
+		return ( min.x <= max.x ) && ( min.y <= max.y );
+	}
+
 	/** Creates the rectangle from 2 points, which can be 
 		in any relationship to each other.
 	*/
@@ -125,24 +130,35 @@ struct Rectangle2
 	/// Merge the rect into this.
 	void DoUnion( const Rectangle2<T>& rect )
 	{
-		min.x = grinliz::Min( min.x, rect.min.x );
-		max.x = grinliz::Max( max.x, rect.max.x );
-		min.y = grinliz::Min( min.y, rect.min.y );
-		max.y = grinliz::Max( max.y, rect.max.y );
+		if ( IsValid() ) {
+			min.x = grinliz::Min( min.x, rect.min.x );
+			max.x = grinliz::Max( max.x, rect.max.x );
+			min.y = grinliz::Min( min.y, rect.min.y );
+			max.y = grinliz::Max( max.y, rect.max.y );
+		}
+		else {
+			*this = rect;
+		}
 	}
 
 	/// Merge the rect into this.
 	void DoUnion( T x, T y )
 	{
-		min.x = grinliz::Min( min.x, x );
-		max.x = grinliz::Max( max.x, x );
-		min.y = grinliz::Min( min.y, y );
-		max.y = grinliz::Max( max.y, y );
+		if ( IsValid() ) {
+			min.x = grinliz::Min( min.x, x );
+			max.x = grinliz::Max( max.x, x );
+			min.y = grinliz::Min( min.y, y );
+			max.y = grinliz::Max( max.y, y );
+		}
+		else {
+			Set( x, y, x, y );
+		}
 	}
  
  	/// Turn this into the intersection.
 	void DoIntersection( const Rectangle2<T>& rect )
 	{
+		GLASSERT( IsValid() );
 		min.x = grinliz::Max( min.x, rect.min.x );
 		max.x = grinliz::Min( max.x, rect.max.x );
 		min.y = grinliz::Max( min.y, rect.min.y );
@@ -218,11 +234,6 @@ struct Rectangle2I : public Rectangle2< int >
 
 	/// Initialize to an invalid rectangle.
 	void SetInvalid()	{ min.x = INVALID + 1; max.x = INVALID; min.y = INVALID + 1; max.y = INVALID; }
-
-	/// Return true if this is potentially a valid rectangle.
-	bool IsValid() const {
-		return ( min.x <= max.x ) && ( min.y <= max.y );
-	}
 
 	/// Just like DoUnion, except takes validity into account.
 	void DoUnionV( int x, int y )

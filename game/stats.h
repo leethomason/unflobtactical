@@ -1,7 +1,12 @@
 #ifndef UFO_ATTACK_STATS_INCLUDED
 #define UFO_ATTACK_STATS_INCLUDED
 
-#include "../grinliz/glrandom.h"
+#include "../grinliz/gldebug.h"
+#include "../grinliz/gltypes.h"
+
+namespace grinliz {
+class Random;
+};
 
 
 /*
@@ -10,9 +15,9 @@
 	LEVEL:			computed by experience
 	MEDALS:			awarded for field action
 
-	HP		 = f( STR, LEVEL, MEDAL )
-	TU		 = f( DEX, LEVEL, MEDAL )
-	Accuracy = f( DEX, LEVEL, MEDAL )
+	HP		 = f( STR )
+	TU		 = f( DEX, STR )
+	Accuracy = f( DEX )
 */
 class Stats
 {
@@ -63,8 +68,9 @@ public:
 	int HP() const			{ return hp; }
 	int TotalHP() const		{ return totalHP; }
 	float TU() const		{ return tu; }
-	float TotalTU() const	{ return totalTU; }
-	float Accuracy() const	{ return accuracy; }
+	float TotalTU() const	{ return totalTU; }		// one TU is one move
+	float Accuracy() const	{ return accuracy; }	// cone at 1 unit out
+	float Reaction() const	{ return reaction; }	// 0.0-1.0. The chance of reaction fire
 
 private:
 	int hp, totalHP;
@@ -72,6 +78,7 @@ private:
 	int _STR, _DEX, _PSY;
 	int level;
 	float accuracy;
+	float reaction;
 };
 
 

@@ -194,7 +194,7 @@ void BattleScene::InitUnits()
 	}
 	
 	const Vector2I alienPos[4] = { 
-		{ 16, 21 }, {12, 18 }, { 30, 25 }, { 29, 30 }
+		{ 16, 21 }, {12, 16 }, { 30, 25 }, { 29, 30 }
 	};
 	for( int i=0; i<4; ++i ) {
 		Unit* unit = &units[ALIEN_UNITS_START+i];
@@ -218,6 +218,7 @@ void BattleScene::InitUnits()
 
 void BattleScene::NewTurn( int team )
 {
+	currentTeamTurn = team;
 	switch ( team ) {
 		case Unit::SOLDIER:
 			GLOUTPUT(( "New Turn: Terran\n" ));
@@ -241,10 +242,19 @@ void BattleScene::NewTurn( int team )
 			GLASSERT( 0 );
 			break;
 	}
+
+	// Calc the targets and flush it:
+	CalcTeamTargets();
+	targetEvents.Clear();
+
 	// Allow the map to change (fire and smoke)
-	engine->GetMap()->DoSubTurn();
-	
+	Rectangle2I change;
+	change.SetInvalid();
+	engine->GetMap()->DoSubTurn( &change );
+	InvalidateAllVisibility( change );
+
 	// Since the map has changed:
+	CalcTeamTargets();
 	SetFogOfWar();
 }
 
@@ -394,7 +404,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		*/
 
 		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-			if ( targets.terran.alienTargets.IsSet( unitID-TERRAN_UNITS_START, i-ALIEN_UNITS_START ) ) {
+			if ( m_targets.CanSee( unitID, i ) ) {
 				Vector3F p;
 				units[i].CalcPos( &p );
 				ParticleSystem::Instance()->EmitDecal(	ParticleSystem::DECAL_TARGET,
@@ -403,8 +413,16 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 			}
 		}
 	}
-	ProcessAction( deltaTime );
+	bool check = ProcessAction( deltaTime );
+	if ( check ) {
+		//DumpTargetEvents();
+		//ProcessDoors();
+		StopForNewTeamTarget();
+		DoReactionFire();
+		targetEvents.Clear();	// All done! They don't get to carry on beyond the moment.
+	}
 
+	// Render the target (if it is on-screen)
 	if ( HasTarget() ) {
 		Vector3F pos = { 0, 0, 0 };
 		if ( AlienUnit() )
@@ -480,7 +498,7 @@ void BattleScene::SetSelection( Unit* unit )
 }
 
 
-void BattleScene::RotateAction( Unit* src, const Vector3F& dst3F, bool quantize )
+void BattleScene::PushRotateAction( Unit* src, const Vector3F& dst3F, bool quantize )
 {
 	GLASSERT( src->GetModel() );
 
@@ -496,20 +514,131 @@ void BattleScene::RotateAction( Unit* src, const Vector3F& dst3F, bool quantize 
 }
 
 
-void BattleScene::ShootAction( Unit* src, const grinliz::Vector3F& dst, int select )
+bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target, int select, int type )
 {
-	GLASSERT( select == 0 || select == 1 );
+	GLASSERT( unit );
+	GLASSERT( select == 0 || select == 1 );\
+	GLASSERT( type >=0 && type < 3 );
 
-	Action action;
-	action.Init( ACTION_SHOOT, src );
-	action.type.shoot.target = dst;
-	action.type.shoot.select = select;
-	actionStack.Push( action );
+	if ( !unit->IsAlive() )
+		return false;
+	
+	Item* weapon = unit->GetWeapon();
+	if ( !weapon )
+		return false;
+
+	// Stack - push in reverse order.
+	int nShots = ( type == AUTO_SHOT ) ? 3 : 1;
+	if (    unit->GetStats().TU() >= selection.soldierUnit->FireTimeUnits( select, type )
+		 && (weapon->RoundsRequired(select+1)*nShots <= weapon->RoundsAvailable(select+1)) ) 
+	{
+		unit->UseTU( selection.soldierUnit->FireTimeUnits( select, type ) );
+
+		for( int i=0; i<nShots; ++i ) {
+			Action action;
+			action.Init( ACTION_SHOOT, unit );
+			action.type.shoot.target = target;
+			action.type.shoot.select = select;
+			actionStack.Push( action );
+			weapon->UseRound( select+1 );
+		}
+		PushRotateAction( unit, target, true );
+		return true;
+	}
+	return false;
 }
 
 
-void BattleScene::ProcessAction( U32 deltaTime )
+void BattleScene::DoReactionFire()
 {
+	int antiTeam = Unit::ALIEN;
+	if ( currentTeamTurn == Unit::ALIEN )
+		antiTeam = Unit::SOLDIER;
+
+	bool react = false;
+	if ( actionStack.Empty() ) {
+		react = true;
+	}
+	else { 
+		const Action& action = actionStack.Top();
+		if (    action.action == ACTION_MOVE
+			&& action.unit
+			&& action.unit->Team() == currentTeamTurn
+			&& action.type.move.pathFraction == 0 )
+		{
+			react = true;		
+		}
+	}
+
+	if ( react ) {
+		int i=0;
+		while( i < targetEvents.Size() ) {
+			TargetEvent t = targetEvents[i];
+			if (    t.team == 0				// individual
+				 && t.gain == 1 
+				 && units[t.viewerID].Team() == antiTeam
+				 && units[t.targetID].Team() == currentTeamTurn ) 
+			{
+				// Reaction fire
+				GLOUTPUT(( "reaction fire possible.\n" ));
+
+				if ( units[t.targetID].IsAlive() && units[t.targetID].GetModel() ) {
+					Vector3F target;
+					units[t.targetID].GetModel()->CalcTarget( &target );
+
+					int shot = PushShootAction( &units[t.viewerID], target, 0, 1 );	// auto
+					if ( !shot )
+						PushShootAction( &units[t.viewerID], target, 0, 0 );	// snap
+					targetEvents.SwapRemove( i );
+				}
+			}
+			else {
+				++i;
+			}
+		}
+	}
+}
+
+
+void BattleScene::StopForNewTeamTarget()
+{
+	if ( actionStack.Size() == 1 ) {
+		const Action& action = actionStack.Top();
+		if (    action.action == ACTION_MOVE
+			&& action.unit
+			&& action.unit->Team() == currentTeamTurn
+			&& action.type.move.pathFraction == 0 )
+		{
+			// THEN check for interuption.
+			// Clear out the current team events, look for "new team"
+			int i=0;
+			bool newTeam = false;
+			while( i < targetEvents.Size() ) {
+				TargetEvent t = targetEvents[i];
+				if ( t.team == 1 && t.gain == 1 && units[t.viewerID].Team() == currentTeamTurn ) {
+					// New sighting!
+					GLOUTPUT(( "new team target sighted.\n" ));
+					newTeam = true;
+					targetEvents.SwapRemove( i );
+				}
+				else {
+					++i;
+				}
+			}
+			if ( newTeam ) {
+				actionStack.Clear();
+				if ( action.unit == SelectedSoldierUnit() )
+					ShowNearPath( action.unit );
+			}
+		}
+	}
+}
+
+
+bool BattleScene::ProcessAction( U32 deltaTime )
+{
+	bool stackChange = false;
+
 	if ( !actionStack.Empty() )
 	{
 		Action* action = &actionStack.Top();
@@ -520,7 +649,7 @@ void BattleScene::ProcessAction( U32 deltaTime )
 			if ( !action->unit->IsAlive() || !action->unit->GetModel() ) {
 				GLASSERT( 0 );	// may be okay, but untested.
 				actionStack.Pop();
-				return;
+				return true;
 			}
 			unit = action->unit;
 			model = action->unit->GetModel();
@@ -560,6 +689,7 @@ void BattleScene::ProcessAction( U32 deltaTime )
 							// Done rotating! Next time we'll move.
 							Vector3F p = { model->X(), 0.0f, model->Z() };
 							unit->SetPos( p, r );
+							stackChange = true;	// not a real stack change, but a change in the path loc.
 						}
 						else {
 							Vector3F p = { model->X(), 0.0f, model->Z() };
@@ -575,6 +705,9 @@ void BattleScene::ProcessAction( U32 deltaTime )
 							path.Travel( &travel, &action->type.move.pathStep, &action->type.move.pathFraction );
 							if ( action->type.move.pathFraction == 0.0f ) {
 								// crossed a path boundary.
+								GLASSERT( unit->GetStats().TU() >= 1.0 );	// one move is one TU
+								unit->UseTU( 1.0f );
+								stackChange = true;	// not a real stack change, but a change in the path loc.
 								break;
 							}
 						}
@@ -586,6 +719,7 @@ void BattleScene::ProcessAction( U32 deltaTime )
 						if ( action->type.move.pathStep == path.statePath.size()-1 ) {
 							actionStack.Pop();
 							path.Clear();
+							stackChange = true;
 						}
 					}
 				}
@@ -602,6 +736,7 @@ void BattleScene::ProcessAction( U32 deltaTime )
 					if ( delta <= travel ) {
 						unit->SetYRotation( action->type.rotate.rotation );
 						actionStack.Pop();
+						stackChange = true;
 					}
 					else {
 						unit->SetYRotation( model->GetYRotation() + bias*travel );
@@ -610,11 +745,11 @@ void BattleScene::ProcessAction( U32 deltaTime )
 				break;
 
 			case ACTION_SHOOT:
-				ProcessActionShoot( action, unit, model );
+				stackChange = ProcessActionShoot( action, unit, model );
 				break;
 
 			case ACTION_HIT:
-				ProcessActionHit( action );
+				stackChange = ProcessActionHit( action );
 				break;
 
 			case ACTION_DELAY:
@@ -640,6 +775,7 @@ void BattleScene::ProcessAction( U32 deltaTime )
 			// If we changed map position, update UI feedback.
 			if ( newPos != originalPos || newRot != originalRot ) {
 				SetFogOfWar();
+				CalcTeamTargets();
 			}
 
 			// If actions are empty and this is the selected unit, update
@@ -649,10 +785,11 @@ void BattleScene::ProcessAction( U32 deltaTime )
 			}
 		}
 	}
+	return stackChange;
 }
 
 
-void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
+bool BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 {
 	DamageDesc damageDesc;
 	bool impact = false;
@@ -757,12 +894,14 @@ void BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		a.type.delay.delay = delayTime;
 		actionStack.Push( a );
 	}
+	return true;
 }
 
 
-void BattleScene::ProcessActionHit( Action* action )
+bool BattleScene::ProcessActionHit( Action* action )
 {
-	bool changed = false;
+	Rectangle2I destroyed;
+	destroyed.SetInvalid();
 
 	if ( !action->type.hit.explosive ) {
 		// Apply direct hit damage
@@ -777,30 +916,31 @@ void BattleScene::ProcessActionHit( Action* action )
 				hitUnit->DoDamage( action->type.hit.damageDesc );
 				if ( !hitUnit->IsAlive() ) {
 					selection.ClearTarget();			
-					targetEvents.Clear();	// don't need to handle notification of obvious (alien shot)
-					changed = true;
+					// visibility invalidated automatically when unit killed
 				}
 				GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", (unsigned)hitUnit, (int)hitUnit->GetStats().HP(), (int)hitUnit->GetStats().TotalHP() ));
 			}
 		}
 		else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
+			Rectangle2I bounds;
+			engine->GetMap()->MapBoundsOfModel( m, &bounds );
+
 			// Hit world object.
-			bool destroyed = engine->GetMap()->DoDamage( m, action->type.hit.damageDesc );
-			if ( destroyed )
-				changed = true;
+			engine->GetMap()->DoDamage( m, action->type.hit.damageDesc, &destroyed );
 		}
 	}
 	else {
 		// Explosion
 		const int MAX_RAD = 2;
 		const int MAX_RAD_2 = MAX_RAD*MAX_RAD;
-		changed = true;	// generates smoke.
 
 		// There is a small offset to move the explosion back towards the shooter.
 		// If it hits a wall (common) this will move it to the previous square.
 		// Also means a model hit may be a "near miss"...but explosions are messy.
 		const int x0 = (int)(action->type.hit.p.x - 0.2f*action->type.hit.n.x);
 		const int y0 = (int)(action->type.hit.p.z - 0.2f*action->type.hit.n.z);
+		// generates smoke:
+		destroyed.Set( x0-MAX_RAD, y0-MAX_RAD, x0+MAX_RAD, y0+MAX_RAD );
 
 		for( int rad=0; rad<=MAX_RAD; ++rad ) {
 			DamageDesc dd = action->type.hit.damageDesc;
@@ -810,6 +950,10 @@ void BattleScene::ProcessActionHit( Action* action )
 				for( int x=x0-rad; x<=x0+rad; ++x ) {
 					if ( x==(x0-rad) || x==(x0+rad) || y==(y0-rad) || y==(y0+rad) ) {
 						
+						// Tried to do this with the pather, but the issue with 
+						// walls being on the inside and outside of squares got 
+						// ugly. But the other option - ray casting - also nasty.
+						// Go one further than could be walked.
 						int radius2 = (x-x0)*(x-x0) + (y-y0)*(y-y0);
 						if ( radius2 > MAX_RAD_2 )
 							continue;
@@ -820,10 +964,14 @@ void BattleScene::ProcessActionHit( Action* action )
 						bool canSee = true;
 						if ( rad > 0 ) {
 							LineWalk walk( x0, y0, x, y );
-							while( walk.CurrentStep() <= walk.NumSteps() ) {
+							// Actually 'less than' so that damage goes through walls a little.
+							while( walk.CurrentStep() < walk.NumSteps() ) {
 								Vector2I p = walk.P();
 								Vector2I q = walk.Q();
 
+								// Was using CanSee, but that has the problem that
+								// some walls are inner and some walls are outer.
+								// *sigh* Use the pather.
 								if ( !engine->GetMap()->CanSee( p, q ) ) {
 									canSee = false;
 									break;
@@ -841,12 +989,10 @@ void BattleScene::ProcessActionHit( Action* action )
 							unit->DoDamage( dd );
 							if ( !unit->IsAlive() && unit == SelectedSoldierUnit() ) {
 								selection.ClearTarget();			
-								targetEvents.Clear();	// don't need to handle notification of obvious (alien shot)
 							}
 						}
 						bool hitAnything = false;
-						if ( engine->GetMap()->DoDamage( x, y, dd, &hitAnything ) ) {
-						}
+						engine->GetMap()->DoDamage( x, y, dd, &destroyed );
 
 						// Where to add smoke?
 						// - if we hit anything
@@ -860,12 +1006,14 @@ void BattleScene::ProcessActionHit( Action* action )
 			}
 		}
 	}
-	if ( changed ) {
+	if ( destroyed.IsValid() ) {
 		// The MAP changed - reset all views.
-		InvalidateAllVisibility();
+		InvalidateAllVisibility( destroyed );
 		SetFogOfWar();
 	}
+	CalcTeamTargets();
 	actionStack.Pop();
+	return true;
 }
 
 
@@ -901,24 +1049,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 			else {
 				selection.targetUnit->GetModel()->CalcTarget( &target );
 			}
-
-			Item* weapon = selection.soldierUnit->GetWeapon();
-			GLASSERT( weapon );	// else how did we get the fire menu??
-
-			// Stack - push in reverse order.
-
-			int nShots = ( type == AUTO_SHOT ) ? 3 : 1;
-			if (    selection.soldierUnit->GetStats().TU() >= selection.soldierUnit->FireTimeUnits( select, type )
-				 && (weapon->RoundsRequired(select+1)*nShots <= weapon->RoundsAvailable(select+1)) ) 
-			{
-				selection.soldierUnit->UseTU( selection.soldierUnit->FireTimeUnits( select, type ) );
-
-				for( int i=0; i<nShots; ++i ) {
-					ShootAction( selection.soldierUnit, target, select );
-					weapon->UseRound( select+1 );
-				}
-			}
-			RotateAction( selection.soldierUnit, target, true );
+			PushShootAction( selection.soldierUnit, target, select, type );
 			selection.targetUnit = 0;
 		}
 	}
@@ -1136,7 +1267,9 @@ void BattleScene::Tap(	int tap,
 
 			int result = engine->GetMap()->SolvePath( start, end, &cost, &path.statePath );
 			if ( result == micropather::MicroPather::SOLVED && cost <= stats.TU() ) {
-				selection.soldierUnit->UseTU( cost );
+				// TU for a move gets used up "as we go" to account for reaction fire
+				// and changes.
+				//selection.soldierUnit->UseTU( cost );
 
 				// Go!
 				Action action;
@@ -1309,6 +1442,7 @@ Unit* BattleScene::GetUnitFromTile( int x, int z )
 }
 
 
+/*
 int BattleScene::Targets::AlienTargets( int id )
 {
 	GLASSERT( id >= TERRAN_UNITS_START && id < TERRAN_UNITS_END );
@@ -1329,21 +1463,29 @@ int BattleScene::Targets::TotalAlienTargets()
 	int count = terran.teamAlienTargets.NumSet( r );
 	return count;
 }
+*/
+
 
 void BattleScene::DumpTargetEvents()
 {
 	for( int i=0; i<targetEvents.Size(); ++i ) {
 		const TargetEvent& e = targetEvents[i];
+		const char* teams[] = { "Terran", "Civ", "Alien" };
+
 		if ( !e.team ) {
-			GLOUTPUT(( "Terran Unit %d %s alien %d\n",
-					   e.viewerID, 
-					   e.gain ? "gain" : "loss", 
-					   e.targetID ));
+			GLOUTPUT(( "%s Unit %d %s %s %d\n",
+						teams[ units[e.viewerID].Team() ],
+						e.viewerID, 
+						e.gain ? "gain" : "loss", 
+						teams[ units[e.targetID].Team() ],
+						e.targetID ));
 		}
 		else {
-			GLOUTPUT(( "Terran Team %s alien %d\n",
-					   e.gain ? "gain" : "loss", 
-					   e.targetID ));
+			GLOUTPUT(( "%s Team %s %s %d\n",
+						teams[ e.viewerID ],
+						e.gain ? "gain" : "loss", 
+						teams[ units[e.targetID].Team() ],
+						e.targetID ));
 		}
 	}
 }
@@ -1355,63 +1497,83 @@ void BattleScene::CalcTeamTargets()
 	// - if team gets/loses target
 	// - if unit gets/loses target
 
-	Targets old = targets;
-	targets.Clear();
+	Targets old = m_targets;
+	m_targets.Clear();
 	CalcAllVisibility();
 
-	// Terran to Alien
-	// Go through each alien, and check #terrans that can target it.
-	//
-	for( int j=ALIEN_UNITS_START; j<ALIEN_UNITS_END; ++j ) {
-		// Push IsAlive() checks into the cases below, so that a unit
-		// death creates a visibility change. However, initialization 
-		// happens at the beginning, so we can skip that.
+	Vector2I targets[] = { { ALIEN_UNITS_START, ALIEN_UNITS_END },   { TERRAN_UNITS_START, TERRAN_UNITS_END } };
+	Vector2I viewers[] = { { TERRAN_UNITS_START, TERRAN_UNITS_END }, { ALIEN_UNITS_START, ALIEN_UNITS_END } };
+	int viewerTeam[3]  = { Unit::SOLDIER, Unit::ALIEN };
 
-		if ( !units[j].InUse() )
-			continue;
+	for( int range=0; range<2; ++range ) {
+		// Terran to Alien
+		// Go through each alien, and check #terrans that can target it.
+		//
+		for( int j=targets[range].x; j<targets[range].y; ++j ) {
+			// Push IsAlive() checks into the cases below, so that a unit
+			// death creates a visibility change. However, initialization 
+			// happens at the beginning, so we can skip that.
 
-		Vector2I mapPos;
-		units[j].CalcMapPos( &mapPos, 0 );
-		
-		Rectangle3I r;
-		r.Set( mapPos.x, mapPos.y, TERRAN_UNITS_START,
-			   mapPos.x, mapPos.y, TERRAN_UNITS_END-1 );
+			if ( !units[j].InUse() )
+				continue;
 
-		for( int k=TERRAN_UNITS_START; k<TERRAN_UNITS_END; ++k ) {
-			// Main test: can a terran see an alien at this location?
-			if ( units[k].IsAlive() && units[j].IsAlive() && visibilityMap.IsSet( mapPos.x, mapPos.y, k ) ) {
-				targets.terran.alienTargets.Set( k-TERRAN_UNITS_START, j-ALIEN_UNITS_START );
-				targets.terran.teamAlienTargets.Set( j-ALIEN_UNITS_START, 0, 0 );
+			Vector2I mapPos;
+			units[j].CalcMapPos( &mapPos, 0 );
+			
+			for( int k=viewers[range].x; k<viewers[range].y; ++k ) {
+				// Main test: can a terran see an alien at this location?
+				if (    units[k].IsAlive() 
+					 && units[j].IsAlive() 
+					 && visibilityMap.IsSet( mapPos.x, mapPos.y, k ) ) 
+				{
+					m_targets.Set( k, j );
+				}
+
+				// check unit change.
+				if ( old.CanSee( k, j ) && !m_targets.CanSee( k, j ) ) 
+				{
+					// Lost unit.
+					TargetEvent e = { 0, 0, k, j };
+					targetEvents.Push( e );
+				}
+				else if ( !old.CanSee( k, j )  && m_targets.CanSee( k, j ) ) 
+				{
+					// Gain unit.
+					TargetEvent e = { 0, 1, k, j };
+					targetEvents.Push( e );
+				}
 			}
-
-			// check unit change.
-			if (	old.terran.alienTargets.IsSet( k-TERRAN_UNITS_START, j-ALIEN_UNITS_START )
-				 && !targets.terran.alienTargets.IsSet( k-TERRAN_UNITS_START, j-ALIEN_UNITS_START ) )
+			// Check team change.
+			if ( old.TeamCanSee( viewerTeam[range], j ) && !m_targets.TeamCanSee( viewerTeam[range], j ) )
 			{	
-				// Lost unit.
-				TargetEvent e = { 0, 0, k, j };
+				TargetEvent e = { 1, 0, viewerTeam[range], j };
 				targetEvents.Push( e );
 			}
-			else if (	 !old.terran.alienTargets.IsSet( k-TERRAN_UNITS_START, j-ALIEN_UNITS_START )
-					  && targets.terran.alienTargets.IsSet( k-TERRAN_UNITS_START, j-ALIEN_UNITS_START ) )
-			{
-				// Gain unit.
-				TargetEvent e = { 0, 1, k, j };
+			else if ( !old.TeamCanSee( viewerTeam[range], j ) && m_targets.TeamCanSee( viewerTeam[range], j ) )
+			{	
+				TargetEvent e = { 1, 1, viewerTeam[range], j };
 				targetEvents.Push( e );
 			}
 		}
-		// Check team change.
-		if (	old.terran.teamAlienTargets.IsSet( j-ALIEN_UNITS_START )
-			 && !targets.terran.teamAlienTargets.IsSet( j-ALIEN_UNITS_START ) )
-		{	
-			TargetEvent e = { 1, 0, 0, j };
-			targetEvents.Push( e );
-		}
-		else if (    !old.terran.teamAlienTargets.IsSet( j-ALIEN_UNITS_START )
-				  && targets.terran.teamAlienTargets.IsSet( j-ALIEN_UNITS_START ) )
-		{	
-			TargetEvent e = { 1, 1, 0, j };
-			targetEvents.Push( e );
+	}
+}
+
+
+void BattleScene::InvalidateAllVisibility( const Rectangle2I& bounds )
+{
+	if ( !bounds.IsValid() )
+		return;
+
+	Vector2I range[2] = {{ TERRAN_UNITS_START, TERRAN_UNITS_END }, {ALIEN_UNITS_START, ALIEN_UNITS_END}};
+	Rectangle2I vis;
+
+	for( int k=0; k<2; ++k ) {
+		for( int i=range[k].x; i<range[k].y; ++i ) {
+			if ( units[i].IsAlive() ) {
+				units[i].CalcVisBounds( &vis );
+				if ( bounds.Intersect( vis ) ) 
+					units[i].SetVisibilityCurrent( false );
+			}
 		}
 	}
 }
@@ -1419,11 +1581,13 @@ void BattleScene::CalcTeamTargets()
 
 void BattleScene::InvalidateAllVisibility()
 {
-	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		units[i].SetVisibilityCurrent( false );
-	}
-	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-		units[i].SetVisibilityCurrent( false );
+	Vector2I range[2] = {{ TERRAN_UNITS_START, TERRAN_UNITS_END }, {ALIEN_UNITS_START, ALIEN_UNITS_END}};
+	for( int k=0; k<2; ++k ) {
+		for( int i=range[k].x; i<range[k].y; ++i ) {
+			if ( units[i].IsAlive() ) {
+				units[i].SetVisibilityCurrent( false );
+			}
+		}
 	}
 }
 
@@ -1833,7 +1997,8 @@ void BattleScene::DrawHUD()
 			"TU:%.1f HP:%d Tgt:%02d/%02d", 
 			unit->GetStats().TU(),
 			unit->GetStats().HP(),
-			targets.AlienTargets( id ), targets.TotalAlienTargets() );
+			m_targets.CalcTotalUnitCanSee( id, Unit::ALIEN ),
+			m_targets.TotalTeamCanSee( Unit::SOLDIER, Unit::ALIEN ) );
 	}
 
 #ifdef MAPMAKER

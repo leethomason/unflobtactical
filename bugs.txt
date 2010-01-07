@@ -1,20 +1,19 @@
 BUGS:
-- sort out when to clear / process Events
-- reaction fire
-- first unit in first slot doesn't seem to do damage correctly with rocket
+- doors
 - weapon (in)accuracy
+- reaction fire probability
 - center on selected unit (w/ scrolling?)
 - tu in character screen
-- doors
 
 WAIT
-- weird delay when map objects destroyed
 - need correct colors in RenderWeapon()
 - melee weapons
-- optimize CalcUnitVisibility() to look at a cone.
-- map: check "view bounds" before invalidating a unit.
 
 FIXED
+- map destruction isn't causing re-vis and reaction.
+- first unit in first slot doesn't seem to do damage correctly with rocket
+- sort out when to clear / process Events
+- reaction fire
 - sort out CalcVis vs. CalcAllVis.
 - fire - flammability
 - smoke from explosive weapons
@@ -23,3 +22,6 @@ FIXED
 - on object destroyed, re-calc visibility
 - remove double delay on weapon blasts
 - always fires primary weapon
+- weird delay when map objects destroyed
+- optimize CalcUnitVisibility() to look at a cone.
+- map: check "view bounds" before invalidating a unit.

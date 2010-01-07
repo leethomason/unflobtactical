@@ -384,36 +384,27 @@ void Map::IMat::Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out  )
 }
 
 
-bool Map::DoDamage( int x, int y, const DamageDesc& damage, bool* hitAnything )
+void Map::DoDamage( int x, int y, const DamageDesc& damage, Rectangle2I* dBounds )
 {
-	if ( hitAnything ) {
-		*hitAnything = false;
-	}
 	float hp = damage.Total();
 	if ( hp <= 0.0f )
-		return false;
+		return;
 
-	bool changed = false;
+	//bool changed = false;
 	const MapItem* root = quadTree.FindItems( x, y, 0, MapItem::MI_IS_LIGHT );
-	if ( root && hitAnything ) {
-		*hitAnything = true;
-	}
+
 	for( ; root; root=root->next ) {
 		if ( root->model ) {
 			GLASSERT( root->model->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) );
-			bool destroyed = DoDamage( root->model, damage );
-			if ( destroyed )
-				changed = true;
+
+			DoDamage( root->model, damage, dBounds );
 		}
 	}
-	return changed;
 }
 
 
-bool Map::DoDamage( Model* m, const DamageDesc& damageDesc )
+void Map::DoDamage( Model* m, const DamageDesc& damageDesc, Rectangle2I* dBounds )
 {
-	bool destroyed = false;
-
 	if ( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) 
 	{
 		MapItem* item = quadTree.FindItem( m );
@@ -422,11 +413,18 @@ bool Map::DoDamage( Model* m, const DamageDesc& damageDesc )
 		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 
 		int hp = (int)(damageDesc.energy + damageDesc.kinetic );
-		//GLOUTPUT(( "map damage '%s' (%d,%d) dam=%d\n",
-		//	       itemDef.name, item->x, item->y, hp ));
+		GLOUTPUT(( "map damage '%s' (%d,%d) dam=%d\n",
+			       itemDef.name, item->x, item->y, hp ));
 
+		bool destroyed = false;
 		if ( itemDef.CanDamage() && item->DoDamage(hp) ) 
 		{
+			if ( dBounds ) {
+				Rectangle2I r;
+				item->MapBounds( &r );
+				dBounds->DoUnion( r );
+			}
+
 			// Destroy the current model. Replace it with "destroyed"
 			// model if there is one. This is as simple as saving off
 			// the properties, deleting it, and re-adding.
@@ -447,11 +445,10 @@ bool Map::DoDamage( Model* m, const DamageDesc& damageDesc )
 			}
 		}
 	}
-	return destroyed;
 }
 
 
-void Map::DoSubTurn()
+void Map::DoSubTurn( Rectangle2I* change )
 {
 	for( int i=0; i<SIZE*SIZE; ++i ) {
 		if ( pyro[i] ) {
@@ -482,12 +479,12 @@ void Map::DoSubTurn()
 				else {
 					// Will torch a building in no time. (Adjacent fires do multiple damage.)
 					DamageDesc d = { FIRE_DAMAGE_PER_SUBTURN*0.5f, FIRE_DAMAGE_PER_SUBTURN*0.5f, 0.0f };
-					DoDamage( x, y, d );
+					DoDamage( x, y, d, change );
 					DamageDesc f = { 0, 0, FIRE_DAMAGE_PER_SUBTURN };
-					if ( x > 0 ) DoDamage( x-1, y, f );
-					if ( x < SIZE-1 ) DoDamage( x+1, y, f );
-					if ( y > 0 ) DoDamage( x, y-1, f );
-					if ( y < SIZE-1 ) DoDamage( x, y+1, f );
+					if ( x > 0 ) DoDamage( x-1, y, f, change );
+					if ( x < SIZE-1 ) DoDamage( x+1, y, f, change );
+					if ( y > 0 ) DoDamage( x, y-1, f, change );
+					if ( y < SIZE-1 ) DoDamage( x, y+1, f, change );
 				}
 			}
 		}
@@ -1431,7 +1428,7 @@ void Map::ClearNearPath()
 }
 
 
-bool Map::CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& q )
+bool Map::CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& q, ConnectionType connection )
 {
 	GLASSERT( InRange( q.x-p.x, -1, 1 ) );
 	GLASSERT( InRange( q.y-p.y, -1, 1 ) );
@@ -1480,7 +1477,7 @@ bool Map::CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& q )
 			break;
 	}
 	if ( dir1 == -1 ) {
-		canSee = Connected( VISIBILITY_TYPE, p.x, p.y, dir0 );
+		canSee = Connected( connection, p.x, p.y, dir0 );
 	}
 	else {
 		const Vector2I next[4] = {	{ 0, 1 },
@@ -1491,8 +1488,8 @@ bool Map::CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& q )
 		Vector2I q0 = p+next[dir0];
 		Vector2I q1 = p+next[dir1];
 
-		canSee =  ( Connected( VISIBILITY_TYPE, p.x, p.y, dir0 ) && Connected( VISIBILITY_TYPE, q0.x, q0.y, dir1 ) )
-			   || ( Connected( VISIBILITY_TYPE, p.x, p.y, dir1 ) && Connected( VISIBILITY_TYPE, q1.x, q1.y, dir0 ) );
+		canSee =  ( Connected( connection, p.x, p.y, dir0 ) && Connected( VISIBILITY_TYPE, q0.x, q0.y, dir1 ) )
+			   || ( Connected( connection, p.x, p.y, dir1 ) && Connected( VISIBILITY_TYPE, q1.x, q1.y, dir0 ) );
 	}
 	return canSee;
 }

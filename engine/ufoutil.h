@@ -36,6 +36,7 @@ public:
 		GLASSERT( size > 0 );
 		return stack[size-1];
 	}
+	int Size()		{ return (int)size; }
 
 private:
 	T* stack;
