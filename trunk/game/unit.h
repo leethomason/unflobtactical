@@ -82,6 +82,8 @@ public:
 	// Note the visibility is current (or not...) irrespective of the unit being alive.
 	bool VisibilityCurrent() const				{ return visibilityCurrent; }
 	void SetVisibilityCurrent( bool current)	{ visibilityCurrent = current; }
+	// Compute the bounding box of this unit's sight. (VERY loose.)
+	void CalcVisBounds( grinliz::Rectangle2I* b ) const;
 
 	// Compute the map pos: x,y (always int) and rotation (always multiple of 45)
 	void CalcMapPos( grinliz::Vector2I*, float* rotation ) const;

@@ -1,5 +1,6 @@
 #include "stats.h"
 #include "../grinliz/glutil.h"
+#include "../grinliz/glrandom.h"
 #include "gamelimits.h"
 
 using namespace grinliz;
@@ -26,6 +27,11 @@ void Stats::CalcBaselines()
 	accuracy = Interpolate(		(float)TRAIT_SOLDIER_LOW,	ACC_BAD_SHOT,
 								(float)TRAIT_SOLDIER_HIGH,	ACC_GOOD_SHOT,
 								(float)levDEX );
+
 	accuracy = Max( accuracy, 0.01f );	// no one is a perfect shot.
+
+	reaction = Interpolate(		(float)TRAIT_SOLDIER_LOW,	REACTION_FAST,
+								(float)TRAIT_SOLDIER_HIGH,	REACTION_SLOW,
+								(float)levDEX );
 }
 

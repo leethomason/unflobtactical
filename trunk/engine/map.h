@@ -201,12 +201,12 @@ public:
 	void DrawOverlay();		//< draw the "where can I walk" alpha overlay. Set up by ShowNearPath().
 
 	// Do damage to a singe map object.
-	bool DoDamage( Model* m, const DamageDesc& damage );
+	void DoDamage( Model* m, const DamageDesc& damage, grinliz::Rectangle2I* destroyedBounds );
 	// Do damage to an entire map tile.
-	bool DoDamage( int x, int y, const DamageDesc& damage, bool* hitAnything=0 );
+	void DoDamage( int x, int y, const DamageDesc& damage, grinliz::Rectangle2I* destroyedBounds );
 	
 	// Process a sub-turn: fire moves, smoke goes away, etc.
-	void DoSubTurn();
+	void DoSubTurn( grinliz::Rectangle2I* changeBounds );
 
 	// Smoke from weapons, explosions, effects, etc.
 	void AddSmoke( int x, int y, int subturns );
@@ -260,8 +260,13 @@ public:
 	virtual void  AdjacentCost( void* state, std::vector< micropather::StateCost > *adjacent );
 	virtual void  PrintStateInfo( void* state );
 
-	// visibility (but similar to AdjacentCost conceptually)
-	bool CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& delta );
+	enum ConnectionType {
+		PATH_TYPE,
+		VISIBILITY_TYPE
+	};
+	// visibility (but similar to AdjacentCost conceptually). If PATH_TYPE is
+	// passed in for the connection, it becomes CanWalk
+	bool CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& q, ConnectionType connection=VISIBILITY_TYPE );
 
 private:
 	struct IMat
@@ -270,11 +275,6 @@ private:
 
 		void Init( int w, int h, int r );
 		void Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out );
-	};
-
-	enum ConnectionType {
-		PATH_TYPE,
-		VISIBILITY_TYPE
 	};
 
 	int InvertPathMask( U32 m ) {

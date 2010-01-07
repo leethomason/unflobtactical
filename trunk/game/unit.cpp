@@ -316,6 +316,20 @@ void Unit::CalcPos( grinliz::Vector3F* vec ) const
 }
 
 
+void Unit::CalcVisBounds( grinliz::Rectangle2I* b ) const
+{
+	GLASSERT( status != STATUS_NOT_INIT );
+	GLASSERT( model );
+
+	Vector2I p;
+	CalcMapPos( &p, 0 );
+	b->Set( Max( 0, p.x-MAX_EYESIGHT_RANGE ), 
+			Max( 0, p.y-MAX_EYESIGHT_RANGE ),
+			Min( p.x+MAX_EYESIGHT_RANGE, MAP_SIZE-1),
+			Min( p.y+MAX_EYESIGHT_RANGE, MAP_SIZE-1) );
+}
+
+
 void Unit::CalcMapPos( grinliz::Vector2I* vec, float* rot ) const
 {
 	GLASSERT( status != STATUS_NOT_INIT );
