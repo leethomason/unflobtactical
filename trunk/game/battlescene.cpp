@@ -121,6 +121,8 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	visibilityMap.ClearAll();
 	SetFogOfWar();
 	NewTurn( Unit::SOLDIER );
+	engine->GetMap()->QueryAllDoors( &doors );
+	ProcessDoors();
 }
 
 
@@ -416,7 +418,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	bool check = ProcessAction( deltaTime );
 	if ( check ) {
 		//DumpTargetEvents();
-		//ProcessDoors();
+		ProcessDoors();
 		StopForNewTeamTarget();
 		DoReactionFire();
 		targetEvents.Clear();	// All done! They don't get to carry on beyond the moment.
@@ -596,6 +598,50 @@ void BattleScene::DoReactionFire()
 				++i;
 			}
 		}
+	}
+}
+
+
+void BattleScene::ProcessDoors()
+{
+	bool doorChange = false;
+	Rectangle2I invalid;
+	invalid.SetInvalid();
+
+	// Where are all the units? Then go through and set
+	// each door. Setting a door to its current value
+	// does nothing.
+	BitArray< MAP_SIZE, MAP_SIZE, 1 > map;
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		if ( units[i].IsAlive() ) {
+
+			Vector2I pos;
+			units[i].CalcMapPos( &pos, 0 );
+			//GLOUTPUT(( "Set %d,%d\n", pos.x, pos.y ));
+			map.Set( pos.x, pos.y, 0 );
+		}
+	}
+
+	for( int i=0; i<doors.Size(); ++i ) {
+		const Vector2I& v = doors[i];
+		if (    map.IsSet( v.x, v.y )
+			 || map.IsSet( v.x+1, v.y )
+			 || map.IsSet( v.x-1, v.y )
+			 || map.IsSet( v.x, v.y+1 )
+			 || map.IsSet( v.x, v.y-1 ) )
+		{
+			doorChange |= engine->GetMap()->OpenDoor( v.x, v.y, true );
+			invalid.DoUnion( v );
+		}
+		else {
+			doorChange |= engine->GetMap()->OpenDoor( v.x, v.y, false );
+			invalid.DoUnion( v );
+		}
+	}
+	if ( doorChange ) {
+		InvalidateAllVisibility( invalid );
+		SetFogOfWar();
+		CalcTeamTargets();
 	}
 }
 
@@ -1156,16 +1202,6 @@ void BattleScene::Tap(	int tap,
 
 	*/
 
-#ifdef MAPMAKER
-	if ( !iconSelected ) {
-		const Vector3F& pos = mapSelection->Pos();
-		int rotation = (int) (mapSelection->GetYRotation() / 90.0f );
-
-		engine->GetMap()->AddItem( (int)pos.x, (int)pos.z, rotation, currentMapItem, -1, 0 );
-		iconSelected = 0;	// don't keep processing
-	}
-#endif	
-
 	if ( uiMode == UIM_NORMAL ) {
 		bool iconSelected = HandleIconTap( screen.x, screen.y );
 		if ( iconSelected )
@@ -1186,6 +1222,13 @@ void BattleScene::Tap(	int tap,
 		ShowNearPath( selection.soldierUnit );
 		return;
 	}
+
+#ifdef MAPMAKER
+	const Vector3F& pos = mapSelection->Pos();
+	int rotation = (int) (mapSelection->GetYRotation() / 90.0f );
+
+	engine->GetMap()->AddItem( (int)pos.x, (int)pos.z, rotation, currentMapItem, -1, 0 );
+#endif	
 
 	// Get the map intersection. May be used by TARGET_TILE or NORMAL
 	Vector3F intersect;
@@ -1963,6 +2006,12 @@ void BattleScene::Rotate( int action, float degrees )
 
 void BattleScene::DrawHUD()
 {
+#ifdef MAPMAKER
+	engine->GetMap()->DumpTile( (int)mapSelection->X(), (int)mapSelection->Z() );
+	UFOText::Draw( 0,  16, "(%2d,%2d) 0x%2x:'%s'", 
+				   (int)mapSelection->X(), (int)mapSelection->Z(),
+				   currentMapItem, engine->GetMap()->GetItemDefName( currentMapItem ) );
+#else
 	bool enabled = SelectedSoldierUnit() && actionStack.Empty();
 	{
 		widgets->SetEnabled( BTN_TARGET, enabled );
@@ -2000,12 +2049,6 @@ void BattleScene::DrawHUD()
 			m_targets.CalcTotalUnitCanSee( id, Unit::ALIEN ),
 			m_targets.TotalTeamCanSee( Unit::SOLDIER, Unit::ALIEN ) );
 	}
-
-#ifdef MAPMAKER
-	engine->GetMap()->DumpTile( (int)mapSelection->X(), (int)mapSelection->Z() );
-	UFOText::Draw( 0,  16, "(%2d,%2d) 0x%2x:'%s'", 
-				   (int)mapSelection->X(), (int)mapSelection->Z(),
-				   currentMapItem, engine->GetMap()->GetItemDefName( currentMapItem ) );
 #endif
 }
 

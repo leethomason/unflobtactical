@@ -362,8 +362,8 @@ void Game::LoadMapResources()
 			// model		open			destroyed	cx, cz	hp		material		pather
 		{	"woodCrnr",		0,				"woodCrnrD",1,	1,	HP_MED,	BURN,			"3" },
 		{	"woodDoorCld",	"woodDoorOpn",	0,			1,	1,	HP_MED,	BURN,			"0", "1" },
-		{	"woodWall",		"woodWall",		0,			1,	1,	HP_MED,	BURN,			"1" },
-		{	"woodWallWin",	"woodWallWin",	0,			1,	1,	HP_MED,	BURN,			"1", "0" },
+		{	"woodWall",		0,				0,			1,	1,	HP_MED,	BURN,			"1" },
+		{	"woodWallWin",	0,				0,			1,	1,	HP_MED,	BURN,			"1", "0" },
 		{	0	}
 	};
 	InitMapItemDef(  WOOD_SET, woodSet );
