@@ -154,6 +154,9 @@ struct Rectangle2
 			Set( x, y, x, y );
 		}
 	}
+
+
+	void DoUnion( const Vector2I& v ) { DoUnion( v.x, v.y ); }
  
  	/// Turn this into the intersection.
 	void DoIntersection( const Rectangle2<T>& rect )

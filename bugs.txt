@@ -1,5 +1,6 @@
 BUGS:
 - doors
+- call SetFogOfWar less
 - weapon (in)accuracy
 - reaction fire probability
 - center on selected unit (w/ scrolling?)

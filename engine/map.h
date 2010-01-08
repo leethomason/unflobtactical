@@ -115,17 +115,19 @@ public:
 		bool CanDamage() const	{ return hp != 0xffff; }
 		int HasLight() const	{ return lightDef; }
 		bool IsLight() const	{ return lightTX || lightTY; }
+		bool IsDoor() const		{ return modelResourceOpen != 0; }
 	};
 
 	struct MapItem
 	{
-		U8		x, y, rot;
+		U8		x, y, rot, open;
 		U8		itemDefIndex;	// 0: not in use, >0 is the index
 		U16		hp;
 
 		enum {
 			MI_IS_LIGHT				= 0x01,
 			MI_NOT_IN_DATABASE		= 0x02,		// lights are usually generated, and are not stored in the DB
+			MI_DOOR					= 0x04,
 		};
 		U16		flags;
 
@@ -155,7 +157,7 @@ public:
 			hp -= _hp;
 			return false;						
 		}
-		bool Destroyed() { return hp == 0; }
+		bool Destroyed() const { return hp == 0; }
 	};
 
 	/* FIXME: The map lives between the game and the engine. It should probably be moved
@@ -267,6 +269,9 @@ public:
 	// visibility (but similar to AdjacentCost conceptually). If PATH_TYPE is
 	// passed in for the connection, it becomes CanWalk
 	bool CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& q, ConnectionType connection=VISIBILITY_TYPE );
+
+	bool OpenDoor( int x, int y, bool open );
+	void QueryAllDoors( CDynArray< grinliz::Vector2I >* doors );
 
 private:
 	struct IMat

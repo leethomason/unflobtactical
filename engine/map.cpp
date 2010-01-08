@@ -604,9 +604,13 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	item->y = y;
 	item->rot = rotation;
 	item->itemDefIndex = defIndex;
+	item->open = 0;
 
 	item->hp = hp;
+	if ( itemDef.IsDoor() )
+		flags |= MapItem::MI_DOOR;
 	item->flags = flags;
+
 	GLASSERT( mapBounds.min.x >= 0 && mapBounds.max.x < 256 );	// using int8
 	GLASSERT( mapBounds.min.y >= 0 && mapBounds.max.y < 256 );	// using int8
 	item->mapBounds8.Set( mapBounds.min.x, mapBounds.min.y, mapBounds.max.x, mapBounds.max.y );
@@ -671,11 +675,8 @@ void Map::DeleteItem( MapItem* item )
 
 	if ( item->model )
 		tree->FreeModel( item->model );
-	//if ( item->storage )
-	//	delete item->storage;
 
 	itemPool.Free( item );
-
 	ResetPath();
 	ClearVisPathMap( mapBounds );
 	CalcVisPathMap( mapBounds );
@@ -691,6 +692,71 @@ void Map::DeleteAt( int x, int y )
 	if ( item ) {
 		DeleteItem( item );
 	}
+}
+
+
+void Map::QueryAllDoors( CDynArray< grinliz::Vector2I >* doors )
+{
+	Rectangle2I bounds;
+	CalcBounds( &bounds );
+
+	MapItem* item = quadTree.FindItems( bounds, MapItem::MI_DOOR, 0 );
+	while( item ) {
+		Vector2I v = { item->x, item->y };
+		doors->Push( v );
+		item = item->next;
+	}
+}
+
+
+bool Map::OpenDoor( int x, int y, bool open ) 
+{
+	bool opened = false;
+
+	MapItem* item = quadTree.FindItems( x, y, MapItem::MI_DOOR, 0 );
+	GLASSERT( !item || !item->next );	// should only be one...
+
+	for( ; item; item=item->next ) {
+		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
+		GLASSERT( itemDef.IsDoor() );
+		GLASSERT( itemDef.modelResourceOpen );
+
+		if ( !item->Destroyed() ) {
+			GLASSERT( item->model );
+
+			Vector3F pos = item->model->Pos();
+			float rot = item->model->GetYRotation();
+
+			const ModelResource* res = 0;
+			if ( open && item->open == 0 ) {
+				item->open = 1;
+				res = itemDef.modelResourceOpen;
+			}
+			else if ( !open && item->open == 1 ) {
+				item->open = 0;
+				res = itemDef.modelResource;
+			}
+
+			if ( res ) {
+				opened = true;
+				tree->FreeModel( item->model );
+
+				Model* model = tree->AllocModel( res );
+				model->SetFlag( Model::MODEL_OWNED_BY_MAP );
+				model->SetPos( pos );
+				model->SetYRotation( rot );
+				item->model = model;
+
+				Rectangle2I mapBounds;
+				item->MapBounds( &mapBounds );
+
+				ResetPath();
+				ClearVisPathMap( mapBounds );
+				CalcVisPathMap( mapBounds );
+			}
+		}
+	}
+	return opened;
 }
 
 
@@ -1182,12 +1248,17 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
 					// Account for tile rotation. (Actually a bit rotation too, which is handy.)
 					// The OR operation is important. This routine will write outside of the bounds,
 					// and should do no damage.
+					//
+					// Open doors don't impede sight or movement.
+					//
+					if ( item->open == 0 )
 					{
 						// Path
 						U32 p = ( itemDef.pather[prime.y][prime.x] << rot );
 						p = p | (p>>4);
 						pathMap[ (y+item->y)*SIZE + (x+item->x) ] |= p;
 					}
+					if ( item->open == 0 )
 					{
 						// Visibility
 						U32 p = ( itemDef.visibility[prime.y][prime.x] << rot );

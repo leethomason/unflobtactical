@@ -287,6 +287,8 @@ private:
 
 	Targets m_targets;
 	CDynArray< TargetEvent > targetEvents;
+	CDynArray< grinliz::Vector2I > doors;
+	void ProcessDoors();
 
 	// Updates what units can and can not see. Sets the 'Targets' structure above,
 	// and generates targetEvents.
