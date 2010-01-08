@@ -516,7 +516,9 @@ void BattleScene::PushRotateAction( Unit* src, const Vector3F& dst3F, bool quant
 }
 
 
-bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target, int select, int type )
+bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target, 
+								   int select, int type,
+								   bool useError )
 {
 	GLASSERT( unit );
 	GLASSERT( select == 0 || select == 1 );\
@@ -531,15 +533,34 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target, 
 
 	// Stack - push in reverse order.
 	int nShots = ( type == AUTO_SHOT ) ? 3 : 1;
+
+	Vector3F normal, right, up, p;
+	unit->CalcPos( &p );
+	normal = target - p;
+	float length = normal.Length();
+	normal.Normalize();
+
+	up.Set( 0.0f, 1.0f, 0.0f );
+	CrossProduct( normal, up, &right );
+	CrossProduct( normal, right, &up );
+
 	if (    unit->GetStats().TU() >= selection.soldierUnit->FireTimeUnits( select, type )
 		 && (weapon->RoundsRequired(select+1)*nShots <= weapon->RoundsAvailable(select+1)) ) 
 	{
 		unit->UseTU( selection.soldierUnit->FireTimeUnits( select, type ) );
 
 		for( int i=0; i<nShots; ++i ) {
+			Vector3F t = target;
+			if ( useError ) {
+				float d = length * random.Uniform() * unit->GetStats().Accuracy();
+				Matrix4 m;
+				m.SetAxisAngle( normal, (float)random.Rand( 360 ) );
+				t = target + (m * right)*d;
+			}
+
 			Action action;
 			action.Init( ACTION_SHOOT, unit );
-			action.type.shoot.target = target;
+			action.type.shoot.target = t;
 			action.type.shoot.select = select;
 			actionStack.Push( action );
 			weapon->UseRound( select+1 );
@@ -582,17 +603,24 @@ void BattleScene::DoReactionFire()
 				 && units[t.targetID].Team() == currentTeamTurn ) 
 			{
 				// Reaction fire
-				GLOUTPUT(( "reaction fire possible.\n" ));
 
 				if ( units[t.targetID].IsAlive() && units[t.targetID].GetModel() ) {
-					Vector3F target;
-					units[t.targetID].GetModel()->CalcTarget( &target );
+					// Do we really react? Are we that lucky? Well, are you, punk?
+					float r = random.Uniform();
+					float reaction = units[t.targetID].GetStats().Reaction();
+					
+					GLOUTPUT(( "reaction fire possible. (if %.2f < %.2f)\n", r, reaction ));
 
-					int shot = PushShootAction( &units[t.viewerID], target, 0, 1 );	// auto
-					if ( !shot )
-						PushShootAction( &units[t.viewerID], target, 0, 0 );	// snap
-					targetEvents.SwapRemove( i );
+					if ( r <= reaction ) {
+						Vector3F target;
+						units[t.targetID].GetModel()->CalcTarget( &target );
+
+						int shot = PushShootAction( &units[t.viewerID], target, 0, 1, true );	// auto
+						if ( !shot )
+							PushShootAction( &units[t.viewerID], target, 0, 0, true );	// snap
+					}
 				}
+				targetEvents.SwapRemove( i );
 			}
 			else {
 				++i;
@@ -1095,7 +1123,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 			else {
 				selection.targetUnit->GetModel()->CalcTarget( &target );
 			}
-			PushShootAction( selection.soldierUnit, target, select, type );
+			PushShootAction( selection.soldierUnit, target, select, type, true );
 			selection.targetUnit = 0;
 		}
 	}
@@ -1651,7 +1679,7 @@ void BattleScene::InvalidateAllVisibility()
 */
 void BattleScene::CalcAllVisibility()
 {
-	QuickProfile qp( "CalcAllVisibility()" );
+	//QuickProfile qp( "CalcAllVisibility()" );
 	Vector2I range[2] = {{ TERRAN_UNITS_START, TERRAN_UNITS_END }, {ALIEN_UNITS_START, ALIEN_UNITS_END}};
 
 	for( int k=0; k<2; ++k ) {
