@@ -114,8 +114,10 @@ private:
 	CStack< Action > actionStack;
 
 	void PushRotateAction( Unit* src, const grinliz::Vector3F& dst, bool quantize );
+	
 	// Try to shoot. Return true if success.
-	bool PushShootAction( Unit* src, const grinliz::Vector3F& dst, int select, int type );
+	bool PushShootAction(	Unit* src, const grinliz::Vector3F& dst, 
+							int select, int type, bool useError );
 
 	bool ProcessAction( U32 deltaTime );
 	bool ProcessActionShoot( Action* action, Unit* unit, Model* model );

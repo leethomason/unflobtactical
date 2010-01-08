@@ -31,8 +31,8 @@ const int TRAIT_LEVEL_BONUS = 5;
 const float STANDARD_TARGET_AREA = 0.6f;	// roughly meters
 const float ACC_GOOD_SHOT = 0.10f;
 const float ACC_BAD_SHOT  = 0.30f;
-const float REACTION_FAST = 0.50f;	// 50%
-const float REACTION_SLOW = 0.10f;	// 10%
+const float REACTION_FAST = 0.80f;
+const float REACTION_SLOW = 0.20f;
 
 const float ACC_AIMED_SHOT_MULTIPLIER = 1.0f;	// LOWER accuracy is better
 const float ACC_AUTO_SHOT_MULTIPLIER  = 1.4f;

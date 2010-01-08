@@ -1,16 +1,19 @@
 BUGS:
-- doors
-- call SetFogOfWar less
-- weapon (in)accuracy
-- reaction fire probability
+- crashes when impact (hit) out of range.
 - center on selected unit (w/ scrolling?)
 - tu in character screen
 
 WAIT
 - need correct colors in RenderWeapon()
 - melee weapons
+- call SetFogOfWar less
+- auto-fire targets in a row
+- check math (again) in PushShootAction()
 
 FIXED
+- reaction fire probability
+- weapon (in)accuracy
+- doors
 - map destruction isn't causing re-vis and reaction.
 - first unit in first slot doesn't seem to do damage correctly with rocket
 - sort out when to clear / process Events
