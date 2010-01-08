@@ -1,5 +1,9 @@
 #Useful code and links from the web
 
+= Code Static analysys =
+
+Run cppcheck and see what it turns up.
+
 = Application data =
 
 Mac Code: wacky NS stuff (already done)
