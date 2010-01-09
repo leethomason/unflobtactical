@@ -1,0 +1,19 @@
+#an overview of how to play the tactical preview
+
+= UFO Attack =
+
+Welcome to UFO Attack! UFO Attack is a turned based tactical combat game. It is based on the classic game X-COM, but has been changing as I write it. There are 2 teams: the Terran Soldiers and the Aliens. You play the Terrans, while the computer plays the Aliens.
+
+== Current State ==
+
+Only "1/2 a turn" is playable. You can move your Terran units. The Aliens will sometime shoot back (reaction fire) but not ever move or attack.
+
+
+
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
