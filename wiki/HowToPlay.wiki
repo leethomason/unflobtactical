@@ -66,3 +66,7 @@ Terran weapons use various kinds of shells. All alien weapons run off plasma cel
 == Interface ==
 
 http://grinliz.smugmug.com/photos/760512809_mXEX2-M.jpg
+
+=== Status Bar at Top ===
+
+The 
