@@ -39,6 +39,14 @@ During the enemy turn (Alien turn for the player) it is possible to have 'reacti
 
 Of course, the Aliens get reaction fire too.
 
+=== Sight and Fog of War ===
+
+Every unit has a certain (wide) range of vision. The map is revealed everywhere a team can see. Everything else is in the "fog of war" and rendered in black.
+
+Nighttime significantly reduces the Terran vision. (Aliens are less affected.) Fire and smoke obscures vision.
+
+Doors are never locked; you can always walk through doors. They close behind you.
+
 === Weapons ===
 
 Every weapon in the game has:
@@ -72,6 +80,8 @@ name       PRIMARY                              SECONDARY
   * CANON: mini canon. Secondary fire is incendiary.
 
 Terran weapons use various kinds of shells. All alien weapons run off plasma cells.
+
+More powerful weapons can destroy buildings and the landscape, and occasionally will start fires.
 
 == Interface ==
 
@@ -111,3 +121,34 @@ The text across the top of the page gives information on the selected character.
 === Right Buttons ===
   * Character screen. Tap to manage inventory or pick up items on the world map.
   * Left / Right. Turn the selected unit.
+
+http://grinliz.smugmug.com/photos/760512831_aJTY9-M.jpg
+
+  * *Left* primary* fire mode. The right column secondary.
+  * Top buttons are the info about the fire mode. Damage (D50) and Rounds remaining (R15). Aimed and snap shots take 1 round. Auto shots take 3.
+  * In the columns info is displayed for each shot type. Chance to hit (22%), TUs required (4.0), and the Damage Per TU (2.7).
+   * Aimed
+   * Auto
+   * Snap
+  
+http://grinliz.smugmug.com/photos/760512790_9aE8d-M.jpg
+
+This is the character inventory screen. On the left side is what the selected unit is carrying. On the right are items on the ground.
+
+=== Carried (left) Items ===
+Items in green are in the unit's backpack. The left red item is armor worn. The right red item is the weapon in hand. The center red icon is the "unload" and will pull the clips and grenades out of the current weapon.
+
+You can load a weapon by placing it in a hand and dragging ammo on to it. For weapons with secondary fire, the primary rounds are on the left, and the secondary on the right.
+
+=== Inventory (right) Items ===
+The left (blue) column selects the groups of items to view.
+  * Miscellaneous and alien items
+  * Armor
+  * Alien Weapons
+  * Terran Weapons
+You can drag between the items on the ground (green) and items in your backpack.
+
+
+=== Top Buttons ===
+
+Shell type in displayed as an icon. The damage is displayed as D5
