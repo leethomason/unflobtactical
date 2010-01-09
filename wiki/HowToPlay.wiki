@@ -147,8 +147,3 @@ The left (blue) column selects the groups of items to view.
   * Alien Weapons
   * Terran Weapons
 You can drag between the items on the ground (green) and items in your backpack.
-
-
-=== Top Buttons ===
-
-Shell type in displayed as an icon. The damage is displayed as D5
