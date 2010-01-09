@@ -1,10 +1,16 @@
-#an overview of how to play the tactical preview
-
 = UFO Attack =
 
 Welcome to UFO Attack! UFO Attack is a turned based tactical combat game. (It is based on the classic game X-COM, but has been changing as I write it and add new concepts. It's very rewarding to take the game in a bit of a new direction).
 
 There are 2 teams: the Terran Soldiers and the Aliens. You play the Terrans, while the computer plays the Aliens.
+
+== Your Help Needed! ==
+
+Suggestions, input, ideas, bugs, all feedback is appreciated! The best way is to submit an Issue: http://code.google.com/p/unflobtactical/issues/list
+
+== Art Direction ==
+
+Much of the art is missing. There are few icons, only a couple of weapon models, and most of the art is placeholder. My current thinking is to give it a "cartoony boardgame" look. Largely this is driven by not wanting to put in an animation system, and trying to keep the art requirements do-able. I'm still happy to get any ideas or feedback on the art, of course. It's in a good place to think about new ideas since I'll re-do it anyway.
 
 == Current State ==
 
