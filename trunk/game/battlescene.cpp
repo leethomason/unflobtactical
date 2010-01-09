@@ -1439,7 +1439,7 @@ void BattleScene::SetFireWidget()
 		const WeaponItemDef* wid = item->IsWeapon();
 		GLASSERT( wid );
 
-		float d=0;
+		//float d=0;
 		if ( item->HasPart( select+1 ) ) {
 			fireWidget->SetDeco( 6+select, item->Deco(select+1) );
 			

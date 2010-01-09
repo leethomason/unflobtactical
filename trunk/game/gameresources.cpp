@@ -323,8 +323,6 @@ void Game::LoadMapResources()
 	};
 	InitMapItemDef( FARM_SET, farmSet );
   
-	Map::LightItemDef lightLander = { 0, 0, 6, 6 };
-
 	const MapItemInit marineSet[] =
 	{
 			// model		open			destroyed	cx, cz	hp			material	pather

@@ -21,6 +21,9 @@
 #include "SDL_image.h"
 #endif
 #include "SDL_loadso.h"
+
+#include "../grinliz/gldebug.h"
+#include "../grinliz/gltypes.h"
 #include "../engine/enginelimits.h"
 
 #include <string>
@@ -28,8 +31,6 @@
 
 using namespace std;
 
-#include "../grinliz/gldebug.h"
-#include "../grinliz/gltypes.h"
 #include "../grinliz/gldynamic.h"
 #include "../grinliz/glutil.h"
 #include "../grinliz/glstringutil.h"

@@ -379,8 +379,8 @@ bool Item::Combine( Item* with, bool* consumed )
 
 int Item::RoundsAvailable( int i ) const
 {
-	GLASSERT( i==1 || i==2 )
-	GLASSERT( this->IsWeapon() );
+	GLASSERT( i==1 || i==2 );
+	GLASSERT( IsWeapon() );
 
 	if ( i == 1 )
 		return this->Rounds(1);
@@ -395,8 +395,8 @@ int Item::RoundsAvailable( int i ) const
 
 int Item::RoundsRequired( int i ) const 
 {
-	GLASSERT( i==1 || i==2 )
-	GLASSERT( this->IsWeapon() );
+	GLASSERT( i==1 || i==2 );
+	GLASSERT( IsWeapon() );
 
 	const WeaponItemDef* wid = this->IsWeapon();
 
@@ -408,8 +408,8 @@ int Item::RoundsRequired( int i ) const
 
 void Item::UseRound( int i ) 
 {
-	GLASSERT( i==1 || i==2 )
-	GLASSERT( this->IsWeapon() );
+	GLASSERT( i==1 || i==2 );
+	GLASSERT( IsWeapon() );
 
 	const WeaponItemDef* wid = this->IsWeapon();
 
