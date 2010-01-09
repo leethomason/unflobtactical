@@ -257,12 +257,14 @@ void Unit::SetPos( const grinliz::Vector3F& pos, float rotation )
 
 Item* Unit::GetWeapon()
 {
+	GLASSERT( status == STATUS_ALIVE );
 	return inventory.ArmedWeapon();
 }
 
 
 const Item* Unit::GetWeapon() const
 {
+	GLASSERT( status == STATUS_ALIVE );
 	return inventory.ArmedWeapon();
 }
 
@@ -293,6 +295,7 @@ void Unit::UpdateInventory()
 
 void Unit::UpdateWeapon()
 {
+	GLASSERT( status == STATUS_ALIVE );
 	if ( weapon && model ) {
 		Matrix4 r;
 		r.SetYRotation( model->GetYRotation() );
@@ -370,24 +373,31 @@ void Unit::Kill()
 
 void Unit::DoDamage( const DamageDesc& damage )
 {
-	// FIXME: account for armor
-	stats.DoDamage( (int)damage.Total() );
-	if ( !stats.HP() ) {
-		Kill();
-		visibilityCurrent = false;
+	GLASSERT( status != STATUS_NOT_INIT );
+	if ( status == STATUS_ALIVE ) {
+		// FIXME: account for armor
+		stats.DoDamage( (int)damage.Total() );
+		if ( !stats.HP() ) {
+			Kill();
+			visibilityCurrent = false;
+		}
 	}
 }
 
 
 void Unit::NewTurn()
 {
-	stats.RestoreTU();
-	userDone = false;
+	if ( status == STATUS_ALIVE ) {
+		stats.RestoreTU();
+		userDone = false;
+	}
 }
 
 
 void Unit::CreateModel( bool alive )
 {
+	GLASSERT( status != 0 );
+
 	const ModelResource* resource = 0;
 	ModelResourceManager* modman = ModelResourceManager::Instance();
 

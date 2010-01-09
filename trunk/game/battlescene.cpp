@@ -1511,10 +1511,15 @@ void BattleScene::ShowNearPath( const Unit* unit )
 	SetPathBlocks();
 	const Stats& stats = unit->GetStats();
 
-	float lowTU = unit->FireTimeUnits( 0, SNAP_SHOT );
-	float hiTU = Max( unit->FireTimeUnits( 0, AIMED_SHOT ), unit->FireTimeUnits( 0, AUTO_SHOT ) );
+	float snappedTU = unit->FireTimeUnits( 0, SNAP_SHOT );
+	float autoTU = unit->FireTimeUnits( 0, AUTO_SHOT );
 
-	engine->GetMap()->ShowNearPath( start, stats.TU()-hiTU, stats.TU()-lowTU, stats.TU() );
+	if ( autoTU > 0.0f ) {
+		engine->GetMap()->ShowNearPath( start, stats.TU()-autoTU, stats.TU()-snappedTU, stats.TU() );
+	}
+	else {
+		engine->GetMap()->ShowNearPath( start, stats.TU()-snappedTU, -1, stats.TU() );
+	}
 }
 
 
