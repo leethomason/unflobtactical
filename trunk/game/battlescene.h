@@ -268,7 +268,10 @@ private:
 				return Unit::CIVILIAN;
 			else if ( id >= ALIEN_UNITS_START && id < ALIEN_UNITS_END ) 
 				return Unit::ALIEN;
-			else { GLASSERT( 0 ); }
+			else { 
+				GLASSERT( 0 ); 
+				return 0;
+			}
 		}
 		void Set( int viewer, int target )		{ 
 			targets.Set( viewer, target, 0 );
