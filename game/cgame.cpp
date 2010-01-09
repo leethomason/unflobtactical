@@ -14,15 +14,14 @@
 */
 
 #include "../grinliz/gldebug.h"
-#include "../grinliz/glstringutil.h"
 #include "cgame.h"
 #include "game.h"
-
-using namespace grinliz;
 
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
 #endif
+
+#include "../grinliz/glstringutil.h"
 
 void* NewGame( int width, int height, int rotation, const char* savePath )
 {
