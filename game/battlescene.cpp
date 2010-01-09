@@ -1761,7 +1761,7 @@ void BattleScene::CalcUnitVisibility( const Unit* unit )
 	Vector2I pos;
 	float rotation;
 	unit->CalcMapPos( &pos, &rotation );
-	int r = NormalizeAngleDegrees( LRintf( rotation ) );
+	int r = NormalizeAngleDegrees( (int)LRintf( rotation ) );
 
 	// Clear out the old settings.
 	// Walk the area in range around the unit and cast rays.

@@ -33,6 +33,7 @@ distribution.
 #endif
 
 #include <math.h>
+#include <stdlib.h>
 #include "gldebug.h"
 #include "gltypes.h"
 
