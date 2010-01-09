@@ -5,7 +5,7 @@
 #include "../grinliz/gltypes.h"
 
 /*
-	PHYSICAL / SCREEN coordinates:
+	** PHYSICAL / SCREEN coordinates:
 
 	The default iPhone coordinate system:
 	0--->x
@@ -22,14 +22,15 @@
 		  |
 		  x
 
-	VIEW coordinates:
+	** VIEW coordinates:
 	y
 	|
 	|
 	0----x
 	Independent of rotation.
 
-	UI coordinates:
+	** UI coordinates:
+
 	Put the origin in the lower left accounting for rotation. So the lower left
 	from the point of view of the person holding the device.
 

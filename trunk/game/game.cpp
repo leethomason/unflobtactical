@@ -31,6 +31,7 @@
 #include "../grinliz/glperformance.h"
 #include "../sqlite3/sqlite3.h"
 #include "../shared/gldatabase.h"
+#include "../version.h"
 
 using namespace grinliz;
 
@@ -328,7 +329,8 @@ void Game::DoTick( U32 _currentTime )
 
 	currentScene->DrawHUD();
 
-	UFOText::Draw(	0,  0, "UFO Attack! %4.1ffps %5.1fK/f %4dK/s", 
+	UFOText::Draw(	0,  0, "UFOAttack#d %4.1ffps %5.1fK/f %4dK/s", 
+					VERSION,
 					framesPerSecond, 
 					(float)triCount/1000.0f,
 					trianglesPerSecond );

@@ -65,6 +65,7 @@ public:
 	};
 	const grinliz::Vector4F* EyeDir()				{ if ( !valid ) CalcWorldXForm();
 													  return eyeDir; }	
+	// normal(0), up(1), right(2)
 	const grinliz::Vector3F* EyeDir3()				{ if ( !valid ) CalcWorldXForm();
 													  return eyeDir3; }
 

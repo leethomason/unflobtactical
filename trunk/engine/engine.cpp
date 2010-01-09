@@ -155,21 +155,30 @@ void Engine::MoveCameraHome()
 	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)map->Height() + 5.0f );
 	camera.SetYRotation( -45.f );
 	camera.SetTilt( engineData.cameraTilt );
-	//zoom = defaultZoom;
 }
 
 
-void Engine::MoveCameraXZ( float x, float z )
+void Engine::MoveCameraXZ( float x, float z, Vector3F* calc )
 {
+	// Move the camera, but don't change tilt or rotation.
+	// The distance is based on triangle ratios.
+	//
 	const Vector3F* eyeDir = camera.EyeDir3();
 
 	Vector3F start = { x, 0.0f, z };
-	Vector3F pos = start - eyeDir[0]*engineData.cameraHeight*1.4f;
+	
+	float h = camera.PosWC().y;
+	Vector3F pos = start + eyeDir[0]*(h/eyeDir[0].y);
 
-	camera.SetPosWC( pos.x, pos.y, pos.z );
-	camera.SetYRotation( -45.f );
-	camera.SetTilt( engineData.cameraTilt );
-	//zoom = defaultZoom;
+	if ( calc ) {
+		*calc = pos;
+	}
+	else {
+		camera.SetPosWC( pos.x, pos.y, pos.z );
+		RestrictCamera();
+	}
+	//camera.SetYRotation( -45.f );
+	//camera.SetTilt( engineData.cameraTilt );
 }
 
 

@@ -1,7 +1,5 @@
 BUGS:
 - crashes when impact (hit) out of range.
-- center on selected unit (w/ scrolling?)
-- tu in character screen
 
 WAIT
 - need correct colors in RenderWeapon()
@@ -9,8 +7,10 @@ WAIT
 - call SetFogOfWar less
 - auto-fire targets in a row
 - check math (again) in PushShootAction()
+- tu in character screen
 
 FIXED
+- center on selected unit (w/ scrolling?)
 - reaction fire probability
 - weapon (in)accuracy
 - doors

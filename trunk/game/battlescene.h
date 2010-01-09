@@ -66,6 +66,7 @@ private:
 		ACTION_SHOOT,
 		ACTION_DELAY,
 		ACTION_HIT,
+		ACTION_CAMERA,
 	};
 
 	struct MoveAction	{
@@ -82,6 +83,10 @@ private:
 		int select;	// primary{0) or secondary(1)
 	};
 
+	struct DelayAction {
+		U32 delay;
+	};
+
 	struct HitAction {
 		DamageDesc			damageDesc;		// hit with what??
 		bool				explosive;
@@ -90,8 +95,11 @@ private:
 		Model*				m;				// model impacted - may be 0
 	};
 
-	struct DelayAction {
-		U32 delay;
+	struct CameraAction {
+		grinliz::Vector3F	start;
+		grinliz::Vector3F	end;
+		int					time;
+		int					timeLeft;
 	};
 
 	struct Action
@@ -105,12 +113,19 @@ private:
 			ShootAction		shoot;
 			DelayAction		delay;
 			HitAction		hit;
+			CameraAction	camera;
 		} type;
 
 		void Clear()							{ action = ACTION_NONE; memset( &type, 0, sizeof( type ) ); }
 		void Init( int id, Unit* unit )			{ Clear(); action = id; this->unit = unit; }
 		bool NoAction()							{ return action == ACTION_NONE; }
 	};
+
+	void InitAction( Action* a, int action ) {
+		memset( a, 0, sizeof(Action) );
+		a->action = action;
+	}
+
 	CStack< Action > actionStack;
 
 	void PushRotateAction( Unit* src, const grinliz::Vector3F& dst, bool quantize );
@@ -122,6 +137,7 @@ private:
 	bool ProcessAction( U32 deltaTime );
 	bool ProcessActionShoot( Action* action, Unit* unit, Model* model );
 	bool ProcessActionHit( Action* action );	
+	void ScrollOnScreen( const grinliz::Vector3F& v );
 
 	void StopForNewTeamTarget();
 	void DoReactionFire();
