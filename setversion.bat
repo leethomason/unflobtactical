@@ -1,0 +1,6 @@
+del version.h
+echo const int VERSION= >> version.h
+svnversion >> version.h
+echo ; >> version.h
+
+
