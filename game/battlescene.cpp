@@ -471,6 +471,36 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 }
 
 
+
+
+void BattleScene::ScrollOnScreen( const Vector3F& pos )
+{
+	Vector2F r;
+	engine->WorldToScreen( pos, &r );
+	GLOUTPUT(( "screen: %.1f, %.1f\n", r.x, r.y ));
+
+	const Screenport& port = engine->GetScreenport();
+	if ( r.x < 0.0f || r.x > port.PhysicalWidth() || r.y < 0.0f || r.y > port.PhysicalHeight() ) {
+		// Scroll
+		GLOUTPUT(( "Scroll!\n" ));
+		Vector3F dest;
+		engine->MoveCameraXZ( pos.x, pos.z, &dest );
+
+		Action action;
+		InitAction( &action, ACTION_CAMERA );
+
+		const int TIME = 500;
+		action.type.camera.start = engine->camera.PosWC();
+		action.type.camera.end   = dest;
+		action.type.camera.time  = TIME;
+		action.type.camera.timeLeft = TIME;
+		actionStack.Push( action );
+	}
+}
+
+
+
+
 void BattleScene::SetSelection( Unit* unit ) 
 {
 	if ( !unit ) {
@@ -837,6 +867,26 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 				}
 				break;
 
+			case ACTION_CAMERA:
+				{
+					action->type.camera.timeLeft -= deltaTime;
+					if ( action->type.camera.timeLeft > 0 ) {
+						Vector3F v;
+						for( int i=0; i<3; ++i ) {
+							v.X(i) = Interpolate(	(float)action->type.camera.time, 
+													action->type.camera.start.X(i),
+													0.0f,							
+													action->type.camera.end.X(i),
+													(float)action->type.camera.timeLeft );
+						}
+						engine->camera.SetPosWC( v );
+					}
+					else {
+						actionStack.Pop();
+					}
+				}
+				break;
+
 			default:
 				GLASSERT( 0 );
 				break;
@@ -1196,6 +1246,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 					while( i != index ) {
 						if ( units[i].IsAlive() && !units[i].IsUserDone() ) {
 							SetSelection( &units[i] );
+							ScrollOnScreen( units[i].GetModel()->Pos() );
 							break;
 						}
 						++i;

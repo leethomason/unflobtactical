@@ -79,7 +79,10 @@ public:
 	void Draw( int* trianglesDrawn );
 
 	void MoveCameraHome();
-	void MoveCameraXZ( float x, float z );
+	// Move the camera so that it points to x,z. If 'calc' is non-null,
+	// the camera will *not* be moved, but the destination for the camera
+	// is returned.
+	void MoveCameraXZ( float x, float z, grinliz::Vector3F* calc=0 );
 
 	Model* AllocModel( const ModelResource* );
 	void FreeModel( Model* );
@@ -93,7 +96,8 @@ public:
 							grinliz::Vector3F* world );
 
 	void CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjectionInverse );
-	void WorldToScreen( const grinliz::Vector3F& p, grinliz::Vector2F* view );
+
+	void WorldToScreen( const grinliz::Vector3F& p, grinliz::Vector2F* screen );
 	void RayFromScreen( int x, int y, 
 						const grinliz::Matrix4& modelViewProjectionInverse, 
 						grinliz::Ray* ray );
