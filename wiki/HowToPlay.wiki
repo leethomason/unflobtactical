@@ -77,6 +77,15 @@ Terran weapons use various kinds of shells. All alien weapons run off plasma cel
 
 http://grinliz.smugmug.com/photos/760512809_mXEX2-M.jpg
 
+=== Selected Unit ===
+
+*Possible destinations are highlighted on the map.* Tap to travel there. Destinations in
+  * Green leaves enough TUs for *auto* reaction fire.
+  * Yellow leaves enough TUs for *snap* reaction fire.
+  * Orange means the unit has insufficient time for reaction fire.
+
+*Alien units* tap any alien units to bring up the fire menu. You can target any alien, but aliens marked with a red reticule are line of sight to the current unit.
+
 === Status Bar at Top ===
 
 The text across the top of the page gives information on the selected character.
@@ -97,3 +106,8 @@ The text across the top of the page gives information on the selected character.
   * 'O' Ends the turn.
   * 'N' Selects the next unit.
   * 'ND' Selects the next unit, and Next/NextDone won't reselect this unit again. (Although you can always tap on it to select.)
+  * Target allows you to fire at an arbitrary location on the map. Tap the Target icon and then the map location.
+
+=== Right Buttons ===
+  * Character screen. Tap to manage inventory or pick up items on the world map.
+  * Left / Right. Turn the selected unit.
