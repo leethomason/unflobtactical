@@ -6,7 +6,11 @@ There are 2 teams: the Terran Soldiers and the Aliens. You play the Terrans, whi
 
 == Your Help Needed! ==
 
-Suggestions, input, ideas, bugs, all feedback is appreciated! The best way is to submit an Issue: http://code.google.com/p/unflobtactical/issues/list
+Suggestions, input, ideas, bugs, all feedback is appreciated! 
+
+The best way is to submit an Issue: http://code.google.com/p/unflobtactical/issues/list
+
+But you can comment on the wiki, edit the wiki (email me for access), or send me feedback on email. Thanks in advance - getting other people involved is very appreciated.
 
 == Art Direction ==
 
