@@ -8,7 +8,7 @@ There are 2 teams: the Terran Soldiers and the Aliens. You play the Terrans, whi
 
 == Current State ==
 
-Only "1/2 a turn" is playable. The players moves your Terran units. The Aliens will sometime shoot back (reaction fire) but not ever move or attack.
+Only "1/2 a turn" is playable. The players moves your Terran units. The Aliens will sometime shoot back (reaction fire) but not ever move or attack. You can't win, although there are 4 aliens scattered about the map if you want to wipe out this small alien threat.
 
 == iPod Version ==
 
@@ -19,6 +19,8 @@ The iPod version requires a developer cert. (Borrow from Lee.) Taps select thing
 Left mouse button: click to select or tap buttons. Drag to move the camera.
 
 Right mouse button: drag to zoom and rotate.
+
+Pressing the "escape" key exits.
 
 = Tactical Screen = 
 
@@ -124,7 +126,7 @@ The text across the top of the page gives information on the selected character.
 
 http://grinliz.smugmug.com/photos/760512831_aJTY9-M.jpg
 
-  * *Left* primary* fire mode. The right column secondary.
+  * *Left is the primary* fire mode. The right column secondary.
   * Top buttons are the info about the fire mode. Damage (D50) and Rounds remaining (R15). Aimed and snap shots take 1 round. Auto shots take 3.
   * In the columns info is displayed for each shot type. Chance to hit (22%), TUs required (4.0), and the Damage Per TU (2.7).
    * Aimed
