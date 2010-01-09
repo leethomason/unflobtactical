@@ -23,6 +23,12 @@ The game is played in turns. The player controls the Terran team.
 
 Each unit has a certain number of *Time Units (TU)*. Each time unit allows the unit to move one square of distance. Other actions (shooting, accessing inventory) take additional time units. TUs are replenished each turn.
 
+==== Reaction Fire ====
+
+During the enemy turn (Alien turn for the player) it is possible to have 'reaction fire'. Shooting that the Terrans can do during the Alien turn, if an Alien is spotted. Reaction fire is important so that you can defend your troops between turns.
+
+Of course, the Aliens get reaction fire too.
+
 === Weapons ===
 
 Every weapon in the game has:
@@ -34,7 +40,8 @@ Some weapons also have:
 
 All weapons have a primary mode. Some weapons have a secondary fire mode as well - generally a grenade launcher or incendiary attack.
 
-Here are the Terran weapons:
+Here are the Terran weapons, where "dam" is the based damage (20) followed by chance to hit (27%) and 'damage per time unit' (2.3)
+
 {{{
 name       PRIMARY                              SECONDARY
            dam snap       auto       aimed      dam snap       auto       aimed
@@ -56,7 +63,6 @@ name       PRIMARY                              SECONDARY
 
 Terran weapons use various kinds of shells. All alien weapons run off plasma cells.
 
-
-
+== Interface ==
 
 http://grinliz.smugmug.com/photos/760512809_mXEX2-M.jpg
