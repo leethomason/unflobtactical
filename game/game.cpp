@@ -258,7 +258,6 @@ void Game::SaveMap( const char* name )
 
 void Game::DoTick( U32 _currentTime )
 {
-	GLASSERT( currentTime > 0 );
 	currentTime = _currentTime;
 	if ( previousTime == 0 ) {
 		previousTime = currentTime-1;

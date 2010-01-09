@@ -22,6 +22,9 @@ must not be misrepresented as being the original software.
 distribution.
 */
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
 #include "glutil.h"
 
 
