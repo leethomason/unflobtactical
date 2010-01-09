@@ -2,18 +2,38 @@
 
 = UFO Attack =
 
-Welcome to UFO Attack! UFO Attack is a turned based tactical combat game. It is based on the classic game X-COM, but has been changing as I write it. There are 2 teams: the Terran Soldiers and the Aliens. You play the Terrans, while the computer plays the Aliens.
+Welcome to UFO Attack! UFO Attack is a turned based tactical combat game. (It is based on the classic game X-COM, but has been changing as I write it and add new concepts. It's very rewarding to take the game in a bit of a new direction).
+
+There are 2 teams: the Terran Soldiers and the Aliens. You play the Terrans, while the computer plays the Aliens.
 
 == Current State ==
 
-Only "1/2 a turn" is playable. You can move your Terran units. The Aliens will sometime shoot back (reaction fire) but not ever move or attack.
+Only "1/2 a turn" is playable. The players moves your Terran units. The Aliens will sometime shoot back (reaction fire) but not ever move or attack.
+
+= Tactical Screen = 
+
+== Concepts ==
+
+=== Turns & Time ===
+
+The game is played in turns. The player controls the Terran team.
+* Terran
+* Alien
+* Civilian
+
+Each unit has a certain number of *Time Units (TU)*. Each time unit allows the unit to move one square of distance. Other actions (shooting, accessing inventory) take additional time units. TUs are replenished each turn.
+
+=== Weapons ===
+
+Every weapon in the game has:
+* Aimed fire mode. More accurate, but takes more time.
+* Snap fire mode. Uses few TUs, but less accurate.
+
+Some weapons also have:
+* Auto fire mode. Fires a burst of 3 shots. Usually the most effective fire mode, if the weapon supports it.
+
+All weapons have a primary mode. Some weapons have a secondary fire mode as well - generally a grenade launcher or incendiary attack.
 
 
 
-
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+http://grinliz.smugmug.com/photos/760512809_mXEX2-M.jpg
