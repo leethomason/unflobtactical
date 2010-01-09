@@ -329,7 +329,7 @@ void Game::DoTick( U32 _currentTime )
 
 	currentScene->DrawHUD();
 
-	UFOText::Draw(	0,  0, "UFOAttack#d %4.1ffps %5.1fK/f %4dK/s", 
+	UFOText::Draw(	0,  0, "UFOAttack#%d %4.1ffps %5.1fK/f %4dK/s", 
 					VERSION,
 					framesPerSecond, 
 					(float)triCount/1000.0f,
