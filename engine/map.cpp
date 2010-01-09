@@ -27,6 +27,7 @@
 #include "../shared/gldatabase.h"
 #include "../engine/particleeffect.h"
 #include "../engine/particle.h"
+#include "../grinliz/glstringutil.h"
 
 using namespace grinliz;
 using namespace micropather;
@@ -866,13 +867,7 @@ void Map::DeleteRow( int x, int y, int r, int def )
 	// Clear out the existing row.
 	const int BUFSIZE=200;
 	char buf[BUFSIZE];
-#ifdef _MSC_VER
-	_snprintf_s( buf, BUFSIZE, BUFSIZE, 
-#else
-	snprintf( buf, BUFSIZE, 
-#endif
-				"DELETE FROM %s WHERE (x=? AND y=? AND r=? AND defIndex=?);",
-				dbTableName.c_str() );
+	SNPrintf( buf, BUFSIZE, "DELETE FROM %s WHERE (x=? AND y=? AND r=? AND defIndex=?);", dbTableName.c_str() );
 	GLASSERT( strlen( buf ) < BUFSIZE-1 );
 
 	result = sqlite3_prepare_v2( mapDB,	buf, -1, &stmt, 0 );
@@ -894,11 +889,7 @@ void Map::InsertRow( int x, int y, int r, int def, int hp, int flags )
 	sqlite3_stmt* stmt = 0;
 	const int BUFSIZE=200;
 	char buf[BUFSIZE];
-#ifdef _MSC_VER
-	_snprintf_s( buf, BUFSIZE, BUFSIZE, 
-#else
-				snprintf( buf, BUFSIZE, 
-#endif
+	SNPrintf( buf, BUFSIZE,
 				"INSERT INTO %s VALUES (?,?,?,?,?,?,?);",
 				dbTableName.c_str() );
 	GLASSERT( strlen( buf ) < BUFSIZE-1 );
@@ -941,14 +932,10 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 		
 		const int BUFSIZE=200;
 		char buf[BUFSIZE];
-#ifdef _MSC_VER
-		_snprintf_s( buf, BUFSIZE, BUFSIZE, 
-#else
-					snprintf( buf, BUFSIZE, 
-#endif
+		SNPrintf(	buf, BUFSIZE, 
 					"CREATE TABLE IF NOT EXISTS %s "
-					 "(x INT, y INT, r INT, defIndex INT, hp INT, flags INT, storage TEXT );",
-					 tableName );
+					"(x INT, y INT, r INT, defIndex INT, hp INT, flags INT, storage TEXT );",
+					tableName );
 		GLASSERT( strlen( buf ) < BUFSIZE-1 );
 
 		result = sqlite3_prepare_v2( db, buf,-1, &stmt, 0 );
@@ -960,12 +947,7 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 		// Now walk and add!
 		stmt = 0;
 		
-#ifdef _MSC_VER
-					_snprintf_s( buf, BUFSIZE, BUFSIZE, 
-#else
-								snprintf( buf, BUFSIZE, 
-#endif
-										 
+					SNPrintf( buf, BUFSIZE, 										 
 					"SELECT * FROM %s;",
 					 tableName );
 		GLASSERT( strlen( buf ) < BUFSIZE-1 );
@@ -1024,7 +1006,10 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 	
 	std::string path = savePath + "currentMap.db";
 	
+#pragma warning ( push )
+#pragma warning ( disable : 4996 )	// fopen is unsafe. For video games that seems extreme.
 	FILE* fp = fopen( path.c_str(), "wb" );
+#pragma warning ( pop )
 	GLASSERT( fp );
 	fwrite( mem, size, 1, fp );
 	fclose( fp );

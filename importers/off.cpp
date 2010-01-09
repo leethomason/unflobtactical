@@ -21,7 +21,13 @@ using namespace grinliz;
 
 bool ImportOFF( const std::string& filename, ModelBuilder* builder )
 {
+#pragma warning ( push )
+#pragma warning ( disable : 4996 )	// fopen is unsafe. For video games that seems extreme.
+
 	FILE* fp = fopen( filename.c_str(), "r" );
+
+#pragma warning (pop)
+
 	if ( !fp ) {
 		return false;
 	}

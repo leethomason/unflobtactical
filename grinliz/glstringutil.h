@@ -40,16 +40,26 @@ distribution.
 #include "gldebug.h"
 #include "gltypes.h"
 
+
 namespace grinliz 
 {
 	
 inline bool StrEqual( const char* a, const char* b ) 
 {
-	if ( a && b && strcmp( a, b ) == 0 )
-		return true;
+	if ( a && b ) {
+		if ( a == b ) 
+			return true;
+		else if ( strcmp( a, b ) == 0 )
+			return true;
+	}
 	return false;
 }
 
+// Reimplements SAFE strncpy, safely cross-compiler. Always returns a null-terminated string.
+// The strncpy definition is terrifying: not guarenteed to be null terminated.
+void StrNCpy( char* dst, const char* src, size_t len );
+
+int SNPrintf(char *str, size_t size, const char *format, ...);
 
 /** Loads a text file to the given string. Returns true on success, false
     if the file could not be found.

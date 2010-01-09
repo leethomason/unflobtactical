@@ -140,7 +140,8 @@ private:
 class Texture
 {
 public:
-	char name[16];		// must be first in the class for search to work! (strcmp used in the TextureManager)
+	enum { MAX_TEXTURE_NAME = 16 };
+	char name[MAX_TEXTURE_NAME];		// must be first in the class for search to work! (strcmp used in the TextureManager)
 	bool alpha;
 	U32	 glID;
 

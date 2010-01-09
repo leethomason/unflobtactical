@@ -27,7 +27,13 @@ distribution.
 
 bool grinliz::LoadTextFile( const char* filename, std::string* str )
 {
+#pragma warning ( push )
+#pragma warning ( disable : 4996 )	// fopen is unsafe. For video games (what this library is for) that seems extreme.
+
 	FILE* fp = fopen( filename, "r" );
+
+#pragma warning (pop)
+
 	if ( !fp )
 		return false;
 
@@ -91,9 +97,52 @@ void grinliz::StrSplitFilename(	const std::string& fullPath,
 }
 
 
+int grinliz::SNPrintf(char *str, size_t size, const char *format, ...)
+{
+    va_list     va;
+
+    //
+    //  format and output the message..
+    //
+    va_start( va, format );
+#ifdef _MSC_VER
+    int result = vsnprintf_s( str, size, _TRUNCATE, format, va );
+#else
+	// Reading the spec, the size does seem correct. The man pages
+	// say it will aways be null terminated (whereas the strcpy is not.)
+	// Pretty nervous about the implementation, so force a null after.
+    int result = vsnprintf( str, size, format, va );
+	str[size-1] = 0;
+
+#endif
+    va_end( va );
+
+	return result;
+}
+
+
+void grinliz::StrNCpy( char* dst, const char* src, size_t len )
+{
+	GLASSERT( len > 0 );
+	if ( len > 0 && dst && src ) {
+		const char* p = src;
+		char* q = dst;
+		int n = len-1;
+
+		while( *p && n ) {
+			*q++ = *p++;
+			--n;
+		}
+		*q = 0;
+		dst[len-1] = 0;
+		GLASSERT( strlen( dst ) < len );
+	}
+}
+
+
 void grinliz::StrFillBuffer( const std::string& str, char* buffer, int bufferSize )
 {
-	strncpy( buffer, str.c_str(), bufferSize );
+	StrNCpy( buffer, str.c_str(), bufferSize );
 
 	if ( bufferSize - 1 - (int)str.size() > 0 ) {
 		memset( buffer + str.size() + 1, 0, bufferSize - str.size() - 1 );
@@ -104,7 +153,7 @@ void grinliz::StrFillBuffer( const std::string& str, char* buffer, int bufferSiz
 
 void grinliz::StrFillBuffer( const char* str, char* buffer, int bufferSize )
 {
-	strncpy( buffer, str, bufferSize );
+	StrNCpy( buffer, str, bufferSize );
 
 	int size = strlen( str );
 

@@ -248,7 +248,11 @@ void dprintf( const char* format, ... )
     //  format and output the message..
     //
     va_start( va, format );
-    vsprintf( buffer, format, va );
+#ifdef _MSC_VER
+    vsprintf_s( buffer, 1024, format, va );
+#else
+    vsnprintf( buffer, 1024, format, va );
+#endif
     va_end( va );
 
 	OutputDebugStringA( buffer );

@@ -5,18 +5,13 @@
 #include "serialize.h"
 #include "../sqlite3/sqlite3.h"
 #include "../shared/gldatabase.h"
+#include "../grinliz/glstringutil.h"
 
-/*
-void TextureHeader::Load( FILE* fp )
-{
-	fread( this, sizeof(TextureHeader), 1, fp );
-}
-*/
-
+using namespace grinliz;
 
 void ModelHeader::Load( sqlite3* db, const char* n, int *groupStart, int *vertexID, int *indexID )
 {
-	strncpy( name, n, EL_FILE_STRING_LEN );
+	StrNCpy( name, n, EL_FILE_STRING_LEN );
 
 	sqlite3_stmt* stmt = 0;
 	sqlite3_prepare_v2(db, "SELECT * FROM model WHERE name=?;", -1, &stmt, 0 );
@@ -56,7 +51,7 @@ void ModelGroup::Load( sqlite3* db, int id )
 	{
 		// 0: id
 		textureName[0] = 0;
-		strcpy( textureName, (const char*)sqlite3_column_text( stmt, 1 ) );		// name
+		StrNCpy( textureName, (const char*)sqlite3_column_text( stmt, 1 ), EL_FILE_STRING_LEN );		// name
 		nVertex = sqlite3_column_int(  stmt, 2 );
 		nIndex  = sqlite3_column_int(  stmt, 3 );
 	}
@@ -70,7 +65,7 @@ void ModelGroup::Load( sqlite3* db, int id )
 UFOStream::UFOStream( const char* _name )
 {
 	GLASSERT( strlen( _name ) < EL_FILE_STRING_LEN );
-	strcpy( name, _name );
+	StrNCpy( name, _name, EL_FILE_STRING_LEN );
 
 	cap = 400;
 	buffer = (U8*) malloc( cap );
@@ -151,7 +146,7 @@ void UFOStream::WriteStr( const char* str )
 {
 	int len = strlen( str );
 	Ensure( Size() + len + 1);
-	strcpy( (char*)ptr, str );
+	StrNCpy( (char*)ptr, str, len+1 );
 	ptr += (len+1);
 	if ( Tell() > size ) {
 		size = Tell();

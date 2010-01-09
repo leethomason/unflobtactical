@@ -5,6 +5,8 @@
 #include "../shared/gldatabase.h"
 #include "../grinliz/glstringutil.h"
 
+using namespace grinliz;
+
 
 void Game::LoadTextures()
 {
@@ -27,8 +29,8 @@ void Game::LoadTextures()
 
 	while (sqlite3_step(stmt) == SQLITE_ROW) 
 	{
-		strcpy( name, (const char*)sqlite3_column_text( stmt, 0 ) );	// name
-		strcpy( format, (const char*)sqlite3_column_text( stmt, 1 ) );	// format
+		StrNCpy( name, (const char*)sqlite3_column_text( stmt, 0 ), 64 );	// name
+		StrNCpy( format, (const char*)sqlite3_column_text( stmt, 1 ), 16 );	// format
 		//int isImage = sqlite3_column_int( stmt, 2 );					// don't need
 		int w = sqlite3_column_int( stmt, 3 );
 		int h = sqlite3_column_int( stmt, 4 );
@@ -71,7 +73,7 @@ void Game::LoadModels()
 
 	while (sqlite3_step(stmt) == SQLITE_ROW) 
 	{
-		strcpy( name, (const char*)sqlite3_column_text( stmt, 0 ) );		// name
+		StrNCpy( name, (const char*)sqlite3_column_text( stmt, 0 ), 64 );		// name
 		LoadModel( name );
 	}
 
@@ -106,8 +108,8 @@ void Game::LoadLightMaps()
 	{
 		GLASSERT( nLightMaps < MAX_NUM_LIGHT_MAPS );
 
-		strcpy( name, (const char*)sqlite3_column_text( stmt, 0 ) );	// name
-		strcpy( format, (const char*)sqlite3_column_text( stmt, 1 ) );	// format
+		StrNCpy( name, (const char*)sqlite3_column_text( stmt, 0 ), 64 );	// name
+		StrNCpy( format, (const char*)sqlite3_column_text( stmt, 1 ), 16 );	// format
 		//int isImage = sqlite3_column_int( stmt, 2 );					// don't need
 		int w = sqlite3_column_int( stmt, 3 );
 		int h = sqlite3_column_int( stmt, 4 );
@@ -138,7 +140,7 @@ void Game::InitMapLight( int index, const MapLightInit* init )
 	
 		GLASSERT( init->x || init->y );
 
-		strncpy( itemDef->name, init->name, EL_FILE_STRING_LEN );
+		StrNCpy( itemDef->name, init->name, EL_FILE_STRING_LEN );
 
 		itemDef->lightOffsetX = init->objectX;
 		itemDef->lightOffsetY = init->objectY;
@@ -204,7 +206,7 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 			itemDef->modelResourceDestroyed = resource;
 		}
 
-		strncpy( itemDef->name, init->Name(), EL_FILE_STRING_LEN );
+		StrNCpy( itemDef->name, init->Name(), EL_FILE_STRING_LEN );
 		
 		//  Parse the pathing
 		//	spaces are ignored
@@ -578,7 +580,10 @@ void Game::LoadItemResources()
 #if defined( DEBUG ) && defined( _MSC_VER )
 	// Dump out all the weapon statistics.
 	{
+#pragma warning ( push )
+#pragma warning ( disable : 4996 )	// fopen is unsafe. For video games that seems extreme.
 		FILE* fp = fopen( "weapons.txt", "w" );
+#pragma warning (pop)
 		const float acc = (ACC_GOOD_SHOT+ACC_BAD_SHOT)*0.5f;
 		const float range[] = { 6.0f, 3.0f, 12.0f };
 

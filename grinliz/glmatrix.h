@@ -192,6 +192,8 @@ class Matrix4
 	}
 	#endif
 	
+#pragma warning ( push )
+#pragma warning ( disable : 4201 )	// un-named union.
 	// Row-Column notation is backwards from x,y regrettably. Very
 	// confusing. Just uses array. Increment by one moves down to the next
 	// row, so that the next columnt is at +4.
@@ -204,6 +206,7 @@ class Matrix4
 			float m11, m21, m31, m41, m12, m22, m32, m42, m13, m23, m33, m43, m14, m24, m34, m44;
 		};
 	};
+#pragma warning ( pop )
 
 	friend Matrix4 operator*( const Matrix4& a, const Matrix4& b )
 	{	

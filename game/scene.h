@@ -8,14 +8,14 @@ class Game;
 class Engine;
 class UFOStream;
 
+#pragma warning ( push )
+#pragma warning ( disable : 4100 )	// un-referenced formal parameter
+
 class Scene
 {
 public:
 	Scene( Game* _game ) : game( _game )						{}
 	virtual ~Scene()											{}
-
-	//virtual void Activate()										{}
-	//virtual void DeActivate()									{}
 
 	// UI
 	virtual void Tap(	int count, 
@@ -39,5 +39,7 @@ public:
 protected:
 	Game* game;
 };
+
+#pragma warning ( pop )
 
 #endif // UFOATTACK_SCENE_INCLUDED

@@ -4,6 +4,7 @@
 #include "../engine/uirendering.h"
 #include "../engine/text.h"
 #include "battlestream.h"
+#include "../grinliz/glstringutil.h"
 
 using namespace grinliz;
 
@@ -142,13 +143,13 @@ void CharacterScene::SetButtonGraphics( int index, const Item& item )
 		if ( item.IsWeapon() ) {
 			const WeaponItemDef* wid = item.IsWeapon();
 			if ( wid->HasWeapon(1) )
-				sprintf( buffer, "%d %d", item.Rounds(1), item.Rounds(2) );
+				SNPrintf( buffer, 16, "%d %d", item.Rounds(1), item.Rounds(2) );
 			else
-				sprintf( buffer, "%d", item.Rounds(1) );
+				SNPrintf( buffer, 16, "%d", item.Rounds(1) );
 			charInvWidget->SetText( index, item.Name(), buffer );
 		}
 		else if ( item.IsClip() ) {
-			sprintf( buffer, "%d", item.Rounds() );
+			SNPrintf( buffer, 16, "%d", item.Rounds() );
 			charInvWidget->SetText( index, item.Name(), buffer );
 		}
 		else {
