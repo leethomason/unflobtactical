@@ -10,6 +10,16 @@ There are 2 teams: the Terran Soldiers and the Aliens. You play the Terrans, whi
 
 Only "1/2 a turn" is playable. The players moves your Terran units. The Aliens will sometime shoot back (reaction fire) but not ever move or attack.
 
+== iPod Version ==
+
+The iPod version requires a developer cert. (Borrow from Lee.) Taps select things, drags move the camera, and pinch zooms and rotates.
+
+== PC Version ==
+
+Left mouse button: click to select or tap buttons. Drag to move the camera.
+
+Right mouse button: drag to zoom and rotate.
+
 = Tactical Screen = 
 
 == Concepts ==
@@ -69,4 +79,21 @@ http://grinliz.smugmug.com/photos/760512809_mXEX2-M.jpg
 
 === Status Bar at Top ===
 
-The 
+The text across the top of the page gives information on the selected character.
+  * Rank. As the unit increases in rank, his/her TUs, HP, Accuracy, and Reaction Fire all improve. The ranks are:
+   * Rookie
+   * Private
+   * Sargent
+   * Major
+   * Captain
+   * Commander
+  * Name
+  * TU: Time Units remaining this turn
+  * HP: Health remaining
+  * TGT: X/Y. Alien targets. The first number is the number of alien this unit can see, the 2nd number is all the alien units spotted by the Terrans.
+
+=== Left Buttons ===
+  * EXIT. The lander takes off, leaving behind anyone not on-board. Not yet implemented.
+  * 'O' Ends the turn.
+  * 'N' Selects the next unit.
+  * 'ND' Selects the next unit, and Next/NextDone won't reselect this unit again. (Although you can always tap on it to select.)
