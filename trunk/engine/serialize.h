@@ -97,7 +97,7 @@ public:
 	int Size()					{ return size; }
 	const U8* MemBase()			{ return buffer; }
 
-	int Tell()					{ GLASSERT( ptr ); GLASSERT( buffer ); return ptr - buffer; }
+	int Tell()					{ GLASSERT( ptr ); GLASSERT( buffer ); return (int)(ptr - buffer); }
 	void Dump( const char* name ) {
 		GLOUTPUT(( "Stream '%s' size=%d cap=%d\n", name, size, cap ));
 	}

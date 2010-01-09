@@ -17,6 +17,7 @@
 #include "platformgl.h"
 #include "surface.h"
 #include "text.h"
+#include "../grinliz/glstringutil.h"
 
 using namespace grinliz;
 
@@ -125,7 +126,7 @@ void UIButtons::SetText( const char** text )
 	if ( text ) {
 		for( int i=0; i<nIcons; ++i ) {
 			if ( text[i] ) {
-				strncpy( icons[i].text0, text[i], MAX_TEXT_LEN );
+				StrNCpy( icons[i].text0, text[i], MAX_TEXT_LEN );
 				PositionText( i );
 			}
 		}
@@ -140,7 +141,7 @@ void UIButtons::SetText( int index, const char* text )
 	icons[index].text0[0] = 0;
 	icons[index].text1[0] = 0;
 	if ( text && *text ) {
-		strncpy( icons[index].text0, text, MAX_TEXT_LEN );
+		StrNCpy( icons[index].text0, text, MAX_TEXT_LEN );
 		PositionText( index );
 	}
 }
@@ -153,11 +154,11 @@ void UIButtons::SetText( int index, const char* text0, const char* text1 )
 	icons[index].text1[0] = 0;
 
 	if ( text0 && *text0 ) {
-		strncpy( icons[index].text0, text0, MAX_TEXT_LEN );
+		StrNCpy( icons[index].text0, text0, MAX_TEXT_LEN );
 		PositionText( index );
 	}
 	if ( text1 && *text1 ) {
-		strncpy( icons[index].text1, text1, MAX_TEXT_LEN );
+		StrNCpy( icons[index].text1, text1, MAX_TEXT_LEN );
 		PositionText( index );
 	}
 }

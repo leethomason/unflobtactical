@@ -39,8 +39,6 @@ distribution.
 
 namespace grinliz {
 
-int SNPRINTF(char *str, size_t size, const char *format, ...);
-
 /// Minimum
 template <class T> inline T		Min( T a, T b )		{ return ( a < b ) ? a : b; }
 /// Maximum

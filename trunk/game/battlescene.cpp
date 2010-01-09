@@ -11,6 +11,7 @@
 
 #include "../grinliz/glfixed.h"
 #include "../micropather/micropather.h"
+#include "../grinliz/glstringutil.h"
 
 using namespace grinliz;
 
@@ -1446,8 +1447,8 @@ void BattleScene::SetFireWidget()
 			DamageDesc dd;
 			wid->DamageBase( select, &dd );
 
-			SNPRINTF( buffer0, 16, "D%d", (int)dd.Total() );
-			SNPRINTF( buffer1, 16, "R%d", item->RoundsAvailable(select+1) );
+			SNPrintf( buffer0, 16, "D%d", (int)dd.Total() );
+			SNPrintf( buffer1, 16, "R%d", item->RoundsAvailable(select+1) );
 			fireWidget->SetText( 6+select, buffer0, buffer1 );
 		}
 		else {
@@ -1473,16 +1474,16 @@ void BattleScene::SetFireWidget()
 
 			if ( enable ) {
 				unit->FireStatistics( select, type, distToTarget, &fraction, &tu, &dptu );
-				SNPRINTF( buffer0, 16, "%d%%", (int)LRintf( fraction*100.0f ) );
+				SNPrintf( buffer0, 16, "%d%%", (int)LRintf( fraction*100.0f ) );
 
 				if ( tu >= 10.0f && dptu >= 10.0f )
-					SNPRINTF( buffer1, 16, "%2d %2d", LRintf(tu), LRintf(dptu) );
+					SNPrintf( buffer1, 16, "%2d %2d", LRintf(tu), LRintf(dptu) );
 				else if ( tu < 10.0f && dptu >= 10.0f )
-					SNPRINTF( buffer1, 16, "%.1f %2d", tu, LRintf(dptu) );
+					SNPrintf( buffer1, 16, "%.1f %2d", tu, LRintf(dptu) );
 				else if ( tu >= 10.0f && dptu < 10.0f )
-					SNPRINTF( buffer1, 16, "%2d %.1f", LRintf(tu), dptu );
+					SNPrintf( buffer1, 16, "%2d %.1f", LRintf(tu), dptu );
 				else if ( tu < 10.0f && dptu < 10.0f )
-					SNPRINTF( buffer1, 16, "%.1f %.1f", tu, dptu );
+					SNPrintf( buffer1, 16, "%.1f %.1f", tu, dptu );
 
 				fireWidget->SetText( type*2+select, buffer0, buffer1 );
 			}

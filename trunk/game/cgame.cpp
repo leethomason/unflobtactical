@@ -14,8 +14,11 @@
 */
 
 #include "../grinliz/gldebug.h"
+#include "../grinliz/glstringutil.h"
 #include "cgame.h"
 #include "game.h"
+
+using namespace grinliz;
 
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
@@ -149,6 +152,6 @@ void PlatformPathToResource( const char* name, const char* extension, char* buff
 	fullname += name;
 	fullname += ".";
 	fullname += extension;
-	strncpy( buffer, fullname.c_str(), bufferLen );
+	StrNCpy( buffer, fullname.c_str(), bufferLen );
 #endif
 }

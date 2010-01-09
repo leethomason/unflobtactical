@@ -21,6 +21,8 @@
 #include <string.h>
 #include "serialize.h"
 
+using namespace grinliz;
+
 Surface::Surface() : format( -1 ), w( 0 ), h( 0 ), allocated( 0 ), pixels( 0 )
 {
 	name[0] = 0;
@@ -36,7 +38,7 @@ Surface::~Surface()
 
 void Surface::SetName( const char* n )
 {
-	strncpy( name, n, EL_FILE_STRING_LEN );
+	StrNCpy( name, n, EL_FILE_STRING_LEN );
 }
 
 
@@ -222,8 +224,8 @@ void Surface::UpdateTexture( U32 glID )
 
 void Texture::Set( const char* name, U32 glID, bool alpha )
 {
-	GLASSERT( strlen( name ) < 16 );
-	strcpy( this->name, name );
+	GLASSERT( strlen( name ) < MAX_TEXTURE_NAME );
+	StrNCpy( this->name, name, MAX_TEXTURE_NAME );
 	this->glID = glID;
 	this->alpha = alpha;
 }

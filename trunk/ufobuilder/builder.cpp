@@ -29,8 +29,6 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 #include "../grinliz/gldynamic.h"
 #include "../grinliz/glutil.h"
 #include "../grinliz/glstringutil.h"
@@ -42,7 +40,10 @@ using namespace std;
 
 #include "../sqlite3/sqlite3.h"
 #include "../shared/gldatabase.h"
+#include "../grinliz/glstringutil.h"
 
+using namespace std;
+using namespace grinliz;
 
 typedef SDL_Surface* (SDLCALL * PFN_IMG_LOAD) (const char *file);
 PFN_IMG_LOAD libIMG_Load;
@@ -193,7 +194,7 @@ void ModelHeader::Set(	const char* name, int nGroups, int nTotalVertices, int nT
 	GLASSERT( nTotalVertices <= nTotalIndices );
 
 	memset( this->name, 0, EL_FILE_STRING_LEN );
-	strncpy( this->name, name, EL_FILE_STRING_LEN );
+	StrNCpy( this->name, name, EL_FILE_STRING_LEN );
 	this->flags = 0;
 	this->nGroups = nGroups;
 	this->nTotalVertices = nTotalVertices;
@@ -212,7 +213,7 @@ void ModelGroup::Set( const char* textureName, int nVertex, int nIndex )
 	GLASSERT( nVertex <= nIndex );
 
 	memset( this->textureName, 0, EL_FILE_STRING_LEN );
-	strncpy( this->textureName, textureName, EL_FILE_STRING_LEN );
+	StrNCpy( this->textureName, textureName, EL_FILE_STRING_LEN );
 
 	this->nVertex = nVertex;
 	this->nIndex = nIndex;
@@ -257,7 +258,11 @@ void ProcessMap( TiXmlElement* map )
 	grinliz::StrSplitFilename( fullIn, 0, &name, 0 );
 
 	// copy the entire file.
+#pragma warning ( push )
+#pragma warning ( disable : 4996 )	// fopen is unsafe. For video games that seems extreme.
 	FILE* read = fopen( fullIn.c_str(), "rb" );
+#pragma warning (pop)
+
 	if ( !read ) {
 		printf( "**Unrecognized map file. '%s'\n",
 				 fullIn.c_str() );
@@ -597,7 +602,10 @@ int main( int argc, char* argv[] )
 	printf( "Processing tags:\n" );
 
 	// Remove the old table.
+#pragma warning ( push )
+#pragma warning ( disable : 4996 )	// fopen is unsafe. For video games that seems extreme.
 	FILE* fp = fopen( outputDB.c_str(), "wb" );
+#pragma warning (pop)
 	fclose( fp );
 
 	int sqlResult = sqlite3_open( outputDB.c_str(), &db);
