@@ -1,4 +1,7 @@
 #include "storageWidget.h"
+#include "../grinliz/glstringutil.h"
+
+using namespace grinliz;
 
 StorageWidget::StorageWidget(	const Screenport& port, 
 								ItemDef** _itemDefArr,
@@ -118,15 +121,15 @@ void StorageWidget::SetButtons()
 			const ClipItemDef* cid = itemDefArr[i]->IsClip();
 
 			// Terran non-melee weapons and clips.
-			if ( wid && wid->weapon[0].power == 0 && !wid->Melee() )
+			if ( wid && !wid->Melee() && !wid->IsAlienBlaster() )
 				group=0;
-			else if ( cid && cid->type != ITEM_CLIP_CELL )
+			if ( cid && !cid->IsAlien() )
 				group=0;
 
 			// alien non-melee weapons and clips
-			if ( wid && wid->weapon[0].power > 0 && !wid->Melee() )
+			if ( wid && !wid->Melee() && wid->IsAlienBlaster() )
 				group=1;
-			else if ( cid && cid->type == ITEM_CLIP_CELL )
+			if ( cid && cid->IsAlien() )
 				group=1;
 
 			// armor, melee
@@ -145,7 +148,7 @@ void StorageWidget::SetButtons()
 
 					char buffer[16];
 					if ( storage->GetCount( itemDefArr[i] ) ) {
-						sprintf( buffer, "(%d)", storage->GetCount( itemDefArr[i] ) );
+						SNPrintf( buffer, 16, "(%d)", storage->GetCount( itemDefArr[i] ) );
 						boxWidget->SetText( slot, itemDefArr[i]->name, buffer );
 						boxWidget->SetEnabled( slot, true );
 					}

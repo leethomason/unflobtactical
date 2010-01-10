@@ -27,6 +27,8 @@
 #include <float.h>
 
 using namespace grinliz;
+extern int trianglesRendered;
+extern int drawCalls;
 
 
 
@@ -321,7 +323,8 @@ void ModelAtom::Draw() const
 	glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, index );
 #endif
 	CHECK_GL_ERROR;
-	trisRendered += nIndex / 3;
+	trianglesRendered += nIndex / 3;
+	drawCalls++;
 }
 
 

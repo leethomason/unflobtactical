@@ -113,7 +113,6 @@ int grinliz::SNPrintf(char *str, size_t size, const char *format, ...)
 	// Pretty nervous about the implementation, so force a null after.
     int result = vsnprintf( str, size, format, va );
 	str[size-1] = 0;
-
 #endif
     va_end( va );
 

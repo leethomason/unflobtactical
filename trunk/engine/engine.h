@@ -76,7 +76,7 @@ public:
 	// Sets the opengl perspective matrices.
 	void SetPerspective();
 	// Render everything. Return triangles drawn. (Currently excludes UI and particles in tri-count.)
-	void Draw( int* trianglesDrawn );
+	void Draw();
 
 	void MoveCameraHome();
 	// Move the camera so that it points to x,z. If 'calc' is non-null,

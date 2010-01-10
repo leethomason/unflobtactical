@@ -24,6 +24,7 @@
 #include "../grinliz/glvector.h"
 #include "../game/cgame.h"
 #include "framebuffer.h"
+#include "../grinliz/glstringutil.h"
 
 #if defined(MAPMAKER) || defined(_MSC_VER)
 #include "../game/game.h"
@@ -497,8 +498,11 @@ void ScreenCapture( const char* baseFilename )
 	char buf[ 256 ];
 	for( index = 0; index<100; ++index )
 	{
-		sprintf( buf, "%s%02d.bmp", baseFilename, index );
+		grinliz::SNPrintf( buf, 256, "%s%02d.bmp", baseFilename, index );
+#pragma warning ( push )
+#pragma warning ( disable : 4996 )	// fopen is unsafe. For video games that seems extreme.
 		FILE* fp = fopen( buf, "rb" );
+#pragma warning ( pop )
 		if ( fp )
 			fclose( fp );
 		else

@@ -16,7 +16,7 @@
 #include "modelbuilder.h"
 #include "../engine/vertex.h"
 #include "../grinliz/glgeometry.h"
-
+#include "../grinliz/glstringutil.h"
 
 using namespace grinliz;
 
@@ -33,7 +33,7 @@ void ModelBuilder::SetTexture( const char* textureName )
 	}
 	if ( !current ) {
 		GLASSERT( nGroup < EL_MAX_MODEL_GROUPS );
-		strcpy( group[nGroup].textureName, textureName );
+		StrNCpy( group[nGroup].textureName, textureName, 16 );
 		current = &group[nGroup];
 		++nGroup;
 	}

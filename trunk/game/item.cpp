@@ -50,8 +50,15 @@ void WeaponItemDef::RenderWeapon(	int select,
 			length = KBOLT;
 			break;
 		
-		case ITEM_CLIP_CELL:
+		case ITEM_CLIP_PLASMA:
 			color.Set( 0.2f, 1.0f, 0.2f, 0.8f );
+			speed = SPEED;
+			width = WIDTH;
+			length = EBOLT;
+			break;
+
+		case ITEM_CLIP_TACHYON:
+			color.Set( 1, 1, 0, 0.8f );		// ffff00
 			speed = SPEED;
 			width = WIDTH;
 			length = EBOLT;
@@ -175,13 +182,12 @@ void WeaponItemDef::DamageBase( int select, DamageDesc* d ) const
 			d->Set( 1, 0, 0 );
 			break;
 
-		case ITEM_CLIP_CELL:
-			if ( weapon[select].flags & WEAPON_EXPLOSIVE ) {
-				d->Set( 0.5f, 0.5f, 0 );
-			}
-			else {
-				d->Set( 0, 1, 0 );
-			}
+		case ITEM_CLIP_PLASMA:
+			d->Set( 0.0f, 0.8f, 0.2f );
+			break;
+
+		case ITEM_CLIP_TACHYON:
+			d->Set( 0, 0.6f, 0.4f );
 			break;
 
 		case ITEM_CLIP_FLAME:
@@ -382,27 +388,7 @@ int Item::RoundsAvailable( int i ) const
 	GLASSERT( i==1 || i==2 );
 	GLASSERT( IsWeapon() );
 
-	if ( i == 1 )
-		return this->Rounds(1);
-	else if ( i == 2 && this->IsWeapon()->weapon[1].clipType == ITEM_CLIP_CELL )
-		// then use the cell in slot 1
-		return this->Rounds(1);
-	else 
-		// use the rounds in slot 2
-		return this->Rounds(2);
-}
-
-
-int Item::RoundsRequired( int i ) const 
-{
-	GLASSERT( i==1 || i==2 );
-	GLASSERT( IsWeapon() );
-
-	const WeaponItemDef* wid = this->IsWeapon();
-
-	if ( wid->weapon[i-1].clipType == ITEM_CLIP_CELL )
-		return wid->weapon[i-1].power;
-	return 1;
+	return this->Rounds( i );
 }
 
 
@@ -413,17 +399,9 @@ void Item::UseRound( int i )
 
 	const WeaponItemDef* wid = this->IsWeapon();
 
-	if ( wid->weapon[i-1].clipType == ITEM_CLIP_CELL ) {
-		int power = wid->weapon[i-1].power;
-		GLASSERT( part[1].IsClip() );
-		GLASSERT( power <= part[1].rounds );
-		part[1].rounds -= power;
-	}
-	else {
-		GLASSERT( part[i].IsClip() );
-		GLASSERT( part[i].rounds > 0 );
-		part[i].rounds--;
-	}
+	GLASSERT( part[i].IsClip() );
+	GLASSERT( part[i].rounds > 0 );
+	part[i].rounds--;
 }
 
 

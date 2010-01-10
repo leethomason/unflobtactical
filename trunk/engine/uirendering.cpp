@@ -25,6 +25,9 @@ const float ALPHA_DISABLED	= 0.3f;
 const float ALPHA_DECO		= 0.5f;
 const int BIAS = 5;
 
+extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
+extern int drawCalls;			// ditto
+
 
 UIButtons::UIButtons( const Screenport& port ) : screenport( port )
 {
@@ -317,6 +320,8 @@ void UIButtons::Draw()
 
 	CHECK_GL_ERROR;
 	glDrawElements( GL_TRIANGLES, nIcons*6, GL_UNSIGNED_SHORT, index );
+	trianglesRendered += nIcons*2;
+	drawCalls++;
 	CHECK_GL_ERROR;
 		
 	glTexCoordPointer( 2, GL_FLOAT, 0, texDeco ); 
@@ -324,6 +329,8 @@ void UIButtons::Draw()
 	glBindTexture( GL_TEXTURE_2D, decoTexture->glID );
 	CHECK_GL_ERROR;
 	glDrawElements( GL_TRIANGLES, nIcons*6, GL_UNSIGNED_SHORT, index );
+	trianglesRendered += nIcons*2;
+	drawCalls++;
 	CHECK_GL_ERROR;
 
 	screenport.PopUI();
@@ -521,6 +528,8 @@ void UIButtonGroup::CalcButtons()
 
 	CHECK_GL_ERROR;
 	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+	trianglesRendered += 2;
+	drawCalls++;
 	CHECK_GL_ERROR;
 
 	screenport.PopUI();

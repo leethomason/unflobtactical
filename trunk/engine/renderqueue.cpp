@@ -25,7 +25,7 @@ RenderQueue::RenderQueue()
 {
 	nState = 0;
 	nModel = 0;
-	triCount = 0;
+	//triCount = 0;
 	//bindTextureToVertex = false;
 	textureMatrix = 0;
 	color.Set( 1.0f, 1.0f, 1.0f );
@@ -121,7 +121,7 @@ void RenderQueue::Add( U32 flags, U32 textureID, const Model* model, const Model
 	modelItem->nextModel = state->nextModel;
 	state->nextModel = modelItem;
 
-	triCount += atom->nIndex / 3;
+	//triCount += atom->nIndex / 3;
 }
 
 

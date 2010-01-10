@@ -29,6 +29,9 @@ const int GLYPH_CY = 8;
 static int GLYPH_WIDTH = 256 / GLYPH_CX;
 static int GLYPH_HEIGHT = 128 / GLYPH_CY;
 
+extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
+extern int drawCalls;			// ditto
+
 
 Screenport UFOText::screenport( 320, 480, 1 );
 U32 UFOText::textureID = 0;
@@ -156,6 +159,8 @@ void UFOText::TextOut( const char* str, int x, int y, int* w, int *h )
 				glTexCoordPointer( 2, GL_FLOAT, 0, t );
 
 				glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+				trianglesRendered += 2;
+				drawCalls++;
 			}
 		}
 		
@@ -217,14 +222,23 @@ void UFOText::Draw( int x, int y, const char* format, ... )
 	Begin();
 
     va_list     va;
-    char		buffer[1024];
+	const int	size = 1024;
+    char		buffer[size];
 
     //
     //  format and output the message..
     //
     va_start( va, format );
-    vsprintf( buffer, format, va );
-    va_end( va );
+#ifdef _MSC_VER
+    int result = vsnprintf_s( buffer, size, _TRUNCATE, format, va );
+#else
+	// Reading the spec, the size does seem correct. The man pages
+	// say it will aways be null terminated (whereas the strcpy is not.)
+	// Pretty nervous about the implementation, so force a null after.
+    int result = vsnprintf( str, size, format, va );
+	str[size-1] = 0;
+#endif
+	va_end( va );
 
     TextOut( buffer, x, y, 0, 0 );
 	End();
@@ -234,14 +248,23 @@ void UFOText::Draw( int x, int y, const char* format, ... )
 void UFOText::Stream( int x, int y, const char* format, ... )
 {
     va_list     va;
-    char		buffer[1024];
+	const int	size = 1024;
+    char		buffer[size];
 
     //
     //  format and output the message..
     //
     va_start( va, format );
-    vsprintf( buffer, format, va );
-    va_end( va );
+#ifdef _MSC_VER
+    int result = vsnprintf_s( buffer, size, _TRUNCATE, format, va );
+#else
+	// Reading the spec, the size does seem correct. The man pages
+	// say it will aways be null terminated (whereas the strcpy is not.)
+	// Pretty nervous about the implementation, so force a null after.
+    int result = vsnprintf( str, size, format, va );
+	str[size-1] = 0;
+#endif
+	va_end( va );
 
     TextOut( buffer, x, y, 0, 0 );
 }

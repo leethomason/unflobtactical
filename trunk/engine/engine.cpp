@@ -31,6 +31,10 @@
 
 using namespace grinliz;
 
+int trianglesRendered = 0;	// FIXME: should go away once all draw calls are moved to the enigine
+int drawCalls = 0;			// ditto
+
+
 /*
 	Optimization notes:
 	This all starts with tri-counts way high and frame rates way low.
@@ -229,7 +233,7 @@ void Engine::PushShadowMatrix()
 }
 
 
-void Engine::Draw( int* triCount )
+void Engine::Draw()
 {
 	// -------- Camera & Frustum -------- //
 	DrawCamera();
@@ -402,8 +406,8 @@ void Engine::Draw( int* triCount )
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 
-	*triCount = renderQueue->GetTriCount();
-	renderQueue->ClearTriCount();
+//	*triCount = renderQueue->GetTriCount();
+//	renderQueue->ClearTriCount();
 
 /*
 #ifdef DEBUG
