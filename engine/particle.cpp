@@ -20,6 +20,9 @@
 #include "camera.h"
 #include "particleeffect.h"
 
+extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
+extern int drawCalls;			// ditto
+
 using namespace grinliz;
 
 
@@ -514,6 +517,9 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 		CHECK_GL_ERROR;
 		glDrawArrays( GL_POINTS, 0, nParticles[POINT] );
 		CHECK_GL_ERROR;
+		trianglesRendered += nParticles[POINT];		// 1 or 2?? go with 1
+		drawCalls++;
+
 
 		#ifdef USING_GL
 			glDisable( GL_POINT_SPRITE );
@@ -584,6 +590,8 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 
 		// because of the skip, the #elements can be less than nParticles*6
 		glDrawElements( GL_TRIANGLES, index, GL_UNSIGNED_SHORT, quadIndexBuffer );
+		trianglesRendered += index/3;
+		drawCalls++;
 		CHECK_GL_ERROR;
 	}
 
@@ -704,6 +712,8 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 
 	glDrawElements( GL_TRIANGLES, nParticles[QUAD]*6, GL_UNSIGNED_SHORT, quadIndexBuffer );
 	CHECK_GL_ERROR;
+	trianglesRendered += nParticles[QUAD]*2;
+	drawCalls++;
 
 	// Restore standard state.
 	glEnableClientState( GL_VERTEX_ARRAY );
@@ -804,6 +814,8 @@ void ParticleSystem::DrawDecalParticles( int flag )
 
 		glDrawElements( GL_TRIANGLES, count*6, GL_UNSIGNED_SHORT, quadIndexBuffer );
 		CHECK_GL_ERROR;
+		trianglesRendered += count*2;
+		drawCalls++;
 
 		// Restore standard state.
 		glEnableClientState( GL_VERTEX_ARRAY );

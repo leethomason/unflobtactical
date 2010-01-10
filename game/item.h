@@ -17,7 +17,8 @@ enum {
 	// Clip types - plenty of complexity here already.
 	ITEM_CLIP_SHELL = 1,
 	ITEM_CLIP_AUTO,
-	ITEM_CLIP_CELL,
+	ITEM_CLIP_PLASMA,
+	ITEM_CLIP_TACHYON,
 	ITEM_CLIP_FLAME,
 	ITEM_CLIP_ROCKET,
 	ITEM_CLIP_GRENADE,
@@ -92,7 +93,6 @@ public:
 		int flags;			// WEAPON_AUTO, etc.
 		float damage;		// damage done by weapon, 1.0 is normal
 		float accuracy;		// 1.0 is average
-		int power;			// power consumed by cell weapons
 	};
 	float	speed;			// 1.0 is normal speed (and weight)
 	Weapon weapon[2];		// primary and secondary
@@ -105,7 +105,8 @@ public:
 		}
 		return true;
 	}
-	bool Melee() const { return weapon[0].flags & WEAPON_MELEE ? true : false; }
+	bool Melee() const			{ return weapon[0].flags & WEAPON_MELEE ? true : false; }
+	bool IsAlienBlaster() const	{ return weapon[0].clipType == ITEM_CLIP_PLASMA || weapon[0].clipType == ITEM_CLIP_TACHYON; }
 
 	void RenderWeapon(	int select,
 						ParticleSystem*,
@@ -136,6 +137,8 @@ public:
 
 	virtual const ClipItemDef* IsClip() const { return this; }
 	virtual int Rounds() const { return rounds; }
+
+	bool IsAlien() const { return type == ITEM_CLIP_PLASMA || type == ITEM_CLIP_TACHYON; }
 
 	int	type;
 	int rounds;			// rounds in this clip, power of cell (100)
@@ -211,14 +214,11 @@ public:
 
 	// --- handle weapons ----//
 	// Requires IsWeapon()
-	// If this is a weapon (isWeapon) then returns rounds for
-	// the primary(1) or secondary(2) weapon.
-	int RoundsRequired( int i ) const;
-	// Requires IsWeapon()
 	// How many rounds are needed to fire this weapon once. 
 	// This is 1/3 the cost of auto-mode.
 	// Generally 1 for kinetic weapons, and power level for cell weapons.
 	int RoundsAvailable( int i ) const;
+
 	// Reqires IsWeapon()
 	// consume ronuds for one fire of the weapon
 	void UseRound( int i );

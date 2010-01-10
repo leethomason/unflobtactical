@@ -35,6 +35,10 @@
 
 using namespace grinliz;
 
+extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
+extern int drawCalls;			// ditto
+extern long memNewCount;
+
 Game::Game( const Screenport& sp, const char* _savePath ) :
 	engine( sp, engineData ),
 	screenport( sp ),
@@ -304,8 +308,6 @@ void Game::DoTick( U32 _currentTime )
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
 
-	int triCount = 0;
-
 #ifdef MAPMAKER
 	if ( showPathing ) 
 		engine.EnableMap( false );
@@ -316,7 +318,7 @@ void Game::DoTick( U32 _currentTime )
 	if ( showPathing ) 
 		engine.EnableMap( true );
 #else
-	engine.Draw( &triCount );
+	engine.Draw();
 #endif
 	
 	const grinliz::Vector3F* eyeDir = engine.camera.EyeDir3();
@@ -324,15 +326,21 @@ void Game::DoTick( U32 _currentTime )
 	particleSystem->Update( deltaTime, currentTime );
 	particleSystem->Draw( eyeDir );
 
-	trianglesSinceMark += triCount;
+
+	trianglesSinceMark += trianglesRendered;
 
 	currentScene->DrawHUD();
 
-	UFOText::Draw(	0,  0, "UFOAttack#%d %4.1ffps %5.1fK/f %4dK/s", 
+	UFOText::Draw(	0,  0, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s %dnew", 
 					VERSION,
 					framesPerSecond, 
-					(float)triCount/1000.0f,
-					trianglesPerSecond );
+					(float)trianglesRendered/1000.0f,
+					drawCalls,
+					trianglesPerSecond,
+					memNewCount );
+
+	trianglesRendered = 0;
+	drawCalls = 0;
 
 #ifdef EL_SHOW_MODELS
 	int k=0;

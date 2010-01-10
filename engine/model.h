@@ -38,7 +38,6 @@ struct ModelAtom
 #endif
 	U32 nVertex;
 	U32 nIndex;
-	mutable int trisRendered;
 
 	void Bind() const;
 	void Draw() const;

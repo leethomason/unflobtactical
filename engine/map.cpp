@@ -32,6 +32,9 @@
 using namespace grinliz;
 using namespace micropather;
 
+extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
+extern int drawCalls;			// ditto
+
 
 Map::Map( SpaceTree* tree )
 	: itemPool( "mapItemPool", sizeof( MapItem ), sizeof( MapItem ) * 200, false )
@@ -146,6 +149,8 @@ void Map::Draw()
 	CHECK_GL_ERROR
 
 	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+	trianglesRendered += 2;
+	drawCalls++;
 
 	glDisable( GL_TEXTURE_2D );
 	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
@@ -175,6 +180,8 @@ void Map::DrawOverlay()
 		glEnable( GL_BLEND );
 
 		glDrawArrays( GL_TRIANGLES, 0, walkingVertex.Size() );
+		trianglesRendered += walkingVertex.Size() / 3;
+		drawCalls++;
 
 		glEnableClientState( GL_NORMAL_ARRAY );
 		glDisable( GL_BLEND );
@@ -1148,11 +1155,15 @@ void Map::DrawPath()
 			glVertexPointer( 3, GL_FLOAT, 0, red );
  			glDrawArrays( GL_TRIANGLES, 0, nRed );	
 			CHECK_GL_ERROR;
+			trianglesRendered += nRed / 3;
+			drawCalls++;
 
 			glColor4f( 0.f, 1.f, 0.f, 0.5f );
 			glVertexPointer( 3, GL_FLOAT, 0, green );
  			glDrawArrays( GL_TRIANGLES, 0, nGreen );	
 			CHECK_GL_ERROR;
+			trianglesRendered += nGreen / 3;
+			drawCalls++;
 		}
 	}
 

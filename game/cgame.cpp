@@ -151,6 +151,6 @@ void PlatformPathToResource( const char* name, const char* extension, char* buff
 	fullname += name;
 	fullname += ".";
 	fullname += extension;
-	StrNCpy( buffer, fullname.c_str(), bufferLen );
+	grinliz::StrNCpy( buffer, fullname.c_str(), bufferLen );
 #endif
 }

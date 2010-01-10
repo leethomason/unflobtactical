@@ -408,72 +408,73 @@ void Game::LoadItemResources()
 		int		flags0;
 		float	damage0;	// damage modifier of clip - modifies shell
 		float	acc0;		// accuracy modifier - independent of shell
-		int		power0;		// power consumption of cell
 
 		int clip1, flags1;
 		float damage1, acc1;
-		int	power1;
 	};
 
 	const WeaponInit weapons[] = {		
 		// Terran	resName		deco			description
 		//				
 		{ "PST",	"gun0",		DECO_PISTOL,	"Pistol",				SPEED_FAST,
-				ITEM_CLIP_SHELL,	0,				DAM_LOW,	ACC_MED, 0,
+				ITEM_CLIP_SHELL,	0,				DAM_LOW,	ACC_MED,
 				0  },
 		{ "AR-1",	"gun0",		DECO_RIFLE,		"Klk Assault Rifle",	SPEED_NORMAL,
-				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_LOW,	ACC_LOW, 0,
+				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_LOW,	ACC_LOW,
 				0  },
 		{ "AR-2",	"gun0",		DECO_RIFLE,		"N7 Assault Rifle",		SPEED_NORMAL,
-				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MEDLOW,	ACC_MED, 0,
+				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MEDLOW,	ACC_MED,
 				0  },
 		{ "AR-3P",	"gun0",		DECO_RIFLE,		"Pulse Rifle",			SPEED_NORMAL,
-				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MEDHI,	ACC_MED, 0,
-				ITEM_CLIP_GRENADE,	WEAPON_EXPLOSIVE,EXDAM_HI,		ACC_LOW, 0 },
+				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MEDHI,	ACC_MED,
+				ITEM_CLIP_GRENADE,	WEAPON_EXPLOSIVE,EXDAM_HI,	ACC_LOW },
 		{ "AR-3L",	"gun0",		DECO_RIFLE,		"Long AR 'Vera'",		SPEED_NORMAL,
-				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MED,	ACC_HI,	0,
-				ITEM_CLIP_GRENADE,	WEAPON_EXPLOSIVE,EXDAM_HI,		ACC_LOW, 0 },
+				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MED,	ACC_HI,
+				ITEM_CLIP_GRENADE,	WEAPON_EXPLOSIVE,EXDAM_HI,	ACC_LOW },
 		{ "RKT",	"gun0",		DECO_RIFLE,		"Rocket Launcher",		SPEED_SLOW,
-				ITEM_CLIP_ROCKET,	WEAPON_EXPLOSIVE,DAM_HI,		ACC_MED, 0,
+				ITEM_CLIP_ROCKET,	WEAPON_EXPLOSIVE,DAM_HI,	ACC_MED,
 				0  },
 		{ "CANON",	"gun0",		DECO_RIFLE,		"Mini-Canon",			SPEED_SLOW,
-				ITEM_CLIP_SHELL,	0,				DAM_HI,		ACC_MED, 0,
-				ITEM_CLIP_FLAME,	WEAPON_EXPLOSIVE,EXDAM_MED,		ACC_MED, 0 },
+				ITEM_CLIP_SHELL,	0,				DAM_HI,		ACC_MED,
+				ITEM_CLIP_FLAME,	WEAPON_EXPLOSIVE,EXDAM_MED,	ACC_MED },
 
 		{ "KNIFE",	"gun0",		DECO_KNIFE,		"Knife",				SPEED_FAST,
-				0,					WEAPON_MELEE,	DAM_MED,	ACC_MED, 0,
+				0,					WEAPON_MELEE,	DAM_MED,	ACC_MED,
 				0  },
 
 		// Alien
 		{ "RAY-1",	"gun1",		DECO_PISTOL,	"Ray Gun",				SPEED_FAST,
-				ITEM_CLIP_CELL,		0,				DAM_LOW,	ACC_LOW, POW_LOW,
+				ITEM_CLIP_PLASMA,	0,				DAM_LOW,	ACC_LOW,
 				0  },
 		{ "RAY-2",	"gun1",		DECO_PISTOL,	"Advanced Ray Gun",		SPEED_FAST,
-				ITEM_CLIP_CELL,		0,				DAM_MED,	ACC_LOW, POW_LOW,
+				ITEM_CLIP_PLASMA,	0,				DAM_MED,	ACC_LOW,
 				0  },
 		{ "RAY-3",	"gun1",		DECO_PISTOL,	"Disinigrator",			SPEED_FAST,
-				ITEM_CLIP_CELL,		0,				DAM_HI,		ACC_LOW, POW_HI,
+				ITEM_CLIP_PLASMA,	0,				DAM_HI,		ACC_LOW,
 				0  },
 		{ "PLS-1",	"gun0",		DECO_RIFLE,		"Plasma Rifle",			SPEED_NORMAL,
-				ITEM_CLIP_CELL,		WEAPON_AUTO,	DAM_MED,	ACC_MED, POW_MED,
+				ITEM_CLIP_PLASMA,	WEAPON_AUTO,	DAM_MED,	ACC_MED,
 				0  },
 		{ "PLS-2",	"gun0",		DECO_RIFLE,		"Plasma Assault Rifle",	SPEED_NORMAL,
-				ITEM_CLIP_CELL,		WEAPON_AUTO,	DAM_MEDHI,	ACC_MED, POW_MED,
-				ITEM_CLIP_CELL,		WEAPON_EXPLOSIVE, EXDAM_HI,   ACC_MED, POW_HI },
+				ITEM_CLIP_PLASMA,	WEAPON_AUTO,	DAM_MEDHI,	ACC_MED,
+				ITEM_CLIP_TACHYON,	WEAPON_EXPLOSIVE, EXDAM_HI,	ACC_MED },
 		{ "BEAM",	"gun0",		DECO_RIFLE,		"Blade Beam",			SPEED_NORMAL,
-				ITEM_CLIP_CELL,		0,				DAM_MEDHI,	ACC_HI, POW_MED,
+				ITEM_CLIP_PLASMA,	0,				DAM_MEDHI,	ACC_HI,
 				0  },
 		{ "NULL",	"gun0",		DECO_RIFLE,		"Null Point Blaster",	SPEED_NORMAL,
-				ITEM_CLIP_CELL,		WEAPON_EXPLOSIVE, EXDAM_HI, ACC_HI, POW_HI,
+				ITEM_CLIP_TACHYON,	WEAPON_EXPLOSIVE, EXDAM_HI, ACC_HI,
 				0  },
 		{ "SWORD",	"gun0",		DECO_KNIFE,		"Plasma Sword",			SPEED_FAST,
-				0,					WEAPON_MELEE,	DAM_HI,		ACC_HI, 0,
+				0,				WEAPON_MELEE,		DAM_HI,		ACC_HI,
 				0  },
 		{ 0 }
 	};
 
 	for( int i=0; weapons[i].name; ++i ) {
 		WeaponItemDef* item = new WeaponItemDef();
+
+		GLASSERT( !weapons[i].clip0 || ( weapons[i].clip0 != weapons[i].clip1 ) );	// code later get confused.
+
 		item->InitBase( weapons[i].name, 
 						weapons[i].desc, 
 						weapons[i].deco,
@@ -486,13 +487,11 @@ void Game::LoadItemResources()
 		item->weapon[0].flags		= weapons[i].flags0;
 		item->weapon[0].damage		= weapons[i].damage0;
 		item->weapon[0].accuracy	= weapons[i].acc0;
-		item->weapon[0].power		= weapons[i].power0;
 
 		item->weapon[1].clipType	= weapons[i].clip1;
 		item->weapon[1].flags		= weapons[i].flags1;
 		item->weapon[1].damage		= weapons[i].damage1;
 		item->weapon[1].accuracy	= weapons[i].acc1;
-		item->weapon[1].power		= weapons[i].power1;
 
 		itemDefArr[nItemDef++] = item;
 	}
@@ -555,7 +554,8 @@ void Game::LoadItemResources()
 	const ClipInit clips[] = {
 		{ "Clip",	ITEM_CLIP_SHELL,	DECO_SHELLS,	8,	 "9mm 8 round clip" },
 		{ "AClip",	ITEM_CLIP_AUTO,		DECO_SHELLS,	15,	 "4mm 15 round auto-clip" },
-		{ "Cell",	ITEM_CLIP_CELL,		DECO_CELL,		100, "10MW Cell" },
+		{ "Cell",	ITEM_CLIP_PLASMA,	DECO_CELL,		12,  "10MW Cell" },
+		{ "Tach",	ITEM_CLIP_TACHYON,	DECO_CELL,		4,   "Tachyon field rounds" },
 		{ "MinR",	ITEM_CLIP_ROCKET,	DECO_ROCKET,	1,	 "Mini Rocket" },
 		{ "Flame",	ITEM_CLIP_FLAME,	DECO_SHELLS,	1,	 "Incendiary Heavy Round" },
 		{ "RPG",	ITEM_CLIP_GRENADE,	DECO_ROCKET,	4,	 "Grenade Rounds" },

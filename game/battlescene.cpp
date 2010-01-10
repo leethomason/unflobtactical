@@ -164,11 +164,13 @@ void BattleScene::InitUnits()
 		 grenade( game, "RPG", -1 ),
 		 autoClip( game, "AClip", -1 ),
 		 cell( game, "Cell", -1 ),
+		 tachyon( game, "Tach", -1 ),
 		 clip( game, "Clip", -1 );
 
 	gun0.Insert( clip );
 	gun1.Insert( cell );
 	plasmaRifle.Insert( cell );
+	plasmaRifle.Insert( tachyon );
 	ar3.Insert( autoClip );
 	ar3.Insert( grenade );
 
@@ -576,7 +578,7 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 	CrossProduct( normal, right, &up );
 
 	if (    unit->GetStats().TU() >= selection.soldierUnit->FireTimeUnits( select, type )
-		 && (weapon->RoundsRequired(select+1)*nShots <= weapon->RoundsAvailable(select+1)) ) 
+		 && ( nShots <= weapon->RoundsAvailable(select+1)) ) 
 	{
 		unit->UseTU( selection.soldierUnit->FireTimeUnits( select, type ) );
 
@@ -750,6 +752,7 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 
 		Unit* unit = 0;
 		Model* model = 0;
+
 		if ( action->unit ) {
 			if ( !action->unit->IsAlive() || !action->unit->GetModel() ) {
 				GLASSERT( 0 );	// may be okay, but untested.
@@ -811,7 +814,17 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 							if ( action->type.move.pathFraction == 0.0f ) {
 								// crossed a path boundary.
 								GLASSERT( unit->GetStats().TU() >= 1.0 );	// one move is one TU
-								unit->UseTU( 1.0f );
+								
+								Vector2<S16> v0 = path.GetPathAt( action->type.move.pathStep-1 );
+								Vector2<S16> v1 = path.GetPathAt( action->type.move.pathStep );
+								int d = abs( v0.x-v1.x ) + abs( v0.y-v1.y );
+
+								if ( d == 1 )
+									unit->UseTU( 1.0f );
+								else if ( d == 2 )
+									unit->UseTU( 1.41f );
+								else { GLASSERT( 0 ); }
+
 								stackChange = true;	// not a real stack change, but a change in the path loc.
 								break;
 							}
@@ -1390,10 +1403,7 @@ void BattleScene::Tap(	int tap,
 
 			int result = engine->GetMap()->SolvePath( start, end, &cost, &path.statePath );
 			if ( result == micropather::MicroPather::SOLVED && cost <= stats.TU() ) {
-				// TU for a move gets used up "as we go" to account for reaction fire
-				// and changes.
-				//selection.soldierUnit->UseTU( cost );
-
+				// TU for a move gets used up "as we go" to account for reaction fire and changes.
 				// Go!
 				Action action;
 				action.Init( ACTION_MOVE, SelectedSoldierUnit() );
@@ -1469,7 +1479,7 @@ void BattleScene::SetFireWidget()
 			enable = enable &&	item->IsClip( 1 );	// cell or clip
 			enable = enable &&	item->IsWeapon();
 			enable = enable &&	item->IsWeapon()->SupportsType( select, type );
-			enable = enable &&	(item->RoundsRequired(select+1)*nShots <= item->RoundsAvailable(select+1));
+			enable = enable &&	(nShots <= item->RoundsAvailable(select+1));
 			enable = enable &&  unit->GetStats().TU() >= unit->FireTimeUnits( select, type );
 
 			if ( enable ) {
@@ -1568,30 +1578,6 @@ Unit* BattleScene::GetUnitFromTile( int x, int z )
 	}
 	return 0;
 }
-
-
-/*
-int BattleScene::Targets::AlienTargets( int id )
-{
-	GLASSERT( id >= TERRAN_UNITS_START && id < TERRAN_UNITS_END );
-	Rectangle3I r;
-	r.Set(	id-TERRAN_UNITS_START, 0, 0,
-			id-TERRAN_UNITS_START, MAX_ALIENS-1, 0 );
-
-	int count = terran.alienTargets.NumSet( r );
-	return count;
-}
-
-
-int BattleScene::Targets::TotalAlienTargets()
-{
-	Rectangle3I r;
-	r.Set(	0, 0, 0, MAX_ALIENS-1, 0, 0 );
-
-	int count = terran.teamAlienTargets.NumSet( r );
-	return count;
-}
-*/
 
 
 void BattleScene::DumpTargetEvents()

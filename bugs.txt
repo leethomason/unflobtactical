@@ -1,11 +1,7 @@
-BUGS:
-- crashes when impact (hit) out of range.
-
-WAIT
+Issues:
 - need correct colors in RenderWeapon()
 - melee weapons
 - call SetFogOfWar less
-- auto-fire targets in a row
 - check math (again) in PushShootAction()
 - tu in character screen
 
