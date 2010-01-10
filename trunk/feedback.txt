@@ -1,7 +1,7 @@
 [Cherie build 231]
 - Need phat loot (should dead aliens just become stuff?)
 - Tap accuracy. Scoots around. Be more forgiving?
-- Scroll jumping bug
+- [done] sScroll jumping bug
 - "shades of green" on the movement dots.
 - Lee: Alien HP too high / damage too low
 - Next turn indicator
@@ -10,4 +10,5 @@
 - Move should be faster.
 - Doesn't alway go where wanted. Touch doesn't do anything. (More forgiving? Go to "feet move" model?)
 - Pinching doesn't feel right
-- Lee: 30fps frame limit
+- [done] Lee: 30fps frame limit on the iPod
+- [done] only pause on first alien spotted

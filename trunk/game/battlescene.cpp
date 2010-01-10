@@ -709,6 +709,10 @@ void BattleScene::ProcessDoors()
 
 void BattleScene::StopForNewTeamTarget()
 {
+	int antiTeam = Unit::ALIEN;
+	if ( currentTeamTurn == Unit::ALIEN )
+		antiTeam = Unit::SOLDIER;
+
 	if ( actionStack.Size() == 1 ) {
 		const Action& action = actionStack.Top();
 		if (    action.action == ACTION_MOVE
@@ -722,7 +726,10 @@ void BattleScene::StopForNewTeamTarget()
 			bool newTeam = false;
 			while( i < targetEvents.Size() ) {
 				TargetEvent t = targetEvents[i];
-				if ( t.team == 1 && t.gain == 1 && units[t.viewerID].Team() == currentTeamTurn ) {
+				if (	t.team == 1 
+					 && t.gain == 1 
+					 && t.viewerID == currentTeamTurn )
+				{
 					// New sighting!
 					GLOUTPUT(( "new team target sighted.\n" ));
 					newTeam = true;
@@ -965,8 +972,8 @@ bool BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		const Model* ignore[] = { unit->GetModel(), unit->GetWeaponModel(), 0 };
 		Model* m = engine->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &intersection );
 
-		if ( intersection.y < 0.0f ) {
-			// hit ground first.
+		if ( m && intersection.y < 0.0f ) {
+			// hit ground before the unit (intesection is with the part under ground)
 			impact = true;
 		}
 
