@@ -55,7 +55,7 @@
             return nil;
         }
         
-        animationInterval = 1.0 / 60.0;
+        // set in glView: animationInterval = 1.0 / 30.0;
 		game = 0;
 		startTime = CFAbsoluteTimeGetCurrent();
 		isDragging = false;
@@ -136,6 +136,7 @@
 
 
 - (void)startAnimation {
+	//NSLog(@"startAnimation=%f", animationInterval );	
     self.animationTimer = [NSTimer scheduledTimerWithTimeInterval:animationInterval target:self selector:@selector(drawView) userInfo:nil repeats:YES];
 }
 
@@ -194,7 +195,7 @@
 		default:
 			break;
 	}
-	NSLog(@"phase='%s'", phase );	
+	//NSLog(@"phase='%s'", phase );	
 #endif
 }
 
@@ -217,7 +218,7 @@
 		isZooming = false;
 	}
 
-	NSLog(@"Began x=%d y=%d isZooming=%d isDragging=%d touchCount=%d", x, y, isZooming?1:0, isDragging?1:0, touchCount );
+	//NSLog(@"Began x=%d y=%d isZooming=%d isDragging=%d touchCount=%d", x, y, isZooming?1:0, isDragging?1:0, touchCount );
 	//NSLog(@"Began phase=%d", [touch phase] );
 	[self dumpTouch:touch];
 	
@@ -243,6 +244,7 @@
 		CGPoint p0 = [touch1 locationInView:self];
 		CGPoint p1 = [touch2 locationInView:self];
 		orbitStart = -atan2( p0.x-p1.x, p0.y-p1.y )*180.0f/3.14159f;
+		previousRotation = orbitStart;
 		//NSLog(@"orbitStart=%.2f", orbitStart );
 		GameCameraRotate( game, GAME_ROTATE_START, orbitStart ); 
 	}
@@ -305,9 +307,33 @@
 			
 			GameZoom( game, GAME_ZOOM_MOVE, distance );
 			//NSLog(@"  zoom distance=%.2f", distance );
-			float r = -atan2( p0.x-p1.x, p0.y-p1.y )*180.0f/3.14159f;
+			
+			// I'm souch a cocoa touch noob, so I'll probably regret this comment later. But it 
+			// seems like the OS sometimes gets the touches confused. In the trace below:
+			//		2010-01-10 10:08:28.219 ufoattack[255:20b] r=-13.28 dx=38.00 dy=161.00
+			//		2010-01-10 10:08:28.229 ufoattack[255:20b] r=-9.75 dx=28.00 dy=163.00
+			//		2010-01-10 10:08:28.307 ufoattack[255:20b] r=173.85 dx=-18.00 dy=-167.00
+			// The order of the array "flips". Perhaps I have done something silly but it looks
+			// like the OS is flipping the events. Annoying as all hell for the user.
+			//
+			// Try to detect this and fix it.
+			
+			float r = 0;
+			float r1 = -atan2( p0.x-p1.x, p0.y-p1.y )*180.0f/3.14159f;
+			float r2 = -atan2( p1.x-p0.x, p1.y-p0.y )*180.0f/3.14159f;
+			
+			if ( fabs(r1-previousRotation) > 90.0f && fabs(r2-previousRotation)<40.0f ) {
+				r = r2;
+				previousRotation = r2;
+				NSLog( @"FLIP!" );
+			}
+			else {
+				r = r1;
+				previousRotation = r1;
+			}
+			
 			GameCameraRotate( game, GAME_ROTATE_MOVE, r-orbitStart ); 
-			//NSLog(@"r=%.2f", r );
+			NSLog(@"r=%.2f dx=%.2f dy=%.2f", r, p0.x-p1.x, p0.y-p1.y );
 		}
 	}
 }
