@@ -331,6 +331,7 @@ void Game::DoTick( U32 _currentTime )
 
 	currentScene->DrawHUD();
 
+#ifdef DEBUG
 	UFOText::Draw(	0,  0, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s %dnew", 
 					VERSION,
 					framesPerSecond, 
@@ -338,7 +339,14 @@ void Game::DoTick( U32 _currentTime )
 					drawCalls,
 					trianglesPerSecond,
 					memNewCount );
-
+#else
+	UFOText::Draw(	0,  0, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
+				  VERSION,
+				  framesPerSecond, 
+				  (float)trianglesRendered/1000.0f,
+				  drawCalls,
+				  trianglesPerSecond );
+#endif
 	trianglesRendered = 0;
 	drawCalls = 0;
 

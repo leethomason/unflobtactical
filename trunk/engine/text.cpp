@@ -235,8 +235,8 @@ void UFOText::Draw( int x, int y, const char* format, ... )
 	// Reading the spec, the size does seem correct. The man pages
 	// say it will aways be null terminated (whereas the strcpy is not.)
 	// Pretty nervous about the implementation, so force a null after.
-    int result = vsnprintf( str, size, format, va );
-	str[size-1] = 0;
+    int result = vsnprintf( buffer, size, format, va );
+	buffer[size-1] = 0;
 #endif
 	va_end( va );
 
@@ -261,8 +261,8 @@ void UFOText::Stream( int x, int y, const char* format, ... )
 	// Reading the spec, the size does seem correct. The man pages
 	// say it will aways be null terminated (whereas the strcpy is not.)
 	// Pretty nervous about the implementation, so force a null after.
-    int result = vsnprintf( str, size, format, va );
-	str[size-1] = 0;
+    int result = vsnprintf( buffer, size, format, va );
+	buffer[size-1] = 0;
 #endif
 	va_end( va );
 
