@@ -311,7 +311,7 @@ void Game::DoTick( U32 _currentTime )
 #ifdef MAPMAKER
 	if ( showPathing ) 
 		engine.EnableMap( false );
-	engine.Draw( &triCount );
+	engine.Draw();
 	if ( showPathing ) {
 		engine.GetMap()->DrawPath();
 	}

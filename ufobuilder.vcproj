@@ -171,34 +171,6 @@
 	</References>
 	<Files>
 		<Filter
-			Name="tinyxml"
-			>
-			<File
-				RelativePath=".\tinyxml\tinystr.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\tinyxml\tinystr.h"
-				>
-			</File>
-			<File
-				RelativePath=".\tinyxml\tinyxml.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\tinyxml\tinyxml.h"
-				>
-			</File>
-			<File
-				RelativePath=".\tinyxml\tinyxmlerror.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\tinyxml\tinyxmlparser.cpp"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="importers"
 			>
 			<File

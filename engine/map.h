@@ -42,6 +42,9 @@ class Game;
 struct DamageDesc;
 class SustainedPyroEffect;
 class ParticleSystem;
+class TiXmlDocument;
+
+
 
 class Map : public micropather::Graph
 {
@@ -273,6 +276,8 @@ public:
 	bool OpenDoor( int x, int y, bool open );
 	void QueryAllDoors( CDynArray< grinliz::Vector2I >* doors );
 
+	void Save( TiXmlDocument* doc );
+
 private:
 	struct IMat
 	{
@@ -299,7 +304,6 @@ private:
 		void Clear();
 
 		void Add( MapItem* );
-		void Unlink( MapItem* );
 
 		MapItem* FindItems( const grinliz::Rectangle2I& bounds, int required, int excluded );
 		MapItem* FindItems( int x, int y, int required, int excluded ) 
