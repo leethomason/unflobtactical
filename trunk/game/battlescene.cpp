@@ -13,6 +13,8 @@
 #include "../micropather/micropather.h"
 #include "../grinliz/glstringutil.h"
 
+#include "../tinyxml/tinyxml.h"
+
 using namespace grinliz;
 
 
@@ -129,6 +131,13 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 
 BattleScene::~BattleScene()
 {
+#ifdef MAPMAKER
+	{
+		TiXmlDocument doc( "testmap.xml" );
+		engine->GetMap()->Save( &doc );
+		doc.SaveFile();
+	}
+#endif 
 	UFOStream* stream = game->OpenStream( "BattleScene" );
 	Save( stream );
 	ParticleSystem::Instance()->Clear();

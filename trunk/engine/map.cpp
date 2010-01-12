@@ -28,6 +28,7 @@
 #include "../engine/particleeffect.h"
 #include "../engine/particle.h"
 #include "../grinliz/glstringutil.h"
+#include "../tinyxml/tinyxml.h"
 
 using namespace grinliz;
 using namespace micropather;
@@ -688,6 +689,32 @@ void Map::DeleteItem( MapItem* item )
 	ResetPath();
 	ClearVisPathMap( mapBounds );
 	CalcVisPathMap( mapBounds );
+}
+
+
+void Map::Save( TiXmlDocument* doc )
+{
+	TiXmlElement* mapElement = new TiXmlElement( "Map" );
+	doc->LinkEndChild( mapElement );
+
+	TiXmlElement* itemsElement = new TiXmlElement( "Items" );
+	mapElement->LinkEndChild( itemsElement );
+
+	Rectangle2I b;
+	CalcBounds( &b );
+	MapItem* item = quadTree.FindItems( b, 0, MapItem::MI_NOT_IN_DATABASE );
+
+	for( ; item; item=item->next ) {
+		TiXmlElement* itemElement = new TiXmlElement( "Item" );
+		itemElement->SetAttribute( "x", item->x );
+		itemElement->SetAttribute( "y", item->y );
+		itemElement->SetAttribute( "rot", item->rot );
+		itemElement->SetAttribute( "index", item->itemDefIndex );
+		itemElement->SetAttribute( "open", item->open );
+		itemElement->SetAttribute( "hp", item->hp );
+		itemElement->SetAttribute( "flags", item->flags );
+		itemsElement->LinkEndChild( itemElement );
+	}
 }
 
 
