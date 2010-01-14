@@ -52,10 +52,10 @@ private:
 		BTN_TAKE_OFF,
 		BTN_END_TURN,
 		BTN_NEXT,
-		BTN_NEXT_DONE,
+		//BTN_NEXT_DONE,	// Consider turning back on?
 		BTN_TARGET,
-		BTN_LEFT,
-		BTN_RIGHT,
+		//BTN_LEFT,			// Don't need if you can see 360
+		//BTN_RIGHT,
 		BTN_CHAR_SCREEN
 	};
 
@@ -327,8 +327,7 @@ private:
 	void CalcUnitVisibility( const Unit* unit );
 	void CalcVisibilityRay(	int unitID,
 							const grinliz::Vector2I& pos,
-							const grinliz::Vector2I& origin, 
-							const grinliz::Vector2I& facing );
+							const grinliz::Vector2I& origin );
 
 	Unit units[MAX_UNITS];
 

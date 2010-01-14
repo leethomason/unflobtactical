@@ -38,28 +38,28 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		const int icons[] = {	ICON_BLUE_BUTTON,		// 0 take-off
 								ICON_GREEN_BUTTON,		// 1 end turn
 								ICON_GREEN_BUTTON,		// 2 next
-								ICON_GREEN_BUTTON,		// 3 next-done
+								//ICON_GREEN_BUTTON,		// 3 next-done
 								ICON_RED_BUTTON,		// 4 target
-								ICON_BLUE_BUTTON,		// 5 left
-								ICON_BLUE_BUTTON,		// 6 right
+								//ICON_BLUE_BUTTON,		// 5 left
+								//ICON_BLUE_BUTTON,		// 6 right
 								ICON_GREEN_BUTTON		// 7 character
 		};
 
 		const char* iconText[] = {	"EXIT",
 									"O",
 									"N",
-									"ND",
+									//"ND",
 									"",
-									"<-",
-									"->",
+									//"<-",
+									//"->",
 									""	
 								  };		
 
-		widgets->InitButtons( icons, 8 );
+		widgets->InitButtons( icons, 5 );
 		widgets->SetText( iconText );
 
-		widgets->SetDeco( 7, DECO_CHARACTER );
-		widgets->SetDeco( 4, DECO_AIMED );
+		widgets->SetDeco( BTN_CHAR_SCREEN, DECO_CHARACTER );
+		widgets->SetDeco( BTN_TARGET, DECO_AIMED );
 
 		const Screenport& port = engine->GetScreenport();
 		const Vector2I& pad = widgets->GetPadding();
@@ -67,14 +67,14 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		int h = port.UIHeight();
 		int w = port.UIWidth();
 
-		widgets->SetPos( 0,		0, h-size.y );
-		widgets->SetPos( 1,		0, h-(size.y*2+pad.y) );
-		widgets->SetPos( 2,		0, size.y+pad.y );
-		widgets->SetPos( 3,		0, 0 );
-		widgets->SetPos( 4,		size.x+pad.x, 0 );
-		widgets->SetPos( 5,		w-(size.x*2+pad.x), 0 );
-		widgets->SetPos( 6,		w-size.x, 0 );
-		widgets->SetPos( 7,		w-size.x, size.y+pad.y );
+		widgets->SetPos( BTN_TAKE_OFF,		0, h-size.y );
+		widgets->SetPos( BTN_END_TURN,		0, h-(size.y*2+pad.y) );
+		widgets->SetPos( BTN_NEXT,			0, size.y+pad.y );
+		//widgets->SetPos( BTN_NEXT_DONE,		0, 0 );
+		widgets->SetPos( BTN_TARGET,		size.x+pad.x, 0 );
+		//widgets->SetPos( 5,		w-(size.x*2+pad.x), 0 );
+		//widgets->SetPos( 6,		w-size.x, 0 );
+		widgets->SetPos( BTN_CHAR_SCREEN,		w-size.x, size.y+pad.y );
 	}
 	// When enemy targeted.
 	fireWidget = new UIButtonBox( engine->GetScreenport() );
@@ -89,9 +89,9 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	fireWidget->SetDeco( 2, DECO_AUTO );
 	fireWidget->SetDeco( 3, DECO_AUTO );
 	fireWidget->SetDeco( 4, DECO_AIMED );
-	fireWidget->SetDeco( 5, DECO_AIMED );
-	fireWidget->SetDeco( 6, DECO_ROCKET );
-	fireWidget->SetDeco( 7, DECO_SHELLS );
+	//fireWidget->SetDeco( 5, DECO_AIMED );
+	//fireWidget->SetDeco( 6, DECO_ROCKET );
+	fireWidget->SetDeco( 5, DECO_SHELLS );
 
 	engine->EnableMap( true );
 
@@ -1223,7 +1223,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 					uiMode = UIM_TARGET_TILE;
 				}
 				break;
-
+/*
 			case BTN_LEFT:
 			case BTN_RIGHT:
 				if ( actionStack.Empty() && SelectedSoldierUnit() ) {
@@ -1243,7 +1243,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 					}
 				}
 				break;
-
+*/
 			case BTN_CHAR_SCREEN:
 				if ( actionStack.Empty() && SelectedSoldierUnit() ) {
 					UFOStream* stream = game->OpenStream( "SingleUnit" );
@@ -1262,13 +1262,13 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 				break;
 
 			case BTN_NEXT:
-			case BTN_NEXT_DONE:
+			//case BTN_NEXT_DONE:
 				{
 					int index = TERRAN_UNITS_END-1;
 					if ( SelectedSoldierUnit() ) {
 						index = SelectedSoldierUnit() - units;
-						if ( icon == BTN_NEXT_DONE )
-							units[index].SetUserDone();
+						//if ( icon == BTN_NEXT_DONE )
+						//	units[index].SetUserDone();
 					}
 					int i = index+1;
 					if ( i == TERRAN_UNITS_END )
@@ -1735,10 +1735,14 @@ void BattleScene::InvalidateAllVisibility()
 	"cached ray" 45 clocks
 	33 clocks after tuning. (About 1/4 of initial cost.)
 	Tighter walk: 29 MClocks
+
+	Back on the Atom:
+	88 MClocks. But...experimenting with switching to 360degree view.
+	...now 79 MClocks. That makes little sense. Did facing take a bunch of cycles??
 */
 void BattleScene::CalcAllVisibility()
 {
-	//QuickProfile qp( "CalcAllVisibility()" );
+	QuickProfile qp( "CalcAllVisibility()" );
 	Vector2I range[2] = {{ TERRAN_UNITS_START, TERRAN_UNITS_END }, {ALIEN_UNITS_START, ALIEN_UNITS_END}};
 
 	for( int k=0; k<2; ++k ) {
@@ -1776,11 +1780,11 @@ void BattleScene::CalcUnitVisibility( const Unit* unit )
 	visibilityMap.ClearPlane( unitID );
 	visibilityProcessed.ClearAll();
 
-	Vector2I facing = { 0, 0 };	// only used in debug checks and expensive to compute.
-#ifdef DEBUG
-	facing.x = LRintf((float)MAX_EYESIGHT_RANGE*sinf(ToRadian(rotation)));
-	facing.y = LRintf((float)MAX_EYESIGHT_RANGE*cosf(ToRadian(rotation)));
-#endif
+//	Vector2I facing = { 0, 0 };	// only used in debug checks and expensive to compute.
+//#ifdef DEBUG
+//	facing.x = LRintf((float)MAX_EYESIGHT_RANGE*sinf(ToRadian(rotation)));
+//	facing.y = LRintf((float)MAX_EYESIGHT_RANGE*cosf(ToRadian(rotation)));
+//#endif
 
 	Rectangle2I mapBounds;
 	engine->GetMap()->CalcBounds( &mapBounds );
@@ -1789,7 +1793,26 @@ void BattleScene::CalcUnitVisibility( const Unit* unit )
 	visibilityMap.Set( pos.x, pos.y, unitID );
 	visibilityProcessed.Set( pos.x, pos.y, 0 );
 
-	// Remembering rotation of 0 is staring down the z axis.
+	const int MAX_SIGHT_SQUARED = MAX_EYESIGHT_RANGE*MAX_EYESIGHT_RANGE;
+
+	for( int r=MAX_EYESIGHT_RANGE; r>0; --r ) {
+		Vector2I p = { pos.x-r, pos.y-r };
+		Vector2I delta[4] = { { 1,0 }, {0,1}, {-1,0}, {0,-1} };
+
+		for( int k=0; k<4; ++k ) {
+			for( int i=0; i<r*2; ++i ) {
+				if (    mapBounds.Contains( p )
+					 && !visibilityProcessed.IsSet( p.x, p.y )
+					 && (p-pos).LengthSquared() <= MAX_SIGHT_SQUARED ) 
+				{
+					CalcVisibilityRay( unitID, p, pos );
+				}
+				p += delta[k];
+			}
+		}
+	}
+
+/*	// Remembering rotation of 0 is staring down the z axis.
 	Vector2I v;		// the starting (far) point of the view triangle. (2D frustum).
 	Vector2I dV[2];	// change in V per step.
 	Vector2I m;		// direction to walk
@@ -1861,7 +1884,7 @@ void BattleScene::CalcUnitVisibility( const Unit* unit )
 		}
 		v += dV[k&1];
 	}
-
+*/
 
 	/* This code is worth keeping because it would work for any rotation.
 	Rectangle2I visBounds;
@@ -1915,8 +1938,7 @@ void BattleScene::CalcUnitVisibility( const Unit* unit )
 
 void BattleScene::CalcVisibilityRay(	int unitID,
 										const Vector2I& pos,
-										const Vector2I& origin, 
-										const Vector2I& facing )
+										const Vector2I& origin )
 {
 	/* Previous pass used a true ray casting approach, but this doesn't get good results. Numerical errors,
 	   view stopped by leaves, rays going through cracks. Switching to a line walking approach to 
@@ -1928,16 +1950,17 @@ void BattleScene::CalcVisibilityRay(	int unitID,
 	// Because of how the calling walk is done, the direction and sight will always be correct.
 	// For arbitrary rotation this would need to be turned back on for release.
 	{
-		GLASSERT( facing.LengthSquared() > 0 );
+/*		GLASSERT( facing.LengthSquared() > 0 );
 		// Correct direction
 		Vector2I vec = pos - origin;
 		int dot = DotProduct( facing, vec );
 		GLASSERT( dot >= 0 );
 		if ( dot < 0 )
 			return;
-
+*/
 		// Max sight
 		const int MAX_SIGHT_SQUARED = MAX_EYESIGHT_RANGE*MAX_EYESIGHT_RANGE;
+		Vector2I vec = pos - origin;
 		int len2 = vec.LengthSquared();
 		GLASSERT( len2 <= MAX_SIGHT_SQUARED );
 		if ( len2 > MAX_SIGHT_SQUARED )
@@ -2102,8 +2125,8 @@ void BattleScene::DrawHUD()
 	bool enabled = SelectedSoldierUnit() && actionStack.Empty();
 	{
 		widgets->SetEnabled( BTN_TARGET, enabled );
-		widgets->SetEnabled( BTN_LEFT, enabled );
-		widgets->SetEnabled( BTN_RIGHT, enabled );
+		//widgets->SetEnabled( BTN_LEFT, enabled );
+		//widgets->SetEnabled( BTN_RIGHT, enabled );
 		widgets->SetEnabled( BTN_CHAR_SCREEN, enabled );
 	}
 	enabled = actionStack.Empty();
@@ -2111,7 +2134,7 @@ void BattleScene::DrawHUD()
 		widgets->SetEnabled( BTN_TAKE_OFF, enabled );
 		widgets->SetEnabled( BTN_END_TURN, enabled );
 		widgets->SetEnabled( BTN_NEXT, enabled );
-		widgets->SetEnabled( BTN_NEXT_DONE, enabled );
+		//widgets->SetEnabled( BTN_NEXT_DONE, enabled );
 	}
 	widgets->SetHighLight( BTN_TARGET, uiMode == UIM_TARGET_TILE ? true : false );
 
