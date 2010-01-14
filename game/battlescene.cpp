@@ -69,12 +69,12 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 
 		widgets->SetPos( BTN_TAKE_OFF,		0, h-size.y );
 		widgets->SetPos( BTN_END_TURN,		0, h-(size.y*2+pad.y) );
-		widgets->SetPos( BTN_NEXT,			0, size.y+pad.y );
+		widgets->SetPos( BTN_NEXT,			0, 0 );	//size.y+pad.y );
 		//widgets->SetPos( BTN_NEXT_DONE,		0, 0 );
 		widgets->SetPos( BTN_TARGET,		size.x+pad.x, 0 );
 		//widgets->SetPos( 5,		w-(size.x*2+pad.x), 0 );
 		//widgets->SetPos( 6,		w-size.x, 0 );
-		widgets->SetPos( BTN_CHAR_SCREEN,		w-size.x, size.y+pad.y );
+		widgets->SetPos( BTN_CHAR_SCREEN,		w-size.x, 0 );	//size.y+pad.y );
 	}
 	// When enemy targeted.
 	fireWidget = new UIButtonBox( engine->GetScreenport() );
@@ -607,7 +607,7 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 			actionStack.Push( action );
 			weapon->UseRound( select+1 );
 		}
-		PushRotateAction( unit, target, true );
+		PushRotateAction( unit, target, false );
 		return true;
 	}
 	return false;
@@ -797,9 +797,13 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 					const float SPEED = 3.0f;
 					const float ROTATION_SPEED = 150.0f;
 					float x, z, r;
-					
+						
 					// Do we need to rotate, or move?
 					path.GetPos( action->type.move.pathStep, action->type.move.pathFraction, &x, &z, &r );
+					// Face in the direction of walking.
+					model->SetYRotation( r );
+
+					/*
 					if ( model->GetYRotation() != r ) {
 						// We aren't lined up. Rotate first, then move.
 						GLASSERT( model->X() == floorf(x)+0.5f );
@@ -820,7 +824,8 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 							unit->SetPos( p, model->GetYRotation() + travelRotation*bias );
 						}
 					}
-					else {
+					else */
+					{
 						float travel = Travel( deltaTime, SPEED );
 
 						while(    (action->type.move.pathStep < (int)(path.statePath.size()-1))
