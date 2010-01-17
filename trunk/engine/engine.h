@@ -98,6 +98,7 @@ public:
 	void CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjectionInverse );
 
 	void WorldToScreen( const grinliz::Vector3F& p, grinliz::Vector2F* screen );
+
 	void RayFromScreen( int x, int y, 
 						const grinliz::Matrix4& modelViewProjectionInverse, 
 						grinliz::Ray* ray );

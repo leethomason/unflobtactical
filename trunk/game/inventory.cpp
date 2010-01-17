@@ -13,6 +13,30 @@ Inventory::Inventory()
 }
 
 
+int Inventory::CalcClipRoundsTotal( int clipType ) const
+{
+	int total = 0;
+	for( int i=0; i<NUM_SLOTS; ++i ) {
+		if ( slots[i].IsSomething() && slots[i].IsClip() && slots[i].IsClip()->type == clipType ) {
+			total += slots[i].Rounds();
+		}
+	}
+	return total;
+}
+
+
+void Inventory::UseClipRound( int clipType )
+{
+	for( int i=0; i<NUM_SLOTS; ++i ) {
+		if ( slots[i].IsSomething() && slots[i].IsClip() && slots[i].IsClip()->type == clipType ) {
+			slots[i].UseRounds( 1 );
+			return;
+		}
+	}
+	GLASSERT( 0 );
+}
+
+
 bool Inventory::IsGeneralSlotFree()
 {
 	for( int i=GENERAL_SLOT; i<NUM_SLOTS; ++i ) {

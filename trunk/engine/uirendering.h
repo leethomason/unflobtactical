@@ -27,10 +27,16 @@ enum {
 	ICON_RED_BUTTON		= 2,
 	ICON_TRANS_RED		= 4,
 	ICON_TRANS_BLUE		= 5,
+	ICON_TRANS_YELLOW	= 6,
+	ICON_TRANS_ORANGE	= 7,
 	ICON_GREEN_BUTTON_DOWN	= 8,
 	ICON_BLUE_BUTTON_DOWN	= 9,
 	ICON_RED_BUTTON_DOWN	= 10,
-	ICON_NONE			= 15,
+	ICON_GREEN_WALK_MARK	= 12,
+	ICON_YELLOW_WALK_MARK	= 13,
+	ICON_ORANGE_WALK_MARK	= 14,
+	ICON_BLUE_WALK_MARK		= 15,
+	ICON_NONE			= 3,
 
 	DECO_CHARACTER		= 0,
 	DECO_PISTOL			= 1,
@@ -48,6 +54,7 @@ enum {
 	DECO_KNIFE			= 12,
 	DECO_ALIEN			= 13,
 	DECO_ARMOR			= 14,
+	DECO_BOOM			= 15,
 
 	DECO_METAL			= 16,
 	DECO_TECH			= 17,
@@ -85,6 +92,13 @@ public:
 	void SetText( const char** text );
 	void SetText( int index, const char* text );
 	void SetText( int index, const char* text0, const char* text1 );
+	
+	enum {
+		LAYOUT_CENTER,
+		LAYOUT_LEFT,
+		LAYOUT_RIGHT
+	};
+	void SetTextLayout( int layout )	{ this->textLayout = layout; cacheValid = false; }
 
 	const char* GetText( int index );
 
@@ -115,6 +129,20 @@ public:
 		_bounds->max.x = bounds.max.x + origin.x;
 		_bounds->max.y = bounds.max.y + origin.y;
 	}
+
+	void CalcBounds( int* x, int* y, int* w, int* h ) {
+		grinliz::Rectangle2I b;
+		CalcBounds( &b );
+
+		if ( x )
+			*x = b.min.x;
+		if ( y )
+			*y = b.min.y;
+		if ( w )
+			*w = b.Width();
+		if ( h )
+			*h = b.Height();
+	}
 	
 
 	// returns the icon INDEX, or -1 if not clicked
@@ -142,6 +170,7 @@ protected:
 	int nIcons;
 
 	bool cacheValid;
+	int textLayout;
 	Screenport screenport;
 
 	float alpha;
@@ -171,10 +200,12 @@ public:
 	virtual int QueryTap( int x, int y );	
 
 	void SetPos( int index, int x, int y );
+	void SetItemSize( int index, int dx, int dy );
 
 protected:
 	virtual void CalcButtons();
 	grinliz::Vector2I	bPos[MAX_ICONS];
+	grinliz::Vector2I	bSize[MAX_ICONS];
 };
 
 
@@ -198,7 +229,7 @@ public:
 													}
 												}
 
-	void CalcDimensions( int *x, int *y, int *w, int *h );
+//	void CalcDimensions( int *x, int *y, int *w, int *h );
 
 	int TopIndex( int x, int y ) {
 		int dx = columns;

@@ -257,7 +257,10 @@ public:
 	
 	// Show the path that the unit can walk to.
 	void ShowNearPath(	const grinliz::Vector2<S16>& start,
-						float cost0, float cost1, float cost2 );
+						float maxCost,
+						const grinliz::Vector2F* range,
+						const int* icons,
+						int n );
 	void ClearNearPath();	
 
 	// micropather:
@@ -419,7 +422,8 @@ private:
 
 	std::vector<void*>					mapPath;
 	std::vector< micropather::StateCost > stateCostArr;
-	grinliz::BitArray< SIZE, SIZE, 3 >	walkingMap;
+
+	//grinliz::BitArray< SIZE, SIZE, 3 >	walkingMap;
 
 	void PushWalkingVertex( int x, int z, float tx, float ty ) 
 	{

@@ -22,6 +22,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 {
 	engine  = &game->engine;
 	uiMode = UIM_NORMAL;
+	nearPathState = NEAR_PATH_INVALID;
 
 #ifdef MAPMAKER
 	currentMapItem = 1;
@@ -77,21 +78,28 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		widgets->SetPos( BTN_CHAR_SCREEN,		w-size.x, 0 );	//size.y+pad.y );
 	}
 	// When enemy targeted.
-	fireWidget = new UIButtonBox( engine->GetScreenport() );
-	const int fireIcons[] = { ICON_TRANS_RED, ICON_TRANS_RED, ICON_TRANS_RED, ICON_TRANS_RED,
-							  ICON_TRANS_RED, ICON_TRANS_RED, ICON_TRANS_BLUE, ICON_TRANS_BLUE };
-	fireWidget->InitButtons( fireIcons, 8 );
-	fireWidget->SetColumns( 2 );
+	fireWidget = new UIButtonGroup( engine->GetScreenport() );
+	const int fireIcons[] = {	ICON_TRANS_BLUE, ICON_TRANS_BLUE, ICON_TRANS_BLUE,
+								ICON_GREEN_WALK_MARK, ICON_GREEN_WALK_MARK, ICON_GREEN_WALK_MARK,
+								ICON_TRANS_BLUE, ICON_TRANS_BLUE, ICON_TRANS_BLUE,
+							};
+
+	fireWidget->InitButtons( fireIcons, 9 );
 	fireWidget->SetPadding( 0, 0 );
-	fireWidget->SetButtonSize( 60, 60 );
-	fireWidget->SetDeco( 0, DECO_SNAP );
-	fireWidget->SetDeco( 1, DECO_SNAP );
-	fireWidget->SetDeco( 2, DECO_AUTO );
-	fireWidget->SetDeco( 3, DECO_AUTO );
-	fireWidget->SetDeco( 4, DECO_AIMED );
-	//fireWidget->SetDeco( 5, DECO_AIMED );
-	//fireWidget->SetDeco( 6, DECO_ROCKET );
-	fireWidget->SetDeco( 5, DECO_SHELLS );
+	fireWidget->SetButtonSize( 120, 60 );
+	//fireWidget->SetTextLayout( UIButtons::LAYOUT_RIGHT );
+	
+	for( int i=0; i<3; ++i ) {
+		fireWidget->SetPos( i, 0, i*60 );
+		fireWidget->SetItemSize( i, 120, 60 );
+
+		fireWidget->SetPos(		 3+i, 95, i*60+10 );
+		fireWidget->SetItemSize( 3+i, 40, 40 );
+
+		fireWidget->SetPos(		 6+i, 0, i*60 );
+		fireWidget->SetItemSize( 6+i, 30, 30 );
+		fireWidget->SetDeco(	 6+i, DECO_AIMED );
+	}
 
 	engine->EnableMap( true );
 
@@ -170,18 +178,18 @@ void BattleScene::InitUnits()
 		 medkit( game, "Med" ),
 		 armor( game, "ARM-1" ),
 		 fuel( game, "Gel" ),
-		 grenade( game, "RPG", -1 ),
-		 autoClip( game, "AClip", -1 ),
-		 cell( game, "Cell", -1 ),
-		 tachyon( game, "Tach", -1 ),
-		 clip( game, "Clip", -1 );
+		 grenade( game, "RPG", 4 ),
+		 autoClip( game, "AClip", 15 ),
+		 cell( game, "Cell", 12 ),
+		 tachyon( game, "Tach", 4 ),
+		 clip( game, "Clip", 8 );
 
-	gun0.Insert( clip );
-	gun1.Insert( cell );
-	plasmaRifle.Insert( cell );
-	plasmaRifle.Insert( tachyon );
-	ar3.Insert( autoClip );
-	ar3.Insert( grenade );
+//	gun0.Insert( clip );
+//	gun1.Insert( cell );
+//	plasmaRifle.Insert( cell );
+//	plasmaRifle.Insert( tachyon );
+//	ar3.Insert( autoClip );
+//	ar3.Insert( grenade );
 
 	for( int i=0; i<4; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-10 };
@@ -191,17 +199,28 @@ void BattleScene::InitUnits()
 		unit->Init( engine, game, Unit::SOLDIER, 0, random.Rand() );
 
 		Inventory* inventory = unit->GetInventory();
-		if ( (i & 1) == 0 )
+
+		if ( i == 0 ) {
+			inventory->AddItem( Inventory::WEAPON_SLOT, gun0 );
+		}
+		else if ( (i & 1) == 0 ) {
 			inventory->AddItem( Inventory::WEAPON_SLOT, ar3 );
-		else
+
+			inventory->AddItem( Inventory::ANY_SLOT, autoClip );
+			inventory->AddItem( Inventory::ANY_SLOT, grenade );
+		}
+		else {
 			inventory->AddItem( Inventory::WEAPON_SLOT, plasmaRifle );
+
+			inventory->AddItem( Inventory::ANY_SLOT, cell );
+			inventory->AddItem( Inventory::ANY_SLOT, tachyon );
+		}
 
 		inventory->AddItem( Inventory::ANY_SLOT, Item( clip ));
 		inventory->AddItem( Inventory::ANY_SLOT, Item( clip ));
 		inventory->AddItem( Inventory::ANY_SLOT, medkit );
 		inventory->AddItem( Inventory::ANY_SLOT, armor );
 		inventory->AddItem( Inventory::ANY_SLOT, fuel );
-		inventory->AddItem( Inventory::ANY_SLOT, gun0 );
 		unit->UpdateInventory();
 		unit->SetMapPos( pos.x, pos.y );
 		unit->SetYRotation( (float)(((i+2)%8)*45) );
@@ -216,6 +235,8 @@ void BattleScene::InitUnits()
 		unit->Init( engine, game, Unit::ALIEN, i&3, random.Rand() );
 		Inventory* inventory = unit->GetInventory();
 		inventory->AddItem( Inventory::WEAPON_SLOT, gun1 );
+		inventory->AddItem( Inventory::ANY_SLOT, cell );
+		inventory->AddItem( Inventory::ANY_SLOT, tachyon );
 		unit->UpdateInventory();
 		unit->SetMapPos( alienPos[i] );
 	}
@@ -390,7 +411,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 												m->GetYRotation() );
 
 		int unitID = SelectedSoldierUnit() - units;
-		const float ALPHA = 0.3f;
+	}
 
 		/*
 		// Debug unit targets.
@@ -417,72 +438,241 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		}
 		*/
 
-		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-			if ( m_targets.CanSee( unitID, i ) ) {
-				Vector3F p;
-				units[i].CalcPos( &p );
+	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+		if ( m_targets.TeamCanSee( Unit::SOLDIER, i ) ) {
+			Vector3F p;
+			units[i].CalcPos( &p );
+
+			// Is the unit on screen? If so, put in a simple foot decal. Else
+			// put in an "alien that way" decal.
+			Vector2F r;
+		
+			engine->WorldToScreen( p, &r );
+			const Screenport& port = engine->GetScreenport();
+
+			if ( r.x < 0.0f || r.x > port.PhysicalWidth() || r.y < 0.0f || r.y > port.PhysicalHeight() ) {
+				// Which edge? And where? (In screen coordinates.)
+				const float EPS = 15;	//(float)port.PhysicalWidth() * 0.05f;
+				Vector2F corner[4] = {	{ EPS, EPS }, 
+										{ port.PhysicalWidth()-EPS, EPS }, 
+										{ port.PhysicalWidth()-EPS, port.PhysicalHeight()-EPS }, 
+										{ EPS, port.PhysicalHeight()-EPS } };
+				Vector2F origin = {  (float)(port.PhysicalWidth()/2),  (float)(port.PhysicalHeight()/2) };
+
+				for( int k=0; k<4; ++k ) {
+					Vector2F out;
+					float t0, t1;
+					int result = IntersectLineLine( origin, r, corner[k], corner[(k+1)%4], &out, &t0, &t1 );
+					if ( result == INTERSECT && t0 >= 0.0f && t0 <= 1.0f && t1 >= 0.0f && t1 <= 1.0f ) {
+
+						Matrix4 mvpi;
+						Ray ray;
+						Vector3F intersection;	//, center;
+
+						engine->CalcModelViewProjectionInverse( &mvpi );
+						engine->RayFromScreenToYPlane( LRintf( out.x ), LRintf( out.y ), mvpi, &ray, &intersection );
+
+						float angle = atan2( intersection.x-p.x, intersection.z-p.z );
+						angle = ToDegree( angle );	
+						//GLOUTPUT(( "%f,%f angle=%f\n", center.x, center.z, angle ));
+
+						const float ALPHA = 0.8f;
+						ParticleSystem::Instance()->EmitDecal(	ParticleSystem::DECAL_TARGET_ARROW,
+																ParticleSystem::DECAL_BOTH,
+																intersection, ALPHA, angle );
+						break;
+					}
+				}
+			}
+			else {
+				const float ALPHA = 0.3f;
 				ParticleSystem::Instance()->EmitDecal(	ParticleSystem::DECAL_TARGET,
 														ParticleSystem::DECAL_BOTH,
 														p, ALPHA, 0 );	
 			}
 		}
 	}
+
 	bool check = ProcessAction( deltaTime );
 	if ( check ) {
-		//DumpTargetEvents();
 		ProcessDoors();
 		StopForNewTeamTarget();
 		DoReactionFire();
 		targetEvents.Clear();	// All done! They don't get to carry on beyond the moment.
 	}
 
+	if ( actionStack.Empty() && selection.soldierUnit ) {
+		if ( nearPathState == NEAR_PATH_INVALID ) {
+			ShowNearPath( selection.soldierUnit );
+			nearPathState = NEAR_PATH_VALID;
+		}
+	}
+	else {
+		ShowNearPath( 0 );	// fast. Just sets array to 0.
+	}
+
 	// Render the target (if it is on-screen)
 	if ( HasTarget() ) {
-		Vector3F pos = { 0, 0, 0 };
-		if ( AlienUnit() )
-			AlienUnit()->CalcPos( &pos );
-		else
-			pos.Set( (float)(selection.targetPos.x) + 0.5f,
-					 0.02f,
-					 (float)(selection.targetPos.y) + 0.5f );
-
-		// Double up with previous target indicator.
-		const float ALPHA = 0.3f;
-		ParticleSystem::Instance()->EmitDecal(	ParticleSystem::DECAL_TARGET,
-												ParticleSystem::DECAL_BOTH,
-												pos, ALPHA, 0 );
-
-		Vector2F r;
-		engine->WorldToScreen( pos, &r );
-		//GLOUTPUT(( "View: %.1f,%.1f\n", r.x, r.y ));
-		int uiX, uiY;
-		const Screenport& port = engine->GetScreenport();
-		port.ViewToUI( (int)r.x, (int)r.y, &uiX, &uiY );
-
-		int x, y, w, h;
-		const int DX = 10;
-
-		// Make sure it fits on the screen.
-		fireWidget->CalcDimensions( 0, 0, 0, &h );
-		fireWidget->SetOrigin( uiX+DX, uiY-h/2 );
-		fireWidget->CalcDimensions( &x, &y, &w, &h );
-		if ( x < 0 ) {
-			x = 0;
-		}
-		else if ( x+w >= port.UIWidth() ) {
-			x = port.UIWidth() - w;
-		}
-		if ( y < 0 ) {
-			y = 0;
-		}
-		else if ( y+h >= port.UIHeight() ) {
-			y = port.UIHeight() - h;
-		}
-		fireWidget->SetOrigin( x, y );
+		DrawFireWidget();
 	}
 }
 
 
+void BattleScene::DrawFireWidget()
+{
+	Vector3F pos = { 0, 0, 0 };
+	if ( AlienUnit() )
+		AlienUnit()->CalcPos( &pos );
+	else
+		pos.Set( (float)(selection.targetPos.x) + 0.5f,
+				 0.02f,
+				 (float)(selection.targetPos.y) + 0.5f );
+
+	// Double up with previous target indicator.
+	const float ALPHA = 0.3f;
+	ParticleSystem::Instance()->EmitDecal(	ParticleSystem::DECAL_TARGET,
+											ParticleSystem::DECAL_BOTH,
+											pos, ALPHA, 0 );
+
+	Vector2F r;
+	engine->WorldToScreen( pos, &r );
+	//GLOUTPUT(( "View: %.1f,%.1f\n", r.x, r.y ));
+	int uiX, uiY;
+	const Screenport& port = engine->GetScreenport();
+	port.ViewToUI( (int)r.x, (int)r.y, &uiX, &uiY );
+
+	int x, y, w, h;
+	const int DX = 10;
+
+	// Make sure it fits on the screen.
+	fireWidget->CalcBounds( 0, 0, 0, &h );
+	fireWidget->SetOrigin( uiX+DX, uiY-h/2 );
+	fireWidget->CalcBounds( &x, &y, &w, &h );
+	if ( x < 0 ) {
+		x = 0;
+	}
+	else if ( x+w >= port.UIWidth() ) {
+		x = port.UIWidth() - w;
+	}
+	if ( y < 0 ) {
+		y = 0;
+	}
+	else if ( y+h >= port.UIHeight() ) {
+		y = port.UIHeight() - h;
+	}
+	fireWidget->SetOrigin( x, y );
+}
+
+
+void BattleScene::SetFireWidget()
+{
+	GLASSERT( SelectedSoldierUnit() );
+	GLASSERT( SelectedSoldierModel() );
+
+	Unit* unit = SelectedSoldierUnit();
+	Item* item = unit->GetWeapon();
+	char buffer0[32];
+	char buffer1[32];
+
+	Vector3F target;
+	if ( selection.targetPos.x >= 0 ) {
+		target.Set( (float)selection.targetPos.x+0.5f, 1.0f, (float)selection.targetPos.y+0.5f );
+	}
+	else {
+		target = selection.targetUnit->GetModel()->Pos();
+	}
+	Vector3F distVector = target - SelectedSoldierModel()->Pos();
+	float distToTarget = distVector.Length();
+
+	if ( !item || !item->IsWeapon() ) {
+		for( int i=0; i<3; ++i ) {
+			fireWidget->SetEnabled( i, false );
+		}
+		return;
+	}
+
+	Inventory* inventory = unit->GetInventory();
+	float snappedTU = 0.0f;
+	float autoTU = 0.0f;
+
+	const WeaponItemDef* wid = item->IsWeapon();
+	GLASSERT( wid );
+
+	if ( wid ) {
+		int select, type;
+
+		wid->FireModeToType( 0, &select, &type );
+		snappedTU = unit->FireTimeUnits( select, type );
+		wid->FireModeToType( 1, &select, &type );
+		autoTU = unit->FireTimeUnits( select, type );
+	}
+
+	for( int i=0; i<3; ++i ) {
+		int select, type;
+		wid->FireModeToType( i, &select, &type );
+
+		float tu = 0.0f;
+		float fraction = 0;
+		float anyFraction = 0;
+		float dptu = 0;
+		int nShots = (type==AUTO_SHOT) ? 3 : 1;
+		
+		int rounds = inventory->CalcClipRoundsTotal( item->IsWeapon()->weapon[select].clipType );
+
+		// weird syntax aids debugging.
+		bool enable = true;
+		enable = enable &&	item->IsWeapon();
+		enable = enable &&	item->IsWeapon()->SupportsType( select, type );
+		enable = enable &&	(nShots <= rounds );
+		enable = enable &&  unit->GetStats().TU() >= unit->FireTimeUnits( select, type );
+
+		unit->FireStatistics( select, type, distToTarget, &fraction, &anyFraction, &tu, &dptu );
+		SNPrintf( buffer0, 32, "%s %d%%", wid->fireDesc[i], (int)LRintf( fraction*100.0f ) );
+		SNPrintf( buffer1, 32, "%d/%d", nShots, rounds );
+		
+		int index = 2-i;
+		fireWidget->SetText( index, buffer0, buffer1 );
+		fireWidget->SetEnabled( index, enable );
+		fireWidget->SetDeco( index, DECO_NONE );
+
+		// Reflect the TU left.
+		float tuAfter = unit->GetStats().TU() - tu;
+		int tuIndicator = ICON_BLUE_WALK_MARK;
+		if ( tu != 0 && tuAfter >= autoTU ) {
+			tuIndicator = ICON_GREEN_WALK_MARK;
+		}
+		else if ( tu != 0 && tuAfter >= snappedTU ) {
+			tuIndicator = ICON_YELLOW_WALK_MARK;
+		}
+		else if ( tu != 0 && tuAfter < snappedTU ) {
+			tuIndicator = ICON_ORANGE_WALK_MARK;
+		}
+		fireWidget->SetButton( index+3, tuIndicator );
+		fireWidget->SetEnabled( index+3, enable );
+		if ( !enable ) {
+			fireWidget->SetButton( index+3, ICON_BLUE_WALK_MARK );
+		}
+
+		// Set the type of shot
+		int deco = DECO_NONE;
+		if ( wid && wid->HasWeapon(select) ) {
+
+
+			if ( item->IsWeapon()->weapon[select].flags & WEAPON_EXPLOSIVE ) {
+				deco = DECO_BOOM;
+			}
+			else {
+				switch ( type ) {
+					case AIMED_SHOT:	deco = DECO_AIMED;	break;
+					case AUTO_SHOT:		deco = DECO_AUTO;	break;
+					default:			deco = DECO_SNAP;	break;
+				}
+			}
+		}
+		fireWidget->SetDeco( index+6, deco );
+		fireWidget->SetEnabled( index+6, enable );
+	}
+}
 
 
 void BattleScene::ScrollOnScreen( const Vector3F& pos )
@@ -560,11 +750,10 @@ void BattleScene::PushRotateAction( Unit* src, const Vector3F& dst3F, bool quant
 
 bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target, 
 								   int select, int type,
-								   bool useError )
+								   bool useError,
+								   bool clearMoveIfShoot )
 {
 	GLASSERT( unit );
-	GLASSERT( select == 0 || select == 1 );\
-	GLASSERT( type >=0 && type < 3 );
 
 	if ( !unit->IsAlive() )
 		return false;
@@ -572,9 +761,10 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 	Item* weapon = unit->GetWeapon();
 	if ( !weapon )
 		return false;
+	const WeaponItemDef* wid = weapon->IsWeapon();
 
 	// Stack - push in reverse order.
-	int nShots = ( type == AUTO_SHOT ) ? 3 : 1;
+	int nShots = (type == AUTO_SHOT) ? 3 : 1;
 
 	Vector3F normal, right, up, p;
 	unit->CalcPos( &p );
@@ -586,8 +776,11 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 	CrossProduct( normal, up, &right );
 	CrossProduct( normal, right, &up );
 
+	Inventory* inventory = unit->GetInventory();
+	int rounds = inventory->CalcClipRoundsTotal( wid->weapon[select].clipType );
+
 	if (    unit->GetStats().TU() >= selection.soldierUnit->FireTimeUnits( select, type )
-		 && ( nShots <= weapon->RoundsAvailable(select+1)) ) 
+		 && ( nShots <= rounds ) ) 
 	{
 		unit->UseTU( selection.soldierUnit->FireTimeUnits( select, type ) );
 
@@ -600,12 +793,16 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 				t = target + (m * right)*d;
 			}
 
+			if ( clearMoveIfShoot && !actionStack.Empty() && actionStack.Top().action == ACTION_MOVE ) {
+				actionStack.Clear();
+			}
+
 			Action action;
 			action.Init( ACTION_SHOOT, unit );
 			action.type.shoot.target = t;
 			action.type.shoot.select = select;
 			actionStack.Push( action );
-			weapon->UseRound( select+1 );
+			inventory->UseClipRound( wid->weapon[select].clipType );
 		}
 		PushRotateAction( unit, target, false );
 		return true;
@@ -634,7 +831,6 @@ void BattleScene::DoReactionFire()
 			react = true;		
 		}
 	}
-
 	if ( react ) {
 		int i=0;
 		while( i < targetEvents.Size() ) {
@@ -657,9 +853,11 @@ void BattleScene::DoReactionFire()
 						Vector3F target;
 						units[t.targetID].GetModel()->CalcTarget( &target );
 
-						int shot = PushShootAction( &units[t.viewerID], target, 0, 1, true );	// auto
+						int shot = PushShootAction( &units[t.viewerID], target, 0, 1, true, true );	// auto
 						if ( !shot )
-							PushShootAction( &units[t.viewerID], target, 0, 0, true );	// snap
+							PushShootAction( &units[t.viewerID], target, 0, 0, true, true );	// snap
+
+						nearPathState = NEAR_PATH_INVALID;
 					}
 				}
 				targetEvents.SwapRemove( i );
@@ -750,8 +948,7 @@ void BattleScene::StopForNewTeamTarget()
 			}
 			if ( newTeam ) {
 				actionStack.Clear();
-				if ( action.unit == SelectedSoldierUnit() )
-					ShowNearPath( action.unit );
+				nearPathState = NEAR_PATH_INVALID;
 			}
 		}
 	}
@@ -935,12 +1132,7 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 			if ( newPos != originalPos || newRot != originalRot ) {
 				SetFogOfWar();
 				CalcTeamTargets();
-			}
-
-			// If actions are empty and this is the selected unit, update
-			// the path feedback.
-			if ( actionStack.Empty() && unit == SelectedSoldierUnit() ) {
-				ShowNearPath( unit );
+				nearPathState = NEAR_PATH_INVALID;
 			}
 		}
 	}
@@ -1187,19 +1379,24 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 		icon = fireWidget->QueryTap( screenX, screenY );
 
 		/*
-			pri		sec
-			4aimed	5aimed
-			2auto	3auto
-			0snap	1snap
+			fast
+			aimed/auto
+			burst
 		*/
+		while ( icon >= 3 ) icon -= 3;
 
-		if ( icon >= 0 && icon < 6 ) {
-			int select = icon & 1;	// primary(0) or secondary(1)
-			int type = icon / 2;
-
+		if ( icon >= 0 && icon < 3 ) {
 			// shooting creates a turn action then a shoot action.
 			GLASSERT( selection.soldierUnit >= 0 );
 			GLASSERT( selection.targetUnit >= 0 );
+
+			Item* weapon = selection.soldierUnit->GetWeapon();
+			GLASSERT( weapon );
+			const WeaponItemDef* wid = weapon->GetItemDef()->IsWeapon();
+			GLASSERT( wid );
+
+			int select, type;
+			wid->FireModeToType( 2-icon, &select, &type );
 
 			Vector3F target;
 			if ( selection.targetPos.x >= 0 ) {
@@ -1208,7 +1405,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 			else {
 				selection.targetUnit->GetModel()->CalcTarget( &target );
 			}
-			PushShootAction( selection.soldierUnit, target, select, type, true );
+			PushShootAction( selection.soldierUnit, target, select, type, true, false );
 			selection.targetUnit = 0;
 		}
 	}
@@ -1288,7 +1485,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 						if ( i == TERRAN_UNITS_END )
 							i = TERRAN_UNITS_START;
 					}
-					ShowNearPath( selection.soldierUnit );
+					nearPathState = NEAR_PATH_INVALID;
 				}
 				break;
 
@@ -1333,7 +1530,7 @@ void BattleScene::Tap(	int tap,
 		uiMode = UIM_NORMAL;
 		selection.targetPos.Set( -1, -1 );
 		selection.targetUnit = 0;
-		ShowNearPath( selection.soldierUnit );
+		nearPathState = NEAR_PATH_INVALID;
 		return;
 	}
 
@@ -1403,7 +1600,7 @@ void BattleScene::Tap(	int tap,
 		}
 		else if ( tappedUnit->Team() == Unit::SOLDIER ) {
 			SetSelection( UnitFromModel( tappedModel ) );
-			ShowNearPath( tappedUnit );
+			nearPathState = NEAR_PATH_INVALID;
 		}
 		else {
 			SetSelection( 0 );
@@ -1437,121 +1634,39 @@ void BattleScene::Tap(	int tap,
 }
 
 
-void BattleScene::SetFireWidget()
-{
-	GLASSERT( SelectedSoldierUnit() );
-	GLASSERT( SelectedSoldierModel() );
-
-	Unit* unit = SelectedSoldierUnit();
-	Item* item = unit->GetWeapon();
-	char buffer0[16];
-	char buffer1[16];
-
-	Vector3F target;
-	if ( selection.targetPos.x >= 0 ) {
-		target.Set( (float)selection.targetPos.x+0.5f, 1.0f, (float)selection.targetPos.y+0.5f );
-	}
-	else {
-		target = selection.targetUnit->GetModel()->Pos();
-	}
-	Vector3F distVector = target - SelectedSoldierModel()->Pos();
-	float distToTarget = distVector.Length();
-
-	if ( !item || !item->IsWeapon() ) {
-		fireWidget->SetDeco( 6, DECO_NONE );
-		fireWidget->SetDeco( 7, DECO_NONE );
-		for( int i=0; i<6; ++i ) {
-			fireWidget->SetEnabled( i, false );
-		}
-		return;
-	}
-
-	for( int select=0; select<2; ++select ) {
-
-		const WeaponItemDef* wid = item->IsWeapon();
-		GLASSERT( wid );
-
-		//float d=0;
-		if ( item->HasPart( select+1 ) ) {
-			fireWidget->SetDeco( 6+select, item->Deco(select+1) );
-			
-			DamageDesc dd;
-			wid->DamageBase( select, &dd );
-
-			SNPrintf( buffer0, 16, "D%d", (int)dd.Total() );
-			SNPrintf( buffer1, 16, "R%d", item->RoundsAvailable(select+1) );
-			fireWidget->SetText( 6+select, buffer0, buffer1 );
-		}
-		else {
-			fireWidget->SetDeco( 6+select, DECO_NONE );
-			fireWidget->SetText( 6+select, "" );
-		}
-
-		const int id[] = { DECO_SNAP, DECO_AUTO, DECO_AIMED };
-
-		for( int type=0; type<3; ++type ) {
-			float tu = 0.0f;
-			float fraction = 0;
-			float dptu = 0;
-			int nShots = (type==AUTO_SHOT) ? 3 : 1;
-			
-			// weird syntax aids debugging.
-			bool enable =		true;	//item->HasPart(select+1); cell weapons don't have part 2
-			enable = enable &&	item->IsClip( 1 );	// cell or clip
-			enable = enable &&	item->IsWeapon();
-			enable = enable &&	item->IsWeapon()->SupportsType( select, type );
-			enable = enable &&	(nShots <= item->RoundsAvailable(select+1));
-			enable = enable &&  unit->GetStats().TU() >= unit->FireTimeUnits( select, type );
-
-			if ( enable ) {
-				unit->FireStatistics( select, type, distToTarget, &fraction, &tu, &dptu );
-				SNPrintf( buffer0, 16, "%d%%", (int)LRintf( fraction*100.0f ) );
-
-				if ( tu >= 10.0f && dptu >= 10.0f )
-					SNPrintf( buffer1, 16, "%2d %2d", LRintf(tu), LRintf(dptu) );
-				else if ( tu < 10.0f && dptu >= 10.0f )
-					SNPrintf( buffer1, 16, "%.1f %2d", tu, LRintf(dptu) );
-				else if ( tu >= 10.0f && dptu < 10.0f )
-					SNPrintf( buffer1, 16, "%2d %.1f", LRintf(tu), dptu );
-				else if ( tu < 10.0f && dptu < 10.0f )
-					SNPrintf( buffer1, 16, "%.1f %.1f", tu, dptu );
-
-				fireWidget->SetText( type*2+select, buffer0, buffer1 );
-			}
-			else {
-				fireWidget->SetText( type*2+select, "" );
-			}
-			fireWidget->SetEnabled( type*2+select, enable );
-			fireWidget->SetDeco( type*2+select, id[type] );
-		}
-	}
-}
-
-
 void BattleScene::ShowNearPath( const Unit* unit )
 {
-	if ( !unit ) {
+	if ( !unit || !unit->GetWeapon() ) {
 		engine->GetMap()->ClearNearPath();
 		return;
 	}
 
 	GLASSERT( unit );
 	GLASSERT( unit->GetModel() );
+	const WeaponItemDef* wid = unit->GetWeapon()->GetItemDef()->IsWeapon();
+
 	const Model* model = unit->GetModel();
 	Vector2<S16> start = { (S16)model->X(), (S16)model->Z() };
 
 	SetPathBlocks();
 	const Stats& stats = unit->GetStats();
 
-	float snappedTU = unit->FireTimeUnits( 0, SNAP_SHOT );
-	float autoTU = unit->FireTimeUnits( 0, AUTO_SHOT );
+	int type, select;
 
-	if ( autoTU > 0.0f ) {
-		engine->GetMap()->ShowNearPath( start, stats.TU()-autoTU, stats.TU()-snappedTU, stats.TU() );
-	}
-	else {
-		engine->GetMap()->ShowNearPath( start, stats.TU()-snappedTU, -1, stats.TU() );
-	}
+	wid->FireModeToType( 0, &select, &type );
+	float snappedTU = unit->FireTimeUnits( select, type );
+	wid->FireModeToType( 1, &select, &type );
+	float autoTU = unit->FireTimeUnits( select, type );
+	float tu = stats.TU();
+
+	Vector2F range[3] = { 
+		{ 0.0f,	tu-autoTU },
+		{ tu-autoTU, tu-snappedTU },
+		{ tu-snappedTU, tu }
+	};
+	int icons[3] = { ICON_GREEN_WALK_MARK, ICON_YELLOW_WALK_MARK, ICON_ORANGE_WALK_MARK };
+
+	engine->GetMap()->ShowNearPath( start, tu, range, icons, 3 );
 }
 
 
@@ -2156,13 +2271,14 @@ void BattleScene::DrawHUD()
 			unit->Rank(),
 			unit->FirstName(),
 			unit->LastName() );
-
+/*
 		UFOText::Draw( 260, 304, 
 			"TU:%.1f HP:%d Tgt:%02d/%02d", 
 			unit->GetStats().TU(),
 			unit->GetStats().HP(),
 			m_targets.CalcTotalUnitCanSee( id, Unit::ALIEN ),
 			m_targets.TotalTeamCanSee( Unit::SOLDIER, Unit::ALIEN ) );
+*/
 	}
 #endif
 }

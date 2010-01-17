@@ -402,6 +402,7 @@ void Game::LoadItemResources()
 		const char* resName;
 		int deco;
 		const char* desc;
+		const char* modes[3];
 		float	speed;		// speed/weight modifier - 1.0 is normal, 2.0 is twice as slow
 
 		int		clip0;		// 
@@ -413,58 +414,65 @@ void Game::LoadItemResources()
 		float damage1, acc1;
 	};
 
+	const char* FAST = "Fast";
+	const char* AIMED = "Aimed";
+	const char* BURST = "Burst";
+	const char* BOOM = "Boom";
+	const char* BANG = "Bang";
+	const char* STRIKE = "Strike";
+
 	const WeaponInit weapons[] = {		
 		// Terran	resName		deco			description
 		//				
-		{ "PST",	"gun0",		DECO_PISTOL,	"Pistol",				SPEED_FAST,
+		{ "PST",	"gun0",		DECO_PISTOL,	"Pistol",				FAST, AIMED, 0,		SPEED_FAST,
 				ITEM_CLIP_SHELL,	0,				DAM_LOW,	ACC_MED,
 				0  },
-		{ "AR-1",	"gun0",		DECO_RIFLE,		"Klk Assault Rifle",	SPEED_NORMAL,
+		{ "AR-1",	"gun0",		DECO_RIFLE,		"Klk Assault Rifle",	FAST, BURST, 0,		SPEED_NORMAL,
 				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_LOW,	ACC_LOW,
 				0  },
-		{ "AR-2",	"gun0",		DECO_RIFLE,		"N7 Assault Rifle",		SPEED_NORMAL,
+		{ "AR-2",	"gun0",		DECO_RIFLE,		"N7 Assault Rifle",		FAST, BURST, 0,		SPEED_NORMAL,
 				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MEDLOW,	ACC_MED,
 				0  },
-		{ "AR-3P",	"gun0",		DECO_RIFLE,		"Pulse Rifle",			SPEED_NORMAL,
+		{ "AR-3P",	"gun0",		DECO_RIFLE,		"Pulse Rifle",			FAST, BURST, BOOM,	SPEED_NORMAL,
 				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MEDHI,	ACC_MED,
 				ITEM_CLIP_GRENADE,	WEAPON_EXPLOSIVE,EXDAM_HI,	ACC_LOW },
-		{ "AR-3L",	"gun0",		DECO_RIFLE,		"Long AR 'Vera'",		SPEED_NORMAL,
-				ITEM_CLIP_AUTO,		WEAPON_AUTO,	DAM_MED,	ACC_HI,
+		{ "AR-3L",	"gun0",		DECO_RIFLE,		"Long AR 'Vera'",		FAST, AIMED, BOOM,	SPEED_NORMAL,
+				ITEM_CLIP_AUTO,		0,				DAM_HI,		ACC_HI,
 				ITEM_CLIP_GRENADE,	WEAPON_EXPLOSIVE,EXDAM_HI,	ACC_LOW },
-		{ "RKT",	"gun0",		DECO_RIFLE,		"Rocket Launcher",		SPEED_SLOW,
-				ITEM_CLIP_ROCKET,	WEAPON_EXPLOSIVE,DAM_HI,	ACC_MED,
-				0  },
-		{ "CANON",	"gun0",		DECO_RIFLE,		"Mini-Canon",			SPEED_SLOW,
-				ITEM_CLIP_SHELL,	0,				DAM_HI,		ACC_MED,
+//		{ "RKT",	"gun0",		DECO_RIFLE,		"Rocket Launcher",		SPEED_SLOW,
+//				ITEM_CLIP_ROCKET,	WEAPON_EXPLOSIVE,DAM_HI,	ACC_MED,
+//				0  },
+		{ "CANON",	"gun0",		DECO_RIFLE,		"Mini-Canon",			FAST, BANG, BOOM,	SPEED_SLOW,
+				ITEM_CLIP_SHELL,	WEAPON_EXPLOSIVE,		DAM_HI,		ACC_MED,
 				ITEM_CLIP_FLAME,	WEAPON_EXPLOSIVE,EXDAM_MED,	ACC_MED },
 
-		{ "KNIFE",	"gun0",		DECO_KNIFE,		"Knife",				SPEED_FAST,
+		{ "KNIFE",	"gun0",		DECO_KNIFE,		"Knife",				FAST, STRIKE, 0,	SPEED_FAST,
 				0,					WEAPON_MELEE,	DAM_MED,	ACC_MED,
 				0  },
 
 		// Alien
-		{ "RAY-1",	"gun1",		DECO_PISTOL,	"Ray Gun",				SPEED_FAST,
+		{ "RAY-1",	"gun1",		DECO_PISTOL,	"Ray Gun",				FAST, AIMED, 0,		SPEED_FAST,
 				ITEM_CLIP_PLASMA,	0,				DAM_LOW,	ACC_LOW,
 				0  },
-		{ "RAY-2",	"gun1",		DECO_PISTOL,	"Advanced Ray Gun",		SPEED_FAST,
+		{ "RAY-2",	"gun1",		DECO_PISTOL,	"Advanced Ray Gun",		FAST, AIMED, 0,		SPEED_FAST,
 				ITEM_CLIP_PLASMA,	0,				DAM_MED,	ACC_LOW,
 				0  },
-		{ "RAY-3",	"gun1",		DECO_PISTOL,	"Disinigrator",			SPEED_FAST,
+		{ "RAY-3",	"gun1",		DECO_PISTOL,	"Disinigrator",			FAST, AIMED, 0,		SPEED_FAST,
 				ITEM_CLIP_PLASMA,	0,				DAM_HI,		ACC_LOW,
 				0  },
-		{ "PLS-1",	"gun0",		DECO_RIFLE,		"Plasma Rifle",			SPEED_NORMAL,
+		{ "PLS-1",	"gun0",		DECO_RIFLE,		"Plasma Rifle",			FAST, BURST, 0,		SPEED_NORMAL,
 				ITEM_CLIP_PLASMA,	WEAPON_AUTO,	DAM_MED,	ACC_MED,
 				0  },
-		{ "PLS-2",	"gun0",		DECO_RIFLE,		"Plasma Assault Rifle",	SPEED_NORMAL,
+		{ "PLS-2",	"gun0",		DECO_RIFLE,		"Plasma Assault Rifle",	FAST, BURST, BOOM,	SPEED_NORMAL,
 				ITEM_CLIP_PLASMA,	WEAPON_AUTO,	DAM_MEDHI,	ACC_MED,
 				ITEM_CLIP_TACHYON,	WEAPON_EXPLOSIVE, EXDAM_HI,	ACC_MED },
-		{ "BEAM",	"gun0",		DECO_RIFLE,		"Blade Beam",			SPEED_NORMAL,
+		{ "BEAM",	"gun0",		DECO_RIFLE,		"Blade Beam",			FAST, AIMED, 0,		SPEED_NORMAL,
 				ITEM_CLIP_PLASMA,	0,				DAM_MEDHI,	ACC_HI,
 				0  },
-		{ "NULL",	"gun0",		DECO_RIFLE,		"Null Point Blaster",	SPEED_NORMAL,
+		{ "NULL",	"gun0",		DECO_RIFLE,		"Null Point Blaster",	FAST, BANG, 0,		SPEED_NORMAL,
 				ITEM_CLIP_TACHYON,	WEAPON_EXPLOSIVE, EXDAM_HI, ACC_HI,
 				0  },
-		{ "SWORD",	"gun0",		DECO_KNIFE,		"Plasma Sword",			SPEED_FAST,
+		{ "SWORD",	"gun0",		DECO_KNIFE,		"Plasma Sword",			FAST, STRIKE, 0,	SPEED_FAST,
 				0,				WEAPON_MELEE,		DAM_HI,		ACC_HI,
 				0  },
 		{ 0 }
@@ -481,6 +489,9 @@ void Game::LoadItemResources()
 						ModelResourceManager::Instance()->GetModelResource( weapons[i].resName ),
 						nItemDef );
 
+		for( int j=0; j<3; ++j ) {
+			item->fireDesc[j]		= weapons[i].modes[j];
+		}
 		item->speed					= weapons[i].speed;
 
 		item->weapon[0].clipType	= weapons[i].clip0;
@@ -556,7 +567,7 @@ void Game::LoadItemResources()
 		{ "AClip",	ITEM_CLIP_AUTO,		DECO_SHELLS,	15,	 "4mm 15 round auto-clip" },
 		{ "Cell",	ITEM_CLIP_PLASMA,	DECO_CELL,		12,  "10MW Cell" },
 		{ "Tach",	ITEM_CLIP_TACHYON,	DECO_CELL,		4,   "Tachyon field rounds" },
-		{ "MinR",	ITEM_CLIP_ROCKET,	DECO_ROCKET,	1,	 "Mini Rocket" },
+//		{ "MinR",	ITEM_CLIP_ROCKET,	DECO_ROCKET,	1,	 "Mini Rocket" },
 		{ "Flame",	ITEM_CLIP_FLAME,	DECO_SHELLS,	1,	 "Incendiary Heavy Round" },
 		{ "RPG",	ITEM_CLIP_GRENADE,	DECO_ROCKET,	4,	 "Grenade Rounds" },
 		{ 0 }
@@ -570,7 +581,7 @@ void Game::LoadItemResources()
 						0,
 						nItemDef );
 
-		item->rounds = clips[i].rounds;
+		item->defaultRounds = clips[i].rounds;
 		item->type = clips[i].type;
 
 		itemDefArr[nItemDef++] = item;
@@ -589,30 +600,39 @@ void Game::LoadItemResources()
 
 		for( int r=0; r<3; ++r ) {
 			fprintf( fp, "\nRange=%f\n", range[r] );
-			fprintf( fp, "name       PRIMARY                              SECONDARY\n" );
-			fprintf( fp, "           dam snap       auto       aimed      dam snap       auto       aimed\n" );
-			fprintf( fp, "---------- --- ---------  ---------  ---------  --- ---------  ---------  ---------\n" );
+			fprintf( fp, "name       PRIMARY                     SECONDARY\n" );
+			fprintf( fp, "           dam snap       n auto/aim   dam secondary\n" );
+			fprintf( fp, "---------- --- ---------  - ---------  --- ---------\n" );
 
 			for( int i=1; i<nItemDef; ++i ) {
 				const WeaponItemDef* wid = itemDefArr[i]->IsWeapon();
 				if ( wid ) {
+
 					fprintf( fp, "%10s ", wid->name );
-					for( int s=0; s<2; ++s ) {
-						if ( wid->HasWeapon(s) ) {
-							DamageDesc dd;
-							wid->DamageBase( s, &dd );
 
-							fprintf( fp, "%3d ", (int)dd.Total() );
+					for( int j=0; j<3; ++j ) {
+						float fraction, fraction2, damage, dptu;
+						DamageDesc dd;
+						int select, type;
 
-							for( int j=0; j<3; ++j ) {
-								float fraction, damage, dptu;
+						wid->FireModeToType( j, &select, &type );
 
-								wid->FireStatistics( s, j, acc, range[r], &fraction, &damage, &dptu );
-								if ( fraction > 0.0f )
-									fprintf( fp, "%2d%% %5.1f  ", (int)(fraction*100.0f), dptu );
-								else
-									fprintf( fp, "           " );
-							}
+						wid->DamageBase( select, &dd );
+
+						if ( wid->SupportsType( select, type ) ) {
+							wid->FireStatistics( select, type, acc, range[r], &fraction, &fraction2, &damage, &dptu );
+							int nShots = (type==AUTO_SHOT) ? 3 : 1;
+
+							if ( j == 0 || j == 2 )
+								fprintf( fp, "%3d ", (int)dd.Total() );
+						
+							if ( j == 1 )
+								fprintf( fp, "%d ", nShots );
+
+							fprintf( fp, "%2d%% %5.1f  ", (int)(fraction*100.0f), dptu );
+						}
+						else {
+							fprintf( fp, "           " );
 						}
 					}
 					fprintf( fp, "\n" );

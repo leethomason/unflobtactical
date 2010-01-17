@@ -142,10 +142,16 @@ void CharacterScene::SetButtonGraphics( int index, const Item& item )
 		else*/
 		if ( item.IsWeapon() ) {
 			const WeaponItemDef* wid = item.IsWeapon();
+			Inventory* inventory = unit->GetInventory();
+
+			int rounds[2] = { 0, 0 };
+			rounds[0] = inventory->CalcClipRoundsTotal( wid->weapon[0].clipType );
+			rounds[1] = inventory->CalcClipRoundsTotal( wid->weapon[1].clipType );
+
 			if ( wid->HasWeapon(1) )
-				SNPrintf( buffer, 16, "%d %d", item.Rounds(1), item.Rounds(2) );
+				SNPrintf( buffer, 16, "%d %d", rounds[0], rounds[1] );
 			else
-				SNPrintf( buffer, 16, "%d", item.Rounds(1) );
+				SNPrintf( buffer, 16, "%d", rounds[0] );
 			charInvWidget->SetText( index, item.Name(), buffer );
 		}
 		else if ( item.IsClip() ) {
@@ -373,7 +379,7 @@ void CharacterScene::DragInvToInv( int startTap, int endTap )
 
 				bool consumed = false;
 
-				if (    startItem->IsSomething() 
+				/*if (    startItem->IsSomething() 
 					 && endItem->IsSomething() 
 					 && endItem->Combine( startItem, &consumed ) ) 
 				{
@@ -382,7 +388,7 @@ void CharacterScene::DragInvToInv( int startTap, int endTap )
 				}
 				else {
 					inv->Swap( startSlot, endSlot );
-				}
+				}*/
 			}
 			break;
 
@@ -391,7 +397,7 @@ void CharacterScene::DragInvToInv( int startTap, int endTap )
 			{
 				Item* item = inv->AccessItem( startSlot );
 				const WeaponItemDef* weaponDef = item->IsWeapon();
-				if ( weaponDef ) {
+/*				if ( weaponDef ) {
 					for( int i=2; i>=1; --i ) {
 						if ( item->Rounds(i) > 0 && inv->IsGeneralSlotFree() ) {
 							Item clip;
@@ -400,6 +406,7 @@ void CharacterScene::DragInvToInv( int startTap, int endTap )
 						}
 					}
 				}
+				*/
 			}
 			break;
 
