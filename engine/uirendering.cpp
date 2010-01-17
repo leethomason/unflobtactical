@@ -46,6 +46,7 @@ UIButtons::UIButtons( const Screenport& port ) : screenport( port )
 	alpha = 1.0f;
 
 	memset( icons, 0, sizeof( Icon )*MAX_ICONS );
+	textLayout = LAYOUT_CENTER;
 }
 
 
@@ -55,6 +56,7 @@ UIButtonBox::UIButtonBox( const Screenport& port ) : UIButtons( port )
 }
 
 
+/*
 void UIButtonBox::CalcDimensions( int *x, int *y, int *w, int *h )
 {
 	if ( x ) 
@@ -76,6 +78,7 @@ void UIButtonBox::CalcDimensions( int *x, int *y, int *w, int *h )
 			*h = rows*size.y;
 	}
 }
+*/
 
 
 void UIButtons::InitButtons( const int* _icons, int _nIcons )
@@ -176,22 +179,33 @@ const char* UIButtons::GetText( int index )
 
 void UIButtons::PositionText( int index ) 
 {
-	int w, h;
-	UFOText::GlyphSize( icons[index].text0, &w, &h );
+	int w, h, w1, h1;
+	const int GUTTER = 6;
 
-	icons[index].textPos0.x = size.x/2 - w/2;
+	UFOText::GlyphSize( icons[index].text0, &w, &h );
+	w1 = w; h1 = h;
+
 	icons[index].textPos0.y = size.y/2 - h/2;
 
 	if ( icons[index].text1[0] ) {
-		int w1, h1;
 		UFOText::GlyphSize( icons[index].text1, &w1, &h1 );
 
 		int s = size.y - (h+h1);
-		
 		icons[index].textPos0.y = size.y - s/2 - h;
-
-		icons[index].textPos1.x = size.x/2 - w1/2;
 		icons[index].textPos1.y = size.y - s/2 - (h+h1);
+	}
+
+	if ( textLayout == LAYOUT_CENTER ) {
+		icons[index].textPos0.x = size.x/2 - w/2;
+		icons[index].textPos1.x = size.x/2 - w1/2;
+	}
+	else if ( textLayout == LAYOUT_LEFT ) {
+		icons[index].textPos0.x = GUTTER;
+		icons[index].textPos1.x = GUTTER;
+	}
+	else {
+		icons[index].textPos0.x = size.x - w - GUTTER;
+		icons[index].textPos1.x = size.x - w1 - GUTTER;
 	}
 }
 
@@ -392,6 +406,7 @@ int UIButtonBox::QueryTap( int x, int y )
 UIButtonGroup::UIButtonGroup( const Screenport& port ) : UIButtons( port )
 {
 	memset( bPos, 0, sizeof(Vector2I)*MAX_ICONS );
+	memset( bSize, 0, MAX_ICONS*sizeof( Vector2I ) );
 }
 
 
@@ -402,16 +417,29 @@ void UIButtonGroup::SetPos( int index, int x, int y )
 }
 
 
+void UIButtonGroup::SetItemSize( int index, int x, int y ) {
+	GLASSERT( index >= 0 && index < nIcons );
+	bSize[index].Set( x, y );
+}
+
+
 int UIButtonGroup::QueryTap( int x, int y )
 {
 	Rectangle2I b;
-	Vector2I p ={ x, y };
+	Vector2I p ={ x-origin.x, y-origin.y };
 
 	for( int i=0; i<nIcons; ++i ) {
+		int sx = size.x;
+		int sy = size.y;
+		if ( bSize[i].x && bSize[i].y ) {
+			sx = bSize[i].x;
+			sy = bSize[i].y;
+		}
+
 		b.Set( bPos[i].x,
-					bPos[i].y,
-					bPos[i].x + size.x,
-					bPos[i].y + size.y );
+				bPos[i].y,
+				bPos[i].x + sx,
+				bPos[i].y + sy );
 		if ( b.Contains( p ) ) {
 			if ( icons[i].enabled )
 				return i;
@@ -444,12 +472,19 @@ void UIButtonGroup::CalcButtons()
 		if ( icons[i].highLight )
 			bias = BIAS;
 
+		int sx = size.x;
+		int sy = size.y;
+		if ( bSize[i].x && bSize[i].y ) {
+			sx = bSize[i].x;
+			sy = bSize[i].y;
+		}
+
 		pos[i*4+0].Set( x-bias,			y-bias );		
-		pos[i*4+1].Set( x+bias+size.x,	y-bias );		
-		pos[i*4+2].Set( x+bias+size.x,	y+bias+size.y );		
-		pos[i*4+3].Set( x-bias,			y+bias+size.y );	
+		pos[i*4+1].Set( x+bias+sx,		y-bias );		
+		pos[i*4+2].Set( x+bias+sx,		y+bias+sy );		
+		pos[i*4+3].Set( x-bias,			y+bias+sy );	
 		bounds.DoUnion( x, y );
-		bounds.DoUnion( x+size.x, y+size.y );
+		bounds.DoUnion( x+sx, y+sy );
 
 		int id = icons[i].id;
 		float dx = (float)(id%ICON_DX)*iconTX;

@@ -71,7 +71,7 @@ void WeaponItemDef::RenderWeapon(	int select,
 			length = EBOLT;
 			break;
 
-		case ITEM_CLIP_ROCKET:
+		//case ITEM_CLIP_ROCKET:
 		case ITEM_CLIP_GRENADE:
 			color.Set( 1, 0, 0, 1 );
 			first = TRAIL;
@@ -194,9 +194,9 @@ void WeaponItemDef::DamageBase( int select, DamageDesc* d ) const
 			d->Set( 0, 0, 1 );
 			break;
 
-		case ITEM_CLIP_ROCKET:
-			d->Set( 0.5f, 0, 0.5f );
-			break;
+//		case ITEM_CLIP_ROCKET:
+//			d->Set( 0.5f, 0, 0.5f );
+//			break;
 
 		case ITEM_CLIP_GRENADE:
 			d->Set( 0.8f, 0, 0.2f );
@@ -250,10 +250,56 @@ float WeaponItemDef::AccuracyBase( int select, int type ) const
 }
 
 
+void WeaponItemDef::FireModeToType( int mode, int* select, int* type ) const 
+{
+	GLASSERT( mode >= 0 && mode < 3 );
+	if ( mode == 0 ) {
+		*select = 0;
+		*type = SNAP_SHOT;
+	}
+	else if ( mode == 1 ) {
+		if ( SupportsType( 0, AUTO_SHOT ) ) {
+			*select = 0;
+			*type = AUTO_SHOT;
+		}
+		else {
+			GLASSERT( SupportsType( 0, AIMED_SHOT ) );
+			*select = 0;
+			*type = AIMED_SHOT;
+		}
+	}
+	else {
+		*select = 1;
+		*type = AIMED_SHOT;
+	}
+}
+
+
+bool WeaponItemDef::SupportsType( int select, int type ) const
+{ 
+	if ( select == 0 ) {
+		if ( type == SNAP_SHOT )
+			return true;
+		else if ( type == AUTO_SHOT && (weapon[0].flags & WEAPON_AUTO) )
+			return true;
+		else if ( type == AIMED_SHOT && !(weapon[0].flags & WEAPON_AUTO) )
+			return true;
+	}
+	else if ( select ==1 ) {
+		if ( type == AIMED_SHOT && HasWeapon( select ) )
+			return true;
+	}
+	return false;
+}
+
+
 void WeaponItemDef::FireStatistics( int select, int type, 
 								    float accuracy, float distance, 
-								    float* chanceToHit, float* totalDamage, float* damagePerTU ) const
+									float* chanceToHit, float* anyChanceToHit,
+									float* totalDamage, float* damagePerTU ) const
 {
+	GLASSERT( SupportsType( select, type ) );
+
 	*chanceToHit = 0.0f;
 	*damagePerTU = 0.0f;
 	*totalDamage = 0.0f;
@@ -266,6 +312,14 @@ void WeaponItemDef::FireStatistics( int select, int type,
 		if ( *chanceToHit > 0.98f )
 			*chanceToHit = 0.98f;
 
+		*anyChanceToHit = *chanceToHit;
+		int nRounds = (type==AUTO_SHOT) ? 3 : 1;
+
+		if ( nRounds == 3 ) {
+			float chanceMiss = (1.0f-*chanceToHit);
+			*anyChanceToHit = 1.0f - chanceMiss*chanceMiss*chanceMiss;
+		}
+
 		DamageBase( select, &dd );
 		*totalDamage = dd.Total();
 
@@ -275,6 +329,7 @@ void WeaponItemDef::FireStatistics( int select, int type,
 	}
 }
 
+/*
 void ItemPart::Init( const ItemDef* itemDef, int rounds )
 {
 	this->itemDef = itemDef;
@@ -289,124 +344,34 @@ void ItemPart::Init( const ItemDef* itemDef, int rounds )
 		this->rounds = rounds;
 	}
 }
+*/
 
 
 Item::Item( const ItemDef* itemDef, int rounds )
 {
-	part[0].Init( itemDef, rounds );
-	part[1].Clear();
-	part[2].Clear();
+	this->itemDef = itemDef;
+	this->rounds = rounds;
 }
+
 
 Item::Item( Game* game, const char* name, int rounds )
 {
-	part[0].Init( game->GetItemDef( name ), rounds );
-	part[1].Clear();
-	part[2].Clear();
+	const ItemDef* itemDef = game->GetItemDef( name );
+	this->itemDef = itemDef;
+	this->rounds = rounds;
 }
 
 
-bool Item::Insert( const Item& withThis )
+void Item::UseRounds( int i ) 
 {
-	Item item( withThis );
-	bool consumed;
-	return Combine( &item, &consumed );
-}
-
-
-void Item::RemovePart( int i, Item* item )
-{
-	GLASSERT( i>0 && i<3 );
-	item->part[0] = part[i];
-	item->part[1].Clear();
-	item->part[2].Clear();
-	part[i].Clear();
-}
-
-void Item::Clear()
-{
-	for( int i=0; i<3; ++i )
-		part[i].Clear();
-}
-
-
-bool Item::Combine( Item* with, bool* consumed )
-{
-	int which = 0;
-	const WeaponItemDef* wid = part[0].IsWeapon();
-	bool result = false;
-
-	if (	wid 
-		 && wid->CompatibleClip( with->part[0].itemDef, &which ) ) 
-	{
-		// weapon0,1 maps to part 1,2
-		which++;
-
-		// The 'with' is the clip, and is defined by with.part[0].
-		// this->part[0] is a weapon
-		// this->part[1] is the primary fire
-		// this->part[2] is the secondary fire
-		//
-		const ClipItemDef* clipDef = with->part[0].itemDef->IsClip();
-		GLASSERT( clipDef );
-
-		// The clip *type* is compatible (ITEM_CLIP_CANON), but maybe not
-		// the specific ammo (MC-AC). Check that.
-		if (    part[which].None()								// ammo not yet set
-			 || part[which].itemDef == with->part[0].itemDef )	// same itemDef means the same exact type.
-		{
-			// then we have a match.
-
-			if ( part[which].None() ) {
-				// need to create the part to add to
-				part[which].Init( with->part[0].itemDef, 0 );
-			}
-
-			int roundsThatFit = clipDef->rounds - part[which].rounds;
-			GLASSERT( roundsThatFit >= 0 );
-
-			if ( with->part[0].rounds > roundsThatFit ) {
-				part[which].rounds += roundsThatFit;
-				with->part[0].rounds -= roundsThatFit;
-				*consumed = false;
-				result = true;
-			}
-			else { 
-				part[which].rounds += with->part[0].rounds;
-				with->part[0].rounds = 0;
-				*consumed = true;
-				result = true;
-			}	
-		}
-	}
-	return result;
-}
-
-
-int Item::RoundsAvailable( int i ) const
-{
-	GLASSERT( i==1 || i==2 );
-	GLASSERT( IsWeapon() );
-
-	return this->Rounds( i );
-}
-
-
-void Item::UseRound( int i ) 
-{
-	GLASSERT( i==1 || i==2 );
-	GLASSERT( IsWeapon() );
-
-	const WeaponItemDef* wid = this->IsWeapon();
-
-	GLASSERT( part[i].IsClip() );
-	GLASSERT( part[i].rounds > 0 );
-	part[i].rounds--;
+	GLASSERT( i <= rounds );
+	rounds -= i;
 }
 
 
 void Item::Save( UFOStream* s ) const
 {
+	/*
 	s->WriteU8( 1 );	// version
 	for( int i=0; i<NUM_PARTS; ++i ) {
 		if ( part[i].itemDef ) {
@@ -418,13 +383,14 @@ void Item::Save( UFOStream* s ) const
 			s->WriteU8( 0 );
 		}
 	}
+	*/
 }
 
 
 void Item::Load( UFOStream* s, Engine* engine, Game* game )
 {
 	Clear();
-
+	/*
 	int version = s->ReadU8();
 	GLASSERT( version == 1 );
 
@@ -438,6 +404,7 @@ void Item::Load( UFOStream* s, Engine* engine, Game* game )
 			part[i].rounds = s->ReadU8();
 		}
 	}
+	*/
 }
 
 
@@ -460,12 +427,12 @@ bool Storage::Empty() const
 
 void Storage::AddItem( const Item& item )
 {
-	for( int i=0; i<3; ++i ) {
-		if ( item.GetItemDef( i ) ) {
-			int index = GetIndex( item.GetItemDef(i) );
-			rounds[index] += item.Rounds(i);
-		}
-	}
+//	for( int i=0; i<3; ++i ) {
+//		if ( item.GetItemDef( i ) ) {
+			int index = GetIndex( item.GetItemDef() );
+			rounds[index] += item.Rounds();
+//		}
+//	}
 }
 
 

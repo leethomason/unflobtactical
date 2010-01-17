@@ -20,7 +20,7 @@ enum {
 	ITEM_CLIP_PLASMA,
 	ITEM_CLIP_TACHYON,
 	ITEM_CLIP_FLAME,
-	ITEM_CLIP_ROCKET,
+//	ITEM_CLIP_ROCKET,
 	ITEM_CLIP_GRENADE,
 
 	WEAPON_AUTO		 = 0x01,
@@ -94,17 +94,16 @@ public:
 		float damage;		// damage done by weapon, 1.0 is normal
 		float accuracy;		// 1.0 is average
 	};
-	float	speed;			// 1.0 is normal speed (and weight)
-	Weapon weapon[2];		// primary and secondary
+
+	const char*	fireDesc[3];	// name of the 3 fire modes
+	float		speed;			// 1.0 is normal speed (and weight)
+	Weapon		weapon[2];		// primary and secondary
 
 	bool HasWeapon( int select ) const		{ GLASSERT( select == 0 || select == 1 ); return weapon[select].damage > 0; }
-	bool SupportsType( int select, int type ) const		{ 
-		GLASSERT( type >= 0 && type < 3 && select >= 0 && select <= 1 );  
-		if ( type == AUTO_SHOT ) {
-			return (weapon[select].flags & WEAPON_AUTO) ? true : false;
-		}
-		return true;
-	}
+
+	bool SupportsType( int select, int type ) const;
+	void FireModeToType( int mode, int* select, int* type ) const;
+
 	bool Melee() const			{ return weapon[0].flags & WEAPON_MELEE ? true : false; }
 	bool IsAlienBlaster() const	{ return weapon[0].clipType == ITEM_CLIP_PLASMA || weapon[0].clipType == ITEM_CLIP_TACHYON; }
 
@@ -126,7 +125,10 @@ public:
 	float AccuracyBase( int select, int type ) const;
 	// Statistics for this weapon. 
 	void FireStatistics( int select, int type, float shooterAccuracy, float distance, 
-						 float* chanceToHit, float* totalDamage, float* damagePerTU ) const;
+						 float* chanceToHit,	// chance a round hits
+						 float* chanceAnyHit,	// chance any round (of 3) hits
+						 float* totalDamage, 
+						 float* damagePerTU ) const;
 
 };
 
@@ -136,12 +138,12 @@ class ClipItemDef : public ItemDef
 public:
 
 	virtual const ClipItemDef* IsClip() const { return this; }
-	virtual int Rounds() const { return rounds; }
+	virtual int DefaultRounds() const { return defaultRounds; }
 
 	bool IsAlien() const { return type == ITEM_CLIP_PLASMA || type == ITEM_CLIP_TACHYON; }
 
 	int	type;
-	int rounds;			// rounds in this clip, power of cell (100)
+	int defaultRounds;
 };
 
 
@@ -151,6 +153,7 @@ public:
 	virtual const ArmorItemDef* IsArmor() const { return this; }
 };
 
+/*
 // POD
 struct ItemPart
 {
@@ -167,6 +170,7 @@ struct ItemPart
 	void Clear()				{ itemDef = 0; rounds = 0; }
 	void SetEmpty()				{ rounds = 0; }
 };
+*/
 
 
 /* POD.
@@ -184,61 +188,51 @@ struct ItemPart
 class Item
 {
 public:
-	enum {
-		NUM_PARTS = 3
-	};
+//	enum {
+//		NUM_PARTS = 3
+//	};
 
-	Item()								{ memset( part, 0, sizeof(ItemPart)*NUM_PARTS ); }
-	Item( const Item& rhs )				{ memcpy( part, rhs.part, sizeof(ItemPart)*NUM_PARTS ); }
+	Item()								{ rounds = 0; itemDef = 0; }
+	Item( const Item& rhs )				{ rounds = rhs.rounds; itemDef = rhs.itemDef; }
 	Item( const ItemDef* itemDef, int rounds=1 );
 	Item( Game*, const char* name, int rounds=1 );
 
-	void operator=( const Item& rhs )	{ memcpy( part, rhs.part, sizeof(ItemPart)*NUM_PARTS ); }
+	void operator=( const Item& rhs )	{ rounds = rhs.rounds; itemDef = rhs.itemDef; }
 
 	// Add rounds to this Item. Returns 'true' if the items combine, and 'consumed' is set
 	// true if the added item (a clip) is fully used up.
-	bool Combine( Item* withThis, bool* consumed );
+	//bool Combine( Item* withThis, bool* consumed );
 	// Works like combine, except the 'withThis' item isn't modified.
-	bool Insert( const Item& withThis );
+	//bool Insert( const Item& withThis );
 	// Remove one of the parts (i=1 or 2)
-	void RemovePart( int i, Item* item );
+	//void RemovePart( int i, Item* item );
 	// wipe this item
-	void Clear();
+	void Clear()									{ rounds = 0; itemDef = 0; }
 
-	const ItemDef* GetItemDef( int i=0 ) const		{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef; }
-	const WeaponItemDef* IsWeapon( int i=0 ) const	{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef->IsWeapon(); }
-	const ClipItemDef* IsClip( int i=0 ) const		{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef->IsClip(); }
-	const ArmorItemDef* IsArmor( int i=0 ) const	{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef->IsArmor(); }
+	const ItemDef* GetItemDef() const				{ return itemDef; }
+	const WeaponItemDef* IsWeapon() const			{ return itemDef->IsWeapon(); }
+	const ClipItemDef* IsClip() const				{ return itemDef->IsClip(); }
+	const ArmorItemDef* IsArmor() const				{ return itemDef->IsArmor(); }
 
-	int Rounds( int i=0 ) const						{ GLASSERT( i>=0 && i<3 ); return part[i].rounds; }
+	int Rounds() const								{ return rounds; }
 
 	// --- handle weapons ----//
-	// Requires IsWeapon()
-	// How many rounds are needed to fire this weapon once. 
-	// This is 1/3 the cost of auto-mode.
-	// Generally 1 for kinetic weapons, and power level for cell weapons.
-	int RoundsAvailable( int i ) const;
+	// consume one rounds
+	void UseRounds( int n=1 );
 
-	// Reqires IsWeapon()
-	// consume ronuds for one fire of the weapon
-	void UseRound( int i );
+	const char* Name() const						{ return itemDef->name; }
+	const char* Desc() const						{ return itemDef->desc; }
+	int Deco() const								{ return itemDef->deco; }
 
-	const char* Name() const						{ return part[0].itemDef->name; }
-	const char* Desc() const						{ return part[0].itemDef->desc; }
-	int Deco( int i=0 ) const						{ GLASSERT( i>=0 && i<3 ); return part[i].itemDef->deco; }
-
-	bool HasPart( int i ) const		{ return part[i].itemDef != 0; }
-	bool IsNothing() const			{ return part[0].None(); }
-	bool IsSomething() const		{ return !part[0].None(); }
+	bool IsNothing() const							{ return itemDef == 0; }
+	bool IsSomething() const						{ return itemDef != 0; }
 
 	void Save( UFOStream* s ) const;
 	void Load( UFOStream* s, Engine* engine, Game* game );
 
 private:
-	// An item can be made up of up to 3 parts. 
-	// 0-weapon, 1-clip, 2-clip
-	// If there isn't a [0] part, then the item is empty.
-	ItemPart part[NUM_PARTS]; 
+	int rounds;
+	const ItemDef* itemDef;
 };
 
 

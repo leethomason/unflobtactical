@@ -132,7 +132,7 @@ private:
 	
 	// Try to shoot. Return true if success.
 	bool PushShootAction(	Unit* src, const grinliz::Vector3F& dst, 
-							int select, int type, bool useError );
+							int select, int type, bool useError, bool clearMoveIfShoot );
 
 	bool ProcessAction( U32 deltaTime );
 	bool ProcessActionShoot( Action* action, Unit* unit, Model* model );
@@ -141,6 +141,7 @@ private:
 
 	void StopForNewTeamTarget();
 	void DoReactionFire();
+	void DrawFireWidget();
 
 	struct Path
 	{
@@ -161,6 +162,12 @@ private:
 	Path path;
 
 	// Show the UI zones arount the selected unit
+	enum {
+		NEAR_PATH_VALID,
+		NEAR_PATH_INVALID,
+		//NEAR_PATH_OFF
+	};
+	int nearPathState;
 	void ShowNearPath( const Unit* unit );
 	// set the fire widget to the primary and secondary weapon
 	void SetFireWidget();
@@ -218,7 +225,7 @@ private:
 
 	int				uiMode;
 	UIButtonGroup*	widgets;
-	UIButtonBox*	fireWidget;
+	UIButtonGroup*	fireWidget;
 	Engine*			engine;
 	grinliz::Random random;	// "the" random number generator for the battle
 	int				currentTeamTurn;

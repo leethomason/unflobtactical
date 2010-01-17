@@ -53,6 +53,7 @@ public:
 		DECAL_TARGET	= 11,
 		DECAL_UNIT_SIGHT = 12,
 		DECAL_TEAM_SIGHT = 13,
+		DECAL_TARGET_ARROW	= 15,
 	};
 
 	enum {
