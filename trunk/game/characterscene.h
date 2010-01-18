@@ -23,7 +23,7 @@ public:
 						const grinliz::Ray& world );
 
 	virtual void Drag(	int action,
-						const grinliz::Vector2I& view );
+						const grinliz::Vector2I& view )			{}
 
 	virtual void Zoom( int action, int distance )				{}
 	virtual void CancelInput()									{}
@@ -37,29 +37,27 @@ protected:
 		INV, ARMOR, WEAPON, UNLOAD
 	};
 
-	void SetInvWidget();
-	void SetButtonGraphics( int index, const Item& item );
-	void IndexType( int uiIndex, int* type, int* inventorySlot );
-	void StartDragging( const ItemDef* itemDef );
+	
+	// M M M	7 8 9
+	// M M M	4 5 6
+	// A 2 1	1 2 3
+	//   S		  0
 
-	void DragInvToInv( int startTapIndex, int endTapIndex );
-	void DragStorageToInv( const ItemDef* startItemDef, int endTapIndex );
-	void DragInvToStorage( int startTap );
+	void InitInvWidget();
+
+	void SetAllButtonGraphics();
+	void SetButtonGraphics( int index, const Item& item );
+
+	void InventoryToStorage( int slot );
+	void StorageToInventory( const ItemDef* itemDef );
+
 
 	Engine* engine;
 	UIButtonBox* backWidget;
-	UIButtonBox* charInvWidget;
+	UIButtonGroup* charInvWidget;
 	StorageWidget* storageWidget;
 
 	const char* description;
-
-	int startInvTap;				// start tap on inventory
-	const ItemDef* startItemDef;	// start tap on storage
-
-	bool dragging;
-	grinliz::Vector2I dragPos;
-	int currentDeco;
-
 	Storage* storage;
 	int selectedUnit;
 	Unit* unit;

@@ -201,26 +201,28 @@ void BattleScene::InitUnits()
 		Inventory* inventory = unit->GetInventory();
 
 		if ( i == 0 ) {
-			inventory->AddItem( Inventory::WEAPON_SLOT, gun0 );
+			inventory->AddItem( gun0 );
 		}
 		else if ( (i & 1) == 0 ) {
-			inventory->AddItem( Inventory::WEAPON_SLOT, ar3 );
+			inventory->AddItem( ar3 );
+			inventory->AddItem( gun0 );
 
-			inventory->AddItem( Inventory::ANY_SLOT, autoClip );
-			inventory->AddItem( Inventory::ANY_SLOT, grenade );
+			inventory->AddItem( autoClip );
+			inventory->AddItem( grenade );
 		}
 		else {
-			inventory->AddItem( Inventory::WEAPON_SLOT, plasmaRifle );
+			inventory->AddItem( plasmaRifle );
 
-			inventory->AddItem( Inventory::ANY_SLOT, cell );
-			inventory->AddItem( Inventory::ANY_SLOT, tachyon );
+			inventory->AddItem( cell );
+			inventory->AddItem( tachyon );
 		}
 
-		inventory->AddItem( Inventory::ANY_SLOT, Item( clip ));
-		inventory->AddItem( Inventory::ANY_SLOT, Item( clip ));
-		inventory->AddItem( Inventory::ANY_SLOT, medkit );
-		inventory->AddItem( Inventory::ANY_SLOT, armor );
-		inventory->AddItem( Inventory::ANY_SLOT, fuel );
+		inventory->AddItem( Item( clip ));
+		inventory->AddItem( Item( clip ));
+		inventory->AddItem( medkit );
+		inventory->AddItem( armor );
+		//inventory->AddItem( fuel );
+
 		unit->UpdateInventory();
 		unit->SetMapPos( pos.x, pos.y );
 		unit->SetYRotation( (float)(((i+2)%8)*45) );
@@ -234,9 +236,9 @@ void BattleScene::InitUnits()
 
 		unit->Init( engine, game, Unit::ALIEN, i&3, random.Rand() );
 		Inventory* inventory = unit->GetInventory();
-		inventory->AddItem( Inventory::WEAPON_SLOT, gun1 );
-		inventory->AddItem( Inventory::ANY_SLOT, cell );
-		inventory->AddItem( Inventory::ANY_SLOT, tachyon );
+		inventory->AddItem( gun1 );
+		inventory->AddItem( cell );
+		inventory->AddItem( tachyon );
 		unit->UpdateInventory();
 		unit->SetMapPos( alienPos[i] );
 	}
@@ -1180,7 +1182,8 @@ bool BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 
 		if ( m && intersection.y < 0.0f ) {
 			// hit ground before the unit (intesection is with the part under ground)
-			impact = true;
+			// The world bounds will pick this up later.
+			m = 0;
 		}
 
 		weaponDef->DamageBase( select, &damageDesc );
@@ -1189,13 +1192,17 @@ bool BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 			impact = true;
 			beam0 = p0;
 			beam1 = intersection;
+			GLASSERT( m->AABB().Contains( intersection ) );
 			modelHit = m;
 		}
 		else {		
 			Vector3F in, out;
 			int inResult, outResult;
 			Rectangle3F worldBounds;
-			worldBounds.Set( 0, 0, 0, (float)engine->GetMap()->Width(), 4.0f, (float)engine->GetMap()->Height() );	// FIXME: who owns these constants???
+			worldBounds.Set( 0, 0, 0, 
+							(float)engine->GetMap()->Width(), 
+							3.5f,	//WORLD_WALL_HEIGHT, 
+							(float)engine->GetMap()->Height() );
 
 			int result = IntersectRayAllAABB( ray.origin, ray.direction, worldBounds, 
 											  &inResult, &in, &outResult, &out );

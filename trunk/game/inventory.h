@@ -9,12 +9,10 @@ class Engine;
 class Game;
 
 
-/*  3x4
-
+/*  
 	M M M	- backpack
-	S S S
-	M S M	- belt
-	S S L   - leg / hand
+	M M M
+	A 2 1	- armor, secondary, primary
 */
 
 class Inventory
@@ -22,22 +20,25 @@ class Inventory
 public:
 
 	enum {
+		NO_SLOT = -2,
 		ANY_SLOT = -1,
-		WEAPON_SLOT = 0,
-		ARMOR_SLOT = 1,
-		GENERAL_SLOT = 2
+		WEAPON_SLOT_PRIMARY = 0,
+		WEAPON_SLOT_SECONDARY,
+		ARMOR_SLOT,
+		GENERAL_SLOT
 	};
 
 	enum {
 		DX = 3,
 		DY = 4,
-		NUM_SLOTS  = 11,
+		NUM_SLOTS  = 6 + 3
 	};
 
 	Inventory();
 
 	// Add an item. 0: weapon slot, -1: any slot available
-	bool AddItem( int slot, const Item& item );
+	bool AddItem( const Item& item, int* slot=0 );
+	bool RemoveItem( int slot );
 
 	bool IsGeneralSlotFree();
 	bool IsSlotFree( const ItemDef* itemDef );
@@ -57,7 +58,7 @@ public:
 	int GetDeco( int slot ) const;
 	const ItemDef* GetItemDef( int slot ) const	{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot].GetItemDef(); }
 
-	bool Swap( int s0, int s1 );
+	void SwapWeapons();
 
 private:
 

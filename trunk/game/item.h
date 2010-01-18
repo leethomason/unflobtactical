@@ -138,7 +138,7 @@ class ClipItemDef : public ItemDef
 public:
 
 	virtual const ClipItemDef* IsClip() const { return this; }
-	virtual int DefaultRounds() const { return defaultRounds; }
+	virtual int Rounds() const { return defaultRounds; }
 
 	bool IsAlien() const { return type == ITEM_CLIP_PLASMA || type == ITEM_CLIP_TACHYON; }
 
@@ -152,25 +152,6 @@ class ArmorItemDef : public ItemDef
 public:
 	virtual const ArmorItemDef* IsArmor() const { return this; }
 };
-
-/*
-// POD
-struct ItemPart
-{
-	const ItemDef* itemDef;
-	int rounds;					// rounds, charges, whatever.
-
-	void Init( const ItemDef* itemDef, int rounds=1 );
-
-	const WeaponItemDef* IsWeapon() const	{ return itemDef->IsWeapon(); }
-	const ClipItemDef* IsClip() const		{ return itemDef->IsClip(); }
-	const ArmorItemDef* IsArmor() const		{ return itemDef->IsArmor(); }
-
-	bool None() const			{ return itemDef == 0; }
-	void Clear()				{ itemDef = 0; rounds = 0; }
-	void SetEmpty()				{ rounds = 0; }
-};
-*/
 
 
 /* POD.

@@ -59,6 +59,7 @@ enum {
 	DECO_METAL			= 16,
 	DECO_TECH			= 17,
 	DECO_FUEL			= 18,
+	DECO_SWAP			= 19,
 
 	DECO_NONE			= 31,
 };

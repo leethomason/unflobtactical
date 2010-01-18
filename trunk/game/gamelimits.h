@@ -12,6 +12,7 @@ const int MAP_SIZE = 64;
 const int MAX_EYESIGHT_RANGE    = 13;
 const int MAX_EYESIGHT_RANGE_45 = 10;	// MAX * cos(45deg), rounded up
 const float EYE_HEIGHT = 1.2f;
+const float WORLD_WALL_HEIGHT = 1.5f;
 
 const float NORMAL_TU		= 8.0f;
 const float TU_SNAP_SHOT	= 3.0f;

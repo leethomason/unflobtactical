@@ -41,6 +41,7 @@
 #include "../sqlite3/sqlite3.h"
 #include "../shared/gldatabase.h"
 #include "../grinliz/glstringutil.h"
+#include "dither.h"
 
 using namespace std;
 using namespace grinliz;
@@ -220,7 +221,7 @@ void ModelGroup::Set( const char* textureName, int nVertex, int nIndex )
 }
 
 
-U32 GetPixel(SDL_Surface *surface, int x, int y)
+U32 GetPixel( const SDL_Surface *surface, int x, int y)
 {
     int bpp = surface->format->BytesPerPixel;
     /* Here p is the address to the pixel we want to retrieve */
@@ -244,6 +245,39 @@ U32 GetPixel(SDL_Surface *surface, int x, int y)
 
     default:
         return 0;       /* shouldn't happen, but avoids warnings */
+    }
+}
+
+
+void PutPixel(SDL_Surface *surface, int x, int y, U32 pixel)
+{
+    int bpp = surface->format->BytesPerPixel;
+    U8 *p = (U8*)surface->pixels + y * surface->pitch + x * bpp;
+
+    switch(bpp) {
+    case 1:
+        *p = pixel;
+        break;
+
+    case 2:
+        *(U16*)p = pixel;
+        break;
+
+    case 3:
+        if(SDL_BYTEORDER == SDL_BIG_ENDIAN) {
+            p[0] = (pixel >> 16) & 0xff;
+            p[1] = (pixel >> 8) & 0xff;
+            p[2] = pixel & 0xff;
+        } else {
+            p[0] = pixel & 0xff;
+            p[1] = (pixel >> 8) & 0xff;
+            p[2] = (pixel >> 16) & 0xff;
+        }
+        break;
+
+    case 4:
+        *(U32*)p = pixel;
+        break;
     }
 }
 
@@ -464,6 +498,11 @@ void ProcessTexture( TiXmlElement* texture )
 		printf( "Texture" );
 	}
 
+	bool dither = true;
+	if ( StrEqual( texture->Attribute( "dither" ), "false" ) ) {
+		dither = false;
+	}
+
 	string filename;
 	texture->QueryStringAttribute( "filename", &filename );
 
@@ -493,23 +532,28 @@ void ProcessTexture( TiXmlElement* texture )
 		case 32:
 			printf( "  RGBA memory=%dk\n", (surface->w * surface->h * 2)/1024 );
 			totalTextureMem += (surface->w * surface->h * 2);
-			//header.Set( name.c_str(), GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4, surface->w, surface->h );
-			//header.Save( fp );
 
 			// Bottom up!
-			for( int j=surface->h-1; j>=0; --j ) {
-				for( int i=0; i<surface->w; ++i ) {
-					U32 c = GetPixel( surface, i, j );
-					SDL_GetRGBA( c, surface->format, &r, &g, &b, &a );
+			if ( !dither ) {
+				for( int j=surface->h-1; j>=0; --j ) {
+					for( int i=0; i<surface->w; ++i ) {
+						U32 c = GetPixel( surface, i, j );
+						SDL_GetRGBA( c, surface->format, &r, &g, &b, &a );
 
-					U16 p =
-							  ( ( r>>4 ) << 12 )
-							| ( ( g>>4 ) << 8 )
-							| ( ( b>>4 ) << 4)
-							| ( ( a>>4 ) << 0 );
+						U16 p =
+								  ( ( r>>4 ) << 12 )
+								| ( ( g>>4 ) << 8 )
+								| ( ( b>>4 ) << 4)
+								| ( ( a>>4 ) << 0 );
 
-					pixelBuffer16.push_back(p);
+						pixelBuffer16.push_back(p);
+					}
 				}
+			}
+			else {
+				pixelBuffer16.resize( surface->w*surface->h );
+				pixelBuffer16.reserve( surface->w*surface->h );
+				DitherTo16( surface, RGBA16, true, &pixelBuffer16[0] );
 			}
 			InsertTextureToDB( name.c_str(), "RGBA16", isImage, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2 );
 			break;
@@ -517,23 +561,27 @@ void ProcessTexture( TiXmlElement* texture )
 		case 24:
 			printf( "  RGB memory=%dk\n", (surface->w * surface->h * 2)/1024 );
 			totalTextureMem += (surface->w * surface->h * 2);
-			//header.Set( name.c_str(), GL_RGB, GL_UNSIGNED_SHORT_5_6_5, surface->w, surface->h );
-			//header.Save( fp );
 
 			// Bottom up!
-			for( int j=surface->h-1; j>=0; --j ) {
-				for( int i=0; i<surface->w; ++i ) {
-					U32 c = GetPixel( surface, i, j );
-					SDL_GetRGBA( c, surface->format, &r, &g, &b, &a );
+			if ( !dither ) {
+				for( int j=surface->h-1; j>=0; --j ) {
+					for( int i=0; i<surface->w; ++i ) {
+						U32 c = GetPixel( surface, i, j );
+						SDL_GetRGBA( c, surface->format, &r, &g, &b, &a );
 
-					U16 p = 
-							  ( ( r>>3 ) << 11 )
-							| ( ( g>>2 ) << 5 )
-							| ( ( b>>3 ) );
+						U16 p = 
+								  ( ( r>>3 ) << 11 )
+								| ( ( g>>2 ) << 5 )
+								| ( ( b>>3 ) );
 
-					//SDL_WriteLE16( fp, p );
-					pixelBuffer16.push_back(p);
+						pixelBuffer16.push_back(p);
+					}
 				}
+			}
+			else {
+				pixelBuffer16.resize( surface->w*surface->h );
+				pixelBuffer16.reserve( surface->w*surface->h );
+				DitherTo16( surface, RGB16, true, &pixelBuffer16[0] );
 			}
 			InsertTextureToDB( name.c_str(), "RGB16", isImage, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2 );
 			break;
@@ -586,6 +634,36 @@ int main( int argc, char* argv[] )
 	const char* xmlfile = argv[2];
 	printf( "Opening, path: '%s' filename: '%s'\n", inputPath.c_str(), xmlfile );
 	string input = inputPath + xmlfile;
+
+	
+	// Test:
+	/*{
+		string testInput = inputPath + "Lenna.png";
+		SDL_Surface* surface = libIMG_Load( testInput.c_str() );
+		if ( surface ) {
+			// 444
+			U16* data = DitherTo16( surface, RGBA16 );
+			SDL_Surface* newSurf = SDL_CreateRGBSurfaceFrom(	data, surface->w, surface->h, 16, surface->w*2,
+																0xf000, 0x0f00, 0x00f0, 0 );
+			string out = inputPath + "Lenna4440.bmp";
+			SDL_SaveBMP( newSurf, out.c_str() );
+			
+			delete [] data;
+			SDL_FreeSurface( newSurf );
+
+			// 565
+			data = DitherTo16( surface, RGB16 );
+			newSurf = SDL_CreateRGBSurfaceFrom(	data, surface->w, surface->h, 16, surface->w*2,
+												0xf800, 0x07e0, 0x001f, 0 );
+			string out1 = inputPath + "Lenna565.bmp";
+			SDL_SaveBMP( newSurf, out1.c_str() );
+
+			delete [] data;
+			SDL_FreeSurface( surface );
+			SDL_FreeSurface( newSurf );
+		}
+	}*/
+
 
 	TiXmlDocument xmlDoc;
 	xmlDoc.LoadFile( input );
