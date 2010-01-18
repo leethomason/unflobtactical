@@ -207,6 +207,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\ufobuilder\dither.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\ufobuilder\dither.h"
+			>
+		</File>
+		<File
 			RelativePath=".\ufobuilder\modelbuilder.cpp"
 			>
 		</File>

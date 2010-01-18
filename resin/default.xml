@@ -1,10 +1,10 @@
 <resource output="./res/" outputDB="./res/uforesource.db">
 	<!-- Icon and UI -->
-	<texture filename="icons.png" />
-  <texture filename="iconDeco.png" />
+	<texture filename="icons.png" dither="false"/>
+  <texture filename="iconDeco.png" dither="false" />
 
   <!-- Model textures -->
-	<texture filename="stdfont2.tga" />
+	<texture filename="stdfont2.tga" dither="false" />
 	<texture filename="woodDark.png" />
 	<texture filename="woodDarkUFO.tga" />
   <texture filename="woodPlank.png" />

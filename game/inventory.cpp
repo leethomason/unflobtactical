@@ -49,19 +49,22 @@ bool Inventory::IsGeneralSlotFree()
 
 bool Inventory::IsSlotFree( const ItemDef* itemDef )
 {
-	if ( itemDef->IsWeapon() && slots[WEAPON_SLOT].IsNothing() )
+	Item item( itemDef );
+	int slot=0;
+	if ( AddItem( item, &slot ) ) {
+		RemoveItem( slot );
 		return true;
-	if ( itemDef->IsArmor() && slots[ARMOR_SLOT].IsNothing() )
-		return true;
-	return IsGeneralSlotFree();
+	}
+	return false;
 }
 
 
-bool Inventory::AddItem( int slot, const Item& item )
+bool Inventory::AddItem( const Item& item, int* slot )
 {
+	/*
 	// if the slot was specified:
 	if ( slot != ANY_SLOT ) {
-		if ( slots[slot].IsNothing() /*&& def->size <= slotSize[slot]*/ ) {
+		if ( slots[slot].IsNothing() ) {
 			if ( slot == ARMOR_SLOT && !item.IsArmor() )
 				return false;
 			if ( slot == WEAPON_SLOT && !item.IsWeapon() ) 
@@ -72,48 +75,47 @@ bool Inventory::AddItem( int slot, const Item& item )
 		}
 		return false;
 	}
+	*/
 
-	if ( item.IsArmor() && slots[ARMOR_SLOT].IsNothing() ) {
-		slots[ARMOR_SLOT] = item;
-		return true;
+	if ( item.IsArmor() ) {
+		if ( slots[ARMOR_SLOT].IsNothing() ) {
+			slots[ARMOR_SLOT] = item;
+			if ( slot ) *slot = ARMOR_SLOT;
+			return true;
+		}
+		return false;
 	}
 
-	if ( item.IsWeapon() && slots[WEAPON_SLOT].IsNothing() ) {
-		slots[WEAPON_SLOT] = item;
+	if ( item.IsWeapon() ) {
+		for( int i=0; i<2; ++i ) {
+			if ( slots[WEAPON_SLOT_PRIMARY+i].IsNothing() ) {
+				slots[WEAPON_SLOT_PRIMARY+i] = item;
+				if ( slot ) *slot = WEAPON_SLOT_PRIMARY+i;
+				return true;
+			}
+		}
 		return true;
 	}
 
 	for( int j=GENERAL_SLOT; j<NUM_SLOTS; ++j ) {
 		if ( slots[j].IsNothing() ) {
 			slots[j] = item;
+			if ( slot ) *slot = j;
 			return true;
 		}
 	}
 
-/*
-	// Is it the weapon slot only?
-	if ( def->size == 3 ) {
-		if ( slots[0].None() ) {
-			slots[0] = item;
-			return true;
-		}
-		return false;
-	}
-	// Is it a weapon - prefer the 1st slot.
-	if ( def->IsWeapon() && slots[0].None() ) {
-		slots[0] = item;
+	return false;
+}
+
+
+bool Inventory::RemoveItem( int slot ) 
+{
+	GLASSERT( slot >= 0 && slot < NUM_SLOTS );
+	if ( slots[slot].IsSomething() ) {
+		slots[slot].Clear();
 		return true;
 	}
-
-	// Find the smallest possible slot.
-	for( int i=def->size; i<=3; ++i ) {
-		for( int j=1; j<NUM_SLOTS; ++j ) {
-			if ( slotSize[j] == i && slots[j].None() ) {
-				slots[j] = item;
-				return true;
-			}
-		}
-	}*/
 	return false;
 }
 
@@ -145,7 +147,13 @@ int Inventory::GetDeco( int s0 ) const
 }
 
 
-bool Inventory::Swap( int s0, int s1 )
+void Inventory::SwapWeapons()
+{
+	grinliz::Swap( &slots[WEAPON_SLOT_PRIMARY], &slots[WEAPON_SLOT_SECONDARY] );
+}
+
+
+/*bool Inventory::Swap( int s0, int s1 )
 {
 	GLASSERT( s0 >= 0 && s0 < NUM_SLOTS );
 	GLASSERT( s1 >= 0 && s1 < NUM_SLOTS );
@@ -172,7 +180,7 @@ bool Inventory::Swap( int s0, int s1 )
 		grinliz::Swap( &slots[s0], &slots[s1] );
 	return swap;
 }
-
+*/
 
 void Inventory::Save( UFOStream* s ) const
 {

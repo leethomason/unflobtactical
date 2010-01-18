@@ -16,6 +16,8 @@
 #ifndef UFO_BUILDER_INCLUDED
 #define UFO_BUILDER_INCLUDED
 
+U32 GetPixel( const SDL_Surface *surface, int x, int y);
+void PutPixel(SDL_Surface *surface, int x, int y, U32 pixel);
 
 
 #endif // UFO_BUILDER_INCLUDED
