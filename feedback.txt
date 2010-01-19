@@ -14,24 +14,24 @@
 - [done] only pause on first alien spotted
 
 [Jeff Build 230-ish]
-- Confused by Next vs. Next Done
-- Time unit: confused by running
+- [done-removed for now] Confused by Next vs. Next Done
+- [done] Time unit: confused by running
 - Move dots were very clear
 - Did not read any instructions
 - Couldn't figure out crosshair: UI wasn't clear
 - Tap troubles. Didn't think to zoom in.
 - Terran weapons inaccurate
 - [Lee] Needs tutorial mode
-- shadows chasing behind is weird - gray for stuff that has been seen before
+- [done - went 360] shadows chasing behind is weird - gray for stuff that has been seen before
 - touch interface frustrating - large percentage doesn't work. Moves on you. [lee]Increase the "selection" area? Scroll also selects? Tap-move selects
-- Too many shooting options - 6 is too many
+- [done] Too many shooting options - 6 is too many
 
 Main feedbacks:
 - too hard to select people, disable "screen twitching"
-- too many shooting options
-- 3 buttons: Snap, Aimed, B-feature (Fast/Good/Blow Up)
+- [done] too many shooting options
+- [done] 3 buttons: Snap, Aimed, B-feature (Fast/Good/Blow Up)
 
 Further idea:
 - no changing numbers: HP, TU, Armor to interface
-- see in 360: fixes the "chasing darkness", simpler, gets rotation out
-- arrows to all targets all the time
+- [done] see in 360: fixes the "chasing darkness", simpler, gets rotation out
+- [done] arrows to all targets all the time
