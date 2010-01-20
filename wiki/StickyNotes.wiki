@@ -1,4 +1,16 @@
-#Useful code and links from the web
+Useful code and links from the web
+
+= DB vs. XML vs. Binary = 
+
+Initially, a bunch of serialization (saving/loading) was done with binary files. Binary files are small. That's all I have good to say about them. They are difficult to debug, tool, and version.
+
+Along came sqlite3. sqlite3 is grand - good API, simple, and great tools. You can open up a command line to see what is in the "save files". I probably went a little too gung-ho with sqlite3, just because it was fun to learn and a huge improvement over binary files. It's grand for saving and fetching resources. The resource system will stay in the DB.
+
+But it's hard to represent complex data relationships. I'm sure the DB folks out there know all the tricks, but it's just inconvenient to represent something like a Map, which contains Items, Storage, some Flags, and tagged data. XML is great at that.
+
+XML is super flexible, good tools (you can browse it with IE or Firefox), and represents rich data easily. But it creates huge files relative to the original binary data. However, the game's files are so tiny (<50k) and compress very well (often less that 10k) that I'm switching to it as the primary format for save files.
+
+That's the road so far for serialization. A difficult system to "get right" in the code.
 
 = Code Static analysys =
 
