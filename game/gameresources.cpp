@@ -446,9 +446,9 @@ void Game::LoadItemResources()
 				ITEM_CLIP_SHELL,	WEAPON_EXPLOSIVE,		DAM_HI,		ACC_MED,
 				ITEM_CLIP_FLAME,	WEAPON_EXPLOSIVE,EXDAM_MED,	ACC_MED },
 
-		{ "KNIFE",	"gun0",		DECO_KNIFE,		"Knife",				FAST, STRIKE, 0,	SPEED_FAST,
-				0,					WEAPON_MELEE,	DAM_MED,	ACC_MED,
-				0  },
+//		{ "KNIFE",	"gun0",		DECO_KNIFE,		"Knife",				FAST, STRIKE, 0,	SPEED_FAST,
+//				0,					WEAPON_MELEE,	DAM_MED,	ACC_MED,
+//				0  },
 
 		// Alien
 		{ "RAY-1",	"gun1",		DECO_PISTOL,	"Ray Gun",				FAST, AIMED, 0,		SPEED_FAST,
@@ -472,9 +472,9 @@ void Game::LoadItemResources()
 		{ "NULL",	"gun0",		DECO_RIFLE,		"Null Point Blaster",	FAST, BANG, 0,		SPEED_NORMAL,
 				ITEM_CLIP_TACHYON,	WEAPON_EXPLOSIVE, EXDAM_HI, ACC_HI,
 				0  },
-		{ "SWORD",	"gun0",		DECO_KNIFE,		"Plasma Sword",			FAST, STRIKE, 0,	SPEED_FAST,
-				0,				WEAPON_MELEE,		DAM_HI,		ACC_HI,
-				0  },
+//		{ "SWORD",	"gun0",		DECO_KNIFE,		"Plasma Sword",			FAST, STRIKE, 0,	SPEED_FAST,
+//				0,				WEAPON_MELEE,		DAM_HI,		ACC_HI,
+//				0  },
 		{ 0 }
 	};
 

@@ -36,11 +36,11 @@ void WeaponItemDef::RenderWeapon(	int select,
 	float length = 1.0f;
 
 	switch( weapon[select].clipType ) {
-		case 0:
-			GLASSERT( weapon[select].flags & WEAPON_MELEE );
-			first = SWING;
-			second = NONE;
-			break;
+//		case 0:
+//			GLASSERT( weapon[select].flags & WEAPON_MELEE );
+//			first = SWING;
+//			second = NONE;
+//			break;
 
 		case ITEM_CLIP_SHELL:
 		case ITEM_CLIP_AUTO:
