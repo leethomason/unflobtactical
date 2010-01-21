@@ -18,7 +18,7 @@
 using namespace grinliz;
 
 
-BattleScene::BattleScene( Game* game ) : Scene( game )
+BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 {
 	engine  = &game->engine;
 	uiMode = UIM_NORMAL;
@@ -795,7 +795,7 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 				t = target + (m * right)*d;
 			}
 
-			if ( clearMoveIfShoot && !actionStack.Empty() && actionStack.Top().action == ACTION_MOVE ) {
+			if ( clearMoveIfShoot && !actionStack.Empty() && actionStack.Top().actionID == ACTION_MOVE ) {
 				actionStack.Clear();
 			}
 
@@ -825,7 +825,7 @@ void BattleScene::DoReactionFire()
 	}
 	else { 
 		const Action& action = actionStack.Top();
-		if (    action.action == ACTION_MOVE
+		if (    action.actionID == ACTION_MOVE
 			&& action.unit
 			&& action.unit->Team() == currentTeamTurn
 			&& action.type.move.pathFraction == 0 )
@@ -924,7 +924,7 @@ void BattleScene::StopForNewTeamTarget()
 
 	if ( actionStack.Size() == 1 ) {
 		const Action& action = actionStack.Top();
-		if (    action.action == ACTION_MOVE
+		if (    action.actionID == ACTION_MOVE
 			&& action.unit
 			&& action.unit->Team() == currentTeamTurn
 			&& action.type.move.pathFraction == 0 )
@@ -986,7 +986,7 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 			originalTU = unit->GetStats().TU();
 		}
 
-		switch ( action->action ) {
+		switch ( action->actionID ) {
 			case ACTION_MOVE: 
 				{
 					// Move the unit. Be careful to never move more than one step (Travel() does not)

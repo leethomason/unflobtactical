@@ -55,8 +55,8 @@ public:
 	
 	void Free();
 
-	bool InUse()				{ return status != STATUS_NOT_INIT; }
-	bool IsAlive()				{ return status == STATUS_ALIVE; }
+	bool InUse() const			{ return status != STATUS_NOT_INIT; }
+	bool IsAlive() const		{ return status == STATUS_ALIVE; }
 	void DoDamage( const DamageDesc& damage );
 	void UseTU( float tu )		{ stats.UseTU( tu ); }
 
@@ -105,7 +105,7 @@ public:
 	// Accuracy of the weapon (0 or 1) at 1 unit of range.
 	// Returns 0.0 if the weapon doesn't exist or support that fire mode.
 	float FireAccuracy( int select, int type ) const;
-	void FireStatistics( int select, int type, float distance, float* chanceToHit, float* chanceAnyHit, float* tu, float* damagePerTU );
+	void FireStatistics( int select, int type, float distance, float* chanceToHit, float* chanceAnyHit, float* tu, float* damagePerTU ) const;
 
 	float AngleBetween( const grinliz::Vector2I& dst, bool quantize ) const;
 

@@ -241,6 +241,14 @@
 			Name="game"
 			>
 			<File
+				RelativePath=".\game\ai.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\game\ai.h"
+				>
+			</File>
+			<File
 				RelativePath=".\game\battlescene.cpp"
 				>
 			</File>
@@ -330,6 +338,10 @@
 			</File>
 			<File
 				RelativePath=".\game\storageWidget.h"
+				>
+			</File>
+			<File
+				RelativePath=".\game\targets.h"
 				>
 			</File>
 			<File

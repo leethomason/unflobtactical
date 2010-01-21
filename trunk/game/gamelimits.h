@@ -6,8 +6,16 @@ const float FOV = 45.0f;
 const int SUBTURNS_PER_TURN = 3;
 const float FIRE_DAMAGE_PER_SUBTURN = 20.0f;
 
-const int MAX_MODELS = 256;
+const int TERRAN_UNITS_START	= 0;
+const int TERRAN_UNITS_END		= 8;
+const int CIV_UNITS_START		= 8;
+const int CIV_UNITS_END			= 24;
+const int ALIEN_UNITS_START		= 24;
+const int ALIEN_UNITS_END		= 40;
 const int MAX_UNITS	= 40;
+
+
+const int MAX_MODELS = 256;
 const int MAP_SIZE = 64;
 const int MAX_EYESIGHT_RANGE    = 13;
 const int MAX_EYESIGHT_RANGE_45 = 10;	// MAX * cos(45deg), rounded up

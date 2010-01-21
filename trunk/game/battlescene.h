@@ -5,6 +5,7 @@
 #include "unit.h"
 #include "../engine/ufoutil.h"
 #include "gamelimits.h"
+#include "targets.h"
 #include "../grinliz/glbitarray.h"
 #include "../grinliz/glvector.h"
 #include "../sqlite3/sqlite3.h"
@@ -80,7 +81,7 @@ private:
 
 	struct ShootAction {
 		grinliz::Vector3F target;
-		int select;	// primary{0) or secondary(1)
+		int select;	// primary(0) or secondary(1)
 	};
 
 	struct DelayAction {
@@ -104,7 +105,7 @@ private:
 
 	struct Action
 	{
-		int action;
+		int actionID;
 		Unit* unit;			// unit performing the action (sometimes null)
 
 		union {
@@ -116,14 +117,14 @@ private:
 			CameraAction	camera;
 		} type;
 
-		void Clear()							{ action = ACTION_NONE; memset( &type, 0, sizeof( type ) ); }
-		void Init( int id, Unit* unit )			{ Clear(); action = id; this->unit = unit; }
-		bool NoAction()							{ return action == ACTION_NONE; }
+		void Clear()							{ actionID = ACTION_NONE; memset( &type, 0, sizeof( type ) ); }
+		void Init( int id, Unit* unit )			{ Clear(); actionID = id; this->unit = unit; }
+		bool NoAction()							{ return actionID == ACTION_NONE; }
 	};
 
-	void InitAction( Action* a, int action ) {
+	void InitAction( Action* a, int actionID ) {
 		memset( a, 0, sizeof(Action) );
-		a->action = action;
+		a->actionID = actionID;
 	}
 
 	CStack< Action > actionStack;
@@ -230,87 +231,12 @@ private:
 	grinliz::Random random;	// "the" random number generator for the battle
 	int				currentTeamTurn;
 
-	enum {
-		MAX_TERRANS = 8,
-		MAX_CIVS = 16,
-		MAX_ALIENS = 16,
-
-		TERRAN_UNITS_START	= 0,
-		TERRAN_UNITS_END	= 8,
-		CIV_UNITS_START		= TERRAN_UNITS_END,
-		CIV_UNITS_END		= CIV_UNITS_START+MAX_CIVS,
-		ALIEN_UNITS_START	= CIV_UNITS_END,
-		ALIEN_UNITS_END		= ALIEN_UNITS_START+MAX_ALIENS,
-		// const int MAX_UNITS	= 40
-	};
-
-
 	struct TargetEvent
 	{
 		U8 team;		// 1: team, 0: unit
 		U8 gain;		// 1: gain, 0: loss
 		U8 viewerID;	// unit id of viewer, or teamID if team event
 		U8 targetID;	// unit id of target
-	};
-
-	// Note that this structure gets copied POD style.
-	//
-	// Terran is enemy of Alien and vice versa. Civs aren't
-	// counted, which means they have to be queried and 
-	// don't impact reaction fire.
-	class Targets
-	{
-	public:
-		Targets() { Clear(); }
-
-		void Clear() {
-			targets.ClearAll();
-			teamTargets.ClearAll();
-			memset( teamCount, 0, 9*sizeof(int) );
-		}
-		static int Team( int id ) {
-			if ( id >= TERRAN_UNITS_START && id < TERRAN_UNITS_END )
-				return Unit::SOLDIER;
-			else if ( id >= CIV_UNITS_START && id < CIV_UNITS_END ) 
-				return Unit::CIVILIAN;
-			else if ( id >= ALIEN_UNITS_START && id < ALIEN_UNITS_END ) 
-				return Unit::ALIEN;
-			else { 
-				GLASSERT( 0 ); 
-				return 0;
-			}
-		}
-		void Set( int viewer, int target )		{ 
-			targets.Set( viewer, target, 0 );
-			if ( !teamTargets.IsSet( Team( viewer ), target ) ) 
-				teamCount[ Team( viewer ) ][ Team( target ) ] += 1;
-			teamTargets.Set( Team( viewer ), target );
-		}
-		int CanSee( int viewer, int target )	{
-			return targets.IsSet( viewer, target, 0 );
-		}
-		int TeamCanSee( int viewerTeam, int target ) {
-			return teamTargets.IsSet( viewerTeam, target, 0 );
-		}
-		int TotalTeamCanSee( int viewerTeam, int targetTeam ) {
-			return teamCount[ viewerTeam ][ targetTeam ];
-		}
-		int CalcTotalUnitCanSee( int viewer, int targetTeam ) {
-			int start[] = { TERRAN_UNITS_START, CIV_UNITS_START, ALIEN_UNITS_START };
-			int end[]   = { TERRAN_UNITS_END, CIV_UNITS_END, ALIEN_UNITS_END };
-			int count = 0;
-			GLASSERT( targetTeam >= 0 && targetTeam < 3 );
-			for( int i=start[targetTeam]; i<end[targetTeam]; ++i ) {
-				if ( targets.IsSet( viewer, i, 0 ) )
-					++count;
-			}
-			return count;
-		}
-
-	private:
-		grinliz::BitArray< MAX_UNITS, MAX_UNITS, 1 > targets;
-		grinliz::BitArray< 3, MAX_UNITS, 1 > teamTargets;
-		int teamCount[3][3];
 	};
 
 	Targets m_targets;

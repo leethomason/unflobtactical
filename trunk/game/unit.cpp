@@ -552,7 +552,7 @@ float Unit::FireTimeUnits( int select, int type ) const
 }
 
 
-void Unit::FireStatistics( int select, int type, float distance, float* chanceToHit, float* chanceAnyHit, float* tu, float* damagePerTU )
+void Unit::FireStatistics( int select, int type, float distance, float* chanceToHit, float* chanceAnyHit, float* tu, float* damagePerTU ) const
 {
 	*chanceToHit = 0.0f;
 	*tu = 0.0f;

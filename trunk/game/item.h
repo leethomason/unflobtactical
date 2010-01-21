@@ -24,8 +24,8 @@ enum {
 	ITEM_CLIP_GRENADE,
 
 	WEAPON_AUTO		 = 0x01,
-	WEAPON_MELEE	 = 0x02,
-	WEAPON_EXPLOSIVE = 0x04,	// only needed for cell weapons - adds a "feature" to the cell clip
+	//WEAPON_MELEE	 = 0x02,
+	WEAPON_EXPLOSIVE = 0x04,
 };
 
 class WeaponItemDef;
@@ -104,7 +104,7 @@ public:
 	bool SupportsType( int select, int type ) const;
 	void FireModeToType( int mode, int* select, int* type ) const;
 
-	bool Melee() const			{ return weapon[0].flags & WEAPON_MELEE ? true : false; }
+	//bool Melee() const			{ return weapon[0].flags & WEAPON_MELEE ? true : false; }
 	bool IsAlienBlaster() const	{ return weapon[0].clipType == ITEM_CLIP_PLASMA || weapon[0].clipType == ITEM_CLIP_TACHYON; }
 
 	void RenderWeapon(	int select,
