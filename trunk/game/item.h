@@ -103,8 +103,8 @@ public:
 
 	bool SupportsType( int select, int type ) const;
 	void FireModeToType( int mode, int* select, int* type ) const;
+	bool IsExplosive( int select ) const { return (weapon[select].flags & WEAPON_AUTO) != 0; }
 
-	//bool Melee() const			{ return weapon[0].flags & WEAPON_MELEE ? true : false; }
 	bool IsAlienBlaster() const	{ return weapon[0].clipType == ITEM_CLIP_PLASMA || weapon[0].clipType == ITEM_CLIP_TACHYON; }
 
 	void RenderWeapon(	int select,
@@ -124,11 +124,11 @@ public:
 	// Accuracy base - modified by the unit.
 	float AccuracyBase( int select, int type ) const;
 	// Statistics for this weapon. 
-	void FireStatistics( int select, int type, float shooterAccuracy, float distance, 
+	bool FireStatistics( int select, int type, float shooterAccuracy, float distance, 
 						 float* chanceToHit,	// chance a round hits
 						 float* chanceAnyHit,	// chance any round (of 3) hits
 						 float* totalDamage, 
-						 float* damagePerTU ) const;
+						 float* damagePerTU ) const;		// damagePerTU = f( damage, time, accuracy, distance )
 
 };
 
