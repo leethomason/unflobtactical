@@ -552,7 +552,7 @@ float Unit::FireTimeUnits( int select, int type ) const
 }
 
 
-void Unit::FireStatistics( int select, int type, float distance, float* chanceToHit, float* chanceAnyHit, float* tu, float* damagePerTU ) const
+bool Unit::FireStatistics( int select, int type, float distance, float* chanceToHit, float* chanceAnyHit, float* tu, float* damagePerTU ) const
 {
 	*chanceToHit = 0.0f;
 	*tu = 0.0f;
@@ -563,11 +563,13 @@ void Unit::FireStatistics( int select, int type, float distance, float* chanceTo
 		float acc = FireAccuracy( select, type );
 		if ( acc > 0.0f ) {
 			*tu = FireTimeUnits( select, type );
-			if ( *tu > 0.0f )
-				GetWeapon()->IsWeapon()->FireStatistics( select, type, acc, distance, 
-														 chanceToHit, chanceAnyHit, &damage, damagePerTU );
+			if ( *tu > 0.0f ) {
+				return GetWeapon()->IsWeapon()->FireStatistics(	select, type, acc, distance, 
+																chanceToHit, chanceAnyHit, &damage, damagePerTU );
+			}
 		}
 	}
+	return false;
 }
 
 

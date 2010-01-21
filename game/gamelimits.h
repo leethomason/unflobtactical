@@ -29,15 +29,17 @@ const float TU_AIMED_SHOT	= 4.0f;
 const float TU_TURN			= 0.4f;
 const float SECONDARY_SHOT_SPEED_MULT = 1.4f;
 
-const int SNAP_SHOT = 0;
-const int AUTO_SHOT = 1;
-const int AIMED_SHOT = 2;
+const int SNAP_SHOT			= 0;
+const int AUTO_SHOT			= 1;
+const int AIMED_SHOT		= 2;
+const int FIRE_MODE_START	= 0;
+const int FIRE_MODE_END		= 3;
 
 const int TRAIT_SOLDIER_LOW = 20;
 const int TRAIT_SOLDIER_HIGH = 80;
 const int TRAIT_LEVEL_BONUS = 5;
 
-const float STANDARD_TARGET_AREA = 0.6f;	// roughly meters
+const float STANDARD_TARGET_AREA = 1.0f;	// roughly meters
 const float ACC_GOOD_SHOT = 0.10f;
 const float ACC_BAD_SHOT  = 0.30f;
 const float REACTION_FAST = 0.80f;

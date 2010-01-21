@@ -65,8 +65,10 @@ public:
 	int Level() const		{ return level; }
 
 	// Computed:
-	int HP() const			{ return hp; }
-	int TotalHP() const		{ return totalHP; }
+	int HP() const				{ return hp; }
+	int TotalHP() const			{ return totalHP; }
+	float HPFraction() const	{ return (float)hp / (float)totalHP; }
+
 	float TU() const		{ return tu; }
 	float TotalTU() const	{ return totalTU; }		// one TU is one move
 	float Accuracy() const	{ return accuracy; }	// cone at 1 unit out

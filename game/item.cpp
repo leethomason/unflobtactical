@@ -293,7 +293,7 @@ bool WeaponItemDef::SupportsType( int select, int type ) const
 }
 
 
-void WeaponItemDef::FireStatistics( int select, int type, 
+bool WeaponItemDef::FireStatistics( int select, int type, 
 								    float accuracy, float distance, 
 									float* chanceToHit, float* anyChanceToHit,
 									float* totalDamage, float* damagePerTU ) const
@@ -308,7 +308,9 @@ void WeaponItemDef::FireStatistics( int select, int type,
 
 	if ( tu > 0.0f ) {
 		float targetRad = distance * accuracy * AccuracyBase( select, type );
-		*chanceToHit = STANDARD_TARGET_AREA / targetRad;
+		float targetArea = PI * targetRad*targetRad;
+
+		*chanceToHit = STANDARD_TARGET_AREA / targetArea;
 		if ( *chanceToHit > 0.98f )
 			*chanceToHit = 0.98f;
 
@@ -326,25 +328,10 @@ void WeaponItemDef::FireStatistics( int select, int type,
 		*damagePerTU = (*chanceToHit) * (*totalDamage) / tu;
 		if ( type == AUTO_SHOT )
 			*damagePerTU *= 3.0f;
+		return true;
 	}
+	return false;
 }
-
-/*
-void ItemPart::Init( const ItemDef* itemDef, int rounds )
-{
-	this->itemDef = itemDef;
-	if ( rounds < 0 ) {
-		const ClipItemDef* cid = itemDef->IsClip();
-		if ( cid ) 
-			this->rounds = cid->rounds;
-		else
-			this->rounds = 1;
-	}
-	else {
-		this->rounds = rounds;
-	}
-}
-*/
 
 
 Item::Item( const ItemDef* itemDef, int rounds )

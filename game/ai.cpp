@@ -48,81 +48,74 @@ bool WarriorAI::Think(	const Unit* theUnit,
 	// Crazy simple 1st AI. If:
 	// - theUnit can see something, shoot it. Choose the unit with the
 	//	 greatest chance of going down
+	// - if on storage, check if we need stuff
 	// - can see nothing, move towards something the team can see. Select between
 	//   current canSee and LKPs
 	// - if nothing to move to, stand around
-	//
-	// FIXES:
+
+	// FIXME:
 	//		check for out of ammo
 	//		do something about out of ammo
 	//		check for blowing up friends
+	//		doesn't use explosives
 
 	action->actionID = ACTION_NONE;
 	Vector2I theUnitPos;
 	theUnit->CalcMapPos( &theUnitPos, 0 );
 
-	if ( theUnit->GetWeapon() ) {
-		for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
-			int best = -1;
-			int bestScore = INT_MAX;
 
-			// First pass, just check out all the targets and choose the best.
-			if ( units[i].IsAlive() && units[best].GetModel() && targets.CanSee( theUnit, &units[i] ) ) {
+	if ( theUnit->GetWeapon() ) {
+		int best = -1;
+		float bestScore = 0.0f;
+		int bestMode = 0;
+
+		const Item* weapon = theUnit->GetWeapon();
+		const WeaponItemDef* wid = weapon->GetItemDef()->IsWeapon();
+		GLASSERT( wid );
+
+		for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
+			if ( units[i].IsAlive() && units[i].GetModel() && targets.CanSee( theUnit, &units[i] ) ) {
+	
 				Vector2I pos;
 				units[i].CalcMapPos( &pos, 0 );
+				int len2 = (pos-theUnitPos).LengthSquared();
+				float len = sqrtf( (float)len2 );
 				
-				// the score gets worse with distance2 and hp
-				int len2 = (pos.x-theUnitPos.x)*(pos.x-theUnitPos.x) + (pos.y-theUnitPos.y)*(pos.y-theUnitPos.y);
-				int score = len2 * units[i].GetStats().HP();
-
-				if ( score < bestScore ) {
-					bestScore = score;
-					best = i;
-				}
-			}
-
-			int fireMode = -1;
-			if ( best >= 0 ) {
-				const WeaponItemDef* wid = theUnit->GetWeapon()->GetItemDef()->IsWeapon();
-				Vector2I pos;
-				units[best].CalcMapPos( &pos, 0 );
-
-				int len2 = (pos.x-theUnitPos.x)*(pos.x-theUnitPos.x) + (pos.y-theUnitPos.y)*(pos.y-theUnitPos.y);
-				float len = sqrt( (float)len2 );
-				
-				float bestDPTU = 0.0f;
-
-				for( int i=0; i<3; ++i ) {
+				for ( int mode=FIRE_MODE_START; mode<FIRE_MODE_END; ++mode ) {
 					int select, type;
+					wid->FireModeToType( 1, &select, &type );
+
+					// Check for enough ammo
+					int nRounds = (type == AUTO_SHOT) ? 3 : 1;
+					if ( weapon->Rounds() < nRounds )
+						continue;
+
+					// Handle explosives
+					// FIXME: account for explosives
+					if ( wid->IsExplosive( select ) )
+						continue;
+
 					float chance, anyChance, tu, dptu;
 
-					wid->FireModeToType( 1, &select, &type );
-					theUnit->FireStatistics( select, type, len, &chance, &anyChance, &tu, &dptu );
-					bool consider = false;
+					if ( theUnit->FireStatistics( select, type, len, &chance, &anyChance, &tu, &dptu ) ) {
+						float score = dptu / (float)units[i].GetStats().HPFraction();
 
-					if ( tu > 0 && tu <= theUnit->GetStats().TU() ) {
-						if ( wid->weapon[select].flags & WEAPON_EXPLOSIVE ) {
-							if ( len >= 5.0f ) 
-								consider = true;
+						if ( score > bestScore ) {
+							bestScore = score;
+							best = i;
+							bestMode = mode;
 						}
-						else { 
-							consider = true;
-						}
-					}
-					if ( consider && dptu > bestDPTU ) {
-						fireMode = i;
 					}
 				}
 			}
-			if ( fireMode >= 0 ) {
-				action->actionID = ACTION_SHOOT;
-				action->shoot.mode = fireMode;
-				units[best].GetModel()->CalcTarget( &action->shoot.target );
-			}
+		}
+		if ( best >= 0 ) {
+			action->actionID = ACTION_SHOOT;
+			action->shoot.mode = bestMode;
+			units[best].GetModel()->CalcTarget( &action->shoot.target );
+			return false;
 		}
 	}
-
-
 
 	return true;
 }
