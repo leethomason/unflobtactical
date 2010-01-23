@@ -36,8 +36,6 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	engine->GetMap()->SyncToDB( mapDatabase, "farmland" );
 #endif
 
-	path.Clear();
-
 	// On screen menu.
 	widgets = new UIButtonGroup( engine->GetScreenport() );
 	
@@ -137,7 +135,8 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 
 	visibilityMap.ClearAll();
 	SetFogOfWar();
-	NewTurn( Unit::SOLDIER );
+	currentTeamTurn = Unit::ALIEN;
+	NextTurn();
 	engine->GetMap()->QueryAllDoors( &doors );
 	ProcessDoors();
 }
@@ -253,15 +252,15 @@ void BattleScene::InitUnits()
 }
 
 
-void BattleScene::NewTurn( int team )
+void BattleScene::NextTurn()
 {
-	currentTeamTurn = team;
+	currentTeamTurn = (currentTeamTurn==Unit::ALIEN) ? Unit::SOLDIER : Unit::ALIEN;	// FIXME: go to 3 state
 
-	if ( aiArr[team] ) {
-		aiArr[team]->StartTurn( units, m_targets );
+	if ( aiArr[currentTeamTurn] ) {
+		aiArr[currentTeamTurn]->StartTurn( units, m_targets );
 	}
 
-	switch ( team ) {
+	switch ( currentTeamTurn ) {
 		case Unit::SOLDIER:
 			GLOUTPUT(( "New Turn: Terran\n" ));
 			for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i )
@@ -531,7 +530,8 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 					allDone = false;
 
 					AI::AIAction aiAction;
-					bool done = aiArr[Unit::ALIEN]->Think( &units[i], units, m_targets, &aiAction );
+					SetPathBlocks( &units[i] );
+					bool done = aiArr[Unit::ALIEN]->Think( &units[i], units, m_targets, engine->GetMap(), &aiAction );
 					switch ( aiAction.actionID ) {
 						case AI::ACTION_SHOOT:
 							{
@@ -545,6 +545,15 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 								else {
 									GLASSERT( 0 );
 								}
+							}
+							break;
+
+						case AI::ACTION_MOVE:
+							{
+								Action action;
+								action.Init( ACTION_MOVE, &units[i] );
+								action.type.move.path = aiAction.move.path;
+								actionStack.Push( action );
 							}
 							break;
 
@@ -564,7 +573,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 				}
 			}
 			if ( allDone ) {
-				NewTurn( Unit::SOLDIER );
+				NextTurn();
 			}
 		}
 	}
@@ -1043,76 +1052,51 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 		switch ( action->actionID ) {
 			case ACTION_MOVE: 
 				{
-					// Move the unit. Be careful to never move more than one step (Travel() does not)
-					// and be careful to handle rotation between steps so that visibility can update
-					// and game events can happen.
-					// This means that motion is really of 2 types: x,y and rotation.
+					// Move the unit. Be careful to never move more than one step (Travel() does not).
+					// Used to do intermedia rotation, but it was annoying. Once vision was switched
+					// to 360 it did nothing. So rotation is free now.
+					//
 					const float SPEED = 3.0f;
 					const float ROTATION_SPEED = 150.0f;
 					float x, z, r;
+
+					MoveAction* move = &action->type.move;
 						
-					// Do we need to rotate, or move?
-					path.GetPos( action->type.move.pathStep, action->type.move.pathFraction, &x, &z, &r );
+					move->path.GetPos( action->type.move.pathStep, move->pathFraction, &x, &z, &r );
 					// Face in the direction of walking.
 					model->SetYRotation( r );
 
-					/*
-					if ( model->GetYRotation() != r ) {
-						// We aren't lined up. Rotate first, then move.
-						GLASSERT( model->X() == floorf(x)+0.5f );
-						GLASSERT( model->Z() == floorf(z)+0.5f );
-						
-						float delta, bias;
-						MinDeltaDegrees( model->GetYRotation(), r, &delta, &bias );
-						float travelRotation = Travel( deltaTime, ROTATION_SPEED );
-						delta -= travelRotation;
-						if ( delta <= 0.0f ) {
-							// Done rotating! Next time we'll move.
-							Vector3F p = { model->X(), 0.0f, model->Z() };
-							unit->SetPos( p, r );
-							stackChange = true;	// not a real stack change, but a change in the path loc.
-						}
-						else {
-							Vector3F p = { model->X(), 0.0f, model->Z() };
-							unit->SetPos( p, model->GetYRotation() + travelRotation*bias );
-						}
-					}
-					else */
+					float travel = Travel( deltaTime, SPEED );
+
+					while(    (move->pathStep < move->path.pathLen-1 )
+						   && travel > 0.0f ) 
 					{
-						float travel = Travel( deltaTime, SPEED );
+						move->path.Travel( &travel, &move->pathStep, &move->pathFraction );
+						if ( move->pathFraction == 0.0f ) {
+							// crossed a path boundary.
+							GLASSERT( unit->GetStats().TU() >= 1.0 );	// one move is one TU
+							
+							Vector2<S16> v0 = move->path.GetPathAt( move->pathStep-1 );
+							Vector2<S16> v1 = move->path.GetPathAt( move->pathStep );
+							int d = abs( v0.x-v1.x ) + abs( v0.y-v1.y );
 
-						while(    (action->type.move.pathStep < (int)(path.statePath.size()-1))
-							   && travel > 0.0f ) 
-						{
-							path.Travel( &travel, &action->type.move.pathStep, &action->type.move.pathFraction );
-							if ( action->type.move.pathFraction == 0.0f ) {
-								// crossed a path boundary.
-								GLASSERT( unit->GetStats().TU() >= 1.0 );	// one move is one TU
-								
-								Vector2<S16> v0 = path.GetPathAt( action->type.move.pathStep-1 );
-								Vector2<S16> v1 = path.GetPathAt( action->type.move.pathStep );
-								int d = abs( v0.x-v1.x ) + abs( v0.y-v1.y );
+							if ( d == 1 )
+								unit->UseTU( 1.0f );
+							else if ( d == 2 )
+								unit->UseTU( 1.41f );
+							else { GLASSERT( 0 ); }
 
-								if ( d == 1 )
-									unit->UseTU( 1.0f );
-								else if ( d == 2 )
-									unit->UseTU( 1.41f );
-								else { GLASSERT( 0 ); }
-
-								stackChange = true;	// not a real stack change, but a change in the path loc.
-								break;
-							}
+							stackChange = true;	// not a real stack change, but a change in the path loc.
+							break;
 						}
-						path.GetPos( action->type.move.pathStep, action->type.move.pathFraction, &x, &z, &r );
+						move->path.GetPos( move->pathStep, move->pathFraction, &x, &z, &r );
 
 						Vector3F v = { x+0.5f, 0.0f, z+0.5f };
 						unit->SetPos( v, model->GetYRotation() );
-
-						if ( action->type.move.pathStep == path.statePath.size()-1 ) {
-							actionStack.Pop();
-							path.Clear();
-							stackChange = true;
-						}
+					}
+					if ( move->pathStep == move->path.pathLen-1 ) {
+						actionStack.Pop();
+						stackChange = true;
 					}
 				}
 				break;
@@ -1255,7 +1239,7 @@ bool BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 			Rectangle3F worldBounds;
 			worldBounds.Set( 0, 0, 0, 
 							(float)engine->GetMap()->Width(), 
-							3.5f,	//WORLD_WALL_HEIGHT, 
+							8.0f,
 							(float)engine->GetMap()->Height() );
 
 			int result = IntersectRayAllAABB( ray.origin, ray.direction, worldBounds, 
@@ -1519,9 +1503,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 			case BTN_END_TURN:
 				SetSelection( 0 );
 				engine->GetMap()->ClearNearPath();
-				NewTurn( Unit::ALIEN );
-				//NewTurn( Unit::CIVILIAN );
-				//NewTurn( Unit::SOLDIER );	// FIXME: should go alien or civ
+				NextTurn();
 				break;
 
 			case BTN_NEXT:
@@ -1679,15 +1661,16 @@ void BattleScene::Tap(	int tap,
 
 			// Compute the path:
 			float cost;
-			SetPathBlocks();
+			SetPathBlocks( selection.soldierUnit );
 			const Stats& stats = selection.soldierUnit->GetStats();
 
-			int result = engine->GetMap()->SolvePath( start, end, &cost, &path.statePath );
+			int result = engine->GetMap()->SolvePath( start, end, &cost, &pathCache );
 			if ( result == micropather::MicroPather::SOLVED && cost <= stats.TU() ) {
 				// TU for a move gets used up "as we go" to account for reaction fire and changes.
 				// Go!
 				Action action;
 				action.Init( ACTION_MOVE, SelectedSoldierUnit() );
+				action.type.move.path.Init( pathCache );
 				actionStack.Push( action );
 
 				engine->GetMap()->ClearNearPath();
@@ -1711,7 +1694,7 @@ void BattleScene::ShowNearPath( const Unit* unit )
 	const Model* model = unit->GetModel();
 	Vector2<S16> start = { (S16)model->X(), (S16)model->Z() };
 
-	SetPathBlocks();
+	SetPathBlocks( unit );
 	const Stats& stats = unit->GetStats();
 
 	int type, select;
@@ -1733,7 +1716,7 @@ void BattleScene::ShowNearPath( const Unit* unit )
 }
 
 
-void BattleScene::SetPathBlocks()
+void BattleScene::SetPathBlocks( const Unit* exclude )
 {
 	Map* map = engine->GetMap();
 	map->ClearPathBlocks();
@@ -1741,7 +1724,7 @@ void BattleScene::SetPathBlocks()
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if (    units[i].Status() == Unit::STATUS_ALIVE 
 			 && units[i].GetModel() 
-			 && &units[i] != selection.soldierUnit ) // oops - don't cause self to not path
+			 && &units[i] != exclude ) // oops - don't cause self to not path
 		{
 			int x = (int)units[i].GetModel()->X();
 			int z = (int)units[i].GetModel()->Z();
@@ -2347,7 +2330,7 @@ void BattleScene::DrawHUD()
 }
 
 
-float BattleScene::Path::DeltaToRotation( int dx, int dy )
+float MotionPath::DeltaToRotation( int dx, int dy )
 {
 	float rot = 0.0f;
 	GLASSERT( dx || dy );
@@ -2376,13 +2359,24 @@ float BattleScene::Path::DeltaToRotation( int dx, int dy )
 	return rot;
 }
 
-void BattleScene::Path::CalcDelta( int i0, int i1, grinliz::Vector2I* vec, float* rot )
+
+void MotionPath::Init( const std::vector< Vector2<S16> >& pathCache ) 
 {
-#ifdef DEBUG
-	int len = (int)statePath.size();
-	GLASSERT( i0>=0 && i0<len-1 );
-	GLASSERT( i1>=1 && i1<len );
-#endif
+	GLASSERT( pathCache.size() <= MAX_TU );
+	GLASSERT( pathCache.size() > 1 );	// at least start and end
+
+	pathLen = (int)pathCache.size();
+	for( unsigned i=0; i<pathCache.size(); ++i ) {
+		GLASSERT( pathCache[i].x < 256 );
+		GLASSERT( pathCache[i].y < 256 );
+		pathData[i*2+0] = (U8) pathCache[i].x;
+		pathData[i*2+1] = (U8) pathCache[i].y;
+	}
+}
+
+		
+void MotionPath::CalcDelta( int i0, int i1, grinliz::Vector2I* vec, float* rot )
+{
 	Vector2<S16> path0 = GetPathAt( i0 );
 	Vector2<S16> path1 = GetPathAt( i1 );
 
@@ -2398,15 +2392,12 @@ void BattleScene::Path::CalcDelta( int i0, int i1, grinliz::Vector2I* vec, float
 }
 
 
-void BattleScene::Path::Travel(	float* travel,
+void MotionPath::Travel(	float* travel,
 								int* pos,
 								float* fraction )
 {
 	// fraction is a bit funny. It is the lerp value between 2 path locations,
 	// so it isn't a constant distance.
-
-	GLASSERT( *pos < (int)statePath.size()-1 );
-
 	Vector2I vec;
 	CalcDelta( *pos, *pos+1, &vec, 0 );
 
@@ -2428,13 +2419,12 @@ void BattleScene::Path::Travel(	float* travel,
 }
 
 
-void BattleScene::Path::GetPos( int step, float fraction, float* x, float* z, float* rot )
+void MotionPath::GetPos( int step, float fraction, float* x, float* z, float* rot )
 {
-	int len = (int)statePath.size();
-	GLASSERT( step < len );
+	GLASSERT( step < pathLen );
 	GLASSERT( fraction >= 0.0f && fraction < 1.0f );
-	if ( step == len-1 ) {
-		step = len-2;
+	if ( step == pathLen-1 ) {
+		step = pathLen-2;
 		fraction = 1.0f;
 	}
 	Vector2<S16> path0 = GetPathAt( step );

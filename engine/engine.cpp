@@ -384,6 +384,11 @@ void Engine::Draw()
 		else if ( fogOfWar.IsSet( x, y ) ) {
 			queue = true;
 		}
+#ifdef SHOW_FOW
+		else if ( !fogOfWar.IsSet( x, y ) ) {
+			queue0 = true;
+		}
+#endif
 
 		GLASSERT( !(queue && queue0) );
 		if ( queue ) {
@@ -398,7 +403,12 @@ void Engine::Draw()
 	EnableLights( false, dayNight );
 	glBindTexture( GL_TEXTURE_2D, 0 );
 
+#ifdef SHOW_FOW
+	renderQueue->SetColor( 0.5f, 0.5f, 0.0f );
+#else
 	renderQueue->SetColor( 0, 0, 0 );
+#endif
+
 	for( Model* model=fogRoot; model; model=model->next0 ) {
 		model->Queue( renderQueue, Model::NO_TEXTURE );
 	}
