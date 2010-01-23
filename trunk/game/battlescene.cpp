@@ -8,6 +8,7 @@
 #include "../engine/text.h"
 
 #include "battlestream.h"
+#include "ai.h"
 
 #include "../grinliz/glfixed.h"
 #include "../micropather/micropather.h"
@@ -23,6 +24,11 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	engine  = &game->engine;
 	uiMode = UIM_NORMAL;
 	nearPathState = NEAR_PATH_INVALID;
+
+	aiArr[Unit::ALIEN]		= new WarriorAI( Unit::ALIEN, engine->GetSpaceTree() );
+	aiArr[Unit::SOLDIER]		= 0;
+	// FIXME: use warrior AI for now...
+	aiArr[Unit::CIVILIAN]	= new WarriorAI( Unit::CIVILIAN, engine->GetSpaceTree() );
 
 #ifdef MAPMAKER
 	currentMapItem = 1;
@@ -159,6 +165,8 @@ BattleScene::~BattleScene()
 	sqlite3_close( mapDatabase );
 #endif
 
+	for( int i=0; i<3; ++i )
+		delete aiArr[i];
 	delete fireWidget;
 	delete widgets;
 }
@@ -183,13 +191,6 @@ void BattleScene::InitUnits()
 		 cell( game, "Cell", 12 ),
 		 tachyon( game, "Tach", 4 ),
 		 clip( game, "Clip", 8 );
-
-//	gun0.Insert( clip );
-//	gun1.Insert( cell );
-//	plasmaRifle.Insert( cell );
-//	plasmaRifle.Insert( tachyon );
-//	ar3.Insert( autoClip );
-//	ar3.Insert( grenade );
 
 	for( int i=0; i<4; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-10 };
@@ -221,7 +222,6 @@ void BattleScene::InitUnits()
 		inventory->AddItem( Item( clip ));
 		inventory->AddItem( medkit );
 		inventory->AddItem( armor );
-		//inventory->AddItem( fuel );
 
 		unit->UpdateInventory();
 		unit->SetMapPos( pos.x, pos.y );
@@ -256,6 +256,11 @@ void BattleScene::InitUnits()
 void BattleScene::NewTurn( int team )
 {
 	currentTeamTurn = team;
+
+	if ( aiArr[team] ) {
+		aiArr[team]->StartTurn( units, m_targets );
+	}
+
 	switch ( team ) {
 		case Unit::SOLDIER:
 			GLOUTPUT(( "New Turn: Terran\n" ));
@@ -503,19 +508,65 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		targetEvents.Clear();	// All done! They don't get to carry on beyond the moment.
 	}
 
-	if ( actionStack.Empty() && selection.soldierUnit ) {
-		if ( nearPathState == NEAR_PATH_INVALID ) {
-			ShowNearPath( selection.soldierUnit );
-			nearPathState = NEAR_PATH_VALID;
+	if ( currentTeamTurn == Unit::SOLDIER ) {
+		if ( actionStack.Empty() && selection.soldierUnit ) {
+			if ( nearPathState == NEAR_PATH_INVALID ) {
+				ShowNearPath( selection.soldierUnit );
+				nearPathState = NEAR_PATH_VALID;
+			}
+		}
+		else {
+			ShowNearPath( 0 );	// fast. Just sets array to 0.
+		}
+		// Render the target (if it is on-screen)
+		if ( HasTarget() ) {
+			DrawFireWidget();
 		}
 	}
 	else {
-		ShowNearPath( 0 );	// fast. Just sets array to 0.
-	}
+		if ( actionStack.Empty() ) {
+			bool allDone = true;
+			for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+				if ( units[i].IsAlive() && !units[i].IsUserDone() ) {
+					allDone = false;
 
-	// Render the target (if it is on-screen)
-	if ( HasTarget() ) {
-		DrawFireWidget();
+					AI::AIAction aiAction;
+					bool done = aiArr[Unit::ALIEN]->Think( &units[i], units, m_targets, &aiAction );
+					switch ( aiAction.actionID ) {
+						case AI::ACTION_SHOOT:
+							{
+								int select, type;
+								if ( units[i].FireModeToType( aiAction.shoot.mode, &select, &type ) ) {
+									bool shot = PushShootAction( &units[i], aiAction.shoot.target, select, type, true, false );
+									GLASSERT( shot );
+									if ( !shot )
+										done = true;
+								}
+								else {
+									GLASSERT( 0 );
+								}
+							}
+							break;
+
+						case AI::ACTION_NONE:
+							break;
+
+						default:
+							GLASSERT( 0 );
+							break;
+					}
+					if ( done ) {
+						units[i].SetUserDone();
+					}
+					if ( aiAction.actionID != AI::ACTION_NONE ) {
+						break;
+					}
+				}
+			}
+			if ( allDone ) {
+				NewTurn( Unit::SOLDIER );
+			}
+		}
 	}
 }
 
@@ -778,13 +829,14 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 	CrossProduct( normal, up, &right );
 	CrossProduct( normal, right, &up );
 
-	Inventory* inventory = unit->GetInventory();
-	int rounds = inventory->CalcClipRoundsTotal( wid->weapon[select].clipType );
+//	Inventory* inventory = unit->GetInventory();
+//	int rounds = inventory->CalcClipRoundsTotal( wid->weapon[select].clipType );
 
-	if (    unit->GetStats().TU() >= selection.soldierUnit->FireTimeUnits( select, type )
-		 && ( nShots <= rounds ) ) 
+//	if (    unit->GetStats().TU() >= unit->FireTimeUnits( select, type )
+//		 && ( nShots <= rounds ) ) 
+	if ( unit->CanFire( select, type ) )
 	{
-		unit->UseTU( selection.soldierUnit->FireTimeUnits( select, type ) );
+		unit->UseTU( unit->FireTimeUnits( select, type ) );
 
 		for( int i=0; i<nShots; ++i ) {
 			Vector3F t = target;
@@ -804,7 +856,7 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 			action.type.shoot.target = t;
 			action.type.shoot.select = select;
 			actionStack.Push( action );
-			inventory->UseClipRound( wid->weapon[select].clipType );
+			unit->GetInventory()->UseClipRound( wid->weapon[select].clipType );
 		}
 		PushRotateAction( unit, target, false );
 		return true;
@@ -931,11 +983,13 @@ void BattleScene::StopForNewTeamTarget()
 		{
 			// THEN check for interuption.
 			// Clear out the current team events, look for "new team"
+			// Player: only pauses on "new team"
+			// AI: pauses on "new team" OR "new target"
 			int i=0;
 			bool newTeam = false;
 			while( i < targetEvents.Size() ) {
 				TargetEvent t = targetEvents[i];
-				if (	t.team == 1 
+				if (	( aiArr[currentTeamTurn] || t.team == 1 )	// AI always pause. Players pause on new team.
 					 && t.gain == 1 
 					 && t.viewerID == currentTeamTurn )
 				{
@@ -1466,8 +1520,8 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 				SetSelection( 0 );
 				engine->GetMap()->ClearNearPath();
 				NewTurn( Unit::ALIEN );
-				NewTurn( Unit::CIVILIAN );
-				NewTurn( Unit::SOLDIER );	// FIXME: should go alien or civ
+				//NewTurn( Unit::CIVILIAN );
+				//NewTurn( Unit::SOLDIER );	// FIXME: should go alien or civ
 				break;
 
 			case BTN_NEXT:
@@ -1511,6 +1565,8 @@ void BattleScene::Tap(	int tap,
 	if ( tap > 1 )
 		return;
 	if ( !actionStack.Empty() )
+		return;
+	if ( currentTeamTurn != Unit::SOLDIER )
 		return;
 
 	/* Modes:
@@ -1869,7 +1925,7 @@ void BattleScene::InvalidateAllVisibility()
 */
 void BattleScene::CalcAllVisibility()
 {
-	QuickProfile qp( "CalcAllVisibility()" );
+//	QuickProfile qp( "CalcAllVisibility()" );
 	Vector2I range[2] = {{ TERRAN_UNITS_START, TERRAN_UNITS_END }, {ALIEN_UNITS_START, ALIEN_UNITS_END}};
 
 	for( int k=0; k<2; ++k ) {

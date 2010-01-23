@@ -78,6 +78,8 @@ public:
 	// Render everything. Return triangles drawn. (Currently excludes UI and particles in tri-count.)
 	void Draw();
 
+	SpaceTree* GetSpaceTree()	{ return spaceTree; }
+
 	void MoveCameraHome();
 	// Move the camera so that it points to x,z. If 'calc' is non-null,
 	// the camera will *not* be moved, but the destination for the camera

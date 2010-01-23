@@ -15,7 +15,7 @@ class UIButtonBox;
 class UIButtonGroup;
 class Engine;
 class Texture;
-
+class AI;
 
 class BattleScene : public Scene
 {
@@ -230,6 +230,7 @@ private:
 	Engine*			engine;
 	grinliz::Random random;	// "the" random number generator for the battle
 	int				currentTeamTurn;
+	AI*				aiArr[3];
 
 	struct TargetEvent
 	{

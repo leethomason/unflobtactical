@@ -98,15 +98,19 @@ public:
 	Model* GetWeaponModel()					{ return weapon; }
 	const Model* GetWeaponModel() const		{ return weapon; }
 
+	// Returns true if the mode can be used: mode is supported, enough time units,
+	// enough rounds, etc.
+	bool CanFire( int select, int type ) const;
 	// Time for the primary(0) or secondary(1) weapon to snap, auto, or aimed shot.
-	// Returns 0.0 if the weapon doesn't exist or support that fire mode.
 	float FireTimeUnits( int select, int type ) const;
-
 	// Accuracy of the weapon (0 or 1) at 1 unit of range.
 	// Returns 0.0 if the weapon doesn't exist or support that fire mode.
 	float FireAccuracy( int select, int type ) const;
 	// returns true if this fire mode is supported
 	bool FireStatistics( int select, int type, float distance, float* chanceToHit, float* chanceAnyHit, float* tu, float* damagePerTU ) const;
+	// returns true of the mode->type conversion succeeds (has the weapon, etc.)
+
+	bool FireModeToType( int mode, int* select, int* type ) const;
 
 	float AngleBetween( const grinliz::Vector2I& dst, bool quantize ) const;
 
