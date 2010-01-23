@@ -539,6 +539,20 @@ float Unit::AngleBetween( const Vector2I& p1, bool quantize ) const
 }
 
 
+bool Unit::CanFire( int select, int type ) const
+{
+	int nShots = (type == AUTO_SHOT) ? 3 : 1;
+	float tu = FireTimeUnits( select, type );
+
+	if ( tu > 0.0f && tu <= stats.TU() ) {
+		int rounds = inventory.CalcClipRoundsTotal( GetWeapon()->IsWeapon()->weapon[select].clipType );
+		if ( rounds >= nShots ) 
+			return true;
+	}
+	return false;
+}
+
+
 float Unit::FireTimeUnits( int select, int type ) const
 {
 	float time = 0.0f;
@@ -549,6 +563,16 @@ float Unit::FireTimeUnits( int select, int type ) const
 	}
 	// Note: don't adjust for stats. TU is based on DEX. Adjusting again double-applies.
 	return time;
+}
+
+
+bool Unit::FireModeToType( int mode, int* select, int* type ) const
+{
+	if ( GetWeapon() && GetWeapon()->IsWeapon() ) {
+		GetWeapon()->IsWeapon()->FireModeToType( mode, select, type );
+		return true;
+	}
+	return false;
 }
 
 

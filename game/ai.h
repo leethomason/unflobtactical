@@ -10,6 +10,7 @@
 
 class Unit;
 class Targets;
+class SpaceTree;
 
 
 class AI
@@ -38,12 +39,16 @@ public:
 		};
 	};
 
-	AI( int team );
+	AI( int team,			// AI in instantiated for a TEAM, not a unit
+		SpaceTree* tree );	// Line of site checking
+
 	virtual ~AI()	{}
 
+	// called by Scene
 	void StartTurn( const Unit* units, const Targets& targets );
 
-
+	// Utility:
+	bool LineOfSight( const Unit* shoot, const Unit* target );
 
 	// Return true if done.
 	virtual bool Think( const Unit* move,
@@ -61,13 +66,14 @@ protected:
 	int m_enemyTeam;
 	int m_enemyStart;
 	int m_enemyEnd;
+	SpaceTree* m_spaceTree;
 };
 
 
 class WarriorAI : public AI
 {
 public:
-	WarriorAI( int team ) : AI( team )		{}
+	WarriorAI( int team, SpaceTree* tree ) : AI( team, tree )		{}
 	virtual ~WarriorAI()					{}
 
 	virtual bool Think( const Unit* move,

@@ -424,7 +424,7 @@ Model* SpaceTree::QueryRay( const Vector3F& _origin,
 							const Vector3F& _direction, 
 							int required, int excluded, const Model** ignore,
 							HitTestMethod testType,
-							Vector3F* intersection )
+							Vector3F* intersection ) 
 {
 	//GLOUTPUT(( "query ray\n" ));
 	modelRoot = 0;
