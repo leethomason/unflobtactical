@@ -1413,14 +1413,14 @@ void Map::PrintStateInfo( void* state )
 }
 
 
-int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *cost, std::vector< void* >* path )
+int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *cost, std::vector< Vector2<S16> >* path )
 {
-	GLASSERT( sizeof( int ) == sizeof( void* ));	// fix this for 64 bit
+	GLASSERT( sizeof( int ) == sizeof( void* ));			// fix this for 64 bit
 	GLASSERT( sizeof(Vector2<S16>) == sizeof( void* ) );
 
 	int result = microPather->Solve(	VecToState( start ),
 										VecToState( end ),
-										path,
+										reinterpret_cast< std::vector< void*>* >( path ),		// sleazy trick if void* is the same size as V2<S16>
 										cost );
 
 	/*
@@ -1432,6 +1432,7 @@ int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *c
 		default:	GLASSERT( 0 );	break;
 	}
 	*/
+
 	return result;
 }
 

@@ -17,6 +17,29 @@ class Engine;
 class Texture;
 class AI;
 
+
+// Needs to be a POD because it gets 'union'ed in a bunch of events.
+// size is important for the same reason.
+struct MotionPath
+{
+	int						pathLen;
+	U8						pathData[MAX_TU*2];
+
+	grinliz::Vector2<S16>	GetPathAt( unsigned i ) 
+	{
+		GLASSERT( (int)i < pathLen );
+		grinliz::Vector2<S16> v = { pathData[i*2+0], pathData[i*2+1] };
+		return v;
+	}
+	void Init( const std::vector< grinliz::Vector2<S16> >& pathCache );
+	void CalcDelta( int i0, int i1, grinliz::Vector2I* vec, float* rot );
+	void Travel( float* travelDistance, int* pathPos, float* fraction );
+	void GetPos( int step, float fraction, float* x, float* z, float* rot );
+private:
+	float DeltaToRotation( int dx, int dy );
+};
+
+
 class BattleScene : public Scene
 {
 public:
@@ -71,8 +94,9 @@ private:
 	};
 
 	struct MoveAction	{
-		int pathStep;
-		float pathFraction;
+		int			pathStep;
+		float		pathFraction;
+		MotionPath	path;
 	};
 
 	struct RotateAction {
@@ -144,23 +168,7 @@ private:
 	void DoReactionFire();
 	void DrawFireWidget();
 
-	struct Path
-	{
-		grinliz::Vector2<S16>	start, end;
-		std::vector< void* >	statePath;
-
-		grinliz::Vector2<S16> GetPathAt( unsigned i ) {
-			grinliz::Vector2<S16> v = *((grinliz::Vector2<S16>*)&statePath[i] );
-			return v;
-		}
-		void Clear() { start.Set( -1, -1 ); end.Set( -1, -1 ); }
-		void CalcDelta( int i0, int i1, grinliz::Vector2I* vec, float* rot );
-		void Travel( float* travelDistance, int* pathPos, float* fraction );
-		void GetPos( int step, float fraction, float* x, float* z, float* rot );
-	private:
-		float DeltaToRotation( int dx, int dy );
-	};
-	Path path;
+	std::vector< grinliz::Vector2<S16> >	pathCache;
 
 	// Show the UI zones arount the selected unit
 	enum {
@@ -176,7 +184,7 @@ private:
 
 	void InitUnits();
 	void TestHitTesting();
-	void SetPathBlocks();
+	void SetPathBlocks( const Unit* exclude );
 
 	Unit* UnitFromModel( Model* m );
 	Unit* GetUnitFromTile( int x, int z );
@@ -206,7 +214,7 @@ private:
 
 	void	SetSelection( Unit* unit );
 
-	void NewTurn( int team );
+	void NextTurn();
 
 	grinliz::Vector3F dragStart;
 	grinliz::Vector3F dragStartCameraWC;

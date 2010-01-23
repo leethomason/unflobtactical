@@ -23,6 +23,7 @@ void Stats::CalcBaselines()
 	tu = totalTU = Interpolate(	(float)TRAIT_SOLDIER_LOW,  NORMAL_TU*0.5f,
 								(float)TRAIT_SOLDIER_HIGH, NORMAL_TU*1.5f,
 								(float)(levDEX + levSTR)*0.5f );
+	tu = Clamp( tu, 2.0f, (float)MAX_TU );
 
 	accuracy = Interpolate(		(float)TRAIT_SOLDIER_LOW,	ACC_BAD_SHOT,
 								(float)TRAIT_SOLDIER_HIGH,	ACC_GOOD_SHOT,

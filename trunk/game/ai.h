@@ -7,10 +7,14 @@
 #include "../grinliz/glvector.h"
 
 #include "gamelimits.h"
+#include "battlescene.h"	// FIXME: for MotionPath. Factor out?
+
+#include <vector>
 
 class Unit;
 class Targets;
 class SpaceTree;
+class Map;
 
 
 class AI
@@ -23,7 +27,7 @@ public:
 	};
 
 	struct MoveAIAction {
-		grinliz::Vector2I	dest;
+		MotionPath			path;
 	};
 
 	struct ShootAIAction {
@@ -49,11 +53,13 @@ public:
 
 	// Utility:
 	bool LineOfSight( const Unit* shoot, const Unit* target );
+	void TrimPathToCost( std::vector< grinliz::Vector2<S16> >* path, float maxCost );
 
 	// Return true if done.
 	virtual bool Think( const Unit* move,
 						const Unit* units,
 						const Targets& targets,
+						Map* map,
 						AIAction* action ) = 0;
 protected:
 	struct LKP {
@@ -67,6 +73,7 @@ protected:
 	int m_enemyStart;
 	int m_enemyEnd;
 	SpaceTree* m_spaceTree;
+	std::vector< grinliz::Vector2<S16> > m_path[4];
 };
 
 
@@ -79,6 +86,7 @@ public:
 	virtual bool Think( const Unit* move,
 						const Unit* units,
 						const Targets& targets,
+						Map* map,
 						AIAction* action );
 
 };

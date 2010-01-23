@@ -253,7 +253,7 @@ public:
 	int SolvePath(	const grinliz::Vector2<S16>& start,
 					const grinliz::Vector2<S16>& end,
 					float* cost,
-					std::vector< void* >* path );
+					std::vector< grinliz::Vector2<S16> >* path );
 	
 	// Show the path that the unit can walk to.
 	void ShowNearPath(	const grinliz::Vector2<S16>& start,
