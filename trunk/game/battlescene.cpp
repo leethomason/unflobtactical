@@ -235,9 +235,16 @@ void BattleScene::InitUnits()
 
 		unit->Init( engine, game, Unit::ALIEN, i&3, random.Rand() );
 		Inventory* inventory = unit->GetInventory();
-		inventory->AddItem( gun1 );
-		inventory->AddItem( cell );
-		inventory->AddItem( tachyon );
+		if ( (i&1) == 0 ) {
+			inventory->AddItem( gun1 );
+			inventory->AddItem( cell );
+			inventory->AddItem( tachyon );
+		}
+		else {
+			inventory->AddItem( plasmaRifle );
+			inventory->AddItem( cell );
+			inventory->AddItem( tachyon );
+		}
 		unit->UpdateInventory();
 		unit->SetMapPos( alienPos[i] );
 	}
@@ -508,6 +515,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	}
 
 	if ( currentTeamTurn == Unit::SOLDIER ) {
+		// FIXME: check if the unit is still alive
 		if ( actionStack.Empty() && selection.soldierUnit ) {
 			if ( nearPathState == NEAR_PATH_INVALID ) {
 				ShowNearPath( selection.soldierUnit );
@@ -1228,6 +1236,9 @@ bool BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 
 		if ( m ) {
 			impact = true;
+			GLASSERT( intersection.x >= 0 && intersection.x <= (float)MAP_SIZE );
+			GLASSERT( intersection.z >= 0 && intersection.z <= (float)MAP_SIZE );
+			GLASSERT( intersection.y >= 0 && intersection.y <= 10.0f );
 			beam0 = p0;
 			beam1 = intersection;
 			GLASSERT( m->AABB().Contains( intersection ) );
@@ -1249,10 +1260,15 @@ bool BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 			if ( result == grinliz::INTERSECT ) {
 				beam0 = p0;
 				beam1 = out;
+				intersection = out;
+				GLASSERT( intersection.x >= 0 && intersection.x <= (float)MAP_SIZE );
+				GLASSERT( intersection.z >= 0 && intersection.z <= (float)MAP_SIZE );
+				GLASSERT( intersection.y >= 0 && intersection.y <= 10.0f );
 
 				if ( out.y < 0.01 ) {
 					// hit the ground
 					impact = true;
+
 				}
 			}
 		}
@@ -1270,6 +1286,9 @@ bool BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 
 	if ( impact ) {
 		GLASSERT( weaponDef );
+		GLASSERT( intersection.x >= 0 && intersection.x <= (float)MAP_SIZE );
+		GLASSERT( intersection.z >= 0 && intersection.z <= (float)MAP_SIZE );
+		GLASSERT( intersection.y >= 0 && intersection.y <= 10.0f );
 
 		Action h;
 		h.Init( ACTION_HIT, 0 );

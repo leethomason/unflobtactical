@@ -24,7 +24,6 @@ enum {
 	ITEM_CLIP_GRENADE,
 
 	WEAPON_AUTO		 = 0x01,
-	//WEAPON_MELEE	 = 0x02,
 	WEAPON_EXPLOSIVE = 0x04,
 };
 
@@ -103,7 +102,7 @@ public:
 
 	bool SupportsType( int select, int type ) const;
 	void FireModeToType( int mode, int* select, int* type ) const;
-	bool IsExplosive( int select ) const { return (weapon[select].flags & WEAPON_AUTO) != 0; }
+	bool IsExplosive( int select ) const { return (weapon[select].flags & WEAPON_EXPLOSIVE) != 0; }
 
 	bool IsAlienBlaster() const	{ return weapon[0].clipType == ITEM_CLIP_PLASMA || weapon[0].clipType == ITEM_CLIP_TACHYON; }
 

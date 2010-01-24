@@ -4,10 +4,13 @@
 #include "../engine/model.h"
 #include "../engine/loosequadtree.h"
 #include "../engine/map.h"
+#include "../grinliz/glperformance.h"
 
 #include <float.h>
 
 using namespace grinliz;
+
+#define AILOG GLOUTPUT
 
 AI::AI( int team, SpaceTree* tree )
 {
@@ -89,12 +92,32 @@ void AI::TrimPathToCost( std::vector< grinliz::Vector2<S16> >* path, float maxCo
 }
 
 
+int AI::VisibleUnitsInArea(	const Unit* theUnit,
+							const Unit* units,
+							const Targets& targets,
+							int start, int end, const grinliz::Rectangle2I& bounds )
+{
+	int count = 0;
+	for( int i=start; i<end; ++i ) {
+		if ( targets.TeamCanSee( theUnit->Team(), &units[i] ) ) {
+			Vector2I p;
+			units[i].CalcMapPos( &p, 0 );
+			if ( bounds.Contains( p ) )
+				++count;
+		}
+	}
+	return count;
+}
+
+
+
 bool WarriorAI::Think(	const Unit* theUnit,
 						const Unit* units,
 						const Targets& targets,
 						Map* map,
 						AIAction* action )
 {
+	// QuickProfile qp( "WarriorAI::Think()" );
 	// Crazy simple 1st AI. If:
 	// - theUnit can see something, shoot it. Choose the unit with the
 	//	 greatest chance of going down
@@ -110,16 +133,23 @@ bool WarriorAI::Think(	const Unit* theUnit,
 	//		doesn't use explosives
 	//		check line of site before shooting
 
+	const float MINIMUM_FIRE_CHANCE = 0.02f;		// A shot is only valid if it has this chance of hitting.
+	const int   EXPLOSION_ZONE		= 2;			// radius to check of clusters of enemies to blow up
+
 	action->actionID = ACTION_NONE;
 	Vector2I theUnitPos;
 	theUnit->CalcMapPos( &theUnitPos, 0 );
-	bool hasTarget = false;
+
+	AILOG(( "Think unit=%d\n", theUnit - units ));
 
 	// -------- Shoot -------- //
 	if ( theUnit->GetWeapon() ) {
+		AILOG(( "  Shoot\n" ));
+
 		int best = -1;
 		float bestScore = 0.0f;
 		int bestMode = 0;
+		float bestChance = 0.0f;
 
 		const Item* weapon = theUnit->GetWeapon();
 		const WeaponItemDef* wid = weapon->GetItemDef()->IsWeapon();
@@ -131,7 +161,6 @@ bool WarriorAI::Think(	const Unit* theUnit,
 				 && targets.CanSee( theUnit, &units[i] )
 				 && LineOfSight( theUnit, &units[i] ) ) 
 			{
-				hasTarget = true;
 				Vector2I pos;
 				units[i].CalcMapPos( &pos, 0 );
 				int len2 = (pos-theUnitPos).LengthSquared();
@@ -141,20 +170,32 @@ bool WarriorAI::Think(	const Unit* theUnit,
 					int select, type;
 					wid->FireModeToType( mode, &select, &type );
 					if ( theUnit->CanFire( select, type ) ) {
-						// Handle explosives
-						// FIXME: account for explosives
-						if ( wid->IsExplosive( select ) )
-							continue;
-
 						float chance, anyChance, tu, dptu;
 
 						if ( theUnit->FireStatistics( select, type, len, &chance, &anyChance, &tu, &dptu ) ) {
-							float score = dptu / (float)units[i].GetStats().HPFraction();
+							float score = dptu;	// Interesting: good AI, but results in odd choices.
+												// FIXME: add back in, less of a factor / (float)units[i].GetStats().HPFraction();
 
-							if ( score > bestScore ) {
+							if ( wid->IsExplosive( select ) ) {
+								Rectangle2I bounds;
+								bounds.Set( pos.x-EXPLOSION_ZONE, pos.y-EXPLOSION_ZONE,
+											pos.x+EXPLOSION_ZONE, pos.y+EXPLOSION_ZONE );
+								int count = VisibleUnitsInArea( theUnit, units, targets, m_enemyStart, m_enemyEnd, bounds );
+
+								if ( count <= 1 )
+									score *= 0.5f;
+								else
+									score *= (float)count;
+							}
+
+							AILOG(( "    target %2d score=%.3f s/t=%d %d chance=%.3f dptu=%.3f\n",
+								    i, score, select, type, chance, dptu ));
+
+							if ( chance >= MINIMUM_FIRE_CHANCE && score > bestScore ) {
 								bestScore = score;
 								best = i;
 								bestMode = mode;
+								bestChance = chance;
 							}
 						}
 					}
@@ -162,7 +203,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 			}
 		}
 		if ( best >= 0 ) {
-			GLOUTPUT(( "Unit %d shooting at %d mode=%d\n", theUnit - units, best, bestMode ));
+			AILOG(( "  **Shooting at %d mode=%d bestScore=%.3f\n", best, bestMode, bestScore ));
 			action->actionID = ACTION_SHOOT;
 			action->shoot.mode = bestMode;
 			units[best].GetModel()->CalcTarget( &action->shoot.target );
@@ -173,7 +214,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 	// -------- Move -------- //
 	// Move closer with the intent of shooting something. Unit visibility change will cause AI
 	// to be re-invoked, so there isn't a concern about getting too close.
-	if ( !hasTarget ) {
+	{
 		int best = -1;
 		float bestGolfScore = FLT_MAX;
 
