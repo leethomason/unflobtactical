@@ -43,11 +43,12 @@ public:
 	bool IsGeneralSlotFree();
 	bool IsSlotFree( const ItemDef* itemDef );
 
-	int CalcClipRoundsTotal( int clipType ) const;
-	void UseClipRound( int clipType );
+	int CalcClipRoundsTotal( const ClipItemDef* ) const;
+	void UseClipRound( const ClipItemDef* );
 	
 	Item* ArmedWeapon();				// null if no weapon ready
 	const Item* ArmedWeapon() const;	// null if no weapon ready
+	const Item* SecondaryWeapon() const;
 
 	void Save( UFOStream* s ) const;
 	void Load( UFOStream* s, Engine* engine, Game* game );

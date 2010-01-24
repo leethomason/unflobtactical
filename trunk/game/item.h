@@ -5,6 +5,7 @@
 #include "../grinliz/glvector.h"
 #include "../engine/ufoutil.h"
 #include "../engine/enginelimits.h"
+#include "../engine/vertex.h"
 #include "gamelimits.h"
 
 class ModelResource;
@@ -15,13 +16,13 @@ class ParticleSystem;
 
 enum {
 	// Clip types - plenty of complexity here already.
-	ITEM_CLIP_SHELL = 1,
-	ITEM_CLIP_AUTO,
-	ITEM_CLIP_PLASMA,
-	ITEM_CLIP_TACHYON,
-	ITEM_CLIP_FLAME,
+	//ITEM_CLIP_SHELL = 1,
+	//ITEM_CLIP_AUTO,
+	//ITEM_CLIP_PLASMA,
+	//ITEM_CLIP_TACHYON,
+	//ITEM_CLIP_FLAME,
 //	ITEM_CLIP_ROCKET,
-	ITEM_CLIP_GRENADE,
+	//TEM_CLIP_GRENADE,
 
 	WEAPON_AUTO		 = 0x01,
 	WEAPON_EXPLOSIVE = 0x04,
@@ -88,7 +89,8 @@ public:
 	virtual const WeaponItemDef* IsWeapon() const { return this; }
 
 	struct Weapon {
-		int clipType;		// type of clip required (ITEM_CLIP_ROCKET for example). 0 for melee.
+		//int clipType;		// type of clip required (ITEM_CLIP_ROCKET for example). 0 for melee.
+		const ClipItemDef* clipItemDef;
 		int flags;			// WEAPON_AUTO, etc.
 		float damage;		// damage done by weapon, 1.0 is normal
 		float accuracy;		// 1.0 is average
@@ -104,7 +106,8 @@ public:
 	void FireModeToType( int mode, int* select, int* type ) const;
 	bool IsExplosive( int select ) const { return (weapon[select].flags & WEAPON_EXPLOSIVE) != 0; }
 
-	bool IsAlienBlaster() const	{ return weapon[0].clipType == ITEM_CLIP_PLASMA || weapon[0].clipType == ITEM_CLIP_TACHYON; }
+//	bool IsAlienBlaster() const	{ return weapon[0].clipType == ITEM_CLIP_PLASMA || weapon[0].clipType == ITEM_CLIP_TACHYON; }
+	bool IsAlien() const;
 
 	void RenderWeapon(	int select,
 						ParticleSystem*,
@@ -139,10 +142,17 @@ public:
 	virtual const ClipItemDef* IsClip() const { return this; }
 	virtual int Rounds() const { return defaultRounds; }
 
-	bool IsAlien() const { return type == ITEM_CLIP_PLASMA || type == ITEM_CLIP_TACHYON; }
+	bool IsAlien() const { return alien; }
 
-	int	type;
+	bool alien;
+
 	int defaultRounds;
+	DamageDesc dd;
+
+	Color4F color;
+	float speed;
+	float width;
+	float length;
 };
 
 
@@ -199,6 +209,12 @@ public:
 	// --- handle weapons ----//
 	// consume one rounds
 	void UseRounds( int n=1 );
+//	int ClipType( int select ) const				{	GLASSERT( IsWeapon() );
+//														return IsWeapon()->weapon[select].clipType;
+//													}
+	const ClipItemDef* ClipType( int select ) const	{	GLASSERT( IsWeapon() );
+														return IsWeapon()->weapon[select].clipItemDef;
+													}
 
 	const char* Name() const						{ return itemDef->name; }
 	const char* Desc() const						{ return itemDef->desc; }

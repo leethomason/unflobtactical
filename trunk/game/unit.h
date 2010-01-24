@@ -92,6 +92,7 @@ public:
 	Item* GetWeapon();
 	const Item* GetWeapon() const;
 	Inventory* GetInventory();
+	const Inventory* GetInventory() const;
 	void UpdateInventory();
 
 	Model* GetModel()						{ return model; }

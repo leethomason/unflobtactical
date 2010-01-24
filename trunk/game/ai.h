@@ -24,6 +24,7 @@ public:
 		ACTION_NONE = 0,
 		ACTION_MOVE = 1,
 		ACTION_SHOOT = 3,
+		ACTION_SWAP_WEAPON = 4,
 	};
 
 	struct MoveAIAction {

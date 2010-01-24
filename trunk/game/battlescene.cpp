@@ -241,6 +241,7 @@ void BattleScene::InitUnits()
 			inventory->AddItem( tachyon );
 		}
 		else {
+			inventory->AddItem( gun0 );
 			inventory->AddItem( plasmaRifle );
 			inventory->AddItem( cell );
 			inventory->AddItem( tachyon );
@@ -515,7 +516,9 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	}
 
 	if ( currentTeamTurn == Unit::SOLDIER ) {
-		// FIXME: check if the unit is still alive
+		if ( selection.soldierUnit && !selection.soldierUnit->IsAlive() ) {
+			SetSelection( 0 );
+		}
 		if ( actionStack.Empty() && selection.soldierUnit ) {
 			if ( nearPathState == NEAR_PATH_INVALID ) {
 				ShowNearPath( selection.soldierUnit );
@@ -532,57 +535,9 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	}
 	else {
 		if ( actionStack.Empty() ) {
-			bool allDone = true;
-			for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-				if ( units[i].IsAlive() && !units[i].IsUserDone() ) {
-					allDone = false;
-
-					AI::AIAction aiAction;
-					SetPathBlocks( &units[i] );
-					bool done = aiArr[Unit::ALIEN]->Think( &units[i], units, m_targets, engine->GetMap(), &aiAction );
-					switch ( aiAction.actionID ) {
-						case AI::ACTION_SHOOT:
-							{
-								int select, type;
-								if ( units[i].FireModeToType( aiAction.shoot.mode, &select, &type ) ) {
-									bool shot = PushShootAction( &units[i], aiAction.shoot.target, select, type, true, false );
-									GLASSERT( shot );
-									if ( !shot )
-										done = true;
-								}
-								else {
-									GLASSERT( 0 );
-								}
-							}
-							break;
-
-						case AI::ACTION_MOVE:
-							{
-								Action action;
-								action.Init( ACTION_MOVE, &units[i] );
-								action.type.move.path = aiAction.move.path;
-								actionStack.Push( action );
-							}
-							break;
-
-						case AI::ACTION_NONE:
-							break;
-
-						default:
-							GLASSERT( 0 );
-							break;
-					}
-					if ( done ) {
-						units[i].SetUserDone();
-					}
-					if ( aiAction.actionID != AI::ACTION_NONE ) {
-						break;
-					}
-				}
-			}
-			if ( allDone ) {
+			bool done = ProcessAI();
+			if ( done )
 				NextTurn();
-			}
 		}
 	}
 }
@@ -687,7 +642,7 @@ void BattleScene::SetFireWidget()
 		float dptu = 0;
 		int nShots = (type==AUTO_SHOT) ? 3 : 1;
 		
-		int rounds = inventory->CalcClipRoundsTotal( item->IsWeapon()->weapon[select].clipType );
+		int rounds = inventory->CalcClipRoundsTotal( item->IsWeapon()->weapon[select].clipItemDef );
 
 		// weird syntax aids debugging.
 		bool enable = true;
@@ -873,7 +828,7 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 			action.type.shoot.target = t;
 			action.type.shoot.select = select;
 			actionStack.Push( action );
-			unit->GetInventory()->UseClipRound( wid->weapon[select].clipType );
+			unit->GetInventory()->UseClipRound( wid->weapon[select].clipItemDef );
 		}
 		PushRotateAction( unit, target, false );
 		return true;
@@ -938,6 +893,74 @@ void BattleScene::DoReactionFire()
 			}
 		}
 	}
+}
+
+
+bool BattleScene::ProcessAI()
+{
+	GLASSERT( actionStack.Empty() );
+	bool allDone = true;
+
+	while ( actionStack.Empty() ) {
+		allDone = true;
+		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+			if ( actionStack.Empty() && units[i].IsAlive() && !units[i].IsUserDone() ) {
+
+				AI::AIAction aiAction;
+				SetPathBlocks( &units[i] );
+				
+				bool done = aiArr[Unit::ALIEN]->Think( &units[i], units, m_targets, engine->GetMap(), &aiAction );
+				switch ( aiAction.actionID ) {
+					case AI::ACTION_SHOOT:
+						{
+							int select, type;
+							if ( units[i].FireModeToType( aiAction.shoot.mode, &select, &type ) ) {
+								bool shot = PushShootAction( &units[i], aiAction.shoot.target, select, type, true, false );
+								GLASSERT( shot );
+								if ( !shot )
+									done = true;
+							}
+							else {
+								GLASSERT( 0 );
+							}
+						}
+						break;
+
+					case AI::ACTION_MOVE:
+						{
+							Action action;
+							action.Init( ACTION_MOVE, &units[i] );
+							action.type.move.path = aiAction.move.path;
+							actionStack.Push( action );
+						}
+						break;
+
+					case AI::ACTION_SWAP_WEAPON:
+						{
+							Inventory* inv = units[i].GetInventory();
+							inv->SwapWeapons();
+						}
+						break;
+
+					case AI::ACTION_NONE:
+						break;
+
+					default:
+						GLASSERT( 0 );
+						break;
+				}
+				if ( done ) {
+					units[i].SetUserDone();
+				}
+				if ( !units[i].IsUserDone() ) {
+					allDone = false;
+				}
+			}
+		}
+		if ( allDone )
+			break;
+	}
+	return allDone;
 }
 
 
