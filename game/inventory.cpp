@@ -13,11 +13,11 @@ Inventory::Inventory()
 }
 
 
-int Inventory::CalcClipRoundsTotal( int clipType ) const
+int Inventory::CalcClipRoundsTotal( const ClipItemDef* cid ) const
 {
 	int total = 0;
 	for( int i=0; i<NUM_SLOTS; ++i ) {
-		if ( slots[i].IsSomething() && slots[i].IsClip() && slots[i].IsClip()->type == clipType ) {
+		if ( slots[i].IsSomething() && slots[i].IsClip() && slots[i].IsClip() == cid ) {
 			total += slots[i].Rounds();
 		}
 	}
@@ -25,10 +25,10 @@ int Inventory::CalcClipRoundsTotal( int clipType ) const
 }
 
 
-void Inventory::UseClipRound( int clipType )
+void Inventory::UseClipRound( const ClipItemDef* cid )
 {
 	for( int i=0; i<NUM_SLOTS; ++i ) {
-		if ( slots[i].IsSomething() && slots[i].IsClip() && slots[i].IsClip()->type == clipType ) {
+		if ( slots[i].IsSomething() && slots[i].IsClip() && slots[i].IsClip() == cid ) {
 			slots[i].UseRounds( 1 );
 			return;
 		}
@@ -132,6 +132,14 @@ const Item* Inventory::ArmedWeapon() const
 {
 	if ( slots[0].IsSomething() && slots[0].IsWeapon() )
 		return &slots[0];
+	return 0;
+}
+
+
+const Item* Inventory::SecondaryWeapon() const
+{
+	if ( slots[WEAPON_SLOT_SECONDARY].IsSomething() && slots[WEAPON_SLOT_SECONDARY].IsWeapon() )
+		return &slots[WEAPON_SLOT_SECONDARY];
 	return 0;
 }
 

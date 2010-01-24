@@ -8,6 +8,13 @@
 
 using namespace grinliz;
 
+
+bool WeaponItemDef::IsAlien() const 
+{ 
+	return weapon[0].clipItemDef->IsAlien(); 
+}
+
+
 void WeaponItemDef::RenderWeapon(	int select,
 									ParticleSystem* system,
 									const Vector3F& p0, 
@@ -16,70 +23,24 @@ void WeaponItemDef::RenderWeapon(	int select,
 									U32 currentTime,
 									U32* duration ) const
 {
-	enum { BEAM, TRAIL, SWING };
-	enum { SPLASH, EXPLOSION, NONE };
-	int first = BEAM;
-	int second = (weapon[select].flags & WEAPON_EXPLOSIVE) ? EXPLOSION : SPLASH;
+	enum { BEAM, TRAIL };
+	enum { SPLASH, EXPLOSION };
+	int first, second;
+
+	const ClipItemDef* cid = weapon[select].clipItemDef;
+
+	if ( cid->IsAlien() ) {
+		first = BEAM;
+		second = (weapon[select].flags & WEAPON_EXPLOSIVE) ? EXPLOSION : SPLASH;
+	}
+	else {
+		first = (weapon[select].flags & WEAPON_EXPLOSIVE) ? TRAIL : BEAM;
+		second = (weapon[select].flags & WEAPON_EXPLOSIVE) ? EXPLOSION : SPLASH;
+	}
 
 	// effects: 
 	//		bolt then particle
 	//		beam
-
-	const float SPEED = 0.02f;	// ray gun settings
-	const float WIDTH = 0.3f;
-	const float KBOLT = 6.0f;
-	const float EBOLT = 1.5f;
-
-	Color4F color = { 1, 1, 1, 1 };
-	float speed = SPEED;
-	float width = WIDTH;
-	float length = 1.0f;
-
-	switch( weapon[select].clipType ) {
-//		case 0:
-//			GLASSERT( weapon[select].flags & WEAPON_MELEE );
-//			first = SWING;
-//			second = NONE;
-//			break;
-
-		case ITEM_CLIP_SHELL:
-		case ITEM_CLIP_AUTO:
-			color.Set( 0.8f, 1.0f, 0.8f, 0.8f );
-			speed = SPEED * 2.0f;
-			width = WIDTH * 0.5f;
-			length = KBOLT;
-			break;
-		
-		case ITEM_CLIP_PLASMA:
-			color.Set( 0.2f, 1.0f, 0.2f, 0.8f );
-			speed = SPEED;
-			width = WIDTH;
-			length = EBOLT;
-			break;
-
-		case ITEM_CLIP_TACHYON:
-			color.Set( 1, 1, 0, 0.8f );		// ffff00
-			speed = SPEED;
-			width = WIDTH;
-			length = EBOLT;
-			break;
-
-		case ITEM_CLIP_FLAME:
-			color.Set( 1.0f, 0, 0, 0.8f );
-			speed = SPEED * 0.7f;
-			width = WIDTH;
-			length = EBOLT;
-			break;
-
-		//case ITEM_CLIP_ROCKET:
-		case ITEM_CLIP_GRENADE:
-			color.Set( 1, 0, 0, 1 );
-			first = TRAIL;
-			break;
-
-		default:
-			GLASSERT( 0 );	// not set yet
-	}
 
 	if ( first == BEAM ) {
 		BoltEffect* bolt = (BoltEffect*) system->EffectFactory( "BoltEffect" );
@@ -88,10 +49,10 @@ void WeaponItemDef::RenderWeapon(	int select,
 		}
 		
 		bolt->Clear();
-		bolt->SetColor( color );
-		bolt->SetSpeed( speed );
-		bolt->SetLength( length );
-		bolt->SetWidth( width );
+		bolt->SetColor( cid->color );
+		bolt->SetSpeed( cid->speed );
+		bolt->SetLength( cid->length );
+		bolt->SetWidth( cid->width );
 		bolt->Init( p0, p1, currentTime );
 
 		*duration = bolt->CalcDuration();
@@ -106,19 +67,16 @@ void WeaponItemDef::RenderWeapon(	int select,
 		trail->Clear();
 		Color4F c = { 1, 1, 1, 1 };
 		trail->SetColor( c );
-		trail->SetSpeed( speed*0.4f );
+		trail->SetSpeed( cid->speed*0.4f );
 		trail->Init( p0, p1, currentTime );
 		*duration = trail->CalcDuration();
 		system->AddEffect( trail );
-	}
-	else if ( first == SWING ) {
-		GLASSERT( 0 );
 	}
 	else {
 		GLASSERT( 0 );
 	}
 
-	if ( useImpact && second != NONE ) {
+	if ( useImpact ) {
 
 		ImpactEffect* impact = (ImpactEffect*) system->EffectFactory( "ImpactEffect" );
 		if ( !impact ) {
@@ -129,7 +87,7 @@ void WeaponItemDef::RenderWeapon(	int select,
 		n.Normalize();
 		impact->Clear();
 		impact->Init( p1, currentTime + *duration );
-		impact->SetColor( color );
+		impact->SetColor( cid->color );
 		impact->SetNormal( n );
 		if ( second == SPLASH ) {
 			impact->SetRadius( 1.5f );
@@ -146,7 +104,7 @@ void WeaponItemDef::RenderWeapon(	int select,
 			}
 			impact2->Clear();
 			impact2->Init( p1, currentTime + *duration + 250 );
-			impact2->SetColor( color );
+			impact2->SetColor( cid->color );
 			impact2->SetNormal( n );
 			impact2->SetRadius( 3.5f );
 			impact2->SetConfig( ParticleSystem::PARTICLE_SPHERE );
@@ -160,11 +118,11 @@ void WeaponItemDef::RenderWeapon(	int select,
 bool WeaponItemDef::CompatibleClip( const ItemDef* id, int* which ) const
 {
 	if ( id->IsClip() ) {
-		if ( weapon[0].clipType == id->IsClip()->type ) {
+		if ( weapon[0].clipItemDef == id ) {
 			*which = 0;
 			return true;
 		}
-		else if ( weapon[1].clipType == id->IsClip()->type ) {
+		else if ( weapon[1].clipItemDef == id ) {
 			*which = 1;
 			return true;
 		}
@@ -175,36 +133,8 @@ bool WeaponItemDef::CompatibleClip( const ItemDef* id, int* which ) const
 
 void WeaponItemDef::DamageBase( int select, DamageDesc* d ) const
 {
-	switch( weapon[select].clipType ) {
-		case 0:								// melee
-		case ITEM_CLIP_SHELL:
-		case ITEM_CLIP_AUTO:
-			d->Set( 1, 0, 0 );
-			break;
-
-		case ITEM_CLIP_PLASMA:
-			d->Set( 0.0f, 0.8f, 0.2f );
-			break;
-
-		case ITEM_CLIP_TACHYON:
-			d->Set( 0, 0.6f, 0.4f );
-			break;
-
-		case ITEM_CLIP_FLAME:
-			d->Set( 0, 0, 1 );
-			break;
-
-//		case ITEM_CLIP_ROCKET:
-//			d->Set( 0.5f, 0, 0.5f );
-//			break;
-
-		case ITEM_CLIP_GRENADE:
-			d->Set( 0.8f, 0, 0.2f );
-			break;
-
-		default:
-			GLASSERT( 0 );	// need to implement
-	}
+	GLASSERT( weapon[select].clipItemDef );
+	*d = weapon[select].clipItemDef->dd;
 	d->Scale( weapon[select].damage );
 }
 

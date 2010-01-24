@@ -252,6 +252,7 @@ private:
 	CDynArray< TargetEvent > targetEvents;
 	CDynArray< grinliz::Vector2I > doors;
 	void ProcessDoors();
+	bool ProcessAI();			// return true if turn over.
 
 	// Updates what units can and can not see. Sets the 'Targets' structure above,
 	// and generates targetEvents.

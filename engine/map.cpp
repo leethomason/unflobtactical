@@ -1055,6 +1055,28 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 }
 
 
+const Storage* Map::GetStorage( int x, int y ) const
+{
+	Storage* s = 0;
+	for( int i=0; i<debris.Size(); ++i ) {
+		if ( debris[i].x == x && debris[i].y ==y ) {
+			return debris[i].storage;
+		}
+	}
+	return 0;
+}
+
+
+void Map::FindStorage( const ItemDef* itemDef, int maxLoc, grinliz::Vector2I* loc, int* numLoc )
+{
+	*numLoc = 0;
+	for( int i=0; i<debris.Size() && *numLoc < maxLoc; ++i ) {
+		if ( debris[i].storage->GetCount( itemDef ) ) {
+			loc[ *numLoc ].Set( debris[i].x, debris[i].y );
+			*numLoc += 1;
+		}
+	}
+}
 
 
 Storage* Map::LockStorage( int x, int y )

@@ -226,6 +226,9 @@ public:
 	Storage* LockStorage( int x, int y );					//< can return 0 if none there
 	void ReleaseStorage( int x, int y, Storage* storage );	//< sets the storage
 
+	const Storage* GetStorage( int x, int y ) const;		//< take a peek
+	void FindStorage( const ItemDef* itemDef, int maxLoc, grinliz::Vector2I* loc, int* numLoc );
+
 	MapItemDef* InitItemDef( int i );
 	const char* GetItemDefName( int i );
 

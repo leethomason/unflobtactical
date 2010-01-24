@@ -274,6 +274,12 @@ Inventory* Unit::GetInventory()
 }
 
 
+const Inventory* Unit::GetInventory() const
+{
+	return &inventory;
+}
+
+
 void Unit::UpdateInventory() 
 {
 	GLASSERT( status != STATUS_NOT_INIT );
@@ -545,7 +551,7 @@ bool Unit::CanFire( int select, int type ) const
 	float tu = FireTimeUnits( select, type );
 
 	if ( tu > 0.0f && tu <= stats.TU() ) {
-		int rounds = inventory.CalcClipRoundsTotal( GetWeapon()->IsWeapon()->weapon[select].clipType );
+		int rounds = inventory.CalcClipRoundsTotal( GetWeapon()->IsWeapon()->weapon[select].clipItemDef );
 		if ( rounds >= nShots ) 
 			return true;
 	}

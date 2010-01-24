@@ -130,11 +130,10 @@ bool WarriorAI::Think(	const Unit* theUnit,
 	//		check for out of ammo
 	//		do something about out of ammo
 	//		check for blowing up friends
-	//		doesn't use explosives
-	//		check line of site before shooting
 
-	const float MINIMUM_FIRE_CHANCE = 0.02f;		// A shot is only valid if it has this chance of hitting.
-	const int   EXPLOSION_ZONE		= 2;			// radius to check of clusters of enemies to blow up
+	const float MINIMUM_FIRE_CHANCE			= 0.02f;	// A shot is only valid if it has this chance of hitting.
+	const int   EXPLOSION_ZONE				= 2;		// radius to check of clusters of enemies to blow up
+	const float	MINIMUM_EXPLOSIVE_RANGE		= 4.0f;
 
 	action->actionID = ACTION_NONE;
 	Vector2I theUnitPos;
@@ -177,15 +176,20 @@ bool WarriorAI::Think(	const Unit* theUnit,
 												// FIXME: add back in, less of a factor / (float)units[i].GetStats().HPFraction();
 
 							if ( wid->IsExplosive( select ) ) {
-								Rectangle2I bounds;
-								bounds.Set( pos.x-EXPLOSION_ZONE, pos.y-EXPLOSION_ZONE,
-											pos.x+EXPLOSION_ZONE, pos.y+EXPLOSION_ZONE );
-								int count = VisibleUnitsInArea( theUnit, units, targets, m_enemyStart, m_enemyEnd, bounds );
+								if ( len < MINIMUM_EXPLOSIVE_RANGE ) {
+									score = 0.0f;
+								}
+								else {
+									Rectangle2I bounds;
+									bounds.Set( pos.x-EXPLOSION_ZONE, pos.y-EXPLOSION_ZONE,
+												pos.x+EXPLOSION_ZONE, pos.y+EXPLOSION_ZONE );
+									int count = VisibleUnitsInArea( theUnit, units, targets, m_enemyStart, m_enemyEnd, bounds );
 
-								if ( count <= 1 )
-									score *= 0.5f;
-								else
-									score *= (float)count;
+									if ( count <= 1 )
+										score *= 0.5f;
+									else
+										score *= (float)count;
+								}
 							}
 
 							AILOG(( "    target %2d score=%.3f s/t=%d %d chance=%.3f dptu=%.3f\n",
@@ -211,10 +215,41 @@ bool WarriorAI::Think(	const Unit* theUnit,
 		}
 	}
 
+
+	// --------- Weapon Management --------- //
+	// The actual logic of when to swap is tricky. By reaching here, we didn't shoot, but
+	// that could be for many reasons. However, if the primary fire mode is out of rounds,
+	// then swap it if it will help.
+	const Inventory* inventory = theUnit->GetInventory();	
+	const Item* primaryWeapon = inventory->ArmedWeapon();
+	const Item* secondaryWeapon = inventory->SecondaryWeapon();
+
+	int primaryRounds   = 0;
+	int secondaryRounds = 0;
+	if ( primaryWeapon )   primaryRounds   = inventory->CalcClipRoundsTotal( primaryWeapon->ClipType( 0 ) );	
+	if ( secondaryWeapon ) secondaryRounds = inventory->CalcClipRoundsTotal( secondaryWeapon->ClipType( 0 ) );	
+
+	if ( !primaryRounds && secondaryRounds ) {
+		AILOG(( "  **Swapping primary and secondary weapons.\n" ));
+		action->actionID = ACTION_SWAP_WEAPON;
+		return false;
+	}
+
+	// -------- Use & Find Storage --------- //
+	/*
+	if ( !primaryRounds ) {
+		AILOG(( "  Out of Ammo\n" ));
+		
+		const Storage* storage = map->GetStorage( theUnitPos.x, theUnitPos.y );
+		if ( storage ) {
+	}
+	*/
+
 	// -------- Move -------- //
 	// Move closer with the intent of shooting something. Unit visibility change will cause AI
 	// to be re-invoked, so there isn't a concern about getting too close.
 	{
+		AILOG(( "  Move Stategic\n" ));
 		int best = -1;
 		float bestGolfScore = FLT_MAX;
 
@@ -278,7 +313,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 				TrimPathToCost( &path, tu );
 
 				if ( path.size() > 1 ) {
-					GLOUTPUT(( "Unit %d moving to (%d,%d)\n", theUnit - units, path[path.size()-1].x, path[path.size()-1].y ));
+					AILOG(( "  **Moving to (%d,%d)\n", path[path.size()-1].x, path[path.size()-1].y ));
 					action->actionID = ACTION_MOVE;
 					action->move.path.Init( path );
 					return false;
