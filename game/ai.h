@@ -51,10 +51,6 @@ public:
 	// called by Scene
 	void StartTurn( const Unit* units, const Targets& targets );
 
-	// Utility:
-	bool LineOfSight( const Unit* shoot, const Unit* target );
-	void TrimPathToCost( std::vector< grinliz::Vector2<S16> >* path, float maxCost );
-
 	// Return true if done.
 	virtual bool Think( const Unit* move,
 						const Unit* units,
@@ -62,6 +58,14 @@ public:
 						Map* map,
 						AIAction* action ) = 0;
 protected:
+	// Utility:
+	bool LineOfSight( const Unit* shoot, const Unit* target );
+	void TrimPathToCost( std::vector< grinliz::Vector2<S16> >* path, float maxCost );
+	int  VisibleUnitsInArea(	const Unit* theUnit,
+								const Unit* units,
+								const Targets& targets,
+								int start, int end, const grinliz::Rectangle2I& bounds );
+
 	struct LKP {
 		grinliz::Vector2I	pos;
 		int					turns;
