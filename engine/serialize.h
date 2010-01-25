@@ -75,7 +75,7 @@ struct ModelHeader
 				int *indexID );		// index binary data
 };
 
-
+/*
 class UFOStream
 {
 public:
@@ -163,5 +163,6 @@ private:
 	const U8*	EndCap()	{ GLASSERT( buffer ); return buffer + cap; }
 	const U8*	EndSize()	{ GLASSERT( buffer ); return buffer + size; }
 };
+*/
 
 #endif // UFOATTACK_SERIALIZE_INCLUDED

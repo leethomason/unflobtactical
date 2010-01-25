@@ -196,20 +196,23 @@ void Inventory::SwapWeapons()
 
 void Inventory::Save( UFOStream* s ) const
 {
-	s->WriteU8( 1 );	// version
+/*	s->WriteU8( 1 );	// version
 	for( int i=0; i<NUM_SLOTS; ++i ) {
 		slots[i].Save( s );
 	}
+*/
 }
 
 
 void Inventory::Load( UFOStream* s, Engine* engine, Game* game )
 {
+/*
 	int version = s->ReadU8();	// version
 	GLASSERT( version == 1 );
 	for( int i=0; i<NUM_SLOTS; ++i ) {
 		slots[i].Load( s, engine, game );
 	}
+	*/
 }
 
 

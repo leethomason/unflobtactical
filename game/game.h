@@ -74,10 +74,6 @@ public:
 	bool IsShowingPathing()			{ return showPathing; }
 #endif
 
-	//void SaveMap( const char* name );
-	//void LoadMap( const char* name );
-	//void ClearMap()				{ engine.GetMap()->Clear(); }
-
 	enum { MAX_NUM_LIGHT_MAPS = 16,
 
 		   BATTLE_SCENE = 0,
@@ -88,22 +84,17 @@ public:
 		   MAX_STREAMS = MAX_SCENE_STACK*2,
 		 };
 
-
-	UFOStream* OpenStream( const char* name, bool createIfDoesNotExist = true );
-	UFOStream* FindStream( const char* name );
-	void SaveStreamToDisk( UFOStream* s );
-	void SaveAllStreamsToDisk();
-
-	void PushScene( int sceneID );
+	void PushScene( int sceneID, void* data );
 	void PopScene();
 
 	U32 CurrentTime() const	{ return currentTime; }
 
 private:
-	void CreateScene( int id );
+	Scene* CreateScene( int id, void* data );
 	void PushPopScene();
 	bool scenePopQueued;
-	int scenePushQueued;
+	int		scenePushQueued;
+	void*	scenePushQueuedData;
 
 	struct MapLightInit
 	{
@@ -150,19 +141,17 @@ private:
 	void InitMapLight( int index, const MapLightInit* init );
 	void InitMapItemDef( int startIndex, const MapItemInit* );
 
-	UFOStream* rootStream;
-
 	int currentFrame;
 	U32 markFrameTime;
 	U32 frameCountsSinceMark;
 	float framesPerSecond;
 	int trianglesPerSecond;
 	int trianglesSinceMark;
+
 	ModelLoader* modelLoader;
 	sqlite3* database;
 
-	Scene* currentScene;
-	CStack<int> sceneStack;
+	CStack<Scene*> sceneStack;
 
 	U32 currentTime;
 	U32 previousTime;

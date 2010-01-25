@@ -14,7 +14,7 @@ class Texture;
 class CharacterScene : public Scene
 {
 public:
-	CharacterScene( Game* _game );
+	CharacterScene( Game* _game, Unit* unit );
 	virtual ~CharacterScene();
 
 	// UI
@@ -59,11 +59,8 @@ protected:
 
 	const char* description;
 	Storage* storage;
-	int selectedUnit;
 	Unit* unit;
 	Camera savedCamera;
-
-	Unit units[MAX_UNITS];
 };
 
 

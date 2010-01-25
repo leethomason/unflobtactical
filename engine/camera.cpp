@@ -86,20 +86,24 @@ void Camera::CalcEyeDir()
 }
 
 
-void Camera::Save( UFOStream* s ) const
-{
+//void Camera::Save( UFOStream* s ) const
+//{
+	/*
 	s->WriteFloat( tilt );
 	s->WriteFloat( yRotation );
 	s->Write( posWC );
-}
+	*/
+//}
 
-void Camera::Load( UFOStream* s )
-{
+//void Camera::Load( UFOStream* s )
+//{
+	/*
 	tilt = s->ReadFloat();
 	yRotation  = s->ReadFloat();
 	s->Read( &posWC );
 	valid = false;
-}
+	*/
+//}
 
 
 void Camera::Orbit( const Vector3F& _pole, float rotation )

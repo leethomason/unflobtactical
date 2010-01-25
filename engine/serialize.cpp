@@ -61,7 +61,7 @@ void ModelGroup::Load( sqlite3* db, int id )
 	sqlite3_finalize(stmt);	
 }
 
-
+/*
 UFOStream::UFOStream( const char* _name )
 {
 	GLASSERT( strlen( _name ) < EL_FILE_STRING_LEN );
@@ -262,7 +262,7 @@ void UFOStream::EndWriteBits()
 		bit = 0;
 	}
 }
-
+*/
 
 /*
 void UFOStream::SaveFile()

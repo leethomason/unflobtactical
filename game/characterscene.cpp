@@ -13,31 +13,17 @@ const int BUTY = 60;
 
 
 
-CharacterScene::CharacterScene( Game* _game ) 
+CharacterScene::CharacterScene( Game* _game, Unit* unit ) 
 	: Scene( _game )
 {
 	engine = &_game->engine;
 	description = 0;
-	memset( units, 0, sizeof(Unit)*MAX_UNITS );
 
 	backWidget = new UIButtonBox( engine->GetScreenport() );
 	charInvWidget = new UIButtonGroup( engine->GetScreenport() );
 
-	BattleSceneStream bss( game );
-	bss.Load( &selectedUnit, units, false, &savedCamera, game->engine.GetMap() );
-
-	// Hide all the models but selected.
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		if ( i != selectedUnit ) {
-			if ( units[i].GetModel() )
-				units[i].GetModel()->SetFlag( Model::MODEL_INVISIBLE );
-			if ( units[i].GetWeaponModel() )
-				units[i].GetWeaponModel()->SetFlag( Model::MODEL_INVISIBLE );
-		}
-	}
-
-	GLASSERT( selectedUnit < MAX_UNITS );	// else how did we get here?
-	unit = &units[selectedUnit];
+	this->unit = unit;
+	//engine->SoloRender( unit );
 
 	Vector2I mapPos;
 	unit->CalcMapPos( &mapPos, 0 );
@@ -60,6 +46,8 @@ CharacterScene::CharacterScene( Game* _game )
 	Model* model = unit->GetModel();
 	const Vector3F* eyeDir = engine->camera.EyeDir3();
 	Vector3F offset = { 0.0f, model->AABB().SizeY()*0.5f, 0.0f };
+
+	savedCamera = engine->camera;
 	engine->camera.SetPosWC( model->Pos() - eyeDir[0]*10.0f + offset );
 
 	storageWidget->SetOrigin( 230, 70 );
@@ -70,6 +58,10 @@ CharacterScene::CharacterScene( Game* _game )
 
 CharacterScene::~CharacterScene()
 {
+	//engine->SoloRender( 0 );
+	engine->EnableMap( true );
+	engine->camera = savedCamera;
+
 	delete backWidget;
 	delete charInvWidget;
 	delete storageWidget;
@@ -79,8 +71,8 @@ CharacterScene::~CharacterScene()
 	engine->GetMap()->ReleaseStorage( mapPos.x, mapPos.y, storage );
 	storage = 0;
 
-	BattleSceneStream bss( game );
-	bss.Save( selectedUnit, units, &savedCamera, engine->GetMap() );
+	//BattleSceneStream bss( game );
+	//bss.Save( selectedUnit, units, &savedCamera, engine->GetMap() );
 }
 
 
