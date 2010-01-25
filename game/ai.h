@@ -25,6 +25,7 @@ public:
 		ACTION_MOVE = 1,
 		ACTION_SHOOT = 3,
 		ACTION_SWAP_WEAPON = 4,
+		ACTION_PICK_UP = 5,
 	};
 
 	struct MoveAIAction {
@@ -36,11 +37,17 @@ public:
 		grinliz::Vector3F	target;
 	};
 
+	struct PickUpAIAction {
+		enum { MAX_ITEMS = 4 };
+		const ItemDef* itemDefArr[MAX_ITEMS];	// items to be picked up, in priority order.
+	};
+
 	struct AIAction {
 		int actionID;
 		union {
 			MoveAIAction	move;
 			ShootAIAction	shoot;
+			PickUpAIAction	pickUp;
 		};
 	};
 

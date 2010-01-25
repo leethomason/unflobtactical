@@ -127,17 +127,17 @@ bool WarriorAI::Think(	const Unit* theUnit,
 	// - if nothing to move to, stand around
 
 	// FIXME:
-	//		check for out of ammo
-	//		do something about out of ammo
 	//		check for blowing up friends
 
 	const float MINIMUM_FIRE_CHANCE			= 0.02f;	// A shot is only valid if it has this chance of hitting.
 	const int   EXPLOSION_ZONE				= 2;		// radius to check of clusters of enemies to blow up
 	const float	MINIMUM_EXPLOSIVE_RANGE		= 4.0f;
+	const float CLOSE_ENOUGH				= 6.5f;		// don't close closer than this...
 
 	action->actionID = ACTION_NONE;
 	Vector2I theUnitPos;
 	theUnit->CalcMapPos( &theUnitPos, 0 );
+	float theUnitNearTarget = FLT_MAX;
 
 	AILOG(( "Think unit=%d\n", theUnit - units ));
 
@@ -164,7 +164,9 @@ bool WarriorAI::Think(	const Unit* theUnit,
 				units[i].CalcMapPos( &pos, 0 );
 				int len2 = (pos-theUnitPos).LengthSquared();
 				float len = sqrtf( (float)len2 );
-				
+
+				theUnitNearTarget = Min( theUnitNearTarget, len );
+
 				for ( int mode=FIRE_MODE_START; mode<FIRE_MODE_END; ++mode ) {
 					int select, type;
 					wid->FireModeToType( mode, &select, &type );
@@ -236,18 +238,74 @@ bool WarriorAI::Think(	const Unit* theUnit,
 	}
 
 	// -------- Use & Find Storage --------- //
-	/*
-	if ( !primaryRounds ) {
+	if ( !primaryRounds && (primaryWeapon || secondaryWeapon) ) {		// don't need to check secondary: swap has occured if it was useful.
 		AILOG(( "  Out of Ammo\n" ));
-		
+
+		// Is theUnit already standing on the Storage? If so, use!
 		const Storage* storage = map->GetStorage( theUnitPos.x, theUnitPos.y );
 		if ( storage ) {
+			if (    storage->GetCount( primaryWeapon->ClipType( 0 ) ) 
+				 || storage->GetCount( secondaryWeapon->ClipType( 0 ) ) )
+			{
+				// Solves the ammo issue.
+				// Picking up the ammo will result in it being used in the next round.
+				action->actionID = ACTION_PICK_UP;
+				GLASSERT( PickUpAIAction::MAX_ITEMS >= 4 );
+				memset( action->pickUp.itemDefArr, 0, sizeof( const ItemDef* )*PickUpAIAction::MAX_ITEMS );
+
+				action->pickUp.itemDefArr[0] = primaryWeapon ? primaryWeapon->ClipType( 0 ) : 0;
+				action->pickUp.itemDefArr[1] = secondaryWeapon ? secondaryWeapon->ClipType( 0 ) : 0;
+				action->pickUp.itemDefArr[2] = primaryWeapon ? primaryWeapon->ClipType( 1 ) : 0;
+				action->pickUp.itemDefArr[3] = secondaryWeapon ? secondaryWeapon->ClipType( 1 ) : 0;
+				AILOG(( "  **Picking Up Ammo at (%d,%d)\n", theUnitPos.x, theUnitPos.y ));
+				return false;
+			}
+		}
+
+		// Need to find Storage and go there.
+		Vector2I storeLocs[4];
+		int nFound = 0;
+		map->FindStorage( primaryWeapon->ClipType( 0 ), 4, storeLocs, &nFound );
+		if ( nFound ) {
+			if ( nFound > 4 ) nFound = 4;
+			float lowCost = FLT_MAX;
+			int bestPath = -1;
+			
+			Vector2<S16> start = { theUnitPos.x, theUnitPos.y };
+			
+			for( int i=0; i<nFound; ++i ) {
+				Vector2<S16> end = { storeLocs[i].x, storeLocs[i].y };
+				float cost;
+				map->SolvePath( start, end, &cost, &m_path[i] );
+				AILOG(( "    Storage (%d,%d) cost=%.3f\n", end.x, end.y, cost ));
+
+				if ( cost < lowCost ) {
+					lowCost = cost;
+					bestPath = i;
+				}
+			}
+			if ( bestPath >= 0 ) {
+				std::vector< grinliz::Vector2<S16> >& path = m_path[bestPath];
+				TrimPathToCost( &path, theUnit->GetStats().TU() );
+				AILOG(( "  **Moving to Ammo at (%d,%d)\n", storeLocs[bestPath].x, storeLocs[bestPath].y ));
+				action->actionID = ACTION_MOVE;
+				action->move.path.Init( path );
+				return false;
+			}
+		}
 	}
-	*/
 
 	// -------- Move -------- //
 	// Move closer with the intent of shooting something. Unit visibility change will cause AI
 	// to be re-invoked, so there isn't a concern about getting too close.
+
+	// Skip the move if theUnit has good chance is close enough.
+	if (    primaryRounds 
+		 && theUnitNearTarget < CLOSE_ENOUGH )
+	{
+		// Close enough! Don't need strategic move. (And Storage move is done already.)
+	}
+	else if ( primaryRounds || secondaryRounds )
 	{
 		AILOG(( "  Move Stategic\n" ));
 		int best = -1;
