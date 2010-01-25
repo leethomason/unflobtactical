@@ -124,13 +124,13 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	// This should really always hook up to the current map, but for
 	// now do a copy over.
 
-	UFOStream* stream = game->OpenStream( "BattleScene", false );
-	if ( !stream ) {
+//	UFOStream* stream = game->OpenStream( "BattleScene", false );
+//	if ( !stream ) {
 		InitUnits();
-	}
-	else {
-		Load( stream );
-	}
+//	}
+//	else {
+//		Load( stream );
+//	}
 #endif
 
 	visibilityMap.ClearAll();
@@ -151,8 +151,8 @@ BattleScene::~BattleScene()
 		doc.SaveFile();
 	}
 #endif 
-	UFOStream* stream = game->OpenStream( "BattleScene" );
-	Save( stream );
+	//UFOStream* stream = game->OpenStream( "BattleScene" );
+	//Save( stream );
 	ParticleSystem::Instance()->Clear();
 	//FreePathEndModel();
 
@@ -321,18 +321,20 @@ void BattleScene::NextTurn()
 
 void BattleScene::Save( UFOStream* /*s*/ )
 {
-	U32 selectionIndex = MAX_UNITS;
+/*	U32 selectionIndex = MAX_UNITS;
 	if ( selection.soldierUnit ) {
 		selectionIndex = selection.soldierUnit - units;
 	}
 
 	BattleSceneStream stream( game );
 	stream.Save( selectionIndex, units, &engine->camera, engine->GetMap() );
+*/
 }
 
 
 void BattleScene::Load( UFOStream* /*s*/ )
 {
+	/*
 	selection.Clear();
 	int selected;
 
@@ -342,6 +344,7 @@ void BattleScene::Load( UFOStream* /*s*/ )
 	if ( selected < MAX_UNITS ) {
 		selection.soldierUnit = &units[selected];
 	}
+	*/
 }
 
 
@@ -1576,10 +1579,10 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 */
 			case BTN_CHAR_SCREEN:
 				if ( actionStack.Empty() && SelectedSoldierUnit() ) {
-					UFOStream* stream = game->OpenStream( "SingleUnit" );
-					stream->WriteU8( (U8)(SelectedSoldierUnit()-units ) );
-					SelectedSoldierUnit()->Save( stream );
-					game->PushScene( Game::CHARACTER_SCENE );
+					//UFOStream* stream = game->OpenStream( "SingleUnit" );
+					//stream->WriteU8( (U8)(SelectedSoldierUnit()-units ) );
+					//SelectedSoldierUnit()->Save( stream );
+					game->PushScene( Game::CHARACTER_SCENE, SelectedSoldierUnit() );
 				}
 				break;
 

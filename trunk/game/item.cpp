@@ -288,7 +288,7 @@ void Item::UseRounds( int i )
 
 void Item::Save( UFOStream* s ) const
 {
-	s->WriteU8( 1 );	// version
+/*	s->WriteU8( 1 );	// version
 
 	if ( itemDef ) {
 		s->WriteU8( 1 );
@@ -298,11 +298,13 @@ void Item::Save( UFOStream* s ) const
 	else {
 		s->WriteU8( 0 );
 	}
+	*/
 }
 
 
 void Item::Load( UFOStream* s, Engine* engine, Game* game )
 {
+	/*
 	Clear();
 	int version = s->ReadU8();
 	GLASSERT( version == 1 );
@@ -314,6 +316,7 @@ void Item::Load( UFOStream* s, Engine* engine, Game* game )
 		GLASSERT( itemDef );
 		rounds = s->ReadU8();
 	}
+	*/
 }
 
 

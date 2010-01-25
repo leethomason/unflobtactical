@@ -831,6 +831,7 @@ float Engine::GetZoom()
 }
 
 
+/*
 void Engine::Save( UFOStream* s )
 {
 	camera.Save( s );
@@ -846,3 +847,4 @@ void Engine::Load( UFOStream* s )
 	dayNight = (DayNight) s->ReadU8();
 }
 
+*/

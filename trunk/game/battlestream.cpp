@@ -4,6 +4,7 @@
 #include "game.h"
 #include "gamelimits.h"
 
+/*
 void BattleSceneStream::Save(	int selectedUnit,
 								const Unit* units,
 								const Camera* camera,
@@ -74,7 +75,7 @@ void BattleSceneStream::Load(	int *selectedUnit,
 	magic = s->ReadU32();
 	GLASSERT( magic == UFOStream::MAGIC1 );
 }
-
+*/
 /*
 void BattleSceneStream::LoadSelectedUnit( Unit* unit )
 {

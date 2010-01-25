@@ -475,7 +475,7 @@ void Unit::UpdateModel()
 
 void Unit::Save( UFOStream* s ) const
 {
-	s->WriteU8( status );
+/*	s->WriteU8( status );
 	if ( status != STATUS_NOT_INIT ) {
 		s->WriteU8( 1 );	// version
 		s->WriteU8( team );
@@ -487,11 +487,13 @@ void Unit::Save( UFOStream* s ) const
 
 		inventory.Save( s );
 	}
+	*/
 }
 
 
 void Unit::Load( UFOStream* s, Engine* engine, Game* game )
 {
+	/*
 	Free();
 
 	int _status = s->ReadU8();
@@ -521,6 +523,7 @@ void Unit::Load( UFOStream* s, Engine* engine, Game* game )
 		inventory.Load( s, engine, game );
 		UpdateInventory();
 	}
+	*/
 }
 
 

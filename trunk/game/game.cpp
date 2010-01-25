@@ -49,7 +49,6 @@ Game::Game( const Screenport& sp, const char* _savePath ) :
 	trianglesSinceMark( 0 ),
 	previousTime( 0 ),
 	isDragging( false ),
-	currentScene( 0 ),
 	sceneStack(),
 	scenePopQueued( false ),
 	scenePushQueued( -1 )
@@ -64,7 +63,7 @@ Game::Game( const Screenport& sp, const char* _savePath ) :
 #endif
 	}	
 	
-	rootStream = 0;
+	//rootStream = 0;
 	currentFrame = 0;
 	memset( &profile, 0, sizeof( ProfileData ) );
 	surface.Set( Surface::RGBA16, 256, 256 );		// All the memory we will ever need (? or that is the intention)
@@ -109,7 +108,7 @@ Game::Game( const Screenport& sp, const char* _savePath ) :
 
 	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 
-	currentScene = 0;
+	//currentScene = 0;
 	scenePushQueued = BATTLE_SCENE;
 	PushPopScene();
 }
@@ -117,13 +116,9 @@ Game::Game( const Screenport& sp, const char* _savePath ) :
 
 Game::~Game()
 {
-	delete currentScene;
-	currentScene = 0;
-
-	while( rootStream ) {
-		UFOStream* temp = rootStream;
-		rootStream = rootStream->next;
-		delete temp;
+	while( !sceneStack.Empty() ) {
+		delete sceneStack.Top();
+		sceneStack.Pop();
 	}
 	for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
 		delete itemDefArr[i];
@@ -133,41 +128,11 @@ Game::~Game()
 }
 
 
-UFOStream* Game::FindStream( const char* name )
-{
-	GLASSERT( strlen( name ) < EL_FILE_STRING_LEN );
-
-	UFOStream* s = rootStream;
-
-	while ( s ) {
-		if ( strcmp( s->Name(), name ) == 0 ) {
-			return s;
-		}
-		s = s->next;
-	}
-	return 0;
-}
-
-
-UFOStream* Game::OpenStream( const char* name, bool create )
-{
-	UFOStream* s = FindStream( name );
-	if ( !s && create ) {
-		s = new UFOStream( name );
-		s->next = rootStream;
-		rootStream = s;
-	}
-	if ( s ) {
-		s->SeekSet( 0 );
-	}
-	return s;
-}
-
-
-void Game::PushScene( int id ) 
+void Game::PushScene( int id, void* data ) 
 {
 	GLASSERT( scenePushQueued == -1 );
 	scenePushQueued = id;
+	scenePushQueuedData = data;
 }
 
 
@@ -182,39 +147,38 @@ void Game::PushPopScene()
 	if ( scenePushQueued >= 0 ) {
 		GLASSERT( scenePushQueued < NUM_SCENES );
 
-		if ( currentScene ) {
-			GLASSERT( !sceneStack.Empty() );
-			delete currentScene;
-			currentScene = 0;
-		}
-		sceneStack.Push( scenePushQueued );
-		CreateScene( scenePushQueued );
+//		if ( currentScene ) {
+//			GLASSERT( !sceneStack.Empty() );
+//			delete currentScene;
+//			currentScene = 0;
+//		}
+		Scene* scene = CreateScene( scenePushQueued, scenePushQueuedData );
+		sceneStack.Push( scene );
 	}
 	if ( scenePopQueued ) {
 		GLASSERT( !sceneStack.Empty() );
-		GLASSERT( currentScene );
 
-		delete currentScene;
-		currentScene = 0;
-
+		delete sceneStack.Top();
 		sceneStack.Pop();
 		GLASSERT( !sceneStack.Empty() );
-		CreateScene( sceneStack.Top() );
+		//CreateScene( sceneStack.Top() );
 	}
 	scenePushQueued = -1;
 	scenePopQueued = false;
 }
 
 
-void Game::CreateScene( int id )
+Scene* Game::CreateScene( int id, void* data )
 {
+	Scene* scene = 0;
 	switch ( id ) {
-		case BATTLE_SCENE:		currentScene = new BattleScene( this );			break;
-		case CHARACTER_SCENE:	currentScene = new CharacterScene( this );		break;
+		case BATTLE_SCENE:		scene = new BattleScene( this );						break;
+		case CHARACTER_SCENE:	scene = new CharacterScene( this, (Unit*)data );		break;
 		default:
 			GLASSERT( 0 );
 			break;
 	}
+	return scene;
 }
 
 
@@ -295,7 +259,8 @@ void Game::DoTick( U32 _currentTime )
 	}
 #endif
 
-	currentScene->DoTick( currentTime, deltaTime );
+	Scene* scene = sceneStack.Top();
+	scene->DoTick( currentTime, deltaTime );
 
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_NORMAL_ARRAY );
@@ -329,7 +294,7 @@ void Game::DoTick( U32 _currentTime )
 
 	trianglesSinceMark += trianglesRendered;
 
-	currentScene->DrawHUD();
+	scene->DrawHUD();
 
 #ifdef DEBUG
 	UFOText::Draw(	0,  0, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s %dnew", 
@@ -395,7 +360,7 @@ void Game::Tap( int tap, int sx, int sy )
 	engine.CalcModelViewProjectionInverse( &mvpi );
 	engine.RayFromScreen( view.x, view.y, mvpi, &world );
 
-	currentScene->Tap( tap, view, world );
+	sceneStack.Top()->Tap( tap, view, world );
 }
 
 
@@ -411,22 +376,22 @@ void Game::Drag( int action, int sx, int sy )
 		{
 			GLASSERT( !isDragging );
 			isDragging = true;
-			currentScene->Drag( action, view );
+			sceneStack.Top()->Drag( action, view );
 		}
 		break;
 
 		case GAME_DRAG_MOVE:
 		{
 			GLASSERT( isDragging );
-			currentScene->Drag( action, view );
+			sceneStack.Top()->Drag( action, view );
 		}
 		break;
 
 		case GAME_DRAG_END:
 		{
 			GLASSERT( isDragging );
-			currentScene->Drag( GAME_DRAG_MOVE, view );
-			currentScene->Drag( GAME_DRAG_END, view );
+			sceneStack.Top()->Drag( GAME_DRAG_MOVE, view );
+			sceneStack.Top()->Drag( GAME_DRAG_END, view );
 			isDragging = false;
 		}
 		break;
@@ -440,13 +405,13 @@ void Game::Drag( int action, int sx, int sy )
 
 void Game::Zoom( int action, int distance )
 {
-	currentScene->Zoom( action, distance );
+	sceneStack.Top()->Zoom( action, distance );
 }
 
 
 void Game::Rotate( int action, float degrees )
 {
-	currentScene->Rotate( action, degrees );
+	sceneStack.Top()->Rotate( action, degrees );
 }
 
 

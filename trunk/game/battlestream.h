@@ -2,6 +2,7 @@
 #ifndef BATTLESCENESTREAM_INCLUDED
 #define BATTLESCENESTREAM_INCLUDED
 
+/*
 class Game;
 class UFOStream;
 class Unit;
@@ -28,5 +29,5 @@ public:
 private:
 	Game* game;
 };
-
+*/
 #endif // BATTLESCENESTREAM_INCLUDED
