@@ -209,9 +209,7 @@ public:
 	// --- handle weapons ----//
 	// consume one rounds
 	void UseRounds( int n=1 );
-//	int ClipType( int select ) const				{	GLASSERT( IsWeapon() );
-//														return IsWeapon()->weapon[select].clipType;
-//													}
+
 	const ClipItemDef* ClipType( int select ) const	{	GLASSERT( IsWeapon() );
 														return IsWeapon()->weapon[select].clipItemDef;
 													}

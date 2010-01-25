@@ -240,8 +240,10 @@ void BattleScene::InitUnits()
 			inventory->AddItem( cell );
 			inventory->AddItem( tachyon );
 		}
+		else if ( i==1 ) {
+			inventory->AddItem( plasmaRifle );
+		}
 		else {
-			inventory->AddItem( gun0 );
 			inventory->AddItem( plasmaRifle );
 			inventory->AddItem( cell );
 			inventory->AddItem( tachyon );
@@ -249,6 +251,15 @@ void BattleScene::InitUnits()
 		unit->UpdateInventory();
 		unit->SetMapPos( alienPos[i] );
 	}
+
+	Storage* extraAmmo = engine->GetMap()->LockStorage( 12, 20 );
+	if ( !extraAmmo )
+		extraAmmo = new Storage();
+	extraAmmo->AddItem( cell );
+	extraAmmo->AddItem( cell );
+	extraAmmo->AddItem( tachyon );
+	engine->GetMap()->ReleaseStorage( 12, 20, extraAmmo );
+
 
 	/*
 	for( int i=0; i<4; ++i ) {
@@ -939,6 +950,36 @@ bool BattleScene::ProcessAI()
 						{
 							Inventory* inv = units[i].GetInventory();
 							inv->SwapWeapons();
+						}
+						break;
+
+					case AI::ACTION_PICK_UP:
+						{
+							const AI::PickUpAIAction& pick = aiAction.pickUp;
+
+							Vector2I pos = units[i].Pos();
+							Storage* storage = engine->GetMap()->LockStorage( pos.x, pos.y );
+							GLASSERT( storage );
+							Inventory* inventory = units[i].GetInventory();
+
+							if ( storage ) {
+								for( int k=0; k<pick.MAX_ITEMS; ++k ) {
+									if ( pick.itemDefArr[k] ) {
+										while ( storage->GetCount( pick.itemDefArr[k] ) ) {
+
+											Item item;
+											storage->RemoveItem( pick.itemDefArr[k], &item );
+											if ( !inventory->AddItem( item ) ) {
+												// Couldn't add to inventory. Return to storage.
+												storage->AddItem( item );
+												// and don't try adding this item again...
+												break;
+											}
+										}
+									}
+								}
+								engine->GetMap()->ReleaseStorage( pos.x, pos.y, storage );
+							}
 						}
 						break;
 

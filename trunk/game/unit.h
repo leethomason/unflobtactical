@@ -88,6 +88,12 @@ public:
 
 	// Compute the map pos: x,y (always int) and rotation (always multiple of 45)
 	void CalcMapPos( grinliz::Vector2I*, float* rotation ) const;
+	// Convenience to CalcMapPos
+	grinliz::Vector2I Pos() const {
+		grinliz::Vector2I p;
+		CalcMapPos( &p, 0 );
+		return p;
+	}
 
 	Item* GetWeapon();
 	const Item* GetWeapon() const;
