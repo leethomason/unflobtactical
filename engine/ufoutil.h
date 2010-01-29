@@ -36,6 +36,10 @@ public:
 		GLASSERT( size > 0 );
 		return stack[size-1];
 	}
+	T& Bottom() {
+		GLASSERT( size > 0 );
+		return stack[0];
+	}
 	int Size()		{ return (int)size; }
 
 private:

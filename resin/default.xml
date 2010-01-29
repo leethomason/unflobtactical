@@ -88,6 +88,7 @@
 
   <image filename="objectLightMaps.png" />
   
-	<map filename="map.db" />
+	<map filename="testmap.xml" />
+  <data filename="testgame.xml" />
   
 </resource>

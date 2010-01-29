@@ -42,7 +42,7 @@ class Game;
 struct DamageDesc;
 class SustainedPyroEffect;
 class ParticleSystem;
-class TiXmlDocument;
+class TiXmlElement;
 
 
 
@@ -245,8 +245,8 @@ public:
 
 	void ResetPath();	// normally called automatically
 
-	static sqlite3* CreateMap( const std::string& savePAth, sqlite3* resourceDB );
-	void SyncToDB( sqlite3* db, const char* table );
+	//static sqlite3* CreateMap( const std::string& savePAth, sqlite3* resourceDB );
+	//void SyncToDB( sqlite3* db, const char* table );
 	void Clear();
 
 	void DumpTile( int x, int z );
@@ -282,7 +282,8 @@ public:
 	bool OpenDoor( int x, int y, bool open );
 	void QueryAllDoors( CDynArray< grinliz::Vector2I >* doors );
 
-	void Save( TiXmlDocument* doc );
+	void Save( TiXmlElement* parent );
+	void Load( const TiXmlElement* mapNode );
 
 private:
 	struct IMat
@@ -370,16 +371,12 @@ private:
 	void CalcVisPathMap( grinliz::Rectangle2I& bounds );
 
 	void DeleteItem( MapItem* item );
-	void InsertRow( int x, int y, int r, int def, int hp, int flags );
-	void DeleteRow( int x, int y, int r, int def );
 
 	grinliz::Random random;
 	int width, height;
 	grinliz::Rectangle3F bounds;
 	const Texture* texture;
 	SpaceTree* tree;
-	sqlite3* mapDB;
-	std::string dbTableName;
 
 	Vertex vertex[4];
 	grinliz::Vector2F texture1[4];
@@ -426,11 +423,8 @@ private:
 	std::vector<void*>					mapPath;
 	std::vector< micropather::StateCost > stateCostArr;
 
-	//grinliz::BitArray< SIZE, SIZE, 3 >	walkingMap;
-
 	void PushWalkingVertex( int x, int z, float tx, float ty ) 
 	{
-		//GLASSERT( nWalkingVertex < 6*MAX_TRAVEL*MAX_TRAVEL );
 		Vertex* v = walkingVertex.Push();
 		v->normal.Set( 0.0f, 1.0f, 0.0f );
 		v->pos.Set( (float)x, 0.0f,(float)(z) );

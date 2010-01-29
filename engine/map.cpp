@@ -40,10 +40,11 @@ extern int drawCalls;			// ditto
 Map::Map( SpaceTree* tree )
 	: itemPool( "mapItemPool", sizeof( MapItem ), sizeof( MapItem ) * 200, false )
 {
+	memset( pyro, 0, SIZE*SIZE*sizeof(U8) );
 	memset( visMap, 0, SIZE*SIZE );
 	memset( pathMap, 0, SIZE*SIZE );
 	memset( itemDefArr, 0, sizeof(MapItemDef)*MAX_ITEM_DEF );
-	mapDB = 0;
+	//mapDB = 0;
 
 	microPather = new MicroPather(	this,			// graph interface
 									SIZE*SIZE,		// max possible states (+1)
@@ -647,10 +648,10 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 			invalidLightMap = mapBounds;
 	}
 
-	if ( mapDB && !(flags & MapItem::MI_NOT_IN_DATABASE )) {
-		DeleteRow( item->x, item->y, item->rot, item->itemDefIndex );
-		InsertRow( item->x, item->y, item->rot, item->itemDefIndex, item->hp, 0 );
-	}
+//	if ( mapDB && !(flags & MapItem::MI_NOT_IN_DATABASE )) {
+//		DeleteRow( item->x, item->y, item->rot, item->itemDefIndex );
+//		InsertRow( item->x, item->y, item->rot, item->itemDefIndex, item->hp, 0 );
+//	}
 
 	return item;
 }
@@ -678,9 +679,9 @@ void Map::DeleteItem( MapItem* item )
 			invalidLightMap = mapBounds;
 	}
 
-	if ( mapDB && !(item->flags & MapItem::MI_NOT_IN_DATABASE )) {
-		DeleteRow( item->x, item->y, item->rot, item->itemDefIndex );
-	}
+//	if ( mapDB && !(item->flags & MapItem::MI_NOT_IN_DATABASE )) {
+//		DeleteRow( item->x, item->y, item->rot, item->itemDefIndex );
+//	}
 
 	if ( item->model )
 		tree->FreeModel( item->model );
@@ -692,10 +693,9 @@ void Map::DeleteItem( MapItem* item )
 }
 
 
-void Map::Save( TiXmlDocument* doc )
+void Map::Save( TiXmlElement* mapElement )
 {
-	TiXmlElement* mapElement = new TiXmlElement( "Map" );
-	doc->LinkEndChild( mapElement );
+	GLASSERT( strcmp( mapElement->Value(), "Map" ) == 0 );
 
 	TiXmlElement* itemsElement = new TiXmlElement( "Items" );
 	mapElement->LinkEndChild( itemsElement );
@@ -708,12 +708,61 @@ void Map::Save( TiXmlDocument* doc )
 		TiXmlElement* itemElement = new TiXmlElement( "Item" );
 		itemElement->SetAttribute( "x", item->x );
 		itemElement->SetAttribute( "y", item->y );
-		itemElement->SetAttribute( "rot", item->rot );
+		if ( item->rot != 0 )
+			itemElement->SetAttribute( "rot", item->rot );
 		itemElement->SetAttribute( "index", item->itemDefIndex );
-		itemElement->SetAttribute( "open", item->open );
-		itemElement->SetAttribute( "hp", item->hp );
-		itemElement->SetAttribute( "flags", item->flags );
+		if ( item->hp != 0xffff )
+			itemElement->SetAttribute( "hp", item->hp );
+		if ( item->flags )
+			itemElement->SetAttribute( "flags", item->flags );
 		itemsElement->LinkEndChild( itemElement );
+	}
+
+	TiXmlElement* groundDebrisElement = new TiXmlElement( "GroundDebris" );
+	mapElement->LinkEndChild( groundDebrisElement );
+
+	for( int i=0; i<debris.Size(); ++i ) {
+		TiXmlElement* debrisElement = new TiXmlElement( "Debris" );
+		debrisElement->SetAttribute( "x", debris[i].x );
+		debrisElement->SetAttribute( "y", debris[i].y );
+
+		groundDebrisElement->LinkEndChild( debrisElement );
+		debris[i].storage->Save( debrisElement );
+	}
+}
+
+
+void Map::Load( const TiXmlElement* mapElement )
+{
+	if ( strcmp( mapElement->Value(), "Game" ) == 0 ) {
+		mapElement = mapElement->FirstChildElement( "Map" );
+	}
+	GLASSERT( mapElement );
+	GLASSERT( strcmp( mapElement->Value(), "Map" ) == 0 );
+
+	const TiXmlElement* itemsElement = mapElement->FirstChildElement( "Items" );
+	GLASSERT( itemsElement );
+	if ( itemsElement ) {
+		for(	const TiXmlElement* item = itemsElement->FirstChildElement( "Item" );
+				item;
+				item = item->NextSiblingElement( "Item" ) )
+		{
+			int x=0;
+			int y=0;
+			int rot = 0;
+			int index = 0;
+			int hp = 0xffff;
+			int flags = 0;
+
+			item->QueryIntAttribute( "x", &x );
+			item->QueryIntAttribute( "y", &y );
+			item->QueryIntAttribute( "rot", &rot );
+			item->QueryIntAttribute( "index", &index );
+			item->QueryIntAttribute( "hp", &hp );
+			item->QueryIntAttribute( "flags", &flags );
+
+			AddItem( x, y, rot, index, hp, flags );
+		}
 	}
 }
 
@@ -893,6 +942,7 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 }
 
 
+/*
 void Map::DeleteRow( int x, int y, int r, int def )
 {
 	sqlite3_stmt* stmt = 0;
@@ -1013,9 +1063,10 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 		mapDB = 0;
 	}
 }
+*/
 
-
-/*static*/ sqlite3* Map::CreateMap( const std::string& savePath, sqlite3* res )
+/*static*/ 
+/*sqlite3* Map::CreateMap( const std::string& savePath, sqlite3* res )
 {
 	sqlite3_stmt* stmt = 0;
 	int result = sqlite3_prepare_v2( res, "SELECT * FROM map",-1, &stmt, 0 );
@@ -1053,7 +1104,7 @@ void Map::SyncToDB( sqlite3* db, const char* tableName )
 	sqlite3_open( path.c_str(), &db );
 	return db;
 }
-
+*/
 
 const Storage* Map::GetStorage( int x, int y ) const
 {

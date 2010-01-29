@@ -9,7 +9,7 @@
 #include "gamelimits.h"
 
 class ModelResource;
-class UFOStream;
+class TiXmlElement;
 class Engine;
 class Game;
 class ParticleSystem;
@@ -221,8 +221,8 @@ public:
 	bool IsNothing() const							{ return itemDef == 0; }
 	bool IsSomething() const						{ return itemDef != 0; }
 
-	void Save( UFOStream* s ) const;
-	void Load( UFOStream* s, Engine* engine, Game* game );
+	void Save( TiXmlElement* doc ) const;
+	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
 
 private:
 	int rounds;
@@ -245,6 +245,9 @@ public:
 	
 	void SetCount( const ItemDef*, int count );
 	int GetCount( const ItemDef* ) const;
+
+	void Save( TiXmlElement* parent );
+	void Load( const TiXmlElement* mapNode );
 
 private:
 	int GetIndex( const ItemDef* itemDef ) const {

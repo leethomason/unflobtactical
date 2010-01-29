@@ -6,7 +6,7 @@
 
 class Game;
 class Engine;
-class UFOStream;
+class TiXmlElement;
 
 #pragma warning ( push )
 #pragma warning ( disable : 4100 )	// un-referenced formal parameter
@@ -28,8 +28,8 @@ public:
 	virtual void Rotate( int action, float degrees )			{}
 	virtual void CancelInput()									{}
 
-	virtual void Save( UFOStream* s )							{}
-	virtual void Load( UFOStream* s )							{}
+	virtual void Save( TiXmlElement* doc )						{}
+	virtual void Load( const TiXmlElement* doc )				{}
 
 	// Rendering
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}

@@ -6,6 +6,10 @@ const float FOV = 45.0f;
 const int SUBTURNS_PER_TURN = 3;
 const float FIRE_DAMAGE_PER_SUBTURN = 20.0f;
 
+const int TERRAN_TEAM			= 0;
+const int CIV_TEAM				= 1;
+const int ALIEN_TEAM			= 2;
+
 const int TERRAN_UNITS_START	= 0;
 const int TERRAN_UNITS_END		= 8;
 const int CIV_UNITS_START		= 8;

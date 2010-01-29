@@ -257,14 +257,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\game\battlestream.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\game\battlestream.h"
-				>
-			</File>
-			<File
 				RelativePath=".\game\cgame.cpp"
 				>
 			</File>

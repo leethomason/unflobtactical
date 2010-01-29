@@ -29,7 +29,8 @@
 #include "../grinliz/glmatrix.h"
 #include "../grinliz/glutil.h"
 #include "../grinliz/glperformance.h"
-#include "../sqlite3/sqlite3.h"
+#include "../grinliz/glstringutil.h"
+#include "../tinyxml/tinyxml.h"
 #include "../shared/gldatabase.h"
 #include "../version.h"
 
@@ -91,31 +92,83 @@ Game::Game( const Screenport& sp, const char* _savePath ) :
 	UFOText::InitScreen( engine.GetScreenport() );
 	engine.GetMap()->SetLightObjects( GetLightMap( "objectLightMaps" ) );
 
-#ifdef MAPMAKER
-	showPathing = false;
-#else
-	// If we aren't the map maker, then we need to load a map.
-	// For now, always create a new one.
-	sqlite3* mapDB = Map::CreateMap( savePath, database );
-	engine.GetMap()->SyncToDB( mapDB, "farmland" );
-
-
-#endif
-
 	engine.GetMap()->SetSize( 40, 40 );
 	engine.GetMap()->SetTexture( TextureManager::Instance()->GetTexture("farmland" ) );
 	engine.SetDayNight( true, 0 );
 
 	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 
-	//currentScene = 0;
 	scenePushQueued = BATTLE_SCENE;
 	PushPopScene();
+
+#ifdef MAPMAKER
+	showPathing = false;
+
+	TiXmlDocument doc( "./resin/testmap.xml" );
+	doc.LoadFile();
+	if ( !doc.Error() )
+		engine.GetMap()->Load( doc.FirstChildElement( "Map" ) );
+#else
+	{
+		TiXmlDocument doc;
+
+#if 0
+		// Try to load an existing file
+		std::string path = savePath + "testgame.xml";
+		doc.LoadFile( path );
+		if ( !doc.Error() ) {
+			Load( doc );
+		}
+		else 
+#endif
+		{
+			// pull the default game from the resource
+
+			sqlite3_stmt* stmt = 0;
+			sqlite3_prepare_v2(database, "SELECT * FROM map WHERE name='testgame';", -1, &stmt, 0 );
+
+			int id=0;
+			if (sqlite3_step(stmt) == SQLITE_ROW) {
+				id = sqlite3_column_int(  stmt, 1 );
+			}
+			else {
+				GLASSERT( 0 );
+			}
+			sqlite3_finalize(stmt);
+
+			int size;
+			BinaryDBReader reader( database );
+			reader.ReadSize( id, &size );
+			char* mem = new char[size];
+			reader.ReadData( id, size, mem );
+			doc.Parse( mem );
+			delete [] mem;
+
+			if ( !doc.Error() ) {
+				Load( doc );
+			}
+		}
+	}
+#endif
 }
 
 
 Game::~Game()
 {
+#ifdef MAPMAKER
+	TiXmlDocument doc( "./resin/testmap.xml" );
+	TiXmlElement map( "Map" );
+	doc.InsertEndChild( map );
+	engine.GetMap()->Save( doc.FirstChildElement( "Map" ) );
+	doc.SaveFile();
+#else
+	TiXmlDocument doc;
+	Save( &doc );
+	std::string path = savePath + "testgameout.xml";
+	doc.SaveFile( path );
+
+#endif
+
 	while( !sceneStack.Empty() ) {
 		delete sceneStack.Top();
 		sceneStack.Pop();
@@ -179,6 +232,29 @@ Scene* Game::CreateScene( int id, void* data )
 			break;
 	}
 	return scene;
+}
+
+
+void Game::Load( const TiXmlDocument& doc )
+{
+	// Already pushed the BattleScene. Note that the
+	// BOTTOM of the stack saves and loads. (BattleScene or GeoScene).
+	const TiXmlElement* game = doc.RootElement();
+	GLASSERT( StrEqual( game->Value(), "Game" ) );
+	sceneStack.Bottom()->Load( game );
+}
+
+
+void Game::Save( TiXmlDocument* doc )
+{
+	TiXmlElement sceneElement( "Scene" );
+	sceneElement.SetAttribute( "id", 0 );
+
+	TiXmlElement gameElement( "Game" );
+	gameElement.InsertEndChild( sceneElement );
+
+	doc->InsertEndChild( gameElement );
+	sceneStack.Bottom()->Save( doc->RootElement() );
 }
 
 
@@ -439,9 +515,8 @@ void Game::MouseMove( int sx, int sy )
 //				p.x, p.y, p.z ));
 
 #ifdef MAPMAKER
-	if ( sceneStack.Top() == BATTLE_SCENE ) {
-		((BattleScene*)currentScene)->MouseMove( view.x, view.y );
-	}
+	// Can only be battlescene:
+	((BattleScene*)sceneStack.Top())->MouseMove( view.x, view.y );
 #endif
 }
 
@@ -466,24 +541,18 @@ void Game::SetPathToSave( const char* path )
 
 void Game::RotateSelection( int delta )
 {
-	if ( sceneStack.Top() == BATTLE_SCENE ) {
-		((BattleScene*)currentScene)->RotateSelection( delta );
-	}
+	((BattleScene*)sceneStack.Top())->RotateSelection( delta );
 }
 
 void Game::DeleteAtSelection()
 {
-	if ( sceneStack.Top() == BATTLE_SCENE ) {
-		((BattleScene*)currentScene)->DeleteAtSelection();
-	}
+	((BattleScene*)sceneStack.Top())->DeleteAtSelection();
 }
 
 
 void Game::DeltaCurrentMapItem( int d )
 {
-	if ( sceneStack.Top() == BATTLE_SCENE ) {
-		((BattleScene*)currentScene)->DeltaCurrentMapItem(d);
-	}
+	((BattleScene*)sceneStack.Top())->DeltaCurrentMapItem(d);
 }
 
 #endif

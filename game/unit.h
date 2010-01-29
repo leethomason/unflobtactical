@@ -12,7 +12,6 @@
 #include "inventory.h"
 #include "gamelimits.h"
 
-class UFOStream;
 class Model;
 class ModelResource;
 class Engine;
@@ -29,16 +28,11 @@ public:
 	};
 
 	enum {
-		SOLDIER,
-		CIVILIAN,
-		ALIEN
-	};
-
-	enum {
 		ALIEN_0,	// grey
 		ALIEN_1,	// mind zapper
 		ALIEN_2,	// trooper
-		ALIEN_3		// elite
+		ALIEN_3,	// elite
+		ALIEN_MASK = 3
 	};
 
 	enum {
@@ -51,6 +45,7 @@ public:
 
 	void Init(	Engine* engine, Game* game, 
 				int team,	 
+				int status,
 				int alienType,	// if alien...
 				U32 seed );
 	
@@ -124,9 +119,8 @@ public:
 
 	const Stats& GetStats() const	{ return stats; }
 
-	void Save( UFOStream* s ) const;
-	void Load( UFOStream* s, Engine* engine, Game* game );
-
+	void Save( TiXmlElement* doc ) const;
+	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
 
 private:
 	enum {	
@@ -157,10 +151,10 @@ private:
 	Engine*		engine;
 	Model*		model;
 	Model*		weapon;
-	Inventory	inventory;
-	bool visibilityCurrent;	// if set, the visibility is current. Can be set by CalcAllVisibility()
+	bool		visibilityCurrent;	// if set, the visibility is current. Can be set by CalcAllVisibility()
 
-	Stats stats;
+	Inventory	inventory;
+	Stats		stats;
 };
 
 
