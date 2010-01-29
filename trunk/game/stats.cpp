@@ -2,6 +2,7 @@
 #include "../grinliz/glutil.h"
 #include "../grinliz/glrandom.h"
 #include "gamelimits.h"
+#include "../tinyxml/tinyxml.h"
 
 using namespace grinliz;
 
@@ -35,4 +36,34 @@ void Stats::CalcBaselines()
 								(float)TRAIT_SOLDIER_HIGH,	REACTION_SLOW,
 								(float)levDEX );
 }
+
+
+void Stats::Save( TiXmlElement* doc ) const
+{
+	TiXmlElement* element = new TiXmlElement( "Stats" );
+	element->SetAttribute( "STR", _STR );
+	element->SetAttribute( "DEX", _DEX );
+	element->SetAttribute( "PSY", _PSY );
+	element->SetAttribute( "level", level );
+	element->SetAttribute( "hp", hp );
+	element->SetDoubleAttribute( "tu", tu );
+	doc->LinkEndChild( element );
+}
+
+
+void Stats::Load( const TiXmlElement* parent )
+{
+	const TiXmlElement* ele = parent->FirstChildElement( "Stats" );
+	GLASSERT( ele );
+	if ( ele ) {
+		ele->QueryValueAttribute( "STR", &_STR );
+		ele->QueryValueAttribute( "DEX", &_DEX );
+		ele->QueryValueAttribute( "PSY", &_PSY );
+		ele->QueryValueAttribute( "level", &level );
+		CalcBaselines();
+		ele->QueryValueAttribute( "hp", &hp );
+		ele->QueryValueAttribute( "tu", &tu );
+	}
+}
+
 

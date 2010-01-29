@@ -25,15 +25,15 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	uiMode = UIM_NORMAL;
 	nearPathState = NEAR_PATH_INVALID;
 
-	aiArr[Unit::ALIEN]		= new WarriorAI( Unit::ALIEN, engine->GetSpaceTree() );
-	aiArr[Unit::SOLDIER]		= 0;
+	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, engine->GetSpaceTree() );
+	aiArr[TERRAN_TEAM]		= 0;
 	// FIXME: use warrior AI for now...
-	aiArr[Unit::CIVILIAN]	= new WarriorAI( Unit::CIVILIAN, engine->GetSpaceTree() );
+	aiArr[CIV_TEAM]			= new WarriorAI( CIV_TEAM, engine->GetSpaceTree() );
 
 #ifdef MAPMAKER
 	currentMapItem = 1;
-	sqlite3_open( "./resin/map.db", &mapDatabase );
-	engine->GetMap()->SyncToDB( mapDatabase, "farmland" );
+//	sqlite3_open( "./resin/map.db", &mapDatabase );
+//	engine->GetMap()->SyncToDB( mapDatabase, "farmland" );
 #endif
 
 	// On screen menu.
@@ -126,7 +126,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 
 //	UFOStream* stream = game->OpenStream( "BattleScene", false );
 //	if ( !stream ) {
-		InitUnits();
+//		InitUnits();
 //	}
 //	else {
 //		Load( stream );
@@ -134,23 +134,11 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 #endif
 
 	visibilityMap.ClearAll();
-	SetFogOfWar();
-	currentTeamTurn = Unit::ALIEN;
-	NextTurn();
-	engine->GetMap()->QueryAllDoors( &doors );
-	ProcessDoors();
 }
 
 
 BattleScene::~BattleScene()
 {
-#ifdef MAPMAKER
-	{
-		TiXmlDocument doc( "testmap.xml" );
-		engine->GetMap()->Save( &doc );
-		doc.SaveFile();
-	}
-#endif 
 	//UFOStream* stream = game->OpenStream( "BattleScene" );
 	//Save( stream );
 	ParticleSystem::Instance()->Clear();
@@ -161,7 +149,7 @@ BattleScene::~BattleScene()
 		engine->FreeModel( mapSelection );
 	if ( preview )
 		engine->FreeModel( preview );
-	sqlite3_close( mapDatabase );
+	//sqlite3_close( mapDatabase );
 #endif
 
 	for( int i=0; i<3; ++i )
@@ -196,7 +184,7 @@ void BattleScene::InitUnits()
 		Unit* unit = &units[TERRAN_UNITS_START+i];
 
 		random.Rand();
-		unit->Init( engine, game, Unit::SOLDIER, 0, random.Rand() );
+		unit->Init( engine, game, Unit::STATUS_ALIVE, TERRAN_TEAM, 0, random.Rand() );
 
 		Inventory* inventory = unit->GetInventory();
 
@@ -233,7 +221,7 @@ void BattleScene::InitUnits()
 	for( int i=0; i<4; ++i ) {
 		Unit* unit = &units[ALIEN_UNITS_START+i];
 
-		unit->Init( engine, game, Unit::ALIEN, i&3, random.Rand() );
+		unit->Init( engine, game, ALIEN_TEAM, Unit::STATUS_ALIVE, i&3, random.Rand() );
 		Inventory* inventory = unit->GetInventory();
 		if ( (i&1) == 0 ) {
 			inventory->AddItem( gun1 );
@@ -264,7 +252,7 @@ void BattleScene::InitUnits()
 	/*
 	for( int i=0; i<4; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-12 };
-		units[CIV_UNITS_START+i].Init( engine, game, Unit::CIVILIAN, 0, random.Rand() );
+		units[CIV_UNITS_START+i].Init( engine, game, CIV_TEAM, 0, random.Rand() );
 		units[CIV_UNITS_START+i].SetMapPos( pos.x, pos.y );
 	}
 	*/
@@ -273,26 +261,22 @@ void BattleScene::InitUnits()
 
 void BattleScene::NextTurn()
 {
-	currentTeamTurn = (currentTeamTurn==Unit::ALIEN) ? Unit::SOLDIER : Unit::ALIEN;	// FIXME: go to 3 state
-
-	if ( aiArr[currentTeamTurn] ) {
-		aiArr[currentTeamTurn]->StartTurn( units, m_targets );
-	}
+	currentTeamTurn = (currentTeamTurn==ALIEN_TEAM) ? TERRAN_TEAM : ALIEN_TEAM;	// FIXME: go to 3 state
 
 	switch ( currentTeamTurn ) {
-		case Unit::SOLDIER:
+		case TERRAN_TEAM:
 			GLOUTPUT(( "New Turn: Terran\n" ));
 			for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i )
 				units[i].NewTurn();
 			break;
 
-		case Unit::ALIEN:
+		case ALIEN_TEAM:
 			GLOUTPUT(( "New Turn: Alien\n" ));
 			for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i )
 				units[i].NewTurn();
 			break;
 
-		case Unit::CIVILIAN:
+		case CIV_TEAM:
 			GLOUTPUT(( "New Turn: Civ\n" ));
 			for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i )
 				units[i].NewTurn();
@@ -316,35 +300,55 @@ void BattleScene::NextTurn()
 	// Since the map has changed:
 	CalcTeamTargets();
 	SetFogOfWar();
-}
-
-
-void BattleScene::Save( UFOStream* /*s*/ )
-{
-/*	U32 selectionIndex = MAX_UNITS;
-	if ( selection.soldierUnit ) {
-		selectionIndex = selection.soldierUnit - units;
+	if ( aiArr[currentTeamTurn] ) {
+		aiArr[currentTeamTurn]->StartTurn( units, m_targets );
 	}
 
-	BattleSceneStream stream( game );
-	stream.Save( selectionIndex, units, &engine->camera, engine->GetMap() );
-*/
 }
 
 
-void BattleScene::Load( UFOStream* /*s*/ )
+void BattleScene::Save( TiXmlElement* doc )
 {
-	/*
+	TiXmlElement* mapElement = new TiXmlElement( "Map" );
+	doc->LinkEndChild( mapElement );
+	engine->GetMap()->Save( mapElement );
+
+	TiXmlElement* unitsElement = new TiXmlElement( "Units" );
+	doc->LinkEndChild( unitsElement );
+	
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		units[i].Save( unitsElement );
+	}
+}
+
+
+void BattleScene::Load( const TiXmlElement* gameElement )
+{
 	selection.Clear();
-	int selected;
+	engine->GetMap()->Load( gameElement->FirstChildElement( "Map") );
+	
+	int team[3] = { TERRAN_UNITS_START, CIV_UNITS_START, ALIEN_UNITS_START };
 
-	BattleSceneStream stream( game );
-	stream.Load( &selected, units, true, &engine->camera, engine->GetMap() );
+	if ( gameElement->FirstChildElement( "Units" ) ) {
+		for( const TiXmlElement* unitElement = gameElement->FirstChildElement( "Units" )->FirstChildElement( "Unit" );
+			 unitElement;
+			 unitElement = unitElement->NextSiblingElement( "Unit" ) ) 
+		{
+			int t = 0;
+			unitElement->QueryIntAttribute( "team", &t );
+			units[team[t]].Load( unitElement, engine, game );
+			team[t]++;
 
-	if ( selected < MAX_UNITS ) {
-		selection.soldierUnit = &units[selected];
+			GLASSERT( team[0] < TERRAN_UNITS_END );
+			GLASSERT( team[1] < CIV_UNITS_END );
+			GLASSERT( team[2] < ALIEN_UNITS_END );
+		}
 	}
-	*/
+	engine->GetMap()->QueryAllDoors( &doors );
+	SetFogOfWar();
+	currentTeamTurn = ALIEN_TEAM;
+	NextTurn();
+	ProcessDoors();
 }
 
 
@@ -427,7 +431,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 
 	if (    SelectedSoldier()
 		 && SelectedSoldierUnit()->Status() == Unit::STATUS_ALIVE
-		 && SelectedSoldierUnit()->Team() == Unit::SOLDIER ) 
+		 && SelectedSoldierUnit()->Team() == TERRAN_TEAM ) 
 	{
 		Model* m = SelectedSoldierModel();
 		GLASSERT( m );
@@ -467,7 +471,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		*/
 
 	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-		if ( m_targets.TeamCanSee( Unit::SOLDIER, i ) ) {
+		if ( m_targets.TeamCanSee( TERRAN_TEAM, i ) ) {
 			Vector3F p;
 			units[i].CalcPos( &p );
 
@@ -529,7 +533,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		targetEvents.Clear();	// All done! They don't get to carry on beyond the moment.
 	}
 
-	if ( currentTeamTurn == Unit::SOLDIER ) {
+	if ( currentTeamTurn == TERRAN_TEAM ) {
 		if ( selection.soldierUnit && !selection.soldierUnit->IsAlive() ) {
 			SetSelection( 0 );
 		}
@@ -751,11 +755,11 @@ void BattleScene::SetSelection( Unit* unit )
 	else {
 		GLASSERT( unit->IsAlive() );
 
-		if ( unit->Team() == Unit::SOLDIER ) {
+		if ( unit->Team() == TERRAN_TEAM ) {
 			selection.soldierUnit = unit;
 			selection.targetUnit = 0;
 		}
-		else if ( unit->Team() == Unit::ALIEN ) {
+		else if ( unit->Team() == ALIEN_TEAM ) {
 			GLASSERT( SelectedSoldier() );
 			selection.targetUnit = unit;
 			selection.targetPos.Set( -1, -1 );
@@ -853,9 +857,9 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 
 void BattleScene::DoReactionFire()
 {
-	int antiTeam = Unit::ALIEN;
-	if ( currentTeamTurn == Unit::ALIEN )
-		antiTeam = Unit::SOLDIER;
+	int antiTeam = ALIEN_TEAM;
+	if ( currentTeamTurn == ALIEN_TEAM )
+		antiTeam = TERRAN_TEAM;
 
 	bool react = false;
 	if ( actionStack.Empty() ) {
@@ -923,7 +927,7 @@ bool BattleScene::ProcessAI()
 				AI::AIAction aiAction;
 				SetPathBlocks( &units[i] );
 				
-				bool done = aiArr[Unit::ALIEN]->Think( &units[i], units, m_targets, engine->GetMap(), &aiAction );
+				bool done = aiArr[ALIEN_TEAM]->Think( &units[i], units, m_targets, engine->GetMap(), &aiAction );
 				switch ( aiAction.actionID ) {
 					case AI::ACTION_SHOOT:
 						{
@@ -1054,9 +1058,9 @@ void BattleScene::ProcessDoors()
 
 void BattleScene::StopForNewTeamTarget()
 {
-	int antiTeam = Unit::ALIEN;
-	if ( currentTeamTurn == Unit::ALIEN )
-		antiTeam = Unit::SOLDIER;
+	int antiTeam = ALIEN_TEAM;
+	if ( currentTeamTurn == ALIEN_TEAM )
+		antiTeam = TERRAN_TEAM;
 
 	if ( actionStack.Size() == 1 ) {
 		const Action& action = actionStack.Top();
@@ -1634,7 +1638,7 @@ void BattleScene::Tap(	int tap,
 		return;
 	if ( !actionStack.Empty() )
 		return;
-	if ( currentTeamTurn != Unit::SOLDIER )
+	if ( currentTeamTurn != TERRAN_TEAM )
 		return;
 
 	/* Modes:
@@ -1725,11 +1729,11 @@ void BattleScene::Tap(	int tap,
 	const Unit* tappedUnit = UnitFromModel( tappedModel );
 
 	if ( tappedModel && tappedUnit ) {
-		if ( tappedUnit->Team() == Unit::ALIEN ) {
+		if ( tappedUnit->Team() == ALIEN_TEAM ) {
 			SetSelection( UnitFromModel( tappedModel ) );		// sets either the Alien or the Unit
 			map->ClearNearPath();
 		}
-		else if ( tappedUnit->Team() == Unit::SOLDIER ) {
+		else if ( tappedUnit->Team() == TERRAN_TEAM ) {
 			SetSelection( UnitFromModel( tappedModel ) );
 			nearPathState = NEAR_PATH_INVALID;
 		}
@@ -1885,7 +1889,7 @@ void BattleScene::CalcTeamTargets()
 
 	Vector2I targets[] = { { ALIEN_UNITS_START, ALIEN_UNITS_END },   { TERRAN_UNITS_START, TERRAN_UNITS_END } };
 	Vector2I viewers[] = { { TERRAN_UNITS_START, TERRAN_UNITS_END }, { ALIEN_UNITS_START, ALIEN_UNITS_END } };
-	int viewerTeam[3]  = { Unit::SOLDIER, Unit::ALIEN };
+	int viewerTeam[3]  = { TERRAN_TEAM, ALIEN_TEAM };
 
 	for( int range=0; range<2; ++range ) {
 		// Terran to Alien
@@ -2408,8 +2412,8 @@ void BattleScene::DrawHUD()
 			"TU:%.1f HP:%d Tgt:%02d/%02d", 
 			unit->GetStats().TU(),
 			unit->GetStats().HP(),
-			m_targets.CalcTotalUnitCanSee( id, Unit::ALIEN ),
-			m_targets.TotalTeamCanSee( Unit::SOLDIER, Unit::ALIEN ) );
+			m_targets.CalcTotalUnitCanSee( id, ALIEN_TEAM ),
+			m_targets.TotalTeamCanSee( TERRAN_TEAM, ALIEN_TEAM ) );
 */
 	}
 #endif

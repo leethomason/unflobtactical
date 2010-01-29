@@ -19,11 +19,11 @@ public:
 
 	int Team( int id ) const {
 		if ( id >= TERRAN_UNITS_START && id < TERRAN_UNITS_END )
-			return Unit::SOLDIER;
+			return TERRAN_TEAM;
 		else if ( id >= CIV_UNITS_START && id < CIV_UNITS_END ) 
-			return Unit::CIVILIAN;
+			return CIV_TEAM;
 		else if ( id >= ALIEN_UNITS_START && id < ALIEN_UNITS_END ) 
-			return Unit::ALIEN;
+			return ALIEN_TEAM;
 		else { 
 			GLASSERT( 0 ); 
 			return 0;

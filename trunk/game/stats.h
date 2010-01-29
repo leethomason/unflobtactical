@@ -3,6 +3,7 @@
 
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
+class TiXmlElement;
 
 namespace grinliz {
 class Random;
@@ -74,11 +75,17 @@ public:
 	float Accuracy() const	{ return accuracy; }	// cone at 1 unit out
 	float Reaction() const	{ return reaction; }	// 0.0-1.0. The chance of reaction fire
 
+	void Save( TiXmlElement* doc ) const;
+	void Load( const TiXmlElement* doc );
+
 private:
-	int hp, totalHP;
-	float tu, totalTU;
+	// primary:
 	int _STR, _DEX, _PSY;
 	int level;
+
+	// derived:
+	int hp, totalHP;
+	float tu, totalTU;
 	float accuracy;
 	float reaction;
 };

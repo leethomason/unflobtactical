@@ -5,6 +5,8 @@
 #include "gamelimits.h"
 #include "../engine/particleeffect.h"
 #include "../engine/particle.h"
+#include "../tinyxml/tinyxml.h"
+#include "../grinliz/glstringutil.h"
 
 using namespace grinliz;
 
@@ -286,37 +288,27 @@ void Item::UseRounds( int i )
 }
 
 
-void Item::Save( UFOStream* s ) const
+void Item::Save( TiXmlElement* doc ) const
 {
-/*	s->WriteU8( 1 );	// version
-
-	if ( itemDef ) {
-		s->WriteU8( 1 );
-		s->WriteStr( itemDef->name );
-		s->WriteU8( rounds );
+	if ( itemDef && rounds > 0 ) {
+		TiXmlElement* itemEle = new TiXmlElement( "Item" );
+		doc->LinkEndChild( itemEle );
+		itemEle->SetAttribute( "name", itemDef->name );
+		if ( rounds != 1 )
+			itemEle->SetAttribute( "rounds", rounds );
 	}
-	else {
-		s->WriteU8( 0 );
-	}
-	*/
 }
 
 
-void Item::Load( UFOStream* s, Engine* engine, Game* game )
+void Item::Load( const TiXmlElement* ele, Engine* engine, Game* game )
 {
-	/*
 	Clear();
-	int version = s->ReadU8();
-	GLASSERT( version == 1 );
-
-	int filled = s->ReadU8();
-	if ( filled ) {
-		const char* name = s->ReadStr();
-		itemDef = game->GetItemDef( name );
-		GLASSERT( itemDef );
-		rounds = s->ReadU8();
-	}
-	*/
+	GLASSERT( StrEqual( ele->Value(), "Item" ) );
+	const char* name = ele->Attribute( "name" );
+	
+	itemDef = game->GetItemDef( name );
+	rounds = 1;
+	ele->QueryIntAttribute( "rounds", &rounds );
 }
 
 
@@ -372,6 +364,22 @@ int Storage::GetCount( const ItemDef* itemDef) const
 	int index = GetIndex( itemDef );
 	int r = rounds[index];
 	return (r+itemDef->Rounds()-1)/itemDef->Rounds();
+}
+
+
+void Storage::Save( TiXmlElement* parent )
+{
+	TiXmlElement* storageElement = new TiXmlElement( "Storage" );
+	parent->LinkEndChild( storageElement );
+
+	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+		if ( rounds[i] > 0 ) {
+			TiXmlElement* roundElement = new TiXmlElement( "Rounds" );
+			roundElement->SetAttribute( "i", i );
+			roundElement->SetAttribute( "n", rounds[i] );
+			storageElement->LinkEndChild( roundElement );
+		}
+	}
 }
 
 

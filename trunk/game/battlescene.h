@@ -60,8 +60,8 @@ public:
 	virtual void DoTick( U32 currentTime, U32 deltaTime );
 	virtual void DrawHUD();
 
-	virtual void Save( UFOStream* s );
-	virtual void Load( UFOStream* s );
+	virtual void Save( TiXmlElement* doc );
+	virtual void Load( const TiXmlElement* doc );
 
 	// debugging / MapMaker
 	void MouseMove( int x, int y );
@@ -280,7 +280,7 @@ private:
 	Model* mapSelection;
 	Model* preview;
 	int currentMapItem;
-	sqlite3* mapDatabase;
+	//sqlite3* mapDatabase;
 #endif
 };
 

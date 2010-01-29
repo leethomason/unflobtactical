@@ -4,9 +4,9 @@
 #include "item.h"
 
 class ItemDef;
-class UFOStream;
 class Engine;
 class Game;
+class TiXmlElement;
 
 
 /*  
@@ -50,8 +50,8 @@ public:
 	const Item* ArmedWeapon() const;	// null if no weapon ready
 	const Item* SecondaryWeapon() const;
 
-	void Save( UFOStream* s ) const;
-	void Load( UFOStream* s, Engine* engine, Game* game );
+	void Save( TiXmlElement* doc ) const;
+	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
 
 	const Item& GetItem( int slot ) const		{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot]; }
 	Item* AccessItem( int slot )				{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return &slots[slot]; }

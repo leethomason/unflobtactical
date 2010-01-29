@@ -2,6 +2,8 @@
 #include "game.h"
 #include "../engine/engine.h"
 #include "material.h"
+#include "../tinyxml/tinyxml.h"
+#include "../grinliz/glstringutil.h"
 
 using namespace grinliz;
 
@@ -75,7 +77,7 @@ U32 Unit::GetValue( int which ) const
 const char* Unit::FirstName() const
 {
 	const char* str = "";
-	if ( team == SOLDIER ) {
+	if ( team == TERRAN_TEAM ) {
 		if ( Gender() == MALE )
 			str = gMaleFirstNames[ GetValue( FIRST_NAME ) ];
 		else
@@ -89,7 +91,7 @@ const char* Unit::FirstName() const
 const char* Unit::LastName() const
 {
 	const char* str = "";
-	if ( team == SOLDIER ) {
+	if ( team == TERRAN_TEAM ) {
 		str = gLastNames[ GetValue( LAST_NAME ) ];
 	}
 	GLASSERT( strlen( str ) <= 6 );
@@ -106,7 +108,7 @@ const char* Unit::Rank() const
 void Unit::GenerateSoldier( U32 seed )
 {
 	status = STATUS_ALIVE;
-	team = SOLDIER;
+	team = TERRAN_TEAM;
 	body = seed;
 
 	Random random( seed );
@@ -121,7 +123,7 @@ void Unit::GenerateSoldier( U32 seed )
 void Unit::GenerateCiv( U32 seed )
 {
 	status = STATUS_ALIVE;
-	team = CIVILIAN;
+	team = CIV_TEAM;
 	body = seed;	// only gender...
 
 	Random random( seed );
@@ -136,7 +138,7 @@ void Unit::GenerateCiv( U32 seed )
 void Unit::GenerateAlien( int type, U32 seed )
 {
 	status = STATUS_ALIVE;
-	team = ALIEN;
+	team = ALIEN_TEAM;
 	U32 MASK = 0x03;
 	body  = seed & (~MASK);
 	body |= (type & MASK);
@@ -178,20 +180,22 @@ void Unit::GenerateAlien( int type, U32 seed )
 
 void Unit::Init(	Engine* engine, Game* game, 
 					int team,	 
+					int status,
 					int alienType,	// if alien...
 					U32 seed )
 {
-	GLASSERT( status == STATUS_NOT_INIT );
+	GLASSERT( this->status == STATUS_NOT_INIT );
 	this->engine = engine;
 	this->game = game;
 	this->team = team;
+	this->status = status;
 	weapon = 0;
 	visibilityCurrent = false;
 
 	switch( team ) {
-		case SOLDIER:	GenerateSoldier( seed );			break;
-		case ALIEN:		GenerateAlien( alienType, seed );	break;
-		case CIVILIAN:	GenerateCiv( seed );				break;
+		case TERRAN_TEAM:	GenerateSoldier( seed );			break;
+		case ALIEN_TEAM:		GenerateAlien( alienType, seed );	break;
+		case CIV_TEAM:	GenerateCiv( seed );				break;
 		default:
 			GLASSERT( 0 );
 	}
@@ -408,21 +412,21 @@ void Unit::CreateModel( bool alive )
 	ModelResourceManager* modman = ModelResourceManager::Instance();
 
 	switch ( team ) {
-		case SOLDIER:
+		case TERRAN_TEAM:
 			if ( alive )
 				resource = modman->GetModelResource( ( Gender() == MALE ) ? "maleMarine" : "femaleMarine" );
 			else
 				resource = modman->GetModelResource( ( Gender() == MALE ) ? "maleMarine_D" : "femaleMarine_D" );
 			break;
 
-		case CIVILIAN:
+		case CIV_TEAM:
 			if ( alive )
 				resource = modman->GetModelResource( ( Gender() == MALE ) ? "maleCiv" : "femaleCiv" );
 			else
 				resource = modman->GetModelResource( ( Gender() == MALE ) ? "maleCiv_D" : "femaleCiv_D" );
 			break;
 
-		case ALIEN:
+		case ALIEN_TEAM:
 			{
 				switch( AlienType() ) {
 					case 0:	resource = modman->GetModelResource( alive ? "alien0" : "alien0_D" );	break;
@@ -451,7 +455,7 @@ void Unit::UpdateModel()
 	GLASSERT( model );
 
 	switch ( team ) {
-		case SOLDIER:
+		case TERRAN_TEAM:
 			{
 				int armor = 0;
 				int hair = GetValue( HAIR );
@@ -460,10 +464,10 @@ void Unit::UpdateModel()
 			}
 			break;
 
-		case CIVILIAN:
+		case CIV_TEAM:
 			break;
 
-		case ALIEN:
+		case ALIEN_TEAM:
 			break;
 		
 		default:
@@ -473,57 +477,57 @@ void Unit::UpdateModel()
 }
 
 
-void Unit::Save( UFOStream* s ) const
+void Unit::Save( TiXmlElement* doc ) const
 {
-/*	s->WriteU8( status );
 	if ( status != STATUS_NOT_INIT ) {
-		s->WriteU8( 1 );	// version
-		s->WriteU8( team );
-		s->WriteU32( body );
+		TiXmlElement* unitElement = new TiXmlElement( "Unit" );
+		doc->LinkEndChild( unitElement );
 
-		s->WriteFloat( model->Pos().x );
-		s->WriteFloat( model->Pos().z );
-		s->WriteFloat( model->GetYRotation() );
+		unitElement->SetAttribute( "team", team );
+		unitElement->SetAttribute( "status", status );
+		unitElement->SetAttribute( "body", body );
+		unitElement->SetDoubleAttribute( "modelX", model->Pos().x );
+		unitElement->SetDoubleAttribute( "modelZ", model->Pos().z );
+		unitElement->SetDoubleAttribute( "yRot", model->GetYRotation() );
 
-		inventory.Save( s );
+		stats.Save( unitElement );
+		inventory.Save( unitElement );
 	}
-	*/
 }
 
 
-void Unit::Load( UFOStream* s, Engine* engine, Game* game )
+void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 {
-	/*
 	Free();
 
-	int _status = s->ReadU8();
+	team = TERRAN_TEAM;
+	body = 0;
+	Vector3F pos = { 0, 0, 0 };
+	float rot = 0;
+	int _status = 0;
+
+	GLASSERT( StrEqual( ele->Value(), "Unit" ) );
+	ele->QueryIntAttribute( "status", &_status );
 	GLASSERT( _status == STATUS_NOT_INIT || _status == STATUS_ALIVE || _status == STATUS_DEAD );
+
 	if ( _status != STATUS_NOT_INIT ) {
-		Vector3F pos = { 0, 0, 0 };
-		float rot;
+		ele->QueryValueAttribute( "team", &team );
+		ele->QueryValueAttribute( "body", &body );
+		ele->QueryValueAttribute( "modelX", &pos.x );
+		ele->QueryValueAttribute( "modelZ", &pos.z );
+		ele->QueryValueAttribute( "yRot", &rot );
 
-		int version = s->ReadU8();
-		GLASSERT( version == 1 );
-
-		team = s->ReadU8();
-		body = s->ReadU32();
-
-		pos.x = s->ReadFloat();
-		pos.z = s->ReadFloat();
-		rot   = s->ReadFloat();
-
-		Init( engine, game, team, body&0x03, body );
-		status = _status;
+		Init( engine, game, team, _status, body&ALIEN_MASK, body );
 		
 		if ( model ) {
 			model->SetPos( pos );
 			model->SetYRotation( rot );
 		}
 
-		inventory.Load( s, engine, game );
+		stats.Load( ele );
+		inventory.Load( ele, engine, game );
 		UpdateInventory();
 	}
-	*/
 }
 
 

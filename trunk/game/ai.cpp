@@ -10,20 +10,21 @@
 
 using namespace grinliz;
 
-#define AILOG GLOUTPUT
+//#define AILOG GLOUTPUT
+#define AILOG( x )	{}
 
 AI::AI( int team, SpaceTree* tree )
 {
 	m_team = team;
 	m_spaceTree = tree;
 
-	if ( m_team == Unit::ALIEN) {
-		m_enemyTeam  = Unit::SOLDIER;
+	if ( m_team == ALIEN_TEAM) {
+		m_enemyTeam  = TERRAN_TEAM;
 		m_enemyStart = TERRAN_UNITS_START;
 		m_enemyEnd   = TERRAN_UNITS_END;
 	}
 	else {
-		m_enemyTeam  = Unit::ALIEN;
+		m_enemyTeam  = ALIEN_TEAM;
 		m_enemyStart = ALIEN_UNITS_START;
 		m_enemyEnd   = ALIEN_UNITS_END;
 	}

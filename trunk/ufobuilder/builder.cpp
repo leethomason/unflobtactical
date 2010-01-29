@@ -703,7 +703,8 @@ int main( int argc, char* argv[] )
 		else if ( child->ValueStr() == "model" ) {
 			ProcessModel( child );
 		}
-		else if ( child->ValueStr() == "map" ) {
+		else if (	 child->ValueStr() == "map" 
+			      || child->ValueStr() == "data" ) {
 			ProcessMap( child );
 		}
 		else {

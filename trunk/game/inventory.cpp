@@ -1,10 +1,6 @@
 #include "inventory.h"
 #include "game.h"
-
-//int Inventory::slotSize[NUM_SLOTS] = {	3,			// hand
-//										2, 2, 2, 1, 1, 1,	// backpack
-//										2, 1, 2,	// belt
-//										1, 1 };		// leg
+#include "../tinyxml/tinyxml.h"
 
 
 Inventory::Inventory()
@@ -165,54 +161,30 @@ void Inventory::SwapWeapons()
 }
 
 
-/*bool Inventory::Swap( int s0, int s1 )
+void Inventory::Save( TiXmlElement* doc ) const
 {
-	GLASSERT( s0 >= 0 && s0 < NUM_SLOTS );
-	GLASSERT( s1 >= 0 && s1 < NUM_SLOTS );
+	TiXmlElement* inventoryEle = new TiXmlElement( "Inventory" );
+	doc->LinkEndChild( inventoryEle );
 
-	bool swap = false;
-
-	if ( s0 >= GENERAL_SLOT && s1 >= GENERAL_SLOT ) 
-	{
-		// Can swap anything in the general section:
-		swap = true;
-	}
-	else if (    (s0 == WEAPON_SLOT && (slots[s1].IsNothing() || slots[s1].IsWeapon() ) )
-		      || (s1 == WEAPON_SLOT && (slots[s0].IsNothing() || slots[s0].IsWeapon() ) ) )
-	{
-		swap = true;
-	}
-	else if (    (s0 == ARMOR_SLOT && (slots[s1].IsNothing() || slots[s1].IsArmor() ) )
-			  || (s1 == ARMOR_SLOT && (slots[s0].IsNothing() || slots[s0].IsArmor() ) ) )
-	{
-		swap = true;
-	}
-
-	if ( swap )
-		grinliz::Swap( &slots[s0], &slots[s1] );
-	return swap;
-}
-*/
-
-void Inventory::Save( UFOStream* s ) const
-{
-/*	s->WriteU8( 1 );	// version
 	for( int i=0; i<NUM_SLOTS; ++i ) {
-		slots[i].Save( s );
+		slots[i].Save( inventoryEle );
 	}
-*/
 }
 
 
-void Inventory::Load( UFOStream* s, Engine* engine, Game* game )
+void Inventory::Load( const TiXmlElement* parent, Engine* engine, Game* game )
 {
-/*
-	int version = s->ReadU8();	// version
-	GLASSERT( version == 1 );
-	for( int i=0; i<NUM_SLOTS; ++i ) {
-		slots[i].Load( s, engine, game );
+	const TiXmlElement* ele = parent->FirstChildElement( "Inventory" );
+	int count = 0;
+	if ( ele ) {
+		for( const TiXmlElement* slot = ele->FirstChildElement( "Item" );
+			 slot && count<NUM_SLOTS;
+			 slot = slot->NextSiblingElement( "Item" ) )
+		{
+			slots[count].Load( slot, engine, game );
+			++count;
+		}
 	}
-	*/
 }
 
 

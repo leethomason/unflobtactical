@@ -29,6 +29,7 @@ class ParticleSystem;
 class Scene;
 class ItemDef;
 struct sqlite3;
+class TiXmlDocument;
 
 const float ONE8 = 1.0f / 8.0f;
 const float ONE16 = 1.0f / 16.0f;
@@ -39,6 +40,42 @@ const float TRANSLUCENT_RED		= ONE8*3.0f + ONE16;
 const float TRANSLUCENT_YELLOW	= ONE8*4.0f + ONE16;
 const float TRANSLUCENT_GREY	= ONE8*5.0f + ONE16;
 
+
+/*
+	Assets
+	---------------------------------
+
+	Database:
+	Read only. (Constructed by the builder.)
+
+	The database (uforesource.db) contains everything the game needs to 
+	run. This is primarily to ease the installation on the phones. One big
+	wad file is easier to manage and take care of. sqlite3 does a great job
+	of pulling resources out, so no worries about anything getting lost or
+	slow. All assets are compressed in the database so the size is quite good.
+
+	Models		- binary
+	Textures	- binary
+	Map			- XML
+
+	Maps are saved as XML. Databases are just too tedious for rich data like maps.
+
+
+	Serialization (Saving and Loading)
+	----------------------------------
+	Everything at runtime is saved as XML. This includes:
+	Map (copied from the database, but then changed as the game plays)
+	Engine
+	Units
+	Camera
+	etc.
+
+	MapMaker
+	-------------------------------
+	The evil mapmaker hack...the mapmaker works directly on XML files in the
+	resource-in directory (resin). Since the MapMaker is also the BattleScene
+	in a slightly different flavor, this leads to some circular code and compilation.
+*/
 
 class Game
 {
@@ -88,6 +125,9 @@ public:
 	void PopScene();
 
 	U32 CurrentTime() const	{ return currentTime; }
+
+	void Load( const TiXmlDocument& doc );
+	void Save( TiXmlDocument* doc );
 
 private:
 	Scene* CreateScene( int id, void* data );
