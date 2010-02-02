@@ -369,16 +369,6 @@ void ProcessModel( TiXmlElement* model )
 	}
 
 	const VertexGroup* vertexGroup = builder->Groups();
-
-	//SDL_RWops* fp = SDL_RWFromFile( fullOut.c_str(), "wb" );
-	//if ( !fp ) {
-	//	printf( "**Could not open for writing: %s\n", fullOut.c_str() );
-	//	exit( 1 );
-	//}
-	//else {
-	//	//printf( "  Writing: '%s', '%s'", name.c_str(), fullOut.c_str() );
-	//	printf( "  '%s'", name.c_str() );
-	//}
 	
 	for( int i=0; i<builder->NumGroups(); ++i ) {
 		nTotalIndex += vertexGroup[i].nIndex;
@@ -481,9 +471,6 @@ void ProcessModel( TiXmlElement* model )
 	delete [] vertexBuf;
 	delete [] indexBuf;
 	delete builder;
-	//if ( fp ) {
-	//	SDL_FreeRW( fp );
-	//}
 }
 
 
@@ -518,7 +505,7 @@ void ProcessTexture( TiXmlElement* texture )
 	}
 	else {
 		printf( "  Loaded: '%s' bpp=%d width=%d height=%d", 
-				name.c_str(), //fullIn.c_str(),
+				name.c_str(),
 				surface->format->BitsPerPixel,
 				surface->w,
 				surface->h );
@@ -589,8 +576,6 @@ void ProcessTexture( TiXmlElement* texture )
 		case 8:
 			printf( "  Alpha memory=%dk\n", (surface->w * surface->h * 1)/1024 );
 			totalTextureMem += (surface->w * surface->h * 1);
-			//header.Set( name.c_str(), GL_ALPHA, GL_UNSIGNED_BYTE, surface->w, surface->h );
-			//header.Save( fp );
 
 			// Bottom up!
 			for( int j=surface->h-1; j>=0; --j ) {
@@ -612,10 +597,6 @@ void ProcessTexture( TiXmlElement* texture )
 	if ( surface ) { 
 		SDL_FreeSurface( surface );
 	}
-	//if ( fp ) {
-	//	SDL_FreeRW( fp );
-	//}
-
 }
 
 

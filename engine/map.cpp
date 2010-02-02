@@ -648,11 +648,6 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 			invalidLightMap = mapBounds;
 	}
 
-//	if ( mapDB && !(flags & MapItem::MI_NOT_IN_DATABASE )) {
-//		DeleteRow( item->x, item->y, item->rot, item->itemDefIndex );
-//		InsertRow( item->x, item->y, item->rot, item->itemDefIndex, item->hp, 0 );
-//	}
-
 	return item;
 }
 
@@ -679,10 +674,6 @@ void Map::DeleteItem( MapItem* item )
 			invalidLightMap = mapBounds;
 	}
 
-//	if ( mapDB && !(item->flags & MapItem::MI_NOT_IN_DATABASE )) {
-//		DeleteRow( item->x, item->y, item->rot, item->itemDefIndex );
-//	}
-
 	if ( item->model )
 		tree->FreeModel( item->model );
 
@@ -690,6 +681,37 @@ void Map::DeleteItem( MapItem* item )
 	ResetPath();
 	ClearVisPathMap( mapBounds );
 	CalcVisPathMap( mapBounds );
+}
+
+
+void Map::SaveDebris( const Debris& d, TiXmlElement* parent )
+{
+	TiXmlElement* debrisElement = new TiXmlElement( "Debris" );
+	debrisElement->SetAttribute( "x", d.x );
+	debrisElement->SetAttribute( "y", d.y );
+
+	parent->LinkEndChild( debrisElement );
+	d.storage->Save( debrisElement );
+}
+
+
+void Map::LoadDebris( const TiXmlElement* debrisElement )
+{
+	GLASSERT( StrEqual( debrisElement->Value(), "Debris" ) );
+	GLASSERT( debrisElement );
+	if ( debrisElement ) {
+		int x=0, y=0;
+
+		debrisElement->QueryIntAttribute( "x", &x );
+		debrisElement->QueryIntAttribute( "y", &y );
+
+		Storage* storage = LockStorage( x, y );
+		if ( !storage ) {
+			storage = new Storage();
+		}
+		storage->Load( debrisElement );
+		ReleaseStorage( x, y, storage );
+	}
 }
 
 
@@ -722,12 +744,23 @@ void Map::Save( TiXmlElement* mapElement )
 	mapElement->LinkEndChild( groundDebrisElement );
 
 	for( int i=0; i<debris.Size(); ++i ) {
-		TiXmlElement* debrisElement = new TiXmlElement( "Debris" );
-		debrisElement->SetAttribute( "x", debris[i].x );
-		debrisElement->SetAttribute( "y", debris[i].y );
+		SaveDebris( debris[i], groundDebrisElement );
+	}
 
-		groundDebrisElement->LinkEndChild( debrisElement );
-		debris[i].storage->Save( debrisElement );
+	TiXmlElement* pyroGroupElement = new TiXmlElement( "PyroGroup" );
+	mapElement->LinkEndChild( pyroGroupElement );
+	for( int i=0; i<SIZE*SIZE; ++i ) {
+		if ( pyro[i] ) {
+			int y = i / SIZE;
+			int x = i - SIZE*y;
+
+			TiXmlElement* ele = new TiXmlElement( "Pyro" );
+			pyroGroupElement->LinkEndChild( ele );
+			ele->SetAttribute( "x", x );
+			ele->SetAttribute( "y", y );
+			ele->SetAttribute( "fire", PyroFire( x, y ) ? 1 : 0 );
+			ele->SetAttribute( "duration", PyroDuration( x, y ) );
+		}
 	}
 }
 
@@ -762,6 +795,31 @@ void Map::Load( const TiXmlElement* mapElement )
 			item->QueryIntAttribute( "flags", &flags );
 
 			AddItem( x, y, rot, index, hp, flags );
+		}
+	}
+
+	const TiXmlElement* groundDebrisElement = mapElement->FirstChildElement( "GroundDebris" );
+	if ( groundDebrisElement ) {
+		for( const TiXmlElement* debrisElement = groundDebrisElement->FirstChildElement( "Debris" );
+			 debrisElement;
+			 debrisElement = debrisElement->NextSiblingElement( "Debris" ) )
+		{
+			LoadDebris( debrisElement );
+		}
+	}
+
+	const TiXmlElement* pyroGroupElement = mapElement->FirstChildElement( "PyroGroup" );
+	if ( pyroGroupElement ) {
+		for( const TiXmlElement* pyroElement = pyroGroupElement->FirstChildElement( "Pyro" );
+			 pyroElement;
+			 pyroElement = pyroElement->NextSiblingElement( "Pyro" ) )
+		{
+			int x=0, y=0, fire=0, duration=0;
+			pyroElement->QueryIntAttribute( "x", &x );
+			pyroElement->QueryIntAttribute( "y", &y );
+			pyroElement->QueryIntAttribute( "fire", &fire );
+			pyroElement->QueryIntAttribute( "duration", &duration );
+			SetPyro( x, y, duration, fire );
 		}
 	}
 }

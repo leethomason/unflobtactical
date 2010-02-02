@@ -383,6 +383,28 @@ void Storage::Save( TiXmlElement* parent )
 }
 
 
+void Storage::Load( const TiXmlElement* element )
+{
+	memset( rounds, 0, sizeof(int)*EL_MAX_ITEM_DEFS );
+	const TiXmlElement* storageElement = element->FirstChildElement( "Storage" );
+	GLASSERT( storageElement );
+	if ( storageElement ) {
+		for( const TiXmlElement* roundElement = storageElement->FirstChildElement( "Rounds" );
+			 roundElement;
+			 roundElement = roundElement->NextSiblingElement( "Rounds" ) )
+		{
+			int i=0, n=0;
+			roundElement->QueryIntAttribute( "i", &i );
+			roundElement->QueryIntAttribute( "n", &n );
+			GLASSERT( i>=0 && i<EL_MAX_ITEM_DEFS );
+			if ( i>=0 && i<EL_MAX_ITEM_DEFS ) {
+				rounds[i] = n;
+			}
+		}
+	}
+}
+
+
 // Return the "best" item for on-screen rendering.
 /*const ItemDef* Storage::SomeItem() const
 {
@@ -403,17 +425,5 @@ void Storage::Save( TiXmlElement* parent )
 		}
 	}
 	return best;
-}
-*/
-
-/*
-void Storage::Save( UFOStream* s ) const
-{
-	s->WriteU32Arary( itemDefs.Size(), (const U32*) rounds.Mem() );
-}
-
-void Storage::Load( UFOStream* s )
-{
-	s->ReadU32Arary( itemDefs.Size(), (U32*) rounds.Mem() );
 }
 */

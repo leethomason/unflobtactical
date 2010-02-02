@@ -19,6 +19,7 @@
 
 #include "battlescene.h"
 #include "characterscene.h"
+#include "tacticalintroscene.h"
 
 #include "../engine/platformgl.h"
 #include "../engine/text.h"
@@ -98,7 +99,9 @@ Game::Game( const Screenport& sp, const char* _savePath ) :
 
 	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 
-	scenePushQueued = BATTLE_SCENE;
+	scenePushQueued = INTRO_SCENE;
+	loadRequested = -1;
+	loadCompleted = false;
 	PushPopScene();
 
 #ifdef MAPMAKER
@@ -109,46 +112,7 @@ Game::Game( const Screenport& sp, const char* _savePath ) :
 	if ( !doc.Error() )
 		engine.GetMap()->Load( doc.FirstChildElement( "Map" ) );
 #else
-	{
-		TiXmlDocument doc;
 
-#if 0
-		// Try to load an existing file
-		std::string path = savePath + "testgame.xml";
-		doc.LoadFile( path );
-		if ( !doc.Error() ) {
-			Load( doc );
-		}
-		else 
-#endif
-		{
-			// pull the default game from the resource
-
-			sqlite3_stmt* stmt = 0;
-			sqlite3_prepare_v2(database, "SELECT * FROM map WHERE name='testgame';", -1, &stmt, 0 );
-
-			int id=0;
-			if (sqlite3_step(stmt) == SQLITE_ROW) {
-				id = sqlite3_column_int(  stmt, 1 );
-			}
-			else {
-				GLASSERT( 0 );
-			}
-			sqlite3_finalize(stmt);
-
-			int size;
-			BinaryDBReader reader( database );
-			reader.ReadSize( id, &size );
-			char* mem = new char[size];
-			reader.ReadData( id, size, mem );
-			doc.Parse( mem );
-			delete [] mem;
-
-			if ( !doc.Error() ) {
-				Load( doc );
-			}
-		}
-	}
 #endif
 }
 
@@ -162,11 +126,12 @@ Game::~Game()
 	engine.GetMap()->Save( doc.FirstChildElement( "Map" ) );
 	doc.SaveFile();
 #else
-	TiXmlDocument doc;
-	Save( &doc );
-	std::string path = savePath + "testgameout.xml";
-	doc.SaveFile( path );
-
+	if ( loadCompleted ) {
+		TiXmlDocument doc;
+		Save( &doc );
+		std::string path = GameSavePath();
+		doc.SaveFile( path );
+	}
 #endif
 
 	while( !sceneStack.Empty() ) {
@@ -178,6 +143,53 @@ Game::~Game()
 	}
 	sqlite3_close(database);
 	database = 0;
+}
+
+
+void Game::ProcessLoadRequest()
+{
+	if ( loadRequested == 0 )	// continue
+	{
+		std::string path = GameSavePath();
+		TiXmlDocument doc;
+		doc.LoadFile( path.c_str() );
+		GLASSERT( !doc.Error() );
+		if ( !doc.Error() ) {
+			Load( doc );
+			loadCompleted = true;
+		}
+	}
+	else if ( loadRequested == 2 )	// test
+	{
+		TiXmlDocument doc;
+		// pull the default game from the resource
+
+		sqlite3_stmt* stmt = 0;
+		sqlite3_prepare_v2(database, "SELECT * FROM map WHERE name='testgame';", -1, &stmt, 0 );
+
+		int id=0;
+		if (sqlite3_step(stmt) == SQLITE_ROW) {
+			id = sqlite3_column_int(  stmt, 1 );
+		}
+		else {
+			GLASSERT( 0 );
+		}
+		sqlite3_finalize(stmt);
+
+		int size;
+		BinaryDBReader reader( database );
+		reader.ReadSize( id, &size );
+		char* mem = new char[size];
+		reader.ReadData( id, size, mem );
+		doc.Parse( mem );
+		delete [] mem;
+
+		if ( !doc.Error() ) {
+			Load( doc );
+			loadCompleted = true;
+		}
+	}
+	loadRequested = -1;
 }
 
 
@@ -197,24 +209,21 @@ void Game::PopScene()
 
 void Game::PushPopScene() 
 {
-	if ( scenePushQueued >= 0 ) {
-		GLASSERT( scenePushQueued < NUM_SCENES );
-
-//		if ( currentScene ) {
-//			GLASSERT( !sceneStack.Empty() );
-//			delete currentScene;
-//			currentScene = 0;
-//		}
-		Scene* scene = CreateScene( scenePushQueued, scenePushQueuedData );
-		sceneStack.Push( scene );
-	}
 	if ( scenePopQueued ) {
 		GLASSERT( !sceneStack.Empty() );
 
 		delete sceneStack.Top();
 		sceneStack.Pop();
-		GLASSERT( !sceneStack.Empty() );
-		//CreateScene( sceneStack.Top() );
+		GLASSERT( scenePushQueued>=0 || !sceneStack.Empty() );
+	}
+	if ( scenePushQueued >= 0 ) {
+		GLASSERT( scenePushQueued < NUM_SCENES );
+
+		Scene* scene = CreateScene( scenePushQueued, scenePushQueuedData );
+		sceneStack.Push( scene );
+		if ( loadRequested >= 0 ) {
+			ProcessLoadRequest();
+		}
 	}
 	scenePushQueued = -1;
 	scenePopQueued = false;
@@ -227,6 +236,7 @@ Scene* Game::CreateScene( int id, void* data )
 	switch ( id ) {
 		case BATTLE_SCENE:		scene = new BattleScene( this );						break;
 		case CHARACTER_SCENE:	scene = new CharacterScene( this, (Unit*)data );		break;
+		case INTRO_SCENE:		scene = new TacticalIntroScene( this );					break;
 		default:
 			GLASSERT( 0 );
 			break;
@@ -257,48 +267,6 @@ void Game::Save( TiXmlDocument* doc )
 	sceneStack.Bottom()->Save( doc->RootElement() );
 }
 
-
-/*
-void Game::LoadMap( const char* name )
-{
-	sqlite3_stmt* stmt = 0;
-	sqlite3_prepare_v2(database, "SELECT * FROM map WHERE name=?;", -1, &stmt, 0 );
-	sqlite3_bind_text( stmt, 1, name, -1, 0 );
-
-	int id=0;
-	if (sqlite3_step(stmt) == SQLITE_ROW) {
-		id = sqlite3_column_int(  stmt, 1 );
-	}
-	else {
-		GLASSERT( 0 );
-	}
-	sqlite3_finalize(stmt);
-
-	UFOStream s( "map" );
-
-	int size;
-	DBReadBinarySize( database, id, &size );
-	U8* mem = s.WriteMem( size );
-	DBReadBinaryData( database, id, size, mem );
-	s.SeekSet( 0 );
-
-	engine.GetMap()->Load( &s, this );
-}
-*/
-
-/*
-#ifdef MAPMAKER
-void Game::SaveMap( const char* name )
-{
-	UFOStream s( "map" );
-	engine.GetMap()->Save( &s );
-
-	FILE* fp = fopen( "currentMap.map", "wb" );
-	fwrite( s.MemBase(), 1, s.Size(), fp );
-	fclose( fp );
-}
-#endif
-*/
 
 void Game::DoTick( U32 _currentTime )
 {

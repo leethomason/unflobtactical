@@ -40,6 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -313,6 +314,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\game\scene.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\game\scene.h"
 				>
 			</File>
@@ -330,6 +335,14 @@
 			</File>
 			<File
 				RelativePath=".\game\storageWidget.h"
+				>
+			</File>
+			<File
+				RelativePath=".\game\tacticalintroscene.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\game\tacticalintroscene.h"
 				>
 			</File>
 			<File

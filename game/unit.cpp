@@ -139,9 +139,8 @@ void Unit::GenerateAlien( int type, U32 seed )
 {
 	status = STATUS_ALIVE;
 	team = ALIEN_TEAM;
-	U32 MASK = 0x03;
-	body  = seed & (~MASK);
-	body |= (type & MASK);
+	this->type = type;
+	GLASSERT( type >= 0 && type < 4 );
 	Random random( seed );
 
 	switch ( type ) {
@@ -189,13 +188,16 @@ void Unit::Init(	Engine* engine, Game* game,
 	this->game = game;
 	this->team = team;
 	this->status = status;
+	this->type = alienType;
+	GLASSERT( type >= 0 && type < 4 );
 	weapon = 0;
 	visibilityCurrent = false;
+	userDone = false;
 
 	switch( team ) {
-		case TERRAN_TEAM:	GenerateSoldier( seed );			break;
+		case TERRAN_TEAM:		GenerateSoldier( seed );			break;
 		case ALIEN_TEAM:		GenerateAlien( alienType, seed );	break;
-		case CIV_TEAM:	GenerateCiv( seed );				break;
+		case CIV_TEAM:			GenerateCiv( seed );				break;
 		default:
 			GLASSERT( 0 );
 	}
@@ -484,6 +486,7 @@ void Unit::Save( TiXmlElement* doc ) const
 		doc->LinkEndChild( unitElement );
 
 		unitElement->SetAttribute( "team", team );
+		unitElement->SetAttribute( "type", type );
 		unitElement->SetAttribute( "status", status );
 		unitElement->SetAttribute( "body", body );
 		unitElement->SetDoubleAttribute( "modelX", model->Pos().x );
@@ -504,6 +507,7 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 	body = 0;
 	Vector3F pos = { 0, 0, 0 };
 	float rot = 0;
+	type = 0;
 	int _status = 0;
 
 	GLASSERT( StrEqual( ele->Value(), "Unit" ) );
@@ -512,12 +516,13 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 
 	if ( _status != STATUS_NOT_INIT ) {
 		ele->QueryValueAttribute( "team", &team );
+		ele->QueryValueAttribute( "type", &type );
 		ele->QueryValueAttribute( "body", &body );
 		ele->QueryValueAttribute( "modelX", &pos.x );
 		ele->QueryValueAttribute( "modelZ", &pos.z );
 		ele->QueryValueAttribute( "yRot", &rot );
 
-		Init( engine, game, team, _status, body&ALIEN_MASK, body );
+		Init( engine, game, team, _status, type, body );
 		
 		if ( model ) {
 			model->SetPos( pos );

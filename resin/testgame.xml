@@ -1,0 +1,249 @@
+<Game>
+    <Scene id="0" />
+    <Map>
+        <Items>
+            <Item x="34" y="37" index="1" hp="300" />
+            <Item x="22" y="37" index="1" hp="300" />
+            <Item x="36" y="34" index="1" hp="300" />
+            <Item x="33" y="32" index="64" hp="1000" />
+            <Item x="30" y="33" index="65" hp="1000" flags="4" />
+            <Item x="28" y="33" rot="3" index="70" hp="1000" />
+            <Item x="31" y="33" rot="1" index="66" hp="1000" />
+            <Item x="29" y="33" rot="3" index="66" hp="1000" />
+            <Item x="31" y="32" rot="1" index="67" hp="1000" />
+            <Item x="29" y="32" rot="2" index="67" hp="1000" />
+            <Item x="27" y="32" rot="3" index="64" hp="1000" />
+            <Item x="20" y="35" index="1" hp="300" />
+            <Item x="23" y="35" index="1" hp="300" />
+            <Item x="15" y="34" index="1" hp="300" />
+            <Item x="34" y="30" index="70" hp="1000" />
+            <Item x="34" y="29" rot="1" index="68" hp="1000" />
+            <Item x="34" y="29" index="66" hp="1000" />
+            <Item x="32" y="29" index="67" hp="1000" />
+            <Item x="32" y="28" rot="1" index="67" hp="1000" />
+            <Item x="31" y="29" index="66" hp="1000" />
+            <Item x="30" y="29" index="66" hp="1000" />
+            <Item x="29" y="29" index="66" hp="1000" />
+            <Item x="28" y="29" rot="3" index="67" hp="1000" />
+            <Item x="28" y="28" rot="2" index="67" hp="1000" />
+            <Item x="31" y="28" rot="2" index="66" hp="1000" />
+            <Item x="29" y="28" rot="2" index="66" hp="1000" />
+            <Item x="26" y="30" rot="3" index="69" hp="1000" />
+            <Item x="26" y="29" rot="3" index="68" hp="1000" />
+            <Item x="26" y="29" index="66" hp="1000" />
+            <Item x="20" y="29" index="1" hp="300" />
+            <Item x="33" y="26" rot="1" index="64" hp="1000" />
+            <Item x="32" y="26" index="67" hp="1000" />
+            <Item x="28" y="25" rot="2" index="69" hp="1000" />
+            <Item x="30" y="25" rot="2" index="68" hp="1000" />
+            <Item x="28" y="26" rot="3" index="67" hp="1000" />
+            <Item x="29" y="26" index="66" hp="1000" />
+            <Item x="31" y="26" index="66" hp="1000" />
+            <Item x="24" y="25" index="32" hp="100" />
+            <Item x="24" y="24" rot="1" index="34" hp="100" />
+            <Item x="24" y="24" rot="2" index="34" hp="100" />
+            <Item x="24" y="24" rot="3" index="16" hp="100" />
+            <Item x="27" y="26" rot="2" index="64" hp="1000" />
+            <Item x="21" y="25" index="34" hp="100" />
+            <Item x="20" y="25" index="34" hp="100" />
+            <Item x="23" y="25" index="34" hp="100" />
+            <Item x="20" y="24" rot="2" index="34" hp="100" />
+            <Item x="21" y="24" rot="2" index="34" hp="100" />
+            <Item x="22" y="24" rot="2" index="33" hp="100" flags="4" />
+            <Item x="20" y="24" rot="3" index="17" hp="100" />
+            <Item x="23" y="24" rot="2" index="34" hp="100" />
+            <Item x="22" y="25" index="35" hp="100" />
+            <Item x="16" y="25" index="33" hp="100" flags="4" />
+            <Item x="19" y="25" index="34" hp="100" />
+            <Item x="17" y="25" index="35" hp="100" />
+            <Item x="19" y="25" rot="1" index="34" hp="100" />
+            <Item x="19" y="24" rot="1" index="34" hp="100" />
+            <Item x="18" y="25" index="34" hp="100" />
+            <Item x="15" y="25" rot="3" index="32" hp="100" />
+            <Item x="15" y="24" rot="3" index="34" hp="100" />
+            <Item x="10" y="25" index="1" hp="300" />
+            <Item x="8" y="26" index="1" hp="250" />
+            <Item x="6" y="25" index="1" hp="300" />
+            <Item x="3" y="27" index="1" hp="300" />
+            <Item x="34" y="20" index="1" hp="300" />
+            <Item x="24" y="20" rot="1" index="32" hp="100" />
+            <Item x="24" y="23" rot="1" index="34" hp="100" />
+            <Item x="24" y="22" rot="1" index="34" hp="100" />
+            <Item x="24" y="22" index="34" hp="100" />
+            <Item x="24" y="23" rot="2" index="17" hp="100" />
+            <Item x="24" y="21" rot="1" index="35" hp="100" />
+            <Item x="23" y="20" rot="2" index="34" hp="100" />
+            <Item x="22" y="20" rot="2" index="34" hp="100" />
+            <Item x="21" y="20" rot="2" index="34" hp="100" />
+            <Item x="20" y="20" rot="2" index="34" hp="100" />
+            <Item x="22" y="22" index="34" hp="100" />
+            <Item x="23" y="22" index="34" hp="100" />
+            <Item x="21" y="22" index="33" hp="100" flags="4" />
+            <Item x="20" y="20" rot="3" index="17" hp="100" />
+            <Item x="23" y="20" index="16" hp="100" />
+            <Item x="20" y="22" rot="3" index="32" hp="100" />
+            <Item x="20" y="21" rot="3" index="34" hp="100" />
+            <Item x="20" y="20" rot="3" index="34" hp="100" />
+            <Item x="16" y="20" rot="2" index="33" hp="100" flags="4" />
+            <Item x="18" y="20" rot="2" index="34" hp="100" />
+            <Item x="19" y="20" rot="2" index="34" hp="100" />
+            <Item x="17" y="22" rot="3" index="18" hp="100" />
+            <Item x="17" y="20" rot="2" index="35" hp="100" />
+            <Item x="15" y="20" rot="2" index="32" hp="100" />
+            <Item x="15" y="21" rot="3" index="34" hp="100" />
+            <Item x="15" y="22" rot="3" index="34" hp="100" />
+            <Item x="15" y="23" rot="3" index="35" hp="100" />
+            <Item x="11" y="21" index="1" hp="300" />
+            <Item x="10" y="22" index="1" hp="300" />
+            <Item x="5" y="20" index="1" hp="300" />
+            <Item x="24" y="16" index="19" hp="10" />
+            <Item x="22" y="17" index="19" hp="10" />
+            <Item x="23" y="16" index="19" hp="10" />
+            <Item x="16" y="16" index="19" hp="10" />
+            <Item x="8" y="17" index="19" hp="10" />
+            <Item x="10" y="16" index="19" hp="10" />
+            <Item x="6" y="17" index="19" hp="10" />
+            <Item x="4" y="17" index="1" hp="300" />
+            <Item x="3" y="16" index="1" hp="300" />
+            <Item x="31" y="15" index="1" hp="300" />
+            <Item x="21" y="14" index="19" hp="10" />
+            <Item x="16" y="14" index="19" hp="10" />
+            <Item x="16" y="13" index="19" hp="10" />
+            <Item x="19" y="14" index="19" hp="10" />
+            <Item x="18" y="15" index="19" hp="10" />
+            <Item x="19" y="15" index="19" hp="10" />
+            <Item x="12" y="14" index="19" hp="10" />
+            <Item x="14" y="14" index="19" hp="10" />
+            <Item x="15" y="12" index="19" hp="10" />
+            <Item x="15" y="13" index="19" hp="10" />
+            <Item x="9" y="13" index="19" hp="10" />
+            <Item x="9" y="15" index="19" hp="10" />
+            <Item x="11" y="13" index="19" hp="10" />
+            <Item x="10" y="14" index="19" hp="10" />
+            <Item x="10" y="15" index="19" hp="10" />
+            <Item x="7" y="15" index="19" hp="10" />
+            <Item x="5" y="14" index="19" hp="10" />
+            <Item x="7" y="12" index="19" hp="10" />
+            <Item x="28" y="9" index="1" hp="300" />
+            <Item x="21" y="11" index="19" hp="10" />
+            <Item x="21" y="10" index="19" hp="10" />
+            <Item x="20" y="11" index="19" hp="10" />
+            <Item x="19" y="10" index="19" hp="10" />
+            <Item x="16" y="8" index="19" hp="10" />
+            <Item x="16" y="10" index="19" hp="10" />
+            <Item x="16" y="9" index="19" hp="10" />
+            <Item x="13" y="10" index="19" hp="10" />
+            <Item x="11" y="11" index="19" hp="10" />
+            <Item x="8" y="11" index="19" hp="10" />
+            <Item x="6" y="9" index="19" hp="10" />
+            <Item x="34" y="5" index="1" hp="300" />
+            <Item x="35" y="7" index="1" hp="300" />
+            <Item x="21" y="4" index="19" hp="10" />
+            <Item x="22" y="7" index="19" hp="10" />
+            <Item x="23" y="5" index="19" hp="10" />
+            <Item x="21" y="6" index="19" hp="10" />
+            <Item x="19" y="7" index="19" hp="10" />
+            <Item x="16" y="6" index="19" hp="10" />
+            <Item x="17" y="6" index="19" hp="10" />
+            <Item x="18" y="7" index="19" hp="10" />
+            <Item x="13" y="7" index="19" hp="10" />
+            <Item x="8" y="6" index="19" hp="10" />
+            <Item x="5" y="7" index="19" hp="10" />
+            <Item x="6" y="7" index="19" hp="10" />
+            <Item x="36" y="3" index="1" hp="300" />
+            <Item x="34" y="1" index="1" hp="300" />
+            <Item x="34" y="27" rot="1" index="69" hp="1000" />
+            <Item x="26" y="27" rot="2" index="70" hp="1000" />
+            <Item x="3" y="32" rot="1" index="96" />
+            <Item x="31" y="33" index="69" hp="1000" />
+            <Item x="31" y="25" rot="1" index="70" hp="1000" />
+        </Items>
+        <GroundDebris>
+            <Debris x="12" y="20">
+                <Storage>
+                    <Rounds i="3" n="24" />
+                    <Rounds i="4" n="4" />
+                </Storage>
+            </Debris>
+        </GroundDebris>
+    </Map>
+    <Units>
+        <Unit team="0" status="1" body="-1149528215" modelX="10.500000" modelZ="30.500000" yRot="90.000000">
+            <Stats STR="47" DEX="23" PSY="45" level="2" />
+            <Inventory>
+                <Item name="PST" />
+                <Item name="ARM-1" />
+                <Item name="Clip" rounds="8" />
+                <Item name="Clip" rounds="8" />
+                <Item name="Med" />
+            </Inventory>
+        </Unit>
+        <Unit team="0" status="1" body="-1350574482" modelX="12.500000" modelZ="30.500000" yRot="135.000000">
+            <Stats STR="37" DEX="54" PSY="33" level="2" />
+            <Inventory>
+                <Item name="PLS-2" />
+                <Item name="ARM-1" />
+                <Item name="Cell" rounds="12" />
+                <Item name="Tach" rounds="4" />
+                <Item name="Clip" rounds="8" />
+                <Item name="Clip" rounds="8" />
+                <Item name="Med" />
+            </Inventory>
+        </Unit>
+        <Unit team="0" status="1" body="924710342" modelX="14.500000" modelZ="30.500000" yRot="180.000000">
+            <Stats STR="68" DEX="41" PSY="56" level="2" />
+            <Inventory>
+                <Item name="AR-3P" />
+                <Item name="PST" />
+                <Item name="ARM-1" />
+                <Item name="AClip" rounds="15" />
+                <Item name="RPG" rounds="4" />
+                <Item name="Clip" rounds="8" />
+                <Item name="Clip" rounds="8" />
+                <Item name="Med" />
+            </Inventory>
+        </Unit>
+        <Unit team="0" status="1" body="1253124240" modelX="16.500000" modelZ="30.500000" yRot="225.000000">
+            <Stats STR="44" DEX="57" PSY="78" level="2" />
+            <Inventory>
+                <Item name="PLS-2" />
+                <Item name="ARM-1" />
+                <Item name="Cell" rounds="12" />
+                <Item name="Tach" rounds="4" />
+                <Item name="Clip" rounds="8" />
+                <Item name="Clip" rounds="8" />
+                <Item name="Med" />
+            </Inventory>
+        </Unit>
+        <Unit team="2" type="0" status="1" body="1304958356" modelX="16.500000" modelZ="21.500000" yRot="0.000000">
+            <Stats STR="47" DEX="47" PSY="76" level="1" />
+            <Inventory>
+                <Item name="RAY-1" />
+                <Item name="Cell" rounds="12" />
+                <Item name="Tach" rounds="4" />
+            </Inventory>
+        </Unit>
+        <Unit team="2" type="1" status="1" body="-500874107" modelX="12.500000" modelZ="16.500000" yRot="0.000000">
+            <Stats STR="55" DEX="37" PSY="61" level="1" />
+            <Inventory>
+                <Item name="PLS-2" />
+            </Inventory>
+        </Unit>
+        <Unit team="2" type="2" status="1" body="-1687011530" modelX="30.500000" modelZ="25.500000" yRot="0.000000">
+            <Stats STR="126" DEX="74" PSY="57" level="1" />
+            <Inventory>
+                <Item name="RAY-1" />
+                <Item name="Cell" rounds="12" />
+                <Item name="Tach" rounds="4" />
+            </Inventory>
+        </Unit>
+        <Unit team="2" type="3" status="1" body="1484309979" modelX="29.500000" modelZ="30.500000" yRot="0.000000">
+            <Stats STR="43" DEX="49" PSY="103" level="1" />
+            <Inventory>
+                <Item name="PLS-2" />
+                <Item name="Cell" rounds="12" />
+                <Item name="Tach" rounds="4" />
+            </Inventory>
+        </Unit>
+    </Units>
+</Game>

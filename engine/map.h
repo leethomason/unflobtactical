@@ -400,6 +400,8 @@ private:
 		Model* crate;
 	};
 	CDynArray< Debris > debris;
+	void SaveDebris( const Debris& d, TiXmlElement* parent );
+	void LoadDebris( const TiXmlElement* mapNode );
 
 	// U8:
 	// bits 0-6:	sub-turns remaining (0-127)		(0x7F)
