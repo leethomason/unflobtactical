@@ -111,14 +111,12 @@ public:
 	bool IsShowingPathing()			{ return showPathing; }
 #endif
 
-	enum { MAX_NUM_LIGHT_MAPS = 16,
+	enum {	MAX_NUM_LIGHT_MAPS = 16,
 
-		   BATTLE_SCENE = 0,
-		   CHARACTER_SCENE,
-		   NUM_SCENES,
-
-		   MAX_SCENE_STACK = 4,
-		   MAX_STREAMS = MAX_SCENE_STACK*2,
+			BATTLE_SCENE = 0,
+			CHARACTER_SCENE,
+			INTRO_SCENE,
+			NUM_SCENES,
 		 };
 
 	void PushScene( int sceneID, void* data );
@@ -126,15 +124,22 @@ public:
 
 	U32 CurrentTime() const	{ return currentTime; }
 
+	std::string GameSavePath()			{ return savePath + "currentgame.xml"; }
 	void Load( const TiXmlDocument& doc );
 	void Save( TiXmlDocument* doc );
+
+	// cheating: moves states between scenes.
+	int		loadRequested;	// 0-continue, 1-new, 2-test, -1 default
 
 private:
 	Scene* CreateScene( int id, void* data );
 	void PushPopScene();
 	bool scenePopQueued;
+	void ProcessLoadRequest();
+
 	int		scenePushQueued;
 	void*	scenePushQueuedData;
+	bool	loadCompleted;
 
 	struct MapLightInit
 	{

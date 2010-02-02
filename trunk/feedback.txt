@@ -7,7 +7,7 @@
 - Next turn indicator
 - Lee: Rewards for exploring? Edge of map is...nothing.
 - Aliens come back to life! Or at least look that way.
-- Move should be faster.
+- [done] Move should be faster.
 - Doesn't alway go where wanted. Touch doesn't do anything. (More forgiving? Go to "feet move" model?)
 - Pinching doesn't feel right
 - [done] Lee: 30fps frame limit on the iPod

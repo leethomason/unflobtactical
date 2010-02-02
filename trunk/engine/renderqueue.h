@@ -56,9 +56,6 @@ public:
 	void Flush();
 	bool Empty() { return nState == 0 && nModel == 0; }
 
-//	int GetTriCount()		{ return triCount; }
-//	void ClearTriCount()	{ triCount = 0; }
-
 private:
 	struct State {
 		U32 flags;
@@ -96,7 +93,6 @@ private:
 
 	int nState;
 	int nModel;
-//	int triCount;
 	const grinliz::Matrix4 *textureMatrix;
 
 	void FlushBuffers();

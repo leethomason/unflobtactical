@@ -64,8 +64,42 @@ enum {
 	DECO_NONE			= 31,
 };
 
+
+class UIWidget
+{
+public:
+	UIWidget( const Screenport& port );
+	virtual ~UIWidget()								{}
+
+	// Coordinates in pixels. Origin in the lower left.
+	void SetOrigin( int x, int y )					{ origin.Set( x, y ); }
+	const grinliz::Vector2I& GetOrigin() const		{ return origin; }
+
+	virtual void Draw() = 0;
+
+protected:
+	grinliz::Vector2I		origin;
+	Screenport				screenport;
+};
+
+
+class UIImage : public UIWidget
+{
+public:
+	UIImage( const Screenport& port );
+	virtual ~UIImage();
+
+	void Init( const Texture* texture, int w, int h );
+	virtual void Draw();
+
+protected:
+	int w, h;
+	const Texture* texture;
+};
+
+
 // Base class for button layouts.
-class UIButtons
+class UIButtons : public UIWidget
 {
 public:
 
@@ -81,10 +115,6 @@ public:
 
 	UIButtons( const Screenport& port );
 	virtual ~UIButtons()	{}
-
-	// Coordinates in pixels. Origin in the lower left.
-	void SetOrigin( int x, int y )				{	origin.Set( x, y ); }
-	const grinliz::Vector2I& GetOrigin() const	{	return origin; }
 
 	void InitButtons( const int* icons, int nIcons );
 	void SetButton( int index, int iconID );
@@ -148,7 +178,7 @@ public:
 
 	// returns the icon INDEX, or -1 if not clicked
 	virtual int QueryTap( int x, int y ) = 0;
-	void Draw();
+	virtual void Draw();
 
 protected:
 	void PositionText( int index );
@@ -172,10 +202,8 @@ protected:
 
 	bool cacheValid;
 	int textLayout;
-	Screenport screenport;
 
 	float alpha;
-	grinliz::Vector2I		origin;
 	grinliz::Vector2I		size;
 	grinliz::Vector2I		pad;
 	grinliz::Rectangle2I	bounds;
@@ -229,8 +257,6 @@ public:
 														cacheValid = false; 
 													}
 												}
-
-//	void CalcDimensions( int *x, int *y, int *w, int *h );
 
 	int TopIndex( int x, int y ) {
 		int dx = columns;

@@ -18,6 +18,7 @@
   <texture filename="lander.png" />
   <texture filename="translucent.png" />
   <texture filename="clips.png" />
+  <texture filename="intro.png" />
 
 	<!-- Models
        Model naming:
@@ -88,7 +89,8 @@
 
   <image filename="objectLightMaps.png" />
   
-	<map filename="testmap.xml" />
+  <!-- Other Data -->
+	<!--<map filename="testmap.xml" />-->
   <data filename="testgame.xml" />
   
 </resource>

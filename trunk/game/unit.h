@@ -32,7 +32,6 @@ public:
 		ALIEN_1,	// mind zapper
 		ALIEN_2,	// trooper
 		ALIEN_3,	// elite
-		ALIEN_MASK = 3
 	};
 
 	enum {
@@ -44,9 +43,9 @@ public:
 	~Unit();
 
 	void Init(	Engine* engine, Game* game, 
-				int team,	 
+				int team,
 				int status,
-				int alienType,	// if alien...
+				int alienType,
 				U32 seed );
 	
 	void Free();
@@ -143,8 +142,9 @@ private:
 	void Kill();
 
 	int status;
-	int team;	// terran, alien, civ
-	U32 body;	// describes everything! a random #
+	int team;		// terran, alien, civ
+	int type;		// type of alien
+	U32 body;		// describes everything! a random #
 	bool userDone;	// ui metaphore - flag if the user is done with this unit
 
 	Game*		game;

@@ -91,7 +91,6 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	fireWidget->InitButtons( fireIcons, 9 );
 	fireWidget->SetPadding( 0, 0 );
 	fireWidget->SetButtonSize( 120, 60 );
-	//fireWidget->SetTextLayout( UIButtons::LAYOUT_RIGHT );
 	
 	for( int i=0; i<3; ++i ) {
 		fireWidget->SetPos( i, 0, i*60 );
@@ -134,6 +133,8 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 #endif
 
 	visibilityMap.ClearAll();
+	currentTeamTurn = ALIEN_TEAM;
+	NextTurn();
 }
 
 
@@ -309,6 +310,10 @@ void BattleScene::NextTurn()
 
 void BattleScene::Save( TiXmlElement* doc )
 {
+	TiXmlElement* battleElement = new TiXmlElement( "BattleScene" );
+	doc->LinkEndChild( battleElement );
+	battleElement->SetAttribute( "currentTeamTurn", currentTeamTurn );
+
 	TiXmlElement* mapElement = new TiXmlElement( "Map" );
 	doc->LinkEndChild( mapElement );
 	engine->GetMap()->Save( mapElement );
@@ -324,7 +329,15 @@ void BattleScene::Save( TiXmlElement* doc )
 
 void BattleScene::Load( const TiXmlElement* gameElement )
 {
+	// FIXME: Save/Load AI? Memory state is lost.
+
 	selection.Clear();
+
+	const TiXmlElement* battleElement = gameElement->FirstChildElement( "BattleScene" );
+	if ( battleElement ) {
+		battleElement->QueryIntAttribute( "currentTeamTurn", &currentTeamTurn );
+	}
+
 	engine->GetMap()->Load( gameElement->FirstChildElement( "Map") );
 	
 	int team[3] = { TERRAN_UNITS_START, CIV_UNITS_START, ALIEN_UNITS_START };
@@ -346,9 +359,11 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 	}
 	engine->GetMap()->QueryAllDoors( &doors );
 	SetFogOfWar();
-	currentTeamTurn = ALIEN_TEAM;
-	NextTurn();
 	ProcessDoors();
+
+	if ( aiArr[currentTeamTurn] ) {
+		aiArr[currentTeamTurn]->StartTurn( units, m_targets );
+	}
 }
 
 

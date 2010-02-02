@@ -29,7 +29,79 @@ extern int trianglesRendered;	// FIXME: should go away once all draw calls are m
 extern int drawCalls;			// ditto
 
 
-UIButtons::UIButtons( const Screenport& port ) : screenport( port )
+UIWidget::UIWidget( const Screenport& port ) : screenport( port )
+{
+	origin.Set( 0, 0 );
+
+}
+
+
+
+UIImage::UIImage( const Screenport& port ) : UIWidget( port )
+{
+	w = h = 0;
+	texture = 0;
+}
+
+
+UIImage::~UIImage()
+{
+}
+
+
+void UIImage::Init( const Texture* texture, int w, int h )
+{
+	this->texture = texture;
+	this->w = w;
+	this->h = h;
+}
+
+
+void UIImage::Draw()
+{
+	if ( !texture || !w || !h )
+		return;
+
+	Vector2<S16>	pos[4] =	{ { 0, 0 }, { w, 0 }, { w, h }, { 0, h } };
+	Vector2F		tex[4] =	{ { 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 } };
+	U16				index[6] =	{ 0, 1, 2, 0, 2, 3 };
+
+	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+
+	glDisable( GL_DEPTH_TEST );
+	glDepthMask( GL_FALSE );
+	//glEnable( GL_BLEND );
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisableClientState( GL_NORMAL_ARRAY );
+	//glEnableClientState( GL_COLOR_ARRAY );
+
+	glEnable( GL_TEXTURE_2D );
+	glBindTexture( GL_TEXTURE_2D, texture->glID );
+
+	screenport.PushUI();
+	glTranslatef( (float)origin.x, (float)origin.y, 0.0f );
+
+	glVertexPointer(   2, GL_SHORT, 0, pos );
+	glTexCoordPointer( 2, GL_FLOAT, 0, tex ); 
+	//glColorPointer( 4, GL_UNSIGNED_BYTE, 0, color );
+
+	CHECK_GL_ERROR;
+	glDrawElements( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, index );
+	trianglesRendered += 2;
+	drawCalls++;
+	CHECK_GL_ERROR;
+		
+	screenport.PopUI();
+
+	glEnableClientState( GL_NORMAL_ARRAY );
+	//glDisableClientState( GL_COLOR_ARRAY );
+	//glDisable( GL_BLEND );
+	glEnable( GL_DEPTH_TEST );
+	glDepthMask( GL_TRUE );
+}
+
+
+UIButtons::UIButtons( const Screenport& port ) : UIWidget( port )
 {
 	this->texture     = TextureManager::Instance()->GetTexture( "icons" );
 	this->decoTexture = TextureManager::Instance()->GetTexture( "iconDeco" );
@@ -39,7 +111,6 @@ UIButtons::UIButtons( const Screenport& port ) : screenport( port )
 	const int PAD = 5;
 	cacheValid = false;
 
-	origin.Set( 0, 0 );
 	size.Set( SIZE, SIZE );
 
 	pad.Set( PAD, PAD );
@@ -54,31 +125,6 @@ UIButtonBox::UIButtonBox( const Screenport& port ) : UIButtons( port )
 {
 	columns = 1;
 }
-
-
-/*
-void UIButtonBox::CalcDimensions( int *x, int *y, int *w, int *h )
-{
-	if ( x ) 
-		*x = origin.x;
-	if ( y )
-		*y = origin.y;
-	int rows = nIcons / columns;
-
-	if ( w ) {
-		if ( columns > 1 )
-			*w = columns*size.x + (columns-1)*pad.x;
-		else
-			*w = size.x;
-	}
-	if ( h ) {
-		if ( rows > 1 )
-			*h = rows*size.y + (rows-1)*pad.y;
-		else
-			*h = rows*size.y;
-	}
-}
-*/
 
 
 void UIButtons::InitButtons( const int* _icons, int _nIcons )

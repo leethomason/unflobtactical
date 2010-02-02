@@ -1,9 +1,26 @@
+
+
 Issues:
+- Aliens come back to life! Or at least look that way.
+- Pinching doesn't feel right
+- next turn indicator
+- reconsider button placement
+- phat loot / edge of map / exploration
+- hit point bar
+- Alien HP too high / damage too low
+- better weapon accuracy calibration
+- tap accuracy
 - need correct colors in RenderWeapon()
-- melee weapons
 - call SetFogOfWar less
 - check math (again) in PushShootAction()
-- tu in character screen
+- map generation
+- different maps
+- tutorial notes
+- new turn generation
+- Couldn't figure out crosshair: UI wasn't clear
+- Highlight looks stupid
+- need victory / defeat screen
+
 
 FIXED
 - center on selected unit (w/ scrolling?)
@@ -25,3 +42,7 @@ FIXED
 - weird delay when map objects destroyed
 - optimize CalcUnitVisibility() to look at a cone.
 - map: check "view bounds" before invalidating a unit.
+
+Deferred/Cancelled
+- melee weapons
+- tu in character screen

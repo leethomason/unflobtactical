@@ -10,8 +10,8 @@
 
 using namespace grinliz;
 
-//#define AILOG GLOUTPUT
-#define AILOG( x )	{}
+#define AILOG GLOUTPUT
+//#define AILOG( x )	{}
 
 AI::AI( int team, SpaceTree* tree )
 {

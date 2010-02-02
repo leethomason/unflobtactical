@@ -37,6 +37,8 @@ public:
 	virtual void DrawHUD()										{}
 
 protected:
+	Engine* GetEngine();
+
 	Game* game;
 };
 
