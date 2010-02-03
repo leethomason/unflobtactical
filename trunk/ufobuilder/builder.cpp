@@ -338,7 +338,6 @@ void ProcessModel( TiXmlElement* model )
 	int startIndex = 0;
 	int startVertex = 0;
 
-	printf( "Model " );
 
 	string filename;
 	model->QueryStringAttribute( "filename", &filename );
@@ -352,6 +351,8 @@ void ProcessModel( TiXmlElement* model )
 	if ( grinliz::StrEqual( model->Attribute( "shading" ), "smooth" ) ) {
 		smoothShading = true;
 	}
+
+	printf( "Model '%s'", name.c_str() );
 
 	ModelBuilder* builder = new ModelBuilder();
 	builder->SetShading( smoothShading );

@@ -134,7 +134,7 @@ private:
 	U32 GetValue( int which ) const;	// ALIEN_TYPE, etc.
 	void GenerateCiv( U32 seed );
 	void GenerateAlien( int type, U32 seed );
-	void CreateModel( bool alive );
+	void CreateModel();
 
 	void UpdateModel();		// make the model current with the unit status - armor, etc.
 	void UpdateWeapon();	// set the gun position

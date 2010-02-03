@@ -179,7 +179,7 @@ void Unit::GenerateAlien( int type, U32 seed )
 
 void Unit::Init(	Engine* engine, Game* game, 
 					int team,	 
-					int status,
+					int _status,
 					int alienType,	// if alien...
 					U32 seed )
 {
@@ -187,7 +187,7 @@ void Unit::Init(	Engine* engine, Game* game,
 	this->engine = engine;
 	this->game = game;
 	this->team = team;
-	this->status = status;
+	this->status = _status;
 	this->type = alienType;
 	GLASSERT( type >= 0 && type < 4 );
 	weapon = 0;
@@ -201,7 +201,8 @@ void Unit::Init(	Engine* engine, Game* game,
 		default:
 			GLASSERT( 0 );
 	}
-	CreateModel( true );
+	this->status = _status;		// status gets reset in "generate"
+	CreateModel();
 }
 
 
@@ -244,7 +245,8 @@ void Unit::SetYRotation( float rotation )
 {
 	GLASSERT( status != STATUS_NOT_INIT );
 	GLASSERT( model );
-	model->SetYRotation( rotation );
+	if ( IsAlive() )
+		model->SetYRotation( rotation );
 	UpdateWeapon();
 	visibilityCurrent = false;
 }
@@ -255,7 +257,8 @@ void Unit::SetPos( const grinliz::Vector3F& pos, float rotation )
 	GLASSERT( status != STATUS_NOT_INIT );
 	GLASSERT( model );
 	model->SetPos( pos );
-	model->SetYRotation( rotation );
+	if ( IsAlive() )
+		model->SetYRotation( rotation );
 	UpdateWeapon();
 	visibilityCurrent = false;
 }
@@ -295,13 +298,15 @@ void Unit::UpdateInventory()
 	}
 	weapon = 0;	// don't render non-weapon items
 
-	const Item* weaponItem = inventory.ArmedWeapon();
-	if ( weaponItem  ) {
-		weapon = engine->AllocModel( weaponItem->GetItemDef()->resource );
-		weapon->SetFlag( Model::MODEL_NO_SHADOW );
-		weapon->SetFlag( Model::MODEL_MAP_TRANSPARENT );
+	if ( IsAlive() ) {
+		const Item* weaponItem = inventory.ArmedWeapon();
+		if ( weaponItem  ) {
+			weapon = engine->AllocModel( weaponItem->GetItemDef()->resource );
+			weapon->SetFlag( Model::MODEL_NO_SHADOW );
+			weapon->SetFlag( Model::MODEL_MAP_TRANSPARENT );
+		}
+		UpdateWeapon();
 	}
-	UpdateWeapon();
 }
 
 
@@ -373,10 +378,10 @@ void Unit::Kill()
 	Free();
 	status = STATUS_DEAD;
 	
-	CreateModel( false );
+	CreateModel();
 
 	stats.ZeroHP();
-	model->SetYRotation( r );
+	model->SetYRotation( 0 );	// set the y rotation to 0 for the "splat" icons
 	model->SetPos( pos );
 	model->SetFlag( Model::MODEL_NO_SHADOW );
 	visibilityCurrent = false;
@@ -406,47 +411,62 @@ void Unit::NewTurn()
 }
 
 
-void Unit::CreateModel( bool alive )
+void Unit::CreateModel()
 {
-	GLASSERT( status != 0 );
+	GLASSERT( status != STATUS_NOT_INIT );
 
 	const ModelResource* resource = 0;
 	ModelResourceManager* modman = ModelResourceManager::Instance();
+	bool alive = IsAlive();
 
-	switch ( team ) {
-		case TERRAN_TEAM:
-			if ( alive )
+	if ( alive ) {
+		switch ( team ) {
+			case TERRAN_TEAM:
 				resource = modman->GetModelResource( ( Gender() == MALE ) ? "maleMarine" : "femaleMarine" );
-			else
-				resource = modman->GetModelResource( ( Gender() == MALE ) ? "maleMarine_D" : "femaleMarine_D" );
-			break;
+				break;
 
-		case CIV_TEAM:
-			if ( alive )
+			case CIV_TEAM:
 				resource = modman->GetModelResource( ( Gender() == MALE ) ? "maleCiv" : "femaleCiv" );
-			else
-				resource = modman->GetModelResource( ( Gender() == MALE ) ? "maleCiv_D" : "femaleCiv_D" );
-			break;
+				break;
 
-		case ALIEN_TEAM:
-			{
-				switch( AlienType() ) {
-					case 0:	resource = modman->GetModelResource( alive ? "alien0" : "alien0_D" );	break;
-					case 1:	resource = modman->GetModelResource( alive ? "alien1" : "alien1_D" );	break;
-					case 2:	resource = modman->GetModelResource( alive ? "alien2" : "alien2_D" );	break;
-					case 3:	resource = modman->GetModelResource( alive ? "alien3" : "alien3_D" );	break;
-					default: GLASSERT( 0 );	break;
+			case ALIEN_TEAM:
+				{
+					switch( AlienType() ) {
+						case 0:	resource = modman->GetModelResource( "alien0" );	break;
+						case 1:	resource = modman->GetModelResource( "alien1" );	break;
+						case 2:	resource = modman->GetModelResource( "alien2" );	break;
+						case 3:	resource = modman->GetModelResource( "alien3" );	break;
+						default: GLASSERT( 0 );	break;
+					}
 				}
+				break;
+			
+			default:
+				GLASSERT( 0 );
+				break;
+		}
+		if ( resource ) {
+			model = engine->AllocModel( resource );
+			model->SetFlag( Model::MODEL_MAP_TRANSPARENT );
+		}
+	}
+	else {
+		if ( team != CIV_TEAM ) {
+			model = engine->AllocModel( modman->GetModelResource( "unitplate" ) );
+			model->SetFlag( Model::MODEL_MAP_TRANSPARENT );
+			model->SetFlag( Model::MODEL_NO_SHADOW );
+
+			const Texture* texture = TextureManager::Instance()->GetTexture( "particleQuad" );
+			model->SetTexture( texture );
+
+			if ( team == TERRAN_TEAM ) {
+				model->SetTexXForm( 0.25, 0.25, 0.75f, 0.0f );
 			}
-			break;
-		
-		default:
-			GLASSERT( 0 );
-			break;
-	};
-	GLASSERT( resource );
-	model = engine->AllocModel( resource );
-	model->SetFlag( Model::MODEL_MAP_TRANSPARENT );
+			else {
+				model->SetTexXForm( 0.25, 0.25, 0.75f, 0.25f );
+			}
+		}
+	}
 	UpdateModel();
 }
 
@@ -454,28 +474,13 @@ void Unit::CreateModel( bool alive )
 void Unit::UpdateModel()
 {
 	GLASSERT( status != STATUS_NOT_INIT );
-	GLASSERT( model );
 
-	switch ( team ) {
-		case TERRAN_TEAM:
-			{
-				int armor = 0;
-				int hair = GetValue( HAIR );
-				int skin = GetValue( SKIN );
-				model->SetSkin( armor, skin, hair );
-			}
-			break;
-
-		case CIV_TEAM:
-			break;
-
-		case ALIEN_TEAM:
-			break;
-		
-		default:
-			GLASSERT( 0 );
-			break;
-	};
+	if ( IsAlive() && model && team == TERRAN_TEAM ) {
+		int armor = 0;
+		int hair = GetValue( HAIR );
+		int skin = GetValue( SKIN );
+		model->SetSkin( armor, skin, hair );
+	}
 }
 
 
@@ -526,7 +531,8 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 		
 		if ( model ) {
 			model->SetPos( pos );
-			model->SetYRotation( rot );
+			if ( IsAlive() )
+				model->SetYRotation( rot );
 		}
 
 		stats.Load( ele );

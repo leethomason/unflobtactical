@@ -1,9 +1,10 @@
 
-
 Issues:
-- Aliens come back to life! Or at least look that way.
+- crates could be more descriptive in their images...
+- center on hit unit
 - Pinching doesn't feel right
-- next turn indicator
+- alien turn indicator
+- disable controls during alien turn
 - reconsider button placement
 - phat loot / edge of map / exploration
 - hit point bar
@@ -19,10 +20,18 @@ Issues:
 - new turn generation
 - Couldn't figure out crosshair: UI wasn't clear
 - Highlight looks stupid
+- Sounds
 - need victory / defeat screen
+- mission types: landing
+- mission types: crash
+- mission types: terror
+- mission types: big ufos
+- mission types: base
 
+FIXED [test #2]
+- Aliens come back to life! Or at least look that way.
 
-FIXED
+FIXED [test #1]
 - center on selected unit (w/ scrolling?)
 - reaction fire probability
 - weapon (in)accuracy
