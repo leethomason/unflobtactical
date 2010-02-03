@@ -14,19 +14,12 @@ class Engine;
 class Game;
 class ParticleSystem;
 
-enum {
-	// Clip types - plenty of complexity here already.
-	//ITEM_CLIP_SHELL = 1,
-	//ITEM_CLIP_AUTO,
-	//ITEM_CLIP_PLASMA,
-	//ITEM_CLIP_TACHYON,
-	//ITEM_CLIP_FLAME,
-//	ITEM_CLIP_ROCKET,
-	//TEM_CLIP_GRENADE,
 
+enum {
 	WEAPON_AUTO		 = 0x01,
 	WEAPON_EXPLOSIVE = 0x04,
 };
+
 
 class WeaponItemDef;
 class ClipItemDef;
