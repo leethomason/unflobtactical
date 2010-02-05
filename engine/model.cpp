@@ -171,7 +171,7 @@ void Model::Init( const ModelResource* resource, SpaceTree* tree )
 	this->resource = resource; 
 	this->tree = tree;
 	pos.Set( 0, 0, 0 );
-	rot = 0;
+	rot[0] = rot[1] = rot[2] = 0.0f;
 	texMatSet = false;
 	setTexture = 0;
 	Modify();
@@ -194,17 +194,19 @@ void Model::SetPos( const grinliz::Vector3F& pos )
 }
 
 
-void Model::SetYRotation( float rot )
+void Model::SetRotation( float r, int axis )
 {
-	while( rot < 0 )		{ rot += 360.0f; }
-	while( rot >= 360 )		{ rot -= 360.0f; }
+	GLASSERT( axis >= 0 && axis < 3 );
+	while( r < 0 )			{ r += 360.0f; }
+	while( r >= 360 )		{ r -= 360.0f; }
 
-	if ( rot != this->rot ) {
+	if ( r != this->rot[axis] ) {
 		Modify();
-		this->rot = rot;		
+		this->rot[axis] = r;		
 		tree->Update( this );	// call because bound computation changes with rotation
 	}
 }
+
 
 
 void Model::SetSkin( int armor, int skin, int hair )
@@ -429,25 +431,17 @@ const grinliz::Matrix4& Model::XForm() const
 		t.SetTranslation( pos );
 
 		Matrix4 r;
-		r.SetYRotation( rot );
+		if ( rot[1] != 0.0f ) 
+			r.ConcatRotation( rot[1], 1 );
+		if ( rot[2] != 0.0f )
+			r.ConcatRotation( rot[2], 2 );
+		if ( rot[0] != 0.0f )
+			r.ConcatRotation( rot[0], 0 );
 
 		_xform = t*r;
 
-		// compute the AABB. Take advatage that we only have translation and y-rotation.
-		Vector3F p[4], q;
-		const Rectangle3F& resB = resource->header.bounds;
-		float y = resB.min.y;
-		p[0] = resB.min;
-		p[1].Set( resB.max.x, y, resB.min.z );
-		p[2] = resB.max;
-		p[3].Set( resB.min.x, y, resB.max.z );
-
-		aabb.max = aabb.min = _xform * p[0];
-		for( int i=1; i<4; ++i ) {
-			q = _xform*p[i];
-			aabb.DoUnion( q );
-		}
-
+		// compute the AABB.
+		MultMatrix4( _xform, resource->header.bounds, &aabb );
 		xformValid = true;
 	}
 	return _xform;

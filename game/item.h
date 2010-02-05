@@ -82,7 +82,6 @@ public:
 	virtual const WeaponItemDef* IsWeapon() const { return this; }
 
 	struct Weapon {
-		//int clipType;		// type of clip required (ITEM_CLIP_ROCKET for example). 0 for melee.
 		const ClipItemDef* clipItemDef;
 		int flags;			// WEAPON_AUTO, etc.
 		float damage;		// damage done by weapon, 1.0 is normal
@@ -99,7 +98,6 @@ public:
 	void FireModeToType( int mode, int* select, int* type ) const;
 	bool IsExplosive( int select ) const { return (weapon[select].flags & WEAPON_EXPLOSIVE) != 0; }
 
-//	bool IsAlienBlaster() const	{ return weapon[0].clipType == ITEM_CLIP_PLASMA || weapon[0].clipType == ITEM_CLIP_TACHYON; }
 	bool IsAlien() const;
 
 	void RenderWeapon(	int select,
@@ -226,7 +224,7 @@ private:
 class Storage
 {
 public:
-	Storage()									{ memset( rounds, 0, sizeof(int)*EL_MAX_ITEM_DEFS ); }
+	Storage()									{	memset( rounds, 0, sizeof(int)*EL_MAX_ITEM_DEFS ); }
 	~Storage();
 
 	void Init( const int* roundArr )			{ memcpy( rounds, roundArr, sizeof(int)*EL_MAX_ITEM_DEFS ); }
@@ -242,13 +240,14 @@ public:
 	void Save( TiXmlElement* parent );
 	void Load( const TiXmlElement* mapNode );
 
+	const ModelResource* VisualRep( ItemDef* const*, bool* zRotate ) const;
+
 private:
 	int GetIndex( const ItemDef* itemDef ) const {
 		int index = itemDef->index;
 		GLASSERT( index >=0 && index < EL_MAX_ITEM_DEFS );
 		return index;
 	}
-
 	int rounds[EL_MAX_ITEM_DEFS];
 };
 

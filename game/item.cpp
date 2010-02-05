@@ -406,24 +406,31 @@ void Storage::Load( const TiXmlElement* element )
 
 
 // Return the "best" item for on-screen rendering.
-/*const ItemDef* Storage::SomeItem() const
+const ModelResource* Storage::VisualRep( ItemDef* const* itemDefArr, bool* zRotate ) const
 {
-	int bestScore = -1;
+	float bestScore = 0;
 	const ItemDef* best = 0;
+	*zRotate = false;
 
 	for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
 		if ( rounds[i] > 0 ) {
-			int score = rounds[i];
-			
-			if ( itemDefs[i]->IsWeapon() )
-				score *= 20;
 
-			if ( score > bestScore ) {
-				bestScore = score;
-				best = itemDefs[i];
+			if ( itemDefArr[i]->IsWeapon() ) {
+				DamageDesc d;
+				itemDefArr[i]->IsWeapon()->DamageBase( 0, &d );
+
+				float score = (float)rounds[i] * d.Total();
+				
+				if ( score > bestScore ) {
+					bestScore = score;
+					best = itemDefArr[i];
+				}
 			}
 		}
 	}
-	return best;
+	if ( best ) {
+		*zRotate = true;
+		return ModelResourceManager::Instance()->GetModelResource( best->resource->header.name );
+	}
+	return ModelResourceManager::Instance()->GetModelResource( "smallcrate" );
 }
-*/

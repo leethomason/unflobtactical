@@ -39,6 +39,13 @@ public:
 	// Add an item. 0: weapon slot, -1: any slot available
 	bool AddItem( const Item& item, int* slot=0 );
 	bool RemoveItem( int slot );
+	bool Empty() {
+		for( int i=0; i<NUM_SLOTS; ++i ) {
+			if ( slots[i].IsSomething() )
+				return false;
+		}
+		return true;
+	}
 
 	bool IsGeneralSlotFree();
 	bool IsSlotFree( const ItemDef* itemDef );

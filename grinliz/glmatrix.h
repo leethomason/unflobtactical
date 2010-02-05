@@ -33,6 +33,7 @@ distribution.
 namespace grinliz {
 
 struct Rectangle2F;
+struct Rectangle3F;
 
 /** A 3D homogenous matrix. Although the bottom row is typically 0,0,0,1 this
 	implementation uses the full 4x4 computation.
@@ -73,6 +74,8 @@ class Matrix4
 	void SetYRotation( float thetaDegree );
 	/// Set the rotation terms
 	void SetZRotation( float thetaDegree );
+	/// Concatenate a rotation in.
+	void ConcatRotation( float thetaDegree, int axis );
 
 	/** Compute the world to eye transform. Given a camera in world coordinates, 
 		what is the world to eye transform?
@@ -172,6 +175,7 @@ class Matrix4
 	friend void MultMatrix4( const Matrix4& a, const Matrix4& b, Matrix4* c );
 	friend void MultMatrix4( const Matrix4& a, const Vector3F& b, Vector3F* c );
 	friend void MultMatrix4( const Matrix4& a, const Vector4F& b, Vector4F* c );
+	friend void MultMatrix4( const Matrix4& m, const Rectangle3F& in, Rectangle3F* out );
 	
 	#ifdef DEBUG
 	void Dump( const char* name=0 ) const
@@ -288,6 +292,8 @@ inline void MultMatrix4( const Matrix4& m, const Vector4F& v, Vector4F* w )
 							  + m.x[i+12] * v.w;
 	}
 }
+
+void MultMatrix4( const Matrix4& m, const Rectangle3F& in, Rectangle3F* out );
 
 }
 

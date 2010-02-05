@@ -9,7 +9,7 @@ class StorageWidget
 {
 public:
 	StorageWidget(	const Screenport& port,
-					ItemDef** itemDefArr,
+					ItemDef* const* itemDefArr,
 					const Storage* storage );
 
 	~StorageWidget();
@@ -34,7 +34,7 @@ private:
 	int groupSelected;
 	const Storage* storage;
 	const ItemDef* itemDefMap[12];
-	ItemDef** itemDefArr;
+	ItemDef* const* itemDefArr;
 };
 
 

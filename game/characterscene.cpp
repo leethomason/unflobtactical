@@ -68,7 +68,7 @@ CharacterScene::~CharacterScene()
 
 	Vector2I mapPos;
 	unit->CalcMapPos( &mapPos, 0 );
-	engine->GetMap()->ReleaseStorage( mapPos.x, mapPos.y, storage );
+	engine->GetMap()->ReleaseStorage( mapPos.x, mapPos.y, storage, game->GetItemDefArr() );
 	storage = 0;
 
 	//BattleSceneStream bss( game );

@@ -3,6 +3,7 @@ Issues:
 - crates could be more descriptive in their images...
 - center on hit unit
 - Pinching doesn't feel right
+- armor
 - alien turn indicator
 - disable controls during alien turn
 - reconsider button placement

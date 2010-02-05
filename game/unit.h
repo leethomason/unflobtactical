@@ -16,6 +16,7 @@ class Model;
 class ModelResource;
 class Engine;
 class Game;
+class Map;
 
 
 class Unit
@@ -52,7 +53,8 @@ public:
 
 	bool InUse() const			{ return status != STATUS_NOT_INIT; }
 	bool IsAlive() const		{ return status == STATUS_ALIVE; }
-	void DoDamage( const DamageDesc& damage );
+	// Do damage to this unit. Will create a Storage on the map, if the map is provided.
+	void DoDamage( const DamageDesc& damage, Map* map );
 	void UseTU( float tu )		{ stats.UseTU( tu ); }
 
 	void NewTurn();
@@ -61,7 +63,7 @@ public:
 
 	int Status() const			{ return status; }
 	int Team() const			{ return team; }
-	int AlienType()	const		{ return GetValue( ALIEN_TYPE ); }
+	int AlienType()	const		{ return type; }
 	int Gender() const			{ return GetValue( GENDER ); }
 
 	const char* FirstName() const;
@@ -122,13 +124,13 @@ public:
 	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
 
 private:
+	// WARNING: change this then change GetValue()
 	enum {	
-		ALIEN_TYPE,		// 2, 0-3. Needs to be first for GenerateAlien()
 		GENDER,			// 1, 0-1
 		HAIR,			// 2, 0-3
 		SKIN,			// 2, 0-3
-		LAST_NAME,		// 3, 0-7
-		FIRST_NAME,		// 3, 0-7
+		LAST_NAME,		// 4, 0-15
+		FIRST_NAME,		// 4, 0-15
 	};
 	void GenerateSoldier( U32 seed );
 	U32 GetValue( int which ) const;	// ALIEN_TYPE, etc.
@@ -139,7 +141,7 @@ private:
 	void UpdateModel();		// make the model current with the unit status - armor, etc.
 	void UpdateWeapon();	// set the gun position
 
-	void Kill();
+	void Kill( Map* map );
 
 	int status;
 	int team;		// terran, alien, civ
