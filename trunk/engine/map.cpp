@@ -606,7 +606,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 		Model* model = tree->AllocModel( res );
 		model->SetFlag( Model::MODEL_OWNED_BY_MAP );
 		model->SetPos( modelPos.x, 0.0f, modelPos.y );
-		model->SetYRotation( 90.0f * rotation );
+		model->SetRotation( 90.0f * rotation );
 		item->model = model;
 	}
 
@@ -695,7 +695,7 @@ void Map::SaveDebris( const Debris& d, TiXmlElement* parent )
 }
 
 
-void Map::LoadDebris( const TiXmlElement* debrisElement )
+void Map::LoadDebris( const TiXmlElement* debrisElement, ItemDef* const* arr )
 {
 	GLASSERT( StrEqual( debrisElement->Value(), "Debris" ) );
 	GLASSERT( debrisElement );
@@ -710,7 +710,7 @@ void Map::LoadDebris( const TiXmlElement* debrisElement )
 			storage = new Storage();
 		}
 		storage->Load( debrisElement );
-		ReleaseStorage( x, y, storage );
+		ReleaseStorage( x, y, storage, arr );
 	}
 }
 
@@ -765,7 +765,7 @@ void Map::Save( TiXmlElement* mapElement )
 }
 
 
-void Map::Load( const TiXmlElement* mapElement )
+void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 {
 	if ( strcmp( mapElement->Value(), "Game" ) == 0 ) {
 		mapElement = mapElement->FirstChildElement( "Map" );
@@ -804,7 +804,7 @@ void Map::Load( const TiXmlElement* mapElement )
 			 debrisElement;
 			 debrisElement = debrisElement->NextSiblingElement( "Debris" ) )
 		{
-			LoadDebris( debrisElement );
+			LoadDebris( debrisElement, arr );
 		}
 	}
 
@@ -867,7 +867,7 @@ bool Map::OpenDoor( int x, int y, bool open )
 			GLASSERT( item->model );
 
 			Vector3F pos = item->model->Pos();
-			float rot = item->model->GetYRotation();
+			float rot = item->model->GetRotation();
 
 			const ModelResource* res = 0;
 			if ( open && item->open == 0 ) {
@@ -886,7 +886,7 @@ bool Map::OpenDoor( int x, int y, bool open )
 				Model* model = tree->AllocModel( res );
 				model->SetFlag( Model::MODEL_OWNED_BY_MAP );
 				model->SetPos( pos );
-				model->SetYRotation( rot );
+				model->SetRotation( rot );
 				item->model = model;
 
 				Rectangle2I mapBounds;
@@ -1203,7 +1203,7 @@ Storage* Map::LockStorage( int x, int y )
 }
 
 
-void Map::ReleaseStorage( int x, int y, Storage* storage )
+void Map::ReleaseStorage( int x, int y, Storage* storage, ItemDef* const* arr )
 {
 #ifdef DEBUG
 	for( int i=0; i<debris.Size(); ++i ) {
@@ -1224,11 +1224,18 @@ void Map::ReleaseStorage( int x, int y, Storage* storage )
 	Debris* d = debris.Push();
 	d->storage = storage;
 
-	const ModelResource* res = ModelResourceManager::Instance()->GetModelResource( "crate" );
+	bool zRotate = false;
+	const ModelResource* res = storage->VisualRep( arr, &zRotate );
 
 	Model* model = tree->AllocModel( res );
-	//model->SetFlag( Model::MODEL_OWNED_BY_MAP );	// not really owned by map, in the sense of mapBounds, etc.
-	model->SetPos( (float)x+0.5f, 0.0f, (float)y+0.5f );
+	if ( zRotate ) {
+		model->SetRotation( 90.0f, 2 );
+		model->SetPos( (float)x+0.5f, 0.05f, (float)y+0.5f );
+	}
+	else {
+		model->SetPos( (float)x+0.5f, 0.0f, (float)y+0.5f );
+	}
+	// Don't set: model->SetFlag( Model::MODEL_OWNED_BY_MAP );	not really owned by map, in the sense of mapBounds, etc.
 	d->crate = model;
 	d->x = x;
 	d->y = y;

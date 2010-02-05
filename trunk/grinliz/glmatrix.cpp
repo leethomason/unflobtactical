@@ -57,6 +57,20 @@ void grinliz::SinCosDegree( float degreeTheta, float* sinTheta, float* cosTheta 
 }
 
 
+void Matrix4::ConcatRotation( float thetaDegree, int axis )
+{
+	Matrix4 r;
+	switch ( axis ) {
+		case 0:	r.SetXRotation( thetaDegree );	break;
+		case 1:	r.SetYRotation( thetaDegree );	break;
+		case 2:	r.SetZRotation( thetaDegree );	break;
+		default:
+			GLASSERT( 0 );
+	}
+	*this = (*this) * r;
+}
+
+
 void Matrix4::SetXRotation( float theta )
 {
 	float cosTheta, sinTheta;
@@ -420,3 +434,22 @@ bool Matrix4::SetLookAt( const Vector3F& eye, const Vector3F& center, const Vect
 	*this = n;
 	return true;
 }
+
+
+void grinliz::MultMatrix4( const Matrix4& m, const Rectangle3F& in, Rectangle3F* out )
+{
+	Vector3F q;
+	Vector3F p = m * in.min;
+
+	out->min = p;
+	out->max = p;
+
+	for( int i=1; i<8; ++i ) {
+		q.Set(	(i&1) ? in.max.x : in.min.x,
+				(i&2) ? in.max.y : in.min.y,
+				(i&4) ? in.max.z : in.min.z );
+		p = m * q;
+		out->DoUnion( p );
+	}
+}
+

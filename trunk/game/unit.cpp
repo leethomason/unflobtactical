@@ -8,9 +8,9 @@
 using namespace grinliz;
 
 // Name first name length: 6
-const char* gMaleFirstNames[8] = 
+const char* gMaleFirstNames[16] = 
 {
-	//"Lee",
+	"Lee",
 	"Jeff",
 	"Sean",
 	"Vlad",
@@ -18,26 +18,40 @@ const char* gMaleFirstNames[8] =
 	"Max",
 	"Otto",
 	"James",
-	"Jason"
+	"Jason",
+	"John",
+	"Hans",
+	"Rupen",
+	"Ping",
+	"Yoshi",
+	"Ishmael",
+	"Roy",
 };
 
 // Name first name length: 6
-const char* gFemaleFirstNames[8] = 
+const char* gFemaleFirstNames[16] = 
 {
 	"Rayne",
 	"Anne",
 	"Jade",
 	"Suzie",
 	"Greta",
-	//"Lilith",
+	"Lilith",
 	"Luna",
 	"Riko",
 	"Jane",
+	"Sarah",
+	"Jane",
+	"Ashley",
+	"Liara",
+	"Rissa",
+	"Lea",
+	"Dahlia"
 };
 
 
 // Name last name length: 6
-const char* gLastNames[8] = 
+const char* gLastNames[16] = 
 {
 	"Payne",
 	"Havok",
@@ -47,6 +61,14 @@ const char* gLastNames[8] =
 	"Bond",
 	"Smith",
 	"Andson",
+	"Dekard",
+	"Jones",
+	"Solo",
+	"Skye",
+	"Picard",
+	"Kirk",
+	"Spock",
+	"Willis"
 };
 
 
@@ -62,7 +84,7 @@ const char* gRank[] = {
 
 U32 Unit::GetValue( int which ) const
 {
-	const int NBITS[] = { 2, 1, 2, 2, 3, 3 };	// ALIEN_TYPE, GENDER, ...
+	const int NBITS[] = { 1, 2, 2, 4, 4 };
 
 	int i;
 	U32 shift = 0;
@@ -246,7 +268,7 @@ void Unit::SetYRotation( float rotation )
 	GLASSERT( status != STATUS_NOT_INIT );
 	GLASSERT( model );
 	if ( IsAlive() )
-		model->SetYRotation( rotation );
+		model->SetRotation( rotation );
 	UpdateWeapon();
 	visibilityCurrent = false;
 }
@@ -258,7 +280,7 @@ void Unit::SetPos( const grinliz::Vector3F& pos, float rotation )
 	GLASSERT( model );
 	model->SetPos( pos );
 	if ( IsAlive() )
-		model->SetYRotation( rotation );
+		model->SetRotation( rotation );
 	UpdateWeapon();
 	visibilityCurrent = false;
 }
@@ -315,14 +337,15 @@ void Unit::UpdateWeapon()
 	GLASSERT( status == STATUS_ALIVE );
 	if ( weapon && model ) {
 		Matrix4 r;
-		r.SetYRotation( model->GetYRotation() );
+		r.SetYRotation( model->GetRotation() );
+
 		Vector4F mPos, gPos, pos4;
 
 		mPos.Set( model->Pos(), 1 );
 		gPos.Set( model->GetResource()->header.trigger, 1.0 );
 		pos4 = mPos + r*gPos;
 		weapon->SetPos( pos4.x, pos4.y, pos4.z );
-		weapon->SetYRotation( model->GetYRotation() );
+		weapon->SetRotation( model->GetRotation() );
 	}
 }
 
@@ -361,18 +384,18 @@ void Unit::CalcMapPos( grinliz::Vector2I* vec, float* rot ) const
 		vec->y = LRintf( model->Z() - 0.5f );
 	}
 	if ( rot ) {
-		float r = model->GetYRotation() + 45.0f/2.0f;
+		float r = model->GetRotation() + 45.0f/2.0f;
 		int ir = (int)( r / 45.0f );
 		*rot = (float)(ir*45);
 	}
 }
 
 
-void Unit::Kill()
+void Unit::Kill( Map* map )
 {
 	GLASSERT( status == STATUS_ALIVE );
 	GLASSERT( model );
-	float r = model->GetYRotation();
+	float r = model->GetRotation();
 	Vector3F pos = model->Pos();
 
 	Free();
@@ -381,21 +404,37 @@ void Unit::Kill()
 	CreateModel();
 
 	stats.ZeroHP();
-	model->SetYRotation( 0 );	// set the y rotation to 0 for the "splat" icons
+	model->SetRotation( 0 );	// set the y rotation to 0 for the "splat" icons
 	model->SetPos( pos );
 	model->SetFlag( Model::MODEL_NO_SHADOW );
 	visibilityCurrent = false;
+
+	if ( map && !inventory.Empty() ) {
+		Vector2I pos = Pos();
+		Storage* storage = map->LockStorage( pos.x, pos.y );
+		if ( !storage ) {
+			storage = new Storage();
+		}
+		for( int i=0; i<Inventory::NUM_SLOTS; ++i ) {
+			Item* item = inventory.AccessItem( i );
+			if ( item->IsSomething() ) {
+				storage->AddItem( *item );
+				item->Clear();
+			}
+		}
+		map->ReleaseStorage( pos.x, pos.y, storage, game->GetItemDefArr() );
+	}
 }
 
 
-void Unit::DoDamage( const DamageDesc& damage )
+void Unit::DoDamage( const DamageDesc& damage, Map* map )
 {
 	GLASSERT( status != STATUS_NOT_INIT );
 	if ( status == STATUS_ALIVE ) {
 		// FIXME: account for armor
 		stats.DoDamage( (int)damage.Total() );
 		if ( !stats.HP() ) {
-			Kill();
+			Kill( map );
 			visibilityCurrent = false;
 		}
 	}
@@ -496,7 +535,7 @@ void Unit::Save( TiXmlElement* doc ) const
 		unitElement->SetAttribute( "body", body );
 		unitElement->SetDoubleAttribute( "modelX", model->Pos().x );
 		unitElement->SetDoubleAttribute( "modelZ", model->Pos().z );
-		unitElement->SetDoubleAttribute( "yRot", model->GetYRotation() );
+		unitElement->SetDoubleAttribute( "yRot", model->GetRotation() );
 
 		stats.Save( unitElement );
 		inventory.Save( unitElement );
@@ -532,7 +571,7 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 		if ( model ) {
 			model->SetPos( pos );
 			if ( IsAlive() )
-				model->SetYRotation( rot );
+				model->SetRotation( rot );
 		}
 
 		stats.Load( ele );

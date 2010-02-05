@@ -296,10 +296,10 @@ void Engine::Draw()
 				// Take advantage of this walk to adjust the billboard rotations. Note that the rotation
 				// will never change it's position in the space tree, which is why we can set it here.
 				if ( model->IsBillboard() ) {
-					if ( model->GetYRotation() != bbRotation )
-						model->SetYRotation( bbRotation );
+					if ( model->GetRotation() != bbRotation )
+						model->SetRotation( bbRotation );
 					if ( model->IsShadowRotated() )
-						model->SetYRotation( shadowRotation );
+						model->SetRotation( shadowRotation );
 				}
 				if ( model->IsFlagSet( Model::MODEL_NO_SHADOW ) )
 					continue;
@@ -349,7 +349,7 @@ void Engine::Draw()
 
 		// Remove the shadow rotation for this pass.
 		if ( model->IsBillboard() && model->IsShadowRotated() ) {
-			model->SetYRotation( bbRotation );
+			model->SetRotation( bbRotation );
 		}
 
 		const Vector3F& pos = model->Pos();

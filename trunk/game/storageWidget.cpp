@@ -4,7 +4,7 @@
 using namespace grinliz;
 
 StorageWidget::StorageWidget(	const Screenport& port, 
-								ItemDef** _itemDefArr,
+								ItemDef* const* _itemDefArr,
 								const Storage* _storage )
 	: storage( _storage ),
 	  itemDefArr( _itemDefArr )

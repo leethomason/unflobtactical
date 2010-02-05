@@ -247,7 +247,7 @@ void BattleScene::InitUnits()
 	extraAmmo->AddItem( cell );
 	extraAmmo->AddItem( cell );
 	extraAmmo->AddItem( tachyon );
-	engine->GetMap()->ReleaseStorage( 12, 20, extraAmmo );
+	engine->GetMap()->ReleaseStorage( 12, 20, extraAmmo, game->GetItemDefArr() );
 
 
 	/*
@@ -338,7 +338,7 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 		battleElement->QueryIntAttribute( "currentTeamTurn", &currentTeamTurn );
 	}
 
-	engine->GetMap()->Load( gameElement->FirstChildElement( "Map") );
+	engine->GetMap()->Load( gameElement->FirstChildElement( "Map"), game->GetItemDefArr() );
 	
 	int team[3] = { TERRAN_UNITS_START, CIV_UNITS_START, ALIEN_UNITS_START };
 
@@ -455,7 +455,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		ParticleSystem::Instance()->EmitDecal(	ParticleSystem::DECAL_SELECTION, 
 												ParticleSystem::DECAL_BOTTOM,
 												m->Pos(), alpha,
-												m->GetYRotation() );
+												m->GetRotation() );
 
 		int unitID = SelectedSoldierUnit() - units;
 	}
@@ -797,7 +797,7 @@ void BattleScene::PushRotateAction( Unit* src, const Vector3F& dst3F, bool quant
 	Vector2I dst = { (int)dst3F.x, (int)dst3F.z };
 
 	float rot = src->AngleBetween( dst, quantize );
-	if ( src->GetModel()->GetYRotation() != rot ) {
+	if ( src->GetModel()->GetRotation() != rot ) {
 		Action action;
 		action.Init( ACTION_ROTATE, src );
 		action.type.rotate.rotation = rot;
@@ -1000,7 +1000,7 @@ bool BattleScene::ProcessAI()
 										}
 									}
 								}
-								engine->GetMap()->ReleaseStorage( pos.x, pos.y, storage );
+								engine->GetMap()->ReleaseStorage( pos.x, pos.y, storage, game->GetItemDefArr() );
 							}
 						}
 						break;
@@ -1158,7 +1158,7 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 						
 					move->path.GetPos( action->type.move.pathStep, move->pathFraction, &x, &z, &r );
 					// Face in the direction of walking.
-					model->SetYRotation( r );
+					model->SetRotation( r );
 
 					float travel = Travel( deltaTime, SPEED );
 
@@ -1186,7 +1186,7 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 						move->path.GetPos( move->pathStep, move->pathFraction, &x, &z, &r );
 
 						Vector3F v = { x+0.5f, 0.0f, z+0.5f };
-						unit->SetPos( v, model->GetYRotation() );
+						unit->SetPos( v, model->GetRotation() );
 					}
 					if ( move->pathStep == move->path.pathLen-1 ) {
 						actionStack.Pop();
@@ -1201,7 +1201,7 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 					float travel = Travel( deltaTime, ROTSPEED );
 
 					float delta, bias;
-					MinDeltaDegrees( model->GetYRotation(), action->type.rotate.rotation, &delta, &bias );
+					MinDeltaDegrees( model->GetRotation(), action->type.rotate.rotation, &delta, &bias );
 
 					if ( delta <= travel ) {
 						unit->SetYRotation( action->type.rotate.rotation );
@@ -1209,7 +1209,7 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 						stackChange = true;
 					}
 					else {
-						unit->SetYRotation( model->GetYRotation() + bias*travel );
+						unit->SetYRotation( model->GetRotation() + bias*travel );
 					}
 				}
 				break;
@@ -1414,7 +1414,7 @@ bool BattleScene::ProcessActionHit( Action* action )
 		if ( hitUnit ) {
 			if ( hitUnit->IsAlive() ) {
 
-				hitUnit->DoDamage( action->type.hit.damageDesc );
+				hitUnit->DoDamage( action->type.hit.damageDesc, engine->GetMap() );
 				if ( !hitUnit->IsAlive() ) {
 					selection.ClearTarget();			
 					// visibility invalidated automatically when unit killed
@@ -1487,7 +1487,7 @@ bool BattleScene::ProcessActionHit( Action* action )
 
 						Unit* unit = GetUnitFromTile( x, y );
 						if ( unit && unit->IsAlive() ) {
-							unit->DoDamage( dd );
+							unit->DoDamage( dd, engine->GetMap() );
 							if ( !unit->IsAlive() && unit == SelectedSoldierUnit() ) {
 								selection.ClearTarget();			
 							}

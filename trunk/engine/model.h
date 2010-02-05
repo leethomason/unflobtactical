@@ -154,8 +154,8 @@ public:
 	float Y() const { return pos.y; }
 	float Z() const { return pos.z; }
 
-	void SetYRotation( float rot );
-	const float GetYRotation() const			{ return rot; }
+	void SetRotation( float rot, int axis=1 );
+	float GetRotation( int axis=1 ) const			{ return rot[axis]; }
 
 	int IsBillboard() const 		{ return resource->header.flags & ModelHeader::BILLBOARD; }
 	int IsOriginUpperLeft() const	{ return resource->header.flags & ModelHeader::UPPER_LEFT; }
@@ -206,7 +206,7 @@ private:
 	SpaceTree* tree;
 	const ModelResource* resource;
 	grinliz::Vector3F pos;
-	float rot;
+	float rot[3];
 	bool texMatSet;
 	TexMat texMat;
 	const Texture* setTexture;	// overrides the default texture

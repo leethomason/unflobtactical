@@ -31,13 +31,8 @@
   <model filename="alien1.ac" shading="smooth" trigger="-0.25 0.85 0.30" eye="1.74" target="1.09" />
   <model filename="alien2.ac" shading="smooth" trigger="-0.31 0.85 0.11" eye="1.57" target="1.10" />
   <model filename="alien3.ac" shading="smooth" trigger="-0.20 0.64 0.31" eye="1.41" target="1.35" />
-  <!--
-  <model filename="alien0_D.ac" shading="smooth" />
-  <model filename="alien1_D.ac" shading="smooth" />
-  <model filename="alien2_D.ac" shading="smooth" />
-  <model filename="alien3_D.ac" shading="smooth" /> 
-  -->
   <model filename="crate.ac" />
+  <model filename="smallcrate.ac" />
   <model filename="unitplate.ac" />
 
   <model filename="farmBed.ac" />
@@ -52,13 +47,6 @@
 	<model filename="maleCiv.ac"      shading="smooth" target="1.39" />
 	<model filename="femaleCiv.ac"    shading="smooth" target="1.47" />
 
-  <!--
-  <model filename="maleMarine_D.ac"   shading="smooth" />
-  <model filename="femaleMarine_D.ac" shading="smooth" />
-  <model filename="maleCiv_D.ac"      shading="smooth" />
-  <model filename="femaleCiv_D.ac"    shading="smooth" />
-  -->
-  
   <model filename="selection.ac" />
 
   <model filename="gun0.ac" />

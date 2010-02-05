@@ -96,7 +96,7 @@ public:
 	
 	Surface*		GetLightMap( const char* name );
 	const ItemDef*  GetItemDef( const char* name );
-	ItemDef**		GetItemDefArr()	{ return itemDefArr; }
+	ItemDef* const*	GetItemDefArr() const	{ return itemDefArr; }
 
 	Engine engine;
 	Surface surface;

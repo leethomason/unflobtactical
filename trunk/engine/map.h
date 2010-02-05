@@ -224,7 +224,7 @@ public:
 	void SetPathBlock( int x, int y );
 
 	Storage* LockStorage( int x, int y );					//< can return 0 if none there
-	void ReleaseStorage( int x, int y, Storage* storage );	//< sets the storage
+	void ReleaseStorage( int x, int y, Storage* storage, ItemDef* const* arr );	//< sets the storage
 
 	const Storage* GetStorage( int x, int y ) const;		//< take a peek
 	void FindStorage( const ItemDef* itemDef, int maxLoc, grinliz::Vector2I* loc, int* numLoc );
@@ -283,7 +283,7 @@ public:
 	void QueryAllDoors( CDynArray< grinliz::Vector2I >* doors );
 
 	void Save( TiXmlElement* parent );
-	void Load( const TiXmlElement* mapNode );
+	void Load( const TiXmlElement* mapNode, ItemDef* const* arr );
 
 private:
 	struct IMat
@@ -401,7 +401,7 @@ private:
 	};
 	CDynArray< Debris > debris;
 	void SaveDebris( const Debris& d, TiXmlElement* parent );
-	void LoadDebris( const TiXmlElement* mapNode );
+	void LoadDebris( const TiXmlElement* mapNode, ItemDef* const* arr );
 
 	// U8:
 	// bits 0-6:	sub-turns remaining (0-127)		(0x7F)
