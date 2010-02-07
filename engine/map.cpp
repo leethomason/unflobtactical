@@ -1230,6 +1230,11 @@ void Map::ReleaseStorage( int x, int y, Storage* storage, ItemDef* const* arr )
 	Model* model = tree->AllocModel( res );
 	if ( zRotate ) {
 		model->SetRotation( 90.0f, 2 );
+		
+		Vector2I v = { x, y };
+		int yRot = Random::Hash( &v, sizeof(v) ) % 360;	// generate a random yet consistent rotation
+
+		model->SetRotation( (float)yRot, 1 );
 		model->SetPos( (float)x+0.5f, 0.05f, (float)y+0.5f );
 	}
 	else {

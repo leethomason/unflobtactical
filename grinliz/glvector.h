@@ -86,8 +86,8 @@ struct Vector2
 	bool operator==( const Vector2<T>& rhs ) const	{ return (x == rhs.x) && (y == rhs.y); }
 	bool operator!=( const Vector2<T>& rhs ) const	{ return (x != rhs.x) || (y != rhs.y); }
 
-	friend bool Equal( const Vector2<T>& a, const Vector2<T>& b, T epsilon ) {
-		return ( Equal( a.x, b.x, epsilon ) && Equal( a.y, b.y, epsilon ) );
+	bool Equal( const Vector2<T>& b, T epsilon ) const {
+		return ( grinliz::Equal( x, b.x, epsilon ) && grinliz::Equal( y, b.y, epsilon ) );
 	}
 
 	int Compare( const Vector2<T>& r, T epsilon ) const
@@ -243,8 +243,8 @@ struct Vector3
 	bool operator==( const Vector3<T>& rhs ) const	{ return x == rhs.x && y == rhs.y && z == rhs.z; }
 	bool operator!=( const Vector3<T>& rhs ) const	{ return x != rhs.x || y != rhs.y || z != rhs.z; }
 
-	friend bool Equal( const Vector3<T>& a, const Vector3<T>& b, T epsilon ) {
-		return ( Equal( a.x, b.x, epsilon ) && Equal( a.y, b.y, epsilon ) && Equal( a.z, b.z, epsilon ) );
+	bool Equal( const Vector3<T>& b, T epsilon ) const {
+		return ( grinliz::Equal( x, b.x, epsilon ) && grinliz::Equal( y, b.y, epsilon ) && grinliz::Equal( z, b.z, epsilon ) );
 	}
 
 	int Compare( const Vector3<T>& r, T epsilon ) const

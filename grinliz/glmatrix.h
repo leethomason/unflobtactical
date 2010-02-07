@@ -173,7 +173,7 @@ class Matrix4
 	}
 
 	friend void MultMatrix4( const Matrix4& a, const Matrix4& b, Matrix4* c );
-	friend void MultMatrix4( const Matrix4& a, const Vector3F& b, Vector3F* c );
+	friend void MultMatrix4( const Matrix4& a, const Vector3F& b, Vector3F* c, float w );
 	friend void MultMatrix4( const Matrix4& a, const Vector4F& b, Vector4F* c );
 	friend void MultMatrix4( const Matrix4& m, const Rectangle3F& in, Rectangle3F* out );
 	
@@ -221,7 +221,7 @@ class Matrix4
 	friend Vector3F operator*( const Matrix4& a, const Vector3F& b )
 	{
 		Vector3F result;
-		MultMatrix4( a, b, &result );
+		MultMatrix4( a, b, &result, 1.0f );
 		return result;
 	}
 	friend Vector4F operator*( const Matrix4& a, const Vector4F& b )
@@ -267,17 +267,19 @@ inline void MultMatrix4( const Matrix4& a, const Matrix4& b, Matrix4* c )
 }
 
 
-/** w = Mv. Multiply a vector by a matrix. A vector is a column in column-major form.
+/** out = Mv. Multiply a vector by a matrix. A vector is a column in column-major form.
+	w is the v.w term. If 1.0 (default) transformation as point. If 0.0 transform
+	as a direction.
 */
-inline void MultMatrix4( const Matrix4& m, const Vector3F& v, Vector3F* w )
+inline void MultMatrix4( const Matrix4& m, const Vector3F& v, Vector3F* out, float w )
 {
-	GLASSERT( w != &v );
+	GLASSERT( out != &v );
 	for( int i=0; i<3; ++i )			// target row
 	{
-		*( &w->x + i )	=		m.x[i+0]  * v.x 
-							  + m.x[i+4]  * v.y 
-							  + m.x[i+8]  * v.z
-							  + m.x[i+12];			// assume 1.0
+		*( &out->x + i )	=		m.x[i+0]  * v.x 
+								  + m.x[i+4]  * v.y 
+								  + m.x[i+8]  * v.z
+								  + m.x[i+12] * w;
 	}
 }
 

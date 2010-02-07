@@ -24,6 +24,8 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	engine  = &game->engine;
 	uiMode = UIM_NORMAL;
 	nearPathState = NEAR_PATH_INVALID;
+	memset( hpBars, 0, sizeof( UIBar* )*MAX_UNITS );
+	memset( hpBarsFadeTime, 0, sizeof( int )*MAX_UNITS );
 
 	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, engine->GetSpaceTree() );
 	aiArr[TERRAN_TEAM]		= 0;
@@ -115,23 +117,6 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	}
 #endif
 
-#if defined( MAPMAKER )
-#else
-	// 2 ways to start this:
-	// - creating a new map
-	// - linking up the current map (writeable)
-	// This should really always hook up to the current map, but for
-	// now do a copy over.
-
-//	UFOStream* stream = game->OpenStream( "BattleScene", false );
-//	if ( !stream ) {
-//		InitUnits();
-//	}
-//	else {
-//		Load( stream );
-//	}
-#endif
-
 	visibilityMap.ClearAll();
 	currentTeamTurn = ALIEN_TEAM;
 	NextTurn();
@@ -140,10 +125,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 
 BattleScene::~BattleScene()
 {
-	//UFOStream* stream = game->OpenStream( "BattleScene" );
-	//Save( stream );
 	ParticleSystem::Instance()->Clear();
-	//FreePathEndModel();
 
 #if defined( MAPMAKER )
 	if ( mapSelection ) 
@@ -155,6 +137,8 @@ BattleScene::~BattleScene()
 
 	for( int i=0; i<3; ++i )
 		delete aiArr[i];
+	for( int i=0; i<MAX_UNITS; ++i )
+		delete hpBars[i];
 	delete fireWidget;
 	delete widgets;
 }
@@ -571,6 +555,59 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 			bool done = ProcessAI();
 			if ( done )
 				NextTurn();
+		}
+	}
+}
+
+
+void BattleScene::DrawHPBars()
+{
+	// A bit of code so the hp bar isn't up *all* the time. If selected, then show them all.
+	// Else just show for 5 seconds after hp changes.
+	//
+	const int FADE_TIME = 5000;
+	bool drawAll = (SelectedSoldierUnit() != 0 );
+
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		hpBarsFadeTime[i] = Max( hpBarsFadeTime[i] - (int)game->DeltaTime(), 0 );
+
+		if (    units[i].IsAlive() 
+			 && units[i].GetModel() 
+			 && ( units[i].Team() == TERRAN_TEAM || m_targets.TeamCanSee( TERRAN_TEAM, i ) ) ) 
+		{
+
+			const Vector3F& pos = units[i].GetModel()->Pos();
+			Vector2F r;
+			engine->WorldToScreen( pos, &r );
+
+			const Screenport& port = engine->GetScreenport();
+			if ( r.x >= 0.0f && r.x <= port.PhysicalWidth() && r.y >= 0.0f && r.y <= port.PhysicalHeight() ) {
+				// onscreen
+				int uiX, uiY;
+				port.ViewToUI( (int)r.x, (int)r.y, &uiX, &uiY );
+
+				const int W = 30;
+				const int H = 10;
+
+				if ( !hpBars[i] ) {
+					hpBars[i] = new UIBar( port );
+					hpBars[i]->SetSize( 30, 10 );
+					hpBars[i]->SetSteps( 5 );
+
+					hpBars[i]->SetRange( 0, 100 );
+					hpBars[i]->SetValue1( units[i].GetStats().TotalHP() );
+					hpBars[i]->SetValue0( units[i].GetStats().HP() );
+				}
+				if ( hpBars[i]->GetValue0() != units[i].GetStats().HP() ) {
+					hpBars[i]->SetValue0( units[i].GetStats().HP() );
+					hpBarsFadeTime[i] = FADE_TIME;
+				}
+				hpBars[i]->SetOrigin( uiX-W/2, uiY-H*18/10 );
+
+				if ( drawAll || hpBarsFadeTime[i] > 0 ) {
+					hpBars[i]->Draw();
+				}
+			}
 		}
 	}
 }
@@ -2431,6 +2468,7 @@ void BattleScene::DrawHUD()
 			m_targets.TotalTeamCanSee( TERRAN_TEAM, ALIEN_TEAM ) );
 */
 	}
+	DrawHPBars();
 #endif
 }
 

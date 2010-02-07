@@ -78,8 +78,48 @@ public:
 	virtual void Draw() = 0;
 
 protected:
+	struct Vertex2D
+	{
+		grinliz::Vector2F	pos;
+		grinliz::Vector2F	tex;
+	};
+
 	grinliz::Vector2I		origin;
 	Screenport				screenport;
+};
+
+
+class UIBar : public UIWidget
+{
+public:
+	UIBar( const Screenport& port );
+	~UIBar();
+
+	void SetSize( int dx, int dy );
+	void SetSteps( int steps );
+	
+	void SetRange( int minValue, int maxValue );
+
+	void SetValue0( int value0 );
+	int GetValue0() const			{ return value0; }
+	void SetValue1( int value1 );
+	int GetValue1() const			{ return value1; }
+
+	void Update( int deltaTime );
+	virtual void Draw();
+
+private:
+	enum { MAX_STEPS = 10 };
+
+	bool valid;
+	int nSteps;
+	int minValue, maxValue, value0, value1;
+	grinliz::Vector2I size;
+
+	const Texture* texture;
+
+	U16		 index[ MAX_STEPS*6 ];
+	Vertex2D vertex[ MAX_STEPS*4 ];
 };
 
 

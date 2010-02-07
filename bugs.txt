@@ -1,15 +1,12 @@
 
 Issues:
-- crates could be more descriptive in their images...
+- Armor. Affects hp. Can't change in tactical view.
+- Alien HP too high / damage too low. Normalize traits.
 - center on hit unit
 - Pinching doesn't feel right
-- armor
 - alien turn indicator
-- disable controls during alien turn
 - reconsider button placement
 - phat loot / edge of map / exploration
-- hit point bar
-- Alien HP too high / damage too low
 - better weapon accuracy calibration
 - tap accuracy
 - need correct colors in RenderWeapon()
@@ -31,6 +28,9 @@ Issues:
 
 FIXED [test #2]
 - Aliens come back to life! Or at least look that way.
+- crates could be more descriptive in their images...
+- hit point bar
+- disable controls during alien turn
 
 FIXED [test #1]
 - center on selected unit (w/ scrolling?)

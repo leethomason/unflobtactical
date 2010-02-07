@@ -44,6 +44,29 @@ struct Vertex
 		}
 		return false;
 	}
+
+	bool Equal( const Vertex& v, float EPS ) const
+	{
+		if (	pos.Equal( v.pos, EPS ) 
+			 && normal.Equal( v.normal, EPS ) 
+			 && tex.Equal( v.tex, EPS ) )
+		{
+			return true;
+		}
+		return false;
+	}
+};
+
+
+struct PTVertex
+{
+	enum {
+		POS_OFFSET = 0,
+		TEXTURE_OFFSET = 12
+	};
+
+	grinliz::Vector3F	pos;
+	grinliz::Vector2F	tex;
 };
 
 

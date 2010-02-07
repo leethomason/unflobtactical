@@ -288,9 +288,11 @@ bool WarriorAI::Think(	const Unit* theUnit,
 			if ( bestPath >= 0 ) {
 				std::vector< grinliz::Vector2<S16> >& path = m_path[bestPath];
 				TrimPathToCost( &path, theUnit->GetStats().TU() );
-				AILOG(( "  **Moving to Ammo at (%d,%d)\n", storeLocs[bestPath].x, storeLocs[bestPath].y ));
-				action->actionID = ACTION_MOVE;
-				action->move.path.Init( path );
+				if ( path.size() > 1 ) {
+					AILOG(( "  **Moving to Ammo at (%d,%d)\n", storeLocs[bestPath].x, storeLocs[bestPath].y ));
+					action->actionID = ACTION_MOVE;
+					action->move.path.Init( path );
+				}
 				return false;
 			}
 		}

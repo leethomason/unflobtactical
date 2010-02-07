@@ -13,6 +13,7 @@
 class Model;
 class UIButtonBox;
 class UIButtonGroup;
+class UIBar;
 class Engine;
 class Texture;
 class AI;
@@ -167,6 +168,7 @@ private:
 	void StopForNewTeamTarget();
 	void DoReactionFire();
 	void DrawFireWidget();
+	void DrawHPBars();
 
 	std::vector< grinliz::Vector2<S16> >	pathCache;
 
@@ -272,7 +274,9 @@ private:
 							const grinliz::Vector2I& pos,
 							const grinliz::Vector2I& origin );
 
-	Unit units[MAX_UNITS];
+	Unit	units[MAX_UNITS];
+	UIBar*	hpBars[MAX_UNITS];
+	int		hpBarsFadeTime[MAX_UNITS];
 
 #ifdef MAPMAKER
 	// Mapmaker:

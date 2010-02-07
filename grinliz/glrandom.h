@@ -109,7 +109,7 @@ class Random
 	void NormalVector3D( float* v );
 
 	/// Fast hash
-	static U32 SuperFastHash( const void* data, U32 len );
+	static U32 Hash( const void* data, U32 len );
 
 private:
 	U32 x, y, z, c;

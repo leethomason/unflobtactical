@@ -88,7 +88,7 @@ int main( const char* argv, int argc )
 void Random::SetSeed( const char* str )
 {
 	int len = strlen( str );
-	U32 seed = SuperFastHash( str, len );
+	U32 seed = Hash( str, len );
 	SetSeed( seed );
 }
 
@@ -145,6 +145,25 @@ void Random::NormalVector( float* v, int dim )
 // http://www.azillionmonkeys.com/qed/hash.html
 // by Paul Hsieh
 //
+// But this is based on:
+// FNV-1a
+// http://isthe.com/chongo/tech/comp/fnv/
+// public domain.
+//
+
+/*static*/ U32 Random::Hash( const void* data, U32 len )
+{
+	const unsigned char *p = (const unsigned char *)(data);
+	unsigned int h = 2166136261;
+
+	for( U32 i=0; i<len; ++i, ++p ) {
+		h ^= *p;
+		h *= 16777619;
+	}
+	return h;
+}
+
+/*
 U32 Random::SuperFastHash (const void* _data, U32 len) 
 {
 //#ifdef GRINLIZ_LITTLE_ENDIAN
@@ -201,6 +220,7 @@ U32 Random::SuperFastHash (const void* _data, U32 len)
 
     return hash;
 }
+*/
 
 
 const int COUNT_2D = 256;
