@@ -1723,7 +1723,7 @@ void BattleScene::Tap(	int tap,
 
 #ifdef MAPMAKER
 	const Vector3F& pos = mapSelection->Pos();
-	int rotation = (int) (mapSelection->GetYRotation() / 90.0f );
+	int rotation = (int) (mapSelection->GetRotation() / 90.0f );
 
 	engine->GetMap()->AddItem( (int)pos.x, (int)pos.z, rotation, currentMapItem, -1, 0 );
 #endif	
@@ -2643,7 +2643,7 @@ void BattleScene::UpdatePreview()
 		preview = engine->GetMap()->CreatePreview(	(int)mapSelection->X(), 
 													(int)mapSelection->Z(), 
 													currentMapItem, 
-													(int)(mapSelection->GetYRotation()/90.0f) );
+													(int)(mapSelection->GetRotation()/90.0f) );
 
 		if ( preview ) {
 			const Texture* t = TextureManager::Instance()->GetTexture( "translucent" );
@@ -2674,8 +2674,8 @@ void BattleScene::MouseMove( int x, int y )
 
 void BattleScene::RotateSelection( int delta )
 {
-	float rot = mapSelection->GetYRotation() + 90.0f*(float)delta;
-	mapSelection->SetYRotation( rot );
+	float rot = mapSelection->GetRotation() + 90.0f*(float)delta;
+	mapSelection->SetRotation( rot );
 	UpdatePreview();
 }
 

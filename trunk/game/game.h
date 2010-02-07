@@ -130,7 +130,8 @@ public:
 	void Save( TiXmlDocument* doc );
 
 	// cheating: moves states between scenes.
-	int		loadRequested;	// 0-continue, 1-new, 2-test, -1 default
+	int				loadRequested;	// 0-continue, 1-new, 2-test, -1 default
+	std::string		newGameXML;
 
 private:
 	Scene* CreateScene( int id, void* data );

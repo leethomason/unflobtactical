@@ -292,8 +292,12 @@ bool WarriorAI::Think(	const Unit* theUnit,
 					AILOG(( "  **Moving to Ammo at (%d,%d)\n", storeLocs[bestPath].x, storeLocs[bestPath].y ));
 					action->actionID = ACTION_MOVE;
 					action->move.path.Init( path );
+					return false;
 				}
-				return false;
+				else {
+					// no time left:
+					return true;
+				}
 			}
 		}
 	}

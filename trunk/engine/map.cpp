@@ -545,7 +545,7 @@ Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 
 		model = tree->AllocModel( itemDefArr[defIndex].modelResource );
 		model->SetPos( modelPos.x, 0.0f, modelPos.y );
-		model->SetYRotation( 90.0f * rotation );
+		model->SetRotation( 90.0f * rotation );
 	}
 	return model;
 }

@@ -103,9 +103,11 @@ TacticalIntroScene::~TacticalIntroScene()
 void TacticalIntroScene::DrawHUD()
 {
 	background->Draw();
-	buttons->Draw();
 	if ( showNewChoices ) {
 		choices->Draw();
+	}
+	else {
+		buttons->Draw();
 	}
 }
 
@@ -116,18 +118,62 @@ void TacticalIntroScene::Tap(	int count,
 {
 	int ux, uy;
 	GetEngine()->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );
-	int tap = buttons->QueryTap( ux, uy );
 
-	switch ( tap ) {
-		case TEST_GAME:			game->loadRequested = 2;			break;
-		case NEW_GAME:			game->loadRequested = 1;			break;
-		case CONTINUE_GAME:		game->loadRequested = 0;			break;
+	if ( !showNewChoices ) {
+		int tap = buttons->QueryTap( ux, uy );
+		switch ( tap ) {
+			case TEST_GAME:			game->loadRequested = 2;			break;
+			case NEW_GAME:			showNewChoices = true;				break;
+			case CONTINUE_GAME:		game->loadRequested = 0;			break;
 
-		default:
-			break;
+			default:
+				break;
+		}
 	}
+	else {
+		int tap = choices->QueryTap( ux, uy );
+		switch ( tap ) {
+			case SQUAD_4:	
+			case SQUAD_8:
+				choices->SetButton( SQUAD_4, (tap==SQUAD_4) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				choices->SetButton( SQUAD_8, (tap==SQUAD_8) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				break;
 
-	if ( tap >= 0 ) {
+			case TERRAN_LOW:	
+			case TERRAN_MED:
+			case TERRAN_HIGH:
+				choices->SetButton( TERRAN_LOW, (tap==TERRAN_LOW) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				choices->SetButton( TERRAN_MED, (tap==TERRAN_MED) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				choices->SetButton( TERRAN_HIGH, (tap==TERRAN_HIGH) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				break;
+
+			case ALIEN_8:	
+			case ALIEN_16:
+				choices->SetButton( ALIEN_8,  (tap==ALIEN_8) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				choices->SetButton( ALIEN_16, (tap==ALIEN_16) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				break;
+
+			case ALIEN_LOW:	
+			case ALIEN_MED:
+			case ALIEN_HIGH:
+				choices->SetButton( ALIEN_LOW, (tap==ALIEN_LOW) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				choices->SetButton( ALIEN_MED, (tap==ALIEN_MED) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				choices->SetButton( ALIEN_HIGH, (tap==ALIEN_HIGH) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				break;
+
+			case TIME_DAY:	
+			case TIME_NIGHT:
+				choices->SetButton( TIME_DAY,  (tap==TIME_DAY) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				choices->SetButton( TIME_NIGHT, (tap==TIME_NIGHT) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				break;
+
+				// FIXME construct XML!
+//			case GO_NEW_GAME:
+//				game->loadRequested = 1;
+//				break;
+		}
+	}
+	if ( game->loadRequested >= 0 ) {
 		game->PopScene();
 		game->PushScene( Game::BATTLE_SCENE, 0 );
 	}
