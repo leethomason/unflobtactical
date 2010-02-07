@@ -1,5 +1,6 @@
 
 Issues:
+- Reconsider when reaction fire occurs. And probability.
 - Armor. Affects hp. Can't change in tactical view.
 - Alien HP too high / damage too low. Normalize traits.
 - center on hit unit
@@ -20,6 +21,7 @@ Issues:
 - Highlight looks stupid
 - Sounds
 - need victory / defeat screen
+- unconscious
 - mission types: landing
 - mission types: crash
 - mission types: terror

@@ -89,6 +89,12 @@ protected:
 };
 
 
+/*	Draw a status/indicator/level bar. 
+	The bar draws in 3 colors:
+	minValue-value0		'green'/okay
+	value0-value1		'red'/problem
+	value1-maxValue		'black'/no value
+*/
 class UIBar : public UIWidget
 {
 public:
@@ -105,7 +111,6 @@ public:
 	void SetValue1( int value1 );
 	int GetValue1() const			{ return value1; }
 
-	void Update( int deltaTime );
 	virtual void Draw();
 
 private:

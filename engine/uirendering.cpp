@@ -65,11 +65,6 @@ UIBar::~UIBar()
 {}
 
 
-void UIBar::Update( int deltaTime )
-{
-	
-}
-
 void UIBar::SetSize( int dx, int dy )
 {
 	if ( dx != size.x || dy != size.y ) {

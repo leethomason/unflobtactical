@@ -99,7 +99,11 @@ Game::Game( const Screenport& sp, const char* _savePath ) :
 
 	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 
+#ifdef MAPMAKER
+	scenePushQueued = BATTLE_SCENE;
+#else
 	scenePushQueued = INTRO_SCENE;
+#endif
 	loadRequested = -1;
 	loadCompleted = false;
 	PushPopScene();
@@ -110,7 +114,7 @@ Game::Game( const Screenport& sp, const char* _savePath ) :
 	TiXmlDocument doc( "./resin/testmap.xml" );
 	doc.LoadFile();
 	if ( !doc.Error() )
-		engine.GetMap()->Load( doc.FirstChildElement( "Map" ) );
+		engine.GetMap()->Load( doc.FirstChildElement( "Map" ), GetItemDefArr() );
 #else
 
 #endif
