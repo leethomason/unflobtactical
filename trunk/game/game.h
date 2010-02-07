@@ -123,6 +123,7 @@ public:
 	void PopScene();
 
 	U32 CurrentTime() const	{ return currentTime; }
+	U32 DeltaTime() const	{ return currentTime-previousTime; }
 
 	std::string GameSavePath()			{ return savePath + "currentgame.xml"; }
 	void Load( const TiXmlDocument& doc );

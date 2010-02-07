@@ -19,6 +19,10 @@
   <texture filename="translucent.png" />
   <texture filename="clips.png" />
   <texture filename="intro.png" />
+  <texture filename="basehp.png" />
+  <!--
+  <texture filename="femaleSkin.png" />
+  -->
 
 	<!-- Models
        Model naming:
@@ -44,8 +48,10 @@
 
   <model filename="maleMarine.ac"   shading="smooth" trigger="-0.31 1.20 0.38" eye="1.83" target="1.35"/>
 	<model filename="femaleMarine.ac" shading="smooth" trigger="-0.26 1.17 0.40" eye="1.81" target="1.43"/>
+  <!--
 	<model filename="maleCiv.ac"      shading="smooth" target="1.39" />
 	<model filename="femaleCiv.ac"    shading="smooth" target="1.47" />
+  -->
 
   <model filename="selection.ac" />
 

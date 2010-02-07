@@ -24,11 +24,21 @@ struct VertexGroup {
 	VertexGroup() : nVertex( 0 ), nIndex( 0 ) { textureName[0] = 0; }
 
 	char textureName[EL_FILE_STRING_LEN];
-	Vertex	vertex[EL_MAX_VERTEX_IN_GROUP];
-	grinliz::Vector3F normalSum[EL_MAX_VERTEX_IN_GROUP];
+
 	int nVertex;
-	U16 index[EL_MAX_INDEX_IN_GROUP];
+	Vertex	vertex[EL_MAX_VERTEX_IN_GROUP];
 	int nIndex;
+	U16 index[EL_MAX_INDEX_IN_GROUP];
+};
+
+
+struct VertexStream {
+	VertexStream() : nVertex( 0 )	{}
+
+	enum { MAX_VERTEX = EL_MAX_VERTEX_IN_GROUP*4 };
+	int				nVertex;
+	Vertex			vertex[ MAX_VERTEX ];
+	bool			normalProcessed[ MAX_VERTEX ];
 };
 
 
@@ -56,13 +66,13 @@ public:
 	const grinliz::Rectangle3F& Bounds()	{ return bounds; }
 
 private:
-	float MemoryACMR( const U16* index, int nIndex );
-	void ReOrderVertices( VertexGroup* group );
+	int current;
 
-	VertexGroup* current;
 	grinliz::Matrix4 matrix;
 	grinliz::Rectangle3F bounds;
+
 	VertexGroup group[EL_MAX_MODEL_GROUPS];
+	VertexStream stream[EL_MAX_MODEL_GROUPS];
 
 	int nGroup;
 	bool smooth;

@@ -22,114 +22,62 @@ using namespace grinliz;
 
 void ModelBuilder::SetTexture( const char* textureName )
 {
-	GLASSERT( strlen( textureName ) < 16 );
+	GLASSERT( strlen( textureName ) < EL_FILE_STRING_LEN );
 	current = 0;
 
 	for( int i=0; i<nGroup; ++i ) {
 		if ( strcmp( textureName, group[i].textureName ) == 0 ) {
-			current = &group[i];
+			current = i;
 			break;
 		}
 	}
 	if ( !current ) {
 		GLASSERT( nGroup < EL_MAX_MODEL_GROUPS );
-		StrNCpy( group[nGroup].textureName, textureName, 16 );
-		current = &group[nGroup];
-		++nGroup;
+
+		StrNCpy( group[nGroup].textureName, textureName, EL_FILE_STRING_LEN );
+		current = nGroup++;
 	}
 }
 
 
 void ModelBuilder::AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 )
 {
-	GLASSERT( current );
-	GLASSERT( current->nIndex < EL_MAX_INDEX_IN_GROUP-3 );
+	GLASSERT( current<nGroup );
 
-	const Vertex v[3] = { v0, v1, v2 };
+	Vertex vIn[3] = { v0, v1, v2 };
 	Vertex vX[3];
+
+	// Triangles are added to the VertexStream(s). They are later sorted
+	// and processed to the VertexGroup(s).
+	GLASSERT( stream[current].nVertex+3 <= VertexStream::MAX_VERTEX );
 
 	// Transform the vertex into the current coordinate space.
 	for( int i=0; i<3; ++i ) {
-		Vertex vert = v[i];
-		MultMatrix4( matrix, v[i].pos, &vert.pos );
-		//Trouble if there is ever rotation, because the normals shouldn't be translated.
-		GLASSERT( matrix.IsTranslationOnly() );
-		vert.normal.Normalize();
+		// pos
+		MultMatrix4( matrix, vIn[i].pos, &vX[i].pos, 1.0f );
+		// normal
+		vIn[i].normal.Normalize();
+		MultMatrix4( matrix, vIn[i].normal, &vX[i].normal, 0.0f );
+		// tex
+		vX[i].tex = vIn[i].tex;
 
-		vX[i] = vert;
+		// store for processing
+		stream[current].vertex[ stream[current].nVertex+i ] = vX[i];
+		stream[current].normalProcessed[ stream[current].nVertex+i ] = false;
 	}
-
-	for( int i=0; i<3; ++i ) 
-	{
-		// Good idea that doesn't work: try to limit the scan back.
-		// Fortuneatly not a real time algorithm...
-		// int start = grinliz::Max( (int)0, current->nVertex - SCAN_BACK );
-		int start = 0;
-		bool added = false;
-
-		for( int j=start; j<current->nVertex; ++j ) 
-		{
-			const Vertex& vc = current->vertex[j];
-
-			const float EPS_POS = 0.01f;
-			const float EPS_TEX = 0.001f;
-
-			if ( Equal( vc.pos, vX[i].pos, EPS_POS ) && Equal( vc.tex, vX[i].tex, EPS_TEX ) )
-			{
-				Vector3F normal0 = { vc.normal.x, vc.normal.y, vc.normal.z };
-				Vector3F normal1 = vX[i].normal;
-				GLASSERT( Equal( normal0.Length(), 1.0f, 0.00001f ));
-				GLASSERT( Equal( normal1.Length(), 1.0f, 0.00001f ));
-				
-				// we always match if smooth.
-				float dot = 1.0f;
-				dot = DotProduct( normal0, normal1 );
-				if ( smooth ) {
-					if ( dot > 0.2f )
-						dot = 1.0f;
-				}
-
-				if ( dot > 0.95f ) {
-					added = true;
-					current->index[ current->nIndex ] = j;
-					current->normalSum[j] = current->normalSum[j] + normal1;
-					current->nIndex++;
-					break;
-				}
-			}
-		}
-		if ( !added ) {
-			GLASSERT( current->nVertex < EL_MAX_VERTEX_IN_GROUP );
-			current->normalSum[ current->nVertex ] = vX[i].normal;
-			current->index[ current->nIndex++ ] = current->nVertex;
-			current->vertex[ current->nVertex++ ] = vX[i];
-		}
-	}
-	// Always add 3 indices.
-	GLASSERT( current->nIndex % 3 == 0 );
+	stream[current].nVertex += 3;
 }
 
 
 void ModelBuilder::Flush()
 {
-	int i;
-
-	// We've been keeping the normals as a sum. In this code, compute the final normal and assign it.
-	for( int i=0; i<nGroup; ++i ) {
-		for( int j=0; j<group[i].nVertex; ++j ) {
-			group[i].normalSum[j].Normalize();
-
-			group[i].vertex[j].normal.x = group[i].normalSum[j].x;
-			group[i].vertex[j].normal.y = group[i].normalSum[j].y;
-			group[i].vertex[j].normal.z = group[i].normalSum[j].z;
-		}
-	}
+	const float EPS_VERTEX = 0.005f;
 
 	// Get rid of empty groups.
-	i=0; 
-	while ( i<nGroup ) {
-		if ( group[i].nVertex == 0 ) {
+	for( int i=0; i<nGroup; /*nothing*/ ) {
+		if ( stream[i].nVertex == 0 ) {
 			for( int k=i; k<nGroup-1; ++k ) {
+				stream[k] = stream[k+1];
 				group[k] = group[k+1];
 			}
 			--nGroup;
@@ -139,8 +87,72 @@ void ModelBuilder::Flush()
 		}
 	}
 
+	// Smoothing: average normals. If smoothing, everything with the same
+	// position should have the same normal.
+	if ( smooth ) {
+		std::vector<int> match;
+
+		for( int g=0; g<nGroup; ++g ) {
+			for( int i=0; i<stream[g].nVertex; ++i ) {
+				if ( stream[g].normalProcessed[i] )
+					continue;	// already picked up by earlier pass.
+
+				match.clear();
+				match.push_back( i );
+				Vector3F normal = stream[g].vertex[i].normal;
+
+				for( int j=i+1; j<stream[g].nVertex; ++j ) {
+					// Equal, in this case, is only the position.
+					if ( !stream[g].normalProcessed[j] ) {
+						if ( stream[g].vertex[i].pos.Equal( stream[g].vertex[j].pos, EPS_VERTEX ) ) {
+							match.push_back( j );
+							normal += stream[g].vertex[j].normal;
+						}
+					}
+				}
+
+				if ( normal.LengthSquared() < 0.001f ) {
+					// crap.
+					normal.Set( 0.0f, 1.0f, 0.0f );
+				}
+				normal.Normalize();
+				for( unsigned j=0; j<match.size(); ++j ) {
+					stream[g].vertex[match[j]].normal = normal;
+					stream[g].normalProcessed[match[j]] = true;
+				}
+			}
+		}
+	}
+	
+	// Now we fetch vertices. This moves the vertex from the 'stream' to the 'group'
+	for( int g=0; g<nGroup; ++g ) {
+		for( int i=0; i<stream[g].nVertex; ++i ) {
+			GLASSERT( stream[g].nVertex % 3 == 0 );
+			
+			// Is the vertex we need already in the group?
+			bool added = false; 
+
+			for( int j=0; j<group[g].nVertex; ++j ) {
+				// All pos, normal, and tex must match...but if we were smoothed,
+				// then the normals may have multiple possible matches.
+				if ( group[g].vertex[j].Equal( stream[g].vertex[i], EPS_VERTEX ) ) {
+					group[g].index[ group[g].nIndex++ ] = j;
+					added = true;
+					break;
+				}
+			}
+			if ( !added ) {
+				group[g].vertex[ group[g].nVertex ] = stream[g].vertex[i];
+				group[g].index[ group[g].nIndex++ ] = group[g].nVertex++;
+			}
+			GLASSERT( group[g].nVertex < EL_MAX_VERTEX_IN_GROUP );
+			GLASSERT( group[g].nIndex < EL_MAX_INDEX_IN_GROUP );
+		}
+		GLASSERT( group[g].nIndex % 3 == 0 );
+	}
+
 	bounds.min = bounds.max = group[0].vertex[0].pos;
-	for( i=0; i<nGroup; ++i ) {
+	for( int i=0; i<nGroup; ++i ) {
 		for( int j=0; j<group[i].nVertex; ++j ) {
 			bounds.min.x = Min( bounds.min.x, group[i].vertex[j].pos.x );
 			bounds.min.y = Min( bounds.min.y, group[i].vertex[j].pos.y );
@@ -151,72 +163,4 @@ void ModelBuilder::Flush()
 			bounds.max.z = Max( bounds.max.z, group[i].vertex[j].pos.z );
 		}
 	}
-
-
-
-	// Either none of this code works, or it happens as a consequence of how I implemented
-	// vertex filtering. But I'm frustrating with getting it all to work, so I'm commenting
-	// it all out for now.
-	/*
-	vertexoptimizer::VertexOptimizer vOpt;
-	for( i=0; i<nGroup; ++i ) {
-		if ( vOpt.SetBuffers( group[i].index, group[i].nIndex, &group[i].vertex[0].pos.x, sizeof(VertexX), group[i].nVertex ) ) {
-			group[i].vertex_InACMR = vOpt.Vertex_ACMR();
-			vOpt.Optimize();
-			group[i].vertex_OutACMR = vOpt.Vertex_ACMR();;
-		}
-	}
-	*/
-	/*
-	for( i=0; i<nGroup; ++i ) {
-		printf( "group %d mACMR=%.2f->", i, MemoryACMR( group[i].index, group[i].nIndex ) );
-		ReOrderVertices( &group[i] );
-		printf( "%.2f\n", MemoryACMR( group[i].index, group[i].nIndex ) );
-
-	}
-	*/
-}
-
-
-float ModelBuilder::MemoryACMR( const U16* index, int nIndex )
-{
-	const int CACHE_SIZE = 16;
-	const int MASK = (~(CACHE_SIZE-1));
-	int cacheBase = 0;
-	int cacheMiss = 0;
-
-	for( int i=0; i<nIndex; ++i ) {
-		if ( (index[i] & MASK) == cacheBase ) {
-			// cache hit
-		}
-		else {
-			++cacheMiss;
-			cacheBase = index[i] & MASK;
-		}
- 	}
-	return (float)cacheMiss / (float)nIndex;
-}
-
-
-void ModelBuilder::ReOrderVertices( VertexGroup* group ) 
-{
-	/*
-	for( int i=0; i<group->nIndex; ++i ) {
-		indexMap[i] = -1;
-	}
-
-	// Vertices in the vertex buffer, but don't change the order of the triangles.
-	int nextIndex = 0;
-	for( int i=0; i<group->nIndex; ++i ) {
-		int vertexID = group->index[i];
-
-		if ( indexMap[vertexID] == -1 ) {
-			indexMap[vertexID] = nextIndex++;
-			targetVertex[indexMap[vertexID]] = group->vertex[vertexID];
-		}
-		targetIndex[i] = indexMap[vertexID];
-	}
-	memcpy( group->index, targetIndex, sizeof(U16)*group->nIndex );
-	memcpy( group->vertex, targetVertex, sizeof(VertexX)*group->nVertex );
-	*/
 }

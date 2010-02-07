@@ -215,7 +215,21 @@
                 <Item name="Med" />
             </Inventory>
         </Unit>
-        <Unit team="2" type="0" status="1" body="1304958356" modelX="16.500000" modelZ="21.500000" yRot="0.000000">
+      
+      <!--
+      Test code for the improved model.
+      <Unit team="1" type="0" status="1" body="254124150" modelX="16.500000" modelZ="34.500000" yRot="0.000000">
+        <Stats STR="47" DEX="47" PSY="76" level="1" />
+      </Unit>
+      <Unit team="1" type="0" status="1" body="252124261" modelX="17.500000" modelZ="35.500000" yRot="0.000000">
+        <Stats STR="47" DEX="47" PSY="76" level="1" />
+      </Unit>
+      <Unit team="1" type="0" status="1" body="253144241" modelX="18.500000" modelZ="36.500000" yRot="0.000000">
+        <Stats STR="47" DEX="47" PSY="76" level="1" />
+      </Unit>
+      -->
+
+      <Unit team="2" type="0" status="1" body="1304958356" modelX="16.500000" modelZ="21.500000" yRot="0.000000">
             <Stats STR="47" DEX="47" PSY="76" level="1" />
             <Inventory>
                 <Item name="RAY-1" />

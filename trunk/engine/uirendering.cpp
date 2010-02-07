@@ -32,11 +32,167 @@ extern int drawCalls;			// ditto
 UIWidget::UIWidget( const Screenport& port ) : screenport( port )
 {
 	origin.Set( 0, 0 );
-
 }
 
 
 
+UIBar::UIBar( const Screenport& port ) : UIWidget( port )
+{
+	valid = false;
+	nSteps = 10;
+	minValue = 0;
+	maxValue = 100;
+	value0 = 50;
+	value1 = 75;
+
+	size.Set( 50, 10 );
+	texture = TextureManager::Instance()->GetTexture( "basehp" );
+
+	// 3 2     7 6
+	// 0 1 ... 4 5
+	for( int i=0; i<MAX_STEPS; ++i ) {
+		index[i*6+0] = i*4 + 0;
+		index[i*6+1] = i*4 + 1;
+		index[i*6+2] = i*4 + 2;
+		index[i*6+3] = i*4 + 0;
+		index[i*6+4] = i*4 + 2;
+		index[i*6+5] = i*4 + 3;
+	}
+}
+
+
+UIBar::~UIBar()
+{}
+
+
+void UIBar::Update( int deltaTime )
+{
+	
+}
+
+void UIBar::SetSize( int dx, int dy )
+{
+	if ( dx != size.x || dy != size.y ) {
+		size.Set( dx, dy );
+		valid = false;
+	}
+}
+
+
+void UIBar::SetSteps( int steps )
+{
+	GLASSERT( steps <= MAX_STEPS && steps > 0 );
+	if ( nSteps != steps ) {
+		nSteps = steps;
+		valid = false;
+	}
+}
+	
+
+void UIBar::SetRange( int min, int max )
+{
+	GLASSERT( max > min );
+	if ( min != minValue || max != maxValue ) {
+		minValue = min;
+		maxValue = max;
+		valid = false;
+	}
+}
+
+
+void UIBar::SetValue0( int v0 )
+{
+	if ( v0 != value0 ) {
+		value0 = v0;
+		valid = false;
+	}
+}
+
+
+void UIBar::SetValue1( int v1 )
+{
+	if ( v1 != value1 ) {
+		value1 = v1;
+		valid = false;
+	}
+}
+
+
+void UIBar::Draw()
+{
+	if ( !valid ) {
+		int range = maxValue - minValue;
+		int round = range / nSteps - 1;
+		int step0 = ( value0 - minValue + round ) * nSteps / range;
+		int step1 = ( value1 - minValue + round ) * nSteps / range;
+
+		for ( int i=0; i<nSteps; ++i ) {
+
+			float fraction0 = (float)i / (float)nSteps;
+			float fraction1 = (float)(i+1) / (float)nSteps;
+
+			vertex[i*4+0].pos.Set( fraction0 * (float)size.x, 0.0f );
+			vertex[i*4+1].pos.Set( fraction1 * (float)size.x, 0.0f );
+			vertex[i*4+2].pos.Set( fraction1 * (float)size.x, (float)size.y );
+			vertex[i*4+3].pos.Set( fraction0 * (float)size.x, (float)size.y );
+
+			float tx = 0.0f;
+			float ty = 0.0f;
+			if ( i<step0 ) {
+				// nothing
+			}
+			else if ( i<step1 ) {
+				tx = 0.50f;
+				ty = 0.0f;
+			}
+			else {
+				tx = 0.0f;
+				ty = 0.50f;
+			}
+
+			vertex[i*4+0].tex.Set( tx+0.0f, ty+0.0f );
+			vertex[i*4+1].tex.Set( tx+0.5f, ty+0.0f );
+			vertex[i*4+2].tex.Set( tx+0.5f, ty+0.5f );
+			vertex[i*4+3].tex.Set( tx+0.0f, ty+0.5f );
+		}
+		valid = true;
+	}
+
+	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+
+	glDisable( GL_DEPTH_TEST );
+	glDepthMask( GL_FALSE );
+	glEnable( GL_BLEND );
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisableClientState( GL_NORMAL_ARRAY );
+	//glEnableClientState( GL_COLOR_ARRAY );
+
+	glEnable( GL_TEXTURE_2D );
+	glBindTexture( GL_TEXTURE_2D, texture->glID );
+
+	screenport.PushUI();
+	glTranslatef( (float)origin.x, (float)origin.y, 0.0f );
+
+	glVertexPointer(   2, GL_FLOAT, sizeof( Vertex2D ), &vertex[0].pos.x );
+	glTexCoordPointer( 2, GL_FLOAT, sizeof( Vertex2D ), &vertex[0].tex.x ); 
+	//glColorPointer( 4, GL_UNSIGNED_BYTE, 0, color );
+
+	CHECK_GL_ERROR;
+	glDrawElements( GL_TRIANGLES, 6*nSteps, GL_UNSIGNED_SHORT, index );
+	trianglesRendered += 6*nSteps;
+	drawCalls++;
+	CHECK_GL_ERROR;
+		
+	screenport.PopUI();
+
+	glEnableClientState( GL_NORMAL_ARRAY );
+	//glDisableClientState( GL_COLOR_ARRAY );
+	glDisable( GL_BLEND );
+	glEnable( GL_DEPTH_TEST );
+	glDepthMask( GL_TRUE );
+}
+
+	
 UIImage::UIImage( const Screenport& port ) : UIWidget( port )
 {
 	w = h = 0;
