@@ -370,6 +370,38 @@ void Game::LoadMapResources()
 }
 
 
+/*
+void FPrintString( FILE* fp, const char* str, const char* tail ) {
+	if ( str )
+		fprintf( fp, "%-10s%s", str, tail );
+	else
+		fprintf( fp, "          %s", tail );
+}
+
+
+void FPrintFloat( FILE* fp, const float* value, const char* tail ) {
+	if ( value )
+		fprintf( fp, "%5.1f%s", *value, tail );
+	else
+		fprintf( fp, "     %s", tail );
+}
+
+void FPrintInt( FILE* fp, const float* value, const char* tail ) {
+	if ( value )
+		fprintf( fp, "%3d%s", *value, tail );
+	else
+		fprintf( fp, "   %s", tail );
+
+}
+
+void FPPrintPercent( FILE* fp, const float* value, const char* tail ) {
+	if ( value )
+		fprintf( fp, "%3d%%%s", (int)((*value)*100.0f ), tail );
+	else
+		fprintf( fp, "    %s", tail );
+}
+*/
+
 void Game::LoadItemResources()
 {
 	const float DAM_LOW		=  20.0f;
@@ -620,20 +652,33 @@ void Game::LoadItemResources()
 #pragma warning ( disable : 4996 )	// fopen is unsafe. For video games that seems extreme.
 		FILE* fp = fopen( "weapons.txt", "w" );
 #pragma warning (pop)
-		const float acc = (ACC_GOOD_SHOT+ACC_BAD_SHOT)*0.5f;
+
+		Stats stats;
+		stats.SetSTR( (TRAIT_TERRAN_HIGH + TRAIT_TERRAN_LOW)/2 );
+		stats.SetDEX( (TRAIT_TERRAN_HIGH + TRAIT_TERRAN_LOW)/2 );
+		stats.SetPSY( (TRAIT_TERRAN_HIGH + TRAIT_TERRAN_LOW)/2 );
+		stats.SetRank( 2 );
+		stats.CalcBaselines();
+
 		const float range[] = { 6.0f, 3.0f, 12.0f };
 
 		for( int r=0; r<3; ++r ) {
-			fprintf( fp, "\nRange=%f\n", range[r] );
-			fprintf( fp, "name       PRIMARY                     SECONDARY\n" );
-			fprintf( fp, "           dam snap       n auto/aim   dam secondary\n" );
-			fprintf( fp, "---------- --- ---------  - ---------  --- ---------\n" );
+			fprintf( fp, "\nRange=%.1f DEX=%d Rank=%d Acc=%.2f\n", range[r], stats.DEX(), stats.Rank(), stats.Accuracy() );
+			fprintf( fp, "name      PRIMARY-SNAP             PRIMARY-AIM/AUTO         SECONDARY\n" );
+			fprintf( fp, "          " );
+			for( int k=0; k<3; ++k )
+				fprintf( fp, "dam n  hit   any  dptu   " );
+			fprintf( fp, "\n" );
+			fprintf( fp, "          " );
+			for( int k=0; k<3; ++k )
+				fprintf( fp, "--- - ---- ------ -----  " );
+			fprintf( fp, "\n" );
 
 			for( int i=1; i<nItemDef; ++i ) {
 				const WeaponItemDef* wid = itemDefArr[i]->IsWeapon();
 				if ( wid ) {
 
-					fprintf( fp, "%10s ", wid->name );
+					fprintf( fp, "%-10s", wid->name );
 
 					for( int j=0; j<3; ++j ) {
 						float fraction, fraction2, damage, dptu;
@@ -644,20 +689,15 @@ void Game::LoadItemResources()
 						if ( wid->SupportsType( select, type ) ) {
 							DamageDesc dd;
 							wid->DamageBase( select, &dd );
-
-							wid->FireStatistics( select, type, acc, range[r], &fraction, &fraction2, &damage, &dptu );
+							wid->FireStatistics( select, type, STANDARD_TARGET_AREA, stats.Accuracy(), range[r], &fraction, &fraction2, &damage, &dptu );
 							int nShots = (type==AUTO_SHOT) ? 3 : 1;
 
-							if ( j == 0 || j == 2 )
-								fprintf( fp, "%3d ", (int)dd.Total() );
-						
-							if ( j == 1 )
-								fprintf( fp, "%d ", nShots );
-
-							fprintf( fp, "%2d%% %5.1f  ", (int)(fraction*100.0f), dptu );
-						}
-						else {
-							fprintf( fp, "           " );
+							fprintf( fp, "%3d %d %3d%% [%3d%%] %5.1f  ",
+										 (int)dd.Total(),
+										 nShots,
+										 (int)(fraction*100.0f),
+										 (int)(fraction2*100.0f),
+										 dptu );
 						}
 					}
 					fprintf( fp, "\n" );

@@ -43,6 +43,7 @@ public:
 	Unit() : status( STATUS_NOT_INIT ), model( 0 ) {}
 	~Unit();
 
+	// Note that the 'stats' should be set before init.
 	void Init(	Engine* engine, Game* game, 
 				int team,
 				int status,
@@ -109,7 +110,7 @@ public:
 	float FireTimeUnits( int select, int type ) const;
 	// Accuracy of the weapon (0 or 1) at 1 unit of range.
 	// Returns 0.0 if the weapon doesn't exist or support that fire mode.
-	float FireAccuracy( int select, int type ) const;
+	//float FireAccuracy( int select, int type ) const;
 	// returns true if this fire mode is supported
 	bool FireStatistics( int select, int type, float distance, float* chanceToHit, float* chanceAnyHit, float* tu, float* damagePerTU ) const;
 	// returns true of the mode->type conversion succeeds (has the weapon, etc.)
@@ -132,10 +133,11 @@ private:
 		LAST_NAME,		// 4, 0-15
 		FIRST_NAME,		// 4, 0-15
 	};
-	void GenerateSoldier( U32 seed );
 	U32 GetValue( int which ) const;	// ALIEN_TYPE, etc.
+
+	void GenerateSoldier( U32 seed );
 	void GenerateCiv( U32 seed );
-	void GenerateAlien( int type, U32 seed );
+	void GenerateAlien( U32 seed, int type );
 	void CreateModel();
 
 	void UpdateModel();		// make the model current with the unit status - armor, etc.

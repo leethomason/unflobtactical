@@ -72,13 +72,12 @@ const char* gLastNames[16] =
 };
 
 
-const char* gRank[] = {
-	"Rok",
-	"Pri",
+const char* gRank[NUM_RANKS] = {
+	"Rki",
+	"Prv",
 	"Sgt",
 	"Maj",
 	"Cpt",
-	"Cmd"
 };
 
 
@@ -123,9 +122,10 @@ const char* Unit::LastName() const
 
 const char* Unit::Rank() const
 {
-	GLASSERT( stats.Level() >=0 && stats.Level() < 6 ); 
-	return gRank[ stats.Level() ];
+	GLASSERT( stats.Rank() >=0 && stats.Rank() < NUM_RANKS ); 
+	return gRank[ stats.Rank() ];
 }
+
 
 void Unit::GenerateSoldier( U32 seed )
 {
@@ -137,7 +137,7 @@ void Unit::GenerateSoldier( U32 seed )
 	stats.SetSTR( stats.GenStat( &random, 20, 80 ) );
 	stats.SetDEX( stats.GenStat( &random, 20, 80 ) );
 	stats.SetPSY( stats.GenStat( &random, 20, 80 ) );
-	stats.SetLevel( 2 );
+	stats.SetRank( 0 );
 	stats.CalcBaselines();
 }
 
@@ -149,7 +149,7 @@ void Unit::GenerateCiv( U32 seed )
 	body = seed;	// only gender...
 
 	Random random( seed );
-	stats.SetLevel( 0 );
+	stats.SetRank( 0 );
 	stats.SetSTR( stats.GenStat( &random, 10, 60 ) );
 	stats.SetDEX( stats.GenStat( &random, 10, 60 ) );
 	stats.SetPSY( stats.GenStat( &random, 10, 60 ) );
@@ -157,7 +157,7 @@ void Unit::GenerateCiv( U32 seed )
 }
 
 
-void Unit::GenerateAlien( int type, U32 seed )
+void Unit::GenerateAlien( U32 seed, int type )
 {
 	status = STATUS_ALIVE;
 	team = ALIEN_TEAM;
@@ -167,32 +167,32 @@ void Unit::GenerateAlien( int type, U32 seed )
 
 	switch ( type ) {
 		case 0:	
-			stats.SetLevel( 1 );
-			stats.SetSTR( stats.GenStat( &random, 10, 50 ) );
-			stats.SetDEX( stats.GenStat( &random, 20, 80 ) );
-			stats.SetPSY( stats.GenStat( &random, 20, 100 ) );
+			// Grey
+			stats.SetSTR( stats.GenStat( &random, 10, 30 ) );
+			stats.SetDEX( stats.GenStat( &random, 20, 50 ) );
+			stats.SetPSY( stats.GenStat( &random, 30, 80 ) );
 			break;
 
 		case 1: 
-			stats.SetLevel( 1 );
-			stats.SetSTR( stats.GenStat( &random, 30, 70 ) );
-			stats.SetDEX( stats.GenStat( &random, 20, 80 ) );
-			stats.SetPSY( stats.GenStat( &random, 40, 120 ) );
+			// Mindslayer
+			stats.SetSTR( stats.GenStat( &random, 20, 40 ) );
+			stats.SetDEX( stats.GenStat( &random, 40, 60 ) );
+			stats.SetPSY( stats.GenStat( &random, 50, 100 ) );
 			break;
 
 		case 2: 
-			stats.SetLevel( 1 );
-			stats.SetSTR( stats.GenStat( &random, 60, 140 ) );
-			stats.SetDEX( stats.GenStat( &random, 40, 100 ) );
-			stats.SetPSY( stats.GenStat( &random, 20, 90 ) );
+			// Trooper
+			stats.SetSTR( stats.GenStat( &random, 70, 90 ) );
+			stats.SetDEX( stats.GenStat( &random, 60, 80 ) );
+			stats.SetPSY( stats.GenStat( &random, 20, 50 ) );
 			break;
 
 		case 3:
 		default:
-			stats.SetLevel( 1 );
-			stats.SetSTR( stats.GenStat( &random, 20, 70 ) );
-			stats.SetDEX( stats.GenStat( &random, 40, 100 ) );
-			stats.SetPSY( stats.GenStat( &random, 80, 140 ) );
+			// Elite
+			stats.SetSTR( stats.GenStat( &random, 20, 40 ) );
+			stats.SetDEX( stats.GenStat( &random, 40, 80 ) );
+			stats.SetPSY( stats.GenStat( &random, 40, 80 ) );
 			break;
 	}
 	stats.CalcBaselines();
@@ -218,7 +218,7 @@ void Unit::Init(	Engine* engine, Game* game,
 
 	switch( team ) {
 		case TERRAN_TEAM:		GenerateSoldier( seed );			break;
-		case ALIEN_TEAM:		GenerateAlien( alienType, seed );	break;
+		case ALIEN_TEAM:		GenerateAlien( seed, alienType );	break;
 		case CIV_TEAM:			GenerateCiv( seed );				break;
 		default:
 			GLASSERT( 0 );
@@ -566,16 +566,15 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 		ele->QueryValueAttribute( "modelZ", &pos.z );
 		ele->QueryValueAttribute( "yRot", &rot );
 
+		stats.Load( ele );
+		inventory.Load( ele, engine, game );
+
 		Init( engine, game, team, _status, type, body );
-		
 		if ( model ) {
 			model->SetPos( pos );
 			if ( IsAlive() )
 				model->SetRotation( rot );
 		}
-
-		stats.Load( ele );
-		inventory.Load( ele, engine, game );
 		UpdateInventory();
 	}
 }
@@ -639,27 +638,36 @@ bool Unit::FireModeToType( int mode, int* select, int* type ) const
 }
 
 
-bool Unit::FireStatistics( int select, int type, float distance, float* chanceToHit, float* chanceAnyHit, float* tu, float* damagePerTU ) const
+// Used by the AI
+bool Unit::FireStatistics( int select, int type, float distance, 
+						   float* chanceToHit, float* chanceAnyHit, float* tu, float* damagePerTU ) const
 {
 	*chanceToHit = 0.0f;
+	*chanceAnyHit = 0.0f;
 	*tu = 0.0f;
 	*damagePerTU = 0.0f;
+	
 	float damage;
 
 	if ( GetWeapon() && GetWeapon()->IsWeapon() ) {
-		float acc = FireAccuracy( select, type );
-		if ( acc > 0.0f ) {
-			*tu = FireTimeUnits( select, type );
-			if ( *tu > 0.0f ) {
-				return GetWeapon()->IsWeapon()->FireStatistics(	select, type, acc, distance, 
-																chanceToHit, chanceAnyHit, &damage, damagePerTU );
-			}
+		const WeaponItemDef* wid = GetWeapon()->IsWeapon();
+		if ( wid->SupportsType( select, type ) ) {
+			*tu = wid->TimeUnits( select, type );
+			return GetWeapon()->IsWeapon()->FireStatistics(	select, type, 
+															STANDARD_TARGET_AREA,
+															stats.Accuracy(), 
+															distance, 
+															chanceToHit, 
+															chanceAnyHit, 
+															&damage, 
+															damagePerTU );
 		}
 	}
 	return false;
 }
 
 
+/*
 float Unit::FireAccuracy( int select, int type ) const
 {
 	float acc = 0.0f;
@@ -671,4 +679,4 @@ float Unit::FireAccuracy( int select, int type ) const
 	}
 	return acc;
 }
-
+*/

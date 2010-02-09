@@ -226,7 +226,9 @@ bool WeaponItemDef::SupportsType( int select, int type ) const
 
 
 bool WeaponItemDef::FireStatistics( int select, int type, 
-								    float accuracy, float distance, 
+								    float targetArea,
+								    float accuracyRadius, 
+									float distance, 
 									float* chanceToHit, float* anyChanceToHit,
 									float* totalDamage, float* damagePerTU ) const
 {
@@ -239,18 +241,18 @@ bool WeaponItemDef::FireStatistics( int select, int type,
 	DamageDesc dd;
 
 	if ( tu > 0.0f ) {
-		float targetRad = distance * accuracy * AccuracyBase( select, type );
-		float targetArea = PI * targetRad*targetRad;
+		float radius = distance * accuracyRadius * AccuracyBase( select, type );
+		float area   = PI * radius * radius;
 
-		*chanceToHit = STANDARD_TARGET_AREA / targetArea;
-		if ( *chanceToHit > 0.98f )
-			*chanceToHit = 0.98f;
+		*chanceToHit = targetArea / area;
+		if ( *chanceToHit > 1.0f )
+			*chanceToHit = 1.0f;
 
 		*anyChanceToHit = *chanceToHit;
 		int nRounds = (type==AUTO_SHOT) ? 3 : 1;
 
 		if ( nRounds == 3 ) {
-			float chanceMiss = (1.0f-*chanceToHit);
+			float chanceMiss = (1.0f - (*chanceToHit));
 			*anyChanceToHit = 1.0f - chanceMiss*chanceMiss*chanceMiss;
 		}
 

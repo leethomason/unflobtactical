@@ -114,14 +114,17 @@ public:
 	void DamageBase( int select, DamageDesc* damageArray ) const;
 	// Amount of time it takes to use this weapon. (Does not depend on the Unit.)
 	float TimeUnits( int select, int type ) const;
-	// Accuracy base - modified by the unit.
+	// Accuracy of the weapon. 1.0 is normal, higher is worse.
 	float AccuracyBase( int select, int type ) const;
 	// Statistics for this weapon. 
-	bool FireStatistics( int select, int type, float shooterAccuracy, float distance, 
-						 float* chanceToHit,	// chance a round hits
-						 float* chanceAnyHit,	// chance any round (of 3) hits
-						 float* totalDamage, 
-						 float* damagePerTU ) const;		// damagePerTU = f( damage, time, accuracy, distance )
+	bool FireStatistics( int select, int type, 
+						 float targetArea,
+						 float accuracyRadius, 
+						 float distance, 
+						 float* chanceToHit,				// chance a round hits
+						 float* chanceAnyHit,				// chance any round (of 1 or 3) hits
+						 float* totalDamage,			
+						 float* damagePerTU ) const;		// damagePerTU = f( damage, TU, accuracyRadius, distance )
 
 };
 
