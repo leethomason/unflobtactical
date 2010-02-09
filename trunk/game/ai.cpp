@@ -329,6 +329,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 					float len = sqrtf( (float)len2 );
 
 					// The older the data, the worse the score.
+					const float NORMAL_TU = (float)(MIN_TU + MAX_TU) * 0.5f;
 					float score = len + (float)(m_lkp[i].turns)*NORMAL_TU;
 					
 					if ( score < bestGolfScore ) {

@@ -15,26 +15,26 @@ int Stats::GenStat( grinliz::Random* rand, int min, int max )
 
 void Stats::CalcBaselines()
 {
-	int levSTR = STR() + TRAIT_LEVEL_BONUS*Level();
-	int levDEX = DEX() + TRAIT_LEVEL_BONUS*Level();
-	int levPSY = PSY() + TRAIT_LEVEL_BONUS*Level();
+	int levSTR = Clamp( STR() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );
+	int levDEX = Clamp( DEX() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );
+	int levPSY = Clamp( PSY() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );
 
-	hp = totalHP =				levSTR;
+	hp = totalHP =				Clamp( levSTR + armor, 1, TRAIT_MAX );
 
-	tu = totalTU = Interpolate(	(float)TRAIT_SOLDIER_LOW,  NORMAL_TU*0.5f,
-								(float)TRAIT_SOLDIER_HIGH, NORMAL_TU*1.5f,
+	tu = totalTU = Interpolate(	0.0f,						(float)MIN_TU,
+								(float)TRAIT_MAX,			(float)MAX_TU,
 								(float)(levDEX + levSTR)*0.5f );
-	tu = Clamp( tu, 2.0f, (float)MAX_TU );
+	// be sure...
+	if ( tu > (float)MAX_TU )
+		tu = (float)MAX_TU;
 
-	accuracy = Interpolate(		(float)TRAIT_SOLDIER_LOW,	ACC_BAD_SHOT,
-								(float)TRAIT_SOLDIER_HIGH,	ACC_GOOD_SHOT,
+	accuracy = Interpolate(		0.0f,						ACC_WORST_SHOT,
+								(float)TRAIT_MAX,			ACC_BEST_SHOT,
 								(float)levDEX );
 
-	accuracy = Max( accuracy, 0.01f );	// no one is a perfect shot.
-
-	reaction = Interpolate(		(float)TRAIT_SOLDIER_LOW,	REACTION_FAST,
-								(float)TRAIT_SOLDIER_HIGH,	REACTION_SLOW,
-								(float)levDEX );
+	reaction = Interpolate(		0.0f,						REACTION_FAST,
+								(float)TRAIT_MAX,			REACTION_SLOW,
+								(float)(levDEX + levPSY)*0.5f );
 }
 
 
@@ -44,7 +44,8 @@ void Stats::Save( TiXmlElement* doc ) const
 	element->SetAttribute( "STR", _STR );
 	element->SetAttribute( "DEX", _DEX );
 	element->SetAttribute( "PSY", _PSY );
-	element->SetAttribute( "level", level );
+	element->SetAttribute( "rank", rank );
+	element->SetAttribute( "armor", armor );
 	element->SetAttribute( "hp", hp );
 	element->SetDoubleAttribute( "tu", tu );
 	doc->LinkEndChild( element );
@@ -59,7 +60,9 @@ void Stats::Load( const TiXmlElement* parent )
 		ele->QueryValueAttribute( "STR", &_STR );
 		ele->QueryValueAttribute( "DEX", &_DEX );
 		ele->QueryValueAttribute( "PSY", &_PSY );
-		ele->QueryValueAttribute( "level", &level );
+		ele->QueryValueAttribute( "level", &rank );
+		ele->QueryValueAttribute( "rank", &rank );
+		ele->QueryValueAttribute( "armor", &armor );
 		CalcBaselines();
 		ele->QueryValueAttribute( "hp", &hp );
 		ele->QueryValueAttribute( "tu", &tu );

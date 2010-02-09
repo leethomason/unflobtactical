@@ -25,9 +25,6 @@ const int MAX_EYESIGHT_RANGE    = 13;
 const int MAX_EYESIGHT_RANGE_45 = 10;	// MAX * cos(45deg), rounded up
 const float EYE_HEIGHT = 1.2f;
 
-const float NORMAL_TU		= 8.0f;
-const int	MAX_TU			= 16;		// enforced: used for memory allocation
-
 const float TU_SNAP_SHOT	= 3.0f;
 const float TU_AUTO_SHOT	= 5.0f;
 const float TU_AIMED_SHOT	= 4.0f;
@@ -40,13 +37,18 @@ const int AIMED_SHOT		= 2;
 const int FIRE_MODE_START	= 0;
 const int FIRE_MODE_END		= 3;
 
-const int TRAIT_SOLDIER_LOW = 20;
-const int TRAIT_SOLDIER_HIGH = 80;
-const int TRAIT_LEVEL_BONUS = 5;
+const int	MIN_TU				= 4;
+const int	MAX_TU				= 16;		// enforced: used for memory allocation
+
+const int	TRAIT_MAX			= 100;
+const int	TRAIT_TERRAN_LOW	= 15;
+const int	TRAIT_TERRAN_HIGH	= 45;		// 30 ave
+const int	TRAIT_RANK_BONUS	= 6;		// how much a trait increases per rank
+const int	NUM_RANKS			= 5;		// 0-4
 
 const float STANDARD_TARGET_AREA = 1.0f;	// roughly meters
-const float ACC_GOOD_SHOT = 0.10f;
-const float ACC_BAD_SHOT  = 0.30f;
+const float ACC_BEST_SHOT		= 0.10f;
+const float ACC_WORST_SHOT		= 0.30f;
 const float REACTION_FAST = 0.80f;
 const float REACTION_SLOW = 0.20f;
 
