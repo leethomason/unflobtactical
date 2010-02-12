@@ -226,7 +226,6 @@ bool WeaponItemDef::SupportsType( int select, int type ) const
 
 
 bool WeaponItemDef::FireStatistics( int select, int type, 
-								    float targetArea,
 								    float accuracyRadius, 
 									float distance, 
 									float* chanceToHit, float* anyChanceToHit,
@@ -243,6 +242,21 @@ bool WeaponItemDef::FireStatistics( int select, int type,
 	if ( tu > 0.0f ) {
 		float radius = distance * accuracyRadius * AccuracyBase( select, type );
 		float area   = PI * radius * radius;
+
+		/*
+		// This is an approximation of a correct rectangle-circle intersection.
+		float targetArea = 0.0f;
+		if ( radius*2.0f <= STANDARD_TARGET_W ) {
+			targetArea = area;	// 100% chance...
+		}
+		else if ( radius*2.0f <= STANDARD_TARGET_H ) {
+			targetArea = STANDARD_TARGET_W * (radius * 2.0f);	// approximation...and a poor one
+		}
+		else {
+			targetArea = STANDARD_TARGET_W * STANDARD_TARGET_H;
+		}
+		*/
+		float targetArea = STANDARD_TARGET_W * STANDARD_TARGET_H;
 
 		*chanceToHit = targetArea / area;
 		if ( *chanceToHit > 1.0f )

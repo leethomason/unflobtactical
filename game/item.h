@@ -118,7 +118,6 @@ public:
 	float AccuracyBase( int select, int type ) const;
 	// Statistics for this weapon. 
 	bool FireStatistics( int select, int type, 
-						 float targetArea,
 						 float accuracyRadius, 
 						 float distance, 
 						 float* chanceToHit,				// chance a round hits

@@ -1,6 +1,9 @@
 
 Issues:
 - Reconsider when reaction fire occurs. And probability.
+- AI: aliens not following LKP
+- AI: guard behavior
+- AI: moves too close
 - Armor. Affects hp. Can't change in tactical view.
 - Alien HP too high / damage too low. Normalize traits.
 - center on hit unit
@@ -29,6 +32,7 @@ Issues:
 - mission types: base
 
 FIXED [test #2]
+- FoW not updating properly when moving? or pausing incorrect?
 - Aliens come back to life! Or at least look that way.
 - crates could be more descriptive in their images...
 - hit point bar
