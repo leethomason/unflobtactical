@@ -370,38 +370,6 @@ void Game::LoadMapResources()
 }
 
 
-/*
-void FPrintString( FILE* fp, const char* str, const char* tail ) {
-	if ( str )
-		fprintf( fp, "%-10s%s", str, tail );
-	else
-		fprintf( fp, "          %s", tail );
-}
-
-
-void FPrintFloat( FILE* fp, const float* value, const char* tail ) {
-	if ( value )
-		fprintf( fp, "%5.1f%s", *value, tail );
-	else
-		fprintf( fp, "     %s", tail );
-}
-
-void FPrintInt( FILE* fp, const float* value, const char* tail ) {
-	if ( value )
-		fprintf( fp, "%3d%s", *value, tail );
-	else
-		fprintf( fp, "   %s", tail );
-
-}
-
-void FPPrintPercent( FILE* fp, const float* value, const char* tail ) {
-	if ( value )
-		fprintf( fp, "%3d%%%s", (int)((*value)*100.0f ), tail );
-	else
-		fprintf( fp, "    %s", tail );
-}
-*/
-
 void Game::LoadItemResources()
 {
 	const float DAM_LOW		=  20.0f;
@@ -409,19 +377,22 @@ void Game::LoadItemResources()
 	const float DAM_MED		=  40.0f;
 	const float DAM_MEDHI	=  50.0f;
 	const float DAM_HI		=  60.0f;
-	const float DAM_VHI		= 100.0f;
+	const float DAM_VHI		=  80.0f;
 
 	const float EXDAM_MED   = 100.0f;
 	const float EXDAM_HI	= 180.0f;
 	const float EXDAM_VHI	= 250.0f;
 
-	const float ACC_LOW = 1.4f;
-	const float ACC_MED = 1.0f;
-	const float ACC_HI  = 0.7f;
+	const float ACC_LOW		= 1.4f;
+	const float ACC_MEDLOW	= 1.2f;
+	const float ACC_MED		= 1.0f;
+	const float ACC_MEDHI	= 0.8f;
+	const float ACC_HI		= 0.7f;
+	const float ACC_VHI		= 0.6f;
 
 	const float SPEED_FAST = 0.8f;
 	const float SPEED_NORMAL = 1.0f;
-	const float SPEED_SLOW	= 1.5f;
+	const float SPEED_SLOW	= 1.3f;
 	const int POW_LOW = 10;
 	const int POW_MED = 20;
 	const int POW_HI  = 50;
@@ -459,7 +430,7 @@ void Game::LoadItemResources()
 					{ 0.2f, 1.0f, 0.2f, 0.8f }, SPEED,		 WIDTH,		 BOLT,		"10MW Cell" },
 		{ "Tach",	true,	DECO_CELL,		4,   { 0, 0.6f, 0.4f },
 					{ 1, 1, 0, 0.8f },			 SPEED,		 WIDTH,		 BOLT,		"Tachyon field rounds" },
-		{ "Flame",	false,	DECO_SHELLS,	1,	 { 0, 0, 1 },
+		{ "Flame",	false,	DECO_SHELLS,	2,	 { 0, 0, 1 },
 					{ 1.0f, 0, 0, 0.8f },		 SPEED*0.5f, WIDTH,		 BOLT,		"Incendiary Heavy Round" },
 		{ "RPG",	false,	DECO_ROCKET,	4,	 { 0.8f, 0, 0.2f },
 					{ 0.8f, 1.0f, 0.8f, 0.8f }, SPEED*0.8f, WIDTH,		 BOLT,		"Grenade Rounds" },
@@ -518,46 +489,49 @@ void Game::LoadItemResources()
 		// Terran	resName		deco			description
 		//				
 		{ "PST",	"gun0",		DECO_PISTOL,	"Pistol",				FAST, AIMED, 0,		SPEED_FAST,
-				"Clip",	0,				DAM_LOW,	ACC_MED,
+				"Clip",			0,										DAM_LOW,	ACC_MED,
 				0  },
 		{ "AR-1",	"gun0",		DECO_RIFLE,		"Klk Assault Rifle",	FAST, BURST, 0,		SPEED_NORMAL,
-				"AClip",		WEAPON_AUTO,	DAM_LOW,	ACC_LOW,
+				"AClip",		WEAPON_AUTO,							DAM_LOW,	ACC_MED,
 				0  },
 		{ "AR-2",	"gun0",		DECO_RIFLE,		"N7 Assault Rifle",		FAST, BURST, 0,		SPEED_NORMAL,
-				"AClip",		WEAPON_AUTO,	DAM_MEDLOW,	ACC_MED,
+				"AClip",		WEAPON_AUTO,							DAM_MEDLOW,	ACC_MED,
 				0  },
 		{ "AR-3P",	"gun0",		DECO_RIFLE,		"Pulse Rifle",			FAST, BURST, BOOM,	SPEED_NORMAL,
-				"AClip",		WEAPON_AUTO,	DAM_MEDHI,	ACC_MED,
-				"RPG",	WEAPON_EXPLOSIVE,EXDAM_HI,	ACC_LOW },
+				"AClip",		WEAPON_AUTO,							DAM_MEDHI,	ACC_MED,
+				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_LOW },
 		{ "AR-3L",	"gun0",		DECO_RIFLE,		"Long AR 'Vera'",		FAST, AIMED, BOOM,	SPEED_NORMAL,
-				"AClip",		0,				DAM_HI,		ACC_HI,
-				"RPG",	WEAPON_EXPLOSIVE,EXDAM_HI,	ACC_LOW },
-		{ "CANON",	"gun0",		DECO_RIFLE,		"Mini-Canon",			FAST, BANG, BOOM,	SPEED_SLOW,
-				"Clip",	WEAPON_EXPLOSIVE,		DAM_HI,		ACC_MED,
-				"Flame",	WEAPON_EXPLOSIVE,EXDAM_MED,	ACC_MED },
+				"AClip",		0,										DAM_HI,		ACC_HI,
+				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_LOW },
+		{ "CAN-I",	"gun0",		DECO_RIFLE,		"Mini-Canon/Flame",		FAST, BANG, BOOM,	SPEED_SLOW,
+				"Clip",			WEAPON_EXPLOSIVE,						DAM_HI,		ACC_MED,
+				"Flame",		WEAPON_EXPLOSIVE,						EXDAM_MED,	ACC_MED },
+		{ "CAN-X",	"gun0",		DECO_RIFLE,		"Mini-Canon/Rocket",	FAST, BANG, BOOM,	SPEED_SLOW,
+				"Clip",			WEAPON_EXPLOSIVE,						DAM_HI,		ACC_MED,
+				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED,	ACC_MED },
 
 
 		// Alien
 		{ "RAY-1",	"gun1",		DECO_PISTOL,	"Ray Gun",				FAST, AIMED, 0,		SPEED_FAST,
-				"Cell",	0,				DAM_LOW,	ACC_LOW,
+				"Cell",	0,												DAM_MEDLOW,	ACC_MED,
 				0  },
 		{ "RAY-2",	"gun1",		DECO_PISTOL,	"Advanced Ray Gun",		FAST, AIMED, 0,		SPEED_FAST,
-				"Cell",	0,				DAM_MED,	ACC_LOW,
+				"Cell",	0,												DAM_MED,	ACC_MED,
 				0  },
 		{ "RAY-3",	"gun1",		DECO_PISTOL,	"Disinigrator",			FAST, AIMED, 0,		SPEED_FAST,
-				"Cell",	0,				DAM_HI,		ACC_LOW,
+				"Cell",	0,												DAM_HI,		ACC_MED,
 				0  },
 		{ "PLS-1",	"gun0",		DECO_RIFLE,		"Plasma Rifle",			FAST, BURST, 0,		SPEED_NORMAL,
-				"Cell",	WEAPON_AUTO,	DAM_MED,	ACC_MED,
+				"Cell",			WEAPON_AUTO,							DAM_HI,	ACC_MED,
 				0  },
 		{ "PLS-2",	"gun0",		DECO_RIFLE,		"Plasma Assault Rifle",	FAST, BURST, BOOM,	SPEED_NORMAL,
-				"Cell",	WEAPON_AUTO,	DAM_MEDHI,	ACC_MED,
-				"Tach",	WEAPON_EXPLOSIVE, EXDAM_HI,	ACC_MED },
-		{ "BEAM",	"gun0",		DECO_RIFLE,		"Blade Beam",			FAST, AIMED, 0,		SPEED_NORMAL,
-				"Cell",	0,				DAM_MEDHI,	ACC_HI,
+				"Cell",			WEAPON_AUTO,							DAM_VHI,	ACC_MED,
+				"Tach",			WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_MED },
+		{ "BEAM",	"gun0",		DECO_RIFLE,		"Blade Beam",			FAST, AIMED, 0,		SPEED_FAST,
+				"Cell",			0,										DAM_MEDHI,	ACC_HI,
 				0  },
 		{ "NULL",	"gun0",		DECO_RIFLE,		"Null Point Blaster",	FAST, BANG, 0,		SPEED_NORMAL,
-				"Tach",	WEAPON_EXPLOSIVE, EXDAM_HI, ACC_HI,
+				"Tach",			WEAPON_EXPLOSIVE,						DAM_VHI, ACC_HI,
 				0  },
 		{ 0 }
 	};
@@ -689,7 +663,7 @@ void Game::LoadItemResources()
 						if ( wid->SupportsType( select, type ) ) {
 							DamageDesc dd;
 							wid->DamageBase( select, &dd );
-							wid->FireStatistics( select, type, STANDARD_TARGET_AREA, stats.Accuracy(), range[r], &fraction, &fraction2, &damage, &dptu );
+							wid->FireStatistics( select, type, stats.Accuracy(), range[r], &fraction, &fraction2, &damage, &dptu );
 							int nShots = (type==AUTO_SHOT) ? 3 : 1;
 
 							fprintf( fp, "%3d %d %3d%% [%3d%%] %5.1f  ",

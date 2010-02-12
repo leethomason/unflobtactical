@@ -46,14 +46,15 @@ const int	TRAIT_TERRAN_HIGH	= 45;		// 30 ave
 const int	TRAIT_RANK_BONUS	= 6;		// how much a trait increases per rank
 const int	NUM_RANKS			= 5;		// 0-4
 
-const float STANDARD_TARGET_AREA = 1.0f;	// roughly meters
-const float ACC_BEST_SHOT		= 0.10f;
-const float ACC_WORST_SHOT		= 0.30f;
+const float STANDARD_TARGET_H			= 2.0f;		// roughly meters
+const float STANDARD_TARGET_W			= 0.5f;
+const float ACC_BEST_SHOT				= 0.05f;	// radius of possible shot at distance=1.0
+const float ACC_WORST_SHOT				= 0.25f;
+const float ACC_AIMED_SHOT_MULTIPLIER	= 1.0f;		// LOWER accuracy is better
+const float ACC_AUTO_SHOT_MULTIPLIER	= 1.2f;
+const float ACC_SNAP_SHOT_MULTIPLIER	= 1.3f;
+
 const float REACTION_FAST = 0.80f;
 const float REACTION_SLOW = 0.20f;
-
-const float ACC_AIMED_SHOT_MULTIPLIER = 1.0f;	// LOWER accuracy is better
-const float ACC_AUTO_SHOT_MULTIPLIER  = 1.4f;
-const float ACC_SNAP_SHOT_MULTIPLIER  = 1.8f;
 
 #endif // GAMELIMITS_INCLUDED

@@ -654,7 +654,6 @@ bool Unit::FireStatistics( int select, int type, float distance,
 		if ( wid->SupportsType( select, type ) ) {
 			*tu = wid->TimeUnits( select, type );
 			return GetWeapon()->IsWeapon()->FireStatistics(	select, type, 
-															STANDARD_TARGET_AREA,
 															stats.Accuracy(), 
 															distance, 
 															chanceToHit, 
@@ -666,17 +665,3 @@ bool Unit::FireStatistics( int select, int type, float distance,
 	return false;
 }
 
-
-/*
-float Unit::FireAccuracy( int select, int type ) const
-{
-	float acc = 0.0f;
-
-	const Item* item = GetWeapon();
-	if ( item && item->IsWeapon() ) {
-		const WeaponItemDef* weaponItemDef = item->IsWeapon();
-		acc = stats.Accuracy() * weaponItemDef->AccuracyBase( select, type );
-	}
-	return acc;
-}
-*/

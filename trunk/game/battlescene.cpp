@@ -341,6 +341,10 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 			GLASSERT( team[2] < ALIEN_UNITS_END );
 		}
 	}
+	
+	CalcTeamTargets();
+	targetEvents.Clear();
+
 	engine->GetMap()->QueryAllDoors( &doors );
 	SetFogOfWar();
 	ProcessDoors();
@@ -722,7 +726,7 @@ void BattleScene::SetFireWidget()
 		enable = enable &&  unit->GetStats().TU() >= unit->FireTimeUnits( select, type );
 
 		unit->FireStatistics( select, type, distToTarget, &fraction, &anyFraction, &tu, &dptu );
-		SNPrintf( buffer0, 32, "%s %d%%", wid->fireDesc[i], (int)LRintf( fraction*100.0f ) );
+		SNPrintf( buffer0, 32, "%s %d%%", wid->fireDesc[i], (int)LRintf( anyFraction*100.0f ) );
 		SNPrintf( buffer1, 32, "%d/%d", nShots, rounds );
 		
 		int index = 2-i;
@@ -1134,7 +1138,7 @@ void BattleScene::StopForNewTeamTarget()
 					 && t.viewerID == currentTeamTurn )
 				{
 					// New sighting!
-					GLOUTPUT(( "new team target sighted.\n" ));
+					GLOUTPUT(( "Sighting: Team %d sighted target %d on team %d.\n", t.viewerID, t.targetID, units[t.targetID].Team() ));
 					newTeam = true;
 					targetEvents.SwapRemove( i );
 				}
