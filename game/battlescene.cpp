@@ -1030,7 +1030,7 @@ bool BattleScene::ProcessAI()
 
 											Item item;
 											storage->RemoveItem( pick.itemDefArr[k], &item );
-											if ( !inventory->AddItem( item ) ) {
+											if ( inventory->AddItem( item ) < 0 ) {
 												// Couldn't add to inventory. Return to storage.
 												storage->AddItem( item );
 												// and don't try adding this item again...
@@ -1470,7 +1470,7 @@ int BattleScene::ProcessActionHit( Action* action )
 				hitUnit->DoDamage( action->type.hit.damageDesc, engine->GetMap() );
 				if ( !hitUnit->IsAlive() ) {
 					selection.ClearTarget();			
-					// visibility invalidated automatically when unit killed
+					visibility.InvalidateUnit( hitUnit - units );
 				}
 				GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", (unsigned)hitUnit, (int)hitUnit->GetStats().HP(), (int)hitUnit->GetStats().TotalHP() ));
 			}
@@ -1541,8 +1541,11 @@ int BattleScene::ProcessActionHit( Action* action )
 						Unit* unit = GetUnitFromTile( x, y );
 						if ( unit && unit->IsAlive() ) {
 							unit->DoDamage( dd, engine->GetMap() );
-							if ( !unit->IsAlive() && unit == SelectedSoldierUnit() ) {
-								selection.ClearTarget();			
+							if ( !unit->IsAlive() ) {
+								visibility.InvalidateUnit( unit - units );
+								if ( unit == SelectedSoldierUnit() ) {
+									selection.ClearTarget();			
+								}
 							}
 						}
 						bool hitAnything = false;

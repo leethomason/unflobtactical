@@ -1,7 +1,5 @@
 
 Issues:
-- Reconsider when reaction fire occurs. And probability.
-- AI: aliens not following LKP
 - AI: guard behavior
 - AI: moves too close
 - Armor. Affects hp. Can't change in tactical view.
@@ -30,6 +28,10 @@ Issues:
 - mission types: terror
 - mission types: big ufos
 - mission types: base
+
+TBD:
+- Reconsider when reaction fire occurs. And probability.
+- AI: aliens not following LKP
 
 FIXED [test #2]
 - FoW not updating properly when moving? or pausing incorrect?

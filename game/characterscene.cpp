@@ -249,7 +249,7 @@ void CharacterScene::StorageToInventory( const ItemDef* itemDef )
 		Item item;
 		storage->RemoveItem( itemDef, &item );
 		Inventory* inv = unit->GetInventory();
-		if ( !inv->AddItem( item ) ) {
+		if ( inv->AddItem( item ) < 0 ) {
 			// Couldn't add to inventory. Return to storage.
 			storage->AddItem( item );
 		}
