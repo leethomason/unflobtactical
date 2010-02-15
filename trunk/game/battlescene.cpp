@@ -18,10 +18,13 @@
 
 using namespace grinliz;
 
+//#define REACTION_FIRE_EVENT_ONLY
+
 
 BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 {
 	engine  = &game->engine;
+	visibility.Init( this, units, engine->GetMap() );
 	uiMode = UIM_NORMAL;
 	nearPathState = NEAR_PATH_INVALID;
 	memset( hpBars, 0, sizeof( UIBar* )*MAX_UNITS );
@@ -117,7 +120,6 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	}
 #endif
 
-	visibilityMap.ClearAll();
 	currentTeamTurn = ALIEN_TEAM;
 	NextTurn();
 }
@@ -272,19 +274,17 @@ void BattleScene::NextTurn()
 			break;
 	}
 
-	// Calc the targets and flush it:
-	CalcTeamTargets();
-	targetEvents.Clear();
-
 	// Allow the map to change (fire and smoke)
 	Rectangle2I change;
 	change.SetInvalid();
 	engine->GetMap()->DoSubTurn( &change );
-	InvalidateAllVisibility( change );
+	visibility.InvalidateAll( change );
 
 	// Since the map has changed:
+	ProcessDoors();
 	CalcTeamTargets();
-	SetFogOfWar();
+	targetEvents.Clear();
+
 	if ( aiArr[currentTeamTurn] ) {
 		aiArr[currentTeamTurn]->StartTurn( units, m_targets );
 	}
@@ -342,12 +342,12 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 		}
 	}
 	
-	CalcTeamTargets();
-	targetEvents.Clear();
 
 	engine->GetMap()->QueryAllDoors( &doors );
-	SetFogOfWar();
+
 	ProcessDoors();
+	CalcTeamTargets();
+	targetEvents.Clear();
 
 	if ( aiArr[currentTeamTurn] ) {
 		aiArr[currentTeamTurn]->StartTurn( units, m_targets );
@@ -357,23 +357,18 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 
 void BattleScene::SetFogOfWar()
 {
-	CalcAllVisibility();
-	grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fow = engine->GetMap()->LockFogOfWar();
-#ifdef MAPMAKER
-	fow->SetAll();
-#else
-	for( int j=0; j<MAP_SIZE; ++j ) {
-		for( int i=0; i<MAP_SIZE; ++i ) {
-			Rectangle3I query;
-			query.Set( i, j, TERRAN_UNITS_START, i, j, TERRAN_UNITS_END-1 );
-			if ( !visibilityMap.IsRectEmpty( query ) )
-				fow->Set( i, j );
-			else
-				fow->Clear( i, j );
+	if ( visibility.FogCheckAndClear() ) {
+		grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fow = engine->GetMap()->LockFogOfWar();
+		for( int j=0; j<MAP_SIZE; ++j ) {
+			for( int i=0; i<MAP_SIZE; ++i ) {
+				if ( visibility.TeamCanSee( TERRAN_TEAM, i, j ) )
+					fow->Set( i, j );
+				else
+					fow->Clear( i, j );
+			}
 		}
+		engine->GetMap()->ReleaseFogOfWar();
 	}
-#endif
-	engine->GetMap()->ReleaseFogOfWar();
 }
 
 
@@ -444,8 +439,6 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 												ParticleSystem::DECAL_BOTTOM,
 												m->Pos(), alpha,
 												m->GetRotation() );
-
-		int unitID = SelectedSoldierUnit() - units;
 	}
 
 		/*
@@ -528,9 +521,14 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		}
 	}
 
-	bool check = ProcessAction( deltaTime );
-	if ( check ) {
+	int result = ProcessAction( deltaTime );
+	SetFogOfWar();	// fast if nothing changed.	
+
+	if ( result & STEP_COMPLETE ) {
 		ProcessDoors();
+		nearPathState = NEAR_PATH_INVALID;
+
+		CalcTeamTargets();
 		StopForNewTeamTarget();
 		DoReactionFire();
 		targetEvents.Clear();	// All done! They don't get to carry on beyond the moment.
@@ -1105,9 +1103,7 @@ void BattleScene::ProcessDoors()
 		}
 	}
 	if ( doorChange ) {
-		InvalidateAllVisibility( invalid );
-		SetFogOfWar();
-		CalcTeamTargets();
+		visibility.InvalidateAll();
 	}
 }
 
@@ -1155,9 +1151,9 @@ void BattleScene::StopForNewTeamTarget()
 }
 
 
-bool BattleScene::ProcessAction( U32 deltaTime )
+int BattleScene::ProcessAction( U32 deltaTime )
 {
-	bool stackChange = false;
+	int result = 0;
 
 	if ( !actionStack.Empty() )
 	{
@@ -1176,6 +1172,7 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 			model = action->unit->GetModel();
 		}
 
+		/*
 		Vector2I originalPos = { 0, 0 };
 		float originalRot = 0.0f;
 		float originalTU = 0.0f;
@@ -1183,6 +1180,7 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 			unit->CalcMapPos( &originalPos, &originalRot );
 			originalTU = unit->GetStats().TU();
 		}
+		*/
 
 		switch ( action->actionID ) {
 			case ACTION_MOVE: 
@@ -1221,7 +1219,8 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 								unit->UseTU( 1.41f );
 							else { GLASSERT( 0 ); }
 
-							stackChange = true;	// not a real stack change, but a change in the path loc.
+							visibility.InvalidateUnit( unit-units );
+							result |= STEP_COMPLETE;
 							break;
 						}
 						move->path.GetPos( move->pathStep, move->pathFraction, &x, &z, &r );
@@ -1231,7 +1230,8 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 					}
 					if ( move->pathStep == move->path.pathLen-1 ) {
 						actionStack.Pop();
-						stackChange = true;
+						visibility.InvalidateUnit( unit-units );
+						result |= STEP_COMPLETE | UNIT_ACTION_COMPLETE;
 					}
 				}
 				break;
@@ -1247,7 +1247,7 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 					if ( delta <= travel ) {
 						unit->SetYRotation( action->type.rotate.rotation );
 						actionStack.Pop();
-						stackChange = true;
+						result |= UNIT_ACTION_COMPLETE;
 					}
 					else {
 						unit->SetYRotation( model->GetRotation() + bias*travel );
@@ -1256,17 +1256,24 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 				break;
 
 			case ACTION_SHOOT:
-				stackChange = ProcessActionShoot( action, unit, model );
+				{
+					int r = ProcessActionShoot( action, unit, model );
+					result |= r;
+				}
 				break;
 
 			case ACTION_HIT:
-				stackChange = ProcessActionHit( action );
+				{
+					int r = ProcessActionHit( action );
+					result |= r;
+				}
 				break;
 
 			case ACTION_DELAY:
 				{
 					if ( deltaTime >= action->type.delay.delay ) {
 						actionStack.Pop();
+						result |= OTHER_ACTION_COMPLETE;
 					}
 					else {
 						action->type.delay.delay -= deltaTime;
@@ -1290,6 +1297,7 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 					}
 					else {
 						actionStack.Pop();
+						result |= OTHER_ACTION_COMPLETE;
 					}
 				}
 				break;
@@ -1298,6 +1306,7 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 				GLASSERT( 0 );
 				break;
 		}
+		/*
 		if ( unit ) {
 			Vector2I newPos;
 			float newRot;
@@ -1305,17 +1314,16 @@ bool BattleScene::ProcessAction( U32 deltaTime )
 
 			// If we changed map position, update UI feedback.
 			if ( newPos != originalPos || newRot != originalRot ) {
-				SetFogOfWar();
 				CalcTeamTargets();
 				nearPathState = NEAR_PATH_INVALID;
 			}
-		}
+		}*/
 	}
-	return stackChange;
+	return result;
 }
 
 
-bool BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
+int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 {
 	DamageDesc damageDesc;
 	bool impact = false;
@@ -1326,6 +1334,8 @@ bool BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 	GLASSERT( select == 0 || select == 1 );
 	const WeaponItemDef* weaponDef = 0;
 	Ray ray;
+
+	int result = 0;
 
 	if ( unit && model && unit->IsAlive() ) {
 		Vector3F p0, p1;
@@ -1410,6 +1420,7 @@ bool BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		}
 	}
 	actionStack.Pop();
+	result |= UNIT_ACTION_COMPLETE;
 
 	if ( impact ) {
 		GLASSERT( weaponDef );
@@ -1436,14 +1447,15 @@ bool BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		a.type.delay.delay = delayTime;
 		actionStack.Push( a );
 	}
-	return true;
+	return result;
 }
 
 
-bool BattleScene::ProcessActionHit( Action* action )
+int BattleScene::ProcessActionHit( Action* action )
 {
 	Rectangle2I destroyed;
 	destroyed.SetInvalid();
+	int result = 0;
 
 	if ( !action->type.hit.explosive ) {
 		// Apply direct hit damage
@@ -1548,13 +1560,8 @@ bool BattleScene::ProcessActionHit( Action* action )
 			}
 		}
 	}
-	if ( destroyed.IsValid() ) {
-		// The MAP changed - reset all views.
-		InvalidateAllVisibility( destroyed );
-		SetFogOfWar();
-	}
-	CalcTeamTargets();
 	actionStack.Pop();
+	result |= UNIT_ACTION_COMPLETE;
 	return true;
 }
 
@@ -1941,7 +1948,6 @@ void BattleScene::CalcTeamTargets()
 
 	Targets old = m_targets;
 	m_targets.Clear();
-	CalcAllVisibility();
 
 	Vector2I targets[] = { { ALIEN_UNITS_START, ALIEN_UNITS_END },   { TERRAN_UNITS_START, TERRAN_UNITS_END } };
 	Vector2I viewers[] = { { TERRAN_UNITS_START, TERRAN_UNITS_END }, { ALIEN_UNITS_START, ALIEN_UNITS_END } };
@@ -1966,7 +1972,7 @@ void BattleScene::CalcTeamTargets()
 				// Main test: can a terran see an alien at this location?
 				if (    units[k].IsAlive() 
 					 && units[j].IsAlive() 
-					 && visibilityMap.IsSet( mapPos.x, mapPos.y, k ) ) 
+					 && visibility.UnitCanSee( k, mapPos.x, mapPos.y ) ) 
 				{
 					m_targets.Set( k, j );
 				}
@@ -2001,7 +2007,24 @@ void BattleScene::CalcTeamTargets()
 }
 
 
-void BattleScene::InvalidateAllVisibility( const Rectangle2I& bounds )
+BattleScene::Visibility::Visibility() : battleScene( 0 ), units( 0 ), map( 0 )
+{
+	memset( current, 0, sizeof(bool)*MAX_UNITS );
+	fogInvalid = true;
+}
+
+
+void BattleScene::Visibility::InvalidateUnit( int i ) 
+{
+	GLASSERT( i>=0 && i<MAX_UNITS );
+	current[i] = false;
+	if ( i >= TERRAN_UNITS_START && i < TERRAN_UNITS_END && units[i].IsAlive() ) {
+		fogInvalid = true;
+	}
+}
+
+
+void BattleScene::Visibility::InvalidateAll( const Rectangle2I& bounds )
 {
 	if ( !bounds.IsValid() )
 		return;
@@ -2013,25 +2036,62 @@ void BattleScene::InvalidateAllVisibility( const Rectangle2I& bounds )
 		for( int i=range[k].x; i<range[k].y; ++i ) {
 			if ( units[i].IsAlive() ) {
 				units[i].CalcVisBounds( &vis );
-				if ( bounds.Intersect( vis ) ) 
-					units[i].SetVisibilityCurrent( false );
+				if ( bounds.Intersect( vis ) ) {
+					current[i] = false;
+					if ( units[i].Team() == TERRAN_TEAM ) {
+						fogInvalid = true;
+					}
+				}
 			}
 		}
 	}
 }
 
 
-void BattleScene::InvalidateAllVisibility()
+void BattleScene::Visibility::InvalidateAll()
 {
-	Vector2I range[2] = {{ TERRAN_UNITS_START, TERRAN_UNITS_END }, {ALIEN_UNITS_START, ALIEN_UNITS_END}};
-	for( int k=0; k<2; ++k ) {
-		for( int i=range[k].x; i<range[k].y; ++i ) {
-			if ( units[i].IsAlive() ) {
-				units[i].SetVisibilityCurrent( false );
-			}
+	memset( current, 0, sizeof(bool)*MAX_UNITS );
+	fogInvalid = true;
+}
+
+
+int BattleScene::Visibility::TeamCanSee( int team, int x, int y )
+{
+	int r0, r1;
+	if ( team == TERRAN_TEAM ) {
+		r0 = TERRAN_UNITS_START;
+		r1 = TERRAN_UNITS_END;
+	}
+	else if ( team == ALIEN_TEAM ) {
+		r0 = ALIEN_UNITS_START;
+		r1 = ALIEN_UNITS_END;
+	}
+	else {
+		GLASSERT( 0 );
+	}
+	
+	for( int i=r0; i<r1; ++i ) {
+		if ( UnitCanSee( i, x, y ) )
+			return true;
+	}
+	return false;
+}
+
+
+int BattleScene::Visibility::UnitCanSee( int i, int x, int y )
+{
+	if ( units[i].IsAlive() ) {
+		if ( !current[i] ) {
+			CalcUnitVisibility( i );
+			current[i] = true;
+		}
+		if ( visibilityMap.IsSet( x, y, i ) ) {
+			return true;
 		}
 	}
+	return false;
 }
+
 
 
 /*	Huge ol' performance bottleneck.
@@ -2052,6 +2112,7 @@ void BattleScene::InvalidateAllVisibility()
 	88 MClocks. But...experimenting with switching to 360degree view.
 	...now 79 MClocks. That makes little sense. Did facing take a bunch of cycles??
 */
+/*
 void BattleScene::CalcAllVisibility()
 {
 //	QuickProfile qp( "CalcAllVisibility()" );
@@ -2074,32 +2135,24 @@ void BattleScene::CalcAllVisibility()
 		}
 	}
 }
+*/
 
 
-void BattleScene::CalcUnitVisibility( const Unit* unit )
+void BattleScene::Visibility::CalcUnitVisibility( int unitID )
 {
 	//unit = units;	// debugging: 1st unit only
-
-	int unitID = unit - units;
 	GLASSERT( unitID >= 0 && unitID < MAX_UNITS );
-	Vector2I pos;
-	float rotation;
-	unit->CalcMapPos( &pos, &rotation );
-	int r = NormalizeAngleDegrees( (int)LRintf( rotation ) );
+	const Unit* unit = &units[unitID];
+
+	Vector2I pos = unit->Pos();
 
 	// Clear out the old settings.
 	// Walk the area in range around the unit and cast rays.
 	visibilityMap.ClearPlane( unitID );
 	visibilityProcessed.ClearAll();
 
-//	Vector2I facing = { 0, 0 };	// only used in debug checks and expensive to compute.
-//#ifdef DEBUG
-//	facing.x = LRintf((float)MAX_EYESIGHT_RANGE*sinf(ToRadian(rotation)));
-//	facing.y = LRintf((float)MAX_EYESIGHT_RANGE*cosf(ToRadian(rotation)));
-//#endif
-
 	Rectangle2I mapBounds;
-	engine->GetMap()->CalcBounds( &mapBounds );
+	map->CalcBounds( &mapBounds );
 
 	// Can always see yourself.
 	visibilityMap.Set( pos.x, pos.y, unitID );
@@ -2123,134 +2176,10 @@ void BattleScene::CalcUnitVisibility( const Unit* unit )
 			}
 		}
 	}
-
-/*	// Remembering rotation of 0 is staring down the z axis.
-	Vector2I v;		// the starting (far) point of the view triangle. (2D frustum).
-	Vector2I dV[2];	// change in V per step.
-	Vector2I m;		// direction to walk
-	int      len;	// length to walk
-	int		 steps;
-
-	switch ( r ) {
-		case 0:
-		case 90:
-		case 180:
-		case 270:
-			{
-				Vector2I offset = { -MAX_EYESIGHT_RANGE, MAX_EYESIGHT_RANGE };
-				dV[0].Set( 0, -1 );
-				dV[1].Set( 0, -1 );
-				m.Set( 1, 0 );
-				len = MAX_EYESIGHT_RANGE*2 + 1;
-				steps = MAX_EYESIGHT_RANGE + 1;
-
-				Matrix2I rot;
-				rot.SetRotation( r );
-
-				v = pos + rot*offset;
-				dV[0] = rot * dV[0];
-				dV[1] = rot * dV[1];
-				m = rot * m;
-			}
-			break;
-
-		case 45:
-		case 135:
-		case 225:
-		case 315:
-			{
-				Vector2I offset = { 0, MAX_EYESIGHT_RANGE_45*2 };
-				dV[0].Set( -1, 0 );
-				dV[1].Set( 0, -1 );
-				m.Set( 1, -1 );
-				len = MAX_EYESIGHT_RANGE_45*2+1;
-				steps = MAX_EYESIGHT_RANGE_45*2+1;
-
-				Matrix2I rot;
-				rot.SetRotation( r - 45 );
-
-				v = pos + rot*offset;
-				dV[0] = rot * dV[0];
-				dV[1] = rot * dV[1];
-				m = rot * m;
-			}
-			break;
-
-		default:
-			GLASSERT( 0 );	
-			break;
-	}
-
-	const int MAX_SIGHT_SQUARED = MAX_EYESIGHT_RANGE*MAX_EYESIGHT_RANGE;
-
-	for( int k=0; k<steps; ++k ) {
-		for( int i=0; i<len; ++i ) {
-			Vector2I p = v + m*i;
-
-			if (    mapBounds.Contains( p )
-				 && !visibilityProcessed.IsSet( p.x, p.y )
-				 && (p-pos).LengthSquared() <= MAX_SIGHT_SQUARED ) 
-			{
-				CalcVisibilityRay( unitID, p, pos, facing );
-			}
-		}
-		v += dV[k&1];
-	}
-*/
-
-	/* This code is worth keeping because it would work for any rotation.
-	Rectangle2I visBounds;
-	visBounds.Set( pos.x, pos.y, pos.x, pos.y );
-
-	Vector2I fL = facing; fL.RotateNeg90();
-	Vector2I fR = facing; fR.RotatePos90();
-	Vector2I fDelta[4] = { pos+fL, pos+fL+facing, pos+fR, pos+fR+facing };
-
-	for( int i=0; i<4; ++i ) {
-		visBounds.DoUnion( fDelta[i].x, fDelta[i].y );
-	}
-
-	int x0, y0, xBias, yBias;
-	int w = visBounds.Width();
-	int h = visBounds.Height();
-
-	if ( facing.x >= 0 ) {
-		xBias = -1;
-		x0 = visBounds.max.x;
-	}
-	else {
-		xBias = 1;
-		x0 = visBounds.min.x;
-	}
-
-	if ( facing.y >= 0 ) {
-		yBias = -1;
-		y0 = visBounds.max.y;
-	}
-	else {
-		yBias = 1;
-		y0 = visBounds.min.y;
-	}
-
-	for( int j=0; j<h; ++j ) {
-		for( int i=0; i<w; ++i ) {
-
-			Vector2I p = { x0 + xBias*i, y0 + yBias*j };
-
-			if (    mapBounds.Contains( p )
-				 && !visibilityProcessed.IsSet( p.x, p.y ) ) 
-			{
-				CalcVisibilityRay( unitID, p, pos, facing );
-			}
-		}
-	}
-	*/
 }
 
 
-void BattleScene::CalcVisibilityRay(	int unitID,
-										const Vector2I& pos,
-										const Vector2I& origin )
+void BattleScene::Visibility::CalcVisibilityRay( int unitID, const Vector2I& pos, const Vector2I& origin )
 {
 	/* Previous pass used a true ray casting approach, but this doesn't get good results. Numerical errors,
 	   view stopped by leaves, rays going through cracks. Switching to a line walking approach to 
@@ -2259,17 +2188,7 @@ void BattleScene::CalcVisibilityRay(	int unitID,
 
 
 #ifdef DEBUG
-	// Because of how the calling walk is done, the direction and sight will always be correct.
-	// For arbitrary rotation this would need to be turned back on for release.
 	{
-/*		GLASSERT( facing.LengthSquared() > 0 );
-		// Correct direction
-		Vector2I vec = pos - origin;
-		int dot = DotProduct( facing, vec );
-		GLASSERT( dot >= 0 );
-		if ( dot < 0 )
-			return;
-*/
 		// Max sight
 		const int MAX_SIGHT_SQUARED = MAX_EYESIGHT_RANGE*MAX_EYESIGHT_RANGE;
 		Vector2I vec = pos - origin;
@@ -2280,7 +2199,7 @@ void BattleScene::CalcVisibilityRay(	int unitID,
 	}
 #endif
 
-	const Surface* lightMap = engine->GetMap()->GetLightMap(1);
+	const Surface* lightMap = map->GetLightMap(1);
 	GLASSERT( lightMap->Format() == Surface::RGB16 );
 
 	const float OBSCURED = 0.50f;
@@ -2301,7 +2220,7 @@ void BattleScene::CalcVisibilityRay(	int unitID,
 		Vector2I delta = q-p;
 
 		if ( canSee ) {
-			canSee = engine->GetMap()->CanSee( p, q );
+			canSee = map->CanSee( p, q );
 
 			if ( canSee ) {
 				Surface::RGBA rgba;
@@ -2310,7 +2229,7 @@ void BattleScene::CalcVisibilityRay(	int unitID,
 
 				const float distance = ( delta.LengthSquared() > 1 ) ? 1.4f : 1.0f;
 
-				if ( engine->GetMap()->Obscured( q.x, q.y ) ) {
+				if ( map->Obscured( q.x, q.y ) ) {
 					light -= OBSCURED * distance;
 				}
 				else if (   rgba.r > (EL_NIGHT_RED_U8+EPS)
