@@ -160,9 +160,16 @@ private:
 	bool PushShootAction(	Unit* src, const grinliz::Vector3F& dst, 
 							int select, int type, bool useError, bool clearMoveIfShoot );
 
-	bool ProcessAction( U32 deltaTime );
-	bool ProcessActionShoot( Action* action, Unit* unit, Model* model );
-	bool ProcessActionHit( Action* action );	
+	// Process the current action. Returns flags that describe what happened.
+	enum { 
+		STEP_COMPLETE			= 0x01,		// the step of a unit on a path completed. The unit is centered on the map grid
+		UNIT_ACTION_COMPLETE	= 0x02,		// shooting, rotating, some other unit action finished (resulted in Pop() )
+		OTHER_ACTION_COMPLETE	= 0x04,		// a non unit action (camera motion) finised (resulted in a Pop() )
+	};		
+	int ProcessAction( U32 deltaTime );
+	int ProcessActionShoot( Action* action, Unit* unit, Model* model );
+	int ProcessActionHit( Action* action );	
+
 	void ScrollOnScreen( const grinliz::Vector3F& v );
 
 	void StopForNewTeamTarget();
@@ -261,18 +268,48 @@ private:
 	void CalcTeamTargets();
 	void DumpTargetEvents();
 
-	void InvalidateAllVisibility();
-	void InvalidateAllVisibility( const grinliz::Rectangle2I& bounds );
-	void CalcAllVisibility();
+	// Groups all the visibility code together. In the battlescene itself, visibility quickly
+	// becomes difficult to track. 'Visibility' groups it all together and does the minimum
+	// amount of computation.
+	class Visibility {
+	public:
+		Visibility();
+		~Visibility()					{}
+
+		void Init( BattleScene* bs, const Unit* u, Map* m )	{ battleScene = bs; this->units = u; map = m; }
+
+		void InvalidateAll();
+		void InvalidateAll( const grinliz::Rectangle2I& bounds );
+		void InvalidateUnit( int i );
+
+		int TeamCanSee( int team, int x, int y ); //< Can anyone on the 'team' see the location (x,y)
+		int UnitCanSee( int unit, int x, int y );
+
+		// returs the current state of the FoW bit - and clears it!
+		bool FogCheckAndClear()	{ bool result = fogInvalid; fogInvalid = false; return result; }
+
+	private:
+		void CalcUnitVisibility( int unitID );
+		void CalcVisibilityRay( int unitID, const grinliz::Vector2I& pos, const grinliz::Vector2I& origin );
+
+		BattleScene*	battleScene;
+		const Unit*		units;
+		Map*			map;
+		bool			fogInvalid;
+
+		bool current[MAX_UNITS];	//< Is the visibility current? Triggers CalcUnitVisibility if not.
+
+		grinliz::BitArray< MAP_SIZE, MAP_SIZE, MAX_UNITS >	visibilityMap;
+		grinliz::BitArray< MAP_SIZE, MAP_SIZE, 1 >			visibilityProcessed;		// temporary - used in vis calc.
+	};
+	Visibility visibility;
+
+	//void InvalidateAllVisibility();
+	//void InvalidateAllVisibility( 
+	//void CalcAllVisibility();
 
 	// before using 'visibilityMap', bring current with CalcAllVisibility()
-	grinliz::BitArray< MAP_SIZE, MAP_SIZE, MAX_UNITS > visibilityMap;
-	
-	grinliz::BitArray< MAP_SIZE, MAP_SIZE, 1 > visibilityProcessed;		// temporary - used in vis calc.
-	void CalcUnitVisibility( const Unit* unit );
-	void CalcVisibilityRay(	int unitID,
-							const grinliz::Vector2I& pos,
-							const grinliz::Vector2I& origin );
+	//void CalcUnitVisibility( const Unit* unit );
 
 	Unit	units[MAX_UNITS];
 	UIBar*	hpBars[MAX_UNITS];

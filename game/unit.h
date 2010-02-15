@@ -78,8 +78,9 @@ public:
 	void CalcPos( grinliz::Vector3F* ) const;
 
 	// Note the visibility is current (or not...) irrespective of the unit being alive.
-	bool VisibilityCurrent() const				{ return visibilityCurrent; }
-	void SetVisibilityCurrent( bool current)	{ visibilityCurrent = current; }
+	//bool VisibilityCurrent() const				{ return visibilityCurrent; }
+	//void SetVisibilityCurrent( bool current)	{ visibilityCurrent = current; }
+
 	// Compute the bounding box of this unit's sight. (VERY loose.)
 	void CalcVisBounds( grinliz::Rectangle2I* b ) const;
 
