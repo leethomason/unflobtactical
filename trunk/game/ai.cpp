@@ -42,12 +42,14 @@ AI::AI( int team, SpaceTree* tree )
 void AI::StartTurn( const Unit* units, const Targets& targets )
 {
 	for( int i=0; i<MAX_UNITS; ++i ) {
-		if ( targets.TeamCanSee( m_team, i ) ) {
-			units[i].CalcMapPos( &m_lkp[i].pos, 0 );
-			m_lkp[i].turns = 0;
-		}
-		else {
-			m_lkp[i].turns++;
+		if ( units[i].IsAlive() ) {
+			if ( targets.TeamCanSee( m_team, i ) ) {
+				units[i].CalcMapPos( &m_lkp[i].pos, 0 );
+				m_lkp[i].turns = 0;
+			}
+			else {
+				m_lkp[i].turns++;
+			}
 		}
 	}
 }
@@ -323,7 +325,8 @@ bool WarriorAI::Think(	const Unit* theUnit,
 
 		for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
 			if (    units[i].IsAlive() 
-				 && units[i].GetModel() ) 
+				 && units[i].GetModel()
+				 && m_lkp[i].pos.x >= 0 ) 
 			{
 				// FIXME: consider using the pather for "close" if the fast distance
 				// gives strange answers.

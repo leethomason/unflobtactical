@@ -50,8 +50,8 @@ bool Inventory::IsGeneralSlotFree()
 bool Inventory::IsSlotFree( const ItemDef* itemDef )
 {
 	Item item( itemDef );
-	int slot=0;
-	if ( AddItem( item, &slot ) ) {
+	int slot = AddItem( item );
+	if ( slot >= 0 ) {
 		RemoveItem( slot );
 		return true;
 	}
@@ -59,53 +59,38 @@ bool Inventory::IsSlotFree( const ItemDef* itemDef )
 }
 
 
-bool Inventory::AddItem( const Item& item, int* slot )
+int Inventory::AddItem( const Item& item )
 {
-	/*
-	// if the slot was specified:
-	if ( slot != ANY_SLOT ) {
-		if ( slots[slot].IsNothing() ) {
-			if ( slot == ARMOR_SLOT && !item.IsArmor() )
-				return false;
-			if ( slot == WEAPON_SLOT && !item.IsWeapon() ) 
-				return false;
-
-			slots[slot] = item;
-			return true;
-		}
-		return false;
-	}
-	*/
+	GLASSERT( slots[WEAPON_SLOT_PRIMARY].IsNothing() || slots[WEAPON_SLOT_PRIMARY].IsWeapon() );
+	GLASSERT( slots[WEAPON_SLOT_SECONDARY].IsNothing() || slots[WEAPON_SLOT_SECONDARY].IsWeapon() );
+	GLASSERT( slots[ARMOR_SLOT].IsNothing() || slots[ARMOR_SLOT].IsArmor() );
 
 	if ( item.IsArmor() ) {
 		if ( slots[ARMOR_SLOT].IsNothing() ) {
 			slots[ARMOR_SLOT] = item;
-			if ( slot ) *slot = ARMOR_SLOT;
-			return true;
+			return ARMOR_SLOT;
 		}
-		return false;
+		return -1;
 	}
 
 	if ( item.IsWeapon() ) {
 		for( int i=0; i<2; ++i ) {
 			if ( slots[WEAPON_SLOT_PRIMARY+i].IsNothing() ) {
 				slots[WEAPON_SLOT_PRIMARY+i] = item;
-				if ( slot ) *slot = WEAPON_SLOT_PRIMARY+i;
-				return true;
+				return WEAPON_SLOT_PRIMARY+i;
 			}
 		}
-		return true;
+		return -1;
 	}
 
 	for( int j=GENERAL_SLOT; j<NUM_SLOTS; ++j ) {
 		if ( slots[j].IsNothing() ) {
 			slots[j] = item;
-			if ( slot ) *slot = j;
-			return true;
+			return j;
 		}
 	}
 
-	return false;
+	return -1;
 }
 
 
@@ -157,6 +142,10 @@ int Inventory::GetDeco( int s0 ) const
 
 void Inventory::SwapWeapons()
 {
+	GLASSERT( slots[WEAPON_SLOT_PRIMARY].IsNothing() || slots[WEAPON_SLOT_PRIMARY].IsWeapon() );
+	GLASSERT( slots[WEAPON_SLOT_SECONDARY].IsNothing() || slots[WEAPON_SLOT_SECONDARY].IsWeapon() );
+	GLASSERT( slots[ARMOR_SLOT].IsNothing() || slots[ARMOR_SLOT].IsArmor() );
+
 	grinliz::Swap( &slots[WEAPON_SLOT_PRIMARY], &slots[WEAPON_SLOT_SECONDARY] );
 }
 
@@ -181,7 +170,9 @@ void Inventory::Load( const TiXmlElement* parent, Engine* engine, Game* game )
 			 slot && count<NUM_SLOTS;
 			 slot = slot->NextSiblingElement( "Item" ) )
 		{
-			slots[count].Load( slot, engine, game );
+			Item item;
+			item.Load( slot, engine, game );
+			AddItem( item );
 			++count;
 		}
 	}

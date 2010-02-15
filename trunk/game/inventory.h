@@ -20,8 +20,6 @@ class Inventory
 public:
 
 	enum {
-		NO_SLOT = -2,
-		ANY_SLOT = -1,
 		WEAPON_SLOT_PRIMARY = 0,
 		WEAPON_SLOT_SECONDARY,
 		ARMOR_SLOT,
@@ -36,8 +34,8 @@ public:
 
 	Inventory();
 
-	// Add an item. 0: weapon slot, -1: any slot available
-	bool AddItem( const Item& item, int* slot=0 );
+	// Add an item. returns slot if successful, -1 if not
+	int AddItem( const Item& item );
 	bool RemoveItem( int slot );
 	bool Empty() {
 		for( int i=0; i<NUM_SLOTS; ++i ) {
