@@ -135,10 +135,16 @@ public:
 	virtual ~UIImage();
 
 	void Init( const Texture* texture, int w, int h );
+	void SetYRotation( float yRot )								{ this->yRot = yRot; }
+	void SetTexCoord( float tx, float ty, float sx, float sy )	{
+		texCoord.Set( tx, ty, tx+sx, ty+sy );
+	}
 	virtual void Draw();
 
 protected:
 	int w, h;
+	float yRot;
+	grinliz::Rectangle2F texCoord;
 	const Texture* texture;
 };
 

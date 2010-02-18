@@ -9,6 +9,7 @@
 
 #include "battlestream.h"
 #include "ai.h"
+#include "tacticalendscene.h"
 
 #include "../grinliz/glfixed.h"
 #include "../micropather/micropather.h"
@@ -20,6 +21,9 @@ using namespace grinliz;
 
 //#define REACTION_FIRE_EVENT_ONLY
 
+TacticalEndSceneData gTacticalData;	// cheating. Just a block of memory to pass to tactical.
+									// can't be on stack, don't want to fight headers to
+									// put in class.
 
 BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 {
@@ -42,7 +46,14 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 #endif
 
 	// On screen menu.
-	widgets = new UIButtonGroup( engine->GetScreenport() );
+	const Screenport& port = engine->GetScreenport();
+
+	widgets = new UIButtonGroup( port );
+	
+	alienImage = new UIImage( port );
+	alienImage->Init( TextureManager::Instance()->GetTexture( "iconDeco" ), 50, 50 );
+	alienImage->SetOrigin( port.PhysicalWidth()-50, port.PhysicalHeight()-50 );
+	alienImage->SetTexCoord( 5.0f/8.0f, 1.0f/4.0f, 1.0f/8.0f, 1.0f/4.0f );
 	
 	{
 		const int icons[] = {	ICON_BLUE_BUTTON,		// 0 take-off
@@ -71,7 +82,6 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		widgets->SetDeco( BTN_CHAR_SCREEN, DECO_CHARACTER );
 		widgets->SetDeco( BTN_TARGET, DECO_AIMED );
 
-		const Screenport& port = engine->GetScreenport();
 		const Vector2I& pad = widgets->GetPadding();
 		const Vector2I& size = widgets->GetButtonSize();
 		int h = port.UIHeight();
@@ -143,6 +153,7 @@ BattleScene::~BattleScene()
 		delete hpBars[i];
 	delete fireWidget;
 	delete widgets;
+	delete alienImage;
 }
 
 
@@ -562,6 +573,27 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 }
 
 
+bool BattleScene::EndCondition( TacticalEndSceneData* data )
+{
+	memset( data, 0, sizeof( *data ) );
+	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+		if ( units[i].InUse() )
+			++data->nTerrans;
+		if ( units[i].IsAlive() )
+			++data->nTerransAlive;
+	}
+	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+		if ( units[i].InUse() )
+			++data->nAliens;
+		if ( units[i].IsAlive() )
+			++data->nAliensAlive;
+	}
+	if ( data->nAliensAlive == 0 ||data->nTerransAlive == 0 )
+		return true;
+	return false;
+}
+
+
 void BattleScene::DrawHPBars()
 {
 	// A bit of code so the hp bar isn't up *all* the time. If selected, then show them all.
@@ -724,6 +756,12 @@ void BattleScene::SetFireWidget()
 		enable = enable &&  unit->GetStats().TU() >= unit->FireTimeUnits( select, type );
 
 		unit->FireStatistics( select, type, distToTarget, &fraction, &anyFraction, &tu, &dptu );
+		// Never show 100% in the UI:
+		if ( fraction > 0.95f )
+			fraction = 0.95f;
+		if ( anyFraction > 0.98f )
+			anyFraction = 0.98f;
+
 		SNPrintf( buffer0, 32, "%s %d%%", wid->fireDesc[i], (int)LRintf( anyFraction*100.0f ) );
 		SNPrintf( buffer1, 32, "%d/%d", nShots, rounds );
 		
@@ -1649,9 +1687,6 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 */
 			case BTN_CHAR_SCREEN:
 				if ( actionStack.Empty() && SelectedSoldierUnit() ) {
-					//UFOStream* stream = game->OpenStream( "SingleUnit" );
-					//stream->WriteU8( (U8)(SelectedSoldierUnit()-units ) );
-					//SelectedSoldierUnit()->Save( stream );
 					game->PushScene( Game::CHARACTER_SCENE, SelectedSoldierUnit() );
 				}
 				break;
@@ -1659,7 +1694,12 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 			case BTN_END_TURN:
 				SetSelection( 0 );
 				engine->GetMap()->ClearNearPath();
-				NextTurn();
+				if ( EndCondition( &gTacticalData ) ) {
+					game->PushScene( Game::END_SCENE, &gTacticalData );
+				}
+				else {
+					NextTurn();
+				}
 				break;
 
 			case BTN_NEXT:
@@ -2021,7 +2061,8 @@ void BattleScene::Visibility::InvalidateUnit( int i )
 {
 	GLASSERT( i>=0 && i<MAX_UNITS );
 	current[i] = false;
-	if ( i >= TERRAN_UNITS_START && i < TERRAN_UNITS_END && units[i].IsAlive() ) {
+	// Do not check IsAlive(). Specifically called when units are alive or just killed.
+	if ( i >= TERRAN_UNITS_START && i < TERRAN_UNITS_END ) {
 		fogInvalid = true;
 	}
 }
@@ -2374,6 +2415,12 @@ void BattleScene::DrawHUD()
 
 	widgets->Draw();
 
+	if ( currentTeamTurn == ALIEN_TEAM ) {
+		const int CYCLE = 5000;
+		alienImage->SetYRotation( (float)(game->CurrentTime() % CYCLE)*(360.0f/(float)CYCLE) );
+		//alienImage->SetYRotation( 2.0f );
+		alienImage->Draw();
+	}
 	if ( HasTarget() ) {
 		fireWidget->Draw();
 	}

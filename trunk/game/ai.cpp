@@ -138,7 +138,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 	const float MINIMUM_FIRE_CHANCE			= 0.02f;	// A shot is only valid if it has this chance of hitting.
 	const int   EXPLOSION_ZONE				= 2;		// radius to check of clusters of enemies to blow up
 	const float	MINIMUM_EXPLOSIVE_RANGE		= 4.0f;
-	const float CLOSE_ENOUGH				= 6.5f;		// don't close closer than this...
+	const float CLOSE_ENOUGH				= 4.5f;		// don't close closer than this...
 
 	action->actionID = ACTION_NONE;
 	Vector2I theUnitPos;
@@ -323,6 +323,30 @@ bool WarriorAI::Think(	const Unit* theUnit,
 		int best = -1;
 		float bestGolfScore = FLT_MAX;
 
+		// Reserve for auto or snap??
+		float tu = theUnit->GetStats().TU();
+
+		int select1, type1, select0, type0;
+		theUnit->FireModeToType( AUTO_SHOT, &select1, &type1 );
+		theUnit->FireModeToType( SNAP_SHOT, &select0, &type0 );
+
+		int reserve = -1;
+		if ( theUnit->CanFire( select1, type1 ) ) {
+			tu -= theUnit->FireTimeUnits( select1, type1 );
+			reserve = AUTO_SHOT;
+		}
+		else if ( theUnit->CanFire( select0, type0 ) ) {
+			tu -= theUnit->FireTimeUnits( select0, type0 );
+			reserve = SNAP_SHOT;
+		}
+
+		// TU is adjusted for weapon time. If we can't effectively move any more,
+		// stop now.
+		if ( tu < 1.8f ) {
+			AILOG(( "  **Saving TU. %.1f remaining, reserve=%d.\n", theUnit->GetStats().TU(), reserve ));
+			return true;
+		}
+
 		for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
 			if (    units[i].IsAlive() 
 				 && units[i].GetModel()
@@ -348,20 +372,6 @@ bool WarriorAI::Think(	const Unit* theUnit,
 		if ( best >= 0 ) {
 			Vector2<S16> start = { theUnitPos.x, theUnitPos.y };
 			Vector2<S16> end   = { m_lkp[best].pos.x, m_lkp[best].pos.y };
-
-			// Reserve for auto or snap??
-			float tu = theUnit->GetStats().TU();
-
-			int select1, type1, select0, type0;
-			theUnit->FireModeToType( AUTO_SHOT, &select1, &type1 );
-			theUnit->FireModeToType( SNAP_SHOT, &select0, &type0 );
-
-			if ( theUnit->CanFire( select1, type1 ) ) {
-				tu -= theUnit->FireTimeUnits( select1, type1 );
-			}
-			else if ( theUnit->CanFire( select0, type0 ) ) {
-				tu -= theUnit->FireTimeUnits( select0, type0 );
-			}
 
 			float lowCost = FLT_MAX;
 			int bestPath = -1;

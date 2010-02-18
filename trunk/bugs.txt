@@ -1,18 +1,14 @@
 
 Issues:
 - AI: guard behavior
-- AI: moves too close
 - Armor. Affects hp. Can't change in tactical view.
 - Alien HP too high / damage too low. Normalize traits.
 - center on hit unit
 - Pinching doesn't feel right
-- alien turn indicator
 - reconsider button placement
 - phat loot / edge of map / exploration
-- better weapon accuracy calibration
 - tap accuracy
 - need correct colors in RenderWeapon()
-- call SetFogOfWar less
 - check math (again) in PushShootAction()
 - map generation
 - different maps
@@ -21,7 +17,10 @@ Issues:
 - Couldn't figure out crosshair: UI wasn't clear
 - Highlight looks stupid
 - Sounds
-- need victory / defeat screen
+- Art: better human models
+- Art: color scheme 2.0
+- Art: better alien models
+- Art: missing weapon models
 - unconscious
 - mission types: landing
 - mission types: crash
@@ -31,9 +30,14 @@ Issues:
 
 TBD:
 - Reconsider when reaction fire occurs. And probability.
-- AI: aliens not following LKP
 
 FIXED [test #2]
+- need victory / defeat screen
+- call SetFogOfWar less (New visibility class defers as much calculation as possible)
+- AI: moves too close
+- better weapon accuracy calibration
+- alien turn indicator
+- AI: aliens not following LKP
 - FoW not updating properly when moving? or pausing incorrect?
 - Aliens come back to life! Or at least look that way.
 - crates could be more descriptive in their images...
