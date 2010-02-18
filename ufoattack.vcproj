@@ -338,6 +338,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\game\tacticalendscene.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\game\tacticalendscene.h"
+				>
+			</File>
+			<File
 				RelativePath=".\game\tacticalintroscene.cpp"
 				>
 			</File>

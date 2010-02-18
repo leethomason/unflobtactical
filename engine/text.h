@@ -18,6 +18,7 @@
 
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
+#include "../grinliz/glvector.h"
 #include "screenport.h"
 
 
@@ -39,6 +40,12 @@ private:
 
 	static Screenport screenport;
 	static U32 textureID;
+	enum {
+		BUF_SIZE = 30
+	};
+	static grinliz::Vector2F vBuf[BUF_SIZE*4];
+	static grinliz::Vector2F tBuf[BUF_SIZE*4];
+	static U16				 iBuf[BUF_SIZE*6];
 };
 
 #endif // UFOATTACK_TEXT_INCLUDED

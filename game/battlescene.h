@@ -14,10 +14,11 @@ class Model;
 class UIButtonBox;
 class UIButtonGroup;
 class UIBar;
+class UIImage;
 class Engine;
 class Texture;
 class AI;
-
+struct TacticalEndSceneData;
 
 // Needs to be a POD because it gets 'union'ed in a bunch of events.
 // size is important for the same reason.
@@ -170,6 +171,8 @@ private:
 	int ProcessActionShoot( Action* action, Unit* unit, Model* model );
 	int ProcessActionHit( Action* action );	
 
+	bool EndCondition( TacticalEndSceneData* data );
+
 	void ScrollOnScreen( const grinliz::Vector3F& v );
 
 	void StopForNewTeamTarget();
@@ -244,6 +247,8 @@ private:
 	int				uiMode;
 	UIButtonGroup*	widgets;
 	UIButtonGroup*	fireWidget;
+	UIImage*		alienImage;
+
 	Engine*			engine;
 	grinliz::Random random;	// "the" random number generator for the battle
 	int				currentTeamTurn;

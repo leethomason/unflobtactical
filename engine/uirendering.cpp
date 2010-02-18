@@ -192,6 +192,8 @@ UIImage::UIImage( const Screenport& port ) : UIWidget( port )
 {
 	w = h = 0;
 	texture = 0;
+	texCoord.Set( 0.0f, 0.0f, 1.0f, 1.0f );
+	yRot = 0.0f;
 }
 
 
@@ -214,15 +216,20 @@ void UIImage::Draw()
 		return;
 
 	Vector2<S16>	pos[4] =	{ { 0, 0 }, { w, 0 }, { w, h }, { 0, h } };
-	Vector2F		tex[4] =	{ { 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 } };
+	Vector2F		tex[4] =	{	{ texCoord.min.x, texCoord.min.y }, 
+									{ texCoord.max.x, texCoord.min.y }, 
+									{ texCoord.max.x, texCoord.max.y }, 
+									{ texCoord.min.x, texCoord.max.y } };
 	U16				index[6] =	{ 0, 1, 2, 0, 2, 3 };
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 
 	glDisable( GL_DEPTH_TEST );
 	glDepthMask( GL_FALSE );
-	//glEnable( GL_BLEND );
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if ( texture->alpha ) {
+		glEnable( GL_BLEND );
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
 	glDisableClientState( GL_NORMAL_ARRAY );
 	//glEnableClientState( GL_COLOR_ARRAY );
 
@@ -230,7 +237,17 @@ void UIImage::Draw()
 	glBindTexture( GL_TEXTURE_2D, texture->glID );
 
 	screenport.PushUI();
-	glTranslatef( (float)origin.x, (float)origin.y, 0.0f );
+	// Over translate so rotation is about center axis.
+	glTranslatef( (float)(origin.x+w/2), (float)origin.y, 0.0f );
+	// Don't want to fool around with rendering back faces, cheat on
+	// rotation amount.
+	float yPrime = yRot;
+	if ( yPrime >= 270 )
+		yPrime = yRot - 360.0f;
+	else if ( yPrime >= 90 )
+		yPrime = yRot - 180.0f;
+	glRotatef( yPrime, 0.0f, 1.0f, 0.0f );
+	glTranslatef( (float)(-w/2), 0.0f, 0.0f );
 
 	glVertexPointer(   2, GL_SHORT, 0, pos );
 	glTexCoordPointer( 2, GL_FLOAT, 0, tex ); 

@@ -21,6 +21,8 @@
 #include <string.h>
 #include "../grinliz/glutil.h"
 
+using namespace grinliz;
+
 const int ADVANCE = 10;
 const int ADVANCE_SMALL = 8;
 const float SMALL_SCALE = 0.75f;
@@ -32,6 +34,10 @@ static int GLYPH_HEIGHT = 128 / GLYPH_CY;
 extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
 extern int drawCalls;			// ditto
 
+
+Vector2F UFOText::vBuf[BUF_SIZE*4];
+Vector2F UFOText::tBuf[BUF_SIZE*4];
+U16 UFOText::iBuf[BUF_SIZE*6] = { 0, 0 };
 
 Screenport UFOText::screenport( 320, 480, 1 );
 U32 UFOText::textureID = 0;
@@ -79,8 +85,6 @@ void UFOText::End()
 
 void UFOText::TextOut( const char* str, int x, int y, int* w, int *h )
 {
-	float v[8];
-	float t[8];
 	bool smallText = false;
 	bool rendering = true;
 	int xStart = x;
@@ -92,6 +96,24 @@ void UFOText::TextOut( const char* str, int x, int y, int* w, int *h )
 		rendering = false;
 	}
 
+	if ( rendering ) {
+		glVertexPointer( 2, GL_FLOAT, 0, vBuf );
+		glTexCoordPointer( 2, GL_FLOAT, 0, tBuf );
+
+		if ( iBuf[1] == 0 ) {
+			// not initialized
+			for( int pos=0; pos<BUF_SIZE; ++pos ) {
+				iBuf[pos*6+0] = pos*4 + 0;
+				iBuf[pos*6+1] = pos*4 + 1;
+				iBuf[pos*6+2] = pos*4 + 2;
+				iBuf[pos*6+3] = pos*4 + 0;
+				iBuf[pos*6+4] = pos*4 + 2;
+				iBuf[pos*6+5] = pos*4 + 3;
+			}
+		}
+	}
+
+	int pos = 0;
 	while( *str )
 	{
 		if ( *str == '.' ) {
@@ -117,6 +139,7 @@ void UFOText::TextOut( const char* str, int x, int y, int* w, int *h )
 		}
 
 		// Draw a glyph or nothing, at this point:
+		GLASSERT( pos < BUF_SIZE );
 		int c = *str - 32;
 		if ( c >= 1 && c < 128-32 )
 		{
@@ -127,17 +150,17 @@ void UFOText::TextOut( const char* str, int x, int y, int* w, int *h )
 				float ty0 = 1.0f - ( 1.0f / float( GLYPH_CY ) ) * (float)( c / GLYPH_CX + 1 );
 				float ty1 = ty0 + ( 1.0f / float( GLYPH_CY ) );
 
-				t[0] = tx0;						t[1] = ty0;
-				t[2] = tx1;						t[3] = ty0;
-				t[4] = tx1;						t[5] = ty1;
-				t[6] = tx0;						t[7] = ty1;
+				tBuf[pos*4+0].Set( tx0, ty0 );
+				tBuf[pos*4+1].Set( tx1, ty0 );
+				tBuf[pos*4+2].Set( tx1, ty1 );
+				tBuf[pos*4+3].Set( tx0, ty1 );
 			}
 			if ( !smallText ) {
 				if ( rendering ) {
-					v[0] = (float)x;				v[1] = (float)y;
-					v[2] = (float)(x+GLYPH_WIDTH);	v[3] = (float)y;
-					v[4] = (float)(x+GLYPH_WIDTH);	v[5] = (float)(y+GLYPH_HEIGHT);
-					v[6] = (float)x;				v[7] = (float)(y+GLYPH_HEIGHT);
+					vBuf[pos*4+0].Set( (float)x,					(float)y );	
+					vBuf[pos*4+1].Set( (float)(x+GLYPH_WIDTH),	(float)y );	
+					vBuf[pos*4+2].Set( (float)(x+GLYPH_WIDTH),	(float)(y+GLYPH_HEIGHT) );	
+					vBuf[pos*4+3].Set( (float)x,					(float)(y+GLYPH_HEIGHT) );	
 				}
 				x += ADVANCE;
 			}
@@ -146,21 +169,24 @@ void UFOText::TextOut( const char* str, int x, int y, int* w, int *h )
 					float y0 = (float)(y+GLYPH_HEIGHT) - (float)GLYPH_HEIGHT * SMALL_SCALE;
 					float x1 = (float)x + (float)GLYPH_WIDTH*SMALL_SCALE;
 
-					v[0] = (float)x;				v[1] = y0;
-					v[2] = x1;						v[3] = y0;
-					v[4] = x1;						v[5] = (float)(y+GLYPH_HEIGHT);
-					v[6] = (float)x;				v[7] = (float)(y+GLYPH_HEIGHT);
+					vBuf[pos*4+0].Set( (float)x,					y0 );
+					vBuf[pos*4+1].Set( x1,						y0 );
+					vBuf[pos*4+2].Set( x1,						(float)(y+GLYPH_HEIGHT) );
+					vBuf[pos*4+3].Set( (float)x,					(float)(y+GLYPH_HEIGHT) );
 				}
 				x += ADVANCE_SMALL;
 			}
 
 			if ( rendering ) {
-				glVertexPointer( 2, GL_FLOAT, 0, v );
-				glTexCoordPointer( 2, GL_FLOAT, 0, t );
+				pos++;
+				if ( pos == BUF_SIZE || *(str+1) == 0 ) {
+					glDrawElements( GL_TRIANGLES, pos*6, GL_UNSIGNED_SHORT, iBuf );
 
-				glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
-				trianglesRendered += 2;
-				drawCalls++;
+					trianglesRendered += pos*3;
+					drawCalls++;
+
+					pos = 0;
+				}
 			}
 		}
 		

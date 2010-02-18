@@ -116,6 +116,7 @@ public:
 			BATTLE_SCENE = 0,
 			CHARACTER_SCENE,
 			INTRO_SCENE,
+			END_SCENE,
 			NUM_SCENES,
 		 };
 
