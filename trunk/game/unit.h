@@ -35,6 +35,11 @@ public:
 		ALIEN_3,	// elite
 	};
 
+	enum { 
+		AI_NORMAL,
+		AI_GUARD
+	};
+
 	enum {
 		MALE,
 		FEMALE
@@ -44,11 +49,12 @@ public:
 	~Unit();
 
 	// Note that the 'stats' should be set before init.
+	// Load calls init automatically
 	void Init(	Engine* engine, Game* game, 
 				int team,
 				int status,
 				int alienType,
-				U32 seed );
+				int seed );
 	
 	void Free();
 
@@ -66,6 +72,7 @@ public:
 	int Team() const			{ return team; }
 	int AlienType()	const		{ return type; }
 	int Gender() const			{ return GetValue( GENDER ); }
+	int AI() const				{ return ai; }
 
 	const char* FirstName() const;
 	const char* LastName() const;
@@ -117,6 +124,7 @@ public:
 	float AngleBetween( const grinliz::Vector2I& dst, bool quantize ) const;
 
 	const Stats& GetStats() const	{ return stats; }
+	static void GenStats( int team, int type, int seed, Stats* stats );
 
 	void Save( TiXmlElement* doc ) const;
 	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
@@ -132,9 +140,9 @@ private:
 	};
 	U32 GetValue( int which ) const;	// ALIEN_TYPE, etc.
 
-	void GenerateSoldier( U32 seed );
-	void GenerateCiv( U32 seed );
-	void GenerateAlien( U32 seed, int type );
+//	void GenerateSoldier( U32 seed );
+//	void GenerateCiv( U32 seed );
+//	void GenerateAlien( U32 seed, int type );
 	void CreateModel();
 
 	void UpdateModel();		// make the model current with the unit status - armor, etc.
@@ -143,6 +151,7 @@ private:
 	void Kill( Map* map );
 
 	int status;
+	int ai;			// normal or guard
 	int team;		// terran, alien, civ
 	int type;		// type of alien
 	U32 body;		// describes everything! a random #

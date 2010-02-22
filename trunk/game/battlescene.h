@@ -309,24 +309,15 @@ private:
 	};
 	Visibility visibility;
 
-	//void InvalidateAllVisibility();
-	//void InvalidateAllVisibility( 
-	//void CalcAllVisibility();
-
-	// before using 'visibilityMap', bring current with CalcAllVisibility()
-	//void CalcUnitVisibility( const Unit* unit );
-
 	Unit	units[MAX_UNITS];
 	UIBar*	hpBars[MAX_UNITS];
 	int		hpBarsFadeTime[MAX_UNITS];
 
 #ifdef MAPMAKER
-	// Mapmaker:
 	void UpdatePreview();
 	Model* mapSelection;
 	Model* preview;
 	int currentMapItem;
-	//sqlite3* mapDatabase;
 #endif
 };
 

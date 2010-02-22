@@ -68,7 +68,7 @@ public:
 
 	virtual const WeaponItemDef* IsWeapon() const { return 0; }
 	virtual const ClipItemDef* IsClip() const  { return 0; }
-	virtual int Rounds() const { return 1; }
+	virtual int DefaultRounds() const { return 1; }
 	virtual const ArmorItemDef* IsArmor() const { return 0; }
 
 	// optimization trickiness:
@@ -133,7 +133,7 @@ class ClipItemDef : public ItemDef
 public:
 
 	virtual const ClipItemDef* IsClip() const { return this; }
-	virtual int Rounds() const { return defaultRounds; }
+	virtual int DefaultRounds() const { return defaultRounds; }
 
 	bool IsAlien() const { return alien; }
 

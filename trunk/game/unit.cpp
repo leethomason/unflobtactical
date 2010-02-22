@@ -127,16 +127,77 @@ const char* Unit::Rank() const
 }
 
 
+/*static*/ void Unit::GenStats( int team, int type, int seed, Stats* s )
+{
+	Vector2I str, dex, psy;
+
+	switch ( team ) {
+		case TERRAN_TEAM:
+			str.Set( TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH );
+			dex.Set( TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH );
+			psy.Set( TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH );
+			break;
+
+		case ALIEN_TEAM:
+			{
+				switch( type ) {
+					case 0:
+						// Grey. Similar to human, a little weaker & smarter.
+						str.Set( TRAIT_TERRAN_LOW/2, TRAIT_TERRAN_HIGH/2 );
+						dex.Set( TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH );
+						psy.Set( TRAIT_TERRAN_LOW*15/10, TRAIT_TERRAN_HIGH*15/10 );
+						break;
+					case 1:
+						// Mind-slayer
+						str.Set( TRAIT_TERRAN_LOW/2, TRAIT_TERRAN_HIGH/2 );
+						dex.Set( TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH );
+						psy.Set( TRAIT_TERRAN_HIGH, TRAIT_MAX );
+						break;
+					case 2:
+						// Assault
+						str.Set( TRAIT_TERRAN_LOW*15/10, TRAIT_MAX );
+						dex.Set( TRAIT_TERRAN_LOW*15/10, TRAIT_TERRAN_HIGH*15/10 );
+						psy.Set( TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH );
+						break;
+					case 3:
+						// Elite.
+						str.Set( TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH );
+						dex.Set( TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH );
+						psy.Set( TRAIT_TERRAN_HIGH, TRAIT_MAX );
+						break;
+					default:
+						GLASSERT( 0 );
+						break;
+				}
+			}
+			break;
+
+		case CIV_TEAM:
+			str.Set( TRAIT_TERRAN_LOW/2, TRAIT_TERRAN_HIGH/2 );
+			dex.Set( TRAIT_TERRAN_LOW/2, TRAIT_TERRAN_HIGH/2 );
+			psy.Set( TRAIT_TERRAN_LOW/2, TRAIT_TERRAN_HIGH/2 );
+			break;
+
+		default:
+			GLASSERT( 0 );
+			break;
+	}
+
+	Random r( seed );
+	s->SetSTR( Stats::GenStat( &r, str.x, str.y ) );
+	s->SetDEX( Stats::GenStat( &r, dex.x, dex.y ) );
+	s->SetPSY( Stats::GenStat( &r, psy.x, psy.y ) );
+}
+
+
+/*
 void Unit::GenerateSoldier( U32 seed )
 {
 	status = STATUS_ALIVE;
 	team = TERRAN_TEAM;
 	body = seed;
 
-	Random random( seed );
-	stats.SetSTR( stats.GenStat( &random, 20, 80 ) );
-	stats.SetDEX( stats.GenStat( &random, 20, 80 ) );
-	stats.SetPSY( stats.GenStat( &random, 20, 80 ) );
+	GenStats( TERRAN_TEAM, 0, seed, &stats );
 	stats.SetRank( 0 );
 	stats.CalcBaselines();
 }
@@ -148,11 +209,8 @@ void Unit::GenerateCiv( U32 seed )
 	team = CIV_TEAM;
 	body = seed;	// only gender...
 
-	Random random( seed );
 	stats.SetRank( 0 );
-	stats.SetSTR( stats.GenStat( &random, 10, 60 ) );
-	stats.SetDEX( stats.GenStat( &random, 10, 60 ) );
-	stats.SetPSY( stats.GenStat( &random, 10, 60 ) );
+	GenStats( CIV_TEAM, 0, seed, &stats );
 	stats.CalcBaselines();
 }
 
@@ -163,67 +221,33 @@ void Unit::GenerateAlien( U32 seed, int type )
 	team = ALIEN_TEAM;
 	this->type = type;
 	GLASSERT( type >= 0 && type < 4 );
-	Random random( seed );
-
-	switch ( type ) {
-		case 0:	
-			// Grey
-			stats.SetSTR( stats.GenStat( &random, 10, 30 ) );
-			stats.SetDEX( stats.GenStat( &random, 20, 50 ) );
-			stats.SetPSY( stats.GenStat( &random, 30, 80 ) );
-			break;
-
-		case 1: 
-			// Mindslayer
-			stats.SetSTR( stats.GenStat( &random, 20, 40 ) );
-			stats.SetDEX( stats.GenStat( &random, 40, 60 ) );
-			stats.SetPSY( stats.GenStat( &random, 50, 100 ) );
-			break;
-
-		case 2: 
-			// Trooper
-			stats.SetSTR( stats.GenStat( &random, 70, 90 ) );
-			stats.SetDEX( stats.GenStat( &random, 60, 80 ) );
-			stats.SetPSY( stats.GenStat( &random, 20, 50 ) );
-			break;
-
-		case 3:
-		default:
-			// Elite
-			stats.SetSTR( stats.GenStat( &random, 20, 40 ) );
-			stats.SetDEX( stats.GenStat( &random, 40, 80 ) );
-			stats.SetPSY( stats.GenStat( &random, 40, 80 ) );
-			break;
-	}
+	GenStats( ALIEN_TEAM, type, seed, &stats );
 	stats.CalcBaselines();
 }
+*/
 
 
-void Unit::Init(	Engine* engine, Game* game, 
+void Unit::Init(	Engine* engine, 
+					Game* game, 
 					int team,	 
-					int _status,
-					int alienType,	// if alien...
-					U32 seed )
+					int p_status,
+					int alienType,
+					int body )
 {
 	GLASSERT( this->status == STATUS_NOT_INIT );
 	this->engine = engine;
 	this->game = game;
 	this->team = team;
-	this->status = _status;
+	this->status = p_status;
 	this->type = alienType;
+	this->body = body;
 	GLASSERT( type >= 0 && type < 4 );
+
 	weapon = 0;
 	visibilityCurrent = false;
 	userDone = false;
+	ai = AI_NORMAL;
 
-	switch( team ) {
-		case TERRAN_TEAM:		GenerateSoldier( seed );			break;
-		case ALIEN_TEAM:		GenerateAlien( seed, alienType );	break;
-		case CIV_TEAM:			GenerateCiv( seed );				break;
-		default:
-			GLASSERT( 0 );
-	}
-	this->status = _status;		// status gets reset in "generate"
 	CreateModel();
 }
 
@@ -552,13 +576,14 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 	Vector3F pos = { 0, 0, 0 };
 	float rot = 0;
 	type = 0;
-	int _status = 0;
+	int a_status = 0;
+	ai = AI_NORMAL;
 
 	GLASSERT( StrEqual( ele->Value(), "Unit" ) );
-	ele->QueryIntAttribute( "status", &_status );
-	GLASSERT( _status == STATUS_NOT_INIT || _status == STATUS_ALIVE || _status == STATUS_DEAD );
+	ele->QueryIntAttribute( "status", &a_status );
+	GLASSERT( a_status == STATUS_NOT_INIT || a_status == STATUS_ALIVE || a_status == STATUS_DEAD );
 
-	if ( _status != STATUS_NOT_INIT ) {
+	if ( a_status != STATUS_NOT_INIT ) {
 		ele->QueryValueAttribute( "team", &team );
 		ele->QueryValueAttribute( "type", &type );
 		ele->QueryValueAttribute( "body", &body );
@@ -566,16 +591,39 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 		ele->QueryValueAttribute( "modelZ", &pos.z );
 		ele->QueryValueAttribute( "yRot", &rot );
 
+		GenStats( team, type, body, &stats );		// defauts if not provided
 		stats.Load( ele );
 		inventory.Load( ele, engine, game );
 
-		Init( engine, game, team, _status, type, body );
+		Init( engine, game, team, a_status, type, body );
+		if ( StrEqual( ele->Attribute( "ai" ), "guard" ) ) {
+			ai = AI_GUARD;
+		}
+
 		if ( model ) {
+			if ( pos.x == 0.0f ) {
+				GLASSERT( pos.z == 0.0f );
+
+				Vector2I pi;
+				engine->GetMap()->PopLocation( team, ai == AI_GUARD, &pi, &rot );
+				pos.Set( (float)pi.x+0.5f, 0.0f, (float)pi.y+0.5f );
+			}
+
 			model->SetPos( pos );
 			if ( IsAlive() )
 				model->SetRotation( rot );
 		}
 		UpdateInventory();
+
+		GLOUTPUT(( "Unit loaded: team=%d STR=%d DEX=%d PSY=%d rank=%d armor=%d hp=%d acc=%.2f\n",
+					this->team,
+					this->stats.STR(),
+					this->stats.DEX(),
+					this->stats.PSY(),
+					this->stats.Rank(),
+					this->stats.Armor(),
+					this->stats.HP(),
+					this->stats.Accuracy() ));
 	}
 }
 

@@ -130,6 +130,8 @@ public:
 	void Load( const TiXmlDocument& doc );
 	void Save( TiXmlDocument* doc );
 
+	const char* AccessTextResource( const char* name );
+
 	// cheating: moves states between scenes.
 	int				loadRequested;	// 0-continue, 1-new, 2-test, -1 default
 	std::string		newGameXML;
@@ -209,6 +211,7 @@ private:
 	int rotTestCount;
 	Screenport screenport;
 	std::string savePath;
+	CDynArray< char > textResBuf;
 	
 #ifdef MAPMAKER	
 	bool showPathing;

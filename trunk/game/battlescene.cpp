@@ -344,7 +344,9 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 		{
 			int t = 0;
 			unitElement->QueryIntAttribute( "team", &t );
-			units[team[t]].Load( unitElement, engine, game );
+			Unit* unit = &units[team[t]];
+			unit->Load( unitElement, engine, game );
+			
 			team[t]++;
 
 			GLASSERT( team[0] < TERRAN_UNITS_END );
@@ -2124,6 +2126,9 @@ int BattleScene::Visibility::TeamCanSee( int team, int x, int y )
 
 int BattleScene::Visibility::UnitCanSee( int i, int x, int y )
 {
+#ifdef MAPMAKER
+	return true;
+#else
 	if ( units[i].IsAlive() ) {
 		if ( !current[i] ) {
 			CalcUnitVisibility( i );
@@ -2134,6 +2139,7 @@ int BattleScene::Visibility::UnitCanSee( int i, int x, int y )
 		}
 	}
 	return false;
+#endif
 }
 
 
@@ -2155,30 +2161,6 @@ int BattleScene::Visibility::UnitCanSee( int i, int x, int y )
 	Back on the Atom:
 	88 MClocks. But...experimenting with switching to 360degree view.
 	...now 79 MClocks. That makes little sense. Did facing take a bunch of cycles??
-*/
-/*
-void BattleScene::CalcAllVisibility()
-{
-//	QuickProfile qp( "CalcAllVisibility()" );
-	Vector2I range[2] = {{ TERRAN_UNITS_START, TERRAN_UNITS_END }, {ALIEN_UNITS_START, ALIEN_UNITS_END}};
-
-	for( int k=0; k<2; ++k ) {
-		for( int i=range[k].x; i<range[k].y; ++i ) {
-			if ( units[i].IsAlive() ) {
-				if ( !units[i].VisibilityCurrent() ) {
-					CalcUnitVisibility( &units[i] );
-					units[i].SetVisibilityCurrent( true );
-				}
-			}
-			else {
-				if ( !units[i].VisibilityCurrent() ) {
-					visibilityMap.ClearPlane( i );
-					units[i].SetVisibilityCurrent( true );
-				}
-			}
-		}
-	}
-}
 */
 
 

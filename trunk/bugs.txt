@@ -1,5 +1,6 @@
 
 Issues:
+- Hard to tell who the currently selected unit is.
 - AI: guard behavior
 - Armor. Affects hp. Can't change in tactical view.
 - Alien HP too high / damage too low. Normalize traits.
