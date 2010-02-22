@@ -4,6 +4,7 @@
 #include "game.h"
 
 #include <string>
+using namespace std;
 
 TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 {
@@ -167,10 +168,10 @@ void TacticalIntroScene::Tap(	int count,
 				choices->SetButton( TIME_NIGHT, (tap==TIME_NIGHT) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
 				break;
 
-				// FIXME construct XML!
-//			case GO_NEW_GAME:
-//				game->loadRequested = 1;
-//				break;
+			case GO_NEW_GAME:
+				game->loadRequested = 1;
+				WriteXML( &game->newGameXML );
+				break;
 		}
 	}
 	if ( game->loadRequested >= 0 ) {
@@ -178,3 +179,20 @@ void TacticalIntroScene::Tap(	int count,
 		game->PushScene( Game::BATTLE_SCENE, 0 );
 	}
 }
+
+
+void TacticalIntroScene::WriteXML( std::string* _xml )
+{
+	std::string& xml = *_xml;
+
+	xml.clear();
+	xml += "<Game><Scene id='0' />";
+	xml += game->AccessTextResource( "new_map0" );
+	xml += "<Units>";
+	xml += game->AccessTextResource( "new_squad_LA" );
+	xml += game->AccessTextResource( "new_alien_LA" );
+	xml += "</Units>";
+	xml += "</Game>";
+
+}
+

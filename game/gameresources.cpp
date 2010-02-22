@@ -331,6 +331,8 @@ void Game::LoadMapResources()
 		{	"lander",		0,				0,			6,	6,	INDESTRUCT,	0,			"00ff00 00ff00 ff00ff ff00ff ff00ff ff00ff",
 																						"00ff00 00ff00 0f00f0 0f00f0 0f00f0 0f00f0", 
 																						LANDER_LIGHT },
+		{	"guard",		0,				0,			1,  1,  INDESTRUCT, 0,			"0" },
+		{	"scout",		0,				0,			1,  1,  INDESTRUCT, 0,			"0" },
 		{	0	}
 	};
 	InitMapItemDef( MARINE_SET, marineSet );
@@ -422,13 +424,15 @@ void Game::LoadItemResources()
 	const float BOLT  = 2.0f;
 
 	const ClipInit clips[] = {
-		{ "Clip",	false,	DECO_SHELLS,	8,	 { 1, 0, 0 },
-					{ 0.8f, 1.0f, 0.8f, 0.8f }, SPEED*2.0f, WIDTH*0.5f, BOLT*3.0f, "9mm 8 round clip" },
+		{ "Clip",	false,	DECO_SHELLS,	40,	 { 1, 0, 0 },
+					{ 0.8f, 1.0f, 0.8f, 0.8f }, SPEED*2.0f, WIDTH*0.5f, BOLT*3.0f, "4x10 round clip" },
 		{ "AClip",	false,	DECO_SHELLS,	15,	 { 1, 0, 0 },
 					{ 0.8f, 1.0f, 0.8f, 0.8f }, SPEED*2.0f, WIDTH*0.5f, BOLT*3.0f, "4mm 15 round auto-clip" },
+		{ "Zing",	true,	DECO_CELL,		40,  { 0.0f, 0.8f, 0.2f },
+					{ 0.2f, 1.0f, 0.2f, 0.8f }, SPEED,		 WIDTH,		 BOLT,		"Zing Rounds" },
 		{ "Cell",	true,	DECO_CELL,		12,  { 0.0f, 0.8f, 0.2f },
 					{ 0.2f, 1.0f, 0.2f, 0.8f }, SPEED,		 WIDTH,		 BOLT,		"10MW Cell" },
-		{ "Tach",	true,	DECO_CELL,		4,   { 0, 0.6f, 0.4f },
+		{ "Tachy",	true,	DECO_CELL,		4,   { 0, 0.6f, 0.4f },
 					{ 1, 1, 0, 0.8f },			 SPEED,		 WIDTH,		 BOLT,		"Tachyon field rounds" },
 		{ "Flame",	false,	DECO_SHELLS,	2,	 { 0, 0, 1 },
 					{ 1.0f, 0, 0, 0.8f },		 SPEED*0.5f, WIDTH,		 BOLT,		"Incendiary Heavy Round" },
@@ -488,50 +492,50 @@ void Game::LoadItemResources()
 	const WeaponInit weapons[] = {		
 		// Terran	resName		deco			description
 		//				
-		{ "PST",	"gun0",		DECO_PISTOL,	"Pistol",				FAST, AIMED, 0,		SPEED_FAST,
+		{ "PST",	"pst1",		DECO_PISTOL,	"Pistol",				FAST, AIMED, 0,		SPEED_FAST,
 				"Clip",			0,										DAM_LOW,	ACC_MED,
 				0  },
-		{ "AR-1",	"gun0",		DECO_RIFLE,		"Klk Assault Rifle",	FAST, BURST, 0,		SPEED_NORMAL,
+		{ "AR-1",	"ar1",		DECO_RIFLE,		"Klk Assault Rifle",	FAST, BURST, 0,		SPEED_NORMAL,
 				"AClip",		WEAPON_AUTO,							DAM_LOW,	ACC_MED,
 				0  },
-		{ "AR-2",	"gun0",		DECO_RIFLE,		"N7 Assault Rifle",		FAST, BURST, 0,		SPEED_NORMAL,
+		{ "AR-2",	"ar2",		DECO_RIFLE,		"N7 Assault Rifle",		FAST, BURST, 0,		SPEED_NORMAL,
 				"AClip",		WEAPON_AUTO,							DAM_MEDLOW,	ACC_MED,
 				0  },
-		{ "AR-3P",	"gun0",		DECO_RIFLE,		"Pulse Rifle",			FAST, BURST, BOOM,	SPEED_NORMAL,
+		{ "AR-3P",	"ar3p",		DECO_RIFLE,		"Pulse Rifle",			FAST, BURST, BOOM,	SPEED_NORMAL,
 				"AClip",		WEAPON_AUTO,							DAM_MEDHI,	ACC_MED,
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_LOW },
-		{ "AR-3L",	"gun0",		DECO_RIFLE,		"Long AR 'Vera'",		FAST, AIMED, BOOM,	SPEED_NORMAL,
+		{ "AR-3L",	"ar3l",		DECO_RIFLE,		"Long AR 'Vera'",		FAST, AIMED, BOOM,	SPEED_NORMAL,
 				"AClip",		0,										DAM_HI,		ACC_HI,
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_LOW },
-		{ "CAN-I",	"gun0",		DECO_RIFLE,		"Mini-Canon/Flame",		FAST, BANG, BOOM,	SPEED_SLOW,
-				"Clip",			WEAPON_EXPLOSIVE,						DAM_HI,		ACC_MED,
+		{ "CAN-I",	"cani",		DECO_RIFLE,		"Mini-Canon/Flame",		FAST, BANG, BOOM,	SPEED_SLOW,
+				"AClip",		WEAPON_EXPLOSIVE,						DAM_HI,		ACC_MED,
 				"Flame",		WEAPON_EXPLOSIVE,						EXDAM_MED,	ACC_MED },
-		{ "CAN-X",	"gun0",		DECO_RIFLE,		"Mini-Canon/Rocket",	FAST, BANG, BOOM,	SPEED_SLOW,
-				"Clip",			WEAPON_EXPLOSIVE,						DAM_HI,		ACC_MED,
+		{ "CAN-X",	"canx",		DECO_RIFLE,		"Mini-Canon/Rocket",	FAST, BANG, BOOM,	SPEED_SLOW,
+				"AClip",		WEAPON_EXPLOSIVE,						DAM_HI,		ACC_MED,
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED,	ACC_MED },
 
 
 		// Alien
-		{ "RAY-1",	"gun1",		DECO_PISTOL,	"Ray Gun",				FAST, AIMED, 0,		SPEED_FAST,
-				"Cell",	0,												DAM_MEDLOW,	ACC_MED,
+		{ "RAY-1",	"ray1",		DECO_PISTOL,	"Ray Gun",				FAST, AIMED, 0,		SPEED_FAST,
+				"Zing",			0,										DAM_MEDLOW,	ACC_MED,
 				0  },
-		{ "RAY-2",	"gun1",		DECO_PISTOL,	"Advanced Ray Gun",		FAST, AIMED, 0,		SPEED_FAST,
-				"Cell",	0,												DAM_MED,	ACC_MED,
+		{ "RAY-2",	"ray2",		DECO_PISTOL,	"Advanced Ray Gun",		FAST, AIMED, 0,		SPEED_FAST,
+				"Cell",			0,										DAM_MED,	ACC_MED,
 				0  },
-		{ "RAY-3",	"gun1",		DECO_PISTOL,	"Disinigrator",			FAST, AIMED, 0,		SPEED_FAST,
-				"Cell",	0,												DAM_HI,		ACC_MED,
+		{ "RAY-3",	"ray3",		DECO_PISTOL,	"Disinigrator",			FAST, AIMED, 0,		SPEED_FAST,
+				"Cell",			0,										DAM_HI,		ACC_MED,
 				0  },
-		{ "PLS-1",	"gun0",		DECO_RIFLE,		"Plasma Rifle",			FAST, BURST, 0,		SPEED_NORMAL,
+		{ "PLS-1",	"pls1",		DECO_RIFLE,		"Plasma Rifle",			FAST, BURST, 0,		SPEED_NORMAL,
 				"Cell",			WEAPON_AUTO,							DAM_HI,	ACC_MED,
 				0  },
-		{ "PLS-2",	"gun0",		DECO_RIFLE,		"Plasma Assault Rifle",	FAST, BURST, BOOM,	SPEED_NORMAL,
+		{ "PLS-2",	"pls2",		DECO_RIFLE,		"Plasma Assault Rifle",	FAST, BURST, BOOM,	SPEED_NORMAL,
 				"Cell",			WEAPON_AUTO,							DAM_VHI,	ACC_MED,
-				"Tach",			WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_MED },
-		{ "BEAM",	"gun0",		DECO_RIFLE,		"Blade Beam",			FAST, AIMED, 0,		SPEED_FAST,
+				"Tachy",		WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_MED },
+		{ "BEAM",	"beam",		DECO_RIFLE,		"Blade Beam",			FAST, AIMED, 0,		SPEED_FAST,
 				"Cell",			0,										DAM_MEDHI,	ACC_HI,
 				0  },
-		{ "NULL",	"gun0",		DECO_RIFLE,		"Null Point Blaster",	FAST, BANG, 0,		SPEED_NORMAL,
-				"Tach",			WEAPON_EXPLOSIVE,						DAM_VHI, ACC_HI,
+		{ "NULL",	"nullp",	DECO_RIFLE,		"Null Point Blaster",	FAST, BANG, 0,		SPEED_NORMAL,
+				"Tachy",		WEAPON_EXPLOSIVE,						DAM_VHI, ACC_HI,
 				0  },
 		{ 0 }
 	};
@@ -678,6 +682,20 @@ void Game::LoadItemResources()
 				}
 			}
 		}
+
+		fprintf( fp, "\nRandom 32 bit ints:\n" );
+		Random random;
+		for( int i=0; i<10; ++i ) {
+			fprintf( fp, "%d\t%d\t%d\t%d\n", random.Rand(), random.Rand(), random.Rand(), random.Rand() );
+		}
+		fprintf( fp, "\nRandom human traits:\n" );
+		for( int i=0; i<10; ++i ) {
+			fprintf( fp, "%d\t%d\t%d\t%d\n", Stats::GenStat( &random, TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH ),
+											 Stats::GenStat( &random, TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH ),
+											 Stats::GenStat( &random, TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH ),
+											 Stats::GenStat( &random, TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH ) );
+		}
+
 		fclose( fp );
 	}
 #endif

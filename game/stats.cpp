@@ -3,6 +3,7 @@
 #include "../grinliz/glrandom.h"
 #include "gamelimits.h"
 #include "../tinyxml/tinyxml.h"
+#include "unit.h"
 
 using namespace grinliz;
 

@@ -323,7 +323,8 @@ void Item::Load( const TiXmlElement* ele, Engine* engine, Game* game )
 	const char* name = ele->Attribute( "name" );
 	
 	itemDef = game->GetItemDef( name );
-	rounds = 1;
+	rounds = itemDef->DefaultRounds();
+
 	ele->QueryIntAttribute( "rounds", &rounds );
 }
 
@@ -355,7 +356,7 @@ void Storage::AddItem( const Item& item )
 void Storage::RemoveItem( const ItemDef* _itemDef, Item* _item )
 {
 	int index = GetIndex( _itemDef );
-	int r = grinliz::Min( rounds[index], _itemDef->Rounds() );
+	int r = grinliz::Min( rounds[index], _itemDef->DefaultRounds() );
 
 	if ( r == 0 ) {
 		_item->Clear();
@@ -371,7 +372,7 @@ void Storage::RemoveItem( const ItemDef* _itemDef, Item* _item )
 void Storage::SetCount( const ItemDef* itemDef, int count )
 {
 	int index = GetIndex( itemDef );
-	rounds[index] = count*itemDef->Rounds();
+	rounds[index] = count*itemDef->DefaultRounds();
 }
 
 
@@ -379,7 +380,7 @@ int Storage::GetCount( const ItemDef* itemDef) const
 {
 	int index = GetIndex( itemDef );
 	int r = rounds[index];
-	return (r+itemDef->Rounds()-1)/itemDef->Rounds();
+	return (r+itemDef->DefaultRounds()-1)/itemDef->DefaultRounds();
 }
 
 

@@ -44,7 +44,10 @@ Map::Map( SpaceTree* tree )
 	memset( visMap, 0, SIZE*SIZE );
 	memset( pathMap, 0, SIZE*SIZE );
 	memset( itemDefArr, 0, sizeof(MapItemDef)*MAX_ITEM_DEF );
-	//mapDB = 0;
+	nGuardPos = 0;
+	nScoutPos = 0;
+	nLanderPos = 0;
+	lander = 0;
 
 	microPather = new MicroPather(	this,			// graph interface
 									SIZE*SIZE,		// max possible states (+1)
@@ -566,6 +569,22 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	}
 
 	const MapItemDef& itemDef = itemDefArr[defIndex];
+
+	// Check for meta data.
+	if ( StrEqual( itemDef.name, "guard" ) || StrEqual( itemDef.name, "scout" ) ) {
+		if ( StrEqual( itemDef.name, "guard" ) ) {
+			if ( nGuardPos < MAX_GUARD_SCOUT ) {
+				guardPos[nGuardPos++].Set( x, y );
+			}
+		}
+		else if ( StrEqual( itemDef.name, "scout" ) ) {
+			if ( nScoutPos < MAX_GUARD_SCOUT ) {
+				scoutPos[nScoutPos++].Set( x, y );
+			}
+		}
+		return 0;
+	}
+
 	Rectangle2I mapBounds;
 	Vector2F modelPos;
 	Matrix2I xform;
@@ -594,6 +613,11 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	item->model = 0;
 	if ( hp == -1 )
 		hp = itemDef.hp;
+
+	if ( StrEqual( itemDefArr[defIndex].name, "lander" ) ) {
+		GLASSERT( lander == 0 );
+		lander = item;
+	}
 
 	const ModelResource* res = 0;
 	if ( itemDefArr[defIndex].CanDamage() && hp == 0 ) {
@@ -681,6 +705,47 @@ void Map::DeleteItem( MapItem* item )
 	ResetPath();
 	ClearVisPathMap( mapBounds );
 	CalcVisPathMap( mapBounds );
+}
+
+
+void Map::PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rotation )
+{
+	*rotation = 0;
+
+	if ( team == TERRAN_TEAM ) {
+		// put 'em in the lander.
+		GLASSERT( lander );		
+
+		Matrix2I xform;
+		CalcModelPos( lander, 0, 0, &xform );
+
+		Vector2I obj = { 2 + (nLanderPos & 1), 5 - (nLanderPos / 2) };
+		Vector2I world = xform * obj;
+		
+		*pos = world;
+		*rotation = (float)(lander->rot * 90);
+		++nLanderPos;
+	}
+	else if ( team == ALIEN_TEAM ) {
+		if ( guard ) {
+			GLASSERT( nGuardPos > 0 );
+			int i = random.Rand( nGuardPos );
+			*pos = guardPos[i];
+			Swap( &guardPos[i], &guardPos[nGuardPos-1] );
+			--nGuardPos;
+		}
+		else {
+			GLASSERT( nScoutPos > 0 );
+			int i = random.Rand( nScoutPos );
+			*pos = scoutPos[i];
+			Swap( &scoutPos[i], &scoutPos[nScoutPos-1] );
+			--nScoutPos;
+		}
+	}
+	else {
+		GLASSERT( 0 );
+		pos->Set( 0, 0 );
+	}
 }
 
 
@@ -831,6 +896,10 @@ void Map::DeleteAt( int x, int y )
 	GLASSERT( y >= 0 && y < height );
 
 	MapItem* item = quadTree.FindItems( x, y, 0, MapItem::MI_IS_LIGHT );
+	// Delete the *last* item so it behaves more naturally when editing.
+	while( item && item->next )
+		item = item->next;
+
 	if ( item ) {
 		DeleteItem( item );
 	}
@@ -999,170 +1068,6 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 	}
 }
 
-
-/*
-void Map::DeleteRow( int x, int y, int r, int def )
-{
-	sqlite3_stmt* stmt = 0;
-	int result=0;
-
-	// Clear out the existing row.
-	const int BUFSIZE=200;
-	char buf[BUFSIZE];
-	SNPrintf( buf, BUFSIZE, "DELETE FROM %s WHERE (x=? AND y=? AND r=? AND defIndex=?);", dbTableName.c_str() );
-	GLASSERT( strlen( buf ) < BUFSIZE-1 );
-
-	result = sqlite3_prepare_v2( mapDB,	buf, -1, &stmt, 0 );
-	GLASSERT( result == SQLITE_OK );
-
-	sqlite3_bind_int( stmt, 1, x );
-	sqlite3_bind_int( stmt, 2, y );
-	sqlite3_bind_int( stmt, 3, r );
-	sqlite3_bind_int( stmt, 4, def );
-
-	sqlite3_step(stmt);
-	sqlite3_finalize(stmt);
-}
-
-
-void Map::InsertRow( int x, int y, int r, int def, int hp, int flags )
-{
-	// And add the new one.
-	sqlite3_stmt* stmt = 0;
-	const int BUFSIZE=200;
-	char buf[BUFSIZE];
-	SNPrintf( buf, BUFSIZE,
-				"INSERT INTO %s VALUES (?,?,?,?,?,?,?);",
-				dbTableName.c_str() );
-	GLASSERT( strlen( buf ) < BUFSIZE-1 );
-
-	int result = sqlite3_prepare_v2(mapDB, buf, -1, &stmt, 0 );
-	GLASSERT( result == SQLITE_OK );
-
-	sqlite3_bind_int( stmt, 1, x );
-	sqlite3_bind_int( stmt, 2, y );
-	sqlite3_bind_int( stmt, 3, r );
-	sqlite3_bind_int( stmt, 4, def );		
-	sqlite3_bind_int( stmt, 5, hp );		
-	sqlite3_bind_int( stmt, 6, flags );
-
-//	if ( storage ) {
-//		sqlite3_bind_blob( stmt, 7, storage->Rounds(), sizeof(int)*EL_MAX_ITEM_DEFS, 0 );
-//	}
-//	else {
-		sqlite3_bind_blob( stmt, 7, 0, 0, 0 );
-//	}
-	sqlite3_step(stmt);
-	result = sqlite3_finalize(stmt);
-	GLASSERT( result == SQLITE_OK );
-}
-		
-
-void Map::SyncToDB( sqlite3* db, const char* tableName )
-{
-	if ( db && tableName ) {
-		Clear();
-		int result=0;
-
-		dbTableName = tableName;
-
-		// Make sure the table exists. Do a full load. From now on, all changes
-		// will be written to this DB. If the table exists, this will fail.
-		sqlite3_stmt* stmt = 0;
-		// This doesn't work. Frustrating:
-		//result = sqlite3_prepare_v2( db, "CREATE TABLE IF NOT EXISTS ? (x INT, y INT, r INT, defIndex INT, hp INT);", -1, &stmt, 0 );
-		
-		const int BUFSIZE=200;
-		char buf[BUFSIZE];
-		SNPrintf(	buf, BUFSIZE, 
-					"CREATE TABLE IF NOT EXISTS %s "
-					"(x INT, y INT, r INT, defIndex INT, hp INT, flags INT, storage TEXT );",
-					tableName );
-		GLASSERT( strlen( buf ) < BUFSIZE-1 );
-
-		result = sqlite3_prepare_v2( db, buf,-1, &stmt, 0 );
-		GLASSERT( result == SQLITE_OK );
-
-		sqlite3_step( stmt );
-		result = sqlite3_finalize(stmt);
-
-		// Now walk and add!
-		stmt = 0;
-		
-					SNPrintf( buf, BUFSIZE, 										 
-					"SELECT * FROM %s;",
-					 tableName );
-		GLASSERT( strlen( buf ) < BUFSIZE-1 );
-
-		result = sqlite3_prepare_v2( db, buf,-1, &stmt, 0 );
-		GLASSERT( result == SQLITE_OK );
-
-		while (sqlite3_step(stmt) == SQLITE_ROW) {
-			int x	= sqlite3_column_int( stmt, 0 );
-			int y	= sqlite3_column_int( stmt, 1 );
-			int r	= sqlite3_column_int( stmt, 2 );
-			int def = sqlite3_column_int( stmt, 3 );
-			int hp	= sqlite3_column_int( stmt, 4 );
-			//int flags = sqlite3_column_int( stmt, 5 );
-
-			int nBytes = sqlite3_column_bytes( stmt, 6 );
-			Storage* storage = 0;
-			if ( nBytes ) {
-				storage = new Storage();
-				GLASSERT( nBytes == EL_MAX_ITEM_DEFS*sizeof(int) );
-				storage->Init( (const int*) sqlite3_column_blob( stmt, 6 ) );
-			}
-			AddItem( x, y, r, def, hp, 0 );
-		}
-		sqlite3_finalize(stmt);
-		mapDB = db;
-	}
-	else {
-		mapDB = 0;
-	}
-}
-*/
-
-/*static*/ 
-/*sqlite3* Map::CreateMap( const std::string& savePath, sqlite3* res )
-{
-	sqlite3_stmt* stmt = 0;
-	int result = sqlite3_prepare_v2( res, "SELECT * FROM map",-1, &stmt, 0 );
-	GLASSERT( result == SQLITE_OK );
-	(void)result;
-
-	int id=0;
-
-	if (sqlite3_step(stmt) == SQLITE_ROW) {
-		id	= sqlite3_column_int( stmt, 1 );
-	}
-	sqlite3_finalize(stmt);
-
-	GLASSERT( id );
-	int size=0;
-
-	BinaryDBReader reader( res );
-	reader.ReadSize( id, &size );
-
-	char* mem = new char[size];
-	reader.ReadData( id, size, mem );
-	
-	std::string path = savePath + "currentMap.db";
-	
-#pragma warning ( push )
-#pragma warning ( disable : 4996 )	// fopen is unsafe. For video games that seems extreme.
-	FILE* fp = fopen( path.c_str(), "wb" );
-#pragma warning ( pop )
-	GLASSERT( fp );
-	fwrite( mem, size, 1, fp );
-	fclose( fp );
-	delete [] mem;
-
-	sqlite3* db = 0;
-	sqlite3_open( path.c_str(), &db );
-	return db;
-}
-*/
 
 const Storage* Map::GetStorage( int x, int y ) const
 {
@@ -1586,7 +1491,6 @@ void Map::ShowNearPath(	const grinliz::Vector2<S16>& start,
 						const int* icon,
 						int n )
 {
-	//walkingMap.ClearAll();
 	stateCostArr.clear();
 	int result = microPather->SolveForNearStates( VecToState( start ), &stateCostArr, maxCost );
 
@@ -1597,44 +1501,6 @@ void Map::ShowNearPath(	const grinliz::Vector2<S16>& start,
 		StateToVec( stateCostArr[m].state, &v );
 		GLOUTPUT(( "  (%d,%d) cost=%.1f\n", v.x, v.y, stateCostArr[m].cost ));
 	}
-	*/
-/*
-	if ( result == MicroPather::SOLVED ) {
-		for( unsigned i=0; i<stateCostArr.size(); ++i ) {
-
-			const micropather::StateCost& stateCost = stateCostArr[i];
-			Vector2<S16> v;
-			StateToVec( stateCost.state, &v );
-
-#ifdef DEBUG
-			{
-				Rectangle3I rect;
-				rect.Set( v.x, v.y, 0, v.x, v.y, 2 );
-				GLASSERT( walkingMap.IsRectEmpty( rect ));
-			}
-#endif
-
-			if ( stateCost.cost <= cost0 ) {
-				walkingMap.Set( v.x, v.y, 0 );
-			}
-			else if ( stateCost.cost <= cost1 ) {
-				walkingMap.Set( v.x, v.y, 1 );
-			}
-			else {
-				walkingMap.Set( v.x, v.y, 2 );
-			}
-		}
-	}
-	*/
-	/*
-	nWalkingVertex = 0;
-	PushWalkingVertex( 0,  0,   0.f,       0.f );
-	PushWalkingVertex( 64, 64, 0.25f, 0.25f );
-	PushWalkingVertex( 64, 0,   0.25f, 0.f );
-
-	PushWalkingVertex( 0,   0,   0.f,       0.f );
-	PushWalkingVertex( 0,   64, 0.f,       0.25f );
-	PushWalkingVertex( 64, 64, 0.25f, 0.25f );
 	*/
 
 	walkingVertex.Clear();

@@ -151,6 +151,35 @@ Game::~Game()
 }
 
 
+const char* Game::AccessTextResource( const char* name )
+{
+	sqlite3_stmt* stmt = 0;
+	sqlite3_prepare_v2(database, "SELECT * FROM map WHERE name=?;", -1, &stmt, 0 );
+	sqlite3_bind_text( stmt, 1, name, -1, 0 );
+
+	int id=0;
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		id = sqlite3_column_int(  stmt, 1 );
+	}
+	else {
+		GLASSERT( 0 );
+	}
+	sqlite3_finalize(stmt);
+
+	int size;
+	BinaryDBReader reader( database );
+	reader.ReadSize( id, &size );
+
+	textResBuf.Clear();
+	char* mem = textResBuf.PushArr( size+1 );
+
+	reader.ReadData( id, size, mem );
+	textResBuf[size] = 0;	// make sure null terminated.
+
+	return mem;
+}
+
+
 void Game::ProcessLoadRequest()
 {
 	if ( loadRequested == 0 )	// continue
@@ -164,30 +193,22 @@ void Game::ProcessLoadRequest()
 			loadCompleted = true;
 		}
 	}
+	else if ( loadRequested == 1 )	// new game
+	{
+		TiXmlDocument doc;
+		doc.Parse( newGameXML.c_str() );
+		GLASSERT( !doc.Error() );
+		if ( !doc.Error() ) {
+			Load( doc );
+			loadCompleted = true;
+		}
+	}
 	else if ( loadRequested == 2 )	// test
 	{
 		TiXmlDocument doc;
 		// pull the default game from the resource
-
-		sqlite3_stmt* stmt = 0;
-		sqlite3_prepare_v2(database, "SELECT * FROM map WHERE name='testgame';", -1, &stmt, 0 );
-
-		int id=0;
-		if (sqlite3_step(stmt) == SQLITE_ROW) {
-			id = sqlite3_column_int(  stmt, 1 );
-		}
-		else {
-			GLASSERT( 0 );
-		}
-		sqlite3_finalize(stmt);
-
-		int size;
-		BinaryDBReader reader( database );
-		reader.ReadSize( id, &size );
-		char* mem = new char[size];
-		reader.ReadData( id, size, mem );
-		doc.Parse( mem );
-		delete [] mem;
+		const char* testGame = AccessTextResource( "testgame" );
+		doc.Parse( testGame );
 
 		if ( !doc.Error() ) {
 			Load( doc );

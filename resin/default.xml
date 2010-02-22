@@ -55,8 +55,22 @@
 
   <model filename="selection.ac" />
 
-  <model filename="gun0.ac" />
-  <model filename="gun1.ac" />
+  <model filename="pst1.ac" />
+  <model filename="ar1.ac" />
+  <model filename="ar2.ac" />
+  <model filename="ar3p.ac" />
+  <model filename="ar3l.ac" />
+  <model filename="cani.ac" />
+  <model filename="canx.ac" />
+  
+  <model filename="ray1.ac" />
+  <model filename="ray2.ac" />
+  <model filename="ray3.ac" />
+  <model filename="pls1.ac" />
+  <model filename="pls2.ac" />
+  <model filename="beam.ac" />
+  <model filename="nullp.ac" />
+
   <model filename="cellClip.ac" />
   <model filename="shellClip.ac" />
 
@@ -77,6 +91,10 @@
   <model filename="woodDoorOpn.ac" />
   <model filename="woodWall.ac" />
   <model filename="woodWallWin.ac" />
+  
+  <!-- Models used as markers by the map-maker. Don't appear in the game. -->
+  <model filename="scout.ac" shading="smooth" />
+  <model filename="guard.ac" />
 
   <!-- Particles -->
 	<texture filename="particleQuad.png" />
@@ -89,7 +107,9 @@
   <image filename="objectLightMaps.png" />
   
   <!-- Other Data -->
-	<!--<map filename="testmap.xml" />-->
   <data filename="testgame.xml" />
-  
+  <data filename="new_map0.xml" />
+  <data filename="new_squad_LA.xml" />
+  <data filename="new_alien_LA.xml" />
+
 </resource>

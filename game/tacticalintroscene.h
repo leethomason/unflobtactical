@@ -32,6 +32,8 @@ public:
 	virtual void DrawHUD();
 
 private:
+	void WriteXML( std::string* xml );
+
 	//	Squad:		4 8
 	//	  exp:		Low Med Hi
 	//  Alien:		8 16

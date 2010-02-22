@@ -285,6 +285,8 @@ public:
 	void Save( TiXmlElement* parent );
 	void Load( const TiXmlElement* mapNode, ItemDef* const* arr );
 
+	void PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rotation );
+
 private:
 	struct IMat
 	{
@@ -440,6 +442,14 @@ private:
 	grinliz::MemoryPool					itemPool;
 	QuadTree							quadTree;
 	MapItemDef							itemDefArr[MAX_ITEM_DEF];
+
+	enum { MAX_GUARD_SCOUT = 24 };
+	int nGuardPos;
+	int nScoutPos;
+	int nLanderPos;
+	const MapItem* lander;
+	grinliz::Vector2I					guardPos[MAX_GUARD_SCOUT];
+	grinliz::Vector2I					scoutPos[MAX_GUARD_SCOUT];
 };
 
 #endif // UFOATTACK_MAP_INCLUDED
