@@ -602,7 +602,7 @@ void BattleScene::DrawHPBars()
 	// Else just show for 5 seconds after hp changes.
 	//
 	const int FADE_TIME = 5000;
-	bool drawAll = (SelectedSoldierUnit() != 0 );
+	//bool drawAll = (SelectedSoldierUnit() != 0 );
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		hpBarsFadeTime[i] = Max( hpBarsFadeTime[i] - (int)game->DeltaTime(), 0 );
@@ -640,7 +640,7 @@ void BattleScene::DrawHPBars()
 				}
 				hpBars[i]->SetOrigin( uiX-W/2, uiY-H*18/10 );
 
-				if ( drawAll || hpBarsFadeTime[i] > 0 ) {
+				if ( ( &units[i] == SelectedSoldierUnit() ) || hpBarsFadeTime[i] > 0 ) {
 					hpBars[i]->Draw();
 				}
 			}

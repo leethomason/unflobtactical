@@ -214,7 +214,7 @@
                 <Item name="PLS-2" />
                 <Item name="ARM-1" />
                 <Item name="Cell" rounds="12" />
-                <Item name="Tach" rounds="4" />
+                <Item name="Tachy" rounds="4" />
                 <Item name="Clip" rounds="8" />
                 <Item name="Clip" rounds="8" />
                 <Item name="Med" />
@@ -239,7 +239,7 @@
                 <Item name="PLS-2" />
                 <Item name="ARM-1" />
                 <Item name="Cell" rounds="12" />
-                <Item name="Tach" rounds="4" />
+                <Item name="Tachy" rounds="4" />
                 <Item name="Clip" rounds="8" />
                 <Item name="Clip" rounds="8" />
                 <Item name="Med" />
@@ -253,7 +253,7 @@
             <Inventory>
                 <Item name="RAY-1" />
                 <Item name="Cell" rounds="12" />
-                <Item name="Tach" rounds="4" />
+                <Item name="Tachy" rounds="4" />
             </Inventory>
         </Unit>
         <Unit team="2" type="1" status="1" body="-500874107" modelX="12.500000" modelZ="16.500000" yRot="0.000000">
@@ -267,7 +267,7 @@
             <Inventory>
                 <Item name="RAY-1" />
                 <Item name="Cell" rounds="12" />
-                <Item name="Tach" rounds="4" />
+                <Item name="Tachy" rounds="4" />
             </Inventory>
         </Unit>
         <Unit team="2" type="3" status="1" body="1484309979" modelX="29.500000" modelZ="30.500000" yRot="0.000000">
@@ -275,7 +275,7 @@
             <Inventory>
                 <Item name="PLS-2" />
                 <Item name="Cell" rounds="12" />
-                <Item name="Tach" rounds="4" />
+                <Item name="Tachy" rounds="4" />
             </Inventory>
         </Unit>
     </Units>

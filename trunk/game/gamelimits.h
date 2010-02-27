@@ -37,8 +37,8 @@ const int AIMED_SHOT		= 2;
 const int FIRE_MODE_START	= 0;
 const int FIRE_MODE_END		= 3;
 
-const int	MIN_TU				= 4;
-const int	MAX_TU				= 16;		// enforced: used for memory allocation
+const int	MIN_TU				= 6;
+const int	MAX_TU				= 12;		// enforced: used for memory allocation
 
 const int	TRAIT_MAX			= 100;
 const int	TRAIT_TERRAN_LOW	= 15;
