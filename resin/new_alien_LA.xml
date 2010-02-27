@@ -1,0 +1,69 @@
+<Unit team="2" type="0" status="1" body="-1481949544">
+	<Stats level="0" />
+	<Inventory>
+		<Item name="RAY-1" />
+		<Item name="Zing" />
+	</Inventory>
+</Unit>
+<Unit team="2" type="0" status="1" body="-45896659">
+	<Stats level="0" />
+	<Inventory>
+		<Item name="RAY-1" />
+		<Item name="Zing" />
+	</Inventory>
+</Unit>
+<Unit team="2" type="0" status="1" body="-85704557">
+	<Stats level="1" />
+	<Inventory>
+		<Item name="RAY-2" />
+		<Item name="Cell" />
+		<Item name="Cell" />
+		<Item name="RAY-1" />
+		<Item name="Zing" />
+	</Inventory>
+</Unit>
+<Unit team="2" type="0" status="1" body="1886043910">
+	<Stats level="1" />
+	<Inventory>
+		<Item name="PLS-1" />
+		<Item name="Cell" />
+		<Item name="Cell" />
+		<Item name="RAY-1" />
+		<Item name="Zing" />
+	</Inventory>
+</Unit>
+
+<Unit team="2" type="0" status="1" body="406105646">
+	<Stats level="0" />
+	<Inventory>
+		<Item name="RAY-1" />
+		<Item name="Zing" />
+	</Inventory>
+</Unit>
+<Unit team="2" type="0" status="1" body="1622137081">
+	<Stats level="0" />
+	<Inventory>
+		<Item name="RAY-1" />
+		<Item name="Zing" />
+	</Inventory>
+</Unit>
+<Unit team="2" type="2" status="1" body="-496616866" ai="guard" >
+	<Stats level="0" />
+	<Inventory>
+		<Item name="PLS-1" />
+		<Item name="Cell" />
+		<Item name="Cell" />
+		<Item name="RAY-1" />
+		<Item name="Zing" />
+	</Inventory>
+</Unit>
+<Unit team="2" type="2" status="1" body="1441572103" ai="guard" >
+	<Stats level="0" />
+	<Inventory>
+		<Item name="PLS-1" />
+		<Item name="Cell" />
+		<Item name="Cell" />
+		<Item name="RAY-1" />
+		<Item name="Zing" />
+	</Inventory>
+</Unit>
