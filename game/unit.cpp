@@ -190,43 +190,6 @@ const char* Unit::Rank() const
 }
 
 
-/*
-void Unit::GenerateSoldier( U32 seed )
-{
-	status = STATUS_ALIVE;
-	team = TERRAN_TEAM;
-	body = seed;
-
-	GenStats( TERRAN_TEAM, 0, seed, &stats );
-	stats.SetRank( 0 );
-	stats.CalcBaselines();
-}
-
-
-void Unit::GenerateCiv( U32 seed )
-{
-	status = STATUS_ALIVE;
-	team = CIV_TEAM;
-	body = seed;	// only gender...
-
-	stats.SetRank( 0 );
-	GenStats( CIV_TEAM, 0, seed, &stats );
-	stats.CalcBaselines();
-}
-
-
-void Unit::GenerateAlien( U32 seed, int type )
-{
-	status = STATUS_ALIVE;
-	team = ALIEN_TEAM;
-	this->type = type;
-	GLASSERT( type >= 0 && type < 4 );
-	GenStats( ALIEN_TEAM, type, seed, &stats );
-	stats.CalcBaselines();
-}
-*/
-
-
 void Unit::Init(	Engine* engine, 
 					Game* game, 
 					int team,	 

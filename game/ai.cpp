@@ -10,7 +10,7 @@
 
 using namespace grinliz;
 
-#if 0 
+#if 1
 	#define AILOG GLOUTPUT
 #else
 	#define AILOG( x )	{}

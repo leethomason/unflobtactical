@@ -1,9 +1,12 @@
 
 Issues:
+- fix issue with 2 aliens on same tile...
+- rework low ammo weapons, fix test game
+- explosion not causing FoW update ???
 - Hard to tell who the currently selected unit is.
+- UI covers up target icons
 - AI: guard behavior
 - Armor. Affects hp. Can't change in tactical view.
-- Alien HP too high / damage too low. Normalize traits.
 - center on hit unit
 - Pinching doesn't feel right
 - reconsider button placement
@@ -33,6 +36,7 @@ TBD:
 - Reconsider when reaction fire occurs. And probability.
 
 FIXED [test #2]
+- Alien HP too high / damage too low. Normalize traits.
 - need victory / defeat screen
 - call SetFogOfWar less (New visibility class defers as much calculation as possible)
 - AI: moves too close

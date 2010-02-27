@@ -175,7 +175,7 @@ void Map::DrawOverlay()
 		U8* v = (U8*)walkingVertex.Mem() + Vertex::POS_OFFSET;
 		U8* t = (U8*)walkingVertex.Mem() + Vertex::TEXTURE_OFFSET;
 
-		const float ALPHA = 0.3f;
+		const float ALPHA = 0.5f;
 		glColor4f( 1.0f, 1.0f, 1.0f, ALPHA );
 
 		glBindTexture( GL_TEXTURE_2D, iTex->glID );
