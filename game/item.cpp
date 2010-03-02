@@ -321,6 +321,9 @@ void Item::Load( const TiXmlElement* ele, Engine* engine, Game* game )
 	Clear();
 	GLASSERT( StrEqual( ele->Value(), "Item" ) );
 	const char* name = ele->Attribute( "name" );
+	GLASSERT( name && *name );
+	if ( !name || !*name )
+		return;
 	
 	itemDef = game->GetItemDef( name );
 	rounds = itemDef->DefaultRounds();

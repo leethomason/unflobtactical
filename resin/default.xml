@@ -101,15 +101,20 @@
 	<texture filename="particleSparkle.png" />
 
 	<!-- Maps -->
-	<texture filename="farmland.png" />
+	<texture filename="farmland.png" />  
 	<image filename="farmlandN.png" />
-
+  <image filename="farmlandD.png" />
+  
   <image filename="objectLightMaps.png" />
   
   <!-- Other Data -->
   <data filename="testgame.xml" />
   <data filename="new_map0.xml" />
   <data filename="new_squad_LA.xml" />
+  <data filename="new_squad_MA.xml" />
+  <data filename="new_squad_HA.xml" />
   <data filename="new_alien_LA.xml" />
+  <data filename="new_alien_MA.xml" />
+  <data filename="new_alien_HA.xml" />
 
 </resource>

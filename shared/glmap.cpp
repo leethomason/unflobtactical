@@ -3,7 +3,7 @@
 #include "../grinliz/glutil.h"
 
 
-CMapBase::CMapBase( bool strKey, int size )
+CMapBase::CMapBase( int size )
 {
 	GLASSERT( sizeof( void*) == sizeof( unsigned char* ) );	// crazy just in case
 	nBuckets = grinliz::CeilPowerOf2( size );
@@ -12,7 +12,6 @@ CMapBase::CMapBase( bool strKey, int size )
 	buckets = new Bucket[nBuckets];
 	memset( buckets, 0, sizeof( Bucket )*nBuckets );
 	recursing = false;
-	stringKey = strKey;
 }
 
 
@@ -34,19 +33,6 @@ unsigned CMapBase::HashStr( const char* p )
 {
 	unsigned hash = 2166136261UL;
 	for( ; *p; ++p ) {
-		hash ^= *p;
-		hash *= 16777619;
-	}
-	return hash;
-}
-
-
-unsigned CMapBase::HashVal( const void* _p )
-{
-	unsigned hash = 2166136261UL;
-	const char* p = (const char*)_p;
-	
-	for( int i=0; i<sizeof(void*); ++i, ++p ) {
 		hash ^= *p;
 		hash *= 16777619;
 	}
@@ -79,7 +65,7 @@ void CMapBase::Add( const char* key, void* value )
 		recursing = false;
 	}
 	
-	unsigned h = Hash( key );
+	unsigned h = HashStr( key );
 	h = h & (nBuckets-1);
 
 	// Can use buckets[i].key == 0, because that's the end of a run.
@@ -92,7 +78,7 @@ void CMapBase::Add( const char* key, void* value )
 			++nAdds;
 			break;
 		}
-		if ( buckets[h].key > (const char*)(1)  && Equal( buckets[h].key, key ) ) {	
+		if ( buckets[h].key > (const char*)(1)  && CStrEqual( buckets[h].key, key ) ) {	
 			// dupe. Overwrite with new.
 			buckets[h].value = value;
 			break;
@@ -106,11 +92,11 @@ void CMapBase::Add( const char* key, void* value )
 
 void CMapBase::Remove( const char* key )
 {
-	unsigned h = Hash( key );
+	unsigned h = HashStr( key );
 	h = h & (nBuckets-1);
 
 	while ( buckets[h].key ) {
-		if ( Equal( buckets[h].key, key )) {
+		if ( CStrEqual( buckets[h].key, key )) {
 			buckets[h].key = (const char*)(1);
 			--nItems;
 			break;
@@ -124,13 +110,16 @@ void CMapBase::Remove( const char* key )
 
 void* CMapBase::Get( const char* key )
 {
-	unsigned h = Hash( key );
+	unsigned h = HashStr( key );
 	h = h & (nBuckets-1);
 
 	while ( buckets[h].key ) {
-		if ( Equal( buckets[h].key, key )) {
+		if ( CStrEqual( buckets[h].key, key )) {
 			return buckets[h].value;
 		}
+		++h;
+		if ( h == nBuckets )
+			h = 0;
 	}
 	GLASSERT( 0 );
 	return 0;
@@ -139,14 +128,17 @@ void* CMapBase::Get( const char* key )
 
 bool CMapBase::Query( const char* key, void** value )
 {
-	unsigned h = Hash( key );
+	unsigned h = HashStr( key );
 	h = h & (nBuckets-1);
 
 	while ( buckets[h].key ) {
-		if ( Equal( buckets[h].key, key )) {
+		if ( CStrEqual( buckets[h].key, key )) {
 			*value = buckets[h].value;
 			return true;
 		}
+		++h;
+		if ( h == nBuckets )
+			h = 0;
 	}
 	return false;
 }

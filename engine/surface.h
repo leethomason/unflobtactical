@@ -18,6 +18,7 @@
 
 #include "../grinliz/gltypes.h"
 #include "../grinliz/gldebug.h"
+#include "../shared/glmap.h"
 #include "../engine/ufoutil.h"
 #include "enginelimits.h"
 #include <stdio.h>
@@ -128,12 +129,41 @@ public:
 	const char* Name() const			{ return name; }
 
 private:
+	Surface( const Surface& );
+	void operator=( const Surface& );
+
 	int format;
 	int w;
 	int h;
 	int allocated;
 	char name[EL_FILE_STRING_LEN];
 	U8* pixels;
+};
+
+
+class ImageManager
+{
+public:
+	static ImageManager* Instance()	{ GLASSERT( instance ); return instance; }
+	
+	const Surface* GetImage( const char* name );
+	
+	Surface* AddLockedSurface();
+	void Unlock();
+
+	static void Create();
+	static void Destroy();
+private:
+	ImageManager()		{}
+	~ImageManager()		{}
+
+	enum {
+		MAX_IMAGES = 30		// increase as needed
+	};
+
+	static ImageManager* instance;
+	CArray< Surface, MAX_IMAGES > arr;		// textures
+	CStringMap<	Surface* > map;
 };
 
 
@@ -163,7 +193,7 @@ private:
 	TextureManager();
 	~TextureManager();
 
-	static int Compare( const void * elem1, const void * elem2 );
+//	static int Compare( const void * elem1, const void * elem2 );
 
 	enum {
 		MAX_TEXTURES = 30		// increase as needed
@@ -171,8 +201,7 @@ private:
 
 	static TextureManager* instance;
 	CArray< Texture, MAX_TEXTURES > textureArr;		// textures
-	Texture* texturePtr[MAX_TEXTURES];				// sorted pointers to textures
-	bool sorted;
+	CStringMap<	Texture* > map;
 };
 
 #endif // UFOATTACK_SURFACE_INCLUDED

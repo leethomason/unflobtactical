@@ -133,14 +133,8 @@ public:
 
 	const Screenport& GetScreenport() { return screenport; }
 
-	void SetDayNight( bool dayTime, Surface* lightMap );
-	bool GetDayTime()							{ return (dayNight == DAY_TIME); }
-
 	// FIXME - automatic??
 	void RestrictCamera();
-
-//	void Save( UFOStream* s );
-//	void Load( UFOStream* s );
 
 private:
 	enum ShadowState {
@@ -177,7 +171,6 @@ private:
 	Surface diffuseLightMap;
 
 	grinliz::Vector3F lightDirection;
-	DayNight dayNight;
 };
 
 #endif // UFOATTACK_ENGINE_INCLUDED

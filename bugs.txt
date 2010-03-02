@@ -1,6 +1,9 @@
 
 Issues:
-- fix issue with 2 aliens on same tile...
+- can't see who is selected
+- showing too many particles (hide in FoW)
+- performance: AI/Alien turn pauses
+- explosive weapons should not reaction fire?? Or check for line of sight?
 - rework low ammo weapons, fix test game
 - explosion not causing FoW update ???
 - Hard to tell who the currently selected unit is.
@@ -36,6 +39,10 @@ TBD:
 - Reconsider when reaction fire occurs. And probability.
 
 FIXED [test #2]
+- fix issue with 2 aliens on same tile...
+- don't allow moving off of edge of map
+- account for aliens having better night vision in CalcVisibilityRay
+- all aliens should be rank0 
 - Alien HP too high / damage too low. Normalize traits.
 - need victory / defeat screen
 - call SetFogOfWar less (New visibility class defers as much calculation as possible)

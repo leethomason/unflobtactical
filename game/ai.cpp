@@ -10,7 +10,7 @@
 
 using namespace grinliz;
 
-#if 1
+#if 0
 	#define AILOG GLOUTPUT
 #else
 	#define AILOG( x )	{}
@@ -64,6 +64,7 @@ bool AI::LineOfSight( const Unit* shooter, const Unit* target )
 	Vector3F p0, p1, intersection;
 	shooter->GetModel()->CalcTrigger( &p0 );
 	target->GetModel()->CalcTarget( &p1 );
+	// fixme: handle nulls in ignore
 	const Model* ignore[5] = { shooter->GetModel(), shooter->GetWeaponModel(), target->GetModel(), target->GetWeaponModel(), 0 };
 
 	Model* m = m_spaceTree->QueryRay( p0, (p1-p0), 0, 0, ignore, TEST_TRI, &intersection );
@@ -282,7 +283,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 			for( int i=0; i<nFound; ++i ) {
 				Vector2<S16> end = { storeLocs[i].x, storeLocs[i].y };
 				float cost;
-				map->SolvePath( start, end, &cost, &m_path[i] );
+				map->SolvePath( theUnit, start, end, &cost, &m_path[i] );
 				AILOG(( "    Storage (%d,%d) cost=%.3f\n", end.x, end.y, cost ));
 
 				if ( cost < lowCost ) {
@@ -380,7 +381,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 				// The path is blocked *by our target*. Fooling around with how the map pather
 				// works is tweaky. So just check 4 spots.
 				float cost;
-				int result = map->SolvePath( start, end+delta[i], &cost, &m_path[i] );
+				int result = map->SolvePath( theUnit, start, end+delta[i], &cost, &m_path[i] );
 				if ( result == micropather::MicroPather::SOLVED ) {
 					if ( cost < lowCost ) {
 						lowCost = cost;

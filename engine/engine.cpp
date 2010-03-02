@@ -117,12 +117,12 @@ Engine::Engine( const Screenport& port, const EngineData& _engineData )
 		DIFFUSE( 0.7f ),
 		DIFFUSE_SHADOW( 0.3f ),
 		screenport( port ),
-		dayNight( DAY_TIME ),
 		engineData( _engineData ),
 		initZoomDistance( 0 ),
 		enableMap( true )
 {
 	TextureManager::Create();
+	ImageManager::Create();
 	ModelResourceManager::Create();
 	ParticleSystem::Create();
 
@@ -150,6 +150,7 @@ Engine::~Engine()
 
 	ParticleSystem::Destroy();
 	ModelResourceManager::Destroy();
+	ImageManager::Destroy();
 	TextureManager::Destroy();
 }
 
@@ -338,7 +339,7 @@ void Engine::Draw()
 	CHECK_GL_ERROR;
 
 	renderQueue->SetColor( 1, 1, 1 );
-	EnableLights( true, dayNight );
+	EnableLights( true, map->DayTime() ? DAY_TIME : NIGHT_TIME );
 	Model* fogRoot = 0;
 	const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& fogOfWar = map->GetFogOfWar();
 
@@ -400,7 +401,7 @@ void Engine::Draw()
 		}
 	}
 	renderQueue->Flush();
-	EnableLights( false, dayNight );
+	EnableLights( false, map->DayTime() ? DAY_TIME : NIGHT_TIME );
 	glBindTexture( GL_TEXTURE_2D, 0 );
 
 #ifdef SHOW_FOW
@@ -485,45 +486,6 @@ void Engine::EnableLights( bool enable, DayNight dayNight )
 		CHECK_GL_ERROR;
 	}
 }
-
-
-void Engine::SetDayNight( bool dayTime, Surface* lightMap )
-{
-	dayNight = dayTime ? DAY_TIME : NIGHT_TIME;
-
-	// If the lightmap isn't provided, compute it.
-	if ( lightMap ) {
-		map->SetLightMap( lightMap );
-	}
-	else {
-		diffuseLightMap.Set( Surface::RGB16, Map::SIZE, Map::SIZE );
-		
-		const Vector3F normal = { 0.0f, 1.0f, 0.0f };	
-		float dot = DotProduct( lightDirection, normal );
-		
-		Vector3F incoming = { 1.0f, 1.0f, 1.0f };
-		Vector3F color;
-
-		if ( dayTime == true ) {
-			color = DIFFUSE * dot * incoming + AMBIENT * incoming;
-		}
-		else {
-			// The night is "all ambient" and the diffuse isn't used.
-			color.Set( EL_NIGHT_RED, EL_NIGHT_GREEN, EL_NIGHT_BLUE );
-		}
-
-		Surface::RGBA rgba = { (U8)(color.x*255), (U8)(color.y*255), (U8)(color.z*255), 255 };
-		U16 c = Surface::CalcColorRGB16( rgba );
-
-		for( int j=0; j<Map::SIZE; ++j ) {
-			for( int i=0; i<Map::SIZE; ++i ) {
-				*((U16*)diffuseLightMap.Pixels() + j*Map::SIZE + i) = c;
-			}
-		}
-		map->SetLightMap( &diffuseLightMap );
-	}
-}      
-
 
 
 void Engine::LightGroundPlane( ShadowState shadows, float shadowAmount, Color4F* outColor )
@@ -830,21 +792,3 @@ float Engine::GetZoom()
 	return z;
 }
 
-
-/*
-void Engine::Save( UFOStream* s )
-{
-	camera.Save( s );
-	s->Write( lightDirection );
-	s->WriteU8( (U8)dayNight );
-}
-
-
-void Engine::Load( UFOStream* s )
-{
-	camera.Load( s );
-	s->Read( &lightDirection );
-	dayNight = (DayNight) s->ReadU8();
-}
-
-*/

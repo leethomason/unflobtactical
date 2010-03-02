@@ -640,6 +640,9 @@ void PathNodePool::AllStates( unsigned frame, std::vector< void* >* stateVec )
 
 int MicroPather::Solve( void* startNode, void* endNode, vector< void* >* path, float* cost )
 {
+	// Important to clear() in case the caller doesn't check the return code. There
+	// can easily be a left over path  from a previous call.
+	path->clear();
 
 	#ifdef DEBUG_PATH
 	printf( "Path: " );

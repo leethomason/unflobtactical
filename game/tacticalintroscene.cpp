@@ -38,7 +38,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 		const int YSIZE = 55;
 		int icons[] = { ICON_GREEN_BUTTON, ICON_GREEN_BUTTON_DOWN,
 						ICON_GREEN_BUTTON, ICON_GREEN_BUTTON_DOWN, ICON_GREEN_BUTTON,
-						ICON_GREEN_BUTTON, ICON_GREEN_BUTTON_DOWN,
+						ICON_GREEN_BUTTON_DOWN, ICON_GREEN_BUTTON,
 						ICON_GREEN_BUTTON, ICON_GREEN_BUTTON_DOWN, ICON_GREEN_BUTTON,
 						ICON_GREEN_BUTTON_DOWN, ICON_GREEN_BUTTON,
 						ICON_BLUE_BUTTON
@@ -187,10 +187,35 @@ void TacticalIntroScene::WriteXML( std::string* _xml )
 
 	xml.clear();
 	xml += "<Game><Scene id='0' />";
+	if ( choices->GetButton( TIME_NIGHT ) == ICON_GREEN_BUTTON_DOWN )
+		xml += "<BattleScene dayTime='0' />";
+	else
+		xml += "<BattleScene dayTime='1' />";
 	xml += game->AccessTextResource( "new_map0" );
 	xml += "<Units>";
-	xml += game->AccessTextResource( "new_squad_LA" );
-	xml += game->AccessTextResource( "new_alien_LA" );
+
+	const char* squad = game->AccessTextResource( "new_squad_LA" );
+	if ( choices->GetButton( TERRAN_MED ) == ICON_GREEN_BUTTON_DOWN )
+		squad = game->AccessTextResource( "new_squad_MA" );
+	else if ( choices->GetButton( TERRAN_HIGH ) == ICON_GREEN_BUTTON_DOWN )
+		squad = game->AccessTextResource( "new_squad_HA" );
+
+	xml += squad;
+	if ( choices->GetButton( SQUAD_8 ) == ICON_GREEN_BUTTON_DOWN ) {
+		xml += squad;
+	}
+
+	const char* alien = game->AccessTextResource( "new_alien_LA" );
+	if ( choices->GetButton( ALIEN_MED ) == ICON_GREEN_BUTTON_DOWN )
+		alien = game->AccessTextResource( "new_alien_MA" );
+	else if ( choices->GetButton( ALIEN_HIGH ) == ICON_GREEN_BUTTON_DOWN )
+		alien = game->AccessTextResource( "new_alien_HA" );
+
+	xml += alien;
+	if ( choices->GetButton( ALIEN_16 ) == ICON_GREEN_BUTTON_DOWN ) {
+		xml += alien;
+	}
+
 	xml += "</Units>";
 	xml += "</Game>";
 

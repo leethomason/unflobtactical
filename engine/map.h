@@ -43,7 +43,14 @@ struct DamageDesc;
 class SustainedPyroEffect;
 class ParticleSystem;
 class TiXmlElement;
+class Map;
 
+
+class IPathBlocker
+{
+public:
+	virtual void MakePathBlockCurrent( Map* map, const void* user ) = 0;
+};
 
 
 class Map : public micropather::Graph
@@ -170,6 +177,8 @@ public:
 	Map( SpaceTree* tree );
 	virtual ~Map();
 
+	void SetPathBlocker( IPathBlocker* blocker ) { pathBlocker = blocker; pathBlock.ClearAll(); }
+
 	// The size of the map in use, which is <=SIZE
 	int Height() const { return height; }
 	int Width()  const { return width; }
@@ -182,17 +191,16 @@ public:
 	void SetLightObjects( const Surface* surface )	{ GLASSERT( surface ); this->lightObject = surface; }
 
 	// The light map is a 64x64 texture of the lighting at each point. Without
-	// a light map, full white (daytime) is used. GenerateLightMap creates the
-	// resulting map by combining light with FogOfWar and lights in the world.
-	// GenerateLightMap also creates the translucency map, which is used to 
-	// compute the visibility rays.
-	void SetLightMap( const Surface* surface );
+	// a light map, full white (daytime) is used.
+	void SetLightMaps( const Surface* day, const Surface* night );
+	bool DayTime() const { return dayTime; }
+	void SetDayTime( bool day );
 
 	const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>&	GetFogOfWar()		{ return fogOfWar; }
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1>*			LockFogOfWar();
 	void												ReleaseFogOfWar();
 
-	// Light Map (the one that was set)
+	// Light Map
 	// 0: Light map that was set in "SetLightMap", or white if none set
 	// 1: Light map 0 + lights
 	// 2: Light map 0 + lights + FogOfWar
@@ -221,7 +229,8 @@ public:
 
 	// Sets objects to block the path (usually other sprites) that the map doesn't know about.
 	void ClearPathBlocks();
-	void SetPathBlock( int x, int y );
+	// Set the path block (does nothing if they are equal.)
+	void SetPathBlocks( const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& block );
 
 	Storage* LockStorage( int x, int y );					//< can return 0 if none there
 	void ReleaseStorage( int x, int y, Storage* storage, ItemDef* const* arr );	//< sets the storage
@@ -244,22 +253,21 @@ public:
 	void MapBoundsOfModel( const Model* m, grinliz::Rectangle2I* mapBounds );
 
 	void ResetPath();	// normally called automatically
-
-	//static sqlite3* CreateMap( const std::string& savePAth, sqlite3* resourceDB );
-	//void SyncToDB( sqlite3* db, const char* table );
 	void Clear();
 
 	void DumpTile( int x, int z );
 
 	// Solves a path on the map. Returns total cost. 
 	// returns MicroPather::SOLVED, NO_SOLUTION, START_END_SAME, or OUT_OF_MEMORY
-	int SolvePath(	const grinliz::Vector2<S16>& start,
+	int SolvePath(	const void* user,
+					const grinliz::Vector2<S16>& start,
 					const grinliz::Vector2<S16>& end,
 					float* cost,
 					std::vector< grinliz::Vector2<S16> >* path );
 	
 	// Show the path that the unit can walk to.
-	void ShowNearPath(	const grinliz::Vector2<S16>& start,
+	void ShowNearPath(	const void* user,
+						const grinliz::Vector2<S16>& start,
 						float maxCost,
 						const grinliz::Vector2F* range,
 						const int* icons,
@@ -375,6 +383,8 @@ private:
 	void DeleteItem( MapItem* item );
 
 	grinliz::Random random;
+	bool dayTime;
+	IPathBlocker* pathBlocker;
 	int width, height;
 	grinliz::Rectangle3F bounds;
 	const Texture* texture;
@@ -385,7 +395,8 @@ private:
 
 	void GenerateLightMap();
 
-	Texture lightMapTex;	
+	Texture lightMapTex;
+	Surface dayMap, nightMap;
 	Surface lightMap[3];
 	grinliz::Rectangle2I invalidLightMap;
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWar;

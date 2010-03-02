@@ -4,6 +4,7 @@
 #include "scene.h"
 #include "unit.h"
 #include "../engine/ufoutil.h"
+#include "../engine/map.h"
 #include "gamelimits.h"
 #include "targets.h"
 #include "../grinliz/glbitarray.h"
@@ -42,7 +43,7 @@ private:
 };
 
 
-class BattleScene : public Scene
+class BattleScene : public Scene, public IPathBlocker
 {
 public:
 	BattleScene( Game* );
@@ -72,6 +73,8 @@ public:
 	void DeleteAtSelection();
 	void DeltaCurrentMapItem( int d );
 #endif
+
+	virtual void MakePathBlockCurrent( Map* map, const void* user );
 
 private:
 	enum {
@@ -174,6 +177,7 @@ private:
 	bool EndCondition( TacticalEndSceneData* data );
 
 	void ScrollOnScreen( const grinliz::Vector3F& v );
+//	bool LineOfSight( const Unit* shooter, const Unit* target );
 
 	void StopForNewTeamTarget();
 	void DoReactionFire();
@@ -196,7 +200,8 @@ private:
 
 	void InitUnits();
 	void TestHitTesting();
-	void SetPathBlocks( const Unit* exclude );
+
+	//void SetPathBlocks( const Unit* exclude );
 
 	Unit* UnitFromModel( Model* m );
 	Unit* GetUnitFromTile( int x, int z );

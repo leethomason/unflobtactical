@@ -24,9 +24,13 @@ void ModelBuilder::SetTexture( const char* textureName )
 {
 	GLASSERT( strlen( textureName ) < EL_FILE_STRING_LEN );
 	current = 0;
+	if ( !textureName )
+		textureName = "";
 
 	for( int i=0; i<nGroup; ++i ) {
-		if ( strcmp( textureName, group[i].textureName ) == 0 ) {
+		if (   (*textureName == 0 && group[i].textureName[0] == 0 )
+			 || strcmp( textureName, group[i].textureName ) == 0 ) 
+		{
 			current = i;
 			break;
 		}

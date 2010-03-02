@@ -249,7 +249,7 @@
 
 
       <Unit team="2" type="0" status="1" body="1304958356" modelX="16.500000" modelZ="21.500000" yRot="0.000000">
-            <Stats STR="47" DEX="47" PSY="76" level="1" />
+            <Stats STR="47" DEX="47" PSY="76" level="0" />
             <Inventory>
                 <Item name="RAY-1" />
                 <Item name="Cell" rounds="12" />
@@ -257,13 +257,13 @@
             </Inventory>
         </Unit>
         <Unit team="2" type="1" status="1" body="-500874107" modelX="12.500000" modelZ="16.500000" yRot="0.000000">
-            <Stats STR="55" DEX="37" PSY="61" level="1" />
+            <Stats STR="55" DEX="37" PSY="61" level="0" />
             <Inventory>
                 <Item name="PLS-2" />
             </Inventory>
         </Unit>
         <Unit team="2" type="2" status="1" body="-1687011530" modelX="30.500000" modelZ="25.500000" yRot="0.000000">
-            <Stats STR="126" DEX="74" PSY="57" level="1" />
+            <Stats STR="126" DEX="74" PSY="57" level="0" />
             <Inventory>
                 <Item name="RAY-1" />
                 <Item name="Cell" rounds="12" />
@@ -271,7 +271,7 @@
             </Inventory>
         </Unit>
         <Unit team="2" type="3" status="1" body="1484309979" modelX="29.500000" modelZ="30.500000" yRot="0.000000">
-            <Stats STR="43" DEX="49" PSY="103" level="1" />
+            <Stats STR="43" DEX="49" PSY="103" level="0" />
             <Inventory>
                 <Item name="PLS-2" />
                 <Item name="Cell" rounds="12" />

@@ -79,9 +79,9 @@ Game::Game( const Screenport& sp, const char* _savePath ) :
 	(void) sqlResult;
 
 	LoadTextures();
+	LoadImages();
 	modelLoader = new ModelLoader();
 	LoadModels();
-	LoadLightMaps();
 	LoadMapResources();
 	LoadItemResources();
 
@@ -92,11 +92,14 @@ Game::Game( const Screenport& sp, const char* _savePath ) :
 	GLASSERT( textTexture );
 	UFOText::InitTexture( textTexture->glID );
 	UFOText::InitScreen( engine.GetScreenport() );
-	engine.GetMap()->SetLightObjects( GetLightMap( "objectLightMaps" ) );
 
-	engine.GetMap()->SetSize( 40, 40 );
-	engine.GetMap()->SetTexture( TextureManager::Instance()->GetTexture("farmland" ) );
-	engine.SetDayNight( true, 0 );
+	Map* map = engine.GetMap();
+	ImageManager* im = ImageManager::Instance();
+	map->SetLightObjects( im->GetImage( "objectLightMaps" ) );
+	map->SetSize( 40, 40 );
+	map->SetTexture( TextureManager::Instance()->GetTexture("farmland" ) );
+	map->SetLightMaps( im->GetImage( "farmlandD" ),
+					   im->GetImage( "farmlandN" ) );
 
 	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 
@@ -515,22 +518,6 @@ void Game::MouseMove( int sx, int sy )
 #endif
 }
 
-/*
-void Game::SetPathToSave( const char* path )
-{
-	GLASSERT( path && *path );
-	std::string str = path;
-	savePath = str;
-	char c = savePath[savePath.size()-1];
-	if ( c != '\\' && c != '/' ) {	
-#ifdef WIN32
-		savePath += '\\';
-#else
-		savePath += '/';
-#endif
-	}
-}
-*/
 
 #ifdef MAPMAKER
 

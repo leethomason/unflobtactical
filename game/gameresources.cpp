@@ -8,6 +8,59 @@
 using namespace grinliz;
 
 
+void Game::DumpWeaponInfo( FILE* fp, float range, const Stats& stats, int count )
+{
+#ifdef DEBUG
+	fprintf( fp, "\nRange=%.1f DEX=%d Rank=%d Acc=%.2f\n", range, stats.DEX(), stats.Rank(), stats.Accuracy() );
+	fprintf( fp, "name      PRIMARY-SNAP             PRIMARY-AIM/AUTO         SECONDARY\n" );
+	fprintf( fp, "          " );
+	for( int k=0; k<3; ++k )
+		fprintf( fp, "dam n  hit   any  dptu   " );
+	fprintf( fp, "\n" );
+	fprintf( fp, "          " );
+	for( int k=0; k<3; ++k )
+		fprintf( fp, "--- - ---- ------ -----  " );
+	fprintf( fp, "\n" );
+
+	for( int i=1; i<EL_MAX_ITEM_DEFS; ++i ) {
+		if ( itemDefArr[i] == 0 )
+			continue;
+
+		const WeaponItemDef* wid = itemDefArr[i]->IsWeapon();
+		if ( wid ) {
+
+			fprintf( fp, "%-10s", wid->name );
+
+			for( int j=0; j<3; ++j ) {
+				float fraction, fraction2, damage, dptu;
+				int select, type;
+
+				wid->FireModeToType( j, &select, &type );
+
+				if ( wid->SupportsType( select, type ) ) {
+					DamageDesc dd;
+					wid->DamageBase( select, &dd );
+					wid->FireStatistics( select, type, stats.Accuracy(), range, &fraction, &fraction2, &damage, &dptu );
+					int nShots = (type==AUTO_SHOT) ? 3 : 1;
+
+					fprintf( fp, "%3d %d %3d%% [%3d%%] %5.1f  ",
+								 (int)dd.Total(),
+								 nShots,
+								 (int)(fraction*100.0f),
+								 (int)(fraction2*100.0f),
+								 dptu );
+				}
+			}
+			fprintf( fp, "\n" );
+			--count;
+			if ( count == 0 )
+				return;
+		}
+	}
+#endif
+}
+
+
 void Game::LoadTextures()
 {
 	U32 textureID = 0;
@@ -82,22 +135,10 @@ void Game::LoadModels()
 }
 
 
-Surface* Game::GetLightMap( const char* name )
-{
-	for( int i=0; i<nLightMaps; ++i ) {
-		if ( strcmp( name, lightMaps[i].Name() ) == 0 ) {
-			return &lightMaps[i];
-		}
-	}
-	return 0;
-}
-
-
-void Game::LoadLightMaps()
+void Game::LoadImages()
 {
 	char name[64];
 	char format[16];
-	nLightMaps = 0;
 	BinaryDBReader reader( database );
 
 	// Run through the database, and load all the images.
@@ -106,8 +147,6 @@ void Game::LoadLightMaps()
 
 	while (sqlite3_step(stmt) == SQLITE_ROW) 
 	{
-		GLASSERT( nLightMaps < MAX_NUM_LIGHT_MAPS );
-
 		StrNCpy( name, (const char*)sqlite3_column_text( stmt, 0 ), 64 );	// name
 		StrNCpy( format, (const char*)sqlite3_column_text( stmt, 1 ), 16 );	// format
 		//int isImage = sqlite3_column_int( stmt, 2 );					// don't need
@@ -115,16 +154,17 @@ void Game::LoadLightMaps()
 		int h = sqlite3_column_int( stmt, 4 );
 		int id = sqlite3_column_int( stmt, 5 );
 
-		lightMaps[nLightMaps].Set( Surface::QueryFormat( format ), w, h );
+		Surface* s = ImageManager::Instance()->AddLockedSurface();
+		s->Set( Surface::QueryFormat( format ), w, h );
 		
 		int blobSize = 0;
 		reader.ReadSize( id, &blobSize );
-		GLASSERT( lightMaps[nLightMaps].BytesInImage() == blobSize );
-		reader.ReadData( id, blobSize, lightMaps[nLightMaps].Pixels() );
-		lightMaps[nLightMaps].SetName( name );
+		GLASSERT( s->BytesInImage() == blobSize );
+		reader.ReadData( id, blobSize, s->Pixels() );
+		s->SetName( name );
+		ImageManager::Instance()->Unlock();
 
-		GLOUTPUT(( "LightMap %s\n", lightMaps[nLightMaps].Name() ));
-		nLightMaps++;
+		GLOUTPUT(( "LightMap %s\n", s->Name() ));
 	}
 
 	sqlite3_finalize(stmt);
@@ -641,47 +681,15 @@ void Game::LoadItemResources()
 		const float range[] = { 6.0f, 3.0f, 12.0f };
 
 		for( int r=0; r<3; ++r ) {
-			fprintf( fp, "\nRange=%.1f DEX=%d Rank=%d Acc=%.2f\n", range[r], stats.DEX(), stats.Rank(), stats.Accuracy() );
-			fprintf( fp, "name      PRIMARY-SNAP             PRIMARY-AIM/AUTO         SECONDARY\n" );
-			fprintf( fp, "          " );
-			for( int k=0; k<3; ++k )
-				fprintf( fp, "dam n  hit   any  dptu   " );
-			fprintf( fp, "\n" );
-			fprintf( fp, "          " );
-			for( int k=0; k<3; ++k )
-				fprintf( fp, "--- - ---- ------ -----  " );
-			fprintf( fp, "\n" );
-
-			for( int i=1; i<nItemDef; ++i ) {
-				const WeaponItemDef* wid = itemDefArr[i]->IsWeapon();
-				if ( wid ) {
-
-					fprintf( fp, "%-10s", wid->name );
-
-					for( int j=0; j<3; ++j ) {
-						float fraction, fraction2, damage, dptu;
-						int select, type;
-
-						wid->FireModeToType( j, &select, &type );
-
-						if ( wid->SupportsType( select, type ) ) {
-							DamageDesc dd;
-							wid->DamageBase( select, &dd );
-							wid->FireStatistics( select, type, stats.Accuracy(), range[r], &fraction, &fraction2, &damage, &dptu );
-							int nShots = (type==AUTO_SHOT) ? 3 : 1;
-
-							fprintf( fp, "%3d %d %3d%% [%3d%%] %5.1f  ",
-										 (int)dd.Total(),
-										 nShots,
-										 (int)(fraction*100.0f),
-										 (int)(fraction2*100.0f),
-										 dptu );
-						}
-					}
-					fprintf( fp, "\n" );
-				}
-			}
+			DumpWeaponInfo( fp, range[r], stats, 0 );
 		}
+		stats.SetRank( 0 );
+		stats.CalcBaselines();
+		DumpWeaponInfo( fp, 6.0f, stats, 5 );
+
+		stats.SetRank( 4 );
+		stats.CalcBaselines();
+		DumpWeaponInfo( fp, 6.0f, stats, 5 );
 
 		fprintf( fp, "\nRandom 32 bit ints:\n" );
 		Random random;
@@ -704,6 +712,7 @@ void Game::LoadItemResources()
 
 const ItemDef* Game::GetItemDef( const char* name )
 {
+	GLASSERT( name && *name );
 	for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
 		if ( itemDefArr[i] && strcmp( itemDefArr[i]->name, name ) == 0 ) {
 			return itemDefArr[i];

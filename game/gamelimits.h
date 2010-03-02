@@ -24,6 +24,7 @@ const int MAP_SIZE = 64;
 const int MAX_EYESIGHT_RANGE    = 13;
 const int MAX_EYESIGHT_RANGE_45 = 10;	// MAX * cos(45deg), rounded up
 const float EYE_HEIGHT = 1.2f;
+const float EXPLOSIVE_RANGE = 2.0f;
 
 const float TU_SNAP_SHOT	= 3.0f;
 const float TU_AUTO_SHOT	= 5.0f;
@@ -43,7 +44,7 @@ const int	MAX_TU				= 12;		// enforced: used for memory allocation
 const int	TRAIT_MAX			= 100;
 const int	TRAIT_TERRAN_LOW	= 15;
 const int	TRAIT_TERRAN_HIGH	= 45;		// 30 ave
-const int	TRAIT_RANK_BONUS	= 6;		// how much a trait increases per rank
+const int	TRAIT_RANK_BONUS	= 8;		// how much a trait increases per rank
 const int	NUM_RANKS			= 5;		// 0-4
 
 const float STANDARD_TARGET_H			= 2.0f;		// roughly meters
