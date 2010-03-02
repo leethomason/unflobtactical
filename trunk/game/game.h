@@ -30,6 +30,7 @@ class Scene;
 class ItemDef;
 struct sqlite3;
 class TiXmlDocument;
+class Stats;
 
 const float ONE8 = 1.0f / 8.0f;
 const float ONE16 = 1.0f / 16.0f;
@@ -94,7 +95,6 @@ public:
 	void Rotate( int action, float degreesFromStart );
 	void CancelInput();
 	
-	Surface*		GetLightMap( const char* name );
 	const ItemDef*  GetItemDef( const char* name );
 	ItemDef* const*	GetItemDefArr() const	{ return itemDefArr; }
 
@@ -184,9 +184,10 @@ private:
 	void LoadTextures();
 	void LoadModels();
 	void LoadModel( const char* name );
-	void LoadLightMaps();
+	void LoadImages();
 	void LoadMapResources();
 	void LoadItemResources();
+	void DumpWeaponInfo( FILE* fp, float range, const Stats& stats, int count );
 
 	void InitMapLight( int index, const MapLightInit* init );
 	void InitMapItemDef( int startIndex, const MapItemInit* );
@@ -219,8 +220,6 @@ private:
 	grinliz::ProfileData profile;
 
 	ItemDef*			itemDefArr[EL_MAX_ITEM_DEFS];
-	int					nLightMaps;
-	Surface				lightMaps[MAX_NUM_LIGHT_MAPS];
 };
 
 #endif

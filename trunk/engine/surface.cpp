@@ -248,7 +248,6 @@ void Texture::Set( const char* name, U32 glID, bool alpha )
 
 TextureManager::TextureManager()
 {
-	sorted = false;
 }
 
 
@@ -268,30 +267,16 @@ TextureManager::~TextureManager()
 
 const Texture* TextureManager::GetTexture( const char* name )
 {
-	if ( !sorted ) {
-		for( unsigned i=0; i<textureArr.Size(); ++i ) {
-			texturePtr[i] = &textureArr[i];
-		}
-		qsort( texturePtr, textureArr.Size(), sizeof( Texture* ), Compare );
-		sorted = true;
-	}
-
-	// sleazy sleazy trick. Only the name is a valid value:
-	const Texture* key = (const Texture*)(name);
-
-	void *vptr = bsearch( &key, texturePtr, textureArr.Size(), sizeof( Texture* ), Compare );	
-	GLASSERT( vptr );
-	Texture* t = *((Texture**)(vptr));
-	return (Texture*) t;
+	return map.Get( name );
 }
 
 
-/*static*/ int TextureManager::Compare( const void * elem1, const void * elem2 )
-{
-	const Texture* t1 = *((const Texture**)elem1);
-	const Texture* t2 = *((const Texture**)elem2);
-	return strcmp( t1->name, t2->name );
-}
+///*static*/ int TextureManager::Compare( const void * elem1, const void * elem2 )
+//{/
+//	const Texture* t1 = *((const Texture**)elem1);
+//	const Texture* t2 = *((const Texture**)elem2);
+//	return strcmp( t1->name, t2->name );
+//}
 
 
 
@@ -299,5 +284,40 @@ void TextureManager::AddTexture( const char* name, U32 glID, bool alphaTest )
 {
 	Texture* t = textureArr.Push();
 	t->Set( name, glID, alphaTest );
-	sorted = false;
+	map.Add( t->name, t );
+}
+
+
+
+
+/*static*/ ImageManager* ImageManager::instance = 0;
+
+/*static*/ void ImageManager::Create()
+{
+	GLASSERT( instance == 0 );
+	instance = new ImageManager();
+}
+
+
+/*static*/ void ImageManager::Destroy()
+{
+	GLASSERT( instance );
+	delete instance;
+	instance = 0;
+}
+
+const Surface* ImageManager::GetImage( const char* name )
+{
+	return map.Get( name );
+}
+
+Surface* ImageManager::AddLockedSurface()
+{
+	GLASSERT( arr.Size() < MAX_IMAGES );
+	return arr.Push();
+}
+
+void ImageManager::Unlock()
+{
+	map.Add( arr[ arr.Size()-1 ].Name(), &arr[ arr.Size()-1 ] );
 }

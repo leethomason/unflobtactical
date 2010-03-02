@@ -534,8 +534,16 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 {
 	Free();
 
+	// Give ourselves a random body based on the element address. 
+	// Hard to get good randomness here (gender bit keeps being
+	// consistent.)
+	UPTR key[2] = { (UPTR)ele, (UPTR)this };
+	Random random( Random::Hash( key, sizeof(UPTR)*2 ));
+	random.Rand();
+	random.Rand();
+
 	team = TERRAN_TEAM;
-	body = 0;
+	body = random.Rand();
 	Vector3F pos = { 0, 0, 0 };
 	float rot = 0;
 	type = 0;

@@ -169,6 +169,7 @@ public:
 
 	void InitButtons( const int* icons, int nIcons );
 	void SetButton( int index, int iconID );
+	int GetButton( int index ) const;
 	void SetDeco( int index, int decoID );
 
 	void SetText( const char** text );

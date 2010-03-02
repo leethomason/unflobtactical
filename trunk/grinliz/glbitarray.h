@@ -49,6 +49,13 @@ class BitArray
 
 	BitArray()					{ memset( array, 0, TOTAL_MEM ); }	
 
+	bool operator==( const BitArray< WIDTH, HEIGHT, DEPTH >& rhs ) const {
+		return memcmp( array, rhs.array, TOTAL_MEM ) == 0;
+	}
+	bool operator!=( const BitArray< WIDTH, HEIGHT, DEPTH >& rhs ) const {
+		return memcmp( array, rhs.array, TOTAL_MEM ) != 0;
+	}
+
 	/// Check if (x,y) is set. Returns non-0 if set, 0 if not.
 	U32 IsSet( int x, int y=0, int z=0 ) const	{ 
 		GLASSERT( x >= 0 && x < WIDTH );

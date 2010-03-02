@@ -33,6 +33,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	nearPathState = NEAR_PATH_INVALID;
 	memset( hpBars, 0, sizeof( UIBar* )*MAX_UNITS );
 	memset( hpBarsFadeTime, 0, sizeof( int )*MAX_UNITS );
+	engine->GetMap()->SetPathBlocker( this );
 
 	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, engine->GetSpaceTree() );
 	aiArr[TERRAN_TEAM]		= 0;
@@ -41,8 +42,6 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 
 #ifdef MAPMAKER
 	currentMapItem = 1;
-//	sqlite3_open( "./resin/map.db", &mapDatabase );
-//	engine->GetMap()->SyncToDB( mapDatabase, "farmland" );
 #endif
 
 	// On screen menu.
@@ -137,6 +136,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 
 BattleScene::~BattleScene()
 {
+	engine->GetMap()->SetPathBlocker( 0 );
 	ParticleSystem::Instance()->Clear();
 
 #if defined( MAPMAKER )
@@ -308,6 +308,7 @@ void BattleScene::Save( TiXmlElement* doc )
 	TiXmlElement* battleElement = new TiXmlElement( "BattleScene" );
 	doc->LinkEndChild( battleElement );
 	battleElement->SetAttribute( "currentTeamTurn", currentTeamTurn );
+	battleElement->SetAttribute( "dayTime", engine->GetMap()->DayTime() ? 1 : 0 );
 
 	TiXmlElement* mapElement = new TiXmlElement( "Map" );
 	doc->LinkEndChild( mapElement );
@@ -331,6 +332,9 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 	const TiXmlElement* battleElement = gameElement->FirstChildElement( "BattleScene" );
 	if ( battleElement ) {
 		battleElement->QueryIntAttribute( "currentTeamTurn", &currentTeamTurn );
+		int daytime = 1;
+		battleElement->QueryIntAttribute( "dayTime", &daytime );
+		engine->GetMap()->SetDayTime( daytime ? true : false );
 	}
 
 	engine->GetMap()->Load( gameElement->FirstChildElement( "Map"), game->GetItemDefArr() );
@@ -349,9 +353,9 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 			
 			team[t]++;
 
-			GLASSERT( team[0] < TERRAN_UNITS_END );
-			GLASSERT( team[1] < CIV_UNITS_END );
-			GLASSERT( team[2] < ALIEN_UNITS_END );
+			GLASSERT( team[0] <= TERRAN_UNITS_END );
+			GLASSERT( team[1] <= CIV_UNITS_END );
+			GLASSERT( team[2] <= ALIEN_UNITS_END );
 		}
 	}
 	
@@ -949,6 +953,32 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 }
 
 
+/*
+bool BattleScene::LineOfSight( const Unit* shooter, const Unit* target )
+{
+	GLASSERT( shooter->GetModel() );
+	GLASSERT( target->GetModel() );
+	GLASSERT( shooter != target );
+
+	Vector3F p0, p1, intersection;
+	shooter->GetModel()->CalcTrigger( &p0 );
+	target->GetModel()->CalcTarget( &p1 );
+	// FIXME: handle 'no weapon' case
+	const Model* ignore[5] = {	shooter->GetModel(), 
+								shooter->GetWeaponModel(), 
+								target->GetModel(), 
+								target->GetWeaponModel(), 
+								0 };
+
+	Ray ray = { p0, p1-p0 };
+	Model* m = engine->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &intersection );
+	if ( m == target->GetModel() )
+		return true;
+	return false;
+}
+*/
+
+
 void BattleScene::DoReactionFire()
 {
 	int antiTeam = ALIEN_TEAM;
@@ -973,30 +1003,48 @@ void BattleScene::DoReactionFire()
 		int i=0;
 		while( i < targetEvents.Size() ) {
 			TargetEvent t = targetEvents[i];
+
+			// Reaction fire occurs on the *antiTeam*. It's a little
+			// strange to get the ol' head wrapped around.
 			if (    t.team == 0				// individual
 				 && t.gain == 1 
 				 && units[t.viewerID].Team() == antiTeam
 				 && units[t.targetID].Team() == currentTeamTurn ) 
 			{
 				// Reaction fire
+				Unit* targetUnit = &units[t.targetID];
+				Unit* srcUnit = &units[t.viewerID];
 
-				if ( units[t.targetID].IsAlive() && units[t.targetID].GetModel() ) {
-					// Do we really react? Are we that lucky? Well, are you, punk?
-					float r = random.Uniform();
-					float reaction = units[t.targetID].GetStats().Reaction();
-					
-					GLOUTPUT(( "reaction fire possible. (if %.2f < %.2f)\n", r, reaction ));
+				if (    targetUnit->IsAlive() 
+					 && targetUnit->GetModel()
+					 && srcUnit->GetWeapon() ) {
 
-					if ( r <= reaction ) {
-						Vector3F target;
-						units[t.targetID].GetModel()->CalcTarget( &target );
-
-						int shot = PushShootAction( &units[t.viewerID], target, 0, 1, true, true );	// auto
-						if ( !shot )
-							PushShootAction( &units[t.viewerID], target, 0, 0, true, true );	// snap
-
-						nearPathState = NEAR_PATH_INVALID;
+					bool rangeOK = true;
+					// Filter out explosive weapons...
+					if ( srcUnit->GetWeapon()->IsWeapon()->IsExplosive( 0 ) ) {
+						Vector2I d = srcUnit->Pos() - targetUnit->Pos();
+						if ( d.LengthSquared() < EXPLOSIVE_RANGE * EXPLOSIVE_RANGE )
+							rangeOK = false;
 					}
+					
+					if ( rangeOK ) {
+						// Do we really react? Are we that lucky? Well, are you, punk?
+						float r = random.Uniform();
+						float reaction = srcUnit->GetStats().Reaction();
+						
+						GLOUTPUT(( "reaction fire possible. (if %.2f < %.2f)\n", r, reaction ));
+
+						if ( r <= reaction ) {
+							Vector3F target;
+							targetUnit->GetModel()->CalcTarget( &target );
+
+							int shot = PushShootAction( srcUnit, target, 0, 1, true, true );	// auto
+							if ( !shot )
+								PushShootAction( srcUnit, target, 0, 0, true, true );	// snap
+
+							nearPathState = NEAR_PATH_INVALID;
+						}
+				}
 				}
 				targetEvents.SwapRemove( i );
 			}
@@ -1019,7 +1067,6 @@ bool BattleScene::ProcessAI()
 			if ( actionStack.Empty() && units[i].IsAlive() && !units[i].IsUserDone() ) {
 
 				AI::AIAction aiAction;
-				SetPathBlocks( &units[i] );
 				
 				bool done = aiArr[ALIEN_TEAM]->Think( &units[i], units, m_targets, engine->GetMap(), &aiAction );
 				switch ( aiAction.actionID ) {
@@ -1382,6 +1429,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		Vector3F beam0 = { 0, 0, 0 }, beam1 = { 0, 0, 0 };
 
 		const Item* weaponItem = unit->GetWeapon();
+		GLASSERT( weaponItem );
 		weaponDef = weaponItem->GetItemDef()->IsWeapon();
 		GLASSERT( weaponDef );
 
@@ -1859,10 +1907,9 @@ void BattleScene::Tap(	int tap,
 
 			// Compute the path:
 			float cost;
-			SetPathBlocks( selection.soldierUnit );
 			const Stats& stats = selection.soldierUnit->GetStats();
 
-			int result = engine->GetMap()->SolvePath( start, end, &cost, &pathCache );
+			int result = engine->GetMap()->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
 			if ( result == micropather::MicroPather::SOLVED && cost <= stats.TU() ) {
 				// TU for a move gets used up "as we go" to account for reaction fire and changes.
 				// Go!
@@ -1880,27 +1927,28 @@ void BattleScene::Tap(	int tap,
 
 void BattleScene::ShowNearPath( const Unit* unit )
 {
-	if ( !unit || !unit->GetWeapon() ) {
+	if ( !unit ) {
 		engine->GetMap()->ClearNearPath();
 		return;
 	}
 
 	GLASSERT( unit );
 	GLASSERT( unit->GetModel() );
-	const WeaponItemDef* wid = unit->GetWeapon()->GetItemDef()->IsWeapon();
 
+	float autoTU = 0.0f;
+	float snappedTU = 0.0f;
+	if ( unit->GetWeapon() ) {
+		int type, select;
+		const WeaponItemDef* wid = unit->GetWeapon()->GetItemDef()->IsWeapon();
+		wid->FireModeToType( 0, &select, &type );
+		snappedTU = unit->FireTimeUnits( select, type );
+		wid->FireModeToType( 1, &select, &type );
+		autoTU = unit->FireTimeUnits( select, type );
+	}
 	const Model* model = unit->GetModel();
 	Vector2<S16> start = { (S16)model->X(), (S16)model->Z() };
 
-	SetPathBlocks( unit );
 	const Stats& stats = unit->GetStats();
-
-	int type, select;
-
-	wid->FireModeToType( 0, &select, &type );
-	float snappedTU = unit->FireTimeUnits( select, type );
-	wid->FireModeToType( 1, &select, &type );
-	float autoTU = unit->FireTimeUnits( select, type );
 	float tu = stats.TU();
 
 	Vector2F range[3] = { 
@@ -1910,14 +1958,16 @@ void BattleScene::ShowNearPath( const Unit* unit )
 	};
 	int icons[3] = { ICON_GREEN_WALK_MARK, ICON_YELLOW_WALK_MARK, ICON_ORANGE_WALK_MARK };
 
-	engine->GetMap()->ShowNearPath( start, tu, range, icons, 3 );
+	engine->GetMap()->ShowNearPath( unit, start, tu, range, icons, 3 );
 }
 
 
-void BattleScene::SetPathBlocks( const Unit* exclude )
+void BattleScene::MakePathBlockCurrent( Map* map, const void* user )
 {
-	Map* map = engine->GetMap();
-	map->ClearPathBlocks();
+	const Unit* exclude = (const Unit*)user;
+	GLASSERT( exclude >= units && exclude < &units[MAX_UNITS] );
+
+	grinliz::BitArray<MAP_SIZE, MAP_SIZE, 1> block;
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if (    units[i].Status() == Unit::STATUS_ALIVE 
@@ -1926,9 +1976,11 @@ void BattleScene::SetPathBlocks( const Unit* exclude )
 		{
 			int x = (int)units[i].GetModel()->X();
 			int z = (int)units[i].GetModel()->Z();
-			map->SetPathBlock( x, z );
+			block.Set( x, z );
 		}
 	}
+	// Checks for equality before the reset.
+	map->SetPathBlocks( block );
 }
 
 Unit* BattleScene::UnitFromModel( Model* m )
@@ -2229,8 +2281,8 @@ void BattleScene::Visibility::CalcVisibilityRay( int unitID, const Vector2I& pos
 	GLASSERT( lightMap->Format() == Surface::RGB16 );
 
 	const float OBSCURED = 0.50f;
-	const float DARK  = 0.16f;
-	const float LIGHT = 0.08f;
+	const float DARK  = (units[unitID].Team() == ALIEN_TEAM) ? 0.40f : 0.32f;
+	const float LIGHT = 0.12f;
 	const int EPS = 10;
 
 	float light = 1.0f;
@@ -2258,14 +2310,14 @@ void BattleScene::Visibility::CalcVisibilityRay( int unitID, const Vector2I& pos
 				if ( map->Obscured( q.x, q.y ) ) {
 					light -= OBSCURED * distance;
 				}
-				else if (   rgba.r > (EL_NIGHT_RED_U8+EPS)
-						 || rgba.g > (EL_NIGHT_GREEN_U8+EPS)
-						 || rgba.b > (EL_NIGHT_BLUE_U8+EPS) ) 
+				else
 				{
-					light -= LIGHT * distance;
-				}
-				else {
-					light -= DARK * distance;
+					// Blue channel is typically high. So 
+					// very dark  ~255
+					// very light ~255*3 (white)
+					int lum = rgba.r + rgba.g + rgba.b;
+					float fraction = Interpolate( 255.0f, DARK, 765.0f, LIGHT, (float)lum ); 
+					light -= fraction * distance;
 				}
 			}
 		}

@@ -326,6 +326,12 @@ void UIButtons::SetButton( int index, int iconID )
 	}
 }
 
+int UIButtons::GetButton( int index ) const
+{
+	GLASSERT( index < nIcons );
+	return icons[index].id;
+}
+
 
 void UIButtons::SetDeco( int index, int decoID )
 {

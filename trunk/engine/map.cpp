@@ -48,6 +48,8 @@ Map::Map( SpaceTree* tree )
 	nScoutPos = 0;
 	nLanderPos = 0;
 	lander = 0;
+	dayTime = true;
+	pathBlocker = 0;
 
 	microPather = new MicroPather(	this,			// graph interface
 									SIZE*SIZE,		// max possible states (+1)
@@ -226,18 +228,37 @@ void Map::UnBindTextureUnits()
 }
 
 
-void Map::SetLightMap( const Surface* surface )
+void Map::SetLightMaps( const Surface* day, const Surface* night )
 {
-	if ( surface ) {
-		GLASSERT( surface->BytesPerPixel() == 2 );
-		GLASSERT( surface->Width() == SIZE );
-		GLASSERT( surface->Height() == SIZE	 );
-		memcpy( lightMap[0].Pixels(), surface->Pixels(), SIZE*SIZE*2 );
-	}
-	else {
-		memset( lightMap[0].Pixels(), 255, SIZE*SIZE*2 );
-	}
+	GLASSERT( day );
+	GLASSERT( night );
+	
+	GLASSERT( day->BytesPerPixel() == 2 && day->Width() == SIZE && day->Height() == SIZE );
+	GLASSERT( night->BytesPerPixel() == 2 && night->Width() == SIZE && night->Height() == SIZE );
+
+	dayMap.Set( Surface::RGB16, SIZE, SIZE );
+	nightMap.Set( Surface::RGB16, SIZE, SIZE );
+
+	memcpy( dayMap.Pixels(), day->Pixels(), SIZE*SIZE*2 );
+	memcpy( nightMap.Pixels(), night->Pixels(), SIZE*SIZE*2 );
+	if ( dayTime )
+		memcpy( lightMap[0].Pixels(), day->Pixels(), SIZE*SIZE*2 );
+	else
+		memcpy( lightMap[0].Pixels(), night->Pixels(), SIZE*SIZE*2 );
 	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
+}
+
+
+void Map::SetDayTime( bool day )
+{
+	if ( day != dayTime ) {
+		dayTime = day;
+		if ( dayTime )
+			memcpy( lightMap[0].Pixels(), dayMap.Pixels(), SIZE*SIZE*2 );
+		else
+			memcpy( lightMap[0].Pixels(), nightMap.Pixels(), SIZE*SIZE*2 );
+		invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
+	}
 }
 
 
@@ -1264,10 +1285,12 @@ void Map::ClearPathBlocks()
 }
 
 
-void Map::SetPathBlock( int x, int y )
+void Map::SetPathBlocks( const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& block )
 {
-	ResetPath();
-	pathBlock.Set( x, y );
+	if ( block != pathBlock ) {
+		ResetPath();
+		pathBlock = block;
+	}
 }
 
 
@@ -1346,7 +1369,7 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
 
 int Map::GetPathMask( ConnectionType c, int x, int y )
 {
-	// fast return: if the pathBlock is set, we're done.
+	// fast return: if the c is set, we're done.
 	if ( c == PATH_TYPE && pathBlock.IsSet( x, y ) ) {
 		return 0xf;
 	}
@@ -1385,8 +1408,8 @@ bool Map::Connected( ConnectionType c, int x, int y, int dir )
 	Vector2I nextPos = pos + next[dir];
 
 	// To be connected, it must be clear from a->b and b->a
-	if ( InRange( pos.x, 0, SIZE-1 )     && InRange( pos.y, 0, SIZE-1 ) &&
-		 InRange( nextPos.x, 0, SIZE-1 ) && InRange( nextPos.y, 0, SIZE-1 ) ) 
+	if ( InRange( pos.x, 0, width-1 )      && InRange( pos.y, 0, width-1 ) &&
+		 InRange( nextPos.x, 0, height-1 ) && InRange( nextPos.y, 0, height-1 ) ) 
 	{
 		int mask0 = GetPathMask( c, pos.x, pos.y );
 		int maskN = GetPathMask( c, nextPos.x, nextPos.y );
@@ -1461,15 +1484,26 @@ void Map::PrintStateInfo( void* state )
 }
 
 
-int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *cost, std::vector< Vector2<S16> >* path )
+int Map::SolvePath( const void* user, const Vector2<S16>& start, const Vector2<S16>& end, float *cost, std::vector< Vector2<S16> >* path )
 {
 	GLASSERT( sizeof( int ) == sizeof( void* ));			// fix this for 64 bit
 	GLASSERT( sizeof(Vector2<S16>) == sizeof( void* ) );
-
+	GLASSERT( pathBlocker );
+	if ( pathBlocker ) {
+		pathBlocker->MakePathBlockCurrent( this, user );
+	}
 	int result = microPather->Solve(	VecToState( start ),
 										VecToState( end ),
 										reinterpret_cast< std::vector< void*>* >( path ),		// sleazy trick if void* is the same size as V2<S16>
 										cost );
+
+#ifdef DEBUG
+	{
+		for( unsigned i=0; i<path->size(); ++i ) {
+			GLASSERT( !pathBlock.IsSet( path->at(i).x, path->at(i).y ) );
+		}
+	}
+#endif
 
 	/*
 	switch( result ) {
@@ -1485,12 +1519,16 @@ int Map::SolvePath( const Vector2<S16>& start, const Vector2<S16>& end, float *c
 }
 
 
-void Map::ShowNearPath(	const grinliz::Vector2<S16>& start, 
+void Map::ShowNearPath(	const void* user, 
+						const grinliz::Vector2<S16>& start, 
 					    float maxCost,
 					    const grinliz::Vector2F* range,
 						const int* icon,
 						int n )
 {
+	if ( pathBlocker ) {
+		pathBlocker->MakePathBlockCurrent( this, user );
+	}
 	stateCostArr.clear();
 	int result = microPather->SolveForNearStates( VecToState( start ), &stateCostArr, maxCost );
 
