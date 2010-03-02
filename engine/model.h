@@ -19,6 +19,7 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glgeometry.h"
+#include "../shared/glmap.h"
 #include "vertex.h"
 #include "enginelimits.h"
 #include "serialize.h"
@@ -91,11 +92,9 @@ private:
 	ModelResourceManager();
 	~ModelResourceManager();
 
-	static int Compare( const void * elem1, const void * elem2 );
-
 	static ModelResourceManager* instance;
 	CArray< ModelResource*, MAX_MODELS > modelResArr;
-	bool sorted;
+	CStringMap<	ModelResource* > map;
 };
 
 
