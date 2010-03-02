@@ -519,37 +519,30 @@ int Model::IntersectRay(	const Vector3F& _origin,
 void ModelResourceManager::AddModelResource( ModelResource* res )
 {
 	modelResArr.Push( res );
-	sorted = false;
+	map.Add( res->header.name, res );
 }
+
 
 const ModelResource* ModelResourceManager::GetModelResource( const char* name, bool errorIfNotFound )
 {
-	if ( !sorted ) {
-		qsort( &modelResArr[0], modelResArr.Size(), sizeof( ModelResource* ), Compare );
-		sorted = true;
-	}
+	ModelResource* res = 0;
+	bool found = map.Query( name, &res );
 
-	// sleazy sleazy trick. Only the name is a valid value:
-	const ModelResource* key = (const ModelResource*)(name);
-
-	void *vptr = bsearch( &key, &modelResArr[0], modelResArr.Size(), sizeof( ModelResource* ), Compare );
+	if ( found ) 
+		return res;
 	if ( errorIfNotFound ) {
-		GLASSERT( vptr );
+		GLASSERT( 0 );
 	}
-	if ( vptr == 0 ) 
-		return 0;
-
-	ModelResource* t = *((ModelResource**)(vptr));
-	return (ModelResource*) t;
+	return 0;
 }
 
 
-/*static*/ int ModelResourceManager::Compare( const void * elem1, const void * elem2 )
-{
-	const ModelResource* t1 = *((const ModelResource**)elem1);
-	const ModelResource* t2 = *((const ModelResource**)elem2);
-	return strcmp( t1->header.name, t2->header.name );
-}
+///*static*/ int ModelResourceManager::Compare( const void * elem1, const void * elem2 )
+//{
+//	const ModelResource* t1 = *((const ModelResource**)elem1);
+//	const ModelResource* t2 = *((const ModelResource**)elem2);
+//	return strcmp( t1->header.name, t2->header.name );
+//}
 
 
 /*static*/ void ModelResourceManager::Create()
@@ -569,7 +562,6 @@ ModelResourceManager* ModelResourceManager::instance = 0;
 
 ModelResourceManager::ModelResourceManager()
 {
-	sorted = false;
 }
 	
 
