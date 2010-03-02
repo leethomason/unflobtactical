@@ -1,0 +1,45 @@
+<Unit team="0" status="1">
+	<Stats level="1" />
+	<Inventory>
+		<Item name="AR-2" />
+		<Item name="PST" />
+		<Item name="Clip" />
+		<Item name="AClip" />
+		<Item name="AClip" />
+		<Item name="ARM-1" />
+	</Inventory>
+</Unit>
+<Unit team="0" status="1">
+	<Stats level="2" />
+	<Inventory>
+		<Item name="AR-2" />
+		<Item name="PST" />
+		<Item name="Clip" />
+		<Item name="AClip" />
+		<Item name="AClip" />
+		<Item name="ARM-2" />
+	</Inventory>
+</Unit>
+<Unit team="0" status="1">
+	<Stats level="2" />
+	<Inventory>
+		<Item name="PLS-1" />
+		<Item name="PST" />
+		<Item name="Clip" />
+		<Item name="Cell" />
+		<Item name="Cell" />
+		<Item name="ARM-1" />
+	</Inventory>
+</Unit>
+<Unit team="0" status="1">
+	<Stats level="3" />
+	<Inventory>
+		<Item name="CAN-X" />
+		<Item name="AClip" />
+		<Item name="AClip" />
+		<Item name="PST" />
+		<Item name="Clip" />
+		<Item name="RPG" />
+		<Item name="ARM-2" />
+	</Inventory>
+</Unit>
