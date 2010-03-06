@@ -209,9 +209,12 @@ public:
 	// Rendering.
 	void BindTextureUnits();
 	void UnBindTextureUnits();
-	void Draw();
-	void DrawPath();
+
+
+	void Draw();			//< draw the map, without the FOW
+	void DrawPath();		//< debugging
 	void DrawOverlay();		//< draw the "where can I walk" alpha overlay. Set up by ShowNearPath().
+	void DrawFOW();			//< black out the regions where the FOW is.
 
 	// Do damage to a singe map object.
 	void DoDamage( Model* m, const DamageDesc& damage, grinliz::Rectangle2I* destroyedBounds );
