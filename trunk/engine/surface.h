@@ -51,11 +51,21 @@ public:
 		rgb->b = (b<<3)|(b>>2);
 		rgb->a = 255;
 	}
+
+	static U16 CalcColorRGBA16( RGBA rgba )
+	{
+		U32 c =   ( (rgba.r>>4) << 12 )
+			    | ( (rgba.g>>4) << 8 )
+				| ( (rgba.b>>4) << 4 )
+				| ( (rgba.a>>4) << 0 );
+		return (U16)c;
+	}
+
 	static void CalcRGBA16( U16 color, RGBA* rgb ) {
 		U32 r = (color>>12);
 		U32 g = (color>>8)&0x0f;
 		U32 b = (color>>4)&0x0f;
-		U32 a = color&0xff;
+		U32 a = color&0x0f;
 
 		// 0-15 is the range.
 		// 0  -> 0
