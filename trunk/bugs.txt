@@ -1,10 +1,8 @@
 
 Issues:
+- move clip to engine	
 - can't see who is selected
 - showing too many particles (hide in FoW)
-- performance: AI/Alien turn pauses
-- explosive weapons should not reaction fire?? Or check for line of sight?
-- rework low ammo weapons, fix test game
 - explosion not causing FoW update ???
 - Hard to tell who the currently selected unit is.
 - UI covers up target icons
@@ -12,7 +10,6 @@ Issues:
 - Armor. Affects hp. Can't change in tactical view.
 - center on hit unit
 - Pinching doesn't feel right
-- reconsider button placement
 - phat loot / edge of map / exploration
 - tap accuracy
 - need correct colors in RenderWeapon()
@@ -34,11 +31,17 @@ Issues:
 - mission types: terror
 - mission types: big ufos
 - mission types: base
+- performance: AI/Alien turn pauses
 
 TBD:
 - Reconsider when reaction fire occurs. And probability.
 
 FIXED [test #2]
+- reconsider button placement
+- scaling
+- separate UI
+- rework low ammo weapons, fix test game
+- explosive weapons should not reaction fire?? Or check for line of sight?
 - fix issue with 2 aliens on same tile...
 - don't allow moving off of edge of map
 - account for aliens having better night vision in CalcVisibilityRay

@@ -102,6 +102,9 @@ public:
 	void CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjectionInverse );
 
 	void WorldToScreen( const grinliz::Vector3F& p, grinliz::Vector2F* screen );
+	void WorldToUI( const grinliz::Vector3F& p, grinliz::Vector2I* ui );
+	// Bounds of the engine, in UI space, accounting for the current clip.
+	void UIBounds( grinliz::Rectangle2I* bounds );
 
 	void RayFromScreen( int x, int y, 
 						const grinliz::Matrix4& modelViewProjectionInverse, 
@@ -132,6 +135,7 @@ public:
 	void SetZoom( float z );
 
 	const Screenport& GetScreenport() { return screenport; }
+	void SetClip( const grinliz::Rectangle2I* uiClip );
 
 	// FIXME - automatic??
 	void RestrictCamera();
@@ -171,6 +175,8 @@ private:
 	Surface diffuseLightMap;
 
 	grinliz::Vector3F lightDirection;
+	grinliz::Rectangle2I scissorUI;		// scissor coordinates in UI space (cached)
+	grinliz::Rectangle2I scissor;		// view (pixel) coordinates
 };
 
 #endif // UFOATTACK_ENGINE_INCLUDED

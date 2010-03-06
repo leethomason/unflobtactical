@@ -139,6 +139,7 @@ Engine::Engine( const Screenport& port, const EngineData& _engineData )
 	lightDirection.Set( 0.7f, 3.0f, 1.4f );
 	lightDirection.Normalize();
 	depthFunc = 0;
+	scissor.SetInvalid();
 }
 
 
@@ -154,6 +155,28 @@ Engine::~Engine()
 	TextureManager::Destroy();
 }
 
+
+void Engine::UIBounds( grinliz::Rectangle2I* bounds )
+{
+	if ( scissor.IsValid() ) {
+		*bounds = scissorUI;
+	}
+	else {
+		bounds->Set( 0, 0, screenport.UIWidth(), screenport.UIHeight() );
+	}
+}
+
+
+void Engine::SetClip( const Rectangle2I* uiClip )
+{
+	scissor.SetInvalid();
+	if ( uiClip ) {
+		scissorUI = *uiClip;	// cache for query later
+		screenport.UIToScissor( uiClip->min.x, uiClip->min.y,
+								uiClip->Width(), uiClip->Height(), 
+								&scissor );
+	}
+}
 
 void Engine::MoveCameraHome()
 {
@@ -236,6 +259,13 @@ void Engine::PushShadowMatrix()
 
 void Engine::Draw()
 {
+	if ( scissor.IsValid() ) {
+		// scissor off a chunk, but don't move the center camera.
+		// FIXME: should the center camera be moved? And the frustum adjusted?
+		glEnable( GL_SCISSOR_TEST );
+		glScissor( scissor.min.x, scissor.min.y, scissor.max.x, scissor.max.y );
+	}
+
 	// -------- Camera & Frustum -------- //
 	DrawCamera();
 	float bbRotation = camera.GetBillboardYRotation();
@@ -439,6 +469,9 @@ void Engine::Draw()
 	}
 #endif
 */
+	if ( scissor.IsValid() ) {
+		glDisable( GL_SCISSOR_TEST );
+	}
 }
 
 
@@ -518,14 +551,14 @@ void Engine::SetPerspective()
 	// left, right, top, & bottom are on the near clipping
 	// plane. (Not an obvious point to my mind.)
 	if ( screenport.Rotation() & 1 ) {
-		float aspect = (float)(screenport.PhysicalWidth()) / (float)(screenport.PhysicalHeight());
+		float aspect = (float)(screenport.ScreenWidth()) / (float)(screenport.ScreenHeight());
 		frustumTop		= tan(theta) * nearPlane;
 		frustumBottom	= -frustumTop;
 		frustumLeft		= aspect * frustumBottom;
 		frustumRight	= aspect * frustumTop;
 	}
 	else {
-		float ratio = (float)(screenport.PhysicalHeight()) / (float)(screenport.PhysicalWidth());
+		float ratio = (float)(screenport.ScreenHeight()) / (float)(screenport.ScreenWidth());
 		frustumRight = tan(theta) * frustumNear;
 		frustumTop   = ratio * tan(theta) * frustumNear;
 
@@ -576,8 +609,16 @@ void Engine::WorldToScreen( const grinliz::Vector3F& p0, grinliz::Vector2F* view
 	p.Set( p0, 1 );
 
 	r = mvp * p;
-	view->x = (r.x / r.w + 1.0f)*(float)screenport.PhysicalWidth()*0.5f;;
-	view->y = (r.y / r.w + 1.0f)*(float)screenport.PhysicalHeight()*0.5f;
+	view->x = (r.x / r.w + 1.0f)*(float)screenport.ScreenWidth()*0.5f;;
+	view->y = (r.y / r.w + 1.0f)*(float)screenport.ScreenHeight()*0.5f;
+}
+
+
+void Engine::WorldToUI( const grinliz::Vector3F& p, grinliz::Vector2I* ui )
+{
+	Vector2F view;
+	WorldToScreen( p, &view );
+	screenport.ViewToUI( LRintf(view.x), LRintf(view.y), &ui->x, &ui->y );
 }
 
 
@@ -597,7 +638,7 @@ void Engine::CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjecti
 void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray, Vector3F* out )
 {	
 	Rectangle2I screen;
-	screen.Set( 0, 0, screenport.PhysicalWidth()-1, screenport.PhysicalHeight()-1 );
+	screen.Set( 0, 0, screenport.ScreenWidth()-1, screenport.ScreenHeight()-1 );
 	Vector3F win0 ={ (float)x, (float)y, 0.0f };
 	Vector3F win1 ={ (float)x, (float)y, 1.0f };
 
@@ -623,7 +664,7 @@ void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray,
 void Engine::RayFromScreen( int x, int y, const Matrix4& mvpi, Ray* ray )
 {	
 	Rectangle2I screen;
-	screen.Set( 0, 0, screenport.PhysicalWidth()-1, screenport.PhysicalHeight()-1 );
+	screen.Set( 0, 0, screenport.ScreenWidth()-1, screenport.ScreenHeight()-1 );
 	Vector3F win0 ={ (float)x, (float)y, 0.0f };
 	Vector3F win1 ={ (float)x, (float)y, 1.0f };
 

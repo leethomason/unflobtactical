@@ -17,6 +17,9 @@ public:
 	Scene( Game* _game ) : game( _game )						{}
 	virtual ~Scene()											{}
 
+	virtual void Activate()											{}
+	virtual void DeActivate()										{}
+
 	// UI
 	virtual void Tap(	int count, 
 						const grinliz::Vector2I& screen,
@@ -33,6 +36,7 @@ public:
 
 	// Rendering
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
+
 	// Occurs after engine rendering.
 	virtual void DrawHUD()										{}
 

@@ -135,11 +135,14 @@ public:
 	virtual ~UIImage();
 
 	void Init( const Texture* texture, int w, int h );
+	void SetCenter( int x, int y )								{ SetOrigin( x-Width()/2, y-Height()/2 ); }
 	void SetYRotation( float yRot )								{ this->yRot = yRot; }
 	void SetTexCoord( float tx, float ty, float sx, float sy )	{
 		texCoord.Set( tx, ty, tx+sx, ty+sy );
 	}
 	virtual void Draw();
+	int Width() const	{ return w; }
+	int Height() const	{ return h; }
 
 protected:
 	int w, h;
