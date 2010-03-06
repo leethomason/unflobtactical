@@ -2,7 +2,10 @@
 Issues:
 - move clip to engine	
 - can't see who is selected
+- move controls to their own bar.
 - showing too many particles (hide in FoW)
+- explosive weapons should not reaction fire?? Or check for line of sight?
+- rework low ammo weapons, fix test game
 - explosion not causing FoW update ???
 - Hard to tell who the currently selected unit is.
 - UI covers up target icons
@@ -19,7 +22,7 @@ Issues:
 - tutorial notes
 - new turn generation
 - Couldn't figure out crosshair: UI wasn't clear
-- Highlight looks stupid
+- Highlight looks stupid / intergrated button highlight (dark or light selected??)
 - Sounds
 - Art: better human models
 - Art: color scheme 2.0
@@ -35,6 +38,8 @@ Issues:
 
 TBD:
 - Reconsider when reaction fire occurs. And probability.
+- performance: AI/Alien turn pauses
+
 
 FIXED [test #2]
 - reconsider button placement

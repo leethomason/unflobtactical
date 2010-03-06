@@ -116,7 +116,10 @@ public:
 	void Set( int format, int w, int h );
 
 	// Create an opengl texture from this surface.
-	U32 CreateTexture();
+	enum {
+		PARAM_NEAREST = 0x01
+	};
+	U32 CreateTexture( int flags=0 );
 	// Update an opengl texture from this surface.
 	void UpdateTexture( U32 glID );
 

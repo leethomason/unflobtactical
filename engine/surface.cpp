@@ -152,7 +152,7 @@ void Surface::CalcOpenGL( int* glFormat, int* glType )
 }
 
 
-U32 Surface::CreateTexture()
+U32 Surface::CreateTexture( int flags )
 {
 	int glFormat, glType;
 	CalcOpenGL( &glFormat, &glType );
@@ -168,22 +168,32 @@ U32 Surface::CreateTexture()
 	glBindTexture( GL_TEXTURE_2D, texID );
 
 
-	glTexParameteri(	GL_TEXTURE_2D,
-						GL_GENERATE_MIPMAP,
-						GL_TRUE );
+	if ( flags & PARAM_NEAREST ) {
+		glTexParameteri(	GL_TEXTURE_2D,
+							GL_GENERATE_MIPMAP,
+							GL_FALSE );
 
+		glTexParameteri(	GL_TEXTURE_2D,
+							GL_TEXTURE_MAG_FILTER,
+							GL_NEAREST );
 
-	glTexParameteri(	GL_TEXTURE_2D,
-						GL_TEXTURE_MAG_FILTER,
-						GL_LINEAR );
+		glTexParameteri(	GL_TEXTURE_2D,
+							GL_TEXTURE_MIN_FILTER,
+							GL_NEAREST );
+	}
+	else {
+		glTexParameteri(	GL_TEXTURE_2D,
+							GL_GENERATE_MIPMAP,
+							GL_TRUE );
 
-	glTexParameteri(	GL_TEXTURE_2D,
-						GL_TEXTURE_MIN_FILTER,
-						GL_LINEAR_MIPMAP_NEAREST );
-	/*
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	*/
+		glTexParameteri(	GL_TEXTURE_2D,
+							GL_TEXTURE_MAG_FILTER,
+							GL_LINEAR );
+
+		glTexParameteri(	GL_TEXTURE_2D,
+							GL_TEXTURE_MIN_FILTER,
+							GL_LINEAR_MIPMAP_NEAREST );
+	}
 					
 	glTexImage2D(	GL_TEXTURE_2D,
 					0,
