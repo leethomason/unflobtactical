@@ -312,6 +312,8 @@ void Engine::Draw()
 			shadowAmount = 1.0f - ( camera.PosWC().y - SHADOW_START_HEIGHT ) / ( SHADOW_END_HEIGHT - SHADOW_START_HEIGHT );
 		}
 		if ( shadowAmount > 0.0f ) {
+			// The shadow matrix pushes in a depth. Its the depth<0 that allows the GL_LESS
+			// test for the shador write, below.
 			PushShadowMatrix();
 
 			int textureState = 0;
