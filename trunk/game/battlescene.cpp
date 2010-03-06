@@ -91,7 +91,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		int delta = (h/5-size.y)/2;
 
 		menuImage = new UIImage( port );
-		menuImage->Init( TextureManager::Instance()->GetTexture( "intro" ), size.x, h );
+		menuImage->Init( TextureManager::Instance()->GetTexture( "commandBarV" ), size.x, h );
 
 		widgets->SetPos( BTN_NEXT,			0, delta+0*h/5 );
 		widgets->SetPos( BTN_CHAR_SCREEN,	0, delta+1*h/5 );

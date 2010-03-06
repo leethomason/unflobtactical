@@ -89,7 +89,7 @@ Map::Map( SpaceTree* tree )
 		memset( lightMap[i].Pixels(), 255, SIZE*SIZE*2 );
 	}
 
-	U32 id = lightMap[2].CreateTexture();
+	U32 id = lightMap[2].CreateTexture( Surface::PARAM_NEAREST );
 	lightMapTex.Set( "lightmap", id, false );
 }
 

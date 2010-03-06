@@ -20,6 +20,7 @@
   <texture filename="clips.png" />
   <texture filename="intro.png" />
   <texture filename="basehp.png" />
+  <texture filename="commandBarV.png" />
   <!--
   <texture filename="femaleSkin.png" />
   -->
