@@ -203,8 +203,8 @@ public:
 	// Light Map
 	// 0: Light map that was set in "SetLightMap", or white if none set
 	// 1: Light map 0 + lights
-	// 2: Light map 0 + lights + FogOfWar
-	const Surface* GetLightMap( int i)	{ GLASSERT( i>=0 && i<3 ); GenerateLightMap(); return &lightMap[i]; }
+	// Not currently used: 2: Light map 0 + lights + FogOfWar
+	const Surface* GetLightMap( int i)	{ GLASSERT( i>=0 && i<2 ); GenerateLightMap(); return &lightMap[i]; }
 
 	// Rendering.
 	void BindTextureUnits();
@@ -399,8 +399,11 @@ private:
 	void GenerateLightMap();
 
 	Texture lightMapTex;
+	Surface lightMap[2];
+	Texture fowTex;
+	Surface fowSurface;
+
 	Surface dayMap, nightMap;
-	Surface lightMap[3];
 	grinliz::Rectangle2I invalidLightMap;
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWar;
 	const Surface* lightObject;

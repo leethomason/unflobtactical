@@ -84,13 +84,17 @@ Map::Map( SpaceTree* tree )
 	pathQueryID = 1;
 	visibilityQueryID = 1;
 
-	for( int i=0; i<3; ++i ) {
+	for( int i=0; i<2; ++i ) {
 		lightMap[i].Set( Surface::RGB16, SIZE, SIZE );
 		memset( lightMap[i].Pixels(), 255, SIZE*SIZE*2 );
 	}
+	fowSurface.Set( Surface::RGBA16, SIZE, SIZE );
 
-	U32 id = lightMap[2].CreateTexture();
+	U32 id = lightMap[1].CreateTexture();
 	lightMapTex.Set( "lightmap", id, false );
+
+	id = fowSurface.CreateTexture( Surface::PARAM_NEAREST );
+	fowTex.Set( "fow", id, true );
 }
 
 
@@ -196,6 +200,34 @@ void Map::DrawOverlay()
 
 	CHECK_GL_ERROR
 }
+
+
+void Map::DrawFOW()
+{
+	U8* v = (U8*)vertex + Vertex::POS_OFFSET;
+	U8* t = (U8*)vertex + Vertex::TEXTURE_OFFSET;
+
+	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+
+	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), v);			// last param is offset, not ptr
+	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), t); 
+
+	glBindTexture( GL_TEXTURE_2D, fowTex.glID );
+	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), v);
+	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), t); 
+	glDisableClientState( GL_NORMAL_ARRAY );
+	glEnable( GL_BLEND );
+
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+	trianglesRendered += 2;
+	drawCalls++;
+
+	glEnableClientState( GL_NORMAL_ARRAY );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glDisable( GL_BLEND );
+}
+
 
 void Map::BindTextureUnits()
 {
@@ -345,14 +377,21 @@ void Map::GenerateLightMap()
 			for( int i=invalidLightMap.min.x; i<=invalidLightMap.max.x; ++i ) {
 
 				if ( fogOfWar.IsSet( i, j ) ) {
-					lightMap[2].SetImagePixel16( i, j, lightMap[1].ImagePixel16( i, j ) );
+					Surface::RGBA transparentBlack = { 0, 0, 0, 0 };
+					U16 c = Surface::CalcColorRGBA16( transparentBlack );
+					fowSurface.SetImagePixel16( i, j, c );
+					//lightMap[2].SetImagePixel16( i, j, lightMap[1].ImagePixel16( i, j ) );
 				}
 				else {
-					lightMap[2].SetImagePixel16( i, j, 0 );
+					Surface::RGBA opaqueBlack = { 0, 0, 0, 255 };
+					U16 c = Surface::CalcColorRGBA16( opaqueBlack );
+					fowSurface.SetImagePixel16( i, j, c );
+					//lightMap[2].SetImagePixel16( i, j, 0 );
 				}
 			}
 		}
-		lightMap[2].UpdateTexture( lightMapTex.glID );
+		lightMap[1].UpdateTexture( lightMapTex.glID );
+		fowSurface.UpdateTexture( fowTex.glID );
 		invalidLightMap.Set( 0, 0, -1, -1 );
 	}
 }

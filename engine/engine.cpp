@@ -270,6 +270,7 @@ void Engine::Draw()
 	DrawCamera();
 	float bbRotation = camera.GetBillboardYRotation();
 	float shadowRotation = ToDegree( atan2f( lightDirection.x, lightDirection.z ) );
+//	glDisable( GL_LIGHTING );
 
 	// Compute the frustum planes
 	Plane planes[6];
@@ -358,7 +359,10 @@ void Engine::Draw()
 
 		// Draw the "where can I walk" overlay.
 		glDepthFunc( GL_ALWAYS );
+
+		glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 		map->DrawOverlay();
+		map->DrawFOW();
 
 		glDepthFunc( depthFunc );
 
