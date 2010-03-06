@@ -451,8 +451,8 @@ Model* SpaceTree::QueryRay( const Vector3F& _origin,
 	int p0Test, p1Test;
 	Vector3F p0, p1;
 	int test = IntersectRayAllAABB( _origin, dir, aabb, &p0Test, &p0, &p1Test, &p1 );
-	GLASSERT( test == grinliz::INTERSECT );
 	if ( test != grinliz::INTERSECT ) {
+		// Can click outside of AABB pretty commonly, actually.
 		return 0;
 	}
 	Plane planes[6];

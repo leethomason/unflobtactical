@@ -49,6 +49,9 @@ public:
 	BattleScene( Game* );
 	virtual ~BattleScene();
 
+	virtual void Activate();
+	virtual void DeActivate();
+
 	virtual void Tap(	int count, 
 						const grinliz::Vector2I& screen,
 						const grinliz::Ray& world );
@@ -81,10 +84,7 @@ private:
 		BTN_TAKE_OFF,
 		BTN_END_TURN,
 		BTN_NEXT,
-		//BTN_NEXT_DONE,	// Consider turning back on?
 		BTN_TARGET,
-		//BTN_LEFT,			// Don't need if you can see 360
-		//BTN_RIGHT,
 		BTN_CHAR_SCREEN
 	};
 
@@ -177,7 +177,6 @@ private:
 	bool EndCondition( TacticalEndSceneData* data );
 
 	void ScrollOnScreen( const grinliz::Vector3F& v );
-//	bool LineOfSight( const Unit* shooter, const Unit* target );
 
 	void StopForNewTeamTarget();
 	void DoReactionFire();
@@ -190,7 +189,6 @@ private:
 	enum {
 		NEAR_PATH_VALID,
 		NEAR_PATH_INVALID,
-		//NEAR_PATH_OFF
 	};
 	int nearPathState;
 	void ShowNearPath( const Unit* unit );
@@ -200,8 +198,6 @@ private:
 
 	void InitUnits();
 	void TestHitTesting();
-
-	//void SetPathBlocks( const Unit* exclude );
 
 	Unit* UnitFromModel( Model* m );
 	Unit* GetUnitFromTile( int x, int z );
@@ -253,6 +249,10 @@ private:
 	UIButtonGroup*	widgets;
 	UIButtonGroup*	fireWidget;
 	UIImage*		alienImage;
+	UIImage*		menuImage;
+
+	bool			targetArrowOn[MAX_ALIENS];
+	UIImage*		targetArrow[MAX_ALIENS];
 
 	Engine*			engine;
 	grinliz::Random random;	// "the" random number generator for the battle

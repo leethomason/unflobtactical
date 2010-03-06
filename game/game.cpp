@@ -241,15 +241,23 @@ void Game::PushPopScene()
 	if ( scenePopQueued ) {
 		GLASSERT( !sceneStack.Empty() );
 
+		sceneStack.Top()->DeActivate();
 		delete sceneStack.Top();
 		sceneStack.Pop();
 		GLASSERT( scenePushQueued>=0 || !sceneStack.Empty() );
+		if ( sceneStack.Size() ) {
+			sceneStack.Top()->Activate();
+		}
 	}
 	if ( scenePushQueued >= 0 ) {
 		GLASSERT( scenePushQueued < NUM_SCENES );
 
+		if ( sceneStack.Size() ) {
+			sceneStack.Top()->DeActivate();
+		}
 		Scene* scene = CreateScene( scenePushQueued, scenePushQueuedData );
 		sceneStack.Push( scene );
+		scene->Activate();
 		if ( loadRequested >= 0 ) {
 			ProcessLoadRequest();
 		}
@@ -358,6 +366,7 @@ void Game::DoTick( U32 _currentTime )
 		engine.EnableMap( true );
 #else
 	engine.Draw();
+
 #endif
 	
 	const grinliz::Vector3F* eyeDir = engine.camera.EyeDir3();

@@ -51,17 +51,20 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	
 	alienImage = new UIImage( port );
 	alienImage->Init( TextureManager::Instance()->GetTexture( "iconDeco" ), 50, 50 );
-	alienImage->SetOrigin( port.PhysicalWidth()-50, port.PhysicalHeight()-50 );
+	alienImage->SetOrigin( port.UIWidth()-50, port.UIHeight()-50 );
 	alienImage->SetTexCoord( 5.0f/8.0f, 1.0f/4.0f, 1.0f/8.0f, 1.0f/4.0f );
 	
+	for( int i=0; i<MAX_ALIENS; ++i ) {
+		targetArrow[i] = new UIImage( port );
+		targetArrow[i]->Init( TextureManager::Instance()->GetTexture( "particleQuad" ), 40, 40 );
+		targetArrow[i]->SetTexCoord( 0.75f, 0.75f, 0.25f, 0.25f );
+		targetArrowOn[i] = false;
+	}
 	{
 		const int icons[] = {	ICON_BLUE_BUTTON,		// 0 take-off
 								ICON_GREEN_BUTTON,		// 1 end turn
 								ICON_GREEN_BUTTON,		// 2 next
-								//ICON_GREEN_BUTTON,		// 3 next-done
 								ICON_RED_BUTTON,		// 4 target
-								//ICON_BLUE_BUTTON,		// 5 left
-								//ICON_BLUE_BUTTON,		// 6 right
 								ICON_GREEN_BUTTON		// 7 character
 		};
 
@@ -85,15 +88,16 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		const Vector2I& size = widgets->GetButtonSize();
 		int h = port.UIHeight();
 		int w = port.UIWidth();
+		int delta = (h/5-size.y)/2;
 
-		widgets->SetPos( BTN_TAKE_OFF,		0, h-size.y );
-		widgets->SetPos( BTN_END_TURN,		0, h-(size.y*2+pad.y) );
-		widgets->SetPos( BTN_NEXT,			0, 0 );	//size.y+pad.y );
-		//widgets->SetPos( BTN_NEXT_DONE,		0, 0 );
-		widgets->SetPos( BTN_TARGET,		size.x+pad.x, 0 );
-		//widgets->SetPos( 5,		w-(size.x*2+pad.x), 0 );
-		//widgets->SetPos( 6,		w-size.x, 0 );
-		widgets->SetPos( BTN_CHAR_SCREEN,		w-size.x, 0 );	//size.y+pad.y );
+		menuImage = new UIImage( port );
+		menuImage->Init( TextureManager::Instance()->GetTexture( "intro" ), size.x, h );
+
+		widgets->SetPos( BTN_NEXT,			0, delta+0*h/5 );
+		widgets->SetPos( BTN_CHAR_SCREEN,	0, delta+1*h/5 );
+		widgets->SetPos( BTN_TARGET,		0, delta+2*h/5);
+		widgets->SetPos( BTN_END_TURN,		0, delta+3*h/5 );
+		widgets->SetPos( BTN_TAKE_OFF,		0, delta+4*h/5 );
 	}
 	// When enemy targeted.
 	fireWidget = new UIButtonGroup( engine->GetScreenport() );
@@ -151,9 +155,30 @@ BattleScene::~BattleScene()
 		delete aiArr[i];
 	for( int i=0; i<MAX_UNITS; ++i )
 		delete hpBars[i];
+	for( int i=0; i<MAX_ALIENS; ++i )
+		delete targetArrow[i];
 	delete fireWidget;
 	delete widgets;
 	delete alienImage;
+	delete menuImage;
+}
+
+
+void BattleScene::Activate()
+{
+	const Screenport& port = engine->GetScreenport();
+	Rectangle2I r;
+	r.Set( 	menuImage->Width(), 
+			0, 
+			port.UIWidth(), 
+			port.UIHeight() );
+	engine->SetClip( &r );
+}
+
+
+void BattleScene::DeActivate()
+{
+	engine->SetClip( 0 );
 }
 
 
@@ -421,6 +446,7 @@ void BattleScene::TestHitTesting()
 	*/
 }
 
+	
 void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 {
 	TestHitTesting();
@@ -490,19 +516,38 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 
 			// Is the unit on screen? If so, put in a simple foot decal. Else
 			// put in an "alien that way" decal.
-			Vector2F r;
-		
-			engine->WorldToScreen( p, &r );
+			Vector2I r;	
+			engine->WorldToUI( p, &r );
+			Rectangle2I uiBounds;
+			engine->UIBounds( &uiBounds );
+
+			if ( uiBounds.Contains( r ) ) {
+				const float ALPHA = 0.3f;
+				ParticleSystem::Instance()->EmitDecal(	ParticleSystem::DECAL_TARGET,
+														ParticleSystem::DECAL_BOTH,
+														p, ALPHA, 0 );	
+				targetArrowOn[i-ALIEN_UNITS_START] = false;
+			}
+			else {
+				targetArrowOn[i-ALIEN_UNITS_START] = true;
+				targetArrow[i-ALIEN_UNITS_START]->SetCenter( r.x, r.y );
+				
+
+/*
 			const Screenport& port = engine->GetScreenport();
 
-			if ( r.x < 0.0f || r.x > port.PhysicalWidth() || r.y < 0.0f || r.y > port.PhysicalHeight() ) {
+			if (    r.x < 0.0f || r.x > port.ScreenWidth() 
+				 || r.y < 0.0f || r.y > port.ScreenHeight() ) 
+			{
 				// Which edge? And where? (In screen coordinates.)
 				const float EPS = 15;	//(float)port.PhysicalWidth() * 0.05f;
 				Vector2F corner[4] = {	{ EPS, EPS }, 
-										{ port.PhysicalWidth()-EPS, EPS }, 
-										{ port.PhysicalWidth()-EPS, port.PhysicalHeight()-EPS }, 
-										{ EPS, port.PhysicalHeight()-EPS } };
-				Vector2F origin = {  (float)(port.PhysicalWidth()/2),  (float)(port.PhysicalHeight()/2) };
+										{ port.ScreenWidth()-EPS, EPS }, 
+										{ port.ScreenWidth()-EPS, port.ScreenHeight()-EPS }, 
+										{ EPS, port.ScreenHeight()-EPS } };
+				Vector2F origin = {  (float)(port.ScreenWidth()/2),  
+									 (float)(port.ScreenHeight()/2) 
+								  };
 
 				for( int k=0; k<4; ++k ) {
 					Vector2F out;
@@ -527,13 +572,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 																intersection, ALPHA, angle );
 						break;
 					}
-				}
-			}
-			else {
-				const float ALPHA = 0.3f;
-				ParticleSystem::Instance()->EmitDecal(	ParticleSystem::DECAL_TARGET,
-														ParticleSystem::DECAL_BOTH,
-														p, ALPHA, 0 );	
+				} */
 			}
 		}
 	}
@@ -621,7 +660,9 @@ void BattleScene::DrawHPBars()
 			engine->WorldToScreen( pos, &r );
 
 			const Screenport& port = engine->GetScreenport();
-			if ( r.x >= 0.0f && r.x <= port.PhysicalWidth() && r.y >= 0.0f && r.y <= port.PhysicalHeight() ) {
+			if (    r.x >= 0.0f && r.x <= port.ScreenWidth() 
+				 && r.y >= 0.0f && r.y <= port.ScreenHeight() ) 
+			{
 				// onscreen
 				int uiX, uiY;
 				port.ViewToUI( (int)r.x, (int)r.y, &uiX, &uiY );
@@ -823,7 +864,9 @@ void BattleScene::ScrollOnScreen( const Vector3F& pos )
 	GLOUTPUT(( "screen: %.1f, %.1f\n", r.x, r.y ));
 
 	const Screenport& port = engine->GetScreenport();
-	if ( r.x < 0.0f || r.x > port.PhysicalWidth() || r.y < 0.0f || r.y > port.PhysicalHeight() ) {
+	if (    r.x < 0.0f || r.x > port.ScreenWidth() 
+		 || r.y < 0.0f || r.y > port.ScreenHeight() ) 
+	{
 		// Scroll
 		GLOUTPUT(( "Scroll!\n" ));
 		Vector3F dest;
@@ -2434,8 +2477,6 @@ void BattleScene::DrawHUD()
 	bool enabled = SelectedSoldierUnit() && actionStack.Empty();
 	{
 		widgets->SetEnabled( BTN_TARGET, enabled );
-		//widgets->SetEnabled( BTN_LEFT, enabled );
-		//widgets->SetEnabled( BTN_RIGHT, enabled );
 		widgets->SetEnabled( BTN_CHAR_SCREEN, enabled );
 	}
 	enabled = actionStack.Empty();
@@ -2443,16 +2484,20 @@ void BattleScene::DrawHUD()
 		widgets->SetEnabled( BTN_TAKE_OFF, enabled );
 		widgets->SetEnabled( BTN_END_TURN, enabled );
 		widgets->SetEnabled( BTN_NEXT, enabled );
-		//widgets->SetEnabled( BTN_NEXT_DONE, enabled );
 	}
 	widgets->SetHighLight( BTN_TARGET, uiMode == UIM_TARGET_TILE ? true : false );
 
+	menuImage->Draw();
 	widgets->Draw();
+	for( int i=0; i<MAX_ALIENS; ++i ) {
+		if ( targetArrowOn[i] ) {
+			targetArrow[i]->Draw();
+		}
+	}
 
 	if ( currentTeamTurn == ALIEN_TEAM ) {
 		const int CYCLE = 5000;
 		alienImage->SetYRotation( (float)(game->CurrentTime() % CYCLE)*(360.0f/(float)CYCLE) );
-		//alienImage->SetYRotation( 2.0f );
 		alienImage->Draw();
 	}
 	if ( HasTarget() ) {

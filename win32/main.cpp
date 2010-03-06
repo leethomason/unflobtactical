@@ -16,14 +16,13 @@
 #pragma warning ( disable : 4530 )		// Don't warn about unused exceptions.
 
 #include "glew.h"
-#include "SDL.h"
+#include "SDL.h "
 
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glutil.h"
 #include "../grinliz/glvector.h"
 #include "../game/cgame.h"
-#include "framebuffer.h"
 #include "../grinliz/glstringutil.h"
 
 #if defined(MAPMAKER) || defined(_MSC_VER)
@@ -35,82 +34,25 @@
 
 #define IPOD_SCREEN_WIDTH	320
 #define IPOD_SCREEN_HEIGHT	480
-//#define FRAMEBUFFER_ROTATE
 
 int multisample = 0;
 bool fullscreen = false;
-//#ifdef FRAMEBUFFER_ROTATE
-//	const int rotation = 1;
-//#else
-	const int rotation = 0;
-//#endif
+int rotation = 0;
+float vpMX = 1.0f;
+float vpMY = 1.0f;
+int vpX = 0;
+int vpY = 0;
 
 void ScreenCapture( const char* baseFilename );
 
 
 void TransformXY( int x0, int y0, int* x1, int* y1 )
 {
-//#ifdef FRAMEBUFFER_ROTATE
-//	*x1 = y0;
-//	*y1 = IPOD_SCREEN_HEIGHT-1-x0;
-//#else
-	*x1 = x0;
-	*y1 = y0;
-//#endif	
-}
-
-
-void XferTexture( U32 id, int _w, int _h )
-{
-	float x = 0.f;
-	float y = 0.f;
-	float w = (float)_w;
-	float h = (float)_h;
-
-	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, id );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-
-	// DO NOT ENABLE THIS. BLUESCREENs my ATI card.
-	/*
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glGenerateMipmapEXT(GL_TEXTURE_2D);
-	*/
-
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();					// save projection
-	glLoadIdentity();				// projection
-
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();					// model
-	glLoadIdentity();				// model
-
-	int viewport[ 4 ];
-	glGetIntegerv( GL_VIEWPORT, viewport );
-	glOrtho( viewport[0], viewport[2], viewport[1], viewport[3], -1, 1 );
-
-	glBegin( GL_QUADS );
-	glTexCoord2f( 1.0f, 0.0f );
-	glVertex2f( x, y );
-
-	glTexCoord2f( 1.0f, 1.0f );
-	glVertex2f( x+w, y );
-
-	glTexCoord2f( 0.0f, 1.0f );
-	glVertex2f( x+w, y+h );
-
-	glTexCoord2f( 0.0f, 0.0f );
-	glVertex2f( x, y+h );
-	glEnd();
-
-	glPopMatrix();					// model
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();					// projection
-	glMatrixMode(GL_MODELVIEW);
+	// As a way to do scaling outside of the core, translate all
+	// the mouse coordinates so that they are reported in "standard"
+	// pixel units.
+	*x1 = (int)((float)(x0 - vpX)*vpMX);
+	*y1 = (int)((float)(y0 - vpY)*vpMY);
 }
 
 
@@ -173,7 +115,8 @@ int main( int argc, char **argv )
 		videoFlags |= SDL_FULLSCREEN;
 
 	// Note that our output surface is rotated from the iPod.
-	surface = SDL_SetVideoMode( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, 32, videoFlags );
+	//surface = SDL_SetVideoMode( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, 32, videoFlags );
+	surface = SDL_SetVideoMode( 600, 450, 32, videoFlags );
 	GLASSERT( surface );
 
 	int stencil = 0;
@@ -209,11 +152,34 @@ int main( int argc, char **argv )
 
 	GLLOG(( "OpenGL %s: Vendor: '%s'  Renderer: '%s'  Version: '%s'\n", system, vendor, renderer, version ));
 
-	// Set the viewport to be the entire window
-    glViewport(0, 0, surface->w, surface->h );
-	//#ifdef FRAMEBUFFER_ROTATE
-	//FrameBuffer* frameBuffer = new FrameBuffer( IPOD_SCREEN_WIDTH, IPOD_SCREEN_HEIGHT );
-	//#endif
+	// Set the viewport to be the entire window. It would be
+	// desireable to accomidate changes to the aspect ration,
+	// but for now constrain so the assets don't warp.
+	{
+		const int W = IPOD_SCREEN_HEIGHT;
+		const int H = IPOD_SCREEN_WIDTH;
+		
+		int w0 = surface->w;
+		int h0 = surface->w * H / W;
+		int extraH0 = surface->h - h0;
+
+		int w1 = surface->h * W / H;
+		int h1 = surface->h;
+		int extraW1 = surface->w - h1;
+
+		if ( extraH0 >= 0 ) {
+			vpMX = (float)W / (float)w0;
+			vpMY = (float)H / (float)h0;
+			vpY = extraH0/2;
+		    glViewport(0, extraH0/2, w0, h0 );
+		}
+		else {
+			vpMX = (float)W / (float)w1;
+			vpMY = (float)H / (float)h1;
+			vpX = extraW1/2;
+		    glViewport(extraW1/2, 0, w1, h1 );
+		}
+	}
 	
 	bool done = false;
 	bool dragging = false;
@@ -265,36 +231,12 @@ int main( int argc, char **argv )
 #if !defined( MAPMAKER )
 					case SDLK_p:
 						{
-						//	#ifdef FRAMEBUFFER_ROTATE
-						//		frameBuffer->Bind();
-						//	#endif
 							ScreenCapture( "cap" );
-						//	#ifdef FRAMEBUFFER_ROTATE
-						//		frameBuffer->Bind();
-						//	#endif
 						}
 						break;
 #endif
 
 #if defined( MAPMAKER )
-					case SDLK_s:			
-						{
-							FILE* fp = fopen( filename.c_str(), "wb" );
-							//((Game*)game)->SaveMap( fp );
-							fclose( fp );
-							GLOUTPUT(( "Save\n" ));
-						}
-						break;
-					case SDLK_l:
-						{
-							FILE* fp = fopen( filename.c_str(), "rb" );
-							if ( fp ) {
-								//((Game*)game)->LoadMap( fp );
-							}
-							fclose( fp );
-							GLOUTPUT(( "Load\n" ));
-						}
-						break;
 					case SDLK_DELETE:	
 						((Game*)game)->DeleteAtSelection(); 
 						break;
@@ -328,8 +270,6 @@ int main( int argc, char **argv )
 						((Game*)game)->ShowPathing( !((Game*)game)->IsShowingPathing() );
 						break;
 #else
-//						case SDLK_RIGHT:		GameRotate( game, --rotation );				break;
-//						case SDLK_LEFT:			GameRotate( game, ++rotation );				break;
 #endif
 
 					default:
