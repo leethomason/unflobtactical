@@ -23,7 +23,6 @@ using namespace grinliz;
 
 const float ALPHA_DISABLED	= 0.3f;
 const float ALPHA_DECO		= 0.5f;
-const int BIAS = 5;
 
 extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
 extern int drawCalls;			// ditto
@@ -470,19 +469,17 @@ void UIButtonBox::CalcButtons()
 	const float decoTY = 1.0f / (float)DECO_DY;
 	
 	bounds.Set( 0, 0, 0, 0 );
+	nIndexSelected = 0;
 
 	for( int i=0; i<nIcons; ++i ) 
 	{
 		int x = col*size.x + col*pad.x;
 		int y = row*size.y + row*pad.x;
-		int bias = 0;
-		if ( icons[i].highLight )
-			bias = BIAS;
 
-		pos[i*4+0].Set( x-bias,			y-bias );		
-		pos[i*4+1].Set( x+bias+size.x,	y-bias );		
-		pos[i*4+2].Set( x+bias+size.x,	y+bias+size.y );		
-		pos[i*4+3].Set( x-bias,			y+bias+size.y );	
+		pos[i*4+0].Set( x,			y );		
+		pos[i*4+1].Set( x+size.x,	y );		
+		pos[i*4+2].Set( x+size.x,	y+size.y );		
+		pos[i*4+3].Set( x,			y+size.y );	
 		bounds.DoUnion( x, y );
 		bounds.DoUnion( x+size.x, y+size.y );
 
@@ -522,6 +519,16 @@ void UIButtonBox::CalcButtons()
 		index[i*6+4] = idx+2;
 		index[i*6+5] = idx+3;
 
+		if ( icons[i].highLight ) {
+			indexSelected[ nIndexSelected++ ] = idx+0;
+			indexSelected[ nIndexSelected++ ] = idx+1;
+			indexSelected[ nIndexSelected++ ] = idx+2;
+
+			indexSelected[ nIndexSelected++ ] = idx+0;
+			indexSelected[ nIndexSelected++ ] = idx+2;
+			indexSelected[ nIndexSelected++ ] = idx+3;
+		}
+
 		col++;
 		if ( col >= columns ) {
 			col = 0;
@@ -554,6 +561,7 @@ void UIButtons::Draw()
 	screenport.PushUI();
 	glTranslatef( (float)origin.x, (float)origin.y, 0.0f );
 
+	// Buttons
 	glVertexPointer(   2, GL_SHORT, 0, pos );
 	glTexCoordPointer( 2, GL_FLOAT, 0, tex ); 
 	glColorPointer( 4, GL_UNSIGNED_BYTE, 0, color );
@@ -563,7 +571,25 @@ void UIButtons::Draw()
 	trianglesRendered += nIcons*2;
 	drawCalls++;
 	CHECK_GL_ERROR;
+
+	if ( nIndexSelected ) {
+		GLASSERT( nIndexSelected%6 == 0 );
+		glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD );
+
+		glDisableClientState( GL_COLOR_ARRAY );
+		glColor4f( 1, 1, 1, 0.30f );
+
+		glDrawElements( GL_TRIANGLES, nIndexSelected, GL_UNSIGNED_SHORT, indexSelected );
+		trianglesRendered += nIndexSelected/3;
+		drawCalls++;
+		CHECK_GL_ERROR;
+
+		glColor4f( 1, 1, 1, 1 );
+		glEnableClientState( GL_COLOR_ARRAY );
+		glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+	}
 		
+	// Deco (images on buttons)
 	glTexCoordPointer( 2, GL_FLOAT, 0, texDeco ); 
 	glColorPointer( 4, GL_UNSIGNED_BYTE, 0, colorDeco );
 	glBindTexture( GL_TEXTURE_2D, decoTexture->glID );
@@ -689,14 +715,12 @@ void UIButtonGroup::CalcButtons()
 	const float decoTY = 1.0f / (float)DECO_DY;
 	
 	bounds.Set( 0, 0, 0, 0 );
+	nIndexSelected = 0;
 
 	for( int i=0; i<nIcons; ++i ) 
 	{
 		int x = bPos[i].x;
 		int y = bPos[i].y;
-		int bias = 0;
-		if ( icons[i].highLight )
-			bias = BIAS;
 
 		int sx = size.x;
 		int sy = size.y;
@@ -705,10 +729,10 @@ void UIButtonGroup::CalcButtons()
 			sy = bSize[i].y;
 		}
 
-		pos[i*4+0].Set( x-bias,			y-bias );		
-		pos[i*4+1].Set( x+bias+sx,		y-bias );		
-		pos[i*4+2].Set( x+bias+sx,		y+bias+sy );		
-		pos[i*4+3].Set( x-bias,			y+bias+sy );	
+		pos[i*4+0].Set( x,			y );		
+		pos[i*4+1].Set( x+sx,		y );		
+		pos[i*4+2].Set( x+sx,		y+sy );		
+		pos[i*4+3].Set( x,			y+sy );	
 		bounds.DoUnion( x, y );
 		bounds.DoUnion( x+sx, y+sy );
 
@@ -747,6 +771,16 @@ void UIButtonGroup::CalcButtons()
 		index[i*6+3] = idx+0;
 		index[i*6+4] = idx+2;
 		index[i*6+5] = idx+3;
+
+		if ( icons[i].highLight ) {
+			indexSelected[ nIndexSelected++ ] = idx+0;
+			indexSelected[ nIndexSelected++ ] = idx+1;
+			indexSelected[ nIndexSelected++ ] = idx+2;
+
+			indexSelected[ nIndexSelected++ ] = idx+0;
+			indexSelected[ nIndexSelected++ ] = idx+2;
+			indexSelected[ nIndexSelected++ ] = idx+3;
+		}
 	}
 	cacheValid = true;
 }

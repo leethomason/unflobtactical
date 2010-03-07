@@ -1,10 +1,12 @@
 
 Issues:
+- Highlight looks stupid / intergrated button highlight (dark or light selected??)
 - can't see who is selected
 - Hard to tell who the currently selected unit is.
 - showing too many particles (hide in FoW)
 - rework low ammo weapons, fix test game
 - explosion not causing FoW update ???
+- AI: some random scout motion
 - AI: guard behavior
 - Armor. Affects hp. Can't change in tactical view.
 - center on hit unit
@@ -18,8 +20,9 @@ Issues:
 - tutorial notes
 - new turn generation
 - Couldn't figure out crosshair: UI wasn't clear
-- Highlight looks stupid / intergrated button highlight (dark or light selected??)
 - Sounds
+- Gameplay: doors are death traps if guarded...
+- Art: fix alien doors
 - Art: better human models
 - Art: color scheme 2.0
 - Art: better alien models

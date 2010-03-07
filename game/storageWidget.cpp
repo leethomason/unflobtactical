@@ -101,7 +101,7 @@ void StorageWidget::SetButtons()
 	if ( !valid ) {
 		// First the selection.
 		for( int i=0; i<4; ++i ) {
-			selectWidget->SetButton( i, (i==groupSelected) ? ICON_BLUE_BUTTON_DOWN : ICON_BLUE_BUTTON );
+			selectWidget->SetHighLight( i, (i==groupSelected) );
 		}
 		selectWidget->SetDeco( 0, DECO_PISTOL );
 		selectWidget->SetDeco( 1, DECO_RAYGUN );

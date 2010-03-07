@@ -23,7 +23,7 @@
 	</Inventory>
 </Unit>
 <Unit team="2" type="0" status="1">
-	<Stats level="0" >
+	<Stats level="0" />
 	<Inventory>
 		<Item name="PLS-1" />
 		<Item name="Cell" />
