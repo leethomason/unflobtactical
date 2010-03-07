@@ -18,8 +18,10 @@
 
 #include "../grinliz/glvector.h"
 #include "../grinliz/glrandom.h"
+#include "../grinliz/glbitarray.h"
 #include "vertex.h"
 #include "ufoutil.h"
+#include "map.h"
 
 class Texture;
 class ParticleEffect;
@@ -196,6 +198,7 @@ private:
 	const Texture* pointTexture;
 
 	CDynArray<ParticleEffect*>		effectArr;
+	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWarFilter;
 
 	Particle		pointBuffer[ MAX_POINT_PARTICLES ];
 	Particle		quadBuffer[ MAX_QUAD_PARTICLES ];

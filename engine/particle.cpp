@@ -447,8 +447,20 @@ void ParticleSystem::EmitSmokeAndFlame( U32 delta, const Vector3F& _pos, bool fl
 }
 
 
-void ParticleSystem::Draw( const Vector3F* eyeDir )
+void ParticleSystem::Draw( const Vector3F* eyeDir, const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fogOfWar )
 {
+	if ( fogOfWar ) {
+		fogOfWarFilter.ClearAll();
+		for( int j=0; j<Map::SIZE; ++j ) {
+			BitArrayRowIterator<Map::SIZE, Map::SIZE, 1> it( *fogOfWar );
+
+			for( it.Begin( 0, j, 0 ); it.
+
+	}
+	else {
+		fogOfWarFilter.SetAll();
+	}
+
 	if ( !pointTexture ) {
 		pointTexture = TextureManager::Instance()->GetTexture( "particleSparkle" );
 		quadTexture = TextureManager::Instance()->GetTexture( "particleQuad" );
@@ -466,7 +478,6 @@ void ParticleSystem::Draw( const Vector3F* eyeDir )
 	glEnable( GL_DEPTH_TEST );
 	nDecals = 0;
 
-	//glBlendFunc( GL_SRC_ALPHA, GL_ONE );
 	DrawQuadParticles( eyeDir );
 
 	glDepthMask( GL_TRUE );
