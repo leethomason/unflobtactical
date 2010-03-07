@@ -380,13 +380,11 @@ void Map::GenerateLightMap()
 					Surface::RGBA transparentBlack = { 0, 0, 0, 0 };
 					U16 c = Surface::CalcColorRGBA16( transparentBlack );
 					fowSurface.SetImagePixel16( i, j, c );
-					//lightMap[2].SetImagePixel16( i, j, lightMap[1].ImagePixel16( i, j ) );
 				}
 				else {
 					Surface::RGBA opaqueBlack = { 0, 0, 0, 255 };
 					U16 c = Surface::CalcColorRGBA16( opaqueBlack );
 					fowSurface.SetImagePixel16( i, j, c );
-					//lightMap[2].SetImagePixel16( i, j, 0 );
 				}
 			}
 		}
