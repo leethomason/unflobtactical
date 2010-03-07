@@ -71,10 +71,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		const char* iconText[] = {	"EXIT",
 									"O",
 									"N",
-									//"ND",
 									"",
-									//"<-",
-									//"->",
 									""	
 								  };		
 
@@ -450,23 +447,6 @@ void BattleScene::TestHitTesting()
 void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 {
 	TestHitTesting();
-/*
-	if ( currentTime/1000 != (currentTime-deltaTime)/1000 ) {
-		grinliz::Vector3F pos = { 10.0f, 1.0f, 28.0f };
-		grinliz::Vector3F vel = { 0.0f, 1.0f, 0.0f };
-		Color4F col = { 1.0f, -0.5f, 0.0f, 1.0f };
-		Color4F colVel = { 0.0f, 0.0f, 0.0f, -1.0f/1.2f };
-
-		game->particleSystem->EmitPoint(	40,		// count
-											ParticleSystem::PARTICLE_HEMISPHERE,
-											col,	colVel,
-											pos,	0.1f,	
-											vel,	0.1f,
-											1200 );
-	}
-*/
-//	grinliz::Vector3F pos = { 13.f, 0.0f, 28.0f };
-// 	game->particleSystem->EmitFlame( deltaTime, pos );
 
 	engine->GetMap()->EmitParticles( deltaTime );
 
@@ -479,9 +459,9 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 
 		float alpha = 0.5f;
 		ParticleSystem::Instance()->EmitDecal(	ParticleSystem::DECAL_SELECTION, 
-												ParticleSystem::DECAL_BOTTOM,
+												ParticleSystem::DECAL_BOTH,
 												m->Pos(), alpha,
-												m->GetRotation() );
+												0 );
 	}
 
 		/*
