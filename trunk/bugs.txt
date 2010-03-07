@@ -1,14 +1,10 @@
 
 Issues:
-- move clip to engine	
 - can't see who is selected
-- move controls to their own bar.
+- Hard to tell who the currently selected unit is.
 - showing too many particles (hide in FoW)
-- explosive weapons should not reaction fire?? Or check for line of sight?
 - rework low ammo weapons, fix test game
 - explosion not causing FoW update ???
-- Hard to tell who the currently selected unit is.
-- UI covers up target icons
 - AI: guard behavior
 - Armor. Affects hp. Can't change in tactical view.
 - center on hit unit
@@ -37,11 +33,16 @@ Issues:
 - performance: AI/Alien turn pauses
 
 TBD:
+- Center engine view on clip, not full screen
 - Reconsider when reaction fire occurs. And probability.
 - performance: AI/Alien turn pauses
 
 
 FIXED [test #2]
+- UI covers up target icons
+- Fix: added distance check. explosive weapons should not reaction fire?? Or check for line of sight?
+- move controls to their own bar.
+- move clip to engine	
 - reconsider button placement
 - scaling
 - separate UI

@@ -193,7 +193,7 @@ UIImage::UIImage( const Screenport& port ) : UIWidget( port )
 	w = h = 0;
 	texture = 0;
 	texCoord.Set( 0.0f, 0.0f, 1.0f, 1.0f );
-	yRot = 0.0f;
+	zRot = yRot = 0.0f;
 }
 
 
@@ -238,7 +238,7 @@ void UIImage::Draw()
 
 	screenport.PushUI();
 	// Over translate so rotation is about center axis.
-	glTranslatef( (float)(origin.x+w/2), (float)origin.y, 0.0f );
+	glTranslatef( (float)(origin.x+w/2), (float)(origin.y+h/2), 0.0f );
 	// Don't want to fool around with rendering back faces, cheat on
 	// rotation amount.
 	float yPrime = yRot;
@@ -246,8 +246,14 @@ void UIImage::Draw()
 		yPrime = yRot - 360.0f;
 	else if ( yPrime >= 90 )
 		yPrime = yRot - 180.0f;
+	
+	float zPrime = zRot;
+	while( zPrime < 0 ) zPrime += 360.0f;
+	while( zPrime >= 360.0f ) zPrime -= 360.0f;
+	glRotatef( zPrime, 0.0f, 0.0f, 1.0f );
+
 	glRotatef( yPrime, 0.0f, 1.0f, 0.0f );
-	glTranslatef( (float)(-w/2), 0.0f, 0.0f );
+	glTranslatef( (float)(-w/2), (float)(-h/2), 0.0f );
 
 	glVertexPointer(   2, GL_SHORT, 0, pos );
 	glTexCoordPointer( 2, GL_FLOAT, 0, tex ); 

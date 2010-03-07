@@ -510,6 +510,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		*/
 
 	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+		targetArrowOn[i-ALIEN_UNITS_START] = false;
 		if ( m_targets.TeamCanSee( TERRAN_TEAM, i ) ) {
 			Vector3F p;
 			units[i].CalcPos( &p );
@@ -526,53 +527,39 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 				ParticleSystem::Instance()->EmitDecal(	ParticleSystem::DECAL_TARGET,
 														ParticleSystem::DECAL_BOTH,
 														p, ALPHA, 0 );	
-				targetArrowOn[i-ALIEN_UNITS_START] = false;
 			}
 			else {
 				targetArrowOn[i-ALIEN_UNITS_START] = true;
-				targetArrow[i-ALIEN_UNITS_START]->SetCenter( r.x, r.y );
-				
 
-/*
-			const Screenport& port = engine->GetScreenport();
+				Vector2I center = { (uiBounds.min.x + uiBounds.max.x)/2,
+									(uiBounds.min.y + uiBounds.max.y)/2 };
+				Rectangle2I inset = uiBounds;
+				const int EPS = 10;
+				inset.Outset( -EPS );
+				Vector2F intersection = { 0, 0 };
 
-			if (    r.x < 0.0f || r.x > port.ScreenWidth() 
-				 || r.y < 0.0f || r.y > port.ScreenHeight() ) 
-			{
-				// Which edge? And where? (In screen coordinates.)
-				const float EPS = 15;	//(float)port.PhysicalWidth() * 0.05f;
-				Vector2F corner[4] = {	{ EPS, EPS }, 
-										{ port.ScreenWidth()-EPS, EPS }, 
-										{ port.ScreenWidth()-EPS, port.ScreenHeight()-EPS }, 
-										{ EPS, port.ScreenHeight()-EPS } };
-				Vector2F origin = {  (float)(port.ScreenWidth()/2),  
-									 (float)(port.ScreenHeight()/2) 
-								  };
+				for( int e=0; e<4; ++e ) {
+					Vector2I p0, p1;
+					inset.Edge( e, &p1, &p0 );
+					Vector2F p0f = { (float)p0.x, (float)p0.y };
+					Vector2F p1f = { (float)p1.x, (float)p1.y };
+					Vector2F centerf = { (float)center.x, (float)center.y };
+					Vector2F rf = { (float)r.x, (float)r.y };
 
-				for( int k=0; k<4; ++k ) {
-					Vector2F out;
 					float t0, t1;
-					int result = IntersectLineLine( origin, r, corner[k], corner[(k+1)%4], &out, &t0, &t1 );
-					if ( result == INTERSECT && t0 >= 0.0f && t0 <= 1.0f && t1 >= 0.0f && t1 <= 1.0f ) {
-
-						Matrix4 mvpi;
-						Ray ray;
-						Vector3F intersection;	//, center;
-
-						engine->CalcModelViewProjectionInverse( &mvpi );
-						engine->RayFromScreenToYPlane( LRintf( out.x ), LRintf( out.y ), mvpi, &ray, &intersection );
-
-						float angle = atan2( intersection.x-p.x, intersection.z-p.z );
-						angle = ToDegree( angle );	
-						//GLOUTPUT(( "%f,%f angle=%f\n", center.x, center.z, angle ));
-
-						const float ALPHA = 0.8f;
-						ParticleSystem::Instance()->EmitDecal(	ParticleSystem::DECAL_TARGET_ARROW,
-																ParticleSystem::DECAL_BOTH,
-																intersection, ALPHA, angle );
+					int result = IntersectLineLine( centerf, rf, 
+													p0f, p1f, 
+													&intersection, &t0, &t1 );
+					if (    result == grinliz::INTERSECT
+						 && t0 >= 0 && t0 <= 1 && t1 >= 0 && t1 <= 1 ) {
 						break;
 					}
-				} */
+				}
+
+				targetArrow[i-ALIEN_UNITS_START]->SetCenter( (int)intersection.x, (int)intersection.y );
+				float angle = atan2( (float)(r.y-center.y), (float)(r.x-center.x) );
+				angle = ToDegree( angle ) + 90.0f;	
+				targetArrow[i-ALIEN_UNITS_START]->SetZRotation( angle );
 			}
 		}
 	}
