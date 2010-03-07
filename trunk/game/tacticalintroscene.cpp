@@ -36,11 +36,11 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 		
 		const int XSIZE = 55;
 		const int YSIZE = 55;
-		int icons[] = { ICON_GREEN_BUTTON, ICON_GREEN_BUTTON_DOWN,
-						ICON_GREEN_BUTTON, ICON_GREEN_BUTTON_DOWN, ICON_GREEN_BUTTON,
-						ICON_GREEN_BUTTON_DOWN, ICON_GREEN_BUTTON,
-						ICON_GREEN_BUTTON, ICON_GREEN_BUTTON_DOWN, ICON_GREEN_BUTTON,
-						ICON_GREEN_BUTTON_DOWN, ICON_GREEN_BUTTON,
+		int icons[] = { ICON_GREEN_BUTTON, ICON_GREEN_BUTTON,
+						ICON_GREEN_BUTTON, ICON_GREEN_BUTTON, ICON_GREEN_BUTTON,
+						ICON_GREEN_BUTTON, ICON_GREEN_BUTTON,
+						ICON_GREEN_BUTTON, ICON_GREEN_BUTTON, ICON_GREEN_BUTTON,
+						ICON_GREEN_BUTTON, ICON_GREEN_BUTTON,
 						ICON_BLUE_BUTTON
 		};
 		const char* iconText[] = {
@@ -75,6 +75,12 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 		choices->SetPos( TIME_NIGHT, XSIZE*1, YSIZE*0 );
 
 		choices->SetPos( GO_NEW_GAME, XSIZE*25/10, -YSIZE*5/10 );
+
+		choices->SetHighLight( SQUAD_4, true );
+		choices->SetHighLight( TERRAN_MED, true );
+		choices->SetHighLight( ALIEN_8, true );
+		choices->SetHighLight( ALIEN_MED, true );
+		choices->SetHighLight( TIME_DAY, true );
 	}
 
 	// Is there a current game?
@@ -136,36 +142,36 @@ void TacticalIntroScene::Tap(	int count,
 		switch ( tap ) {
 			case SQUAD_4:	
 			case SQUAD_8:
-				choices->SetButton( SQUAD_4, (tap==SQUAD_4) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
-				choices->SetButton( SQUAD_8, (tap==SQUAD_8) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				choices->SetHighLight( SQUAD_4, (tap==SQUAD_4) );
+				choices->SetHighLight( SQUAD_8, (tap==SQUAD_8) );
 				break;
 
 			case TERRAN_LOW:	
 			case TERRAN_MED:
 			case TERRAN_HIGH:
-				choices->SetButton( TERRAN_LOW, (tap==TERRAN_LOW) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
-				choices->SetButton( TERRAN_MED, (tap==TERRAN_MED) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
-				choices->SetButton( TERRAN_HIGH, (tap==TERRAN_HIGH) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				choices->SetHighLight( TERRAN_LOW, (tap==TERRAN_LOW) );
+				choices->SetHighLight( TERRAN_MED, (tap==TERRAN_MED) );
+				choices->SetHighLight( TERRAN_HIGH, (tap==TERRAN_HIGH) );
 				break;
 
 			case ALIEN_8:	
 			case ALIEN_16:
-				choices->SetButton( ALIEN_8,  (tap==ALIEN_8) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
-				choices->SetButton( ALIEN_16, (tap==ALIEN_16) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				choices->SetHighLight( ALIEN_8,  (tap==ALIEN_8) );
+				choices->SetHighLight( ALIEN_16, (tap==ALIEN_16) );
 				break;
 
 			case ALIEN_LOW:	
 			case ALIEN_MED:
 			case ALIEN_HIGH:
-				choices->SetButton( ALIEN_LOW, (tap==ALIEN_LOW) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
-				choices->SetButton( ALIEN_MED, (tap==ALIEN_MED) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
-				choices->SetButton( ALIEN_HIGH, (tap==ALIEN_HIGH) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				choices->SetHighLight( ALIEN_LOW, (tap==ALIEN_LOW) );
+				choices->SetHighLight( ALIEN_MED, (tap==ALIEN_MED) );
+				choices->SetHighLight( ALIEN_HIGH, (tap==ALIEN_HIGH) );
 				break;
 
 			case TIME_DAY:	
 			case TIME_NIGHT:
-				choices->SetButton( TIME_DAY,  (tap==TIME_DAY) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
-				choices->SetButton( TIME_NIGHT, (tap==TIME_NIGHT) ? ICON_GREEN_BUTTON_DOWN : ICON_GREEN_BUTTON );
+				choices->SetHighLight( TIME_DAY,  (tap==TIME_DAY) );
+				choices->SetHighLight( TIME_NIGHT, (tap==TIME_NIGHT) );
 				break;
 
 			case GO_NEW_GAME:
@@ -187,7 +193,7 @@ void TacticalIntroScene::WriteXML( std::string* _xml )
 
 	xml.clear();
 	xml += "<Game><Scene id='0' />";
-	if ( choices->GetButton( TIME_NIGHT ) == ICON_GREEN_BUTTON_DOWN )
+	if ( choices->GetHighLight( TIME_NIGHT ) )
 		xml += "<BattleScene dayTime='0' />";
 	else
 		xml += "<BattleScene dayTime='1' />";
@@ -195,24 +201,24 @@ void TacticalIntroScene::WriteXML( std::string* _xml )
 	xml += "<Units>";
 
 	const char* squad = game->AccessTextResource( "new_squad_LA" );
-	if ( choices->GetButton( TERRAN_MED ) == ICON_GREEN_BUTTON_DOWN )
+	if ( choices->GetHighLight( TERRAN_MED ) )
 		squad = game->AccessTextResource( "new_squad_MA" );
-	else if ( choices->GetButton( TERRAN_HIGH ) == ICON_GREEN_BUTTON_DOWN )
+	else if ( choices->GetHighLight( TERRAN_HIGH ) )
 		squad = game->AccessTextResource( "new_squad_HA" );
 
 	xml += squad;
-	if ( choices->GetButton( SQUAD_8 ) == ICON_GREEN_BUTTON_DOWN ) {
+	if ( choices->GetHighLight( SQUAD_8 ) ) {
 		xml += squad;
 	}
 
 	const char* alien = game->AccessTextResource( "new_alien_LA" );
-	if ( choices->GetButton( ALIEN_MED ) == ICON_GREEN_BUTTON_DOWN )
+	if ( choices->GetHighLight( ALIEN_MED ) )
 		alien = game->AccessTextResource( "new_alien_MA" );
-	else if ( choices->GetButton( ALIEN_HIGH ) == ICON_GREEN_BUTTON_DOWN )
+	else if ( choices->GetHighLight( ALIEN_HIGH ) )
 		alien = game->AccessTextResource( "new_alien_HA" );
 
 	xml += alien;
-	if ( choices->GetButton( ALIEN_16 ) == ICON_GREEN_BUTTON_DOWN ) {
+	if ( choices->GetHighLight( ALIEN_16 ) ) {
 		xml += alien;
 	}
 

@@ -29,9 +29,9 @@ enum {
 	ICON_TRANS_BLUE		= 5,
 	ICON_TRANS_YELLOW	= 6,
 	ICON_TRANS_ORANGE	= 7,
-	ICON_GREEN_BUTTON_DOWN	= 8,
-	ICON_BLUE_BUTTON_DOWN	= 9,
-	ICON_RED_BUTTON_DOWN	= 10,
+	//ICON_GREEN_BUTTON_DOWN	= 8,
+	//ICON_BLUE_BUTTON_DOWN	= 9,
+	//ICON_RED_BUTTON_DOWN	= 10,
 	ICON_GREEN_WALK_MARK	= 12,
 	ICON_YELLOW_WALK_MARK	= 13,
 	ICON_ORANGE_WALK_MARK	= 14,
@@ -194,6 +194,9 @@ public:
 
 	void SetEnabled( int index, bool enabled );
 	void SetHighLight( int index, bool highLight );
+	bool GetHighLight( int index )				{ GLASSERT( index >=0 && index < nIcons );
+												  return icons[index].highLight;
+												}
 
 	void SetButtonSize( int dx, int dy )		{	if ( size.x != dx || size.y != dy ) {
 														size.x = dx; size.y = dy; 
@@ -272,6 +275,8 @@ protected:
 	grinliz::Vector4< U8 >	colorDeco[MAX_ICONS*4];
 
 	U16						index[6*MAX_ICONS];
+	int						nIndexSelected;
+	U16						indexSelected[6*MAX_ICONS];
 };
 
 
