@@ -1,8 +1,5 @@
 
 Issues:
-- Highlight looks stupid / intergrated button highlight (dark or light selected??)
-- can't see who is selected
-- Hard to tell who the currently selected unit is.
 - showing too many particles (hide in FoW)
 - rework low ammo weapons, fix test game
 - explosion not causing FoW update ???
@@ -11,7 +8,6 @@ Issues:
 - Armor. Affects hp. Can't change in tactical view.
 - center on hit unit
 - Pinching doesn't feel right
-- phat loot / edge of map / exploration
 - tap accuracy
 - need correct colors in RenderWeapon()
 - check math (again) in PushShootAction()
@@ -39,9 +35,12 @@ TBD:
 - Center engine view on clip, not full screen
 - Reconsider when reaction fire occurs. And probability.
 - performance: AI/Alien turn pauses
+- phat loot / edge of map / exploration
 
 
 FIXED [test #2]
+- can't see who is selected / Hard to tell who the currently selected unit is.
+- Highlight looks stupid / intergrated button highlight (dark or light selected??)
 - UI covers up target icons
 - Fix: added distance check. explosive weapons should not reaction fire?? Or check for line of sight?
 - move controls to their own bar.
