@@ -137,6 +137,7 @@ public:
 	void Init( const Texture* texture, int w, int h );
 	void SetCenter( int x, int y )								{ SetOrigin( x-Width()/2, y-Height()/2 ); }
 	void SetYRotation( float yRot )								{ this->yRot = yRot; }
+	void SetZRotation( float zRot )								{ this->zRot = zRot; }
 	void SetTexCoord( float tx, float ty, float sx, float sy )	{
 		texCoord.Set( tx, ty, tx+sx, ty+sy );
 	}
@@ -146,7 +147,7 @@ public:
 
 protected:
 	int w, h;
-	float yRot;
+	float yRot, zRot;
 	grinliz::Rectangle2F texCoord;
 	const Texture* texture;
 };

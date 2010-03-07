@@ -541,15 +541,11 @@ void Engine::LightGroundPlane( ShadowState shadows, float shadowAmount, Color4F*
 
 void Engine::SetPerspective()
 {
-	float nearPlane = engineData.nearPlane;
-	float farPlane = engineData.farPlane;
+	GLASSERT( engineData.nearPlane > 0.0f );
+	GLASSERT( engineData.farPlane > engineData.nearPlane );
 
-	GLASSERT( nearPlane > 0.0f );
-	GLASSERT( farPlane > nearPlane );
-	//GLASSERT( fov > 0.0f && fov < 90.0f );
-
-	frustumNear = nearPlane;
-	frustumFar = farPlane;
+	frustumNear = engineData.nearPlane;
+	frustumFar = engineData.farPlane;
 
 	// Convert from the FOV to the half angle.
 	float theta = ToRadian( engineData.fov ) * 0.5f;
@@ -557,22 +553,22 @@ void Engine::SetPerspective()
 	// left, right, top, & bottom are on the near clipping
 	// plane. (Not an obvious point to my mind.)
 	if ( screenport.Rotation() & 1 ) {
-		float aspect = (float)(screenport.ScreenWidth()) / (float)(screenport.ScreenHeight());
-		frustumTop		= tan(theta) * nearPlane;
+		float ratio = (float)(screenport.ScreenWidth()) / (float)(screenport.ScreenHeight());
+		frustumTop		= tan(theta) * frustumNear;
 		frustumBottom	= -frustumTop;
-		frustumLeft		= aspect * frustumBottom;
-		frustumRight	= aspect * frustumTop;
+		frustumLeft		= ratio * frustumBottom;
+		frustumRight	= ratio * frustumTop;
 	}
 	else {
 		float ratio = (float)(screenport.ScreenHeight()) / (float)(screenport.ScreenWidth());
 		frustumRight = tan(theta) * frustumNear;
 		frustumTop   = ratio * tan(theta) * frustumNear;
-
 		frustumLeft = -frustumRight;
 		frustumBottom = -frustumTop;
 	}
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
+	// In normalized coordinates.
 	glFrustumfX( frustumLeft, frustumRight, frustumBottom, frustumTop, frustumNear, frustumFar );
 	
 	glMatrixMode(GL_MODELVIEW);
