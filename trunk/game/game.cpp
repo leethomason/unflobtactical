@@ -372,8 +372,7 @@ void Game::DoTick( U32 _currentTime )
 	const grinliz::Vector3F* eyeDir = engine.camera.EyeDir3();
 	ParticleSystem* particleSystem = ParticleSystem::Instance();
 	particleSystem->Update( deltaTime, currentTime );
-	particleSystem->Draw( eyeDir );
-
+	particleSystem->Draw( eyeDir, &engine.GetMap()->GetFogOfWar() );
 
 	trianglesSinceMark += trianglesRendered;
 

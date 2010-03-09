@@ -1,6 +1,5 @@
 
 Issues:
-- showing too many particles (hide in FoW)
 - rework low ammo weapons, fix test game
 - explosion not causing FoW update ???
 - AI: some random scout motion
@@ -15,9 +14,9 @@ Issues:
 - different maps
 - tutorial notes
 - new turn generation
-- Couldn't figure out crosshair: UI wasn't clear
+- handle too many particles consistently
 - Sounds
-- Gameplay: doors are death traps if guarded...
+- Gameplay: doors are death traps if guarded...blow up doors?
 - Art: fix alien doors
 - Art: better human models
 - Art: color scheme 2.0
@@ -32,13 +31,15 @@ Issues:
 - performance: AI/Alien turn pauses
 
 TBD:
+- eject shells
 - Center engine view on clip, not full screen
 - Reconsider when reaction fire occurs. And probability.
 - performance: AI/Alien turn pauses
 - phat loot / edge of map / exploration
 
-
 FIXED [test #2]
+- Couldn't figure out crosshair: UI wasn't clear (rely on help)
+- showing too many particles (hide in FoW)
 - can't see who is selected / Hard to tell who the currently selected unit is.
 - Highlight looks stupid / intergrated button highlight (dark or light selected??)
 - UI covers up target icons

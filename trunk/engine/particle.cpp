@@ -451,11 +451,18 @@ void ParticleSystem::Draw( const Vector3F* eyeDir, const grinliz::BitArray<Map::
 {
 	if ( fogOfWar ) {
 		fogOfWarFilter.ClearAll();
-		for( int j=0; j<Map::SIZE; ++j ) {
-			BitArrayRowIterator<Map::SIZE, Map::SIZE, 1> it( *fogOfWar );
-
-			for( it.Begin( 0, j, 0 ); it.
-
+		for( int j=0; j<Map::SIZE; ++j ){
+			for( int i=0; i<Map::SIZE; ++i ) {
+				if ( fogOfWar->IsSet( i, j, 0 ) ) {
+					// space the test out by one unit.
+					fogOfWarFilter.Set( i, j, 0 );
+					fogOfWarFilter.Set( i+1, j, 0 );
+					fogOfWarFilter.Set( i-1, j, 0 );
+					fogOfWarFilter.Set( i, j+1, 0 );
+					fogOfWarFilter.Set( i, j-1, 0 );
+				}
+			}
+		}
 	}
 	else {
 		fogOfWarFilter.SetAll();
@@ -526,11 +533,11 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 		glVertexPointer( 3, GL_FLOAT, sizeof(Particle), vPtr );
 		glColorPointer( 4, GL_FLOAT, sizeof(Particle), cPtr );
 		CHECK_GL_ERROR;
+		// Points are not filtered on fogOfWarFilter. 
 		glDrawArrays( GL_POINTS, 0, nParticles[POINT] );
 		CHECK_GL_ERROR;
 		trianglesRendered += nParticles[POINT];		// 1 or 2?? go with 1
 		drawCalls++;
-
 
 		#ifdef USING_GL
 			glDisable( GL_POINT_SPRITE );
@@ -561,6 +568,9 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 		for( int i=0; i<nParticles[POINT]; i+=skip ) 
 		{
 			const Vector3F& pos  = pointBuffer[i].pos;
+			Vector2I fowPos = { (int)pos.x, (int)pos.z };
+			if ( !fogOfWarFilter.IsSet( fowPos.x, fowPos.y ) )
+				continue;
 			const Color4F& color = pointBuffer[i].color;
 
 			// Set up the particle that everything else is derived from:
@@ -600,9 +610,11 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 		glColorPointer(    4, GL_FLOAT, sizeof(QuadVertex), cPtr );
 
 		// because of the skip, the #elements can be less than nParticles*6
-		glDrawElements( GL_TRIANGLES, index, GL_UNSIGNED_SHORT, quadIndexBuffer );
-		trianglesRendered += index/3;
-		drawCalls++;
+		if ( index ) {
+			glDrawElements( GL_TRIANGLES, index, GL_UNSIGNED_SHORT, quadIndexBuffer );
+			trianglesRendered += index/3;
+			drawCalls++;
+		}
 		CHECK_GL_ERROR;
 	}
 
@@ -651,6 +663,10 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 		//const float size = particleTypeArr[QUAD].size;
 		const Vector3F& pos  = quadBuffer[i].pos;
 		const Color4F& color = quadBuffer[i].color;
+
+		Vector2I fowPos = { (int)pos.x, (int)pos.z };
+		if ( !fogOfWarFilter.IsSet( fowPos.x, fowPos.y ) )
+			continue;
 
 		// Set up the particle that everything else is derived from:
 		quadIndexBuffer[index++] = vertex+0;
@@ -721,11 +737,12 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 	glTexCoordPointer( 2, GL_FLOAT, sizeof(QuadVertex), tPtr );
 	glColorPointer(    4, GL_FLOAT, sizeof(QuadVertex), cPtr );
 
-	glDrawElements( GL_TRIANGLES, nParticles[QUAD]*6, GL_UNSIGNED_SHORT, quadIndexBuffer );
-	CHECK_GL_ERROR;
-	trianglesRendered += nParticles[QUAD]*2;
-	drawCalls++;
-
+	if ( index ) {
+		glDrawElements( GL_TRIANGLES, index, GL_UNSIGNED_SHORT, quadIndexBuffer );
+		CHECK_GL_ERROR;
+		trianglesRendered += nParticles[QUAD]*2;
+		drawCalls++;
+	}
 	// Restore standard state.
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_NORMAL_ARRAY );
@@ -768,6 +785,10 @@ void ParticleSystem::DrawDecalParticles( int flag )
 			const float ty = 0.25f * (float)(decalBuffer[i].type>>2);
 			
 			const Vector3F& pos  = decalBuffer[i].pos;
+			Vector2I fowPos = { (int)pos.x, (int)pos.z };
+			if ( !fogOfWarFilter.IsSet( fowPos.x, fowPos.y ) )
+				continue;
+
 			const Color4F& color = decalBuffer[i].color;
 
 			// Set up the particle that everything else is derived from:
