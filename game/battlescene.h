@@ -289,6 +289,7 @@ private:
 		void Init( BattleScene* bs, const Unit* u, Map* m )	{ battleScene = bs; this->units = u; map = m; }
 
 		void InvalidateAll();
+		// The 'bounds' reflect the area that is invalid, not the visibility of the units.
 		void InvalidateAll( const grinliz::Rectangle2I& bounds );
 		void InvalidateUnit( int i );
 

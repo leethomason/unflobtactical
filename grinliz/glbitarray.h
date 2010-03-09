@@ -172,7 +172,7 @@ private:
 /**
 	A class to quickly walk a BitArary.
 */
-
+/*
 template< int WIDTH, int HEIGHT, int DEPTH >
 class BitArrayRowIterator
 {
@@ -201,7 +201,7 @@ class BitArrayRowIterator
 	const BitArray<WIDTH, HEIGHT, DEPTH>& bitArray;
 	U32 mask;
 	const U32 *loc;
-};
+};*/
 
 };
 #endif

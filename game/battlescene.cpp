@@ -1564,7 +1564,6 @@ int BattleScene::ProcessActionHit( Action* action )
 			hitUnit = UnitFromModel( m );
 		if ( hitUnit ) {
 			if ( hitUnit->IsAlive() ) {
-
 				hitUnit->DoDamage( action->type.hit.damageDesc, engine->GetMap() );
 				if ( !hitUnit->IsAlive() ) {
 					selection.ClearTarget();			
@@ -1661,6 +1660,7 @@ int BattleScene::ProcessActionHit( Action* action )
 			}
 		}
 	}
+	visibility.InvalidateAll( destroyed ); 
 	actionStack.Pop();
 	result |= UNIT_ACTION_COMPLETE;
 	return true;

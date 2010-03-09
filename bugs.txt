@@ -1,7 +1,5 @@
 
 Issues:
-- rework low ammo weapons, fix test game
-- explosion not causing FoW update ???
 - AI: some random scout motion
 - AI: guard behavior
 - Armor. Affects hp. Can't change in tactical view.
@@ -17,12 +15,14 @@ Issues:
 - handle too many particles consistently
 - Sounds
 - Gameplay: doors are death traps if guarded...blow up doors?
+- fire generates light
 - Art: fix alien doors
 - Art: better human models
 - Art: color scheme 2.0
 - Art: better alien models
 - Art: missing weapon models
 - unconscious
+- proportional font
 - mission types: landing
 - mission types: crash
 - mission types: terror
@@ -38,6 +38,8 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED [test #2]
+- rework low ammo weapons, fix test game
+- explosion not causing FoW update ???
 - Couldn't figure out crosshair: UI wasn't clear (rely on help)
 - showing too many particles (hide in FoW)
 - can't see who is selected / Hard to tell who the currently selected unit is.
