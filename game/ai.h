@@ -5,6 +5,7 @@
 #include "../grinliz/gltypes.h"
 #include "../grinliz/gldebug.h"
 #include "../grinliz/glvector.h"
+#include "../grinliz/glrandom.h"
 
 #include "gamelimits.h"
 #include "battlescene.h"	// FIXME: for MotionPath. Factor out?
@@ -56,13 +57,18 @@ public:
 
 	virtual ~AI()	{}
 
-	// called by Scene
 	void StartTurn( const Unit* units, const Targets& targets );
+
+	enum {
+		AI_WANDER = 0x01,
+		AI_GUARD  = 0x02
+	};
 
 	// Return true if done.
 	virtual bool Think( const Unit* move,
 						const Unit* units,
 						const Targets& targets,
+						int flags,
 						Map* map,
 						AIAction* action ) = 0;
 protected:
@@ -84,6 +90,7 @@ protected:
 	int m_enemyTeam;
 	int m_enemyStart;
 	int m_enemyEnd;
+	grinliz::Random m_random;
 	SpaceTree* m_spaceTree;
 	std::vector< grinliz::Vector2<S16> > m_path[4];
 };
@@ -98,6 +105,7 @@ public:
 	virtual bool Think( const Unit* move,
 						const Unit* units,
 						const Targets& targets,
+						int flags,
 						Map* map,
 						AIAction* action );
 

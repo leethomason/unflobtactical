@@ -292,8 +292,10 @@ void BattleScene::NextTurn()
 
 		case ALIEN_TEAM:
 			GLOUTPUT(( "New Turn: Alien\n" ));
-			for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i )
+			for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
 				units[i].NewTurn();
+
+			}
 			break;
 
 		case CIV_TEAM:
@@ -1070,15 +1072,20 @@ bool BattleScene::ProcessAI()
 {
 	GLASSERT( actionStack.Empty() );
 	bool allDone = true;
+	int count = 0;
 
 	while ( actionStack.Empty() ) {
 		allDone = true;
 		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
 			if ( actionStack.Empty() && units[i].IsAlive() && !units[i].IsUserDone() ) {
 
+				++count;
+				int flags = (count&1) ? AI::AI_WANDER : 0;	// half wander (starting with 1st)
+
 				AI::AIAction aiAction;
-				
-				bool done = aiArr[ALIEN_TEAM]->Think( &units[i], units, m_targets, engine->GetMap(), &aiAction );
+
+				bool done = aiArr[ALIEN_TEAM]->Think( &units[i], units, m_targets, flags, engine->GetMap(), &aiAction );
+
 				switch ( aiAction.actionID ) {
 					case AI::ACTION_SHOOT:
 						{

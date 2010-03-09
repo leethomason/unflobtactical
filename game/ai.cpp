@@ -5,12 +5,13 @@
 #include "../engine/loosequadtree.h"
 #include "../engine/map.h"
 #include "../grinliz/glperformance.h"
+#include "../grinliz/glutil.h"
 
 #include <float.h>
 
 using namespace grinliz;
 
-#if 0
+#if 1
 	#define AILOG GLOUTPUT
 #else
 	#define AILOG( x )	{}
@@ -121,6 +122,7 @@ int AI::VisibleUnitsInArea(	const Unit* theUnit,
 bool WarriorAI::Think(	const Unit* theUnit,
 						const Unit* units,
 						const Targets& targets,
+						int flags,
 						Map* map,
 						AIAction* action )
 {
@@ -133,9 +135,6 @@ bool WarriorAI::Think(	const Unit* theUnit,
 	//   current canSee and LKPs
 	// - if nothing to move to, stand around
 
-	// FIXME:
-	//		check for blowing up friends
-
 	const float MINIMUM_FIRE_CHANCE			= 0.02f;	// A shot is only valid if it has this chance of hitting.
 	const int   EXPLOSION_ZONE				= 2;		// radius to check of clusters of enemies to blow up
 	const float	MINIMUM_EXPLOSIVE_RANGE		= 4.0f;
@@ -145,7 +144,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 	Vector2I theUnitPos;
 	theUnit->CalcMapPos( &theUnitPos, 0 );
 	float theUnitNearTarget = FLT_MAX;
-
+	
 	AILOG(( "Think unit=%d\n", theUnit - units ));
 
 	// -------- Shoot -------- //
@@ -405,6 +404,31 @@ bool WarriorAI::Think(	const Unit* theUnit,
 		}
 	}
 
+	// If the aliens don't see anything, they just stand around. That's okay, except it's weird
+	// that they completely skip their turn. So if they are set to wander, then move a space randomly.
+	if (    (flags & AI_WANDER ) 
+		 && (theUnit->GetStats().TU() == theUnit->GetStats().TotalTU() ) )		// only wander if we did nothing else.
+	{
+		Vector2I choices[8] = { {0,1}, {0,-1}, {1,0},  {-1,0}, 
+								{1,1}, {1,-1}, {-1,1}, {-1,-1} };
+		for( int i=0; i<8; ++i ) {
+			Swap( &choices[m_random.Rand(8)], &choices[m_random.Rand(8)] );
+		}
+		for ( int i=0; i<8; ++i ) {
+			float cost;
+			Vector2<S16> start = { theUnitPos.x, theUnitPos.y };
+			Vector2<S16> end = { theUnitPos.x+choices[i].x, theUnitPos.y+choices[i].y };
+
+			int result = map->SolvePath( theUnit, start, end, &cost, &m_path[0] );
+			if ( result == micropather::MicroPather::SOLVED && m_path[0].size() == 2 ) {
+				AILOG(( "  **Wandering to (%d,%d)\n", m_path[0].at(1).x, m_path[0].at(1).y ));
+				action->actionID = ACTION_MOVE;
+				action->move.path.Init( m_path[0] );
+				return false;
+			}
+
+		}
+	}
 	return true;
 }
 
