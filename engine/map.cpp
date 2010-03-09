@@ -1315,12 +1315,12 @@ void Map::ResetPath()
 }
 
 
-void Map::ClearPathBlocks()
+/*void Map::ClearPathBlocks()
 {
 	ResetPath();
 	pathBlock.ClearAll();
 }
-
+*/
 
 void Map::SetPathBlocks( const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& block )
 {

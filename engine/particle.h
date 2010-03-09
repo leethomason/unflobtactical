@@ -124,7 +124,7 @@ public:
 	void EmitDecal( int id, int flags, const grinliz::Vector3F& pos, float alpha, float rotation );
 
 	void Update( U32 deltaTime, U32 currentTime );
-	void Draw( const grinliz::Vector3F* eyeDir );
+	void Draw( const grinliz::Vector3F* eyeDir, const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fogOfWar );
 	void Clear();
 
 	void AddEffect( ParticleEffect* effect );

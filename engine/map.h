@@ -210,7 +210,6 @@ public:
 	void BindTextureUnits();
 	void UnBindTextureUnits();
 
-
 	void Draw();			//< draw the map, without the FOW
 	void DrawPath();		//< debugging
 	void DrawOverlay();		//< draw the "where can I walk" alpha overlay. Set up by ShowNearPath().
@@ -230,9 +229,8 @@ public:
 	bool Obscured( int x, int y ) const		{ return PyroOn( x, y ) ? true : false; }
 	void EmitParticles( U32 deltaTime );
 
-	// Sets objects to block the path (usually other sprites) that the map doesn't know about.
-	void ClearPathBlocks();
 	// Set the path block (does nothing if they are equal.)
+	// Generally called by MakePathBlockCurrent
 	void SetPathBlocks( const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& block );
 
 	Storage* LockStorage( int x, int y );					//< can return 0 if none there
@@ -296,6 +294,10 @@ public:
 	void Save( TiXmlElement* parent );
 	void Load( const TiXmlElement* mapNode, ItemDef* const* arr );
 
+	// Gets a starting location for a unit on the map.
+	// TERRAN_TEAM - from the lander
+	// ALIEN_TEAM, guard or scout - on the map metadata
+	//
 	void PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rotation );
 
 private:
