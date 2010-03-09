@@ -251,14 +251,14 @@ bool WarriorAI::Think(	const Unit* theUnit,
 		// Is theUnit already standing on the Storage? If so, use!
 		const Storage* storage = map->GetStorage( theUnitPos.x, theUnitPos.y );
 		if ( storage ) {
-			if (    storage->GetCount( primaryWeapon->ClipType( 0 ) ) 
-				 || storage->GetCount( secondaryWeapon->ClipType( 0 ) ) )
+			if (    ( primaryWeapon   && storage->GetCount( primaryWeapon->ClipType( 0 ) ) )
+				 || ( secondaryWeapon && storage->GetCount( secondaryWeapon->ClipType( 0 ) ) ) )
 			{
 				// Solves the ammo issue.
 				// Picking up the ammo will result in it being used in the next round.
 				action->actionID = ACTION_PICK_UP;
 				GLASSERT( PickUpAIAction::MAX_ITEMS >= 4 );
-				memset( action->pickUp.itemDefArr, 0, sizeof( const ItemDef* )*PickUpAIAction::MAX_ITEMS );
+				memset( action->pickUp.itemDefArr, 0, sizeof(const ItemDef*) * PickUpAIAction::MAX_ITEMS );
 
 				action->pickUp.itemDefArr[0] = primaryWeapon ? primaryWeapon->ClipType( 0 ) : 0;
 				action->pickUp.itemDefArr[1] = secondaryWeapon ? secondaryWeapon->ClipType( 0 ) : 0;

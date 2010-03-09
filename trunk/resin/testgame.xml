@@ -252,8 +252,7 @@
             <Stats STR="47" DEX="47" PSY="76" level="0" />
             <Inventory>
                 <Item name="RAY-1" />
-                <Item name="Cell" rounds="12" />
-                <Item name="Tachy" rounds="4" />
+                <Item name="Zing" />
             </Inventory>
         </Unit>
         <Unit team="2" type="1" status="1" body="-500874107" modelX="12.500000" modelZ="16.500000" yRot="0.000000">
@@ -266,8 +265,8 @@
             <Stats STR="126" DEX="74" PSY="57" level="0" />
             <Inventory>
                 <Item name="RAY-1" />
-                <Item name="Cell" rounds="12" />
-                <Item name="Tachy" rounds="4" />
+                <Item name="Zing" />
+                <Item name="Tachy" />
             </Inventory>
         </Unit>
         <Unit team="2" type="3" status="1" body="1484309979" modelX="29.500000" modelZ="30.500000" yRot="0.000000">
