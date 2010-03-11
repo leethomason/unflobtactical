@@ -55,6 +55,8 @@ public:
 	const Item* ArmedWeapon() const;	// null if no weapon ready
 	const Item* SecondaryWeapon() const;
 
+	int ArmorAmount() const;			// amount of armor points
+
 	void Save( TiXmlElement* doc ) const;
 	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
 

@@ -272,7 +272,7 @@ Scene* Game::CreateScene( int id, void* data )
 	Scene* scene = 0;
 	switch ( id ) {
 		case BATTLE_SCENE:		scene = new BattleScene( this );						break;
-		case CHARACTER_SCENE:	scene = new CharacterScene( this, (Unit*)data );		break;
+		case CHARACTER_SCENE:	scene = new CharacterScene( this, (CharacterSceneInput*)data );		break;
 		case INTRO_SCENE:		scene = new TacticalIntroScene( this );					break;
 		case END_SCENE:			scene = new TacticalEndScene( this, (const TacticalEndSceneData*) data );					break;
 		default:

@@ -129,6 +129,15 @@ const Item* Inventory::SecondaryWeapon() const
 }
 
 
+int Inventory::ArmorAmount() const
+{
+	if ( slots[ARMOR_SLOT].IsSomething() ) {
+		GLASSERT( slots[ARMOR_SLOT].IsArmor() );
+		return slots[ARMOR_SLOT].IsArmor()->amount;
+	}
+	return 0;
+}
+
 int Inventory::GetDeco( int s0 ) const
 {
 	int deco = DECO_NONE;

@@ -561,6 +561,7 @@ void Engine::SetPerspective()
 	}
 	else {
 		float ratio = (float)(screenport.ScreenHeight()) / (float)(screenport.ScreenWidth());
+		// Correct ratio, but the screen may be more narrow.
 		frustumRight = tan(theta) * frustumNear;
 		frustumTop   = ratio * tan(theta) * frustumNear;
 		frustumLeft = -frustumRight;
@@ -655,11 +656,14 @@ void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray,
 	
 	Vector3F dir = p1 - p0;
 
-	ray->origin = p0;
-	ray->direction = dir;
-
-	float t;
-	IntersectLinePlane( p0, p1, plane, out, &t );
+	if ( ray ) {
+		ray->origin = p0;
+		ray->direction = dir;
+	}
+	if ( out ) {
+		float t;
+		IntersectLinePlane( p0, p1, plane, out, &t );
+	}
 }
 
 

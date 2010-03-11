@@ -13,9 +13,14 @@ const int BUTY = 60;
 
 
 
-CharacterScene::CharacterScene( Game* _game, Unit* unit ) 
+CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input ) 
 	: Scene( _game )
 {
+	unit = input->unit;
+	canChangeArmor = input->canChangeArmor;
+	delete input;
+	input = 0;
+
 	engine = &_game->engine;
 	description = 0;
 
@@ -233,8 +238,13 @@ void CharacterScene::InventoryToStorage( int slot )
 
 	if ( item.IsSomething() ) {
 		description = item.GetItemDef()->desc;
-		storage->AddItem( item );
-		inv->RemoveItem( slot );
+		if ( item.IsArmor() && !canChangeArmor ) {
+			// do nothing.
+		}
+		else {
+			storage->AddItem( item );
+			inv->RemoveItem( slot );
+		}
 	}
 }
 
@@ -248,10 +258,17 @@ void CharacterScene::StorageToInventory( const ItemDef* itemDef )
 
 		Item item;
 		storage->RemoveItem( itemDef, &item );
-		Inventory* inv = unit->GetInventory();
-		if ( inv->AddItem( item ) < 0 ) {
-			// Couldn't add to inventory. Return to storage.
+
+		if ( item.IsArmor() && !canChangeArmor ) {
+			// put it back
 			storage->AddItem( item );
+		}
+		else {
+			Inventory* inv = unit->GetInventory();
+			if ( inv->AddItem( item ) < 0 ) {
+				// Couldn't add to inventory. Return to storage.
+				storage->AddItem( item );
+			}
 		}
 	}
 }

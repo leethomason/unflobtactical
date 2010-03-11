@@ -11,10 +11,16 @@
 class UIButtonBox;
 class Texture;
 
+struct CharacterSceneInput
+{
+	Unit* unit;
+	bool  canChangeArmor;
+};
+
 class CharacterScene : public Scene
 {
 public:
-	CharacterScene( Game* _game, Unit* unit );
+	CharacterScene( Game* _game, CharacterSceneInput* unit );
 	virtual ~CharacterScene();
 
 	// UI
@@ -61,6 +67,7 @@ protected:
 	Storage* storage;
 	Unit* unit;
 	Camera savedCamera;
+	bool canChangeArmor;
 };
 
 

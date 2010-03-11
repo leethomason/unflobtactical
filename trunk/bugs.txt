@@ -1,8 +1,5 @@
 
 Issues:
-- AI: some random scout motion
-- AI: guard behavior
-- Armor. Affects hp. Can't change in tactical view.
 - center on hit unit
 - Pinching doesn't feel right
 - tap accuracy
@@ -11,9 +8,9 @@ Issues:
 - map generation
 - different maps
 - tutorial notes
-- new turn generation
 - handle too many particles consistently
 - Sounds
+- End game at any point (instead of just on terran end-turn)
 - Gameplay: doors are death traps if guarded...blow up doors?
 - fire generates light
 - Art: fix alien doors
@@ -21,16 +18,16 @@ Issues:
 - Art: color scheme 2.0
 - Art: better alien models
 - Art: missing weapon models
-- unconscious
 - proportional font
 - mission types: landing
 - mission types: crash
 - mission types: terror
 - mission types: big ufos
 - mission types: base
-- performance: AI/Alien turn pauses
 
 TBD:
+- performance: AI/Alien turn pauses
+- unconscious
 - eject shells
 - Center engine view on clip, not full screen
 - Reconsider when reaction fire occurs. And probability.
@@ -38,6 +35,9 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED [test #2]
+- AI: guard behavior
+- Armor. Affects hp. Can't change in tactical view.
+- AI: some random scout motion
 - rework low ammo weapons, fix test game
 - explosion not causing FoW update ???
 - Couldn't figure out crosshair: UI wasn't clear (rely on help)

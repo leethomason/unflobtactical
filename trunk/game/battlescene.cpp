@@ -1,4 +1,5 @@
 #include "battlescene.h"
+#include "characterscene.h"
 #include "game.h"
 #include "cgame.h"
 
@@ -14,6 +15,7 @@
 #include "../grinliz/glfixed.h"
 #include "../micropather/micropather.h"
 #include "../grinliz/glstringutil.h"
+#include "../grinliz/glgeometry.h"
 
 #include "../tinyxml/tinyxml.h"
 
@@ -445,7 +447,37 @@ void BattleScene::TestHitTesting()
 	*/
 }
 
-	
+
+int BattleScene::CenterRectIntersection(	const Vector2I& r,
+											const Rectangle2I& rect,
+											Vector2I* out )
+{
+	Vector2F center = { (float)(rect.min.x+rect.max.x)*0.5f, (float)(rect.min.y+rect.max.y)*0.5f };
+	Vector2F rf = { (float)r.x, (float)r.y };
+	Vector2F outf;
+
+	for( int e=0; e<4; ++e ) {
+		Vector2I p0, p1;
+		rect.Edge( e, &p1, &p0 );
+		Vector2F p0f = { (float)p0.x, (float)p0.y };
+		Vector2F p1f = { (float)p1.x, (float)p1.y };
+
+		float t0, t1;
+		int result = IntersectLineLine( center, rf, 
+										p0f, p1f, 
+										&outf, &t0, &t1 );
+		if (    result == grinliz::INTERSECT
+			 && t0 >= 0 && t0 <= 1 && t1 >= 0 && t1 <= 1 ) 
+		{
+			out->Set( LRintf( outf.x ), LRintf( outf.y ) );
+			return grinliz::INTERSECT;
+		}
+	}
+	GLASSERT( 0 );
+	return grinliz::REJECT;
+}
+
+
 void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 {
 	TestHitTesting();
@@ -518,25 +550,8 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 				Rectangle2I inset = uiBounds;
 				const int EPS = 10;
 				inset.Outset( -EPS );
-				Vector2F intersection = { 0, 0 };
-
-				for( int e=0; e<4; ++e ) {
-					Vector2I p0, p1;
-					inset.Edge( e, &p1, &p0 );
-					Vector2F p0f = { (float)p0.x, (float)p0.y };
-					Vector2F p1f = { (float)p1.x, (float)p1.y };
-					Vector2F centerf = { (float)center.x, (float)center.y };
-					Vector2F rf = { (float)r.x, (float)r.y };
-
-					float t0, t1;
-					int result = IntersectLineLine( centerf, rf, 
-													p0f, p1f, 
-													&intersection, &t0, &t1 );
-					if (    result == grinliz::INTERSECT
-						 && t0 >= 0 && t0 <= 1 && t1 >= 0 && t1 <= 1 ) {
-						break;
-					}
-				}
+				Vector2I intersection = { 0, 0 };
+				CenterRectIntersection( r, inset, &intersection );
 
 				targetArrow[i-ALIEN_UNITS_START]->SetCenter( (int)intersection.x, (int)intersection.y );
 				float angle = atan2( (float)(r.y-center.y), (float)(r.x-center.x) );
@@ -826,16 +841,37 @@ void BattleScene::SetFireWidget()
 }
 
 
-void BattleScene::ScrollOnScreen( const Vector3F& pos )
+void BattleScene::PushScrollOnScreen( const Vector3F& pos )
 {
-	Vector2F r;
-	engine->WorldToScreen( pos, &r );
-	GLOUTPUT(( "screen: %.1f, %.1f\n", r.x, r.y ));
+	/*
+		Centering is straightforward but not a great experience. Really want to scroll
+		in to the nearest point. Do this by computing the desired point, offset it back,
+		and add the difference.
+	*/
+	Vector2I r;
+	engine->WorldToUI( pos, &r );
+	//GLOUTPUT(( "screen: %.1f, %.1f\n", r.x, r.y ));
 
 	const Screenport& port = engine->GetScreenport();
-	if (    r.x < 0.0f || r.x > port.ScreenWidth() 
-		 || r.y < 0.0f || r.y > port.ScreenHeight() ) 
+	Rectangle2I uiBounds;
+	engine->UIBounds( &uiBounds );
+	Rectangle2I inset = uiBounds;
+	inset.Outset( -20 );
+	Vector2I center = { (uiBounds.min.x+uiBounds.max.x)/2, (uiBounds.min.y+uiBounds.max.y)/2 };
+
+	if ( !inset.Contains( r ) ) 
 	{
+		Vector2I intersection;
+		CenterRectIntersection( r, inset, &intersection );
+		Vector2I newCenter = center + (r-intersection);
+		//Vector2I newCenter = r;
+
+		Vector3F pos;
+		Matrix4 mvpi;
+
+		engine->CalcModelViewProjectionInverse( &mvpi );
+		engine->RayFromScreenToYPlane( newCenter.x, newCenter.y, mvpi, 0, &pos );
+
 		// Scroll
 		GLOUTPUT(( "Scroll!\n" ));
 		Vector3F dest;
@@ -1081,7 +1117,7 @@ bool BattleScene::ProcessAI()
 
 				++count;
 				int flags = (count&1) ? AI::AI_WANDER : 0;	// half wander (starting with 1st)
-
+				flags |= ( units[i].AI() == Unit::AI_GUARD ) ? AI::AI_GUARD : 0;
 				AI::AIAction aiAction;
 
 				bool done = aiArr[ALIEN_TEAM]->Think( &units[i], units, m_targets, flags, engine->GetMap(), &aiAction );
@@ -1754,7 +1790,10 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 */
 			case BTN_CHAR_SCREEN:
 				if ( actionStack.Empty() && SelectedSoldierUnit() ) {
-					game->PushScene( Game::CHARACTER_SCENE, SelectedSoldierUnit() );
+					CharacterSceneInput* input = new CharacterSceneInput();
+					input->unit = SelectedSoldierUnit();
+					input->canChangeArmor = false;
+					game->PushScene( Game::CHARACTER_SCENE, input );
 				}
 				break;
 
@@ -1784,7 +1823,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 					while( i != index ) {
 						if ( units[i].IsAlive() && !units[i].IsUserDone() ) {
 							SetSelection( &units[i] );
-							ScrollOnScreen( units[i].GetModel()->Pos() );
+							PushScrollOnScreen( units[i].GetModel()->Pos() );
 							break;
 						}
 						++i;

@@ -197,7 +197,7 @@ struct Rectangle2
 	}
 
 	/// Query the edge of the rectangle. The edges are ordered: bottom, right, top, left.
-	void Edge( int i, Vector2< T >* head, Vector2< T >* tail )
+	void Edge( int i, Vector2< T >* head, Vector2< T >* tail ) const
 	{	
 		switch ( i ) {
 			case 0:		tail->Set( min.x, min.y );	head->Set( max.x, min.y );	break;
