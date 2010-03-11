@@ -11,7 +11,7 @@
 
 using namespace grinliz;
 
-#if 1
+#if 0
 	#define AILOG GLOUTPUT
 #else
 	#define AILOG( x )	{}
@@ -361,6 +361,15 @@ bool WarriorAI::Think(	const Unit* theUnit,
 					// The older the data, the worse the score.
 					const float NORMAL_TU = (float)(MIN_TU + MAX_TU) * 0.5f;
 					float score = len + (float)(m_lkp[i].turns)*NORMAL_TU;
+
+					// Guards only move on what they can currently see
+					// so they don't go chasing things.
+					if ( flags & AI_GUARD ) {
+						if ( !targets.CanSee( theUnit, &units[i] ) ) {
+							//GLOUTPUT(( "--target %d can't see %d\n", theUnit-units, i ));
+							score = FLT_MAX;
+						}
+					}
 					
 					if ( score < bestGolfScore ) {
 						bestGolfScore = score;
@@ -404,6 +413,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 		}
 	}
 
+	// -------- Wander --------- //
 	// If the aliens don't see anything, they just stand around. That's okay, except it's weird
 	// that they completely skip their turn. So if they are set to wander, then move a space randomly.
 	if (    (flags & AI_WANDER ) 

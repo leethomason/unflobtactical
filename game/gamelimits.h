@@ -47,6 +47,8 @@ const int	TRAIT_TERRAN_LOW	= 15;
 const int	TRAIT_TERRAN_HIGH	= 45;		// 30 ave
 const int	TRAIT_RANK_BONUS	= 8;		// how much a trait increases per rank
 const int	NUM_RANKS			= 5;		// 0-4
+const int	ARMOR_AMOUNT		= 15;
+const int	NUM_ARMOR			= 3;
 
 const float STANDARD_TARGET_H			= 2.0f;		// roughly meters
 const float STANDARD_TARGET_W			= 0.5f;

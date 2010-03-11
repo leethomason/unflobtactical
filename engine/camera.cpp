@@ -58,7 +58,7 @@ void Camera::DrawCamera()
 {
 	CalcWorldXForm();
 
-	Matrix4 m, view;
+	Matrix4 m, view, t;
 	worldXForm.Invert( &m );
 
 	view.SetZRotation( (float)(viewRotation)*90.0f );

@@ -153,6 +153,7 @@ class ArmorItemDef : public ItemDef
 {
 public:
 	virtual const ArmorItemDef* IsArmor() const { return this; }
+	int amount;
 };
 
 

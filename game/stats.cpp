@@ -20,7 +20,10 @@ void Stats::CalcBaselines()
 	int levDEX = Clamp( DEX() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );
 	int levPSY = Clamp( PSY() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );
 
-	hp = totalHP =				Clamp( levSTR + armor, 1, TRAIT_MAX );
+	GLASSERT( armor >= 0 && armor <= ARMOR_AMOUNT*NUM_ARMOR );
+	hp = totalHP =	Interpolate(	0, 0,
+									TRAIT_MAX+ARMOR_AMOUNT*NUM_ARMOR, TRAIT_MAX,
+									levSTR + armor );
 
 	tu = totalTU = Interpolate(	0.0f,						(float)MIN_TU,
 								(float)TRAIT_MAX,			(float)MAX_TU,
@@ -65,6 +68,7 @@ void Stats::Load( const TiXmlElement* parent )
 		ele->QueryValueAttribute( "rank", &rank );
 		ele->QueryValueAttribute( "armor", &armor );
 		CalcBaselines();
+
 		ele->QueryValueAttribute( "hp", &hp );
 		ele->QueryValueAttribute( "tu", &tu );
 	}

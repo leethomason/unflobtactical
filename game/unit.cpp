@@ -315,6 +315,14 @@ void Unit::UpdateInventory()
 			weapon->SetFlag( Model::MODEL_MAP_TRANSPARENT );
 		}
 		UpdateWeapon();
+
+		// FIXME: delicate side effect. If armor changes it re-calcs the
+		// hp and heals the unit. Never set the armor in battle.
+		int armorAmount = inventory.ArmorAmount();
+		if ( armorAmount != stats.Armor() ) {
+			GLASSERT( 0 );	// should fire in screens before battle...
+			stats.SetArmor( armorAmount );
+		}
 	}
 }
 
@@ -536,7 +544,8 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 
 	// Give ourselves a random body based on the element address. 
 	// Hard to get good randomness here (gender bit keeps being
-	// consistent.)
+	// consistent.) A combination of the element address and 'this'
+	// seems to work pretty well.
 	UPTR key[2] = { (UPTR)ele, (UPTR)this };
 	Random random( Random::Hash( key, sizeof(UPTR)*2 ));
 	random.Rand();
@@ -562,9 +571,11 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 		ele->QueryValueAttribute( "modelZ", &pos.z );
 		ele->QueryValueAttribute( "yRot", &rot );
 
-		GenStats( team, type, body, &stats );		// defauts if not provided
+		GenStats( team, type, body, &stats );		// defaults if not provided
 		stats.Load( ele );
 		inventory.Load( ele, engine, game );
+		// connect armor to the stats:
+		stats.SetArmor( inventory.ArmorAmount() );
 
 		Init( engine, game, team, a_status, type, body );
 		if ( StrEqual( ele->Attribute( "ai" ), "guard" ) ) {

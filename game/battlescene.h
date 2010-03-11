@@ -164,6 +164,8 @@ private:
 	bool PushShootAction(	Unit* src, const grinliz::Vector3F& dst, 
 							int select, int type, bool useError, bool clearMoveIfShoot );
 
+	void PushScrollOnScreen( const grinliz::Vector3F& v );
+
 	// Process the current action. Returns flags that describe what happened.
 	enum { 
 		STEP_COMPLETE			= 0x01,		// the step of a unit on a path completed. The unit is centered on the map grid
@@ -176,12 +178,13 @@ private:
 
 	bool EndCondition( TacticalEndSceneData* data );
 
-	void ScrollOnScreen( const grinliz::Vector3F& v );
-
 	void StopForNewTeamTarget();
 	void DoReactionFire();
 	void DrawFireWidget();
 	void DrawHPBars();
+	int CenterRectIntersection( const grinliz::Vector2I& p,
+								const grinliz::Rectangle2I& rect,
+								grinliz::Vector2I* out );
 
 	std::vector< grinliz::Vector2<S16> >	pathCache;
 

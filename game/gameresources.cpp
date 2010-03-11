@@ -660,6 +660,7 @@ void Game::LoadItemResources()
 						armor[i].deco,
 						armor[i].resName ? ModelResourceManager::Instance()->GetModelResource( items[i].resName ) : 0,
 						nItemDef );
+		item->amount = ARMOR_AMOUNT*i;
 		itemDefArr[nItemDef++] = item;
 	}
 
@@ -676,7 +677,6 @@ void Game::LoadItemResources()
 		stats.SetDEX( (TRAIT_TERRAN_HIGH + TRAIT_TERRAN_LOW)/2 );
 		stats.SetPSY( (TRAIT_TERRAN_HIGH + TRAIT_TERRAN_LOW)/2 );
 		stats.SetRank( 2 );
-		stats.CalcBaselines();
 
 		const float range[] = { 6.0f, 3.0f, 12.0f };
 
@@ -684,11 +684,9 @@ void Game::LoadItemResources()
 			DumpWeaponInfo( fp, range[r], stats, 0 );
 		}
 		stats.SetRank( 0 );
-		stats.CalcBaselines();
 		DumpWeaponInfo( fp, 6.0f, stats, 5 );
 
 		stats.SetRank( 4 );
-		stats.CalcBaselines();
 		DumpWeaponInfo( fp, 6.0f, stats, 5 );
 
 		fprintf( fp, "\nRandom 32 bit ints:\n" );

@@ -29,12 +29,11 @@ class Stats
 public:
 	Stats() : hp(1), totalHP(1), tu((float)MIN_TU), totalTU((float)MIN_TU), _STR(1), _DEX(1), _PSY(1), rank( 0 ), armor( 0 ) {}
 
-	void SetSTR( int value )			{ _STR = value; }
-	void SetDEX( int value )			{ _DEX = value; }
-	void SetPSY( int value )			{ _PSY = value; }
-	void SetRank( int value )			{ rank = value; }
-	void SetArmor( int value )			{ armor = value; }
-	void CalcBaselines();
+	void SetSTR( int value )			{ _STR = value; CalcBaselines(); }
+	void SetDEX( int value )			{ _DEX = value; CalcBaselines(); }
+	void SetPSY( int value )			{ _PSY = value; CalcBaselines(); }
+	void SetRank( int value )			{ rank = value; CalcBaselines(); }
+	void SetArmor( int value )			{ armor = value; CalcBaselines(); }
 
 	static int GenStat( grinliz::Random* rand, int min, int max );
 
@@ -77,6 +76,8 @@ public:
 	void Load( const TiXmlElement* doc );
 
 private:
+	void CalcBaselines();
+
 	// primary:
 	int _STR, _DEX, _PSY;
 	int rank;
