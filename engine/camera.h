@@ -55,6 +55,7 @@ public:
 
 	// Draws the camera and submits the glMultMatrix to OpenGL
 	void DrawCamera();
+	const grinliz::Matrix4& ModelMatrix()			{ return modelMatrix; }
 								
 	enum {
 		NORMAL,
@@ -66,10 +67,6 @@ public:
 	// normal(0), up(1), right(2)
 	const grinliz::Vector3F* EyeDir3()				{ if ( !valid ) CalcWorldXForm();
 													  return eyeDir3; }
-
-	// Saves camera position but not view rotation (which comes from the device.)
-	//void Save( UFOStream* ) const;
-	//void Load( UFOStream* );
 
 private:
 	// Position of the camera in the world - no view rotation, no inverse.
@@ -85,7 +82,7 @@ private:
 	bool valid;
 	grinliz::Vector4F eyeDir[3];
 	grinliz::Vector3F eyeDir3[3];
-	grinliz::Matrix4 worldXForm;
+	grinliz::Matrix4 worldXForm, modelMatrix;
 };
 
 

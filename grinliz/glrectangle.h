@@ -208,6 +208,19 @@ struct Rectangle2
 		}
 	}
 
+	/// Query the corners of the rectangle.
+	void Corner( int i, Vector2< T >* c ) const
+	{	
+		switch ( i ) {
+			case 0:		c->Set( min.x, min.y );	break;
+			case 1:		c->Set( max.x, min.y );	break;
+			case 2:		c->Set( max.x, max.y );	break;
+			case 3:		c->Set( min.x, max.y );	break;
+			default:	GLASSERT( 0 );
+		}
+	}
+
+
 	void Outset( T dist ) {
 		min.x -= dist;
 		min.y -= dist;

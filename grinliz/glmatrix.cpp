@@ -197,6 +197,60 @@ void Matrix4::SetAxisAngle( const Vector3F& axis, float angle )
 }
 
 
+void Matrix4::SetFrustum( float left, float right, float bottom, float top, float near, float far )
+{
+	SetIdentity();
+
+	if ( near <= 0.0 || far <= 0.0 || near == far || left == right || top == bottom)
+	{
+		GLASSERT( 0 );
+	}
+	else {
+		float x = (2.0f*near) / (right-left);
+		float y = (2.0f*near) / (top-bottom);
+		float a = (right+left) / (right-left);
+		float b = (top+bottom) / (top-bottom);
+		float c = -(far+near) / ( far-near);
+		float d = -(2.0f*far*near) / (far-near);		
+
+		Set( 0, 0, x );		Set( 0, 1, 0 );		Set( 0, 2, a );		Set( 0, 3, 0 );
+		Set( 1, 0, 0 );		Set( 1, 1, y );		Set( 1, 2, b );		Set( 1, 3, 0 );
+		Set( 2, 0, 0 );		Set( 2, 1, 0 );		Set( 2, 2, c );		Set( 2, 3, d );
+		Set( 3, 0, 0 );		Set( 3, 1, 0 );		Set( 3, 2, -1.0f );	Set( 3, 3, 0 );
+	}
+}
+
+
+void Matrix4::SetOrtho( float left, float right, float bottom, float top, float zNear, float zFar )
+{
+	SetIdentity();
+	if ( ( right != left ) && ( zFar != zNear ) && ( top != bottom ) ) { 
+		Set( 0, 0, 2.0f / (right-left ) );	
+		Set( 0, 1, 0 );						
+		Set( 0, 2, 0 );		
+		Set( 0, 3, -(right+left) / (right-left) );
+
+		Set( 1, 0, 0 );						
+		Set( 1, 1, 2.0f / (top-bottom) );	
+		Set( 1, 2, 0 );		
+		Set( 1, 3, -(top+bottom) / (top-bottom) );
+		
+		Set( 2, 0, 0 );						
+		Set( 2, 1, 0 );						
+		Set( 2, 2, -2.0f / (zFar-zNear) );	
+		Set( 2, 3, -(zFar+zNear) / (zFar-zNear) );
+
+		Set( 3, 0, 0 );
+		Set( 3, 1, 0 );
+		Set( 3, 2, 0 );
+		Set( 3, 3, 1 );
+	}
+	else {
+		GLASSERT( 0 );
+	}
+}
+
+
 bool Matrix4::IsRotation() const
 {
 	// Check the rows and columns:

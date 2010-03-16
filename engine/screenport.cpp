@@ -2,11 +2,13 @@
 #include "platformgl.h"
 #include "../grinliz/glrectangle.h"
 #include "../grinliz/glutil.h"
+#include "../grinliz/glmatrix.h"
 
 using namespace grinliz;
 
-void Screenport::PushUI() const
+void Screenport::PushUI()	
 {
+	savedProjection = projection;
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();					// save projection
 	glLoadIdentity();				// projection
@@ -15,16 +17,18 @@ void Screenport::PushUI() const
 	glPushMatrix();					// model
 	glLoadIdentity();				// model
 
-	glRotatef( 90.0f * (float)Rotation(), 0.0f, 0.0f, 1.0f );
+	//glRotatef( 90.0f * (float)Rotation(), 0.0f, 0.0f, 1.0f );
+	Matrix4 rotate;
+	rotate.SetZRotation( 90.0f * (float)Rotation() );
 
-#ifdef USING_ES
-	glOrthof( 0.f, (float)ViewWidth(), 0.f, (float)ViewHeight(), -100.f, 100.f );
-#else
-	glOrtho( 0, UIWidth(), 0, UIHeight(), -100, 100 );
-#endif
+	Matrix4 ortho;
+	ortho.SetOrtho( 0, (float)UIWidth(), 0, (float)UIHeight(), -100, 100 );
+	projection = rotate*ortho;
+
+	glMultMatrixf( projection.x );
 }
 
-void Screenport::PopUI() const
+void Screenport::PopUI()
 {
 
 	glMatrixMode(GL_MODELVIEW);
@@ -32,6 +36,19 @@ void Screenport::PopUI() const
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();					// projection
 	glMatrixMode(GL_MODELVIEW);
+
+	projection = savedProjection;
+}
+
+
+void Screenport::SetPerspective( float frustumLeft, float frustumRight, float frustumBottom, float frustumTop, float frustumNear, float frustumFar )
+{
+	glMatrixMode(GL_PROJECTION);
+	// In normalized coordinates.
+	projection.SetFrustum( frustumLeft, frustumRight, frustumBottom, frustumTop, frustumNear, frustumFar );
+	glLoadMatrixf( projection.x );
+	
+	glMatrixMode(GL_MODELVIEW);	
 }
 
 
@@ -96,3 +113,24 @@ void Screenport::UIToScissor( int x, int y, int w, int h, grinliz::Rectangle2I* 
 	};
 }
 
+
+
+void Screenport::SetClipping( const grinliz::Rectangle2I* uiClip )
+{
+	if ( uiClip ) {
+		Rectangle2I scissor;
+		UIToScissor( uiClip->min.x, uiClip->min.y, uiClip->Width(), uiClip->Height(), &scissor );
+
+
+		glEnable( GL_SCISSOR_TEST );
+		glScissor( scissor.min.x, scissor.min.y, scissor.max.x, scissor.max.y );
+		//glViewport( scissor.min.x, scissor.min.y, scissor.max.x, scissor.max.y );
+	}
+	else {
+		if ( viewport[2] == 0 ) {
+			glGetIntegerv( GL_VIEWPORT, (GLint*)viewport );
+		}
+		glDisable( GL_SCISSOR_TEST );
+		//glViewport( viewport[0], viewport[1], viewport[2], viewport[3] );
+	}
+}
