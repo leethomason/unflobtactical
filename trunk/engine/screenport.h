@@ -3,6 +3,7 @@
 
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
+#include "../grinliz/glmatrix.h"
 
 namespace grinliz {
 	struct Rectangle2I;
@@ -80,22 +81,32 @@ public:
 	int ScreenHeight() const	{ return screenHeight; }
 
 	// UI: origin in lower left, oriented with device.
-	void PushUI() const;
-	void PopUI() const;
+	void PushUI();
+	void PopUI();
+	void SetPerspective( float frustumLeft, float frustumRight, float frustumBottom, float frustumTop, float frustumNear, float frustumFar );
+
+	const grinliz::Matrix4& Projection()	{ return projection; }
 
 	void ViewToUI( int vX, int vY, int* uiX, int* uiY ) const;
 	int UIWidth() const			{ return (rotation&1) ? screenHeight : screenWidth; }
 	int UIHeight() const		{ return (rotation&1) ? screenWidth : screenHeight; }
+
+	// Set the viewport and clipping - null sets to full screen.
+	void SetClipping( const grinliz::Rectangle2I* uiClip );
 
 	// Convert from UI coordinates to scissor coordinates. Does the 
 	// UI to pixel (accounting for viewport) back xform.
 	void UIToScissor( int x, int y, int w, int h, grinliz::Rectangle2I* clip ) const;
 
 private:
+
 	int rotation;			// 1
 	int screenWidth;		// 480 
 	int screenHeight;		// 320
 	int viewport[4];		// from the gl call
+
+	grinliz::Matrix4 projection;
+	grinliz::Matrix4 savedProjection;
 };
 
 #endif	// UFOATTACK_SCREENPORT_INCLUDED

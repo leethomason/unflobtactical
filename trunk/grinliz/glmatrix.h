@@ -60,6 +60,10 @@ class Matrix4
 	void SetIdentity()		{	x[0] = x[5] = x[10] = x[15] = 1.0f;
 								x[1] = x[2] = x[3] = x[4] = x[6] = x[7] = x[8] = x[9] = x[11] = x[12] = x[13] = x[14] = 0.0f; 
 							}
+
+	void Set( int row, int col, float v )		{	GLASSERT( row >= 0 && row < 4 && col >= 0 && col < 4 );
+													x[INDEX(row,col)] = v; 
+												}
 	
 	/// Set the translation terms
 	void SetTranslation( float _x, float _y, float _z )
@@ -96,6 +100,11 @@ class Matrix4
 
 	/// Set the matrix from an axis-angle representation
 	void SetAxisAngle( const Vector3F& axis, float angle );
+
+	/// Set this to be an (OpenGL) frustum perspective matrix.
+	void SetFrustum( float left, float right, float bottom, float top, float near, float far );
+	/// Set this to be an (OpenGL) ortho perspective matrix.
+	void SetOrtho( float left, float right, float bottom, float top, float zNear, float zFar );
 
 	void StripTrans()		{	x[12] = x[13] = x[14] = 0.0f;
 								x[15] = 1.0f;

@@ -176,7 +176,6 @@ private:
 
 	grinliz::Vector3F lightDirection;
 	grinliz::Rectangle2I scissorUI;		// scissor coordinates in UI space (cached)
-	grinliz::Rectangle2I scissor;		// view (pixel) coordinates
 };
 
 #endif // UFOATTACK_ENGINE_INCLUDED

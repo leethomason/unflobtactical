@@ -139,7 +139,7 @@ Engine::Engine( const Screenport& port, const EngineData& _engineData )
 	lightDirection.Set( 0.7f, 3.0f, 1.4f );
 	lightDirection.Normalize();
 	depthFunc = 0;
-	scissor.SetInvalid();
+	scissorUI.SetInvalid();
 }
 
 
@@ -158,7 +158,7 @@ Engine::~Engine()
 
 void Engine::UIBounds( grinliz::Rectangle2I* bounds )
 {
-	if ( scissor.IsValid() ) {
+	if ( scissorUI.IsValid() ) {
 		*bounds = scissorUI;
 	}
 	else {
@@ -169,12 +169,9 @@ void Engine::UIBounds( grinliz::Rectangle2I* bounds )
 
 void Engine::SetClip( const Rectangle2I* uiClip )
 {
-	scissor.SetInvalid();
+	scissorUI.SetInvalid();
 	if ( uiClip ) {
-		scissorUI = *uiClip;	// cache for query later
-		screenport.UIToScissor( uiClip->min.x, uiClip->min.y,
-								uiClip->Width(), uiClip->Height(), 
-								&scissor );
+		scissorUI = *uiClip;
 	}
 }
 
@@ -259,11 +256,10 @@ void Engine::PushShadowMatrix()
 
 void Engine::Draw()
 {
-	if ( scissor.IsValid() ) {
-		// scissor off a chunk, but don't move the center camera.
-		// FIXME: should the center camera be moved? And the frustum adjusted?
-		glEnable( GL_SCISSOR_TEST );
-		glScissor( scissor.min.x, scissor.min.y, scissor.max.x, scissor.max.y );
+	if ( scissorUI.IsValid() ) {
+		//Rectangle2I t;
+		//t.Set( 100, 100, 200, 200 );
+		screenport.SetClipping( &scissorUI );
 	}
 
 	// -------- Camera & Frustum -------- //
@@ -475,8 +471,8 @@ void Engine::Draw()
 	}
 #endif
 */
-	if ( scissor.IsValid() ) {
-		glDisable( GL_SCISSOR_TEST );
+	if ( scissorUI.IsValid() ) {
+		screenport.SetClipping( 0 );
 	}
 }
 
@@ -567,12 +563,7 @@ void Engine::SetPerspective()
 		frustumLeft = -frustumRight;
 		frustumBottom = -frustumTop;
 	}
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	// In normalized coordinates.
-	glFrustumfX( frustumLeft, frustumRight, frustumBottom, frustumTop, frustumNear, frustumFar );
-	
-	glMatrixMode(GL_MODELVIEW);
+	screenport.SetPerspective( frustumLeft, frustumRight, frustumBottom, frustumTop, frustumNear, frustumFar );
 }
 
 

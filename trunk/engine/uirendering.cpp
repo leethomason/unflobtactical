@@ -786,7 +786,7 @@ void UIButtonGroup::CalcButtons()
 }
 
 
-/*static*/ void UIRendering::DrawQuad(	const Screenport& screenport,
+/*static*/ /*void UIRendering::DrawQuad(	const Screenport& screenport,
 										const grinliz::Rectangle2I& pos, 
 										const grinliz::Rectangle2F& uv,
 										const Texture* texture )
@@ -835,7 +835,7 @@ void UIButtonGroup::CalcButtons()
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
 }
-
+*/
 
 /*static*/ void UIRendering::GetDecoUV( int decoID, grinliz::Rectangle2F* uv )
 {

@@ -201,6 +201,7 @@ private:
 
 	void InitUnits();
 	void TestHitTesting();
+	void TestCoordinates();
 
 	Unit* UnitFromModel( Model* m );
 	Unit* GetUnitFromTile( int x, int z );

@@ -343,10 +343,10 @@ protected:
 class UIRendering
 {
 public:
-	static void DrawQuad(	const Screenport& screenport,
-							const grinliz::Rectangle2I& location, 
-							const grinliz::Rectangle2F& textureUV,
-							const Texture* texture );
+//	static void DrawQuad(	const Screenport& screenport,
+//							const grinliz::Rectangle2I& location, 
+//							const grinliz::Rectangle2F& textureUV,
+//							const Texture* texture );
 	static void GetDecoUV( int deco, grinliz::Rectangle2F* uv );
 };
 

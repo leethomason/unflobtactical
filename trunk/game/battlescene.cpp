@@ -599,6 +599,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 				NextTurn();
 		}
 	}
+	TestCoordinates();
 }
 
 
@@ -837,6 +838,30 @@ void BattleScene::SetFireWidget()
 		}
 		fireWidget->SetDeco( index+6, deco );
 		fireWidget->SetEnabled( index+6, enable );
+	}
+}
+
+
+void BattleScene::TestCoordinates()
+{
+	const Screenport& port = engine->GetScreenport();
+	Rectangle2I uiBounds;
+	engine->UIBounds( &uiBounds );
+	Rectangle2I inset = uiBounds;
+	inset.Outset( 0 );
+
+	Matrix4 mvpi;
+	engine->CalcModelViewProjectionInverse( &mvpi );
+
+	for( int i=0; i<4; ++i ) {
+		Vector3F pos;
+		Vector2I corner;
+		uiBounds.Corner( i, &corner );
+		engine->RayFromScreenToYPlane( corner.x, corner.y, mvpi, 0, &pos );
+
+		Color4F c = { 0, 1, 1, 1 };
+		Color4F cv = { 0, 0, 0, 0 };
+		ParticleSystem::Instance()->EmitOnePoint( c, cv, pos, 100 );
 	}
 }
 

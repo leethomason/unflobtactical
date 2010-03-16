@@ -62,10 +62,9 @@ void Camera::DrawCamera()
 	worldXForm.Invert( &m );
 
 	view.SetZRotation( (float)(viewRotation)*90.0f );
-	//m = view * m;
 
-	glMultMatrixf( view.x );
-	glMultMatrixf( m.x );
+	modelMatrix = m * view;
+	glMultMatrixf( modelMatrix.x );
 }
 
 
@@ -84,26 +83,6 @@ void Camera::CalcEyeDir()
 		eyeDir3[i].z = eyeDir[i].z;
 	}
 }
-
-
-//void Camera::Save( UFOStream* s ) const
-//{
-	/*
-	s->WriteFloat( tilt );
-	s->WriteFloat( yRotation );
-	s->Write( posWC );
-	*/
-//}
-
-//void Camera::Load( UFOStream* s )
-//{
-	/*
-	tilt = s->ReadFloat();
-	yRotation  = s->ReadFloat();
-	s->Read( &posWC );
-	valid = false;
-	*/
-//}
 
 
 void Camera::Orbit( const Vector3F& _pole, float rotation )
