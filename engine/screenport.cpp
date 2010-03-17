@@ -9,23 +9,26 @@ using namespace grinliz;
 void Screenport::PushUI()	
 {
 	savedProjection = projection;
+	savedView = view;
+	
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();					// save projection
 	glLoadIdentity();				// projection
+	projection.SetIdentity();
 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();					// model
 	glLoadIdentity();				// model
 
-	//glRotatef( 90.0f * (float)Rotation(), 0.0f, 0.0f, 1.0f );
 	Matrix4 rotate;
 	rotate.SetZRotation( 90.0f * (float)Rotation() );
 
 	Matrix4 ortho;
 	ortho.SetOrtho( 0, (float)UIWidth(), 0, (float)UIHeight(), -100, 100 );
-	projection = rotate*ortho;
+	view = rotate*ortho;
 
-	glMultMatrixf( projection.x );
+	glMultMatrixf( view.x );
+	uiPushed = true;
 }
 
 void Screenport::PopUI()
@@ -38,11 +41,26 @@ void Screenport::PopUI()
 	glMatrixMode(GL_MODELVIEW);
 
 	projection = savedProjection;
+	view = savedView;
+	uiPushed = false;
+}
+
+
+void Screenport::SetView( const Matrix4& _view )
+{
+	GLASSERT( uiPushed == false );
+	view = _view;
+
+	glMatrixMode(GL_MODELVIEW);
+	// In normalized coordinates.
+	glLoadMatrixf( view.x );
 }
 
 
 void Screenport::SetPerspective( float frustumLeft, float frustumRight, float frustumBottom, float frustumTop, float frustumNear, float frustumFar )
 {
+	GLASSERT( uiPushed == false );
+
 	glMatrixMode(GL_PROJECTION);
 	// In normalized coordinates.
 	projection.SetFrustum( frustumLeft, frustumRight, frustumBottom, frustumTop, frustumNear, frustumFar );

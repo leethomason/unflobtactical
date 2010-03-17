@@ -54,7 +54,7 @@ void Camera::CalcWorldXForm()
 }
 
 
-void Camera::DrawCamera()
+const Matrix4& Camera::ViewMatrix()
 {
 	CalcWorldXForm();
 
@@ -63,8 +63,8 @@ void Camera::DrawCamera()
 
 	view.SetZRotation( (float)(viewRotation)*90.0f );
 
-	modelMatrix = m * view;
-	glMultMatrixf( modelMatrix.x );
+	viewMatrix = m * view;
+	return viewMatrix;
 }
 
 

@@ -53,9 +53,7 @@ public:
 	void SetPosWC( float x, float y, float z )		{ posWC.Set( x, y, z ); valid = false; }
 	void DeltaPosWC( float x, float y, float z )	{ posWC.x += x; posWC.y += y; posWC.z += z; valid = false; }
 
-	// Draws the camera and submits the glMultMatrix to OpenGL
-	void DrawCamera();
-	const grinliz::Matrix4& ModelMatrix()			{ return modelMatrix; }
+	const grinliz::Matrix4& ViewMatrix();
 								
 	enum {
 		NORMAL,
@@ -82,7 +80,7 @@ private:
 	bool valid;
 	grinliz::Vector4F eyeDir[3];
 	grinliz::Vector3F eyeDir3[3];
-	grinliz::Matrix4 worldXForm, modelMatrix;
+	grinliz::Matrix4 worldXForm, viewMatrix;
 };
 
 
