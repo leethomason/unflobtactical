@@ -220,15 +220,6 @@ void Engine::FreeModel( Model* model )
 }
 
 
-void Engine::DrawCamera()
-{
-	// ---- Model-View --- //
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	camera.DrawCamera();
-}
-
-
 void Engine::PushShadowMatrix()
 {
 	Matrix4 m;
@@ -263,7 +254,9 @@ void Engine::Draw()
 	}
 
 	// -------- Camera & Frustum -------- //
-	DrawCamera();
+	//DrawCamera();
+	screenport.SetView( camera.ViewMatrix() );
+
 	float bbRotation = camera.GetBillboardYRotation();
 	float shadowRotation = ToDegree( atan2f( lightDirection.x, lightDirection.z ) );
 //	glDisable( GL_LIGHTING );
@@ -592,10 +585,8 @@ bool Engine::UnProject(	const Vector3F& window,
 
 void Engine::WorldToScreen( const grinliz::Vector3F& p0, grinliz::Vector2F* view )
 {
-	Matrix4 modelView;
-	glGetFloatv( GL_MODELVIEW_MATRIX, &modelView.x[0] );
-	Matrix4 projection;
-	glGetFloatv( GL_PROJECTION_MATRIX, &projection.x[0] );
+	const Matrix4& modelView = screenport.ViewMatrix();
+	const Matrix4& projection = screenport.ProjectionMatrix();
 
 	Matrix4 mvp;
 	MultMatrix4( projection, modelView, &mvp );
@@ -618,10 +609,8 @@ void Engine::WorldToUI( const grinliz::Vector3F& p, grinliz::Vector2I* ui )
 
 void Engine::CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjectionInverse )
 {
-	Matrix4 modelView;
-	glGetFloatv( GL_MODELVIEW_MATRIX, &modelView.x[0] );
-	Matrix4 projection;
-	glGetFloatv( GL_PROJECTION_MATRIX, &projection.x[0] );
+	const Matrix4& modelView = screenport.ViewMatrix();
+	const Matrix4& projection = screenport.ProjectionMatrix();
 
 	Matrix4 mvp;
 	MultMatrix4( projection, modelView, &mvp );
@@ -705,10 +694,8 @@ void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
 
 void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
 {
-	Matrix4 projection;
-	glGetFloatv( GL_PROJECTION_MATRIX, projection.x );
-	Matrix4 modelView;
-	glGetFloatv( GL_MODELVIEW_MATRIX, modelView.x );
+	const Matrix4& modelView = screenport.ViewMatrix();
+	const Matrix4& projection = screenport.ProjectionMatrix();
 
 	// --------- Compute the view frustum ----------- //
 	// A strange and ill-documented algorithm from Real Time Rendering, 2nd ed, pg.613
