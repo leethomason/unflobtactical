@@ -167,14 +167,6 @@ void Engine::UIBounds( grinliz::Rectangle2I* bounds )
 }
 
 
-void Engine::SetClip( const Rectangle2I* uiClip )
-{
-	scissorUI.SetInvalid();
-	if ( uiClip ) {
-		scissorUI = *uiClip;
-	}
-}
-
 void Engine::MoveCameraHome()
 {
 	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)map->Height() + 5.0f );
@@ -248,9 +240,7 @@ void Engine::PushShadowMatrix()
 void Engine::Draw()
 {
 	if ( scissorUI.IsValid() ) {
-		//Rectangle2I t;
-		//t.Set( 100, 100, 200, 200 );
-		screenport.SetClipping( &scissorUI );
+		screenport.SetViewport( &scissorUI );
 	}
 
 	// -------- Camera & Frustum -------- //
@@ -465,7 +455,7 @@ void Engine::Draw()
 #endif
 */
 	if ( scissorUI.IsValid() ) {
-		screenport.SetClipping( 0 );
+		screenport.SetViewport( 0 );
 	}
 }
 
@@ -525,6 +515,15 @@ void Engine::LightGroundPlane( ShadowState shadows, float shadowAmount, Color4F*
 		light = 1.0f - 0.3f*shadowAmount;
 	}
 	outColor->Set( light, light, light, 1.0f );
+}
+
+
+void Engine::SetClip( const Rectangle2I* uiClip )
+{
+	scissorUI.SetInvalid();
+	if ( uiClip ) {
+		scissorUI = *uiClip;
+	}
 }
 
 
@@ -594,6 +593,8 @@ void Engine::WorldToScreen( const grinliz::Vector3F& p0, grinliz::Vector2F* view
 	p.Set( p0, 1 );
 
 	r = mvp * p;
+	// Normalize to view.
+
 	view->x = (r.x / r.w + 1.0f)*(float)screenport.ScreenWidth()*0.5f;;
 	view->y = (r.y / r.w + 1.0f)*(float)screenport.ScreenHeight()*0.5f;
 }

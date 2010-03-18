@@ -167,10 +167,11 @@ void BattleScene::Activate()
 {
 	const Screenport& port = engine->GetScreenport();
 	Rectangle2I r;
-	r.Set( 	menuImage->Width(), 
-			0, 
-			port.UIWidth(), 
-			port.UIHeight() );
+	//r.Set( 	menuImage->Width(), 
+	//		0, 
+	//		port.UIWidth(), 
+	//		port.UIHeight() );
+	r.Set( 100, 50, 300, 50+200*320/480 );	// FIXME: account for perspective when setting up the perspective xform and frustum
 	engine->SetClip( &r );
 }
 
@@ -2525,7 +2526,8 @@ void BattleScene::DrawHUD()
 	}
 	widgets->SetHighLight( BTN_TARGET, uiMode == UIM_TARGET_TILE ? true : false );
 
-	menuImage->Draw();
+	//menuImage->Draw(); // debugging: make sure clipping is working correctly
+	
 	widgets->Draw();
 	for( int i=0; i<MAX_ALIENS; ++i ) {
 		if ( targetArrowOn[i] ) {

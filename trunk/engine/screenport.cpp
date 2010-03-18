@@ -133,7 +133,7 @@ void Screenport::UIToScissor( int x, int y, int w, int h, grinliz::Rectangle2I* 
 
 
 
-void Screenport::SetClipping( const grinliz::Rectangle2I* uiClip )
+void Screenport::SetViewport( const grinliz::Rectangle2I* uiClip )
 {
 	if ( uiClip ) {
 		Rectangle2I scissor;
@@ -142,13 +142,13 @@ void Screenport::SetClipping( const grinliz::Rectangle2I* uiClip )
 
 		glEnable( GL_SCISSOR_TEST );
 		glScissor( scissor.min.x, scissor.min.y, scissor.max.x, scissor.max.y );
-		//glViewport( scissor.min.x, scissor.min.y, scissor.max.x, scissor.max.y );
+		glViewport( scissor.min.x, scissor.min.y, scissor.max.x, scissor.max.y );
 	}
 	else {
 		if ( viewport[2] == 0 ) {
 			glGetIntegerv( GL_VIEWPORT, (GLint*)viewport );
 		}
 		glDisable( GL_SCISSOR_TEST );
-		//glViewport( viewport[0], viewport[1], viewport[2], viewport[3] );
+		glViewport( viewport[0], viewport[1], viewport[2], viewport[3] );
 	}
 }

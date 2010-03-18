@@ -94,14 +94,15 @@ public:
 	int UIWidth() const			{ return (rotation&1) ? screenHeight : screenWidth; }
 	int UIHeight() const		{ return (rotation&1) ? screenWidth : screenHeight; }
 
-	// Set the viewport and clipping - null sets to full screen.
-	void SetClipping( const grinliz::Rectangle2I* uiClip );
+	// Set the viewport and clipping - null sets to full screen. Otherwis causes a render
+	// to a smaller window.
+	void SetViewport( const grinliz::Rectangle2I* uiClip );
+	void WorldToScreen( const grinliz::Vector3F& p0, grinliz::Vector2F* view );
 
+private:
 	// Convert from UI coordinates to scissor coordinates. Does the 
 	// UI to pixel (accounting for viewport) back xform.
 	void UIToScissor( int x, int y, int w, int h, grinliz::Rectangle2I* clip ) const;
-
-private:
 
 	int rotation;			// 1
 	int screenWidth;		// 480 
