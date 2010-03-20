@@ -84,7 +84,7 @@ private:
 	EngineData engineData;
 
 public:
-	Game( const Screenport& screenport, const char* savePath );
+	Game( int width, int height, int rotation, const char* savePath );
 	~Game();
 
 	void DoTick( U32 msec );
@@ -97,9 +97,6 @@ public:
 	
 	const ItemDef*  GetItemDef( const char* name );
 	ItemDef* const*	GetItemDefArr() const	{ return itemDefArr; }
-
-	Engine engine;
-	Surface surface;
 
 	// debugging / testing / mapmaker
 	void MouseMove( int x, int y );
@@ -137,6 +134,12 @@ public:
 	std::string		newGameXML;
 
 private:
+	Screenport screenport;
+public:
+	Engine engine;
+private:
+	Surface surface;
+
 	Scene* CreateScene( int id, void* data );
 	void PushPopScene();
 	bool scenePopQueued;
@@ -210,7 +213,6 @@ private:
 
 	int rotTestStart;
 	int rotTestCount;
-	Screenport screenport;
 	std::string savePath;
 	CDynArray< char > textResBuf;
 	

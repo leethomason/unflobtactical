@@ -112,7 +112,7 @@ int drawCalls = 0;			// ditto
 */
 
 
-Engine::Engine( const Screenport& port, const EngineData& _engineData ) 
+Engine::Engine( Screenport* port, const EngineData& _engineData ) 
 	:	AMBIENT( 0.3f ),
 		DIFFUSE( 0.7f ),
 		DIFFUSE_SHADOW( 0.3f ),
@@ -130,16 +130,16 @@ Engine::Engine( const Screenport& port, const EngineData& _engineData )
 	map = new Map( spaceTree );
 	renderQueue = new RenderQueue();
 
-	camera.SetViewRotation( screenport.Rotation() );
+	camera.SetViewRotation( screenport->Rotation() );
 	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)Map::SIZE + 5.0f );
 	camera.SetYRotation( -45.f );
 	camera.SetTilt( engineData.cameraTilt );
 
-	SetPerspective();
+	//SetPerspective();
 	lightDirection.Set( 0.7f, 3.0f, 1.4f );
 	lightDirection.Normalize();
 	depthFunc = 0;
-	scissorUI.SetInvalid();
+//	scissorUI.SetInvalid();
 }
 
 
@@ -156,7 +156,7 @@ Engine::~Engine()
 }
 
 
-void Engine::UIBounds( grinliz::Rectangle2I* bounds )
+/*void Engine::UIBounds( grinliz::Rectangle2I* bounds )
 {
 	if ( scissorUI.IsValid() ) {
 		*bounds = scissorUI;
@@ -165,7 +165,7 @@ void Engine::UIBounds( grinliz::Rectangle2I* bounds )
 		bounds->Set( 0, 0, screenport.UIWidth(), screenport.UIHeight() );
 	}
 }
-
+*/
 
 void Engine::MoveCameraHome()
 {
@@ -239,13 +239,8 @@ void Engine::PushShadowMatrix()
 
 void Engine::Draw()
 {
-	if ( scissorUI.IsValid() ) {
-		screenport.SetViewport( &scissorUI );
-	}
-
 	// -------- Camera & Frustum -------- //
-	//DrawCamera();
-	screenport.SetView( camera.ViewMatrix() );
+	screenport->SetView( camera.ViewMatrix() );	// Draw the camera
 
 	float bbRotation = camera.GetBillboardYRotation();
 	float shadowRotation = ToDegree( atan2f( lightDirection.x, lightDirection.z ) );
@@ -454,9 +449,9 @@ void Engine::Draw()
 	}
 #endif
 */
-	if ( scissorUI.IsValid() ) {
-		screenport.SetViewport( 0 );
-	}
+//	if ( scissorUI.IsValid() ) {
+//		screenport.SetViewport( 0 );
+//	}
 }
 
 
@@ -518,15 +513,16 @@ void Engine::LightGroundPlane( ShadowState shadows, float shadowAmount, Color4F*
 }
 
 
-void Engine::SetClip( const Rectangle2I* uiClip )
-{
-	scissorUI.SetInvalid();
-	if ( uiClip ) {
-		scissorUI = *uiClip;
-	}
-}
+//void Engine::SetClip( const Rectangle2I* uiClip )
+//{
+//	scissorUI.SetInvalid();
+//	if ( uiClip ) {
+//		scissorUI = *uiClip;
+//	}
+//}
 
 
+/*
 void Engine::SetPerspective()
 {
 	GLASSERT( engineData.nearPlane > 0.0f );
@@ -557,6 +553,7 @@ void Engine::SetPerspective()
 	}
 	screenport.SetPerspective( frustumLeft, frustumRight, frustumBottom, frustumTop, frustumNear, frustumFar );
 }
+*/
 
 
 bool Engine::UnProject(	const Vector3F& window,
@@ -584,8 +581,8 @@ bool Engine::UnProject(	const Vector3F& window,
 
 void Engine::WorldToScreen( const grinliz::Vector3F& p0, grinliz::Vector2F* view )
 {
-	const Matrix4& modelView = screenport.ViewMatrix();
-	const Matrix4& projection = screenport.ProjectionMatrix();
+	const Matrix4& modelView = screenport->ViewMatrix();
+	const Matrix4& projection = screenport->ProjectionMatrix();
 
 	Matrix4 mvp;
 	MultMatrix4( projection, modelView, &mvp );
@@ -595,8 +592,8 @@ void Engine::WorldToScreen( const grinliz::Vector3F& p0, grinliz::Vector2F* view
 	r = mvp * p;
 	// Normalize to view.
 
-	view->x = (r.x / r.w + 1.0f)*(float)screenport.ScreenWidth()*0.5f;;
-	view->y = (r.y / r.w + 1.0f)*(float)screenport.ScreenHeight()*0.5f;
+	view->x = (r.x / r.w + 1.0f)*(float)screenport->ScreenWidth()*0.5f;;
+	view->y = (r.y / r.w + 1.0f)*(float)screenport->ScreenHeight()*0.5f;
 }
 
 
@@ -604,14 +601,14 @@ void Engine::WorldToUI( const grinliz::Vector3F& p, grinliz::Vector2I* ui )
 {
 	Vector2F view;
 	WorldToScreen( p, &view );
-	screenport.ViewToUI( LRintf(view.x), LRintf(view.y), &ui->x, &ui->y );
+	screenport->ViewToUI( LRintf(view.x), LRintf(view.y), &ui->x, &ui->y );
 }
 
 
 void Engine::CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjectionInverse )
 {
-	const Matrix4& modelView = screenport.ViewMatrix();
-	const Matrix4& projection = screenport.ProjectionMatrix();
+	const Matrix4& modelView = screenport->ViewMatrix();
+	const Matrix4& projection = screenport->ProjectionMatrix();
 
 	Matrix4 mvp;
 	MultMatrix4( projection, modelView, &mvp );
@@ -622,7 +619,7 @@ void Engine::CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjecti
 void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray, Vector3F* out )
 {	
 	Rectangle2I screen;
-	screen.Set( 0, 0, screenport.ScreenWidth()-1, screenport.ScreenHeight()-1 );
+	screen.Set( 0, 0, screenport->ScreenWidth()-1, screenport->ScreenHeight()-1 );
 	Vector3F win0 ={ (float)x, (float)y, 0.0f };
 	Vector3F win1 ={ (float)x, (float)y, 1.0f };
 
@@ -651,7 +648,7 @@ void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray,
 void Engine::RayFromScreen( int x, int y, const Matrix4& mvpi, Ray* ray )
 {	
 	Rectangle2I screen;
-	screen.Set( 0, 0, screenport.ScreenWidth()-1, screenport.ScreenHeight()-1 );
+	screen.Set( 0, 0, screenport->ScreenWidth()-1, screenport->ScreenHeight()-1 );
 	Vector3F win0 ={ (float)x, (float)y, 0.0f };
 	Vector3F win1 ={ (float)x, (float)y, 1.0f };
 
@@ -695,8 +692,8 @@ void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
 
 void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
 {
-	const Matrix4& modelView = screenport.ViewMatrix();
-	const Matrix4& projection = screenport.ProjectionMatrix();
+	const Matrix4& modelView = screenport->ViewMatrix();
+	const Matrix4& projection = screenport->ProjectionMatrix();
 
 	// --------- Compute the view frustum ----------- //
 	// A strange and ill-documented algorithm from Real Time Rendering, 2nd ed, pg.613

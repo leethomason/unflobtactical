@@ -49,22 +49,15 @@ void Camera::CalcWorldXForm()
 		// Done in world: we tilt it down, turn it around y, then move it.
 		worldXForm = translation * rotationY * rotationTilt;
 		CalcEyeDir();
+
+		// Calc the View Matrix
+		Matrix4 inv, zRot;
+		worldXForm.Invert( &inv );
+		zRot.SetZRotation( (float)(viewRotation)*90.0f );
+		viewMatrix = inv * zRot;
+
 		valid = true;
 	}
-}
-
-
-const Matrix4& Camera::ViewMatrix()
-{
-	CalcWorldXForm();
-
-	Matrix4 m, view, t;
-	worldXForm.Invert( &m );
-
-	view.SetZRotation( (float)(viewRotation)*90.0f );
-
-	viewMatrix = m * view;
-	return viewMatrix;
 }
 
 

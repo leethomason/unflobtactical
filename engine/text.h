@@ -26,7 +26,7 @@ class UFOText
 {
 public:
 	static void InitTexture( U32 textTextureID );
-	static void InitScreen( const Screenport& sp );
+	static void InitScreen( Screenport* sp );
 	static void GlyphSize( const char* str, int* width, int* height );
 
 	static void Begin();
@@ -38,7 +38,7 @@ public:
 private:
 	static void TextOut( const char* str, int x, int y, int *w, int *h );
 
-	static Screenport screenport;
+	static Screenport* screenport;
 	static U32 textureID;
 	enum {
 		BUF_SIZE = 30

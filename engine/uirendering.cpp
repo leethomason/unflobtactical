@@ -164,7 +164,7 @@ void UIBar::Draw()
 	glEnable( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, texture->glID );
 
-	screenport.PushUI();
+	GLASSERT( screenport.UIMode() );
 	glTranslatef( (float)origin.x, (float)origin.y, 0.0f );
 
 	glVertexPointer(   2, GL_FLOAT, sizeof( Vertex2D ), &vertex[0].pos.x );
@@ -177,8 +177,6 @@ void UIBar::Draw()
 	drawCalls++;
 	CHECK_GL_ERROR;
 		
-	screenport.PopUI();
-
 	glEnableClientState( GL_NORMAL_ARRAY );
 	//glDisableClientState( GL_COLOR_ARRAY );
 	glDisable( GL_BLEND );
@@ -211,6 +209,7 @@ void UIImage::Init( const Texture* texture, int w, int h )
 
 void UIImage::Draw()
 {
+	CHECK_GL_ERROR;
 	if ( !texture || !w || !h )
 		return;
 
@@ -235,7 +234,7 @@ void UIImage::Draw()
 	glEnable( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, texture->glID );
 
-	screenport.PushUI();
+	GLASSERT( screenport.UIMode() );
 	// Over translate so rotation is about center axis.
 	glTranslatef( (float)(origin.x+w/2), (float)(origin.y+h/2), 0.0f );
 	// Don't want to fool around with rendering back faces, cheat on
@@ -264,8 +263,6 @@ void UIImage::Draw()
 	drawCalls++;
 	CHECK_GL_ERROR;
 		
-	screenport.PopUI();
-
 	glEnableClientState( GL_NORMAL_ARRAY );
 	//glDisableClientState( GL_COLOR_ARRAY );
 	//glDisable( GL_BLEND );
@@ -558,7 +555,7 @@ void UIButtons::Draw()
 	glEnable( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, texture->glID );
 
-	screenport.PushUI();
+	GLASSERT( screenport.UIMode() );
 	glTranslatef( (float)origin.x, (float)origin.y, 0.0f );
 
 	// Buttons
@@ -598,8 +595,6 @@ void UIButtons::Draw()
 	trianglesRendered += nIcons*2;
 	drawCalls++;
 	CHECK_GL_ERROR;
-
-	screenport.PopUI();
 
 	glEnableClientState( GL_NORMAL_ARRAY );
 	glDisableClientState( GL_COLOR_ARRAY );

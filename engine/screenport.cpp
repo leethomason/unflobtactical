@@ -1,3 +1,18 @@
+/*
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "screenport.h"
 #include "platformgl.h"
 #include "../grinliz/glrectangle.h"
@@ -6,67 +21,117 @@
 
 using namespace grinliz;
 
-void Screenport::PushUI()	
+
+Screenport::Screenport( int screenWidth, int screenHeight, int rotation )
 {
-	savedProjection = projection;
-	savedView = view;
-	
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();					// save projection
-	glLoadIdentity();				// projection
-	projection.SetIdentity();
+	this->screenWidth = screenWidth;
+	this->screenHeight = screenHeight;
+	this->rotation = rotation;
+	GLASSERT( rotation >= 0 && rotation < 4 );
 
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();					// model
-	glLoadIdentity();				// model
-
-	Matrix4 rotate;
-	rotate.SetZRotation( 90.0f * (float)Rotation() );
-
-	Matrix4 ortho;
-	ortho.SetOrtho( 0, (float)UIWidth(), 0, (float)UIHeight(), -100, 100 );
-	view = rotate*ortho;
-
-	glMultMatrixf( view.x );
-	uiPushed = true;
+	for( int i=0; i<4; ++i )
+		this->viewport[i] = 0;
+	uiMode = false;
+	clipInUI.Set( 0, 0, UIWidth(), UIHeight() );
 }
 
-void Screenport::PopUI()
+
+void Screenport::SetUI( const Rectangle2I* clip )	
 {
+	if ( clip ) {
+		clipInUI = *clip;
+	}
+	else {
+		clipInUI.Set( 0, 0, UIWidth(), UIHeight() );
+	}
 
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();					// model
+	SetViewport( 0 );
+
+	Rectangle2I scissor;
+	UIToScissor( clipInUI.min.x, clipInUI.min.y, clipInUI.max.x, clipInUI.max.y, &scissor );
+	glEnable( GL_SCISSOR_TEST );
+	glScissor( scissor.min.x, scissor.min.y, scissor.max.x, scissor.max.y );
+
 	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();					// projection
-	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();				// projection
+	projection.SetOrtho( 0, (float)UIWidth(), 0, (float)UIHeight(), -100, 100 );
+	glMultMatrixf( projection.x );
 
-	projection = savedProjection;
-	view = savedView;
-	uiPushed = false;
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();				// model
+
+	view.SetIdentity();
+	view.SetZRotation( 90.0f * (float)Rotation() );
+
+	glMultMatrixf( view.x );
+	uiMode = true;
+	CHECK_GL_ERROR;
 }
 
 
 void Screenport::SetView( const Matrix4& _view )
 {
-	GLASSERT( uiPushed == false );
+	GLASSERT( uiMode == false );
 	view = _view;
 
 	glMatrixMode(GL_MODELVIEW);
 	// In normalized coordinates.
 	glLoadMatrixf( view.x );
+	CHECK_GL_ERROR;
 }
 
 
-void Screenport::SetPerspective( float frustumLeft, float frustumRight, float frustumBottom, float frustumTop, float frustumNear, float frustumFar )
+void Screenport::SetPerspective( float near, float far, float fovDegrees, const grinliz::Rectangle2I* clip )
 {
-	GLASSERT( uiPushed == false );
+	uiMode = false;
+
+	if ( clip ) {
+		clipInUI = *clip;
+	}
+	else {
+		clipInUI.Set( 0, 0, UIWidth(), UIHeight() );
+	}
+
+	SetViewport( &clipInUI );
+
+	GLASSERT( uiMode == false );
+	GLASSERT( near > 0.0f );
+	GLASSERT( far > near );
+
+	frustum.zNear = near;
+	frustum.zFar = far;
+
+	// Convert from the FOV to the half angle.
+	float theta = ToRadian( fovDegrees ) * 0.5f;
+
+	// left, right, top, & bottom are on the near clipping
+	// plane. (Not an obvious point to my mind.)
+	float ratio = (float)clipInUI.Height() / (float)clipInUI.Width();
+	if ( Rotation() & 1 ) {
+//		float ratio = (float)(ScreenWidth()) / (float)(ScreenHeight());
+		frustum.top		= tan(theta) * frustum.zNear;
+		frustum.bottom	= -frustum.top;
+		frustum.left	= ratio * frustum.bottom;
+		frustum.right	= ratio * frustum.top;
+	}
+	else {
+//		float ratio = (float)(ScreenHeight()) / (float)(ScreenWidth());
+		// Correct ratio, but the screen may be more narrow.
+		frustum.right	= tan(theta) * frustum.zNear;
+		frustum.top		= ratio * tan(theta) * frustum.zNear;
+		frustum.left	= -frustum.right;
+		frustum.bottom	= -frustum.top;
+	}
 
 	glMatrixMode(GL_PROJECTION);
 	// In normalized coordinates.
-	projection.SetFrustum( frustumLeft, frustumRight, frustumBottom, frustumTop, frustumNear, frustumFar );
-	glLoadMatrixf( projection.x );
+	projection.SetFrustum( frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.zNear, frustum.zFar );
+	// Give the driver hints:
+	glLoadIdentity();
+	glFrustum( frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.zNear, frustum.zFar );
 	
 	glMatrixMode(GL_MODELVIEW);	
+	CHECK_GL_ERROR;
 }
 
 
@@ -92,13 +157,55 @@ void Screenport::ViewToUI( int x0, int y0, int *x1, int *y1 ) const
 }
 
 
-void Screenport::ScreenToView( int x0, int y0, int *x1, int *y1 ) const
+/* static */ bool Screenport::UnProject(	const Vector3F& window,
+											const Rectangle2I& screen,
+											const Matrix4& modelViewProjectionInverse,
+											Vector3F* world )
 {
-//	GLASSERT( x0>=0 && x0<physicalWidth );
-//	GLASSERT( y0>=0 && y0<physicalHeight );
+	Vector4F in = { (window.x-(float)screen.min.x)*2.0f / float(screen.Width())-1.0f,
+					(window.y-(float)screen.min.y)*2.0f / float(screen.Height())-1.0f,
+					window.z*2.0f-1.f,
+					1.0f };
 
-	*x1 = x0;
-	*y1 = (screenHeight-1)-y0;
+	Vector4F out;
+	MultMatrix4( modelViewProjectionInverse, in, &out );
+
+	if ( out.w == 0.0f ) {
+		return false;
+	}
+	world->x = out.x / out.w;
+	world->y = out.y / out.w;
+	world->z = out.z / out.w;
+	return true;
+}
+
+
+void Screenport::ScreenToView( int x0, int y0, Vector2I* view ) const
+{
+	view->x = x0;
+	view->y = (screenHeight-1)-y0;
+}
+
+
+void Screenport::ScreenToWorld( int x, int y, Ray* world ) const
+{
+	Matrix4 mvp, mvpi;
+	MultMatrix4( projection, view, &mvp );
+	mvp.Invert( &mvpi );
+
+	Rectangle2I clip;
+	UIToScissor( clipInUI.min.x, clipInUI.min.y, clipInUI.Width(), clipInUI.Height(), &clip );
+
+	Vector3F win0 = { (float)x, (float)y, 0 };
+	Vector3F win1 = { (float)x, (float)y, 1 };
+	Vector3F p0, p1;
+
+	UnProject( win0, clip, mvpi, &p0 );
+	UnProject( win1, clip, mvpi, &p1 );
+
+	world->origin = p0;
+	world->direction = p1 - p0;
+
 }
 
 
@@ -139,7 +246,6 @@ void Screenport::SetViewport( const grinliz::Rectangle2I* uiClip )
 		Rectangle2I scissor;
 		UIToScissor( uiClip->min.x, uiClip->min.y, uiClip->Width(), uiClip->Height(), &scissor );
 
-
 		glEnable( GL_SCISSOR_TEST );
 		glScissor( scissor.min.x, scissor.min.y, scissor.max.x, scissor.max.y );
 		glViewport( scissor.min.x, scissor.min.y, scissor.max.x, scissor.max.y );
@@ -151,4 +257,5 @@ void Screenport::SetViewport( const grinliz::Rectangle2I* uiClip )
 		glDisable( GL_SCISSOR_TEST );
 		glViewport( viewport[0], viewport[1], viewport[2], viewport[3] );
 	}
+	CHECK_GL_ERROR;
 }

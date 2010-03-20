@@ -39,10 +39,10 @@ Vector2F UFOText::vBuf[BUF_SIZE*4];
 Vector2F UFOText::tBuf[BUF_SIZE*4];
 U16 UFOText::iBuf[BUF_SIZE*6] = { 0, 0 };
 
-Screenport UFOText::screenport( 320, 480, 1 );
+Screenport* UFOText::screenport = 0;
 U32 UFOText::textureID = 0;
 
-void UFOText::InitScreen( const Screenport& sp )
+void UFOText::InitScreen( Screenport* sp )
 {
 	screenport = sp;
 }
@@ -67,7 +67,7 @@ void UFOText::Begin()
 
 	glColor4f( 1.f, 1.f, 1.f, 1.f );
 
-	screenport.PushUI();
+	screenport->SetUI( 0 );
 	glBindTexture( GL_TEXTURE_2D, textureID );
 }
 
@@ -75,7 +75,6 @@ void UFOText::Begin()
 void UFOText::End()
 {
 	glEnableClientState( GL_NORMAL_ARRAY );
-	screenport.PopUI();
 
 	glDisable( GL_BLEND );
 	glEnable( GL_DEPTH_TEST );
