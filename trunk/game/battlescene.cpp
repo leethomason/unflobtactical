@@ -1,3 +1,18 @@
+/*
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "battlescene.h"
 #include "characterscene.h"
 #include "game.h"
@@ -165,20 +180,20 @@ BattleScene::~BattleScene()
 
 void BattleScene::Activate()
 {
-	const Screenport& port = engine->GetScreenport();
-	Rectangle2I r;
+//	const Screenport& port = engine->GetScreenport();
+//	Rectangle2I r;
 	//r.Set( 	menuImage->Width(), 
 	//		0, 
 	//		port.UIWidth(), 
 	//		port.UIHeight() );
-	r.Set( 100, 50, 300, 50+200*320/480 );	// FIXME: account for perspective when setting up the perspective xform and frustum
-	engine->SetClip( &r );
+//	r.Set( 100, 50, 300, 50+200*320/480 );	// FIXME: account for perspective when setting up the perspective xform and frustum
+//	engine->SetClip( &r );
 }
 
 
 void BattleScene::DeActivate()
 {
-	engine->SetClip( 0 );
+//	engine->SetClip( 0 );
 }
 
 
@@ -535,7 +550,8 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 			Vector2I r;	
 			engine->WorldToUI( p, &r );
 			Rectangle2I uiBounds;
-			engine->UIBounds( &uiBounds );
+			
+			engine->GetScreenport().UIBounds( &uiBounds );
 
 			if ( uiBounds.Contains( r ) ) {
 				const float ALPHA = 0.3f;
@@ -847,7 +863,7 @@ void BattleScene::TestCoordinates()
 {
 	const Screenport& port = engine->GetScreenport();
 	Rectangle2I uiBounds;
-	engine->UIBounds( &uiBounds );
+	engine->GetScreenport().UIBounds( &uiBounds );
 	Rectangle2I inset = uiBounds;
 	inset.Outset( 0 );
 
@@ -862,7 +878,7 @@ void BattleScene::TestCoordinates()
 
 		Color4F c = { 0, 1, 1, 1 };
 		Color4F cv = { 0, 0, 0, 0 };
-		ParticleSystem::Instance()->EmitOnePoint( c, cv, pos, 100 );
+		ParticleSystem::Instance()->EmitOnePoint( c, cv, pos, 0 );
 	}
 }
 
@@ -880,7 +896,7 @@ void BattleScene::PushScrollOnScreen( const Vector3F& pos )
 
 	const Screenport& port = engine->GetScreenport();
 	Rectangle2I uiBounds;
-	engine->UIBounds( &uiBounds );
+	engine->GetScreenport().UIBounds( &uiBounds );
 	Rectangle2I inset = uiBounds;
 	inset.Outset( -20 );
 	Vector2I center = { (uiBounds.min.x+uiBounds.max.x)/2, (uiBounds.min.y+uiBounds.max.y)/2 };

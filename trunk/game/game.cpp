@@ -42,9 +42,9 @@ extern int trianglesRendered;	// FIXME: should go away once all draw calls are m
 extern int drawCalls;			// ditto
 extern long memNewCount;
 
-Game::Game( const Screenport& sp, const char* _savePath ) :
-	engine( sp, engineData ),
-	screenport( sp ),
+Game::Game( int width, int height, int rotation, const char* _savePath ) :
+	screenport( width, height, rotation ),
+	engine( &screenport, engineData ),
 	markFrameTime( 0 ),
 	frameCountsSinceMark( 0 ),
 	framesPerSecond( 0 ),
@@ -91,7 +91,7 @@ Game::Game( const Screenport& sp, const char* _savePath ) :
 	const Texture* textTexture = TextureManager::Instance()->GetTexture( "stdfont2" );
 	GLASSERT( textTexture );
 	UFOText::InitTexture( textTexture->glID );
-	UFOText::InitScreen( engine.GetScreenport() );
+	UFOText::InitScreen( &screenport );
 
 	Map* map = engine.GetMap();
 	ImageManager* im = ImageManager::Instance();
@@ -341,8 +341,8 @@ void Game::DoTick( U32 _currentTime )
 	}
 #endif
 
-	Scene* scene = sceneStack.Top();
-	scene->DoTick( currentTime, deltaTime );
+	glMatrixMode( GL_MODELVIEW );
+	glLoadIdentity();
 
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_NORMAL_ARRAY );
@@ -352,8 +352,13 @@ void Game::DoTick( U32 _currentTime )
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_CULL_FACE );
 
-	glMatrixMode( GL_MODELVIEW );
-	glLoadIdentity();
+	Scene* scene = sceneStack.Top();
+	scene->DoTick( currentTime, deltaTime );
+
+	Rectangle2I r;
+//	r.Set( 100, 50, 300, 50+200*320/480 );
+	r.Set( 100, 50, 300, 150 );
+	screenport.SetPerspective( 2.f, 240.f, 20.f, &r );
 
 #ifdef MAPMAKER
 	if ( showPathing ) 
@@ -365,6 +370,7 @@ void Game::DoTick( U32 _currentTime )
 	if ( showPathing ) 
 		engine.EnableMap( true );
 #else
+	
 	engine.Draw();
 
 #endif
@@ -376,6 +382,8 @@ void Game::DoTick( U32 _currentTime )
 
 	trianglesSinceMark += trianglesRendered;
 
+	//r.Set( 0, 0, 55, 320 );
+	screenport.SetUI( 0 );		// FIXME: give this a clip...needs to be set by the scene.
 	scene->DrawHUD();
 
 #ifdef DEBUG
@@ -434,13 +442,10 @@ void Game::DoTick( U32 _currentTime )
 void Game::Tap( int tap, int sx, int sy )
 {
 	Vector2I view;
-	screenport.ScreenToView( sx, sy, &view.x, &view.y );
-
-	grinliz::Matrix4 mvpi;
 	grinliz::Ray world;
 
-	engine.CalcModelViewProjectionInverse( &mvpi );
-	engine.RayFromScreen( view.x, view.y, mvpi, &world );
+	screenport.ScreenToView( sx, sy, &view );
+	screenport.ScreenToWorld( sx, sy, &world );
 
 	sceneStack.Top()->Tap( tap, view, world );
 }
@@ -449,8 +454,10 @@ void Game::Tap( int tap, int sx, int sy )
 void Game::Drag( int action, int sx, int sy )
 {
 	Vector2I view;
-	screenport.ScreenToView( sx, sy, &view.x, &view.y );
-	//GLOUTPUT(( "View %d,%d\n", view.x, view.y ));
+	grinliz::Ray world;
+
+	screenport.ScreenToView( sx, sy, &view );
+	screenport.ScreenToWorld( sx, sy, &world );
 
 	switch ( action ) 
 	{
@@ -505,6 +512,7 @@ void Game::CancelInput()
 
 void Game::MouseMove( int sx, int sy )
 {
+#ifdef MAPMAKER
 	Vector2I view;
 	screenport.ScreenToView( sx, sy, &view.x, &view.y );
 
@@ -520,7 +528,6 @@ void Game::MouseMove( int sx, int sy )
 //				world.origin.x, world.origin.y, world.origin.z,
 //				p.x, p.y, p.z ));
 
-#ifdef MAPMAKER
 	// Can only be battlescene:
 	((BattleScene*)sceneStack.Top())->MouseMove( view.x, view.y );
 #endif

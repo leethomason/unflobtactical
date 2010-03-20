@@ -25,8 +25,7 @@
 
 void* NewGame( int width, int height, int rotation, const char* savePath )
 {
-	Screenport port( width, height, rotation );
-	Game* game = new Game( port, savePath );
+	Game* game = new Game( width, height, rotation, savePath );
 	GLOUTPUT(( "NewGame.\n" ));
 	return game;
 }

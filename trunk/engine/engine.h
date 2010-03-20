@@ -44,18 +44,18 @@ class RenderQueue;
 struct EngineData
 {
 	EngineData() : 
-		fov( 20.f ),
-		farPlane( 240.f ),
-		nearPlane( 2.f ),
+//		fov( 20.f ),
+//		farPlane( 240.f ),
+//		nearPlane( 2.f ),
 		cameraTilt( -50.f ),
 		cameraMin( 8.0f ),
 		cameraMax( 140.0f ),
 		cameraHeight( 15.f )
 		{}
 
-	float fov;
-	float farPlane;
-	float nearPlane;
+//	float fov;
+//	float farPlane;
+//	float nearPlane;
 	float cameraTilt;		// degrees
 	float cameraMin;
 	float cameraMax;
@@ -66,7 +66,7 @@ struct EngineData
 class Engine
 {
 public:
-	Engine( const Screenport& screenport, const EngineData& engineData );
+	Engine( Screenport* screenport, const EngineData& engineData );
 	~Engine();
 
 	const float AMBIENT;
@@ -76,7 +76,7 @@ public:
 	Camera camera;
 
 	// Sets the opengl perspective matrices.
-	void SetPerspective();
+	//void SetPerspective();
 	// Render everything. Return triangles drawn. (Currently excludes UI and particles in tri-count.)
 	void Draw();
 
@@ -104,7 +104,7 @@ public:
 	void WorldToScreen( const grinliz::Vector3F& p, grinliz::Vector2F* screen );
 	void WorldToUI( const grinliz::Vector3F& p, grinliz::Vector2I* ui );
 	// Bounds of the engine, in UI space, accounting for the current clip.
-	void UIBounds( grinliz::Rectangle2I* bounds );
+	//void UIBounds( grinliz::Rectangle2I* bounds );
 
 	void RayFromScreen( int x, int y, 
 						const grinliz::Matrix4& modelViewProjectionInverse, 
@@ -134,8 +134,8 @@ public:
 	// 0.0 far, 1.0 close
 	void SetZoom( float z );
 
-	const Screenport& GetScreenport() { return screenport; }
-	void SetClip( const grinliz::Rectangle2I* uiClip );
+	const Screenport& GetScreenport() { return *screenport; }
+	//void SetClip( const grinliz::Rectangle2I* uiClip );
 
 	// FIXME - automatic??
 	void RestrictCamera();
@@ -158,10 +158,10 @@ private:
 
 	void PushShadowMatrix();
 
-	Screenport screenport;
- 	float	frustumLeft, frustumRight, 
-			frustumTop, frustumBottom, 
-			frustumNear, frustumFar;
+	Screenport* screenport;
+//	float	frustumLeft, frustumRight, 
+//			frustumTop, frustumBottom, 
+//			frustumNear, frustumFar;
 	float	initZoom;
 	int		initZoomDistance;
 	int		depthFunc;
@@ -175,7 +175,7 @@ private:
 	Surface diffuseLightMap;
 
 	grinliz::Vector3F lightDirection;
-	grinliz::Rectangle2I scissorUI;		// scissor coordinates in UI space (cached)
+//	grinliz::Rectangle2I scissorUI;		// scissor coordinates in UI space (cached)
 };
 
 #endif // UFOATTACK_ENGINE_INCLUDED

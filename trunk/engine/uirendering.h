@@ -85,7 +85,7 @@ protected:
 	};
 
 	grinliz::Vector2I		origin;
-	Screenport				screenport;
+	const Screenport&		screenport;
 };
 
 

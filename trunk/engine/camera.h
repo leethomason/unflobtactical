@@ -53,7 +53,9 @@ public:
 	void SetPosWC( float x, float y, float z )		{ posWC.Set( x, y, z ); valid = false; }
 	void DeltaPosWC( float x, float y, float z )	{ posWC.x += x; posWC.y += y; posWC.z += z; valid = false; }
 
-	const grinliz::Matrix4& ViewMatrix();
+	const grinliz::Matrix4& ViewMatrix()			{ if ( !valid ) CalcWorldXForm();
+													  return viewMatrix;
+													}
 								
 	enum {
 		NORMAL,
