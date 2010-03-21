@@ -62,7 +62,17 @@ int totalMapMem = 0;
 sqlite3* db = 0;
 BinaryDBWriter *writer = 0;
 
+const int GLYPH_CX = 16;
+const int GLYPH_CY = 8;
+const int GLYPH_WIDTH = 256 / GLYPH_CX;
+const int GLYPH_HEIGHT = 128 / GLYPH_CY;
 
+struct GlyphMetric
+{
+	U16 offset;
+	U16 width;
+};
+GlyphMetric gGlyphMetric[GLYPH_CX*GLYPH_CY];
 
 void CreateDatabase()
 {
@@ -72,7 +82,7 @@ void CreateDatabase()
 	sqlResult = sqlite3_exec(	db, 
 								"CREATE TABLE texture "
 								"(name TEXT NOT NULL PRIMARY KEY, "
-								" format TEXT, image INT, width INT, height INT, id INT);",
+								" format TEXT, image INT, width INT, height INT, id INT, metricsID INT);",
 								0, 0, 0 );
 	GLASSERT( sqlResult == SQLITE_OK );
 
@@ -103,13 +113,16 @@ void CreateDatabase()
 }
 
 
-void InsertTextureToDB( const char* name, const char* format, bool isImage, int width, int height, const void* pixels, int sizeInBytes )
+void InsertTextureToDB( const char* name, const char* format, bool isImage, bool metrics, int width, int height, const void* pixels, int sizeInBytes )
 {
-	int index = 0;
+	int index = 0, metricsIndex=0;
 	writer->Write( pixels, sizeInBytes, &index );
+	if ( metrics ) {
+		writer->Write( gGlyphMetric, sizeof( GlyphMetric )*GLYPH_CX*GLYPH_CY, &metricsIndex );
+	}
 
 	sqlite3_stmt* stmt = NULL;
-	sqlite3_prepare_v2( db, "INSERT INTO texture VALUES (?, ?, ?, ?, ?, ?);", -1, &stmt, 0 );
+	sqlite3_prepare_v2( db, "INSERT INTO texture VALUES (?, ?, ?, ?, ?, ?, ?);", -1, &stmt, 0 );
 
 	sqlite3_bind_text( stmt, 1, name, -1, SQLITE_TRANSIENT );
 	sqlite3_bind_text( stmt, 2, format, -1, SQLITE_TRANSIENT );
@@ -117,6 +130,7 @@ void InsertTextureToDB( const char* name, const char* format, bool isImage, int 
 	sqlite3_bind_int( stmt, 4, width );
 	sqlite3_bind_int( stmt, 5, height );
 	sqlite3_bind_int( stmt, 6, index );
+	sqlite3_bind_int( stmt, 7, metricsIndex );
 
 	sqlite3_step( stmt );
 	sqlite3_finalize(stmt);
@@ -397,6 +411,7 @@ void ProcessModel( TiXmlElement* model )
 		header.flags |= ModelHeader::UPPER_LEFT;
 	}
 	if ( model->Attribute( "trigger" ) ) {
+#pragma warning ( disable : 4996 )
 		sscanf( model->Attribute( "trigger" ), "%f %f %f", &header.trigger.x, &header.trigger.y, &header.trigger.z );
 	}
 	if ( model->Attribute( "eye" ) ) {
@@ -475,6 +490,56 @@ void ProcessModel( TiXmlElement* model )
 }
 
 
+bool BarIsBlack( SDL_Surface* surface, int x, int y0, int y1 )
+{
+	U8 r, g, b, a;
+	bool black = true;
+
+	for( int y=y0; y<=y1; ++y ) {
+		U32 c = GetPixel( surface, x, y );
+		SDL_GetRGBA( c, surface->format, &r, &g, &b, &a );
+		if ( a == 0 || ( r==0 && g==0 && b==0 ) ) {
+			// do nothing.
+		}
+		else {
+			black = false;
+			break;
+		}
+	}
+	return black;
+}
+
+void CalcFontWidths( SDL_Surface* surface )
+{
+	// Walk all the glyphs, calculate the minimum width
+	for( int gy=0; gy<GLYPH_CY; ++gy ) {
+		for( int gx=0; gx<GLYPH_CX; ++gx ) {
+	
+			// In image space.
+			int y0 = gy*GLYPH_HEIGHT;
+			int y1 = y0 + GLYPH_HEIGHT - 1;
+			int x0 = gx*GLYPH_WIDTH;
+			int x1 = x0 + GLYPH_WIDTH-1;
+
+			int x0p = x0;
+			while( x0p < x1 && BarIsBlack( surface, x0p, y0, y1 ) ) {
+				++x0p;
+			}
+			int x1p = x1;
+			while ( x1p >= x0p && BarIsBlack( surface, x1p, y0, y1 ) ) {
+				--x1p;
+			}
+			GlyphMetric* g = &gGlyphMetric[gy*GLYPH_CX+gx];
+			g->offset = x0p - x0;
+			g->width = x1p - x0p + 1;
+			GLASSERT( g->offset >= 0 && g->offset < GLYPH_WIDTH );
+			GLASSERT( g->width >= 0 && g->width <= GLYPH_WIDTH );
+			GLOUTPUT(( "glyph %d offset=%d width=%d\n", gy*GLYPH_CX+gx, g->offset, g->width ));
+		}
+	}
+}
+
+
 void ProcessTexture( TiXmlElement* texture )
 {
 	bool isImage = false;
@@ -487,8 +552,12 @@ void ProcessTexture( TiXmlElement* texture )
 	}
 
 	bool dither = true;
+	bool isFont = false;
 	if ( StrEqual( texture->Attribute( "dither" ), "false" ) ) {
 		dither = false;
+	}
+	if ( StrEqual( texture->Attribute( "font" ), "true" ) ) {
+		isFont = true;
 	}
 
 	string filename;
@@ -510,6 +579,10 @@ void ProcessTexture( TiXmlElement* texture )
 				surface->format->BitsPerPixel,
 				surface->w,
 				surface->h );
+	}
+
+	if ( isFont ) {
+		CalcFontWidths( surface );
 	}
 
 	U8 r, g, b, a;
@@ -543,7 +616,7 @@ void ProcessTexture( TiXmlElement* texture )
 				pixelBuffer16.reserve( surface->w*surface->h );
 				DitherTo16( surface, RGBA16, true, &pixelBuffer16[0] );
 			}
-			InsertTextureToDB( name.c_str(), "RGBA16", isImage, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2 );
+			InsertTextureToDB( name.c_str(), "RGBA16", isImage, isFont, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2 );
 			break;
 
 		case 24:
@@ -571,7 +644,7 @@ void ProcessTexture( TiXmlElement* texture )
 				pixelBuffer16.reserve( surface->w*surface->h );
 				DitherTo16( surface, RGB16, true, &pixelBuffer16[0] );
 			}
-			InsertTextureToDB( name.c_str(), "RGB16", isImage, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2 );
+			InsertTextureToDB( name.c_str(), "RGB16", isImage, isFont, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2 );
 			break;
 
 		case 8:
@@ -586,7 +659,7 @@ void ProcessTexture( TiXmlElement* texture )
 					pixelBuffer8.push_back(*p);
 				}
 			}
-			InsertTextureToDB( name.c_str(), "ALPHA", isImage, surface->w, surface->h, &pixelBuffer8[0], pixelBuffer8.size() );
+			InsertTextureToDB( name.c_str(), "ALPHA", isImage, isFont, surface->w, surface->h, &pixelBuffer8[0], pixelBuffer8.size() );
 			break;
 
 		default:

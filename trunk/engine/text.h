@@ -22,11 +22,25 @@
 #include "screenport.h"
 
 
+struct GlyphMetric
+{
+	U16 offset;
+	U16 width;
+};
+
+
 class UFOText
 {
 public:
+	enum {
+		GLYPH_CX = 16,
+		GLYPH_CY = 8
+	};
+	
 	static void InitTexture( U32 textTextureID );
 	static void InitScreen( Screenport* sp );
+	static GlyphMetric* MetricsPtr()					{ return glyphMetric; }
+
 	static void GlyphSize( const char* str, int* width, int* height );
 
 	static void Begin();
@@ -37,15 +51,20 @@ public:
 
 private:
 	static void TextOut( const char* str, int x, int y, int *w, int *h );
+	static void Metrics(	int c,							// character in - 0 is space 
+							int* advance,					// advance, in pixels
+							int* width,
+							grinliz::Rectangle2I* src );	// location in texture, in pixels
 
 	static Screenport* screenport;
 	static U32 textureID;
 	enum {
 		BUF_SIZE = 30
 	};
-	static grinliz::Vector2F vBuf[BUF_SIZE*4];
-	static grinliz::Vector2F tBuf[BUF_SIZE*4];
-	static U16				 iBuf[BUF_SIZE*6];
+	static grinliz::Vector2F	vBuf[BUF_SIZE*4];
+	static grinliz::Vector2F	tBuf[BUF_SIZE*4];
+	static U16					iBuf[BUF_SIZE*6];
+	static GlyphMetric			glyphMetric[GLYPH_CX*GLYPH_CY];
 };
 
 #endif // UFOATTACK_TEXT_INCLUDED

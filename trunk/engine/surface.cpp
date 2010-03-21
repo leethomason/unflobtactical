@@ -30,9 +30,7 @@ Surface::Surface() : format( -1 ), w( 0 ), h( 0 ), allocated( 0 ), pixels( 0 )
 
 Surface::~Surface()
 {
-	if ( pixels ) {
-		delete [] pixels;
-	}
+	delete [] pixels;
 }
 
 

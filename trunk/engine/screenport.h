@@ -81,7 +81,9 @@ public:
 	// the origin to the lower left, independent of rotation.
 	void ScreenToView( int screenX, int screenY, grinliz::Vector2I* view ) const;
 	void ScreenToWorld( int screenX, int screenY, grinliz::Ray* world ) const;
+	bool ScreenToWorld( const grinliz::Vector3F& screen, const grinliz::Matrix4& mvpi, grinliz::Vector3F* world ) const;
 	void WorldToScreen( const grinliz::Vector3F& p0, grinliz::Vector2F* view ) const;
+	void WorldToUI( const grinliz::Vector3F& p0, grinliz::Vector2I* ui ) const;
 
 	// These reflect the physical screen:
 	int ScreenWidth() const		{ return screenWidth; }
@@ -98,14 +100,13 @@ public:
 	// Set the MODELVIEW from the camera.
 	void SetView( const grinliz::Matrix4& view );
 
-	const grinliz::Matrix4& ProjectionMatrix()				{ return projection; }
-	const grinliz::Matrix4& ViewMatrix()					{ return view; }
-	void ViewProjection( grinliz::Matrix4* vp )				{ grinliz::MultMatrix4( projection, view, vp ); }
-	void ViewProjectionInverse( grinliz::Matrix4* vpi )		{ grinliz::Matrix4 vp;
-															  ViewProjection( &vp );
-															  vp.Invert( vpi );
-															}
-	
+	const grinliz::Matrix4& ProjectionMatrix3D() const				{ return projection3D; }
+	const grinliz::Matrix4& ViewMatrix3D() const					{ return view3D; }
+	void ViewProjection3D( grinliz::Matrix4* vp ) const				{ grinliz::MultMatrix4( projection3D, view3D, vp ); }
+	void ViewProjectionInverse3D( grinliz::Matrix4* vpi ) const		{ grinliz::Matrix4 vp;
+																	  ViewProjection3D( &vp );
+																	  vp.Invert( vpi );
+																	}
 
 	const Frustum&		    GetFrustum()		{ GLASSERT( uiMode == false ); return frustum; }
 
@@ -113,8 +114,13 @@ public:
 
 	int UIWidth() const										{ return (rotation&1) ? screenHeight : screenWidth; }
 	int UIHeight() const									{ return (rotation&1) ? screenWidth : screenHeight; }
-	void UIBounds( grinliz::Rectangle2I* b ) const			{ *b = clipInUI; }
+	void UIBounds( grinliz::Rectangle2I* b ) const			{ *b = uiMode ? clipInUI2D : clipInUI3D; }
 	bool UIMode() const										{ return uiMode; }
+
+//	static bool UnProject(	const grinliz::Vector3F& window,
+//							//const grinliz::Rectangle2I& screen,
+//							const grinliz::Matrix4& modelViewProjectionInverse,
+//							grinliz::Vector3F* world );
 
 private:
 	Screenport( const Screenport& other );
@@ -124,10 +130,6 @@ private:
 	// UI to pixel (accounting for viewport) back xform.
 	void UIToScissor( int x, int y, int w, int h, grinliz::Rectangle2I* clip ) const;
 	void SetViewport( const grinliz::Rectangle2I* uiClip );
-	static bool UnProject(	const grinliz::Vector3F& window,
-							const grinliz::Rectangle2I& screen,
-							const grinliz::Matrix4& modelViewProjectionInverse,
-							grinliz::Vector3F* world );
 
 	int rotation;			// 1
 	int screenWidth;		// 480 
@@ -135,9 +137,10 @@ private:
 	int viewport[4];		// from the gl call
 
 	bool uiMode;
-	grinliz::Rectangle2I clipInUI;
+	grinliz::Rectangle2I clipInUI2D, clipInUI3D;
 	Frustum frustum;
-	grinliz::Matrix4 projection, view;
+	grinliz::Matrix4 projection2D, view2D;
+	grinliz::Matrix4 projection3D, view3D;
 };
 
 #endif	// UFOATTACK_SCREENPORT_INCLUDED

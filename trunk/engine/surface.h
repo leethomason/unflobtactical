@@ -138,9 +138,10 @@ public:
 	// calculate the opengl format and type
 	void CalcOpenGL(int* glFormat, int* glType );
 
+	// -- Metadata about the surface --
 	void SetName( const char* n );
 	const char* Name() const			{ return name; }
-
+	
 private:
 	Surface( const Surface& );
 	void operator=( const Surface& );

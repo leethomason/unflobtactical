@@ -44,18 +44,12 @@ class RenderQueue;
 struct EngineData
 {
 	EngineData() : 
-//		fov( 20.f ),
-//		farPlane( 240.f ),
-//		nearPlane( 2.f ),
 		cameraTilt( -50.f ),
 		cameraMin( 8.0f ),
 		cameraMax( 140.0f ),
 		cameraHeight( 15.f )
 		{}
 
-//	float fov;
-//	float farPlane;
-//	float nearPlane;
 	float cameraTilt;		// degrees
 	float cameraMin;
 	float cameraMax;
@@ -75,8 +69,6 @@ public:
 
 	Camera camera;
 
-	// Sets the opengl perspective matrices.
-	//void SetPerspective();
 	// Render everything. Return triangles drawn. (Currently excludes UI and particles in tri-count.)
 	void Draw();
 
@@ -94,21 +86,21 @@ public:
 	void EnableMap( bool enable )	{ enableMap = enable; }
 	Map* GetMap() { return map; }
 
-	static bool UnProject(	const grinliz::Vector3F& window,
-							const grinliz::Rectangle2I& screen,
-							const grinliz::Matrix4& modelViewProjectionInverse,
-							grinliz::Vector3F* world );
+//	static bool UnProject(	const grinliz::Vector3F& window,
+//							const grinliz::Rectangle2I& screen,
+//							const grinliz::Matrix4& modelViewProjectionInverse,
+//							grinliz::Vector3F* world );
 
-	void CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjectionInverse );
+//	void CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjectionInverse );
 
-	void WorldToScreen( const grinliz::Vector3F& p, grinliz::Vector2F* screen );
-	void WorldToUI( const grinliz::Vector3F& p, grinliz::Vector2I* ui );
+//	void WorldToScreen( const grinliz::Vector3F& p, grinliz::Vector2F* screen );
+//	void WorldToUI( const grinliz::Vector3F& p, grinliz::Vector2I* ui );
 	// Bounds of the engine, in UI space, accounting for the current clip.
 	//void UIBounds( grinliz::Rectangle2I* bounds );
 
-	void RayFromScreen( int x, int y, 
-						const grinliz::Matrix4& modelViewProjectionInverse, 
-						grinliz::Ray* ray );
+//	void RayFromScreen( int x, int y, 
+//						const grinliz::Matrix4& modelViewProjectionInverse, 
+//						grinliz::Ray* ray );
 
 	void RayFromScreenToYPlane( int x, int y, 
 								const grinliz::Matrix4& modelViewProjectionInverse, 
