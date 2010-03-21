@@ -54,7 +54,7 @@ void Camera::CalcWorldXForm()
 		Matrix4 inv, zRot;
 		worldXForm.Invert( &inv );
 		zRot.SetZRotation( (float)(viewRotation)*90.0f );
-		viewMatrix = inv * zRot;
+		viewMatrix = zRot*inv;
 
 		valid = true;
 	}

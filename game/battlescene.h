@@ -78,6 +78,13 @@ public:
 	virtual void Rotate( int aciton, float degreesFromStart );
 	virtual void CancelInput() {}
 
+	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	{
+		// FIXME: add proper sub-values
+		//clip3D->Set( 100, 50, 300, 250 );
+		clip3D->SetInvalid();
+		clip2D->SetInvalid();
+		return RENDER_3D | RENDER_2D; 
+	}
 	virtual void DoTick( U32 currentTime, U32 deltaTime );
 	virtual void DrawHUD();
 

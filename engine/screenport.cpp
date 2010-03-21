@@ -51,19 +51,39 @@ void Screenport::SetUI( const Rectangle2I* clip )
 	UIToScissor( clipInUI.min.x, clipInUI.min.y, clipInUI.max.x, clipInUI.max.y, &scissor );
 	glEnable( GL_SCISSOR_TEST );
 	glScissor( scissor.min.x, scissor.min.y, scissor.max.x, scissor.max.y );
+	
+	view.SetIdentity();
+	Matrix4 r, t;
+	r.SetZRotation( (float)(90*Rotation() ));
+	
+	// the tricky bit. After rotating the ortho display, move it back on screen.
+	switch (Rotation()) {
+		case 0:
+			break;
+		case 1:
+			t.SetTranslation( 0, -ScreenWidth(), 0 );	
+			break;
+			
+		default:
+			GLASSERT( 0 );	// work out...
+			break;
+	}
+	view = r*t;
+	
+	projection.SetIdentity();
+	projection.SetOrtho( 0, ScreenWidth(), 0, ScreenHeight(), -100, 100 );
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();				// projection
-	projection.SetOrtho( 0, (float)UIWidth(), 0, (float)UIHeight(), -100, 100 );
-	glMultMatrixf( projection.x );
 
+	// Set the ortho matrix, help the driver
+	//glMultMatrixf( projection.x );
+	glOrthof( 0, ScreenWidth(), 0, ScreenHeight(), -100, 100 );
+	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();				// model
-
-	view.SetIdentity();
-	view.SetZRotation( 90.0f * (float)Rotation() );
-
 	glMultMatrixf( view.x );
+
 	uiMode = true;
 	CHECK_GL_ERROR;
 }
@@ -107,8 +127,9 @@ void Screenport::SetPerspective( float near, float far, float fovDegrees, const 
 	// left, right, top, & bottom are on the near clipping
 	// plane. (Not an obvious point to my mind.)
 	float ratio = (float)clipInUI.Height() / (float)clipInUI.Width();
+	
 	if ( Rotation() & 1 ) {
-//		float ratio = (float)(ScreenWidth()) / (float)(ScreenHeight());
+		//ratio = (float)(ScreenWidth()) / (float)(ScreenHeight());
 		frustum.top		= tan(theta) * frustum.zNear;
 		frustum.bottom	= -frustum.top;
 		frustum.left	= ratio * frustum.bottom;
@@ -122,13 +143,14 @@ void Screenport::SetPerspective( float near, float far, float fovDegrees, const 
 		frustum.left	= -frustum.right;
 		frustum.bottom	= -frustum.top;
 	}
+	
 
 	glMatrixMode(GL_PROJECTION);
 	// In normalized coordinates.
 	projection.SetFrustum( frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.zNear, frustum.zFar );
 	// Give the driver hints:
 	glLoadIdentity();
-	glFrustum( frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.zNear, frustum.zFar );
+	glFrustumfX( frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.zNear, frustum.zFar );
 	
 	glMatrixMode(GL_MODELVIEW);	
 	CHECK_GL_ERROR;

@@ -98,10 +98,10 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		widgets->SetDeco( BTN_CHAR_SCREEN, DECO_CHARACTER );
 		widgets->SetDeco( BTN_TARGET, DECO_AIMED );
 
-		const Vector2I& pad = widgets->GetPadding();
+		//const Vector2I& pad = widgets->GetPadding();
 		const Vector2I& size = widgets->GetButtonSize();
 		int h = port.UIHeight();
-		int w = port.UIWidth();
+		//int w = port.UIWidth();
 		int delta = (h/5-size.y)/2;
 
 		menuImage = new UIImage( port );
@@ -861,7 +861,7 @@ void BattleScene::SetFireWidget()
 
 void BattleScene::TestCoordinates()
 {
-	const Screenport& port = engine->GetScreenport();
+	//const Screenport& port = engine->GetScreenport();
 	Rectangle2I uiBounds;
 	engine->GetScreenport().UIBounds( &uiBounds );
 	Rectangle2I inset = uiBounds;
@@ -894,7 +894,7 @@ void BattleScene::PushScrollOnScreen( const Vector3F& pos )
 	engine->WorldToUI( pos, &r );
 	//GLOUTPUT(( "screen: %.1f, %.1f\n", r.x, r.y ));
 
-	const Screenport& port = engine->GetScreenport();
+	//const Screenport& port = engine->GetScreenport();
 	Rectangle2I uiBounds;
 	engine->GetScreenport().UIBounds( &uiBounds );
 	Rectangle2I inset = uiBounds;
@@ -1372,7 +1372,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 					// to 360 it did nothing. So rotation is free now.
 					//
 					const float SPEED = 3.0f;
-					const float ROTATION_SPEED = 150.0f;
+					//const float ROTATION_SPEED = 150.0f;
 					float x, z, r;
 
 					MoveAction* move = &action->type.move;
@@ -2381,7 +2381,7 @@ void BattleScene::Visibility::CalcVisibilityRay( int unitID, const Vector2I& pos
 	const float OBSCURED = 0.50f;
 	const float DARK  = (units[unitID].Team() == ALIEN_TEAM) ? 0.40f : 0.32f;
 	const float LIGHT = 0.12f;
-	const int EPS = 10;
+	//const int EPS = 10;
 
 	float light = 1.0f;
 	bool canSee = true;
@@ -2561,7 +2561,7 @@ void BattleScene::DrawHUD()
 	}
 
 	if ( SelectedSoldierUnit() ) {
-		int id = SelectedSoldierUnit() - units;
+		//int id = SelectedSoldierUnit() - units;
 		const Unit* unit = SelectedSoldierUnit();
 		UFOText::Draw( 55, 304, "%s %s %s", 
 			unit->Rank(),

@@ -38,6 +38,15 @@
 		9A69091E0F3372CB005AE44E /* fixedgeom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A6909180F3372CB005AE44E /* fixedgeom.cpp */; };
 		9A69091F0F3372CB005AE44E /* loosequadtree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A69091A0F3372CB005AE44E /* loosequadtree.cpp */; };
 		9A6909200F3372CB005AE44E /* uirendering.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A69091C0F3372CB005AE44E /* uirendering.cpp */; };
+		9A6CE654115459470065C6F8 /* glmap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A6CE652115459470065C6F8 /* glmap.cpp */; };
+		9A6CE65E115459720065C6F8 /* tinystr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A6CE658115459720065C6F8 /* tinystr.cpp */; };
+		9A6CE65F115459720065C6F8 /* tinyxml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A6CE65A115459720065C6F8 /* tinyxml.cpp */; };
+		9A6CE660115459720065C6F8 /* tinyxmlerror.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A6CE65C115459720065C6F8 /* tinyxmlerror.cpp */; };
+		9A6CE661115459720065C6F8 /* tinyxmlparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A6CE65D115459720065C6F8 /* tinyxmlparser.cpp */; };
+		9A6CE66F115543930065C6F8 /* ai.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A6CE667115543930065C6F8 /* ai.cpp */; };
+		9A6CE670115543930065C6F8 /* scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A6CE669115543930065C6F8 /* scene.cpp */; };
+		9A6CE671115543930065C6F8 /* tacticalendscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A6CE66A115543930065C6F8 /* tacticalendscene.cpp */; };
+		9A6CE672115543930065C6F8 /* tacticalintroscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A6CE66C115543930065C6F8 /* tacticalintroscene.cpp */; };
 		9A73A4150F75500200DADEEA /* battlescene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A73A4120F75500200DADEEA /* battlescene.cpp */; };
 		9A73A42C0F7891F400DADEEA /* characterscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A73A42A0F7891F400DADEEA /* characterscene.cpp */; };
 		9A8EE7E90F3F770F005FDF47 /* renderqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A8EE7E70F3F770F005FDF47 /* renderqueue.cpp */; };
@@ -132,6 +141,22 @@
 		9A69091B0F3372CB005AE44E /* loosequadtree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = loosequadtree.h; path = ../engine/loosequadtree.h; sourceTree = SOURCE_ROOT; };
 		9A69091C0F3372CB005AE44E /* uirendering.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = uirendering.cpp; path = ../engine/uirendering.cpp; sourceTree = SOURCE_ROOT; };
 		9A69091D0F3372CB005AE44E /* uirendering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = uirendering.h; path = ../engine/uirendering.h; sourceTree = SOURCE_ROOT; };
+		9A6CE652115459470065C6F8 /* glmap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = glmap.cpp; path = ../shared/glmap.cpp; sourceTree = SOURCE_ROOT; };
+		9A6CE653115459470065C6F8 /* glmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glmap.h; path = ../shared/glmap.h; sourceTree = SOURCE_ROOT; };
+		9A6CE658115459720065C6F8 /* tinystr.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tinystr.cpp; path = ../tinyxml/tinystr.cpp; sourceTree = SOURCE_ROOT; };
+		9A6CE659115459720065C6F8 /* tinystr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tinystr.h; path = ../tinyxml/tinystr.h; sourceTree = SOURCE_ROOT; };
+		9A6CE65A115459720065C6F8 /* tinyxml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tinyxml.cpp; path = ../tinyxml/tinyxml.cpp; sourceTree = SOURCE_ROOT; };
+		9A6CE65B115459720065C6F8 /* tinyxml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tinyxml.h; path = ../tinyxml/tinyxml.h; sourceTree = SOURCE_ROOT; };
+		9A6CE65C115459720065C6F8 /* tinyxmlerror.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tinyxmlerror.cpp; path = ../tinyxml/tinyxmlerror.cpp; sourceTree = SOURCE_ROOT; };
+		9A6CE65D115459720065C6F8 /* tinyxmlparser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tinyxmlparser.cpp; path = ../tinyxml/tinyxmlparser.cpp; sourceTree = SOURCE_ROOT; };
+		9A6CE667115543930065C6F8 /* ai.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ai.cpp; path = ../game/ai.cpp; sourceTree = SOURCE_ROOT; };
+		9A6CE668115543930065C6F8 /* ai.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ai.h; path = ../game/ai.h; sourceTree = SOURCE_ROOT; };
+		9A6CE669115543930065C6F8 /* scene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = scene.cpp; path = ../game/scene.cpp; sourceTree = SOURCE_ROOT; };
+		9A6CE66A115543930065C6F8 /* tacticalendscene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tacticalendscene.cpp; path = ../game/tacticalendscene.cpp; sourceTree = SOURCE_ROOT; };
+		9A6CE66B115543930065C6F8 /* tacticalendscene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tacticalendscene.h; path = ../game/tacticalendscene.h; sourceTree = SOURCE_ROOT; };
+		9A6CE66C115543930065C6F8 /* tacticalintroscene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tacticalintroscene.cpp; path = ../game/tacticalintroscene.cpp; sourceTree = SOURCE_ROOT; };
+		9A6CE66D115543930065C6F8 /* tacticalintroscene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tacticalintroscene.h; path = ../game/tacticalintroscene.h; sourceTree = SOURCE_ROOT; };
+		9A6CE66E115543930065C6F8 /* targets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = targets.h; path = ../game/targets.h; sourceTree = SOURCE_ROOT; };
 		9A73A4120F75500200DADEEA /* battlescene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = battlescene.cpp; path = ../game/battlescene.cpp; sourceTree = SOURCE_ROOT; };
 		9A73A4130F75500200DADEEA /* battlescene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = battlescene.h; path = ../game/battlescene.h; sourceTree = SOURCE_ROOT; };
 		9A73A4140F75500200DADEEA /* scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = scene.h; path = ../game/scene.h; sourceTree = SOURCE_ROOT; };
@@ -249,6 +274,7 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
+				9A6CE657115459600065C6F8 /* TinyXML */,
 				9A1EEBF810B52016004D2F20 /* zlib */,
 				9A1EEBED10B51FF6004D2F20 /* sqlite3.c */,
 				9A1EEBEE10B51FF6004D2F20 /* sqlite3.h */,
@@ -325,9 +351,24 @@
 			name = zlib;
 			sourceTree = "<group>";
 		};
+		9A6CE657115459600065C6F8 /* TinyXML */ = {
+			isa = PBXGroup;
+			children = (
+				9A6CE658115459720065C6F8 /* tinystr.cpp */,
+				9A6CE659115459720065C6F8 /* tinystr.h */,
+				9A6CE65A115459720065C6F8 /* tinyxml.cpp */,
+				9A6CE65B115459720065C6F8 /* tinyxml.h */,
+				9A6CE65C115459720065C6F8 /* tinyxmlerror.cpp */,
+				9A6CE65D115459720065C6F8 /* tinyxmlparser.cpp */,
+			);
+			name = TinyXML;
+			sourceTree = "<group>";
+		};
 		9AF644500EAA9050004FB696 /* grinliz */ = {
 			isa = PBXGroup;
 			children = (
+				9A6CE652115459470065C6F8 /* glmap.cpp */,
+				9A6CE653115459470065C6F8 /* glmap.h */,
 				9A1EEBF310B5200D004D2F20 /* gldatabase.cpp */,
 				9A1EEBF410B5200D004D2F20 /* gldatabase.h */,
 				9A5636F20FAC052A00789C61 /* glperformance.cpp */,
@@ -413,6 +454,14 @@
 		9AF6454A0EAC4FA4004FB696 /* game */ = {
 			isa = PBXGroup;
 			children = (
+				9A6CE667115543930065C6F8 /* ai.cpp */,
+				9A6CE668115543930065C6F8 /* ai.h */,
+				9A6CE669115543930065C6F8 /* scene.cpp */,
+				9A6CE66A115543930065C6F8 /* tacticalendscene.cpp */,
+				9A6CE66B115543930065C6F8 /* tacticalendscene.h */,
+				9A6CE66C115543930065C6F8 /* tacticalintroscene.cpp */,
+				9A6CE66D115543930065C6F8 /* tacticalintroscene.h */,
+				9A6CE66E115543930065C6F8 /* targets.h */,
 				9AC8515010F83E8B00FB0134 /* stats.cpp */,
 				9AE90B8510A0087600A92443 /* battlestream.cpp */,
 				9AE90B8610A0087600A92443 /* battlestream.h */,
@@ -554,6 +603,15 @@
 				9A1EEC1B10B5202A004D2F20 /* zutil.c in Sources */,
 				9AC8514B10F83E4800FB0134 /* particleeffect.cpp in Sources */,
 				9AC8515110F83E8B00FB0134 /* stats.cpp in Sources */,
+				9A6CE654115459470065C6F8 /* glmap.cpp in Sources */,
+				9A6CE65E115459720065C6F8 /* tinystr.cpp in Sources */,
+				9A6CE65F115459720065C6F8 /* tinyxml.cpp in Sources */,
+				9A6CE660115459720065C6F8 /* tinyxmlerror.cpp in Sources */,
+				9A6CE661115459720065C6F8 /* tinyxmlparser.cpp in Sources */,
+				9A6CE66F115543930065C6F8 /* ai.cpp in Sources */,
+				9A6CE670115543930065C6F8 /* scene.cpp in Sources */,
+				9A6CE671115543930065C6F8 /* tacticalendscene.cpp in Sources */,
+				9A6CE672115543930065C6F8 /* tacticalintroscene.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

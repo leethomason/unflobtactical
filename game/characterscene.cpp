@@ -100,7 +100,7 @@ CharacterScene::~CharacterScene()
 
 void CharacterScene::InitInvWidget()
 {
-	Inventory* inv = unit->GetInventory();
+	//Inventory* inv = unit->GetInventory();
 
 	int icons[20] = { ICON_GREEN_BUTTON };
 

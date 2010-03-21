@@ -26,6 +26,7 @@
 		9A1EEBC210AD3101004D2F20 /* trees.c in Sources */ = {isa = PBXBuildFile; fileRef = 9A1EEBB110AD3101004D2F20 /* trees.c */; };
 		9A1EEBC310AD3101004D2F20 /* uncompr.c in Sources */ = {isa = PBXBuildFile; fileRef = 9A1EEBB310AD3101004D2F20 /* uncompr.c */; };
 		9A1EEBC410AD3101004D2F20 /* zutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 9A1EEBB710AD3101004D2F20 /* zutil.c */; };
+		9A6CE638115457A80065C6F8 /* dither.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A6CE636115457A80065C6F8 /* dither.cpp */; };
 		9A8F7EC80EBD204100742BF0 /* ac3d.c in Sources */ = {isa = PBXBuildFile; fileRef = 9A8F7EC40EBD204100742BF0 /* ac3d.c */; };
 		9A8F7EC90EBD204100742BF0 /* import.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A8F7EC60EBD204100742BF0 /* import.cpp */; };
 		9A8F7ED00EBD205000742BF0 /* tinystr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9A8F7ECA0EBD205000742BF0 /* tinystr.cpp */; };
@@ -103,6 +104,8 @@
 		9A1EEBB610AD3101004D2F20 /* zlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zlib.h; path = ../../zlib/zlib.h; sourceTree = SOURCE_ROOT; };
 		9A1EEBB710AD3101004D2F20 /* zutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zutil.c; path = ../../zlib/zutil.c; sourceTree = SOURCE_ROOT; };
 		9A1EEBB810AD3101004D2F20 /* zutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zutil.h; path = ../../zlib/zutil.h; sourceTree = SOURCE_ROOT; };
+		9A6CE636115457A80065C6F8 /* dither.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = dither.cpp; path = ../dither.cpp; sourceTree = SOURCE_ROOT; };
+		9A6CE637115457A80065C6F8 /* dither.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = dither.h; path = ../dither.h; sourceTree = SOURCE_ROOT; };
 		9A8F7EC40EBD204100742BF0 /* ac3d.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ac3d.c; path = ../../importers/ac3d.c; sourceTree = SOURCE_ROOT; };
 		9A8F7EC50EBD204100742BF0 /* ac3d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ac3d.h; path = ../../importers/ac3d.h; sourceTree = SOURCE_ROOT; };
 		9A8F7EC60EBD204100742BF0 /* import.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = import.cpp; path = ../../importers/import.cpp; sourceTree = SOURCE_ROOT; };
@@ -169,6 +172,8 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				9A6CE636115457A80065C6F8 /* dither.cpp */,
+				9A6CE637115457A80065C6F8 /* dither.h */,
 				9A8F7ED40EBD206700742BF0 /* builder.cpp */,
 				9A8F7ED50EBD206700742BF0 /* builder.h */,
 				9A8F7ED60EBD206700742BF0 /* modelbuilder.cpp */,
@@ -453,6 +458,7 @@
 				9A1EEBC210AD3101004D2F20 /* trees.c in Sources */,
 				9A1EEBC310AD3101004D2F20 /* uncompr.c in Sources */,
 				9A1EEBC410AD3101004D2F20 /* zutil.c in Sources */,
+				9A6CE638115457A80065C6F8 /* dither.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

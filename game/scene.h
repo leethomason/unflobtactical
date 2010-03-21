@@ -18,6 +18,7 @@
 
 #include "../grinliz/glvector.h"
 #include "../grinliz/glgeometry.h"
+#include "../grinliz/glrectangle.h"
 
 class Game;
 class Engine;
@@ -32,8 +33,8 @@ public:
 	Scene( Game* _game ) : game( _game )						{}
 	virtual ~Scene()											{}
 
-	virtual void Activate()											{}
-	virtual void DeActivate()										{}
+	virtual void Activate()										{}
+	virtual void DeActivate()									{}
 
 	// UI
 	virtual void Tap(	int count, 
@@ -50,9 +51,14 @@ public:
 	virtual void Load( const TiXmlElement* doc )				{}
 
 	// Rendering
+	enum {
+		RENDER_2D = 0x01,
+		RENDER_3D = 0x02
+	};
+	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	{ return 0; }
+	// Perspective rendering.
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
-
-	// Occurs after engine rendering.
+	// 2D overlay rendering.
 	virtual void DrawHUD()										{}
 
 protected:
