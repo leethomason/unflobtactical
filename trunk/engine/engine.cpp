@@ -581,11 +581,9 @@ bool Engine::UnProject(	const Vector3F& window,
 
 void Engine::WorldToScreen( const grinliz::Vector3F& p0, grinliz::Vector2F* view )
 {
-	const Matrix4& modelView = screenport->ViewMatrix();
-	const Matrix4& projection = screenport->ProjectionMatrix();
-
 	Matrix4 mvp;
-	MultMatrix4( projection, modelView, &mvp );
+	screenport->ViewProjection( &mvp );
+
 	Vector4F p, r;
 	p.Set( p0, 1 );
 
@@ -607,12 +605,7 @@ void Engine::WorldToUI( const grinliz::Vector3F& p, grinliz::Vector2I* ui )
 
 void Engine::CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjectionInverse )
 {
-	const Matrix4& modelView = screenport->ViewMatrix();
-	const Matrix4& projection = screenport->ProjectionMatrix();
-
-	Matrix4 mvp;
-	MultMatrix4( projection, modelView, &mvp );
-	mvp.Invert( modelViewProjectionInverse );
+	screenport->ViewProjectionInverse( modelViewProjectionInverse );
 }
 
 
@@ -692,13 +685,10 @@ void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
 
 void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
 {
-	const Matrix4& modelView = screenport->ViewMatrix();
-	const Matrix4& projection = screenport->ProjectionMatrix();
-
 	// --------- Compute the view frustum ----------- //
 	// A strange and ill-documented algorithm from Real Time Rendering, 2nd ed, pg.613
 	Matrix4 m;
-	MultMatrix4( projection, modelView, &m );
+	screenport->ViewProjection( &m );
 
 	// m is the matrix from multiplying projection and model. The
 	// subscript is the row.

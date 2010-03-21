@@ -81,6 +81,7 @@ public:
 	// the origin to the lower left, independent of rotation.
 	void ScreenToView( int screenX, int screenY, grinliz::Vector2I* view ) const;
 	void ScreenToWorld( int screenX, int screenY, grinliz::Ray* world ) const;
+	void WorldToScreen( const grinliz::Vector3F& p0, grinliz::Vector2F* view ) const;
 
 	// These reflect the physical screen:
 	int ScreenWidth() const		{ return screenWidth; }
@@ -97,8 +98,15 @@ public:
 	// Set the MODELVIEW from the camera.
 	void SetView( const grinliz::Matrix4& view );
 
-	const grinliz::Matrix4& ProjectionMatrix()	{ return projection; }
-	const grinliz::Matrix4& ViewMatrix()		{ return view; }
+	const grinliz::Matrix4& ProjectionMatrix()				{ return projection; }
+	const grinliz::Matrix4& ViewMatrix()					{ return view; }
+	void ViewProjection( grinliz::Matrix4* vp )				{ grinliz::MultMatrix4( projection, view, vp ); }
+	void ViewProjectionInverse( grinliz::Matrix4* vpi )		{ grinliz::Matrix4 vp;
+															  ViewProjection( &vp );
+															  vp.Invert( vpi );
+															}
+	
+
 	const Frustum&		    GetFrustum()		{ GLASSERT( uiMode == false ); return frustum; }
 
 	void ViewToUI( int vX, int vY, int* uiX, int* uiY ) const;
@@ -107,8 +115,6 @@ public:
 	int UIHeight() const									{ return (rotation&1) ? screenWidth : screenHeight; }
 	void UIBounds( grinliz::Rectangle2I* b ) const			{ *b = clipInUI; }
 	bool UIMode() const										{ return uiMode; }
-
-	void WorldToScreen( const grinliz::Vector3F& p0, grinliz::Vector2F* view );
 
 private:
 	Screenport( const Screenport& other );
