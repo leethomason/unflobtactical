@@ -438,8 +438,8 @@ void ProcessModel( TiXmlElement* model )
 	Vertex* pVertex = vertexBuf;
 	U16* pIndex = indexBuf;
 	
-	const Vertex* pVertexEnd = vertexBuf + nTotalVertex;
-	const U16* pIndexEnd = indexBuf + nTotalIndex;
+	//const Vertex* pVertexEnd = vertexBuf + nTotalVertex;
+	//const U16* pIndexEnd = indexBuf + nTotalIndex;
 
 	// Write the vertices in each group:
 	for( int i=0; i<builder->NumGroups(); ++i ) {

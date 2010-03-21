@@ -1129,7 +1129,6 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 
 const Storage* Map::GetStorage( int x, int y ) const
 {
-	Storage* s = 0;
 	for( int i=0; i<debris.Size(); ++i ) {
 		if ( debris[i].x == x && debris[i].y ==y ) {
 			return debris[i].storage;
@@ -1567,7 +1566,7 @@ void Map::ShowNearPath(	const void* user,
 		pathBlocker->MakePathBlockCurrent( this, user );
 	}
 	stateCostArr.clear();
-	int result = microPather->SolveForNearStates( VecToState( start ), &stateCostArr, maxCost );
+	microPather->SolveForNearStates( VecToState( start ), &stateCostArr, maxCost );
 
 	/*
 	GLOUTPUT(( "Near states, result=%d\n", result ));

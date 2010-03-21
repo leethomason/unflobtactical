@@ -333,14 +333,6 @@ void Game::DoTick( U32 _currentTime )
 		}
 	}
 
-#ifdef EL_SHOW_MODELS
-	for( int i=0; i<nModelResource; ++i ) {
-		for ( unsigned k=0; k<modelResource[i].nGroups; ++ k ) {
-			modelResource[i].atom[k].trisRendered = 0;
-		}
-	}
-#endif
-
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
 
@@ -355,37 +347,42 @@ void Game::DoTick( U32 _currentTime )
 	Scene* scene = sceneStack.Top();
 	scene->DoTick( currentTime, deltaTime );
 
-	Rectangle2I r;
-//	r.Set( 100, 50, 300, 50+200*320/480 );
-	r.Set( 100, 50, 300, 150 );
-	screenport.SetPerspective( 2.f, 240.f, 20.f, &r );
+	Rectangle2I clip2D, clip3D;
+	int renderPass = scene->RenderPass( &clip3D, &clip2D );
+	if ( !clip3D.IsValid() )
+		screenport.UIBounds( &clip3D );
+	if ( !clip2D.IsValid() )
+		screenport.UIBounds( &clip2D );
+	
+	if ( renderPass & Scene::RENDER_3D ) {
+		//	r.Set( 100, 50, 300, 50+200*320/480 );
+		//	r.Set( 100, 50, 300, 150 );
+		screenport.SetPerspective( 2.f, 240.f, 20.f, &clip3D );
 
 #ifdef MAPMAKER
-	if ( showPathing ) 
-		engine.EnableMap( false );
-	engine.Draw();
-	if ( showPathing ) {
-		engine.GetMap()->DrawPath();
-	}
-	if ( showPathing ) 
-		engine.EnableMap( true );
+		if ( showPathing ) 
+			engine.EnableMap( false );
+		engine.Draw();
+		if ( showPathing ) {
+			engine.GetMap()->DrawPath();
+		}
+		if ( showPathing ) 
+			engine.EnableMap( true );
 #else
-	
-	engine.Draw();
-
+		engine.Draw();
 #endif
-	
-	const grinliz::Vector3F* eyeDir = engine.camera.EyeDir3();
-	ParticleSystem* particleSystem = ParticleSystem::Instance();
-	particleSystem->Update( deltaTime, currentTime );
-	particleSystem->Draw( eyeDir, &engine.GetMap()->GetFogOfWar() );
-
+		
+		const grinliz::Vector3F* eyeDir = engine.camera.EyeDir3();
+		ParticleSystem* particleSystem = ParticleSystem::Instance();
+		particleSystem->Update( deltaTime, currentTime );
+		particleSystem->Draw( eyeDir, &engine.GetMap()->GetFogOfWar() );
+	}
 	trianglesSinceMark += trianglesRendered;
 
-	//r.Set( 0, 0, 55, 320 );
-	screenport.SetUI( 0 );		// FIXME: give this a clip...needs to be set by the scene.
-	scene->DrawHUD();
-
+	if ( renderPass & Scene::RENDER_2D ) {
+		screenport.SetUI( &clip2D );
+		scene->DrawHUD();
+	}
 #ifdef DEBUG
 	UFOText::Draw(	0,  0, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s %dnew", 
 					VERSION,
