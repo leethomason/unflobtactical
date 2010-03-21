@@ -4,7 +4,7 @@
   <texture filename="iconDeco.png" dither="false" />
 
   <!-- Model textures -->
-	<texture filename="stdfont2.tga" dither="false" />
+	<texture filename="stdfont2.tga" dither="false" font="true"/>
 	<texture filename="woodDark.png" />
 	<texture filename="woodDarkUFO.tga" />
   <texture filename="woodPlank.png" />

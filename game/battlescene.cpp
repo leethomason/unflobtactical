@@ -548,7 +548,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 			// Is the unit on screen? If so, put in a simple foot decal. Else
 			// put in an "alien that way" decal.
 			Vector2I r;	
-			engine->WorldToUI( p, &r );
+			engine->GetScreenport().WorldToUI( p, &r );
 			Rectangle2I uiBounds;
 			
 			engine->GetScreenport().UIBounds( &uiBounds );
@@ -659,7 +659,7 @@ void BattleScene::DrawHPBars()
 
 			const Vector3F& pos = units[i].GetModel()->Pos();
 			Vector2F r;
-			engine->WorldToScreen( pos, &r );
+			engine->GetScreenport().WorldToScreen( pos, &r );
 
 			const Screenport& port = engine->GetScreenport();
 			if (    r.x >= 0.0f && r.x <= port.ScreenWidth() 
@@ -713,7 +713,7 @@ void BattleScene::DrawFireWidget()
 											pos, ALPHA, 0 );
 
 	Vector2F r;
-	engine->WorldToScreen( pos, &r );
+	engine->GetScreenport().WorldToScreen( pos, &r );
 	//GLOUTPUT(( "View: %.1f,%.1f\n", r.x, r.y ));
 	int uiX, uiY;
 	const Screenport& port = engine->GetScreenport();
@@ -868,7 +868,7 @@ void BattleScene::TestCoordinates()
 	inset.Outset( 0 );
 
 	Matrix4 mvpi;
-	engine->CalcModelViewProjectionInverse( &mvpi );
+	engine->GetScreenport().ViewProjectionInverse3D( &mvpi );
 
 	for( int i=0; i<4; ++i ) {
 		Vector3F pos;
@@ -891,7 +891,7 @@ void BattleScene::PushScrollOnScreen( const Vector3F& pos )
 		and add the difference.
 	*/
 	Vector2I r;
-	engine->WorldToUI( pos, &r );
+	engine->GetScreenport().WorldToUI( pos, &r );
 	//GLOUTPUT(( "screen: %.1f, %.1f\n", r.x, r.y ));
 
 	//const Screenport& port = engine->GetScreenport();
@@ -911,7 +911,7 @@ void BattleScene::PushScrollOnScreen( const Vector3F& pos )
 		Vector3F pos;
 		Matrix4 mvpi;
 
-		engine->CalcModelViewProjectionInverse( &mvpi );
+		engine->GetScreenport().ViewProjectionInverse3D( &mvpi );
 		engine->RayFromScreenToYPlane( newCenter.x, newCenter.y, mvpi, 0, &pos );
 
 		// Scroll
@@ -1888,6 +1888,14 @@ void BattleScene::Tap(	int tap,
 						const grinliz::Vector2I& screen,
 						const grinliz::Ray& world )
 {
+	{
+		Vector3F pos;
+		IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &pos );
+		pos.y = 0.01f;
+		Color4F c = { 1, 0, 0, 1 };
+		Color4F cv = { 0, 0, 0, 0 };
+		ParticleSystem::Instance()->EmitOnePoint( c, cv, pos, 1500 );
+	}
 	if ( tap > 1 )
 		return;
 	if ( !actionStack.Empty() )
@@ -2440,7 +2448,7 @@ void BattleScene::Drag( int action, const grinliz::Vector2I& view )
 		case GAME_DRAG_START:
 		{
 			Ray ray;
-			engine->CalcModelViewProjectionInverse( &dragMVPI );
+			engine->GetScreenport().ViewProjectionInverse3D( &dragMVPI );
 			engine->RayFromScreenToYPlane( view.x, view.y, dragMVPI, &ray, &dragStart );
 			dragStartCameraWC = engine->camera.PosWC();
 		}

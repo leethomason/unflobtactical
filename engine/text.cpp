@@ -20,16 +20,15 @@
 #include <stdarg.h>
 #include <string.h>
 #include "../grinliz/glutil.h"
+#include "../grinliz/glrectangle.h"
 
 using namespace grinliz;
 
-const int ADVANCE = 10;
-const int ADVANCE_SMALL = 8;
 const float SMALL_SCALE = 0.75f;
-const int GLYPH_CX = 16;
-const int GLYPH_CY = 8;
-static int GLYPH_WIDTH = 256 / GLYPH_CX;
-static int GLYPH_HEIGHT = 128 / GLYPH_CY;
+const int TEXTURE_WIDTH = 256;
+const int TEXTURE_HEIGHT = 128;
+const int GLYPH_WIDTH = TEXTURE_WIDTH / UFOText::GLYPH_CX;
+const int GLYPH_HEIGHT = TEXTURE_HEIGHT / UFOText::GLYPH_CY;
 
 extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
 extern int drawCalls;			// ditto
@@ -41,6 +40,7 @@ U16 UFOText::iBuf[BUF_SIZE*6] = { 0, 0 };
 
 Screenport* UFOText::screenport = 0;
 U32 UFOText::textureID = 0;
+GlyphMetric UFOText::glyphMetric[GLYPH_CX*GLYPH_CY];
 
 void UFOText::InitScreen( Screenport* sp )
 {
@@ -82,6 +82,35 @@ void UFOText::End()
 }
 
 
+void UFOText::Metrics(	int c,				// character in 
+						int* advance,					// advance, in pixels
+						int* width,
+						grinliz::Rectangle2I* src )		// location in texture, in pixels
+{
+	int cy = (int)c / GLYPH_CX;
+	int cx = (int)c - cy*GLYPH_CX;
+
+	// Flip the y axis:
+	cy = GLYPH_CY - cy;
+
+	if ( c == 0 ) {
+		*advance = *width = GLYPH_WIDTH * 3 / 4;
+	}
+	else {
+		GLASSERT( c < GLYPH_CX*GLYPH_CY );
+		GlyphMetric* g = &glyphMetric[c];
+
+		*width = g->width;
+		*advance = g->width+1;
+
+		src->Set(	cx*GLYPH_WIDTH + g->offset,
+					(cy-1)*GLYPH_HEIGHT,
+					cx*GLYPH_WIDTH + g->offset + g->width,
+					cy*GLYPH_HEIGHT );
+	}
+}
+
+
 void UFOText::TextOut( const char* str, int x, int y, int* w, int *h )
 {
 	bool smallText = false;
@@ -120,19 +149,6 @@ void UFOText::TextOut( const char* str, int x, int y, int* w, int *h )
 			++str;
 			continue;
 		}
-		else 
-		if ( *str == ' ' ) {
-			if ( smallText ) {
-				x += ADVANCE_SMALL;
-				smallText = false;
-			}
-			else {
-				x += ADVANCE;
-			}
-			++str;
-			continue;
-		}
-
 		if ( smallText && !( *str >= '0' && *str <= '9' ) ) {
 			smallText = false;
 		}
@@ -140,45 +156,40 @@ void UFOText::TextOut( const char* str, int x, int y, int* w, int *h )
 		// Draw a glyph or nothing, at this point:
 		GLASSERT( pos < BUF_SIZE );
 		int c = *str - 32;
-		if ( c >= 1 && c < 128-32 )
-		{
-			if ( rendering ) {
-				float tx0 = ( 1.0f / float( GLYPH_CX ) ) * ( c % GLYPH_CX );
-				float tx1 = tx0 + ( 1.0f / float( GLYPH_CX ) );
 
-				float ty0 = 1.0f - ( 1.0f / float( GLYPH_CY ) ) * (float)( c / GLYPH_CX + 1 );
-				float ty1 = ty0 + ( 1.0f / float( GLYPH_CY ) );
+		Rectangle2I src;
+		int advance, width;
+		Metrics( c, &advance, &width, &src );
+
+		if ( c<=0 || c >= 128 ) {
+			float scale = smallText ? SMALL_SCALE : 1.0f;
+			x += LRintf((float)advance*scale);
+		}
+		else {
+			if ( rendering ) {
+				float tx0 = (float)src.min.x / (float)TEXTURE_WIDTH;
+				float tx1 = (float)src.max.x / (float)TEXTURE_WIDTH;
+				float ty0 = (float)src.min.y / (float)TEXTURE_HEIGHT;
+				float ty1 = (float)src.max.y / (float)TEXTURE_HEIGHT;
 
 				tBuf[pos*4+0].Set( tx0, ty0 );
 				tBuf[pos*4+1].Set( tx1, ty0 );
 				tBuf[pos*4+2].Set( tx1, ty1 );
 				tBuf[pos*4+3].Set( tx0, ty1 );
 			}
-			if ( !smallText ) {
-				if ( rendering ) {
-					vBuf[pos*4+0].Set( (float)x,					(float)y );	
-					vBuf[pos*4+1].Set( (float)(x+GLYPH_WIDTH),	(float)y );	
-					vBuf[pos*4+2].Set( (float)(x+GLYPH_WIDTH),	(float)(y+GLYPH_HEIGHT) );	
-					vBuf[pos*4+3].Set( (float)x,					(float)(y+GLYPH_HEIGHT) );	
-				}
-				x += ADVANCE;
-			}
-			else {
-				if ( rendering ) {
-					float y0 = (float)(y+GLYPH_HEIGHT) - (float)GLYPH_HEIGHT * SMALL_SCALE;
-					float x1 = (float)x + (float)GLYPH_WIDTH*SMALL_SCALE;
-
-					vBuf[pos*4+0].Set( (float)x,					y0 );
-					vBuf[pos*4+1].Set( x1,						y0 );
-					vBuf[pos*4+2].Set( x1,						(float)(y+GLYPH_HEIGHT) );
-					vBuf[pos*4+3].Set( (float)x,					(float)(y+GLYPH_HEIGHT) );
-				}
-				x += ADVANCE_SMALL;
-			}
-
+			float scale = smallText ? SMALL_SCALE : 1.0f;
 			if ( rendering ) {
-				pos++;
-				if ( pos == BUF_SIZE || *(str+1) == 0 ) {
+				vBuf[pos*4+0].Set( (float)x,					(float)(y+GLYPH_HEIGHT) - (float)GLYPH_HEIGHT*scale );	
+				vBuf[pos*4+1].Set( (float)x+(float)width*scale,	(float)(y+GLYPH_HEIGHT) - (float)GLYPH_HEIGHT*scale );	
+				vBuf[pos*4+2].Set( (float)x+(float)width*scale,	(float)(y+GLYPH_HEIGHT) );	
+				vBuf[pos*4+3].Set( (float)x,					(float)(y+GLYPH_HEIGHT) );	
+			}
+			x += LRintf((float)advance*scale);
+			++pos;
+		}
+		if ( rendering ) {
+			if ( pos == BUF_SIZE || *(str+1) == 0 ) {
+				if ( pos > 0 ) {
 					glDrawElements( GL_TRIANGLES, pos*6, GL_UNSIGNED_SHORT, iBuf );
 
 					trianglesRendered += pos*3;
@@ -188,13 +199,12 @@ void UFOText::TextOut( const char* str, int x, int y, int* w, int *h )
 				}
 			}
 		}
-		
 		++str;
 	}
 	if ( w ) {
 		*w = x - xStart;
-		if ( *w > 0 )
-			*w += GLYPH_WIDTH-ADVANCE;
+		//if ( *w > 0 )
+		//	*w += GLYPH_WIDTH-ADVANCE;
 	}
 }
 
@@ -204,43 +214,6 @@ void UFOText::GlyphSize( const char* str, int* width, int* height )
 	TextOut( str, 0, 0, width, height );
 }
 
-
-/*
-void UFOText::GlyphSize( const char* str, int* width, int* height )
-{
-	*width = 0;
-	*height = 0;
-
-	if ( str && *str ) {
-		*height = GLYPH_HEIGHT;
-	}
-	bool small = false;
-	bool anyglyph = false;
-
-	for( const char* p = str; p && *p; ++p ) {
-		if ( *p == '.' ) {
-			small = true;
-		}
-		else if ( small ) {
-			if ( *p >= '0' && *p <= '9' ) {
-				*width += ADVANCE_SMALL;
-			}
-			else {
-				*width += ADVANCE;
-				small = false;
-				anyglyph = true;
-			}
-		}
-		else {
-			*width += ADVANCE;
-			anyglyph = true;
-		}
-	}
-	if ( anyglyph ) {
-		*width += GLYPH_WIDTH - ADVANCE_SMALL;	// the advance is less than the width
-	}
-}
-*/
 
 void UFOText::Draw( int x, int y, const char* format, ... )
 {

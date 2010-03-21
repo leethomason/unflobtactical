@@ -19,6 +19,7 @@
 #include "material.h"
 #include "../shared/gldatabase.h"
 #include "../grinliz/glstringutil.h"
+#include "../engine/text.h"
 
 using namespace grinliz;
 
@@ -103,6 +104,7 @@ void Game::LoadTextures()
 		int w = sqlite3_column_int( stmt, 3 );
 		int h = sqlite3_column_int( stmt, 4 );
 		int id = sqlite3_column_int( stmt, 5 );
+		int metricsID = sqlite3_column_int( stmt, 6 );
 
 		surface.Set( Surface::QueryFormat( format ), w, h );
 		
@@ -114,8 +116,14 @@ void Game::LoadTextures()
 		textureID = surface.CreateTexture();
 		texman->AddTexture( name, textureID, surface.Alpha() );
 		GLOUTPUT(( "Texture %s\n", name ));
+		
+		if ( metricsID ) {
+			int metricsSize = 0;
+			reader.ReadSize( metricsID, &metricsSize );
+			GLASSERT( metricsSize == UFOText::GLYPH_CX*UFOText::GLYPH_CY*sizeof(GlyphMetric) );
+			reader.ReadData( metricsID, metricsSize, UFOText::MetricsPtr() );
+		}
 	}
-
 	sqlite3_finalize(stmt);
 }
 
@@ -168,6 +176,7 @@ void Game::LoadImages()
 		int w = sqlite3_column_int( stmt, 3 );
 		int h = sqlite3_column_int( stmt, 4 );
 		int id = sqlite3_column_int( stmt, 5 );
+		int metricsID = sqlite3_column_int( stmt, 6 );
 
 		Surface* s = ImageManager::Instance()->AddLockedSurface();
 		s->Set( Surface::QueryFormat( format ), w, h );
@@ -177,6 +186,7 @@ void Game::LoadImages()
 		GLASSERT( s->BytesInImage() == blobSize );
 		reader.ReadData( id, blobSize, s->Pixels() );
 		s->SetName( name );
+		
 		ImageManager::Instance()->Unlock();
 
 		GLOUTPUT(( "LightMap %s\n", s->Name() ));
