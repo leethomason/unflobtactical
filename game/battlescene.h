@@ -80,8 +80,8 @@ public:
 
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	{
 		// FIXME: add proper sub-values
-		//clip3D->Set( 100, 50, 300, 250 );
-		clip3D->SetInvalid();
+		clip3D->Set( 100, 50, 300, 200 );
+		//clip3D->SetInvalid();
 		clip2D->SetInvalid();
 		return RENDER_3D | RENDER_2D; 
 	}

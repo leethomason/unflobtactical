@@ -61,7 +61,7 @@ void Screenport::SetUI( const Rectangle2I* clip )
 		case 0:
 			break;
 		case 1:
-			t.SetTranslation( 0, -ScreenWidth(), 0 );	
+			t.SetTranslation( 0, (float)(-ScreenWidth()), 0 );	
 			break;
 			
 		default:
@@ -71,14 +71,14 @@ void Screenport::SetUI( const Rectangle2I* clip )
 	view = r*t;
 	
 	projection.SetIdentity();
-	projection.SetOrtho( 0, ScreenWidth(), 0, ScreenHeight(), -100, 100 );
+	projection.SetOrtho( 0, (float)ScreenWidth(), 0, (float)ScreenHeight(), -100, 100 );
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();				// projection
 
 	// Set the ortho matrix, help the driver
 	//glMultMatrixf( projection.x );
-	glOrthof( 0, ScreenWidth(), 0, ScreenHeight(), -100, 100 );
+	glOrthofX( 0, ScreenWidth(), 0, ScreenHeight(), -100, 100 );
 	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();				// model
@@ -126,22 +126,20 @@ void Screenport::SetPerspective( float near, float far, float fovDegrees, const 
 
 	// left, right, top, & bottom are on the near clipping
 	// plane. (Not an obvious point to my mind.)
-	float ratio = (float)clipInUI.Height() / (float)clipInUI.Width();
 	
 	if ( Rotation() & 1 ) {
-		//ratio = (float)(ScreenWidth()) / (float)(ScreenHeight());
+		float ratio = (float)clipInUI.Height() / (float)clipInUI.Width();
 		frustum.top		= tan(theta) * frustum.zNear;
 		frustum.bottom	= -frustum.top;
 		frustum.left	= ratio * frustum.bottom;
 		frustum.right	= ratio * frustum.top;
 	}
 	else {
-//		float ratio = (float)(ScreenHeight()) / (float)(ScreenWidth());
-		// Correct ratio, but the screen may be more narrow.
-		frustum.right	= tan(theta) * frustum.zNear;
-		frustum.top		= ratio * tan(theta) * frustum.zNear;
-		frustum.left	= -frustum.right;
+		float ratio = (float)clipInUI.Width() / (float)clipInUI.Height();
+		frustum.top		= tan(theta) * frustum.zNear;
 		frustum.bottom	= -frustum.top;
+		frustum.left	= ratio * frustum.bottom;
+		frustum.right	= ratio * frustum.top;
 	}
 	
 
