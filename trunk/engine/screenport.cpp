@@ -34,6 +34,14 @@ Screenport::Screenport( int screenWidth, int screenHeight, int rotation )
 	uiMode = false;
 	clipInUI2D.Set( 0, 0, UIWidth(), UIHeight() );
 	clipInUI3D.Set( 0, 0, UIWidth(), UIHeight() );
+
+	// Get the actual pixel size. Then adjust it to be the correct ratio.
+	// The pixel ration of the screen is 480x320.
+	glGetIntegerv( GL_VIEWPORT, (GLint*)viewport );
+	if ( rotation & 1 ) 
+		viewPortScale = (float)viewport[2] / (float)320;
+	else
+		viewPortScale = (float)viewport[2] / (float)480;
 }
 
 
@@ -123,27 +131,33 @@ void Screenport::SetPerspective( float near, float far, float fovDegrees, const 
 	frustum.zFar = far;
 
 	// Convert from the FOV to the half angle.
-	float theta = ToRadian( fovDegrees ) * 0.5f;
+	float theta = ToRadian( fovDegrees * 0.5f );
+	float tanTheta = tanf( theta );
+	float longSide = tanTheta * frustum.zNear;
 
 	// left, right, top, & bottom are on the near clipping
 	// plane. (Not an obvious point to my mind.)
 	
 	if ( Rotation() & 1 ) {
+		GLASSERT( 0 );	// need to fix this...
 		float ratio = (float)clipInUI3D.Height() / (float)clipInUI3D.Width();
-		frustum.top		= tan(theta) * frustum.zNear;
-		frustum.bottom	= -frustum.top;
-		frustum.left	= ratio * frustum.bottom;
-		frustum.right	= ratio * frustum.top;
+		frustum.top		=  longSide;
+		frustum.bottom	= -longSide;
+		frustum.left	= -ratio * longSide;
+		frustum.right	=  ratio * longSide;
 	}
 	else {
-		float ratio = (float)clipInUI3D.Width() / (float)clipInUI3D.Height();
-		frustum.top		= tan(theta) * frustum.zNear;
+		// Since FOV is specified as the 1/2 width, the ratio
+		// is the height/width (different than gluPerspective)
+		float ratio = (float)clipInUI3D.Height() / (float)clipInUI3D.Width();
+
+		frustum.top		= ratio * longSide;
 		frustum.bottom	= -frustum.top;
-		frustum.left	= ratio * frustum.bottom;
-		frustum.right	= ratio * frustum.top;
+
+		frustum.left	= -longSide;
+		frustum.right	=  longSide;
 	}
 	
-
 	glMatrixMode(GL_PROJECTION);
 	// In normalized coordinates.
 	projection3D.SetFrustum( frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.zNear, frustum.zFar );
@@ -187,11 +201,10 @@ void Screenport::ScreenToView( int x0, int y0, Vector2I* view ) const
 
 bool Screenport::ScreenToWorld( const grinliz::Vector3F& s, const grinliz::Matrix4& mvpi, grinliz::Vector3F* world ) const
 {
-	Rectangle2I clip;
-	UIToScissor( clipInUI3D.min.x, clipInUI3D.min.y, clipInUI3D.Width(), clipInUI3D.Height(), &clip );
-
-	Vector4F in = { (s.x-(float)clip.min.x)*2.0f / (float)clip.Width() - 1.0f,
-					(s.y-(float)clip.min.y)*2.0f / (float)clip.Height() - 1.0f,
+	Vector2I v;
+	ScreenToView( LRintf(s.x), LRintf(s.y), &v );
+	Vector4F in = { (float)(v.x-clipInUI3D.min.x)*2.0f / (float)clipInUI3D.Width() - 1.0f,
+					(float)(v.y-clipInUI3D.min.y)*2.0f / (float)clipInUI3D.Height() - 1.0f,
 					s.z*2.0f-1.f,
 					1.0f };
 
@@ -265,24 +278,18 @@ void Screenport::WorldToUI( const grinliz::Vector3F& p, grinliz::Vector2I* ui ) 
 
 void Screenport::UIToScissor( int x, int y, int w, int h, grinliz::Rectangle2I* clip ) const
 {
-	if ( viewport[2] == 0 ) {
-		glGetIntegerv( GL_VIEWPORT, (GLint*)viewport );
-	}
-	float wScale = (float)viewport[2]/(float)screenWidth;
-	float hScale = (float)viewport[3]/(float)screenHeight;
-
 	switch ( rotation ) {
 		case 0:
-			clip->Set(	viewport[0] + LRintf( (float)x * wScale ),
-						viewport[1] + LRintf( (float)y * hScale ),
-						viewport[0] + LRintf( (float)(x+w-1) * wScale ), 
-						viewport[1] + LRintf( (float)(y+h-1) * hScale ) );
+			clip->Set(	viewport[0] + LRintf( (float)x * viewPortScale ),
+						viewport[1] + LRintf( (float)y * viewPortScale ),
+						viewport[0] + LRintf( (float)(x+w-1) * viewPortScale ), 
+						viewport[1] + LRintf( (float)(y+h-1) * viewPortScale ) );
 			break;
 		case 1:
-			clip->Set(	viewport[0] + LRintf( (float)y * hScale ),
-						viewport[1] + LRintf( (float)x * wScale ), 
-						viewport[0] + LRintf( (float)(y+h-1) * hScale ),
-						viewport[1] + LRintf( (float)(x+w-1) * wScale ));
+			clip->Set(	viewport[0] + LRintf( (float)y * viewPortScale ),
+						viewport[1] + LRintf( (float)x * viewPortScale ), 
+						viewport[0] + LRintf( (float)(y+h-1) * viewPortScale ),
+						viewport[1] + LRintf( (float)(x+w-1) * viewPortScale ));
 			break;
 		case 2:
 		case 3:
@@ -301,13 +308,10 @@ void Screenport::SetViewport( const grinliz::Rectangle2I* uiClip )
 		UIToScissor( uiClip->min.x, uiClip->min.y, uiClip->Width(), uiClip->Height(), &scissor );
 
 		glEnable( GL_SCISSOR_TEST );
-		glScissor( scissor.min.x, scissor.min.y, scissor.max.x, scissor.max.y );
-		glViewport( scissor.min.x, scissor.min.y, scissor.max.x, scissor.max.y );
+		glScissor( scissor.min.x, scissor.min.y, scissor.Width(), scissor.Height() );
+		glViewport( scissor.min.x, scissor.min.y, scissor.Width(), scissor.Height() );
 	}
 	else {
-		if ( viewport[2] == 0 ) {
-			glGetIntegerv( GL_VIEWPORT, (GLint*)viewport );
-		}
 		glDisable( GL_SCISSOR_TEST );
 		glViewport( viewport[0], viewport[1], viewport[2], viewport[3] );
 	}

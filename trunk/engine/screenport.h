@@ -117,24 +117,23 @@ public:
 	void UIBounds( grinliz::Rectangle2I* b ) const			{ *b = uiMode ? clipInUI2D : clipInUI3D; }
 	bool UIMode() const										{ return uiMode; }
 
-//	static bool UnProject(	const grinliz::Vector3F& window,
-//							//const grinliz::Rectangle2I& screen,
-//							const grinliz::Matrix4& modelViewProjectionInverse,
-//							grinliz::Vector3F* world );
-
 private:
 	Screenport( const Screenport& other );
 	void operator=( const Screenport& other );
 
 	// Convert from UI coordinates to scissor coordinates. Does the 
-	// UI to pixel (accounting for viewport) back xform.
+	// UI to pixel (accounting for viewport) back xform. Makes it a somewhat
+	// evil transform - coordinates are used (actual pixels) that aren't used
+	// in any other xform.
 	void UIToScissor( int x, int y, int w, int h, grinliz::Rectangle2I* clip ) const;
 	void SetViewport( const grinliz::Rectangle2I* uiClip );
 
 	int rotation;			// 1
 	int screenWidth;		// 480 
 	int screenHeight;		// 320
+
 	int viewport[4];		// from the gl call
+	float viewPortScale;
 
 	bool uiMode;
 	grinliz::Rectangle2I clipInUI2D, clipInUI3D;
