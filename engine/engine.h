@@ -79,6 +79,7 @@ public:
 	// the camera will *not* be moved, but the destination for the camera
 	// is returned.
 	void MoveCameraXZ( float x, float z, grinliz::Vector3F* calc=0 );
+	void CameraLookingAt( grinliz::Vector3F* at );
 
 	Model* AllocModel( const ModelResource* );
 	void FreeModel( Model* );

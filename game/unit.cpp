@@ -39,7 +39,7 @@ const char* gMaleFirstNames[16] =
 	"Rupen",
 	"Ping",
 	"Yoshi",
-	"Ishmael",
+	"Ishal",
 	"Roy",
 };
 

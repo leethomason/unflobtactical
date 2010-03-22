@@ -50,6 +50,12 @@ public:
 	virtual void CancelInput()									{}
 
 	// Rendering
+	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	
+	{ 
+		clip3D->SetInvalid(); 
+		clip2D->SetInvalid(); 
+		return RENDER_2D | RENDER_3D; 
+	}
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
 	virtual void DrawHUD();
 

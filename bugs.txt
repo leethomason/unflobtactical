@@ -1,6 +1,5 @@
 
 Issues:
-- center on hit unit
 - Pinching doesn't feel right
 - tap accuracy
 - need correct colors in RenderWeapon()
@@ -18,7 +17,6 @@ Issues:
 - Art: color scheme 2.0
 - Art: better alien models
 - Art: missing weapon models
-- proportional font
 - mission types: landing
 - mission types: crash
 - mission types: terror
@@ -35,6 +33,8 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED [test #2]
+- proportional font
+- center on hit unit
 - AI: guard behavior
 - Armor. Affects hp. Can't change in tactical view.
 - AI: some random scout motion
