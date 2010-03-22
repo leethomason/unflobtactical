@@ -89,6 +89,7 @@ public:
 		screen->x = viewX;
 		screen->y = (screenHeight-1)-viewY;
 	}
+	void UIToView( const grinliz::Vector2I& in, grinliz::Vector2I* out ) const;
 
 	void ScreenToWorld( int screenX, int screenY, grinliz::Ray* world ) const;
 	bool ViewToWorld( const grinliz::Vector3F& screen, const grinliz::Matrix4& mvpi, grinliz::Vector3F* world ) const;
