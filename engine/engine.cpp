@@ -500,114 +500,18 @@ void Engine::LightGroundPlane( ShadowState shadows, float shadowAmount, Color4F*
 }
 
 
-//void Engine::SetClip( const Rectangle2I* uiClip )
-//{
-//	scissorUI.SetInvalid();
-//	if ( uiClip ) {
-//		scissorUI = *uiClip;
-//	}
-//}
-
-
-/*
-void Engine::SetPerspective()
-{
-	GLASSERT( engineData.nearPlane > 0.0f );
-	GLASSERT( engineData.farPlane > engineData.nearPlane );
-
-	frustumNear = engineData.nearPlane;
-	frustumFar = engineData.farPlane;
-
-	// Convert from the FOV to the half angle.
-	float theta = ToRadian( engineData.fov ) * 0.5f;
-
-	// left, right, top, & bottom are on the near clipping
-	// plane. (Not an obvious point to my mind.)
-	if ( screenport.Rotation() & 1 ) {
-		float ratio = (float)(screenport.ScreenWidth()) / (float)(screenport.ScreenHeight());
-		frustumTop		= tan(theta) * frustumNear;
-		frustumBottom	= -frustumTop;
-		frustumLeft		= ratio * frustumBottom;
-		frustumRight	= ratio * frustumTop;
-	}
-	else {
-		float ratio = (float)(screenport.ScreenHeight()) / (float)(screenport.ScreenWidth());
-		// Correct ratio, but the screen may be more narrow.
-		frustumRight = tan(theta) * frustumNear;
-		frustumTop   = ratio * tan(theta) * frustumNear;
-		frustumLeft = -frustumRight;
-		frustumBottom = -frustumTop;
-	}
-	screenport.SetPerspective( frustumLeft, frustumRight, frustumBottom, frustumTop, frustumNear, frustumFar );
-}
-*/
-
-/*
-bool Engine::UnProject(	const Vector3F& window,
-						const Rectangle2I& screen,
-						const Matrix4& modelViewProjectionInverse,
-						Vector3F* world )
-{
-	Vector4F in = { (window.x-(float)screen.min.x)*2.0f / float(screen.Width())-1.0f,
-					(window.y-(float)screen.min.y)*2.0f / float(screen.Height())-1.0f,
-					window.z*2.0f-1.f,
-					1.0f };
-
-	Vector4F out;
-	MultMatrix4( modelViewProjectionInverse, in, &out );
-
-	if ( out.w == 0.0f ) {
-		return false;
-	}
-	world->x = out.x / out.w;
-	world->y = out.y / out.w;
-	world->z = out.z / out.w;
-	return true;
-}
-*/
-
-/*
-void Engine::WorldToScreen( const grinliz::Vector3F& p0, grinliz::Vector2F* view )
-{
-	Matrix4 mvp;
-	screenport->ViewProjection( &mvp );
-
-	Vector4F p, r;
-	p.Set( p0, 1 );
-
-	r = mvp * p;
-	// Normalize to view.
-
-	view->x = (r.x / r.w + 1.0f)*(float)screenport->ScreenWidth()*0.5f;;
-	view->y = (r.y / r.w + 1.0f)*(float)screenport->ScreenHeight()*0.5f;
-}
-*/
-/*
-void Engine::WorldToUI( const grinliz::Vector3F& p, grinliz::Vector2I* ui )
-{
-	Vector2F view;
-	WorldToScreen( p, &view );
-	screenport->ViewToUI( LRintf(view.x), LRintf(view.y), &ui->x, &ui->y );
-}
-*/
-/*
-void Engine::CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjectionInverse )
-{
-	screenport->ViewProjectionInverse( modelViewProjectionInverse );
-}
-*/
-
-void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray, Vector3F* out )
+bool Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray, Vector3F* out )
 {	
-	Vector3F win0 ={ (float)x, (float)y, 0.0f };
-	Vector3F win1 ={ (float)x, (float)y, 1.0f };
+	Vector2I v;
+	screenport->ScreenToView( x, y, &v );
+
+	Vector3F win0 ={ (float)v.x, (float)v.y, 0.0f };
+	Vector3F win1 ={ (float)v.x, (float)v.y, 1.0f };
 
 	Vector3F p0, p1;
-
-	//Screenport::UnProject( win0, screen, mvpi, &p0 );
-	//Screenport::UnProject( win1, screen, mvpi, &p1 );
-	screenport->ScreenToWorld( win0, mvpi, &p0 );
-	screenport->ScreenToWorld( win1, mvpi, &p1 );
+	
+	screenport->ViewToWorld( win0, mvpi, &p0 );
+	screenport->ViewToWorld( win1, mvpi, &p1 );
 
 	Plane plane;
 	plane.n.Set( 0.0f, 1.0f, 0.0f );
@@ -619,56 +523,13 @@ void Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray,
 		ray->origin = p0;
 		ray->direction = dir;
 	}
+	int result = REJECT;
 	if ( out ) {
 		float t;
-		IntersectLinePlane( p0, p1, plane, out, &t );
+		result = IntersectLinePlane( p0, p1, plane, out, &t );
 	}
+	return ( result == INTERSECT );
 }
-
-/*
-void Engine::RayFromScreen( int x, int y, const Matrix4& mvpi, Ray* ray )
-{	
-	Rectangle2I screen;
-	screen.Set( 0, 0, screenport->ScreenWidth()-1, screenport->ScreenHeight()-1 );
-	Vector3F win0 ={ (float)x, (float)y, 0.0f };
-	Vector3F win1 ={ (float)x, (float)y, 1.0f };
-
-	Vector3F p0, p1;
-
-	UnProject( win0, screen, mvpi, &p0 );
-	UnProject( win1, screen, mvpi, &p1 );
-
-	Plane plane;
-	plane.n.Set( 0.0f, 1.0f, 0.0f );
-	plane.d = 0.0;
-	
-	Vector3F dir = p1 - p0;
-
-	ray->origin = p0;
-	ray->direction = dir;
-}
-*/
-
-/*
-void Engine::CalcFrustumPlanes( grinliz::Plane* planes )
-{
-	Ray forward, up, right;
-	camera.CalcEyeRay( &forward, &up, &right );
-
-	Vector3F ntl = forward.origin + forward.direction*frustumNear + up.direction*frustumTop    + right.direction*frustumLeft;
-	Vector3F ntr = forward.origin + forward.direction*frustumNear + up.direction*frustumTop    + right.direction*frustumRight;
-	Vector3F nbl = forward.origin + forward.direction*frustumNear + up.direction*frustumBottom + right.direction*frustumLeft;
-	Vector3F nbr = forward.origin + forward.direction*frustumNear + up.direction*frustumBottom + right.direction*frustumRight;
-
-	Plane::CreatePlane( forward.direction,  forward.origin + forward.direction*frustumNear, &planes[NEAR] );
-	Plane::CreatePlane( -forward.direction, forward.origin + forward.direction*frustumFar,  &planes[FAR] );
-
-	Plane::CreatePlane( camera.PosWC(), nbl, ntl, &planes[LEFT] );
-	Plane::CreatePlane( camera.PosWC(), ntr, nbr, &planes[RIGHT] );
-	Plane::CreatePlane( camera.PosWC(), ntl, ntr, &planes[TOP] );
-	Plane::CreatePlane( camera.PosWC(), nbr, nbl, &planes[BOTTOM] );
-}
-*/
 
 
 void Engine::CalcFrustumPlanes( grinliz::Plane* planes )

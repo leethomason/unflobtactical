@@ -86,23 +86,7 @@ public:
 	void EnableMap( bool enable )	{ enableMap = enable; }
 	Map* GetMap() { return map; }
 
-//	static bool UnProject(	const grinliz::Vector3F& window,
-//							const grinliz::Rectangle2I& screen,
-//							const grinliz::Matrix4& modelViewProjectionInverse,
-//							grinliz::Vector3F* world );
-
-//	void CalcModelViewProjectionInverse( grinliz::Matrix4* modelViewProjectionInverse );
-
-//	void WorldToScreen( const grinliz::Vector3F& p, grinliz::Vector2F* screen );
-//	void WorldToUI( const grinliz::Vector3F& p, grinliz::Vector2I* ui );
-	// Bounds of the engine, in UI space, accounting for the current clip.
-	//void UIBounds( grinliz::Rectangle2I* bounds );
-
-//	void RayFromScreen( int x, int y, 
-//						const grinliz::Matrix4& modelViewProjectionInverse, 
-//						grinliz::Ray* ray );
-
-	void RayFromScreenToYPlane( int x, int y, 
+	bool RayFromScreenToYPlane( int x, int y, 
 								const grinliz::Matrix4& modelViewProjectionInverse, 
 								grinliz::Ray* ray,
 								grinliz::Vector3F* intersection );
