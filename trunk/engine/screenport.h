@@ -125,7 +125,8 @@ public:
 
 	int UIWidth() const										{ return (rotation&1) ? screenHeight : screenWidth; }
 	int UIHeight() const									{ return (rotation&1) ? screenWidth : screenHeight; }
-	void UIBounds( grinliz::Rectangle2I* b ) const			{ *b = uiMode ? clipInUI2D : clipInUI3D; }
+	void UIBoundsClipped3D( grinliz::Rectangle2I* b ) const	{ *b = clipInUI3D; }
+	void UIBoundsClipped2D( grinliz::Rectangle2I* b ) const	{ *b = clipInUI2D; }
 	bool UIMode() const										{ return uiMode; }
 
 private:

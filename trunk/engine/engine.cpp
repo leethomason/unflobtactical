@@ -162,6 +162,15 @@ void Engine::MoveCameraHome()
 }
 
 
+void Engine::CameraLookingAt( grinliz::Vector3F* at )
+{
+	const Vector3F* eyeDir = camera.EyeDir3();
+	float h = camera.PosWC().y;
+
+	*at = camera.PosWC() - eyeDir[0]*(h/eyeDir[0].y);	
+}
+
+
 void Engine::MoveCameraXZ( float x, float z, Vector3F* calc )
 {
 	// Move the camera, but don't change tilt or rotation.
@@ -181,8 +190,6 @@ void Engine::MoveCameraXZ( float x, float z, Vector3F* calc )
 		camera.SetPosWC( pos.x, pos.y, pos.z );
 		RestrictCamera();
 	}
-	//camera.SetYRotation( -45.f );
-	//camera.SetTilt( engineData.cameraTilt );
 }
 
 

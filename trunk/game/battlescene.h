@@ -112,6 +112,7 @@ private:
 		ACTION_DELAY,
 		ACTION_HIT,
 		ACTION_CAMERA,
+		ACTION_CAMERA_BOUNDS,
 	};
 
 	struct MoveAction	{
@@ -148,29 +149,31 @@ private:
 		int					timeLeft;
 	};
 
+	struct CameraBoundsAction {
+		grinliz::Vector3F	target;
+		grinliz::Vector3F	normal;
+		float				speed;
+	};
+
 	struct Action
 	{
 		int actionID;
 		Unit* unit;			// unit performing the action (sometimes null)
 
 		union {
-			MoveAction		move;
-			RotateAction	rotate;
-			ShootAction		shoot;
-			DelayAction		delay;
-			HitAction		hit;
-			CameraAction	camera;
+			MoveAction			move;
+			RotateAction		rotate;
+			ShootAction			shoot;
+			DelayAction			delay;
+			HitAction			hit;
+			CameraAction		camera;
+			CameraBoundsAction	cameraBounds;
 		} type;
 
 		void Clear()							{ actionID = ACTION_NONE; memset( &type, 0, sizeof( type ) ); }
 		void Init( int id, Unit* unit )			{ Clear(); actionID = id; this->unit = unit; }
 		bool NoAction()							{ return actionID == ACTION_NONE; }
 	};
-
-	void InitAction( Action* a, int actionID ) {
-		memset( a, 0, sizeof(Action) );
-		a->actionID = actionID;
-	}
 
 	CStack< Action > actionStack;
 

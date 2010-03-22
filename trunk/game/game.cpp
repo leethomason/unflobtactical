@@ -349,10 +349,11 @@ void Game::DoTick( U32 _currentTime )
 
 	Rectangle2I clip2D, clip3D;
 	int renderPass = scene->RenderPass( &clip3D, &clip2D );
+	GLASSERT( renderPass );
 	if ( !clip3D.IsValid() )
-		screenport.UIBounds( &clip3D );
+		screenport.UIBoundsClipped3D( &clip3D );
 	if ( !clip2D.IsValid() )
-		screenport.UIBounds( &clip2D );
+		screenport.UIBoundsClipped2D( &clip2D );
 	
 	if ( renderPass & Scene::RENDER_3D ) {
 		//	r.Set( 100, 50, 300, 50+200*320/480 );

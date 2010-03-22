@@ -98,10 +98,8 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		widgets->SetDeco( BTN_CHAR_SCREEN, DECO_CHARACTER );
 		widgets->SetDeco( BTN_TARGET, DECO_AIMED );
 
-		//const Vector2I& pad = widgets->GetPadding();
 		const Vector2I& size = widgets->GetButtonSize();
 		int h = port.UIHeight();
-		//int w = port.UIWidth();
 		int delta = (h/5-size.y)/2;
 
 		menuImage = new UIImage( port );
@@ -496,12 +494,16 @@ int BattleScene::CenterRectIntersection(	const Vector2I& r,
 
 int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )
 {
-	// FIXME: add proper sub-values
 	//clip3D->Set( 100, 0, 400, 150 );
 	//clip3D->Set( 100, 0, 100+240, 160 );
 	//clip3D->SetInvalid();
-	clip3D->Set( 100, 0, 400, 250 );
-	clip2D->SetInvalid();
+	//clip3D->Set( 100, 0, 400, 250 );
+
+	const Vector2I& size = widgets->GetButtonSize();
+	const Screenport& port = engine->GetScreenport();
+
+	clip3D->Set( size.x, 0, port.UIWidth()-1, port.UIHeight()-1 );
+	clip2D->Set( 0, 0, size.x, port.UIHeight()-1 );
 	return RENDER_3D | RENDER_2D; 
 }
 
@@ -563,7 +565,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 			engine->GetScreenport().WorldToUI( p, &r );
 			Rectangle2I uiBounds;
 			
-			engine->GetScreenport().UIBounds( &uiBounds );
+			engine->GetScreenport().UIBoundsClipped3D( &uiBounds );
 
 			if ( uiBounds.Contains( r ) ) {
 				const float ALPHA = 0.3f;
@@ -669,18 +671,17 @@ void BattleScene::DrawHPBars()
 			 && ( units[i].Team() == TERRAN_TEAM || m_targets.TeamCanSee( TERRAN_TEAM, i ) ) ) 
 		{
 
-			const Vector3F& pos = units[i].GetModel()->Pos();
-			Vector2F r;
-			engine->GetScreenport().WorldToScreen( pos, &r );
-
 			const Screenport& port = engine->GetScreenport();
-			if (    r.x >= 0.0f && r.x <= port.ScreenWidth() 
-				 && r.y >= 0.0f && r.y <= port.ScreenHeight() ) 
+
+			const Vector3F& pos = units[i].GetModel()->Pos();
+			Vector2I ui;
+			port.WorldToUI( pos, &ui );
+			Rectangle2I uiBounds;
+			port.UIBoundsClipped3D( &uiBounds );
+
+			if ( uiBounds.Contains( ui ) ) 
 			{
 				// onscreen
-				int uiX, uiY;
-				port.ViewToUI( (int)r.x, (int)r.y, &uiX, &uiY );
-
 				const int W = 30;
 				const int H = 10;
 
@@ -697,7 +698,7 @@ void BattleScene::DrawHPBars()
 					hpBars[i]->SetValue0( units[i].GetStats().HP() );
 					hpBarsFadeTime[i] = FADE_TIME;
 				}
-				hpBars[i]->SetOrigin( uiX-W/2, uiY-H*18/10 );
+				hpBars[i]->SetOrigin( ui.x-W/2, ui.y-H*18/10 );
 
 				if ( ( &units[i] == SelectedSoldierUnit() ) || hpBarsFadeTime[i] > 0 ) {
 					hpBars[i]->Draw();
@@ -875,7 +876,7 @@ void BattleScene::TestCoordinates()
 {
 	//const Screenport& port = engine->GetScreenport();
 	Rectangle2I uiBounds;
-	engine->GetScreenport().UIBounds( &uiBounds );
+	engine->GetScreenport().UIBoundsClipped3D( &uiBounds );
 	Rectangle2I inset = uiBounds;
 	inset.Outset( 0 );
 
@@ -902,48 +903,34 @@ void BattleScene::PushScrollOnScreen( const Vector3F& pos )
 		in to the nearest point. Do this by computing the desired point, offset it back,
 		and add the difference.
 	*/
-	Vector2I r;
-	engine->GetScreenport().WorldToUI( pos, &r );
-	//GLOUTPUT(( "screen: %.1f, %.1f\n", r.x, r.y ));
+	const Screenport& port = engine->GetScreenport();
 
-	//const Screenport& port = engine->GetScreenport();
+	Vector2I r;
+	port.WorldToUI( pos, &r );
+
 	Rectangle2I uiBounds;
-	engine->GetScreenport().UIBounds( &uiBounds );
+	port.UIBoundsClipped3D( &uiBounds );
 	Rectangle2I inset = uiBounds;
 	inset.Outset( -20 );
-	Vector2I center = { (uiBounds.min.x+uiBounds.max.x)/2, (uiBounds.min.y+uiBounds.max.y)/2 };
 
 	if ( !inset.Contains( r ) ) 
 	{
-		Vector2I intersection;
-		CenterRectIntersection( r, inset, &intersection );
-		Vector2I newCenter = center + (r-intersection);
-		//Vector2I newCenter = r;
 
-		Vector3F pos;
-		Matrix4 mvpi;
+		Vector3F c;
+		engine->CameraLookingAt( &c );
 
-		engine->GetScreenport().ViewProjectionInverse3D( &mvpi );
-		engine->RayFromScreenToYPlane( newCenter.x, newCenter.y, mvpi, 0, &pos );
-
-		// Scroll
-		GLOUTPUT(( "Scroll!\n" ));
-		Vector3F dest;
-		engine->MoveCameraXZ( pos.x, pos.z, &dest );
+		Vector3F delta = pos - c;
+		float len = delta.Length();
+		delta.Normalize();
 
 		Action action;
-		InitAction( &action, ACTION_CAMERA );
-
-		const int TIME = 500;
-		action.type.camera.start = engine->camera.PosWC();
-		action.type.camera.end   = dest;
-		action.type.camera.time  = TIME;
-		action.type.camera.timeLeft = TIME;
+		action.Init( ACTION_CAMERA_BOUNDS, 0 );
+		action.type.cameraBounds.target = pos;
+		action.type.cameraBounds.normal = delta;
+		action.type.cameraBounds.speed = (float)MAP_SIZE / 3.0f;
 		actionStack.Push( action );
 	}
 }
-
-
 
 
 void BattleScene::SetSelection( Unit* unit ) 
@@ -1496,6 +1483,37 @@ int BattleScene::ProcessAction( U32 deltaTime )
 				}
 				break;
 
+			case ACTION_CAMERA_BOUNDS:
+				{
+					float t = Travel( deltaTime, action->type.cameraBounds.speed );
+					
+					// Don't let it over-shoot!
+					Vector3F lookingAt;
+					engine->CameraLookingAt( &lookingAt );
+					Vector3F atToTarget = action->type.cameraBounds.target - lookingAt;
+					if ( atToTarget.Length() <= t ) {
+						actionStack.Pop();
+					}
+					else {
+						Vector3F d = action->type.cameraBounds.normal * t;
+						engine->camera.DeltaPosWC( d.x, d.y, d.z );
+
+						const Screenport& port = engine->GetScreenport();
+						Vector2I r;
+						port.WorldToUI( action->type.cameraBounds.target, &r );
+
+						Rectangle2I uiBounds;
+						port.UIBoundsClipped3D( &uiBounds );
+						Rectangle2I inset = uiBounds;
+						inset.Outset( -20 );
+
+						if ( inset.Contains( r ) ) {
+							actionStack.Pop();
+						}
+					}
+				}
+				break;
+
 			default:
 				GLASSERT( 0 );
 				break;
@@ -1642,6 +1660,15 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		a.type.delay.delay = delayTime;
 		actionStack.Push( a );
 	}
+
+	if ( impact && modelHit ) {
+		int x = LRintf( intersection.x );
+		int y = LRintf( intersection.z );
+		if ( engine->GetMap()->GetFogOfWar().IsSet( x, y, 0 ) ) {
+			PushScrollOnScreen( intersection );
+		}
+	}
+
 	return result;
 }
 
@@ -2566,7 +2593,7 @@ void BattleScene::DrawHUD()
 	}
 	widgets->SetHighLight( BTN_TARGET, uiMode == UIM_TARGET_TILE ? true : false );
 
-	//menuImage->Draw(); // debugging: make sure clipping is working correctly
+	menuImage->Draw(); // debugging: make sure clipping is working correctly
 	
 	widgets->Draw();
 	for( int i=0; i<MAX_ALIENS; ++i ) {
@@ -2668,8 +2695,8 @@ void MotionPath::CalcDelta( int i0, int i1, grinliz::Vector2I* vec, float* rot )
 
 
 void MotionPath::Travel(	float* travel,
-								int* pos,
-								float* fraction )
+							int* pos,
+							float* fraction )
 {
 	// fraction is a bit funny. It is the lerp value between 2 path locations,
 	// so it isn't a constant distance.
