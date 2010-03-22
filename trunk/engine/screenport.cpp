@@ -192,20 +192,11 @@ void Screenport::ViewToUI( int x0, int y0, int *x1, int *y1 ) const
 }
 
 
-void Screenport::ScreenToView( int x0, int y0, Vector2I* view ) const
+bool Screenport::ViewToWorld( const grinliz::Vector3F& v, const grinliz::Matrix4& mvpi, grinliz::Vector3F* world ) const
 {
-	view->x = x0;
-	view->y = (screenHeight-1)-y0;
-}
-
-
-bool Screenport::ScreenToWorld( const grinliz::Vector3F& s, const grinliz::Matrix4& mvpi, grinliz::Vector3F* world ) const
-{
-	Vector2I v;
-	ScreenToView( LRintf(s.x), LRintf(s.y), &v );
-	Vector4F in = { (float)(v.x-clipInUI3D.min.x)*2.0f / (float)clipInUI3D.Width() - 1.0f,
-					(float)(v.y-clipInUI3D.min.y)*2.0f / (float)clipInUI3D.Height() - 1.0f,
-					s.z*2.0f-1.f,
+	Vector4F in = { (v.x - (float)(clipInUI3D.min.x))*2.0f / (float)clipInUI3D.Width() - 1.0f,
+					(v.y - (float)(clipInUI3D.min.y))*2.0f / (float)clipInUI3D.Height() - 1.0f,
+					v.z*2.0f-1.f,
 					1.0f };
 
 	Vector4F out;
@@ -223,17 +214,20 @@ bool Screenport::ScreenToWorld( const grinliz::Vector3F& s, const grinliz::Matri
 
 void Screenport::ScreenToWorld( int x, int y, Ray* world ) const
 {
+	//GLOUTPUT(( "ScreenToWorld(upper) %d,%d\n", x, y ));
+
+	Vector2I v;
+	ScreenToView( x, y, &v );
+
 	Matrix4 mvpi;
 	ViewProjectionInverse3D( &mvpi );
 
-	Vector3F win0 = { (float)x, (float)y, 0 };
-	Vector3F win1 = { (float)x, (float)y, 1 };
+	Vector3F win0 = { (float)v.x, (float)v.y, 0 };
+	Vector3F win1 = { (float)v.x, (float)v.y, 1 };
 	Vector3F p0, p1;
 
-	//UnProject( win0, clip, mvpi, &p0 );
-	//UnProject( win1, clip, mvpi, &p1 );
-	ScreenToWorld( win0, mvpi, &p0 );
-	ScreenToWorld( win1, mvpi, &p1 );
+	ViewToWorld( win0, mvpi, &p0 );
+	ViewToWorld( win1, mvpi, &p1 );
 
 	world->origin = p0;
 	world->direction = p1 - p0;
@@ -250,21 +244,14 @@ void Screenport::WorldToScreen( const grinliz::Vector3F& p0, grinliz::Vector2F* 
 
 	r = mvp * p;
 
-	Rectangle2I clip;
-	UIToScissor( clipInUI3D.min.x, clipInUI3D.min.y, clipInUI3D.Width(), clipInUI3D.Height(), &clip );
-
 	// Normalize to view.
 	// r in range [-1,1] which maps to screen[0,Width()-1]
-
-	v->x = Interpolate( -1.0f, 0.0f,
-						1.0f,  (float)clip.Width(),
+	v->x = Interpolate( -1.0f, (float)clipInUI3D.min.x,
+						1.0f,  (float)clipInUI3D.max.x,
 						r.x/r.w );
-	v->y = Interpolate( -1.0f, 0.0f,
-						1.0f,  (float)clip.Height(),
+	v->y = Interpolate( -1.0f, (float)clipInUI3D.min.y,
+						1.0f,  (float)clipInUI3D.max.y,
 						r.y/r.w );
-
-//	v->x = (r.x / r.w + 1.0f)*(float)clip.Width()
-//	v->y = (r.y / r.w + 1.0f)*(float)clip.Height()*0.5f;	
 }
 
 

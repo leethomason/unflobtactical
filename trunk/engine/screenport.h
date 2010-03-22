@@ -79,9 +79,19 @@ public:
 
 	// These values reflect the rotated screen. A very simple transform that moves
 	// the origin to the lower left, independent of rotation.
-	void ScreenToView( int screenX, int screenY, grinliz::Vector2I* view ) const;
+	void ScreenToView( int screenX, int screenY, grinliz::Vector2I* view ) const
+	{
+		view->x = screenX;
+		view->y = (screenHeight-1)-screenY;
+	}
+	void ViewToScreen( int viewX, int viewY, grinliz::Vector2I* screen ) const
+	{
+		screen->x = viewX;
+		screen->y = (screenHeight-1)-viewY;
+	}
+
 	void ScreenToWorld( int screenX, int screenY, grinliz::Ray* world ) const;
-	bool ScreenToWorld( const grinliz::Vector3F& screen, const grinliz::Matrix4& mvpi, grinliz::Vector3F* world ) const;
+	bool ViewToWorld( const grinliz::Vector3F& screen, const grinliz::Matrix4& mvpi, grinliz::Vector3F* world ) const;
 	void WorldToScreen( const grinliz::Vector3F& p0, grinliz::Vector2F* view ) const;
 	void WorldToUI( const grinliz::Vector3F& p0, grinliz::Vector2I* ui ) const;
 

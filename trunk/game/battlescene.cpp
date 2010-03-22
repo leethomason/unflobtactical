@@ -628,7 +628,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 				NextTurn();
 		}
 	}
-	TestCoordinates();
+//	TestCoordinates();
 }
 
 
@@ -886,11 +886,11 @@ void BattleScene::TestCoordinates()
 		Vector3F pos;
 		Vector2I corner;
 		uiBounds.Corner( i, &corner );
-		engine->RayFromScreenToYPlane( corner.x, corner.y, mvpi, 0, &pos );
-
-		Color4F c = { 0, 1, 1, 1 };
-		Color4F cv = { 0, 0, 0, 0 };
-		ParticleSystem::Instance()->EmitOnePoint( c, cv, pos, 0 );
+		if ( engine->RayFromScreenToYPlane( corner.x, corner.y, mvpi, 0, &pos ) ) {
+			Color4F c = { 0, 1, 1, 1 };
+			Color4F cv = { 0, 0, 0, 0 };
+			ParticleSystem::Instance()->EmitOnePoint( c, cv, pos, 0 );
+		}
 	}
 }
 
@@ -2455,13 +2455,16 @@ void BattleScene::Visibility::CalcVisibilityRay( int unitID, const Vector2I& pos
 
 void BattleScene::Drag( int action, const grinliz::Vector2I& view )
 {
+	Vector2I screen;
+	engine->GetScreenport().ViewToScreen( view.x, view.y, &screen );
+	
 	switch ( action ) 
 	{
 		case GAME_DRAG_START:
 		{
 			Ray ray;
 			engine->GetScreenport().ViewProjectionInverse3D( &dragMVPI );
-			engine->RayFromScreenToYPlane( view.x, view.y, dragMVPI, &ray, &dragStart );
+			engine->RayFromScreenToYPlane( screen.x, screen.y, dragMVPI, &ray, &dragStart );
 			dragStartCameraWC = engine->camera.PosWC();
 		}
 		break;
@@ -2470,9 +2473,10 @@ void BattleScene::Drag( int action, const grinliz::Vector2I& view )
 		{
 			Vector3F drag;
 			Ray ray;
-			engine->RayFromScreenToYPlane( view.x, view.y, dragMVPI, &ray, &drag );
+			engine->RayFromScreenToYPlane( screen.x, screen.y, dragMVPI, &ray, &drag );
 
 			Vector3F delta = drag - dragStart;
+			//GLOUTPUT(( "screen=%d,%d drag=%.2f,%.2f  delta=%.2f,%.2f\n", screen.x, screen.y, drag.x, drag.z, delta.x, delta.z ));
 			delta.y = 0.0f;
 
 			engine->camera.SetPosWC( dragStartCameraWC - delta );
