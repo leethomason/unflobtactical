@@ -456,10 +456,14 @@ void ParticleSystem::Draw( const Vector3F* eyeDir, const grinliz::BitArray<Map::
 				if ( fogOfWar->IsSet( i, j, 0 ) ) {
 					// space the test out by one unit.
 					fogOfWarFilter.Set( i, j, 0 );
-					fogOfWarFilter.Set( i+1, j, 0 );
-					fogOfWarFilter.Set( i-1, j, 0 );
-					fogOfWarFilter.Set( i, j+1, 0 );
-					fogOfWarFilter.Set( i, j-1, 0 );
+					if ( i<Map::SIZE-1 )
+						fogOfWarFilter.Set( i+1, j, 0 );
+					if ( i > 0 )
+						fogOfWarFilter.Set( i-1, j, 0 );
+					if ( j<Map::SIZE-1 )
+						fogOfWarFilter.Set( i, j+1, 0 );
+					if ( j > 0 )
+						fogOfWarFilter.Set( i, j-1, 0 );
 				}
 			}
 		}
