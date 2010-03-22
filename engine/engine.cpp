@@ -135,11 +135,9 @@ Engine::Engine( Screenport* port, const EngineData& _engineData )
 	camera.SetYRotation( -45.f );
 	camera.SetTilt( engineData.cameraTilt );
 
-	//SetPerspective();
 	lightDirection.Set( 0.7f, 3.0f, 1.4f );
 	lightDirection.Normalize();
 	depthFunc = 0;
-//	scissorUI.SetInvalid();
 }
 
 
@@ -155,17 +153,6 @@ Engine::~Engine()
 	TextureManager::Destroy();
 }
 
-
-/*void Engine::UIBounds( grinliz::Rectangle2I* bounds )
-{
-	if ( scissorUI.IsValid() ) {
-		*bounds = scissorUI;
-	}
-	else {
-		bounds->Set( 0, 0, screenport.UIWidth(), screenport.UIHeight() );
-	}
-}
-*/
 
 void Engine::MoveCameraHome()
 {

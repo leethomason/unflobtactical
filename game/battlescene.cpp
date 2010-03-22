@@ -494,6 +494,18 @@ int BattleScene::CenterRectIntersection(	const Vector2I& r,
 }
 
 
+int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )
+{
+	// FIXME: add proper sub-values
+	//clip3D->Set( 100, 0, 400, 150 );
+	//clip3D->Set( 100, 0, 100+240, 160 );
+	//clip3D->SetInvalid();
+	clip3D->Set( 100, 0, 400, 250 );
+	clip2D->SetInvalid();
+	return RENDER_3D | RENDER_2D; 
+}
+
+
 void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 {
 	TestHitTesting();
