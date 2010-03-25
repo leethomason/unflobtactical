@@ -23,9 +23,9 @@
 
 #include "../grinliz/glstringutil.h"
 
-void* NewGame( int width, int height, int rotation, const char* savePath )
+void* NewGame( int width, int height, int rotation, const char* path )
 {
-	Game* game = new Game( width, height, rotation, savePath );
+	Game* game = new Game( width, height, rotation, path );
 	GLOUTPUT(( "NewGame.\n" ));
 	return game;
 }

@@ -290,6 +290,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\game\helpscene.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\game\helpscene.h"
+				>
+			</File>
+			<File
 				RelativePath=".\game\inventory.cpp"
 				>
 			</File>

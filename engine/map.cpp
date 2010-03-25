@@ -57,9 +57,12 @@ Map::Map( SpaceTree* tree )
 
 	this->tree = tree;
 	width = height = SIZE;
-	texture = 0;
 	walkingVertex.Clear();
 	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
+
+	texture.Set( "MapBackground", 0, false );
+	surface.Set( Surface::RGB16, MAP_TEXTURE_SIZE, MAP_TEXTURE_SIZE );
+	surface.Clear( 0 );
 
 	vertex[0].pos.Set( 0.0f,		0.0f, 0.0f );
 	vertex[1].pos.Set( 0.0f,		0.0f, (float)SIZE );
@@ -84,9 +87,14 @@ Map::Map( SpaceTree* tree )
 	pathQueryID = 1;
 	visibilityQueryID = 1;
 
+	dayMap.Set( Surface::RGB16, SIZE, SIZE );
+	nightMap.Set( Surface::RGB16, SIZE, SIZE );
+	dayMap.Clear( 255 );
+	nightMap.Clear( 255 );
+
 	for( int i=0; i<2; ++i ) {
 		lightMap[i].Set( Surface::RGB16, SIZE, SIZE );
-		memset( lightMap[i].Pixels(), 255, SIZE*SIZE*2 );
+		lightMap[i].Clear( 0 );
 	}
 	fowSurface.Set( Surface::RGBA16, SIZE, SIZE );
 
@@ -142,7 +150,8 @@ void Map::Draw()
 	U8* t = (U8*)vertex + Vertex::TEXTURE_OFFSET;
 
 	/* Texture 0 */
-	glBindTexture( GL_TEXTURE_2D, texture->glID );
+	GLASSERT( texture.glID );
+	glBindTexture( GL_TEXTURE_2D, texture.glID );
 
 	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), v);			// last param is offset, not ptr
 	glNormalPointer(      GL_FLOAT, sizeof(Vertex), n);		
@@ -232,7 +241,8 @@ void Map::DrawFOW()
 void Map::BindTextureUnits()
 {
 	/* Texture 0 */
-	glBindTexture( GL_TEXTURE_2D, texture->glID );
+	GLASSERT( texture.glID );
+	glBindTexture( GL_TEXTURE_2D, texture.glID );
 
 	/* Texture 1 */
 	glActiveTexture( GL_TEXTURE1 );
@@ -260,23 +270,47 @@ void Map::UnBindTextureUnits()
 }
 
 
-void Map::SetLightMaps( const Surface* day, const Surface* night )
+void Map::SetTexture( const Surface* s, int x, int y )
+{
+	GLASSERT( s->Width() == s->Height() );
+
+	Vector2I target = { x, y };
+	Rectangle2I src;
+	src.Set( 0, 0, s->Width()-1, s->Height()-1 );
+
+	surface.Blit( target, s, src );
+
+	if ( texture.glID == 0 )
+		texture.glID = surface.CreateTexture();
+	else
+		surface.UpdateTexture( texture.glID );
+	// FIXME: release texture somewhere?
+}
+
+
+void Map::SetLightMaps( const Surface* day, const Surface* night, int x, int y )
 {
 	GLASSERT( day );
 	GLASSERT( night );
 	
-	GLASSERT( day->BytesPerPixel() == 2 && day->Width() == SIZE && day->Height() == SIZE );
-	GLASSERT( night->BytesPerPixel() == 2 && night->Width() == SIZE && night->Height() == SIZE );
+	GLASSERT( day->BytesPerPixel() == 2 );
+	GLASSERT( night->BytesPerPixel() == 2 );
+	GLASSERT(    day->Width() == night->Width() 
+		      && day->Height() == night->Height() 
+			  && day->Width() == day->Height() );
 
-	dayMap.Set( Surface::RGB16, SIZE, SIZE );
-	nightMap.Set( Surface::RGB16, SIZE, SIZE );
+	Vector2I target = { x, y };
+	Rectangle2I rect;
+	rect.Set( 0, 0, day->Width()-1, day->Height()-1 );
 
-	memcpy( dayMap.Pixels(), day->Pixels(), SIZE*SIZE*2 );
-	memcpy( nightMap.Pixels(), night->Pixels(), SIZE*SIZE*2 );
+	dayMap.Blit( target, day, rect );
+	nightMap.Blit( target, night, rect );
+
+	// Could optimize full invalidate, but hard to think of a case where it matters.
 	if ( dayTime )
-		memcpy( lightMap[0].Pixels(), day->Pixels(), SIZE*SIZE*2 );
+		memcpy( lightMap[0].Pixels(), dayMap.Pixels(), SIZE*SIZE*2 );
 	else
-		memcpy( lightMap[0].Pixels(), night->Pixels(), SIZE*SIZE*2 );
+		memcpy( lightMap[0].Pixels(), nightMap.Pixels(), SIZE*SIZE*2 );
 	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
 }
 
@@ -628,6 +662,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 
 	const MapItemDef& itemDef = itemDefArr[defIndex];
 
+#if !defined( MAPMAKER )
 	// Check for meta data.
 	if ( StrEqual( itemDef.name, "guard" ) || StrEqual( itemDef.name, "scout" ) ) {
 		if ( StrEqual( itemDef.name, "guard" ) ) {
@@ -642,6 +677,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 		}
 		return 0;
 	}
+#endif
 
 	Rectangle2I mapBounds;
 	Vector2F modelPos;

@@ -18,9 +18,16 @@
   <texture filename="lander.png" />
   <texture filename="translucent.png" />
   <texture filename="clips.png" />
+  <texture filename="stonewall.png" width="64" height="64" />
+  
+  <!-- UI elements -->
   <texture filename="intro.png" />
   <texture filename="basehp.png" />
   <texture filename="commandBarV.png" />
+  <texture filename="help0.png" />
+  <texture filename="help1.png" />
+  
+  
   <!--
   <texture filename="femaleSkin.png" />
   -->
@@ -92,6 +99,10 @@
   <model filename="woodDoorOpn.ac" />
   <model filename="woodWall.ac" />
   <model filename="woodWallWin.ac" />
+
+  <model filename="stonewall_unit.ac" />
+  <model filename="stonewall_join.ac" />
+  <model filename="stonewall_unitD.ac"/>
   
   <!-- Models used as markers by the map-maker. Don't appear in the game. -->
   <model filename="scout.ac" shading="smooth" />
@@ -102,12 +113,16 @@
 	<texture filename="particleSparkle.png" />
 
 	<!-- Maps -->
-	<texture filename="farmland.png" />  
+  <image filename="objectLightMaps.png" />
+
+  <texture filename="farmland.png" />  
 	<image filename="farmlandN.png" />
   <image filename="farmlandD.png" />
-  
-  <image filename="objectLightMaps.png" />
-  
+
+  <image filename="FARM_16_TILE_00_TEX.png" />
+  <image filename="FARM_16_TILE_00_DAY.png" />
+  <image filename="FARM_16_TILE_00_NGT.png" />
+
   <!-- Other Data -->
   <data filename="testgame.xml" />
   <data filename="new_map0.xml" />

@@ -42,6 +42,14 @@ const float TRANSLUCENT_YELLOW	= ONE8*4.0f + ONE16;
 const float TRANSLUCENT_GREY	= ONE8*5.0f + ONE16;
 
 
+struct TileSetDesc {
+	const char* set;	// "FARM"
+	int size;			// 16, 32, 64
+	const char* type;	// "TILE"
+	int variation;		// 0-99
+};
+
+
 /*
 	Assets
 	---------------------------------
@@ -84,7 +92,10 @@ private:
 	EngineData engineData;
 
 public:
-	Game( int width, int height, int rotation, const char* savePath );
+	Game( int width, int height, int rotation, const char* savepath );
+#ifdef MAPMAKER
+	Game( int width, int height, int rotation, const char* path, const TileSetDesc& tileSetDesc );
+#endif
 	~Game();
 
 	void DoTick( U32 msec );
@@ -114,6 +125,7 @@ public:
 			CHARACTER_SCENE,
 			INTRO_SCENE,
 			END_SCENE,
+			HELP_SCENE,
 			NUM_SCENES,
 		 };
 
@@ -184,6 +196,7 @@ private:
 		int lightDef;
 	};
 
+	void Init();
 	void LoadTextures();
 	void LoadModels();
 	void LoadModel( const char* name );
@@ -218,6 +231,7 @@ private:
 	
 #ifdef MAPMAKER	
 	bool showPathing;
+	std::string xmlFile;
 #endif
 	grinliz::ProfileData profile;
 

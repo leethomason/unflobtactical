@@ -34,9 +34,9 @@ const int ALIEN_UNITS_END		= 40;
 const int MAX_ALIENS = ALIEN_UNITS_END - ALIEN_UNITS_START;
 const int MAX_UNITS	= 40;
 
-
 const int MAX_MODELS = 256;
 const int MAP_SIZE = 64;
+const int MAP_TEXTURE_SIZE = 512;
 const int MAX_EYESIGHT_RANGE    = 13;
 const int MAX_EYESIGHT_RANGE_45 = 10;	// MAX * cos(45deg), rounded up
 const float EYE_HEIGHT = 1.2f;

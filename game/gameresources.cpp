@@ -385,7 +385,9 @@ void Game::LoadMapResources()
 		{	"farmBed",		0,				0,			1,	1,	HP_MED,	BURN,			"f"	 "0"	},
 		{	"farmTable",	0,				0,			1,	1,	HP_MED,	BURN,			"f", "0" 	},
 		{	"farmTable2x1",	0,				0,			2,	1,	HP_MED,	BURN,			"ff","00"	},
-		{	"farmWheat",	0,				0,			1,	1,	HP_LOW,	FASTBURN		,"0", "0" },
+		{	"farmWheat",	0,				0,			1,	1,	HP_LOW,	FASTBURN,		"0", "0" },
+		{	"stonewall_unit",0,	"stonewall_unitD",		1,	1,	HP_MED,	0,				"f", "0" },
+		{	"stonewall_join",0,	"stonewall_unitD",		1,	1,	HP_MED,	0,				"f", "0" },
 		{	0	}
 	};
 	InitMapItemDef( FARM_SET, farmSet );
