@@ -737,33 +737,33 @@ int main( int argc, char* argv[] )
 
 	
 	// Test:
-	/*{
+	{
 		string testInput = inputPath + "Lenna.png";
 		SDL_Surface* surface = libIMG_Load( testInput.c_str() );
 		if ( surface ) {
+			pixelBuffer16.resize( surface->w*surface->h );
+			pixelBuffer16.reserve( surface->w*surface->h );
+
 			// 444
-			U16* data = DitherTo16( surface, RGBA16 );
-			SDL_Surface* newSurf = SDL_CreateRGBSurfaceFrom(	data, surface->w, surface->h, 16, surface->w*2,
+			DitherTo16( surface, RGBA16, false, &pixelBuffer16[0] );
+			SDL_Surface* newSurf = SDL_CreateRGBSurfaceFrom(	&pixelBuffer16[0], surface->w, surface->h, 16, surface->w*2,
 																0xf000, 0x0f00, 0x00f0, 0 );
 			string out = inputPath + "Lenna4440.bmp";
 			SDL_SaveBMP( newSurf, out.c_str() );
 			
-			delete [] data;
 			SDL_FreeSurface( newSurf );
 
 			// 565
-			data = DitherTo16( surface, RGB16 );
-			newSurf = SDL_CreateRGBSurfaceFrom(	data, surface->w, surface->h, 16, surface->w*2,
+			DitherTo16( surface, RGB16, false, &pixelBuffer16[0] );
+			newSurf = SDL_CreateRGBSurfaceFrom(	&pixelBuffer16[0], surface->w, surface->h, 16, surface->w*2,
 												0xf800, 0x07e0, 0x001f, 0 );
 			string out1 = inputPath + "Lenna565.bmp";
 			SDL_SaveBMP( newSurf, out1.c_str() );
 
-			delete [] data;
 			SDL_FreeSurface( surface );
 			SDL_FreeSurface( newSurf );
 		}
-	}*/
-
+	}
 
 	TiXmlDocument xmlDoc;
 	xmlDoc.LoadFile( input );
