@@ -186,13 +186,15 @@ public:
 
 	void SetSize( int w, int h )					{ width = w; height = h; }
 
-	// The background texture of the map. The map is just one big tetxure.
-	void SetTexture( const Texture* texture )		{ this->texture = texture; }
+	// The background texture of the map.
+	void SetTexture( const Surface* surface, int x, int y );
+
 	void SetLightObjects( const Surface* surface )	{ GLASSERT( surface ); this->lightObject = surface; }
 
 	// The light map is a 64x64 texture of the lighting at each point. Without
-	// a light map, full white (daytime) is used.
-	void SetLightMaps( const Surface* day, const Surface* night );
+	// a light map, full white (daytime) is used. The 'x,y,size' parameters support
+	// setting the lightmap in parts.
+	void SetLightMaps( const Surface* day, const Surface* night, int x, int y );
 	bool DayTime() const { return dayTime; }
 	void SetDayTime( bool day );
 
@@ -392,9 +394,10 @@ private:
 	IPathBlocker* pathBlocker;
 	int width, height;
 	grinliz::Rectangle3F bounds;
-	const Texture* texture;
 	SpaceTree* tree;
 
+	Surface surface;
+	Texture texture;
 	Vertex vertex[4];
 	grinliz::Vector2F texture1[4];
 

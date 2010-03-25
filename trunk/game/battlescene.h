@@ -57,7 +57,30 @@ private:
 	float DeltaToRotation( int dx, int dy );
 };
 
+/*
+	Naming:			
 
+	Length is always consistent for easy parsing:
+	FARM_16_TILE_00.xml				Map
+	FARM_16_TILE_00_TEX.png			Ground texture			(16: 128x128 pixels, 32: 256x256 pixels, 64: 512x512 pixels)
+	FARM_16_TILE_00_DAY.png			Daytime light map		(16x16, 32x32, 64x64)
+	FARM_16_TILE_00_NGT.png			Night light map
+
+	Set:
+		FARM
+
+	Size:
+		16, 32, 64
+
+	Type:
+		TILE		basic map tileset
+		UFOx		UFO (small, on the ground)
+		LAND		lander
+
+	Variation:
+		00-99
+
+*/
 class BattleScene : public Scene, public IPathBlocker
 {
 public:
@@ -98,10 +121,12 @@ public:
 private:
 	enum {
 		BTN_TAKE_OFF,
+		BTN_HELP,
 		BTN_END_TURN,
 		BTN_NEXT,
 		BTN_TARGET,
-		BTN_CHAR_SCREEN
+		BTN_CHAR_SCREEN,
+		BTN_COUNT
 	};
 
 	enum {

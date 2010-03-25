@@ -72,15 +72,6 @@ int main( int argc, char **argv )
 	MemStartCheck();
 	{ char* test = new char[16]; delete [] test; }
 
-#ifdef MAPMAKER	
-	std::string filename = "./resin/";
-	if ( argc > 1 ) {
-		filename += argv[1];
-		filename += ".map";
-	}
-#endif
-
-
 	SDL_Surface *surface = 0;
 
 	// SDL initialization steps.
@@ -191,7 +182,29 @@ int main( int argc, char **argv )
 	grinliz::Vector2I prevMouseDown = { 0, 0 };
 	U32 prevMouseDownTime = 0;
 
+#ifdef MAPMAKER
+	TileSetDesc desc;
+	GLASSERT( argc == 5 );
+	if ( argc != 5 )
+		exit( 1 );
+	
+	desc.set = argv[1];
+	GLASSERT( strlen( desc.set ) == 4 );
+
+	desc.size = atol( argv[2] );
+	GLASSERT( desc.size == 16 || desc.size == 32 || desc.size == 64 );
+
+	desc.type = argv[3];
+	GLASSERT( strlen( desc.type ) == 4 );
+
+	desc.variation = atol( argv[4] );
+	GLASSERT( desc.variation >= 0 && desc.variation < 100 );
+
+	Game* game = new Game( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, rotation, ".\\resin\\", desc );
+#else	
 	void* game = NewGame( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, rotation, ".\\" );
+#endif
+
 
 	SDL_TimerID timerID = SDL_AddTimer( 30, TimerCallback, 0 );
 
@@ -238,36 +251,39 @@ int main( int argc, char **argv )
 
 #if defined( MAPMAKER )
 					case SDLK_DELETE:	
-						((Game*)game)->DeleteAtSelection(); 
+						game->DeleteAtSelection(); 
 						break;
 
 					case SDLK_KP9:			
-						((Game*)game)->RotateSelection( -1 );			
+						game->RotateSelection( -1 );			
 						break;
 					case SDLK_r:
 					case SDLK_KP7:			
-						((Game*)game)->RotateSelection( 1 );			
+						game->RotateSelection( 1 );			
 						break;
 
 					case SDLK_UP:			
 					case SDLK_KP8:			
-						((Game*)game)->DeltaCurrentMapItem(16);			
+						game->DeltaCurrentMapItem(16);			
 						break;
 					case SDLK_KP5:			
 					case SDLK_DOWN:			
-						((Game*)game)->DeltaCurrentMapItem(-16);		
+						game->DeltaCurrentMapItem(-16);		
 						break;
 					case SDLK_KP6:			
 					case SDLK_RIGHT:		
-						((Game*)game)->DeltaCurrentMapItem(1); 			
+						game->DeltaCurrentMapItem(1); 			
 						break;
 					case SDLK_KP4:			
 					case SDLK_LEFT:			
-						((Game*)game)->DeltaCurrentMapItem(-1);			
+						game->DeltaCurrentMapItem(-1);			
 						break;
 
 					case SDLK_p:
-						((Game*)game)->ShowPathing( !((Game*)game)->IsShowingPathing() );
+						game->ShowPathing( !((Game*)game)->IsShowingPathing() );
+						break;
+					case SDLK_d:
+						game->engine.GetMap()->SetDayTime( !game->engine.GetMap()->DayTime() );
 						break;
 #else
 #endif

@@ -21,6 +21,7 @@
 #include "characterscene.h"
 #include "tacticalintroscene.h"
 #include "tacticalendscene.h"
+#include "helpscene.h"
 
 #include "../engine/platformgl.h"
 #include "../engine/text.h"
@@ -42,7 +43,7 @@ extern int trianglesRendered;	// FIXME: should go away once all draw calls are m
 extern int drawCalls;			// ditto
 extern long memNewCount;
 
-Game::Game( int width, int height, int rotation, const char* _savePath ) :
+Game::Game( int width, int height, int rotation, const char* path ) :
 	screenport( width, height, rotation ),
 	engine( &screenport, engineData ),
 	markFrameTime( 0 ),
@@ -56,7 +57,7 @@ Game::Game( int width, int height, int rotation, const char* _savePath ) :
 	scenePopQueued( false ),
 	scenePushQueued( -1 )
 {
-	savePath = _savePath;
+	savePath = path;
 	char c = savePath[savePath.size()-1];
 	if ( c != '\\' && c != '/' ) {	
 #ifdef WIN32
@@ -66,7 +67,90 @@ Game::Game( int width, int height, int rotation, const char* _savePath ) :
 #endif
 	}	
 	
-	//rootStream = 0;
+	Init();
+	Map* map = engine.GetMap();
+	ImageManager* im = ImageManager::Instance();
+
+#ifndef MAPMAKER
+	map->SetSize( 40, 40 );
+	map->SetTexture( TextureManager::Instance()->GetTexture("farmland" ) );
+	map->SetLightMaps( im->GetImage( "farmlandD" ),
+					   im->GetImage( "farmlandN" ) );
+#endif
+
+	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
+
+	scenePushQueued = INTRO_SCENE;
+	loadRequested = -1;
+	loadCompleted = false;
+	PushPopScene();
+}
+
+
+#ifdef MAPMAKER
+Game::Game( int width, int height, int rotation, const char* path, const TileSetDesc& base ) :
+	screenport( width, height, rotation ),
+	engine( &screenport, engineData ),
+	markFrameTime( 0 ),
+	frameCountsSinceMark( 0 ),
+	framesPerSecond( 0 ),
+	trianglesPerSecond( 0 ),
+	trianglesSinceMark( 0 ),
+	previousTime( 0 ),
+	isDragging( false ),
+	sceneStack(),
+	scenePopQueued( false ),
+	scenePushQueued( -1 )
+{
+	savePath = path;
+	char c = savePath[savePath.size()-1];
+	if ( c != '\\' && c != '/' ) {	
+#ifdef WIN32
+		savePath += '\\';
+#else
+		savePath += '/';
+#endif
+	}	
+	
+	Init();
+	Map* map = engine.GetMap();
+	ImageManager* im = ImageManager::Instance();
+
+	map->SetSize( base.size, base.size );
+
+	char buffer[128];
+	SNPrintf( buffer, 128, "%4s_%2d_%4s_%02d", base.set, base.size, base.type, base.variation );
+
+	xmlFile  = std::string( path ) + std::string( buffer ) + std::string( ".xml" );
+	std::string texture  = std::string( buffer ) + std::string( "_TEX" );
+	std::string dayMap   = std::string( buffer ) + std::string( "_DAY" );
+	std::string nightMap = std::string( buffer ) + std::string( "_NGT" );
+
+	map->SetTexture( im->GetImage( texture.c_str() ), 0, 0 );
+	map->SetLightMaps( im->GetImage( dayMap.c_str() ),
+					   im->GetImage( nightMap.c_str() ),
+					   0, 0 );
+
+	engine.camera.SetPosWC( -25.f, 45.f, 30.f );	// standard test
+	engine.camera.SetYRotation( -60.f );
+
+	scenePushQueued = BATTLE_SCENE;
+	loadRequested = -1;
+	loadCompleted = false;
+	PushPopScene();
+
+	showPathing = false;
+
+	TiXmlDocument doc( xmlFile );
+	doc.LoadFile();
+	if ( !doc.Error() )
+		engine.GetMap()->Load( doc.FirstChildElement( "Map" ), GetItemDefArr() );
+}
+#endif
+
+
+void Game::Init()
+{
 	currentFrame = 0;
 	memset( &profile, 0, sizeof( ProfileData ) );
 	surface.Set( Surface::RGBA16, 256, 256 );		// All the memory we will ever need (? or that is the intention)
@@ -96,39 +180,13 @@ Game::Game( int width, int height, int rotation, const char* _savePath ) :
 	Map* map = engine.GetMap();
 	ImageManager* im = ImageManager::Instance();
 	map->SetLightObjects( im->GetImage( "objectLightMaps" ) );
-	map->SetSize( 40, 40 );
-	map->SetTexture( TextureManager::Instance()->GetTexture("farmland" ) );
-	map->SetLightMaps( im->GetImage( "farmlandD" ),
-					   im->GetImage( "farmlandN" ) );
-
-	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
-
-#ifdef MAPMAKER
-	scenePushQueued = BATTLE_SCENE;
-#else
-	scenePushQueued = INTRO_SCENE;
-#endif
-	loadRequested = -1;
-	loadCompleted = false;
-	PushPopScene();
-
-#ifdef MAPMAKER
-	showPathing = false;
-
-	TiXmlDocument doc( "./resin/testmap.xml" );
-	doc.LoadFile();
-	if ( !doc.Error() )
-		engine.GetMap()->Load( doc.FirstChildElement( "Map" ), GetItemDefArr() );
-#else
-
-#endif
 }
 
 
 Game::~Game()
 {
 #ifdef MAPMAKER
-	TiXmlDocument doc( "./resin/testmap.xml" );
+	TiXmlDocument doc( xmlFile );
 	TiXmlElement map( "Map" );
 	doc.InsertEndChild( map );
 	engine.GetMap()->Save( doc.FirstChildElement( "Map" ) );
@@ -271,10 +329,11 @@ Scene* Game::CreateScene( int id, void* data )
 {
 	Scene* scene = 0;
 	switch ( id ) {
-		case BATTLE_SCENE:		scene = new BattleScene( this );						break;
-		case CHARACTER_SCENE:	scene = new CharacterScene( this, (CharacterSceneInput*)data );		break;
-		case INTRO_SCENE:		scene = new TacticalIntroScene( this );					break;
-		case END_SCENE:			scene = new TacticalEndScene( this, (const TacticalEndSceneData*) data );					break;
+		case BATTLE_SCENE:		scene = new BattleScene( this );											break;
+		case CHARACTER_SCENE:	scene = new CharacterScene( this, (CharacterSceneInput*)data );				break;
+		case INTRO_SCENE:		scene = new TacticalIntroScene( this );										break;
+		case END_SCENE:			scene = new TacticalEndScene( this, (const TacticalEndSceneData*) data );	break;
+		case HELP_SCENE:		scene = new HelpScene( this );												break;
 		default:
 			GLASSERT( 0 );
 			break;
@@ -511,23 +570,21 @@ void Game::CancelInput()
 void Game::MouseMove( int sx, int sy )
 {
 #ifdef MAPMAKER
-	Vector2I view;
-	screenport.ScreenToView( sx, sy, &view.x, &view.y );
+//	Vector2I view;
+//	screenport.ScreenToView( sx, sy, &view );
 
-	grinliz::Matrix4 mvpi;
-	grinliz::Ray world;
+//	grinliz::Matrix4 mvpi;
+//	grinliz::Ray world;
 
-	engine.CalcModelViewProjectionInverse( &mvpi );
-	engine.RayFromScreen( view.x, view.y, mvpi, &world );
-	Vector3F p;
-	IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &p );
+//	screenport.ViewProjectionInverse3D( &mvpi );
+//	engine.RayFromScreenToYPlane( sx, sy, mvpi, &world, 0 );
 
 //	GLOUTPUT(( "world (%.1f,%.1f,%.1f)  plane (%.1f,%.1f,%.1f)\n", 
 //				world.origin.x, world.origin.y, world.origin.z,
 //				p.x, p.y, p.z ));
 
 	// Can only be battlescene:
-	((BattleScene*)sceneStack.Top())->MouseMove( view.x, view.y );
+	((BattleScene*)sceneStack.Top())->MouseMove( sx, sy );
 #endif
 }
 

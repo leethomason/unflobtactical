@@ -1,17 +1,17 @@
 
 Issues:
+- map generation
+- different maps
 - Pinching doesn't feel right
 - tap accuracy
 - need correct colors in RenderWeapon()
 - check math (again) in PushShootAction()
-- map generation
-- different maps
-- tutorial notes
 - handle too many particles consistently
 - Sounds
 - End game at any point (instead of just on terran end-turn)
 - Gameplay: doors are death traps if guarded...blow up doors?
 - fire generates light
+- Art: help notes
 - Art: fix alien doors
 - Art: better human models
 - Art: color scheme 2.0
@@ -24,6 +24,7 @@ Issues:
 - mission types: base
 
 TBD:
+- tutorial notes infrastructure
 - performance: AI/Alien turn pauses
 - unconscious
 - eject shells

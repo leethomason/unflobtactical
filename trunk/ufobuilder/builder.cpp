@@ -534,9 +534,42 @@ void CalcFontWidths( SDL_Surface* surface )
 			g->width = x1p - x0p + 1;
 			GLASSERT( g->offset >= 0 && g->offset < GLYPH_WIDTH );
 			GLASSERT( g->width >= 0 && g->width <= GLYPH_WIDTH );
-			GLOUTPUT(( "glyph %d offset=%d width=%d\n", gy*GLYPH_CX+gx, g->offset, g->width ));
+			//GLOUTPUT(( "glyph %d offset=%d width=%d\n", gy*GLYPH_CX+gx, g->offset, g->width ));
 		}
 	}
+}
+
+
+SDL_Surface* CreateScaledSurface( int w, int h, SDL_Surface* surface )
+{
+	int sx = surface->w / w;
+	int sy = surface->h / h;
+
+	GLASSERT( sx > 0 && sy > 0 );
+	SDL_Surface* newSurf = SDL_CreateRGBSurface( 0, w, h, surface->format->BitsPerPixel, surface->format->Rmask, surface->format->Gmask, surface->format->Bmask, surface->format->Amask );
+
+	for( int y=0; y<h; ++y ) {
+		for( int x=0; x<w; ++x ) {
+			int r32=0, g32=0, b32=0, a32=0;
+			U8 r, g, b, a;
+			
+			int xSrc = x*sx;
+			int ySrc = y*sy;
+			for( int j=0; j<sy; ++j ) {
+				for( int i=0; i<sx; ++i ) {
+					U32 c = GetPixel( surface, xSrc+i, ySrc+j );
+					SDL_GetRGBA( c, surface->format, &r, &g, &b, &a );
+					r32 += r;
+					g32 += g;
+					b32 += b;
+					a32 += a;
+				}
+			}
+			U32 c = SDL_MapRGBA( newSurf->format, r32/(sx*sy), g32/(sx*sy), b32/(sx*sy), a32/(sx*sy) );
+			PutPixel( newSurf, x, y, c );
+		}
+	}
+	return newSurf;
 }
 
 
@@ -559,6 +592,10 @@ void ProcessTexture( TiXmlElement* texture )
 	if ( StrEqual( texture->Attribute( "font" ), "true" ) ) {
 		isFont = true;
 	}
+	int width = 0;
+	int height = 0;
+	texture->QueryIntAttribute( "width", &width );
+	texture->QueryIntAttribute( "height", &height );
 
 	string filename;
 	texture->QueryStringAttribute( "filename", &filename );
@@ -574,11 +611,19 @@ void ProcessTexture( TiXmlElement* texture )
 		exit( 1 );
 	}
 	else {
-		printf( "  Loaded: '%s' bpp=%d width=%d height=%d", 
+		printf( "  Loaded: '%s' bpp=%d w=%d h=%d", 
 				name.c_str(),
 				surface->format->BitsPerPixel,
 				surface->w,
 				surface->h );
+	}
+
+	if ( width && height ) {
+		SDL_Surface* old = surface;
+		surface = CreateScaledSurface( width, height, surface );
+		SDL_FreeSurface( old );
+
+		printf( " Scaled w=%d h=%d", width, height );
 	}
 
 	if ( isFont ) {

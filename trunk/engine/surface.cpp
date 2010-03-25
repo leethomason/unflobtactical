@@ -58,6 +58,33 @@ void Surface::Set( int f, int w, int h )
 }
 
 
+void Surface::Clear( int c )
+{
+	int needed = w*h*BytesPerPixel();
+	memset( pixels, c, needed );
+}
+
+
+void Surface::Blit( const grinliz::Vector2I& target, const Surface* src, const grinliz::Rectangle2I& srcRect )
+{
+	GLASSERT( target.x >= 0 && target.y >= 0 );
+	GLASSERT( target.x + srcRect.Width() <= w );
+	GLASSERT( target.y + srcRect.Height() <= h );
+	GLASSERT( srcRect.min.x >= 0 && srcRect.max.x < src->Width() );
+	GLASSERT( srcRect.min.y >= 0 && srcRect.max.x < src->Height() );
+	GLASSERT( src->format == format );
+
+	const int scan = srcRect.Width() * BytesPerPixel();
+	const int bpp = BytesPerPixel();
+
+	for( int j=0; j<srcRect.Height(); ++j ) {
+		memcpy( pixels + ((h-1)-(j+target.y))*w*bpp + target.x*bpp, 
+			    src->pixels + ((src->Height()-1)-(j+srcRect.min.y))*src->Width()*bpp + srcRect.min.x*bpp,
+				scan );
+	}
+}
+
+
 /*static*/ int Surface::QueryFormat( const char* formatString )
 {
 	if ( grinliz::StrEqual( "RGBA16", formatString ) ) {

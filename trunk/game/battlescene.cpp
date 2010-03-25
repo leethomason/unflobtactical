@@ -78,38 +78,39 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		targetArrowOn[i] = false;
 	}
 	{
-		const int icons[] = {	ICON_BLUE_BUTTON,		// 0 take-off
-								ICON_GREEN_BUTTON,		// 1 end turn
-								ICON_GREEN_BUTTON,		// 2 next
-								ICON_RED_BUTTON,		// 4 target
-								ICON_GREEN_BUTTON		// 7 character
-		};
+		const int icons[BTN_COUNT] = {	ICON_BLUE_BUTTON,		// take-off
+										ICON_GREEN_BUTTON,		// help
+										ICON_GREEN_BUTTON,		// end turn
+										ICON_GREEN_BUTTON,		// next
+										ICON_RED_BUTTON,		// target
+										ICON_GREEN_BUTTON		// character
+									 };
 
-		const char* iconText[] = {	"EXIT",
-									"O",
-									"N",
-									"",
-									""	
-								  };		
+		const char* iconText[BTN_COUNT] = {	"EXIT",
+											"",
+											"O",
+											"N",
+											"",
+											""	
+										  };		
 
-		widgets->InitButtons( icons, 5 );
+		widgets->InitButtons( icons, BTN_COUNT );
 		widgets->SetText( iconText );
 
+		widgets->SetDeco( BTN_HELP, DECO_HELP );
 		widgets->SetDeco( BTN_CHAR_SCREEN, DECO_CHARACTER );
 		widgets->SetDeco( BTN_TARGET, DECO_AIMED );
 
 		const Vector2I& size = widgets->GetButtonSize();
 		int h = port.UIHeight();
-		int delta = (h/5-size.y)/2;
+		int delta = (h/BTN_COUNT-size.y)/2;
 
 		menuImage = new UIImage( port );
 		menuImage->Init( TextureManager::Instance()->GetTexture( "commandBarV" ), size.x, h );
 
-		widgets->SetPos( BTN_NEXT,			0, delta+0*h/5 );
-		widgets->SetPos( BTN_CHAR_SCREEN,	0, delta+1*h/5 );
-		widgets->SetPos( BTN_TARGET,		0, delta+2*h/5);
-		widgets->SetPos( BTN_END_TURN,		0, delta+3*h/5 );
-		widgets->SetPos( BTN_TAKE_OFF,		0, delta+4*h/5 );
+		for( int i=0; i<BTN_COUNT; ++i ) {
+			widgets->SetPos( i,	0, delta+(BTN_COUNT-i-1)*h/BTN_COUNT );
+		}
 	}
 	// When enemy targeted.
 	fireWidget = new UIButtonGroup( engine->GetScreenport() );
@@ -178,14 +179,7 @@ BattleScene::~BattleScene()
 
 void BattleScene::Activate()
 {
-//	const Screenport& port = engine->GetScreenport();
-//	Rectangle2I r;
-	//r.Set( 	menuImage->Width(), 
-	//		0, 
-	//		port.UIWidth(), 
-	//		port.UIHeight() );
-//	r.Set( 100, 50, 300, 50+200*320/480 );	// FIXME: account for perspective when setting up the perspective xform and frustum
-//	engine->SetClip( &r );
+	engine->EnableMap( true );
 }
 
 
@@ -494,6 +488,11 @@ int BattleScene::CenterRectIntersection(	const Vector2I& r,
 
 int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )
 {
+#if defined( MAPMAKER )
+	clip3D->SetInvalid();
+	clip2D->SetInvalid();
+	return RENDER_3D | RENDER_2D; 
+#else
 	//clip3D->Set( 100, 0, 400, 150 );
 	//clip3D->Set( 100, 0, 100+240, 160 );
 	//clip3D->SetInvalid();
@@ -505,6 +504,7 @@ int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I*
 	clip3D->Set( size.x, 0, port.UIWidth()-1, port.UIHeight()-1 );
 	clip2D->Set( 0, 0, size.x, port.UIHeight()-1 );
 	return RENDER_3D | RENDER_2D; 
+#endif
 }
 
 
@@ -1915,6 +1915,12 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 				}
 				break;
 
+			case BTN_HELP:
+				{
+					game->PushScene( Game::HELP_SCENE, 0 );
+				}
+				break;
+
 			default:
 				break;
 		}
@@ -1974,7 +1980,13 @@ void BattleScene::Tap(	int tap,
 	const Vector3F& pos = mapSelection->Pos();
 	int rotation = (int) (mapSelection->GetRotation() / 90.0f );
 
-	engine->GetMap()->AddItem( (int)pos.x, (int)pos.z, rotation, currentMapItem, -1, 0 );
+	int ix = (int)pos.x;
+	int iz = (int)pos.z;
+	if (    ix >= 0 && ix < engine->GetMap()->Width()
+	  	 && iz >= 0 && iz < engine->GetMap()->Height() ) 
+	{
+		engine->GetMap()->AddItem( ix, iz, rotation, currentMapItem, -1, 0 );
+	}
 #endif	
 
 	// Get the map intersection. May be used by TARGET_TILE or NORMAL
@@ -2580,16 +2592,17 @@ void BattleScene::DrawHUD()
 				   (int)mapSelection->X(), (int)mapSelection->Z(),
 				   currentMapItem, engine->GetMap()->GetItemDefName( currentMapItem ) );
 #else
-	bool enabled = SelectedSoldierUnit() && actionStack.Empty();
 	{
+		bool enabled = SelectedSoldierUnit() && actionStack.Empty();
 		widgets->SetEnabled( BTN_TARGET, enabled );
 		widgets->SetEnabled( BTN_CHAR_SCREEN, enabled );
 	}
-	enabled = actionStack.Empty();
 	{
+		bool enabled = actionStack.Empty();
 		widgets->SetEnabled( BTN_TAKE_OFF, enabled );
 		widgets->SetEnabled( BTN_END_TURN, enabled );
 		widgets->SetEnabled( BTN_NEXT, enabled );
+		widgets->SetEnabled( BTN_HELP, enabled );
 	}
 	widgets->SetHighLight( BTN_TARGET, uiMode == UIM_TARGET_TILE ? true : false );
 
@@ -2819,7 +2832,7 @@ void BattleScene::MouseMove( int x, int y )
 	grinliz::Ray ray;
 	grinliz::Vector3F p;
 
-	engine->CalcModelViewProjectionInverse( &mvpi );
+	engine->GetScreenport().ViewProjectionInverse3D( &mvpi );
 	engine->RayFromScreenToYPlane( x, y, mvpi, &ray, &p );
 
 	int newX = (int)( p.x );

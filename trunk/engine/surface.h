@@ -18,6 +18,9 @@
 
 #include "../grinliz/gltypes.h"
 #include "../grinliz/gldebug.h"
+#include "../grinliz/glrectangle.h"
+#include "../grinliz/glvector.h"
+
 #include "../shared/glmap.h"
 #include "../engine/ufoutil.h"
 #include "enginelimits.h"
@@ -125,6 +128,9 @@ public:
 	// Set the format and allocate memory.
 	void Set( int format, int w, int h );
 
+	void Clear( int c );
+	void Blit( const grinliz::Vector2I& target, const Surface* src, const grinliz::Rectangle2I& srcRect );
+
 	// Create an opengl texture from this surface.
 	enum {
 		PARAM_NEAREST = 0x01
@@ -184,7 +190,7 @@ private:
 class Texture
 {
 public:
-	enum { MAX_TEXTURE_NAME = 16 };
+	enum { MAX_TEXTURE_NAME = 24 };
 	char name[MAX_TEXTURE_NAME];		// must be first in the class for search to work! (strcmp used in the TextureManager)
 	bool alpha;
 	U32	 glID;
