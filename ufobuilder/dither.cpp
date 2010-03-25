@@ -48,10 +48,46 @@ int ReducePixel( int c, int shift, int* err )
 }
 
 
+int ReducePixelDiv( int c, int shift, int num, int denom )
+{
+	int max        = 256 >> shift;	// the max color value + 1
+	int resolution = 1 << shift;	// the step size of color. So if the shift is 4, then the color resolation in 16
+
+	// Increase cPrime by a number from [0,resolution)
+	// The final step is to divide by the resolution,
+	// so adding, on average, 1/2 the resolution to account
+	// for the division truncating.
+	//
+	int cPrime = c + resolution*num/denom;	
+	if ( cPrime > 255 ) cPrime = 255;
+
+	int r = cPrime >> shift;
+	return r;
+}
+
+
+//
+// Ordered dithering:
+// 1/5   1 3		(adds to 10)
+//       4 2
+//
+// 1/17   1   9   3  11
+//       13   5  15   7
+//        4  12   2  10
+//       16   8  14   6
+
 void DitherTo16( const SDL_Surface* in, int format, bool invert, U16* target )
 {
 	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom( in->pixels, in->w, in->h, in->format->BitsPerPixel, in->pitch,
 													 in->format->Rmask, in->format->Gmask, in->format->Bmask, in->format->Amask );
+
+	// Use the dither pattern to both fix error and round up. Since the shift/division tends
+	// to round the color down, the dither can diffuse and correct brightness errors.
+	//
+	//const int pattern[4] = { 1, 3, 4, 2 };
+	//const int denom = 5;
+	const int pattern[16] = { 1, 9, 3, 11, 13, 5, 15, 7, 4, 12, 2, 10, 16, 8, 14, 6 };
+	const int denom = 17;
 
 	for( int j0=0; j0<surface->h; ++j0 ) {
 		int j = (invert) ? (surface->h-1-j0) : j0;
@@ -59,26 +95,28 @@ void DitherTo16( const SDL_Surface* in, int format, bool invert, U16* target )
 		for( int i=0; i<surface->w; ++i ) 
 		{
 			U8 r, g, b, a;
-			int errR, errG, errB;	// Don't dither the alpha - that has side effects around masking and blending.
 
 			U32 c = GetPixel( surface, i, j );
 			SDL_GetRGBA( c, surface->format, &r, &g, &b, &a );
 			U16 p = 0;
+			//int offset = (j&1)*2 + (i&1);
+			int offset = (j&3)*4 + (i&3);
+			const int numer = pattern[offset];
 
 			switch ( format ) {
 				case RGBA16:
 					p =	  
-						  ( ReducePixel( r, 4, &errR ) << 12 )
-						| ( ReducePixel( g, 4, &errG ) << 8 )
-						| ( ReducePixel( b, 4, &errB ) << 4)
+						  ( ReducePixelDiv( r, 4, numer, denom ) << 12 )
+						| ( ReducePixelDiv( g, 4, numer, denom ) << 8 )
+						| ( ReducePixelDiv( b, 4, numer, denom ) << 4)
 						| ( ( a>>4 ) << 0 );
 					break;
 
 				case RGB16:
 					p = 
-						  ( ReducePixel( r, 3, &errR ) << 11 )
-						| ( ReducePixel( g, 2, &errG ) << 5 )
-						| ( ReducePixel( b, 3, &errB ) );
+						  ( ReducePixelDiv( r, 3, numer, denom ) << 11 )
+						| ( ReducePixelDiv( g, 2, numer, denom ) << 5 )
+						| ( ReducePixelDiv( b, 3, numer, denom ) );
 					break;
 
 				default:
@@ -86,28 +124,6 @@ void DitherTo16( const SDL_Surface* in, int format, bool invert, U16* target )
 					break;
 			}
 			*target++ = p;
-			
-			const int dx[] = { 1, -1, 0, 1 };
-			const int dy[] = { 0, 1, 1, 1 };
-			const int t[]  = { 7, 3, 5, 1 };
-
-			for( int k=0; k<4; ++k ) {
-				int x = i+dx[k];
-				int y = j+dy[k];
-				if ( x < surface->w && x >= 0 && y < surface->h && y >= 0 ) 
-				{
-					U32 c0 = GetPixel( surface, x, y );
-					U8 r0, g0, b0, a0;
-					SDL_GetRGBA( c0, surface->format, &r0, &g0, &b0, &a0 );
-
-					int r1 = grinliz::Clamp( (int)r0 + (errR * t[k])/16, 0, 255 );
-					int g1 = grinliz::Clamp( (int)g0 + (errG * t[k])/16, 0, 255 );
-					int b1 = grinliz::Clamp( (int)b0 + (errB * t[k])/16, 0, 255 );
-
-					U32 cPrime = SDL_MapRGBA( surface->format, r1, g1, b1, a0 );
-					PutPixel( surface, x, y, cPrime );
-				}
-			}
 		}
 	}
 	SDL_FreeSurface( surface );
