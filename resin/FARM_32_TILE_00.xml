@@ -1,0 +1,20 @@
+<Map>
+    <Items>
+        <Item x="13" y="20" rot="3" index="34" hp="80" />
+        <Item x="13" y="21" rot="3" index="32" hp="80" />
+        <Item x="12" y="16" index="34" hp="80" />
+        <Item x="13" y="17" rot="3" index="34" hp="80" />
+        <Item x="13" y="18" rot="3" index="34" hp="80" />
+        <Item x="13" y="19" rot="3" index="34" hp="80" />
+        <Item x="8" y="16" index="34" hp="80" />
+        <Item x="9" y="16" index="34" hp="80" />
+        <Item x="10" y="16" index="34" hp="80" />
+        <Item x="11" y="16" index="34" hp="80" />
+        <Item x="7" y="16" index="33" hp="80" flags="4" />
+        <Item x="4" y="16" rot="3" index="32" hp="80" />
+        <Item x="5" y="16" index="34" hp="80" />
+        <Item x="6" y="16" index="34" hp="80" />
+    </Items>
+    <GroundDebris />
+    <PyroGroup />
+</Map>
