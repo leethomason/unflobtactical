@@ -17,37 +17,6 @@
 #include "builder.h"
 #include "../grinliz/glutil.h"
 
-/*
-for each y from top to bottom
-   for each x from left to right
-      oldpixel := pixel[x][y]
-      newpixel := find_closest_palette_color(oldpixel)
-      pixel[x][y] := newpixel
-      quant_error := oldpixel - newpixel
-      pixel[x+1][y] := pixel[x+1][y] + 7/16 * quant_error
-      pixel[x-1][y+1] := pixel[x-1][y+1] + 3/16 * quant_error
-      pixel[x][y+1] := pixel[x][y+1] + 5/16 * quant_error
-      pixel[x+1][y+1] := pixel[x+1][y+1] + 1/16 * quant_error
-
-*/
-
-// err is (colorWanted - colorPalette)
-int ReducePixel( int c, int shift, int* err )
-{
-	//	err = c & ((1<<shift)-1)
-	//	return c >> shift;
-	int max = 256 >> shift;
-	int offset = (max-1)/2;
-	int cPrime = ( c + offset );
-	if ( cPrime > 255 )
-		cPrime = 255;
-
-	int r = cPrime >> shift;
-	*err = c - (r<<shift);
-	return r;
-}
-
-
 int ReducePixelDiv( int c, int shift, int num, int denom )
 {
 	int max        = 256 >> shift;	// the max color value + 1
@@ -75,12 +44,14 @@ int ReducePixelDiv( int c, int shift, int num, int denom )
 //       13   5  15   7
 //        4  12   2  10
 //       16   8  14   6
+//
+// Originally the code was a diffusion-dither, which looked
+// nice in the test images, but tended to created patterns
+// that looked odd in the texture. The more regular appearence
+// of the ordered dither looks better at run time.
 
-void DitherTo16( const SDL_Surface* in, int format, bool invert, U16* target )
+void DitherTo16( const SDL_Surface* surface, int format, bool invert, U16* target )
 {
-	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom( in->pixels, in->w, in->h, in->format->BitsPerPixel, in->pitch,
-													 in->format->Rmask, in->format->Gmask, in->format->Bmask, in->format->Amask );
-
 	// Use the dither pattern to both fix error and round up. Since the shift/division tends
 	// to round the color down, the dither can diffuse and correct brightness errors.
 	//
@@ -126,6 +97,5 @@ void DitherTo16( const SDL_Surface* in, int format, bool invert, U16* target )
 			*target++ = p;
 		}
 	}
-	SDL_FreeSurface( surface );
 }
 
