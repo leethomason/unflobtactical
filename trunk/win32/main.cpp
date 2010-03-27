@@ -280,10 +280,14 @@ int main( int argc, char **argv )
 						break;
 
 					case SDLK_p:
-						game->ShowPathing( !((Game*)game)->IsShowingPathing() );
+						game->ShowPathing( !game->IsShowingPathing() );
 						break;
+
 					case SDLK_d:
 						game->engine.GetMap()->SetDayTime( !game->engine.GetMap()->DayTime() );
+						break;
+					case SDLK_m:
+						game->engine.EnableMetadata( !game->engine.IsMetadataEnabled() );
 						break;
 #else
 #endif

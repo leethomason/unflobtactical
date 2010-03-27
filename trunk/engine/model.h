@@ -139,6 +139,7 @@ public:
 		MODEL_INVISIBLE				= 0x10,
 		MODEL_MAP_TRANSPARENT		= 0x20,
 		MODEL_ALWAYS_DRAW			= 0x40,
+		MODEL_METADATA				= 0x80,		// mapmaker data that isn't displayed in-game
 	};
 
 	int IsFlagSet( int f ) const	{ return flags & f; }
