@@ -119,7 +119,13 @@
 	<image filename="farmlandN.png" />
   <image filename="farmlandD.png" />
 
-  <image filename="FARM_16_TILE_00_TEX.png" />
+  <data  filename="FARM_32_TILE_00.xml" />
+  <image filename="FARM_32_TILE_00_TEX.png" width="256" height="256"/>
+  <image filename="FARM_32_TILE_00_DAY.png" />
+  <image filename="FARM_32_TILE_00_NGT.png" />
+
+  <data  filename="FARM_16_TILE_00.xml" />
+  <image filename="FARM_16_TILE_00_TEX.png" width="128" height="128" />
   <image filename="FARM_16_TILE_00_DAY.png" />
   <image filename="FARM_16_TILE_00_NGT.png" />
 

@@ -662,22 +662,25 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 
 	const MapItemDef& itemDef = itemDefArr[defIndex];
 
-#if !defined( MAPMAKER )
+	bool metadata = false;
+
 	// Check for meta data.
 	if ( StrEqual( itemDef.name, "guard" ) || StrEqual( itemDef.name, "scout" ) ) {
-		if ( StrEqual( itemDef.name, "guard" ) ) {
-			if ( nGuardPos < MAX_GUARD_SCOUT ) {
-				guardPos[nGuardPos++].Set( x, y );
+		metadata = true;
+#		if !defined( MAPMAKER )
+			if ( StrEqual( itemDef.name, "guard" ) ) {
+				if ( nGuardPos < MAX_GUARD_SCOUT ) {
+					guardPos[nGuardPos++].Set( x, y );
+				}
 			}
-		}
-		else if ( StrEqual( itemDef.name, "scout" ) ) {
-			if ( nScoutPos < MAX_GUARD_SCOUT ) {
-				scoutPos[nScoutPos++].Set( x, y );
+			else if ( StrEqual( itemDef.name, "scout" ) ) {
+				if ( nScoutPos < MAX_GUARD_SCOUT ) {
+					scoutPos[nScoutPos++].Set( x, y );
+				}
 			}
-		}
-		return 0;
+			return 0;
+#		endif	
 	}
-#endif
 
 	Rectangle2I mapBounds;
 	Vector2F modelPos;
@@ -723,6 +726,8 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	if ( res ) {
 		Model* model = tree->AllocModel( res );
 		model->SetFlag( Model::MODEL_OWNED_BY_MAP );
+		if ( metadata )
+			model->SetFlag( Model::MODEL_METADATA );
 		model->SetPos( modelPos.x, 0.0f, modelPos.y );
 		model->SetRotation( 90.0f * rotation );
 		item->model = model;

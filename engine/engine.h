@@ -84,8 +84,11 @@ public:
 	Model* AllocModel( const ModelResource* );
 	void FreeModel( Model* );
 	
-	void EnableMap( bool enable )	{ enableMap = enable; }
-	Map* GetMap() { return map; }
+	void EnableMap( bool enable )		{ enableMap = enable; }
+	Map* GetMap()						{ return map; }
+	// Only matters for MapMaker. Game never renders the metadata.
+	void EnableMetadata( bool enable )	{ enableMeta = enable; }
+	bool IsMetadataEnabled()			{ return enableMeta; }
 
 	bool RayFromScreenToYPlane( int x, int y, 
 								const grinliz::Matrix4& modelViewProjectionInverse, 
@@ -136,12 +139,10 @@ private:
 	void PushShadowMatrix();
 
 	Screenport* screenport;
-//	float	frustumLeft, frustumRight, 
-//			frustumTop, frustumBottom, 
-//			frustumNear, frustumFar;
 	float	initZoom;
 	int		initZoomDistance;
 	int		depthFunc;
+	bool	enableMeta;
 	
 	const EngineData& engineData;
 

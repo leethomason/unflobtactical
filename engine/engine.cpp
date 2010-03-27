@@ -138,6 +138,7 @@ Engine::Engine( Screenport* port, const EngineData& _engineData )
 	lightDirection.Set( 0.7f, 3.0f, 1.4f );
 	lightDirection.Normalize();
 	depthFunc = 0;
+	enableMeta = true;
 }
 
 
@@ -293,7 +294,7 @@ void Engine::Draw()
 
 			renderQueue->SetColor( 0, 0, 0 );
 			GLASSERT( renderQueue->Empty() );
-			
+
 			for( Model* model=modelRoot; model; model=model->next ) {
 				// Take advantage of this walk to adjust the billboard rotations. Note that the rotation
 				// will never change it's position in the space tree, which is why we can set it here.
@@ -304,6 +305,8 @@ void Engine::Draw()
 						model->SetRotation( shadowRotation );
 				}
 				if ( model->IsFlagSet( Model::MODEL_NO_SHADOW ) )
+					continue;
+				if ( model->IsFlagSet( Model::MODEL_METADATA ) && !enableMeta )
 					continue;
 
 				// Draw model shadows.
@@ -350,6 +353,8 @@ void Engine::Draw()
 	for( Model* model=modelRoot; model; model=model->next ) 
 	{
 		if ( !enableMap && model->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) )
+			continue;
+		if ( model->IsFlagSet( Model::MODEL_METADATA ) && !enableMeta )
 			continue;
 
 		// Remove the shadow rotation for this pass.
