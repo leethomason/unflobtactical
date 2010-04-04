@@ -1754,6 +1754,10 @@ void Map::QuadTree::Add( MapItem* item )
 	tree[i] = item;
 	depthUse[d] += 1;
 
+	GLOUTPUT(( "QuadTree::Add %x id=%d (%d,%d)-(%d,%d) at depth=%d\n", item, item->itemDefIndex,
+				item->mapBounds8.min.x, item->mapBounds8.min.y, item->mapBounds8.max.x, item->mapBounds8.max.y,
+				d ));
+
 	//GLOUTPUT(( "Depth: %2d %2d %2d %2d %2d\n", 
 	//		   depthUse[0], depthUse[1], depthUse[2], depthUse[3], depthUse[4] ));
 }
@@ -1761,8 +1765,12 @@ void Map::QuadTree::Add( MapItem* item )
 
 void Map::QuadTree::UnlinkItem( MapItem* item )
 {
-	int index = CalcNode( item->mapBounds8, 0 );
+	int d=0;
+	int index = CalcNode( item->mapBounds8, &d );
+	depthUse[d] -= 1;
 	GLASSERT( tree[index] ); // the item should be in the linked list somewhere.
+
+	GLOUTPUT(( "QuadTree::UnlinkItem %x id=%d\n", item, item->itemDefIndex ));
 
 	MapItem* prev = 0;
 	for( MapItem* p=tree[index]; p; prev=p, p=p->nextQuad ) {
@@ -1831,15 +1839,25 @@ Map::MapItem* Map::QuadTree::FindItems( const Rectangle2I& bounds, int required,
 
 Map::MapItem* Map::QuadTree::FindItem( const Model* model )
 {
+	GLASSERT( model->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) );
 	Rectangle2I b;
-	b.min.x = (int)floorf( model->X() );
-	b.min.y = (int)floorf( model->Z() );
-	b.max.x = (int)ceilf( model->X() );
-	b.max.y = (int)ceilf( model->Z() );
 
+	// May or may not have 'mapBoundsCache' when called.
+	if ( model->mapBoundsCache.min.x >= 0 ) {
+		b = model->mapBoundsCache;
+	}
+	else {
+		// Need a little space around the coordinates to account
+		// for object rotation.
+		b.min.x = Clamp( (int)model->X()-2, 0, SIZE-1 );
+		b.min.y = Clamp( (int)model->Z()-2, 0, SIZE-1 );
+		b.max.x = Clamp( (int)model->X()+2, 0, SIZE-1 );
+		b.max.y = Clamp( (int)model->Z()+2, 0, SIZE-1 );
+	}
 	filterModel = model;
 	MapItem* root = FindItems( b, 0, 0 );
 	filterModel = 0;
+	GLASSERT( root && root->next == 0 );
 	return root;
 }
 

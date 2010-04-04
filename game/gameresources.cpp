@@ -363,6 +363,7 @@ void Game::LoadMapResources()
 	const int MARINE_SET = 0x60;
 
 	const int LIGHT_SET  = Map::LIGHT_START;
+	const float SLOWBURN = 0.2f;
 	const float BURN = 0.5f;
 	const float FASTBURN = 1.0f;
 
@@ -382,12 +383,17 @@ void Game::LoadMapResources()
 	const MapItemInit farmSet[] =
 	{
 			// model		open			destroyed	cx, cz	hp		material		pather visibility
-		{	"farmBed",		0,				0,			1,	1,	HP_MED,	BURN,			"f"	 "0"	},
+		{	"farmBed",		0,				0,			2,	2,	HP_MED,	BURN,			"f"	 "0"	},
 		{	"farmTable",	0,				0,			1,	1,	HP_MED,	BURN,			"f", "0" 	},
 		{	"farmTable2x1",	0,				0,			2,	1,	HP_MED,	BURN,			"ff","00"	},
 		{	"farmWheat",	0,				0,			1,	1,	HP_LOW,	FASTBURN,		"0", "0" },
 		{	"stonewall_unit",0,	"stonewall_unitD",		1,	1,	HP_MED,	0,				"f", "0" },
 		{	"stonewall_join",0,	"stonewall_unitD",		1,	1,	HP_MED,	0,				"f", "0" },
+		{	"woodfence",	0,				0,			2,	1,	HP_LOW,	FASTBURN,		"44", "0" },
+		{	"oldwell",		0,				0,			1,	1,	HP_MED,	SLOWBURN,		"f", 0 },
+		{	"haypile",		0,				0,			2,	2,	HP_MED,	FASTBURN,		"ffff", "ffff" },
+		{	"whitepicketfence",	0,			0,			1,	1,	HP_LOW,	FASTBURN,		"1", "0" },
+		{	"plant0",		0,				0,			1,	1,	HP_LOW,	FASTBURN,		"0", "0" },
 		{	0	}
 	};
 	InitMapItemDef( FARM_SET, farmSet );
@@ -415,13 +421,17 @@ void Game::LoadMapResources()
 	const MapItemInit ufoSet[] = 
 	{
 			// model		open			destroyed	cx, cz	hp			material	pather
-		{	"ufo_Diag",		0,				0,			1,	1,	HP_STEEL,	0,			"f" },
+		{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	0,			"1" },
+		{	"ufo_WallCurve4", 0,			0,			4,	4,	INDESTRUCT,	0,			"0002 0003 0030 1300",		// pather
+																						"0002 0003 0030 1300" },	// visibility
 		{	"ufo_DoorCld",	"ufo_DoorOpn",	0,			1,	1,	HP_STEEL,	0,			"0", "1" },
 		{	"ufo_WallInn",	0,				0,			1,	1,	HP_STEEL,	0,			"1" },
 		{	"ufo_CrnrInn",	0,				0,			1,	1,	HP_STEEL,	0,			"3" },
-		{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	0,			"1" },
-		{	"ufo_Join0",	0,				0,			2,	1,	HP_STEEL*2,	0,			"1f" },
-		{	"ufo_Join1",	0,				0,			1,	2,	HP_STEEL,	0,			"2f" },
+
+		//{	"ufo_Diag",		0,				0,			1,	1,	HP_STEEL,	0,			"f" },
+		//{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	0,			"1" },
+		//{	"ufo_Join0",	0,				0,			2,	1,	HP_STEEL*2,	0,			"1f" },
+		//{	"ufo_Join1",	0,				0,			1,	2,	HP_STEEL,	0,			"2f" },
 		{	0	}
 	};
 	InitMapItemDef( UFO_SET0, ufoSet );

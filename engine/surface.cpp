@@ -306,15 +306,6 @@ const Texture* TextureManager::GetTexture( const char* name )
 }
 
 
-///*static*/ int TextureManager::Compare( const void * elem1, const void * elem2 )
-//{/
-//	const Texture* t1 = *((const Texture**)elem1);
-//	const Texture* t2 = *((const Texture**)elem2);
-//	return strcmp( t1->name, t2->name );
-//}
-
-
-
 void TextureManager::AddTexture( const char* name, U32 glID, bool alphaTest )
 {
 	Texture* t = textureArr.Push();

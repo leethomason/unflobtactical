@@ -241,13 +241,11 @@ int main( int argc, char **argv )
 					//case SDLK_LEFT:			yRotation -= 2.0f; GameYRotateCamera( game, yRotation );		break;
 					//case SDLK_s:			GameShadowMode( game );						break;
 
-#if !defined( MAPMAKER )
-					case SDLK_p:
+					case SDLK_s:
 						{
 							ScreenCapture( "cap" );
 						}
 						break;
-#endif
 
 #if defined( MAPMAKER )
 					case SDLK_DELETE:	
@@ -288,6 +286,11 @@ int main( int argc, char **argv )
 						break;
 					case SDLK_m:
 						game->engine.EnableMetadata( !game->engine.IsMetadataEnabled() );
+						break;
+					case SDLK_u:
+						game->engine.camera.SetTilt( -90.0f );
+						game->engine.camera.SetPosWC( 8.f, 90.f, 8.f );
+						game->engine.camera.SetYRotation( 0.0f );
 						break;
 #else
 #endif

@@ -91,8 +91,9 @@ void ModelBuilder::Flush()
 		}
 	}
 
-	// Smoothing: average normals. If smoothing, everything with the same
-	// position should have the same normal.
+	// Smoothing: average normals.
+	// SMOOTH: everything with the same position should have the same normal.
+	// CREASE: all the normals that are "close" are averaged together
 	if ( smooth ) {
 		std::vector<int> match;
 
@@ -103,25 +104,37 @@ void ModelBuilder::Flush()
 
 				match.clear();
 				match.push_back( i );
+				Vector3F normalSum = stream[g].vertex[i].normal;
 				Vector3F normal = stream[g].vertex[i].normal;
 
 				for( int j=i+1; j<stream[g].nVertex; ++j ) {
 					// Equal, in this case, is only the position.
 					if ( !stream[g].normalProcessed[j] ) {
-						if ( stream[g].vertex[i].pos.Equal( stream[g].vertex[j].pos, EPS_VERTEX ) ) {
-							match.push_back( j );
-							normal += stream[g].vertex[j].normal;
+
+						if ( smooth == SMOOTH ) {
+							if ( stream[g].vertex[i].pos.Equal( stream[g].vertex[j].pos, EPS_VERTEX ) ) {
+								match.push_back( j );
+								normalSum += stream[g].vertex[j].normal;
+							}
+						}
+						else {	// CREASE
+							if (    stream[g].vertex[i].pos.Equal( stream[g].vertex[j].pos, EPS_VERTEX )
+								 && DotProduct( normal, stream[g].vertex[j].normal ) > 0.7f )
+							{
+								match.push_back( j );
+								normalSum += stream[g].vertex[j].normal;
+							}
 						}
 					}
 				}
 
-				if ( normal.LengthSquared() < 0.001f ) {
+				if ( normalSum.LengthSquared() < 0.001f ) {
 					// crap.
-					normal.Set( 0.0f, 1.0f, 0.0f );
+					normalSum.Set( 0.0f, 1.0f, 0.0f );
 				}
-				normal.Normalize();
+				normalSum.Normalize();
 				for( unsigned j=0; j<match.size(); ++j ) {
-					stream[g].vertex[match[j]].normal = normal;
+					stream[g].vertex[match[j]].normal = normalSum;
 					stream[g].normalProcessed[match[j]] = true;
 				}
 			}

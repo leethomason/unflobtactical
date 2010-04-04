@@ -150,11 +150,25 @@ void RenderQueue::Flush()
 			++states;
 
 			if ( flags & ALPHA_BLEND) {
+				// FIXME: clean this up.
+				// When should it blend? When should it test? What's the performance
+				// impact of blend vs. test.
+#ifdef MAPMAKER
+				// map preview
 				glEnable( GL_BLEND );
 				glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+#else
+				// plants
+				glEnable( GL_ALPHA_TEST );
+				glAlphaFunc( GL_GREATER, 0.5f );
+#endif
 			}
 			else {
+#ifdef MAPMAKER
 				glDisable( GL_BLEND );
+#else
+				glDisable( GL_ALPHA_TEST );
+#endif
 			}
 		}
 

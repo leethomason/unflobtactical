@@ -44,7 +44,7 @@ struct VertexStream {
 
 class ModelBuilder {
 public:
-	ModelBuilder() : current( 0 ), nGroup( 0 ), smooth( false )	{}
+	ModelBuilder() : current( 0 ), nGroup( 0 ), smooth( FLAT )	{}
 
 	void SetMatrix( const grinliz::Matrix4& mat )		{ matrix = mat; }
 
@@ -52,7 +52,12 @@ public:
 	void SetTexture( const char* textureName );
 
 	// Set smooth shading, generally true for characters and false for buildings.
-	void SetShading( bool smooth )	{ this->smooth = smooth; }
+	enum {
+		FLAT,
+		CREASE,
+		SMOOTH
+	};
+	void SetShading( int smooth )	{ this->smooth = smooth; }
 
 	// Add the tri for the current texture.
 	void AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 );
@@ -63,7 +68,7 @@ public:
 	const VertexGroup* Groups()		{ return group; }
 	int NumGroups()					{ return nGroup; }
 
-	const grinliz::Rectangle3F& Bounds()	{ return bounds; }
+	const grinliz::Rectangle3F& Bounds()		{ return bounds; }
 
 private:
 	int current;
@@ -75,7 +80,7 @@ private:
 	VertexStream stream[EL_MAX_MODEL_GROUPS];
 
 	int nGroup;
-	bool smooth;
+	int smooth;
 };
 
 

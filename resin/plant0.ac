@@ -1,0 +1,118 @@
+AC3Db
+MATERIAL "ac3dmat1" rgb 1 1 1  amb 0.2 0.2 0.2  emis 0 0 0  spec 0 0 0  shi 10  trans 0
+OBJECT world
+kids 6
+OBJECT poly
+name "rect"
+loc 1.77636e-015 0.85 -7.45058e-009
+texture "plant0.png"
+crease 45.000000
+numvert 4
+0.25 -0.85 -0.433013
+-0.25 -0.85 0.433013
+-0.25 0.85 0.433013
+0.25 0.85 -0.433013
+numsurf 1
+SURF 0x0
+mat 0
+refs 4
+3 0 0.957031
+2 1 0.957031
+1 1 0.0390625
+0 0 0.0390625
+kids 0
+OBJECT poly
+name "rect"
+loc 8.44876e-009 0.85 2.20843e-008
+texture "plant0.png"
+crease 45.000000
+numvert 4
+-0.25 0.85 -0.433013
+0.25 0.85 0.433013
+0.25 -0.85 0.433013
+-0.25 -0.85 -0.433013
+numsurf 1
+SURF 0x0
+mat 0
+refs 4
+0 0 0.957031
+1 1 0.957031
+2 1 0.0390625
+3 0 0.0390625
+kids 0
+OBJECT poly
+name "rect"
+loc 2.98023e-008 0.85 -2.29443e-016
+texture "plant0.png"
+crease 45.000000
+numvert 4
+-0.5 -0.85 6.45239e-008
+0.5 -0.85 -7.94251e-008
+0.5 0.85 -7.94251e-008
+-0.5 0.85 6.45239e-008
+numsurf 1
+SURF 0x0
+mat 0
+refs 4
+3 0 0.957031
+2 1 0.957031
+1 1 0.0390625
+0 0 0.0390625
+kids 0
+OBJECT poly
+name "rect"
+loc 1.49011e-008 0.85 -2.58095e-008
+texture "plant0.png"
+crease 45.000000
+numvert 4
+-0.25 0.85 0.433013
+0.25 0.85 -0.433013
+0.25 -0.85 -0.433013
+-0.25 -0.85 0.433013
+numsurf 1
+SURF 0x0
+mat 0
+refs 4
+0 0 0.957031
+1 1 0.957031
+2 1 0.0390625
+3 0 0.0390625
+kids 0
+OBJECT poly
+name "rect"
+loc -2.50788e-008 0.85 2.7271e-009
+texture "plant0.png"
+crease 45.000000
+numvert 4
+0.25 -0.85 0.433013
+-0.25 -0.85 -0.433013
+-0.25 0.85 -0.433013
+0.25 0.85 0.433013
+numsurf 1
+SURF 0x0
+mat 0
+refs 4
+3 0 0.957031
+2 1 0.957031
+1 1 0.0390625
+0 0 0.0390625
+kids 0
+OBJECT poly
+name "rect"
+loc -2.98023e-008 0.85 -1.37643e-021
+texture "plant0.png"
+crease 45.000000
+numvert 4
+0.5 0.85 -5.96046e-008
+-0.5 0.85 5.96046e-008
+-0.5 -0.85 5.96046e-008
+0.5 -0.85 -5.96046e-008
+numsurf 1
+SURF 0x0
+mat 0
+refs 4
+0 0 0.957031
+1 1 0.957031
+2 1 0.0390625
+3 0 0.0390625
+kids 0

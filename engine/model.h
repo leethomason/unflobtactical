@@ -145,7 +145,7 @@ public:
 	int IsFlagSet( int f ) const	{ return flags & f; }
 	void SetFlag( int f )			{ flags |= f; }
 	void ClearFlag( int f )			{ flags &= (~f); }
-	int Flags()	const			{ return flags; }
+	int Flags()	const				{ return flags; }
 
 	const grinliz::Vector3F& Pos() const			{ return pos; }
 	void SetPos( const grinliz::Vector3F& pos );
