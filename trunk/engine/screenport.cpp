@@ -187,6 +187,7 @@ void Screenport::SetPerspective( float near, float far, float fovDegrees, const 
 	// Give the driver hints:
 	glLoadIdentity();
 	glFrustumfX( frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.zNear, frustum.zFar );
+	//glOrthofX( frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.zNear, frustum.zFar );
 	
 	glMatrixMode(GL_MODELVIEW);	
 	CHECK_GL_ERROR;

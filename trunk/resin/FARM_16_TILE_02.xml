@@ -1,0 +1,37 @@
+<Map>
+    <Items>
+        <Item x="12" y="12" index="23" hp="80" />
+        <Item x="6" y="13" index="1" hp="250" />
+        <Item x="10" y="8" index="26" hp="10" />
+        <Item x="8" y="8" index="26" hp="10" />
+        <Item x="9" y="8" index="26" hp="10" />
+        <Item x="11" y="11" index="98" />
+        <Item x="11" y="8" index="98" />
+        <Item x="4" y="8" index="26" hp="10" />
+        <Item x="4" y="11" index="1" hp="250" />
+        <Item x="5" y="8" index="26" hp="10" />
+        <Item x="6" y="11" index="98" />
+        <Item x="3" y="8" index="26" hp="10" />
+        <Item x="11" y="7" index="26" hp="10" />
+        <Item x="9" y="6" index="26" hp="10" />
+        <Item x="8" y="4" index="26" hp="10" />
+        <Item x="10" y="4" index="26" hp="10" />
+        <Item x="9" y="7" index="26" hp="10" />
+        <Item x="10" y="7" index="26" hp="10" />
+        <Item x="9" y="4" index="26" hp="10" />
+        <Item x="8" y="5" index="98" />
+        <Item x="6" y="7" index="26" hp="10" />
+        <Item x="4" y="4" index="26" hp="10" />
+        <Item x="5" y="4" index="26" hp="10" />
+        <Item x="4" y="7" index="26" hp="10" />
+        <Item x="3" y="5" index="98" />
+        <Item x="9" y="3" index="26" hp="10" />
+        <Item x="10" y="3" index="26" hp="10" />
+        <Item x="5" y="2" index="22" hp="10" />
+        <Item x="5" y="3" index="26" hp="10" />
+        <Item x="7" y="3" index="98" />
+        <Item x="3" y="2" index="22" hp="10" />
+    </Items>
+    <GroundDebris />
+    <PyroGroup />
+</Map>

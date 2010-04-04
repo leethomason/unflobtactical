@@ -11,14 +11,17 @@
   <texture filename="woodPlankD.png" />
 	<texture filename="marine.png" />
 	<texture filename="palette.png" />
-	<texture filename="ufoInner.png" />
-	<texture filename="ufoOuter.png" />
+	<texture filename="ufoInner.png" width="64" height="64"/>
+	<texture filename="ufoOuter.png" width="16" height="64"/>
 	<texture filename="wheat.tga" />
 	<texture filename="tree.tga" />
   <texture filename="lander.png" />
   <texture filename="translucent.png" />
   <texture filename="clips.png" />
   <texture filename="stonewall.png" width="64" height="64" />
+  <texture filename="hay.png" width="64" height="64" />
+  <texture filename="whitepicketfence.png" width="64" height="64" />
+  <texture filename="plant0.png" width="64" height="64" />
   
   <!-- UI elements -->
   <texture filename="intro.png" />
@@ -46,11 +49,6 @@
   <model filename="crate.ac" />
   <model filename="smallcrate.ac" />
   <model filename="unitplate.ac" />
-
-  <model filename="farmBed.ac" />
-  <model filename="farmTable.ac" />
-  <model filename="farmTable2x1.ac" origin="upperLeft"/>
-  <model filename="farmWheat.ac" billboard="true" />
 
   <model filename="lander.ac" origin="upperLeft" />
 
@@ -84,14 +82,12 @@
 
   <model filename="tree.ac" billboard="true" shadow="rotate"/>
 
-  <model filename="ufo_Diag.ac" />
-  <model filename="ufo_DoorCld.ac" />
-  <model filename="ufo_DoorOpn.ac" />
-  <model filename="ufo_WallInn.ac" />
-  <model filename="ufo_CrnrInn.ac" />
-  <model filename="ufo_WallOut.ac" />
-  <model filename="ufo_Join0.ac" origin="upperLeft" />
-  <model filename="ufo_Join1.ac" origin="upperLeft" />
+  <model filename="ufo_DoorCld.ac" shading="crease" />
+  <model filename="ufo_DoorOpn.ac" shading="crease" />
+  <model filename="ufo_WallInn.ac" shading="crease" />
+  <model filename="ufo_CrnrInn.ac" shading="crease" />
+  <model filename="ufo_WallOut.ac" shading="crease" />
+  <model filename="ufo_WallCurve4.ac" shading="crease" origin="upperLeft" />
 
   <model filename="woodCrnr.ac" />
   <model filename="woodCrnrD.ac" />
@@ -100,9 +96,18 @@
   <model filename="woodWall.ac" />
   <model filename="woodWallWin.ac" />
 
+  <model filename="farmBed.ac" />
+  <model filename="farmTable.ac" />
+  <model filename="farmTable2x1.ac" origin="upperLeft"/>
+  <model filename="farmWheat.ac" billboard="true" />
   <model filename="stonewall_unit.ac" />
   <model filename="stonewall_join.ac" />
   <model filename="stonewall_unitD.ac"/>
+  <model filename="woodfence.ac" />
+  <model filename="oldwell.ac" shading="crease" />
+  <model filename="haypile.ac" />
+  <model filename="whitepicketfence.ac" />
+  <model filename="plant0.ac" shadowCaster="false" />
   
   <!-- Models used as markers by the map-maker. Don't appear in the game. -->
   <model filename="scout.ac" shading="smooth" />
@@ -119,15 +124,37 @@
 	<image filename="farmlandN.png" />
   <image filename="farmlandD.png" />
 
+  <!--
   <data  filename="FARM_32_TILE_00.xml" />
   <image filename="FARM_32_TILE_00_TEX.png" width="256" height="256"/>
   <image filename="FARM_32_TILE_00_DAY.png" />
   <image filename="FARM_32_TILE_00_NGT.png" />
+  -->
 
   <data  filename="FARM_16_TILE_00.xml" />
   <image filename="FARM_16_TILE_00_TEX.png" width="128" height="128" />
   <image filename="FARM_16_TILE_00_DAY.png" />
   <image filename="FARM_16_TILE_00_NGT.png" />
+
+  <data  filename="FARM_16_TILE_01.xml" />
+  <image filename="FARM_16_TILE_01_TEX.png" width="128" height="128" />
+  <image filename="FARM_16_TILE_01_DAY.png" />
+  <image filename="FARM_16_TILE_01_NGT.png" />
+
+  <data  filename="FARM_16_TILE_02.xml" />
+  <image filename="FARM_16_TILE_02_TEX.png" width="128" height="128" />
+  <image filename="FARM_16_TILE_02_DAY.png" />
+  <image filename="FARM_16_TILE_02_NGT.png" />
+
+  <data  filename="FARM_16_UFOA_00.xml" />
+  <image filename="FARM_16_UFOA_00_TEX.png" width="128" height="128" />
+  <image filename="FARM_16_UFOA_00_DAY.png" />
+  <image filename="FARM_16_UFOA_00_NGT.png" />
+
+  <data  filename="FARM_16_LAND_00.xml" />
+  <image filename="FARM_16_LAND_00_TEX.png" width="128" height="128" />
+  <image filename="FARM_16_LAND_00_DAY.png" />
+  <image filename="FARM_16_LAND_00_NGT.png" />
 
   <!-- Other Data -->
   <data filename="testgame.xml" />

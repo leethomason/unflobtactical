@@ -361,15 +361,17 @@ void ProcessModel( TiXmlElement* model )
 	grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
 	//string fullOut = outputPath + name + ".mod";
 
-	bool smoothShading = false;
-	if ( grinliz::StrEqual( model->Attribute( "shading" ), "smooth" ) ) {
-		smoothShading = true;
-	}
-
 	printf( "Model '%s'", name.c_str() );
 
 	ModelBuilder* builder = new ModelBuilder();
-	builder->SetShading( smoothShading );
+	builder->SetShading( ModelBuilder::FLAT );
+
+	if ( grinliz::StrEqual( model->Attribute( "shading" ), "smooth" ) ) {
+		builder->SetShading( ModelBuilder::SMOOTH );
+	}
+	else if ( grinliz::StrEqual( model->Attribute( "shading" ), "crease" ) ) {
+		builder->SetShading( ModelBuilder::CREASE );
+	}
 
 	if ( extension == ".ac" ) {
 		ImportAC3D(	fullIn, builder );
@@ -403,6 +405,9 @@ void ProcessModel( TiXmlElement* model )
 		header.bounds.min.z = -d;
 		header.bounds.max.x = d;
 		header.bounds.max.z = d;
+	}
+	if ( grinliz::StrEqual( model->Attribute( "shadowCaster" ), "false" ) ) {
+		header.flags |= ModelHeader::RESOURCE_NO_SHADOW;
 	}
 	if ( grinliz::StrEqual( model->Attribute( "shadow" ), "rotate" ) ) {
 		header.flags |= ModelHeader::ROTATE_SHADOWS;
