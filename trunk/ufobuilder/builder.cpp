@@ -373,6 +373,10 @@ void ProcessModel( TiXmlElement* model )
 		builder->SetShading( ModelBuilder::CREASE );
 	}
 
+	if ( grinliz::StrEqual( model->Attribute( "polyRemoval" ), "pre" ) ) {
+		builder->SetPolygonRemoval( ModelBuilder::POLY_PRE );
+	}
+
 	if ( extension == ".ac" ) {
 		ImportAC3D(	fullIn, builder );
 	}
@@ -391,9 +395,10 @@ void ProcessModel( TiXmlElement* model )
 		nTotalIndex += vertexGroup[i].nIndex;
 		nTotalVertex += vertexGroup[i].nVertex;
 	}
+	if ( builder->PolyCulled() ) {
+		printf( " culled=%d", builder->PolyCulled() );
+	}	
 	printf( " groups=%d nVertex=%d nTri=%d\n", builder->NumGroups(), nTotalVertex, nTotalIndex/3 );
-
-	
 	ModelHeader header;
 	header.Set( name.c_str(), builder->NumGroups(), nTotalVertex, nTotalIndex, builder->Bounds() );
 
@@ -426,7 +431,6 @@ void ProcessModel( TiXmlElement* model )
 		model->QueryFloatAttribute( "target", &header.target );
 	}
 
-	//header.Save( fp );
 	int groupID = 0;
 	int totalMemory = 0;
 
@@ -616,11 +620,9 @@ void ProcessTexture( TiXmlElement* texture )
 		exit( 1 );
 	}
 	else {
-		printf( "  Loaded: '%s' bpp=%d w=%d h=%d", 
+		printf( "  Loaded: '%s' bpp=%d", 
 				name.c_str(),
-				surface->format->BitsPerPixel,
-				surface->w,
-				surface->h );
+				surface->format->BitsPerPixel );
 	}
 
 	if ( width && height ) {
@@ -628,8 +630,9 @@ void ProcessTexture( TiXmlElement* texture )
 		surface = CreateScaledSurface( width, height, surface );
 		SDL_FreeSurface( old );
 
-		printf( " Scaled w=%d h=%d", width, height );
+		printf( " Scaled" );
 	}
+	printf( " w=%d h=%d", surface->w, surface->h );
 
 	if ( isFont ) {
 		CalcFontWidths( surface );

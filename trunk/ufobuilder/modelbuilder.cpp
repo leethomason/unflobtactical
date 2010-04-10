@@ -76,6 +76,40 @@ void ModelBuilder::AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 
 void ModelBuilder::Flush()
 {
 	const float EPS_VERTEX = 0.005f;
+	polyCulled = 0;
+
+	if ( polyRemoval == POLY_PRE ) {
+		const float GROUND = 0.01f;
+		const Vector3F DOWN = { 0.0f, -1.0f, 0.0f };
+		const float EPS = 0.95f;
+
+		for( int g=0; g<nGroup; ++g ) {
+			int w = 0;	//write
+			GLASSERT( stream[g].nVertex % 3 == 0 );
+			for( int r=0; r<stream[g].nVertex; r+=3 ) {
+				if (    stream[g].vertex[r+0].pos.y <= GROUND
+					 && stream[g].vertex[r+1].pos.y <= GROUND
+					 && stream[g].vertex[r+2].pos.y <= GROUND ) 
+				{
+					Vector3F a = stream[g].vertex[r+1].pos - stream[g].vertex[r+0].pos;
+					Vector3F b = stream[g].vertex[r+2].pos - stream[g].vertex[r+0].pos;
+					Vector3F c;
+					CrossProduct( a, b, &c );
+					c.Normalize();
+					if ( DotProduct( c, DOWN ) > EPS ) {
+						// Thow away this down facing polygon on the ground.
+						++polyCulled;
+						continue;	
+					}
+				}
+				stream[g].vertex[w+0] = stream[g].vertex[r+0];
+				stream[g].vertex[w+1] = stream[g].vertex[r+1];
+				stream[g].vertex[w+2] = stream[g].vertex[r+2];
+				w += 3;
+			}
+			stream[g].nVertex = w;
+		}
+	}
 
 	// Get rid of empty groups.
 	for( int i=0; i<nGroup; /*nothing*/ ) {
