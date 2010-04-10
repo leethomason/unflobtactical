@@ -1,4 +1,10 @@
-Useful code and links from the web
+Useful code and links from the web. And sometimes a sort of development blog.
+
+= On to Android =
+
+With the license change in the iPhone 4 SDK specifying the source language, Apple has crossed the line from being annoying to draconian. I'm switching development to Android. Hopefully it will go well. 
+
+Android supports both GL:ES1.1 and ES2.0, which I'd like to switch to at some point. (After it's working.) I have a Nexus One for development, which is a great little phone. I'm sure there will be hiccups on the way - the code thus far is very iPhone-centric.
 
 = DB vs. XML vs. Binary = 
 
