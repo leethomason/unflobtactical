@@ -42,18 +42,18 @@
              sub.   3 chars. opn, cld, etc.
   -->
   
-  <model filename="alien0.ac" shading="smooth" trigger="-0.21 0.49 0.20" eye="1.09" target="1.04" />
-  <model filename="alien1.ac" shading="smooth" trigger="-0.25 0.85 0.30" eye="1.74" target="1.09" />
-  <model filename="alien2.ac" shading="smooth" trigger="-0.31 0.85 0.11" eye="1.57" target="1.10" />
-  <model filename="alien3.ac" shading="smooth" trigger="-0.20 0.64 0.31" eye="1.41" target="1.35" />
+  <model filename="alien0.ac" shading="smooth" polyRemoval="pre" trigger="-0.21 0.49 0.20" eye="1.09" target="1.04" />
+  <model filename="alien1.ac" shading="smooth" polyRemoval="pre" trigger="-0.25 0.85 0.30" eye="1.74" target="1.09" />
+  <model filename="alien2.ac" shading="smooth" polyRemoval="pre" trigger="-0.31 0.85 0.11" eye="1.57" target="1.10" />
+  <model filename="alien3.ac" shading="smooth" polyRemoval="pre" trigger="-0.20 0.64 0.31" eye="1.41" target="1.35" />
   <model filename="crate.ac" />
   <model filename="smallcrate.ac" />
   <model filename="unitplate.ac" />
 
   <model filename="lander.ac" origin="upperLeft" />
 
-  <model filename="maleMarine.ac"   shading="smooth" trigger="-0.31 1.20 0.38" eye="1.83" target="1.35"/>
-	<model filename="femaleMarine.ac" shading="smooth" trigger="-0.26 1.17 0.40" eye="1.81" target="1.43"/>
+  <model filename="maleMarine.ac"   shading="smooth" polyRemoval="pre" trigger="-0.31 1.20 0.38" eye="1.83" target="1.35"/>
+	<model filename="femaleMarine.ac" shading="smooth" polyRemoval="pre" trigger="-0.26 1.17 0.40" eye="1.81" target="1.43"/>
   <!--
 	<model filename="maleCiv.ac"      shading="smooth" target="1.39" />
 	<model filename="femaleCiv.ac"    shading="smooth" target="1.47" />
@@ -82,31 +82,31 @@
 
   <model filename="tree.ac" billboard="true" shadow="rotate"/>
 
-  <model filename="ufo_DoorCld.ac" shading="crease" />
-  <model filename="ufo_DoorOpn.ac" shading="crease" />
-  <model filename="ufo_WallInn.ac" shading="crease" />
-  <model filename="ufo_CrnrInn.ac" shading="crease" />
-  <model filename="ufo_WallOut.ac" shading="crease" />
-  <model filename="ufo_WallCurve4.ac" shading="crease" origin="upperLeft" />
+  <model filename="ufo_DoorCld.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_DoorOpn.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_WallInn.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_CrnrInn.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_WallOut.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_WallCurve4.ac" shading="crease" polyRemoval="pre" origin="upperLeft" />
 
-  <model filename="woodCrnr.ac" />
-  <model filename="woodCrnrD.ac" />
-  <model filename="woodDoorCld.ac" />
-  <model filename="woodDoorOpn.ac" />
-  <model filename="woodWall.ac" />
-  <model filename="woodWallWin.ac" />
+  <model filename="woodCrnr.ac" polyRemoval="pre" />
+  <model filename="woodCrnrD.ac" polyRemoval="pre" />
+  <model filename="woodDoorCld.ac" polyRemoval="pre" />
+  <model filename="woodDoorOpn.ac" polyRemoval="pre" />
+  <model filename="woodWall.ac" polyRemoval="pre" />
+  <model filename="woodWallWin.ac" polyRemoval="pre" />
 
-  <model filename="farmBed.ac" />
-  <model filename="farmTable.ac" />
-  <model filename="farmTable2x1.ac" origin="upperLeft"/>
+  <model filename="farmBed.ac" polyRemoval="pre" />
+  <model filename="farmTable.ac" polyRemoval="pre" />
+  <model filename="farmTable2x1.ac" polyRemoval="pre" origin="upperLeft"/>
   <model filename="farmWheat.ac" billboard="true" />
-  <model filename="stonewall_unit.ac" />
-  <model filename="stonewall_join.ac" />
-  <model filename="stonewall_unitD.ac"/>
-  <model filename="woodfence.ac" />
-  <model filename="oldwell.ac" shading="crease" />
-  <model filename="haypile.ac" />
-  <model filename="whitepicketfence.ac" />
+  <model filename="stonewall_unit.ac" polyRemoval="pre" />
+  <model filename="stonewall_join.ac" polyRemoval="pre" />
+  <model filename="stonewall_unitD.ac"polyRemoval="pre" />
+  <model filename="woodfence.ac" polyRemoval="pre" />
+  <model filename="oldwell.ac" shading="crease" polyRemoval="pre" />
+  <model filename="haypile.ac" polyRemoval="pre" />
+  <model filename="whitepicketfence.ac" polyRemoval="pre" />
   <model filename="plant0.ac" shadowCaster="false" />
   
   <!-- Models used as markers by the map-maker. Don't appear in the game. -->

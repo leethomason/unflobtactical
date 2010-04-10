@@ -44,7 +44,7 @@ struct VertexStream {
 
 class ModelBuilder {
 public:
-	ModelBuilder() : current( 0 ), nGroup( 0 ), smooth( FLAT )	{}
+	ModelBuilder() : current( 0 ), nGroup( 0 ), smooth( FLAT ), polyRemoval( POLY_NONE )	{}
 
 	void SetMatrix( const grinliz::Matrix4& mat )		{ matrix = mat; }
 
@@ -57,7 +57,14 @@ public:
 		CREASE,
 		SMOOTH
 	};
-	void SetShading( int smooth )	{ this->smooth = smooth; }
+	void SetShading( int smooth )			{ this->smooth = smooth; }
+	enum {
+		POLY_PRE,
+		POLY_POST,
+		POLY_NONE
+	};
+	void SetPolygonRemoval( int pass )	{	GLASSERT( pass != POLY_POST );	// not yet implemented
+											this->polyRemoval = pass; }
 
 	// Add the tri for the current texture.
 	void AddTri( const Vertex& v0, const Vertex& v1, const Vertex& v2 );
@@ -67,11 +74,13 @@ public:
 
 	const VertexGroup* Groups()		{ return group; }
 	int NumGroups()					{ return nGroup; }
+	int PolyCulled() const			{ return polyCulled; }
 
 	const grinliz::Rectangle3F& Bounds()		{ return bounds; }
 
 private:
 	int current;
+	int polyCulled;
 
 	grinliz::Matrix4 matrix;
 	grinliz::Rectangle3F bounds;
@@ -81,6 +90,7 @@ private:
 
 	int nGroup;
 	int smooth;
+	int polyRemoval;
 };
 
 
