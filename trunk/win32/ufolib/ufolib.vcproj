@@ -276,22 +276,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="sqlite3"
-			>
-			<File
-				RelativePath="..\..\sqlite3\sqlite3.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\sqlite3\sqlite3.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\sqlite3\sqlite3ext.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="zlib"
 			>
 			<File
@@ -415,14 +399,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath="..\..\shared\gldatabase.cpp"
-			>
-		</File>
-		<File
-			RelativePath="..\..\shared\gldatabase.h"
-			>
-		</File>
 		<File
 			RelativePath="..\..\shared\glmap.cpp"
 			>

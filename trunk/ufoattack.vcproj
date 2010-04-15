@@ -546,6 +546,22 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="database"
+			>
+			<File
+				RelativePath=".\shared\gamedb.h"
+				>
+			</File>
+			<File
+				RelativePath=".\shared\gamedbreader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\shared\gamedbreader.h"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

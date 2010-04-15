@@ -670,6 +670,17 @@ void UIButtonGroup::SetItemSize( int index, int x, int y ) {
 }
 
 
+void UIButtonGroup::SetBG( int index, int x, int y, int iconID, int decoID, const char* text, bool highLight )
+{
+	GLASSERT( index >= 0 && index < nIcons );
+	SetPos( index, x, y );
+	SetButton( index, iconID );
+	SetDeco( index, decoID );
+	SetText( index, text );
+	SetHighLight( index, highLight );
+}
+
+
 int UIButtonGroup::QueryTap( int x, int y )
 {
 	Rectangle2I b;

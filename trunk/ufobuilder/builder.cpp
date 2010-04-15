@@ -38,8 +38,7 @@
 #include "../engine/serialize.h"
 #include "../importers/import.h"
 
-#include "../sqlite3/sqlite3.h"
-#include "../shared/gldatabase.h"
+#include "../shared/gamedbwriter.h"
 #include "../grinliz/glstringutil.h"
 #include "dither.h"
 
@@ -59,8 +58,8 @@ int totalModelMem = 0;
 int totalTextureMem = 0;
 int totalMapMem = 0;
 
-sqlite3* db = 0;
-BinaryDBWriter *writer = 0;
+gamedb::Writer* writer;
+
 
 const int GLYPH_CX = 16;
 const int GLYPH_CY = 8;
@@ -74,6 +73,7 @@ struct GlyphMetric
 };
 GlyphMetric gGlyphMetric[GLYPH_CX*GLYPH_CY];
 
+/*
 void CreateDatabase()
 {
 	int sqlResult = 0;
@@ -111,8 +111,33 @@ void CreateDatabase()
 	GLASSERT( sqlResult == SQLITE_OK );
 
 }
+*/
 
 
+void InsertTextureToDB( const char* name, 
+						const char* format, 
+						bool isImage, 
+						bool metrics, 
+						int width, 
+						int height, 
+						const void* pixels, 
+						int sizeInBytes )
+{
+	gamedb::WItem* witem = writer->Root()->GetChild( "textures" )->CreateChild( name );
+
+	witem->SetData( "pixels", pixels, sizeInBytes );
+	if ( metrics ) {
+		witem->SetData( "metrics", gGlyphMetric, sizeof( GlyphMetric )*GLYPH_CX*GLYPH_CY );
+	}
+
+	witem->SetString( "format", format );
+	witem->SetBool( "isImage", isImage );
+	witem->SetInt( "width", width );
+	witem->SetInt( "height", height );
+}
+
+
+/*
 void InsertTextureToDB( const char* name, const char* format, bool isImage, bool metrics, int width, int height, const void* pixels, int sizeInBytes )
 {
 	int index = 0, metricsIndex=0;
@@ -135,8 +160,10 @@ void InsertTextureToDB( const char* name, const char* format, bool isImage, bool
 	sqlite3_step( stmt );
 	sqlite3_finalize(stmt);
 }
+*/
 
 
+/*
 void InsertModelHeaderToDB( const ModelHeader& header, int groupID, int vertexID, int indexID )
 {
 	int index = 0;
@@ -172,7 +199,7 @@ void InsertModelGroupToDB( const ModelGroup& group, int *groupID )
 
 	++groupIDPool;
 }
-
+*/
 
 void LoadLibrary()
 {
@@ -312,7 +339,7 @@ void ProcessMap( TiXmlElement* map )
 #pragma warning (pop)
 
 	if ( !read ) {
-		printf( "**Unrecognized map file. '%s'\n",
+		printf( "**Unrecognized data file. '%s'\n",
 				 fullIn.c_str() );
 		exit( 1 );
 	}
@@ -327,14 +354,18 @@ void ProcessMap( TiXmlElement* map )
 	//fwrite( mem, len, 1, write );
 
 	int index = 0;
-	writer->Write( mem, len, &index );
+	//writer->Write( mem, len, &index );
+	gamedb::WItem* witem = writer->Root()->GetChild( "data" )->CreateChild( name.c_str() );
+	witem->SetData( "binary", mem, len );
 
+	/*
 	sqlite3_stmt* stmt = NULL;
 	sqlite3_prepare_v2( db, "INSERT INTO map VALUES (?,?);", -1, &stmt, 0 );
 	sqlite3_bind_text( stmt, 1,	name.c_str(), -1, SQLITE_TRANSIENT );
 	sqlite3_bind_int(  stmt, 2, index );
 	sqlite3_step( stmt );
 	sqlite3_finalize(stmt);
+	*/
 
 	delete [] mem;
 
@@ -431,7 +462,8 @@ void ProcessModel( TiXmlElement* model )
 		model->QueryFloatAttribute( "target", &header.target );
 	}
 
-	int groupID = 0;
+	gamedb::WItem* witem = writer->Root()->GetChild( "models" )->CreateChild( name.c_str() );
+
 	int totalMemory = 0;
 
 	for( int i=0; i<builder->NumGroups(); ++i ) {
@@ -446,11 +478,11 @@ void ProcessModel( TiXmlElement* model )
 
 		ModelGroup group;
 		group.Set( vertexGroup[i].textureName, vertexGroup[i].nVertex, vertexGroup[i].nIndex );
-		//group.Save( fp );
-		int id=0;
-		InsertModelGroupToDB( group, &id );
-		if ( i==0 )
-			groupID = id;
+
+		gamedb::WItem* witemGroup = witem->CreateChild( i );
+		witemGroup->SetString( "textureName", group.textureName );
+		witemGroup->SetInt( "nVertex", group.nVertex );
+		witemGroup->SetInt( "nIndex", group.nIndex );
 
 		startVertex += vertexGroup[i].nVertex;
 		startIndex += vertexGroup[i].nIndex;
@@ -467,16 +499,12 @@ void ProcessModel( TiXmlElement* model )
 
 	// Write the vertices in each group:
 	for( int i=0; i<builder->NumGroups(); ++i ) {
-		//SDL_RWwrite( fp, vertexGroup[i].vertex, sizeof(Vertex), vertexGroup[i].nVertex );
-
 		GLASSERT( pVertex + vertexGroup[i].nVertex <= pVertexEnd );
 		memcpy( pVertex, vertexGroup[i].vertex, sizeof(Vertex)*vertexGroup[i].nVertex );
 		pVertex += vertexGroup[i].nVertex;
 	}
 	// Write the indices in each group:
 	for( int i=0; i<builder->NumGroups(); ++i ) {
-		//SDL_RWwrite( fp, vertexGroup[i].index, sizeof(U16), vertexGroup[i].nIndex );
-
 		GLASSERT( pIndex + vertexGroup[i].nIndex <= pIndexEnd );
 		memcpy( pIndex, vertexGroup[i].index, sizeof(U16)*vertexGroup[i].nIndex );
 		pIndex += vertexGroup[i].nIndex;
@@ -486,9 +514,9 @@ void ProcessModel( TiXmlElement* model )
 
 	int vertexID = 0, indexID = 0;
 
-	writer->Write( vertexBuf, nTotalVertex*sizeof(Vertex), &vertexID );
-	writer->Write( indexBuf,  nTotalIndex*sizeof(U16),     &indexID );
-	InsertModelHeaderToDB( header, groupID, vertexID, indexID );
+	witem->SetData( "header", &header, sizeof(header ) );
+	witem->SetData( "vertex", vertexBuf, nTotalVertex*sizeof(Vertex) );
+	witem->SetData( "index", indexBuf, nTotalIndex*sizeof(U16) );
 
 	printf( "  total memory=%.1fk\n", (float)totalMemory / 1024.f );
 	totalModelMem += totalMemory;
@@ -794,10 +822,11 @@ int main( int argc, char* argv[] )
 #pragma warning (pop)
 	fclose( fp );
 
-	int sqlResult = sqlite3_open( outputDB.c_str(), &db);
-	GLASSERT( sqlResult == SQLITE_OK );
-	writer = new BinaryDBWriter( db, true );
-	CreateDatabase();
+	//int sqlResult = sqlite3_open( outputDB.c_str(), &db);
+	//GLASSERT( sqlResult == SQLITE_OK );
+	//writer = new BinaryDBWriter( db, true );
+	//CreateDatabase();
+	writer = new gamedb::Writer();
 
 	for( TiXmlElement* child = xmlDoc.FirstChildElement()->FirstChildElement();
 		 child;
@@ -827,8 +856,10 @@ int main( int argc, char* argv[] )
 	printf( "All done.\n" );
 	SDL_Quit();
 
+	//delete writer;
+	//sqlResult = sqlite3_close( db );
+	//GLASSERT( sqlResult == SQLITE_OK );
+	writer->Save( outputDB.c_str() );
 	delete writer;
-	sqlResult = sqlite3_close( db );
-	GLASSERT( sqlResult == SQLITE_OK );
 	return 0;
 }

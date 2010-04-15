@@ -34,7 +34,6 @@
 #include "../grinliz/glperformance.h"
 #include "../grinliz/glstringutil.h"
 #include "../tinyxml/tinyxml.h"
-#include "../shared/gldatabase.h"
 #include "../version.h"
 
 using namespace grinliz;
@@ -73,9 +72,10 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 
 #ifndef MAPMAKER
 	map->SetSize( 40, 40 );
-	map->SetTexture( TextureManager::Instance()->GetTexture("farmland" ) );
+	map->SetTexture( ImageManager::Instance()->GetImage("farmland" ), 0, 0 );
 	map->SetLightMaps( im->GetImage( "farmlandD" ),
-					   im->GetImage( "farmlandN" ) );
+					   im->GetImage( "farmlandN" ),
+					   0, 0 );
 #endif
 
 	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
@@ -158,9 +158,9 @@ void Game::Init()
 	// Load the database.
 	char buffer[260];
 	PlatformPathToResource( "uforesource", "db", buffer, 260 );
-	int sqlResult = sqlite3_open_v2( buffer, &database, SQLITE_OPEN_READONLY, 0 );
-	GLASSERT( sqlResult == SQLITE_OK );
-	(void) sqlResult;
+	database = new gamedb::Reader();
+	bool okay = database->Init( buffer );
+	GLASSERT( okay );
 
 	LoadTextures();
 	LoadImages();
@@ -207,11 +207,11 @@ Game::~Game()
 	for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
 		delete itemDefArr[i];
 	}
-	sqlite3_close(database);
-	database = 0;
+	delete database;
 }
 
 
+/*
 const char* Game::AccessTextResource( const char* name )
 {
 	sqlite3_stmt* stmt = 0;
@@ -239,6 +239,7 @@ const char* Game::AccessTextResource( const char* name )
 
 	return mem;
 }
+*/
 
 
 void Game::ProcessLoadRequest()
@@ -256,19 +257,17 @@ void Game::ProcessLoadRequest()
 	}
 	else if ( loadRequested == 1 )	// new game
 	{
-		TiXmlDocument doc;
-		doc.Parse( newGameXML.c_str() );
-		GLASSERT( !doc.Error() );
-		if ( !doc.Error() ) {
-			Load( doc );
-			loadCompleted = true;
-		}
+		Load( newGameXML );
+		loadCompleted = true;
 	}
 	else if ( loadRequested == 2 )	// test
 	{
+		const gamedb::Item* item = database->Root()->Child( "data" )->Child( "testgame" );
+		GLASSERT( item );
+
 		TiXmlDocument doc;
 		// pull the default game from the resource
-		const char* testGame = AccessTextResource( "testgame" );
+		const char* testGame = (const char*)database->AccessData( item, "binary" );
 		doc.Parse( testGame );
 
 		if ( !doc.Error() ) {

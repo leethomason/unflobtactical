@@ -215,6 +215,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\shared\gamedbwriter.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\shared\gamedbwriter.h"
+			>
+		</File>
+		<File
 			RelativePath=".\ufobuilder\modelbuilder.cpp"
 			>
 		</File>

@@ -80,8 +80,6 @@ void Game::DumpWeaponInfo( FILE* fp, float range, const Stats& stats, int count 
 void Game::LoadTextures()
 {
 	U32 textureID = 0;
-	char name[64];
-	char format[16];
 
 	TextureManager* texman = TextureManager::Instance();
 
@@ -92,39 +90,40 @@ void Game::LoadTextures()
 	texman->AddTexture( "white", textureID, false );
 
 	// Run through the database, and load all the textures.
-	sqlite3_stmt* stmt = 0;
-	sqlite3_prepare_v2(database, "SELECT * FROM texture WHERE image=0;", -1, &stmt, 0 );
-	BinaryDBReader reader( database );
+	char name[64];
+	char format[16];
 
-	while (sqlite3_step(stmt) == SQLITE_ROW) 
+	const gamedb::Item* parent = database->Root()->Child( "textures" );
+	GLASSERT( parent );
+
+	for( int i=0; i<parent->NumChildren(); ++i )
 	{
-		StrNCpy( name, (const char*)sqlite3_column_text( stmt, 0 ), 64 );	// name
-		StrNCpy( format, (const char*)sqlite3_column_text( stmt, 1 ), 16 );	// format
-		//int isImage = sqlite3_column_int( stmt, 2 );					// don't need
-		int w = sqlite3_column_int( stmt, 3 );
-		int h = sqlite3_column_int( stmt, 4 );
-		int id = sqlite3_column_int( stmt, 5 );
-		int metricsID = sqlite3_column_int( stmt, 6 );
+		const gamedb::Item* node = parent->Child(i);
+		
+		if ( node->GetBool( "isImage" ) )
+			continue;
+
+		StrNCpy( name, node->Name(), 64 );
+		StrNCpy( format, node->GetString( "format" ), 16 );
+		int w = node->GetInt( "width" );
+		int h = node->GetInt( "height" );
 
 		surface.Set( Surface::QueryFormat( format ), w, h );
 		
-		int blobSize = 0;
-		reader.ReadSize( id, &blobSize );
-		GLASSERT( surface.BytesInImage() == blobSize );
-		reader.ReadData( id, blobSize, surface.Pixels() );
+		int size = node->GetDataSize( "pixels" );
+		GLASSERT( surface.BytesInImage() == size );
+		node->GetData( "pixels", surface.Pixels(), size );
 
 		textureID = surface.CreateTexture();
 		texman->AddTexture( name, textureID, surface.Alpha() );
 		GLOUTPUT(( "Texture %s\n", name ));
 		
-		if ( metricsID ) {
-			int metricsSize = 0;
-			reader.ReadSize( metricsID, &metricsSize );
+		if ( node->HasAttribute( "metrics" ) ) {
+			int metricsSize = node->GetDataSize( "metrics" );
 			GLASSERT( metricsSize == UFOText::GLYPH_CX*UFOText::GLYPH_CY*sizeof(GlyphMetric) );
-			reader.ReadData( metricsID, metricsSize, UFOText::MetricsPtr() );
+			node->GetData( "metrics", UFOText::MetricsPtr(), metricsSize );
 		}
 	}
-	sqlite3_finalize(stmt);
 }
 
 
@@ -133,28 +132,26 @@ void Game::LoadModel( const char* name )
 {
 	GLASSERT( modelLoader );
 
+	const gamedb::Item* item = database->Root()->Child( "models" )->Child( name );
+	GLASSERT( item );
+
 	ModelResource* res = new ModelResource();
-	modelLoader->Load( database, name, res );
+	modelLoader->Load( item, res );
 	ModelResourceManager::Instance()->AddModelResource( res );
 }
 
 
 void Game::LoadModels()
 {
-	char name[64];
+	// Run through the database, and load all the models.
+	const gamedb::Item* parent = database->Root()->Child( "models" );
+	GLASSERT( parent );
 
-	// Run through the database, and load all the textures.
-	sqlite3_stmt* stmt = 0;
-	sqlite3_prepare_v2(database, "select name from model;", -1, &stmt, 0 );
-
-	while (sqlite3_step(stmt) == SQLITE_ROW) 
+	for( int i=0; i<parent->NumChildren(); ++i )
 	{
-		StrNCpy( name, (const char*)sqlite3_column_text( stmt, 0 ), 64 );		// name
-		LoadModel( name );
+		const gamedb::Item* node = parent->Child( i );
+		LoadModel( node->Name() );
 	}
-
-	sqlite3_finalize(stmt);
-
 }
 
 
@@ -162,37 +159,34 @@ void Game::LoadImages()
 {
 	char name[64];
 	char format[16];
-	BinaryDBReader reader( database );
 
 	// Run through the database, and load all the images.
-	sqlite3_stmt* stmt = 0;
-	sqlite3_prepare_v2(database, "SELECT * FROM texture WHERE image=1;", -1, &stmt, 0 );
+	const gamedb::Item* parent = database->Root()->Child( "textures" );
+	GLASSERT( parent );
 
-	while (sqlite3_step(stmt) == SQLITE_ROW) 
+	for( int i=0; i<parent->NumChildren(); ++i )
 	{
-		StrNCpy( name, (const char*)sqlite3_column_text( stmt, 0 ), 64 );	// name
-		StrNCpy( format, (const char*)sqlite3_column_text( stmt, 1 ), 16 );	// format
-		//int isImage = sqlite3_column_int( stmt, 2 );					// don't need
-		int w = sqlite3_column_int( stmt, 3 );
-		int h = sqlite3_column_int( stmt, 4 );
-		int id = sqlite3_column_int( stmt, 5 );
-		int metricsID = sqlite3_column_int( stmt, 6 );
+		const gamedb::Item* node = parent->Child(i);
+		if ( !node->GetBool( "isImage" ) )
+			continue;
+
+		StrNCpy( name, node->Name(), 64 );
+		StrNCpy( format, node->GetString( "format" ), 16 );
+		int w = node->GetInt( "width" );
+		int h = node->GetInt( "height" );
 
 		Surface* s = ImageManager::Instance()->AddLockedSurface();
 		s->Set( Surface::QueryFormat( format ), w, h );
 		
-		int blobSize = 0;
-		reader.ReadSize( id, &blobSize );
-		GLASSERT( s->BytesInImage() == blobSize );
-		reader.ReadData( id, blobSize, s->Pixels() );
+		int size = node->GetDataSize( "pixels" );
+		GLASSERT( size == s->BytesInImage() );
+		node->GetData( "pixels", s->Pixels(), size );
 		s->SetName( name );
 		
 		ImageManager::Instance()->Unlock();
 
-		GLOUTPUT(( "LightMap %s\n", s->Name() ));
+		GLOUTPUT(( "Image %s\n", s->Name() ));
 	}
-
-	sqlite3_finalize(stmt);
 }
 
 
@@ -427,11 +421,6 @@ void Game::LoadMapResources()
 		{	"ufo_DoorCld",	"ufo_DoorOpn",	0,			1,	1,	HP_STEEL,	0,			"0", "1" },
 		{	"ufo_WallInn",	0,				0,			1,	1,	HP_STEEL,	0,			"1" },
 		{	"ufo_CrnrInn",	0,				0,			1,	1,	HP_STEEL,	0,			"3" },
-
-		//{	"ufo_Diag",		0,				0,			1,	1,	HP_STEEL,	0,			"f" },
-		//{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	0,			"1" },
-		//{	"ufo_Join0",	0,				0,			2,	1,	HP_STEEL*2,	0,			"1f" },
-		//{	"ufo_Join1",	0,				0,			1,	2,	HP_STEEL,	0,			"2f" },
 		{	0	}
 	};
 	InitMapItemDef( UFO_SET0, ufoSet );
