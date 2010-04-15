@@ -84,7 +84,10 @@ class Random
 	/// Return 0 or 1
 	int Bit()
 	{
-		return Rand()>>31;
+		// Hard to do a good job here. Every bit has a repeating pattern, 
+		// every series repeats in it's bits. Or just isn't random.
+		// One approach, use an even non-power of 2 number.
+		return (Rand( 100*1000 ) >= 50*1000);
 	}
 
 	/// Return a random boolean.

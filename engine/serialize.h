@@ -25,10 +25,10 @@
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glrectangle.h"
 #include "../grinliz/glvector.h"
+#include "../shared/gamedbreader.h"
 #include "enginelimits.h"
 
 struct SDL_RWops;
-struct sqlite3;
 
 /*
 	The TextureHeader is followed by pixel data. (Based on the format.)
@@ -56,8 +56,7 @@ struct ModelGroup
 	U16						nIndex;
 
 	void Set( const char* textureName, int nVertex, int nIndex );
-	//void Save( SDL_RWops* ops );
-	void Load( sqlite3* db, int id );
+	void Load( const gamedb::Item* item );
 };
 
 
@@ -84,11 +83,7 @@ struct ModelHeader
 	void Set( const char* name, int nGroups, int nTotalVertices, int nTotalIndices,
 			  const grinliz::Rectangle3F& bounds );
 
-	void Load(	sqlite3* db,		// database connection
-				const char* name,	// name to load
-				int *groupStart,	// where the groups start in the group table
-				int *vertexID,		// vertex binary data
-				int *indexID );		// index binary data
+	void Load(	const gamedb::Item* );	// database connection
 };
 
 /*

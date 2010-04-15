@@ -19,6 +19,7 @@
 #include "scene.h"
 #include "unit.h"
 #include "gamelimits.h"
+#include "../tinyxml/tinyxml.h"
 
 class UIImage;
 class UIButtonBox;
@@ -51,9 +52,6 @@ public:
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
 	virtual void DrawHUD();
 
-private:
-	void WriteXML( std::string* xml );
-
 	//	Squad:		4 8
 	//	  exp:		Low Med Hi
 	//  Alien:		8 16
@@ -76,9 +74,31 @@ private:
 		ALIEN_HIGH,
 		TIME_DAY,
 		TIME_NIGHT,
-		GO_NEW_GAME
+
+		LOC_FARM,
+
+		GO_NEW_GAME,
+		OPTION_COUNT
 	};
+
+	struct SceneInfo {
+		const char*		base;			// FARM
+		int				blockSize;		// 2, 3, 4
+		bool			needsLander;	// true/false
+		int				ufo;			// 0: no, >0: blocksize
+	};
+	static void CalcInfo( int location, int ufoSize, SceneInfo* info );
+
+	static void CreateMap( TiXmlNode* parent, 
+						   int seed,
+						   int location,			// LOC_FARM
+						   int ufoSize );			// 0: small, 1: big
+
+private:
+	void WriteXML( TiXmlNode* xml );
+
 	UIImage*		background;
+	UIImage*		backgroundNew;
 	UIButtonBox*	buttons;
 	UIButtonGroup*	choices;
 	bool			showNewChoices;

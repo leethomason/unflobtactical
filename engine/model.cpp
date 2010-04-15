@@ -84,17 +84,15 @@ int ModelResource::Intersect(	const grinliz::Vector3F& point,
 }
 
 
-void ModelLoader::Load( sqlite3* db, const char* name, ModelResource* res )
+void ModelLoader::Load( const gamedb::Item* item, ModelResource* res )
 {
-	int vertexID=0, indexID=0, groupStart=0;
-	res->header.Load( db, name, &groupStart, &vertexID, &indexID );
+	res->header.Load( item );
 
 	res->allVertex = new Vertex[ res->header.nTotalVertices ];
 	res->allIndex  = new U16[ res->header.nTotalIndices ];
 
-	BinaryDBReader reader( db );
-	reader.ReadData( vertexID, res->header.nTotalVertices*sizeof(Vertex), res->allVertex );
-	reader.ReadData( indexID,  res->header.nTotalIndices*sizeof(U16),     res->allIndex );
+	item->GetData( "vertex", res->allVertex, res->header.nTotalVertices*sizeof(Vertex) );
+	item->GetData( "index", res->allIndex, res->header.nTotalIndices*sizeof(U16) );
 
 	// compute the hit testing AABB
 	float ave = grinliz::Max( res->header.bounds.SizeX(), res->header.bounds.SizeZ() )*0.5f;
@@ -104,10 +102,13 @@ void ModelLoader::Load( sqlite3* db, const char* name, ModelResource* res )
 
 	GLOUTPUT(( "Load Model: %s\n", res->header.name ));
 
+	GLASSERT( res->header.nGroups < 10 );
 	for( U32 i=0; i<res->header.nGroups; ++i )
 	{
+		const gamedb::Item* groupItem = item->Child( i );
+
 		ModelGroup group;
-		group.Load( db, groupStart+i );
+		group.Load( groupItem );
 
 		const Texture* t = 0;
 		const char* textureName = group.textureName;

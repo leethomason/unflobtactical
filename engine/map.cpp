@@ -23,7 +23,6 @@
 #include "../game/material.h"		// bad call to less general directory. FIXME. Move map to game?
 #include "../game/unit.h"			// bad call to less general directory. FIXME. Move map to game?
 #include "../game/game.h"			// bad call to less general directory. FIXME. Move map to game?
-#include "../sqlite3/sqlite3.h"
 #include "../shared/gldatabase.h"
 #include "../engine/particleeffect.h"
 #include "../engine/particle.h"
@@ -839,6 +838,9 @@ void Map::PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rota
 			*pos = scoutPos[i];
 			Swap( &scoutPos[i], &scoutPos[nScoutPos-1] );
 			--nScoutPos;
+
+			// FIXME: the scout should always succeed. Look for random
+			// value if we pull all the positions.
 		}
 	}
 	else {

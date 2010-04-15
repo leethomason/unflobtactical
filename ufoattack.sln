@@ -13,6 +13,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ufobuilder", "ufobuilder.vc
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ufolib", "win32\ufolib\ufolib.vcproj", "{C420D075-5C6A-4C40-800A-069AECE4B518}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gamedbreader", "gamedbreader\gamedbreader.vcproj", "{C104CD2C-FF36-40F0-9083-6CE370AF9B1A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C420D075-5C6A-4C40-800A-069AECE4B518} = {C420D075-5C6A-4C40-800A-069AECE4B518}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Mapmaker|Win32 = Debug Mapmaker|Win32
@@ -38,6 +43,12 @@ Global
 		{C420D075-5C6A-4C40-800A-069AECE4B518}.Debug|Win32.Build.0 = Debug|Win32
 		{C420D075-5C6A-4C40-800A-069AECE4B518}.Release|Win32.ActiveCfg = Release|Win32
 		{C420D075-5C6A-4C40-800A-069AECE4B518}.Release|Win32.Build.0 = Release|Win32
+		{C104CD2C-FF36-40F0-9083-6CE370AF9B1A}.Debug Mapmaker|Win32.ActiveCfg = Debug|Win32
+		{C104CD2C-FF36-40F0-9083-6CE370AF9B1A}.Debug Mapmaker|Win32.Build.0 = Debug|Win32
+		{C104CD2C-FF36-40F0-9083-6CE370AF9B1A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C104CD2C-FF36-40F0-9083-6CE370AF9B1A}.Debug|Win32.Build.0 = Debug|Win32
+		{C104CD2C-FF36-40F0-9083-6CE370AF9B1A}.Release|Win32.ActiveCfg = Release|Win32
+		{C104CD2C-FF36-40F0-9083-6CE370AF9B1A}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

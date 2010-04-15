@@ -24,11 +24,12 @@
 #include "../engine/uirendering.h"
 #include "../grinliz/glperformance.h"
 #include "../engine/ufoutil.h"
+#include "../tinyxml/tinyxml.h"
+#include "../shared/gamedbreader.h"
 
 class ParticleSystem;
 class Scene;
 class ItemDef;
-struct sqlite3;
 class TiXmlDocument;
 class Stats;
 
@@ -59,16 +60,12 @@ struct TileSetDesc {
 
 	The database (uforesource.db) contains everything the game needs to 
 	run. This is primarily to ease the installation on the phones. One big
-	wad file is easier to manage and take care of. sqlite3 does a great job
-	of pulling resources out, so no worries about anything getting lost or
-	slow. All assets are compressed in the database so the size is quite good.
+	wad file is easier to manage and take care of. All assets are compressed 
+	in the database so the size is quite good.
 
 	Models		- binary
 	Textures	- binary
 	Map			- XML
-
-	Maps are saved as XML. Databases are just too tedious for rich data like maps.
-
 
 	Serialization (Saving and Loading)
 	----------------------------------
@@ -139,11 +136,11 @@ public:
 	void Load( const TiXmlDocument& doc );
 	void Save( TiXmlDocument* doc );
 
-	const char* AccessTextResource( const char* name );
+	const gamedb::Reader* GetDatabase()	{ return database; }
 
 	// cheating: moves states between scenes.
 	int				loadRequested;	// 0-continue, 1-new, 2-test, -1 default
-	std::string		newGameXML;
+	TiXmlDocument	newGameXML;
 
 private:
 	Screenport screenport;
@@ -216,7 +213,7 @@ private:
 	int trianglesSinceMark;
 
 	ModelLoader* modelLoader;
-	sqlite3* database;
+	gamedb::Reader* database;
 
 	CStack<Scene*> sceneStack;
 

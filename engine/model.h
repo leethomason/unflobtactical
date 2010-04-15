@@ -20,6 +20,7 @@
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glgeometry.h"
 #include "../shared/glmap.h"
+#include "../shared/gamedbreader.h"
 #include "vertex.h"
 #include "enginelimits.h"
 #include "serialize.h"
@@ -98,15 +99,13 @@ private:
 };
 
 
-struct sqlite3;
-
 class ModelLoader
 {
 public:
 	ModelLoader() 	{}
 	~ModelLoader()	{}
 
-	void Load( sqlite3* fp, const char* name, ModelResource* res );
+	void Load( const gamedb::Item*, ModelResource* res );
 
 private:
 };

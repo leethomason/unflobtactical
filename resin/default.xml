@@ -25,6 +25,7 @@
   
   <!-- UI elements -->
   <texture filename="intro.png" />
+  <texture filename="newscreen.png" width="512" height="256"/>
   <texture filename="basehp.png" />
   <texture filename="commandBarV.png" />
   <texture filename="help0.png" />
@@ -100,13 +101,14 @@
   <model filename="farmTable.ac" polyRemoval="pre" />
   <model filename="farmTable2x1.ac" polyRemoval="pre" origin="upperLeft"/>
   <model filename="farmWheat.ac" billboard="true" />
-  <model filename="stonewall_unit.ac" polyRemoval="pre" />
-  <model filename="stonewall_join.ac" polyRemoval="pre" />
-  <model filename="stonewall_unitD.ac"polyRemoval="pre" />
+  <model filename="stonewall_unit.ac" shading="crease" polyRemoval="pre" />
+  <model filename="stonewall_join.ac" shading="crease" polyRemoval="pre" />
+  <model filename="stonewall_unitD.ac" shading="crease" polyRemoval="pre" />
   <model filename="woodfence.ac" polyRemoval="pre" />
-  <model filename="oldwell.ac" shading="crease" polyRemoval="pre" />
-  <model filename="haypile.ac" polyRemoval="pre" />
-  <model filename="whitepicketfence.ac" polyRemoval="pre" />
+  <model filename="oldwell.ac" shading="crease" polyRemoval="pre"/>
+  <model filename="haypile.ac" polyRemoval="pre"/>
+  <model filename="whitepicketfence.ac" polyRemoval="pre"/>
+
   <model filename="plant0.ac" shadowCaster="false" />
   
   <!-- Models used as markers by the map-maker. Don't appear in the game. -->
@@ -120,7 +122,7 @@
 	<!-- Maps -->
   <image filename="objectLightMaps.png" />
 
-  <texture filename="farmland.png" />  
+  <image filename="farmland.png" />  
 	<image filename="farmlandN.png" />
   <image filename="farmlandD.png" />
 
@@ -157,8 +159,6 @@
   <image filename="FARM_16_LAND_00_NGT.png" />
 
   <!-- Other Data -->
-  <data filename="testgame.xml" />
-  <data filename="new_map0.xml" />
   <data filename="new_squad_LA.xml" />
   <data filename="new_squad_MA.xml" />
   <data filename="new_squad_HA.xml" />

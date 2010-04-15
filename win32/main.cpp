@@ -35,7 +35,7 @@
 #define IPOD_SCREEN_WIDTH	320
 #define IPOD_SCREEN_HEIGHT	480
 
-int multisample = 0;
+const int multisample = 2;
 bool fullscreen = false;
 int rotation = 0;
 float vpMX = 1.0f;
@@ -107,7 +107,7 @@ int main( int argc, char **argv )
 
 	// Note that our output surface is rotated from the iPod.
 	//surface = SDL_SetVideoMode( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, 32, videoFlags );
-	surface = SDL_SetVideoMode( 600, 450, 32, videoFlags );
+	surface = SDL_SetVideoMode( 800, 600, 32, videoFlags );
 	GLASSERT( surface );
 
 	int stencil = 0;

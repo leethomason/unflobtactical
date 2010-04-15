@@ -29,9 +29,6 @@ enum {
 	ICON_TRANS_BLUE		= 5,
 	ICON_TRANS_YELLOW	= 6,
 	ICON_TRANS_ORANGE	= 7,
-	//ICON_GREEN_BUTTON_DOWN	= 8,
-	//ICON_BLUE_BUTTON_DOWN	= 9,
-	//ICON_RED_BUTTON_DOWN	= 10,
 	ICON_GREEN_WALK_MARK	= 12,
 	ICON_YELLOW_WALK_MARK	= 13,
 	ICON_ORANGE_WALK_MARK	= 14,
@@ -292,6 +289,8 @@ public:
 
 	void SetPos( int index, int x, int y );
 	void SetItemSize( int index, int dx, int dy );
+
+	void SetBG( int index, int x, int y, int iconID, int decoID, const char* text, bool highLight );
 
 protected:
 	virtual void CalcButtons();
