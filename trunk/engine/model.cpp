@@ -22,7 +22,6 @@
 #include "../grinliz/glvector.h"
 #include "../grinliz/glstringutil.h"
 #include "../grinliz/glperformance.h"
-#include "../shared/gldatabase.h"
 
 #include <float.h>
 

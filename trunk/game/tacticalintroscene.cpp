@@ -14,6 +14,7 @@
 */
 
 #include "../grinliz/glbitarray.h"
+#include "../grinliz/glstringutil.h"
 #include "tacticalintroscene.h"
 #include "../engine/uirendering.h"
 #include "../engine/engine.h"
@@ -205,7 +206,7 @@ void TacticalIntroScene::WriteXML( TiXmlNode* xml )
 
 	xml->LinkEndChild( gameElement );
 	gameElement->LinkEndChild( sceneElement );
-	sceneElement->LinkEndChild( battleElement );
+	gameElement->LinkEndChild( battleElement );
 	
 	battleElement->SetAttribute( "dayTime", choices->GetHighLight( TIME_NIGHT ) ? 0 : 1 );
 
@@ -271,7 +272,8 @@ void TacticalIntroScene::CalcInfo( int location, int ufoSize, SceneInfo* info )
 	switch ( location ) {
 		case LOC_FARM:
 			info->base = "FARM";
-			info->blockSize = 3;	// ufosize doesn't matter
+			info->blockSizeX = 3;	// ufosize doesn't matter
+			info->blockSizeY = 2;
 			info->needsLander = true;
 			info->ufo = 1;
 			break;
@@ -282,7 +284,89 @@ void TacticalIntroScene::CalcInfo( int location, int ufoSize, SceneInfo* info )
 }
 
 
-void TacticalIntroScene::CreateMap( TiXmlNode* parent, 
+void TacticalIntroScene::FindNodes(	const char* set,
+									int size,
+									const char* type,
+									const gamedb::Item* parent )
+{
+	char buffer[64];
+	SNPrintf( buffer, 64, "%4s_%02d_%4s", set, size, type );
+	const int LEN=10;
+	nItemMatch = 0;
+
+	for( int i=0; i<parent->NumChildren(); ++i ) {
+		const gamedb::Item* node = parent->Child( i );
+
+		if ( strncmp( node->Name(), buffer, LEN ) == 0 ) {
+			itemMatch[ nItemMatch++ ] = node;
+		}
+	}
+}
+
+
+void TacticalIntroScene::AppendMapSnippet(	int dx, int dy,
+											const char* set,
+											int size,
+											const char* type,
+											const gamedb::Item* parent,
+											TiXmlElement* mapElement )
+{
+	FindNodes( set, size, type, parent );
+	GLASSERT( nItemMatch > 0 );
+	random.Rand();
+	int seed = random.Rand( nItemMatch );
+	const gamedb::Item* item = itemMatch[ seed ];
+	const char* xmlText = (const char*) game->GetDatabase()->AccessData( item, "binary" );
+
+	TiXmlDocument snippet;
+	snippet.Parse( xmlText );
+	GLASSERT( !snippet.Error() );
+
+	TiXmlElement* itemsElement = mapElement->FirstChildElement( "Items" );
+	if ( !itemsElement ) {
+		itemsElement = new TiXmlElement( "Items" );
+		mapElement->LinkEndChild( itemsElement );
+	}
+
+	// Append the <Items>, account for (x,y) changes.
+	// Append the <Images>, account for (x,y) changes.
+	
+	// Append one sub tree to the other. Adjust x, y as we go.
+	for( TiXmlElement* ele = snippet.FirstChildElement( "Map" )->FirstChildElement( "Items" )->FirstChildElement( "Item" );
+		 ele;
+		 ele = ele->NextSiblingElement() )
+	{
+		int x = 0, y = 0;
+		ele->QueryIntAttribute( "x", &x );
+		ele->QueryIntAttribute( "y", &y );
+		x += dx;
+		y += dy;
+		ele->SetAttribute( "x", x );
+		ele->SetAttribute( "y", y );
+
+		itemsElement->InsertEndChild( *ele );
+	}
+
+	// And add the image data
+	TiXmlElement* imagesElement = mapElement->FirstChildElement( "Images" );
+	if ( !imagesElement ) {
+		imagesElement = new TiXmlElement( "Images" );
+		mapElement->LinkEndChild( imagesElement );
+	}
+
+	char buffer[64];
+	SNPrintf( buffer, 64, "%4s_%02d_%4s_%02d", set, size, type, seed );
+
+	TiXmlElement* image = new TiXmlElement( "Image" );
+	image->SetAttribute( "name", buffer );
+	image->SetAttribute( "x", dx );
+	image->SetAttribute( "y", dy );
+	image->SetAttribute( "size", size );
+	imagesElement->LinkEndChild( image );
+}
+
+
+void TacticalIntroScene::CreateMap(	TiXmlNode* parent, 
 									int seed,
 									int location,
 									int ufoSize )
@@ -291,22 +375,55 @@ void TacticalIntroScene::CreateMap( TiXmlNode* parent,
 	BitArray< 4, 4, 1 > blocks;
 
 	TiXmlElement* mapElement = new TiXmlElement( "Map" );
-	TiXmlElement* imageElement = new TiXmlElement( "Images" );
-	mapElement->LinkEndChild( imageElement );
+	parent->LinkEndChild( mapElement );
+
+	const gamedb::Item* dataItem = game->GetDatabase()->Root()->Child( "data" );
 
 	SceneInfo info;
 	CalcInfo( location, ufoSize, &info );
+	mapElement->SetAttribute( "sizeX", info.blockSizeX*16 );
+	mapElement->SetAttribute( "sizeY", info.blockSizeX*16 );
 	
-	Random random( seed );
+	random.SetSeed( seed );
 	for( int i=0; i<5; ++i ) 
 		random.Rand();
 
-	Vector2I landerPos = { 0, 0 };
-	Vector2I ufoPos = { 0, 0 };
+	Vector2I cornerPosBlock[2];
+	if ( random.Bit() ) {
+		cornerPosBlock[0].Set( 0, 0 );
+		cornerPosBlock[1].Set( info.blockSizeX-1, info.blockSizeY-1 );
+	}
+	else {
+		cornerPosBlock[0].Set( info.blockSizeX-1, 0 );
+		cornerPosBlock[1].Set( 0, info.blockSizeY-1 );
+	}
+	if ( random.Bit() ) {
+		Swap( cornerPosBlock+0, cornerPosBlock+1 );
+	}
+
 
 	if ( info.needsLander ) {
-		Vector2I pos = { random.Bit() ? info.blockSize-1 : 0, random.Bit() ? info.blockSize-1 : 0 };
+		Vector2I pos = cornerPosBlock[ 0 ];
 		blocks.Set( pos.x, pos.y );
-
+		AppendMapSnippet( pos.x*16, pos.y*16, info.base, 16, "LAND", dataItem, mapElement );	
 	}
+
+	if ( info.ufo ) {
+		const char* ufoStr = "UFOA";
+		Vector2I pos = cornerPosBlock[ 1 ];
+		blocks.Set( pos.x, pos.y );
+		AppendMapSnippet( pos.x*16, pos.y*16, info.base, 16, ufoStr, dataItem, mapElement );	
+	}
+
+	for( int j=0; j<info.blockSizeY; ++j ) {
+		for( int i=0; i<info.blockSizeX; ++i ) {
+			if ( !blocks.IsSet( i, j ) ) {
+				Vector2I pos = { i, j };
+				AppendMapSnippet( pos.x*16, pos.y*16, info.base, 16, "TILE", dataItem, mapElement );	
+			}
+		}
+	}
+
+//	parent->Print( stdout, 0 );
+//	fflush( stdout );
 }

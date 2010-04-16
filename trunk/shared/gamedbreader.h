@@ -80,11 +80,13 @@ public:
 	const char* GetString( int id ) const;
 	int GetStringID( const char* str ) const;
 
+	// Debug dump
+	void RecWalk( const Item* item, int depth );
+
 private:
 	static Reader* readerRoot;
 	Reader* next;
 
-	void RecWalk( const Item* item, int depth );
 
 	FILE* fp;
 

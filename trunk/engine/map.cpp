@@ -23,7 +23,6 @@
 #include "../game/material.h"		// bad call to less general directory. FIXME. Move map to game?
 #include "../game/unit.h"			// bad call to less general directory. FIXME. Move map to game?
 #include "../game/game.h"			// bad call to less general directory. FIXME. Move map to game?
-#include "../shared/gldatabase.h"
 #include "../engine/particleeffect.h"
 #include "../engine/particle.h"
 #include "../grinliz/glstringutil.h"
@@ -34,6 +33,8 @@ using namespace micropather;
 
 extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
 extern int drawCalls;			// ditto
+
+//#define SHOW_FOW			// ignore fog of war
 
 
 Map::Map( SpaceTree* tree )
@@ -409,7 +410,11 @@ void Map::GenerateLightMap()
 		for( int j=invalidLightMap.min.y; j<=invalidLightMap.max.y; ++j ) {
 			for( int i=invalidLightMap.min.x; i<=invalidLightMap.max.x; ++i ) {
 
+#if defined( SHOW_FOW )
+				if ( true ) {
+#else
 				if ( fogOfWar.IsSet( i, j ) ) {
+#endif
 					Surface::RGBA transparentBlack = { 0, 0, 0, 0 };
 					U16 c = Surface::CalcColorRGBA16( transparentBlack );
 					fowSurface.SetImagePixel16( i, j, c );
@@ -938,9 +943,40 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 	}
 	GLASSERT( mapElement );
 	GLASSERT( strcmp( mapElement->Value(), "Map" ) == 0 );
+	int sizeX = 64;
+	int sizeY = 64;
+
+	mapElement->QueryIntAttribute( "sizeX", &sizeX );
+	mapElement->QueryIntAttribute( "sizeX", &sizeY );
+	SetSize( sizeX, sizeY );
+
+	const TiXmlElement* imagesElement = mapElement->FirstChildElement( "Images" );
+	if ( imagesElement ) {
+		for(	const TiXmlElement* image = imagesElement->FirstChildElement( "Image" );
+				image;
+				image = image->NextSiblingElement( "Image" ) )
+		{
+			int x=0, y=0, size=0;
+			char buffer[128];
+			image->QueryIntAttribute( "x", &x );
+			image->QueryIntAttribute( "y", &y );
+			image->QueryIntAttribute( "size", &size );
+			
+			ImageManager* imageManager = ImageManager::Instance();
+
+			SNPrintf( buffer, 128, "%s_TEX", image->Attribute( "name" ) );
+			const Surface* background = imageManager->GetImage( buffer );
+			SNPrintf( buffer, 128, "%s_DAY", image->Attribute( "name" ) );
+			const Surface* day = imageManager->GetImage( buffer );
+			SNPrintf( buffer, 128, "%s_NGT", image->Attribute( "name" ) );
+			const Surface* night = imageManager->GetImage( buffer );
+
+			SetTexture( background, x*512/64, y*512/64 );
+			SetLightMaps( day, night, x, y );			
+		}
+	}
 
 	const TiXmlElement* itemsElement = mapElement->FirstChildElement( "Items" );
-	GLASSERT( itemsElement );
 	if ( itemsElement ) {
 		for(	const TiXmlElement* item = itemsElement->FirstChildElement( "Item" );
 				item;

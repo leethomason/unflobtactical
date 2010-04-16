@@ -17,7 +17,6 @@
 #include "cgame.h"
 #include "unit.h"
 #include "material.h"
-#include "../shared/gldatabase.h"
 #include "../grinliz/glstringutil.h"
 #include "../engine/text.h"
 
@@ -384,7 +383,7 @@ void Game::LoadMapResources()
 		{	"stonewall_unit",0,	"stonewall_unitD",		1,	1,	HP_MED,	0,				"f", "0" },
 		{	"stonewall_join",0,	"stonewall_unitD",		1,	1,	HP_MED,	0,				"f", "0" },
 		{	"woodfence",	0,				0,			2,	1,	HP_LOW,	FASTBURN,		"44", "0" },
-		{	"oldwell",		0,				0,			1,	1,	HP_MED,	SLOWBURN,		"f", 0 },
+		{	"oldwell",		0,				0,			1,	1,	HP_MED,	SLOWBURN,		"f", "0" },
 		{	"haypile",		0,				0,			2,	2,	HP_MED,	FASTBURN,		"ffff", "ffff" },
 		{	"whitepicketfence",	0,			0,			1,	1,	HP_LOW,	FASTBURN,		"1", "0" },
 		{	"plant0",		0,				0,			1,	1,	HP_LOW,	FASTBURN,		"0", "0" },

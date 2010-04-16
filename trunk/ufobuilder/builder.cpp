@@ -73,46 +73,6 @@ struct GlyphMetric
 };
 GlyphMetric gGlyphMetric[GLYPH_CX*GLYPH_CY];
 
-/*
-void CreateDatabase()
-{
-	int sqlResult = 0;
-
-	// Set up the database tables.
-	sqlResult = sqlite3_exec(	db, 
-								"CREATE TABLE texture "
-								"(name TEXT NOT NULL PRIMARY KEY, "
-								" format TEXT, image INT, width INT, height INT, id INT, metricsID INT);",
-								0, 0, 0 );
-	GLASSERT( sqlResult == SQLITE_OK );
-
-	sqlResult	= sqlite3_exec(	db,
-								"CREATE TABLE model "
-								"(name TEXT NOT NULL PRIMARY KEY, "
-								" headerID INT, "
-								" groupStart INT, nGroup INT, "
-								" vertexID INT, indexID INT );",
-								0, 0, 0 );
-	GLASSERT( sqlResult == SQLITE_OK );
-
-	sqlResult	= sqlite3_exec(	db,
-								"CREATE TABLE modelGroup "
-								"(id INT NOT NULL PRIMARY KEY, "
-								" textureName TEXT, "
-								" nVertex INT, nIndex INT );",
-								0, 0, 0 );
-	GLASSERT( sqlResult == SQLITE_OK );
-
-	sqlResult	= sqlite3_exec(	db,
-								"CREATE TABLE map "
-								"(name TEXT NOT NULL PRIMARY KEY, "
-								" id INT );",
-								0, 0, 0 );
-	GLASSERT( sqlResult == SQLITE_OK );
-
-}
-*/
-
 
 void InsertTextureToDB( const char* name, 
 						const char* format, 
@@ -136,70 +96,6 @@ void InsertTextureToDB( const char* name,
 	witem->SetInt( "height", height );
 }
 
-
-/*
-void InsertTextureToDB( const char* name, const char* format, bool isImage, bool metrics, int width, int height, const void* pixels, int sizeInBytes )
-{
-	int index = 0, metricsIndex=0;
-	writer->Write( pixels, sizeInBytes, &index );
-	if ( metrics ) {
-		writer->Write( gGlyphMetric, sizeof( GlyphMetric )*GLYPH_CX*GLYPH_CY, &metricsIndex );
-	}
-
-	sqlite3_stmt* stmt = NULL;
-	sqlite3_prepare_v2( db, "INSERT INTO texture VALUES (?, ?, ?, ?, ?, ?, ?);", -1, &stmt, 0 );
-
-	sqlite3_bind_text( stmt, 1, name, -1, SQLITE_TRANSIENT );
-	sqlite3_bind_text( stmt, 2, format, -1, SQLITE_TRANSIENT );
-	sqlite3_bind_int( stmt, 3, isImage ? 1 : 0 );
-	sqlite3_bind_int( stmt, 4, width );
-	sqlite3_bind_int( stmt, 5, height );
-	sqlite3_bind_int( stmt, 6, index );
-	sqlite3_bind_int( stmt, 7, metricsIndex );
-
-	sqlite3_step( stmt );
-	sqlite3_finalize(stmt);
-}
-*/
-
-
-/*
-void InsertModelHeaderToDB( const ModelHeader& header, int groupID, int vertexID, int indexID )
-{
-	int index = 0;
-	writer->Write( &header, sizeof(header), &index );
-
-	sqlite3_stmt* stmt = NULL;
-
-	sqlite3_prepare_v2( db, "INSERT INTO model VALUES (?,?,?,?,?,?);", -1, &stmt, 0 );
-	sqlite3_bind_text( stmt, 1,	header.name, -1, SQLITE_TRANSIENT );
-	sqlite3_bind_int(  stmt, 2, index );
-	sqlite3_bind_int(  stmt, 3, groupID );
-	sqlite3_bind_int(  stmt, 4, header.nGroups );
-	sqlite3_bind_int(  stmt, 5, vertexID );
-	sqlite3_bind_int(  stmt, 6, indexID );
-	sqlite3_step( stmt );
-	sqlite3_finalize(stmt);
-}
-
-
-void InsertModelGroupToDB( const ModelGroup& group, int *groupID )
-{
-	static int groupIDPool = 1;
-	sqlite3_stmt* stmt = NULL;
-	*groupID = groupIDPool;
-
-	sqlite3_prepare_v2( db, "INSERT INTO modelGroup VALUES (?,?,?,?);", -1, &stmt, 0 );
-	sqlite3_bind_int(  stmt, 1, groupIDPool );
-	sqlite3_bind_text( stmt, 2,	group.textureName, -1, SQLITE_TRANSIENT );
-	sqlite3_bind_int(  stmt, 3, group.nVertex );
-	sqlite3_bind_int(  stmt, 4, group.nIndex );
-	sqlite3_step( stmt );
-	sqlite3_finalize(stmt);
-
-	++groupIDPool;
-}
-*/
 
 void LoadLibrary()
 {
@@ -245,6 +141,36 @@ void ModelHeader::Set(	const char* name, int nGroups, int nTotalVertices, int nT
 	trigger.Set( 0, 0, 0 );
 	eye = 0;
 	target = 0;
+}
+
+
+void ModelHeader::Save( gamedb::WItem* parent )
+{
+	gamedb::WItem* node = parent->CreateChild( "header" );
+	node->SetInt( "nTotalVertices", nTotalVertices );
+	node->SetInt( "nTotalIndices", nTotalIndices );
+	node->SetInt( "flags", flags );
+	node->SetInt( "nGroups", nGroups );
+
+	gamedb::WItem* boundNode = node->CreateChild( "bounds" );
+	boundNode->SetFloat( "min.x", bounds.min.x );
+	boundNode->SetFloat( "min.y", bounds.min.y );
+	boundNode->SetFloat( "min.z", bounds.min.z );
+	boundNode->SetFloat( "max.x", bounds.max.x );
+	boundNode->SetFloat( "max.y", bounds.max.y );
+	boundNode->SetFloat( "max.z", bounds.max.z );
+
+	if ( trigger.x != 0.0f || trigger.y != 0.0f || trigger.z != 0.0f ) {
+		gamedb::WItem* triggerNode = node->CreateChild( "trigger" );
+		triggerNode->SetFloat( "x", trigger.x );
+		triggerNode->SetFloat( "y", trigger.y );
+		triggerNode->SetFloat( "z", trigger.z );
+	}
+	if ( eye != 0.0f ||	target != 0.0f ) {
+		gamedb::WItem* extra = node->CreateChild( "extended" );
+		extra->SetFloat( "eye", eye );
+		extra->SetFloat( "target", target );
+	}
 }
 
 
@@ -514,7 +440,8 @@ void ProcessModel( TiXmlElement* model )
 
 	int vertexID = 0, indexID = 0;
 
-	witem->SetData( "header", &header, sizeof(header ) );
+	//witem->SetData( "header", &header, sizeof(header ) );
+	header.Save( witem );
 	witem->SetData( "vertex", vertexBuf, nTotalVertex*sizeof(Vertex) );
 	witem->SetData( "index", indexBuf, nTotalIndex*sizeof(U16) );
 

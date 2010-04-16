@@ -24,7 +24,6 @@
 #include "targets.h"
 #include "../grinliz/glbitarray.h"
 #include "../grinliz/glvector.h"
-#include "../sqlite3/sqlite3.h"
 
 class Model;
 class UIButtonBox;
