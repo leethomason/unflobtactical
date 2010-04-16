@@ -30,6 +30,9 @@ namespace gamedb
 		U8  data[]
 */
 
+	class Item;	
+	class WItem;
+
 	enum {
 		ATTRIBUTE_DATA,
 		ATTRIBUTE_INT,

@@ -128,15 +128,6 @@ bool Reader::Init( const char* filename )
 	}
 #endif
 
-#if 1		// Dump structure
-	{
-		//const Item* item = root->Child( "models" );
-		//RecWalk( item, 0 );
-		//const Item* texture = root->Child( 2 );
-		RecWalk( root, 0 );
-	}
-#endif
-
 	return true;
 }
 
@@ -144,7 +135,7 @@ bool Reader::Init( const char* filename )
 void Reader::RecWalk( const Item* item, int depth )
 {
 	for( int i=0; i<depth; ++i )
-		printf( " " );
+		printf( "  " );
 	printf( "%s", item->Name() );
 	
 	printf( " [" );
@@ -163,10 +154,10 @@ void Reader::RecWalk( const Item* item, int depth )
 				printf( "%f", item->GetFloat( name ) );
 				break;
 			case ATTRIBUTE_STRING:
-				printf( "%s", item->GetString( name ) );
+				printf( "'%s'", item->GetString( name ) );
 				break;
 			case ATTRIBUTE_BOOL:
-				printf( "%s", item->GetBool( name ) ? "true" : "false" );
+				printf( "%s", item->GetBool( name ) ? "TRUE" : "FALSE" );
 				break;
 			default:
 				GLASSERT( 0 );

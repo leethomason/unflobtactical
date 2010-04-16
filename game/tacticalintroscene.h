@@ -20,6 +20,7 @@
 #include "unit.h"
 #include "gamelimits.h"
 #include "../tinyxml/tinyxml.h"
+#include "../shared/gamedbreader.h"
 
 class UIImage;
 class UIButtonBox;
@@ -83,20 +84,36 @@ public:
 
 	struct SceneInfo {
 		const char*		base;			// FARM
-		int				blockSize;		// 2, 3, 4
+		int				blockSizeX;		// 2, 3, 4
+		int				blockSizeY;		// 2, 3, 4
 		bool			needsLander;	// true/false
 		int				ufo;			// 0: no, >0: blocksize
 	};
 	static void CalcInfo( int location, int ufoSize, SceneInfo* info );
 
-	static void CreateMap( TiXmlNode* parent, 
-						   int seed,
-						   int location,			// LOC_FARM
-						   int ufoSize );			// 0: small, 1: big
+	void CreateMap( TiXmlNode* parent, 
+					int seed,
+					int location,			// LOC_FARM
+					int ufoSize );			// 0: small, 1: big
 
 private:
 	void WriteXML( TiXmlNode* xml );
+	void FindNodes( const char* set,
+					int size,
+					const char* type,
+					const gamedb::Item* parent );
 
+	void AppendMapSnippet(	int x, int y,
+							const char* set,
+							int size,
+							const char* type,
+							const gamedb::Item* parent,
+							TiXmlElement* mapElement );
+
+	enum { MAX_ITEM_MATCH = 32 };
+	const gamedb::Item* itemMatch[ MAX_ITEM_MATCH ];
+	int nItemMatch;
+	grinliz::Random random;
 	UIImage*		background;
 	UIImage*		backgroundNew;
 	UIButtonBox*	buttons;

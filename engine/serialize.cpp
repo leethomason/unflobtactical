@@ -18,9 +18,8 @@
 #include <string.h>
 #include <string>
 #include "serialize.h"
-#include "../sqlite3/sqlite3.h"
-#include "../shared/gldatabase.h"
 #include "../grinliz/glstringutil.h"
+#include "../shared/gamedbwriter.h"
 
 using namespace grinliz;
 
@@ -28,10 +27,38 @@ void ModelHeader::Load( const gamedb::Item* item )
 {
 	StrNCpy( name, item->Name(), EL_FILE_STRING_LEN );
 
-	// Read the binary data for this object before filling out local fields.
-	int size = item->GetDataSize( "header" );
-	GLASSERT( size == sizeof( ModelHeader ) );
-	item->GetData( "header", this, size );
+	const gamedb::Item* header = item->Child( "header" );
+	nTotalVertices = header->GetInt( "nTotalVertices" );
+	nTotalIndices = header->GetInt( "nTotalIndices" );
+	flags = header->GetInt( "flags" );
+	nGroups = header->GetInt( "nGroups" );
+
+	bounds.Set( 0, 0, 0, 0, 0, 0 );
+	const gamedb::Item* boundsItem = header->Child( "bounds" );
+	if ( boundsItem ) {
+		bounds.min.x = boundsItem->GetFloat( "min.x" );
+		bounds.min.y = boundsItem->GetFloat( "min.y" );
+		bounds.min.z = boundsItem->GetFloat( "min.z" );
+		bounds.max.x = boundsItem->GetFloat( "max.x" );
+		bounds.max.y = boundsItem->GetFloat( "max.y" );
+		bounds.max.z = boundsItem->GetFloat( "max.z" );
+	}
+
+	trigger.Set( 0, 0, 0 );
+	const gamedb::Item* triggerItem = header->Child( "trigger" );
+	if ( triggerItem ) {
+		trigger.x = triggerItem->GetFloat( "x" );
+		trigger.y = triggerItem->GetFloat( "y" );
+		trigger.z = triggerItem->GetFloat( "z" );
+	}
+
+	eye = 0;
+	target = 0;
+	const gamedb::Item* extended = header->Child( "extended" );
+	if ( extended ) {
+		eye = extended->GetFloat( "eye" );
+		target = extended->GetFloat( "target" );
+	}
 }
 
 
@@ -41,3 +68,5 @@ void ModelGroup::Load( const gamedb::Item* item )
 	nVertex = item->GetInt( "nVertex" );
 	nIndex = item->GetInt( "nIndex" );
 }
+
+
