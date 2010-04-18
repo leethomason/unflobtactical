@@ -10,45 +10,62 @@ namespace gamedb
 class Reader;
 
 
+/** Node of the gamedb.
+	Most functions can return the requested Item or Attribute be searching on the name - 
+	GetInt( "foo" ) - or by searching on the array index, for example GetInt( 2 ). The array
+	index form is generally used if you are enumerating the attributes. Generally the name form
+	is used when you know what data you want.
+*/
 class Item
 {
 public:
+	/// Get the name of this node.
 	const char* Name() const;
 
+	/// Number of child nodes.
 	int NumChildren() const				{ return ((const ItemStruct*)this)->nChildren; }
+	/// Return the child item.
 	const Item* Child( int i ) const;
+	/// Return the child item.
 	const Item* Child( const char* name ) const;
 
+	/// Number of attributes in this Item
 	int NumAttributes() const;
 
+	/// Return the name of the attribute. 0 if out of range.
 	const char* AttributeName( int i ) const;
-	// Return the index of the named attribute. -1 if not found.
+	/// Return the index of the attribute. -1 if not found.
 	int AttributeIndex( const char* name ) const;
 
+	/// Return true if the attribute exists.
 	bool HasAttribute( const char* n ) const	{ return AttributeType( n ) != ATTRIBUTE_INVALID; }
+	/// Return the type of the attribute (ATTRIBUTE_DATA, etc.)
 	int AttributeType( int i ) const; 
+	/// Return the type of the attribute (ATTRIBUTE_DATA, etc.)
 	int AttributeType( const char* ) const; 
 
-	int			GetDataSize( int i ) const;				// returns -1 on failure
-	int			GetDataSize( const char* ) const;
+	int			GetDataSize( int i ) const;			/// Returns size of an ATTRIBUTE_DATA, -1 or failure.
+	int			GetDataSize( const char* ) const;	/// Returns size of an ATTRIBUTE_DATA, -1 or failure.
 
-	void		GetData( int i, void* mem, int memSize ) const;
+	/** Copies uncompressed data to 'mem'. 'memSize' must match the value from GetDataSize() */
+	void		GetData( int i, void* mem, int memSize ) const;			
+	/** Copies uncompressed data to 'mem'. 'memSize' must match the value from GetDataSize() */
 	void		GetData( const char*, void* mem, int memSize ) const;
 	
 	int			GetDataID( int i ) const;
 	int			GetDataID( const char* ) const;
 
-	int			GetInt( int i ) const;
-	int			GetInt( const char* ) const;
+	int			GetInt( int i ) const;			/// Returns value of an ATTRIBUTE_INT
+	int			GetInt( const char* ) const;	/// Returns value of an ATTRIBUTE_INT
 
-	float		GetFloat( int i ) const;
-	float		GetFloat( const char* ) const;
+	float		GetFloat( int i ) const;		/// Returns value of an ATTRIBUTE_FLOAT
+	float		GetFloat( const char* ) const;	/// Returns value of an ATTRIBUTE_FLOAT
 
-	const char*	GetString( int i ) const;
-	const char*	GetString( const char* ) const;
+	const char*	GetString( int i ) const;		/// Returns value of an ATTRIBUTE_STRING
+	const char*	GetString( const char* ) const;	/// Returns value of an ATTRIBUTE_STRING
 
-	bool		GetBool( int i ) const;
-	bool		GetBool( const char* ) const;
+	bool		GetBool( int i ) const;			/// Returns value of an ATTRIBUTE_BOOL
+	bool		GetBool( const char* ) const;	/// Returns value of an ATTRIBUTE_BOOL
 
 private:
 	Item();
@@ -59,21 +76,47 @@ private:
 };
 
 
+/**
+	Utility class to read a gamedb. 
+
+	Usage:
+	# Construct a Reader
+	# The Root() object allows access to the top of the Item tree
+	# Navigate and query Items
+	# At the end of program execution, or when all resources are loaded, delete Reader
+
+	Threading note: currently all Readers should be on the same thread. That could
+	be fixed by adding a semaphore to GetContext()
+*/
 class Reader
 {
 public:
+	/// Construct the reader.
 	Reader();
 	~Reader();
 
-	//bool Init( const void* mem, int size );
-	bool Init( const char* fp );
+	/** Initialize the object. This will hold a read-binary FILE* for the lifetime of Reader.
+		@return true if filename could be opened and read.
+				false if error.
+	*/
+	bool Init( const char* filename );
 
+	/// Access the root of the database.
 	const Item* Root() const					{ return root; }
 	
 	static const Reader* GetContext( const Item* item );
 
 	int GetDataSize( int dataID ) const;
 	void GetData( int dataID, void* mem, int memSize ) const;
+
+	/** Utility function to access binary data without having to do memory management in the
+		host programm. Given an item, and binary attribute, returns a pointer to the uncompressed
+		data. The data length is returned, if requested. The data is null terminated so can
+		always safely be treated as a string.
+
+		WARNING: Any call to access ATTRIBUTE_DATA anywhere in the tree will invalidate the cache.
+		AccessData should be called, and the data consumed or copied. It is very transient.
+	*/
 	const void* AccessData( const Item* item, const char* name, int* size=0 ) const;
 
 	const void* BaseMem() const					{ return mem; }
