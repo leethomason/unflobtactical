@@ -83,7 +83,7 @@ void InsertTextureToDB( const char* name,
 						const void* pixels, 
 						int sizeInBytes )
 {
-	gamedb::WItem* witem = writer->Root()->GetChild( "textures" )->CreateChild( name );
+	gamedb::WItem* witem = writer->Root()->FetchChild( "textures" )->CreateChild( name );
 
 	witem->SetData( "pixels", pixels, sizeInBytes );
 	if ( metrics ) {
@@ -281,7 +281,7 @@ void ProcessMap( TiXmlElement* map )
 
 	int index = 0;
 	//writer->Write( mem, len, &index );
-	gamedb::WItem* witem = writer->Root()->GetChild( "data" )->CreateChild( name.c_str() );
+	gamedb::WItem* witem = writer->Root()->FetchChild( "data" )->CreateChild( name.c_str() );
 	witem->SetData( "binary", mem, len );
 
 	/*
@@ -388,7 +388,7 @@ void ProcessModel( TiXmlElement* model )
 		model->QueryFloatAttribute( "target", &header.target );
 	}
 
-	gamedb::WItem* witem = writer->Root()->GetChild( "models" )->CreateChild( name.c_str() );
+	gamedb::WItem* witem = writer->Root()->FetchChild( "models" )->CreateChild( name.c_str() );
 
 	int totalMemory = 0;
 

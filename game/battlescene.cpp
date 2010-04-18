@@ -1708,6 +1708,8 @@ int BattleScene::ProcessActionHit( Action* action )
 		// Explosion
 		const int MAX_RAD = 2;
 		const int MAX_RAD_2 = MAX_RAD*MAX_RAD;
+		Rectangle2I mapBounds;
+		engine->GetMap()->CalcBounds( &mapBounds );
 
 		// There is a small offset to move the explosion back towards the shooter.
 		// If it hits a wall (common) this will move it to the previous square.
@@ -1724,7 +1726,11 @@ int BattleScene::ProcessActionHit( Action* action )
 			for( int y=y0-rad; y<=y0+rad; ++y ) {
 				for( int x=x0-rad; x<=x0+rad; ++x ) {
 					if ( x==(x0-rad) || x==(x0+rad) || y==(y0-rad) || y==(y0+rad) ) {
-						
+
+						Vector2I x0y0 = { x0, y0 };
+						if ( !mapBounds.Contains( x0y0 ) )	// keep explosions in-bounds
+							continue;
+
 						// Tried to do this with the pather, but the issue with 
 						// walls being on the inside and outside of squares got 
 						// ugly. But the other option - ray casting - also nasty.
@@ -2627,10 +2633,16 @@ void BattleScene::DrawHUD()
 	if ( SelectedSoldierUnit() ) {
 		//int id = SelectedSoldierUnit() - units;
 		const Unit* unit = SelectedSoldierUnit();
-		UFOText::Draw( 55, 304, "%s %s %s", 
+		const char* weapon = "Unarmed";
+		if ( unit->GetWeapon() ) {
+			weapon = unit->GetWeapon()->Name();
+		}
+
+		UFOText::Draw( 55, 304, "%s %s %s [%s]", 
 			unit->Rank(),
 			unit->FirstName(),
-			unit->LastName() );
+			unit->LastName(),
+			weapon );
 /*
 		UFOText::Draw( 260, 304, 
 			"TU:%.1f HP:%d Tgt:%02d/%02d", 

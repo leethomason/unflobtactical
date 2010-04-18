@@ -172,7 +172,7 @@ void WItem::EnumerateStrings( std::set< std::string >* stringSet )
 }
 
 
-WItem* WItem::GetChild( const char* name )
+WItem* WItem::FetchChild( const char* name )
 {
 	GLASSERT( name && *name );
 	std::map<std::string, WItem*>::iterator itr = child.find( name );
