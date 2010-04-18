@@ -17,7 +17,7 @@
 #include <stdlib.h>
 
 #include "SDL.h"
-#if defined(__APPLE__)
+#if defined(__APPLE__)	// OSX, not iphone
 #include "SDL_image.h"
 #endif
 #include "SDL_loadso.h"
@@ -56,7 +56,7 @@ vector<U8> pixelBuffer8;
 string inputPath;
 int totalModelMem = 0;
 int totalTextureMem = 0;
-int totalMapMem = 0;
+int totalDataMem = 0;
 
 gamedb::Writer* writer;
 
@@ -249,10 +249,10 @@ void PutPixel(SDL_Surface *surface, int x, int y, U32 pixel)
 }
 
 
-void ProcessMap( TiXmlElement* map )
+void ProcessData( TiXmlElement* data )
 {
 	string filename;
-	map->QueryStringAttribute( "filename", &filename );
+	data->QueryStringAttribute( "filename", &filename );
 	string fullIn = inputPath + filename;
 
 	string name;
@@ -295,8 +295,8 @@ void ProcessMap( TiXmlElement* map )
 
 	delete [] mem;
 
-	printf( "Map '%s' memory=%dk\n", filename.c_str(), len/1024 );
-	totalMapMem += len;
+	printf( "Data '%s' memory=%dk\n", filename.c_str(), len/1024 );
+	totalDataMem += len;
 
 	fclose( read );
 }
@@ -769,17 +769,17 @@ int main( int argc, char* argv[] )
 		}
 		else if (	 child->ValueStr() == "map" 
 			      || child->ValueStr() == "data" ) {
-			ProcessMap( child );
+			ProcessData( child );
 		}
 		else {
 			printf( "Unrecognized element: %s\n", child->Value() );
 		}
 	}
 
-	int total = totalTextureMem + totalModelMem + totalMapMem;
+	int total = totalTextureMem + totalModelMem + totalDataMem;
 
-	printf( "Total memory=%dk Texture=%dk Model=%dk Map=%dk\n", 
-			total/1024, totalTextureMem/1024, totalModelMem/1024, totalMapMem/1024 );
+	printf( "Total memory=%dk Texture=%dk Model=%dk Data=%dk\n", 
+			total/1024, totalTextureMem/1024, totalModelMem/1024, totalDataMem/1024 );
 	printf( "All done.\n" );
 	SDL_Quit();
 

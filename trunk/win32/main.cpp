@@ -87,8 +87,6 @@ int main( int argc, char **argv )
 	GLOUTPUT(( "SDL: major %d minor %d patch %d\n", sversion->major, sversion->minor, sversion->patch ));
 
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-	//SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 0 );
-	//SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 16 );
 	SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8);
 	SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 8);
@@ -131,17 +129,7 @@ int main( int argc, char **argv )
 	const unsigned char* renderer = glGetString( GL_RENDERER );
 	const unsigned char* version  = glGetString( GL_VERSION );
 
-	#if defined ( _WIN32 )
-		const char* system = "Windows";
-	#elif defined ( _LINUX )
-		const char* system = "Linux";
-	#elif defined ( __APPLE__ )
-		const char* system = "Apple OS X";
-	#else
-		const char* system = "??";
-	#endif
-
-	GLLOG(( "OpenGL %s: Vendor: '%s'  Renderer: '%s'  Version: '%s'\n", system, vendor, renderer, version ));
+	GLLOG(( "OpenGL vendor: '%s'  Renderer: '%s'  Version: '%s'\n", vendor, renderer, version ));
 
 	// Set the viewport to be the entire window. It would be
 	// desireable to accomidate changes to the aspect ration,
@@ -402,7 +390,6 @@ int main( int argc, char **argv )
 				glDepthFunc( GL_LEQUAL );
 
 				GameDoTick( game, SDL_GetTicks() );
-
 				SDL_GL_SwapBuffers();
 			};
 

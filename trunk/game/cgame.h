@@ -77,7 +77,7 @@ void GamePathToSave( void* handle, const char* path );
 	
 // --- Core to platform --- //
 void PlatformPathToResource( const char* name, const char* extension, char* buffer, int bufferLen );
-
+void PlayWAVSound( const void* wavFile, int nBytes );
 
 #ifdef __cplusplus
 }

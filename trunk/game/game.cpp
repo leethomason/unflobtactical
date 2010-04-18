@@ -210,38 +210,6 @@ Game::~Game()
 	delete database;
 }
 
-
-/*
-const char* Game::AccessTextResource( const char* name )
-{
-	sqlite3_stmt* stmt = 0;
-	sqlite3_prepare_v2(database, "SELECT * FROM map WHERE name=?;", -1, &stmt, 0 );
-	sqlite3_bind_text( stmt, 1, name, -1, 0 );
-
-	int id=0;
-	if (sqlite3_step(stmt) == SQLITE_ROW) {
-		id = sqlite3_column_int(  stmt, 1 );
-	}
-	else {
-		GLASSERT( 0 );
-	}
-	sqlite3_finalize(stmt);
-
-	int size;
-	BinaryDBReader reader( database );
-	reader.ReadSize( id, &size );
-
-	textResBuf.Clear();
-	char* mem = textResBuf.PushArr( size+1 );
-
-	reader.ReadData( id, size, mem );
-	textResBuf[size] = 0;	// make sure null terminated.
-
-	return mem;
-}
-*/
-
-
 void Game::ProcessLoadRequest()
 {
 	if ( loadRequested == 0 )	// continue

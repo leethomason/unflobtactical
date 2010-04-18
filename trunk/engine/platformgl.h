@@ -25,7 +25,7 @@
 						}										\
 					}
 
-#ifdef __APPLE__
+#if defined(UFO_IPHONE)
 	// Really iPhone, not apple...
 	#import <OpenGLES/ES1/gl.h>
 	#import <OpenGLES/ES1/glext.h>
@@ -33,12 +33,14 @@
 	#define glFrustumfX		glFrustumf
 	#define glOrthofX		glOrthof
 	#define USING_ES
-#else
+#elif defined( UFO_WIN32_SDL )
 	#include "../win32/glew.h"
 
 	#define glFrustumfX		glFrustum
 	#define glOrthofX		glOrtho
 	#define USING_GL
+#else
+	#error Undefined platform
 #endif
 
 
