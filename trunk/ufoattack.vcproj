@@ -378,14 +378,6 @@
 			Name="win32"
 			>
 			<File
-				RelativePath=".\win32\framebuffer.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\win32\framebuffer.h"
-				>
-			</File>
-			<File
 				RelativePath=".\win32\glew.c"
 				>
 			</File>
