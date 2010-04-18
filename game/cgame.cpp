@@ -17,7 +17,7 @@
 #include "cgame.h"
 #include "game.h"
 
-#ifdef __APPLE__
+#ifdef UFO_IPHONE
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
@@ -133,7 +133,7 @@ void GamePathToSave( void* handle, const char* path )
 
 void PlatformPathToResource( const char* name, const char* extension, char* buffer, int bufferLen )
 {
-#ifdef __APPLE__
+#if defined( UFO_IPHONE )
 	CFStringRef nameRef = CFStringCreateWithCString( 0, name, kCFStringEncodingWindowsLatin1 );
 	CFStringRef extensionRef = CFStringCreateWithCString( 0, extension, kCFStringEncodingWindowsLatin1 );
 	
@@ -145,11 +145,19 @@ void PlatformPathToResource( const char* name, const char* extension, char* buff
 	GLASSERT( imageURL );
 		
 	CFURLGetFileSystemRepresentation( imageURL, true, (unsigned char*)buffer, bufferLen );
-#else
+#elif defined( UFO_WIN32_SDL )
 	std::string fullname = "./res/";
 	fullname += name;
 	fullname += ".";
 	fullname += extension;
 	grinliz::StrNCpy( buffer, fullname.c_str(), bufferLen );
+#else
+#	error unhandled
 #endif
+}
+
+
+void PlayWAVSound( const void* wavFile, int nBytes )
+{
+	GLOUTPUT(( "Wav sound called.\n" ));
 }

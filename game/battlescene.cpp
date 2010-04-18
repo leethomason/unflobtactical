@@ -1939,7 +1939,9 @@ void BattleScene::Tap(	int tap,
 						const grinliz::Vector2I& screen,
 						const grinliz::Ray& world )
 {
+	/*
 	{
+		// Test projections.
 		Vector3F pos;
 		IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &pos );
 		pos.y = 0.01f;
@@ -1947,6 +1949,14 @@ void BattleScene::Tap(	int tap,
 		Color4F cv = { 0, 0, 0, 0 };
 		ParticleSystem::Instance()->EmitOnePoint( c, cv, pos, 1500 );
 	}
+	*/
+	{
+		// Test Sound.
+//		int size=0;
+//		const void* snd = game->AccessBinaryResource( "testlaser44", &size );
+//		PlayWAVSound( snd, size );
+	}
+
 	if ( tap > 1 )
 		return;
 	if ( !actionStack.Empty() )
@@ -1989,7 +1999,8 @@ void BattleScene::Tap(	int tap,
 	int ix = (int)pos.x;
 	int iz = (int)pos.z;
 	if (    ix >= 0 && ix < engine->GetMap()->Width()
-	  	 && iz >= 0 && iz < engine->GetMap()->Height() ) 
+	  	 && iz >= 0 && iz < engine->GetMap()->Height()
+		 && *engine->GetMap()->GetItemDefName( currentMapItem ) )
 	{
 		engine->GetMap()->AddItem( ix, iz, rotation, currentMapItem, -1, 0 );
 	}

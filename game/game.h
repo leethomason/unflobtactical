@@ -224,7 +224,7 @@ private:
 	int rotTestStart;
 	int rotTestCount;
 	std::string savePath;
-	CDynArray< char > textResBuf;
+	CDynArray< char > resourceBuf;
 	
 #ifdef MAPMAKER	
 	bool showPathing;
