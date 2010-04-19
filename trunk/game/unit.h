@@ -75,9 +75,13 @@ public:
 
 	bool InUse() const			{ return status != STATUS_NOT_INIT; }
 	bool IsAlive() const		{ return status == STATUS_ALIVE; }
+
+	int HP() const				{ return hp; }
+	float TU() const			{ return tu; }
+
 	// Do damage to this unit. Will create a Storage on the map, if the map is provided.
 	void DoDamage( const DamageDesc& damage, Map* map );
-	void UseTU( float tu )		{ stats.UseTU( tu ); }
+	void UseTU( float val )		{ tu = grinliz::Max( 0.0f, tu-val ); }
 
 	void NewTurn();
 	void SetUserDone()			{ userDone = true; }
@@ -155,14 +159,9 @@ private:
 	};
 	U32 GetValue( int which ) const;	// ALIEN_TYPE, etc.
 
-//	void GenerateSoldier( U32 seed );
-//	void GenerateCiv( U32 seed );
-//	void GenerateAlien( U32 seed, int type );
 	void CreateModel();
-
 	void UpdateModel();		// make the model current with the unit status - armor, etc.
 	void UpdateWeapon();	// set the gun position
-
 	void Kill( Map* map );
 
 	int status;
@@ -180,6 +179,8 @@ private:
 
 	Inventory	inventory;
 	Stats		stats;
+	float		tu;
+	int			hp;
 };
 
 

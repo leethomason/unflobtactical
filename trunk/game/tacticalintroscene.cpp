@@ -44,9 +44,9 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 		buttons = new UIButtonBox( engine->GetScreenport() );
 
 		int icons[] = { ICON_GREEN_BUTTON, ICON_GREEN_BUTTON, ICON_GREEN_BUTTON };
-		const char* iconText[] = { "test", "new", "continue" };
-		buttons->InitButtons( icons, 3 );
-		buttons->SetOrigin( 42, 40 );
+		const char* iconText[] = { "new", "continue" };
+		buttons->InitButtons( icons, 2 );
+		buttons->SetOrigin( 42, 80 );
 		buttons->SetButtonSize( 120, 50 );
 		buttons->SetText( iconText );
 	}
@@ -80,7 +80,10 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 		choices->SetBG( TIME_NIGHT, 20+XSIZE*1, h-316, ICON_GREEN_BUTTON, DECO_NONE, "Night", false );
 
 		choices->SetBG( LOC_FARM,	210, h-124,	ICON_GREEN_BUTTON, DECO_NONE, "Farm", true );
+		choices->SetBG( SEED,		 155, h-317, ICON_GREEN_BUTTON, DECO_NONE, "Seed", false );
 		choices->SetBG( GO_NEW_GAME, 360, h-317, ICON_GREEN_BUTTON, DECO_NONE, "GO!", false );
+
+		choices->SetText( SEED, "Seed", "0" );
 	}
 
 	// Is there a current game?
@@ -131,7 +134,7 @@ void TacticalIntroScene::Tap(	int count,
 	if ( !showNewChoices ) {
 		int tap = buttons->QueryTap( ux, uy );
 		switch ( tap ) {
-			case TEST_GAME:			game->loadRequested = 2;			break;
+			//case TEST_GAME:			game->loadRequested = 2;			break;
 			case NEW_GAME:			showNewChoices = true;				break;
 			case CONTINUE_GAME:		game->loadRequested = 0;			break;
 
@@ -180,6 +183,17 @@ void TacticalIntroScene::Tap(	int count,
 				game->loadRequested = 1;
 				WriteXML( &game->newGameXML );
 				break;
+
+			case SEED:
+				{
+					const char* seedStr = choices->GetText( SEED, 1 );
+					int seed = atol( seedStr );
+					seed += 10;
+					char buffer[16];
+					SNPrintf( buffer, 16, "%d", seed );
+					choices->SetText( SEED, "Seed", buffer );
+				}
+				break;
 		}
 	}
 	if ( game->loadRequested >= 0 ) {
@@ -210,7 +224,10 @@ void TacticalIntroScene::WriteXML( TiXmlNode* xml )
 	
 	battleElement->SetAttribute( "dayTime", choices->GetHighLight( TIME_NIGHT ) ? 0 : 1 );
 
-	CreateMap( gameElement, 0, LOC_FARM, 1 );
+	const char* seedStr = choices->GetText( SEED, 1 );
+	int seed = atol( seedStr );
+
+	CreateMap( gameElement, seed, LOC_FARM, 1 );
 
 	{
 		std::string buf = "<Units>";
@@ -382,7 +399,7 @@ void TacticalIntroScene::CreateMap(	TiXmlNode* parent,
 	SceneInfo info;
 	CalcInfo( location, ufoSize, &info );
 	mapElement->SetAttribute( "sizeX", info.blockSizeX*16 );
-	mapElement->SetAttribute( "sizeY", info.blockSizeX*16 );
+	mapElement->SetAttribute( "sizeY", info.blockSizeY*16 );
 	
 	random.SetSeed( seed );
 	for( int i=0; i<5; ++i ) 
@@ -424,6 +441,6 @@ void TacticalIntroScene::CreateMap(	TiXmlNode* parent,
 		}
 	}
 
-//	parent->Print( stdout, 0 );
-//	fflush( stdout );
+	parent->Print( stdout, 0 );
+	fflush( stdout );
 }

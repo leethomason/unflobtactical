@@ -226,6 +226,15 @@ void Unit::Init(	Engine* engine,
 	userDone = false;
 	ai = AI_NORMAL;
 
+	if ( p_status == STATUS_ALIVE ) {
+		tu = 1.0f;
+		hp = 1;
+	}
+	else {
+		tu = 0;
+		hp = 0;
+	}
+
 	CreateModel();
 }
 
@@ -413,7 +422,7 @@ void Unit::Kill( Map* map )
 	
 	CreateModel();
 
-	stats.ZeroHP();
+	hp = 0;
 	model->SetRotation( 0 );	// set the y rotation to 0 for the "splat" icons
 	model->SetPos( pos );
 	model->SetFlag( Model::MODEL_NO_SHADOW );
@@ -441,9 +450,9 @@ void Unit::DoDamage( const DamageDesc& damage, Map* map )
 {
 	GLASSERT( status != STATUS_NOT_INIT );
 	if ( status == STATUS_ALIVE ) {
-		// FIXME: account for armor
-		stats.DoDamage( (int)damage.Total() );
-		if ( !stats.HP() ) {
+		// FIXME adjust for armor
+		hp = Max( 0, hp-(int)damage.Total() );
+		if ( hp == 0 ) {
 			Kill( map );
 			visibilityCurrent = false;
 		}
@@ -454,7 +463,7 @@ void Unit::DoDamage( const DamageDesc& damage, Map* map )
 void Unit::NewTurn()
 {
 	if ( status == STATUS_ALIVE ) {
-		stats.RestoreTU();
+		tu = stats.TotalTU();
 		userDone = false;
 	}
 }
@@ -543,6 +552,8 @@ void Unit::Save( TiXmlElement* doc ) const
 		unitElement->SetAttribute( "type", type );
 		unitElement->SetAttribute( "status", status );
 		unitElement->SetAttribute( "body", body );
+		unitElement->SetAttribute( "hp", hp );
+		unitElement->SetDoubleAttribute( "tu", tu );
 		unitElement->SetDoubleAttribute( "modelX", model->Pos().x );
 		unitElement->SetDoubleAttribute( "modelZ", model->Pos().z );
 		unitElement->SetDoubleAttribute( "yRot", model->GetRotation() );
@@ -589,10 +600,19 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 		GenStats( team, type, body, &stats );		// defaults if not provided
 		stats.Load( ele );
 		inventory.Load( ele, engine, game );
+
 		// connect armor to the stats:
 		stats.SetArmor( inventory.ArmorAmount() );
 
 		Init( engine, game, team, a_status, type, body );
+
+		hp = stats.TotalHP();
+		tu = stats.TotalTU();
+		// Wait until everything that changes tu and hp have been set
+		// before loading, just so we get the correct defaults.
+		ele->QueryValueAttribute( "hp", &hp );
+		ele->QueryValueAttribute( "tu", &tu );
+
 		if ( StrEqual( ele->Attribute( "ai" ), "guard" ) ) {
 			ai = AI_GUARD;
 		}
@@ -612,14 +632,15 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 		}
 		UpdateInventory();
 
-		GLOUTPUT(( "Unit loaded: team=%d STR=%d DEX=%d PSY=%d rank=%d armor=%d hp=%d acc=%.2f\n",
+		GLOUTPUT(( "Unit loaded: team=%d STR=%d DEX=%d PSY=%d rank=%d armor=%d hp=%d/%d acc=%.2f\n",
 					this->team,
 					this->stats.STR(),
 					this->stats.DEX(),
 					this->stats.PSY(),
 					this->stats.Rank(),
 					this->stats.Armor(),
-					this->stats.HP(),
+					hp,
+					this->stats.TotalHP(),
 					this->stats.Accuracy() ));
 	}
 }
@@ -649,9 +670,9 @@ float Unit::AngleBetween( const Vector2I& p1, bool quantize ) const
 bool Unit::CanFire( int select, int type ) const
 {
 	int nShots = (type == AUTO_SHOT) ? 3 : 1;
-	float tu = FireTimeUnits( select, type );
+	float needed = FireTimeUnits( select, type );
 
-	if ( tu > 0.0f && tu <= stats.TU() ) {
+	if ( needed > 0.0f && needed <= tu ) {
 		int rounds = inventory.CalcClipRoundsTotal( GetWeapon()->IsWeapon()->weapon[select].clipItemDef );
 		if ( rounds >= nShots ) 
 			return true;

@@ -235,6 +235,12 @@ int main( int argc, char **argv )
 						}
 						break;
 
+					case SDLK_n:
+						{
+							GameHotKey( game, GAME_HK_NEXT_UNIT );
+						}
+						break;
+
 #if defined( MAPMAKER )
 					case SDLK_DELETE:	
 						game->DeleteAtSelection(); 

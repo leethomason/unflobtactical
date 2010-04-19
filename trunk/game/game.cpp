@@ -70,13 +70,13 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	Map* map = engine.GetMap();
 	ImageManager* im = ImageManager::Instance();
 
-#ifndef MAPMAKER
-	map->SetSize( 40, 40 );
-	map->SetTexture( ImageManager::Instance()->GetImage("farmland" ), 0, 0 );
-	map->SetLightMaps( im->GetImage( "farmlandD" ),
-					   im->GetImage( "farmlandN" ),
-					   0, 0 );
-#endif
+//#ifndef MAPMAKER
+//	map->SetSize( 40, 40 );
+//	map->SetTexture( ImageManager::Instance()->GetImage("farmland" ), 0, 0 );
+//	map->SetLightMaps( im->GetImage( "farmlandD" ),
+//					   im->GetImage( "farmlandN" ),
+//					   0, 0 );
+//#endif
 
 	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 
@@ -126,10 +126,10 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	std::string dayMap   = std::string( buffer ) + std::string( "_DAY" );
 	std::string nightMap = std::string( buffer ) + std::string( "_NGT" );
 
-	map->SetTexture( im->GetImage( texture.c_str() ), 0, 0 );
-	map->SetLightMaps( im->GetImage( dayMap.c_str() ),
-					   im->GetImage( nightMap.c_str() ),
-					   0, 0 );
+//	map->SetTexture( im->GetImage( texture.c_str() ), 0, 0 );
+//	map->SetLightMaps( im->GetImage( dayMap.c_str() ),
+//					   im->GetImage( nightMap.c_str() ),
+//					   0, 0 );
 
 	engine.camera.SetPosWC( -25.f, 45.f, 30.f );	// standard test
 	engine.camera.SetYRotation( -60.f );
@@ -532,6 +532,12 @@ void Game::Rotate( int action, float degrees )
 void Game::CancelInput()
 {
 	isDragging = false;
+}
+
+
+void Game::HandleHotKeyMask( int mask )
+{
+	sceneStack.Top()->HandleHotKeyMask( mask );
 }
 
 

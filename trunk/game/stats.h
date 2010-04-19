@@ -42,7 +42,7 @@ class Random;
 class Stats
 {
 public:
-	Stats() : hp(1), totalHP(1), tu((float)MIN_TU), totalTU((float)MIN_TU), _STR(1), _DEX(1), _PSY(1), rank( 0 ), armor( 0 ) {}
+	Stats() : totalHP(1), totalTU((float)MIN_TU), _STR(1), _DEX(1), _PSY(1), rank( 0 ), armor( 0 ) {}
 
 	void SetSTR( int value )			{ _STR = value; CalcBaselines(); }
 	void SetDEX( int value )			{ _DEX = value; CalcBaselines(); }
@@ -52,22 +52,22 @@ public:
 
 	static int GenStat( grinliz::Random* rand, int min, int max );
 
-	void DoDamage( int hitDamage ) {
-		hp -= hitDamage;
-		if ( hp < 0 )
-			hp = 0;
-	}
-	void ZeroHP() { 
-		hp = 0;
-	}
+//	void DoDamage( int hitDamage ) {
+//		hp -= hitDamage;
+//		if ( hp < 0 )
+//			hp = 0;
+//	}
+//	void ZeroHP() { 
+//		hp = 0;
+//	}
 
-	void UseTU( float t ) {
-		GLASSERT( t <= tu );
-		tu -= t;
-	}
-	void RestoreTU() {
-		tu = totalTU;
-	}
+//	void UseTU( float t ) {
+//		GLASSERT( t <= tu );
+//		tu -= t;
+//	}
+//	void RestoreTU() {
+//		tu = totalTU;
+//	}
 
 	// Base traits:
 	int STR() const			{ return _STR; }
@@ -77,12 +77,12 @@ public:
 	int Rank() const		{ return rank; }
 
 	// Computed:
-	int HP() const				{ return hp; }
+//	int HP() const				{ return hp; }
 	int TotalHP() const			{ return totalHP; }
-	float HPFraction() const	{ return (float)hp / (float)totalHP; }
+//	float HPFraction() const	{ return (float)hp / (float)totalHP; }
 	int Armor() const			{ return armor; }
 
-	float TU() const		{ return tu; }
+//	float TU() const		{ return tu; }
 	float TotalTU() const	{ return totalTU; }		// one TU is one move
 	float Accuracy() const	{ return accuracy; }	// cone at 1 unit out
 	float Reaction() const	{ return reaction; }	// 0.0-1.0. The chance of reaction fire
@@ -99,8 +99,8 @@ private:
 	int armor;
 
 	// derived:
-	int hp, totalHP;
-	float tu, totalTU;
+	int totalHP;
+	float totalTU;
 	float accuracy;
 	float reaction;
 };

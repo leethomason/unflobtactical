@@ -185,7 +185,7 @@ public:
 	};
 	void SetTextLayout( int layout )	{ this->textLayout = layout; cacheValid = false; }
 
-	const char* GetText( int index );
+	const char* GetText( int index, int which=0 );
 
 	// Set the alpha of non-text
 	void SetAlpha( float alpha )		{ this->alpha = alpha; cacheValid = false; }
@@ -231,7 +231,8 @@ public:
 		if ( h )
 			*h = b.Height();
 	}
-	
+
+	virtual void CalcButtonBounds( int index, grinliz::Rectangle2I* _bounds ) = 0;
 
 	// returns the icon INDEX, or -1 if not clicked
 	virtual int QueryTap( int x, int y ) = 0;
@@ -291,6 +292,7 @@ public:
 	void SetItemSize( int index, int dx, int dy );
 
 	void SetBG( int index, int x, int y, int iconID, int decoID, const char* text, bool highLight );
+	virtual void CalcButtonBounds( int index, grinliz::Rectangle2I* _bounds );
 
 protected:
 	virtual void CalcButtons();
@@ -331,6 +333,7 @@ public:
 	}
 
 	virtual int QueryTap( int x, int y );	
+	virtual void CalcButtonBounds( int index, grinliz::Rectangle2I* _bounds );
 
 protected:
 	virtual void CalcButtons();

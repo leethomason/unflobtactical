@@ -49,6 +49,7 @@ public:
 
 	virtual void Save( TiXmlElement* doc )						{}
 	virtual void Load( const TiXmlElement* doc )				{}
+	virtual void HandleHotKeyMask( int mask )					{}
 
 	// Rendering
 	enum {

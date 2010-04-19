@@ -692,10 +692,10 @@ void BattleScene::DrawHPBars()
 
 					hpBars[i]->SetRange( 0, 100 );
 					hpBars[i]->SetValue1( units[i].GetStats().TotalHP() );
-					hpBars[i]->SetValue0( units[i].GetStats().HP() );
+					hpBars[i]->SetValue0( units[i].HP() );
 				}
-				if ( hpBars[i]->GetValue0() != units[i].GetStats().HP() ) {
-					hpBars[i]->SetValue0( units[i].GetStats().HP() );
+				if ( hpBars[i]->GetValue0() != units[i].HP() ) {
+					hpBars[i]->SetValue0( units[i].HP() );
 					hpBarsFadeTime[i] = FADE_TIME;
 				}
 				hpBars[i]->SetOrigin( ui.x-W/2, ui.y-H*18/10 );
@@ -815,7 +815,7 @@ void BattleScene::SetFireWidget()
 		enable = enable &&	item->IsWeapon();
 		enable = enable &&	item->IsWeapon()->SupportsType( select, type );
 		enable = enable &&	(nShots <= rounds );
-		enable = enable &&  unit->GetStats().TU() >= unit->FireTimeUnits( select, type );
+		enable = enable &&  unit->TU() >= unit->FireTimeUnits( select, type );
 
 		unit->FireStatistics( select, type, distToTarget, &fraction, &anyFraction, &tu, &dptu );
 		// Never show 100% in the UI:
@@ -833,7 +833,7 @@ void BattleScene::SetFireWidget()
 		fireWidget->SetDeco( index, DECO_NONE );
 
 		// Reflect the TU left.
-		float tuAfter = unit->GetStats().TU() - tu;
+		float tuAfter = unit->TU() - tu;
 		int tuIndicator = ICON_BLUE_WALK_MARK;
 		if ( tu != 0 && tuAfter >= autoTU ) {
 			tuIndicator = ICON_GREEN_WALK_MARK;
@@ -1370,8 +1370,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 					// Used to do intermedia rotation, but it was annoying. Once vision was switched
 					// to 360 it did nothing. So rotation is free now.
 					//
-					const float SPEED = 3.0f;
-					//const float ROTATION_SPEED = 150.0f;
+					const float SPEED = 4.5f;
 					float x, z, r;
 
 					MoveAction* move = &action->type.move;
@@ -1388,7 +1387,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 						move->path.Travel( &travel, &move->pathStep, &move->pathFraction );
 						if ( move->pathFraction == 0.0f ) {
 							// crossed a path boundary.
-							GLASSERT( unit->GetStats().TU() >= 1.0 );	// one move is one TU
+							GLASSERT( unit->TU() >= 1.0 );	// one move is one TU
 							
 							Vector2<S16> v0 = move->path.GetPathAt( move->pathStep-1 );
 							Vector2<S16> v1 = move->path.GetPathAt( move->pathStep );
@@ -1693,7 +1692,7 @@ int BattleScene::ProcessActionHit( Action* action )
 					selection.ClearTarget();			
 					visibility.InvalidateUnit( hitUnit - units );
 				}
-				GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", (unsigned)hitUnit, (int)hitUnit->GetStats().HP(), (int)hitUnit->GetStats().TotalHP() ));
+				GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", (unsigned)hitUnit, (int)hitUnit->HP(), (int)hitUnit->GetStats().TotalHP() ));
 			}
 		}
 		else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
@@ -1794,6 +1793,19 @@ int BattleScene::ProcessActionHit( Action* action )
 	actionStack.Pop();
 	result |= UNIT_ACTION_COMPLETE;
 	return true;
+}
+
+
+void BattleScene::HandleHotKeyMask( int mask )
+{
+	if ( mask & GAME_HK_NEXT_UNIT ) {
+		Rectangle2I b;
+		widgets->CalcButtonBounds( BTN_NEXT, &b );
+		Vector2I ui = { (b.min.x+b.max.x)/2, (b.min.y+b.max.y)/2 };
+		Vector2I view;
+		engine->GetScreenport().UIToView( ui, &view );
+		HandleIconTap( view.x, view.y );		
+	}
 }
 
 
@@ -2084,7 +2096,7 @@ void BattleScene::Tap(	int tap,
 			const Stats& stats = selection.soldierUnit->GetStats();
 
 			int result = engine->GetMap()->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
-			if ( result == micropather::MicroPather::SOLVED && cost <= stats.TU() ) {
+			if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
 				// TU for a move gets used up "as we go" to account for reaction fire and changes.
 				// Go!
 				Action action;
@@ -2123,7 +2135,7 @@ void BattleScene::ShowNearPath( const Unit* unit )
 	Vector2<S16> start = { (S16)model->X(), (S16)model->Z() };
 
 	const Stats& stats = unit->GetStats();
-	float tu = stats.TU();
+	float tu = unit->TU();
 
 	Vector2F range[3] = { 
 		{ 0.0f,	tu-autoTU },

@@ -186,15 +186,8 @@ public:
 
 	void SetSize( int w, int h )					{ width = w; height = h; }
 
-	// The background texture of the map.
-	void SetTexture( const Surface* surface, int x, int y );
-
 	void SetLightObjects( const Surface* surface )	{ GLASSERT( surface ); this->lightObject = surface; }
 
-	// The light map is a 64x64 texture of the lighting at each point. Without
-	// a light map, full white (daytime) is used. The 'x,y,size' parameters support
-	// setting the lightmap in parts.
-	void SetLightMaps( const Surface* day, const Surface* night, int x, int y );
 	bool DayTime() const { return dayTime; }
 	void SetDayTime( bool day );
 
@@ -366,6 +359,13 @@ private:
 		const Model* filterModel;
 	};
 
+	// The background texture of the map.
+	void SetTexture( const Surface* surface, int x, int y );
+	// The light map is a 64x64 texture of the lighting at each point. Without
+	// a light map, full white (daytime) is used. The 'x,y,size' parameters support
+	// setting the lightmap in parts.
+	void SetLightMaps( const Surface* day, const Surface* night, int x, int y );
+
 	int GetPathMask( ConnectionType c, int x, int z );
 	bool Connected( ConnectionType c, int x, int y, int dir );
 
@@ -396,10 +396,18 @@ private:
 	grinliz::Rectangle3F bounds;
 	SpaceTree* tree;
 
-	Surface surface;
-	Texture texture;
+	Surface surface;		// background surface
+	Texture texture;		// background texture
 	Vertex vertex[4];
 	grinliz::Vector2F texture1[4];
+
+	enum { MAX_IMAGE_DATA = 16 };
+	struct ImageData {
+		int x, y, size;
+		char name[EL_FILE_STRING_LEN];
+	};
+	int nImageData;
+	ImageData imageData[ MAX_IMAGE_DATA ];
 
 	void GenerateLightMap();
 

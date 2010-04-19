@@ -123,13 +123,14 @@ void GameMoveCamera( void* handle, float dx, float dy, float dz )
 	game->engine.camera.DeltaPosWC( dx, dy, dz );
 }
 
-/*
-void GamePathToSave( void* handle, const char* path )
+
+void GameHotKey( void* handle, int mask )
 {
 	Game* game = (Game*)handle;
-	game->SetPathToSave( path );
+	game->HandleHotKeyMask( mask );
 }
-*/
+
+
 
 void PlatformPathToResource( const char* name, const char* extension, char* buffer, int bufferLen )
 {

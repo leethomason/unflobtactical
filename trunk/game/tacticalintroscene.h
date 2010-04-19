@@ -59,8 +59,7 @@ public:
 	//    exp:		Low Med Hi
 	//  Weather:	Day Night
 	enum {
-		TEST_GAME = 0,
-		NEW_GAME,
+		NEW_GAME = 0,
 		CONTINUE_GAME,
 
 		SQUAD_4 = 0,
@@ -78,6 +77,7 @@ public:
 
 		LOC_FARM,
 
+		SEED,
 		GO_NEW_GAME,
 		OPTION_COUNT
 	};
