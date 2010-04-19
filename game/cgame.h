@@ -73,7 +73,8 @@ void GameCameraSet( void* handle, int param, float value );
 
 void GameMoveCamera( void* handle, float dx, float dy, float dz );
 	
-void GamePathToSave( void* handle, const char* path );
+#define GAME_HK_NEXT_UNIT		0x0001
+void GameHotKey( void* handle, int mask );
 	
 // --- Core to platform --- //
 void PlatformPathToResource( const char* name, const char* extension, char* buffer, int bufferLen );

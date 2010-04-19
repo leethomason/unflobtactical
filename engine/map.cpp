@@ -50,6 +50,7 @@ Map::Map( SpaceTree* tree )
 	lander = 0;
 	dayTime = true;
 	pathBlocker = 0;
+	nImageData = 0;
 
 	microPather = new MicroPather(	this,			// graph interface
 									SIZE*SIZE,		// max possible states (+1)
@@ -143,6 +144,9 @@ void Map::Clear()
 
 void Map::Draw()
 {
+	if ( !texture.glID )
+		return;
+
 	GenerateLightMap();
 
 	U8* v = (U8*)vertex + Vertex::POS_OFFSET;
@@ -889,6 +893,8 @@ void Map::LoadDebris( const TiXmlElement* debrisElement, ItemDef* const* arr )
 void Map::Save( TiXmlElement* mapElement )
 {
 	GLASSERT( strcmp( mapElement->Value(), "Map" ) == 0 );
+	mapElement->SetAttribute( "sizeX", width );
+	mapElement->SetAttribute( "sizeY", height );
 
 	TiXmlElement* itemsElement = new TiXmlElement( "Items" );
 	mapElement->LinkEndChild( itemsElement );
@@ -909,6 +915,17 @@ void Map::Save( TiXmlElement* mapElement )
 		if ( item->flags )
 			itemElement->SetAttribute( "flags", item->flags );
 		itemsElement->LinkEndChild( itemElement );
+	}
+
+	TiXmlElement* imagesElement = new TiXmlElement( "Images" );
+	mapElement->LinkEndChild( imagesElement );
+	for( int i=0; i<nImageData; ++i ) {
+		TiXmlElement* imageElement = new TiXmlElement( "Image" );
+		imagesElement->LinkEndChild( imageElement );
+		imageElement->SetAttribute( "x", imageData[i].x );
+		imageElement->SetAttribute( "y", imageData[i].y );
+		imageElement->SetAttribute( "size", imageData[i].size );
+		imageElement->SetAttribute( "name", imageData[i].name );
 	}
 
 	TiXmlElement* groundDebrisElement = new TiXmlElement( "GroundDebris" );
@@ -947,8 +964,9 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 	int sizeY = 64;
 
 	mapElement->QueryIntAttribute( "sizeX", &sizeX );
-	mapElement->QueryIntAttribute( "sizeX", &sizeY );
+	mapElement->QueryIntAttribute( "sizeY", &sizeY );
 	SetSize( sizeX, sizeY );
+	nImageData = 0;
 
 	const TiXmlElement* imagesElement = mapElement->FirstChildElement( "Images" );
 	if ( imagesElement ) {
@@ -961,6 +979,16 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 			image->QueryIntAttribute( "x", &x );
 			image->QueryIntAttribute( "y", &y );
 			image->QueryIntAttribute( "size", &size );
+
+			// store it to save later:
+			const char* name = image->Attribute( "name" ); 
+			GLASSERT( strlen( name ) < EL_FILE_STRING_LEN );
+			GLASSERT( nImageData < MAX_IMAGE_DATA );
+			imageData[ nImageData ].x = x;
+			imageData[ nImageData ].y = y;
+			imageData[ nImageData ].size = size;
+			StrNCpy( imageData[ nImageData ].name, image->Attribute( "name" ), EL_FILE_STRING_LEN );
+			++nImageData;
 			
 			ImageManager* imageManager = ImageManager::Instance();
 

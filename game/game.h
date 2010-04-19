@@ -108,6 +108,8 @@ public:
 
 	// debugging / testing / mapmaker
 	void MouseMove( int x, int y );
+	void HandleHotKeyMask( int mask );
+
 #ifdef MAPMAKER
 	void RotateSelection( int delta );
 	void DeleteAtSelection();

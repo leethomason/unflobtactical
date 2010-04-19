@@ -141,6 +141,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 						Map* map,
 						AIAction* action )
 {
+
 	// QuickProfile qp( "WarriorAI::Think()" );
 	// Crazy simple 1st AI. If:
 	// - theUnit can see something, shoot it. Choose the unit with the
@@ -307,7 +308,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 			}
 			if ( bestPath >= 0 ) {
 				std::vector< grinliz::Vector2<S16> >& path = m_path[bestPath];
-				TrimPathToCost( &path, theUnit->GetStats().TU() );
+				TrimPathToCost( &path, theUnit->TU() );
 				if ( path.size() > 1 ) {
 					AILOG(( "  **Moving to Ammo at (%d,%d)\n", storeLocs[bestPath].x, storeLocs[bestPath].y ));
 					action->actionID = ACTION_MOVE;
@@ -339,7 +340,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 		float bestGolfScore = FLT_MAX;
 
 		// Reserve for auto or snap??
-		float tu = theUnit->GetStats().TU();
+		float tu = theUnit->TU();
 
 		int select1, type1, select0, type0;
 		theUnit->FireModeToType( AUTO_SHOT, &select1, &type1 );
@@ -432,7 +433,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 	// If the aliens don't see anything, they just stand around. That's okay, except it's weird
 	// that they completely skip their turn. So if they are set to wander, then move a space randomly.
 	if (    (flags & AI_WANDER ) 
-		 && (theUnit->GetStats().TU() == theUnit->GetStats().TotalTU() ) )		// only wander if we did nothing else.
+		 && (theUnit->TU() == theUnit->GetStats().TotalTU() ) )		// only wander if we did nothing else.
 	{
 		Vector2I choices[8] = { {0,1}, {0,-1}, {1,0},  {-1,0}, 
 								{1,1}, {1,-1}, {-1,1}, {-1,-1} };

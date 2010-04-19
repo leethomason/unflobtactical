@@ -1,4 +1,4 @@
-<Map>
+<Map sizeX="16" sizeY="16">
     <Items>
         <Item x="12" y="13" index="98" />
         <Item x="14" y="12" index="1" hp="250" />
@@ -50,6 +50,9 @@
         <Item x="4" y="9" rot="3" index="65" />
         <Item x="9" y="4" rot="1" index="65" />
     </Items>
+    <Images>
+        <Image x="0" y="0" size="16" name="FARM_16_UFOA_00" />
+    </Images>
     <GroundDebris />
     <PyroGroup />
 </Map>

@@ -392,10 +392,10 @@ void UIButtons::SetText( int index, const char* text0, const char* text1 )
 }
 
 
-const char* UIButtons::GetText( int index )
+const char* UIButtons::GetText( int index, int which )
 {
 	GLASSERT( index >= 0 && index < nIcons );
-	return icons[index].text0;
+	return (which==0) ? icons[index].text0 : icons[index].text1;
 }
 
 
@@ -449,6 +449,15 @@ void UIButtons::SetHighLight( int index, bool highLight )
 		icons[index].highLight = highLight;
 		cacheValid = false;
 	}
+}
+
+
+void UIButtonBox::CalcButtonBounds( int index, grinliz::Rectangle2I* _bounds )
+{
+	GLASSERT( index >= 0 && index < nIcons );
+	// Hard to duplicate layout code.
+	CalcButtons();
+	_bounds->Set( pos[index*4+0].x, pos[index*4+0].y, pos[index*4+2].x, pos[index*4+2].y );
 }
 
 
@@ -706,6 +715,20 @@ int UIButtonGroup::QueryTap( int x, int y )
 		}
 	}
 	return -1;
+}
+
+
+void UIButtonGroup::CalcButtonBounds( int index, grinliz::Rectangle2I* _bounds )
+{
+	GLASSERT( index >= 0 && index < nIcons );
+	if ( bSize[index].x && bSize[index].y ) {
+		_bounds->Set( bPos[index].x, bPos[index].y, 
+					  bPos[index].x + bSize[index].x, bPos[index].y + bSize[index].y );
+	}
+	else {
+		_bounds->Set( bPos[index].x, bPos[index].y, 
+					  bPos[index].x + size.x, bPos[index].y + size.y );
+	}
 }
 
 

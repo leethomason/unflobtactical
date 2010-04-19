@@ -103,6 +103,7 @@ public:
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D );
 	virtual void DoTick( U32 currentTime, U32 deltaTime );
 	virtual void DrawHUD();
+	virtual void HandleHotKeyMask( int mask );
 
 	virtual void Save( TiXmlElement* doc );
 	virtual void Load( const TiXmlElement* doc );
