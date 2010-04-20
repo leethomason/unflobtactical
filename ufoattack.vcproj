@@ -378,6 +378,14 @@
 			Name="win32"
 			>
 			<File
+				RelativePath=".\win32\audio.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\win32\audio.h"
+				>
+			</File>
+			<File
 				RelativePath=".\win32\glew.c"
 				>
 			</File>

@@ -24,6 +24,7 @@
 #include "../grinliz/glvector.h"
 #include "../game/cgame.h"
 #include "../grinliz/glstringutil.h"
+#include "audio.h"
 
 #if defined(MAPMAKER) || defined(_MSC_VER)
 #include "../game/game.h"
@@ -75,7 +76,7 @@ int main( int argc, char **argv )
 	SDL_Surface *surface = 0;
 
 	// SDL initialization steps.
-    if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE | SDL_INIT_TIMER ) < 0 )
+    if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE | SDL_INIT_TIMER | SDL_INIT_AUDIO ) < 0 )
 	{
 	    fprintf( stderr, "SDL initialization failed: %s\n", SDL_GetError( ) );
 		exit( 1 );
@@ -130,6 +131,7 @@ int main( int argc, char **argv )
 	const unsigned char* version  = glGetString( GL_VERSION );
 
 	GLLOG(( "OpenGL vendor: '%s'  Renderer: '%s'  Version: '%s'\n", vendor, renderer, version ));
+	Audio_Init();
 
 	// Set the viewport to be the entire window. It would be
 	// desireable to accomidate changes to the aspect ration,
@@ -405,6 +407,7 @@ int main( int argc, char **argv )
 	}
 	SDL_RemoveTimer( timerID );
 	DeleteGame( game );
+	Audio_Close();
 
 	SDL_Quit();
 
