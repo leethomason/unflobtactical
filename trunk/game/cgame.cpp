@@ -161,4 +161,11 @@ void PlatformPathToResource( const char* name, const char* extension, char* buff
 void PlayWAVSound( const void* wavFile, int nBytes )
 {
 	GLOUTPUT(( "Wav sound called.\n" ));
+#if defined( UFO_WIN32_SDL )
+	extern void Audio_PlayWav( const void* mem, int size );
+
+	Audio_PlayWav( wavFile, nBytes );
+#else
+#	error unhandled
+#endif
 }

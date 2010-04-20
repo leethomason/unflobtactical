@@ -1964,9 +1964,14 @@ void BattleScene::Tap(	int tap,
 	*/
 	{
 		// Test Sound.
-//		int size=0;
-//		const void* snd = game->AccessBinaryResource( "testlaser44", &size );
-//		PlayWAVSound( snd, size );
+		int size=0;
+		const gamedb::Reader* reader = game->GetDatabase();
+		const gamedb::Item* data = reader->Root()->Child( "data" );
+		const gamedb::Item* item = data->Child( "testlaser44" );
+
+		const void* snd = reader->AccessData( item, "binary", &size );
+		GLASSERT( snd );
+		PlayWAVSound( snd, size );
 	}
 
 	if ( tap > 1 )
