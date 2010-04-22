@@ -1,5 +1,11 @@
 Useful code and links from the web. And sometimes a sort of development blog.
 
+= Back to Databases (Apr21, 2010) = 
+
+I have great respect for sqlite3. Solid, well thought out, well tested API.
+
+But I'm just attached to hierarchical data. Curse that XML and it's hierarchical ways...I just can't give it up. I wrote a very simple database that takes advantage that the writer can be slow and use a lot of memory, while the reader needs to be lean and mean. Great exercise, and a nice bit of code on the other side. (gamedb, gamedbwriter, and gamedbreader.) gamedb loads only the part of the file need to index the data and reads the data itself on demand.
+
 = On to Android =
 
 With the license change in the iPhone 4 SDK specifying the source language, Apple has crossed the line from being annoying to draconian. I'm switching development to Android. Hopefully it will go well. 
