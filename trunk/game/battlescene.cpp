@@ -1962,7 +1962,7 @@ void BattleScene::Tap(	int tap,
 		ParticleSystem::Instance()->EmitOnePoint( c, cv, pos, 1500 );
 	}
 	*/
-	{
+	/*{
 		// Test Sound.
 		int size=0;
 		const gamedb::Reader* reader = game->GetDatabase();
@@ -1972,7 +1972,7 @@ void BattleScene::Tap(	int tap,
 		const void* snd = reader->AccessData( item, "binary", &size );
 		GLASSERT( snd );
 		PlayWAVSound( snd, size );
-	}
+	}*/
 
 	if ( tap > 1 )
 		return;

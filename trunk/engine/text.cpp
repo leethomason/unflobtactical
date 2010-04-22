@@ -94,7 +94,7 @@ void UFOText::Metrics(	int c,				// character in
 	cy = GLYPH_CY - cy;
 
 	if ( c == 0 ) {
-		*advance = *width = GLYPH_WIDTH * 3 / 4;
+		*advance = *width = GLYPH_WIDTH * 2 / 4;
 	}
 	else {
 		GLASSERT( c < GLYPH_CX*GLYPH_CY );

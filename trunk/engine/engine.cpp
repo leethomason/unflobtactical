@@ -34,8 +34,6 @@ using namespace grinliz;
 int trianglesRendered = 0;	// FIXME: should go away once all draw calls are moved to the enigine
 int drawCalls = 0;			// ditto
 
-//#define SHOW_FOW
-
 /*
 	Optimization notes:
 	This all starts with tri-counts way high and frame rates way low.

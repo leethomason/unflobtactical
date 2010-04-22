@@ -104,9 +104,18 @@ int main( int argc, char **argv )
 	if ( fullscreen )
 		videoFlags |= SDL_FULLSCREEN;
 
+	int width = 800;
+	int height = 600;
+
+	const SDL_VideoInfo* video = SDL_GetVideoInfo();
+	if ( video->current_h < 800 ) {
+		width = IPOD_SCREEN_HEIGHT;
+		height = IPOD_SCREEN_WIDTH;
+	}
+
 	// Note that our output surface is rotated from the iPod.
 	//surface = SDL_SetVideoMode( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, 32, videoFlags );
-	surface = SDL_SetVideoMode( 800, 600, 32, videoFlags );
+	surface = SDL_SetVideoMode( width, height, 32, videoFlags );
 	GLASSERT( surface );
 
 	int stencil = 0;
