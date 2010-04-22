@@ -207,13 +207,14 @@ public:
 	const Texture* GetTexture( const char* name );
 	void AddTexture( const char* name, U32 glID, bool alpha );
 
+//	int TextureMemory() const { return textureMem; }
+//	int ActiveTextures() const { return nActive; }
+
 	static void Create();
 	static void Destroy();
 private:
 	TextureManager();
 	~TextureManager();
-
-//	static int Compare( const void * elem1, const void * elem2 );
 
 	enum {
 		MAX_TEXTURES = 30		// increase as needed
