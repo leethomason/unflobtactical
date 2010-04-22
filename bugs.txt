@@ -12,9 +12,11 @@ Issues:
 - mission types: crash
 
 Issues, post next test:
+- simultaneous shots
 - need correct colors in RenderWeapon()
 - check math (again) in PushShootAction()
 - handle too many particles consistently
+- gameplay: rotation? reaction fire? need some advantage to flanking
 - mission types: landing
 - mission types: terror
 - mission types: big ufos
