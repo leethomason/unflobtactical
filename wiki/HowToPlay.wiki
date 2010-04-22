@@ -1,5 +1,7 @@
 = UFO Attack =
 
+Build 346
+
 Welcome to UFO Attack! UFO Attack is a turned based tactical combat game. (It is based on the classic game X-COM, but has been changing as I write it and add new concepts. It's very rewarding to take the game in a bit of a new direction).
 
 There are 2 teams: the Terran Soldiers and the Aliens. You play the Terrans, while the computer plays the Aliens.
@@ -14,15 +16,19 @@ But you can comment on the wiki, edit the wiki (email me for access), or send me
 
 == Art Direction ==
 
-Much of the art is missing. There are few icons, only a couple of weapon models, and most of the art is placeholder. My current thinking is to give it a "cartoony boardgame" look. Largely this is driven by not wanting to put in an animation system, and trying to keep the art requirements do-able. I'm still happy to get any ideas or feedback on the art, of course. It's in a good place to think about new ideas since I'll re-do it anyway.
+Much of the art is missing. There are few icons, only a couple of weapon models, and most of the art is placeholder. My current thinking is to give it a "cartoony board game" look. Largely this is driven by not wanting to put in an animation system, and trying to keep the art requirements do-able. I'm still happy to get any ideas or feedback on the art, of course. It's in a good place to think about new ideas since I'll re-do it anyway.
 
 == Current State ==
 
-Only "1/2 a turn" is playable. The players moves your Terran units. The Aliens will sometime shoot back (reaction fire) but not ever move or attack. You can't win, although there are 4 aliens scattered about the map if you want to wipe out this small alien threat.
+The tactical game is fully playable. Only a "Farm" scenario is currently available, but basic functionality, AI, and gameplay are in place.
+
+== Android ==
+
+In development!
 
 == iPod Version ==
 
-The iPod version requires a developer cert. (Borrow from Lee.) Taps select things, drags move the camera, and pinch zooms and rotates.
+The iPod version is retired, although the code is still in the source tree. Apple's draconian policy has pushed me over the edge. Go Android!
 
 == PC Version ==
 
@@ -53,7 +59,7 @@ Of course, the Aliens get reaction fire too.
 
 === Sight and Fog of War ===
 
-Every unit has a certain (wide) range of vision. The map is revealed everywhere a team can see. Everything else is in the "fog of war" and rendered in black.
+Every unit has a 360 degree range of vision. The map is revealed everywhere a team can see. Everything else is in the "fog of war" and rendered in black.
 
 Nighttime significantly reduces the Terran vision. (Aliens are less affected.) Fire and smoke obscures vision.
 
