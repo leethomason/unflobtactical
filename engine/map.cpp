@@ -1549,11 +1549,11 @@ bool Map::Connected( ConnectionType c, int x, int y, int dir )
 	int bit = 1<<dir;
 	Vector2I pos = { x, y };
 	Vector2I nextPos = pos + next[dir];
+	Rectangle2I mapBounds;
+	CalcBounds( &mapBounds );
 
 	// To be connected, it must be clear from a->b and b->a
-	if ( InRange( pos.x, 0, width-1 )      && InRange( pos.y, 0, width-1 ) &&
-		 InRange( nextPos.x, 0, height-1 ) && InRange( nextPos.y, 0, height-1 ) ) 
-	{
+	if ( mapBounds.Contains( pos ) && mapBounds.Contains( nextPos ) ) {
 		int mask0 = GetPathMask( c, pos.x, pos.y );
 		int maskN = GetPathMask( c, nextPos.x, nextPos.y );
 		int inv = InvertPathMask( bit );
