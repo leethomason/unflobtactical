@@ -119,7 +119,7 @@ private:
 	int minValue, maxValue, value0, value1;
 	grinliz::Vector2I size;
 
-	const Texture* texture;
+	Texture* texture;
 
 	U16		 index[ MAX_STEPS*6 ];
 	Vertex2D vertex[ MAX_STEPS*4 ];
@@ -132,7 +132,7 @@ public:
 	UIImage( const Screenport& port );
 	virtual ~UIImage();
 
-	void Init( const Texture* texture, int w, int h );
+	void Init( Texture* texture, int w, int h );
 	void SetCenter( int x, int y )								{ SetOrigin( x-Width()/2, y-Height()/2 ); }
 	void SetYRotation( float yRot )								{ this->yRot = yRot; }
 	void SetZRotation( float zRot )								{ this->zRot = zRot; }
@@ -147,7 +147,7 @@ protected:
 	int w, h;
 	float yRot, zRot;
 	grinliz::Rectangle2F texCoord;
-	const Texture* texture;
+	Texture* texture;
 };
 
 
@@ -254,8 +254,8 @@ protected:
 		grinliz::Vector2I		textPos0;
 		grinliz::Vector2I		textPos1;
 	};
-	const Texture* texture;
-	const Texture* decoTexture;
+	Texture* texture;
+	Texture* decoTexture;
 	int nIcons;
 
 	bool cacheValid;

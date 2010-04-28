@@ -76,8 +76,32 @@ void Game::DumpWeaponInfo( FILE* fp, float range, const Stats& stats, int count 
 }
 
 
+void Game::CreateTexture( Texture* t )
+{
+	if ( StrEqual( t->Name(), "white" ) ) {
+		U16 pixels[4] = { 0xffff, 0xffff, 0xffff, 0xffff };
+		GLASSERT( t->Width() == 2 && t->Height() == 2 && t->Format() == Surface::RGB16 );
+		GLASSERT( t->BytesInImage() == 8 );
+		t->Upload( pixels, 8 );
+	}
+	else {
+		GLASSERT( 0 );
+	}
+}
+
+
 void Game::LoadTextures()
 {
+	TextureManager* texman = TextureManager::Instance();
+	texman->CreateTexture( "white", 2, 2, Surface::RGB16, 0, this );
+
+	const gamedb::Item* node = database->Root()->Child( "textures" )->Child( "stdfont2" );
+	GLASSERT( node );
+	int metricsSize = node->GetDataSize( "metrics" );
+	GLASSERT( metricsSize == UFOText::GLYPH_CX*UFOText::GLYPH_CY*sizeof(GlyphMetric) );
+	node->GetData( "metrics", UFOText::MetricsPtr(), metricsSize );
+
+	/*
 	U32 textureID = 0;
 
 	TextureManager* texman = TextureManager::Instance();
@@ -123,6 +147,7 @@ void Game::LoadTextures()
 			node->GetData( "metrics", UFOText::MetricsPtr(), metricsSize );
 		}
 	}
+	*/
 }
 
 

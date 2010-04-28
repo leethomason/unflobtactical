@@ -32,7 +32,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 
 	// -- Background -- //
 	background = new UIImage( engine->GetScreenport() );
-	const Texture* bg = TextureManager::Instance()->GetTexture( "intro" );
+	Texture* bg = TextureManager::Instance()->GetTexture( "intro" );
 	GLASSERT( bg );
 	background->Init( bg, 480, 320 );
 
@@ -321,7 +321,7 @@ void TacticalIntroScene::FindNodes(	const char* set,
 }
 
 
-void TacticalIntroScene::AppendMapSnippet(	int dx, int dy,
+void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 											const char* set,
 											int size,
 											const char* type,
@@ -348,6 +348,9 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy,
 	// Append the <Items>, account for (x,y) changes.
 	// Append the <Images>, account for (x,y) changes.
 	
+	//Matrix2I inv;
+	//Map::CalcBlitMat( dx, dy, size, size, 
+
 	// Append one sub tree to the other. Adjust x, y as we go.
 	for( TiXmlElement* ele = snippet.FirstChildElement( "Map" )->FirstChildElement( "Items" )->FirstChildElement( "Item" );
 		 ele;
@@ -379,6 +382,7 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy,
 	image->SetAttribute( "x", dx );
 	image->SetAttribute( "y", dy );
 	image->SetAttribute( "size", size );
+	image->SetAttribute( "tileRotation", tileRotation );
 	imagesElement->LinkEndChild( image );
 }
 
@@ -404,6 +408,7 @@ void TacticalIntroScene::CreateMap(	TiXmlNode* parent,
 	random.SetSeed( seed );
 	for( int i=0; i<5; ++i ) 
 		random.Rand();
+	int tileRotation = random.Rand( 4 );
 
 	Vector2I cornerPosBlock[2];
 	if ( random.Bit() ) {
@@ -422,21 +427,21 @@ void TacticalIntroScene::CreateMap(	TiXmlNode* parent,
 	if ( info.needsLander ) {
 		Vector2I pos = cornerPosBlock[ 0 ];
 		blocks.Set( pos.x, pos.y );
-		AppendMapSnippet( pos.x*16, pos.y*16, info.base, 16, "LAND", dataItem, mapElement );	
+		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, "LAND", dataItem, mapElement );	
 	}
 
 	if ( info.ufo ) {
 		const char* ufoStr = "UFOA";
 		Vector2I pos = cornerPosBlock[ 1 ];
 		blocks.Set( pos.x, pos.y );
-		AppendMapSnippet( pos.x*16, pos.y*16, info.base, 16, ufoStr, dataItem, mapElement );	
+		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, ufoStr, dataItem, mapElement );	
 	}
 
 	for( int j=0; j<info.blockSizeY; ++j ) {
 		for( int i=0; i<info.blockSizeX; ++i ) {
 			if ( !blocks.IsSet( i, j ) ) {
 				Vector2I pos = { i, j };
-				AppendMapSnippet( pos.x*16, pos.y*16, info.base, 16, "TILE", dataItem, mapElement );	
+				AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, "TILE", dataItem, mapElement );	
 			}
 		}
 	}

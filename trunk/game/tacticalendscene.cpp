@@ -30,7 +30,7 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 	background = new UIImage( engine->GetScreenport() );
 
 	// -- Background -- //
-	const Texture* bg = TextureManager::Instance()->GetTexture( "intro" );
+	Texture* bg = TextureManager::Instance()->GetTexture( "intro" );
 	GLASSERT( bg );
 	background->Init( bg, 480, 320 );
 

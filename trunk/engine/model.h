@@ -33,7 +33,7 @@ class RenderQueue;
 // The smallest draw unit: texture, vertex, index.
 struct ModelAtom 
 {
-	const Texture* texture;
+	Texture* texture;
 #ifdef EL_USE_VBO
 	U32 vertexID;
 	U32 indexID;
@@ -166,7 +166,7 @@ public:
 	void SetTexXForm( float a=1.0f, float d=1.0f, float x=0.0f, float y=0.0f );
 
 	// Set the texture - overrides all textures
-	void SetTexture( const Texture* t )			{ setTexture = t; }
+	void SetTexture( Texture* t )			{ setTexture = t; }
 
 	// AABB for user selection (bigger than the true AABB)
 	void CalcHitAABB( grinliz::Rectangle3F* aabb ) const;
@@ -208,7 +208,7 @@ private:
 	float rot[3];
 	bool texMatSet;
 	TexMat texMat;
-	const Texture* setTexture;	// overrides the default texture
+	Texture* setTexture;	// overrides the default texture
 	int flags;
 	
 	mutable bool xformValid;

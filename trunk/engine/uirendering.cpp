@@ -162,7 +162,7 @@ void UIBar::Draw()
 	//glEnableClientState( GL_COLOR_ARRAY );
 
 	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, texture->glID );
+	glBindTexture( GL_TEXTURE_2D, texture->GLID() );
 
 	GLASSERT( screenport.UIMode() );
 	glTranslatef( (float)origin.x, (float)origin.y, 0.0f );
@@ -199,7 +199,7 @@ UIImage::~UIImage()
 }
 
 
-void UIImage::Init( const Texture* texture, int w, int h )
+void UIImage::Init( Texture* texture, int w, int h )
 {
 	this->texture = texture;
 	this->w = w;
@@ -224,7 +224,7 @@ void UIImage::Draw()
 
 	glDisable( GL_DEPTH_TEST );
 	glDepthMask( GL_FALSE );
-	if ( texture->alpha ) {
+	if ( texture->Alpha() ) {
 		glEnable( GL_BLEND );
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
@@ -232,7 +232,7 @@ void UIImage::Draw()
 	//glEnableClientState( GL_COLOR_ARRAY );
 
 	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, texture->glID );
+	glBindTexture( GL_TEXTURE_2D, texture->GLID() );
 
 	GLASSERT( screenport.UIMode() );
 	// Over translate so rotation is about center axis.
@@ -562,7 +562,7 @@ void UIButtons::Draw()
 	glEnableClientState( GL_COLOR_ARRAY );
 
 	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, texture->glID );
+	glBindTexture( GL_TEXTURE_2D, texture->GLID() );
 
 	GLASSERT( screenport.UIMode() );
 	glTranslatef( (float)origin.x, (float)origin.y, 0.0f );
@@ -598,7 +598,7 @@ void UIButtons::Draw()
 	// Deco (images on buttons)
 	glTexCoordPointer( 2, GL_FLOAT, 0, texDeco ); 
 	glColorPointer( 4, GL_UNSIGNED_BYTE, 0, colorDeco );
-	glBindTexture( GL_TEXTURE_2D, decoTexture->glID );
+	glBindTexture( GL_TEXTURE_2D, decoTexture->GLID() );
 	CHECK_GL_ERROR;
 	glDrawElements( GL_TRIANGLES, nIcons*6, GL_UNSIGNED_SHORT, index );
 	trianglesRendered += nIcons*2;

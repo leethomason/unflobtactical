@@ -27,6 +27,7 @@
 #include "loosequadtree.h"
 #include "renderQueue.h"
 #include "surface.h"
+#include "texture.h"
 #include "particle.h"
 
 using namespace grinliz;

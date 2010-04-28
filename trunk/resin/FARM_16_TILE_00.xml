@@ -1,4 +1,4 @@
-<Map>
+<Map sizeX="64" sizeY="64">
     <Items>
         <Item x="8" y="13" index="1" hp="250" />
         <Item x="11" y="12" rot="3" index="20" hp="80" />
@@ -35,6 +35,9 @@
         <Item x="1" y="2" rot="1" index="20" hp="80" />
         <Item x="1" y="3" rot="1" index="20" hp="80" />
     </Items>
+    <Images>
+        <Image x="0" y="0" size="16" name="FARM_16_TILE_00" />
+    </Images>
     <GroundDebris />
     <PyroGroup />
 </Map>

@@ -514,7 +514,7 @@ void Unit::CreateModel()
 			model->SetFlag( Model::MODEL_MAP_TRANSPARENT );
 			model->SetFlag( Model::MODEL_NO_SHADOW );
 
-			const Texture* texture = TextureManager::Instance()->GetTexture( "particleQuad" );
+			Texture* texture = TextureManager::Instance()->GetTexture( "particleQuad" );
 			model->SetTexture( texture );
 
 			if ( team == TERRAN_TEAM ) {

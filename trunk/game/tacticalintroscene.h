@@ -103,7 +103,7 @@ private:
 					const char* type,
 					const gamedb::Item* parent );
 
-	void AppendMapSnippet(	int x, int y,
+	void AppendMapSnippet(	int x, int y, int tileRotation,
 							const char* set,
 							int size,
 							const char* type,

@@ -20,6 +20,7 @@
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glvector.h"
 #include "screenport.h"
+#include "texture.h"
 
 
 struct GlyphMetric
@@ -37,7 +38,7 @@ public:
 		GLYPH_CY = 8
 	};
 	
-	static void InitTexture( U32 textTextureID );
+	static void InitTexture( Texture* texture );
 	static void InitScreen( Screenport* sp );
 	static GlyphMetric* MetricsPtr()					{ return glyphMetric; }
 
@@ -57,7 +58,7 @@ private:
 							grinliz::Rectangle2I* src );	// location in texture, in pixels
 
 	static Screenport* screenport;
-	static U32 textureID;
+	static Texture* texture;
 	enum {
 		BUF_SIZE = 30
 	};
