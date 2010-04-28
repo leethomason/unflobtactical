@@ -25,17 +25,17 @@
 #include "../grinliz/glrandom.h"
 #include "../micropather/micropather.h"
 #include "vertex.h"
-#include "surface.h"
 #include "enginelimits.h"
 #include "serialize.h"
 #include "ufoutil.h"
+#include "surface.h"
+#include "texture.h"
 #include "../shared/glmap.h"
 
 class Model;
 class ModelResource;
 class SpaceTree;
 class RenderQueue;
-class Texture;
 class ItemDef;
 class Storage;
 class Game;
@@ -53,7 +53,8 @@ public:
 };
 
 
-class Map : public micropather::Graph
+class Map : public micropather::Graph,
+			public ITextureCreator
 {
 public:
 	enum {
@@ -275,6 +276,9 @@ public:
 	virtual void  AdjacentCost( void* state, std::vector< micropather::StateCost > *adjacent );
 	virtual void  PrintStateInfo( void* state );
 
+	// ITextureCreator
+	virtual void CreateTexture( Texture* t );
+
 	enum ConnectionType {
 		PATH_TYPE,
 		VISIBILITY_TYPE
@@ -294,6 +298,8 @@ public:
 	// ALIEN_TEAM, guard or scout - on the map metadata
 	//
 	void PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rotation );
+
+	static void CalcBlitMat( int x, int y, int w, int h, int tileRotation, Matrix2I* inv ); 
 
 private:
 	struct IMat
@@ -360,11 +366,11 @@ private:
 	};
 
 	// The background texture of the map.
-	void SetTexture( const Surface* surface, int x, int y );
+	void SetTexture( const Surface* surface, int x, int y, int tileRotation );
 	// The light map is a 64x64 texture of the lighting at each point. Without
 	// a light map, full white (daytime) is used. The 'x,y,size' parameters support
 	// setting the lightmap in parts.
-	void SetLightMaps( const Surface* day, const Surface* night, int x, int y );
+	void SetLightMaps( const Surface* day, const Surface* night, int x, int y, int tileRotation );
 
 	int GetPathMask( ConnectionType c, int x, int z );
 	bool Connected( ConnectionType c, int x, int y, int dir );
@@ -396,14 +402,14 @@ private:
 	grinliz::Rectangle3F bounds;
 	SpaceTree* tree;
 
-	Surface surface;		// background surface
-	Texture texture;		// background texture
+	Texture* backgroundTexture;		// background texture
+	Surface backgroundSurface;		// background surface
 	Vertex vertex[4];
 	grinliz::Vector2F texture1[4];
 
 	enum { MAX_IMAGE_DATA = 16 };
 	struct ImageData {
-		int x, y, size;
+		int x, y, size, tileRotation;
 		char name[EL_FILE_STRING_LEN];
 	};
 	int nImageData;
@@ -411,10 +417,11 @@ private:
 
 	void GenerateLightMap();
 
-	Texture lightMapTex;
 	Surface lightMap[2];
-	Texture fowTex;
+	Texture* lightMapTex;
+
 	Surface fowSurface;
+	Texture* fowTex;
 
 	Surface dayMap, nightMap;
 	grinliz::Rectangle2I invalidLightMap;

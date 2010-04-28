@@ -20,6 +20,7 @@
 #include "../grinliz/gltypes.h"
 #include "../engine/engine.h"
 #include "../engine/surface.h"
+#include "../engine/texture.h"
 #include "../engine/model.h"
 #include "../engine/uirendering.h"
 #include "../grinliz/glperformance.h"
@@ -83,7 +84,7 @@ struct TileSetDesc {
 	in a slightly different flavor, this leads to some circular code and compilation.
 */
 
-class Game
+class Game : public ITextureCreator 
 {
 private:
 	EngineData engineData;
@@ -139,6 +140,9 @@ public:
 	void Save( TiXmlDocument* doc );
 
 	const gamedb::Reader* GetDatabase()	{ return database; }
+
+	// For creating some required textures:
+	virtual void CreateTexture( Texture* t );
 
 	// cheating: moves states between scenes.
 	int				loadRequested;	// 0-continue, 1-new, 2-test, -1 default

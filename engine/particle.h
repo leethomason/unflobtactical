@@ -194,8 +194,8 @@ private:
 	grinliz::Random rand;
 	int nParticles[NUM_PRIMITIVES];
 	int nDecals;
-	const Texture* quadTexture;
-	const Texture* pointTexture;
+	Texture* quadTexture;
+	Texture* pointTexture;
 
 	CDynArray<ParticleEffect*>		effectArr;
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWarFilter;

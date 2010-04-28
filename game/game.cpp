@@ -70,14 +70,6 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	Map* map = engine.GetMap();
 	ImageManager* im = ImageManager::Instance();
 
-//#ifndef MAPMAKER
-//	map->SetSize( 40, 40 );
-//	map->SetTexture( ImageManager::Instance()->GetImage("farmland" ), 0, 0 );
-//	map->SetLightMaps( im->GetImage( "farmlandD" ),
-//					   im->GetImage( "farmlandN" ),
-//					   0, 0 );
-//#endif
-
 	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 
 	scenePushQueued = INTRO_SCENE;
@@ -162,6 +154,7 @@ void Game::Init()
 	bool okay = database->Init( buffer );
 	GLASSERT( okay );
 
+	TextureManager::Instance()->AttachDatabase( database );
 	LoadTextures();
 	LoadImages();
 	modelLoader = new ModelLoader();
@@ -172,9 +165,9 @@ void Game::Init()
 	delete modelLoader;
 	modelLoader = 0;
 
-	const Texture* textTexture = TextureManager::Instance()->GetTexture( "stdfont2" );
+	Texture* textTexture = TextureManager::Instance()->GetTexture( "stdfont2" );
 	GLASSERT( textTexture );
-	UFOText::InitTexture( textTexture->glID );
+	UFOText::InitTexture( textTexture );
 	UFOText::InitScreen( &screenport );
 
 	Map* map = engine.GetMap();
@@ -263,6 +256,10 @@ void Game::PopScene()
 
 void Game::PushPopScene() 
 {
+	if ( scenePopQueued || scenePushQueued >= 0 ) {
+		TextureManager::Instance()->ContextShift();
+	}
+
 	if ( scenePopQueued ) {
 		GLASSERT( !sceneStack.Empty() );
 
@@ -412,13 +409,21 @@ void Game::DoTick( U32 _currentTime )
 		scene->DrawHUD();
 	}
 #ifdef DEBUG
-	UFOText::Draw(	0,  0, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s %dnew", 
+	UFOText::Draw(	0,  0, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
 					VERSION,
 					framesPerSecond, 
 					(float)trianglesRendered/1000.0f,
 					drawCalls,
-					trianglesPerSecond,
-					memNewCount );
+					trianglesPerSecond );
+	UFOText::Draw(  0, 14, "new=%d Tex(%d/%d) %dK/%dK mis=%d re=%d hit=%d",
+					memNewCount,
+					TextureManager::Instance()->NumTextures(),
+					TextureManager::Instance()->NumGPUResources(),
+					TextureManager::Instance()->CalcTextureMem()/1024,
+					TextureManager::Instance()->CalcGPUMem()/1024,
+					TextureManager::Instance()->CacheMiss(),
+					TextureManager::Instance()->CacheReuse(),
+					TextureManager::Instance()->CacheHit() );				
 #else
 	UFOText::Draw(	0,  0, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
 				  VERSION,

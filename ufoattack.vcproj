@@ -526,6 +526,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\engine\texture.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\engine\texture.h"
+				>
+			</File>
+			<File
 				RelativePath=".\engine\ufoutil.cpp"
 				>
 			</File>

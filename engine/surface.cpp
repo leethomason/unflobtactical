@@ -85,6 +85,25 @@ void Surface::Blit( const grinliz::Vector2I& target, const Surface* src, const g
 }
 
 
+void Surface::Blit(	const grinliz::Rectangle2I& target, 
+					const Surface* src, 
+					const Matrix2I& xform )
+{
+	Vector3I t = { 0, 0, 1 };
+	Vector3I s = { 0, 0, 1 };
+
+	for( t.y=target.min.y; t.y<=target.max.y; ++t.y ) {
+		for( t.x=target.min.x; t.x<=target.max.x; ++t.x ) {
+			MultMatrix2I( xform, t, &s );		
+			GLASSERT( s.x >= 0 && s.x < src->Width() );
+			GLASSERT( s.y >= 0 && s.y < src->Height() );
+			GLASSERT( BytesPerPixel() == 2 );	// just a bug...other case not implemented. Also need to fix origin.
+			SetImagePixel16( t.x, t.y, src->ImagePixel16( s.x, s.y ) );
+		}
+	}
+}
+
+
 /*static*/ int Surface::QueryFormat( const char* formatString )
 {
 	if ( grinliz::StrEqual( "RGBA16", formatString ) ) {
@@ -101,217 +120,6 @@ void Surface::Blit( const grinliz::Vector2I& target, const Surface* src, const g
 }
 
 
-/*
-U32 Surface::LoadTexture( FILE* fp, bool *alpha )
-{
-	TextureHeader header;
-	header.Load( fp );
-
-	switch ( header.format ) {
-		case GL_ALPHA:	Set( header.width, header.height, 1 );	*alpha = true;	break;
-		case GL_RGB:	Set( header.width, header.height, 2 );	*alpha = false;	break;
-		case GL_RGBA:	Set( header.width, header.height, 2 );	*alpha = true;	break;
-		default:
-			GLASSERT( 0 );
-			break;
-	}
-
-	fread( pixels, 1, w*h*bpp, fp );
-//	switch ( bpp ) {
-//		case 1:													break;
-//		case 2:	grinliz::SwapBufferBE16( (U16*)pixels, w*h );	break;
-//		default:
-//			GLASSERT( 0 );
-//			break;
-//	}
-	GLOUTPUT(( "Load texture: %s\n", header.name ));
-
-	return LowerCreateTexture( header.format, header.type );
-}
-*/
-
-/*
-void Surface::LoadSurface( FILE* fp, bool* alpha )
-{
-	TextureHeader header;
-	header.Load( fp );
-
-	switch ( header.format ) {
-		case GL_ALPHA:	Set( header.width, header.height, 1 );	*alpha = true;	break;
-		case GL_RGB:	Set( header.width, header.height, 2 );	*alpha = false;	break;
-		case GL_RGBA:	Set( header.width, header.height, 2 );	*alpha = true;	break;
-		default:
-			GLASSERT( 0 );
-			break;
-	}
-
-	fread( pixels, 1, w*h*bpp, fp );
-}
-*/
-
-
-void Surface::CalcOpenGL( int* glFormat, int* glType )
-{
-	*glFormat = GL_RGB;
-	*glType = GL_UNSIGNED_BYTE;
-
-	switch( format ) {
-		case RGBA16:
-			*glFormat = GL_RGBA;
-			*glType = GL_UNSIGNED_SHORT_4_4_4_4;
-			break;
-
-		case RGB16:
-			*glFormat = GL_RGB;
-			*glType = GL_UNSIGNED_SHORT_5_6_5;
-			break;
-
-		case ALPHA:
-			*glFormat = GL_ALPHA;
-			*glType = GL_UNSIGNED_BYTE;
-			break;
-
-		default:
-			GLASSERT( 0 );
-	}
-}
-
-
-U32 Surface::CreateTexture( int flags )
-{
-	int glFormat, glType;
-	CalcOpenGL( &glFormat, &glType );
-
-	GLASSERT( pixels );
-	GLASSERT( w && h && (format >= 0) );
-	TESTGLERR();
-
-	glEnable( GL_TEXTURE_2D );
-
-	GLuint texID;
-	glGenTextures( 1, &texID );
-	glBindTexture( GL_TEXTURE_2D, texID );
-
-
-	if ( flags & PARAM_NEAREST ) {
-		glTexParameteri(	GL_TEXTURE_2D,
-							GL_GENERATE_MIPMAP,
-							GL_FALSE );
-
-		glTexParameteri(	GL_TEXTURE_2D,
-							GL_TEXTURE_MAG_FILTER,
-							GL_NEAREST );
-
-		glTexParameteri(	GL_TEXTURE_2D,
-							GL_TEXTURE_MIN_FILTER,
-							GL_NEAREST );
-	}
-	else {
-		glTexParameteri(	GL_TEXTURE_2D,
-							GL_GENERATE_MIPMAP,
-							GL_TRUE );
-
-		glTexParameteri(	GL_TEXTURE_2D,
-							GL_TEXTURE_MAG_FILTER,
-							GL_LINEAR );
-
-		glTexParameteri(	GL_TEXTURE_2D,
-							GL_TEXTURE_MIN_FILTER,
-							GL_LINEAR_MIPMAP_NEAREST );
-	}
-					
-	glTexImage2D(	GL_TEXTURE_2D,
-					0,
-					glFormat,
-					w,
-					h,
-					0,
-					glFormat,
-					glType,
-					pixels );
-
-	TESTGLERR();
-
-	return texID;
-}
-
-
-void Surface::UpdateTexture( U32 glID )
-{
-	int glFormat, glType;
-	CalcOpenGL( &glFormat, &glType );
-
-	glBindTexture( GL_TEXTURE_2D, glID );
-
-	glTexImage2D(	GL_TEXTURE_2D,
-					0,
-					glFormat,
-					w,
-					h,
-					0,
-					glFormat,
-					glType,
-					pixels );
-
-	TESTGLERR();
-}
-
-
-void Texture::Set( const char* name, U32 glID, bool alpha )
-{
-	GLASSERT( strlen( name ) < MAX_TEXTURE_NAME );
-	StrNCpy( this->name, name, MAX_TEXTURE_NAME );
-	this->glID = glID;
-	this->alpha = alpha;
-}
-
-
-/*static*/ void TextureManager::Create()
-{
-	GLASSERT( instance == 0 );
-	instance = new TextureManager();
-}
-
-
-/*static*/ void TextureManager::Destroy()
-{
-	GLASSERT( instance );
-	delete instance;
-	instance = 0;
-}
-
-
-TextureManager::TextureManager()
-{
-}
-
-
-TextureManager::~TextureManager()
-{
-	for( unsigned i=0; i<textureArr.Size(); ++i ) {
-		if ( textureArr[i].glID ) {
-			glDeleteTextures( 1, (const GLuint*) &textureArr[i].glID );
-			textureArr[i].name[0] = 0;
-		}
-	}
-}
-
-
-/*static*/ TextureManager* TextureManager::instance = 0;
-
-
-const Texture* TextureManager::GetTexture( const char* name )
-{
-	return map.Get( name );
-}
-
-
-void TextureManager::AddTexture( const char* name, U32 glID, bool alphaTest )
-{
-	Texture* t = textureArr.Push();
-	t->Set( name, glID, alphaTest );
-	map.Add( t->name, t );
-}
 
 
 
@@ -347,3 +155,28 @@ void ImageManager::Unlock()
 {
 	map.Add( arr[ arr.Size()-1 ].Name(), &arr[ arr.Size()-1 ] );
 }
+
+
+
+
+/*
+void Surface::UpdateTexture( U32 glID )
+{
+	int glFormat, glType;
+	CalcOpenGL( &glFormat, &glType );
+
+	glBindTexture( GL_TEXTURE_2D, glID );
+
+	glTexImage2D(	GL_TEXTURE_2D,
+					0,
+					glFormat,
+					w,
+					h,
+					0,
+					glFormat,
+					glType,
+					pixels );
+
+	TESTGLERR();
+}
+*/

@@ -23,12 +23,24 @@
 
 #include "../shared/glmap.h"
 #include "../engine/ufoutil.h"
+#include "../shared/gamedbreader.h"
+
 #include "enginelimits.h"
 #include <stdio.h>
+
+// FIXME: this still operates in texture coordinates.
+// Flip to image coordinates, and change the texture loading code.
 
 class Surface
 {
 public:
+	// WARNING: duplicated in Texture
+	enum  {			// channels	bytes
+		RGBA16,		// 4444		2
+		RGB16,		// 565		2
+		ALPHA,		// 8		1
+	};
+
 	struct RGBA {
 		U8 r, g, b, a;
 	};
@@ -82,12 +94,6 @@ public:
 	Surface();
 	~Surface();
 
-	enum {		// channels	bytes
-		RGBA16,	// 4444		2
-		RGB16,	// 565		2
-		ALPHA,	// 8		1
-	};
-
 	int			Width()	const			{ return w; }
 	int			Height() const			{ return h; }
 	U8*			Pixels()				{ return pixels; }
@@ -129,20 +135,15 @@ public:
 	void Set( int format, int w, int h );
 
 	void Clear( int c );
-	void Blit( const grinliz::Vector2I& target, const Surface* src, const grinliz::Rectangle2I& srcRect );
+	void Blit(	const grinliz::Vector2I& target, 
+				const Surface* src, 
+				const grinliz::Rectangle2I& srcRect );
 
-	// Create an opengl texture from this surface.
-	enum {
-		PARAM_NEAREST = 0x01
-	};
-	U32 CreateTexture( int flags=0 );
-	// Update an opengl texture from this surface.
-	void UpdateTexture( U32 glID );
+	void Blit(	const grinliz::Rectangle2I& target,
+				const Surface* src,
+				const Matrix2I& xformTargetToSrc );
 
-	// convert a string to one of the supported surface formats
 	static int QueryFormat( const char* formatString );
-	// calculate the opengl format and type
-	void CalcOpenGL(int* glFormat, int* glType );
 
 	// -- Metadata about the surface --
 	void SetName( const char* n );
@@ -186,43 +187,5 @@ private:
 	CStringMap<	Surface* > map;
 };
 
-
-class Texture
-{
-public:
-	enum { MAX_TEXTURE_NAME = 24 };
-	char name[MAX_TEXTURE_NAME];		// must be first in the class for search to work! (strcmp used in the TextureManager)
-	bool alpha;
-	U32	 glID;
-
-	void Set( const char* name, U32 glID, bool alpha );
-};
-
-
-class TextureManager
-{
-public:
-	static TextureManager* Instance()	{ GLASSERT( instance ); return instance; }
-	
-	const Texture* GetTexture( const char* name );
-	void AddTexture( const char* name, U32 glID, bool alpha );
-
-//	int TextureMemory() const { return textureMem; }
-//	int ActiveTextures() const { return nActive; }
-
-	static void Create();
-	static void Destroy();
-private:
-	TextureManager();
-	~TextureManager();
-
-	enum {
-		MAX_TEXTURES = 30		// increase as needed
-	};
-
-	static TextureManager* instance;
-	CArray< Texture, MAX_TEXTURES > textureArr;		// textures
-	CStringMap<	Texture* > map;
-};
 
 #endif // UFOATTACK_SURFACE_INCLUDED

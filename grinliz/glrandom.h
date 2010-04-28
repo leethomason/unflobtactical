@@ -60,7 +60,10 @@ class Random
 	/** Returns a random number greater than or equal to 0, and less 
 		that 'upperBound'.
 	*/	
-	U32 Rand( U32 upperBound )		{ return Rand() % upperBound; }
+	U32 Rand( U32 upperBound )		{	// Fold if v is smaller.
+										U32 v = Rand();
+										v = ( upperBound & 0xffff0000 ) ? v : (v ^ (v>>16) );
+										return v % upperBound; }
 
 	/** "Roll dice." Has the same bell curve distribution as N dice. Dice start with the 
 		value '1', so RandD2( 2, 6 ) returns a value from 2-12
@@ -78,7 +81,7 @@ class Random
 	/// Return a random number from 0 to upper: [0.0,1.0].
 	float Uniform()	{ 
 		const float INV = 1.0f / 65535.0f;	
-		return (float)( Rand() & 65535 ) * INV;
+		return (float)( Rand(65536) ) * INV;
 	}
 
 	/// Return 0 or 1
@@ -87,7 +90,10 @@ class Random
 		// Hard to do a good job here. Every bit has a repeating pattern, 
 		// every series repeats in it's bits. Or just isn't random.
 		// One approach, use an even non-power of 2 number.
-		return (Rand( 100*1000 ) >= 50*1000);
+		//return (Rand( 100*1000 ) >= 50*1000);
+		// Or this approach:
+		U32 v = Rand();
+		return ((v) ^ (v<<7) ^ (v<<13) ^ (v<<18) ^ (v<<29) ) & 1;
 	}
 
 	/// Return a random boolean.

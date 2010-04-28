@@ -525,7 +525,7 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 		#endif
 		CHECK_GL_ERROR;
 
-		glBindTexture( GL_TEXTURE_2D, pointTexture->glID );
+		glBindTexture( GL_TEXTURE_2D, pointTexture->GLID() );
 		CHECK_GL_ERROR;
 
 		glPointSize( 4.0f );
@@ -601,7 +601,7 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
 		glEnable( GL_TEXTURE_2D );
-		glBindTexture( GL_TEXTURE_2D, pointTexture->glID );
+		glBindTexture( GL_TEXTURE_2D, pointTexture->GLID() );
 
 		CHECK_GL_ERROR;
 		U8* vPtr = (U8*)vertexBuffer + 0;
@@ -729,7 +729,7 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 	glEnableClientState( GL_COLOR_ARRAY );
 
 	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, quadTexture->glID );
+	glBindTexture( GL_TEXTURE_2D, quadTexture->GLID() );
 
 	CHECK_GL_ERROR;
 	U8* vPtr = (U8*)vertexBuffer + 0;
@@ -836,7 +836,7 @@ void ParticleSystem::DrawDecalParticles( int flag )
 		glEnableClientState( GL_COLOR_ARRAY );
 
 		glEnable( GL_TEXTURE_2D );
-		glBindTexture( GL_TEXTURE_2D, quadTexture->glID );
+		glBindTexture( GL_TEXTURE_2D, quadTexture->GLID() );
 
 		CHECK_GL_ERROR;
 		U8* vPtr = (U8*)vertexBuffer + 0;

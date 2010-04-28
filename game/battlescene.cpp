@@ -2858,7 +2858,7 @@ void BattleScene::UpdatePreview()
 													(int)(mapSelection->GetRotation()/90.0f) );
 
 		if ( preview ) {
-			const Texture* t = TextureManager::Instance()->GetTexture( "translucent" );
+			Texture* t = TextureManager::Instance()->GetTexture( "translucent" );
 			preview->SetTexture( t );
 			preview->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.0f );
 		}

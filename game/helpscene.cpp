@@ -52,10 +52,15 @@ void HelpScene::Tap( int count, const grinliz::Vector2I& screen, const grinliz::
 	GetEngine()->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );
 
 	int tap = buttons->QueryTap( ux, uy );
+
+	// Want to keep re-using main texture. Do a ContextShift() if anything
+	// will change on this screen.
+	TextureManager* texman = TextureManager::Instance();
+
 	switch ( tap ) {
-		case 0:		--currentScreen;		break;
-		case 1:		++currentScreen;		break;
-		case 2:		game->PopScene();		break;
+		case 0:		--currentScreen;	texman->ContextShift();		break;
+		case 1:		++currentScreen;	texman->ContextShift();		break;
+		case 2:		game->PopScene();								break;
 
 		default:
 			break;

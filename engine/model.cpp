@@ -14,7 +14,7 @@
 */
 
 #include "model.h"
-#include "surface.h"
+#include "texture.h"
 #include "platformgl.h"
 #include "loosequadtree.h"
 #include "renderQueue.h"
@@ -109,7 +109,6 @@ void ModelLoader::Load( const gamedb::Item* item, ModelResource* res )
 		ModelGroup group;
 		group.Load( groupItem );
 
-		const Texture* t = 0;
 		const char* textureName = group.textureName;
 		if ( !textureName[0] ) {
 			textureName = "white";
@@ -117,7 +116,7 @@ void ModelLoader::Load( const gamedb::Item* item, ModelResource* res )
 
 		std::string base, texname, extension;
 		StrSplitFilename( std::string( textureName ), &base, &texname, &extension );
-		t = TextureManager::Instance()->GetTexture( texname.c_str() );
+		Texture* t = TextureManager::Instance()->GetTexture( texname.c_str() );
 
 		GLASSERT( t );                       
 		res->atom[i].texture = t;
@@ -279,13 +278,13 @@ void Model::Queue( RenderQueue* queue, int textureMode )
 	for( U32 i=0; i<resource->header.nGroups; ++i ) 
 	{
 		int flags = 0;
-		const Texture* texture = setTexture ? setTexture : resource->atom[i].texture;
+		Texture* texture = setTexture ? setTexture : resource->atom[i].texture;
 
 		if ( textureMode != Model::NO_TEXTURE ) {
-			if ( texture->alpha ) 
+			if ( texture->Alpha() ) 
 				flags |= RenderQueue::ALPHA_BLEND;
 		}
-		U32 textureID = (textureMode == Model::MODEL_TEXTURE) ? texture->glID : 0;
+		U32 textureID = (textureMode == Model::MODEL_TEXTURE) ? texture->GLID() : 0;
 
 		queue->Add( flags, 
 					textureID,

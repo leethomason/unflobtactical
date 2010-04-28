@@ -3,8 +3,9 @@
 #include "../grinliz/glutil.h"
 
 
-CMapBase::CMapBase( int size )
+CMapBase::CMapBase( bool str, int size )
 {
+	stringKey = str;
 	GLASSERT( sizeof( void*) == sizeof( unsigned char* ) );	// crazy just in case
 	nBuckets = grinliz::CeilPowerOf2( size );
 	nAdds = 0;
@@ -65,7 +66,7 @@ void CMapBase::Add( const char* key, void* value )
 		recursing = false;
 	}
 	
-	unsigned h = HashStr( key );
+	unsigned h = Hash( key );
 	h = h & (nBuckets-1);
 
 	// Can use buckets[i].key == 0, because that's the end of a run.
@@ -78,7 +79,7 @@ void CMapBase::Add( const char* key, void* value )
 			++nAdds;
 			break;
 		}
-		if ( buckets[h].key > (const char*)(1)  && CStrEqual( buckets[h].key, key ) ) {	
+		if ( buckets[h].key > (const char*)(1)  && Equal( buckets[h].key, key ) ) {	
 			// dupe. Overwrite with new.
 			buckets[h].value = value;
 			break;
@@ -92,11 +93,11 @@ void CMapBase::Add( const char* key, void* value )
 
 void CMapBase::Remove( const char* key )
 {
-	unsigned h = HashStr( key );
+	unsigned h = Hash( key );
 	h = h & (nBuckets-1);
 
 	while ( buckets[h].key ) {
-		if ( CStrEqual( buckets[h].key, key )) {
+		if ( Equal( buckets[h].key, key )) {
 			buckets[h].key = (const char*)(1);
 			--nItems;
 			break;
@@ -110,11 +111,11 @@ void CMapBase::Remove( const char* key )
 
 void* CMapBase::Get( const char* key )
 {
-	unsigned h = HashStr( key );
+	unsigned h = Hash( key );
 	h = h & (nBuckets-1);
 
 	while ( buckets[h].key ) {
-		if ( CStrEqual( buckets[h].key, key )) {
+		if ( Equal( buckets[h].key, key )) {
 			return buckets[h].value;
 		}
 		++h;
@@ -128,11 +129,11 @@ void* CMapBase::Get( const char* key )
 
 bool CMapBase::Query( const char* key, void** value )
 {
-	unsigned h = HashStr( key );
+	unsigned h = Hash( key );
 	h = h & (nBuckets-1);
 
 	while ( buckets[h].key ) {
-		if ( CStrEqual( buckets[h].key, key )) {
+		if ( Equal( buckets[h].key, key )) {
 			*value = buckets[h].value;
 			return true;
 		}

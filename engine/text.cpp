@@ -39,7 +39,7 @@ Vector2F UFOText::tBuf[BUF_SIZE*4];
 U16 UFOText::iBuf[BUF_SIZE*6] = { 0, 0 };
 
 Screenport* UFOText::screenport = 0;
-U32 UFOText::textureID = 0;
+Texture* UFOText::texture = 0;
 GlyphMetric UFOText::glyphMetric[GLYPH_CX*GLYPH_CY];
 
 void UFOText::InitScreen( Screenport* sp )
@@ -48,16 +48,16 @@ void UFOText::InitScreen( Screenport* sp )
 }
 
 
-void UFOText::InitTexture( U32 textTextureID )
+void UFOText::InitTexture( Texture* tex )
 {
-	GLASSERT( textTextureID );
-	textureID = textTextureID;
+	GLASSERT( tex );
+	texture = tex;
 }
 
 
 void UFOText::Begin()
 {
-	GLASSERT( textureID );
+	GLASSERT( texture );
 
 	glDisable( GL_DEPTH_TEST );
 	glDepthMask( GL_FALSE );
@@ -68,7 +68,7 @@ void UFOText::Begin()
 	glColor4f( 1.f, 1.f, 1.f, 1.f );
 
 	screenport->SetUI( 0 );
-	glBindTexture( GL_TEXTURE_2D, textureID );
+	glBindTexture( GL_TEXTURE_2D, texture->GLID() );
 }
 
 

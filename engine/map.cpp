@@ -27,6 +27,7 @@
 #include "../engine/particle.h"
 #include "../grinliz/glstringutil.h"
 #include "../tinyxml/tinyxml.h"
+#include "../grinliz/glrectangle.h"
 
 using namespace grinliz;
 using namespace micropather;
@@ -34,7 +35,7 @@ using namespace micropather;
 extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
 extern int drawCalls;			// ditto
 
-//#define SHOW_FOW			// ignore fog of war
+#define SHOW_FOW			// ignore fog of war
 
 
 Map::Map( SpaceTree* tree )
@@ -61,9 +62,12 @@ Map::Map( SpaceTree* tree )
 	walkingVertex.Clear();
 	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
 
-	texture.Set( "MapBackground", 0, false );
-	surface.Set( Surface::RGB16, MAP_TEXTURE_SIZE, MAP_TEXTURE_SIZE );
-	surface.Clear( 0 );
+	//texture.Set( "MapBackground", 0, false );
+	TextureManager* texman = TextureManager::Instance();
+	backgroundTexture = texman->CreateTexture( "MapBackground", MAP_TEXTURE_SIZE, MAP_TEXTURE_SIZE, Surface::RGB16, 0, this );
+
+	backgroundSurface.Set( Surface::RGB16, MAP_TEXTURE_SIZE, MAP_TEXTURE_SIZE );
+	backgroundSurface.Clear( 0 );
 
 	vertex[0].pos.Set( 0.0f,		0.0f, 0.0f );
 	vertex[1].pos.Set( 0.0f,		0.0f, (float)SIZE );
@@ -99,11 +103,13 @@ Map::Map( SpaceTree* tree )
 	}
 	fowSurface.Set( Surface::RGBA16, SIZE, SIZE );
 
-	U32 id = lightMap[1].CreateTexture();
-	lightMapTex.Set( "lightmap", id, false );
+	//U32 id = lightMap[1].CreateTexture();
+	//lightMapTex.Set( "lightmap", id, false );
+	lightMapTex = texman->CreateTexture( "MapLightMap", SIZE, SIZE, Surface::RGB16, 0, this );
 
-	id = fowSurface.CreateTexture( Surface::PARAM_NEAREST );
-	fowTex.Set( "fow", id, true );
+	//id = fowSurface.CreateTexture( Surface::PARAM_NEAREST );
+	//fowTex.Set( "fow", id, true );
+	fowTex = texman->CreateTexture( "FOWMapTex", SIZE, SIZE, Surface::RGBA16, Texture::PARAM_NEAREST, this );
 }
 
 
@@ -144,9 +150,6 @@ void Map::Clear()
 
 void Map::Draw()
 {
-	if ( !texture.glID )
-		return;
-
 	GenerateLightMap();
 
 	U8* v = (U8*)vertex + Vertex::POS_OFFSET;
@@ -154,8 +157,7 @@ void Map::Draw()
 	U8* t = (U8*)vertex + Vertex::TEXTURE_OFFSET;
 
 	/* Texture 0 */
-	GLASSERT( texture.glID );
-	glBindTexture( GL_TEXTURE_2D, texture.glID );
+	glBindTexture( GL_TEXTURE_2D, backgroundTexture->GLID() );
 
 	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), v);			// last param is offset, not ptr
 	glNormalPointer(      GL_FLOAT, sizeof(Vertex), n);		
@@ -165,7 +167,7 @@ void Map::Draw()
 	glActiveTexture( GL_TEXTURE1 );
 	glClientActiveTexture( GL_TEXTURE1 );
 	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, lightMapTex.glID );
+	glBindTexture( GL_TEXTURE_2D, lightMapTex->GLID() );
 	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 	glTexCoordPointer( 2, GL_FLOAT, 0, texture1 );
 
@@ -188,7 +190,7 @@ void Map::Draw()
 void Map::DrawOverlay()
 {
 	if ( !walkingVertex.Empty() ) {
-		const Texture* iTex = TextureManager::Instance()->GetTexture( "icons" );
+		Texture* iTex = TextureManager::Instance()->GetTexture( "icons" );
 		GLASSERT( iTex );
 
 		U8* v = (U8*)walkingVertex.Mem() + Vertex::POS_OFFSET;
@@ -197,7 +199,7 @@ void Map::DrawOverlay()
 		const float ALPHA = 0.5f;
 		glColor4f( 1.0f, 1.0f, 1.0f, ALPHA );
 
-		glBindTexture( GL_TEXTURE_2D, iTex->glID );
+		glBindTexture( GL_TEXTURE_2D, iTex->GLID() );
 		glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), v);
 		glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), t); 
 		glDisableClientState( GL_NORMAL_ARRAY );
@@ -225,7 +227,7 @@ void Map::DrawFOW()
 	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), v);			// last param is offset, not ptr
 	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), t); 
 
-	glBindTexture( GL_TEXTURE_2D, fowTex.glID );
+	glBindTexture( GL_TEXTURE_2D, fowTex->GLID() );
 	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), v);
 	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), t); 
 	glDisableClientState( GL_NORMAL_ARRAY );
@@ -245,14 +247,13 @@ void Map::DrawFOW()
 void Map::BindTextureUnits()
 {
 	/* Texture 0 */
-	GLASSERT( texture.glID );
-	glBindTexture( GL_TEXTURE_2D, texture.glID );
+	glBindTexture( GL_TEXTURE_2D, backgroundTexture->GLID() );
 
 	/* Texture 1 */
 	glActiveTexture( GL_TEXTURE1 );
 	glClientActiveTexture( GL_TEXTURE1 );
 	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, lightMapTex.glID );
+	glBindTexture( GL_TEXTURE_2D, lightMapTex->GLID() );
 	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 	glTexCoordPointer( 2, GL_FLOAT, 0, texture1 );
 
@@ -274,25 +275,63 @@ void Map::UnBindTextureUnits()
 }
 
 
-void Map::SetTexture( const Surface* s, int x, int y )
+void Map::CalcBlitMat( int x, int y, int w, int h, int tileRotation, Matrix2I* inv )
 {
-	GLASSERT( s->Width() == s->Height() );
+	Matrix2I t, r, p, m;
+	t.x = x;
+	t.y = y;
 
-	Vector2I target = { x, y };
-	Rectangle2I src;
-	src.Set( 0, 0, s->Width()-1, s->Height()-1 );
+	switch ( tileRotation ) {
+		case 0:
+			r.SetIdentity();
+			p.x = 0;	p.y = 0;
+			break;
 
-	surface.Blit( target, s, src );
-
-	if ( texture.glID == 0 )
-		texture.glID = surface.CreateTexture();
-	else
-		surface.UpdateTexture( texture.glID );
-	// FIXME: release texture somewhere?
+		case 1:
+			r.SetRotation( 90 );
+			p.x = 0;	p.y += h-1;
+			break;
+		case 2:
+			r.SetRotation( 180 );
+			p.x += w-1; p.y += h-1;
+			break;
+		case 3:
+			r.SetRotation( 270 );
+			p.x += w-1; p.y += 0;
+			break;
+		default:
+			GLASSERT( 0 );
+	}
+	m = t * p * r;
+	m.Invert( inv );
 }
 
 
-void Map::SetLightMaps( const Surface* day, const Surface* night, int x, int y )
+void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
+{
+	GLASSERT( s->Width() == s->Height() );
+
+	Rectangle2I src;
+	src.Set( 0, 0, s->Width()-1, s->Height()-1 );
+
+	if ( tileRotation == 0 ) {
+		Vector2I target = { x, y };
+		backgroundSurface.Blit( target, s, src );
+	}
+	else 
+	{
+		Matrix2I inv;
+		CalcBlitMat( x, y, s->Width(), s->Height(), tileRotation, &inv );
+		
+		Rectangle2I target;
+		target.Set( x, y, x+s->Width()-1, y+s->Height()-1 );
+		backgroundSurface.Blit( target, s, inv );
+	}
+	backgroundTexture->Upload( backgroundSurface );
+}
+
+
+void Map::SetLightMaps( const Surface* day, const Surface* night, int x, int y, int tileRotation )
 {
 	GLASSERT( day );
 	GLASSERT( night );
@@ -303,12 +342,24 @@ void Map::SetLightMaps( const Surface* day, const Surface* night, int x, int y )
 		      && day->Height() == night->Height() 
 			  && day->Width() == day->Height() );
 
-	Vector2I target = { x, y };
 	Rectangle2I rect;
 	rect.Set( 0, 0, day->Width()-1, day->Height()-1 );
 
-	dayMap.Blit( target, day, rect );
-	nightMap.Blit( target, night, rect );
+	if ( tileRotation == 0 ) {
+		Vector2I target = { x, y };
+		dayMap.Blit( target, day, rect );
+		nightMap.Blit( target, night, rect );
+	}
+	else {
+		Matrix2I inv;
+		CalcBlitMat( x, y, day->Width(), day->Height(), tileRotation, &inv );
+		
+		Rectangle2I target;
+		target.Set( x, y, x+day->Width()-1, y+day->Height()-1 );
+
+		dayMap.Blit( target, day, inv );
+		nightMap.Blit( target, night, inv );
+	}
 
 	// Could optimize full invalidate, but hard to think of a case where it matters.
 	if ( dayTime )
@@ -430,8 +481,8 @@ void Map::GenerateLightMap()
 				}
 			}
 		}
-		lightMap[1].UpdateTexture( lightMapTex.glID );
-		fowSurface.UpdateTexture( fowTex.glID );
+		lightMapTex->Upload( lightMap[1] );
+		fowTex->Upload( fowSurface );
 		invalidLightMap.Set( 0, 0, -1, -1 );
 	}
 }
@@ -976,9 +1027,11 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 		{
 			int x=0, y=0, size=0;
 			char buffer[128];
+			int tileRotation = 0;
 			image->QueryIntAttribute( "x", &x );
 			image->QueryIntAttribute( "y", &y );
 			image->QueryIntAttribute( "size", &size );
+			image->QueryValueAttribute( "tileRotation", &tileRotation );
 
 			// store it to save later:
 			const char* name = image->Attribute( "name" ); 
@@ -987,6 +1040,7 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 			imageData[ nImageData ].x = x;
 			imageData[ nImageData ].y = y;
 			imageData[ nImageData ].size = size;
+			imageData[ nImageData ].tileRotation = tileRotation;
 			StrNCpy( imageData[ nImageData ].name, image->Attribute( "name" ), EL_FILE_STRING_LEN );
 			++nImageData;
 			
@@ -999,8 +1053,8 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 			SNPrintf( buffer, 128, "%s_NGT", image->Attribute( "name" ) );
 			const Surface* night = imageManager->GetImage( buffer );
 
-			SetTexture( background, x*512/64, y*512/64 );
-			SetLightMaps( day, night, x, y );			
+			SetTexture( background, x*512/64, y*512/64, tileRotation );
+			SetLightMaps( day, night, x, y, tileRotation );			
 		}
 	}
 
@@ -1955,3 +2009,21 @@ int Map::QuadTree::CalcNode( const Rectangle2<U8>& bounds, int* d )
 	GLASSERT( offset >= 0 && offset < NUM_QUAD_NODES );
 	return offset;
 }
+
+
+void Map::CreateTexture( Texture* t )
+{
+	if ( t == backgroundTexture ) {
+		t->Upload( backgroundSurface );
+	}
+	else if ( t == lightMapTex ) {
+		t->Upload( lightMap[1] );
+	}
+	else if ( t == fowTex ) {
+		t->Upload( fowSurface );
+	}
+	else {
+		GLASSERT( 0 );
+	}
+}
+
