@@ -507,32 +507,32 @@ const char* Map::GetItemDefName( int i )
 }
 
 
-void Map::IMat::Init( int w, int h, int r )
+void Map::MatrixInitMapToObject( int w, int h, int r, Matrix2I* m  )
 {
-	x = 0;
-	z = 0;
+	m->x = 0;
+	m->y = 0;
 
 	// Matrix to map from map coordinates
 	// back to object coordinates.
 	switch ( r ) {
 		case 0:
-			a = 1;	b = 0;	x = 0;
-			c = 0;	d = 1;	z = 0;
+			m->a = 1;	m->b = 0;	m->x = 0;
+			m->c = 0;	m->d = 1;	m->y = 0;
 			break;
 		
 		case 1:
-			a = 0;	b = -1;	x = w-1;
-			c = 1;	d = 0;	z = 0;
+			m->a = 0;	m->b = -1;	m->x = w-1;
+			m->c = 1;	m->d = 0;	m->y = 0;
 			break;
 
 		case 2:
-			a = -1;	b = 0;	x = w-1;
-			c = 0;	d = -1;	z = h-1;
+			m->a = -1;	m->b = 0;	m->x = w-1;
+			m->c = 0;	m->d = -1;	m->y = h-1;
 			break;
 
 		case 3:
-			a = 0;	b = 1;	x = 0;
-			c = -1;	d = 0;	z = h-1;
+			m->a = 0;	m->b = 1;	m->x = 0;
+			m->c = -1;	m->d = 0;	m->y = h-1;
 			break;
 
 		default:
@@ -540,12 +540,11 @@ void Map::IMat::Init( int w, int h, int r )
 	};
 }
 
-
-void Map::IMat::Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out  )
-{
-	out->x = a*in.x + b*in.y + x;
-	out->y = c*in.x + d*in.y + z;
-}
+//void Map::IMat::Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out  )
+//{
+//	out->x = a*in.x + b*in.y + x;
+//	out->y = c*in.x + d*in.y + z;
+//}
 
 
 void Map::DoDamage( int x, int y, const DamageDesc& damage, Rectangle2I* dBounds )
@@ -1195,6 +1194,11 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 						grinliz::Vector2F* origin,
 						Matrix2I* matrix )
 {
+	// Oh screwed up coordinate system, how I hate thee. The origin (center, upper left)
+	// and in-place-rotation is handy at world creation time, but leads to outright
+	// sleazy math. This method attempts to contain the sleaze. The x,y is *always*
+	// upper left, independent of rotation.
+
 	Rectangle2I _mapBounds;
 	Vector2F _origin;
 	if ( !mapBounds )
@@ -1202,31 +1206,34 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 	if ( !origin )
 		origin = &_origin;
 
-	switch ( r ) {
-		case 0:		x += itemDef.lightOffsetX;	y += itemDef.lightOffsetY;		break;
-		case 1:		x -= itemDef.lightOffsetY;	y += itemDef.lightOffsetX;		break;
-		case 2:		x -= itemDef.lightOffsetX;	y -= itemDef.lightOffsetY;		break;
-		case 3:		x += itemDef.lightOffsetY;	y -= itemDef.lightOffsetX;		break;
+	Matrix2I axisRotation;
+	axisRotation.SetRotation( r );
+
+	Vector2I pos = { x, y };
+
+	if ( itemDef.lightOffsetX || itemDef.lightOffsetY ) {
+		Vector2I lightVec = { itemDef.lightOffsetX, itemDef.lightOffsetY };
+		Vector2I lightVecPrime = axisRotation * lightVec;
+		pos += lightVecPrime;
 	}
 
-	int cx = itemDef.cx;
-	int cy = itemDef.cy;
-	float halfCX = (float)cx * 0.5f;
-	float halfCY = (float)cy * 0.5f;
+//		switch ( r ) {
+//			case 0:		x += itemDef.lightOffsetX;	y += itemDef.lightOffsetY;		break;
+//			case 1:		x -= itemDef.lightOffsetY;	y += itemDef.lightOffsetX;		break;
+//			case 2:		x -= itemDef.lightOffsetX;	y -= itemDef.lightOffsetY;		break;
+//			case 3:		x += itemDef.lightOffsetY;	y -= itemDef.lightOffsetX;		break;
+//		}
+	}
+//	int cx = itemDef.cx;
+//	int cy = itemDef.cy;
+//	float halfCX = (float)cx * 0.5f;
+//	float halfCY = (float)cy * 0.5f;
 
-	float xf = (float)x;
-	float yf = (float)y;
-	float cxf = (float)cx;
-	float cyf = (float)cy;
+//	float xf = (float)x;
+//	float yf = (float)y;
+//	float cxf = (float)cx;
+//	float cyf = (float)cy;
 	bool isOriginUpperLeft = itemDef.isUpperLeft ? true : false;
-
-	// rotates around	the upper left, irrespective
-	// of the actual model origin.
-	//
-	//		 0	 0	
-	//		0ab	0bd
-	//		 cd	 ac
-	//
 
 	if ( r & 1 ) {
 		mapBounds->Set( x, y, x+cy-1, y+cx-1 );
@@ -1528,10 +1535,12 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
 
 					// Account for object rotation (if needed). Maps from the world space
 					// back to object space to get the visibility.
-					IMat iMat;
+					Matrix2I imat;
 					if ( size.x > 1 || size.y > 1 ) {
-						iMat.Init( size.x, size.y, rot );
-						iMat.Mult( origin, &prime );
+						MatrixInitMapToObject( size.x, size.y, rot, &imat );
+						//iMat.Init( size.x, size.y, rot );
+						//iMat.Mult( origin, &prime );
+						prime = imat * origin;
 					}
 					GLASSERT( prime.x >= 0 && prime.x < itemDef.cx );
 					GLASSERT( prime.y >= 0 && prime.y < itemDef.cy );
