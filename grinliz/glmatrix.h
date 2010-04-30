@@ -49,10 +49,14 @@ struct Rectangle3F;
 class Matrix4
 {
   public:
-	inline static int INDEX( int row, int col ) { return col*4+row; }
+	enum { COMPONENTS = 4 };
+
+	inline static int INDEX( int row, int col ) {	GLASSERT( row >= 0 && row < 4 );
+													GLASSERT( col >= 0 && col < 4 );
+													return col*4+row; }
 
 	/// Construct an identity matrix
-	Matrix4()						{	SetIdentity();	}
+	Matrix4()								{	SetIdentity();	}
 	Matrix4( const Matrix4& rhs )			{	memcpy( x, rhs.x, sizeof(float)*16 ); }
 	void operator=( const Matrix4& rhs )	{	memcpy( x, rhs.x, sizeof(float)*16 ); }
 
@@ -61,16 +65,14 @@ class Matrix4
 								x[1] = x[2] = x[3] = x[4] = x[6] = x[7] = x[8] = x[9] = x[11] = x[12] = x[13] = x[14] = 0.0f; 
 							}
 
-	void Set( int row, int col, float v )		{	GLASSERT( row >= 0 && row < 4 && col >= 0 && col < 4 );
-													x[INDEX(row,col)] = v; 
-												}
-	
+	void Set( int row, int col, float v )	{	x[INDEX(row,col)] = v; }
+	//float& M( int row, int col )			{	return x[INDEX(row,col)]; }
+	//float M(int row, int col ) const		{	return x[INDEX(row,col)]; }
+
 	/// Set the translation terms
-	void SetTranslation( float _x, float _y, float _z )
-							{	x[12] = _x;	x[13] = _y;	x[14] = _z;	}
+	void SetTranslation( float _x, float _y, float _z )		{	x[12] = _x;	x[13] = _y;	x[14] = _z;	}
 	/// Set the translation terms
-	void SetTranslation( const Vector3F& vec )
-							{   x[12] = vec.x;	x[13] = vec.y;	x[14] = vec.z;	}
+	void SetTranslation( const Vector3F& vec )				{   x[12] = vec.x;	x[13] = vec.y;	x[14] = vec.z;	}
 
 	/// Set the rotation terms
 	void SetXRotation( float thetaDegree );

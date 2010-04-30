@@ -35,9 +35,9 @@ void Matrix2I::SetRotation( int r )
 
 	switch ( r ) {
 		case 0:		a = 1;	b = 0;	c = 0;	d = 1;	break;
-		case 90:	a = 0;	b = 1;	c = -1;	d = 0;	break;
+		case 90:	a = 0;	b = -1;	c = 1;	d = 0;	break;
 		case 180:	a = -1;	b = 0;	c = 0;	d = -1;	break;
-		case 270:	a = 0;	b = -1;	c = 1;	d = 0;	break;
+		case 270:	a = 0;	b = 1;	c = -1;	d = 0;	break;
 		default:
 			GLASSERT( 0 );
 	};
