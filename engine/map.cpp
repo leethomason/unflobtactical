@@ -507,6 +507,7 @@ const char* Map::GetItemDefName( int i )
 }
 
 
+/*
 void Map::MatrixInitMapToObject( int w, int h, int r, Matrix2I* m  )
 {
 	m->x = 0;
@@ -539,6 +540,7 @@ void Map::MatrixInitMapToObject( int w, int h, int r, Matrix2I* m  )
 			break;
 	};
 }
+*/
 
 //void Map::IMat::Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out  )
 //{
@@ -812,7 +814,15 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	// Check for lights.
 	if ( itemDefArr[defIndex].HasLight() ) {
 		int flags0 = flags | MapItem::MI_NOT_IN_DATABASE | MapItem::MI_IS_LIGHT;
-		item->light = AddItem( x, y, rotation, itemDefArr[defIndex].HasLight(), 0xffff, flags0 );
+		int lightDef = itemDefArr[defIndex].HasLight();
+
+		Vector2I lx = { itemDefArr[lightDef].lightOffsetX, 
+						itemDefArr[lightDef].lightOffsetY };
+		Matrix2I irot;
+		irot.SetRotation( rotation*90 );
+		Vector2I lxp = irot * lx;
+
+		item->light = AddItem( x+lxp.x, y+lxp.y, rotation, lightDef, 0xffff, flags0 );
 	}
 
 	quadTree.Add( item );
@@ -1191,106 +1201,119 @@ bool Map::OpenDoor( int x, int y, bool open )
 
 void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef, 
 						grinliz::Rectangle2I* mapBounds,
-						grinliz::Vector2F* origin,
+						grinliz::Vector2F* modelPos,
 						Matrix2I* matrix )
 {
+	GLASSERT( r >= 0 && r < 4 );
+
 	// Oh screwed up coordinate system, how I hate thee. The origin (center, upper left)
 	// and in-place-rotation is handy at world creation time, but leads to outright
 	// sleazy math. This method attempts to contain the sleaze. The x,y is *always*
 	// upper left, independent of rotation.
 
 	Rectangle2I _mapBounds;
-	Vector2F _origin;
 	if ( !mapBounds )
 		mapBounds = &_mapBounds;
-	if ( !origin )
-		origin = &_origin;
 
-	Matrix2I axisRotation;
-	axisRotation.SetRotation( r );
 
-	Vector2I pos = { x, y };
-
-	if ( itemDef.lightOffsetX || itemDef.lightOffsetY ) {
-		Vector2I lightVec = { itemDef.lightOffsetX, itemDef.lightOffsetY };
-		Vector2I lightVecPrime = axisRotation * lightVec;
-		pos += lightVecPrime;
-	}
-
-//		switch ( r ) {
-//			case 0:		x += itemDef.lightOffsetX;	y += itemDef.lightOffsetY;		break;
-//			case 1:		x -= itemDef.lightOffsetY;	y += itemDef.lightOffsetX;		break;
-//			case 2:		x -= itemDef.lightOffsetX;	y -= itemDef.lightOffsetY;		break;
-//			case 3:		x += itemDef.lightOffsetY;	y -= itemDef.lightOffsetX;		break;
-//		}
-	}
-//	int cx = itemDef.cx;
-//	int cy = itemDef.cy;
-//	float halfCX = (float)cx * 0.5f;
-//	float halfCY = (float)cy * 0.5f;
-
-//	float xf = (float)x;
-//	float yf = (float)y;
-//	float cxf = (float)cx;
-//	float cyf = (float)cy;
 	bool isOriginUpperLeft = itemDef.isUpperLeft ? true : false;
 
-	if ( r & 1 ) {
-		mapBounds->Set( x, y, x+cy-1, y+cx-1 );
-	}
-	else {
-		mapBounds->Set( x, y, x+cx-1, y+cy-1 );
-	}
+	Vector3F origin, patch;
+	Rectangle3F bounds;
 
 	if ( isOriginUpperLeft ) {
-		switch( r ) {
-			case 0:		origin->Set( xf,			yf );			break;
-			case 1:		origin->Set( xf,			yf+cxf );		break;
-			case 2:		origin->Set( xf+cxf,		yf+cyf );		break;
-			case 3:		origin->Set( xf+cyf,		yf );			break;
-			default:	GLASSERT( 0 );								break;
+		origin.Set( (float)x, 0.0f, (float)y );
+		Vector3F vx = { (float)itemDef.cx, 0, 0 };
+		Vector3F vz = { 0, 0, (float)itemDef.cy };
+
+		bounds.Set( origin.x, 0, origin.z, 
+					origin.x + (float)itemDef.cx, 0, origin.z + (float)itemDef.cy );
+
+		switch ( r ) {
+			case 0:	patch.Set( 0, 0, 0 );									break;
+			case 1:	patch.Set( 0, 0, (float)itemDef.cx );					break;
+			case 2:	patch.Set( (float)itemDef.cx, 0, (float)itemDef.cy );	break;
+			case 3:	patch.Set( (float)itemDef.cy, 0, 0 );					break;
 		}
 	}
 	else {
-		switch( r ) {
-			case 0:		
+		// Set the origin to the center.
+		origin.Set( (float)x, 0, (float)y );
+		float halfX = 0.5f * (float)itemDef.cx;
+		float halfZ = 0.5f * (float)itemDef.cy;
+
+		bounds.Set( origin.x-halfX, 0, origin.z-halfZ,
+					origin.x+halfX, 0, origin.z+halfZ );
+
+		switch ( r ) {
+			case 0:	
 			case 2:
-				origin->Set( xf + halfCX, yf + halfCY );	
-				break;
-
-			case 1:		
-			case 3:
-				origin->Set( xf + halfCY, yf + halfCX );	
-				break;
-
-			default:
-				GLASSERT( 0 );
-				break;
+				patch.Set( halfX, 0, halfZ );	break;
+			case 1:	
+			case 3:	
+				patch.Set( halfZ, 0, halfX );	break;
 		}
+	}
+
+	// 1. Translate to origin.
+	// 2. Rotate
+	// 3. Offset to account for "upper left"
+	// 4. Translate back
+
+	Rectangle3F boundsFinal;
+	Matrix4 t1, rmat, t3;
+	
+	t1.SetTranslation( -origin );
+	rmat.SetYRotation( (float)(r*90) );
+	t3.SetTranslation( origin + patch );
+
+	Matrix4 m = t3 * rmat * t1;
+
+	MultMatrix4( m, bounds, &boundsFinal );
+
+	mapBounds->Set( LRintf( boundsFinal.min.x ), 
+					LRintf( boundsFinal.min.z ),
+					LRintf( boundsFinal.min.x + boundsFinal.SizeX() ) - 1,
+					LRintf( boundsFinal.min.z + boundsFinal.SizeZ() ) - 1 );
+	
+	if ( modelPos ) {
+		Vector3F pos = m * origin;
+		modelPos->Set( pos.x, pos.z );
 	}
 
 	if ( matrix ) {
-		Matrix2I t, rmat;
-		if ( isOriginUpperLeft ) {
-			switch( r ) {
-				case 0:		t.x = x;		t.y = y;			break;
-				case 1:		t.x = x;		t.y = y + cx-1;		break;
-				case 2:		t.x = x + cx-1;	t.y = y + cy-1;		break;
-				case 3:		t.x = x + cy-1;	t.y = y;			break;
+		// The coordinate system here is even more mucked up. The map is in "x,z" 
+		// but all the 2D vectors are xy. So the rotation has the wrong sign in 
+		// x,y. Patch it all up here to give the correct answer. (The map should
+		// have been done in xyz, with y==0, which would make moving to a 3D map
+		// easier as well. Hindsight.)
+		matrix->SetIdentity();
+		Vector2I zero = { 0, 0 };
+
+		if ( itemDef.cx > 1 || itemDef.cy > 1 ) {
+			switch ( r ) {
+				case 0:	
+					matrix->a = 1;	matrix->b = 0;	matrix->c = 0;	matrix->d = 1;	
+					zero.Set( 0, 0 );
+					break;
+				case 1:	
+					matrix->a = 0;	matrix->b = 1;	matrix->c = -1;	matrix->d = 0;	
+					zero.Set( itemDef.cx-1, 0 );
+					break;
+				case 2:	
+					matrix->a = -1;	matrix->b = 0;	matrix->c = 0;	matrix->d = -1;	
+					zero.Set( itemDef.cx-1, itemDef.cy-1 );
+					break;
+				case 3:	
+					matrix->a = 0;	matrix->b = -1;	matrix->c = 1;	matrix->d = 0;	
+					zero.Set( 0, itemDef.cy-1 );
+					break;
 			}
 		}
-		else {
-			switch ( r ) {
-				case 0:
-				case 2:			
-							t.x = x + (cx-1)/2;	t.y = y + (cy-1)/2;	break;
-				case 1:
-				case 3:			
-							t.x = x + (cy-1)/2;	t.y = y + (cx-1)/2;	break;
-			}
-		};
-		rmat.SetRotation( r*90 );
-		*matrix = t * rmat;
+		Vector2I zeroP = *matrix * zero;
+
+		matrix->x = mapBounds->min.x - zeroP.x;
+		matrix->y = mapBounds->min.y - zeroP.y;
 	}
 }
 
@@ -1521,29 +1544,18 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
 			int rot = item->rot;
 			GLASSERT( rot >= 0 && rot < 4 );
 
-			const Vector2I size  = { itemDef.cx, itemDef.cy };
-			Vector2I walk = size;
-			if ( rot & 1 )
-				grinliz::Swap( &walk.x, &walk.y );
+			Matrix2I mat;
+			CalcModelPos( item, 0, 0, &mat );
 
-			Vector2I prime = { 0, 0 };
+			// Walk the object in object space & write to world.
+			for( int j=0; j<itemDef.cy; ++j ) {
+				for( int i=0; i<itemDef.cx; ++i ) {
+					
+					Vector2I obj = { i, j };
+					Vector2I world = mat * obj;
 
-			for( int y=0; y<walk.y; ++y ) {
-				for( int x=0; x<walk.x; ++x ) {
-
-					Vector2I origin = { x, y };
-
-					// Account for object rotation (if needed). Maps from the world space
-					// back to object space to get the visibility.
-					Matrix2I imat;
-					if ( size.x > 1 || size.y > 1 ) {
-						MatrixInitMapToObject( size.x, size.y, rot, &imat );
-						//iMat.Init( size.x, size.y, rot );
-						//iMat.Mult( origin, &prime );
-						prime = imat * origin;
-					}
-					GLASSERT( prime.x >= 0 && prime.x < itemDef.cx );
-					GLASSERT( prime.y >= 0 && prime.y < itemDef.cy );
+					GLASSERT( world.x >= 0 && world.x < SIZE );
+					GLASSERT( world.y >= 0 && world.y < SIZE );
 
 					// Account for tile rotation. (Actually a bit rotation too, which is handy.)
 					// The OR operation is important. This routine will write outside of the bounds,
@@ -1554,16 +1566,16 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
 					if ( item->open == 0 )
 					{
 						// Path
-						U32 p = ( itemDef.pather[prime.y][prime.x] << rot );
+						U32 p = ( itemDef.pather[obj.y][obj.x] << rot );
 						p = p | (p>>4);
-						pathMap[ (y+item->y)*SIZE + (x+item->x) ] |= p;
+						pathMap[ world.y*SIZE + world.x ] |= p;
 					}
 					if ( item->open == 0 )
 					{
 						// Visibility
-						U32 p = ( itemDef.visibility[prime.y][prime.x] << rot );
+						U32 p = ( itemDef.visibility[obj.y][obj.x] << rot );
 						p = p | (p>>4);
-						visMap[ (y+item->y)*SIZE + (x+item->x) ] |= p;
+						visMap[ world.y*SIZE + world.x ] |= p;
 					}
 				}
 			}

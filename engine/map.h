@@ -309,7 +309,7 @@ private:
 //		void Init( int w, int h, int r );
 //		void Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out );
 //	};
-	void MatrixInitMapToObject( int w, int h, int r, Matrix2I* mat );
+//	void MatrixInitMapToObject( int w, int h, int r, Matrix2I* mat );
 
 	int InvertPathMask( U32 m ) {
 		U32 m0 = (m<<2) | (m>>2);
