@@ -30,17 +30,15 @@ void CEnsureCap( unsigned needInBytes, unsigned* capInBytes, void** stack )
 
 void Matrix2I::SetRotation( int r )
 {
-	while( r < 0 ) r += 360;
-	while( r >= 360 ) r -= 360;
+	float fs, fc;
+	SinCosDegree( (float)r, &fs, &fc );
+	int sinTheta = LRintf( fs );
+	int cosTheta = LRintf( fc );
 
-	switch ( r ) {
-		case 0:		a = 1;	b = 0;	c = 0;	d = 1;	break;
-		case 90:	a = 0;	b = -1;	c = 1;	d = 0;	break;
-		case 180:	a = -1;	b = 0;	c = 0;	d = -1;	break;
-		case 270:	a = 0;	b = 1;	c = -1;	d = 0;	break;
-		default:
-			GLASSERT( 0 );
-	};
+	//  cosT	-sinT
+	//	sinT	cosT
+	a = cosTheta;	b = -sinTheta;
+	c = sinTheta;	d = cosTheta;
 }
 
 
