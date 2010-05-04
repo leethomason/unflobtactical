@@ -131,17 +131,18 @@ public:
 
 	struct MapItem
 	{
-		U8		x, y, rot, open;
-		U8		itemDefIndex;	// 0: not in use, >0 is the index
-		U16		hp;
-
 		enum {
 			MI_IS_LIGHT				= 0x01,
 			MI_NOT_IN_DATABASE		= 0x02,		// lights are usually generated, and are not stored in the DB
 			MI_DOOR					= 0x04,
 		};
-		U16		flags;
 
+		U8		x, y, rot, open;
+		U8		itemDefIndex;	// 0: not in use, >0 is the index
+		S8		matA, matB, matC, matD;
+		S16		matX, matY;
+		U16		hp;
+		U16		flags;
 		grinliz::Rectangle2<U8> mapBounds8;
 		
 		Model*	 model;
@@ -150,9 +151,16 @@ public:
 		MapItem* next;			// the 'next' after a query
 		MapItem* nextQuad;		// next pointer in the quadTree
 
-		void MapBounds( grinliz::Rectangle2I* r ) const 
-		{
-			r->Set( mapBounds8.min.x, mapBounds8.min.y, mapBounds8.max.x, mapBounds8.max.y );
+		grinliz::Rectangle2I MapBounds() const 
+		{	
+			grinliz::Rectangle2I r;
+			r.Set( mapBounds8.min.x, mapBounds8.min.y, mapBounds8.max.x, mapBounds8.max.y );
+			return r;
+		}
+		Matrix2I XForm() const {
+			Matrix2I m;
+			m.a = matA;	m.b = matB; m.c = matC; m.d = matD; m.x = matX; m.y = matY;
+			return m;
 		}
 
 		bool InUse() const			{ return itemDefIndex > 0; }
@@ -302,14 +310,6 @@ public:
 	static void CalcBlitMat( int x, int y, int w, int h, int tileRotation, Matrix2I* inv ); 
 
 private:
-//	struct IMat
-//	{
-//		int a, b, c, d, x, z;
-//
-//		void Init( int w, int h, int r );
-//		void Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out );
-//	};
-//	void MatrixInitMapToObject( int w, int h, int r, Matrix2I* mat );
 
 	int InvertPathMask( U32 m ) {
 		U32 m0 = (m<<2) | (m>>2);
