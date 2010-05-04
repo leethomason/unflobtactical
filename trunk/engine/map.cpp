@@ -423,12 +423,12 @@ void Map::GenerateLightMap()
 			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 			GLASSERT( itemDef.IsLight() );
 
-			Matrix2I xform, wToObj;
-			CalcModelPos( item, 0, 0, &xform );
+			Matrix2I wToObj;
+			//CalcModelPos( item, 0, 0, &xform );
+			Matrix2I xform = item->XForm();
 			xform.Invert( &wToObj );
 
-			Rectangle2I mapBounds;
-			item->MapBounds( &mapBounds );
+			Rectangle2I mapBounds = item->MapBounds();
 
 			for( int j=mapBounds.min.y; j<=mapBounds.max.y; ++j ) {
 				for( int i=mapBounds.min.x; i<=mapBounds.max.x; ++i ) {
@@ -585,8 +585,7 @@ void Map::DoDamage( Model* m, const DamageDesc& damageDesc, Rectangle2I* dBounds
 		if ( itemDef.CanDamage() && item->DoDamage(hp) ) 
 		{
 			if ( dBounds ) {
-				Rectangle2I r;
-				item->MapBounds( &r );
+				Rectangle2I r = item->MapBounds();
 				dBounds->DoUnion( r );
 			}
 
@@ -807,8 +806,10 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	GLASSERT( mapBounds.min.x >= 0 && mapBounds.max.x < 256 );	// using int8
 	GLASSERT( mapBounds.min.y >= 0 && mapBounds.max.y < 256 );	// using int8
 	item->mapBounds8.Set( mapBounds.min.x, mapBounds.min.y, mapBounds.max.x, mapBounds.max.y );
+	item->matA = xform.a;	item->matB = xform.b;	item->matX = xform.x;
+	item->matC = xform.c;	item->matD = xform.d;	item->matY = xform.y;
+
 	item->next = 0;
-	//item->storage = storage;
 	item->light = 0;
 	
 	// Check for lights.
@@ -854,8 +855,7 @@ void Map::DeleteItem( MapItem* item )
 	}
 
 	quadTree.UnlinkItem( item );
-	Rectangle2I mapBounds;
-	item->MapBounds( &mapBounds );
+	Rectangle2I mapBounds = item->MapBounds();
 
 	// Reset the lights
 	if ( item->IsLight() ) {
@@ -883,8 +883,8 @@ void Map::PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rota
 		// put 'em in the lander.
 		GLASSERT( lander );		
 
-		Matrix2I xform;
-		CalcModelPos( lander, 0, 0, &xform );
+		Matrix2I xform = lander->XForm();
+		//CalcModelPos( lander, 0, 0, &xform );
 
 		Vector2I obj = { 2 + (nLanderPos & 1), 5 - (nLanderPos / 2) };
 		Vector2I world = xform * obj;
@@ -1186,8 +1186,7 @@ bool Map::OpenDoor( int x, int y, bool open )
 				model->SetRotation( rot );
 				item->model = model;
 
-				Rectangle2I mapBounds;
-				item->MapBounds( &mapBounds );
+				Rectangle2I mapBounds = item->MapBounds();
 
 				ResetPath();
 				ClearVisPathMap( mapBounds );
@@ -1544,8 +1543,8 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
 			int rot = item->rot;
 			GLASSERT( rot >= 0 && rot < 4 );
 
-			Matrix2I mat;
-			CalcModelPos( item, 0, 0, &mat );
+			Matrix2I mat = item->XForm();
+			//CalcModelPos( item, 0, 0, &mat );
 
 			// Walk the object in object space & write to world.
 			for( int j=0; j<itemDef.cy; ++j ) {
@@ -1861,7 +1860,7 @@ void Map::MapBoundsOfModel( const Model* m, grinliz::Rectangle2I* mapBounds )
 	GLASSERT( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) );
 	MapItem* item = quadTree.FindItem( m );
 	GLASSERT( item );
-	item->MapBounds( mapBounds );
+	*mapBounds = item->MapBounds();
 	GLASSERT( mapBounds->min.x <= mapBounds->max.x );
 	GLASSERT( mapBounds->min.y <= mapBounds->max.y );
 }
