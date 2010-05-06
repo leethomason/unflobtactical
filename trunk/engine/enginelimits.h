@@ -17,6 +17,7 @@
 #define ENGINELIMITS_INCLUDED
 
 
+
 enum HitTestMethod 
 {
 	TEST_HIT_AABB,
@@ -49,5 +50,7 @@ enum {
    This was removed to get it working on the Intel GMA chip, but accelerated the iPhone.
  */
 //#define EL_USE_VBO
+//#define SHOW_FOW			// visual debugging
+
 
 #endif

@@ -65,7 +65,7 @@ void Surface::Clear( int c )
 }
 
 
-void Surface::Blit( const grinliz::Vector2I& target, const Surface* src, const grinliz::Rectangle2I& srcRect )
+void Surface::BlitImg( const grinliz::Vector2I& target, const Surface* src, const grinliz::Rectangle2I& srcRect )
 {
 	GLASSERT( target.x >= 0 && target.y >= 0 );
 	GLASSERT( target.x + srcRect.Width() <= w );
@@ -85,7 +85,7 @@ void Surface::Blit( const grinliz::Vector2I& target, const Surface* src, const g
 }
 
 
-void Surface::Blit(	const grinliz::Rectangle2I& target, 
+void Surface::BlitImg(	const grinliz::Rectangle2I& target, 
 					const Surface* src, 
 					const Matrix2I& xform )
 {
@@ -98,7 +98,7 @@ void Surface::Blit(	const grinliz::Rectangle2I& target,
 			GLASSERT( s.x >= 0 && s.x < src->Width() );
 			GLASSERT( s.y >= 0 && s.y < src->Height() );
 			GLASSERT( BytesPerPixel() == 2 );	// just a bug...other case not implemented. Also need to fix origin.
-			SetImagePixel16( t.x, t.y, src->ImagePixel16( s.x, s.y ) );
+			SetImg16( t.x, t.y, src->GetImg16( s.x, s.y ) );
 		}
 	}
 }
@@ -155,28 +155,3 @@ void ImageManager::Unlock()
 {
 	map.Add( arr[ arr.Size()-1 ].Name(), &arr[ arr.Size()-1 ] );
 }
-
-
-
-
-/*
-void Surface::UpdateTexture( U32 glID )
-{
-	int glFormat, glType;
-	CalcOpenGL( &glFormat, &glType );
-
-	glBindTexture( GL_TEXTURE_2D, glID );
-
-	glTexImage2D(	GL_TEXTURE_2D,
-					0,
-					glFormat,
-					w,
-					h,
-					0,
-					glFormat,
-					glType,
-					pixels );
-
-	TESTGLERR();
-}
-*/

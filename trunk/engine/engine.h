@@ -31,7 +31,6 @@
 
 class RenderQueue;
 
-#define SHOW_FOW		// for debugging AI and opponent moves
 
 
 /*

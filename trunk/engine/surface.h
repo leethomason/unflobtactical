@@ -28,9 +28,13 @@
 #include "enginelimits.h"
 #include <stdio.h>
 
-// FIXME: this still operates in texture coordinates.
-// Flip to image coordinates, and change the texture loading code.
-
+/*	Stores a surface. The surface is stored in 'texture' coordinates
+	where (0,0) is the lower left and is the first pixel in memory.
+	(I dislike this convention, but want
+	to minimize cost to upload suraces to textures.) The API also 
+	supports 'image' coordinates, which puts the origin in the
+	upper left.
+*/
 class Surface
 {
 public:
@@ -45,7 +49,7 @@ public:
 		U8 r, g, b, a;
 	};
 
-	static U16 CalcColorRGB16( RGBA rgba )
+	static U16 CalcRGB16( RGBA rgba )
 	{
 		U32 c =   ((rgba.r>>3) << 11)
 				| ((rgba.g>>2) << 5)
@@ -53,7 +57,7 @@ public:
 		return (U16)c;
 	}
 
-	static void CalcRGB16( U16 c, RGBA* rgb ) {
+	static RGBA CalcRGB16( U16 c ) {
 		U32 r = (c & 0xF800) >> 11;		// 5, 0-31
 		U32 g = (c & 0x07E0) >> 5;		// 6, 0-61
 		U32 b = (c & 0x001F);			// 5, 0-31
@@ -61,13 +65,15 @@ public:
 		// 0-15 is the range.
 		// 0  -> 0
 		// 15 -> 255
-		rgb->r = (r<<3)|(r>>2);
-		rgb->g = (g<<2)|(g>>4);
-		rgb->b = (b<<3)|(b>>2);
-		rgb->a = 255;
+		RGBA rgb;
+		rgb.r = (r<<3)|(r>>2);
+		rgb.g = (g<<2)|(g>>4);
+		rgb.b = (b<<3)|(b>>2);
+		rgb.a = 255;
+		return rgb;
 	}
 
-	static U16 CalcColorRGBA16( RGBA rgba )
+	static U16 CalcRGBA16( RGBA rgba )
 	{
 		U32 c =   ( (rgba.r>>4) << 12 )
 			    | ( (rgba.g>>4) << 8 )
@@ -76,7 +82,7 @@ public:
 		return (U16)c;
 	}
 
-	static void CalcRGBA16( U16 color, RGBA* rgb ) {
+	static RGBA CalcRGBA16( U16 color ) {
 		U32 r = (color>>12);
 		U32 g = (color>>8)&0x0f;
 		U32 b = (color>>4)&0x0f;
@@ -85,10 +91,12 @@ public:
 		// 0-15 is the range.
 		// 0  -> 0
 		// 15 -> 255
-		rgb->r = (r<<4)|r;
-		rgb->g = (g<<4)|g;
-		rgb->b = (b<<4)|b;
-		rgb->a = (a<<4)|a;
+		RGBA rgb;
+		rgb.r = (r<<4)|r;
+		rgb.g = (g<<4)|g;
+		rgb.b = (b<<4)|b;
+		rgb.a = (a<<4)|a;
+		return rgb;
 	}
 
 	Surface();
@@ -104,27 +112,27 @@ public:
 	int			Format() const			{ return format; }
 
 	// Surfaces are flipped (as are images) for OpenGL. This "unflips" back to map==pixel coordinates.
-	U16	ImagePixel16( int x, int y ) const	{ 
+	U16	GetImg16( int x, int y ) const	{ 
 		GLASSERT( x >=0 && x < Width() );
 		GLASSERT( y >=0 && y < Height() );
 		GLASSERT( BytesPerPixel() == 2 );
 		return *((const U16*)pixels + (h-1-y)*w + x);
 	}
-	void SetImagePixel16( int x, int y, U16 c ) {
+	void SetImg16( int x, int y, U16 c ) {
 		GLASSERT( x >=0 && x < Width() );
 		GLASSERT( y >=0 && y < Height() );
 		GLASSERT( BytesPerPixel() == 2 );
 		*((U16*)pixels + (h-1-y)*w + x) = c;
 	}
 
-	U16 Pixel16( int x, int y ) const {
+	U16 GetTex16( int x, int y ) const {
 		GLASSERT( x >=0 && x < Width() );
 		GLASSERT( y >=0 && y < Height() );
 		GLASSERT( BytesPerPixel() == 2 );
 		return *((const U16*)pixels + (h-1-y)*w + x);
 	}
 
-	void SetPixel16( int x, int y, U16 c ) {
+	void SetTex16( int x, int y, U16 c ) {
 		GLASSERT( x >=0 && x < Width() );
 		GLASSERT( y >=0 && y < Height() );
 		GLASSERT( BytesPerPixel() == 2 );
@@ -135,13 +143,13 @@ public:
 	void Set( int format, int w, int h );
 
 	void Clear( int c );
-	void Blit(	const grinliz::Vector2I& target, 
-				const Surface* src, 
-				const grinliz::Rectangle2I& srcRect );
+	void BlitImg(	const grinliz::Vector2I& target, 
+					const Surface* src, 
+					const grinliz::Rectangle2I& srcRect );
 
-	void Blit(	const grinliz::Rectangle2I& target,
-				const Surface* src,
-				const Matrix2I& xformTargetToSrc );
+	void BlitImg(	const grinliz::Rectangle2I& target,
+					const Surface* src,
+					const Matrix2I& xformTargetToSrc );
 
 	static int QueryFormat( const char* formatString );
 

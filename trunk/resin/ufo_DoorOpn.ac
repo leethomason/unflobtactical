@@ -4,6 +4,7 @@ OBJECT world
 kids 3
 OBJECT poly
 name "object"
+loc 0.5 0 0.5
 texture "ufoOuter.png"
 crease 45.000000
 numvert 4
@@ -22,6 +23,7 @@ refs 4
 kids 0
 OBJECT poly
 name "object"
+loc 0.5 0 0.5
 texture "ufoOuter.png"
 crease 45.000000
 numvert 4
@@ -40,7 +42,7 @@ refs 4
 kids 0
 OBJECT poly
 name "object"
-loc 0 0.75 0.488155
+loc 0.5 0.75 0.988155
 texture "ufoOuter.png"
 texrep 2 1
 crease 45.000000

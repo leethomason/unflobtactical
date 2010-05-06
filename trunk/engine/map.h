@@ -307,7 +307,7 @@ public:
 	//
 	void PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rotation );
 
-	static void CalcBlitMat( int x, int y, int w, int h, int tileRotation, Matrix2I* inv ); 
+	static void MapObjectToWorld( int x, int y, int w, int h, int tileRotation, Matrix2I* mat ); 
 
 private:
 

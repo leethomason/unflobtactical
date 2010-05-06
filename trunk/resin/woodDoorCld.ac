@@ -4,7 +4,7 @@ OBJECT world
 kids 2
 OBJECT poly
 name "box"
-loc 0 0.75 0.45
+loc 0.5 0.75 0.95
 texture "woodPlank.png"
 crease 45.000000
 numvert 16
@@ -196,7 +196,7 @@ refs 3
 kids 0
 OBJECT poly
 name "box"
-loc 0 0.7 0.45
+loc 0.5 0.7 0.95
 texture "palette.png"
 crease 45.000000
 numvert 8

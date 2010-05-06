@@ -42,6 +42,22 @@ void Matrix2I::SetRotation( int r )
 }
 
 
+void Matrix2I::SetXZRotation( int r )
+{
+	float fs, fc;
+	SinCosDegree( (float)r, &fs, &fc );
+	int sinTheta = LRintf( fs );
+	int cosTheta = LRintf( fc );
+
+	//  cosT	-sinT
+	//	sinT	cosT
+	a = cosTheta;	b = sinTheta;
+	c = -sinTheta;	d = cosTheta;
+}
+
+
+
+
 void Matrix2I::Invert( Matrix2I* inverse ) const
 {
 	/*

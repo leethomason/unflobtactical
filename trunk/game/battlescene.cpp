@@ -2492,9 +2492,8 @@ void BattleScene::Visibility::CalcVisibilityRay( int unitID, const Vector2I& pos
 			canSee = map->CanSee( p, q );
 
 			if ( canSee ) {
-				Surface::RGBA rgba;
-				U16 c = lightMap->ImagePixel16( q.x, q.y );
-				Surface::CalcRGB16( c, &rgba );
+				U16 c = lightMap->GetImg16( q.x, q.y );
+				Surface::RGBA rgba = Surface::CalcRGB16( c );
 
 				const float distance = ( delta.LengthSquared() > 1 ) ? 1.4f : 1.0f;
 
