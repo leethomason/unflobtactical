@@ -181,6 +181,7 @@ class Matrix2I
 
 	// valid inputs are 0, 90, 180, and 270
 	void SetRotation( int r );
+	void SetXZRotation( int r );	// set the rotation, accounting that we are in the xz plane (vs. xy) and the sign of rotation is flipped.
 	
 	void Invert( Matrix2I* inverse ) const;
 

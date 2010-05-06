@@ -347,22 +347,24 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 
 	// Append the <Items>, account for (x,y) changes.
 	// Append the <Images>, account for (x,y) changes.
-	
-	//Matrix2I inv;
-	//Map::CalcBlitMat( dx, dy, size, size, 
-
 	// Append one sub tree to the other. Adjust x, y as we go.
+//	Matrix m;
+//	Map::MapObjectToWorld( dx, dy, size, size, tileRotation, &m );
+
 	for( TiXmlElement* ele = snippet.FirstChildElement( "Map" )->FirstChildElement( "Items" )->FirstChildElement( "Item" );
 		 ele;
 		 ele = ele->NextSiblingElement() )
 	{
-		int x = 0, y = 0;
-		ele->QueryIntAttribute( "x", &x );
-		ele->QueryIntAttribute( "y", &y );
-		x += dx;
-		y += dy;
-		ele->SetAttribute( "x", x );
-		ele->SetAttribute( "y", y );
+		Vector2I v = { 0, 0 };
+		int rot = 0;
+		ele->QueryIntAttribute( "x", &v.x );
+		ele->QueryIntAttribute( "y", &v.y );
+//		ele->QueryIntAttribute( "rot", &rot );
+
+//		Vector2I v0 = m * v;
+		ele->SetAttribute( "x", v.x+dx );
+		ele->SetAttribute( "y", v.y+dy );
+//		ele->SetAttribute( "rot", rot + tileRotation );
 
 		itemsElement->InsertEndChild( *ele );
 	}
@@ -408,7 +410,6 @@ void TacticalIntroScene::CreateMap(	TiXmlNode* parent,
 	random.SetSeed( seed );
 	for( int i=0; i<5; ++i ) 
 		random.Rand();
-	int tileRotation = random.Rand( 4 );
 
 	Vector2I cornerPosBlock[2];
 	if ( random.Bit() ) {
@@ -427,25 +428,27 @@ void TacticalIntroScene::CreateMap(	TiXmlNode* parent,
 	if ( info.needsLander ) {
 		Vector2I pos = cornerPosBlock[ 0 ];
 		blocks.Set( pos.x, pos.y );
-		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, "LAND", dataItem, mapElement );	
+		AppendMapSnippet( pos.x*16, pos.y*16, 0, info.base, 16, "LAND", dataItem, mapElement );	
 	}
 
 	if ( info.ufo ) {
 		const char* ufoStr = "UFOA";
 		Vector2I pos = cornerPosBlock[ 1 ];
 		blocks.Set( pos.x, pos.y );
-		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, ufoStr, dataItem, mapElement );	
+		AppendMapSnippet( pos.x*16, pos.y*16, 0, info.base, 16, ufoStr, dataItem, mapElement );	
 	}
 
 	for( int j=0; j<info.blockSizeY; ++j ) {
 		for( int i=0; i<info.blockSizeX; ++i ) {
 			if ( !blocks.IsSet( i, j ) ) {
 				Vector2I pos = { i, j };
-				AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, "TILE", dataItem, mapElement );	
+				AppendMapSnippet( pos.x*16, pos.y*16, 0, info.base, 16, "TILE", dataItem, mapElement );	
 			}
 		}
 	}
 
+#ifdef DEBUG
 	parent->Print( stdout, 0 );
 	fflush( stdout );
+#endif
 }

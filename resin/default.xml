@@ -43,6 +43,7 @@
              sub.   3 chars. opn, cld, etc.
   -->
   
+  <!-- Sprite models are centered at (0,0,0) -->
   <model filename="alien0.ac" shading="smooth" polyRemoval="pre" trigger="-0.21 0.49 0.20" eye="1.09" target="1.04" />
   <model filename="alien1.ac" shading="smooth" polyRemoval="pre" trigger="-0.25 0.85 0.30" eye="1.74" target="1.09" />
   <model filename="alien2.ac" shading="smooth" polyRemoval="pre" trigger="-0.31 0.85 0.11" eye="1.57" target="1.10" />
@@ -50,15 +51,6 @@
   <model filename="crate.ac" />
   <model filename="smallcrate.ac" />
   <model filename="unitplate.ac" />
-
-  <model filename="lander.ac" origin="upperLeft" />
-
-  <model filename="maleMarine.ac"   shading="smooth" polyRemoval="pre" trigger="-0.31 1.20 0.38" eye="1.83" target="1.35"/>
-	<model filename="femaleMarine.ac" shading="smooth" polyRemoval="pre" trigger="-0.26 1.17 0.40" eye="1.81" target="1.43"/>
-  <!--
-	<model filename="maleCiv.ac"      shading="smooth" target="1.39" />
-	<model filename="femaleCiv.ac"    shading="smooth" target="1.47" />
-  -->
 
   <model filename="selection.ac" />
 
@@ -69,7 +61,7 @@
   <model filename="ar3l.ac" />
   <model filename="cani.ac" />
   <model filename="canx.ac" />
-  
+
   <model filename="ray1.ac" />
   <model filename="ray2.ac" />
   <model filename="ray3.ac" />
@@ -80,6 +72,12 @@
 
   <model filename="cellClip.ac" />
   <model filename="shellClip.ac" />
+
+  <model filename="maleMarine.ac"   shading="smooth" polyRemoval="pre" trigger="-0.31 1.20 0.38" eye="1.83" target="1.35"/>
+  <model filename="femaleMarine.ac" shading="smooth" polyRemoval="pre" trigger="-0.26 1.17 0.40" eye="1.81" target="1.43"/>
+
+  <!-- World models have their origin at the upper left, so that they align with the unit grid -->
+  <model filename="lander.ac" />
 
   <model filename="tree.ac" billboard="true" shadow="rotate"/>
 

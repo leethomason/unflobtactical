@@ -35,8 +35,6 @@ using namespace micropather;
 extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
 extern int drawCalls;			// ditto
 
-#define SHOW_FOW			// ignore fog of war
-
 
 Map::Map( SpaceTree* tree )
 	: itemPool( "mapItemPool", sizeof( MapItem ), sizeof( MapItem ) * 200, false )
@@ -103,12 +101,7 @@ Map::Map( SpaceTree* tree )
 	}
 	fowSurface.Set( Surface::RGBA16, SIZE, SIZE );
 
-	//U32 id = lightMap[1].CreateTexture();
-	//lightMapTex.Set( "lightmap", id, false );
 	lightMapTex = texman->CreateTexture( "MapLightMap", SIZE, SIZE, Surface::RGB16, 0, this );
-
-	//id = fowSurface.CreateTexture( Surface::PARAM_NEAREST );
-	//fowTex.Set( "fow", id, true );
 	fowTex = texman->CreateTexture( "FOWMapTex", SIZE, SIZE, Surface::RGBA16, Texture::PARAM_NEAREST, this );
 }
 
@@ -275,35 +268,31 @@ void Map::UnBindTextureUnits()
 }
 
 
-void Map::CalcBlitMat( int x, int y, int w, int h, int tileRotation, Matrix2I* inv )
+void Map::MapObjectToWorld( int x, int y, int w, int h, int tileRotation, Matrix2I* m )
 {
-	Matrix2I t, r, p, m;
+	Matrix2I t, r, p;
 	t.x = x;
 	t.y = y;
+	r.SetXZRotation( 90*tileRotation );
 
 	switch ( tileRotation ) {
 		case 0:
-			r.SetIdentity();
 			p.x = 0;	p.y = 0;
 			break;
 
 		case 1:
-			r.SetRotation( 90 );
 			p.x = 0;	p.y += h-1;
 			break;
 		case 2:
-			r.SetRotation( 180 );
 			p.x += w-1; p.y += h-1;
 			break;
 		case 3:
-			r.SetRotation( 270 );
 			p.x += w-1; p.y += 0;
 			break;
 		default:
 			GLASSERT( 0 );
 	}
-	m = t * p * r;
-	m.Invert( inv );
+	*m = t * p * r;
 }
 
 
@@ -316,16 +305,17 @@ void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
 
 	if ( tileRotation == 0 ) {
 		Vector2I target = { x, y };
-		backgroundSurface.Blit( target, s, src );
+		backgroundSurface.BlitImg( target, s, src );
 	}
 	else 
 	{
-		Matrix2I inv;
-		CalcBlitMat( x, y, s->Width(), s->Height(), tileRotation, &inv );
+		Matrix2I m, inv;
+		MapObjectToWorld( x, y, s->Width(), s->Height(), tileRotation, &m );
+		m.Invert( &inv );
 		
 		Rectangle2I target;
 		target.Set( x, y, x+s->Width()-1, y+s->Height()-1 );
-		backgroundSurface.Blit( target, s, inv );
+		backgroundSurface.BlitImg( target, s, inv );
 	}
 	backgroundTexture->Upload( backgroundSurface );
 }
@@ -347,18 +337,19 @@ void Map::SetLightMaps( const Surface* day, const Surface* night, int x, int y, 
 
 	if ( tileRotation == 0 ) {
 		Vector2I target = { x, y };
-		dayMap.Blit( target, day, rect );
-		nightMap.Blit( target, night, rect );
+		dayMap.BlitImg( target, day, rect );
+		nightMap.BlitImg( target, night, rect );
 	}
 	else {
-		Matrix2I inv;
-		CalcBlitMat( x, y, day->Width(), day->Height(), tileRotation, &inv );
+		Matrix2I inv, m;
+		MapObjectToWorld( x, y, day->Width(), day->Height(), tileRotation, &m );
+		m.Invert( &inv );
 		
 		Rectangle2I target;
 		target.Set( x, y, x+day->Width()-1, y+day->Height()-1 );
 
-		dayMap.Blit( target, day, inv );
-		nightMap.Blit( target, night, inv );
+		dayMap.BlitImg( target, day, inv );
+		nightMap.BlitImg( target, night, inv );
 	}
 
 	// Could optimize full invalidate, but hard to think of a case where it matters.
@@ -412,8 +403,8 @@ void Map::GenerateLightMap()
 		// Copy base to the lm[1], and then add lights.
 		for( int j=invalidLightMap.min.y; j<=invalidLightMap.max.y; ++j ) {
 			for( int i=invalidLightMap.min.x; i<=invalidLightMap.max.x; ++i ) {
-				U16 c = lightMap[0].ImagePixel16( i, j );
-				lightMap[1].SetImagePixel16( i, j, c );
+				U16 c = lightMap[0].GetImg16( i, j );
+				lightMap[1].SetImg16( i, j, c );
 			}
 		}
 
@@ -441,22 +432,19 @@ void Map::GenerateLightMap()
 						 && object.y >= 0 && object.y < itemDef.cy )
 					{
 						// Now grab the colors from the image.
-						U16 cLight = lightObject->ImagePixel16( object.x+itemDef.lightTX, 
-																object.y+itemDef.lightTY );
-
-						Surface::RGBA rgbLight, rgb;
-						Surface::CalcRGB16( cLight, &rgbLight );
+						U16 cLight = lightObject->GetImg16( object.x+itemDef.lightTX, object.y+itemDef.lightTY );
+						Surface::RGBA rgbLight = Surface::CalcRGB16( cLight );
 
 						// Now add it to the light map.
-						U16 c = lightMap[1].ImagePixel16( i, j );
-						Surface::CalcRGB16( c, &rgb );
+						U16 c = lightMap[1].GetImg16( i, j );
+						Surface::RGBA rgb = Surface::CalcRGB16( c );
 
 						rgb.r = Min( rgb.r + rgbLight.r, 255 );
 						rgb.g = Min( rgb.g + rgbLight.g, 255 );
 						rgb.b = Min( rgb.b + rgbLight.b, 255 );
 
-						U16 cResult = Surface::CalcColorRGB16( rgb );
-						lightMap[1].SetImagePixel16( i, j, cResult );
+						U16 cResult = Surface::CalcRGB16( rgb );
+						lightMap[1].SetImg16( i, j, cResult );
 					}
 				}
 			}
@@ -471,13 +459,13 @@ void Map::GenerateLightMap()
 				if ( fogOfWar.IsSet( i, j ) ) {
 #endif
 					Surface::RGBA transparentBlack = { 0, 0, 0, 0 };
-					U16 c = Surface::CalcColorRGBA16( transparentBlack );
-					fowSurface.SetImagePixel16( i, j, c );
+					U16 c = Surface::CalcRGBA16( transparentBlack );
+					fowSurface.SetImg16( i, j, c );
 				}
 				else {
 					Surface::RGBA opaqueBlack = { 0, 0, 0, 255 };
-					U16 c = Surface::CalcColorRGBA16( opaqueBlack );
-					fowSurface.SetImagePixel16( i, j, c );
+					U16 c = Surface::CalcRGBA16( opaqueBlack );
+					fowSurface.SetImg16( i, j, c );
 				}
 			}
 		}
@@ -505,48 +493,6 @@ const char* Map::GetItemDefName( int i )
 	}
 	return result;
 }
-
-
-/*
-void Map::MatrixInitMapToObject( int w, int h, int r, Matrix2I* m  )
-{
-	m->x = 0;
-	m->y = 0;
-
-	// Matrix to map from map coordinates
-	// back to object coordinates.
-	switch ( r ) {
-		case 0:
-			m->a = 1;	m->b = 0;	m->x = 0;
-			m->c = 0;	m->d = 1;	m->y = 0;
-			break;
-		
-		case 1:
-			m->a = 0;	m->b = -1;	m->x = w-1;
-			m->c = 1;	m->d = 0;	m->y = 0;
-			break;
-
-		case 2:
-			m->a = -1;	m->b = 0;	m->x = w-1;
-			m->c = 0;	m->d = -1;	m->y = h-1;
-			break;
-
-		case 3:
-			m->a = 0;	m->b = 1;	m->x = 0;
-			m->c = -1;	m->d = 0;	m->y = h-1;
-			break;
-
-		default:
-			break;
-	};
-}
-*/
-
-//void Map::IMat::Mult( const grinliz::Vector2I& in, grinliz::Vector2I* out  )
-//{
-//	out->x = a*in.x + b*in.y + x;
-//	out->y = c*in.x + d*in.y + z;
-//}
 
 
 void Map::DoDamage( int x, int y, const DamageDesc& damage, Rectangle2I* dBounds )

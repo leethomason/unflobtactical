@@ -4,7 +4,7 @@ OBJECT world
 kids 4
 OBJECT poly
 name "box"
-loc 0.258977 0.347917 0.195267
+loc 0.758977 0.347917 0.695267
 texture "palette.png"
 crease 45.000000
 numvert 8
@@ -62,7 +62,7 @@ refs 4
 kids 0
 OBJECT poly
 name "box"
-loc -0.30129 0.347917 0.161749
+loc 0.19871 0.347917 0.661749
 texture "palette.png"
 crease 45.000000
 numvert 8
@@ -120,7 +120,7 @@ refs 4
 kids 0
 OBJECT poly
 name "box"
-loc -0.00458334 0.347917 -0.3775
+loc 0.495417 0.347917 0.1225
 texture "palette.png"
 crease 45.000000
 numvert 8
@@ -178,7 +178,7 @@ refs 4
 kids 0
 OBJECT poly
 name "disk"
-loc 2.68966e-008 0.7 -1.49012e-009
+loc 0.5 0.7 0.5
 texture "palette.png"
 crease 45.000000
 numvert 11
@@ -187,7 +187,7 @@ numvert 11
 0.139444 0 0.45125
 -0.139444 0 0.45125
 -0.365069 0 0.278888
--0.45125 0 -7.90087e-008
+-0.45125 0 -8.9407e-008
 -0.365069 0 -0.278888
 -0.139444 0 -0.45125
 0.139444 0 -0.45125

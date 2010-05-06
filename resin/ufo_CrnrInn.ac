@@ -4,7 +4,7 @@ OBJECT world
 kids 1
 OBJECT poly
 name "box"
-loc 2.98023e-008 0.75 0
+loc 0.5 0.75 0.5
 texture "ufoInner.png"
 crease 45.000000
 numvert 24
