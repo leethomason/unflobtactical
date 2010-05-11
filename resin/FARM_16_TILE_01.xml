@@ -1,35 +1,39 @@
-<Map>
+<Map sizeX="64" sizeY="64">
     <Items>
-        <Item x="12" y="12" rot="2" index="22" hp="10" />
-        <Item x="10" y="12" rot="2" index="22" hp="10" />
-        <Item x="8" y="12" rot="2" index="22" hp="10" />
-        <Item x="6" y="12" rot="2" index="22" hp="10" />
-        <Item x="2" y="12" rot="2" index="22" hp="10" />
-        <Item x="2" y="8" rot="1" index="22" hp="10" />
-        <Item x="8" y="6" rot="1" index="24" hp="80" />
+        <Item x="12" y="12" index="22" hp="10" />
+        <Item x="10" y="12" index="22" hp="10" />
+        <Item x="8" y="12" index="22" hp="10" />
+        <Item x="6" y="12" index="22" hp="10" />
+        <Item x="2" y="12" index="22" hp="10" />
+        <Item x="13" y="9" rot="1" index="98" />
+        <Item x="9" y="11" rot="1" index="24" hp="80" />
+        <Item x="6" y="8" rot="3" index="24" hp="80" />
+        <Item x="3" y="9" rot="1" index="98" />
+        <Item x="10" y="5" rot="1" index="98" />
         <Item x="6" y="6" index="24" hp="80" />
-        <Item x="2" y="6" rot="3" index="24" hp="80" />
-        <Item x="2" y="6" rot="1" index="22" hp="10" />
+        <Item x="2" y="6" index="24" hp="80" />
+        <Item x="2" y="6" index="22" hp="10" />
         <Item x="12" y="2" index="22" hp="10" />
-        <Item x="13" y="2" rot="3" index="22" hp="10" />
-        <Item x="8" y="2" rot="3" index="24" hp="80" />
-        <Item x="10" y="2" index="24" hp="80" />
-        <Item x="10" y="2" index="22" hp="10" />
+        <Item x="8" y="2" index="24" hp="80" />
         <Item x="8" y="2" index="22" hp="10" />
-        <Item x="4" y="2" rot="2" index="24" hp="80" />
-        <Item x="4" y="2" index="22" hp="10" />
+        <Item x="5" y="3" rot="2" index="24" hp="80" />
+        <Item x="7" y="2" rot="1" index="98" />
         <Item x="2" y="2" index="24" hp="80" />
-        <Item x="2" y="2" index="22" hp="10" />
-        <Item x="2" y="2" rot="1" index="22" hp="10" />
-        <Item x="9" y="11" rot="2" index="24" hp="80" />
-        <Item x="11" y="11" rot="3" index="24" hp="80" />
-        <Item x="13" y="11" rot="3" index="22" hp="10" />
+        <Item x="11" y="11" index="24" hp="80" />
+        <Item x="14" y="11" rot="3" index="22" hp="10" />
         <Item x="3" y="11" index="24" hp="80" />
-        <Item x="2" y="11" rot="1" index="22" hp="10" />
-        <Item x="7" y="11" rot="1" index="24" hp="80" />
-        <Item x="10" y="7" rot="3" index="24" hp="80" />
-        <Item x="13" y="7" rot="3" index="22" hp="10" />
+        <Item x="2" y="11" rot="3" index="22" hp="10" />
+        <Item x="14" y="3" rot="3" index="22" hp="10" />
+        <Item x="12" y="4" rot="1" index="24" hp="80" />
+        <Item x="6" y="4" rot="1" index="24" hp="80" />
+        <Item x="7" y="11" index="24" hp="80" />
+        <Item x="10" y="7" index="24" hp="80" />
+        <Item x="2" y="7" rot="3" index="22" hp="10" />
+        <Item x="12" y="7" rot="3" index="22" hp="10" />
     </Items>
+    <Images>
+        <Image x="0" y="0" size="16" name="FARM_16_TILE_01" />
+    </Images>
     <GroundDebris />
     <PyroGroup />
 </Map>
