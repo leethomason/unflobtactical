@@ -107,7 +107,7 @@ public:
 		U16		cx, cy;
 		U16		hp;					// 0xffff infinite, 0 destroyed
 		U8		flammable;			// 0 - 255
-		U8		isUpperLeft;
+//		U8		isUpperLeft;
 		U8		lightDef;			// itemdef index of the light associated with this (is auto-created)
 		S8		lightOffsetX;		// if light, offset of light origin from model origin
 		S8		lightOffsetY;
@@ -127,6 +127,12 @@ public:
 		int HasLight() const	{ return lightDef; }
 		bool IsLight() const	{ return lightTX || lightTY; }
 		bool IsDoor() const		{ return modelResourceOpen != 0; }
+		grinliz::Rectangle2I Bounds() const 
+		{
+			grinliz::Rectangle2I b;
+			b.Set( 0, 0, cx-1, cy-1 );
+			return b;
+		}
 	};
 
 	struct MapItem
@@ -137,13 +143,19 @@ public:
 			MI_DOOR					= 0x04,
 		};
 
-		U8		x, y, rot, open;
-		U8		itemDefIndex;	// 0: not in use, >0 is the index
-		S8		matA, matB, matC, matD;
-		S16		matX, matY;
-		U16		hp;
-		U16		flags;
+		struct MatPacked {
+			S8	a, b, c, d;
+			S16	x, y;
+		};
+
+		U8			open;
+		U8			itemDefIndex;	// 0: not in use, >0 is the index
+		U8			modelRotation;
+		U16			hp;
+		U16			flags;
+		MatPacked	xform;			// xform in map coordinates
 		grinliz::Rectangle2<U8> mapBounds8;
+		float		modelX, modelZ;
 		
 		Model*	 model;
 		MapItem* light;
@@ -159,9 +171,31 @@ public:
 		}
 		Matrix2I XForm() const {
 			Matrix2I m;
-			m.a = matA;	m.b = matB; m.c = matC; m.d = matD; m.x = matX; m.y = matY;
+			m.a = xform.a;	m.b = xform.b; 
+			m.c = xform.c;	m.d = xform.d; 
+			m.x = xform.x;	m.y = xform.y;
 			return m;
 		}
+		void SetXForm( const Matrix2I& m ) {
+			GLASSERT( m.a > -128 && m.a < 128 );
+			GLASSERT( m.b > -128 && m.b < 128 );
+			GLASSERT( m.c > -128 && m.c < 128 );
+			GLASSERT( m.d > -128 && m.d < 128 );
+			GLASSERT( m.x > -30000 && m.x < 30000 );
+			GLASSERT( m.y > -30000 && m.y < 30000 );
+			xform.a = (S8)m.a;
+			xform.b = (S8)m.b;
+			xform.c = (S8)m.c;
+			xform.d = (S8)m.d;
+			xform.x = (S16)m.x;
+			xform.y = (S16)m.y;
+		}
+
+		grinliz::Vector3F ModelPos() const { 
+			grinliz::Vector3F v = { modelX, 0.0f, modelZ };
+			return v;
+		}
+		float ModelRot() const { return (float)(modelRotation*90); }
 
 		bool InUse() const			{ return itemDefIndex > 0; }
 		bool IsLight() const		{ return flags & MI_IS_LIGHT; }
@@ -254,6 +288,8 @@ public:
 	//		1+ hp remaining
 	// Storage is owned by the map after this call.
 	MapItem* AddItem( int x, int z, int rotation, int itemDefIndex, int hp, int flags );
+	//MapItem* AddItem( const Matrix2I& xform, int itemDefIndex, int hp, int flags );
+
 	void DeleteAt( int x, int z );
 	void MapBoundsOfModel( const Model* m, grinliz::Rectangle2I* mapBounds );
 
@@ -307,7 +343,8 @@ public:
 	//
 	void PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rotation );
 
-	static void MapObjectToWorld( int x, int y, int w, int h, int tileRotation, Matrix2I* mat ); 
+	static void MapObjectToWorld( int x, int y, int rotation, Matrix2I* mat, grinliz::Vector3F* model );
+	static void MapImageToWorld( int x, int y, int w, int h, int tileRotation, Matrix2I* mat );
 
 private:
 
@@ -379,18 +416,7 @@ private:
 	void StateToVec( const void* state, grinliz::Vector2<S16>* vec ) { *vec = *((grinliz::Vector2<S16>*)&state); }
 	void* VecToState( const grinliz::Vector2<S16>& vec )			 { return (void*)(*(int*)&vec); }
 
-	void CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,		// input 
-						grinliz::Rectangle2I* mapBounds,					// optional, output bounds
-						grinliz::Vector2F* origin,							// optional, output origin
-						Matrix2I* xform );									// optional, output xform
-	void CalcModelPos(	const MapItem* item,
-						grinliz::Rectangle2I* mapBounds,					// optional, output bounds
-						grinliz::Vector2F* origin,							// optional, output origin
-						Matrix2I* xform )									// optional, output xform
-	{
-		CalcModelPos( item->x, item->y, item->rot, itemDefArr[item->itemDefIndex], mapBounds, origin, xform );
-	}
-
+//	void CalcModelPos(	const MapItemDef& itemDef, grinliz::Rectangle2I* mapBounds );
 	void ClearVisPathMap( grinliz::Rectangle2I& bounds );
 	void CalcVisPathMap( grinliz::Rectangle2I& bounds );
 

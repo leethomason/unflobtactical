@@ -268,7 +268,7 @@ void Map::UnBindTextureUnits()
 }
 
 
-void Map::MapObjectToWorld( int x, int y, int w, int h, int tileRotation, Matrix2I* m )
+void Map::MapImageToWorld( int x, int y, int w, int h, int tileRotation, Matrix2I* m )
 {
 	Matrix2I t, r, p;
 	t.x = x;
@@ -310,7 +310,7 @@ void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
 	else 
 	{
 		Matrix2I m, inv;
-		MapObjectToWorld( x, y, s->Width(), s->Height(), tileRotation, &m );
+		MapImageToWorld( x, y, s->Width(), s->Height(), tileRotation, &m );
 		m.Invert( &inv );
 		
 		Rectangle2I target;
@@ -342,7 +342,7 @@ void Map::SetLightMaps( const Surface* day, const Surface* night, int x, int y, 
 	}
 	else {
 		Matrix2I inv, m;
-		MapObjectToWorld( x, y, day->Width(), day->Height(), tileRotation, &m );
+		MapImageToWorld( x, y, day->Width(), day->Height(), tileRotation, &m );
 		m.Invert( &inv );
 		
 		Rectangle2I target;
@@ -524,8 +524,7 @@ void Map::DoDamage( Model* m, const DamageDesc& damageDesc, Rectangle2I* dBounds
 		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 
 		int hp = (int)(damageDesc.energy + damageDesc.kinetic );
-		GLOUTPUT(( "map damage '%s' (%d,%d) dam=%d\n",
-			       itemDef.name, item->x, item->y, hp ));
+		GLOUTPUT(( "map damage '%s' (%d,%d) dam=%d\n", itemDef.name, item->XForm().x, item->XForm().y, hp ));
 
 		bool destroyed = false;
 		if ( itemDef.CanDamage() && item->DoDamage(hp) ) 
@@ -537,21 +536,23 @@ void Map::DoDamage( Model* m, const DamageDesc& damageDesc, Rectangle2I* dBounds
 
 			// Destroy the current model. Replace it with "destroyed"
 			// model if there is one. This is as simple as saving off
-			// the properties, deleting it, and re-adding.
-			int x = item->x;
-			int y = item->y;
-			int r = item->rot;
+			// the properties, deleting it, and re-adding. A little
+			// tricky since we reach into the matrix itself.
+			int x = item->XForm().x;
+			int y = item->XForm().y;
+			int rot = item->modelRotation;
 			int def = item->itemDefIndex;
 			int flags = item->flags;
 			int hp = item->hp;
 
 			DeleteItem( item );
-			AddItem( x, y, r, def, hp, flags );
+			AddItem( x, y, rot, def, hp, flags );
 			destroyed = true;
 		}
 		if ( !destroyed && itemDef.CanDamage() && itemDef.flammable > 0 ) {
 			if ( damageDesc.incind > random.Rand( 256-itemDef.flammable )) {
-				SetPyro( item->x, item->y, 0, 1 );
+				Rectangle2I b = item->MapBounds();
+				SetPyro( (b.min.x+b.max.x)/2, (b.min.y+b.max.y)/2, 0, 1 );
 			}
 		}
 	}
@@ -639,12 +640,19 @@ Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 {
 	Model* model = 0;
 	if ( itemDefArr[defIndex].modelResource ) {
-		Rectangle2I mapBounds;
-		Vector2F modelPos;
-		CalcModelPos( x, y, rotation, itemDefArr[defIndex], &mapBounds, &modelPos, 0 );
 
+		Matrix2I m;
+		Vector3F modelPos;
+		MapObjectToWorld( x, y, rotation*90, &m, &modelPos );
+		Vector2I zero = { 0, 0 };
+		Vector2I v = m * zero;
+
+		if ( itemDefArr[defIndex].modelResource->header.IsBillboard() ) {
+			modelPos.x += 0.5f * (float)itemDefArr[defIndex].cx;
+			modelPos.z += 0.5f * (float)itemDefArr[defIndex].cy; 
+		}
 		model = tree->AllocModel( itemDefArr[defIndex].modelResource );
-		model->SetPos( modelPos.x, 0.0f, modelPos.y );
+		model->SetPos( modelPos );
 		model->SetRotation( 90.0f * rotation );
 	}
 	return model;
@@ -652,21 +660,49 @@ Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 #endif
 
 
+void Map::MapObjectToWorld( int x, int y, int rotation, Matrix2I* mat, Vector3F* vecPos )
+{
+	GLASSERT( rotation == 0 || rotation == 90 || rotation == 180 || rotation == 270 );
+
+	Matrix2I r, t, gf;
+
+	r.SetXZRotation( rotation );
+	t.SetTranslation( x, y );
+	if ( mat ) {
+		*mat = t*r;
+	}
+
+	// Account for rounding from float to int space
+	if ( vecPos ) {
+		switch( rotation ) {
+			case 0:		vecPos->Set( (float)x, 0, (float)y );			break;
+			case 90:	vecPos->Set( (float)x, 0, (float)(y+1) );		break;
+			case 180:	vecPos->Set( (float)(x+1), 0, (float)(y+1) );	break;
+			case 270:	vecPos->Set( (float)(x+1), 0, (float)y );		break;
+			default:	GLASSERT( 0 );
+		}
+	}
+}
+
+
 Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags )
 {
 	GLASSERT( x >= 0 && x < width );
 	GLASSERT( y >= 0 && y < height );
-	GLASSERT( defIndex > 0 && defIndex < MAX_ITEM_DEF );
 	GLASSERT( rotation >=0 && rotation < 4 );
-	
+	GLASSERT( defIndex > 0 && defIndex < MAX_ITEM_DEF );
+
 	if ( defIndex < Map::LIGHT_START && !itemDefArr[defIndex].modelResource ) {
 		GLOUTPUT(( "No model resource.\n" ));
 		GLASSERT( 0 );
 		return 0;
 	}
 
+	Matrix2I xform;
+	Vector3F modelPos;
+	MapObjectToWorld( x, y, rotation*90, &xform, &modelPos );
+	
 	const MapItemDef& itemDef = itemDefArr[defIndex];
-
 	bool metadata = false;
 
 	// Check for meta data.
@@ -688,9 +724,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	}
 
 	Rectangle2I mapBounds;
-	Vector2F modelPos;
-	Matrix2I xform;
-	CalcModelPos( x, y, rotation, itemDefArr[defIndex], &mapBounds, &modelPos, &xform );
+	MultMatrix2I( xform, itemDef.Bounds(), &mapBounds );
 
 	// Check bounds on map.
 	if ( mapBounds.min.x < 0 || mapBounds.min.y < 0 || mapBounds.max.x >= SIZE || mapBounds.max.y >= SIZE ) {
@@ -702,7 +736,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	// This isn't required, but prevents map creation mistakes.
 	MapItem* root = quadTree.FindItems( mapBounds, 0, MapItem::MI_IS_LIGHT );
 	while( root ) {
-		if ( root->x == x && root->y == y && root->rot == rotation && root->itemDefIndex == defIndex ) {
+		if ( root->itemDefIndex == defIndex && root->XForm() == xform ) {
 			GLOUTPUT(( "Duplicate layer.\n" ));
 			return 0;
 		}
@@ -721,28 +755,12 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 		lander = item;
 	}
 
-	const ModelResource* res = 0;
-	if ( itemDefArr[defIndex].CanDamage() && hp == 0 ) {
-		res = itemDef.modelResourceDestroyed;
-	}
-	else {
-		res = itemDef.modelResource;
-	}
-	if ( res ) {
-		Model* model = tree->AllocModel( res );
-		model->SetFlag( Model::MODEL_OWNED_BY_MAP );
-		if ( metadata )
-			model->SetFlag( Model::MODEL_METADATA );
-		model->SetPos( modelPos.x, 0.0f, modelPos.y );
-		model->SetRotation( 90.0f * rotation );
-		item->model = model;
-	}
-
-	item->x = x;
-	item->y = y;
-	item->rot = rotation;
+	item->SetXForm( xform );
 	item->itemDefIndex = defIndex;
 	item->open = 0;
+	item->modelX = modelPos.x;
+	item->modelZ = modelPos.z;
+	item->modelRotation = rotation;
 
 	item->hp = hp;
 	if ( itemDef.IsDoor() )
@@ -752,27 +770,47 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	GLASSERT( mapBounds.min.x >= 0 && mapBounds.max.x < 256 );	// using int8
 	GLASSERT( mapBounds.min.y >= 0 && mapBounds.max.y < 256 );	// using int8
 	item->mapBounds8.Set( mapBounds.min.x, mapBounds.min.y, mapBounds.max.x, mapBounds.max.y );
-	item->matA = xform.a;	item->matB = xform.b;	item->matX = xform.x;
-	item->matC = xform.c;	item->matD = xform.d;	item->matY = xform.y;
 
 	item->next = 0;
 	item->light = 0;
 	
 	// Check for lights.
 	if ( itemDefArr[defIndex].HasLight() ) {
-		int flags0 = flags | MapItem::MI_NOT_IN_DATABASE | MapItem::MI_IS_LIGHT;
-		int lightDef = itemDefArr[defIndex].HasLight();
-
-		Vector2I lx = { itemDefArr[lightDef].lightOffsetX, 
-						itemDefArr[lightDef].lightOffsetY };
-		Matrix2I irot;
-		irot.SetRotation( rotation*90 );
-		Vector2I lxp = irot * lx;
-
-		item->light = AddItem( x+lxp.x, y+lxp.y, rotation, lightDef, 0xffff, flags0 );
+//		int flags0 = flags | MapItem::MI_NOT_IN_DATABASE | MapItem::MI_IS_LIGHT;
+//		int lightDef = itemDefArr[defIndex].HasLight();
+//
+//		Vector2I lx = { itemDefArr[lightDef].lightOffsetX, 
+//						itemDefArr[lightDef].lightOffsetY };
+//		Matrix2I irot;
+//		irot.SetRotation( rotation*90 );
+//		Vector2I lxp = irot * lx;
+//
+//		item->light = AddItem( x+lxp.x, y+lxp.y, rotation, lightDef, 0xffff, flags0 );
 	}
 
 	quadTree.Add( item );
+
+	const ModelResource* res = 0;
+	if ( itemDefArr[defIndex].CanDamage() && hp == 0 ) {
+		res = itemDef.modelResourceDestroyed;
+	}
+	else {
+		res = itemDef.modelResource;
+	}
+	if ( res ) {
+		Model* model = tree->AllocModel( res );
+		if ( res->header.IsBillboard() ) {
+			modelPos.x += 0.5f * (float)itemDef.cx;
+			modelPos.z += 0.5f * (float)itemDef.cy; 
+		}
+
+		model->SetFlag( Model::MODEL_OWNED_BY_MAP );
+		if ( metadata )
+			model->SetFlag( Model::MODEL_METADATA );
+		model->SetPos( modelPos );
+		model->SetRotation( item->ModelRot() );
+		item->model = model;
+	}
 
 	// Patch the world states:
 	ResetPath();
@@ -836,7 +874,7 @@ void Map::PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rota
 		Vector2I world = xform * obj;
 		
 		*pos = world;
-		*rotation = (float)(lander->rot * 90);
+		*rotation = lander->ModelRot();
 		++nLanderPos;
 	}
 	else if ( team == ALIEN_TEAM ) {
@@ -911,10 +949,11 @@ void Map::Save( TiXmlElement* mapElement )
 
 	for( ; item; item=item->next ) {
 		TiXmlElement* itemElement = new TiXmlElement( "Item" );
-		itemElement->SetAttribute( "x", item->x );
-		itemElement->SetAttribute( "y", item->y );
-		if ( item->rot != 0 )
-			itemElement->SetAttribute( "rot", item->rot );
+		itemElement->SetAttribute( "x", item->XForm().x );
+		itemElement->SetAttribute( "y", item->XForm().y );
+		int rot = item->modelRotation;
+		if ( rot != 0 )
+			itemElement->SetAttribute( "rot", rot );
 		itemElement->SetAttribute( "index", item->itemDefIndex );
 		if ( item->hp != 0xffff )
 			itemElement->SetAttribute( "hp", item->hp );
@@ -1087,7 +1126,7 @@ void Map::QueryAllDoors( CDynArray< grinliz::Vector2I >* doors )
 
 	MapItem* item = quadTree.FindItems( bounds, MapItem::MI_DOOR, 0 );
 	while( item ) {
-		Vector2I v = { item->x, item->y };
+		Vector2I v = { item->XForm().x, item->XForm().y };
 		doors->Push( v );
 		item = item->next;
 	}
@@ -1143,7 +1182,7 @@ bool Map::OpenDoor( int x, int y, bool open )
 	return opened;
 }
 
-
+/*
 void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef, 
 						grinliz::Rectangle2I* mapBounds,
 						grinliz::Vector2F* modelPos,
@@ -1161,7 +1200,7 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 		mapBounds = &_mapBounds;
 
 
-	bool isOriginUpperLeft = itemDef.isUpperLeft ? true : false;
+	//bool isOriginUpperLeft = itemDef.isUpperLeft ? true : false;
 
 	Vector3F origin, patch;
 	Rectangle3F bounds;
@@ -1261,7 +1300,7 @@ void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef,
 		matrix->y = mapBounds->min.y - zeroP.y;
 	}
 }
-
+*/
 
 const Storage* Map::GetStorage( int x, int y ) const
 {
@@ -1356,8 +1395,8 @@ void Map::DumpTile( int x, int y )
 			const MapItemDef& itemDef = itemDefArr[ root->itemDefIndex ];
 			GLASSERT( itemDef.name && *itemDef.name );
 
-			int r = root->rot;
-			UFOText::Draw( 0, 100-12*i, "%s r=%d", itemDef.name, r*90 );
+			int r = root->modelRotation;
+			UFOText::Draw( 0, 100-12*i, "%s r=%d", itemDef.name, r );
 
 			++i;
 			root = root->next;
@@ -1486,7 +1525,7 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
 			GLASSERT( item->itemDefIndex > 0 );
 			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 			
-			int rot = item->rot;
+			int rot = item->modelRotation;
 			GLASSERT( rot >= 0 && rot < 4 );
 
 			Matrix2I mat = item->XForm();

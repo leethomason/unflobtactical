@@ -173,7 +173,7 @@ private:
 		int y;
 		int cx;	// light map size
 		int cy;
-		bool upperLeft;
+//		bool upperLeft;
 	};
 
 	struct MapItemInit 

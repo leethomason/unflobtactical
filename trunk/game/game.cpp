@@ -415,6 +415,7 @@ void Game::DoTick( U32 _currentTime )
 					(float)trianglesRendered/1000.0f,
 					drawCalls,
 					trianglesPerSecond );
+	#ifndef MAPMAKER
 	UFOText::Draw(  0, 14, "new=%d Tex(%d/%d) %dK/%dK mis=%d re=%d hit=%d",
 					memNewCount,
 					TextureManager::Instance()->NumTextures(),
@@ -423,7 +424,8 @@ void Game::DoTick( U32 _currentTime )
 					TextureManager::Instance()->CalcGPUMem()/1024,
 					TextureManager::Instance()->CacheMiss(),
 					TextureManager::Instance()->CacheReuse(),
-					TextureManager::Instance()->CacheHit() );				
+					TextureManager::Instance()->CacheHit() );		
+	#endif
 #else
 	UFOText::Draw(	0,  0, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
 				  VERSION,

@@ -69,7 +69,6 @@ public:
 	U16*					allIndex;		// memory store for vertices and indices. Used for hit-testing.
 	Vertex*					allVertex;
 
-	int IsOriginUpperLeft() const				{ return header.flags & ModelHeader::UPPER_LEFT; }
 	const grinliz::Rectangle3F& AABB() const	{ return header.bounds; }
 
 	ModelAtom atom[EL_MAX_MODEL_GROUPS];
@@ -157,7 +156,7 @@ public:
 	float GetRotation( int axis=1 ) const			{ return rot[axis]; }
 
 	int IsBillboard() const 		{ return resource->header.flags & ModelHeader::BILLBOARD; }
-	int IsOriginUpperLeft() const	{ return resource->header.flags & ModelHeader::UPPER_LEFT; }
+//	int IsOriginUpperLeft() const	{ return resource->header.flags & ModelHeader::UPPER_LEFT; }
 	int IsShadowRotated() const		{ return resource->header.flags & ModelHeader::ROTATE_SHADOWS; }
 	
 	// Set the skin texture (which is a special texture xform)
