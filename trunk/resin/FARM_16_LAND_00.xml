@@ -1,19 +1,18 @@
-<Map>
+<Map sizeX="64" sizeY="64">
     <Items>
         <Item x="12" y="13" rot="1" index="26" hp="10" />
-        <Item x="8" y="13" rot="1" index="1" hp="250" />
-        <Item x="4" y="14" rot="1" index="1" hp="250" />
-        <Item x="13" y="9" rot="1" index="1" hp="250" />
-        <Item x="11" y="9" rot="1" index="1" hp="250" />
-        <Item x="10" y="8" rot="1" index="1" hp="250" />
-        <Item x="4" y="11" rot="1" index="1" hp="250" />
-        <Item x="6" y="10" rot="1" index="26" hp="10" />
-        <Item x="13" y="3" rot="1" index="26" hp="10" />
-        <Item x="14" y="2" rot="1" index="26" hp="10" />
-        <Item x="14" y="3" rot="1" index="26" hp="10" />
-        <Item x="11" y="3" rot="1" index="1" hp="250" />
-        <Item x="2" y="3" rot="1" index="96" />
+        <Item x="13" y="13" rot="1" index="26" hp="10" />
+        <Item x="11" y="14" rot="1" index="26" hp="10" />
+        <Item x="2" y="12" rot="1" index="1" hp="250" />
+        <Item x="13" y="4" rot="1" index="1" hp="250" />
+        <Item x="12" y="5" rot="1" index="26" hp="10" />
+        <Item x="12" y="3" rot="1" index="1" hp="250" />
+        <Item x="5" y="2" rot="1" index="1" hp="250" />
+        <Item x="3" y="11" rot="1" index="96" />
     </Items>
+    <Images>
+        <Image x="0" y="0" size="16" name="FARM_16_LAND_00" />
+    </Images>
     <GroundDebris />
     <PyroGroup />
 </Map>
