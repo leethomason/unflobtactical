@@ -4,7 +4,7 @@ OBJECT world
 kids 1
 OBJECT poly
 name "block"
-loc 0 0.3 0
+loc 0.5 0.3 0.5
 texture "stonewall.png"
 crease 45.000000
 numvert 12

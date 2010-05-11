@@ -374,9 +374,9 @@ void ProcessModel( TiXmlElement* model )
 	if ( grinliz::StrEqual( model->Attribute( "shadow" ), "rotate" ) ) {
 		header.flags |= ModelHeader::ROTATE_SHADOWS;
 	}
-	if ( grinliz::StrEqual( model->Attribute( "origin" ), "upperLeft" ) ) {
-		header.flags |= ModelHeader::UPPER_LEFT;
-	}
+//	if ( grinliz::StrEqual( model->Attribute( "origin" ), "upperLeft" ) ) {
+//		header.flags |= ModelHeader::UPPER_LEFT;
+//	}
 	if ( model->Attribute( "trigger" ) ) {
 #pragma warning ( disable : 4996 )
 		sscanf( model->Attribute( "trigger" ), "%f %f %f", &header.trigger.x, &header.trigger.y, &header.trigger.z );

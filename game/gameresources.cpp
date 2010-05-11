@@ -231,7 +231,7 @@ void Game::InitMapLight( int index, const MapLightInit* init )
 		itemDef->lightTY = init->y;
 		itemDef->cx = init->cx;
 		itemDef->cy = init->cy;
-		itemDef->isUpperLeft = init->upperLeft ? 1 : 0;
+		//itemDef->isUpperLeft = init->upperLeft ? 1 : 0;
 
 		++init;
 	}
@@ -262,7 +262,7 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 			GLASSERT( resource );
 			itemDef->modelResource = resource;
 
-			itemDef->isUpperLeft = resource->IsOriginUpperLeft() ? 1 : 0;
+			//itemDef->isUpperLeft = resource->IsOriginUpperLeft() ? 1 : 0;
 		}
 		{
 			const ModelResource* resource = 0;
@@ -391,8 +391,8 @@ void Game::LoadMapResources()
 	
 	const MapLightInit lights[] = 
 	{
-		//	name			object   x  y   cx  cy	upperLeft 
-		{	"landerLight",	-1,	0,	 1,	0,	8,	10,	true },
+		//	name			object   x  y   cx  cy	 
+		{	"landerLight",	-1,	0,	 1,	0,	8,	10 },
 		{	0	}
 	};
 	InitMapLight( LIGHT_SET, lights );

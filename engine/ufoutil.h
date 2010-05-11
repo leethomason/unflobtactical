@@ -20,6 +20,7 @@
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glvector.h"
 #include "../grinliz/glfixed.h"
+#include "../grinliz/glrectangle.h"
 
 void CEnsureCap( unsigned needInBytes, unsigned* capInBytes, void** stack );
 
@@ -182,8 +183,13 @@ class Matrix2I
 	// valid inputs are 0, 90, 180, and 270
 	void SetRotation( int r );
 	void SetXZRotation( int r );	// set the rotation, accounting that we are in the xz plane (vs. xy) and the sign of rotation is flipped.
+	void SetTranslation( int x, int y )					{ this->x = x;		this->y = y;	}
+	void SetTranslation( const grinliz::Vector2I& v )	{ this->x = v.x;	this->y = v.y;	}
 	
 	void Invert( Matrix2I* inverse ) const;
+	//int CalcXZRotation() const;
+	void SinCos( int rotation, int* sinTheta, int* cosTheta ) const;
+
 
 	bool operator==( const Matrix2I& rhs ) const	{ 
 		return ( a==rhs.a && b==rhs.b && c==rhs.c && d==rhs.d && x==rhs.x && y==rhs.y );
@@ -195,6 +201,7 @@ class Matrix2I
 
 	friend void MultMatrix2I( const Matrix2I& a, const Matrix2I& b, Matrix2I* c );
 	friend void MultMatrix2I( const Matrix2I& a, const grinliz::Vector3I& b, grinliz::Vector3I* c );
+	friend void MultMatrix2I( const Matrix2I& a, const grinliz::Rectangle2I& b, grinliz::Rectangle2I* c );
 	
 	friend Matrix2I operator*( const Matrix2I& a, const Matrix2I& b )
 	{	
@@ -249,6 +256,7 @@ inline void MultMatrix2I( const Matrix2I& x, const grinliz::Vector3I& y, grinliz
 	w->y = x.c*y.x + x.d*y.y + x.y*y.z;
 	w->z =                         y.z;
 }
+
 
 /*
 	A class to walk a line between 2 integer points.

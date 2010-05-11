@@ -47,10 +47,12 @@ struct ModelHeader
 	// flags
 	enum {
 		BILLBOARD			= 0x01,		// if this is a billboard and always faces the camera
-		UPPER_LEFT			= 0x02,		// if the origin is upper left (center is standard)
 		ROTATE_SHADOWS		= 0x04,		// for billboards, the shadow turns to face the light
 		RESOURCE_NO_SHADOW	= 0x08,		// model casts no shadow
 	};
+	bool IsBillboard() const		{ return (flags&BILLBOARD) ? true : false; }
+	bool RotateShadow() const		{ return (flags&ROTATE_SHADOWS) ? true : false; }
+	bool NoShadow() const			{ return (flags&RESOURCE_NO_SHADOW) ? true : false; }
 
 	char					name[EL_FILE_STRING_LEN];	// name must be first - used later in sleazy sort trick in GetModelResource()
 	U16						nTotalVertices;		// in all groups

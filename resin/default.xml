@@ -78,7 +78,6 @@
 
   <!-- World models have their origin at the upper left, so that they align with the unit grid -->
   <model filename="lander.ac" />
-
   <model filename="tree.ac" billboard="true" shadow="rotate"/>
 
   <model filename="ufo_DoorCld.ac" shading="crease" polyRemoval="pre" />
@@ -86,7 +85,7 @@
   <model filename="ufo_WallInn.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_CrnrInn.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_WallOut.ac" shading="crease" polyRemoval="pre" />
-  <model filename="ufo_WallCurve4.ac" shading="crease" polyRemoval="pre" origin="upperLeft" />
+  <model filename="ufo_WallCurve4.ac" shading="crease" polyRemoval="pre" />
 
   <model filename="woodCrnr.ac" polyRemoval="pre" />
   <model filename="woodCrnrD.ac" polyRemoval="pre" />
@@ -97,7 +96,7 @@
 
   <model filename="farmBed.ac" polyRemoval="pre" />
   <model filename="farmTable.ac" polyRemoval="pre" />
-  <model filename="farmTable2x1.ac" polyRemoval="pre" origin="upperLeft"/>
+  <model filename="farmTable2x1.ac" polyRemoval="pre"/>
   <model filename="farmWheat.ac" billboard="true" />
   <model filename="stonewall_unit.ac" shading="crease" polyRemoval="pre" />
   <model filename="stonewall_join.ac" shading="crease" polyRemoval="pre" />
@@ -119,10 +118,6 @@
 
 	<!-- Maps -->
   <image filename="objectLightMaps.png" />
-
-  <image filename="farmland.png" />  
-	<image filename="farmlandN.png" />
-  <image filename="farmlandD.png" />
 
   <!--
   <data  filename="FARM_32_TILE_00.xml" />

@@ -28,12 +28,35 @@ void CEnsureCap( unsigned needInBytes, unsigned* capInBytes, void** stack )
 }
 
 
+void Matrix2I::SinCos( int rotation, int* sinTheta, int* cosTheta ) const
+{
+	switch ( rotation ) {
+		case 0:
+			*sinTheta = 0;
+			*cosTheta = 1;
+			break;
+		case 90:
+			*sinTheta = 1;
+			*cosTheta = 0;
+			break;
+		case 180:
+			*sinTheta = 0;
+			*cosTheta = -1;
+			break;
+		case 270:
+			*sinTheta = -1;
+			*cosTheta = 0;
+			break;
+		default:	
+			GLASSERT( 0 );
+	}
+}
+
+
 void Matrix2I::SetRotation( int r )
 {
-	float fs, fc;
-	SinCosDegree( (float)r, &fs, &fc );
-	int sinTheta = LRintf( fs );
-	int cosTheta = LRintf( fc );
+	int cosTheta = 1, sinTheta = 0;
+	SinCos( r, &sinTheta, &cosTheta );
 
 	//  cosT	-sinT
 	//	sinT	cosT
@@ -44,10 +67,8 @@ void Matrix2I::SetRotation( int r )
 
 void Matrix2I::SetXZRotation( int r )
 {
-	float fs, fc;
-	SinCosDegree( (float)r, &fs, &fc );
-	int sinTheta = LRintf( fs );
-	int cosTheta = LRintf( fc );
+	int cosTheta = 1, sinTheta = 0;
+	SinCos( r, &sinTheta, &cosTheta );
 
 	//  cosT	-sinT
 	//	sinT	cosT
@@ -56,6 +77,18 @@ void Matrix2I::SetXZRotation( int r )
 }
 
 
+//int Matrix2I::CalcXZRotation() const
+//{
+//	int sinTheta, cosTheta;
+//	for( int r=0; r<360; r+=90 ) {
+//		SinCos( r, &sinTheta, &cosTheta );
+//		if ( a== cosTheta && b == sinTheta && c == -sinTheta && d == cosTheta ) {
+//			return r;
+//		}
+//	}
+//	GLASSERT( 0 );
+//	return 0;
+//}
 
 
 void Matrix2I::Invert( Matrix2I* inverse ) const
@@ -84,6 +117,26 @@ void Matrix2I::Invert( Matrix2I* inverse ) const
 	GLASSERT( test.a == 1 && test.d == 1 && test.b == 0 && test.c == 0 && test.x == 0 && test.y == 0 );
 #endif
 }
+
+
+void MultMatrix2I( const Matrix2I& a, const grinliz::Rectangle2I& b, grinliz::Rectangle2I* c )
+{
+	Vector2I v[4] = {	{ b.min.x, b.min.y }, 
+						{ b.max.x, b.min.y },
+						{ b.min.x, b.max.y },
+						{ b.max.x, b.max.y } };
+
+	Vector2I out = a * v[0];
+	c->min = out;
+	c->max = out;
+
+	for( int i=1; i<4; ++i ) {
+		Vector2I w = a * v[i];
+		c->DoUnion( w );
+	}
+}
+
+
 
 LineWalk::LineWalk(int x0, int y0, int x1, int y1)
 {

@@ -1,54 +1,46 @@
 <Map sizeX="16" sizeY="16">
     <Items>
-        <Item x="12" y="13" index="98" />
-        <Item x="14" y="12" index="1" hp="250" />
-        <Item x="14" y="13" index="1" hp="250" />
+        <Item x="13" y="13" index="1" hp="250" />
         <Item x="8" y="12" index="66" hp="1000" flags="4" />
         <Item x="9" y="12" rot="3" index="67" hp="1000" />
-        <Item x="11" y="14" index="98" />
-        <Item x="8" y="15" index="98" />
         <Item x="7" y="12" rot="1" index="67" hp="1000" />
-        <Item x="5" y="14" index="98" />
+        <Item x="3" y="14" index="1" hp="250" />
+        <Item x="2" y="13" index="1" hp="250" />
         <Item x="12" y="8" rot="1" index="64" hp="1000" />
-        <Item x="12" y="8" index="67" hp="1000" />
-        <Item x="9" y="8" rot="3" index="68" hp="1000" />
-        <Item x="10" y="8" index="67" hp="1000" />
-        <Item x="11" y="8" index="67" hp="1000" />
-        <Item x="9" y="11" rot="2" index="68" hp="1000" />
-        <Item x="10" y="9" index="97" />
-        <Item x="10" y="11" index="98" />
-        <Item x="11" y="10" index="98" />
+        <Item x="12" y="9" index="97" />
+        <Item x="9" y="8" index="68" hp="1000" />
+        <Item x="8" y="8" index="67" hp="1000" />
+        <Item x="9" y="11" rot="3" index="67" hp="1000" />
+        <Item x="9" y="10" rot="2" index="68" hp="1000" />
+        <Item x="10" y="10" rot="2" index="67" hp="1000" />
+        <Item x="10" y="10" index="98" />
         <Item x="4" y="8" rot="3" index="64" hp="1000" />
-        <Item x="4" y="8" index="67" hp="1000" />
-        <Item x="5" y="8" index="67" hp="1000" />
-        <Item x="6" y="8" index="67" hp="1000" />
-        <Item x="7" y="8" index="68" hp="1000" />
-        <Item x="7" y="11" rot="1" index="68" hp="1000" />
-        <Item x="6" y="9" index="97" />
+        <Item x="7" y="8" rot="3" index="68" hp="1000" />
+        <Item x="7" y="11" rot="1" index="67" hp="1000" />
+        <Item x="7" y="10" rot="1" index="68" hp="1000" />
+        <Item x="6" y="10" rot="2" index="67" hp="1000" />
+        <Item x="4" y="9" index="97" />
         <Item x="6" y="11" index="98" />
-        <Item x="5" y="10" index="98" />
-        <Item x="2" y="11" index="98" />
-        <Item x="2" y="8" index="1" hp="250" />
-        <Item x="12" y="7" index="97" />
+        <Item x="3" y="11" index="98" />
+        <Item x="14" y="7" index="98" />
         <Item x="8" y="4" rot="2" index="64" hp="1000" />
-        <Item x="8" y="6" index="67" hp="1000" />
-        <Item x="9" y="6" index="67" hp="1000" />
         <Item x="11" y="6" index="68" hp="1000" />
-        <Item x="8" y="7" index="97" />
-        <Item x="8" y="6" index="98" />
+        <Item x="10" y="6" index="67" hp="1000" />
+        <Item x="9" y="6" index="67" hp="1000" />
+        <Item x="11" y="7" index="97" />
+        <Item x="8" y="5" index="98" />
         <Item x="10" y="5" index="98" />
-        <Item x="10" y="7" index="98" />
-        <Item x="4" y="4" rot="2" index="65" />
-        <Item x="7" y="6" index="67" hp="1000" />
+        <Item x="7" y="7" rot="2" index="65" />
         <Item x="5" y="6" rot="3" index="68" hp="1000" />
-        <Item x="4" y="7" index="97" />
+        <Item x="6" y="6" index="67" hp="1000" />
+        <Item x="7" y="6" index="67" hp="1000" />
+        <Item x="5" y="7" index="97" />
         <Item x="6" y="5" index="98" />
-        <Item x="13" y="3" index="1" hp="250" />
-        <Item x="1" y="2" index="1" hp="250" />
-        <Item x="2" y="3" index="1" hp="250" />
+        <Item x="7" y="6" index="98" />
+        <Item x="3" y="3" index="98" />
         <Item x="9" y="9" index="65" />
-        <Item x="4" y="9" rot="3" index="65" />
-        <Item x="9" y="4" rot="1" index="65" />
+        <Item x="7" y="9" rot="3" index="65" />
+        <Item x="9" y="7" rot="1" index="65" />
     </Items>
     <Images>
         <Image x="0" y="0" size="16" name="FARM_16_UFOA_00" />
