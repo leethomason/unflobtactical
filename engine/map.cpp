@@ -776,16 +776,16 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	
 	// Check for lights.
 	if ( itemDefArr[defIndex].HasLight() ) {
-//		int flags0 = flags | MapItem::MI_NOT_IN_DATABASE | MapItem::MI_IS_LIGHT;
-//		int lightDef = itemDefArr[defIndex].HasLight();
-//
-//		Vector2I lx = { itemDefArr[lightDef].lightOffsetX, 
-//						itemDefArr[lightDef].lightOffsetY };
-//		Matrix2I irot;
-//		irot.SetRotation( rotation*90 );
-//		Vector2I lxp = irot * lx;
-//
-//		item->light = AddItem( x+lxp.x, y+lxp.y, rotation, lightDef, 0xffff, flags0 );
+		int flags0 = flags | MapItem::MI_NOT_IN_DATABASE | MapItem::MI_IS_LIGHT;
+		int lightDef = itemDefArr[defIndex].HasLight();
+
+		Vector2I lx = { itemDefArr[lightDef].lightOffsetX, 
+						itemDefArr[lightDef].lightOffsetY };
+		Matrix2I irot;
+		irot.SetXZRotation( rotation*90 );
+		Vector2I lxp = irot * lx;
+
+		item->light = AddItem( x+lxp.x, y+lxp.y, rotation, lightDef, 0xffff, flags0 );
 	}
 
 	quadTree.Add( item );
