@@ -36,7 +36,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	delete input;
 	input = 0;
 
-	engine = &_game->engine;
+	engine = _game->engine;
 	description = 0;
 
 	backWidget = new UIButtonBox( engine->GetScreenport() );

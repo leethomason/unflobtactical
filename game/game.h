@@ -151,7 +151,7 @@ public:
 private:
 	Screenport screenport;
 public:
-	Engine engine;
+	Engine* engine;
 private:
 	Surface surface;
 
@@ -203,7 +203,7 @@ private:
 	void LoadTextures();
 	void LoadModels();
 	void LoadModel( const char* name );
-	void LoadImages();
+//	void LoadImages();
 	void LoadMapResources();
 	void LoadItemResources();
 	void DumpWeaponInfo( FILE* fp, float range, const Stats& stats, int count );

@@ -284,15 +284,6 @@ void ProcessData( TiXmlElement* data )
 	gamedb::WItem* witem = writer->Root()->FetchChild( "data" )->CreateChild( name.c_str() );
 	witem->SetData( "binary", mem, len );
 
-	/*
-	sqlite3_stmt* stmt = NULL;
-	sqlite3_prepare_v2( db, "INSERT INTO map VALUES (?,?);", -1, &stmt, 0 );
-	sqlite3_bind_text( stmt, 1,	name.c_str(), -1, SQLITE_TRANSIENT );
-	sqlite3_bind_int(  stmt, 2, index );
-	sqlite3_step( stmt );
-	sqlite3_finalize(stmt);
-	*/
-
 	delete [] mem;
 
 	printf( "Data '%s' memory=%dk\n", filename.c_str(), len/1024 );

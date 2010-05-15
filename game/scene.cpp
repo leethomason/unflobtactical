@@ -18,5 +18,5 @@
 
 Engine* Scene::GetEngine()
 {
-	return &game->engine;
+	return game->engine;
 }

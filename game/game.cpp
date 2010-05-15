@@ -35,6 +35,7 @@
 #include "../grinliz/glstringutil.h"
 #include "../tinyxml/tinyxml.h"
 #include "../version.h"
+#include "ufosound.h"
 
 using namespace grinliz;
 
@@ -44,7 +45,6 @@ extern long memNewCount;
 
 Game::Game( int width, int height, int rotation, const char* path ) :
 	screenport( width, height, rotation ),
-	engine( &screenport, engineData ),
 	markFrameTime( 0 ),
 	frameCountsSinceMark( 0 ),
 	framesPerSecond( 0 ),
@@ -67,10 +67,9 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	}	
 	
 	Init();
-	Map* map = engine.GetMap();
-	ImageManager* im = ImageManager::Instance();
+	Map* map = engine->GetMap();
 
-	engine.camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
+	engine->camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 
 	scenePushQueued = INTRO_SCENE;
 	loadRequested = -1;
@@ -82,7 +81,6 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 #ifdef MAPMAKER
 Game::Game( int width, int height, int rotation, const char* path, const TileSetDesc& base ) :
 	screenport( width, height, rotation ),
-	engine( &screenport, engineData ),
 	markFrameTime( 0 ),
 	frameCountsSinceMark( 0 ),
 	framesPerSecond( 0 ),
@@ -118,11 +116,6 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	std::string dayMap   = std::string( buffer ) + std::string( "_DAY" );
 	std::string nightMap = std::string( buffer ) + std::string( "_NGT" );
 
-//	map->SetTexture( im->GetImage( texture.c_str() ), 0, 0 );
-//	map->SetLightMaps( im->GetImage( dayMap.c_str() ),
-//					   im->GetImage( nightMap.c_str() ),
-//					   0, 0 );
-
 	engine.camera.SetPosWC( -25.f, 45.f, 30.f );	// standard test
 	engine.camera.SetYRotation( -60.f );
 
@@ -154,9 +147,14 @@ void Game::Init()
 	bool okay = database->Init( buffer );
 	GLASSERT( okay );
 
-	TextureManager::Instance()->AttachDatabase( database );
+	SoundManager::Create( database );
+	engine = new Engine( &screenport, engineData, database );
+
+//	TextureManager::Instance()->AttachDatabase( database );
+//	ImageManager::Instance()->AttachDatabase( database );
+
 	LoadTextures();
-	LoadImages();
+//	LoadImages();
 	modelLoader = new ModelLoader();
 	LoadModels();
 	LoadMapResources();
@@ -170,9 +168,9 @@ void Game::Init()
 	UFOText::InitTexture( textTexture );
 	UFOText::InitScreen( &screenport );
 
-	Map* map = engine.GetMap();
-	ImageManager* im = ImageManager::Instance();
-	map->SetLightObjects( im->GetImage( "objectLightMaps" ) );
+//	Map* map = engine.GetMap();
+//	ImageManager* im = ImageManager::Instance();
+//	map->SetLightObjects( im->GetImage( "objectLightMaps" ) );
 }
 
 
@@ -200,6 +198,8 @@ Game::~Game()
 	for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
 		delete itemDefArr[i];
 	}
+	delete engine;
+	SoundManager::Destroy();
 	delete database;
 }
 
@@ -394,13 +394,13 @@ void Game::DoTick( U32 _currentTime )
 		if ( showPathing ) 
 			engine.EnableMap( true );
 #else
-		engine.Draw();
+		engine->Draw();
 #endif
 		
-		const grinliz::Vector3F* eyeDir = engine.camera.EyeDir3();
+		const grinliz::Vector3F* eyeDir = engine->camera.EyeDir3();
 		ParticleSystem* particleSystem = ParticleSystem::Instance();
 		particleSystem->Update( deltaTime, currentTime );
-		particleSystem->Draw( eyeDir, &engine.GetMap()->GetFogOfWar() );
+		particleSystem->Draw( eyeDir, &engine->GetMap()->GetFogOfWar() );
 	}
 	trianglesSinceMark += trianglesRendered;
 
@@ -464,6 +464,9 @@ void Game::DoTick( U32 _currentTime )
 #endif
 
 	glEnable( GL_DEPTH_TEST );
+
+	SoundManager::Instance()->PlayQueuedSounds();
+
 	previousTime = currentTime;
 	++currentFrame;
 

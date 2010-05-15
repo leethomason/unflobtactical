@@ -28,7 +28,7 @@ void MixAudio(void *unused, Uint8 *stream, int len)
 	        SDL_MixAudio(	stream, 
 							sounds[i].data + sounds[i].pos,
 							amount, 
-							SDL_MIX_MAXVOLUME);
+							80 );	//SDL_MIX_MAXVOLUME);
 			sounds[i].pos += amount;
 		}
     }

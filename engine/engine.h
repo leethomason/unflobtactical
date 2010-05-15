@@ -59,7 +59,7 @@ struct EngineData
 class Engine
 {
 public:
-	Engine( Screenport* screenport, const EngineData& engineData );
+	Engine( Screenport* screenport, const EngineData& engineData, const gamedb::Reader* database );
 	~Engine();
 
 	const float AMBIENT;

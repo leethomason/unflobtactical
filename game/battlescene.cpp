@@ -33,6 +33,7 @@
 #include "../grinliz/glgeometry.h"
 
 #include "../tinyxml/tinyxml.h"
+#include "ufosound.h"
 
 using namespace grinliz;
 
@@ -44,7 +45,7 @@ TacticalEndSceneData gTacticalData;	// cheating. Just a block of memory to pass 
 
 BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 {
-	engine  = &game->engine;
+	engine  = game->engine;
 	visibility.Init( this, units, engine->GetMap() );
 	uiMode = UIM_NORMAL;
 	nearPathState = NEAR_PATH_INVALID;
@@ -1006,11 +1007,6 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 	CrossProduct( normal, up, &right );
 	CrossProduct( normal, right, &up );
 
-//	Inventory* inventory = unit->GetInventory();
-//	int rounds = inventory->CalcClipRoundsTotal( wid->weapon[select].clipType );
-
-//	if (    unit->GetStats().TU() >= unit->FireTimeUnits( select, type )
-//		 && ( nShots <= rounds ) ) 
 	if ( unit->CanFire( select, type ) )
 	{
 		unit->UseTU( unit->FireTimeUnits( select, type ) );
@@ -1629,6 +1625,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 									 impact, 
 									 game->CurrentTime(), 
 									 &delayTime );
+			SoundManager::Instance()->QueueSound( weaponDef->weapon[select].sound );
 		}
 	}
 	actionStack.Pop();
@@ -1679,6 +1676,8 @@ int BattleScene::ProcessActionHit( Action* action )
 	int result = 0;
 
 	if ( !action->type.hit.explosive ) {
+		SoundManager::Instance()->QueueSound( "hit" );
+
 		// Apply direct hit damage
 		Model* m = action->type.hit.m;
 		Unit* hitUnit = 0;
@@ -1705,6 +1704,8 @@ int BattleScene::ProcessActionHit( Action* action )
 	}
 	else {
 		// Explosion
+		SoundManager::Instance()->QueueSound( "explosion" );
+
 		const int MAX_RAD = 2;
 		const int MAX_RAD_2 = MAX_RAD*MAX_RAD;
 		Rectangle2I mapBounds;
@@ -1830,6 +1831,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 			// shooting creates a turn action then a shoot action.
 			GLASSERT( selection.soldierUnit >= 0 );
 			GLASSERT( selection.targetUnit >= 0 );
+			//SoundManager::Instance()->QueueSound( "blip" );
 
 			Item* weapon = selection.soldierUnit->GetWeapon();
 			GLASSERT( weapon );
@@ -1863,6 +1865,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 
 			case BTN_TARGET:
 				{
+					//SoundManager::Instance()->QueueSound( "blip" );
 					uiMode = UIM_TARGET_TILE;
 				}
 				break;
@@ -1889,6 +1892,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 */
 			case BTN_CHAR_SCREEN:
 				if ( actionStack.Empty() && SelectedSoldierUnit() ) {
+					//SoundManager::Instance()->QueueSound( "blip" );
 					CharacterSceneInput* input = new CharacterSceneInput();
 					input->unit = SelectedSoldierUnit();
 					input->canChangeArmor = false;
@@ -1901,6 +1905,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 				engine->GetMap()->ClearNearPath();
 				if ( EndCondition( &gTacticalData ) ) {
 					game->PushScene( Game::END_SCENE, &gTacticalData );
+					//SoundManager::Instance()->QueueSound( "blip" );
 				}
 				else {
 					NextTurn();
@@ -1930,12 +1935,14 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 							i = TERRAN_UNITS_START;
 					}
 					nearPathState = NEAR_PATH_INVALID;
+					//SoundManager::Instance()->QueueSound( "blip" );
 				}
 				break;
 
 			case BTN_HELP:
 				{
 					game->PushScene( Game::HELP_SCENE, 0 );
+					//SoundManager::Instance()->QueueSound( "blip" );
 				}
 				break;
 

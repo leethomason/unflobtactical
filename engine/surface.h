@@ -153,6 +153,8 @@ public:
 
 	static int QueryFormat( const char* formatString );
 
+	void Load( const gamedb::Item* );
+
 	// -- Metadata about the surface --
 	void SetName( const char* n );
 	const char* Name() const			{ return name; }
@@ -170,30 +172,22 @@ private:
 };
 
 
+
 class ImageManager
 {
 public:
 	static ImageManager* Instance()	{ GLASSERT( instance ); return instance; }
-	
-	const Surface* GetImage( const char* name );
-	
-	Surface* AddLockedSurface();
-	void Unlock();
 
-	static void Create();
+	void LoadImage( const char* name, Surface* surface );
+
+	static void Create(  const gamedb::Reader* db );
 	static void Destroy();
 private:
-	ImageManager()		{}
+	ImageManager(  const gamedb::Reader* db ) : database( db )		{}
 	~ImageManager()		{}
 
-	enum {
-		MAX_IMAGES = 30		// increase as needed
-	};
-
 	static ImageManager* instance;
-	CArray< Surface, MAX_IMAGES > arr;		// textures
-	CStringMap<	Surface* > map;
+	const gamedb::Reader* database;
 };
-
 
 #endif // UFOATTACK_SURFACE_INCLUDED
