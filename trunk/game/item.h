@@ -101,6 +101,7 @@ public:
 		int flags;			// WEAPON_AUTO, etc.
 		float damage;		// damage done by weapon, 1.0 is normal
 		float accuracy;		// 1.0 is average
+		const char* sound;
 	};
 
 	const char*	fireDesc[3];	// name of the 3 fire modes

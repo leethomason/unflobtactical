@@ -1,17 +1,16 @@
 
 Issues:
-- map generation, tile rotation
-- Sounds
 - End game at any point (instead of just on terran end-turn)
-- Gameplay: doors are death traps if guarded...blow up doors?
-- fire generates light
-- Art: help notes
 - Art: better human models
 - Art: better alien models
 - Art: missing weapon models
+- fire generates light
 - mission types: crash
+- Art: help notes
 
 Issues, post next test:
+- Sounds: better sounds, latency
+- Gameplay: doors are death traps if guarded...blow up doors?
 - simultaneous shots
 - need correct colors in RenderWeapon()
 - check math (again) in PushShootAction()
@@ -35,6 +34,8 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED [test #2]
+- Sounds
+- map generation, tile rotation (YAY! - fixed coordinate system, fixed rotation...)
 - Art: fix alien doors
 - different maps
 - proportional font

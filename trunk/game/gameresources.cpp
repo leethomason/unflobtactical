@@ -100,54 +100,6 @@ void Game::LoadTextures()
 	int metricsSize = node->GetDataSize( "metrics" );
 	GLASSERT( metricsSize == UFOText::GLYPH_CX*UFOText::GLYPH_CY*sizeof(GlyphMetric) );
 	node->GetData( "metrics", UFOText::MetricsPtr(), metricsSize );
-
-	/*
-	U32 textureID = 0;
-
-	TextureManager* texman = TextureManager::Instance();
-
-	// Create the default texture "white"
-	surface.Set( Surface::RGB16, 2, 2 );
-	memset( surface.Pixels(), 255, 8 );
-	textureID = surface.CreateTexture();
-	texman->AddTexture( "white", textureID, false );
-
-	// Run through the database, and load all the textures.
-	char name[64];
-	char format[16];
-
-	const gamedb::Item* parent = database->Root()->Child( "textures" );
-	GLASSERT( parent );
-
-	for( int i=0; i<parent->NumChildren(); ++i )
-	{
-		const gamedb::Item* node = parent->Child(i);
-		
-		if ( node->GetBool( "isImage" ) )
-			continue;
-
-		StrNCpy( name, node->Name(), 64 );
-		StrNCpy( format, node->GetString( "format" ), 16 );
-		int w = node->GetInt( "width" );
-		int h = node->GetInt( "height" );
-
-		surface.Set( Surface::QueryFormat( format ), w, h );
-		
-		int size = node->GetDataSize( "pixels" );
-		GLASSERT( surface.BytesInImage() == size );
-		node->GetData( "pixels", surface.Pixels(), size );
-
-		textureID = surface.CreateTexture();
-		texman->AddTexture( name, textureID, surface.Alpha() );
-		GLOUTPUT(( "Texture %s\n", name ));
-		
-		if ( node->HasAttribute( "metrics" ) ) {
-			int metricsSize = node->GetDataSize( "metrics" );
-			GLASSERT( metricsSize == UFOText::GLYPH_CX*UFOText::GLYPH_CY*sizeof(GlyphMetric) );
-			node->GetData( "metrics", UFOText::MetricsPtr(), metricsSize );
-		}
-	}
-	*/
 }
 
 
@@ -179,46 +131,11 @@ void Game::LoadModels()
 }
 
 
-void Game::LoadImages()
-{
-	char name[64];
-	char format[16];
-
-	// Run through the database, and load all the images.
-	const gamedb::Item* parent = database->Root()->Child( "textures" );
-	GLASSERT( parent );
-
-	for( int i=0; i<parent->NumChildren(); ++i )
-	{
-		const gamedb::Item* node = parent->Child(i);
-		if ( !node->GetBool( "isImage" ) )
-			continue;
-
-		StrNCpy( name, node->Name(), 64 );
-		StrNCpy( format, node->GetString( "format" ), 16 );
-		int w = node->GetInt( "width" );
-		int h = node->GetInt( "height" );
-
-		Surface* s = ImageManager::Instance()->AddLockedSurface();
-		s->Set( Surface::QueryFormat( format ), w, h );
-		
-		int size = node->GetDataSize( "pixels" );
-		GLASSERT( size == s->BytesInImage() );
-		node->GetData( "pixels", s->Pixels(), size );
-		s->SetName( name );
-		
-		ImageManager::Instance()->Unlock();
-
-		GLOUTPUT(( "Image %s\n", s->Name() ));
-	}
-}
-
-
 void Game::InitMapLight( int index, const MapLightInit* init )
 {
 	while( init->name ) 
 	{
-		Map::MapItemDef* itemDef = engine.GetMap()->InitItemDef( index );
+		Map::MapItemDef* itemDef = engine->GetMap()->InitItemDef( index );
 		itemDef->Init();
 	
 		GLASSERT( init->x || init->y );
@@ -242,7 +159,7 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 {
 	while( init->model ) 
 	{
-		Map::MapItemDef* itemDef = engine.GetMap()->InitItemDef( index );
+		Map::MapItemDef* itemDef = engine->GetMap()->InitItemDef( index );
 		itemDef->Init();
 
 		itemDef->cx = init->cx;
@@ -261,8 +178,6 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 			}
 			GLASSERT( resource );
 			itemDef->modelResource = resource;
-
-			//itemDef->isUpperLeft = resource->IsOriginUpperLeft() ? 1 : 0;
 		}
 		{
 			const ModelResource* resource = 0;
@@ -389,7 +304,7 @@ void Game::LoadMapResources()
 		LANDER_LIGHT = LIGHT_SET
 	};
 	
-	const MapLightInit lights[] = 
+	static const MapLightInit lights[] = 
 	{
 		//	name			object   x  y   cx  cy	 
 		{	"landerLight",	-1,	0,	 1,	0,	8,	10 },
@@ -398,7 +313,7 @@ void Game::LoadMapResources()
 	InitMapLight( LIGHT_SET, lights );
 
 
-	const MapItemInit farmSet[] =
+	static const MapItemInit farmSet[] =
 	{
 			// model		open			destroyed	cx, cz	hp		material		pather visibility
 		{	"farmBed",		0,				0,			2,	2,	HP_MED,	BURN,			"f"	 "0"	},
@@ -416,7 +331,7 @@ void Game::LoadMapResources()
 	};
 	InitMapItemDef( FARM_SET, farmSet );
   
-	const MapItemInit marineSet[] =
+	static const MapItemInit marineSet[] =
 	{
 			// model		open			destroyed	cx, cz	hp			material	pather
 		{	"lander",		0,				0,			6,	6,	INDESTRUCT,	0,			"00ff00 00ff00 ff00ff ff00ff ff00ff ff00ff",
@@ -428,7 +343,7 @@ void Game::LoadMapResources()
 	};
 	InitMapItemDef( MARINE_SET, marineSet );
 
-	const MapItemInit forestSet[] = 
+	static const MapItemInit forestSet[] = 
 	{
 			// model		open			destroyed	cx, cz	hp		 material		pather
 		{	"tree",			0,				0,			1,	1,	HP_HIGH, BURN,			"f", "0" },
@@ -436,7 +351,7 @@ void Game::LoadMapResources()
 	};
 	InitMapItemDef( FOREST_SET, forestSet );
 
-	const MapItemInit ufoSet[] = 
+	static const MapItemInit ufoSet[] = 
 	{
 			// model		open			destroyed	cx, cz	hp			material	pather
 		{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	0,			"1" },
@@ -449,7 +364,7 @@ void Game::LoadMapResources()
 	};
 	InitMapItemDef( UFO_SET0, ufoSet );
 
-	const MapItemInit woodSet[] =
+	static const MapItemInit woodSet[] =
 	{
 			// model		open			destroyed	cx, cz	hp		material		pather
 		{	"woodCrnr",		0,				"woodCrnrD",1,	1,	HP_MED,	BURN,			"3" },
@@ -513,7 +428,7 @@ void Game::LoadItemResources()
 	const float WIDTH = 0.3f;
 	const float BOLT  = 2.0f;
 
-	const ClipInit clips[] = {
+	static const ClipInit clips[] = {
 		{ "Clip",	false,	DECO_SHELLS,	40,	 { 1, 0, 0 },
 					{ 0.8f, 1.0f, 0.8f, 0.8f }, SPEED*2.0f, WIDTH*0.5f, BOLT*3.0f, "4x10 round clip" },
 		{ "AClip",	false,	DECO_SHELLS,	15,	 { 1, 0, 0 },
@@ -565,11 +480,13 @@ void Game::LoadItemResources()
 		int		flags0;
 		float	damage0;	// damage modifier of clip - modifies shell
 		float	acc0;		// accuracy modifier - independent of shell
+		const char* sound0;
 
 		const char*	clip1;
 		int		flags1;
 		float	damage1;
 		float	acc1;
+		const char* sound1;
 	};
 
 	const char* FAST = "Fast";
@@ -579,53 +496,53 @@ void Game::LoadItemResources()
 	const char* BANG = "Bang";
 	const char* STRIKE = "Strike";
 
-	const WeaponInit weapons[] = {		
+	static const WeaponInit weapons[] = {		
 		// Terran	resName		deco			description
 		//				
 		{ "PST",	"pst1",		DECO_PISTOL,	"Pistol",				FAST, AIMED, 0,		SPEED_FAST,
-				"Clip",			0,										DAM_LOW,	ACC_MED,
+				"Clip",			0,										DAM_LOW,	ACC_MED,	"ar",
 				0  },
 		{ "AR-1",	"ar1",		DECO_RIFLE,		"Klk Assault Rifle",	FAST, BURST, 0,		SPEED_NORMAL,
-				"AClip",		WEAPON_AUTO,							DAM_LOW,	ACC_MED,
+				"AClip",		WEAPON_AUTO,							DAM_LOW,	ACC_MED,	"ar",
 				0  },
 		{ "AR-2",	"ar2",		DECO_RIFLE,		"N7 Assault Rifle",		FAST, BURST, 0,		SPEED_NORMAL,
-				"AClip",		WEAPON_AUTO,							DAM_MEDLOW,	ACC_MED,
+				"AClip",		WEAPON_AUTO,							DAM_MEDLOW,	ACC_MED,	"ar",
 				0  },
 		{ "AR-3P",	"ar3p",		DECO_RIFLE,		"Pulse Rifle",			FAST, BURST, BOOM,	SPEED_NORMAL,
-				"AClip",		WEAPON_AUTO,							DAM_MEDHI,	ACC_MED,
-				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_LOW },
+				"AClip",		WEAPON_AUTO,							DAM_MEDHI,	ACC_MED,	"ar3p",
+				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_LOW,	"can" },
 		{ "AR-3L",	"ar3l",		DECO_RIFLE,		"Long AR 'Vera'",		FAST, AIMED, BOOM,	SPEED_NORMAL,
-				"AClip",		0,										DAM_HI,		ACC_HI,
-				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_LOW },
+				"AClip",		0,										DAM_HI,		ACC_HI,		"ar3l",
+				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_LOW,	"can" },
 		{ "CAN-I",	"cani",		DECO_RIFLE,		"Mini-Canon/Flame",		FAST, BANG, BOOM,	SPEED_SLOW,
-				"AClip",		WEAPON_EXPLOSIVE,						DAM_HI,		ACC_MED,
-				"Flame",		WEAPON_EXPLOSIVE,						EXDAM_MED,	ACC_MED },
+				"AClip",		WEAPON_EXPLOSIVE,						DAM_HI,		ACC_MED,	"can",
+				"Flame",		WEAPON_EXPLOSIVE,						EXDAM_MED,	ACC_MED,	"can" },
 		{ "CAN-X",	"canx",		DECO_RIFLE,		"Mini-Canon/Rocket",	FAST, BANG, BOOM,	SPEED_SLOW,
-				"AClip",		WEAPON_EXPLOSIVE,						DAM_HI,		ACC_MED,
-				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED,	ACC_MED },
+				"AClip",		WEAPON_EXPLOSIVE,						DAM_HI,		ACC_MED,	"can",
+				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED,	ACC_MED,	"can", },
 
 
 		// Alien
 		{ "RAY-1",	"ray1",		DECO_PISTOL,	"Ray Gun",				FAST, AIMED, 0,		SPEED_FAST,
-				"Zing",			0,										DAM_MEDLOW,	ACC_MED,
+				"Zing",			0,										DAM_MEDLOW,	ACC_MED,	"ray1",
 				0  },
 		{ "RAY-2",	"ray2",		DECO_PISTOL,	"Advanced Ray Gun",		FAST, AIMED, 0,		SPEED_FAST,
-				"Cell",			0,										DAM_MED,	ACC_MED,
+				"Cell",			0,										DAM_MED,	ACC_MED,	"ray2",
 				0  },
 		{ "RAY-3",	"ray3",		DECO_PISTOL,	"Disinigrator",			FAST, AIMED, 0,		SPEED_FAST,
-				"Cell",			0,										DAM_HI,		ACC_MED,
+				"Cell",			0,										DAM_HI,		ACC_MED,	"ray3",
 				0  },
 		{ "PLS-1",	"pls1",		DECO_RIFLE,		"Plasma Rifle",			FAST, BURST, 0,		SPEED_NORMAL,
-				"Cell",			WEAPON_AUTO,							DAM_HI,	ACC_MED,
+				"Cell",			WEAPON_AUTO,							DAM_HI,	ACC_MED,		"plasma",
 				0  },
 		{ "PLS-2",	"pls2",		DECO_RIFLE,		"Plasma Assault Rifle",	FAST, BURST, BOOM,	SPEED_NORMAL,
-				"Cell",			WEAPON_AUTO,							DAM_VHI,	ACC_MED,
-				"Tachy",		WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_MED },
+				"Cell",			WEAPON_AUTO,							DAM_VHI,	ACC_MED,	"plasma",
+				"Tachy",		WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_MED,	"nullp", },
 		{ "BEAM",	"beam",		DECO_RIFLE,		"Blade Beam",			FAST, AIMED, 0,		SPEED_FAST,
-				"Cell",			0,										DAM_MEDHI,	ACC_HI,
+				"Cell",			0,										DAM_MEDHI,	ACC_HI,		"beam",
 				0  },
 		{ "NULL",	"nullp",	DECO_RIFLE,		"Null Point Blaster",	FAST, BANG, 0,		SPEED_NORMAL,
-				"Tachy",		WEAPON_EXPLOSIVE,						DAM_VHI, ACC_HI,
+				"Tachy",		WEAPON_EXPLOSIVE,						DAM_VHI, ACC_HI,		"nullp",
 				0  },
 		{ 0 }
 	};
@@ -654,6 +571,7 @@ void Game::LoadItemResources()
 		item->weapon[0].flags		= weapons[i].flags0;
 		item->weapon[0].damage		= weapons[i].damage0;
 		item->weapon[0].accuracy	= weapons[i].acc0;
+		item->weapon[0].sound		= weapons[i].sound0;
 
 		item->weapon[1].clipItemDef = 0;
 		if ( weapons[i].clip1 ) {
@@ -663,6 +581,7 @@ void Game::LoadItemResources()
 		item->weapon[1].flags		= weapons[i].flags1;
 		item->weapon[1].damage		= weapons[i].damage1;
 		item->weapon[1].accuracy	= weapons[i].acc1;
+		item->weapon[1].sound		= weapons[i].sound1;
 
 		itemDefArr[nItemDef++] = item;
 	}
@@ -674,7 +593,7 @@ void Game::LoadItemResources()
 		const char* desc;
 	};
 
-	const ItemInit items[] = {		
+	static const ItemInit items[] = {		
 		{ "Med",	0,				DECO_MEDKIT,	"Medkit" },
 		{ "Steel",	0,				DECO_METAL,		"Memsteel" },
 		{ "Tech",	0,				DECO_TECH,		"Alien Tech" },
@@ -696,7 +615,7 @@ void Game::LoadItemResources()
 		itemDefArr[nItemDef++] = item;
 	}
 
-	const ItemInit armor[] = {		
+	static const ItemInit armor[] = {		
 		{ "ARM-1",	0,				DECO_ARMOR,		"Memsteel Armor" },
 		{ "ARM-2",	0,				DECO_ARMOR,		"Power Armor" },
 		{ "ARM-3",	0,				DECO_ARMOR,		"Power Shield" },

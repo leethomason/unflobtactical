@@ -103,6 +103,8 @@ Map::Map( SpaceTree* tree )
 
 	lightMapTex = texman->CreateTexture( "MapLightMap", SIZE, SIZE, Surface::RGB16, 0, this );
 	fowTex = texman->CreateTexture( "FOWMapTex", SIZE, SIZE, Surface::RGBA16, Texture::PARAM_NEAREST, this );
+
+	ImageManager::Instance()->LoadImage( "objectLightMaps", &lightObject );
 }
 
 
@@ -432,7 +434,7 @@ void Map::GenerateLightMap()
 						 && object.y >= 0 && object.y < itemDef.cy )
 					{
 						// Now grab the colors from the image.
-						U16 cLight = lightObject->GetImg16( object.x+itemDef.lightTX, object.y+itemDef.lightTY );
+						U16 cLight = lightObject.GetImg16( object.x+itemDef.lightTX, object.y+itemDef.lightTY );
 						Surface::RGBA rgbLight = Surface::CalcRGB16( cLight );
 
 						// Now add it to the light map.
@@ -1040,15 +1042,17 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 			
 			ImageManager* imageManager = ImageManager::Instance();
 
-			SNPrintf( buffer, 128, "%s_TEX", image->Attribute( "name" ) );
-			const Surface* background = imageManager->GetImage( buffer );
-			SNPrintf( buffer, 128, "%s_DAY", image->Attribute( "name" ) );
-			const Surface* day = imageManager->GetImage( buffer );
-			SNPrintf( buffer, 128, "%s_NGT", image->Attribute( "name" ) );
-			const Surface* night = imageManager->GetImage( buffer );
+			Surface background, day, night;
 
-			SetTexture( background, x*512/64, y*512/64, tileRotation );
-			SetLightMaps( day, night, x, y, tileRotation );			
+			SNPrintf( buffer, 128, "%s_TEX", image->Attribute( "name" ) );
+			imageManager->LoadImage( buffer, &background );
+			SNPrintf( buffer, 128, "%s_DAY", image->Attribute( "name" ) );
+			imageManager->LoadImage( buffer, &day );
+			SNPrintf( buffer, 128, "%s_NGT", image->Attribute( "name" ) );
+			imageManager->LoadImage( buffer, &night );
+
+			SetTexture( &background, x*512/64, y*512/64, tileRotation );
+			SetLightMaps( &day, &night, x, y, tileRotation );			
 		}
 	}
 

@@ -84,13 +84,13 @@ void GameCameraGet( void* handle, int param, float* value )
 	Game* game = (Game*)handle;
 	switch( param ) {
 		case GAME_CAMERA_TILT:
-			*value = game->engine.camera.GetTilt();
+			*value = game->engine->camera.GetTilt();
 			break;
 		case GAME_CAMERA_YROTATE:
-			*value = game->engine.camera.GetYRotation();
+			*value = game->engine->camera.GetYRotation();
 			break;
 		case GAME_CAMERA_ZOOM:
-			*value = game->engine.GetZoom();
+			*value = game->engine->GetZoom();
 			break;
 		default:
 			GLASSERT( 0 );
@@ -103,13 +103,13 @@ void GameCameraSet( void* handle, int param, float value )
 	Game* game = (Game*)handle;
 	switch( param ) {
 		case GAME_CAMERA_TILT:
-			game->engine.camera.SetTilt( value );
+			game->engine->camera.SetTilt( value );
 			break;
 		case GAME_CAMERA_YROTATE:
-			game->engine.camera.SetYRotation( value );
+			game->engine->camera.SetYRotation( value );
 			break;
 		case GAME_CAMERA_ZOOM:
-			game->engine.SetZoom( value );
+			game->engine->SetZoom( value );
 			break;
 		default:
 			GLASSERT( 0 );
@@ -120,7 +120,7 @@ void GameCameraSet( void* handle, int param, float value )
 void GameMoveCamera( void* handle, float dx, float dy, float dz )
 {
 	Game* game = (Game*)handle;
-	game->engine.camera.DeltaPosWC( dx, dy, dz );
+	game->engine->camera.DeltaPosWC( dx, dy, dz );
 }
 
 

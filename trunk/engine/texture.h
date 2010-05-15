@@ -82,7 +82,7 @@ class TextureManager
 {
 public:
 	static TextureManager* Instance()	{ GLASSERT( instance ); return instance; }
-	void AttachDatabase( const gamedb::Reader* );
+	//void AttachDatabase( const gamedb::Reader* );
 
 	Texture* GetTexture( const char* name );
 	Texture* CreateTexture( const char* name, int w, int h, int format, int flags, ITextureCreator* create );
@@ -102,11 +102,11 @@ public:
 	// called by the texture
 	void CalcOpenGL( int format, int* glFormat, int* glType );
 
-	static void Create();
+	static void Create( const gamedb::Reader* );
 	static void Destroy();
 
 private:
-	TextureManager();
+	TextureManager( const gamedb::Reader* );
 	~TextureManager();
 
 	U32 CreateGLTexture( int w, int h, int format, int flags );

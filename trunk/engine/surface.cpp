@@ -120,38 +120,53 @@ void Surface::BlitImg(	const grinliz::Rectangle2I& target,
 }
 
 
-
-
-
-
-/*static*/ ImageManager* ImageManager::instance = 0;
-
-/*static*/ void ImageManager::Create()
+void Surface::Load( const gamedb::Item* node )
 {
-	GLASSERT( instance == 0 );
-	instance = new ImageManager();
+	GLASSERT( node->GetBool( "isImage" ) == true );
+	if ( !node->GetBool( "isImage" ) )
+			return;
+
+	GLASSERT( strlen( node->Name() ) < EL_FILE_STRING_LEN );
+	StrNCpy( name, node->Name(), EL_FILE_STRING_LEN );
+	
+	char formatBuf[16];
+	StrNCpy( formatBuf, node->GetString( "format" ), 16 );
+	format = QueryFormat( formatBuf );
+
+	w = node->GetInt( "width" );
+	h = node->GetInt( "height" );
+
+	Set( Surface::QueryFormat( formatBuf ), w, h );
+		
+	int size = node->GetDataSize( "pixels" );
+	GLASSERT( size == BytesInImage() );
+
+	node->GetData( "pixels", Pixels(), size );
 }
 
 
-/*static*/ void ImageManager::Destroy()
+ImageManager* ImageManager::instance = 0;
+
+void ImageManager::Create(  const gamedb::Reader* db )
+{
+	GLASSERT( instance == 0 );
+	instance = new ImageManager( db );
+}
+
+
+void ImageManager::Destroy()
 {
 	GLASSERT( instance );
 	delete instance;
 	instance = 0;
 }
 
-const Surface* ImageManager::GetImage( const char* name )
-{
-	return map.Get( name );
-}
 
-Surface* ImageManager::AddLockedSurface()
+void ImageManager::LoadImage( const char* name, Surface* surface )
 {
-	GLASSERT( arr.Size() < MAX_IMAGES );
-	return arr.Push();
-}
-
-void ImageManager::Unlock()
-{
-	map.Add( arr[ arr.Size()-1 ].Name(), &arr[ arr.Size()-1 ] );
+	const gamedb::Item* textures = database->Root()->Child( "textures" );
+	GLASSERT( textures );
+	const gamedb::Item* item = textures->Child( name );
+	GLASSERT( item );
+	surface->Load( item );
 }

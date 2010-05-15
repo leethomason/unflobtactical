@@ -30,6 +30,7 @@
 #include "texture.h"
 #include "particle.h"
 
+
 using namespace grinliz;
 
 int trianglesRendered = 0;	// FIXME: should go away once all draw calls are moved to the enigine
@@ -112,7 +113,7 @@ int drawCalls = 0;			// ditto
 */
 
 
-Engine::Engine( Screenport* port, const EngineData& _engineData ) 
+Engine::Engine( Screenport* port, const EngineData& _engineData, const gamedb::Reader* database ) 
 	:	AMBIENT( 0.3f ),
 		DIFFUSE( 0.7f ),
 		DIFFUSE_SHADOW( 0.3f ),
@@ -121,8 +122,8 @@ Engine::Engine( Screenport* port, const EngineData& _engineData )
 		initZoomDistance( 0 ),
 		enableMap( true )
 {
-	TextureManager::Create();
-	ImageManager::Create();
+	TextureManager::Create( database );
+	ImageManager::Create( database );
 	ModelResourceManager::Create();
 	ParticleSystem::Create();
 

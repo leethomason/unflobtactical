@@ -229,7 +229,7 @@ public:
 
 	void SetSize( int w, int h )					{ width = w; height = h; }
 
-	void SetLightObjects( const Surface* surface )	{ GLASSERT( surface ); this->lightObject = surface; }
+//	void SetLightObjects( const Surface* surface )	{ GLASSERT( surface ); this->lightObject = surface; }
 
 	bool DayTime() const { return dayTime; }
 	void SetDayTime( bool day );
@@ -453,7 +453,7 @@ private:
 	Surface dayMap, nightMap;
 	grinliz::Rectangle2I invalidLightMap;
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWar;
-	const Surface* lightObject;
+	Surface lightObject;
 
 	U32 pathQueryID;
 	U32 visibilityQueryID;

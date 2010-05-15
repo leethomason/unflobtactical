@@ -11,10 +11,10 @@
 // ContextShift:
 // 1620/1290, 2644/1290  (16/0/3)-(16/2/9) Nice.
 
-/*static*/ void TextureManager::Create()
+/*static*/ void TextureManager::Create( const gamedb::Reader* reader )
 {
 	GLASSERT( instance == 0 );
-	instance = new TextureManager();
+	instance = new TextureManager( reader );
 }
 
 
@@ -26,11 +26,14 @@
 }
 
 
-TextureManager::TextureManager()
+TextureManager::TextureManager( const gamedb::Reader* reader )
 {
 	cacheHit = 0;
 	cacheReuse = 0;
 	cacheMiss = 0;
+	database = reader;
+	parent = database->Root()->Child( "textures" );
+	GLASSERT( parent );
 }
 
 
@@ -45,14 +48,6 @@ TextureManager::~TextureManager()
 
 
 /*static*/ TextureManager* TextureManager::instance = 0;
-
-
-void TextureManager::AttachDatabase( const gamedb::Reader* reader)
-{
-	database = reader;
-	parent = database->Root()->Child( "textures" );
-	GLASSERT( parent );
-}
 
 	
 Texture* TextureManager::GetTexture( const char* name )
