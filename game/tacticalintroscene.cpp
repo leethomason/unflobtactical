@@ -188,7 +188,9 @@ void TacticalIntroScene::Tap(	int count,
 				{
 					const char* seedStr = choices->GetText( SEED, 1 );
 					int seed = atol( seedStr );
-					seed += 10;
+					seed += 1;
+					if ( seed == 10 )
+						seed = 0;
 					char buffer[16];
 					SNPrintf( buffer, 16, "%d", seed );
 					choices->SetText( SEED, "Seed", buffer );

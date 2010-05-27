@@ -606,7 +606,10 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		targetEvents.Clear();	// All done! They don't get to carry on beyond the moment.
 	}
 
-	if ( currentTeamTurn == TERRAN_TEAM ) {
+	if ( result && EndCondition( &gTacticalData ) ) {
+		game->PushScene( Game::END_SCENE, &gTacticalData );
+	}
+	else if	( currentTeamTurn == TERRAN_TEAM ) {
 		if ( selection.soldierUnit && !selection.soldierUnit->IsAlive() ) {
 			SetSelection( 0 );
 		}
@@ -631,7 +634,6 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 				NextTurn();
 		}
 	}
-//	TestCoordinates();
 }
 
 
@@ -2438,7 +2440,7 @@ void BattleScene::Visibility::CalcUnitVisibility( int unitID )
 
 	for( int r=MAX_EYESIGHT_RANGE; r>0; --r ) {
 		Vector2I p = { pos.x-r, pos.y-r };
-		Vector2I delta[4] = { { 1,0 }, {0,1}, {-1,0}, {0,-1} };
+		static const Vector2I delta[4] = { { 1,0 }, {0,1}, {-1,0}, {0,-1} };
 
 		for( int k=0; k<4; ++k ) {
 			for( int i=0; i<r*2; ++i ) {

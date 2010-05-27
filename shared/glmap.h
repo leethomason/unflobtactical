@@ -32,7 +32,8 @@ public:
 	};
 
 	const Bucket* GetBuckets() const { return buckets; }
-	int NumBuckets() const { return nBuckets; }
+	int NumBuckets() const	{ return nBuckets; }
+	int NumItems() const	{ return nItems; }
 
 private:
 	unsigned Hash( const char* p ) {
@@ -74,6 +75,7 @@ public:
 	
 	V Get( const char* key )							{ return (V)cmap.Get( key ); }
 	bool Query( const char* key, V* value )				{ return cmap.Query( key, (void**)value ); }
+	bool Empty() const									{ return cmap.NumItems() == 0; }
 
 	class Iterator {
 	public:

@@ -25,7 +25,6 @@ using namespace grinliz;
 
 Surface::Surface() : format( -1 ), w( 0 ), h( 0 ), allocated( 0 ), pixels( 0 )
 {
-	name[0] = 0;
 }
 
 Surface::~Surface()
@@ -36,7 +35,7 @@ Surface::~Surface()
 
 void Surface::SetName( const char* n )
 {
-	StrNCpy( name, n, EL_FILE_STRING_LEN );
+	name = n;
 }
 
 
@@ -126,17 +125,15 @@ void Surface::Load( const gamedb::Item* node )
 	if ( !node->GetBool( "isImage" ) )
 			return;
 
-	GLASSERT( strlen( node->Name() ) < EL_FILE_STRING_LEN );
-	StrNCpy( name, node->Name(), EL_FILE_STRING_LEN );
+	name = node->Name();
 	
-	char formatBuf[16];
-	StrNCpy( formatBuf, node->GetString( "format" ), 16 );
-	format = QueryFormat( formatBuf );
+	CStr<16> formatBuf = node->GetString( "format" ); 
+	format = QueryFormat( formatBuf.c_str() );
 
 	w = node->GetInt( "width" );
 	h = node->GetInt( "height" );
 
-	Set( Surface::QueryFormat( formatBuf ), w, h );
+	Set( Surface::QueryFormat( formatBuf.c_str() ), w, h );
 		
 	int size = node->GetDataSize( "pixels" );
 	GLASSERT( size == BytesInImage() );

@@ -19,11 +19,12 @@
 #include "../engine/vertex.h"
 #include "../engine/enginelimits.h"
 #include "../grinliz/glrectangle.h"
+#include "../grinliz/glstringutil.h"
 
 struct VertexGroup {
-	VertexGroup() : nVertex( 0 ), nIndex( 0 ) { textureName[0] = 0; }
+	VertexGroup() : nVertex( 0 ), nIndex( 0 ) {}
 
-	char textureName[EL_FILE_STRING_LEN];
+	grinliz::CStr< EL_FILE_STRING_LEN > textureName;
 
 	int nVertex;
 	Vertex	vertex[EL_MAX_VERTEX_IN_GROUP];

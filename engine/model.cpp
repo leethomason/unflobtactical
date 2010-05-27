@@ -99,7 +99,7 @@ void ModelLoader::Load( const gamedb::Item* item, ModelResource* res )
 	res->hitBounds.min.Set( -ave, res->header.bounds.min.y, -ave );
 	res->hitBounds.max.Set( ave, res->header.bounds.max.y, ave );
 
-	GLOUTPUT(( "Load Model: %s\n", res->header.name ));
+	GLOUTPUT(( "Load Model: %s\n", res->header.name.c_str() ));
 
 	GLASSERT( res->header.nGroups < 10 );
 	for( U32 i=0; i<res->header.nGroups; ++i )
@@ -109,7 +109,7 @@ void ModelLoader::Load( const gamedb::Item* item, ModelResource* res )
 		ModelGroup group;
 		group.Load( groupItem );
 
-		const char* textureName = group.textureName;
+		const char* textureName = group.textureName.c_str();
 		if ( !textureName[0] ) {
 			textureName = "white";
 		}
@@ -521,7 +521,7 @@ int Model::IntersectRay(	const Vector3F& _origin,
 void ModelResourceManager::AddModelResource( ModelResource* res )
 {
 	modelResArr.Push( res );
-	map.Add( res->header.name, res );
+	map.Add( res->header.name.c_str(), res );
 }
 
 

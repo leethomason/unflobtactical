@@ -20,25 +20,21 @@
 
 using namespace grinliz;
 
-void ModelBuilder::SetTexture( const char* textureName )
+void ModelBuilder::SetTexture( const char* _textureName )
 {
-	GLASSERT( strlen( textureName ) < EL_FILE_STRING_LEN );
+	CStr< EL_FILE_STRING_LEN >  textureName( _textureName );
 	current = 0;
-	if ( !textureName )
-		textureName = "";
 
 	for( int i=0; i<nGroup; ++i ) {
-		if (   (*textureName == 0 && group[i].textureName[0] == 0 )
-			 || strcmp( textureName, group[i].textureName ) == 0 ) 
+		if (    ( textureName.empty() && group[i].textureName.empty() )
+			 || ( textureName == group[i].textureName ) )
 		{
 			current = i;
 			break;
 		}
 	}
 	if ( !current ) {
-		GLASSERT( nGroup < EL_MAX_MODEL_GROUPS );
-
-		StrNCpy( group[nGroup].textureName, textureName, EL_FILE_STRING_LEN );
+		group[nGroup].textureName = textureName;
 		current = nGroup++;
 	}
 }

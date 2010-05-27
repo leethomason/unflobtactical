@@ -465,7 +465,7 @@ const ModelResource* Storage::VisualRep( ItemDef* const* itemDefArr, bool* zRota
 	}
 	if ( best ) {
 		*zRotate = true;
-		return ModelResourceManager::Instance()->GetModelResource( best->resource->header.name );
+		return ModelResourceManager::Instance()->GetModelResource( best->resource->header.name.c_str() );
 	}
 	return ModelResourceManager::Instance()->GetModelResource( "smallcrate" );
 }

@@ -25,7 +25,7 @@ using namespace grinliz;
 
 void ModelHeader::Load( const gamedb::Item* item )
 {
-	StrNCpy( name, item->Name(), EL_FILE_STRING_LEN );
+	name = item->Name();
 
 	const gamedb::Item* header = item->Child( "header" );
 	nTotalVertices = header->GetInt( "nTotalVertices" );
@@ -64,7 +64,7 @@ void ModelHeader::Load( const gamedb::Item* item )
 
 void ModelGroup::Load( const gamedb::Item* item )
 {
-	StrNCpy( textureName, item->GetString( "textureName" ), EL_FILE_STRING_LEN );
+	textureName = item->GetString( "textureName" );
 	nVertex = item->GetInt( "nVertex" );
 	nIndex = item->GetInt( "nIndex" );
 }

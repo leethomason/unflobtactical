@@ -23,6 +23,7 @@
 #include "../grinliz/glbitarray.h"
 #include "../grinliz/glmemorypool.h"
 #include "../grinliz/glrandom.h"
+#include "../grinliz/glstringutil.h"
 #include "../micropather/micropather.h"
 #include "vertex.h"
 #include "enginelimits.h"
@@ -83,9 +84,7 @@ public:
 			 };
 
 
-		void Init() {	name[0] = 0;
-						
-						cx = 1; 
+		void Init() {	cx = 1; 
 						cy = 1; 
 						hp = 0xffff; 
 						flammable = 0;
@@ -118,7 +117,7 @@ public:
 		const ModelResource* modelResourceOpen;
 		const ModelResource* modelResourceDestroyed;
 
-		char	name[EL_FILE_STRING_LEN];
+		grinliz::CStr< EL_FILE_STRING_LEN > name;
 		U8		pather[MAX_CX][MAX_CY];
 		U8		visibility[MAX_CX][MAX_CY];
 
@@ -229,8 +228,6 @@ public:
 
 	void SetSize( int w, int h )					{ width = w; height = h; }
 
-//	void SetLightObjects( const Surface* surface )	{ GLASSERT( surface ); this->lightObject = surface; }
-
 	bool DayTime() const { return dayTime; }
 	void SetDayTime( bool day );
 
@@ -279,6 +276,7 @@ public:
 
 	MapItemDef* InitItemDef( int i );
 	const char* GetItemDefName( int i );
+	const MapItemDef* GetItemDef( const char* name );
 
 #ifdef MAPMAKER
 	Model* CreatePreview( int x, int z, int itemDefIndex, int rotation );
@@ -288,7 +286,8 @@ public:
 	//		1+ hp remaining
 	// Storage is owned by the map after this call.
 	MapItem* AddItem( int x, int z, int rotation, int itemDefIndex, int hp, int flags );
-	//MapItem* AddItem( const Matrix2I& xform, int itemDefIndex, int hp, int flags );
+	// Utility call to AddItem() that preprocesses the x,z params.
+	MapItem* AddLightItem( int x, int z, int rotation, int itemDefIndex, int hp, int flags );
 
 	void DeleteAt( int x, int z );
 	void MapBoundsOfModel( const Model* m, grinliz::Rectangle2I* mapBounds );
@@ -416,7 +415,6 @@ private:
 	void StateToVec( const void* state, grinliz::Vector2<S16>* vec ) { *vec = *((grinliz::Vector2<S16>*)&state); }
 	void* VecToState( const grinliz::Vector2<S16>& vec )			 { return (void*)(*(int*)&vec); }
 
-//	void CalcModelPos(	const MapItemDef& itemDef, grinliz::Rectangle2I* mapBounds );
 	void ClearVisPathMap( grinliz::Rectangle2I& bounds );
 	void CalcVisPathMap( grinliz::Rectangle2I& bounds );
 
@@ -437,7 +435,7 @@ private:
 	enum { MAX_IMAGE_DATA = 16 };
 	struct ImageData {
 		int x, y, size, tileRotation;
-		char name[EL_FILE_STRING_LEN];
+		grinliz::CStr<EL_FILE_STRING_LEN> name;
 	};
 	int nImageData;
 	ImageData imageData[ MAX_IMAGE_DATA ];
@@ -478,13 +476,7 @@ private:
 	int PyroFire( int x, int y ) const		{ return pyro[y*SIZE+x] & 0x80; }
 	bool PyroSmoke( int x, int y ) const	{ return PyroOn( x, y ) && !PyroFire( x, y ); }
 	int PyroDuration( int x, int y ) const	{ return pyro[y*SIZE+x] & 0x7F; }
-	void SetPyro( int x, int y, int duration, int fire ) {
-		GLASSERT( x >= 0 && x < SIZE );
-		GLASSERT( y >= 0 && y < SIZE );
-		GLASSERT( ( fire && duration==0) || (duration > 0 && duration < 128 ));
-		int f = (fire) ? 0x80 : 0;
-		pyro[y*SIZE+x] = duration | f;
-	}
+	void SetPyro( int x, int y, int duration, int fire );
 
 	grinliz::BitArray<SIZE, SIZE, 1>	pathBlock;	// spaces the pather can't use (units are there)	
 
@@ -506,6 +498,7 @@ private:
 	grinliz::MemoryPool					itemPool;
 	QuadTree							quadTree;
 	MapItemDef							itemDefArr[MAX_ITEM_DEF];
+	CStringMap< MapItemDef* >			itemDefMap;
 
 	enum { MAX_GUARD_SCOUT = 24 };
 	int nGuardPos;

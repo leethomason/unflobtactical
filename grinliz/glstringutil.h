@@ -55,11 +55,55 @@ inline bool StrEqual( const char* a, const char* b )
 	return false;
 }
 
+
 // Reimplements SAFE strncpy, safely cross-compiler. Always returns a null-terminated string.
 // The strncpy definition is terrifying: not guarenteed to be null terminated.
-void StrNCpy( char* dst, const char* src, size_t len );
-
+void StrNCpy( char* dst, const char* src, size_t bufferSize );
 int SNPrintf(char *str, size_t size, const char *format, ...);
+
+
+template< int ALLOCATE >
+class CStr
+{
+public:
+	CStr()							{	GLASSERT(sizeof(*this) == ALLOCATE );		// not required for class to work, but certainly the intended design
+										buf[0] = 0; }
+	CStr( const char* src )			{	GLASSERT(sizeof(*this) == ALLOCATE );
+										GLASSERT( strlen( src ) < (ALLOCATE-1));
+										*buf = 0;
+										if ( src ) 
+											StrNCpy( buf, src, ALLOCATE ); 
+									}
+	~CStr()	{}
+
+	const char* c_str()	const			{ return buf; }
+	int size() const					{ return strlen( buf ); }
+	bool empty() const					{ return buf[0] == 0; }
+
+	int Length() const 					{ return strlen( buf ); }
+	void ClearBuf()						{ memset( buf, 0, ALLOCATE ); }
+	void Clear()						{ buf[0] = 0; }
+
+	bool operator==( const char* str ) const	{ return buf && str && strcmp( buf, str ) == 0; }
+
+	template < class T > bool operator==( const T& str ) const		{ return buf && strcmp( buf, str.c_str() ) == 0; }
+
+	void operator=( const char* src )	{	
+		GLASSERT( src );
+		if (src) {
+			GLASSERT( strlen( src ) < (ALLOCATE-1) );
+			StrNCpy( buf, src, ALLOCATE ); 
+		}
+		else {
+			buf[0] = 0;
+		}
+	}
+
+
+private:
+	char buf[ALLOCATE];
+};
+
 
 /** Loads a text file to the given string. Returns true on success, false
     if the file could not be found.
