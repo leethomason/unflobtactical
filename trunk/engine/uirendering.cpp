@@ -306,8 +306,8 @@ void UIButtons::InitButtons( const int* _icons, int _nIcons )
 		icons[i].id = _icons[i];
 		icons[i].decoID = DECO_NONE;
 		icons[i].enabled = true;
-		icons[i].text0[0] = 0;
-		icons[i].text1[0] = 0;
+		icons[i].text0.Clear();
+		icons[i].text1.Clear();
 	}
 
 	cacheValid = false;
@@ -348,13 +348,13 @@ void UIButtons::SetDeco( int index, int decoID )
 void UIButtons::SetText( const char** text ) 
 {
 	for( int i=0; i<nIcons; ++i ) {
-		icons[i].text0[0] = 0;
-		icons[i].text1[0] = 0;
+		icons[i].text0.Clear();
+		icons[i].text1.Clear();
 	}
 	if ( text ) {
 		for( int i=0; i<nIcons; ++i ) {
 			if ( text[i] ) {
-				StrNCpy( icons[i].text0, text[i], MAX_TEXT_LEN );
+				icons[i].text0 = text[i];
 				PositionText( i );
 			}
 		}
@@ -366,10 +366,10 @@ void UIButtons::SetText( const char** text )
 void UIButtons::SetText( int index, const char* text ) 
 {
 	GLASSERT( index >=0 && index < nIcons );
-	icons[index].text0[0] = 0;
-	icons[index].text1[0] = 0;
+	icons[index].text0.Clear();
+	icons[index].text1.Clear();
 	if ( text && *text ) {
-		StrNCpy( icons[index].text0, text, MAX_TEXT_LEN );
+		icons[index].text0 = text;
 		PositionText( index );
 	}
 }
@@ -378,15 +378,15 @@ void UIButtons::SetText( int index, const char* text )
 void UIButtons::SetText( int index, const char* text0, const char* text1 )
 {
 	GLASSERT( index >=0 && index < nIcons );
-	icons[index].text0[0] = 0;
-	icons[index].text1[0] = 0;
+	icons[index].text0.Clear();
+	icons[index].text1.Clear();
 
 	if ( text0 && *text0 ) {
-		StrNCpy( icons[index].text0, text0, MAX_TEXT_LEN );
+		icons[index].text0 = text0;
 		PositionText( index );
 	}
 	if ( text1 && *text1 ) {
-		StrNCpy( icons[index].text1, text1, MAX_TEXT_LEN );
+		icons[index].text1 = text1;
 		PositionText( index );
 	}
 }
@@ -395,7 +395,7 @@ void UIButtons::SetText( int index, const char* text0, const char* text1 )
 const char* UIButtons::GetText( int index, int which )
 {
 	GLASSERT( index >= 0 && index < nIcons );
-	return (which==0) ? icons[index].text0 : icons[index].text1;
+	return (which==0) ? icons[index].text0.c_str() : icons[index].text1.c_str();
 }
 
 
@@ -404,13 +404,13 @@ void UIButtons::PositionText( int index )
 	int w, h, w1, h1;
 	const int GUTTER = 6;
 
-	UFOText::GlyphSize( icons[index].text0, &w, &h );
+	UFOText::GlyphSize( icons[index].text0.c_str(), &w, &h );
 	w1 = w; h1 = h;
 
 	icons[index].textPos0.y = size.y/2 - h/2;
 
-	if ( icons[index].text1[0] ) {
-		UFOText::GlyphSize( icons[index].text1, &w1, &h1 );
+	if ( !icons[index].text1.empty() ) {
+		UFOText::GlyphSize( icons[index].text1.c_str(), &w1, &h1 );
 
 		int s = size.y - (h+h1);
 		icons[index].textPos0.y = size.y - s/2 - h;
@@ -617,12 +617,12 @@ void UIButtons::Draw()
 		float c = icons[i].enabled ? 1.0f : ALPHA_DISABLED;
 		glColor4f( c, c, c, 1.0f );
 
-		if ( icons[i].text0[0] ) {
+		if ( !icons[i].text0.empty() ) {
 			int x = pos[i*4].x + origin.x;
 			int y = pos[i*4].y + origin.y;
 			UFOText::Stream( x+icons[i].textPos0.x, y+icons[i].textPos0.y, "%s", icons[i].text0 );
 		}
-		if ( icons[i].text1[0] ) {
+		if ( !icons[i].text1.empty() ) {
 			int x = pos[i*4].x + origin.x;
 			int y = pos[i*4].y + origin.y;
 			UFOText::Stream( x+icons[i].textPos1.x, y+icons[i].textPos1.y, "%s", icons[i].text1 );

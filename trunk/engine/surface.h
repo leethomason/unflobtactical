@@ -20,6 +20,7 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/glrectangle.h"
 #include "../grinliz/glvector.h"
+#include "../grinliz/glstringutil.h"
 
 #include "../shared/glmap.h"
 #include "../engine/ufoutil.h"
@@ -157,7 +158,7 @@ public:
 
 	// -- Metadata about the surface --
 	void SetName( const char* n );
-	const char* Name() const			{ return name; }
+	const char* Name() const			{ return name.c_str(); }
 	
 private:
 	Surface( const Surface& );
@@ -167,7 +168,7 @@ private:
 	int w;
 	int h;
 	int allocated;
-	char name[EL_FILE_STRING_LEN];
+	grinliz::CStr< EL_FILE_STRING_LEN > name;
 	U8* pixels;
 };
 

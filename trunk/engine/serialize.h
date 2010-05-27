@@ -25,6 +25,7 @@
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glrectangle.h"
 #include "../grinliz/glvector.h"
+#include "../grinliz/glstringutil.h"
 #include "../shared/gamedbreader.h"
 #include "enginelimits.h"
 
@@ -33,7 +34,7 @@ struct SDL_RWops;
 
 struct ModelGroup
 {
-	char					textureName[EL_FILE_STRING_LEN];
+	grinliz::CStr<EL_FILE_STRING_LEN> textureName;
 	U16						nVertex;
 	U16						nIndex;
 
@@ -54,7 +55,7 @@ struct ModelHeader
 	bool RotateShadow() const		{ return (flags&ROTATE_SHADOWS) ? true : false; }
 	bool NoShadow() const			{ return (flags&RESOURCE_NO_SHADOW) ? true : false; }
 
-	char					name[EL_FILE_STRING_LEN];	// name must be first - used later in sleazy sort trick in GetModelResource()
+	grinliz::CStr<EL_FILE_STRING_LEN>	name;
 	U16						nTotalVertices;		// in all groups
 	U16						nTotalIndices;
 	U16						flags;

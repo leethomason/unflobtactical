@@ -491,10 +491,32 @@ const char* Map::GetItemDefName( int i )
 {
 	const char* result = "";
 	if ( i > 0 && i < MAX_ITEM_DEF ) {
-		result = itemDefArr[i].name;
+		result = itemDefArr[i].name.c_str();
 	}
 	return result;
 }
+
+
+const Map::MapItemDef* Map::GetItemDef( const char* name )
+{
+	if ( itemDefMap.Empty() ) {
+		for( int i=0; i<MAX_ITEM_DEF; ++i ) {
+			if ( !itemDefArr[i].name.empty() ) {
+				itemDefMap.Add( itemDefArr[i].name.c_str(), itemDefArr+i );
+			}
+#ifdef DEBUG
+			if ( itemDefArr[i].IsLight() ) {
+				GLASSERT( itemDefArr[i].pather[0][0] == 0 );
+				GLASSERT( itemDefArr[i].visibility[0][0] == 0 );
+			}
+#endif
+		}
+	}
+	Map::MapItemDef* item=0;
+	itemDefMap.Query( name, &item );
+	return item;
+}
+
 
 
 void Map::DoDamage( int x, int y, const DamageDesc& damage, Rectangle2I* dBounds )
@@ -573,10 +595,7 @@ void Map::DoSubTurn( Rectangle2I* change )
 				int duration = PyroDuration( x, y );
 				if ( duration > 0 )
 					duration--;
-				if ( duration == 0 ) 
-					pyro[i] = 0;
-				else
-					SetPyro( x, y, duration, 0 );
+				SetPyro( x, y, duration, 0 );
 			}
 			else {
 				// Spread? Reduce to smoke?
@@ -637,6 +656,40 @@ void Map::AddSmoke( int x, int y, int subTurns )
 }
 
 
+void Map::SetPyro( int x, int y, int duration, int fire )
+{
+	GLASSERT( x >= 0 && x < SIZE );
+	GLASSERT( y >= 0 && y < SIZE );
+	int f = (fire) ? 0x80 : 0;
+	int p = duration | f;
+	pyro[y*SIZE+x] = p;
+	
+	const MapItemDef* itemDef = GetItemDef( "fireLight" );
+	GLASSERT( itemDef );
+	if ( !itemDef )
+		return;
+
+	int index = itemDef - itemDefArr;
+
+	if ( fire && duration > 0 ) {
+		// should have fire light.
+		if ( itemDef ) {
+			AddLightItem( x, y, 0, itemDef-itemDefArr, 0xffff, 0 );
+		}
+	}
+	else {
+		// clear any light.
+		MapItem* root = quadTree.FindItems( x, y, MapItem::MI_IS_LIGHT, 0 );
+		for( root; root; root=root->next ) {
+			if ( root->itemDefIndex == index ) {
+				DeleteItem( root );
+				break;
+			}
+		}
+	}
+}
+
+
 #ifdef MAPMAKER
 Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 {
@@ -687,6 +740,22 @@ void Map::MapObjectToWorld( int x, int y, int rotation, Matrix2I* mat, Vector3F*
 }
 
 
+Map::MapItem* Map::AddLightItem( int x, int y, int rotation, int lightDef, int hp, int flags )
+{
+	GLASSERT( itemDefArr[lightDef].IsLight() );
+
+	int flags0 = flags | MapItem::MI_NOT_IN_DATABASE | MapItem::MI_IS_LIGHT;
+
+	Vector2I lx = { itemDefArr[lightDef].lightOffsetX, 
+					itemDefArr[lightDef].lightOffsetY };
+	Matrix2I irot;
+	irot.SetXZRotation( rotation*90 );
+	Vector2I lxp = irot * lx;
+
+	return AddItem( x+lxp.x, y+lxp.y, rotation, lightDef, 0xffff, flags0 );
+}
+
+
 Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags )
 {
 	GLASSERT( x >= 0 && x < width );
@@ -708,15 +777,15 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	bool metadata = false;
 
 	// Check for meta data.
-	if ( StrEqual( itemDef.name, "guard" ) || StrEqual( itemDef.name, "scout" ) ) {
+	if ( (itemDef.name == "guard") || (itemDef.name == "scout" )) {
 		metadata = true;
 #		if !defined( MAPMAKER )
-			if ( StrEqual( itemDef.name, "guard" ) ) {
+			if ( itemDef.name == "guard" ) {
 				if ( nGuardPos < MAX_GUARD_SCOUT ) {
 					guardPos[nGuardPos++].Set( x, y );
 				}
 			}
-			else if ( StrEqual( itemDef.name, "scout" ) ) {
+			else if ( itemDef.name == "scout" ) {
 				if ( nScoutPos < MAX_GUARD_SCOUT ) {
 					scoutPos[nScoutPos++].Set( x, y );
 				}
@@ -752,7 +821,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	if ( hp == -1 )
 		hp = itemDef.hp;
 
-	if ( StrEqual( itemDefArr[defIndex].name, "lander" ) ) {
+	if ( itemDefArr[defIndex].name == "lander" ) {
 		GLASSERT( lander == 0 );
 		lander = item;
 	}
@@ -778,16 +847,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	
 	// Check for lights.
 	if ( itemDefArr[defIndex].HasLight() ) {
-		int flags0 = flags | MapItem::MI_NOT_IN_DATABASE | MapItem::MI_IS_LIGHT;
-		int lightDef = itemDefArr[defIndex].HasLight();
-
-		Vector2I lx = { itemDefArr[lightDef].lightOffsetX, 
-						itemDefArr[lightDef].lightOffsetY };
-		Matrix2I irot;
-		irot.SetXZRotation( rotation*90 );
-		Vector2I lxp = irot * lx;
-
-		item->light = AddItem( x+lxp.x, y+lxp.y, rotation, lightDef, 0xffff, flags0 );
+		item->light = AddLightItem( x, y, rotation, itemDefArr[defIndex].HasLight(), 0xffff, flags );
 	}
 
 	quadTree.Add( item );
@@ -972,7 +1032,7 @@ void Map::Save( TiXmlElement* mapElement )
 		imageElement->SetAttribute( "x", imageData[i].x );
 		imageElement->SetAttribute( "y", imageData[i].y );
 		imageElement->SetAttribute( "size", imageData[i].size );
-		imageElement->SetAttribute( "name", imageData[i].name );
+		imageElement->SetAttribute( "name", imageData[i].name.c_str() );
 	}
 
 	TiXmlElement* groundDebrisElement = new TiXmlElement( "GroundDebris" );
@@ -1037,7 +1097,7 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 			imageData[ nImageData ].y = y;
 			imageData[ nImageData ].size = size;
 			imageData[ nImageData ].tileRotation = tileRotation;
-			StrNCpy( imageData[ nImageData ].name, image->Attribute( "name" ), EL_FILE_STRING_LEN );
+			imageData[ nImageData ].name = image->Attribute( "name" );
 			++nImageData;
 			
 			ImageManager* imageManager = ImageManager::Instance();
@@ -1186,125 +1246,6 @@ bool Map::OpenDoor( int x, int y, bool open )
 	return opened;
 }
 
-/*
-void Map::CalcModelPos(	int x, int y, int r, const MapItemDef& itemDef, 
-						grinliz::Rectangle2I* mapBounds,
-						grinliz::Vector2F* modelPos,
-						Matrix2I* matrix )
-{
-	GLASSERT( r >= 0 && r < 4 );
-
-	// Oh screwed up coordinate system, how I hate thee. The origin (center, upper left)
-	// and in-place-rotation is handy at world creation time, but leads to outright
-	// sleazy math. This method attempts to contain the sleaze. The x,y is *always*
-	// upper left, independent of rotation.
-
-	Rectangle2I _mapBounds;
-	if ( !mapBounds )
-		mapBounds = &_mapBounds;
-
-
-	//bool isOriginUpperLeft = itemDef.isUpperLeft ? true : false;
-
-	Vector3F origin, patch;
-	Rectangle3F bounds;
-
-	if ( isOriginUpperLeft ) {
-		origin.Set( (float)x, 0.0f, (float)y );
-		Vector3F vx = { (float)itemDef.cx, 0, 0 };
-		Vector3F vz = { 0, 0, (float)itemDef.cy };
-
-		bounds.Set( origin.x, 0, origin.z, 
-					origin.x + (float)itemDef.cx, 0, origin.z + (float)itemDef.cy );
-
-		switch ( r ) {
-			case 0:	patch.Set( 0, 0, 0 );									break;
-			case 1:	patch.Set( 0, 0, (float)itemDef.cx );					break;
-			case 2:	patch.Set( (float)itemDef.cx, 0, (float)itemDef.cy );	break;
-			case 3:	patch.Set( (float)itemDef.cy, 0, 0 );					break;
-		}
-	}
-	else {
-		// Set the origin to the center.
-		origin.Set( (float)x, 0, (float)y );
-		float halfX = 0.5f * (float)itemDef.cx;
-		float halfZ = 0.5f * (float)itemDef.cy;
-
-		bounds.Set( origin.x-halfX, 0, origin.z-halfZ,
-					origin.x+halfX, 0, origin.z+halfZ );
-
-		switch ( r ) {
-			case 0:	
-			case 2:
-				patch.Set( halfX, 0, halfZ );	break;
-			case 1:	
-			case 3:	
-				patch.Set( halfZ, 0, halfX );	break;
-		}
-	}
-
-	// 1. Translate to origin.
-	// 2. Rotate
-	// 3. Offset to account for "upper left"
-	// 4. Translate back
-
-	Rectangle3F boundsFinal;
-	Matrix4 t1, rmat, t3;
-	
-	t1.SetTranslation( -origin );
-	rmat.SetYRotation( (float)(r*90) );
-	t3.SetTranslation( origin + patch );
-
-	Matrix4 m = t3 * rmat * t1;
-
-	MultMatrix4( m, bounds, &boundsFinal );
-
-	mapBounds->Set( LRintf( boundsFinal.min.x ), 
-					LRintf( boundsFinal.min.z ),
-					LRintf( boundsFinal.min.x + boundsFinal.SizeX() ) - 1,
-					LRintf( boundsFinal.min.z + boundsFinal.SizeZ() ) - 1 );
-	
-	if ( modelPos ) {
-		Vector3F pos = m * origin;
-		modelPos->Set( pos.x, pos.z );
-	}
-
-	if ( matrix ) {
-		// The coordinate system here is even more mucked up. The map is in "x,z" 
-		// but all the 2D vectors are xy. So the rotation has the wrong sign in 
-		// x,y. Patch it all up here to give the correct answer. (The map should
-		// have been done in xyz, with y==0, which would make moving to a 3D map
-		// easier as well. Hindsight.)
-		matrix->SetIdentity();
-		Vector2I zero = { 0, 0 };
-
-		if ( itemDef.cx > 1 || itemDef.cy > 1 ) {
-			switch ( r ) {
-				case 0:	
-					matrix->a = 1;	matrix->b = 0;	matrix->c = 0;	matrix->d = 1;	
-					zero.Set( 0, 0 );
-					break;
-				case 1:	
-					matrix->a = 0;	matrix->b = 1;	matrix->c = -1;	matrix->d = 0;	
-					zero.Set( itemDef.cx-1, 0 );
-					break;
-				case 2:	
-					matrix->a = -1;	matrix->b = 0;	matrix->c = 0;	matrix->d = -1;	
-					zero.Set( itemDef.cx-1, itemDef.cy-1 );
-					break;
-				case 3:	
-					matrix->a = 0;	matrix->b = -1;	matrix->c = 1;	matrix->d = 0;	
-					zero.Set( 0, itemDef.cy-1 );
-					break;
-			}
-		}
-		Vector2I zeroP = *matrix * zero;
-
-		matrix->x = mapBounds->min.x - zeroP.x;
-		matrix->y = mapBounds->min.y - zeroP.y;
-	}
-}
-*/
 
 const Storage* Map::GetStorage( int x, int y ) const
 {
@@ -1397,7 +1338,7 @@ void Map::DumpTile( int x, int y )
 		while ( root ) {
 			GLASSERT( root->itemDefIndex > 0 );
 			const MapItemDef& itemDef = itemDefArr[ root->itemDefIndex ];
-			GLASSERT( itemDef.name && *itemDef.name );
+			GLASSERT( !itemDef.name.empty() );
 
 			int r = root->modelRotation;
 			UFOText::Draw( 0, 100-12*i, "%s r=%d", itemDef.name, r );
@@ -1522,9 +1463,8 @@ void Map::ClearVisPathMap( grinliz::Rectangle2I& bounds )
 
 void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
 {
-	MapItem* item = quadTree.FindItems( bounds, 0, 0 );
+	MapItem* item = quadTree.FindItems( bounds, 0, MapItem::MI_IS_LIGHT );
 	while( item ) {
-		
 		if ( !item->Destroyed() ) {
 			GLASSERT( item->itemDefIndex > 0 );
 			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
@@ -1533,7 +1473,6 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
 			GLASSERT( rot >= 0 && rot < 4 );
 
 			Matrix2I mat = item->XForm();
-			//CalcModelPos( item, 0, 0, &mat );
 
 			// Walk the object in object space & write to world.
 			for( int j=0; j<itemDef.cy; ++j ) {
@@ -1544,6 +1483,7 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
 
 					GLASSERT( world.x >= 0 && world.x < SIZE );
 					GLASSERT( world.y >= 0 && world.y < SIZE );
+					GLASSERT( obj.x < MapItemDef::MAX_CX && obj.y < MapItemDef::MAX_CY );
 
 					// Account for tile rotation. (Actually a bit rotation too, which is handy.)
 					// The OR operation is important. This routine will write outside of the bounds,
@@ -1555,6 +1495,7 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
 					{
 						// Path
 						U32 p = ( itemDef.pather[obj.y][obj.x] << rot );
+						GLASSERT( p == 0 || !itemDef.IsLight() );
 						p = p | (p>>4);
 						pathMap[ world.y*SIZE + world.x ] |= p;
 					}
@@ -1562,6 +1503,7 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
 					{
 						// Visibility
 						U32 p = ( itemDef.visibility[obj.y][obj.x] << rot );
+						GLASSERT( p == 0 || !itemDef.IsLight() );
 						p = p | (p>>4);
 						visMap[ world.y*SIZE + world.x ] |= p;
 					}

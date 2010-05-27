@@ -131,8 +131,8 @@ void ModelHeader::Set(	const char* name, int nGroups, int nTotalVertices, int nT
 	GLASSERT( EL_MAX_INDEX_IN_MODEL <= 0xffff );
 	GLASSERT( nTotalVertices <= nTotalIndices );
 
-	memset( this->name, 0, EL_FILE_STRING_LEN );
-	StrNCpy( this->name, name, EL_FILE_STRING_LEN );
+	this->name.ClearBuf();
+	this->name = name;
 	this->flags = 0;
 	this->nGroups = nGroups;
 	this->nTotalVertices = nTotalVertices;
@@ -180,9 +180,8 @@ void ModelGroup::Set( const char* textureName, int nVertex, int nIndex )
 	GLASSERT( nIndex > 0 && nIndex < EL_MAX_INDEX_IN_MODEL );
 	GLASSERT( nVertex <= nIndex );
 
-	memset( this->textureName, 0, EL_FILE_STRING_LEN );
-	StrNCpy( this->textureName, textureName, EL_FILE_STRING_LEN );
-
+	this->textureName.ClearBuf();
+	this->textureName = textureName;
 	this->nVertex = nVertex;
 	this->nIndex = nIndex;
 }
@@ -394,10 +393,10 @@ void ProcessModel( TiXmlElement* model )
 				(float)mem/1024.0f );
 
 		ModelGroup group;
-		group.Set( vertexGroup[i].textureName, vertexGroup[i].nVertex, vertexGroup[i].nIndex );
+		group.Set( vertexGroup[i].textureName.c_str(), vertexGroup[i].nVertex, vertexGroup[i].nIndex );
 
 		gamedb::WItem* witemGroup = witem->CreateChild( i );
-		witemGroup->SetString( "textureName", group.textureName );
+		witemGroup->SetString( "textureName", group.textureName.c_str() );
 		witemGroup->SetInt( "nVertex", group.nVertex );
 		witemGroup->SetInt( "nIndex", group.nIndex );
 

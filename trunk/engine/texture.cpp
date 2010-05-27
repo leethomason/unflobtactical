@@ -167,7 +167,7 @@ const GPUMem* TextureManager::AllocGPUMemory(	int w, int h, int format, int flag
 
 void Texture::Set( const char* p_name, int p_w, int p_h, int p_format, int p_flags )
 {
-	grinliz::StrNCpy( name, p_name, MAX_TEXTURE_NAME ); 
+	name = p_name;
 	w = p_w;
 	h = p_h;
 	format = p_format;

@@ -1,12 +1,20 @@
 
 Issues:
-- End game at any point (instead of just on terran end-turn)
 - Art: better human models
 - Art: better alien models
 - Art: missing weapon models
 - fire generates light
 - mission types: crash
 - Art: help notes
+- drawn edges of world
+- highlight model, not just feet
+- 'next' by proximity
+- selection metaphor 
+	- next/prev, click dest, click to fire?
+	- unit icons? click to select in UI?
+- gameplay
+	- crouching?
+	- rotation?
 
 Issues, post next test:
 - Sounds: better sounds, latency
@@ -34,6 +42,7 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED [test #2]
+- End game at any point (instead of just on terran end-turn)
 - Sounds
 - map generation, tile rotation (YAY! - fixed coordinate system, fixed rotation...)
 - Art: fix alien doors

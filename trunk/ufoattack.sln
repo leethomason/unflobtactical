@@ -8,6 +8,11 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ufolib", "win32\ufolib\ufolib.vcxproj", "{C420D075-5C6A-4C40-800A-069AECE4B518}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gamedbreader", "gamedbreader\gamedbreader.vcxproj", "{C104CD2C-FF36-40F0-9083-6CE370AF9B1A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADE0E303-3E2E-4F11-9319-954ADDA2579C} = {ADE0E303-3E2E-4F11-9319-954ADDA2579C}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "extlib", "win32\extlib\extlib.vcxproj", "{ADE0E303-3E2E-4F11-9319-954ADDA2579C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,6 +45,12 @@ Global
 		{C104CD2C-FF36-40F0-9083-6CE370AF9B1A}.Debug|Win32.Build.0 = Debug|Win32
 		{C104CD2C-FF36-40F0-9083-6CE370AF9B1A}.Release|Win32.ActiveCfg = Release|Win32
 		{C104CD2C-FF36-40F0-9083-6CE370AF9B1A}.Release|Win32.Build.0 = Release|Win32
+		{ADE0E303-3E2E-4F11-9319-954ADDA2579C}.Debug Mapmaker|Win32.ActiveCfg = Debug|Win32
+		{ADE0E303-3E2E-4F11-9319-954ADDA2579C}.Debug Mapmaker|Win32.Build.0 = Debug|Win32
+		{ADE0E303-3E2E-4F11-9319-954ADDA2579C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ADE0E303-3E2E-4F11-9319-954ADDA2579C}.Debug|Win32.Build.0 = Debug|Win32
+		{ADE0E303-3E2E-4F11-9319-954ADDA2579C}.Release|Win32.ActiveCfg = Release|Win32
+		{ADE0E303-3E2E-4F11-9319-954ADDA2579C}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

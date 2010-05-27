@@ -19,6 +19,7 @@
 #include "vertex.h"
 #include "screenport.h"
 #include "../grinliz/glrectangle.h"
+#include "../grinliz/glstringutil.h"
 
 
 enum {
@@ -86,6 +87,14 @@ protected:
 	const Screenport&		screenport;
 };
 
+/*
+class UIMolecule
+{
+public:
+	UIMolecule();
+	~UIMolecule();
+};
+*/
 
 /*	Draw a status/indicator/level bar. 
 	The bar draws in 3 colors:
@@ -247,8 +256,8 @@ protected:
 	{
 		int						id;
 		int						decoID;
-		char					text0[MAX_TEXT_LEN];
-		char					text1[MAX_TEXT_LEN];
+		grinliz::CStr< MAX_TEXT_LEN > text0;
+		grinliz::CStr< MAX_TEXT_LEN > text1;
 		bool					enabled;
 		bool					highLight;
 		grinliz::Vector2I		textPos0;

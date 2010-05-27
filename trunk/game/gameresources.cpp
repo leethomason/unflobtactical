@@ -140,17 +140,16 @@ void Game::InitMapLight( int index, const MapLightInit* init )
 	
 		GLASSERT( init->x || init->y );
 
-		StrNCpy( itemDef->name, init->name, EL_FILE_STRING_LEN );
-
+		itemDef->name = init->name;
 		itemDef->lightOffsetX = init->objectX;
 		itemDef->lightOffsetY = init->objectY;
 		itemDef->lightTX = init->x;
 		itemDef->lightTY = init->y;
 		itemDef->cx = init->cx;
 		itemDef->cy = init->cy;
-		//itemDef->isUpperLeft = init->upperLeft ? 1 : 0;
 
 		++init;
+		++index;
 	}
 }
 
@@ -204,7 +203,7 @@ void Game::InitMapItemDef( int index, const MapItemInit* init )
 			itemDef->modelResourceDestroyed = resource;
 		}
 
-		StrNCpy( itemDef->name, init->Name(), EL_FILE_STRING_LEN );
+		itemDef->name = init->Name();
 		
 		//  Parse the pathing
 		//	spaces are ignored
@@ -306,8 +305,9 @@ void Game::LoadMapResources()
 	
 	static const MapLightInit lights[] = 
 	{
-		//	name			object   x  y   cx  cy	 
-		{	"landerLight",	-1,	0,	 1,	0,	8,	10 },
+		//	name			object		 x  y   cx  cy	 
+		{	"landerLight",	-1,	0,		1,	0,	 8,	10 },
+		{	"fireLight",	-2, -2,		10, 0,	 5,  5 },
 		{	0	}
 	};
 	InitMapLight( LIGHT_SET, lights );
