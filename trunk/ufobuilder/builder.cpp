@@ -387,7 +387,7 @@ void ProcessModel( TiXmlElement* model )
 		totalMemory += mem;
 		printf( "    %d: '%s' nVertex=%d nTri=%d memory=%.1fk\n",
 				i,
-				vertexGroup[i].textureName,
+				vertexGroup[i].textureName.c_str(),
 				vertexGroup[i].nVertex,
 				vertexGroup[i].nIndex / 3,
 				(float)mem/1024.0f );

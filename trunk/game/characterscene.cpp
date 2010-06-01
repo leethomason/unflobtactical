@@ -23,10 +23,6 @@
 
 using namespace grinliz;
 
-const int BUTX = 62;	// 61 is min
-const int BUTY = 60;
-
-
 
 CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input ) 
 	: Scene( _game )
@@ -71,7 +67,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	engine->camera.SetPosWC( model->Pos() - eyeDir[0]*10.0f + offset );
 
 	storageWidget->SetOrigin( 230, 70 );
-	storageWidget->SetButtonSize( BUTX, BUTY );
+	storageWidget->SetButtonSize( GAME_BUTTON_SIZE, GAME_BUTTON_SIZE );
 	InitInvWidget();
 }
 
@@ -106,30 +102,30 @@ void CharacterScene::InitInvWidget()
 
 	charInvWidget->InitButtons( icons, Inventory::NUM_SLOTS+1 );
 	charInvWidget->SetOrigin( 5, 70 );
-	charInvWidget->SetButtonSize( BUTX, BUTY );
+	charInvWidget->SetButtonSize( GAME_BUTTON_SIZE, GAME_BUTTON_SIZE );
 	charInvWidget->SetPadding( 0, 0 );
 	charInvWidget->SetAlpha( 0.8f );
 
 	// swap
-	charInvWidget->SetPos( 0, BUTX*3/2, 0 );
+	charInvWidget->SetPos( 0, GAME_BUTTON_SIZE*3/2, 0 );
 	charInvWidget->SetButton( 0, ICON_BLUE_BUTTON );
 	charInvWidget->SetDeco( 0, DECO_SWAP );
 
 	// armor
-	charInvWidget->SetPos( 1, 0, BUTY );
+	charInvWidget->SetPos( 1, 0, GAME_BUTTON_SIZE );
 	charInvWidget->SetButton( 1, ICON_RED_BUTTON );
 	charInvWidget->SetDeco( 1, DECO_ARMOR );
 	
 	// weapons
 	for( int i=0; i<2; ++i ) {
-		charInvWidget->SetPos( 2+i, BUTX*(i+1), BUTY );
+		charInvWidget->SetPos( 2+i, GAME_BUTTON_SIZE*(i+1), GAME_BUTTON_SIZE );
 		charInvWidget->SetButton( 2+i, ICON_RED_BUTTON );
 		charInvWidget->SetDeco( 2+i, DECO_PISTOL );
 	}
 
 	// general
 	for( int i=0; i<6; ++i ) {
-		charInvWidget->SetPos( 4+i, BUTX*(i%3), BUTY*(2+i/3) );
+		charInvWidget->SetPos( 4+i, GAME_BUTTON_SIZE*(i%3), GAME_BUTTON_SIZE*(2+i/3) );
 		charInvWidget->SetButton( 4+i, ICON_GREEN_BUTTON );
 		charInvWidget->SetDeco( 4+i, DECO_NONE );
 	}

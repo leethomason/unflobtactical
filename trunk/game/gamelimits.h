@@ -17,6 +17,7 @@
 #define GAMELIMITS_INCLUDED
 
 const float FOV = 45.0f;
+const int GAME_BUTTON_SIZE = 60;
 
 const int SUBTURNS_PER_TURN = 3;
 const float FIRE_DAMAGE_PER_SUBTURN = 20.0f;

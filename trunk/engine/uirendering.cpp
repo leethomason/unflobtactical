@@ -493,9 +493,18 @@ void UIButtonBox::CalcButtons()
 		float dx = (float)(id%ICON_DX)*iconTX;
 		float dy = (float)(id/ICON_DX)*iconTY;
 
+		float tIconTX = iconTX;
+		if ( id == ICON_GREEN_BUTTON_WIDE ) {
+			// Horrible hack. Need:
+			//	- UI tied into a rendering manager.
+			//  - 9-slice button rendering
+			//  - seperate text field rendering.
+			tIconTX *= 2.0f;
+		}
+
 		tex[i*4+0].Set( dx,			dy );
-		tex[i*4+1].Set( dx+iconTX,	dy );
-		tex[i*4+2].Set( dx+iconTX,	dy+iconTY );
+		tex[i*4+1].Set( dx+tIconTX,	dy );
+		tex[i*4+2].Set( dx+tIconTX,	dy+iconTY );
 		tex[i*4+3].Set( dx,			dy+iconTY );
 
 		int decoID = icons[i].decoID;

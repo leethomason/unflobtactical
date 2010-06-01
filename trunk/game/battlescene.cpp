@@ -115,14 +115,14 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	}
 	// When enemy targeted.
 	fireWidget = new UIButtonGroup( engine->GetScreenport() );
-	const int fireIcons[] = {	ICON_TRANS_BLUE, ICON_TRANS_BLUE, ICON_TRANS_BLUE,
+	const int fireIcons[] = {	ICON_BLUE_BUTTON, ICON_BLUE_BUTTON, ICON_BLUE_BUTTON,
 								ICON_GREEN_WALK_MARK, ICON_GREEN_WALK_MARK, ICON_GREEN_WALK_MARK,
-								ICON_TRANS_BLUE, ICON_TRANS_BLUE, ICON_TRANS_BLUE,
+								ICON_BLUE_BUTTON, ICON_BLUE_BUTTON, ICON_BLUE_BUTTON,
 							};
 
 	fireWidget->InitButtons( fireIcons, 9 );
 	fireWidget->SetPadding( 0, 0 );
-	fireWidget->SetButtonSize( 120, 60 );
+	fireWidget->SetButtonSize( GAME_BUTTON_SIZE, GAME_BUTTON_SIZE );
 	
 	for( int i=0; i<3; ++i ) {
 		fireWidget->SetPos( i, 0, i*60 );
@@ -837,7 +837,7 @@ void BattleScene::SetFireWidget()
 
 		// Reflect the TU left.
 		float tuAfter = unit->TU() - tu;
-		int tuIndicator = ICON_BLUE_WALK_MARK;
+		int tuIndicator = ICON_ORANGE_WALK_MARK;
 		if ( tu != 0 && tuAfter >= autoTU ) {
 			tuIndicator = ICON_GREEN_WALK_MARK;
 		}
@@ -850,7 +850,7 @@ void BattleScene::SetFireWidget()
 		fireWidget->SetButton( index+3, tuIndicator );
 		fireWidget->SetEnabled( index+3, enable );
 		if ( !enable ) {
-			fireWidget->SetButton( index+3, ICON_BLUE_WALK_MARK );
+			fireWidget->SetButton( index+3, ICON_ORANGE_WALK_MARK );
 		}
 
 		// Set the type of shot
