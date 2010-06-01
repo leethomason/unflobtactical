@@ -287,15 +287,15 @@ int main( int argc, char **argv )
 						break;
 
 					case SDLK_d:
-						game->engine.GetMap()->SetDayTime( !game->engine.GetMap()->DayTime() );
+						game->engine->GetMap()->SetDayTime( !game->engine->GetMap()->DayTime() );
 						break;
 					case SDLK_m:
-						game->engine.EnableMetadata( !game->engine.IsMetadataEnabled() );
+						game->engine->EnableMetadata( !game->engine->IsMetadataEnabled() );
 						break;
 					case SDLK_u:
-						game->engine.camera.SetTilt( -90.0f );
-						game->engine.camera.SetPosWC( 8.f, 90.f, 8.f );
-						game->engine.camera.SetYRotation( 0.0f );
+						game->engine->camera.SetTilt( -90.0f );
+						game->engine->camera.SetPosWC( 8.f, 90.f, 8.f );
+						game->engine->camera.SetYRotation( 0.0f );
 						break;
 #else
 #endif

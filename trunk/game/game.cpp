@@ -103,7 +103,7 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	}	
 	
 	Init();
-	Map* map = engine.GetMap();
+	Map* map = engine->GetMap();
 	ImageManager* im = ImageManager::Instance();
 
 	map->SetSize( base.size, base.size );
@@ -116,8 +116,8 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	std::string dayMap   = std::string( buffer ) + std::string( "_DAY" );
 	std::string nightMap = std::string( buffer ) + std::string( "_NGT" );
 
-	engine.camera.SetPosWC( -25.f, 45.f, 30.f );	// standard test
-	engine.camera.SetYRotation( -60.f );
+	engine->camera.SetPosWC( -25.f, 45.f, 30.f );	// standard test
+	engine->camera.SetYRotation( -60.f );
 
 	scenePushQueued = BATTLE_SCENE;
 	loadRequested = -1;
@@ -129,7 +129,7 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	TiXmlDocument doc( xmlFile );
 	doc.LoadFile();
 	if ( !doc.Error() )
-		engine.GetMap()->Load( doc.FirstChildElement( "Map" ), GetItemDefArr() );
+		engine->GetMap()->Load( doc.FirstChildElement( "Map" ), GetItemDefArr() );
 }
 #endif
 
@@ -180,7 +180,7 @@ Game::~Game()
 	TiXmlDocument doc( xmlFile );
 	TiXmlElement map( "Map" );
 	doc.InsertEndChild( map );
-	engine.GetMap()->Save( doc.FirstChildElement( "Map" ) );
+	engine->GetMap()->Save( doc.FirstChildElement( "Map" ) );
 	doc.SaveFile();
 #else
 	if ( loadCompleted ) {
@@ -386,13 +386,13 @@ void Game::DoTick( U32 _currentTime )
 
 #ifdef MAPMAKER
 		if ( showPathing ) 
-			engine.EnableMap( false );
-		engine.Draw();
+			engine->EnableMap( false );
+		engine->Draw();
 		if ( showPathing ) {
-			engine.GetMap()->DrawPath();
+			engine->GetMap()->DrawPath();
 		}
 		if ( showPathing ) 
-			engine.EnableMap( true );
+			engine->EnableMap( true );
 #else
 		engine->Draw();
 #endif

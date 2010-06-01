@@ -90,7 +90,7 @@
 
   <!-- World models have their origin at the upper left, so that they align with the unit grid -->
   <model filename="lander.ac" />
-  <model filename="tree.ac" billboard="true" shadow="rotate"/>
+  <model filename="tree.ac" billboard="true" shading="crease" polyRemoval="pre" shadow="rotate"/>
 
   <model filename="ufo_DoorCld.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_DoorOpn.ac" shading="crease" polyRemoval="pre" />
