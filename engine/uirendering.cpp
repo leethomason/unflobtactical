@@ -620,12 +620,12 @@ void UIButtons::Draw()
 		if ( !icons[i].text0.empty() ) {
 			int x = pos[i*4].x + origin.x;
 			int y = pos[i*4].y + origin.y;
-			UFOText::Stream( x+icons[i].textPos0.x, y+icons[i].textPos0.y, "%s", icons[i].text0 );
+			UFOText::Stream( x+icons[i].textPos0.x, y+icons[i].textPos0.y, "%s", icons[i].text0.c_str() );
 		}
 		if ( !icons[i].text1.empty() ) {
 			int x = pos[i*4].x + origin.x;
 			int y = pos[i*4].y + origin.y;
-			UFOText::Stream( x+icons[i].textPos1.x, y+icons[i].textPos1.y, "%s", icons[i].text1 );
+			UFOText::Stream( x+icons[i].textPos1.x, y+icons[i].textPos1.y, "%s", icons[i].text1.c_str() );
 		}
 	}
 	UFOText::End();
