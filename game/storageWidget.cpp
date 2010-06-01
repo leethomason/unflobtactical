@@ -43,7 +43,7 @@ StorageWidget::StorageWidget(	const Screenport& port,
 		boxWidget->SetAlpha( 0.8f );
 		groupSelected = 0;
 	}	
-	SetButtonSize( 60, 60 );
+	SetButtonSize( GAME_BUTTON_SIZE, GAME_BUTTON_SIZE );
 	SetPadding( 0, 0 );
 	SetOrigin( 0, 0 );
 }

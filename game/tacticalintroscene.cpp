@@ -43,11 +43,11 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	{
 		buttons = new UIButtonBox( engine->GetScreenport() );
 
-		int icons[] = { ICON_GREEN_BUTTON, ICON_GREEN_BUTTON, ICON_GREEN_BUTTON };
-		const char* iconText[] = { "new", "continue" };
+		int icons[] = { ICON_GREEN_BUTTON_WIDE, ICON_GREEN_BUTTON_WIDE, ICON_GREEN_BUTTON_WIDE };
+		const char* iconText[] = { "New", "Continue" };
 		buttons->InitButtons( icons, 2 );
-		buttons->SetOrigin( 42, 80 );
-		buttons->SetButtonSize( 120, 50 );
+		buttons->SetOrigin( 50, 80 );
+		buttons->SetButtonSize( GAME_BUTTON_SIZE*2, GAME_BUTTON_SIZE );
 		buttons->SetText( iconText );
 	}
 

@@ -23,18 +23,16 @@
 
 
 enum {
-	ICON_GREEN_BUTTON	= 0,
-	ICON_BLUE_BUTTON	= 1,
-	ICON_RED_BUTTON		= 2,
-	ICON_TRANS_RED		= 4,
-	ICON_TRANS_BLUE		= 5,
-	ICON_TRANS_YELLOW	= 6,
-	ICON_TRANS_ORANGE	= 7,
+	ICON_GREEN_BUTTON		= 0,
+	ICON_BLUE_BUTTON		= 1,
+	ICON_RED_BUTTON			= 2,
+	ICON_GREEN_BUTTON_WIDE	= 8,
 	ICON_GREEN_WALK_MARK	= 12,
 	ICON_YELLOW_WALK_MARK	= 13,
 	ICON_ORANGE_WALK_MARK	= 14,
-	ICON_BLUE_WALK_MARK		= 15,
-	ICON_NONE			= 3,
+
+	ICON_NONE				= 3,
+
 
 	DECO_CHARACTER		= 0,
 	DECO_PISTOL			= 1,
@@ -43,7 +41,6 @@ enum {
 	DECO_ROCKET			= 4,
 	DECO_CELL			= 5,
 	DECO_RAYGUN			= 6,
-	DECO_UNLOAD			= 7,
 
 	DECO_AIMED			= 8,
 	DECO_AUTO			= 9,
@@ -59,6 +56,13 @@ enum {
 	DECO_FUEL			= 18,
 	DECO_SWAP			= 19,
 	DECO_HELP			= 20,
+	DECO_LAUNCH			= 21,
+	DECO_END_TURN		= 22,
+
+	DECO_PREV			= 24,
+	DECO_NEXT			= 25,
+	DECO_ROTATE_CCW		= 26,
+	DECO_ROTATE_CW		= 27,
 
 	DECO_NONE			= 31,
 };
@@ -158,6 +162,21 @@ protected:
 	grinliz::Rectangle2F texCoord;
 	Texture* texture;
 };
+
+/*
+class UIText : public UIWidget
+{
+public:
+	UIText( const Screenport& port );
+	virtual ~UIText();
+
+	void SetText( const char* t );
+	virtual void Draw();
+
+private:
+	const char* str;
+};
+*/
 
 
 // Base class for button layouts.
