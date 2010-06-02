@@ -73,8 +73,13 @@ void GameCameraSet( void* handle, int param, float value );
 
 void GameMoveCamera( void* handle, float dx, float dy, float dz );
 	
-#define GAME_HK_NEXT_UNIT		0x0001
-#define GAME_HK_PREV_UNIT		0x0002
+#define GAME_HK_NEXT_UNIT				0x0001
+#define GAME_HK_PREV_UNIT				0x0002
+#define GAME_HK_ROTATE_CCW				0x0004
+#define GAME_HK_ROTATE_CW				0x0008
+#define GAME_HK_TOGGLE_ROTATION_UI		0x0010
+#define GAME_HK_TOGGLE_NEXT_UI			0x0020
+#define GAME_HK_TOGGLE_DEBUG_TEXT		0x0040
 void GameHotKey( void* handle, int mask );
 	
 // --- Core to platform --- //

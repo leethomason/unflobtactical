@@ -50,6 +50,7 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	framesPerSecond( 0 ),
 	trianglesPerSecond( 0 ),
 	trianglesSinceMark( 0 ),
+	debugTextOn( false ),
 	previousTime( 0 ),
 	isDragging( false ),
 	sceneStack(),
@@ -408,32 +409,26 @@ void Game::DoTick( U32 _currentTime )
 		screenport.SetUI( &clip2D );
 		scene->DrawHUD();
 	}
-#ifdef DEBUG
-	UFOText::Draw(	0,  0, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
-					VERSION,
-					framesPerSecond, 
-					(float)trianglesRendered/1000.0f,
-					drawCalls,
-					trianglesPerSecond );
-	#ifndef MAPMAKER
-	UFOText::Draw(  0, 14, "new=%d Tex(%d/%d) %dK/%dK mis=%d re=%d hit=%d",
-					memNewCount,
-					TextureManager::Instance()->NumTextures(),
-					TextureManager::Instance()->NumGPUResources(),
-					TextureManager::Instance()->CalcTextureMem()/1024,
-					TextureManager::Instance()->CalcGPUMem()/1024,
-					TextureManager::Instance()->CacheMiss(),
-					TextureManager::Instance()->CacheReuse(),
-					TextureManager::Instance()->CacheHit() );		
-	#endif
-#else
-	UFOText::Draw(	0,  0, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
-				  VERSION,
-				  framesPerSecond, 
-				  (float)trianglesRendered/1000.0f,
-				  drawCalls,
-				  trianglesPerSecond );
-#endif
+
+	if ( debugTextOn ) {
+		UFOText::Draw(	0,  0, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
+						VERSION,
+						framesPerSecond, 
+						(float)trianglesRendered/1000.0f,
+						drawCalls,
+						trianglesPerSecond );
+		#ifndef MAPMAKER
+		UFOText::Draw(  0, 14, "new=%d Tex(%d/%d) %dK/%dK mis=%d re=%d hit=%d",
+						memNewCount,
+						TextureManager::Instance()->NumTextures(),
+						TextureManager::Instance()->NumGPUResources(),
+						TextureManager::Instance()->CalcTextureMem()/1024,
+						TextureManager::Instance()->CalcGPUMem()/1024,
+						TextureManager::Instance()->CacheMiss(),
+						TextureManager::Instance()->CacheReuse(),
+						TextureManager::Instance()->CacheHit() );		
+		#endif
+	}
 	trianglesRendered = 0;
 	drawCalls = 0;
 
@@ -547,6 +542,9 @@ void Game::CancelInput()
 
 void Game::HandleHotKeyMask( int mask )
 {
+	if ( mask & GAME_HK_TOGGLE_DEBUG_TEXT ) {
+		debugTextOn = !debugTextOn;
+	}
 	sceneStack.Top()->HandleHotKeyMask( mask );
 }
 

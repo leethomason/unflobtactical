@@ -47,7 +47,6 @@ const float EXPLOSIVE_RANGE = 2.0f;
 const float TU_SNAP_SHOT	= 3.0f;
 const float TU_AUTO_SHOT	= 5.0f;
 const float TU_AIMED_SHOT	= 4.0f;
-const float TU_TURN			= 0.4f;
 const float SECONDARY_SHOT_SPEED_MULT = 1.4f;
 
 const int SNAP_SHOT			= 0;

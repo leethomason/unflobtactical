@@ -238,20 +238,24 @@ int main( int argc, char **argv )
 						GameHotKey( game, GAME_HK_PREV_UNIT );
 						break;
 
-					//case SDLK_PAGEDOWN:		GameTiltCamera( game, 2.0f );				break;
-					//case SDLK_PAGEUP:		GameTiltCamera( game, -2.0f );				break;
-					//case SDLK_UP:			GameMoveCamera( game, 0.0f, 1.0f, 0.0f);	break;
-					//case SDLK_DOWN:			GameMoveCamera( game, 0.0f, -1.0f, 0.0f);	break;
-					//case SDLK_RIGHT:		GameAdjustPerspective( game, 2.0f );		break;
-					//case SDLK_LEFT:			GameAdjustPerspective( game, -2.0f );		break;
-					//case SDLK_RIGHT:		yRotation += 2.0f; GameYRotateCamera( game, yRotation );		break;
-					//case SDLK_LEFT:			yRotation -= 2.0f; GameYRotateCamera( game, yRotation );		break;
-					//case SDLK_s:			GameShadowMode( game );						break;
+					case SDLK_UP:
+						GameHotKey( game, GAME_HK_ROTATE_CCW );
+						break;
+
+					case SDLK_DOWN:
+						GameHotKey( game, GAME_HK_ROTATE_CW );
+						break;
+
+					case SDLK_u:
+						GameHotKey( game, GAME_HK_TOGGLE_ROTATION_UI | GAME_HK_TOGGLE_NEXT_UI );
+						break;
 
 					case SDLK_s:
-						{
-							ScreenCapture( "cap" );
-						}
+						ScreenCapture( "cap" );
+						break;
+
+					case SDLK_d:
+						GameHotKey( game, GAME_HK_TOGGLE_DEBUG_TEXT );
 						break;
 
 #if defined( MAPMAKER )
