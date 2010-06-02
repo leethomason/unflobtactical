@@ -123,9 +123,15 @@ private:
 		BTN_TAKE_OFF,
 		BTN_HELP,
 		BTN_END_TURN,
-		BTN_NEXT,
 		BTN_TARGET,
 		BTN_CHAR_SCREEN,
+
+		BTN_ROTATE_CCW,
+		BTN_ROTATE_CW,
+
+		BTN_PREV,
+		BTN_NEXT,
+
 		BTN_COUNT
 	};
 
@@ -220,6 +226,7 @@ private:
 	int ProcessActionShoot( Action* action, Unit* unit, Model* model );
 	int ProcessActionHit( Action* action );	
 
+	void OrderNextPrev();
 	bool EndCondition( TacticalEndSceneData* data );
 
 	void StopForNewTeamTarget();
@@ -298,6 +305,10 @@ private:
 	UIButtonGroup*	fireWidget;
 	UIImage*		alienImage;
 	UIImage*		menuImage;
+
+	int				subTurnOrder[MAX_TERRANS];
+	int				subTurnIndex;
+	int				subTurnCount;
 
 	bool			targetArrowOn[MAX_ALIENS];
 	UIImage*		targetArrow[MAX_ALIENS];

@@ -33,6 +33,7 @@ const int CIV_UNITS_END			= 24;
 const int ALIEN_UNITS_START		= 24;
 const int ALIEN_UNITS_END		= 40;
 const int MAX_ALIENS = ALIEN_UNITS_END - ALIEN_UNITS_START;
+const int MAX_TERRANS = TERRAN_UNITS_END - TERRAN_UNITS_START;
 const int MAX_UNITS	= 40;
 
 const int MAX_MODELS = 256;

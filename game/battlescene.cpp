@@ -82,35 +82,46 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		const int icons[BTN_COUNT] = {	ICON_BLUE_BUTTON,		// take-off
 										ICON_GREEN_BUTTON,		// help
 										ICON_GREEN_BUTTON,		// end turn
-										ICON_GREEN_BUTTON,		// next
 										ICON_RED_BUTTON,		// target
-										ICON_GREEN_BUTTON		// character
+										ICON_GREEN_BUTTON,		// character
+
+										ICON_GREEN_BUTTON,		// rotate ccw
+										ICON_GREEN_BUTTON,		// rotate cw
+
+										ICON_GREEN_BUTTON,		// prev
+										ICON_GREEN_BUTTON		// next
 									 };
 
-		const char* iconText[BTN_COUNT] = {	"EXIT",
-											"",
-											"O",
-											"N",
-											"",
-											""	
-										  };		
-
 		widgets->InitButtons( icons, BTN_COUNT );
-		widgets->SetText( iconText );
 
+		widgets->SetDeco( BTN_TAKE_OFF, DECO_LAUNCH );
 		widgets->SetDeco( BTN_HELP, DECO_HELP );
-		widgets->SetDeco( BTN_CHAR_SCREEN, DECO_CHARACTER );
+		widgets->SetDeco( BTN_END_TURN, DECO_END_TURN );
 		widgets->SetDeco( BTN_TARGET, DECO_AIMED );
+		widgets->SetDeco( BTN_CHAR_SCREEN, DECO_CHARACTER );
+
+		widgets->SetDeco( BTN_ROTATE_CCW, DECO_ROTATE_CCW );
+		widgets->SetDeco( BTN_ROTATE_CW, DECO_ROTATE_CW );
+		widgets->SetDeco( BTN_PREV, DECO_PREV );
+		widgets->SetDeco( BTN_NEXT, DECO_NEXT );
+
+		const int SIDE_COUNT  = 6;
 
 		const Vector2I& size = widgets->GetButtonSize();
 		int h = port.UIHeight();
-		int delta = (h/BTN_COUNT-size.y)/2;
+		int w = port.UIWidth();
+		int delta = (h/SIDE_COUNT-size.y)/2;
 
 		menuImage = new UIImage( port );
 		menuImage->Init( TextureManager::Instance()->GetTexture( "commandBarV" ), size.x, h );
 
-		for( int i=0; i<BTN_COUNT; ++i ) {
-			widgets->SetPos( i,	0, delta+(BTN_COUNT-i-1)*h/BTN_COUNT );
+		{
+			for( int i=0; i<SIDE_COUNT; ++i ) {
+				widgets->SetPos( i,	0, delta+(SIDE_COUNT-i-1)*h/SIDE_COUNT );
+			}
+			widgets->SetPos( BTN_ROTATE_CW, size.x, 0 );
+			widgets->SetPos( BTN_PREV, w-size.x*2, 0 );
+			widgets->SetPos( BTN_NEXT, w-size.x, 0 );
 		}
 	}
 	// When enemy targeted.
@@ -334,7 +345,55 @@ void BattleScene::NextTurn()
 	if ( aiArr[currentTeamTurn] ) {
 		aiArr[currentTeamTurn]->StartTurn( units, m_targets );
 	}
+	else {
+		if ( engine->GetMap()->GetLanderModel() )
+			OrderNextPrev();
+		subTurnIndex = -1;
+	}
 
+}
+
+
+void BattleScene::OrderNextPrev()
+{
+	const Model* lander = engine->GetMap()->GetLanderModel();
+	GLASSERT( lander );
+
+	Matrix2I mat, inv;
+	mat.SetXZRotation( (int)lander->GetRotation() );
+	mat.Invert( &inv );
+	
+	subTurnCount=0;
+	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+		if ( units[i].IsAlive() ) {
+			subTurnOrder[subTurnCount++] = i;
+		}
+	}
+	if ( subTurnCount == 0 )
+		return;
+
+	Vector2I v = { -1, MAP_SIZE };
+	for( int j=0; j<(subTurnCount-1); ++j ) {
+		Vector2I pos0 = inv * units[subTurnOrder[j]].Pos();
+		float posScore0 = (float)DotProduct( pos0, v );
+
+		for( int i=j+1; i<subTurnCount; ++i ) {
+			Vector2I posI = inv * units[subTurnOrder[i]].Pos();
+			float posScoreI = (float)DotProduct( posI, v );
+
+			float dist = (float)(( pos0 - posI ).LengthSquared());
+			if ( dist <= 2.0f ) {
+				// do nothing.
+			}
+			else {
+				posScoreI -= dist;
+			}
+
+			if ( posScoreI > posScore0 ) {
+				Swap( &subTurnOrder[j], &subTurnOrder[i] );
+			}
+		}
+	}
 }
 
 
@@ -404,6 +463,8 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 	if ( aiArr[currentTeamTurn] ) {
 		aiArr[currentTeamTurn]->StartTurn( units, m_targets );
 	}
+	if ( engine->GetMap()->GetLanderModel() )
+		OrderNextPrev();
 }
 
 
@@ -503,7 +564,7 @@ int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I*
 	const Screenport& port = engine->GetScreenport();
 
 	clip3D->Set( size.x, 0, port.UIWidth()-1, port.UIHeight()-1 );
-	clip2D->Set( 0, 0, size.x, port.UIHeight()-1 );
+	clip2D->Set(0, 0, port.UIWidth()-1, port.UIHeight()-1 );
 	return RENDER_3D | RENDER_2D; 
 #endif
 }
@@ -1809,6 +1870,14 @@ void BattleScene::HandleHotKeyMask( int mask )
 		engine->GetScreenport().UIToView( ui, &view );
 		HandleIconTap( view.x, view.y );		
 	}
+	if ( mask & GAME_HK_PREV_UNIT ) {
+		Rectangle2I b;
+		widgets->CalcButtonBounds( BTN_PREV, &b );
+		Vector2I ui = { (b.min.x+b.max.x)/2, (b.min.y+b.max.y)/2 };
+		Vector2I view;
+		engine->GetScreenport().UIToView( ui, &view );
+		HandleIconTap( view.x, view.y );		
+	}
 }
 
 
@@ -1915,26 +1984,23 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 				break;
 
 			case BTN_NEXT:
-			//case BTN_NEXT_DONE:
+			case BTN_PREV:
 				{
-					int index = TERRAN_UNITS_END-1;
-					if ( SelectedSoldierUnit() ) {
-						index = SelectedSoldierUnit() - units;
-						//if ( icon == BTN_NEXT_DONE )
-						//	units[index].SetUserDone();
+					subTurnIndex += ( icon == BTN_NEXT ) ? 1 : -1;
+					if ( subTurnIndex < 0 )
+						subTurnIndex += subTurnCount;
+					if ( subTurnIndex >= subTurnCount )
+						subTurnIndex -= subTurnCount;
+
+					int index = subTurnOrder[ subTurnIndex ];
+					GLASSERT( index >= TERRAN_UNITS_START && index < TERRAN_UNITS_END );
+
+					if ( units[index].IsAlive() ) {
+						SetSelection( &units[index] );
+						PushScrollOnScreen( units[index].GetModel()->Pos() );
 					}
-					int i = index+1;
-					if ( i == TERRAN_UNITS_END )
-						i = TERRAN_UNITS_START;
-					while( i != index ) {
-						if ( units[i].IsAlive() && !units[i].IsUserDone() ) {
-							SetSelection( &units[i] );
-							PushScrollOnScreen( units[i].GetModel()->Pos() );
-							break;
-						}
-						++i;
-						if ( i == TERRAN_UNITS_END )
-							i = TERRAN_UNITS_START;
+					else {
+						SetSelection( 0 );
 					}
 					nearPathState = NEAR_PATH_INVALID;
 					//SoundManager::Instance()->QueueSound( "blip" );

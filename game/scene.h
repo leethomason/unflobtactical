@@ -56,7 +56,10 @@ public:
 		RENDER_2D = 0x01,
 		RENDER_3D = 0x02
 	};
-	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	{ clip3D->SetInvalid(); clip2D->SetInvalid(); return 0; }
+	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	
+	{ 
+		clip3D->SetInvalid(); clip2D->SetInvalid(); return 0; 
+	}
 	// Perspective rendering.
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
 	// 2D overlay rendering.

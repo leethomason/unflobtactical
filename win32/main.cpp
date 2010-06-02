@@ -230,6 +230,14 @@ int main( int argc, char **argv )
 						}
 						break;
 
+					case SDLK_RIGHT:
+						GameHotKey( game, GAME_HK_NEXT_UNIT );
+						break;
+
+					case SDLK_LEFT:
+						GameHotKey( game, GAME_HK_PREV_UNIT );
+						break;
+
 					//case SDLK_PAGEDOWN:		GameTiltCamera( game, 2.0f );				break;
 					//case SDLK_PAGEUP:		GameTiltCamera( game, -2.0f );				break;
 					//case SDLK_UP:			GameMoveCamera( game, 0.0f, 1.0f, 0.0f);	break;
@@ -243,12 +251,6 @@ int main( int argc, char **argv )
 					case SDLK_s:
 						{
 							ScreenCapture( "cap" );
-						}
-						break;
-
-					case SDLK_n:
-						{
-							GameHotKey( game, GAME_HK_NEXT_UNIT );
 						}
 						break;
 
