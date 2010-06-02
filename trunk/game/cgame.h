@@ -74,6 +74,7 @@ void GameCameraSet( void* handle, int param, float value );
 void GameMoveCamera( void* handle, float dx, float dy, float dz );
 	
 #define GAME_HK_NEXT_UNIT		0x0001
+#define GAME_HK_PREV_UNIT		0x0002
 void GameHotKey( void* handle, int mask );
 	
 // --- Core to platform --- //

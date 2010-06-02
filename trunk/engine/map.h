@@ -227,6 +227,7 @@ public:
 	void CalcBounds( grinliz::Rectangle2I* b ) const	{ b->Set( 0, 0, width-1, height-1 ); }
 
 	void SetSize( int w, int h )					{ width = w; height = h; }
+	const Model* GetLanderModel()					{ return lander ? lander->model : 0; }
 
 	bool DayTime() const { return dayTime; }
 	void SetDayTime( bool day );
