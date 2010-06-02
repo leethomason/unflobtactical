@@ -45,6 +45,9 @@ TacticalEndSceneData gTacticalData;	// cheating. Just a block of memory to pass 
 
 BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 {
+	subTurnIndex = subTurnCount = 0;
+	rotationUIOn = nextUIOn = true;
+
 	engine  = game->engine;
 	visibility.Init( this, units, engine->GetMap() );
 	uiMode = UIM_NORMAL;
@@ -348,7 +351,6 @@ void BattleScene::NextTurn()
 	else {
 		if ( engine->GetMap()->GetLanderModel() )
 			OrderNextPrev();
-		subTurnIndex = -1;
 	}
 
 }
@@ -386,7 +388,8 @@ void BattleScene::OrderNextPrev()
 				// do nothing.
 			}
 			else {
-				posScoreI -= dist;
+				const float A = 1.2f;
+				posScoreI -= A*dist;	// further away, worse choice
 			}
 
 			if ( posScoreI > posScore0 ) {
@@ -394,6 +397,7 @@ void BattleScene::OrderNextPrev()
 			}
 		}
 	}
+	subTurnIndex = subTurnCount;
 }
 
 
@@ -1863,20 +1867,69 @@ int BattleScene::ProcessActionHit( Action* action )
 void BattleScene::HandleHotKeyMask( int mask )
 {
 	if ( mask & GAME_HK_NEXT_UNIT ) {
-		Rectangle2I b;
-		widgets->CalcButtonBounds( BTN_NEXT, &b );
-		Vector2I ui = { (b.min.x+b.max.x)/2, (b.min.y+b.max.y)/2 };
-		Vector2I view;
-		engine->GetScreenport().UIToView( ui, &view );
-		HandleIconTap( view.x, view.y );		
+		HandleNextUnit( 1 );		
 	}
 	if ( mask & GAME_HK_PREV_UNIT ) {
-		Rectangle2I b;
-		widgets->CalcButtonBounds( BTN_PREV, &b );
-		Vector2I ui = { (b.min.x+b.max.x)/2, (b.min.y+b.max.y)/2 };
-		Vector2I view;
-		engine->GetScreenport().UIToView( ui, &view );
-		HandleIconTap( view.x, view.y );		
+		HandleNextUnit( -1 );		
+	}
+	if ( mask & GAME_HK_ROTATE_CCW ) {
+		HandleRotation( 45.f );
+	}
+	if ( mask & GAME_HK_ROTATE_CW ) {
+		HandleRotation( -45.f );
+	}
+	if ( mask & GAME_HK_TOGGLE_ROTATION_UI ) {
+		rotationUIOn = !rotationUIOn;
+	}
+	if ( mask & GAME_HK_TOGGLE_NEXT_UI ) {
+		nextUIOn = !nextUIOn;
+	}
+}
+
+
+void BattleScene::HandleNextUnit( int bias )
+{
+	subTurnIndex += bias;
+	if ( subTurnIndex < 0 )
+		subTurnIndex = subTurnCount;
+	if ( subTurnIndex > subTurnCount )
+		subTurnIndex = 0;
+
+	if ( subTurnIndex == subTurnCount ) {
+		SetSelection( 0 );
+	}
+	else {
+		int index = subTurnOrder[ subTurnIndex ];
+		GLASSERT( index >= TERRAN_UNITS_START && index < TERRAN_UNITS_END );
+
+		if ( units[index].IsAlive() ) {
+			SetSelection( &units[index] );
+			PushScrollOnScreen( units[index].GetModel()->Pos() );
+		}
+		else {
+			SetSelection( 0 );
+		}
+	}
+	nearPathState = NEAR_PATH_INVALID;
+	//SoundManager::Instance()->QueueSound( "blip" );
+}
+
+
+void BattleScene::HandleRotation( float bias )
+{
+	if ( actionStack.Empty() && SelectedSoldierUnit() ) {
+		Unit* unit = SelectedSoldierUnit();
+
+		float r = unit->GetModel()->GetRotation();
+		r += bias;
+		r = NormalizeAngleDegrees( r );
+		r = 45.f * float( (int)((r+20.0f) / 45.f) );
+
+		Action action;
+		action.Init( ACTION_ROTATE, unit );
+		action.type.rotate.rotation = r;
+		actionStack.Push( action );
+
 	}
 }
 
@@ -1940,27 +1993,12 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 					uiMode = UIM_TARGET_TILE;
 				}
 				break;
-/*
-			case BTN_LEFT:
-			case BTN_RIGHT:
-				if ( actionStack.Empty() && SelectedSoldierUnit() ) {
-					Unit* unit = SelectedSoldierUnit();
-					const Stats& stats = unit->GetStats();
-					if ( stats.TU() >= TU_TURN ) {
-						float r = unit->GetModel()->GetYRotation();
-						r += ( icon == BTN_LEFT ) ? 45.0f : -45.f;
-						r = NormalizeAngleDegrees( r );
 
-						Action action;
-						action.Init( ACTION_ROTATE, unit );
-						action.type.rotate.rotation = r;
-						actionStack.Push( action );
-
-						unit->UseTU( TU_TURN );
-					}
-				}
+			case BTN_ROTATE_CCW:
+			case BTN_ROTATE_CW:
+				HandleRotation( icon == BTN_ROTATE_CCW ? 45.f : -45.f );
 				break;
-*/
+
 			case BTN_CHAR_SCREEN:
 				if ( actionStack.Empty() && SelectedSoldierUnit() ) {
 					//SoundManager::Instance()->QueueSound( "blip" );
@@ -1985,26 +2023,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 
 			case BTN_NEXT:
 			case BTN_PREV:
-				{
-					subTurnIndex += ( icon == BTN_NEXT ) ? 1 : -1;
-					if ( subTurnIndex < 0 )
-						subTurnIndex += subTurnCount;
-					if ( subTurnIndex >= subTurnCount )
-						subTurnIndex -= subTurnCount;
-
-					int index = subTurnOrder[ subTurnIndex ];
-					GLASSERT( index >= TERRAN_UNITS_START && index < TERRAN_UNITS_END );
-
-					if ( units[index].IsAlive() ) {
-						SetSelection( &units[index] );
-						PushScrollOnScreen( units[index].GetModel()->Pos() );
-					}
-					else {
-						SetSelection( 0 );
-					}
-					nearPathState = NEAR_PATH_INVALID;
-					//SoundManager::Instance()->QueueSound( "blip" );
-				}
+				HandleNextUnit( (icon==BTN_NEXT) ? 1 : -1 );
 				break;
 
 			case BTN_HELP:
@@ -2150,6 +2169,36 @@ void BattleScene::Tap(	int tap,
 	Model* tappedModel = engine->IntersectModel( world, TEST_HIT_AABB, Model::MODEL_SELECTABLE, 0, 0, 0 );
 	const Unit* tappedUnit = UnitFromModel( tappedModel );
 
+	if ( tappedModel && tappedUnit && tappedUnit->Team() == ALIEN_TEAM ) {
+		SetSelection( UnitFromModel( tappedModel ) );		// sets either the Alien or the Unit
+		map->ClearNearPath();
+	}
+	else {
+		// Not a model - use the tile
+		if ( SelectedSoldierModel() && !selection.targetUnit && hasTilePos ) {
+			Vector2<S16> start   = { (S16)SelectedSoldierModel()->X(), (S16)SelectedSoldierModel()->Z() };
+
+			Vector2<S16> end = { (S16)tilePos.x, (S16)tilePos.y };
+
+			// Compute the path:
+			float cost;
+			const Stats& stats = selection.soldierUnit->GetStats();
+
+			int result = engine->GetMap()->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
+			if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
+				// TU for a move gets used up "as we go" to account for reaction fire and changes.
+				// Go!
+				Action action;
+				action.Init( ACTION_MOVE, SelectedSoldierUnit() );
+				action.type.move.path.Init( pathCache );
+				actionStack.Push( action );
+
+				engine->GetMap()->ClearNearPath();
+			}
+		}
+	}
+
+#if 0 // implements tapping to select.
 	if ( tappedModel && tappedUnit ) {
 		if ( tappedUnit->Team() == ALIEN_TEAM ) {
 			SetSelection( UnitFromModel( tappedModel ) );		// sets either the Alien or the Unit
@@ -2188,6 +2237,7 @@ void BattleScene::Tap(	int tap,
 			}
 		}
 	}
+#endif
 }
 
 
@@ -2704,15 +2754,22 @@ void BattleScene::DrawHUD()
 		bool enabled = SelectedSoldierUnit() && actionStack.Empty();
 		widgets->SetEnabled( BTN_TARGET, enabled );
 		widgets->SetEnabled( BTN_CHAR_SCREEN, enabled );
+		widgets->SetEnabled( BTN_NEXT, enabled );
+		widgets->SetEnabled( BTN_PREV, enabled );
+		widgets->SetEnabled( BTN_ROTATE_CCW, enabled );
+		widgets->SetEnabled( BTN_ROTATE_CW, enabled );
 	}
 	{
 		bool enabled = actionStack.Empty();
 		widgets->SetEnabled( BTN_TAKE_OFF, enabled );
 		widgets->SetEnabled( BTN_END_TURN, enabled );
-		widgets->SetEnabled( BTN_NEXT, enabled );
 		widgets->SetEnabled( BTN_HELP, enabled );
 	}
 	widgets->SetHighLight( BTN_TARGET, uiMode == UIM_TARGET_TILE ? true : false );
+	widgets->SetVisible( BTN_ROTATE_CCW, rotationUIOn );
+	widgets->SetVisible( BTN_ROTATE_CW, rotationUIOn );
+	widgets->SetVisible( BTN_NEXT, nextUIOn );
+	widgets->SetVisible( BTN_PREV, nextUIOn );
 
 	menuImage->Draw(); // debugging: make sure clipping is working correctly
 	

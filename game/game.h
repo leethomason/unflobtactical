@@ -217,6 +217,7 @@ private:
 	float framesPerSecond;
 	int trianglesPerSecond;
 	int trianglesSinceMark;
+	bool debugTextOn;
 
 	ModelLoader* modelLoader;
 	gamedb::Reader* database;

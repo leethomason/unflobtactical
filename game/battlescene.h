@@ -254,9 +254,14 @@ private:
 	void TestHitTesting();
 	void TestCoordinates();
 
+	bool rotationUIOn;
+	bool nextUIOn;
+
 	Unit* UnitFromModel( Model* m );
 	Unit* GetUnitFromTile( int x, int z );
 	bool HandleIconTap( int screenX, int screenY );
+	void HandleNextUnit( int bias );
+	void HandleRotation( float bias );
 	void SetFogOfWar();
 
 	struct Selection

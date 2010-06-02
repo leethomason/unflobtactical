@@ -77,6 +77,8 @@ public:
 	// Coordinates in pixels. Origin in the lower left.
 	void SetOrigin( int x, int y )					{ origin.Set( x, y ); }
 	const grinliz::Vector2I& GetOrigin() const		{ return origin; }
+	void SetVisible( bool visible )					{ this->visible = visible; }
+	bool GetVisibile() const						{ return visible; }
 
 	virtual void Draw() = 0;
 
@@ -89,6 +91,7 @@ protected:
 
 	grinliz::Vector2I		origin;
 	const Screenport&		screenport;
+	bool					visible;
 };
 
 /*
@@ -201,6 +204,7 @@ public:
 	void SetButton( int index, int iconID );
 	int GetButton( int index ) const;
 	void SetDeco( int index, int decoID );
+	void SetVisible( int index, bool visible );
 
 	void SetText( const char** text );
 	void SetText( int index, const char* text );
@@ -279,6 +283,7 @@ protected:
 		grinliz::CStr< MAX_TEXT_LEN > text1;
 		bool					enabled;
 		bool					highLight;
+		bool					visible;
 		grinliz::Vector2I		textPos0;
 		grinliz::Vector2I		textPos1;
 	};
@@ -301,6 +306,7 @@ protected:
 	grinliz::Vector4< U8 >	color[MAX_ICONS*4];
 	grinliz::Vector4< U8 >	colorDeco[MAX_ICONS*4];
 
+	int						nIndex;
 	U16						index[6*MAX_ICONS];
 	int						nIndexSelected;
 	U16						indexSelected[6*MAX_ICONS];

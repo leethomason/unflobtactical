@@ -31,6 +31,7 @@ extern int drawCalls;			// ditto
 UIWidget::UIWidget( const Screenport& port ) : screenport( port )
 {
 	origin.Set( 0, 0 );
+	visible = true;
 }
 
 
@@ -114,6 +115,9 @@ void UIBar::SetValue1( int v1 )
 
 void UIBar::Draw()
 {
+	if ( !visible )
+		return;
+
 	if ( !valid ) {
 		int range = maxValue - minValue;
 		int round = range / nSteps - 1;
@@ -210,6 +214,8 @@ void UIImage::Init( Texture* texture, int w, int h )
 void UIImage::Draw()
 {
 	CHECK_GL_ERROR;
+	if ( !visible )
+		return;
 	if ( !texture || !w || !h )
 		return;
 
@@ -287,6 +293,9 @@ UIButtons::UIButtons( const Screenport& port ) : UIWidget( port )
 	alpha = 1.0f;
 
 	memset( icons, 0, sizeof( Icon )*MAX_ICONS );
+	for( int i=0; i<MAX_ICONS; ++i ) {
+		icons[i].visible = true;
+	}
 	textLayout = LAYOUT_CENTER;
 }
 
@@ -340,6 +349,16 @@ void UIButtons::SetDeco( int index, int decoID )
 	GLASSERT( index < nIcons );
 	if ( icons[index].decoID != decoID ) {
 		icons[index].decoID = decoID;
+		cacheValid = false;
+	}
+}
+
+
+void UIButtons::SetVisible( int index, bool v )
+{
+	GLASSERT( index < nIcons );
+	if ( icons[index].visible != v ) {
+		icons[index].visible = v;
 		cacheValid = false;
 	}
 }
@@ -476,6 +495,7 @@ void UIButtonBox::CalcButtons()
 	
 	bounds.Set( 0, 0, 0, 0 );
 	nIndexSelected = 0;
+	nIndex = 0;
 
 	for( int i=0; i<nIcons; ++i ) 
 	{
@@ -495,6 +515,7 @@ void UIButtonBox::CalcButtons()
 
 		float tIconTX = iconTX;
 		if ( id == ICON_GREEN_BUTTON_WIDE ) {
+			// FIXME:
 			// Horrible hack. Need:
 			//	- UI tied into a rendering manager.
 			//  - 9-slice button rendering
@@ -525,25 +546,26 @@ void UIButtonBox::CalcButtons()
 		color[i*4+0] = color[i*4+1] = color[i*4+2] = color[i*4+3] = c0;
 		colorDeco[i*4+0] = colorDeco[i*4+1] = colorDeco[i*4+2] = colorDeco[i*4+3] = c1;
 		
-		U16 idx = i*4;
-		index[i*6+0] = idx+0;
-		index[i*6+1] = idx+1;
-		index[i*6+2] = idx+2;
+		if ( icons[i].visible ) {
+			U16 idx = i*4;
+			index[nIndex++] = idx+0;
+			index[nIndex++] = idx+1;
+			index[nIndex++] = idx+2;
 
-		index[i*6+3] = idx+0;
-		index[i*6+4] = idx+2;
-		index[i*6+5] = idx+3;
+			index[nIndex++] = idx+0;
+			index[nIndex++] = idx+2;
+			index[nIndex++] = idx+3;
 
-		if ( icons[i].highLight ) {
-			indexSelected[ nIndexSelected++ ] = idx+0;
-			indexSelected[ nIndexSelected++ ] = idx+1;
-			indexSelected[ nIndexSelected++ ] = idx+2;
+			if ( icons[i].highLight ) {
+				indexSelected[ nIndexSelected++ ] = idx+0;
+				indexSelected[ nIndexSelected++ ] = idx+1;
+				indexSelected[ nIndexSelected++ ] = idx+2;
 
-			indexSelected[ nIndexSelected++ ] = idx+0;
-			indexSelected[ nIndexSelected++ ] = idx+2;
-			indexSelected[ nIndexSelected++ ] = idx+3;
+				indexSelected[ nIndexSelected++ ] = idx+0;
+				indexSelected[ nIndexSelected++ ] = idx+2;
+				indexSelected[ nIndexSelected++ ] = idx+3;
+			}
 		}
-
 		col++;
 		if ( col >= columns ) {
 			col = 0;
@@ -558,6 +580,9 @@ void UIButtons::Draw()
 {
 	if ( nIcons == 0 )
 		return;
+	if ( !visible )
+		return;
+
 	if (!cacheValid)
 		CalcButtons();
 
@@ -582,9 +607,11 @@ void UIButtons::Draw()
 	glColorPointer( 4, GL_UNSIGNED_BYTE, 0, color );
 
 	CHECK_GL_ERROR;
-	glDrawElements( GL_TRIANGLES, nIcons*6, GL_UNSIGNED_SHORT, index );
-	trianglesRendered += nIcons*2;
-	drawCalls++;
+	if ( nIndex ) {
+		glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, index );
+		trianglesRendered += nIcons*2;
+		drawCalls++;
+	}
 	CHECK_GL_ERROR;
 
 	if ( nIndexSelected ) {
@@ -609,9 +636,11 @@ void UIButtons::Draw()
 	glColorPointer( 4, GL_UNSIGNED_BYTE, 0, colorDeco );
 	glBindTexture( GL_TEXTURE_2D, decoTexture->GLID() );
 	CHECK_GL_ERROR;
-	glDrawElements( GL_TRIANGLES, nIcons*6, GL_UNSIGNED_SHORT, index );
-	trianglesRendered += nIcons*2;
-	drawCalls++;
+	if ( nIndex ) {
+		glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, index );
+		trianglesRendered += nIcons*2;
+		drawCalls++;
+	}
 	CHECK_GL_ERROR;
 
 	glEnableClientState( GL_NORMAL_ARRAY );
@@ -753,6 +782,7 @@ void UIButtonGroup::CalcButtons()
 	const float decoTY = 1.0f / (float)DECO_DY;
 	
 	bounds.Set( 0, 0, 0, 0 );
+	nIndex = 0;
 	nIndexSelected = 0;
 
 	for( int i=0; i<nIcons; ++i ) 
@@ -801,23 +831,25 @@ void UIButtonGroup::CalcButtons()
 		color[i*4+0] = color[i*4+1] = color[i*4+2] = color[i*4+3] = c0;
 		colorDeco[i*4+0] = colorDeco[i*4+1] = colorDeco[i*4+2] = colorDeco[i*4+3] = c1;
 		
-		U16 idx = i*4;
-		index[i*6+0] = idx+0;
-		index[i*6+1] = idx+1;
-		index[i*6+2] = idx+2;
+		if ( icons[i].visible ) {
+			U16 idx = i*4;
+			index[nIndex++] = idx+0;
+			index[nIndex++] = idx+1;
+			index[nIndex++] = idx+2;
 
-		index[i*6+3] = idx+0;
-		index[i*6+4] = idx+2;
-		index[i*6+5] = idx+3;
+			index[nIndex++] = idx+0;
+			index[nIndex++] = idx+2;
+			index[nIndex++] = idx+3;
 
-		if ( icons[i].highLight ) {
-			indexSelected[ nIndexSelected++ ] = idx+0;
-			indexSelected[ nIndexSelected++ ] = idx+1;
-			indexSelected[ nIndexSelected++ ] = idx+2;
+			if ( icons[i].highLight ) {
+				indexSelected[ nIndexSelected++ ] = idx+0;
+				indexSelected[ nIndexSelected++ ] = idx+1;
+				indexSelected[ nIndexSelected++ ] = idx+2;
 
-			indexSelected[ nIndexSelected++ ] = idx+0;
-			indexSelected[ nIndexSelected++ ] = idx+2;
-			indexSelected[ nIndexSelected++ ] = idx+3;
+				indexSelected[ nIndexSelected++ ] = idx+0;
+				indexSelected[ nIndexSelected++ ] = idx+2;
+				indexSelected[ nIndexSelected++ ] = idx+3;
+			}
 		}
 	}
 	cacheValid = true;
