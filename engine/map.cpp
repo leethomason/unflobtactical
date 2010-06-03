@@ -548,7 +548,7 @@ void Map::DoDamage( Model* m, const DamageDesc& damageDesc, Rectangle2I* dBounds
 		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 
 		int hp = (int)(damageDesc.energy + damageDesc.kinetic );
-		GLOUTPUT(( "map damage '%s' (%d,%d) dam=%d\n", itemDef.name, item->XForm().x, item->XForm().y, hp ));
+		GLOUTPUT(( "map damage '%s' (%d,%d) dam=%d\n", itemDef.name.c_str(), item->XForm().x, item->XForm().y, hp ));
 
 		bool destroyed = false;
 		if ( itemDef.CanDamage() && item->DoDamage(hp) ) 
@@ -1016,7 +1016,8 @@ void Map::Save( TiXmlElement* mapElement )
 		int rot = item->modelRotation;
 		if ( rot != 0 )
 			itemElement->SetAttribute( "rot", rot );
-		itemElement->SetAttribute( "index", item->itemDefIndex );
+		// old, rigid approach: itemElement->SetAttribute( "index", item->itemDefIndex );
+		itemElement->SetAttribute( "name", itemDefArr[item->itemDefIndex].name.c_str() );
 		if ( item->hp != 0xffff )
 			itemElement->SetAttribute( "hp", item->hp );
 		if ( item->flags )
@@ -1125,18 +1126,33 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 			int x=0;
 			int y=0;
 			int rot = 0;
-			int index = 0;
+			int index = -1;
 			int hp = 0xffff;
 			int flags = 0;
 
 			item->QueryIntAttribute( "x", &x );
 			item->QueryIntAttribute( "y", &y );
 			item->QueryIntAttribute( "rot", &rot );
-			item->QueryIntAttribute( "index", &index );
 			item->QueryIntAttribute( "hp", &hp );
 			item->QueryIntAttribute( "flags", &flags );
 
-			AddItem( x, y, rot, index, hp, flags );
+			if ( item->QueryIntAttribute( "index", &index ) != TIXML_NO_ATTRIBUTE ) {
+				// good to go - have the deprecated 'index' value.
+			}
+			else if ( item->Attribute( "name" ) ) {
+				const char* name = item->Attribute( "name" );
+				const MapItemDef* mid = GetItemDef( name );
+				if ( mid ) {
+					index = mid - itemDefArr;
+				} 
+				else {
+					GLOUTPUT(( "Could not load item '%s'\n", name ));
+				}
+			}
+
+			if ( index >= 0 ) {
+				AddItem( x, y, rot, index, hp, flags );
+			}
 		}
 	}
 
@@ -1341,7 +1357,7 @@ void Map::DumpTile( int x, int y )
 			GLASSERT( !itemDef.name.empty() );
 
 			int r = root->modelRotation;
-			UFOText::Draw( 0, 100-12*i, "%s r=%d", itemDef.name, r );
+			UFOText::Draw( 0, 100-12*i, "%s r=%d", itemDef.name.c_str(), r );
 
 			++i;
 			root = root->next;

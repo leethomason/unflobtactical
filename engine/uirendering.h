@@ -166,6 +166,30 @@ protected:
 	Texture* texture;
 };
 
+
+class UITextTable : public UIWidget
+{
+public:
+	UITextTable( const Screenport& port );
+	virtual ~UITextTable();
+
+	virtual void Draw();
+	void SetText( int column, int row, const char* text );
+	void SetInt( int column, int row, int text );
+	void SetFloat( int column, int row, float text );
+
+private:
+	enum { 
+		COLUMNS = 2,
+		ROWS = 12,
+
+		TEXT_LEN = 16,
+		DELTA_X = TEXT_LEN*6,
+		DELTA_Y = 16
+	};
+	grinliz::CStr< TEXT_LEN > textArr[COLUMNS*ROWS];
+};
+
 /*
 class UIText : public UIWidget
 {
@@ -386,5 +410,6 @@ public:
 //							const Texture* texture );
 	static void GetDecoUV( int deco, grinliz::Rectangle2F* uv );
 };
+
 
 #endif // UIRENDERING_INCLUDED

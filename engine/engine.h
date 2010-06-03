@@ -152,7 +152,6 @@ private:
 	Surface diffuseLightMap;
 
 	grinliz::Vector3F lightDirection;
-//	grinliz::Rectangle2I scissorUI;		// scissor coordinates in UI space (cached)
 };
 
 #endif // UFOATTACK_ENGINE_INCLUDED

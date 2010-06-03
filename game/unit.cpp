@@ -212,6 +212,7 @@ void Unit::Init(	Engine* engine,
 					int alienType,
 					int body )
 {
+	kills = 0;
 	GLASSERT( this->status == STATUS_NOT_INIT );
 	this->engine = engine;
 	this->game = game;
@@ -553,6 +554,7 @@ void Unit::Save( TiXmlElement* doc ) const
 		unitElement->SetAttribute( "status", status );
 		unitElement->SetAttribute( "body", body );
 		unitElement->SetAttribute( "hp", hp );
+		unitElement->SetAttribute( "kills", kills );
 		unitElement->SetDoubleAttribute( "tu", tu );
 		unitElement->SetDoubleAttribute( "modelX", model->Pos().x );
 		unitElement->SetDoubleAttribute( "modelZ", model->Pos().z );
@@ -584,6 +586,7 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 	type = 0;
 	int a_status = 0;
 	ai = AI_NORMAL;
+	kills = 0;
 
 	GLASSERT( StrEqual( ele->Value(), "Unit" ) );
 	ele->QueryIntAttribute( "status", &a_status );
@@ -612,6 +615,7 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 		// before loading, just so we get the correct defaults.
 		ele->QueryValueAttribute( "hp", &hp );
 		ele->QueryValueAttribute( "tu", &tu );
+		ele->QueryValueAttribute( "kills", &kills );
 
 		if ( StrEqual( ele->Attribute( "ai" ), "guard" ) ) {
 			ai = AI_GUARD;
@@ -650,8 +654,6 @@ float Unit::AngleBetween( const Vector2I& p1, bool quantize ) const
 {
 	Vector2I p0;
 	CalcMapPos( &p0, 0 );
-
-	//target->CalcMapPos( &p1, 0 );
 
 	float angle = atan2( (float)(p1.x-p0.x), (float)(p1.y-p0.y) );
 	angle = ToDegree( angle );
