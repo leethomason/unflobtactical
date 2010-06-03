@@ -52,23 +52,6 @@ public:
 
 	static int GenStat( grinliz::Random* rand, int min, int max );
 
-//	void DoDamage( int hitDamage ) {
-//		hp -= hitDamage;
-//		if ( hp < 0 )
-//			hp = 0;
-//	}
-//	void ZeroHP() { 
-//		hp = 0;
-//	}
-
-//	void UseTU( float t ) {
-//		GLASSERT( t <= tu );
-//		tu -= t;
-//	}
-//	void RestoreTU() {
-//		tu = totalTU;
-//	}
-
 	// Base traits:
 	int STR() const			{ return _STR; }
 	int DEX() const			{ return _DEX; }
@@ -77,12 +60,9 @@ public:
 	int Rank() const		{ return rank; }
 
 	// Computed:
-//	int HP() const				{ return hp; }
 	int TotalHP() const			{ return totalHP; }
-//	float HPFraction() const	{ return (float)hp / (float)totalHP; }
 	int Armor() const			{ return armor; }
 
-//	float TU() const		{ return tu; }
 	float TotalTU() const	{ return totalTU; }		// one TU is one move
 	float Accuracy() const	{ return accuracy; }	// cone at 1 unit out
 	float Reaction() const	{ return reaction; }	// 0.0-1.0. The chance of reaction fire

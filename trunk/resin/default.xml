@@ -13,15 +13,15 @@
 	<texture filename="palette.png" />
 	<texture filename="ufoInner.png" width="64" height="64"/>
 	<texture filename="ufoOuter.png" width="16" height="64"/>
-	<texture filename="wheat.tga" />
 	<texture filename="tree.tga" />
+  <texture filename="tree2.png" />
+  <texture filename="tree3.png" />
   <texture filename="lander.png" />
   <texture filename="translucent.png" />
   <texture filename="clips.png" />
   <texture filename="stonewall.png" width="64" height="64" />
   <texture filename="hay.png" width="64" height="64" />
   <texture filename="whitepicketfence.png" width="64" height="64" />
-  <texture filename="plant0.png" width="64" height="64" />
   
   <!-- UI elements -->
   <texture filename="intro.png" />
@@ -91,6 +91,8 @@
   <!-- World models have their origin at the upper left, so that they align with the unit grid -->
   <model filename="lander.ac" />
   <model filename="tree.ac" billboard="true" shading="crease" polyRemoval="pre" shadow="rotate"/>
+  <model filename="tree2.ac" billboard="true" shading="crease" polyRemoval="pre" shadow="rotate"/>
+  <model filename="tree3.ac" billboard="true" shading="crease" polyRemoval="pre" shadow="rotate"/>
 
   <model filename="ufo_DoorCld.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_DoorOpn.ac" shading="crease" polyRemoval="pre" />
@@ -109,7 +111,6 @@
   <model filename="farmBed.ac" polyRemoval="pre" />
   <model filename="farmTable.ac" polyRemoval="pre" />
   <model filename="farmTable2x1.ac" polyRemoval="pre"/>
-  <model filename="farmWheat.ac" billboard="true" />
   <model filename="stonewall_unit.ac" shading="crease" polyRemoval="pre" />
   <model filename="stonewall_join.ac" shading="crease" polyRemoval="pre" />
   <model filename="stonewall_unitD.ac" shading="crease" polyRemoval="pre" />
@@ -118,8 +119,6 @@
   <model filename="haypile.ac" polyRemoval="pre"/>
   <model filename="whitepicketfence.ac" polyRemoval="pre"/>
 
-  <model filename="plant0.ac" shadowCaster="false" />
-  
   <!-- Models used as markers by the map-maker. Don't appear in the game. -->
   <model filename="scout.ac" shading="smooth" />
   <model filename="guard.ac" />

@@ -211,8 +211,13 @@ private:
 	void PushRotateAction( Unit* src, const grinliz::Vector3F& dst, bool quantize );
 	
 	// Try to shoot. Return true if success.
-	bool PushShootAction(	Unit* src, const grinliz::Vector3F& dst, 
-							int select, int type, bool useError, bool clearMoveIfShoot );
+
+	bool PushShootAction(	Unit* src, 
+							const grinliz::Vector3F& dst, 
+							int select,					// weapon mode
+							int type,
+							float useError,				// if 0, perfect shot. <1 improve, 1 normal error, >1 more error
+							bool clearMoveIfShoot );	// clears move commands if needed
 
 	void PushScrollOnScreen( const grinliz::Vector3F& v );
 

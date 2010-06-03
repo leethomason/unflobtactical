@@ -145,6 +145,9 @@ public:
 	const Stats& GetStats() const	{ return stats; }
 	static void GenStats( int team, int type, int seed, Stats* stats );
 
+	void CreditKill()				{ kills++; }
+	int  KillsCredited() const		{ return kills; }
+
 	void Save( TiXmlElement* doc ) const;
 	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
 
@@ -181,6 +184,8 @@ private:
 	Stats		stats;
 	float		tu;
 	int			hp;
+
+	int			kills;
 };
 
 

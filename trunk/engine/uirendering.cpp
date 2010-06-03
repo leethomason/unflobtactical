@@ -189,6 +189,67 @@ void UIBar::Draw()
 }
 
 	
+UITextTable::UITextTable( const Screenport& port ) : UIWidget( port )
+{
+}
+
+
+UITextTable::~UITextTable()
+{
+}
+
+
+void UITextTable::Draw()
+{
+	UFOText::Begin();
+	glColor4f( 1, 1, 1, 1 );
+	for( int j=0; j<ROWS; ++j ) {
+		for( int i=0; i<COLUMNS; ++i ) {
+
+			int x = origin.x + DELTA_X * i;
+			int y = origin.y - (DELTA_Y*j + 1);		// just useless if it doesn't go down.
+
+			if ( !textArr[j*COLUMNS+i].empty() ) {
+				UFOText::Stream( x, y, "%s", textArr[j*COLUMNS+i].c_str() );
+			}
+		}
+	}
+	UFOText::End();
+}
+
+
+void UITextTable::SetText( int column, int row, const char* text )
+{
+	GLASSERT( column < COLUMNS && row < ROWS );
+	if ( column < COLUMNS && row < ROWS )
+		textArr[row*COLUMNS+column] = text;
+}
+
+
+void UITextTable::SetInt( int column, int row, int text )
+{
+	GLASSERT( column < COLUMNS && row < ROWS );
+	if ( column < COLUMNS && row < ROWS )
+	{
+		char buf[TEXT_LEN];
+		SNPrintf( buf, TEXT_LEN, "%d", text );
+		SetText( column, row, buf );
+	}
+}
+
+
+void UITextTable::SetFloat( int column, int row, float text )
+{
+	GLASSERT( column < COLUMNS && row < ROWS );
+	if ( column < COLUMNS && row < ROWS )
+	{
+		char buf[TEXT_LEN];
+		SNPrintf( buf, TEXT_LEN, "%.2f", text );
+		SetText( column, row, buf );
+	}
+}
+
+
 UIImage::UIImage( const Screenport& port ) : UIWidget( port )
 {
 	w = h = 0;

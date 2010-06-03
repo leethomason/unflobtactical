@@ -74,7 +74,7 @@ const float ACC_AIMED_SHOT_MULTIPLIER	= 1.0f;		// LOWER accuracy is better
 const float ACC_AUTO_SHOT_MULTIPLIER	= 1.2f;
 const float ACC_SNAP_SHOT_MULTIPLIER	= 1.3f;
 
-const float REACTION_FAST = 0.80f;
-const float REACTION_SLOW = 0.20f;
+const float REACTION_FAST = 0.90f;
+const float REACTION_SLOW = 0.40f;
 
 #endif // GAMELIMITS_INCLUDED

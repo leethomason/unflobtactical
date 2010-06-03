@@ -54,7 +54,7 @@ public:
 	{ 
 		clip3D->SetInvalid(); 
 		clip2D->SetInvalid(); 
-		return RENDER_2D | RENDER_3D; 
+		return RENDER_2D;	// | RENDER_3D; FIXME: Would be nice to draw the current weapon. But don't want to render everything else in the engine.
 	}
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
 	virtual void DrawHUD();
@@ -64,13 +64,14 @@ protected:
 		INV, ARMOR, WEAPON, UNLOAD
 	};
 
-	
-	// M M M	7 8 9
-	// M M M	4 5 6
-	// A 2 1	1 2 3
-	//   S		  0
-
+	enum {
+		INVENTORY_MODE,
+		STATS_MODE,
+		MODE_COUNT
+	};
+	int mode;
 	void InitInvWidget();
+	void InitTextTable();
 
 	void SetAllButtonGraphics();
 	void SetButtonGraphics( int index, const Item& item );
@@ -80,9 +81,10 @@ protected:
 
 
 	Engine* engine;
-	UIButtonBox* backWidget;
+	UIButtonGroup* controlButtons;
 	UIButtonGroup* charInvWidget;
 	StorageWidget* storageWidget;
+	UITextTable*   textTable;
 
 	const char* description;
 	Storage* storage;

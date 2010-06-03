@@ -31,12 +31,14 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	canChangeArmor = input->canChangeArmor;
 	delete input;
 	input = 0;
+	mode = INVENTORY_MODE;
 
 	engine = _game->engine;
 	description = 0;
 
-	backWidget = new UIButtonBox( engine->GetScreenport() );
+	controlButtons = new UIButtonGroup( engine->GetScreenport() );
 	charInvWidget = new UIButtonGroup( engine->GetScreenport() );
+	textTable = new UITextTable( engine->GetScreenport() );
 
 	this->unit = unit;
 	//engine->SoloRender( unit );
@@ -50,11 +52,15 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	storageWidget = new StorageWidget( engine->GetScreenport(), _game->GetItemDefArr(), storage );
 
 	{
-		int icons[] = { ICON_GREEN_BUTTON };
-		const char* iconText[] = { "back" };
-		backWidget->InitButtons( icons, 1 );
-		backWidget->SetOrigin( 5, 5 );
-		backWidget->SetText( iconText );
+		int icons[] = { ICON_GREEN_BUTTON, ICON_GREEN_BUTTON };
+		const char* iconText[] = { "Back", "Stats" };
+		controlButtons->InitButtons( icons, 2 );
+		controlButtons->SetButtonSize( GAME_BUTTON_SIZE, GAME_BUTTON_SIZE );
+		controlButtons->SetText( iconText );
+
+		Vector2I size = controlButtons->GetButtonSize();
+		controlButtons->SetPos( 0, 5, 5 );
+		controlButtons->SetPos( 1, engine->GetScreenport().UIWidth() - 5 - size.x, 5 );
 	}
 	engine->EnableMap( false );
 
@@ -68,7 +74,9 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 
 	storageWidget->SetOrigin( 230, 70 );
 	storageWidget->SetButtonSize( GAME_BUTTON_SIZE, GAME_BUTTON_SIZE );
+
 	InitInvWidget();
+	InitTextTable();
 }
 
 
@@ -78,20 +86,56 @@ CharacterScene::~CharacterScene()
 	engine->EnableMap( true );
 	engine->camera = savedCamera;
 
-	delete backWidget;
+	delete controlButtons;
 	delete charInvWidget;
 	delete storageWidget;
+	delete textTable;
 
 	Vector2I mapPos;
 	unit->CalcMapPos( &mapPos, 0 );
 	engine->GetMap()->ReleaseStorage( mapPos.x, mapPos.y, storage, game->GetItemDefArr() );
 	storage = 0;
-
-	//BattleSceneStream bss( game );
-	//bss.Save( selectedUnit, units, &savedCamera, engine->GetMap() );
 }
 
 
+void CharacterScene::InitTextTable()
+{
+	textTable->SetOrigin( GAME_BUTTON_SIZE*4, GAME_BUTTON_SIZE*5-5 );
+
+	textTable->SetText( 0, 0, unit->FirstName() );
+	textTable->SetText( 1, 0, unit->LastName() );
+
+	textTable->SetText( 0, 1, "Rank" );
+	textTable->SetText( 1, 1, unit->Rank() );
+
+	int row=2;
+	char buf[32];
+
+	const Stats& stats = unit->GetStats();
+	textTable->SetText( 0, row, "STR" );
+	textTable->SetInt( 1, row++, stats.STR() );
+
+	textTable->SetText( 0, row, "DEX" );
+	textTable->SetInt( 1, row++, stats.DEX() );
+
+	textTable->SetText( 0, row, "PSY" );
+	textTable->SetInt( 1, row++, stats.PSY() );
+
+	SNPrintf( buf, 32, "%d/%d", unit->HP(), stats.TotalHP() );
+	textTable->SetText( 0, row, "HP" );
+	textTable->SetText( 1, row++, buf );
+
+	SNPrintf( buf, 32, "%.1f/%.1f", unit->TU(), stats.TotalTU() );
+	textTable->SetText( 0, row, "TU" );
+	textTable->SetText( 1, row++, buf );
+
+	textTable->SetText( 0, row, "Accuracy" );
+	textTable->SetFloat( 1, row++, 1.0f - stats.Accuracy() );	// keep consistent: show as higher is better.
+
+	textTable->SetText( 0, row, "Reaction" );
+	textTable->SetFloat( 1, row++, stats.Reaction() );
+
+}
 
 
 void CharacterScene::InitInvWidget()
@@ -186,9 +230,12 @@ void CharacterScene::SetButtonGraphics( int index, const Item& item )
 
 void CharacterScene::DrawHUD()
 {
-	backWidget->Draw();
+	controlButtons->Draw();
 	charInvWidget->Draw();
-	storageWidget->Draw();
+	if ( mode == INVENTORY_MODE )
+		storageWidget->Draw();
+	else
+		textTable->Draw();
 
 	if ( description ) {
 		UFOText::Draw( 235, 50, "%s", description );
@@ -204,10 +251,19 @@ void CharacterScene::Tap(	int count,
 	engine->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );
 
 	// Back button:
-	int tap = backWidget->QueryTap( ux, uy );
-	if ( tap >= 0 ) {
+	int tap = controlButtons->QueryTap( ux, uy );
+	if ( tap == 0 ) {
 		game->PopScene();
 		return;
+	}
+	else if ( tap ==1 ) {
+		mode++;
+		if ( mode == MODE_COUNT ) 
+			mode = 0;
+		if ( mode == INVENTORY_MODE )
+			controlButtons->SetText( 1, "Stats" );
+		if ( mode == STATS_MODE )
+			controlButtons->SetText( 1, "Inv" );
 	}
 
 	// Inventory of the character:

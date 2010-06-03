@@ -230,6 +230,7 @@ int main( int argc, char **argv )
 						}
 						break;
 
+#if !defined( MAPMAKER )
 					case SDLK_RIGHT:
 						GameHotKey( game, GAME_HK_NEXT_UNIT );
 						break;
@@ -245,10 +246,10 @@ int main( int argc, char **argv )
 					case SDLK_DOWN:
 						GameHotKey( game, GAME_HK_ROTATE_CW );
 						break;
-
 					case SDLK_u:
 						GameHotKey( game, GAME_HK_TOGGLE_ROTATION_UI | GAME_HK_TOGGLE_NEXT_UI );
 						break;
+#endif
 
 					case SDLK_s:
 						ScreenCapture( "cap" );
@@ -292,7 +293,7 @@ int main( int argc, char **argv )
 						game->ShowPathing( !game->IsShowingPathing() );
 						break;
 
-					case SDLK_d:
+					case SDLK_t:
 						game->engine->GetMap()->SetDayTime( !game->engine->GetMap()->DayTime() );
 						break;
 					case SDLK_m:

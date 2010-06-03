@@ -1,40 +1,40 @@
 <Map sizeX="64" sizeY="64">
     <Items>
-        <Item x="8" y="13" index="1" hp="250" />
-        <Item x="11" y="12" rot="1" index="20" hp="80" />
-        <Item x="4" y="12" index="1" hp="250" />
-        <Item x="6" y="12" index="98" />
-        <Item x="3" y="14" index="1" hp="250" />
-        <Item x="13" y="9" index="1" hp="250" />
-        <Item x="11" y="9" index="21" hp="80" />
-        <Item x="9" y="9" index="20" hp="80" />
-        <Item x="10" y="9" index="20" hp="80" />
-        <Item x="8" y="9" index="20" hp="80" />
-        <Item x="11" y="8" rot="1" index="20" hp="80" />
-        <Item x="11" y="11" rot="1" index="20" hp="80" />
-        <Item x="4" y="9" index="20" hp="80" />
-        <Item x="2" y="9" index="20" hp="80" />
-        <Item x="3" y="9" index="20" hp="80" />
-        <Item x="1" y="8" rot="3" index="20" hp="80" />
-        <Item x="1" y="9" rot="3" index="21" hp="80" />
-        <Item x="12" y="6" index="98" />
-        <Item x="9" y="7" index="98" />
-        <Item x="11" y="7" rot="1" index="20" hp="80" />
-        <Item x="3" y="4" index="1" hp="250" />
-        <Item x="3" y="6" index="98" />
-        <Item x="1" y="7" rot="3" index="20" hp="80" />
-        <Item x="11" y="2" rot="1" index="20" hp="80" />
-        <Item x="11" y="3" rot="1" index="20" hp="80" />
-        <Item x="11" y="1" rot="1" index="21" hp="80" />
-        <Item x="10" y="1" rot="2" index="20" hp="80" />
-        <Item x="9" y="1" rot="2" index="20" hp="80" />
-        <Item x="4" y="3" index="1" hp="250" />
-        <Item x="4" y="1" rot="2" index="20" hp="80" />
-        <Item x="1" y="1" rot="2" index="21" hp="80" />
-        <Item x="2" y="1" rot="2" index="20" hp="80" />
-        <Item x="3" y="1" rot="2" index="20" hp="80" />
-        <Item x="1" y="2" rot="3" index="20" hp="80" />
-        <Item x="1" y="3" rot="3" index="20" hp="80" />
+        <Item x="8" y="13" name="tree" hp="250" />
+        <Item x="11" y="12" rot="1" name="stonewall_unit" hp="80" />
+        <Item x="4" y="12" name="tree" hp="250" />
+        <Item x="6" y="12" name="scout" />
+        <Item x="3" y="14" name="tree" hp="250" />
+        <Item x="13" y="9" name="tree" hp="250" />
+        <Item x="11" y="9" name="stonewall_join" hp="80" />
+        <Item x="9" y="9" name="stonewall_unit" hp="80" />
+        <Item x="10" y="9" name="stonewall_unit" hp="80" />
+        <Item x="8" y="9" name="stonewall_unit" hp="80" />
+        <Item x="11" y="8" rot="1" name="stonewall_unit" hp="80" />
+        <Item x="11" y="11" rot="1" name="stonewall_unit" hp="80" />
+        <Item x="4" y="9" name="stonewall_unit" hp="80" />
+        <Item x="2" y="9" name="stonewall_unit" hp="80" />
+        <Item x="3" y="9" name="stonewall_unit" hp="80" />
+        <Item x="1" y="8" rot="3" name="stonewall_unit" hp="80" />
+        <Item x="1" y="9" rot="3" name="stonewall_join" hp="80" />
+        <Item x="12" y="6" name="scout" />
+        <Item x="9" y="7" name="scout" />
+        <Item x="11" y="7" rot="1" name="stonewall_unit" hp="80" />
+        <Item x="3" y="4" name="tree" hp="250" />
+        <Item x="3" y="6" name="scout" />
+        <Item x="1" y="7" rot="3" name="stonewall_unit" hp="80" />
+        <Item x="11" y="2" rot="1" name="stonewall_unit" hp="80" />
+        <Item x="11" y="3" rot="1" name="stonewall_unit" hp="80" />
+        <Item x="11" y="1" rot="1" name="stonewall_join" hp="80" />
+        <Item x="10" y="1" rot="2" name="stonewall_unit" hp="80" />
+        <Item x="9" y="1" rot="2" name="stonewall_unit" hp="80" />
+        <Item x="4" y="3" name="tree" hp="250" />
+        <Item x="4" y="1" rot="2" name="stonewall_unit" hp="80" />
+        <Item x="1" y="1" rot="2" name="stonewall_join" hp="80" />
+        <Item x="2" y="1" rot="2" name="stonewall_unit" hp="80" />
+        <Item x="3" y="1" rot="2" name="stonewall_unit" hp="80" />
+        <Item x="1" y="2" rot="3" name="stonewall_unit" hp="80" />
+        <Item x="1" y="3" rot="3" name="stonewall_unit" hp="80" />
     </Items>
     <Images>
         <Image x="0" y="0" size="16" name="FARM_16_TILE_00" />

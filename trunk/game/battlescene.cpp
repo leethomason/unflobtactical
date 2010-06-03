@@ -388,7 +388,7 @@ void BattleScene::OrderNextPrev()
 				// do nothing.
 			}
 			else {
-				const float A = 1.2f;
+				const float A = 1.f;
 				posScoreI -= A*dist;	// further away, worse choice
 			}
 
@@ -1048,7 +1048,7 @@ void BattleScene::PushRotateAction( Unit* src, const Vector3F& dst3F, bool quant
 
 bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target, 
 								   int select, int type,
-								   bool useError,
+								   float useError,
 								   bool clearMoveIfShoot )
 {
 	GLASSERT( unit );
@@ -1081,7 +1081,7 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 		for( int i=0; i<nShots; ++i ) {
 			Vector3F t = target;
 			if ( useError ) {
-				float d = length * random.Uniform() * unit->GetStats().Accuracy();
+				float d = length * random.Uniform() * unit->GetStats().Accuracy() * useError;
 				Matrix4 m;
 				m.SetAxisAngle( normal, (float)random.Rand( 360 ) );
 				t = target + (m * right)*d;
@@ -1183,16 +1183,34 @@ void BattleScene::DoReactionFire()
 						// Do we really react? Are we that lucky? Well, are you, punk?
 						float r = random.Uniform();
 						float reaction = srcUnit->GetStats().Reaction();
+
+						// Reaction is impacted by rotation.
+						// Multiple ways to do the math. Go with the normal of the src facing to
+						// the normal of the target.
+
+						Vector2I targetMapPos = targetUnit->Pos();
+						Vector2I srcMapPos = srcUnit->Pos();
+
+						Vector2F normalToTarget = { (float)(targetMapPos.x - srcMapPos.x), (float)(targetMapPos.y - srcMapPos.y) };
+						normalToTarget.Normalize();
+
+						Vector2F facing;
+						facing.x = sinf( ToRadian( srcUnit->GetModel()->GetRotation() ) );
+						facing.y = cosf( ToRadian( srcUnit->GetModel()->GetRotation() ) );
+
+						float mod = DotProduct( facing, normalToTarget ) * 0.5f + 0.5f;  
+						reaction *= mod;				// linear with angle.
+						float error = 2.0f - mod;		// doubles with rotation
 						
 						GLOUTPUT(( "reaction fire possible. (if %.2f < %.2f)\n", r, reaction ));
 
 						if ( r <= reaction ) {
 							Vector3F target;
 							targetUnit->GetModel()->CalcTarget( &target );
-
-							int shot = PushShootAction( srcUnit, target, 0, 1, true, true );	// auto
+							
+							int shot = PushShootAction( srcUnit, target, 0, 1, error, true );	// auto
 							if ( !shot )
-								PushShootAction( srcUnit, target, 0, 0, true, true );	// snap
+								PushShootAction( srcUnit, target, 0, 0, error, true );	// snap
 
 							nearPathState = NEAR_PATH_INVALID;
 						}
@@ -1231,7 +1249,7 @@ bool BattleScene::ProcessAI()
 						{
 							int select, type;
 							if ( units[i].FireModeToType( aiAction.shoot.mode, &select, &type ) ) {
-								bool shot = PushShootAction( &units[i], aiAction.shoot.target, select, type, true, false );
+								bool shot = PushShootAction( &units[i], aiAction.shoot.target, select, type, 1.0f, false );
 								GLASSERT( shot );
 								if ( !shot )
 									done = true;
@@ -1705,7 +1723,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		GLASSERT( intersection.y >= 0 && intersection.y <= 10.0f );
 
 		Action h;
-		h.Init( ACTION_HIT, 0 );
+		h.Init( ACTION_HIT, unit );
 		h.type.hit.damageDesc = damageDesc;
 		h.type.hit.explosive = (weaponDef->weapon[select].flags & WEAPON_EXPLOSIVE) ? true : false;
 		h.type.hit.p = intersection;
@@ -1757,6 +1775,8 @@ int BattleScene::ProcessActionHit( Action* action )
 				if ( !hitUnit->IsAlive() ) {
 					selection.ClearTarget();			
 					visibility.InvalidateUnit( hitUnit - units );
+					if ( action->unit )
+						action->unit->CreditKill();
 				}
 				GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", (unsigned)hitUnit, (int)hitUnit->HP(), (int)hitUnit->GetStats().TotalHP() ));
 			}
@@ -1840,6 +1860,8 @@ int BattleScene::ProcessActionHit( Action* action )
 								if ( unit == SelectedSoldierUnit() ) {
 									selection.ClearTarget();			
 								}
+								if ( action->unit )
+									action->unit->CreditKill();
 							}
 						}
 						bool hitAnything = false;
@@ -1972,7 +1994,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 			else {
 				selection.targetUnit->GetModel()->CalcTarget( &target );
 			}
-			PushShootAction( selection.soldierUnit, target, select, type, true, false );
+			PushShootAction( selection.soldierUnit, target, select, type, 1.0f, false );
 			selection.targetUnit = 0;
 		}
 	}
@@ -2754,16 +2776,24 @@ void BattleScene::DrawHUD()
 		bool enabled = SelectedSoldierUnit() && actionStack.Empty();
 		widgets->SetEnabled( BTN_TARGET, enabled );
 		widgets->SetEnabled( BTN_CHAR_SCREEN, enabled );
-		widgets->SetEnabled( BTN_NEXT, enabled );
-		widgets->SetEnabled( BTN_PREV, enabled );
 		widgets->SetEnabled( BTN_ROTATE_CCW, enabled );
 		widgets->SetEnabled( BTN_ROTATE_CW, enabled );
 	}
 	{
 		bool enabled = actionStack.Empty();
+		widgets->SetEnabled( BTN_NEXT, enabled );
+		widgets->SetEnabled( BTN_PREV, enabled );
 		widgets->SetEnabled( BTN_TAKE_OFF, enabled );
 		widgets->SetEnabled( BTN_END_TURN, enabled );
 		widgets->SetEnabled( BTN_HELP, enabled );
+	}
+	// overrides enabled, above.
+	if ( uiMode == UIM_TARGET_TILE ) {
+		for( int i=0; i<BTN_COUNT; ++i ) {
+			if ( i != BTN_TARGET ) {
+				widgets->SetEnabled( i, false );
+			}
+		}
 	}
 	widgets->SetHighLight( BTN_TARGET, uiMode == UIM_TARGET_TILE ? true : false );
 	widgets->SetVisible( BTN_ROTATE_CCW, rotationUIOn );
