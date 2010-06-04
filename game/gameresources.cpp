@@ -343,10 +343,10 @@ void Game::LoadMapResources()
 
 	static const MapItemInit forestSet[] = 
 	{
-			// model		open			destroyed	cx, cz	hp		 material		pather
-		{	"tree",			0,				0,			1,	1,	HP_HIGH, BURN,			"f", "0" },
-		{	"tree2",		0,				0,			1,	1,	HP_HIGH, BURN,			"f", "0" },
-		{	"tree3",		0,				0,			1,	1,	HP_HIGH, BURN,			"f", "0" },
+			// model		open			destroyed	cx, cz	hp			material		pather
+		{	"tree",			0,				0,			1,	1,	HP_MED,		BURN,			"f", "0" },
+		{	"tree2",		0,				0,			1,	1,	HP_MED,		BURN,			"f", "0" },
+		{	"tree3",		0,				0,			1,	1,	HP_MED,		BURN,			"f", "0" },
 		{	0	}
 	};
 	InitMapItemDef( FOREST_SET, forestSet );

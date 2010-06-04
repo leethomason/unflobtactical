@@ -21,6 +21,7 @@
 #include "characterscene.h"
 #include "tacticalintroscene.h"
 #include "tacticalendscene.h"
+#include "tacticalunitscorescene.h"
 #include "helpscene.h"
 
 #include "../engine/platformgl.h"
@@ -51,6 +52,7 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	trianglesPerSecond( 0 ),
 	trianglesSinceMark( 0 ),
 	debugTextOn( false ),
+	resetGame( false ),
 	previousTime( 0 ),
 	isDragging( false ),
 	sceneStack(),
@@ -151,11 +153,7 @@ void Game::Init()
 	SoundManager::Create( database );
 	engine = new Engine( &screenport, engineData, database );
 
-//	TextureManager::Instance()->AttachDatabase( database );
-//	ImageManager::Instance()->AttachDatabase( database );
-
 	LoadTextures();
-//	LoadImages();
 	modelLoader = new ModelLoader();
 	LoadModels();
 	LoadMapResources();
@@ -168,10 +166,6 @@ void Game::Init()
 	GLASSERT( textTexture );
 	UFOText::InitTexture( textTexture );
 	UFOText::InitScreen( &screenport );
-
-//	Map* map = engine.GetMap();
-//	ImageManager* im = ImageManager::Instance();
-//	map->SetLightObjects( im->GetImage( "objectLightMaps" ) );
 }
 
 
@@ -261,28 +255,49 @@ void Game::PushPopScene()
 		TextureManager::Instance()->ContextShift();
 	}
 
-	if ( scenePopQueued ) {
-		GLASSERT( !sceneStack.Empty() );
-
-		sceneStack.Top()->DeActivate();
-		delete sceneStack.Top();
-		sceneStack.Pop();
-		GLASSERT( scenePushQueued>=0 || !sceneStack.Empty() );
-		if ( sceneStack.Size() ) {
-			sceneStack.Top()->Activate();
-		}
-	}
-	if ( scenePushQueued >= 0 ) {
-		GLASSERT( scenePushQueued < NUM_SCENES );
-
-		if ( sceneStack.Size() ) {
+	if ( resetGame ) {
+		GLASSERT( 0 );	// doesn't work yet.	
+		while( !sceneStack.Empty() ) {
 			sceneStack.Top()->DeActivate();
+			delete sceneStack.Top();
+			sceneStack.Pop();
 		}
-		Scene* scene = CreateScene( scenePushQueued, scenePushQueuedData );
-		sceneStack.Push( scene );
-		scene->Activate();
-		if ( loadRequested >= 0 ) {
-			ProcessLoadRequest();
+
+//		delete engine;
+//	engine = new Engine( &screenport, engineData, database );
+
+		resetGame = false;
+		scenePushQueued = INTRO_SCENE;
+		scenePopQueued = false;
+		loadRequested = -1;
+		loadCompleted = false;
+		PushPopScene();
+	}
+	else
+	{
+		if ( scenePopQueued ) {
+			GLASSERT( !sceneStack.Empty() );
+
+			sceneStack.Top()->DeActivate();
+			delete sceneStack.Top();
+			sceneStack.Pop();
+			GLASSERT( scenePushQueued>=0 || !sceneStack.Empty() );
+			if ( sceneStack.Size() ) {
+				sceneStack.Top()->Activate();
+			}
+		}
+		if ( scenePushQueued >= 0 ) {
+			GLASSERT( scenePushQueued < NUM_SCENES );
+
+			if ( sceneStack.Size() ) {
+				sceneStack.Top()->DeActivate();
+			}
+			Scene* scene = CreateScene( scenePushQueued, scenePushQueuedData );
+			sceneStack.Push( scene );
+			scene->Activate();
+			if ( loadRequested >= 0 ) {
+				ProcessLoadRequest();
+			}
 		}
 	}
 	scenePushQueued = -1;
@@ -298,6 +313,7 @@ Scene* Game::CreateScene( int id, void* data )
 		case CHARACTER_SCENE:	scene = new CharacterScene( this, (CharacterSceneInput*)data );				break;
 		case INTRO_SCENE:		scene = new TacticalIntroScene( this );										break;
 		case END_SCENE:			scene = new TacticalEndScene( this, (const TacticalEndSceneData*) data );	break;
+		case UNIT_SCORE_SCENE:	scene = new TacticalUnitScoreScene( this, (const TacticalEndSceneData*) data );	break;
 		case HELP_SCENE:		scene = new HelpScene( this );												break;
 		default:
 			GLASSERT( 0 );
@@ -417,7 +433,7 @@ void Game::DoTick( U32 _currentTime )
 						(float)trianglesRendered/1000.0f,
 						drawCalls,
 						trianglesPerSecond );
-		#ifndef MAPMAKER
+		#if !defined(MAPMAKER) && defined(DEBUG)
 		UFOText::Draw(  0, 14, "new=%d Tex(%d/%d) %dK/%dK mis=%d re=%d hit=%d",
 						memNewCount,
 						TextureManager::Instance()->NumTextures(),
@@ -428,6 +444,9 @@ void Game::DoTick( U32 _currentTime )
 						TextureManager::Instance()->CacheReuse(),
 						TextureManager::Instance()->CacheHit() );		
 		#endif
+	}
+	else {
+		UFOText::Draw(	0,  0, "UFO#%d", VERSION );
 	}
 	trianglesRendered = 0;
 	drawCalls = 0;

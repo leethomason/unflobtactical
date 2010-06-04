@@ -577,7 +577,6 @@ int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I*
 void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 {
 	TestHitTesting();
-
 	engine->GetMap()->EmitParticles( deltaTime );
 
 	if (    SelectedSoldier()
@@ -705,6 +704,8 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 bool BattleScene::EndCondition( TacticalEndSceneData* data )
 {
 	memset( data, 0, sizeof( *data ) );
+	data->units = units;
+
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		if ( units[i].InUse() )
 			++data->nTerrans;

@@ -125,10 +125,12 @@ public:
 			CHARACTER_SCENE,
 			INTRO_SCENE,
 			END_SCENE,
+			UNIT_SCORE_SCENE,
 			HELP_SCENE,
 			NUM_SCENES,
 		 };
 
+	void QueueReset()		{ resetGame = true; }
 	void PushScene( int sceneID, void* data );
 	void PopScene();
 
@@ -218,6 +220,7 @@ private:
 	int trianglesPerSecond;
 	int trianglesSinceMark;
 	bool debugTextOn;
+	bool resetGame;
 
 	ModelLoader* modelLoader;
 	gamedb::Reader* database;

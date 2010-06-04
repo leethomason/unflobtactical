@@ -30,8 +30,11 @@
   <texture filename="commandBarV.png" />
   <texture filename="help0.png" />
   <texture filename="help1.png" />
-  
-  
+  <texture filename="help2.png" />
+  <texture filename="help3.png" />
+  <texture filename="help4.png" />
+
+
   <!--
   <texture filename="femaleSkin.png" />
   -->
@@ -88,11 +91,13 @@
   <model filename="maleMarine.ac"   shading="smooth" polyRemoval="pre" trigger="-0.31 1.20 0.38" eye="1.83" target="1.35"/>
   <model filename="femaleMarine.ac" shading="smooth" polyRemoval="pre" trigger="-0.26 1.17 0.40" eye="1.81" target="1.43"/>
 
-  <!-- World models have their origin at the upper left, so that they align with the unit grid -->
-  <model filename="lander.ac" />
+  <!-- Trees are world models, but centered at the origin for billboarding. -->
   <model filename="tree.ac" billboard="true" shading="crease" polyRemoval="pre" shadow="rotate"/>
   <model filename="tree2.ac" billboard="true" shading="crease" polyRemoval="pre" shadow="rotate"/>
   <model filename="tree3.ac" billboard="true" shading="crease" polyRemoval="pre" shadow="rotate"/>
+
+  <!-- World models have their origin at the upper left, so that they align with the unit grid -->
+  <model filename="lander.ac" />
 
   <model filename="ufo_DoorCld.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_DoorOpn.ac" shading="crease" polyRemoval="pre" />

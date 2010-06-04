@@ -30,8 +30,12 @@ enum {
 	ICON_GREEN_WALK_MARK	= 12,
 	ICON_YELLOW_WALK_MARK	= 13,
 	ICON_ORANGE_WALK_MARK	= 14,
+	ICON_AWARD_PURPLE_CIRCLE = 15,
+	ICON_AWARD_ALIEN_1		= 11,
+	ICON_AWARD_ALIEN_5		= 7,
+	ICON_AWARD_ALIEN_10		= 3,
 
-	ICON_NONE				= 3,
+	ICON_NONE				= 10,
 
 
 	DECO_CHARACTER		= 0,
@@ -170,7 +174,8 @@ protected:
 class UITextTable : public UIWidget
 {
 public:
-	UITextTable( const Screenport& port );
+	//UITextTable( const Screenport& port, int columns, int rows );
+	UITextTable( const Screenport& port, int columns, int rows, const int* charsPerColumn );
 	virtual ~UITextTable();
 
 	virtual void Draw();
@@ -178,16 +183,19 @@ public:
 	void SetInt( int column, int row, int text );
 	void SetFloat( int column, int row, float text );
 
-private:
-	enum { 
-		COLUMNS = 2,
-		ROWS = 12,
+	grinliz::Rectangle2I GetRowBounds( int row );
 
-		TEXT_LEN = 16,
-		DELTA_X = TEXT_LEN*6,
+private:
+	void Init( int columns, int rows, const int* charsPerColumn );
+	enum { 
+		MAX_SIZE = 400,
+		DELTA_X = 6,
 		DELTA_Y = 16
 	};
-	grinliz::CStr< TEXT_LEN > textArr[COLUMNS*ROWS];
+	int cx;
+	int cy;
+	grinliz::CStrRef strRef[MAX_SIZE];
+	char* refMem;
 };
 
 /*

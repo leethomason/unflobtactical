@@ -23,6 +23,7 @@
 class UIImage;
 class UIButtonBox;
 class UIButtonGroup;
+class UITextTable;
 
 struct TacticalEndSceneData
 {
@@ -30,6 +31,7 @@ struct TacticalEndSceneData
 	int nTerransAlive;
 	int nAliens;
 	int nAliensAlive;
+	const Unit* units;
 };
 
 class TacticalEndScene : public Scene
@@ -41,7 +43,7 @@ public:
 	// UI
 	virtual void Tap(	int count, 
 						const grinliz::Vector2I& screen,
-						const grinliz::Ray& world )				{}
+						const grinliz::Ray& world );
 
 	virtual void Drag(	int action,
 						const grinliz::Vector2I& view )			{}
@@ -61,6 +63,8 @@ public:
 
 private:
 	UIImage*		background;
+	UITextTable*	textTable;
+	UIButtonBox*	buttonBox;
 	const TacticalEndSceneData* data;
 };
 

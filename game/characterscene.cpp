@@ -38,7 +38,9 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 
 	controlButtons = new UIButtonGroup( engine->GetScreenport() );
 	charInvWidget = new UIButtonGroup( engine->GetScreenport() );
-	textTable = new UITextTable( engine->GetScreenport() );
+
+	int widths[2] = { 16, 16 };
+	textTable = new UITextTable( engine->GetScreenport(), 2, 16, widths );
 
 	this->unit = unit;
 	//engine->SoloRender( unit );
@@ -135,6 +137,8 @@ void CharacterScene::InitTextTable()
 	textTable->SetText( 0, row, "Reaction" );
 	textTable->SetFloat( 1, row++, stats.Reaction() );
 
+	textTable->SetText( 0, row, "Kills" );
+	textTable->SetInt( 1, row, unit->KillsCredited() );
 }
 
 

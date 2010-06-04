@@ -104,11 +104,13 @@ int main( int argc, char **argv )
 	if ( fullscreen )
 		videoFlags |= SDL_FULLSCREEN;
 
-	int width = 800;
-	int height = 600;
+	int width = IPOD_SCREEN_HEIGHT*2;
+	int height = IPOD_SCREEN_WIDTH*2;
+	//int width = IPOD_SCREEN_HEIGHT;
+	//int height = IPOD_SCREEN_WIDTH;
 
 	const SDL_VideoInfo* video = SDL_GetVideoInfo();
-	if ( video->current_h < 800 ) {
+	if ( video->current_h < height*4/3 ) {
 		width = IPOD_SCREEN_HEIGHT;
 		height = IPOD_SCREEN_WIDTH;
 	}
@@ -360,8 +362,10 @@ int main( int argc, char **argv )
 						if ( SDL_GetModState() & (KMOD_LSHIFT|KMOD_RSHIFT) ) {
 							tap = 2;
 						}
-						if (	abs( mouseDown.x - prevMouseDown.x ) < 3
-							 && abs( mouseDown.y - prevMouseDown.y ) < 3
+
+						const int TOLERANCE = 5;
+						if (	abs( mouseDown.x - prevMouseDown.x ) < TOLERANCE
+							 && abs( mouseDown.y - prevMouseDown.y ) < TOLERANCE
 							 && ( SDL_GetTicks() - prevMouseDownTime ) < 300 ) {
 								 tap =2 ;
 						}
