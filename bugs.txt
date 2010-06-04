@@ -1,8 +1,14 @@
 
 Issues:
-- Art: help notes
+
+Bugs:
+- line of sight bugs
+- door bugs
+- pauses when move
+- move grid doesn't always update
 
 Issues, post next test:
+- Art: help notes
 - Pop location should never fail.
 - Stats screen
 - Results + EXP screen
