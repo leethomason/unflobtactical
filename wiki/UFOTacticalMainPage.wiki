@@ -1,9 +1,0 @@
-= Introduction =
-
-UFO Tactical (working title) is a turned based strategy game for the iPhone. It is influenced by X-COM and the iPhone interface. The game also runs on the PC.
-
-It started out as an experiment to understand mobile GPUs on a mobile phone, and just became too interesting to not keep playing with.
-
-UFO Tactical is in early development. It is not yet playable.
-
-[TaskList]
