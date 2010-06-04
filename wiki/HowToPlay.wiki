@@ -72,8 +72,8 @@ Doors are never locked; you can always walk through doors. They close behind you
 === Weapons ===
 
 Weapons in the game have different fire modes. Each is different, but broadly speaking:
-  * A fast fire mode, low accuracy.
-  * A burst fire (3 shots), or aimed mode, high accuracy.
+  * Snap: A fast fire mode, low accuracy. 
+  * Auto/Aimed: A burst fire (3 shots), or aimed mode, high accuracy.
   * An alternate fire mode - incendiary or explosive.
 
 Designations:
@@ -84,10 +84,6 @@ Designations:
 Alien weapons have different designations. Ammo is automatically loaded - by having the ammo in your inventory it will be used. More powerful weapons can destroy buildings and the landscape, and occasionally will start fires.
 
 == Interface ==
-
-
-
-
 
 === Selected Unit ===
 
@@ -109,38 +105,26 @@ The text across the top of the page gives information on the selected character.
    * Captain
    * Commander
   * Name
-  * TU: Time Units remaining this turn
-  * HP: Health remaining
-  * TGT: X/Y. Alien targets. The first number is the number of alien this unit can see, the 2nd number is all the alien units spotted by the Terrans.
 
 === Left Buttons ===
   * EXIT. The lander takes off, leaving behind anyone not on-board. Not yet implemented.
   * 'O' Ends the turn.
-  * 'N' Selects the next unit.
-  * 'ND' Selects the next unit, and Next/NextDone won't reselect this unit again. (Although you can always tap on it to select.)
   * Target allows you to fire at an arbitrary location on the map. Tap the Target icon and then the map location.
-
-=== Right Buttons ===
   * Character screen. Tap to manage inventory or pick up items on the world map.
   * Left / Right. Turn the selected unit.
 
-http://grinliz.smugmug.com/photos/760512831_aJTY9-M.jpg
+http://grinliz.smugmug.com/photos/889796507_cL2hF-M.png
 
-  * *Left is the primary* fire mode. The right column secondary.
-  * Top buttons are the info about the fire mode. Damage (D50) and Rounds remaining (R15). Aimed and snap shots take 1 round. Auto shots take 3.
-  * In the columns info is displayed for each shot type. Chance to hit (22%), TUs required (4.0), and the Damage Per TU (2.7).
-   * Aimed
-   * Auto
-   * Snap
-  
-http://grinliz.smugmug.com/photos/760512790_9aE8d-M.jpg
+== Inventory == 
 
-This is the character inventory screen. On the left side is what the selected unit is carrying. On the right are items on the ground.
+This is the character inventory screen. On the left side is what the selected unit is carrying. On the right are items on the ground. You can press the "stats" button to toggle between items on the ground and the unit stats.
+
+http://grinliz.smugmug.com/photos/889802276_ujrvG-M.png
 
 === Carried (left) Items ===
-Items in green are in the unit's backpack. The left red item is armor worn. The right red item is the weapon in hand. The center red icon is the "unload" and will pull the clips and grenades out of the current weapon.
+Items in green are in the unit's backpack. The left red item is armor worn. The middle red item is the weapon in holster, and the right red item the weapon in hand.
 
-You can load a weapon by placing it in a hand and dragging ammo on to it. For weapons with secondary fire, the primary rounds are on the left, and the secondary on the right.
+Weapons automatically load from rounds carried in the backpack.
 
 === Inventory (right) Items ===
 The left (blue) column selects the groups of items to view.
@@ -148,4 +132,4 @@ The left (blue) column selects the groups of items to view.
   * Armor
   * Alien Weapons
   * Terran Weapons
-You can drag between the items on the ground (green) and items in your backpack.
+You can click to move items between the items on the ground (green) and items in your backpack.
