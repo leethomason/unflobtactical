@@ -941,22 +941,24 @@ void Map::PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rota
 		++nLanderPos;
 	}
 	else if ( team == ALIEN_TEAM ) {
-		if ( guard ) {
-			GLASSERT( nGuardPos > 0 );
+		bool found = false;
+
+		if ( guard && nGuardPos ) {
 			int i = random.Rand( nGuardPos );
 			*pos = guardPos[i];
 			Swap( &guardPos[i], &guardPos[nGuardPos-1] );
 			--nGuardPos;
+			found = true;
 		}
-		else {
+		if ( !found ) { // or scout
 			GLASSERT( nScoutPos > 0 );
 			int i = random.Rand( nScoutPos );
 			*pos = scoutPos[i];
 			Swap( &scoutPos[i], &scoutPos[nScoutPos-1] );
 			--nScoutPos;
 
-			// FIXME: the scout should always succeed. Look for random
-			// value if we pull all the positions.
+			// FIXME: the scout should always succeed. Need to make sure this can never
+			// fail. Each tile needs a minimum scout positions.
 		}
 	}
 	else {
