@@ -105,6 +105,47 @@ private:
 };
 
 
+class CStrRef
+{
+public:
+	CStrRef() : buf( 0 ), allocated( 0 )	{}
+	void Attach( char* mem, int memLen )	{ buf = mem; allocated = memLen; GLASSERT( buf && allocated ); }
+	~CStrRef()	{}
+
+	const char* c_str()	const			{ GLASSERT( buf && allocated ); return buf; }
+	int size() const					{ GLASSERT( buf && allocated ); return (buf) ? strlen( buf ) : 0; }
+	bool empty() const					{ GLASSERT( buf && allocated ); return (buf) ? buf[0] == 0 : true; }
+
+	int Length() const 					{ GLASSERT( buf && allocated ); return (buf) ? strlen( buf ) : 0; }
+	void Clear()						{ GLASSERT( buf && allocated ); if ( buf ) buf[0] = 0; }
+	int Allocated() const				{ return allocated; }
+	int MaxSize() const					{ return allocated-1; }
+
+	bool operator==( const char* str ) const	{ GLASSERT( buf && allocated ); return buf && str && strcmp( buf, str ) == 0; }
+
+	template < class T > bool operator==( const T& str ) const		{ GLASSERT( buf && allocated ); return buf && strcmp( buf, str.c_str() ) == 0; }
+
+	void operator=( const char* src )	{	
+		GLASSERT( buf && allocated ); 
+		GLASSERT( src );
+		if ( buf && allocated ) {
+			if (src) {
+				GLASSERT( strlen( src ) < (size_t)(allocated-1) );
+				StrNCpy( buf, src, allocated ); 
+			}
+			else {
+				buf[0] = 0;
+			}
+		}
+	}
+
+
+private:
+	char *buf;
+	int allocated;
+};
+
+
 /** Loads a text file to the given string. Returns true on success, false
     if the file could not be found.
 */

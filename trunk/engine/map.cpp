@@ -864,6 +864,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 		if ( res->header.IsBillboard() ) {
 			modelPos.x += 0.5f * (float)itemDef.cx;
 			modelPos.z += 0.5f * (float)itemDef.cy; 
+			item->modelRotation = 0;
 		}
 
 		model->SetFlag( Model::MODEL_OWNED_BY_MAP );

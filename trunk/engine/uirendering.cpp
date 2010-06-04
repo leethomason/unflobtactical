@@ -187,15 +187,57 @@ void UIBar::Draw()
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
 }
-
 	
-UITextTable::UITextTable( const Screenport& port ) : UIWidget( port )
+
+UITextTable::UITextTable( const Screenport& port, int columns, int rows, const int* charsPerColumn ) : UIWidget( port )
 {
+	Init( columns, rows, charsPerColumn );
+}
+
+void UITextTable::Init( int p_cx, int p_cy, const int* charsPerColumn )
+{
+	cx = p_cx;
+	cy = p_cy;
+	GLASSERT( cx*cy < MAX_SIZE );
+
+	int memory = 0;
+	for( int i=0; i<cx; i++ ) {
+		memory += charsPerColumn[i] + 1;	// space for null terminator.
+	}
+	memory *= cy;
+	refMem = new char[memory];
+	memset( refMem, 0, memory );
+	char* p = refMem;
+
+	for( int j=0; j<cy; ++j ) {
+		for( int i=0; i<cx; ++i ) {
+			int memLength = charsPerColumn[i] + 1;
+			strRef[j*cx+i].Attach( p, memLength );
+			p += memLength;
+			GLASSERT( p <= refMem + memory );
+		}
+	}
+}
+
+
+Rectangle2I UITextTable::GetRowBounds( int row )
+{
+	int width = 0;
+	for( int i=0; i<cx; ++i ) {
+		width += strRef[i].MaxSize() * DELTA_X;
+	}
+	Rectangle2I b;
+	b.Set( origin.x,
+		   origin.y - (DELTA_Y*row + 1),
+		   origin.x + width - 1,
+		   origin.y - (DELTA_Y*row + 1) + DELTA_Y );
+	return b;
 }
 
 
 UITextTable::~UITextTable()
 {
+	delete [] refMem;
 }
 
 
@@ -203,50 +245,45 @@ void UITextTable::Draw()
 {
 	UFOText::Begin();
 	glColor4f( 1, 1, 1, 1 );
-	for( int j=0; j<ROWS; ++j ) {
-		for( int i=0; i<COLUMNS; ++i ) {
+	for( int j=0; j<cy; ++j ) {
 
-			int x = origin.x + DELTA_X * i;
-			int y = origin.y - (DELTA_Y*j + 1);		// just useless if it doesn't go down.
+		int x = origin.x;
+		int y = origin.y - (DELTA_Y*j + 1);		// just useless if it doesn't go down.
 
-			if ( !textArr[j*COLUMNS+i].empty() ) {
-				UFOText::Stream( x, y, "%s", textArr[j*COLUMNS+i].c_str() );
+		for( int i=0; i<cx; ++i ) {
+
+			if ( !strRef[j*cx+i].empty() ) {
+				UFOText::Stream( x, y, "%s", strRef[j*cx+i].c_str() );
 			}
+			x += strRef[j*cx+i].MaxSize() * DELTA_X;
 		}
 	}
 	UFOText::End();
 }
 
 
-void UITextTable::SetText( int column, int row, const char* text )
+void UITextTable::SetText( int x, int y, const char* text )
 {
-	GLASSERT( column < COLUMNS && row < ROWS );
-	if ( column < COLUMNS && row < ROWS )
-		textArr[row*COLUMNS+column] = text;
-}
-
-
-void UITextTable::SetInt( int column, int row, int text )
-{
-	GLASSERT( column < COLUMNS && row < ROWS );
-	if ( column < COLUMNS && row < ROWS )
-	{
-		char buf[TEXT_LEN];
-		SNPrintf( buf, TEXT_LEN, "%d", text );
-		SetText( column, row, buf );
+	GLASSERT( x < cx && y < cy );
+	if ( x < cx && y < cy ) {
+		strRef[y*cx+x] = text;
 	}
 }
 
 
-void UITextTable::SetFloat( int column, int row, float text )
+void UITextTable::SetInt( int x, int y, int text )
 {
-	GLASSERT( column < COLUMNS && row < ROWS );
-	if ( column < COLUMNS && row < ROWS )
-	{
-		char buf[TEXT_LEN];
-		SNPrintf( buf, TEXT_LEN, "%.2f", text );
-		SetText( column, row, buf );
-	}
+	char buf[64];
+	SNPrintf( buf, 64, "%d", text );
+	SetText( x, y, buf );
+}
+
+
+void UITextTable::SetFloat( int x, int y, float text )
+{
+	char buf[64];
+	SNPrintf( buf, 64, "%.2f", text );
+	SetText( x, y, buf );
 }
 
 
@@ -291,17 +328,20 @@ void UIImage::Draw()
 
 	glDisable( GL_DEPTH_TEST );
 	glDepthMask( GL_FALSE );
-	if ( texture->Alpha() ) {
-		glEnable( GL_BLEND );
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
+	glEnable( GL_BLEND );
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glDisableClientState( GL_NORMAL_ARRAY );
-	//glEnableClientState( GL_COLOR_ARRAY );
+	glDisableClientState( GL_COLOR_ARRAY );
 
 	glEnable( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, texture->GLID() );
 
 	GLASSERT( screenport.UIMode() );
+	glMatrixMode( GL_MODELVIEW );
+	CHECK_GL_ERROR;
+	glPushMatrix();
+
 	// Over translate so rotation is about center axis.
 	glTranslatef( (float)(origin.x+w/2), (float)(origin.y+h/2), 0.0f );
 	// Don't want to fool around with rendering back faces, cheat on
@@ -330,9 +370,9 @@ void UIImage::Draw()
 	drawCalls++;
 	CHECK_GL_ERROR;
 		
+	glPopMatrix();
 	glEnableClientState( GL_NORMAL_ARRAY );
-	//glDisableClientState( GL_COLOR_ARRAY );
-	//glDisable( GL_BLEND );
+	glDisable( GL_BLEND );
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
 }
@@ -660,6 +700,8 @@ void UIButtons::Draw()
 	glBindTexture( GL_TEXTURE_2D, texture->GLID() );
 
 	GLASSERT( screenport.UIMode() );
+	glMatrixMode( GL_MODELVIEW );
+	glPushMatrix();
 	glTranslatef( (float)origin.x, (float)origin.y, 0.0f );
 
 	// Buttons
@@ -709,6 +751,7 @@ void UIButtons::Draw()
 	glDisable( GL_BLEND );
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
+	glPopMatrix();
 
 	// Stream out the text.
 	UFOText::Begin();

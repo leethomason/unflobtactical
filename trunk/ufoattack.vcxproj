@@ -129,6 +129,7 @@
     <ClCompile Include="game\storageWidget.cpp" />
     <ClCompile Include="game\tacticalendscene.cpp" />
     <ClCompile Include="game\tacticalintroscene.cpp" />
+    <ClCompile Include="game\tacticalunitscorescene.cpp" />
     <ClCompile Include="game\ufosound.cpp" />
     <ClCompile Include="game\unit.cpp" />
     <ClCompile Include="win32\audio.cpp" />
@@ -169,6 +170,7 @@
     <ClInclude Include="game\storageWidget.h" />
     <ClInclude Include="game\tacticalendscene.h" />
     <ClInclude Include="game\tacticalintroscene.h" />
+    <ClInclude Include="game\tacticalunitscorescene.h" />
     <ClInclude Include="game\targets.h" />
     <ClInclude Include="game\ufosound.h" />
     <ClInclude Include="game\unit.h" />

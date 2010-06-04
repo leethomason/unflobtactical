@@ -1,11 +1,11 @@
 
 Issues:
-- Stats screen
-- Results + EXP screen
 - Art: help notes
-- Pop location should never fail.
 
 Issues, post next test:
+- Pop location should never fail.
+- Stats screen
+- Results + EXP screen
 - resolve armor vs. hp
 - Art: better human models
 - Art: better alien models

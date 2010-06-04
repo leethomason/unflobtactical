@@ -64,6 +64,7 @@ void UFOText::Begin()
 	glEnable( GL_BLEND );
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisableClientState( GL_NORMAL_ARRAY );
+	glDisableClientState( GL_COLOR_ARRAY );
 
 	glColor4f( 1.f, 1.f, 1.f, 1.f );
 
@@ -144,7 +145,7 @@ void UFOText::TextOut( const char* str, int x, int y, int* w, int *h )
 	int pos = 0;
 	while( *str )
 	{
-		if ( *str == '.' ) {
+		if ( *str == '.' && *(str+1) ) {
 			smallText = true;
 			++str;
 			continue;

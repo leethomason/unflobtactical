@@ -12,9 +12,13 @@ HelpScene::HelpScene( Game* _game ) : Scene( _game )
 
 	for( int i=0; i<NUM_SCREENS; ++i ) {
 		screens[i] = new UIImage( engine->GetScreenport() );
+		screens[i]->SetOrigin( 0, engine->GetScreenport().UIHeight() - 512 );
 	}
-	screens[0]->Init( TextureManager::Instance()->GetTexture( "help0" ), 480, 320 );
-	screens[1]->Init( TextureManager::Instance()->GetTexture( "help1" ), 480, 320 );
+	screens[0]->Init( TextureManager::Instance()->GetTexture( "help0" ), 512, 512 );
+	screens[1]->Init( TextureManager::Instance()->GetTexture( "help1" ), 512, 512 );
+	screens[2]->Init( TextureManager::Instance()->GetTexture( "help2" ), 512, 512 );
+	screens[3]->Init( TextureManager::Instance()->GetTexture( "help3" ), 512, 512 );
+	screens[4]->Init( TextureManager::Instance()->GetTexture( "help4" ), 512, 512 );
 
 	buttons = new UIButtonBox( engine->GetScreenport() );
 	buttons->SetColumns( 3 );

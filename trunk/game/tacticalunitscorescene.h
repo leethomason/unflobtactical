@@ -13,21 +13,24 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef UFO_ATTACK_HELP_SCENE_INCLUDED
-#define UFO_ATTACK_HELP_SCENE_INCLUDED
+#ifndef UFO_ATTACK_TACTICAL_UNIT_SCORE_SCENE_INCLUDED
+#define UFO_ATTACK_TACTICAL_UNIT_SCORE_SCENE_INCLUDED
 
 #include "scene.h"
+#include "unit.h"
+#include "gamelimits.h"
 
 class UIImage;
 class UIButtonBox;
 class UIButtonGroup;
+class UITextTable;
+struct TacticalEndSceneData;
 
-
-class HelpScene : public Scene
+class TacticalUnitScoreScene : public Scene
 {
 public:
-	HelpScene( Game* _game );
-	virtual ~HelpScene();
+	TacticalUnitScoreScene( Game* _game, const TacticalEndSceneData* data );
+	virtual ~TacticalUnitScoreScene();
 
 	// UI
 	virtual void Tap(	int count, 
@@ -51,14 +54,14 @@ public:
 	virtual void DrawHUD();
 
 private:
-	enum {	NUM_BUTTONS = 3,
-			NUM_SCREENS = 5
-	};
-
-	int					currentScreen;
-	UIImage*			screens[NUM_SCREENS];
-	UIButtonBox*		buttons;		
+	UIImage*		background;
+	UITextTable*	textTable;
+	UIButtonBox*	buttonBox;
+	const TacticalEndSceneData* data;
+	int nAwards;
+	enum { MAX_AWARDS = 40 };
+	UIImage*		awards[MAX_AWARDS];
 };
 
 
-#endif // UFO_ATTACK_HELP_SCENE_INCLUDED
+#endif // UFO_ATTACK_TACTICAL_UNIT_SCORE_SCENE_INCLUDED

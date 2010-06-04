@@ -19,8 +19,6 @@
 #include "../engine/text.h"
 #include "game.h"
 
-#include <string>
-
 TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d ) : Scene( _game )
 {
 	Engine* engine = GetEngine();
@@ -34,21 +32,28 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 	GLASSERT( bg );
 	background->Init( bg, 480, 320 );
 
-	/*
-	// Is there a current game?
-	const std::string& savePath = game->GameSavePath();
-	buttons->SetEnabled( CONTINUE_GAME, false );
-	FILE* fp = fopen( savePath.c_str(), "r" );
-	if ( fp ) {
-		fseek( fp, 0, SEEK_END );
-		unsigned long len = ftell( fp );
-		if ( len > 100 ) {
-			// 20 ignores empty XML noise (hopefully)
-			buttons->SetEnabled( CONTINUE_GAME, true );
-		}
-		fclose( fp );
-	}
-	*/
+	int widths[2] = { 26, 12 };
+	textTable = new UITextTable( engine->GetScreenport(), 2, 4, widths );
+	textTable->SetOrigin( 50, 180 );
+	textTable->SetText( 0, 0, "Soldiers survied" );
+	textTable->SetInt( 1, 0, data->nTerransAlive );
+	textTable->SetText( 0, 1, "Soldiers killed" );
+	textTable->SetInt( 1, 1, data->nTerrans - data->nTerransAlive );
+	textTable->SetText( 0, 2, "Aliens survived" );
+	textTable->SetInt( 1, 2, data->nAliensAlive );
+	textTable->SetText( 0, 3, "Aliens killed" );
+	textTable->SetInt( 1, 3, data->nAliens - data->nAliensAlive );
+
+
+	buttonBox = new UIButtonBox( engine->GetScreenport() );
+	buttonBox->SetColumns( 1 );
+
+	int icons[1] = { ICON_BLUE_BUTTON };
+
+	const char* iconText[] = { "OK" };
+	buttonBox->InitButtons( icons, 1 );
+	buttonBox->SetOrigin( 400, 5 );
+	buttonBox->SetText( iconText );
 }
 
 
@@ -56,17 +61,32 @@ TacticalEndScene::~TacticalEndScene()
 {
 	GetEngine()->EnableMap( true );
 	delete background;
+	delete textTable;
+	delete buttonBox;
 }
 
 
 void TacticalEndScene::DrawHUD()
 {
 	background->Draw();
-	UFOText::Draw( 50, 200, "%s", data->nTerransAlive ? "Victory" : "Defeat" );
-	UFOText::Draw( 50, 180, "Soldiers survived        %2d", data->nTerransAlive );
-	UFOText::Draw( 50, 160, "Soldiers killed          %2d", data->nTerrans - data->nTerransAlive );
-	UFOText::Draw( 50, 140, "Aliens survived          %2d", data->nAliensAlive );
-	UFOText::Draw( 50, 120, "Aliens killed            %2d", data->nAliens - data->nAliensAlive );
+	textTable->Draw();
+	buttonBox->Draw();
 
-	UFOText::Draw( 50, 80,  "For a new game, close and select 'new'" );
+	UFOText::Draw( 50, 200, "%s", data->nTerransAlive ? "Victory!" : "Defeat" );
+//	UFOText::Draw( 50, 80,  "For a new game, close and select 'new'" );
 }
+
+
+void TacticalEndScene::Tap(	int count, 
+							const grinliz::Vector2I& screen,
+							const grinliz::Ray& world )
+{
+	int ux, uy;
+	GetEngine()->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );
+	int tap = buttonBox->QueryTap( ux, uy );
+	if ( tap == 0 ) {
+		game->PopScene();
+		game->PushScene( Game::UNIT_SCORE_SCENE, (void*)data );
+	}
+}
+
