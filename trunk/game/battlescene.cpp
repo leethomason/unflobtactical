@@ -364,39 +364,69 @@ void BattleScene::OrderNextPrev()
 	Matrix2I mat, inv;
 	mat.SetXZRotation( (int)lander->GetRotation() );
 	mat.Invert( &inv );
-	
+
+	// Tricky problem. First sort into ordered by (x,z) buckets. Then
+	// group "clumps" while keeping the bucket order.
+
+	int	a_subTurnOrder[MAX_TERRANS];
+
 	subTurnCount=0;
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		if ( units[i].IsAlive() ) {
-			subTurnOrder[subTurnCount++] = i;
+			a_subTurnOrder[subTurnCount++] = i;
 		}
 	}
 	if ( subTurnCount == 0 )
 		return;
 
+	// Yes, a bubble sort. But there are only 8 (possibly in the future
+	// 16) soldiers to sort.
+	//
 	Vector2I v = { -1, MAP_SIZE };
 	for( int j=0; j<(subTurnCount-1); ++j ) {
-		Vector2I pos0 = inv * units[subTurnOrder[j]].Pos();
-		float posScore0 = (float)DotProduct( pos0, v );
+		Vector2I pos0 = inv * units[a_subTurnOrder[j]].Pos();
+		int posScore0 = DotProduct( pos0, v );
 
 		for( int i=j+1; i<subTurnCount; ++i ) {
-			Vector2I posI = inv * units[subTurnOrder[i]].Pos();
-			float posScoreI = (float)DotProduct( posI, v );
-
-			float dist = (float)(( pos0 - posI ).LengthSquared());
-			if ( dist <= 2.0f ) {
-				// do nothing.
-			}
-			else {
-				const float A = 1.f;
-				posScoreI -= A*dist;	// further away, worse choice
-			}
+			Vector2I posI = inv * units[a_subTurnOrder[i]].Pos();
+			int posScoreI = DotProduct( posI, v );
 
 			if ( posScoreI > posScore0 ) {
-				Swap( &subTurnOrder[j], &subTurnOrder[i] );
+				Swap( &a_subTurnOrder[j], &a_subTurnOrder[i] );
 			}
 		}
 	}
+
+
+	Rectangle2I clump;
+	const int FIRST_OUTSET = 2;
+	const int ADD_OUTSET = 2;
+	int count = 0;
+
+	for( int j=0; j<subTurnCount; ++j ) {
+		if ( a_subTurnOrder[j] >= 0 ) {
+			subTurnOrder[count++] = a_subTurnOrder[j];
+
+			clump.min = clump.max = units[ a_subTurnOrder[j] ].Pos();
+			clump.Outset( FIRST_OUTSET );
+
+			for( int i=j+1; i<subTurnCount; ++i ) {
+				if ( a_subTurnOrder[i] >= 0 ) {
+					if ( clump.Contains( units[ a_subTurnOrder[i] ].Pos() ) ) {
+						subTurnOrder[count++] = a_subTurnOrder[i];
+
+						Rectangle2I subClump;
+						subClump.min = subClump.max = units[ a_subTurnOrder[i] ].Pos();
+						a_subTurnOrder[i] = -1;
+
+						subClump.Outset( ADD_OUTSET );
+						clump.DoUnion( subClump );
+					}
+				}
+			}
+		}
+	}
+	GLASSERT( count == subTurnCount );
 	subTurnIndex = subTurnCount;
 }
 
