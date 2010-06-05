@@ -263,7 +263,7 @@ private:
 	bool rotationUIOn;
 	bool nextUIOn;
 
-	Unit* UnitFromModel( Model* m );
+	Unit* UnitFromModel( Model* m, bool useWeaponModel=false );
 	Unit* GetUnitFromTile( int x, int z );
 	bool HandleIconTap( int screenX, int screenY );
 	void HandleNextUnit( int bias );

@@ -737,7 +737,7 @@ void BattleScene::Debug3D()
 	int start[2] = { TERRAN_UNITS_START, ALIEN_UNITS_START };
 	int end[2]   = { TERRAN_UNITS_END, ALIEN_UNITS_END };
 
-	for( int k=0; k<1; ++k ) {
+	for( int k=0; k<2; ++k ) {
 		if ( units[start[k]].IsAlive() ) {
 			Vector3F origin;
 			units[start[k]].GetModel()->CalcTrigger( &origin );
@@ -1854,9 +1854,13 @@ int BattleScene::ProcessActionHit( Action* action )
 		// Apply direct hit damage
 		Model* m = action->type.hit.m;
 		Unit* hitUnit = 0;
+		Unit* hitWeapon = 0;
 
-		if ( m ) 
-			hitUnit = UnitFromModel( m );
+		if ( m ) {
+			hitUnit = UnitFromModel( m, false );
+			hitWeapon = UnitFromModel( m, true );
+		}
+
 		if ( hitUnit ) {
 			if ( hitUnit->IsAlive() ) {
 				hitUnit->DoDamage( action->type.hit.damageDesc, engine->GetMap() );
@@ -1868,6 +1872,12 @@ int BattleScene::ProcessActionHit( Action* action )
 				}
 				GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", (unsigned)hitUnit, (int)hitUnit->HP(), (int)hitUnit->GetStats().TotalHP() ));
 			}
+		}
+		else if ( hitWeapon ) {
+			Inventory* inv = hitWeapon->GetInventory();
+			inv->RemoveItem( Inventory::WEAPON_SLOT_PRIMARY );
+			hitWeapon->UpdateInventory();
+			GLOUTPUT(( "Shot the weapon out of Unit 0x%x hand.\n", (unsigned)hitWeapon ));
 		}
 		else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
 			Rectangle2I bounds;
@@ -2409,11 +2419,12 @@ void BattleScene::MakePathBlockCurrent( Map* map, const void* user )
 	map->SetPathBlocks( block );
 }
 
-Unit* BattleScene::UnitFromModel( Model* m )
+Unit* BattleScene::UnitFromModel( Model* m, bool useWeaponModel )
 {
 	if ( m ) {
 		for( int i=0; i<MAX_UNITS; ++i ) {
-			if ( units[i].GetModel() == m )
+			if (	( !useWeaponModel && units[i].GetModel() == m )
+				 || ( useWeaponModel && units[i].GetWeaponModel() == m ) )
 				return &units[i];
 		}
 	}
