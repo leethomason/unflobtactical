@@ -412,7 +412,9 @@ void Game::DoTick( U32 _currentTime )
 			engine->EnableMap( true );
 #else
 		engine->Draw();
+		scene->Debug3D();
 #endif
+
 		
 		const grinliz::Vector3F* eyeDir = engine->camera.EyeDir3();
 		ParticleSystem* particleSystem = ParticleSystem::Instance();

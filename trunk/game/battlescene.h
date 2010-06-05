@@ -102,6 +102,7 @@ public:
 
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D );
 	virtual void DoTick( U32 currentTime, U32 deltaTime );
+	virtual void Debug3D();
 	virtual void DrawHUD();
 	virtual void HandleHotKeyMask( int mask );
 
