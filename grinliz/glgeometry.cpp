@@ -928,9 +928,9 @@ int grinliz::ComparePlanePoint( const Plane& plane, const Vector3F& p )
 //
 // Moller - Trumbore approach.
 //
-int grinliz::IntersectRayTri( const Vector3F& point, const Vector3F& dir,
-					 const Vector3F& vert0, const Vector3F& vert1, const Vector3F& vert2,
-					 Vector3F* intersect )
+int grinliz::IntersectRayTri(	const Vector3F& orig, const Vector3F& dir,
+								const Vector3F& vert0, const Vector3F& vert1, const Vector3F& vert2,
+								Vector3F* intersect )
 {	
 	Vector3F pvec, qvec;
 	float det, invDet;
@@ -951,7 +951,7 @@ int grinliz::IntersectRayTri( const Vector3F& point, const Vector3F& dir,
 		return REJECT;
 
 	// Now, vertex0 (on the triangle) back to the ray origin.
-	Vector3F tvec = point - vert0;
+	Vector3F tvec = orig - vert0;
 
 	// Calculate the U parameter and test the initial bounds.
 	u = DotProduct( tvec, pvec );
@@ -966,12 +966,19 @@ int grinliz::IntersectRayTri( const Vector3F& point, const Vector3F& dir,
 	if ( v < 0.0f || ( u + v ) > det )
 		return REJECT;
 
+	// We did intersect! Calculate the t, and then the intersection. This 
+	// is pretty expensive if the actually point of intersection doesn't
+	// matter.
+	t = DotProduct( edge2, qvec );
+
+	// Lee: it seems t being negative is valid here, which seems odd
+	// and missing from the original paper??
+	if ( t < 0.0f )
+		return REJECT;
+
 	if ( intersect )
 	{
-		// We did intersect! Calculate the t, and then the intersection. This 
-		// is pretty expensive if the actually point of intersection doesn't
-		// matter.
-		t = DotProduct( edge2, qvec );
+		GLASSERT( t >= 0.0f );
 		invDet = 1.0f / det;
 
 		t *= invDet;

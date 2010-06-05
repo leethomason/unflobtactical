@@ -495,7 +495,9 @@ Model* SpaceTree::QueryRay( const Vector3F& _origin,
 		}
 
 		if ( result == grinliz::INTERSECT ) {
-			if ( t < close ) {
+			// Ugly little bug: check for t>=0, else could collide with objects
+			// that touch the bounding box but are before the ray starts.
+			if ( t >= 0.0f && t < close ) {
 				closeModel = root;
 				*intersection = testInt;
 				close = t;

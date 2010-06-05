@@ -65,6 +65,10 @@ public:
 	// 2D overlay rendering.
 	virtual void DrawHUD()										{}
 
+	// Put in debugging output into the 3D stream.
+	virtual void Debug3D()										{}
+
+
 protected:
 	Engine* GetEngine();
 

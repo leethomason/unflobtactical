@@ -731,6 +731,63 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 }
 
 
+void BattleScene::Debug3D()
+{
+	/*
+	int start[2] = { TERRAN_UNITS_START, ALIEN_UNITS_START };
+	int end[2]   = { TERRAN_UNITS_END, ALIEN_UNITS_END };
+
+	for( int k=0; k<1; ++k ) {
+		if ( units[start[k]].IsAlive() ) {
+			Vector3F origin;
+			units[start[k]].GetModel()->CalcTrigger( &origin );
+			const Model* ignore[] = { units[start[k]].GetModel(), units[start[k]].GetWeaponModel(), 0 };
+
+			for( int i=start[k]+1; i<end[k]; ++i ) {
+				if ( !units[i].IsAlive() )
+					continue;
+
+				Vector3F target;
+				units[i].GetModel()->CalcTarget( &target );
+
+				Ray ray;
+				ray.direction = target - origin;
+				ray.origin = origin;
+
+				Vector3F intersect;
+				engine->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &intersect );
+
+				glDisableClientState( GL_NORMAL_ARRAY );
+				glDisableClientState( GL_VERTEX_ARRAY );
+				glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+				glDisable( GL_TEXTURE_2D );
+
+				glLineWidth( 2.0f );
+
+				glColor4f( 0, 1, 0, 1 );
+				glBegin( GL_LINES );
+				glVertex3f( origin.x, origin.y, origin.z );
+				glVertex3f( intersect.x, intersect.y, intersect.z );
+				glEnd();
+
+				glColor4f( 1, 0, 0, 1 );
+				glBegin( GL_LINES );
+				glVertex3f( intersect.x, intersect.y, intersect.z );
+				glVertex3f( target.x, target.y, target.z );
+				glEnd();
+
+				glEnable( GL_TEXTURE_2D );
+				glEnableClientState( GL_NORMAL_ARRAY );
+				glEnableClientState( GL_VERTEX_ARRAY );
+				glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+			}
+		}
+	}
+	*/
+}
+
+
 bool BattleScene::EndCondition( TacticalEndSceneData* data )
 {
 	memset( data, 0, sizeof( *data ) );
