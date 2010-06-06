@@ -161,45 +161,52 @@ int Inventory::GetDeco( int s0 ) const
 void Inventory::GetDamageReduction( DamageDesc* dd )
 {
 	float base = 1.0f;
+	bool hasArmor = false;
 
 	if ( slots[ARMOR_SLOT].IsArmor() ) {
 		if ( StrEqual( slots[ARMOR_SLOT].Name(), "ARM-1" ) ) {
 			base = ARM1;
+			hasArmor = true;
 		}
 		else if ( StrEqual( slots[ARMOR_SLOT].Name(), "ARM-2" ) ) {
 			base = ARM2;
+			hasArmor = true;
 		}
 		else if ( StrEqual( slots[ARMOR_SLOT].Name(), "ARM-3" ) ) {
 			base = ARM3;
+			hasArmor = true;
 		}
 	}
 	dd->Set( base, base, base );
-	
-	bool k=false, e=false, i=false;
-	for( int i=GENERAL_SLOT; i<NUM_SLOTS; ++i ) {
-		if ( slots[i].IsSomething() && StrEqual( slots[i].Name(), "Shield" ) ) {
-			e = true;
-			break;
+
+	// Armor modifiers. Require Armor to modify.
+	if ( hasArmor ) {
+		bool k=false, e=false, i=false;
+		for( int i=GENERAL_SLOT; i<NUM_SLOTS; ++i ) {
+			if ( slots[i].IsSomething() && StrEqual( slots[i].Name(), "Shield" ) ) {
+				e = true;
+				break;
+			}
 		}
-	}
-	for( int i=GENERAL_SLOT; i<NUM_SLOTS; ++i ) {
-		if ( slots[i].IsSomething() && StrEqual( slots[i].Name(), "Ablate" ) ) {
-			i = true;
-			break;
+		for( int i=GENERAL_SLOT; i<NUM_SLOTS; ++i ) {
+			if ( slots[i].IsSomething() && StrEqual( slots[i].Name(), "Ablate" ) ) {
+				i = true;
+				break;
+			}
 		}
-	}
-	for( int i=GENERAL_SLOT; i<NUM_SLOTS; ++i ) {
-		if ( slots[i].IsSomething() && StrEqual( slots[i].Name(), "Fiber" ) ) {
-			k = true;
-			break;
+		for( int i=GENERAL_SLOT; i<NUM_SLOTS; ++i ) {
+			if ( slots[i].IsSomething() && StrEqual( slots[i].Name(), "Fiber" ) ) {
+				k = true;
+				break;
+			}
 		}
+		if ( k )
+			dd->kinetic -= ARM_EXTRA;
+		if ( e )
+			dd->energy -= ARM_EXTRA;
+		if ( i )
+			dd->incind -= ARM_EXTRA;
 	}
-	if ( k )
-		dd->kinetic -= ARM_EXTRA;
-	if ( e )
-		dd->energy -= ARM_EXTRA;
-	if ( i )
-		dd->incind -= ARM_EXTRA;
 }
 
 

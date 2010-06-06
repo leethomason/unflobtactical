@@ -168,6 +168,9 @@ void UIBar::Draw()
 	glEnable( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, texture->GLID() );
 
+	glMatrixMode( GL_MODELVIEW );
+	glPushMatrix();
+
 	GLASSERT( screenport.UIMode() );
 	glTranslatef( (float)origin.x, (float)origin.y, 0.0f );
 
@@ -181,6 +184,7 @@ void UIBar::Draw()
 	drawCalls++;
 	CHECK_GL_ERROR;
 		
+	glPopMatrix();
 	glEnableClientState( GL_NORMAL_ARRAY );
 	//glDisableClientState( GL_COLOR_ARRAY );
 	glDisable( GL_BLEND );

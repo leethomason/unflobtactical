@@ -968,20 +968,28 @@ void BattleScene::SetFireWidget()
 
 		// weird syntax aids debugging.
 		bool enable = true;
+		enable = enable &&  item->IsSomething();
 		enable = enable &&	item->IsWeapon();
 		enable = enable &&	item->IsWeapon()->SupportsType( select, type );
 		enable = enable &&	(nShots <= rounds );
 		enable = enable &&  unit->TU() >= unit->FireTimeUnits( select, type );
 
-		unit->FireStatistics( select, type, distToTarget, &fraction, &anyFraction, &tu, &dptu );
-		// Never show 100% in the UI:
-		if ( fraction > 0.95f )
-			fraction = 0.95f;
-		if ( anyFraction > 0.98f )
-			anyFraction = 0.98f;
+		if ( item->IsSomething() && item->IsWeapon() && item->IsWeapon()->SupportsType( select, type ) ) {
+			unit->FireStatistics( select, type, distToTarget, &fraction, &anyFraction, &tu, &dptu );
 
-		SNPrintf( buffer0, 32, "%s %d%%", wid->fireDesc[i], (int)LRintf( anyFraction*100.0f ) );
-		SNPrintf( buffer1, 32, "%d/%d", nShots, rounds );
+			// Never show 100% in the UI:
+			if ( fraction > 0.95f )
+				fraction = 0.95f;
+			if ( anyFraction > 0.98f )
+				anyFraction = 0.98f;
+
+			SNPrintf( buffer0, 32, "%s %d%%", wid->fireDesc[i], (int)LRintf( anyFraction*100.0f ) );
+			SNPrintf( buffer1, 32, "%d/%d", nShots, rounds );
+		}
+		else {
+			*buffer0 = 0;
+			*buffer1 = 0;
+		}
 		
 		int index = 2-i;
 		fireWidget->SetText( index, buffer0, buffer1 );

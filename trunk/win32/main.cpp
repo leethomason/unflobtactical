@@ -216,6 +216,8 @@ int main( int argc, char **argv )
 		{
 			case SDL_KEYDOWN:
 			{
+				SDLMod sdlMod = SDL_GetModState();
+
 				switch ( event.key.keysym.sym )
 				{
 					case SDLK_ESCAPE:
@@ -234,20 +236,19 @@ int main( int argc, char **argv )
 
 #if !defined( MAPMAKER )
 					case SDLK_RIGHT:
-						GameHotKey( game, GAME_HK_NEXT_UNIT );
+						if ( sdlMod & KMOD_RCTRL )
+							GameHotKey( game, GAME_HK_ROTATE_CW );
+						else
+							GameHotKey( game, GAME_HK_NEXT_UNIT );
 						break;
 
 					case SDLK_LEFT:
-						GameHotKey( game, GAME_HK_PREV_UNIT );
+						if ( sdlMod & KMOD_RCTRL )
+							GameHotKey( game, GAME_HK_ROTATE_CCW );
+						else
+							GameHotKey( game, GAME_HK_PREV_UNIT );
 						break;
 
-					case SDLK_UP:
-						GameHotKey( game, GAME_HK_ROTATE_CCW );
-						break;
-
-					case SDLK_DOWN:
-						GameHotKey( game, GAME_HK_ROTATE_CW );
-						break;
 					case SDLK_u:
 						GameHotKey( game, GAME_HK_TOGGLE_ROTATION_UI | GAME_HK_TOGGLE_NEXT_UI );
 						break;
