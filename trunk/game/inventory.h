@@ -70,8 +70,6 @@ public:
 	const Item* ArmedWeapon() const;	// null if no weapon ready
 	const Item* SecondaryWeapon() const;
 
-	int ArmorAmount() const;			// amount of armor points
-
 	void Save( TiXmlElement* doc ) const;
 	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
 
@@ -80,6 +78,10 @@ public:
 
 	int GetDeco( int slot ) const;
 	const ItemDef* GetItemDef( int slot ) const	{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot].GetItemDef(); }
+
+	// Writes to the 3 terms of damage desc as multipliers. 1: full damage from that type, 0: no damage.
+	// Walks the inventory to account for Armor (if worn) and shielding.
+	void GetDamageReduction( DamageDesc* );
 
 	void SwapWeapons();
 

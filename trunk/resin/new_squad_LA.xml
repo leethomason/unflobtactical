@@ -6,6 +6,7 @@
 		<Item name="Clip" />
 		<Item name="AClip" />
 		<Item name="AClip" />
+		<Item name="Fiber" />
 	</Inventory>
 </Unit>
 <Unit team="0" status="1">
@@ -26,6 +27,7 @@
 		<Item name="Clip" />
 		<Item name="AClip" />
 		<Item name="AClip" />
+		<Item name="Fiber" />
 	</Inventory>
 </Unit>
 <Unit team="0" status="1">

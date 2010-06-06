@@ -4,6 +4,9 @@
 		<Item name="RAY-3" />
 		<Item name="Cell" />
 		<Item name="Cell" />
+		<Item name="ARM-2" />
+		<Item name="Shield" />
+		<Item name="Ablate" />
 	</Inventory>
 </Unit>
 <Unit team="2" type="3" status="1" ai="guard" >
@@ -12,6 +15,9 @@
 		<Item name="RAY-3" />
 		<Item name="Cell" />
 		<Item name="Cell" />
+		<Item name="ARM-2" />
+		<Item name="Shield" />
+		<Item name="Fiber" />
 	</Inventory>
 </Unit>
 <Unit team="2" type="1" status="1">
@@ -22,6 +28,7 @@
 		<Item name="Cell" />
 		<Item name="NULL" />
 		<Item name="Tachy" />
+		<Item name="ARM-3" />
 	</Inventory>
 </Unit>
 <Unit team="2" type="1" status="1">
@@ -31,6 +38,8 @@
 		<Item name="Cell" />
 		<Item name="Cell" />
 		<Item name="Tachy" />
+		<Item name="ARM-3" />
+		<Item name="Fiber" />
 	</Inventory>
 </Unit>
 
@@ -41,6 +50,8 @@
 		<Item name="Cell" />
 		<Item name="Cell" />
 		<Item name="Tachy" />
+		<Item name="ARM-3" />
+		<Item name="Fiber" />
 	</Inventory>
 </Unit>
 <Unit team="2" type="2" status="1">
@@ -50,6 +61,8 @@
 		<Item name="Cell" />
 		<Item name="Cell" />
 		<Item name="Tachy" />
+		<Item name="ARM-3" />
+		<Item name="Fiber" />
 	</Inventory>
 </Unit>
 <Unit team="2" type="2" status="1" ai="guard" >
@@ -58,6 +71,9 @@
 		<Item name="BEAM" />
 		<Item name="Cell" />
 		<Item name="Cell" />
+		<Item name="ARM-2" />
+		<Item name="Fiber" />
+		<Item name="Shield" />
 	</Inventory>
 </Unit>
 <Unit team="2" type="3" status="1" ai="guard" >
@@ -68,5 +84,6 @@
 		<Item name="Tachy" />
 		<Item name="RAY-1" />
 		<Item name="Zing" />
+		<Item name="ARM-3" />
 	</Inventory>
 </Unit>

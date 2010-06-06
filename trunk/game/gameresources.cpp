@@ -602,6 +602,9 @@ void Game::LoadItemResources()
 		{ "Aln-1",	0,				DECO_ALIEN,		"Alien 1" },
 		{ "Aln-2",	0,				DECO_ALIEN,		"Alien 2" },
 		{ "Aln-3",	0,				DECO_ALIEN,		"Alien 3" },
+		{ "Shield",	0,				DECO_SHIELD,	"Energy Shield" },
+		{ "Ablate",	0,				DECO_SHIELD,	"Alblative Shield" },
+		{ "Fiber",	0,				DECO_SHIELD,	"Kinetic Fiber Weave" },
 		{ 0 }
 	};
 
@@ -629,7 +632,6 @@ void Game::LoadItemResources()
 						armor[i].deco,
 						armor[i].resName ? ModelResourceManager::Instance()->GetModelResource( items[i].resName ) : 0,
 						nItemDef );
-		item->amount = ARMOR_AMOUNT*i;
 		itemDefArr[nItemDef++] = item;
 	}
 

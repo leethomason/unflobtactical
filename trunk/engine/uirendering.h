@@ -67,6 +67,7 @@ enum {
 	DECO_NEXT			= 25,
 	DECO_ROTATE_CCW		= 26,
 	DECO_ROTATE_CW		= 27,
+	DECO_SHIELD			= 28,
 
 	DECO_NONE			= 31,
 };

@@ -340,14 +340,6 @@ void Unit::UpdateInventory()
 			weapon->SetFlag( Model::MODEL_MAP_TRANSPARENT );
 		}
 		UpdateWeapon();
-
-		// FIXME: delicate side effect. If armor changes it re-calcs the
-		// hp and heals the unit. Never set the armor in battle.
-		int armorAmount = inventory.ArmorAmount();
-		if ( armorAmount != stats.Armor() ) {
-			GLASSERT( 0 );	// should fire in screens before battle...
-			stats.SetArmor( armorAmount );
-		}
 	}
 }
 
@@ -451,8 +443,13 @@ void Unit::DoDamage( const DamageDesc& damage, Map* map )
 {
 	GLASSERT( status != STATUS_NOT_INIT );
 	if ( status == STATUS_ALIVE ) {
-		// FIXME adjust for armor
-		hp = Max( 0, hp-(int)damage.Total() );
+
+		DamageDesc norm;
+		inventory.GetDamageReduction( &norm );
+
+		float damageDone = damage.Dot( norm );
+
+		hp = Max( 0, hp-(int)LRintf( damageDone ) );
 		if ( hp == 0 ) {
 			Kill( map );
 			visibilityCurrent = false;
@@ -604,9 +601,6 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 		stats.Load( ele );
 		inventory.Load( ele, engine, game );
 
-		// connect armor to the stats:
-		stats.SetArmor( inventory.ArmorAmount() );
-
 		Init( engine, game, team, a_status, type, body );
 
 		hp = stats.TotalHP();
@@ -636,13 +630,12 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 		}
 		UpdateInventory();
 
-		GLOUTPUT(( "Unit loaded: team=%d STR=%d DEX=%d PSY=%d rank=%d armor=%d hp=%d/%d acc=%.2f\n",
+		GLOUTPUT(( "Unit loaded: team=%d STR=%d DEX=%d PSY=%d rank=%d hp=%d/%d acc=%.2f\n",
 					this->team,
 					this->stats.STR(),
 					this->stats.DEX(),
 					this->stats.PSY(),
 					this->stats.Rank(),
-					this->stats.Armor(),
 					hp,
 					this->stats.TotalHP(),
 					this->stats.Accuracy() ));

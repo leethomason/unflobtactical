@@ -2,7 +2,6 @@
 Issues:
 
 Bugs:
-- line of sight bugs
 - door bugs
 - pauses when move
 - move grid doesn't always update
@@ -40,6 +39,9 @@ TBD:
 - Reconsider when reaction fire occurs. And probability.
 - performance: AI/Alien turn pauses
 - phat loot / edge of map / exploration
+
+FIXED
+- line of sight bugs
 
 FIXED [test #2]
 - Stats screen

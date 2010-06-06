@@ -40,21 +40,22 @@ class WeaponItemDef;
 class ClipItemDef;
 class ArmorItemDef;
 
+
 struct DamageDesc
 {
 	float kinetic;
 	float energy;
 	float incind;
 
-	float Total() const	{ return kinetic + energy + incind; }
-
-	void Clear()	{ kinetic = energy = incind = 0.0f; }
+	float Total() const						{ return kinetic + energy + incind; }
+	void Clear()							{ kinetic = energy = incind = 0.0f; }
 	void Set( float k, float e, float i )	{ kinetic = k; energy = e; incind = i; }
-	void Scale( float x ) {
-		kinetic *= x;
-		energy *= x;
-		incind *= x;
-	}
+	void Scale( float x )					{
+												kinetic *= x;
+												energy *= x;
+												incind *= x;
+											}
+	float Dot( const DamageDesc& other ) const	{ return other.kinetic*kinetic + other.energy*energy + other.incind*incind; }
 };
 
 
@@ -64,7 +65,6 @@ public:
 	ItemDef() {};
 	virtual ~ItemDef() {};
 
-	//int				type;
 	const char*		name;
 	const char*		desc;
 	int				deco;
@@ -169,7 +169,6 @@ class ArmorItemDef : public ItemDef
 {
 public:
 	virtual const ArmorItemDef* IsArmor() const { return this; }
-	int amount;
 };
 
 
