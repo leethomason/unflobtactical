@@ -90,7 +90,6 @@ protected:
 	Storage* storage;
 	Unit* unit;
 	Camera savedCamera;
-	bool canChangeArmor;
 };
 
 

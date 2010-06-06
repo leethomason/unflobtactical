@@ -35,14 +35,11 @@ void Stats::CalcBaselines()
 	int levDEX = Clamp( DEX() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );
 	int levPSY = Clamp( PSY() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );
 
-	GLASSERT( armor >= 0 && armor <= ARMOR_AMOUNT*NUM_ARMOR );
-	totalHP =	Interpolate(	0, 0,
-								TRAIT_MAX+ARMOR_AMOUNT*NUM_ARMOR, TRAIT_MAX,
-								levSTR + armor );
+	totalHP =					levSTR;
 
-	totalTU = Interpolate(	0.0f,						(float)MIN_TU,
-							(float)TRAIT_MAX,			(float)MAX_TU,
-							(float)(levDEX + levSTR)*0.5f );
+	totalTU = Interpolate(		0.0f,						(float)MIN_TU,
+								(float)TRAIT_MAX,			(float)MAX_TU,
+								(float)(levDEX + levSTR)*0.5f );
 	// be sure...
 	if ( totalTU > (float)MAX_TU )
 		totalTU = (float)MAX_TU;
@@ -64,9 +61,6 @@ void Stats::Save( TiXmlElement* doc ) const
 	element->SetAttribute( "DEX", _DEX );
 	element->SetAttribute( "PSY", _PSY );
 	element->SetAttribute( "rank", rank );
-	element->SetAttribute( "armor", armor );
-//	element->SetAttribute( "hp", hp );
-//	element->SetDoubleAttribute( "tu", tu );
 	doc->LinkEndChild( element );
 }
 
@@ -81,11 +75,7 @@ void Stats::Load( const TiXmlElement* parent )
 		ele->QueryValueAttribute( "PSY", &_PSY );
 		ele->QueryValueAttribute( "level", &rank );
 		ele->QueryValueAttribute( "rank", &rank );
-		ele->QueryValueAttribute( "armor", &armor );
 		CalcBaselines();
-
-//		ele->QueryValueAttribute( "hp", &hp );
-//		ele->QueryValueAttribute( "tu", &tu );
 	}
 }
 

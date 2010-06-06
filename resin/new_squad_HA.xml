@@ -8,6 +8,7 @@
 		<Item name="AClip" />
 		<Item name="RPG" />
 		<Item name="ARM-2" />
+		<Item name="Shield" />
 	</Inventory>
 </Unit>
 <Unit team="0" status="1">
@@ -20,6 +21,7 @@
 		<Item name="AClip" />
 		<Item name="RPG" />
 		<Item name="ARM-3" />
+		<Item name="Shield" />
 	</Inventory>
 </Unit>
 <Unit team="0" status="1">
@@ -32,6 +34,7 @@
 		<Item name="Cell" />
 		<Item name="Tachy" />
 		<Item name="ARM-2" />
+		<Item name="Shield" />
 	</Inventory>
 </Unit>
 <Unit team="0" status="1">
@@ -43,5 +46,6 @@
 		<Item name="RAY-3" />
 		<Item name="Cell" />
 		<Item name="ARM-3" />
+		<Item name="Shield" />
 	</Inventory>
 </Unit>

@@ -31,9 +31,8 @@ class Random;
 	
 	RANK:			computed by experience		[ 0, NUM_RANKS-1 ]
 	MEDALS:			awarded for field action
-	ARMOR:			set on unit					[ 0, TRAIT_MAX ], where 10-60 is typical
 
-	HP		 = f( STR, ARMOR )					[ 1, TRAIT_MAX ]
+	HP		 = f( STR )							[ 1, TRAIT_MAX ]
 	TU		 = f( DEX, STR )					[ MIN_TU, MAX_TU ]
 
 	Accuracy = f( DEX )
@@ -42,13 +41,12 @@ class Random;
 class Stats
 {
 public:
-	Stats() : totalHP(1), totalTU((float)MIN_TU), _STR(1), _DEX(1), _PSY(1), rank( 0 ), armor( 0 ) {}
+	Stats() : totalHP(1), totalTU((float)MIN_TU), _STR(1), _DEX(1), _PSY(1), rank( 0 ) {}
 
 	void SetSTR( int value )			{ _STR = value; CalcBaselines(); }
 	void SetDEX( int value )			{ _DEX = value; CalcBaselines(); }
 	void SetPSY( int value )			{ _PSY = value; CalcBaselines(); }
 	void SetRank( int value )			{ rank = value; CalcBaselines(); }
-	void SetArmor( int value )			{ armor = value; CalcBaselines(); }
 
 	static int GenStat( grinliz::Random* rand, int min, int max );
 
@@ -61,7 +59,6 @@ public:
 
 	// Computed:
 	int TotalHP() const			{ return totalHP; }
-	int Armor() const			{ return armor; }
 
 	float TotalTU() const	{ return totalTU; }		// one TU is one move
 	float Accuracy() const	{ return accuracy; }	// cone at 1 unit out
@@ -76,7 +73,6 @@ private:
 	// primary:
 	int _STR, _DEX, _PSY;
 	int rank;
-	int armor;
 
 	// derived:
 	int totalHP;

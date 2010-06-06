@@ -28,7 +28,6 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	: Scene( _game )
 {
 	unit = input->unit;
-	canChangeArmor = input->canChangeArmor;
 	delete input;
 	input = 0;
 	mode = INVENTORY_MODE;
@@ -309,13 +308,8 @@ void CharacterScene::InventoryToStorage( int slot )
 
 	if ( item.IsSomething() ) {
 		description = item.GetItemDef()->desc;
-		if ( item.IsArmor() && !canChangeArmor ) {
-			// do nothing.
-		}
-		else {
-			storage->AddItem( item );
-			inv->RemoveItem( slot );
-		}
+		storage->AddItem( item );
+		inv->RemoveItem( slot );
 	}
 }
 
@@ -330,16 +324,10 @@ void CharacterScene::StorageToInventory( const ItemDef* itemDef )
 		Item item;
 		storage->RemoveItem( itemDef, &item );
 
-		if ( item.IsArmor() && !canChangeArmor ) {
-			// put it back
+		Inventory* inv = unit->GetInventory();
+		if ( inv->AddItem( item ) < 0 ) {
+			// Couldn't add to inventory. Return to storage.
 			storage->AddItem( item );
-		}
-		else {
-			Inventory* inv = unit->GetInventory();
-			if ( inv->AddItem( item ) < 0 ) {
-				// Couldn't add to inventory. Return to storage.
-				storage->AddItem( item );
-			}
 		}
 	}
 }

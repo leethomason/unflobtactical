@@ -16,6 +16,9 @@
 #include "inventory.h"
 #include "game.h"
 #include "../tinyxml/tinyxml.h"
+#include "../grinliz/glstringutil.h"
+
+using namespace grinliz;
 
 
 Inventory::Inventory()
@@ -144,15 +147,6 @@ const Item* Inventory::SecondaryWeapon() const
 }
 
 
-int Inventory::ArmorAmount() const
-{
-	if ( slots[ARMOR_SLOT].IsSomething() ) {
-		GLASSERT( slots[ARMOR_SLOT].IsArmor() );
-		return slots[ARMOR_SLOT].IsArmor()->amount;
-	}
-	return 0;
-}
-
 int Inventory::GetDeco( int s0 ) const
 {
 	int deco = DECO_NONE;
@@ -161,6 +155,51 @@ int Inventory::GetDeco( int s0 ) const
 		deco = slots[s0].Deco();
 	}
 	return deco;
+}
+
+
+void Inventory::GetDamageReduction( DamageDesc* dd )
+{
+	float base = 1.0f;
+
+	if ( slots[ARMOR_SLOT].IsArmor() ) {
+		if ( StrEqual( slots[ARMOR_SLOT].Name(), "ARM-1" ) ) {
+			base = ARM1;
+		}
+		else if ( StrEqual( slots[ARMOR_SLOT].Name(), "ARM-2" ) ) {
+			base = ARM2;
+		}
+		else if ( StrEqual( slots[ARMOR_SLOT].Name(), "ARM-3" ) ) {
+			base = ARM3;
+		}
+	}
+	dd->Set( base, base, base );
+	
+	bool k=false, e=false, i=false;
+	for( int i=GENERAL_SLOT; i<NUM_SLOTS; ++i ) {
+		if ( slots[i].IsSomething() && StrEqual( slots[i].Name(), "Shield" ) ) {
+			e = true;
+			break;
+		}
+	}
+	for( int i=GENERAL_SLOT; i<NUM_SLOTS; ++i ) {
+		if ( slots[i].IsSomething() && StrEqual( slots[i].Name(), "Ablate" ) ) {
+			i = true;
+			break;
+		}
+	}
+	for( int i=GENERAL_SLOT; i<NUM_SLOTS; ++i ) {
+		if ( slots[i].IsSomething() && StrEqual( slots[i].Name(), "Fiber" ) ) {
+			k = true;
+			break;
+		}
+	}
+	if ( k )
+		dd->kinetic -= ARM_EXTRA;
+	if ( e )
+		dd->energy -= ARM_EXTRA;
+	if ( i )
+		dd->incind -= ARM_EXTRA;
 }
 
 

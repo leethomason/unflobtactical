@@ -3,6 +3,7 @@
 	<Inventory>
 		<Item name="RAY-1" />
 		<Item name="Zing" />
+		<Item name="ARM-1" />
 	</Inventory>
 </Unit>
 <Unit team="2" type="0" status="1">
@@ -10,6 +11,7 @@
 	<Inventory>
 		<Item name="RAY-1" />
 		<Item name="Zing" />
+		<Item name="ARM-1" />
 	</Inventory>
 </Unit>
 <Unit team="2" type="0" status="1">
@@ -38,6 +40,7 @@
 	<Inventory>
 		<Item name="RAY-1" />
 		<Item name="Zing" />
+		<Item name="ARM-1" />
 	</Inventory>
 </Unit>
 <Unit team="2" type="0" status="1">

@@ -148,9 +148,7 @@ void StorageWidget::SetButtons()
 				group=1;
 
 			// armor, melee
-			//if ( wid && wid->Melee() )
-			//	group=2;
-			if ( itemDefArr[i]->IsArmor() )
+			if ( itemDefArr[i]->IsArmor() || itemDefArr[i]->deco == DECO_SHIELD )
 				group=2;
 
 			itemsPerGroup[group] += storage->GetCount( itemDefArr[i] );
