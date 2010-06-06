@@ -2,12 +2,14 @@
 Issues:
 
 Bugs:
+- rotation clears path
+- alien hp appearing off screen
+
 - door bugs
 - pauses when move
 - move grid doesn't always update
 
 Issues, post next test:
-- resolve armor vs. hp
 - Art: better human models
 - Art: better alien models
 - Art: missing weapon models
@@ -41,6 +43,8 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- 'null' appears in secondary fire slot
+- resolve armor vs. hp
 - line of sight bugs
 
 FIXED [test #2]
