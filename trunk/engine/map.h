@@ -106,7 +106,6 @@ public:
 		U16		cx, cy;
 		U16		hp;					// 0xffff infinite, 0 destroyed
 		U8		flammable;			// 0 - 255
-//		U8		isUpperLeft;
 		U8		lightDef;			// itemdef index of the light associated with this (is auto-created)
 		S8		lightOffsetX;		// if light, offset of light origin from model origin
 		S8		lightOffsetY;

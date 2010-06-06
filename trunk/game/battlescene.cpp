@@ -692,7 +692,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	SetFogOfWar();	// fast if nothing changed.	
 
 	if ( result & STEP_COMPLETE ) {
-		ProcessDoors();
+		ProcessDoors();			// Not fast. Only calc when needed.
 		CalcTeamTargets();
 		StopForNewTeamTarget();
 		DoReactionFire();
@@ -1433,7 +1433,6 @@ void BattleScene::ProcessDoors()
 
 			Vector2I pos;
 			units[i].CalcMapPos( &pos, 0 );
-			//GLOUTPUT(( "Set %d,%d\n", pos.x, pos.y ));
 			map.Set( pos.x, pos.y, 0 );
 		}
 	}
