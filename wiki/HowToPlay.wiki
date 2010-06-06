@@ -1,6 +1,6 @@
 = UFO Attack =
 
-Updated for build 360.
+Updated for build 379.
 
 Welcome to UFO Attack! UFO Attack is a turned based tactical combat game. It is based on the classic game X-COM, but has been changing as I write it and add new concepts. It's very rewarding to take the game in a bit of a new direction.
 
@@ -21,6 +21,8 @@ The art is still in development. The units (terran and alien) are all placeholde
 == Current State ==
 
 The tactical game is fully playable. Only a "Farm" scenario is currently available, but basic functionality, AI, and gameplay are in place.
+
+The game saves whenever you exit. You can quit at any time and choose "Continue" from the menu when you restart to resume where you left off.
 
 == Android ==
 
@@ -82,6 +84,14 @@ Designations:
   * CANON: mini canon. Secondary fire is incendiary.
 
 Alien weapons have different designations. Ammo is automatically loaded - by having the ammo in your inventory it will be used. More powerful weapons can destroy buildings and the landscape, and occasionally will start fires.
+
+Each weapon also does different types of damage: Kinetic, Energy, and Incendiary. Alien weapons tend to be energy based, and Terran weapons are generally kinetic.  Which leads us to the next topic, Armor.
+
+=== Armor ===
+
+Each unit has HP, which is invariant of the armor worn. Armor reduces the amount of damage you take, but does not change HP. ARM-1, 2, and 3 all provide basic protection against all kinds of weapons. 
+
+Additionally a unit can use armor enhancements. There are Fiber (kinetic), Shield (energy), and Ablate (incendiary) armor enhancers.
 
 == Interface ==
 
