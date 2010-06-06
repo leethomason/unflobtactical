@@ -246,12 +246,16 @@ private:
 	std::vector< grinliz::Vector2<S16> >	pathCache;
 
 	// Show the UI zones arount the selected unit
-	enum {
-		NEAR_PATH_VALID,
-		NEAR_PATH_INVALID,
+	struct NearPathState {
+		const Unit* unit;
+		grinliz::Vector2I pos;	// pos and tu are probably redundant, but let's be careful.
+		float tu;
+
+		void Clear() { unit = 0; pos.Set( -1, -1 ); tu = -1.0f; }
 	};
-	int nearPathState;
-	void ShowNearPath( const Unit* unit );
+	NearPathState nearPathState;
+	void ShowNearPath( const Unit* unit );		// call freely; does nothing if the current path is valid.
+
 	// set the fire widget to the primary and secondary weapon
 	void SetFireWidget();
 	float Travel( U32 timeMSec, float speed ) { return speed * (float)timeMSec / 1000.0f; }

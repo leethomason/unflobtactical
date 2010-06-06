@@ -51,7 +51,8 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	engine  = game->engine;
 	visibility.Init( this, units, engine->GetMap() );
 	uiMode = UIM_NORMAL;
-	nearPathState = NEAR_PATH_INVALID;
+	nearPathState.Clear();
+
 	memset( hpBars, 0, sizeof( UIBar* )*MAX_UNITS );
 	memset( hpBarsFadeTime, 0, sizeof( int )*MAX_UNITS );
 	engine->GetMap()->SetPathBlocker( this );
@@ -692,8 +693,6 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 
 	if ( result & STEP_COMPLETE ) {
 		ProcessDoors();
-		nearPathState = NEAR_PATH_INVALID;
-
 		CalcTeamTargets();
 		StopForNewTeamTarget();
 		DoReactionFire();
@@ -708,13 +707,10 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 			SetSelection( 0 );
 		}
 		if ( actionStack.Empty() && selection.soldierUnit ) {
-			if ( nearPathState == NEAR_PATH_INVALID ) {
-				ShowNearPath( selection.soldierUnit );
-				nearPathState = NEAR_PATH_VALID;
-			}
+			ShowNearPath( selection.soldierUnit );
 		}
-		else {
-			ShowNearPath( 0 );	// fast. Just sets array to 0.
+		if ( actionStack.Empty() ) {
+			ShowNearPath( selection.soldierUnit );	// fast if it does nothing.
 		}
 		// Render the target (if it is on-screen)
 		if ( HasTarget() ) {
@@ -1307,8 +1303,6 @@ void BattleScene::DoReactionFire()
 							int shot = PushShootAction( srcUnit, target, 0, 1, error, true );	// auto
 							if ( !shot )
 								PushShootAction( srcUnit, target, 0, 0, error, true );	// snap
-
-							nearPathState = NEAR_PATH_INVALID;
 						}
 				}
 				}
@@ -1502,7 +1496,6 @@ void BattleScene::StopForNewTeamTarget()
 			}
 			if ( newTeam ) {
 				actionStack.Clear();
-				nearPathState = NEAR_PATH_INVALID;
 			}
 		}
 	}
@@ -2038,7 +2031,6 @@ void BattleScene::HandleNextUnit( int bias )
 			SetSelection( 0 );
 		}
 	}
-	nearPathState = NEAR_PATH_INVALID;
 	//SoundManager::Instance()->QueueSound( "blip" );
 }
 
@@ -2227,7 +2219,6 @@ void BattleScene::Tap(	int tap,
 		uiMode = UIM_NORMAL;
 		selection.targetPos.Set( -1, -1 );
 		selection.targetUnit = 0;
-		nearPathState = NEAR_PATH_INVALID;
 		return;
 	}
 
@@ -2371,38 +2362,48 @@ void BattleScene::Tap(	int tap,
 
 void BattleScene::ShowNearPath( const Unit* unit )
 {
-	if ( !unit ) {
-		engine->GetMap()->ClearNearPath();
-		return;
+	if ( unit == 0 && nearPathState.unit == 0 )		
+		return;		// drawing nothing correctly
+	if (    unit == nearPathState.unit
+		 && unit->TU() == nearPathState.tu
+		 && unit->Pos() == nearPathState.pos ) {
+			return;		// drawing something that is current.
 	}
 
-	GLASSERT( unit );
-	GLASSERT( unit->GetModel() );
+	nearPathState.Clear();
+	engine->GetMap()->ClearNearPath();
 
-	float autoTU = 0.0f;
-	float snappedTU = 0.0f;
-	if ( unit->GetWeapon() ) {
-		int type, select;
-		const WeaponItemDef* wid = unit->GetWeapon()->GetItemDef()->IsWeapon();
-		wid->FireModeToType( 0, &select, &type );
-		snappedTU = unit->FireTimeUnits( select, type );
-		wid->FireModeToType( 1, &select, &type );
-		autoTU = unit->FireTimeUnits( select, type );
+	if ( unit && unit->GetModel() ) {
+
+		float autoTU = 0.0f;
+		float snappedTU = 0.0f;
+
+		if ( unit->GetWeapon() ) {
+			int type, select;
+			const WeaponItemDef* wid = unit->GetWeapon()->GetItemDef()->IsWeapon();
+			wid->FireModeToType( 0, &select, &type );
+			snappedTU = unit->FireTimeUnits( select, type );
+			wid->FireModeToType( 1, &select, &type );
+			autoTU = unit->FireTimeUnits( select, type );
+		}
+
+		nearPathState.unit = unit;
+		nearPathState.tu = unit->TU();
+		nearPathState.pos = unit->Pos();
+
+		Vector2<S16> start = { (S16)unit->Pos().x, (S16)unit->Pos().y };
+		float tu = unit->TU();
+
+		Vector2F range[3] = { 
+			{ 0.0f,	tu-autoTU },
+			{ tu-autoTU, tu-snappedTU },
+			{ tu-snappedTU, tu }
+		};
+		int icons[3] = { ICON_GREEN_WALK_MARK, ICON_YELLOW_WALK_MARK, ICON_ORANGE_WALK_MARK };
+
+		//GLOUTPUT(( "New path generated.\n" ));
+		engine->GetMap()->ShowNearPath( unit, start, tu, range, icons, 3 );
 	}
-	const Model* model = unit->GetModel();
-	Vector2<S16> start = { (S16)model->X(), (S16)model->Z() };
-
-	const Stats& stats = unit->GetStats();
-	float tu = unit->TU();
-
-	Vector2F range[3] = { 
-		{ 0.0f,	tu-autoTU },
-		{ tu-autoTU, tu-snappedTU },
-		{ tu-snappedTU, tu }
-	};
-	int icons[3] = { ICON_GREEN_WALK_MARK, ICON_YELLOW_WALK_MARK, ICON_ORANGE_WALK_MARK };
-
-	engine->GetMap()->ShowNearPath( unit, start, tu, range, icons, 3 );
 }
 
 

@@ -2,12 +2,14 @@
 Issues:
 
 Bugs:
-- rotation clears path
-- alien hp appearing off screen
-
 - door bugs
 - pauses when move
-- move grid doesn't always update
+
+Architecture
+- render managers
+- AI objects 
+- MicroGLUI separation
+- Map as interface
 
 Issues, post next test:
 - Art: better human models
@@ -24,11 +26,11 @@ Issues, post next test:
 - need correct colors in RenderWeapon()
 - check math (again) in PushShootAction()
 - handle too many particles consistently
-- gameplay: rotation? reaction fire? need some advantage to flanking
 - mission types: landing
 - mission types: terror
 - mission types: big ufos
 - mission types: base
+- add lander animation
 
 TBD:
 - tap accuracy
@@ -43,6 +45,10 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- move grid doesn't always update
+- rotation clears path
+- gameplay: rotation? reaction fire? need some advantage to flanking
+- alien hp appearing off screen
 - 'null' appears in secondary fire slot
 - resolve armor vs. hp
 - line of sight bugs
