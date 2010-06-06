@@ -427,24 +427,27 @@ void Game::LoadItemResources()
 	const float SPEED = 0.02f;	// ray gun settings
 	const float WIDTH = 0.3f;
 	const float BOLT  = 2.0f;
+#	define COLORDEF( r, g, b ) { (float)r/255.f, (float)g/255.f, (float)b/255.f, 0.8f }
 
 	static const ClipInit clips[] = {
 		{ "Clip",	false,	DECO_SHELLS,	40,	 { 1, 0, 0 },
-					{ 0.8f, 1.0f, 0.8f, 0.8f }, SPEED*2.0f, WIDTH*0.5f, BOLT*3.0f, "4x10 round clip" },
+					COLORDEF( 200, 204, 213 ), SPEED*2.0f,	WIDTH*0.5f,	BOLT*3.0f, "4x10 round clip" },
 		{ "AClip",	false,	DECO_SHELLS,	15,	 { 1, 0, 0 },
-					{ 0.8f, 1.0f, 0.8f, 0.8f }, SPEED*2.0f, WIDTH*0.5f, BOLT*3.0f, "4mm 15 round auto-clip" },
+					COLORDEF( 200, 204, 213 ), SPEED*2.0f,	WIDTH*0.5f, BOLT*3.0f, "4mm 15 round auto-clip" },
 		{ "Zing",	true,	DECO_CELL,		40,  { 0.0f, 0.8f, 0.2f },
-					{ 0.2f, 1.0f, 0.2f, 0.8f }, SPEED,		 WIDTH,		 BOLT,		"Zing Rounds" },
+					COLORDEF( 206, 146, 161),	SPEED,		WIDTH,		BOLT,		"Zing Rounds" },
 		{ "Cell",	true,	DECO_CELL,		12,  { 0.0f, 0.8f, 0.2f },
-					{ 0.2f, 1.0f, 0.2f, 0.8f }, SPEED,		 WIDTH,		 BOLT,		"10MW Cell" },
+					COLORDEF( 199, 216, 6 ),	SPEED,		 WIDTH,		BOLT,		"10MW Cell" },
 		{ "Tachy",	true,	DECO_CELL,		4,   { 0, 0.6f, 0.4f },
-					{ 1, 1, 0, 0.8f },			 SPEED,		 WIDTH,		 BOLT,		"Tachyon field rounds" },
+					COLORDEF( 227, 125, 220 ),	SPEED,		WIDTH,		BOLT,		"Tachyon field rounds" },
 		{ "Flame",	false,	DECO_SHELLS,	2,	 { 0, 0, 1 },
-					{ 1.0f, 0, 0, 0.8f },		 SPEED*0.5f, WIDTH,		 BOLT,		"Incendiary Heavy Round" },
+					COLORDEF( 213, 63, 63 ),	SPEED*0.5f,	WIDTH,		BOLT,		"Incendiary Heavy Round" },
 		{ "RPG",	false,	DECO_ROCKET,	4,	 { 0.8f, 0, 0.2f },
-					{ 0.8f, 1.0f, 0.8f, 0.8f }, SPEED*0.8f, WIDTH,		 BOLT,		"Grenade Rounds" },
+					COLORDEF( 200, 204, 213 ), SPEED*0.8f, WIDTH,		BOLT,		"Grenade Rounds" },
 		{ 0 }
 	};
+
+#	undef COLORDEF
 
 	for( int i=0; clips[i].name; ++i ) {
 		ClipItemDef* item = new ClipItemDef();

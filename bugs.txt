@@ -1,15 +1,15 @@
-
 Issues:
 
 Bugs:
-- door bugs
-- pauses when move
+- door bugs ?
+- pauses when move - profiler?
 
 Architecture
 - render managers
 - AI objects 
 - MicroGLUI separation
 - Map as interface
+- Build in profiler.
 
 Issues, post next test:
 - Art: better human models
@@ -22,8 +22,6 @@ Issues, post next test:
 - mission types: crash
 - Sounds: better sounds, latency
 - Gameplay: doors are death traps if guarded...blow up doors?
-- simultaneous shots
-- need correct colors in RenderWeapon()
 - check math (again) in PushShootAction()
 - handle too many particles consistently
 - mission types: landing
@@ -45,6 +43,7 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- need correct colors in RenderWeapon()
 - move grid doesn't always update
 - rotation clears path
 - gameplay: rotation? reaction fire? need some advantage to flanking
@@ -133,3 +132,4 @@ FIXED [test #1]
 Deferred/Cancelled
 - melee weapons
 - tu in character screen
+- simultaneous shots
