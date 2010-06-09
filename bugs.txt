@@ -1,8 +1,9 @@
 Issues:
 
 Bugs:
-- door bugs ?
-- pauses when move - profiler?
+- trees show up in the wrong place
+? door bugs
+? pauses when move - profiler?
 
 Architecture
 - render managers
