@@ -1,3 +1,18 @@
+/*
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #ifndef GAMUI_INCLUDED
 #define GAMUI_INCLUDED
 
@@ -56,6 +71,8 @@ public:
 		float y;
 		float tx;
 		float ty;
+
+		void Set( float _x, float _y, float _tx, float _ty ) { x = _x; y = _y; tx = _tx; ty = _ty; }
 	};
 
 	Gamui();
@@ -80,8 +97,10 @@ private:
 	const RenderAtom*				m_textAtom;
 	IGamuiText*						m_iText;
 	int								m_textHeight;
-	std::vector< int16_t >			m_indexBuffer;
-	std::vector< Gamui::Vertex >	m_vertexBuffer;
+	enum { INDEX_SIZE = 6000,
+		   VERTEX_SIZE = 4000 };
+	int16_t							m_indexBuffer[INDEX_SIZE];
+	Vertex							m_vertexBuffer[VERTEX_SIZE];
 
 	std::vector< GamItem* > m_itemArr;
 };
@@ -90,6 +109,7 @@ private:
 class IGamuiRenderer
 {
 public:
+	virtual ~IGamuiRenderer()	{}
 	virtual void BeginRender() = 0;
 	virtual void EndRender() = 0;
 
@@ -107,35 +127,45 @@ public:
 		int width;					// width of this glyph
 		float tx0, ty0, tx1, ty1;	// texture coordinates of the glyph );
 	};
+
+	virtual ~IGamuiText()	{}
 	virtual void GamuiGlyph( int c, GlyphMetrics* metric ) = 0;
-//	virtual void GamuiGlyphAdvance( int c, int* advance ) = 0;
 };
 
 
+/*
+	Subclasses:
+		x TextLabel
+		- Bar
+		- Image
+		- Text table
+		- Button
+			- Toggle
+			- Radio
+*/
 class GamItem
 {
 public:
-	GamItem();
-	virtual ~GamItem()					{}
-
 	void SetPos( float x, float y )		{ m_x = x; m_y = y; }
 	void SetPos( const float* x )		{ m_x = x[0]; m_y = x[1]; }
 	float X() const						{ return m_x; }
 	float Y() const						{ return m_y; }
-
 	int Level() const					{ return m_level; }
-	void SetLevel( int level );
 
 	virtual const RenderAtom* GetCurrentAtom() const = 0;
 	
 	void Attach( Gamui* );
-	virtual void Queue( std::vector< int16_t >* index, std::vector< Gamui::Vertex >* vertex ) = 0;
+	virtual void Requires( int* indexNeeded, int* vertexNeeded ) = 0;
+	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex ) = 0;
 
 private:
 	float m_x;
 	float m_y;
 
 protected:
+	GamItem( int level );
+	virtual ~GamItem()					{}
+
 	Gamui* m_gamui;
 	int m_level;
 };
@@ -152,7 +182,9 @@ public:
 	void ClearText();
 
 	virtual const RenderAtom* GetCurrentAtom() const;
-	virtual void Queue( std::vector< int16_t >* index, std::vector< Gamui::Vertex >* vertex );
+
+	virtual void Requires( int* indexNeeded, int* vertexNeeded );
+	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
 
 private:
 
@@ -161,6 +193,20 @@ private:
 		char buf[ALLOCATE];
 		std::string* str;
 	};
+};
+
+
+class Image : public GamItem
+{
+public:
+	Image();
+	virtual ~Image();
+
+	void Init( const RenderAtom* atom );
+	void SetSlice( bool enable, int srcWidth, int srcHeight, int x0, int y0, int x1, int y1 );
+
+private:
+	const RenderAtom* m_atom;
 };
 
 

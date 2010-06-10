@@ -1,3 +1,18 @@
+/*
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "gamui.h"
 #include <algorithm>
 
@@ -5,11 +20,11 @@ using namespace gamui;
 using namespace std;
 
 
-GamItem::GamItem() 
+GamItem::GamItem( int p_level ) 
 	: m_x( 0 ),
 	  m_y( 0 ),
 	  m_gamui( 0 ),
-	  m_level( Gamui::ITEM_LEVEL )
+	  m_level( p_level )
 {}
 
 
@@ -27,13 +42,10 @@ void GamItem::Attach( Gamui* g )
 
 
 
-TextLabel::TextLabel() : GamItem()
+TextLabel::TextLabel() : GamItem( Gamui::TEXT_LEVEL )
 {
 	buf[0] = 0;
 	buf[ALLOCATE-1] = 0;
-
-	// default text to the text level.
-	m_level = Gamui::TEXT_LEVEL;
 }
 
 
@@ -65,23 +77,43 @@ const RenderAtom* TextLabel::GetCurrentAtom() const
 
 void TextLabel::SetText( const char* t )
 {
-	ClearText();
+	// already in string mode? use that.
+	if ( buf[ALLOCATE-1] ) {
+		*str = t;
+	}
+	else {
+		ClearText();
 
-	if ( t ) {
-		int len = strlen( t );
-		if ( len < ALLOCATE-1 ) {
-			memcpy( buf, t, len );
-			buf[len] = 0;
-		}
-		else {
-			str = new string( t );
-			buf[ALLOCATE-1] = 127;
+		if ( t ) {
+			int len = strlen( t );
+			if ( len < ALLOCATE-1 ) {
+				memcpy( buf, t, len );
+				buf[len] = 0;
+			}
+			else {
+				str = new string( t );
+				buf[ALLOCATE-1] = 127;
+			}
 		}
 	}
 }
 
 
-void TextLabel::Queue( std::vector< int16_t >* index, std::vector< Gamui::Vertex >* vertex )
+void TextLabel::Requires( int* indexNeeded, int* vertexNeeded )
+{
+	int len = 0;
+	if ( buf[ALLOCATE-1] ) {
+		len = (int)str->size();
+	}
+	else {
+		len = strlen( buf );
+	}
+	*indexNeeded  = len*6;
+	*vertexNeeded = len*4;
+}
+
+
+void TextLabel::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex )
 {
 	if ( !m_gamui )
 		return;
@@ -99,43 +131,22 @@ void TextLabel::Queue( std::vector< int16_t >* index, std::vector< Gamui::Vertex
 	float y=Y();
 	float height = (float)m_gamui->GetTextHeight();
 
-	Gamui::Vertex v;
 	IGamuiText::GlyphMetrics metrics;
 
 	while ( p && *p ) {
-		int16_t offset = (int16_t)vertex->size();
 		iText->GamuiGlyph( *p, &metrics );
 
-		v.x = x;
-		v.y = y;
-		v.tx = metrics.tx0;
-		v.ty = metrics.ty0;
-		vertex->push_back( v );
+		index[(*nIndex)++] = *nVertex + 0;
+		index[(*nIndex)++] = *nVertex + 1;
+		index[(*nIndex)++] = *nVertex + 2;
+		index[(*nIndex)++] = *nVertex + 0;
+		index[(*nIndex)++] = *nVertex + 2;
+		index[(*nIndex)++] = *nVertex + 3;
 
-		v.x = x;
-		v.y = (y+height);
-		v.tx = metrics.tx0;
-		v.ty = metrics.ty1;
-		vertex->push_back( v );
-
-		v.x = x + (float)metrics.width;
-		v.y = y+height;
-		v.tx = metrics.tx1;
-		v.ty = metrics.ty1;
-		vertex->push_back( v );
-
-		v.x = x + (float)metrics.width;
-		v.y = y;
-		v.tx = metrics.tx1;
-		v.ty = metrics.ty0;
-		vertex->push_back( v );
-
-		index->push_back( offset+0 );
-		index->push_back( offset+1 );
-		index->push_back( offset+2 );
-		index->push_back( offset+0 );
-		index->push_back( offset+2 );	// swapped for testing!
-		index->push_back( offset+3 );
+		vertex[(*nVertex)++].Set( x, y, metrics.tx0, metrics.ty0 );
+		vertex[(*nVertex)++].Set( x, (y+height), metrics.tx0, metrics.ty1 );
+		vertex[(*nVertex)++].Set( x + (float)metrics.width, y+height, metrics.tx1, metrics.ty1 );
+		vertex[(*nVertex)++].Set( x + (float)metrics.width, y, metrics.tx1, metrics.ty0 );
 
 		++p;
 		x += (float)metrics.advance;
@@ -218,8 +229,8 @@ bool Gamui::SortItems( const GamItem* a, const GamItem* b )
 void Gamui::Render( IGamuiRenderer* renderer )
 {
 	sort( m_itemArr.begin(), m_itemArr.end(), SortItems );
-	m_indexBuffer.clear();
-	m_vertexBuffer.clear();
+	int nIndex = 0;
+	int nVertex = 0;
 
 	renderer->BeginRender();
 
@@ -231,12 +242,11 @@ void Gamui::Render( IGamuiRenderer* renderer )
 		const RenderAtom* atom = item->GetCurrentAtom();
 
 		// flush:
-		if (    m_indexBuffer.size()
+		if (    nIndex
 			 && ( atom->renderState != renderState || atom->textureHandle != textureHandle ) )
 		{
-			renderer->Render( renderState, textureHandle, (int)m_indexBuffer.size(), &m_indexBuffer[0], (int)m_vertexBuffer.size(), &m_vertexBuffer[0] );
-			m_indexBuffer.clear();
-			m_vertexBuffer.clear();
+			renderer->Render( renderState, textureHandle, nIndex, &m_indexBuffer[0], nVertex, &m_vertexBuffer[0] );
+			nIndex = nVertex = 0;
 		}
 
 		if ( atom->renderState != renderState ) {
@@ -248,11 +258,20 @@ void Gamui::Render( IGamuiRenderer* renderer )
 			textureHandle = atom->textureHandle;
 		}
 
-		item->Queue( &m_indexBuffer, &m_vertexBuffer );
+		int indexNeeded=0, vertexNeeded=0;
+		item->Requires( &indexNeeded, &vertexNeeded );
+		if ( nIndex + indexNeeded >= INDEX_SIZE || nVertex + vertexNeeded >= VERTEX_SIZE ) {
+			renderer->Render( renderState, textureHandle, nIndex, &m_indexBuffer[0], nVertex, &m_vertexBuffer[0] );
+			nIndex = nVertex = 0;
+		}
+		if ( nIndex + indexNeeded <= INDEX_SIZE && nVertex + vertexNeeded <= VERTEX_SIZE ) {
+			item->Queue( &nIndex, m_indexBuffer, &nVertex, m_vertexBuffer );
+		}
 	}
 	// flush:
-	if ( m_indexBuffer.size() ) {
-		renderer->Render( renderState, textureHandle, (int)m_indexBuffer.size(), &m_indexBuffer[0], (int)m_vertexBuffer.size(), &m_vertexBuffer[0] );
+	if ( nIndex ) {
+		renderer->Render( renderState, textureHandle, nIndex, &m_indexBuffer[0], nVertex, &m_vertexBuffer[0] );
+		nIndex = nVertex = 0;
 	}
 
 	renderer->EndRender();
