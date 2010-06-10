@@ -29,7 +29,8 @@
 using namespace gamui;
 
 enum {
-	RENDERSTATE_TEXT = 1
+	RENDERSTATE_TEXT = 1,
+	RENDERSTATE_IMAGE = 2
 };
 
 const int SCREEN_X = 600;
@@ -72,6 +73,10 @@ public:
 		int renderState = (int)_renderState;
 		switch( renderState ) {
 			case RENDERSTATE_TEXT:
+				glColor4f( 1.f, 1.f, 1.f, 1.f );
+				break;
+
+			case RENDERSTATE_IMAGE:
 				glColor4f( 1.f, 1.f, 1.f, 1.f );
 				break;
 
@@ -168,10 +173,30 @@ int main( int argc, char **argv )
 	glTexImage2D( GL_TEXTURE_2D, 0,	GL_ALPHA, textSurface->w, textSurface->h, 0, GL_ALPHA, GL_UNSIGNED_BYTE, textSurface->pixels );
 	SDL_FreeSurface( textSurface );
 
+
+	// Load a bitmap
+	SDL_Surface* imageSurface = SDL_LoadBMP( "buttons.bmp" );
+
+	GLuint imageTextureID;
+	glGenTextures( 1, &imageTextureID );
+	glBindTexture( GL_TEXTURE_2D, imageTextureID );
+
+	glTexParameteri(	GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE );
+	glTexParameteri(	GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameteri(	GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );
+	glTexImage2D( GL_TEXTURE_2D, 0,	GL_RGB, imageSurface->w, imageSurface->h, 0, GL_BGR, GL_UNSIGNED_BYTE, imageSurface->pixels );
+	SDL_FreeSurface( imageSurface );
+
+
 	RenderAtom textAtom;
 	textAtom.renderState = (const void*) RENDERSTATE_TEXT;
 	textAtom.textureHandle = (const void*) textTextureID;
 	textAtom.SetCoord( 0, 0, 0, 0 );
+
+	RenderAtom imageAtom;
+	imageAtom.renderState = (const void*) RENDERSTATE_IMAGE;
+	imageAtom.textureHandle = (const void*) imageTextureID;
+	imageAtom.SetCoord( 0.5f, 0.5f, 228.f/256.f, 28.f/256.f );
 
 	TextMetrics textMetrics;
 	Renderer renderer;
@@ -181,10 +206,28 @@ int main( int argc, char **argv )
 	textLabel[1].SetText( "Very long text to test the string allocator." );
 	textLabel[1].SetPos( 10, 20 );
 
+	Image image0, image1, image2, image3;
+	image0.Init( &imageAtom, 100, 100 );
+	image0.SetPos( 50, 50 );
+
+	image1.Init( &imageAtom, 100, 100 );
+	image1.SetPos( 50, 200 );
+	image1.SetSize( 125, 125 );
+
+	image2.Init( &imageAtom, 100, 100 );
+	image2.SetPos( 200, 50 );
+
+	image3.Init( &imageAtom, 100, 100 );
+	image3.SetPos( 200, 200 );
+
 	{
 		Gamui gamui;
 		gamui.Add( &textLabel[0] );
 		gamui.Add( &textLabel[1] );
+		gamui.Add( &image0 );
+		gamui.Add( &image1 );
+		gamui.Add( &image2 );
+		gamui.Add( &image3 );
 		gamui.InitText( &textAtom, 16, &textMetrics );
 
 		bool done = false;
@@ -218,6 +261,7 @@ int main( int argc, char **argv )
 			SDL_GL_SwapBuffers();
 		}
 	}
+
 
 
 	SDL_Quit();
