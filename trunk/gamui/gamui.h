@@ -42,6 +42,23 @@ class IGamuiRenderer;
 class IGamuiText;
 class GamItem;
 
+/*
+
+	Screen coordinates:
+	+--- x
+	|
+	|
+	y
+
+	Texture (OpenGL standard, although feels like it should be the other way...)
+	ty
+	|
+	|
+	+---tx
+
+
+*/
+
 struct RenderAtom 
 {
 	// sorting fields
@@ -61,9 +78,10 @@ class Gamui
 {
 public:
 	enum {
-		BACKGROUND_LEVEL = 0x10,
-		ITEM_LEVEL		 = 0x20,
-		TEXT_LEVEL		 = 0x30
+		LEVEL_BACKGROUND = 0,
+		LEVEL_FOREGROUND = 1,
+		LEVEL_DECO		 = 2,
+		LEVEL_TEXT		 = 3
 	};
 
 	struct Vertex {
@@ -182,7 +200,6 @@ public:
 	void ClearText();
 
 	virtual const RenderAtom* GetCurrentAtom() const;
-
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
 	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
 
@@ -202,11 +219,21 @@ public:
 	Image();
 	virtual ~Image();
 
-	void Init( const RenderAtom* atom );
-	void SetSlice( bool enable, int srcWidth, int srcHeight, int x0, int y0, int x1, int y1 );
+	void Init( const RenderAtom* atom, int srcWidth, int srcHeight );
+	//void SetSlice( bool enable, int srcWidth, int srcHeight, int x0, int y0, int x1, int y1 );
+
+	void SetSize( int width, int height )		{ m_width = width; m_height = height; }
+
+	virtual const RenderAtom* GetCurrentAtom() const;
+	virtual void Requires( int* indexNeeded, int* vertexNeeded );
+	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
 
 private:
 	const RenderAtom* m_atom;
+	int m_srcWidth;
+	int m_srcHeight;
+	int m_width;
+	int m_height;
 };
 
 

@@ -42,7 +42,7 @@ void GamItem::Attach( Gamui* g )
 
 
 
-TextLabel::TextLabel() : GamItem( Gamui::TEXT_LEVEL )
+TextLabel::TextLabel() : GamItem( Gamui::LEVEL_TEXT )
 {
 	buf[0] = 0;
 	buf[ALLOCATE-1] = 0;
@@ -151,6 +151,63 @@ void TextLabel::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex*
 		++p;
 		x += (float)metrics.advance;
 	}
+}
+
+
+Image::Image() : GamItem( Gamui::LEVEL_BACKGROUND ),
+	  m_atom( 0 ),
+	  m_srcWidth( 0 ),
+	  m_srcHeight( 0 )
+{
+}
+
+
+Image::~Image()
+{
+}
+
+
+void Image::Init( const RenderAtom* atom, int srcWidth, int srcHeight )
+{
+	m_atom = atom;
+	m_width = m_srcWidth = srcWidth;
+	m_height = m_srcHeight = srcHeight;
+	
+}
+
+
+const RenderAtom* Image::GetCurrentAtom() const
+{
+	GAMUIASSERT( m_atom );
+	return m_atom;
+}
+
+
+void Image::Requires( int* indexNeeded, int* vertexNeeded )
+{
+	*indexNeeded = 6;
+	*vertexNeeded = 4;
+}
+
+
+void Image::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex )
+{
+	index[(*nIndex)++] = *nVertex + 0;
+	index[(*nIndex)++] = *nVertex + 1;
+	index[(*nIndex)++] = *nVertex + 2;
+	index[(*nIndex)++] = *nVertex + 0;
+	index[(*nIndex)++] = *nVertex + 2;
+	index[(*nIndex)++] = *nVertex + 3;
+
+	float x0 = X();
+	float y0 = Y();
+	float x1 = X() + (float)m_width;
+	float y1 = Y() + (float)m_height;
+
+	vertex[(*nVertex)++].Set( x0, y0, m_atom->tx0, m_atom->ty1 );
+	vertex[(*nVertex)++].Set( x0, y1, m_atom->tx0, m_atom->ty0 );
+	vertex[(*nVertex)++].Set( x1, y1, m_atom->tx1, m_atom->ty0 );
+	vertex[(*nVertex)++].Set( x1, y0, m_atom->tx1, m_atom->ty1 );
 }
 
 
