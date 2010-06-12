@@ -192,16 +192,26 @@ public:
 	float Y() const						{ return m_y; }
 	int Level() const					{ return m_level; }
 
+	virtual void SetEnabled( bool enabled )		{}		// does nothing for many items.
+	bool Enabled() const						{ return m_enabled; }
+	virtual void SetVisible( bool visible )		{ m_visible = visible; }
+	bool Visible() const						{ return m_visible; }
+
 	virtual void Attach( Gamui* );
 
-//	virtual void AddItems( std::vector< RenderItem >* renderItems ) = 0;
+
+
 	virtual const RenderAtom* GetRenderAtom() const = 0;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded ) = 0;
 	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex ) = 0;
 
+	void SetLevel( int level )				{ m_level = level; }
+
 private:
 	float m_x;
 	float m_y;
+	int m_level;
+	bool m_visible;
 
 protected:
 	template <class T> T Min( T a, T b ) const		{ return a<b ? a : b; }
@@ -209,13 +219,11 @@ protected:
 	float Mean( float a, float b ) const			{ return (a+b)*0.5f; }
 	static void PushQuad( int *nIndex, int16_t* index, int base, int a, int b, int c, int d, int e, int f );
 
-	void SetLevel( int level )				{ m_level = level; }
-
 	GamItem( int level );
 	virtual ~GamItem()					{}
 
 	Gamui* m_gamui;
-	int m_level;
+	bool m_enabled;
 };
 
 
@@ -229,6 +237,7 @@ public:
 	const char* GetText();
 	void ClearText();
 	void CalcSize( int* width, int* height );
+	virtual void SetEnabled( bool enabled )		{ m_enabled = enabled; }
 
 //	virtual void AddItems( std::vector< RenderItem >* renderItems );
 	virtual const RenderAtom* GetRenderAtom() const;
@@ -252,6 +261,7 @@ public:
 	virtual ~Image();
 
 	void Init( const RenderAtom& atom, int srcWidth, int srcHeight );
+	void SetAtom( const RenderAtom& atom, int srcWidth, int srcHeight );
 	void SetSlice( bool enable );
 
 	void SetSize( int width, int height )							{ m_width = width; m_height = height; }
@@ -262,7 +272,6 @@ public:
 	int SrcWidth() const											{ return m_srcWidth; }
 	int SrcHeight() const											{ return m_srcHeight; }
 
-//	virtual void AddItems( std::vector< RenderItem >* renderItems );
 	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
 	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
@@ -281,8 +290,6 @@ private:
 class Button : public GamItem
 {
 public:
-	Button();
-	virtual ~Button()	{}
 
 	void Init(	const RenderAtom& atomUpEnabled,
 				const RenderAtom& atomUpDisabled,
@@ -297,11 +304,16 @@ public:
 	virtual void SetPos( float x, float y );
 	void SetSize( int width, int height );
 	void SetText( const char* text );
+	virtual void SetEnabled( bool enabled );
 
-//	virtual void AddItems( std::vector< RenderItem >* renderItems );
 	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
 	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
+
+protected:
+
+	Button();
+	virtual ~Button()	{}
 
 private:
 
@@ -321,6 +333,14 @@ private:
 	Image		m_face;
 	Image		m_deco;
 	TextLabel	m_label;
+};
+
+
+class PushButton : public Button
+{
+public:
+	PushButton();
+	virtual ~PushButton()	{}
 };
 
 
