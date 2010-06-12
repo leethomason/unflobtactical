@@ -30,7 +30,9 @@ using namespace gamui;
 
 enum {
 	RENDERSTATE_TEXT = 1,
-	RENDERSTATE_IMAGE = 2
+	RENDERSTATE_TEXT_DISABLED,
+	RENDERSTATE_NORMAL,
+	RENDERSTATE_DISABLED
 };
 
 const int SCREEN_X = 600;
@@ -76,8 +78,12 @@ public:
 				glColor4f( 1.f, 1.f, 1.f, 1.f );
 				break;
 
-			case RENDERSTATE_IMAGE:
+			case RENDERSTATE_NORMAL:
 				glColor4f( 1.f, 1.f, 1.f, 1.f );
+				break;
+
+			case RENDERSTATE_DISABLED:
+				glColor4f( 1.f, 1.f, 1.f, 0.5f );
 				break;
 
 			default:
@@ -192,9 +198,11 @@ int main( int argc, char **argv )
 	textAtom.renderState = (const void*) RENDERSTATE_TEXT;
 	textAtom.textureHandle = (const void*) textTextureID;
 	textAtom.SetCoord( 0, 0, 0, 0 );
+	RenderAtom textAtomD = textAtom;
+	textAtomD.renderState = (const void*) RENDERSTATE_TEXT_DISABLED;
 
 	RenderAtom imageAtom;
-	imageAtom.renderState = (const void*) RENDERSTATE_IMAGE;
+	imageAtom.renderState = (const void*) RENDERSTATE_NORMAL;
 	imageAtom.textureHandle = (const void*) imageTextureID;
 	imageAtom.SetCoord( 0.5f, 0.5f, 228.f/256.f, 28.f/256.f );
 
@@ -207,18 +215,44 @@ int main( int argc, char **argv )
 	textLabel[1].SetPos( 10, 20 );
 
 	Image image0, image1, image2, image3;
-	image0.Init( &imageAtom, 100, 100 );
+	image0.Init( imageAtom, 100, 100 );
 	image0.SetPos( 50, 50 );
 
-	image1.Init( &imageAtom, 100, 100 );
+	image1.Init( imageAtom, 100, 100 );
 	image1.SetPos( 50, 200 );
 	image1.SetSize( 125, 125 );
 
-	image2.Init( &imageAtom, 100, 100 );
+	image2.Init( imageAtom, 100, 100 );
 	image2.SetPos( 200, 50 );
+	image2.SetSize( 50, 50 );
 
-	image3.Init( &imageAtom, 100, 100 );
+	image3.Init( imageAtom, 100, 100 );
 	image3.SetPos( 200, 200 );
+	image3.SetSize( 125, 125 );
+	image3.SetSlice( true );
+
+	RenderAtom up, upD, down, downD;
+	RenderAtom nullAtom;
+	
+	up.renderState = (const void*) RENDERSTATE_NORMAL;
+	up.textureHandle = (const void*) imageTextureID;
+	up.SetCoord( 0, 1, (52.f/256.f), (204.f/256.f) );
+
+	upD = up;
+	upD.renderState = (const void*) RENDERSTATE_DISABLED;
+
+	down.renderState = (const void*) RENDERSTATE_NORMAL;
+	down.textureHandle = (const void*) imageTextureID;
+	down.SetCoord( 0, 0.75f, (52.f/256.f), (52.f/144.f) );
+
+	downD = down;
+	downD.renderState  = (const void*) RENDERSTATE_DISABLED;
+
+	Button button;
+	button.Init( up, upD, down, downD, nullAtom, nullAtom, 50, 50 );
+	button.SetPos( 300, 50 );
+	button.SetSize( 100, 50 );
+	button.SetText( "Button" );
 
 	{
 		Gamui gamui;
@@ -228,7 +262,8 @@ int main( int argc, char **argv )
 		gamui.Add( &image1 );
 		gamui.Add( &image2 );
 		gamui.Add( &image3 );
-		gamui.InitText( &textAtom, 16, &textMetrics );
+		gamui.Add( &button );
+		gamui.InitText( textAtom, textAtomD, 16, &textMetrics );
 
 		bool done = false;
 		while ( !done ) {
