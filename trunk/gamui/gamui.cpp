@@ -55,7 +55,9 @@ void GamItem::PushQuad( int *nIndex, int16_t* index, int base, int a, int b, int
 }
 
 
-TextLabel::TextLabel() : GamItem( Gamui::LEVEL_TEXT )
+TextLabel::TextLabel() : GamItem( Gamui::LEVEL_TEXT ),
+	m_width( -1 ),
+	m_height( -1 )
 {
 	buf[0] = 0;
 	buf[ALLOCATE-1] = 0;
@@ -77,6 +79,7 @@ void TextLabel::ClearText()
 	}
 	buf[0] = 0;
 	buf[ALLOCATE-1] = 0;
+	m_width = m_height = -1;
 }
 
 
@@ -89,18 +92,9 @@ const RenderAtom* TextLabel::GetRenderAtom() const
 }
 
 
-/*void TextLabel::AddItems( std::vector< RenderItem >* renderItems )
-{
-	GAMUIASSERT( m_gamui );
-	GAMUIASSERT( m_gamui->GetTextAtom() );
-	RenderItem rItem = { m_gamui->GetTextAtom(), this };
-	renderItems->push_back( rItem );
-}
-*/
-
-
 void TextLabel::SetText( const char* t )
 {
+	m_width = m_height = -1;
 	// already in string mode? use that.
 	if ( buf[ALLOCATE-1] ) {
 		*str = t;
@@ -137,7 +131,7 @@ void TextLabel::Requires( int* indexNeeded, int* vertexNeeded )
 }
 
 
-void TextLabel::CalcSize( int* width, int* height )
+void TextLabel::CalcSize( int* width, int* height ) const
 {
 	*width = 0;
 	*height = 0;
@@ -202,6 +196,30 @@ void TextLabel::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex*
 		++p;
 		x += (float)metrics.advance;
 	}
+}
+
+
+int TextLabel::Width() const
+{
+	if ( !m_gamui )
+		return 0;
+
+	if ( m_width < 0 ) {
+		CalcSize( &m_width, &m_height );
+	}
+	return m_width;
+}
+
+
+int TextLabel::Height() const
+{
+	if ( !m_gamui )
+		return 0;
+
+	if ( m_height < 0 ) {
+		CalcSize( &m_width, &m_height );
+	}
+	return m_height;
 }
 
 
@@ -337,7 +355,8 @@ void Image::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* ver
 
 
 
-Button::Button() : GamItem( Gamui::LEVEL_FOREGROUND )
+Button::Button() : GamItem( Gamui::LEVEL_FOREGROUND ),
+	m_up( true )
 {
 }
 
@@ -389,8 +408,8 @@ void Button::PositionChildren()
 		m_deco.SetPos( X(), Y() + (m_face.Height()-m_face.Width())/2 );
 	}
 
-	int h, w;
-	m_label.CalcSize( &w, &h );
+	int h = m_label.Height();
+	int w = m_label.Width();
 	m_label.SetPos( X() + (float)((m_face.Width()-w)/2),
 					Y() + (float)((m_face.Height()-h)/2) );
 
@@ -420,17 +439,40 @@ void Button::SetText( const char* text )
 }
 
 
-void Button::SetEnabled( bool enabled )
+void Button::SetState( bool enabled, bool up )
 {
+	m_enabled = enabled;
+	m_up = up;
+
+	int faceIndex = UP;
+	int decoIndex = DECO;
 	if ( enabled ) {
-		m_face.SetAtom( m_atoms[UP], m_face.SrcWidth(), m_face.SrcHeight() );
-		m_deco.SetAtom( m_atoms[DECO], m_deco.SrcWidth(), m_deco.SrcHeight() );
+		if ( up ) {
+			// defaults set
+		}
+		else {
+			faceIndex = DOWN;
+		}
 	}
 	else {
-		m_face.SetAtom( m_atoms[UP_D], m_face.SrcWidth(), m_face.SrcHeight() );
-		m_deco.SetAtom( m_atoms[DECO_D], m_deco.SrcWidth(), m_deco.SrcHeight() );
+		if ( up ) {
+			faceIndex = UP_D;
+			decoIndex = DECO_D;
+		}
+		else {
+			faceIndex = DOWN_D;
+			decoIndex = DECO_D;
+		}
 	}
+	m_face.SetAtom( m_atoms[faceIndex], m_face.SrcWidth(), m_face.SrcHeight() );
+	m_deco.SetAtom( m_atoms[decoIndex], m_deco.SrcWidth(), m_deco.SrcHeight() );
 	m_label.SetEnabled( enabled );
+}
+
+
+void Button::SetEnabled( bool enabled )
+{
+	SetState( enabled, m_up );
 }
 
 
@@ -466,8 +508,25 @@ PushButton::PushButton() : Button()
 }
 
 
+bool PushButton::HandleTap( int action, int x, int y )
+{
+	bool handled = false;
+	if ( action == TAP_DOWN ) {
+		m_up = false;
+		handled = true;
+		SetState( m_enabled, m_up );
+	}
+	else if ( action == TAP_UP ) {
+		m_up = true;
+		SetState( m_enabled, m_up );
+	}
+	return handled;
+}
+
+
 Gamui::Gamui()
-	:	m_iText( 0 ),
+	:	m_itemTapped( 0 ),
+		m_iText( 0 ),
 		m_textHeight( 0 )
 {
 }
@@ -510,6 +569,39 @@ void Gamui::Remove( GamItem* item )
 			break;
 		}
 	}
+}
+
+
+const GamItem* Gamui::TapDown( int x, int y )
+{
+	GAMUIASSERT( m_itemTapped == 0 );
+	m_itemTapped = 0;
+
+	for( vector< GamItem* >::iterator it = m_itemArr.begin(); it != m_itemArr.end(); it++ ) {
+		GamItem* item = *it;
+
+		if (    item->Enabled() 
+			 && item->Visible()
+			 && x >= item->X() && x < item->X()+item->Width()
+			 && y >= item->Y() && y < item->Y()+item->Height() )
+		{
+			if ( item->HandleTap( GamItem::TAP_DOWN, x, y ) ) {
+				m_itemTapped = item;
+				return m_itemTapped;
+			}
+		}
+	}
+	return 0;
+}
+
+
+const GamItem* Gamui::TapUp( int x, int y )
+{
+	if ( m_itemTapped ) {
+		m_itemTapped->HandleTap( GamItem::TAP_UP, x, y );
+	}
+	m_itemTapped = 0;
+	return 0;
 }
 
 

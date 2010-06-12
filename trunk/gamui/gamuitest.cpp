@@ -256,7 +256,7 @@ int main( int argc, char **argv )
 
 	down.renderState = (const void*) RENDERSTATE_NORMAL;
 	down.textureHandle = (const void*) imageTextureID;
-	down.SetCoord( 0, 0.75f, (52.f/256.f), (52.f/144.f) );
+	down.SetCoord( 0, 0.75f, (52.f/256.f), (140.f/256.f) );
 
 	downD = down;
 	downD.renderState  = (const void*) RENDERSTATE_DISABLED;
@@ -301,6 +301,14 @@ int main( int argc, char **argv )
 						}
 					}
 					break;
+
+					case SDL_MOUSEBUTTONDOWN:
+						gamui.TapDown( event.button.x, event.button.y );
+						break;
+
+					case SDL_MOUSEBUTTONUP:
+						gamui.TapUp( event.button.x, event.button.y );
+						break;
 
 					case SDL_QUIT:
 						done = true;
