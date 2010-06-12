@@ -61,6 +61,7 @@ class GamItem;
 
 struct RenderAtom 
 {
+	RenderAtom() : renderState( 0 ), textureHandle( 0 ), tx0( 0 ), ty0( 0 ), tx1( 0 ), ty1( 0 ), user( 0 ) {}
 	// sorting fields
 	const void* renderState;
 	const void* textureHandle;
@@ -72,6 +73,13 @@ struct RenderAtom
 	// ignored
 	void* user;
 };
+
+
+//struct RenderItem
+//{
+//	RenderAtom* atom;
+//	GamItem* item;
+//};
 
 
 class Gamui
@@ -101,18 +109,24 @@ public:
 
 	void Render( IGamuiRenderer* renderer );
 
-	void InitText(	const RenderAtom* atom, 
+	void InitText(	const RenderAtom& enabled, 
+					const RenderAtom& disabled,
 					int pixelHeight,
 					IGamuiText* iText );
 
-	const RenderAtom* GetTextAtom() const	{ return m_textAtom; }
+	RenderAtom* GetTextAtom() 		{ return &m_textAtomEnabled; }
+	RenderAtom* GetDisabledTextAtom() { return &m_textAtomDisabled; }
+
+
 	IGamuiText* GetTextInterface() const	{ return m_iText; }
 	int GetTextHeight() const				{ return m_textHeight; }
 
 private:
+	//static bool SortItems( const RenderItem& a, const RenderItem& b );
 	static bool SortItems( const GamItem* a, const GamItem* b );
 
-	const RenderAtom*				m_textAtom;
+	RenderAtom						m_textAtomEnabled;
+	RenderAtom						m_textAtomDisabled;
 	IGamuiText*						m_iText;
 	int								m_textHeight;
 	enum { INDEX_SIZE = 6000,
@@ -121,6 +135,7 @@ private:
 	Vertex							m_vertexBuffer[VERTEX_SIZE];
 
 	std::vector< GamItem* > m_itemArr;
+	//std::vector< RenderItem > m_renderArr;
 };
 
 
@@ -155,24 +170,32 @@ public:
 	Subclasses:
 		x TextLabel
 		- Bar
-		- Image
+		x Image
 		- Text table
 		- Button
 			- Toggle
 			- Radio
+
+		effects:
+		- rotate x
+		- rotate y
+		- rotate z
+
+		Layout
 */
 class GamItem
 {
 public:
-	void SetPos( float x, float y )		{ m_x = x; m_y = y; }
-	void SetPos( const float* x )		{ m_x = x[0]; m_y = x[1]; }
+	virtual void SetPos( float x, float y )		{ m_x = x; m_y = y; }
+	void SetPos( const float* x )				{ SetPos( x[0], x[1] ); }
 	float X() const						{ return m_x; }
 	float Y() const						{ return m_y; }
 	int Level() const					{ return m_level; }
 
-	virtual const RenderAtom* GetCurrentAtom() const = 0;
-	
-	void Attach( Gamui* );
+	virtual void Attach( Gamui* );
+
+//	virtual void AddItems( std::vector< RenderItem >* renderItems ) = 0;
+	virtual const RenderAtom* GetRenderAtom() const = 0;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded ) = 0;
 	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex ) = 0;
 
@@ -181,6 +204,13 @@ private:
 	float m_y;
 
 protected:
+	template <class T> T Min( T a, T b ) const		{ return a<b ? a : b; }
+	template <class T> T Max( T a, T b ) const		{ return a>b ? a : b; }
+	float Mean( float a, float b ) const			{ return (a+b)*0.5f; }
+	static void PushQuad( int *nIndex, int16_t* index, int base, int a, int b, int c, int d, int e, int f );
+
+	void SetLevel( int level )				{ m_level = level; }
+
 	GamItem( int level );
 	virtual ~GamItem()					{}
 
@@ -198,8 +228,10 @@ public:
 	void SetText( const char* t );
 	const char* GetText();
 	void ClearText();
+	void CalcSize( int* width, int* height );
 
-	virtual const RenderAtom* GetCurrentAtom() const;
+//	virtual void AddItems( std::vector< RenderItem >* renderItems );
+	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
 	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
 
@@ -219,23 +251,77 @@ public:
 	Image();
 	virtual ~Image();
 
-	void Init( const RenderAtom* atom, int srcWidth, int srcHeight );
-	//void SetSlice( bool enable, int srcWidth, int srcHeight, int x0, int y0, int x1, int y1 );
+	void Init( const RenderAtom& atom, int srcWidth, int srcHeight );
+	void SetSlice( bool enable );
 
-	void SetSize( int width, int height )		{ m_width = width; m_height = height; }
+	void SetSize( int width, int height )							{ m_width = width; m_height = height; }
+	void SetForeground( bool foreground );
 
-	virtual const RenderAtom* GetCurrentAtom() const;
+	int Width() const												{ return m_width; }
+	int Height() const												{ return m_height; }
+	int SrcWidth() const											{ return m_srcWidth; }
+	int SrcHeight() const											{ return m_srcHeight; }
+
+//	virtual void AddItems( std::vector< RenderItem >* renderItems );
+	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
 	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
 
 private:
-	const RenderAtom* m_atom;
+	RenderAtom m_atom;
 	int m_srcWidth;
 	int m_srcHeight;
 	int m_width;
 	int m_height;
+
+	bool m_slice;
 };
 
+
+class Button : public GamItem
+{
+public:
+	Button();
+	virtual ~Button()	{}
+
+	void Init(	const RenderAtom& atomUpEnabled,
+				const RenderAtom& atomUpDisabled,
+				const RenderAtom& atomDownEnabled,
+				const RenderAtom& atomDownDisabled,
+				const RenderAtom& decoEnabled, 
+				const RenderAtom& decoDisabled,
+				int srcWidth,
+				int srcHeight );
+
+	virtual void Attach( Gamui* gamui );
+	virtual void SetPos( float x, float y );
+	void SetSize( int width, int height );
+	void SetText( const char* text );
+
+//	virtual void AddItems( std::vector< RenderItem >* renderItems );
+	virtual const RenderAtom* GetRenderAtom() const;
+	virtual void Requires( int* indexNeeded, int* vertexNeeded );
+	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
+
+private:
+
+	void PositionChildren();
+
+	enum {
+		UP,
+		UP_D,
+		DOWN,
+		DOWN_D,
+		DECO,
+		DECO_D,
+		COUNT
+	};
+	RenderAtom m_atoms[COUNT];
+	
+	Image		m_face;
+	Image		m_deco;
+	TextLabel	m_label;
+};
 
 
 };
