@@ -23,8 +23,10 @@ using namespace std;
 GamItem::GamItem( int p_level ) 
 	: m_x( 0 ),
 	  m_y( 0 ),
+	  m_level( p_level ),
+	  m_visible( true ),
 	  m_gamui( 0 ),
-	  m_level( p_level )
+	  m_enabled( true )
 {}
 
 
@@ -82,7 +84,8 @@ const RenderAtom* TextLabel::GetRenderAtom() const
 {
 	GAMUIASSERT( m_gamui );
 	GAMUIASSERT( m_gamui->GetTextAtom() );
-	return m_gamui->GetTextAtom();
+
+	return Enabled() ? m_gamui->GetTextAtom() : m_gamui->GetDisabledTextAtom();
 }
 
 
@@ -219,13 +222,22 @@ Image::~Image()
 
 void Image::Init( const RenderAtom& atom, int srcWidth, int srcHeight )
 {
+	SetAtom( atom, srcWidth, srcHeight );
+	m_width = srcWidth;
+	m_height = srcHeight;	
+}
+
+
+void Image::SetAtom( const RenderAtom& atom, int srcWidth, int srcHeight )
+{
 	GAMUIASSERT( srcWidth > 0 );
 	GAMUIASSERT( srcHeight > 0 );
 
 	m_atom = atom;
-	m_width = m_srcWidth = srcWidth;
-	m_height = m_srcHeight = srcHeight;	
+	m_srcWidth = srcWidth;
+	m_srcHeight = srcHeight;
 }
+
 
 
 void Image::SetSlice( bool enable )
@@ -351,6 +363,7 @@ void Button::Init(	const RenderAtom& atomUpEnabled,
 	m_face.SetSlice( true );
 
 	m_deco.Init( decoEnabled, srcWidth, srcHeight );
+	m_deco.SetLevel( Gamui::LEVEL_DECO );
 }
 
 
@@ -380,6 +393,10 @@ void Button::PositionChildren()
 	m_label.CalcSize( &w, &h );
 	m_label.SetPos( X() + (float)((m_face.Width()-w)/2),
 					Y() + (float)((m_face.Height()-h)/2) );
+
+	m_label.SetVisible( Visible() );
+	m_deco.SetVisible( Visible() );
+	m_face.SetVisible( Visible() );
 }
 
 
@@ -400,6 +417,20 @@ void Button::SetSize( int width, int height )
 void Button::SetText( const char* text )
 {
 	m_label.SetText( text );
+}
+
+
+void Button::SetEnabled( bool enabled )
+{
+	if ( enabled ) {
+		m_face.SetAtom( m_atoms[UP], m_face.SrcWidth(), m_face.SrcHeight() );
+		m_deco.SetAtom( m_atoms[DECO], m_deco.SrcWidth(), m_deco.SrcHeight() );
+	}
+	else {
+		m_face.SetAtom( m_atoms[UP_D], m_face.SrcWidth(), m_face.SrcHeight() );
+		m_deco.SetAtom( m_atoms[DECO_D], m_deco.SrcWidth(), m_deco.SrcHeight() );
+	}
+	m_label.SetEnabled( enabled );
 }
 
 
@@ -428,6 +459,11 @@ void Button::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* ve
 	// does nothing - children draw
 }
 
+
+
+PushButton::PushButton() : Button()
+{
+}
 
 
 Gamui::Gamui()
@@ -526,11 +562,11 @@ void Gamui::Render( IGamuiRenderer* renderer )
 		GamItem* item = *it;
 		const RenderAtom* atom = item->GetRenderAtom();
 
-		// "Requires" does layout:
+		// Requires() does layout / sets child visibility. Can't skip this step:
 		int indexNeeded=0, vertexNeeded=0;
 		item->Requires( &indexNeeded, &vertexNeeded );
 
-		if ( !atom )
+		if ( !item->Visible() || !atom )
 			continue;
 
 		// flush:

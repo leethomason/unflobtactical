@@ -38,6 +38,10 @@ enum {
 const int SCREEN_X = 600;
 const int SCREEN_Y = 400;
 
+typedef SDL_Surface* (SDLCALL * PFN_IMG_LOAD) (const char *file);
+PFN_IMG_LOAD libIMG_Load;
+
+
 class Renderer : public IGamuiRenderer
 {
 public:
@@ -75,14 +79,12 @@ public:
 		int renderState = (int)_renderState;
 		switch( renderState ) {
 			case RENDERSTATE_TEXT:
-				glColor4f( 1.f, 1.f, 1.f, 1.f );
-				break;
-
 			case RENDERSTATE_NORMAL:
 				glColor4f( 1.f, 1.f, 1.f, 1.f );
 				break;
 
 			case RENDERSTATE_DISABLED:
+			case RENDERSTATE_TEXT_DISABLED:
 				glColor4f( 1.f, 1.f, 1.f, 0.5f );
 				break;
 
@@ -140,8 +142,8 @@ public:
 
 int main( int argc, char **argv )
 {    
-
 	SDL_Surface *surface = 0;
+
 
 	// SDL initialization steps.
     if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE | SDL_INIT_TIMER | SDL_INIT_AUDIO ) < 0 )
@@ -153,6 +155,9 @@ int main( int argc, char **argv )
 	SDL_EnableUNICODE( 1 );
 
 	const SDL_version* sversion = SDL_Linked_Version();
+
+	void* handle = SDL_LoadObject( "SDL_image" );
+	libIMG_Load = (PFN_IMG_LOAD)SDL_LoadFunction( handle, "IMG_Load" );
 
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 	SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8);
@@ -181,7 +186,7 @@ int main( int argc, char **argv )
 
 
 	// Load a bitmap
-	SDL_Surface* imageSurface = SDL_LoadBMP( "buttons.bmp" );
+	SDL_Surface* imageSurface = libIMG_Load( "buttons.png" );
 
 	GLuint imageTextureID;
 	glGenTextures( 1, &imageTextureID );
@@ -190,7 +195,7 @@ int main( int argc, char **argv )
 	glTexParameteri(	GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE );
 	glTexParameteri(	GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri(	GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );
-	glTexImage2D( GL_TEXTURE_2D, 0,	GL_RGB, imageSurface->w, imageSurface->h, 0, GL_BGR, GL_UNSIGNED_BYTE, imageSurface->pixels );
+	glTexImage2D( GL_TEXTURE_2D, 0,	GL_RGBA, imageSurface->w, imageSurface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageSurface->pixels );
 	SDL_FreeSurface( imageSurface );
 
 
@@ -205,6 +210,14 @@ int main( int argc, char **argv )
 	imageAtom.renderState = (const void*) RENDERSTATE_NORMAL;
 	imageAtom.textureHandle = (const void*) imageTextureID;
 	imageAtom.SetCoord( 0.5f, 0.5f, 228.f/256.f, 28.f/256.f );
+
+	RenderAtom decoAtom, decoAtomD;
+	decoAtom.renderState = (const void*) RENDERSTATE_NORMAL;
+	decoAtom.textureHandle = (const void*) imageTextureID;
+	decoAtom.SetCoord( 0, 0.25f, 0.25f, 0.f );
+
+	decoAtomD = decoAtom;
+	decoAtomD.renderState = (const void*) RENDERSTATE_DISABLED;
 
 	TextMetrics textMetrics;
 	Renderer renderer;
@@ -248,11 +261,17 @@ int main( int argc, char **argv )
 	downD = down;
 	downD.renderState  = (const void*) RENDERSTATE_DISABLED;
 
-	Button button;
-	button.Init( up, upD, down, downD, nullAtom, nullAtom, 50, 50 );
-	button.SetPos( 300, 50 );
-	button.SetSize( 100, 50 );
-	button.SetText( "Button" );
+	PushButton button0, button1;
+	button0.Init( up, upD, down, downD, decoAtom, decoAtomD, 50, 50 );
+	button0.SetPos( 350, 50 );
+	button0.SetSize( 150, 75 );
+	button0.SetText( "Button" );
+
+	button1.Init( up, upD, down, downD, decoAtom, decoAtomD, 50, 50 );
+	button1.SetPos( 350, 150 );
+	button1.SetSize( 150, 75 );
+	button1.SetText( "Button" );
+	button1.SetEnabled( false );
 
 	{
 		Gamui gamui;
@@ -262,7 +281,8 @@ int main( int argc, char **argv )
 		gamui.Add( &image1 );
 		gamui.Add( &image2 );
 		gamui.Add( &image3 );
-		gamui.Add( &button );
+		gamui.Add( &button0 );
+		gamui.Add( &button1 );
 		gamui.InitText( textAtom, textAtomD, 16, &textMetrics );
 
 		bool done = false;
