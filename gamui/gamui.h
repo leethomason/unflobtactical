@@ -121,10 +121,14 @@ public:
 	IGamuiText* GetTextInterface() const	{ return m_iText; }
 	int GetTextHeight() const				{ return m_textHeight; }
 
+	const GamItem* TapDown( int x, int y );
+	const GamItem* TapUp( int x, int y );
+
 private:
 	//static bool SortItems( const RenderItem& a, const RenderItem& b );
 	static bool SortItems( const GamItem* a, const GamItem* b );
 
+	GamItem*						m_itemTapped;
 	RenderAtom						m_textAtomEnabled;
 	RenderAtom						m_textAtomDisabled;
 	IGamuiText*						m_iText;
@@ -188,9 +192,13 @@ class GamItem
 public:
 	virtual void SetPos( float x, float y )		{ m_x = x; m_y = y; }
 	void SetPos( const float* x )				{ SetPos( x[0], x[1] ); }
-	float X() const						{ return m_x; }
-	float Y() const						{ return m_y; }
-	int Level() const					{ return m_level; }
+	
+	float X() const								{ return m_x; }
+	float Y() const								{ return m_y; }
+	virtual int Width() const = 0;
+	virtual int Height() const = 0;
+
+	int Level() const							{ return m_level; }
 
 	virtual void SetEnabled( bool enabled )		{}		// does nothing for many items.
 	bool Enabled() const						{ return m_enabled; }
@@ -199,7 +207,11 @@ public:
 
 	virtual void Attach( Gamui* );
 
-
+	enum {
+		TAP_UP,
+		TAP_DOWN
+	};
+	virtual bool HandleTap( int action, int x, int y )	{ return false; }
 
 	virtual const RenderAtom* GetRenderAtom() const = 0;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded ) = 0;
@@ -233,24 +245,28 @@ public:
 	TextLabel();
 	virtual ~TextLabel();
 
+	virtual int Width() const;
+	virtual int Height() const;
+
 	void SetText( const char* t );
 	const char* GetText();
 	void ClearText();
-	void CalcSize( int* width, int* height );
 	virtual void SetEnabled( bool enabled )		{ m_enabled = enabled; }
 
-//	virtual void AddItems( std::vector< RenderItem >* renderItems );
 	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
 	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
 
 private:
+	void CalcSize( int* width, int* height ) const;
 
 	enum { ALLOCATE = 16 };
 	union {
 		char buf[ALLOCATE];
 		std::string* str;
 	};
+	mutable int m_width;
+	mutable int m_height;
 };
 
 
@@ -267,8 +283,8 @@ public:
 	void SetSize( int width, int height )							{ m_width = width; m_height = height; }
 	void SetForeground( bool foreground );
 
-	int Width() const												{ return m_width; }
-	int Height() const												{ return m_height; }
+	virtual int Width() const										{ return m_width; }
+	virtual int Height() const										{ return m_height; }
 	int SrcWidth() const											{ return m_srcWidth; }
 	int SrcHeight() const											{ return m_srcHeight; }
 
@@ -300,6 +316,9 @@ public:
 				int srcWidth,
 				int srcHeight );
 
+	virtual int Width() const										{ return m_face.Width(); }
+	virtual int Height() const										{ return m_face.Height(); }
+
 	virtual void Attach( Gamui* gamui );
 	virtual void SetPos( float x, float y );
 	void SetSize( int width, int height );
@@ -314,6 +333,10 @@ protected:
 
 	Button();
 	virtual ~Button()	{}
+
+	bool m_up;
+	void SetState( bool enabled, bool up );
+
 
 private:
 
@@ -341,6 +364,8 @@ class PushButton : public Button
 public:
 	PushButton();
 	virtual ~PushButton()	{}
+
+	virtual bool HandleTap( int action, int x, int y );
 };
 
 
