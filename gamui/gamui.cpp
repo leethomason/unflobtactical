@@ -15,9 +15,68 @@
 
 #include "gamui.h"
 #include <algorithm>
+#include <math.h>
 
 using namespace gamui;
 using namespace std;
+
+static const float PI = 3.1415926535897932384626433832795f;
+
+void Matrix::SetXRotation( float theta )
+{
+	float cosTheta = cosf( theta*PI/180.0f );
+	float sinTheta = sinf( theta*PI/180.0f );
+
+	x[5] = cosTheta;
+	x[6] = sinTheta;
+
+	x[9] = -sinTheta;
+	x[10] = cosTheta;
+}
+
+
+void Matrix::SetYRotation( float theta )
+{
+	float cosTheta = cosf( theta*PI/180.0f );
+	float sinTheta = sinf( theta*PI/180.0f );
+
+	// COLUMN 1
+	x[0] = cosTheta;
+	x[1] = 0.0f;
+	x[2] = -sinTheta;
+	
+	// COLUMN 2
+	x[4] = 0.0f;
+	x[5] = 1.0f;
+	x[6] = 0.0f;
+
+	// COLUMN 3
+	x[8] = sinTheta;
+	x[9] = 0;
+	x[10] = cosTheta;
+}
+
+void Matrix::SetZRotation( float theta )
+{
+	float cosTheta = cosf( theta*PI/180.0f );
+	float sinTheta = sinf( theta*PI/180.0f );
+
+	// COLUMN 1
+	x[0] = cosTheta;
+	x[1] = sinTheta;
+	x[2] = 0.0f;
+	
+	// COLUMN 2
+	x[4] = -sinTheta;
+	x[5] = cosTheta;
+	x[6] = 0.0f;
+
+	// COLUMN 3
+	x[8] = 0.0f;
+	x[9] = 0.0f;
+	x[10] = 1.0f;
+}
+
 
 
 GamItem::GamItem( int p_level ) 
@@ -25,6 +84,9 @@ GamItem::GamItem( int p_level )
 	  m_y( 0 ),
 	  m_level( p_level ),
 	  m_visible( true ),
+	  m_rotationX( 0 ),
+	  m_rotationY( 0 ),
+	  m_rotationZ( 0 ),
 	  m_gamui( 0 ),
 	  m_enabled( true )
 {}
@@ -52,6 +114,27 @@ void GamItem::PushQuad( int *nIndex, int16_t* index, int base, int a, int b, int
 	index[(*nIndex)++] = base+e;
 	index[(*nIndex)++] = base+f;
 
+}
+
+
+void GamItem::ApplyRotation( int nVertex, Gamui::Vertex* vertex )
+{
+	if ( m_rotationX != 0.0f || m_rotationY != 0.0f || m_rotationZ != 0.0f ) {
+		Matrix m, mx, my, mz, t0, t1, temp;
+
+		t0.SetTranslation( -(X()+(float)Width()*0.5f), -(Y()+(float)Height()*0.5f), 0 );
+		t1.SetTranslation( (X()+(float)Width()*0.5f), (Y()+(float)Height()*0.5f), 0 );
+		mx.SetXRotation( m_rotationX );
+		my.SetYRotation( m_rotationY );
+		mz.SetZRotation( m_rotationZ );
+
+		m = t1 * mz * my * mx * t0;
+
+		for( int i=0; i<nVertex; ++i ) {
+			float in[3] = { vertex[i].x, vertex[i].y, 0 };
+			MultMatrix( m, in, 2, &vertex[i].x );
+		}
+	}
 }
 
 
@@ -309,6 +392,8 @@ void Image::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* ver
 		return;
 	}
 
+	int startVertex = *nVertex;
+
 	if (    !m_slice
 		 || ( m_width <= m_srcWidth && m_height <= m_srcHeight ) )
 	{
@@ -323,6 +408,7 @@ void Image::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* ver
 		vertex[(*nVertex)++].Set( x0, y1, m_atom.tx0, m_atom.ty0 );
 		vertex[(*nVertex)++].Set( x1, y1, m_atom.tx1, m_atom.ty0 );
 		vertex[(*nVertex)++].Set( x1, y0, m_atom.tx1, m_atom.ty1 );
+		ApplyRotation( 4, &vertex[startVertex] );
 	}
 	else {
 		float x[4] = { X(), X()+(float)(m_srcWidth/2), X()+(float)(m_width-m_srcWidth/2), X()+(float)m_width };
@@ -349,6 +435,7 @@ void Image::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* ver
 			}
 		}
 		*nVertex += 16;
+		ApplyRotation( 16, &vertex[startVertex] );
 	}
 }
 
@@ -481,12 +568,6 @@ const RenderAtom* Button::GetRenderAtom() const
 	return 0;
 }
 
-	/*void Button::AddItems( std::vector< RenderItem >* renderItems )
-{
-
-}
-*/
-
 
 void Button::Requires( int* indexNeeded, int* vertexNeeded )
 {
@@ -499,12 +580,6 @@ void Button::Requires( int* indexNeeded, int* vertexNeeded )
 void Button::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex )
 {
 	// does nothing - children draw
-}
-
-
-
-PushButton::PushButton() : Button()
-{
 }
 
 
@@ -522,6 +597,120 @@ bool PushButton::HandleTap( int action, int x, int y )
 	}
 	return handled;
 }
+
+
+bool ToggleButton::HandleTap( int action, int x, int y )
+{
+	bool handled = false;
+	if ( action == TAP_DOWN ) {
+		m_up = !m_up;
+		handled = true;
+		SetState( m_enabled, m_up );
+	}
+	return handled;
+}
+
+
+DigitalBar::DigitalBar() : GamItem( Gamui::LEVEL_FOREGROUND ),
+	m_nTicks( 0 ),
+	m_spacing( 0 )
+{
+}
+
+
+void DigitalBar::Init(	int nTicks,
+						const RenderAtom& atom0,
+						const RenderAtom& atom1,
+						const RenderAtom& atom2,
+						int srcWidth,
+						int srcHeight,
+						int spacing )
+{
+	GAMUIASSERT( nTicks <= MAX_TICKS );
+	m_nTicks = nTicks;
+	m_t0 = 0;
+	m_t1 = 0;
+
+	m_atom[0] = atom0;
+	m_atom[1] = atom1;
+	m_atom[2] = atom2;
+
+	for( int i=0; i<nTicks; ++i ) {
+		m_image[i].Init( atom0, srcWidth, srcHeight );
+		m_image[i].SetForeground( true );
+	}
+	SetRange( 0, 0 );
+	m_spacing = spacing;
+}
+
+
+
+void DigitalBar::SetRange( float t0, float t1 )
+{
+	if ( t0 < 0 ) t0 = 0;
+	if ( t0 > 1 ) t1 = 1;
+	if ( t1 < 0 ) t1 = 0;
+	if ( t1 > 1 ) t1 = 1;
+
+	t1 = Max( t1, t0 );
+
+	m_t0 = t0;
+	m_t1 = t1;
+
+	int index0 = (int)( t0 * (float)(m_nTicks-1.0f) + 0.5f );
+	int index1 = (int)( t1 * (float)(m_nTicks-1.0f) + 0.5f );
+
+	int w = m_image[0].SrcWidth();
+	int h = m_image[0].SrcWidth();
+
+	for( int i=0; i<index0; ++i ) {
+		m_image[i].SetAtom( m_atom[0], w, h );
+	}
+	for( int i=index0; i<index1; ++i ) {
+		m_image[i].SetAtom( m_atom[1], w, h );
+	}
+	for( int i=index1; i<m_nTicks; ++i ) {
+		m_image[i].SetAtom( m_atom[2], w, h );
+	}
+}
+
+
+void DigitalBar::Attach( Gamui* gamui )
+{
+	if ( gamui ) {
+		for( int i=0; i<m_nTicks; ++i ) {
+			gamui->Add( &m_image[i] );
+		}
+	}
+	GamItem::Attach( gamui );
+}
+
+
+const RenderAtom* DigitalBar::GetRenderAtom() const
+{
+	return 0;
+}
+
+
+void DigitalBar::Requires( int* indexNeeded, int* vertexNeeded )
+{
+	float x = X();
+	float y = Y();
+
+	for( int i=0; i<m_nTicks; ++i ) {
+		m_image[i].SetPos( x, y );
+		x += (float)m_spacing + m_image[i].SrcWidth();
+	}
+	*indexNeeded = 0;
+	*vertexNeeded = 0;
+}
+
+
+void DigitalBar::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex )
+{
+	// does nothing - children draw
+}
+
 
 
 Gamui::Gamui()
@@ -693,4 +882,19 @@ void Gamui::Render( IGamuiRenderer* renderer )
 	}
 
 	renderer->EndRender();
+}
+
+
+void Layout::DoLayout( GamItem** item, 
+					   int cx, int cy,
+					   int tableWidth, int tableHeight,
+					   float originX, float originY,
+					   int flags )
+{
+	for( int j=0; j<cy; ++j ) {
+		for( int i=0; i<cx; ++i ) {
+			item[i]->SetPos( originX + (float)i*((float)tableWidth/(float)cx),
+							 originY + (float)i*((float)tableHeight/(float)cy) );
+		}
+	}
 }

@@ -227,7 +227,7 @@ int main( int argc, char **argv )
 	textLabel[1].SetText( "Very long text to test the string allocator." );
 	textLabel[1].SetPos( 10, 20 );
 
-	Image image0, image1, image2, image3;
+	Image image0, image1, image2, image2b, image2c, image2d, image3;
 	image0.Init( imageAtom, 100, 100 );
 	image0.SetPos( 50, 50 );
 
@@ -238,6 +238,18 @@ int main( int argc, char **argv )
 	image2.Init( imageAtom, 100, 100 );
 	image2.SetPos( 200, 50 );
 	image2.SetSize( 50, 50 );
+
+	image2b.Init( imageAtom, 100, 100 );
+	image2b.SetPos( 270, 50 );
+	image2b.SetSize( 50, 50 );
+
+	image2c.Init( imageAtom, 100, 100 );
+	image2c.SetPos( 200, 120 );
+	image2c.SetSize( 50, 50 );
+
+	image2d.Init( imageAtom, 100, 100 );
+	image2d.SetPos( 270, 120 );
+	image2d.SetSize( 50, 50 );
 
 	image3.Init( imageAtom, 100, 100 );
 	image3.SetPos( 200, 200 );
@@ -273,6 +285,22 @@ int main( int argc, char **argv )
 	button1.SetText( "Button" );
 	button1.SetEnabled( false );
 
+	ToggleButton toggle;
+	toggle.Init( up, upD, down, downD, decoAtom, decoAtomD, 50, 50 );
+	toggle.SetPos( 350, 250 );
+	toggle.SetSize( 150, 75 );
+	toggle.SetText( "Toggle" );
+
+	RenderAtom tick0=up, tick1=up, tick2=up;
+	tick0.SetCoord( 190.f/256.f, 225.f/256.f, 205.f/256.f, 1 );
+	tick2.SetCoord( 190.f/256.f, 180.f/256.f, 205.f/256.f, 210.f/256.f );
+	tick1.SetCoord( 230.f/256.f, 225.f/256.f, 245.f/256.f, 1 );
+
+	DigitalBar bar;
+	bar.Init( 10, tick0, tick1, tick2, 15, 30, 2 );
+	bar.SetRange( 0.33f, 0.66f );
+	bar.SetPos( 20, 350 );
+
 	{
 		Gamui gamui;
 		gamui.Add( &textLabel[0] );
@@ -280,9 +308,14 @@ int main( int argc, char **argv )
 		gamui.Add( &image0 );
 		gamui.Add( &image1 );
 		gamui.Add( &image2 );
+		gamui.Add( &image2b );
+		gamui.Add( &image2c );
+		gamui.Add( &image2d );
 		gamui.Add( &image3 );
 		gamui.Add( &button0 );
 		gamui.Add( &button1 );
+		gamui.Add( &toggle );
+		gamui.Add( &bar );
 		gamui.InitText( textAtom, textAtomD, 16, &textMetrics );
 
 		bool done = false;
@@ -319,6 +352,10 @@ int main( int argc, char **argv )
 			glClearColor( 0, 0, 0, 1 );
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+			float rotation = (float)((double)SDL_GetTicks() * 0.05 );
+			image2b.SetRotationX( rotation );
+			image2c.SetRotationY( rotation );
+			image2d.SetRotationZ( rotation );
 			gamui.Render( &renderer );
 
 			SDL_GL_SwapBuffers();

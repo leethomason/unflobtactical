@@ -75,13 +75,6 @@ struct RenderAtom
 };
 
 
-//struct RenderItem
-//{
-//	RenderAtom* atom;
-//	GamItem* item;
-//};
-
-
 class Gamui
 {
 public:
@@ -125,7 +118,6 @@ public:
 	const GamItem* TapUp( int x, int y );
 
 private:
-	//static bool SortItems( const RenderItem& a, const RenderItem& b );
 	static bool SortItems( const GamItem* a, const GamItem* b );
 
 	GamItem*						m_itemTapped;
@@ -139,7 +131,6 @@ private:
 	Vertex							m_vertexBuffer[VERTEX_SIZE];
 
 	std::vector< GamItem* > m_itemArr;
-	//std::vector< RenderItem > m_renderArr;
 };
 
 
@@ -173,12 +164,11 @@ public:
 /*
 	Subclasses:
 		x TextLabel
-		- Bar
+		x Bar
 		x Image
-		- Text table
-		- Button
-			- Toggle
-			- Radio
+		x Button
+		x	- Toggle
+		x	- Radio
 
 		effects:
 		- rotate x
@@ -204,6 +194,15 @@ public:
 	bool Enabled() const						{ return m_enabled; }
 	virtual void SetVisible( bool visible )		{ m_visible = visible; }
 	bool Visible() const						{ return m_visible; }
+	
+	void SetLevel( int level )					{ m_level = level; }
+
+	void SetRotationX( float degrees )			{ m_rotationX = degrees; }
+	void SetRotationY( float degrees )			{ m_rotationY = degrees; }
+	void SetRotationZ( float degrees )			{ m_rotationZ = degrees; }
+	float RotationX() const						{ return m_rotationX; }
+	float RotationY() const						{ return m_rotationY; }
+	float RotationZ() const						{ return m_rotationZ; }
 
 	virtual void Attach( Gamui* );
 
@@ -217,19 +216,25 @@ public:
 	virtual void Requires( int* indexNeeded, int* vertexNeeded ) = 0;
 	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex ) = 0;
 
-	void SetLevel( int level )				{ m_level = level; }
-
 private:
+	GamItem( const GamItem& );			// private, not implemented.
+	void operator=( const GamItem& );	// private, not implemented.
+
 	float m_x;
 	float m_y;
 	int m_level;
 	bool m_visible;
+	float m_rotationX;
+	float m_rotationY;
+	float m_rotationZ;
 
 protected:
 	template <class T> T Min( T a, T b ) const		{ return a<b ? a : b; }
 	template <class T> T Max( T a, T b ) const		{ return a>b ? a : b; }
 	float Mean( float a, float b ) const			{ return (a+b)*0.5f; }
 	static void PushQuad( int *nIndex, int16_t* index, int base, int a, int b, int c, int d, int e, int f );
+
+	void ApplyRotation( int nVertex, Gamui::Vertex* vertex );
 
 	GamItem( int level );
 	virtual ~GamItem()					{}
@@ -362,10 +367,127 @@ private:
 class PushButton : public Button
 {
 public:
-	PushButton();
+	PushButton() : Button()	{}
 	virtual ~PushButton()	{}
 
 	virtual bool HandleTap( int action, int x, int y );
+};
+
+
+class ToggleButton : public Button
+{
+public:
+	ToggleButton() : Button()	{}
+	virtual ~ToggleButton()		{}
+
+	virtual bool HandleTap( int action, int x, int y );
+};
+
+
+class DigitalBar : public GamItem
+{
+public:
+	DigitalBar();
+	virtual ~DigitalBar()		{}
+
+	void Init(	int nTicks,
+				const RenderAtom& atom0,
+				const RenderAtom& atom1,
+				const RenderAtom& atom2,
+				int tickSrcWidth,
+				int tickSrcHeight,
+				int spacing );
+
+	void SetRange( float t0, float t1 );
+
+	virtual int Width() const				{ return m_image[0].SrcWidth()*m_nTicks + m_spacing*(m_nTicks-1); }
+	virtual int Height() const				{ return m_image[0].SrcHeight(); }
+
+	virtual void Attach( Gamui* gamui );
+
+	virtual const RenderAtom* GetRenderAtom() const;
+	virtual void Requires( int* indexNeeded, int* vertexNeeded );
+	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
+
+private:
+	enum { MAX_TICKS = 10 };
+	int			m_nTicks;
+	float		m_t0, m_t1;
+	RenderAtom	m_atom[3];
+	int			m_spacing;
+	Image		m_image[MAX_TICKS];
+};
+
+
+class Layout
+{
+public:
+	Layout()	{}
+	~Layout()	{}
+
+	void DoLayout( GamItem** item, 
+				   int cx, int cy,
+				   int tableWidth, int tableHeight,
+				   float originX, float originY,
+				   int flags );
+
+};
+
+class Matrix
+{
+  public:
+	Matrix()		{	x[0] = x[5] = x[10] = x[15] = 1.0f;
+						x[1] = x[2] = x[3] = x[4] = x[6] = x[7] = x[8] = x[9] = x[11] = x[12] = x[13] = x[14] = 0.0f; 
+					}
+
+	void SetTranslation( float _x, float _y, float _z )		{	x[12] = _x;	x[13] = _y;	x[14] = _z;	}
+
+	void SetXRotation( float thetaDegree );
+	void SetYRotation( float thetaDegree );
+	void SetZRotation( float thetaDegree );
+
+	float x[16];
+
+	inline friend Matrix operator*( const Matrix& a, const Matrix& b )
+	{	
+		Matrix result;
+		MultMatrix( a, b, &result );
+		return result;
+	}
+
+
+	inline friend void MultMatrix( const Matrix& a, const Matrix& b, Matrix* c )
+	{
+	// This does not support the target being one of the sources.
+		GAMUIASSERT( c != &a && c != &b && &a != &b );
+
+		// The counters are rows and columns of 'c'
+		for( int i=0; i<4; ++i ) 
+		{
+			for( int j=0; j<4; ++j ) 
+			{
+				// for c:
+				//	j increments the row
+				//	i increments the column
+				*( c->x + i +4*j )	=   a.x[i+0]  * b.x[j*4+0] 
+									  + a.x[i+4]  * b.x[j*4+1] 
+									  + a.x[i+8]  * b.x[j*4+2] 
+									  + a.x[i+12] * b.x[j*4+3];
+			}
+		}
+	}
+
+	inline friend void MultMatrix( const Matrix& m, const float* v, int components, float* out )
+	{
+		float w = 1.0f;
+		for( int i=0; i<components; ++i )
+		{
+			*( out + i )	=		m.x[i+0]  * v[0] 
+								  + m.x[i+4]  * v[1]
+								  + m.x[i+8]  * v[2]
+								  + m.x[i+12] * w;
+		}
+	}
 };
 
 
