@@ -103,7 +103,7 @@ public:
 	// UI: origin in lower left, oriented with device.
 	// Sets both the MODELVIEW and the PROJECTION for UI coordinates. (The view is not set.)
 	// The clip is interpreted as the location where the UI can be.
-	void SetUI( const grinliz::Rectangle2I* clipInUI );
+	void SetUI( const grinliz::Rectangle2I* clipInUI, bool flipped );
 
 	// Set the perspective PROJECTION.
 	void SetPerspective( float near, float far, float fovDegrees, const grinliz::Rectangle2I* clipInUI );

@@ -49,13 +49,13 @@ public:
 	static void End();
 
 	static void Draw( int x, int y, const char* format, ... );
-
-private:
-	static void TextOut( const char* str, int x, int y, int *w, int *h );
 	static void Metrics(	int c,							// character in - 0 is space 
 							int* advance,					// advance, in pixels
 							int* width,
 							grinliz::Rectangle2I* src );	// location in texture, in pixels
+
+private:
+	static void TextOut( const char* str, int x, int y, int *w, int *h );
 
 	static Screenport* screenport;
 	static Texture* texture;

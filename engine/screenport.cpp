@@ -38,7 +38,7 @@ Screenport::Screenport( int screenWidth, int screenHeight, int rotation )
 }
 
 
-void Screenport::SetUI( const Rectangle2I* clip )	
+void Screenport::SetUI( const Rectangle2I* clip, bool flipped )	
 {
 	if ( viewPortScale == 0.0f ) {
 		// Get the actual pixel size. Then adjust it to be the correct ratio.
@@ -87,14 +87,20 @@ void Screenport::SetUI( const Rectangle2I* clip )
 	view2D = r*t;
 	
 	projection2D.SetIdentity();
-	projection2D.SetOrtho( 0, (float)ScreenWidth(), 0, (float)ScreenHeight(), -100, 100 );
+	if ( flipped )
+		projection2D.SetOrtho( 0, (float)ScreenWidth(), (float)ScreenHeight(), 0, -1, 1 );
+	else
+		projection2D.SetOrtho( 0, (float)ScreenWidth(), 0, (float)ScreenHeight(), -100, 100 );
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();				// projection
 
 	// Set the ortho matrix, help the driver
 	//glMultMatrixf( projection.x );
-	glOrthofX( 0, ScreenWidth(), 0, ScreenHeight(), -100, 100 );
+	if ( flipped )
+		glOrthofX( 0, ScreenWidth(), ScreenHeight(), 0, -100, 100 );
+	else
+		glOrthofX( 0, ScreenWidth(), 0, ScreenHeight(), -100, 100 );
 	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();				// model

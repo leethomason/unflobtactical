@@ -65,6 +65,14 @@ void GameTap( void* handle, int count, int x, int y )
 	game->Tap( count, x, y );
 }
 
+
+//void GameTapExtra( void* handle, int action, int x, int y )
+//{
+//	Game* game = (Game*)handle;
+//	game->TapExtra( action, x, y );
+//}
+
+
 void GameInputCancelled( void* handle )
 {
 	Game* game = (Game*)handle;

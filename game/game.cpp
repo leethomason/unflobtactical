@@ -158,6 +158,7 @@ void Game::Init()
 	LoadModels();
 	LoadMapResources();
 	LoadItemResources();
+	LoadAtoms();
 
 	delete modelLoader;
 	modelLoader = 0;
@@ -323,6 +324,21 @@ Scene* Game::CreateScene( int id, void* data )
 }
 
 
+const gamui::RenderAtom& Game::GetRenderAtom( int id )
+{
+	GLASSERT( id >= 0 && id < ATOM_COUNT );
+	GLASSERT( renderAtoms[id].textureHandle );
+	return renderAtoms[id];
+}
+
+
+const gamui::ButtonLook& Game::GetButtonLook( int id )
+{
+	GLASSERT( id >= 0 && id < LOOK_COUNT );
+	return buttonLooks[id];
+}
+
+
 void Game::Load( const TiXmlDocument& doc )
 {
 	// Already pushed the BattleScene. Note that the
@@ -424,7 +440,7 @@ void Game::DoTick( U32 _currentTime )
 	trianglesSinceMark += trianglesRendered;
 
 	if ( renderPass & Scene::RENDER_2D ) {
-		screenport.SetUI( &clip2D );
+		screenport.SetUI( &clip2D, (renderPass & Scene::RENDER_2D_FLIPPED) ? true : false );
 		scene->DrawHUD();
 	}
 
@@ -500,6 +516,15 @@ void Game::Tap( int tap, int sx, int sy )
 
 	sceneStack.Top()->Tap( tap, view, world );
 }
+
+/*
+void Game::TapExtra( int action, int sx, int sy )
+{
+	Vector2I view;
+	screenport.ScreenToView( sx, sy, &view );
+	sceneStack.Top()->TapExtra( action, view );
+}
+*/
 
 
 void Game::Drag( int action, int sx, int sy )
