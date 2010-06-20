@@ -20,6 +20,7 @@
 #include "screenport.h"
 #include "../grinliz/glrectangle.h"
 #include "../grinliz/glstringutil.h"
+#include "../gamui/gamui.h"
 
 
 enum {
@@ -419,6 +420,31 @@ public:
 //							const Texture* texture );
 	static void GetDecoUV( int deco, grinliz::Rectangle2F* uv );
 };
+
+
+class UIRenderer : public gamui::IGamuiRenderer, public gamui::IGamuiText
+{
+public:
+	enum {
+		RENDERSTATE_NORMAL = 1,
+		RENDERSTATE_DISABLED
+	};
+
+	UIRenderer() {}
+
+	virtual void BeginRender();
+	virtual void EndRender();
+
+	virtual void BeginRenderState( const void* renderState );
+	virtual void BeginTexture( const void* textureHandle );
+	virtual void Render( const void* renderState, const void* textureHandle, int nIndex, const int16_t* index, int nVertex, const gamui::Gamui::Vertex* vertex ) ;
+
+	static void SetAtomCoordFromPixel( int x0, int y0, int x1, int y1, int w, int h, gamui::RenderAtom* );
+
+	virtual void GamuiGlyph( int c, gamui::IGamuiText::GlyphMetrics* metric );
+	
+};
+
 
 
 #endif // UIRENDERING_INCLUDED

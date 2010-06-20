@@ -104,10 +104,10 @@ int main( int argc, char **argv )
 	if ( fullscreen )
 		videoFlags |= SDL_FULLSCREEN;
 
-	int width = IPOD_SCREEN_HEIGHT*2;
-	int height = IPOD_SCREEN_WIDTH*2;
-	//int width = IPOD_SCREEN_HEIGHT;
-	//int height = IPOD_SCREEN_WIDTH;
+	//int width = IPOD_SCREEN_HEIGHT*2;
+	//int height = IPOD_SCREEN_WIDTH*2;
+	int width = IPOD_SCREEN_HEIGHT;
+	int height = IPOD_SCREEN_WIDTH;
 
 	const SDL_VideoInfo* video = SDL_GetVideoInfo();
 	if ( video->current_h < height*4/3 ) {
@@ -331,6 +331,7 @@ int main( int argc, char **argv )
 				if ( event.button.button == 1 ) {
 					GameDrag( game, GAME_DRAG_START, x, y );
 					dragging = true;
+					//GameTapExtra( game, GAME_TAP_EXTRA_DOWN, x, y );
 				}
 				else if ( event.button.button == 3 ) {
 					zooming = true;
@@ -346,6 +347,7 @@ int main( int argc, char **argv )
 				TransformXY( event.button.x, event.button.y, &x, &y );
 
 				if ( dragging ) {
+					//GameTapExtra( game, GAME_TAP_EXTRA_UP, x, y );
 					if ( event.button.button == 1 ) {
 						GameDrag( game, GAME_DRAG_END, x, y );
 						dragging = false;

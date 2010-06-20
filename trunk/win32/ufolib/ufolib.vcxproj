@@ -69,6 +69,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\gamui\gamui.h" />
     <ClInclude Include="..\..\grinliz\glbitarray.h" />
     <ClInclude Include="..\..\grinliz\glcontainer.h" />
     <ClInclude Include="..\..\grinliz\gldebug.h" />
@@ -93,6 +94,7 @@
     <ClInclude Include="..\..\shared\glmap.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\gamui\gamui.cpp" />
     <ClCompile Include="..\..\grinliz\glcontainer.cpp" />
     <ClCompile Include="..\..\grinliz\gldebug.cpp" />
     <ClCompile Include="..\..\grinliz\gldynamic.cpp" />

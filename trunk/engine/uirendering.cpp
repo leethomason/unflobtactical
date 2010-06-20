@@ -1026,3 +1026,103 @@ void UIButtonGroup::CalcButtons()
 	uv->Set( dx, dy, dx+decoTX,	dy+decoTY );
 }
 
+
+void UIRenderer::BeginRender()
+{
+	CHECK_GL_ERROR;
+	
+	glEnable( GL_TEXTURE_2D );
+	glDisable( GL_DEPTH_TEST );
+	glDisableClientState( GL_NORMAL_ARRAY );
+
+	glEnable( GL_BLEND );
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	CHECK_GL_ERROR;
+}
+
+
+void UIRenderer::EndRender()
+{
+	CHECK_GL_ERROR;
+	glEnable( GL_DEPTH_TEST );
+	glEnableClientState( GL_NORMAL_ARRAY );
+	CHECK_GL_ERROR;
+}
+
+
+void UIRenderer::BeginRenderState( const void* renderState )
+{
+	switch ( (int)renderState )
+	{
+	case RENDERSTATE_NORMAL:
+		glColor4f( 1, 1, 1, 1 );
+		break;
+
+	case RENDERSTATE_DISABLED:
+		glColor4f( 1, 1, 1, 0.5f );
+		break;
+
+	default:
+		GLASSERT( 0 );
+		break;
+	}
+
+}
+
+
+void UIRenderer::BeginTexture( const void* textureHandle )
+{
+	Texture* texture = (Texture*)textureHandle;
+	glBindTexture( GL_TEXTURE_2D, texture->GLID() );
+}
+
+
+void UIRenderer::Render( const void* renderState, const void* textureHandle, int nIndex, const int16_t* index, int nVertex, const gamui::Gamui::Vertex* vertex )
+{
+	glVertexPointer(   2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].x );
+	glTexCoordPointer( 2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].tx );
+	glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, index );
+}
+
+
+void UIRenderer::SetAtomCoordFromPixel( int x0, int y0, int x1, int y1, int w, int h, gamui::RenderAtom* atom )
+{
+	atom->tx0 = (float)x0 / w;
+	atom->tx1 = (float)x1 / w;
+
+	atom->ty0 = (float)(h-y1) / h;
+	atom->ty1 = (float)(h-y0) / h;
+}
+
+
+void UIRenderer::GamuiGlyph( int c, gamui::IGamuiText::GlyphMetrics* metric )
+{
+	int advance=0;
+	int width=0;
+	Rectangle2I src;
+	if ( c >= 32 && c < 128 ) {
+		UFOText::Metrics( c-32, &advance, &width, &src );
+
+		static const float CX = (1.f/256.f);
+		static const float CY = (1.f/128.f);
+
+		metric->advance = (float)advance;
+		metric->width = (float)width;
+		metric->height = 16.0f;
+
+		metric->tx0 = (float)src.min.x * CX;
+		metric->tx1 = (float)src.max.x * CX;
+
+		metric->ty1 = (float)src.min.y * CY;
+		metric->ty0 = (float)src.max.y * CY;
+	}
+	else {
+		metric->advance = 1.0f;
+		metric->width = 1.0f;
+		metric->height = 16.0f;
+		metric->tx0 = metric->ty0 = metric->tx1 = metric->ty1 = 0.0f;
+	}
+}
+
+

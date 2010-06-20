@@ -68,7 +68,7 @@ void UFOText::Begin()
 
 	glColor4f( 1.f, 1.f, 1.f, 1.f );
 
-	screenport->SetUI( 0 );
+	screenport->SetUI( 0, false );
 	glBindTexture( GL_TEXTURE_2D, texture->GLID() );
 }
 

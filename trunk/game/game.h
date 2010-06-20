@@ -27,6 +27,7 @@
 #include "../engine/ufoutil.h"
 #include "../tinyxml/tinyxml.h"
 #include "../shared/gamedbreader.h"
+#include "../gamui/gamui.h"
 
 class ParticleSystem;
 class Scene;
@@ -99,6 +100,7 @@ public:
 	void DoTick( U32 msec );
 
 	void Tap( int count, int x, int y );
+	//void TapExtra( int action, int x, int y );
 	void Drag( int action, int x, int y );
 	void Zoom( int action, int distance );
 	void Rotate( int action, float degreesFromStart );
@@ -142,6 +144,23 @@ public:
 	void Save( TiXmlDocument* doc );
 
 	const gamedb::Reader* GetDatabase()	{ return database; }
+
+	enum {
+		ATOM_TEXT, ATOM_TEXT_D,
+		ATOM_TACTICAL_BACKGROUND,
+		ATOM_GREEN_BUTTON_UP, ATOM_GREEN_BUTTON_UP_D, ATOM_GREEN_BUTTON_DOWN, ATOM_GREEN_BUTTON_DOWN_D,
+		ATOM_BLUE_BUTTON_UP, ATOM_BLUE_BUTTON_UP_D, ATOM_BLUE_BUTTON_DOWN, ATOM_BLUE_BUTTON_DOWN_D,
+		ATOM_RED_BUTTON_UP, ATOM_RED_BUTTON_UP_D, ATOM_RED_BUTTON_DOWN, ATOM_RED_BUTTON_DOWN_D,
+		ATOM_COUNT
+	};
+	const gamui::RenderAtom& GetRenderAtom( int id );
+	enum {
+		GREEN_BUTTON,
+		BLUE_BUTTON,
+		RED_BUTTON,
+		LOOK_COUNT
+	};
+	const gamui::ButtonLook& GetButtonLook( int id );
 
 	// For creating some required textures:
 	virtual void CreateTexture( Texture* t );
@@ -205,9 +224,10 @@ private:
 	void LoadTextures();
 	void LoadModels();
 	void LoadModel( const char* name );
-//	void LoadImages();
 	void LoadMapResources();
 	void LoadItemResources();
+	void LoadAtoms();
+
 	void DumpWeaponInfo( FILE* fp, float range, const Stats& stats, int count );
 
 	void InitMapLight( int index, const MapLightInit* init );
@@ -235,6 +255,9 @@ private:
 	int rotTestCount;
 	std::string savePath;
 	CDynArray< char > resourceBuf;
+
+	gamui::RenderAtom renderAtoms[ATOM_COUNT];
+	gamui::ButtonLook buttonLooks[LOOK_COUNT];
 	
 #ifdef MAPMAKER	
 	bool showPathing;

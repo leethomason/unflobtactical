@@ -23,79 +23,115 @@
 #include <string>
 using namespace std;
 using namespace grinliz;
+using namespace gamui;
 
 TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 {
-	showNewChoices = false;
-
 	Engine* engine = GetEngine();
 
 	// -- Background -- //
-	background = new UIImage( engine->GetScreenport() );
-	Texture* bg = TextureManager::Instance()->GetTexture( "intro" );
-	GLASSERT( bg );
-	background->Init( bg, 480, 320 );
+	gamui::RenderAtom nullAtom;
+	gamuiContainer.Init( &uiRenderer, game->GetRenderAtom( Game::ATOM_TEXT ), game->GetRenderAtom( Game::ATOM_TEXT_D ), &uiRenderer );
 
-	backgroundNew = new UIImage( engine->GetScreenport() );
-	backgroundNew->Init( TextureManager::Instance()->GetTexture( "newscreen" ), 480, 320 );
+	background.Init( game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND ) );
+	gamuiContainer.Add( &background );
 
-	// -- Buttons -- //
-	{
-		buttons = new UIButtonBox( engine->GetScreenport() );
+	RenderAtom backgroundNewAtom( UIRenderer::RENDERSTATE_NORMAL, TextureManager::Instance()->GetTexture( "newscreen" ), 0, 0, 1, 1, 480, 320 );
+	UIRenderer::SetAtomCoordFromPixel( 0, 0, 480, 320, 512, 512, &backgroundNewAtom );
 
-		int icons[] = { ICON_GREEN_BUTTON_WIDE, ICON_GREEN_BUTTON_WIDE, ICON_GREEN_BUTTON_WIDE };
-		const char* iconText[] = { "New", "Continue" };
-		buttons->InitButtons( icons, 2 );
-		buttons->SetOrigin( 50, 80 );
-		buttons->SetButtonSize( GAME_BUTTON_SIZE*2, GAME_BUTTON_SIZE );
-		buttons->SetText( iconText );
+	backgroundNew.Init( backgroundNewAtom );
+	backgroundNew.SetVisible( false );
+	gamuiContainer.Add( &backgroundNew );
+
+	const gamui::ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
+	const gamui::ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
+
+	continueButton.Init( green );
+	continueButton.SetPos( 50, 150 );
+	continueButton.SetSizeByScale( 2.0f, 1.0f );
+	continueButton.SetText( "Continue" );
+
+	newButton.Init( green );
+	newButton.SetPos( 50, 220 );
+	newButton.SetSizeByScale( 2.0f, 1.0f );
+	newButton.SetText( "New" );
+
+	gamuiContainer.Add( &continueButton );
+	gamuiContainer.Add( &newButton );
+
+	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "8", "Low", "Med", "Hi", "8", "16", "Low", "Med", "Hi", "Day", "Night", "Farm" };
+	static const int   toggleGroup[TOGGLE_COUNT] = { 1,   1,    2,	   2,    2,    3,    3,   4,     4,      4,    5,     5,       6 };
+	for( int i=0; i<TOGGLE_COUNT; ++i ) {
+		toggles[i].Init( green );
+		toggles[i].SetText( toggleLabel[i] );
+		toggles[i].SetToggleGroup( toggleGroup[i] );
+		toggles[i].SetVisible( false );
+		toggles[i].SetSize( 50, 50 );
+		gamuiContainer.Add( &toggles[i] );
 	}
 
-	// -- New Game choices -- //
-	{
-		choices = new UIButtonGroup( engine->GetScreenport() );
-	
-		const int XSIZE = 50;
-		const int YSIZE = 50;
-		int h = engine->GetScreenport().UIHeight()-1;
 
-		int icons[OPTION_COUNT] = { ICON_GREEN_BUTTON };
+	UIItem* squadItems[] = { &toggles[0], &toggles[1] };
+	gamuiContainer.Layout(	squadItems, 2,			// squad #
+							4, 1, 
+							20, 25,
+							150, 50,
+							0 );
+	UIItem* squadStrItems[] = { &toggles[2], &toggles[3], &toggles[4] };
+	gamuiContainer.Layout(	squadStrItems, 3,			// squad strength
+							4, 1, 
+							20, 75,
+							150, 50,
+							0 );
+	UIItem* alienItems[] = { &toggles[5], &toggles[6] };
+	gamuiContainer.Layout(	alienItems, 2,			// alien #
+							4, 1, 
+							20, 150,
+							150, 50,
+							0 );
+	UIItem* alienStrItems[] = { &toggles[7], &toggles[8], &toggles[9] };
+	gamuiContainer.Layout(	alienStrItems, 3,			// alien strength
+							4, 1, 
+							20, 200,
+							150, 50,
+							0 );
+	UIItem* weatherItems[] = { &toggles[10], &toggles[11] };
+	gamuiContainer.Layout(	weatherItems, 2,		// weather
+							2, 1, 
+							20, 270,
+							100, 50,
+							0 );
+	UIItem* locationItems[] = { &toggles[12] };
+	gamuiContainer.Layout(  locationItems, 1,		// location
+							5, 2,
+							215, 25,
+							250, 100,
+							0 );
+							
+	goButton.Init( blue );
+	goButton.SetPos( 360, 270 );
+	goButton.SetSize( 100, 50 );
+	goButton.SetText( "Go!" );
+	goButton.SetVisible( false );
+	gamuiContainer.Add( &goButton );
 
-		choices->SetOrigin( 0, 0 );
-		choices->InitButtons( icons, OPTION_COUNT );
-
-		choices->SetBG( SQUAD_4, 20+XSIZE*0, h-124, ICON_GREEN_BUTTON, DECO_NONE, "4", false );
-		choices->SetBG( SQUAD_8, 20+XSIZE*1, h-124, ICON_GREEN_BUTTON, DECO_NONE, "8", true );
-		choices->SetBG( TERRAN_LOW,  20+XSIZE*0, h-124+YSIZE*1, ICON_GREEN_BUTTON, DECO_NONE, "Low", false );
-		choices->SetBG( TERRAN_MED,  20+XSIZE*1, h-124+YSIZE*1, ICON_GREEN_BUTTON, DECO_NONE, "Med", true );
-		choices->SetBG( TERRAN_HIGH, 20+XSIZE*2, h-124+YSIZE*1, ICON_GREEN_BUTTON, DECO_NONE, "Hi", false );
-
-		choices->SetBG( ALIEN_8,  20+XSIZE*0, h-245, ICON_GREEN_BUTTON, DECO_NONE, "8", true );
-		choices->SetBG( ALIEN_16, 20+XSIZE*1, h-245, ICON_GREEN_BUTTON, DECO_NONE, "16", false );
-		choices->SetBG( ALIEN_LOW,  20+XSIZE*0, h-245+YSIZE*1, ICON_GREEN_BUTTON, DECO_NONE, "Low", true );
-		choices->SetBG( ALIEN_MED,  20+XSIZE*1, h-245+YSIZE*1, ICON_GREEN_BUTTON, DECO_NONE, "Med", false );
-		choices->SetBG( ALIEN_HIGH, 20+XSIZE*2, h-245+YSIZE*1, ICON_GREEN_BUTTON, DECO_NONE, "Hi", false );
-
-		choices->SetBG( TIME_DAY,   20+XSIZE*0, h-316, ICON_GREEN_BUTTON, DECO_NONE, "Day", true );
-		choices->SetBG( TIME_NIGHT, 20+XSIZE*1, h-316, ICON_GREEN_BUTTON, DECO_NONE, "Night", false );
-
-		choices->SetBG( LOC_FARM,	210, h-124,	ICON_GREEN_BUTTON, DECO_NONE, "Farm", true );
-		choices->SetBG( SEED,		 155, h-317, ICON_GREEN_BUTTON, DECO_NONE, "Seed", false );
-		choices->SetBG( GO_NEW_GAME, 360, h-317, ICON_GREEN_BUTTON, DECO_NONE, "GO!", false );
-
-		choices->SetText( SEED, "Seed", "0" );
-	}
+	seedButton.Init( green );
+	seedButton.SetPos( 155, 270 );
+	seedButton.SetSize( 50, 50 );
+	seedButton.SetText( "0" );
+	seedButton.SetVisible( false );
+	gamuiContainer.Add( &seedButton );
 
 	// Is there a current game?
 	const std::string& savePath = game->GameSavePath();
-	buttons->SetEnabled( CONTINUE_GAME, false );
+	continueButton.SetEnabled( false );
 	FILE* fp = fopen( savePath.c_str(), "r" );
 	if ( fp ) {
 		fseek( fp, 0, SEEK_END );
 		unsigned long len = ftell( fp );
 		if ( len > 100 ) {
 			// 20 ignores empty XML noise (hopefully)
-			buttons->SetEnabled( CONTINUE_GAME, true );
+			continueButton.SetEnabled( true );
 		}
 		fclose( fp );
 	}
@@ -104,25 +140,24 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 
 TacticalIntroScene::~TacticalIntroScene()
 {
-	delete background;
-	delete backgroundNew;
-	delete buttons;
-	delete choices;
 }
 
 
 void TacticalIntroScene::DrawHUD()
 {
-	if ( showNewChoices ) {
-		backgroundNew->Draw();
-		choices->Draw();
-	}
-	else {
-		background->Draw();
-		buttons->Draw();
-	}
+	gamuiContainer.Render();
 }
 
+
+/*
+void TacticalIntroScene::TapExtra( int action, const grinliz::Vector2I& screen )
+{
+	if ( action == 0 )
+		gamuiContainer.TapDown( (float)screen.x, float(GetEngine()->GetScreenport().UIHeight()-1-screen.y) );
+	else if ( action == 1 )
+		gamuiContainer.TapUp( (float)screen.x, float(GetEngine()->GetScreenport().UIHeight()-1-screen.y) );
+}
+*/
 
 void TacticalIntroScene::Tap(	int count, 
 								const Vector2I& screen,
@@ -130,78 +165,46 @@ void TacticalIntroScene::Tap(	int count,
 {
 	int ux, uy;
 	GetEngine()->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );
+	uy = GetEngine()->GetScreenport().UIHeight() - 1 - screen.y;
+	
+	const gamui::UIItem* item = gamuiContainer.TapDown( (float)ux, (float)uy );
+	gamuiContainer.TapUp( (float)ux, (float)uy );
 
-	if ( !showNewChoices ) {
-		int tap = buttons->QueryTap( ux, uy );
-		switch ( tap ) {
-			//case TEST_GAME:			game->loadRequested = 2;			break;
-			case NEW_GAME:			showNewChoices = true;				break;
-			case CONTINUE_GAME:		game->loadRequested = 0;			break;
-
-			default:
-				break;
+	if ( item == &newButton ) {
+		newButton.SetVisible( false );
+		continueButton.SetVisible( false );
+		for( int i=0; i<TOGGLE_COUNT; ++i ) {
+			toggles[i].SetVisible( true );
 		}
+		goButton.SetVisible( true );
+		seedButton.SetVisible( true );
+
+		background.SetVisible( false );
+		backgroundNew.SetVisible( true );
+		TextureManager::Instance()->ContextShift();
 	}
-	else {
-		int tap = choices->QueryTap( ux, uy );
-		switch ( tap ) {
-			case SQUAD_4:	
-			case SQUAD_8:
-				choices->SetHighLight( SQUAD_4, (tap==SQUAD_4) );
-				choices->SetHighLight( SQUAD_8, (tap==SQUAD_8) );
-				break;
-
-			case TERRAN_LOW:	
-			case TERRAN_MED:
-			case TERRAN_HIGH:
-				choices->SetHighLight( TERRAN_LOW, (tap==TERRAN_LOW) );
-				choices->SetHighLight( TERRAN_MED, (tap==TERRAN_MED) );
-				choices->SetHighLight( TERRAN_HIGH, (tap==TERRAN_HIGH) );
-				break;
-
-			case ALIEN_8:	
-			case ALIEN_16:
-				choices->SetHighLight( ALIEN_8,  (tap==ALIEN_8) );
-				choices->SetHighLight( ALIEN_16, (tap==ALIEN_16) );
-				break;
-
-			case ALIEN_LOW:	
-			case ALIEN_MED:
-			case ALIEN_HIGH:
-				choices->SetHighLight( ALIEN_LOW, (tap==ALIEN_LOW) );
-				choices->SetHighLight( ALIEN_MED, (tap==ALIEN_MED) );
-				choices->SetHighLight( ALIEN_HIGH, (tap==ALIEN_HIGH) );
-				break;
-
-			case TIME_DAY:	
-			case TIME_NIGHT:
-				choices->SetHighLight( TIME_DAY,  (tap==TIME_DAY) );
-				choices->SetHighLight( TIME_NIGHT, (tap==TIME_NIGHT) );
-				break;
-
-			case GO_NEW_GAME:
-				game->loadRequested = 1;
-				WriteXML( &game->newGameXML );
-				break;
-
-			case SEED:
-				{
-					const char* seedStr = choices->GetText( SEED, 1 );
-					int seed = atol( seedStr );
-					seed += 1;
-					if ( seed == 10 )
-						seed = 0;
-					char buffer[16];
-					SNPrintf( buffer, 16, "%d", seed );
-					choices->SetText( SEED, "Seed", buffer );
-				}
-				break;
-		}
+	else if ( item == &continueButton ) {
+		game->loadRequested = 0;
+	}
+	else if ( item == &goButton ) {
+		game->loadRequested = 1;
+		WriteXML( &game->newGameXML );
+	}
+	else if ( item == &seedButton ) {
+		const char* seedStr = seedButton.GetText();
+		int seed = atol( seedStr );
+		seed += 1;
+		if ( seed == 10 )
+			seed = 0;
+		char buffer[16];
+		SNPrintf( buffer, 16, "%d", seed );
+		seedButton.SetText( buffer );
 	}
 	if ( game->loadRequested >= 0 ) {
 		game->PopScene();
 		game->PushScene( Game::BATTLE_SCENE, 0 );
 	}
+
 }
 
 
@@ -224,9 +227,9 @@ void TacticalIntroScene::WriteXML( TiXmlNode* xml )
 	gameElement->LinkEndChild( sceneElement );
 	gameElement->LinkEndChild( battleElement );
 	
-	battleElement->SetAttribute( "dayTime", choices->GetHighLight( TIME_NIGHT ) ? 0 : 1 );
+	battleElement->SetAttribute( "dayTime", toggles[TIME_DAY].Up() );
 
-	const char* seedStr = choices->GetText( SEED, 1 );
+	const char* seedStr = seedButton.GetText();
 	int seed = atol( seedStr );
 
 	CreateMap( gameElement, seed, LOC_FARM, 1 );
@@ -239,33 +242,33 @@ void TacticalIntroScene::WriteXML( TiXmlNode* xml )
 
 		// Terran units
 		{
-			if ( choices->GetHighLight( TERRAN_LOW ) )
+			if ( toggles[TERRAN_LOW].Down() )
 				item = parent->Child( "new_squad_LA" );
-			else if ( choices->GetHighLight( TERRAN_MED ) )
+			else if ( toggles[TERRAN_MED].Down() )
 				item = parent->Child( "new_squad_MA" );
-			else if ( choices->GetHighLight( TERRAN_HIGH ) )
+			else if ( toggles[TERRAN_HIGH].Down() )
 				item = parent->Child( "new_squad_HA" );
 
 			const char* squad = (const char*)database->AccessData( item, "binary" );
 
 			buf += squad;
-			if ( choices->GetHighLight( SQUAD_8 ) ) {
+			if ( toggles[SQUAD_8].Down() ) {
 				buf += squad;
 			}
 		}
 		// Alien units
 		{
-			if ( choices->GetHighLight( ALIEN_LOW ) )
+			if ( toggles[ALIEN_LOW].Down() )
 				item = parent->Child( "new_alien_LA" );
-			else if ( choices->GetHighLight( ALIEN_MED ) )
+			else if ( toggles[ALIEN_MED].Down() )
 				item = parent->Child( "new_alien_MA" );
-			else if ( choices->GetHighLight( ALIEN_HIGH ) )
+			else if ( toggles[ALIEN_HIGH].Down() )
 				item = parent->Child( "new_alien_HA" );
 
 			const char* alien = (const char*)database->AccessData( item, "binary" );
 
 			buf += alien;
-			if ( choices->GetHighLight( ALIEN_16 ) ) {
+			if ( toggles[ALIEN_16].Down() ) {
 				buf += alien;
 			}
 		}

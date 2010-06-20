@@ -21,6 +21,8 @@
 #include "gamelimits.h"
 #include "../tinyxml/tinyxml.h"
 #include "../shared/gamedbreader.h"
+#include "../gamui/gamui.h"
+#include "../engine/uirendering.h"
 
 class UIImage;
 class UIButtonBox;
@@ -38,6 +40,8 @@ public:
 						const grinliz::Vector2I& screen,
 						const grinliz::Ray& world );
 
+	//virtual void TapExtra( int action, const grinliz::Vector2I& srceen );
+
 	virtual void Drag(	int action,
 						const grinliz::Vector2I& view )			{}
 
@@ -48,7 +52,7 @@ public:
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	{
 		clip3D->SetInvalid();
 		clip2D->SetInvalid();	// full screen
-		return RENDER_2D; 
+		return RENDER_2D | RENDER_2D_FLIPPED; 
 	}
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
 	virtual void DrawHUD();
@@ -59,8 +63,6 @@ public:
 	//    exp:		Low Med Hi
 	//  Weather:	Day Night
 	enum {
-		NEW_GAME = 0,
-		CONTINUE_GAME,
 
 		SQUAD_4 = 0,
 		SQUAD_8,
@@ -74,12 +76,9 @@ public:
 		ALIEN_HIGH,
 		TIME_DAY,
 		TIME_NIGHT,
-
 		LOC_FARM,
 
-		SEED,
-		GO_NEW_GAME,
-		OPTION_COUNT
+		TOGGLE_COUNT,
 	};
 
 	struct SceneInfo {
@@ -114,11 +113,18 @@ private:
 	const gamedb::Item* itemMatch[ MAX_ITEM_MATCH ];
 	int nItemMatch;
 	grinliz::Random random;
-	UIImage*		background;
-	UIImage*		backgroundNew;
-	UIButtonBox*	buttons;
-	UIButtonGroup*	choices;
-	bool			showNewChoices;
+//	UIImage*		background;
+//	UIImage*		backgroundNew;
+//	UIButtonBox*	buttons;
+//	UIButtonGroup*	choices;
+//	bool			showNewChoices;
+
+	UIRenderer			uiRenderer;
+	gamui::Image		background;
+	gamui::Image		backgroundNew;
+	gamui::PushButton	continueButton, newButton, goButton, seedButton;
+	gamui::ToggleButton	toggles[TOGGLE_COUNT];
+	gamui::Gamui		gamuiContainer;
 };
 
 

@@ -41,6 +41,9 @@ public:
 						const grinliz::Vector2I& screen,
 						const grinliz::Ray& world )				{}
 
+//	virtual void TapExtra(	int action, 
+//							const grinliz::Vector2I& screen )	{}
+
 	virtual void Drag(	int action,
 						const grinliz::Vector2I& view )			{}
 	virtual void Zoom( int action, int distance )				{}
@@ -54,11 +57,14 @@ public:
 	// Rendering
 	enum {
 		RENDER_2D = 0x01,
-		RENDER_3D = 0x02
+		RENDER_3D = 0x02,
+		RENDER_2D_FLIPPED = 0x04,
 	};
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	
 	{ 
-		clip3D->SetInvalid(); clip2D->SetInvalid(); return 0; 
+		clip3D->SetInvalid(); 
+		clip2D->SetInvalid(); 
+		return 0; 
 	}
 	// Perspective rendering.
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
