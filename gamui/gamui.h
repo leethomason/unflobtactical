@@ -144,11 +144,11 @@ public:
 	const UIItem* TapDown( float x, float y );
 	const UIItem* TapUp( float x, float y );
 
-	void Layout(	UIItem** item, int nItem,
-					int cx, int cy,
-					float originX, float originY,
-					float tableWidth, float tableHeight,
-					int flags );
+	static void Layout(	UIItem** item, int nItem,
+						int cx, int cy,
+						float originX, float originY,
+						float tableWidth, float tableHeight,
+						int flags );
 
 private:
 	static bool SortItems( const UIItem* a, const UIItem* b );
@@ -201,6 +201,7 @@ class UIItem
 public:
 	virtual void SetPos( float x, float y )		{ m_x = x; m_y = y; }
 	void SetPos( const float* x )				{ SetPos( x[0], x[1] ); }
+	void SetCenterPos( float x, float y )		{ m_x = x - Width()*0.5f; m_y = y - Height()*0.5f; }
 	
 	float X() const								{ return m_x; }
 	float Y() const								{ return m_y; }
@@ -371,14 +372,19 @@ public:
 	virtual float Height() const										{ return m_face.Height(); }
 
 	virtual void Attach( Gamui* gamui );
+
 	virtual void SetPos( float x, float y );
 	void SetSize( float width, float height );
 	void SetSizeByScale( float sx, float sy );
-	void SetText( const char* text );
 	virtual void SetEnabled( bool enabled );
 	bool Up() const		{ return m_up; }
 	bool Down() const	{ return !m_up; }
+	void SetDeco( const RenderAtom& atom, const RenderAtom& atomD )			{ m_atoms[DECO] = atom; m_atoms[DECO_D] = atomD; }
+
+	void SetText( const char* text );
 	const char* GetText() const { return m_label.GetText(); }
+	void SetText2( const char* text );
+	const char* GetText2() const { return m_label2.GetText(); }
 
 	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
@@ -410,7 +416,9 @@ private:
 	
 	Image		m_face;
 	Image		m_deco;
+	bool		m_usingText2;
 	TextLabel	m_label;
+	TextLabel	m_label2;
 };
 
 

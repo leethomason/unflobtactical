@@ -441,6 +441,15 @@ public:
 
 	static void SetAtomCoordFromPixel( int x0, int y0, int x1, int y1, int w, int h, gamui::RenderAtom* );
 
+	static gamui::RenderAtom CalcDecoAtom( int id, bool enabled=true );
+	static gamui::RenderAtom CalcParticleAtom( int id );
+	static gamui::RenderAtom CalcIconAtom( int id );
+
+	enum {
+		PALETTE_RED, PALETTE_GREEN, PALETTE_DARK_GREY
+	};
+	static gamui::RenderAtom CalcPaletteAtom( int id );
+
 	virtual void GamuiGlyph( int c, gamui::IGamuiText::GlyphMetrics* metric );
 	
 };

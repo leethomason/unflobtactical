@@ -36,6 +36,7 @@
 #include "ufosound.h"
 
 using namespace grinliz;
+using namespace gamui;
 
 //#define REACTION_FIRE_EVENT_ONLY
 
@@ -53,7 +54,6 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	uiMode = UIM_NORMAL;
 	nearPathState.Clear();
 
-	memset( hpBars, 0, sizeof( UIBar* )*MAX_UNITS );
 	memset( hpBarsFadeTime, 0, sizeof( int )*MAX_UNITS );
 	engine->GetMap()->SetPathBlocker( this );
 
@@ -69,86 +69,94 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	// On screen menu.
 	const Screenport& port = engine->GetScreenport();
 
-	widgets = new UIButtonGroup( port );
-	
-	alienImage = new UIImage( port );
-	alienImage->Init( TextureManager::Instance()->GetTexture( "iconDeco" ), 50, 50 );
-	alienImage->SetOrigin( port.UIWidth()-50, port.UIHeight()-50 );
-	alienImage->SetTexCoord( 5.0f/8.0f, 1.0f/4.0f, 1.0f/8.0f, 1.0f/4.0f );
-	
+	const ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
+	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
+	const ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
+
+	alienImage.Init( UIRenderer::CalcDecoAtom( DECO_ALIEN ) );
+	alienImage.SetPos( float(port.UIWidth()-50), 0 );
+	alienImage.SetSize( 50, 50 );
+	container3D.Add( &alienImage );
+
+
 	for( int i=0; i<MAX_ALIENS; ++i ) {
-		targetArrow[i] = new UIImage( port );
-		targetArrow[i]->Init( TextureManager::Instance()->GetTexture( "particleQuad" ), 40, 40 );
-		targetArrow[i]->SetTexCoord( 0.75f, 0.75f, 0.25f, 0.25f );
-		targetArrowOn[i] = false;
+		targetArrow[i].Init( UIRenderer::CalcParticleAtom( 15 ) );	// fixme: constant?
+		targetArrow[i].SetVisible( false );
+		container2D.Add( &targetArrow[i] );
 	}
+
+	const float SIZE = 50.0f;
 	{
-		const int icons[BTN_COUNT] = {	ICON_BLUE_BUTTON,		// take-off
-										ICON_GREEN_BUTTON,		// help
-										ICON_GREEN_BUTTON,		// end turn
-										ICON_RED_BUTTON,		// target
-										ICON_GREEN_BUTTON,		// character
+		exitButton.Init( blue );
+		exitButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_LAUNCH, true ), UIRenderer::CalcDecoAtom( DECO_LAUNCH, false ) );
+		exitButton.SetSize( SIZE, SIZE );
+		container2D.Add( &exitButton );
 
-										ICON_GREEN_BUTTON,		// rotate ccw
-										ICON_GREEN_BUTTON,		// rotate cw
+		helpButton.Init( green );
+		helpButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_HELP, true ), UIRenderer::CalcDecoAtom( DECO_HELP, false ) );
+		helpButton.SetSize( SIZE, SIZE );
+		container2D.Add( &helpButton );
 
-										ICON_GREEN_BUTTON,		// prev
-										ICON_GREEN_BUTTON		// next
-									 };
+		nextTurnButton.Init( green );
+		nextTurnButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_END_TURN, true ), UIRenderer::CalcDecoAtom( DECO_END_TURN, false ) );
+		nextTurnButton.SetSize( SIZE, SIZE );
+		container2D.Add( &nextTurnButton );
 
-		widgets->InitButtons( icons, BTN_COUNT );
+		targetButton.Init( red );
+		targetButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_AIMED, true ), UIRenderer::CalcDecoAtom( DECO_AIMED, false ) );
+		targetButton.SetSize( SIZE, SIZE );
+		container2D.Add( &targetButton );
 
-		widgets->SetDeco( BTN_TAKE_OFF, DECO_LAUNCH );
-		widgets->SetDeco( BTN_HELP, DECO_HELP );
-		widgets->SetDeco( BTN_END_TURN, DECO_END_TURN );
-		widgets->SetDeco( BTN_TARGET, DECO_AIMED );
-		widgets->SetDeco( BTN_CHAR_SCREEN, DECO_CHARACTER );
+		invButton.Init( green );
+		invButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_CHARACTER, true ), UIRenderer::CalcDecoAtom( DECO_CHARACTER, false ) );
+		invButton.SetSize( SIZE, SIZE );
+		container2D.Add( &invButton );
 
-		widgets->SetDeco( BTN_ROTATE_CCW, DECO_ROTATE_CCW );
-		widgets->SetDeco( BTN_ROTATE_CW, DECO_ROTATE_CW );
-		widgets->SetDeco( BTN_PREV, DECO_PREV );
-		widgets->SetDeco( BTN_NEXT, DECO_NEXT );
+		invButton.Init( green );
+		invButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_CHARACTER, true ), UIRenderer::CalcDecoAtom( DECO_CHARACTER, false ) );
+		invButton.SetSize( SIZE, SIZE );
+		container2D.Add( &invButton );
 
-		const int SIDE_COUNT  = 6;
-
-		const Vector2I& size = widgets->GetButtonSize();
-		int h = port.UIHeight();
-		int w = port.UIWidth();
-		int delta = (h/SIDE_COUNT-size.y)/2;
-
-		menuImage = new UIImage( port );
-		menuImage->Init( TextureManager::Instance()->GetTexture( "commandBarV" ), size.x, h );
-
-		{
-			for( int i=0; i<SIDE_COUNT; ++i ) {
-				widgets->SetPos( i,	0, delta+(SIDE_COUNT-i-1)*h/SIDE_COUNT );
-			}
-			widgets->SetPos( BTN_ROTATE_CW, size.x, 0 );
-			widgets->SetPos( BTN_PREV, w-size.x*2, 0 );
-			widgets->SetPos( BTN_NEXT, w-size.x, 0 );
+		static const int controlDecoID[CONTROL_BUTTON_COUNT] = { DECO_ROTATE_CCW, DECO_ROTATE_CW, DECO_PREV, DECO_NEXT };
+		for( int i=0; i<CONTROL_BUTTON_COUNT; ++i ) {
+			controlButton[i].Init( green );
+			controlButton[i].SetDeco( UIRenderer::CalcDecoAtom( controlDecoID[i], true ), UIRenderer::CalcDecoAtom( controlDecoID[i], false ) );
+			controlButton[i].SetSize( SIZE, SIZE );
+			if ( i==0 )
+				container2D.Add( &controlButton[i] );
+			else 
+				container3D.Add( &controlButton[i] );
 		}
+
+		UIItem* items[6] = { &exitButton, &helpButton, &nextTurnButton, &targetButton, &invButton, &controlButton[0] };
+		container2D.Layout( items, 6, 1, 6, 0, 0, SIZE, (float)port.UIHeight(), 0 );
+
+		controlButton[1].SetPos( SIZE, port.UIHeight()-SIZE );
+		controlButton[2].SetPos( port.UIWidth()-SIZE*2.f, port.UIHeight()-SIZE );
+		controlButton[3].SetPos( port.UIWidth()-SIZE*1.f, port.UIHeight()-SIZE );
+
+		RenderAtom menuImageAtom( UIRenderer::RENDERSTATE_NORMAL, TextureManager::Instance()->GetTexture( "commandBarV" ), 0, 0, 1, 1, 50, 320 );
+		menuImage.Init( menuImageAtom );
+		container2D.Add( &menuImage );
 	}
-	// When enemy targeted.
-	fireWidget = new UIButtonGroup( engine->GetScreenport() );
-	const int fireIcons[] = {	ICON_BLUE_BUTTON, ICON_BLUE_BUTTON, ICON_BLUE_BUTTON,
-								ICON_GREEN_WALK_MARK, ICON_GREEN_WALK_MARK, ICON_GREEN_WALK_MARK,
-								ICON_BLUE_BUTTON, ICON_BLUE_BUTTON, ICON_BLUE_BUTTON,
-							};
 
-	fireWidget->InitButtons( fireIcons, 9 );
-	fireWidget->SetPadding( 0, 0 );
-	fireWidget->SetButtonSize( GAME_BUTTON_SIZE, GAME_BUTTON_SIZE );
-	
 	for( int i=0; i<3; ++i ) {
-		fireWidget->SetPos( i, 0, i*60 );
-		fireWidget->SetItemSize( i, 120, 60 );
+		fireButton[i].Init( red );
+		fireButton[i].SetSize( 120.f, 60.f );
 
-		fireWidget->SetPos(		 3+i, 95, i*60+10 );
-		fireWidget->SetItemSize( 3+i, 40, 40 );
+		fireImage[i].Init( UIRenderer::CalcIconAtom( 12 ) );
+		fireImage[i].SetSize( 40, 40 );
 
-		fireWidget->SetPos(		 6+i, 0, i*60 );
-		fireWidget->SetItemSize( 6+i, 30, 30 );
-		fireWidget->SetDeco(	 6+i, DECO_AIMED );
+		container3D.Add( &fireButton[i] );
+		container3D.Add( &fireImage[i] );
+	}	
+
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		hpBars[i].Init( 5, 
+						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_COLOR_RED ),
+						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_COLOR_GREEN ),
+						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_COLOR_DARK_GREY ),
+						1 );
 	}
 
 	engine->EnableMap( true );
@@ -182,14 +190,6 @@ BattleScene::~BattleScene()
 
 	for( int i=0; i<3; ++i )
 		delete aiArr[i];
-	for( int i=0; i<MAX_UNITS; ++i )
-		delete hpBars[i];
-	for( int i=0; i<MAX_ALIENS; ++i )
-		delete targetArrow[i];
-	delete fireWidget;
-	delete widgets;
-	delete alienImage;
-	delete menuImage;
 }
 
 
@@ -595,7 +595,9 @@ int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I*
 	//clip3D->SetInvalid();
 	//clip3D->Set( 100, 0, 400, 250 );
 
-	const Vector2I& size = widgets->GetButtonSize();
+	Vector2I size;
+	size.x = LRintf( menuImage.Width() );
+	size.y = LRintf( menuImage.Height() );
 	const Screenport& port = engine->GetScreenport();
 
 	clip3D->Set( size.x, 0, port.UIWidth()-1, port.UIHeight()-1 );
@@ -650,7 +652,8 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		*/
 
 	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-		targetArrowOn[i-ALIEN_UNITS_START] = false;
+		//targetArrowOn[i-ALIEN_UNITS_START] = false;
+		targetArrow[i-ALIEN_UNITS_START].SetVisible( false );
 		if ( m_targets.TeamCanSee( TERRAN_TEAM, i ) ) {
 			Vector3F p;
 			units[i].CalcPos( &p );
@@ -670,7 +673,8 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 														p, ALPHA, 0 );	
 			}
 			else {
-				targetArrowOn[i-ALIEN_UNITS_START] = true;
+				//targetArrowOn[i-ALIEN_UNITS_START] = true;
+				targetArrow[i-ALIEN_UNITS_START].SetVisible( true );
 
 				Vector2I center = { (uiBounds.min.x + uiBounds.max.x)/2,
 									(uiBounds.min.y + uiBounds.max.y)/2 };
@@ -680,10 +684,11 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 				Vector2I intersection = { 0, 0 };
 				CenterRectIntersection( r, inset, &intersection );
 
-				targetArrow[i-ALIEN_UNITS_START]->SetCenter( (int)intersection.x, (int)intersection.y );
+				//targetArrow[i-ALIEN_UNITS_START]->SetCenter( (int)intersection.x, (int)intersection.y );
+				targetArrow[i-ALIEN_UNITS_START].SetCenterPos( (float)intersection.x, (float)intersection.y );
 				float angle = atan2( (float)(r.y-center.y), (float)(r.x-center.x) );
 				angle = ToDegree( angle ) + 90.0f;	
-				targetArrow[i-ALIEN_UNITS_START]->SetZRotation( angle );
+				targetArrow[i-ALIEN_UNITS_START].SetRotationZ( angle );
 			}
 		}
 	}
@@ -837,14 +842,10 @@ void BattleScene::DrawHPBars()
 				const int W = 30;
 				const int H = 10;
 
-				if ( !hpBars[i] ) {
-					hpBars[i] = new UIBar( port );
-					hpBars[i]->SetSize( 30, 10 );
-					hpBars[i]->SetSteps( 5 );
-
-					hpBars[i]->SetRange( 0, 100 );
-					hpBars[i]->SetValue1( units[i].GetStats().TotalHP() );
-					hpBars[i]->SetValue0( units[i].HP() );
+				if ( !hpBars[i].Visible() ) {
+					//hpBars[i]->SetRange( 0, 100 );
+					hpBars[i].SetRange( (float)units[i].GetStats().TotalHP()/100.0f,
+										(float)units[i].HP()/100.0f );
 				}
 				if ( hpBars[i]->GetValue0() != units[i].HP() ) {
 					hpBars[i]->SetValue0( units[i].HP() );
