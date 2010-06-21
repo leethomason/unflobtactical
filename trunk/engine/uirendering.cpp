@@ -1096,6 +1096,20 @@ void UIRenderer::SetAtomCoordFromPixel( int x0, int y0, int x1, int y1, int w, i
 }
 
 
+gamui::RenderAtom UIRenderer::CalcDecoAtom( int id )
+{
+	Texture* texture = TextureManager::Instance()->GetTexture( "iconDeco" );
+	int y = id / 8;
+	int x = id - y*8;
+	float tx0 = (float)x / 8.f;
+	float ty0 = (float)y / 4.f;
+	float tx1 = tx0 + 1.f/8.f;
+	float ty1 = ty0 + 1.f/4.f;
+
+	return gamui::RenderAtom( RENDERSTATE_NORMAL, texture, tx0, ty0, tx1, ty1, 64, 64 );
+}
+
+
 void UIRenderer::GamuiGlyph( int c, gamui::IGamuiText::GlyphMetrics* metric )
 {
 	int advance=0;

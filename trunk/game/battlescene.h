@@ -25,6 +25,9 @@
 #include "../grinliz/glbitarray.h"
 #include "../grinliz/glvector.h"
 
+#include "../engine/uirendering.h"
+#include "../gamui/gamui.h"
+
 class Model;
 class UIButtonBox;
 class UIButtonGroup;
@@ -316,17 +319,30 @@ private:
 	};
 
 	int				uiMode;
-	UIButtonGroup*	widgets;
-	UIButtonGroup*	fireWidget;
-	UIImage*		alienImage;
-	UIImage*		menuImage;
+
+	UIRenderer			uiRenderer;
+	gamui::Gamui		container2D,
+						container3D;
+
+	gamui::Image		alienImage;
+	gamui::Image		menuImage;
+	gamui::PushButton	fireButton[3];
+	gamui::Image		fireImage[3];
+	gamui::PushButton	exitButton;
+	gamui::PushButton	helpButton;
+	gamui::PushButton	nextTurnButton;
+	gamui::ToggleButton	targetButton;
+	gamui::PushButton	invButton;
+	enum { ROTATE_CCW_BUTTON, ROTATE_CW_BUTTON, NEXT_BUTTON, PREV_BUTTON, CONTROL_BUTTON_COUNT };
+	gamui::PushButton	controlButton[4];
+
 
 	int				subTurnOrder[MAX_TERRANS];
 	int				subTurnIndex;
 	int				subTurnCount;
 
-	bool			targetArrowOn[MAX_ALIENS];
-	UIImage*		targetArrow[MAX_ALIENS];
+	//bool			targetArrowOn[MAX_ALIENS];
+	gamui::Image	targetArrow[MAX_ALIENS];
 
 	Engine*			engine;
 	grinliz::Random random;	// "the" random number generator for the battle
@@ -390,8 +406,9 @@ private:
 	Visibility visibility;
 
 	Unit	units[MAX_UNITS];
-	UIBar*	hpBars[MAX_UNITS];
-	int		hpBarsFadeTime[MAX_UNITS];
+	//UIBar*	hpBars[MAX_UNITS];
+	gamui::DigitalBar	hpBars[MAX_UNITS];
+	int					hpBarsFadeTime[MAX_UNITS];
 
 #ifdef MAPMAKER
 	void UpdatePreview();

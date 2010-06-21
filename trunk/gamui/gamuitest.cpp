@@ -268,6 +268,7 @@ int main( int argc, char **argv )
 	toggle.SetPos( 350, 250 );
 	toggle.SetSize( 150, 75 );
 	toggle.SetText( "Toggle" );
+	toggle.SetText2( "Line 2" );
 
 	RenderAtom tick0( RENDERSTATE_NORMAL, imageTextureID, 0, 0, 0, 0, 15, 30 );
 	RenderAtom tick1=tick0, tick2=tick0;

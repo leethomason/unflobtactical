@@ -113,11 +113,6 @@ private:
 	const gamedb::Item* itemMatch[ MAX_ITEM_MATCH ];
 	int nItemMatch;
 	grinliz::Random random;
-//	UIImage*		background;
-//	UIImage*		backgroundNew;
-//	UIButtonBox*	buttons;
-//	UIButtonGroup*	choices;
-//	bool			showNewChoices;
 
 	UIRenderer			uiRenderer;
 	gamui::Image		background;

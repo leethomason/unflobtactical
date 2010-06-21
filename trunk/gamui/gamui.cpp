@@ -439,7 +439,8 @@ void Image::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* ver
 
 
 Button::Button() : UIItem( Gamui::LEVEL_FOREGROUND ),
-	m_up( true )
+	m_up( true ),
+	m_usingText2( false )
 {
 }
 
@@ -473,6 +474,7 @@ void Button::Attach( Gamui* gamui )
 		gamui->Add( &m_face );
 		gamui->Add( &m_deco );
 		gamui->Add( &m_label );
+		gamui->Add( &m_label2 );
 	}
 	UIItem::Attach( gamui );
 }
@@ -489,10 +491,29 @@ void Button::PositionChildren()
 		m_deco.SetPos( X(), Y() + (m_face.Height()-m_face.Width())*0.5f );
 	}
 
-	float h = m_label.Height();
-	float w = m_label.Width();
-	m_label.SetPos( X() + ((m_face.Width()-w)*0.5f),
-					Y() + ((m_face.Height()-h)*0.5f) );
+	if ( !m_usingText2 ) {
+		float h = m_label.Height();
+		float w = m_label.Width();
+		m_label.SetPos( X() + ((m_face.Width()-w)*0.5f),
+						Y() + ((m_face.Height()-h)*0.5f) );
+		m_label2.SetVisible( false );
+	}
+	else {
+		float h0 = m_label.Height();
+		float h2 = m_label2.Height();
+		float h = h0 + h2;
+
+		float w = Max( m_label.Width(), m_label2.Width() );
+
+		UIItem* items[2] = { &m_label, &m_label2 };
+		Gamui::Layout( items, 2, 
+					   1, 2, 
+					   X() + (m_face.Width()-w)*0.5f, 
+					   Y() + (m_face.Height()-h)*0.5f, 
+					   w, h, 0 );
+
+		m_label2.SetVisible( Visible() );
+	}
 
 	m_label.SetVisible( Visible() );
 	m_deco.SetVisible( Visible() );
@@ -506,6 +527,7 @@ void Button::SetPos( float x, float y )
 	m_face.SetPos( x, y );
 	m_deco.SetPos( x, y );
 	m_label.SetPos( x, y );
+	m_label2.SetPos( x, y );
 }
 
 void Button::SetSize( float width, float height )
@@ -523,6 +545,13 @@ void Button::SetSizeByScale( float sx, float sy )
 void Button::SetText( const char* text )
 {
 	m_label.SetText( text );
+}
+
+
+void Button::SetText2( const char* text )
+{
+	m_usingText2 = true;
+	m_label2.SetText( text );
 }
 
 
@@ -551,6 +580,7 @@ void Button::SetState()
 	m_face.SetAtom( m_atoms[faceIndex] );
 	m_deco.SetAtom( m_atoms[decoIndex] );
 	m_label.SetEnabled( m_enabled );
+	m_label2.SetEnabled( m_enabled );
 }
 
 
