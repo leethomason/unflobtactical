@@ -140,23 +140,29 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		container2D.Add( &menuImage );
 	}
 
+	
 	for( int i=0; i<3; ++i ) {
-		fireButton[i].Init( red );
-		fireButton[i].SetSize( 120.f, 60.f );
+		fireWidgetRow[i].button.Init( red );
+		fireWidgetRow[i].button.SetSize( 120.f, 60.f );
 
-		fireImage[i].Init( UIRenderer::CalcIconAtom( 12 ) );
-		fireImage[i].SetSize( 40, 40 );
+		fireWidgetRow[i].image.Init( UIRenderer::CalcIconAtom( 12 ) );
+		fireWidgetRow[i].image.SetSize( 40, 40 );
+		fireWidgetRow[i].image.SetForeground( false );
 
-		container3D.Add( &fireButton[i] );
-		container3D.Add( &fireImage[i] );
+		fireWidget.Add( &fireWidgetRow[i].button, 0, float(i*45) );
+		fireWidget.Add( &fireWidgetRow[i].image, 30, float(i*45) );
 	}	
+	container3D.Add( &fireWidget );
+	fireWidget.SetVisible( false );
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		hpBars[i].Init( 5, 
-						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_COLOR_RED ),
-						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_COLOR_GREEN ),
-						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_COLOR_DARK_GREY ),
+						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_RED ),
+						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN ),
+						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_DARK_GREY ),
 						1 );
+		hpBars[i].SetVisible( false );
+		container3D.Add( &hpBars[i] );
 	}
 
 	engine->EnableMap( true );
@@ -822,6 +828,7 @@ void BattleScene::DrawHPBars()
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		hpBarsFadeTime[i] = Max( hpBarsFadeTime[i] - (int)game->DeltaTime(), 0 );
+		hpBars[i].SetVisible( false );
 
 		if (    units[i].IsAlive() 
 			 && units[i].GetModel() 
@@ -836,26 +843,20 @@ void BattleScene::DrawHPBars()
 			Rectangle2I uiBounds;
 			port.UIBoundsClipped3D( &uiBounds );
 
-			if ( uiBounds.Contains( ui ) ) 
-			{
-				// onscreen
-				const int W = 30;
-				const int H = 10;
+			// onscreen
+			const int W = 30;
+			const int H = 10;
+			float fhp = (float)units[i].HP()/100.0f;
 
-				if ( !hpBars[i].Visible() ) {
-					//hpBars[i]->SetRange( 0, 100 );
-					hpBars[i].SetRange( (float)units[i].GetStats().TotalHP()/100.0f,
-										(float)units[i].HP()/100.0f );
-				}
-				if ( hpBars[i]->GetValue0() != units[i].HP() ) {
-					hpBars[i]->SetValue0( units[i].HP() );
-					hpBarsFadeTime[i] = FADE_TIME;
-				}
-				hpBars[i]->SetOrigin( ui.x-W/2, ui.y-H*18/10 );
+			if ( hpBars[i].GetRange0() != fhp ) {
+				hpBars[i].SetRange( fhp, (float)units[i].GetStats().TotalHP()/100.0f );
+				hpBarsFadeTime[i] = FADE_TIME;
+			}
+			hpBars[i].SetPos( (float)ui.x, (float)ui.y ); 
+			//hpBars[i]->SetOrigin( ui.x-W/2, ui.y-H*18/10 );
 
-				if ( ( &units[i] == SelectedSoldierUnit() ) || hpBarsFadeTime[i] > 0 ) {
-					hpBars[i]->Draw();
-				}
+			if ( ( &units[i] == SelectedSoldierUnit() ) || hpBarsFadeTime[i] > 0 ) {
+				hpBars[i].SetVisible( true );
 			}
 		}
 	}
@@ -885,13 +886,14 @@ void BattleScene::DrawFireWidget()
 	const Screenport& port = engine->GetScreenport();
 	port.ViewToUI( (int)r.x, (int)r.y, &uiX, &uiY );
 
-	int x, y, w, h;
 	const int DX = 10;
 
 	// Make sure it fits on the screen.
-	fireWidget->CalcBounds( 0, 0, 0, &h );
-	fireWidget->SetOrigin( uiX+DX, uiY-h/2 );
-	fireWidget->CalcBounds( &x, &y, &w, &h );
+	float w = fireWidget.Width();
+	float h = fireWidget.Height();
+	float x = (float)(uiX+DX);
+	float y = (float)uiY-(float)(port.UIHeight()-1)+h*0.5f;
+
 	if ( x < 0 ) {
 		x = 0;
 	}
@@ -902,9 +904,9 @@ void BattleScene::DrawFireWidget()
 		y = 0;
 	}
 	else if ( y+h >= port.UIHeight() ) {
-		y = port.UIHeight() - h;
+		y = h - port.UIHeight();
 	}
-	fireWidget->SetOrigin( x, y );
+	fireWidget.SetPos( x, y );
 }
 
 
@@ -915,8 +917,6 @@ void BattleScene::SetFireWidget()
 
 	Unit* unit = SelectedSoldierUnit();
 	Item* item = unit->GetWeapon();
-	char buffer0[32];
-	char buffer1[32];
 
 	Vector3F target;
 	if ( selection.targetPos.x >= 0 ) {
@@ -928,20 +928,11 @@ void BattleScene::SetFireWidget()
 	Vector3F distVector = target - SelectedSoldierModel()->Pos();
 	float distToTarget = distVector.Length();
 
-	if ( !item || !item->IsWeapon() ) {
-		for( int i=0; i<3; ++i ) {
-			fireWidget->SetEnabled( i, false );
-		}
-		return;
-	}
-
 	Inventory* inventory = unit->GetInventory();
 	float snappedTU = 0.0f;
 	float autoTU = 0.0f;
 
 	const WeaponItemDef* wid = item->IsWeapon();
-	GLASSERT( wid );
-
 	if ( wid ) {
 		int select, type;
 
@@ -952,8 +943,9 @@ void BattleScene::SetFireWidget()
 	}
 
 	for( int i=0; i<3; ++i ) {
-		int select, type;
-		wid->FireModeToType( i, &select, &type );
+		int select=0, type=0;
+		if ( wid ) 
+			wid->FireModeToType( i, &select, &type );
 
 		float tu = 0.0f;
 		float fraction = 0;
@@ -961,7 +953,10 @@ void BattleScene::SetFireWidget()
 		float dptu = 0;
 		int nShots = (type==AUTO_SHOT) ? 3 : 1;
 		
-		int rounds = inventory->CalcClipRoundsTotal( item->IsWeapon()->weapon[select].clipItemDef );
+		int rounds = 0;
+		if ( wid ) {
+			inventory->CalcClipRoundsTotal( wid->weapon[select].clipItemDef );
+		}
 
 		// weird syntax aids debugging.
 		bool enable = true;
@@ -971,7 +966,8 @@ void BattleScene::SetFireWidget()
 		enable = enable &&	(nShots <= rounds );
 		enable = enable &&  unit->TU() >= unit->FireTimeUnits( select, type );
 
-		if ( item->IsSomething() && item->IsWeapon() && item->IsWeapon()->SupportsType( select, type ) ) {
+		if ( wid && item->IsWeapon()->SupportsType( select, type ) ) 
+		{
 			unit->FireStatistics( select, type, distToTarget, &fraction, &anyFraction, &tu, &dptu );
 
 			// Never show 100% in the UI:
@@ -980,18 +976,22 @@ void BattleScene::SetFireWidget()
 			if ( anyFraction > 0.98f )
 				anyFraction = 0.98f;
 
+			char buffer0[32];
+			char buffer1[32];
 			SNPrintf( buffer0, 32, "%s %d%%", wid->fireDesc[i], (int)LRintf( anyFraction*100.0f ) );
 			SNPrintf( buffer1, 32, "%d/%d", nShots, rounds );
+
+			fireWidgetRow[i].button.SetEnabled( enable );
+			fireWidgetRow[i].button.SetText( buffer0 );
+			fireWidgetRow[i].button.SetText2( buffer1 );
 		}
 		else {
-			*buffer0 = 0;
-			*buffer1 = 0;
+			fireWidgetRow[i].button.SetEnabled( false );
+			fireWidgetRow[i].button.SetText( "" );
+			fireWidgetRow[i].button.SetText2( "" );
 		}
 		
 		int index = 2-i;
-		fireWidget->SetText( index, buffer0, buffer1 );
-		fireWidget->SetEnabled( index, enable );
-		fireWidget->SetDeco( index, DECO_NONE );
 
 		// Reflect the TU left.
 		float tuAfter = unit->TU() - tu;

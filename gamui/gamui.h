@@ -123,17 +123,22 @@ public:
 	};
 
 	Gamui();
+	Gamui(	IGamuiRenderer* renderer,
+			const RenderAtom& textEnabled, 
+			const RenderAtom& textDisabled,
+			IGamuiText* iText );
 	~Gamui();
+
+	void Init(	IGamuiRenderer* renderer,
+				const RenderAtom& textEnabled, 
+				const RenderAtom& textDisabled,
+				IGamuiText* iText );
 
 	void Add( UIItem* item );
 	void Remove( UIItem* item );
 
 	void Render();
 
-	void Init(	IGamuiRenderer* renderer,
-				const RenderAtom& textEnabled, 
-				const RenderAtom& textDisabled,
-				IGamuiText* iText );
 
 	RenderAtom* GetTextAtom() 				{ return &m_textAtomEnabled; }
 	RenderAtom* GetDisabledTextAtom()		{ return &m_textAtomDisabled; }
@@ -224,9 +229,8 @@ public:
 	float RotationY() const						{ return m_rotationY; }
 	float RotationZ() const						{ return m_rotationZ; }
 
-	virtual void Attach( Gamui* );
 	// Toggle buttons are special...
-	virtual ToggleButton* IsToggle()		{ return 0; }
+	virtual ToggleButton* IsToggle()			{ return 0; }
 
 	enum {
 		TAP_UP,
@@ -237,6 +241,8 @@ public:
 	virtual const RenderAtom* GetRenderAtom() const = 0;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded ) = 0;
 	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex ) = 0;
+
+	void Clear()	{ m_gamui = 0; }
 
 private:
 	UIItem( const UIItem& );			// private, not implemented.
@@ -270,7 +276,10 @@ class TextLabel : public UIItem
 {
 public:
 	TextLabel();
+	TextLabel( Gamui* );
 	virtual ~TextLabel();
+
+	void Init( Gamui* );
 
 	virtual float Width() const;
 	virtual float Height() const;
@@ -302,10 +311,10 @@ class Image : public UIItem
 {
 public:
 	Image();
-	Image( const RenderAtom& atom );
+	Image( Gamui*, const RenderAtom& atom );
 	virtual ~Image();
+	void Init( Gamui*, const RenderAtom& atom );
 
-	void Init( const RenderAtom& atom );
 	void SetAtom( const RenderAtom& atom );
 	void SetSlice( bool enable );
 
@@ -356,41 +365,48 @@ class Button : public UIItem
 {
 public:
 
-	void Init(	const RenderAtom& atomUpEnabled,
-				const RenderAtom& atomUpDisabled,
-				const RenderAtom& atomDownEnabled,
-				const RenderAtom& atomDownDisabled,
-				const RenderAtom& decoEnabled, 
-				const RenderAtom& decoDisabled );
-
-	void Init( const ButtonLook& look ) {
-		RenderAtom nullAtom;
-		Init( look.atomUpEnabled, look.atomUpDisabled, look.atomDownEnabled, look.atomDownDisabled, nullAtom, nullAtom );
-	}
-
-	virtual float Width() const											{ return m_face.Width(); }
-	virtual float Height() const										{ return m_face.Height(); }
-
-	virtual void Attach( Gamui* gamui );
+	virtual float Width() const;
+	virtual float Height() const;
 
 	virtual void SetPos( float x, float y );
 	void SetSize( float width, float height );
 	void SetSizeByScale( float sx, float sy );
+
 	virtual void SetEnabled( bool enabled );
+
 	bool Up() const		{ return m_up; }
 	bool Down() const	{ return !m_up; }
 	void SetDeco( const RenderAtom& atom, const RenderAtom& atomD )			{ m_atoms[DECO] = atom; m_atoms[DECO_D] = atomD; }
 
 	void SetText( const char* text );
-	const char* GetText() const { return m_label.GetText(); }
+	const char* GetText() const { return m_label[0].GetText(); }
 	void SetText2( const char* text );
-	const char* GetText2() const { return m_label2.GetText(); }
+	const char* GetText2() const { return m_label[1].GetText(); }
+
+	enum {
+		CENTER, LEFT, RIGHT
+	};
+	void SetTextLayout( int alignment, float dx=0.0f, float dy=0.0f )		{ m_textLayout = alignment; m_textDX = dx; m_textDY = dy; }
+	void SetDecoLayout( int alignment, float dx=0.0f, float dy=0.0f )		{ m_decoLayout = alignment; m_decoDX = dx; m_decoDY = dy; }
 
 	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
 	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
 
 protected:
+	void Init(	Gamui*,
+				const RenderAtom& atomUpEnabled,
+				const RenderAtom& atomUpDisabled,
+				const RenderAtom& atomDownEnabled,
+				const RenderAtom& atomDownDisabled,
+				const RenderAtom& decoEnabled, 
+				const RenderAtom& decoDisabled );
+
+	void Init( Gamui* gamui, const ButtonLook& look ) {
+		RenderAtom nullAtom;
+		Init( gamui, look.atomUpEnabled, look.atomUpDisabled, look.atomDownEnabled, look.atomDownDisabled, nullAtom, nullAtom );
+	}
+
 
 	Button();
 	virtual ~Button()	{}
@@ -416,30 +432,37 @@ private:
 	
 	Image		m_face;
 	Image		m_deco;
-	bool		m_usingText2;
-	TextLabel	m_label;
-	TextLabel	m_label2;
+
+	bool		m_usingText1;
+	int			m_textLayout;
+	int			m_decoLayout;
+	float		m_textDX;
+	float		m_textDY;
+	float		m_decoDX;
+	float		m_decoDY;	
+	TextLabel	m_label[2];
 };
 
 
 class PushButton : public Button
 {
 public:
-	PushButton( ) : Button()	{}
-	PushButton( const RenderAtom& atomUpEnabled,
+	PushButton() : Button()	{}
+	PushButton( Gamui* gamui,
+				const RenderAtom& atomUpEnabled,
 				const RenderAtom& atomUpDisabled,
 				const RenderAtom& atomDownEnabled,
 				const RenderAtom& atomDownDisabled,
 				const RenderAtom& decoEnabled, 
 				const RenderAtom& decoDisabled) : Button()	
 	{
-		Init( atomUpEnabled, atomUpDisabled, atomDownEnabled, atomDownDisabled, decoEnabled, decoDisabled );
+		Init( gamui, atomUpEnabled, atomUpDisabled, atomDownEnabled, atomDownDisabled, decoEnabled, decoDisabled );
 	}
 
-	PushButton( const ButtonLook& look ) : Button()
+	PushButton( Gamui* gamui, const ButtonLook& look ) : Button()
 	{
 		RenderAtom nullAtom;
-		Init( look.atomUpEnabled, look.atomUpDisabled, look.atomDownEnabled, look.atomDownDisabled, nullAtom, nullAtom );
+		Init( gamui, look.atomUpEnabled, look.atomUpDisabled, look.atomDownEnabled, look.atomDownDisabled, nullAtom, nullAtom );
 	}
 
 	virtual ~PushButton()	{}
@@ -452,20 +475,21 @@ class ToggleButton : public Button
 {
 public:
 	ToggleButton() : Button(), m_toggleGroup( 0 )		{}
-	ToggleButton(	const RenderAtom& atomUpEnabled,
+	ToggleButton(	Gamui* gamui,
+					const RenderAtom& atomUpEnabled,
 					const RenderAtom& atomUpDisabled,
 					const RenderAtom& atomDownEnabled,
 					const RenderAtom& atomDownDisabled,
 					const RenderAtom& decoEnabled, 
 					const RenderAtom& decoDisabled) : Button(), m_toggleGroup( 0 )	
 	{
-		Init( atomUpEnabled, atomUpDisabled, atomDownEnabled, atomDownDisabled, decoEnabled, decoDisabled );
+		Init( gamui, atomUpEnabled, atomUpDisabled, atomDownEnabled, atomDownDisabled, decoEnabled, decoDisabled );
 	}
 
-	ToggleButton( const ButtonLook& look ) : Button(), m_toggleGroup( 0 )
+	ToggleButton( Gamui* gamui, const ButtonLook& look ) : Button(), m_toggleGroup( 0 )
 	{
 		RenderAtom nullAtom;
-		Init( look.atomUpEnabled, look.atomUpDisabled, look.atomDownEnabled, look.atomDownDisabled, nullAtom, nullAtom );
+		Init( gamui, look.atomUpEnabled, look.atomUpDisabled, look.atomDownEnabled, look.atomDownDisabled, nullAtom, nullAtom );
 	}
 
 	virtual ~ToggleButton()		{}
@@ -489,29 +513,33 @@ class DigitalBar : public UIItem
 {
 public:
 	DigitalBar();
-	DigitalBar( int nTicks,
+	DigitalBar( Gamui* gamui,
+				int nTicks,
 				const RenderAtom& atom0,
 				const RenderAtom& atom1,
 				const RenderAtom& atom2,
 				float spacing ) 
 		: UIItem( Gamui::LEVEL_FOREGROUND )
 	{
-		Init( nTicks, atom0, atom1, atom2, spacing );
+		Init( gamui, nTicks, atom0, atom1, atom2, spacing );
 	}
 	virtual ~DigitalBar()		{}
 
-	void Init(	int nTicks,
+	void Init(	Gamui* gamui, 
+				int nTicks,
 				const RenderAtom& atom0,
 				const RenderAtom& atom1,
 				const RenderAtom& atom2,
 				float spacing );
 
 	void SetRange( float t0, float t1 );
+	void SetRange0( float t0 )				{ SetRange( t0, m_t1 ); }
+	void SetRange1( float t1 )				{ SetRange( m_t0, t1 ); }
+	float GetRange0() const					{ return m_t0; }
+	float GetRange1() const					{ return m_t1; }
 
 	virtual float Width() const;
 	virtual float Height() const;
-
-	virtual void Attach( Gamui* gamui );
 
 	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
