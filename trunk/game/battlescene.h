@@ -320,14 +320,17 @@ private:
 
 	int				uiMode;
 
+	struct FireWidgetRow {
+		gamui::PushButton	button;
+		gamui::Image		image;
+	};
+
 	UIRenderer			uiRenderer;
 	gamui::Gamui		container2D,
 						container3D;
 
 	gamui::Image		alienImage;
 	gamui::Image		menuImage;
-	gamui::PushButton	fireButton[3];
-	gamui::Image		fireImage[3];
 	gamui::PushButton	exitButton;
 	gamui::PushButton	helpButton;
 	gamui::PushButton	nextTurnButton;
@@ -335,6 +338,8 @@ private:
 	gamui::PushButton	invButton;
 	enum { ROTATE_CCW_BUTTON, ROTATE_CW_BUTTON, NEXT_BUTTON, PREV_BUTTON, CONTROL_BUTTON_COUNT };
 	gamui::PushButton	controlButton[4];
+	FireWidgetRow		fireWidgetRow[3];
+	gamui::ItemGroup	fireWidget;
 
 
 	int				subTurnOrder[MAX_TERRANS];

@@ -92,6 +92,7 @@ UIItem::UIItem( int p_level )
 {}
 
 
+/*
 void UIItem::Attach( Gamui* g ) 
 {
 	if ( g ) {
@@ -103,7 +104,7 @@ void UIItem::Attach( Gamui* g )
 		m_gamui = 0;
 	}
 }
-
+*/
 
 void UIItem::PushQuad( int *nIndex, int16_t* index, int base, int a, int b, int c, int d, int e, int f )
 {
@@ -320,12 +321,12 @@ Image::Image() : UIItem( Gamui::LEVEL_BACKGROUND ),
 }
 
 
-Image::Image( const RenderAtom& atom ): UIItem( Gamui::LEVEL_BACKGROUND ),
+Image::Image( Gamui* gamui, const RenderAtom& atom ): UIItem( Gamui::LEVEL_BACKGROUND ),
 	  m_width( 0 ),
 	  m_height( 0 ),
 	  m_slice( false )
 {
-	Init( atom );
+	Init( gamui, atom );
 }
 
 Image::~Image()
@@ -333,11 +334,14 @@ Image::~Image()
 }
 
 
-void Image::Init( const RenderAtom& atom )
+void Image::Init( Gamui* gamui, const RenderAtom& atom )
 {
 	m_atom = atom;
 	m_width = atom.srcWidth;
 	m_height = atom.srcHeight;
+
+	m_gamui = gamui;
+	gamui->Add( this );
 }
 
 
@@ -440,82 +444,139 @@ void Image::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* ver
 
 Button::Button() : UIItem( Gamui::LEVEL_FOREGROUND ),
 	m_up( true ),
-	m_usingText2( false )
+	m_usingText1( false )
 {
 }
 
 
-void Button::Init(	const RenderAtom& atomUpEnabled,
+void Button::Init(	Gamui* gamui,
+					const RenderAtom& atomUpEnabled,
 					const RenderAtom& atomUpDisabled,
 					const RenderAtom& atomDownEnabled,
 					const RenderAtom& atomDownDisabled,
 					const RenderAtom& decoEnabled, 
 					const RenderAtom& decoDisabled )
 {
+	m_gamui = gamui;
+	gamui->Add( this );
+
 	m_atoms[UP] = atomUpEnabled;
 	m_atoms[UP_D] = atomUpDisabled;
 	m_atoms[DOWN] = atomDownEnabled;
 	m_atoms[DOWN_D] = atomDownDisabled;
 	m_atoms[DECO] = decoEnabled;
 	m_atoms[DECO_D] = decoDisabled;
-	
-	m_face.Init( atomUpEnabled );
+
+	m_textLayout = CENTER;
+	m_decoLayout = CENTER;
+	m_textDX = 0;
+	m_textDY = 0;
+	m_decoDX = 0;
+	m_decoDY = 0;	
+
+	m_face.Init( gamui, atomUpEnabled );
 	m_face.SetForeground( true );
 	m_face.SetSlice( true );
 
-	m_deco.Init( decoEnabled );
+	m_deco.Init( gamui, decoEnabled );
 	m_deco.SetLevel( Gamui::LEVEL_DECO );
+
+	m_label[0].Init( gamui );
+	m_label[1].Init( gamui );
 }
 
 
-void Button::Attach( Gamui* gamui )
+float Button::Width() const
 {
-	if ( gamui ) {
-		gamui->Add( &m_face );
-		gamui->Add( &m_deco );
-		gamui->Add( &m_label );
-		gamui->Add( &m_label2 );
-	}
-	UIItem::Attach( gamui );
+	float x0 = m_face.X() + m_face.Width();
+	float x1 = m_deco.X() + m_deco.Width();
+	float x2 = m_label[0].X() + m_label[0].Width();
+	float x3 = x2;
+	if ( m_usingText1 ) 
+		x3 = m_label[1].X() + m_label[1].Width();
+
+	float x = Max( x0, Max( x1, Max( x2, x3 ) ) );
+	return x - X();
+}
+
+
+float Button::Height() const
+{
+	float y0 = m_face.Y() + m_face.Height();
+	float y1 = m_deco.Y() + m_deco.Height();
+	float y2 = m_label[0].Y() + m_label[0].Height();
+	float y3 = y2;
+	if ( m_usingText1 ) 
+		y3 = m_label[1].Y() + m_label[1].Height();
+
+	float y = Max( y0, Max( y1, Max( y2, y3 ) ) );
+	return y - Y();
 }
 
 
 void Button::PositionChildren()
 {
+	// --- deco ---
 	if ( m_face.Width() > m_face.Height() ) {
 		m_deco.SetSize( m_face.Height() , m_face.Height() );
-		m_deco.SetPos( X() + (m_face.Width()-m_face.Height())*0.5f, Y() );
+
+		if ( m_decoLayout == LEFT ) {
+			m_deco.SetPos( X() + m_decoDX, Y() + m_decoDY );
+		}
+		else if ( m_decoLayout == RIGHT ) {
+			m_deco.SetPos( X() + m_face.Width() - m_face.Height() + m_decoDX, Y() + m_decoDY );
+		}
+		else {
+			m_deco.SetPos( X() + (m_face.Width()-m_face.Height())*0.5f + m_decoDX, Y() + m_decoDY );
+		}
 	}
 	else {
 		m_deco.SetSize( m_face.Width() , m_face.Width() );
-		m_deco.SetPos( X(), Y() + (m_face.Height()-m_face.Width())*0.5f );
+		m_deco.SetPos( X() + m_decoDX, Y() + (m_face.Height()-m_face.Width())*0.5f + m_decoDY );
 	}
 
-	if ( !m_usingText2 ) {
-		float h = m_label.Height();
-		float w = m_label.Width();
-		m_label.SetPos( X() + ((m_face.Width()-w)*0.5f),
-						Y() + ((m_face.Height()-h)*0.5f) );
-		m_label2.SetVisible( false );
+	// --- face ---- //
+	float x=0, y0=0, y1=0;
+
+	if ( !m_usingText1 ) {
+		float h = m_label[0].Height();
+		m_label[1].SetVisible( false );
+		y0 = Y() + (m_face.Height() - h)*0.5f;
 	}
 	else {
-		float h0 = m_label.Height();
-		float h2 = m_label2.Height();
+		float h0 = m_label[0].Height();
+		float h2 = m_label[1].Height();
 		float h = h0 + h2;
 
-		float w = Max( m_label.Width(), m_label2.Width() );
+		y0 = Y() + (m_face.Height() - h)*0.5f;
+		y1 = y0 + h0;
 
-		UIItem* items[2] = { &m_label, &m_label2 };
-		Gamui::Layout( items, 2, 
-					   1, 2, 
-					   X() + (m_face.Width()-w)*0.5f, 
-					   Y() + (m_face.Height()-h)*0.5f, 
-					   w, h, 0 );
-
-		m_label2.SetVisible( Visible() );
+		m_label[1].SetVisible( Visible() );
 	}
 
-	m_label.SetVisible( Visible() );
+	float w = m_label[0].Width();
+	if ( m_usingText1 ) {
+		w = Max( w, m_label[1].Width() );
+	}
+	
+	if ( m_textLayout == LEFT ) {
+		x = X();
+	}
+	else if ( m_textLayout == RIGHT ) {
+		x = X() + m_face.Width() - w;
+	}
+	else {
+		x = X() + (m_face.Width()-w)*0.5f;
+	}
+
+	x += m_textDX;
+	y0 += m_textDY;
+	y1 += m_textDY;
+
+	m_label[0].SetPos( x, y0 );
+	m_label[1].SetPos( x, y1 );
+
+	m_label[0].SetVisible( Visible() );
 	m_deco.SetVisible( Visible() );
 	m_face.SetVisible( Visible() );
 }
@@ -526,8 +587,8 @@ void Button::SetPos( float x, float y )
 	UIItem::SetPos( x, y );
 	m_face.SetPos( x, y );
 	m_deco.SetPos( x, y );
-	m_label.SetPos( x, y );
-	m_label2.SetPos( x, y );
+	m_label[0].SetPos( x, y );
+	m_label[1].SetPos( x, y );
 }
 
 void Button::SetSize( float width, float height )
@@ -544,14 +605,14 @@ void Button::SetSizeByScale( float sx, float sy )
 
 void Button::SetText( const char* text )
 {
-	m_label.SetText( text );
+	m_label[0].SetText( text );
 }
 
 
 void Button::SetText2( const char* text )
 {
-	m_usingText2 = true;
-	m_label2.SetText( text );
+	m_usingText1 = true;
+	m_label[1].SetText( text );
 }
 
 
@@ -579,8 +640,8 @@ void Button::SetState()
 	}
 	m_face.SetAtom( m_atoms[faceIndex] );
 	m_deco.SetAtom( m_atoms[decoIndex] );
-	m_label.SetEnabled( m_enabled );
-	m_label2.SetEnabled( m_enabled );
+	m_label[0].SetEnabled( m_enabled );
+	m_label[1].SetEnabled( m_enabled );
 }
 
 
@@ -646,12 +707,16 @@ DigitalBar::DigitalBar() : UIItem( Gamui::LEVEL_FOREGROUND ),
 }
 
 
-void DigitalBar::Init(	int nTicks,
+void DigitalBar::Init(	Gamui* gamui,
+						int nTicks,
 						const RenderAtom& atom0,
 						const RenderAtom& atom1,
 						const RenderAtom& atom2,
 						float spacing )
 {
+	m_gamui = gamui;
+	m_gamui->Add( this );
+
 	GAMUIASSERT( nTicks <= MAX_TICKS );
 	m_nTicks = nTicks;
 	m_t0 = 0;
@@ -662,7 +727,7 @@ void DigitalBar::Init(	int nTicks,
 	m_atom[2] = atom2;
 
 	for( int i=0; i<nTicks; ++i ) {
-		m_image[i].Init( atom0 );
+		m_image[i].Init( gamui, atom0 );
 		m_image[i].SetForeground( true );
 	}
 	m_spacing = spacing;
@@ -722,17 +787,6 @@ float DigitalBar::Height() const
 }
 
 
-void DigitalBar::Attach( Gamui* gamui )
-{
-	if ( gamui ) {
-		for( int i=0; i<m_nTicks; ++i ) {
-			gamui->Add( &m_image[i] );
-		}
-	}
-	UIItem::Attach( gamui );
-}
-
-
 const RenderAtom* DigitalBar::GetRenderAtom() const
 {
 	return 0;
@@ -759,7 +813,6 @@ void DigitalBar::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex
 }
 
 
-
 Gamui::Gamui()
 	:	m_itemTapped( 0 ),
 		m_iText( 0 )
@@ -767,10 +820,21 @@ Gamui::Gamui()
 }
 
 
+Gamui::Gamui(	IGamuiRenderer* renderer,
+				const RenderAtom& textEnabled, 
+				const RenderAtom& textDisabled,
+				IGamuiText* iText ) 
+	:	m_itemTapped( 0 ),
+		m_iText( 0 )
+{
+	Init( renderer, textEnabled, textDisabled, iText );
+}
+
+
 Gamui::~Gamui()
 {
 	for( vector< UIItem* >::iterator it = m_itemArr.begin(); it != m_itemArr.end(); it++ ) {
-		(*it)->Attach( 0 );
+		(*it)->Clear();
 	}
 }
 
@@ -789,8 +853,6 @@ void Gamui::Init(	IGamuiRenderer* renderer,
 
 void Gamui::Add( UIItem* item )
 {
-	item->Attach( this );
-
 	if ( item->IsToggle() && item->IsToggle()->ToggleGroup() > 0 ) {
 		ToggleButton* toggle = item->IsToggle();
 
@@ -821,7 +883,7 @@ void Gamui::Remove( UIItem* item )
 	for( vector< UIItem* >::iterator it = m_itemArr.begin(); it != m_itemArr.end(); it++ ) {
 		if ( *it == item ) {
 			m_itemArr.erase( it );
-			item->Attach( 0 );
+			item->Clear();
 			break;
 		}
 	}
@@ -914,7 +976,13 @@ bool Gamui::SortItems( const UIItem* a, const UIItem* b )
 	const void* texB = (atomB) ? atomB->textureHandle : 0;
 
 	// finally the texture.
-	return texA < texB;
+	if ( texA < texB )
+		return true;
+	else if ( texA > texB )
+		return false;
+
+	// just to guarantee a consistent order.
+	return a > b;
 }
 
 

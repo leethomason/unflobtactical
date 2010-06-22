@@ -213,35 +213,41 @@ int main( int argc, char **argv )
 	TextMetrics textMetrics;
 	Renderer renderer;
 
+
+	Gamui gamui( &renderer, textAtom, textAtomD, &textMetrics );
+
 	TextLabel textLabel[2];
+	textLabel[0].Init( &gamui );
+	textLabel[1].Init( &gamui );
+
 	textLabel[0].SetText( "Hello Gamui" );
 	textLabel[1].SetText( "Very long text to test the string allocator." );
 	textLabel[1].SetPos( 10, 20 );
 
-	Image image0( imageAtom );
+	Image image0( &gamui, imageAtom );
 	image0.SetPos( 50, 50 );
 
-	Image image1( imageAtom );
+	Image image1( &gamui, imageAtom );
 	image1.SetPos( 50, 200 );
 	image1.SetSize( 125, 125 );
 
-	Image image2( imageAtom );
+	Image image2( &gamui, imageAtom );
 	image2.SetPos( 200, 50 );
 	image2.SetSize( 50, 50 );
 
-	Image image2b( imageAtom );
+	Image image2b( &gamui, imageAtom );
 	image2b.SetPos( 270, 50 );
 	image2b.SetSize( 50, 50 );
 
-	Image image2c( imageAtom );
+	Image image2c( &gamui, imageAtom );
 	image2c.SetPos( 200, 120 );
 	image2c.SetSize( 50, 50 );
 
-	Image image2d( imageAtom );
+	Image image2d( &gamui, imageAtom );
 	image2d.SetPos( 270, 120 );
 	image2d.SetSize( 50, 50 );
 
-	Image image3( imageAtom );
+	Image image3( &gamui, imageAtom );
 	image3.SetPos( 200, 200 );
 	image3.SetSize( 125, 125 );
 	image3.SetSlice( true );
@@ -253,18 +259,18 @@ int main( int argc, char **argv )
 	RenderAtom down( RENDERSTATE_NORMAL, imageTextureID, 0, 0.75f, (52.f/256.f), (140.f/256.f), 50, 50 );
 	RenderAtom downD( down, RENDERSTATE_DISABLED );
 
-	PushButton button0( up, upD, down, downD, decoAtom, decoAtomD );
+	PushButton button0( &gamui, up, upD, down, downD, decoAtom, decoAtomD );
 	button0.SetPos( 350, 50 );
 	button0.SetSize( 150, 75 );
 	button0.SetText( "Button" );
 
-	PushButton button1( up, upD, down, downD, decoAtom, decoAtomD );
+	PushButton button1( &gamui, up, upD, down, downD, decoAtom, decoAtomD );
 	button1.SetPos( 350, 150 );
 	button1.SetSize( 150, 75 );
 	button1.SetText( "Button" );
 	button1.SetEnabled( false );
 
-	ToggleButton toggle( up, upD, down, downD, decoAtom, decoAtomD );
+	ToggleButton toggle( &gamui, up, upD, down, downD, decoAtom, decoAtomD );
 	toggle.SetPos( 350, 250 );
 	toggle.SetSize( 150, 75 );
 	toggle.SetText( "Toggle" );
@@ -276,70 +282,52 @@ int main( int argc, char **argv )
 	tick2.SetCoord( 190.f/256.f, 180.f/256.f, 205.f/256.f, 210.f/256.f );
 	tick1.SetCoord( 230.f/256.f, 225.f/256.f, 245.f/256.f, 1 );
 
-	DigitalBar bar( 10, tick0, tick1, tick2, 2 );
+	DigitalBar bar( &gamui, 10, tick0, tick1, tick2, 2 );
 	bar.SetRange( 0.33f, 0.66f );
 	bar.SetPos( 20, 350 );
 
-	{
-		Gamui gamui;
-		gamui.Init( &renderer, textAtom, textAtomD, &textMetrics );
 
-		gamui.Add( &textLabel[0] );
-		gamui.Add( &textLabel[1] );
-		gamui.Add( &image0 );
-		gamui.Add( &image1 );
-		gamui.Add( &image2 );
-		gamui.Add( &image2b );
-		gamui.Add( &image2c );
-		gamui.Add( &image2d );
-		gamui.Add( &image3 );
-		gamui.Add( &button0 );
-		gamui.Add( &button1 );
-		gamui.Add( &toggle );
-		gamui.Add( &bar );
+	bool done = false;
+	while ( !done ) {
+		SDL_Event event;
+		if ( SDL_PollEvent( &event ) ) {
+			switch( event.type ) {
 
-		bool done = false;
-		while ( !done ) {
-			SDL_Event event;
-			if ( SDL_PollEvent( &event ) ) {
-				switch( event.type ) {
-
-					case SDL_KEYDOWN:
+				case SDL_KEYDOWN:
+				{
+					switch ( event.key.keysym.sym )
 					{
-						switch ( event.key.keysym.sym )
-						{
-							case SDLK_ESCAPE:
-								done = true;
-								break;
-						}
+						case SDLK_ESCAPE:
+							done = true;
+							break;
 					}
+				}
+				break;
+
+				case SDL_MOUSEBUTTONDOWN:
+					gamui.TapDown( event.button.x, event.button.y );
 					break;
 
-					case SDL_MOUSEBUTTONDOWN:
-						gamui.TapDown( event.button.x, event.button.y );
-						break;
+				case SDL_MOUSEBUTTONUP:
+					gamui.TapUp( event.button.x, event.button.y );
+					break;
 
-					case SDL_MOUSEBUTTONUP:
-						gamui.TapUp( event.button.x, event.button.y );
-						break;
-
-					case SDL_QUIT:
-						done = true;
-						break;
-				}
+				case SDL_QUIT:
+					done = true;
+					break;
 			}
-
-			glClearColor( 0, 0, 0, 1 );
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-			float rotation = (float)((double)SDL_GetTicks() * 0.05 );
-			image2b.SetRotationX( rotation );
-			image2c.SetRotationY( rotation );
-			image2d.SetRotationZ( rotation );
-			gamui.Render();
-
-			SDL_GL_SwapBuffers();
 		}
+
+		glClearColor( 0, 0, 0, 1 );
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		float rotation = (float)((double)SDL_GetTicks() * 0.05 );
+		image2b.SetRotationX( rotation );
+		image2c.SetRotationY( rotation );
+		image2d.SetRotationZ( rotation );
+		gamui.Render();
+
+		SDL_GL_SwapBuffers();
 	}
 
 
