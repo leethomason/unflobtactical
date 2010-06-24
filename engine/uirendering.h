@@ -427,7 +427,9 @@ class UIRenderer : public gamui::IGamuiRenderer, public gamui::IGamuiText
 public:
 	enum {
 		RENDERSTATE_NORMAL = 1,
-		RENDERSTATE_DISABLED
+		RENDERSTATE_DISABLED,
+		RENDERSTATE_DECO,
+		RENDERSTATE_DECO_DISABLED,
 	};
 
 	UIRenderer() {}
@@ -446,9 +448,12 @@ public:
 	static gamui::RenderAtom CalcIconAtom( int id, bool enabled=true );
 
 	enum {
-		PALETTE_RED, PALETTE_GREEN, PALETTE_DARK_GREY
+		PALETTE_RED, 
+		PALETTE_GREEN, 
+		PALETTE_BRIGHT_GREEN,
+		PALETTE_DARK_GREY
 	};
-	static gamui::RenderAtom CalcPaletteAtom( int id, bool enable=true );
+	static gamui::RenderAtom CalcPaletteAtom( int id, int w, int h, bool enable=true );
 
 	virtual void GamuiGlyph( int c, gamui::IGamuiText::GlyphMetrics* metric );
 	

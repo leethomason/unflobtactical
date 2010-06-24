@@ -138,16 +138,6 @@ void TacticalIntroScene::DrawHUD()
 }
 
 
-/*
-void TacticalIntroScene::TapExtra( int action, const grinliz::Vector2I& screen )
-{
-	if ( action == 0 )
-		gamuiContainer.TapDown( (float)screen.x, float(GetEngine()->GetScreenport().UIHeight()-1-screen.y) );
-	else if ( action == 1 )
-		gamuiContainer.TapUp( (float)screen.x, float(GetEngine()->GetScreenport().UIHeight()-1-screen.y) );
-}
-*/
-
 void TacticalIntroScene::Tap(	int count, 
 								const Vector2I& screen,
 								const Ray& world )
@@ -216,7 +206,7 @@ void TacticalIntroScene::WriteXML( TiXmlNode* xml )
 	gameElement->LinkEndChild( sceneElement );
 	gameElement->LinkEndChild( battleElement );
 	
-	battleElement->SetAttribute( "dayTime", toggles[TIME_DAY].Up() );
+	battleElement->SetAttribute( "dayTime", toggles[TIME_DAY].Down() ? 1 : 0 );
 
 	const char* seedStr = seedButton.GetText();
 	int seed = atol( seedStr );
