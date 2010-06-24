@@ -1074,6 +1074,14 @@ void UIRenderer::BeginRenderState( const void* renderState )
 		glColor4f( 1, 1, 1, 0.5f );
 		break;
 
+	case RENDERSTATE_DECO:
+		glColor4f( 1, 1, 1, 0.7f );
+		break;
+
+	case RENDERSTATE_DECO_DISABLED:
+		glColor4f( 1, 1, 1, 0.2f );
+		break;
+
 	default:
 		GLASSERT( 0 );
 		break;
@@ -1094,6 +1102,9 @@ void UIRenderer::Render( const void* renderState, const void* textureHandle, int
 	glVertexPointer(   2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].x );
 	glTexCoordPointer( 2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].tx );
 	glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, index );
+	
+	trianglesRendered += nIndex / 3;
+	drawCalls++;
 }
 
 
@@ -1118,7 +1129,7 @@ gamui::RenderAtom UIRenderer::CalcDecoAtom( int id, bool enabled )
 	float tx1 = tx0 + 1.f/8.f;
 	float ty1 = ty0 + 1.f/4.f;
 
-	return gamui::RenderAtom( enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED, texture, tx0, ty0, tx1, ty1, 64, 64 );
+	return gamui::RenderAtom( enabled ? RENDERSTATE_DECO : RENDERSTATE_DECO_DISABLED, texture, tx0, ty0, tx1, ty1, 64, 64 );
 }
 
 
@@ -1152,7 +1163,7 @@ gamui::RenderAtom UIRenderer::CalcIconAtom( int id, bool enabled )
 }
 
 
-gamui::RenderAtom UIRenderer::CalcPaletteAtom( int id, bool enabled )
+gamui::RenderAtom UIRenderer::CalcPaletteAtom( int id, int w, int h, bool enabled )
 {
 	Vector2I c = { 0, 0 };
 	Texture* texture = TextureManager::Instance()->GetTexture( "palette" );
@@ -1160,11 +1171,12 @@ gamui::RenderAtom UIRenderer::CalcPaletteAtom( int id, bool enabled )
 	switch ( id ) {
 	case PALETTE_RED:			c.Set( 174, 174 );			break;
 	case PALETTE_GREEN:			c.Set( 74, 74 );			break;
+	case PALETTE_BRIGHT_GREEN:	c.Set( 12, 79 );			break;
 	case PALETTE_DARK_GREY:		c.Set( 34, 277 );			break;
 	default: GLASSERT( 0 );									break;
 	}
 
-	gamui::RenderAtom atom( enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED, texture, 0, 0, 0, 0, 1, 1 );
+	gamui::RenderAtom atom( enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED, texture, 0, 0, 0, 0, (float)w, (float)h );
 	SetAtomCoordFromPixel( c.x, c.y, c.x, c.y, 300, 300, &atom );
 	return atom;
 }

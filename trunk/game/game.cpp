@@ -428,7 +428,7 @@ void Game::DoTick( U32 _currentTime )
 #else
 		engine->Draw();
 		scene->Debug3D();
-		scene->RenderGamui3D();
+
 #endif
 
 		
@@ -439,6 +439,11 @@ void Game::DoTick( U32 _currentTime )
 	}
 	trianglesSinceMark += trianglesRendered;
 
+	// UI Pass
+	screenport.SetUI( &clip2D, (renderPass & Scene::RENDER_2D_FLIPPED) ? true : false ); 
+	if ( renderPass & Scene::RENDER_3D ) {
+		scene->RenderGamui3D();
+	}
 	if ( renderPass & Scene::RENDER_2D ) {
 		screenport.SetUI( &clip2D, (renderPass & Scene::RENDER_2D_FLIPPED) ? true : false );
 		scene->DrawHUD();

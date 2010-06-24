@@ -135,11 +135,14 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		fireButton[i].SetVisible( false );
 	}	
 	for( int i=0; i<MAX_UNITS; ++i ) {
+		static const int W = 5;
+		static const int H = 8;
+
 		hpBars[i].Init( &gamui3D,
 						5, 
-						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_RED ),
-						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN ),
-						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_DARK_GREY ),
+						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BRIGHT_GREEN, W, H ),
+						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_RED, W, H ),
+						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_DARK_GREY, W, H ),
 						1 );
 		hpBars[i].SetVisible( false );
 	}
@@ -803,7 +806,6 @@ void BattleScene::DrawHPBars()
 	// Else just show for 5 seconds after hp changes.
 	//
 	const int FADE_TIME = 5000;
-	//bool drawAll = (SelectedSoldierUnit() != 0 );
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		hpBarsFadeTime[i] = Max( hpBarsFadeTime[i] - (int)game->DeltaTime(), 0 );
@@ -823,16 +825,14 @@ void BattleScene::DrawHPBars()
 			port.UIBoundsClipped3D( &uiBounds );
 
 			// onscreen
-			const int W = 30;
-			const int H = 10;
 			float fhp = (float)units[i].HP()/100.0f;
 
 			if ( hpBars[i].GetRange0() != fhp ) {
 				hpBars[i].SetRange( fhp, (float)units[i].GetStats().TotalHP()/100.0f );
 				hpBarsFadeTime[i] = FADE_TIME;
 			}
-			hpBars[i].SetPos( (float)ui.x, (float)ui.y ); 
-			//hpBars[i]->SetOrigin( ui.x-W/2, ui.y-H*18/10 );
+			hpBars[i].SetPos( (float)ui.x - hpBars[i].Width()*0.5f, 
+							  (float)(port.UIHeight()-1-ui.y) + hpBars[i].Height()*1.5f ); 
 
 			if ( ( &units[i] == SelectedSoldierUnit() ) || hpBarsFadeTime[i] > 0 ) {
 				hpBars[i].SetVisible( true );

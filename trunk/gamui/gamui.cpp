@@ -751,8 +751,8 @@ void DigitalBar::SetRange( float t0, float t1 )
 	m_t0 = t0;
 	m_t1 = t1;
 
-	int index0 = (int)( t0 * (m_nTicks-1.0f) + 0.5f );
-	int index1 = (int)( t1 * (m_nTicks-1.0f) + 0.5f );
+	int index0 = (int)( t0 * (float)m_nTicks + 0.5f );
+	int index1 = (int)( t1 * (float)m_nTicks + 0.5f );
 
 	for( int i=0; i<index0; ++i ) {
 		m_image[i].SetAtom( m_atom[0] );
@@ -787,6 +787,15 @@ float DigitalBar::Height() const
 		h = Max( m_atom[0].srcHeight, Max( m_atom[1].srcHeight, m_atom[2].srcHeight ) );
 	}
 	return h;
+}
+
+
+void DigitalBar::SetVisible( bool visible )
+{
+	UIItem::SetVisible( visible );
+	for( int i=0; i<m_nTicks; ++i ) {
+		m_image[i].SetVisible( visible );
+	}
 }
 
 
@@ -1016,6 +1025,7 @@ void Gamui::Render()
 			 && ( atom->renderState != renderState || atom->textureHandle != textureHandle ) )
 		{
 			m_iRenderer->Render( renderState, textureHandle, nIndex, &m_indexBuffer[0], nVertex, &m_vertexBuffer[0] );
+			++
 			nIndex = nVertex = 0;
 		}
 

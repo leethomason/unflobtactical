@@ -139,10 +139,8 @@ public:
 
 	void Render();
 
-
 	RenderAtom* GetTextAtom() 				{ return &m_textAtomEnabled; }
 	RenderAtom* GetDisabledTextAtom()		{ return &m_textAtomDisabled; }
-
 
 	IGamuiText* GetTextInterface() const	{ return m_iText; }
 
@@ -163,6 +161,7 @@ private:
 	RenderAtom						m_textAtomDisabled;
 	IGamuiRenderer*					m_iRenderer;
 	IGamuiText*						m_iText;
+
 	enum { INDEX_SIZE = 6000,
 		   VERTEX_SIZE = 4000 };
 	int16_t							m_indexBuffer[INDEX_SIZE];
@@ -581,6 +580,7 @@ public:
 
 	virtual float Width() const;
 	virtual float Height() const;
+	virtual void SetVisible( bool visible );
 
 	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
