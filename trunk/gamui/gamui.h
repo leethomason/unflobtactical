@@ -197,6 +197,8 @@ public:
 
 	virtual ~IGamuiText()	{}
 
+	void Init( Gamui* gamui );
+
 	virtual void GamuiGlyph( int c, gamui::IGamuiText::GlyphMetrics* metric ) = 0;
 };
 
@@ -393,7 +395,14 @@ public:
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
 	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
 
+
 protected:
+
+	void Init( Gamui* gamui, const ButtonLook& look ) {
+		RenderAtom nullAtom;
+		Init( gamui, look.atomUpEnabled, look.atomUpDisabled, look.atomDownEnabled, look.atomDownDisabled, nullAtom, nullAtom );
+	}
+
 	void Init(	Gamui*,
 				const RenderAtom& atomUpEnabled,
 				const RenderAtom& atomUpDisabled,
@@ -401,12 +410,6 @@ protected:
 				const RenderAtom& atomDownDisabled,
 				const RenderAtom& decoEnabled, 
 				const RenderAtom& decoDisabled );
-
-	void Init( Gamui* gamui, const ButtonLook& look ) {
-		RenderAtom nullAtom;
-		Init( gamui, look.atomUpEnabled, look.atomUpDisabled, look.atomDownEnabled, look.atomDownDisabled, nullAtom, nullAtom );
-	}
-
 
 	Button();
 	virtual ~Button()	{}
@@ -465,6 +468,23 @@ public:
 		Init( gamui, look.atomUpEnabled, look.atomUpDisabled, look.atomDownEnabled, look.atomDownDisabled, nullAtom, nullAtom );
 	}
 
+
+	void Init( Gamui* gamui, const ButtonLook& look ) {
+		RenderAtom nullAtom;
+		Init( gamui, look.atomUpEnabled, look.atomUpDisabled, look.atomDownEnabled, look.atomDownDisabled, nullAtom, nullAtom );
+	}
+
+	void Init(	Gamui* gamui,
+				const RenderAtom& atomUpEnabled,
+				const RenderAtom& atomUpDisabled,
+				const RenderAtom& atomDownEnabled,
+				const RenderAtom& atomDownDisabled,
+				const RenderAtom& decoEnabled, 
+				const RenderAtom& decoDisabled )
+	{
+		Button::Init( gamui, atomUpEnabled, atomUpDisabled, atomDownEnabled, atomDownDisabled, decoEnabled, decoDisabled );
+	}
+
 	virtual ~PushButton()	{}
 
 	virtual bool HandleTap( int action, float x, float y );
@@ -476,6 +496,7 @@ class ToggleButton : public Button
 public:
 	ToggleButton() : Button(), m_toggleGroup( 0 )		{}
 	ToggleButton(	Gamui* gamui,
+					int toggleGroup,
 					const RenderAtom& atomUpEnabled,
 					const RenderAtom& atomUpDisabled,
 					const RenderAtom& atomDownEnabled,
@@ -483,13 +504,33 @@ public:
 					const RenderAtom& decoEnabled, 
 					const RenderAtom& decoDisabled) : Button(), m_toggleGroup( 0 )	
 	{
-		Init( gamui, atomUpEnabled, atomUpDisabled, atomDownEnabled, atomDownDisabled, decoEnabled, decoDisabled );
+		m_toggleGroup = toggleGroup;
+		Button::Init( gamui, atomUpEnabled, atomUpDisabled, atomDownEnabled, atomDownDisabled, decoEnabled, decoDisabled );
 	}
 
-	ToggleButton( Gamui* gamui, const ButtonLook& look ) : Button(), m_toggleGroup( 0 )
+	ToggleButton( Gamui* gamui, int toggleGroup, const ButtonLook& look ) : Button(), m_toggleGroup( 0 )
 	{
 		RenderAtom nullAtom;
-		Init( gamui, look.atomUpEnabled, look.atomUpDisabled, look.atomDownEnabled, look.atomDownDisabled, nullAtom, nullAtom );
+		Button::Init( gamui, look.atomUpEnabled, look.atomUpDisabled, look.atomDownEnabled, look.atomDownDisabled, nullAtom, nullAtom );
+	}
+
+	void Init( Gamui* gamui, int toggleGroup, const ButtonLook& look ) {
+		RenderAtom nullAtom;
+		m_toggleGroup = toggleGroup;
+		Button::Init( gamui, look.atomUpEnabled, look.atomUpDisabled, look.atomDownEnabled, look.atomDownDisabled, nullAtom, nullAtom );
+	}
+
+	void Init(	Gamui* gamui,
+				int toggleGroup,
+				const RenderAtom& atomUpEnabled,
+				const RenderAtom& atomUpDisabled,
+				const RenderAtom& atomDownEnabled,
+				const RenderAtom& atomDownDisabled,
+				const RenderAtom& decoEnabled, 
+				const RenderAtom& decoDisabled )
+	{
+		m_toggleGroup = toggleGroup;
+		Button::Init( gamui, atomUpEnabled, atomUpDisabled, atomDownEnabled, atomDownDisabled, decoEnabled, decoDisabled );
 	}
 
 	virtual ~ToggleButton()		{}
@@ -497,7 +538,7 @@ public:
 
 	virtual bool HandleTap(	int action, float x, float y );
 	virtual int ToggleGroup() const				{ return m_toggleGroup; }
-	void SetToggleGroup( int group )			{ m_toggleGroup = group; }
+//	void SetToggleGroup( int group )			{ m_toggleGroup = group; }
 
 	virtual ToggleButton* IsToggle()			{ return this; }
 

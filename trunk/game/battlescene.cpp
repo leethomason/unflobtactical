@@ -73,96 +73,75 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 	const ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
 
-	alienImage.Init( UIRenderer::CalcDecoAtom( DECO_ALIEN ) );
+	alienImage.Init( &gamui3D, UIRenderer::CalcDecoAtom( DECO_ALIEN ) );
 	alienImage.SetPos( float(port.UIWidth()-50), 0 );
 	alienImage.SetSize( 50, 50 );
-	container3D.Add( &alienImage );
 
 
 	for( int i=0; i<MAX_ALIENS; ++i ) {
-		targetArrow[i].Init( UIRenderer::CalcParticleAtom( 15 ) );	// fixme: constant?
+		targetArrow[i].Init( &gamui2D, UIRenderer::CalcParticleAtom( 15 ) );	// fixme: constant?
 		targetArrow[i].SetVisible( false );
-		container2D.Add( &targetArrow[i] );
 	}
 
 	const float SIZE = 50.0f;
 	{
-		exitButton.Init( blue );
+		exitButton.Init( &gamui2D, blue );
 		exitButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_LAUNCH, true ), UIRenderer::CalcDecoAtom( DECO_LAUNCH, false ) );
 		exitButton.SetSize( SIZE, SIZE );
-		container2D.Add( &exitButton );
 
-		helpButton.Init( green );
+		helpButton.Init( &gamui2D, green );
 		helpButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_HELP, true ), UIRenderer::CalcDecoAtom( DECO_HELP, false ) );
 		helpButton.SetSize( SIZE, SIZE );
-		container2D.Add( &helpButton );
 
-		nextTurnButton.Init( green );
+		nextTurnButton.Init( &gamui2D, green );
 		nextTurnButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_END_TURN, true ), UIRenderer::CalcDecoAtom( DECO_END_TURN, false ) );
 		nextTurnButton.SetSize( SIZE, SIZE );
-		container2D.Add( &nextTurnButton );
 
-		targetButton.Init( red );
+		targetButton.Init( &gamui2D, 0, red );
 		targetButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_AIMED, true ), UIRenderer::CalcDecoAtom( DECO_AIMED, false ) );
 		targetButton.SetSize( SIZE, SIZE );
-		container2D.Add( &targetButton );
 
-		invButton.Init( green );
+		invButton.Init( &gamui2D, green );
 		invButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_CHARACTER, true ), UIRenderer::CalcDecoAtom( DECO_CHARACTER, false ) );
 		invButton.SetSize( SIZE, SIZE );
-		container2D.Add( &invButton );
 
-		invButton.Init( green );
+		invButton.Init( &gamui2D, green );
 		invButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_CHARACTER, true ), UIRenderer::CalcDecoAtom( DECO_CHARACTER, false ) );
 		invButton.SetSize( SIZE, SIZE );
-		container2D.Add( &invButton );
 
 		static const int controlDecoID[CONTROL_BUTTON_COUNT] = { DECO_ROTATE_CCW, DECO_ROTATE_CW, DECO_PREV, DECO_NEXT };
 		for( int i=0; i<CONTROL_BUTTON_COUNT; ++i ) {
-			controlButton[i].Init( green );
+			controlButton[i].Init( (i==0) ? &gamui2D : &gamui3D, green );
 			controlButton[i].SetDeco( UIRenderer::CalcDecoAtom( controlDecoID[i], true ), UIRenderer::CalcDecoAtom( controlDecoID[i], false ) );
 			controlButton[i].SetSize( SIZE, SIZE );
-			if ( i==0 )
-				container2D.Add( &controlButton[i] );
-			else 
-				container3D.Add( &controlButton[i] );
 		}
 
 		UIItem* items[6] = { &exitButton, &helpButton, &nextTurnButton, &targetButton, &invButton, &controlButton[0] };
-		container2D.Layout( items, 6, 1, 6, 0, 0, SIZE, (float)port.UIHeight(), 0 );
+		Gamui::Layout( items, 6, 1, 6, 0, 0, SIZE, (float)port.UIHeight(), 0 );
 
 		controlButton[1].SetPos( SIZE, port.UIHeight()-SIZE );
 		controlButton[2].SetPos( port.UIWidth()-SIZE*2.f, port.UIHeight()-SIZE );
 		controlButton[3].SetPos( port.UIWidth()-SIZE*1.f, port.UIHeight()-SIZE );
 
 		RenderAtom menuImageAtom( UIRenderer::RENDERSTATE_NORMAL, TextureManager::Instance()->GetTexture( "commandBarV" ), 0, 0, 1, 1, 50, 320 );
-		menuImage.Init( menuImageAtom );
-		container2D.Add( &menuImage );
+		menuImage.Init( &gamui2D, menuImageAtom );
 	}
 
 	
 	for( int i=0; i<3; ++i ) {
-		fireWidgetRow[i].button.Init( red );
-		fireWidgetRow[i].button.SetSize( 120.f, 60.f );
-
-		fireWidgetRow[i].image.Init( UIRenderer::CalcIconAtom( 12 ) );
-		fireWidgetRow[i].image.SetSize( 40, 40 );
-		fireWidgetRow[i].image.SetForeground( false );
-
-		fireWidget.Add( &fireWidgetRow[i].button, 0, float(i*45) );
-		fireWidget.Add( &fireWidgetRow[i].image, 30, float(i*45) );
+		fireButton[i].Init( &gamui3D, red );
+		fireButton[i].SetSize( 120.f, 60.f );
+		fireButton[i].SetDeco( UIRenderer::CalcIconAtom( 12, true ), UIRenderer::CalcIconAtom( 12, false ) );	// fixme - need enum
+		fireButton[i].SetVisible( false );
 	}	
-	container3D.Add( &fireWidget );
-	fireWidget.SetVisible( false );
-
 	for( int i=0; i<MAX_UNITS; ++i ) {
-		hpBars[i].Init( 5, 
+		hpBars[i].Init( &gamui3D,
+						5, 
 						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_RED ),
 						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN ),
 						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_DARK_GREY ),
 						1 );
 		hpBars[i].SetVisible( false );
-		container3D.Add( &hpBars[i] );
 	}
 
 	engine->EnableMap( true );
@@ -608,7 +587,7 @@ int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I*
 
 	clip3D->Set( size.x, 0, port.UIWidth()-1, port.UIHeight()-1 );
 	clip2D->Set(0, 0, port.UIWidth()-1, port.UIHeight()-1 );
-	return RENDER_3D | RENDER_2D; 
+	return RENDER_3D | RENDER_2D | RENDER_2D_FLIPPED; 
 #endif
 }
 
@@ -889,8 +868,8 @@ void BattleScene::DrawFireWidget()
 	const int DX = 10;
 
 	// Make sure it fits on the screen.
-	float w = fireWidget.Width();
-	float h = fireWidget.Height();
+	float w = fireButton[0].Width();
+	float h = fireButton[0].Height()*3.f + (float)FIRE_BUTTON_SPACING*2.0f;
 	float x = (float)(uiX+DX);
 	float y = (float)uiY-(float)(port.UIHeight()-1)+h*0.5f;
 
@@ -904,9 +883,11 @@ void BattleScene::DrawFireWidget()
 		y = 0;
 	}
 	else if ( y+h >= port.UIHeight() ) {
-		y = h - port.UIHeight();
+		y = port.UIHeight() - h;
 	}
-	fireWidget.SetPos( x, y );
+	fireButton[0].SetPos( x, y );
+	fireButton[1].SetPos( x, y+fireButton[0].Height()+(float)FIRE_BUTTON_SPACING );
+	fireButton[2].SetPos( x, y+fireButton[0].Height()*2.0f+(float)FIRE_BUTTON_SPACING*2.0f );
 }
 
 
@@ -981,14 +962,14 @@ void BattleScene::SetFireWidget()
 			SNPrintf( buffer0, 32, "%s %d%%", wid->fireDesc[i], (int)LRintf( anyFraction*100.0f ) );
 			SNPrintf( buffer1, 32, "%d/%d", nShots, rounds );
 
-			fireWidgetRow[i].button.SetEnabled( enable );
-			fireWidgetRow[i].button.SetText( buffer0 );
-			fireWidgetRow[i].button.SetText2( buffer1 );
-		}
-		else {
-			fireWidgetRow[i].button.SetEnabled( false );
-			fireWidgetRow[i].button.SetText( "" );
-			fireWidgetRow[i].button.SetText2( "" );
+			fireButton[i].SetEnabled( enable );
+			fireButton[i].SetText( buffer0 );
+			fireButton[i].SetText2( buffer1 );
+		}				 
+		else {			 
+			fireButton[i].SetEnabled( false );
+			fireButton[i].SetText( "" );
+			fireButton[i].SetText2( "" );
 		}
 		
 		int index = 2-i;
@@ -1005,30 +986,7 @@ void BattleScene::SetFireWidget()
 		else if ( tu != 0 && tuAfter < snappedTU ) {
 			tuIndicator = ICON_ORANGE_WALK_MARK;
 		}
-		fireWidget->SetButton( index+3, tuIndicator );
-		fireWidget->SetEnabled( index+3, enable );
-		if ( !enable ) {
-			fireWidget->SetButton( index+3, ICON_ORANGE_WALK_MARK );
-		}
-
-		// Set the type of shot
-		int deco = DECO_NONE;
-		if ( wid && wid->HasWeapon(select) ) {
-
-
-			if ( item->IsWeapon()->weapon[select].flags & WEAPON_EXPLOSIVE ) {
-				deco = DECO_BOOM;
-			}
-			else {
-				switch ( type ) {
-					case AIMED_SHOT:	deco = DECO_AIMED;	break;
-					case AUTO_SHOT:		deco = DECO_AUTO;	break;
-					default:			deco = DECO_SNAP;	break;
-				}
-			}
-		}
-		fireWidget->SetDeco( index+6, deco );
-		fireWidget->SetEnabled( index+6, enable );
+		fireButton[i].SetDeco( UIRenderer::CalcIconAtom( tuIndicator, true ), UIRenderer::CalcIconAtom( tuIndicator, false ) );
 	}
 }
 
@@ -2058,20 +2016,19 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 {
 	int screenX, screenY;
 	engine->GetScreenport().ViewToUI( vX, vY, &screenX, &screenY );
+	float guiX = (float)screenX;
+	float guiY = (float)(engine->GetScreenport().UIHeight()-1-screenY);
 
-	int icon = -1;
+	const UIItem* tapped = gamui2D.TapDown( guiX, guiY );
+	gamui2D.TapUp( guiX, guiY );
+	if ( !tapped ) {
+		tapped = gamui3D.TapDown( guiX, guiY );
+		gamui3D.TapUp( guiX, guiY );
+	}
 
 	if ( uiMode == UIM_FIRE_MENU ) {
-		icon = fireWidget->QueryTap( screenX, screenY );
 
-		/*
-			fast
-			aimed/auto
-			burst
-		*/
-		while ( icon >= 3 ) icon -= 3;
-
-		if ( icon >= 0 && icon < 3 ) {
+		if ( tapped == fireButton+0 || tapped == fireButton+1 || tapped == fireButton+2 ) {
 			// shooting creates a turn action then a shoot action.
 			GLASSERT( selection.soldierUnit >= 0 );
 			GLASSERT( selection.targetUnit >= 0 );
@@ -2083,7 +2040,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 			GLASSERT( wid );
 
 			int select, type;
-			wid->FireModeToType( 2-icon, &select, &type );
+			wid->FireModeToType( tapped - fireButton, &select, &type );
 
 			Vector3F target;
 			if ( selection.targetPos.x >= 0 ) {
@@ -2097,67 +2054,52 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 		}
 	}
 	else if ( uiMode == UIM_TARGET_TILE ) {
-		icon = widgets->QueryTap( screenX, screenY );
-		if ( icon == BTN_TARGET ) {
+		if ( tapped == &targetButton ) {
 			uiMode = UIM_NORMAL;
 		}
 	}
 	else {
-		icon = widgets->QueryTap( screenX, screenY );
-
-		switch( icon ) {
-
-			case BTN_TARGET:
-				{
-					//SoundManager::Instance()->QueueSound( "blip" );
-					uiMode = UIM_TARGET_TILE;
-				}
-				break;
-
-			case BTN_ROTATE_CCW:
-			case BTN_ROTATE_CW:
-				HandleRotation( icon == BTN_ROTATE_CCW ? 45.f : -45.f );
-				break;
-
-			case BTN_CHAR_SCREEN:
-				if ( actionStack.Empty() && SelectedSoldierUnit() ) {
-					//SoundManager::Instance()->QueueSound( "blip" );
-					CharacterSceneInput* input = new CharacterSceneInput();
-					input->unit = SelectedSoldierUnit();
-					input->canChangeArmor = false;
-					game->PushScene( Game::CHARACTER_SCENE, input );
-				}
-				break;
-
-			case BTN_END_TURN:
-				SetSelection( 0 );
-				engine->GetMap()->ClearNearPath();
-				if ( EndCondition( &gTacticalData ) ) {
-					game->PushScene( Game::END_SCENE, &gTacticalData );
-					//SoundManager::Instance()->QueueSound( "blip" );
-				}
-				else {
-					NextTurn();
-				}
-				break;
-
-			case BTN_NEXT:
-			case BTN_PREV:
-				HandleNextUnit( (icon==BTN_NEXT) ? 1 : -1 );
-				break;
-
-			case BTN_HELP:
-				{
-					game->PushScene( Game::HELP_SCENE, 0 );
-					//SoundManager::Instance()->QueueSound( "blip" );
-				}
-				break;
-
-			default:
-				break;
+		if ( tapped == &targetButton ) {
+			//SoundManager::Instance()->QueueSound( "blip" );
+				uiMode = UIM_TARGET_TILE;
+		}
+		else if ( tapped == controlButton + ROTATE_CCW_BUTTON ) {
+			HandleRotation( 45.f );
+		}
+		else if ( tapped == controlButton + ROTATE_CCW_BUTTON ) {
+			HandleRotation( -45.f );
+		}
+		else if ( tapped == &invButton ) {
+			if ( actionStack.Empty() && SelectedSoldierUnit() ) {
+				//SoundManager::Instance()->QueueSound( "blip" );
+				CharacterSceneInput* input = new CharacterSceneInput();
+				input->unit = SelectedSoldierUnit();
+				input->canChangeArmor = false;
+				game->PushScene( Game::CHARACTER_SCENE, input );
+			}
+		}
+		else if ( tapped == &nextTurnButton ) {
+			SetSelection( 0 );
+			engine->GetMap()->ClearNearPath();
+			if ( EndCondition( &gTacticalData ) ) {
+				game->PushScene( Game::END_SCENE, &gTacticalData );
+				//SoundManager::Instance()->QueueSound( "blip" );
+			}
+			else {
+				NextTurn();
+			}
+		}
+		else if ( tapped == controlButton + NEXT_BUTTON ) {
+			HandleNextUnit( 1 );
+		}
+		else if ( tapped == controlButton + PREV_BUTTON ) {
+			HandleNextUnit( -1 );
+		}
+		else if ( tapped == &helpButton ) {
+			game->PushScene( Game::HELP_SCENE, 0 );
 		}
 	}
-	return icon >= 0;
+	return tapped != 0;
 }
 
 
@@ -2881,52 +2823,36 @@ void BattleScene::DrawHUD()
 				   currentMapItem, engine->GetMap()->GetItemDefName( currentMapItem ) );
 #else
 	{
-		bool enabled = SelectedSoldierUnit() && actionStack.Empty();
-		widgets->SetEnabled( BTN_TARGET, enabled );
-		widgets->SetEnabled( BTN_CHAR_SCREEN, enabled );
-		widgets->SetEnabled( BTN_ROTATE_CCW, enabled );
-		widgets->SetEnabled( BTN_ROTATE_CW, enabled );
+		bool enabled = SelectedSoldierUnit() && actionStack.Empty() && (uiMode != UIM_TARGET_TILE);
+		targetButton.SetEnabled( enabled );
+		invButton.SetEnabled( enabled );
+		controlButton[ROTATE_CCW_BUTTON].SetEnabled( enabled );
+		controlButton[ROTATE_CW_BUTTON].SetEnabled( enabled );
 	}
 	{
-		bool enabled = actionStack.Empty();
-		widgets->SetEnabled( BTN_NEXT, enabled );
-		widgets->SetEnabled( BTN_PREV, enabled );
-		widgets->SetEnabled( BTN_TAKE_OFF, enabled );
-		widgets->SetEnabled( BTN_END_TURN, enabled );
-		widgets->SetEnabled( BTN_HELP, enabled );
+		bool enabled = actionStack.Empty() && (uiMode != UIM_TARGET_TILE);
+		controlButton[NEXT_BUTTON].SetEnabled( enabled );
+		controlButton[PREV_BUTTON].SetEnabled( enabled );
+		exitButton.SetEnabled( enabled );
+		nextTurnButton.SetEnabled( enabled );
+		helpButton.SetEnabled( enabled );
 	}
 	// overrides enabled, above.
 	if ( uiMode == UIM_TARGET_TILE ) {
-		for( int i=0; i<BTN_COUNT; ++i ) {
-			if ( i != BTN_TARGET ) {
-				widgets->SetEnabled( i, false );
-			}
-		}
+		targetButton.SetEnabled( true );
 	}
-	widgets->SetHighLight( BTN_TARGET, uiMode == UIM_TARGET_TILE ? true : false );
-	widgets->SetVisible( BTN_ROTATE_CCW, rotationUIOn );
-	widgets->SetVisible( BTN_ROTATE_CW, rotationUIOn );
-	widgets->SetVisible( BTN_NEXT, nextUIOn );
-	widgets->SetVisible( BTN_PREV, nextUIOn );
-
-	menuImage->Draw(); // debugging: make sure clipping is working correctly
 	
-	widgets->Draw();
-	for( int i=0; i<MAX_ALIENS; ++i ) {
-		if ( targetArrowOn[i] ) {
-			targetArrow[i]->Draw();
-		}
-	}
+	controlButton[ROTATE_CCW_BUTTON].SetVisible( rotationUIOn );
+	controlButton[ROTATE_CW_BUTTON].SetVisible( rotationUIOn );
+	controlButton[NEXT_BUTTON].SetVisible( nextUIOn );
+	controlButton[PREV_BUTTON].SetVisible( nextUIOn );
 
-	if ( currentTeamTurn == ALIEN_TEAM ) {
-		const int CYCLE = 5000;
-		alienImage->SetYRotation( (float)(game->CurrentTime() % CYCLE)*(360.0f/(float)CYCLE) );
-		alienImage->Draw();
-	}
-	if ( HasTarget() ) {
-		fireWidget->Draw();
-	}
+	alienImage.SetVisible( currentTeamTurn == ALIEN_TEAM );
+	const int CYCLE = 5000;
+	alienImage.SetRotationY( (float)(game->CurrentTime() % CYCLE)*(360.0f/(float)CYCLE) );
 
+	/*
+	// FIXME: use text label
 	if ( SelectedSoldierUnit() ) {
 		//int id = SelectedSoldierUnit() - units;
 		const Unit* unit = SelectedSoldierUnit();
@@ -2940,15 +2866,8 @@ void BattleScene::DrawHUD()
 			unit->FirstName(),
 			unit->LastName(),
 			weapon );
-/*
-		UFOText::Draw( 260, 304, 
-			"TU:%.1f HP:%d Tgt:%02d/%02d", 
-			unit->GetStats().TU(),
-			unit->GetStats().HP(),
-			m_targets.CalcTotalUnitCanSee( id, ALIEN_TEAM ),
-			m_targets.TotalTeamCanSee( TERRAN_TEAM, ALIEN_TEAM ) );
-*/
 	}
+	*/
 	DrawHPBars();
 #endif
 }

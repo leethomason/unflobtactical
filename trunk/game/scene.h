@@ -19,6 +19,8 @@
 #include "../grinliz/glvector.h"
 #include "../grinliz/glgeometry.h"
 #include "../grinliz/glrectangle.h"
+#include "../gamui/gamui.h"
+#include "../engine/uirendering.h"
 
 class Game;
 class Engine;
@@ -30,7 +32,7 @@ class TiXmlElement;
 class Scene
 {
 public:
-	Scene( Game* _game ) : game( _game )						{}
+	Scene( Game* _game );
 	virtual ~Scene()											{}
 
 	virtual void Activate()										{}
@@ -60,12 +62,17 @@ public:
 		RENDER_3D = 0x02,
 		RENDER_2D_FLIPPED = 0x04,
 	};
+
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	
 	{ 
 		clip3D->SetInvalid(); 
 		clip2D->SetInvalid(); 
 		return 0; 
 	}
+
+	void RenderGamui2D()	{ gamui2D.Render(); }
+	void RenderGamui3D()	{ gamui3D.Render(); }
+
 	// Perspective rendering.
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
 	// 2D overlay rendering.
@@ -78,7 +85,9 @@ public:
 protected:
 	Engine* GetEngine();
 
-	Game* game;
+	Game*				game;
+	UIRenderer			uiRenderer;
+	gamui::Gamui		gamui2D, gamui3D;
 };
 
 #pragma warning ( pop )
