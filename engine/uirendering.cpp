@@ -1033,6 +1033,13 @@ void UIRenderer::BeginRender()
 	
 	glEnable( GL_TEXTURE_2D );
 	glDisable( GL_DEPTH_TEST );
+
+	glColor4f( 1, 1, 1, 1 );
+	glDisable( GL_LIGHTING );
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+	glDisableClientState( GL_COLOR_ARRAY );
 	glDisableClientState( GL_NORMAL_ARRAY );
 
 	glEnable( GL_BLEND );
@@ -1046,6 +1053,10 @@ void UIRenderer::EndRender()
 {
 	CHECK_GL_ERROR;
 	glEnable( GL_DEPTH_TEST );
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+	glDisableClientState( GL_COLOR_ARRAY );
 	glEnableClientState( GL_NORMAL_ARRAY );
 	CHECK_GL_ERROR;
 }
@@ -1096,8 +1107,9 @@ void UIRenderer::SetAtomCoordFromPixel( int x0, int y0, int x1, int y1, int w, i
 }
 
 
-gamui::RenderAtom UIRenderer::CalcDecoAtom( int id )
+gamui::RenderAtom UIRenderer::CalcDecoAtom( int id, bool enabled )
 {
+	GLASSERT( id >= 0 && id < 32 );
 	Texture* texture = TextureManager::Instance()->GetTexture( "iconDeco" );
 	int y = id / 8;
 	int x = id - y*8;
@@ -1106,7 +1118,55 @@ gamui::RenderAtom UIRenderer::CalcDecoAtom( int id )
 	float tx1 = tx0 + 1.f/8.f;
 	float ty1 = ty0 + 1.f/4.f;
 
-	return gamui::RenderAtom( RENDERSTATE_NORMAL, texture, tx0, ty0, tx1, ty1, 64, 64 );
+	return gamui::RenderAtom( enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED, texture, tx0, ty0, tx1, ty1, 64, 64 );
+}
+
+
+gamui::RenderAtom UIRenderer::CalcParticleAtom( int id, bool enabled )
+{
+	GLASSERT( id >= 0 && id < 16 );
+	Texture* texture = TextureManager::Instance()->GetTexture( "particleQuad" );
+	int y = id / 4;
+	int x = id - y*4;
+	float tx0 = (float)x / 4.f;
+	float ty0 = (float)y / 4.f;
+	float tx1 = tx0 + 1.f/4.f;
+	float ty1 = ty0 + 1.f/4.f;
+
+	return gamui::RenderAtom( enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED, texture, tx0, ty0, tx1, ty1, 64, 64 );
+}
+
+
+gamui::RenderAtom UIRenderer::CalcIconAtom( int id, bool enabled )
+{
+	GLASSERT( id >= 0 && id < 16 );
+	Texture* texture = TextureManager::Instance()->GetTexture( "icons" );
+	int y = id / 4;
+	int x = id - y*4;
+	float tx0 = (float)x / 4.f;
+	float ty0 = (float)y / 4.f;
+	float tx1 = tx0 + 1.f/4.f;
+	float ty1 = ty0 + 1.f/4.f;
+
+	return gamui::RenderAtom( enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED, texture, tx0, ty0, tx1, ty1, 64, 64 );
+}
+
+
+gamui::RenderAtom UIRenderer::CalcPaletteAtom( int id, bool enabled )
+{
+	Vector2I c = { 0, 0 };
+	Texture* texture = TextureManager::Instance()->GetTexture( "palette" );
+
+	switch ( id ) {
+	case PALETTE_RED:			c.Set( 174, 174 );			break;
+	case PALETTE_GREEN:			c.Set( 74, 74 );			break;
+	case PALETTE_DARK_GREY:		c.Set( 34, 277 );			break;
+	default: GLASSERT( 0 );									break;
+	}
+
+	gamui::RenderAtom atom( enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED, texture, 0, 0, 0, 0, 1, 1 );
+	SetAtomCoordFromPixel( c.x, c.y, c.x, c.y, 300, 300, &atom );
+	return atom;
 }
 
 

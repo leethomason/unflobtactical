@@ -155,6 +155,13 @@ TextLabel::~TextLabel()
 }
 
 
+void TextLabel::Init( Gamui* gamui )
+{
+	m_gamui = gamui;
+	m_gamui->Add( this );
+}
+
+
 void TextLabel::ClearText()
 {
 	if ( buf[ALLOCATE-1] != 0 ) {
@@ -365,11 +372,7 @@ void Image::SetForeground( bool foreground )
 
 void Image::Requires( int* indexNeeded, int* vertexNeeded )
 {
-	if ( m_atom.textureHandle == 0 ) {
-		*indexNeeded = 0;
-		*vertexNeeded = 0;
-	}
-	else if ( m_slice ) {
+	if ( m_slice ) {
 		*indexNeeded = 6*9;
 		*vertexNeeded = 4*9;
 	}
@@ -458,7 +461,6 @@ void Button::Init(	Gamui* gamui,
 					const RenderAtom& decoDisabled )
 {
 	m_gamui = gamui;
-	gamui->Add( this );
 
 	m_atoms[UP] = atomUpEnabled;
 	m_atoms[UP_D] = atomUpDisabled;
@@ -483,6 +485,7 @@ void Button::Init(	Gamui* gamui,
 
 	m_label[0].Init( gamui );
 	m_label[1].Init( gamui );
+	gamui->Add( this );
 }
 
 
@@ -1079,6 +1082,7 @@ void Gamui::Layout( UIItem** item, int nItems,
 			x = originX;
 			y += item[i]->Height();
 			y += ySpacing;
+			c = 0;
 		}
 		if ( r == cy )
 			break;

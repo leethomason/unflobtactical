@@ -16,6 +16,15 @@
 #include "game.h"
 #include "scene.h"
 
+
+Scene::Scene( Game* _game )
+	: game( _game )
+{
+	gamui2D.Init( &uiRenderer, game->GetRenderAtom( Game::ATOM_TEXT ), game->GetRenderAtom( Game::ATOM_TEXT_D ), &uiRenderer );
+	gamui3D.Init( &uiRenderer, game->GetRenderAtom( Game::ATOM_TEXT ), game->GetRenderAtom( Game::ATOM_TEXT_D ), &uiRenderer );
+}
+
+
 Engine* Scene::GetEngine()
 {
 	return game->engine;

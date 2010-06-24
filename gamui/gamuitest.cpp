@@ -270,7 +270,7 @@ int main( int argc, char **argv )
 	button1.SetText( "Button" );
 	button1.SetEnabled( false );
 
-	ToggleButton toggle( &gamui, up, upD, down, downD, decoAtom, decoAtomD );
+	ToggleButton toggle( &gamui, 0, up, upD, down, downD, decoAtom, decoAtomD );
 	toggle.SetPos( 350, 250 );
 	toggle.SetSize( 150, 75 );
 	toggle.SetText( "Toggle" );

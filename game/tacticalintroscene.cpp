@@ -31,96 +31,86 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 
 	// -- Background -- //
 	gamui::RenderAtom nullAtom;
-	gamuiContainer.Init( &uiRenderer, game->GetRenderAtom( Game::ATOM_TEXT ), game->GetRenderAtom( Game::ATOM_TEXT_D ), &uiRenderer );
 
-	background.Init( game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND ) );
-	gamuiContainer.Add( &background );
+	background.Init( &gamui2D, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND ) );
 
 	RenderAtom backgroundNewAtom( UIRenderer::RENDERSTATE_NORMAL, TextureManager::Instance()->GetTexture( "newscreen" ), 0, 0, 1, 1, 480, 320 );
 	UIRenderer::SetAtomCoordFromPixel( 0, 0, 480, 320, 512, 512, &backgroundNewAtom );
 
-	backgroundNew.Init( backgroundNewAtom );
+	backgroundNew.Init( &gamui2D, backgroundNewAtom );
 	backgroundNew.SetVisible( false );
-	gamuiContainer.Add( &backgroundNew );
 
 	const gamui::ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
 	const gamui::ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 
-	continueButton.Init( green );
+	continueButton.Init( &gamui2D, green );
 	continueButton.SetPos( 50, 150 );
 	continueButton.SetSizeByScale( 2.0f, 1.0f );
 	continueButton.SetText( "Continue" );
 
-	newButton.Init( green );
+	newButton.Init( &gamui2D, green );
 	newButton.SetPos( 50, 220 );
 	newButton.SetSizeByScale( 2.0f, 1.0f );
 	newButton.SetText( "New" );
 
-	gamuiContainer.Add( &continueButton );
-	gamuiContainer.Add( &newButton );
-
 	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "8", "Low", "Med", "Hi", "8", "16", "Low", "Med", "Hi", "Day", "Night", "Farm" };
 	static const int   toggleGroup[TOGGLE_COUNT] = { 1,   1,    2,	   2,    2,    3,    3,   4,     4,      4,    5,     5,       6 };
 	for( int i=0; i<TOGGLE_COUNT; ++i ) {
-		toggles[i].Init( green );
+		toggles[i].Init( &gamui2D, toggleGroup[i], green );
 		toggles[i].SetText( toggleLabel[i] );
-		toggles[i].SetToggleGroup( toggleGroup[i] );
 		toggles[i].SetVisible( false );
 		toggles[i].SetSize( 50, 50 );
-		gamuiContainer.Add( &toggles[i] );
 	}
 
 
 	UIItem* squadItems[] = { &toggles[0], &toggles[1] };
-	gamuiContainer.Layout(	squadItems, 2,			// squad #
-							4, 1, 
-							20, 25,
-							150, 50,
-							0 );
+	Gamui::Layout(	squadItems, 2,			// squad #
+					4, 1, 
+					20, 25,
+					150, 50,
+					0 );
 	UIItem* squadStrItems[] = { &toggles[2], &toggles[3], &toggles[4] };
-	gamuiContainer.Layout(	squadStrItems, 3,			// squad strength
-							4, 1, 
-							20, 75,
-							150, 50,
-							0 );
+	Gamui::Layout(	squadStrItems, 3,			// squad strength
+					4, 1, 
+					20, 75,
+					150, 50,
+					0 );
 	UIItem* alienItems[] = { &toggles[5], &toggles[6] };
-	gamuiContainer.Layout(	alienItems, 2,			// alien #
-							4, 1, 
-							20, 150,
-							150, 50,
-							0 );
+	Gamui::Layout(	alienItems, 2,			// alien #
+					4, 1, 
+					20, 150,
+					150, 50,
+					0 );
 	UIItem* alienStrItems[] = { &toggles[7], &toggles[8], &toggles[9] };
-	gamuiContainer.Layout(	alienStrItems, 3,			// alien strength
-							4, 1, 
-							20, 200,
-							150, 50,
-							0 );
+	Gamui::Layout(	alienStrItems, 3,			// alien strength
+					4, 1, 
+					20, 200,
+					150, 50,
+					0 );
 	UIItem* weatherItems[] = { &toggles[10], &toggles[11] };
-	gamuiContainer.Layout(	weatherItems, 2,		// weather
-							2, 1, 
-							20, 270,
-							100, 50,
-							0 );
+	Gamui::Layout(	weatherItems, 2,		// weather
+					2, 1, 
+					20, 270,
+					100, 50,
+					0 );
 	UIItem* locationItems[] = { &toggles[12] };
-	gamuiContainer.Layout(  locationItems, 1,		// location
-							5, 2,
-							215, 25,
-							250, 100,
-							0 );
+	Gamui::Layout(  locationItems, 1,		// location
+					5, 2,
+					215, 25,
+					250, 100,
+					0 );
 							
-	goButton.Init( blue );
+	goButton.Init( &gamui2D, blue );
 	goButton.SetPos( 360, 270 );
 	goButton.SetSize( 100, 50 );
 	goButton.SetText( "Go!" );
 	goButton.SetVisible( false );
-	gamuiContainer.Add( &goButton );
 
-	seedButton.Init( green );
+	seedButton.Init( &gamui2D, green );
 	seedButton.SetPos( 155, 270 );
 	seedButton.SetSize( 50, 50 );
 	seedButton.SetText( "0" );
 	seedButton.SetVisible( false );
-	gamuiContainer.Add( &seedButton );
 
 	// Is there a current game?
 	const std::string& savePath = game->GameSavePath();
@@ -145,7 +135,6 @@ TacticalIntroScene::~TacticalIntroScene()
 
 void TacticalIntroScene::DrawHUD()
 {
-	gamuiContainer.Render();
 }
 
 
@@ -167,8 +156,8 @@ void TacticalIntroScene::Tap(	int count,
 	GetEngine()->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );
 	uy = GetEngine()->GetScreenport().UIHeight() - 1 - screen.y;
 	
-	const gamui::UIItem* item = gamuiContainer.TapDown( (float)ux, (float)uy );
-	gamuiContainer.TapUp( (float)ux, (float)uy );
+	const gamui::UIItem* item = gamui2D.TapDown( (float)ux, (float)uy );
+	gamui2D.TapUp( (float)ux, (float)uy );
 
 	if ( item == &newButton ) {
 		newButton.SetVisible( false );

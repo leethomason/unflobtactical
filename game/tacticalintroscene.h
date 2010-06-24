@@ -114,12 +114,10 @@ private:
 	int nItemMatch;
 	grinliz::Random random;
 
-	UIRenderer			uiRenderer;
 	gamui::Image		background;
 	gamui::Image		backgroundNew;
 	gamui::PushButton	continueButton, newButton, goButton, seedButton;
 	gamui::ToggleButton	toggles[TOGGLE_COUNT];
-	gamui::Gamui		gamuiContainer;
 };
 
 
