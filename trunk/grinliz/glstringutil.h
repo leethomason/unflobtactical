@@ -84,8 +84,7 @@ public:
 	void ClearBuf()						{ memset( buf, 0, ALLOCATE ); }
 	void Clear()						{ buf[0] = 0; }
 
-	bool operator==( const char* str ) const	{ return buf && str && strcmp( buf, str ) == 0; }
-
+	bool operator==( const char* str ) const						{ return buf && str && strcmp( buf, str ) == 0; }
 	template < class T > bool operator==( const T& str ) const		{ return buf && strcmp( buf, str.c_str() ) == 0; }
 
 	void operator=( const char* src )	{	
@@ -97,6 +96,17 @@ public:
 		else {
 			buf[0] = 0;
 		}
+		GLASSERT( buf[ALLOCATE-1]==0 );
+	}
+
+	void operator+=( const char* src ) {
+		GLASSERT( src );
+		if ( src ) {
+			int len = size();
+			if ( len < ALLOCATE-1 )
+				StrNCpy( buf+len, src, ALLOCATE-len );
+		}
+		GLASSERT( buf[ALLOCATE-1]==0 );
 	}
 
 

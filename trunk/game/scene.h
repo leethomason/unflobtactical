@@ -25,6 +25,7 @@
 class Game;
 class Engine;
 class TiXmlElement;
+class Unit;
 
 #pragma warning ( push )
 #pragma warning ( disable : 4100 )	// un-referenced formal parameter
@@ -88,6 +89,22 @@ protected:
 	Game*				game;
 	UIRenderer			uiRenderer;
 	gamui::Gamui		gamui2D, gamui3D;
+};
+
+
+// Utility class for standard display of the Unit name / rank / weapon
+struct NameRankUI {
+	gamui::Image		rank;
+	gamui::TextLabel	name;
+	//gamui::TextLabel	weapon;
+
+	void Init( gamui::Gamui* );
+	void Set( float x, float y, const Unit* unit, bool displayWeapon );
+	void SetVisible( bool visible ) {
+		rank.SetVisible( visible );
+		name.SetVisible( visible );
+		//weapon.SetVisible( visible );
+	}
 };
 
 #pragma warning ( pop )

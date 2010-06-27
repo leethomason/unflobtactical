@@ -15,6 +15,10 @@
 
 #include "game.h"
 #include "scene.h"
+#include "../grinliz/glstringutil.h"
+#include "unit.h"
+
+using namespace grinliz;
 
 
 Scene::Scene( Game* _game )
@@ -28,4 +32,50 @@ Scene::Scene( Game* _game )
 Engine* Scene::GetEngine()
 {
 	return game->engine;
+}
+
+
+
+
+void NameRankUI::Init( gamui::Gamui* g )
+{
+	gamui::RenderAtom rankAtom = UIRenderer::CalcIconAtom( ICON_RANK_0 );	// fixme, need more ranks
+	rank.Init( g, rankAtom );
+	name.Init( g );
+}
+
+
+void NameRankUI::Set( float x, float y, const Unit* unit, bool displayWeapon )
+{
+	CStr<90> cstr;
+
+	if ( unit ) {
+		cstr = unit->FirstName();
+		cstr += " ";
+		cstr += unit->LastName();
+
+	}
+
+	if ( displayWeapon ) {
+		if ( unit && unit->GetWeapon() ) {
+			cstr += ", ";
+			cstr += unit->GetWeapon()->Name();
+			cstr += " ";
+			cstr += unit->GetWeapon()->Desc();
+		}
+	}
+	name.SetText( cstr.c_str() );
+
+	if ( unit ) {
+		gamui::RenderAtom rankAtom = UIRenderer::CalcIconAtom( ICON_RANK_0 + unit->GetStats().Rank() );
+		rank.SetAtom( rankAtom );
+		rank.SetSize( name.Height(), name.Height() );
+	}
+	else {
+		gamui::RenderAtom nullAtom;
+		rank.SetAtom( nullAtom );
+	}
+
+	rank.SetPos( x, y+1 );
+	name.SetPos( x+rank.Width()+3.f, y );
 }
