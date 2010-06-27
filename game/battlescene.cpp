@@ -77,6 +77,8 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	alienImage.SetPos( float(port.UIWidth()-50), 0 );
 	alienImage.SetSize( 50, 50 );
 
+	nameRankUI.Init( &gamui3D );
+
 
 	for( int i=0; i<MAX_ALIENS; ++i ) {
 		targetArrow[i].Init( &gamui2D, UIRenderer::CalcParticleAtom( 15 ) );	// fixme: constant?
@@ -131,7 +133,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	for( int i=0; i<3; ++i ) {
 		fireButton[i].Init( &gamui3D, red );
 		fireButton[i].SetSize( 120.f, 60.f );
-		fireButton[i].SetDeco( UIRenderer::CalcIconAtom( 12, true ), UIRenderer::CalcIconAtom( 12, false ) );	// fixme - need enum
+		fireButton[i].SetDeco( UIRenderer::CalcIconAtom( ICON_GREEN_WALK_MARK, true ), UIRenderer::CalcIconAtom( ICON_GREEN_WALK_MARK, false ) );
 		fireButton[i].SetVisible( false );
 	}	
 	for( int i=0; i<MAX_UNITS; ++i ) {
@@ -2850,6 +2852,9 @@ void BattleScene::DrawHUD()
 	alienImage.SetVisible( currentTeamTurn == ALIEN_TEAM );
 	const int CYCLE = 5000;
 	alienImage.SetRotationY( (float)(game->CurrentTime() % CYCLE)*(360.0f/(float)CYCLE) );
+
+	nameRankUI.SetVisible( SelectedSoldierUnit() != 0 );
+	nameRankUI.Set( 50, 0, SelectedSoldierUnit(), true );
 
 	/*
 	// FIXME: use text label

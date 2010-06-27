@@ -34,15 +34,16 @@ class Scene;
 class ItemDef;
 class TiXmlDocument;
 class Stats;
+class Unit;
 
-const float ONE8 = 1.0f / 8.0f;
-const float ONE16 = 1.0f / 16.0f;
-const float TRANSLUCENT_WHITE	= ONE8*0.0f + ONE16;
-const float TRANSLUCENT_GREEN	= ONE8*1.0f + ONE16;
-const float TRANSLUCENT_BLUE	= ONE8*2.0f + ONE16;
-const float TRANSLUCENT_RED		= ONE8*3.0f + ONE16;
-const float TRANSLUCENT_YELLOW	= ONE8*4.0f + ONE16;
-const float TRANSLUCENT_GREY	= ONE8*5.0f + ONE16;
+static const float ONE8 = 1.0f / 8.0f;
+static const float ONE16 = 1.0f / 16.0f;
+static const float TRANSLUCENT_WHITE	= ONE8*0.0f + ONE16;
+static const float TRANSLUCENT_GREEN	= ONE8*1.0f + ONE16;
+static const float TRANSLUCENT_BLUE	= ONE8*2.0f + ONE16;
+static const float TRANSLUCENT_RED		= ONE8*3.0f + ONE16;
+static const float TRANSLUCENT_YELLOW	= ONE8*4.0f + ONE16;
+static const float TRANSLUCENT_GREY	= ONE8*5.0f + ONE16;
 
 
 struct TileSetDesc {
@@ -267,5 +268,8 @@ private:
 
 	ItemDef*			itemDefArr[EL_MAX_ITEM_DEFS];
 };
+
+
+
 
 #endif

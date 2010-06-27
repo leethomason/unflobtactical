@@ -618,19 +618,9 @@ void UIButtonBox::CalcButtons()
 		float dx = (float)(id%ICON_DX)*iconTX;
 		float dy = (float)(id/ICON_DX)*iconTY;
 
-		float tIconTX = iconTX;
-		if ( id == ICON_GREEN_BUTTON_WIDE ) {
-			// FIXME:
-			// Horrible hack. Need:
-			//	- UI tied into a rendering manager.
-			//  - 9-slice button rendering
-			//  - seperate text field rendering.
-			tIconTX *= 2.0f;
-		}
-
 		tex[i*4+0].Set( dx,			dy );
-		tex[i*4+1].Set( dx+tIconTX,	dy );
-		tex[i*4+2].Set( dx+tIconTX,	dy+iconTY );
+		tex[i*4+1].Set( dx+iconTX,	dy );
+		tex[i*4+2].Set( dx+iconTX,	dy+iconTY );
 		tex[i*4+3].Set( dx,			dy+iconTY );
 
 		int decoID = icons[i].decoID;
@@ -1150,13 +1140,13 @@ gamui::RenderAtom UIRenderer::CalcParticleAtom( int id, bool enabled )
 
 gamui::RenderAtom UIRenderer::CalcIconAtom( int id, bool enabled )
 {
-	GLASSERT( id >= 0 && id < 16 );
+	GLASSERT( id >= 0 && id < 32 );
 	Texture* texture = TextureManager::Instance()->GetTexture( "icons" );
-	int y = id / 4;
-	int x = id - y*4;
-	float tx0 = (float)x / 4.f;
+	int y = id / 8;
+	int x = id - y*8;
+	float tx0 = (float)x / 8.f;
 	float ty0 = (float)y / 4.f;
-	float tx1 = tx0 + 1.f/4.f;
+	float tx1 = tx0 + 1.f/8.f;
 	float ty1 = ty0 + 1.f/4.f;
 
 	return gamui::RenderAtom( enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED, texture, tx0, ty0, tx1, ty1, 64, 64 );

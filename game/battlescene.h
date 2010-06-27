@@ -333,13 +333,13 @@ private:
 	gamui::PushButton	controlButton[4];
 	enum { FIRE_BUTTON_SPACING = 5 };
 	gamui::PushButton	fireButton[3];
+	NameRankUI			nameRankUI;
 
 
 	int				subTurnOrder[MAX_TERRANS];
 	int				subTurnIndex;
 	int				subTurnCount;
 
-	//bool			targetArrowOn[MAX_ALIENS];
 	gamui::Image	targetArrow[MAX_ALIENS];
 
 	Engine*			engine;
@@ -403,8 +403,7 @@ private:
 	};
 	Visibility visibility;
 
-	Unit	units[MAX_UNITS];
-	//UIBar*	hpBars[MAX_UNITS];
+	Unit				units[MAX_UNITS];
 	gamui::DigitalBar	hpBars[MAX_UNITS];
 	int					hpBarsFadeTime[MAX_UNITS];
 
