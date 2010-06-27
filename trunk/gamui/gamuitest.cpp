@@ -286,7 +286,16 @@ int main( int argc, char **argv )
 	bar.SetRange( 0.33f, 0.66f );
 	bar.SetPos( 20, 350 );
 
+	RenderAtom nullAtom;
 
+	TiledImage<2, 2> tiled( &gamui );
+	tiled.SetPos( 520, 20 );
+	tiled.SetSize( 50, 50 );
+	tiled.SetTile( 0, 0, tick1 );
+	tiled.SetTile( 1, 0, nullAtom );
+	tiled.SetTile( 0, 1, nullAtom );
+	tiled.SetTile( 1, 1, tick0 );
+	
 	bool done = false;
 	while ( !done ) {
 		SDL_Event event;

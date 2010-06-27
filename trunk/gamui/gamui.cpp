@@ -92,20 +92,6 @@ UIItem::UIItem( int p_level )
 {}
 
 
-/*
-void UIItem::Attach( Gamui* g ) 
-{
-	if ( g ) {
-		GAMUIASSERT( !m_gamui );
-		m_gamui = g;
-	}
-	else {
-		GAMUIASSERT( m_gamui );
-		m_gamui = 0;
-	}
-}
-*/
-
 void UIItem::PushQuad( int *nIndex, int16_t* index, int base, int a, int b, int c, int d, int e, int f )
 {
 	index[(*nIndex)++] = base+a;
@@ -380,6 +366,130 @@ void Image::Requires( int* indexNeeded, int* vertexNeeded )
 		*indexNeeded = 6;
 		*vertexNeeded = 4;
 	}
+}
+
+
+TiledImageBase::TiledImageBase() : UIItem( Gamui::LEVEL_BACKGROUND ),
+	  m_width( 0 ),
+	  m_height( 0 )
+{
+}
+
+
+TiledImageBase::TiledImageBase( Gamui* gamui ): UIItem( Gamui::LEVEL_BACKGROUND ),
+	  m_width( 0 ),
+	  m_height( 0 )
+{
+	Init( gamui );
+}
+
+TiledImageBase::~TiledImageBase()
+{
+}
+
+
+void TiledImageBase::Init( Gamui* gamui )
+{
+	m_width = 1;
+	m_height = 1;
+
+	m_gamui = gamui;
+	gamui->Add( this );
+}
+
+
+void TiledImageBase::SetTile( int x, int y, const RenderAtom& atom )
+{
+	GAMUIASSERT( x<CX() );
+	GAMUIASSERT( y<CY() );
+
+	int index = 0;
+
+	if ( atom.textureHandle == 0 ) {
+		// Can always add a null atom.
+		index = 0;
+	}
+	else if ( m_atom[1].textureHandle == 0 ) {
+		// First thing added.
+		index = 1;
+		m_atom[1] = atom;
+	}
+	else {
+		GAMUIASSERT( atom.renderState == m_atom[1].renderState );
+		GAMUIASSERT( atom.textureHandle == m_atom[1].textureHandle );
+		for ( index=1; index<MAX_ATOMS && m_atom[index].textureHandle; ++index ) {
+			if (    m_atom[index].tx0 == atom.tx0
+				 && m_atom[index].ty0 == atom.ty0
+				 && m_atom[index].tx1 == atom.tx1
+				 && m_atom[index].ty1 == atom.ty1 )
+			{
+				break;
+			}
+		}
+		m_atom[index] = atom;
+	}
+	*(Mem()+y*CX()+x) = index;
+}
+
+
+void TiledImageBase::SetForeground( bool foreground )
+{
+	this->SetLevel( foreground ? Gamui::LEVEL_FOREGROUND : Gamui::LEVEL_BACKGROUND );
+}
+
+
+const RenderAtom* TiledImageBase::GetRenderAtom() const
+{
+	return &m_atom[1];
+}
+
+
+void TiledImageBase::Requires( int* indexNeeded, int* vertexNeeded )
+{
+	int cx = CX();
+	int cy = CY();
+	*indexNeeded = cx*cy*6;
+	*vertexNeeded = cx*cy*4;
+}
+
+
+void TiledImageBase::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex )
+{
+	int startVertex = *nVertex;
+
+	int cx = CX();
+	int cy = CY();
+	float x = X();
+	float y = Y();
+	float dx = Width() / (float)cx;
+	float dy = Height() / (float)cy;
+	int8_t* mem = Mem();
+	int count = 0;
+
+	for( int j=0; j<cy; ++j ) {
+		for( int i=0; i<cx; ++i ) {
+			if (*mem >= 0 && *mem < MAX_ATOMS && m_atom[*mem].textureHandle ) {
+				index[(*nIndex)++] = *nVertex + 0;
+				index[(*nIndex)++] = *nVertex + 1;
+				index[(*nIndex)++] = *nVertex + 2;
+				index[(*nIndex)++] = *nVertex + 0;
+				index[(*nIndex)++] = *nVertex + 2;
+				index[(*nIndex)++] = *nVertex + 3;
+
+				vertex[(*nVertex)++].Set( x,	y,		m_atom[*mem].tx0, m_atom[*mem].ty1 );
+				vertex[(*nVertex)++].Set( x,	y+dy,	m_atom[*mem].tx0, m_atom[*mem].ty0 );
+				vertex[(*nVertex)++].Set( x+dx, y+dy,	m_atom[*mem].tx1, m_atom[*mem].ty0 );
+				vertex[(*nVertex)++].Set( x+dx, y,		m_atom[*mem].tx1, m_atom[*mem].ty1 );
+
+				++count;
+			}
+			x += dx;
+			++mem;
+		}
+		x = X();
+		y += dy;
+	}
+	ApplyRotation( count*4, &vertex[startVertex] );
 }
 
 

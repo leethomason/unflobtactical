@@ -44,20 +44,28 @@ class UIItem;
 class ToggleButton;
 
 
+/**
+	The most basic unit of state. A set of vertices and indices are sent to the GPU with a given RenderAtom, which
+	encapselates a state (renderState), texture (textureHandle), and coordinates. 
+*/
 struct RenderAtom 
 {
+	/// Creates a default that renders nothing.
 	RenderAtom() : renderState( 0 ), textureHandle( 0 ), tx0( 0 ), ty0( 0 ), tx1( 0 ), ty1( 0 ), srcWidth( 0 ), srcHeight( 0 ), user( 0 ) {}
 	
+	/// Copy constructor that allows a different renderState. It's often handy to render the same texture in different states.
 	template <class T > RenderAtom( const RenderAtom& rhs, const T _renderState ) {
 		Init( _renderState, rhs.textureHandle, rhs.tx0, rhs.ty0, rhs.tx1, rhs.ty1, rhs.srcWidth, rhs.srcHeight );
 	}
 
+	/// Constructor with all parameters.
 	template <class T0, class T1 > RenderAtom( const T0 _renderState, const T1 _textureHandle, float _tx0, float _ty0, float _tx1, float _ty1, float _srcWidth, float _srcHeight ) {
 		GAMUIASSERT( sizeof( T0 ) <= sizeof( const void* ) );
 		GAMUIASSERT( sizeof( T1 ) <= sizeof( const void* ) );
 		Init( (const void*) _renderState, (const void*) _textureHandle, _tx0, _ty0, _tx1, _ty1, _srcWidth, _srcHeight );
 	}
 
+	/// Initialize - works just like the constructor.
 	template <class T0, class T1 > void Init( const T0 _renderState, const T1 _textureHandle, float _tx0, float _ty0, float _tx1, float _ty1, float _srcWidth, float _srcHeight ) {
 		GAMUIASSERT( sizeof( T0 ) <= sizeof( const void* ) );
 		GAMUIASSERT( sizeof( T1 ) <= sizeof( const void* ) );
@@ -68,6 +76,8 @@ struct RenderAtom
 		srcHeight = _srcHeight;
 	}
 
+
+	/// Utility method to set the texture coordinates.
 	void SetCoord( float _tx0, float _ty0, float _tx1, float _ty1 ) {
 		tx0 = _tx0;
 		ty0 = _ty0;
@@ -75,16 +85,14 @@ struct RenderAtom
 		ty1 = _ty1;
 	}
 
-	// sorting fields
-	const void* renderState;
-	const void* textureHandle;
+	const void* renderState;		///< Application defined render state.
+	const void* textureHandle;		///< Application defined texture handle, noting that 0 (null) is assumed to be non-rendering.
 
 	// non-sorting
-	float tx0, ty0, tx1, ty1;
-	float srcWidth, srcHeight;
+	float tx0, ty0, tx1, ty1;		///< Texture coordinates to use within the atom.
+	float srcWidth, srcHeight;		///< The width and height of the sub-image (as defined by tx0, etc.) Used to know the "natural" size, and how to scale.
 
-	// ignored
-	void* user;
+	void* user;						///< ignored by gamui
 };
 
 
@@ -334,6 +342,61 @@ private:
 	float m_width;
 	float m_height;
 	bool m_slice;
+};
+
+
+class TiledImageBase : public UIItem
+{
+public:
+
+	virtual ~TiledImageBase();
+	void Init( Gamui* );
+
+	void SetTile( int x, int y, const RenderAtom& atom );
+
+	void SetSize( float width, float height )							{ m_width = width; m_height = height; }
+	void SetForeground( bool foreground );
+
+	virtual float Width() const											{ return m_width; }
+	virtual float Height() const										{ return m_height; }
+
+	virtual const RenderAtom* GetRenderAtom() const;
+	virtual void Requires( int* indexNeeded, int* vertexNeeded );
+	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
+
+protected:
+	TiledImageBase();
+	TiledImageBase( Gamui* );
+
+	virtual int CX() const = 0;
+	virtual int CY() const = 0;
+	virtual int8_t* Mem() = 0;
+
+private:
+	enum {
+		MAX_ATOMS = 32
+	};
+	RenderAtom m_atom[MAX_ATOMS];
+	float m_width;
+	float m_height;
+};
+
+template< int _CX, int _CY > 
+class TiledImage : public TiledImageBase
+{
+public:
+	TiledImage() : TiledImageBase() {}
+	TiledImage( Gamui* g ) : TiledImageBase( g )	{}
+
+	virtual ~TiledImage() {}
+
+protected:
+	virtual int CX() const			{ return _CX; }
+	virtual int CY() const			{ return _CY; }
+	virtual int8_t* Mem()			{ return mem; }
+
+private:
+	int8_t mem[_CX*_CY];
 };
 
 
