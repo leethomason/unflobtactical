@@ -311,6 +311,16 @@ const Item* Unit::GetWeapon() const
 	return inventory.ArmedWeapon();
 }
 
+const WeaponItemDef* Unit::GetWeaponDef() const
+{
+	GLASSERT( status == STATUS_ALIVE );
+	const Item* item = GetWeapon();
+	if ( item ) 
+		return item->GetItemDef()->IsWeapon();
+	return 0;
+}
+
+
 Inventory* Unit::GetInventory()
 {
 	return &inventory;
@@ -662,45 +672,78 @@ float Unit::AngleBetween( const Vector2I& p1, bool quantize ) const
 }
 
 
-bool Unit::CanFire( int select, int type ) const
+bool Unit::CanFire( WeaponMode mode ) const
 {
-	int nShots = (type == AUTO_SHOT) ? 3 : 1;
-	float needed = FireTimeUnits( select, type );
+	const WeaponItemDef* wid = GetWeaponDef();
+	if ( wid ) {
+		int nShots = wid->RoundsNeeded( mode );
+		float neededTU = FireTimeUnits( mode );
+		int rounds = inventory.CalcClipRoundsTotal( wid->GetClipItemDef( mode ) );
 
-	if ( needed > 0.0f && needed <= tu ) {
-		int rounds = inventory.CalcClipRoundsTotal( GetWeapon()->IsWeapon()->weapon[select].clipItemDef );
-		if ( rounds >= nShots ) 
+		if (    ( neededTU > 0.0f && neededTU <= tu )
+			 && rounds >= nShots )
+		{
 			return true;
+		}
 	}
 	return false;
 }
 
 
-float Unit::FireTimeUnits( int select, int type ) const
+float Unit::FireTimeUnits( WeaponMode mode ) const
 {
 	float time = 0.0f;
-	const Item* item = GetWeapon();
-	if ( item && item->IsWeapon() ) {
-		const WeaponItemDef* weaponItemDef = item->IsWeapon();
-		time = weaponItemDef->TimeUnits( select, type );
+
+	const WeaponItemDef* wid = GetWeaponDef();
+	if ( wid ) {
+		time = wid->TimeUnits( mode );
 	}
 	// Note: don't adjust for stats. TU is based on DEX. Adjusting again double-applies.
 	return time;
 }
 
 
-bool Unit::FireModeToType( int mode, int* select, int* type ) const
+void Unit::AllFireTimeUnits( float *snapTU, float* autoTU, float* altTU )
 {
-	if ( GetWeapon() && GetWeapon()->IsWeapon() ) {
-		GetWeapon()->IsWeapon()->FireModeToType( mode, select, type );
-		return true;
-	}
-	return false;
+	*snapTU = FireTimeUnits( kModeSnap );
+	*autoTU = FireTimeUnits( kModeAuto );
+	*altTU = FireTimeUnits( kModeAlt );
+}
+
+
+int Unit::CalcWeaponTURemaining() const
+{
+	const Item* item = GetWeapon();
+	if ( !item )
+		return NO_WEAPON;
+	const WeaponItemDef* wid = item->IsWeapon();
+	if ( !wid )
+		return NO_WEAPON;
+
+	float snappedTU = 0.0f;
+	float autoTU = 0.0f;
+	float secondaryTU = 0.0f;
+	int select = 0, type = 0;
+
+	snappedTU = FireTimeUnits( kModeSnap );
+	autoTU = FireTimeUnits( kModeAuto );
+	secondaryTU = FireTimeUnits( kModeAlt );
+
+	GLASSERT( secondaryTU >= autoTU );
+	GLASSERT( autoTU >= snappedTU );
+
+	if ( TU() >= secondaryTU )
+		return SECONDARY_SHOT;
+	else if ( TU() >= autoTU )
+		return AUTO_SHOT;
+	else if ( TU() >= snappedTU )
+		return SNAP_SHOT;
+	return NO_TIME;
 }
 
 
 // Used by the AI
-bool Unit::FireStatistics( int select, int type, float distance, 
+bool Unit::FireStatistics( WeaponMode mode, float distance, 
 						   float* chanceToHit, float* chanceAnyHit, float* tu, float* damagePerTU ) const
 {
 	*chanceToHit = 0.0f;
@@ -710,18 +753,16 @@ bool Unit::FireStatistics( int select, int type, float distance,
 	
 	float damage;
 
-	if ( GetWeapon() && GetWeapon()->IsWeapon() ) {
-		const WeaponItemDef* wid = GetWeapon()->IsWeapon();
-		if ( wid->SupportsType( select, type ) ) {
-			*tu = wid->TimeUnits( select, type );
-			return GetWeapon()->IsWeapon()->FireStatistics(	select, type, 
-															stats.Accuracy(), 
-															distance, 
-															chanceToHit, 
-															chanceAnyHit, 
-															&damage, 
-															damagePerTU );
-		}
+	const WeaponItemDef* wid = GetWeaponDef();
+	if ( wid && wid->HasWeapon( mode ) ) {
+		*tu = wid->TimeUnits( mode );
+		return GetWeapon()->IsWeapon()->FireStatistics(	mode,
+														stats.Accuracy(), 
+														distance, 
+														chanceToHit, 
+														chanceAnyHit, 
+														&damage, 
+														damagePerTU );
 	}
 	return false;
 }

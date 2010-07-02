@@ -161,8 +161,8 @@ private:
 	};
 
 	struct ShootAction {
-		grinliz::Vector3F target;
-		int select;	// primary(0) or secondary(1)
+		grinliz::Vector3F	target;
+		WeaponMode			mode;
 	};
 
 	struct DelayAction {
@@ -218,8 +218,7 @@ private:
 
 	bool PushShootAction(	Unit* src, 
 							const grinliz::Vector3F& dst, 
-							int select,					// weapon mode
-							int type,
+							WeaponMode mode,
 							float useError,				// if 0, perfect shot. <1 improve, 1 normal error, >1 more error
 							bool clearMoveIfShoot );	// clears move commands if needed
 
@@ -260,7 +259,6 @@ private:
 	void ShowNearPath( const Unit* unit );		// call freely; does nothing if the current path is valid.
 
 	// set the fire widget to the primary and secondary weapon
-	void SetFireWidget();
 	float Travel( U32 timeMSec, float speed ) { return speed * (float)timeMSec / 1000.0f; }
 
 	void InitUnits();
@@ -276,6 +274,7 @@ private:
 	void HandleNextUnit( int bias );
 	void HandleRotation( float bias );
 	void SetFogOfWar();
+	void SetUnitOverlays();
 
 	struct Selection
 	{
@@ -335,12 +334,15 @@ private:
 	gamui::PushButton	fireButton[3];
 	NameRankUI			nameRankUI;
 
+	gamui::Image		unitImage0[MAX_UNITS];			// map space
+	gamui::Image		unitImage1[MAX_UNITS];			// map space
+	gamui::Image		selectionImage;
+	gamui::Image		targetArrow[MAX_ALIENS];		// screen space
 
 	int				subTurnOrder[MAX_TERRANS];
 	int				subTurnIndex;
 	int				subTurnCount;
 
-	gamui::Image	targetArrow[MAX_ALIENS];
 
 	Engine*			engine;
 	grinliz::Random random;	// "the" random number generator for the battle

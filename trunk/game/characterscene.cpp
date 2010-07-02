@@ -208,7 +208,7 @@ void CharacterScene::SetButtonGraphics( int index, const Item& item )
 			rounds[0] = inventory->CalcClipRoundsTotal( wid->weapon[0].clipItemDef );
 			rounds[1] = inventory->CalcClipRoundsTotal( wid->weapon[1].clipItemDef );
 
-			if ( wid->HasWeapon(1) )
+			if ( wid->HasWeapon(kModeAlt) )
 				SNPrintf( buffer, 16, "%d %d", rounds[0], rounds[1] );
 			else
 				SNPrintf( buffer, 16, "%d", rounds[0] );

@@ -274,7 +274,7 @@ protected:
 	void ApplyRotation( int nVertex, Gamui::Vertex* vertex );
 
 	UIItem( int level );
-	virtual ~UIItem()					{}
+	virtual ~UIItem();
 
 	Gamui* m_gamui;
 	bool m_enabled;
@@ -359,17 +359,19 @@ public:
 
 	virtual float Width() const											{ return m_width; }
 	virtual float Height() const										{ return m_height; }
+	void Clear()														{ memset( Mem(), 0, CX()*CY() ); }
 
 	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
 	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
 
+	virtual int CX() const = 0;
+	virtual int CY() const = 0;
+
 protected:
 	TiledImageBase();
 	TiledImageBase( Gamui* );
 
-	virtual int CX() const = 0;
-	virtual int CY() const = 0;
 	virtual int8_t* Mem() = 0;
 
 private:
@@ -390,9 +392,10 @@ public:
 
 	virtual ~TiledImage() {}
 
-protected:
 	virtual int CX() const			{ return _CX; }
 	virtual int CY() const			{ return _CY; }
+
+protected:
 	virtual int8_t* Mem()			{ return mem; }
 
 private:

@@ -190,16 +190,15 @@ bool WarriorAI::Think(	const Unit* theUnit,
 				theUnitNearTarget = Min( theUnitNearTarget, len );
 
 				for ( int mode=FIRE_MODE_START; mode<FIRE_MODE_END; ++mode ) {
-					int select, type;
-					wid->FireModeToType( mode, &select, &type );
-					if ( theUnit->CanFire( select, type ) ) {
+
+					if ( theUnit->CanFire( (WeaponMode)mode ) ) {
 						float chance, anyChance, tu, dptu;
 
-						if ( theUnit->FireStatistics( select, type, len, &chance, &anyChance, &tu, &dptu ) ) {
+						if ( theUnit->FireStatistics( (WeaponMode)mode, len, &chance, &anyChance, &tu, &dptu ) ) {
 							float score = dptu;	// Interesting: good AI, but results in odd choices.
 												// FIXME: add back in, less of a factor / (float)units[i].GetStats().HPFraction();
 
-							if ( wid->IsExplosive( select ) ) {
+							if ( wid->IsExplosive( (WeaponMode)mode ) ) {
 								if ( len < MINIMUM_EXPLOSIVE_RANGE ) {
 									score = 0.0f;
 								}
@@ -233,7 +232,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 		if ( best >= 0 ) {
 			AILOG(( "  **Shooting at %d mode=%d bestScore=%.3f\n", best, bestMode, bestScore ));
 			action->actionID = ACTION_SHOOT;
-			action->shoot.mode = bestMode;
+			action->shoot.mode = (WeaponMode)bestMode;
 			units[best].GetModel()->CalcTarget( &action->shoot.target );
 			return false;
 		}
@@ -342,17 +341,13 @@ bool WarriorAI::Think(	const Unit* theUnit,
 		// Reserve for auto or snap??
 		float tu = theUnit->TU();
 
-		int select1, type1, select0, type0;
-		theUnit->FireModeToType( AUTO_SHOT, &select1, &type1 );
-		theUnit->FireModeToType( SNAP_SHOT, &select0, &type0 );
-
 		int reserve = -1;
-		if ( theUnit->CanFire( select1, type1 ) ) {
-			tu -= theUnit->FireTimeUnits( select1, type1 );
+		if ( theUnit->CanFire( kModeAuto ) ) {
+			tu -= theUnit->FireTimeUnits( kModeAuto );
 			reserve = AUTO_SHOT;
 		}
-		else if ( theUnit->CanFire( select0, type0 ) ) {
-			tu -= theUnit->FireTimeUnits( select0, type0 );
+		else if ( theUnit->CanFire( kModeSnap ) ) {
+			tu -= theUnit->FireTimeUnits( kModeSnap );
 			reserve = SNAP_SHOT;
 		}
 
