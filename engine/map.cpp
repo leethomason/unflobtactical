@@ -57,7 +57,13 @@ Map::Map( SpaceTree* tree )
 
 	this->tree = tree;
 	width = height = SIZE;
-	walkingVertex.Clear();
+	//walkingVertex.Clear();
+
+	gamui::RenderAtom nullAtom;
+	overlay0.Init( this, nullAtom, nullAtom, 0 );
+	overlay1.Init( this, nullAtom, nullAtom, 0 );
+
+	walkingMap.Init( &overlay0 );
 	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
 
 	//texture.Set( "MapBackground", 0, false );
@@ -182,33 +188,12 @@ void Map::Draw()
 }
 
 
-void Map::DrawOverlay()
+void Map::DrawOverlay( int layer )
 {
-	if ( !walkingVertex.Empty() ) {
-		Texture* iTex = TextureManager::Instance()->GetTexture( "icons" );
-		GLASSERT( iTex );
-
-		U8* v = (U8*)walkingVertex.Mem() + Vertex::POS_OFFSET;
-		U8* t = (U8*)walkingVertex.Mem() + Vertex::TEXTURE_OFFSET;
-
-		const float ALPHA = 0.5f;
-		glColor4f( 1.0f, 1.0f, 1.0f, ALPHA );
-
-		glBindTexture( GL_TEXTURE_2D, iTex->GLID() );
-		glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), v);
-		glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), t); 
-		glDisableClientState( GL_NORMAL_ARRAY );
-		glEnable( GL_BLEND );
-
-		glDrawArrays( GL_TRIANGLES, 0, walkingVertex.Size() );
-		trianglesRendered += walkingVertex.Size() / 3;
-		drawCalls++;
-
-		glEnableClientState( GL_NORMAL_ARRAY );
-		glDisable( GL_BLEND );
-	}
-
-	CHECK_GL_ERROR
+	if ( layer == 0 )
+		overlay0.Render();
+	else
+		overlay1.Render();
 }
 
 
@@ -1453,13 +1438,6 @@ void Map::ResetPath()
 }
 
 
-/*void Map::ClearPathBlocks()
-{
-	ResetPath();
-	pathBlock.ClearAll();
-}
-*/
-
 void Map::SetPathBlocks( const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& block )
 {
 	if ( block != pathBlock ) {
@@ -1686,12 +1664,11 @@ int Map::SolvePath( const void* user, const Vector2<S16>& start, const Vector2<S
 }
 
 
-void Map::ShowNearPath(	const void* user, 
+void Map::ShowNearPath(	const grinliz::Vector2I& unitPos,
+						const void* user, 
 						const grinliz::Vector2<S16>& start, 
 					    float maxCost,
-					    const grinliz::Vector2F* range,
-						const int* icon,
-						int n )
+					    const grinliz::Vector2F* range )
 {
 	if ( pathBlocker ) {
 		pathBlocker->MakePathBlockCurrent( this, user );
@@ -1708,33 +1685,40 @@ void Map::ShowNearPath(	const void* user,
 	}
 	*/
 
-	walkingVertex.Clear();
+	walkingMap.SetVisible( true );
+	walkingMap.Clear();
+	walkingMap.SetSize( (float)(2*MAX_TU+1), (float)(2*MAX_TU+1) );
+
+	Vector2I origin = { (unitPos.x - MAX_TU), (unitPos.y - MAX_TU) };
+	walkingMap.SetPos( (float)origin.x, (float)origin.y );
+
+	gamui::RenderAtom atom[3] = {	UIRenderer::CalcIconAtom( ICON_GREEN_WALK_MARK ), 
+									UIRenderer::CalcIconAtom( ICON_YELLOW_WALK_MARK ), 
+									UIRenderer::CalcIconAtom( ICON_ORANGE_WALK_MARK ) };
+
 	for( unsigned i=0; i<stateCostArr.size(); ++i ) {
 		const micropather::StateCost& stateCost = stateCostArr[i];
 		Vector2<S16> v;
 		StateToVec( stateCost.state, &v );
 
-		for( int k=0; k<n; ++k ) {
+		// don't draw where standing.
+		if ( v.x == unitPos.x && v.y == unitPos.y )
+			continue;
+
+		for( int k=0; k<3; ++k ) {
 			if ( stateCost.cost >= range[k].x && stateCost.cost < range[k].y ) {
-				float tx = (float)( icon[k] & 0x03 ) * 0.25f;
-				float ty = (float)( icon[k] >> 2 ) * 0.25f;
-
-				PushWalkingVertex( v.x,   v.y,   tx,       ty );
-				PushWalkingVertex( v.x+1, v.y+1, tx+0.25f, ty+0.25f );
-				PushWalkingVertex( v.x+1, v.y,   tx+0.25f, ty );
-
-				PushWalkingVertex( v.x,   v.y,   tx,       ty );
-				PushWalkingVertex( v.x,   v.y+1, tx,       ty+0.25f );
-				PushWalkingVertex( v.x+1, v.y+1, tx+0.25f, ty+0.25f );
+				walkingMap.SetTile( v.x-origin.x, v.y-origin.y, atom[k] );
+				break;
 			}
 		}
 	}
+
 }
 
 
 void Map::ClearNearPath()
 {
-	walkingVertex.Clear();
+	walkingMap.SetVisible( false );
 }
 
 
@@ -1997,3 +1981,54 @@ void Map::CreateTexture( Texture* t )
 	}
 }
 
+
+void Map::BeginRender()
+{
+	glDisableClientState( GL_NORMAL_ARRAY );
+	glEnable( GL_BLEND );
+	glPushMatrix();
+
+	glRotatef( 90.f, 1, 0, 0 );
+}
+
+
+void Map::EndRender()
+{
+	glPopMatrix();
+	glEnableClientState( GL_NORMAL_ARRAY );
+	glDisable( GL_BLEND );
+}
+
+
+void Map::BeginRenderState( const void* renderState )
+{
+	const float ALPHA = 0.5f;
+	switch( (int)renderState ) {
+		case UIRenderer::RENDERSTATE_NORMAL:
+			glColor4f( 1.0f, 1.0f, 1.0f, ALPHA );
+			break;
+		case UIRenderer::RENDERSTATE_OPAQUE:
+			glColor4f( 1, 1, 1, 0.8f );
+			break;
+		default:
+			GLASSERT( 0 );
+	}
+}
+
+
+void Map::BeginTexture( const void* textureHandle )
+{
+	Texture* texture = (Texture*)textureHandle;
+	glBindTexture( GL_TEXTURE_2D, texture->GLID() );
+}
+
+
+void Map::Render( const void* renderState, const void* textureHandle, int nIndex, const int16_t* index, int nVertex, const gamui::Gamui::Vertex* vertex )
+{
+	glVertexPointer(   2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].x );
+	glTexCoordPointer( 2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].tx ); 
+	glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, index );
+
+	++drawCalls;
+	trianglesRendered += nIndex / 3;
+}

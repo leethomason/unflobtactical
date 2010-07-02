@@ -32,7 +32,7 @@ bool WeaponItemDef::IsAlien() const
 }
 
 
-void WeaponItemDef::RenderWeapon(	int select,
+void WeaponItemDef::RenderWeapon(	WeaponMode mode,
 									ParticleSystem* system,
 									const Vector3F& p0, 
 									const Vector3F& p1,
@@ -43,6 +43,7 @@ void WeaponItemDef::RenderWeapon(	int select,
 	enum { BEAM, TRAIL };
 	enum { SPLASH, EXPLOSION };
 	int first, second;
+	int select = Index( mode );
 
 	const ClipItemDef* cid = weapon[select].clipItemDef;
 
@@ -148,29 +149,29 @@ bool WeaponItemDef::CompatibleClip( const ItemDef* id, int* which ) const
 }
 
 
-void WeaponItemDef::DamageBase( int select, DamageDesc* d ) const
+void WeaponItemDef::DamageBase( WeaponMode mode, DamageDesc* d ) const
 {
+	int select = Index( mode );
 	GLASSERT( weapon[select].clipItemDef );
 	*d = weapon[select].clipItemDef->dd;
 	d->Scale( weapon[select].damage );
 }
 
 
-float WeaponItemDef::TimeUnits( int select, int type ) const
+float WeaponItemDef::TimeUnits( WeaponMode mode ) const
 {
-	GLASSERT( select == 0 || select == 1 );
-	GLASSERT( type >= 0 && type < 3 );
-
 	float s = 0.0f;
-	switch ( type ) {
-		case SNAP_SHOT:		
+	switch ( mode ) {
+		case kModeSnap:		
 			s = TU_SNAP_SHOT;	
 			break;
-		case AUTO_SHOT:		
-			if ( weapon[select].flags & WEAPON_AUTO )
+		case kModeAuto:		
+			if ( weapon[0].flags & WEAPON_AUTO )
 				s = TU_AUTO_SHOT;	
+			else
+				s = TU_AIMED_SHOT;
 			break;
-		case AIMED_SHOT:	
+		case kModeAlt:	
 			s = TU_AIMED_SHOT;	
 			break;
 		default:
@@ -180,82 +181,48 @@ float WeaponItemDef::TimeUnits( int select, int type ) const
 	s *= speed;
 
 	// Secondary weapon is slower:
-	if ( select == 1 )
+	if ( mode == kModeAlt )
 		s *= SECONDARY_SHOT_SPEED_MULT;
 
 	return s;
 }
 
 
-float WeaponItemDef::AccuracyBase( int select, int type ) const
+float WeaponItemDef::AccuracyBase( WeaponMode mode ) const
 {
-	GLASSERT( select >= 0 && type >= 0 && select < 2 && type < 3 );
+	float acc = weapon[Index(mode)].accuracy;
 
-	static const float MULT[3] = { ACC_SNAP_SHOT_MULTIPLIER, ACC_AUTO_SHOT_MULTIPLIER, ACC_AIMED_SHOT_MULTIPLIER };
-	float acc = weapon[select].accuracy * MULT[type];
+	switch ( mode ) {
+	case kModeSnap:
+		acc *= ACC_SNAP_SHOT_MULTIPLIER;
+		break;
+	case kModeAuto:
+		if ( weapon[0].flags & WEAPON_AUTO )
+			acc *= ACC_AUTO_SHOT_MULTIPLIER;
+		else 
+			acc *= ACC_AIMED_SHOT_MULTIPLIER;
+	case kModeAlt:
+		acc *= ACC_AIMED_SHOT_MULTIPLIER;			// secondary fire is aimed? FIXME: consider this.
+		break;
+	}
 	return acc;
 }
 
 
-void WeaponItemDef::FireModeToType( int mode, int* select, int* type ) const 
-{
-	GLASSERT( mode >= 0 && mode < 3 );
-	if ( mode == 0 ) {
-		*select = 0;
-		*type = SNAP_SHOT;
-	}
-	else if ( mode == 1 ) {
-		if ( SupportsType( 0, AUTO_SHOT ) ) {
-			*select = 0;
-			*type = AUTO_SHOT;
-		}
-		else {
-			GLASSERT( SupportsType( 0, AIMED_SHOT ) );
-			*select = 0;
-			*type = AIMED_SHOT;
-		}
-	}
-	else {
-		*select = 1;
-		*type = AIMED_SHOT;
-	}
-}
-
-
-bool WeaponItemDef::SupportsType( int select, int type ) const
-{ 
-	if ( select == 0 ) {
-		if ( type == SNAP_SHOT )
-			return true;
-		else if ( type == AUTO_SHOT && (weapon[0].flags & WEAPON_AUTO) )
-			return true;
-		else if ( type == AIMED_SHOT && !(weapon[0].flags & WEAPON_AUTO) )
-			return true;
-	}
-	else if ( select ==1 ) {
-		if ( type == AIMED_SHOT && HasWeapon( select ) )
-			return true;
-	}
-	return false;
-}
-
-
-bool WeaponItemDef::FireStatistics( int select, int type, 
+bool WeaponItemDef::FireStatistics( WeaponMode mode,
 								    float accuracyRadius, 
 									float distance, 
 									float* chanceToHit, float* anyChanceToHit,
 									float* totalDamage, float* damagePerTU ) const
 {
-	GLASSERT( SupportsType( select, type ) );
-
 	*chanceToHit = 0.0f;
 	*damagePerTU = 0.0f;
 	*totalDamage = 0.0f;
-	float tu = TimeUnits( select, type );
+	float tu = TimeUnits( mode );
 	DamageDesc dd;
 
 	if ( tu > 0.0f ) {
-		float radius = distance * accuracyRadius * AccuracyBase( select, type );
+		float radius = distance * accuracyRadius * AccuracyBase( mode );
 		float area   = PI * radius * radius;
 
 		/*
@@ -278,19 +245,19 @@ bool WeaponItemDef::FireStatistics( int select, int type,
 			*chanceToHit = 1.0f;
 
 		*anyChanceToHit = *chanceToHit;
-		int nRounds = (type==AUTO_SHOT) ? 3 : 1;
+		int nRounds = RoundsNeeded( mode );
 
 		if ( nRounds == 3 ) {
 			float chanceMiss = (1.0f - (*chanceToHit));
 			*anyChanceToHit = 1.0f - chanceMiss*chanceMiss*chanceMiss;
 		}
 
-		DamageBase( select, &dd );
+		DamageBase( mode, &dd );
 		*totalDamage = dd.Total();
 
 		*damagePerTU = (*chanceToHit) * (*totalDamage) / tu;
-		if ( type == AUTO_SHOT )
-			*damagePerTU *= 3.0f;
+
+		*damagePerTU *= (float)nRounds;
 		return true;
 	}
 	return false;
@@ -452,7 +419,7 @@ const ModelResource* Storage::VisualRep( ItemDef* const* itemDefArr, bool* zRota
 
 			if ( itemDefArr[i]->IsWeapon() ) {
 				DamageDesc d;
-				itemDefArr[i]->IsWeapon()->DamageBase( 0, &d );
+				itemDefArr[i]->IsWeapon()->DamageBase( kModeAuto, &d );
 
 				float score = (float)rounds[i] * d.Total();
 				

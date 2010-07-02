@@ -333,8 +333,11 @@ void Engine::Draw()
 		glDepthFunc( GL_ALWAYS );
 
 		glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
-		map->DrawOverlay();
+
+		glDepthMask( GL_FALSE );
+		map->DrawOverlay( 0 );
 		map->DrawFOW();
+		glDepthMask( GL_TRUE );
 
 		glDepthFunc( depthFunc );
 
@@ -425,33 +428,13 @@ void Engine::Draw()
 	}
 	renderQueue->Flush();
 
+	glDepthMask( GL_FALSE );
+	glDisable( GL_DEPTH_TEST );
+	map->DrawOverlay( 1 );
+	glEnable( GL_DEPTH_TEST );
+	glDepthMask( GL_TRUE );
+
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
-
-//	*triCount = renderQueue->GetTriCount();
-//	renderQueue->ClearTriCount();
-
-/*
-#ifdef DEBUG
-	{
-		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-
-		glDisable( GL_TEXTURE_2D );
-		glDisableClientState( GL_NORMAL_ARRAY );
-		glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-
-		spaceTree->Draw();
-
-		glEnableClientState( GL_NORMAL_ARRAY );
-		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-		glEnable( GL_TEXTURE_2D );
-		glDisable( GL_BLEND );
-	}
-#endif
-*/
-//	if ( scissorUI.IsValid() ) {
-//		screenport.SetViewport( 0 );
-//	}
 }
 
 

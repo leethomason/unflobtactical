@@ -48,15 +48,12 @@ void Game::DumpWeaponInfo( FILE* fp, float range, const Stats& stats, int count 
 
 			for( int j=0; j<3; ++j ) {
 				float fraction, fraction2, damage, dptu;
-				int select, type;
-
-				wid->FireModeToType( j, &select, &type );
-
-				if ( wid->SupportsType( select, type ) ) {
+				WeaponMode mode = (WeaponMode)j;
+				if ( wid->HasWeapon( mode )) {
 					DamageDesc dd;
-					wid->DamageBase( select, &dd );
-					wid->FireStatistics( select, type, stats.Accuracy(), range, &fraction, &fraction2, &damage, &dptu );
-					int nShots = (type==AUTO_SHOT) ? 3 : 1;
+					wid->DamageBase( mode, &dd );
+					wid->FireStatistics( mode, stats.Accuracy(), range, &fraction, &fraction2, &damage, &dptu );
+					int nShots = wid->RoundsNeeded( mode );
 
 					fprintf( fp, "%3d %d %3d%% [%3d%%] %5.1f  ",
 								 (int)dd.Total(),

@@ -32,6 +32,8 @@
 #include "surface.h"
 #include "texture.h"
 #include "../shared/glmap.h"
+#include "../gamui/gamui.h"
+#include "../game/gamelimits.h"			// bad call to less general directory. FIXME. Move map to game?
 
 class Model;
 class ModelResource;
@@ -55,7 +57,8 @@ public:
 
 
 class Map : public micropather::Graph,
-			public ITextureCreator
+			public ITextureCreator,
+			public gamui::IGamuiRenderer
 {
 public:
 	enum {
@@ -247,7 +250,7 @@ public:
 
 	void Draw();			//< draw the map, without the FOW
 	void DrawPath();		//< debugging
-	void DrawOverlay();		//< draw the "where can I walk" alpha overlay. Set up by ShowNearPath().
+	void DrawOverlay( int layer );		//< draw the "where can I walk" alpha overlay. Set up by ShowNearPath().
 	void DrawFOW();			//< black out the regions where the FOW is.
 
 	// Do damage to a singe map object.
@@ -306,12 +309,11 @@ public:
 					std::vector< grinliz::Vector2<S16> >* path );
 	
 	// Show the path that the unit can walk to.
-	void ShowNearPath(	const void* user,
+	void ShowNearPath(	const grinliz::Vector2I& unitPos,
+						const void* user,
 						const grinliz::Vector2<S16>& start,
 						float maxCost,
-						const grinliz::Vector2F* range,
-						const int* icons,
-						int n );
+						const grinliz::Vector2F* range );
 	void ClearNearPath();	
 
 	// micropather:
@@ -321,6 +323,13 @@ public:
 
 	// ITextureCreator
 	virtual void CreateTexture( Texture* t );
+
+	// IGamuiRenderer
+	virtual void BeginRender();
+	virtual void EndRender();
+	virtual void BeginRenderState( const void* renderState );
+	virtual void BeginTexture( const void* textureHandle );
+	virtual void Render( const void* renderState, const void* textureHandle, int nIndex, const int16_t* index, int nVertex, const gamui::Gamui::Vertex* vertex );
 
 	enum ConnectionType {
 		PATH_TYPE,
@@ -344,6 +353,9 @@ public:
 
 	static void MapObjectToWorld( int x, int y, int rotation, Matrix2I* mat, grinliz::Vector3F* model );
 	static void MapImageToWorld( int x, int y, int w, int h, int tileRotation, Matrix2I* mat );
+
+	gamui::Gamui	overlay0;
+	gamui::Gamui	overlay1;
 
 private:
 
@@ -483,15 +495,8 @@ private:
 	std::vector<void*>					mapPath;
 	std::vector< micropather::StateCost > stateCostArr;
 
-	void PushWalkingVertex( int x, int z, float tx, float ty ) 
-	{
-		Vertex* v = walkingVertex.Push();
-		v->normal.Set( 0.0f, 1.0f, 0.0f );
-		v->pos.Set( (float)x, 0.0f,(float)(z) );
-		v->tex.Set( tx, ty );
-	}
+	gamui::TiledImage<MAX_TU*2+1, MAX_TU*2+1>	walkingMap;
 
-	CDynArray<Vertex>					walkingVertex;
 	U8									visMap[SIZE*SIZE];
 	U8									pathMap[SIZE*SIZE];
 

@@ -49,7 +49,7 @@ public:
 	};
 
 	struct ShootAIAction {
-		int					mode;	// 0, 1, 2
+		WeaponMode			mode;
 		grinliz::Vector3F	target;
 	};
 

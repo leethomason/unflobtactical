@@ -92,6 +92,13 @@ UIItem::UIItem( int p_level )
 {}
 
 
+UIItem::~UIItem()
+{
+	if ( m_gamui )
+		m_gamui->Remove( this );
+}
+
+
 void UIItem::PushQuad( int *nIndex, int16_t* index, int base, int a, int b, int c, int d, int e, int f )
 {
 	index[(*nIndex)++] = base+a;
@@ -1154,6 +1161,9 @@ void Gamui::Render()
 		}
 		if ( nIndex + indexNeeded <= INDEX_SIZE && nVertex + vertexNeeded <= VERTEX_SIZE ) {
 			item->Queue( &nIndex, m_indexBuffer, &nVertex, m_vertexBuffer );
+		}
+		else {
+			GAMUIASSERT( 0 );	// buffers aren't big enough - stuff won't render.
 		}
 	}
 	// flush:

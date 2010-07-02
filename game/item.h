@@ -91,9 +91,16 @@ public:
 };
 
 
+enum WeaponMode {
+	kModeSnap,
+	kModeAuto,
+	kModeAlt
+};
+
 class WeaponItemDef : public ItemDef
 {
 public:
+
 	virtual const WeaponItemDef* IsWeapon() const { return this; }
 
 	struct Weapon {
@@ -108,15 +115,16 @@ public:
 	float		speed;			// 1.0 is normal speed (and weight)
 	Weapon		weapon[2];		// primary and secondary
 
-	bool HasWeapon( int select ) const		{ GLASSERT( select == 0 || select == 1 ); return weapon[select].damage > 0; }
+	int Index( WeaponMode mode ) const								{ return ( mode == kModeAlt ) ? 1 : 0; }
 
-	bool SupportsType( int select, int type ) const;
-	void FireModeToType( int mode, int* select, int* type ) const;
-	bool IsExplosive( int select ) const { return (weapon[select].flags & WEAPON_EXPLOSIVE) != 0; }
+	bool HasWeapon( WeaponMode mode) const							{ return weapon[Index(mode)].damage > 0; }
+	const ClipItemDef* GetClipItemDef( WeaponMode mode ) const		{ return weapon[Index(mode)].clipItemDef; }
+	int RoundsNeeded( WeaponMode mode ) const						{ return ( mode == kModeAuto && weapon[0].flags & WEAPON_AUTO ) ? 3 : 1; }
+	bool IsExplosive( WeaponMode mode ) const						{ return ( weapon[Index(mode)].flags & WEAPON_EXPLOSIVE ) != 0; }
 
 	bool IsAlien() const;
 
-	void RenderWeapon(	int select,
+	void RenderWeapon(	WeaponMode mode,
 						ParticleSystem*,
 						const grinliz::Vector3F& p0, 
 						const grinliz::Vector3F& p1,
@@ -127,13 +135,13 @@ public:
 	bool CompatibleClip( const ItemDef* itemDef, int* which ) const;
 	
 	// Basic damage for this weapon.
-	void DamageBase( int select, DamageDesc* damageArray ) const;
+	void DamageBase( WeaponMode mode, DamageDesc* damageArray ) const;
 	// Amount of time it takes to use this weapon. (Does not depend on the Unit.)
-	float TimeUnits( int select, int type ) const;
+	float TimeUnits( WeaponMode mode ) const;
 	// Accuracy of the weapon. 1.0 is normal, higher is worse.
-	float AccuracyBase( int select, int type ) const;
+	float AccuracyBase( WeaponMode mode ) const;
 	// Statistics for this weapon. 
-	bool FireStatistics( int select, int type, 
+	bool FireStatistics( WeaponMode mode, 
 						 float accuracyRadius, 
 						 float distance, 
 						 float* chanceToHit,				// chance a round hits
