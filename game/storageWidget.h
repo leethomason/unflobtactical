@@ -23,30 +23,31 @@
 class StorageWidget
 {
 public:
-	StorageWidget(	const Screenport& port,
+	StorageWidget(	gamui::Gamui* container,
+					const gamui::ButtonLook& green,
+					const gamui::ButtonLook& blue,
 					ItemDef* const* itemDefArr,
 					const Storage* storage );
 
 	~StorageWidget();
 
-	const ItemDef* Tap( int x, int y );	
-	void Draw();
-
-	void SetOrigin( int x, int y );
-	void SetButtonSize( int dx, int dy );
-	void SetPadding( int dx, int dy );
-
-	void CalcBounds( grinliz::Rectangle2I* _bounds );
-	void Update()	{ valid = false; }
+	const ItemDef* ConvertTap( const gamui::UIItem* item );	
+	void SetOrigin( float x, float y );
 
 private:
 	void SetButtons();
 
-	bool valid;
-	UIButtonBox* selectWidget;
-	UIButtonBox* boxWidget;
+	enum {
+		NUM_SELECT_BUTTONS = 4,
+		BOX_CX = 4,
+		BOX_CY = 4,
+		NUM_BOX_BUTTONS = BOX_CX*BOX_CY,
+		TOTAL_BUTTONS = NUM_SELECT_BUTTONS + NUM_BOX_BUTTONS
+	};
+	gamui::ToggleButton selectButton[ NUM_SELECT_BUTTONS ];
+	gamui::PushButton	boxButton[ NUM_BOX_BUTTONS ];
+	gamui::UIItem* itemArr[TOTAL_BUTTONS];
 
-	int groupSelected;
 	const Storage* storage;
 	const ItemDef* itemDefMap[12];
 	ItemDef* const* itemDefArr;
