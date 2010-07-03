@@ -90,14 +90,11 @@ protected:
 	};
 	gamui::PushButton charInvButton[NUM_INV_BUTTONS];
 
-	//UIButtonGroup* charInvWidget;
 	StorageWidget* storageWidget;
-	UITextTable*   textTable;
 
 	const char* description;
 	Storage* storage;
 	Unit* unit;
-	//Camera savedCamera;
 };
 
 

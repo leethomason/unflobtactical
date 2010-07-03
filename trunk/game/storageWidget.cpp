@@ -15,97 +15,57 @@
 
 #include "storageWidget.h"
 #include "../grinliz/glstringutil.h"
+#include "../engine/uirendering.h"
 
 using namespace grinliz;
+using namespace gamui;
 
-StorageWidget::StorageWidget(	const Screenport& port, 
+StorageWidget::StorageWidget(	gamui::Gamui* gamui,
+								const gamui::ButtonLook& green,
+								const gamui::ButtonLook& blue,
 								ItemDef* const* _itemDefArr,
 								const Storage* _storage )
 	: storage( _storage ),
 	  itemDefArr( _itemDefArr )
 {
-	valid = false;
-
-	selectWidget = new UIButtonBox( port );
-	boxWidget = new UIButtonBox( port );
-
-	{
-		int icons[4] = { ICON_BLUE_BUTTON, ICON_BLUE_BUTTON, ICON_BLUE_BUTTON, ICON_BLUE_BUTTON };
-		selectWidget->InitButtons( icons, 4 );
-		selectWidget->SetColumns( 1 );
-		selectWidget->SetAlpha( 0.8f );
+	static const int decoID[NUM_SELECT_BUTTONS] = { DECO_PISTOL, DECO_RAYGUN, DECO_ARMOR, DECO_ALIEN };
+	for( int i=0; i<NUM_SELECT_BUTTONS; ++i ) {
+		selectButton[i].Init( gamui, 1, blue );
+		selectButton[i].SetSize( (float)GAME_BUTTON_SIZE, (float)GAME_BUTTON_SIZE );
+		selectButton[i].SetDeco( UIRenderer::CalcDecoAtom( decoID[i], true ), UIRenderer::CalcDecoAtom( decoID[i], false ) );
+		itemArr[i*BOX_CX] = &selectButton[i];
 	}
-
-	{
-		int icons[12] = { ICON_GREEN_BUTTON };
-		boxWidget->InitButtons( icons, 12 );
-		boxWidget->SetColumns( 3 );
-		boxWidget->SetAlpha( 0.8f );
-		groupSelected = 0;
-	}	
-	SetButtonSize( GAME_BUTTON_SIZE, GAME_BUTTON_SIZE );
-	SetPadding( 0, 0 );
+	for( int i=0; i<NUM_BOX_BUTTONS; ++i ) {
+		boxButton[i].Init( gamui, green );
+		boxButton[i].SetSize( (float)GAME_BUTTON_SIZE, (float)GAME_BUTTON_SIZE );
+		int y = i / (BOX_CX-1);
+		int x = i - y*(BOX_CX-1);
+		itemArr[y*BOX_CX+1+x] = &boxButton[i];
+	}
 	SetOrigin( 0, 0 );
+	SetButtons();
 }
 
 
 StorageWidget::~StorageWidget()
 {
-	delete selectWidget;
-	delete boxWidget;
 }
 
 
-void StorageWidget::CalcBounds( grinliz::Rectangle2I* _bounds )
+void StorageWidget::SetOrigin( float x, float y )
 {
-	grinliz::Rectangle2I b0, b1;
-	selectWidget->CalcBounds( &b0 );
-	boxWidget->CalcBounds( &b1 );
-
-	*_bounds = b0;
-	_bounds->DoUnion( b1 );
+	Gamui::Layout( itemArr, TOTAL_BUTTONS, BOX_CX, BOX_CY, x, y, (float)(GAME_BUTTON_SIZE*BOX_CX), (float)(GAME_BUTTON_SIZE*BOX_CY), 0 );
 }
 
 
-void StorageWidget::SetOrigin( int x, int y )
+const ItemDef* StorageWidget::ConvertTap( const gamui::UIItem* item )
 {
-	selectWidget->SetOrigin( x, y );
-	boxWidget->SetOrigin( x + selectWidget->GetButtonSize().x + selectWidget->GetPadding().x, y );
-}
-
-
-void StorageWidget::SetButtonSize( int dx, int dy ) 
-{
-	selectWidget->SetButtonSize( dx, dy );
-	boxWidget->SetButtonSize( dx, dy );
-}
-
-
-void StorageWidget::SetPadding( int dx, int dy )
-{
-	selectWidget->SetPadding( dx, dy );
-	boxWidget->SetPadding( dx, dy );
-}
-
-
-const ItemDef* StorageWidget::Tap( int ux, int uy )
-{
-	const ItemDef* result = 0;
-	int tap = selectWidget->QueryTap( ux, uy );
-
-	if ( tap >= 0 ) {
-		if ( tap != groupSelected ) {
-			groupSelected = tap;
-			valid = false;
-		}
+	if ( item >= &boxButton[0] && item < &boxButton[NUM_BOX_BUTTONS] ) {
+		int offset = item - boxButton;
+		GLASSERT( offset >= 0 && offset < NUM_BOX_BUTTONS );
+		return itemDefMap[offset];
 	}
-	else {
-		tap = boxWidget->QueryTap( ux, uy );
-		if ( tap >= 0 && itemDefMap[tap] && storage->GetCount( itemDefMap[tap] )>0 ) {
-			result = itemDefMap[tap];
-		}
-	}
-	return result;
+	return 0;
 }
 
 	
@@ -113,87 +73,76 @@ void StorageWidget::SetButtons()
 {
 	int itemsPerGroup[4] = { 0, 0, 0, 0 };
 
-	if ( !valid ) {
-		// First the selection.
-		for( int i=0; i<4; ++i ) {
-			selectWidget->SetHighLight( i, (i==groupSelected) );
+	// Then the storage.
+	int slot = 0;
+	int groupSelected = 0;
+	for( int i=0; i<NUM_SELECT_BUTTONS; ++i ) {
+		if ( selectButton[i].Down() ) {
+			groupSelected = i;
+			break;
 		}
-		selectWidget->SetDeco( 0, DECO_PISTOL );
-		selectWidget->SetDeco( 1, DECO_RAYGUN );
-		selectWidget->SetDeco( 2, DECO_ARMOR );
-		selectWidget->SetDeco( 3, DECO_ALIEN );
+	}
 
-		// Then the storage.
-		int slot = 0;
+	for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+		if ( !itemDefArr[i] )
+			continue;
 
-		for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-			if ( !itemDefArr[i] )
-				continue;
+		int group = 3;
 
-			int group = 3;
+		const WeaponItemDef* wid = itemDefArr[i]->IsWeapon();
+		const ClipItemDef* cid = itemDefArr[i]->IsClip();
 
-			const WeaponItemDef* wid = itemDefArr[i]->IsWeapon();
-			const ClipItemDef* cid = itemDefArr[i]->IsClip();
+		// Terran non-melee weapons and clips.
+		if ( wid && !wid->IsAlien() )
+			group=0;
+		if ( cid && !cid->IsAlien() )
+			group=0;
 
-			// Terran non-melee weapons and clips.
-			if ( wid && !wid->IsAlien() )
-				group=0;
-			if ( cid && !cid->IsAlien() )
-				group=0;
+		// alien non-melee weapons and clips
+		if ( wid && wid->IsAlien() )
+			group=1;
+		if ( cid && cid->IsAlien() )
+			group=1;
 
-			// alien non-melee weapons and clips
-			if ( wid && wid->IsAlien() )
-				group=1;
-			if ( cid && cid->IsAlien() )
-				group=1;
+		// armor, melee
+		if ( itemDefArr[i]->IsArmor() || itemDefArr[i]->deco == DECO_SHIELD )
+			group=2;
 
-			// armor, melee
-			if ( itemDefArr[i]->IsArmor() || itemDefArr[i]->deco == DECO_SHIELD )
-				group=2;
+		itemsPerGroup[group] += storage->GetCount( itemDefArr[i] );
 
-			itemsPerGroup[group] += storage->GetCount( itemDefArr[i] );
+		if ( group==groupSelected ) {
+			GLASSERT( slot < 12 );
+			if ( slot < 12 ) {
+				itemDefMap[slot] = itemDefArr[i];
+				int deco = itemDefArr[i]->deco;
+				boxButton[slot].SetDeco( UIRenderer::CalcDecoAtom( deco, true ), UIRenderer::CalcDecoAtom( deco, false ) );
 
-			if ( group==groupSelected ) {
-				GLASSERT( slot < 12 );
-				if ( slot < 12 ) {
-					itemDefMap[slot] = itemDefArr[i];
-					boxWidget->SetDeco( slot, itemDefArr[i]->deco );
-
-					char buffer[16];
-					if ( storage->GetCount( itemDefArr[i] ) ) {
-						SNPrintf( buffer, 16, "(%d)", storage->GetCount( itemDefArr[i] ) );
-						boxWidget->SetText( slot, itemDefArr[i]->name, buffer );
-						boxWidget->SetEnabled( slot, true );
-					}
-					else {
-						boxWidget->SetText( slot, itemDefArr[i]->name, " " );
-						boxWidget->SetEnabled( slot, false );
-					}
+				char buffer[16];
+				if ( storage->GetCount( itemDefArr[i] ) ) {
+					SNPrintf( buffer, 16, "(%d)", storage->GetCount( itemDefArr[i] ) );
+					boxButton[slot].SetText( itemDefArr[i]->name );
+					boxButton[slot].SetText2( buffer );
+					boxButton[slot].SetEnabled( true );
 				}
-				++slot;
+				else {
+					boxButton[slot].SetText( itemDefArr[i]->name );
+					boxButton[slot].SetText2( " " );
+					boxButton[slot].SetEnabled( false );
+				}
 			}
+			++slot;
 		}
-		for( ; slot<12; ++slot ) {
-			itemDefMap[slot] = 0;
-			boxWidget->SetDeco( slot, DECO_NONE );
-			boxWidget->SetText( slot, 0, 0 );
-			boxWidget->SetEnabled( slot, false );
-		}
-
-		for( int i=0; i<4; ++i ) {
-			selectWidget->SetEnabled( i, itemsPerGroup[i]>0 );
-		}
-
-		valid = true;
 	}
-}
-
-
-void StorageWidget::Draw()
-{
-	if ( !valid ) {
-		SetButtons();
+	for( ; slot<12; ++slot ) {
+		itemDefMap[slot] = 0;
+		RenderAtom nullAtom;
+		boxButton[slot].SetDeco( nullAtom, nullAtom );
+		boxButton[slot].SetText( "" );
+		boxButton[slot].SetText2( "" );
+		boxButton[slot].SetEnabled( false );
 	}
-	selectWidget->Draw();
-	boxWidget->Draw();
+
+	for( int i=0; i<4; ++i ) {
+		selectButton[i].SetEnabled( itemsPerGroup[i]>0 );
+	}
 }

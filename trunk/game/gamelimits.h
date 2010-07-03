@@ -16,38 +16,39 @@
 #ifndef GAMELIMITS_INCLUDED
 #define GAMELIMITS_INCLUDED
 
-const float FOV = 45.0f;
-const int GAME_BUTTON_SIZE = 60;
+static const float FOV = 45.0f;
+static const int GAME_BUTTON_SIZE = 60;
+static const float GAME_BUTTON_SIZE_F = (float)GAME_BUTTON_SIZE;
 
-const int SUBTURNS_PER_TURN = 3;
-const float FIRE_DAMAGE_PER_SUBTURN = 20.0f;
+static const int SUBTURNS_PER_TURN = 3;
+static const float FIRE_DAMAGE_PER_SUBTURN = 20.0f;
 
-const int TERRAN_TEAM			= 0;
-const int CIV_TEAM				= 1;
-const int ALIEN_TEAM			= 2;
+static const int TERRAN_TEAM			= 0;
+static const int CIV_TEAM				= 1;
+static const int ALIEN_TEAM			= 2;
 
-const int TERRAN_UNITS_START	= 0;
-const int TERRAN_UNITS_END		= 8;
-const int CIV_UNITS_START		= 8;
-const int CIV_UNITS_END			= 24;
-const int ALIEN_UNITS_START		= 24;
-const int ALIEN_UNITS_END		= 40;
-const int MAX_ALIENS = ALIEN_UNITS_END - ALIEN_UNITS_START;
-const int MAX_TERRANS = TERRAN_UNITS_END - TERRAN_UNITS_START;
-const int MAX_UNITS	= 40;
+static const int TERRAN_UNITS_START	= 0;
+static const int TERRAN_UNITS_END		= 8;
+static const int CIV_UNITS_START		= 8;
+static const int CIV_UNITS_END			= 24;
+static const int ALIEN_UNITS_START		= 24;
+static const int ALIEN_UNITS_END		= 40;
+static const int MAX_ALIENS = ALIEN_UNITS_END - ALIEN_UNITS_START;
+static const int MAX_TERRANS = TERRAN_UNITS_END - TERRAN_UNITS_START;
+static const int MAX_UNITS	= 40;
 
-const int MAX_MODELS = 256;
-const int MAP_SIZE = 64;
-const int MAP_TEXTURE_SIZE = 512;
-const int MAX_EYESIGHT_RANGE    = 13;
-const int MAX_EYESIGHT_RANGE_45 = 10;	// MAX * cos(45deg), rounded up
-const float EYE_HEIGHT = 1.2f;
-const float EXPLOSIVE_RANGE = 2.0f;
+static const int MAX_MODELS = 256;
+static const int MAP_SIZE = 64;
+static const int MAP_TEXTURE_SIZE = 512;
+static const int MAX_EYESIGHT_RANGE    = 13;
+static const int MAX_EYESIGHT_RANGE_45 = 10;	// MAX * cos(45deg), rounded up
+static const float EYE_HEIGHT = 1.2f;
+static const float EXPLOSIVE_RANGE = 2.0f;
 
-const float TU_SNAP_SHOT	= 3.0f;
-const float TU_AUTO_SHOT	= 5.0f;
-const float TU_AIMED_SHOT	= 4.0f;
-const float SECONDARY_SHOT_SPEED_MULT = 1.4f;
+static const float TU_SNAP_SHOT	= 3.0f;
+static const float TU_AUTO_SHOT	= 5.0f;
+static const float TU_AIMED_SHOT	= 4.0f;
+static const float SECONDARY_SHOT_SPEED_MULT = 1.4f;
 
 const int SNAP_SHOT			= 0;
 const int AUTO_SHOT			= 1;

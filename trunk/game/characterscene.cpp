@@ -36,33 +36,32 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	const Screenport& port = _game->engine->GetScreenport();
 	description = 0;
 
-	static const float BUTTON_SIZE = 60.0f;
-
 	//controlButtons = new UIButtonGroup( engine->GetScreenport() );
 	const gamui::ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
+	const gamui::ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 	const gamui::ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
 
 	backButton.Init( &gamui2D, green );
 	backButton.SetPos( 0, port.UIHeight()-backButton.Height() );
-	backButton.SetSize( BUTTON_SIZE, BUTTON_SIZE );
+	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	backButton.SetText( "Back" );
 
 	gamui::UIItem* itemArr[NUM_BASE_BUTTONS];
 	for( int i=0; i<NUM_BASE_BUTTONS; ++i ) {
 		charInvButton[i].Init( &gamui2D, green );
-		charInvButton[i].SetSize( BUTTON_SIZE, BUTTON_SIZE );
+		charInvButton[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 		itemArr[i] = &charInvButton[i];
 	}
 	for( int i=NUM_BASE_BUTTONS; i<NUM_INV_BUTTONS; ++i ) {
 		charInvButton[i].Init( &gamui2D, red );
-		charInvButton[i].SetSize( BUTTON_SIZE, BUTTON_SIZE );
+		charInvButton[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	}
 	gamui::Gamui::Layout( itemArr, NUM_BASE_BUTTONS, 3, 2, 0, 0, charInvButton[0].Width()*3.f, charInvButton[0].Height()*2.f, 0 );
 	charInvButton[NUM_BASE_BUTTONS+0].SetPos( charInvButton[0].X(), charInvButton[0].Y()+charInvButton[0].Height()*2.f );
 	charInvButton[NUM_BASE_BUTTONS+1].SetPos( charInvButton[2].X(), charInvButton[2].Y()+charInvButton[2].Height()*2.f );
 	
-	int widths[2] = { 16, 16 };
-	textTable = new UITextTable( port, 2, 16, widths );
+//	int widths[2] = { 16, 16 };
+//	textTable = new UITextTable( port, 2, 16, widths );
 
 	this->unit = unit;
 	//engine->SoloRender( unit );
@@ -73,14 +72,12 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	if ( !storage ) {
 		storage = new Storage();
 	}
-	storageWidget = new StorageWidget( engine->GetScreenport(), _game->GetItemDefArr(), storage );
+	storageWidget = new StorageWidget( &gamui2D, green, blue, _game->GetItemDefArr(), storage );
 
 	engine->EnableMap( false );
 
 
-	storageWidget->SetOrigin( 230, 70 );
-	storageWidget->SetButtonSize( GAME_BUTTON_SIZE, GAME_BUTTON_SIZE );
-
+	storageWidget->SetOrigin( 230, 0 );
 	InitInvWidget();
 	InitTextTable();
 }
@@ -90,7 +87,6 @@ CharacterScene::~CharacterScene()
 {
 	engine->EnableMap( true );
 	delete storageWidget;
-	delete textTable;
 
 	Vector2I mapPos;
 	unit->CalcMapPos( &mapPos, 0 );
@@ -101,7 +97,7 @@ CharacterScene::~CharacterScene()
 
 void CharacterScene::InitTextTable()
 {
-	textTable->SetOrigin( GAME_BUTTON_SIZE*4, GAME_BUTTON_SIZE*5-5 );
+/*	textTable->SetOrigin( GAME_BUTTON_SIZE*4, GAME_BUTTON_SIZE*5-5 );
 
 	textTable->SetText( 0, 0, unit->FirstName() );
 	textTable->SetText( 1, 0, unit->LastName() );
@@ -138,6 +134,7 @@ void CharacterScene::InitTextTable()
 
 	textTable->SetText( 0, row, "Kills" );
 	textTable->SetInt( 1, row, unit->KillsCredited() );
+*/
 }
 
 
