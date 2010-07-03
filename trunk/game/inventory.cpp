@@ -79,8 +79,7 @@ bool Inventory::IsSlotFree( const ItemDef* itemDef )
 
 int Inventory::AddItem( const Item& item )
 {
-	GLASSERT( slots[WEAPON_SLOT_PRIMARY].IsNothing() || slots[WEAPON_SLOT_PRIMARY].IsWeapon() );
-	GLASSERT( slots[WEAPON_SLOT_SECONDARY].IsNothing() || slots[WEAPON_SLOT_SECONDARY].IsWeapon() );
+	GLASSERT( slots[WEAPON_SLOT].IsNothing() || slots[WEAPON_SLOT].IsWeapon() );
 	GLASSERT( slots[ARMOR_SLOT].IsNothing() || slots[ARMOR_SLOT].IsArmor() );
 
 	if ( item.IsArmor() ) {
@@ -92,11 +91,9 @@ int Inventory::AddItem( const Item& item )
 	}
 
 	if ( item.IsWeapon() ) {
-		for( int i=0; i<2; ++i ) {
-			if ( slots[WEAPON_SLOT_PRIMARY+i].IsNothing() ) {
-				slots[WEAPON_SLOT_PRIMARY+i] = item;
-				return WEAPON_SLOT_PRIMARY+i;
-			}
+		if ( slots[WEAPON_SLOT].IsNothing() ) {
+			slots[WEAPON_SLOT] = item;
+			return WEAPON_SLOT;
 		}
 		return -1;
 	}
@@ -135,14 +132,6 @@ const Item* Inventory::ArmedWeapon() const
 {
 	if ( slots[0].IsSomething() && slots[0].IsWeapon() )
 		return &slots[0];
-	return 0;
-}
-
-
-const Item* Inventory::SecondaryWeapon() const
-{
-	if ( slots[WEAPON_SLOT_SECONDARY].IsSomething() && slots[WEAPON_SLOT_SECONDARY].IsWeapon() )
-		return &slots[WEAPON_SLOT_SECONDARY];
 	return 0;
 }
 
@@ -207,16 +196,6 @@ void Inventory::GetDamageReduction( DamageDesc* dd )
 		if ( i )
 			dd->incind -= ARM_EXTRA;
 	}
-}
-
-
-void Inventory::SwapWeapons()
-{
-	GLASSERT( slots[WEAPON_SLOT_PRIMARY].IsNothing() || slots[WEAPON_SLOT_PRIMARY].IsWeapon() );
-	GLASSERT( slots[WEAPON_SLOT_SECONDARY].IsNothing() || slots[WEAPON_SLOT_SECONDARY].IsWeapon() );
-	GLASSERT( slots[ARMOR_SLOT].IsNothing() || slots[ARMOR_SLOT].IsArmor() );
-
-	grinliz::Swap( &slots[WEAPON_SLOT_PRIMARY], &slots[WEAPON_SLOT_SECONDARY] );
 }
 
 

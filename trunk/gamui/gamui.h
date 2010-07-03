@@ -443,7 +443,7 @@ public:
 
 	bool Up() const		{ return m_up; }
 	bool Down() const	{ return !m_up; }
-	void SetDeco( const RenderAtom& atom, const RenderAtom& atomD )			{ m_atoms[DECO] = atom; m_atoms[DECO_D] = atomD; }
+	void SetDeco( const RenderAtom& atom, const RenderAtom& atomD )			{ m_atoms[DECO] = atom; m_atoms[DECO_D] = atomD; SetState(); }
 
 	void SetText( const char* text );
 	const char* GetText() const { return m_label[0].GetText(); }

@@ -39,6 +39,11 @@ enum {
 	ICON_GREEN_STAND_MARK	= 16,
 	ICON_YELLOW_STAND_MARK	= 17,
 	ICON_ORANGE_STAND_MARK	= 18,
+
+	ICON_GREEN_STAND_MARK_OUTLINE	= 11,
+	ICON_YELLOW_STAND_MARK_OUTLINE	= 12,
+	ICON_ORANGE_STAND_MARK_OUTLINE	= 13,
+
 	ICON_STAND_HIGHLIGHT	= 21,
 
 	ICON_TARGET_STAND		= 19,
@@ -469,7 +474,7 @@ public:
 		PALETTE_BRIGHT_GREEN,
 		PALETTE_DARK_GREY
 	};
-	static gamui::RenderAtom CalcPaletteAtom( int id, int w, int h, bool enable=true );
+	static gamui::RenderAtom CalcPaletteAtom( int id, float w, float h, bool enable=true );
 
 	virtual void GamuiGlyph( int c, gamui::IGamuiText::GlyphMetrics* metric );
 	

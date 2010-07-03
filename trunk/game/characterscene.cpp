@@ -33,13 +33,36 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	mode = INVENTORY_MODE;
 
 	engine = _game->engine;
+	const Screenport& port = _game->engine->GetScreenport();
 	description = 0;
 
-	controlButtons = new UIButtonGroup( engine->GetScreenport() );
-	charInvWidget = new UIButtonGroup( engine->GetScreenport() );
+	static const float BUTTON_SIZE = 60.0f;
 
+	//controlButtons = new UIButtonGroup( engine->GetScreenport() );
+	const gamui::ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
+	const gamui::ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
+
+	backButton.Init( &gamui2D, green );
+	backButton.SetPos( 0, port.UIHeight()-backButton.Height() );
+	backButton.SetSize( BUTTON_SIZE, BUTTON_SIZE );
+	backButton.SetText( "Back" );
+
+	gamui::UIItem* itemArr[NUM_BASE_BUTTONS];
+	for( int i=0; i<NUM_BASE_BUTTONS; ++i ) {
+		charInvButton[i].Init( &gamui2D, green );
+		charInvButton[i].SetSize( BUTTON_SIZE, BUTTON_SIZE );
+		itemArr[i] = &charInvButton[i];
+	}
+	for( int i=NUM_BASE_BUTTONS; i<NUM_INV_BUTTONS; ++i ) {
+		charInvButton[i].Init( &gamui2D, red );
+		charInvButton[i].SetSize( BUTTON_SIZE, BUTTON_SIZE );
+	}
+	gamui::Gamui::Layout( itemArr, NUM_BASE_BUTTONS, 3, 2, 0, 0, charInvButton[0].Width()*3.f, charInvButton[0].Height()*2.f, 0 );
+	charInvButton[NUM_BASE_BUTTONS+0].SetPos( charInvButton[0].X(), charInvButton[0].Y()+charInvButton[0].Height()*2.f );
+	charInvButton[NUM_BASE_BUTTONS+1].SetPos( charInvButton[2].X(), charInvButton[2].Y()+charInvButton[2].Height()*2.f );
+	
 	int widths[2] = { 16, 16 };
-	textTable = new UITextTable( engine->GetScreenport(), 2, 16, widths );
+	textTable = new UITextTable( port, 2, 16, widths );
 
 	this->unit = unit;
 	//engine->SoloRender( unit );
@@ -52,26 +75,8 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	}
 	storageWidget = new StorageWidget( engine->GetScreenport(), _game->GetItemDefArr(), storage );
 
-	{
-		int icons[] = { ICON_GREEN_BUTTON, ICON_GREEN_BUTTON };
-		const char* iconText[] = { "Back", "Stats" };
-		controlButtons->InitButtons( icons, 2 );
-		controlButtons->SetButtonSize( GAME_BUTTON_SIZE, GAME_BUTTON_SIZE );
-		controlButtons->SetText( iconText );
-
-		Vector2I size = controlButtons->GetButtonSize();
-		controlButtons->SetPos( 0, 5, 5 );
-		controlButtons->SetPos( 1, engine->GetScreenport().UIWidth() - 5 - size.x, 5 );
-	}
 	engine->EnableMap( false );
 
-
-	Model* model = unit->GetModel();
-	const Vector3F* eyeDir = engine->camera.EyeDir3();
-	Vector3F offset = { 0.0f, model->AABB().SizeY()*0.5f, 0.0f };
-
-	savedCamera = engine->camera;
-	engine->camera.SetPosWC( model->Pos() - eyeDir[0]*10.0f + offset );
 
 	storageWidget->SetOrigin( 230, 70 );
 	storageWidget->SetButtonSize( GAME_BUTTON_SIZE, GAME_BUTTON_SIZE );
@@ -83,12 +88,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 
 CharacterScene::~CharacterScene()
 {
-	//engine->SoloRender( 0 );
 	engine->EnableMap( true );
-	engine->camera = savedCamera;
-
-	delete controlButtons;
-	delete charInvWidget;
 	delete storageWidget;
 	delete textTable;
 
@@ -143,39 +143,12 @@ void CharacterScene::InitTextTable()
 
 void CharacterScene::InitInvWidget()
 {
-	//Inventory* inv = unit->GetInventory();
-
-	int icons[20] = { ICON_GREEN_BUTTON };
-
-	charInvWidget->InitButtons( icons, Inventory::NUM_SLOTS+1 );
-	charInvWidget->SetOrigin( 5, 70 );
-	charInvWidget->SetButtonSize( GAME_BUTTON_SIZE, GAME_BUTTON_SIZE );
-	charInvWidget->SetPadding( 0, 0 );
-	charInvWidget->SetAlpha( 0.8f );
-
-	// swap
-	charInvWidget->SetPos( 0, GAME_BUTTON_SIZE*3/2, 0 );
-	charInvWidget->SetButton( 0, ICON_BLUE_BUTTON );
-	charInvWidget->SetDeco( 0, DECO_SWAP );
-
 	// armor
-	charInvWidget->SetPos( 1, 0, GAME_BUTTON_SIZE );
-	charInvWidget->SetButton( 1, ICON_RED_BUTTON );
-	charInvWidget->SetDeco( 1, DECO_ARMOR );
-	
-	// weapons
-	for( int i=0; i<2; ++i ) {
-		charInvWidget->SetPos( 2+i, GAME_BUTTON_SIZE*(i+1), GAME_BUTTON_SIZE );
-		charInvWidget->SetButton( 2+i, ICON_RED_BUTTON );
-		charInvWidget->SetDeco( 2+i, DECO_PISTOL );
-	}
+	const gamui::RenderAtom& atomArmor = uiRenderer.CalcDecoAtom( DECO_ARMOR, false );
+	charInvButton[ARMOR_BUTTON].SetDeco( atomArmor, atomArmor );
 
-	// general
-	for( int i=0; i<6; ++i ) {
-		charInvWidget->SetPos( 4+i, GAME_BUTTON_SIZE*(i%3), GAME_BUTTON_SIZE*(2+i/3) );
-		charInvWidget->SetButton( 4+i, ICON_GREEN_BUTTON );
-		charInvWidget->SetDeco( 4+i, DECO_NONE );
-	}
+	const gamui::RenderAtom& atomWeapon = uiRenderer.CalcDecoAtom( DECO_PISTOL, false );
+	charInvButton[WEAPON_BUTTON].SetDeco( atomWeapon, atomWeapon );
 
 	SetAllButtonGraphics();
 }
@@ -185,20 +158,18 @@ void CharacterScene::SetAllButtonGraphics()
 {
 	Inventory* inventory = unit->GetInventory();
 
-	SetButtonGraphics( 1, inventory->GetItem( Inventory::ARMOR_SLOT ) );
-	SetButtonGraphics( 2, inventory->GetItem( Inventory::WEAPON_SLOT_SECONDARY ) );
-	SetButtonGraphics( 3, inventory->GetItem( Inventory::WEAPON_SLOT_PRIMARY ) );
-	for( int i=0; i<6; ++i ) {
-		SetButtonGraphics( 4+i, inventory->GetItem( Inventory::GENERAL_SLOT+i ) );
+	SetButtonGraphics( ARMOR_BUTTON, inventory->GetItem( Inventory::ARMOR_SLOT ) );
+	SetButtonGraphics( WEAPON_BUTTON, inventory->GetItem( Inventory::WEAPON_SLOT ) );
+	for( int i=0; i<NUM_BASE_BUTTONS; ++i ) {
+		SetButtonGraphics( i, inventory->GetItem( Inventory::GENERAL_SLOT+i ) );
 	}
 }
 
 
 void CharacterScene::SetButtonGraphics( int index, const Item& item )
 {
-	char buffer[16];
-
 	if ( item.IsSomething() ) {
+		char buffer[16] = { 0 };
 
 		if ( item.IsWeapon() ) {
 			const WeaponItemDef* wid = item.IsWeapon();
@@ -212,20 +183,20 @@ void CharacterScene::SetButtonGraphics( int index, const Item& item )
 				SNPrintf( buffer, 16, "%d %d", rounds[0], rounds[1] );
 			else
 				SNPrintf( buffer, 16, "%d", rounds[0] );
-			charInvWidget->SetText( index, item.Name(), buffer );
+
 		}
-		else if ( item.Rounds() > 1 ) {
+		else if ( item.IsClip() ) {
 			SNPrintf( buffer, 16, "%d", item.Rounds() );
-			charInvWidget->SetText( index, item.Name(), buffer );
 		}
-		else {
-			charInvWidget->SetText( index, item.Name() );
-		}
-		charInvWidget->SetDeco( index, item.Deco() );
+		charInvButton[index].SetDeco( UIRenderer::CalcDecoAtom( item.Deco(), false ), UIRenderer::CalcDecoAtom( item.Deco() , false ) );
+		charInvButton[index].SetText( item.Name() );
+		charInvButton[index].SetText2( buffer );
 	}
 	else {
-		charInvWidget->SetText( index, 0 );
-		charInvWidget->SetDeco( index, DECO_NONE );
+		charInvButton[index].SetText( " " );
+		charInvButton[index].SetText2( " " );
+		gamui::RenderAtom nullAtom;
+		charInvButton[index].SetDeco( nullAtom, nullAtom );
 	}
 }
 
@@ -233,16 +204,16 @@ void CharacterScene::SetButtonGraphics( int index, const Item& item )
 
 void CharacterScene::DrawHUD()
 {
-	controlButtons->Draw();
-	charInvWidget->Draw();
-	if ( mode == INVENTORY_MODE )
-		storageWidget->Draw();
-	else
-		textTable->Draw();
+//	controlButtons->Draw();
+//	charInvWidget->Draw();
+//	if ( mode == INVENTORY_MODE )
+//		storageWidget->Draw();
+//	else
+//		textTable->Draw();
 
-	if ( description ) {
-		UFOText::Draw( 235, 50, "%s", description );
-	}
+//	if ( description ) {
+//		UFOText::Draw( 235, 50, "%s", description );
+//	}
 }
 
 
@@ -250,6 +221,7 @@ void CharacterScene::Tap(	int count,
 							const grinliz::Vector2I& screen,
 							const grinliz::Ray& world )
 {
+/*
 	int ux, uy;
 	engine->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );
 
@@ -296,6 +268,7 @@ void CharacterScene::Tap(	int count,
 		SetAllButtonGraphics();
 		unit->UpdateInventory();
 	}
+	*/
 }
 
 

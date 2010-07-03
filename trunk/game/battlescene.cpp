@@ -54,7 +54,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	uiMode = UIM_NORMAL;
 	nearPathState.Clear();
 
-	memset( hpBarsFadeTime, 0, sizeof( int )*MAX_UNITS );
+//	memset( hpBarsFadeTime, 0, sizeof( int )*MAX_UNITS );
 	engine->GetMap()->SetPathBlocker( this );
 
 	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, engine->GetSpaceTree() );
@@ -151,19 +151,24 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		fireButton[i].SetDecoLayout( gamui::Button::RIGHT, 25, 0 );
 		fireButton[i].SetTextLayout( gamui::Button::LEFT, 20, 0 );
 	}	
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		static const int W = 5;
-		static const int H = 8;
 
-		hpBars[i].Init( &gamui3D,
-						5, 
-						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BRIGHT_GREEN, W, H ),
-						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_RED, W, H ),
-						UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_DARK_GREY, W, H ),
-						1 );
-		hpBars[i].SetVisible( false );
+	{
+		static const float W = 0.15f;
+		static const float H = 0.15f;
+		static const float S = 0.02f;
+
+		gamui::RenderAtom tick0Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BRIGHT_GREEN, W, H );
+		tick0Atom.renderState = (const void*)UIRenderer::RENDERSTATE_OPAQUE;
+		gamui::RenderAtom tick1Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_RED, W, H );
+		tick1Atom.renderState = (const void*)UIRenderer::RENDERSTATE_OPAQUE;
+		gamui::RenderAtom tick2Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_DARK_GREY, W, H );
+		tick1Atom.renderState = (const void*)UIRenderer::RENDERSTATE_OPAQUE;
+
+		for( int i=0; i<MAX_UNITS; ++i ) {
+			hpBars[i].Init( &engine->GetMap()->overlay1, 5, tick0Atom, tick1Atom, tick2Atom, S );
+			hpBars[i].SetVisible( false );
+		}
 	}
-
 	engine->EnableMap( true );
 
 #ifdef MAPMAKER
@@ -614,12 +619,20 @@ int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I*
 
 void BattleScene::SetUnitOverlays()
 {
-	gamui::RenderAtom targetAtom = UIRenderer::CalcIconAtom( ICON_TARGET_STAND );
-	//targetAtom.renderState = (const void*) UIRenderer::RENDERSTATE_OPAQUE;
-	gamui::RenderAtom greenAtom = UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK );
-	//greenAtom.renderState = (const void*) UIRenderer::RENDERSTATE_OPAQUE;
-	gamui::RenderAtom yellowAtom = UIRenderer::CalcIconAtom( ICON_YELLOW_STAND_MARK );
-	gamui::RenderAtom orangeAtom = UIRenderer::CalcIconAtom( ICON_ORANGE_STAND_MARK );
+	gamui::RenderAtom targetAtom0 = UIRenderer::CalcIconAtom( ICON_TARGET_STAND );
+	gamui::RenderAtom targetAtom1 = targetAtom0;
+	targetAtom0.renderState = (const void*)UIRenderer::RENDERSTATE_OPAQUE;
+
+	gamui::RenderAtom greenAtom0 = UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK );
+	gamui::RenderAtom yellowAtom0 = UIRenderer::CalcIconAtom( ICON_YELLOW_STAND_MARK );
+	gamui::RenderAtom orangeAtom0 = UIRenderer::CalcIconAtom( ICON_ORANGE_STAND_MARK );
+
+	gamui::RenderAtom greenAtom1 = UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK_OUTLINE );
+	greenAtom1.renderState = (const void*)UIRenderer::RENDERSTATE_OPAQUE;
+	gamui::RenderAtom yellowAtom1 = UIRenderer::CalcIconAtom( ICON_YELLOW_STAND_MARK_OUTLINE );
+	yellowAtom1.renderState = (const void*)UIRenderer::RENDERSTATE_OPAQUE;
+	gamui::RenderAtom orangeAtom1 = UIRenderer::CalcIconAtom( ICON_ORANGE_STAND_MARK_OUTLINE );
+	orangeAtom1.renderState = (const void*)UIRenderer::RENDERSTATE_OPAQUE;
 
 	const Unit* unitMoving = 0;
 	if ( !actionStack.Empty() ) {
@@ -628,6 +641,9 @@ void BattleScene::SetUnitOverlays()
 		}
 	}
 	
+	static const float HP_DX = 0.10f;
+	static const float HP_DY = 0.95f;
+
 	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
 		// layer 0 target arrow
 		// layer 1 target arrow
@@ -635,6 +651,7 @@ void BattleScene::SetUnitOverlays()
 		targetArrow[i-ALIEN_UNITS_START].SetVisible( false );
 		unitImage0[i].SetVisible( false );
 		unitImage1[i].SetVisible( false );
+		hpBars[i].SetVisible( false );
 
 		if ( unitMoving != &units[i] && units[i].IsAlive() && m_targets.TeamCanSee( TERRAN_TEAM, i ) ) {
 			Vector3F p;
@@ -650,14 +667,18 @@ void BattleScene::SetUnitOverlays()
 
 			if ( uiBounds.Contains( r ) ) {
 				unitImage0[i].SetVisible( true );
-				unitImage0[i].SetAtom( targetAtom );
+				unitImage0[i].SetAtom( targetAtom0 );
 				unitImage0[i].SetSize( 1.2f, 1.2f );
 				unitImage0[i].SetCenterPos( p.x, p.z );
 
 				unitImage1[i].SetVisible( true );
-				unitImage1[i].SetAtom( targetAtom );
+				unitImage1[i].SetAtom( targetAtom1 );
 				unitImage1[i].SetSize( 1.2f, 1.2f );
 				unitImage1[i].SetCenterPos( p.x, p.z );
+
+				hpBars[i].SetVisible( true );
+				hpBars[i].SetPos( p.x + HP_DX - 0.5f, p.z + HP_DY - 0.5f );
+				hpBars[i].SetRange( (float)units[i].HP()*0.01f, (float)units[i].GetStats().TotalHP()*0.01f );
 			}
 			else {
 				targetArrow[i-ALIEN_UNITS_START].SetVisible( true );
@@ -690,16 +711,16 @@ void BattleScene::SetUnitOverlays()
 			Vector2I pos = units[i].Pos();
 
 			if ( remain >= Unit::AUTO_SHOT ) {
-				unitImage0[i].SetAtom( greenAtom );
-				unitImage1[i].SetAtom( greenAtom );
+				unitImage0[i].SetAtom( greenAtom0 );
+				unitImage1[i].SetAtom( greenAtom1 );
 			}
 			else if ( remain == Unit::SNAP_SHOT ) {
-				unitImage0[i].SetAtom( yellowAtom );
-				unitImage1[i].SetAtom( yellowAtom );
+				unitImage0[i].SetAtom( yellowAtom0 );
+				unitImage1[i].SetAtom( yellowAtom1 );
 			}
 			else {
-				unitImage0[i].SetAtom( orangeAtom );
-				unitImage1[i].SetAtom( orangeAtom );
+				unitImage0[i].SetAtom( orangeAtom0 );
+				unitImage1[i].SetAtom( orangeAtom1 );
 			}
 
 			unitImage0[i].SetVisible( true );
@@ -709,6 +730,11 @@ void BattleScene::SetUnitOverlays()
 			unitImage1[i].SetVisible( true );
 			unitImage1[i].SetPos( (float)pos.x, (float)pos.y );
 			unitImage1[i].SetSize( 1, 1 );
+
+			hpBars[i].SetVisible( true );
+			hpBars[i].SetPos( (float)pos.x + HP_DX, (float)pos.y + HP_DY );
+			hpBars[i].SetVisible( true );
+			hpBars[i].SetRange( (float)units[i].HP()*0.01f, (float)units[i].GetStats().TotalHP()*0.01f );
 		}
 	}
 
@@ -880,6 +906,7 @@ bool BattleScene::EndCondition( TacticalEndSceneData* data )
 
 void BattleScene::DrawHPBars()
 {
+	/*
 	// A bit of code so the hp bar isn't up *all* the time. If selected, then show them all.
 	// Else just show for 5 seconds after hp changes.
 	//
@@ -917,6 +944,7 @@ void BattleScene::DrawHPBars()
 			}
 		}
 	}
+	*/
 }
 
 
@@ -1424,8 +1452,8 @@ bool BattleScene::ProcessAI()
 
 					case AI::ACTION_SWAP_WEAPON:
 						{
-							Inventory* inv = units[i].GetInventory();
-							inv->SwapWeapons();
+//							Inventory* inv = units[i].GetInventory();
+//							inv->SwapWeapons();
 						}
 						break;
 
@@ -1936,7 +1964,7 @@ int BattleScene::ProcessActionHit( Action* action )
 		}
 		else if ( hitWeapon ) {
 			Inventory* inv = hitWeapon->GetInventory();
-			inv->RemoveItem( Inventory::WEAPON_SLOT_PRIMARY );
+			inv->RemoveItem( Inventory::WEAPON_SLOT );
 			hitWeapon->UpdateInventory();
 			GLOUTPUT(( "Shot the weapon out of Unit 0x%x hand.\n", (unsigned)hitWeapon ));
 		}
@@ -2129,8 +2157,14 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 	}
 
 	if ( uiMode == UIM_FIRE_MENU ) {
+		bool okay = false;
+		WeaponMode mode = kModeSnap;
 
-		if ( tapped == fireButton+0 || tapped == fireButton+1 || tapped == fireButton+2 ) {
+		if ( tapped == fireButton+0 )		{ okay = true; mode = kModeSnap; }
+		else if ( tapped == fireButton+1 )	{ okay = true; mode = kModeAuto; }
+		else if ( tapped == fireButton+2 )	{ okay = true; mode = kModeAlt;  }
+			
+		if ( okay ) { 
 			// shooting creates a turn action then a shoot action.
 			GLASSERT( selection.soldierUnit >= 0 );
 			GLASSERT( selection.targetUnit >= 0 );
@@ -2148,7 +2182,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 			else {
 				selection.targetUnit->GetModel()->CalcTarget( &target );
 			}
-			PushShootAction( selection.soldierUnit, target, (WeaponMode)(tapped-fireButton), 1.0f, false );
+			PushShootAction( selection.soldierUnit, target, mode, 1.0f, false );
 			selection.targetUnit = 0;
 		}
 	}

@@ -35,16 +35,13 @@ class Inventory
 public:
 
 	enum {
-		WEAPON_SLOT_PRIMARY = 0,
-		WEAPON_SLOT_SECONDARY,
+		WEAPON_SLOT = 0,
 		ARMOR_SLOT,
 		GENERAL_SLOT
 	};
 
 	enum {
-		DX = 3,
-		DY = 4,
-		NUM_SLOTS  = 6 + 3
+		NUM_SLOTS  = 6 + 2
 	};
 
 	Inventory();
@@ -68,7 +65,6 @@ public:
 	
 	Item* ArmedWeapon();				// null if no weapon ready
 	const Item* ArmedWeapon() const;	// null if no weapon ready
-	const Item* SecondaryWeapon() const;
 
 	void Save( TiXmlElement* doc ) const;
 	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
@@ -82,8 +78,6 @@ public:
 	// Writes to the 3 terms of damage desc as multipliers. 1: full damage from that type, 0: no damage.
 	// Walks the inventory to account for Armor (if worn) and shielding.
 	void GetDamageReduction( DamageDesc* );
-
-	void SwapWeapons();
 
 private:
 
