@@ -245,7 +245,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 	// then swap it if it will help.
 	const Inventory* inventory = theUnit->GetInventory();	
 	const Item* primaryWeapon = inventory->ArmedWeapon();
-	const Item* secondaryWeapon = inventory->SecondaryWeapon();
+	const Item* secondaryWeapon = 0;	//inventory->SecondaryWeapon(); FIXME
 
 	int primaryRounds   = 0;
 	int secondaryRounds = 0;

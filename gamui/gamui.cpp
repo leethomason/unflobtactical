@@ -1183,10 +1183,14 @@ void Gamui::Layout( UIItem** item, int nItems,
 					int flags )
 {
 	float itemWidth = 0, itemHeight = 0;
-	for( int i=0; i<nItems; ++i ) {
+	if ( nItems == 0 )
+		return;
+
+	for( int i=0; i<cx && i<nItems; ++i )
 		itemWidth += item[i]->Width();
-		itemHeight += item[i]->Height();
-	}
+	for( int i=0; i<cy && (i*cx)<nItems; ++i )
+		itemHeight += item[i*cx]->Height();
+
 	float xSpacing = 0;
 	if ( cx > 1 ) { 
 		xSpacing = ( tableWidth - itemWidth ) / (float)(cx-1);

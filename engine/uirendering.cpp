@@ -1153,7 +1153,7 @@ gamui::RenderAtom UIRenderer::CalcIconAtom( int id, bool enabled )
 }
 
 
-gamui::RenderAtom UIRenderer::CalcPaletteAtom( int id, int w, int h, bool enabled )
+gamui::RenderAtom UIRenderer::CalcPaletteAtom( int id, float w, float h, bool enabled )
 {
 	Vector2I c = { 0, 0 };
 	Texture* texture = TextureManager::Instance()->GetTexture( "palette" );
@@ -1166,7 +1166,7 @@ gamui::RenderAtom UIRenderer::CalcPaletteAtom( int id, int w, int h, bool enable
 	default: GLASSERT( 0 );									break;
 	}
 
-	gamui::RenderAtom atom( enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED, texture, 0, 0, 0, 0, (float)w, (float)h );
+	gamui::RenderAtom atom( enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED, texture, 0, 0, 0, 0, w, h );
 	SetAtomCoordFromPixel( c.x, c.y, c.x, c.y, 300, 300, &atom );
 	return atom;
 }

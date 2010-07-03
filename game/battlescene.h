@@ -317,9 +317,8 @@ private:
 		UIM_FIRE_MENU		// fire menu is up
 	};
 
-	int				uiMode;
-
-	UIRenderer			uiRenderer;
+	int			uiMode;
+	UIRenderer	uiRenderer;
 
 	gamui::Image		alienImage;
 	gamui::Image		menuImage;
@@ -328,7 +327,7 @@ private:
 	gamui::PushButton	nextTurnButton;
 	gamui::ToggleButton	targetButton;
 	gamui::PushButton	invButton;
-	enum { ROTATE_CCW_BUTTON, ROTATE_CW_BUTTON, NEXT_BUTTON, PREV_BUTTON, CONTROL_BUTTON_COUNT };
+	enum { ROTATE_CCW_BUTTON, ROTATE_CW_BUTTON, PREV_BUTTON, NEXT_BUTTON, CONTROL_BUTTON_COUNT };
 	gamui::PushButton	controlButton[4];
 	enum { FIRE_BUTTON_SPACING = 5 };
 	gamui::PushButton	fireButton[3];
@@ -339,9 +338,9 @@ private:
 	gamui::Image		selectionImage;
 	gamui::Image		targetArrow[MAX_ALIENS];		// screen space
 
-	int				subTurnOrder[MAX_TERRANS];
-	int				subTurnIndex;
-	int				subTurnCount;
+	int	subTurnOrder[MAX_TERRANS];
+	int	subTurnIndex;
+	int	subTurnCount;
 
 
 	Engine*			engine;
@@ -407,7 +406,7 @@ private:
 
 	Unit				units[MAX_UNITS];
 	gamui::DigitalBar	hpBars[MAX_UNITS];
-	int					hpBarsFadeTime[MAX_UNITS];
+	//int					hpBarsFadeTime[MAX_UNITS];
 
 #ifdef MAPMAKER
 	void UpdatePreview();

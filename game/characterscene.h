@@ -54,7 +54,7 @@ public:
 	{ 
 		clip3D->SetInvalid(); 
 		clip2D->SetInvalid(); 
-		return RENDER_2D;	// | RENDER_3D; FIXME: Would be nice to draw the current weapon. But don't want to render everything else in the engine.
+		return RENDER_2D | RENDER_2D_FLIPPED;	// | RENDER_3D; FIXME: Would be nice to draw the current weapon. But don't want to render everything else in the engine.
 	}
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
 	virtual void DrawHUD();
@@ -81,15 +81,23 @@ protected:
 
 
 	Engine* engine;
-	UIButtonGroup* controlButtons;
-	UIButtonGroup* charInvWidget;
+
+	gamui::PushButton backButton;
+	enum {	NUM_BASE_BUTTONS = 6,
+			NUM_INV_BUTTONS = 8,
+			ARMOR_BUTTON = 6,
+			WEAPON_BUTTON = 7
+	};
+	gamui::PushButton charInvButton[NUM_INV_BUTTONS];
+
+	//UIButtonGroup* charInvWidget;
 	StorageWidget* storageWidget;
 	UITextTable*   textTable;
 
 	const char* description;
 	Storage* storage;
 	Unit* unit;
-	Camera savedCamera;
+	//Camera savedCamera;
 };
 
 

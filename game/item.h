@@ -219,7 +219,7 @@ public:
 	const ItemDef* GetItemDef() const				{ return itemDef; }
 	const WeaponItemDef* IsWeapon() const			{ return itemDef->IsWeapon(); }
 	const ClipItemDef* IsClip() const				{ return itemDef->IsClip(); }
-	const ArmorItemDef* IsArmor() const				{ return itemDef->IsArmor(); }
+	const ArmorItemDef* IsArmor() const				{ return itemDef ? itemDef->IsArmor() : 0; }
 
 	int Rounds() const								{ return rounds; }
 
