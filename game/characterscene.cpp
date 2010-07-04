@@ -88,6 +88,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	storageWidget->SetOrigin( (float)port.UIWidth()-storageWidget->Width(), 0 );
 	InitInvWidget();
 	InitTextTable( &gamui2D );
+	InitCompTable( &gamui2D );
 
 	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE), storageWidget->Width(), GAME_BUTTON_SIZE_F, 0 );
 }
@@ -166,6 +167,34 @@ void CharacterScene::InitTextTable( gamui::Gamui* g )
 }
 
 
+void CharacterScene::InitCompTable( gamui::Gamui* g )
+{
+	float x=storageWidget->X();
+	float dy = 20.0f;
+	float y=dy;		// skip nameRankUI
+
+	static const float dx[COMP_COL] = { 0, 60.0f, 90.0f, 120.0f, 150.0f };
+//	char buf[32];
+//	int count=0;
+
+	for( int i=0; i<COMP_COL*COMP_ROW; ++i ) {
+		compTable[i].Init( g );
+		compTable[i].SetVisible( false );
+	}
+	for( int j=0; j<COMP_ROW; ++j ) {
+		for( int i=0; i<COMP_COL; ++i ) {
+			compTable[j*COMP_COL+i].SetPos( x + dx[i], y + (float)(j+1)*dy );
+		}
+	}
+
+	compTable[0].SetText( "Name" );
+	compTable[1].SetText( "TU" );
+	compTable[2].SetText( "%" );
+	compTable[3].SetText( "D" );
+	compTable[4].SetText( "D/TU" );
+}
+
+
 void CharacterScene::InitInvWidget()
 {
 	// armor
@@ -183,10 +212,16 @@ void CharacterScene::SwitchMode( int mode )
 {
 	storageWidget->SetVisible( mode == INVENTORY );
 
+	nameRankUI.SetVisible( mode != INVENTORY );
+
 	bool statsVisible = ( mode == STATS );
-	nameRankUI.SetVisible( statsVisible );
 	for( int i=0; i<2*STATS_ROWS; ++i ) {
 		textTable[i].SetVisible( statsVisible );
+	}
+
+	bool compVisible = ( mode == COMPARE );
+	for( int i=0; i<COMP_COL*COMP_ROW; ++i ) {
+		compTable[i].SetVisible( compVisible );
 	}
 }
 
