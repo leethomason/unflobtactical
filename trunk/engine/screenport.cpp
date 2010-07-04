@@ -220,6 +220,26 @@ void Screenport::ViewToUI( int x0, int y0, int *x1, int *y1 ) const
 }
 
 
+void Screenport::ViewToGUI( int x0, int y0, float *x1, float *y1 ) const
+{
+	switch ( rotation ) {
+		case 0:
+			*x1 = (float)x0;
+			*y1 = (float)(screenHeight-1-y0);
+			break;
+
+		case 1:
+			*x1 = (float)y0;
+			*y1 = (float)x0;
+			break;
+
+		default:
+			GLASSERT( 0 );
+			break;
+	}
+}
+
+
 void Screenport::UIToView( const grinliz::Vector2I& in, grinliz::Vector2I* out ) const
 {
 	switch ( rotation ) {

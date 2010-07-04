@@ -61,7 +61,7 @@ void StorageWidget::SetOrigin( float x, float y )
 const ItemDef* StorageWidget::ConvertTap( const gamui::UIItem* item )
 {
 	if ( item >= &boxButton[0] && item < &boxButton[NUM_BOX_BUTTONS] ) {
-		int offset = item - boxButton;
+		int offset = (const PushButton*)item - boxButton;
 		GLASSERT( offset >= 0 && offset < NUM_BOX_BUTTONS );
 		return itemDefMap[offset];
 	}
@@ -115,17 +115,17 @@ void StorageWidget::SetButtons()
 			if ( slot < 12 ) {
 				itemDefMap[slot] = itemDefArr[i];
 				int deco = itemDefArr[i]->deco;
-				boxButton[slot].SetDeco( UIRenderer::CalcDecoAtom( deco, true ), UIRenderer::CalcDecoAtom( deco, false ) );
+				boxButton[slot].SetDeco( UIRenderer::CalcDecoAtom( deco, false ), UIRenderer::CalcDecoAtom( deco, false ) );
 
 				char buffer[16];
 				if ( storage->GetCount( itemDefArr[i] ) ) {
-					SNPrintf( buffer, 16, "(%d)", storage->GetCount( itemDefArr[i] ) );
+					SNPrintf( buffer, 16, "%d", storage->GetCount( itemDefArr[i] ) );
 					boxButton[slot].SetText( itemDefArr[i]->name );
 					boxButton[slot].SetText2( buffer );
 					boxButton[slot].SetEnabled( true );
 				}
 				else {
-					boxButton[slot].SetText( itemDefArr[i]->name );
+					boxButton[slot].SetText( " " );	//itemDefArr[i]->name );
 					boxButton[slot].SetText2( " " );
 					boxButton[slot].SetEnabled( false );
 				}
@@ -133,16 +133,34 @@ void StorageWidget::SetButtons()
 			++slot;
 		}
 	}
-	for( ; slot<12; ++slot ) {
+	RenderAtom nullAtom;
+
+	for( ; slot<NUM_BOX_BUTTONS; ++slot ) {
 		itemDefMap[slot] = 0;
-		RenderAtom nullAtom;
 		boxButton[slot].SetDeco( nullAtom, nullAtom );
 		boxButton[slot].SetText( "" );
 		boxButton[slot].SetText2( "" );
 		boxButton[slot].SetEnabled( false );
 	}
 
-	for( int i=0; i<4; ++i ) {
+	bool selectionOkay = false;
+	int canSelect = -1;
+
+	for( int i=0; i<NUM_SELECT_BUTTONS; ++i ) {
 		selectButton[i].SetEnabled( itemsPerGroup[i]>0 );
+		if ( selectButton[i].Down() && selectButton[i].Enabled() ) {
+			selectionOkay = true;
+		}
+		if ( selectButton[i].Enabled() && canSelect < 0 ) {
+			canSelect = i;
+		}
+	}
+	if ( !selectionOkay && canSelect >= 0 ) {
+		for ( int i=0; i<NUM_SELECT_BUTTONS; ++i ) {
+			if ( i == canSelect )
+				selectButton[canSelect].SetDown();
+			else
+				selectButton[canSelect].SetUp();
+		}
 	}
 }

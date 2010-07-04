@@ -122,6 +122,7 @@ public:
 	const Frustum&		    GetFrustum()		{ GLASSERT( uiMode == false ); return frustum; }
 
 	void ViewToUI( int vX, int vY, int* uiX, int* uiY ) const;
+	void ViewToGUI( int x0, int y0, float *x1, float *y1 ) const;
 
 	int UIWidth() const										{ return (rotation&1) ? screenHeight : screenWidth; }
 	int UIHeight() const									{ return (rotation&1) ? screenWidth : screenHeight; }

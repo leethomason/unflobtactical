@@ -33,23 +33,23 @@ public:
 
 	const ItemDef* ConvertTap( const gamui::UIItem* item );	
 	void SetOrigin( float x, float y );
+	void SetButtons();
 
 private:
-	void SetButtons();
 
 	enum {
 		NUM_SELECT_BUTTONS = 4,
 		BOX_CX = 4,
 		BOX_CY = 4,
-		NUM_BOX_BUTTONS = BOX_CX*BOX_CY,
+		NUM_BOX_BUTTONS = (BOX_CX-1)*BOX_CY,
 		TOTAL_BUTTONS = NUM_SELECT_BUTTONS + NUM_BOX_BUTTONS
 	};
 	gamui::ToggleButton selectButton[ NUM_SELECT_BUTTONS ];
 	gamui::PushButton	boxButton[ NUM_BOX_BUTTONS ];
-	gamui::UIItem* itemArr[TOTAL_BUTTONS];
+	gamui::UIItem*		itemArr[TOTAL_BUTTONS];
 
 	const Storage* storage;
-	const ItemDef* itemDefMap[12];
+	const ItemDef* itemDefMap[NUM_BOX_BUTTONS];
 	ItemDef* const* itemDefArr;
 };
 

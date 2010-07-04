@@ -44,9 +44,6 @@ public:
 						const grinliz::Vector2I& screen,
 						const grinliz::Ray& world )				{}
 
-//	virtual void TapExtra(	int action, 
-//							const grinliz::Vector2I& screen )	{}
-
 	virtual void Drag(	int action,
 						const grinliz::Vector2I& view )			{}
 	virtual void Zoom( int action, int distance )				{}
@@ -86,9 +83,9 @@ public:
 protected:
 	Engine* GetEngine();
 
-	Game*				game;
-	UIRenderer			uiRenderer;
-	gamui::Gamui		gamui2D, gamui3D;
+	Game*			game;
+	UIRenderer		uiRenderer;
+	gamui::Gamui	gamui2D, gamui3D;
 };
 
 

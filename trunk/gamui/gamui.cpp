@@ -1019,6 +1019,14 @@ void Gamui::Remove( UIItem* item )
 }
 
 
+const UIItem* Gamui::Tap( float x, float y )
+{
+	const UIItem* item = TapDown( x, y );
+	TapUp( x, y );
+	return item;
+}
+
+
 const UIItem* Gamui::TapDown( float x, float y )
 {
 	GAMUIASSERT( m_itemTapped == 0 );

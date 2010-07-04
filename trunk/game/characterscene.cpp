@@ -22,7 +22,7 @@
 #include "../grinliz/glstringutil.h"
 
 using namespace grinliz;
-
+using namespace gamui;
 
 CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input ) 
 	: Scene( _game )
@@ -38,8 +38,8 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 
 	//controlButtons = new UIButtonGroup( engine->GetScreenport() );
 	const gamui::ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
-	const gamui::ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
-	const gamui::ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
+	const gamui::ButtonLook& blue  = game->GetButtonLook( Game::BLUE_BUTTON );
+	const gamui::ButtonLook& red   = game->GetButtonLook( Game::RED_BUTTON );
 
 	backButton.Init( &gamui2D, green );
 	backButton.SetPos( 0, port.UIHeight()-backButton.Height() );
@@ -60,11 +60,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	charInvButton[NUM_BASE_BUTTONS+0].SetPos( charInvButton[0].X(), charInvButton[0].Y()+charInvButton[0].Height()*2.f );
 	charInvButton[NUM_BASE_BUTTONS+1].SetPos( charInvButton[2].X(), charInvButton[2].Y()+charInvButton[2].Height()*2.f );
 	
-//	int widths[2] = { 16, 16 };
-//	textTable = new UITextTable( port, 2, 16, widths );
-
 	this->unit = unit;
-	//engine->SoloRender( unit );
 
 	Vector2I mapPos;
 	unit->CalcMapPos( &mapPos, 0 );
@@ -75,8 +71,6 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	storageWidget = new StorageWidget( &gamui2D, green, blue, _game->GetItemDefArr(), storage );
 
 	engine->EnableMap( false );
-
-
 	storageWidget->SetOrigin( 230, 0 );
 	InitInvWidget();
 	InitTextTable();
@@ -85,6 +79,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 
 CharacterScene::~CharacterScene()
 {
+	unit->UpdateInventory();
 	engine->EnableMap( true );
 	delete storageWidget;
 
@@ -177,9 +172,9 @@ void CharacterScene::SetButtonGraphics( int index, const Item& item )
 			rounds[1] = inventory->CalcClipRoundsTotal( wid->weapon[1].clipItemDef );
 
 			if ( wid->HasWeapon(kModeAlt) )
-				SNPrintf( buffer, 16, "%d %d", rounds[0], rounds[1] );
+				SNPrintf( buffer, 16, "R%d %d", rounds[0], rounds[1] );
 			else
-				SNPrintf( buffer, 16, "%d", rounds[0] );
+				SNPrintf( buffer, 16, "R%d", rounds[0] );
 
 		}
 		else if ( item.IsClip() ) {
@@ -201,16 +196,6 @@ void CharacterScene::SetButtonGraphics( int index, const Item& item )
 
 void CharacterScene::DrawHUD()
 {
-//	controlButtons->Draw();
-//	charInvWidget->Draw();
-//	if ( mode == INVENTORY_MODE )
-//		storageWidget->Draw();
-//	else
-//		textTable->Draw();
-
-//	if ( description ) {
-//		UFOText::Draw( 235, 50, "%s", description );
-//	}
 }
 
 
@@ -218,54 +203,37 @@ void CharacterScene::Tap(	int count,
 							const grinliz::Vector2I& screen,
 							const grinliz::Ray& world )
 {
-/*
-	int ux, uy;
-	engine->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );
+	float ux, uy;
+	engine->GetScreenport().ViewToGUI( screen.x, screen.y, &ux, &uy );
 
-	// Back button:
-	int tap = controlButtons->QueryTap( ux, uy );
-	if ( tap == 0 ) {
+	const UIItem* item = gamui2D.Tap( ux, uy );
+
+	if ( item == &backButton ) {
 		game->PopScene();
 		return;
 	}
-	else if ( tap ==1 ) {
-		mode++;
-		if ( mode == MODE_COUNT ) 
-			mode = 0;
-		if ( mode == INVENTORY_MODE )
-			controlButtons->SetText( 1, "Stats" );
-		if ( mode == STATS_MODE )
-			controlButtons->SetText( 1, "Inv" );
-	}
 
 	// Inventory of the character:
-	tap = charInvWidget->QueryTap( ux, uy );
-	if ( tap == 0 ) {
-		Inventory* inventory = unit->GetInventory();
-		inventory->SwapWeapons();
+	if ( item >= &charInvButton[0] && item < &charInvButton[NUM_BASE_BUTTONS] ) {
+		int offset = (const PushButton*) item - charInvButton;
+		GLASSERT( offset >= 0 && offset < NUM_BASE_BUTTONS );
+
+		InventoryToStorage( Inventory::GENERAL_SLOT + offset );
 	}
-	else if ( tap > 0 ) {
-		if ( tap == 1 )
-			InventoryToStorage( Inventory::ARMOR_SLOT );
-		else if ( tap == 2 )
-			InventoryToStorage( Inventory::WEAPON_SLOT_SECONDARY );
-		else if ( tap == 3 )
-			InventoryToStorage( Inventory::WEAPON_SLOT_PRIMARY );
-		else
-			InventoryToStorage( Inventory::GENERAL_SLOT + (tap-4) );
+	else if ( item == &charInvButton[WEAPON_BUTTON] ) {
+		InventoryToStorage( Inventory::WEAPON_SLOT );
+	}
+	else if ( item == &charInvButton[ARMOR_BUTTON] ) {
+		InventoryToStorage( Inventory::ARMOR_SLOT );
 	}
 
-	const ItemDef* itemDef = storageWidget->Tap( ux, uy );
+
+	const ItemDef* itemDef = storageWidget->ConvertTap( item );
 	if ( itemDef ) {
 		StorageToInventory( itemDef );
 	}
-
-	if ( tap >= 0 || itemDef ) {
-		storageWidget->Update();
-		SetAllButtonGraphics();
-		unit->UpdateInventory();
-	}
-	*/
+	SetAllButtonGraphics();
+	storageWidget->SetButtons();
 }
 
 
