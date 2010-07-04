@@ -72,6 +72,7 @@ protected:
 	int mode;
 	void InitInvWidget();
 	void InitTextTable( gamui::Gamui* );
+	void InitCompTable( gamui::Gamui* );
 
 	void SetAllButtonGraphics();
 	void SetButtonGraphics( int index, const Item& item );
@@ -105,6 +106,10 @@ protected:
 	enum { STATS_ROWS = 10 };
 	NameRankUI	nameRankUI;
 	gamui::TextLabel textTable[2*STATS_ROWS];
+	// Right side option #3
+	// name tu % dam dptu
+	enum { COMP_COL = 5, COMP_ROW = 5 };
+	gamui::TextLabel compTable[COMP_COL*COMP_ROW];
 
 	const char* description;
 	Storage* storage;
