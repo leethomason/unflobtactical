@@ -178,7 +178,14 @@ Game::~Game()
 	doc.InsertEndChild( map );
 	engine->GetMap()->Save( doc.FirstChildElement( "Map" ) );
 	doc.SaveFile();
-#else
+#endif
+
+	// Roll up to the main scene before saving.
+	while( sceneStack.Size() > 1 ) {
+		PopScene();
+		PushPopScene();
+	}
+#ifndef MAPMAKER
 	if ( loadCompleted ) {
 		TiXmlDocument doc;
 		Save( &doc );
@@ -187,10 +194,10 @@ Game::~Game()
 	}
 #endif
 
-	while( !sceneStack.Empty() ) {
-		delete sceneStack.Top();
-		sceneStack.Pop();
-	}
+	delete sceneStack.Top();
+	sceneStack.Pop();
+
+
 	for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
 		delete itemDefArr[i];
 	}

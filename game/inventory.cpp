@@ -82,20 +82,18 @@ int Inventory::AddItem( const Item& item )
 	GLASSERT( slots[WEAPON_SLOT].IsNothing() || slots[WEAPON_SLOT].IsWeapon() );
 	GLASSERT( slots[ARMOR_SLOT].IsNothing() || slots[ARMOR_SLOT].IsArmor() );
 
-	if ( item.IsArmor() ) {
-		if ( slots[ARMOR_SLOT].IsNothing() ) {
-			slots[ARMOR_SLOT] = item;
-			return ARMOR_SLOT;
-		}
-		return -1;
-	}
-
 	if ( item.IsWeapon() ) {
 		if ( slots[WEAPON_SLOT].IsNothing() ) {
 			slots[WEAPON_SLOT] = item;
 			return WEAPON_SLOT;
 		}
-		return -1;
+	}
+
+	if ( item.IsArmor() ) {
+		if ( slots[ARMOR_SLOT].IsNothing() ) {
+			slots[ARMOR_SLOT] = item;
+			return ARMOR_SLOT;
+		}
 	}
 
 	for( int j=GENERAL_SLOT; j<NUM_SLOTS; ++j ) {

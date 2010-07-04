@@ -154,6 +154,7 @@ public:
 
 	const UIItem* TapDown( float x, float y );
 	const UIItem* TapUp( float x, float y );
+	const UIItem* Tap( float x, float y );
 
 	static void Layout(	UIItem** item, int nItem,
 						int cx, int cy,
