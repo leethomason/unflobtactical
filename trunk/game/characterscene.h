@@ -71,7 +71,7 @@ protected:
 	};
 	int mode;
 	void InitInvWidget();
-	void InitTextTable();
+	void InitTextTable( gamui::Gamui* );
 
 	void SetAllButtonGraphics();
 	void SetButtonGraphics( int index, const Item& item );
@@ -79,6 +79,8 @@ protected:
 	void InventoryToStorage( int slot );
 	void StorageToInventory( const ItemDef* itemDef );
 
+	enum { INVENTORY, STATS, COMPARE };
+	void SwitchMode( int mode );
 
 	Engine* engine;
 
@@ -88,9 +90,21 @@ protected:
 			ARMOR_BUTTON = 6,
 			WEAPON_BUTTON = 7
 	};
+
+	// control buttons:
+	enum { NUM_CONTROL = 3 };
+	gamui::PushButton helpButton;
+	gamui::ToggleButton control[NUM_CONTROL];
+
+	// Left side buttons (unit inventory)
 	gamui::PushButton charInvButton[NUM_INV_BUTTONS];
 
-	StorageWidget* storageWidget;
+	// Right side option #1
+	StorageWidget* storageWidget;  //< widget to show ground items
+	// Right side option #2
+	enum { STATS_ROWS = 10 };
+	NameRankUI	nameRankUI;
+	gamui::TextLabel textTable[2*STATS_ROWS];
 
 	const char* description;
 	Storage* storage;

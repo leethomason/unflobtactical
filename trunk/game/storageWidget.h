@@ -34,6 +34,12 @@ public:
 	const ItemDef* ConvertTap( const gamui::UIItem* item );	
 	void SetOrigin( float x, float y );
 	void SetButtons();
+	
+	float X() const			{ return selectButton[0].X(); }
+	float Y() const			{ return selectButton[0].Y(); }
+	float Width() const		{ return (float)(GAME_BUTTON_SIZE*BOX_CX); }
+	float Height() const	{ return (float)(GAME_BUTTON_SIZE*BOX_CY); }
+	void SetVisible( bool visible );
 
 private:
 

@@ -46,6 +46,19 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	backButton.SetText( "Back" );
 
+	helpButton.Init( &gamui2D, green );
+	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	helpButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_HELP, true ),  UIRenderer::CalcDecoAtom( DECO_HELP, false ) );
+
+	gamui::UIItem* controlArr[NUM_CONTROL+1] = { &helpButton };
+	static const char* const controlLabel[NUM_CONTROL] = { "Inv", "Stats", "Comp" };
+	for( int i=0; i<NUM_CONTROL; ++i ) {
+		control[i].Init( &gamui2D, 2, green );
+		control[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+		control[i].SetText( controlLabel[i] );
+		controlArr[i+1] = &control[i];
+	}
+
 	gamui::UIItem* itemArr[NUM_BASE_BUTTONS];
 	for( int i=0; i<NUM_BASE_BUTTONS; ++i ) {
 		charInvButton[i].Init( &gamui2D, green );
@@ -56,6 +69,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 		charInvButton[i].Init( &gamui2D, red );
 		charInvButton[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	}
+
 	gamui::Gamui::Layout( itemArr, NUM_BASE_BUTTONS, 3, 2, 0, 0, charInvButton[0].Width()*3.f, charInvButton[0].Height()*2.f, 0 );
 	charInvButton[NUM_BASE_BUTTONS+0].SetPos( charInvButton[0].X(), charInvButton[0].Y()+charInvButton[0].Height()*2.f );
 	charInvButton[NUM_BASE_BUTTONS+1].SetPos( charInvButton[2].X(), charInvButton[2].Y()+charInvButton[2].Height()*2.f );
@@ -68,12 +82,14 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	if ( !storage ) {
 		storage = new Storage();
 	}
-	storageWidget = new StorageWidget( &gamui2D, green, blue, _game->GetItemDefArr(), storage );
 
+	storageWidget = new StorageWidget( &gamui2D, green, blue, _game->GetItemDefArr(), storage );
 	engine->EnableMap( false );
-	storageWidget->SetOrigin( 230, 0 );
+	storageWidget->SetOrigin( (float)port.UIWidth()-storageWidget->Width(), 0 );
 	InitInvWidget();
-	InitTextTable();
+	InitTextTable( &gamui2D );
+
+	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE), storageWidget->Width(), GAME_BUTTON_SIZE_F, 0 );
 }
 
 
@@ -90,46 +106,63 @@ CharacterScene::~CharacterScene()
 }
 
 
-void CharacterScene::InitTextTable()
+void CharacterScene::InitTextTable( gamui::Gamui* g )
 {
-/*	textTable->SetOrigin( GAME_BUTTON_SIZE*4, GAME_BUTTON_SIZE*5-5 );
-
-	textTable->SetText( 0, 0, unit->FirstName() );
-	textTable->SetText( 1, 0, unit->LastName() );
-
-	textTable->SetText( 0, 1, "Rank" );
-	textTable->SetText( 1, 1, unit->Rank() );
-
-	int row=2;
+	float y=0;
+	float x=storageWidget->X();
+	float dy = 20.0f;
+	float dx = 100.0f;
 	char buf[32];
-
 	const Stats& stats = unit->GetStats();
-	textTable->SetText( 0, row, "STR" );
-	textTable->SetInt( 1, row++, stats.STR() );
+	int count=0;
 
-	textTable->SetText( 0, row, "DEX" );
-	textTable->SetInt( 1, row++, stats.DEX() );
+	nameRankUI.Init( g );
+	nameRankUI.Set( x, y, unit, false );
+	nameRankUI.SetVisible( false );
 
-	textTable->SetText( 0, row, "PSY" );
-	textTable->SetInt( 1, row++, stats.PSY() );
+	for( int i=0; i<2*STATS_ROWS; ++i ) {
+		textTable[i].Init( g );
+		textTable[i].SetVisible( false );
+	}
+	for( int i=0; i<STATS_ROWS; ++i ) {
+		textTable[i*2+0].SetPos( x, y + (float)(i+1) * dy );
+		textTable[i*2+1].SetPos( x+dx, y + (float)(i+1) * dy );
+	}
 
+	int c = 0;
+	textTable[c++].SetText( "STR" );
+	SNPrintf( buf, 32, "%d", stats.STR() );
+	textTable[c++].SetText( buf );
+
+	textTable[c++].SetText( "DEX" );
+	SNPrintf( buf, 32, "%d", stats.DEX() );
+	textTable[c++].SetText( buf );
+
+	textTable[c++].SetText( "PSY" );
+	SNPrintf( buf, 32, "%d", stats.PSY() );
+	textTable[c++].SetText( buf );
+
+	textTable[c++].SetText( "HP" );
 	SNPrintf( buf, 32, "%d/%d", unit->HP(), stats.TotalHP() );
-	textTable->SetText( 0, row, "HP" );
-	textTable->SetText( 1, row++, buf );
+	textTable[c++].SetText( buf );
 
-	SNPrintf( buf, 32, "%.1f/%.1f", unit->TU(), stats.TotalTU() );
-	textTable->SetText( 0, row, "TU" );
-	textTable->SetText( 1, row++, buf );
+	textTable[c++].SetText( "TU" );
+	SNPrintf( buf, 32, "%0.1f/%0.1f", unit->TU(), stats.TotalTU() );
+	textTable[c++].SetText( buf );
 
-	textTable->SetText( 0, row, "Accuracy" );
-	textTable->SetFloat( 1, row++, 1.0f - stats.Accuracy() );	// keep consistent: show as higher is better.
+	textTable[c++].SetText( "Accuracy" );
+	SNPrintf( buf, 32, "%0.2f", 1.0f - stats.Accuracy() );
+	textTable[c++].SetText( buf );
 
-	textTable->SetText( 0, row, "Reaction" );
-	textTable->SetFloat( 1, row++, stats.Reaction() );
+	textTable[c++].SetText( "Reaction" );
+	SNPrintf( buf, 32, "%0.2f", stats.Reaction() );
+	textTable[c++].SetText( buf );
 
-	textTable->SetText( 0, row, "Kills" );
-	textTable->SetInt( 1, row, unit->KillsCredited() );
-*/
+	textTable[c++].SetText( "Kills" );
+	SNPrintf( buf, 32, "%d", unit->KillsCredited() );
+	textTable[c++].SetText( buf );
+
+	GLASSERT( c <= 2*STATS_ROWS );
 }
 
 
@@ -143,6 +176,18 @@ void CharacterScene::InitInvWidget()
 	charInvButton[WEAPON_BUTTON].SetDeco( atomWeapon, atomWeapon );
 
 	SetAllButtonGraphics();
+}
+
+
+void CharacterScene::SwitchMode( int mode )
+{
+	storageWidget->SetVisible( mode == INVENTORY );
+
+	bool statsVisible = ( mode == STATS );
+	nameRankUI.SetVisible( statsVisible );
+	for( int i=0; i<2*STATS_ROWS; ++i ) {
+		textTable[i].SetVisible( statsVisible );
+	}
 }
 
 
@@ -212,6 +257,14 @@ void CharacterScene::Tap(	int count,
 		game->PopScene();
 		return;
 	}
+
+	// control buttons
+	if ( item == &control[0] )
+		SwitchMode( INVENTORY );
+	else if ( item == &control[1] )
+		SwitchMode( STATS );
+	else if ( item == &control[2] )
+		SwitchMode( COMPARE );
 
 	// Inventory of the character:
 	if ( item >= &charInvButton[0] && item < &charInvButton[NUM_BASE_BUTTONS] ) {

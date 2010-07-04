@@ -54,7 +54,7 @@ StorageWidget::~StorageWidget()
 
 void StorageWidget::SetOrigin( float x, float y )
 {
-	Gamui::Layout( itemArr, TOTAL_BUTTONS, BOX_CX, BOX_CY, x, y, (float)(GAME_BUTTON_SIZE*BOX_CX), (float)(GAME_BUTTON_SIZE*BOX_CY), 0 );
+	Gamui::Layout( itemArr, TOTAL_BUTTONS, BOX_CX, BOX_CY, x, y, Width(), Height(), 0 );
 }
 
 
@@ -66,6 +66,13 @@ const ItemDef* StorageWidget::ConvertTap( const gamui::UIItem* item )
 		return itemDefMap[offset];
 	}
 	return 0;
+}
+
+
+void StorageWidget::SetVisible( bool visible )
+{
+	for( int i=0; i<TOTAL_BUTTONS; ++i )
+		itemArr[i]->SetVisible( visible );
 }
 
 	
