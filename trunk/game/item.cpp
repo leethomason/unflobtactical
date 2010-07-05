@@ -354,6 +354,14 @@ void Storage::RemoveItem( const ItemDef* _itemDef, Item* _item )
 }
 
 
+bool Storage::Contains( const ItemDef* def ) const
+{
+	if ( !def )
+		return false;
+	return GetCount( def ) > 0;
+
+}
+
 void Storage::SetCount( const ItemDef* itemDef, int count )
 {
 	int index = GetIndex( itemDef );

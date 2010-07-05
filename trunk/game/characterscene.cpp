@@ -59,6 +59,18 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 		controlArr[i+1] = &control[i];
 	}
 
+	static const char* const rangeLabel[NUM_RANGE] = { "4m", "8m", "16m" };
+	for( int i=0; i<NUM_RANGE; ++i ) {
+		range[i].Init( &gamui2D, 3, blue );
+		range[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+		range[i].SetText( rangeLabel[i] );
+		range[i].SetVisible( false );
+		if ( i == 1 ) 
+			range[i].SetDown();
+		else 
+			range[i].SetUp();
+	}
+
 	gamui::UIItem* itemArr[NUM_BASE_BUTTONS];
 	for( int i=0; i<NUM_BASE_BUTTONS; ++i ) {
 		charInvButton[i].Init( &gamui2D, green );
@@ -91,6 +103,9 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	InitCompTable( &gamui2D );
 
 	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE), storageWidget->Width(), GAME_BUTTON_SIZE_F, 0 );
+	for( int i=0; i<NUM_RANGE; ++i ) {
+		range[i].SetPos( controlArr[i+1]->X(), controlArr[i+1]->Y()-GAME_BUTTON_SIZE_F );
+	}
 }
 
 
@@ -171,19 +186,24 @@ void CharacterScene::InitCompTable( gamui::Gamui* g )
 {
 	float x=storageWidget->X();
 	float dy = 20.0f;
-	float y=dy;		// skip nameRankUI
+	float y=0;		// skip nameRankUI
 
-	static const float dx[COMP_COL] = { 0, 60.0f, 90.0f, 120.0f, 150.0f };
-//	char buf[32];
-//	int count=0;
+	float nameWidth = 70.0f;
 
 	for( int i=0; i<COMP_COL*COMP_ROW; ++i ) {
 		compTable[i].Init( g );
 		compTable[i].SetVisible( false );
 	}
+	float delta = (storageWidget->Width() - nameWidth) / (COMP_COL-1);
+
 	for( int j=0; j<COMP_ROW; ++j ) {
 		for( int i=0; i<COMP_COL; ++i ) {
-			compTable[j*COMP_COL+i].SetPos( x + dx[i], y + (float)(j+1)*dy );
+			float rx = x;
+
+			if ( i>0 )
+				rx = x + nameWidth + delta*(i-1);
+
+			compTable[j*COMP_COL+i].SetPos( rx, y + (float)(j+1)*dy );
 		}
 	}
 
@@ -192,6 +212,68 @@ void CharacterScene::InitCompTable( gamui::Gamui* g )
 	compTable[2].SetText( "%" );
 	compTable[3].SetText( "D" );
 	compTable[4].SetText( "D/TU" );
+}
+
+
+void CharacterScene::SetCompText()
+{
+	ItemDef* const* itemDefArr = game->GetItemDefArr();
+	const Inventory* inventory = unit->GetInventory();
+	const Stats& stats = unit->GetStats();
+	int index = 1;
+
+	float r = 8.0f;
+	if ( range[0].Down() )
+		r = 4.0f;
+	else if ( range[2].Down() )
+		r = 16.0f;
+
+	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+		if ( itemDefArr[i] && itemDefArr[i]->IsWeapon() ) {
+			bool inInventory = false;
+			bool onGround = false;
+
+			if ( inventory->Contains( itemDefArr[i] ) )
+				inInventory = true;
+			if ( storage->Contains( itemDefArr[i] ) ) 
+				onGround = true;
+
+			if ( inInventory || onGround ) {
+				const WeaponItemDef* wid = itemDefArr[i]->IsWeapon();
+				WeaponMode mode = kModeAuto;
+		
+				DamageDesc dd;
+				wid->DamageBase( mode, &dd );
+
+				float fraction, fraction2, damage, dptu;
+				wid->FireStatistics( mode, stats.Accuracy(), r, &fraction, &fraction2, &damage, &dptu );
+
+				if ( fraction2 > 0.90f )
+					fraction2 = 0.90f;
+
+				char buf[16];
+
+				SNPrintf( buf, 16, "%s%s", inInventory ? "+" : "-", wid->name );
+				compTable[index*COMP_COL + 0].SetText( buf );
+
+				SNPrintf( buf, 16, "%.1f", wid->TimeUnits( mode ) );
+				compTable[index*COMP_COL + 1].SetText( buf );
+
+				SNPrintf( buf, 16, "%d", LRintf( fraction2 * 100.f ) );
+				compTable[index*COMP_COL + 2].SetText( buf );
+
+				SNPrintf( buf, 16, "%d", LRintf( damage ) );
+				compTable[index*COMP_COL + 3].SetText( buf );
+
+				SNPrintf( buf, 16, "%.1f", dptu );
+				compTable[index*COMP_COL + 4].SetText( buf );
+
+				++index;
+				if ( index == COMP_ROW )
+					break;
+			}
+		}
+	}
 }
 
 
@@ -223,6 +305,11 @@ void CharacterScene::SwitchMode( int mode )
 	for( int i=0; i<COMP_COL*COMP_ROW; ++i ) {
 		compTable[i].SetVisible( compVisible );
 	}
+	for( int i=0; i<NUM_RANGE; ++i )
+		range[i].SetVisible( compVisible );
+
+	if ( mode == COMPARE )
+		SetCompText();
 }
 
 
@@ -300,6 +387,9 @@ void CharacterScene::Tap(	int count,
 		SwitchMode( STATS );
 	else if ( item == &control[2] )
 		SwitchMode( COMPARE );
+
+	if ( item >= &range[0] && item < &range[NUM_RANGE] )
+		SetCompText();
 
 	// Inventory of the character:
 	if ( item >= &charInvButton[0] && item < &charInvButton[NUM_BASE_BUTTONS] ) {

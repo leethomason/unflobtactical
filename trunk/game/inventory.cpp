@@ -134,6 +134,16 @@ const Item* Inventory::ArmedWeapon() const
 }
 
 
+bool Inventory::Contains( const ItemDef* itemDef ) const
+{
+	for( int i=0; i<NUM_SLOTS; ++i ) {
+		if ( slots[i].IsSomething() && slots[i].GetItemDef() == itemDef )
+			return true;
+	}
+	return false;
+}
+
+
 int Inventory::GetDeco( int s0 ) const
 {
 	int deco = DECO_NONE;
