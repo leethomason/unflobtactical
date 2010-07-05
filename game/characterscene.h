@@ -76,6 +76,7 @@ protected:
 
 	void SetAllButtonGraphics();
 	void SetButtonGraphics( int index, const Item& item );
+	void SetCompText();
 
 	void InventoryToStorage( int slot );
 	void StorageToInventory( const ItemDef* itemDef );
@@ -93,9 +94,10 @@ protected:
 	};
 
 	// control buttons:
-	enum { NUM_CONTROL = 3 };
+	enum { NUM_CONTROL = 3, NUM_RANGE=3 };
 	gamui::PushButton helpButton;
 	gamui::ToggleButton control[NUM_CONTROL];
+	gamui::ToggleButton range[NUM_RANGE];
 
 	// Left side buttons (unit inventory)
 	gamui::PushButton charInvButton[NUM_INV_BUTTONS];

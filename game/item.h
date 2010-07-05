@@ -259,6 +259,7 @@ public:
 	bool Empty() const;
 	void AddItem( const Item& item );
 	void RemoveItem( const ItemDef*, Item* item );
+	bool Contains( const ItemDef* ) const;
 	
 	void SetCount( const ItemDef*, int count );
 	int GetCount( const ItemDef* ) const;
