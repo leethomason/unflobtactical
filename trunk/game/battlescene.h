@@ -240,7 +240,6 @@ private:
 	void StopForNewTeamTarget();
 	void DoReactionFire();
 	void DrawFireWidget();
-	void DrawHPBars();
 	int CenterRectIntersection( const grinliz::Vector2I& p,
 								const grinliz::Rectangle2I& rect,
 								grinliz::Vector2I* out );
@@ -281,6 +280,8 @@ private:
 		Selection()	{ Clear(); }
 		void Clear()		{ soldierUnit = 0; targetUnit = 0; targetPos.Set( -1, -1 ); }
 		void ClearTarget()	{ targetUnit = 0; targetPos.Set( -1, -1 ); }
+		bool FireMode()		{ return targetUnit || (targetPos.x >= 0 && targetPos.y >= 0 ); }
+
 		Unit*	soldierUnit;
 		
 		Unit*				targetUnit;
@@ -317,7 +318,7 @@ private:
 		UIM_FIRE_MENU		// fire menu is up
 	};
 
-	int			uiMode;
+	//int			uiMode;
 	UIRenderer	uiRenderer;
 
 	gamui::Image		alienImage;
@@ -406,7 +407,6 @@ private:
 
 	Unit				units[MAX_UNITS];
 	gamui::DigitalBar	hpBars[MAX_UNITS];
-	//int					hpBarsFadeTime[MAX_UNITS];
 
 #ifdef MAPMAKER
 	void UpdatePreview();

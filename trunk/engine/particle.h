@@ -49,17 +49,6 @@ public:
 		SMOKE			= 4,
 		NUM_SMOKE		= 2,
 		BEAM			= 2,
-
-		DECAL_SELECTION		= 9,
-		DECAL_PATH			= 10,
-		DECAL_TARGET		= 11,
-		DECAL_UNIT_SIGHT	= 12,
-		DECAL_TEAM_SIGHT	= 13,
-		DECAL_TARGET_ARROW	= 15,
-
-		DECAL_TERRAN_SPLAT	= 3,
-		DECAL_ALIEN_SPLAT	= 7,
-
 	};
 
 	enum {
@@ -74,11 +63,13 @@ public:
 		PARTICLE_SPHERE,
 	};
 
+	/*
 	enum {
 		DECAL_BOTTOM = 0x01,
 		DECAL_TOP = 0x02,
 		DECAL_BOTH = 0x03
 	};
+	*/
 
 	// Emit N point particles.
 	void EmitPoint(	int count,						// number of particles to create
@@ -121,7 +112,7 @@ public:
 	void EmitSmoke( U32 delta, const grinliz::Vector3F& pos )	{ EmitSmokeAndFlame( delta, pos, false ); }
 
 	// Place a decal for a frame (decals don't have lifetimes.)
-	void EmitDecal( int id, int flags, const grinliz::Vector3F& pos, float alpha, float rotation );
+	//void EmitDecal( int id, int flags, const grinliz::Vector3F& pos, float alpha, float rotation );
 
 	void Update( U32 deltaTime, U32 currentTime );
 	void Draw( const grinliz::Vector3F* eyeDir, const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fogOfWar );
@@ -153,7 +144,7 @@ private:
 		U16 lifetime;					// milliseconds
 		U8	type;	
 	};
-
+	/*
 	struct Decal
 	{
 		grinliz::Vector3F	pos;		
@@ -162,6 +153,7 @@ private:
 		int					type;
 		int					flags;
 	};
+	*/
 
 	struct QuadVertex
 	{
@@ -188,12 +180,12 @@ private:
 
 	void DrawPointParticles( const grinliz::Vector3F* eyeDir );
 	void DrawQuadParticles( const grinliz::Vector3F* eyeDir );
-	void DrawDecalParticles( int flag );
+	//void DrawDecalParticles( int flag );
 	void EmitSmokeAndFlame( U32 delta, const grinliz::Vector3F& pos, bool flame );
 
 	grinliz::Random rand;
 	int nParticles[NUM_PRIMITIVES];
-	int nDecals;
+	//int nDecals;
 	Texture* quadTexture;
 	Texture* pointTexture;
 
@@ -202,7 +194,7 @@ private:
 
 	Particle		pointBuffer[ MAX_POINT_PARTICLES ];
 	Particle		quadBuffer[ MAX_QUAD_PARTICLES ];
-	Decal			decalBuffer[ MAX_DECALS ];
+	//Decal			decalBuffer[ MAX_DECALS ];
 
 	QuadVertex		vertexBuffer[ MAX_QUAD_PARTICLES*4];
 	U16				quadIndexBuffer[ MAX_QUAD_PARTICLES*6 ];

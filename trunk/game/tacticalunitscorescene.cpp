@@ -30,122 +30,83 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, const TacticalEndSc
 	nAwards = 0;
 
 	engine->EnableMap( false );
-	background = new UIImage( engine->GetScreenport() );
 
-	// -- Background -- //
-	Texture* bg = TextureManager::Instance()->GetTexture( "intro" );
-	GLASSERT( bg );
-	background->Init( bg, 480, 320 );
+	gamui::RenderAtom nullAtom;
+	background.Init( &gamui2D, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND ) );
 
-	//				  name		status  levelUp
-	int widths[4] = { 14, 14,	10,		12		 };
-	textTable = new UITextTable( engine->GetScreenport(), 4, MAX_TERRANS+1, widths );
-	textTable->SetOrigin( 30, 220 );
 
-	textTable->SetText( 0, 0, "Name" );
-	textTable->SetText( 2, 0, "Status" );
+	int count=0;
+	float yPos = 100.0f;
+	float xPos0 = 50.0f;
+	float xPos1 = 220.0f;
+	float xPos2 = 300.0f;
+	float size = 20.0f;
 
-	Texture* iconsTex = TextureManager::Instance()->GetTexture( "icons" );
-
-	int count=1;
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		if ( data->units[i].Status() != Unit::STATUS_NOT_INIT ) {
-			textTable->SetText( 0, count, data->units[i].FirstName() );
-			textTable->SetText( 1, count, data->units[i].LastName() );
-			if ( data->units[i].Status() == Unit::STATUS_ALIVE )
-				textTable->SetText( 2, count, "active" );
-			else
-				textTable->SetText( 2, count, "KIA" );
+			
+			nameRank[count].Init( &gamui2D );
+			nameRank[count].Set( xPos0, yPos, &data->units[i], false );
+
+			status[count].Init( &gamui2D );
+			status[count].SetText( data->units[i].IsAlive() ? "Active" : "KIA" );
+			status[count].SetPos( xPos1, yPos );
 
 			int kills = data->units[i].KillsCredited();
 			bool purpleCircle = ( data->units[i].HP() != data->units[i].GetStats().TotalHP() && data->units[i].Status() == Unit::STATUS_ALIVE );
 			int exp = kills + (purpleCircle ? 2 : 0);
-
-			Rectangle2I rowBounds = textTable->GetRowBounds( count );
-			int size = rowBounds.Height();
-			Rectangle2I bounds;
-			bounds.Set( rowBounds.max.x, 
-						rowBounds.min.y, 
-						rowBounds.max.x + size-1, 
-						rowBounds.min.y + size-1 );
+			float x = xPos2;
 
 			if ( purpleCircle && nAwards < MAX_AWARDS ) {
-				awards[nAwards] = new UIImage( engine->GetScreenport() );
-				awards[nAwards]->Init( iconsTex, size, size );
-				awards[nAwards]->SetOrigin( bounds.min.x, bounds.min.y );
-				awards[nAwards]->SetTexCoord( 0.75f, 0.75f, 0.25f, 0.25f );
-
+				award[nAwards].Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_AWARD_PURPLE_CIRCLE ) );
+				award[nAwards].SetPos( x, yPos );
+				award[nAwards].SetSize( size, size );
+				x += size;
 				++nAwards;
-				bounds.min.x += size;
-				bounds.max.x += size;
 			}
 
 			while ( kills && nAwards < MAX_AWARDS ) {
-				awards[nAwards] = new UIImage( engine->GetScreenport() );
-				awards[nAwards]->Init( iconsTex, size, size );
-				awards[nAwards]->SetOrigin( bounds.min.x, bounds.min.y );
-
+				int icon = ICON_AWARD_ALIEN_1;
 				if ( kills >= 10 ) {
-					awards[nAwards]->SetTexCoord( 0.75f, 0.0f, 0.24f, 0.24f );
+					icon = ICON_AWARD_ALIEN_10;
 					kills -= 10;
 				}
 				else if ( kills >= 5 ) {
-					awards[nAwards]->SetTexCoord( 0.75f, 0.25f, 0.24f, 0.24f );
+					icon = ICON_AWARD_ALIEN_5;
 					kills -= 5;
 				}
 				else {
-					awards[nAwards]->SetTexCoord( 0.75f, 0.50f, 0.24f, 0.24f );
 					kills -= 1;
 				}
+
+				award[nAwards].Init( &gamui2D, UIRenderer::CalcIconAtom( icon ) );
+				award[nAwards].SetPos( x, yPos );
+				award[nAwards].SetSize( size, size );
+				x += size;
 				++nAwards;
-				bounds.min.x += size;
-				bounds.max.x += size;
 			}
-
-			if ( exp > (data->units[i].GetStats().Rank()+2) && data->units[i].Status() == Unit::STATUS_ALIVE )
-				textTable->SetText( 3, count, "LevelUp!" );
-
 			++count;
+			yPos += size;
 		}
 	}
 
-	buttonBox = new UIButtonBox( engine->GetScreenport() );
-	buttonBox->SetColumns( 1 );
-
-	int icons[1] = { ICON_BLUE_BUTTON };
-
-	const char* iconText[] = { "Done" };
-	buttonBox->InitButtons( icons, 1 );
-	buttonBox->SetOrigin( 400, 5 );
-	buttonBox->SetText( iconText );
+	button.Init( &gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
+	button.SetPos( 400, 320 - 5 - GAME_BUTTON_SIZE );
+	button.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	button.SetText( "Done" );
 }
 
 
 TacticalUnitScoreScene::~TacticalUnitScoreScene()
 {
 	GetEngine()->EnableMap( true );
-	delete background;
-	delete textTable;
-	delete buttonBox;
-
-	for( int i=0; i<nAwards; ++i ) 
-		delete awards[i];
 }
 
 
 void TacticalUnitScoreScene::DrawHUD()
 {
-	background->Draw();
-	textTable->Draw();
-
-	//buttonBox->Draw();
-
-	UFOText::Draw( 20, 25, "Game restart not yet implemented." );
-	UFOText::Draw( 20, 10, "Close and select 'New' to play again." );
-
-	for( int i=0; i<nAwards; ++i ) {
-		awards[i]->Draw();
-	}
+//	UFOText::Draw( 20, 25, "Game restart not yet implemented." );
+//	UFOText::Draw( 20, 10, "Close and select 'New' to play again." );
 }
 
 
@@ -153,12 +114,13 @@ void TacticalUnitScoreScene::Tap(	int count,
 							const grinliz::Vector2I& screen,
 							const grinliz::Ray& world )
 {
-	int ux, uy;
+/*	float ux, uy;
 	GetEngine()->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );
-	int tap = buttonBox->QueryTap( ux, uy );
+	gamui::UIItem* item = gamui2D.Tap( ux, uy );
 	if ( tap == 0 ) {
 //		game->QueueReset();
 	///	game->PopScene();
 	}
+	*/
 }
 

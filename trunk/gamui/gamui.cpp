@@ -183,6 +183,7 @@ const char* TextLabel::GetText() const
 		return buf;
 }
 
+
 void TextLabel::SetText( const char* t )
 {
 	m_width = m_height = -1;
@@ -1187,8 +1188,7 @@ void Gamui::Render()
 void Gamui::Layout( UIItem** item, int nItems,
 					int cx, int cy,
 					float originX, float originY,
-					float tableWidth, float tableHeight,
-					int flags )
+					float tableWidth, float tableHeight )
 {
 	float itemWidth = 0, itemHeight = 0;
 	if ( nItems == 0 )

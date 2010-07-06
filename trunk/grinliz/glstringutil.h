@@ -74,6 +74,10 @@ public:
 										if ( src ) 
 											StrNCpy( buf, src, ALLOCATE ); 
 									}
+	CStr( int value )				{	GLASSERT(sizeof(*this) == ALLOCATE );		// not required for class to work, but certainly the intended design
+										buf[0] = 0; 
+										SNPrintf( buf, ALLOCATE, "%d", value );
+									}
 	~CStr()	{}
 
 	const char* c_str()	const			{ return buf; }
@@ -96,7 +100,9 @@ public:
 		else {
 			buf[0] = 0;
 		}
-		GLASSERT( buf[ALLOCATE-1]==0 );
+	}
+	void operator=( int value ) {
+		SNPrintf( buf, ALLOCATE, "%d", value );
 	}
 
 	void operator+=( const char* src ) {
@@ -106,7 +112,6 @@ public:
 			if ( len < ALLOCATE-1 )
 				StrNCpy( buf+len, src, ALLOCATE-len );
 		}
-		GLASSERT( buf[ALLOCATE-1]==0 );
 	}
 
 

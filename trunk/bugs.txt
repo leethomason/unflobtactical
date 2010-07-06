@@ -2,13 +2,17 @@ Issues:
 
 Bugs:
 - trees show up in the wrong place
-? door bugs
+- alien doors not wide enough - block shots
+- tune unit skills, accuracy, hp, levels
+- give aliens auto-armor
+- support drag in character screen
+- door bugs, redo door system
+- screen re-size / layout / device loss
 ? pauses when move - profiler?
 
 Architecture
 - render managers
 - AI objects 
-- MicroGLUI separation
 - Map as interface
 - Build in profiler.
 
@@ -18,7 +22,6 @@ Issues, post next test:
 - Art: missing weapon models
 - fire generates light
 - bug in AI memory. Need to moduarlize AI code.
-- highlight model, not just feet
 - drawn edges of world
 - mission types: crash
 - Sounds: better sounds, latency
@@ -44,6 +47,8 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- highlight model, not just feet
+- Arch: MicroGLUI separation
 - need correct colors in RenderWeapon()
 - move grid doesn't always update
 - rotation clears path

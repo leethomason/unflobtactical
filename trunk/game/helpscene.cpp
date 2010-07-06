@@ -3,6 +3,7 @@
 #include "../engine/engine.h"
 #include "../engine/uirendering.h"
 
+using namespace gamui;
 
 HelpScene::HelpScene( Game* _game ) : Scene( _game )
 {
@@ -10,65 +11,73 @@ HelpScene::HelpScene( Game* _game ) : Scene( _game )
 	engine->EnableMap( false );
 	currentScreen = 0;
 
+	static const char* const textures[NUM_SCREENS] = { "help0", "help1", "help2", "help3", "help4" };
+
 	for( int i=0; i<NUM_SCREENS; ++i ) {
-		screens[i] = new UIImage( engine->GetScreenport() );
-		screens[i]->SetOrigin( 0, engine->GetScreenport().UIHeight() - 512 );
+		RenderAtom atom;
+
+		atom.Init( UIRenderer::RENDERSTATE_NORMAL, TextureManager::Instance()->GetTexture( textures[i] ), 0, 0, 1, 1, 480, 320 );
+		UIRenderer::SetAtomCoordFromPixel( 0, 0, 480, 320, 512, 512, &atom );
+
+		screens[i].Init( &gamui2D, atom );
+		screens[i].SetVisible( i==0 );
 	}
-	screens[0]->Init( TextureManager::Instance()->GetTexture( "help0" ), 512, 512 );
-	screens[1]->Init( TextureManager::Instance()->GetTexture( "help1" ), 512, 512 );
-	screens[2]->Init( TextureManager::Instance()->GetTexture( "help2" ), 512, 512 );
-	screens[3]->Init( TextureManager::Instance()->GetTexture( "help3" ), 512, 512 );
-	screens[4]->Init( TextureManager::Instance()->GetTexture( "help4" ), 512, 512 );
 
-	buttons = new UIButtonBox( engine->GetScreenport() );
-	buttons->SetColumns( 3 );
+	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
+	static const char* const text[3] = { "<", ">", "X" };
+	UIItem* items[3] = { 0 };
 
-	int icons[NUM_BUTTONS] = { ICON_BLUE_BUTTON, ICON_BLUE_BUTTON, ICON_BLUE_BUTTON };
-
-	const char* iconText[] = { "<", ">", "X" };
-	buttons->InitButtons( icons, NUM_BUTTONS );
-	buttons->SetOrigin( 300, 5 );
-	buttons->SetText( iconText );
+	for( int i=0; i<3; ++i ) {
+		buttons[i].Init( &gamui2D, blue );
+		buttons[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+		buttons[i].SetText( text[i] );
+		items[i] = &buttons[i];
+	}
+	Gamui::Layout( items, 3, 3, 1, 
+				   (float)engine->GetScreenport().UIWidth()-GAME_BUTTON_SIZE_F*3.0f, 
+				   (float)engine->GetScreenport().UIHeight()-GAME_BUTTON_SIZE_F, 
+				   GAME_BUTTON_SIZE_F*3.0f, 
+				   GAME_BUTTON_SIZE_F );
 }
 
 
 
 HelpScene::~HelpScene()
 {
-	for( int i=0; i<NUM_SCREENS; ++i ) {
-		delete screens[i];
-	}
-	delete buttons;
 }
 
 
 
 void HelpScene::DrawHUD()
 {
-	screens[currentScreen]->Draw();
-	buttons->Draw();
 }
 
 
 void HelpScene::Tap( int count, const grinliz::Vector2I& screen, const grinliz::Ray& world )
 {
-	int ux, uy;
-	GetEngine()->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );
+	float ux, uy;
+	GetEngine()->GetScreenport().ViewToGUI( screen.x, screen.y, &ux, &uy );
 
-	int tap = buttons->QueryTap( ux, uy );
+	const UIItem* tap = gamui2D.Tap( ux, uy );
 
 	// Want to keep re-using main texture. Do a ContextShift() if anything
 	// will change on this screen.
 	TextureManager* texman = TextureManager::Instance();
 
-	switch ( tap ) {
-		case 0:		--currentScreen;	texman->ContextShift();		break;
-		case 1:		++currentScreen;	texman->ContextShift();		break;
-		case 2:		game->PopScene();								break;
-
-		default:
-			break;
+	if ( tap == &buttons[0] ) {
+		screens[currentScreen].SetVisible( false );
+		--currentScreen;	
+		texman->ContextShift();
+	}
+	else if ( tap == &buttons[1] ) {
+		screens[currentScreen].SetVisible( false );
+		++currentScreen;	
+		texman->ContextShift();
+	}
+	else if ( tap == &buttons[2] ) {
+		game->PopScene();
 	}
 	while( currentScreen < 0 )				currentScreen += NUM_SCREENS;
 	while( currentScreen >= NUM_SCREENS )	currentScreen -= NUM_SCREENS;
+	screens[currentScreen].SetVisible( true );
 }

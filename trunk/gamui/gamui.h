@@ -97,6 +97,9 @@ struct RenderAtom
 
 
 /**
+	Main class of the Gamui system. All Items and objects are attached to an instance of Gamui, which
+	does rendering, hit testing, and organization.
+
 	Coordinate system assumed by Gamui.
 
 	Screen coordinates:
@@ -110,6 +113,9 @@ struct RenderAtom
 	|
 	|
 	+---tx
+
+	Note that you can use any coordinate system you want, this is only what Gamui assumes. Gamui can be
+	used to draw map overlays for instance, if projected into a 3D plane.
 */
 class Gamui
 {
@@ -121,6 +127,7 @@ public:
 		LEVEL_TEXT		 = 3
 	};
 
+	/// Description of a vertex used by Gamui.
 	struct Vertex {
 		float x;
 		float y;
@@ -130,13 +137,16 @@ public:
 		void Set( float _x, float _y, float _tx, float _ty ) { x = _x; y = _y; tx = _tx; ty = _ty; }
 	};
 
+	/// Construct and Init later.
 	Gamui();
+	/// Constructor
 	Gamui(	IGamuiRenderer* renderer,
 			const RenderAtom& textEnabled, 
 			const RenderAtom& textDisabled,
 			IGamuiText* iText );
 	~Gamui();
 
+	/// Required if the default constructor used.
 	void Init(	IGamuiRenderer* renderer,
 				const RenderAtom& textEnabled, 
 				const RenderAtom& textDisabled,
@@ -145,6 +155,7 @@ public:
 	void Add( UIItem* item );
 	void Remove( UIItem* item );
 
+	/// Call to begin the rendering pass and commit all the UIItems to the display.
 	void Render();
 
 	RenderAtom* GetTextAtom() 				{ return &m_textAtomEnabled; }
@@ -152,15 +163,27 @@ public:
 
 	IGamuiText* GetTextInterface() const	{ return m_iText; }
 
+	/** Feed touch/mouse events to Gamui. You should use TapDown/TapUp as a pair, OR just use Tap. TapDown/Up
+		is richer, but you need device support. (Mice certainly, fingers possibly.)
+	*/
 	const UIItem* TapDown( float x, float y );
-	const UIItem* TapUp( float x, float y );
-	const UIItem* Tap( float x, float y );
+	const UIItem* TapUp( float x, float y );		///< Used as a pair with TapDown
+	const UIItem* Tap( float x, float y );			///< Used to send events on systems that have a simple tap without up/down symantics.
 
+	/** Utility function to layout a grid of items.
+		@param item			An array of item pointers to arrange.
+		@param nItem		Number of items in the array
+		@param cx			Number of columns.
+		@param cy			Number of rows.
+		@param originX		Upper left of the layout.
+		@param originY		Upper left of the layout.
+		@param tableWidth	Width of the entire table (items will be positioned to stay within this size.)
+		@param tableHeight	Height of the entire table (items will be positioned to stay within this size.)
+	*/
 	static void Layout(	UIItem** item, int nItem,
 						int cx, int cy,
 						float originX, float originY,
-						float tableWidth, float tableHeight,
-						int flags );
+						float tableWidth, float tableHeight );
 
 private:
 	static bool SortItems( const UIItem* a, const UIItem* b );
@@ -295,6 +318,7 @@ public:
 	virtual float Height() const;
 
 	void SetText( const char* t );
+
 	const char* GetText() const;
 	void ClearText();
 	virtual void SetEnabled( bool enabled )		{ m_enabled = enabled; }
@@ -604,7 +628,6 @@ public:
 
 	virtual bool HandleTap(	int action, float x, float y );
 	virtual int ToggleGroup() const				{ return m_toggleGroup; }
-//	void SetToggleGroup( int group )			{ m_toggleGroup = group; }
 
 	virtual ToggleButton* IsToggle()			{ return this; }
 

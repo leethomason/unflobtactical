@@ -82,7 +82,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 		charInvButton[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	}
 
-	gamui::Gamui::Layout( itemArr, NUM_BASE_BUTTONS, 3, 2, 0, 0, charInvButton[0].Width()*3.f, charInvButton[0].Height()*2.f, 0 );
+	gamui::Gamui::Layout( itemArr, NUM_BASE_BUTTONS, 3, 2, 0, 0, charInvButton[0].Width()*3.f, charInvButton[0].Height()*2.f );
 	charInvButton[NUM_BASE_BUTTONS+0].SetPos( charInvButton[0].X(), charInvButton[0].Y()+charInvButton[0].Height()*2.f );
 	charInvButton[NUM_BASE_BUTTONS+1].SetPos( charInvButton[2].X(), charInvButton[2].Y()+charInvButton[2].Height()*2.f );
 	
@@ -102,7 +102,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	InitTextTable( &gamui2D );
 	InitCompTable( &gamui2D );
 
-	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE), storageWidget->Width(), GAME_BUTTON_SIZE_F, 0 );
+	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE), storageWidget->Width(), GAME_BUTTON_SIZE_F );
 	for( int i=0; i<NUM_RANGE; ++i ) {
 		range[i].SetPos( controlArr[i+1]->X(), controlArr[i+1]->Y()-GAME_BUTTON_SIZE_F );
 	}

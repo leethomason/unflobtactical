@@ -18,6 +18,9 @@
 #include "../engine/engine.h"
 #include "../engine/text.h"
 #include "game.h"
+#include "../grinliz/glstringutil.h"
+
+using namespace grinliz;
 
 TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d ) : Scene( _game )
 {
@@ -25,54 +28,52 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 	data = d;
 
 	engine->EnableMap( false );
-	background = new UIImage( engine->GetScreenport() );
 
-	// -- Background -- //
-	Texture* bg = TextureManager::Instance()->GetTexture( "intro" );
-	GLASSERT( bg );
-	background->Init( bg, 480, 320 );
+	gamui::RenderAtom nullAtom;
+	background.Init( &gamui2D, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND ) );
 
-	int widths[2] = { 26, 12 };
-	textTable = new UITextTable( engine->GetScreenport(), 2, 4, widths );
-	textTable->SetOrigin( 50, 180 );
-	textTable->SetText( 0, 0, "Soldiers survied" );
-	textTable->SetInt( 1, 0, data->nTerransAlive );
-	textTable->SetText( 0, 1, "Soldiers killed" );
-	textTable->SetInt( 1, 1, data->nTerrans - data->nTerransAlive );
-	textTable->SetText( 0, 2, "Aliens survived" );
-	textTable->SetInt( 1, 2, data->nAliensAlive );
-	textTable->SetText( 0, 3, "Aliens killed" );
-	textTable->SetInt( 1, 3, data->nAliens - data->nAliensAlive );
+	for( int i=0; i<TEXT_ROW*TEXT_COL; ++i ) {
+		textTable[i].Init( &gamui2D );
+	}
 
+	static const float XPOS = 50.f;
+	static const float XPOS2 = 200.f;
+	static const float YPOS = 100.f;
+	static const float DELTA = 20.0f;
+	
+	victory.Init( &gamui2D );
+	victory.SetText( data->nTerransAlive ? "Victory!" : "Defeat" );
+	victory.SetPos( XPOS, YPOS );
 
-	buttonBox = new UIButtonBox( engine->GetScreenport() );
-	buttonBox->SetColumns( 1 );
+	const char* text[TEXT_ROW] = { "Soldiers survived",  "Soldiers killed", "Aliens survived", "Aliens killed" };
+	int value[TEXT_ROW]		   = { data->nTerransAlive,	data->nTerrans - data->nTerransAlive, data->nAliensAlive, data->nAliens - data->nAliensAlive };
 
-	int icons[1] = { ICON_BLUE_BUTTON };
+	for( int i=0; i<TEXT_ROW; ++i ) {
+		textTable[i*TEXT_COL].SetText( text[i] );
+		textTable[i*TEXT_COL].SetPos( XPOS, YPOS + (float)(i+1)*DELTA );
 
-	const char* iconText[] = { "OK" };
-	buttonBox->InitButtons( icons, 1 );
-	buttonBox->SetOrigin( 400, 5 );
-	buttonBox->SetText( iconText );
+		CStr<16> sBuf = value[i];
+		textTable[i*TEXT_COL+1].SetText( sBuf.c_str() );
+		textTable[i*TEXT_COL+1].SetPos( XPOS2, YPOS + (float)(i+1)*DELTA );
+	}
+
+	const gamui::ButtonLook& look = game->GetButtonLook( Game::GREEN_BUTTON );
+	okayButton.Init( &gamui2D, look );
+	okayButton.SetText( "OK" );
+	okayButton.SetPos( 400, (float)(engine->GetScreenport().UIHeight() - (GAME_BUTTON_SIZE + 5)) );
+	okayButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 }
 
 
 TacticalEndScene::~TacticalEndScene()
 {
 	GetEngine()->EnableMap( true );
-	delete background;
-	delete textTable;
-	delete buttonBox;
 }
 
 
 void TacticalEndScene::DrawHUD()
 {
-	background->Draw();
-	textTable->Draw();
-	buttonBox->Draw();
-
-	UFOText::Draw( 50, 200, "%s", data->nTerransAlive ? "Victory!" : "Defeat" );
+//	UFOText::Draw( 50, 200, "%s", data->nTerransAlive ? "Victory!" : "Defeat" );
 //	UFOText::Draw( 50, 80,  "For a new game, close and select 'new'" );
 }
 
@@ -81,10 +82,12 @@ void TacticalEndScene::Tap(	int count,
 							const grinliz::Vector2I& screen,
 							const grinliz::Ray& world )
 {
-	int ux, uy;
-	GetEngine()->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );
-	int tap = buttonBox->QueryTap( ux, uy );
-	if ( tap == 0 ) {
+	float ux, uy;
+	GetEngine()->GetScreenport().ViewToGUI( screen.x, screen.y, &ux, &uy );
+
+	const gamui::UIItem* item = gamui2D.Tap( ux, uy );
+
+	if ( item == &okayButton ) {
 		game->PopScene();
 		game->PushScene( Game::UNIT_SCORE_SCENE, (void*)data );
 	}

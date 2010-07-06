@@ -49,7 +49,7 @@ ParticleSystem::ParticleSystem()
 	for( int i=0; i<NUM_PRIMITIVES; ++i ) {
 		nParticles[i] = 0;
 	}
-	nDecals = 0;
+//	nDecals = 0;
 	pointTexture = 0;
 	quadTexture = 0;
 }
@@ -66,7 +66,7 @@ void ParticleSystem::Clear()
 	for( int i=0; i<NUM_PRIMITIVES; ++i ) {
 		nParticles[i] = 0;
 	}
-	nDecals = 0;
+	//nDecals = 0;
 	for( int i=0; i<effectArr.Size(); ++i ) {
 		delete effectArr[i];
 	}
@@ -340,6 +340,8 @@ void ParticleSystem::EmitBeam(	const Color4F& color,			// color of the particle
 }
 
 
+/*
+Works, but in use generally breaks Gamui
 void ParticleSystem::EmitDecal( int id, int flags, const grinliz::Vector3F& pos, float alpha, float rotation )
 {
 	GLASSERT( id >= 0 && id < 16 );
@@ -356,6 +358,7 @@ void ParticleSystem::EmitDecal( int id, int flags, const grinliz::Vector3F& pos,
 	decalBuffer[nDecals].flags = flags;
 	nDecals++;
 }
+*/
 
 
 void ParticleSystem::EmitSmokeAndFlame( U32 delta, const Vector3F& _pos, bool flame )
@@ -483,11 +486,11 @@ void ParticleSystem::Draw( const Vector3F* eyeDir, const grinliz::BitArray<Map::
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	DrawPointParticles( eyeDir );
 
-	DrawDecalParticles( DECAL_BOTTOM );
-	glDisable( GL_DEPTH_TEST );
-	DrawDecalParticles( DECAL_TOP );
-	glEnable( GL_DEPTH_TEST );
-	nDecals = 0;
+//	DrawDecalParticles( DECAL_BOTTOM );
+//	glDisable( GL_DEPTH_TEST );
+//	DrawDecalParticles( DECAL_TOP );
+//	glEnable( GL_DEPTH_TEST );
+//	nDecals = 0;
 
 	DrawQuadParticles( eyeDir );
 
@@ -757,6 +760,7 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 
 
 
+/*
 void ParticleSystem::DrawDecalParticles( int flag )
 {
 	if ( nDecals == 0 ) {
@@ -861,3 +865,4 @@ void ParticleSystem::DrawDecalParticles( int flag )
 		CHECK_GL_ERROR;
 	}
 }
+*/
