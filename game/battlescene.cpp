@@ -2199,58 +2199,85 @@ void BattleScene::Tap(	int tap,
 	}
 
 	// We didn't tap a button.
-	// What got tapped? First look to see if a SELECTABLE model was tapped. If not, 
-	// look for a selectable model from the tile.
+	Model* tappedModel = 0;
+	const Unit* tappedUnit = 0;
+
+	// Priorities:
+	//   1. Alien or Terran on that tile.
+	//   2. Alien tapped
 
 	// If there is a selected model, then we can tap a target model.
 	bool canSelectAlien = SelectedSoldier();			// a soldier is selected
 
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		if ( units[i].GetModel() ) units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
-
-		if ( units[i].IsAlive() ) {
-			GLASSERT( units[i].GetModel() );
-			units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
+		if ( units[i].GetModel() ) {
+			if ( units[i].IsAlive() ) {
+				units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
+				if ( units[i].Pos() == tilePos ) {
+					GLASSERT( !tappedUnit );
+					tappedUnit = units + i;
+					tappedModel = units[i].GetModel();
+				}
+			}
+			else {
+				units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
+			}
 		}
 	}
 	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-		if ( units[i].GetModel() ) units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
-
-		if ( canSelectAlien && units[i].IsAlive() ) {
-			GLASSERT( units[i].GetModel() );
-			units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
+		if ( units[i].GetModel() ) {
+			if ( canSelectAlien && units[i].IsAlive() ) {
+				units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
+				if ( units[i].Pos() == tilePos ) {
+					GLASSERT( !tappedUnit );
+					tappedUnit = units + i;
+					tappedModel = units[i].GetModel();
+				}
+			}
+			else {
+				units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
+			}
 		}
 	}
 
-	Model* tappedModel = engine->IntersectModel( world, TEST_HIT_AABB, Model::MODEL_SELECTABLE, 0, 0, 0 );
-	const Unit* tappedUnit = UnitFromModel( tappedModel );
+	if ( !tappedUnit ) {
+		// can possible still select alien on intersection.
+		Model* m = engine->IntersectModel( world, TEST_HIT_AABB, Model::MODEL_SELECTABLE, 0, 0, 0 );
+		if ( m ) {
+			tappedModel = m;
+			tappedUnit = UnitFromModel( tappedModel );
+			if ( tappedUnit->Team() != ALIEN_TEAM ) {
+				// roll back! this prevents selecting rather than moving when units are all grouped up.
+				tappedModel = 0;
+				tappedUnit = 0;
+			}
+		}
+	}
 
-	if ( tappedModel && tappedUnit && tappedUnit->Team() == ALIEN_TEAM ) {
-		SetSelection( UnitFromModel( tappedModel ) );		// sets either the Alien or the Unit
+	if ( tappedModel && tappedUnit ) {
+		SetSelection( const_cast< Unit* >( tappedUnit ));		// sets either the Alien or the Unit
 		map->ClearNearPath();
 	}
-	else {
+	if ( SelectedSoldierUnit() && !tappedUnit && hasTilePos ) {
 		// Not a model - use the tile
-		if ( SelectedSoldierModel() && !selection.targetUnit && hasTilePos ) {
-			Vector2<S16> start   = { (S16)SelectedSoldierModel()->X(), (S16)SelectedSoldierModel()->Z() };
+		Vector2<S16> start   = { (S16)SelectedSoldierModel()->X(), (S16)SelectedSoldierModel()->Z() };
 
-			Vector2<S16> end = { (S16)tilePos.x, (S16)tilePos.y };
+		Vector2<S16> end = { (S16)tilePos.x, (S16)tilePos.y };
 
-			// Compute the path:
-			float cost;
-			const Stats& stats = selection.soldierUnit->GetStats();
+		// Compute the path:
+		float cost;
+		const Stats& stats = selection.soldierUnit->GetStats();
 
-			int result = engine->GetMap()->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
-			if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
-				// TU for a move gets used up "as we go" to account for reaction fire and changes.
-				// Go!
-				Action action;
-				action.Init( ACTION_MOVE, SelectedSoldierUnit() );
-				action.type.move.path.Init( pathCache );
-				actionStack.Push( action );
+		int result = engine->GetMap()->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
+		if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
+			// TU for a move gets used up "as we go" to account for reaction fire and changes.
+			// Go!
+			Action action;
+			action.Init( ACTION_MOVE, SelectedSoldierUnit() );
+			action.type.move.path.Init( pathCache );
+			actionStack.Push( action );
 
-				engine->GetMap()->ClearNearPath();
-			}
+			engine->GetMap()->ClearNearPath();
 		}
 	}
 
