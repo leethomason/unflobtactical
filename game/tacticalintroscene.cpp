@@ -67,38 +67,32 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	Gamui::Layout(	squadItems, 2,			// squad #
 					4, 1, 
 					20, 25,
-					150, 50,
-					0 );
+					150, 50 );
 	UIItem* squadStrItems[] = { &toggles[2], &toggles[3], &toggles[4] };
 	Gamui::Layout(	squadStrItems, 3,			// squad strength
 					4, 1, 
 					20, 75,
-					150, 50,
-					0 );
+					150, 50 );
 	UIItem* alienItems[] = { &toggles[5], &toggles[6] };
 	Gamui::Layout(	alienItems, 2,			// alien #
 					4, 1, 
 					20, 150,
-					150, 50,
-					0 );
+					150, 50 );
 	UIItem* alienStrItems[] = { &toggles[7], &toggles[8], &toggles[9] };
 	Gamui::Layout(	alienStrItems, 3,			// alien strength
 					4, 1, 
 					20, 200,
-					150, 50,
-					0 );
+					150, 50 );
 	UIItem* weatherItems[] = { &toggles[10], &toggles[11] };
 	Gamui::Layout(	weatherItems, 2,		// weather
 					2, 1, 
 					20, 270,
-					100, 50,
-					0 );
+					100, 50 );
 	UIItem* locationItems[] = { &toggles[12] };
 	Gamui::Layout(  locationItems, 1,		// location
 					5, 2,
 					215, 25,
-					250, 100,
-					0 );
+					250, 100 );
 							
 	goButton.Init( &gamui2D, blue );
 	goButton.SetPos( 360, 270 );

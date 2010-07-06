@@ -56,15 +56,18 @@ public:
 	{ 
 		clip3D->SetInvalid(); 
 		clip2D->SetInvalid(); 
-		return RENDER_2D;
+		return RENDER_2D | RENDER_2D_FLIPPED;
 	}	
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
 	virtual void DrawHUD();
 
 private:
-	UIImage*		background;
-	UITextTable*	textTable;
-	UIButtonBox*	buttonBox;
+	enum { TEXT_ROW = 4, TEXT_COL = 2 };
+	gamui::Image		background;
+	gamui::TextLabel	victory;
+	gamui::TextLabel	textTable[TEXT_ROW*TEXT_COL];
+	gamui::PushButton	okayButton;
+
 	const TacticalEndSceneData* data;
 };
 

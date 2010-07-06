@@ -2,7 +2,7 @@
 	<Stats level="0" />
 	<Inventory>
 		<Item name="RAY-1" />
-		<Item name="Zing" />
+		<Item name="Cell" />
 		<Item name="ARM-1" />
 	</Inventory>
 </Unit>
@@ -10,7 +10,7 @@
 	<Stats level="0" />
 	<Inventory>
 		<Item name="RAY-1" />
-		<Item name="Zing" />
+		<Item name="Cell" />
 		<Item name="ARM-1" />
 	</Inventory>
 </Unit>
@@ -21,7 +21,6 @@
 		<Item name="Cell" />
 		<Item name="Cell" />
 		<Item name="RAY-1" />
-		<Item name="Zing" />
 	</Inventory>
 </Unit>
 <Unit team="2" type="0" status="1">
@@ -31,7 +30,6 @@
 		<Item name="Cell" />
 		<Item name="Cell" />
 		<Item name="RAY-1" />
-		<Item name="Zing" />
 	</Inventory>
 </Unit>
 
@@ -39,7 +37,7 @@
 	<Stats level="0" />
 	<Inventory>
 		<Item name="RAY-1" />
-		<Item name="Zing" />
+		<Item name="Cell" />
 		<Item name="ARM-1" />
 	</Inventory>
 </Unit>
@@ -47,7 +45,7 @@
 	<Stats level="0" />
 	<Inventory>
 		<Item name="RAY-1" />
-		<Item name="Zing" />
+		<Item name="Cell" />
 	</Inventory>
 </Unit>
 <Unit team="2" type="2" status="1" ai="guard" >
@@ -57,7 +55,7 @@
 		<Item name="Cell" />
 		<Item name="Cell" />
 		<Item name="RAY-1" />
-		<Item name="Zing" />
+		<Item name="Cell" />
 	</Inventory>
 </Unit>
 <Unit team="2" type="2" status="1" ai="guard" >
@@ -67,6 +65,6 @@
 		<Item name="Cell" />
 		<Item name="Cell" />
 		<Item name="RAY-1" />
-		<Item name="Zing" />
+		<Item name="Cell" />
 	</Inventory>
 </Unit>

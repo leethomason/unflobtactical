@@ -48,19 +48,23 @@ public:
 	{ 
 		clip3D->SetInvalid(); 
 		clip2D->SetInvalid(); 
-		return RENDER_2D;
+		return RENDER_2D | RENDER_2D_FLIPPED;
 	}	
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
 	virtual void DrawHUD();
 
 private:
-	UIImage*		background;
-	UITextTable*	textTable;
-	UIButtonBox*	buttonBox;
+	enum { MAX_ROWS = 8 };
+	enum { MAX_AWARDS = 40 };
+	gamui::Image			background;
+	NameRankUI				nameRank[MAX_ROWS];
+	gamui::TextLabel		status[MAX_ROWS];
+	//gamui::TextLabel		levelUp[MAX_ROWS];
+	gamui::PushButton		button;
+	gamui::Image			award[MAX_AWARDS];
+
 	const TacticalEndSceneData* data;
 	int nAwards;
-	enum { MAX_AWARDS = 40 };
-	UIImage*		awards[MAX_AWARDS];
 };
 
 

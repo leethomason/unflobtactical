@@ -51,7 +51,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 
 	engine  = game->engine;
 	visibility.Init( this, units, engine->GetMap() );
-	uiMode = UIM_NORMAL;
+	//uiMode = UIM_NORMAL;
 	nearPathState.Clear();
 
 //	memset( hpBarsFadeTime, 0, sizeof( int )*MAX_UNITS );
@@ -130,7 +130,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		}
 
 		UIItem* items[6] = { &exitButton, &helpButton, &nextTurnButton, &targetButton, &invButton, &controlButton[0] };
-		Gamui::Layout( items, 6, 1, 6, 0, 0, SIZE, (float)port.UIHeight(), 0 );
+		Gamui::Layout( items, 6, 1, 6, 0, 0, SIZE, (float)port.UIHeight() );
 
 		controlButton[1].SetPos( SIZE, port.UIHeight()-SIZE );
 		controlButton[2].SetPos( port.UIWidth()-SIZE*2.f, port.UIHeight()-SIZE );
@@ -705,6 +705,7 @@ void BattleScene::SetUnitOverlays()
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		unitImage0[i].SetVisible( false );
 		unitImage1[i].SetVisible( false );
+		hpBars[i].SetVisible( false );
 
 		if ( unitMoving != &units[i] && units[i].IsAlive() ) {
 			int remain = units[i].CalcWeaponTURemaining();
@@ -904,49 +905,6 @@ bool BattleScene::EndCondition( TacticalEndSceneData* data )
 }
 
 
-void BattleScene::DrawHPBars()
-{
-	/*
-	// A bit of code so the hp bar isn't up *all* the time. If selected, then show them all.
-	// Else just show for 5 seconds after hp changes.
-	//
-	const int FADE_TIME = 5000;
-
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		hpBarsFadeTime[i] = Max( hpBarsFadeTime[i] - (int)game->DeltaTime(), 0 );
-		hpBars[i].SetVisible( false );
-
-		if (    units[i].IsAlive() 
-			 && units[i].GetModel() 
-			 && ( units[i].Team() == TERRAN_TEAM || m_targets.TeamCanSee( TERRAN_TEAM, i ) ) ) 
-		{
-
-			const Screenport& port = engine->GetScreenport();
-
-			const Vector3F& pos = units[i].GetModel()->Pos();
-			Vector2I ui;
-			port.WorldToUI( pos, &ui );
-			Rectangle2I uiBounds;
-			port.UIBoundsClipped3D( &uiBounds );
-
-			// onscreen
-			float fhp = (float)units[i].HP()/100.0f;
-
-			if ( hpBars[i].GetRange0() != fhp ) {
-				hpBars[i].SetRange( fhp, (float)units[i].GetStats().TotalHP()/100.0f );
-				hpBarsFadeTime[i] = FADE_TIME;
-			}
-			hpBars[i].SetPos( (float)ui.x - hpBars[i].Width()*0.5f, 
-							  (float)(port.UIHeight()-1-ui.y) + hpBars[i].Height()*1.5f ); 
-
-			if ( ( &units[i] == SelectedSoldierUnit() ) || hpBarsFadeTime[i] > 0 ) {
-				hpBars[i].SetVisible( true );
-			}
-		}
-	}
-	*/
-}
-
 
 void BattleScene::DrawFireWidget()
 {
@@ -1057,81 +1015,6 @@ void BattleScene::DrawFireWidget()
 }
 
 
-/*
-void BattleScene::SetFireWidget()
-{
-	GLASSERT( SelectedSoldierUnit() );
-	GLASSERT( SelectedSoldierModel() );
-
-	Unit* unit = SelectedSoldierUnit();
-	Item* item = unit->GetWeapon();
-
-	Vector3F target;
-	if ( selection.targetPos.x >= 0 ) {
-		target.Set( (float)selection.targetPos.x+0.5f, 1.0f, (float)selection.targetPos.y+0.5f );
-	}
-	else {
-		target = selection.targetUnit->GetModel()->Pos();
-	}
-	Vector3F distVector = target - SelectedSoldierModel()->Pos();
-	float distToTarget = distVector.Length();
-
-	Inventory* inventory = unit->GetInventory();
-	const WeaponItemDef* wid = item->IsWeapon();
-	float snapTU, autoTU, altTU;
-
-	unit->AllFireTimeUnits( &snapTU, &autoTU, &altTU );
-
-	for( int i=0; i<3; ++i ) {
-		float tu = 0;
-
-		if (    wid 
-			 && unit->CanFire( (WeaponMode)i ) )
-		{
-			float fraction, anyFraction, dptu;
-
-			unit->FireStatistics( (WeaponMode)i, distToTarget, &fraction, &anyFraction, &tu, &dptu );
-			int nRounds = inventory->CalcClipRoundsTotal( wid->GetClipItemDef( (WeaponMode)i) );
-
-			// Never show 100% in the UI:
-			if ( fraction > 0.95f )
-				fraction = 0.95f;
-			if ( anyFraction > 0.98f )
-				anyFraction = 0.98f;
-
-			char buffer0[32];
-			char buffer1[32];
-			SNPrintf( buffer0, 32, "%s %d%%", wid->fireDesc[i], (int)LRintf( anyFraction*100.0f ) );
-			SNPrintf( buffer1, 32, "%d/%d", wid->RoundsNeeded( (WeaponMode)i ), nRounds );
-
-			fireButton[i].SetEnabled( true );
-			fireButton[i].SetText( buffer0 );
-			fireButton[i].SetText2( buffer1 );
-		}				 
-		else {			 
-			fireButton[i].SetEnabled( false );
-			fireButton[i].SetText( "" );
-			fireButton[i].SetText2( "" );
-		}
-		
-		// Reflect the TU left.
-		float tuAfter = unit->TU() - tu;
-		int tuIndicator = ICON_ORANGE_WALK_MARK;
-		if ( tu != 0 && tuAfter >= autoTU ) {
-			tuIndicator = ICON_GREEN_WALK_MARK;
-		}
-		else if ( tu != 0 && tuAfter >= snapTU ) {
-			tuIndicator = ICON_YELLOW_WALK_MARK;
-		}
-		else if ( tu != 0 && tuAfter < snapTU ) {
-			tuIndicator = ICON_ORANGE_WALK_MARK;
-		}
-		fireButton[i].SetDeco( UIRenderer::CalcIconAtom( tuIndicator, true ), UIRenderer::CalcIconAtom( tuIndicator, false ) );
-	}
-}
-*/
-
-
 void BattleScene::TestCoordinates()
 {
 	//const Screenport& port = engine->GetScreenport();
@@ -1210,9 +1093,6 @@ void BattleScene::SetSelection( Unit* unit )
 			GLASSERT( SelectedSoldier() );
 			selection.targetUnit = unit;
 			selection.targetPos.Set( -1, -1 );
-
-			GLASSERT( uiMode == UIM_NORMAL );
-			uiMode = UIM_FIRE_MENU;
 		}
 		else {
 			GLASSERT( 0 );
@@ -2156,7 +2036,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 		gamui3D.TapUp( guiX, guiY );
 	}
 
-	if ( uiMode == UIM_FIRE_MENU ) {
+	if ( selection.FireMode() ) {
 		bool okay = false;
 		WeaponMode mode = kModeSnap;
 
@@ -2183,23 +2063,16 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 				selection.targetUnit->GetModel()->CalcTarget( &target );
 			}
 			PushShootAction( selection.soldierUnit, target, mode, 1.0f, false );
-			selection.targetUnit = 0;
 		}
-	}
-	else if ( uiMode == UIM_TARGET_TILE ) {
-		if ( tapped == &targetButton ) {
-			uiMode = UIM_NORMAL;
-		}
+		selection.targetUnit = 0;
+		selection.targetPos.Set( -1, -1 );
+		targetButton.SetUp();
 	}
 	else {
-		if ( tapped == &targetButton ) {
-			//SoundManager::Instance()->QueueSound( "blip" );
-				uiMode = UIM_TARGET_TILE;
-		}
-		else if ( tapped == controlButton + ROTATE_CCW_BUTTON ) {
+		if ( tapped == controlButton + ROTATE_CCW_BUTTON ) {
 			HandleRotation( 45.f );
 		}
-		else if ( tapped == controlButton + ROTATE_CCW_BUTTON ) {
+		else if ( tapped == controlButton + ROTATE_CW_BUTTON ) {
 			HandleRotation( -45.f );
 		}
 		else if ( tapped == &invButton ) {
@@ -2277,25 +2150,17 @@ void BattleScene::Tap(	int tap,
 
 	*/
 
-	if ( uiMode == UIM_NORMAL ) {
-		bool iconSelected = HandleIconTap( screen.x, screen.y );
-		if ( iconSelected )
-			return;
-	}
-	else if ( uiMode == UIM_TARGET_TILE ) {
-		bool iconSelected = HandleIconTap( screen.x, screen.y );
-		// If the mode was turned off, return. Else the selection is handled below.
-		if ( iconSelected )
-			return;
-	}
-	else if ( uiMode == UIM_FIRE_MENU ) {
-		HandleIconTap( screen.x, screen.y );
+	if ( selection.FireMode() ) {
 		// Whether or not something was selected, drop back to normal mode.
-		uiMode = UIM_NORMAL;
+		HandleIconTap( screen.x, screen.y );
 		selection.targetPos.Set( -1, -1 );
 		selection.targetUnit = 0;
 		return;
 	}
+	
+	bool handled = HandleIconTap( screen.x, screen.y );
+	if ( handled )
+		return;
 
 #ifdef MAPMAKER
 	const Vector3F& pos = mapSelection->Pos();
@@ -2324,16 +2189,14 @@ void BattleScene::Tap(	int tap,
 		hasTilePos = true;
 	}
 
-	if ( uiMode == UIM_TARGET_TILE ) {
+	if ( targetButton.Down() ) {
+		// Targeting a tile:
 		if ( hasTilePos ) {
 			selection.targetUnit = 0;
 			selection.targetPos.Set( tilePos.x, tilePos.y );
-			uiMode = UIM_FIRE_MENU;
 		}
 		return;
 	}
-
-	GLASSERT( uiMode == UIM_NORMAL );
 
 	// We didn't tap a button.
 	// What got tapped? First look to see if a SELECTABLE model was tapped. If not, 
@@ -2949,14 +2812,14 @@ void BattleScene::DrawHUD()
 				   currentMapItem, engine->GetMap()->GetItemDefName( currentMapItem ) );
 #else
 	{
-		bool enabled = SelectedSoldierUnit() && actionStack.Empty() && (uiMode != UIM_TARGET_TILE);
+		bool enabled = SelectedSoldierUnit() && actionStack.Empty() && targetButton.Up();
 		targetButton.SetEnabled( enabled );
 		invButton.SetEnabled( enabled );
 		controlButton[ROTATE_CCW_BUTTON].SetEnabled( enabled );
 		controlButton[ROTATE_CW_BUTTON].SetEnabled( enabled );
 	}
 	{
-		bool enabled = actionStack.Empty() && (uiMode != UIM_TARGET_TILE);
+		bool enabled = actionStack.Empty() && targetButton.Up();
 		controlButton[NEXT_BUTTON].SetEnabled( enabled );
 		controlButton[PREV_BUTTON].SetEnabled( enabled );
 		exitButton.SetEnabled( enabled );
@@ -2964,7 +2827,7 @@ void BattleScene::DrawHUD()
 		helpButton.SetEnabled( enabled );
 	}
 	// overrides enabled, above.
-	if ( uiMode == UIM_TARGET_TILE ) {
+	if ( targetButton.Down() ) {
 		targetButton.SetEnabled( true );
 	}
 	
@@ -2982,8 +2845,6 @@ void BattleScene::DrawHUD()
 
 	nameRankUI.SetVisible( SelectedSoldierUnit() != 0 );
 	nameRankUI.Set( 50, 0, SelectedSoldierUnit(), true );
-
-	DrawHPBars();
 #endif
 }
 

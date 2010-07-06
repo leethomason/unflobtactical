@@ -93,14 +93,12 @@ protected:
 struct NameRankUI {
 	gamui::Image		rank;
 	gamui::TextLabel	name;
-	//gamui::TextLabel	weapon;
 
 	void Init( gamui::Gamui* );
 	void Set( float x, float y, const Unit* unit, bool displayWeapon );
 	void SetVisible( bool visible ) {
 		rank.SetVisible( visible );
 		name.SetVisible( visible );
-		//weapon.SetVisible( visible );
 	}
 };
 

@@ -54,7 +54,7 @@ StorageWidget::~StorageWidget()
 
 void StorageWidget::SetOrigin( float x, float y )
 {
-	Gamui::Layout( itemArr, TOTAL_BUTTONS, BOX_CX, BOX_CY, x, y, Width(), Height(), 0 );
+	Gamui::Layout( itemArr, TOTAL_BUTTONS, BOX_CX, BOX_CY, x, y, Width(), Height() );
 }
 
 

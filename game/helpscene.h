@@ -45,7 +45,7 @@ public:
 	{ 
 		clip3D->SetInvalid(); 
 		clip2D->SetInvalid(); 
-		return RENDER_2D;
+		return RENDER_2D | RENDER_2D_FLIPPED;
 	}	
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
 	virtual void DrawHUD();
@@ -56,8 +56,8 @@ private:
 	};
 
 	int					currentScreen;
-	UIImage*			screens[NUM_SCREENS];
-	UIButtonBox*		buttons;		
+	gamui::Image		screens[NUM_SCREENS];
+	gamui::PushButton	buttons[3];
 };
 
 

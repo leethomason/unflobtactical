@@ -255,7 +255,7 @@
       <Stats STR="47" DEX="47" PSY="76" level="0" />
       <Inventory>
         <Item name="RAY-1" />
-        <Item name="Zing" />
+        <Item name="Cell" />
       </Inventory>
     </Unit>
     <Unit team="2" type="1" status="1" body="-500874107" modelX="12.500000" modelZ="16.500000" yRot="0.000000">
@@ -268,7 +268,7 @@
       <Stats STR="126" DEX="74" PSY="57" level="0" />
       <Inventory>
         <Item name="RAY-1" />
-        <Item name="Zing" />
+        <Item name="Cell" />
         <Item name="Tachy" />
       </Inventory>
     </Unit>
