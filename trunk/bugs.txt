@@ -1,6 +1,10 @@
 Issues:
 
 Bugs:
+- tap tile to select unit
+- click and drag unit
+- start at action (not black screen)
+- grey zone where previously seen
 - trees show up in the wrong place
 - alien doors not wide enough - block shots
 - tune unit skills, accuracy, hp, levels
@@ -9,14 +13,6 @@ Bugs:
 - door bugs, redo door system
 - screen re-size / layout / device loss
 ? pauses when move - profiler?
-
-Architecture
-- render managers
-- AI objects 
-- Map as interface
-- Build in profiler.
-
-Issues, post next test:
 - Art: better human models
 - Art: better alien models
 - Art: missing weapon models
@@ -24,8 +20,6 @@ Issues, post next test:
 - bug in AI memory. Need to moduarlize AI code.
 - drawn edges of world
 - mission types: crash
-- Sounds: better sounds, latency
-- Gameplay: doors are death traps if guarded...blow up doors?
 - check math (again) in PushShootAction()
 - handle too many particles consistently
 - mission types: landing
@@ -33,6 +27,12 @@ Issues, post next test:
 - mission types: big ufos
 - mission types: base
 - add lander animation
+
+Architecture
+- render managers
+- AI objects 
+- Map as interface
+- Build in profiler.
 
 TBD:
 - tap accuracy
@@ -139,3 +139,5 @@ Deferred/Cancelled
 - melee weapons
 - tu in character screen
 - simultaneous shots
+- Sounds: better sounds, latency
+- Gameplay: doors are death traps if guarded...blow up doors?
