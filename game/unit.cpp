@@ -672,6 +672,19 @@ float Unit::AngleBetween( const Vector2I& p1, bool quantize ) const
 }
 
 
+bool Unit::HasGunAndAmmo() const
+{
+	const WeaponItemDef* wid = GetWeaponDef();
+	if ( wid ) {
+		if ( inventory.CalcClipRoundsTotal( wid->GetClipItemDef( kSnapFireMode ) ) > 0 ) {
+			// Unit has a gun. Has ammo. Can shoot something.
+			return true;
+		}
+	}
+	return false;
+}
+
+
 bool Unit::CanFire( WeaponMode mode ) const
 {
 	const WeaponItemDef* wid = GetWeaponDef();
@@ -705,9 +718,9 @@ float Unit::FireTimeUnits( WeaponMode mode ) const
 
 void Unit::AllFireTimeUnits( float *snapTU, float* autoTU, float* altTU )
 {
-	*snapTU = FireTimeUnits( kModeSnap );
-	*autoTU = FireTimeUnits( kModeAuto );
-	*altTU = FireTimeUnits( kModeAlt );
+	*snapTU = FireTimeUnits( kSnapFireMode );
+	*autoTU = FireTimeUnits( kAutoFireMode );
+	*altTU = FireTimeUnits( kAltFireMode );
 }
 
 
@@ -725,9 +738,9 @@ int Unit::CalcWeaponTURemaining() const
 	float secondaryTU = 0.0f;
 	int select = 0, type = 0;
 
-	snappedTU = FireTimeUnits( kModeSnap );
-	autoTU = FireTimeUnits( kModeAuto );
-	secondaryTU = FireTimeUnits( kModeAlt );
+	snappedTU = FireTimeUnits( kSnapFireMode );
+	autoTU = FireTimeUnits( kAutoFireMode );
+	secondaryTU = FireTimeUnits( kAltFireMode );
 
 	GLASSERT( secondaryTU >= autoTU );
 	GLASSERT( autoTU >= snappedTU );

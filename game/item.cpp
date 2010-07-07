@@ -162,16 +162,16 @@ float WeaponItemDef::TimeUnits( WeaponMode mode ) const
 {
 	float s = 0.0f;
 	switch ( mode ) {
-		case kModeSnap:		
+		case kSnapFireMode:		
 			s = TU_SNAP_SHOT;	
 			break;
-		case kModeAuto:		
+		case kAutoFireMode:		
 			if ( weapon[0].flags & WEAPON_AUTO )
 				s = TU_AUTO_SHOT;	
 			else
 				s = TU_AIMED_SHOT;
 			break;
-		case kModeAlt:	
+		case kAltFireMode:	
 			s = TU_AIMED_SHOT;	
 			break;
 		default:
@@ -181,7 +181,7 @@ float WeaponItemDef::TimeUnits( WeaponMode mode ) const
 	s *= speed;
 
 	// Secondary weapon is slower:
-	if ( mode == kModeAlt )
+	if ( mode == kAltFireMode )
 		s *= SECONDARY_SHOT_SPEED_MULT;
 
 	return s;
@@ -193,15 +193,15 @@ float WeaponItemDef::AccuracyBase( WeaponMode mode ) const
 	float acc = weapon[Index(mode)].accuracy;
 
 	switch ( mode ) {
-	case kModeSnap:
+	case kSnapFireMode:
 		acc *= ACC_SNAP_SHOT_MULTIPLIER;
 		break;
-	case kModeAuto:
+	case kAutoFireMode:
 		if ( weapon[0].flags & WEAPON_AUTO )
 			acc *= ACC_AUTO_SHOT_MULTIPLIER;
 		else 
 			acc *= ACC_AIMED_SHOT_MULTIPLIER;
-	case kModeAlt:
+	case kAltFireMode:
 		acc *= ACC_AIMED_SHOT_MULTIPLIER;			// secondary fire is aimed? FIXME: consider this.
 		break;
 	}
@@ -427,7 +427,7 @@ const ModelResource* Storage::VisualRep( ItemDef* const* itemDefArr, bool* zRota
 
 			if ( itemDefArr[i]->IsWeapon() ) {
 				DamageDesc d;
-				itemDefArr[i]->IsWeapon()->DamageBase( kModeAuto, &d );
+				itemDefArr[i]->IsWeapon()->DamageBase( kAutoFireMode, &d );
 
 				float score = (float)rounds[i] * d.Total();
 				

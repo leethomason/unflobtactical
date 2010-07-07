@@ -53,8 +53,6 @@ static const float SECONDARY_SHOT_SPEED_MULT = 1.4f;
 const int SNAP_SHOT			= 0;
 const int AUTO_SHOT			= 1;
 const int AIMED_SHOT		= 2;
-const int FIRE_MODE_START	= 0;
-const int FIRE_MODE_END		= 3;
 
 const int	MIN_TU				= 6;
 const int	MAX_TU				= 12;		// enforced: used for memory allocation, since this is the max walking

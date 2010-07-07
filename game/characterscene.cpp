@@ -240,7 +240,7 @@ void CharacterScene::SetCompText()
 
 			if ( inInventory || onGround ) {
 				const WeaponItemDef* wid = itemDefArr[i]->IsWeapon();
-				WeaponMode mode = kModeAuto;
+				WeaponMode mode = kAutoFireMode;
 		
 				DamageDesc dd;
 				wid->DamageBase( mode, &dd );
@@ -338,7 +338,7 @@ void CharacterScene::SetButtonGraphics( int index, const Item& item )
 			rounds[0] = inventory->CalcClipRoundsTotal( wid->weapon[0].clipItemDef );
 			rounds[1] = inventory->CalcClipRoundsTotal( wid->weapon[1].clipItemDef );
 
-			if ( wid->HasWeapon(kModeAlt) )
+			if ( wid->HasWeapon(kAutoFireMode) )
 				SNPrintf( buffer, 16, "R%d %d", rounds[0], rounds[1] );
 			else
 				SNPrintf( buffer, 16, "R%d", rounds[0] );

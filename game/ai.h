@@ -68,7 +68,7 @@ public:
 	};
 
 	AI( int team,			// AI in instantiated for a TEAM, not a unit
-		SpaceTree* tree );	// Line of site checking
+		Engine* engine );	// Line of site checking
 
 	virtual ~AI()	{}
 
@@ -87,8 +87,28 @@ public:
 						Map* map,
 						AIAction* action ) = 0;
 protected:
+	enum {
+		THINK_NOT_OPTION,			// can't do this (if (no weapon) can't shoot)
+		THINK_NO_ACTION,			// no action taken
+		THINK_SOLVED_NO_ACTION,		// state solved for - movetoammo on ammo, for example
+		THINK_ACTION				// action filled in
+	};
+	int ThinkShoot(			const Unit* move,
+							const Unit* units,
+							const Targets& targets,
+							Map* map,
+							AIAction* action );
+	int ThinkMoveToAmmo(	const Unit* move,
+							const Unit* units,
+							const Targets& targets,
+							Map* map,
+							AIAction* action );
+	// ThinkPickUpInventory
+	// ThinkSearch
+	// ThinkWander
+
 	// Utility:
-	bool LineOfSight( const Unit* shoot, const Unit* target );
+	bool LineOfSight( const Unit* shooter, const Unit* target ); // calls the engine LoS to get an accurate value
 	void TrimPathToCost( std::vector< grinliz::Vector2<S16> >* path, float maxCost );
 	int  VisibleUnitsInArea(	const Unit* theUnit,
 								const Unit* units,
@@ -106,7 +126,8 @@ protected:
 	int m_enemyStart;
 	int m_enemyEnd;
 	grinliz::Random m_random;
-	SpaceTree* m_spaceTree;
+	//SpaceTree* m_spaceTree;
+	Engine* m_engine;	// for ray queries.
 	std::vector< grinliz::Vector2<S16> > m_path[4];
 };
 
@@ -114,7 +135,7 @@ protected:
 class WarriorAI : public AI
 {
 public:
-	WarriorAI( int team, SpaceTree* tree ) : AI( team, tree )		{}
+	WarriorAI( int team, Engine* engine ) : AI( team, engine )		{}
 	virtual ~WarriorAI()					{}
 
 	virtual bool Think( const Unit* move,

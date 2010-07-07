@@ -57,10 +57,10 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 //	memset( hpBarsFadeTime, 0, sizeof( int )*MAX_UNITS );
 	engine->GetMap()->SetPathBlocker( this );
 
-	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, engine->GetSpaceTree() );
+	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, engine );
 	aiArr[TERRAN_TEAM]		= 0;
 	// FIXME: use warrior AI for now...
-	aiArr[CIV_TEAM]			= new WarriorAI( CIV_TEAM, engine->GetSpaceTree() );
+	aiArr[CIV_TEAM]			= new WarriorAI( CIV_TEAM, engine );
 
 #ifdef MAPMAKER
 	currentMapItem = 1;
@@ -1242,7 +1242,7 @@ void BattleScene::DoReactionFire()
 
 					bool rangeOK = true;
 					// Filter out explosive weapons...
-					if ( srcUnit->GetWeapon()->IsWeapon()->IsExplosive( kModeSnap ) ) {
+					if ( srcUnit->GetWeapon()->IsWeapon()->IsExplosive( kSnapFireMode ) ) {
 						Vector2I d = srcUnit->Pos() - targetUnit->Pos();
 						if ( d.LengthSquared() < EXPLOSIVE_RANGE * EXPLOSIVE_RANGE )
 							rangeOK = false;
@@ -1277,9 +1277,9 @@ void BattleScene::DoReactionFire()
 							Vector3F target;
 							targetUnit->GetModel()->CalcTarget( &target );
 							
-							int shot = PushShootAction( srcUnit, target, kModeAuto, error, true );	// auto
+							int shot = PushShootAction( srcUnit, target, kAutoFireMode, error, true );	// auto
 							if ( !shot )
-								PushShootAction( srcUnit, target, kModeSnap, error, true );	// snap
+								PushShootAction( srcUnit, target, kSnapFireMode, error, true );	// snap
 						}
 				}
 				}
@@ -2038,11 +2038,11 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 
 	if ( selection.FireMode() ) {
 		bool okay = false;
-		WeaponMode mode = kModeSnap;
+		WeaponMode mode = kSnapFireMode;
 
-		if ( tapped == fireButton+0 )		{ okay = true; mode = kModeSnap; }
-		else if ( tapped == fireButton+1 )	{ okay = true; mode = kModeAuto; }
-		else if ( tapped == fireButton+2 )	{ okay = true; mode = kModeAlt;  }
+		if ( tapped == fireButton+0 )		{ okay = true; mode = kSnapFireMode; }
+		else if ( tapped == fireButton+1 )	{ okay = true; mode = kAutoFireMode; }
+		else if ( tapped == fireButton+2 )	{ okay = true; mode = kAltFireMode;  }
 			
 		if ( okay ) { 
 			// shooting creates a turn action then a shoot action.
@@ -2344,8 +2344,8 @@ void BattleScene::ShowNearPath( const Unit* unit )
 
 		if ( unit->GetWeapon() ) {
 			const WeaponItemDef* wid = unit->GetWeapon()->GetItemDef()->IsWeapon();
-			snappedTU = unit->FireTimeUnits( kModeSnap );
-			autoTU = unit->FireTimeUnits( kModeAuto );
+			snappedTU = unit->FireTimeUnits( kSnapFireMode );
+			autoTU = unit->FireTimeUnits( kAutoFireMode );
 		}
 
 		nearPathState.unit = unit;

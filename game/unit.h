@@ -136,6 +136,8 @@ public:
 	// returns true if this fire mode is supported
 	bool FireStatistics( WeaponMode mode, float distance, 
 						 float* chanceToHit, float* chanceAnyHit, float* tu, float* damagePerTU ) const;
+	// An AI query: is this unit ready to go? Or do we need to find a new weapon?
+	bool HasGunAndAmmo() const;
 	
 	enum {
 		NO_WEAPON,

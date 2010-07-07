@@ -90,11 +90,10 @@ public:
 	int index;
 };
 
-
 enum WeaponMode {
-	kModeSnap,
-	kModeAuto,
-	kModeAlt
+	kSnapFireMode,
+	kAutoFireMode,
+	kAltFireMode
 };
 
 class WeaponItemDef : public ItemDef
@@ -115,11 +114,11 @@ public:
 	float		speed;			// 1.0 is normal speed (and weight)
 	Weapon		weapon[2];		// primary and secondary
 
-	int Index( WeaponMode mode ) const								{ return ( mode == kModeAlt ) ? 1 : 0; }
+	int Index( WeaponMode mode ) const								{ return ( mode == kAltFireMode ) ? 1 : 0; }
 
 	bool HasWeapon( WeaponMode mode) const							{ return weapon[Index(mode)].damage > 0; }
 	const ClipItemDef* GetClipItemDef( WeaponMode mode ) const		{ return weapon[Index(mode)].clipItemDef; }
-	int RoundsNeeded( WeaponMode mode ) const						{ return ( mode == kModeAuto && weapon[0].flags & WEAPON_AUTO ) ? 3 : 1; }
+	int RoundsNeeded( WeaponMode mode ) const						{ return ( mode == kAutoFireMode && weapon[0].flags & WEAPON_AUTO ) ? 3 : 1; }
 	bool IsExplosive( WeaponMode mode ) const						{ return ( weapon[Index(mode)].flags & WEAPON_EXPLOSIVE ) != 0; }
 
 	bool IsAlien() const;
