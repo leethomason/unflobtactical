@@ -17,7 +17,7 @@
 #include "unit.h"
 #include "targets.h"
 #include "../engine/model.h"
-#include "../engine/loosequadtree.h"
+#include "../engine/engine.h"
 #include "../engine/map.h"
 #include "../grinliz/glperformance.h"
 #include "../grinliz/glutil.h"
@@ -32,10 +32,10 @@ using namespace grinliz;
 	#define AILOG( x )	{}
 #endif
 
-AI::AI( int team, SpaceTree* tree )
+AI::AI( int team, Engine* engine )
 {
 	m_team = team;
-	m_spaceTree = tree;
+	m_engine = engine;
 
 	if ( m_team == ALIEN_TEAM) {
 		m_enemyTeam  = TERRAN_TEAM;
@@ -80,14 +80,15 @@ bool AI::LineOfSight( const Unit* shooter, const Unit* target )
 	Vector3F p0, p1, intersection;
 	shooter->GetModel()->CalcTrigger( &p0 );
 	target->GetModel()->CalcTarget( &p1 );
-	// fixme: handle nulls in ignore
-	const Model* ignore[5] = { shooter->GetModel(), shooter->GetWeaponModel(), target->GetModel(), target->GetWeaponModel(), 0 };
 
-	Model* m = m_spaceTree->QueryRay( p0, (p1-p0), 0, 0, ignore, TEST_TRI, &intersection );
-	if ( !m ) {
-		return true;
-	}
-	if ( (intersection - p0).LengthSquared() > (p1-p0).LengthSquared() ) {
+	Ray ray;
+	ray.origin = p0;
+	ray.direction = p1 - p0;
+
+	const Model* ignore[3] = { shooter->GetModel(), shooter->GetWeaponModel(), 0 };
+	Model* m = m_engine->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &intersection );
+	
+	if ( m == target->GetModel() || m == target->GetWeaponModel() ) {
 		return true;
 	}
 	return false;
@@ -133,97 +134,70 @@ int AI::VisibleUnitsInArea(	const Unit* theUnit,
 }
 
 
-
-bool WarriorAI::Think(	const Unit* theUnit,
-						const Unit* units,
-						const Targets& targets,
-						int flags,
-						Map* map,
-						AIAction* action )
+int AI::ThinkShoot(  const Unit* theUnit,
+					  const Unit* units,
+					  const Targets& targets,
+					  Map* map,
+					  AIAction* action )
 {
+	static const float MINIMUM_FIRE_CHANCE			= 0.02f;	// A shot is only valid if it has this chance of hitting.
+	static const int   EXPLOSION_ZONE				= 2;		// radius to check of clusters of enemies to blow up
+	static const float	MINIMUM_EXPLOSIVE_RANGE		= 4.0f;
 
-	// QuickProfile qp( "WarriorAI::Think()" );
-	// Crazy simple 1st AI. If:
-	// - theUnit can see something, shoot it. Choose the unit with the
-	//	 greatest chance of going down
-	// - if on storage, check if we need stuff
-	// - can see nothing, move towards something the team can see. Select between
-	//   current canSee and LKPs
-	// - if nothing to move to, stand around
+	if ( !theUnit->HasGunAndAmmo() )
+		return THINK_NOT_OPTION;
 
-	const float MINIMUM_FIRE_CHANCE			= 0.02f;	// A shot is only valid if it has this chance of hitting.
-	const int   EXPLOSION_ZONE				= 2;		// radius to check of clusters of enemies to blow up
-	const float	MINIMUM_EXPLOSIVE_RANGE		= 4.0f;
-	const float CLOSE_ENOUGH				= 4.5f;		// don't close closer than this...
+	AILOG(( "  Shoot\n" ));
 
-	action->actionID = ACTION_NONE;
-	Vector2I theUnitPos;
-	theUnit->CalcMapPos( &theUnitPos, 0 );
-	float theUnitNearTarget = FLT_MAX;
-	
-	AILOG(( "Think unit=%d\n", theUnit - units ));
+	int best = -1;
+	float bestScore = 0.0f;
+	int bestMode = 0;
+	float bestChance = 0.0f;
 
-	// -------- Shoot -------- //
-	if ( theUnit->GetWeapon() ) {
-		AILOG(( "  Shoot\n" ));
+	const WeaponItemDef* wid = theUnit->GetWeaponDef();
+	GLASSERT( wid );
 
-		int best = -1;
-		float bestScore = 0.0f;
-		int bestMode = 0;
-		float bestChance = 0.0f;
+	for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
+		if (    units[i].IsAlive() 
+			 && units[i].GetModel() 
+			 && targets.CanSee( theUnit, &units[i] )
+			 && LineOfSight( theUnit, &units[i]))
+		{
+			int len2 = (units[i].Pos()-theUnit->Pos()).LengthSquared();
+			float len = sqrtf( (float)len2 );
 
-		const Item* weapon = theUnit->GetWeapon();
-		const WeaponItemDef* wid = weapon->GetItemDef()->IsWeapon();
-		GLASSERT( wid );
+			for ( int _mode=0; _mode<3; ++_mode ) {
+				WeaponMode mode = (WeaponMode)_mode;
 
-		for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
-			if (    units[i].IsAlive() 
-				 && units[i].GetModel() 
-				 && targets.CanSee( theUnit, &units[i] )
-				 && LineOfSight( theUnit, &units[i] ) ) 
-			{
-				Vector2I pos;
-				units[i].CalcMapPos( &pos, 0 );
-				int len2 = (pos-theUnitPos).LengthSquared();
-				float len = sqrtf( (float)len2 );
+				if ( theUnit->CanFire( mode ) ) {
+					float chance, anyChance, tu, dptu;
 
-				theUnitNearTarget = Min( theUnitNearTarget, len );
+					if ( theUnit->FireStatistics( (WeaponMode)mode, len, &chance, &anyChance, &tu, &dptu ) ) {
+						float score = dptu;	// Interesting: good AI, but results in odd choices.
+											// FIXME: add back in, less of a factor / (float)units[i].GetStats().HPFraction();
 
-				for ( int mode=FIRE_MODE_START; mode<FIRE_MODE_END; ++mode ) {
-
-					if ( theUnit->CanFire( (WeaponMode)mode ) ) {
-						float chance, anyChance, tu, dptu;
-
-						if ( theUnit->FireStatistics( (WeaponMode)mode, len, &chance, &anyChance, &tu, &dptu ) ) {
-							float score = dptu;	// Interesting: good AI, but results in odd choices.
-												// FIXME: add back in, less of a factor / (float)units[i].GetStats().HPFraction();
-
-							if ( wid->IsExplosive( (WeaponMode)mode ) ) {
-								if ( len < MINIMUM_EXPLOSIVE_RANGE ) {
-									score = 0.0f;
-								}
-								else {
-									Rectangle2I bounds;
-									bounds.Set( pos.x-EXPLOSION_ZONE, pos.y-EXPLOSION_ZONE,
-												pos.x+EXPLOSION_ZONE, pos.y+EXPLOSION_ZONE );
-									int count = VisibleUnitsInArea( theUnit, units, targets, m_enemyStart, m_enemyEnd, bounds );
-
-									if ( count <= 1 )
-										score *= 0.5f;
-									else
-										score *= (float)count;
-								}
+						if ( wid->IsExplosive( (WeaponMode)mode ) ) {
+							if ( len < MINIMUM_EXPLOSIVE_RANGE ) {
+								score = 0.0f;
 							}
-
-							AILOG(( "    target %2d score=%.3f s/t=%d %d chance=%.3f dptu=%.3f\n",
-								    i, score, select, type, chance, dptu ));
-
-							if ( chance >= MINIMUM_FIRE_CHANCE && score > bestScore ) {
-								bestScore = score;
-								best = i;
-								bestMode = mode;
-								bestChance = chance;
+							else {
+								Rectangle2I bounds;
+								bounds.min = bounds.max = theUnit->Pos();
+								bounds.Outset( EXPLOSION_ZONE );
+								
+								int count = VisibleUnitsInArea( theUnit, units, targets, m_enemyStart, m_enemyEnd, bounds );
+								score *= ( count <= 1 ) ? 0.5f : (float)count;
 							}
+						}
+
+						AILOG(( "    target %2d score=%.3f s/t=%d %d chance=%.3f dptu=%.3f\n",
+							    i, score, select, type, chance, dptu ));
+
+						if ( chance >= MINIMUM_FIRE_CHANCE && score > bestScore ) {
+							bestScore = score;
+							best = i;
+							bestMode = mode;
+							bestChance = chance;
 						}
 					}
 				}
@@ -234,10 +208,118 @@ bool WarriorAI::Think(	const Unit* theUnit,
 			action->actionID = ACTION_SHOOT;
 			action->shoot.mode = (WeaponMode)bestMode;
 			units[best].GetModel()->CalcTarget( &action->shoot.target );
-			return false;
+			return THINK_ACTION;
 		}
 	}
+	return THINK_NO_ACTION;
+}
 
+
+int AI::ThinkMoveToAmmo(	const Unit* theUnit,
+							const Unit* units,
+							const Targets& targets,
+							Map* map,
+							AIAction* action )
+{
+	AILOG(( "  Out of Ammo\n" ));
+
+	// Is theUnit already standing on the Storage? If so, use!
+	Vector2I theUnitPos = theUnit->Pos();
+	Storage* storage = map->GetStorage( theUnitPos.x, theUnitPos.y );
+	
+	if ( storage && storage->HasWeapons() ) {
+			if (    ( primaryWeapon   && storage->GetCount( primaryWeapon->ClipType( 0 ) ) )
+				 || ( secondaryWeapon && storage->GetCount( secondaryWeapon->ClipType( 0 ) ) ) )
+			{
+				// Solves the ammo issue.
+				// Picking up the ammo will result in it being used in the next round.
+				action->actionID = ACTION_PICK_UP;
+				GLASSERT( PickUpAIAction::MAX_ITEMS >= 4 );
+				memset( action->pickUp.itemDefArr, 0, sizeof(const ItemDef*) * PickUpAIAction::MAX_ITEMS );
+
+				action->pickUp.itemDefArr[0] = primaryWeapon ? primaryWeapon->ClipType( 0 ) : 0;
+				action->pickUp.itemDefArr[1] = secondaryWeapon ? secondaryWeapon->ClipType( 0 ) : 0;
+				action->pickUp.itemDefArr[2] = primaryWeapon ? primaryWeapon->ClipType( 1 ) : 0;
+				action->pickUp.itemDefArr[3] = secondaryWeapon ? secondaryWeapon->ClipType( 1 ) : 0;
+				AILOG(( "  **Picking Up Ammo at (%d,%d)\n", theUnitPos.x, theUnitPos.y ));
+				return false;
+			}
+		}
+
+		// Need to find Storage and go there.
+		Vector2I storeLocs[4];
+		int nFound = 0;
+		map->FindStorage( primaryWeapon->ClipType( 0 ), 4, storeLocs, &nFound );
+		if ( nFound ) {
+			if ( nFound > 4 ) nFound = 4;
+			float lowCost = FLT_MAX;
+			int bestPath = -1;
+			
+			Vector2<S16> start = { theUnitPos.x, theUnitPos.y };
+			
+			for( int i=0; i<nFound; ++i ) {
+				Vector2<S16> end = { storeLocs[i].x, storeLocs[i].y };
+				float cost;
+				map->SolvePath( theUnit, start, end, &cost, &m_path[i] );
+				AILOG(( "    Storage (%d,%d) cost=%.3f\n", end.x, end.y, cost ));
+
+				if ( cost < lowCost ) {
+					lowCost = cost;
+					bestPath = i;
+				}
+			}
+			if ( bestPath >= 0 ) {
+				std::vector< grinliz::Vector2<S16> >& path = m_path[bestPath];
+				TrimPathToCost( &path, theUnit->TU() );
+				if ( path.size() > 1 ) {
+					AILOG(( "  **Moving to Ammo at (%d,%d)\n", storeLocs[bestPath].x, storeLocs[bestPath].y ));
+					action->actionID = ACTION_MOVE;
+					action->move.path.Init( path );
+					return false;
+				}
+				else {
+					// no time left:
+					return true;
+				}
+			}
+		}
+	}
+}
+
+
+bool WarriorAI::Think(	const Unit* theUnit,
+						const Unit* units,
+						const Targets& targets,
+						int flags,
+						Map* map,
+						AIAction* action )
+{
+	// QuickProfile qp( "WarriorAI::Think()" );
+	
+	// if unit has gun&ammo
+	//		
+	// Crazy simple 1st AI. If:
+	// - theUnit can see something, shoot it. Choose the unit with the
+	//	 greatest chance of going down
+	// - if on storage, check if we need stuff
+	// - can see nothing, move towards something the team can see. Select between
+	//   current canSee and LKPs
+	// - if nothing to move to, stand around
+
+	const float CLOSE_ENOUGH				= 4.5f;		// don't close closer than this...
+
+	action->actionID = ACTION_NONE;
+	Vector2I theUnitPos;
+	theUnit->CalcMapPos( &theUnitPos, 0 );
+	float theUnitNearTarget = FLT_MAX;
+	
+	AILOG(( "Think unit=%d\n", theUnit - units ));
+
+	// -------- Shoot -------- //
+	if ( theUnit->HasGunAndAmmo() ) {
+		if ( ThinkShoot( theUnit, units, targets, map, action ) == THINK_ACTION )
+			return false;
+	}
 
 	// --------- Weapon Management --------- //
 	// The actual logic of when to swap is tricky. By reaching here, we didn't shoot, but
@@ -342,12 +424,12 @@ bool WarriorAI::Think(	const Unit* theUnit,
 		float tu = theUnit->TU();
 
 		int reserve = -1;
-		if ( theUnit->CanFire( kModeAuto ) ) {
-			tu -= theUnit->FireTimeUnits( kModeAuto );
+		if ( theUnit->CanFire( kAutoFireMode ) ) {
+			tu -= theUnit->FireTimeUnits( kAutoFireMode );
 			reserve = AUTO_SHOT;
 		}
-		else if ( theUnit->CanFire( kModeSnap ) ) {
-			tu -= theUnit->FireTimeUnits( kModeSnap );
+		else if ( theUnit->CanFire( kSnapFireMode ) ) {
+			tu -= theUnit->FireTimeUnits( kSnapFireMode );
 			reserve = SNAP_SHOT;
 		}
 
