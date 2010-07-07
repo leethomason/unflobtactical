@@ -69,7 +69,7 @@ public:
 	void Save( TiXmlElement* doc ) const;
 	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
 
-	const Item& GetItem( int slot ) const		{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot]; }
+	Item GetItem( int slot ) const				{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot]; }				// return a copy...too easy to change while in use
 	Item* AccessItem( int slot )				{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return &slots[slot]; }
 	bool Contains( const ItemDef* itemDef ) const;
 

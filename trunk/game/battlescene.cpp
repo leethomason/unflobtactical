@@ -51,11 +51,9 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 
 	engine  = game->engine;
 	visibility.Init( this, units, engine->GetMap() );
-	//uiMode = UIM_NORMAL;
 	nearPathState.Clear();
-
-//	memset( hpBarsFadeTime, 0, sizeof( int )*MAX_UNITS );
 	engine->GetMap()->SetPathBlocker( this );
+	dragUnit = 0;
 
 	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, engine );
 	aiArr[TERRAN_TEAM]		= 0;
@@ -298,7 +296,7 @@ void BattleScene::InitUnits()
 
 	Storage* extraAmmo = engine->GetMap()->LockStorage( 12, 20 );
 	if ( !extraAmmo )
-		extraAmmo = new Storage();
+		extraAmmo = new Storage( game->GetItemDefArr() );
 	extraAmmo->AddItem( cell );
 	extraAmmo->AddItem( cell );
 	extraAmmo->AddItem( tachyon );
@@ -324,20 +322,22 @@ void BattleScene::NextTurn()
 			GLOUTPUT(( "New Turn: Terran\n" ));
 			for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i )
 				units[i].NewTurn();
+			currentUnitAI = TERRAN_UNITS_START;
 			break;
 
 		case ALIEN_TEAM:
 			GLOUTPUT(( "New Turn: Alien\n" ));
 			for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
 				units[i].NewTurn();
-
 			}
+			currentUnitAI = ALIEN_UNITS_START;
 			break;
 
 		case CIV_TEAM:
 			GLOUTPUT(( "New Turn: Civ\n" ));
 			for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i )
 				units[i].NewTurn();
+			currentUnitAI = CIV_UNITS_START;
 			break;
 
 		default:
@@ -1296,96 +1296,147 @@ void BattleScene::DoReactionFire()
 bool BattleScene::ProcessAI()
 {
 	GLASSERT( actionStack.Empty() );
-	bool allDone = true;
 	int count = 0;
 
 	while ( actionStack.Empty() ) {
-		allDone = true;
-		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-			if ( actionStack.Empty() && units[i].IsAlive() && !units[i].IsUserDone() ) {
 
-				++count;
-				int flags = (count&1) ? AI::AI_WANDER : 0;	// half wander (starting with 1st)
-				flags |= ( units[i].AI() == Unit::AI_GUARD ) ? AI::AI_GUARD : 0;
-				AI::AIAction aiAction;
+		if ( currentUnitAI == MAX_UNITS || units[currentUnitAI].Team() != currentTeamTurn )
+			return true;	// indexed out of the correct team.
 
-				bool done = aiArr[ALIEN_TEAM]->Think( &units[i], units, m_targets, flags, engine->GetMap(), &aiAction );
+		if ( !units[currentUnitAI].IsAlive() ) {
+			++currentUnitAI;
+			continue;
+		}
 
-				switch ( aiAction.actionID ) {
-					case AI::ACTION_SHOOT:
-						{
-							bool shot = PushShootAction( &units[i], aiAction.shoot.target, aiAction.shoot.mode, 1.0f, false );
-							GLASSERT( shot );
-							if ( !shot )
-								done = true;
-						}
-						break;
+		int flags = ( units[currentUnitAI].AI() == Unit::AI_GUARD ) ? AI::AI_GUARD : 0;
+		AI::AIAction aiAction;
 
-					case AI::ACTION_MOVE:
-						{
-							Action action;
-							action.Init( ACTION_MOVE, &units[i] );
-							action.type.move.path = aiAction.move.path;
-							actionStack.Push( action );
-						}
-						break;
+		bool done = aiArr[ALIEN_TEAM]->Think( &units[currentUnitAI], units, m_targets, flags, engine->GetMap(), &aiAction );
 
-					case AI::ACTION_SWAP_WEAPON:
-						{
-//							Inventory* inv = units[i].GetInventory();
-//							inv->SwapWeapons();
-						}
-						break;
+		switch ( aiAction.actionID ) {
+			case AI::ACTION_SHOOT:
+				{
+					AI_LOG(( "[ai] Unit %d SHOOT\n", currentUnitAI ));
+					bool shot = PushShootAction( &units[currentUnitAI], aiAction.shoot.target, aiAction.shoot.mode, 1.0f, false );
+					GLASSERT( shot );
+					if ( !shot )
+						done = true;
+				}
+				break;
 
-					case AI::ACTION_PICK_UP:
-						{
-							const AI::PickUpAIAction& pick = aiAction.pickUp;
+			case AI::ACTION_MOVE:
+				{
+					AI_LOG(( "[ai] Unit %d MOVE\n", currentUnitAI ));
+					Action action;
+					action.Init( ACTION_MOVE, &units[currentUnitAI] );
+					action.type.move.path = aiAction.move.path;
+					actionStack.Push( action );
+				}
+				break;
 
-							Vector2I pos = units[i].Pos();
-							Storage* storage = engine->GetMap()->LockStorage( pos.x, pos.y );
-							GLASSERT( storage );
-							Inventory* inventory = units[i].GetInventory();
+			case AI::ACTION_ROTATE:
+				{
+					AI_LOG(( "[ai] Unit %d ROTATE\n", currentUnitAI ));
+					Vector3F target = { float(aiAction.rotate.x)+0.5f, 0, (float)(aiAction.rotate.y)+0.5f };
+					PushRotateAction( &units[currentUnitAI], target, true );
+				}
+				break;
 
-							if ( storage ) {
-								for( int k=0; k<pick.MAX_ITEMS; ++k ) {
-									if ( pick.itemDefArr[k] ) {
-										while ( storage->GetCount( pick.itemDefArr[k] ) ) {
+			case AI::ACTION_INVENTORY:
+				{
+					AI_LOG(( "[ai] Unit %d INVENTORY: ", currentUnitAI ));
+					// Drop all the weapons and clips. Pick up new weapons and clips.
+					Vector2I pos = units[currentUnitAI].Pos();
+					Storage* storage = engine->GetMap()->LockStorage( pos.x, pos.y );
+					GLASSERT( storage );
+					Inventory* inventory = units[currentUnitAI].GetInventory();
 
-											Item item;
-											storage->RemoveItem( pick.itemDefArr[k], &item );
-											if ( inventory->AddItem( item ) < 0 ) {
-												// Couldn't add to inventory. Return to storage.
-												storage->AddItem( item );
-												// and don't try adding this item again...
-												break;
-											}
-										}
-									}
-								}
-								engine->GetMap()->ReleaseStorage( pos.x, pos.y, storage, game->GetItemDefArr() );
+					if ( storage ) {
+						for( int i=0; i<Inventory::NUM_SLOTS; ++i ) {
+							Item item = inventory->GetItem( i );
+							if ( item.IsWeapon() || item.IsClip() ) {
+								storage->AddItem( item );
+								inventory->RemoveItem( i );
 							}
 						}
-						break;
 
-					case AI::ACTION_NONE:
-						break;
+						// Now find the best gun, pick it up, and all the clips we can.
+						const ItemDef* best = 0;
+						float bestScore = -1.0f;
 
-					default:
-						GLASSERT( 0 );
-						break;
+						ItemDef* const*	itemDefArr = game->GetItemDefArr();
+						for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+							if ( itemDefArr[i] && itemDefArr[i]->IsWeapon() && storage->GetCount( itemDefArr[i] ) ) {
+								const WeaponItemDef* wid = itemDefArr[i]->IsWeapon();
+								
+								float toHit, anyHit, damage, dptu;
+								wid->FireStatistics( kAutoFireMode, units[currentUnitAI].GetStats().Accuracy(), 8.0f,
+													 &toHit, &anyHit, &damage, &dptu );
+								int nClips = storage->GetCount( wid->GetClipItemDef( kAutoFireMode ) );	// clip count...
+
+								float score = dptu * (float)nClips;
+
+								if ( wid->HasWeapon( kAltFireMode ) ) {
+									wid->FireStatistics( kAltFireMode, units[currentUnitAI].GetStats().Accuracy(), 8.0f,
+														 &toHit, &anyHit, &damage, &dptu );
+									nClips = storage->GetCount( wid->GetClipItemDef( kAltFireMode ) );	// clip count...
+									
+									score += dptu * (float)nClips * 0.8f;
+								}
+
+								if ( score > bestScore ) {
+									bestScore = score;
+									best = itemDefArr[i];
+								}
+							}
+						}
+
+						if ( best ) {
+							// The gun.
+							const WeaponItemDef* wid = best->IsWeapon();
+							GLASSERT( wid );
+
+							Item item;
+							storage->RemoveItem( best, &item );
+							int slot = inventory->AddItem( item );
+							GLASSERT( slot == Inventory::WEAPON_SLOT );
+							AI_LOG(( "'%s' ", item.Name() ));
+
+							// clips.
+							WeaponMode mode[2] = { kSnapFireMode, kAltFireMode };
+							for( int k=0; k<2; ++k ) {
+								while ( storage->GetCount( wid->GetClipItemDef( mode[k] ) ) ) {
+									Item item;
+									storage->RemoveItem( wid->GetClipItemDef( mode[k] ), &item );
+									if ( inventory->AddItem( item ) < 0 ) {
+										storage->AddItem( item );
+										break;
+									}
+									else {
+										AI_LOG(( "'%s' ", item.Name() ));
+									}
+								}
+							}
+						}
+						AI_LOG(( "\n" ));
+					}
+					engine->GetMap()->ReleaseStorage( pos.x, pos.y, storage, game->GetItemDefArr() );
+					units[currentUnitAI].UpdateInventory();
 				}
-				if ( done ) {
-					units[i].SetUserDone();
-				}
-				if ( !units[i].IsUserDone() ) {
-					allDone = false;
-				}
-			}
+				break;
+
+			case AI::ACTION_NONE:
+				break;
+
+			default:
+				GLASSERT( 0 );
+				break;
 		}
-		if ( allDone )
-			break;
+		if ( done ) {
+			currentUnitAI++;
+		}
 	}
-	return allDone;
+	return false;
 }
 
 
@@ -2280,47 +2331,6 @@ void BattleScene::Tap(	int tap,
 			engine->GetMap()->ClearNearPath();
 		}
 	}
-
-#if 0 // implements tapping to select.
-	if ( tappedModel && tappedUnit ) {
-		if ( tappedUnit->Team() == ALIEN_TEAM ) {
-			SetSelection( UnitFromModel( tappedModel ) );		// sets either the Alien or the Unit
-			map->ClearNearPath();
-		}
-		else if ( tappedUnit->Team() == TERRAN_TEAM ) {
-			SetSelection( UnitFromModel( tappedModel ) );
-			nearPathState = NEAR_PATH_INVALID;
-		}
-		else {
-			SetSelection( 0 );
-			map->ClearNearPath();
-		}
-	}
-	else if ( !tappedModel ) {
-		// Not a model - use the tile
-		if ( SelectedSoldierModel() && !selection.targetUnit && hasTilePos ) {
-			Vector2<S16> start   = { (S16)SelectedSoldierModel()->X(), (S16)SelectedSoldierModel()->Z() };
-
-			Vector2<S16> end = { (S16)tilePos.x, (S16)tilePos.y };
-
-			// Compute the path:
-			float cost;
-			const Stats& stats = selection.soldierUnit->GetStats();
-
-			int result = engine->GetMap()->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
-			if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
-				// TU for a move gets used up "as we go" to account for reaction fire and changes.
-				// Go!
-				Action action;
-				action.Init( ACTION_MOVE, SelectedSoldierUnit() );
-				action.type.move.path.Init( pathCache );
-				actionStack.Push( action );
-
-				engine->GetMap()->ClearNearPath();
-			}
-		}
-	}
-#endif
 }
 
 
@@ -2751,6 +2761,15 @@ void BattleScene::Drag( int action, const grinliz::Vector2I& view )
 			engine->GetScreenport().ViewProjectionInverse3D( &dragMVPI );
 			engine->RayFromScreenToYPlane( screen.x, screen.y, dragMVPI, &ray, &dragStart );
 			dragStartCameraWC = engine->camera.PosWC();
+
+			// Drag a unit or drag the camera?
+			Vector2I mapPos = { (int)dragStart.x, (int)dragStart.y };
+			for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+				if ( units[i].IsAlive() && ( mapPos == units[i].Pos() ) ) {
+					dragUnit = units + i;
+					break;
+				}
+			}
 		}
 		break;
 

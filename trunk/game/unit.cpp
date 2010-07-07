@@ -435,7 +435,7 @@ void Unit::Kill( Map* map )
 		Vector2I pos = Pos();
 		Storage* storage = map->LockStorage( pos.x, pos.y );
 		if ( !storage ) {
-			storage = new Storage();
+			storage = new Storage( game->GetItemDefArr() );
 		}
 		for( int i=0; i<Inventory::NUM_SLOTS; ++i ) {
 			Item* item = inventory.AccessItem( i );
@@ -672,13 +672,21 @@ float Unit::AngleBetween( const Vector2I& p1, bool quantize ) const
 }
 
 
-bool Unit::HasGunAndAmmo() const
+bool Unit::HasGunAndAmmo( bool atReady ) const
 {
 	const WeaponItemDef* wid = GetWeaponDef();
-	if ( wid ) {
-		if ( inventory.CalcClipRoundsTotal( wid->GetClipItemDef( kSnapFireMode ) ) > 0 ) {
-			// Unit has a gun. Has ammo. Can shoot something.
-			return true;
+	if ( wid && inventory.CalcClipRoundsTotal( wid->GetClipItemDef( kSnapFireMode ) ) > 0 ) {
+		// Unit has a gun. Has ammo. Can shoot something.
+		return true;
+	}
+	if (!atReady) {
+		// COULD have a gun, if we get it out of the backpack
+		for( int i=0; i<Inventory::NUM_SLOTS; ++i ) {
+			Item item = inventory.GetItem( i );
+			wid = item.IsWeapon();
+			if ( wid && inventory.CalcClipRoundsTotal( wid->GetClipItemDef( kSnapFireMode ) ) > 0 ) {
+				return true;
+			}
 		}
 	}
 	return false;

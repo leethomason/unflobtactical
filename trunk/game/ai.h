@@ -40,8 +40,8 @@ public:
 		ACTION_NONE = 0,
 		ACTION_MOVE = 1,
 		ACTION_SHOOT = 3,
-		ACTION_SWAP_WEAPON = 4,
-		ACTION_PICK_UP = 5,
+		ACTION_ROTATE = 4,
+		ACTION_INVENTORY = 5,
 	};
 
 	struct MoveAIAction {
@@ -53,22 +53,28 @@ public:
 		grinliz::Vector3F	target;
 	};
 
-	struct PickUpAIAction {
-		enum { MAX_ITEMS = 4 };
-		const ItemDef* itemDefArr[MAX_ITEMS];	// items to be picked up, in priority order.
+	struct RotateAIAction {
+		int					x, y;
+	};
+
+	struct InventoryAIAction {
+		// The unit will drop all weapons and clips, and then pick up new
+		// items. Effectively puts part of the AI in the Unit code, but
+		// it's messy both ways.
 	};
 
 	struct AIAction {
 		int actionID;
 		union {
-			MoveAIAction	move;
-			ShootAIAction	shoot;
-			PickUpAIAction	pickUp;
+			MoveAIAction		move;
+			ShootAIAction		shoot;
+			RotateAIAction		rotate;
+			InventoryAIAction	inventory;
 		};
 	};
 
-	AI( int team,			// AI in instantiated for a TEAM, not a unit
-		Engine* engine );	// Line of site checking
+	AI( int team,					// AI in instantiated for a TEAM, not a unit
+		Engine* engine );			// Line of site checking
 
 	virtual ~AI()	{}
 
@@ -93,19 +99,50 @@ protected:
 		THINK_SOLVED_NO_ACTION,		// state solved for - movetoammo on ammo, for example
 		THINK_ACTION				// action filled in
 	};
+
+	// THINK_NOT_OPTION no weapon / ammo
+	// THINK_NO_ACTION  no target
+	// THINK_ACTION		shot taken
 	int ThinkShoot(			const Unit* move,
 							const Unit* units,
 							const Targets& targets,
 							Map* map,
 							AIAction* action );
-	int ThinkMoveToAmmo(	const Unit* move,
+
+	// THINK_SOLVED_NO_ACTION standing on ammo
+	// THINK_ACTION           move
+	// THINK_NO_ACTION		  nothing found, not enough time
+	int ThinkMoveToAmmo(	const Unit* theUnit,
 							const Unit* units,
 							const Targets& targets,
 							Map* map,
 							AIAction* action );
-	// ThinkPickUpInventory
-	// ThinkSearch
-	// ThinkWander
+
+	// THINK_NO_ACTION		no storage
+	int ThinkInventory(		const Unit* theUnit,
+							Map* map,
+							AIAction* action);
+
+	// THINK_ACTION			move
+	// THINK_NO_ACTION		not enough time, no destination,
+	int ThinkSearch(		const Unit* theUnit,
+							const Unit* units,
+							const Targets& targets,
+							int flags,
+							Map* map,
+							AIAction* action );
+
+	int ThinkWander(		const Unit* theUnit,
+							const Unit* units,
+							const Targets& targets,
+							Map* map,
+							AIAction* action );
+
+	int ThinkRotate(		const Unit* theUnit,
+							const Unit* units,
+							const Targets& targets,
+							Map* map,
+							AIAction* action );
 
 	// Utility:
 	bool LineOfSight( const Unit* shooter, const Unit* target ); // calls the engine LoS to get an accurate value
@@ -126,7 +163,6 @@ protected:
 	int m_enemyStart;
 	int m_enemyEnd;
 	grinliz::Random m_random;
-	//SpaceTree* m_spaceTree;
 	Engine* m_engine;	// for ray queries.
 	std::vector< grinliz::Vector2<S16> > m_path[4];
 };

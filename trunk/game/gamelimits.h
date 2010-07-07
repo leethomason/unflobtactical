@@ -16,6 +16,13 @@
 #ifndef GAMELIMITS_INCLUDED
 #define GAMELIMITS_INCLUDED
 
+#if 1
+        #define AI_LOG GLOUTPUT
+#else
+        #define AI_LOG( x )      {}
+#endif
+
+
 static const float FOV = 45.0f;
 static const int GAME_BUTTON_SIZE = 60;
 static const float GAME_BUTTON_SIZE_F = (float)GAME_BUTTON_SIZE;

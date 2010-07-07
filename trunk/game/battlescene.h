@@ -306,6 +306,9 @@ private:
 	grinliz::Vector3F dragStartCameraWC;
 	grinliz::Matrix4  dragMVPI;
 
+	Unit*			  dragUnit;
+	grinliz::Vector2I dragUnitDest;
+
 	int		initZoomDistance;
 	float	initZoom;
 	
@@ -348,6 +351,7 @@ private:
 	grinliz::Random random;	// "the" random number generator for the battle
 	int				currentTeamTurn;
 	AI*				aiArr[3];
+	int				currentUnitAI;
 
 	struct TargetEvent
 	{

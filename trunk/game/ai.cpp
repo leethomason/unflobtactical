@@ -26,11 +26,6 @@
 
 using namespace grinliz;
 
-#if 0
-	#define AILOG GLOUTPUT
-#else
-	#define AILOG( x )	{}
-#endif
 
 AI::AI( int team, Engine* engine )
 {
@@ -144,10 +139,10 @@ int AI::ThinkShoot(  const Unit* theUnit,
 	static const int   EXPLOSION_ZONE				= 2;		// radius to check of clusters of enemies to blow up
 	static const float	MINIMUM_EXPLOSIVE_RANGE		= 4.0f;
 
-	if ( !theUnit->HasGunAndAmmo() )
+	if ( !theUnit->HasGunAndAmmo( true ) ) {
+		GLASSERT( 0 );	// should have been weeded out upstream.
 		return THINK_NOT_OPTION;
-
-	AILOG(( "  Shoot\n" ));
+	}
 
 	int best = -1;
 	float bestScore = 0.0f;
@@ -190,9 +185,6 @@ int AI::ThinkShoot(  const Unit* theUnit,
 							}
 						}
 
-						AILOG(( "    target %2d score=%.3f s/t=%d %d chance=%.3f dptu=%.3f\n",
-							    i, score, select, type, chance, dptu ));
-
 						if ( chance >= MINIMUM_FIRE_CHANCE && score > bestScore ) {
 							bestScore = score;
 							best = i;
@@ -203,13 +195,12 @@ int AI::ThinkShoot(  const Unit* theUnit,
 				}
 			}
 		}
-		if ( best >= 0 ) {
-			AILOG(( "  **Shooting at %d mode=%d bestScore=%.3f\n", best, bestMode, bestScore ));
-			action->actionID = ACTION_SHOOT;
-			action->shoot.mode = (WeaponMode)bestMode;
-			units[best].GetModel()->CalcTarget( &action->shoot.target );
-			return THINK_ACTION;
-		}
+	}
+	if ( best >= 0 ) {
+		action->actionID = ACTION_SHOOT;
+		action->shoot.mode = (WeaponMode)bestMode;
+		units[best].GetModel()->CalcTarget( &action->shoot.target );
+		return THINK_ACTION;
 	}
 	return THINK_NO_ACTION;
 }
@@ -221,69 +212,217 @@ int AI::ThinkMoveToAmmo(	const Unit* theUnit,
 							Map* map,
 							AIAction* action )
 {
-	AILOG(( "  Out of Ammo\n" ));
-
 	// Is theUnit already standing on the Storage? If so, use!
 	Vector2I theUnitPos = theUnit->Pos();
-	Storage* storage = map->GetStorage( theUnitPos.x, theUnitPos.y );
+	const Storage* storage = map->GetStorage( theUnitPos.x, theUnitPos.y );
 	
-	if ( storage && storage->HasWeapons() ) {
-			if (    ( primaryWeapon   && storage->GetCount( primaryWeapon->ClipType( 0 ) ) )
-				 || ( secondaryWeapon && storage->GetCount( secondaryWeapon->ClipType( 0 ) ) ) )
-			{
-				// Solves the ammo issue.
-				// Picking up the ammo will result in it being used in the next round.
-				action->actionID = ACTION_PICK_UP;
-				GLASSERT( PickUpAIAction::MAX_ITEMS >= 4 );
-				memset( action->pickUp.itemDefArr, 0, sizeof(const ItemDef*) * PickUpAIAction::MAX_ITEMS );
+	if ( storage && storage->IsResupply( theUnit->GetWeaponDef() )) {
+		return THINK_SOLVED_NO_ACTION;
+	}
 
-				action->pickUp.itemDefArr[0] = primaryWeapon ? primaryWeapon->ClipType( 0 ) : 0;
-				action->pickUp.itemDefArr[1] = secondaryWeapon ? secondaryWeapon->ClipType( 0 ) : 0;
-				action->pickUp.itemDefArr[2] = primaryWeapon ? primaryWeapon->ClipType( 1 ) : 0;
-				action->pickUp.itemDefArr[3] = secondaryWeapon ? secondaryWeapon->ClipType( 1 ) : 0;
-				AILOG(( "  **Picking Up Ammo at (%d,%d)\n", theUnitPos.x, theUnitPos.y ));
-				return false;
+	// Need to find Storage and go there.
+	Vector2I storeLocs[8];
+	int nFound = 0;
+	map->FindStorage( theUnit->GetWeaponDef(), 4, storeLocs, &nFound );
+
+	float lowCost = FLT_MAX;
+	int bestPath = -1;
+			
+	Vector2<S16> start = { theUnitPos.x, theUnitPos.y };
+			
+	for( int i=0; i<nFound; ++i ) {
+		Vector2<S16> end = { storeLocs[i].x, storeLocs[i].y };
+		float cost;
+		map->SolvePath( theUnit, start, end, &cost, &m_path[i] );
+
+		if ( cost < lowCost ) {
+			lowCost = cost;
+			bestPath = i;
+		}
+	}
+	if ( bestPath >= 0 ) {
+		std::vector< grinliz::Vector2<S16> >& path = m_path[bestPath];
+		TrimPathToCost( &path, theUnit->TU() );
+		if ( path.size() > 1 ) {
+			action->actionID = ACTION_MOVE;
+			action->move.path.Init( path );
+			return THINK_ACTION;
+		}
+	}
+	return THINK_NO_ACTION;
+}
+
+
+int AI::ThinkInventory(	const Unit* theUnit, Map* map, AIAction* action )
+{
+	Vector2I pos = theUnit->Pos();
+
+	// Drop all the weapons, and pick up new ones.
+	const Storage* storage = map->GetStorage( pos.x, pos.y );
+
+	if (	  theUnit->HasGunAndAmmo( false )									// all good, just need to re-distribute
+		 || ( storage && storage->IsResupply( theUnit->GetWeaponDef() ) ) )		// can pick up new stuff
+	{
+		action->actionID = ACTION_INVENTORY;
+		return THINK_ACTION;
+	}
+	return THINK_NO_ACTION;
+}
+
+
+int AI::ThinkSearch(const Unit* theUnit,
+					const Unit* units,
+					const Targets& targets,
+					int flags,
+					Map* map,
+					AIAction* action )
+{
+	int best = -1;
+	float bestGolfScore = FLT_MAX;
+
+	// Reserve for auto or snap??
+	float tu = theUnit->TU();
+
+	if ( theUnit->CanFire( kAutoFireMode ) ) {
+		tu -= theUnit->FireTimeUnits( kAutoFireMode );
+	}
+	else if ( theUnit->CanFire( kSnapFireMode ) ) {
+		tu -= theUnit->FireTimeUnits( kSnapFireMode );
+	}
+
+	// TU is adjusted for weapon time. If we can't effectively move any more, stop now.
+	if ( tu < 1.8f ) {
+		return THINK_NO_ACTION;
+	}
+
+	for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
+		if (    units[i].IsAlive() 
+			 && units[i].GetModel()
+			 && m_lkp[i].pos.x >= 0 ) 
+		{
+			int len2 = (theUnit->Pos()-m_lkp[i].pos).LengthSquared();
+			float len = sqrtf( (float)len2 );
+
+			// The older the data, the worse the score.
+			const float NORMAL_TU = (float)(MIN_TU + MAX_TU) * 0.5f;
+			float score = len + (float)(m_lkp[i].turns)*NORMAL_TU;
+
+			// Guards only move on what they can currently see
+			// so they don't go chasing things.
+			if ( ( flags & AI_GUARD ) && !targets.CanSee( theUnit, &units[i] ) ) {
+				score = FLT_MAX;
+			}
+					
+			if ( score < bestGolfScore ) {
+				bestGolfScore = score;
+				best = i;
 			}
 		}
+	}
+	if ( best >= 0 ) {
+		Vector2<S16> start = { theUnit->Pos().x, theUnit->Pos().y };
+		Vector2<S16> end   = { m_lkp[best].pos.x, m_lkp[best].pos.y };
 
-		// Need to find Storage and go there.
-		Vector2I storeLocs[4];
-		int nFound = 0;
-		map->FindStorage( primaryWeapon->ClipType( 0 ), 4, storeLocs, &nFound );
-		if ( nFound ) {
-			if ( nFound > 4 ) nFound = 4;
-			float lowCost = FLT_MAX;
-			int bestPath = -1;
-			
-			Vector2<S16> start = { theUnitPos.x, theUnitPos.y };
-			
-			for( int i=0; i<nFound; ++i ) {
-				Vector2<S16> end = { storeLocs[i].x, storeLocs[i].y };
-				float cost;
-				map->SolvePath( theUnit, start, end, &cost, &m_path[i] );
-				AILOG(( "    Storage (%d,%d) cost=%.3f\n", end.x, end.y, cost ));
-
+		float lowCost = FLT_MAX;
+		int bestPath = -1;
+		const Vector2<S16> delta[4] = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
+		for( int i=0; i<4; ++i ) {
+			// The path is blocked *by our target*. Fooling around with how the map pather
+			// works is tweaky. So just check 4 spots.
+			float cost;
+			int result = map->SolvePath( theUnit, start, end+delta[i], &cost, &m_path[i] );
+			if ( result == micropather::MicroPather::SOLVED ) {
 				if ( cost < lowCost ) {
 					lowCost = cost;
 					bestPath = i;
 				}
 			}
-			if ( bestPath >= 0 ) {
-				std::vector< grinliz::Vector2<S16> >& path = m_path[bestPath];
-				TrimPathToCost( &path, theUnit->TU() );
-				if ( path.size() > 1 ) {
-					AILOG(( "  **Moving to Ammo at (%d,%d)\n", storeLocs[bestPath].x, storeLocs[bestPath].y ));
-					action->actionID = ACTION_MOVE;
-					action->move.path.Init( path );
-					return false;
-				}
-				else {
-					// no time left:
-					return true;
-				}
+		}
+		if ( bestPath >= 0 ) {
+			// stupid double array syntax...
+			std::vector< grinliz::Vector2<S16> >& path = m_path[bestPath];
+			TrimPathToCost( &path, tu );
+
+			if ( path.size() > 1 ) {
+				action->actionID = ACTION_MOVE;
+				action->move.path.Init( path );
+				return THINK_ACTION;
 			}
 		}
 	}
+	return THINK_NO_ACTION;
+}
+
+
+int AI::ThinkWander(const Unit* theUnit,
+					const Unit* units,
+					const Targets& targets,
+					Map* map,
+					AIAction* action )
+{
+	// -------- Wander --------- //
+	// If the aliens don't see anything, they just stand around. That's okay, except it's weird
+	// that they completely skip their turn. So if they are set to wander, then move a space randomly.
+	Vector2I choices[8] = { {0,1}, {0,-1}, {1,0},  {-1,0}, 
+							{1,1}, {1,-1}, {-1,1}, {-1,-1} };
+	for( int i=0; i<8; ++i ) {
+		Swap( &choices[m_random.Rand(8)], &choices[m_random.Rand(8)] );
+	}
+	for ( int i=0; i<8; ++i ) {
+		float cost;
+		Vector2I pos = theUnit->Pos();
+		Vector2<S16> start = { pos.x, pos.y };
+		Vector2<S16> end = { pos.x+choices[i].x, pos.y+choices[i].y };
+
+		int result = map->SolvePath( theUnit, start, end, &cost, &m_path[0] );
+		if ( result == micropather::MicroPather::SOLVED && m_path[0].size() == 2 ) {
+			TrimPathToCost( &m_path[0], theUnit->TU() );
+			if ( m_path[0].size() == 2 ) {
+				action->actionID = ACTION_MOVE;
+				action->move.path.Init( m_path[0] );
+				return THINK_ACTION;
+			}
+		}
+	}
+	return THINK_NO_ACTION;
+}
+
+
+int AI::ThinkRotate(const Unit* theUnit,
+					const Unit* units,
+					const Targets& targets,
+					Map* map,
+					AIAction* action )
+{
+	int best = -1;
+	float bestGolfScore = FLT_MAX;
+
+	for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
+		if (    units[i].IsAlive() 
+			 && units[i].GetModel()
+			 && m_lkp[i].pos.x >= 0 ) 
+		{
+			int len2 = (theUnit->Pos() - m_lkp[i].pos).LengthSquared();
+			float len = sqrtf( (float)len2 );
+
+			// The older the data, the worse the score.
+			const float NORMAL_TU = (float)(MIN_TU + MAX_TU) * 0.5f;
+			float score = len + (float)(m_lkp[i].turns)*NORMAL_TU;
+					
+			if ( score < bestGolfScore ) {
+				bestGolfScore = score;
+				best = i;
+			}
+		}
+	}
+	if ( best >= 0 ) {
+		float angle = atan2f( (float)(units[best].Pos().y - theUnit->Pos().y), (float)(units[best].Pos().x - theUnit->Pos().x) );
+		action->actionID = ACTION_ROTATE;
+		action->rotate.x = units[best].Pos().x;
+		action->rotate.y = units[best].Pos().y;
+		return THINK_ACTION;
+	}
+	return THINK_NO_ACTION;
 }
 
 
@@ -313,225 +452,50 @@ bool WarriorAI::Think(	const Unit* theUnit,
 	theUnit->CalcMapPos( &theUnitPos, 0 );
 	float theUnitNearTarget = FLT_MAX;
 	
-	AILOG(( "Think unit=%d\n", theUnit - units ));
+	int result = 0;
 
 	// -------- Shoot -------- //
-	if ( theUnit->HasGunAndAmmo() ) {
+	if ( theUnit->HasGunAndAmmo( true ) ) {
 		if ( ThinkShoot( theUnit, units, targets, map, action ) == THINK_ACTION )
+			return false;	// not done - can shoot again!
+
+		// Generally speaking, only move if not doing shooting first.
+		if ( theUnit->TU() > theUnit->GetStats().TotalTU() * 0.9f ) {
+			if ( ThinkSearch( theUnit, units, targets, flags, map, action ) == THINK_ACTION )
+				return false;	// still will wander & rotate
+		}
+
+		if ( theUnit->TU() == theUnit->GetStats().TotalTU() ) {
+			if ( ThinkWander( theUnit, units, targets, map, action ) == THINK_ACTION )
+				return false;	// will still rotate
+		}
+		ThinkRotate( theUnit, units, targets, map, action );
+		return true;
+	}
+	else {
+		AI_LOG(( "[ai.warrior] Unit %d Out of Ammo.\n", theUnit - units ));
+		// Out of ammo. Get Ammo!
+		if ( theUnit->HasGunAndAmmo( false ) ) {
+			result = ThinkInventory( theUnit, map, action );
+			GLASSERT( result == THINK_ACTION );
 			return false;
-	}
-
-	// --------- Weapon Management --------- //
-	// The actual logic of when to swap is tricky. By reaching here, we didn't shoot, but
-	// that could be for many reasons. However, if the primary fire mode is out of rounds,
-	// then swap it if it will help.
-	const Inventory* inventory = theUnit->GetInventory();	
-	const Item* primaryWeapon = inventory->ArmedWeapon();
-	const Item* secondaryWeapon = 0;	//inventory->SecondaryWeapon(); FIXME
-
-	int primaryRounds   = 0;
-	int secondaryRounds = 0;
-	if ( primaryWeapon )   primaryRounds   = inventory->CalcClipRoundsTotal( primaryWeapon->ClipType( 0 ) );	
-	if ( secondaryWeapon ) secondaryRounds = inventory->CalcClipRoundsTotal( secondaryWeapon->ClipType( 0 ) );	
-
-	if ( !primaryRounds && secondaryRounds ) {
-		AILOG(( "  **Swapping primary and secondary weapons.\n" ));
-		action->actionID = ACTION_SWAP_WEAPON;
-		return false;
-	}
-
-	// -------- Use & Find Storage --------- //
-	if ( !primaryRounds && (primaryWeapon || secondaryWeapon) ) {		// don't need to check secondary: swap has occured if it was useful.
-		AILOG(( "  Out of Ammo\n" ));
-
-		// Is theUnit already standing on the Storage? If so, use!
-		const Storage* storage = map->GetStorage( theUnitPos.x, theUnitPos.y );
-		if ( storage ) {
-			if (    ( primaryWeapon   && storage->GetCount( primaryWeapon->ClipType( 0 ) ) )
-				 || ( secondaryWeapon && storage->GetCount( secondaryWeapon->ClipType( 0 ) ) ) )
-			{
-				// Solves the ammo issue.
-				// Picking up the ammo will result in it being used in the next round.
-				action->actionID = ACTION_PICK_UP;
-				GLASSERT( PickUpAIAction::MAX_ITEMS >= 4 );
-				memset( action->pickUp.itemDefArr, 0, sizeof(const ItemDef*) * PickUpAIAction::MAX_ITEMS );
-
-				action->pickUp.itemDefArr[0] = primaryWeapon ? primaryWeapon->ClipType( 0 ) : 0;
-				action->pickUp.itemDefArr[1] = secondaryWeapon ? secondaryWeapon->ClipType( 0 ) : 0;
-				action->pickUp.itemDefArr[2] = primaryWeapon ? primaryWeapon->ClipType( 1 ) : 0;
-				action->pickUp.itemDefArr[3] = secondaryWeapon ? secondaryWeapon->ClipType( 1 ) : 0;
-				AILOG(( "  **Picking Up Ammo at (%d,%d)\n", theUnitPos.x, theUnitPos.y ));
-				return false;
+		}
+		result = ThinkMoveToAmmo( theUnit, units, targets, map, action );
+		if ( result == THINK_SOLVED_NO_ACTION ) {
+			if ( ThinkInventory( theUnit, map, action ) == THINK_ACTION ) {
+				return false; // have ammo now!
 			}
-		}
-
-		// Need to find Storage and go there.
-		Vector2I storeLocs[4];
-		int nFound = 0;
-		map->FindStorage( primaryWeapon->ClipType( 0 ), 4, storeLocs, &nFound );
-		if ( nFound ) {
-			if ( nFound > 4 ) nFound = 4;
-			float lowCost = FLT_MAX;
-			int bestPath = -1;
-			
-			Vector2<S16> start = { theUnitPos.x, theUnitPos.y };
-			
-			for( int i=0; i<nFound; ++i ) {
-				Vector2<S16> end = { storeLocs[i].x, storeLocs[i].y };
-				float cost;
-				map->SolvePath( theUnit, start, end, &cost, &m_path[i] );
-				AILOG(( "    Storage (%d,%d) cost=%.3f\n", end.x, end.y, cost ));
-
-				if ( cost < lowCost ) {
-					lowCost = cost;
-					bestPath = i;
-				}
-			}
-			if ( bestPath >= 0 ) {
-				std::vector< grinliz::Vector2<S16> >& path = m_path[bestPath];
-				TrimPathToCost( &path, theUnit->TU() );
-				if ( path.size() > 1 ) {
-					AILOG(( "  **Moving to Ammo at (%d,%d)\n", storeLocs[bestPath].x, storeLocs[bestPath].y ));
-					action->actionID = ACTION_MOVE;
-					action->move.path.Init( path );
-					return false;
-				}
-				else {
-					// no time left:
-					return true;
-				}
-			}
-		}
-	}
-
-	// -------- Move -------- //
-	// Move closer with the intent of shooting something. Unit visibility change will cause AI
-	// to be re-invoked, so there isn't a concern about getting too close.
-
-	// Skip the move if theUnit has good chance is close enough.
-	if (    primaryRounds 
-		 && theUnitNearTarget < CLOSE_ENOUGH )
-	{
-		// Close enough! Don't need strategic move. (And Storage move is done already.)
-	}
-	else if ( primaryRounds || secondaryRounds )
-	{
-		AILOG(( "  Move Stategic\n" ));
-		int best = -1;
-		float bestGolfScore = FLT_MAX;
-
-		// Reserve for auto or snap??
-		float tu = theUnit->TU();
-
-		int reserve = -1;
-		if ( theUnit->CanFire( kAutoFireMode ) ) {
-			tu -= theUnit->FireTimeUnits( kAutoFireMode );
-			reserve = AUTO_SHOT;
-		}
-		else if ( theUnit->CanFire( kSnapFireMode ) ) {
-			tu -= theUnit->FireTimeUnits( kSnapFireMode );
-			reserve = SNAP_SHOT;
-		}
-
-		// TU is adjusted for weapon time. If we can't effectively move any more,
-		// stop now.
-		if ( tu < 1.8f ) {
-			AILOG(( "  **Saving TU. %.1f remaining, reserve=%d.\n", theUnit->GetStats().TU(), reserve ));
+			// somethig went wrong and we're stuck.
 			return true;
 		}
-
-		for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
-			if (    units[i].IsAlive() 
-				 && units[i].GetModel()
-				 && m_lkp[i].pos.x >= 0 ) 
-			{
-				// FIXME: consider using the pather for "close" if the fast distance
-				// gives strange answers.
-				int len2 = (theUnitPos-m_lkp[i].pos).LengthSquared();
-				if ( len2 > 0 ) {
-					float len = sqrtf( (float)len2 );
-
-					// The older the data, the worse the score.
-					const float NORMAL_TU = (float)(MIN_TU + MAX_TU) * 0.5f;
-					float score = len + (float)(m_lkp[i].turns)*NORMAL_TU;
-
-					// Guards only move on what they can currently see
-					// so they don't go chasing things.
-					if ( flags & AI_GUARD ) {
-						if ( !targets.CanSee( theUnit, &units[i] ) ) {
-							//GLOUTPUT(( "--target %d can't see %d\n", theUnit-units, i ));
-							score = FLT_MAX;
-						}
-					}
-					
-					if ( score < bestGolfScore ) {
-						bestGolfScore = score;
-						best = i;
-					}
-				}
-			}
+		else if ( result == THINK_ACTION ) {
+			return false;	// moving
 		}
-		if ( best >= 0 ) {
-			Vector2<S16> start = { theUnitPos.x, theUnitPos.y };
-			Vector2<S16> end   = { m_lkp[best].pos.x, m_lkp[best].pos.y };
-
-			float lowCost = FLT_MAX;
-			int bestPath = -1;
-			const Vector2<S16> delta[4] = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
-			for( int i=0; i<4; ++i ) {
-				// The path is blocked *by our target*. Fooling around with how the map pather
-				// works is tweaky. So just check 4 spots.
-				float cost;
-				int result = map->SolvePath( theUnit, start, end+delta[i], &cost, &m_path[i] );
-				if ( result == micropather::MicroPather::SOLVED ) {
-					if ( cost < lowCost ) {
-						lowCost = cost;
-						bestPath = i;
-					}
-				}
-			}
-			if ( bestPath >= 0 ) {
-				// stupid double array syntax...
-				std::vector< grinliz::Vector2<S16> >& path = m_path[bestPath];
-
-				TrimPathToCost( &path, tu );
-
-				if ( path.size() > 1 ) {
-					AILOG(( "  **Moving to (%d,%d)\n", path[path.size()-1].x, path[path.size()-1].y ));
-					action->actionID = ACTION_MOVE;
-					action->move.path.Init( path );
-					return false;
-				}
-			}
+		else {
+			return true;	// stuck. End turn. No point rotating. This unit will get shot.
 		}
 	}
 
-	// -------- Wander --------- //
-	// If the aliens don't see anything, they just stand around. That's okay, except it's weird
-	// that they completely skip their turn. So if they are set to wander, then move a space randomly.
-	if (    (flags & AI_WANDER ) 
-		 && (theUnit->TU() == theUnit->GetStats().TotalTU() ) )		// only wander if we did nothing else.
-	{
-		Vector2I choices[8] = { {0,1}, {0,-1}, {1,0},  {-1,0}, 
-								{1,1}, {1,-1}, {-1,1}, {-1,-1} };
-		for( int i=0; i<8; ++i ) {
-			Swap( &choices[m_random.Rand(8)], &choices[m_random.Rand(8)] );
-		}
-		for ( int i=0; i<8; ++i ) {
-			float cost;
-			Vector2<S16> start = { theUnitPos.x, theUnitPos.y };
-			Vector2<S16> end = { theUnitPos.x+choices[i].x, theUnitPos.y+choices[i].y };
-
-			int result = map->SolvePath( theUnit, start, end, &cost, &m_path[0] );
-			if ( result == micropather::MicroPather::SOLVED && m_path[0].size() == 2 ) {
-				AILOG(( "  **Wandering to (%d,%d)\n", m_path[0].at(1).x, m_path[0].at(1).y ));
-				action->actionID = ACTION_MOVE;
-				action->move.path.Init( m_path[0] );
-				return false;
-			}
-
-		}
-	}
 	return true;
 }
 
