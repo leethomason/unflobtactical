@@ -216,8 +216,8 @@ public:
 	void Clear()									{ rounds = 0; itemDef = 0; }
 
 	const ItemDef* GetItemDef() const				{ return itemDef; }
-	const WeaponItemDef* IsWeapon() const			{ return itemDef->IsWeapon(); }
-	const ClipItemDef* IsClip() const				{ return itemDef->IsClip(); }
+	const WeaponItemDef* IsWeapon() const			{ return itemDef ? itemDef->IsWeapon() : 0; }
+	const ClipItemDef* IsClip() const				{ return itemDef ? itemDef->IsClip() : 0; }
 	const ArmorItemDef* IsArmor() const				{ return itemDef ? itemDef->IsArmor() : 0; }
 
 	int Rounds() const								{ return rounds; }
@@ -249,7 +249,7 @@ private:
 class Storage
 {
 public:
-	Storage()									{	memset( rounds, 0, sizeof(int)*EL_MAX_ITEM_DEFS ); }
+	Storage( ItemDef* const* _itemDefArr ) : itemDefArr( _itemDefArr )	{	memset( rounds, 0, sizeof(int)*EL_MAX_ITEM_DEFS ); }
 	~Storage();
 
 	void Init( const int* roundArr )			{ memcpy( rounds, roundArr, sizeof(int)*EL_MAX_ITEM_DEFS ); }
@@ -259,6 +259,11 @@ public:
 	void AddItem( const Item& item );
 	void RemoveItem( const ItemDef*, Item* item );
 	bool Contains( const ItemDef* ) const;
+
+	// Return true if either is true:
+	// 1. This storage contains a clip (of either type) for 'weapon',
+	// 2. This storage contains any weapon and rounds for that weapon
+	bool IsResupply( const WeaponItemDef* weapon ) const;
 	
 	void SetCount( const ItemDef*, int count );
 	int GetCount( const ItemDef* ) const;
@@ -266,7 +271,7 @@ public:
 	void Save( TiXmlElement* parent );
 	void Load( const TiXmlElement* mapNode );
 
-	const ModelResource* VisualRep( ItemDef* const*, bool* zRotate ) const;
+	const ModelResource* VisualRep( bool* zRotate ) const;
 
 private:
 	int GetIndex( const ItemDef* itemDef ) const {
@@ -274,6 +279,7 @@ private:
 		GLASSERT( index >=0 && index < EL_MAX_ITEM_DEFS );
 		return index;
 	}
+	ItemDef* const* itemDefArr;
 	int rounds[EL_MAX_ITEM_DEFS];
 };
 

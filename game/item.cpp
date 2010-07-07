@@ -362,6 +362,30 @@ bool Storage::Contains( const ItemDef* def ) const
 
 }
 
+
+
+bool Storage::IsResupply( const WeaponItemDef* weapon ) const
+{
+	if ( weapon ) {
+		const ClipItemDef* clip0 = weapon->GetClipItemDef( kSnapFireMode );
+		const ClipItemDef* clip1 = weapon->GetClipItemDef( kAltFireMode );
+
+		if ( GetCount( clip0 ) || GetCount( clip1 ) )
+			return true;
+	}
+
+	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+		if ( itemDefArr[i] && itemDefArr[i]->IsWeapon() ) {
+			const ClipItemDef* clip0 = itemDefArr[i]->IsWeapon()->GetClipItemDef( kSnapFireMode );
+			const ClipItemDef* clip1 = itemDefArr[i]->IsWeapon()->GetClipItemDef( kAltFireMode );
+			if ( GetCount( clip0 ) || GetCount( clip1 ) )
+				return true;
+		}
+	}
+	return false;
+}
+
+
 void Storage::SetCount( const ItemDef* itemDef, int count )
 {
 	int index = GetIndex( itemDef );
@@ -371,6 +395,9 @@ void Storage::SetCount( const ItemDef* itemDef, int count )
 
 int Storage::GetCount( const ItemDef* itemDef) const
 {
+	if ( !itemDef )
+		return 0;
+
 	int index = GetIndex( itemDef );
 	int r = rounds[index];
 	return (r+itemDef->DefaultRounds()-1)/itemDef->DefaultRounds();
@@ -416,7 +443,7 @@ void Storage::Load( const TiXmlElement* element )
 
 
 // Return the "best" item for on-screen rendering.
-const ModelResource* Storage::VisualRep( ItemDef* const* itemDefArr, bool* zRotate ) const
+const ModelResource* Storage::VisualRep( bool* zRotate ) const
 {
 	float bestScore = 0;
 	const ItemDef* best = 0;

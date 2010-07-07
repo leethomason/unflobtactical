@@ -33,7 +33,7 @@ enum {
 	EL_MAX_INDEX_IN_MODEL	= EL_MAX_INDEX_IN_GROUP * EL_MAX_MODEL_GROUPS,
 	EL_ALLOCATED_MODELS		= 1024,
 	EL_FILE_STRING_LEN		= 24,
-	EL_MAX_ITEM_DEFS		= 256,
+	EL_MAX_ITEM_DEFS		= 100,		// can be any size, but a smaller value is less memory scanning
 	EL_NIGHT_RED_U8			= 131,
 	EL_NIGHT_GREEN_U8		= 125,
 	EL_NIGHT_BLUE_U8		= 255,
@@ -51,7 +51,7 @@ enum {
  */
 //#define EL_USE_VBO
 
-//#define SHOW_FOW			// visual debugging
+#define SHOW_FOW			// visual debugging
 
 
 #endif

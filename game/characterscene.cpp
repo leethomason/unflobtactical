@@ -92,7 +92,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	unit->CalcMapPos( &mapPos, 0 );
 	storage = engine->GetMap()->LockStorage( mapPos.x, mapPos.y );
 	if ( !storage ) {
-		storage = new Storage();
+		storage = new Storage( game->GetItemDefArr() );
 	}
 
 	storageWidget = new StorageWidget( &gamui2D, green, blue, _game->GetItemDefArr(), storage );
@@ -419,7 +419,7 @@ void CharacterScene::InventoryToStorage( int slot )
 {
 	// Always succeeds in the inv->storage directory
 	Inventory* inv = unit->GetInventory();
-	const Item& item = inv->GetItem( slot );
+	Item item = inv->GetItem( slot );
 	description = 0;
 
 	if ( item.IsSomething() ) {

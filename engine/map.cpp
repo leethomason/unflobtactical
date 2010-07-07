@@ -976,7 +976,7 @@ void Map::LoadDebris( const TiXmlElement* debrisElement, ItemDef* const* arr )
 
 		Storage* storage = LockStorage( x, y );
 		if ( !storage ) {
-			storage = new Storage();
+			storage = new Storage( arr );
 		}
 		storage->Load( debrisElement );
 		ReleaseStorage( x, y, storage, arr );
@@ -1266,7 +1266,7 @@ void Map::FindStorage( const ItemDef* itemDef, int maxLoc, grinliz::Vector2I* lo
 {
 	*numLoc = 0;
 	for( int i=0; i<debris.Size() && *numLoc < maxLoc; ++i ) {
-		if ( debris[i].storage->GetCount( itemDef ) ) {
+		if ( debris[i].storage->IsResupply( itemDef->IsWeapon() ) ) {
 			loc[ *numLoc ].Set( debris[i].x, debris[i].y );
 			*numLoc += 1;
 		}
@@ -1311,7 +1311,7 @@ void Map::ReleaseStorage( int x, int y, Storage* storage, ItemDef* const* arr )
 	d->storage = storage;
 
 	bool zRotate = false;
-	const ModelResource* res = storage->VisualRep( arr, &zRotate );
+	const ModelResource* res = storage->VisualRep( &zRotate );
 
 	Model* model = tree->AllocModel( res );
 	if ( zRotate ) {
