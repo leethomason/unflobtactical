@@ -99,6 +99,7 @@ public:
 		RENDERSTATE_DECO,
 		RENDERSTATE_DECO_DISABLED,
 		RENDERSTATE_OPAQUE,
+		RENDERSTATE_TRUE_OPAQUE,
 	};
 
 	UIRenderer() {}
@@ -117,12 +118,10 @@ public:
 	static gamui::RenderAtom CalcIconAtom( int id, bool enabled=true );
 
 	enum {
-		PALETTE_RED, 
-		PALETTE_GREEN, 
-		PALETTE_BRIGHT_GREEN,
-		PALETTE_DARK_GREY
+		PALETTE_GREEN, PALETTE_BLUE, PALETTE_RED, PALETTE_YELLOW, PALETTE_GREY,
+		PALETTE_NORM=0, PALETTE_BRIGHT, PALETTE_DARK
 	};
-	static gamui::RenderAtom CalcPaletteAtom( int id, float w, float h, bool enable=true );
+	static gamui::RenderAtom CalcPaletteAtom( int c0, int c1, int blend, float w, float h, bool enable=true );
 
 	virtual void GamuiGlyph( int c, gamui::IGamuiText::GlyphMetrics* metric );
 	

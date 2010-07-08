@@ -1,14 +1,11 @@
 Issues:
 
 Bugs:
-- tap tile to select unit
 - click and drag unit
 - start at action (not black screen)
 - grey zone where previously seen
 - trees show up in the wrong place
 - alien doors not wide enough - block shots
-- tune unit skills, accuracy, hp, levels
-- give aliens auto-armor
 - support drag in character screen
 - door bugs, redo door system
 - screen re-size / layout / device loss
@@ -17,8 +14,6 @@ Bugs:
 - Art: better alien models
 - Art: missing weapon models
 - fire generates light
-- bug in AI memory. Need to moduarlize AI code.
-- drawn edges of world
 - mission types: crash
 - check math (again) in PushShootAction()
 - handle too many particles consistently
@@ -27,6 +22,7 @@ Bugs:
 - mission types: big ufos
 - mission types: base
 - add lander animation
+- add morale / psi attack
 
 Architecture
 - render managers
@@ -47,6 +43,11 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- drawn edges of world
+- give aliens auto-armor
+- bug in AI memory. Need to moduarlize AI code.
+- tune unit skills, accuracy, hp, levels
+- tap tile to select unit
 - highlight model, not just feet
 - Arch: MicroGLUI separation
 - need correct colors in RenderWeapon()

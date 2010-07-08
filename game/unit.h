@@ -135,6 +135,10 @@ public:
 	// returns true if this fire mode is supported
 	bool FireStatistics( WeaponMode mode, float distance, 
 						 float* chanceToHit, float* chanceAnyHit, float* tu, float* damagePerTU ) const;
+
+	// get the accuracy of the current mode
+	Accuracy CalcAccuracy( WeaponMode mode ) const;
+
 	// An AI query: is this unit ready to go? Or do we need to find a new weapon?
 	bool HasGunAndAmmo( bool atReady ) const;
 	
@@ -145,7 +149,7 @@ public:
 		AUTO_SHOT,
 		SECONDARY_SHOT
 	};
-	int CalcWeaponTURemaining() const;
+	int CalcWeaponTURemaining( float subtract ) const;
 
 	float AngleBetween( const grinliz::Vector2I& dst, bool quantize ) const;
 

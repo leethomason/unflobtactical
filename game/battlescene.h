@@ -342,8 +342,9 @@ private:
 	gamui::Image		selectionImage;
 	gamui::Image		targetArrow[MAX_ALIENS];		// screen space
 
+	gamui::Image		dragBar[2];
+
 	int	subTurnOrder[MAX_TERRANS];
-	int	subTurnIndex;
 	int	subTurnCount;
 
 

@@ -160,7 +160,7 @@ void Inventory::GetDamageReduction( DamageDesc* dd, int baseArmor )
 	float base = 1.0f;
 	bool hasArmor = false;
 
-	if ( slots[ARMOR_SLOT].IsArmor() ) {
+	if ( slots[ARMOR_SLOT].IsArmor() || baseArmor > 0 ) {
 		if ( baseArmor == 1 || StrEqual( slots[ARMOR_SLOT].Name(), "ARM-1" ) ) {
 			base = ARM1;
 			hasArmor = true;

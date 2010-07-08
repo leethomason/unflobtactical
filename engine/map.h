@@ -228,7 +228,7 @@ public:
 	int Width()  const { return width; }
 	void CalcBounds( grinliz::Rectangle2I* b ) const	{ b->Set( 0, 0, width-1, height-1 ); }
 
-	void SetSize( int w, int h )					{ width = w; height = h; }
+	void SetSize( int w, int h );
 	const Model* GetLanderModel()					{ return lander ? lander->model : 0; }
 
 	bool DayTime() const { return dayTime; }
@@ -496,6 +496,7 @@ private:
 	std::vector< micropather::StateCost > stateCostArr;
 
 	gamui::TiledImage<MAX_TU*2+1, MAX_TU*2+1>	walkingMap;
+	gamui::Image								border[	4];
 
 	U8									visMap[SIZE*SIZE];
 	U8									pathMap[SIZE*SIZE];

@@ -22,6 +22,7 @@
 #include "../engine/enginelimits.h"
 #include "../engine/vertex.h"
 #include "gamelimits.h"
+#include "stats.h"
 
 class ModelResource;
 class TiXmlElement;
@@ -96,6 +97,7 @@ enum WeaponMode {
 	kAltFireMode
 };
 
+
 class WeaponItemDef : public ItemDef
 {
 public:
@@ -137,11 +139,13 @@ public:
 	void DamageBase( WeaponMode mode, DamageDesc* damageArray ) const;
 	// Amount of time it takes to use this weapon. (Does not depend on the Unit.)
 	float TimeUnits( WeaponMode mode ) const;
+	
 	// Accuracy of the weapon. 1.0 is normal, higher is worse.
-	float AccuracyBase( WeaponMode mode ) const;
+	Accuracy CalcAccuracy( float unitAccuracy, WeaponMode mode ) const;
+
 	// Statistics for this weapon. 
 	bool FireStatistics( WeaponMode mode, 
-						 float accuracyRadius, 
+						 float unitAccuracy, 
 						 float distance, 
 						 float* chanceToHit,				// chance a round hits
 						 float* chanceAnyHit,				// chance any round (of 1 or 3) hits

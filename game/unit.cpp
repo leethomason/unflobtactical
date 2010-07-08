@@ -720,7 +720,7 @@ void Unit::AllFireTimeUnits( float *snapTU, float* autoTU, float* altTU )
 }
 
 
-int Unit::CalcWeaponTURemaining() const
+int Unit::CalcWeaponTURemaining( float subtract ) const
 {
 	const Item* item = GetWeapon();
 	if ( !item )
@@ -741,11 +741,13 @@ int Unit::CalcWeaponTURemaining() const
 	GLASSERT( secondaryTU >= autoTU );
 	GLASSERT( autoTU >= snappedTU );
 
-	if ( TU() >= secondaryTU )
+	float remainingTU = TU() - subtract;
+
+	if ( remainingTU >= secondaryTU )
 		return SECONDARY_SHOT;
-	else if ( TU() >= autoTU )
+	else if ( remainingTU >= autoTU )
 		return AUTO_SHOT;
-	else if ( TU() >= snappedTU )
+	else if ( remainingTU >= snappedTU )
 		return SNAP_SHOT;
 	return NO_TIME;
 }
@@ -775,4 +777,15 @@ bool Unit::FireStatistics( WeaponMode mode, float distance,
 	}
 	return false;
 }
+
+
+Accuracy Unit::CalcAccuracy( WeaponMode mode ) const
+{
+	const WeaponItemDef* wid = GetWeaponDef();
+	if ( wid && wid->HasWeapon( mode ) ) {
+		return wid->CalcAccuracy( stats.Accuracy(), mode );
+	}
+	return Accuracy();
+}
+
 
