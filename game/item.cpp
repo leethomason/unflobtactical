@@ -22,6 +22,7 @@
 #include "../engine/particle.h"
 #include "../tinyxml/tinyxml.h"
 #include "../grinliz/glstringutil.h"
+#include "stats.h"
 
 using namespace grinliz;
 
@@ -222,27 +223,10 @@ bool WeaponItemDef::FireStatistics( WeaponMode mode,
 	DamageDesc dd;
 
 	if ( tu > 0.0f ) {
-		float radius = distance * accuracyRadius * AccuracyBase( mode );
-		float area   = PI * radius * radius;
+		float radiusAtOne = accuracyRadius * AccuracyBase( mode );
 
-		/*
-		// This is an approximation of a correct rectangle-circle intersection.
-		float targetArea = 0.0f;
-		if ( radius*2.0f <= STANDARD_TARGET_W ) {
-			targetArea = area;	// 100% chance...
-		}
-		else if ( radius*2.0f <= STANDARD_TARGET_H ) {
-			targetArea = STANDARD_TARGET_W * (radius * 2.0f);	// approximation...and a poor one
-		}
-		else {
-			targetArea = STANDARD_TARGET_W * STANDARD_TARGET_H;
-		}
-		*/
-		float targetArea = STANDARD_TARGET_W * STANDARD_TARGET_H;
-
-		*chanceToHit = targetArea / area;
-		if ( *chanceToHit > 1.0f )
-			*chanceToHit = 1.0f;
+		BulletSpread bulletSpread;
+		*chanceToHit = bulletSpread.ComputePercent( radiusAtOne, distance );
 
 		*anyChanceToHit = *chanceToHit;
 		int nRounds = RoundsNeeded( mode );
@@ -256,7 +240,6 @@ bool WeaponItemDef::FireStatistics( WeaponMode mode,
 		*totalDamage = dd.Total();
 
 		*damagePerTU = (*chanceToHit) * (*totalDamage) / tu;
-
 		*damagePerTU *= (float)nRounds;
 		return true;
 	}

@@ -939,12 +939,6 @@ void BattleScene::DrawFireWidget()
 			unit->FireStatistics( (WeaponMode)i, distToTarget, &fraction, &anyFraction, &tu, &dptu );
 			int nRounds = inventory->CalcClipRoundsTotal( wid->GetClipItemDef( (WeaponMode)i) );
 
-			// Never show 100% in the UI:
-			if ( fraction > 0.90f )
-				fraction = 0.90f;
-			if ( anyFraction > 0.90f )
-				anyFraction = 0.90f;
-
 			char buffer0[32];
 			char buffer1[32];
 			SNPrintf( buffer0, 32, "%s %d%%", wid->fireDesc[i], (int)LRintf( anyFraction*100.0f ) );
@@ -1150,10 +1144,10 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 		for( int i=0; i<nShots; ++i ) {
 			Vector3F t = target;
 			if ( useError ) {
-				float d = length * random.Uniform() * unit->GetStats().Accuracy() * useError;
-				Matrix4 m;
-				m.SetAxisAngle( normal, (float)random.Rand( 360 ) );
-				t = target + (m * right)*d;
+				BulletSpread bulletSpread;
+				bulletSpread.Generate( random.Rand(), 
+									   unit->GetStats().Accuracy() * wid->AccuracyBase( mode ) * length,
+									   normal, target, &t );
 			}
 
 			if ( clearMoveIfShoot && !actionStack.Empty() && actionStack.Top().actionID == ACTION_MOVE ) {

@@ -48,6 +48,7 @@ public:
 		ALIEN_1,	// mind zapper
 		ALIEN_2,	// trooper
 		ALIEN_3,	// elite
+		NUM_ALIEN_TYPES
 	};
 
 	enum { 
@@ -84,8 +85,6 @@ public:
 	void UseTU( float val )		{ tu = grinliz::Max( 0.0f, tu-val ); }
 
 	void NewTurn();
-	void SetUserDone()			{ userDone = true; }
-	bool IsUserDone()			{ return userDone; }
 
 	int Status() const			{ return status; }
 	int Team() const			{ return team; }
@@ -165,10 +164,10 @@ private:
 		GENDER,			// 1, 0-1
 		HAIR,			// 2, 0-3
 		SKIN,			// 2, 0-3
-		LAST_NAME,		// 4, 0-15
-		FIRST_NAME,		// 4, 0-15
+		LAST_NAME,		// 5, 0-31
+		FIRST_NAME,		// 5, 0-31
 	};
-	U32 GetValue( int which ) const;	// ALIEN_TYPE, etc.
+	U32 GetValue( int which ) const;
 
 	void CreateModel();
 	void UpdateModel();		// make the model current with the unit status - armor, etc.
@@ -180,7 +179,6 @@ private:
 	int team;		// terran, alien, civ
 	int type;		// type of alien
 	U32 body;		// describes everything! a random #
-	bool userDone;	// ui metaphore - flag if the user is done with this unit
 
 	Game*		game;
 	Engine*		engine;

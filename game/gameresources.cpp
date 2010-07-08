@@ -381,11 +381,12 @@ void Game::LoadItemResources()
 	const float DAM_MED		=  40.0f;
 	const float DAM_MEDHI	=  50.0f;
 	const float DAM_HI		=  60.0f;
+	const float DAM_HIPLUS	=  70.0f;
 	const float DAM_VHI		=  80.0f;
 
 	const float EXDAM_MED   = 100.0f;
-	const float EXDAM_HI	= 180.0f;
-	const float EXDAM_VHI	= 250.0f;
+	const float EXDAM_HI	= 150.0f;
+	const float EXDAM_VHI	= 200.0f;
 
 	const float ACC_LOW		= 1.4f;
 	const float ACC_MEDLOW	= 1.2f;
@@ -501,16 +502,16 @@ void Game::LoadItemResources()
 				"Clip",			0,										DAM_LOW,	ACC_MED,	"ar",
 				0  },
 		{ "AR-1",	"ar1",		DECO_RIFLE,		"Kaliknov Rifle",		FAST, BURST, 0,		SPEED_NORMAL,
-				"AClip",		WEAPON_AUTO,							DAM_LOW,	ACC_MED,	"ar",
+				"AClip",		WEAPON_AUTO,							DAM_MEDLOW,	ACC_MED,	"ar",
 				0  },
 		{ "AR-2",	"ar2",		DECO_RIFLE,		"Glek Rifle",			FAST, BURST, 0,		SPEED_NORMAL,
-				"AClip",		WEAPON_AUTO,							DAM_MEDLOW,	ACC_MED,	"ar",
+				"AClip",		WEAPON_AUTO,							DAM_MED,	ACC_MED,	"ar",
 				0  },
 		{ "AR-3P",	"ar3p",		DECO_RIFLE,		"Pulse Rifle",			FAST, BURST, BOOM,	SPEED_NORMAL,
 				"AClip",		WEAPON_AUTO,							DAM_MEDHI,	ACC_MED,	"ar3p",
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_LOW,	"can" },
 		{ "AR-3L",	"ar3l",		DECO_RIFLE,		"Vera LR",				FAST, AIMED, BOOM,	SPEED_NORMAL,
-				"AClip",		0,										DAM_HI,		ACC_HI,		"ar3l",
+				"AClip",		0,										DAM_HI,		ACC_VHI,	"ar3l",
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_LOW,	"can" },
 		{ "CAN-I",	"cani",		DECO_RIFLE,		"Mini-Canon/Flame",		FAST, BANG, BOOM,	SPEED_SLOW,
 				"AClip",		WEAPON_EXPLOSIVE,						DAM_HI,		ACC_MED,	"can",
@@ -534,7 +535,7 @@ void Game::LoadItemResources()
 				"Cell",			WEAPON_AUTO,							DAM_HI,	ACC_MED,		"plasma",
 				0  },
 		{ "PLS-2",	"pls2",		DECO_RIFLE,		"Heavy Plasma",			FAST, BURST, BOOM,	SPEED_NORMAL,
-				"Cell",			WEAPON_AUTO,							DAM_VHI,	ACC_MED,	"plasma",
+				"Cell",			WEAPON_AUTO,							DAM_HIPLUS,	ACC_MED,	"plasma",
 				"Tachy",		WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_MED,	"nullp", },
 		{ "BEAM",	"beam",		DECO_RIFLE,		"Blade Beam",			FAST, AIMED, 0,		SPEED_FAST,
 				"Cell",			0,										DAM_MEDHI,	ACC_HI,		"beam",
@@ -642,35 +643,23 @@ void Game::LoadItemResources()
 #pragma warning (pop)
 
 		Stats stats;
-		stats.SetSTR( (TRAIT_TERRAN_HIGH + TRAIT_TERRAN_LOW)/2 );
-		stats.SetDEX( (TRAIT_TERRAN_HIGH + TRAIT_TERRAN_LOW)/2 );
-		stats.SetPSY( (TRAIT_TERRAN_HIGH + TRAIT_TERRAN_LOW)/2 );
+		stats.SetSTR( 50 );
+		stats.SetDEX( 50 );
+		stats.SetPSY( 50 );
 		stats.SetRank( 2 );
 
-		const float range[] = { 6.0f, 3.0f, 12.0f };
+		const float range[] = { 4.0f, 8.0f, 16.0f, 0 };
+		const int rank[] = { 0, 2, 4, -1 };
 
-		for( int r=0; r<3; ++r ) {
-			DumpWeaponInfo( fp, range[r], stats, 0 );
+//		const float range[] = { 8.0f, 0 };
+//		const int rank[] = { 0, 4, -1 };
+
+		for( int rankIt=0; rank[rankIt]>=0; ++rankIt ) {
+			for( int rangeIt=0; range[rangeIt]>0; ++rangeIt ) {
+				stats.SetRank( rank[rankIt] );
+				DumpWeaponInfo( fp, range[rangeIt], stats, 0 );
+			}
 		}
-		stats.SetRank( 0 );
-		DumpWeaponInfo( fp, 6.0f, stats, 5 );
-
-		stats.SetRank( 4 );
-		DumpWeaponInfo( fp, 6.0f, stats, 5 );
-
-		fprintf( fp, "\nRandom 32 bit ints:\n" );
-		Random random;
-		for( int i=0; i<10; ++i ) {
-			fprintf( fp, "%d\t%d\t%d\t%d\n", random.Rand(), random.Rand(), random.Rand(), random.Rand() );
-		}
-		fprintf( fp, "\nRandom human traits:\n" );
-		for( int i=0; i<10; ++i ) {
-			fprintf( fp, "%d\t%d\t%d\t%d\n", Stats::GenStat( &random, TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH ),
-											 Stats::GenStat( &random, TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH ),
-											 Stats::GenStat( &random, TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH ),
-											 Stats::GenStat( &random, TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH ) );
-		}
-
 		fclose( fp );
 	}
 #endif
