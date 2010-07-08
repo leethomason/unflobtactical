@@ -65,9 +65,7 @@ const int	MIN_TU				= 6;
 const int	MAX_TU				= 12;		// enforced: used for memory allocation, since this is the max walking
 
 const int	TRAIT_MAX			= 100;
-const int	TRAIT_TERRAN_LOW	= 15;
-const int	TRAIT_TERRAN_HIGH	= 45;		// 30 ave
-const int	TRAIT_RANK_BONUS	= 8;		// how much a trait increases per rank
+const int	TRAIT_RANK_BONUS	= 6;		// how much a trait increases per rank
 const int	NUM_RANKS			= 5;		// 0-4
 const int	NUM_ARMOR			= 3;
 const float	ARM1				= 0.85f;
@@ -78,10 +76,10 @@ const float ARM_EXTRA			= 0.20f;
 const float STANDARD_TARGET_H			= 2.0f;		// roughly meters
 const float STANDARD_TARGET_W			= 0.5f;
 const float ACC_BEST_SHOT				= 0.05f;	// radius of possible shot at distance=1.0
-const float ACC_WORST_SHOT				= 0.25f;
+const float ACC_WORST_SHOT				= 0.35f;
 const float ACC_AIMED_SHOT_MULTIPLIER	= 1.0f;		// LOWER accuracy is better
-const float ACC_AUTO_SHOT_MULTIPLIER	= 1.2f;
-const float ACC_SNAP_SHOT_MULTIPLIER	= 1.3f;
+const float ACC_AUTO_SHOT_MULTIPLIER	= 1.5f;
+const float ACC_SNAP_SHOT_MULTIPLIER	= 2.0f;
 
 const float REACTION_FAST = 0.90f;
 const float REACTION_SLOW = 0.40f;

@@ -18,6 +18,7 @@
 
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
+#include "../grinliz/glvector.h"
 #include "gamelimits.h"
 class TiXmlElement;
 
@@ -61,7 +62,7 @@ public:
 	int TotalHP() const			{ return totalHP; }
 
 	float TotalTU() const	{ return totalTU; }		// one TU is one move
-	float Accuracy() const	{ return accuracy; }	// cone at 1 unit out
+	float Accuracy() const	{ return accuracy; }	// radius at 1 unit out
 	float Reaction() const	{ return reaction; }	// 0.0-1.0. The chance of reaction fire
 
 	void Save( TiXmlElement* doc ) const;
@@ -79,6 +80,22 @@ private:
 	float totalTU;
 	float accuracy;
 	float reaction;
+};
+
+
+
+class BulletSpread
+{
+public:
+	BulletSpread()		{}
+	~BulletSpread()		{}
+
+	void Generate( int seed, grinliz::Vector2F* result );
+	void Generate( int seed, float radius, const grinliz::Vector3F& dir, const grinliz::Vector3F& target, grinliz::Vector3F* targetPrime );
+	float ComputePercent( float radiusAtOne, float distance, float width=1.0f, float height=2.0f );
+private:
+	void Generate( float uniformX, float uniformY, grinliz::Vector2F* result );
+	float Deviation( float x )	{ return (x>=0) ? x*x : -x*x; }		// x [-1,1], returns [-1,1], but skewed to the center. so Dev(0.5) = 0.25
 };
 
 

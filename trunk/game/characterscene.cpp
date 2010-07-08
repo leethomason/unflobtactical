@@ -248,9 +248,6 @@ void CharacterScene::SetCompText()
 				float fraction, fraction2, damage, dptu;
 				wid->FireStatistics( mode, stats.Accuracy(), r, &fraction, &fraction2, &damage, &dptu );
 
-				if ( fraction2 > 0.90f )
-					fraction2 = 0.90f;
-
 				char buf[16];
 
 				SNPrintf( buf, 16, "%s%s", inInventory ? "+" : "-", wid->name );

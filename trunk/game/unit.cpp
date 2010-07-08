@@ -23,67 +23,44 @@
 using namespace grinliz;
 
 // Name first name length: 6
-const char* gMaleFirstNames[16] = 
+const char* gMaleFirstNames[32] = 
 {
-	"Lee",
-	"Jeff",
-	"Sean",
-	"Vlad",
-	"Arnold",
-	"Max",
-	"Otto",
-	"James",
-	"Jason",
-	"John",
-	"Hans",
-	"Rupen",
-	"Ping",
-	"Yoshi",
-	"Ishal",
-	"Roy",
+	"Lee",		"Jeff",		"Sean",		"Vlad",
+	"Arnold",	"Max",		"Otto",		"James",
+	"Jason",	"John",		"Hans",		"Rupen",
+	"Ping",		"Yoshi",	"Ishal",	"Roy",
+	"Eric",		"Jack",		"Dutch",	"Joe",
+	"Asher",	"Andrew",	"Adam",		"Thane",
+	"Seth",		"Nathan",	"Mal",		"Simon",
+	"Joss",		"Mark",		"Luke",		"Alec",
 };
 
 // Name first name length: 6
-const char* gFemaleFirstNames[16] = 
+const char* gFemaleFirstNames[32] = 
 {
-	"Rayne",
-	"Anne",
-	"Jade",
-	"Suzie",
-	"Greta",
-	"Lilith",
-	"Luna",
-	"Riko",
-	"Jane",
-	"Sarah",
-	"Jane",
-	"Ashley",
-	"Liara",
-	"Rissa",
-	"Lea",
-	"Dahlia"
+	"Rayne",	"Anne",		"Jade",		"Suzie",
+	"Greta",	"Lilith",	"Luna",		"Riko",
+	"Jane",		"Sarah",	"Jane",		"Ashley",
+	"Liara",	"Rissa",	"Lea",		"Dahlia",
+	"Abby",		"Liz",		"Tali",		"Tricia",
+	"Gina",		"Zoe",		"Inara",	"River",
+	"Ellen",	"Asa",		"Kasumi",	"Tia",
+	"Liza",		"Eva",		"Sharon",	"Evie",
 };
 
 
 // Name last name length: 6
-const char* gLastNames[16] = 
+const char* gLastNames[32] = 
 {
-	"Payne",
-	"Havok",
-	"Fury",
-	"Scharz",
-	"Bourne",
-	"Bond",
-	"Smith",
-	"Andson",
-	"Dekard",
-	"Jones",
-	"Solo",
-	"Skye",
-	"Picard",
-	"Kirk",
-	"Spock",
-	"Willis"
+	"Payne",	"Havok",	"Fury",		"Scharz",
+	"Bourne",	"Bond",		"Smith",	"Andson",
+	"Dekard",	"Jones",	"Solo",		"Skye",
+	"Picard",	"Kirk",		"Spock",	"Willis",
+	"Red",		"Marsen",	"Baldwin",	"Black",
+	"Blume",	"Green",	"Hale",		"Serra",
+	"Cobb",		"Frye",		"Book",		"Wedon",
+	"Ford",		"Fisher",	"Weaver",	"Hicks",
+
 };
 
 
@@ -98,7 +75,7 @@ const char* gRank[NUM_RANKS] = {
 
 U32 Unit::GetValue( int which ) const
 {
-	const int NBITS[] = { 1, 2, 2, 4, 4 };
+	const int NBITS[] = { 1, 2, 2, 5, 5 };
 
 	int i;
 	U32 shift = 0;
@@ -146,11 +123,17 @@ const char* Unit::Rank() const
 {
 	Vector2I str, dex, psy;
 
+	static const int SOLDIER_MEAN = 50;
+	static const int ALIEN_MEAN = 75;
+	static const int CIV_MEAN = 25;
+	static const int VARIATION = 25;
+
+
 	switch ( team ) {
 		case TERRAN_TEAM:
-			str.Set( TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH );
-			dex.Set( TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH );
-			psy.Set( TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH );
+			str.Set( SOLDIER_MEAN-VARIATION, SOLDIER_MEAN+VARIATION );
+			dex.Set( SOLDIER_MEAN-VARIATION, SOLDIER_MEAN+VARIATION );
+			psy.Set( SOLDIER_MEAN-VARIATION, SOLDIER_MEAN+VARIATION );
 			break;
 
 		case ALIEN_TEAM:
@@ -158,27 +141,27 @@ const char* Unit::Rank() const
 				switch( type ) {
 					case 0:
 						// Grey. Similar to human, a little weaker & smarter.
-						str.Set( TRAIT_TERRAN_LOW/2, TRAIT_TERRAN_HIGH/2 );
-						dex.Set( TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH );
-						psy.Set( TRAIT_TERRAN_LOW*15/10, TRAIT_TERRAN_HIGH*15/10 );
+						str.Set( SOLDIER_MEAN-VARIATION, SOLDIER_MEAN );
+						dex.Set( SOLDIER_MEAN-VARIATION, SOLDIER_MEAN+VARIATION );
+						psy.Set( ALIEN_MEAN-VARIATION, ALIEN_MEAN+VARIATION );
 						break;
 					case 1:
 						// Mind-slayer
-						str.Set( TRAIT_TERRAN_LOW/2, TRAIT_TERRAN_HIGH/2 );
-						dex.Set( TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH );
-						psy.Set( TRAIT_TERRAN_HIGH, TRAIT_MAX );
+						str.Set( SOLDIER_MEAN-VARIATION, SOLDIER_MEAN );
+						dex.Set( SOLDIER_MEAN-VARIATION, SOLDIER_MEAN+VARIATION );
+						psy.Set( ALIEN_MEAN-VARIATION, ALIEN_MEAN+VARIATION  );
 						break;
 					case 2:
 						// Assault
-						str.Set( TRAIT_TERRAN_LOW*15/10, TRAIT_MAX );
-						dex.Set( TRAIT_TERRAN_LOW*15/10, TRAIT_TERRAN_HIGH*15/10 );
-						psy.Set( TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH );
+						str.Set( ALIEN_MEAN-VARIATION, ALIEN_MEAN+VARIATION  );
+						dex.Set( ALIEN_MEAN-VARIATION, ALIEN_MEAN+VARIATION  );
+						psy.Set( SOLDIER_MEAN-VARIATION, SOLDIER_MEAN );
 						break;
 					case 3:
 						// Elite.
-						str.Set( TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH );
-						dex.Set( TRAIT_TERRAN_LOW, TRAIT_TERRAN_HIGH );
-						psy.Set( TRAIT_TERRAN_HIGH, TRAIT_MAX );
+						str.Set( ALIEN_MEAN-VARIATION, ALIEN_MEAN+VARIATION );
+						dex.Set( ALIEN_MEAN-VARIATION, ALIEN_MEAN+VARIATION );
+						psy.Set( ALIEN_MEAN-VARIATION, ALIEN_MEAN+VARIATION );
 						break;
 					default:
 						GLASSERT( 0 );
@@ -188,9 +171,9 @@ const char* Unit::Rank() const
 			break;
 
 		case CIV_TEAM:
-			str.Set( TRAIT_TERRAN_LOW/2, TRAIT_TERRAN_HIGH/2 );
-			dex.Set( TRAIT_TERRAN_LOW/2, TRAIT_TERRAN_HIGH/2 );
-			psy.Set( TRAIT_TERRAN_LOW/2, TRAIT_TERRAN_HIGH/2 );
+			str.Set( CIV_MEAN, CIV_MEAN );
+			dex.Set( CIV_MEAN, CIV_MEAN );
+			psy.Set( CIV_MEAN, CIV_MEAN );
 			break;
 
 		default:
@@ -224,7 +207,6 @@ void Unit::Init(	Engine* engine,
 
 	weapon = 0;
 	visibilityCurrent = false;
-	userDone = false;
 	ai = AI_NORMAL;
 
 	if ( p_status == STATUS_ALIVE ) {
@@ -454,8 +436,15 @@ void Unit::DoDamage( const DamageDesc& damage, Map* map )
 	GLASSERT( status != STATUS_NOT_INIT );
 	if ( status == STATUS_ALIVE ) {
 
+		int baseArmor = 0;
+
+		if ( team == ALIEN_TEAM ) {
+			static const int bonus[NUM_ALIEN_TYPES] = { 0, 1, 3, 2 };
+			baseArmor = bonus[ AlienType() ];
+		}
+
 		DamageDesc norm;
-		inventory.GetDamageReduction( &norm );
+		inventory.GetDamageReduction( &norm, baseArmor );
 
 		float damageDone = damage.Dot( norm );
 
@@ -472,7 +461,6 @@ void Unit::NewTurn()
 {
 	if ( status == STATUS_ALIVE ) {
 		tu = stats.TotalTU();
-		userDone = false;
 	}
 }
 

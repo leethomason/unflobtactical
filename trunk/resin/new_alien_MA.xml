@@ -1,5 +1,5 @@
 	<Unit team="2" type="0" status="1">
-	<Stats level="0" />
+	<Stats level="2" />
 	<Inventory>
 		<Item name="RAY-2" />
 		<Item name="Cell" />
@@ -9,7 +9,7 @@
 	</Inventory>
 </Unit>
 <Unit team="2" type="0" status="1">
-	<Stats level="0" />
+	<Stats level="2" />
 	<Inventory>
 		<Item name="RAY-2" />
 		<Item name="Cell" />
@@ -19,7 +19,7 @@
 	</Inventory>
 </Unit>
 <Unit team="2" type="1" status="1">
-	<Stats level="0" />
+	<Stats level="1" />
 	<Inventory>
 		<Item name="RAY-3" />
 		<Item name="Cell" />
@@ -29,7 +29,7 @@
 	</Inventory>
 </Unit>
 <Unit team="2" type="1" status="1">
-	<Stats level="0" />
+	<Stats level="3" />
 	<Inventory>
 		<Item name="PLS-1" />
 		<Item name="Cell" />
@@ -40,7 +40,7 @@
 </Unit>
 
 <Unit team="2" type="2" status="1">
-	<Stats level="0" />
+	<Stats level="3" />
 	<Inventory>
 		<Item name="PLS-2" />
 		<Item name="Cell" />
@@ -51,7 +51,7 @@
 	</Inventory>
 </Unit>
 <Unit team="2" type="2" status="1">
-	<Stats level="0" />
+	<Stats level="2" />
 	<Inventory>
 		<Item name="PLS-2" />
 		<Item name="Cell" />
@@ -62,7 +62,7 @@
 	</Inventory>
 </Unit>
 <Unit team="2" type="2" status="1" ai="guard" >
-	<Stats level="0" />
+	<Stats level="2" />
 	<Inventory>
 		<Item name="BEAM" />
 		<Item name="Cell" />
@@ -72,7 +72,7 @@
 	</Inventory>
 </Unit>
 <Unit team="2" type="3" status="1" ai="guard" >
-	<Stats level="0" />
+	<Stats level="2" />
 	<Inventory>
 		<Item name="PLS-1" />
 		<Item name="Cell" />
