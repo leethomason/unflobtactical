@@ -91,23 +91,23 @@ void BulletSpread::Generate( float uniformX, float uniformY, grinliz::Vector2F* 
 }
 
 
-void BulletSpread::Generate( int seed, grinliz::Vector2F* result )
+void BulletSpread::Generate( U32 seed, grinliz::Vector2F* result )
 {
 	const static float MULT = 1.f / 65535.f;
 
-	float x	= -1.0f + 2.0f * ((float)((U32)seed & 0xffff) * MULT);
-	float y	= -1.0f + 2.0f * ((float)((U32)(seed>>16)) * MULT);
+	float x	= -1.0f + 2.0f * ((float)(seed & 0xffff) * MULT);
+	float y	= -1.0f + 2.0f * ((float)(seed>>16) * MULT);
 
 	Generate( x, y, result );
 }
 
 
-void BulletSpread::Generate( int seed, float radius, const grinliz::Vector3F& dir, const grinliz::Vector3F& target,  grinliz::Vector3F* targetPrime )
+void BulletSpread::Generate( U32 seed, const Accuracy& accuracy, float distance, const grinliz::Vector3F& dir, const grinliz::Vector3F& target,  grinliz::Vector3F* targetPrime )
 {
 	Vector2F spread;
 	Generate( seed, &spread );
-	spread.x *= radius;
-	spread.y *= radius;
+	spread.x *= distance * accuracy.RadiusAtOne();
+	spread.y *= distance * accuracy.RadiusAtOne();
 
 	Vector3F normal = dir; 
 	normal.Normalize();
@@ -120,7 +120,7 @@ void BulletSpread::Generate( int seed, float radius, const grinliz::Vector3F& di
 }
 
 
-float BulletSpread::ComputePercent( float radius, float distance, float width, float height )
+float BulletSpread::ComputePercent( const Accuracy& accuracy, float distance, float width, float height )
 {
 	enum { X = 6, Y = 8 };
 	static const char map[X*Y+1] =	"  xx  "
@@ -145,8 +145,8 @@ float BulletSpread::ComputePercent( float radius, float distance, float width, f
 			Generate( x0, y0, &v );
 
 			Vector2F pos;
-			pos.x = center.x + v.x*radius*distance;
-			pos.y = center.y + v.y*radius*distance;
+			pos.x = center.x + v.x*distance*accuracy.RadiusAtOne();
+			pos.y = center.y + v.y*distance*accuracy.RadiusAtOne();
 
 			if ( pos.x > 0 && pos.x < width && pos.y > 0 && pos.y < height ) {
 				int mx = (int)( pos.x*float(X) / width );

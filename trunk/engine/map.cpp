@@ -66,6 +66,12 @@ Map::Map( SpaceTree* tree )
 	walkingMap.Init( &overlay0 );
 	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
 
+	gamui::RenderAtom borderAtom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_DARK, 1, 1, true );
+	borderAtom.renderState = (const void*) UIRenderer::RENDERSTATE_TRUE_OPAQUE;
+	for( int i=0; i<4; ++i ) {
+		border[i].Init( &overlay1, borderAtom );
+	}
+
 	//texture.Set( "MapBackground", 0, false );
 	TextureManager* texman = TextureManager::Instance();
 	backgroundTexture = texman->CreateTexture( "MapBackground", MAP_TEXTURE_SIZE, MAP_TEXTURE_SIZE, Surface::RGB16, 0, this );
@@ -119,6 +125,26 @@ Map::~Map()
 	Clear();
 	delete microPather;
 }
+
+
+void Map::SetSize( int w, int h )					
+{
+	width = w; 
+	height = h; 
+	
+	border[0].SetPos( -1, -1 );
+	border[0].SetSize( (float)(w+2), 1 );
+
+	border[1].SetPos( -1, (float)h );
+	border[1].SetSize( (float)(w+2), 1 );
+
+	border[2].SetPos( -1, 0 );
+	border[2].SetSize( 1, (float)h );
+
+	border[3].SetPos( (float)w, 0 );
+	border[3].SetSize( 1, (float)h );
+}
+
 
 
 void Map::Clear()
@@ -2004,11 +2030,19 @@ void Map::BeginRenderState( const void* renderState )
 {
 	const float ALPHA = 0.5f;
 	switch( (int)renderState ) {
+		case UIRenderer::RENDERSTATE_TRUE_OPAQUE:
+			glColor4f( 1, 1, 1, 1 );
+			glDisable( GL_BLEND );
+			break;
+
 		case UIRenderer::RENDERSTATE_NORMAL:
 			glColor4f( 1.0f, 1.0f, 1.0f, ALPHA );
+			glEnable( GL_BLEND );
 			break;
+
 		case UIRenderer::RENDERSTATE_OPAQUE:
 			glColor4f( 1, 1, 1, 0.8f );
+			glEnable( GL_BLEND );
 			break;
 		default:
 			GLASSERT( 0 );

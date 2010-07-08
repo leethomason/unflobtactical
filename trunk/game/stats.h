@@ -83,6 +83,19 @@ private:
 };
 
 
+// It is crazy difficult to keep accuracy correct through the system, when just a float. Use
+// a class to enforce type. Can only be computed in one place - the WeaponItemDef.
+class Accuracy {
+public:
+	friend class WeaponItemDef;
+	Accuracy() : radiusAtOne( 0 ) {}
+
+	float RadiusAtOne() const { return radiusAtOne; }
+private:
+	Accuracy( float radAtOne ) : radiusAtOne( radAtOne ) {}
+	float radiusAtOne;
+};
+
 
 class BulletSpread
 {
@@ -90,9 +103,9 @@ public:
 	BulletSpread()		{}
 	~BulletSpread()		{}
 
-	void Generate( int seed, grinliz::Vector2F* result );
-	void Generate( int seed, float radius, const grinliz::Vector3F& dir, const grinliz::Vector3F& target, grinliz::Vector3F* targetPrime );
-	float ComputePercent( float radiusAtOne, float distance, float width=1.0f, float height=2.0f );
+	void Generate( U32 seed, grinliz::Vector2F* result );
+	void Generate( U32 seed, const Accuracy& accuracy, float distance, const grinliz::Vector3F& dir, const grinliz::Vector3F& target, grinliz::Vector3F* targetPrime );
+	float ComputePercent( const Accuracy& accuracy, float distance, float width=0.6f, float height=1.8f );
 private:
 	void Generate( float uniformX, float uniformY, grinliz::Vector2F* result );
 	float Deviation( float x )	{ return (x>=0) ? x*x : -x*x; }		// x [-1,1], returns [-1,1], but skewed to the center. so Dev(0.5) = 0.25

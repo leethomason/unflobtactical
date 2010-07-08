@@ -161,19 +161,34 @@ gamui::RenderAtom UIRenderer::CalcIconAtom( int id, bool enabled )
 }
 
 
-gamui::RenderAtom UIRenderer::CalcPaletteAtom( int id, float w, float h, bool enabled )
+gamui::RenderAtom UIRenderer::CalcPaletteAtom( int c0, int c1, int blend, float w, float h, bool enabled )
 {
 	Vector2I c = { 0, 0 };
 	Texture* texture = TextureManager::Instance()->GetTexture( "palette" );
 
-	switch ( id ) {
-	case PALETTE_RED:			c.Set( 174, 174 );			break;
-	case PALETTE_GREEN:			c.Set( 74, 74 );			break;
-	case PALETTE_BRIGHT_GREEN:	c.Set( 12, 79 );			break;
-	case PALETTE_DARK_GREY:		c.Set( 34, 277 );			break;
-	default: GLASSERT( 0 );									break;
-	}
+	static const int offset[5] = { 75, 125, 175, 225, 275 };
+	static const int subOffset[3] = { 0, -12, 12 };
 
+	if ( blend == PALETTE_NORM ) {
+		if ( c1 > c0 )
+			Swap( &c1, &c0 );
+		c.x = offset[c0];
+		c.y = offset[c1];
+	}
+	else {
+		if ( c0 > c1 )
+			Swap( &c0, &c1 );
+
+		if ( c0 == c1 ) {
+			// first column special:
+			c.x = 25 + subOffset[blend];
+			c.y = offset[c1];
+		}
+		else {
+			c.x = offset[c0] + subOffset[blend];;
+			c.y = offset[c1];
+		}
+	}
 	gamui::RenderAtom atom( enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED, texture, 0, 0, 0, 0, w, h );
 	SetAtomCoordFromPixel( c.x, c.y, c.x, c.y, 300, 300, &atom );
 	return atom;
