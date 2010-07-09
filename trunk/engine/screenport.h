@@ -97,9 +97,6 @@ public:
 
 	const Frustum&		    GetFrustum()		{ GLASSERT( uiMode == false ); return frustum; }
 
-	//void ViewToUI( int vX, int vY, int* uiX, int* uiY ) const;
-	//void ViewToGUI( int x0, int y0, float *x1, float *y1 ) const;
-
 	float UIWidth() const									{ return (rotation&1) ? screenHeight : screenWidth; }
 	float UIHeight() const									{ return (rotation&1) ? screenWidth : screenHeight; }
 	const grinliz::Rectangle2F& UIBoundsClipped3D() const	{ return clipInUI3D; }
@@ -113,7 +110,6 @@ private:
 
 	
 	void UIToWindow( const grinliz::Rectangle2F& ui, grinliz::Rectangle2F* clip ) const;
-	//void SetViewport( const grinliz::Rectangle2I* uiClip );
 
 	int rotation;		
 	float screenWidth; 

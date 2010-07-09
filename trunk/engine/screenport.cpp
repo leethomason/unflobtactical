@@ -144,14 +144,14 @@ void Screenport::SetPerspective( float near, float far, float fovDegrees, const 
 	uiMode = false;
 
 	if ( clip ) {
-		clipInUI2D.Set( (float)clip->min.x, (float)clip->min.x, (float)clip->max.x, (float)clip->max.y );
+		clipInUI3D.Set( (float)clip->min.x, (float)clip->min.y, (float)clip->max.x, (float)clip->max.y );
 	}
 	else {
 		clipInUI3D.Set( 0, 0, UIWidth(), UIHeight() );
 	}
 	GLASSERT( clipInUI3D.IsValid() );
-	GLASSERT( clipInUI3D.min.x >= 0 && clipInUI3D.max.x < UIWidth() );
-	GLASSERT( clipInUI3D.min.y >= 0 && clipInUI3D.max.y < UIHeight() );
+	GLASSERT( clipInUI3D.min.x >= 0 && clipInUI3D.max.x <= UIWidth() );
+	GLASSERT( clipInUI3D.min.y >= 0 && clipInUI3D.max.y <= UIHeight() );
 	
 	Rectangle2F scissor;
 	UIToWindow( clipInUI2D,  &scissor );
@@ -201,7 +201,6 @@ void Screenport::SetPerspective( float near, float far, float fovDegrees, const 
 	// Give the driver hints:
 	glLoadIdentity();
 	glFrustumfX( frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.zNear, frustum.zFar );
-	//glOrthofX( frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.zNear, frustum.zFar );
 	
 	glMatrixMode(GL_MODELVIEW);	
 	CHECK_GL_ERROR;
@@ -260,14 +259,9 @@ bool Screenport::ViewToWorld( const grinliz::Vector2F& v, const grinliz::Matrix4
 		mvp.Invert( &mvpi );
 	}
 
-	Vector2F v0, v1;
-	Rectangle2F clipInView;
-	UIToView( clipInUI3D.min, &v0 );
-	UIToView( clipInUI3D.max, &v1 ); 
-	clipInView.FromPair( v0.x, v0.y, v1.x, v1.y );
-
-	Vector4F in = { (v.x - (float)(clipInView.min.x))*2.0f / (float)clipInView.Width() - 1.0f,
-					(v.y - (float)(clipInView.min.y))*2.0f / (float)clipInView.Height() - 1.0f,
+	// View normalized:
+	Vector4F in = { 2.0f * v.x / screenWidth - 1.0f,
+					2.0f * v.y / screenHeight - 1.0f,
 					0.f, //v.z*2.0f-1.f,
 					1.0f };
 
@@ -290,29 +284,6 @@ bool Screenport::ViewToWorld( const grinliz::Vector2F& v, const grinliz::Matrix4
 	return true;
 }
 
-
-/*
-void Screenport::ScreenToWorld( int x, int y, Ray* world ) const
-{
-	//GLOUTPUT(( "ScreenToWorld(upper) %d,%d\n", x, y ));
-
-	Vector2I v;
-	ScreenToView( x, y, &v );
-
-	Matrix4 mvpi;
-	ViewProjectionInverse3D( &mvpi );
-
-	Vector3F win0 = { (float)v.x, (float)v.y, 0 };
-	Vector3F win1 = { (float)v.x, (float)v.y, 1 };
-	Vector3F p0, p1;
-
-	ViewToWorld( win0, mvpi, &p0 );
-	ViewToWorld( win1, mvpi, &p1 );
-
-	world->origin = p0;
-	world->direction = p1 - p0;
-}
-*/
 
 void Screenport::WorldToView( const grinliz::Vector3F& world, grinliz::Vector2F* v ) const
 {
@@ -339,15 +310,6 @@ void Screenport::WorldToView( const grinliz::Vector3F& world, grinliz::Vector2F*
 						1.0f,  (float)clipInView.max.y,
 						r.y/r.w );
 }
-
-/*
-void Screenport::WorldToGUI( const grinliz::Vector3F& p, grinliz::Vector2F* ui ) const
-{
-	Vector2F v;
-	WorldToScreen( p, &v );
-	ViewToGUI( LRintf(v.x), LRintf(v.y), &ui->x, &ui->y );
-}
-*/
 
 
 void Screenport::ViewToWindow( const Vector2F& view, Vector2F* window ) const
@@ -377,22 +339,3 @@ void Screenport::UIToWindow( const grinliz::Rectangle2F& ui, grinliz::Rectangle2
 	ViewToWindow( v, &w );
 	clip->DoUnion( w );
 }
-
-
-/*
-void Screenport::SetViewport( const grinliz::Rectangle2I* uiClip )
-{
-	if ( uiClip ) {
-		Rectangle2I scissor;
-		UIToScissor( uiClip->min.x, uiClip->min.y, uiClip->Width(), uiClip->Height(), &scissor );
-
-		glEnable( GL_SCISSOR_TEST );
-		glScissor( scissor.min.x, scissor.min.y, scissor.Width(), scissor.Height() );
-		glViewport( scissor.min.x, scissor.min.y, scissor.Width(), scissor.Height() );
-	}
-	else {
-		glDisable( GL_SCISSOR_TEST );
-	}
-	CHECK_GL_ERROR;
-}
-*/
