@@ -52,21 +52,10 @@ void Screenport::Resize( int w, int h, int r )
 	if ( (rotation&1) == 0 ) {
 		screenHeight = 320.0f;
 		screenWidth = screenHeight * physicalWidth / physicalHeight;
-//		if ( physicalWidth / physicalHeight > 480.0f/320.0f ) {
-//			screenWidth = 480.0f;
-//			screenHeight = screenWidth * physicalHeight / physicalWidth;
-//		}
-//		else {
-//			screenHeight = 320.0f;
-//			screenWidth = screenHeight * physicalWidth / physicalHeight;
-//		};
-//		GLASSERT( screenWidth <= 480.0f );
-//		GLASSERT( screenHeight <= 320.0f );
 	}
 	else {
-		GLASSERT( 0 );
-		screenHeight = screenWidth * physicalHeight / physicalWidth;
 		screenWidth  = 320.0f;
+		screenHeight = screenWidth * physicalHeight / physicalWidth;
 	}
 
 	GLOUTPUT(( "Screenport::Resize physical=(%.1f,%.1f) view=(%.1f,%.1f) rotation=%d\n", physicalWidth, physicalHeight, screenWidth, screenHeight, r ));
@@ -172,6 +161,8 @@ void Screenport::SetPerspective( float near, float far, float fovDegrees, const 
 
 	// left, right, top, & bottom are on the near clipping
 	// plane. (Not an obvious point to my mind.)
+
+	// Also, the 3D camera applies the rotation.
 	
 	if ( Rotation() & 1 ) {
 		float ratio = (float)clipInUI3D.Height() / (float)clipInUI3D.Width();
@@ -207,18 +198,17 @@ void Screenport::SetPerspective( float near, float far, float fovDegrees, const 
 }
 
 
-void Screenport::ViewToUI( const grinliz::Vector2F& in, grinliz::Vector2F* ui ) const
+void Screenport::ViewToUI( const grinliz::Vector2F& view, grinliz::Vector2F* ui ) const
 {
 	switch ( rotation ) {
-		case 0:
-			ui->x = in.x;
-			ui->y = (screenHeight-1.0f-in.y);
+		case 0:	
+			ui->x = view.x;
+			ui->y = screenHeight-view.y;
 			break;
 
 		case 1:
-			GLASSERT( 0 );
-			ui->x = in.y;
-			ui->y = in.x;
+			ui->x = screenHeight - view.y;
+			ui->y = screenWidth - view.x;
 			break;
 
 		default:
@@ -228,17 +218,16 @@ void Screenport::ViewToUI( const grinliz::Vector2F& in, grinliz::Vector2F* ui ) 
 }
 
 
-void Screenport::UIToView( const grinliz::Vector2F& in, grinliz::Vector2F* out ) const
+void Screenport::UIToView( const grinliz::Vector2F& ui, grinliz::Vector2F* view ) const
 {
 	switch ( rotation ) {
 		case 0:
-			out->x = in.x;
-			out->y = (screenHeight-in.y);
+			view->x = ui.x;
+			view->y = screenHeight-ui.y;
 			break;
 		case 1:
-			GLASSERT( 0 );	// fixme
-//			out->x = (LRintf(screenWidth)-1)-in.y;
-//			out->y = in.x;
+			view->x = screenWidth - ui.y;
+			view->y = screenHeight - ui.x;
 			break;
 		default:
 			GLASSERT( 0 );
