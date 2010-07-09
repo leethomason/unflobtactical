@@ -605,11 +605,6 @@ int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I*
 	clip2D->SetInvalid();
 	return RENDER_3D | RENDER_2D; 
 #else
-	//clip3D->Set( 100, 0, 400, 150 );
-	//clip3D->Set( 100, 0, 100+240, 160 );
-	//clip3D->SetInvalid();
-	//clip3D->Set( 100, 0, 400, 250 );
-
 	Vector2F size;
 	size.x = menuImage.Width();
 	size.y = menuImage.Height();
@@ -2139,7 +2134,7 @@ void BattleScene::Tap(	int tap,
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world )
 {
-	/*
+#if 1
 	{
 		// Test projections.
 		Vector3F pos;
@@ -2149,8 +2144,9 @@ void BattleScene::Tap(	int tap,
 		Color4F cv = { 0, 0, 0, 0 };
 		ParticleSystem::Instance()->EmitOnePoint( c, cv, pos, 1500 );
 	}
-	*/
-	/*{
+#endif
+#if 0
+	{
 		// Test Sound.
 		int size=0;
 		const gamedb::Reader* reader = game->GetDatabase();
@@ -2160,7 +2156,8 @@ void BattleScene::Tap(	int tap,
 		const void* snd = reader->AccessData( item, "binary", &size );
 		GLASSERT( snd );
 		PlayWAVSound( snd, size );
-	}*/
+	}
+#endif
 
 	if ( tap > 1 )
 		return;

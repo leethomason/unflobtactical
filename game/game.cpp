@@ -415,7 +415,7 @@ void Game::DoTick( U32 _currentTime )
 	if ( renderPass & Scene::RENDER_3D ) {
 		//	r.Set( 100, 50, 300, 50+200*320/480 );
 		//	r.Set( 100, 50, 300, 150 );
-		screenport.SetPerspective( 2.f, 240.f, 20.f, clip3D.IsValid() ? &clip3D : 0 );
+		screenport.SetPerspective( 2.f, 240.f, 20.f*(screenport.UIWidth()/screenport.UIHeight())*320.0f/480.0f, clip3D.IsValid() ? &clip3D : 0 );
 
 #ifdef MAPMAKER
 		if ( showPathing ) 
@@ -519,6 +519,7 @@ void Game::Tap( int tap, int wx, int wy )
 	Vector2F window = { (float)wx, (float)wy };
 	Vector2F view;
 	screenport.WindowToView( window, &view );
+
 	grinliz::Ray world;
 	screenport.ViewToWorld( view, 0, &world );
 
