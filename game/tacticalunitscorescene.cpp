@@ -111,8 +111,8 @@ void TacticalUnitScoreScene::DrawHUD()
 
 
 void TacticalUnitScoreScene::Tap(	int count, 
-							const grinliz::Vector2I& screen,
-							const grinliz::Ray& world )
+									const grinliz::Vector2F& screen,
+									const grinliz::Ray& world )
 {
 /*	float ux, uy;
 	GetEngine()->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );

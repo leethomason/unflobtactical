@@ -39,10 +39,8 @@
 const int multisample = 2;
 bool fullscreen = false;
 int rotation = 0;
-float vpMX = 1.0f;
-float vpMY = 1.0f;
-int vpX = 0;
-int vpY = 0;
+int screenWidth = 0;
+int screenHeight = 0;
 
 void ScreenCapture( const char* baseFilename );
 
@@ -50,10 +48,15 @@ void ScreenCapture( const char* baseFilename );
 void TransformXY( int x0, int y0, int* x1, int* y1 )
 {
 	// As a way to do scaling outside of the core, translate all
-	// the mouse coordinates so that they are reported in "standard"
-	// pixel units.
-	*x1 = (int)((float)(x0 - vpX)*vpMX);
-	*y1 = (int)((float)(y0 - vpY)*vpMY);
+	// the mouse coordinates so that they are reported in opengl
+	// window coordinates.
+	if ( rotation == 0 ) {
+		*x1 = x0;
+		*y1 = screenHeight-1-y0;
+	}
+	else {
+		GLASSERT( 0 );
+	}
 }
 
 
@@ -103,21 +106,23 @@ int main( int argc, char **argv )
 
 	if ( fullscreen )
 		videoFlags |= SDL_FULLSCREEN;
+	else
+		videoFlags |= SDL_RESIZABLE;
 
 	//int width = IPOD_SCREEN_HEIGHT*2;
 	//int height = IPOD_SCREEN_WIDTH*2;
-	int width = IPOD_SCREEN_HEIGHT;
-	int height = IPOD_SCREEN_WIDTH;
+	screenWidth = IPOD_SCREEN_HEIGHT;
+	screenHeight = IPOD_SCREEN_WIDTH;
 
 	const SDL_VideoInfo* video = SDL_GetVideoInfo();
-	if ( video->current_h < height*4/3 ) {
-		width = IPOD_SCREEN_HEIGHT;
-		height = IPOD_SCREEN_WIDTH;
+	if ( video->current_h < screenHeight*4/3 ) {
+		screenWidth = IPOD_SCREEN_HEIGHT;
+		screenHeight = IPOD_SCREEN_WIDTH;
 	}
 
 	// Note that our output surface is rotated from the iPod.
 	//surface = SDL_SetVideoMode( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, 32, videoFlags );
-	surface = SDL_SetVideoMode( width, height, 32, videoFlags );
+	surface = SDL_SetVideoMode( screenWidth, screenHeight, 32, videoFlags );
 	GLASSERT( surface );
 
 	int stencil = 0;
@@ -144,34 +149,6 @@ int main( int argc, char **argv )
 	GLLOG(( "OpenGL vendor: '%s'  Renderer: '%s'  Version: '%s'\n", vendor, renderer, version ));
 	Audio_Init();
 
-	// Set the viewport to be the entire window. It would be
-	// desireable to accomidate changes to the aspect ration,
-	// but for now constrain so the assets don't warp.
-	{
-		const int W = IPOD_SCREEN_HEIGHT;
-		const int H = IPOD_SCREEN_WIDTH;
-		
-		int w0 = surface->w;
-		int h0 = surface->w * H / W;
-		int extraH0 = surface->h - h0;
-
-		int w1 = surface->h * W / H;
-		int h1 = surface->h;
-		int extraW1 = surface->w - h1;
-
-		if ( extraH0 >= 0 ) {
-			vpMX = (float)W / (float)w0;
-			vpMY = (float)H / (float)h0;
-			vpY = extraH0/2;
-		    glViewport(0, extraH0/2, w0, h0 );
-		}
-		else {
-			vpMX = (float)W / (float)w1;
-			vpMY = (float)H / (float)h1;
-			vpX = extraW1/2;
-		    glViewport(extraW1/2, 0, w1, h1 );
-		}
-	}
 	
 	bool done = false;
 	bool dragging = false;
@@ -214,14 +191,29 @@ int main( int argc, char **argv )
 	{
 		switch( event.type )
 		{
+			case SDL_VIDEORESIZE:
+				screenWidth = event.resize.w;
+				screenHeight = event.resize.h;
+				surface = SDL_SetVideoMode( screenWidth, screenHeight, 32, videoFlags );
+				GameDeviceLoss( game );
+				GameResize( game, event.resize.w, event.resize.h, rotation );
+				break;
+
 			case SDL_KEYDOWN:
 			{
 				SDLMod sdlMod = SDL_GetModState();
 
 				switch ( event.key.keysym.sym )
 				{
+#ifdef DEBUG
 					case SDLK_ESCAPE:
 						done = true;
+						break;
+#endif
+
+					case SDLK_F4:
+						if ( sdlMod & ( KMOD_RALT | KMOD_LALT ) )
+							done = true;
 						break;
 
 					case SDLK_KP_PLUS:
@@ -343,6 +335,7 @@ int main( int argc, char **argv )
 
 			case SDL_MOUSEBUTTONUP:
 			{
+				GLOUTPUT(( "event %d,%d\n", event.button.x, event.button.y ));
 				int x, y;
 				TransformXY( event.button.x, event.button.y, &x, &y );
 

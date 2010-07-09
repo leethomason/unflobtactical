@@ -25,6 +25,9 @@ extern "C" {
 void* NewGame( int width, int height, int rotation, const char* savePath );
 void DeleteGame( void* handle );
 
+void GameDeviceLoss( void* handle );
+void GameResize( void* handle, int width, int height, int rotation );
+
 // Input
 // Mimics the iPhone input. UFOAttack procesess:
 //		Touch and drag. (scrolling, movement)

@@ -3,6 +3,7 @@
 #include "surface.h"
 
 #include "../grinliz/glstringutil.h"
+using namespace grinliz;
 
 // Optimizing texture memory.
 // F5 -> Continue -> NextChar, Help->Next
@@ -39,10 +40,23 @@ TextureManager::TextureManager( const gamedb::Reader* reader )
 
 TextureManager::~TextureManager()
 {
+	DeviceLoss();
+}
+
+
+void TextureManager::DeviceLoss()
+{
+	ContextShift();
+
 	for( unsigned i=0; i<gpuMemArr.Size(); ++i ) {
 		if ( gpuMemArr[i].glID ) {
 			glDeleteTextures( 1, (const GLuint*) &gpuMemArr[i].glID );
 		}
+	}
+	gpuMap.Clear();
+	gpuMemArr.Clear();
+	for( unsigned i=0; i<textureArr.Size(); ++i ) {
+		textureArr[i].gpuMem = 0;
 	}
 }
 
@@ -71,7 +85,7 @@ Texture* TextureManager::GetTexture( const char* name )
 			int format = Surface::QueryFormat( fstr );
 			
 			t = textureArr.Push();
-			t->Set( name, w, h, format, 0 );
+			t->Set( name, w, h, format, Texture::PARAM_NONE );
 			t->item = item;
 
 			map.Add( t->Name(), t );
@@ -81,9 +95,9 @@ Texture* TextureManager::GetTexture( const char* name )
 }
 
 
-Texture* TextureManager::CreateTexture( const char* name, int w, int h, int format, int flags, ITextureCreator* creator )
+Texture* TextureManager::CreateTexture( const char* name, int w, int h, int format, Texture::Param flags, ITextureCreator* creator )
 {
-	GLASSERT( !map.Query( name,  0 ) );
+	GLASSERT( !map.Query( name, 0 ) );
 
 	Texture* t = textureArr.Push();
 	t->Set( name, w, h, format, flags );
@@ -165,7 +179,7 @@ const GPUMem* TextureManager::AllocGPUMemory(	int w, int h, int format, int flag
 }
 
 
-void Texture::Set( const char* p_name, int p_w, int p_h, int p_format, int p_flags )
+void Texture::Set( const char* p_name, int p_w, int p_h, int p_format, Param p_flags )
 {
 	name = p_name;
 	w = p_w;
@@ -278,6 +292,7 @@ U32 TextureManager::CreateGLTexture( int w, int h, int format, int flags )
 							GL_TEXTURE_MIN_FILTER,
 							GL_LINEAR_MIPMAP_NEAREST );
 	}
+	GLOUTPUT(( "OpenGL texture %d created.\n", texID ));
 					
 //	glTexImage2D(	GL_TEXTURE_2D,
 //					0,
@@ -305,7 +320,6 @@ void Texture::Upload( const void* pixels, int size )
 
 	int glFormat, glType;
 	TextureManager::Instance()->CalcOpenGL( format, &glFormat, &glType );
-
 	glBindTexture( GL_TEXTURE_2D, gpuMem->glID );
 
 	glTexImage2D(	GL_TEXTURE_2D,
@@ -317,9 +331,8 @@ void Texture::Upload( const void* pixels, int size )
 					glFormat,
 					glType,
 					pixels );
-
+	GLOUTPUT(( "OpenGL texture %d Upload.\n", gpuMem->glID ));
 	TESTGLERR();
-
 }
 
 

@@ -98,6 +98,8 @@ public:
 #endif
 	~Game();
 
+	void DeviceLoss();
+	void Resize( int width, int height, int rotation );
 	void DoTick( U32 msec );
 
 	void Tap( int count, int x, int y );

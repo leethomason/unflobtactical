@@ -53,12 +53,12 @@ void HelpScene::DrawHUD()
 }
 
 
-void HelpScene::Tap( int count, const grinliz::Vector2I& screen, const grinliz::Ray& world )
+void HelpScene::Tap( int count, const grinliz::Vector2F& screen, const grinliz::Ray& world )
 {
-	float ux, uy;
-	GetEngine()->GetScreenport().ViewToGUI( screen.x, screen.y, &ux, &uy );
+	grinliz::Vector2F ui;
+	GetEngine()->GetScreenport().ViewToUI( screen, &ui );
 
-	const UIItem* tap = gamui2D.Tap( ux, uy );
+	const UIItem* tap = gamui2D.Tap( ui.x, ui.y );
 
 	// Want to keep re-using main texture. Do a ContextShift() if anything
 	// will change on this screen.

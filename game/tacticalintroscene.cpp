@@ -133,15 +133,13 @@ void TacticalIntroScene::DrawHUD()
 
 
 void TacticalIntroScene::Tap(	int count, 
-								const Vector2I& screen,
+								const Vector2F& screen,
 								const Ray& world )
 {
-	int ux, uy;
-	GetEngine()->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );
-	uy = GetEngine()->GetScreenport().UIHeight() - 1 - screen.y;
+	Vector2F ui;
+	GetEngine()->GetScreenport().ViewToUI( screen, &ui );
 	
-	const gamui::UIItem* item = gamui2D.TapDown( (float)ux, (float)uy );
-	gamui2D.TapUp( (float)ux, (float)uy );
+	const gamui::UIItem* item = gamui2D.Tap( ui.x, ui.y );
 
 	if ( item == &newButton ) {
 		newButton.SetVisible( false );

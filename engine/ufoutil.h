@@ -158,7 +158,12 @@ public:
 	}
 	unsigned Size() const	{ return size; }
 	
-	void Clear()			{ size = 0; }
+	void Clear()			{ 
+		#ifdef DEBUG
+			memset( vec, 0xab, sizeof(T)*CAPACITY );
+		#endif
+		size = 0; 
+	}
 	bool Empty() const		{ return size==0; }
 	const T* Mem() const	{ return vec; }
 

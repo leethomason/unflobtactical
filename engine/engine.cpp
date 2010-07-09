@@ -496,33 +496,30 @@ void Engine::LightGroundPlane( ShadowState shadows, float shadowAmount, Color4F*
 }
 
 
-bool Engine::RayFromScreenToYPlane( int x, int y, const Matrix4& mvpi, Ray* ray, Vector3F* out )
+bool Engine::RayFromViewToYPlane( const Vector2F& v, const Matrix4& mvpi, Ray* ray, Vector3F* out )
 {	
-	Vector2I v;
-	screenport->ScreenToView( x, y, &v );
+	//Vector3F win0 ={ v.x, v.y, 0.0f };
+	//Vector3F win1 ={ v.x, v.y, 1.0f };
 
-	Vector3F win0 ={ (float)v.x, (float)v.y, 0.0f };
-	Vector3F win1 ={ (float)v.x, (float)v.y, 1.0f };
-
-	Vector3F p0, p1;
+	//Vector3F p0, p1;
 	
-	screenport->ViewToWorld( win0, mvpi, &p0 );
-	screenport->ViewToWorld( win1, mvpi, &p1 );
+	//screenport->ViewToWorld( win0, mvpi, &p0 );
+	screenport->ViewToWorld( v, &mvpi, ray );
 
 	Plane plane;
 	plane.n.Set( 0.0f, 1.0f, 0.0f );
 	plane.d = 0.0;
 	
-	Vector3F dir = p1 - p0;
-
-	if ( ray ) {
-		ray->origin = p0;
-		ray->direction = dir;
-	}
+	//Vector3F dir = p1 - p0;
+	//
+	//if ( ray ) {
+	//	ray->origin = p0;
+	//	ray->direction = dir;
+	//}
 	int result = REJECT;
 	if ( out ) {
 		float t;
-		result = IntersectLinePlane( p0, p1, plane, out, &t );
+		result = IntersectLinePlane( ray->origin, ray->origin+ray->direction, plane, out, &t );
 	}
 	return ( result == INTERSECT );
 }

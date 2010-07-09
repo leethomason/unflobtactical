@@ -364,13 +364,13 @@ void CharacterScene::DrawHUD()
 
 
 void CharacterScene::Tap(	int count, 
-							const grinliz::Vector2I& screen,
+							const grinliz::Vector2F& screen,
 							const grinliz::Ray& world )
 {
-	float ux, uy;
-	engine->GetScreenport().ViewToGUI( screen.x, screen.y, &ux, &uy );
+	Vector2F ui;
+	engine->GetScreenport().ViewToUI( screen, &ui );
 
-	const UIItem* item = gamui2D.Tap( ux, uy );
+	const UIItem* item = gamui2D.Tap( ui.x, ui.y );
 
 	if ( item == &backButton ) {
 		game->PopScene();

@@ -93,11 +93,11 @@ public:
 	virtual void DeActivate();
 
 	virtual void Tap(	int count, 
-						const grinliz::Vector2I& screen,
+						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
 
 	virtual void Drag(	int action,
-						const grinliz::Vector2I& view );
+						const grinliz::Vector2F& view );
 
 	virtual void Zoom( int action, int distance );
 	virtual void Rotate( int aciton, float degreesFromStart );
@@ -240,9 +240,9 @@ private:
 	void StopForNewTeamTarget();
 	void DoReactionFire();
 	void DrawFireWidget();
-	int CenterRectIntersection( const grinliz::Vector2I& p,
-								const grinliz::Rectangle2I& rect,
-								grinliz::Vector2I* out );
+	int CenterRectIntersection( const grinliz::Vector2F& p,
+								const grinliz::Rectangle2F& rect,
+								grinliz::Vector2F* out );
 
 	std::vector< grinliz::Vector2<S16> >	pathCache;
 
