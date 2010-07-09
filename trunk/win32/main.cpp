@@ -32,15 +32,24 @@
 
 #include "wglew.h"
 
+#define TEST_ROTATION
 
 #define IPOD_SCREEN_WIDTH	320
 #define IPOD_SCREEN_HEIGHT	480
 
+#define NEXUS_ONE_SCREEN_WIDTH  480
+#define NEXUS_ONE_SCREEN_HEIGHT  800
+
 const int multisample = 2;
 bool fullscreen = false;
-int rotation = 0;
 int screenWidth = 0;
 int screenHeight = 0;
+
+#ifdef TEST_ROTATION
+const int rotation = 1;
+#else
+const int rotation = 0;
+#endif
 
 void ScreenCapture( const char* baseFilename );
 
@@ -51,6 +60,10 @@ void TransformXY( int x0, int y0, int* x1, int* y1 )
 	// the mouse coordinates so that they are reported in opengl
 	// window coordinates.
 	if ( rotation == 0 ) {
+		*x1 = x0;
+		*y1 = screenHeight-1-y0;
+	}
+	else if ( rotation == 1 ) {
 		*x1 = x0;
 		*y1 = screenHeight-1-y0;
 	}
@@ -109,16 +122,13 @@ int main( int argc, char **argv )
 	else
 		videoFlags |= SDL_RESIZABLE;
 
-	//int width = IPOD_SCREEN_HEIGHT*2;
-	//int height = IPOD_SCREEN_WIDTH*2;
-	screenWidth = IPOD_SCREEN_HEIGHT;
-	screenHeight = IPOD_SCREEN_WIDTH;
-
-	const SDL_VideoInfo* video = SDL_GetVideoInfo();
-	if ( video->current_h < screenHeight*4/3 ) {
-		screenWidth = IPOD_SCREEN_HEIGHT;
-		screenHeight = IPOD_SCREEN_WIDTH;
-	}
+#ifdef TEST_ROTATION
+	screenWidth = NEXUS_ONE_SCREEN_WIDTH;
+	screenHeight = NEXUS_ONE_SCREEN_HEIGHT;
+#else
+	screenWidth = NEXUS_ONE_SCREEN_HEIGHT;
+	screenHeight = NEXUS_ONE_SCREEN_WIDTH;
+#endif
 
 	// Note that our output surface is rotated from the iPod.
 	//surface = SDL_SetVideoMode( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, 32, videoFlags );
@@ -178,9 +188,9 @@ int main( int argc, char **argv )
 	desc.variation = atol( argv[4] );
 	GLASSERT( desc.variation >= 0 && desc.variation < 100 );
 
-	Game* game = new Game( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, rotation, ".\\resin\\", desc );
+	Game* game = new Game( screenWidth, screenHeight, rotation, ".\\resin\\", desc );
 #else	
-	void* game = NewGame( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, rotation, ".\\" );
+	void* game = NewGame( screenWidth, screenHeight, rotation, ".\\" );
 #endif
 
 
@@ -335,7 +345,6 @@ int main( int argc, char **argv )
 
 			case SDL_MOUSEBUTTONUP:
 			{
-				GLOUTPUT(( "event %d,%d\n", event.button.x, event.button.y ));
 				int x, y;
 				TransformXY( event.button.x, event.button.y, &x, &y );
 
