@@ -22,51 +22,73 @@
 using namespace grinliz;
 
 
-Screenport::Screenport( int screenWidth, int screenHeight, int rotation )
+Screenport::Screenport( int w, int h, int r )
 {
-	this->screenWidth = screenWidth;
-	this->screenHeight = screenHeight;
-	this->rotation = rotation;
-	GLASSERT( rotation >= 0 && rotation < 4 );
-
-	for( int i=0; i<4; ++i )
-		this->viewport[i] = 0;
+	Resize( w, h, r );
 	uiMode = false;
-	clipInUI2D.Set( 0, 0, UIWidth()-1, UIHeight()-1 );
-	clipInUI3D.Set( 0, 0, UIWidth()-1, UIHeight()-1 );
-	viewPortScale = 0.0f;
+	clipInUI2D.Set( 0, 0, UIWidth(), UIHeight() );
+	clipInUI3D.Set( 0, 0, UIWidth(), UIHeight() );
 }
 
 
-void Screenport::SetUI( const Rectangle2I* clip, bool flipped )	
+void Screenport::Resize( int w, int h, int r )
 {
-	if ( viewPortScale == 0.0f ) {
-		// Get the actual pixel size. Then adjust it to be the correct ratio.
-		// The pixel ration of the screen is 480x320.
-		// Deferred to here; doesn't work on the iPhone in the initializer.
-		glGetIntegerv( GL_VIEWPORT, (GLint*)viewport );
-		if ( rotation & 1 ) 
-			viewPortScale = (float)viewport[2] / (float)320;
-		else
-			viewPortScale = (float)viewport[2] / (float)480;
-	}
-	
-	if ( clip ) {
-		clipInUI2D = *clip;
+	physicalWidth = (float)w;
+	physicalHeight = (float)h;
+	rotation =	r;
+	GLASSERT( rotation >= 0 && rotation < 4 );
+
+	glViewport( 0, 0, w, h );
+
+	// Sad but true: the game assets are set up for 480x320 resolution.
+	// How to scale?
+	//   1. Scale the smallest axis to be within 320x480. But then buttons get
+	//      bigger and all layout has to be programmatic.
+	//   2. Clip to a window. Seems a waste to lose that space.
+	//   3. Fix UI Height at 320. Stretch backgrounds. That looks weird...but
+	//		the background images can be patched up.
+	// Try #3.
+
+	if ( (rotation&1) == 0 ) {
+		screenHeight = 320.0f;
+		screenWidth = screenHeight * physicalWidth / physicalHeight;
+//		if ( physicalWidth / physicalHeight > 480.0f/320.0f ) {
+//			screenWidth = 480.0f;
+//			screenHeight = screenWidth * physicalHeight / physicalWidth;
+//		}
+//		else {
+//			screenHeight = 320.0f;
+//			screenWidth = screenHeight * physicalWidth / physicalHeight;
+//		};
+//		GLASSERT( screenWidth <= 480.0f );
+//		GLASSERT( screenHeight <= 320.0f );
 	}
 	else {
-		clipInUI2D.Set( 0, 0, UIWidth()-1, UIHeight()-1);
+		GLASSERT( 0 );
+		screenHeight = screenWidth * physicalHeight / physicalWidth;
+		screenWidth  = 320.0f;
+	}
+
+	GLOUTPUT(( "Screenport::Resize physical=(%.1f,%.1f) view=(%.1f,%.1f) rotation=%d\n", physicalWidth, physicalHeight, screenWidth, screenHeight, r ));
+}
+
+
+void Screenport::SetUI( const Rectangle2I* clip )	
+{
+	if ( clip ) {
+		clipInUI2D.Set( (float)clip->min.x, (float)clip->min.x, (float)clip->max.x, (float)clip->max.y );
+	}
+	else {
+		clipInUI2D.Set( 0, 0, UIWidth(), UIHeight() );
 	}
 	GLASSERT( clipInUI2D.IsValid() );
-	GLASSERT( clipInUI2D.min.x >= 0 && clipInUI2D.max.x < UIWidth() );
-	GLASSERT( clipInUI2D.min.y >= 0 && clipInUI2D.max.y < UIHeight() );
+	GLASSERT( clipInUI2D.min.x >= 0 && clipInUI2D.max.x <= UIWidth() );
+	GLASSERT( clipInUI2D.min.y >= 0 && clipInUI2D.max.y <= UIHeight() );
 
-	SetViewport( 0 );
-
-	Rectangle2I scissor;
-	UIToScissor( clipInUI2D.min.x, clipInUI2D.min.y, clipInUI2D.max.x, clipInUI2D.max.y, &scissor );
+	Rectangle2F scissor;
+	UIToWindow( clipInUI2D, &scissor );
 	glEnable( GL_SCISSOR_TEST );
-	glScissor( scissor.min.x, scissor.min.y, scissor.max.x, scissor.max.y );
+	glScissor( (int)scissor.min.x, (int)scissor.min.y, (int)scissor.max.x, (int)scissor.max.y );
 	
 	view2D.SetIdentity();
 	Matrix4 r, t;
@@ -77,7 +99,7 @@ void Screenport::SetUI( const Rectangle2I* clip, bool flipped )
 		case 0:
 			break;
 		case 1:
-			t.SetTranslation( 0, (float)(-ScreenWidth()), 0 );	
+			t.SetTranslation( 0, -screenWidth, 0 );	
 			break;
 			
 		default:
@@ -87,20 +109,14 @@ void Screenport::SetUI( const Rectangle2I* clip, bool flipped )
 	view2D = r*t;
 	
 	projection2D.SetIdentity();
-	if ( flipped )
-		projection2D.SetOrtho( 0, (float)ScreenWidth(), (float)ScreenHeight(), 0, -1, 1 );
-	else
-		projection2D.SetOrtho( 0, (float)ScreenWidth(), 0, (float)ScreenHeight(), -100, 100 );
+	projection2D.SetOrtho( 0, screenWidth, screenHeight, 0, -1, 1 );
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();				// projection
 
 	// Set the ortho matrix, help the driver
 	//glMultMatrixf( projection.x );
-	if ( flipped )
-		glOrthofX( 0, ScreenWidth(), ScreenHeight(), 0, -100, 100 );
-	else
-		glOrthofX( 0, ScreenWidth(), 0, ScreenHeight(), -100, 100 );
+	glOrthofX( 0, screenWidth, screenHeight, 0, -100, 100 );
 	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();				// model
@@ -125,30 +141,22 @@ void Screenport::SetView( const Matrix4& _view )
 
 void Screenport::SetPerspective( float near, float far, float fovDegrees, const grinliz::Rectangle2I* clip )
 {
-	if ( viewPortScale == 0.0f ) {
-		// Get the actual pixel size. Then adjust it to be the correct ratio.
-		// The pixel ration of the screen is 480x320.
-		// Deferred to here; doesn't work on the iPhone in the initializer.
-		glGetIntegerv( GL_VIEWPORT, (GLint*)viewport );
-		if ( rotation & 1 ) 
-			viewPortScale = (float)viewport[2] / (float)320;
-		else
-			viewPortScale = (float)viewport[2] / (float)480;
-	}
-	
 	uiMode = false;
 
 	if ( clip ) {
-		clipInUI3D = *clip;
+		clipInUI2D.Set( (float)clip->min.x, (float)clip->min.x, (float)clip->max.x, (float)clip->max.y );
 	}
 	else {
-		clipInUI3D.Set( 0, 0, UIWidth()-1, UIHeight()-1 );
+		clipInUI3D.Set( 0, 0, UIWidth(), UIHeight() );
 	}
 	GLASSERT( clipInUI3D.IsValid() );
 	GLASSERT( clipInUI3D.min.x >= 0 && clipInUI3D.max.x < UIWidth() );
 	GLASSERT( clipInUI3D.min.y >= 0 && clipInUI3D.max.y < UIHeight() );
 	
-	SetViewport( &clipInUI3D );
+	Rectangle2F scissor;
+	UIToWindow( clipInUI2D,  &scissor );
+	glEnable( GL_SCISSOR_TEST );
+	glScissor( (int)scissor.min.x, (int)scissor.min.y, (int)scissor.max.x, (int)scissor.max.y );
 
 	GLASSERT( uiMode == false );
 	GLASSERT( near > 0.0f );
@@ -200,17 +208,18 @@ void Screenport::SetPerspective( float near, float far, float fovDegrees, const 
 }
 
 
-void Screenport::ViewToUI( int x0, int y0, int *x1, int *y1 ) const
+void Screenport::ViewToUI( const grinliz::Vector2F& in, grinliz::Vector2F* ui ) const
 {
 	switch ( rotation ) {
 		case 0:
-			*x1 = x0;
-			*y1 = y0;
+			ui->x = in.x;
+			ui->y = (screenHeight-1.0f-in.y);
 			break;
 
 		case 1:
-			*x1 = y0;
-			*y1 = (screenWidth-1)-x0;
+			GLASSERT( 0 );
+			ui->x = in.y;
+			ui->y = in.x;
 			break;
 
 		default:
@@ -220,35 +229,17 @@ void Screenport::ViewToUI( int x0, int y0, int *x1, int *y1 ) const
 }
 
 
-void Screenport::ViewToGUI( int x0, int y0, float *x1, float *y1 ) const
+void Screenport::UIToView( const grinliz::Vector2F& in, grinliz::Vector2F* out ) const
 {
 	switch ( rotation ) {
 		case 0:
-			*x1 = (float)x0;
-			*y1 = (float)(screenHeight-1-y0);
-			break;
-
-		case 1:
-			*x1 = (float)y0;
-			*y1 = (float)x0;
-			break;
-
-		default:
-			GLASSERT( 0 );
-			break;
-	}
-}
-
-
-void Screenport::UIToView( const grinliz::Vector2I& in, grinliz::Vector2I* out ) const
-{
-	switch ( rotation ) {
-		case 0:
-			*out = in;
+			out->x = in.x;
+			out->y = (screenHeight-in.y);
 			break;
 		case 1:
-			out->x = (screenWidth-1)-in.y;
-			out->y = in.x;
+			GLASSERT( 0 );	// fixme
+//			out->x = (LRintf(screenWidth)-1)-in.y;
+//			out->y = in.x;
 			break;
 		default:
 			GLASSERT( 0 );
@@ -257,32 +248,50 @@ void Screenport::UIToView( const grinliz::Vector2I& in, grinliz::Vector2I* out )
 }
 
 
-bool Screenport::ViewToWorld( const grinliz::Vector3F& v, const grinliz::Matrix4& mvpi, grinliz::Vector3F* world ) const
+bool Screenport::ViewToWorld( const grinliz::Vector2F& v, const grinliz::Matrix4* _mvpi, grinliz::Ray* ray ) const
 {
-	Vector2I v0, v1;
-	Rectangle2I clipInView;
+	Matrix4 mvpi;
+	if ( _mvpi ) {
+		mvpi = *_mvpi;
+	}
+	else {
+		Matrix4 mvp;
+		ViewProjection3D( &mvp );
+		mvp.Invert( &mvpi );
+	}
+
+	Vector2F v0, v1;
+	Rectangle2F clipInView;
 	UIToView( clipInUI3D.min, &v0 );
 	UIToView( clipInUI3D.max, &v1 ); 
 	clipInView.FromPair( v0.x, v0.y, v1.x, v1.y );
-	
+
 	Vector4F in = { (v.x - (float)(clipInView.min.x))*2.0f / (float)clipInView.Width() - 1.0f,
 					(v.y - (float)(clipInView.min.y))*2.0f / (float)clipInView.Height() - 1.0f,
-					v.z*2.0f-1.f,
+					0.f, //v.z*2.0f-1.f,
 					1.0f };
 
-	Vector4F out;
-	MultMatrix4( mvpi, in, &out );
+	Vector4F out0, out1;
+	MultMatrix4( mvpi, in, &out0 );
+	in.z = 1.0f;
+	MultMatrix4( mvpi, in, &out1 );
 
-	if ( out.w == 0.0f ) {
+	if ( out0.w == 0.0f ) {
 		return false;
 	}
-	world->x = out.x / out.w;
-	world->y = out.y / out.w;
-	world->z = out.z / out.w;
+	ray->origin.x = out0.x / out0.w;
+	ray->origin.y = out0.y / out0.w;
+	ray->origin.z = out0.z / out0.w;
+
+	ray->direction.x = out1.x / out1.w - ray->origin.x;
+	ray->direction.y = out1.y / out1.w - ray->origin.y;
+	ray->direction.z = out1.z / out1.w - ray->origin.z;
+
 	return true;
 }
 
 
+/*
 void Screenport::ScreenToWorld( int x, int y, Ray* world ) const
 {
 	//GLOUTPUT(( "ScreenToWorld(upper) %d,%d\n", x, y ));
@@ -303,22 +312,22 @@ void Screenport::ScreenToWorld( int x, int y, Ray* world ) const
 	world->origin = p0;
 	world->direction = p1 - p0;
 }
+*/
 
-
-void Screenport::WorldToScreen( const grinliz::Vector3F& p0, grinliz::Vector2F* v ) const
+void Screenport::WorldToView( const grinliz::Vector3F& world, grinliz::Vector2F* v ) const
 {
 	Matrix4 mvp;
 	ViewProjection3D( &mvp );
 
 	Vector4F p, r;
-	p.Set( p0, 1 );
+	p.Set( world, 1 );
 
 	r = mvp * p;
 
 	// Normalize to view.
 	// r in range [-1,1] which maps to screen[0,Width()-1]
-	Vector2I v0, v1;
-	Rectangle2I clipInView;
+	Vector2F v0, v1;
+	Rectangle2F clipInView;
 	UIToView( clipInUI3D.min, &v0 );
 	UIToView( clipInUI3D.max, &v1 ); 
 	clipInView.FromPair( v0.x, v0.y, v1.x, v1.y );
@@ -331,40 +340,46 @@ void Screenport::WorldToScreen( const grinliz::Vector3F& p0, grinliz::Vector2F* 
 						r.y/r.w );
 }
 
-
-void Screenport::WorldToUI( const grinliz::Vector3F& p, grinliz::Vector2I* ui ) const
+/*
+void Screenport::WorldToGUI( const grinliz::Vector3F& p, grinliz::Vector2F* ui ) const
 {
 	Vector2F v;
 	WorldToScreen( p, &v );
-	ViewToUI( LRintf(v.x), LRintf(v.y), &ui->x, &ui->y );
+	ViewToGUI( LRintf(v.x), LRintf(v.y), &ui->x, &ui->y );
+}
+*/
+
+
+void Screenport::ViewToWindow( const Vector2F& view, Vector2F* window ) const
+{
+	window->x = view.x * physicalWidth  / screenWidth;
+	window->y = view.y * physicalHeight / screenHeight;
 }
 
 
-void Screenport::UIToScissor( int x, int y, int w, int h, grinliz::Rectangle2I* clip ) const
+void Screenport::WindowToView( const Vector2F& window, Vector2F* view ) const
+{
+	view->x = window.x * screenWidth / physicalWidth;
+	view->y = window.y * screenHeight / physicalHeight;
+}
+
+
+void Screenport::UIToWindow( const grinliz::Rectangle2F& ui, grinliz::Rectangle2F* clip ) const
 {	
-	switch ( rotation ) {
-		case 0:
-			clip->Set(	viewport[0] + LRintf( (float)x * viewPortScale ),
-						viewport[1] + LRintf( (float)y * viewPortScale ),
-						viewport[0] + LRintf( (float)(x+w-1) * viewPortScale ), 
-						viewport[1] + LRintf( (float)(y+h-1) * viewPortScale ) );
-			break;
-		case 1:
-			clip->Set(	viewport[2] - h - y,
-					    viewport[1] + x,
-						viewport[2] - y - 1,
-						viewport[1] + x + w - 1 );
-			break;
-		case 2:
-		case 3:
-		default:
-			GLASSERT( 0 );
-			break;
-	};
+	Vector2F v;
+	Vector2F w;
+	
+	UIToView( ui.min, &v );
+	ViewToWindow( v, &w );
+	clip->min = clip->max = w;
+
+	UIToView( ui.max, &v );
+	ViewToWindow( v, &w );
+	clip->DoUnion( w );
 }
 
 
-
+/*
 void Screenport::SetViewport( const grinliz::Rectangle2I* uiClip )
 {
 	if ( uiClip ) {
@@ -377,7 +392,7 @@ void Screenport::SetViewport( const grinliz::Rectangle2I* uiClip )
 	}
 	else {
 		glDisable( GL_SCISSOR_TEST );
-		glViewport( viewport[0], viewport[1], viewport[2], viewport[3] );
 	}
 	CHECK_GL_ERROR;
 }
+*/

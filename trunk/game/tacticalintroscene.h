@@ -37,13 +37,11 @@ public:
 
 	// UI
 	virtual void Tap(	int count, 
-						const grinliz::Vector2I& screen,
+						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
 
-	//virtual void TapExtra( int action, const grinliz::Vector2I& srceen );
-
 	virtual void Drag(	int action,
-						const grinliz::Vector2I& view )			{}
+						const grinliz::Vector2F& view )			{}
 
 	virtual void Zoom( int action, int distance )				{}
 	virtual void CancelInput()									{}
@@ -52,7 +50,7 @@ public:
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	{
 		clip3D->SetInvalid();
 		clip2D->SetInvalid();	// full screen
-		return RENDER_2D | RENDER_2D_FLIPPED; 
+		return RENDER_2D; 
 	}
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
 	virtual void DrawHUD();

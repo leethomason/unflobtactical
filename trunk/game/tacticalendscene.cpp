@@ -79,13 +79,13 @@ void TacticalEndScene::DrawHUD()
 
 
 void TacticalEndScene::Tap(	int count, 
-							const grinliz::Vector2I& screen,
+							const grinliz::Vector2F& screen,
 							const grinliz::Ray& world )
 {
-	float ux, uy;
-	GetEngine()->GetScreenport().ViewToGUI( screen.x, screen.y, &ux, &uy );
+	Vector2F ui;
+	GetEngine()->GetScreenport().ViewToUI( screen, &ui );
 
-	const gamui::UIItem* item = gamui2D.Tap( ux, uy );
+	const gamui::UIItem* item = gamui2D.Tap( ui.x, ui.y );
 
 	if ( item == &okayButton ) {
 		game->PopScene();

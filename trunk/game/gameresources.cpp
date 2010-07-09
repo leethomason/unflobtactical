@@ -90,7 +90,7 @@ void Game::CreateTexture( Texture* t )
 void Game::LoadTextures()
 {
 	TextureManager* texman = TextureManager::Instance();
-	texman->CreateTexture( "white", 2, 2, Surface::RGB16, 0, this );
+	texman->CreateTexture( "white", 2, 2, Surface::RGB16, Texture::PARAM_NONE, this );
 
 	const gamedb::Item* node = database->Root()->Child( "textures" )->Child( "stdfont2" );
 	GLASSERT( node );

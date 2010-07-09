@@ -568,19 +568,19 @@ void BattleScene::TestHitTesting()
 }
 
 
-int BattleScene::CenterRectIntersection(	const Vector2I& r,
-											const Rectangle2I& rect,
-											Vector2I* out )
+int BattleScene::CenterRectIntersection(	const Vector2F& r,
+											const Rectangle2F& rect,
+											Vector2F* out )
 {
-	Vector2F center = { (float)(rect.min.x+rect.max.x)*0.5f, (float)(rect.min.y+rect.max.y)*0.5f };
-	Vector2F rf = { (float)r.x, (float)r.y };
+	Vector2F center = { (rect.min.x+rect.max.x)*0.5f, (rect.min.y+rect.max.y)*0.5f };
+	Vector2F rf = { r.x, r.y };
 	Vector2F outf;
 
 	for( int e=0; e<4; ++e ) {
-		Vector2I p0, p1;
+		Vector2F p0, p1;
 		rect.Edge( e, &p1, &p0 );
-		Vector2F p0f = { (float)p0.x, (float)p0.y };
-		Vector2F p1f = { (float)p1.x, (float)p1.y };
+		Vector2F p0f = { p0.x, p0.y };
+		Vector2F p1f = { p1.x, p1.y };
 
 		float t0, t1;
 		int result = IntersectLineLine( center, rf, 
@@ -589,7 +589,7 @@ int BattleScene::CenterRectIntersection(	const Vector2I& r,
 		if (    result == grinliz::INTERSECT
 			 && t0 >= 0 && t0 <= 1 && t1 >= 0 && t1 <= 1 ) 
 		{
-			out->Set( LRintf( outf.x ), LRintf( outf.y ) );
+			out->Set( outf.x, outf.y );
 			return grinliz::INTERSECT;
 		}
 	}
@@ -610,14 +610,14 @@ int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I*
 	//clip3D->SetInvalid();
 	//clip3D->Set( 100, 0, 400, 250 );
 
-	Vector2I size;
-	size.x = LRintf( menuImage.Width() );
-	size.y = LRintf( menuImage.Height() );
+	Vector2F size;
+	size.x = menuImage.Width();
+	size.y = menuImage.Height();
 	const Screenport& port = engine->GetScreenport();
 
-	clip3D->Set( size.x, 0, port.UIWidth()-1, port.UIHeight()-1 );
-	clip2D->Set(0, 0, port.UIWidth()-1, port.UIHeight()-1 );
-	return RENDER_3D | RENDER_2D | RENDER_2D_FLIPPED; 
+	clip3D->Set( (int)size.x, 0, (int)port.UIWidth(), (int)port.UIHeight() );
+	clip2D->Set(0, 0, (int)port.UIWidth(), (int)port.UIHeight() );
+	return RENDER_3D | RENDER_2D; 
 #endif
 }
 
@@ -664,11 +664,9 @@ void BattleScene::SetUnitOverlays()
 
 			// Is the unit on screen? If so, put in a simple foot decal. Else
 			// put in an "alien that way" decal.
-			Vector2I r;	
-			engine->GetScreenport().WorldToUI( p, &r );
-			Rectangle2I uiBounds;
-			
-			engine->GetScreenport().UIBoundsClipped3D( &uiBounds );
+			Vector2F r;	
+			engine->GetScreenport().WorldToView( p, &r );
+			const Rectangle2F& uiBounds = engine->GetScreenport().UIBoundsClipped3D();
 
 			if ( uiBounds.Contains( r ) ) {
 				unitImage0[i].SetVisible( true );
@@ -688,16 +686,16 @@ void BattleScene::SetUnitOverlays()
 			else {
 				targetArrow[i-ALIEN_UNITS_START].SetVisible( true );
 
-				Vector2I center = { (uiBounds.min.x + uiBounds.max.x)/2,
+				Vector2F center = { (uiBounds.min.x + uiBounds.max.x)/2,
 									(uiBounds.min.y + uiBounds.max.y)/2 };
-				Rectangle2I inset = uiBounds;
-				const int EPS = 10;
+				Rectangle2F inset = uiBounds;
+				const float EPS = 10;
 				inset.Outset( -EPS );
-				Vector2I intersection = { 0, 0 };
+				Vector2F intersection = { 0, 0 };
 				CenterRectIntersection( r, inset, &intersection );
 
-				targetArrow[i-ALIEN_UNITS_START].SetCenterPos( (float)intersection.x, (float)uiBounds.max.y-1-intersection.y );
-				float angle = atan2( (float)(center.y-r.y), (float)(r.x-center.x) );
+				targetArrow[i-ALIEN_UNITS_START].SetCenterPos( intersection.x, uiBounds.max.y-1.f-intersection.y );
+				float angle = atan2( (center.y-r.y), (r.x-center.x) );
 				angle = ToDegree( angle ) + 90.0f;	
 
 				targetArrow[i-ALIEN_UNITS_START].SetRotationZ( angle );
@@ -974,21 +972,18 @@ void BattleScene::DrawFireWidget()
 		}
 	}
 
-	Vector2F r;
-	engine->GetScreenport().WorldToScreen( target, &r );
-
-	int uiX, uiY;
+	Vector2F view, ui;
 	const Screenport& port = engine->GetScreenport();
-	port.ViewToUI( (int)r.x, (int)r.y, &uiX, &uiY );
-	uiY = port.UIHeight()-1-uiY;
+	port.WorldToView( target, &view );
+	port.ViewToUI( view, &ui );
 
 	const int DX = 10;
 
 	// Make sure it fits on the screen.
 	float w = fireButton[0].Width();
 	float h = fireButton[0].Height()*3.f + (float)FIRE_BUTTON_SPACING*2.0f;
-	float x = (float)(uiX+DX);
-	float y = (float)(uiY) - h*0.5f;
+	float x = (float)(ui.x+DX);
+	float y = (float)(ui.y) - h*0.5f;
 
 	if ( x < 0 ) {
 		x = 0;
@@ -1014,9 +1009,8 @@ void BattleScene::DrawFireWidget()
 void BattleScene::TestCoordinates()
 {
 	//const Screenport& port = engine->GetScreenport();
-	Rectangle2I uiBounds;
-	engine->GetScreenport().UIBoundsClipped3D( &uiBounds );
-	Rectangle2I inset = uiBounds;
+	Rectangle2F uiBounds = engine->GetScreenport().UIBoundsClipped3D();
+	Rectangle2F inset = uiBounds;
 	inset.Outset( 0 );
 
 	Matrix4 mvpi;
@@ -1024,9 +1018,9 @@ void BattleScene::TestCoordinates()
 
 	for( int i=0; i<4; ++i ) {
 		Vector3F pos;
-		Vector2I corner;
+		Vector2F corner;
 		uiBounds.Corner( i, &corner );
-		if ( engine->RayFromScreenToYPlane( corner.x, corner.y, mvpi, 0, &pos ) ) {
+		if ( engine->RayFromViewToYPlane( corner, mvpi, 0, &pos ) ) {
 			Color4F c = { 0, 1, 1, 1 };
 			Color4F cv = { 0, 0, 0, 0 };
 			ParticleSystem::Instance()->EmitOnePoint( c, cv, pos, 0 );
@@ -1044,15 +1038,15 @@ void BattleScene::PushScrollOnScreen( const Vector3F& pos )
 	*/
 	const Screenport& port = engine->GetScreenport();
 
-	Vector2I r;
-	port.WorldToUI( pos, &r );
+	Vector2F view, ui;
+	port.WorldToView( pos, &view );
+	port.ViewToUI( view, &ui );
 
-	Rectangle2I uiBounds;
-	port.UIBoundsClipped3D( &uiBounds );
-	Rectangle2I inset = uiBounds;
+	Rectangle2F uiBounds = port.UIBoundsClipped3D();
+	Rectangle2F inset = uiBounds;
 	inset.Outset( -20 );
 
-	if ( !inset.Contains( r ) ) 
+	if ( !inset.Contains( ui ) ) 
 	{
 
 		Vector3F c;
@@ -1663,16 +1657,15 @@ int BattleScene::ProcessAction( U32 deltaTime )
 						Vector3F d = action->type.cameraBounds.normal * t;
 						engine->camera.DeltaPosWC( d.x, d.y, d.z );
 
+						Vector2F ui;
 						const Screenport& port = engine->GetScreenport();
-						Vector2I r;
-						port.WorldToUI( action->type.cameraBounds.target, &r );
+						port.WorldToUI( action->type.cameraBounds.target, &ui );
 
-						Rectangle2I uiBounds;
-						port.UIBoundsClipped3D( &uiBounds );
-						Rectangle2I inset = uiBounds;
+						Rectangle2F uiBounds = port.UIBoundsClipped3D();
+						Rectangle2F inset = uiBounds;
 						inset.Outset( -20 );
 
-						if ( inset.Contains( r ) ) {
+						if ( inset.Contains( ui ) ) {
 							actionStack.Pop();
 						}
 					}
@@ -2060,16 +2053,13 @@ void BattleScene::HandleRotation( float bias )
 
 bool BattleScene::HandleIconTap( int vX, int vY )
 {
-	int screenX, screenY;
-	engine->GetScreenport().ViewToUI( vX, vY, &screenX, &screenY );
-	float guiX = (float)screenX;
-	float guiY = (float)(engine->GetScreenport().UIHeight()-1-screenY);
+	Vector2F ui;
+	Vector2F view = { (float)vX, (float)vY };
+	engine->GetScreenport().ViewToUI( view, &ui );
 
-	const UIItem* tapped = gamui2D.TapDown( guiX, guiY );
-	gamui2D.TapUp( guiX, guiY );
+	const UIItem* tapped = gamui2D.Tap( ui.x, ui.y );
 	if ( !tapped ) {
-		tapped = gamui3D.TapDown( guiX, guiY );
-		gamui3D.TapUp( guiX, guiY );
+		tapped = gamui3D.Tap( ui.x, ui.y );
 	}
 
 	if ( selection.FireMode() ) {
@@ -2146,7 +2136,7 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 
 
 void BattleScene::Tap(	int tap, 
-						const grinliz::Vector2I& screen,
+						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world )
 {
 	/*
@@ -2188,13 +2178,13 @@ void BattleScene::Tap(	int tap,
 
 	if ( selection.FireMode() ) {
 		// Whether or not something was selected, drop back to normal mode.
-		HandleIconTap( screen.x, screen.y );
+		HandleIconTap( LRintf(screen.x), LRintf(screen.y) );
 		selection.targetPos.Set( -1, -1 );
 		selection.targetUnit = 0;
 		return;
 	}
 	
-	bool handled = HandleIconTap( screen.x, screen.y );
+	bool handled = HandleIconTap( LRintf(screen.x), LRintf(screen.y) );
 	if ( handled )
 		return;
 
@@ -2730,10 +2720,10 @@ void BattleScene::Visibility::CalcVisibilityRay( int unitID, const Vector2I& pos
 }
 
 
-void BattleScene::Drag( int action, const grinliz::Vector2I& view )
+void BattleScene::Drag( int action, const grinliz::Vector2F& view )
 {
-	Vector2I screen;
-	engine->GetScreenport().ViewToScreen( view.x, view.y, &screen );
+	Vector2F ui;
+	engine->GetScreenport().ViewToUI( view, &ui );
 	
 	switch ( action ) 
 	{
@@ -2741,7 +2731,7 @@ void BattleScene::Drag( int action, const grinliz::Vector2I& view )
 		{
 			Ray ray;
 			engine->GetScreenport().ViewProjectionInverse3D( &dragMVPI );
-			engine->RayFromScreenToYPlane( screen.x, screen.y, dragMVPI, &ray, &dragStart );
+			engine->RayFromViewToYPlane( view, dragMVPI, &ray, &dragStart );
 			dragStartCameraWC = engine->camera.PosWC();
 
 			// Drag a unit or drag the camera?
@@ -2768,7 +2758,7 @@ void BattleScene::Drag( int action, const grinliz::Vector2I& view )
 				Vector3F intersection;
 
 				engine->GetScreenport().ViewProjectionInverse3D( &mvpi );
-				engine->RayFromScreenToYPlane( screen.x, screen.y, mvpi, &ray, &intersection );
+				engine->RayFromViewToYPlane( view, mvpi, &ray, &intersection );
 
 				Vector2<S16> start = { (S16)selection.soldierUnit->Pos().x, (S16)selection.soldierUnit->Pos().y };
 				Vector2<S16> end   = { (S16)intersection.x, (S16)intersection.z };
@@ -2811,7 +2801,7 @@ void BattleScene::Drag( int action, const grinliz::Vector2I& view )
 			else {
 				Vector3F drag;
 				Ray ray;
-				engine->RayFromScreenToYPlane( screen.x, screen.y, dragMVPI, &ray, &drag );
+				engine->RayFromViewToYPlane( view, dragMVPI, &ray, &drag );
 
 				Vector3F delta = drag - dragStart;
 				//GLOUTPUT(( "screen=%d,%d drag=%.2f,%.2f  delta=%.2f,%.2f\n", screen.x, screen.y, drag.x, drag.z, delta.x, delta.z ));
@@ -2831,7 +2821,7 @@ void BattleScene::Drag( int action, const grinliz::Vector2I& view )
 				Vector3F intersection;
 
 				engine->GetScreenport().ViewProjectionInverse3D( &mvpi );
-				engine->RayFromScreenToYPlane( screen.x, screen.y, mvpi, &ray, &intersection );
+				engine->RayFromViewToYPlane( view, mvpi, &ray, &intersection );
 
 				Vector2<S16> start = { (S16)selection.soldierUnit->Pos().x, (S16)selection.soldierUnit->Pos().y };
 				Vector2<S16> end   = { (S16)intersection.x, (S16)intersection.z };

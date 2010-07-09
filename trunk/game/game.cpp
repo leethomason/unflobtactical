@@ -271,9 +271,6 @@ void Game::PushPopScene()
 			sceneStack.Pop();
 		}
 
-//		delete engine;
-//	engine = new Engine( &screenport, engineData, database );
-
 		resetGame = false;
 		scenePushQueued = INTRO_SCENE;
 		scenePopQueued = false;
@@ -414,14 +411,11 @@ void Game::DoTick( U32 _currentTime )
 	Rectangle2I clip2D, clip3D;
 	int renderPass = scene->RenderPass( &clip3D, &clip2D );
 	GLASSERT( renderPass );
-	if ( !clip3D.IsValid() )
-		screenport.UIBoundsClipped3D( &clip3D );
-	screenport.UIBoundsClipped2D( &clip2D );		// FIXME: fully remove 2D clipping
 	
 	if ( renderPass & Scene::RENDER_3D ) {
 		//	r.Set( 100, 50, 300, 50+200*320/480 );
 		//	r.Set( 100, 50, 300, 150 );
-		screenport.SetPerspective( 2.f, 240.f, 20.f, &clip3D );
+		screenport.SetPerspective( 2.f, 240.f, 20.f, clip3D.IsValid() ? &clip3D : 0 );
 
 #ifdef MAPMAKER
 		if ( showPathing ) 
@@ -447,12 +441,12 @@ void Game::DoTick( U32 _currentTime )
 	trianglesSinceMark += trianglesRendered;
 
 	// UI Pass
-	screenport.SetUI( &clip2D, (renderPass & Scene::RENDER_2D_FLIPPED) ? true : false ); 
+	screenport.SetUI( clip2D.IsValid() ? &clip2D : 0 ); 
 	if ( renderPass & Scene::RENDER_3D ) {
 		scene->RenderGamui3D();
 	}
 	if ( renderPass & Scene::RENDER_2D ) {
-		screenport.SetUI( &clip2D, (renderPass & Scene::RENDER_2D_FLIPPED) ? true : false );
+		screenport.SetUI( clip2D.IsValid() ? &clip2D : 0 );
 		scene->DrawHUD();
 		scene->RenderGamui2D();
 	}
@@ -519,34 +513,27 @@ void Game::DoTick( U32 _currentTime )
 }
 
 
-void Game::Tap( int tap, int sx, int sy )
+void Game::Tap( int tap, int wx, int wy )
 {
-	Vector2I view;
+	// The tap is in window coordinate - need to convert to view.
+	Vector2F window = { (float)wx, (float)wy };
+	Vector2F view;
+	screenport.WindowToView( window, &view );
 	grinliz::Ray world;
+	screenport.ViewToWorld( view, 0, &world );
 
-	screenport.ScreenToView( sx, sy, &view );
-	screenport.ScreenToWorld( sx, sy, &world );
-
+	GLOUTPUT(( "Tap: window(%.1f,%.1f) view(%.1f,%.1f)\n", window.x, window.y, view.x, view.y ));
 	sceneStack.Top()->Tap( tap, view, world );
 }
 
-/*
-void Game::TapExtra( int action, int sx, int sy )
-{
-	Vector2I view;
-	screenport.ScreenToView( sx, sy, &view );
-	sceneStack.Top()->TapExtra( action, view );
-}
-*/
 
-
-void Game::Drag( int action, int sx, int sy )
+void Game::Drag( int action, int wx, int wy )
 {
-	Vector2I view;
+	Vector2F window = { (float)wx, (float)wy };
+	Vector2F view;
+	screenport.WindowToView( window, &view );
 	grinliz::Ray world;
-
-	screenport.ScreenToView( sx, sy, &view );
-	screenport.ScreenToWorld( sx, sy, &world );
+	screenport.ViewToWorld( view, 0, &world );
 
 	switch ( action ) 
 	{
@@ -629,6 +616,17 @@ void Game::MouseMove( int sx, int sy )
 #endif
 }
 
+
+void Game::DeviceLoss()
+{
+	TextureManager::Instance()->DeviceLoss();
+}
+
+
+void Game::Resize( int width, int height, int rotation ) 
+{
+	screenport.Resize( width, height, rotation );
+}
 
 #ifdef MAPMAKER
 

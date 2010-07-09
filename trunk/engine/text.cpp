@@ -68,7 +68,7 @@ void UFOText::Begin()
 
 	glColor4f( 1.f, 1.f, 1.f, 1.f );
 
-	screenport->SetUI( 0, false );
+	screenport->SetUI( 0 );
 	glBindTexture( GL_TEXTURE_2D, texture->GLID() );
 }
 
@@ -180,10 +180,10 @@ void UFOText::TextOut( const char* str, int x, int y, int* w, int *h )
 			}
 			float scale = smallText ? SMALL_SCALE : 1.0f;
 			if ( rendering ) {
-				vBuf[pos*4+0].Set( (float)x,					(float)(y+GLYPH_HEIGHT) - (float)GLYPH_HEIGHT*scale );	
-				vBuf[pos*4+1].Set( (float)x+(float)width*scale,	(float)(y+GLYPH_HEIGHT) - (float)GLYPH_HEIGHT*scale );	
-				vBuf[pos*4+2].Set( (float)x+(float)width*scale,	(float)(y+GLYPH_HEIGHT) );	
-				vBuf[pos*4+3].Set( (float)x,					(float)(y+GLYPH_HEIGHT) );	
+				vBuf[pos*4+0].Set( (float)x,					(float)(y+GLYPH_HEIGHT) );	
+				vBuf[pos*4+1].Set( (float)x+(float)width*scale,	(float)(y+GLYPH_HEIGHT) );	
+				vBuf[pos*4+2].Set( (float)x+(float)width*scale,	(float)(y+GLYPH_HEIGHT) - (float)GLYPH_HEIGHT*scale );	
+				vBuf[pos*4+3].Set( (float)x,					(float)(y+GLYPH_HEIGHT) - (float)GLYPH_HEIGHT*scale );	
 			}
 			x += LRintf((float)advance*scale);
 			++pos;

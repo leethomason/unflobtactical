@@ -39,6 +39,20 @@ void DeleteGame( void* handle )
 	}
 }
 
+
+void GameResize( void* handle, int width, int height, int rotation ) {
+	Game* game = (Game*)handle;
+	game->Resize( width, height, rotation );
+}
+
+
+void GameDeviceLoss( void* handle )
+{
+	Game* game = (Game*)handle;
+	game->DeviceLoss();
+}
+
+
 void GameDrag( void* handle, int action, int x, int y )
 {
 	Game* game = (Game*)handle;

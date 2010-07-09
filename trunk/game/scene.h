@@ -41,11 +41,11 @@ public:
 
 	// UI
 	virtual void Tap(	int count, 
-						const grinliz::Vector2I& screen,
+						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world )				{}
 
 	virtual void Drag(	int action,
-						const grinliz::Vector2I& view )			{}
+						const grinliz::Vector2F& view )			{}
 	virtual void Zoom( int action, int distance )				{}
 	virtual void Rotate( int action, float degrees )			{}
 	virtual void CancelInput()									{}
@@ -58,7 +58,6 @@ public:
 	enum {
 		RENDER_2D = 0x01,
 		RENDER_3D = 0x02,
-		RENDER_2D_FLIPPED = 0x04,
 	};
 
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	

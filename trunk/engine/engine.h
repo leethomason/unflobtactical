@@ -89,10 +89,10 @@ public:
 	void EnableMetadata( bool enable )	{ enableMeta = enable; }
 	bool IsMetadataEnabled()			{ return enableMeta; }
 
-	bool RayFromScreenToYPlane( int x, int y, 
-								const grinliz::Matrix4& modelViewProjectionInverse, 
-								grinliz::Ray* ray,
-								grinliz::Vector3F* intersection );
+	bool RayFromViewToYPlane( const grinliz::Vector2F& view,
+							  const grinliz::Matrix4& modelViewProjectionInverse, 
+							  grinliz::Ray* ray,
+							  grinliz::Vector3F* intersection );
 
 	Model* IntersectModel(	const grinliz::Ray& ray, 
 							HitTestMethod testMethod,

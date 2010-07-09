@@ -1,8 +1,6 @@
 Issues:
 
 Bugs:
-- click and drag unit
-- start at action (not black screen)
 - grey zone where previously seen
 - trees show up in the wrong place
 - alien doors not wide enough - block shots
@@ -21,6 +19,7 @@ Bugs:
 - mission types: terror
 - mission types: big ufos
 - mission types: base
+- start at action (not black screen)
 - add lander animation
 - add morale / psi attack
 
@@ -43,6 +42,7 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- click and drag unit
 - drawn edges of world
 - give aliens auto-armor
 - bug in AI memory. Need to moduarlize AI code.

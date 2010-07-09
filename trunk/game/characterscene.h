@@ -40,11 +40,11 @@ public:
 
 	// UI
 	virtual void Tap(	int count, 
-						const grinliz::Vector2I& screen,
+						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
 
 	virtual void Drag(	int action,
-						const grinliz::Vector2I& view )			{}
+						const grinliz::Vector2F& view )			{}
 
 	virtual void Zoom( int action, int distance )				{}
 	virtual void CancelInput()									{}
@@ -54,7 +54,7 @@ public:
 	{ 
 		clip3D->SetInvalid(); 
 		clip2D->SetInvalid(); 
-		return RENDER_2D | RENDER_2D_FLIPPED;	// | RENDER_3D; FIXME: Would be nice to draw the current weapon. But don't want to render everything else in the engine.
+		return RENDER_2D;	// | RENDER_3D; FIXME: Would be nice to draw the current weapon. But don't want to render everything else in the engine.
 	}
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
 	virtual void DrawHUD();

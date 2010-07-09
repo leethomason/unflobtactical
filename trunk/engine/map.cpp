@@ -74,7 +74,7 @@ Map::Map( SpaceTree* tree )
 
 	//texture.Set( "MapBackground", 0, false );
 	TextureManager* texman = TextureManager::Instance();
-	backgroundTexture = texman->CreateTexture( "MapBackground", MAP_TEXTURE_SIZE, MAP_TEXTURE_SIZE, Surface::RGB16, 0, this );
+	backgroundTexture = texman->CreateTexture( "MapBackground", MAP_TEXTURE_SIZE, MAP_TEXTURE_SIZE, Surface::RGB16, Texture::PARAM_NONE, this );
 
 	backgroundSurface.Set( Surface::RGB16, MAP_TEXTURE_SIZE, MAP_TEXTURE_SIZE );
 	backgroundSurface.Clear( 0 );
@@ -113,7 +113,7 @@ Map::Map( SpaceTree* tree )
 	}
 	fowSurface.Set( Surface::RGBA16, SIZE, SIZE );
 
-	lightMapTex = texman->CreateTexture( "MapLightMap", SIZE, SIZE, Surface::RGB16, 0, this );
+	lightMapTex = texman->CreateTexture( "MapLightMap", SIZE, SIZE, Surface::RGB16, Texture::PARAM_NONE, this );
 	fowTex = texman->CreateTexture( "FOWMapTex", SIZE, SIZE, Surface::RGBA16, Texture::PARAM_NEAREST, this );
 
 	ImageManager::Instance()->LoadImage( "objectLightMaps", &lightObject );
