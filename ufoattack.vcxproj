@@ -58,7 +58,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;UFO_WIN32_SDL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GRINLIZ_NO_STL;_CRT_SECURE_NO_WARNINGS;UFO_WIN32_SDL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -133,6 +133,10 @@
     <ClCompile Include="game\tacticalunitscorescene.cpp" />
     <ClCompile Include="game\ufosound.cpp" />
     <ClCompile Include="game\unit.cpp" />
+    <ClCompile Include="tinyxml\tinystr.cpp" />
+    <ClCompile Include="tinyxml\tinyxml.cpp" />
+    <ClCompile Include="tinyxml\tinyxmlerror.cpp" />
+    <ClCompile Include="tinyxml\tinyxmlparser.cpp" />
     <ClCompile Include="win32\audio.cpp" />
     <ClCompile Include="win32\glew.c" />
     <ClCompile Include="win32\main.cpp" />
@@ -175,6 +179,8 @@
     <ClInclude Include="game\targets.h" />
     <ClInclude Include="game\ufosound.h" />
     <ClInclude Include="game\unit.h" />
+    <ClInclude Include="tinyxml\tinystr.h" />
+    <ClInclude Include="tinyxml\tinyxml.h" />
     <ClInclude Include="win32\audio.h" />
     <ClInclude Include="win32\glew.h" />
     <ClInclude Include="win32\wglew.h" />

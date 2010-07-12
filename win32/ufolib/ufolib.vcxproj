@@ -89,8 +89,6 @@
     <ClInclude Include="..\..\grinliz\gltypes.h" />
     <ClInclude Include="..\..\grinliz\glutil.h" />
     <ClInclude Include="..\..\grinliz\glvector.h" />
-    <ClInclude Include="..\..\tinyxml\tinystr.h" />
-    <ClInclude Include="..\..\tinyxml\tinyxml.h" />
     <ClInclude Include="..\..\shared\glmap.h" />
   </ItemGroup>
   <ItemGroup>
@@ -108,10 +106,6 @@
     <ClCompile Include="..\..\grinliz\glstringutil.cpp" />
     <ClCompile Include="..\..\grinliz\glutil.cpp" />
     <ClCompile Include="..\..\grinliz\glvector.cpp" />
-    <ClCompile Include="..\..\tinyxml\tinystr.cpp" />
-    <ClCompile Include="..\..\tinyxml\tinyxml.cpp" />
-    <ClCompile Include="..\..\tinyxml\tinyxmlerror.cpp" />
-    <ClCompile Include="..\..\tinyxml\tinyxmlparser.cpp" />
     <ClCompile Include="..\..\shared\glmap.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

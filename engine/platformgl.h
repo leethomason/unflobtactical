@@ -33,6 +33,11 @@
 	#define glFrustumfX		glFrustumf
 	#define glOrthofX		glOrthof
 	#define USING_ES
+#elif defined (ANDROID_NDK)
+	#include <GLES/gl.h>
+	#define glFrustumfX		glFrustumf
+	#define glOrthofX		glOrthof
+	#define USING_ES
 #elif defined( UFO_WIN32_SDL )
 	#include "../win32/glew.h"
 

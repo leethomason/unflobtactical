@@ -421,6 +421,7 @@ float grinliz::CalcSphereTexture( float x, float y, bool high )
 	return theta / (2.0f*PI);
 }
 
+#ifndef ANDROID_NDK
 // http://student.ulb.ac.be/~claugero/sphere/index.html
 //
 void grinliz::TessellateSphere( int iterations, float radius, bool innerNormals,
@@ -662,7 +663,7 @@ void grinliz::TessellateCube(	const Vector3F& center,
 		}
 	}	
 }
-
+#endif
 
 const void Quaternion::ToMatrix( Matrix4* mat ) const
 {

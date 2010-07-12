@@ -72,11 +72,11 @@ void Stats::Load( const TiXmlElement* parent )
 	const TiXmlElement* ele = parent->FirstChildElement( "Stats" );
 	GLASSERT( ele );
 	if ( ele ) {
-		ele->QueryValueAttribute( "STR", &_STR );
-		ele->QueryValueAttribute( "DEX", &_DEX );
-		ele->QueryValueAttribute( "PSY", &_PSY );
-		ele->QueryValueAttribute( "level", &rank );
-		ele->QueryValueAttribute( "rank", &rank );
+		ele->QueryIntAttribute( "STR", &_STR );
+		ele->QueryIntAttribute( "DEX", &_DEX );
+		ele->QueryIntAttribute( "PSY", &_PSY );
+		ele->QueryIntAttribute( "level", &rank );
+		ele->QueryIntAttribute( "rank", &rank );
 		CalcBaselines();
 	}
 }

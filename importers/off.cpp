@@ -35,7 +35,7 @@ bool ImportOFF( const std::string& filename, ModelBuilder* builder )
 	builder->SetTexture( "" );
 
 	char buf[256];
-	std::vector< StrToken > tokens;
+	StrToken tokens[4];
 	
 	int vertexCount = 0;
 	int faceCount = 0;
@@ -47,10 +47,11 @@ bool ImportOFF( const std::string& filename, ModelBuilder* builder )
 			// comment, emtpy line
 			continue;
 		}
-		std::string str( buf );
-		StrTokenize( str, &tokens );
+		GLString str( buf );
+		int nTokens;
+		StrTokenize( str, 4, tokens, &nTokens );
 
-		if ( !tokens.size() ) {
+		if ( nTokens == 0 ) {
 			continue;
 		}
 
@@ -58,7 +59,7 @@ bool ImportOFF( const std::string& filename, ModelBuilder* builder )
 			continue;
 		}
 		if ( vertexCount == 0 ) {
-			GLASSERT( tokens.size() == 3 );
+			GLASSERT( nTokens == 3 );
 			GLASSERT( tokens[0].type == StrToken::NUMBER );
 			GLASSERT( tokens[1].type == StrToken::NUMBER );
 			GLASSERT( tokens[2].type == StrToken::NUMBER );
@@ -78,12 +79,13 @@ bool ImportOFF( const std::string& filename, ModelBuilder* builder )
 			// comment, emtpy line
 			continue;
 		}
-		std::string str( buf );
-		StrTokenize( str, &tokens );
-		if ( !tokens.size() ) {
+		GLString str( buf );
+		int nTokens;
+		StrTokenize( str, 4, tokens, &nTokens );
+		if ( nTokens == 0 ) {
 			continue;
 		}
-		GLASSERT( tokens.size() == 3 );
+		GLASSERT( nTokens == 3 );
 		GLASSERT( tokens[0].type == StrToken::NUMBER );
 		GLASSERT( tokens[1].type == StrToken::NUMBER );
 		GLASSERT( tokens[2].type == StrToken::NUMBER );
@@ -105,9 +107,10 @@ bool ImportOFF( const std::string& filename, ModelBuilder* builder )
 			// comment, emtpy line
 			continue;
 		}
-		std::string str( buf );
-		StrTokenize( str, &tokens );
-		if ( !tokens.size() ) {
+		GLString str( buf );
+		int nTokens;
+		StrTokenize( str, 4, tokens, &nTokens );
+		if ( nTokens == 0 ) {
 			continue;
 		}
 

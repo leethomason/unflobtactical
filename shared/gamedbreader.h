@@ -1,4 +1,4 @@
-/*
+	/*
  Copyright (c) 2010 Lee Thomason
 
  This software is provided 'as-is', without any express or implied
@@ -24,6 +24,7 @@
 #ifndef GRINLIZ_GAME_DB_READER_INCLUDED
 #define GRINLIZ_GAME_DB_READER_INCLUDED
 
+#include <stdio.h>
 #include "../grinliz/gltypes.h"
 #include "../grinliz/gldebug.h"
 #include "gamedb.h"
@@ -152,7 +153,6 @@ public:
 private:
 	static Reader* readerRoot;
 	Reader* next;
-
 
 	FILE* fp;
 

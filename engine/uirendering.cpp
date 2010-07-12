@@ -20,6 +20,7 @@
 #include "text.h"
 
 using namespace grinliz;
+using namespace gamui;
 
 extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
 extern int drawCalls;			// ditto
@@ -95,10 +96,10 @@ void UIRenderer::BeginTexture( const void* textureHandle )
 }
 
 
-void UIRenderer::Render( const void* renderState, const void* textureHandle, int nIndex, const int16_t* index, int nVertex, const gamui::Gamui::Vertex* vertex )
+void UIRenderer::Render( const void* renderState, const void* textureHandle, int nIndex, const int16_t* index, int nVertex, const Gamui::Vertex* vertex )
 {
-	glVertexPointer(   2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].x );
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].tx );
+	glVertexPointer(   2, GL_FLOAT, sizeof(Gamui::Vertex), &vertex[0].x );
+	glTexCoordPointer( 2, GL_FLOAT, sizeof(Gamui::Vertex), &vertex[0].tx );
 	glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, index );
 	
 	trianglesRendered += nIndex / 3;
@@ -106,7 +107,7 @@ void UIRenderer::Render( const void* renderState, const void* textureHandle, int
 }
 
 
-void UIRenderer::SetAtomCoordFromPixel( int x0, int y0, int x1, int y1, int w, int h, gamui::RenderAtom* atom )
+void UIRenderer::SetAtomCoordFromPixel( int x0, int y0, int x1, int y1, int w, int h, RenderAtom* atom )
 {
 	atom->tx0 = (float)x0 / (float)w;
 	atom->tx1 = (float)x1 / (float)w;
@@ -116,7 +117,7 @@ void UIRenderer::SetAtomCoordFromPixel( int x0, int y0, int x1, int y1, int w, i
 }
 
 
-gamui::RenderAtom UIRenderer::CalcDecoAtom( int id, bool enabled )
+RenderAtom UIRenderer::CalcDecoAtom( int id, bool enabled )
 {
 	GLASSERT( id >= 0 && id < 32 );
 	Texture* texture = TextureManager::Instance()->GetTexture( "iconDeco" );
@@ -127,11 +128,11 @@ gamui::RenderAtom UIRenderer::CalcDecoAtom( int id, bool enabled )
 	float tx1 = tx0 + 1.f/8.f;
 	float ty1 = ty0 + 1.f/4.f;
 
-	return gamui::RenderAtom( enabled ? RENDERSTATE_DECO : RENDERSTATE_DECO_DISABLED, texture, tx0, ty0, tx1, ty1, 64, 64 );
+	return RenderAtom( (const void*)(enabled ? RENDERSTATE_DECO : RENDERSTATE_DECO_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1, 64, 64 );
 }
 
 
-gamui::RenderAtom UIRenderer::CalcParticleAtom( int id, bool enabled )
+RenderAtom UIRenderer::CalcParticleAtom( int id, bool enabled )
 {
 	GLASSERT( id >= 0 && id < 16 );
 	Texture* texture = TextureManager::Instance()->GetTexture( "particleQuad" );
@@ -142,11 +143,11 @@ gamui::RenderAtom UIRenderer::CalcParticleAtom( int id, bool enabled )
 	float tx1 = tx0 + 1.f/4.f;
 	float ty1 = ty0 + 1.f/4.f;
 
-	return gamui::RenderAtom( enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED, texture, tx0, ty0, tx1, ty1, 64, 64 );
+	return RenderAtom( (const void*)(enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1, 64, 64 );
 }
 
 
-gamui::RenderAtom UIRenderer::CalcIconAtom( int id, bool enabled )
+RenderAtom UIRenderer::CalcIconAtom( int id, bool enabled )
 {
 	GLASSERT( id >= 0 && id < 32 );
 	Texture* texture = TextureManager::Instance()->GetTexture( "icons" );
@@ -157,11 +158,11 @@ gamui::RenderAtom UIRenderer::CalcIconAtom( int id, bool enabled )
 	float tx1 = tx0 + 1.f/8.f;
 	float ty1 = ty0 + 1.f/4.f;
 
-	return gamui::RenderAtom( enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED, texture, tx0, ty0, tx1, ty1, 64, 64 );
+	return RenderAtom( (const void*)(enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1, 64, 64 );
 }
 
 
-gamui::RenderAtom UIRenderer::CalcPaletteAtom( int c0, int c1, int blend, float w, float h, bool enabled )
+RenderAtom UIRenderer::CalcPaletteAtom( int c0, int c1, int blend, float w, float h, bool enabled )
 {
 	Vector2I c = { 0, 0 };
 	Texture* texture = TextureManager::Instance()->GetTexture( "palette" );
@@ -189,13 +190,13 @@ gamui::RenderAtom UIRenderer::CalcPaletteAtom( int c0, int c1, int blend, float 
 			c.y = offset[c1];
 		}
 	}
-	gamui::RenderAtom atom( enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED, texture, 0, 0, 0, 0, w, h );
+	RenderAtom atom( (const void*)(enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED), (const void*)texture, 0, 0, 0, 0, w, h );
 	SetAtomCoordFromPixel( c.x, c.y, c.x, c.y, 300, 300, &atom );
 	return atom;
 }
 
 
-void UIRenderer::GamuiGlyph( int c, gamui::IGamuiText::GlyphMetrics* metric )
+void UIRenderer::GamuiGlyph( int c, IGamuiText::GlyphMetrics* metric )
 {
 	int advance=0;
 	int width=0;

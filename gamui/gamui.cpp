@@ -14,8 +14,9 @@
 */
 
 #include "gamui.h"
-#include <algorithm>
 #include <math.h>
+#include <string.h>
+#include <stdlib.h>
 
 using namespace gamui;
 using namespace std;
@@ -178,7 +179,7 @@ const RenderAtom* TextLabel::GetRenderAtom() const
 const char* TextLabel::GetText() const
 {
 	if ( IsStr() )
-		return str->c_str();
+		return str;
 	else
 		return buf;
 }
@@ -187,23 +188,20 @@ const char* TextLabel::GetText() const
 void TextLabel::SetText( const char* t )
 {
 	m_width = m_height = -1;
-	// already in string mode? use that.
-	if ( IsStr() ) {
-		*str = t;
-	}
-	else {
-		ClearText();
+	ClearText();
 
-		if ( t ) {
-			int len = strlen( t );
-			if ( len < ALLOCATE-1 ) {
-				memcpy( buf, t, len );
-				buf[len] = 0;
-			}
-			else {
-				str = new string( t );
-				buf[ALLOCATE-1] = 127;
-			}
+	if ( t ) {
+		int len = strlen( t );
+		if ( len < ALLOCATE-1 ) {
+			memcpy( buf, t, len );
+			buf[len] = 0;
+		}
+		else {
+			str = new char[len+1];
+			memcpy( str, t, len );
+			str[len] = 0;
+
+			buf[ALLOCATE-1] = 127;
 		}
 	}
 }
@@ -213,7 +211,7 @@ void TextLabel::Requires( int* indexNeeded, int* vertexNeeded )
 {
 	int len = 0;
 	if ( IsStr() ) {
-		len = (int)str->size();
+		len = strlen( str );
 	}
 	else {
 		len = strlen( buf );
@@ -236,7 +234,7 @@ void TextLabel::CalcSize( float* width, float* height ) const
 
 	const char* p = 0;
 	if ( buf[ALLOCATE-1] ) { 
-		p = str->c_str();
+		p = str;
 	}
 	else {
 		p = buf;
@@ -263,7 +261,7 @@ void TextLabel::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex*
 
 	const char* p = 0;
 	if ( buf[ALLOCATE-1] ) { 
-		p = str->c_str();
+		p = str;
 	}
 	else {
 		p = buf;
@@ -451,6 +449,11 @@ const RenderAtom* TiledImageBase::GetRenderAtom() const
 	return &m_atom[1];
 }
 
+
+void TiledImageBase::Clear()														
+{ 
+	memset( Mem(), 0, CX()*CY() ); 
+}
 
 void TiledImageBase::Requires( int* indexNeeded, int* vertexNeeded )
 {
@@ -945,7 +948,10 @@ void DigitalBar::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex
 
 Gamui::Gamui()
 	:	m_itemTapped( 0 ),
-		m_iText( 0 )
+		m_iText( 0 ),
+		m_itemArr( 0 ),
+		m_nItems( 0 ),
+		m_nItemsAllocated( 0 )
 {
 }
 
@@ -955,7 +961,10 @@ Gamui::Gamui(	IGamuiRenderer* renderer,
 				const RenderAtom& textDisabled,
 				IGamuiText* iText ) 
 	:	m_itemTapped( 0 ),
-		m_iText( 0 )
+		m_iText( 0 ),
+		m_itemArr( 0 ),
+		m_nItems( 0 ),
+		m_nItemsAllocated( 0 )
 {
 	Init( renderer, textEnabled, textDisabled, iText );
 }
@@ -963,9 +972,10 @@ Gamui::Gamui(	IGamuiRenderer* renderer,
 
 Gamui::~Gamui()
 {
-	for( vector< UIItem* >::iterator it = m_itemArr.begin(); it != m_itemArr.end(); it++ ) {
-		(*it)->Clear();
+	for( int i=0; i<m_nItems; ++i ) {
+		m_itemArr[i]->Clear();
 	}
+	free( m_itemArr );
 }
 
 
@@ -988,7 +998,7 @@ void Gamui::Add( UIItem* item )
 
 		bool somethingDown = false;
 
-		for( unsigned i=0; i<m_itemArr.size(); ++i ) {
+		for( int i=0; i<m_nItems; ++i ) {
 			if (    m_itemArr[i]->IsToggle() 
 				 && m_itemArr[i]->IsToggle()->ToggleGroup() == toggle->ToggleGroup() 
 				 && m_itemArr[i]->IsToggle()->Down() ) 
@@ -1002,17 +1012,23 @@ void Gamui::Add( UIItem* item )
 			toggle = toggle;
 		}
 	}
-
-	m_itemArr.push_back( item );
+	if ( m_nItemsAllocated == m_nItems ) {
+		m_nItemsAllocated = m_nItemsAllocated*3/2 + 16;
+		m_itemArr = (UIItem**) realloc( m_itemArr, m_nItemsAllocated*sizeof(UIItem*) );
+	}
+	m_itemArr[m_nItems++] = item;
 }
 
 
 void Gamui::Remove( UIItem* item )
 {
 	// hmm...linear search. could be better.
-	for( vector< UIItem* >::iterator it = m_itemArr.begin(); it != m_itemArr.end(); it++ ) {
-		if ( *it == item ) {
-			m_itemArr.erase( it );
+	for( int i=0; i<m_nItems; ++i ) {
+		if ( m_itemArr[i] == item ) {
+			// swap off the back.
+			m_itemArr[i] = m_itemArr[m_nItems-1];
+			m_nItems--;
+
 			item->Clear();
 			break;
 		}
@@ -1033,8 +1049,8 @@ const UIItem* Gamui::TapDown( float x, float y )
 	GAMUIASSERT( m_itemTapped == 0 );
 	m_itemTapped = 0;
 
-	for( vector< UIItem* >::iterator it = m_itemArr.begin(); it != m_itemArr.end(); it++ ) {
-		UIItem* item = *it;
+	for( int i=0; i<m_nItems; ++i ) {
+		UIItem* item = m_itemArr[i];
 
 		if (    item->Enabled() 
 			 && item->Visible()
@@ -1052,12 +1068,12 @@ const UIItem* Gamui::TapDown( float x, float y )
 					GAMUIASSERT( toggle->Down() );
 					m_itemTapped = toggle;
 
-					for ( unsigned i=0; i<m_itemArr.size(); ++i ) {
-						if (    m_itemArr[i] != toggle
-							 && m_itemArr[i]->IsToggle()
-							 && m_itemArr[i]->IsToggle()->ToggleGroup() == toggle->ToggleGroup() )
+					for ( int k=0; k<m_nItems; ++k ) {
+						if (    m_itemArr[k] != toggle
+							 && m_itemArr[k]->IsToggle()
+							 && m_itemArr[k]->IsToggle()->ToggleGroup() == toggle->ToggleGroup() )
 						{
-							m_itemArr[i]->IsToggle()->SetUp();
+							m_itemArr[k]->IsToggle()->SetUp();
 							// should be able to break, but make it all consistent.
 						}
 					}
@@ -1084,8 +1100,10 @@ const UIItem* Gamui::TapUp( float x, float y )
 }
 
 
-bool Gamui::SortItems( const UIItem* a, const UIItem* b )
+int Gamui::SortItems( const void* _a, const void* _b )
 { 
+	const UIItem* a = *((const UIItem**)_a);
+	const UIItem* b = *((const UIItem**)_b);
 	// Priorities:
 	// 1. Level
 	// 2. RenderState
@@ -1093,9 +1111,9 @@ bool Gamui::SortItems( const UIItem* a, const UIItem* b )
 
 	// Level wins.
 	if ( a->Level() < b->Level() )
-		return true;
+		return -1;
 	else if ( a->Level() > b->Level() )
-		return false;
+		return 1;
 
 	const RenderAtom* atomA = a->GetRenderAtom();
 	const RenderAtom* atomB = b->GetRenderAtom();
@@ -1106,27 +1124,29 @@ bool Gamui::SortItems( const UIItem* a, const UIItem* b )
 	// If level is the same, look at the RenderAtom;
 	// to get to the state:
 	if ( rStateA < rStateB )
-		return true;
+		return -1;
 	else if ( rStateA > rStateB )
-		return false;
+		return 1;
 
 	const void* texA = (atomA) ? atomA->textureHandle : 0;
 	const void* texB = (atomB) ? atomB->textureHandle : 0;
 
 	// finally the texture.
 	if ( texA < texB )
-		return true;
+		return -1;
 	else if ( texA > texB )
-		return false;
+		return 1;
 
 	// just to guarantee a consistent order.
-	return a > b;
+	return a - b;
 }
 
 
 void Gamui::Render()
 {
-	sort( m_itemArr.begin(), m_itemArr.end(), SortItems );
+	//sort( m_itemArr.begin(), m_itemArr.end(), SortItems );
+	qsort( m_itemArr, m_nItems, sizeof(UIItem*), SortItems );
+
 	int nIndex = 0;
 	int nVertex = 0;
 
@@ -1135,8 +1155,8 @@ void Gamui::Render()
 	const void* renderState = 0;
 	const void* textureHandle = 0;
 
-	for( vector< UIItem* >::iterator it = m_itemArr.begin(); it != m_itemArr.end(); it++ ) {
-		UIItem* item = *it;
+	for( int i=0; i<m_nItems; ++i ) {
+		UIItem* item = m_itemArr[i];
 		const RenderAtom* atom = item->GetRenderAtom();
 
 		// Requires() does layout / sets child visibility. Can't skip this step:
@@ -1151,7 +1171,6 @@ void Gamui::Render()
 			 && ( atom->renderState != renderState || atom->textureHandle != textureHandle ) )
 		{
 			m_iRenderer->Render( renderState, textureHandle, nIndex, &m_indexBuffer[0], nVertex, &m_vertexBuffer[0] );
-			++
 			nIndex = nVertex = 0;
 		}
 

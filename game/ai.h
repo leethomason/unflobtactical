@@ -25,13 +25,11 @@
 #include "gamelimits.h"
 #include "battlescene.h"	// FIXME: for MotionPath. Factor out?
 
-#include <vector>
 
 class Unit;
 class Targets;
 class SpaceTree;
 class Map;
-
 
 class AI
 {
@@ -146,7 +144,7 @@ protected:
 
 	// Utility:
 	bool LineOfSight( const Unit* shooter, const Unit* target ); // calls the engine LoS to get an accurate value
-	void TrimPathToCost( std::vector< grinliz::Vector2<S16> >* path, float maxCost );
+	void TrimPathToCost( MP_VECTOR< grinliz::Vector2<S16> >* path, float maxCost );
 	int  VisibleUnitsInArea(	const Unit* theUnit,
 								const Unit* units,
 								const Targets& targets,
@@ -164,7 +162,7 @@ protected:
 	int m_enemyEnd;
 	grinliz::Random m_random;
 	Engine* m_engine;	// for ray queries.
-	std::vector< grinliz::Vector2<S16> > m_path[4];
+	MP_VECTOR< grinliz::Vector2<S16> > m_path[4];
 };
 
 

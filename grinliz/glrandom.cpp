@@ -154,7 +154,7 @@ void Random::NormalVector( float* v, int dim )
 /*static*/ U32 Random::Hash( const void* data, U32 len )
 {
 	const unsigned char *p = (const unsigned char *)(data);
-	unsigned int h = 2166136261;
+	unsigned int h = 2166136261U;
 
 	for( U32 i=0; i<len; ++i, ++p ) {
 		h ^= *p;

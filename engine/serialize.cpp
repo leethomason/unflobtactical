@@ -16,10 +16,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <string>
 #include "serialize.h"
 #include "../grinliz/glstringutil.h"
-#include "../shared/gamedbwriter.h"
 
 using namespace grinliz;
 

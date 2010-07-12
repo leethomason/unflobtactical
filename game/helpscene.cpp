@@ -16,7 +16,7 @@ HelpScene::HelpScene( Game* _game ) : Scene( _game )
 	for( int i=0; i<NUM_SCREENS; ++i ) {
 		RenderAtom atom;
 
-		atom.Init( UIRenderer::RENDERSTATE_NORMAL, TextureManager::Instance()->GetTexture( textures[i] ), 0, 0, 1, 1, 480, 320 );
+		atom.Init( (const void*)UIRenderer::RENDERSTATE_NORMAL, (const void*)TextureManager::Instance()->GetTexture( textures[i] ), 0, 0, 1, 1, 480, 320 );
 		UIRenderer::SetAtomCoordFromPixel( 0, 0, 480, 320, 512, 512, &atom );
 
 		screens[i].Init( &gamui2D, atom );

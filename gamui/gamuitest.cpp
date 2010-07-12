@@ -200,13 +200,13 @@ int main( int argc, char **argv )
 	SDL_FreeSurface( imageSurface );
 
 
-	RenderAtom textAtom( RENDERSTATE_TEXT, textTextureID, 0, 0, 0, 0, 256, 128 );
+	RenderAtom textAtom( (const void*)RENDERSTATE_TEXT, (const void*)textTextureID, 0, 0, 0, 0, 256, 128 );
 	RenderAtom textAtomD = textAtom;
 	textAtomD.renderState = (const void*) RENDERSTATE_TEXT_DISABLED;
 
-	RenderAtom imageAtom( RENDERSTATE_NORMAL, imageTextureID, 0.5f, 0.5f, 228.f/256.f, 28.f/256.f, 100, 100 );
+	RenderAtom imageAtom( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0.5f, 0.5f, 228.f/256.f, 28.f/256.f, 100, 100 );
 
-	RenderAtom decoAtom( RENDERSTATE_NORMAL, imageTextureID, 0, 0.25f, 0.25f, 0.f, 50, 50 );
+	RenderAtom decoAtom( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0, 0.25f, 0.25f, 0.f, 50, 50 );
 	RenderAtom decoAtomD = decoAtom;
 	decoAtomD.renderState = (const void*) RENDERSTATE_DISABLED;
 
@@ -252,12 +252,12 @@ int main( int argc, char **argv )
 	image3.SetSize( 125, 125 );
 	image3.SetSlice( true );
 
-	RenderAtom up( RENDERSTATE_NORMAL, imageTextureID, 0, 1, (52.f/256.f), (204.f/256.f), 50, 50 );
+	RenderAtom up( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0, 1, (52.f/256.f), (204.f/256.f), 50, 50 );
 	RenderAtom upD = up;
 	upD.renderState = (const void*) RENDERSTATE_DISABLED;
 
-	RenderAtom down( RENDERSTATE_NORMAL, imageTextureID, 0, 0.75f, (52.f/256.f), (140.f/256.f), 50, 50 );
-	RenderAtom downD( down, RENDERSTATE_DISABLED );
+	RenderAtom down( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0, 0.75f, (52.f/256.f), (140.f/256.f), 50, 50 );
+	RenderAtom downD( down, (const void*)RENDERSTATE_DISABLED );
 
 	PushButton button0( &gamui, up, upD, down, downD, decoAtom, decoAtomD );
 	button0.SetPos( 350, 50 );
@@ -276,7 +276,7 @@ int main( int argc, char **argv )
 	toggle.SetText( "Toggle" );
 	toggle.SetText2( "Line 2" );
 
-	RenderAtom tick0( RENDERSTATE_NORMAL, imageTextureID, 0, 0, 0, 0, 15, 30 );
+	RenderAtom tick0( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0, 0, 0, 0, 15, 30 );
 	RenderAtom tick1=tick0, tick2=tick0;
 	tick0.SetCoord( 190.f/256.f, 225.f/256.f, 205.f/256.f, 1 );
 	tick2.SetCoord( 190.f/256.f, 180.f/256.f, 205.f/256.f, 210.f/256.f );

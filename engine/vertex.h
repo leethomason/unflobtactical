@@ -16,7 +16,6 @@
 #ifndef UFOATTACK_VERTEX_INCLUDED
 #define UFOATTACK_VERTEX_INCLUDED
 
-#include <vector>
 #include "../grinliz/glvector.h"
 #include "../grinliz/glmatrix.h"
 

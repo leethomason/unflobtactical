@@ -20,8 +20,6 @@
 #include "../engine/engine.h"
 #include "game.h"
 
-#include <string>
-using namespace std;
 using namespace grinliz;
 using namespace gamui;
 
@@ -34,7 +32,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 
 	background.Init( &gamui2D, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND ) );
 
-	RenderAtom backgroundNewAtom( UIRenderer::RENDERSTATE_NORMAL, TextureManager::Instance()->GetTexture( "newscreen" ), 0, 0, 1, 1, 480, 320 );
+	RenderAtom backgroundNewAtom( (const void*)UIRenderer::RENDERSTATE_NORMAL, (const void*)TextureManager::Instance()->GetTexture( "newscreen" ), 0, 0, 1, 1, 480, 320 );
 	UIRenderer::SetAtomCoordFromPixel( 0, 0, 480, 320, 512, 512, &backgroundNewAtom );
 
 	backgroundNew.Init( &gamui2D, backgroundNewAtom );
@@ -107,7 +105,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	seedButton.SetVisible( false );
 
 	// Is there a current game?
-	const std::string& savePath = game->GameSavePath();
+	GLString savePath = game->GameSavePath();
 	continueButton.SetEnabled( false );
 	FILE* fp = fopen( savePath.c_str(), "r" );
 	if ( fp ) {
@@ -206,7 +204,7 @@ void TacticalIntroScene::WriteXML( TiXmlNode* xml )
 	CreateMap( gameElement, seed, LOC_FARM, 1 );
 
 	{
-		std::string buf = "<Units>";
+		GLString buf = "<Units>";
 		const gamedb::Reader* database = game->GetDatabase();
 		const gamedb::Item* parent = database->Root()->Child( "data" );
 		const gamedb::Item* item = 0;

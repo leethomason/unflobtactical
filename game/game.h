@@ -142,7 +142,11 @@ public:
 	U32 CurrentTime() const	{ return currentTime; }
 	U32 DeltaTime() const	{ return currentTime-previousTime; }
 
-	std::string GameSavePath()			{ return savePath + "currentgame.xml"; }
+	const grinliz::GLString GameSavePath()	{	grinliz::GLString str( savePath );
+												str += "currentgame.xml";
+												return str;
+											}
+
 	void Load( const TiXmlDocument& doc );
 	void Save( TiXmlDocument* doc );
 
@@ -256,7 +260,7 @@ private:
 
 	int rotTestStart;
 	int rotTestCount;
-	std::string savePath;
+	grinliz::GLString savePath;
 	CDynArray< char > resourceBuf;
 
 	gamui::RenderAtom renderAtoms[ATOM_COUNT];

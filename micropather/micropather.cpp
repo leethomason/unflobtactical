@@ -28,7 +28,7 @@ distribution.
 #pragma warning( disable : 4530 )	// Exception handler isn't used
 #endif
 
-#include <vector>
+//#include <vector>
 #include <memory.h>
 #include <stdio.h>
 
@@ -464,9 +464,9 @@ void MicroPather::Reset()
 }
 
 
-void MicroPather::GoalReached( PathNode* node, void* start, void* end, vector< void* > *_path )
+void MicroPather::GoalReached( PathNode* node, void* start, void* end, MP_VECTOR< void* > *_path )
 {
-	std::vector< void* >& path = *_path;
+	MP_VECTOR< void* >& path = *_path;
 	path.clear();
 
 	// We have reached the goal.
@@ -531,7 +531,7 @@ void MicroPather::GoalReached( PathNode* node, void* start, void* end, vector< v
 }
 
 
-void MicroPather::GetNodeNeighbors( PathNode* node, std::vector< NodeCost >* pNodeCost )
+void MicroPather::GetNodeNeighbors( PathNode* node, MP_VECTOR< NodeCost >* pNodeCost )
 {
 	if ( node->numAdjacent == 0 ) {
 		// it has no neighbors.
@@ -562,8 +562,8 @@ void MicroPather::GetNodeNeighbors( PathNode* node, std::vector< NodeCost >* pNo
 			// Note that the microsoft std library is actually pretty slow.
 			// Move things to temp vars to help.
 			const unsigned stateCostVecSize = stateCostVec.size();
-			const StateCost* stateCostVecPtr = &stateCostVec.at(0);
-			NodeCost* pNodeCostPtr = &pNodeCost->at(0);
+			const StateCost* stateCostVecPtr = &stateCostVec[0];
+			NodeCost* pNodeCostPtr = &(*pNodeCost)[0];
 
 			for( unsigned i=0; i<stateCostVecSize; ++i ) {
 				void* state = stateCostVecPtr[i].state;
@@ -581,7 +581,7 @@ void MicroPather::GetNodeNeighbors( PathNode* node, std::vector< NodeCost >* pNo
 	else {
 		// In the cache!
 		pNodeCost->resize( node->numAdjacent );
-		NodeCost* pNodeCostPtr = &pNodeCost->at(0);
+		NodeCost* pNodeCostPtr = &(*pNodeCost)[0];
 		pathNodePool.GetCache( node->cacheIndex, node->numAdjacent, pNodeCostPtr );
 
 		// A node is uninitialized (even if memory is allocated) if it is from a previous frame.
@@ -618,14 +618,14 @@ void MicroPather::DumpStats()
 #endif
 
 
-void MicroPather::StatesInPool( std::vector< void* >* stateVec )
+void MicroPather::StatesInPool( MP_VECTOR< void* >* stateVec )
 {
  	stateVec->clear();
 	pathNodePool.AllStates( frame, stateVec );
 }
 
 
-void PathNodePool::AllStates( unsigned frame, std::vector< void* >* stateVec )
+void PathNodePool::AllStates( unsigned frame, MP_VECTOR< void* >* stateVec )
 {	
     for ( Block* b=blocks; b; b=b->nextBlock )
     {
@@ -638,7 +638,7 @@ void PathNodePool::AllStates( unsigned frame, std::vector< void* >* stateVec )
 }   
 
 
-int MicroPather::Solve( void* startNode, void* endNode, vector< void* >* path, float* cost )
+int MicroPather::Solve( void* startNode, void* endNode, MP_VECTOR< void* >* path, float* cost )
 {
 	// Important to clear() in case the caller doesn't check the return code. There
 	// can easily be a left over path  from a previous call.
@@ -738,7 +738,7 @@ int MicroPather::Solve( void* startNode, void* endNode, vector< void* >* path, f
 }	
 
 
-int MicroPather::SolveForNearStates( void* startState, std::vector< StateCost >* near, float maxCost )
+int MicroPather::SolveForNearStates( void* startState, MP_VECTOR< StateCost >* near, float maxCost )
 {
 	/*	 http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
 
@@ -834,7 +834,7 @@ int MicroPather::SolveForNearStates( void* startState, std::vector< StateCost >*
 #ifdef DEBUG
 	for( unsigned i=0; i<near->size(); ++i ) {
 		for( unsigned k=i+1; k<near->size(); ++k ) {
-			MPASSERT( near->at(i).state != near->at(k).state );
+			MPASSERT( (*near)[i].state != (*near)[k].state );
 		}
 	}
 #endif
