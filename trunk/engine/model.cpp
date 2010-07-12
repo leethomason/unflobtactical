@@ -114,8 +114,8 @@ void ModelLoader::Load( const gamedb::Item* item, ModelResource* res )
 			textureName = "white";
 		}
 
-		std::string base, texname, extension;
-		StrSplitFilename( std::string( textureName ), &base, &texname, &extension );
+		GLString base, texname, extension;
+		StrSplitFilename( GLString( textureName ), &base, &texname, &extension );
 		Texture* t = TextureManager::Instance()->GetTexture( texname.c_str() );
 
 		GLASSERT( t );                       

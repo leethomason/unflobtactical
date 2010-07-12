@@ -140,7 +140,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		controlButton[2].SetPos( port.UIWidth()-SIZE*2.f, port.UIHeight()-SIZE );
 		controlButton[3].SetPos( port.UIWidth()-SIZE*1.f, port.UIHeight()-SIZE );
 
-		RenderAtom menuImageAtom( UIRenderer::RENDERSTATE_NORMAL, TextureManager::Instance()->GetTexture( "commandBarV" ), 0, 0, 1, 1, 50, 320 );
+		RenderAtom menuImageAtom( (const void*)UIRenderer::RENDERSTATE_NORMAL, (const void*)TextureManager::Instance()->GetTexture( "commandBarV" ), 0, 0, 1, 1, 50, 320 );
 		menuImage.Init( &gamui2D, menuImageAtom );
 	}
 
@@ -2283,7 +2283,6 @@ void BattleScene::Tap(	int tap,
 	if ( SelectedSoldierUnit() && !tappedUnit && hasTilePos ) {
 		// Not a model - use the tile
 		Vector2<S16> start   = { (S16)SelectedSoldierModel()->X(), (S16)SelectedSoldierModel()->Z() };
-
 		Vector2<S16> end = { (S16)tilePos.x, (S16)tilePos.y };
 
 		// Compute the path:
@@ -2979,7 +2978,7 @@ float MotionPath::DeltaToRotation( int dx, int dy )
 }
 
 
-void MotionPath::Init( const std::vector< Vector2<S16> >& pathCache ) 
+void MotionPath::Init( const micropather::MPVector< Vector2<S16> >& pathCache ) 
 {
 	GLASSERT( pathCache.size() <= MAX_TU );
 	GLASSERT( pathCache.size() > 1 );	// at least start and end

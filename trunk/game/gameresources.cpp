@@ -683,19 +683,19 @@ void Game::LoadAtoms()
 {
 	TextureManager* tm = TextureManager::Instance();
 
-	renderAtoms[ATOM_TEXT].Init( UIRenderer::RENDERSTATE_NORMAL, tm->GetTexture( "stdfont2" ), 0, 0, 1, 1, 256, 128 );
-	renderAtoms[ATOM_TEXT_D].Init( UIRenderer::RENDERSTATE_DISABLED, tm->GetTexture( "stdfont2" ), 0, 0, 1, 1, 256, 128 );
+	renderAtoms[ATOM_TEXT].Init( (const void*)UIRenderer::RENDERSTATE_NORMAL, (const void*)tm->GetTexture( "stdfont2" ), 0, 0, 1, 1, 256, 128 );
+	renderAtoms[ATOM_TEXT_D].Init( (const void*)UIRenderer::RENDERSTATE_DISABLED, (const void*)tm->GetTexture( "stdfont2" ), 0, 0, 1, 1, 256, 128 );
 
-	renderAtoms[ATOM_TACTICAL_BACKGROUND].Init( UIRenderer::RENDERSTATE_NORMAL, tm->GetTexture( "intro" ), 0, 0, 1, 1, 480, 320 );
+	renderAtoms[ATOM_TACTICAL_BACKGROUND].Init( (const void*)UIRenderer::RENDERSTATE_NORMAL, (const void*)tm->GetTexture( "intro" ), 0, 0, 1, 1, 480, 320 );
 	UIRenderer::SetAtomCoordFromPixel( 0, 0, 480, 320, 512, 512, &renderAtoms[ATOM_TACTICAL_BACKGROUND] );
 
 	for( int i=0; i <= (ATOM_RED_BUTTON_UP-ATOM_GREEN_BUTTON_UP); i += 4 ) {
-		renderAtoms[ATOM_GREEN_BUTTON_UP+i].Init( UIRenderer::RENDERSTATE_NORMAL, tm->GetTexture( "icons" ), 0, 0, 1, 1, 56, 56 );
+		renderAtoms[ATOM_GREEN_BUTTON_UP+i].Init( (const void*)UIRenderer::RENDERSTATE_NORMAL, (const void*)tm->GetTexture( "icons" ), 0, 0, 1, 1, 56, 56 );
 		UIRenderer::SetAtomCoordFromPixel( 0+64*(i/4), 193, 62+64*(i/4), 253, 512, 256, &renderAtoms[ATOM_GREEN_BUTTON_UP+i] );
 		renderAtoms[ATOM_GREEN_BUTTON_UP_D+i] = renderAtoms[ATOM_GREEN_BUTTON_UP+i];
 		renderAtoms[ATOM_GREEN_BUTTON_UP_D+i].renderState = (const void*) UIRenderer::RENDERSTATE_DISABLED;
 
-		renderAtoms[ATOM_GREEN_BUTTON_DOWN+i].Init( UIRenderer::RENDERSTATE_NORMAL, tm->GetTexture( "icons" ), 0, 0, 1, 1, 56, 56 );
+		renderAtoms[ATOM_GREEN_BUTTON_DOWN+i].Init( (const void*)UIRenderer::RENDERSTATE_NORMAL, (const void*)tm->GetTexture( "icons" ), 0, 0, 1, 1, 56, 56 );
 		UIRenderer::SetAtomCoordFromPixel( 0+64*(i/4), 129, 62+64*(i/4), 189, 512, 256, &renderAtoms[ATOM_GREEN_BUTTON_DOWN+i] );
 		renderAtoms[ATOM_GREEN_BUTTON_DOWN_D+i] = renderAtoms[ATOM_GREEN_BUTTON_DOWN+i];
 		renderAtoms[ATOM_GREEN_BUTTON_DOWN_D+i].renderState = (const void*) UIRenderer::RENDERSTATE_DISABLED;

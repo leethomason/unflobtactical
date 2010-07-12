@@ -38,7 +38,12 @@ distribution.
 	on the Grinning Lizard website: http://grinninglizard.com/micropather/
 */
 
-#include <vector>
+#ifdef GRINLIZ_NO_STL
+#	define MP_VECTOR micropather::MPVector
+#else
+#	include <vector>
+#	define MP_VECTOR std::vector
+#endif
 #include <float.h>
 
 #ifdef _DEBUG
@@ -75,6 +80,51 @@ distribution.
 
 namespace micropather
 {
+#ifdef GRINLIZ_NO_STL
+
+	/* WARNING: incompatible vector replacement. Does everything needed to replace std::vector
+	   for micropather, but not a compatible replacement. MPVector doesn't correctly call constructors or destructors.
+	 */
+	template <typename T>
+	class MPVector {
+	public:
+		MPVector() : m_allocated( 0 ), m_size( 0 ), m_buf ( 0 ) {}
+		~MPVector()	{ delete [] m_buf; }
+
+		void clear()						{ m_size = 0; }	// see warning above
+		void resize( unsigned s )			{ capacity( s );
+											  m_size = s;
+											}	
+		T& operator[](unsigned i)			{ MPASSERT( i>=0 && i<m_size );
+											  return m_buf[i];
+											}
+		const T& operator[](unsigned i) const	{ MPASSERT( i>=0 && i<m_size );
+												  return m_buf[i];
+												}
+		void push_back( const T& t )		{ capacity( m_size+1 );
+											  m_buf[m_size++] = t;
+											}
+		unsigned size()	const				{ return m_size; }
+
+	private:
+		void capacity( unsigned cap ) {
+			if ( m_allocated < cap ) { 
+				unsigned newAllocated = cap * 3/2 + 16;
+				T* newBuf = new T[newAllocated];
+				MPASSERT( m_size <= m_allocated );
+				MPASSERT( m_size < newAllocated );
+				memcpy( newBuf, m_buf, sizeof(T)*m_size );
+				delete [] m_buf;
+				m_buf = newBuf;
+				m_allocated = newAllocated;
+			}
+		}
+		unsigned m_allocated;
+		unsigned m_size;
+		T* m_buf;
+	};
+#endif
+
 	/**
 		Used to pass the cost of states from the cliet application to MicroPather. This
 		structure is copied in a vector.
@@ -121,7 +171,7 @@ namespace micropather
 			exact values for every call to MicroPather::Solve(). It should generally be a simple,
 			fast function with no callbacks into the pather.
 		*/	
-		virtual void AdjacentCost( void* state, std::vector< micropather::StateCost > *adjacent ) = 0;
+		virtual void AdjacentCost( void* state, MP_VECTOR< micropather::StateCost > *adjacent ) = 0;
 
 		/**
 			This function is only used in DEBUG mode - it dumps output to stdout. Since void* 
@@ -259,7 +309,7 @@ namespace micropather
 
 		// Return all the allocated states. Useful for visuallizing what
 		// the pather is doing.
-		void AllStates( unsigned frame, std::vector< void* >* stateVec );
+		void AllStates( unsigned frame, MP_VECTOR< void* >* stateVec );
 
 	private:
 		struct Block
@@ -342,7 +392,7 @@ namespace micropather
 			@param totalCost	Output, the cost of the path, if found.
 			@return				Success or failure, expressed as SOLVED, NO_SOLUTION, or START_END_SAME.
 		*/
-		int Solve( void* startState, void* endState, std::vector< void* >* path, float* totalCost );
+		int Solve( void* startState, void* endState, MP_VECTOR< void* >* path, float* totalCost );
 
 		/**
 			Find all the states within a given cost from startState.
@@ -353,7 +403,7 @@ namespace micropather
 								larger 'near' sets and take more time to compute.)
 			@return				Success or failure, expressed as SOLVED or NO_SOLUTION.
 		*/
-		int SolveForNearStates( void* startState, std::vector< StateCost >* near, float maxCost );
+		int SolveForNearStates( void* startState, MP_VECTOR< StateCost >* near, float maxCost );
 
 		/** Should be called whenever the cost between states or the connection between states changes.
 			Also frees overhead memory used by MicroPather, and calling will free excess memory.
@@ -367,23 +417,23 @@ namespace micropather
 		MP_UPTR Checksum()	{ return checksum; }
 
 		// Debugging function to return all states that were used by the last "solve" 
-		void StatesInPool( std::vector< void* >* stateVec );
+		void StatesInPool( MP_VECTOR< void* >* stateVec );
 
 	  private:
 		MicroPather( const MicroPather& );	// undefined and unsupported
 		void operator=( const MicroPather ); // undefined and unsupported
 		
-		void GoalReached( PathNode* node, void* start, void* end, std::vector< void* > *path );
+		void GoalReached( PathNode* node, void* start, void* end, MP_VECTOR< void* > *path );
 
-		void GetNodeNeighbors(	PathNode* node, std::vector< NodeCost >* neighborNode );
+		void GetNodeNeighbors(	PathNode* node, MP_VECTOR< NodeCost >* neighborNode );
 
 		#ifdef DEBUG
 		//void DumpStats();
 		#endif
 
 		PathNodePool				pathNodePool;
-		std::vector< StateCost >	stateCostVec;	// local to Solve, but put here to reduce memory allocation
-		std::vector< NodeCost >		nodeCostVec;	// local to Solve, but put here to reduce memory allocation
+		MP_VECTOR< StateCost >	stateCostVec;	// local to Solve, but put here to reduce memory allocation
+		MP_VECTOR< NodeCost >		nodeCostVec;	// local to Solve, but put here to reduce memory allocation
 
 		Graph* graph;
 		unsigned frame;						// incremented with every solve, used to determine if cached data needs to be refreshed

@@ -254,8 +254,8 @@ void ProcessData( TiXmlElement* data )
 	data->QueryStringAttribute( "filename", &filename );
 	string fullIn = inputPath + filename;
 
-	string name;
-	grinliz::StrSplitFilename( fullIn, 0, &name, 0 );
+	GLString name;
+	grinliz::StrSplitFilename( GLString( fullIn.c_str() ), 0, &name, 0 );
 
 	// copy the entire file.
 #pragma warning ( push )
@@ -302,9 +302,11 @@ void ProcessModel( TiXmlElement* model )
 
 	string filename;
 	model->QueryStringAttribute( "filename", &filename );
-	string fullIn = inputPath + filename;
+	
+	GLString fullIn = inputPath.c_str(); 
+	fullIn += filename.c_str();
 
-	string base, name, extension;
+	GLString base, name, extension;
 	grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
 	//string fullOut = outputPath + name + ".mod";
 
@@ -325,10 +327,10 @@ void ProcessModel( TiXmlElement* model )
 	}
 
 	if ( extension == ".ac" ) {
-		ImportAC3D(	fullIn, builder );
+		ImportAC3D(	std::string( fullIn.c_str() ), builder );
 	}
 	else if ( extension == ".off" ) {
-		ImportOFF( fullIn, builder );
+		ImportOFF( std::string( fullIn.c_str() ), builder );
 	}
 	else {
 		printf( "**Unrecognized model file. full='%s' base='%s' name='%s' extension='%s'\n",
@@ -554,9 +556,10 @@ void ProcessTexture( TiXmlElement* texture )
 	string filename;
 	texture->QueryStringAttribute( "filename", &filename );
 
-	string fullIn = inputPath + filename;	
+	GLString fullIn = inputPath.c_str();
+	fullIn += filename.c_str();	
 
-	string base, name, extension;
+	GLString base, name, extension;
 	grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
 
 	SDL_Surface* surface = libIMG_Load( fullIn.c_str() );

@@ -17,7 +17,6 @@
 #define UFOATTACK_MAP_INCLUDED
 
 #include <stdio.h>
-#include <string>
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glbitarray.h"
@@ -306,7 +305,7 @@ public:
 					const grinliz::Vector2<S16>& start,
 					const grinliz::Vector2<S16>& end,
 					float* cost,
-					std::vector< grinliz::Vector2<S16> >* path );
+					MP_VECTOR< grinliz::Vector2<S16> >* path );
 	
 	// Show the path that the unit can walk to.
 	void ShowNearPath(	const grinliz::Vector2I& unitPos,
@@ -318,7 +317,7 @@ public:
 
 	// micropather:
 	virtual float LeastCostEstimate( void* stateStart, void* stateEnd );
-	virtual void  AdjacentCost( void* state, std::vector< micropather::StateCost > *adjacent );
+	virtual void  AdjacentCost( void* state, MP_VECTOR< micropather::StateCost > *adjacent );
 	virtual void  PrintStateInfo( void* state );
 
 	// ITextureCreator
@@ -492,8 +491,8 @@ private:
 
 	grinliz::BitArray<SIZE, SIZE, 1>	pathBlock;	// spaces the pather can't use (units are there)	
 
-	std::vector<void*>					mapPath;
-	std::vector< micropather::StateCost > stateCostArr;
+	MP_VECTOR<void*>					mapPath;
+	MP_VECTOR< micropather::StateCost > stateCostArr;
 
 	gamui::TiledImage<MAX_TU*2+1, MAX_TU*2+1>	walkingMap;
 	gamui::Image								border[	4];

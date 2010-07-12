@@ -32,10 +32,8 @@ distribution.
 #pragma warning( disable : 4786 )
 #endif
 
-#include <string>
-#include <vector>
-
 #include <stdlib.h>
+#include <string.h>
 
 #include "gldebug.h"
 #include "gltypes.h"
@@ -62,21 +60,28 @@ void StrNCpy( char* dst, const char* src, size_t bufferSize );
 int SNPrintf(char *str, size_t size, const char *format, ...);
 
 
+/*
+	A class that wraps a c-array of characters.
+*/
 template< int ALLOCATE >
 class CStr
 {
 public:
 	CStr()							{	GLASSERT(sizeof(*this) == ALLOCATE );		// not required for class to work, but certainly the intended design
-										buf[0] = 0; }
+										buf[0] = 0; 
+										Validate();
+									}
 	CStr( const char* src )			{	GLASSERT(sizeof(*this) == ALLOCATE );
 										GLASSERT( strlen( src ) < (ALLOCATE-1));
 										*buf = 0;
 										if ( src ) 
 											StrNCpy( buf, src, ALLOCATE ); 
+										Validate();
 									}
 	CStr( int value )				{	GLASSERT(sizeof(*this) == ALLOCATE );		// not required for class to work, but certainly the intended design
 										buf[0] = 0; 
 										SNPrintf( buf, ALLOCATE, "%d", value );
+										Validate();
 									}
 	~CStr()	{}
 
@@ -89,6 +94,7 @@ public:
 	void Clear()						{ buf[0] = 0; }
 
 	bool operator==( const char* str ) const						{ return buf && str && strcmp( buf, str ) == 0; }
+	char operator[]( int i ) const									{ GLASSERT( i>=0 && i<ALLOCATE-1 ); return buf[i]; }
 	template < class T > bool operator==( const T& str ) const		{ return buf && strcmp( buf, str.c_str() ) == 0; }
 
 	void operator=( const char* src )	{	
@@ -100,9 +106,11 @@ public:
 		else {
 			buf[0] = 0;
 		}
+		Validate();
 	}
 	void operator=( int value ) {
 		SNPrintf( buf, ALLOCATE, "%d", value );
+		Validate();
 	}
 
 	void operator+=( const char* src ) {
@@ -112,67 +120,101 @@ public:
 			if ( len < ALLOCATE-1 )
 				StrNCpy( buf+len, src, ALLOCATE-len );
 		}
+		Validate();
 	}
 
 
 private:
+#ifdef DEBUG
+	void Validate() {
+		GLASSERT( strlen(buf) < ALLOCATE );	// strictly less - need space for null terminator
+	}
+#else
+	void Validate() {}
+#endif
 	char buf[ALLOCATE];
 };
 
 
-class CStrRef
+/*
+	Simple replace for std::string, to remove stdlib dependencies.
+*/
+class GLString
 {
 public:
-	CStrRef() : buf( 0 ), allocated( 0 )	{}
-	void Attach( char* mem, int memLen )	{ buf = mem; allocated = memLen; GLASSERT( buf && allocated ); }
-	~CStrRef()	{}
+	GLString() : m_buf( 0 ), m_allocated( 0 ), m_size( 0 )							{}
+	GLString( const GLString& rhs ) : m_buf( 0 ), m_allocated( 0 ), m_size( 0 )		{ init( rhs ); }
+	GLString( const char* rhs ) : m_buf( 0 ), m_allocated( 0 ), m_size( 0 )			{ init( rhs ); }
+	~GLString()																		{ delete [] m_buf; }
 
-	const char* c_str()	const			{ GLASSERT( buf && allocated ); return buf; }
-	int size() const					{ GLASSERT( buf && allocated ); return (buf) ? strlen( buf ) : 0; }
-	bool empty() const					{ GLASSERT( buf && allocated ); return (buf) ? buf[0] == 0 : true; }
+	void operator=( const GLString& rhs )		{ init( rhs ); }
+	void operator=( const char* rhs )			{ init( rhs ); }
 
-	int Length() const 					{ GLASSERT( buf && allocated ); return (buf) ? strlen( buf ) : 0; }
-	void Clear()						{ GLASSERT( buf && allocated ); if ( buf ) buf[0] = 0; }
-	int Allocated() const				{ return allocated; }
-	int MaxSize() const					{ return allocated-1; }
+	void operator+= ( const GLString& rhs )		{ append( rhs ); }
+	void operator+= ( const char* rhs )			{ append( rhs ); }
 
-	bool operator==( const char* str ) const	{ GLASSERT( buf && allocated ); return buf && str && strcmp( buf, str ) == 0; }
+	bool operator==( const GLString& rhs ) const	{ return compare( rhs.c_str() ) == 0; }
+	bool operator==( const char* rhs ) const		{ return compare( rhs ) == 0; }
+	bool operator!=( const GLString& rhs ) const	{ return compare( rhs.c_str() ) != 0; }
+	bool operator!=( const char* rhs ) const		{ return compare( rhs ) != 0; }
 
-	template < class T > bool operator==( const T& str ) const		{ GLASSERT( buf && allocated ); return buf && strcmp( buf, str.c_str() ) == 0; }
+	char operator[]( unsigned i ) const				{ GLASSERT( i < size() );
+													  return m_buf[i];
+													}
 
-	void operator=( const char* src )	{	
-		GLASSERT( buf && allocated ); 
-		GLASSERT( src );
-		if ( buf && allocated ) {
-			if (src) {
-				GLASSERT( strlen( src ) < (size_t)(allocated-1) );
-				StrNCpy( buf, src, allocated ); 
-			}
-			else {
-				buf[0] = 0;
-			}
-		}
-	}
+	unsigned find( char c )	const					{	if ( m_buf ) {
+															const char* p = strchr( m_buf, c );
+															return ( p ) ? (p-m_buf) : size();
+														}
+														return 0;
+													}
+	unsigned rfind( char c )	const				{	if ( m_buf ) {
+															const char* p = strrchr( m_buf, c );
+															return ( p ) ? (p-m_buf) : size();
+														}
+														return 0;
+													}
+	GLString substr( unsigned pos, unsigned n );
 
+	void append( const GLString& str );
+	void append( const char* );
+	void append( const char* p, int n );
+	int compare( const char* str ) const			{ return strcmp( m_buf, str ); }
+
+	unsigned size() const							{ return m_size; }
+	const char* c_str() const						{ return m_buf; }
 
 private:
-	char *buf;
-	int allocated;
+	void ensureSize( unsigned s );
+	void init( const GLString& str );
+	void init( const char* );
+#ifdef DEBUG	
+	void validate();
+#else
+	void validate()	{}
+#endif
+
+
+
+	char*		m_buf;
+	unsigned	m_allocated;
+	unsigned	m_size;
 };
 
 
 /** Loads a text file to the given string. Returns true on success, false
     if the file could not be found.
 */
-bool LoadTextFile( const char* filename, std::string* str );
+//bool LoadTextFile( const char* filename, std::string* str );
 
-void StrSplitFilename(	const std::string& fullPath, 
-						std::string* basePath,
-						std::string* name,
-						std::string* extension );
+void StrSplitFilename(	const GLString& fullPath, 
+						GLString* basePath,
+						GLString* name,
+						GLString* extension );
 
-void StrFillBuffer( const std::string& str, char* buffer, int bufferSize );
+void StrFillBuffer( const GLString& str, char* buffer, int bufferSize );
 void StrFillBuffer( const char* str, char* buffer, int bufferSize );
+
 
 struct StrToken {
 	enum {
@@ -182,12 +224,12 @@ struct StrToken {
 	};
 
 	int type;
-	std::string str;
+	GLString str;
 	double number;
 
 	StrToken() : type( 0 ), number( 0.0 ) {}
 
-	void InitString( const std::string& str ) {
+	void InitString( const GLString& str ) {
 		type = STRING;
 		this->str = str;
 	}
@@ -197,8 +239,9 @@ struct StrToken {
 	}
 };
 
-void StrTokenize( const std::string& in, std::vector< StrToken > *tokens );
+void StrTokenize( const GLString& in, int maxTokens, StrToken *tokens, int* nTokens );
 
 };	// namespace grinliz
+
 
 #endif

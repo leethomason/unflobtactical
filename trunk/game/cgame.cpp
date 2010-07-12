@@ -175,7 +175,7 @@ void PlatformPathToResource( const char* name, const char* extension, char* buff
 	fullname += extension;
 	grinliz::StrNCpy( buffer, fullname.c_str(), bufferLen );
 #else
-#	error unhandled
+	// FIXME: packaging
 #endif
 }
 
@@ -188,6 +188,6 @@ void PlayWAVSound( const void* wavFile, int nBytes )
 
 	Audio_PlayWav( wavFile, nBytes );
 #else
-#	error unhandled
+	// FIXME: add sound
 #endif
 }

@@ -23,8 +23,14 @@ distribution.
 */
 
 #include "glstringutil.h"
+#include <stdarg.h>
+#include <stdio.h>
+#include <ctype.h>
+
+using namespace grinliz;
 
 
+#if 0
 bool grinliz::LoadTextFile( const char* filename, std::string* str )
 {
 #pragma warning ( push )
@@ -47,14 +53,139 @@ bool grinliz::LoadTextFile( const char* filename, std::string* str )
 	fclose( fp );
 	return true;
 }
+#endif
 
-
-void grinliz::StrSplitFilename(	const std::string& fullPath, 
-								std::string* base,
-								std::string* name,
-								std::string* extension )
+void GLString::init( const GLString& rhs ) 
 {
-	std::string path = fullPath;
+	delete [] m_buf;
+	m_buf = 0;
+	m_allocated = 0;
+	m_size = 0;
+
+	ensureSize( rhs.size() );
+	m_size = rhs.size();
+	if ( m_size )
+		memcpy( m_buf, rhs.m_buf, m_size );
+	m_buf[m_size] = 0;
+	validate();
+}
+
+
+void GLString::init( const char* rhs ) 
+{
+	delete [] m_buf;
+	m_buf = 0;
+	m_allocated = 0;
+	m_size = 0;
+
+	unsigned strSize = strlen( rhs );
+	ensureSize( strSize );
+	if ( strSize )
+		memcpy( m_buf, rhs, strSize );
+	m_size = strSize;
+	m_buf[m_size] = 0;
+	validate();
+}
+
+
+void GLString::append( const GLString& str )
+{
+	ensureSize( str.size() + size() );
+	if ( str.size() )
+		memcpy( m_buf+size(), str.m_buf, str.size() );
+	m_size += str.size();
+	m_buf[m_size] = 0;
+	validate();
+}
+
+
+void GLString::append( const char* str )
+{
+	int strSize = strlen( str );
+	ensureSize( strSize + size() );
+	if ( strSize )
+		memcpy( m_buf+size(), str, strSize );
+	m_size += strSize;
+	m_buf[m_size] = 0;
+	validate();
+}
+
+
+void GLString::append( const char* str, int n )
+{
+	int strSize = strlen( str );
+	if ( strSize > n )
+		strSize = n;
+
+	ensureSize( strSize + size() );
+	if ( strSize )
+		memcpy( m_buf+size(), str, strSize );
+	m_size += strSize;
+	m_buf[m_size] = 0;
+	validate();
+}
+
+
+GLString GLString::substr( unsigned pos, unsigned n )
+{
+	GLString str;
+	if ( pos < size()-1 ) {
+		if ( pos + n > size() ) {
+			n = size() - pos;
+		}
+		str.ensureSize(n);
+		if ( n )
+			memcpy( str.m_buf, m_buf+pos, n );
+		str.m_buf[n] = 0;
+		str.m_size = n;
+	}
+	validate();
+	return str;
+}
+
+
+void GLString::ensureSize( unsigned s )
+{
+	unsigned ensure = s+1;
+	if ( m_allocated < ensure ) {
+		unsigned newAllocated = ensure * 3/2 + 16;
+		char* newBuf = new char[newAllocated];
+
+		if ( m_size )
+			memcpy( newBuf, m_buf, m_size );
+
+		delete [] m_buf;
+		m_buf = newBuf;
+		m_allocated = newAllocated;
+		newBuf[m_size] = 0;
+	}
+	validate();
+}
+
+
+#ifdef DEBUG
+void GLString::validate()
+{
+	if ( m_buf ) {
+		GLASSERT( m_allocated );
+		GLASSERT( m_allocated > m_size );	// strictly greater: need room for a null terminator!
+		GLASSERT( m_buf[m_size] == 0 );
+		GLASSERT( m_size == strlen( m_buf ) );
+	}
+	else {
+		GLASSERT( m_allocated == 0 );
+		GLASSERT( m_size == 0 );
+	}
+}
+#endif
+
+
+void grinliz::StrSplitFilename(	const GLString& fullPath, 
+								GLString* base,
+								GLString* name,
+								GLString* extension )
+{
+	GLString path = fullPath;
 	if ( base )
 		*base = "";
 	if ( name )
@@ -139,7 +270,7 @@ void grinliz::StrNCpy( char* dst, const char* src, size_t len )
 }
 
 
-void grinliz::StrFillBuffer( const std::string& str, char* buffer, int bufferSize )
+void grinliz::StrFillBuffer( const GLString& str, char* buffer, int bufferSize )
 {
 	StrNCpy( buffer, str.c_str(), bufferSize );
 
@@ -160,7 +291,9 @@ void grinliz::StrFillBuffer( const char* str, char* buffer, int bufferSize )
 		memset( buffer + size + 1, 0, bufferSize - size - 1 );
 	}
 	GLASSERT( buffer[bufferSize-1] == 0 );
+
 }
+
 
 static const char* SkipWhiteSpace( const char* p ) 
 {
@@ -178,19 +311,20 @@ static const char* FindWhiteSpace( const char* p )
 	return p;
 }
 
-void grinliz::StrTokenize( const std::string& in, std::vector< StrToken > *tokens )
+
+void grinliz::StrTokenize( const GLString& in, int maxTokens, StrToken *tokens, int* nTokens )
 {
 	const char* p = in.c_str();
 	p = SkipWhiteSpace( p );
 	const char* q = FindWhiteSpace( p );
 
-	tokens->clear();
+	*nTokens = 0;
 
-	while ( p && *p && q ) {
+	while ( p && *p && q && (*nTokens < maxTokens )) {
 		StrToken token;
 
-		std::string str;
-		str.assign( p, q-p );
+		GLString str;
+		str.append( p, q-p );
 
 		if ( isalpha( *p ) ) {
 			token.InitString( str );
@@ -200,7 +334,8 @@ void grinliz::StrTokenize( const std::string& in, std::vector< StrToken > *token
 				  || *p == '+' ) {
 			token.InitNumber( atof( str.c_str() ) );
 		}
-		tokens->push_back( token );
+		tokens[*nTokens] = token;
+		*nTokens += 1;
 
 		p = SkipWhiteSpace( q );
 		q = FindWhiteSpace( p );

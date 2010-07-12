@@ -63,9 +63,9 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	char c = savePath[savePath.size()-1];
 	if ( c != '\\' && c != '/' ) {	
 #ifdef WIN32
-		savePath += '\\';
+		savePath += "\\";
 #else
-		savePath += '/';
+		savePath += "/";
 #endif
 	}	
 	
@@ -189,8 +189,8 @@ Game::~Game()
 	if ( loadCompleted ) {
 		TiXmlDocument doc;
 		Save( &doc );
-		std::string path = GameSavePath();
-		doc.SaveFile( path );
+		GLString path = GameSavePath();
+		doc.SaveFile( path.c_str() );
 	}
 #endif
 
@@ -210,7 +210,7 @@ void Game::ProcessLoadRequest()
 {
 	if ( loadRequested == 0 )	// continue
 	{
-		std::string path = GameSavePath();
+		GLString path = GameSavePath();
 		TiXmlDocument doc;
 		doc.LoadFile( path.c_str() );
 		GLASSERT( !doc.Error() );
@@ -451,15 +451,16 @@ void Game::DoTick( U32 _currentTime )
 		scene->RenderGamui2D();
 	}
 
+	const int Y = 285;
 	if ( debugTextOn ) {
-		UFOText::Draw(	0,  0, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
+		UFOText::Draw(	0,  Y, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
 						VERSION,
 						framesPerSecond, 
 						(float)trianglesRendered/1000.0f,
 						drawCalls,
 						trianglesPerSecond );
 		#if !defined(MAPMAKER) && defined(DEBUG)
-		UFOText::Draw(  0, 14, "new=%d Tex(%d/%d) %dK/%dK mis=%d re=%d hit=%d",
+		UFOText::Draw(  0, Y+14, "new=%d Tex(%d/%d) %dK/%dK mis=%d re=%d hit=%d",
 						memNewCount,
 						TextureManager::Instance()->NumTextures(),
 						TextureManager::Instance()->NumGPUResources(),
@@ -471,7 +472,7 @@ void Game::DoTick( U32 _currentTime )
 		#endif
 	}
 	else {
-		UFOText::Draw(	0,  0, "UFO#%d", VERSION );
+		UFOText::Draw(	0,  Y, "UFO#%d %5.1ffps", VERSION, framesPerSecond );
 	}
 	trianglesRendered = 0;
 	drawCalls = 0;

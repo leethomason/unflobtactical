@@ -51,7 +51,7 @@ struct MotionPath
 		grinliz::Vector2<S16> v = { pathData[i*2+0], pathData[i*2+1] };
 		return v;
 	}
-	void Init( const std::vector< grinliz::Vector2<S16> >& pathCache );
+	void Init( const micropather::MPVector< grinliz::Vector2<S16> >& pathCache );
 	void CalcDelta( int i0, int i1, grinliz::Vector2I* vec, float* rot );
 	void Travel( float* travelDistance, int* pathPos, float* fraction );
 	void GetPos( int step, float fraction, float* x, float* z, float* rot );
@@ -244,7 +244,7 @@ private:
 								const grinliz::Rectangle2F& rect,
 								grinliz::Vector2F* out );
 
-	std::vector< grinliz::Vector2<S16> >	pathCache;
+	micropather::MPVector< grinliz::Vector2<S16> >	pathCache;
 
 	// Show the UI zones arount the selected unit
 	struct NearPathState {

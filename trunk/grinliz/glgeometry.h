@@ -31,7 +31,9 @@ distribution.
 #include "glrectangle.h"
 #include "glmatrix.h"
 
+#ifndef ANDROID_NDK
 #include <vector>
+#endif
 
 namespace grinliz {
 
@@ -173,6 +175,7 @@ struct Plane
 
 float CalcSphereTexture( float x, float y, bool roundHigh );
 
+#ifndef ANDROID_NDK
 enum TessellateSphereMode
 {
 	TESS_SPHERE_NORMAL,
@@ -209,6 +212,7 @@ void TessellateCube(	const Vector3F& center,
 						std::vector< U32 >* _index,
 						std::vector< Vector3F >* _normal,
 						std::vector< Vector2F >* _texture );
+#endif
 
 /** A point in a LineLoop. See LineLoop for a full description.
 */

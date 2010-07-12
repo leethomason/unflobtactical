@@ -22,61 +22,20 @@ must not be misrepresented as being the original software.
 distribution.
 */
 
-
-
 #ifndef GRINLIZ_TYPES_INCLUDED
 #define GRINLIZ_TYPES_INCLUDED
 
-#ifdef GL_NO_SDL
-	// Typically, this isn't what you want. SDL provides great defaults.
-	// But if there isn't SDL:
-	
-	typedef unsigned char	U8;
-	typedef signed char	    S8;
-	typedef unsigned short	U16;
-	typedef signed short	S16;
-	typedef unsigned long	U32;
-	typedef long			S32;
-	
-	#ifdef _MSC_VER
-		typedef unsigned __int64 	U64;
-		typedef __int64				S64;
-	#else
-		typedef unsigned long long 	U64;
-		typedef long long			S64;
-	#endif
-	
-#else
-	#include "SDL_types.h"
-	
-	typedef Uint8			U8;
-	typedef Sint8		    S8;
-	typedef Uint16			U16;
-	typedef Sint16			S16;
-	typedef Uint32			U32;
-	typedef Sint32			S32;
-	
-	#ifdef SDL_HAS_64BIT_TYPE
-		typedef Sint64				S64;
-		typedef Uint64				U64;
-	#else
-		#error No 64-bit integer.
-	#endif
-#endif
+#include <stdint.h>
 
-// Set up for 64 bit pointers.
-#if defined(_MSC_VER) && (_MSC_VER >= 1400 )
-	#include <stdlib.h>
-	typedef uintptr_t		UPTR;
-	typedef intptr_t		SPTR;
-#elif defined (__GNUC__) && (__GNUC__ >= 3 )
-	#include <inttypes.h>
-	typedef uintptr_t		UPTR;
-	typedef intptr_t		SPTR;
-#else
-	// Assume not 64 bit pointers. Get a new compiler.
-	typedef U32 UPTR;
-	typedef S32 SPTR;
-#endif
+typedef uint8_t			U8;
+typedef int8_t		    S8;
+typedef uint16_t		U16;
+typedef int16_t			S16;
+typedef uint32_t		U32;
+typedef int32_t			S32;
+typedef uint64_t	 	U64;
+typedef int64_t			S64;
+typedef uintptr_t		UPTR;
+typedef intptr_t		SPTR;
 
 #endif

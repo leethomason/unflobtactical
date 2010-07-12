@@ -90,13 +90,13 @@ bool AI::LineOfSight( const Unit* shooter, const Unit* target )
 }
 
 
-void AI::TrimPathToCost( std::vector< grinliz::Vector2<S16> >* path, float maxCost )
+void AI::TrimPathToCost( MP_VECTOR< grinliz::Vector2<S16> >* path, float maxCost )
 {
 	float cost = 0.0f;
 
 	for ( unsigned i=1; i<path->size(); ++i ) {
-		const Vector2<S16>& p0 = path->at( i-1 );
-		const Vector2<S16>& p1 = path->at( i );
+		const Vector2<S16>& p0 = (*path)[ i-1 ];
+		const Vector2<S16>& p1 = (*path)[ i ];
 		if ( abs( p0.x-p1.x ) && abs( p0.y-p1.y ) ) {
 			cost += 1.41f;
 		}
@@ -241,7 +241,7 @@ int AI::ThinkMoveToAmmo(	const Unit* theUnit,
 		}
 	}
 	if ( bestPath >= 0 ) {
-		std::vector< grinliz::Vector2<S16> >& path = m_path[bestPath];
+		MP_VECTOR< grinliz::Vector2<S16> >& path = m_path[bestPath];
 		TrimPathToCost( &path, theUnit->TU() );
 		if ( path.size() > 1 ) {
 			action->actionID = ACTION_MOVE;
@@ -340,7 +340,7 @@ int AI::ThinkSearch(const Unit* theUnit,
 		}
 		if ( bestPath >= 0 ) {
 			// stupid double array syntax...
-			std::vector< grinliz::Vector2<S16> >& path = m_path[bestPath];
+			MP_VECTOR< grinliz::Vector2<S16> >& path = m_path[bestPath];
 			TrimPathToCost( &path, tu );
 
 			if ( path.size() > 1 ) {

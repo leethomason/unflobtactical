@@ -47,7 +47,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;UFO_WIN32_SDL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;UFO_WIN32_SDL;%(PreprocessorDefinitions);TIXML_USE_STL</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -91,6 +91,10 @@
     <ClCompile Include="importers\ac3d.c" />
     <ClCompile Include="importers\import.cpp" />
     <ClCompile Include="importers\off.cpp" />
+    <ClCompile Include="tinyxml\tinystr.cpp" />
+    <ClCompile Include="tinyxml\tinyxml.cpp" />
+    <ClCompile Include="tinyxml\tinyxmlerror.cpp" />
+    <ClCompile Include="tinyxml\tinyxmlparser.cpp" />
     <ClCompile Include="ufobuilder\builder.cpp" />
     <ClCompile Include="ufobuilder\dither.cpp" />
     <ClCompile Include="shared\gamedbwriter.cpp" />
@@ -99,6 +103,8 @@
   <ItemGroup>
     <ClInclude Include="importers\ac3d.h" />
     <ClInclude Include="importers\import.h" />
+    <ClInclude Include="tinyxml\tinystr.h" />
+    <ClInclude Include="tinyxml\tinyxml.h" />
     <ClInclude Include="ufobuilder\builder.h" />
     <ClInclude Include="ufobuilder\dither.h" />
     <ClInclude Include="shared\gamedbwriter.h" />

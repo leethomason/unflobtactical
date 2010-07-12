@@ -17,10 +17,7 @@
 #define GAMUI_INCLUDED
 
 #include <stdint.h>
-
-#include <string>
-#include <vector>
-
+#include <memory.h>
 
 #if defined( _DEBUG ) || defined( DEBUG )
 #	if defined( _MSC_VER )
@@ -53,6 +50,23 @@ struct RenderAtom
 	/// Creates a default that renders nothing.
 	RenderAtom() : renderState( 0 ), textureHandle( 0 ), tx0( 0 ), ty0( 0 ), tx1( 0 ), ty1( 0 ), srcWidth( 0 ), srcHeight( 0 ), user( 0 ) {}
 	
+	RenderAtom( const void* _renderState, const void* _textureHandle, float _tx0, float _ty0, float _tx1, float _ty1, float _srcWidth, float _srcHeight ) {
+		Init( _renderState, _textureHandle, _tx0, _ty0, _tx1, _ty1, _srcWidth, _srcHeight );
+	}
+	
+	RenderAtom( const RenderAtom& rhs, const void* _renderState ) {
+		Init( _renderState, rhs.textureHandle, rhs.tx0, rhs.ty0, rhs.tx1, rhs.ty1, rhs.srcWidth, rhs.srcHeight );
+	}
+
+	void Init( const void* _renderState, const void* _textureHandle, float _tx0, float _ty0, float _tx1, float _ty1, float _srcWidth, float _srcHeight ) {
+		SetCoord( _tx0, _ty0, _tx1, _ty1 );
+		renderState = (const void*)_renderState;
+		textureHandle = (const void*) _textureHandle;
+		srcWidth = _srcWidth;
+		srcHeight = _srcHeight;
+	}
+
+	/*  These methods are crazy useful. Don't work with Android compiler, which doesn't seem to like template functions at all. Grr.
 	/// Copy constructor that allows a different renderState. It's often handy to render the same texture in different states.
 	template <class T > RenderAtom( const RenderAtom& rhs, const T _renderState ) {
 		Init( _renderState, rhs.textureHandle, rhs.tx0, rhs.ty0, rhs.tx1, rhs.ty1, rhs.srcWidth, rhs.srcHeight );
@@ -75,7 +89,7 @@ struct RenderAtom
 		srcWidth = _srcWidth;
 		srcHeight = _srcHeight;
 	}
-
+*/
 
 	/// Utility method to set the texture coordinates.
 	void SetCoord( float _tx0, float _ty0, float _tx1, float _ty1 ) {
@@ -186,7 +200,7 @@ public:
 						float tableWidth, float tableHeight );
 
 private:
-	static bool SortItems( const UIItem* a, const UIItem* b );
+	static int SortItems( const void* a, const void* b );
 
 	UIItem*							m_itemTapped;
 	RenderAtom						m_textAtomEnabled;
@@ -199,7 +213,9 @@ private:
 	int16_t							m_indexBuffer[INDEX_SIZE];
 	Vertex							m_vertexBuffer[VERTEX_SIZE];
 
-	std::vector< UIItem* > m_itemArr;
+	UIItem**	m_itemArr;
+	int			m_nItems;
+	int			m_nItemsAllocated;
 };
 
 
@@ -334,7 +350,7 @@ private:
 	enum { ALLOCATE = 16 };
 	union {
 		char buf[ALLOCATE];
-		std::string* str;
+		char* str;
 	};
 	mutable float m_width;
 	mutable float m_height;
@@ -384,7 +400,7 @@ public:
 
 	virtual float Width() const											{ return m_width; }
 	virtual float Height() const										{ return m_height; }
-	void Clear()														{ memset( Mem(), 0, CX()*CY() ); }
+	void Clear();
 
 	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );

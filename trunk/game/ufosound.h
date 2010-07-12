@@ -28,4 +28,4 @@ private:
 };
 
 
-#endif  UFO_SOUND_INCLUDED
+#endif // UFO_SOUND_INCLUDED

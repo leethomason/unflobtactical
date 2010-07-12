@@ -1102,7 +1102,7 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 			image->QueryIntAttribute( "x", &x );
 			image->QueryIntAttribute( "y", &y );
 			image->QueryIntAttribute( "size", &size );
-			image->QueryValueAttribute( "tileRotation", &tileRotation );
+			image->QueryIntAttribute( "tileRotation", &tileRotation );
 
 			// store it to save later:
 			const char* name = image->Attribute( "name" ); 
@@ -1594,7 +1594,7 @@ bool Map::Connected( ConnectionType c, int x, int y, int dir )
 }
 
 
-void Map::AdjacentCost( void* state, std::vector< micropather::StateCost > *adjacent )
+void Map::AdjacentCost( void* state, MP_VECTOR< micropather::StateCost > *adjacent )
 {
 	Vector2<S16> pos;
 	StateToVec( state, &pos );
@@ -1655,7 +1655,7 @@ void Map::PrintStateInfo( void* state )
 }
 
 
-int Map::SolvePath( const void* user, const Vector2<S16>& start, const Vector2<S16>& end, float *cost, std::vector< Vector2<S16> >* path )
+int Map::SolvePath( const void* user, const Vector2<S16>& start, const Vector2<S16>& end, float *cost, MP_VECTOR< Vector2<S16> >* path )
 {
 	GLASSERT( sizeof( int ) == sizeof( void* ));			// fix this for 64 bit
 	GLASSERT( sizeof(Vector2<S16>) == sizeof( void* ) );
@@ -1665,13 +1665,13 @@ int Map::SolvePath( const void* user, const Vector2<S16>& start, const Vector2<S
 	}
 	int result = microPather->Solve(	VecToState( start ),
 										VecToState( end ),
-										reinterpret_cast< std::vector< void*>* >( path ),		// sleazy trick if void* is the same size as V2<S16>
+										reinterpret_cast< MP_VECTOR<void*>* >( path ),		// sleazy trick if void* is the same size as V2<S16>
 										cost );
 
 #ifdef DEBUG
 	{
 		for( unsigned i=0; i<path->size(); ++i ) {
-			GLASSERT( !pathBlock.IsSet( path->at(i).x, path->at(i).y ) );
+			GLASSERT( !pathBlock.IsSet( (*path)[i].x, (*path)[i].y ) );
 		}
 	}
 #endif

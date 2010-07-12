@@ -588,12 +588,12 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 	GLASSERT( a_status == STATUS_NOT_INIT || a_status == STATUS_ALIVE || a_status == STATUS_DEAD );
 
 	if ( a_status != STATUS_NOT_INIT ) {
-		ele->QueryValueAttribute( "team", &team );
-		ele->QueryValueAttribute( "type", &type );
-		ele->QueryValueAttribute( "body", &body );
-		ele->QueryValueAttribute( "modelX", &pos.x );
-		ele->QueryValueAttribute( "modelZ", &pos.z );
-		ele->QueryValueAttribute( "yRot", &rot );
+		ele->QueryIntAttribute( "team", &team );
+		ele->QueryIntAttribute( "type", &type );
+		ele->QueryIntAttribute( "body", (int*) &body );
+		ele->QueryFloatAttribute( "modelX", &pos.x );
+		ele->QueryFloatAttribute( "modelZ", &pos.z );
+		ele->QueryFloatAttribute( "yRot", &rot );
 
 		GenStats( team, type, body, &stats );		// defaults if not provided
 		stats.Load( ele );
@@ -605,9 +605,9 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 		tu = stats.TotalTU();
 		// Wait until everything that changes tu and hp have been set
 		// before loading, just so we get the correct defaults.
-		ele->QueryValueAttribute( "hp", &hp );
-		ele->QueryValueAttribute( "tu", &tu );
-		ele->QueryValueAttribute( "kills", &kills );
+		ele->QueryIntAttribute( "hp", &hp );
+		ele->QueryFloatAttribute( "tu", &tu );
+		ele->QueryIntAttribute( "kills", &kills );
 
 		if ( StrEqual( ele->Attribute( "ai" ), "guard" ) ) {
 			ai = AI_GUARD;

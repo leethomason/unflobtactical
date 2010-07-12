@@ -21,32 +21,80 @@
     distribution.
 */
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "gamedbreader.h"
-#include "../zlib/zlib.h"
+#ifdef ANDROID_NDK
+#	include <zlib.h>		// Built in zlib support.
+#else
+#	include "../zlib/zlib.h"
+#endif
 
 #pragma warning ( disable : 4996 )
 using namespace gamedb;
 
-
-template< class T, class C > 
-int BinarySearch( const T* arr, int N, const C& compareFunc ) 
+struct CompStringID
 {
-	unsigned low = 0;
-	unsigned high = N;
+	const char* key;
+	const void* mem;
+	CompStringID( const char* k, const void* r ) : key( k ), mem( r )	{}
 
-    while (low < high) {
-		unsigned mid = low + (high - low) / 2;
-
-		int compare = compareFunc( arr[mid] );
-		if ( compare < 0 )
-			low = mid + 1; 
-		else
-			high = mid; 
+	int operator()( U32 offset ) const {
+		const char* str = (const char*)mem + offset;
+		GLASSERT( str );
+		return strcmp( str, key );
 	}
-	if ( ( low < (unsigned)N ) && ( compareFunc( arr[low] ) == 0 ) )
-	    return low;
-	return -1;
-}
+};
+
+
+struct CompChild
+{
+	int key;
+	const void* mem;
+	CompChild( int k, const void* r ) : key( k ), mem( r )	{}
+
+	int operator()( U32 a ) const {
+		const ItemStruct* istruct = (const ItemStruct*)((const char*)mem + a);
+		return istruct->nameID - key;
+	}
+};
+
+
+struct CompAttribute
+{
+	int key;
+	CompAttribute( int k ) : key( k )	{}
+
+	int operator()( const AttribStruct& attrib ) const {
+		return (attrib.keyType&0x0fff) - key;
+	}
+};
+
+
+template< typename T, typename C > 
+class BinarySearch
+{
+public:
+	int Search( const T* arr, int N, const C& compareFunc ) 
+	{
+		unsigned low = 0;
+		unsigned high = N;
+
+		while (low < high) {
+			unsigned mid = low + (high - low) / 2;
+
+			int compare = compareFunc( arr[mid] );
+			if ( compare < 0 )
+				low = mid + 1; 
+			else
+				high = mid; 
+		}
+		if ( ( low < (unsigned)N ) && ( compareFunc( arr[low] ) == 0 ) )
+			return low;
+		return -1;
+	}
+};
 
 
 
@@ -213,22 +261,10 @@ int Reader::GetStringID( const char* str ) const
 	// Trickier and more common case. Do a binary seach through the string table.
 	const HeaderStruct* header = (const HeaderStruct*)mem;
 
-	struct Comp
-	{
-		const char* key;
-		const void* mem;
-		Comp( const char* k, const void* r ) : key( k ), mem( r )	{}
-
-		int operator()( U32 offset ) const {
-			const char* str = (const char*)mem + offset;
-			GLASSERT( str );
-			return strcmp( str, key );
-		}
-	};
-
-	Comp comp( str, mem );
+	CompStringID comp( str, mem );
 	const U32* stringOffset = (const U32*)((const char*)mem + sizeof(HeaderStruct));
-	return BinarySearch<U32, Comp>( stringOffset, (int)header->nString, comp );
+	BinarySearch<U32, CompStringID> bsearch;
+	return bsearch.Search( stringOffset, (int)header->nString, comp );
 }
 
 
@@ -331,17 +367,7 @@ const Item* Item::Child( int i ) const
 
 const Item* Item::Child( const char* name ) const
 {
-	struct Comp
-	{
-		int key;
-		const void* mem;
-		Comp( int k, const void* r ) : key( k ), mem( r )	{}
 
-		int operator()( U32 a ) const {
-			const ItemStruct* istruct = (const ItemStruct*)((const char*)mem + a);
-			return istruct->nameID - key;
-		}
-	};
 
 	const ItemStruct* istruct = (const ItemStruct*)this;
 	const U32* childOffset = (const U32*)((U8*)this + sizeof( ItemStruct ));
@@ -350,8 +376,9 @@ const Item* Item::Child( const char* name ) const
 	int nameID = context->GetStringID( name );
 
 	if ( nameID >= 0 ) {
-		Comp comp( nameID, mem );
-		int result = BinarySearch<U32, Comp>( childOffset, istruct->nChildren, comp );
+		CompChild comp( nameID, mem );
+		BinarySearch<U32, CompChild> search;
+		int result = search.Search( childOffset, istruct->nChildren, comp );
 		if ( result >= 0 )
 			return Child( result );
 	}
@@ -410,15 +437,6 @@ int Item::AttributeType( const char* name ) const
 
 int Item::AttributeIndex( const char* name ) const
 {
-	struct Comp
-	{
-		int key;
-		Comp( int k ) : key( k )	{}
-
-		int operator()( const AttribStruct& attrib ) const {
-			return (attrib.keyType&0x0fff) - key;
-		}
-	};
 
 	const ItemStruct* istruct = (const ItemStruct*)this;
 
@@ -429,8 +447,9 @@ int Item::AttributeIndex( const char* name ) const
 
 	if ( id >= 0 && n ) {
 		const AttribStruct* attrib = AttributePtr( 0 );
-		Comp comp( id );
-		result = BinarySearch<AttribStruct, Comp>( attrib, n, comp );
+		CompAttribute comp( id );
+		BinarySearch<AttribStruct, CompAttribute> search;
+		result = search.Search( attrib, n, comp );
 	}
 	return result;
 }
