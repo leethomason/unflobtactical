@@ -776,9 +776,6 @@ int main( int argc, char* argv[] )
 	printf( "All done.\n" );
 	SDL_Quit();
 
-	//delete writer;
-	//sqlResult = sqlite3_close( db );
-	//GLASSERT( sqlResult == SQLITE_OK );
 	writer->Save( outputDB.c_str() );
 	delete writer;
 	return 0;
