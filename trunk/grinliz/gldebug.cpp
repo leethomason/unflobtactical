@@ -261,3 +261,19 @@ void dprintf( const char* format, ... )
 	fflush( 0 );
 }
 #endif
+
+
+#ifdef ANDROID_NDK
+void dprintf( const char* format, ... )
+{
+    va_list     va;
+
+    //
+    //  format and output the message..
+    //
+    va_start( va, format );
+	__android_log_vprint( ANDROID_LOG_INFO, "grinliz", format, va );
+    va_end( va );
+
+}
+#endif

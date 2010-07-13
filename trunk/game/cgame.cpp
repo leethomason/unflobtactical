@@ -21,6 +21,12 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
+#ifdef ANDROID_NDK
+extern "C" int androidResourceOffset;
+extern "C" int androidResourceLen;
+extern "C" char androidResourcePath[200];
+#endif
+
 #include "../grinliz/glstringutil.h"
 
 void* NewGame( int width, int height, int rotation, const char* path )
@@ -43,6 +49,12 @@ void DeleteGame( void* handle )
 void GameResize( void* handle, int width, int height, int rotation ) {
 	Game* game = (Game*)handle;
 	game->Resize( width, height, rotation );
+}
+
+
+void GameSave( void* handle ) {
+	Game* game = (Game*)handle;
+	game->Save();
 }
 
 
@@ -78,13 +90,6 @@ void GameTap( void* handle, int count, int x, int y )
 	Game* game = (Game*)handle;
 	game->Tap( count, x, y );
 }
-
-
-//void GameTapExtra( void* handle, int action, int x, int y )
-//{
-//	Game* game = (Game*)handle;
-//	game->TapExtra( action, x, y );
-//}
 
 
 void GameInputCancelled( void* handle )
@@ -154,7 +159,7 @@ void GameHotKey( void* handle, int mask )
 
 
 
-void PlatformPathToResource( const char* name, const char* extension, char* buffer, int bufferLen )
+void PlatformPathToResource( char* buffer, int bufferLen, int* offset, int* length )
 {
 #if defined( UFO_IPHONE )
 	CFStringRef nameRef = CFStringCreateWithCString( 0, name, kCFStringEncodingWindowsLatin1 );
@@ -169,13 +174,15 @@ void PlatformPathToResource( const char* name, const char* extension, char* buff
 		
 	CFURLGetFileSystemRepresentation( imageURL, true, (unsigned char*)buffer, bufferLen );
 #elif defined( UFO_WIN32_SDL )
-	std::string fullname = "./res/";
-	fullname += name;
-	fullname += ".";
-	fullname += extension;
-	grinliz::StrNCpy( buffer, fullname.c_str(), bufferLen );
+	grinliz::StrNCpy( buffer, "./res/uforesource.db", bufferLen );
+	*offset = 0;
+	*length = 0;
+#elif defined (ANDROID_NDK)
+	grinliz::StrNCpy( buffer, androidResourcePath, bufferLen );
+	*offset = androidResourceOffset;
+	*length = androidResourceLen;
 #else
-	// FIXME: packaging
+#	error UNDEFINED
 #endif
 }
 
@@ -187,7 +194,9 @@ void PlayWAVSound( const void* wavFile, int nBytes )
 	extern void Audio_PlayWav( const void* mem, int size );
 
 	Audio_PlayWav( wavFile, nBytes );
+#elif defined (ANDROID_NDK)
+	// do nothing for now.
 #else
-	// FIXME: add sound
+#	error UNDEFINED
 #endif
 }

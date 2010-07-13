@@ -686,8 +686,8 @@ void Game::LoadAtoms()
 	renderAtoms[ATOM_TEXT].Init( (const void*)UIRenderer::RENDERSTATE_NORMAL, (const void*)tm->GetTexture( "stdfont2" ), 0, 0, 1, 1, 256, 128 );
 	renderAtoms[ATOM_TEXT_D].Init( (const void*)UIRenderer::RENDERSTATE_DISABLED, (const void*)tm->GetTexture( "stdfont2" ), 0, 0, 1, 1, 256, 128 );
 
-	renderAtoms[ATOM_TACTICAL_BACKGROUND].Init( (const void*)UIRenderer::RENDERSTATE_NORMAL, (const void*)tm->GetTexture( "intro" ), 0, 0, 1, 1, 480, 320 );
-	UIRenderer::SetAtomCoordFromPixel( 0, 0, 480, 320, 512, 512, &renderAtoms[ATOM_TACTICAL_BACKGROUND] );
+	renderAtoms[ATOM_TACTICAL_BACKGROUND].Init( (const void*)UIRenderer::RENDERSTATE_NORMAL, (const void*)tm->GetTexture( "intro" ), 0, 0, 1, 1, 64, 64 );
+	renderAtoms[ATOM_TACTICAL_BACKGROUND_TEXT].Init( (const void*)UIRenderer::RENDERSTATE_NORMAL, (const void*)tm->GetTexture( "introText" ), 0, 0, 1, 1, 256, 64 );
 
 	for( int i=0; i <= (ATOM_RED_BUTTON_UP-ATOM_GREEN_BUTTON_UP); i += 4 ) {
 		renderAtoms[ATOM_GREEN_BUTTON_UP+i].Init( (const void*)UIRenderer::RENDERSTATE_NORMAL, (const void*)tm->GetTexture( "icons" ), 0, 0, 1, 1, 56, 56 );

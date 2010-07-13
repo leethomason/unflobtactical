@@ -34,13 +34,19 @@ distribution.
 #endif
 
 #if defined(DEBUG)
-	#ifdef _MSC_VER
+	#if defined(_MSC_VER)
 		void dprintf( const char* format, ... );
 		void WinDebugBreak();
 		
 		#define GLASSERT( x )		if ( !(x)) { _asm { int 3 } } //if ( !(x)) WinDebugBreak()
 		#define GLOUTPUT( x )		dprintf x
 		#define GLLOG( x )			dprintf x
+	#elif defined (ANDROID_NDK)
+		#include <android/log.h>
+		void dprintf( const char* format, ... );
+		#define GLASSERT( x )		if ( !(x)) { __android_log_assert( "assert", "grinliz", "ASSERT in '%s' at %d.", __FILE__, __LINE__ ); }
+		#define	GLOUTPUT( x )		dprintf x
+		#define	GLLOG( x )			dprintf x
 	#else
 		#include <assert.h>
         #include <stdio.h>
@@ -62,8 +68,10 @@ distribution.
 #endif
 
 #if defined(DEBUG)
-	#define GRINLIZ_DEBUG_MEM
-	//#define GRINLIZ_DEBUG_MEM_DEEP
+	
+	#if defined(_MSC_VER)
+		#define GRINLIZ_DEBUG_MEM
+	#endif
 
 	#ifdef GRINLIZ_DEBUG_MEM
 		void* DebugNew( size_t size, bool arrayType, const char* name, int line );

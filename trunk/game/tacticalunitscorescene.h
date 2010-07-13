@@ -56,7 +56,7 @@ public:
 private:
 	enum { MAX_ROWS = 8 };
 	enum { MAX_AWARDS = 40 };
-	gamui::Image			background;
+	BackgroundUI			backgroundUI;
 	NameRankUI				nameRank[MAX_ROWS];
 	gamui::TextLabel		status[MAX_ROWS];
 	//gamui::TextLabel		levelUp[MAX_ROWS];

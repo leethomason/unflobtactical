@@ -99,7 +99,7 @@ void ModelLoader::Load( const gamedb::Item* item, ModelResource* res )
 	res->hitBounds.min.Set( -ave, res->header.bounds.min.y, -ave );
 	res->hitBounds.max.Set( ave, res->header.bounds.max.y, ave );
 
-	GLOUTPUT(( "Load Model: %s\n", res->header.name.c_str() ));
+	//GLOUTPUT(( "Load Model: %s\n", res->header.name.c_str() ));
 
 	GLASSERT( res->header.nGroups < 10 );
 	for( U32 i=0; i<res->header.nGroups; ++i )
@@ -124,7 +124,7 @@ void ModelLoader::Load( const gamedb::Item* item, ModelResource* res )
 		res->atom[i].nVertex = group.nVertex;
 		res->atom[i].nIndex = group.nIndex;
 
-		GLOUTPUT(( "  '%s' vertices=%d tris=%d\n", textureName, (int)res->atom[i].nVertex, (int)(res->atom[i].nIndex/3) ));
+		//GLOUTPUT(( "  '%s' vertices=%d tris=%d\n", textureName, (int)res->atom[i].nVertex, (int)(res->atom[i].nIndex/3) ));
 	}
 
 	// Load to VBO

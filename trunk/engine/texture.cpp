@@ -75,7 +75,11 @@ Texture* TextureManager::GetTexture( const char* name )
 
 	if ( !t ) {
 		const gamedb::Item* item = parent->Child( name );
+#ifdef DEBUG
+		if ( !item ) 
+			GLOUTPUT(( "GetTexture '%s' failed.\n", name ));
 		GLASSERT( item );
+#endif
 		
 		if ( item ) {
 			// Found the item. Generate a new texture.
@@ -292,18 +296,8 @@ U32 TextureManager::CreateGLTexture( int w, int h, int format, int flags )
 							GL_TEXTURE_MIN_FILTER,
 							GL_LINEAR_MIPMAP_NEAREST );
 	}
-	GLOUTPUT(( "OpenGL texture %d created.\n", texID ));
+	//GLOUTPUT(( "OpenGL texture %d created.\n", texID ));
 					
-//	glTexImage2D(	GL_TEXTURE_2D,
-//					0,
-//					glFormat,
-//					w,
-//					h,
-//					0,
-//					glFormat,
-//					glType,
-//					pixels );
-
 	TESTGLERR();
 
 	return texID;
@@ -331,7 +325,7 @@ void Texture::Upload( const void* pixels, int size )
 					glFormat,
 					glType,
 					pixels );
-	GLOUTPUT(( "OpenGL texture %d Upload.\n", gpuMem->glID ));
+//	GLOUTPUT(( "OpenGL texture %d Upload.\n", gpuMem->glID ));
 	TESTGLERR();
 }
 

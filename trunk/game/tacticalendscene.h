@@ -63,7 +63,7 @@ public:
 
 private:
 	enum { TEXT_ROW = 4, TEXT_COL = 2 };
-	gamui::Image		background;
+	BackgroundUI		backgroundUI;
 	gamui::TextLabel	victory;
 	gamui::TextLabel	textTable[TEXT_ROW*TEXT_COL];
 	gamui::PushButton	okayButton;

@@ -27,16 +27,12 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 {
 	Engine* engine = GetEngine();
 
+	GLOUTPUT(( "TacticalIntroScene screen=%.1f,%.1f\n", engine->GetScreenport().UIWidth(), engine->GetScreenport().UIHeight() ));
+
 	// -- Background -- //
 	gamui::RenderAtom nullAtom;
 
-	background.Init( &gamui2D, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND ) );
-
-	RenderAtom backgroundNewAtom( (const void*)UIRenderer::RENDERSTATE_NORMAL, (const void*)TextureManager::Instance()->GetTexture( "newscreen" ), 0, 0, 1, 1, 480, 320 );
-	UIRenderer::SetAtomCoordFromPixel( 0, 0, 480, 320, 512, 512, &backgroundNewAtom );
-
-	backgroundNew.Init( &gamui2D, backgroundNewAtom );
-	backgroundNew.SetVisible( false );
+	backgroundUI.Init( game, &gamui2D );
 
 	const gamui::ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
 	const gamui::ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
@@ -147,10 +143,7 @@ void TacticalIntroScene::Tap(	int count,
 		}
 		goButton.SetVisible( true );
 		seedButton.SetVisible( true );
-
-		background.SetVisible( false );
-		backgroundNew.SetVisible( true );
-		TextureManager::Instance()->ContextShift();
+		backgroundUI.backgroundText.SetVisible( false );
 	}
 	else if ( item == &continueButton ) {
 		game->loadRequested = 0;

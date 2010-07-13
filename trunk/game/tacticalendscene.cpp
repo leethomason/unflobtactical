@@ -30,7 +30,7 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 	engine->EnableMap( false );
 
 	gamui::RenderAtom nullAtom;
-	background.Init( &gamui2D, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND ) );
+	backgroundUI.Init( game, &gamui2D );
 
 	for( int i=0; i<TEXT_ROW*TEXT_COL; ++i ) {
 		textTable[i].Init( &gamui2D );

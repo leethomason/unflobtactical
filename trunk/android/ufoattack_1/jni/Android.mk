@@ -9,7 +9,6 @@ LOCAL_CFLAGS := -DANDROID_NDK \
 
 LOCAL_SRC_FILES := \
     importgl.c \
-    demo.c \
     app-android.c \
 
 include $(LOCAL_PATH)/../../../gamui/sources.mk

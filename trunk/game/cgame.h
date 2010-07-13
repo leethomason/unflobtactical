@@ -23,10 +23,11 @@ extern "C" {
 
 // --- Platform to Core --- //
 void* NewGame( int width, int height, int rotation, const char* savePath );
-void DeleteGame( void* handle );
+void DeleteGame( void* handle );	// does not save! use GameSave if needed.
 
 void GameDeviceLoss( void* handle );
 void GameResize( void* handle, int width, int height, int rotation );
+void GameSave( void* handle );
 
 // Input
 // Mimics the iPhone input. UFOAttack procesess:
@@ -55,15 +56,7 @@ void GameCameraRotate( void* handle, int action, float degreesFromStart );
 // count is 1 or 2
 void GameTap( void* handle, int count, int x, int y );
 
-//#define GAME_TAP_EXTRA_DOWN 0
-//#define GAME_TAP_EXTRA_UP   1
-//void GameTapExtra( void* handle, int action, int x, int y );
-
 void GameInputCancelled( void* handle );	
-
-
-// Screen rotation.
-//void GameRotate( void* handle, int rotation );
 
 void GameDoTick( void* handle, unsigned int timeInMSec );
 
@@ -89,7 +82,7 @@ void GameMoveCamera( void* handle, float dx, float dy, float dz );
 void GameHotKey( void* handle, int mask );
 	
 // --- Core to platform --- //
-void PlatformPathToResource( const char* name, const char* extension, char* buffer, int bufferLen );
+void PlatformPathToResource( char* buffer, int bufferLen, int* offset, int* length );
 void PlayWAVSound( const void* wavFile, int nBytes );
 
 #ifdef __cplusplus

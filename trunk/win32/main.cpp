@@ -431,6 +431,7 @@ int main( int argc, char **argv )
 		}
 	}
 	SDL_RemoveTimer( timerID );
+	GameSave( game );
 	DeleteGame( game );
 	Audio_Close();
 

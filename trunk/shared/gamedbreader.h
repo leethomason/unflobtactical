@@ -123,7 +123,7 @@ public:
 		@return true if filename could be opened and read.
 				false if error.
 	*/
-	bool Init( const char* filename );
+	bool Init( const char* filename, int offset=0 );
 
 	/// Access the root of the database.
 	const Item* Root() const					{ return root; }
@@ -159,6 +159,7 @@ private:
 	void* mem;
 	const void* endMem;
 	int memSize;
+	int offset;	// offset to read from file start
 
 	mutable void* buffer;
 	mutable int bufferSize;

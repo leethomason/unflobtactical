@@ -25,7 +25,7 @@
   
   <!-- UI elements -->
   <texture filename="intro.png" />
-  <texture filename="newscreen.png" width="512" height="256"/>
+  <texture filename="introText.png" />
   <texture filename="basehp.png" />
   <texture filename="commandBarV.png" />
   <texture filename="help0.png" />

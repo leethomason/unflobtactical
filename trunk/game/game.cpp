@@ -145,9 +145,11 @@ void Game::Init()
 
 	// Load the database.
 	char buffer[260];
-	PlatformPathToResource( "uforesource", "db", buffer, 260 );
+	int offset;
+	int length;
+	PlatformPathToResource( buffer, 260, &offset, &length );
 	database = new gamedb::Reader();
-	bool okay = database->Init( buffer );
+	bool okay = database->Init( buffer, offset );
 	GLASSERT( okay );
 
 	SoundManager::Create( database );
@@ -185,14 +187,6 @@ Game::~Game()
 		PopScene();
 		PushPopScene();
 	}
-#ifndef MAPMAKER
-	if ( loadCompleted ) {
-		TiXmlDocument doc;
-		Save( &doc );
-		GLString path = GameSavePath();
-		doc.SaveFile( path.c_str() );
-	}
-#endif
 
 	delete sceneStack.Top();
 	sceneStack.Pop();
@@ -223,21 +217,6 @@ void Game::ProcessLoadRequest()
 	{
 		Load( newGameXML );
 		loadCompleted = true;
-	}
-	else if ( loadRequested == 2 )	// test
-	{
-		const gamedb::Item* item = database->Root()->Child( "data" )->Child( "testgame" );
-		GLASSERT( item );
-
-		TiXmlDocument doc;
-		// pull the default game from the resource
-		const char* testGame = (const char*)database->AccessData( item, "binary" );
-		doc.Parse( testGame );
-
-		if ( !doc.Error() ) {
-			Load( doc );
-			loadCompleted = true;
-		}
 	}
 	loadRequested = -1;
 }
@@ -353,6 +332,18 @@ void Game::Load( const TiXmlDocument& doc )
 }
 
 
+void Game::Save()
+{
+	if ( loadCompleted ) {
+		TiXmlDocument doc;
+		Save( &doc );
+		GLString path = GameSavePath();
+		doc.SaveFile( path.c_str() );
+	}
+
+}
+
+
 void Game::Save( TiXmlDocument* doc )
 {
 	TiXmlElement sceneElement( "Scene" );
@@ -429,7 +420,7 @@ void Game::DoTick( U32 _currentTime )
 #else
 		engine->Draw();
 		scene->Debug3D();
-
+			
 #endif
 
 		
@@ -452,6 +443,10 @@ void Game::DoTick( U32 _currentTime )
 	}
 
 	const int Y = 285;
+	#ifndef GRINLIZ_DEBUG_MEM
+	const int memNewCount = 0;
+	#endif
+
 	if ( debugTextOn ) {
 		UFOText::Draw(	0,  Y, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
 						VERSION,
