@@ -56,13 +56,17 @@ import android.content.res.Resources;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.view.MotionEvent;
+import android.view.Window;
+import android.view.WindowManager;
 
 public class UFOActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+       
         mGLView = new DemoGLSurfaceView(this);
         setContentView(mGLView);
+        
         loadUFOAssets();
     }
 
@@ -111,7 +115,7 @@ public class UFOActivity extends Activity {
     }
 }
 
-class DemoGLSurfaceView extends GLSurfaceView {
+class DemoGLSurfaceView extends GLSurfaceView { 
     public DemoGLSurfaceView(Context context) {
         super(context);
         mRenderer = new DemoRenderer();
@@ -120,14 +124,12 @@ class DemoGLSurfaceView extends GLSurfaceView {
 
     public boolean onTouchEvent(final MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            nativePause();
+            DemoRenderer.nativePause();
         }
         return true;
     }
 
     public DemoRenderer mRenderer;
-
-    private static native void nativePause();
 }
 
 class DemoRenderer implements GLSurfaceView.Renderer {
@@ -144,8 +146,10 @@ class DemoRenderer implements GLSurfaceView.Renderer {
     }
 
     public static native void nativeResource( String path, long offset, long len );
-    private static native void nativeInit();
     private static native void nativeResize(int w, int h);
     private static native void nativeRender();
+
+    private static native void nativeInit();
+    public static native void nativePause();
     private static native void nativeDone();
 }

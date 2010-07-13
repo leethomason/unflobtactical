@@ -101,6 +101,14 @@ struct NameRankUI {
 	}
 };
 
+
+struct BackgroundUI {
+	gamui::Image	background;
+	gamui::Image	backgroundText;
+
+	void Init( Game* game, gamui::Gamui* );
+};
+
 #pragma warning ( pop )
 
 #endif // UFOATTACK_SCENE_INCLUDED

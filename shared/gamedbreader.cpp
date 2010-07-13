@@ -102,6 +102,7 @@ public:
 
 /* static */ const Reader* Reader::GetContext( const Item* item )
 {
+	GLASSERT( item );
 	const void* m = item;
 
 	for( Reader* r=readerRoot; r; r=r->next ) {
@@ -160,22 +161,25 @@ Reader::~Reader()
 }
 
 
-//bool Reader::Init( const void* mem, int size )
-bool Reader::Init( const char* filename )
+bool Reader::Init( const char* filename, int _offset )
 {
 	fp = fopen( filename, "rb" );
 	if ( !fp )
 		return false;
 
+	offset = _offset;
+	fseek( fp, offset, SEEK_SET );
+
 	// Read in the data structers. Leave the "data" compressed and in the file.
 	HeaderStruct header;
 	fread( &header, sizeof(header), 1, fp );
-	fseek( fp, 0, SEEK_SET );
+	fseek( fp, offset, SEEK_SET );
 
 	memSize = header.offsetToData;
 	mem = malloc( memSize );
 	endMem = (const char*)mem + memSize;
 
+	GLOUTPUT(( "Reading '%s' from offset=%d\n", filename, offset ));
 	fread( mem, memSize, 1, fp );
 
 	root = (const Item*)( (U8*)mem + header.offsetToItems );
@@ -289,7 +293,7 @@ void Reader::GetData( int dataID, void* target, int memSize ) const
 	GLASSERT( dataID >= 0 && dataID < (int)header->nData );
 	const DataDescStruct& dataDesc = dataDescPtr[dataID];
 	
-	fseek( fp, dataDesc.offset, SEEK_SET );
+	fseek( fp, offset+dataDesc.offset, SEEK_SET );
 
 	if ( dataDesc.compressedSize == dataDesc.size ) {
 		// no compression.

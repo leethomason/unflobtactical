@@ -148,6 +148,7 @@ public:
 											}
 
 	void Load( const TiXmlDocument& doc );
+	void Save();
 	void Save( TiXmlDocument* doc );
 
 	const gamedb::Reader* GetDatabase()	{ return database; }
@@ -155,6 +156,7 @@ public:
 	enum {
 		ATOM_TEXT, ATOM_TEXT_D,
 		ATOM_TACTICAL_BACKGROUND,
+		ATOM_TACTICAL_BACKGROUND_TEXT,
 		ATOM_GREEN_BUTTON_UP, ATOM_GREEN_BUTTON_UP_D, ATOM_GREEN_BUTTON_DOWN, ATOM_GREEN_BUTTON_DOWN_D,
 		ATOM_BLUE_BUTTON_UP, ATOM_BLUE_BUTTON_UP_D, ATOM_BLUE_BUTTON_DOWN, ATOM_BLUE_BUTTON_DOWN_D,
 		ATOM_RED_BUTTON_UP, ATOM_RED_BUTTON_UP_D, ATOM_RED_BUTTON_DOWN, ATOM_RED_BUTTON_DOWN_D,

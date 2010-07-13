@@ -22,6 +22,9 @@
 #include <time.h>
 #include <android/log.h>
 #include <stdint.h>
+#include <string.h>
+
+#include "../../../game/cgame.h"
 
 int   gAppAlive   = 1;
 
@@ -31,6 +34,11 @@ static int  sDemoStopped  = 0;
 static long sTimeOffset   = 0;
 static int  sTimeOffsetInit = 0;
 static long sTimeStopped  = 0;
+static void* game = 0;
+
+int androidResourceOffset;
+int androidResourceLen;
+char androidResourcePath[200];
 
 static long
 _getTime(void)
@@ -47,6 +55,13 @@ Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeResource( JNIEnv* env, jobj
 	jboolean copy;
 	const char* path = (*env)->GetStringUTFChars( env, _path, 0 );
 
+	androidResourcePath[0] = 0;
+	if ( strlen( path ) < 199 ) {
+		strcpy( androidResourcePath, path );
+	}
+	androidResourceOffset = (int)offset;
+	androidResourceLen = (int)len;
+
     __android_log_print(ANDROID_LOG_INFO, "UFOAttack", "Resource path=%s offset=%d len=%d", path, (int)offset, (int)len );
 	(*env)->ReleaseStringUTFChars( env, _path, path );
 }
@@ -57,11 +72,19 @@ void
 Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeInit( JNIEnv*  env )
 {
     importGLInit();
-    appInit();
+
+	// UFO attack doesn't handle resize after init well, so 
+	// defer the resize until later.
+	//game = NewGame( 320, 480, 1, ".\\" );
+
     gAppAlive    = 1;
     sDemoStopped = 0;
     sTimeOffsetInit = 0;
-    __android_log_print(ANDROID_LOG_INFO, "UFOAttack", "Init.");
+#if defined(DEBUG) || defined(_DEBUG)
+    __android_log_print(ANDROID_LOG_INFO, "UFOAttack", "NewGame DEBUG.");
+#else
+    __android_log_print(ANDROID_LOG_INFO, "UFOAttack", "NewGame RELEASE.");
+#endif
 }
 
 void
@@ -69,6 +92,12 @@ Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeResize( JNIEnv*  env, jobje
 {
     sWindowWidth  = w;
     sWindowHeight = h;
+
+
+	if ( game == 0 )
+		game = NewGame( w, h, 1, ".\\" );
+	else
+		GameResize( game, w, h, 1 );
     __android_log_print(ANDROID_LOG_INFO, "UFOAttack", "resize w=%d h=%d", w, h);
 }
 
@@ -76,7 +105,8 @@ Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeResize( JNIEnv*  env, jobje
 void
 Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeDone( JNIEnv*  env )
 {
-    appDeinit();
+	DeleteGame( game );
+	game = 0;
     importGLDeinit();
 }
 
@@ -84,7 +114,7 @@ Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeDone( JNIEnv*  env )
  * stop as soon as possible.
  */
 void
-Java_com_grinninglizard_UFOAttack_DemoGLSurfaceView_nativePause( JNIEnv*  env )
+Java_com_grinninglizard_UFOAttack_DemoRenderer_nativePause( JNIEnv*  env )
 {
     sDemoStopped = !sDemoStopped;
     if (sDemoStopped) {
@@ -120,5 +150,6 @@ Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeRender( JNIEnv*  env )
 
     //__android_log_print(ANDROID_LOG_INFO, "SanAngeles", "curTime=%ld", curTime);
 
-    appRender(curTime, sWindowWidth, sWindowHeight);
+    //appRender(curTime, sWindowWidth, sWindowHeight);
+	GameDoTick( game, curTime );
 }

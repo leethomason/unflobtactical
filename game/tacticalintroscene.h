@@ -112,8 +112,7 @@ private:
 	int nItemMatch;
 	grinliz::Random random;
 
-	gamui::Image		background;
-	gamui::Image		backgroundNew;
+	BackgroundUI		backgroundUI;
 	gamui::PushButton	continueButton, newButton, goButton, seedButton;
 	gamui::ToggleButton	toggles[TOGGLE_COUNT];
 };

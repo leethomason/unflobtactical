@@ -36,6 +36,16 @@ Engine* Scene::GetEngine()
 
 
 
+void BackgroundUI::Init( Game* game, gamui::Gamui* g )
+{
+	background.Init( g, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND ) );
+	background.SetSize( game->engine->GetScreenport().UIWidth(), game->engine->GetScreenport().UIHeight() );
+	backgroundText.Init( g, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND_TEXT ) );
+	backgroundText.SetForeground( true );
+	backgroundText.SetPos( 20, 20 );
+}
+
+
 
 void NameRankUI::Init( gamui::Gamui* g )
 {
