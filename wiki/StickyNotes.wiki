@@ -1,5 +1,15 @@
 Useful code and links from the web. And sometimes a sort of development blog.
 
+= Planar Shadows =
+
+Currently UFOAttack uses planar shadows. Nice summary: http://www.devmaster.net/articles/shadow_techniques/
+
+3 passes are used: a first pass of the ground plane (lighted), the shadows are drawn to the z-buffer, and then a 2nd pass of the ground plane (shadowed.) The z-buffer is "abused" to act as a stencil, which isn't available in ES1.1.
+
+This should really work with 2 passes:
+  # ground plane lighted
+  # ground plane shadowed, drawn using the transformed model vertices. The trick here being to use the model vertices as the texture coordinates, and also transform the texture coordinates to the ground plane. Should be much faster and simpler, if a little hard to set up.
+
 = Back to Databases (Apr21, 2010) = 
 
 I have great respect for sqlite3. Solid, well thought out, well tested API.
