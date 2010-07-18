@@ -28,8 +28,6 @@
 
 int   gAppAlive   = 1;
 
-static int  sWindowWidth  = 320;
-static int  sWindowHeight = 480;
 static int  sDemoStopped  = 0;
 static long sTimeOffset   = 0;
 static int  sTimeOffsetInit = 0;
@@ -90,10 +88,6 @@ Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeInit( JNIEnv*  env )
 void
 Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeResize( JNIEnv*  env, jobject  thiz, jint w, jint h )
 {
-    sWindowWidth  = w;
-    sWindowHeight = h;
-
-
 	if ( game == 0 )
 		game = NewGame( w, h, 1, ".\\" );
 	else
@@ -105,7 +99,8 @@ Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeResize( JNIEnv*  env, jobje
 void
 Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeDone( JNIEnv*  env )
 {
-	DeleteGame( game );
+	if ( game )
+		DeleteGame( game );
 	game = 0;
     importGLDeinit();
 }
@@ -114,9 +109,9 @@ Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeDone( JNIEnv*  env )
  * stop as soon as possible.
  */
 void
-Java_com_grinninglizard_UFOAttack_DemoRenderer_nativePause( JNIEnv*  env )
+Java_com_grinninglizard_UFOAttack_DemoRenderer_nativePause( JNIEnv*  env, jint paused )
 {
-    sDemoStopped = !sDemoStopped;
+    sDemoStopped = paused;
     if (sDemoStopped) {
         /* we paused the animation, so store the current
          * time in sTimeStopped for future nativeRender calls */
@@ -125,6 +120,8 @@ Java_com_grinninglizard_UFOAttack_DemoRenderer_nativePause( JNIEnv*  env )
         /* we resumed the animation, so adjust the time offset
          * to take care of the pause interval. */
         sTimeOffset -= _getTime() - sTimeStopped;
+		if ( game )
+			GameDeviceLoss( game );
     }
 }
 
@@ -146,10 +143,6 @@ Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeRender( JNIEnv*  env )
             sTimeOffset     = -curTime;
             curTime         = 0;
         }
+		GameDoTick( game, curTime );
     }
-
-    //__android_log_print(ANDROID_LOG_INFO, "SanAngeles", "curTime=%ld", curTime);
-
-    //appRender(curTime, sWindowWidth, sWindowHeight);
-	GameDoTick( game, curTime );
 }
