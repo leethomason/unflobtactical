@@ -92,13 +92,6 @@ void GameTap( void* handle, int count, int x, int y )
 }
 
 
-void GameInputCancelled( void* handle )
-{
-	Game* game = (Game*)handle;
-	game->CancelInput();
-}
-
-
 void GameDoTick( void* handle, unsigned int timeInMSec )
 {
 	Game* game = (Game*)handle;

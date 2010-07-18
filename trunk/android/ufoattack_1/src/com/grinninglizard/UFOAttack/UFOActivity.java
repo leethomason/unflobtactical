@@ -53,33 +53,48 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
+import android.gesture.GestureOverlayView.OnGestureListener;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.Window;
-import android.view.WindowManager;
+import android.view.View;
+import android.view.View.OnClickListener;
 
-public class UFOActivity extends Activity {
+public class UFOActivity extends Activity  {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
        
         mGLView = new DemoGLSurfaceView(this);
         setContentView(mGLView);
-        
         loadUFOAssets();
+        
+//        mGLView.setOnClickListener( this );
     }
+
+    
+  //  public void onClick(View v) {
+  //      System.out.println( "onClick ");
+  //  }
+
 
     @Override
     protected void onPause() {
         super.onPause();
         mGLView.onPause();
+        DemoRenderer.nativePause( 1 );
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         mGLView.onResume();
+        DemoRenderer.nativePause( 0 );
+    }
+    
+    protected void onDestroy() {
+    	DemoRenderer.nativeDone();
     }
     
     private void loadUFOAssets() 
@@ -115,21 +130,93 @@ public class UFOActivity extends Activity {
     }
 }
 
-class DemoGLSurfaceView extends GLSurfaceView { 
+
+class GestureProcessor extends GestureDetector.SimpleOnGestureListener {
+	public GestureProcessor() {
+		super();
+	}
+	
+	@Override
+	public boolean onSingleTapConfirmed(MotionEvent  e) {
+		System.out.println( "single tap confirmed " + e.getX() + " " + e.getY() );
+		return false;
+	}
+	
+	@Override
+	public boolean onSingleTapUp( MotionEvent e ) {
+		System.out.println( "single tap confirmed " + e.getX() + " " + e.getY() );
+		return false;
+	}
+}
+
+class DemoGLSurfaceView extends GLSurfaceView implements GestureDetector.OnGestureListener { 
     public DemoGLSurfaceView(Context context) {
         super(context);
         mRenderer = new DemoRenderer();
         setRenderer(mRenderer);
-    }
+        
+        gestureDetector = new GestureDetector( this );
+        
+        //gestureProcessor = new GestureProcessor();
+        //gestureDetector = new GestureDetector( gestureProcessor );
+        //setOnTouchListener(gestureDetector);
 
-    public boolean onTouchEvent(final MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            DemoRenderer.nativePause();
-        }
-        return true;
+//        gestureDetector = new GestureDetector(new GestureProcessor() );
+//        new OnTouchListener() {
+//            public boolean onTouch(View v, MotionEvent event) {
+//                if (gestureDetector.onTouchEvent(event)) {
+//                    return true;
+//                }
+//                return false;
+//            }
+//        };
     }
-
+    
+//    public boolean onTouchEvent(MotionEvent  event) {
+//		System.out.println( "onTouchEvent" );
+//   	return gestureDetector.onTouchEvent( event );
+//    }
+    
+    @Override  
+    public boolean onTouchEvent(MotionEvent e) {  
+    	return gestureDetector.onTouchEvent(e);  
+    }      
+    @Override  
+    public boolean onDown(MotionEvent e) {  
+    	System.out.println( "onDown" ); 
+    	return true;  
+    }  
+          
+    @Override  
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {  
+    	System.out.println( "onFling" ); 
+    	return true;  
+    }  
+          
+    @Override  
+    public void onLongPress(MotionEvent e) {  
+    	System.out.println( "onLongPress" ); 
+    }  
+          
+    @Override  
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {  
+    	System.out.println( "onScroll" ); 
+    	return true;  
+    }  
+          
+    @Override  
+    public void onShowPress(MotionEvent e) {  
+    	System.out.println( "onShowPress" ); 
+    }      
+          
+    @Override  
+    public boolean onSingleTapUp(MotionEvent e) {  
+    	System.out.println( "onSingleTapUp" ); 
+    	return true;  
+    }  
     public DemoRenderer mRenderer;
+//    private GestureProcessor gestureProcessor;
+    private GestureDetector gestureDetector;
 }
 
 class DemoRenderer implements GLSurfaceView.Renderer {
@@ -150,6 +237,6 @@ class DemoRenderer implements GLSurfaceView.Renderer {
     private static native void nativeRender();
 
     private static native void nativeInit();
-    public static native void nativePause();
-    private static native void nativeDone();
+    public static native void nativePause( int pause );
+    public static native void nativeDone();
 }
