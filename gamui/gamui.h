@@ -178,10 +178,13 @@ public:
 	IGamuiText* GetTextInterface() const	{ return m_iText; }
 
 	/** Feed touch/mouse events to Gamui. You should use TapDown/TapUp as a pair, OR just use Tap. TapDown/Up
-		is richer, but you need device support. (Mice certainly, fingers possibly.)
+		is richer, but you need device support. (Mice certainly, fingers possibly.) 
+		* TapDown return the item tapped on. This does not activate anything except capture.
+		* TapUp returns if the item was activated (that is, the up and down item are the same.)
 	*/
-	const UIItem* TapDown( float x, float y );
+	void TapDown( float x, float y );		
 	const UIItem* TapUp( float x, float y );		///< Used as a pair with TapDown
+	void TapCancel();
 	const UIItem* Tap( float x, float y );			///< Used to send events on systems that have a simple tap without up/down symantics.
 
 	/** Utility function to layout a grid of items.
@@ -243,9 +246,6 @@ public:
 	};
 
 	virtual ~IGamuiText()	{}
-
-	void Init( Gamui* gamui );
-
 	virtual void GamuiGlyph( int c, gamui::IGamuiText::GlyphMetrics* metric ) = 0;
 };
 
@@ -278,20 +278,18 @@ public:
 	float RotationY() const						{ return m_rotationY; }
 	float RotationZ() const						{ return m_rotationZ; }
 
-	// Toggle buttons are special...
-	virtual ToggleButton* IsToggle()			{ return 0; }
-
-	enum {
+	enum TapAction {
+		TAP_DOWN,
 		TAP_UP,
-		TAP_DOWN
+		TAP_CANCEL
 	};
-	virtual bool HandleTap( int action, float x, float y )	{ return false; }
+	virtual bool HandleTap( TapAction action, float x, float y )		{ return false; }
 
 	virtual const RenderAtom* GetRenderAtom() const = 0;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded ) = 0;
 	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex ) = 0;
 
-	void Clear()	{ m_gamui = 0; }
+	virtual void Clear()	{ m_gamui = 0; }
 
 private:
 	UIItem( const UIItem& );			// private, not implemented.
@@ -593,41 +591,40 @@ public:
 
 	virtual ~PushButton()	{}
 
-	virtual bool HandleTap( int action, float x, float y );
+	virtual bool HandleTap( TapAction action, float x, float y );
 };
 
 
 class ToggleButton : public Button
 {
 public:
-	ToggleButton() : Button(), m_toggleGroup( 0 )		{}
+	ToggleButton() : Button(), m_next( 0 ), m_prev( 0 ), m_wasUp( true )		{}
 	ToggleButton(	Gamui* gamui,
-					int toggleGroup,
 					const RenderAtom& atomUpEnabled,
 					const RenderAtom& atomUpDisabled,
 					const RenderAtom& atomDownEnabled,
 					const RenderAtom& atomDownDisabled,
 					const RenderAtom& decoEnabled, 
-					const RenderAtom& decoDisabled) : Button(), m_toggleGroup( 0 )	
+					const RenderAtom& decoDisabled) : Button(), m_next( 0 ), m_prev( 0 ), m_wasUp( true )
 	{
-		m_toggleGroup = toggleGroup;
 		Button::Init( gamui, atomUpEnabled, atomUpDisabled, atomDownEnabled, atomDownDisabled, decoEnabled, decoDisabled );
+		m_prev = m_next = this;
 	}
 
-	ToggleButton( Gamui* gamui, int toggleGroup, const ButtonLook& look ) : Button(), m_toggleGroup( 0 )
+	ToggleButton( Gamui* gamui, const ButtonLook& look ) : Button(), m_next( 0 ), m_prev( 0 ), m_wasUp( true )
 	{
 		RenderAtom nullAtom;
 		Button::Init( gamui, look.atomUpEnabled, look.atomUpDisabled, look.atomDownEnabled, look.atomDownDisabled, nullAtom, nullAtom );
+		m_prev = m_next = this;
 	}
 
-	void Init( Gamui* gamui, int toggleGroup, const ButtonLook& look ) {
+	void Init( Gamui* gamui, const ButtonLook& look ) {
 		RenderAtom nullAtom;
-		m_toggleGroup = toggleGroup;
 		Button::Init( gamui, look.atomUpEnabled, look.atomUpDisabled, look.atomDownEnabled, look.atomDownDisabled, nullAtom, nullAtom );
+		m_prev = m_next = this;
 	}
 
 	void Init(	Gamui* gamui,
-				int toggleGroup,
 				const RenderAtom& atomUpEnabled,
 				const RenderAtom& atomUpDisabled,
 				const RenderAtom& atomDownEnabled,
@@ -635,23 +632,32 @@ public:
 				const RenderAtom& decoEnabled, 
 				const RenderAtom& decoDisabled )
 	{
-		m_toggleGroup = toggleGroup;
 		Button::Init( gamui, atomUpEnabled, atomUpDisabled, atomDownEnabled, atomDownDisabled, decoEnabled, decoDisabled );
+		m_prev = m_next = this;
 	}
 
-	virtual ~ToggleButton()		{}
+	virtual ~ToggleButton()		{ RemoveFromToggleGroup(); }
 
 
-	virtual bool HandleTap(	int action, float x, float y );
-	virtual int ToggleGroup() const				{ return m_toggleGroup; }
+	virtual bool HandleTap(	TapAction action, float x, float y );
 
-	virtual ToggleButton* IsToggle()			{ return this; }
+	void AddToToggleGroup( ToggleButton* );
+	void RemoveFromToggleGroup();
+	bool InToggleGroup();
 
-	void SetUp()								{ m_up = true; SetState(); }
-	void SetDown()								{ m_up = false; SetState(); }
+	void SetUp()								{ m_up = true; SetState(); ProcessToggleGroup(); }
+	void SetDown()								{ m_up = false; SetState(); ProcessToggleGroup(); }
+
+	virtual void Clear();
 
 private:
-	int m_toggleGroup;
+	void ProcessToggleGroup();
+	void PriSetUp()								{ m_up = true; SetState(); }
+	void PriSetDown()							{ m_up = false; SetState(); }
+
+	ToggleButton* m_next;
+	ToggleButton* m_prev;
+	bool m_wasUp;
 };
 
 

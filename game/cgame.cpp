@@ -65,11 +65,11 @@ void GameDeviceLoss( void* handle )
 }
 
 
-void GameDrag( void* handle, int action, int x, int y )
-{
-	Game* game = (Game*)handle;
-	game->Drag( action, x, y );
-}
+//void GameDrag( void* handle, int action, int x, int y )
+//{
+//	Game* game = (Game*)handle;
+//	game->Drag( action, x, y );
+//}
 
 void GameZoom( void* handle, int action, int distance )
 {
@@ -84,11 +84,10 @@ void GameCameraRotate( void* handle, int action, float degrees )
 }
 
 
-// count is 1 or 2
-void GameTap( void* handle, int count, int x, int y )
+void GameTap( void* handle, int action, int x, int y )
 {
 	Game* game = (Game*)handle;
-	game->Tap( count, x, y );
+	game->Tap( action, x, y );
 }
 
 

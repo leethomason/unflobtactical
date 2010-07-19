@@ -96,8 +96,8 @@ public:
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
 
-	virtual void Drag(	int action,
-						const grinliz::Vector2F& view );
+//	virtual void Drag(	int action,
+//						const grinliz::Vector2F& view );
 
 	virtual void Zoom( int action, int distance );
 	virtual void Rotate( int aciton, float degreesFromStart );
@@ -212,6 +212,8 @@ private:
 
 	CStack< Action > actionStack;
 
+	void Drag( int action, const grinliz::Vector2F& view );
+
 	void PushRotateAction( Unit* src, const grinliz::Vector3F& dst, bool quantize );
 	
 	// Try to shoot. Return true if success.
@@ -269,7 +271,7 @@ private:
 
 	Unit* UnitFromModel( Model* m, bool useWeaponModel=false );
 	Unit* GetUnitFromTile( int x, int z );
-	bool HandleIconTap( int screenX, int screenY );
+	bool HandleIconTap( int action, const grinliz::Vector2F& view );
 	void HandleNextUnit( int bias );
 	void HandleRotation( float bias );
 	void SetFogOfWar();

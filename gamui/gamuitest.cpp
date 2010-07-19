@@ -77,6 +77,14 @@ public:
 	{
 		TESTGLERR();
 		int renderState = (int)_renderState;
+
+#if 0
+		if ( renderState == RENDERSTATE_TEXT )
+			glDisable( GL_BLEND );
+		else
+			glEnable( GL_BLEND );
+#endif
+
 		switch( renderState ) {
 			case RENDERSTATE_TEXT:
 			case RENDERSTATE_NORMAL:
@@ -270,11 +278,29 @@ int main( int argc, char **argv )
 	button1.SetText( "Button" );
 	button1.SetEnabled( false );
 
-	ToggleButton toggle( &gamui, 0, up, upD, down, downD, decoAtom, decoAtomD );
+	ToggleButton toggle( &gamui, up, upD, down, downD, decoAtom, decoAtomD );
 	toggle.SetPos( 350, 250 );
-	toggle.SetSize( 150, 75 );
+	toggle.SetSize( 150, 50 );
 	toggle.SetText( "Toggle" );
 	toggle.SetText2( "Line 2" );
+
+	ToggleButton toggle0( &gamui, up, upD, down, downD, decoAtom, decoAtomD );
+	toggle0.SetPos( 350, 325 );
+	toggle0.SetSize( 75, 50 );
+	toggle0.SetText( "group" );
+
+	ToggleButton toggle1( &gamui, up, upD, down, downD, decoAtom, decoAtomD );
+	toggle1.SetPos( 430, 325 );
+	toggle1.SetSize( 75, 50 );
+	toggle1.SetText( "group" );
+
+	ToggleButton toggle2( &gamui, up, upD, down, downD, decoAtom, decoAtomD );
+	toggle2.SetPos( 510, 325 );
+	toggle2.SetSize( 75, 50 );
+	toggle2.SetText( "group" );
+
+	toggle0.AddToToggleGroup( &toggle1 );
+	toggle0.AddToToggleGroup( &toggle2 );
 
 	RenderAtom tick0( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0, 0, 0, 0, 15, 30 );
 	RenderAtom tick1=tick0, tick2=tick0;
@@ -284,6 +310,8 @@ int main( int argc, char **argv )
 
 	DigitalBar bar( &gamui, 10, tick0, tick1, tick2, 2 );
 	bar.SetRange( 0.33f, 0.66f );
+	//bar.SetRange( 0.5f, 1.0f );
+	//bar.SetRange( 0.0f, 1.0f );
 	bar.SetPos( 20, 350 );
 
 	RenderAtom nullAtom;
@@ -297,6 +325,7 @@ int main( int argc, char **argv )
 	tiled.SetTile( 1, 1, tick0 );
 	
 	bool done = false;
+	float range = 0.5f;
 	while ( !done ) {
 		SDL_Event event;
 		if ( SDL_PollEvent( &event ) ) {
@@ -318,7 +347,15 @@ int main( int argc, char **argv )
 					break;
 
 				case SDL_MOUSEBUTTONUP:
-					gamui.TapUp( event.button.x, event.button.y );
+					{
+						const UIItem* item = gamui.TapUp( event.button.x, event.button.y );
+						if ( item ) {
+							range += 0.1f;
+							if ( range > 1.0f )
+								range = 0.0f;
+							bar.SetRange( 0, range );
+						}
+					}
 					break;
 
 				case SDL_QUIT:
