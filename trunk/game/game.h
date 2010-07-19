@@ -102,9 +102,8 @@ public:
 	void Resize( int width, int height, int rotation );
 	void DoTick( U32 msec );
 
-	void Tap( int count, int x, int y );
-	//void TapExtra( int action, int x, int y );
-	void Drag( int action, int x, int y );
+	void Tap( int action, int x, int y );
+	//void Drag( int action, int x, int y );
 	void Zoom( int action, int distance );
 	void Rotate( int action, float degreesFromStart );
 	void CancelInput();

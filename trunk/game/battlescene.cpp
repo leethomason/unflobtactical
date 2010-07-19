@@ -2130,11 +2130,18 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 }
 
 
-void BattleScene::Tap(	int tap, 
-						const grinliz::Vector2F& screen,
+/*
+	Handle a tap.
+
+	item		down				move		up
+	----		----				----		----
+	Button		capture (gamui)		x(gamui)	handle		Sent to gamui. Need only to note if gamui captured the tap.
+*/
+void BattleScene::Tap(	int action, 
+						const grinliz::Vector2F& view,
 						const grinliz::Ray& world )
 {
-#if 1
+#if 0
 	{
 		// Test projections.
 		Vector3F pos;
@@ -2159,8 +2166,9 @@ void BattleScene::Tap(	int tap,
 	}
 #endif
 
-	if ( tap > 1 )
-		return;
+	// Drags are Taps and Taps are Drags.
+	Drag( action, view );
+
 	if ( !actionStack.Empty() )
 		return;
 	if ( currentTeamTurn != TERRAN_TEAM )
@@ -2173,17 +2181,16 @@ void BattleScene::Tap(	int tap,
 
 	*/
 
+	bool handled = HandleIconTap( action, view );
 	if ( selection.FireMode() ) {
 		// Whether or not something was selected, drop back to normal mode.
-		HandleIconTap( LRintf(screen.x), LRintf(screen.y) );
 		selection.targetPos.Set( -1, -1 );
 		selection.targetUnit = 0;
 		return;
-	}
-	
-	bool handled = HandleIconTap( LRintf(screen.x), LRintf(screen.y) );
+	}	
 	if ( handled )
 		return;
+
 
 #ifdef MAPMAKER
 	const Vector3F& pos = mapSelection->Pos();

@@ -242,14 +242,16 @@ void TextLabel::CalcSize( float* width, float* height ) const
 
 	IGamuiText::GlyphMetrics metrics;
 	float x = 0;
+	float x1 = 0;
 
 	while ( p && *p ) {
 		iText->GamuiGlyph( *p, &metrics );
 		++p;
+		x1 = x + metrics.width;
 		x += metrics.advance;
 		*height = metrics.height;
 	}
-	*width = x;
+	*width = x1;
 }
 
 
@@ -796,31 +798,111 @@ void Button::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* ve
 }
 
 
-bool PushButton::HandleTap( int action, float x, float y )
+bool PushButton::HandleTap( TapAction action, float x, float y )
 {
-	bool handled = false;
+	bool activated = false;
 	if ( action == TAP_DOWN ) {
 		m_up = false;
-		handled = true;
-		SetState();
 	}
-	else if ( action == TAP_UP ) {
+	else if ( action == TAP_UP || action == TAP_CANCEL ) {
 		m_up = true;
-		SetState();
+		if ( action == TAP_UP && x >= X() && x < X()+Width() && y >= Y() && y < Y()+Height() ) {
+			activated = true;
+		}
 	}
-	return handled;
+	SetState();
+	return activated;
 }
 
 
-bool ToggleButton::HandleTap( int action, float x, float y )
+void ToggleButton::Clear()
 {
-	bool handled = false;
-	if ( action == TAP_DOWN ) {
-		m_up = !m_up;
-		handled = true;
-		SetState();
+	RemoveFromToggleGroup();
+	Button::Clear();
+}
+
+
+void ToggleButton::RemoveFromToggleGroup()
+{
+	if ( m_next ) {
+		ToggleButton* other = m_next;
+		
+		// unlink
+		m_prev->m_next = m_next;
+		m_next->m_prev = m_prev;
+
+		// clean up the group just left.
+		if ( other != this ) {
+			other->ProcessToggleGroup();
+		}
+		m_next = m_prev = this;
 	}
-	return handled;
+}
+
+
+void ToggleButton::AddToToggleGroup( ToggleButton* button )
+{
+	GAMUIASSERT( button != this );
+	GAMUIASSERT( this->m_next && button->m_next );
+	if ( this->m_next && button->m_next ) {
+
+		button->RemoveFromToggleGroup();
+		
+		button->m_prev = this;
+		button->m_next = this->m_next;
+
+		this->m_next->m_prev = button;
+		this->m_next = button;
+
+		ProcessToggleGroup();
+	}
+}
+
+
+bool ToggleButton::InToggleGroup()
+{
+	return m_next != this;
+}
+
+
+void ToggleButton::ProcessToggleGroup()
+{
+	if ( m_next && m_next != this ) {
+		// One and only one button can be down.
+		ToggleButton* firstDown = 0;
+		if ( this->Down() )
+			firstDown = this;
+
+		for( ToggleButton* it = this->m_next; it != this; it = it->m_next ) {
+			if ( firstDown )
+				it->PriSetUp();
+			else if ( it->Down() )
+				firstDown = it;
+		}
+
+		if ( !firstDown )
+			this->PriSetDown();
+	}
+}
+
+
+bool ToggleButton::HandleTap( TapAction action, float x, float y )
+{
+	bool activated = false;
+	if ( action == TAP_DOWN ) {
+		m_wasUp = m_up;
+		m_up = false;
+	}
+	else if ( action == TAP_UP || action == TAP_CANCEL ) {
+		m_up = m_wasUp;
+		if ( action == TAP_UP && x >= X() && x < X()+Width() && y >= Y() && y < Y()+Height() ) {
+			activated = true;
+			m_up = !m_wasUp;
+			ProcessToggleGroup();
+		}
+	}
+	SetState();
+	return activated;
 }
 
 
@@ -993,25 +1075,25 @@ void Gamui::Init(	IGamuiRenderer* renderer,
 
 void Gamui::Add( UIItem* item )
 {
-	if ( item->IsToggle() && item->IsToggle()->ToggleGroup() > 0 ) {
-		ToggleButton* toggle = item->IsToggle();
-
-		bool somethingDown = false;
-
-		for( int i=0; i<m_nItems; ++i ) {
-			if (    m_itemArr[i]->IsToggle() 
-				 && m_itemArr[i]->IsToggle()->ToggleGroup() == toggle->ToggleGroup() 
-				 && m_itemArr[i]->IsToggle()->Down() ) 
-			{
-				somethingDown = true;
-				break;
-			}
-		}
-		if ( !somethingDown ) {
-			toggle->SetDown();
-			toggle = toggle;
-		}
-	}
+//	if ( item->IsToggle() && item->IsToggle()->ToggleGroup() > 0 ) {
+//		ToggleButton* toggle = item->IsToggle();
+//
+//		bool somethingDown = false;
+//
+//		for( int i=0; i<m_nItems; ++i ) {
+//			if (    m_itemArr[i]->IsToggle() 
+//				 && m_itemArr[i]->IsToggle()->ToggleGroup() == toggle->ToggleGroup() 
+//				 && m_itemArr[i]->IsToggle()->Down() ) 
+//			{
+//				somethingDown = true;
+//				break;
+//			}
+//		}
+//		if ( !somethingDown ) {
+//			toggle->SetDown();
+//			toggle = toggle;
+//		}
+//	}
 	if ( m_nItemsAllocated == m_nItems ) {
 		m_nItemsAllocated = m_nItemsAllocated*3/2 + 16;
 		m_itemArr = (UIItem**) realloc( m_itemArr, m_nItemsAllocated*sizeof(UIItem*) );
@@ -1038,13 +1120,12 @@ void Gamui::Remove( UIItem* item )
 
 const UIItem* Gamui::Tap( float x, float y )
 {
-	const UIItem* item = TapDown( x, y );
-	TapUp( x, y );
-	return item;
+	TapDown( x, y );
+	return TapUp( x, y );
 }
 
 
-const UIItem* Gamui::TapDown( float x, float y )
+void Gamui::TapDown( float x, float y )
 {
 	GAMUIASSERT( m_itemTapped == 0 );
 	m_itemTapped = 0;
@@ -1057,6 +1138,14 @@ const UIItem* Gamui::TapDown( float x, float y )
 			 && x >= item->X() && x < item->X()+item->Width()
 			 && y >= item->Y() && y < item->Y()+item->Height() )
 		{
+			item->HandleTap( UIItem::TAP_DOWN, x, y );
+			m_itemTapped = item;
+			break;
+		}
+	}
+}
+
+/*
 			// Toggles. Grr. Only and only one toggle can be down.
 			if ( item->IsToggle() && item->IsToggle()->ToggleGroup() > 0 ) {
 				ToggleButton* toggle = item->IsToggle();
@@ -1080,25 +1169,34 @@ const UIItem* Gamui::TapDown( float x, float y )
 				}
 			}
 			else {
-				if ( item->HandleTap( UIItem::TAP_DOWN, x, y ) ) {
-					m_itemTapped = item;
-				}
 			}
 		}
 	}
 	return m_itemTapped;
 }
+*/
 
 
 const UIItem* Gamui::TapUp( float x, float y )
 {
+	const UIItem* result = 0;
 	if ( m_itemTapped ) {
-		m_itemTapped->HandleTap( UIItem::TAP_UP, x, y );
+		if ( m_itemTapped->HandleTap( UIItem::TAP_UP, x, y ) )
+			result = m_itemTapped;
 	}
 	m_itemTapped = 0;
-	return 0;
+	return result;
 }
 
+
+void Gamui::TapCancel()
+{
+	if ( m_itemTapped ) {
+		m_itemTapped->HandleTap( UIItem::TAP_CANCEL, 0, 0 );
+	}
+	m_itemTapped = 0;
+
+}
 
 int Gamui::SortItems( const void* _a, const void* _b )
 { 

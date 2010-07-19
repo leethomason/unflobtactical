@@ -37,8 +37,8 @@ public:
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
 
-	virtual void Drag(	int action,
-						const grinliz::Vector2F& view )			{}
+//	virtual void Drag(	int action,
+//						const grinliz::Vector2F& view )			{}
 
 	virtual void Zoom( int action, int distance )				{}
 	virtual void CancelInput()									{}

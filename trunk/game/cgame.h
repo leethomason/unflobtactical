@@ -40,10 +40,16 @@ void GameSave( void* handle );
 // All coordinates (x,y) are in the iphone coordinate space.
 // (see screenport.h). Rotation has no impact on the coordinates.
 
-#define GAME_DRAG_START	0
-#define GAME_DRAG_MOVE	1
-#define GAME_DRAG_END	2
-void GameDrag( void* handle, int action, int x, int y );
+#define GAME_TAP_DOWN	0
+#define GAME_TAP_MOVE	1
+#define GAME_TAP_UP		2
+#define GAME_TAP_CANCEL	3
+void GameTap( void* handle, int action, int x, int y );
+
+//#define GAME_DRAG_START	0
+//#define GAME_DRAG_MOVE	1
+//#define GAME_DRAG_END	2
+//void GameDrag( void* handle, int action, int x, int y );
 
 #define GAME_ZOOM_START	0
 #define GAME_ZOOM_MOVE	1
@@ -52,9 +58,6 @@ void GameZoom( void* handle, int action, int distance );
 #define GAME_ROTATE_START 0
 #define GAME_ROTATE_MOVE  1
 void GameCameraRotate( void* handle, int action, float degreesFromStart );
-
-// count is 1 or 2
-void GameTap( void* handle, int count, int x, int y );
 
 void GameDoTick( void* handle, unsigned int timeInMSec );
 

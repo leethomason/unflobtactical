@@ -509,7 +509,7 @@ void Game::DoTick( U32 _currentTime )
 }
 
 
-void Game::Tap( int tap, int wx, int wy )
+void Game::Tap( int action, int wx, int wy )
 {
 	// The tap is in window coordinate - need to convert to view.
 	Vector2F window = { (float)wx, (float)wy };
@@ -526,10 +526,11 @@ void Game::Tap( int tap, int wx, int wy )
 		GLOUTPUT(( "Tap: window(%.1f,%.1f) view(%.1f,%.1f) ui(%.1f,%.1f)\n", window.x, window.y, view.x, view.y, ui.x, ui.y ));
 	}
 #endif
-	sceneStack.Top()->Tap( tap, view, world );
+	sceneStack.Top()->Tap( action, view, world );
 }
 
 
+/*
 void Game::Drag( int action, int wx, int wy )
 {
 	Vector2F window = { (float)wx, (float)wy };
@@ -569,6 +570,7 @@ void Game::Drag( int action, int wx, int wy )
 			break;
 	}
 }
+*/
 
 
 void Game::Zoom( int action, int distance )

@@ -161,7 +161,8 @@ int main( int argc, char **argv )
 
 	
 	bool done = false;
-	bool dragging = false;
+	//bool dragging = false;
+	bool singeTapInProgress = false;
 	bool zooming = false;
     SDL_Event event;
 
@@ -331,11 +332,14 @@ int main( int argc, char **argv )
 				mouseDown.Set( event.button.x, event.button.y );
 
 				if ( event.button.button == 1 ) {
-					GameDrag( game, GAME_DRAG_START, x, y );
-					dragging = true;
-					//GameTapExtra( game, GAME_TAP_EXTRA_DOWN, x, y );
+					GameTap( game, GAME_TAP_DOWN, x, y );
+					singeTapInProgress = true;
 				}
 				else if ( event.button.button == 3 ) {
+					if ( singeTapInProgress ) {
+						singeTapInProgress = false;
+						GameTap( game, GAME_TAP_CANCEL, x, y );
+					}
 					zooming = true;
 					GameZoom( game, GAME_ZOOM_START, -event.button.y );
 					GameCameraRotate( game, GAME_ROTATE_START, 0.0f );
@@ -348,36 +352,13 @@ int main( int argc, char **argv )
 				int x, y;
 				TransformXY( event.button.x, event.button.y, &x, &y );
 
-				if ( dragging ) {
-					//GameTapExtra( game, GAME_TAP_EXTRA_UP, x, y );
-					if ( event.button.button == 1 ) {
-						GameDrag( game, GAME_DRAG_END, x, y );
-						dragging = false;
-					}
-				}
 				if ( event.button.button == 3 ) {
 					zooming = false;
 				}
 				if ( event.button.button == 1 ) {
-					if (    abs( mouseDown.x - event.button.x ) < 3 
-						 && abs( mouseDown.y - event.button.y ) < 3 ) 
-					{
-						Uint8 *keystate = SDL_GetKeyState(NULL);
-						int tap = 1;
-						if ( SDL_GetModState() & (KMOD_LSHIFT|KMOD_RSHIFT) ) {
-							tap = 2;
-						}
-
-						const int TOLERANCE = 5;
-						if (	abs( mouseDown.x - prevMouseDown.x ) < TOLERANCE
-							 && abs( mouseDown.y - prevMouseDown.y ) < TOLERANCE
-							 && ( SDL_GetTicks() - prevMouseDownTime ) < 300 ) {
-								 tap =2 ;
-						}
-						GameTap( game, tap, x, y );
-
-						prevMouseDown = mouseDown;
-						prevMouseDownTime = SDL_GetTicks();
+					if ( singeTapInProgress ) {
+						GameTap( game, GAME_TAP_MOVE, x, y );
+						singeTapInProgress = false;
 					}
 				}
 			}
@@ -388,13 +369,9 @@ int main( int argc, char **argv )
 				int state = SDL_GetMouseState(NULL, NULL);
 				int x, y;
 				TransformXY( event.button.x, event.button.y, &x, &y );
-				//GLOUTPUT(( "move: ipod=%d,%d\n", x, y ));
 
-				if ( dragging && ( state & SDL_BUTTON(1) ) )
-				{
-					if ( event.button.button == 1 ) {
-						GameDrag( game, GAME_DRAG_MOVE, x, y );
-					}
+				if ( singeTapInProgress && (state & SDL_BUTTON(1) )) {
+					GameTap( game, GAME_TAP_MOVE, x, y );
 				}
 				else if ( zooming && (state & SDL_BUTTON(3)) ) {
 
