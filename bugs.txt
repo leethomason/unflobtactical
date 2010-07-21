@@ -6,7 +6,7 @@ Bugs:
 - alien doors not wide enough - block shots
 - support drag in character screen
 - door bugs, redo door system
-- screen re-size / layout / device loss
+- re-size after load?
 ? pauses when move - profiler?
 - Art: better human models
 - Art: better alien models
@@ -24,7 +24,6 @@ Bugs:
 - add morale
 ? psi attack
 - add random sequence to low bits of random # gen
-- improve gamui toggle buttons - when looking for a default button, prefer visible & enabled
 
 Architecture
 - render managers
@@ -45,6 +44,8 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- improve gamui toggle buttons - when looking for a default button, prefer visible & enabled
+- screen re-size / layout / device loss
 - click and drag unit
 - drawn edges of world
 - give aliens auto-armor

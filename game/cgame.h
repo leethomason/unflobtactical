@@ -46,11 +46,6 @@ void GameSave( void* handle );
 #define GAME_TAP_CANCEL	3
 void GameTap( void* handle, int action, int x, int y );
 
-//#define GAME_DRAG_START	0
-//#define GAME_DRAG_MOVE	1
-//#define GAME_DRAG_END	2
-//void GameDrag( void* handle, int action, int x, int y );
-
 #define GAME_ZOOM_START	0
 #define GAME_ZOOM_MOVE	1
 void GameZoom( void* handle, int action, int distance );

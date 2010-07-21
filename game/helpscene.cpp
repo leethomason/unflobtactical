@@ -1,5 +1,6 @@
 #include "helpscene.h"
 #include "game.h"
+#include "cgame.h"
 #include "../engine/engine.h"
 #include "../engine/uirendering.h"
 
@@ -53,28 +54,39 @@ void HelpScene::DrawHUD()
 }
 
 
-void HelpScene::Tap( int count, const grinliz::Vector2F& screen, const grinliz::Ray& world )
+void HelpScene::Tap( int action, const grinliz::Vector2F& screen, const grinliz::Ray& world )
 {
 	grinliz::Vector2F ui;
 	GetEngine()->GetScreenport().ViewToUI( screen, &ui );
 
-	const UIItem* tap = gamui2D.Tap( ui.x, ui.y );
+	const UIItem* item = 0;
+	if ( action == GAME_TAP_DOWN ) {
+		gamui2D.TapDown( ui.x, ui.y );
+		return;
+	}
+	else if ( action == GAME_TAP_CANCEL ) {
+		gamui2D.TapCancel();
+		return;
+	}
+	else if ( action == GAME_TAP_UP ) {
+		item = gamui2D.TapUp( ui.x, ui.y );
+	}
 
 	// Want to keep re-using main texture. Do a ContextShift() if anything
 	// will change on this screen.
 	TextureManager* texman = TextureManager::Instance();
 
-	if ( tap == &buttons[0] ) {
+	if ( item == &buttons[0] ) {
 		screens[currentScreen].SetVisible( false );
 		--currentScreen;	
 		texman->ContextShift();
 	}
-	else if ( tap == &buttons[1] ) {
+	else if ( item == &buttons[1] ) {
 		screens[currentScreen].SetVisible( false );
 		++currentScreen;	
 		texman->ContextShift();
 	}
-	else if ( tap == &buttons[2] ) {
+	else if ( item == &buttons[2] ) {
 		game->PopScene();
 	}
 	while( currentScreen < 0 )				currentScreen += NUM_SCREENS;

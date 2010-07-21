@@ -18,6 +18,7 @@
 #include "../engine/engine.h"
 #include "../engine/text.h"
 #include "game.h"
+#include "cgame.h"
 #include "../grinliz/glstringutil.h"
 
 using namespace grinliz;
@@ -78,14 +79,25 @@ void TacticalEndScene::DrawHUD()
 }
 
 
-void TacticalEndScene::Tap(	int count, 
+void TacticalEndScene::Tap(	int action, 
 							const grinliz::Vector2F& screen,
 							const grinliz::Ray& world )
 {
 	Vector2F ui;
 	GetEngine()->GetScreenport().ViewToUI( screen, &ui );
 
-	const gamui::UIItem* item = gamui2D.Tap( ui.x, ui.y );
+	const gamui::UIItem* item = 0;
+	if ( action == GAME_TAP_DOWN ) {
+		gamui2D.TapDown( ui.x, ui.y );
+		return;
+	}
+	else if ( action == GAME_TAP_CANCEL ) {
+		gamui2D.TapCancel();
+		return;
+	}
+	else if ( action == GAME_TAP_UP ) {
+		item = gamui2D.TapUp( ui.x, ui.y );
+	}
 
 	if ( item == &okayButton ) {
 		game->PopScene();
