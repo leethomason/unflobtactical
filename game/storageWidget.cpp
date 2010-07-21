@@ -30,7 +30,9 @@ StorageWidget::StorageWidget(	gamui::Gamui* gamui,
 {
 	static const int decoID[NUM_SELECT_BUTTONS] = { DECO_PISTOL, DECO_RAYGUN, DECO_ARMOR, DECO_ALIEN };
 	for( int i=0; i<NUM_SELECT_BUTTONS; ++i ) {
-		selectButton[i].Init( gamui, 1, blue );
+		selectButton[i].Init( gamui, blue );
+		if ( i > 0 ) 
+			selectButton[0].AddToToggleGroup( &selectButton[i] );
 		selectButton[i].SetSize( (float)GAME_BUTTON_SIZE, (float)GAME_BUTTON_SIZE );
 		selectButton[i].SetDeco( UIRenderer::CalcDecoAtom( decoID[i], true ), UIRenderer::CalcDecoAtom( decoID[i], false ) );
 		itemArr[i*BOX_CX] = &selectButton[i];

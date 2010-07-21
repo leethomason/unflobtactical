@@ -161,8 +161,6 @@ int main( int argc, char **argv )
 
 	
 	bool done = false;
-	//bool dragging = false;
-	bool singeTapInProgress = false;
 	bool zooming = false;
     SDL_Event event;
 
@@ -333,13 +331,9 @@ int main( int argc, char **argv )
 
 				if ( event.button.button == 1 ) {
 					GameTap( game, GAME_TAP_DOWN, x, y );
-					singeTapInProgress = true;
 				}
 				else if ( event.button.button == 3 ) {
-					if ( singeTapInProgress ) {
-						singeTapInProgress = false;
-						GameTap( game, GAME_TAP_CANCEL, x, y );
-					}
+					GameTap( game, GAME_TAP_CANCEL, x, y );
 					zooming = true;
 					GameZoom( game, GAME_ZOOM_START, -event.button.y );
 					GameCameraRotate( game, GAME_ROTATE_START, 0.0f );
@@ -356,10 +350,7 @@ int main( int argc, char **argv )
 					zooming = false;
 				}
 				if ( event.button.button == 1 ) {
-					if ( singeTapInProgress ) {
-						GameTap( game, GAME_TAP_MOVE, x, y );
-						singeTapInProgress = false;
-					}
+					GameTap( game, GAME_TAP_UP, x, y );
 				}
 			}
 			break;
@@ -370,7 +361,7 @@ int main( int argc, char **argv )
 				int x, y;
 				TransformXY( event.button.x, event.button.y, &x, &y );
 
-				if ( singeTapInProgress && (state & SDL_BUTTON(1) )) {
+				if ( state & SDL_BUTTON(1) ) {
 					GameTap( game, GAME_TAP_MOVE, x, y );
 				}
 				else if ( zooming && (state & SDL_BUTTON(3)) ) {

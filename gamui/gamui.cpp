@@ -803,6 +803,7 @@ bool PushButton::HandleTap( TapAction action, float x, float y )
 	bool activated = false;
 	if ( action == TAP_DOWN ) {
 		m_up = false;
+		activated = true;
 	}
 	else if ( action == TAP_UP || action == TAP_CANCEL ) {
 		m_up = true;
@@ -870,17 +871,28 @@ void ToggleButton::ProcessToggleGroup()
 	if ( m_next && m_next != this ) {
 		// One and only one button can be down.
 		ToggleButton* firstDown = 0;
+		ToggleButton* candidate = 0;
+
 		if ( this->Down() )
 			firstDown = this;
 
 		for( ToggleButton* it = this->m_next; it != this; it = it->m_next ) {
 			if ( firstDown )
 				it->PriSetUp();
-			else if ( it->Down() )
+			else if ( it->Down() && it->Visible() && it->Enabled() )
 				firstDown = it;
+			else
+				it->PriSetUp();
+
+			if ( !firstDown && it->Visible() && it->Enabled() )
+				candidate = it;
 		}
 
-		if ( !firstDown )
+		if ( !firstDown && Visible() && Enabled() )
+			this->PriSetDown();
+		else if ( candidate )
+			candidate->PriSetDown();
+		else
 			this->PriSetDown();
 	}
 }
@@ -892,6 +904,7 @@ bool ToggleButton::HandleTap( TapAction action, float x, float y )
 	if ( action == TAP_DOWN ) {
 		m_wasUp = m_up;
 		m_up = false;
+		activated = true;
 	}
 	else if ( action == TAP_UP || action == TAP_CANCEL ) {
 		m_up = m_wasUp;
@@ -1138,43 +1151,13 @@ void Gamui::TapDown( float x, float y )
 			 && x >= item->X() && x < item->X()+item->Width()
 			 && y >= item->Y() && y < item->Y()+item->Height() )
 		{
-			item->HandleTap( UIItem::TAP_DOWN, x, y );
-			m_itemTapped = item;
-			break;
-		}
-	}
-}
-
-/*
-			// Toggles. Grr. Only and only one toggle can be down.
-			if ( item->IsToggle() && item->IsToggle()->ToggleGroup() > 0 ) {
-				ToggleButton* toggle = item->IsToggle();
-				if ( toggle->Down() ) {
-					// Do nothing. Can't go up. It is the down button.
-				}
-				else {
-					toggle->HandleTap( UIItem::TAP_DOWN, x, y );
-					GAMUIASSERT( toggle->Down() );
-					m_itemTapped = toggle;
-
-					for ( int k=0; k<m_nItems; ++k ) {
-						if (    m_itemArr[k] != toggle
-							 && m_itemArr[k]->IsToggle()
-							 && m_itemArr[k]->IsToggle()->ToggleGroup() == toggle->ToggleGroup() )
-						{
-							m_itemArr[k]->IsToggle()->SetUp();
-							// should be able to break, but make it all consistent.
-						}
-					}
-				}
-			}
-			else {
+			if ( item->HandleTap( UIItem::TAP_DOWN, x, y ) ) {
+				m_itemTapped = item;
+				break;
 			}
 		}
 	}
-	return m_itemTapped;
 }
-*/
 
 
 const UIItem* Gamui::TapUp( float x, float y )
@@ -1242,8 +1225,18 @@ int Gamui::SortItems( const void* _a, const void* _b )
 
 void Gamui::Render()
 {
-	//sort( m_itemArr.begin(), m_itemArr.end(), SortItems );
-	qsort( m_itemArr, m_nItems, sizeof(UIItem*), SortItems );
+	// Do a check for sort - hard to trust 'qsort' and don't want 
+	// to call it on unsorted data.
+	bool sorted = true;
+	for( int i=0; i<m_nItems-1; ++i ) {
+		if ( SortItems( m_itemArr+i, m_itemArr+i+1 ) > 0 ) {
+			sorted = false;
+			break;
+		}
+	}
+	if ( !sorted ) {
+		qsort( m_itemArr, m_nItems, sizeof(UIItem*), SortItems );
+	}
 
 	int nIndex = 0;
 	int nVertex = 0;

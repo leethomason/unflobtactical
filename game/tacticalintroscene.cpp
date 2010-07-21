@@ -19,6 +19,7 @@
 #include "../engine/uirendering.h"
 #include "../engine/engine.h"
 #include "game.h"
+#include "cgame.h"
 
 using namespace grinliz;
 using namespace gamui;
@@ -48,13 +49,24 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	newButton.SetText( "New" );
 
 	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "8", "Low", "Med", "Hi", "8", "16", "Low", "Med", "Hi", "Day", "Night", "Farm" };
-	static const int   toggleGroup[TOGGLE_COUNT] = { 1,   1,    2,	   2,    2,    3,    3,   4,     4,      4,    5,     5,       6 };
 	for( int i=0; i<TOGGLE_COUNT; ++i ) {
-		toggles[i].Init( &gamui2D, toggleGroup[i], green );
+		toggles[i].Init( &gamui2D, green );
 		toggles[i].SetText( toggleLabel[i] );
 		toggles[i].SetVisible( false );
 		toggles[i].SetSize( 50, 50 );
 	}
+
+	toggles[SQUAD_4].AddToToggleGroup( &toggles[SQUAD_8] );
+
+	toggles[TERRAN_LOW].AddToToggleGroup( &toggles[TERRAN_MED] );
+	toggles[TERRAN_LOW].AddToToggleGroup( &toggles[TERRAN_HIGH] );
+
+	toggles[ALIEN_8].AddToToggleGroup( &toggles[ALIEN_16] );
+
+	toggles[ALIEN_LOW].AddToToggleGroup( &toggles[ALIEN_MED] );
+	toggles[ALIEN_LOW].AddToToggleGroup( &toggles[ALIEN_HIGH] );
+
+	toggles[TIME_DAY].AddToToggleGroup( &toggles[TIME_NIGHT] );
 
 
 	UIItem* squadItems[] = { &toggles[0], &toggles[1] };
@@ -126,14 +138,30 @@ void TacticalIntroScene::DrawHUD()
 }
 
 
-void TacticalIntroScene::Tap(	int count, 
+void TacticalIntroScene::Tap(	int action, 
 								const Vector2F& screen,
 								const Ray& world )
 {
 	Vector2F ui;
 	GetEngine()->GetScreenport().ViewToUI( screen, &ui );
 	
-	const gamui::UIItem* item = gamui2D.Tap( ui.x, ui.y );
+	const gamui::UIItem* item = 0;
+
+	if ( action == GAME_TAP_DOWN ) {
+		gamui2D.TapDown( ui.x, ui.y );
+		return;
+	}
+	else if ( action == GAME_TAP_MOVE ) {
+		return;
+	}
+	else if ( action == GAME_TAP_UP ) {
+		item = gamui2D.TapUp( ui.x, ui.y );
+	}
+	else if ( action == GAME_TAP_CANCEL ) {
+		gamui2D.TapCancel();
+		return;
+	}
+
 
 	if ( item == &newButton ) {
 		newButton.SetVisible( false );

@@ -185,6 +185,7 @@ public:
 	void TapDown( float x, float y );		
 	const UIItem* TapUp( float x, float y );		///< Used as a pair with TapDown
 	void TapCancel();
+	bool TapCaptured() const { return m_itemTapped != 0; }
 	const UIItem* Tap( float x, float y );			///< Used to send events on systems that have a simple tap without up/down symantics.
 
 	/** Utility function to layout a grid of items.
