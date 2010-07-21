@@ -21,7 +21,10 @@ Bugs:
 - mission types: base
 - start at action (not black screen)
 - add lander animation
-- add morale / psi attack
+- add morale
+? psi attack
+- add random sequence to low bits of random # gen
+- improve gamui toggle buttons - when looking for a default button, prefer visible & enabled
 
 Architecture
 - render managers

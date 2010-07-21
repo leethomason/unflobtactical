@@ -65,12 +65,6 @@ void GameDeviceLoss( void* handle )
 }
 
 
-//void GameDrag( void* handle, int action, int x, int y )
-//{
-//	Game* game = (Game*)handle;
-//	game->Drag( action, x, y );
-//}
-
 void GameZoom( void* handle, int action, int distance )
 {
 	Game* game = (Game*)handle;

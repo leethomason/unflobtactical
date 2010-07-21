@@ -96,9 +96,6 @@ public:
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
 
-//	virtual void Drag(	int action,
-//						const grinliz::Vector2F& view );
-
 	virtual void Zoom( int action, int distance );
 	virtual void Rotate( int aciton, float degreesFromStart );
 	virtual void CancelInput() {}
@@ -212,8 +209,6 @@ private:
 
 	CStack< Action > actionStack;
 
-	void Drag( int action, const grinliz::Vector2F& view );
-
 	void PushRotateAction( Unit* src, const grinliz::Vector3F& dst, bool quantize );
 	
 	// Try to shoot. Return true if success.
@@ -271,7 +266,7 @@ private:
 
 	Unit* UnitFromModel( Model* m, bool useWeaponModel=false );
 	Unit* GetUnitFromTile( int x, int z );
-	bool HandleIconTap( int action, const grinliz::Vector2F& view );
+	bool HandleIconTap( const gamui::UIItem* item );
 	void HandleNextUnit( int bias );
 	void HandleRotation( float bias );
 	void SetFogOfWar();
@@ -304,7 +299,14 @@ private:
 
 	void NextTurn();
 
+	void Drag( int action, bool uiActivated, const grinliz::Vector2F& view );
+	bool GamuiHasCapture()	{ return gamui2D.TapCaptured() || gamui3D.TapCaptured(); }
+
+	bool isDragging;
+
 	grinliz::Vector3F dragStart;
+	grinliz::Vector3F dragEnd;
+	float			  dragLength;
 	grinliz::Vector3F dragStartCameraWC;
 	grinliz::Matrix4  dragMVPI;
 

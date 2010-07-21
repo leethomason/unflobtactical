@@ -523,7 +523,8 @@ void Game::Tap( int action, int wx, int wy )
 	{
 		Vector2F ui;
 		screenport.ViewToUI( view, &ui );
-		GLOUTPUT(( "Tap: window(%.1f,%.1f) view(%.1f,%.1f) ui(%.1f,%.1f)\n", window.x, window.y, view.x, view.y, ui.x, ui.y ));
+		if ( action != GAME_TAP_MOVE )
+			GLOUTPUT(( "Tap: action=%d window(%.1f,%.1f) view(%.1f,%.1f) ui(%.1f,%.1f)\n", action, window.x, window.y, view.x, view.y, ui.x, ui.y ));
 	}
 #endif
 	sceneStack.Top()->Tap( action, view, world );

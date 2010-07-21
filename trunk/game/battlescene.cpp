@@ -48,6 +48,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 {
 	subTurnCount = 0;
 	rotationUIOn = nextUIOn = true;
+	isDragging = false;
 
 	engine  = game->engine;
 	visibility.Init( this, units, engine->GetMap() );
@@ -114,7 +115,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		nextTurnButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_END_TURN, true ), UIRenderer::CalcDecoAtom( DECO_END_TURN, false ) );
 		nextTurnButton.SetSize( SIZE, SIZE );
 
-		targetButton.Init( &gamui2D, 0, red );
+		targetButton.Init( &gamui2D, red );
 		targetButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_AIMED, true ), UIRenderer::CalcDecoAtom( DECO_AIMED, false ) );
 		targetButton.SetSize( SIZE, SIZE );
 
@@ -2046,17 +2047,8 @@ void BattleScene::HandleRotation( float bias )
 }
 
 
-bool BattleScene::HandleIconTap( int vX, int vY )
+bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 {
-	Vector2F ui;
-	Vector2F view = { (float)vX, (float)vY };
-	engine->GetScreenport().ViewToUI( view, &ui );
-
-	const UIItem* tapped = gamui2D.Tap( ui.x, ui.y );
-	if ( !tapped ) {
-		tapped = gamui3D.Tap( ui.x, ui.y );
-	}
-
 	if ( selection.FireMode() ) {
 		bool okay = false;
 		WeaponMode mode = kSnapFireMode;
@@ -2133,9 +2125,11 @@ bool BattleScene::HandleIconTap( int vX, int vY )
 /*
 	Handle a tap.
 
-	item		down				move		up
-	----		----				----		----
-	Button		capture (gamui)		x(gamui)	handle		Sent to gamui. Need only to note if gamui captured the tap.
+	item			down				move		cancel		up
+	----			----				----		----		----
+	Button			capture (gamui)		x			x			handle		Sent to gamui. Need only to note if gamui captured the tap.
+	Unit/Tile		select				moveTo		no move		move		Select on down is a bummer...not sure how else to handle
+	World/Tile		x					drag		x			x
 */
 void BattleScene::Tap(	int action, 
 						const grinliz::Vector2F& view,
@@ -2166,144 +2160,181 @@ void BattleScene::Tap(	int action,
 	}
 #endif
 
-	// Drags are Taps and Taps are Drags.
-	Drag( action, view );
+	bool uiActive = actionStack.Empty() && (currentTeamTurn == TERRAN_TEAM);
+	Vector2F ui;
+	engine->GetScreenport().ViewToUI( view, &ui );
+	bool processTap = false;
 
-	if ( !actionStack.Empty() )
-		return;
-	if ( currentTeamTurn != TERRAN_TEAM )
-		return;
+	if ( action == GAME_TAP_DOWN ) {
+		if ( uiActive ) {
+			// First check buttons.
+			gamui2D.TapDown( ui.x, ui.y );
+			if ( !gamui2D.TapCaptured() ) {
+				gamui3D.TapDown( ui.x, ui.y );
+			}
+		}
 
-	/* Modes:
-		- if target is up, it needs to be selected or cleared.
-		- if targetMode is on, wait for tile selection or targetMode off
-		- else normal mode
+		if ( !GamuiHasCapture() ) {
+			Drag( action, uiActive, view );
+		}
+	}
+	else if ( action == GAME_TAP_MOVE ) {
+		if ( isDragging ) {
+			Drag( action, uiActive, view );
+		}
+	}
+	else if ( action == GAME_TAP_UP ) {
+		if ( isDragging ) {
+			Drag( action, uiActive, view );
 
-	*/
+			if (    dragLength <= 1.0f 
+				 && actionStack.Empty() )
+			{
+				processTap = true;
+			}
+		}
+		
+		if ( GamuiHasCapture() ) {
+			const gamui::UIItem* item0 = gamui2D.TapUp( ui.x, ui.y );
+			const gamui::UIItem* item1 = gamui3D.TapUp( ui.x, ui.y );
+			const gamui::UIItem* item = item0 ? item0 : item1;
 
-	bool handled = HandleIconTap( action, view );
-	if ( selection.FireMode() ) {
-		// Whether or not something was selected, drop back to normal mode.
-		selection.targetPos.Set( -1, -1 );
-		selection.targetUnit = 0;
-		return;
-	}	
-	if ( handled )
-		return;
+			if ( item ) {
+				HandleIconTap( item );
+			}
+		}
+		if ( dragLength < 1.0f && selection.FireMode() ) {
+			// Whether or not something was selected, drop back to normal mode.
+			selection.targetPos.Set( -1, -1 );
+			selection.targetUnit = 0;
+			targetButton.SetUp();
+			processTap = false;
+		}
+	}
+	else if ( action == GAME_TAP_CANCEL ) {
+		if ( isDragging ) {
+			Drag( action, uiActive, view );
+		}
+		else {
+			gamui2D.TapUp( ui.x, ui.y );
+			gamui3D.TapUp( ui.x, ui.y );
+		}
+	}
 
+	if ( processTap ) {
 
 #ifdef MAPMAKER
-	const Vector3F& pos = mapSelection->Pos();
-	int rotation = (int) (mapSelection->GetRotation() / 90.0f );
+		const Vector3F& pos = mapSelection->Pos();
+		int rotation = (int) (mapSelection->GetRotation() / 90.0f );
 
-	int ix = (int)pos.x;
-	int iz = (int)pos.z;
-	if (    ix >= 0 && ix < engine->GetMap()->Width()
-	  	 && iz >= 0 && iz < engine->GetMap()->Height()
-		 && *engine->GetMap()->GetItemDefName( currentMapItem ) )
-	{
-		engine->GetMap()->AddItem( ix, iz, rotation, currentMapItem, -1, 0 );
-	}
+		int ix = (int)pos.x;
+		int iz = (int)pos.z;
+		if (    ix >= 0 && ix < engine->GetMap()->Width()
+	  		 && iz >= 0 && iz < engine->GetMap()->Height()
+			 && *engine->GetMap()->GetItemDefName( currentMapItem ) )
+		{
+			engine->GetMap()->AddItem( ix, iz, rotation, currentMapItem, -1, 0 );
+		}
 #endif	
 
-	// Get the map intersection. May be used by TARGET_TILE or NORMAL
-	Vector3F intersect;
-	Map* map = engine->GetMap();
+		// Get the map intersection. May be used by TARGET_TILE or NORMAL
+		Vector3F intersect;
+		Map* map = engine->GetMap();
 
-	Vector2I tilePos = { 0, 0 };
-	bool hasTilePos = false;
+		Vector2I tilePos = { 0, 0 };
+		bool hasTilePos = false;
 
-	int result = IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &intersect );
-	if ( result == grinliz::INTERSECT && intersect.x >= 0 && intersect.x < Map::SIZE && intersect.z >= 0 && intersect.z < Map::SIZE ) {
-		tilePos.Set( (int)intersect.x, (int) intersect.z );
-		hasTilePos = true;
-	}
-
-	if ( targetButton.Down() ) {
-		// Targeting a tile:
-		if ( hasTilePos ) {
-			selection.targetUnit = 0;
-			selection.targetPos.Set( tilePos.x, tilePos.y );
+		int result = IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &intersect );
+		if ( result == grinliz::INTERSECT && intersect.x >= 0 && intersect.x < Map::SIZE && intersect.z >= 0 && intersect.z < Map::SIZE ) {
+			tilePos.Set( (int)intersect.x, (int) intersect.z );
+			hasTilePos = true;
 		}
-		return;
-	}
 
-	// We didn't tap a button.
-	Model* tappedModel = 0;
-	const Unit* tappedUnit = 0;
+		if ( targetButton.Down() ) {
+			// Targeting a tile:
+			if ( hasTilePos ) {
+				selection.targetUnit = 0;
+				selection.targetPos.Set( tilePos.x, tilePos.y );
+			}
+			return;
+		}
 
-	// Priorities:
-	//   1. Alien or Terran on that tile.
-	//   2. Alien tapped
+		Model* tappedModel = 0;
+		const Unit* tappedUnit = 0;
 
-	// If there is a selected model, then we can tap a target model.
-	bool canSelectAlien = SelectedSoldier();			// a soldier is selected
+		// Priorities:
+		//   1. Alien or Terran on that tile.
+		//   2. Alien tapped
 
-	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		if ( units[i].GetModel() ) {
-			if ( units[i].IsAlive() ) {
-				units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
-				if ( units[i].Pos() == tilePos ) {
-					GLASSERT( !tappedUnit );
-					tappedUnit = units + i;
-					tappedModel = units[i].GetModel();
+		// If there is a selected model, then we can tap a target model.
+		bool canSelectAlien = SelectedSoldier();			// a soldier is selected
+
+		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+			if ( units[i].GetModel() ) {
+				if ( units[i].IsAlive() ) {
+					units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
+					if ( units[i].Pos() == tilePos ) {
+						GLASSERT( !tappedUnit );
+						tappedUnit = units + i;
+						tappedModel = units[i].GetModel();
+					}
+				}
+				else {
+					units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
 				}
 			}
-			else {
-				units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
-			}
 		}
-	}
-	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-		if ( units[i].GetModel() ) {
-			if ( canSelectAlien && units[i].IsAlive() ) {
-				units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
-				if ( units[i].Pos() == tilePos ) {
-					GLASSERT( !tappedUnit );
-					tappedUnit = units + i;
-					tappedModel = units[i].GetModel();
+		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+			if ( units[i].GetModel() ) {
+				if ( canSelectAlien && units[i].IsAlive() ) {
+					units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
+					if ( units[i].Pos() == tilePos ) {
+						GLASSERT( !tappedUnit );
+						tappedUnit = units + i;
+						tappedModel = units[i].GetModel();
+					}
+				}
+				else {
+					units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
 				}
 			}
-			else {
-				units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
+		}
+
+		if ( !tappedUnit ) {
+			// can possible still select alien on intersection.
+			Model* m = engine->IntersectModel( world, TEST_HIT_AABB, Model::MODEL_SELECTABLE, 0, 0, 0 );
+			if ( m ) {
+				tappedModel = m;
+				tappedUnit = UnitFromModel( tappedModel );
+				if ( tappedUnit->Team() != ALIEN_TEAM ) {
+					// roll back! this prevents selecting rather than moving when units are all grouped up.
+					tappedModel = 0;
+					tappedUnit = 0;
+				}
 			}
 		}
-	}
 
-	if ( !tappedUnit ) {
-		// can possible still select alien on intersection.
-		Model* m = engine->IntersectModel( world, TEST_HIT_AABB, Model::MODEL_SELECTABLE, 0, 0, 0 );
-		if ( m ) {
-			tappedModel = m;
-			tappedUnit = UnitFromModel( tappedModel );
-			if ( tappedUnit->Team() != ALIEN_TEAM ) {
-				// roll back! this prevents selecting rather than moving when units are all grouped up.
-				tappedModel = 0;
-				tappedUnit = 0;
-			}
+		if ( tappedModel && tappedUnit ) {
+			SetSelection( const_cast< Unit* >( tappedUnit ));		// sets either the Alien or the Unit
 		}
-	}
+		if ( SelectedSoldierUnit() && !tappedUnit && hasTilePos ) {
+			// Not a model - use the tile
+			Vector2<S16> start   = { (S16)SelectedSoldierModel()->X(), (S16)SelectedSoldierModel()->Z() };
+			Vector2<S16> end = { (S16)tilePos.x, (S16)tilePos.y };
 
-	if ( tappedModel && tappedUnit ) {
-		SetSelection( const_cast< Unit* >( tappedUnit ));		// sets either the Alien or the Unit
-	}
-	if ( SelectedSoldierUnit() && !tappedUnit && hasTilePos ) {
-		// Not a model - use the tile
-		Vector2<S16> start   = { (S16)SelectedSoldierModel()->X(), (S16)SelectedSoldierModel()->Z() };
-		Vector2<S16> end = { (S16)tilePos.x, (S16)tilePos.y };
+			// Compute the path:
+			float cost;
+			const Stats& stats = selection.soldierUnit->GetStats();
 
-		// Compute the path:
-		float cost;
-		const Stats& stats = selection.soldierUnit->GetStats();
-
-		int result = engine->GetMap()->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
-		if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
-			// Go!
-			Action action;
-			action.Init( ACTION_MOVE, SelectedSoldierUnit() );
-			action.type.move.path.Init( pathCache );
-			actionStack.Push( action );
-			engine->GetMap()->ClearNearPath();
+			int result = engine->GetMap()->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
+			if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
+				// Go!
+				Action action;
+				action.Init( ACTION_MOVE, SelectedSoldierUnit() );
+				action.type.move.path.Init( pathCache );
+				actionStack.Push( action );
+				engine->GetMap()->ClearNearPath();
+			}
 		}
 	}
 }
@@ -2723,38 +2754,47 @@ void BattleScene::Visibility::CalcVisibilityRay( int unitID, const Vector2I& pos
 }
 
 
-void BattleScene::Drag( int action, const grinliz::Vector2F& view )
+void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& view )
 {
 	Vector2F ui;
 	engine->GetScreenport().ViewToUI( view, &ui );
 	
 	switch ( action ) 
 	{
-		case GAME_DRAG_START:
+		case GAME_TAP_DOWN:
 		{
+			GLASSERT( isDragging == false );
+			isDragging = true;
+			dragLength = 0;
+
 			Ray ray;
 			engine->GetScreenport().ViewProjectionInverse3D( &dragMVPI );
 			engine->RayFromViewToYPlane( view, dragMVPI, &ray, &dragStart );
 			dragStartCameraWC = engine->camera.PosWC();
+			dragEnd = dragStart;
 
 			// Drag a unit or drag the camera?
-			Vector2I mapPos = { (int)dragStart.x, (int)dragStart.z };
-			for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-				if ( units[i].IsAlive() && ( mapPos == units[i].Pos() ) ) {
-					dragUnit = units + i;
-					if ( selection.soldierUnit != dragUnit )
-						SetSelection( dragUnit );
+			if ( uiActivated ) {
+				Vector2I mapPos = { (int)dragStart.x, (int)dragStart.z };
+				for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+					if ( units[i].IsAlive() && ( mapPos == units[i].Pos() ) ) {
+						dragUnit = units + i;
+						if ( selection.soldierUnit != dragUnit )
+							SetSelection( dragUnit );
 
-					dragBar[0].SetSize( (float)engine->GetMap()->Width(), 0.5f );
-					dragBar[1].SetSize( 0.5f, (float)engine->GetMap()->Height() );
-					break;
+						dragBar[0].SetSize( (float)engine->GetMap()->Width(), 0.5f );
+						dragBar[1].SetSize( 0.5f, (float)engine->GetMap()->Height() );
+
+						break;
+					}
 				}
 			}
 		}
 		break;
 
-		case GAME_DRAG_MOVE:
+		case GAME_TAP_MOVE:
 		{
+			GLASSERT( isDragging );
 			if ( dragUnit ) {
 				Matrix4 mvpi;
 				Ray ray;
@@ -2802,13 +2842,18 @@ void BattleScene::Drag( int action, const grinliz::Vector2F& view )
 				dragBar[1].SetVisible( visible );
 			}
 			else {
-				Vector3F drag;
 				Ray ray;
+				Vector3F drag;
 				engine->RayFromViewToYPlane( view, dragMVPI, &ray, &drag );
 
 				Vector3F delta = drag - dragStart;
+				delta.y = 0;
+				drag.y = 0;
+
+				dragLength += (drag-dragEnd).Length();
+				dragEnd = drag;
+
 				//GLOUTPUT(( "screen=%d,%d drag=%.2f,%.2f  delta=%.2f,%.2f\n", screen.x, screen.y, drag.x, drag.z, delta.x, delta.z ));
-				delta.y = 0.0f;
 
 				engine->camera.SetPosWC( dragStartCameraWC - delta );
 				engine->RestrictCamera();
@@ -2816,7 +2861,7 @@ void BattleScene::Drag( int action, const grinliz::Vector2F& view )
 		}
 		break;
 
-		case GAME_DRAG_END:
+		case GAME_TAP_UP:
 		{
 			if ( dragUnit ) {
 				Matrix4 mvpi;
@@ -2850,6 +2895,33 @@ void BattleScene::Drag( int action, const grinliz::Vector2F& view )
 				dragBar[1].SetVisible( false );
 				nearPathState.Clear();
 			}
+			else {
+				Ray ray;
+				Vector3F drag;
+				engine->RayFromViewToYPlane( view, dragMVPI, &ray, &drag );
+
+				Vector3F delta = drag - dragStart;
+				delta.y = 0;
+				drag.y = 0;
+				dragLength += (drag-dragEnd).Length();
+				dragEnd = drag;
+
+				engine->camera.SetPosWC( dragStartCameraWC - delta );
+				engine->RestrictCamera();
+			}
+			isDragging = false;
+		}
+		break;
+
+		case GAME_TAP_CANCEL:
+		{
+			if ( dragUnit ) {
+				dragUnit = 0;
+				dragBar[0].SetVisible( false );
+				dragBar[1].SetVisible( false );
+				nearPathState.Clear();
+			}
+			isDragging = false;
 		}
 		break;
 

@@ -53,7 +53,9 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	gamui::UIItem* controlArr[NUM_CONTROL+1] = { &helpButton };
 	static const char* const controlLabel[NUM_CONTROL] = { "Inv", "Stats", "Comp" };
 	for( int i=0; i<NUM_CONTROL; ++i ) {
-		control[i].Init( &gamui2D, 2, green );
+		control[i].Init( &gamui2D, green );
+		if ( i > 0 ) 
+			control[0].AddToToggleGroup( &control[i] );
 		control[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 		control[i].SetText( controlLabel[i] );
 		controlArr[i+1] = &control[i];
@@ -61,7 +63,9 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 
 	static const char* const rangeLabel[NUM_RANGE] = { "4m", "8m", "16m" };
 	for( int i=0; i<NUM_RANGE; ++i ) {
-		range[i].Init( &gamui2D, 3, blue );
+		range[i].Init( &gamui2D, blue );
+		if ( i > 0 )
+			range[0].AddToToggleGroup( &range[i] );
 		range[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 		range[i].SetText( rangeLabel[i] );
 		range[i].SetVisible( false );
