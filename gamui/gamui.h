@@ -39,7 +39,7 @@ class IGamuiRenderer;
 class IGamuiText;
 class UIItem;
 class ToggleButton;
-
+class TextLabel;
 
 /**
 	The most basic unit of state. A set of vertices and indices are sent to the GPU with a given RenderAtom, which
@@ -202,6 +202,12 @@ public:
 						int cx, int cy,
 						float originX, float originY,
 						float tableWidth, float tableHeight );
+
+	void LayoutTextBlock(	const char* text,
+							TextLabel** textLabels, int nText,
+							float originX, float originY,
+							float width );
+						  
 
 private:
 	static int SortItems( const void* a, const void* b );

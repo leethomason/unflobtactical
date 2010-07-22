@@ -26,13 +26,14 @@
   <!-- UI elements -->
   <texture filename="intro.png" />
   <texture filename="introText.png" />
-  <texture filename="basehp.png" />
   <texture filename="commandBarV.png" />
+  <!--
   <texture filename="help0.png" />
   <texture filename="help1.png" />
   <texture filename="help2.png" />
   <texture filename="help3.png" />
   <texture filename="help4.png" />
+  -->
 
 
   <!--
@@ -174,7 +175,58 @@
   <data filename="new_alien_LA.xml" />
   <data filename="new_alien_MA.xml" />
   <data filename="new_alien_HA.xml" />
-  
+
+  <text name="tacticalHelp" >
+    <page>
+      <p>Welcome to UFO Attack!</p>
+      <p>
+        UFO Attack is a tactical combat game intended for mobile devices,
+        although it plays on a PC.
+      </p>
+      <p>
+        The game is turn based like a traditional board game. You take a
+        turn, the aliens (computer) takes a turn, until one team is blasted
+        into oblivion.
+      </p>
+      <p>
+        Thefollowing screens cover the basics; much more info online
+        at http://code.google.com/p/unflobtactical/
+      </p>
+    </page>
+    <page>
+      <p>Looking at the world and moving the camera.</p>
+      <p system="pc">
+        Left click and drag to scroll around the map.
+      </p>
+      <p system="pc">
+        Right click and drap to zoom and rotate.
+      </p>
+      <p system="android">
+        UFOAttack supports pinch guestures to zoom and rotate. Using 2 fingers you
+        can rotate and move the view.
+      </p>
+    </page>
+    <page image="tacticalHelp1">
+      <p>Control the Game.</p>
+      <p>
+        Selecting a unit: you can select units using the Left or Right buttons
+        (pictured). You may also tap/click on a unit to select it.
+      </p>
+      <p> Moving a unit: you can tap the destination for unit (any colored ground
+      location) and it will move there. You can also drag a unit to move it.</p>
+      <p> Rotate a unit: the Rotate Buttons (pictured) will rotate the unit.</p>
+      <p system="pc">
+        The keyboard left/right arrow keys will select units. control-left/right rotate.
+        Pressing your 'u' key will turn off the control buttons, since they are available
+        on the keyboard.
+      </p>
+      <p system="android">
+        Move the DPAD left or right to select units.
+      </p>
+    </page>
+  </text>
+  <texture filename="tacticalHelp1.png" />
+
   <!-- Sound effects -->
   <data filename="explosion.wav" />
   <data filename="blip.wav" />

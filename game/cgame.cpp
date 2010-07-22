@@ -173,6 +173,20 @@ void PlatformPathToResource( char* buffer, int bufferLen, int* offset, int* leng
 }
 
 
+const char* PlatformName()
+{
+#if defined( UFO_WIN32_SDL )
+	return "pc";
+#elif defined (ANDROID_NDK)
+	return "android";
+#else
+#	error UNDEFINED
+#endif
+}
+
+
+
+
 void PlayWAVSound( const void* wavFile, int nBytes )
 {
 	GLOUTPUT(( "Wav sound called.\n" ));

@@ -3,6 +3,7 @@
 #include "cgame.h"
 #include "../engine/engine.h"
 #include "../engine/uirendering.h"
+#include "../grinliz/glstringutil.h"
 
 using namespace gamui;
 
@@ -12,16 +13,10 @@ HelpScene::HelpScene( Game* _game ) : Scene( _game )
 	engine->EnableMap( false );
 	currentScreen = 0;
 
-	static const char* const textures[NUM_SCREENS] = { "help0", "help1", "help2", "help3", "help4" };
-
-	for( int i=0; i<NUM_SCREENS; ++i ) {
-		RenderAtom atom;
-
-		atom.Init( (const void*)UIRenderer::RENDERSTATE_NORMAL, (const void*)TextureManager::Instance()->GetTexture( textures[i] ), 0, 0, 1, 1, 480, 320 );
-		UIRenderer::SetAtomCoordFromPixel( 0, 0, 480, 320, 512, 512, &atom );
-
-		screens[i].Init( &gamui2D, atom );
-		screens[i].SetVisible( i==0 );
+	for( int i=0; i<NUM_TEXT_LABELS; ++i ) {
+		label[i].Init( &gamui2D );
+		label[i].SetPos( 0, (float)(i*20) );
+		labelPtr[i] = &label[i];
 	}
 
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
@@ -39,6 +34,7 @@ HelpScene::HelpScene( Game* _game ) : Scene( _game )
 				   (float)engine->GetScreenport().UIHeight()-GAME_BUTTON_SIZE_F, 
 				   GAME_BUTTON_SIZE_F*3.0f, 
 				   GAME_BUTTON_SIZE_F );
+	Layout();
 }
 
 
@@ -47,6 +43,34 @@ HelpScene::~HelpScene()
 {
 }
 
+
+void HelpScene::Layout()
+{
+	const gamedb::Reader* reader = game->GetDatabase();
+	const gamedb::Item* rootItem = reader->Root();
+	const gamedb::Item* textItem = rootItem->Child( "text" );
+	const gamedb::Item* helpItem = textItem->Child( "tacticalHelp" );
+
+	int nPages = helpItem->NumChildren();
+	while( currentScreen < 0 ) currentScreen += nPages;
+	while( currentScreen >= nPages ) currentScreen -= nPages;
+
+	const gamedb::Item* pageItem = helpItem->Child( currentScreen );
+	const char* text = 0;
+
+	grinliz::GLString full = "text_";
+	full += PlatformName();
+
+	if ( pageItem->HasAttribute( full.c_str() ) ) {
+		text = (const char*)reader->AccessData( pageItem, full.c_str(), 0 );
+	}
+	else {
+		text = (const char*)reader->AccessData( pageItem, "text", 0 );
+	}
+	if ( text ) {
+		gamui2D.LayoutTextBlock( text, labelPtr, NUM_TEXT_LABELS, 0, 0, 500 );
+	}
+}
 
 
 void HelpScene::DrawHUD()
@@ -77,19 +101,19 @@ void HelpScene::Tap( int action, const grinliz::Vector2F& screen, const grinliz:
 	TextureManager* texman = TextureManager::Instance();
 
 	if ( item == &buttons[0] ) {
-		screens[currentScreen].SetVisible( false );
+//		screens[currentScreen].SetVisible( false );
 		--currentScreen;	
-		texman->ContextShift();
+//		texman->ContextShift();
 	}
 	else if ( item == &buttons[1] ) {
-		screens[currentScreen].SetVisible( false );
+//		screens[currentScreen].SetVisible( false );
 		++currentScreen;	
-		texman->ContextShift();
+//		texman->ContextShift();
 	}
 	else if ( item == &buttons[2] ) {
 		game->PopScene();
 	}
-	while( currentScreen < 0 )				currentScreen += NUM_SCREENS;
-	while( currentScreen >= NUM_SCREENS )	currentScreen -= NUM_SCREENS;
-	screens[currentScreen].SetVisible( true );
+//	while( currentScreen < 0 )				currentScreen += NUM_SCREENS;
+//	while( currentScreen >= NUM_SCREENS )	currentScreen -= NUM_SCREENS;
+//	screens[currentScreen].SetVisible( true );
 }

@@ -276,10 +276,8 @@ void ProcessData( TiXmlElement* data )
 
 	char* mem = new char[len];
 	fread( mem, len, 1, read );
-	//fwrite( mem, len, 1, write );
 
 	int index = 0;
-	//writer->Write( mem, len, &index );
 	gamedb::WItem* witem = writer->Root()->FetchChild( "data" )->CreateChild( name.c_str() );
 	witem->SetData( "binary", mem, len );
 
@@ -289,6 +287,82 @@ void ProcessData( TiXmlElement* data )
 	totalDataMem += len;
 
 	fclose( read );
+}
+
+
+class TextBuilder : public TiXmlVisitor
+{
+public:
+	string str;
+	string filter;
+
+	bool textOn;
+
+	TextBuilder() : textOn( false ) {}
+
+	virtual bool VisitEnter( const TiXmlElement& element, const TiXmlAttribute* firstAttribute )
+	{
+		string platform;
+		int hasPlatform = element.QueryStringAttribute( "system", &platform );
+
+		if ( hasPlatform == TIXML_NO_ATTRIBUTE || platform == filter )
+			textOn = true;
+		return true;
+	}
+	virtual bool VisitExit( const TiXmlElement& element )
+	{
+		if ( textOn ) {
+			str += "/n/n";
+			textOn = false;
+		}
+		return true;
+	}
+	virtual bool Visit( const TiXmlText& text) {
+		str += text.ValueStr();
+		return true;
+	}
+};
+
+
+void ProcessText( TiXmlElement* textEle )
+{
+	string name;
+	textEle->QueryStringAttribute( "name", &name );
+	gamedb::WItem* textItem = writer->Root()->FetchChild( "text" )->CreateChild( name.c_str() );
+	int index = 0;
+
+	for( TiXmlElement* pageEle = textEle->FirstChildElement( "page" ); pageEle; pageEle = pageEle->NextSiblingElement( "page" ) ) {
+		string pcText, androidText;
+
+		TextBuilder textBuilder;
+		textBuilder.filter = "pc";
+		pageEle->Accept( &textBuilder );
+		pcText = textBuilder.str;
+
+		textBuilder.str.clear();
+		textBuilder.filter = "android";
+		pageEle->Accept( &textBuilder );
+		androidText = textBuilder.str;
+
+		gamedb::WItem* pageItem = textItem->CreateChild( index );
+
+		if ( pcText == androidText ) {
+			pageItem->SetData( "text", pcText.c_str(), pcText.size() );
+			totalDataMem += pcText.size();
+		}
+		else {
+			pageItem->SetData( "text_pc", pcText.c_str(), pcText.size() );
+			pageItem->SetData( "text_android", androidText.c_str(), androidText.size() );
+			totalDataMem += pcText.size();
+			totalDataMem += androidText.size();
+		}
+
+		if ( pageEle->Attribute( "image" ) ) {
+			pageItem->SetString( "image", pageEle->Attribute( "image" ) );
+		}
+		printf( "Text '%s' page %d\n", name.c_str(), index );
+		index++;
+	}
 }
 
 
@@ -763,6 +837,9 @@ int main( int argc, char* argv[] )
 		else if (	 child->ValueStr() == "map" 
 			      || child->ValueStr() == "data" ) {
 			ProcessData( child );
+		}
+		else if ( child->ValueStr() == "text" ) {
+			ProcessText( child );
 		}
 		else {
 			printf( "Unrecognized element: %s\n", child->Value() );

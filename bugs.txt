@@ -1,6 +1,8 @@
 Issues:
 
 Bugs:
+- clean up canon
+- add slug-shooter
 - grey zone where previously seen
 - trees show up in the wrong place
 - alien doors not wide enough - block shots
@@ -23,11 +25,9 @@ Bugs:
 - add lander animation
 - add morale
 ? psi attack
-- add random sequence to low bits of random # gen
 
 Architecture
 - render managers
-- AI objects 
 - Map as interface
 - Build in profiler.
 
@@ -44,6 +44,8 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- AI objects 
+- add random sequence to low bits of random # gen
 - improve gamui toggle buttons - when looking for a default button, prefer visible & enabled
 - screen re-size / layout / device loss
 - click and drag unit
