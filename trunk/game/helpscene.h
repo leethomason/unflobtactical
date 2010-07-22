@@ -34,9 +34,6 @@ public:
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
 
-//	virtual void Drag(	int action,
-//						const grinliz::Vector2F& view )			{}
-
 	virtual void Zoom( int action, int distance )				{}
 	virtual void CancelInput()									{}
 
@@ -52,11 +49,15 @@ public:
 
 private:
 	enum {	NUM_BUTTONS = 3,
-			NUM_SCREENS = 5
+			NUM_TEXT_LABELS = 20
 	};
 
+	void Layout();
+
 	int					currentScreen;
-	gamui::Image		screens[NUM_SCREENS];
+	gamui::Image		image;
+	gamui::TextLabel	label[NUM_TEXT_LABELS];
+	gamui::TextLabel*	labelPtr[NUM_TEXT_LABELS];
 	gamui::PushButton	buttons[3];
 };
 

@@ -1340,3 +1340,18 @@ void Gamui::Layout( UIItem** item, int nItems,
 			break;
 	}
 }
+
+
+void Gamui::LayoutTextBlock(	const char* text,
+								TextLabel** textLabels, int nText,
+								float originX, float originY,
+								float width )
+{
+	const char* p = text;
+	int i = 0;
+
+	while ( i < nText ) {
+		
+
+	}
+}

@@ -67,6 +67,7 @@ void GameHotKey( void* handle, int mask );
 
 // --- Core to platform --- //
 void PlatformPathToResource( char* buffer, int bufferLen, int* offset, int* length );
+const char* PlatformName();
 void PlayWAVSound( const void* wavFile, int nBytes );
 
 // ----------------------------------------------------------------

@@ -50,6 +50,8 @@ class Random
 									z = 521288629;
 									
 									c = 7654321;	// Range restricted - change carefully!
+
+									lowCount = U8(seed & 0xff);
 								}		
 
 	void SetSeed( const char* str );
@@ -87,13 +89,8 @@ class Random
 	/// Return 0 or 1
 	int Bit()
 	{
-		// Hard to do a good job here. Every bit has a repeating pattern, 
-		// every series repeats in it's bits. Or just isn't random.
-		// One approach, use an even non-power of 2 number.
-		//return (Rand( 100*1000 ) >= 50*1000);
-		// Or this approach:
 		U32 v = Rand();
-		return ((v) ^ (v<<7) ^ (v<<13) ^ (v<<18) ^ (v<<29) ) & 1;
+		return v & 1;
 	}
 
 	/// Return a random boolean.
@@ -121,11 +118,12 @@ class Random
 	static U32 Hash( const void* data, U32 len );
 
 private:
-	U32 x, y, z, c;
+	U32 x, y, z, c, lowCount;
 	enum { 
 		COUNT_2D = 256
 	};
 	static float normal2D[COUNT_2D*3];
+	static U8 series[256];
 };
 
 };	// namespace grinliz

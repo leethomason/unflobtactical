@@ -32,7 +32,7 @@ distribution.
 	
 using namespace grinliz;
 
-/*
+#if 0
 //computes the 2D lookup.
 #include "glmath.h"
 int main( const char* argv, int argc )
@@ -47,8 +47,9 @@ int main( const char* argv, int argc )
 			printf( "\n" );
 	}
 }
-*/
-/*
+#endif 
+
+#if 0
 //computes the 3D lookup.
 #include "glmath.h"
 #include "glgeometry.h"
@@ -84,7 +85,29 @@ int main( const char* argv, int argc )
 			printf( "\n" );
 	}
 }
-*/
+#endif
+
+// a true random number sequence from Random.org
+U8 Random::series[256] = {
+	135,  187,  239,   59,   20,  162,  194,  182,  169,  139,  170,  138,  108,  208,  181,  140,
+	 12,   52,  220,    4,  221,  245,  195,  163,   84,  152,   99,   83,  171,   11,  119,   13,
+	 23,  151,   24,   49,   80,  112,  134,  136,  252,  132,  241,   21,  117,   67,  243,  141,
+	106,    8,   28,    3,  120,   85,  189,  100,  167,  122,  129,  125,   86,   97,  242,  116,
+	133,   40,  177,   72,  144,  255,   42,   79,   22,   32,  213,  231,   96,   27,   48,  197,
+	  0,   17,  212,  203,  127,  229,  156,    6,  188,  191,  224,  223,  128,  227,  103,  232,
+	 41,  118,   81,   77,  173,  238,  178,   76,  209,   18,  153,  249,   73,   31,  228,  160,
+	 71,  131,  222,  230,   94,  186,   38,  180,   82,   29,   66,   50,  150,  137,  218,  158,
+	147,   74,  113,  114,  105,  157,  115,   47,  154,   34,  165,  240,   56,  237,  146,   88,
+	 55,   75,  176,   95,  244,   63,   68,    7,  217,   39,  161,  226,   26,  102,  159,   14,
+	207,   51,  109,   35,  107,  174,   46,  251,  198,    5,  201,   62,   53,   58,  210,   37,
+	143,  104,  145,   98,   61,  250,   90,   57,    1,  233,   16,   45,  216,  190,  179,  205,
+	 91,  175,  234,   33,   60,  164,   65,    9,   25,   89,  110,  168,  185,  202,  246,   87,
+	236,  101,  206,   30,   92,  184,  172,  155,   70,   64,   43,  149,  126,  235,  199,  192,
+	211,  254,  111,   15,  253,  247,  200,  204,    2,  123,  166,   69,  142,   54,  193,  121,
+	219,   93,  183,   78,  124,   10,  248,  148,   36,  214,  225,  196,   19,   44,  130,  215
+};
+
+
 void Random::SetSeed( const char* str )
 {
 	int len = strlen( str );
@@ -115,11 +138,14 @@ U32 Random::Rand()
 	c = (U32)(t>>32);
 	z = (U32)t;
 
-	return x+y+z;
+	// Take the low bits and xor in a series, just
+	// to give a little extra random noise in the 
+	// low bits.
+	return (x+y+z) ^ series[(lowCount++)&0xff];
 }
 
 
-/*
+#if 0
 void Random::NormalVector( float* v, int dim )
 {
 	GLASSERT( dim > 0 );
@@ -139,7 +165,7 @@ void Random::NormalVector( float* v, int dim )
 		v[i] *= lenInv;
 	}
 }
-*/
+#endif
 
 // Another great work:
 // http://www.azillionmonkeys.com/qed/hash.html
@@ -163,64 +189,6 @@ void Random::NormalVector( float* v, int dim )
 	return h;
 }
 
-/*
-U32 Random::SuperFastHash (const void* _data, U32 len) 
-{
-//#ifdef GRINLIZ_LITTLE_ENDIAN
-	#define get16bits(d) (*((const U16 *) (d)))
-//#endif
-
-//#if	!defined (get16bits)
-//	#define get16bits(d) ((((U32)(((const U8 *)(d))[1])) << 8)\
-//						   +(U32)(((const U8 *)(d))[0]) )
-//#endif
-
-	const U8* data = (const U8*)_data;
-	U32 hash = len, tmp;
-	S32 rem;
-
-    if (len <= 0 || data == NULL) 
-		return 0;
-
-    rem = len & 3;
-    len >>= 2;
-
-    // Main loop 
-    for (;len > 0; len--) {
-        hash  += get16bits (data);
-        tmp    = (get16bits (data+2) << 11) ^ hash;
-        hash   = (hash << 16) ^ tmp;
-        data  += 2*sizeof (uint16_t);
-        hash  += hash >> 11;
-    }
-
-    // Handle end cases
-    switch (rem) {
-        case 3: hash += get16bits (data);
-                hash ^= hash << 16;
-                hash ^= data[sizeof (uint16_t)] << 18;
-                hash += hash >> 11;
-                break;
-        case 2: hash += get16bits (data);
-                hash ^= hash << 11;
-                hash += hash >> 17;
-                break;
-        case 1: hash += *data;
-                hash ^= hash << 10;
-                hash += hash >> 1;
-    }
-
-    // Force "avalanching" of final 127 bits
-    hash ^= hash << 3;
-    hash += hash >> 5;
-    hash ^= hash << 4;
-    hash += hash >> 17;
-    hash ^= hash << 25;
-    hash += hash >> 6;
-
-    return hash;
-}
-*/
 
 
 const int COUNT_2D = 256;
