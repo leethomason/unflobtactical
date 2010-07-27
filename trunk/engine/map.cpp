@@ -67,7 +67,7 @@ Map::Map( SpaceTree* tree )
 	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
 
 	gamui::RenderAtom borderAtom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_DARK, 1, 1, true );
-	borderAtom.renderState = (const void*) UIRenderer::RENDERSTATE_TRUE_OPAQUE;
+	borderAtom.renderState = (const void*) RENDERSTATE_MAP_OPAQUE;
 	for( int i=0; i<4; ++i ) {
 		border[i].Init( &overlay1, borderAtom );
 	}
@@ -2030,17 +2030,17 @@ void Map::BeginRenderState( const void* renderState )
 {
 	const float ALPHA = 0.5f;
 	switch( (int)renderState ) {
-		case UIRenderer::RENDERSTATE_TRUE_OPAQUE:
+		case RENDERSTATE_MAP_OPAQUE:
 			glColor4f( 1, 1, 1, 1 );
 			glDisable( GL_BLEND );
 			break;
 
-		case UIRenderer::RENDERSTATE_NORMAL:
+		case RENDERSTATE_MAP_NORMAL:
 			glColor4f( 1.0f, 1.0f, 1.0f, ALPHA );
 			glEnable( GL_BLEND );
 			break;
 
-		case UIRenderer::RENDERSTATE_OPAQUE:
+		case RENDERSTATE_MAP_TRANSLUCENT:
 			glColor4f( 1, 1, 1, 0.8f );
 			glEnable( GL_BLEND );
 			break;

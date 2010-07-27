@@ -42,6 +42,7 @@ void UIRenderer::BeginRender()
 	glDisableClientState( GL_NORMAL_ARRAY );
 
 	glEnable( GL_BLEND );
+	blendEnabled = true;
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	CHECK_GL_ERROR;
@@ -52,6 +53,7 @@ void UIRenderer::EndRender()
 {
 	CHECK_GL_ERROR;
 	glEnable( GL_DEPTH_TEST );
+	glEnable( GL_BLEND );
 
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
@@ -63,21 +65,36 @@ void UIRenderer::EndRender()
 
 void UIRenderer::BeginRenderState( const void* renderState )
 {
+	bool needBlend = true;
+
 	switch ( (int)renderState )
 	{
-	case RENDERSTATE_NORMAL:
+	case RENDERSTATE_UI_NORMAL:
 		glColor4f( 1, 1, 1, 1 );
 		break;
 
-	case RENDERSTATE_DISABLED:
+	case RENDERSTATE_UI_NORMAL_OPAQUE:
+		glColor4f( 1, 1, 1, 1 );
+		needBlend = false;
+		break;
+
+	case RENDERSTATE_UI_DISABLED:
 		glColor4f( 1, 1, 1, 0.5f );
 		break;
 
-	case RENDERSTATE_DECO:
+	case RENDERSTATE_UI_TEXT:
+		glColor4f( textRed, textGreen, textBlue, 1 );
+		break;
+
+	case RENDERSTATE_UI_TEXT_DISABLED:
+		glColor4f( textRed, textGreen, textBlue, 0.5f );
+		break;
+
+	case RENDERSTATE_UI_DECO:
 		glColor4f( 1, 1, 1, 0.7f );
 		break;
 
-	case RENDERSTATE_DECO_DISABLED:
+	case RENDERSTATE_UI_DECO_DISABLED:
 		glColor4f( 1, 1, 1, 0.2f );
 		break;
 
@@ -85,7 +102,13 @@ void UIRenderer::BeginRenderState( const void* renderState )
 		GLASSERT( 0 );
 		break;
 	}
-
+	if ( needBlend != blendEnabled ) {
+		blendEnabled = needBlend;
+		if ( blendEnabled )
+			glEnable( GL_BLEND );
+		else
+			glDisable( GL_BLEND );
+	}
 }
 
 
@@ -128,7 +151,7 @@ RenderAtom UIRenderer::CalcDecoAtom( int id, bool enabled )
 	float tx1 = tx0 + 1.f/8.f;
 	float ty1 = ty0 + 1.f/4.f;
 
-	return RenderAtom( (const void*)(enabled ? RENDERSTATE_DECO : RENDERSTATE_DECO_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1, 64, 64 );
+	return RenderAtom( (const void*)(enabled ? RENDERSTATE_UI_DECO : RENDERSTATE_UI_DECO_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1, 64, 64 );
 }
 
 
@@ -143,7 +166,7 @@ RenderAtom UIRenderer::CalcParticleAtom( int id, bool enabled )
 	float tx1 = tx0 + 1.f/4.f;
 	float ty1 = ty0 + 1.f/4.f;
 
-	return RenderAtom( (const void*)(enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1, 64, 64 );
+	return RenderAtom( (const void*)(enabled ? RENDERSTATE_UI_NORMAL : RENDERSTATE_UI_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1, 64, 64 );
 }
 
 
@@ -158,7 +181,7 @@ RenderAtom UIRenderer::CalcIconAtom( int id, bool enabled )
 	float tx1 = tx0 + 1.f/8.f;
 	float ty1 = ty0 + 1.f/4.f;
 
-	return RenderAtom( (const void*)(enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1, 64, 64 );
+	return RenderAtom( (const void*)(enabled ? RENDERSTATE_UI_NORMAL : RENDERSTATE_UI_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1, 64, 64 );
 }
 
 
@@ -190,7 +213,7 @@ RenderAtom UIRenderer::CalcPaletteAtom( int c0, int c1, int blend, float w, floa
 			c.y = offset[c1];
 		}
 	}
-	RenderAtom atom( (const void*)(enabled ? RENDERSTATE_NORMAL : RENDERSTATE_DISABLED), (const void*)texture, 0, 0, 0, 0, w, h );
+	RenderAtom atom( (const void*)(enabled ? RENDERSTATE_UI_NORMAL : RENDERSTATE_UI_DISABLED), (const void*)texture, 0, 0, 0, 0, w, h );
 	SetAtomCoordFromPixel( c.x, c.y, c.x, c.y, 300, 300, &atom );
 	return atom;
 }

@@ -141,7 +141,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		controlButton[2].SetPos( port.UIWidth()-SIZE*2.f, port.UIHeight()-SIZE );
 		controlButton[3].SetPos( port.UIWidth()-SIZE*1.f, port.UIHeight()-SIZE );
 
-		RenderAtom menuImageAtom( (const void*)UIRenderer::RENDERSTATE_NORMAL, (const void*)TextureManager::Instance()->GetTexture( "commandBarV" ), 0, 0, 1, 1, 50, 320 );
+		RenderAtom menuImageAtom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)TextureManager::Instance()->GetTexture( "commandBarV" ), 0, 0, 1, 1, 50, 320 );
 		menuImage.Init( &gamui2D, menuImageAtom );
 	}
 
@@ -163,11 +163,11 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		static const float S = 0.02f;
 
 		gamui::RenderAtom tick0Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_BRIGHT, W, H );
-		tick0Atom.renderState = (const void*)UIRenderer::RENDERSTATE_OPAQUE;
+		tick0Atom.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
 		gamui::RenderAtom tick1Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_RED, UIRenderer::PALETTE_RED, 0, W, H );
-		tick1Atom.renderState = (const void*)UIRenderer::RENDERSTATE_OPAQUE;
+		tick1Atom.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
 		gamui::RenderAtom tick2Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREY, UIRenderer::PALETTE_GREY, UIRenderer::PALETTE_DARK, W, H );
-		tick1Atom.renderState = (const void*)UIRenderer::RENDERSTATE_OPAQUE;
+		tick1Atom.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
 
 		for( int i=0; i<MAX_UNITS; ++i ) {
 			hpBars[i].Init( &engine->GetMap()->overlay1, 5, tick0Atom, tick1Atom, tick2Atom, S );
@@ -622,18 +622,22 @@ void BattleScene::SetUnitOverlays()
 {
 	gamui::RenderAtom targetAtom0 = UIRenderer::CalcIconAtom( ICON_TARGET_STAND );
 	gamui::RenderAtom targetAtom1 = targetAtom0;
-	targetAtom0.renderState = (const void*)UIRenderer::RENDERSTATE_OPAQUE;
+	targetAtom0.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
 
 	gamui::RenderAtom greenAtom0 = UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK );
 	gamui::RenderAtom yellowAtom0 = UIRenderer::CalcIconAtom( ICON_YELLOW_STAND_MARK );
 	gamui::RenderAtom orangeAtom0 = UIRenderer::CalcIconAtom( ICON_ORANGE_STAND_MARK );
 
 	gamui::RenderAtom greenAtom1 = UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK_OUTLINE );
-	greenAtom1.renderState = (const void*)UIRenderer::RENDERSTATE_OPAQUE;
 	gamui::RenderAtom yellowAtom1 = UIRenderer::CalcIconAtom( ICON_YELLOW_STAND_MARK_OUTLINE );
-	yellowAtom1.renderState = (const void*)UIRenderer::RENDERSTATE_OPAQUE;
 	gamui::RenderAtom orangeAtom1 = UIRenderer::CalcIconAtom( ICON_ORANGE_STAND_MARK_OUTLINE );
-	orangeAtom1.renderState = (const void*)UIRenderer::RENDERSTATE_OPAQUE;
+
+	greenAtom0.renderState = (const void*)Map::RENDERSTATE_MAP_TRANSLUCENT;
+	yellowAtom0.renderState = (const void*)Map::RENDERSTATE_MAP_TRANSLUCENT;
+	orangeAtom0.renderState = (const void*)Map::RENDERSTATE_MAP_TRANSLUCENT;
+	greenAtom1.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
+	yellowAtom1.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
+	orangeAtom1.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
 
 	const Unit* unitMoving = 0;
 	if ( !actionStack.Empty() ) {
@@ -2834,7 +2838,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 						dragBar[1].SetPos( (float)end.x+0.25f, 0 );
 					}
 					engine->GetMap()->ClearNearPath();
-					atom.renderState = (const void*) UIRenderer::RENDERSTATE_OPAQUE;
+					atom.renderState = (const void*) Map::RENDERSTATE_MAP_NORMAL;
 					dragBar[0].SetAtom( atom );
 					dragBar[1].SetAtom( atom );
 				}
