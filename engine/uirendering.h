@@ -94,12 +94,13 @@ class UIRenderer : public gamui::IGamuiRenderer, public gamui::IGamuiText
 {
 public:
 	enum {
-		RENDERSTATE_NORMAL = 1,
-		RENDERSTATE_DISABLED,
-		RENDERSTATE_DECO,
-		RENDERSTATE_DECO_DISABLED,
-		RENDERSTATE_OPAQUE,
-		RENDERSTATE_TRUE_OPAQUE,
+		RENDERSTATE_UI_NORMAL = 1,		// normal UI rendering (1.0 alpha)
+		RENDERSTATE_UI_NORMAL_OPAQUE,	// same, but for resources that don't blend (background images)
+		RENDERSTATE_UI_DISABLED,		// disabled of both above
+		RENDERSTATE_UI_TEXT,			// text rendering
+		RENDERSTATE_UI_TEXT_DISABLED,
+		RENDERSTATE_UI_DECO,			// deco rendering
+		RENDERSTATE_UI_DECO_DISABLED,
 	};
 
 	UIRenderer() : textRed( 1 ), textGreen( 1 ), textBlue( 1 ) {}
@@ -127,8 +128,9 @@ public:
 
 	virtual void GamuiGlyph( int c, gamui::IGamuiText::GlyphMetrics* metric );
 	
-private
+private:
 	float textRed, textGreen, textBlue;
+	bool blendEnabled;
 };
 
 

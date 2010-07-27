@@ -324,6 +324,11 @@ public:
 	virtual void CreateTexture( Texture* t );
 
 	// IGamuiRenderer
+	enum {
+		RENDERSTATE_MAP_NORMAL = 100,
+		RENDERSTATE_MAP_OPAQUE,
+		RENDERSTATE_MAP_TRANSLUCENT
+	};
 	virtual void BeginRender();
 	virtual void EndRender();
 	virtual void BeginRenderState( const void* renderState );
