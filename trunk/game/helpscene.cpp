@@ -11,13 +11,16 @@ HelpScene::HelpScene( Game* _game ) : Scene( _game )
 {
 	Engine* engine = GetEngine();
 	engine->EnableMap( false );
+	const Screenport& port = engine->GetScreenport();
+	backgroundUI.Init( game, &gamui2D );
+
 	currentScreen = 0;
 
-	for( int i=0; i<NUM_TEXT_LABELS; ++i ) {
-		label[i].Init( &gamui2D );
-		label[i].SetPos( 0, (float)(i*20) );
-		labelPtr[i] = &label[i];
-	}
+	textBox.Init( &gamui2D );
+
+	const float GUTTER = 20.0f;
+	textBox.SetPos( GUTTER, GUTTER );
+	textBox.SetSize( port.UIWidth()-GUTTER*2.0f, port.UIHeight()-GUTTER*2.0f );
 
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 	static const char* const text[3] = { "<", ">", "X" };
@@ -67,9 +70,7 @@ void HelpScene::Layout()
 	else {
 		text = (const char*)reader->AccessData( pageItem, "text", 0 );
 	}
-	if ( text ) {
-		gamui2D.LayoutTextBlock( text, labelPtr, NUM_TEXT_LABELS, 0, 0, 500 );
-	}
+	textBox.SetText( text ? text : "" );
 }
 
 
@@ -113,6 +114,7 @@ void HelpScene::Tap( int action, const grinliz::Vector2F& screen, const grinliz:
 	else if ( item == &buttons[2] ) {
 		game->PopScene();
 	}
+	Layout();
 //	while( currentScreen < 0 )				currentScreen += NUM_SCREENS;
 //	while( currentScreen >= NUM_SCREENS )	currentScreen -= NUM_SCREENS;
 //	screens[currentScreen].SetVisible( true );
