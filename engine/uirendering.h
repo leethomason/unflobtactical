@@ -102,7 +102,9 @@ public:
 		RENDERSTATE_TRUE_OPAQUE,
 	};
 
-	UIRenderer() {}
+	UIRenderer() : textRed( 1 ), textGreen( 1 ), textBlue( 1 ) {}
+
+	void SetTextColor( float r, float g, float b )		{ textRed = r; textGreen = g; textBlue = b; }
 
 	virtual void BeginRender();
 	virtual void EndRender();
@@ -125,6 +127,8 @@ public:
 
 	virtual void GamuiGlyph( int c, gamui::IGamuiText::GlyphMetrics* metric );
 	
+private
+	float textRed, textGreen, textBlue;
 };
 
 

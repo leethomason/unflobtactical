@@ -136,8 +136,9 @@ TextLabel::TextLabel() : UIItem( Gamui::LEVEL_TEXT ),
 	m_width( -1 ),
 	m_height( -1 )
 {
-	buf[0] = 0;
-	buf[ALLOCATE-1] = 0;
+	m_str = m_buf;
+	m_str[0] = 0;
+	m_allocated = ALLOCATED;
 }
 
 
@@ -145,7 +146,8 @@ TextLabel::~TextLabel()
 {
 	if ( m_gamui ) 
 		m_gamui->Remove( this );
-	ClearText();
+	if ( m_str != m_buf )
+		delete [] m_str;
 }
 
 
@@ -158,11 +160,7 @@ void TextLabel::Init( Gamui* gamui )
 
 void TextLabel::ClearText()
 {
-	if ( buf[ALLOCATE-1] != 0 ) {
-		delete str;
-	}
-	buf[0] = 0;
-	buf[ALLOCATE-1] = 0;
+	m_str[0] = 0;
 	m_width = m_height = -1;
 }
 
@@ -178,44 +176,36 @@ const RenderAtom* TextLabel::GetRenderAtom() const
 
 const char* TextLabel::GetText() const
 {
-	if ( IsStr() )
-		return str;
-	else
-		return buf;
+	return m_str;
 }
 
 
 void TextLabel::SetText( const char* t )
 {
+	SetText( t, t+strlen(t) );
+}
+
+
+void TextLabel::SetText( const char* start, const char* end )
+{
 	m_width = m_height = -1;
-	ClearText();
+	int len = end - start;
+	int allocatedNeeded = len+1;
 
-	if ( t ) {
-		int len = strlen( t );
-		if ( len < ALLOCATE-1 ) {
-			memcpy( buf, t, len );
-			buf[len] = 0;
-		}
-		else {
-			str = new char[len+1];
-			memcpy( str, t, len );
-			str[len] = 0;
-
-			buf[ALLOCATE-1] = 127;
-		}
+	if ( m_allocated < allocatedNeeded ) {
+		m_allocated = (allocatedNeeded+ALLOCATED)*3/2;
+		if ( m_str != m_buf )
+			delete m_str;
+		m_str = new char[m_allocated];
 	}
+	memcpy( m_str, start, len );
+	m_str[len] = 0;
 }
 
 
 void TextLabel::Requires( int* indexNeeded, int* vertexNeeded ) 
 {
-	int len = 0;
-	if ( IsStr() ) {
-		len = strlen( str );
-	}
-	else {
-		len = strlen( buf );
-	}
+	int len = strlen( m_str );
 	*indexNeeded  = len*6;
 	*vertexNeeded = len*4;
 }
@@ -232,13 +222,7 @@ void TextLabel::CalcSize( float* width, float* height ) const
 	if ( !iText )
 		return;
 
-	const char* p = 0;
-	if ( buf[ALLOCATE-1] ) { 
-		p = str;
-	}
-	else {
-		p = buf;
-	}
+	const char* p = m_str;
 
 	IGamuiText::GlyphMetrics metrics;
 	float x = 0;
@@ -261,14 +245,7 @@ void TextLabel::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex*
 		return;
 	IGamuiText* iText = m_gamui->GetTextInterface();
 
-	const char* p = 0;
-	if ( buf[ALLOCATE-1] ) { 
-		p = str;
-	}
-	else {
-		p = buf;
-	}
-
+	const char* p = m_str;
 	float x=X();
 	float y=Y();
 
@@ -311,6 +288,66 @@ float TextLabel::Height() const
 		CalcSize( &m_width, &m_height );
 	}
 	return m_height;
+}
+
+
+TextBox::TextBox() : UIItem( Gamui::LEVEL_TEXT ), m_needsLayout( true ), m_width( 0 ), m_height( 0 ), m_textLabelArr( 0 ), m_lines( 0 )
+{}
+
+
+TextBox::~TextBox() 
+{
+	delete [] m_textLabelArr;
+}
+
+
+void TextBox::Init( Gamui* g ) 
+{
+	m_gamui = g;
+	m_gamui->Add( this );
+	m_storage.Init( g );
+	m_storage.SetVisible( false );
+	m_needsLayout = true;
+}
+
+
+const RenderAtom* TextBox::GetRenderAtom() const
+{
+	return 0;
+}
+
+
+void TextBox::Requires( int* indexNeeded, int* vertexNeeded )
+{
+	if ( m_needsLayout ) {
+		float h = m_storage.Height();
+		int lines =(int)(Height()/h);
+
+		if ( lines != m_lines ) {
+			m_lines = lines;
+			delete [] m_textLabelArr;
+			m_textLabelArr = new TextLabel[m_lines];
+			for( int i=0; i<m_lines; ++i ) {
+				m_textLabelArr[i].Init( m_gamui );
+			}
+		}
+		for( int i=0; i<m_lines; ++i ) {
+			m_textLabelArr[i].SetVisible( Visible() );
+			m_textLabelArr[i].SetEnabled( Enabled() );
+		}
+		m_gamui->LayoutTextBlock( m_storage.GetText(), m_textLabelArr, m_lines, X(), Y(), Width() );
+
+		m_needsLayout = false;
+	}
+
+	*indexNeeded = 0;
+	*vertexNeeded = 0;
+}
+
+
+void TextBox::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex )
+{
+	// does nothing - children draw
 }
 
 
@@ -390,6 +427,7 @@ TiledImageBase::TiledImageBase( Gamui* gamui ): UIItem( Gamui::LEVEL_BACKGROUND 
 {
 	Init( gamui );
 }
+
 
 TiledImageBase::~TiledImageBase()
 {
@@ -1088,25 +1126,6 @@ void Gamui::Init(	IGamuiRenderer* renderer,
 
 void Gamui::Add( UIItem* item )
 {
-//	if ( item->IsToggle() && item->IsToggle()->ToggleGroup() > 0 ) {
-//		ToggleButton* toggle = item->IsToggle();
-//
-//		bool somethingDown = false;
-//
-//		for( int i=0; i<m_nItems; ++i ) {
-//			if (    m_itemArr[i]->IsToggle() 
-//				 && m_itemArr[i]->IsToggle()->ToggleGroup() == toggle->ToggleGroup() 
-//				 && m_itemArr[i]->IsToggle()->Down() ) 
-//			{
-//				somethingDown = true;
-//				break;
-//			}
-//		}
-//		if ( !somethingDown ) {
-//			toggle->SetDown();
-//			toggle = toggle;
-//		}
-//	}
 	if ( m_nItemsAllocated == m_nItems ) {
 		m_nItemsAllocated = m_nItemsAllocated*3/2 + 16;
 		m_itemArr = (UIItem**) realloc( m_itemArr, m_nItemsAllocated*sizeof(UIItem*) );
@@ -1342,16 +1361,74 @@ void Gamui::Layout( UIItem** item, int nItems,
 }
 
 
+const char* SkipSpace( const char* p ) {
+	while( p && *p && *p == ' ' ) {
+		++p;
+	}
+	return p;
+}
+
+const char* EndOfWord( const char* p ) {
+	while( p && *p && *p != ' ' && *p != '\n' ) {
+		++p;
+	}
+	return p;
+}
+
+
 void Gamui::LayoutTextBlock(	const char* text,
-								TextLabel** textLabels, int nText,
+								TextLabel* textLabels, int nText,
 								float originX, float originY,
 								float width )
 {
+	GAMUIASSERT( text );
 	const char* p = text;
 	int i = 0;
 
-	while ( i < nText ) {
-		
+	TextLabel label;
+	label.Init( this );
+	label.SetText( "X" );
+	float lineHeight = label.Height();
 
+	while ( i < nText && *p ) {
+		label.ClearText();
+		
+		// Add first word: always get at least one.		
+		p = SkipSpace( p );
+		const char* end = EndOfWord( p );
+		end = SkipSpace( end );
+
+		// (p,end) definitely gets added. The question is how much more?
+		const char* q = end;
+		while ( *q && *q != '\n' ) {
+			q = EndOfWord( q );
+			q = SkipSpace( q );
+			label.SetText( p, q );
+			if ( label.Width() > width ) {
+				break;
+			}
+			else {
+				end = q;
+			}
+		}
+		
+		textLabels[i].SetText( p, end );
+		textLabels[i].SetPos( originX, originY + (float)i*lineHeight );
+		p = end;
+		++i;
+		// We just put in a carriage return, so the first is free:
+		if ( *p == '\n' )
+			++p;
+
+		// The rest advance i:
+		while ( *p == '\n' && i < nText ) {
+			textLabels[i].ClearText();
+			++i;
+			++p;
+		}
+	}
+	while( i < nText ) {
+		textLabels[i].ClearText();
+		++i;
 	}
 }

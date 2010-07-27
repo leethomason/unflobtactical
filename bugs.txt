@@ -1,8 +1,6 @@
 Issues:
 
 Bugs:
-- clean up canon
-- add slug-shooter
 - grey zone where previously seen
 - trees show up in the wrong place
 - alien doors not wide enough - block shots
@@ -30,6 +28,11 @@ Architecture
 - render managers
 - Map as interface
 - Build in profiler.
+
+Features:
+- More items: optical computer for units to enhance vision
+- clean up canon
+- add slug-shooter
 
 TBD:
 - tap accuracy

@@ -297,28 +297,39 @@ public:
 	string filter;
 
 	bool textOn;
+	int depth;
 
-	TextBuilder() : textOn( false ) {}
+	TextBuilder() : textOn( false ), depth( 0 ) {}
 
 	virtual bool VisitEnter( const TiXmlElement& element, const TiXmlAttribute* firstAttribute )
 	{
-		string platform;
-		int hasPlatform = element.QueryStringAttribute( "system", &platform );
+		++depth;
 
-		if ( hasPlatform == TIXML_NO_ATTRIBUTE || platform == filter )
-			textOn = true;
+		// depth = 1 element
+		// depth = 2 <p>
+		if ( depth == 2 ) {
+			string platform;
+			int hasPlatform = element.QueryStringAttribute( "system", &platform );
+
+			if ( hasPlatform == TIXML_NO_ATTRIBUTE || platform == filter )
+				textOn = true;
+		}
 		return true;
 	}
 	virtual bool VisitExit( const TiXmlElement& element )
 	{
-		if ( textOn ) {
-			str += "/n/n";
-			textOn = false;
+		if ( depth == 2 ) {
+			if ( textOn ) {
+				str += "\n\n";
+				textOn = false;
+			}
 		}
+		--depth;
 		return true;
 	}
 	virtual bool Visit( const TiXmlText& text) {
-		str += text.ValueStr();
+		if ( textOn )
+			str += text.ValueStr();
 		return true;
 	}
 };

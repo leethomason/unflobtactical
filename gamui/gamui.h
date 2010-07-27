@@ -204,7 +204,7 @@ public:
 						float tableWidth, float tableHeight );
 
 	void LayoutTextBlock(	const char* text,
-							TextLabel** textLabels, int nText,
+							TextLabel* textLabels, int nTextLabels,
 							float originX, float originY,
 							float width );
 						  
@@ -339,6 +339,7 @@ public:
 	virtual float Height() const;
 
 	void SetText( const char* t );
+	void SetText( const char* start, const char* end );	///< Adds text from [start,end)
 
 	const char* GetText() const;
 	void ClearText();
@@ -349,16 +350,48 @@ public:
 	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
 
 private:
-	bool IsStr() const { return buf[ALLOCATE-1] != 0; }
 	void CalcSize( float* width, float* height ) const;
 
-	enum { ALLOCATE = 16 };
-	union {
-		char buf[ALLOCATE];
-		char* str;
-	};
+	enum { ALLOCATED = 16 };
+	char  m_buf[ALLOCATED];
+	char* m_str;
+	int	  m_allocated;
+
 	mutable float m_width;
 	mutable float m_height;
+};
+
+
+class TextBox : public UIItem
+{
+public:
+	TextBox();
+	~TextBox();
+
+	void Init( Gamui* );
+
+	void SetSize( float width, float height )	{ m_width = width; m_height = height; m_needsLayout = true; }
+	virtual float Width() const					{ return m_width; }
+	virtual float Height() const				{ return m_height; }
+
+	void SetText( const char* t )				{ m_storage.SetText( t ); m_needsLayout = true; }
+
+	const char* GetText() const					{ return m_storage.GetText(); }
+	void ClearText()							{ m_storage.ClearText(); m_needsLayout = true; }
+	virtual void SetEnabled( bool enabled )		{ UIItem::SetEnabled( enabled ); m_needsLayout = true; }
+	virtual void SetVisible( bool visible )		{ UIItem::SetVisible( visible ); m_needsLayout = true; }
+
+	virtual const RenderAtom* GetRenderAtom() const;
+	virtual void Requires( int* indexNeeded, int* vertexNeeded );
+	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
+
+private:
+	bool		m_needsLayout;
+	float		m_width;
+	float		m_height;
+	TextLabel	m_storage;
+	TextLabel*	m_textLabelArr;
+	int			m_lines;
 };
 
 

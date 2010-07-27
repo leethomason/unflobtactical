@@ -123,7 +123,7 @@ namespace gamedb
 	struct AttribStruct
 	{
 		void SetKeyType( int key, int type ) {
-			keyType = (key&0xfff) | (type<<24);
+			keyType = (key&0x00ffffff) | (type<<24);
 		}
 
 		U32	keyType;		// lower 24 bits in name of the key, high 8 bits is type

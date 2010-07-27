@@ -235,6 +235,12 @@ int main( int argc, char **argv )
 	Image image0( &gamui, imageAtom );
 	image0.SetPos( 50, 50 );
 
+	TextBox block;
+	block.Init( &gamui );
+	block.SetPos( 50, 50 );
+	block.SetSize( 100, 100 );
+	block.SetText( "This is paragraph one.\n\nAnd number 2." );
+
 	Image image1( &gamui, imageAtom );
 	image1.SetPos( 50, 200 );
 	image1.SetSize( 125, 125 );
