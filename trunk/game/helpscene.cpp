@@ -22,6 +22,7 @@ HelpScene::HelpScene( Game* _game ) : Scene( _game )
 	
 	RenderAtom nullAtom;
 	image.Init( &gamui2D, nullAtom );
+	image.SetForeground( true );
 
 	currentScreen = 0;
 
@@ -41,11 +42,16 @@ HelpScene::HelpScene( Game* _game ) : Scene( _game )
 		buttons[i].SetText( text[i] );
 		items[i] = &buttons[i];
 	}
+	buttons[0].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*2.0f, port.UIHeight() - GAME_BUTTON_SIZE_F );
+	buttons[1].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F,		 port.UIHeight() - GAME_BUTTON_SIZE_F );
+	buttons[2].SetPos( 0, port.UIHeight() - GAME_BUTTON_SIZE_F );
+	/*
 	Gamui::Layout( items, 3, 3, 1, 
 				   (float)engine->GetScreenport().UIWidth()-GAME_BUTTON_SIZE_F*3.0f, 
 				   (float)engine->GetScreenport().UIHeight()-GAME_BUTTON_SIZE_F, 
 				   GAME_BUTTON_SIZE_F*3.0f, 
 				   GAME_BUTTON_SIZE_F );
+	*/
 	Layout();
 }
 
@@ -93,7 +99,7 @@ void HelpScene::Layout()
 		const char* imageName = pageItem->GetString( "image" );
 		const Texture* texture = TextureManager::Instance()->GetTexture( imageName );
 		GLASSERT( texture );
-		RenderAtom atom(	(const char*) UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE,
+		RenderAtom atom(	(const char*) UIRenderer::RENDERSTATE_UI_NORMAL,
 							(const char*) texture,
 							0, 0, 1, 1, (float)texture->Width(), (float)texture->Height() );
 		image.SetAtom( atom );

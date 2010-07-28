@@ -27,13 +27,6 @@
   <texture filename="intro.png" />
   <texture filename="introText.png" />
   <texture filename="commandBarV.png" />
-  <!--
-  <texture filename="help0.png" />
-  <texture filename="help1.png" />
-  <texture filename="help2.png" />
-  <texture filename="help3.png" />
-  <texture filename="help4.png" />
-  -->
 
 
   <!--
@@ -194,7 +187,7 @@
       </p>
     </page>
     <page>
-      <p>Looking at the world and moving the camera.</p>
+      <p>[Moving the Camera]</p>
       <p system="pc">
         Left click and drag to scroll around the map.
       </p>
@@ -206,26 +199,116 @@
         can rotate and move the view.
       </p>
     </page>
-    <page image="tacticalHelp1">
-      <p>Control the Game.</p>
+    <page image="helpImage2">
+      <p>[Select a Unit]</p>
       <p>
-        Selecting a unit: you can select units using the Left or Right buttons
-        (pictured). You may also tap/click on a unit to select it.
+        You can select a unit by tapping on the tile where it stands.
       </p>
-      <p> Moving a unit: you can tap the destination for unit (any colored ground
-      location) and it will move there. You can also drag a unit to move it.</p>
-      <p> Rotate a unit: the Rotate Buttons (pictured) will rotate the unit.</p>
       <p system="pc">
-        The keyboard left/right arrow keys will select units. control-left/right rotate.
+        The keyboard left/right arrow keys will also select units. control-left/right rotate.
         Pressing your 'u' key will turn off the control buttons, since they are available
         on the keyboard.
       </p>
       <p system="android">
-        Move the DPAD left or right to select units.
+        You can also select units by moving the DPAD left or right.
       </p>
     </page>
+
+    <page image="helpImage2">
+      <p>[Move a Unit]</p>
+      <p>
+        You can tap the destination for unit (any colored ground
+        location) and it will move there.
+      </p>
+      <p>
+        You can also drag a unit to move it.
+      </p>
+    </page>
+
+    <page>
+      <p>[Moving on your turn]</p>
+      <p>
+        When it is your turn, you may move
+        as many units as you like. But each
+        unit has a certain amount of “Time
+        Units” per turn. One time unit
+        allows one space of movement. The
+        squares on the ground show the
+        range of movent for the unit.
+      </p>
+    </page>
+
+    <page>
+      <p>[Time Units (TU)]</p>
+      <p>
+        Shooting also consumes TU. The color of the square indicates how
+        much time is left. Green for an aimed shot, Yellow for a fast shot,
+        and Orange indicates no time left to shoot.
+      </p>
+      <p>
+        Inventory and rotation consume no TU.
+      </p>
+    </page>
+
+    <page image="helpImage0">
+      <p>[UI Menu]</p>
+      <p>
+        From top to bottom, the icons are: 1) Abort mission. The lander takes off
+        with whoever is, or isn't, on board. 2) Help - these screens! 3) End turn.
+        You are done moving and the aliens move. 4) Target a location on the map.
+        Tap any location on the map to shoot there. 5) Inventory and character screen.
+      </p>
+    </page>
+
+
+    <page image="helpImage1">
+      <p>[Unit Menu]</p>
+      <p>
+        Rotate left and rotate right rotates the currently selected unit. Left and right
+        selects different units.
+      </p>
+      <p system="pc">
+        Remember you can also use the keyboard, and press the 'u' key to hide this UI.
+      </p>
+    </page>
+
+    <page image="helpImage3" >
+      <p>[Shooting UI]</p>
+      <p>
+        Shooting UI. Left click on your
+        target to display shot  choices,
+        including info about the type of
+        shot,the approximate odds of hitting,
+        and ammo remaining. Every
+        weapon is different!
+      </p>
+      <p>
+        The color block on the right is
+        the amount of TU left after you fire.
+      </p>
+    </page>
+
+    <page>
+      <p>[Reaction fire]</p>
+      <p>
+        Reaction fire occurs when your units fire at the aliens during
+        the alien’s turn.It is key to an effective defense.
+      </p>
+      <p>
+        For reaction fire to occur, you must have enough TU left over
+        by ending your move in the Green or Yellow squares.
+      </p>
+      <p>
+      Rotation greatly impacts reaction fire. Make sure you end your
+      turn facing where you think the aliens are!S
+      </p>
+    </page>
+
   </text>
-  <texture filename="tacticalHelp1.png" />
+  <texture filename="helpImage0.png" />
+  <texture filename="helpImage1.png" />
+  <texture filename="helpImage2.png" />
+  <texture filename="helpImage3.png" />
 
   <!-- Sound effects -->
   <data filename="explosion.wav" />
