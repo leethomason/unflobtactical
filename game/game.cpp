@@ -446,7 +446,7 @@ void Game::DoTick( U32 _currentTime )
 	#ifndef GRINLIZ_DEBUG_MEM
 	const int memNewCount = 0;
 	#endif
-
+#if 0
 	if ( debugTextOn ) {
 		UFOText::Draw(	0,  Y, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
 						VERSION,
@@ -469,6 +469,7 @@ void Game::DoTick( U32 _currentTime )
 	else {
 		UFOText::Draw(	0,  Y, "UFO#%d %5.1ffps", VERSION, framesPerSecond );
 	}
+#endif
 	trianglesRendered = 0;
 	drawCalls = 0;
 
