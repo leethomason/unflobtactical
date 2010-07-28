@@ -126,8 +126,10 @@ int main( int argc, char **argv )
 	screenWidth = NEXUS_ONE_SCREEN_WIDTH;
 	screenHeight = NEXUS_ONE_SCREEN_HEIGHT;
 #else
-	screenWidth = NEXUS_ONE_SCREEN_HEIGHT;
-	screenHeight = NEXUS_ONE_SCREEN_WIDTH;
+//	screenWidth = NEXUS_ONE_SCREEN_HEIGHT;
+//	screenHeight = NEXUS_ONE_SCREEN_WIDTH;
+	screenWidth = IPOD_SCREEN_HEIGHT;
+	screenHeight = IPOD_SCREEN_WIDTH;
 #endif
 
 	// Note that our output surface is rotated from the iPod.
