@@ -1721,6 +1721,9 @@ void Map::ShowNearPath(	const grinliz::Vector2I& unitPos,
 	gamui::RenderAtom atom[3] = {	UIRenderer::CalcIconAtom( ICON_GREEN_WALK_MARK ), 
 									UIRenderer::CalcIconAtom( ICON_YELLOW_WALK_MARK ), 
 									UIRenderer::CalcIconAtom( ICON_ORANGE_WALK_MARK ) };
+	atom[0].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
+	atom[1].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
+	atom[2].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
 
 	for( unsigned i=0; i<stateCostArr.size(); ++i ) {
 		const micropather::StateCost& stateCost = stateCostArr[i];
@@ -2030,18 +2033,20 @@ void Map::BeginRenderState( const void* renderState )
 {
 	const float ALPHA = 0.5f;
 	switch( (int)renderState ) {
+		case UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE:
 		case RENDERSTATE_MAP_OPAQUE:
 			glColor4f( 1, 1, 1, 1 );
 			glDisable( GL_BLEND );
 			break;
 
+		case UIRenderer::RENDERSTATE_UI_NORMAL:
 		case RENDERSTATE_MAP_NORMAL:
-			glColor4f( 1.0f, 1.0f, 1.0f, ALPHA );
+			glColor4f( 1.0f, 1.0f, 1.0f, 0.8f );
 			glEnable( GL_BLEND );
 			break;
 
 		case RENDERSTATE_MAP_TRANSLUCENT:
-			glColor4f( 1, 1, 1, 0.8f );
+			glColor4f( 1, 1, 1, ALPHA );
 			glEnable( GL_BLEND );
 			break;
 		default:

@@ -53,7 +53,7 @@ const char* gFemaleFirstNames[32] =
 const char* gLastNames[32] = 
 {
 	"Payne",	"Havok",	"Fury",		"Scharz",
-	"Bourne",	"Bond",		"Smith",	"Andson",
+	"Bourne",	"Bond",		"Smith",	"Anders",
 	"Dekard",	"Jones",	"Solo",		"Skye",
 	"Picard",	"Kirk",		"Spock",	"Willis",
 	"Red",		"Marsen",	"Baldwin",	"Black",

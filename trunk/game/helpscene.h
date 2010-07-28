@@ -55,7 +55,7 @@ private:
 	void Layout();
 
 	int					currentScreen;
-	BackgroundUI		backgroundUI;
+	gamui::Image		background;
 	gamui::Image		image;
 	gamui::TextBox		textBox;
 	gamui::PushButton	buttons[3];

@@ -12,7 +12,16 @@ HelpScene::HelpScene( Game* _game ) : Scene( _game )
 	Engine* engine = GetEngine();
 	engine->EnableMap( false );
 	const Screenport& port = engine->GetScreenport();
-	backgroundUI.Init( game, &gamui2D );
+
+	// 248, 228, 8
+	const float INV = 1.f/255.f;
+	uiRenderer.SetTextColor( 248.f*INV, 228.f*INV, 8.f*INV );
+
+	background.Init( &gamui2D, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND ) );
+	background.SetSize( game->engine->GetScreenport().UIWidth(), game->engine->GetScreenport().UIHeight() );
+	
+	RenderAtom nullAtom;
+	image.Init( &gamui2D, nullAtom );
 
 	currentScreen = 0;
 
@@ -44,6 +53,7 @@ HelpScene::HelpScene( Game* _game ) : Scene( _game )
 
 HelpScene::~HelpScene()
 {
+	uiRenderer.SetTextColor( 1.0f, 1.0, 1.0 );
 }
 
 
@@ -64,13 +74,35 @@ void HelpScene::Layout()
 	grinliz::GLString full = "text_";
 	full += PlatformName();
 
+	const float GUTTER = 20.0f;
+	
 	if ( pageItem->HasAttribute( full.c_str() ) ) {
 		text = (const char*)reader->AccessData( pageItem, full.c_str(), 0 );
 	}
 	else {
 		text = (const char*)reader->AccessData( pageItem, "text", 0 );
 	}
+	const Screenport& port = game->engine->GetScreenport();
 	textBox.SetText( text ? text : "" );
+	textBox.SetPos( GUTTER, GUTTER );
+	float tw = port.UIWidth() - GUTTER*2.0f;
+	float th = buttons[0].Y() - GUTTER*2.0f;
+	image.SetVisible( false );
+
+	if ( pageItem->HasAttribute( "image" ) ) {
+		const char* imageName = pageItem->GetString( "image" );
+		const Texture* texture = TextureManager::Instance()->GetTexture( imageName );
+		GLASSERT( texture );
+		RenderAtom atom(	(const char*) UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE,
+							(const char*) texture,
+							0, 0, 1, 1, (float)texture->Width(), (float)texture->Height() );
+		image.SetAtom( atom );
+		image.SetPos( port.UIWidth()-texture->Width(), 0 );
+		image.SetSize( atom.srcWidth, atom.srcHeight );
+		tw = image.X()-GUTTER;
+		image.SetVisible( true );
+	}
+	textBox.SetSize( tw, th );
 }
 
 
@@ -102,20 +134,13 @@ void HelpScene::Tap( int action, const grinliz::Vector2F& screen, const grinliz:
 	TextureManager* texman = TextureManager::Instance();
 
 	if ( item == &buttons[0] ) {
-//		screens[currentScreen].SetVisible( false );
 		--currentScreen;	
-//		texman->ContextShift();
 	}
 	else if ( item == &buttons[1] ) {
-//		screens[currentScreen].SetVisible( false );
 		++currentScreen;	
-//		texman->ContextShift();
 	}
 	else if ( item == &buttons[2] ) {
 		game->PopScene();
 	}
 	Layout();
-//	while( currentScreen < 0 )				currentScreen += NUM_SCREENS;
-//	while( currentScreen >= NUM_SCREENS )	currentScreen -= NUM_SCREENS;
-//	screens[currentScreen].SetVisible( true );
 }
