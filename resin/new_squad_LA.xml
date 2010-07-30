@@ -4,8 +4,8 @@
 		<Item name="AR-1" />
 		<Item name="PST" />
 		<Item name="Clip" />
-		<Item name="AClip" />
-		<Item name="AClip" />
+		<Item name="Clip" />
+		<Item name="Clip" />
 		<Item name="Fiber" />
 	</Inventory>
 </Unit>
@@ -15,8 +15,8 @@
 		<Item name="AR-1" />
 		<Item name="PST" />
 		<Item name="Clip" />
-		<Item name="AClip" />
-		<Item name="AClip" />
+		<Item name="Clip" />
+		<Item name="Clip" />
 	</Inventory>
 </Unit>
 <Unit team="0" status="1">
@@ -25,17 +25,17 @@
 		<Item name="AR-1" />
 		<Item name="PST" />
 		<Item name="Clip" />
-		<Item name="AClip" />
-		<Item name="AClip" />
+		<Item name="Clip" />
+		<Item name="Clip" />
 		<Item name="Fiber" />
 	</Inventory>
 </Unit>
 <Unit team="0" status="1">
 	<Stats level="1" />
 	<Inventory>
-		<Item name="CAN-X" />
-		<Item name="AClip" />
-		<Item name="AClip" />
+		<Item name="CANON" />
+		<Item name="Clip" />
+		<Item name="Clip" />
 		<Item name="PST" />
 		<Item name="Clip" />
 		<Item name="RPG" />

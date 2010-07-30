@@ -388,6 +388,7 @@ void Game::LoadItemResources()
 	const float EXDAM_HI	= 150.0f;
 	const float EXDAM_VHI	= 200.0f;
 
+	const float ACC_VLOW	= 1.6f;
 	const float ACC_LOW		= 1.4f;
 	const float ACC_MEDLOW	= 1.2f;
 	const float ACC_MED		= 1.0f;
@@ -428,10 +429,8 @@ void Game::LoadItemResources()
 #	define COLORDEF( r, g, b ) { (float)r/255.f, (float)g/255.f, (float)b/255.f, 0.8f }
 
 	static const ClipInit clips[] = {
-		{ "Clip",	false,	DECO_SHELLS,	40,	 { 1, 0, 0 },
-					COLORDEF( 200, 204, 213 ), SPEED*2.0f,	WIDTH*0.5f,	BOLT*3.0f, "4x10 round clip" },
-		{ "AClip",	false,	DECO_SHELLS,	15,	 { 1, 0, 0 },
-					COLORDEF( 200, 204, 213 ), SPEED*2.0f,	WIDTH*0.5f, BOLT*3.0f, "4mm 15 round auto-clip" },
+		{ "Clip",	false,	DECO_SHELLS,	15,	 { 1, 0, 0 },
+					COLORDEF( 200, 204, 213 ), SPEED*2.0f,	WIDTH*0.5f, BOLT*3.0f, "7mm 15 round auto-clip" },
 		{ "Cell",	true,	DECO_CELL,		12,  { 0.0f, 0.8f, 0.2f },
 					COLORDEF( 199, 216, 6 ),	SPEED,		 WIDTH,		BOLT,		"10MW Cell" },
 		{ "Tachy",	true,	DECO_CELL,		4,   { 0, 0.6f, 0.4f },
@@ -501,25 +500,24 @@ void Game::LoadItemResources()
 		{ "PST",	"pst1",		DECO_PISTOL,	"Pistol",				FAST, AIMED, 0,		SPEED_FAST,
 				"Clip",			0,										DAM_LOW,	ACC_MED,	"ar",
 				0  },
+		{ "SLUG",	"slug",		DECO_PISTOL,	"Slug gun",				FAST, AIMED, 0,		SPEED_NORMAL,
+				"Clip",			0,										DAM_HI,		ACC_VLOW,	"can",
+				0  },
 		{ "AR-1",	"ar1",		DECO_RIFLE,		"Kaliknov Rifle",		FAST, BURST, 0,		SPEED_NORMAL,
-				"AClip",		WEAPON_AUTO,							DAM_MEDLOW,	ACC_MED,	"ar",
+				"Clip",			WEAPON_AUTO,							DAM_MEDLOW,	ACC_MED,	"ar",
 				0  },
 		{ "AR-2",	"ar2",		DECO_RIFLE,		"Glek Rifle",			FAST, BURST, 0,		SPEED_NORMAL,
-				"AClip",		WEAPON_AUTO,							DAM_MED,	ACC_MED,	"ar",
+				"Clip",			WEAPON_AUTO,							DAM_MED,	ACC_MED,	"ar",
 				0  },
 		{ "AR-3P",	"ar3p",		DECO_RIFLE,		"Pulse Rifle",			FAST, BURST, BOOM,	SPEED_NORMAL,
-				"AClip",		WEAPON_AUTO,							DAM_MEDHI,	ACC_MED,	"ar3p",
+				"Clip",			WEAPON_AUTO,							DAM_MEDHI,	ACC_MED,	"ar3p",
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_LOW,	"can" },
 		{ "AR-3L",	"ar3l",		DECO_RIFLE,		"Vera LR",				FAST, AIMED, BOOM,	SPEED_NORMAL,
-				"AClip",		0,										DAM_HI,		ACC_VHI,	"ar3l",
+				"Clip",			0,										DAM_HI,		ACC_VHI,	"ar3l",
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_LOW,	"can" },
-		{ "CAN-I",	"cani",		DECO_RIFLE,		"Mini-Canon/Flame",		FAST, BANG, BOOM,	SPEED_SLOW,
-				"AClip",		WEAPON_EXPLOSIVE,						DAM_HI,		ACC_MED,	"can",
-				"Flame",		WEAPON_EXPLOSIVE,						EXDAM_MED,	ACC_MED,	"can" },
-		{ "CAN-X",	"canx",		DECO_RIFLE,		"Mini-Canon/Rocket",	FAST, BANG, BOOM,	SPEED_SLOW,
-				"AClip",		WEAPON_EXPLOSIVE,						DAM_HI,		ACC_MED,	"can",
+		{ "CANON",	"canon",	DECO_RIFLE,		"Mini-Canon",			FAST, BANG, BOOM,	SPEED_SLOW,
+				"Flame",		WEAPON_EXPLOSIVE,						EXDAM_MED,	ACC_MED,	"can",
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED,	ACC_MED,	"can", },
-
 
 		// Alien
 		{ "RAY-1",	"ray1",		DECO_PISTOL,	"Ray Gun",				FAST, AIMED, 0,		SPEED_FAST,

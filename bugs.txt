@@ -1,6 +1,9 @@
 Issues:
 
 Bugs:
+- cani/canx -> canon
+- add slug gun resources
+
 - grey zone where previously seen
 - trees show up in the wrong place
 - alien doors not wide enough - block shots
