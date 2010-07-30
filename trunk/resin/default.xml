@@ -52,12 +52,12 @@
   <model filename="selection.ac" />
 
   <model filename="pst1.ac" />
+  <model filename="slug.ac" />
   <model filename="ar1.ac" />
   <model filename="ar2.ac" />
   <model filename="ar3p.ac" />
   <model filename="ar3l.ac" />
-  <model filename="cani.ac" />
-  <model filename="canx.ac" />
+  <model filename="canon.ac" />
 
   <data filename="ar.wav" />  <!-- generic AR and pistol -->
   <data filename="ar3p.wav" />

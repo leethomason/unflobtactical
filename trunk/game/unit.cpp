@@ -107,7 +107,7 @@ const char* Unit::LastName() const
 	if ( team == TERRAN_TEAM ) {
 		str = gLastNames[ GetValue( LAST_NAME ) ];
 	}
-	GLASSERT( strlen( str ) <= 6 );
+	GLASSERT( strlen( str ) <= 7 );
 	return str;
 }
 

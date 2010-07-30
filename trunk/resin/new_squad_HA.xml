@@ -4,8 +4,7 @@
 		<Item name="AR-3P" />
 		<Item name="PST" />
 		<Item name="Clip" />
-		<Item name="AClip" />
-		<Item name="AClip" />
+		<Item name="Clip" />
 		<Item name="RPG" />
 		<Item name="ARM-2" />
 		<Item name="Shield" />
@@ -17,8 +16,8 @@
 		<Item name="AR-3L" />
 		<Item name="PST" />
 		<Item name="Clip" />
-		<Item name="AClip" />
-		<Item name="AClip" />
+		<Item name="Clip" />
+		<Item name="Clip" />
 		<Item name="RPG" />
 		<Item name="ARM-3" />
 		<Item name="Shield" />
@@ -40,8 +39,8 @@
 <Unit team="0" status="1">
 	<Stats level="4" />
 	<Inventory>
-		<Item name="CAN-X" />
-		<Item name="AClip" />
+		<Item name="CANON" />
+		<Item name="Clip" />
 		<Item name="RPG" />
 		<Item name="RAY-3" />
 		<Item name="Cell" />

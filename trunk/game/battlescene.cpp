@@ -219,7 +219,7 @@ void BattleScene::DeActivate()
 //	engine->SetClip( 0 );
 }
 
-
+/*
 void BattleScene::InitUnits()
 {
 	int Z = engine->GetMap()->Height();
@@ -235,7 +235,7 @@ void BattleScene::InitUnits()
 		 armor( game, "ARM-1" ),
 		 fuel( game, "Gel" ),
 		 grenade( game, "RPG", 4 ),
-		 autoClip( game, "AClip", 15 ),
+		 autoClip( game, "Clip", 15 ),
 		 cell( game, "Cell", 12 ),
 		 tachyon( game, "Tach", 4 ),
 		 clip( game, "Clip", 8 );
@@ -309,16 +309,14 @@ void BattleScene::InitUnits()
 	extraAmmo->AddItem( tachyon );
 	engine->GetMap()->ReleaseStorage( 12, 20, extraAmmo, game->GetItemDefArr() );
 
-
-	/*
 	for( int i=0; i<4; ++i ) {
 		Vector2I pos = { (i*2)+10, Z-12 };
 		units[CIV_UNITS_START+i].Init( engine, game, CIV_TEAM, 0, random.Rand() );
 		units[CIV_UNITS_START+i].SetMapPos( pos.x, pos.y );
 	}
-	*/
+	
 }
-
+*/
 
 void BattleScene::NextTurn()
 {
