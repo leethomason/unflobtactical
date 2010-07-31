@@ -210,9 +210,8 @@ void Engine::FreeModel( Model* model )
 
 void Engine::PushShadowMatrix()
 {
-	Matrix4 m;
-	m.m12 = -lightDirection.x/lightDirection.y;
-	m.m22 = 0.0f;
+	shadowMatrix.m12 = -lightDirection.x/lightDirection.y;
+	shadowMatrix.m22 = 0.0f;
 
 	// The shadow needs a depth to use the Z-buffer. More depth is good,
 	// more resolution, but intoduces an error in eye space. Try to correct
@@ -222,14 +221,14 @@ void Engine::PushShadowMatrix()
 	const Vector3F* eyeDir = camera.EyeDir3();
 
 	const float DEPTH = 0.2f;
-	m.m14 = -eyeDir[0].x/eyeDir[0].y * DEPTH;	// x hide the shift 
-	m.m24 = -DEPTH;								// y term down
-	m.m34 = -eyeDir[0].z/eyeDir[0].y * DEPTH;	// z hide the shift
+	//shadowMatrix.m14 = -eyeDir[0].x/eyeDir[0].y * DEPTH;	// x hide the shift 
+	//shadowMatrix.m24 = -DEPTH;								// y term down
+	//shadowMatrix.m34 = -eyeDir[0].z/eyeDir[0].y * DEPTH;	// z hide the shift
 	
-	m.m32 = -lightDirection.z/lightDirection.y;
+	shadowMatrix.m32 = -lightDirection.z/lightDirection.y;
 
 	glPushMatrix();
-	glMultMatrixf( m.x );
+	glMultMatrixf( shadowMatrix.x );
 }
 
 
@@ -284,12 +283,16 @@ void Engine::Draw()
 		}
 		if ( shadowAmount > 0.0f ) {
 			// The shadow matrix pushes in a depth. Its the depth<0 that allows the GL_LESS
-			// test for the shador write, below.
+			// test for the shadow write, below.
 			PushShadowMatrix();
 
 			int textureState = 0;
-			glDisable( GL_TEXTURE_2D );
+			//glDisable( GL_TEXTURE_2D );
+			glColor4f( 0.8f, 0.8f, 0.8f, 1.0f );
+			//glColor4f( 1, 1, 1, 1 );
 			glDepthFunc( GL_ALWAYS );
+			glDepthMask( GL_FALSE );
+			glDisable( GL_BLEND );
 
 			textureState = Model::NO_TEXTURE;
 
@@ -311,14 +314,57 @@ void Engine::Draw()
 					continue;
 
 				// Draw model shadows.
-				model->Queue( renderQueue, textureState );
+				if ( !(model->Flags() & Model::MODEL_INVISIBLE )) {
+					model->PushMatrix();
+					model->GetResource()->atom[0].Bind();
+
+					const ModelAtom* atom = &model->GetResource()->atom[0]; 
+					{
+						glMatrixMode(GL_TEXTURE);
+						// shadow matrix
+						// xform matrix
+						// swizzle matrix
+
+						// x'    1/64  0    0    0
+						// y'      0   0  -1/64  -1
+						//     =   0   0    0    0
+						//		
+						glPushMatrix();
+						Matrix4 swizzle;
+						swizzle.m11 = 1.f/64.f;
+						swizzle.m22 = 0;	swizzle.m23 = -1.f/64.f;	swizzle.m24 = 1.0f;
+						swizzle.m33 = 0.0f;
+						glMultMatrixf( swizzle.x );			// swizzle
+
+						glPushMatrix();
+						glMultMatrixf( shadowMatrix.x );	// shadow
+						model->PushMatrix();				// xform
+
+						glTexCoordPointer( 3, GL_FLOAT, sizeof(Vertex), (const U8*)atom->vertex + Vertex::POS_OFFSET); 
+
+						glMatrixMode(GL_MODELVIEW);
+					}
+
+					model->GetResource()->atom[0].Draw();
+					model->PopMatrix();
+
+					{
+						glMatrixMode(GL_TEXTURE);
+						glPopMatrix();
+						glPopMatrix();
+						glPopMatrix();
+						glMatrixMode( GL_MODELVIEW );
+					}
+				}
+//				model->Queue( renderQueue, textureState );
 			}
-			renderQueue->Flush();
+//			renderQueue->Flush();
 
 			CHECK_GL_ERROR;
 			glEnable( GL_TEXTURE_2D );
 			glPopMatrix();
 		}
+#if 0
 		// -------- Ground plane shadow ---------- //
 		// Redraw the map, checking z, in shadow.
 		glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
@@ -328,6 +374,7 @@ void Engine::Draw()
 		glDepthFunc( GL_LESS );
 		glColor4f( color.x, color.y, color.z, 1.0f );
 		map->Draw();
+#endif
 
 		// Draw the "where can I walk" overlay.
 		glDepthFunc( GL_ALWAYS );
@@ -335,8 +382,10 @@ void Engine::Draw()
 		glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 
 		glDepthMask( GL_FALSE );
+#if 0
 		map->DrawOverlay( 0 );
 		map->DrawFOW();
+#endif
 		glDepthMask( GL_TRUE );
 
 		glDepthFunc( depthFunc );

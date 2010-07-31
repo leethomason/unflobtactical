@@ -294,7 +294,7 @@ void Model::Queue( RenderQueue* queue, int textureMode )
 }
 
 
-void ModelAtom::Bind( /*bool bindTextureToVertex*/ ) const
+void ModelAtom::Bind() const
 {
 #ifdef EL_USE_VBO
 	glBindBuffer( GL_ARRAY_BUFFER, vertexID );
@@ -332,66 +332,13 @@ void ModelAtom::Draw() const
 }
 
 
-void Model::PushMatrix( /*bool bindTextureToVertex*/ ) const
+void Model::PushMatrix() const
 {
-#if 0
-	if ( !xformValid ) {
-		Matrix4 t, r;
-		t.SetTranslation( pos.x, pos.y, pos.z );
-		if ( rot != 0 )
-			r.SetYRotation( rot );
-		xform = t*r;
-		xformValid = true;
-	}
 	glPushMatrix();
-	glMultMatrixf( xform.x );
-#else
-	glPushMatrix();
-	//glTranslatef( pos.x, pos.y, pos.z );
-	//if ( rot != 0 ) {
-	//	glRotatef( rot, 0.f, 1.f, 0.f );
-	//}
 	const Matrix4& xform = XForm();
 	glMultMatrixf( xform.x );
 
-#endif
-
 #if 0
-	if ( bindTextureToVertex ) {
-		/*
-		// This code is correct, if too slow. But good reference!
-		Vector3F lightDirection = { 0.7f, 3.0f, 1.4f };
-		lightDirection.Normalize();
-		Matrix4 light, r, t, mat;
-
-		light.m12 = -lightDirection.x/lightDirection.y;
-		light.m22 = 0.0f;
-		light.m32 = -lightDirection.z/lightDirection.y;
-		
-		r.SetYRotation( rot );
-		t.SetTranslation( pos.x, pos.y, pos.z );
-
-		mat = (*textureMat)*light*t*r;
-
-		glMatrixMode(GL_TEXTURE);
-		glPushMatrix();
-		
-		glMultMatrixf( mat.x );
-		*/
-		glMatrixMode(GL_TEXTURE);
-		for( int i=1; i>=0; --i ) {
-			glActiveTexture( GL_TEXTURE0 + i );
-			glPushMatrix();
-
-			glTranslatef( pos.x, pos.y, pos.z );
-			if ( rot != 0 ) {
-				glRotatef( rot, 0.f, 1.f, 0.f );
-			} 
-		}
-	}
-	else 
-#endif
-		
 	if ( texMatSet ) {
 		glMatrixMode(GL_TEXTURE);
 		glPushMatrix();
@@ -404,16 +351,19 @@ void Model::PushMatrix( /*bool bindTextureToVertex*/ ) const
 		};
 		glMultMatrixf( m );
 	}
+#endif
 	CHECK_GL_ERROR;
 }
 
 
-void Model::PopMatrix( /*bool bindTextureToVertex*/ ) const
+void Model::PopMatrix() const
 {
+#if 0
 	if ( texMatSet ) {
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 	}
+#endif
 	glPopMatrix();
 	CHECK_GL_ERROR;
 }

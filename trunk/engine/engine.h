@@ -152,6 +152,7 @@ private:
 	Surface diffuseLightMap;
 
 	grinliz::Vector3F lightDirection;
+	grinliz::Matrix4 shadowMatrix;
 };
 
 #endif // UFOATTACK_ENGINE_INCLUDED
