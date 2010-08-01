@@ -6,13 +6,33 @@ I have a goal to keep UFOattack at about a 1MB resources file. It's by no means 
 
 = Planar Shadows =
 
-Currently UFOAttack uses planar shadows. Nice summary: http://www.devmaster.net/articles/shadow_techniques/
+UFOAttack uses planar shadows. Nice summary: http://www.devmaster.net/articles/shadow_techniques/
 
-3 passes are used: a first pass of the ground plane (lighted), the shadows are drawn to the z-buffer, and then a 2nd pass of the ground plane (shadowed.) The z-buffer is "abused" to act as a stencil, which isn't available in ES1.1.
+In the first attempt, 3 passes were used: 
+  # Render the ground plane lighted, and write to the z buffer.
+  # Using the matrix from the above link, the shadows are then rendered at a slight z-offset.
+  # The ground plane is rendered again, testing the z value, so that only areas in shadow are draw.
 
-This should really work with 2 passes:
-  # ground plane lighted
-  # ground plane shadowed, drawn using the transformed model vertices. The trick here being to use the model vertices as the texture coordinates, and also transform the texture coordinates to the ground plane. Should be much faster and simpler, if a little hard to set up.
+Basically the z-buffer is "abused" to act as a stencil, which isn't available in ES1.1. It works pretty well, but has some annoying artifacts since the z is being tested where it shouldn't.
+
+But wouldn't it be nice to do this without the whole z-thing? You can! It's tricky to code, but it can be done in 2 passes. The basic requirement is that the plane is one big texture.
+
+So now:
+  # The ground plane is rendered lighted, no z tested or written
+  # The models are rendered as shadows. 
+
+In the 2nd step, the model GEOMETRY is transformed as:
+{{{
+  [M] = [Matrix shadow plane][Matrix xform] (as above)
+}}}
+
+The TEXTURE transform is set up as:
+{{{
+  [M] = [M swizzle][Matrix shadow plane][Matrix xform]
+}}}
+And the texture coordinate array is pointed to the vertex positions. The vertex coordinates are fed to the texture coordinates. The "swizzle" is used to scale from geometry space to texture space. It's a scaling matrix, and flips (xz) to (xy).
+
+Tricky to code without shaders. (With shaders this would be trivial. You wouldn't even specify texture coordinates.)
 
 = Back to Databases (Apr21, 2010) = 
 
