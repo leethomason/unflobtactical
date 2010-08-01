@@ -135,12 +135,12 @@ private:
 	void EnableLights( bool enable, DayNight dayNight );
 	void LightGroundPlane( ShadowState shadows, float shadowAmount, Color4F* outColor );
 
-	void PushShadowMatrix();
+	void PushShadowSwizzleMatrix();
 
 	Screenport* screenport;
 	float	initZoom;
 	int		initZoomDistance;
-	int		depthFunc;
+	//int		depthFunc;
 	bool	enableMeta;
 	
 	const EngineData& engineData;

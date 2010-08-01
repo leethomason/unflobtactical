@@ -529,6 +529,14 @@ void BattleScene::SetFogOfWar()
 					fow->Clear( i, j );
 			}
 		}
+
+		// Can always see around the lander.		
+		const Model* landerModel = engine->GetMap()->GetLanderModel();
+		if ( landerModel ) {
+			Rectangle2I bounds;
+			engine->GetMap()->MapBoundsOfModel( landerModel, &bounds );
+			fow->SetRect( bounds );
+		}
 		engine->GetMap()->ReleaseFogOfWar();
 	}
 }

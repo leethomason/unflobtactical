@@ -138,7 +138,6 @@ Engine::Engine( Screenport* port, const EngineData& _engineData, const gamedb::R
 
 	lightDirection.Set( 0.7f, 3.0f, 1.4f );
 	lightDirection.Normalize();
-	depthFunc = 0;
 	enableMeta = true;
 }
 
@@ -208,25 +207,28 @@ void Engine::FreeModel( Model* model )
 }
 
 
-void Engine::PushShadowMatrix()
+void Engine::PushShadowSwizzleMatrix()
 {
+	// A shadow matrix for a flat y=0 plane! heck yeah!
 	shadowMatrix.m12 = -lightDirection.x/lightDirection.y;
 	shadowMatrix.m22 = 0.0f;
-
-	// The shadow needs a depth to use the Z-buffer. More depth is good,
-	// more resolution, but intoduces an error in eye space. Try to correct
-	// for the error in eye space using the camera ray. (The correct answer
-	// is per-vertex, but we won't pay for that). Combine that with a smallish
-	// depth value to try to minimize shadow errors.
-	const Vector3F* eyeDir = camera.EyeDir3();
-
-	const float DEPTH = 0.2f;
-	//shadowMatrix.m14 = -eyeDir[0].x/eyeDir[0].y * DEPTH;	// x hide the shift 
-	//shadowMatrix.m24 = -DEPTH;								// y term down
-	//shadowMatrix.m34 = -eyeDir[0].z/eyeDir[0].y * DEPTH;	// z hide the shift
-	
 	shadowMatrix.m32 = -lightDirection.z/lightDirection.y;
 
+	// x'    1/64  0    0    0
+	// y'      0   0  -1/64  -1
+	//     =   0   0    0    0
+	//		
+	Matrix4 swizzle;
+	swizzle.m11 = 1.f/64.f;
+	swizzle.m22 = 0;	swizzle.m23 = -1.f/64.f;	swizzle.m24 = 1.0f;
+	swizzle.m33 = 0.0f;
+
+	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	glMultMatrixf( swizzle.x );			// swizzle
+	glMultMatrixf( shadowMatrix.x );	// shadow
+
+	glMatrixMode( GL_MODELVIEW );
 	glPushMatrix();
 	glMultMatrixf( shadowMatrix.x );
 }
@@ -239,13 +241,63 @@ void Engine::Draw()
 
 	float bbRotation = camera.GetBillboardYRotation();
 	float shadowRotation = ToDegree( atan2f( lightDirection.x, lightDirection.z ) );
-//	glDisable( GL_LIGHTING );
 
-	// Compute the frustum planes
+	// Compute the frustum planes and query the tree.
 	Plane planes[6];
 	CalcFrustumPlanes( planes );
-
 	Model* modelRoot = spaceTree->Query( planes, 6, 0, 0, false );
+	
+	// Process the models into the render queue.
+	GLASSERT( renderQueue->Empty() );
+
+	const int QUEUE_MAIN	= 0x010000;
+	const int QUEUE_BLACK	= 0x020000;
+	const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& fogOfWar = map->GetFogOfWar();
+
+	for( Model* model=modelRoot; model; model=model->next ) {
+
+		if ( model->IsFlagSet( Model::MODEL_METADATA ) && !enableMeta )
+			continue;
+
+		model->ClearFlag( QUEUE_MAIN );
+		model->ClearFlag( QUEUE_BLACK );
+
+		const Vector3F& pos = model->Pos();
+		int x = LRintf( pos.x - 0.5f );
+		int y = LRintf( pos.z - 0.5f );
+
+		if ( model->IsFlagSet(  Model::MODEL_OWNED_BY_MAP ) ) {
+			if ( model->mapBoundsCache.min.x < 0 ) {
+				map->MapBoundsOfModel( model, &model->mapBoundsCache );
+			}
+
+			Rectangle2I fogRect = model->mapBoundsCache;
+			if ( fogRect.min.x > 0 )	fogRect.min.x -= 1;
+			if ( fogRect.min.y > 0 )	fogRect.min.y -= 1;
+			if ( fogRect.max.x < Map::SIZE-1 ) fogRect.max.x += 1;
+			if ( fogRect.max.y < Map::SIZE-1 ) fogRect.max.y += 1;
+
+			// Map is always rendered, possibly in black.
+			if ( !fogOfWar.IsRectEmpty( fogRect ) ) {
+				model->SetFlag( QUEUE_MAIN );
+			}
+			else {
+				model->SetFlag( QUEUE_BLACK );
+			}
+		}
+		else if ( model->IsFlagSet( Model::MODEL_ALWAYS_DRAW )) {
+			model->SetFlag( QUEUE_MAIN );
+		}
+		else if ( fogOfWar.IsSet( x, y ) ) {
+			model->SetFlag( QUEUE_MAIN );
+		}
+#ifdef SHOW_FOW
+		else if ( !fogOfWar.IsSet( x, y ) ) {
+			model->SetFlag( QUEUE_BLACK );
+		}
+#endif
+		model->Queue( renderQueue );
+	}
 
 #	ifdef USING_GL
 #		ifdef DEBUG
@@ -256,19 +308,18 @@ void Engine::Draw()
 #		endif
 #	endif
 
-	if ( depthFunc == 0 ) {
-		// Not clear what the default is (from the driver): LEQUAL or LESS. So query and cache.
-		glGetIntegerv( GL_DEPTH_FUNC, &depthFunc );	
-	}
-
 	if ( enableMap ) {
+		// If the map is enabled, we draw the basic map plane lighted. Then draw the model shadows.
+		// The shadows are the tricky part: one matrix is used to transform the vertices to the ground
+		// plane, and the other matrix is used to transform the vertices to texture coordinates.
+		// Shaders make this much, much, much easier.
+
+		glDepthFunc( GL_ALWAYS );
+		glDepthMask( GL_FALSE );
+
 		// -------- Ground plane lighted -------- //
 		Color4F color;
 		LightGroundPlane( OPEN_LIGHT, 1.0f, &color );
-
-		// The depth mask and the depth test should be completely
-		// independent...but it's not. Very subtle point of how
-		// OpenGL works.
 		glColor4f( color.x, color.y, color.z, 1.0f );
 		map->Draw();
 
@@ -284,206 +335,75 @@ void Engine::Draw()
 		if ( shadowAmount > 0.0f ) {
 			// The shadow matrix pushes in a depth. Its the depth<0 that allows the GL_LESS
 			// test for the shadow write, below.
-			PushShadowMatrix();
+			PushShadowSwizzleMatrix();
 
-			int textureState = 0;
-			//glDisable( GL_TEXTURE_2D );
-			glColor4f( 0.8f, 0.8f, 0.8f, 1.0f );
-			//glColor4f( 1, 1, 1, 1 );
-			glDepthFunc( GL_ALWAYS );
-			glDepthMask( GL_FALSE );
+			LightGroundPlane( IN_SHADOW, shadowAmount, &color );
+			glColor4f( color.x, color.y, color.z, 1.0f );
 			glDisable( GL_BLEND );
 
-			textureState = Model::NO_TEXTURE;
+			renderQueue->Flush( RenderQueue::MODE_IGNORE_TEXTURE | RenderQueue::MODE_IGNORE_ALPHA | RenderQueue::MODE_PLANAR_SHADOW,
+								0,
+								Model::MODEL_NO_SHADOW,
+								shadowRotation );
 
-			renderQueue->SetColor( 0, 0, 0 );
-			GLASSERT( renderQueue->Empty() );
-
-			for( Model* model=modelRoot; model; model=model->next ) {
-				// Take advantage of this walk to adjust the billboard rotations. Note that the rotation
-				// will never change it's position in the space tree, which is why we can set it here.
-				if ( model->IsBillboard() ) {
-					if ( model->GetRotation() != bbRotation )
-						model->SetRotation( bbRotation );
-					if ( model->IsShadowRotated() )
-						model->SetRotation( shadowRotation );
-				}
-				if ( model->IsFlagSet( Model::MODEL_NO_SHADOW ) )
-					continue;
-				if ( model->IsFlagSet( Model::MODEL_METADATA ) && !enableMeta )
-					continue;
-
-				// Draw model shadows.
-				if ( !(model->Flags() & Model::MODEL_INVISIBLE )) {
-					model->PushMatrix();
-					model->GetResource()->atom[0].Bind();
-
-					const ModelAtom* atom = &model->GetResource()->atom[0]; 
-					{
-						glMatrixMode(GL_TEXTURE);
-						// shadow matrix
-						// xform matrix
-						// swizzle matrix
-
-						// x'    1/64  0    0    0
-						// y'      0   0  -1/64  -1
-						//     =   0   0    0    0
-						//		
-						glPushMatrix();
-						Matrix4 swizzle;
-						swizzle.m11 = 1.f/64.f;
-						swizzle.m22 = 0;	swizzle.m23 = -1.f/64.f;	swizzle.m24 = 1.0f;
-						swizzle.m33 = 0.0f;
-						glMultMatrixf( swizzle.x );			// swizzle
-
-						glPushMatrix();
-						glMultMatrixf( shadowMatrix.x );	// shadow
-						model->PushMatrix();				// xform
-
-						glTexCoordPointer( 3, GL_FLOAT, sizeof(Vertex), (const U8*)atom->vertex + Vertex::POS_OFFSET); 
-
-						glMatrixMode(GL_MODELVIEW);
-					}
-
-					model->GetResource()->atom[0].Draw();
-					model->PopMatrix();
-
-					{
-						glMatrixMode(GL_TEXTURE);
-						glPopMatrix();
-						glPopMatrix();
-						glPopMatrix();
-						glMatrixMode( GL_MODELVIEW );
-					}
-				}
-//				model->Queue( renderQueue, textureState );
+			// pop shadow-swizzle
+			{
+				glMatrixMode(GL_TEXTURE);
+				glPopMatrix();
+				glMatrixMode( GL_MODELVIEW );
 			}
-//			renderQueue->Flush();
+			// pop shadow
+			glPopMatrix();
 
 			CHECK_GL_ERROR;
-			glEnable( GL_TEXTURE_2D );
-			glPopMatrix();
+			glEnable( GL_BLEND );
 		}
-#if 0
-		// -------- Ground plane shadow ---------- //
-		// Redraw the map, checking z, in shadow.
-		glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
-		CHECK_GL_ERROR;
-
-		LightGroundPlane( IN_SHADOW, shadowAmount, &color );
-		glDepthFunc( GL_LESS );
-		glColor4f( color.x, color.y, color.z, 1.0f );
-		map->Draw();
-#endif
 
 		// Draw the "where can I walk" overlay.
 		glDepthFunc( GL_ALWAYS );
 
 		glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
-
-		glDepthMask( GL_FALSE );
-#if 0
 		map->DrawOverlay( 0 );
 		map->DrawFOW();
-#endif
-		glDepthMask( GL_TRUE );
-
-		glDepthFunc( depthFunc );
-
+		CHECK_GL_ERROR;
 	}
 
 	// -------- Models in light ---------- //
-	CHECK_GL_ERROR;
+	glDepthMask( GL_TRUE );
 	glEnable( GL_TEXTURE_2D );
-	glDepthFunc( depthFunc );
+	glDepthFunc( GL_LEQUAL );
 	CHECK_GL_ERROR;
 
-	renderQueue->SetColor( 1, 1, 1 );
 	EnableLights( true, map->DayTime() ? DAY_TIME : NIGHT_TIME );
-	Model* fogRoot = 0;
-	const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& fogOfWar = map->GetFogOfWar();
 
-	for( Model* model=modelRoot; model; model=model->next ) 
-	{
-		if ( !enableMap && model->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) )
-			continue;
-		if ( model->IsFlagSet( Model::MODEL_METADATA ) && !enableMeta )
-			continue;
+	renderQueue->Flush( 0,
+						QUEUE_MAIN,
+						0,
+						bbRotation );
 
-		// Remove the shadow rotation for this pass.
-		if ( model->IsBillboard() && model->IsShadowRotated() ) {
-			model->SetRotation( bbRotation );
-		}
-
-		const Vector3F& pos = model->Pos();
-		int x = LRintf( pos.x - 0.5f );
-		int y = LRintf( pos.z - 0.5f );
-
-		bool queue = false;		// draw in color
-		bool queue0 = false;	// draw in black
-
-		if ( model->IsFlagSet(  Model::MODEL_OWNED_BY_MAP ) ) {
-			if ( model->mapBoundsCache.min.x < 0 ) {
-				map->MapBoundsOfModel( model, &model->mapBoundsCache );
-			}
-
-			Rectangle2I fogRect = model->mapBoundsCache;
-			if ( fogRect.min.x > 0 )	fogRect.min.x -= 1;
-			if ( fogRect.min.y > 0 )	fogRect.min.y -= 1;
-			if ( fogRect.max.x < Map::SIZE-1 ) fogRect.max.x += 1;
-			if ( fogRect.max.y < Map::SIZE-1 ) fogRect.max.y += 1;
-
-			// Map is always rendered, possibly in black.
-			if ( !fogOfWar.IsRectEmpty( fogRect ) ) {
-				queue = true;
-			}
-			else {
-				queue0 = true;
-			}
-		}
-		else if ( model->IsFlagSet( Model::MODEL_ALWAYS_DRAW )) {
-			queue = true;
-		}
-		else if ( fogOfWar.IsSet( x, y ) ) {
-			queue = true;
-		}
-#ifdef SHOW_FOW
-		else if ( !fogOfWar.IsSet( x, y ) ) {
-			queue0 = true;
-		}
-#endif
-
-		GLASSERT( !(queue && queue0) );
-		if ( queue ) {
-			model->Queue( renderQueue, Model::MODEL_TEXTURE );
-		}
-		else if ( queue0 ) {
-			model->next0 = fogRoot;
-			fogRoot = model;
-		}
-	}
-	renderQueue->Flush();
 	EnableLights( false, map->DayTime() ? DAY_TIME : NIGHT_TIME );
 	glBindTexture( GL_TEXTURE_2D, 0 );
+	glColor4f( 0, 0, 0, 1 );
 
-#ifdef SHOW_FOW
-	renderQueue->SetColor( 0.5f, 0.5f, 0.0f );
-#else
-	renderQueue->SetColor( 0, 0, 0 );
-#endif
+	renderQueue->Flush( RenderQueue::MODE_IGNORE_TEXTURE | RenderQueue::MODE_IGNORE_ALPHA,
+						QUEUE_BLACK,
+						0,
+						bbRotation );
 
-	for( Model* model=fogRoot; model; model=model->next0 ) {
-		model->Queue( renderQueue, Model::NO_TEXTURE );
-	}
-	renderQueue->Flush();
+	glColor4f( 1, 1, 1, 1 );
+
 
 	glDepthMask( GL_FALSE );
 	glDisable( GL_DEPTH_TEST );
+	glEnable( GL_BLEND );
+	
 	map->DrawOverlay( 1 );
+
 	glEnable( GL_DEPTH_TEST );
 	glDepthMask( GL_TRUE );
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
+	renderQueue->Clear();
 }
 
 

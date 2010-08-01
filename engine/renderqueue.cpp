@@ -16,6 +16,7 @@
 #include "renderQueue.h"
 #include "platformgl.h"
 #include "model.h"    
+#include "texture.h"
 
 #include "../grinliz/glperformance.h"
 
@@ -25,10 +26,6 @@ RenderQueue::RenderQueue()
 {
 	nState = 0;
 	nModel = 0;
-	//triCount = 0;
-	//bindTextureToVertex = false;
-	textureMatrix = 0;
-	color.Set( 1.0f, 1.0f, 1.0f );
 }
 
 
@@ -37,7 +34,7 @@ RenderQueue::~RenderQueue()
 }
 
 
-RenderQueue::Item* RenderQueue::FindState( const State& state )
+RenderQueue::State* RenderQueue::FindState( const State& state )
 {
 	int low = 0;
 	int high = nState - 1;
@@ -47,7 +44,7 @@ RenderQueue::Item* RenderQueue::FindState( const State& state )
 
 	while (low <= high) {
 		mid = low + (high - low) / 2;
-		int compare = Compare( statePool[mid].state, state );
+		int compare = Compare( statePool[mid], state );
 
 		if (compare > 0) {
 			high = mid - 1;
@@ -74,7 +71,7 @@ RenderQueue::Item* RenderQueue::FindState( const State& state )
 	}
 	else {
 		while (    insert < nState
-			    && Compare( statePool[insert].state, state ) < 0 ) 
+			    && Compare( statePool[insert], state ) < 0 ) 
 		{
 			++insert;
 		}
@@ -85,14 +82,14 @@ RenderQueue::Item* RenderQueue::FindState( const State& state )
 		statePool[i] = statePool[i-1];
 	}
 	// and insert
-	statePool[insert].state = state;
-	statePool[insert].nextModel = 0;
+	statePool[insert] = state;
+	statePool[insert].root = 0;
 	nState++;
 
 #ifdef DEBUG
 	for( int i=0; i<nState-1; ++i ) {
 		//GLOUTPUT(( " %d:%d:%x", statePool[i].state.flags, statePool[i].state.textureID, statePool[i].state.atom ));
-		GLASSERT( Compare( statePool[i].state, statePool[i+1].state ) < 0 );
+		GLASSERT( Compare( statePool[i], statePool[i+1] ) < 0 );
 	}
 	//GLOUTPUT(( "\n" ));
 #endif
@@ -101,119 +98,139 @@ RenderQueue::Item* RenderQueue::FindState( const State& state )
 }
 
 
-void RenderQueue::Add( U32 flags, U32 textureID, const Model* model, const ModelAtom* atom )
+void RenderQueue::Add( Model* model, const ModelAtom* atom )
 {
 	if ( nModel == MAX_MODELS ) {
-		Flush();
+		GLASSERT( 0 );
+		return;
 	}
 
-	State s0 = { flags, textureID, atom };
+	int flags = 0;
+	if ( atom->texture->Alpha() )
+		flags |= FLAG_ALPHA;
 
-	Item* state = FindState( s0 );
+	State s0 = { flags, atom->texture, 0 };
+
+	State* state = FindState( s0 );
 	if ( !state ) {
-		Flush();
-		state = FindState( s0 );
+		GLASSERT( 0 );
+		return;
 	}
-	GLASSERT( state );
 
-	Item* modelItem = &modelPool[nModel++];
-	modelItem->model = model;
-	modelItem->nextModel = state->nextModel;
-	state->nextModel = modelItem;
+	Item* item = &modelPool[nModel++];
+	item->model = model;
+	item->atom = atom;
 
-	//triCount += atom->nIndex / 3;
+	item->next  = state->root;
+	state->root = item;
 }
 
 
-void RenderQueue::Flush()
+void RenderQueue::Flush( int mode, int required, int excluded, float bbRotation )
 {
 	GRINLIZ_PERFTRACK	
 
 	U32 flags = (U32)(-1);
-	U32 textureID = 0;
-	const ModelAtom* atom = 0;
-
-	int states = 0;
-	int textures = 0;
-	int atoms = 0;
-	int models = 0;
-
-	glColor4f( color.x, color.y, color.z, 1.0f );
-
+	Texture* texture = 0;
 	//GLOUTPUT(( "RenderQueue::Flush nState=%d nModel=%d\n", nState, nModel ));
 
 	for( int i=0; i<nState; ++i ) {
+		
 		// Handle state change.
-		if ( flags != statePool[i].state.flags ) {
+		if ( flags != statePool[i].flags ) {
 			
-			flags = statePool[i].state.flags;
-			++states;
+			flags = statePool[i].flags;
 
-			if ( flags & ALPHA_BLEND) {
-				// FIXME: clean this up.
-				// When should it blend? When should it test? What's the performance
-				// impact of blend vs. test.
-#ifdef MAPMAKER
-				// map preview
-				glEnable( GL_BLEND );
-				glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-#else
-				// plants
-				glEnable( GL_ALPHA_TEST );
-				glAlphaFunc( GL_GREATER, 0.5f );
-#endif
-			}
-			else {
-#ifdef MAPMAKER
-				glDisable( GL_BLEND );
-#else
-				glDisable( GL_ALPHA_TEST );
-#endif
+			if ( !(mode & MODE_IGNORE_ALPHA )) {
+				if ( flags & FLAG_ALPHA) {
+					// FIXME: clean this up.
+					// When should it blend? When should it test? What's the performance
+					// impact of blend vs. test.
+	#ifdef MAPMAKER
+					// map preview
+					glEnable( GL_BLEND );
+					glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	#else
+					// plants
+					glEnable( GL_ALPHA_TEST );
+					glAlphaFunc( GL_GREATER, 0.5f );
+	#endif
+				}
+				else {
+	#ifdef MAPMAKER
+					glDisable( GL_BLEND );
+	#else
+					glDisable( GL_ALPHA_TEST );
+	#endif
+				}
 			}
 		}
 
-		// Handle texture change.
-		if ( textureID != statePool[i].state.textureID ) 
+		if ( !(mode & MODE_IGNORE_TEXTURE) ) {
+			// Handle texture change.
+			if ( texture != statePool[i].texture ) 
+			{
+				//GLASSERT( bindTextureToVertex == false );
+				texture = statePool[i].texture;
+
+				if ( texture ) {
+					glBindTexture( GL_TEXTURE_2D, texture->GLID() );
+					GLASSERT( glIsEnabled( GL_TEXTURE_2D ) );
+				}
+			}
+		}
+
+		for( Item* item = statePool[i].root; item; item=item->next ) 
 		{
-			//GLASSERT( bindTextureToVertex == false );
-			textureID = statePool[i].state.textureID;
-			++textures;
+			Model* model = item->model;
+			int modelFlags = model->Flags();
 
-			if ( textureID ) {
-				glBindTexture( GL_TEXTURE_2D, textureID );
-				GLASSERT( glIsEnabled( GL_TEXTURE_2D ) );
+			if (    ( (required & modelFlags) == required)
+				 && ( (excluded & modelFlags) == 0 ) )
+			{
+				if ( model->IsBillboard() )
+					model->SetRotation( bbRotation );
+
+				item->atom->Bind();
+
+				const Model* model = item->model;
+				GLASSERT( model );
+
+				if ( mode & MODE_PLANAR_SHADOW ) {
+					// Override the texture part of the Bind(), above.
+					glTexCoordPointer( 3, GL_FLOAT, sizeof(Vertex), (const U8*)item->atom->vertex + Vertex::POS_OFFSET); 
+
+					// Push the xform matrix to the texture and the model view.
+					glMatrixMode( GL_TEXTURE );
+					model->PushMatrix( false );
+					glMatrixMode( GL_MODELVIEW );
+					model->PushMatrix( false );
+
+					item->atom->Draw();
+
+					// Unravel all that. Not general purpose code. Call OpenGL directly.
+					glMatrixMode( GL_TEXTURE );
+					glPopMatrix();
+					glMatrixMode( GL_MODELVIEW );
+					glPopMatrix();
+				}
+				else {
+					model->PushMatrix( true );
+					item->atom->Draw();
+					model->PopMatrix( true );
+				}
 			}
-		}
-
-		// Handle atom change
-		if ( atom != statePool[i].state.atom ) {
-			atom = statePool[i].state.atom;
-			++atoms;
-
-			atom->Bind( /*bindTextureToVertex*/ );
-		}
-
-		// Send down the VBOs
-		Item* item = statePool[i].nextModel;
-		while( item ) {
-			++models;
-			const Model* model = item->model;
-			GLASSERT( model );
-
-			model->PushMatrix( /*bindTextureToVertex*/ );
-			atom->Draw();
-			model->PopMatrix( /*bindTextureToVertex*/ );
-			item = item->nextModel;
 		}
 	}
 #ifdef EL_USE_VBO
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 #endif
-	nState = 0;
-	nModel = 0;
-	glDisable( GL_ALPHA_TEST );
-	glDisable( GL_BLEND );
 
-//	GLOUTPUT(( "states=%d textures=%d atoms=%d models=%d\n", states, textures, atoms, models ));
+	// Clean up the alpha state if we twiddled with it.
+	if ( !(mode & MODE_IGNORE_ALPHA )) {
+		glEnable( GL_BLEND );
+		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+		glDisable( GL_ALPHA_TEST );
+	}
 }

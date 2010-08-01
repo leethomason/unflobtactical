@@ -126,8 +126,8 @@ public:
 	void Queue( RenderQueue* queue, int textureState=MODEL_TEXTURE );
 
 	// Used by the queued rendering system:
-	void PushMatrix() const;
-	void PopMatrix() const;
+	void PushMatrix( bool pushTextureToo ) const;
+	void PopMatrix( bool popTextureToo ) const;
 
 	enum {
 		MODEL_SELECTABLE			= 0x01,
@@ -138,6 +138,9 @@ public:
 		MODEL_MAP_TRANSPARENT		= 0x20,
 		MODEL_ALWAYS_DRAW			= 0x40,
 		MODEL_METADATA				= 0x80,		// mapmaker data that isn't displayed in-game
+
+		// RESERVED!
+		// MODEL_local				= 0x00010000 and higher.
 	};
 
 	int IsFlagSet( int f ) const	{ return flags & f; }
