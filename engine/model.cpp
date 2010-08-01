@@ -165,10 +165,27 @@ void ModelLoader::Load( const gamedb::Item* item, ModelResource* res )
 }
 
 
+Model::Model()		
+{	
+	// WARNING: in the normal case, the constructor isn't called. Models usually come from a pool!
+	// new/delete and Init/Free are both valid uses.
+	Init( 0, 0 ); 
+}
+
+Model::~Model()	
+{	
+	// WARNING: in the normal case, the destructor isn't called. Models usually come from a pool!
+	// new/delete and Init/Free are both valid uses.
+	Free();
+}
+
+
 void Model::Init( const ModelResource* resource, SpaceTree* tree )
 {
 	this->resource = resource; 
 	this->tree = tree;
+	this->textureAtoms = 0;
+
 	pos.Set( 0, 0, 0 );
 	rot[0] = rot[1] = rot[2] = 0.0f;
 	texMatSet = false;
@@ -182,6 +199,15 @@ void Model::Init( const ModelResource* resource, SpaceTree* tree )
 	flags = 0;
 	if ( resource && (resource->header.flags & ModelHeader::RESOURCE_NO_SHADOW ) ) {
 		flags |= MODEL_NO_SHADOW;
+	}
+}
+
+
+void Model::Free()
+{
+	if ( textureAtoms )	{	// superfluous 'if', used for debugging
+		delete [] textureAtoms; 
+		textureAtoms = 0;
 	}
 }
 
@@ -270,27 +296,32 @@ void Model::CalcTarget( grinliz::Vector3F* target ) const
 }
 
 
-void Model::Queue( RenderQueue* queue, int textureMode )
+void Model::SetTexture( Texture* t )
+{
+	delete [] textureAtoms;
+	textureAtoms = 0;
+
+	if ( t ) {
+		textureAtoms = new ModelAtom[resource->header.nGroups];
+		for( int i=0; i<resource->header.nGroups; ++i ) {
+			textureAtoms[i] = resource->atom[i];
+			textureAtoms[i].texture = t;		// the whole point: assign to a different texture.
+		}
+	}
+}
+
+
+void Model::Queue( RenderQueue* queue )
 {
 	if ( flags & MODEL_INVISIBLE )
 		return;
 
 	for( U32 i=0; i<resource->header.nGroups; ++i ) 
 	{
-//		int flags = 0;
-//		Texture* texture = setTexture ? setTexture : resource->atom[i].texture;
-
-//		if ( textureMode != Model::NO_TEXTURE ) {
-//			if ( texture->Alpha() ) 
-//				flags |= RenderQueue::ALPHA_BLEND;
-//		}
-//		U32 textureID = (textureMode == Model::MODEL_TEXTURE) ? texture->GLID() : 0;
-
-//		queue->Add( flags, 
-//					textureID,
-//					this, 
-//					&resource->atom[i] );
-		queue->Add( this, &resource->atom[i] );
+		if ( textureAtoms )
+			queue->Add( this, &textureAtoms[i] );
+		else
+			queue->Add( this, &resource->atom[i] );
 	}
 }
 

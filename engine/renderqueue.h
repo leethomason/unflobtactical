@@ -39,22 +39,23 @@ class RenderQueue
 public:
 	enum {
 		MAX_STATE  = 128,
-		MAX_MODELS = 1024,
+		MAX_ITEMS  = 1024,
 	};
 
 	RenderQueue();
 	~RenderQueue();
 
 	void Add( Model* model, const ModelAtom* atom );		// not const - can change billboard rotation
+	//void Prepare();
 
 	enum {
 		MODE_IGNORE_TEXTURE				= 0x01,		// Ignore textures on all models. Don't set texture state, sort everything to same bucket.
 		MODE_IGNORE_ALPHA				= 0x02,		// Ignore alpha settings on texture.
 		MODE_PLANAR_SHADOW				= 0x04,		// Do all the fancy tricks to create planar shadows.
 	};
-	void Flush( int mode, int required, int excluded, float billboardRotation );
-	bool Empty() { return nState == 0 && nModel == 0; }
-	void Clear() { nState = 0; nModel = 0; }
+	void Submit( int mode, int required, int excluded, float billboardRotation );
+	bool Empty() { return nState == 0 && nItem == 0; }
+	void Clear() { nState = 0; nItem = 0; }
 
 private:
 	enum { 
@@ -67,13 +68,21 @@ private:
 		Item*				next;
 	};
 
+	/*
+	struct SortedItem {
+		Model*				model;
+		const ModelAtom*	atom;
+		State*				state;
+	};
+	*/
+
 	struct State {
 		int				flags;
 		Texture*		texture;
 		Item*			root;
 	};
 
-	int Compare( const State& s0, const State& s1 ) 
+	static int Compare( const State& s0, const State& s1 ) 
 	{
 		if ( s0.flags == s1.flags ) {
 			if ( s0.texture == s1.texture )
@@ -89,14 +98,11 @@ private:
 	State* FindState( const State& state );
 
 	int nState;
-	int nModel;
-
-	void FlushBuffers();
-	int nVertex;
-	int nIndex;
+	int nItem;
 
 	State statePool[MAX_STATE];
-	Item modelPool[MAX_MODELS];
+	Item itemPool[MAX_ITEMS];
+	//SortedItem sortedItemPool[MAX_ITEMS];		// could add Prepare() to construct this.
 };
 
 

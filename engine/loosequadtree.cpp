@@ -132,6 +132,7 @@ void SpaceTree::FreeModel( Model* model )
 {
 	Item* item = (Item*)model;	// cast depends on model being first in the structure.
 	item->Unlink();
+	item->model.Free();
 	modelPool.Free( item );
 }
 
