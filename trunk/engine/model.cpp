@@ -277,19 +277,20 @@ void Model::Queue( RenderQueue* queue, int textureMode )
 
 	for( U32 i=0; i<resource->header.nGroups; ++i ) 
 	{
-		int flags = 0;
-		Texture* texture = setTexture ? setTexture : resource->atom[i].texture;
+//		int flags = 0;
+//		Texture* texture = setTexture ? setTexture : resource->atom[i].texture;
 
-		if ( textureMode != Model::NO_TEXTURE ) {
-			if ( texture->Alpha() ) 
-				flags |= RenderQueue::ALPHA_BLEND;
-		}
-		U32 textureID = (textureMode == Model::MODEL_TEXTURE) ? texture->GLID() : 0;
+//		if ( textureMode != Model::NO_TEXTURE ) {
+//			if ( texture->Alpha() ) 
+//				flags |= RenderQueue::ALPHA_BLEND;
+//		}
+//		U32 textureID = (textureMode == Model::MODEL_TEXTURE) ? texture->GLID() : 0;
 
-		queue->Add( flags, 
-					textureID,
-					this, 
-					&resource->atom[i] );
+//		queue->Add( flags, 
+//					textureID,
+//					this, 
+//					&resource->atom[i] );
+		queue->Add( this, &resource->atom[i] );
 	}
 }
 
@@ -332,14 +333,13 @@ void ModelAtom::Draw() const
 }
 
 
-void Model::PushMatrix() const
+void Model::PushMatrix( bool textureToo ) const
 {
 	glPushMatrix();
 	const Matrix4& xform = XForm();
 	glMultMatrixf( xform.x );
 
-#if 0
-	if ( texMatSet ) {
+	if ( textureToo && texMatSet ) {
 		glMatrixMode(GL_TEXTURE);
 		glPushMatrix();
 		
@@ -351,19 +351,16 @@ void Model::PushMatrix() const
 		};
 		glMultMatrixf( m );
 	}
-#endif
 	CHECK_GL_ERROR;
 }
 
 
-void Model::PopMatrix() const
+void Model::PopMatrix( bool textureToo ) const
 {
-#if 0
-	if ( texMatSet ) {
+	if ( textureToo && texMatSet ) {
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 	}
-#endif
 	glPopMatrix();
 	CHECK_GL_ERROR;
 }

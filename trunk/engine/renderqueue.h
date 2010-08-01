@@ -23,6 +23,7 @@
 
 class Model;
 struct ModelAtom;
+class Texture;
 
 /* 
 	The prevailing wisdom for GPU performance is to group the submission by 1)render state
@@ -37,10 +38,6 @@ class RenderQueue
 {
 public:
 	enum {
-		ALPHA_BLEND		= 0x01,
-	};
-
-	enum {
 		MAX_STATE  = 128,
 		MAX_MODELS = 1024,
 	};
@@ -48,59 +45,57 @@ public:
 	RenderQueue();
 	~RenderQueue();
 
-	void Add( U32 flags, U32 textureID, const Model* model, const ModelAtom* atom );
+	void Add( Model* model, const ModelAtom* atom );		// not const - can change billboard rotation
 
-	// The color is set for everything in the queue (although alpha can be set later.)
-	void SetColor( float r, float g, float b )	{ color.Set( r, g, b ); }
-
-	void Flush();
+	enum {
+		MODE_IGNORE_TEXTURE				= 0x01,		// Ignore textures on all models. Don't set texture state, sort everything to same bucket.
+		MODE_IGNORE_ALPHA				= 0x02,		// Ignore alpha settings on texture.
+		MODE_PLANAR_SHADOW				= 0x04,		// Do all the fancy tricks to create planar shadows.
+	};
+	void Flush( int mode, int required, int excluded, float billboardRotation );
 	bool Empty() { return nState == 0 && nModel == 0; }
+	void Clear() { nState = 0; nModel = 0; }
 
 private:
-	struct State {
-		U32 flags;
-		U32 textureID;
-		const ModelAtom* atom;
+	enum { 
+		FLAG_ALPHA = 0x01,		// render in blend phase
 	};
+
 	struct Item {
-		union {
-			State state;
-			const Model* model;
-		};
-		Item* nextModel;
+		Model*				model;
+		const ModelAtom*	atom;
+		Item*				next;
+	};
+
+	struct State {
+		int				flags;
+		Texture*		texture;
+		Item*			root;
 	};
 
 	int Compare( const State& s0, const State& s1 ) 
 	{
-		if ( s0.flags == s1.flags ) 
-			if ( s0.textureID == s1.textureID )
-				if ( s0.atom == s1.atom ) 
-					return 0;
-				else if ( s0.atom < s1.atom )
-					return -1;
-				else
-					return 1;
-			else if ( s0.textureID < s1.textureID )
-				return -1;
-			else 
-				return 1;
-		else if ( s0.flags < s1.flags )
+		if ( s0.flags == s1.flags ) {
+			if ( s0.texture == s1.texture )
+				return 0;
+			return ( s0.texture < s1.texture ) ? -1 : 1;
+		}
+		else if ( s0.flags < s1.flags ) {
 			return -1;
+		}
 		return 1;
 	}
 
-	Item* FindState( const State& state );
+	State* FindState( const State& state );
 
 	int nState;
 	int nModel;
-	const grinliz::Matrix4 *textureMatrix;
 
 	void FlushBuffers();
 	int nVertex;
 	int nIndex;
-	grinliz::Vector3F color;
 
-	Item statePool[MAX_STATE];
+	State statePool[MAX_STATE];
 	Item modelPool[MAX_MODELS];
 };
 
