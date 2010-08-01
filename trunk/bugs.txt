@@ -28,7 +28,6 @@ Bugs:
 ? psi attack
 
 Architecture
-- render managers
 - Map as interface
 - Build in profiler.
 
@@ -38,6 +37,7 @@ Features:
 - add slug-shooter
 
 TBD:
+- render managers
 - tap accuracy
 - Pinching doesn't feel right
 - tutorial notes infrastructure

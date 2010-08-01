@@ -25,7 +25,7 @@ using namespace grinliz;
 RenderQueue::RenderQueue()
 {
 	nState = 0;
-	nModel = 0;
+	nItem = 0;
 }
 
 
@@ -100,7 +100,7 @@ RenderQueue::State* RenderQueue::FindState( const State& state )
 
 void RenderQueue::Add( Model* model, const ModelAtom* atom )
 {
-	if ( nModel == MAX_MODELS ) {
+	if ( nItem == MAX_ITEMS ) {
 		GLASSERT( 0 );
 		return;
 	}
@@ -117,7 +117,7 @@ void RenderQueue::Add( Model* model, const ModelAtom* atom )
 		return;
 	}
 
-	Item* item = &modelPool[nModel++];
+	Item* item = &itemPool[nItem++];
 	item->model = model;
 	item->atom = atom;
 
@@ -125,8 +125,20 @@ void RenderQueue::Add( Model* model, const ModelAtom* atom )
 	state->root = item;
 }
 
+/*
+void RenderQueue::Prepare()
+{
+	int count = 0;
+	for( int i=0; i<nState; ++i ) {
+		for( Item* item = statePool[i].root; item; item=item->next ) {
 
-void RenderQueue::Flush( int mode, int required, int excluded, float bbRotation )
+		}
+	}
+}
+*/
+
+
+void RenderQueue::Submit( int mode, int required, int excluded, float bbRotation )
 {
 	GRINLIZ_PERFTRACK	
 

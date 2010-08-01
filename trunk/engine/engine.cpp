@@ -341,10 +341,10 @@ void Engine::Draw()
 			glColor4f( color.x, color.y, color.z, 1.0f );
 			glDisable( GL_BLEND );
 
-			renderQueue->Flush( RenderQueue::MODE_IGNORE_TEXTURE | RenderQueue::MODE_IGNORE_ALPHA | RenderQueue::MODE_PLANAR_SHADOW,
-								0,
-								Model::MODEL_NO_SHADOW,
-								shadowRotation );
+			renderQueue->Submit(	RenderQueue::MODE_IGNORE_TEXTURE | RenderQueue::MODE_IGNORE_ALPHA | RenderQueue::MODE_PLANAR_SHADOW,
+									0,
+									Model::MODEL_NO_SHADOW,
+									shadowRotation );
 
 			// pop shadow-swizzle
 			{
@@ -376,19 +376,19 @@ void Engine::Draw()
 
 	EnableLights( true, map->DayTime() ? DAY_TIME : NIGHT_TIME );
 
-	renderQueue->Flush( 0,
-						QUEUE_MAIN,
-						0,
-						bbRotation );
+	renderQueue->Submit(	0,
+							QUEUE_MAIN,
+							0,
+							bbRotation );
 
 	EnableLights( false, map->DayTime() ? DAY_TIME : NIGHT_TIME );
 	glBindTexture( GL_TEXTURE_2D, 0 );
 	glColor4f( 0, 0, 0, 1 );
 
-	renderQueue->Flush( RenderQueue::MODE_IGNORE_TEXTURE | RenderQueue::MODE_IGNORE_ALPHA,
-						QUEUE_BLACK,
-						0,
-						bbRotation );
+	renderQueue->Submit(	RenderQueue::MODE_IGNORE_TEXTURE | RenderQueue::MODE_IGNORE_ALPHA,
+							QUEUE_BLACK,
+							0,
+							bbRotation );
 
 	glColor4f( 1, 1, 1, 1 );
 

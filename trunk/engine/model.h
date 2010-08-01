@@ -113,17 +113,13 @@ private:
 class Model
 {
 public:
-	Model()		{	Init( 0, 0 ); }
-	~Model()	{}
+	Model();
+	~Model();
 
 	void Init( const ModelResource* resource, SpaceTree* tree );
+	void Free();
 
-	// Queued rendering
-	enum {
-		MODEL_TEXTURE,	// use the texture of the models
-		NO_TEXTURE,		// no texture at all - shadow pass Z
-	};
-	void Queue( RenderQueue* queue, int textureState=MODEL_TEXTURE );
+	void Queue( RenderQueue* queue );
 
 	// Used by the queued rendering system:
 	void PushMatrix( bool pushTextureToo ) const;
@@ -167,7 +163,7 @@ public:
 	void SetTexXForm( float a=1.0f, float d=1.0f, float x=0.0f, float y=0.0f );
 
 	// Set the texture - overrides all textures
-	void SetTexture( Texture* t )			{ setTexture = t; }
+	void SetTexture( Texture* t );
 
 	// AABB for user selection (bigger than the true AABB)
 	void CalcHitAABB( grinliz::Rectangle3F* aabb ) const;
@@ -209,7 +205,10 @@ private:
 	float rot[3];
 	bool texMatSet;
 	TexMat texMat;
+
 	Texture* setTexture;	// overrides the default texture
+	ModelAtom* textureAtoms;		// if the texture is set, a copy of the atoms (that use the texture instead)
+
 	int flags;
 	
 	mutable bool xformValid;
