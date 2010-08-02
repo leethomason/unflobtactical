@@ -308,6 +308,7 @@ void Engine::Draw()
 #		endif
 #	endif
 
+	glDisable( GL_BLEND );
 	if ( enableMap ) {
 		// If the map is enabled, we draw the basic map plane lighted. Then draw the model shadows.
 		// The shadows are the tricky part: one matrix is used to transform the vertices to the ground
@@ -318,10 +319,11 @@ void Engine::Draw()
 		glDepthMask( GL_FALSE );
 
 		// -------- Ground plane lighted -------- //
-		Color4F color;
-		LightGroundPlane( OPEN_LIGHT, 1.0f, &color );
-		glColor4f( color.x, color.y, color.z, 1.0f );
-		map->Draw();
+		//Color4F color;
+		//LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, OPEN_LIGHT, 1.0f, &color );
+		//glColor4f( color.x, color.y, color.z, 1.0f );
+		glColor4f( 1, 1, 1, 1 );	// map provides it's own color.
+		map->DrawSeen();
 
 		// -------- Shadow casters/ground plane ---------- //
 		// Set up the planar projection matrix, with a little z offset
@@ -337,9 +339,10 @@ void Engine::Draw()
 			// test for the shadow write, below.
 			PushShadowSwizzleMatrix();
 
-			LightGroundPlane( IN_SHADOW, shadowAmount, &color );
+			// Note this isn't correct. We really need to modulate against the maps light map. But close enough.
+			Color4F color;
+			LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, IN_SHADOW, shadowAmount, &color );
 			glColor4f( color.x, color.y, color.z, 1.0f );
-			glDisable( GL_BLEND );
 
 			renderQueue->Submit(	RenderQueue::MODE_IGNORE_TEXTURE | RenderQueue::MODE_IGNORE_ALPHA | RenderQueue::MODE_PLANAR_SHADOW,
 									0,
@@ -356,15 +359,19 @@ void Engine::Draw()
 			glPopMatrix();
 
 			CHECK_GL_ERROR;
-			glEnable( GL_BLEND );
 		}
 
-		// Draw the "where can I walk" overlay.
-		glDepthFunc( GL_ALWAYS );
+		glColor4f( 0, 0, 0, 1 );
+		map->DrawUnseen();
 
+		// Draw the "where can I walk" overlay.
 		glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
-		map->DrawOverlay( 0 );
-		map->DrawFOW();
+		{
+			glEnable( GL_BLEND );
+			map->DrawOverlay( 0 );
+			glDisable( GL_BLEND );
+		}	
+//		map->DrawFOW();
 		CHECK_GL_ERROR;
 	}
 
@@ -391,17 +398,17 @@ void Engine::Draw()
 							bbRotation );
 
 	glColor4f( 1, 1, 1, 1 );
-
-
-	glDepthMask( GL_FALSE );
-	glDisable( GL_DEPTH_TEST );
 	glEnable( GL_BLEND );
+	{
+		// Map overlay
+		glDepthMask( GL_FALSE );
+		glDisable( GL_DEPTH_TEST );
 	
-	map->DrawOverlay( 1 );
+		map->DrawOverlay( 1 );
 
-	glEnable( GL_DEPTH_TEST );
-	glDepthMask( GL_TRUE );
-
+		glEnable( GL_DEPTH_TEST );
+		glDepthMask( GL_TRUE );
+	}
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 	renderQueue->Clear();
 }
@@ -453,15 +460,23 @@ void Engine::EnableLights( bool enable, DayNight dayNight )
 }
 
 
-void Engine::LightGroundPlane( ShadowState shadows, float shadowAmount, Color4F* outColor )
+void Engine::LightGroundPlane( DayNight dayNight, ShadowState shadows, float shadowAmount, Color4F* outColor )
 {
 	// The color (unshadowed) is already committed to the ground plane shadow map.
 	// This just turns shadows on and off.
-	float light = 1.0f;
-	if ( shadows == IN_SHADOW ) {
-		light = 1.0f - 0.3f*shadowAmount;
+	if ( dayNight == DAY_TIME ) {
+		outColor->Set( 1, 1, 1, 1 );
 	}
-	outColor->Set( light, light, light, 1.0f );
+	else {
+		outColor->Set( EL_NIGHT_RED, EL_NIGHT_GREEN, EL_NIGHT_BLUE, 1.0f );
+	}
+
+	if ( shadows == IN_SHADOW ) {
+		float delta = 1.0f - 0.3f*shadowAmount;
+		outColor->x *= delta;
+		outColor->y *= delta;
+		outColor->z *= delta;
+	}
 }
 
 

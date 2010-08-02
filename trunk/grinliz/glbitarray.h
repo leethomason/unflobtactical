@@ -163,7 +163,7 @@ class BitArray
 	/// Set all the bits.
 	void SetAll()				{ memset( array, 0xff, TOTAL_MEM ); }
 
-	const U32* Access32( int x, int y, int z ) { return &array[ z*PLANE32 + y*WIDTH32 + (x>>5) ]; }
+	U32 Access32( int x, int y, int z ) { return &array[ z*PLANE32 + y*WIDTH32 + (x>>5) ]; }
 
 private:
 	U32 array[ TOTAL_MEM32 ];
