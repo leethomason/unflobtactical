@@ -78,7 +78,7 @@ Map::Map( SpaceTree* tree )
 
 	backgroundSurface.Set( Surface::RGB16, MAP_TEXTURE_SIZE, MAP_TEXTURE_SIZE );
 	backgroundSurface.Clear( 0 );
-
+	/*
 	vertex[0].pos.Set( 0.0f,		0.0f, 0.0f );
 	vertex[1].pos.Set( 0.0f,		0.0f, (float)SIZE );
 	vertex[2].pos.Set( (float)SIZE, 0.0f, (float)SIZE );
@@ -98,6 +98,17 @@ Map::Map( SpaceTree* tree )
 	texture1[1].Set( 0.0f, 0.0f );
 	texture1[2].Set( 1.0f, 0.0f );
 	texture1[3].Set( 1.0f, 1.0f );
+	*/
+
+	nSeenIndex = nUnseenIndex = nFOWIndex = 0;
+	static const float INV64 = 1.0f / 64.0f;
+
+	for( int j=0; j<SIZE+1; ++j ) {
+		for( int i=0; i<SIZE+1; ++i ) {
+			mapVertex[j*(SIZE+1)+i].Set( (float)i*INV64, (float)(SIZE-j)*INV64 );
+		}
+	}
+
 
 	pathQueryID = 1;
 	visibilityQueryID = 1;
@@ -111,12 +122,14 @@ Map::Map( SpaceTree* tree )
 		lightMap[i].Set( Surface::RGB16, SIZE, SIZE );
 		lightMap[i].Clear( 0 );
 	}
-	fowSurface.Set( Surface::RGBA16, SIZE, SIZE );
+//	fowSurface.Set( Surface::RGBA16, SIZE, SIZE );
 
 	lightMapTex = texman->CreateTexture( "MapLightMap", SIZE, SIZE, Surface::RGB16, Texture::PARAM_NONE, this );
-	fowTex = texman->CreateTexture( "FOWMapTex", SIZE, SIZE, Surface::RGBA16, Texture::PARAM_NEAREST, this );
+//	fowTex = texman->CreateTexture( "FOWMapTex", SIZE, SIZE, Surface::RGBA16, Texture::PARAM_NEAREST, this );
 
 	ImageManager::Instance()->LoadImage( "objectLightMaps", &lightObject );
+
+	GLOUTPUT(( "Map created. %dK\n", sizeof( *this )/1024 ));
 }
 
 
@@ -175,40 +188,84 @@ void Map::Clear()
 }
 
 
-void Map::Draw()
+void Map::DrawSeen()
 {
 	GenerateLightMap();
 
-	U8* v = (U8*)vertex + Vertex::POS_OFFSET;
-	U8* n = (U8*)vertex + Vertex::NORMAL_OFFSET;
-	U8* t = (U8*)vertex + Vertex::TEXTURE_OFFSET;
-
 	/* Texture 0 */
+	glEnable( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, backgroundTexture->GLID() );
 
-	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), v);			// last param is offset, not ptr
-	glNormalPointer(      GL_FLOAT, sizeof(Vertex), n);		
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), t); 
+	glDisableClientState( GL_NORMAL_ARRAY );
+	glVertexPointer(   2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);
+	glTexCoordPointer( 2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);	// points to same thing.
+	CHECK_GL_ERROR
 	
+#if 1
 	/* Texture 1 */
 	glActiveTexture( GL_TEXTURE1 );
 	glClientActiveTexture( GL_TEXTURE1 );
 	glEnable( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, lightMapTex->GLID() );
 	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-	glTexCoordPointer( 2, GL_FLOAT, 0, texture1 );
+
+	glTexCoordPointer( 2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);	// points to same thing.
 
 	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-	CHECK_GL_ERROR
+	CHECK_GL_ERROR;
+#endif
 
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
-	trianglesRendered += 2;
+	// the vertices are storred in texture coordinates, to use less space.
+	glPushMatrix();
+	Matrix4 swizzle;
+	swizzle.m11 = 64.0f;
+	swizzle.m22 = 0.0f;
+	swizzle.m32 = -64.0f;	swizzle.m33 = 0.0f;		swizzle.m34 = 64.0f;
+	glMultMatrixf( swizzle.x );
+
+	glDrawElements( GL_TRIANGLES, nSeenIndex, GL_UNSIGNED_SHORT, seenIndex );
+	trianglesRendered += nSeenIndex/3;
 	drawCalls++;
 
+	glPopMatrix();
+
+#if 1
 	glDisable( GL_TEXTURE_2D );
 	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 	glClientActiveTexture( GL_TEXTURE0 );
 	glActiveTexture( GL_TEXTURE0 );
+#endif
+	glEnableClientState( GL_NORMAL_ARRAY );
+	CHECK_GL_ERROR
+}
+
+
+void Map::DrawUnseen()
+{
+	GenerateLightMap();
+
+	glDisable( GL_TEXTURE_2D );
+	glDisable( GL_BLEND );
+	glDisableClientState( GL_NORMAL_ARRAY );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+
+	glVertexPointer(   2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);
+
+	glPushMatrix();
+	Matrix4 swizzle;
+	swizzle.m11 = 64.0f;
+	swizzle.m22 = 0.0f;
+	swizzle.m32 = -64.0f;	swizzle.m33 = 0.0f;		swizzle.m34 = 64.0f;
+	glMultMatrixf( swizzle.x );
+
+	glDrawElements( GL_TRIANGLES, nUnseenIndex, GL_UNSIGNED_SHORT, unseenIndex );
+	trianglesRendered += nUnseenIndex/3;
+	drawCalls++;
+
+	glPopMatrix();
+	glEnable( GL_TEXTURE_2D );
+	glEnableClientState( GL_NORMAL_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
 	CHECK_GL_ERROR
 }
@@ -223,6 +280,7 @@ void Map::DrawOverlay( int layer )
 }
 
 
+/*
 void Map::DrawFOW()
 {
 	U8* v = (U8*)vertex + Vertex::POS_OFFSET;
@@ -248,14 +306,14 @@ void Map::DrawFOW()
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	glDisable( GL_BLEND );
 }
+*/
 
+/*
 
 void Map::BindTextureUnits()
 {
-	/* Texture 0 */
 	glBindTexture( GL_TEXTURE_2D, backgroundTexture->GLID() );
 
-	/* Texture 1 */
 	glActiveTexture( GL_TEXTURE1 );
 	glClientActiveTexture( GL_TEXTURE1 );
 	glEnable( GL_TEXTURE_2D );
@@ -279,6 +337,7 @@ void Map::UnBindTextureUnits()
 	glClientActiveTexture( GL_TEXTURE0 );
 	glActiveTexture( GL_TEXTURE0 );
 }
+*/
 
 
 void Map::MapImageToWorld( int x, int y, int w, int h, int tileRotation, Matrix2I* m )
@@ -462,7 +521,9 @@ void Map::GenerateLightMap()
 				}
 			}
 		}
+		lightMapTex->Upload( lightMap[1] );
 
+		/*
 		for( int j=invalidLightMap.min.y; j<=invalidLightMap.max.y; ++j ) {
 			for( int i=invalidLightMap.min.x; i<=invalidLightMap.max.x; ++i ) {
 
@@ -482,8 +543,40 @@ void Map::GenerateLightMap()
 				}
 			}
 		}
-		lightMapTex->Upload( lightMap[1] );
 		fowTex->Upload( fowSurface );
+		*/
+
+		// Test case: 
+		nSeenIndex = nUnseenIndex = nFOWIndex = 0;
+
+		for( int j=0; j<height; ++j ) {
+			for( int i=0; i<width; ++i ) {
+
+#if defined( SHOW_FOW )
+				if ( true ) {
+#else
+				if ( fogOfWar.IsSet( i, j ) ) {
+#endif
+					seenIndex[ nSeenIndex++ ] = (j+0)*(SIZE+1)+(i+0);
+					seenIndex[ nSeenIndex++ ] = (j+1)*(SIZE+1)+(i+0);
+					seenIndex[ nSeenIndex++ ] = (j+1)*(SIZE+1)+(i+1);
+
+					seenIndex[ nSeenIndex++ ] = (j+0)*(SIZE+1)+(i+0);
+					seenIndex[ nSeenIndex++ ] = (j+1)*(SIZE+1)+(i+1);
+					seenIndex[ nSeenIndex++ ] = (j+0)*(SIZE+1)+(i+1);
+				}
+				else {
+					unseenIndex[ nUnseenIndex++ ] = (j+0)*(SIZE+1)+(i+0);
+					unseenIndex[ nUnseenIndex++ ] = (j+1)*(SIZE+1)+(i+0);
+					unseenIndex[ nUnseenIndex++ ] = (j+1)*(SIZE+1)+(i+1);
+
+					unseenIndex[ nUnseenIndex++ ] = (j+0)*(SIZE+1)+(i+0);
+					unseenIndex[ nUnseenIndex++ ] = (j+1)*(SIZE+1)+(i+1);
+					unseenIndex[ nUnseenIndex++ ] = (j+0)*(SIZE+1)+(i+1);
+				}
+			}
+		}
+
 		invalidLightMap.Set( 0, 0, -1, -1 );
 	}
 }
@@ -1857,9 +1950,9 @@ void Map::QuadTree::Add( MapItem* item )
 	tree[i] = item;
 	depthUse[d] += 1;
 
-	GLOUTPUT(( "QuadTree::Add %x id=%d (%d,%d)-(%d,%d) at depth=%d\n", item, item->itemDefIndex,
-				item->mapBounds8.min.x, item->mapBounds8.min.y, item->mapBounds8.max.x, item->mapBounds8.max.y,
-				d ));
+//	GLOUTPUT(( "QuadTree::Add %x id=%d (%d,%d)-(%d,%d) at depth=%d\n", item, item->itemDefIndex,
+//				item->mapBounds8.min.x, item->mapBounds8.min.y, item->mapBounds8.max.x, item->mapBounds8.max.y,
+//				d ));
 
 	//GLOUTPUT(( "Depth: %2d %2d %2d %2d %2d\n", 
 	//		   depthUse[0], depthUse[1], depthUse[2], depthUse[3], depthUse[4] ));
@@ -1873,7 +1966,7 @@ void Map::QuadTree::UnlinkItem( MapItem* item )
 	depthUse[d] -= 1;
 	GLASSERT( tree[index] ); // the item should be in the linked list somewhere.
 
-	GLOUTPUT(( "QuadTree::UnlinkItem %x id=%d\n", item, item->itemDefIndex ));
+//	GLOUTPUT(( "QuadTree::UnlinkItem %x id=%d\n", item, item->itemDefIndex ));
 
 	MapItem* prev = 0;
 	for( MapItem* p=tree[index]; p; prev=p, p=p->nextQuad ) {
@@ -2002,9 +2095,9 @@ void Map::CreateTexture( Texture* t )
 	else if ( t == lightMapTex ) {
 		t->Upload( lightMap[1] );
 	}
-	else if ( t == fowTex ) {
-		t->Upload( fowSurface );
-	}
+//	else if ( t == fowTex ) {
+//		t->Upload( fowSurface );
+//	}
 	else {
 		GLASSERT( 0 );
 	}

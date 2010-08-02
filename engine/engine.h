@@ -133,7 +133,7 @@ private:
 	//void DrawCamera();
 	void CalcCameraRotation( grinliz::Matrix4* );
 	void EnableLights( bool enable, DayNight dayNight );
-	void LightGroundPlane( ShadowState shadows, float shadowAmount, Color4F* outColor );
+	void LightGroundPlane( DayNight dayNight, ShadowState shadows, float shadowAmount, Color4F* outColor );
 
 	void PushShadowSwizzleMatrix();
 

@@ -628,6 +628,7 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 		}
 		UpdateInventory();
 
+#if 0
 		GLOUTPUT(( "Unit loaded: team=%d STR=%d DEX=%d PSY=%d rank=%d hp=%d/%d acc=%.2f\n",
 					this->team,
 					this->stats.STR(),
@@ -637,6 +638,7 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 					hp,
 					this->stats.TotalHP(),
 					this->stats.Accuracy() ));
+#endif
 	}
 }
 

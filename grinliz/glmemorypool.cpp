@@ -57,15 +57,15 @@ MemoryPool::MemoryPool( const char* _name, unsigned _objectSize, unsigned _block
 	rootBlock = 0;
 	head = 0;
 
-	GLOUTPUT(( "Memory pool '%s' created.\n", _name ));
+//	GLOUTPUT(( "Memory pool '%s' created.\n", _name ));
 }
 
 
 MemoryPool::~MemoryPool()
 {
 	#ifdef DEBUG
-	GLOUTPUT(( "Memory pool '%s' destroyed. #blocks=%d usedKB=%d/%d\n", 
-			   name, numBlocks, MemoryInUseWatermark()/1024, MemoryAllocated()/1024 ));
+//	GLOUTPUT(( "Memory pool '%s' destroyed. #blocks=%d usedKB=%d/%d\n", 
+//			   name, numBlocks, MemoryInUseWatermark()/1024, MemoryAllocated()/1024 ));
 	GLASSERT( numObjects == 0 );
 	#endif
 	FreePool();
