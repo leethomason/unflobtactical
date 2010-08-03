@@ -243,12 +243,9 @@ public:
 	// Not currently used: 2: Light map 0 + lights + FogOfWar
 	const Surface* GetLightMap( int i)	{ GLASSERT( i>=0 && i<2 ); GenerateLightMap(); return &lightMap[i]; }
 
-	// Rendering.
-//	void BindTextureUnits();
-//	void UnBindTextureUnits();
-
 	void DrawSeen();		//< draw the map that is currently visible
 	void DrawUnseen();		//< draw the map that currently can't be seen
+	void DrawPastSeen();		//< draw the map that currently can't be seen
 
 	void DrawPath();		//< debugging
 	void DrawOverlay( int layer );		//< draw the "where can I walk" alpha overlay. Set up by ShowNearPath().
@@ -447,8 +444,9 @@ private:
 
 	Texture* backgroundTexture;		// background texture
 	Surface backgroundSurface;		// background surface
-	//Vertex vertex[4];
-	//grinliz::Vector2F texture1[4];
+
+	Texture* greyTexture;			// version for previous seen terrain
+	Surface greySurface;
 
 	enum { MAX_IMAGE_DATA = 16 };
 	struct ImageData {
@@ -469,6 +467,7 @@ private:
 	Surface dayMap, nightMap;
 	grinliz::Rectangle2I invalidLightMap;
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWar;
+	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> pastSeenFOW;
 	Surface lightObject;
 
 	U32 pathQueryID;
@@ -520,11 +519,11 @@ private:
 	grinliz::Vector2I					guardPos[MAX_GUARD_SCOUT];
 	grinliz::Vector2I					scoutPos[MAX_GUARD_SCOUT];
 
-	int									nSeenIndex, nUnseenIndex, nFOWIndex;
+	int									nSeenIndex, nUnseenIndex, nPastSeenIndex;
 	grinliz::Vector2F					mapVertex[(SIZE+1)*(SIZE+1)];		// in TEXTURE coordinates - need to scale up and swizzle for vertices.
 	U16									seenIndex[SIZE*SIZE*6];		
 	U16									unseenIndex[SIZE*SIZE*6];		
-	U16									fowIndex[SIZE*SIZE*6];		
+	U16									pastSeenIndex[SIZE*SIZE*6];		
 };
 
 #endif // UFOATTACK_MAP_INCLUDED

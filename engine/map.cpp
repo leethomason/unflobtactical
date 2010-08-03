@@ -67,40 +67,26 @@ Map::Map( SpaceTree* tree )
 	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
 
 	gamui::RenderAtom borderAtom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_DARK, 1, 1, true );
+#ifdef DEBUG_VISIBILITY
+	borderAtom.renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
+#else
 	borderAtom.renderState = (const void*) RENDERSTATE_MAP_OPAQUE;
+#endif
 	for( int i=0; i<4; ++i ) {
 		border[i].Init( &overlay1, borderAtom );
 	}
 
-	//texture.Set( "MapBackground", 0, false );
+	// FIXME: need a release texture, since the map can be destroyed. Doesn't leak, but needlessly holds resources.
 	TextureManager* texman = TextureManager::Instance();
 	backgroundTexture = texman->CreateTexture( "MapBackground", MAP_TEXTURE_SIZE, MAP_TEXTURE_SIZE, Surface::RGB16, Texture::PARAM_NONE, this );
+	greyTexture = texman->CreateTexture( "MapGrey", MAP_TEXTURE_SIZE/2, MAP_TEXTURE_SIZE/2, Surface::RGB16, Texture::PARAM_NONE, this );
 
 	backgroundSurface.Set( Surface::RGB16, MAP_TEXTURE_SIZE, MAP_TEXTURE_SIZE );
 	backgroundSurface.Clear( 0 );
-	/*
-	vertex[0].pos.Set( 0.0f,		0.0f, 0.0f );
-	vertex[1].pos.Set( 0.0f,		0.0f, (float)SIZE );
-	vertex[2].pos.Set( (float)SIZE, 0.0f, (float)SIZE );
-	vertex[3].pos.Set( (float)SIZE, 0.0f, 0.0f );
+	greySurface.Set( Surface::RGB16, MAP_TEXTURE_SIZE/2, MAP_TEXTURE_SIZE/2 );
+	greySurface.Clear( 0 );
 
-	vertex[0].tex.Set( 0.0f, 1.0f );
-	vertex[1].tex.Set( 0.0f, 0.0f );
-	vertex[2].tex.Set( 1.0f, 0.0f );
-	vertex[3].tex.Set( 1.0f, 1.0f );
-
-	vertex[0].normal.Set( 0.0f, 1.0f, 0.0f );
-	vertex[1].normal.Set( 0.0f, 1.0f, 0.0f );
-	vertex[2].normal.Set( 0.0f, 1.0f, 0.0f );
-	vertex[3].normal.Set( 0.0f, 1.0f, 0.0f );
-
-	texture1[0].Set( 0.0f, 1.0f );
-	texture1[1].Set( 0.0f, 0.0f );
-	texture1[2].Set( 1.0f, 0.0f );
-	texture1[3].Set( 1.0f, 1.0f );
-	*/
-
-	nSeenIndex = nUnseenIndex = nFOWIndex = 0;
+	nSeenIndex = nUnseenIndex = nPastSeenIndex = 0;
 	static const float INV64 = 1.0f / 64.0f;
 
 	for( int j=0; j<SIZE+1; ++j ) {
@@ -191,7 +177,34 @@ void Map::Clear()
 void Map::DrawSeen()
 {
 	GenerateLightMap();
+	if ( nSeenIndex == 0 )
+		return;
 
+#ifdef DEBUG_VISIBILITY
+	glColor4f( 0, 1, 0, 1 );
+	glDisable( GL_TEXTURE_2D );
+	glDisable( GL_BLEND );
+	glDisableClientState( GL_NORMAL_ARRAY );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+
+	glVertexPointer(   2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);
+
+	glPushMatrix();
+	Matrix4 swizzle;
+	swizzle.m11 = 64.0f;
+	swizzle.m22 = 0.0f;
+	swizzle.m32 = -64.0f;	swizzle.m33 = 0.0f;		swizzle.m34 = 64.0f;
+	glMultMatrixf( swizzle.x );
+
+	glDrawElements( GL_TRIANGLES, nSeenIndex, GL_UNSIGNED_SHORT, seenIndex );
+	trianglesRendered += nUnseenIndex/3;
+	drawCalls++;
+
+	glPopMatrix();
+	glEnable( GL_TEXTURE_2D );
+	glEnableClientState( GL_NORMAL_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+#else
 	/* Texture 0 */
 	glEnable( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, backgroundTexture->GLID() );
@@ -235,6 +248,7 @@ void Map::DrawSeen()
 	glClientActiveTexture( GL_TEXTURE0 );
 	glActiveTexture( GL_TEXTURE0 );
 #endif
+#endif		// DEBUG_VISIBILITY
 	glEnableClientState( GL_NORMAL_ARRAY );
 	CHECK_GL_ERROR
 }
@@ -243,7 +257,11 @@ void Map::DrawSeen()
 void Map::DrawUnseen()
 {
 	GenerateLightMap();
+	if ( nUnseenIndex == 0 )
+		return;
 
+#ifdef DEBUG_VISIBILITY
+	glColor4f( 1, 0, 0, 1 );
 	glDisable( GL_TEXTURE_2D );
 	glDisable( GL_BLEND );
 	glDisableClientState( GL_NORMAL_ARRAY );
@@ -267,8 +285,115 @@ void Map::DrawUnseen()
 	glEnableClientState( GL_NORMAL_ARRAY );
 	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
+#else
+	glDisable( GL_TEXTURE_2D );
+	glDisable( GL_BLEND );
+	glDisableClientState( GL_NORMAL_ARRAY );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+
+	glVertexPointer(   2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);
+
+	glPushMatrix();
+	Matrix4 swizzle;
+	swizzle.m11 = 64.0f;
+	swizzle.m22 = 0.0f;
+	swizzle.m32 = -64.0f;	swizzle.m33 = 0.0f;		swizzle.m34 = 64.0f;
+	glMultMatrixf( swizzle.x );
+
+	glDrawElements( GL_TRIANGLES, nUnseenIndex, GL_UNSIGNED_SHORT, unseenIndex );
+	trianglesRendered += nUnseenIndex/3;
+	drawCalls++;
+
+	glPopMatrix();
+	glEnable( GL_TEXTURE_2D );
+	glEnableClientState( GL_NORMAL_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+#endif
 	CHECK_GL_ERROR
 }
+
+
+void Map::DrawPastSeen()
+{
+	GenerateLightMap();
+	if ( nPastSeenIndex == 0 )
+		return;
+
+#ifdef DEBUG_VISIBILITY
+	glColor4f( 0, 0, 1, 1 );
+	glDisable( GL_TEXTURE_2D );
+	glDisable( GL_BLEND );
+	glDisableClientState( GL_NORMAL_ARRAY );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+
+	glVertexPointer(   2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);
+
+	glPushMatrix();
+	Matrix4 swizzle;
+	swizzle.m11 = 64.0f;
+	swizzle.m22 = 0.0f;
+	swizzle.m32 = -64.0f;	swizzle.m33 = 0.0f;		swizzle.m34 = 64.0f;
+	glMultMatrixf( swizzle.x );
+
+	glDrawElements( GL_TRIANGLES, nPastSeenIndex, GL_UNSIGNED_SHORT, pastSeenIndex );
+	trianglesRendered += nUnseenIndex/3;
+	drawCalls++;
+
+	glPopMatrix();
+	glEnable( GL_TEXTURE_2D );
+	glEnableClientState( GL_NORMAL_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+#else
+
+	/* Texture 0 */
+	glEnable( GL_TEXTURE_2D );
+	glBindTexture( GL_TEXTURE_2D, greyTexture->GLID() );
+
+	glDisableClientState( GL_NORMAL_ARRAY );
+	glVertexPointer(   2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);
+	glTexCoordPointer( 2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);	// points to same thing.
+	CHECK_GL_ERROR
+	
+#if 0
+	/* Texture 1 */
+	glActiveTexture( GL_TEXTURE1 );
+	glClientActiveTexture( GL_TEXTURE1 );
+	glEnable( GL_TEXTURE_2D );
+	glBindTexture( GL_TEXTURE_2D, lightMapTex->GLID() );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+	glTexCoordPointer( 2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);	// points to same thing.
+
+	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+	CHECK_GL_ERROR;
+#endif
+
+	// the vertices are storred in texture coordinates, to use less space.
+	glPushMatrix();
+	Matrix4 swizzle;
+	swizzle.m11 = 64.0f;
+	swizzle.m22 = 0.0f;
+	swizzle.m32 = -64.0f;	swizzle.m33 = 0.0f;		swizzle.m34 = 64.0f;
+	glMultMatrixf( swizzle.x );
+
+	glDrawElements( GL_TRIANGLES, nPastSeenIndex, GL_UNSIGNED_SHORT, pastSeenIndex );
+	trianglesRendered += nSeenIndex/3;
+	drawCalls++;
+
+	glPopMatrix();
+
+#if 0
+	glDisable( GL_TEXTURE_2D );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+	glClientActiveTexture( GL_TEXTURE0 );
+	glActiveTexture( GL_TEXTURE0 );
+#endif
+	glEnableClientState( GL_NORMAL_ARRAY );
+#endif
+	CHECK_GL_ERROR
+}
+
 
 
 void Map::DrawOverlay( int layer )
@@ -278,66 +403,6 @@ void Map::DrawOverlay( int layer )
 	else
 		overlay1.Render();
 }
-
-
-/*
-void Map::DrawFOW()
-{
-	U8* v = (U8*)vertex + Vertex::POS_OFFSET;
-	U8* t = (U8*)vertex + Vertex::TEXTURE_OFFSET;
-
-	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
-
-	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), v);			// last param is offset, not ptr
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), t); 
-
-	glBindTexture( GL_TEXTURE_2D, fowTex->GLID() );
-	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), v);
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), t); 
-	glDisableClientState( GL_NORMAL_ARRAY );
-	glEnable( GL_BLEND );
-
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
-	trianglesRendered += 2;
-	drawCalls++;
-
-	glEnableClientState( GL_NORMAL_ARRAY );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	glDisable( GL_BLEND );
-}
-*/
-
-/*
-
-void Map::BindTextureUnits()
-{
-	glBindTexture( GL_TEXTURE_2D, backgroundTexture->GLID() );
-
-	glActiveTexture( GL_TEXTURE1 );
-	glClientActiveTexture( GL_TEXTURE1 );
-	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, lightMapTex->GLID() );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-	glTexCoordPointer( 2, GL_FLOAT, 0, texture1 );
-
-	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-	
-	CHECK_GL_ERROR
-}
-
-
-void Map::UnBindTextureUnits()
-{
-	glActiveTexture( GL_TEXTURE1 );
-	glClientActiveTexture( GL_TEXTURE1 );
-	glDisable( GL_TEXTURE_2D );
-
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-	glClientActiveTexture( GL_TEXTURE0 );
-	glActiveTexture( GL_TEXTURE0 );
-}
-*/
 
 
 void Map::MapImageToWorld( int x, int y, int w, int h, int tileRotation, Matrix2I* m )
@@ -375,9 +440,11 @@ void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
 	Rectangle2I src;
 	src.Set( 0, 0, s->Width()-1, s->Height()-1 );
 
+	Rectangle2I target;
+	target.Set( x, y, x+s->Width()-1, y+s->Height()-1 );	// always square for this to work, obviously.
+
 	if ( tileRotation == 0 ) {
-		Vector2I target = { x, y };
-		backgroundSurface.BlitImg( target, s, src );
+		backgroundSurface.BlitImg( target.min, s, src );
 	}
 	else 
 	{
@@ -385,11 +452,35 @@ void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
 		MapImageToWorld( x, y, s->Width(), s->Height(), tileRotation, &m );
 		m.Invert( &inv );
 		
-		Rectangle2I target;
-		target.Set( x, y, x+s->Width()-1, y+s->Height()-1 );
 		backgroundSurface.BlitImg( target, s, inv );
 	}
+
+	Rectangle2I greyTarget;
+	greyTarget.Set( target.min.x/2, target.min.y/2, target.max.x/2, target.max.y/2 );
+	for( int j=greyTarget.min.y; j<=greyTarget.max.y; ++j ) {
+		for( int i=greyTarget.min.x; i<=greyTarget.max.x; ++i ) {
+			Surface::RGBA rgba0 = Surface::CalcRGB16( backgroundSurface.GetImg16( i*2+0, j*2+0 ) );
+			Surface::RGBA rgba1 = Surface::CalcRGB16( backgroundSurface.GetImg16( i*2+1, j*2+0 ) );
+			Surface::RGBA rgba2 = Surface::CalcRGB16( backgroundSurface.GetImg16( i*2+0, j*2+1 ) );
+			Surface::RGBA rgba3 = Surface::CalcRGB16( backgroundSurface.GetImg16( i*2+1, j*2+1 ) );
+
+			int c = (  rgba0.r + rgba0.g + rgba0.g + rgba0.b 
+				     + rgba1.r + rgba1.g + rgba1.g + rgba1.b 
+				     + rgba2.r + rgba2.g + rgba2.g + rgba2.b 
+				     + rgba3.r + rgba3.g + rgba3.g + rgba3.b ) >> 4; 
+			
+			GLASSERT( c >= 0 && c < 255 );
+			Surface::RGBA grey = { (U8)c, (U8)c, (U8)c, 255 };
+			//Surface::RGBA grey = { 128, 128, 128, 255 };
+			//Surface::RGBA test = Surface::CalcRGB16( Surface::CalcRGB16( grey ) );
+
+			greySurface.SetImg16( i, j, Surface::CalcRGB16( grey ) );
+		}
+	}
+
+
 	backgroundTexture->Upload( backgroundSurface );
+	greyTexture->Upload( greySurface );
 }
 
 
@@ -456,6 +547,7 @@ grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* Map::LockFogOfWar()
 void Map::ReleaseFogOfWar()
 {
 	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
+	pastSeenFOW.DoUnion( fogOfWar );
 }
 
 
@@ -523,59 +615,67 @@ void Map::GenerateLightMap()
 		}
 		lightMapTex->Upload( lightMap[1] );
 
-		/*
-		for( int j=invalidLightMap.min.y; j<=invalidLightMap.max.y; ++j ) {
-			for( int i=invalidLightMap.min.x; i<=invalidLightMap.max.x; ++i ) {
-
-#if defined( SHOW_FOW )
-				if ( true ) {
-#else
-				if ( fogOfWar.IsSet( i, j ) ) {
-#endif
-					Surface::RGBA transparentBlack = { 0, 0, 0, 0 };
-					U16 c = Surface::CalcRGBA16( transparentBlack );
-					fowSurface.SetImg16( i, j, c );
-				}
-				else {
-					Surface::RGBA opaqueBlack = { 0, 0, 0, 255 };
-					U16 c = Surface::CalcRGBA16( opaqueBlack );
-					fowSurface.SetImg16( i, j, c );
-				}
-			}
-		}
-		fowTex->Upload( fowSurface );
-		*/
-
 		// Test case: 
-		nSeenIndex = nUnseenIndex = nFOWIndex = 0;
+		// (continue, back) 8.9 k/f
+		// Go to strip creation: 5.9 k/f
+
+#define PUSHQUAD( _arr, _index, _x0, _x1, _y ) \
+			_arr[ _index++ ] = (_y+0)*(SIZE+1)+(_x0);	\
+			_arr[ _index++ ] = (_y+1)*(SIZE+1)+(_x0);	\
+			_arr[ _index++ ] = (_y+1)*(SIZE+1)+(_x1);	\
+			_arr[ _index++ ] = (_y+0)*(SIZE+1)+(_x0);	\
+			_arr[ _index++ ] = (_y+1)*(SIZE+1)+(_x1);	\
+			_arr[ _index++ ] = (_y+0)*(SIZE+1)+(_x1);	
+
+		int countArr[3] = { 0, 0, 0 };
+		nSeenIndex = nUnseenIndex = nPastSeenIndex = 0;
 
 		for( int j=0; j<height; ++j ) {
-			for( int i=0; i<width; ++i ) {
+			for( int i=0; i<width; i += 32 ) {
 
-#if defined( SHOW_FOW )
-				if ( true ) {
-#else
-				if ( fogOfWar.IsSet( i, j ) ) {
-#endif
-					seenIndex[ nSeenIndex++ ] = (j+0)*(SIZE+1)+(i+0);
-					seenIndex[ nSeenIndex++ ] = (j+1)*(SIZE+1)+(i+0);
-					seenIndex[ nSeenIndex++ ] = (j+1)*(SIZE+1)+(i+1);
+				U32 fog = fogOfWar.Access32( i, j, 0 );
+				U32 past = pastSeenFOW.Access32( i, j, 0 );
 
-					seenIndex[ nSeenIndex++ ] = (j+0)*(SIZE+1)+(i+0);
-					seenIndex[ nSeenIndex++ ] = (j+1)*(SIZE+1)+(i+1);
-					seenIndex[ nSeenIndex++ ] = (j+0)*(SIZE+1)+(i+1);
+				past = past ^ fog;				// if the fog is set, then we don't draw the past.
+				U32 unseen = ~( fog | past );	// everything else unseen.
+
+				if ( i+32 > width ) {
+					// mask off the end bits.
+					U32 mask = (1<<(width-i))-1;
+
+					fog &= mask;
+					past &= mask;
+					unseen &= mask;
 				}
-				else {
-					unseenIndex[ nUnseenIndex++ ] = (j+0)*(SIZE+1)+(i+0);
-					unseenIndex[ nUnseenIndex++ ] = (j+1)*(SIZE+1)+(i+0);
-					unseenIndex[ nUnseenIndex++ ] = (j+1)*(SIZE+1)+(i+1);
 
-					unseenIndex[ nUnseenIndex++ ] = (j+0)*(SIZE+1)+(i+0);
-					unseenIndex[ nUnseenIndex++ ] = (j+1)*(SIZE+1)+(i+1);
-					unseenIndex[ nUnseenIndex++ ] = (j+0)*(SIZE+1)+(i+1);
+				const U32 arr[3] = { fog, past, unseen };
+				U16* indexArr[3] = { seenIndex, pastSeenIndex, unseenIndex };
+
+				for ( int k=0; k<3; ++k ) {
+
+					int start=0;
+					while( start < 32 ) {
+						int end = start+1;
+
+						if ( (1<<start) & arr[k] ) {
+							while( end < 32 ) {
+								if ( ((1<<end) & arr[k] ) == 0 ) {
+									break;
+								}
+								++end;
+							}
+							PUSHQUAD( indexArr[k], countArr[k], i+start, i+end, j );
+						}
+						start = end;
+					}
 				}
 			}
 		}
+		nSeenIndex = countArr[0];
+		nPastSeenIndex = countArr[1];
+		nUnseenIndex = countArr[2];
+
+#undef PUSHQUAD
 
 		invalidLightMap.Set( 0, 0, -1, -1 );
 	}
@@ -1109,6 +1209,14 @@ void Map::Save( TiXmlElement* mapElement )
 	mapElement->SetAttribute( "sizeX", width );
 	mapElement->SetAttribute( "sizeY", height );
 
+	TiXmlElement* pastSeenElement = new TiXmlElement( "Seen" );
+	mapElement->LinkEndChild( pastSeenElement );
+	
+	char buf[BitArray<Map::SIZE, Map::SIZE, 1>::STRING_SIZE];
+	pastSeenFOW.ToString( buf );
+	TiXmlText* pastSeenText = new TiXmlText( buf );
+	pastSeenElement->LinkEndChild( pastSeenText );
+
 	TiXmlElement* itemsElement = new TiXmlElement( "Items" );
 	mapElement->LinkEndChild( itemsElement );
 
@@ -1182,6 +1290,15 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 	mapElement->QueryIntAttribute( "sizeY", &sizeY );
 	SetSize( sizeX, sizeY );
 	nImageData = 0;
+
+	pastSeenFOW.ClearAll();
+	const TiXmlElement* pastSeenElement = mapElement->FirstChildElement( "Seen" );
+	if ( pastSeenElement ) {
+		const char* p = pastSeenElement->GetText();
+		if ( p ) {
+			pastSeenFOW.FromString( p );
+		}
+	}
 
 	const TiXmlElement* imagesElement = mapElement->FirstChildElement( "Images" );
 	if ( imagesElement ) {
@@ -2092,12 +2209,12 @@ void Map::CreateTexture( Texture* t )
 	if ( t == backgroundTexture ) {
 		t->Upload( backgroundSurface );
 	}
+	else if ( t == greyTexture ) {
+		t->Upload( greySurface );
+	}
 	else if ( t == lightMapTex ) {
 		t->Upload( lightMap[1] );
 	}
-//	else if ( t == fowTex ) {
-//		t->Upload( fowSurface );
-//	}
 	else {
 		GLASSERT( 0 );
 	}
