@@ -3,8 +3,6 @@ Issues:
 Bugs:
 - cani/canx -> canon
 - add slug gun resources
-
-- grey zone where previously seen
 - trees show up in the wrong place
 - alien doors not wide enough - block shots
 - support drag in character screen
@@ -50,6 +48,7 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- grey zone where previously seen
 - AI objects 
 - add random sequence to low bits of random # gen
 - improve gamui toggle buttons - when looking for a default button, prefer visible & enabled

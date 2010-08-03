@@ -247,7 +247,7 @@ void Engine::Draw()
 	CalcFrustumPlanes( planes );
 	Model* modelRoot = spaceTree->Query( planes, 6, 0, 0, false );
 	
-	// Process the models into the render queue.
+	// ------------ Process the models into the render queue -----------
 	GLASSERT( renderQueue->Empty() );
 
 	const int QUEUE_MAIN	= 0x010000;
@@ -308,6 +308,7 @@ void Engine::Draw()
 #		endif
 #	endif
 
+	// ----------- Render Passess ---------- //
 	glDisable( GL_BLEND );
 	if ( enableMap ) {
 		// If the map is enabled, we draw the basic map plane lighted. Then draw the model shadows.
@@ -319,7 +320,7 @@ void Engine::Draw()
 		glDepthMask( GL_FALSE );
 
 		// -------- Ground plane lighted -------- //
-		//Color4F color;
+		Color4F color;
 		//LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, OPEN_LIGHT, 1.0f, &color );
 		//glColor4f( color.x, color.y, color.z, 1.0f );
 		glColor4f( 1, 1, 1, 1 );	// map provides it's own color.
@@ -340,7 +341,6 @@ void Engine::Draw()
 			PushShadowSwizzleMatrix();
 
 			// Note this isn't correct. We really need to modulate against the maps light map. But close enough.
-			Color4F color;
 			LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, IN_SHADOW, shadowAmount, &color );
 			glColor4f( color.x, color.y, color.z, 1.0f );
 
@@ -361,6 +361,14 @@ void Engine::Draw()
 			CHECK_GL_ERROR;
 		}
 
+
+		LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, OPEN_LIGHT, 0, &color );
+		float ave = 0.7f*(color.x + color.y + color.z)*0.333f;
+		glColor4f( ave, ave, ave, 1.0f );
+		//glColor4f( 1, 1, 1, 1 );
+		//glColor4f( color.x, color.y, color.z, 1 );
+		map->DrawPastSeen();
+
 		glColor4f( 0, 0, 0, 1 );
 		map->DrawUnseen();
 
@@ -375,7 +383,7 @@ void Engine::Draw()
 		CHECK_GL_ERROR;
 	}
 
-	// -------- Models in light ---------- //
+	// -------- Models ---------- //
 	glDepthMask( GL_TRUE );
 	glEnable( GL_TEXTURE_2D );
 	glDepthFunc( GL_LEQUAL );

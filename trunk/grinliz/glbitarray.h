@@ -158,12 +158,49 @@ class BitArray
 		return count;
 	}
 
+	void DoUnion( const BitArray< WIDTH, HEIGHT, DEPTH >& rhs ) {
+		for( int i=0; i<TOTAL_MEM32; ++i ) {
+			array[i] |= rhs.array[i];
+		}
+	}
+
 	/// Clear all the bits.
 	void ClearAll()				{ memset( array, 0, TOTAL_MEM ); }
 	/// Set all the bits.
 	void SetAll()				{ memset( array, 0xff, TOTAL_MEM ); }
 
-	U32 Access32( int x, int y, int z ) { return &array[ z*PLANE32 + y*WIDTH32 + (x>>5) ]; }
+	U32 Access32( int x, int y, int z ) { return array[ z*PLANE32 + y*WIDTH32 + (x>>5) ]; }
+
+	// 0xffffffff
+	enum { STRING_SIZE = TOTAL_MEM32*8 + 1 };
+
+	void ToString( char* str ) const {
+		for( int i=0; i<TOTAL_MEM32; ++i ) {
+			for( int k=7; k>=0; --k ) {
+				U32 nybble = ( array[i] >> (k*4) ) & 0x0f;
+				*str++ = ( nybble < 10 ) ? ('0'+nybble) : ('a'+(nybble-10));
+			}
+		}
+		*str = 0;
+	}
+
+	void FromString( const char* str ) {
+		ClearAll();
+		for( int i=0; i<TOTAL_MEM32; ++i ) {
+			for( int nybble = 7; nybble >= 0; --nybble, ++str ) {
+				if ( *str >= '0' && *str <= '9') {
+					array[i] |= (*str-'0')<<(nybble*4);
+				}
+				else if (*str >= 'a' && *str <= 'f' ) {
+					array[i] |= (*str-'a'+10)<<(nybble*4);
+				}
+				else {
+					GLASSERT( 0 );
+					break;
+				}
+			}
+		}
+	}
 
 private:
 	U32 array[ TOTAL_MEM32 ];
