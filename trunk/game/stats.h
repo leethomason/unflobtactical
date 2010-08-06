@@ -61,9 +61,9 @@ public:
 	// Computed:
 	int TotalHP() const			{ return totalHP; }
 
-	float TotalTU() const	{ return totalTU; }		// one TU is one move
-	float Accuracy() const	{ return accuracy; }	// radius at 1 unit out
-	float Reaction() const	{ return reaction; }	// 0.0-1.0. The chance of reaction fire
+	float TotalTU() const	{ return totalTU; }			// one TU is one move
+	float AccuracyArea() const	{ return accuracy; }	// radius at 1 unit out
+	float Reaction() const	{ return reaction; }		// 0.0-1.0. The chance of reaction fire
 
 	void Save( TiXmlElement* doc ) const;
 	void Load( const TiXmlElement* doc );
@@ -85,6 +85,8 @@ private:
 
 // It is crazy difficult to keep accuracy correct through the system, when just a float. Use
 // a class to enforce type. Can only be computed in one place - the WeaponItemDef.
+// Also non-linearity problems. Want the accuracy trait to be linear (an area) not
+// a radius, to keep weird level jumps out of the system.
 class Accuracy {
 public:
 	friend class WeaponItemDef;
@@ -107,8 +109,8 @@ public:
 	void Generate( U32 seed, const Accuracy& accuracy, float distance, const grinliz::Vector3F& dir, const grinliz::Vector3F& target, grinliz::Vector3F* targetPrime );
 	float ComputePercent( const Accuracy& accuracy, float distance, float width=0.6f, float height=1.8f );
 private:
-	void Generate( float uniformX, float uniformY, grinliz::Vector2F* result );
-	float Deviation( float x )	{ return (x>=0) ? x*x : -x*x; }		// x [-1,1], returns [-1,1], but skewed to the center. so Dev(0.5) = 0.25
+	//void Generate( float uniformX, float uniformY, grinliz::Vector2F* result );
+	//float Deviation( float x )	{ return (x>=0) ? x*x : -x*x; }		// x [-1,1], returns [-1,1], but skewed to the center. so Dev(0.5) = 0.25
 };
 
 

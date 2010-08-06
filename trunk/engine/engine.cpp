@@ -226,17 +226,6 @@ void Engine::PushShadowSwizzleMatrix( GPUShader* shader )
 
 	shader->PushMatrix( GPUShader::MODELVIEW_MATRIX );
 	shader->MultMatrix( GPUShader::MODELVIEW_MATRIX, shadowMatrix );
-
-	/*
-	glMatrixMode(GL_TEXTURE);
-	glPushMatrix();
-	glMultMatrixf( swizzle.x );			// swizzle
-	glMultMatrixf( shadowMatrix.x );	// shadow
-
-	glMatrixMode( GL_MODELVIEW );
-	glPushMatrix();
-	glMultMatrixf( shadowMatrix.x );
-	*/
 }
 
 
@@ -255,9 +244,6 @@ void Engine::Draw()
 	
 	// ------------ Process the models into the render queue -----------
 	GLASSERT( renderQueue->Empty() );
-
-	//const int QUEUE_MAIN	= 0x010000;
-	//const int QUEUE_BLACK	= 0x020000;
 	const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& fogOfWar = map->GetFogOfWar();
 
 	Color4F ambient, diffuse;
@@ -318,7 +304,6 @@ void Engine::Draw()
 #	endif
 
 	// ----------- Render Passess ---------- //
-	//glDisable( GL_BLEND );
 	Color4F color;
 
 	if ( enableMap ) {
@@ -362,7 +347,6 @@ void Engine::Draw()
 			shadowShader.PopMatrix( GPUShader::TEXTURE_MATRIX );
 		}
 
-
 		{
 			LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, OPEN_LIGHT, 0, &color );
 			float ave = 0.7f*(color.x + color.y + color.z)*0.333f;
@@ -373,8 +357,8 @@ void Engine::Draw()
 			map->DrawPastSeen( c );
 		}
 
-		map->DrawUnseen();
 		map->DrawOverlay( 0 );
+		map->DrawUnseen();
 	}
 
 	// -------- Models ---------- //
