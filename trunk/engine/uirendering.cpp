@@ -14,7 +14,6 @@
 */
 
 #include "uirendering.h"
-#include "platformgl.h"
 #include "texture.h"
 #include "../grinliz/glvector.h"
 #include "text.h"
@@ -22,14 +21,10 @@
 using namespace grinliz;
 using namespace gamui;
 
-extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
-extern int drawCalls;			// ditto
-
 
 void UIRenderer::BeginRender()
 {
-	CHECK_GL_ERROR;
-	
+	/*
 	glEnable( GL_TEXTURE_2D );
 	glDisable( GL_DEPTH_TEST );
 
@@ -44,13 +39,14 @@ void UIRenderer::BeginRender()
 	glEnable( GL_BLEND );
 	blendEnabled = true;
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	CHECK_GL_ERROR;
+	*/
 }
 
 
 void UIRenderer::EndRender()
 {
+	/*
 	CHECK_GL_ERROR;
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_BLEND );
@@ -60,54 +56,52 @@ void UIRenderer::EndRender()
 	glDisableClientState( GL_COLOR_ARRAY );
 	glEnableClientState( GL_NORMAL_ARRAY );
 	CHECK_GL_ERROR;
+	*/
 }
 
 
 void UIRenderer::BeginRenderState( const void* renderState )
 {
-	bool needBlend = true;
-
 	switch ( (int)renderState )
 	{
 	case RENDERSTATE_UI_NORMAL:
-		glColor4f( 1, 1, 1, 1 );
+		shader.SetColor( 1, 1, 1, 1 );
+		shader.SetBlend( true );
 		break;
 
 	case RENDERSTATE_UI_NORMAL_OPAQUE:
-		glColor4f( 1, 1, 1, 1 );
-		needBlend = false;
+		shader.SetColor( 1, 1, 1, 1 );
+		shader.SetBlend( false );
 		break;
 
 	case RENDERSTATE_UI_DISABLED:
-		glColor4f( 1, 1, 1, 0.5f );
+		shader.SetColor( 1, 1, 1, 0.5f );
+		shader.SetBlend( true );
 		break;
 
 	case RENDERSTATE_UI_TEXT:
-		glColor4f( textRed, textGreen, textBlue, 1 );
+		shader.SetColor( textRed, textGreen, textBlue, 1 );
+		shader.SetBlend( true );
 		break;
 
 	case RENDERSTATE_UI_TEXT_DISABLED:
-		glColor4f( textRed, textGreen, textBlue, 0.5f );
+		shader.SetColor( textRed, textGreen, textBlue, 0.5f );
+		shader.SetBlend( true );
 		break;
 
 	case RENDERSTATE_UI_DECO:
-		glColor4f( 1, 1, 1, 0.7f );
+		shader.SetColor( 1, 1, 1, 0.7f );
+		shader.SetBlend( true );
 		break;
 
 	case RENDERSTATE_UI_DECO_DISABLED:
-		glColor4f( 1, 1, 1, 0.2f );
+		shader.SetColor( 1, 1, 1, 0.2f );
+		shader.SetBlend( true );
 		break;
 
 	default:
 		GLASSERT( 0 );
 		break;
-	}
-	if ( needBlend != blendEnabled ) {
-		blendEnabled = needBlend;
-		if ( blendEnabled )
-			glEnable( GL_BLEND );
-		else
-			glDisable( GL_BLEND );
 	}
 }
 
@@ -115,18 +109,16 @@ void UIRenderer::BeginRenderState( const void* renderState )
 void UIRenderer::BeginTexture( const void* textureHandle )
 {
 	Texture* texture = (Texture*)textureHandle;
-	glBindTexture( GL_TEXTURE_2D, texture->GLID() );
+	//glBindTexture( GL_TEXTURE_2D, texture->GLID() );
+	shader.SetTexture0( texture );
 }
 
 
 void UIRenderer::Render( const void* renderState, const void* textureHandle, int nIndex, const int16_t* index, int nVertex, const Gamui::Vertex* vertex )
 {
-	glVertexPointer(   2, GL_FLOAT, sizeof(Gamui::Vertex), &vertex[0].x );
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(Gamui::Vertex), &vertex[0].tx );
-	glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, index );
-	
-	trianglesRendered += nIndex / 3;
-	drawCalls++;
+	shader.SetVertex( 2, sizeof(Gamui::Vertex), &vertex[0].x );
+	shader.SetTexture0( 2, sizeof(Gamui::Vertex), &vertex[0].tx );
+	shader.Draw( nIndex, (const uint16_t*) index );
 }
 
 

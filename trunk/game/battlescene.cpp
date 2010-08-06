@@ -19,7 +19,6 @@
 #include "cgame.h"
 
 #include "../engine/uirendering.h"
-#include "../engine/platformgl.h"
 #include "../engine/particle.h"
 #include "../engine/text.h"
 

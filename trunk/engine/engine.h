@@ -132,10 +132,11 @@ private:
 
 	//void DrawCamera();
 	void CalcCameraRotation( grinliz::Matrix4* );
-	void EnableLights( bool enable, DayNight dayNight );
+	//void EnableLights( bool enable, DayNight dayNight );
+	void CalcLights( DayNight dayNight, Color4F* ambient, grinliz::Vector4F* dir, Color4F* diffuse );
 	void LightGroundPlane( DayNight dayNight, ShadowState shadows, float shadowAmount, Color4F* outColor );
 
-	void PushShadowSwizzleMatrix();
+	void PushShadowSwizzleMatrix( GPUShader* );
 
 	Screenport* screenport;
 	float	initZoom;

@@ -30,6 +30,7 @@
 #include "ufoutil.h"
 #include "surface.h"
 #include "texture.h"
+#include "gpustatemanager.h"
 #include "../shared/glmap.h"
 #include "../gamui/gamui.h"
 #include "../game/gamelimits.h"			// bad call to less general directory. FIXME. Move map to game?
@@ -245,7 +246,7 @@ public:
 
 	void DrawSeen();		//< draw the map that is currently visible
 	void DrawUnseen();		//< draw the map that currently can't be seen
-	void DrawPastSeen();		//< draw the map that currently can't be seen
+	void DrawPastSeen( const Color4F& );		//< draw the map that currently can't be seen
 
 	void DrawPath();		//< debugging
 	void DrawOverlay( int layer );		//< draw the "where can I walk" alpha overlay. Set up by ShowNearPath().
@@ -333,6 +334,8 @@ public:
 	virtual void BeginRenderState( const void* renderState );
 	virtual void BeginTexture( const void* textureHandle );
 	virtual void Render( const void* renderState, const void* textureHandle, int nIndex, const int16_t* index, int nVertex, const gamui::Gamui::Vertex* vertex );
+
+	Texture* BackgroundTexture() { return backgroundTexture; }
 
 	enum ConnectionType {
 		PATH_TYPE,
@@ -461,9 +464,6 @@ private:
 	Surface lightMap[2];
 	Texture* lightMapTex;
 
-	//Surface fowSurface;
-	//Texture* fowTex;
-
 	Surface dayMap, nightMap;
 	grinliz::Rectangle2I invalidLightMap;
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWar;
@@ -500,6 +500,7 @@ private:
 	MP_VECTOR<void*>					mapPath;
 	MP_VECTOR< micropather::StateCost > stateCostArr;
 
+	CompositingShader							gamuiShader;
 	gamui::TiledImage<MAX_TU*2+1, MAX_TU*2+1>	walkingMap;
 	gamui::Image								border[	4];
 

@@ -15,7 +15,6 @@
 
 #include "model.h"
 #include "texture.h"
-#include "platformgl.h"
 #include "loosequadtree.h"
 #include "renderQueue.h"
 
@@ -26,9 +25,6 @@
 #include <float.h>
 
 using namespace grinliz;
-extern int trianglesRendered;
-extern int drawCalls;
-
 
 
 void ModelResource::Free()
@@ -39,7 +35,6 @@ void ModelResource::Free()
 		glDeleteBuffers( 1, (const GLuint*) &atom[i].vertexID );
 #endif
 		memset( &atom[i], 0, sizeof( ModelAtom ) );
-		CHECK_GL_ERROR;
 	}
 	delete [] allVertex;
 	delete [] allIndex;
@@ -252,22 +247,22 @@ void Model::SetSkin( int armor, int skin, int hair )
 		textureOffsetX += float( skin ) / float( 16 );
 		textureOffsetX += float( hair ) / float( 64 );
 
-		texMat.Identity();
-		texMat.x = textureOffsetX;
-		texMatSet = true;
+		texMat.SetIdentity();
+		texMat.m14 = textureOffsetX;
+		texMatSet = (textureOffsetX != 0) ? true : false;
 	}
 }
 
 
 void Model::SetTexXForm( float a, float d, float x, float y )
 {
-	texMat.Identity();
+	texMat.SetIdentity();
 	texMatSet = false;
 	if ( a!=1.0f || d!=1.0f || x!=0.0f || y!=0.0f ){
-		texMat.a = a;
-		texMat.d = d;
-		texMat.x = x;
-		texMat.y = y;
+		texMat.m11 = a;
+		texMat.m22 = d;
+		texMat.m14 = x;
+		texMat.m24 = y;
 		texMatSet = true;
 	}
 }
@@ -311,7 +306,7 @@ void Model::SetTexture( Texture* t )
 }
 
 
-void Model::Queue( RenderQueue* queue )
+void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent )
 {
 	if ( flags & MODEL_INVISIBLE )
 		return;
@@ -319,33 +314,22 @@ void Model::Queue( RenderQueue* queue )
 	for( U32 i=0; i<resource->header.nGroups; ++i ) 
 	{
 		if ( textureAtoms )
-			queue->Add( this, &textureAtoms[i] );
+			queue->Add( this, &textureAtoms[i], textureAtoms[i].texture->Alpha() ? opaque : transparent );
 		else
-			queue->Add( this, &resource->atom[i] );
+			queue->Add( this, &resource->atom[i], resource->atom[i].texture->Alpha() ? opaque : transparent );
 	}
 }
 
 
-void ModelAtom::Bind() const
+void ModelAtom::Bind( GPUShader* shader ) const
 {
-#ifdef EL_USE_VBO
-	glBindBuffer( GL_ARRAY_BUFFER, vertexID );
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, indexID );
-
-	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::POS_OFFSET);			// last param is offset, not ptr
-	glNormalPointer(      GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::NORMAL_OFFSET);		
-
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (const GLvoid*)Vertex::TEXTURE_OFFSET);  
-	CHECK_GL_ERROR;
-#else
-	glVertexPointer(   3, GL_FLOAT, sizeof(Vertex), (const U8*)vertex + Vertex::POS_OFFSET);
-	glNormalPointer(      GL_FLOAT, sizeof(Vertex), (const U8*)vertex + Vertex::NORMAL_OFFSET);		
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (const U8*)vertex + Vertex::TEXTURE_OFFSET); 
-	CHECK_GL_ERROR;
-#endif
+	shader->SetVertex( 3, sizeof(Vertex), (const U8*)vertex + Vertex::POS_OFFSET );
+	shader->SetNormal( sizeof(Vertex), (const U8*)vertex + Vertex::NORMAL_OFFSET );
+	shader->SetTexture0( 2, sizeof(Vertex), (const U8*)vertex + Vertex::TEXTURE_OFFSET );
 }
 
 
+/*
 void ModelAtom::Draw() const
 {
 	GRINLIZ_PERFTRACK
@@ -362,8 +346,9 @@ void ModelAtom::Draw() const
 	trianglesRendered += nIndex / 3;
 	drawCalls++;
 }
+*/
 
-
+/*
 void Model::PushMatrix( bool textureToo ) const
 {
 	glPushMatrix();
@@ -395,6 +380,7 @@ void Model::PopMatrix( bool textureToo ) const
 	glPopMatrix();
 	CHECK_GL_ERROR;
 }
+*/
 
 
 const grinliz::Rectangle3F& Model::AABB() const

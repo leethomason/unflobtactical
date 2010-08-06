@@ -15,13 +15,9 @@
 
 #include "particle.h"
 #include "../grinliz/glgeometry.h"
-#include "platformgl.h"
 #include "surface.h"
 #include "camera.h"
 #include "particleeffect.h"
-
-extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
-extern int drawCalls;			// ditto
 
 using namespace grinliz;
 
@@ -480,22 +476,8 @@ void ParticleSystem::Draw( const Vector3F* eyeDir, const grinliz::BitArray<Map::
 		quadTexture = TextureManager::Instance()->GetTexture( "particleQuad" );
 	}
 
-	glEnable( GL_BLEND );
-	glDepthMask( GL_FALSE );
-
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	DrawPointParticles( eyeDir );
-
-//	DrawDecalParticles( DECAL_BOTTOM );
-//	glDisable( GL_DEPTH_TEST );
-//	DrawDecalParticles( DECAL_TOP );
-//	glEnable( GL_DEPTH_TEST );
-//	nDecals = 0;
-
 	DrawQuadParticles( eyeDir );
-
-	glDepthMask( GL_TRUE );
-	glDisable( GL_BLEND );
 }
 
 
@@ -504,54 +486,17 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 	if ( nParticles[POINT] == 0 )
 		return;
 
-	CHECK_GL_ERROR;
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glDisableClientState( GL_NORMAL_ARRAY );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-	glEnableClientState( GL_COLOR_ARRAY );
-	
-	glEnable( GL_TEXTURE_2D );
+	if ( PointParticleShader::IsSupported() )
+	{
+		PointParticleShader shader;
+		shader.SetTexture0( pointTexture );
 
-	bool usePointSprite = true;
-#ifdef _MSC_VER
-	usePointSprite = (GLEW_ARB_point_sprite) ? true : false;
-#endif
-	
-	if (usePointSprite)
-		{
-		#ifdef USING_GL	
-			glEnable(GL_POINT_SPRITE);
-			glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
-		#else
-			glEnable(GL_POINT_SPRITE_OES);
-			glTexEnvx(GL_POINT_SPRITE_OES, GL_COORD_REPLACE_OES, GL_TRUE);
-		#endif
-		CHECK_GL_ERROR;
-
-		glBindTexture( GL_TEXTURE_2D, pointTexture->GLID() );
-		CHECK_GL_ERROR;
-
-		glPointSize( 4.0f );
-		CHECK_GL_ERROR;
-		
 		U8* vPtr = (U8*)pointBuffer + 0;
 		U8* cPtr = (U8*)pointBuffer + 12;
 
-		glVertexPointer( 3, GL_FLOAT, sizeof(Particle), vPtr );
-		glColorPointer( 4, GL_FLOAT, sizeof(Particle), cPtr );
-		CHECK_GL_ERROR;
-		// Points are not filtered on fogOfWarFilter. 
-		glDrawArrays( GL_POINTS, 0, nParticles[POINT] );
-		CHECK_GL_ERROR;
-		trianglesRendered += nParticles[POINT];		// 1 or 2?? go with 1
-		drawCalls++;
-
-		#ifdef USING_GL
-			glDisable( GL_POINT_SPRITE );
-		#else
-			glDisable( GL_POINT_SPRITE_OES );
-		#endif
-		CHECK_GL_ERROR;
+		shader.SetVertex( 3, sizeof(Particle), vPtr );
+		shader.SetColorArray( 4, sizeof(Particle), cPtr );
+		shader.DrawPoints( 4.f, 0, nParticles[POINT] );
 	}
 	else {
 		QuadVertex base[4];
@@ -600,38 +545,20 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 			vertex += 4;
 		}
 
-		CHECK_GL_ERROR;
-		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-		glEnable( GL_TEXTURE_2D );
-		glBindTexture( GL_TEXTURE_2D, pointTexture->GLID() );
-
-		CHECK_GL_ERROR;
 		U8* vPtr = (U8*)vertexBuffer + 0;
 		U8* tPtr = (U8*)vertexBuffer + 12;
 		U8* cPtr = (U8*)vertexBuffer + 20;
 
-		CHECK_GL_ERROR;
-		glVertexPointer(   3, GL_FLOAT, sizeof(QuadVertex), vPtr );
-		glTexCoordPointer( 2, GL_FLOAT, sizeof(QuadVertex), tPtr );
-		glColorPointer(    4, GL_FLOAT, sizeof(QuadVertex), cPtr );
+		QuadParticleShader shader;
+		shader.SetVertex( 3, sizeof(QuadVertex), vPtr );
+		shader.SetTexture0( 2, sizeof(QuadVertex), tPtr );
+		shader.SetColorArray( 4, sizeof(QuadVertex), cPtr );
 
 		// because of the skip, the #elements can be less than nParticles*6
 		if ( index ) {
-			glDrawElements( GL_TRIANGLES, index, GL_UNSIGNED_SHORT, quadIndexBuffer );
-			trianglesRendered += index/3;
-			drawCalls++;
+			shader.Draw( index, quadIndexBuffer );
 		}
-		CHECK_GL_ERROR;
 	}
-
-	
-	// Restore standard state.
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_NORMAL_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-	glDisableClientState( GL_COLOR_ARRAY );
-	CHECK_GL_ERROR;
 }
 
 
@@ -640,12 +567,6 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 	if ( nParticles[QUAD] == 0 ) {
 		return;
 	}
-
-	//QuadVertex base[4];
-	//base[0].pos = -eyeDir[Camera::RIGHT]*0.5f - eyeDir[Camera::UP]*0.5f;
-	//base[1].pos =  eyeDir[Camera::RIGHT]*0.5f - eyeDir[Camera::UP]*0.5f;
-	//base[2].pos =  eyeDir[Camera::RIGHT]*0.5f + eyeDir[Camera::UP]*0.5f;
-	//base[3].pos = -eyeDir[Camera::RIGHT]*0.5f + eyeDir[Camera::UP]*0.5f;
 
 	const static float cornerX[] = { -1, 1, 1, -1 };
 	const static float cornerY[] = { -1, -1, 1, 1 };
@@ -725,144 +646,21 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 		vertex += 4;
 	}
 
-	CHECK_GL_ERROR;
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glDisableClientState( GL_NORMAL_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-	glEnableClientState( GL_COLOR_ARRAY );
+	QuadParticleShader shader;
+	shader.SetTexture0( quadTexture );
 
-	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, quadTexture->GLID() );
-
-	CHECK_GL_ERROR;
 	U8* vPtr = (U8*)vertexBuffer + 0;
 	U8* tPtr = (U8*)vertexBuffer + 12;
-	U8* cPtr = (U8*)vertexBuffer + 20;
-
-	CHECK_GL_ERROR;
-	glVertexPointer(   3, GL_FLOAT, sizeof(QuadVertex), vPtr );
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(QuadVertex), tPtr );
-	glColorPointer(    4, GL_FLOAT, sizeof(QuadVertex), cPtr );
+	U8* cPtr = (U8*)vertexBuffer + 20;	
+	
+	shader.SetVertex( 3, sizeof(QuadVertex), vPtr );
+	shader.SetTexture0( 2, sizeof(QuadVertex), tPtr );
+	shader.SetColorArray( 4, sizeof(QuadVertex), cPtr );
 
 	if ( index ) {
-		glDrawElements( GL_TRIANGLES, index, GL_UNSIGNED_SHORT, quadIndexBuffer );
-		CHECK_GL_ERROR;
-		trianglesRendered += nParticles[QUAD]*2;
-		drawCalls++;
-	}
-	// Restore standard state.
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_NORMAL_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-	glDisableClientState( GL_COLOR_ARRAY );
-	CHECK_GL_ERROR;
-}
-
-
-
-/*
-void ParticleSystem::DrawDecalParticles( int flag )
-{
-	if ( nDecals == 0 ) {
-		return;
-	}
-
-	const float EPS = 0.05f;
-	const float DSIZE = 0.7f;
-	QuadVertex base[4];
-	base[0].pos.Set( -DSIZE, EPS,  DSIZE );
-	base[1].pos.Set(  DSIZE, EPS,  DSIZE );
-	base[2].pos.Set(  DSIZE, EPS, -DSIZE );
-	base[3].pos.Set( -DSIZE, EPS, -DSIZE );
-
-	const Vector2F tex[4] = {
-		{ 0.0f,  0.25f },
-		{ 0.25f, 0.25f },
-		{ 0.25f, 0.0f },
-		{ 0.0f,  0.0f }
-	};
-
-	int index = 0;
-	int vertex = 0;
-	int count = 0;
-
-	for( int i=0; i<nDecals; ++i ) 
-	{
-		if ( decalBuffer[i].flags & flag ) {
-			const float tx = 0.25f * (float)(decalBuffer[i].type&0x03);
-			const float ty = 0.25f * (float)(decalBuffer[i].type>>2);
-			
-			const Vector3F& pos  = decalBuffer[i].pos;
-			Vector2I fowPos = { (int)pos.x, (int)pos.z };
-			if ( !fogOfWarFilter.IsSet( fowPos.x, fowPos.y ) )
-				continue;
-
-			const Color4F& color = decalBuffer[i].color;
-
-			// Set up the particle that everything else is derived from:
-			quadIndexBuffer[index++] = vertex+0;
-			quadIndexBuffer[index++] = vertex+1;
-			quadIndexBuffer[index++] = vertex+2;
-
-			quadIndexBuffer[index++] = vertex+0;
-			quadIndexBuffer[index++] = vertex+2;
-			quadIndexBuffer[index++] = vertex+3;
-
-			QuadVertex* pV = &vertexBuffer[vertex];
-
-			for( int j=0; j<4; ++j ) {
-				pV->pos = base[j].pos + pos;
-				pV->tex.Set( tx+tex[j].x, ty+tex[j].y );
-				pV->color = color;
-				++pV;
-			}
-			if ( decalBuffer[i].rotation != 0.0f ) {
-				Matrix4 m;
-				Vector3F prime;
-				m.SetYRotation( decalBuffer[i].rotation );
-				pV -= 4;
-				for( int j=0; j<4; ++j ) {
-					prime = m * base[j].pos;
-					pV->pos = prime + pos;
-					++pV;
-				}
-			}
-			vertex += 4;
-			++count;
-		}
-	}
-
-	if ( count ) {
-		CHECK_GL_ERROR;
-		glEnableClientState( GL_VERTEX_ARRAY );
-		glDisableClientState( GL_NORMAL_ARRAY );
-		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-		glEnableClientState( GL_COLOR_ARRAY );
-
-		glEnable( GL_TEXTURE_2D );
-		glBindTexture( GL_TEXTURE_2D, quadTexture->GLID() );
-
-		CHECK_GL_ERROR;
-		U8* vPtr = (U8*)vertexBuffer + 0;
-		U8* tPtr = (U8*)vertexBuffer + 12;
-		U8* cPtr = (U8*)vertexBuffer + 20;
-
-		CHECK_GL_ERROR;
-		glVertexPointer(   3, GL_FLOAT, sizeof(QuadVertex), vPtr );
-		glTexCoordPointer( 2, GL_FLOAT, sizeof(QuadVertex), tPtr );
-		glColorPointer(    4, GL_FLOAT, sizeof(QuadVertex), cPtr );
-
-		glDrawElements( GL_TRIANGLES, count*6, GL_UNSIGNED_SHORT, quadIndexBuffer );
-		CHECK_GL_ERROR;
-		trianglesRendered += count*2;
-		drawCalls++;
-
-		// Restore standard state.
-		glEnableClientState( GL_VERTEX_ARRAY );
-		glEnableClientState( GL_NORMAL_ARRAY );
-		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-		glDisableClientState( GL_COLOR_ARRAY );
-		CHECK_GL_ERROR;
+		shader.Draw( index, quadIndexBuffer );
 	}
 }
-*/
+
+
+

@@ -14,10 +14,11 @@
 */
 
 #include "screenport.h"
-#include "platformgl.h"
 #include "../grinliz/glrectangle.h"
 #include "../grinliz/glutil.h"
 #include "../grinliz/glmatrix.h"
+#include "gpustatemanager.h"
+#include "platformgl.h"
 
 using namespace grinliz;
 
@@ -39,6 +40,7 @@ void Screenport::Resize( int w, int h, int r )
 	GLASSERT( rotation >= 0 && rotation < 4 );
 
 	glViewport( 0, 0, w, h );
+	glDisable( GL_SCISSOR_TEST );
 
 	// Sad but true: the game assets are set up for 480x320 resolution.
 	// How to scale?
@@ -110,6 +112,7 @@ void Screenport::SetUI( const Rectangle2I* clip )
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();				// model
 	glMultMatrixf( view2D.x );
+	GPUShader::SetMatrixMode( GPUShader::MODELVIEW_MATRIX );	// tell the manager we twiddled with state.
 
 	uiMode = true;
 	CHECK_GL_ERROR;
@@ -124,6 +127,7 @@ void Screenport::SetView( const Matrix4& _view )
 	glMatrixMode(GL_MODELVIEW);
 	// In normalized coordinates.
 	glLoadMatrixf( view3D.x );
+	GPUShader::SetMatrixMode( GPUShader::MODELVIEW_MATRIX );	// tell the manager we twiddled with state.
 	CHECK_GL_ERROR;
 }
 
@@ -195,6 +199,7 @@ void Screenport::SetPerspective( float near, float far, float fovDegrees, const 
 	
 	glMatrixMode(GL_MODELVIEW);	
 	CHECK_GL_ERROR;
+	GPUShader::SetMatrixMode( GPUShader::MODELVIEW_MATRIX );	// tell the manager we twiddled with state.
 }
 
 

@@ -144,16 +144,6 @@ private:
 		U16 lifetime;					// milliseconds
 		U8	type;	
 	};
-	/*
-	struct Decal
-	{
-		grinliz::Vector3F	pos;		
-		Color4F				color;
-		float				rotation;
-		int					type;
-		int					flags;
-	};
-	*/
 
 	struct QuadVertex
 	{

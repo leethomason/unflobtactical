@@ -22,6 +22,7 @@
 #include "screenport.h"
 #include "texture.h"
 
+class GPUShader;
 
 struct GlyphMetric
 {
@@ -44,10 +45,6 @@ public:
 
 	static void GlyphSize( const char* str, int* width, int* height );
 
-	static void Begin();
-	static void Stream( int x, int y, const char* format, ... );
-	static void End();
-
 	static void Draw( int x, int y, const char* format, ... );
 	static void Metrics(	int c,							// character in - 0 is space 
 							int* advance,					// advance, in pixels
@@ -55,7 +52,7 @@ public:
 							grinliz::Rectangle2I* src );	// location in texture, in pixels
 
 private:
-	static void TextOut( const char* str, int x, int y, int *w, int *h );
+	static void TextOut( GPUShader* shader, const char* str, int x, int y, int *w, int *h );
 
 	static Screenport* screenport;
 	static Texture* texture;

@@ -14,13 +14,13 @@
 */
 
 #include "text.h"
-#include "platformgl.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
 #include "../grinliz/glutil.h"
 #include "../grinliz/glrectangle.h"
+#include "gpustatemanager.h"
 
 using namespace grinliz;
 
@@ -29,9 +29,6 @@ const int TEXTURE_WIDTH = 256;
 const int TEXTURE_HEIGHT = 128;
 const int GLYPH_WIDTH = TEXTURE_WIDTH / UFOText::GLYPH_CX;
 const int GLYPH_HEIGHT = TEXTURE_HEIGHT / UFOText::GLYPH_CY;
-
-extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
-extern int drawCalls;			// ditto
 
 
 Vector2F UFOText::vBuf[BUF_SIZE*4];
@@ -52,34 +49,6 @@ void UFOText::InitTexture( Texture* tex )
 {
 	GLASSERT( tex );
 	texture = tex;
-}
-
-
-void UFOText::Begin()
-{
-	GLASSERT( texture );
-
-	glDisable( GL_DEPTH_TEST );
-	glDepthMask( GL_FALSE );
-	glEnable( GL_BLEND );
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisableClientState( GL_NORMAL_ARRAY );
-	glDisableClientState( GL_COLOR_ARRAY );
-
-	glColor4f( 1.f, 1.f, 1.f, 1.f );
-
-	screenport->SetUI( 0 );
-	glBindTexture( GL_TEXTURE_2D, texture->GLID() );
-}
-
-
-void UFOText::End()
-{
-	glEnableClientState( GL_NORMAL_ARRAY );
-
-	glDisable( GL_BLEND );
-	glEnable( GL_DEPTH_TEST );
-	glDepthMask( GL_TRUE );
 }
 
 
@@ -112,7 +81,7 @@ void UFOText::Metrics(	int c,				// character in
 }
 
 
-void UFOText::TextOut( const char* str, int x, int y, int* w, int *h )
+void UFOText::TextOut( GPUShader* shader, const char* str, int x, int y, int* w, int *h )
 {
 	bool smallText = false;
 	bool rendering = true;
@@ -125,9 +94,11 @@ void UFOText::TextOut( const char* str, int x, int y, int* w, int *h )
 		rendering = false;
 	}
 
+	GLASSERT( !rendering || shader );
+
 	if ( rendering ) {
-		glVertexPointer( 2, GL_FLOAT, 0, vBuf );
-		glTexCoordPointer( 2, GL_FLOAT, 0, tBuf );
+		shader->SetVertex( 2, 0, vBuf );
+		shader->SetTexture0( texture, 2, 0, tBuf );
 
 		if ( iBuf[1] == 0 ) {
 			// not initialized
@@ -191,11 +162,7 @@ void UFOText::TextOut( const char* str, int x, int y, int* w, int *h )
 		if ( rendering ) {
 			if ( pos == BUF_SIZE || *(str+1) == 0 ) {
 				if ( pos > 0 ) {
-					glDrawElements( GL_TRIANGLES, pos*6, GL_UNSIGNED_SHORT, iBuf );
-
-					trianglesRendered += pos*3;
-					drawCalls++;
-
+					shader->Draw( pos*6, iBuf );
 					pos = 0;
 				}
 			}
@@ -204,21 +171,20 @@ void UFOText::TextOut( const char* str, int x, int y, int* w, int *h )
 	}
 	if ( w ) {
 		*w = x - xStart;
-		//if ( *w > 0 )
-		//	*w += GLYPH_WIDTH-ADVANCE;
 	}
 }
 
 
 void UFOText::GlyphSize( const char* str, int* width, int* height )
 {
-	TextOut( str, 0, 0, width, height );
+	TextOut( 0, str, 0, 0, width, height );
 }
 
 
 void UFOText::Draw( int x, int y, const char* format, ... )
 {
-	Begin();
+	screenport->SetUI( 0 );
+	CompositingShader shader( true );
 
     va_list     va;
 	const int	size = 1024;
@@ -239,31 +205,5 @@ void UFOText::Draw( int x, int y, const char* format, ... )
 #endif
 	va_end( va );
 
-    TextOut( buffer, x, y, 0, 0 );
-	End();
-}
-
-
-void UFOText::Stream( int x, int y, const char* format, ... )
-{
-    va_list     va;
-	const int	size = 1024;
-    char		buffer[size];
-
-    //
-    //  format and output the message..
-    //
-    va_start( va, format );
-#ifdef _MSC_VER
-    int result = vsnprintf_s( buffer, size, _TRUNCATE, format, va );
-#else
-	// Reading the spec, the size does seem correct. The man pages
-	// say it will aways be null terminated (whereas the strcpy is not.)
-	// Pretty nervous about the implementation, so force a null after.
-    int result = vsnprintf( buffer, size, format, va );
-	buffer[size-1] = 0;
-#endif
-	va_end( va );
-
-    TextOut( buffer, x, y, 0, 0 );
+    TextOut( &shader, buffer, x, y, 0, 0 );
 }

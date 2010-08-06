@@ -24,11 +24,11 @@
 #include "tacticalunitscorescene.h"
 #include "helpscene.h"
 
-#include "../engine/platformgl.h"
 #include "../engine/text.h"
 #include "../engine/model.h"
 #include "../engine/uirendering.h"
 #include "../engine/particle.h"
+#include "../engine/gpustatemanager.h"
 
 #include "../grinliz/glmatrix.h"
 #include "../grinliz/glutil.h"
@@ -40,8 +40,6 @@
 
 using namespace grinliz;
 
-extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
-extern int drawCalls;			// ditto
 extern long memNewCount;
 
 Game::Game( int width, int height, int rotation, const char* path ) :
@@ -384,17 +382,8 @@ void Game::DoTick( U32 _currentTime )
 		}
 	}
 
-	glMatrixMode( GL_MODELVIEW );
-	glLoadIdentity();
-
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_NORMAL_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-	glDisable( GL_SCISSOR_TEST );
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable( GL_DEPTH_TEST );
-	glEnable( GL_CULL_FACE );
+	GPUShader::ResetState();
+	GPUShader::Clear();
 
 	Scene* scene = sceneStack.Top();
 	scene->DoTick( currentTime, deltaTime );
@@ -429,7 +418,6 @@ void Game::DoTick( U32 _currentTime )
 		particleSystem->Update( deltaTime, currentTime );
 		particleSystem->Draw( eyeDir, &engine->GetMap()->GetFogOfWar() );
 	}
-	trianglesSinceMark += trianglesRendered;
 
 	// UI Pass
 	screenport.SetUI( clip2D.IsValid() ? &clip2D : 0 ); 
@@ -451,8 +439,8 @@ void Game::DoTick( U32 _currentTime )
 		UFOText::Draw(	0,  Y, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
 						VERSION,
 						framesPerSecond, 
-						(float)trianglesRendered/1000.0f,
-						drawCalls,
+						(float)GPUShader::TrianglesDrawn()/1000.0f,
+						GPUShader::DrawCalls(),
 						trianglesPerSecond );
 		#if !defined(MAPMAKER) && defined(DEBUG)
 		UFOText::Draw(  0, Y+14, "new=%d Tex(%d/%d) %dK/%dK mis=%d re=%d hit=%d",
@@ -470,8 +458,7 @@ void Game::DoTick( U32 _currentTime )
 		UFOText::Draw(	0,  Y, "UFO#%d %5.1ffps", VERSION, framesPerSecond );
 	}
 #endif
-	trianglesRendered = 0;
-	drawCalls = 0;
+	GPUShader::ResetTriCount();
 
 #ifdef EL_SHOW_MODELS
 	int k=0;
@@ -498,8 +485,6 @@ void Game::DoTick( U32 _currentTime )
 					  profile.item[i].functionCalls/SAMPLE );
 	}
 #endif
-
-	glEnable( GL_DEPTH_TEST );
 
 	SoundManager::Instance()->PlayQueuedSounds();
 
