@@ -171,7 +171,7 @@ void CharacterScene::InitTextTable( gamui::Gamui* g )
 	textTable[c++].SetText( buf );
 
 	textTable[c++].SetText( "Accuracy" );
-	SNPrintf( buf, 32, "%0.2f", 1.0f - stats.Accuracy() );
+	SNPrintf( buf, 32, "%0.2f", 1.0f - stats.AccuracyArea() );
 	textTable[c++].SetText( buf );
 
 	textTable[c++].SetText( "Reaction" );
@@ -250,7 +250,7 @@ void CharacterScene::SetCompText()
 				wid->DamageBase( mode, &dd );
 
 				float fraction, fraction2, damage, dptu;
-				wid->FireStatistics( mode, stats.Accuracy(), r, &fraction, &fraction2, &damage, &dptu );
+				wid->FireStatistics( mode, stats.AccuracyArea(), r, &fraction, &fraction2, &damage, &dptu );
 
 				char buf[16];
 

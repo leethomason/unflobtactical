@@ -190,9 +190,7 @@ void Random::NormalVector( float* v, int dim )
 }
 
 
-
-const int COUNT_2D = 256;
-const float gNormal2D[COUNT_2D*2] = {
+const float Random::normal2D[COUNT_2D*2] = {
 	0.000000f, 1.000000f, 0.024541f, 0.999699f, 0.049068f, 0.998795f, 0.073565f, 0.997290f, 
 	0.098017f, 0.995185f, 0.122411f, 0.992480f, 0.146730f, 0.989177f, 0.170962f, 0.985278f, 
 	0.195090f, 0.980785f, 0.219101f, 0.975702f, 0.242980f, 0.970031f, 0.266713f, 0.963776f, 
@@ -264,8 +262,8 @@ void Random::NormalVector2D( float* v )
 {
 	// Take 0-255 from 3 bits up.
 	U32 index = ((Rand()>>3)&0xff)*2;
-	v[0] = gNormal2D[index+0];
-	v[1] = gNormal2D[index+1];
+	v[0] = normal2D[index+0];
+	v[1] = normal2D[index+1];
 }
 
 

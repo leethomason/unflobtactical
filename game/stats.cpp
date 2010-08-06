@@ -46,12 +46,12 @@ void Stats::CalcBaselines()
 	if ( totalTU > (float)MAX_TU )
 		totalTU = (float)MAX_TU;
 
-	accuracy = Interpolate(		0.0f,						ACC_WORST_SHOT,
-								(float)TRAIT_MAX,			ACC_BEST_SHOT,
-								(float)levDEX );
+	accuracy = Interpolate(		0.0f,					ACC_WORST_SHOT,
+								(float)TRAIT_MAX,		ACC_BEST_SHOT,
+								(float)levDEX);
 
-	reaction = Interpolate(		0.0f,						REACTION_FAST,
-								(float)TRAIT_MAX,			REACTION_SLOW,
+	reaction = Interpolate(		0.0f,					REACTION_FAST,
+								(float)TRAIT_MAX,		REACTION_SLOW,
 								(float)(levDEX + levPSY)*0.5f );
 }
 
@@ -82,23 +82,12 @@ void Stats::Load( const TiXmlElement* parent )
 }
 
 
-
-void BulletSpread::Generate( float uniformX, float uniformY, grinliz::Vector2F* result )
-{
-	const static float Y_RATIO = 0.7f;
-	result->x = Deviation( uniformX );
-	result->y = Deviation( uniformY ) * Y_RATIO;
-}
-
-
 void BulletSpread::Generate( U32 seed, grinliz::Vector2F* result )
 {
 	const static float MULT = 1.f / 65535.f;
 
-	float x	= -1.0f + 2.0f * ((float)(seed & 0xffff) * MULT);
-	float y	= -1.0f + 2.0f * ((float)(seed>>16) * MULT);
-
-	Generate( x, y, result );
+	Random rand( seed );
+	rand.NormalVector2D( &result->x );
 }
 
 
@@ -135,29 +124,23 @@ float BulletSpread::ComputePercent( const Accuracy& accuracy, float distance, fl
 	Vector2F center = { width*0.50f, height*0.65f };
 	int hit = 0;
 
-	for( int j=0; j<10; ++j ) {
-		float y0 = -1.0f + (float)j*0.2f;
+	const int SAMPLES = Random::Num2DNormals(); 
+	for( int i=0; i<SAMPLES; ++i ) {
+		Vector2F v = { *(Random::Normal2D()+i*2), *(Random::Normal2D()+i*2+1) };
 
-		for( int i=0; i<10; ++i ) {
-			float x0 = -1.0f + (float)i*0.2f;
+		Vector2F pos;
+		pos.x = center.x + v.x*distance*accuracy.RadiusAtOne();
+		pos.y = center.y + v.y*distance*accuracy.RadiusAtOne();
 
-			Vector2F v;
-			Generate( x0, y0, &v );
-
-			Vector2F pos;
-			pos.x = center.x + v.x*distance*accuracy.RadiusAtOne();
-			pos.y = center.y + v.y*distance*accuracy.RadiusAtOne();
-
-			if ( pos.x > 0 && pos.x < width && pos.y > 0 && pos.y < height ) {
-				int mx = (int)( pos.x*float(X) / width );
-				int my = (int)( pos.y*float(Y) / height );
-				mx = Clamp( mx, 0, X-1);
-				my = Clamp( my, 0, Y-1);
-				if ( map[my*X+mx] == 'x' )
-					++hit;
-			}
+		if ( pos.x > 0 && pos.x < width && pos.y > 0 && pos.y < height ) {
+			int mx = (int)( pos.x*float(X) / width );
+			int my = (int)( pos.y*float(Y) / height );
+			mx = Clamp( mx, 0, X-1);
+			my = Clamp( my, 0, Y-1);
+			if ( map[my*X+mx] == 'x' )
+				++hit;
 		}
 	}
-	float result = (float)hit / 100.0f;
+	float result = (float)hit / (float)SAMPLES;
 	return Clamp( result, 0.0f, 0.95f );
 }

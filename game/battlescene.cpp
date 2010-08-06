@@ -1340,7 +1340,7 @@ bool BattleScene::ProcessAI()
 								
 								float toHit, anyHit, damage, dptu;
 								wid->FireStatistics( kAutoFireMode, 
-													 units[currentUnitAI].GetStats().Accuracy(), 
+													 units[currentUnitAI].GetStats().AccuracyArea(), 
 													 8.0f,		// typical distance
 													 &toHit, &anyHit, &damage, &dptu );
 
@@ -1350,7 +1350,7 @@ bool BattleScene::ProcessAI()
 
 								if ( wid->HasWeapon( kAltFireMode ) ) {
 									wid->FireStatistics( kAltFireMode, 
-														 units[currentUnitAI].GetStats().Accuracy(), 
+														 units[currentUnitAI].GetStats().AccuracyArea(), 
 														 8.0f,
 														 &toHit, &anyHit, &damage, &dptu );
 									nClips = storage->GetCount( wid->GetClipItemDef( kAltFireMode ) );	// clip count...

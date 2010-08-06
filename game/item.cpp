@@ -189,7 +189,7 @@ float WeaponItemDef::TimeUnits( WeaponMode mode ) const
 }
 
 
-Accuracy WeaponItemDef::CalcAccuracy( float unitAccuracy, WeaponMode mode ) const
+Accuracy WeaponItemDef::CalcAccuracy( float accuracyArea, WeaponMode mode ) const
 {
 	float acc = weapon[Index(mode)].accuracy;
 
@@ -206,12 +206,14 @@ Accuracy WeaponItemDef::CalcAccuracy( float unitAccuracy, WeaponMode mode ) cons
 		acc *= ACC_AIMED_SHOT_MULTIPLIER;			// secondary fire is aimed? FIXME: consider this.
 		break;
 	}
-	return Accuracy( acc * unitAccuracy );
+	// a = PR2, R = sqrt(a/P)
+	float radius = sqrtf( acc * accuracyArea / 3.14f );
+	return Accuracy( radius );
 }
 
 
 bool WeaponItemDef::FireStatistics( WeaponMode mode,
-								    float unitAccuracy, 
+								    float accuracyArea, 
 									float distance, 
 									float* chanceToHit, float* anyChanceToHit,
 									float* totalDamage, float* damagePerTU ) const
@@ -223,7 +225,7 @@ bool WeaponItemDef::FireStatistics( WeaponMode mode,
 	DamageDesc dd;
 
 	if ( tu > 0.0f ) {
-		Accuracy acc = CalcAccuracy( unitAccuracy, mode );
+		Accuracy acc = CalcAccuracy( accuracyArea, mode );
 
 		BulletSpread bulletSpread;
 		*chanceToHit = bulletSpread.ComputePercent( acc, distance );

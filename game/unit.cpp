@@ -637,7 +637,7 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 					this->stats.Rank(),
 					hp,
 					this->stats.TotalHP(),
-					this->stats.Accuracy() ));
+					this->stats.AccuracyArea() ));
 #endif
 	}
 }
@@ -770,7 +770,7 @@ bool Unit::FireStatistics( WeaponMode mode, float distance,
 	if ( wid && wid->HasWeapon( mode ) ) {
 		*tu = wid->TimeUnits( mode );
 		return GetWeapon()->IsWeapon()->FireStatistics(	mode,
-														stats.Accuracy(), 
+														stats.AccuracyArea(), 
 														distance, 
 														chanceToHit, 
 														chanceAnyHit, 
@@ -785,7 +785,7 @@ Accuracy Unit::CalcAccuracy( WeaponMode mode ) const
 {
 	const WeaponItemDef* wid = GetWeaponDef();
 	if ( wid && wid->HasWeapon( mode ) ) {
-		return wid->CalcAccuracy( stats.Accuracy(), mode );
+		return wid->CalcAccuracy( stats.AccuracyArea(), mode );
 	}
 	return Accuracy();
 }

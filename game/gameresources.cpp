@@ -26,7 +26,7 @@ using namespace grinliz;
 void Game::DumpWeaponInfo( FILE* fp, float range, const Stats& stats, int count )
 {
 #ifdef DEBUG
-	fprintf( fp, "\nRange=%.1f DEX=%d Rank=%d Acc=%.2f\n", range, stats.DEX(), stats.Rank(), stats.Accuracy() );
+	fprintf( fp, "\nRange=%.1f DEX=%d Rank=%d Acc=%.2f\n", range, stats.DEX(), stats.Rank(), stats.AccuracyArea() );
 	fprintf( fp, "name      PRIMARY-SNAP             PRIMARY-AIM/AUTO         SECONDARY\n" );
 	fprintf( fp, "          " );
 	for( int k=0; k<3; ++k )
@@ -52,7 +52,7 @@ void Game::DumpWeaponInfo( FILE* fp, float range, const Stats& stats, int count 
 				if ( wid->HasWeapon( mode )) {
 					DamageDesc dd;
 					wid->DamageBase( mode, &dd );
-					wid->FireStatistics( mode, stats.Accuracy(), range, &fraction, &fraction2, &damage, &dptu );
+					wid->FireStatistics( mode, stats.AccuracyArea(), range, &fraction, &fraction2, &damage, &dptu );
 					int nShots = wid->RoundsNeeded( mode );
 
 					fprintf( fp, "%3d %d %3d%% [%3d%%] %5.1f  ",
@@ -384,6 +384,7 @@ void Game::LoadItemResources()
 	const float DAM_HIPLUS	=  70.0f;
 	const float DAM_VHI		=  80.0f;
 
+	const float EXDAM_LOW   =  50.0f;
 	const float EXDAM_MED   = 100.0f;
 	const float EXDAM_HI	= 150.0f;
 	const float EXDAM_VHI	= 200.0f;
@@ -435,7 +436,7 @@ void Game::LoadItemResources()
 					COLORDEF( 199, 216, 6 ),	SPEED,		 WIDTH,		BOLT,		"10MW Cell" },
 		{ "Tachy",	true,	DECO_CELL,		4,   { 0, 0.6f, 0.4f },
 					COLORDEF( 227, 125, 220 ),	SPEED,		WIDTH,		BOLT,		"Tachyon field rounds" },
-		{ "Flame",	false,	DECO_SHELLS,	2,	 { 0, 0, 1 },
+		{ "Flame",	false,	DECO_SHELLS,	3,	 { 0, 0, 1 },
 					COLORDEF( 213, 63, 63 ),	SPEED*0.5f,	WIDTH,		BOLT,		"Incendiary Heavy Round" },
 		{ "RPG",	false,	DECO_ROCKET,	4,	 { 0.8f, 0, 0.2f },
 					COLORDEF( 200, 204, 213 ), SPEED*0.8f, WIDTH,		BOLT,		"Grenade Rounds" },
@@ -499,7 +500,7 @@ void Game::LoadItemResources()
 		//				
 		{ "PST",	"pst1",		DECO_PISTOL,	"Pistol",				FAST, AIMED, 0,		SPEED_FAST,
 				"Clip",			0,										DAM_LOW,	ACC_MED,	"ar",
-				0  },
+				"Flame",		WEAPON_EXPLOSIVE,						EXDAM_LOW,	ACC_MEDLOW,	"can" },
 		{ "SLUG",	"slug",		DECO_PISTOL,	"Slug gun",				FAST, AIMED, 0,		SPEED_NORMAL,
 				"Clip",			0,										DAM_HI,		ACC_VLOW,	"can",
 				0  },
