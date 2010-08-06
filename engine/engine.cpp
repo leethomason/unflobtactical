@@ -22,7 +22,7 @@
 
 #include "../game/cgame.h"
 
-#include "platformgl.h"
+#include "gpustatemanager.h"
 #include "engine.h"
 #include "loosequadtree.h"
 #include "renderQueue.h"
@@ -32,9 +32,6 @@
 
 
 using namespace grinliz;
-
-int trianglesRendered = 0;	// FIXME: should go away once all draw calls are moved to the enigine
-int drawCalls = 0;			// ditto
 
 /*
 	Optimization notes:
@@ -207,7 +204,7 @@ void Engine::FreeModel( Model* model )
 }
 
 
-void Engine::PushShadowSwizzleMatrix()
+void Engine::PushShadowSwizzleMatrix( GPUShader* shader )
 {
 	// A shadow matrix for a flat y=0 plane! heck yeah!
 	shadowMatrix.m12 = -lightDirection.x/lightDirection.y;
@@ -223,6 +220,14 @@ void Engine::PushShadowSwizzleMatrix()
 	swizzle.m22 = 0;	swizzle.m23 = -1.f/64.f;	swizzle.m24 = 1.0f;
 	swizzle.m33 = 0.0f;
 
+	shader->PushMatrix( GPUShader::TEXTURE_MATRIX );
+	shader->MultMatrix( GPUShader::TEXTURE_MATRIX, swizzle );
+	shader->MultMatrix( GPUShader::TEXTURE_MATRIX, shadowMatrix );
+
+	shader->PushMatrix( GPUShader::MODELVIEW_MATRIX );
+	shader->MultMatrix( GPUShader::MODELVIEW_MATRIX, shadowMatrix );
+
+	/*
 	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
 	glMultMatrixf( swizzle.x );			// swizzle
@@ -231,6 +236,7 @@ void Engine::PushShadowSwizzleMatrix()
 	glMatrixMode( GL_MODELVIEW );
 	glPushMatrix();
 	glMultMatrixf( shadowMatrix.x );
+	*/
 }
 
 
@@ -250,17 +256,24 @@ void Engine::Draw()
 	// ------------ Process the models into the render queue -----------
 	GLASSERT( renderQueue->Empty() );
 
-	const int QUEUE_MAIN	= 0x010000;
-	const int QUEUE_BLACK	= 0x020000;
+	//const int QUEUE_MAIN	= 0x010000;
+	//const int QUEUE_BLACK	= 0x020000;
 	const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& fogOfWar = map->GetFogOfWar();
+
+	Color4F ambient, diffuse;
+	Vector4F dir;
+	CalcLights( map->DayTime() ? DAY_TIME : NIGHT_TIME, &ambient, &dir, &diffuse );
+
+	LightShader lightShader( ambient, dir, diffuse, false );
+	LightShader alphaLightShader( ambient, dir, diffuse, true );
+	
+	FlatShader black;
+	black.SetColor( 0, 0, 0 );
 
 	for( Model* model=modelRoot; model; model=model->next ) {
 
 		if ( model->IsFlagSet( Model::MODEL_METADATA ) && !enableMeta )
 			continue;
-
-		model->ClearFlag( QUEUE_MAIN );
-		model->ClearFlag( QUEUE_BLACK );
 
 		const Vector3F& pos = model->Pos();
 		int x = LRintf( pos.x - 0.5f );
@@ -279,24 +292,20 @@ void Engine::Draw()
 
 			// Map is always rendered, possibly in black.
 			if ( !fogOfWar.IsRectEmpty( fogRect ) ) {
-				model->SetFlag( QUEUE_MAIN );
+				model->Queue( renderQueue, &lightShader, &alphaLightShader );
 			}
 			else {
-				model->SetFlag( QUEUE_BLACK );
+				model->Queue( renderQueue, &black, &black );
 			}
 		}
-		else if ( model->IsFlagSet( Model::MODEL_ALWAYS_DRAW )) {
-			model->SetFlag( QUEUE_MAIN );
-		}
 		else if ( fogOfWar.IsSet( x, y ) ) {
-			model->SetFlag( QUEUE_MAIN );
+			model->Queue( renderQueue, &lightShader, &alphaLightShader );
 		}
 #ifdef SHOW_FOW
 		else if ( !fogOfWar.IsSet( x, y ) ) {
-			model->SetFlag( QUEUE_BLACK );
+			model->Queue( renderQueue, &black, &black );
 		}
 #endif
-		model->Queue( renderQueue );
 	}
 
 #	ifdef USING_GL
@@ -309,21 +318,16 @@ void Engine::Draw()
 #	endif
 
 	// ----------- Render Passess ---------- //
-	glDisable( GL_BLEND );
+	//glDisable( GL_BLEND );
+	Color4F color;
+
 	if ( enableMap ) {
 		// If the map is enabled, we draw the basic map plane lighted. Then draw the model shadows.
 		// The shadows are the tricky part: one matrix is used to transform the vertices to the ground
 		// plane, and the other matrix is used to transform the vertices to texture coordinates.
 		// Shaders make this much, much, much easier.
 
-		glDepthFunc( GL_ALWAYS );
-		glDepthMask( GL_FALSE );
-
 		// -------- Ground plane lighted -------- //
-		Color4F color;
-		//LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, OPEN_LIGHT, 1.0f, &color );
-		//glColor4f( color.x, color.y, color.z, 1.0f );
-		glColor4f( 1, 1, 1, 1 );	// map provides it's own color.
 		map->DrawSeen();
 
 		// -------- Shadow casters/ground plane ---------- //
@@ -336,135 +340,62 @@ void Engine::Draw()
 			shadowAmount = 1.0f - ( camera.PosWC().y - SHADOW_START_HEIGHT ) / ( SHADOW_END_HEIGHT - SHADOW_START_HEIGHT );
 		}
 		if ( shadowAmount > 0.0f ) {
+			CompositingShader shadowShader;
+			shadowShader.SetTexture0( map->BackgroundTexture() );
+
 			// The shadow matrix pushes in a depth. Its the depth<0 that allows the GL_LESS
 			// test for the shadow write, below.
-			PushShadowSwizzleMatrix();
+			PushShadowSwizzleMatrix( &shadowShader );
 
 			// Note this isn't correct. We really need to modulate against the maps light map. But close enough.
 			LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, IN_SHADOW, shadowAmount, &color );
-			glColor4f( color.x, color.y, color.z, 1.0f );
+			//glColor4f( color.x, color.y, color.z, 1.0f );
+			shadowShader.SetColor( color.x, color.y, color.z );
 
-			renderQueue->Submit(	RenderQueue::MODE_IGNORE_TEXTURE | RenderQueue::MODE_IGNORE_ALPHA | RenderQueue::MODE_PLANAR_SHADOW,
+			renderQueue->Submit(	&shadowShader,
+									RenderQueue::MODE_PLANAR_SHADOW,
 									0,
 									Model::MODEL_NO_SHADOW,
 									shadowRotation );
 
-			// pop shadow-swizzle
-			{
-				glMatrixMode(GL_TEXTURE);
-				glPopMatrix();
-				glMatrixMode( GL_MODELVIEW );
-			}
-			// pop shadow
-			glPopMatrix();
-
-			CHECK_GL_ERROR;
+			shadowShader.PopMatrix( GPUShader::MODELVIEW_MATRIX );
+			shadowShader.PopMatrix( GPUShader::TEXTURE_MATRIX );
 		}
 
 
-		LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, OPEN_LIGHT, 0, &color );
-		float ave = 0.7f*(color.x + color.y + color.z)*0.333f;
-		glColor4f( ave, ave, ave, 1.0f );
-		//glColor4f( 1, 1, 1, 1 );
-		//glColor4f( color.x, color.y, color.z, 1 );
-		map->DrawPastSeen();
-
-		glColor4f( 0, 0, 0, 1 );
-		map->DrawUnseen();
-
-		// Draw the "where can I walk" overlay.
-		glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 		{
-			glEnable( GL_BLEND );
-			map->DrawOverlay( 0 );
-			glDisable( GL_BLEND );
-		}	
-//		map->DrawFOW();
-		CHECK_GL_ERROR;
+			LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, OPEN_LIGHT, 0, &color );
+			float ave = 0.7f*(color.x + color.y + color.z)*0.333f;
+			//glColor4f( ave, ave, ave, 1.0f );
+			//glColor4f( 1, 1, 1, 1 );
+			//glColor4f( color.x, color.y, color.z, 1 );
+			Color4F c = { ave, ave, ave, 1.0f };
+			map->DrawPastSeen( c );
+		}
+
+		map->DrawUnseen();
+		map->DrawOverlay( 0 );
 	}
 
 	// -------- Models ---------- //
-	glDepthMask( GL_TRUE );
-	glEnable( GL_TEXTURE_2D );
-	glDepthFunc( GL_LEQUAL );
-	CHECK_GL_ERROR;
+	renderQueue->Submit( 0, 0, 0, 0, bbRotation );
 
-	EnableLights( true, map->DayTime() ? DAY_TIME : NIGHT_TIME );
+	map->DrawOverlay( 1 );
 
-	renderQueue->Submit(	0,
-							QUEUE_MAIN,
-							0,
-							bbRotation );
-
-	EnableLights( false, map->DayTime() ? DAY_TIME : NIGHT_TIME );
-	glBindTexture( GL_TEXTURE_2D, 0 );
-	glColor4f( 0, 0, 0, 1 );
-
-	renderQueue->Submit(	RenderQueue::MODE_IGNORE_TEXTURE | RenderQueue::MODE_IGNORE_ALPHA,
-							QUEUE_BLACK,
-							0,
-							bbRotation );
-
-	glColor4f( 1, 1, 1, 1 );
-	glEnable( GL_BLEND );
-	{
-		// Map overlay
-		glDepthMask( GL_FALSE );
-		glDisable( GL_DEPTH_TEST );
-	
-		map->DrawOverlay( 1 );
-
-		glEnable( GL_DEPTH_TEST );
-		glDepthMask( GL_TRUE );
-	}
-	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 	renderQueue->Clear();
 }
 
 
-void Engine::EnableLights( bool enable, DayNight dayNight )
+void Engine::CalcLights( DayNight dayNight, Color4F* ambient, Vector4F* dir, Color4F* diffuse )
 {
-	CHECK_GL_ERROR;
-	if ( !enable ) {
-		glDisable( GL_LIGHTING );
+	ambient->Set( AMBIENT, AMBIENT, AMBIENT, 1.0f );
+	diffuse->Set( DIFFUSE, DIFFUSE, DIFFUSE, 1.0f );
+	if ( dayNight == NIGHT_TIME ) {
+		diffuse->x *= EL_NIGHT_RED;
+		diffuse->y *= EL_NIGHT_GREEN;
+		diffuse->z *= EL_NIGHT_BLUE;
 	}
-	else {
-		glEnable( GL_LIGHTING );
-		CHECK_GL_ERROR;
-
-		const float white[4]	= { 1.0f, 1.0f, 1.0f, 1.0f };
-		const float black[4]	= { 0.0f, 0.0f, 0.0f, 1.0f };
-
-		float ambient[4] = { AMBIENT, AMBIENT, AMBIENT, 1.0f };
-		float diffuse[4] = { DIFFUSE, DIFFUSE, DIFFUSE, 1.0f };
-		if ( dayNight == NIGHT_TIME ) {
-			diffuse[0] *= EL_NIGHT_RED;
-			diffuse[1] *= EL_NIGHT_GREEN;
-			diffuse[2] *= EL_NIGHT_BLUE;
-		}
-
-		Vector3F lightDir = lightDirection;
-
-		float lightVector4[4] = { lightDir.x, lightDir.y, lightDir.z, 0.0 };	// parallel
-
-		CHECK_GL_ERROR;
-		//glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
-
-		// Light 0. The Sun or Moon.
-		glEnable(GL_LIGHT0);
-		glLightfv(GL_LIGHT0, GL_POSITION, lightVector4 );
-		glLightfv(GL_LIGHT0, GL_AMBIENT,  ambient );
-		glLightfv(GL_LIGHT0, GL_DIFFUSE,  diffuse );
-		glLightfv(GL_LIGHT0, GL_SPECULAR, black );
-		CHECK_GL_ERROR;
-
-		// The material.
-		glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, black );
-		glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, black );
-		glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,  white );
-		glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,  white );
-		CHECK_GL_ERROR;
-	}
+	dir->Set( lightDirection.x, lightDirection.y, lightDirection.z, 0 );	// '0' in last term is parallel
 }
 
 

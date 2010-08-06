@@ -15,11 +15,8 @@
 
 #include "loosequadtree.h"
 #include "map.h"
-
-#ifdef DEBUG
-#include "platformgl.h"
-#endif
 #include "../grinliz/glperformance.h"
+#include "gpustatemanager.h"
 using namespace grinliz;
 
 /*
@@ -515,6 +512,8 @@ Model* SpaceTree::QueryRay( const Vector3F& _origin,
 #ifdef DEBUG
 void SpaceTree::Draw()
 {
+	CompositingShader shader( true );
+
 	for( int i=0; i<NUM_NODES; ++i ) {
 		if ( nodeArr[i].hit )
 		{
@@ -532,14 +531,13 @@ void SpaceTree::Draw()
 						  };
 
 			if ( node.hit == 1 )
-				glColor4f( 1.f, 0.f, 0.f, 0.5f );
+				shader.SetColor( 1.f, 0.f, 0.f, 0.5f );
 			else
-				glColor4f( 0.f, 1.f, 0.f, 0.5f );
+				shader.SetColor( 0.f, 1.f, 0.f, 0.5f );
 
-			glVertexPointer( 3, GL_FLOAT, 0, v );
-
- 			glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );	
-			CHECK_GL_ERROR;
+			static const int index[6] = { 0, 1, 2, 0, 2, 3 };
+			shader.SetVertex( 3, 0, v );
+			shader.Draw( 6, index );
 		}
 	}
 }

@@ -14,10 +14,9 @@
 */
 
 #include "renderQueue.h"
-#include "platformgl.h"
 #include "model.h"    
 #include "texture.h"
-
+#include "gpustatemanager.h"
 #include "../grinliz/glperformance.h"
 
 using namespace grinliz;
@@ -98,18 +97,14 @@ RenderQueue::State* RenderQueue::FindState( const State& state )
 }
 
 
-void RenderQueue::Add( Model* model, const ModelAtom* atom )
+void RenderQueue::Add( Model* model, const ModelAtom* atom, GPUShader* shader )
 {
 	if ( nItem == MAX_ITEMS ) {
 		GLASSERT( 0 );
 		return;
 	}
 
-	int flags = 0;
-	if ( atom->texture->Alpha() )
-		flags |= FLAG_ALPHA;
-
-	State s0 = { flags, atom->texture, 0 };
+	State s0 = { shader, atom->texture, 0 };
 
 	State* state = FindState( s0 );
 	if ( !state ) {
@@ -138,60 +133,11 @@ void RenderQueue::Prepare()
 */
 
 
-void RenderQueue::Submit( int mode, int required, int excluded, float bbRotation )
+void RenderQueue::Submit( GPUShader* shader, int mode, int required, int excluded, float bbRotation )
 {
 	GRINLIZ_PERFTRACK	
 
-	U32 flags = (U32)(-1);
-	Texture* texture = 0;
-	//GLOUTPUT(( "RenderQueue::Flush nState=%d nModel=%d\n", nState, nModel ));
-
 	for( int i=0; i<nState; ++i ) {
-		
-		// Handle state change.
-		if ( flags != statePool[i].flags ) {
-			
-			flags = statePool[i].flags;
-
-			if ( !(mode & MODE_IGNORE_ALPHA )) {
-				if ( flags & FLAG_ALPHA) {
-					// FIXME: clean this up.
-					// When should it blend? When should it test? What's the performance
-					// impact of blend vs. test.
-	#ifdef MAPMAKER
-					// map preview
-					glEnable( GL_BLEND );
-					glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	#else
-					// plants
-					glEnable( GL_ALPHA_TEST );
-					glAlphaFunc( GL_GREATER, 0.5f );
-	#endif
-				}
-				else {
-	#ifdef MAPMAKER
-					glDisable( GL_BLEND );
-	#else
-					glDisable( GL_ALPHA_TEST );
-	#endif
-				}
-			}
-		}
-
-		if ( !(mode & MODE_IGNORE_TEXTURE) ) {
-			// Handle texture change.
-			if ( texture != statePool[i].texture ) 
-			{
-				//GLASSERT( bindTextureToVertex == false );
-				texture = statePool[i].texture;
-
-				if ( texture ) {
-					glBindTexture( GL_TEXTURE_2D, texture->GLID() );
-					GLASSERT( glIsEnabled( GL_TEXTURE_2D ) );
-				}
-			}
-		}
-
 		for( Item* item = statePool[i].root; item; item=item->next ) 
 		{
 			Model* model = item->model;
@@ -203,33 +149,48 @@ void RenderQueue::Submit( int mode, int required, int excluded, float bbRotation
 				if ( model->IsBillboard() )
 					model->SetRotation( bbRotation );
 
-				item->atom->Bind();
+				if ( !shader ) {
+					GLASSERT( statePool[i].texture == item->atom->texture );
+					statePool[i].shader->SetTexture0( statePool[i].texture );
+				}
+				item->atom->Bind( shader ? shader : statePool[i].shader );
 
 				const Model* model = item->model;
 				GLASSERT( model );
 
 				if ( mode & MODE_PLANAR_SHADOW ) {
+					GLASSERT( shader );
 					// Override the texture part of the Bind(), above.
-					glTexCoordPointer( 3, GL_FLOAT, sizeof(Vertex), (const U8*)item->atom->vertex + Vertex::POS_OFFSET); 
+					shader->SetTexture0( 3, sizeof(Vertex), item->atom->vertex + Vertex::POS_OFFSET); 
 
 					// Push the xform matrix to the texture and the model view.
-					glMatrixMode( GL_TEXTURE );
-					model->PushMatrix( false );
-					glMatrixMode( GL_MODELVIEW );
-					model->PushMatrix( false );
+					shader->PushMatrix( GPUShader::TEXTURE_MATRIX );
+					shader->MultMatrix( GPUShader::TEXTURE_MATRIX, model->XForm() );
 
-					item->atom->Draw();
+					shader->PushMatrix( GPUShader::MODELVIEW_MATRIX );
+					shader->MultMatrix( GPUShader::MODELVIEW_MATRIX, model->XForm() );
+
+					shader->Draw( item->atom->nIndex, item->atom->index );
 
 					// Unravel all that. Not general purpose code. Call OpenGL directly.
-					glMatrixMode( GL_TEXTURE );
-					glPopMatrix();
-					glMatrixMode( GL_MODELVIEW );
-					glPopMatrix();
+					shader->PopMatrix( GPUShader::TEXTURE_MATRIX );
+					shader->PopMatrix( GPUShader::MODELVIEW_MATRIX );
 				}
 				else {
-					model->PushMatrix( true );
-					item->atom->Draw();
-					model->PopMatrix( true );
+					GPUShader* s = statePool[i].shader;
+					s->PushMatrix( GPUShader::MODELVIEW_MATRIX );
+					s->MultMatrix( GPUShader::MODELVIEW_MATRIX, model->XForm() );
+					if ( model->HasTextureXForm() ) {
+						s->PushMatrix( GPUShader::TEXTURE_MATRIX );
+						s->MultMatrix( GPUShader::TEXTURE_MATRIX, model->TextureXForm() );
+					}
+					
+					s->Draw( item->atom->nIndex, item->atom->index );
+
+					s->PopMatrix( GPUShader::MODELVIEW_MATRIX );
+					if ( model->HasTextureXForm() ) {
+						s->PopMatrix( GPUShader::TEXTURE_MATRIX );
+					}
 				}
 			}
 		}
@@ -238,11 +199,4 @@ void RenderQueue::Submit( int mode, int required, int excluded, float bbRotation
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 #endif
-
-	// Clean up the alpha state if we twiddled with it.
-	if ( !(mode & MODE_IGNORE_ALPHA )) {
-		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-		glDisable( GL_ALPHA_TEST );
-	}
 }

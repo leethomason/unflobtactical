@@ -153,3 +153,14 @@ Deferred/Cancelled
 - simultaneous shots
 - Sounds: better sounds, latency
 - Gameplay: doors are death traps if guarded...blow up doors?
+
+Notes w/ Jeff:
+- Inventory screen: which is ground, which is inventory?
+	- equipped: move to top
+	- label: active vs. pack
+	- label: ground vs. pack
+- Idea Pistol:
+	- infinite ammo (fairly weak)
+	- flare to AR-2
+- Bug: stuff on ground didn't get saved (!!??)
+- Inventory: filter on? Something to indicate tabs??

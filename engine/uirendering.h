@@ -17,6 +17,7 @@
 #define UIRENDERING_INCLUDED
 
 #include "../gamui/gamui.h"
+#include "gpustatemanager.h"
 
 
 enum {
@@ -103,7 +104,7 @@ public:
 		RENDERSTATE_UI_DECO_DISABLED,
 	};
 
-	UIRenderer() : textRed( 1 ), textGreen( 1 ), textBlue( 1 ) {}
+	UIRenderer() : shader( true ), textRed( 1 ), textGreen( 1 ), textBlue( 1 ) {}
 
 	void SetTextColor( float r, float g, float b )		{ textRed = r; textGreen = g; textBlue = b; }
 
@@ -129,8 +130,8 @@ public:
 	virtual void GamuiGlyph( int c, gamui::IGamuiText::GlyphMetrics* metric );
 	
 private:
+	CompositingShader shader;
 	float textRed, textGreen, textBlue;
-	bool blendEnabled;
 };
 
 

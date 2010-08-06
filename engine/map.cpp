@@ -13,13 +13,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "platformgl.h"
 #include "map.h"
 #include "model.h"
 #include "loosequadtree.h"
 #include "renderqueue.h"
 #include "surface.h"
 #include "text.h"
+#include "vertex.h"
 #include "../game/material.h"		// bad call to less general directory. FIXME. Move map to game?
 #include "../game/unit.h"			// bad call to less general directory. FIXME. Move map to game?
 #include "../game/game.h"			// bad call to less general directory. FIXME. Move map to game?
@@ -31,9 +31,6 @@
 
 using namespace grinliz;
 using namespace micropather;
-
-extern int trianglesRendered;	// FIXME: should go away once all draw calls are moved to the enigine
-extern int drawCalls;			// ditto
 
 
 Map::Map( SpaceTree* tree )
@@ -108,11 +105,8 @@ Map::Map( SpaceTree* tree )
 		lightMap[i].Set( Surface::RGB16, SIZE, SIZE );
 		lightMap[i].Clear( 0 );
 	}
-//	fowSurface.Set( Surface::RGBA16, SIZE, SIZE );
 
 	lightMapTex = texman->CreateTexture( "MapLightMap", SIZE, SIZE, Surface::RGB16, Texture::PARAM_NONE, this );
-//	fowTex = texman->CreateTexture( "FOWMapTex", SIZE, SIZE, Surface::RGBA16, Texture::PARAM_NEAREST, this );
-
 	ImageManager::Instance()->LoadImage( "objectLightMaps", &lightObject );
 
 	GLOUTPUT(( "Map created. %dK\n", sizeof( *this )/1024 ));
@@ -180,77 +174,22 @@ void Map::DrawSeen()
 	if ( nSeenIndex == 0 )
 		return;
 
-#ifdef DEBUG_VISIBILITY
-	glColor4f( 0, 1, 0, 1 );
-	glDisable( GL_TEXTURE_2D );
-	glDisable( GL_BLEND );
-	glDisableClientState( GL_NORMAL_ARRAY );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-
-	glVertexPointer(   2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);
-
-	glPushMatrix();
-	Matrix4 swizzle;
-	swizzle.m11 = 64.0f;
-	swizzle.m22 = 0.0f;
-	swizzle.m32 = -64.0f;	swizzle.m33 = 0.0f;		swizzle.m34 = 64.0f;
-	glMultMatrixf( swizzle.x );
-
-	glDrawElements( GL_TRIANGLES, nSeenIndex, GL_UNSIGNED_SHORT, seenIndex );
-	trianglesRendered += nUnseenIndex/3;
-	drawCalls++;
-
-	glPopMatrix();
-	glEnable( GL_TEXTURE_2D );
-	glEnableClientState( GL_NORMAL_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-#else
-	/* Texture 0 */
-	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, backgroundTexture->GLID() );
-
-	glDisableClientState( GL_NORMAL_ARRAY );
-	glVertexPointer(   2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);	// points to same thing.
-	CHECK_GL_ERROR
-	
-#if 1
-	/* Texture 1 */
-	glActiveTexture( GL_TEXTURE1 );
-	glClientActiveTexture( GL_TEXTURE1 );
-	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, lightMapTex->GLID() );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);	// points to same thing.
-
-	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-	CHECK_GL_ERROR;
-#endif
+	CompositingShader shader;
+	shader.SetVertex( 2, sizeof(mapVertex[0]), mapVertex );
+	shader.SetTexture0( backgroundTexture, 2, sizeof(mapVertex[0]), mapVertex );	
+	shader.SetTexture1( lightMapTex, 2, sizeof(mapVertex[0]), mapVertex );
 
 	// the vertices are storred in texture coordinates, to use less space.
-	glPushMatrix();
+
 	Matrix4 swizzle;
 	swizzle.m11 = 64.0f;
 	swizzle.m22 = 0.0f;
 	swizzle.m32 = -64.0f;	swizzle.m33 = 0.0f;		swizzle.m34 = 64.0f;
-	glMultMatrixf( swizzle.x );
 
-	glDrawElements( GL_TRIANGLES, nSeenIndex, GL_UNSIGNED_SHORT, seenIndex );
-	trianglesRendered += nSeenIndex/3;
-	drawCalls++;
-
-	glPopMatrix();
-
-#if 1
-	glDisable( GL_TEXTURE_2D );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-	glClientActiveTexture( GL_TEXTURE0 );
-	glActiveTexture( GL_TEXTURE0 );
-#endif
-#endif		// DEBUG_VISIBILITY
-	glEnableClientState( GL_NORMAL_ARRAY );
-	CHECK_GL_ERROR
+	shader.PushMatrix( GPUShader::MODELVIEW_MATRIX );
+	shader.MultMatrix( GPUShader::MODELVIEW_MATRIX, swizzle );
+	shader.Draw( nSeenIndex, seenIndex );
+	shader.PopMatrix( GPUShader::MODELVIEW_MATRIX );
 }
 
 
@@ -260,138 +199,43 @@ void Map::DrawUnseen()
 	if ( nUnseenIndex == 0 )
 		return;
 
-#ifdef DEBUG_VISIBILITY
-	glColor4f( 1, 0, 0, 1 );
-	glDisable( GL_TEXTURE_2D );
-	glDisable( GL_BLEND );
-	glDisableClientState( GL_NORMAL_ARRAY );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+	CompositingShader shader;
+	shader.SetColor( 0, 0, 0 );
+	shader.SetVertex( 2, sizeof(mapVertex[0]), mapVertex );
 
-	glVertexPointer(   2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);
-
-	glPushMatrix();
 	Matrix4 swizzle;
 	swizzle.m11 = 64.0f;
 	swizzle.m22 = 0.0f;
 	swizzle.m32 = -64.0f;	swizzle.m33 = 0.0f;		swizzle.m34 = 64.0f;
-	glMultMatrixf( swizzle.x );
 
-	glDrawElements( GL_TRIANGLES, nUnseenIndex, GL_UNSIGNED_SHORT, unseenIndex );
-	trianglesRendered += nUnseenIndex/3;
-	drawCalls++;
-
-	glPopMatrix();
-	glEnable( GL_TEXTURE_2D );
-	glEnableClientState( GL_NORMAL_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-#else
-	glDisable( GL_TEXTURE_2D );
-	glDisable( GL_BLEND );
-	glDisableClientState( GL_NORMAL_ARRAY );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-
-	glVertexPointer(   2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);
-
-	glPushMatrix();
-	Matrix4 swizzle;
-	swizzle.m11 = 64.0f;
-	swizzle.m22 = 0.0f;
-	swizzle.m32 = -64.0f;	swizzle.m33 = 0.0f;		swizzle.m34 = 64.0f;
-	glMultMatrixf( swizzle.x );
-
-	glDrawElements( GL_TRIANGLES, nUnseenIndex, GL_UNSIGNED_SHORT, unseenIndex );
-	trianglesRendered += nUnseenIndex/3;
-	drawCalls++;
-
-	glPopMatrix();
-	glEnable( GL_TEXTURE_2D );
-	glEnableClientState( GL_NORMAL_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-#endif
-	CHECK_GL_ERROR
+	shader.PushMatrix( GPUShader::MODELVIEW_MATRIX );
+	shader.MultMatrix( GPUShader::MODELVIEW_MATRIX, swizzle );
+	shader.Draw( nUnseenIndex, unseenIndex );
+	shader.PopMatrix( GPUShader::MODELVIEW_MATRIX );
 }
 
 
-void Map::DrawPastSeen()
+void Map::DrawPastSeen( const Color4F& color )
 {
 	GenerateLightMap();
 	if ( nPastSeenIndex == 0 )
 		return;
 
-#ifdef DEBUG_VISIBILITY
-	glColor4f( 0, 0, 1, 1 );
-	glDisable( GL_TEXTURE_2D );
-	glDisable( GL_BLEND );
-	glDisableClientState( GL_NORMAL_ARRAY );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+	CompositingShader shader;
+	shader.SetVertex( 2, sizeof(mapVertex[0]), mapVertex );
+	shader.SetTexture0( greyTexture, 2, sizeof(mapVertex[0]), mapVertex );	
+	shader.SetColor( color.x, color.y, color.z );
 
-	glVertexPointer(   2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);
-
-	glPushMatrix();
+	// the vertices are stored in texture coordinates, to use less space.
 	Matrix4 swizzle;
 	swizzle.m11 = 64.0f;
 	swizzle.m22 = 0.0f;
 	swizzle.m32 = -64.0f;	swizzle.m33 = 0.0f;		swizzle.m34 = 64.0f;
-	glMultMatrixf( swizzle.x );
 
-	glDrawElements( GL_TRIANGLES, nPastSeenIndex, GL_UNSIGNED_SHORT, pastSeenIndex );
-	trianglesRendered += nUnseenIndex/3;
-	drawCalls++;
-
-	glPopMatrix();
-	glEnable( GL_TEXTURE_2D );
-	glEnableClientState( GL_NORMAL_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-#else
-
-	/* Texture 0 */
-	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, greyTexture->GLID() );
-
-	glDisableClientState( GL_NORMAL_ARRAY );
-	glVertexPointer(   2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);	// points to same thing.
-	CHECK_GL_ERROR
-	
-#if 0
-	/* Texture 1 */
-	glActiveTexture( GL_TEXTURE1 );
-	glClientActiveTexture( GL_TEXTURE1 );
-	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, lightMapTex->GLID() );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(mapVertex[0]), mapVertex);	// points to same thing.
-
-	glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-	CHECK_GL_ERROR;
-#endif
-
-	// the vertices are storred in texture coordinates, to use less space.
-	glPushMatrix();
-	Matrix4 swizzle;
-	swizzle.m11 = 64.0f;
-	swizzle.m22 = 0.0f;
-	swizzle.m32 = -64.0f;	swizzle.m33 = 0.0f;		swizzle.m34 = 64.0f;
-	glMultMatrixf( swizzle.x );
-
-	glDrawElements( GL_TRIANGLES, nPastSeenIndex, GL_UNSIGNED_SHORT, pastSeenIndex );
-	trianglesRendered += nSeenIndex/3;
-	drawCalls++;
-
-	glPopMatrix();
-
-#if 0
-	glDisable( GL_TEXTURE_2D );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-	glClientActiveTexture( GL_TEXTURE0 );
-	glActiveTexture( GL_TEXTURE0 );
-#endif
-	glEnableClientState( GL_NORMAL_ARRAY );
-#endif
-	CHECK_GL_ERROR
+	shader.PushMatrix( GPUShader::MODELVIEW_MATRIX );
+	shader.MultMatrix( GPUShader::MODELVIEW_MATRIX, swizzle );
+	shader.Draw( nPastSeenIndex, pastSeenIndex );
+	shader.PopMatrix( GPUShader::MODELVIEW_MATRIX );
 }
 
 
@@ -617,7 +461,7 @@ void Map::GenerateLightMap()
 
 		// Test case: 
 		// (continue, back) 8.9 k/f
-		// Go to strip creation: 5.9 k/f
+		// Go to strip creation: 5.9 k/f (and that's total - the code below should get the submit down to 400-500 tris possibly?)
 
 #define PUSHQUAD( _arr, _index, _x0, _x1, _y ) \
 			_arr[ _index++ ] = (_y+0)*(SIZE+1)+(_x0);	\
@@ -1592,12 +1436,7 @@ void Map::DumpTile( int x, int y )
 
 void Map::DrawPath()
 {
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-
-	glDisable( GL_TEXTURE_2D );
-	glDisableClientState( GL_NORMAL_ARRAY );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+	CompositingShader shader( true );
 
 	for( int j=0; j<SIZE; ++j ) {
 		for( int i=0; i<SIZE; ++i ) {
@@ -1612,6 +1451,7 @@ void Map::DrawPath()
 
 			Vector3F red[12];
 			Vector3F green[12];
+			static const int index[12] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 			int	nRed = 0, nGreen = 0;	
 			const float EPS = 0.2f;
 
@@ -1643,26 +1483,20 @@ void Map::DrawPath()
 			GLASSERT( nRed <= 12 );
 			GLASSERT( nGreen <= 12 );
 
-			glColor4f( 1.f, 0.f, 0.f, 0.5f );
-			glVertexPointer( 3, GL_FLOAT, 0, red );
- 			glDrawArrays( GL_TRIANGLES, 0, nRed );	
-			CHECK_GL_ERROR;
-			trianglesRendered += nRed / 3;
-			drawCalls++;
+			shader.SetColor( 1, 0, 0, 0.5f );
+			shader.SetVertex( 3, 0, red );
+			shader.Draw( nRed, index );
 
-			glColor4f( 0.f, 1.f, 0.f, 0.5f );
-			glVertexPointer( 3, GL_FLOAT, 0, green );
- 			glDrawArrays( GL_TRIANGLES, 0, nGreen );	
-			CHECK_GL_ERROR;
-			trianglesRendered += nGreen / 3;
-			drawCalls++;
+			shader.SetColor( 0, 1, 0, 0.5f );
+			shader.SetVertex( 3, 0, green );
+			shader.Draw( nGreen, index );
 		}
 	}
 
-	glEnableClientState( GL_NORMAL_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-	glEnable( GL_TEXTURE_2D );
-	glDisable( GL_BLEND );
+//	glEnableClientState( GL_NORMAL_ARRAY );
+//	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+//	glEnable( GL_TEXTURE_2D );
+//	glDisable( GL_BLEND );
 }
 
 
@@ -2223,19 +2057,17 @@ void Map::CreateTexture( Texture* t )
 
 void Map::BeginRender()
 {
-	glDisableClientState( GL_NORMAL_ARRAY );
-	glEnable( GL_BLEND );
-	glPushMatrix();
+	gamuiShader.PushMatrix( GPUShader::MODELVIEW_MATRIX );
 
-	glRotatef( 90.f, 1, 0, 0 );
+	Matrix4 rot;
+	rot.SetXRotation( 90 );
+	gamuiShader.MultMatrix( GPUShader::MODELVIEW_MATRIX, rot );
 }
 
 
 void Map::EndRender()
 {
-	glPopMatrix();
-	glEnableClientState( GL_NORMAL_ARRAY );
-	glDisable( GL_BLEND );
+	gamuiShader.PopMatrix( GPUShader::MODELVIEW_MATRIX );
 }
 
 
@@ -2245,19 +2077,19 @@ void Map::BeginRenderState( const void* renderState )
 	switch( (int)renderState ) {
 		case UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE:
 		case RENDERSTATE_MAP_OPAQUE:
-			glColor4f( 1, 1, 1, 1 );
-			glDisable( GL_BLEND );
+			gamuiShader.SetColor( 1, 1, 1, 1 );
+			gamuiShader.SetBlend( false );
 			break;
 
 		case UIRenderer::RENDERSTATE_UI_NORMAL:
 		case RENDERSTATE_MAP_NORMAL:
-			glColor4f( 1.0f, 1.0f, 1.0f, 0.8f );
-			glEnable( GL_BLEND );
+			gamuiShader.SetColor( 1.0f, 1.0f, 1.0f, 0.8f );
+			gamuiShader.SetBlend( true );
 			break;
 
 		case RENDERSTATE_MAP_TRANSLUCENT:
-			glColor4f( 1, 1, 1, ALPHA );
-			glEnable( GL_BLEND );
+			gamuiShader.SetColor( 1, 1, 1, ALPHA );
+			gamuiShader.SetBlend( true );
 			break;
 		default:
 			GLASSERT( 0 );
@@ -2267,17 +2099,16 @@ void Map::BeginRenderState( const void* renderState )
 
 void Map::BeginTexture( const void* textureHandle )
 {
-	Texture* texture = (Texture*)textureHandle;
-	glBindTexture( GL_TEXTURE_2D, texture->GLID() );
+	gamuiShader.SetTexture0( (Texture*)textureHandle );
 }
 
 
 void Map::Render( const void* renderState, const void* textureHandle, int nIndex, const int16_t* index, int nVertex, const gamui::Gamui::Vertex* vertex )
 {
-	glVertexPointer(   2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].x );
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].tx ); 
-	glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, index );
+	//glVertexPointer(   2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].x );
+	//glTexCoordPointer( 2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].tx ); 
+	gamuiShader.SetVertex( 2, sizeof(gamui::Gamui::Vertex), &vertex[0].x );
+	gamuiShader.SetTexture0( 2, sizeof(gamui::Gamui::Vertex), &vertex[0].tx );
 
-	++drawCalls;
-	trianglesRendered += nIndex / 3;
+	gamuiShader.Draw( nIndex, (const uint16_t*)index );
 }

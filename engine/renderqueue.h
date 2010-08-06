@@ -20,10 +20,12 @@
 #include "../grinliz/gltypes.h"
 #include "enginelimits.h"
 #include "vertex.h"
+#include "gpustatemanager.h"
 
 class Model;
 struct ModelAtom;
 class Texture;
+
 
 /* 
 	The prevailing wisdom for GPU performance is to group the submission by 1)render state
@@ -44,55 +46,45 @@ public:
 
 	RenderQueue();
 	~RenderQueue();
-
-	void Add( Model* model, const ModelAtom* atom );		// not const - can change billboard rotation
-	//void Prepare();
+	void Add(	Model* model,					// Can be chaned: billboard rotation will be set.
+				const ModelAtom* atom, 
+				GPUShader* shader );
 
 	enum {
-		MODE_IGNORE_TEXTURE				= 0x01,		// Ignore textures on all models. Don't set texture state, sort everything to same bucket.
-		MODE_IGNORE_ALPHA				= 0x02,		// Ignore alpha settings on texture.
+		//MODE_IGNORE_TEXTURE				= 0x01,		// Ignore textures on all models. Don't set texture state, sort everything to same bucket.
+		//MODE_IGNORE_ALPHA				= 0x02,		// Ignore alpha settings on texture.
 		MODE_PLANAR_SHADOW				= 0x04,		// Do all the fancy tricks to create planar shadows.
 	};
-	void Submit( int mode, int required, int excluded, float billboardRotation );
+
+	/* If a shader is passed it, it will override the shader set by the Add. */
+	void Submit( GPUShader* shader, int mode, int required, int excluded, float billboardRotation );
 	bool Empty() { return nState == 0 && nItem == 0; }
 	void Clear() { nState = 0; nItem = 0; }
 
 private:
-	enum { 
-		FLAG_ALPHA = 0x01,		// render in blend phase
-	};
-
 	struct Item {
 		Model*				model;
 		const ModelAtom*	atom;
 		Item*				next;
 	};
 
-	/*
-	struct SortedItem {
-		Model*				model;
-		const ModelAtom*	atom;
-		State*				state;
-	};
-	*/
-
 	struct State {
-		int				flags;
-		Texture*		texture;
-		Item*			root;
+		GPUShader*			shader;
+		Texture*			texture;
+		Item*				root;
 	};
 
 	static int Compare( const State& s0, const State& s1 ) 
 	{
-		if ( s0.flags == s1.flags ) {
+		if ( s0.shader == s1.shader ) {
 			if ( s0.texture == s1.texture )
 				return 0;
 			return ( s0.texture < s1.texture ) ? -1 : 1;
 		}
-		else if ( s0.flags < s1.flags ) {
-			return -1;
+		if ( s0.shader->SortOrder() == s1.shader->SortOrder() ) {
+			return s0.shader < s1.shader ? -1 : 1;
 		}
-		return 1;
+		return s0.shader->SortOrder() - s1.shader->SortOrder();
 	}
 
 	State* FindState( const State& state );
@@ -102,7 +94,6 @@ private:
 
 	State statePool[MAX_STATE];
 	Item itemPool[MAX_ITEMS];
-	//SortedItem sortedItemPool[MAX_ITEMS];		// could add Prepare() to construct this.
 };
 
 

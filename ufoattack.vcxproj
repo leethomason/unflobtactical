@@ -115,6 +115,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="engine\gpustatemanager.cpp" />
     <ClCompile Include="game\ai.cpp" />
     <ClCompile Include="game\battlescene.cpp" />
     <ClCompile Include="game\cgame.cpp" />
@@ -160,6 +161,7 @@
     <ClCompile Include="shared\gamedbreader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="engine\gpustatemanager.h" />
     <ClInclude Include="game\ai.h" />
     <ClInclude Include="game\battlescene.h" />
     <ClInclude Include="game\cgame.h" />

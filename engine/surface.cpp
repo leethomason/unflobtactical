@@ -15,7 +15,6 @@
 
 #include <stdlib.h>
 #include "surface.h"
-#include "platformgl.h"
 #include "../grinliz/glutil.h"
 #include "../grinliz/glstringutil.h"
 #include <string.h>

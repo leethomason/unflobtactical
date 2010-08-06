@@ -29,6 +29,7 @@
 class Texture;
 class SpaceTree;
 class RenderQueue;
+class GPUShader;
 
 // The smallest draw unit: texture, vertex, index.
 struct ModelAtom 
@@ -41,8 +42,7 @@ struct ModelAtom
 	U32 nVertex;
 	U32 nIndex;
 
-	void Bind() const;
-	void Draw() const;
+	void Bind( GPUShader* shader ) const;
 
 	const U16* index;		// points back to ModelResource memory.
 	const Vertex* vertex;	// points back to ModelResource memory.
@@ -119,11 +119,11 @@ public:
 	void Init( const ModelResource* resource, SpaceTree* tree );
 	void Free();
 
-	void Queue( RenderQueue* queue );
+	void Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent );
 
 	// Used by the queued rendering system:
-	void PushMatrix( bool pushTextureToo ) const;
-	void PopMatrix( bool popTextureToo ) const;
+	//void PushMatrix( bool pushTextureToo ) const;
+	//void PopMatrix( bool popTextureToo ) const;
 
 	enum {
 		MODEL_SELECTABLE			= 0x01,
@@ -132,7 +132,6 @@ public:
 		MODEL_NO_SHADOW				= 0x08,
 		MODEL_INVISIBLE				= 0x10,
 		MODEL_MAP_TRANSPARENT		= 0x20,
-		MODEL_ALWAYS_DRAW			= 0x40,
 		MODEL_METADATA				= 0x80,		// mapmaker data that isn't displayed in-game
 
 		// RESERVED!
@@ -189,14 +188,12 @@ public:
 	// to (-1,-1)-(-1,-1) to then be set by the engine.
 	grinliz::Rectangle2I mapBoundsCache;
 
-private:
-	struct TexMat {
-		float a, d, x, y;
-		void Identity() { a=1.0f; d=1.0f; x=0.0f; y=0.0f; }
-	};
-
-	void Modify() { xformValid = false; invValid = false; mapBoundsCache.Set( -1, -1, -1, -1 ); }
 	const grinliz::Matrix4& XForm() const;
+	bool HasTextureXForm() const					{ return texMatSet; }
+	const grinliz::Matrix4& TextureXForm() const	{ return texMat; }
+
+private:
+	void Modify() { xformValid = false; invValid = false; mapBoundsCache.Set( -1, -1, -1, -1 ); }
 	const grinliz::Matrix4& InvXForm() const;
 
 	SpaceTree* tree;
@@ -204,7 +201,7 @@ private:
 	grinliz::Vector3F pos;
 	float rot[3];
 	bool texMatSet;
-	TexMat texMat;
+	grinliz::Matrix4 texMat;
 
 	Texture* setTexture;	// overrides the default texture
 	ModelAtom* textureAtoms;		// if the texture is set, a copy of the atoms (that use the texture instead)
