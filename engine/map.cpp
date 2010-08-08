@@ -47,6 +47,7 @@ Map::Map( SpaceTree* tree )
 	dayTime = true;
 	pathBlocker = 0;
 	nImageData = 0;
+	enableMeta = false;
 
 	microPather = new MicroPather(	this,			// graph interface
 									SIZE*SIZE,		// max possible states (+1)
@@ -518,6 +519,11 @@ void Map::GenerateLightMap()
 		nSeenIndex = countArr[0];
 		nPastSeenIndex = countArr[1];
 		nUnseenIndex = countArr[2];
+#ifdef SHOW_FOW
+		memcpy( pastSeenIndex+nPastSeenIndex, unseenIndex, sizeof(U16)*nUnseenIndex );
+		nPastSeenIndex += nUnseenIndex;
+		nUnseenIndex = 0;
+#endif
 
 #undef PUSHQUAD
 
@@ -738,7 +744,6 @@ void Map::SetPyro( int x, int y, int duration, int fire )
 }
 
 
-#ifdef MAPMAKER
 Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 {
 	Model* model = 0;
@@ -760,7 +765,6 @@ Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 	}
 	return model;
 }
-#endif
 
 
 void Map::MapObjectToWorld( int x, int y, int rotation, Matrix2I* mat, Vector3F* vecPos )
@@ -827,7 +831,9 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	// Check for meta data.
 	if ( (itemDef.name == "guard") || (itemDef.name == "scout" )) {
 		metadata = true;
-#		if !defined( MAPMAKER )
+		if ( !enableMeta ) {
+			// If we aren't in MapMaker mode, push back the guard and scout positions for later use.
+			// Don't actually add the model.
 			if ( itemDef.name == "guard" ) {
 				if ( nGuardPos < MAX_GUARD_SCOUT ) {
 					guardPos[nGuardPos++].Set( x, y );
@@ -839,7 +845,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 				}
 			}
 			return 0;
-#		endif	
+		}
 	}
 
 	Rectangle2I mapBounds;
@@ -1160,7 +1166,6 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 
 			// store it to save later:
 			const char* name = image->Attribute( "name" ); 
-			GLASSERT( strlen( name ) < EL_FILE_STRING_LEN );
 			GLASSERT( nImageData < MAX_IMAGE_DATA );
 			imageData[ nImageData ].x = x;
 			imageData[ nImageData ].y = y;

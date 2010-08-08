@@ -226,6 +226,9 @@ bool WeaponItemDef::FireStatistics( WeaponMode mode,
 
 	if ( tu > 0.0f ) {
 		Accuracy acc = CalcAccuracy( accuracyArea, mode );
+		//if( StrEqual( this->name, "PST" ) ) {
+		//	GLOUTPUT(( "AccArea=%.2f rad=%.2f\n", accuracyArea, acc.RadiusAtOne() ));
+		//}
 
 		BulletSpread bulletSpread;
 		*chanceToHit = bulletSpread.ComputePercent( acc, distance );

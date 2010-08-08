@@ -79,7 +79,6 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 }
 
 
-#ifdef MAPMAKER
 Game::Game( int width, int height, int rotation, const char* path, const TileSetDesc& base ) :
 	screenport( width, height, rotation ),
 	markFrameTime( 0 ),
@@ -87,12 +86,15 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	framesPerSecond( 0 ),
 	trianglesPerSecond( 0 ),
 	trianglesSinceMark( 0 ),
+	debugTextOn( false ),
+	resetGame( false ),
 	previousTime( 0 ),
 	isDragging( false ),
 	sceneStack(),
 	scenePopQueued( false ),
 	scenePushQueued( -1 )
 {
+	GLASSERT( Engine::mapMakerMode == true );
 	savePath = path;
 	char c = savePath[savePath.size()-1];
 	if ( c != '\\' && c != '/' ) {	
@@ -112,10 +114,15 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	char buffer[128];
 	SNPrintf( buffer, 128, "%4s_%2d_%4s_%02d", base.set, base.size, base.type, base.variation );
 
-	xmlFile  = std::string( path ) + std::string( buffer ) + std::string( ".xml" );
-	std::string texture  = std::string( buffer ) + std::string( "_TEX" );
-	std::string dayMap   = std::string( buffer ) + std::string( "_DAY" );
-	std::string nightMap = std::string( buffer ) + std::string( "_NGT" );
+	mapmaker_xmlFile  = std::string( path );
+	mapmaker_xmlFile += std::string( buffer );
+	mapmaker_xmlFile += std::string( ".xml" );
+	std::string texture  = std::string( buffer ); 
+				texture += std::string( "_TEX" );
+	std::string dayMap   = std::string( buffer );
+				dayMap  += std::string( "_DAY" );
+	std::string nightMap  = std::string( buffer );
+				nightMap += std::string( "_NGT" );
 
 	engine->camera.SetPosWC( -25.f, 45.f, 30.f );	// standard test
 	engine->camera.SetYRotation( -60.f );
@@ -125,14 +132,13 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	loadCompleted = false;
 	PushPopScene();
 
-	showPathing = false;
+	mapmaker_showPathing = false;
 
-	TiXmlDocument doc( xmlFile );
+	TiXmlDocument doc( mapmaker_xmlFile.c_str() );
 	doc.LoadFile();
 	if ( !doc.Error() )
 		engine->GetMap()->Load( doc.FirstChildElement( "Map" ), GetItemDefArr() );
 }
-#endif
 
 
 void Game::Init()
@@ -172,13 +178,13 @@ void Game::Init()
 
 Game::~Game()
 {
-#ifdef MAPMAKER
-	TiXmlDocument doc( xmlFile );
-	TiXmlElement map( "Map" );
-	doc.InsertEndChild( map );
-	engine->GetMap()->Save( doc.FirstChildElement( "Map" ) );
-	doc.SaveFile();
-#endif
+	if ( Engine::mapMakerMode ) {
+		TiXmlDocument doc( mapmaker_xmlFile.c_str() );
+		TiXmlElement map( "Map" );
+		doc.InsertEndChild( map );
+		engine->GetMap()->Save( doc.FirstChildElement( "Map" ) );
+		doc.SaveFile();
+	}
 
 	// Roll up to the main scene before saving.
 	while( sceneStack.Size() > 1 ) {
@@ -397,21 +403,21 @@ void Game::DoTick( U32 _currentTime )
 		//	r.Set( 100, 50, 300, 150 );
 		screenport.SetPerspective( 2.f, 240.f, 20.f*(screenport.UIWidth()/screenport.UIHeight())*320.0f/480.0f, clip3D.IsValid() ? &clip3D : 0 );
 
-#ifdef MAPMAKER
-		if ( showPathing ) 
-			engine->EnableMap( false );
-		engine->Draw();
-		if ( showPathing ) {
-			engine->GetMap()->DrawPath();
-		}
-		if ( showPathing ) 
-			engine->EnableMap( true );
-#else
-		engine->Draw();
-		scene->Debug3D();
-			
-#endif
+		if ( Engine::mapMakerMode ) {
+			if ( mapmaker_showPathing ) 
+				engine->EnableMap( false );
 
+			engine->Draw();
+
+			if ( mapmaker_showPathing ) {
+				engine->GetMap()->DrawPath();
+				engine->EnableMap( true );
+			}
+		}
+		else {
+			engine->Draw();
+			scene->Debug3D();
+		}
 		
 		const grinliz::Vector3F* eyeDir = engine->camera.EyeDir3();
 		ParticleSystem* particleSystem = ParticleSystem::Instance();
@@ -442,16 +448,19 @@ void Game::DoTick( U32 _currentTime )
 						(float)GPUShader::TrianglesDrawn()/1000.0f,
 						GPUShader::DrawCalls(),
 						trianglesPerSecond );
-		#if !defined(MAPMAKER) && defined(DEBUG)
-		UFOText::Draw(  0, Y+14, "new=%d Tex(%d/%d) %dK/%dK mis=%d re=%d hit=%d",
-						memNewCount,
-						TextureManager::Instance()->NumTextures(),
-						TextureManager::Instance()->NumGPUResources(),
-						TextureManager::Instance()->CalcTextureMem()/1024,
-						TextureManager::Instance()->CalcGPUMem()/1024,
-						TextureManager::Instance()->CacheMiss(),
-						TextureManager::Instance()->CacheReuse(),
-						TextureManager::Instance()->CacheHit() );		
+
+		#if defined(DEBUG)
+		if ( !Engine::mapMakerMode )  {
+			UFOText::Draw(  0, Y+14, "new=%d Tex(%d/%d) %dK/%dK mis=%d re=%d hit=%d",
+							memNewCount,
+							TextureManager::Instance()->NumTextures(),
+							TextureManager::Instance()->NumGPUResources(),
+							TextureManager::Instance()->CalcTextureMem()/1024,
+							TextureManager::Instance()->CalcGPUMem()/1024,
+							TextureManager::Instance()->CacheMiss(),
+							TextureManager::Instance()->CacheReuse(),
+							TextureManager::Instance()->CacheHit() );		
+		}
 		#endif
 	}
 	else {
@@ -517,47 +526,12 @@ void Game::Tap( int action, int wx, int wy )
 }
 
 
-/*
-void Game::Drag( int action, int wx, int wy )
+void Game::MouseMove( int x, int y )
 {
-	Vector2F window = { (float)wx, (float)wy };
-	Vector2F view;
-	screenport.WindowToView( window, &view );
-	grinliz::Ray world;
-	screenport.ViewToWorld( view, 0, &world );
-
-	switch ( action ) 
-	{
-		case GAME_DRAG_START:
-		{
-			GLASSERT( !isDragging );
-			isDragging = true;
-			sceneStack.Top()->Drag( action, view );
-		}
-		break;
-
-		case GAME_DRAG_MOVE:
-		{
-			GLASSERT( isDragging );
-			sceneStack.Top()->Drag( action, view );
-		}
-		break;
-
-		case GAME_DRAG_END:
-		{
-			GLASSERT( isDragging );
-			sceneStack.Top()->Drag( GAME_DRAG_MOVE, view );
-			sceneStack.Top()->Drag( GAME_DRAG_END, view );
-			isDragging = false;
-		}
-		break;
-
-		default:
-			GLASSERT( 0 );
-			break;
-	}
+	GLASSERT( Engine::mapMakerMode );
+	((BattleScene*)sceneStack.Top())->MouseMove( x, y );
 }
-*/
+
 
 
 void Game::Zoom( int action, int distance )
@@ -587,28 +561,6 @@ void Game::HandleHotKeyMask( int mask )
 }
 
 
-void Game::MouseMove( int sx, int sy )
-{
-#ifdef MAPMAKER
-//	Vector2I view;
-//	screenport.ScreenToView( sx, sy, &view );
-
-//	grinliz::Matrix4 mvpi;
-//	grinliz::Ray world;
-
-//	screenport.ViewProjectionInverse3D( &mvpi );
-//	engine.RayFromScreenToYPlane( sx, sy, mvpi, &world, 0 );
-
-//	GLOUTPUT(( "world (%.1f,%.1f,%.1f)  plane (%.1f,%.1f,%.1f)\n", 
-//				world.origin.x, world.origin.y, world.origin.z,
-//				p.x, p.y, p.z ));
-
-	// Can only be battlescene:
-	((BattleScene*)sceneStack.Top())->MouseMove( sx, sy );
-#endif
-}
-
-
 void Game::DeviceLoss()
 {
 	TextureManager::Instance()->DeviceLoss();
@@ -620,7 +572,6 @@ void Game::Resize( int width, int height, int rotation )
 	screenport.Resize( width, height, rotation );
 }
 
-#ifdef MAPMAKER
 
 void Game::RotateSelection( int delta )
 {
@@ -638,4 +589,3 @@ void Game::DeltaCurrentMapItem( int d )
 	((BattleScene*)sceneStack.Top())->DeltaCurrentMapItem(d);
 }
 
-#endif

@@ -116,7 +116,7 @@ protected:
 	static int drawCalls;
 	static uint32_t uid;
 
-	virtual void SetLightParams() const	{}
+	//virtual void SetLightParams() const	{}
 
 	Texture* texture0;
 	Texture* texture1;
@@ -176,7 +176,9 @@ public:
 	~LightShader();
 
 protected:
-	virtual void SetLightParams() const;
+	void SetLightParams() const;
+
+	static int locked;
 
 	Color4F				ambient;
 	grinliz::Vector4F	direction;
@@ -197,7 +199,7 @@ public:
 	static bool IsSupported();
 
 	PointParticleShader();
-	void DrawPoints( float pointSize, int start, int count );
+	void DrawPoints( Texture* texture, float pointSize, int start, int count );
 };
 
 

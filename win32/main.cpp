@@ -26,9 +26,8 @@
 #include "../grinliz/glstringutil.h"
 #include "audio.h"
 
-#if defined(MAPMAKER) || defined(_MSC_VER)
+// Used for map maker mode - directly call the game object.
 #include "../game/game.h"
-#endif
 
 #include "wglew.h"
 
@@ -126,10 +125,10 @@ int main( int argc, char **argv )
 	screenWidth = NEXUS_ONE_SCREEN_WIDTH;
 	screenHeight = NEXUS_ONE_SCREEN_HEIGHT;
 #else
-//	screenWidth = NEXUS_ONE_SCREEN_HEIGHT;
-//	screenHeight = NEXUS_ONE_SCREEN_WIDTH;
-	screenWidth = IPOD_SCREEN_HEIGHT;
-	screenHeight = IPOD_SCREEN_WIDTH;
+	screenWidth = NEXUS_ONE_SCREEN_HEIGHT;
+	screenHeight = NEXUS_ONE_SCREEN_WIDTH;
+//	screenWidth = IPOD_SCREEN_HEIGHT;
+//	screenHeight = IPOD_SCREEN_WIDTH;
 #endif
 
 	// Note that our output surface is rotated from the iPod.
@@ -171,29 +170,45 @@ int main( int argc, char **argv )
 	grinliz::Vector2I prevMouseDown = { 0, 0 };
 	U32 prevMouseDownTime = 0;
 
-#ifdef MAPMAKER
-	TileSetDesc desc;
-	GLASSERT( argc == 5 );
-	if ( argc != 5 )
-		exit( 1 );
-	
-	desc.set = argv[1];
-	GLASSERT( strlen( desc.set ) == 4 );
+	void* game = 0;
+	bool mapMakerMode = false;
 
-	desc.size = atol( argv[2] );
-	GLASSERT( desc.size == 16 || desc.size == 32 || desc.size == 64 );
+	if ( argc > 1 ) {
+		// -- MapMaker -- //
+		Engine::mapMakerMode = true;
 
-	desc.type = argv[3];
-	GLASSERT( strlen( desc.type ) == 4 );
+		TileSetDesc desc;
+		desc.set = "FARM";
+		desc.size = 16;
+		desc.type = "TILE";
+		desc.variation = 0;
 
-	desc.variation = atol( argv[4] );
-	GLASSERT( desc.variation >= 0 && desc.variation < 100 );
+		if ( argc > 2 ) {
+			desc.set = argv[2];
+			GLASSERT( strlen( desc.set ) == 4 );
+		}
 
-	Game* game = new Game( screenWidth, screenHeight, rotation, ".\\resin\\", desc );
-#else	
-	void* game = NewGame( screenWidth, screenHeight, rotation, ".\\" );
-#endif
+		if ( argc > 3 ) {
+			desc.size = atol( argv[3] );
+			GLASSERT( desc.size == 16 || desc.size == 32 || desc.size == 64 );
+		}
 
+		if ( argc > 4 ) {
+			desc.type = argv[4];
+			GLASSERT( strlen( desc.type ) == 4 );
+		}
+
+		if ( argc > 5 ) {
+			desc.variation = atol( argv[5] );
+			GLASSERT( desc.variation >= 0 && desc.variation < 100 );
+		}
+
+		game = new Game( screenWidth, screenHeight, rotation, ".\\resin\\", desc );
+		mapMakerMode = true;
+	}
+	else {
+		game = NewGame( screenWidth, screenHeight, rotation, ".\\" );
+	}
 
 	SDL_TimerID timerID = SDL_AddTimer( 30, TimerCallback, 0 );
 
@@ -237,25 +252,34 @@ int main( int argc, char **argv )
 						}
 						break;
 
-#if !defined( MAPMAKER )
 					case SDLK_RIGHT:
-						if ( sdlMod & KMOD_RCTRL )
-							GameHotKey( game, GAME_HK_ROTATE_CW );
-						else
-							GameHotKey( game, GAME_HK_NEXT_UNIT );
+						if ( !mapMakerMode ) {
+							if ( sdlMod & KMOD_RCTRL )
+								GameHotKey( game, GAME_HK_ROTATE_CW );
+							else
+								GameHotKey( game, GAME_HK_NEXT_UNIT );
+						}
 						break;
 
 					case SDLK_LEFT:
-						if ( sdlMod & KMOD_RCTRL )
-							GameHotKey( game, GAME_HK_ROTATE_CCW );
-						else
-							GameHotKey( game, GAME_HK_PREV_UNIT );
+						if ( !mapMakerMode ) {
+							if ( sdlMod & KMOD_RCTRL )
+								GameHotKey( game, GAME_HK_ROTATE_CCW );
+							else
+								GameHotKey( game, GAME_HK_PREV_UNIT );
+						}
 						break;
 
 					case SDLK_u:
-						GameHotKey( game, GAME_HK_TOGGLE_ROTATION_UI | GAME_HK_TOGGLE_NEXT_UI );
+						if ( mapMakerMode ) {
+							((Game*)game)->engine->camera.SetTilt( -90.0f );
+							((Game*)game)->engine->camera.SetPosWC( 8.f, 90.f, 8.f );
+							((Game*)game)->engine->camera.SetYRotation( 0.0f );
+						}
+						else {
+							GameHotKey( game, GAME_HK_TOGGLE_ROTATION_UI | GAME_HK_TOGGLE_NEXT_UI );
+						}
 						break;
-#endif
 
 					case SDLK_s:
 						ScreenCapture( "cap" );
@@ -265,53 +289,56 @@ int main( int argc, char **argv )
 						GameHotKey( game, GAME_HK_TOGGLE_DEBUG_TEXT );
 						break;
 
-#if defined( MAPMAKER )
-					case SDLK_DELETE:	
-						game->DeleteAtSelection(); 
+					case SDLK_DELETE:
+						if ( mapMakerMode )
+							((Game*)game)->DeleteAtSelection(); 
 						break;
 
 					case SDLK_KP9:			
-						game->RotateSelection( -1 );			
-						break;
-					case SDLK_r:
-					case SDLK_KP7:			
-						game->RotateSelection( 1 );			
+						if ( mapMakerMode )
+							((Game*)game)->RotateSelection( -1 );			
 						break;
 
-					case SDLK_UP:			
+					case SDLK_r:
+					case SDLK_KP7:			
+						if ( mapMakerMode )
+							((Game*)game)->RotateSelection( 1 );			
+						break;
+
 					case SDLK_KP8:			
-						game->DeltaCurrentMapItem(16);			
+						if ( mapMakerMode )
+							((Game*)game)->DeltaCurrentMapItem(16);			
 						break;
+
 					case SDLK_KP5:			
-					case SDLK_DOWN:			
-						game->DeltaCurrentMapItem(-16);		
+						if ( mapMakerMode )
+							((Game*)game)->DeltaCurrentMapItem(-16);		
 						break;
+
 					case SDLK_KP6:			
-					case SDLK_RIGHT:		
-						game->DeltaCurrentMapItem(1); 			
+						if ( mapMakerMode )
+							((Game*)game)->DeltaCurrentMapItem(1); 			
 						break;
+
 					case SDLK_KP4:			
-					case SDLK_LEFT:			
-						game->DeltaCurrentMapItem(-1);			
+						if ( mapMakerMode )
+							((Game*)game)->DeltaCurrentMapItem(-1);			
 						break;
 
 					case SDLK_p:
-						game->ShowPathing( !game->IsShowingPathing() );
+						if ( mapMakerMode )
+							((Game*)game)->ShowPathing( !((Game*)game)->IsShowingPathing() );
 						break;
 
 					case SDLK_t:
-						game->engine->GetMap()->SetDayTime( !game->engine->GetMap()->DayTime() );
+						if ( mapMakerMode )
+							((Game*)game)->engine->GetMap()->SetDayTime( !((Game*)game)->engine->GetMap()->DayTime() );
 						break;
+
 					case SDLK_m:
-						game->engine->EnableMetadata( !game->engine->IsMetadataEnabled() );
+						if ( mapMakerMode )
+							((Game*)game)->engine->EnableMetadata( !((Game*)game)->engine->IsMetadataEnabled() );
 						break;
-					case SDLK_u:
-						game->engine->camera.SetTilt( -90.0f );
-						game->engine->camera.SetPosWC( 8.f, 90.f, 8.f );
-						game->engine->camera.SetYRotation( 0.0f );
-						break;
-#else
-#endif
 
 					default:
 						break;
@@ -373,11 +400,9 @@ int main( int argc, char **argv )
 					//GLOUTPUT(( "x,y=%d,%d  down=%d,%d\n", x, y, mouseDown.x, mouseDown.y ));
 					GameCameraRotate( game, GAME_ROTATE_MOVE, (float)(event.button.x-mouseDown.x)*0.5f );
 				}
-#if defined(MAPMAKER) || defined(_MSC_VER)
-				else {
+				else if ( ( ( state & SDL_BUTTON(1) ) == 0 ) && Engine::mapMakerMode ) {
 					((Game*)game)->MouseMove( x, y );
 				}
-#endif
 			}
 			break;
 

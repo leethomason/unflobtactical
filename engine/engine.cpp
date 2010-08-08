@@ -152,6 +152,9 @@ Engine::~Engine()
 }
 
 
+bool Engine::mapMakerMode = false;
+
+
 void Engine::MoveCameraHome()
 {
 	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)map->Height() + 5.0f );
@@ -287,21 +290,7 @@ void Engine::Draw()
 		else if ( fogOfWar.IsSet( x, y ) ) {
 			model->Queue( renderQueue, &lightShader, &alphaLightShader );
 		}
-#ifdef SHOW_FOW
-		else if ( !fogOfWar.IsSet( x, y ) ) {
-			model->Queue( renderQueue, &black, &black );
-		}
-#endif
 	}
-
-#	ifdef USING_GL
-#		ifdef DEBUG
-			GLASSERT( glIsEnabled( GL_DEPTH_TEST ) );
-			int depthMask = 0;
-			glGetIntegerv( GL_DEPTH_WRITEMASK, &depthMask );
-			GLASSERT( depthMask );
-#		endif
-#	endif
 
 	// ----------- Render Passess ---------- //
 	Color4F color;
@@ -334,7 +323,6 @@ void Engine::Draw()
 
 			// Note this isn't correct. We really need to modulate against the maps light map. But close enough.
 			LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, IN_SHADOW, shadowAmount, &color );
-			//glColor4f( color.x, color.y, color.z, 1.0f );
 			shadowShader.SetColor( color.x, color.y, color.z );
 
 			renderQueue->Submit(	&shadowShader,
@@ -349,7 +337,7 @@ void Engine::Draw()
 
 		{
 			LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, OPEN_LIGHT, 0, &color );
-			float ave = 0.7f*(color.x + color.y + color.z)*0.333f;
+			float ave = 0.7f*((color.x + color.y + color.z)*0.333f);
 			//glColor4f( ave, ave, ave, 1.0f );
 			//glColor4f( 1, 1, 1, 1 );
 			//glColor4f( color.x, color.y, color.z, 1 );

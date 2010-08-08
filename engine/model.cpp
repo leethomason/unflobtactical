@@ -314,9 +314,9 @@ void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent
 	for( U32 i=0; i<resource->header.nGroups; ++i ) 
 	{
 		if ( textureAtoms )
-			queue->Add( this, &textureAtoms[i], textureAtoms[i].texture->Alpha() ? opaque : transparent );
+			queue->Add( this, &textureAtoms[i], textureAtoms[i].texture->Alpha() ? transparent : opaque );
 		else
-			queue->Add( this, &resource->atom[i], resource->atom[i].texture->Alpha() ? opaque : transparent );
+			queue->Add( this, &resource->atom[i], resource->atom[i].texture->Alpha() ? transparent : opaque );
 	}
 }
 

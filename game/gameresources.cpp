@@ -26,7 +26,7 @@ using namespace grinliz;
 void Game::DumpWeaponInfo( FILE* fp, float range, const Stats& stats, int count )
 {
 #ifdef DEBUG
-	fprintf( fp, "\nRange=%.1f DEX=%d Rank=%d Acc=%.2f\n", range, stats.DEX(), stats.Rank(), stats.AccuracyArea() );
+	fprintf( fp, "\nRange=%.1f DEX=%d Rank=%d Acc=%.3f\n", range, stats.DEX(), stats.Rank(), stats.AccuracyArea() );
 	fprintf( fp, "name      PRIMARY-SNAP             PRIMARY-AIM/AUTO         SECONDARY\n" );
 	fprintf( fp, "          " );
 	for( int k=0; k<3; ++k )
@@ -389,13 +389,14 @@ void Game::LoadItemResources()
 	const float EXDAM_HI	= 150.0f;
 	const float EXDAM_VHI	= 200.0f;
 
-	const float ACC_VLOW	= 1.6f;
-	const float ACC_LOW		= 1.4f;
-	const float ACC_MEDLOW	= 1.2f;
-	const float ACC_MED		= 1.0f;
-	const float ACC_MEDHI	= 0.8f;
-	const float ACC_HI		= 0.7f;
-	const float ACC_VHI		= 0.6f;
+	// lower is better, and in terms of AREA
+	const float ACC_VLOW	= 2.50f;
+	const float ACC_LOW		= 2.00f;
+	const float ACC_MEDLOW	= 1.50f;
+	const float ACC_MED		= 1.00f;
+	const float ACC_MEDHI	= 0.80f;
+	const float ACC_HI		= 0.50f;
+	const float ACC_VHI		= 0.30f;
 
 	const float SPEED_FAST = 0.8f;
 	const float SPEED_NORMAL = 1.0f;
@@ -500,7 +501,7 @@ void Game::LoadItemResources()
 		//				
 		{ "PST",	"pst1",		DECO_PISTOL,	"Pistol",				FAST, AIMED, 0,		SPEED_FAST,
 				"Clip",			0,										DAM_LOW,	ACC_MED,	"ar",
-				"Flame",		WEAPON_EXPLOSIVE,						EXDAM_LOW,	ACC_MEDLOW,	"can" },
+				0 },
 		{ "SLUG",	"slug",		DECO_PISTOL,	"Slug gun",				FAST, AIMED, 0,		SPEED_NORMAL,
 				"Clip",			0,										DAM_HI,		ACC_VLOW,	"can",
 				0  },
@@ -642,9 +643,9 @@ void Game::LoadItemResources()
 #pragma warning (pop)
 
 		Stats stats;
-		stats.SetSTR( 50 );
-		stats.SetDEX( 50 );
-		stats.SetPSY( 50 );
+		stats.SetSTR( 40 );
+		stats.SetDEX( 40 );
+		stats.SetPSY( 40 );
 		stats.SetRank( 2 );
 
 		const float range[] = { 4.0f, 8.0f, 16.0f, 0 };
@@ -654,11 +655,23 @@ void Game::LoadItemResources()
 //		const int rank[] = { 0, 4, -1 };
 
 		for( int rankIt=0; rank[rankIt]>=0; ++rankIt ) {
+			stats.SetRank( rank[rankIt] );
+
 			for( int rangeIt=0; range[rangeIt]>0; ++rangeIt ) {
-				stats.SetRank( rank[rankIt] );
 				DumpWeaponInfo( fp, range[rangeIt], stats, 0 );
 			}
 		}
+
+
+		for( int i=0; i<5; ++i ) {
+			stats.SetSTR( 25+i*10 );
+			stats.SetDEX( 25+i*10 );
+			stats.SetPSY( 25+i*10 );
+			stats.SetRank( i );
+
+			DumpWeaponInfo( fp, 8.0f, stats, 1 );
+		}
+
 		fclose( fp );
 	}
 #endif

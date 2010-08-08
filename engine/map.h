@@ -280,9 +280,9 @@ public:
 	const char* GetItemDefName( int i );
 	const MapItemDef* GetItemDef( const char* name );
 
-#ifdef MAPMAKER
+	// MapMaker method to create a translucent preview.
 	Model* CreatePreview( int x, int z, int itemDefIndex, int rotation );
-#endif
+
 	// hp = -1 default
 	//       0 destroyed
 	//		1+ hp remaining
@@ -350,6 +350,8 @@ public:
 
 	void Save( TiXmlElement* parent );
 	void Load( const TiXmlElement* mapNode, ItemDef* const* arr );
+
+	void EnableMetadata( bool enable )	{ enableMeta = enable; }
 
 	// Gets a starting location for a unit on the map.
 	// TERRAN_TEAM - from the lander
@@ -444,6 +446,7 @@ private:
 	int width, height;
 	grinliz::Rectangle3F bounds;
 	SpaceTree* tree;
+	bool enableMeta;
 
 	Texture* backgroundTexture;		// background texture
 	Surface backgroundSurface;		// background surface

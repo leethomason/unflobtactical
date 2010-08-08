@@ -114,9 +114,6 @@ class Random
 	void NormalVector2D( float* v );
 	void NormalVector3D( float* v );
 
-	static int Num2DNormals() { return COUNT_2D; }
-	static const float* Normal2D() { return normal2D; }
-
 	/// Fast hash
 	static U32 Hash( const void* data, U32 len );
 

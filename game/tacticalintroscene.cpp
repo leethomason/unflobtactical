@@ -346,6 +346,10 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 	Matrix2I m;
 	Map::MapImageToWorld( dx, dy, size, size, tileRotation, &m );
 
+	// Patch the off coordinates systems:
+	int patchx = 0;	//(tileRotation == 2 || tileRotation == 3 ) ? -1 : 0;
+	int patchy = 0;	//(tileRotation == 1 || tileRotation == 2 ) ? -1 : 0;
+
 	for( TiXmlElement* ele = snippet.FirstChildElement( "Map" )->FirstChildElement( "Items" )->FirstChildElement( "Item" );
 		 ele;
 		 ele = ele->NextSiblingElement() )
@@ -358,8 +362,8 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 
 		Vector2I v0 = m * v;
 
-		ele->SetAttribute( "x", v0.x );
-		ele->SetAttribute( "y", v0.y );
+		ele->SetAttribute( "x", v0.x+patchx );
+		ele->SetAttribute( "y", v0.y+patchy );
 		ele->SetAttribute( "rot", (rot + tileRotation)%4 );
 
 		itemsElement->InsertEndChild( *ele );
@@ -424,21 +428,24 @@ void TacticalIntroScene::CreateMap(	TiXmlNode* parent,
 	if ( info.needsLander ) {
 		Vector2I pos = cornerPosBlock[ 0 ];
 		blocks.Set( pos.x, pos.y );
-		AppendMapSnippet( pos.x*16, pos.y*16, random.Rand(4), info.base, 16, "LAND", dataItem, mapElement );	
+		int tileRotation = 0;	// random.Rand(4)
+		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, "LAND", dataItem, mapElement );	
 	}
 
 	if ( info.ufo ) {
 		const char* ufoStr = "UFOA";
 		Vector2I pos = cornerPosBlock[ 1 ];
 		blocks.Set( pos.x, pos.y );
-		AppendMapSnippet( pos.x*16, pos.y*16, random.Rand(4), info.base, 16, ufoStr, dataItem, mapElement );	
+		int tileRotation = 0;	// random.Rand(4)
+		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, ufoStr, dataItem, mapElement );	
 	}
 
 	for( int j=0; j<info.blockSizeY; ++j ) {
 		for( int i=0; i<info.blockSizeX; ++i ) {
 			if ( !blocks.IsSet( i, j ) ) {
 				Vector2I pos = { i, j };
-				AppendMapSnippet( pos.x*16, pos.y*16, random.Rand(4), info.base, 16, "TILE", dataItem, mapElement );	
+				int tileRotation = 0;	// random.Rand(4)
+				AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, "TILE", dataItem, mapElement );	
 			}
 		}
 	}

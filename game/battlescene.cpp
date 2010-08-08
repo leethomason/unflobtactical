@@ -59,10 +59,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	aiArr[TERRAN_TEAM]		= 0;
 	// FIXME: use warrior AI for now...
 	aiArr[CIV_TEAM]			= new WarriorAI( CIV_TEAM, engine );
-
-#ifdef MAPMAKER
-	currentMapItem = 1;
-#endif
+	mapmaker_currentMapItem = 1;
 
 	// On screen menu.
 	const Screenport& port = engine->GetScreenport();
@@ -142,6 +139,16 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 
 		RenderAtom menuImageAtom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)TextureManager::Instance()->GetTexture( "commandBarV" ), 0, 0, 1, 1, 50, 320 );
 		menuImage.Init( &gamui2D, menuImageAtom );
+
+		if ( Engine::mapMakerMode ) {
+			for( int i=0; i<6; ++i ) {
+				items[i]->SetVisible( false );
+			}
+			for( int i=0; i<4; ++i ) {
+				controlButton[i].SetVisible( false );
+			}
+			menuImage.SetVisible( false );
+		}
 	}
 
 	
@@ -175,14 +182,13 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	}
 	engine->EnableMap( true );
 
-#ifdef MAPMAKER
+	if ( Engine::mapMakerMode )
 	{
 		const ModelResource* res = ModelResourceManager::Instance()->GetModelResource( "selection" );
-		mapSelection = engine->AllocModel( res );
-		mapSelection->SetPos( 0.5f, 0.0f, 0.5f );
-		preview = 0;
+		mapmaker_mapSelection = engine->AllocModel( res );
+		mapmaker_mapSelection->SetPos( 0.5f, 0.0f, 0.5f );
+		mapmaker_preview = 0;
 	}
-#endif
 
 	currentTeamTurn = ALIEN_TEAM;
 	NextTurn();
@@ -194,13 +200,12 @@ BattleScene::~BattleScene()
 	engine->GetMap()->SetPathBlocker( 0 );
 	ParticleSystem::Instance()->Clear();
 
-#if defined( MAPMAKER )
-	if ( mapSelection ) 
-		engine->FreeModel( mapSelection );
-	if ( preview )
-		engine->FreeModel( preview );
-	//sqlite3_close( mapDatabase );
-#endif
+	if ( Engine::mapMakerMode ) {
+		if ( mapmaker_mapSelection ) 
+			engine->FreeModel( mapmaker_mapSelection );
+		if ( mapmaker_preview )
+			engine->FreeModel( mapmaker_preview );
+	}
 
 	for( int i=0; i<3; ++i )
 		delete aiArr[i];
@@ -606,20 +611,21 @@ int BattleScene::CenterRectIntersection(	const Vector2F& r,
 
 int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )
 {
-#if defined( MAPMAKER )
-	clip3D->SetInvalid();
-	clip2D->SetInvalid();
-	return RENDER_3D | RENDER_2D; 
-#else
-	Vector2F size;
-	size.x = menuImage.Width();
-	size.y = menuImage.Height();
-	const Screenport& port = engine->GetScreenport();
+	if ( Engine::mapMakerMode ) {
+		clip3D->SetInvalid();
+		clip2D->SetInvalid();
+		return RENDER_3D | RENDER_2D; 
+	}
+	else {
+		Vector2F size;
+		size.x = menuImage.Width();
+		size.y = menuImage.Height();
+		const Screenport& port = engine->GetScreenport();
 
-	clip3D->Set( (int)size.x, 0, (int)port.UIWidth(), (int)port.UIHeight() );
-	clip2D->Set(0, 0, (int)port.UIWidth(), (int)port.UIHeight() );
-	return RENDER_3D | RENDER_2D; 
-#endif
+		clip3D->Set( (int)size.x, 0, (int)port.UIWidth(), (int)port.UIHeight() );
+		clip2D->Set(0, 0, (int)port.UIWidth(), (int)port.UIHeight() );
+		return RENDER_3D | RENDER_2D; 
+	}
 }
 
 
@@ -762,6 +768,21 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 {
 	TestHitTesting();
 	engine->GetMap()->EmitParticles( deltaTime );
+
+	{
+		ParticleSystem* system = ParticleSystem::Instance();
+		Vector3F pos = { (float)(engine->GetMap()->Width() - 2), 0, (float)(engine->GetMap()->Height() - 2) };
+		
+		system->EmitFlame( deltaTime, pos );
+		pos.z -= 1.0f;
+
+		Color4F c = { 1, 1, 0, 1 };
+		Color4F cVel = { -0.2f, -0.2f, 0.f, -0.2f };
+		Vector3F vel = { 0, 2, 0 };
+
+		system->EmitPoint( 3, ParticleSystem::PARTICLE_RAY, c, cVel, pos, 0.1f, vel, 0.1f, 5000 );
+	}
+	
 
 #if 0
 		// Debug unit targets.
@@ -2232,19 +2253,19 @@ void BattleScene::Tap(	int action,
 
 	if ( processTap ) {
 
-#ifdef MAPMAKER
-		const Vector3F& pos = mapSelection->Pos();
-		int rotation = (int) (mapSelection->GetRotation() / 90.0f );
+		if ( Engine::mapMakerMode ) {
+			const Vector3F& pos = mapmaker_mapSelection->Pos();
+			int rotation = (int) (mapmaker_mapSelection->GetRotation() / 90.0f );
 
-		int ix = (int)pos.x;
-		int iz = (int)pos.z;
-		if (    ix >= 0 && ix < engine->GetMap()->Width()
-	  		 && iz >= 0 && iz < engine->GetMap()->Height()
-			 && *engine->GetMap()->GetItemDefName( currentMapItem ) )
-		{
-			engine->GetMap()->AddItem( ix, iz, rotation, currentMapItem, -1, 0 );
+			int ix = (int)pos.x;
+			int iz = (int)pos.z;
+			if (    ix >= 0 && ix < engine->GetMap()->Width()
+	  			 && iz >= 0 && iz < engine->GetMap()->Height()
+				 && *engine->GetMap()->GetItemDefName( mapmaker_currentMapItem ) )
+			{
+				engine->GetMap()->AddItem( ix, iz, rotation, mapmaker_currentMapItem, -1, 0 );
+			}
 		}
-#endif	
 
 		// Get the map intersection. May be used by TARGET_TILE or NORMAL
 		Vector3F intersect;
@@ -2607,10 +2628,10 @@ int BattleScene::Visibility::TeamCanSee( int team, int x, int y )
 
 int BattleScene::Visibility::UnitCanSee( int i, int x, int y )
 {
-#ifdef MAPMAKER
-	return true;
-#else
-	if ( units[i].IsAlive() ) {
+	if ( Engine::mapMakerMode ) {
+		return true;
+	}
+	else if ( units[i].IsAlive() ) {
 		if ( !current[i] ) {
 			CalcUnitVisibility( i );
 			current[i] = true;
@@ -2620,7 +2641,6 @@ int BattleScene::Visibility::UnitCanSee( int i, int x, int y )
 		}
 	}
 	return false;
-#endif
 }
 
 
@@ -2992,47 +3012,49 @@ void BattleScene::Rotate( int action, float degrees )
 
 void BattleScene::DrawHUD()
 {
-#ifdef MAPMAKER
-	engine->GetMap()->DumpTile( (int)mapSelection->X(), (int)mapSelection->Z() );
-	UFOText::Draw( 0,  16, "(%2d,%2d) 0x%2x:'%s'", 
-				   (int)mapSelection->X(), (int)mapSelection->Z(),
-				   currentMapItem, engine->GetMap()->GetItemDefName( currentMapItem ) );
-#else
-	{
-		bool enabled = SelectedSoldierUnit() && actionStack.Empty() && targetButton.Up();
-		targetButton.SetEnabled( enabled );
-		invButton.SetEnabled( enabled );
-		controlButton[ROTATE_CCW_BUTTON].SetEnabled( enabled );
-		controlButton[ROTATE_CW_BUTTON].SetEnabled( enabled );
+	if ( Engine::mapMakerMode ) {
+		nameRankUI.SetVisible( false );
+		engine->GetMap()->DumpTile( (int)mapmaker_mapSelection->X(), (int)mapmaker_mapSelection->Z() );
+		UFOText::Draw( 0,  16, "(%2d,%2d) 0x%2x:'%s'", 
+					   (int)mapmaker_mapSelection->X(), (int)mapmaker_mapSelection->Z(),
+					   mapmaker_currentMapItem, engine->GetMap()->GetItemDefName( mapmaker_currentMapItem ) );
 	}
-	{
-		bool enabled = actionStack.Empty() && targetButton.Up();
-		controlButton[NEXT_BUTTON].SetEnabled( enabled );
-		controlButton[PREV_BUTTON].SetEnabled( enabled );
-		exitButton.SetEnabled( enabled );
-		nextTurnButton.SetEnabled( enabled );
-		helpButton.SetEnabled( enabled );
-	}
-	// overrides enabled, above.
-	if ( targetButton.Down() ) {
-		targetButton.SetEnabled( true );
-	}
+	else {
+		{
+			bool enabled = SelectedSoldierUnit() && actionStack.Empty() && targetButton.Up();
+			targetButton.SetEnabled( enabled );
+			invButton.SetEnabled( enabled );
+			controlButton[ROTATE_CCW_BUTTON].SetEnabled( enabled );
+			controlButton[ROTATE_CW_BUTTON].SetEnabled( enabled );
+		}
+		{
+			bool enabled = actionStack.Empty() && targetButton.Up();
+			controlButton[NEXT_BUTTON].SetEnabled( enabled );
+			controlButton[PREV_BUTTON].SetEnabled( enabled );
+			exitButton.SetEnabled( enabled );
+			nextTurnButton.SetEnabled( enabled );
+			helpButton.SetEnabled( enabled );
+		}
+		// overrides enabled, above.
+		if ( targetButton.Down() ) {
+			targetButton.SetEnabled( true );
+		}
 	
-	controlButton[ROTATE_CCW_BUTTON].SetVisible( rotationUIOn );
-	controlButton[ROTATE_CW_BUTTON].SetVisible( rotationUIOn );
-	controlButton[NEXT_BUTTON].SetVisible( nextUIOn );
-	controlButton[PREV_BUTTON].SetVisible( nextUIOn );
+		controlButton[ROTATE_CCW_BUTTON].SetVisible( rotationUIOn );
+		controlButton[ROTATE_CW_BUTTON].SetVisible( rotationUIOn );
+		controlButton[NEXT_BUTTON].SetVisible( nextUIOn );
+		controlButton[PREV_BUTTON].SetVisible( nextUIOn );
 
-	alienImage.SetVisible( currentTeamTurn == ALIEN_TEAM );
-	const int CYCLE = 5000;
-	float rotation = (float)(game->CurrentTime() % CYCLE)*(360.0f/(float)CYCLE);
-	if ( rotation > 90 && rotation < 270 )
-		rotation += 180;
-	alienImage.SetRotationY( rotation );
+		alienImage.SetVisible( currentTeamTurn == ALIEN_TEAM );
+		const int CYCLE = 5000;
+		float rotation = (float)(game->CurrentTime() % CYCLE)*(360.0f/(float)CYCLE);
+		if ( rotation > 90 && rotation < 270 )
+			rotation += 180;
+		alienImage.SetRotationY( rotation );
 
-	nameRankUI.SetVisible( SelectedSoldierUnit() != 0 );
-	nameRankUI.Set( 50, 0, SelectedSoldierUnit(), true );
-#endif
+		nameRankUI.SetVisible( SelectedSoldierUnit() != 0 );
+		nameRankUI.Set( 50, 0, SelectedSoldierUnit(), true );
+	}
 }
 
 
@@ -3066,7 +3088,7 @@ float MotionPath::DeltaToRotation( int dx, int dy )
 }
 
 
-void MotionPath::Init( const micropather::MPVector< Vector2<S16> >& pathCache ) 
+void MotionPath::Init( const MP_VECTOR< Vector2<S16> >& pathCache ) 
 {
 	GLASSERT( pathCache.size() <= MAX_TU );
 	GLASSERT( pathCache.size() > 1 );	// at least start and end
@@ -3144,11 +3166,10 @@ void MotionPath::GetPos( int step, float fraction, float* x, float* z, float* ro
 }
 
 
-#if !defined(MAPMAKER) && defined(_MSC_VER)
+#if 0
 // TEST CODE
 void BattleScene::MouseMove( int x, int y )
 {
-	/*
 	grinliz::Matrix4 mvpi;
 	grinliz::Ray ray;
 	Vector3F intersection;
@@ -3187,31 +3208,26 @@ void BattleScene::MouseMove( int x, int y )
 									0.0f,			// velFuzz
 									2000 );
 	}	
-	*/
 }
 #endif
 
 
-
-#ifdef MAPMAKER
-
-
 void BattleScene::UpdatePreview()
 {
-	if ( preview ) {
-		engine->FreeModel( preview );
-		preview = 0;
+	if ( mapmaker_preview ) {
+		engine->FreeModel( mapmaker_preview );
+		mapmaker_preview = 0;
 	}
-	if ( currentMapItem >= 0 ) {
-		preview = engine->GetMap()->CreatePreview(	(int)mapSelection->X(), 
-													(int)mapSelection->Z(), 
-													currentMapItem, 
-													(int)(mapSelection->GetRotation()/90.0f) );
+	if ( mapmaker_currentMapItem >= 0 ) {
+		mapmaker_preview = engine->GetMap()->CreatePreview(	(int)mapmaker_mapSelection->X(), 
+													(int)mapmaker_mapSelection->Z(), 
+													mapmaker_currentMapItem, 
+													(int)(mapmaker_mapSelection->GetRotation()/90.0f) );
 
-		if ( preview ) {
+		if ( mapmaker_preview ) {
 			Texture* t = TextureManager::Instance()->GetTexture( "translucent" );
-			preview->SetTexture( t );
-			preview->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.0f );
+			mapmaker_preview->SetTexture( t );
+			mapmaker_preview->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.0f );
 		}
 	}
 }
@@ -3219,32 +3235,36 @@ void BattleScene::UpdatePreview()
 
 void BattleScene::MouseMove( int x, int y )
 {
-	grinliz::Matrix4 mvpi;
-	grinliz::Ray ray;
-	grinliz::Vector3F p;
+	Vector2F window = { (float)x, (float)y };
+	Vector2F view;
+	engine->GetScreenport().WindowToView( window, &view );
 
-	engine->GetScreenport().ViewProjectionInverse3D( &mvpi );
-	engine->RayFromScreenToYPlane( x, y, mvpi, &ray, &p );
+	grinliz::Ray world;
+	engine->GetScreenport().ViewToWorld( view, 0, &world );
 
-	int newX = (int)( p.x );
-	int newZ = (int)( p.z );
-	newX = Clamp( newX, 0, Map::SIZE-1 );
-	newZ = Clamp( newZ, 0, Map::SIZE-1 );
-	mapSelection->SetPos( (float)newX + 0.5f, 0.0f, (float)newZ + 0.5f );
+	Vector3F p;
+	int result = IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &p );
+	if ( result == grinliz::INTERSECT && p.x >= 0 && p.x < Map::SIZE && p.z >= 0 && p.z < Map::SIZE ) {
+		int newX = (int)( p.x );
+		int newZ = (int)( p.z );
+		newX = Clamp( newX, 0, Map::SIZE-1 );
+		newZ = Clamp( newZ, 0, Map::SIZE-1 );
+		mapmaker_mapSelection->SetPos( (float)newX + 0.5f, 0.0f, (float)newZ + 0.5f );
 	
-	UpdatePreview();
+		UpdatePreview();
+	}
 }
 
 void BattleScene::RotateSelection( int delta )
 {
-	float rot = mapSelection->GetRotation() + 90.0f*(float)delta;
-	mapSelection->SetRotation( rot );
+	float rot = mapmaker_mapSelection->GetRotation() + 90.0f*(float)delta;
+	mapmaker_mapSelection->SetRotation( rot );
 	UpdatePreview();
 }
 
 void BattleScene::DeleteAtSelection()
 {
-	const Vector3F& pos = mapSelection->Pos();
+	const Vector3F& pos = mapmaker_mapSelection->Pos();
 	engine->GetMap()->DeleteAt( (int)pos.x, (int)pos.z );
 	UpdatePreview();
 }
@@ -3252,13 +3272,11 @@ void BattleScene::DeleteAtSelection()
 
 void BattleScene::DeltaCurrentMapItem( int d )
 {
-	currentMapItem += d;
-	while ( currentMapItem < 0 ) { currentMapItem += Map::MAX_ITEM_DEF; }
-	while ( currentMapItem >= Map::MAX_ITEM_DEF ) { currentMapItem -= Map::MAX_ITEM_DEF; }
-	if ( currentMapItem == 0 ) currentMapItem = 1;
+	mapmaker_currentMapItem += d;
+	while ( mapmaker_currentMapItem < 0 ) { mapmaker_currentMapItem += Map::MAX_ITEM_DEF; }
+	while ( mapmaker_currentMapItem >= Map::MAX_ITEM_DEF ) { mapmaker_currentMapItem -= Map::MAX_ITEM_DEF; }
+	if ( mapmaker_currentMapItem == 0 ) mapmaker_currentMapItem = 1;
 	UpdatePreview();
 }
-
-#endif
 
 

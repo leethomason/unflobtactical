@@ -489,14 +489,13 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 	if ( PointParticleShader::IsSupported() )
 	{
 		PointParticleShader shader;
-		shader.SetTexture0( pointTexture );
 
 		U8* vPtr = (U8*)pointBuffer + 0;
 		U8* cPtr = (U8*)pointBuffer + 12;
 
 		shader.SetVertex( 3, sizeof(Particle), vPtr );
 		shader.SetColorArray( 4, sizeof(Particle), cPtr );
-		shader.DrawPoints( 4.f, 0, nParticles[POINT] );
+		shader.DrawPoints( pointTexture, 4.f, 0, nParticles[POINT] );
 	}
 	else {
 		QuadVertex base[4];
