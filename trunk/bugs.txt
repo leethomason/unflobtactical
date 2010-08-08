@@ -1,8 +1,6 @@
 Issues:
 
 Bugs:
-- cani/canx -> canon
-- add slug gun resources
 - trees show up in the wrong place
 - alien doors not wide enough - block shots
 - support drag in character screen
@@ -11,7 +9,7 @@ Bugs:
 ? pauses when move - profiler?
 - Art: better human models
 - Art: better alien models
-- Art: missing weapon models
+- Art: new weapon models
 - fire generates light
 - mission types: crash
 - check math (again) in PushShootAction()
@@ -48,6 +46,7 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- cani/canx -> canon
 - grey zone where previously seen
 - AI objects 
 - add random sequence to low bits of random # gen

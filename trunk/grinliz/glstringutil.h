@@ -152,6 +152,7 @@ public:
 
 	void operator+= ( const GLString& rhs )		{ append( rhs ); }
 	void operator+= ( const char* rhs )			{ append( rhs ); }
+	void operator+= ( char c )					{ char s[2] = { c, 0 }; append( s ); }
 
 	bool operator==( const GLString& rhs ) const	{ return compare( rhs.c_str() ) == 0; }
 	bool operator==( const char* rhs ) const		{ return compare( rhs ) == 0; }

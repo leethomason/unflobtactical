@@ -93,9 +93,7 @@ private:
 
 public:
 	Game( int width, int height, int rotation, const char* savepath );
-#ifdef MAPMAKER
 	Game( int width, int height, int rotation, const char* path, const TileSetDesc& tileSetDesc );
-#endif
 	~Game();
 
 	void DeviceLoss();
@@ -103,7 +101,6 @@ public:
 	void DoTick( U32 msec );
 
 	void Tap( int action, int x, int y );
-	//void Drag( int action, int x, int y );
 	void Zoom( int action, int distance );
 	void Rotate( int action, float degreesFromStart );
 	void CancelInput();
@@ -115,13 +112,13 @@ public:
 	void MouseMove( int x, int y );
 	void HandleHotKeyMask( int mask );
 
-#ifdef MAPMAKER
 	void RotateSelection( int delta );
 	void DeleteAtSelection();
 	void DeltaCurrentMapItem( int d );
-	void ShowPathing( bool show )	{ showPathing = show; }
-	bool IsShowingPathing()			{ return showPathing; }
-#endif
+
+	// MapMaker methods
+	void ShowPathing( bool show )	{ mapmaker_showPathing = show; }
+	bool IsShowingPathing()			{ return mapmaker_showPathing; }
 
 	enum {	MAX_NUM_LIGHT_MAPS = 16,
 
@@ -267,10 +264,8 @@ private:
 	gamui::RenderAtom renderAtoms[ATOM_COUNT];
 	gamui::ButtonLook buttonLooks[LOOK_COUNT];
 	
-#ifdef MAPMAKER	
-	bool showPathing;
-	std::string xmlFile;
-#endif
+	bool		mapmaker_showPathing;
+	std::string mapmaker_xmlFile;
 	grinliz::ProfileData profile;
 
 	ItemDef*			itemDefArr[EL_MAX_ITEM_DEFS];

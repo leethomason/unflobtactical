@@ -175,8 +175,9 @@ void GPUShader::SetState( const GPUShader& ns )
 	else if ( !ns.lighting && current.lighting ) {
 		glDisable( GL_LIGHTING );
 	}
-	if ( ns.lightParams != current.lightParams ) {
-		ns.SetLightParams();
+	if (    ns.lighting 
+		 && (ns.lightParams != current.lightParams) ) {
+		//ns.SetLightParams();
 	}
 
 	// Depth Write
@@ -393,6 +394,9 @@ CompositingShader::CompositingShader( bool _blend )
 }
 
 
+int LightShader::locked = 0;
+
+
 LightShader::LightShader( const Color4F& ambient, const grinliz::Vector4F& direction, const Color4F& diffuse, bool alphaTest )
 {
 	lightParams = ++GPUShader::uid;
@@ -401,12 +405,17 @@ LightShader::LightShader( const Color4F& ambient, const grinliz::Vector4F& direc
 	this->ambient = ambient;
 	this->direction = direction;
 	this->diffuse = diffuse;
+
+	if ( !locked ) {
+		SetLightParams();
+	}
+	locked++;
 }
 
 
 LightShader::~LightShader()
 {
-
+	--locked;
 }
 
 
@@ -434,7 +443,7 @@ void LightShader::SetLightParams() const
 
 /*static*/ bool PointParticleShader::IsSupported()
 {
-#ifdef WIN32
+#if defined( _MSC_VER )
 	return (GLEW_ARB_point_sprite) ? true : false;
 #elif defined( USING_ES )
 	return true;
@@ -453,7 +462,7 @@ PointParticleShader::PointParticleShader()
 }
 
 
-void PointParticleShader::DrawPoints( float pointSize, int start, int count )
+void PointParticleShader::DrawPoints( Texture* texture, float pointSize, int start, int count )
 {
 	#ifdef USING_GL	
 		glEnable(GL_POINT_SPRITE);
@@ -464,12 +473,32 @@ void PointParticleShader::DrawPoints( float pointSize, int start, int count )
 	#endif
 	CHECK_GL_ERROR;
 
+	GLASSERT( texture0 == 0 );
+	GLASSERT( texture1 == 0 );
+	
+	// Will disable the texture units:
+	SetState( *this );
+
+	// Which is a big cheat because we need to bind a texture without texture coordinates.
+	glEnable( GL_TEXTURE_2D );
+	glBindTexture( GL_TEXTURE_2D, texture->GLID() );
+
 	glPointSize( pointSize );
 	CHECK_GL_ERROR;
 
 	glDrawArrays( GL_POINTS, start, count );
 	CHECK_GL_ERROR;
 
+	#ifdef USING_GL	
+		glDisable(GL_POINT_SPRITE);
+	#else
+		glDisable(GL_POINT_SPRITE_OES);
+	#endif
+
+	// Clear the texture thing back up.
+	glDisable( GL_TEXTURE_2D );
+	glBindTexture( GL_TEXTURE_2D, 0 );
+		
 	drawCalls++;
 	trianglesDrawn += count;
 }

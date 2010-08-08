@@ -73,12 +73,12 @@ static const float	ARM3				= 0.60f;
 static const float ARM_EXTRA			= 0.20f;
 
 static const float STANDARD_TARGET_H			= 2.0f;		// roughly meters
-static const float STANDARD_TARGET_W			= 0.5f;
-static const float ACC_BEST_SHOT				= 0.02f;	// AREA of possible shot at distance=1.0
-static const float ACC_WORST_SHOT				= 0.04f;	// AREA
+static const float STANDARD_TARGET_W			= 0.6f;
+static const float ACC_BEST_SHOT				= 0.005f;	// AREA of possible shot at distance=1.0
+static const float ACC_WORST_SHOT				= 0.100f;	// AREA
 static const float ACC_AIMED_SHOT_MULTIPLIER	= 1.0f;		// LOWER accuracy is better
-static const float ACC_AUTO_SHOT_MULTIPLIER	= 1.5f;
-static const float ACC_SNAP_SHOT_MULTIPLIER	= 2.0f;
+static const float ACC_AUTO_SHOT_MULTIPLIER		= 2.0f;
+static const float ACC_SNAP_SHOT_MULTIPLIER		= 4.0f;
  
 static const float REACTION_FAST = 0.90f;
 static const float REACTION_SLOW = 0.40f;

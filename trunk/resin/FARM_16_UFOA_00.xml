@@ -1,4 +1,5 @@
 <Map sizeX="16" sizeY="16">
+    <Seen>ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff</Seen>
     <Items>
         <Item x="13" y="13" name="tree" hp="250" />
         <Item x="8" y="12" name="ufo_DoorCld" hp="1000" flags="4" />
@@ -7,37 +8,24 @@
         <Item x="3" y="14" name="tree" hp="250" />
         <Item x="2" y="13" name="tree" hp="250" />
         <Item x="12" y="8" rot="1" name="ufo_WallOut" hp="1000" />
-        <Item x="12" y="9" name="guard" />
         <Item x="9" y="8" name="ufo_CrnrInn" hp="1000" />
         <Item x="8" y="8" name="ufo_WallInn" hp="1000" />
         <Item x="9" y="11" rot="3" name="ufo_WallInn" hp="1000" />
         <Item x="9" y="10" rot="2" name="ufo_CrnrInn" hp="1000" />
         <Item x="10" y="10" rot="2" name="ufo_WallInn" hp="1000" />
-        <Item x="10" y="10" name="scout" />
         <Item x="4" y="8" rot="3" name="ufo_WallOut" hp="1000" />
         <Item x="7" y="8" rot="3" name="ufo_CrnrInn" hp="1000" />
         <Item x="7" y="11" rot="1" name="ufo_WallInn" hp="1000" />
         <Item x="7" y="10" rot="1" name="ufo_CrnrInn" hp="1000" />
         <Item x="6" y="10" rot="2" name="ufo_WallInn" hp="1000" />
-        <Item x="4" y="9" name="guard" />
-        <Item x="6" y="11" name="scout" />
-        <Item x="3" y="11" name="scout" />
-        <Item x="14" y="7" name="scout" />
         <Item x="8" y="4" rot="2" name="ufo_WallOut" hp="1000" />
         <Item x="11" y="6" name="ufo_CrnrInn" hp="1000" />
         <Item x="10" y="6" name="ufo_WallInn" hp="1000" />
         <Item x="9" y="6" name="ufo_WallInn" hp="1000" />
-        <Item x="11" y="7" name="guard" />
-        <Item x="8" y="5" name="scout" />
-        <Item x="10" y="5" name="scout" />
         <Item x="7" y="7" rot="2" name="ufo_WallCurve4" />
         <Item x="5" y="6" rot="3" name="ufo_CrnrInn" hp="1000" />
         <Item x="6" y="6" name="ufo_WallInn" hp="1000" />
         <Item x="7" y="6" name="ufo_WallInn" hp="1000" />
-        <Item x="5" y="7" name="guard" />
-        <Item x="6" y="5" name="scout" />
-        <Item x="7" y="6" name="scout" />
-        <Item x="3" y="3" name="scout" />
         <Item x="9" y="9" name="ufo_WallCurve4" />
         <Item x="7" y="9" rot="3" name="ufo_WallCurve4" />
         <Item x="9" y="7" rot="1" name="ufo_WallCurve4" />

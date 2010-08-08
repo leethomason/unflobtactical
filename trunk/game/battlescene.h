@@ -51,7 +51,7 @@ struct MotionPath
 		grinliz::Vector2<S16> v = { pathData[i*2+0], pathData[i*2+1] };
 		return v;
 	}
-	void Init( const micropather::MPVector< grinliz::Vector2<S16> >& pathCache );
+	void Init( const MP_VECTOR< grinliz::Vector2<S16> >& pathCache );
 	void CalcDelta( int i0, int i1, grinliz::Vector2I* vec, float* rot );
 	void Travel( float* travelDistance, int* pathPos, float* fraction );
 	void GetPos( int step, float fraction, float* x, float* z, float* rot );
@@ -111,11 +111,9 @@ public:
 
 	// debugging / MapMaker
 	void MouseMove( int x, int y );
-#ifdef MAPMAKER
 	void RotateSelection( int delta );
 	void DeleteAtSelection();
 	void DeltaCurrentMapItem( int d );
-#endif
 
 	virtual void MakePathBlockCurrent( Map* map, const void* user );
 
@@ -241,7 +239,7 @@ private:
 								const grinliz::Rectangle2F& rect,
 								grinliz::Vector2F* out );
 
-	micropather::MPVector< grinliz::Vector2<S16> >	pathCache;
+	MP_VECTOR< grinliz::Vector2<S16> >	pathCache;
 
 	// Show the UI zones arount the selected unit
 	struct NearPathState {
@@ -417,12 +415,10 @@ private:
 	Unit				units[MAX_UNITS];
 	gamui::DigitalBar	hpBars[MAX_UNITS];
 
-#ifdef MAPMAKER
 	void UpdatePreview();
-	Model* mapSelection;
-	Model* preview;
-	int currentMapItem;
-#endif
+	Model* mapmaker_mapSelection;
+	Model* mapmaker_preview;
+	int    mapmaker_currentMapItem;
 };
 
 

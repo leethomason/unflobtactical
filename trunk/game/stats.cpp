@@ -87,7 +87,11 @@ void BulletSpread::Generate( U32 seed, grinliz::Vector2F* result )
 	const static float MULT = 1.f / 65535.f;
 
 	Random rand( seed );
+	rand.Rand();
 	rand.NormalVector2D( &result->x );
+	float u = rand.Uniform();
+	result->x *= u;
+	result->y *= u;
 }
 
 
@@ -124,20 +128,22 @@ float BulletSpread::ComputePercent( const Accuracy& accuracy, float distance, fl
 	Vector2F center = { width*0.50f, height*0.65f };
 	int hit = 0;
 
-	const int SAMPLES = Random::Num2DNormals(); 
+	const int SAMPLES = 117;
 	for( int i=0; i<SAMPLES; ++i ) {
-		Vector2F v = { *(Random::Normal2D()+i*2), *(Random::Normal2D()+i*2+1) };
+		Vector2F v;
+		Generate( i, &v );
 
 		Vector2F pos;
 		pos.x = center.x + v.x*distance*accuracy.RadiusAtOne();
 		pos.y = center.y + v.y*distance*accuracy.RadiusAtOne();
 
-		if ( pos.x > 0 && pos.x < width && pos.y > 0 && pos.y < height ) {
+		if ( pos.x >= 0 && pos.x < width && pos.y >=0 && pos.y < height ) {
+			// Look up into our target dummy to approximate hit chance.
 			int mx = (int)( pos.x*float(X) / width );
 			int my = (int)( pos.y*float(Y) / height );
 			mx = Clamp( mx, 0, X-1);
 			my = Clamp( my, 0, Y-1);
-			if ( map[my*X+mx] == 'x' )
+			if ( map[(Y-1-my)*X+mx] == 'x' )
 				++hit;
 		}
 	}
