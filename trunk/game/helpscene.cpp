@@ -7,7 +7,7 @@
 
 using namespace gamui;
 
-HelpScene::HelpScene( Game* _game ) : Scene( _game )
+HelpScene::HelpScene( Game* _game, const char* name ) : Scene( _game ), helpName( name )
 {
 	Engine* engine = GetEngine();
 	engine->EnableMap( false );
@@ -68,7 +68,7 @@ void HelpScene::Layout()
 	const gamedb::Reader* reader = game->GetDatabase();
 	const gamedb::Item* rootItem = reader->Root();
 	const gamedb::Item* textItem = rootItem->Child( "text" );
-	const gamedb::Item* helpItem = textItem->Child( "tacticalHelp" );
+	const gamedb::Item* helpItem = textItem->Child( helpName );
 
 	int nPages = helpItem->NumChildren();
 	while( currentScreen < 0 ) currentScreen += nPages;

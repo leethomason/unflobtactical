@@ -87,7 +87,7 @@ public:
 	Map* GetMap()						{ return map; }
 
 	// Only matters for MapMaker. Game never renders the metadata.
-	void EnableMetadata( bool enable )	{ enableMeta = enable; map->EnableMetadata( enable ); }
+	void EnableMetadata( bool enable )	{ enableMeta = enable; }
 	bool IsMetadataEnabled()			{ return enableMeta; }
 
 	bool RayFromViewToYPlane( const grinliz::Vector2F& view,

@@ -310,6 +310,45 @@
   <texture filename="helpImage2.png" />
   <texture filename="helpImage3.png" />
 
+  <text name="characterHelp" >
+    <page>
+      <p>[Unit Screen]</p>
+      <p>Use this screen to pick up and drop items, wear armor, and select a weapon. You can also view statistics
+         about the current unit.</p>
+    </page>
+    <page image="helpImage4">
+      <p>[Inventory]</p>
+      <p>
+        What the unit is carrying. The top row is in use: the currently worn armor and currently carried
+        weapon. You can tap to drop an item, or drag to organize items.</p>
+      <p>For weapons, the total rounds is displayed below the name. For clips, the number of rounds in the clip is displayed.
+      </p>
+    </page>
+
+    <page image="helpImage5">
+      <p>[Items on the Ground]</p>
+      <p>
+       The top row is tabs to select groups. Terran Weapons, Alien Weapons, Armor/Shields,
+       and Miscellaneous items. Tap to select a tab. Tap an item to pick it up.
+      </p>
+      <p>
+        The number of items is displayed beneath the item name.
+      </p>
+    </page>
+
+    <page>
+      <p>[Stats and Numbers]</p>
+      <p> For the number inclined, the lower right buttons show unit stat info.</p>
+      <p> 'Inv' is the default inventory screen. 'Stats' shows the unit statistics. 'Comp' compares weapons carried and on the ground, 
+          with buttons to select the range at witch to compare.</p>
+    </page>
+  </text>
+
+  <texture filename="helpImage4.png" />
+  <texture filename="helpImage5.png" />
+
+
+
   <!-- Sound effects -->
   <data filename="explosion.wav" />
   <data filename="blip.wav" />

@@ -107,6 +107,30 @@ int Inventory::AddItem( const Item& item )
 }
 
 
+int Inventory::AddItem( int i, const Item& item )
+{
+	GLASSERT( slots[WEAPON_SLOT].IsNothing() || slots[WEAPON_SLOT].IsWeapon() );
+	GLASSERT( slots[ARMOR_SLOT].IsNothing() || slots[ARMOR_SLOT].IsArmor() );
+	GLASSERT( i >= 0 && i < NUM_SLOTS );
+
+	if ( slots[i].IsSomething() )
+		return -1;
+
+	if ( i == WEAPON_SLOT && ( item.IsWeapon() || item.IsNothing() ) ) {	// adding nothing to nothing does nothing...except send back non-error.
+		slots[i] = item;
+		return i;
+	}
+	else if ( i == ARMOR_SLOT && ( item.IsArmor() || item.IsNothing() ) ) {
+		slots[i] = item;
+		return i;
+	}
+	else if ( i >= GENERAL_SLOT ) {
+		slots[i] = item;
+		return i;
+	}
+	return -1;
+}
+
 bool Inventory::RemoveItem( int slot ) 
 {
 	GLASSERT( slot >= 0 && slot < NUM_SLOTS );

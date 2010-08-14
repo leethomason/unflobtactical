@@ -135,7 +135,7 @@ Engine::Engine( Screenport* port, const EngineData& _engineData, const gamedb::R
 
 	lightDirection.Set( 0.7f, 3.0f, 1.4f );
 	lightDirection.Normalize();
-	enableMeta = true;
+	enableMeta = mapMakerMode;
 }
 
 

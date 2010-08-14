@@ -507,8 +507,6 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 	}
 	
 
-	engine->GetMap()->QueryAllDoors( &doors );
-
 	ProcessDoors();
 	CalcTeamTargets();
 	targetEvents.Clear();
@@ -1437,40 +1435,14 @@ bool BattleScene::ProcessAI()
 
 void BattleScene::ProcessDoors()
 {
-	bool doorChange = false;
-	Rectangle2I invalid;
-	invalid.SetInvalid();
+	Vector2I loc[MAX_UNITS];
+	int nLoc = 0;
 
-	// Where are all the units? Then go through and set
-	// each door. Setting a door to its current value
-	// does nothing.
-	BitArray< MAP_SIZE, MAP_SIZE, 1 > map;
 	for( int i=0; i<MAX_UNITS; ++i ) {
-		if ( units[i].IsAlive() ) {
-
-			Vector2I pos;
-			units[i].CalcMapPos( &pos, 0 );
-			map.Set( pos.x, pos.y, 0 );
-		}
+		if ( units[i].IsAlive() )
+			loc[nLoc++] = units[i].Pos();
 	}
-
-	for( int i=0; i<doors.Size(); ++i ) {
-		const Vector2I& v = doors[i];
-		if (    map.IsSet( v.x, v.y )
-			 || map.IsSet( v.x+1, v.y )
-			 || map.IsSet( v.x-1, v.y )
-			 || map.IsSet( v.x, v.y+1 )
-			 || map.IsSet( v.x, v.y-1 ) )
-		{
-			doorChange |= engine->GetMap()->OpenDoor( v.x, v.y, true );
-			invalid.DoUnion( v );
-		}
-		else {
-			doorChange |= engine->GetMap()->OpenDoor( v.x, v.y, false );
-			invalid.DoUnion( v );
-		}
-	}
-	if ( doorChange ) {
+	if ( engine->GetMap()->ProcessDoors( loc, nLoc ) ) {
 		visibility.InvalidateAll();
 	}
 }
@@ -2145,7 +2117,7 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 			HandleNextUnit( -1 );
 		}
 		else if ( tapped == &helpButton ) {
-			game->PushScene( Game::HELP_SCENE, 0 );
+			game->PushScene( Game::HELP_SCENE, "tacticalHelp" );
 		}
 	}
 	return tapped != 0;
