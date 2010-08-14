@@ -1,14 +1,9 @@
 Issues:
 
 Bugs:
-- support drag in character screen
-- help in character screen
-- trees show up in the wrong place
-- door bugs, redo door system
-- fire generates light
-- check math (again) in PushShootAction()
 - start at action (not black screen)
-- add lander animation
+- add lander animation (and version & turn to save file...)
+- restart game
 - finish Android port
 
 Architecture
@@ -19,6 +14,9 @@ Features:
 - More items: optical computer for units to enhance vision
 
 TBD:
+- check math (again yet again) in PushShootAction()
+- fire generates light
+- trees show up in the wrong place
 - add morale
 ? psi attack
 - handle too many particles consistently
@@ -46,6 +44,9 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- door bugs, redo door system
+- support drag in character screen
+- help in character screen
 - clean up canon
 - add slug-shooter
 - shooting UFO doors because they are too narrow.

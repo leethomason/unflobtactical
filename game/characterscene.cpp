@@ -350,6 +350,10 @@ void CharacterScene::Tap(	int action,
 		return;
 	}
 
+	if ( item == &helpButton ) {
+		game->PushScene( Game::HELP_SCENE, "characterHelp" );
+	}
+
 	// control buttons
 	if ( item == &control[0] )
 		SwitchMode( INVENTORY );

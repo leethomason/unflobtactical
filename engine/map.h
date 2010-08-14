@@ -345,13 +345,11 @@ public:
 	// passed in for the connection, it becomes CanWalk
 	bool CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& q, ConnectionType connection=VISIBILITY_TYPE );
 
-	bool OpenDoor( int x, int y, bool open );
-	void QueryAllDoors( CDynArray< grinliz::Vector2I >* doors );
+	//bool OpenDoor( int x, int y, bool open );
+	bool ProcessDoors( const grinliz::Vector2I* openers, int nOpeners );
 
 	void Save( TiXmlElement* parent );
 	void Load( const TiXmlElement* mapNode, ItemDef* const* arr );
-
-	void EnableMetadata( bool enable )	{ enableMeta = enable; }
 
 	// Gets a starting location for a unit on the map.
 	// TERRAN_TEAM - from the lander
@@ -451,13 +449,16 @@ private:
 	int width, height;
 	grinliz::Rectangle3F bounds;
 	SpaceTree* tree;
-	bool enableMeta;
 
 	Texture* backgroundTexture;		// background texture
 	Surface backgroundSurface;		// background surface
 
 	Texture* greyTexture;			// version for previous seen terrain
 	Surface greySurface;
+
+	void QueryAllDoors();			// figure out where the doors are, and write the doorArray
+	CDynArray< MapItem* >	doorArr;
+
 
 	enum { MAX_IMAGE_DATA = 16 };
 	struct ImageData {

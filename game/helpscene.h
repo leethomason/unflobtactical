@@ -26,7 +26,7 @@ class UIButtonGroup;
 class HelpScene : public Scene
 {
 public:
-	HelpScene( Game* _game );
+	HelpScene( Game* _game, const char* helpName );
 	virtual ~HelpScene();
 
 	// UI
@@ -54,6 +54,7 @@ private:
 
 	void Layout();
 
+	const char*			helpName;
 	int					currentScreen;
 	gamui::Image		background;
 	gamui::Image		image;

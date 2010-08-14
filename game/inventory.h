@@ -48,6 +48,8 @@ public:
 
 	// Add an item. returns slot if successful, -1 if not
 	int AddItem( const Item& item );
+	int AddItem( int slot, const Item& item );
+
 	bool RemoveItem( int slot );
 	bool Empty() {
 		for( int i=0; i<NUM_SLOTS; ++i ) {

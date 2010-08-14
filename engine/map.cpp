@@ -47,7 +47,6 @@ Map::Map( SpaceTree* tree )
 	dayTime = true;
 	pathBlocker = 0;
 	nImageData = 0;
-	enableMeta = false;
 
 	microPather = new MicroPather(	this,			// graph interface
 									SIZE*SIZE,		// max possible states (+1)
@@ -878,7 +877,8 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	// Check for meta data.
 	if ( (itemDef.name == "guard") || (itemDef.name == "scout" )) {
 		metadata = true;
-		if ( !enableMeta ) {
+
+		if ( !Engine::mapMakerMode ) {
 			// If we aren't in MapMaker mode, push back the guard and scout positions for later use.
 			// Don't actually add the model.
 			if ( itemDef.name == "guard" ) {
@@ -1309,6 +1309,8 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 			SetPyro( x, y, duration, fire );
 		}
 	}
+
+	QueryAllDoors();
 }
 
 
@@ -1328,23 +1330,97 @@ void Map::DeleteAt( int x, int y )
 }
 
 
-void Map::QueryAllDoors( CDynArray< grinliz::Vector2I >* doors )
+void Map::QueryAllDoors()
 {
 	Rectangle2I bounds;
 	CalcBounds( &bounds );
 
+	doorArr.Clear();
+
 	MapItem* item = quadTree.FindItems( bounds, MapItem::MI_DOOR, 0 );
 	while( item ) {
-		int x, y, r;
-		WorldToXYR( item->XForm(), &x, &y, &r );
-
-		Vector2I v = { x, y };
-		doors->Push( v );
+		doorArr.Push( item );
 		item = item->next;
 	}
 }
 
 
+bool Map::ProcessDoors( const grinliz::Vector2I* openers, int nOpeners )
+{
+	bool anyChange = false;
+
+	BitArray< SIZE, SIZE, 1 > map;
+	for( int i=0; i<nOpeners; ++i ) {
+		map.Set( openers[i].x, openers[i].y );
+		map.Set( openers[i].x+1, openers[i].y );
+		map.Set( openers[i].x-1, openers[i].y );
+		map.Set( openers[i].x, openers[i].y+1 );
+		map.Set( openers[i].x, openers[i].y-1 );
+	}
+	for( int i=0; i<doorArr.Size(); ++i ) {
+
+		MapItem* item = doorArr[i];
+		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
+
+		GLASSERT( itemDef.IsDoor() );
+		GLASSERT( itemDef.modelResourceOpen );
+		GLASSERT( itemDef.cx == 1 && itemDef.cy == 1 );
+
+		if ( !item->Destroyed() ) {
+			GLASSERT( item->model );
+
+			bool change = false;
+
+			// Cheat on transform! Doors are 1x1
+			int x = item->XForm().x;
+			int y = item->XForm().y;
+			bool shouldBeOpen = map.IsSet( x, y ) != 0;
+
+			if ( item->open && !shouldBeOpen ) {
+				change = true;
+			}
+			else if ( !item->open && shouldBeOpen ) {
+				change = true;
+			}
+
+			if ( change ) {
+				anyChange = true;
+				Vector3F pos = item->model->Pos();
+				float rot = item->model->GetRotation();
+
+				const ModelResource* res = 0;
+				if ( shouldBeOpen ) {
+					item->open = 1;
+					res = itemDef.modelResourceOpen;
+				}
+				else {
+					item->open = 0;
+					res = itemDef.modelResource;
+				}
+
+				if ( res ) {
+					tree->FreeModel( item->model );
+
+					Model* model = tree->AllocModel( res );
+					model->SetFlag( Model::MODEL_OWNED_BY_MAP );
+					model->SetPos( pos );
+					model->SetRotation( rot );
+					item->model = model;
+
+					Rectangle2I mapBounds = item->MapBounds();
+
+					ResetPath();
+					ClearVisPathMap( mapBounds );
+					CalcVisPathMap( mapBounds );
+				}
+			}
+		}
+	}
+	return anyChange;
+}
+
+
+/*
 bool Map::OpenDoor( int x, int y, bool open ) 
 {
 	bool opened = false;
@@ -1393,6 +1469,8 @@ bool Map::OpenDoor( int x, int y, bool open )
 	}
 	return opened;
 }
+*/
+
 
 
 const Storage* Map::GetStorage( int x, int y ) const

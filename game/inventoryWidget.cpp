@@ -140,30 +140,21 @@ void InventoryWidget::Tap( const gamui::UIItem* item, int* move )
 
 	if ( start >= 0 && end >= 0 && start != end ) {
 
-		// Can the items be swapped?
-		int low  = start;
-		int high = end;
-		if ( low > high ) Swap( &high, &low );
+		Item startItem = inventory->GetItem( start );
+		Item endItem = inventory->GetItem( end );
 
-		Item lowItem = inventory->GetItem( low );
-		Item highItem = inventory->GetItem( high );
+		inventory->RemoveItem( start );
+		inventory->RemoveItem( end );
 
-		bool doSwap = false;
-		if ( low == ARMOR && ( highItem.IsArmor() || highItem.IsNothing() ) ) {
-			doSwap = true;
-		}
-		else if ( low == WEAPON && ( highItem.IsWeapon() || highItem.IsNothing() ) ) {
-			doSwap = true;
-		}
-		else if ( low >= PACK_START ) {
-			doSwap = true;
-		}
+		int r0 = inventory->AddItem( start, endItem );
+		int r1 = inventory->AddItem( end, startItem );
 
-		if ( doSwap ) {
-			inventory->RemoveItem( low );
-			inventory->RemoveItem( high );
-			inventory->AddItem( highItem );
-			inventory->AddItem( lowItem );
+		if ( r0 < 0 || r1 < 0 ) {
+			// swap didn't work. Restore.
+			inventory->RemoveItem( start );
+			inventory->RemoveItem( end );
+			inventory->AddItem( start, startItem );
+			inventory->AddItem( end, endItem );
 		}
 	}
 

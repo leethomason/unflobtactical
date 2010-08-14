@@ -302,7 +302,7 @@ Scene* Game::CreateScene( int id, void* data )
 		case INTRO_SCENE:		scene = new TacticalIntroScene( this );										break;
 		case END_SCENE:			scene = new TacticalEndScene( this, (const TacticalEndSceneData*) data );	break;
 		case UNIT_SCORE_SCENE:	scene = new TacticalUnitScoreScene( this, (const TacticalEndSceneData*) data );	break;
-		case HELP_SCENE:		scene = new HelpScene( this );												break;
+		case HELP_SCENE:		GLASSERT( data );	scene = new HelpScene( this, (const char*)data );		break;
 		default:
 			GLASSERT( 0 );
 			break;
