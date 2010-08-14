@@ -270,8 +270,8 @@ public:
 	// Generally called by MakePathBlockCurrent
 	void SetPathBlocks( const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& block );
 
-	Storage* LockStorage( int x, int y );					//< can return 0 if none there
-	void ReleaseStorage( int x, int y, Storage* storage, ItemDef* const* arr );	//< sets the storage
+	Storage* LockStorage( int x, int y, ItemDef* const* arr );	// always returns something.
+	void ReleaseStorage( Storage* storage );					// updates the image
 
 	const Storage* GetStorage( int x, int y ) const;		//< take a peek
 	void FindStorage( const ItemDef* itemDef, int maxLoc, grinliz::Vector2I* loc, int* numLoc );
@@ -484,7 +484,6 @@ private:
 	micropather::MicroPather* microPather;
 
 	struct Debris {
-		int x, y;
 		Storage* storage;
 		Model* crate;
 	};

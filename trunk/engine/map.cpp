@@ -1070,8 +1070,8 @@ void Map::PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rota
 void Map::SaveDebris( const Debris& d, TiXmlElement* parent )
 {
 	TiXmlElement* debrisElement = new TiXmlElement( "Debris" );
-	debrisElement->SetAttribute( "x", d.x );
-	debrisElement->SetAttribute( "y", d.y );
+	debrisElement->SetAttribute( "x", d.storage->X() );
+	debrisElement->SetAttribute( "y", d.storage->Y() );
 
 	parent->LinkEndChild( debrisElement );
 	d.storage->Save( debrisElement );
@@ -1088,12 +1088,9 @@ void Map::LoadDebris( const TiXmlElement* debrisElement, ItemDef* const* arr )
 		debrisElement->QueryIntAttribute( "x", &x );
 		debrisElement->QueryIntAttribute( "y", &y );
 
-		Storage* storage = LockStorage( x, y );
-		if ( !storage ) {
-			storage = new Storage( arr );
-		}
+		Storage* storage = LockStorage( x, y, arr );
 		storage->Load( debrisElement );
-		ReleaseStorage( x, y, storage, arr );
+		ReleaseStorage( storage );
 	}
 }
 
@@ -1401,7 +1398,7 @@ bool Map::OpenDoor( int x, int y, bool open )
 const Storage* Map::GetStorage( int x, int y ) const
 {
 	for( int i=0; i<debris.Size(); ++i ) {
-		if ( debris[i].x == x && debris[i].y ==y ) {
+		if ( debris[i].storage->X() == x && debris[i].storage->Y() ==y ) {
 			return debris[i].storage;
 		}
 	}
@@ -1414,69 +1411,72 @@ void Map::FindStorage( const ItemDef* itemDef, int maxLoc, grinliz::Vector2I* lo
 	*numLoc = 0;
 	for( int i=0; i<debris.Size() && *numLoc < maxLoc; ++i ) {
 		if ( debris[i].storage->IsResupply( itemDef->IsWeapon() ) ) {
-			loc[ *numLoc ].Set( debris[i].x, debris[i].y );
+			loc[ *numLoc ].Set( debris[i].storage->X(), debris[i].storage->Y() );
 			*numLoc += 1;
 		}
 	}
 }
 
 
-Storage* Map::LockStorage( int x, int y )
+Storage* Map::LockStorage( int x, int y, ItemDef* const* arr )
 {
-	Storage* s = 0;
+	Storage* storage = 0;
 	for( int i=0; i<debris.Size(); ++i ) {
-		if ( debris[i].x == x && debris[i].y ==y ) {
-			s = debris[i].storage;
+		if ( debris[i].storage->X() == x && debris[i].storage->Y() == y ) {
+			storage = debris[i].storage;
 			tree->FreeModel( debris[i].crate );
-			debris.SwapRemove( i );
+			debris[i].crate = 0;
 			break;
 		}
 	}
-	return s;
+	if ( !storage ) {
+		storage = new Storage( x, y, arr );
+		Debris d;
+		d.crate = 0;
+		d.storage = storage;
+		debris.Push( d );
+	}
+	return storage;
 }
 
 
-void Map::ReleaseStorage( int x, int y, Storage* storage, ItemDef* const* arr )
+void Map::ReleaseStorage( Storage* storage )
 {
-#ifdef DEBUG
+	int index = -1;
 	for( int i=0; i<debris.Size(); ++i ) {
-		if ( debris[i].x == x && debris[i].y == y ) {
-			GLASSERT( 0 );
-			return;
+		if ( debris[i].storage == storage ) {
+			index = i;
+			break;
 		}
 	}
-#endif
+	GLASSERT( index >= 0 );	// should always be found...
 
-	if ( storage && storage->Empty() ) {
+	if ( storage->Empty() ) {
 		delete storage;
-		storage = 0;
-	}
-	if ( !storage )
+		GLASSERT( debris[index].crate == 0 );
+		debris.SwapRemove( index );
 		return;
-
-	Debris* d = debris.Push();
-	d->storage = storage;
+	}
 
 	bool zRotate = false;
 	const ModelResource* res = storage->VisualRep( &zRotate );
 
 	Model* model = tree->AllocModel( res );
+	Vector2I v = { storage->X(), storage->Y() };
 	if ( zRotate ) {
 		model->SetRotation( 90.0f, 2 );
 		
-		Vector2I v = { x, y };
 		int yRot = Random::Hash( &v, sizeof(v) ) % 360;	// generate a random yet consistent rotation
 
 		model->SetRotation( (float)yRot, 1 );
-		model->SetPos( (float)x+0.5f, 0.05f, (float)y+0.5f );
+		model->SetPos( (float)v.x+0.5f, 0.05f, (float)v.y+0.5f );
 	}
 	else {
-		model->SetPos( (float)x+0.5f, 0.0f, (float)y+0.5f );
+		model->SetPos( (float)v.x+0.5f, 0.0f, (float)v.y+0.5f );
 	}
+
 	// Don't set: model->SetFlag( Model::MODEL_OWNED_BY_MAP );	not really owned by map, in the sense of mapBounds, etc.
-	d->crate = model;
-	d->x = x;
-	d->y = y;
+	debris[index].crate = model;
 }
 
 

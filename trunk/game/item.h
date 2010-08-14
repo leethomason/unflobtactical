@@ -253,7 +253,7 @@ private:
 class Storage
 {
 public:
-	Storage( ItemDef* const* _itemDefArr ) : itemDefArr( _itemDefArr )	{	memset( rounds, 0, sizeof(int)*EL_MAX_ITEM_DEFS ); }
+	Storage( int _x, int _y, ItemDef* const* _itemDefArr ) : x( _x ), y( _y ), itemDefArr( _itemDefArr )	{	memset( rounds, 0, sizeof(int)*EL_MAX_ITEM_DEFS ); }
 	~Storage();
 
 	void Init( const int* roundArr )			{ memcpy( rounds, roundArr, sizeof(int)*EL_MAX_ITEM_DEFS ); }
@@ -277,12 +277,16 @@ public:
 
 	const ModelResource* VisualRep( bool* zRotate ) const;
 
+	int X() const { return x; }
+	int Y() const { return y; }
+
 private:
 	int GetIndex( const ItemDef* itemDef ) const {
 		int index = itemDef->index;
 		GLASSERT( index >=0 && index < EL_MAX_ITEM_DEFS );
 		return index;
 	}
+	int x, y;
 	ItemDef* const* itemDefArr;
 	int rounds[EL_MAX_ITEM_DEFS];
 };

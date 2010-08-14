@@ -415,10 +415,9 @@ void Unit::Kill( Map* map )
 
 	if ( map && !inventory.Empty() ) {
 		Vector2I pos = Pos();
-		Storage* storage = map->LockStorage( pos.x, pos.y );
-		if ( !storage ) {
-			storage = new Storage( game->GetItemDefArr() );
-		}
+		Storage* storage = map->LockStorage( pos.x, pos.y, game->GetItemDefArr() );
+		GLASSERT( storage );
+
 		for( int i=0; i<Inventory::NUM_SLOTS; ++i ) {
 			Item* item = inventory.AccessItem( i );
 			if ( item->IsSomething() ) {
@@ -426,7 +425,7 @@ void Unit::Kill( Map* map )
 				item->Clear();
 			}
 		}
-		map->ReleaseStorage( pos.x, pos.y, storage, game->GetItemDefArr() );
+		map->ReleaseStorage( storage );
 	}
 }
 

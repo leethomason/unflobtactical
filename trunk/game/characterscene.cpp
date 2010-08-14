@@ -68,10 +68,8 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 
 	Vector2I mapPos;
 	unit->CalcMapPos( &mapPos, 0 );
-	storage = engine->GetMap()->LockStorage( mapPos.x, mapPos.y );
-	if ( !storage ) {
-		storage = new Storage( game->GetItemDefArr() );
-	}
+	storage = engine->GetMap()->LockStorage( mapPos.x, mapPos.y, _game->GetItemDefArr() );
+	GLASSERT( storage );
 
 	storageWidget = new StorageWidget( &gamui2D, green, blueTab, _game->GetItemDefArr(), storage );
 	engine->EnableMap( false );
@@ -99,7 +97,7 @@ CharacterScene::~CharacterScene()
 
 	Vector2I mapPos;
 	unit->CalcMapPos( &mapPos, 0 );
-	engine->GetMap()->ReleaseStorage( mapPos.x, mapPos.y, storage, game->GetItemDefArr() );
+	engine->GetMap()->ReleaseStorage( storage );
 	storage = 0;
 }
 
