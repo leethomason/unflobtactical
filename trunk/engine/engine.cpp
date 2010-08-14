@@ -253,8 +253,11 @@ void Engine::Draw()
 	Vector4F dir;
 	CalcLights( map->DayTime() ? DAY_TIME : NIGHT_TIME, &ambient, &dir, &diffuse );
 
-	LightShader lightShader( ambient, dir, diffuse, false );
-	LightShader alphaLightShader( ambient, dir, diffuse, true );
+	bool blend = Engine::mapMakerMode ? true : false;
+	bool alpha = Engine::mapMakerMode ? false : true;
+
+	LightShader lightShader( ambient, dir, diffuse, false, false );
+	LightShader alphaLightShader( ambient, dir, diffuse, alpha, blend );
 	
 	FlatShader black;
 	black.SetColor( 0, 0, 0 );

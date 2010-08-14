@@ -359,13 +359,18 @@ public:
 	//
 	void PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rotation );
 
-	static void MapObjectToWorld( int x, int y, int rotation, Matrix2I* mat, grinliz::Vector3F* model );
 	static void MapImageToWorld( int x, int y, int w, int h, int tileRotation, Matrix2I* mat );
 
 	gamui::Gamui	overlay0;
 	gamui::Gamui	overlay1;
 
 private:
+	// 0,90,180,270 rotation
+	static void XYRToWorld( int x, int y, int rotation, Matrix2I* mat );
+	// 0,90,180,270 rotation
+	static void WorldToXYR( const Matrix2I& mat, int *x, int *y, int* r, bool useRot0123 = false );
+
+	static void WorldToModel( const Matrix2I& mat, bool billboard, grinliz::Vector3F* m );
 
 	int InvertPathMask( U32 m ) {
 		U32 m0 = (m<<2) | (m>>2);

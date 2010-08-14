@@ -38,6 +38,7 @@ void ProcessAC3D( ACObject* ob, ModelBuilder* builder, const Matrix4& parent )
 		ACSurface *surf = &ob->surfaces[i];
 		Vector3F normal = { surf->normal.x, surf->normal.y, surf->normal.z };
 		if ( normal.Length() == 0.f ) {
+
 			GLASSERT( 0 );
 			normal.Set( 0.0f, 1.0f, 0.0f );
 		}
@@ -58,6 +59,7 @@ void ProcessAC3D( ACObject* ob, ModelBuilder* builder, const Matrix4& parent )
 					tx = ob->texture_offset_x + tu * ob->texture_repeat_x;
 					ty = ob->texture_offset_y + tv * ob->texture_repeat_y;
 				}
+				GLASSERT( j<16 );
 				vertex[j].pos.Set( v->x, v->y, v->z );
 				vertex[j].normal = normal;
 				vertex[j].tex.Set( tx, ty );

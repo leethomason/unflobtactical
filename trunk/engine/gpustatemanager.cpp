@@ -175,10 +175,6 @@ void GPUShader::SetState( const GPUShader& ns )
 	else if ( !ns.lighting && current.lighting ) {
 		glDisable( GL_LIGHTING );
 	}
-	if (    ns.lighting 
-		 && (ns.lightParams != current.lightParams) ) {
-		//ns.SetLightParams();
-	}
 
 	// Depth Write
 	if ( ns.depthWrite && !current.depthWrite ) {
@@ -397,10 +393,12 @@ CompositingShader::CompositingShader( bool _blend )
 int LightShader::locked = 0;
 
 
-LightShader::LightShader( const Color4F& ambient, const grinliz::Vector4F& direction, const Color4F& diffuse, bool alphaTest )
+LightShader::LightShader( const Color4F& ambient, const grinliz::Vector4F& direction, const Color4F& diffuse, bool alphaTest, bool blend )
 {
-	lightParams = ++GPUShader::uid;
+	GLASSERT( !(blend && alphaTest ) );	// technically fine, probably not intended behavior.
+
 	this->alphaTest = alphaTest;
+	this->blend = blend;
 	this->lighting = true;
 	this->ambient = ambient;
 	this->direction = direction;

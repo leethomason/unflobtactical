@@ -97,7 +97,7 @@ protected:
 				 colorPtr( 0 ), colorStride( 0 ), colorComponents( 3 ),
 				 texture0Ptr( 0 ), texture0Stride( 0 ), texture0Components( 2 ),
 				 texture1Ptr( 0 ), texture1Stride( 0 ), texture1Components( 2 ),
-				 blend( false ), alphaTest( 0 ), lighting( false ), lightParams( 0 ),
+				 blend( false ), alphaTest( 0 ), lighting( false ),
 				 depthWrite( true ), depthTest( true )
 	{
 		color.Set( 1, 1, 1, 1 );
@@ -115,8 +115,6 @@ protected:
 	static int trianglesDrawn;
 	static int drawCalls;
 	static uint32_t uid;
-
-	//virtual void SetLightParams() const	{}
 
 	Texture* texture0;
 	Texture* texture1;
@@ -143,7 +141,6 @@ protected:
 	bool		blend;
 	bool		alphaTest;
 	bool		lighting;
-	uint32_t	lightParams;
 
 	bool		depthWrite;
 	bool		depthTest;
@@ -172,7 +169,7 @@ class LightShader : public GPUShader
 {
 public:
 	/** Texture or color. Writes & tests z. Enables lighting. */
-	LightShader( const Color4F& ambient, const grinliz::Vector4F& direction, const Color4F& diffuse, bool alphaTest );
+	LightShader( const Color4F& ambient, const grinliz::Vector4F& direction, const Color4F& diffuse, bool alphaTest=false, bool blend=false );
 	~LightShader();
 
 protected:

@@ -166,7 +166,9 @@ public:
 				const RenderAtom& textDisabled,
 				IGamuiText* iText );
 
+	// normally not called by user code.
 	void Add( UIItem* item );
+	// normally not called by user code.
 	void Remove( UIItem* item );
 
 	/// Call to begin the rendering pass and commit all the UIItems to the display.
@@ -183,10 +185,15 @@ public:
 		* TapUp returns if the item was activated (that is, the up and down item are the same.)
 	*/
 	void TapDown( float x, float y );		
-	const UIItem* TapUp( float x, float y );		///< Used as a pair with TapDown
-	void TapCancel();
-	bool TapCaptured() const { return m_itemTapped != 0; }
-	const UIItem* Tap( float x, float y );			///< Used to send events on systems that have a simple tap without up/down symantics.
+	const UIItem* TapUp( float x, float y );					///< Used as a pair with TapDown
+	void TapCancel();											///< Cancel a tap (generally in response to the OS)
+	const UIItem* TapCaptured() const { return m_itemTapped; }	///< The item that received the TapDown, while in move.
+	const UIItem* Tap( float x, float y );						///< Used to send events on systems that have a simple tap without up/down symantics.
+
+	/** During (or after) a TapUp, this will return the starting object and ending object of the drag. One
+		or both may be null, and it is commonly the same object.
+	*/
+	void GetDragPair( const UIItem** start, const UIItem** end )		{ *start = m_dragStart; *end = m_dragEnd; }
 
 	/** Utility function to layout a grid of items.
 		@param item			An array of item pointers to arrange.
@@ -202,6 +209,10 @@ public:
 						int cx, int cy,
 						float originX, float originY,
 						float tableWidth, float tableHeight );
+
+	static void Layout( UIItem** item, int nItem,
+						int columns,
+						float originX, float originY );
 
 	void LayoutTextBlock(	const char* text,
 							TextLabel* textLabels, int nTextLabels,
@@ -226,6 +237,8 @@ private:
 	UIItem**	m_itemArr;
 	int			m_nItems;
 	int			m_nItemsAllocated;
+	const UIItem*	m_dragStart;
+	const UIItem*	m_dragEnd;
 };
 
 
@@ -290,6 +303,8 @@ public:
 		TAP_UP,
 		TAP_CANCEL
 	};
+	
+	virtual bool CanHandleTap()											{ return false; }
 	virtual bool HandleTap( TapAction action, float x, float y )		{ return false; }
 
 	virtual const RenderAtom* GetRenderAtom() const = 0;
@@ -631,6 +646,7 @@ public:
 
 	virtual ~PushButton()	{}
 
+	virtual bool CanHandleTap()											{ return true; }
 	virtual bool HandleTap( TapAction action, float x, float y );
 };
 
@@ -678,7 +694,7 @@ public:
 
 	virtual ~ToggleButton()		{ RemoveFromToggleGroup(); }
 
-
+	virtual bool CanHandleTap()											{ return true; }
 	virtual bool HandleTap(	TapAction action, float x, float y );
 
 	void AddToToggleGroup( ToggleButton* );

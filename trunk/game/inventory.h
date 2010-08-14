@@ -25,9 +25,9 @@ class TiXmlElement;
 
 
 /*  
+	A W		- carried
 	M M M	- backpack
 	M M M
-	A 2 1	- armor, secondary, primary
 */
 
 class Inventory
