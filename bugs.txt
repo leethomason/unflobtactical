@@ -1,27 +1,15 @@
 Issues:
 
 Bugs:
-- trees show up in the wrong place
-- alien doors not wide enough - block shots
 - support drag in character screen
+- help in character screen
+- trees show up in the wrong place
 - door bugs, redo door system
-- re-size after load?
-? pauses when move - profiler?
-- Art: better human models
-- Art: better alien models
-- Art: new weapon models
 - fire generates light
-- mission types: crash
 - check math (again) in PushShootAction()
-- handle too many particles consistently
-- mission types: landing
-- mission types: terror
-- mission types: big ufos
-- mission types: base
 - start at action (not black screen)
 - add lander animation
-- add morale
-? psi attack
+- finish Android port
 
 Architecture
 - Map as interface
@@ -29,10 +17,22 @@ Architecture
 
 Features:
 - More items: optical computer for units to enhance vision
-- clean up canon
-- add slug-shooter
 
 TBD:
+- add morale
+? psi attack
+- handle too many particles consistently
+- mission types: landing
+- mission types: terror
+- mission types: big ufos
+- mission types: base
+- mission types: crash
+- re-size after load?
+? pauses when move - profiler?
+- Art: better human models
+- Art: better alien models
+- Art: new weapon models
+- alien doors not wide enough - block shots
 - render managers
 - tap accuracy
 - Pinching doesn't feel right
@@ -46,6 +46,9 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- clean up canon
+- add slug-shooter
+- shooting UFO doors because they are too narrow.
 - cani/canx -> canon
 - grey zone where previously seen
 - AI objects 

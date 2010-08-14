@@ -124,6 +124,7 @@
     <ClCompile Include="game\gameresources.cpp" />
     <ClCompile Include="game\helpscene.cpp" />
     <ClCompile Include="game\inventory.cpp" />
+    <ClCompile Include="game\inventoryWidget.cpp" />
     <ClCompile Include="game\item.cpp" />
     <ClCompile Include="game\material.cpp" />
     <ClCompile Include="game\scene.cpp" />
@@ -170,6 +171,7 @@
     <ClInclude Include="game\gamelimits.h" />
     <ClInclude Include="game\helpscene.h" />
     <ClInclude Include="game\inventory.h" />
+    <ClInclude Include="game\inventoryWidget.h" />
     <ClInclude Include="game\item.h" />
     <ClInclude Include="game\material.h" />
     <ClInclude Include="game\scene.h" />

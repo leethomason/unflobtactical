@@ -428,7 +428,7 @@ void TacticalIntroScene::CreateMap(	TiXmlNode* parent,
 	if ( info.needsLander ) {
 		Vector2I pos = cornerPosBlock[ 0 ];
 		blocks.Set( pos.x, pos.y );
-		int tileRotation = 0;	// random.Rand(4)
+		int tileRotation = 3;	// random.Rand(4)
 		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, "LAND", dataItem, mapElement );	
 	}
 
@@ -436,7 +436,7 @@ void TacticalIntroScene::CreateMap(	TiXmlNode* parent,
 		const char* ufoStr = "UFOA";
 		Vector2I pos = cornerPosBlock[ 1 ];
 		blocks.Set( pos.x, pos.y );
-		int tileRotation = 0;	// random.Rand(4)
+		int tileRotation = 3;	// random.Rand(4)
 		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, ufoStr, dataItem, mapElement );	
 	}
 
@@ -444,7 +444,7 @@ void TacticalIntroScene::CreateMap(	TiXmlNode* parent,
 		for( int i=0; i<info.blockSizeX; ++i ) {
 			if ( !blocks.IsSet( i, j ) ) {
 				Vector2I pos = { i, j };
-				int tileRotation = 0;	// random.Rand(4)
+				int tileRotation = 3;	// random.Rand(4)
 				AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, "TILE", dataItem, mapElement );	
 			}
 		}

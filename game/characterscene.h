@@ -25,6 +25,7 @@
 
 class UIButtonBox;
 class Texture;
+class InventoryWidget;
 
 struct CharacterSceneInput
 {
@@ -39,12 +40,9 @@ public:
 	virtual ~CharacterScene();
 
 	// UI
-	virtual void Tap(	int count, 
+	virtual void Tap(	int action, 
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
-
-//	virtual void Drag(	int action,
-//						const grinliz::Vector2F& view )			{}
 
 	virtual void Zoom( int action, int distance )				{}
 	virtual void CancelInput()									{}
@@ -69,15 +67,6 @@ protected:
 		STATS_MODE,
 		MODE_COUNT
 	};
-	int mode;
-	void InitInvWidget();
-	void InitTextTable( gamui::Gamui* );
-	void InitCompTable( gamui::Gamui* );
-
-	void SetAllButtonGraphics();
-	void SetButtonGraphics( int index, const Item& item );
-	void SetCompText();
-
 	void InventoryToStorage( int slot );
 	void StorageToInventory( const ItemDef* itemDef );
 
@@ -87,33 +76,59 @@ protected:
 	Engine* engine;
 
 	gamui::PushButton backButton;
-	enum {	NUM_BASE_BUTTONS = 6,
-			NUM_INV_BUTTONS = 8,
-			ARMOR_BUTTON = 6,
-			WEAPON_BUTTON = 7
-	};
 
 	// control buttons:
 	enum { NUM_CONTROL = 3, NUM_RANGE=3 };
 	gamui::PushButton helpButton;
 	gamui::ToggleButton control[NUM_CONTROL];
-	gamui::ToggleButton range[NUM_RANGE];
 
-	// Left side buttons (unit inventory)
-	gamui::PushButton charInvButton[NUM_INV_BUTTONS];
+	gamui::Image			dragImage;
+	const gamui::UIItem*	dragUIItem;
+
+	class StatWidget {
+	public:
+		StatWidget()		{}
+		void Init( gamui::Gamui* g, const Unit* unit, float x, float y );
+		void SetVisible( bool visible );
+	private:
+		enum { STATS_ROWS = 10 };
+		NameRankUI	nameRankUI;
+		gamui::TextLabel textTable[2*STATS_ROWS];
+	};
+
+	class CompWidget {
+	public:
+		CompWidget()		{}
+		void Init(	ItemDef* const*, const Storage* storage, const Unit* unit,
+					gamui::Gamui* g, const gamui::ButtonLook& look, float x, float y, float w );
+		
+		void SetVisible( bool visible );
+		void Tap( const gamui::UIItem* item );
+	private:
+		void SetCompText();
+		gamui::ToggleButton range[NUM_RANGE];
+
+		ItemDef* const* itemDefArr;
+		const Storage* storage;
+		const Unit* unit;
+
+		NameRankUI	nameRankUI;
+		// name tu % dam dptu
+		enum { COMP_COL = 5, COMP_ROW = 5 };
+		gamui::TextLabel compTable[COMP_COL*COMP_ROW];
+	};
+
+	InventoryWidget* inventoryWidget;
 
 	// Right side option #1
 	StorageWidget* storageWidget;  //< widget to show ground items
-	// Right side option #2
-	enum { STATS_ROWS = 10 };
-	NameRankUI	nameRankUI;
-	gamui::TextLabel textTable[2*STATS_ROWS];
-	// Right side option #3
-	// name tu % dam dptu
-	enum { COMP_COL = 5, COMP_ROW = 5 };
-	gamui::TextLabel compTable[COMP_COL*COMP_ROW];
 
-	const char* description;
+	// Right side option #2
+	StatWidget statWidget;
+
+	// Right side option #3
+	CompWidget compWidget;
+
 	Storage* storage;
 	Unit* unit;
 };

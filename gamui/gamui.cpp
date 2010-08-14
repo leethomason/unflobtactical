@@ -1084,7 +1084,9 @@ Gamui::Gamui()
 		m_iText( 0 ),
 		m_itemArr( 0 ),
 		m_nItems( 0 ),
-		m_nItemsAllocated( 0 )
+		m_nItemsAllocated( 0 ),
+		m_dragStart( 0 ),
+		m_dragEnd( 0 )
 {
 }
 
@@ -1165,7 +1167,8 @@ void Gamui::TapDown( float x, float y )
 	for( int i=0; i<m_nItems; ++i ) {
 		UIItem* item = m_itemArr[i];
 
-		if (    item->Enabled() 
+		if (	item->CanHandleTap()    
+			 && item->Enabled() 
 			 && item->Visible()
 			 && x >= item->X() && x < item->X()+item->Width()
 			 && y >= item->Y() && y < item->Y()+item->Height() )
@@ -1181,12 +1184,29 @@ void Gamui::TapDown( float x, float y )
 
 const UIItem* Gamui::TapUp( float x, float y )
 {
+	m_dragStart = m_itemTapped;
+
 	const UIItem* result = 0;
 	if ( m_itemTapped ) {
 		if ( m_itemTapped->HandleTap( UIItem::TAP_UP, x, y ) )
 			result = m_itemTapped;
 	}
 	m_itemTapped = 0;
+
+	m_dragEnd = 0;
+	for( int i=0; i<m_nItems; ++i ) {
+		UIItem* item = m_itemArr[i];
+
+		if (    item->CanHandleTap()
+			 &&	item->Enabled() 
+			 && item->Visible()
+			 && x >= item->X() && x < item->X()+item->Width()
+			 && y >= item->Y() && y < item->Y()+item->Height() )
+		{
+			m_dragEnd = item;
+			break;
+		}
+	}
 	return result;
 }
 
@@ -1357,6 +1377,28 @@ void Gamui::Layout( UIItem** item, int nItems,
 		}
 		if ( r == cy )
 			break;
+	}
+}
+
+
+void Gamui::Layout( UIItem** item, int nItems,
+					int columns,
+					float originX, float originY )
+{
+	int c = 0;
+	float x = originX;
+	float y = originY;
+
+	for( int i=0; i<nItems; ++i ) {
+		item[i]->SetPos( x, y );
+		x += item[i]->Width();
+
+		++c;
+		if ( c >= columns ) {
+			c = 0;
+			x = originX;
+			y += item[i]->Height();
+		}
 	}
 }
 

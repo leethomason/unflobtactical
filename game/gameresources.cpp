@@ -713,6 +713,20 @@ void Game::LoadAtoms()
 		renderAtoms[ATOM_GREEN_BUTTON_DOWN_D+i].renderState = (const void*) UIRenderer::RENDERSTATE_UI_DISABLED;
 	}
 
+	renderAtoms[ATOM_BLUE_TAB_BUTTON_UP].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "icons" ), 0, 0, 1, 1, 56, 56 );
+	UIRenderer::SetAtomCoordFromPixel( 64*7, 128, 64*8, 192, 512, 256, &renderAtoms[ATOM_BLUE_TAB_BUTTON_UP] );
+
+	renderAtoms[ATOM_BLUE_TAB_BUTTON_UP_D] = renderAtoms[ATOM_BLUE_TAB_BUTTON_UP];
+	renderAtoms[ATOM_BLUE_TAB_BUTTON_UP_D].renderState = (const void*) UIRenderer::RENDERSTATE_UI_DISABLED;
+
+	renderAtoms[ATOM_BLUE_TAB_BUTTON_DOWN].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "icons" ), 0, 0, 1, 1, 56, 56 );
+	UIRenderer::SetAtomCoordFromPixel( 64*6, 128, 64*7, 192, 512, 256, &renderAtoms[ATOM_BLUE_TAB_BUTTON_DOWN] );
+
+	renderAtoms[ATOM_BLUE_TAB_BUTTON_DOWN_D] = renderAtoms[ATOM_BLUE_TAB_BUTTON_DOWN];
+	renderAtoms[ATOM_BLUE_TAB_BUTTON_DOWN_D].renderState = (const void*) UIRenderer::RENDERSTATE_UI_DISABLED;
+
+
+
 	for( int i=0; i<ATOM_COUNT; ++i ) {
 		GLASSERT( renderAtoms[i].renderState );
 		GLASSERT( renderAtoms[i].textureHandle );
@@ -722,4 +736,5 @@ void Game::LoadAtoms()
 	buttonLooks[GREEN_BUTTON].Init( renderAtoms[ ATOM_GREEN_BUTTON_UP ], renderAtoms[ ATOM_GREEN_BUTTON_UP_D ], renderAtoms[ ATOM_GREEN_BUTTON_DOWN ], renderAtoms[ ATOM_GREEN_BUTTON_DOWN_D ] );
 	buttonLooks[BLUE_BUTTON].Init( renderAtoms[ ATOM_BLUE_BUTTON_UP ], renderAtoms[ ATOM_BLUE_BUTTON_UP_D ], renderAtoms[ ATOM_BLUE_BUTTON_DOWN ], renderAtoms[ ATOM_BLUE_BUTTON_DOWN_D ] );
 	buttonLooks[RED_BUTTON].Init( renderAtoms[ ATOM_RED_BUTTON_UP ], renderAtoms[ ATOM_RED_BUTTON_UP_D ], renderAtoms[ ATOM_RED_BUTTON_DOWN ], renderAtoms[ ATOM_RED_BUTTON_DOWN_D ] );
+	buttonLooks[BLUE_TAB_BUTTON].Init( renderAtoms[ ATOM_BLUE_TAB_BUTTON_UP ], renderAtoms[ ATOM_BLUE_TAB_BUTTON_UP_D ], renderAtoms[ ATOM_BLUE_TAB_BUTTON_DOWN ], renderAtoms[ ATOM_BLUE_TAB_BUTTON_DOWN_D ] );
 }

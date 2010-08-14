@@ -616,9 +616,8 @@ void Map::DoDamage( Model* m, const DamageDesc& damageDesc, Rectangle2I* dBounds
 			// model if there is one. This is as simple as saving off
 			// the properties, deleting it, and re-adding. A little
 			// tricky since we reach into the matrix itself.
-			int x = item->XForm().x;
-			int y = item->XForm().y;
-			int rot = item->modelRotation;
+			int x, y, rot;
+			WorldToXYR( item->XForm(), &x, &y, &rot, true );
 			int def = item->itemDefIndex;
 			int flags = item->flags;
 			int hp = item->hp;
@@ -751,14 +750,10 @@ Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 
 		Matrix2I m;
 		Vector3F modelPos;
-		MapObjectToWorld( x, y, rotation*90, &m, &modelPos );
-		Vector2I zero = { 0, 0 };
-		Vector2I v = m * zero;
 
-		if ( itemDefArr[defIndex].modelResource->header.IsBillboard() ) {
-			modelPos.x += 0.5f * (float)itemDefArr[defIndex].cx;
-			modelPos.z += 0.5f * (float)itemDefArr[defIndex].cy; 
-		}
+		XYRToWorld( x, y, rotation*90, &m );
+		WorldToModel( m, itemDefArr[defIndex].modelResource->header.IsBillboard(), &modelPos );
+
 		model = tree->AllocModel( itemDefArr[defIndex].modelResource );
 		model->SetPos( modelPos );
 		model->SetRotation( 90.0f * rotation );
@@ -767,7 +762,34 @@ Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 }
 
 
-void Map::MapObjectToWorld( int x, int y, int rotation, Matrix2I* mat, Vector3F* vecPos )
+void Map::WorldToModel( const Matrix2I& mat, bool billboard, grinliz::Vector3F* model )
+{
+	// Account for rounding from map (integer based) to model (float based) coordinates.
+	// Irritating transformation problem.
+
+	if ( billboard ) {
+		model->x  = (float)mat.x + 0.5f;
+		model->y  = 0.0f;
+		model->z  = (float)mat.y + 0.5f;
+	}
+	else {
+		Vector2I a = { 0, 0 };
+		Vector2I d = { 1, 1 };
+
+		Vector2I aPrime = mat * a;
+		Vector2I dPrime = mat * d;
+
+		int xMin = Min( aPrime.x, dPrime.x ) - mat.x;
+		int yMin = Min( aPrime.y, dPrime.y ) - mat.y;
+
+		model->x = (float)(mat.x - xMin);
+		model->y = 0.0f;
+		model->z = (float)(mat.y - yMin);
+	}
+}
+
+
+void Map::XYRToWorld( int x, int y, int rotation, Matrix2I* mat )
 {
 	GLASSERT( rotation == 0 || rotation == 90 || rotation == 180 || rotation == 270 );
 
@@ -778,16 +800,34 @@ void Map::MapObjectToWorld( int x, int y, int rotation, Matrix2I* mat, Vector3F*
 	if ( mat ) {
 		*mat = t*r;
 	}
+}
 
-	// Account for rounding from float to int space
-	if ( vecPos ) {
-		switch( rotation ) {
-			case 0:		vecPos->Set( (float)x, 0, (float)y );			break;
-			case 90:	vecPos->Set( (float)x, 0, (float)(y+1) );		break;
-			case 180:	vecPos->Set( (float)(x+1), 0, (float)(y+1) );	break;
-			case 270:	vecPos->Set( (float)(x+1), 0, (float)y );		break;
-			default:	GLASSERT( 0 );
-		}
+
+void Map::WorldToXYR( const Matrix2I& mat, int *x, int *y, int* r, bool useRot0123 )
+{
+	int rMul = (useRot0123) ? 1 : 90;
+	*x = mat.x;
+	*y = mat.y;
+
+	// XZ rotation. (So confusing. Not XY.)
+	// 1 0		0  1		-1 0		0 -1
+	// 0 1		-1  0		 0 -1		1  0
+	if      ( mat.a == 1  && mat.b == 0  && mat.c == 0  && mat.d == 1 ) {
+		*r = 0*rMul;
+	}
+	else if ( mat.a == 0  && mat.b == 1 && mat.c == -1  && mat.d == 0 ) {
+		*r = 1*rMul;
+	}
+	else if ( mat.a == -1 && mat.b == 0  && mat.c == 0  && mat.d == -1 ) {
+		*r = 2*rMul;
+	}
+	else if ( mat.a == 0  && mat.b == -1  && mat.c == 1 && mat.d == 0 ) {
+		*r = 3*rMul;
+	}
+	else {
+		// Not valid simple rotation
+		GLASSERT( 0 );
+		*r = 0;
 	}
 }
 
@@ -821,12 +861,19 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 		return 0;
 	}
 
-	Matrix2I xform;
-	Vector3F modelPos;
-	MapObjectToWorld( x, y, rotation*90, &xform, &modelPos );
-	
+		
 	const MapItemDef& itemDef = itemDefArr[defIndex];
 	bool metadata = false;
+
+	Matrix2I xform;
+	Vector3F modelPos;
+	XYRToWorld( x, y, rotation*90, &xform );
+	bool isBillboard = itemDefArr[defIndex].modelResource && itemDefArr[defIndex].modelResource->header.IsBillboard();
+	WorldToModel( xform, isBillboard, &modelPos );
+
+	if ( StrEqual( itemDef.name.c_str(), "ufo_WallCurve4" ) ) {
+		GLOUTPUT(( "Outer UFO wall added: x=%d y=%d r=%d\n", x, y, rotation ));
+	}
 
 	// Check for meta data.
 	if ( (itemDef.name == "guard") || (itemDef.name == "scout" )) {
@@ -916,8 +963,6 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	if ( res ) {
 		Model* model = tree->AllocModel( res );
 		if ( res->header.IsBillboard() ) {
-			modelPos.x += 0.5f * (float)itemDef.cx;
-			modelPos.z += 0.5f * (float)itemDef.cy; 
 			item->modelRotation = 0;
 		}
 
@@ -1059,13 +1104,15 @@ void Map::Save( TiXmlElement* mapElement )
 	mapElement->SetAttribute( "sizeX", width );
 	mapElement->SetAttribute( "sizeY", height );
 
-	TiXmlElement* pastSeenElement = new TiXmlElement( "Seen" );
-	mapElement->LinkEndChild( pastSeenElement );
+	if ( !Engine::mapMakerMode ) {
+		TiXmlElement* pastSeenElement = new TiXmlElement( "Seen" );
+		mapElement->LinkEndChild( pastSeenElement );
 	
-	char buf[BitArray<Map::SIZE, Map::SIZE, 1>::STRING_SIZE];
-	pastSeenFOW.ToString( buf );
-	TiXmlText* pastSeenText = new TiXmlText( buf );
-	pastSeenElement->LinkEndChild( pastSeenText );
+		char buf[BitArray<Map::SIZE, Map::SIZE, 1>::STRING_SIZE];
+		pastSeenFOW.ToString( buf );
+		TiXmlText* pastSeenText = new TiXmlText( buf );
+		pastSeenElement->LinkEndChild( pastSeenText );
+	}
 
 	TiXmlElement* itemsElement = new TiXmlElement( "Items" );
 	mapElement->LinkEndChild( itemsElement );
@@ -1076,11 +1123,18 @@ void Map::Save( TiXmlElement* mapElement )
 
 	for( ; item; item=item->next ) {
 		TiXmlElement* itemElement = new TiXmlElement( "Item" );
-		itemElement->SetAttribute( "x", item->XForm().x );
-		itemElement->SetAttribute( "y", item->XForm().y );
-		int rot = item->modelRotation;
-		if ( rot != 0 )
-			itemElement->SetAttribute( "rot", rot );
+
+		if ( StrEqual( itemDefArr[item->itemDefIndex].name.c_str(), "ufo_WallCurve4" ) ) {
+			int debug = 1;
+		}
+
+		int x, y, r;
+		WorldToXYR( item->XForm(), &x, &y, &r, true );
+
+		itemElement->SetAttribute( "x", x );
+		itemElement->SetAttribute( "y", y );
+		if ( r != 0 )
+			itemElement->SetAttribute( "rot", r );
 		// old, rigid approach: itemElement->SetAttribute( "index", item->itemDefIndex );
 		itemElement->SetAttribute( "name", itemDefArr[item->itemDefIndex].name.c_str() );
 		if ( item->hp != 0xffff )
@@ -1098,6 +1152,7 @@ void Map::Save( TiXmlElement* mapElement )
 		imageElement->SetAttribute( "x", imageData[i].x );
 		imageElement->SetAttribute( "y", imageData[i].y );
 		imageElement->SetAttribute( "size", imageData[i].size );
+		imageElement->SetAttribute( "tileRotation", imageData[i].tileRotation );
 		imageElement->SetAttribute( "name", imageData[i].name.c_str() );
 	}
 
@@ -1221,6 +1276,10 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 				else {
 					GLOUTPUT(( "Could not load item '%s'\n", name ));
 				}
+
+				if ( StrEqual( name, "ufo_WallCurve4" ) ) {
+					int debug = 1;
+				}
 			}
 
 			if ( index >= 0 ) {
@@ -1279,7 +1338,10 @@ void Map::QueryAllDoors( CDynArray< grinliz::Vector2I >* doors )
 
 	MapItem* item = quadTree.FindItems( bounds, MapItem::MI_DOOR, 0 );
 	while( item ) {
-		Vector2I v = { item->XForm().x, item->XForm().y };
+		int x, y, r;
+		WorldToXYR( item->XForm(), &x, &y, &r );
+
+		Vector2I v = { x, y };
 		doors->Push( v );
 		item = item->next;
 	}
@@ -1497,11 +1559,6 @@ void Map::DrawPath()
 			shader.Draw( nGreen, index );
 		}
 	}
-
-//	glEnableClientState( GL_NORMAL_ARRAY );
-//	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-//	glEnable( GL_TEXTURE_2D );
-//	glDisable( GL_BLEND );
 }
 
 

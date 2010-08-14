@@ -29,20 +29,19 @@ StorageWidget::StorageWidget(	gamui::Gamui* gamui,
 	  itemDefArr( _itemDefArr )
 {
 	static const int decoID[NUM_SELECT_BUTTONS] = { DECO_PISTOL, DECO_RAYGUN, DECO_ARMOR, DECO_ALIEN };
+
 	for( int i=0; i<NUM_SELECT_BUTTONS; ++i ) {
 		selectButton[i].Init( gamui, blue );
 		if ( i > 0 ) 
 			selectButton[0].AddToToggleGroup( &selectButton[i] );
 		selectButton[i].SetSize( (float)GAME_BUTTON_SIZE, (float)GAME_BUTTON_SIZE );
 		selectButton[i].SetDeco( UIRenderer::CalcDecoAtom( decoID[i], true ), UIRenderer::CalcDecoAtom( decoID[i], false ) );
-		itemArr[i*BOX_CX] = &selectButton[i];
+		itemArr[i] = &selectButton[i];
 	}
 	for( int i=0; i<NUM_BOX_BUTTONS; ++i ) {
 		boxButton[i].Init( gamui, green );
 		boxButton[i].SetSize( (float)GAME_BUTTON_SIZE, (float)GAME_BUTTON_SIZE );
-		int y = i / (BOX_CX-1);
-		int x = i - y*(BOX_CX-1);
-		itemArr[y*BOX_CX+1+x] = &boxButton[i];
+		itemArr[i+4] = &boxButton[i];
 	}
 	SetOrigin( 0, 0 );
 	SetButtons();
@@ -155,6 +154,15 @@ void StorageWidget::SetButtons()
 	bool selectionOkay = false;
 	int canSelect = -1;
 
+#if 1
+	static const int decoID[NUM_SELECT_BUTTONS] = { DECO_PISTOL, DECO_RAYGUN, DECO_ARMOR, DECO_ALIEN };
+	for( int i=0; i<NUM_SELECT_BUTTONS; ++i ) {
+		selectButton[i].SetEnabled( true );
+		selectButton[i].SetDeco( UIRenderer::CalcDecoAtom( decoID[i], (itemsPerGroup[i]>0) ), 
+								 UIRenderer::CalcDecoAtom( decoID[i], (itemsPerGroup[i]>0) ) );
+
+	}
+#else
 	for( int i=0; i<NUM_SELECT_BUTTONS; ++i ) {
 		selectButton[i].SetEnabled( itemsPerGroup[i]>0 );
 		if ( selectButton[i].Down() && selectButton[i].Enabled() ) {
@@ -172,4 +180,5 @@ void StorageWidget::SetButtons()
 				selectButton[canSelect].SetUp();
 		}
 	}
+#endif
 }
