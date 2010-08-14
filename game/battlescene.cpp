@@ -1337,7 +1337,7 @@ bool BattleScene::ProcessAI()
 					AI_LOG(( "[ai] Unit %d INVENTORY: ", currentUnitAI ));
 					// Drop all the weapons and clips. Pick up new weapons and clips.
 					Vector2I pos = units[currentUnitAI].Pos();
-					Storage* storage = engine->GetMap()->LockStorage( pos.x, pos.y );
+					Storage* storage = engine->GetMap()->LockStorage( pos.x, pos.y, game->GetItemDefArr() );
 					GLASSERT( storage );
 					Inventory* inventory = units[currentUnitAI].GetInventory();
 
@@ -1415,7 +1415,7 @@ bool BattleScene::ProcessAI()
 						}
 						AI_LOG(( "\n" ));
 					}
-					engine->GetMap()->ReleaseStorage( pos.x, pos.y, storage, game->GetItemDefArr() );
+					engine->GetMap()->ReleaseStorage( storage );
 					units[currentUnitAI].UpdateInventory();
 				}
 				break;
