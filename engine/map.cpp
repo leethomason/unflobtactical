@@ -47,6 +47,7 @@ Map::Map( SpaceTree* tree )
 	dayTime = true;
 	pathBlocker = 0;
 	nImageData = 0;
+	landerFlight = 0.0f;
 
 	microPather = new MicroPather(	this,			// graph interface
 									SIZE*SIZE,		// max possible states (+1)
@@ -1350,12 +1351,11 @@ bool Map::ProcessDoors( const grinliz::Vector2I* openers, int nOpeners )
 	bool anyChange = false;
 
 	BitArray< SIZE, SIZE, 1 > map;
+	Rectangle2I b;
+
 	for( int i=0; i<nOpeners; ++i ) {
-		map.Set( openers[i].x, openers[i].y );
-		map.Set( openers[i].x+1, openers[i].y );
-		map.Set( openers[i].x-1, openers[i].y );
-		map.Set( openers[i].x, openers[i].y+1 );
-		map.Set( openers[i].x, openers[i].y-1 );
+		b.Set( openers[i].x-1, openers[i].y-1, openers[i].x+1, openers[i].y+1 );
+		map.SetRect( b );
 	}
 	for( int i=0; i<doorArr.Size(); ++i ) {
 
@@ -2011,6 +2011,40 @@ void Map::MapBoundsOfModel( const Model* m, grinliz::Rectangle2I* mapBounds )
 	GLASSERT( mapBounds->min.x <= mapBounds->max.x );
 	GLASSERT( mapBounds->min.y <= mapBounds->max.y );
 }
+
+
+void Map::SetLanderFlight( float normal )
+{
+	landerFlight = Clamp( normal, 0.0f, 1.0f );
+	if ( lander ) {
+		Model* model = lander->model;
+		Vector3F pos = model->Pos();
+		float h = landerFlight*landerFlight * 10.0f;
+		
+		const Rectangle3F& bounds = model->AABB();
+		Vector3F p[4] = {	{ bounds.min.x, h, bounds.min.z },
+							{ bounds.max.x, h, bounds.min.z },
+							{ bounds.min.x, h, bounds.max.z },
+							{ bounds.max.x, h, bounds.max.z } };
+
+		Color4F color = { 213.0f/255.0f, 63.0f/255.0f, 63.0f/255.0f, 1.0f };
+		Color4F colorV = { -0.1f, -0.1f, -0.1f, -0.2f };
+		Vector3F v = { 0, 1, 0 };
+
+		for( int i=0; i<4; ++i ) {
+			ParticleSystem::Instance()->EmitPoint( 3, ParticleSystem::PARTICLE_RAY, color, colorV, p[i], 0.2f, v, 0.2f, 2000 );
+			// Better to emit "impact quad" FIXME
+//			if ( landerFlight == 0.0f ) {
+//				Vector3F vs = { 0, 0.2f, 0 };
+//				Color4F cs = { 248.0f/255.0f, 228.0f/255.0f, 8.0f/255.0f, 1.0f };
+//				ParticleSystem::Instance()->EmitPoint( 30, ParticleSystem::PARTICLE_HEMISPHERE, cs, colorV, p[i], 0.1f, vs, 0.2f, 4000 );
+//			}
+		}
+
+		model->SetPos( pos.x, h, pos.z );
+	}
+}
+
 
 
 Map::QuadTree::QuadTree()

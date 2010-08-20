@@ -354,6 +354,7 @@ void Game::Save( TiXmlDocument* doc )
 	sceneElement.SetAttribute( "id", 0 );
 
 	TiXmlElement gameElement( "Game" );
+	gameElement.SetAttribute( "version", VERSION );
 	gameElement.InsertEndChild( sceneElement );
 
 	doc->InsertEndChild( gameElement );

@@ -1,9 +1,8 @@
 Issues:
 
 Bugs:
-- start at action (not black screen)
-- add lander animation (and version & turn to save file...)
 - restart game
+- selection order gets strange if someone dies. Switch to linear selection??
 - finish Android port
 
 Architecture
@@ -44,6 +43,8 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- start at action (not black screen)
+- add lander animation (and version & turn to save file...)
 - door bugs, redo door system
 - support drag in character screen
 - help in character screen
