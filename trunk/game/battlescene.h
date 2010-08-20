@@ -143,6 +143,7 @@ private:
 		ACTION_HIT,
 		ACTION_CAMERA,
 		ACTION_CAMERA_BOUNDS,
+		ACTION_LANDER,
 	};
 
 	struct MoveAction	{
@@ -183,6 +184,11 @@ private:
 		grinliz::Vector3F	target;
 		grinliz::Vector3F	normal;
 		float				speed;
+		bool				center;
+	};
+
+	struct LanderAction {
+		
 	};
 
 	struct Action
@@ -198,6 +204,7 @@ private:
 			HitAction			hit;
 			CameraAction		camera;
 			CameraBoundsAction	cameraBounds;
+			LanderAction		lander;
 		} type;
 
 		void Clear()							{ actionID = ACTION_NONE; memset( &type, 0, sizeof( type ) ); }
@@ -217,7 +224,7 @@ private:
 							float useError,				// if 0, perfect shot. <1 improve, 1 normal error, >1 more error
 							bool clearMoveIfShoot );	// clears move commands if needed
 
-	void PushScrollOnScreen( const grinliz::Vector3F& v );
+	void PushScrollOnScreen( const grinliz::Vector3F& v, bool center=false );
 
 	// Process the current action. Returns flags that describe what happened.
 	enum { 
@@ -348,6 +355,7 @@ private:
 
 	int	subTurnOrder[MAX_TERRANS];
 	int	subTurnCount;
+	int turnCount;
 
 
 	Engine*			engine;

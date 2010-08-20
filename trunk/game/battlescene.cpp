@@ -46,6 +46,7 @@ TacticalEndSceneData gTacticalData;	// cheating. Just a block of memory to pass 
 BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 {
 	subTurnCount = 0;
+	turnCount = 0;
 	rotationUIOn = nextUIOn = true;
 	isDragging = false;
 
@@ -325,6 +326,7 @@ void BattleScene::InitUnits()
 void BattleScene::NextTurn()
 {
 	currentTeamTurn = (currentTeamTurn==ALIEN_TEAM) ? TERRAN_TEAM : ALIEN_TEAM;	// FIXME: go to 3 state
+	turnCount++;
 
 	switch ( currentTeamTurn ) {
 		case TERRAN_TEAM:
@@ -454,8 +456,10 @@ void BattleScene::Save( TiXmlElement* doc )
 {
 	TiXmlElement* battleElement = new TiXmlElement( "BattleScene" );
 	doc->LinkEndChild( battleElement );
+
 	battleElement->SetAttribute( "currentTeamTurn", currentTeamTurn );
 	battleElement->SetAttribute( "dayTime", engine->GetMap()->DayTime() ? 1 : 0 );
+	battleElement->SetAttribute( "turnCount", turnCount );
 
 	TiXmlElement* mapElement = new TiXmlElement( "Map" );
 	doc->LinkEndChild( mapElement );
@@ -482,6 +486,9 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 		int daytime = 1;
 		battleElement->QueryIntAttribute( "dayTime", &daytime );
 		engine->GetMap()->SetDayTime( daytime ? true : false );
+
+		turnCount = 0;
+		battleElement->QueryIntAttribute( "turnCount", &turnCount );
 	}
 
 	engine->GetMap()->Load( gameElement->FirstChildElement( "Map"), game->GetItemDefArr() );
@@ -516,6 +523,28 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 	}
 	if ( engine->GetMap()->GetLanderModel() )
 		OrderNextPrev();
+
+	if ( turnCount == 0 ) {
+		engine->GetMap()->SetLanderFlight( 1 );
+
+		Action action;
+		action.Init( ACTION_LANDER, 0 );
+		actionStack.Push( action );
+
+		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+			if ( units[i].GetModel() ) {
+				Model* m = units[i].GetModel();
+				m->SetFlag( Model::MODEL_INVISIBLE );
+			}
+		}
+	}
+
+	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+		if ( units[i].IsAlive() && units[i].GetModel() ) {
+			PushScrollOnScreen( units[i].GetModel()->Pos(), true );
+			break;
+		}
+	}
 }
 
 
@@ -1053,7 +1082,7 @@ void BattleScene::TestCoordinates()
 }
 
 
-void BattleScene::PushScrollOnScreen( const Vector3F& pos )
+void BattleScene::PushScrollOnScreen( const Vector3F& pos, bool center )
 {
 	/*
 		Centering is straightforward but not a great experience. Really want to scroll
@@ -1085,6 +1114,7 @@ void BattleScene::PushScrollOnScreen( const Vector3F& pos )
 		action.type.cameraBounds.target = pos;
 		action.type.cameraBounds.normal = delta;
 		action.type.cameraBounds.speed = (float)MAP_SIZE / 3.0f;
+		action.type.cameraBounds.center = center;
 		actionStack.Push( action );
 	}
 }
@@ -1663,8 +1693,33 @@ int BattleScene::ProcessAction( U32 deltaTime )
 						Rectangle2F inset = uiBounds;
 						inset.Outset( -20 );
 
+						if ( action->type.cameraBounds.center ) {
+							Vector2F center = port.UIBoundsClipped3D().Center();
+							inset.min = center;
+							inset.max = center;
+							inset.Outset( 20 );
+						}
+
 						if ( inset.Contains( ui ) ) {
 							actionStack.Pop();
+						}
+					}
+				}
+				break;
+
+			case ACTION_LANDER:
+				{
+					float flight = engine->GetMap()->GetLanderFlight();
+					flight -= 0.02f;
+					engine->GetMap()->SetLanderFlight( flight );
+					if ( flight <= 0 ) {
+						actionStack.Pop();
+
+						for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+							if ( units[i].GetModel() ) {
+								Model* m = units[i].GetModel();
+								m->ClearFlag( Model::MODEL_INVISIBLE );
+							}
 						}
 					}
 				}
@@ -1674,18 +1729,6 @@ int BattleScene::ProcessAction( U32 deltaTime )
 				GLASSERT( 0 );
 				break;
 		}
-		/*
-		if ( unit ) {
-			Vector2I newPos;
-			float newRot;
-			unit->CalcMapPos( &newPos, &newRot );
-
-			// If we changed map position, update UI feedback.
-			if ( newPos != originalPos || newRot != originalRot ) {
-				CalcTeamTargets();
-				nearPathState = NEAR_PATH_INVALID;
-			}
-		}*/
 	}
 	return result;
 }

@@ -250,7 +250,6 @@ public:
 
 	void DrawPath();		//< debugging
 	void DrawOverlay( int layer );		//< draw the "where can I walk" alpha overlay. Set up by ShowNearPath().
-//	void DrawFOW();			//< black out the regions where the FOW is.
 
 	// Do damage to a singe map object.
 	void DoDamage( Model* m, const DamageDesc& damage, grinliz::Rectangle2I* destroyedBounds );
@@ -259,6 +258,9 @@ public:
 	
 	// Process a sub-turn: fire moves, smoke goes away, etc.
 	void DoSubTurn( grinliz::Rectangle2I* changeBounds );
+
+	void SetLanderFlight( float normal );
+	float GetLanderFlight() const			{ return landerFlight; }
 
 	// Smoke from weapons, explosions, effects, etc.
 	void AddSmoke( int x, int y, int subturns );
@@ -449,6 +451,7 @@ private:
 	int width, height;
 	grinliz::Rectangle3F bounds;
 	SpaceTree* tree;
+	float landerFlight;
 
 	Texture* backgroundTexture;		// background texture
 	Surface backgroundSurface;		// background surface

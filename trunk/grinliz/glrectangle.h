@@ -228,6 +228,11 @@ struct Rectangle2
 		max.y += dist;
 	}
 
+	Vector2< T > Center() const {
+		Vector2< T > v = { (min.x + max.x) / (T)2, (min.y + max.y) / (T)2 };
+		return v;
+	}
+
 	bool operator==( const Rectangle2<T>& that ) const { return     ( min.x == that.min.x )
 													&& ( max.x == that.max.x )
 													&& ( min.y == that.min.y )
