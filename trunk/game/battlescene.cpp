@@ -69,7 +69,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 	const ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
 
-	alienImage.Init( &gamui3D, UIRenderer::CalcDecoAtom( DECO_ALIEN ) );
+	alienImage.Init( &gamui3D, UIRenderer::CalcDecoAtom( DECO_ALIEN ), true );
 	alienImage.SetPos( float(port.UIWidth()-50), 0 );
 	alienImage.SetSize( 50, 50 );
 
@@ -77,23 +77,22 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 
 	gamui::RenderAtom nullAtom;
 	for( int i=0; i<MAX_UNITS; ++i ) {
-		unitImage0[i].Init( &engine->GetMap()->overlay0, nullAtom );
+		unitImage0[i].Init( &engine->GetMap()->overlay0, nullAtom, false );
 		unitImage0[i].SetVisible( false );
 
-		unitImage1[i].Init( &engine->GetMap()->overlay1, nullAtom );
+		unitImage1[i].Init( &engine->GetMap()->overlay1, nullAtom, false );
 		unitImage1[i].SetVisible( false );
 	}
-	selectionImage.Init( &engine->GetMap()->overlay1, UIRenderer::CalcIconAtom( ICON_STAND_HIGHLIGHT ) );
-	selectionImage.SetForeground( true );	// don't want to overlap with unitImage1
+	selectionImage.Init( &engine->GetMap()->overlay1, UIRenderer::CalcIconAtom( ICON_STAND_HIGHLIGHT ), true );
 	selectionImage.SetSize( 1, 1 );
 
 	for( int i=0; i<MAX_ALIENS; ++i ) {
-		targetArrow[i].Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_TARGET_POINTER ) );
+		targetArrow[i].Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_TARGET_POINTER ), false );
 		targetArrow[i].SetVisible( false );
 	}
 
 	for( int i=0; i<2; ++i ) {
-		dragBar[i].Init( &engine->GetMap()->overlay1, nullAtom );
+		dragBar[i].Init( &engine->GetMap()->overlay1, nullAtom, false );
 		dragBar[i].SetLevel( -1 );
 		dragBar[i].SetVisible( false );
 	}
@@ -139,7 +138,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		controlButton[3].SetPos( port.UIWidth()-SIZE*1.f, port.UIHeight()-SIZE );
 
 		RenderAtom menuImageAtom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)TextureManager::Instance()->GetTexture( "commandBarV" ), 0, 0, 1, 1, 50, 320 );
-		menuImage.Init( &gamui2D, menuImageAtom );
+		menuImage.Init( &gamui2D, menuImageAtom, false );
 
 		if ( Engine::mapMakerMode ) {
 			for( int i=0; i<6; ++i ) {
@@ -380,6 +379,7 @@ void BattleScene::NextTurn()
 
 void BattleScene::OrderNextPrev()
 {
+#ifdef SMART_ORDER
 	const Model* lander = engine->GetMap()->GetLanderModel();
 	GLASSERT( lander );
 
@@ -449,6 +449,16 @@ void BattleScene::OrderNextPrev()
 		}
 	}
 	GLASSERT( count == subTurnCount );
+#else
+	int count = 0;
+	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+		if ( units[i].IsAlive() ) {
+			subTurnOrder[count++] = i;
+		}
+	}
+	subTurnCount = count;
+#endif
+
 }
 
 
@@ -796,6 +806,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	TestHitTesting();
 	engine->GetMap()->EmitParticles( deltaTime );
 
+#if 0
 	{
 		ParticleSystem* system = ParticleSystem::Instance();
 		Vector3F pos = { (float)(engine->GetMap()->Width() - 2), 0, (float)(engine->GetMap()->Height() - 2) };
@@ -809,6 +820,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 
 		system->EmitPoint( 3, ParticleSystem::PARTICLE_RAY, c, cVel, pos, 0.1f, vel, 0.1f, 5000 );
 	}
+#endif
 	
 
 #if 0
@@ -2048,25 +2060,27 @@ void BattleScene::HandleNextUnit( int bias )
 		}
 	}
 
-	subTurnIndex += bias;
-	if ( subTurnIndex < 0 )
-		subTurnIndex = subTurnCount;
-	if ( subTurnIndex > subTurnCount )
-		subTurnIndex = 0;
+	while ( true ) {
+		subTurnIndex += bias;
+		if ( subTurnIndex < 0 )
+			subTurnIndex = subTurnCount;
+		if ( subTurnIndex > subTurnCount )
+			subTurnIndex = 0;
 
-	if ( subTurnIndex == subTurnCount ) {
-		SetSelection( 0 );
-	}
-	else {
-		int index = subTurnOrder[ subTurnIndex ];
-		GLASSERT( index >= TERRAN_UNITS_START && index < TERRAN_UNITS_END );
-
-		if ( units[index].IsAlive() ) {
-			SetSelection( &units[index] );
-			PushScrollOnScreen( units[index].GetModel()->Pos() );
+		// This condition will always terminated the loop.
+		if ( subTurnIndex == subTurnCount ) {
+			SetSelection( 0 );
+			break;
 		}
 		else {
-			SetSelection( 0 );
+			int index = subTurnOrder[ subTurnIndex ];
+			GLASSERT( index >= TERRAN_UNITS_START && index < TERRAN_UNITS_END );
+
+			if ( units[index].IsAlive() ) {
+				SetSelection( &units[index] );
+				PushScrollOnScreen( units[index].GetModel()->Pos() );
+				break;
+			}
 		}
 	}
 	//SoundManager::Instance()->QueueSound( "blip" );

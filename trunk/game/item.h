@@ -169,6 +169,7 @@ public:
 	int defaultRounds;
 	DamageDesc dd;
 
+	char	abbreviation;
 	Color4F color;
 	float speed;
 	float width;

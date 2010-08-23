@@ -359,12 +359,12 @@ Image::Image() : UIItem( Gamui::LEVEL_BACKGROUND ),
 }
 
 
-Image::Image( Gamui* gamui, const RenderAtom& atom ): UIItem( Gamui::LEVEL_BACKGROUND ),
+Image::Image( Gamui* gamui, const RenderAtom& atom, bool foreground ): UIItem( Gamui::LEVEL_BACKGROUND ),
 	  m_width( 0 ),
 	  m_height( 0 ),
 	  m_slice( false )
 {
-	Init( gamui, atom );
+	Init( gamui, atom, foreground );
 }
 
 Image::~Image()
@@ -372,7 +372,7 @@ Image::~Image()
 }
 
 
-void Image::Init( Gamui* gamui, const RenderAtom& atom )
+void Image::Init( Gamui* gamui, const RenderAtom& atom, bool foreground )
 {
 	m_atom = atom;
 	m_width = atom.srcWidth;
@@ -380,6 +380,7 @@ void Image::Init( Gamui* gamui, const RenderAtom& atom )
 
 	m_gamui = gamui;
 	gamui->Add( this );
+	this->SetForeground( foreground );
 }
 
 
@@ -637,11 +638,10 @@ void Button::Init(	Gamui* gamui,
 	m_decoDX = 0;
 	m_decoDY = 0;	
 
-	m_face.Init( gamui, atomUpEnabled );
-	m_face.SetForeground( true );
+	m_face.Init( gamui, atomUpEnabled, true );
 	m_face.SetSlice( true );
 
-	m_deco.Init( gamui, decoEnabled );
+	m_deco.Init( gamui, decoEnabled, false );	// does nothing; we set the level to deco
 	m_deco.SetLevel( Gamui::LEVEL_DECO );
 
 	m_label[0].Init( gamui );
@@ -984,8 +984,7 @@ void DigitalBar::Init(	Gamui* gamui,
 	m_atom[2] = atom2;
 
 	for( int i=0; i<nTicks; ++i ) {
-		m_image[i].Init( gamui, atom0 );
-		m_image[i].SetForeground( true );
+		m_image[i].Init( gamui, atom0, true );
 	}
 	m_spacing = spacing;
 	SetRange( 0, 0 );

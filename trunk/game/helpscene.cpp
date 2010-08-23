@@ -17,12 +17,11 @@ HelpScene::HelpScene( Game* _game, const char* name ) : Scene( _game ), helpName
 	const float INV = 1.f/255.f;
 	uiRenderer.SetTextColor( 248.f*INV, 228.f*INV, 8.f*INV );
 
-	background.Init( &gamui2D, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND ) );
+	background.Init( &gamui2D, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND ), false );
 	background.SetSize( game->engine->GetScreenport().UIWidth(), game->engine->GetScreenport().UIHeight() );
 	
 	RenderAtom nullAtom;
-	image.Init( &gamui2D, nullAtom );
-	image.SetForeground( true );
+	image.Init( &gamui2D, nullAtom, true );
 
 	currentScreen = 0;
 

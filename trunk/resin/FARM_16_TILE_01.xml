@@ -1,35 +1,35 @@
 <Map sizeX="64" sizeY="64">
     <Items>
-        <Item x="12" y="12" name="woodfence" hp="10" />
-        <Item x="10" y="12" name="woodfence" hp="10" />
-        <Item x="8" y="12" name="woodfence" hp="10" />
-        <Item x="6" y="12" name="woodfence" hp="10" />
-        <Item x="2" y="12" name="woodfence" hp="10" />
+        <Item x="12" y="12" name="woodfence"  />
+        <Item x="10" y="12" name="woodfence"  />
+        <Item x="8" y="12" name="woodfence"  />
+        <Item x="6" y="12" name="woodfence"  />
+        <Item x="2" y="12" name="woodfence" />
         <Item x="13" y="9" rot="1" name="scout" />
-        <Item x="9" y="11" rot="1" name="haypile" hp="80" />
-        <Item x="6" y="8" rot="3" name="haypile" hp="80" />
+        <Item x="9" y="11" rot="1" name="haypile"  />
+        <Item x="6" y="8" rot="3" name="haypile"  />
         <Item x="3" y="9" rot="1" name="scout" />
         <Item x="10" y="5" rot="1" name="scout" />
-        <Item x="6" y="6" name="haypile" hp="80" />
-        <Item x="2" y="6" name="haypile" hp="80" />
-        <Item x="2" y="6" name="woodfence" hp="10" />
-        <Item x="12" y="2" name="woodfence" hp="10" />
-        <Item x="8" y="2" name="haypile" hp="80" />
-        <Item x="8" y="2" name="woodfence" hp="10" />
-        <Item x="5" y="3" rot="2" name="haypile" hp="80" />
+        <Item x="6" y="6" name="haypile" />
+        <Item x="2" y="6" name="haypile"  />
+        <Item x="2" y="6" name="woodfence"  />
+        <Item x="12" y="2" name="woodfence"  />
+        <Item x="8" y="2" name="haypile"  />
+        <Item x="8" y="2" name="woodfence"  />
+        <Item x="5" y="3" rot="2" name="haypile"  />
         <Item x="7" y="2" rot="1" name="scout" />
-        <Item x="2" y="2" name="haypile" hp="80" />
-        <Item x="11" y="11" name="haypile" hp="80" />
-        <Item x="14" y="11" rot="3" name="woodfence" hp="10" />
-        <Item x="3" y="11" name="haypile" hp="80" />
-        <Item x="2" y="11" rot="3" name="woodfence" hp="10" />
-        <Item x="14" y="3" rot="3" name="woodfence" hp="10" />
-        <Item x="12" y="4" rot="1" name="haypile" hp="80" />
-        <Item x="6" y="4" rot="1" name="haypile" hp="80" />
-        <Item x="7" y="11" name="haypile" hp="80" />
-        <Item x="10" y="7" name="haypile" hp="80" />
-        <Item x="2" y="7" rot="3" name="woodfence" hp="10" />
-        <Item x="12" y="7" rot="3" name="woodfence" hp="10" />
+        <Item x="2" y="2" name="haypile"  />
+        <Item x="11" y="11" name="haypile"  />
+        <Item x="14" y="11" rot="3" name="woodfence"  />
+        <Item x="3" y="11" name="haypile"  />
+        <Item x="2" y="11" rot="3" name="woodfence"  />
+        <Item x="14" y="3" rot="3" name="woodfence"  />
+        <Item x="12" y="4" rot="1" name="haypile"  />
+        <Item x="6" y="4" rot="1" name="haypile"  />
+        <Item x="7" y="11" name="haypile"  />
+        <Item x="10" y="7" name="haypile"  />
+        <Item x="2" y="7" rot="3" name="woodfence"  />
+        <Item x="12" y="7" rot="3" name="woodfence"  />
     </Items>
     <Images>
         <Image x="0" y="0" size="16" name="FARM_16_TILE_01" />

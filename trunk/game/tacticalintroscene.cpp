@@ -13,6 +13,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <time.h>
+
 #include "../grinliz/glbitarray.h"
 #include "../grinliz/glstringutil.h"
 #include "tacticalintroscene.h"
@@ -109,7 +111,14 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	seedButton.Init( &gamui2D, green );
 	seedButton.SetPos( 155, 270 );
 	seedButton.SetSize( 50, 50 );
-	seedButton.SetText( "0" );
+
+
+	{
+		int t = (int)time( 0 );
+		char buf[5];
+		SNPrintf( buf, 5, "%d" );
+		seedButton.SetText( buf );
+	}
 	seedButton.SetVisible( false );
 
 	// Is there a current game?

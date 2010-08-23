@@ -58,7 +58,7 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, const TacticalEndSc
 			float x = xPos2;
 
 			if ( purpleCircle && nAwards < MAX_AWARDS ) {
-				award[nAwards].Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_AWARD_PURPLE_CIRCLE ) );
+				award[nAwards].Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_AWARD_PURPLE_CIRCLE ), true );
 				award[nAwards].SetPos( x, yPos );
 				award[nAwards].SetSize( size, size );
 				x += size;
@@ -79,7 +79,7 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, const TacticalEndSc
 					kills -= 1;
 				}
 
-				award[nAwards].Init( &gamui2D, UIRenderer::CalcIconAtom( icon ) );
+				award[nAwards].Init( &gamui2D, UIRenderer::CalcIconAtom( icon ), true );
 				award[nAwards].SetPos( x, yPos );
 				award[nAwards].SetSize( size, size );
 				x += size;

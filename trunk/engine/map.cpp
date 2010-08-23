@@ -71,7 +71,7 @@ Map::Map( SpaceTree* tree )
 	borderAtom.renderState = (const void*) RENDERSTATE_MAP_OPAQUE;
 #endif
 	for( int i=0; i<4; ++i ) {
-		border[i].Init( &overlay1, borderAtom );
+		border[i].Init( &overlay1, borderAtom, false );
 	}
 
 	// FIXME: need a release texture, since the map can be destroyed. Doesn't leak, but needlessly holds resources.
@@ -602,7 +602,7 @@ void Map::DoDamage( Model* m, const DamageDesc& damageDesc, Rectangle2I* dBounds
 		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 
 		int hp = (int)(damageDesc.energy + damageDesc.kinetic );
-		GLOUTPUT(( "map damage '%s' (%d,%d) dam=%d\n", itemDef.name.c_str(), item->XForm().x, item->XForm().y, hp ));
+		GLOUTPUT(( "map damage '%s' (%d,%d) dam=%d hp=%d\n", itemDef.name.c_str(), item->XForm().x, item->XForm().y, hp, item->hp ));
 
 		bool destroyed = false;
 		if ( itemDef.CanDamage() && item->DoDamage(hp) ) 
@@ -1135,7 +1135,8 @@ void Map::Save( TiXmlElement* mapElement )
 			itemElement->SetAttribute( "rot", r );
 		// old, rigid approach: itemElement->SetAttribute( "index", item->itemDefIndex );
 		itemElement->SetAttribute( "name", itemDefArr[item->itemDefIndex].name.c_str() );
-		if ( item->hp != 0xffff )
+
+		if ( item->hp != itemDefArr[item->itemDefIndex].hp )
 			itemElement->SetAttribute( "hp", item->hp );
 		if ( item->flags )
 			itemElement->SetAttribute( "flags", item->flags );
@@ -1259,7 +1260,6 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 			item->QueryIntAttribute( "x", &x );
 			item->QueryIntAttribute( "y", &y );
 			item->QueryIntAttribute( "rot", &rot );
-			item->QueryIntAttribute( "hp", &hp );
 			item->QueryIntAttribute( "flags", &flags );
 
 			if ( item->QueryIntAttribute( "index", &index ) != TIXML_NO_ATTRIBUTE ) {
@@ -1274,13 +1274,13 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 				else {
 					GLOUTPUT(( "Could not load item '%s'\n", name ));
 				}
-
-				if ( StrEqual( name, "ufo_WallCurve4" ) ) {
-					int debug = 1;
-				}
 			}
 
 			if ( index >= 0 ) {
+				// Use the default hp if not provided.
+				hp = itemDefArr[index].hp;
+				item->QueryIntAttribute( "hp", &hp );
+
 				AddItem( x, y, rot, index, hp, flags );
 			}
 		}

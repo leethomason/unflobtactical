@@ -277,11 +277,12 @@ void Game::LoadMapResources()
 		UFOs
 	*/
 
-	const int HP_LOW = 10;
-	const int HP_MED = 80;
-	const int HP_HIGH = 250;
-	const int HP_STEEL = 1000;
-	const int INDESTRUCT = 0xffff;
+	const int HP_LOW		= 10;
+	const int HP_MEDLOW		= 40;
+	const int HP_MED		= 80;
+	const int HP_HIGH		= 200;
+	const int HP_STEEL		= 400;
+	const int INDESTRUCT	= 0xffff;
 
 	const int FOREST_SET = 0x01;
 	const int FARM_SET	 = 0x10;
@@ -341,9 +342,9 @@ void Game::LoadMapResources()
 	static const MapItemInit forestSet[] = 
 	{
 			// model		open			destroyed	cx, cz	hp			material		pather
-		{	"tree",			0,				0,			1,	1,	HP_MED,		BURN,			"f", "0" },
-		{	"tree2",		0,				0,			1,	1,	HP_MED,		BURN,			"f", "0" },
-		{	"tree3",		0,				0,			1,	1,	HP_MED,		BURN,			"f", "0" },
+		{	"tree",			0,				0,			1,	1,	HP_MEDLOW,	BURN,			"f", "0" },
+		{	"tree2",		0,				0,			1,	1,	HP_MEDLOW,	BURN,			"f", "0" },
+		{	"tree3",		0,				0,			1,	1,	HP_MEDLOW,	BURN,			"f", "0" },
 		{	0	}
 	};
 	InitMapItemDef( FOREST_SET, forestSet );
@@ -376,13 +377,13 @@ void Game::LoadMapResources()
 
 void Game::LoadItemResources()
 {
-	const float DAM_LOW		=  20.0f;
-	const float DAM_MEDLOW	=  30.0f;
-	const float DAM_MED		=  40.0f;
-	const float DAM_MEDHI	=  50.0f;
-	const float DAM_HI		=  60.0f;
-	const float DAM_HIPLUS	=  70.0f;
-	const float DAM_VHI		=  80.0f;
+	const float DAM_LOW		=   20.0f;
+	const float DAM_MEDLOW	=   30.0f;
+	const float DAM_MED		=   40.0f;
+	const float DAM_MEDHI	=   60.0f;
+	const float DAM_HI		=   80.0f;
+	const float DAM_HIPLUS	=   90.0f;
+	const float DAM_VHI		=  100.0f;
 
 	const float EXDAM_LOW   =  50.0f;
 	const float EXDAM_MED   = 100.0f;
@@ -411,16 +412,17 @@ void Game::LoadItemResources()
 
 	struct ClipInit {
 		const char* name;
-		//int type;
-		bool alien;
-		int deco;
-		int rounds;
-		DamageDesc dd;
+		char		abbreviation;
+		bool		alien;
+		int			deco;
+		int			rounds;
+		DamageDesc	dd;
 
-		Color4F color;
-		float speed;
-		float width;
-		float length;
+		// Rendering description.
+		Color4F		color;
+		float		speed;
+		float		width;
+		float		length;
 		
 		const char* desc;
 	};
@@ -431,16 +433,16 @@ void Game::LoadItemResources()
 #	define COLORDEF( r, g, b ) { (float)r/255.f, (float)g/255.f, (float)b/255.f, 0.8f }
 
 	static const ClipInit clips[] = {
-		{ "Clip",	false,	DECO_SHELLS,	15,	 { 1, 0, 0 },
+		{ "Clip",	'C',	false,	DECO_SHELLS,	15,	 { 1, 0, 0 },
 					COLORDEF( 200, 204, 213 ), SPEED*2.0f,	WIDTH*0.5f, BOLT*3.0f, "7mm 15 round auto-clip" },
-		{ "Cell",	true,	DECO_CELL,		12,  { 0.0f, 0.8f, 0.2f },
+		{ "Cell",	'E',	true,	DECO_CELL,		12,  { 0.0f, 0.8f, 0.2f },
 					COLORDEF( 199, 216, 6 ),	SPEED,		 WIDTH,		BOLT,		"10MW Cell" },
-		{ "Tachy",	true,	DECO_CELL,		4,   { 0, 0.6f, 0.4f },
+		{ "Tachy",	'T',	true,	DECO_CELL,		4,   { 0, 0.6f, 0.4f },
 					COLORDEF( 227, 125, 220 ),	SPEED,		WIDTH,		BOLT,		"Tachyon field rounds" },
-		{ "Flame",	false,	DECO_SHELLS,	3,	 { 0, 0, 1 },
-					COLORDEF( 213, 63, 63 ),	SPEED*0.5f,	WIDTH,		BOLT,		"Incendiary Heavy Round" },
-		{ "RPG",	false,	DECO_ROCKET,	4,	 { 0.8f, 0, 0.2f },
-					COLORDEF( 200, 204, 213 ), SPEED*0.8f, WIDTH,		BOLT,		"Grenade Rounds" },
+		{ "Flame",	'F',	false,	DECO_SHELLS,	3,	 { 0, 0, 1 },
+					COLORDEF( 213, 63, 63 ),	SPEED*0.7f,	WIDTH,		BOLT,		"Incendiary Heavy Round" },
+		{ "RPG",	'R',	false,	DECO_ROCKET,	4,	 { 0.8f, 0, 0.2f },
+					COLORDEF( 200, 204, 213 ),  SPEED*0.8f, WIDTH,		BOLT,		"Grenade Rounds" },
 		{ 0 }
 	};
 
@@ -457,6 +459,7 @@ void Game::LoadItemResources()
 		item->defaultRounds = clips[i].rounds;
 		item->dd = clips[i].dd;
 
+		item->abbreviation = clips[i].abbreviation;
 		item->alien = clips[i].alien;
 		item->color = clips[i].color;
 		item->speed = clips[i].speed;
@@ -492,16 +495,15 @@ void Game::LoadItemResources()
 	const char* FAST = "Fast";
 	const char* AIMED = "Aimed";
 	const char* BURST = "Burst";
-	const char* BOOM = "Boom";
-	const char* BANG = "Bang";
-	const char* STRIKE = "Strike";
+	const char* FLAME = "Flame";
+	const char* EXPLO = "Boom";
 
 	static const WeaponInit weapons[] = {		
 		// Terran	resName		deco			description
 		//				
-		{ "PST",	"pst1",		DECO_PISTOL,	"Pistol",				FAST, AIMED, 0,		SPEED_FAST,
+		{ "PST",	"pst1",		DECO_PISTOL,	"Pistol",				FAST, AIMED, FLAME,	SPEED_FAST,
 				"Clip",			0,										DAM_LOW,	ACC_MED,	"ar",
-				0 },
+				"Flame",		WEAPON_EXPLOSIVE,						EXDAM_LOW,	ACC_MED,	"can"  },
 		{ "SLUG",	"slug",		DECO_PISTOL,	"Slug gun",				FAST, AIMED, 0,		SPEED_NORMAL,
 				"Clip",			0,										DAM_HI,		ACC_VLOW,	"can",
 				0  },
@@ -511,13 +513,13 @@ void Game::LoadItemResources()
 		{ "AR-2",	"ar2",		DECO_RIFLE,		"Glek Rifle",			FAST, BURST, 0,		SPEED_NORMAL,
 				"Clip",			WEAPON_AUTO,							DAM_MED,	ACC_MED,	"ar",
 				0  },
-		{ "AR-3P",	"ar3p",		DECO_RIFLE,		"Pulse Rifle",			FAST, BURST, BOOM,	SPEED_NORMAL,
+		{ "AR-3P",	"ar3p",		DECO_RIFLE,		"Pulse Rifle",			FAST, BURST, EXPLO,	SPEED_NORMAL,
 				"Clip",			WEAPON_AUTO,							DAM_MEDHI,	ACC_MED,	"ar3p",
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_LOW,	"can" },
-		{ "AR-3L",	"ar3l",		DECO_RIFLE,		"Vera LR",				FAST, AIMED, BOOM,	SPEED_NORMAL,
+		{ "AR-3L",	"ar3l",		DECO_RIFLE,		"Callahan LR",			FAST, AIMED, EXPLO,	SPEED_NORMAL,
 				"Clip",			0,										DAM_HI,		ACC_VHI,	"ar3l",
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_LOW,	"can" },
-		{ "CANON",	"canon",	DECO_RIFLE,		"Mini-Canon",			FAST, BANG, BOOM,	SPEED_SLOW,
+		{ "CANON",	"canon",	DECO_RIFLE,		"Mini-Canon",			FAST, FLAME, EXPLO,	SPEED_SLOW,
 				"Flame",		WEAPON_EXPLOSIVE,						EXDAM_MED,	ACC_MED,	"can",
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED,	ACC_MED,	"can", },
 
@@ -534,13 +536,13 @@ void Game::LoadItemResources()
 		{ "PLS-1",	"pls1",		DECO_RIFLE,		"Plasma Rifle",			FAST, BURST, 0,		SPEED_NORMAL,
 				"Cell",			WEAPON_AUTO,							DAM_HI,	ACC_MED,		"plasma",
 				0  },
-		{ "PLS-2",	"pls2",		DECO_RIFLE,		"Heavy Plasma",			FAST, BURST, BOOM,	SPEED_NORMAL,
+		{ "PLS-2",	"pls2",		DECO_RIFLE,		"Heavy Plasma",			FAST, BURST, EXPLO,	SPEED_NORMAL,
 				"Cell",			WEAPON_AUTO,							DAM_HIPLUS,	ACC_MED,	"plasma",
 				"Tachy",		WEAPON_EXPLOSIVE,						EXDAM_HI,	ACC_MED,	"nullp", },
 		{ "BEAM",	"beam",		DECO_RIFLE,		"Blade Beam",			FAST, AIMED, 0,		SPEED_FAST,
 				"Cell",			0,										DAM_MEDHI,	ACC_HI,		"beam",
 				0  },
-		{ "NULL",	"nullp",	DECO_RIFLE,		"Null Point Blaster",	FAST, BANG, 0,		SPEED_NORMAL,
+		{ "NULL",	"nullp",	DECO_RIFLE,		"Null Point Blaster",	FAST, EXPLO, 0,		SPEED_NORMAL,
 				"Tachy",		WEAPON_EXPLOSIVE,						DAM_VHI, ACC_HI,		"nullp",
 				0  },
 		{ 0 }

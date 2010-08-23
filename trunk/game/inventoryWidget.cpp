@@ -30,7 +30,7 @@ InventoryWidget::InventoryWidget(	gamui::Gamui* g,
 	}
 
 	RenderAtom nullAtom;
-	dragImage.Init( g, nullAtom );
+	dragImage.Init( g, nullAtom, true );
 	dragImage.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	dragImage.SetVisible( false );
 
@@ -98,10 +98,13 @@ void InventoryWidget::Update()
 				rounds[0] = inventory->CalcClipRoundsTotal( wid->weapon[0].clipItemDef );
 				rounds[1] = inventory->CalcClipRoundsTotal( wid->weapon[1].clipItemDef );
 
-				if ( wid->HasWeapon( kAltFireMode ) )
-					SNPrintf( buffer, 16, "R%d %d", rounds[0], rounds[1] );
+				const ClipItemDef* clipDef0 = wid->weapon[0].clipItemDef;
+				const ClipItemDef* clipDef1 = wid->weapon[1].clipItemDef;
+
+				if ( clipDef1 )
+					SNPrintf( buffer, 16, "%c%d%c%d", clipDef0->abbreviation, rounds[0], clipDef1->abbreviation, rounds[1] );
 				else
-					SNPrintf( buffer, 16, "R%d", rounds[0] );
+					SNPrintf( buffer, 16, "%c%d", clipDef0->abbreviation, rounds[0] );
 
 			}
 			else if ( item.IsClip() ) {

@@ -1,36 +1,16 @@
 <Map sizeX="64" sizeY="64">
     <Items>
-        <Item x="12" y="12" name="oldwell" hp="80" />
-        <Item x="6" y="13" name="tree" hp="250" />
-        <Item x="10" y="8" name="plant0" hp="10" />
-        <Item x="8" y="8" name="plant0" hp="10" />
-        <Item x="9" y="8" name="plant0" hp="10" />
+        <Item x="12" y="12" name="oldwell" />
+        <Item x="6" y="13" name="tree"  />
         <Item x="11" y="11" name="scout" />
         <Item x="11" y="8" name="scout" />
-        <Item x="4" y="8" name="plant0" hp="10" />
-        <Item x="4" y="11" name="tree" hp="250" />
-        <Item x="5" y="8" name="plant0" hp="10" />
+        <Item x="4" y="11" name="tree"  />
         <Item x="6" y="11" name="scout" />
-        <Item x="3" y="8" name="plant0" hp="10" />
-        <Item x="11" y="7" name="plant0" hp="10" />
-        <Item x="9" y="6" name="plant0" hp="10" />
-        <Item x="8" y="4" name="plant0" hp="10" />
-        <Item x="10" y="4" name="plant0" hp="10" />
-        <Item x="9" y="7" name="plant0" hp="10" />
-        <Item x="10" y="7" name="plant0" hp="10" />
-        <Item x="9" y="4" name="plant0" hp="10" />
         <Item x="8" y="5" name="scout" />
-        <Item x="6" y="7" name="plant0" hp="10" />
-        <Item x="4" y="4" name="plant0" hp="10" />
-        <Item x="5" y="4" name="plant0" hp="10" />
-        <Item x="4" y="7" name="plant0" hp="10" />
         <Item x="3" y="5" name="scout" />
-        <Item x="9" y="3" name="plant0" hp="10" />
-        <Item x="10" y="3" name="plant0" hp="10" />
-        <Item x="5" y="2" name="woodfence" hp="10" />
-        <Item x="5" y="3" name="plant0" hp="10" />
+        <Item x="5" y="2" name="woodfence" />
         <Item x="7" y="3" name="scout" />
-        <Item x="3" y="2" name="woodfence" hp="10" />
+        <Item x="3" y="2" name="woodfence" />
     </Items>
     <Images>
         <Image x="0" y="0" size="16" name="FARM_16_TILE_01" />

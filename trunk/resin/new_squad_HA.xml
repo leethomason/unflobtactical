@@ -2,7 +2,7 @@
 	<Stats level="2" />
 	<Inventory>
 		<Item name="AR-3P" />
-		<Item name="PST" />
+		<Item name="SLUG" />
 		<Item name="Clip" />
 		<Item name="Clip" />
 		<Item name="RPG" />
@@ -14,7 +14,7 @@
 	<Stats level="3" />
 	<Inventory>
 		<Item name="AR-3L" />
-		<Item name="PST" />
+		<Item name="SLUG" />
 		<Item name="Clip" />
 		<Item name="Clip" />
 		<Item name="Clip" />
@@ -40,7 +40,7 @@
 	<Stats level="4" />
 	<Inventory>
 		<Item name="CANON" />
-		<Item name="Clip" />
+		<Item name="Flame" />
 		<Item name="RPG" />
 		<Item name="RAY-3" />
 		<Item name="Cell" />

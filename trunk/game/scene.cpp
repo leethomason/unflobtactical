@@ -38,9 +38,10 @@ Engine* Scene::GetEngine()
 
 void BackgroundUI::Init( Game* game, gamui::Gamui* g )
 {
-	background.Init( g, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND ) );
+	background.Init( g, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND ), false );
 	background.SetSize( game->engine->GetScreenport().UIWidth(), game->engine->GetScreenport().UIHeight() );
-	backgroundText.Init( g, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND_TEXT ) );
+
+	backgroundText.Init( g, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND_TEXT ), true );
 	backgroundText.SetForeground( true );
 	backgroundText.SetPos( 20, 20 );
 }
@@ -50,7 +51,7 @@ void BackgroundUI::Init( Game* game, gamui::Gamui* g )
 void NameRankUI::Init( gamui::Gamui* g )
 {
 	gamui::RenderAtom rankAtom = UIRenderer::CalcIconAtom( ICON_RANK_0 );	// fixme, need more ranks
-	rank.Init( g, rankAtom );
+	rank.Init( g, rankAtom, true );
 	name.Init( g );
 }
 
