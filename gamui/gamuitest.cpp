@@ -232,7 +232,7 @@ int main( int argc, char **argv )
 	textLabel[1].SetText( "Very long text to test the string allocator." );
 	textLabel[1].SetPos( 10, 20 );
 
-	Image image0( &gamui, imageAtom );
+	Image image0( &gamui, imageAtom, true );
 	image0.SetPos( 50, 50 );
 
 	TextBox block;
@@ -241,27 +241,27 @@ int main( int argc, char **argv )
 	block.SetSize( 100, 100 );
 	block.SetText( "This is paragraph one.\n\nAnd number 2." );
 
-	Image image1( &gamui, imageAtom );
+	Image image1( &gamui, imageAtom, true );
 	image1.SetPos( 50, 200 );
 	image1.SetSize( 125, 125 );
 
-	Image image2( &gamui, imageAtom );
+	Image image2( &gamui, imageAtom, true );
 	image2.SetPos( 200, 50 );
 	image2.SetSize( 50, 50 );
 
-	Image image2b( &gamui, imageAtom );
+	Image image2b( &gamui, imageAtom, true );
 	image2b.SetPos( 270, 50 );
 	image2b.SetSize( 50, 50 );
 
-	Image image2c( &gamui, imageAtom );
+	Image image2c( &gamui, imageAtom, true );
 	image2c.SetPos( 200, 120 );
 	image2c.SetSize( 50, 50 );
 
-	Image image2d( &gamui, imageAtom );
+	Image image2d( &gamui, imageAtom, true );
 	image2d.SetPos( 270, 120 );
 	image2d.SetSize( 50, 50 );
 
-	Image image3( &gamui, imageAtom );
+	Image image3( &gamui, imageAtom, true );
 	image3.SetPos( 200, 200 );
 	image3.SetSize( 125, 125 );
 	image3.SetSlice( true );

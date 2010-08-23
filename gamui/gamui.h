@@ -414,9 +414,9 @@ class Image : public UIItem
 {
 public:
 	Image();
-	Image( Gamui*, const RenderAtom& atom );
+	Image( Gamui*, const RenderAtom& atom, bool foreground );
 	virtual ~Image();
-	void Init( Gamui*, const RenderAtom& atom );
+	void Init( Gamui*, const RenderAtom& atom, bool foreground );
 
 	void SetAtom( const RenderAtom& atom );
 	void SetSlice( bool enable );

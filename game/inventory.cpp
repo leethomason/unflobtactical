@@ -184,20 +184,36 @@ void Inventory::GetDamageReduction( DamageDesc* dd, int baseArmor )
 	float base = 1.0f;
 	bool hasArmor = false;
 
-	if ( slots[ARMOR_SLOT].IsArmor() || baseArmor > 0 ) {
-		if ( baseArmor == 1 || StrEqual( slots[ARMOR_SLOT].Name(), "ARM-1" ) ) {
+	if ( baseArmor > 0 ) {
+		if ( baseArmor == 1 ) {
+			base = ARM1;
+		}
+		else if ( baseArmor == 2 ) {
+			base = ARM2;
+		}
+		else if ( baseArmor == 3 ) {
+			base = ARM3;
+		}
+		else {
+			GLASSERT( 0 );
+			base = ARM1;
+		}
+	}
+	else if ( slots[ARMOR_SLOT].IsArmor() ) {
+		if ( StrEqual( slots[ARMOR_SLOT].Name(), "ARM-1" ) ) {
 			base = ARM1;
 			hasArmor = true;
 		}
-		else if ( baseArmor == 2 || StrEqual( slots[ARMOR_SLOT].Name(), "ARM-2" ) ) {
+		else if ( StrEqual( slots[ARMOR_SLOT].Name(), "ARM-2" ) ) {
 			base = ARM2;
 			hasArmor = true;
 		}
-		else if ( baseArmor == 3 || StrEqual( slots[ARMOR_SLOT].Name(), "ARM-3" ) ) {
+		else if ( StrEqual( slots[ARMOR_SLOT].Name(), "ARM-3" ) ) {
 			base = ARM3;
 			hasArmor = true;
 		}
 	}
+
 	dd->Set( base, base, base );
 
 	// Armor modifiers. Require Armor to modify.

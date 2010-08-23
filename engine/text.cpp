@@ -83,7 +83,9 @@ void UFOText::Metrics(	int c,				// character in
 
 void UFOText::TextOut( GPUShader* shader, const char* str, int x, int y, int* w, int *h )
 {
+#ifdef USE_SMALLTEXT
 	bool smallText = false;
+#endif
 	bool rendering = true;
 	int xStart = x;
 
@@ -116,6 +118,7 @@ void UFOText::TextOut( GPUShader* shader, const char* str, int x, int y, int* w,
 	int pos = 0;
 	while( *str )
 	{
+#ifdef USE_SMALLTEXT
 		if ( *str == '.' && *(str+1) ) {
 			smallText = true;
 			++str;
@@ -124,6 +127,7 @@ void UFOText::TextOut( GPUShader* shader, const char* str, int x, int y, int* w,
 		if ( smallText && !( *str >= '0' && *str <= '9' ) ) {
 			smallText = false;
 		}
+#endif
 
 		// Draw a glyph or nothing, at this point:
 		GLASSERT( pos < BUF_SIZE );
@@ -134,7 +138,11 @@ void UFOText::TextOut( GPUShader* shader, const char* str, int x, int y, int* w,
 		Metrics( c, &advance, &width, &src );
 
 		if ( c<=0 || c >= 128 ) {
+#ifdef USE_SMALLTEXT
 			float scale = smallText ? SMALL_SCALE : 1.0f;
+#else
+			float scale = 1.0f;
+#endif
 			x += LRintf((float)advance*scale);
 		}
 		else {
@@ -149,7 +157,11 @@ void UFOText::TextOut( GPUShader* shader, const char* str, int x, int y, int* w,
 				tBuf[pos*4+2].Set( tx1, ty1 );
 				tBuf[pos*4+3].Set( tx0, ty1 );
 			}
+#ifdef USE_SMALLTEXT
 			float scale = smallText ? SMALL_SCALE : 1.0f;
+#else
+			float scale = 1.0f;
+#endif
 			if ( rendering ) {
 				vBuf[pos*4+0].Set( (float)x,					(float)(y+GLYPH_HEIGHT) );	
 				vBuf[pos*4+1].Set( (float)x+(float)width*scale,	(float)(y+GLYPH_HEIGHT) );	

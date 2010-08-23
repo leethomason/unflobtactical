@@ -1,6 +1,7 @@
 Issues:
 
 Bugs:
+- liftoff button
 - restart game
 - selection order gets strange if someone dies. Switch to linear selection??
 - finish Android port
@@ -14,7 +15,6 @@ Features:
 
 TBD:
 - check math (again yet again) in PushShootAction()
-- fire generates light
 - trees show up in the wrong place
 - add morale
 ? psi attack
@@ -29,9 +29,7 @@ TBD:
 - Art: better human models
 - Art: better alien models
 - Art: new weapon models
-- alien doors not wide enough - block shots
 - render managers
-- tap accuracy
 - Pinching doesn't feel right
 - tutorial notes infrastructure
 - performance: AI/Alien turn pauses
@@ -43,6 +41,14 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- faster rockets
+- last screen should show kills for KIA units
+- weapon labels don't make sense
+- inital armor / weapons needs update
+- show correct name abbreviations for clips
+- tap accuracy
+- alien doors not wide enough - block shots
+- fire generates light
 - start at action (not black screen)
 - add lander animation (and version & turn to save file...)
 - door bugs, redo door system

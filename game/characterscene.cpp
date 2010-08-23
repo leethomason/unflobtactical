@@ -84,7 +84,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input )
 	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE), storageWidget->Width(), GAME_BUTTON_SIZE_F );
 
 	RenderAtom nullAtom;
-	dragImage.Init( &gamui2D, nullAtom );
+	dragImage.Init( &gamui2D, nullAtom, true );
 }
 
 
