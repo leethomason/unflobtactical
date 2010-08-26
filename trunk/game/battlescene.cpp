@@ -1934,8 +1934,7 @@ int BattleScene::ProcessActionHit( Action* action )
 
 		const int MAX_RAD = 2;
 		const int MAX_RAD_2 = MAX_RAD*MAX_RAD;
-		Rectangle2I mapBounds;
-		engine->GetMap()->CalcBounds( &mapBounds );
+		Rectangle2I mapBounds = engine->GetMap()->Bounds();
 
 		// There is a small offset to move the explosion back towards the shooter.
 		// If it hits a wall (common) this will move it to the previous square.
@@ -2707,8 +2706,7 @@ void BattleScene::Visibility::CalcUnitVisibility( int unitID )
 	visibilityMap.ClearPlane( unitID );
 	visibilityProcessed.ClearAll();
 
-	Rectangle2I mapBounds;
-	map->CalcBounds( &mapBounds );
+	Rectangle2I mapBounds = map->Bounds();
 
 	// Can always see yourself.
 	visibilityMap.Set( pos.x, pos.y, unitID );
