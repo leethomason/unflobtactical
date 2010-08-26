@@ -144,7 +144,7 @@ void Map::SetSize( int w, int h )
 void Map::Clear()
 {
 	// Find everything:
-	Rectangle2I b;
+	Rectangle2I b = Bounds();
 	b.Set( 0, 0, SIZE-1, SIZE-1 );
 	MapItem* pItem = quadTree.FindItems( b, 0, 0 );
 
@@ -579,7 +579,6 @@ void Map::DoDamage( int x, int y, const DamageDesc& damage, Rectangle2I* dBounds
 	if ( hp <= 0.0f )
 		return;
 
-	//bool changed = false;
 	const MapItem* root = quadTree.FindItems( x, y, 0, MapItem::MI_IS_LIGHT );
 
 	for( ; root; root=root->next ) {
@@ -610,6 +609,7 @@ void Map::DoDamage( Model* m, const DamageDesc& damageDesc, Rectangle2I* dBounds
 			if ( dBounds ) {
 				Rectangle2I r = item->MapBounds();
 				dBounds->DoUnion( r );
+				ClipToMap( dBounds );
 			}
 
 			// Destroy the current model. Replace it with "destroyed"
@@ -1115,8 +1115,7 @@ void Map::Save( TiXmlElement* mapElement )
 	TiXmlElement* itemsElement = new TiXmlElement( "Items" );
 	mapElement->LinkEndChild( itemsElement );
 
-	Rectangle2I b;
-	CalcBounds( &b );
+	Rectangle2I b = Bounds();
 	MapItem* item = quadTree.FindItems( b, 0, MapItem::MI_NOT_IN_DATABASE );
 
 	for( ; item; item=item->next ) {
@@ -1333,8 +1332,7 @@ void Map::DeleteAt( int x, int y )
 
 void Map::QueryAllDoors()
 {
-	Rectangle2I bounds;
-	CalcBounds( &bounds );
+	Rectangle2I bounds = Bounds();
 
 	doorArr.Clear();
 
@@ -1355,6 +1353,7 @@ bool Map::ProcessDoors( const grinliz::Vector2I* openers, int nOpeners )
 
 	for( int i=0; i<nOpeners; ++i ) {
 		b.Set( openers[i].x-1, openers[i].y-1, openers[i].x+1, openers[i].y+1 );
+		ClipToMap( &b );
 		map.SetRect( b );
 	}
 	for( int i=0; i<doorArr.Size(); ++i ) {
@@ -1418,59 +1417,6 @@ bool Map::ProcessDoors( const grinliz::Vector2I* openers, int nOpeners )
 	}
 	return anyChange;
 }
-
-
-/*
-bool Map::OpenDoor( int x, int y, bool open ) 
-{
-	bool opened = false;
-
-	MapItem* item = quadTree.FindItems( x, y, MapItem::MI_DOOR, 0 );
-	GLASSERT( !item || !item->next );	// should only be one...
-
-	for( ; item; item=item->next ) {
-		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
-		GLASSERT( itemDef.IsDoor() );
-		GLASSERT( itemDef.modelResourceOpen );
-
-		if ( !item->Destroyed() ) {
-			GLASSERT( item->model );
-
-			Vector3F pos = item->model->Pos();
-			float rot = item->model->GetRotation();
-
-			const ModelResource* res = 0;
-			if ( open && item->open == 0 ) {
-				item->open = 1;
-				res = itemDef.modelResourceOpen;
-			}
-			else if ( !open && item->open == 1 ) {
-				item->open = 0;
-				res = itemDef.modelResource;
-			}
-
-			if ( res ) {
-				opened = true;
-				tree->FreeModel( item->model );
-
-				Model* model = tree->AllocModel( res );
-				model->SetFlag( Model::MODEL_OWNED_BY_MAP );
-				model->SetPos( pos );
-				model->SetRotation( rot );
-				item->model = model;
-
-				Rectangle2I mapBounds = item->MapBounds();
-
-				ResetPath();
-				ClearVisPathMap( mapBounds );
-				CalcVisPathMap( mapBounds );
-			}
-		}
-	}
-	return opened;
-}
-*/
-
 
 
 const Storage* Map::GetStorage( int x, int y ) const
@@ -1657,8 +1603,11 @@ void Map::SetPathBlocks( const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& block
 }
 
 
-void Map::ClearVisPathMap( grinliz::Rectangle2I& bounds )
+void Map::ClearVisPathMap( grinliz::Rectangle2I& _bounds )
 {
+	Rectangle2I bounds = _bounds;
+	ClipToMap( &bounds );
+
 	for( int j=bounds.min.y; j<=bounds.max.y; ++j ) {
 		for( int i=bounds.min.x; i<=bounds.max.x; ++i ) {
 			visMap[j*SIZE+i] = 0;
@@ -1668,8 +1617,11 @@ void Map::ClearVisPathMap( grinliz::Rectangle2I& bounds )
 }
 
 
-void Map::CalcVisPathMap( grinliz::Rectangle2I& bounds )
+void Map::CalcVisPathMap( grinliz::Rectangle2I& _bounds )
 {
+	Rectangle2I bounds = _bounds;
+	ClipToMap( &bounds );
+
 	MapItem* item = quadTree.FindItems( bounds, 0, MapItem::MI_IS_LIGHT );
 	while( item ) {
 		if ( !item->Destroyed() ) {
@@ -1761,8 +1713,7 @@ bool Map::Connected( ConnectionType c, int x, int y, int dir )
 	int bit = 1<<dir;
 	Vector2I pos = { x, y };
 	Vector2I nextPos = pos + next[dir];
-	Rectangle2I mapBounds;
-	CalcBounds( &mapBounds );
+	Rectangle2I mapBounds = Bounds();
 
 	// To be connected, it must be clear from a->b and b->a
 	if ( mapBounds.Contains( pos ) && mapBounds.Contains( nextPos ) ) {
@@ -2027,12 +1978,16 @@ void Map::SetLanderFlight( float normal )
 							{ bounds.min.x, h, bounds.max.z },
 							{ bounds.max.x, h, bounds.max.z } };
 
-		Color4F color = { 213.0f/255.0f, 63.0f/255.0f, 63.0f/255.0f, 1.0f };
-		Color4F colorV = { -0.1f, -0.1f, -0.1f, -0.2f };
-		Vector3F v = { 0, 1, 0 };
+		Color4F color[3] = { { 213.0f/255.0f, 63.0f/255.0f, 63.0f/255.0f, 1.0f },
+							 { 248.0f/255.0f, 228.0f/255.0f, 8.0f/255.0f, 1.0f },
+							 { 1, 0, 0, 1 } };
+		Color4F colorV = { 0, 0, 0, -0.2f };
+		Vector3F v = { 0, 0, 0 };
 
 		for( int i=0; i<4; ++i ) {
-			ParticleSystem::Instance()->EmitPoint( 3, ParticleSystem::PARTICLE_RAY, color, colorV, p[i], 0.2f, v, 0.2f, 2000 );
+			for( int k=0; k<3; ++k )
+				ParticleSystem::Instance()->EmitPoint( 1, ParticleSystem::PARTICLE_SPHERE, color[k], colorV, p[i], 0.8f, v, 0.4f, 2000 );
+
 			// Better to emit "impact quad" FIXME
 //			if ( landerFlight == 0.0f ) {
 //				Vector3F vs = { 0, 0.2f, 0 };
@@ -2114,6 +2069,8 @@ Map::MapItem* Map::QuadTree::FindItems( const Rectangle2I& bounds, int required,
 
 	GLASSERT( bounds.min.x >= 0 && bounds.max.x < 256 );	// using int8
 	GLASSERT( bounds.min.y >= 0 && bounds.max.y < 256 );	// using int8
+	GLASSERT( bounds.min.x >= 0 && bounds.max.x < MAP_SIZE );
+	GLASSERT( bounds.min.y >= 0 && bounds.max.y < MAP_SIZE );	// using int8
 	Rectangle2<U8> bounds8;
 	bounds8.Set( bounds.min.x, bounds.min.y, bounds.max.x, bounds.max.y );
 

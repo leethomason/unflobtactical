@@ -3,7 +3,6 @@ Issues:
 Bugs:
 - liftoff button
 - restart game
-- selection order gets strange if someone dies. Switch to linear selection??
 - finish Android port
 
 Architecture
@@ -41,6 +40,7 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- selection order gets strange if someone dies. Switch to linear selection??
 - faster rockets
 - last screen should show kills for KIA units
 - weapon labels don't make sense

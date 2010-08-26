@@ -226,7 +226,15 @@ public:
 	// The size of the map in use, which is <=SIZE
 	int Height() const { return height; }
 	int Width()  const { return width; }
-	void CalcBounds( grinliz::Rectangle2I* b ) const	{ b->Set( 0, 0, width-1, height-1 ); }
+	grinliz::Rectangle2I Bounds() const					{	grinliz::Rectangle2I b;
+															b.Set( 0, 0, width-1, height-1 ); 
+															return b;
+														}
+	void ClipToMap( grinliz::Rectangle2I* b ) const		{	if ( b->min.x < 0 ) b->min.x = 0;
+															if ( b->min.y < 0 ) b->min.y = 0;
+															if ( b->max.x >= width ) b->max.x = width-1;
+															if ( b->max.y >= height ) b->max.y = height-1;
+														}
 
 	void SetSize( int w, int h );
 	const Model* GetLanderModel()					{ return lander ? lander->model : 0; }
