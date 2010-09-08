@@ -183,9 +183,14 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 	Particle* particles[2] = { pointBuffer, quadBuffer };
 
 	GLASSERT( count < MAX_PARTICLES[primitive] );
-	//lifetime = grinliz::Clamp( lifetime, (U32)16, (U32)0xffff );
 	
+	if ( nParticles[primitive] + count > MAX_PARTICLES[primitive] ) {
+		GLOUTPUT(( "Remove old particles\n." ));
+		RemoveOldParticles( primitive );
+	}
+
 	int insert = nParticles[primitive];
+
 	if ( nParticles[primitive] + count > MAX_PARTICLES[primitive] ) {
 		insert = MAX_PARTICLES[primitive] - count;
 		nParticles[primitive] = MAX_PARTICLES[primitive];
@@ -283,6 +288,44 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 }
 
 
+void ParticleSystem::RemoveOldParticles( int primitive )
+{
+	if ( nParticles[primitive] == 0 )
+		return;
+
+	U32 aveLife = 0;
+	// Get the average lifetime.
+	for( int i=0; i<nParticles[primitive]; ++i ) {
+		aveLife += (primitive==POINT) ? pointBuffer[i].lifetime : quadBuffer[i].lifetime;
+	}
+	aveLife /= nParticles[primitive];
+
+	if ( primitive == POINT ) {
+		int i = 0;
+		while ( i < nParticles[POINT] ) {
+			if ( pointBuffer[i].lifetime < aveLife ) {
+				Swap( &pointBuffer[i], &pointBuffer[nParticles[primitive]-1] );
+				nParticles[POINT] -= 1;
+			}
+			else {
+				++i;
+			}
+		}
+	}
+	if ( primitive == QUAD ) {
+		int i=0;
+		while ( i < nParticles[QUAD] ) {
+			if ( quadBuffer[i].lifetime < aveLife ) {
+				Swap( &quadBuffer[i], &quadBuffer[nParticles[QUAD]-1] );
+				nParticles[QUAD] -= 1;
+			}
+			else {
+				++i;
+			}
+		}
+	}
+}
+
 void ParticleSystem::EmitPoint(	int count,						
 								int configuration,				
 								const Color4F& color,			
@@ -337,7 +380,7 @@ void ParticleSystem::EmitBeam(	const Color4F& color,			// color of the particle
 
 
 /*
-Works, but in use generally breaks Gamui
+Works, but in use generally breaks Gamui which is better suited to this sort of decaling.
 void ParticleSystem::EmitDecal( int id, int flags, const grinliz::Vector3F& pos, float alpha, float rotation )
 {
 	GLASSERT( id >= 0 && id < 16 );
@@ -514,9 +557,9 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 
 		int index = 0;
 		int vertex = 0;
-		int skip = nParticles[POINT] / MAX_QUAD_PARTICLES + 1;	// the quad is used to buffer, so we may have
-																// fewer particles.
-		for( int i=0; i<nParticles[POINT]; i+=skip ) 
+		const int count = Min( nParticles[POINT], (int)MAX_QUAD_PARTICLES );
+
+		for( int i=0; i<count; ++i ) 
 		{
 			const Vector3F& pos  = pointBuffer[i].pos;
 			Vector2I fowPos = { (int)pos.x, (int)pos.z };
@@ -550,7 +593,8 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 
 		QuadParticleShader shader;
 		shader.SetVertex( 3, sizeof(QuadVertex), vPtr );
-		shader.SetTexture0( 2, sizeof(QuadVertex), tPtr );
+		shader.SetTexture0( TextureManager::Instance()->GetTexture( "particleSparkle" ),
+							2, sizeof(QuadVertex), tPtr );
 		shader.SetColorArray( 4, sizeof(QuadVertex), cPtr );
 
 		// because of the skip, the #elements can be less than nParticles*6

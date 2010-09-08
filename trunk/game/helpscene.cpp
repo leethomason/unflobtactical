@@ -108,6 +108,9 @@ void HelpScene::Layout()
 		image.SetVisible( true );
 	}
 	textBox.SetSize( tw, th );
+
+	buttons[0].SetEnabled( currentScreen > 0 );
+	buttons[1].SetEnabled( currentScreen < nPages - 1 );
 }
 
 

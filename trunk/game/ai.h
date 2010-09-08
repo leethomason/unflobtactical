@@ -72,11 +72,13 @@ public:
 	};
 
 	AI( int team,					// AI in instantiated for a TEAM, not a unit
-		Engine* engine );			// Line of site checking
+		Engine* engine, 			// Line of site checking
+		const Unit* units );		// all the units we can scan
 
 	virtual ~AI()	{}
 
 	void StartTurn( const Unit* units, const Targets& targets );
+	void Inform( const Unit* theUnit, int quality );
 
 	enum {
 		AI_WANDER = 0x01,
@@ -85,7 +87,6 @@ public:
 
 	// Return true if done.
 	virtual bool Think( const Unit* move,
-						const Unit* units,
 						const Targets& targets,
 						int flags,
 						Map* map,
@@ -102,7 +103,6 @@ protected:
 	// THINK_NO_ACTION  no target
 	// THINK_ACTION		shot taken
 	int ThinkShoot(			const Unit* move,
-							const Unit* units,
 							const Targets& targets,
 							Map* map,
 							AIAction* action );
@@ -111,7 +111,6 @@ protected:
 	// THINK_ACTION           move
 	// THINK_NO_ACTION		  nothing found, not enough time
 	int ThinkMoveToAmmo(	const Unit* theUnit,
-							const Unit* units,
 							const Targets& targets,
 							Map* map,
 							AIAction* action );
@@ -124,20 +123,17 @@ protected:
 	// THINK_ACTION			move
 	// THINK_NO_ACTION		not enough time, no destination,
 	int ThinkSearch(		const Unit* theUnit,
-							const Unit* units,
 							const Targets& targets,
 							int flags,
 							Map* map,
 							AIAction* action );
 
 	int ThinkWander(		const Unit* theUnit,
-							const Unit* units,
 							const Targets& targets,
 							Map* map,
 							AIAction* action );
 
 	int ThinkRotate(		const Unit* theUnit,
-							const Unit* units,
 							const Targets& targets,
 							Map* map,
 							AIAction* action );
@@ -154,7 +150,11 @@ protected:
 		grinliz::Vector2I	pos;
 		int					turns;
 	};
+	enum {
+		MAX_TURNS_LKP = 100
+	};
 	LKP m_lkp[MAX_UNITS];
+	const Unit* m_units;
 
 	int m_team;
 	int m_enemyTeam;
@@ -169,11 +169,10 @@ protected:
 class WarriorAI : public AI
 {
 public:
-	WarriorAI( int team, Engine* engine ) : AI( team, engine )		{}
+	WarriorAI( int team, Engine* engine, const Unit* units ) : AI( team, engine, units )		{}
 	virtual ~WarriorAI()					{}
 
 	virtual bool Think( const Unit* move,
-						const Unit* units,
 						const Targets& targets,
 						int flags,
 						Map* map,

@@ -291,6 +291,7 @@ void Game::LoadMapResources()
 	const int UFO_SET0	 = 0x40;
 	const int UFO_SET1	 = 0x50;
 	const int MARINE_SET = 0x60;
+	const int RESERVE_SET = 0x70;	// non-items: fire, smoke
 
 	const int LIGHT_SET  = Map::LIGHT_START;
 	const float SLOWBURN = 0.2f;

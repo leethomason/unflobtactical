@@ -31,6 +31,7 @@ void GPUShader::ResetState()
 	glDisableClientState( GL_VERTEX_ARRAY );
 	glDisableClientState( GL_NORMAL_ARRAY );
 	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+	glDisableClientState( GL_COLOR_ARRAY );
 
 	// Blend/Alpha
 	glDisable( GL_BLEND );

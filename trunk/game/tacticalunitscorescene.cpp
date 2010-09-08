@@ -20,6 +20,8 @@
 #include "../engine/text.h"
 #include "../grinliz/glrectangle.h"
 #include "game.h"
+#include "cgame.h"
+
 
 using namespace grinliz;
 
@@ -110,17 +112,27 @@ void TacticalUnitScoreScene::DrawHUD()
 }
 
 
-void TacticalUnitScoreScene::Tap(	int count, 
-									const grinliz::Vector2F& screen,
+void TacticalUnitScoreScene::Tap(	int action, 
+									const grinliz::Vector2F& view,
 									const grinliz::Ray& world )
 {
-/*	float ux, uy;
-	GetEngine()->GetScreenport().ViewToUI( screen.x, screen.y, &ux, &uy );
-	gamui::UIItem* item = gamui2D.Tap( ux, uy );
-	if ( tap == 0 ) {
-//		game->QueueReset();
-	///	game->PopScene();
+	Vector2F ui;
+	game->engine->GetScreenport().ViewToUI( view, &ui );
+	const gamui::UIItem* item = 0;
+
+	if ( action == GAME_TAP_DOWN )
+		gamui2D.TapDown( ui.x, ui.y );
+	else if ( action == GAME_TAP_UP )
+		item = gamui2D.TapUp( ui.x, ui.y );
+		
+	if ( item == &button ) {
+		GLString savePath = game->GameSavePath();
+		FILE* fp = fopen( savePath.c_str(), "w" );
+		if ( fp ) {
+			fclose( fp );
+		}
+		game->PopScene();
+		game->PushScene( Game::INTRO_SCENE, 0 );
 	}
-	*/
 }
 

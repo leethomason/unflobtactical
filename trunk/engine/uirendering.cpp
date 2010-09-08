@@ -24,39 +24,13 @@ using namespace gamui;
 
 void UIRenderer::BeginRender()
 {
-	/*
-	glEnable( GL_TEXTURE_2D );
-	glDisable( GL_DEPTH_TEST );
-
-	glColor4f( 1, 1, 1, 1 );
-	glDisable( GL_LIGHTING );
-
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-	glDisableClientState( GL_COLOR_ARRAY );
-	glDisableClientState( GL_NORMAL_ARRAY );
-
-	glEnable( GL_BLEND );
-	blendEnabled = true;
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	CHECK_GL_ERROR;
-	*/
+	// Should be completely uneeded, but fixes bugs on a netbook. (With questionable drivers.)
+	GPUShader::ResetState();
 }
 
 
 void UIRenderer::EndRender()
 {
-	/*
-	CHECK_GL_ERROR;
-	glEnable( GL_DEPTH_TEST );
-	glEnable( GL_BLEND );
-
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-	glDisableClientState( GL_COLOR_ARRAY );
-	glEnableClientState( GL_NORMAL_ARRAY );
-	CHECK_GL_ERROR;
-	*/
 }
 
 

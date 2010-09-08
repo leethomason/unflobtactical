@@ -27,10 +27,11 @@
 using namespace grinliz;
 
 
-AI::AI( int team, Engine* engine )
+AI::AI( int team, Engine* engine, const Unit* units )
 {
 	m_team = team;
 	m_engine = engine;
+	m_units = units;
 
 	if ( m_team == ALIEN_TEAM) {
 		m_enemyTeam  = TERRAN_TEAM;
@@ -44,8 +45,8 @@ AI::AI( int team, Engine* engine )
 	}
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
-		m_lkp[i].pos.Set( -1, -1 );
-		m_lkp[i].turns = 1;
+		m_lkp[i].pos.Set( 0, 0 );
+		m_lkp[i].turns = MAX_TURNS_LKP;
 	}
 }
 
@@ -55,7 +56,7 @@ void AI::StartTurn( const Unit* units, const Targets& targets )
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if ( units[i].IsAlive() ) {
 			if ( targets.TeamCanSee( m_team, i ) ) {
-				units[i].CalcMapPos( &m_lkp[i].pos, 0 );
+				m_lkp[i].pos = units[i].Pos();
 				m_lkp[i].turns = 0;
 			}
 			else {
@@ -65,6 +66,18 @@ void AI::StartTurn( const Unit* units, const Targets& targets )
 	}
 }
 
+
+void AI::Inform( const Unit* theUnit, int quality )
+{
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		if ( m_units[i].Team() != theUnit->Team() ) {
+			if ( m_lkp[i].turns > quality ) {
+				m_lkp[i].turns = quality;		// Correct quality? 2 turns back for shooting?
+				m_lkp[i].pos = theUnit->Pos();
+			}
+		}
+	}
+}
 
 bool AI::LineOfSight( const Unit* shooter, const Unit* target )
 {
@@ -130,7 +143,6 @@ int AI::VisibleUnitsInArea(	const Unit* theUnit,
 
 
 int AI::ThinkShoot(  const Unit* theUnit,
-					  const Unit* units,
 					  const Targets& targets,
 					  Map* map,
 					  AIAction* action )
@@ -153,12 +165,12 @@ int AI::ThinkShoot(  const Unit* theUnit,
 	GLASSERT( wid );
 
 	for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
-		if (    units[i].IsAlive() 
-			 && units[i].GetModel() 
-			 && targets.CanSee( theUnit, &units[i] )
-			 && LineOfSight( theUnit, &units[i]))
+		if (    m_units[i].IsAlive() 
+			 && m_units[i].GetModel() 
+			 && targets.CanSee( theUnit, &m_units[i] )
+			 && LineOfSight( theUnit, &m_units[i]))
 		{
-			int len2 = (units[i].Pos()-theUnit->Pos()).LengthSquared();
+			int len2 = (m_units[i].Pos()-theUnit->Pos()).LengthSquared();
 			float len = sqrtf( (float)len2 );
 
 			for ( int _mode=0; _mode<3; ++_mode ) {
@@ -180,7 +192,7 @@ int AI::ThinkShoot(  const Unit* theUnit,
 								bounds.min = bounds.max = theUnit->Pos();
 								bounds.Outset( EXPLOSION_ZONE );
 								
-								int count = VisibleUnitsInArea( theUnit, units, targets, m_enemyStart, m_enemyEnd, bounds );
+								int count = VisibleUnitsInArea( theUnit, m_units, targets, m_enemyStart, m_enemyEnd, bounds );
 								score *= ( count <= 1 ) ? 0.5f : (float)count;
 							}
 						}
@@ -199,7 +211,7 @@ int AI::ThinkShoot(  const Unit* theUnit,
 	if ( best >= 0 ) {
 		action->actionID = ACTION_SHOOT;
 		action->shoot.mode = (WeaponMode)bestMode;
-		units[best].GetModel()->CalcTarget( &action->shoot.target );
+		m_units[best].GetModel()->CalcTarget( &action->shoot.target );
 		return THINK_ACTION;
 	}
 	return THINK_NO_ACTION;
@@ -207,7 +219,6 @@ int AI::ThinkShoot(  const Unit* theUnit,
 
 
 int AI::ThinkMoveToAmmo(	const Unit* theUnit,
-							const Unit* units,
 							const Targets& targets,
 							Map* map,
 							AIAction* action )
@@ -271,7 +282,6 @@ int AI::ThinkInventory(	const Unit* theUnit, Map* map, AIAction* action )
 
 
 int AI::ThinkSearch(const Unit* theUnit,
-					const Unit* units,
 					const Targets& targets,
 					int flags,
 					Map* map,
@@ -296,11 +306,17 @@ int AI::ThinkSearch(const Unit* theUnit,
 	}
 
 	for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
-		if (    units[i].IsAlive() 
-			 && units[i].GetModel()
-			 && m_lkp[i].pos.x >= 0 ) 
+		if (    m_units[i].IsAlive() 
+			 && m_units[i].GetModel()
+			 && m_lkp[i].turns < MAX_TURNS_LKP ) 
 		{
 			int len2 = (theUnit->Pos()-m_lkp[i].pos).LengthSquared();
+
+			// Limit just how far units will go charging off. 1/2 the map?
+			// Somewhat limits the "zerg rush" AI
+			if ( len2 > MAP_SIZE*MAP_SIZE/4 )
+				continue;
+
 			float len = sqrtf( (float)len2 );
 
 			// The older the data, the worse the score.
@@ -309,7 +325,7 @@ int AI::ThinkSearch(const Unit* theUnit,
 
 			// Guards only move on what they can currently see
 			// so they don't go chasing things.
-			if ( ( flags & AI_GUARD ) && !targets.CanSee( theUnit, &units[i] ) ) {
+			if ( ( flags & AI_GUARD ) && !targets.CanSee( theUnit, &m_units[i] ) ) {
 				score = FLT_MAX;
 			}
 					
@@ -355,7 +371,6 @@ int AI::ThinkSearch(const Unit* theUnit,
 
 
 int AI::ThinkWander(const Unit* theUnit,
-					const Unit* units,
 					const Targets& targets,
 					Map* map,
 					AIAction* action )
@@ -389,7 +404,6 @@ int AI::ThinkWander(const Unit* theUnit,
 
 
 int AI::ThinkRotate(const Unit* theUnit,
-					const Unit* units,
 					const Targets& targets,
 					Map* map,
 					AIAction* action )
@@ -398,11 +412,17 @@ int AI::ThinkRotate(const Unit* theUnit,
 	float bestGolfScore = FLT_MAX;
 
 	for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
-		if (    units[i].IsAlive() 
-			 && units[i].GetModel()
-			 && m_lkp[i].pos.x >= 0 ) 
+		if (    m_units[i].IsAlive() 
+			 && m_units[i].GetModel()
+			 && m_lkp[i].turns < MAX_TURNS_LKP ) 
 		{
 			int len2 = (theUnit->Pos() - m_lkp[i].pos).LengthSquared();
+
+			// If the enemy isn't within some reasonable shoot range, doesn't matter.
+			// go with 1.4*max sight
+			if ( len2 > MAX_EYESIGHT_RANGE*MAX_EYESIGHT_RANGE*2 )
+				continue;
+
 			float len = sqrtf( (float)len2 );
 
 			// The older the data, the worse the score.
@@ -416,10 +436,10 @@ int AI::ThinkRotate(const Unit* theUnit,
 		}
 	}
 	if ( best >= 0 ) {
-		float angle = atan2f( (float)(units[best].Pos().y - theUnit->Pos().y), (float)(units[best].Pos().x - theUnit->Pos().x) );
+		float angle = atan2f( (float)(m_units[best].Pos().y - theUnit->Pos().y), (float)(m_units[best].Pos().x - theUnit->Pos().x) );
 		action->actionID = ACTION_ROTATE;
-		action->rotate.x = units[best].Pos().x;
-		action->rotate.y = units[best].Pos().y;
+		action->rotate.x = m_units[best].Pos().x;
+		action->rotate.y = m_units[best].Pos().y;
 		return THINK_ACTION;
 	}
 	return THINK_NO_ACTION;
@@ -427,7 +447,6 @@ int AI::ThinkRotate(const Unit* theUnit,
 
 
 bool WarriorAI::Think(	const Unit* theUnit,
-						const Unit* units,
 						const Targets& targets,
 						int flags,
 						Map* map,
@@ -456,31 +475,31 @@ bool WarriorAI::Think(	const Unit* theUnit,
 
 	// -------- Shoot -------- //
 	if ( theUnit->HasGunAndAmmo( true ) ) {
-		if ( ThinkShoot( theUnit, units, targets, map, action ) == THINK_ACTION )
+		if ( ThinkShoot( theUnit, targets, map, action ) == THINK_ACTION )
 			return false;	// not done - can shoot again!
 
 		// Generally speaking, only move if not doing shooting first.
 		if ( theUnit->TU() > theUnit->GetStats().TotalTU() * 0.9f ) {
-			if ( ThinkSearch( theUnit, units, targets, flags, map, action ) == THINK_ACTION )
+			if ( ThinkSearch( theUnit, targets, flags, map, action ) == THINK_ACTION )
 				return false;	// still will wander & rotate
 		}
 
 		if ( theUnit->TU() == theUnit->GetStats().TotalTU() ) {
-			if ( ThinkWander( theUnit, units, targets, map, action ) == THINK_ACTION )
+			if ( ThinkWander( theUnit, targets, map, action ) == THINK_ACTION )
 				return false;	// will still rotate
 		}
-		ThinkRotate( theUnit, units, targets, map, action );
+		ThinkRotate( theUnit, targets, map, action );
 		return true;
 	}
 	else {
-		AI_LOG(( "[ai.warrior] Unit %d Out of Ammo.\n", theUnit - units ));
+		AI_LOG(( "[ai.warrior] Unit %d Out of Ammo.\n", theUnit - m_units ));
 		// Out of ammo. Get Ammo!
 		if ( theUnit->HasGunAndAmmo( false ) ) {
 			result = ThinkInventory( theUnit, map, action );
 			GLASSERT( result == THINK_ACTION );
 			return false;
 		}
-		result = ThinkMoveToAmmo( theUnit, units, targets, map, action );
+		result = ThinkMoveToAmmo( theUnit, targets, map, action );
 		if ( result == THINK_SOLVED_NO_ACTION ) {
 			if ( ThinkInventory( theUnit, map, action ) == THINK_ACTION ) {
 				return false; // have ammo now!

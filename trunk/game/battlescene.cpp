@@ -56,10 +56,10 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	engine->GetMap()->SetPathBlocker( this );
 	dragUnit = 0;
 
-	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, engine );
+	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, engine, units );
 	aiArr[TERRAN_TEAM]		= 0;
 	// FIXME: use warrior AI for now...
-	aiArr[CIV_TEAM]			= new WarriorAI( CIV_TEAM, engine );
+	aiArr[CIV_TEAM]			= new WarriorAI( CIV_TEAM, engine, units );
 	mapmaker_currentMapItem = 1;
 
 	// On screen menu.
@@ -501,6 +501,7 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 		battleElement->QueryIntAttribute( "turnCount", &turnCount );
 	}
 
+	engine->GetMap()->Clear();
 	engine->GetMap()->Load( gameElement->FirstChildElement( "Map"), game->GetItemDefArr() );
 	
 	int team[3] = { TERRAN_UNITS_START, CIV_UNITS_START, ALIEN_UNITS_START };
@@ -807,6 +808,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	engine->GetMap()->EmitParticles( deltaTime );
 
 #if 0
+	// Test particle system.
 	{
 		ParticleSystem* system = ParticleSystem::Instance();
 		Vector3F pos = { (float)(engine->GetMap()->Width() - 2), 0, (float)(engine->GetMap()->Height() - 2) };
@@ -997,7 +999,7 @@ void BattleScene::DrawFireWidget()
 		unit->AllFireTimeUnits( &snapTU, &autoTU, &altTU );
 
 	for( int i=0; i<3; ++i ) {
-		if ( wid && unit->CanFire( (WeaponMode)i ) )
+		if ( wid && wid->HasWeapon( (WeaponMode)i ) )
 		{
 			float fraction, anyFraction, dptu, tu;
 
@@ -1013,20 +1015,27 @@ void BattleScene::DrawFireWidget()
 			fireButton[i].SetText( buffer0 );
 			fireButton[i].SetText2( buffer1 );
 
-			// Reflect the TU left.
-			float tuAfter = unit->TU() - tu;
-			int tuIndicator = ICON_ORANGE_WALK_MARK;
+			if ( unit->CanFire( (WeaponMode) i )) {
+				// Reflect the TU left.
+				float tuAfter = unit->TU() - tu;
+				int tuIndicator = ICON_ORANGE_WALK_MARK;
 
-			if ( tuAfter >= autoTU ) {
-				tuIndicator = ICON_GREEN_WALK_MARK;
+				if ( tuAfter >= autoTU ) {
+					tuIndicator = ICON_GREEN_WALK_MARK;
+				}
+				else if ( tuAfter >= snapTU ) {
+					tuIndicator = ICON_YELLOW_WALK_MARK;
+				}
+				else if ( tuAfter < snapTU ) {
+					tuIndicator = ICON_ORANGE_WALK_MARK;
+				}
+				fireButton[i].SetDeco( UIRenderer::CalcIconAtom( tuIndicator, true ), UIRenderer::CalcIconAtom( tuIndicator, false ) );
 			}
-			else if ( tuAfter >= snapTU ) {
-				tuIndicator = ICON_YELLOW_WALK_MARK;
+			else {
+				fireButton[i].SetEnabled( false );
+				RenderAtom nullAtom;
+				fireButton[i].SetDeco( nullAtom, nullAtom );
 			}
-			else if ( tuAfter < snapTU ) {
-				tuIndicator = ICON_ORANGE_WALK_MARK;
-			}
-			fireButton[i].SetDeco( UIRenderer::CalcIconAtom( tuIndicator, true ), UIRenderer::CalcIconAtom( tuIndicator, false ) );
 		}				 
 		else {			 
 			fireButton[i].SetEnabled( false );
@@ -1094,6 +1103,24 @@ void BattleScene::TestCoordinates()
 }
 
 
+grinliz::Rectangle2F BattleScene::InsetBounds()
+{
+	// This should work, but isn't initalized when PushScrollOnScreen
+	// gets called the first time.
+	//	Rectangle2F uiBounds = port.UIBoundsClipped3D();
+	Rectangle2I clip3D, clip2D;
+	RenderPass( &clip3D, &clip2D );
+	Rectangle2F uiBounds;
+	uiBounds.Set(	(float)clip3D.min.x, (float)clip3D.min.y, 
+					(float)clip3D.max.x, (float)clip3D.max.y );
+	
+	Rectangle2F inset = uiBounds;
+	inset.Outset( -20 );
+	return inset;
+}
+
+
+
 void BattleScene::PushScrollOnScreen( const Vector3F& pos, bool center )
 {
 	/*
@@ -1107,13 +1134,9 @@ void BattleScene::PushScrollOnScreen( const Vector3F& pos, bool center )
 	port.WorldToView( pos, &view );
 	port.ViewToUI( view, &ui );
 
-	Rectangle2F uiBounds = port.UIBoundsClipped3D();
-	Rectangle2F inset = uiBounds;
-	inset.Outset( -20 );
+	Rectangle2F inset = InsetBounds();
 
-	if ( !inset.Contains( ui ) ) 
-	{
-
+	if ( !inset.Contains( ui ) ) {
 		Vector3F c;
 		engine->CameraLookingAt( &c );
 
@@ -1341,7 +1364,7 @@ bool BattleScene::ProcessAI()
 		int flags = ( units[currentUnitAI].AI() == Unit::AI_GUARD ) ? AI::AI_GUARD : 0;
 		AI::AIAction aiAction;
 
-		bool done = aiArr[ALIEN_TEAM]->Think( &units[currentUnitAI], units, m_targets, flags, engine->GetMap(), &aiAction );
+		bool done = aiArr[ALIEN_TEAM]->Think( &units[currentUnitAI], m_targets, flags, engine->GetMap(), &aiAction );
 
 		switch ( aiAction.actionID ) {
 			case AI::ACTION_SHOOT:
@@ -1356,7 +1379,7 @@ bool BattleScene::ProcessAI()
 
 			case AI::ACTION_MOVE:
 				{
-					AI_LOG(( "[ai] Unit %d MOVE\n", currentUnitAI ));
+					AI_LOG(( "[ai] Unit %d MOVE pathlen=%d\n", currentUnitAI, aiAction.move.path.pathLen ));
 					Action action;
 					action.Init( ACTION_MOVE, &units[currentUnitAI] );
 					action.type.move.path = aiAction.move.path;
@@ -1532,6 +1555,47 @@ void BattleScene::StopForNewTeamTarget()
 }
 
 
+bool BattleScene::ProcessActionCameraBounds( U32 deltaTime, Action* action )
+{
+	bool pop = false;
+	Vector3F lookingAt;
+	float t = Travel( deltaTime, action->type.cameraBounds.speed );
+					
+	// Don't let it over-shoot!
+	engine->CameraLookingAt( &lookingAt );
+	Vector3F atToTarget = action->type.cameraBounds.target - lookingAt;
+
+	if ( atToTarget.Length() <= t ) {
+		pop = true;
+	}
+	else {
+		Vector2F ui;
+		Vector3F d = action->type.cameraBounds.normal * t;
+		engine->camera.DeltaPosWC( d.x, d.y, d.z );
+
+		const Screenport& port = engine->GetScreenport();
+		port.WorldToUI( action->type.cameraBounds.target, &ui );
+
+		Rectangle2F inset = InsetBounds();
+		if ( action->type.cameraBounds.center ) {
+			Vector2F center = inset.Center();
+			inset.min = center;
+			inset.max = center;
+			inset.Outset( 20 );
+		}
+
+		GLOUTPUT(( "Camera (%.1f,%.1f) ui (%.1f,%.1f)-(%.1f,%.1f)\n",
+					ui.x, ui.y, 
+					inset.min.x, inset.min.y, inset.max.x, inset.max.y ));
+
+		if ( inset.Contains( ui ) ) {
+			pop = true;
+		}
+	}
+	return pop;
+}
+
+
 int BattleScene::ProcessAction( U32 deltaTime )
 {
 	int result = 0;
@@ -1552,16 +1616,6 @@ int BattleScene::ProcessAction( U32 deltaTime )
 			unit = action->unit;
 			model = action->unit->GetModel();
 		}
-
-		/*
-		Vector2I originalPos = { 0, 0 };
-		float originalRot = 0.0f;
-		float originalTU = 0.0f;
-		if ( unit ) {
-			unit->CalcMapPos( &originalPos, &originalRot );
-			originalTU = unit->GetStats().TU();
-		}
-		*/
 
 		switch ( action->actionID ) {
 			case ACTION_MOVE: 
@@ -1684,38 +1738,8 @@ int BattleScene::ProcessAction( U32 deltaTime )
 
 			case ACTION_CAMERA_BOUNDS:
 				{
-					float t = Travel( deltaTime, action->type.cameraBounds.speed );
-					
-					// Don't let it over-shoot!
-					Vector3F lookingAt;
-					engine->CameraLookingAt( &lookingAt );
-					Vector3F atToTarget = action->type.cameraBounds.target - lookingAt;
-					if ( atToTarget.Length() <= t ) {
+					if ( ProcessActionCameraBounds( deltaTime, action ) )
 						actionStack.Pop();
-					}
-					else {
-						Vector3F d = action->type.cameraBounds.normal * t;
-						engine->camera.DeltaPosWC( d.x, d.y, d.z );
-
-						Vector2F ui;
-						const Screenport& port = engine->GetScreenport();
-						port.WorldToUI( action->type.cameraBounds.target, &ui );
-
-						Rectangle2F uiBounds = port.UIBoundsClipped3D();
-						Rectangle2F inset = uiBounds;
-						inset.Outset( -20 );
-
-						if ( action->type.cameraBounds.center ) {
-							Vector2F center = port.UIBoundsClipped3D().Center();
-							inset.min = center;
-							inset.max = center;
-							inset.Outset( 20 );
-						}
-
-						if ( inset.Contains( ui ) ) {
-							actionStack.Pop();
-						}
-					}
 				}
 				break;
 
@@ -1759,6 +1783,11 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 	int result = 0;
 
 	if ( unit && model && unit->IsAlive() ) {
+		for( int i=0; i<3; ++i ) {
+			if ( aiArr[i] )
+				aiArr[i]->Inform( unit, 2 );
+		}
+
 		Vector3F p0, p1;
 		Vector3F beam0 = { 0, 0, 0 }, beam1 = { 0, 0, 0 };
 
@@ -2288,10 +2317,17 @@ void BattleScene::Tap(	int action,
 			int ix = (int)pos.x;
 			int iz = (int)pos.z;
 			if (    ix >= 0 && ix < engine->GetMap()->Width()
-	  			 && iz >= 0 && iz < engine->GetMap()->Height()
-				 && *engine->GetMap()->GetItemDefName( mapmaker_currentMapItem ) )
+	  			 && iz >= 0 && iz < engine->GetMap()->Height() ) 
 			{
-				engine->GetMap()->AddItem( ix, iz, rotation, mapmaker_currentMapItem, -1, 0 );
+				if ( *engine->GetMap()->GetItemDefName( mapmaker_currentMapItem ) ) {
+					engine->GetMap()->AddItem( ix, iz, rotation, mapmaker_currentMapItem, -1, 0 );
+				}
+				else if ( mapmaker_currentMapItem == 0x70 ) { // smoke
+					engine->GetMap()->SetPyro( ix, iz, 21, false );
+				}
+				else if ( mapmaker_currentMapItem == 0x71 ) { // fire
+					engine->GetMap()->SetPyro( ix, iz, 17, true );
+				}
 			}
 		}
 
@@ -3042,9 +3078,11 @@ void BattleScene::DrawHUD()
 	if ( Engine::mapMakerMode ) {
 		nameRankUI.SetVisible( false );
 		engine->GetMap()->DumpTile( (int)mapmaker_mapSelection->X(), (int)mapmaker_mapSelection->Z() );
+
+		const char* desc = SelectionDesc();
 		UFOText::Draw( 0,  16, "(%2d,%2d) 0x%2x:'%s'", 
 					   (int)mapmaker_mapSelection->X(), (int)mapmaker_mapSelection->Z(),
-					   mapmaker_currentMapItem, engine->GetMap()->GetItemDefName( mapmaker_currentMapItem ) );
+					   mapmaker_currentMapItem, desc );
 	}
 	else {
 		{
@@ -3239,6 +3277,21 @@ void BattleScene::MouseMove( int x, int y )
 #endif
 
 
+const char* BattleScene::SelectionDesc()
+{
+	const char* result = "";
+	if ( mapmaker_currentMapItem >= 0x70 && mapmaker_currentMapItem < 0x80 ) {
+		if ( mapmaker_currentMapItem == 0x70 )
+			result = "smoke";
+		else if ( mapmaker_currentMapItem == 0x71 )
+			result = "fire";
+	}
+	else {
+		result = engine->GetMap()->GetItemDefName( mapmaker_currentMapItem );
+	}
+	return result;
+}
+
 void BattleScene::UpdatePreview()
 {
 	if ( mapmaker_preview ) {
@@ -3294,6 +3347,8 @@ void BattleScene::DeleteAtSelection()
 	const Vector3F& pos = mapmaker_mapSelection->Pos();
 	engine->GetMap()->DeleteAt( (int)pos.x, (int)pos.z );
 	UpdatePreview();
+
+	engine->GetMap()->SetPyro( (int)pos.x, (int)pos.z, 0, false );
 }
 
 
