@@ -81,7 +81,6 @@ private:
 
 	Variation:
 		00-99
-
 */
 class BattleScene : public Scene, public IPathBlocker
 {
@@ -187,9 +186,7 @@ private:
 		bool				center;
 	};
 
-	struct LanderAction {
-		
-	};
+	struct LanderAction {};
 
 	struct Action
 	{
@@ -217,7 +214,6 @@ private:
 	void PushRotateAction( Unit* src, const grinliz::Vector3F& dst, bool quantize );
 	
 	// Try to shoot. Return true if success.
-
 	bool PushShootAction(	Unit* src, 
 							const grinliz::Vector3F& dst, 
 							WeaponMode mode,
@@ -235,6 +231,9 @@ private:
 	int ProcessAction( U32 deltaTime );
 	int ProcessActionShoot( Action* action, Unit* unit, Model* model );
 	int ProcessActionHit( Action* action );	
+	bool ProcessActionCameraBounds( U32 deltaTime, Action* action );
+	
+	grinliz::Rectangle2F InsetBounds();
 
 	void OrderNextPrev();
 	bool EndCondition( TacticalEndSceneData* data );
@@ -330,7 +329,6 @@ private:
 		UIM_FIRE_MENU		// fire menu is up
 	};
 
-	//int			uiMode;
 	UIRenderer	uiRenderer;
 
 	gamui::Image		alienImage;
@@ -423,7 +421,9 @@ private:
 	Unit				units[MAX_UNITS];
 	gamui::DigitalBar	hpBars[MAX_UNITS];
 
+	// MapMaker
 	void UpdatePreview();
+	const char* SelectionDesc();
 	Model* mapmaker_mapSelection;
 	Model* mapmaker_preview;
 	int    mapmaker_currentMapItem;

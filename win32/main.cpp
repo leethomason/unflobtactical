@@ -125,10 +125,10 @@ int main( int argc, char **argv )
 	screenWidth = NEXUS_ONE_SCREEN_WIDTH;
 	screenHeight = NEXUS_ONE_SCREEN_HEIGHT;
 #else
-	screenWidth = NEXUS_ONE_SCREEN_HEIGHT;
-	screenHeight = NEXUS_ONE_SCREEN_WIDTH;
-//	screenWidth = IPOD_SCREEN_HEIGHT;
-//	screenHeight = IPOD_SCREEN_WIDTH;
+//	screenWidth = NEXUS_ONE_SCREEN_HEIGHT;
+//	screenHeight = NEXUS_ONE_SCREEN_WIDTH;
+	screenWidth = IPOD_SCREEN_HEIGHT;
+	screenHeight = IPOD_SCREEN_WIDTH;
 #endif
 
 	// Note that our output surface is rotated from the iPod.
@@ -254,7 +254,7 @@ int main( int argc, char **argv )
 
 					case SDLK_RIGHT:
 						if ( !mapMakerMode ) {
-							if ( sdlMod & KMOD_RCTRL )
+							if ( sdlMod & (KMOD_RCTRL|KMOD_LCTRL) )
 								GameHotKey( game, GAME_HK_ROTATE_CW );
 							else
 								GameHotKey( game, GAME_HK_NEXT_UNIT );
@@ -263,7 +263,7 @@ int main( int argc, char **argv )
 
 					case SDLK_LEFT:
 						if ( !mapMakerMode ) {
-							if ( sdlMod & KMOD_RCTRL )
+							if ( sdlMod & (KMOD_RCTRL|KMOD_LCTRL) )
 								GameHotKey( game, GAME_HK_ROTATE_CCW );
 							else
 								GameHotKey( game, GAME_HK_PREV_UNIT );

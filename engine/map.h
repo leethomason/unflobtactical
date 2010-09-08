@@ -355,8 +355,8 @@ public:
 	// passed in for the connection, it becomes CanWalk
 	bool CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& q, ConnectionType connection=VISIBILITY_TYPE );
 
-	//bool OpenDoor( int x, int y, bool open );
 	bool ProcessDoors( const grinliz::Vector2I* openers, int nOpeners );
+	void SetPyro( int x, int y, int duration, int fire );
 
 	void Save( TiXmlElement* parent );
 	void Load( const TiXmlElement* mapNode, ItemDef* const* arr );
@@ -512,7 +512,6 @@ private:
 	int PyroFire( int x, int y ) const		{ return pyro[y*SIZE+x] & 0x80; }
 	bool PyroSmoke( int x, int y ) const	{ return PyroOn( x, y ) && !PyroFire( x, y ); }
 	int PyroDuration( int x, int y ) const	{ return pyro[y*SIZE+x] & 0x7F; }
-	void SetPyro( int x, int y, int duration, int fire );
 
 	grinliz::BitArray<SIZE, SIZE, 1>	pathBlock;	// spaces the pather can't use (units are there)	
 

@@ -402,7 +402,10 @@ void Game::DoTick( U32 _currentTime )
 	if ( renderPass & Scene::RENDER_3D ) {
 		//	r.Set( 100, 50, 300, 50+200*320/480 );
 		//	r.Set( 100, 50, 300, 150 );
-		screenport.SetPerspective( 2.f, 240.f, 20.f*(screenport.UIWidth()/screenport.UIHeight())*320.0f/480.0f, clip3D.IsValid() ? &clip3D : 0 );
+		screenport.SetPerspective(	2.f, 
+									240.f, 
+									20.f*(screenport.UIWidth()/screenport.UIHeight())*320.0f/480.0f, 
+									clip3D.IsValid() ? &clip3D : 0 );
 
 		if ( Engine::mapMakerMode ) {
 			if ( mapmaker_showPathing ) 
@@ -437,7 +440,7 @@ void Game::DoTick( U32 _currentTime )
 		scene->RenderGamui2D();
 	}
 
-	const int Y = 285;
+	const int Y = 305;
 	#ifndef GRINLIZ_DEBUG_MEM
 	const int memNewCount = 0;
 	#endif
@@ -452,7 +455,7 @@ void Game::DoTick( U32 _currentTime )
 
 		#if defined(DEBUG)
 		if ( !Engine::mapMakerMode )  {
-			UFOText::Draw(  0, Y+14, "new=%d Tex(%d/%d) %dK/%dK mis=%d re=%d hit=%d",
+			UFOText::Draw(  0, Y-15, "new=%d Tex(%d/%d) %dK/%dK mis=%d re=%d hit=%d",
 							memNewCount,
 							TextureManager::Instance()->NumTextures(),
 							TextureManager::Instance()->NumGPUResources(),
@@ -515,6 +518,7 @@ void Game::Tap( int action, int wx, int wy )
 	grinliz::Ray world;
 	screenport.ViewToWorld( view, 0, &world );
 
+#if 0
 #ifdef DEBUG	
 	{
 		Vector2F ui;
@@ -522,6 +526,7 @@ void Game::Tap( int action, int wx, int wy )
 		if ( action != GAME_TAP_MOVE )
 			GLOUTPUT(( "Tap: action=%d window(%.1f,%.1f) view(%.1f,%.1f) ui(%.1f,%.1f)\n", action, window.x, window.y, view.x, view.y, ui.x, ui.y ));
 	}
+#endif
 #endif
 	sceneStack.Top()->Tap( action, view, world );
 }

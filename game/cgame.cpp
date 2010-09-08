@@ -189,7 +189,7 @@ const char* PlatformName()
 
 void PlayWAVSound( const void* wavFile, int nBytes )
 {
-	GLOUTPUT(( "Wav sound called.\n" ));
+	//GLOUTPUT(( "Wav sound called.\n" ));
 #if defined( UFO_WIN32_SDL )
 	extern void Audio_PlayWav( const void* mem, int size );
 

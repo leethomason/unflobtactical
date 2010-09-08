@@ -156,6 +156,11 @@
   <image filename="FARM_16_UFOA_00_DAY.png" />
   <image filename="FARM_16_UFOA_00_NGT.png" />
 
+  <data  filename="FARM_16_UFOB_00.xml" />
+  <image filename="FARM_16_UFOB_00_TEX.png" width="128" height="128" />
+  <image filename="FARM_16_UFOB_00_DAY.png" />
+  <image filename="FARM_16_UFOB_00_NGT.png" />
+
   <data  filename="FARM_16_LAND_00.xml" />
   <image filename="FARM_16_LAND_00_TEX.png" width="128" height="128" />
   <image filename="FARM_16_LAND_00_DAY.png" />
@@ -347,9 +352,28 @@
   <texture filename="helpImage4.png" />
   <texture filename="helpImage5.png" />
 
+  <text name="introHelp" >
+    <page>
+      <p>[UFO Attack]</p>
+      <p>
+        Test / BETA. I hope you enjoy it, and feedback and info at http://code.google.com/p/unflobtactical/.
+      </p>
+      <p> The buttons on the lower right navigate help, the lower left exits help.</p>
+      <p>'New' starts a new game. The 
+       game auto-saves at exit and you can resume your current game with 'Continue'.</p>
+    </page>
+    <page>
+      <p>[Status]</p>
+      <p>The tactical game is fully playable. Feedback on gameplay, pacing, difficulty, and bugs is especially valuable. 
+      Possible additional features: morale & psi attacks.</p>
+      <p>UI is near-final.</p>
+      <p>Model, texture, and map art is placeholder.</p>
+      <p>The geoscape (strategic) game is completely missing.</p>
+    </page>
+  </text>
 
 
-  <!-- Sound effects -->
+    <!-- Sound effects -->
   <data filename="explosion.wav" />
   <data filename="blip.wav" />
   <data filename="hit.wav" />

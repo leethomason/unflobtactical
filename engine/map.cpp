@@ -166,6 +166,8 @@ void Map::Clear()
 	memset( pyro, 0, SIZE*SIZE*sizeof(U8) );
 	memset( visMap, 0, SIZE*SIZE );
 	memset( pathMap, 0, SIZE*SIZE );
+
+	lander = 0;
 }
 
 
@@ -844,6 +846,10 @@ Map::MapItem* Map::AddLightItem( int x, int y, int rotation, int lightDef, int h
 	irot.SetXZRotation( rotation*90 );
 	Vector2I lxp = irot * lx;
 
+	// Early out if we are outside of map. Out of other bounds are filtered later.
+	if ( x+lxp.x < 0 || y+lxp.y < 0 )
+		return 0;
+
 	return AddItem( x+lxp.x, y+lxp.y, rotation, lightDef, 0xffff, flags0 );
 }
 
@@ -1521,6 +1527,10 @@ void Map::DumpTile( int x, int y )
 			++i;
 			root = root->next;
 		}
+		if ( PyroSmoke( x, y ) )
+			UFOText::Draw( 0, 100-12*i, "smoke" );
+		if ( PyroFire( x, y ) )
+			UFOText::Draw( 0, 100-12*i, "fire" );
 	}
 }
 

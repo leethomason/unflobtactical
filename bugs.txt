@@ -17,7 +17,6 @@ TBD:
 - trees show up in the wrong place
 - add morale
 ? psi attack
-- handle too many particles consistently
 - mission types: landing
 - mission types: terror
 - mission types: big ufos
@@ -40,6 +39,14 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- Big beta note
+- help on intro screen
+- text on new screen (oops)
+- move fps somewhere not aweful
+- handle too many particles consistently
+- Netbook: text blinks yellow during bolts
+- Netbook: test particle (simulated using quads)
+- Netbook: render state bugs, buttons disappear
 - selection order gets strange if someone dies. Switch to linear selection??
 - faster rockets
 - last screen should show kills for KIA units

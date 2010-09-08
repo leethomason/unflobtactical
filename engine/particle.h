@@ -170,12 +170,11 @@ private:
 
 	void DrawPointParticles( const grinliz::Vector3F* eyeDir );
 	void DrawQuadParticles( const grinliz::Vector3F* eyeDir );
-	//void DrawDecalParticles( int flag );
 	void EmitSmokeAndFlame( U32 delta, const grinliz::Vector3F& pos, bool flame );
+	void RemoveOldParticles( int primitive );
 
 	grinliz::Random rand;
 	int nParticles[NUM_PRIMITIVES];
-	//int nDecals;
 	Texture* quadTexture;
 	Texture* pointTexture;
 
@@ -184,7 +183,6 @@ private:
 
 	Particle		pointBuffer[ MAX_POINT_PARTICLES ];
 	Particle		quadBuffer[ MAX_QUAD_PARTICLES ];
-	//Decal			decalBuffer[ MAX_DECALS ];
 
 	QuadVertex		vertexBuffer[ MAX_QUAD_PARTICLES*4];
 	U16				quadIndexBuffer[ MAX_QUAD_PARTICLES*6 ];

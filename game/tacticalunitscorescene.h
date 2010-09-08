@@ -37,9 +37,6 @@ public:
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
 
-//	virtual void Drag(	int action,
-//						const grinliz::Vector2F& view )			{}
-
 	virtual void Zoom( int action, int distance )				{}
 	virtual void CancelInput()									{}
 
@@ -56,10 +53,10 @@ public:
 private:
 	enum { MAX_ROWS = 8 };
 	enum { MAX_AWARDS = 40 };
+
 	BackgroundUI			backgroundUI;
 	NameRankUI				nameRank[MAX_ROWS];
 	gamui::TextLabel		status[MAX_ROWS];
-	//gamui::TextLabel		levelUp[MAX_ROWS];
 	gamui::PushButton		button;
 	gamui::Image			award[MAX_AWARDS];
 

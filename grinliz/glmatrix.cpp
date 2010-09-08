@@ -427,34 +427,6 @@ float Matrix4::SubDeterminant(int excludeRow, int excludeCol) const
 				x[INDEX(row[0],col[2])] * cofactor20;
 }
 
-/*
-bool Matrix4::SetPerspective( float fieldOfView, float _aspectRatio, float _zNear, float _zFar)
-{
-	double aspectRatio = _aspectRatio;
-	double zNear = _zNear;
-	double zFar = _zFar;
-
-    double radians = (double)(ToRadian( fieldOfView )) / 2.0;
-
-    double deltaZ = zFar - zNear;
-    double sine = sin(radians);
-    if ( (deltaZ == 0.0) || (sine == 0.0) || (aspectRatio == 0.0) || zNear <= 0.0 || zFar <= 0.0 ) {
-		return false;
-    }
-    double cotangent = cos(radians) / sine;
-
-    SetIdentity();
-    x[ INDEX( 0, 0 ) ] = float( cotangent / aspectRatio );
-    x[ INDEX( 1, 1 ) ] = float( cotangent );
-    x[ INDEX( 2, 2 ) ] = float( -(zFar + zNear) / deltaZ );
-    x[ INDEX( 2, 3 ) ] = float( -1.0 );
-    x[ INDEX( 3, 2 ) ] = float( -2.0 * zNear * zFar / deltaZ );
-    x[ INDEX( 3, 3 ) ] = 0.0f;
-
-	return true;
-}
-*/
-
 bool Matrix4::SetLookAt( const Vector3F& eye, const Vector3F& center, const Vector3F& up )
 {
 	Vector3F forward = center - eye;

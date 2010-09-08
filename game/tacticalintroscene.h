@@ -40,9 +40,6 @@ public:
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
 
-//	virtual void Drag(	int action,
-//						const grinliz::Vector2F& view )			{}
-
 	virtual void Zoom( int action, int distance )				{}
 	virtual void CancelInput()									{}
 
@@ -74,7 +71,11 @@ public:
 		ALIEN_HIGH,
 		TIME_DAY,
 		TIME_NIGHT,
+
 		LOC_FARM,
+
+		SCEN_LANDING,
+		SCEN_CRASH,
 
 		TOGGLE_COUNT,
 	};
@@ -84,13 +85,15 @@ public:
 		int				blockSizeX;		// 2, 3, 4
 		int				blockSizeY;		// 2, 3, 4
 		bool			needsLander;	// true/false
-		int				ufo;			// 0: no, >0: blocksize
+		int				ufoSize;		// 0: no, >0: blocksize
+		bool			crash;
 	};
-	static void CalcInfo( int location, int ufoSize, SceneInfo* info );
+	static void CalcInfo( int location, int scenario, int ufoSize, SceneInfo* info );
 
 	void CreateMap( TiXmlNode* parent, 
 					int seed,
 					int location,			// LOC_FARM
+					int scenario,			// SCEN_LANDING
 					int ufoSize );			// 0: small, 1: big
 
 private:
@@ -113,7 +116,8 @@ private:
 	grinliz::Random random;
 
 	BackgroundUI		backgroundUI;
-	gamui::PushButton	continueButton, newButton, goButton, seedButton;
+	gamui::PushButton	continueButton, newButton, helpButton, goButton, seedButton;
+	gamui::TextLabel	terranLabel, alienLabel, timeLabel, seedLabel, scenarioLabel;
 	gamui::ToggleButton	toggles[TOGGLE_COUNT];
 };
 
