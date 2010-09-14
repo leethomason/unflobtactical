@@ -29,8 +29,12 @@
 #include "../shared/gamedbreader.h"
 #include "../gamui/gamui.h"
 
+#include <limits.h>
+
 class ParticleSystem;
 class Scene;
+class SceneData;
+class ISceneResult;
 class ItemDef;
 class TiXmlDocument;
 class Stats;
@@ -128,12 +132,12 @@ public:
 			END_SCENE,
 			UNIT_SCORE_SCENE,
 			HELP_SCENE,
+			DIALOG_SCENE,
 			NUM_SCENES,
 		 };
 
-	void QueueReset()		{ resetGame = true; }
-	void PushScene( int sceneID, void* data );
-	void PopScene();
+	void PushScene( int sceneID, SceneData* data );
+	void PopScene( int result = INT_MAX );
 
 	U32 CurrentTime() const	{ return currentTime; }
 	U32 DeltaTime() const	{ return currentTime-previousTime; }
@@ -183,13 +187,10 @@ public:
 private:
 	Surface surface;
 
-	Scene* CreateScene( int id, void* data );
 	void PushPopScene();
 	bool scenePopQueued;
 	void ProcessLoadRequest();
 
-	int		scenePushQueued;
-	void*	scenePushQueuedData;
 	bool	loadCompleted;
 
 	struct MapLightInit
@@ -201,7 +202,6 @@ private:
 		int y;
 		int cx;	// light map size
 		int cy;
-//		bool upperLeft;
 	};
 
 	struct MapItemInit 
@@ -247,12 +247,24 @@ private:
 	int trianglesPerSecond;
 	int trianglesSinceMark;
 	bool debugTextOn;
-	bool resetGame;
 
 	ModelLoader* modelLoader;
 	gamedb::Reader* database;
 
-	CStack<Scene*> sceneStack;
+	struct SceneNode {
+		Scene*			scene;
+		int				sceneID;
+		SceneData*		data;
+		int				result;
+
+		SceneNode() : scene( 0 ), sceneID( NUM_SCENES ), data( 0 ), result( INT_MIN )	{}
+
+		void Free();
+		void SendResult();
+	};
+	void CreateScene( const SceneNode& in, SceneNode* node );
+	SceneNode sceneQueued;
+	CStack<SceneNode> sceneStack;
 
 	U32 currentTime;
 	U32 previousTime;

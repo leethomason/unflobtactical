@@ -13,24 +13,29 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef UFO_ATTACK_TACTICAL_UNIT_SCORE_SCENE_INCLUDED
-#define UFO_ATTACK_TACTICAL_UNIT_SCORE_SCENE_INCLUDED
+#ifndef UFO_ATTACK_DIALOG_SCENE_INCLUDED
+#define UFO_ATTACK_DIALOG_SCENE_INCLUDED
 
 #include "scene.h"
-#include "unit.h"
-#include "gamelimits.h"
+#include "../gamui/gamui.h"
+#include "../grinliz/glstringutil.h"
 
-class UIImage;
-class UIButtonBox;
-class UIButtonGroup;
-class UITextTable;
-class TacticalEndSceneData;
-
-class TacticalUnitScoreScene : public Scene
+class DialogSceneData : public SceneData
 {
 public:
-	TacticalUnitScoreScene( Game* _game, const TacticalEndSceneData* data );
-	virtual ~TacticalUnitScoreScene();
+	// Input:
+	enum DialogType {
+		DS_YESNO
+	};
+	DialogType type;
+	grinliz::CStr<1000> text;
+};
+
+class DialogScene : public Scene
+{
+public:
+	DialogScene( Game* _game, const DialogSceneData* data );
+	virtual ~DialogScene()	{}
 
 	// UI
 	virtual void Tap(	int count, 
@@ -48,21 +53,15 @@ public:
 		return RENDER_2D;
 	}	
 	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
-	virtual void DrawHUD();
+	virtual void DrawHUD()										{}
 
 private:
-	enum { MAX_ROWS = 8 };
-	enum { MAX_AWARDS = 40 };
-
-	BackgroundUI			backgroundUI;
-	NameRankUI				nameRank[MAX_ROWS];
-	gamui::TextLabel		status[MAX_ROWS];
-	gamui::PushButton		button;
-	gamui::Image			award[MAX_AWARDS];
-
-	const TacticalEndSceneData* data;
-	int nAwards;
+	const DialogSceneData*	data;
+	gamui::Image		background;
+	gamui::TextBox		textBox;
+	gamui::PushButton	button0;
+	gamui::PushButton	button1;
 };
 
 
-#endif // UFO_ATTACK_TACTICAL_UNIT_SCORE_SCENE_INCLUDED
+#endif // UFO_ATTACK_DIALOG_SCENE_INCLUDED

@@ -15,6 +15,9 @@
 
 #include "battlescene.h"
 #include "characterscene.h"
+#include "helpscene.h"
+#include "dialogscene.h"
+
 #include "game.h"
 #include "cgame.h"
 
@@ -39,9 +42,6 @@ using namespace gamui;
 
 //#define REACTION_FIRE_EVENT_ONLY
 
-TacticalEndSceneData gTacticalData;	// cheating. Just a block of memory to pass to tactical.
-									// can't be on stack, don't want to fight headers to
-									// put in class.
 
 BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 {
@@ -862,8 +862,8 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 
 	SetUnitOverlays();
 
-	if ( result && EndCondition( &gTacticalData ) ) {
-		game->PushScene( Game::END_SCENE, &gTacticalData );
+	if ( result && EndCondition( &tacticalData ) ) {
+		game->PushScene( Game::END_SCENE, new TacticalEndSceneData( tacticalData ) );
 	}
 	else if	( currentTeamTurn == TERRAN_TEAM ) {
 		if ( selection.soldierUnit && !selection.soldierUnit->IsAlive() ) {
@@ -2177,18 +2177,16 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 		}
 		else if ( tapped == &invButton ) {
 			if ( actionStack.Empty() && SelectedSoldierUnit() ) {
-				//SoundManager::Instance()->QueueSound( "blip" );
-				CharacterSceneInput* input = new CharacterSceneInput();
+				CharacterSceneData* input = new CharacterSceneData();
 				input->unit = SelectedSoldierUnit();
-				input->canChangeArmor = false;
 				game->PushScene( Game::CHARACTER_SCENE, input );
 			}
 		}
 		else if ( tapped == &nextTurnButton ) {
 			SetSelection( 0 );
 			engine->GetMap()->ClearNearPath();
-			if ( EndCondition( &gTacticalData ) ) {
-				game->PushScene( Game::END_SCENE, &gTacticalData );
+			if ( EndCondition( &tacticalData ) ) {
+				game->PushScene( Game::END_SCENE, new TacticalEndSceneData( tacticalData ) );
 				//SoundManager::Instance()->QueueSound( "blip" );
 			}
 			else {
@@ -2202,7 +2200,14 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 			HandleNextUnit( -1 );
 		}
 		else if ( tapped == &helpButton ) {
-			game->PushScene( Game::HELP_SCENE, "tacticalHelp" );
+			game->PushScene( Game::HELP_SCENE, new HelpSceneData( "tacticalHelp") );
+		}
+		else if ( tapped == &exitButton ) {
+			DialogSceneData* data = new DialogSceneData();
+			data->type = DialogSceneData::DS_YESNO;
+			data->text = "Do you wish to evacuate? All units not in lander will be lost.";
+
+			game->PushScene( Game::DIALOG_SCENE, data );
 		}
 	}
 	return tapped != 0;

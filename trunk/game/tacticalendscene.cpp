@@ -101,7 +101,7 @@ void TacticalEndScene::Tap(	int action,
 
 	if ( item == &okayButton ) {
 		game->PopScene();
-		game->PushScene( Game::UNIT_SCORE_SCENE, (void*)data );
+		game->PushScene( Game::UNIT_SCORE_SCENE, new TacticalEndSceneData( *data ) );
 	}
 }
 

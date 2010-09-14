@@ -27,16 +27,17 @@ class UIButtonBox;
 class Texture;
 class InventoryWidget;
 
-struct CharacterSceneInput
+class CharacterSceneData : public SceneData
 {
+public:
 	Unit* unit;
-	bool  canChangeArmor;
 };
+
 
 class CharacterScene : public Scene
 {
 public:
-	CharacterScene( Game* _game, CharacterSceneInput* unit );
+	CharacterScene( Game* _game, CharacterSceneData* data );
 	virtual ~CharacterScene();
 
 	// UI

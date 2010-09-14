@@ -30,6 +30,14 @@ class Unit;
 #pragma warning ( push )
 #pragma warning ( disable : 4100 )	// un-referenced formal parameter
 
+class SceneData
+{
+public:
+	SceneData()				{}
+	virtual ~SceneData()	{}
+};
+
+
 class Scene
 {
 public:
@@ -51,6 +59,7 @@ public:
 	virtual void Save( TiXmlElement* doc )						{}
 	virtual void Load( const TiXmlElement* doc )				{}
 	virtual void HandleHotKeyMask( int mask )					{}
+	virtual void SceneResult( int result )						{}
 
 	// Rendering
 	enum {

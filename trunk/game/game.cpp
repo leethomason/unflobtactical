@@ -23,6 +23,7 @@
 #include "tacticalendscene.h"
 #include "tacticalunitscorescene.h"
 #include "helpscene.h"
+#include "dialogscene.h"
 
 #include "../engine/text.h"
 #include "../engine/model.h"
@@ -50,12 +51,8 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	trianglesPerSecond( 0 ),
 	trianglesSinceMark( 0 ),
 	debugTextOn( false ),
-	resetGame( false ),
 	previousTime( 0 ),
-	isDragging( false ),
-	sceneStack(),
-	scenePopQueued( false ),
-	scenePushQueued( -1 )
+	isDragging( false )
 {
 	savePath = path;
 	char c = savePath[savePath.size()-1];
@@ -72,7 +69,7 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 
 	engine->camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 
-	scenePushQueued = INTRO_SCENE;
+	PushScene( INTRO_SCENE, 0 );
 	loadRequested = -1;
 	loadCompleted = false;
 	PushPopScene();
@@ -87,12 +84,8 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	trianglesPerSecond( 0 ),
 	trianglesSinceMark( 0 ),
 	debugTextOn( false ),
-	resetGame( false ),
 	previousTime( 0 ),
-	isDragging( false ),
-	sceneStack(),
-	scenePopQueued( false ),
-	scenePushQueued( -1 )
+	isDragging( false )
 {
 	GLASSERT( Engine::mapMakerMode == true );
 	savePath = path;
@@ -127,7 +120,7 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	engine->camera.SetPosWC( -25.f, 45.f, 30.f );	// standard test
 	engine->camera.SetYRotation( -60.f );
 
-	scenePushQueued = BATTLE_SCENE;
+	PushScene( BATTLE_SCENE, 0 );
 	loadRequested = -1;
 	loadCompleted = false;
 	PushPopScene();
@@ -143,6 +136,7 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 
 void Game::Init()
 {
+	scenePopQueued = false;
 	currentFrame = 0;
 	memset( &profile, 0, sizeof( ProfileData ) );
 	surface.Set( Surface::RGBA16, 256, 256 );		// All the memory we will ever need (? or that is the intention)
@@ -192,7 +186,7 @@ Game::~Game()
 		PushPopScene();
 	}
 
-	delete sceneStack.Top();
+	sceneStack.Top().Free();
 	sceneStack.Pop();
 
 
@@ -203,6 +197,17 @@ Game::~Game()
 	SoundManager::Destroy();
 	delete database;
 }
+
+
+void Game::SceneNode::Free()
+{
+	sceneID = Game::NUM_SCENES;
+	delete scene;	scene = 0;
+	delete data;	data = 0;
+	result = INT_MIN;
+}
+
+
 
 void Game::ProcessLoadRequest()
 {
@@ -226,88 +231,91 @@ void Game::ProcessLoadRequest()
 }
 
 
-void Game::PushScene( int id, void* data ) 
+void Game::PushScene( int sceneID, SceneData* data )
 {
-	GLASSERT( scenePushQueued == -1 );
-	scenePushQueued = id;
-	scenePushQueuedData = data;
+	GLASSERT( sceneQueued.sceneID == NUM_SCENES );
+	GLASSERT( sceneQueued.scene == 0 );
+
+	sceneQueued.sceneID = sceneID;
+	sceneQueued.data = data;
 }
 
 
-void Game::PopScene()
+void Game::PopScene( int result )
 {
 	GLASSERT( scenePopQueued == false );
 	scenePopQueued = true;
+	if ( result != INT_MAX )
+		sceneStack.Top().result = result;
 }
+
 
 void Game::PushPopScene() 
 {
-	if ( scenePopQueued || scenePushQueued >= 0 ) {
+	if ( scenePopQueued || sceneQueued.sceneID != NUM_SCENES ) {
 		TextureManager::Instance()->ContextShift();
 	}
 
-	if ( resetGame ) {
-		GLASSERT( 0 );	// doesn't work yet.	
-		while( !sceneStack.Empty() ) {
-			sceneStack.Top()->DeActivate();
-			delete sceneStack.Top();
-			sceneStack.Pop();
-		}
+	if ( scenePopQueued ) {
+		GLASSERT( !sceneStack.Empty() );
 
-		resetGame = false;
-		scenePushQueued = INTRO_SCENE;
-		scenePopQueued = false;
-		loadRequested = -1;
-		loadCompleted = false;
-		PushPopScene();
-	}
-	else
-	{
-		if ( scenePopQueued ) {
-			GLASSERT( !sceneStack.Empty() );
+		sceneStack.Top().scene->DeActivate();
+		int result = sceneStack.Top().result;
 
-			sceneStack.Top()->DeActivate();
-			delete sceneStack.Top();
-			sceneStack.Pop();
-			GLASSERT( scenePushQueued>=0 || !sceneStack.Empty() );
-			if ( sceneStack.Size() ) {
-				sceneStack.Top()->Activate();
-			}
-		}
-		if ( scenePushQueued >= 0 ) {
-			GLASSERT( scenePushQueued < NUM_SCENES );
+		sceneStack.Top().Free();
+		sceneStack.Pop();
 
-			if ( sceneStack.Size() ) {
-				sceneStack.Top()->DeActivate();
-			}
-			Scene* scene = CreateScene( scenePushQueued, scenePushQueuedData );
-			sceneStack.Push( scene );
-			scene->Activate();
-			if ( loadRequested >= 0 ) {
-				ProcessLoadRequest();
+		GLASSERT( sceneQueued.sceneID !=NUM_SCENES || !sceneStack.Empty() );
+
+		if ( sceneStack.Size() ) {
+			sceneStack.Top().scene->Activate();
+			if ( result != INT_MIN ) {
+				sceneStack.Top().scene->SceneResult( result );
 			}
 		}
 	}
-	scenePushQueued = -1;
+	if ( sceneQueued.sceneID != NUM_SCENES ) {
+		GLASSERT( sceneQueued.sceneID < NUM_SCENES );
+
+		if ( sceneStack.Size() ) {
+			sceneStack.Top().scene->DeActivate();
+		}
+		SceneNode node;
+		CreateScene( sceneQueued, &node );
+		sceneQueued.data = 0;
+		sceneQueued.Free();
+
+		sceneStack.Push( node );
+		node.scene->Activate();
+		if ( loadRequested >= 0 ) {
+			ProcessLoadRequest();
+		}
+	}
+
+	sceneQueued.Free();
 	scenePopQueued = false;
 }
 
 
-Scene* Game::CreateScene( int id, void* data )
+void Game::CreateScene( const SceneNode& in, SceneNode* node )
 {
 	Scene* scene = 0;
-	switch ( id ) {
-		case BATTLE_SCENE:		scene = new BattleScene( this );											break;
-		case CHARACTER_SCENE:	scene = new CharacterScene( this, (CharacterSceneInput*)data );				break;
-		case INTRO_SCENE:		scene = new TacticalIntroScene( this );										break;
-		case END_SCENE:			scene = new TacticalEndScene( this, (const TacticalEndSceneData*) data );	break;
-		case UNIT_SCORE_SCENE:	scene = new TacticalUnitScoreScene( this, (const TacticalEndSceneData*) data );	break;
-		case HELP_SCENE:		GLASSERT( data );	scene = new HelpScene( this, (const char*)data );		break;
+	switch ( in.sceneID ) {
+		case BATTLE_SCENE:		scene = new BattleScene( this );													break;
+		case CHARACTER_SCENE:	scene = new CharacterScene( this, (CharacterSceneData*)in.data );					break;
+		case INTRO_SCENE:		scene = new TacticalIntroScene( this );												break;
+		case END_SCENE:			scene = new TacticalEndScene( this, (const TacticalEndSceneData*) in.data );		break;
+		case UNIT_SCORE_SCENE:	scene = new TacticalUnitScoreScene( this, (const TacticalEndSceneData*) in.data );	break;
+		case HELP_SCENE:		scene = new HelpScene( this, (const HelpSceneData*)in.data );						break;
+		case DIALOG_SCENE:		scene = new DialogScene( this, (const DialogSceneData*)in.data );					break;
 		default:
 			GLASSERT( 0 );
 			break;
 	}
-	return scene;
+	node->scene = scene;
+	node->sceneID = in.sceneID;
+	node->data = in.data;
+	node->result = INT_MIN;
 }
 
 
@@ -332,7 +340,7 @@ void Game::Load( const TiXmlDocument& doc )
 	// BOTTOM of the stack saves and loads. (BattleScene or GeoScene).
 	const TiXmlElement* game = doc.RootElement();
 	GLASSERT( StrEqual( game->Value(), "Game" ) );
-	sceneStack.Bottom()->Load( game );
+	sceneStack.Bottom().scene->Load( game );
 }
 
 
@@ -358,7 +366,7 @@ void Game::Save( TiXmlDocument* doc )
 	gameElement.InsertEndChild( sceneElement );
 
 	doc->InsertEndChild( gameElement );
-	sceneStack.Bottom()->Save( doc->RootElement() );
+	sceneStack.Bottom().scene->Save( doc->RootElement() );
 }
 
 
@@ -392,7 +400,7 @@ void Game::DoTick( U32 _currentTime )
 	GPUShader::ResetState();
 	GPUShader::Clear();
 
-	Scene* scene = sceneStack.Top();
+	Scene* scene = sceneStack.Top().scene;
 	scene->DoTick( currentTime, deltaTime );
 
 	Rectangle2I clip2D, clip3D;
@@ -519,7 +527,6 @@ void Game::Tap( int action, int wx, int wy )
 	screenport.ViewToWorld( view, 0, &world );
 
 #if 0
-#ifdef DEBUG	
 	{
 		Vector2F ui;
 		screenport.ViewToUI( view, &ui );
@@ -527,28 +534,27 @@ void Game::Tap( int action, int wx, int wy )
 			GLOUTPUT(( "Tap: action=%d window(%.1f,%.1f) view(%.1f,%.1f) ui(%.1f,%.1f)\n", action, window.x, window.y, view.x, view.y, ui.x, ui.y ));
 	}
 #endif
-#endif
-	sceneStack.Top()->Tap( action, view, world );
+	sceneStack.Top().scene->Tap( action, view, world );
 }
 
 
 void Game::MouseMove( int x, int y )
 {
 	GLASSERT( Engine::mapMakerMode );
-	((BattleScene*)sceneStack.Top())->MouseMove( x, y );
+	((BattleScene*)sceneStack.Top().scene)->MouseMove( x, y );
 }
 
 
 
 void Game::Zoom( int action, int distance )
 {
-	sceneStack.Top()->Zoom( action, distance );
+	sceneStack.Top().scene->Zoom( action, distance );
 }
 
 
 void Game::Rotate( int action, float degrees )
 {
-	sceneStack.Top()->Rotate( action, degrees );
+	sceneStack.Top().scene->Rotate( action, degrees );
 }
 
 
@@ -563,7 +569,7 @@ void Game::HandleHotKeyMask( int mask )
 	if ( mask & GAME_HK_TOGGLE_DEBUG_TEXT ) {
 		debugTextOn = !debugTextOn;
 	}
-	sceneStack.Top()->HandleHotKeyMask( mask );
+	sceneStack.Top().scene->HandleHotKeyMask( mask );
 }
 
 
@@ -581,17 +587,17 @@ void Game::Resize( int width, int height, int rotation )
 
 void Game::RotateSelection( int delta )
 {
-	((BattleScene*)sceneStack.Top())->RotateSelection( delta );
+	((BattleScene*)sceneStack.Top().scene)->RotateSelection( delta );
 }
 
 void Game::DeleteAtSelection()
 {
-	((BattleScene*)sceneStack.Top())->DeleteAtSelection();
+	((BattleScene*)sceneStack.Top().scene)->DeleteAtSelection();
 }
 
 
 void Game::DeltaCurrentMapItem( int d )
 {
-	((BattleScene*)sceneStack.Top())->DeltaCurrentMapItem(d);
+	((BattleScene*)sceneStack.Top().scene)->DeltaCurrentMapItem(d);
 }
 

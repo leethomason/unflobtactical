@@ -22,6 +22,7 @@
 #include "../engine/engine.h"
 #include "game.h"
 #include "cgame.h"
+#include "helpscene.h"
 
 using namespace grinliz;
 using namespace gamui;
@@ -258,7 +259,7 @@ void TacticalIntroScene::Tap(	int action,
 		seedButton.SetText( buffer );
 	}
 	else if ( item == &helpButton ) {
-		game->PushScene( Game::HELP_SCENE, "introHelp" );
+		game->PushScene( Game::HELP_SCENE, new HelpSceneData("introHelp" ));
 	}
 	if ( game->loadRequested >= 0 ) {
 		game->PopScene();
