@@ -7,7 +7,7 @@
 
 using namespace gamui;
 
-HelpScene::HelpScene( Game* _game, const char* name ) : Scene( _game ), helpName( name )
+HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ), helpName( data->name )
 {
 	Engine* engine = GetEngine();
 	engine->EnableMap( false );

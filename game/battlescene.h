@@ -27,6 +27,7 @@
 
 #include "../engine/uirendering.h"
 #include "../gamui/gamui.h"
+#include "tacticalendscene.h"
 
 class Model;
 class UIButtonBox;
@@ -36,7 +37,6 @@ class UIImage;
 class Engine;
 class Texture;
 class AI;
-struct TacticalEndSceneData;
 
 // Needs to be a POD because it gets 'union'ed in a bunch of events.
 // size is important for the same reason.
@@ -361,6 +361,7 @@ private:
 	int				currentTeamTurn;
 	AI*				aiArr[3];
 	int				currentUnitAI;
+	TacticalEndSceneData tacticalData;
 
 	struct TargetEvent
 	{

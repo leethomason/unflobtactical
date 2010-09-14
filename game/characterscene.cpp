@@ -21,16 +21,15 @@
 #include "battlestream.h"
 #include "../grinliz/glstringutil.h"
 #include "inventoryWidget.h"
+#include "helpscene.h"
 
 using namespace grinliz;
 using namespace gamui;
 
-CharacterScene::CharacterScene( Game* _game, CharacterSceneInput* input ) 
+CharacterScene::CharacterScene( Game* _game, CharacterSceneData* input ) 
 	: Scene( _game )
 {
 	unit = input->unit;
-	delete input;
-	input = 0;
 	dragUIItem = 0;
 
 	engine = _game->engine;
@@ -351,7 +350,7 @@ void CharacterScene::Tap(	int action,
 	}
 
 	if ( item == &helpButton ) {
-		game->PushScene( Game::HELP_SCENE, "characterHelp" );
+		game->PushScene( Game::HELP_SCENE, new HelpSceneData( "characterHelp" ));
 	}
 
 	// control buttons

@@ -23,10 +23,17 @@ class UIButtonBox;
 class UIButtonGroup;
 
 
+class HelpSceneData : public SceneData
+{
+public:
+	HelpSceneData( const char* _name ) : name( _name ) {}
+	const char* name;
+};
+
 class HelpScene : public Scene
 {
 public:
-	HelpScene( Game* _game, const char* helpName );
+	HelpScene( Game* _game, const HelpSceneData* helpName );
 	virtual ~HelpScene();
 
 	// UI

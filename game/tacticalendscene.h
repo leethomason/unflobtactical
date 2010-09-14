@@ -25,14 +25,16 @@ class UIButtonBox;
 class UIButtonGroup;
 class UITextTable;
 
-struct TacticalEndSceneData
+class TacticalEndSceneData : public SceneData
 {
+public:
 	int nTerrans;
 	int nTerransAlive;
 	int nAliens;
 	int nAliensAlive;
 	const Unit* units;
 };
+
 
 class TacticalEndScene : public Scene
 {
@@ -44,9 +46,6 @@ public:
 	virtual void Tap(	int count, 
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
-
-//	virtual void Drag(	int action,
-//						const grinliz::Vector2I& view )			{}
 
 	virtual void Zoom( int action, int distance )				{}
 	virtual void CancelInput()									{}
