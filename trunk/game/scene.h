@@ -59,7 +59,7 @@ public:
 	virtual void Save( TiXmlElement* doc )						{}
 	virtual void Load( const TiXmlElement* doc )				{}
 	virtual void HandleHotKeyMask( int mask )					{}
-	virtual void SceneResult( int result )						{}
+	virtual void SceneResult( int sceneID, int result )			{}
 
 	// Rendering
 	enum {

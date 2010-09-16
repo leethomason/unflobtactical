@@ -32,6 +32,7 @@
 #include "wglew.h"
 
 //#define TEST_ROTATION
+#define TEST_FULLSPEED
 
 #define IPOD_SCREEN_WIDTH	320
 #define IPOD_SCREEN_HEIGHT	480
@@ -125,10 +126,10 @@ int main( int argc, char **argv )
 	screenWidth = NEXUS_ONE_SCREEN_WIDTH;
 	screenHeight = NEXUS_ONE_SCREEN_HEIGHT;
 #else
-//	screenWidth = NEXUS_ONE_SCREEN_HEIGHT;
-//	screenHeight = NEXUS_ONE_SCREEN_WIDTH;
-	screenWidth = IPOD_SCREEN_HEIGHT;
-	screenHeight = IPOD_SCREEN_WIDTH;
+	screenWidth = NEXUS_ONE_SCREEN_HEIGHT;
+	screenHeight = NEXUS_ONE_SCREEN_WIDTH;
+//	screenWidth = IPOD_SCREEN_HEIGHT;
+//	screenHeight = IPOD_SCREEN_WIDTH;
 #endif
 
 	// Note that our output surface is rotated from the iPod.
@@ -151,7 +152,11 @@ int main( int argc, char **argv )
 
 	int r = glewInit();
 	GLASSERT( r == GL_NO_ERROR );
+#ifdef TEST_FULLSPEED	
+	wglSwapIntervalEXT( 0 );	// vsync
+#else
 	wglSwapIntervalEXT( 1 );	// vsync
+#endif
 
 	const unsigned char* vendor   = glGetString( GL_VENDOR );
 	const unsigned char* renderer = glGetString( GL_RENDERER );
@@ -210,10 +215,17 @@ int main( int argc, char **argv )
 		game = NewGame( screenWidth, screenHeight, rotation, ".\\" );
 	}
 
+#ifndef TEST_FULLSPEED
 	SDL_TimerID timerID = SDL_AddTimer( 30, TimerCallback, 0 );
+#endif
 
 	// ---- Main Loop --- //
+#ifdef TEST_FULLSPEED	
+	while ( !done ) {
+		if ( SDL_PollEvent( &event ) )
+#else
 	while ( !done && SDL_WaitEvent( &event ) )
+#endif
 	{
 		switch( event.type )
 		{
@@ -424,8 +436,20 @@ int main( int argc, char **argv )
 			default:
 				break;
 		}
+#ifdef TEST_FULLSPEED	
+		}
+
+		glEnable( GL_DEPTH_TEST );
+		glDepthFunc( GL_LEQUAL );
+
+		GameDoTick( game, SDL_GetTicks() );
+		SDL_GL_SwapBuffers();
+	}
+#else
 	}
 	SDL_RemoveTimer( timerID );
+#endif
+
 	GameSave( game );
 	DeleteGame( game );
 	Audio_Close();
