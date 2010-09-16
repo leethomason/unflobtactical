@@ -34,8 +34,6 @@ SpaceTree::SpaceTree( float yMin, float yMax )
 	queryID = 0;
 
 	InitNode();
-	for( int i=0; i<DEPTH; ++i )
-		nodeAddedAtDepth[i] = 0;
 }
 
 
@@ -57,11 +55,12 @@ void SpaceTree::InitNode()
 			for( int i=0; i<Map::SIZE; i+=nodeSize ) 
 			{
 				Node* node = GetNode( depth, i, j );
-				node->x = i;
-				node->z = j;
-				node->size = nodeSize;
+				//node->x = (float)i;
+				//node->z = (float)j;
+				//node->size = (float)nodeSize;
 				node->queryID = 0;
 				node->parent = 0;
+				node->nModels = 0;
 				if ( depth > 0 ) {
 					node->parent = GetNode( depth-1, i, j );
 				}
@@ -74,9 +73,12 @@ void SpaceTree::InitNode()
 				*/
 				int border = nodeSize / 4;
 				GLASSERT( border > 0 );
-				node->looseX = node->x - border;
-				node->looseZ = node->z - border;
-				node->looseSize = nodeSize+border*2;
+				//node->looseX = node->x - (float)border;
+				//node->looseZ = node->z - (float)border;
+				//node->looseSize = (float)(nodeSize+border*2);
+
+				node->looseAABB.Set( (float)(i-border), yMin, (float)(j-border),
+									 (float)(i+nodeSize+border), yMax, (float)(j+nodeSize+border) );
 
 				/* Seems like a good plan, but isn't. An object that is on the edge of a small node
 				   will be on the edge of a parent node...and goes to the top.
@@ -88,9 +90,7 @@ void SpaceTree::InitNode()
 				*/
 
 				node->depth = depth;
-				GLASSERT( node->sentinel.model.Sentinel() );
-				node->sentinel.next = &node->sentinel;
-				node->sentinel.prev = &node->sentinel;
+				node->root = 0;
 
 				if ( depth+1 < DEPTH ) {
 					node->child[0] = GetNode( depth+1, i,				j );
@@ -117,6 +117,7 @@ Model* SpaceTree::AllocModel( const ModelResource* resource )
 	GLASSERT( resource );
 	Item* item = (Item*) modelPool.Alloc();
 
+	item->node = 0;
 	item->next = 0;	// very important to clear pointers before Init() - which will cause Link to occur.
 	item->prev = 0;
 	item->model.Init( resource, this );
@@ -128,7 +129,9 @@ Model* SpaceTree::AllocModel( const ModelResource* resource )
 void SpaceTree::FreeModel( Model* model )
 {
 	Item* item = (Item*)model;	// cast depends on model being first in the structure.
-	item->Unlink();
+
+	GLASSERT( item->node );
+	item->node->Remove( item );
 	item->model.Free();
 	modelPool.Free( item );
 }
@@ -168,9 +171,9 @@ void SpaceTree::Update( Model* model )
 	// Unlink if currently in tree.
 	Item* item = (Item*)model;	// cast depends on model being first in the structure.
 
-	// circular list - this always works.
-	GLASSERT( !model->Sentinel() );
-	item->Unlink();
+	if ( item->node ) 
+		item->node->Remove( item );
+	item->node = 0;
 
 	// Since the tree is somewhat modified from the ideal, start with the 
 	// most idea node and work up. Note that everything fits at the top node.
@@ -187,40 +190,19 @@ void SpaceTree::Update( Model* model )
 
 	int x = (int)bounds.min.x;
 	int z = (int)bounds.min.z;
-	//int x = (int)((bounds.min.x+bounds.max.x)*0.5f);
-	//int z = (int)((bounds.min.z+bounds.max.z)*0.5f);
-	Rectangle3F nodeBounds;
 
 	while( depth > 0 ) {
 		node = GetNode( depth, x, z );
-		node->CalcAABB( &nodeBounds, yMin, yMax );
-
-		if ( nodeBounds.Contains( bounds ) ) {
+		if ( node->looseAABB.Contains( bounds ) ) {
 			// fits.
+			item->node = node;
 			break;
 		}
 		--depth;
 	}
-	++nodeAddedAtDepth[depth];
 
-	/*
-#ifdef DEBUG
-	if ( depth > 0 ) {
-		Circle c;
-		node->CalcAABB( &aabb, yMin, yMax );
-
-		model->CalcBoundCircle( &c );
-
-		GLASSERT( c.origin.x - c.radius >= aabb.min.x );
-		GLASSERT( c.origin.y - c.radius >= aabb.min.z );
-		GLASSERT( c.origin.x + c.radius <= aabb.max.x );
-		GLASSERT( c.origin.y + c.radius <= aabb.max.z );
-	}
-#endif
-	*/
-
-	// Link it in.
-	item->Link( &node->sentinel );
+	GLASSERT( item->node );
+	item->node->Add( item );
 }
 
 
@@ -265,7 +247,8 @@ Model* SpaceTree::Query( const Plane* planes, int nPlanes, int required, int exc
 #endif
 
 	QueryPlanesRec( planes, nPlanes, grinliz::INTERSECT, &nodeArr[0], 0 );
-	
+
+	/*
 	if ( debug ) {
 		GLOUTPUT(( "Query visited=%d of %d nodes, comptued planes=%d spheres=%d models=%d [%d,%d,%d,%d,%d]\n", 
 					nodesVisited, NUM_NODES, 
@@ -278,25 +261,27 @@ Model* SpaceTree::Query( const Plane* planes, int nPlanes, int required, int exc
 					nodeAddedAtDepth[3],
 					nodeAddedAtDepth[4] ));
 	}
+	*/
 	this->debug = false;
 	return modelRoot;
 }
 
 
-
+/*
 void SpaceTree::Node::CalcAABB( Rectangle3F* aabb, const float yMin, const float yMax ) const
 {
 	GLASSERT( yMin < yMax );
 	GLASSERT( looseSize > 0 );
 
-	aabb->Set(	float( looseX ), 
+	aabb->Set(	looseX, 
 				yMin, 
-				float( looseZ ),
+				looseZ,
 				
-				float( looseX + looseSize ), 
+				looseX + looseSize, 
 				yMax, 
-				float( looseZ + looseSize ) );
+				looseZ + looseSize );
 }
+*/
 
 void SpaceTree::QueryPlanesRec(	const Plane* planes, int nPlanes, int intersection, const Node* node, U32 positive )
 {
@@ -309,8 +294,9 @@ void SpaceTree::QueryPlanesRec(	const Plane* planes, int nPlanes, int intersecti
 	}
 	else if ( intersection == grinliz::INTERSECT ) 
 	{
-		Rectangle3F aabb;
-		node->CalcAABB( &aabb, yMin, yMax );
+//		Rectangle3F aabb;
+//		node->CalcAABB( &aabb, yMin, yMax );
+		const Rectangle3F& aabb = node->looseAABB;
 		
 		int nPositive = 0;
 
@@ -355,13 +341,16 @@ void SpaceTree::QueryPlanesRec(	const Plane* planes, int nPlanes, int intersecti
 		else if ( intersection == grinliz::POSITIVE )
 			node->hit = 2;
 #endif
-		for( Item* item=node->sentinel.next; item != &node->sentinel; item=item->next ) 
+		const int _requiredFlags = requiredFlags;
+		const int _excludedFlags = excludedFlags;
+
+		for( Item* item=node->root; item; item=item->next ) 
 		{
 			Model* m = &item->model;
-			int flags = m->Flags();
+			const int flags = m->Flags();
 
-			if (    ( (requiredFlags & flags) == requiredFlags)
-				 && ( (excludedFlags & flags) == 0 ) )
+			if (    ( (_requiredFlags & flags) == _requiredFlags)
+				 && ( (_excludedFlags & flags) == 0 ) )
 			{	
 				if ( debug ) {
 					GLOUTPUT(( "%*s[%d] Testing: 0x%x %s", node->depth, " ", node->depth, (int)m, m->GetResource()->header.name.c_str() ));
@@ -406,10 +395,10 @@ void SpaceTree::QueryPlanesRec(	const Plane* planes, int nPlanes, int intersecti
 		}
 		
 		if ( node->child[0] )  {
-			QueryPlanesRec( planes, nPlanes, intersection, node->child[0], positive );
-			QueryPlanesRec( planes, nPlanes, intersection, node->child[1], positive );
-			QueryPlanesRec( planes, nPlanes, intersection, node->child[2], positive );
-			QueryPlanesRec( planes, nPlanes, intersection, node->child[3], positive );
+			for( int i=0; i<4; ++i ) {
+				if ( node->child[i]->nModels )
+					QueryPlanesRec( planes, nPlanes, intersection, node->child[i], positive );
+			}
 		}
 	}
 	#undef IS_POSITIVE
@@ -523,12 +512,13 @@ void SpaceTree::Draw()
 
 			const float y = 0.2f;
 			const float offset = 0.05f;
-			float v[12] = {	
-							(float)node.x+offset, y, (float)node.z+offset,
-							(float)node.x+offset, y, (float)(node.z+node.size)-offset,
-							(float)(node.x+node.size)-offset, y, (float)(node.z+node.size)-offset,
-							(float)(node.x+node.size)-offset, y, (float)node.z+offset
-						  };
+//			float v[12] = {	
+//							node.x+offset, y, node.z+offset,
+//							node.x+offset, y, (node.z+node.size)-offset,
+//							(node.x+node.size)-offset, y, (node.z+node.size)-offset,
+//							(node.x+node.size)-offset, y, node.z+offset
+//						  };
+			GLASSERT( 0 );
 
 			if ( node.hit == 1 )
 				shader.SetColor( 1.f, 0.f, 0.f, 0.5f );
@@ -536,7 +526,7 @@ void SpaceTree::Draw()
 				shader.SetColor( 0.f, 1.f, 0.f, 0.5f );
 
 			static const int index[6] = { 0, 1, 2, 0, 2, 3 };
-			shader.SetVertex( 3, 0, v );
+//			shader.SetVertex( 3, 0, v );
 			shader.Draw( 6, index );
 		}
 	}

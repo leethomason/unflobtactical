@@ -677,10 +677,7 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 			const float hw = quadBuffer[i].halfWidth;
 
 			for( int j=0; j<4; ++j ) {
-				//pV->pos = base[j].pos + pos;
-				pV->pos =   pos
-						  + cornerX[j]*eyeDir[Camera::RIGHT]*hw 
-					      + cornerY[j]*eyeDir[Camera::UP]*hw;
+				pV->pos =   pos + ( cornerX[j]*eyeDir[Camera::RIGHT] + cornerY[j]*eyeDir[Camera::UP] ) * hw;
 				pV->tex.Set( tx+tex[j].x, ty+tex[j].y );
 				pV->color = color;
 				++pV;

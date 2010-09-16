@@ -261,6 +261,7 @@ void Game::PushPopScene()
 
 		sceneStack.Top().scene->DeActivate();
 		int result = sceneStack.Top().result;
+		int id     = sceneStack.Top().sceneID;
 
 		sceneStack.Top().Free();
 		sceneStack.Pop();
@@ -270,7 +271,7 @@ void Game::PushPopScene()
 		if ( sceneStack.Size() ) {
 			sceneStack.Top().scene->Activate();
 			if ( result != INT_MIN ) {
-				sceneStack.Top().scene->SceneResult( result );
+				sceneStack.Top().scene->SceneResult( id, result );
 			}
 		}
 	}
