@@ -1081,6 +1081,7 @@ void DigitalBar::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex
 Gamui::Gamui()
 	:	m_itemTapped( 0 ),
 		m_iText( 0 ),
+		m_orderChanged( true ),
 		m_itemArr( 0 ),
 		m_nItems( 0 ),
 		m_nItemsAllocated( 0 ),
@@ -1096,6 +1097,7 @@ Gamui::Gamui(	IGamuiRenderer* renderer,
 				IGamuiText* iText ) 
 	:	m_itemTapped( 0 ),
 		m_iText( 0 ),
+		m_orderChanged( true ),
 		m_itemArr( 0 ),
 		m_nItems( 0 ),
 		m_nItemsAllocated( 0 )
@@ -1132,6 +1134,7 @@ void Gamui::Add( UIItem* item )
 		m_itemArr = (UIItem**) realloc( m_itemArr, m_nItemsAllocated*sizeof(UIItem*) );
 	}
 	m_itemArr[m_nItems++] = item;
+	m_orderChanged = true;
 }
 
 
@@ -1148,6 +1151,7 @@ void Gamui::Remove( UIItem* item )
 			break;
 		}
 	}
+	m_orderChanged = true;
 }
 
 
@@ -1263,17 +1267,9 @@ int Gamui::SortItems( const void* _a, const void* _b )
 
 void Gamui::Render()
 {
-	// Do a check for sort - hard to trust 'qsort' and don't want 
-	// to call it on unsorted data.
-	bool sorted = true;
-	for( int i=0; i<m_nItems-1; ++i ) {
-		if ( SortItems( m_itemArr+i, m_itemArr+i+1 ) > 0 ) {
-			sorted = false;
-			break;
-		}
-	}
-	if ( !sorted ) {
+	if ( m_orderChanged ) {
 		qsort( m_itemArr, m_nItems, sizeof(UIItem*), SortItems );
+		m_orderChanged = false;
 	}
 
 	int nIndex = 0;

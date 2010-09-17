@@ -29,6 +29,7 @@ class SpaceTree
 {
 
 public:
+
 	SpaceTree( float yMin, float yMax );
 	~SpaceTree();
 
@@ -50,35 +51,20 @@ public:
 #ifdef DEBUG
 	// Draws debugging info about the spacetree.
 	void Draw();
+	void Dump() { Dump( nodeArr ); }
 #endif
 
 private:
 	struct Node;
+#ifdef DEBUG
+	void Dump( Node* node );
+#endif
 
 	struct Item {
 		Model model;	// Must be first! Gets cast back to Item in destructor.
 		Node* node;
 		Item* next;		// used in the node list.
 		Item* prev;
-
-		/*
-		void Unlink() {
-			if ( next )
-				next->prev = prev;
-			if ( prev )
-				prev->next = next;
-			prev = next = 0;
-		}
-		*/
-		/*
-		void Link( Item* after ) {
-			if ( after->next )
-				after->next->prev = this;
-			this->next = after->next;
-			after->next = this;
-			this->prev = after;
-		}
-		*/
 	};
 
 	struct Node
@@ -96,36 +82,11 @@ private:
 		mutable int hit;
 #endif
 
-		void Add( Item* item ) {
-			GLASSERT( item->next == 0 );
-			GLASSERT( item->prev == 0 );
-			GLASSERT( item->node == this );
-
-			if ( root ) { 
-				root->prev = item;
-			}
-			item->next = root;
-			item->prev = 0;
-			root = item;
-
-			for( Node* it=this; it; it=it->parent )
-				it->nModels++;
-		}
-
-		void Remove( Item* item ) {
-			if ( root == item )
-				root = item->next;
-			if ( item->prev )
-				item->prev->next = item->next;
-			if ( item->next )
-				item->next->prev = item->prev;
-
-			item->next = 0;
-			item->prev = 0;
-
-			for( Node* it=this; it; it=it->parent )
-				it->nModels--;
-		}
+		void Add( Item* item );
+		void Remove( Item* item );
+#ifdef DEBUG
+		void Dump();
+#endif
 	};
 
 	bool Ignore( const Model* m, const Model** ignore ) {

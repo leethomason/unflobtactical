@@ -403,8 +403,12 @@ void Unit::Kill( Map* map )
 	Vector3F pos = model->Pos();
 
 	Free();
-	status = STATUS_DEAD;
-	
+
+	status = STATUS_KIA;
+	if ( team == TERRAN_TEAM ) {
+		if ( map->random.Rand( 100 ) < stats.Constitution() )
+			status = STATUS_UNCONSCIOUS;
+	}
 	CreateModel();
 
 	hp = 0;
@@ -427,6 +431,17 @@ void Unit::Kill( Map* map )
 		}
 		map->ReleaseStorage( storage );
 	}
+}
+
+
+void Unit::Leave()
+{
+	if (    status == STATUS_ALIVE
+		 || status == STATUS_UNCONSCIOUS ) 
+	{
+		status = STATUS_MIA;
+	}
+	// STATUS_KIA no change, of course.
 }
 
 
@@ -584,7 +599,7 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 
 	GLASSERT( StrEqual( ele->Value(), "Unit" ) );
 	ele->QueryIntAttribute( "status", &a_status );
-	GLASSERT( a_status == STATUS_NOT_INIT || a_status == STATUS_ALIVE || a_status == STATUS_DEAD );
+	GLASSERT( a_status >= 0 && a_status <= STATUS_MIA );
 
 	if ( a_status != STATUS_NOT_INIT ) {
 		ele->QueryIntAttribute( "team", &team );

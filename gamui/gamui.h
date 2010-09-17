@@ -170,6 +170,7 @@ public:
 	void Add( UIItem* item );
 	// normally not called by user code.
 	void Remove( UIItem* item );
+	void OrderChanged() { m_orderChanged = true; }
 
 	/// Call to begin the rendering pass and commit all the UIItems to the display.
 	void Render();
@@ -229,16 +230,17 @@ private:
 	IGamuiRenderer*					m_iRenderer;
 	IGamuiText*						m_iText;
 
+	bool			m_orderChanged;
+	UIItem**		m_itemArr;
+	int				m_nItems;
+	int				m_nItemsAllocated;
+	const UIItem*	m_dragStart;
+	const UIItem*	m_dragEnd;
+
 	enum { INDEX_SIZE = 6000,
 		   VERTEX_SIZE = 4000 };
 	int16_t							m_indexBuffer[INDEX_SIZE];
 	Vertex							m_vertexBuffer[VERTEX_SIZE];
-
-	UIItem**	m_itemArr;
-	int			m_nItems;
-	int			m_nItemsAllocated;
-	const UIItem*	m_dragStart;
-	const UIItem*	m_dragEnd;
 };
 
 
@@ -289,7 +291,9 @@ public:
 	virtual void SetVisible( bool visible )		{ m_visible = visible; }
 	bool Visible() const						{ return m_visible; }
 	
-	void SetLevel( int level )					{ m_level = level; }
+	void SetLevel( int level )					{ m_level = level; 
+												  if ( m_gamui ) m_gamui->OrderChanged();
+												}
 
 	void SetRotationX( float degrees )			{ m_rotationX = degrees; }
 	void SetRotationY( float degrees )			{ m_rotationY = degrees; }

@@ -45,17 +45,26 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, const TacticalEndSc
 	float size = 20.0f;
 
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		if ( data->units[i].Status() != Unit::STATUS_NOT_INIT ) {
+		if ( data->units[i].InUse() ) {
 			
 			nameRank[count].Init( &gamui2D );
 			nameRank[count].Set( xPos0, yPos, &data->units[i], false );
 
 			status[count].Init( &gamui2D );
-			status[count].SetText( data->units[i].IsAlive() ? "Active" : "KIA" );
+
+			if ( data->units[i].IsAlive() )
+				status[count].SetText( "Active" );
+			else if ( data->units[i].IsKIA() )
+				status[count].SetText( "KIA" );
+			else if ( data->units[i].IsUnconscious() )
+				status[count].SetText( "Active(KO)" );
+			else if ( data->units[i].IsMIA() )
+				status[count].SetText( "MIA" );
+
 			status[count].SetPos( xPos1, yPos );
 
 			int kills = data->units[i].KillsCredited();
-			bool purpleCircle = ( data->units[i].HP() != data->units[i].GetStats().TotalHP() && data->units[i].Status() == Unit::STATUS_ALIVE );
+			bool purpleCircle = ( data->units[i].HP() != data->units[i].GetStats().TotalHP() && data->units[i].IsAlive() );
 			int exp = kills + (purpleCircle ? 2 : 0);
 			float x = xPos2;
 

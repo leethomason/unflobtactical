@@ -40,7 +40,10 @@ public:
 	enum {
 		STATUS_NOT_INIT,
 		STATUS_ALIVE,
-		STATUS_DEAD
+
+		STATUS_KIA,
+		STATUS_UNCONSCIOUS,
+		STATUS_MIA
 	};
 
 	enum {
@@ -77,16 +80,20 @@ public:
 	bool InUse() const			{ return status != STATUS_NOT_INIT; }
 	bool IsAlive() const		{ return status == STATUS_ALIVE; }
 
+	bool IsKIA() const			{ return status == STATUS_KIA; }
+	bool IsUnconscious() const	{ return status == STATUS_UNCONSCIOUS; }
+	bool IsMIA() const			{ return status == STATUS_MIA; }
+
 	int HP() const				{ return hp; }
 	float TU() const			{ return tu; }
 
 	// Do damage to this unit. Will create a Storage on the map, if the map is provided.
 	void DoDamage( const DamageDesc& damage, Map* map );
 	void UseTU( float val )		{ tu = grinliz::Max( 0.0f, tu-val ); }
+	void Leave();
 
 	void NewTurn();
 
-	int Status() const			{ return status; }
 	int Team() const			{ return team; }
 	int AlienType()	const		{ return type; }
 	int Gender() const			{ return GetValue( GENDER ); }
@@ -178,7 +185,7 @@ private:
 	void UpdateWeapon();	// set the gun position
 	void Kill( Map* map );
 
-	int status;
+	int status;		// alive, dead, etc.
 	int ai;			// normal or guard
 	int team;		// terran, alien, civ
 	int type;		// type of alien

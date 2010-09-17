@@ -121,10 +121,6 @@ public:
 
 	void Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent );
 
-	// Used by the queued rendering system:
-	//void PushMatrix( bool pushTextureToo ) const;
-	//void PopMatrix( bool popTextureToo ) const;
-
 	enum {
 		MODEL_SELECTABLE			= 0x01,
 		MODEL_HIDDEN_FROM_TREE		= 0x02,
