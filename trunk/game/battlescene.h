@@ -98,6 +98,7 @@ public:
 	virtual void Zoom( int action, int distance );
 	virtual void Rotate( int aciton, float degreesFromStart );
 	virtual void CancelInput() {}
+	virtual void SceneResult( int sceneID, int result );
 
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D );
 	virtual void DoTick( U32 currentTime, U32 deltaTime );

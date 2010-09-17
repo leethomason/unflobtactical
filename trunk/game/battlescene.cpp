@@ -2187,7 +2187,6 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 			engine->GetMap()->ClearNearPath();
 			if ( EndCondition( &tacticalData ) ) {
 				game->PushScene( Game::END_SCENE, new TacticalEndSceneData( tacticalData ) );
-				//SoundManager::Instance()->QueueSound( "blip" );
 			}
 			else {
 				NextTurn();
@@ -2211,6 +2210,28 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 		}
 	}
 	return tapped != 0;
+}
+
+
+void BattleScene::SceneResult( int sceneID, int result )
+{
+	const Model* model = engine->GetMap()->GetLanderModel();
+	Rectangle2I bounds;
+	engine->GetMap()->MapBoundsOfModel( model, &bounds );
+
+	if ( sceneID == Game::DIALOG_SCENE && result ) {
+		// Exit!
+		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+			if ( units[i].InUse() ) {
+				
+				Vector2I v = units[i].Pos();
+				if ( !bounds.Contains( v ) ) {
+					units[i].Leave();
+				}
+			}
+		}
+		game->PushScene( Game::END_SCENE, new TacticalEndSceneData( tacticalData ) );
+	}
 }
 
 
@@ -2488,7 +2509,7 @@ void BattleScene::MakePathBlockCurrent( Map* map, const void* user )
 	grinliz::BitArray<MAP_SIZE, MAP_SIZE, 1> block;
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
-		if (    units[i].Status() == Unit::STATUS_ALIVE 
+		if (    units[i].IsAlive() 
 			 && units[i].GetModel() 
 			 && &units[i] != exclude ) // oops - don't cause self to not path
 		{

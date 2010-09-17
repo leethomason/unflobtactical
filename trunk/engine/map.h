@@ -371,6 +371,7 @@ public:
 
 	gamui::Gamui	overlay0;
 	gamui::Gamui	overlay1;
+	grinliz::Random random;
 
 private:
 	// 0,90,180,270 rotation
@@ -453,7 +454,6 @@ private:
 
 	void DeleteItem( MapItem* item );
 
-	grinliz::Random random;
 	bool dayTime;
 	IPathBlocker* pathBlocker;
 	int width, height;
@@ -470,14 +470,12 @@ private:
 	void QueryAllDoors();			// figure out where the doors are, and write the doorArray
 	CDynArray< MapItem* >	doorArr;
 
-
 	enum { MAX_IMAGE_DATA = 16 };
 	struct ImageData {
 		int x, y, size, tileRotation;
 		grinliz::CStr<EL_FILE_STRING_LEN> name;
 	};
 	int nImageData;
-	ImageData imageData[ MAX_IMAGE_DATA ];
 
 	void GenerateLightMap();
 
@@ -503,42 +501,45 @@ private:
 	void SaveDebris( const Debris& d, TiXmlElement* parent );
 	void LoadDebris( const TiXmlElement* mapNode, ItemDef* const* arr );
 
-	// U8:
-	// bits 0-6:	sub-turns remaining (0-127)		(0x7F)
-	// bit    7:	set: fire, clear: smoke			(0x80)
-	U8 pyro[SIZE*SIZE];
-
 	int PyroOn( int x, int y ) const		{ return pyro[y*SIZE+x]; }
 	int PyroFire( int x, int y ) const		{ return pyro[y*SIZE+x] & 0x80; }
 	bool PyroSmoke( int x, int y ) const	{ return PyroOn( x, y ) && !PyroFire( x, y ); }
 	int PyroDuration( int x, int y ) const	{ return pyro[y*SIZE+x] & 0x7F; }
 
-	grinliz::BitArray<SIZE, SIZE, 1>	pathBlock;	// spaces the pather can't use (units are there)	
+	grinliz::BitArray<SIZE, SIZE, 1>			pathBlock;	// spaces the pather can't use (units are there)	
 
-	MP_VECTOR<void*>					mapPath;
-	MP_VECTOR< micropather::StateCost > stateCostArr;
+	MP_VECTOR<void*>							mapPath;
+	MP_VECTOR< micropather::StateCost >			stateCostArr;
 
 	CompositingShader							gamuiShader;
 	gamui::TiledImage<MAX_TU*2+1, MAX_TU*2+1>	walkingMap;
-	gamui::Image								border[	4];
+	gamui::Image								border[4];
+
+	grinliz::MemoryPool							itemPool;
+	QuadTree									quadTree;
+	CStringMap< MapItemDef* >					itemDefMap;
+
+	enum { MAX_GUARD_SCOUT = 24 };
+	int											nGuardPos;
+	int											nScoutPos;
+	int											nLanderPos;
+	const MapItem*								lander;
+	int											nSeenIndex, nUnseenIndex, nPastSeenIndex;
+
+	ImageData imageData[ MAX_IMAGE_DATA ];
+
+	// U8:
+	// bits 0-6:	sub-turns remaining (0-127)		(0x7F)
+	// bit    7:	set: fire, clear: smoke			(0x80)
+	U8 pyro[SIZE*SIZE];
 
 	U8									visMap[SIZE*SIZE];
 	U8									pathMap[SIZE*SIZE];
 
-	grinliz::MemoryPool					itemPool;
-	QuadTree							quadTree;
-	MapItemDef							itemDefArr[MAX_ITEM_DEF];
-	CStringMap< MapItemDef* >			itemDefMap;
-
-	enum { MAX_GUARD_SCOUT = 24 };
-	int nGuardPos;
-	int nScoutPos;
-	int nLanderPos;
-	const MapItem* lander;
 	grinliz::Vector2I					guardPos[MAX_GUARD_SCOUT];
 	grinliz::Vector2I					scoutPos[MAX_GUARD_SCOUT];
 
-	int									nSeenIndex, nUnseenIndex, nPastSeenIndex;
+	MapItemDef							itemDefArr[MAX_ITEM_DEF];
 	grinliz::Vector2F					mapVertex[(SIZE+1)*(SIZE+1)];		// in TEXTURE coordinates - need to scale up and swizzle for vertices.
 	U16									seenIndex[SIZE*SIZE*6];		
 	U16									unseenIndex[SIZE*SIZE*6];		

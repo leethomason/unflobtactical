@@ -341,9 +341,6 @@ void Engine::Draw()
 		{
 			LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, OPEN_LIGHT, 0, &color );
 			float ave = 0.7f*((color.x + color.y + color.z)*0.333f);
-			//glColor4f( ave, ave, ave, 1.0f );
-			//glColor4f( 1, 1, 1, 1 );
-			//glColor4f( color.x, color.y, color.z, 1 );
 			Color4F c = { ave, ave, ave, 1.0f };
 			map->DrawPastSeen( c );
 		}
@@ -354,10 +351,10 @@ void Engine::Draw()
 
 	// -------- Models ---------- //
 	renderQueue->Submit( 0, 0, 0, 0, bbRotation );
-
 	map->DrawOverlay( 1 );
-
 	renderQueue->Clear();
+
+	//spaceTree->Dump();
 }
 
 

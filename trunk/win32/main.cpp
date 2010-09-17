@@ -32,7 +32,7 @@
 #include "wglew.h"
 
 //#define TEST_ROTATION
-#define TEST_FULLSPEED
+//#define TEST_FULLSPEED
 
 #define IPOD_SCREEN_WIDTH	320
 #define IPOD_SCREEN_HEIGHT	480

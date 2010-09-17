@@ -61,9 +61,10 @@ public:
 	// Computed:
 	int TotalHP() const			{ return totalHP; }
 
-	float TotalTU() const	{ return totalTU; }			// one TU is one move
-	float AccuracyArea() const	{ return accuracy; }	// radius at 1 unit out
-	float Reaction() const	{ return reaction; }		// 0.0-1.0. The chance of reaction fire
+	float TotalTU() const		{ return totalTU; }			// one TU is one move
+	float AccuracyArea() const	{ return accuracy; }		// radius at 1 unit out
+	float Reaction() const		{ return reaction; }		// 0.0-1.0. The chance of reaction fire
+	float Constitution() const	{ return constitution; }	// 0-100
 
 	void Save( TiXmlElement* doc ) const;
 	void Load( const TiXmlElement* doc );
@@ -80,6 +81,7 @@ private:
 	float totalTU;
 	float accuracy;
 	float reaction;
+	float constitution;
 };
 
 

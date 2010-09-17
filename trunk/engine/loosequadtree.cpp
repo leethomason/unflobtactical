@@ -266,22 +266,64 @@ Model* SpaceTree::Query( const Plane* planes, int nPlanes, int required, int exc
 	return modelRoot;
 }
 
-
-/*
-void SpaceTree::Node::CalcAABB( Rectangle3F* aabb, const float yMin, const float yMax ) const
+void SpaceTree::Node::Add( Item* item ) 
 {
-	GLASSERT( yMin < yMax );
-	GLASSERT( looseSize > 0 );
+	GLASSERT( item->next == 0 );
+	GLASSERT( item->prev == 0 );
+	GLASSERT( item->node == this );
 
-	aabb->Set(	looseX, 
-				yMin, 
-				looseZ,
-				
-				looseX + looseSize, 
-				yMax, 
-				looseZ + looseSize );
+	if ( root ) { 
+		root->prev = item;
+	}
+	item->next = root;
+	item->prev = 0;
+	root = item;
+
+	for( Node* it=this; it; it=it->parent )
+		it->nModels++;
 }
-*/
+
+
+void SpaceTree::Node::Remove( Item* item ) 
+{
+	if ( root == item )
+		root = item->next;
+	if ( item->prev )
+		item->prev->next = item->next;
+	if ( item->next )
+		item->next->prev = item->prev;
+
+	item->next = 0;
+	item->prev = 0;
+
+	for( Node* it=this; it; it=it->parent )
+		it->nModels--;
+}
+
+
+#ifdef DEBUG
+void SpaceTree::Node::Dump()
+{
+	for( int i=0; i<depth; ++i )
+		GLOUTPUT(( "  " ));
+	GLOUTPUT(( "depth=%d nModels=%d (%.1f,%.1f)-(%.1f,%.1f)\n",
+				depth, nModels, 
+				looseAABB.min.x, looseAABB.min.z, 
+				looseAABB.max.x, looseAABB.max.z ));
+}
+
+
+void SpaceTree::Dump( Node* node )
+{
+	node->Dump();
+	for( int i=0; i<4; ++i )
+		if ( node->child[i] )
+			Dump( node->child[i] );
+}
+#endif
+
+
+
 
 void SpaceTree::QueryPlanesRec(	const Plane* planes, int nPlanes, int intersection, const Node* node, U32 positive )
 {
@@ -294,8 +336,6 @@ void SpaceTree::QueryPlanesRec(	const Plane* planes, int nPlanes, int intersecti
 	}
 	else if ( intersection == grinliz::INTERSECT ) 
 	{
-//		Rectangle3F aabb;
-//		node->CalcAABB( &aabb, yMin, yMax );
 		const Rectangle3F& aabb = node->looseAABB;
 		
 		int nPositive = 0;
@@ -357,13 +397,6 @@ void SpaceTree::QueryPlanesRec(	const Plane* planes, int nPlanes, int intersecti
 				}
 				if ( intersection == grinliz::INTERSECT ) {
 					const Rectangle3F& aabb = m->AABB();
-
-					// The AABB bounds are tighter and faster, but are
-					// only computed when the object is 0, 90, 180, or
-					// 270 degrees. Still, trims off a few more objects, 
-					// which are a few more draw calls, where all the time
-					// is going.
-
 					int compare = grinliz::INTERSECT;
 
 					for( int k=0; k<nPlanes; ++k ) {
