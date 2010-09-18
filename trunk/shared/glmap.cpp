@@ -3,7 +3,7 @@
 #include "../grinliz/glutil.h"
 
 
-CMapBase::CMapBase( bool str, int size )
+CMapBase::CMapBase( bool str, int size ) : EMPTY_BUCKET( (const char*)(1) )
 {
 	stringKey = str;
 	GLASSERT( sizeof( void*) == sizeof( unsigned char* ) );	// crazy just in case
@@ -57,7 +57,7 @@ void CMapBase::Add( const char* key, void* value )
 		memset( buckets, 0, sizeof(Bucket)*nBuckets );
 		
 		for( int i=0; i<tempNBuckets; ++i ) {
-			if ( tempBuckets[i].key > (const char*)(1) ) {
+			if ( tempBuckets[i].key > EMPTY_BUCKET ) {
 				Add( tempBuckets[i].key, tempBuckets[i].value );
 			}
 		}
@@ -97,7 +97,7 @@ void CMapBase::Remove( const char* key )
 	h = h & (nBuckets-1);
 
 	while ( buckets[h].key ) {
-		if ( (buckets[h].key > (const char*)(1)) && Equal( buckets[h].key, key )) {
+		if ( (buckets[h].key > EMPTY_BUCKET) && Equal( buckets[h].key, key )) {
 			buckets[h].key = (const char*)(1);
 			--nItems;
 			break;
@@ -115,7 +115,7 @@ void* CMapBase::Get( const char* key )
 	h = h & (nBuckets-1);
 
 	while ( buckets[h].key ) {
-		if ( (buckets[h].key > (const char*)(1)) && Equal( buckets[h].key, key )) {
+		if ( (buckets[h].key > EMPTY_BUCKET) && Equal( buckets[h].key, key )) {
 			return buckets[h].value;
 		}
 		++h;
@@ -133,7 +133,7 @@ bool CMapBase::Query( const char* key, void** value )
 	h = h & (nBuckets-1);
 
 	while ( buckets[h].key ) {
-		if ( (buckets[h].key > (const char*)(1)) && Equal( buckets[h].key, key )) {
+		if ( (buckets[h].key > EMPTY_BUCKET) && Equal( buckets[h].key, key )) {
 			if ( value )
 				*value = buckets[h].value;
 			return true;

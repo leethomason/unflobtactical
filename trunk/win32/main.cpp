@@ -338,8 +338,11 @@ int main( int argc, char **argv )
 						break;
 
 					case SDLK_p:
-						if ( mapMakerMode )
-							((Game*)game)->ShowPathing( !((Game*)game)->IsShowingPathing() );
+						//if ( mapMakerMode )
+						{
+							int pathing = (((Game*)game)->ShowingPathing() + 1) % 3;
+							((Game*)game)->ShowPathing( pathing );
+						}
 						break;
 
 					case SDLK_t:

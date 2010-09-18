@@ -552,6 +552,7 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		if ( units[i].IsAlive() && units[i].GetModel() ) {
+			engine->camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 			PushScrollOnScreen( units[i].GetModel()->Pos(), true );
 			break;
 		}

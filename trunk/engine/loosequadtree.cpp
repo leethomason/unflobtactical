@@ -211,7 +211,7 @@ SpaceTree::Node* SpaceTree::GetNode( int depth, int x, int z )
 {
 	GLASSERT( depth >=0 && depth < DEPTH );
 	int size = Map::SIZE >> depth;
-	int nx = x / size;	// FIXME: do it all with shifts
+	int nx = x / size;
 	int nz = z / size;
 
 	//const int base[DEPTH] = { 0, 1, 1+4, 1+4+16, 1+4+16+64, 1+4+16+64+256 };

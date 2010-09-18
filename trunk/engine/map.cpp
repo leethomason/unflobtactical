@@ -45,7 +45,6 @@ static const U8 BURN = 128;
 static const U8 FASTBURN = 255;
 
 const int Map::padArr0[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
-
 	
 const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] = 
 {
@@ -60,30 +59,30 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"farmTable2x1",	0,				0,			2,	1,	HP_MED,		BURN,		"ff","00"	},
 	{	"stonewall_unit",0,	"stonewall_unitD",		1,	1,	HP_MED,		0,			"f", "0" },
 	{	"stonewall_join",0,	"stonewall_unitD",		1,	1,	HP_MED,		0,			"f", "0" },
-	{	"woodfence",	0,				0,			2,	1,	HP_LOW,		FASTBURN,	"44", "0" },
+	{	"woodfence",	0,				0,			2,	1,	HP_LOW,		FASTBURN,	"44", "00" },
 	{	"oldwell",		0,				0,			1,	1,	HP_MED,		SLOWBURN,	"f", "0" },
 	{	"haypile",		0,				0,			2,	2,	HP_MED,		FASTBURN,	"ffff", "ffff" },
 	{	"whitepicketfence",	0,			0,			1,	1,	HP_LOW,		FASTBURN,	"1", "0" },
 
-	{	"woodCrnr",		0,				"woodCrnrD",1,	1,	HP_MED,		BURN,		"3" },
+	{	"woodCrnr",		0,				"woodCrnrD",1,	1,	HP_MED,		BURN,		"3", "3" },
 	{	"woodDoorCld",	"woodDoorOpn",	0,			1,	1,	HP_MED,		BURN,		"0", "1" },
-	{	"woodWall",		0,				0,			1,	1,	HP_MED,		BURN,		"1" },
+	{	"woodWall",		0,				0,			1,	1,	HP_MED,		BURN,		"1", "1" },
 	{	"woodWallWin",	0,				0,			1,	1,	HP_MED,		BURN,		"1", "0" },
 
 	// model		open			destroyed	cx, cz	hp			material	pather
-	{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	0,			"1" },
+	{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	0,			"1", "1" },
 	{	"ufo_WallCurve4", 0,			0,			4,	4,	INDESTRUCT,	0,			"0002" "0003" "0030" "1300",		// pather
 																					"0002" "0003" "0030" "1300" },	// visibility
 	{	"ufo_DoorCld",	"ufo_DoorOpn",	0,			1,	1,	HP_STEEL,	0,			"0", "1" },
-	{	"ufo_WallInn",	0,				0,			1,	1,	HP_STEEL,	0,			"1" },
-	{	"ufo_CrnrInn",	0,				0,			1,	1,	HP_STEEL,	0,			"3" },
+	{	"ufo_WallInn",	0,				0,			1,	1,	HP_STEEL,	0,			"1", "1" },
+	{	"ufo_CrnrInn",	0,				0,			1,	1,	HP_STEEL,	0,			"3", "3" },
 
 		// model		open			destroyed	cx, cz	hp			material	pather
 	{	"lander",		0,				0,			6,	6,	INDESTRUCT,	0,			"00ff00" "00ff00" "ff00ff" "ff00ff" "ff00ff" "ff00ff",
 																					"00ff00" "00ff00" "0f00f0" "0f00f0" "0f00f0" "0f00f0", 
 																					1 },
-	{	"guard",		0,				0,			1,  1,  INDESTRUCT, 0,			"0" },
-	{	"scout",		0,				0,			1,  1,  INDESTRUCT, 0,			"0" },
+	{	"guard",		0,				0,			1,  1,  INDESTRUCT, 0,			"0", "0" },
+	{	"scout",		0,				0,			1,  1,  INDESTRUCT, 0,			"0", "0" },
 
 	//	name			open	cx, cz		hp			fl	p	v	lt		x	y		cx  cy	 
 	{	"landerLight",	0,	0,	8, 10,		INDESTRUCT, 0,	0,	0,	0,		-1,	0,		1,	0 },
@@ -733,7 +732,6 @@ void Map::DoSubTurn( Rectangle2I* change )
 {
 	for( int i=0; i<SIZE*SIZE; ++i ) {
 		if ( pyro[i] ) {
-			// FIXME: worth making faster? Set up for debugging (uses utility functions)
 			int y = i/SIZE;
 			int x = i-y*SIZE;
 
@@ -1620,7 +1618,7 @@ void Map::DumpTile( int x, int y )
 }
 
 
-void Map::DrawPath()
+void Map::DrawPath( int mode )
 {
 	CompositingShader shader( true );
 
@@ -1630,7 +1628,7 @@ void Map::DrawPath()
 			float y = (float)j;
 
 			//const Tile& tile = tileArr[j*SIZE+i];
-			int path = GetPathMask( PATH_TYPE, i, j );
+			int path = GetPathMask( mode == 2 ? VISIBILITY_TYPE : PATH_TYPE, i, j );
 
 			if ( path == 0 ) 
 				continue;
@@ -2081,13 +2079,6 @@ void Map::SetLanderFlight( float normal )
 		for( int i=0; i<4; ++i ) {
 			for( int k=0; k<3; ++k )
 				ParticleSystem::Instance()->EmitPoint( 1, ParticleSystem::PARTICLE_SPHERE, color[k], colorV, p[i], 0.8f, v, 0.4f, 2000 );
-
-			// Better to emit "impact quad" FIXME
-//			if ( landerFlight == 0.0f ) {
-//				Vector3F vs = { 0, 0.2f, 0 };
-//				Color4F cs = { 248.0f/255.0f, 228.0f/255.0f, 8.0f/255.0f, 1.0f };
-//				ParticleSystem::Instance()->EmitPoint( 30, ParticleSystem::PARTICLE_HEMISPHERE, cs, colorV, p[i], 0.1f, vs, 0.2f, 4000 );
-//			}
 		}
 
 		model->SetPos( pos.x, h, pos.z );

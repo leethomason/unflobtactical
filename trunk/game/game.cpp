@@ -125,8 +125,6 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	loadCompleted = false;
 	PushPopScene();
 
-	mapmaker_showPathing = false;
-
 	TiXmlDocument doc( mapmaker_xmlFile.c_str() );
 	doc.LoadFile();
 	if ( !doc.Error() )
@@ -136,6 +134,7 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 
 void Game::Init()
 {
+	mapmaker_showPathing = 0;
 	scenePopQueued = false;
 	sceneResetQueued = false;
 	currentFrame = 0;
@@ -438,21 +437,11 @@ void Game::DoTick( U32 _currentTime )
 									20.f*(screenport.UIWidth()/screenport.UIHeight())*320.0f/480.0f, 
 									clip3D.IsValid() ? &clip3D : 0 );
 
-		if ( Engine::mapMakerMode ) {
-			if ( mapmaker_showPathing ) 
-				engine->EnableMap( false );
-
-			engine->Draw();
-
-			if ( mapmaker_showPathing ) {
-				engine->GetMap()->DrawPath();
-				engine->EnableMap( true );
-			}
+		engine->Draw();
+		if ( mapmaker_showPathing ) {
+			engine->GetMap()->DrawPath( mapmaker_showPathing );
 		}
-		else {
-			engine->Draw();
-			scene->Debug3D();
-		}
+		scene->Debug3D();
 		
 		const grinliz::Vector3F* eyeDir = engine->camera.EyeDir3();
 		ParticleSystem* particleSystem = ParticleSystem::Instance();
