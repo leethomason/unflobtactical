@@ -137,6 +137,7 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 void Game::Init()
 {
 	scenePopQueued = false;
+	sceneResetQueued = false;
 	currentFrame = 0;
 	memset( &profile, 0, sizeof( ProfileData ) );
 	surface.Set( Surface::RGBA16, 256, 256 );		// All the memory we will ever need (? or that is the intention)
@@ -151,12 +152,16 @@ void Game::Init()
 	GLASSERT( okay );
 
 	SoundManager::Create( database );
+	TextureManager::Create( database );
+	ImageManager::Create( database );
+	ModelResourceManager::Create();
+	ParticleSystem::Create();
+
 	engine = new Engine( &screenport, engineData, database );
 
 	LoadTextures();
 	modelLoader = new ModelLoader();
 	LoadModels();
-	LoadMapResources();
 	LoadItemResources();
 	LoadAtoms();
 
@@ -195,6 +200,10 @@ Game::~Game()
 	}
 	delete engine;
 	SoundManager::Destroy();
+	ParticleSystem::Destroy();
+	ModelResourceManager::Destroy();
+	ImageManager::Destroy();
+	TextureManager::Destroy();
 	delete database;
 }
 
@@ -255,9 +264,11 @@ void Game::PushPopScene()
 	if ( scenePopQueued || sceneQueued.sceneID != NUM_SCENES ) {
 		TextureManager::Instance()->ContextShift();
 	}
+	GLASSERT( !(sceneResetQueued && sceneQueued.sceneID != NUM_SCENES ));
 
-	if ( scenePopQueued ) {
-		GLASSERT( !sceneStack.Empty() );
+	while ( scenePopQueued || sceneResetQueued )
+	{
+		GLASSERT( sceneResetQueued || (!sceneStack.Empty()) );
 
 		sceneStack.Top().scene->DeActivate();
 		int result = sceneStack.Top().result;
@@ -266,15 +277,27 @@ void Game::PushPopScene()
 		sceneStack.Top().Free();
 		sceneStack.Pop();
 
-		GLASSERT( sceneQueued.sceneID !=NUM_SCENES || !sceneStack.Empty() );
-
-		if ( sceneStack.Size() ) {
+		if ( !sceneStack.Empty() ) {
 			sceneStack.Top().scene->Activate();
 			if ( result != INT_MIN ) {
 				sceneStack.Top().scene->SceneResult( id, result );
 			}
 		}
+		scenePopQueued = false;
+		if ( sceneStack.Empty() )
+			break;
 	}
+
+	if ( sceneResetQueued ) {
+		sceneResetQueued = false;
+		GLASSERT( sceneStack.Empty() );
+
+		delete engine;
+		engine = new Engine( &screenport, engineData, database );
+
+		PushScene( INTRO_SCENE, 0 );
+	}
+
 	if ( sceneQueued.sceneID != NUM_SCENES ) {
 		GLASSERT( sceneQueued.sceneID < NUM_SCENES );
 
@@ -294,7 +317,6 @@ void Game::PushPopScene()
 	}
 
 	sceneQueued.Free();
-	scenePopQueued = false;
 }
 
 

@@ -2230,6 +2230,7 @@ void BattleScene::SceneResult( int sceneID, int result )
 				}
 			}
 		}
+		EndCondition( &tacticalData );	// fills out tactical data...
 		game->PushScene( Game::END_SCENE, new TacticalEndSceneData( tacticalData ) );
 	}
 }
@@ -3306,10 +3307,10 @@ void BattleScene::MouseMove( int x, int y )
 const char* BattleScene::SelectionDesc()
 {
 	const char* result = "";
-	if ( mapmaker_currentMapItem >= 0x70 && mapmaker_currentMapItem < 0x80 ) {
-		if ( mapmaker_currentMapItem == 0x70 )
+	if ( mapmaker_currentMapItem >= Map::NUM_ITEM_DEF ) {
+		if ( mapmaker_currentMapItem == Map::NUM_ITEM_DEF )
 			result = "smoke";
-		else if ( mapmaker_currentMapItem == 0x71 )
+		else if ( mapmaker_currentMapItem == Map::NUM_ITEM_DEF+1 )
 			result = "fire";
 	}
 	else {
@@ -3381,8 +3382,9 @@ void BattleScene::DeleteAtSelection()
 void BattleScene::DeltaCurrentMapItem( int d )
 {
 	mapmaker_currentMapItem += d;
-	while ( mapmaker_currentMapItem < 0 ) { mapmaker_currentMapItem += Map::MAX_ITEM_DEF; }
-	while ( mapmaker_currentMapItem >= Map::MAX_ITEM_DEF ) { mapmaker_currentMapItem -= Map::MAX_ITEM_DEF; }
+	static const int MAX = Map::NUM_ITEM_DEF + 2;	// placeholder for smoke and fire
+	while ( mapmaker_currentMapItem < 0 ) { mapmaker_currentMapItem += MAX; }
+	while ( mapmaker_currentMapItem >= MAX ) { mapmaker_currentMapItem -= MAX; }
 	if ( mapmaker_currentMapItem == 0 ) mapmaker_currentMapItem = 1;
 	UpdatePreview();
 }

@@ -119,11 +119,6 @@ Engine::Engine( Screenport* port, const EngineData& _engineData, const gamedb::R
 		initZoomDistance( 0 ),
 		enableMap( true )
 {
-	TextureManager::Create( database );
-	ImageManager::Create( database );
-	ModelResourceManager::Create();
-	ParticleSystem::Create();
-
 	spaceTree = new SpaceTree( -0.1f, 3.0f );
 	map = new Map( spaceTree );
 	renderQueue = new RenderQueue();
@@ -144,11 +139,6 @@ Engine::~Engine()
 	delete renderQueue;
 	delete map;
 	delete spaceTree;
-
-	ParticleSystem::Destroy();
-	ModelResourceManager::Destroy();
-	ImageManager::Destroy();
-	TextureManager::Destroy();
 }
 
 

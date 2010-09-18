@@ -56,6 +56,66 @@ public:
 };
 
 
+struct MapItemDef 
+{
+	const char* resource;
+	const char* resourceOpen;
+	const char* resourceDestroyed;
+
+	int		cx, cy;
+	int		hp;					// 0xffff infinite, 0 destroyed
+	int		flammable;			// 0 - 255
+
+	const char* patherStr;
+	const char* visibilityStr;
+
+	int		lightDef;			// itemdef index of the light associated with this (is auto-created)
+	int		lightOffsetX;		// if light, offset of light origin from model origin
+	int		lightOffsetY;
+	int		lightTX;			// if a light, x location in texture
+	int		lightTY;			// if a light, y location in texture
+
+	const char* Name() const { return resource; }
+	const ModelResource* GetModelResource() const;
+	const ModelResource* GetOpenResource() const;
+	const ModelResource* GetDestroyedResource() const;
+
+	U32 Pather( int x, int y ) const {
+		GLASSERT( x < cx && y < cy );
+		if ( !patherStr )
+			return 0;
+
+		const char c = *(patherStr + y*cx + x );
+		if ( c >= 'a' )
+			return c - 'a' + 10;
+		return c - '0';
+	}
+	U32 Visibility( int x, int y ) const {
+		GLASSERT( x < cx && y < cy );
+		if ( !visibilityStr )
+			return 0;
+
+		const char c = *(visibilityStr + y*cx + x );
+		if ( c >= 'a' )
+			return c - 'a' + 10;
+		return c - '0';
+	}
+
+	// return true if the object can take damage
+	bool CanDamage() const	{ return hp != 0xffff; }
+	int HasLight() const	{ return lightDef; }
+	bool IsLight() const	{ return lightTX || lightTY; }
+	bool IsDoor() const		{ return resourceOpen != 0; }
+
+	grinliz::Rectangle2I Bounds() const 
+	{
+		grinliz::Rectangle2I b;
+		b.Set( 0, 0, cx-1, cy-1 );
+		return b;
+	}
+};
+
+
 class Map : public micropather::Graph,
 			public ITextureCreator,
 			public gamui::IGamuiRenderer
@@ -65,76 +125,9 @@ public:
 		SIZE = 64,					// maximum size. FIXME: duplicated in gamelimits.h
 		LOG2_SIZE = 6,
 
-		MAX_ITEM_DEF = 256,
-		LIGHT_START = 0xD0			// where the lights start in the itemDef array
+		NUM_ITEM_DEF = 26,
 	};
 
-	struct LightItemDef
-	{
-		int x, y;	// image space
-		int w, h;	// image space
-	};
-
-	struct Mat2I
-	{
-		int a, b, c, d, tx, ty;
-	};
-
-	struct MapItemDef 
-	{
-		enum {	MAX_CX = 6, 
-				MAX_CY = 6,
-			 };
-
-
-		void Init() {	cx = 1; 
-						cy = 1; 
-						hp = 0xffff; 
-						flammable = 0;
-
-						modelResource			= 0;
-						modelResourceOpen		= 0;
-						modelResourceDestroyed	= 0;
-
-						memset( pather, 0, MAX_CX*MAX_CY );
-						memset( visibility, 0, MAX_CX*MAX_CY );
-
-						lightDef = 0;
-						lightOffsetX = 0;
-						lightOffsetY = 0;
-						lightTX = 0;
-						lightTY = 0;
-					}
-
-		U16		cx, cy;
-		U16		hp;					// 0xffff infinite, 0 destroyed
-		U8		flammable;			// 0 - 255
-		U8		lightDef;			// itemdef index of the light associated with this (is auto-created)
-		S8		lightOffsetX;		// if light, offset of light origin from model origin
-		S8		lightOffsetY;
-		U8		lightTX;			// if a light, x location in texture
-		U8		lightTY;			// if a light, y location in texture
-
-		const ModelResource* modelResource;
-		const ModelResource* modelResourceOpen;
-		const ModelResource* modelResourceDestroyed;
-
-		grinliz::CStr< EL_FILE_STRING_LEN > name;
-		U8		pather[MAX_CX][MAX_CY];
-		U8		visibility[MAX_CX][MAX_CY];
-
-		// return true if the object can take damage
-		bool CanDamage() const	{ return hp != 0xffff; }
-		int HasLight() const	{ return lightDef; }
-		bool IsLight() const	{ return lightTX || lightTY; }
-		bool IsDoor() const		{ return modelResourceOpen != 0; }
-		grinliz::Rectangle2I Bounds() const 
-		{
-			grinliz::Rectangle2I b;
-			b.Set( 0, 0, cx-1, cy-1 );
-			return b;
-		}
-	};
 
 	struct MapItem
 	{
@@ -286,7 +279,7 @@ public:
 	const Storage* GetStorage( int x, int y ) const;		//< take a peek
 	void FindStorage( const ItemDef* itemDef, int maxLoc, grinliz::Vector2I* loc, int* numLoc );
 
-	MapItemDef* InitItemDef( int i );
+	//MapItemDef* InitItemDef( int i );
 	const char* GetItemDefName( int i );
 	const MapItemDef* GetItemDef( const char* name );
 
@@ -374,6 +367,13 @@ public:
 	grinliz::Random random;
 
 private:
+	static const int padArr0[16];
+	static const MapItemDef itemDefArr[NUM_ITEM_DEF];
+	static const int padArr1[16];
+
+
+	const MapItemDef*  lightDefStart;
+
 	// 0,90,180,270 rotation
 	static void XYRToWorld( int x, int y, int rotation, Matrix2I* mat );
 	// 0,90,180,270 rotation
@@ -517,7 +517,7 @@ private:
 
 	grinliz::MemoryPool							itemPool;
 	QuadTree									quadTree;
-	CStringMap< MapItemDef* >					itemDefMap;
+	CStringMap< const MapItemDef* >				itemDefMap;
 
 	enum { MAX_GUARD_SCOUT = 24 };
 	int											nGuardPos;
@@ -539,7 +539,6 @@ private:
 	grinliz::Vector2I					guardPos[MAX_GUARD_SCOUT];
 	grinliz::Vector2I					scoutPos[MAX_GUARD_SCOUT];
 
-	MapItemDef							itemDefArr[MAX_ITEM_DEF];
 	grinliz::Vector2F					mapVertex[(SIZE+1)*(SIZE+1)];		// in TEXTURE coordinates - need to scale up and swizzle for vertices.
 	U16									seenIndex[SIZE*SIZE*6];		
 	U16									unseenIndex[SIZE*SIZE*6];		

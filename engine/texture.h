@@ -50,6 +50,7 @@ public:
 
 	void Upload( const void* mem, int size );
 	void Upload( const Surface& surface );
+	bool Empty() const			{ return creator == 0 && item == 0 && gpuMem == 0 && name.empty(); }
 
 	U32 GLID();
 
@@ -92,6 +93,7 @@ public:
 	Texture* CreateTexture( const char* name, int w, int h, int format, 
 							Texture::Param parems = Texture::PARAM_NONE, 
 							ITextureCreator* create = 0 );
+	void DeleteTexture( Texture* );
 
 	void ContextShift();
 
@@ -131,6 +133,7 @@ private:
 	int cacheMiss;
 	int cacheHit;
 	int cacheReuse;
+	int emptySpace;
 
 	CArray< Texture, MAX_TEXTURES > textureArr;		// textures
 	CArray< GPUMem, MAX_TEXTURES > gpuMemArr;		// references into the GPU mem
