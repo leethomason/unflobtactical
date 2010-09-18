@@ -33,13 +33,102 @@ using namespace grinliz;
 using namespace micropather;
 
 
+static const int HP_LOW		= 10;
+static const int HP_MEDLOW		= 40;
+static const int HP_MED		= 80;
+static const int HP_HIGH		= 200;
+static const int HP_STEEL		= 400;
+static const int INDESTRUCT	= 0xffff;
+
+static const U8 SLOWBURN = 50;
+static const U8 BURN = 128;
+static const U8 FASTBURN = 255;
+
+const int Map::padArr0[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+
+	
+const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] = 
+{
+		// model		open			destroyed	cx, cz	hp			material	pather
+	{	"tree",			0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", 0 },
+	{	"tree2",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0" },
+	{	"tree3",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0" },
+
+		// model		open			destroyed	cx, cz	hp			flammable	pather visibility
+	{	"farmBed",		0,				0,			2,	2,	HP_MED,		BURN,		"f"	 "0"	},
+	{	"farmTable",	0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" 	},
+	{	"farmTable2x1",	0,				0,			2,	1,	HP_MED,		BURN,		"ff","00"	},
+	{	"stonewall_unit",0,	"stonewall_unitD",		1,	1,	HP_MED,		0,			"f", "0" },
+	{	"stonewall_join",0,	"stonewall_unitD",		1,	1,	HP_MED,		0,			"f", "0" },
+	{	"woodfence",	0,				0,			2,	1,	HP_LOW,		FASTBURN,	"44", "0" },
+	{	"oldwell",		0,				0,			1,	1,	HP_MED,		SLOWBURN,	"f", "0" },
+	{	"haypile",		0,				0,			2,	2,	HP_MED,		FASTBURN,	"ffff", "ffff" },
+	{	"whitepicketfence",	0,			0,			1,	1,	HP_LOW,		FASTBURN,	"1", "0" },
+
+	{	"woodCrnr",		0,				"woodCrnrD",1,	1,	HP_MED,		BURN,		"3" },
+	{	"woodDoorCld",	"woodDoorOpn",	0,			1,	1,	HP_MED,		BURN,		"0", "1" },
+	{	"woodWall",		0,				0,			1,	1,	HP_MED,		BURN,		"1" },
+	{	"woodWallWin",	0,				0,			1,	1,	HP_MED,		BURN,		"1", "0" },
+
+	// model		open			destroyed	cx, cz	hp			material	pather
+	{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	0,			"1" },
+	{	"ufo_WallCurve4", 0,			0,			4,	4,	INDESTRUCT,	0,			"0002" "0003" "0030" "1300",		// pather
+																					"0002" "0003" "0030" "1300" },	// visibility
+	{	"ufo_DoorCld",	"ufo_DoorOpn",	0,			1,	1,	HP_STEEL,	0,			"0", "1" },
+	{	"ufo_WallInn",	0,				0,			1,	1,	HP_STEEL,	0,			"1" },
+	{	"ufo_CrnrInn",	0,				0,			1,	1,	HP_STEEL,	0,			"3" },
+
+		// model		open			destroyed	cx, cz	hp			material	pather
+	{	"lander",		0,				0,			6,	6,	INDESTRUCT,	0,			"00ff00" "00ff00" "ff00ff" "ff00ff" "ff00ff" "ff00ff",
+																					"00ff00" "00ff00" "0f00f0" "0f00f0" "0f00f0" "0f00f0", 
+																					1 },
+	{	"guard",		0,				0,			1,  1,  INDESTRUCT, 0,			"0" },
+	{	"scout",		0,				0,			1,  1,  INDESTRUCT, 0,			"0" },
+
+	//	name			open	cx, cz		hp			fl	p	v	lt		x	y		cx  cy	 
+	{	"landerLight",	0,	0,	8, 10,		INDESTRUCT, 0,	0,	0,	0,		-1,	0,		1,	0 },
+	{	"fireLight",	0,	0,	5,	5,		INDESTRUCT, 0,	0,	0,	0,		-2, -2,		10, 0 }
+};
+
+const int Map::padArr1[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+
+
+const ModelResource* MapItemDef::GetModelResource() const
+{
+	if ( !resource || IsLight() )
+		return 0;
+
+	ModelResourceManager* resman = ModelResourceManager::Instance();
+	return resman->GetModelResource( resource );
+}
+
+
+const ModelResource* MapItemDef::GetOpenResource() const 
+{
+	if ( !resourceOpen )
+		return 0;
+
+	ModelResourceManager* resman = ModelResourceManager::Instance();
+	return resman->GetModelResource( resourceOpen );
+}
+
+
+const ModelResource* MapItemDef::GetDestroyedResource() const
+{
+	if ( !resourceDestroyed )
+		return 0;
+
+	ModelResourceManager* resman = ModelResourceManager::Instance();
+	return resman->GetModelResource( resourceDestroyed );
+}
+
+
 Map::Map( SpaceTree* tree )
 	: itemPool( "mapItemPool", sizeof( MapItem ), sizeof( MapItem ) * 200, false )
 {
 	memset( pyro, 0, SIZE*SIZE*sizeof(U8) );
 	memset( visMap, 0, SIZE*SIZE );
 	memset( pathMap, 0, SIZE*SIZE );
-	memset( itemDefArr, 0, sizeof(MapItemDef)*MAX_ITEM_DEF );
 	nGuardPos = 0;
 	nScoutPos = 0;
 	nLanderPos = 0;
@@ -64,6 +153,9 @@ Map::Map( SpaceTree* tree )
 	walkingMap.Init( &overlay0 );
 	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
 
+	lightDefStart = GetItemDef( "landerLight" );
+	GLASSERT( lightDefStart );
+
 	gamui::RenderAtom borderAtom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_DARK, 1, 1, true );
 #ifdef DEBUG_VISIBILITY
 	borderAtom.renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
@@ -74,7 +166,6 @@ Map::Map( SpaceTree* tree )
 		border[i].Init( &overlay1, borderAtom, false );
 	}
 
-	// FIXME: need a release texture, since the map can be destroyed. Doesn't leak, but needlessly holds resources.
 	TextureManager* texman = TextureManager::Instance();
 	backgroundTexture = texman->CreateTexture( "MapBackground", MAP_TEXTURE_SIZE, MAP_TEXTURE_SIZE, Surface::RGB16, Texture::PARAM_NONE, this );
 	greyTexture = texman->CreateTexture( "MapGrey", MAP_TEXTURE_SIZE/2, MAP_TEXTURE_SIZE/2, Surface::RGB16, Texture::PARAM_NONE, this );
@@ -116,6 +207,11 @@ Map::Map( SpaceTree* tree )
 
 Map::~Map()
 {
+	TextureManager* texman = TextureManager::Instance();
+	texman->DeleteTexture( backgroundTexture );
+	texman->DeleteTexture( greyTexture );
+	texman->DeleteTexture( lightMapTex );
+
 	Clear();
 	delete microPather;
 }
@@ -535,40 +631,35 @@ void Map::GenerateLightMap()
 
 
 
-Map::MapItemDef* Map::InitItemDef( int i )
+/*Map::MapItemDef* Map::InitItemDef( int i )
 {
 	GLASSERT( i > 0 );				// 0 is reserved
 	GLASSERT( i < MAX_ITEM_DEF );
 	return &itemDefArr[i];
 }
+*/
 
 
 const char* Map::GetItemDefName( int i )
 {
 	const char* result = "";
-	if ( i > 0 && i < MAX_ITEM_DEF ) {
-		result = itemDefArr[i].name.c_str();
+	if ( i > 0 && i < NUM_ITEM_DEF ) {
+		result = itemDefArr[i].Name();
 	}
 	return result;
 }
 
 
-const Map::MapItemDef* Map::GetItemDef( const char* name )
+const MapItemDef* Map::GetItemDef( const char* name )
 {
 	if ( itemDefMap.Empty() ) {
-		for( int i=0; i<MAX_ITEM_DEF; ++i ) {
-			if ( !itemDefArr[i].name.empty() ) {
-				itemDefMap.Add( itemDefArr[i].name.c_str(), itemDefArr+i );
+		for( int i=0; i<NUM_ITEM_DEF; ++i ) {
+			if ( itemDefArr[i].Name() ) {
+				itemDefMap.Add( itemDefArr[i].Name(), itemDefArr+i );
 			}
-#ifdef DEBUG
-			if ( itemDefArr[i].IsLight() ) {
-				GLASSERT( itemDefArr[i].pather[0][0] == 0 );
-				GLASSERT( itemDefArr[i].visibility[0][0] == 0 );
-			}
-#endif
 		}
 	}
-	Map::MapItemDef* item=0;
+	const MapItemDef* item=0;
 	itemDefMap.Query( name, &item );
 	return item;
 }
@@ -603,7 +694,7 @@ void Map::DoDamage( Model* m, const DamageDesc& damageDesc, Rectangle2I* dBounds
 		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 
 		int hp = (int)(damageDesc.energy + damageDesc.kinetic );
-		GLOUTPUT(( "map damage '%s' (%d,%d) dam=%d hp=%d\n", itemDef.name.c_str(), item->XForm().x, item->XForm().y, hp, item->hp ));
+		GLOUTPUT(( "map damage '%s' (%d,%d) dam=%d hp=%d\n", itemDef.Name(), item->XForm().x, item->XForm().y, hp, item->hp ));
 
 		bool destroyed = false;
 		if ( itemDef.CanDamage() && item->DoDamage(hp) ) 
@@ -748,15 +839,16 @@ void Map::SetPyro( int x, int y, int duration, int fire )
 Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 {
 	Model* model = 0;
-	if ( itemDefArr[defIndex].modelResource ) {
+	const ModelResource* resource = itemDefArr[defIndex].GetModelResource();
+	if ( resource ) {
 
 		Matrix2I m;
 		Vector3F modelPos;
 
 		XYRToWorld( x, y, rotation*90, &m );
-		WorldToModel( m, itemDefArr[defIndex].modelResource->header.IsBillboard(), &modelPos );
+		WorldToModel( m, resource->header.IsBillboard(), &modelPos );
 
-		model = tree->AllocModel( itemDefArr[defIndex].modelResource );
+		model = tree->AllocModel( resource );
 		model->SetPos( modelPos );
 		model->SetRotation( 90.0f * rotation );
 	}
@@ -859,41 +951,38 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	GLASSERT( x >= 0 && x < width );
 	GLASSERT( y >= 0 && y < height );
 	GLASSERT( rotation >=0 && rotation < 4 );
-	GLASSERT( defIndex > 0 && defIndex < MAX_ITEM_DEF );
+	GLASSERT( defIndex < NUM_ITEM_DEF );
 
-	if ( defIndex < Map::LIGHT_START && !itemDefArr[defIndex].modelResource ) {
+	if ( !itemDefArr[defIndex].resource ) {
 		GLOUTPUT(( "No model resource.\n" ));
 		GLASSERT( 0 );
 		return 0;
 	}
 
 		
-	const MapItemDef& itemDef = itemDefArr[defIndex];
+	const MapItemDef& itemDef			= itemDefArr[defIndex];
+	const ModelResource* modelResource	= itemDefArr[defIndex].GetModelResource();
 	bool metadata = false;
 
 	Matrix2I xform;
 	Vector3F modelPos;
 	XYRToWorld( x, y, rotation*90, &xform );
-	bool isBillboard = itemDefArr[defIndex].modelResource && itemDefArr[defIndex].modelResource->header.IsBillboard();
+	bool isBillboard = modelResource && modelResource->header.IsBillboard();
 	WorldToModel( xform, isBillboard, &modelPos );
 
-	if ( StrEqual( itemDef.name.c_str(), "ufo_WallCurve4" ) ) {
-		GLOUTPUT(( "Outer UFO wall added: x=%d y=%d r=%d\n", x, y, rotation ));
-	}
-
 	// Check for meta data.
-	if ( (itemDef.name == "guard") || (itemDef.name == "scout" )) {
+	if ( StrEqual( itemDef.Name(), "guard") || StrEqual( itemDef.Name(), "scout" )) {
 		metadata = true;
 
 		if ( !Engine::mapMakerMode ) {
 			// If we aren't in MapMaker mode, push back the guard and scout positions for later use.
 			// Don't actually add the model.
-			if ( itemDef.name == "guard" ) {
+			if ( StrEqual( itemDef.Name(), "guard" )) {
 				if ( nGuardPos < MAX_GUARD_SCOUT ) {
 					guardPos[nGuardPos++].Set( x, y );
 				}
 			}
-			else if ( itemDef.name == "scout" ) {
+			else if ( StrEqual( itemDef.Name(), "scout" )) {
 				if ( nScoutPos < MAX_GUARD_SCOUT ) {
 					scoutPos[nScoutPos++].Set( x, y );
 				}
@@ -929,7 +1018,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	if ( hp == -1 )
 		hp = itemDef.hp;
 
-	if ( itemDefArr[defIndex].name == "lander" ) {
+	if ( StrEqual( itemDefArr[defIndex].Name(), "lander" )) {
 		GLASSERT( lander == 0 );
 		lander = item;
 	}
@@ -955,17 +1044,18 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	
 	// Check for lights.
 	if ( itemDefArr[defIndex].HasLight() ) {
-		item->light = AddLightItem( x, y, rotation, itemDefArr[defIndex].HasLight(), 0xffff, flags );
+		int offset = (lightDefStart - itemDefArr) - 1;
+		item->light = AddLightItem( x, y, rotation, offset + itemDefArr[defIndex].HasLight(), 0xffff, flags );
 	}
 
 	quadTree.Add( item );
 
 	const ModelResource* res = 0;
 	if ( itemDefArr[defIndex].CanDamage() && hp == 0 ) {
-		res = itemDef.modelResourceDestroyed;
+		res = itemDef.GetDestroyedResource();
 	}
 	else {
-		res = itemDef.modelResource;
+		res = itemDef.GetModelResource();
 	}
 	if ( res ) {
 		Model* model = tree->AllocModel( res );
@@ -1037,7 +1127,6 @@ void Map::PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rota
 		GLASSERT( lander );		
 
 		Matrix2I xform = lander->XForm();
-		//CalcModelPos( lander, 0, 0, &xform );
 
 		Vector2I obj = { 2 + (nLanderPos & 1), 5 - (nLanderPos / 2) };
 		Vector2I world = xform * obj;
@@ -1127,10 +1216,6 @@ void Map::Save( TiXmlElement* mapElement )
 	for( ; item; item=item->next ) {
 		TiXmlElement* itemElement = new TiXmlElement( "Item" );
 
-		if ( StrEqual( itemDefArr[item->itemDefIndex].name.c_str(), "ufo_WallCurve4" ) ) {
-			int debug = 1;
-		}
-
 		int x, y, r;
 		WorldToXYR( item->XForm(), &x, &y, &r, true );
 
@@ -1139,7 +1224,7 @@ void Map::Save( TiXmlElement* mapElement )
 		if ( r != 0 )
 			itemElement->SetAttribute( "rot", r );
 		// old, rigid approach: itemElement->SetAttribute( "index", item->itemDefIndex );
-		itemElement->SetAttribute( "name", itemDefArr[item->itemDefIndex].name.c_str() );
+		itemElement->SetAttribute( "name", itemDefArr[item->itemDefIndex].Name() );
 
 		if ( item->hp != itemDefArr[item->itemDefIndex].hp )
 			itemElement->SetAttribute( "hp", item->hp );
@@ -1368,7 +1453,7 @@ bool Map::ProcessDoors( const grinliz::Vector2I* openers, int nOpeners )
 		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 
 		GLASSERT( itemDef.IsDoor() );
-		GLASSERT( itemDef.modelResourceOpen );
+		GLASSERT( itemDef.resourceOpen );
 		GLASSERT( itemDef.cx == 1 && itemDef.cy == 1 );
 
 		if ( !item->Destroyed() ) {
@@ -1396,11 +1481,11 @@ bool Map::ProcessDoors( const grinliz::Vector2I* openers, int nOpeners )
 				const ModelResource* res = 0;
 				if ( shouldBeOpen ) {
 					item->open = 1;
-					res = itemDef.modelResourceOpen;
+					res = itemDef.GetOpenResource();
 				}
 				else {
 					item->open = 0;
-					res = itemDef.modelResource;
+					res = itemDef.GetModelResource();
 				}
 
 				if ( res ) {
@@ -1519,10 +1604,10 @@ void Map::DumpTile( int x, int y )
 		while ( root ) {
 			GLASSERT( root->itemDefIndex > 0 );
 			const MapItemDef& itemDef = itemDefArr[ root->itemDefIndex ];
-			GLASSERT( !itemDef.name.empty() );
+			GLASSERT( itemDef.Name() );
 
 			int r = root->modelRotation;
-			UFOText::Draw( 0, 100-12*i, "%s r=%d", itemDef.name.c_str(), r );
+			UFOText::Draw( 0, 100-12*i, "%s r=%d", itemDef.Name(), r );
 
 			++i;
 			root = root->next;
@@ -1635,7 +1720,7 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& _bounds )
 	MapItem* item = quadTree.FindItems( bounds, 0, MapItem::MI_IS_LIGHT );
 	while( item ) {
 		if ( !item->Destroyed() ) {
-			GLASSERT( item->itemDefIndex > 0 );
+			GLASSERT( item->itemDefIndex < NUM_ITEM_DEF );
 			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 			
 			int rot = item->modelRotation;
@@ -1652,7 +1737,6 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& _bounds )
 
 					GLASSERT( world.x >= 0 && world.x < SIZE );
 					GLASSERT( world.y >= 0 && world.y < SIZE );
-					GLASSERT( obj.x < MapItemDef::MAX_CX && obj.y < MapItemDef::MAX_CY );
 
 					// Account for tile rotation. (Actually a bit rotation too, which is handy.)
 					// The OR operation is important. This routine will write outside of the bounds,
@@ -1663,7 +1747,7 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& _bounds )
 					if ( item->open == 0 )
 					{
 						// Path
-						U32 p = ( itemDef.pather[obj.y][obj.x] << rot );
+						U32 p = ( itemDef.Pather(obj.x, obj.y ) << rot );
 						GLASSERT( p == 0 || !itemDef.IsLight() );
 						p = p | (p>>4);
 						pathMap[ world.y*SIZE + world.x ] |= p;
@@ -1671,7 +1755,7 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& _bounds )
 					if ( item->open == 0 )
 					{
 						// Visibility
-						U32 p = ( itemDef.visibility[obj.y][obj.x] << rot );
+						U32 p = ( itemDef.Visibility( obj.x, obj.y ) << rot );
 						GLASSERT( p == 0 || !itemDef.IsLight() );
 						p = p | (p>>4);
 						visMap[ world.y*SIZE + world.x ] |= p;
@@ -2253,3 +2337,27 @@ void Map::Render( const void* renderState, const void* textureHandle, int nIndex
 
 	gamuiShader.Draw( nIndex, (const uint16_t*)index );
 }
+
+/*
+void Map::InitMapLight( int index, const MapLightInit* init )
+{
+	while( init->name ) 
+	{
+		Map::MapItemDef* itemDef = engine->GetMap()->InitItemDef( index );
+		itemDef->Init();
+	
+		GLASSERT( init->x || init->y );
+
+		itemDef->name = init->name;
+		itemDef->lightOffsetX = init->objectX;
+		itemDef->lightOffsetY = init->objectY;
+		itemDef->lightTX = init->x;
+		itemDef->lightTY = init->y;
+		itemDef->cx = init->cx;
+		itemDef->cy = init->cy;
+
+		++init;
+		++index;
+	}
+}
+*/

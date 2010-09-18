@@ -32,6 +32,7 @@ TextureManager::TextureManager( const gamedb::Reader* reader )
 	cacheHit = 0;
 	cacheReuse = 0;
 	cacheMiss = 0;
+	emptySpace = 0;
 	database = reader;
 	parent = database->Root()->Child( "textures" );
 	GLASSERT( parent );
@@ -103,11 +104,39 @@ Texture* TextureManager::CreateTexture( const char* name, int w, int h, int form
 {
 	GLASSERT( !map.Query( name, 0 ) );
 
-	Texture* t = textureArr.Push();
+	Texture* t = 0;
+
+	if ( emptySpace ) {
+		for( unsigned i=0; i<textureArr.Size(); ++i ) {
+			if ( textureArr[i].Empty() ) {
+				t = &textureArr[i];
+				--emptySpace;
+			}
+		}
+	}
+	else {
+		t = textureArr.Push();
+	}
+	GLASSERT( t );
+
 	t->Set( name, w, h, format, flags );
 	t->creator = creator;
 	map.Add( t->Name(), t );
 	return t;
+}
+
+
+void TextureManager::DeleteTexture( Texture* t )
+{
+	GLASSERT( map.Query( t->Name(), 0 ) );
+
+	// Disconnect the GPU memory.
+	ContextShift();
+
+	map.Remove( t->Name() );
+	GLASSERT( t->gpuMem == 0 );
+	++emptySpace;
+	memset( t, 0, sizeof( Texture ) );
 }
 
 

@@ -138,6 +138,7 @@ public:
 
 	void PushScene( int sceneID, SceneData* data );
 	void PopScene( int result = INT_MAX );
+	void PopAllAndReset()	{ sceneResetQueued = true; }
 
 	U32 CurrentTime() const	{ return currentTime; }
 	U32 DeltaTime() const	{ return currentTime-previousTime; }
@@ -188,11 +189,12 @@ private:
 	Surface surface;
 
 	void PushPopScene();
-	bool scenePopQueued;
 	void ProcessLoadRequest();
 
-	bool	loadCompleted;
-
+	bool scenePopQueued;
+	bool sceneResetQueued;
+	bool loadCompleted;
+/*
 	struct MapLightInit
 	{
 		const char* name;
@@ -215,30 +217,29 @@ private:
 		int cy;
 		int hp;
 		float flammable;		// 0 - 1
-		/*
-			+----X
-			|			4
-			|		8		2
-			Z			1
-
-		*/
+		//
+		//	+----X
+		//	|			4
+		//	|		8		2
+		//	Z			1
+		//
+		
 		const char* pather;
 		const char* visibility;
 		int lightDef;
 	};
-
+*/
 	void Init();
 	void LoadTextures();
 	void LoadModels();
 	void LoadModel( const char* name );
-	void LoadMapResources();
 	void LoadItemResources();
 	void LoadAtoms();
 
 	void DumpWeaponInfo( FILE* fp, float range, const Stats& stats, int count );
 
-	void InitMapLight( int index, const MapLightInit* init );
-	void InitMapItemDef( int startIndex, const MapItemInit* );
+//	void InitMapLight( int index, const MapLightInit* init );
+//	void InitMapItemDef( int startIndex, const MapItemInit* );
 
 	int currentFrame;
 	U32 markFrameTime;

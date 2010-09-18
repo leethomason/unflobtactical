@@ -66,8 +66,11 @@ void HelpScene::Layout()
 {
 	const gamedb::Reader* reader = game->GetDatabase();
 	const gamedb::Item* rootItem = reader->Root();
+	GLASSERT( rootItem );
 	const gamedb::Item* textItem = rootItem->Child( "text" );
+	GLASSERT( textItem );
 	const gamedb::Item* helpItem = textItem->Child( helpName );
+	GLASSERT( helpItem );
 
 	int nPages = helpItem->NumChildren();
 	while( currentScreen < 0 ) currentScreen += nPages;

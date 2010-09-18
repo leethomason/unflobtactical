@@ -140,8 +140,7 @@ void TacticalUnitScoreScene::Tap(	int action,
 		if ( fp ) {
 			fclose( fp );
 		}
-		game->PopScene();
-		game->PushScene( Game::INTRO_SCENE, 0 );
+		game->PopAllAndReset();
 	}
 }
 
