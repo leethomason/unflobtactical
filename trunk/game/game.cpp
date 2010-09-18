@@ -107,15 +107,16 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	char buffer[128];
 	SNPrintf( buffer, 128, "%4s_%2d_%4s_%02d", base.set, base.size, base.type, base.variation );
 
-	mapmaker_xmlFile  = std::string( path );
-	mapmaker_xmlFile += std::string( buffer );
-	mapmaker_xmlFile += std::string( ".xml" );
-	std::string texture  = std::string( buffer ); 
-				texture += std::string( "_TEX" );
-	std::string dayMap   = std::string( buffer );
-				dayMap  += std::string( "_DAY" );
-	std::string nightMap  = std::string( buffer );
-				nightMap += std::string( "_NGT" );
+	mapmaker_xmlFile  = path;
+	mapmaker_xmlFile += buffer;
+	mapmaker_xmlFile += ".xml";
+
+	GLString	texture  = buffer; 
+				texture += "_TEX";
+	GLString	dayMap   = buffer;
+				dayMap  += "_DAY";
+	GLString	nightMap  = buffer;
+				nightMap += "_NGT";
 
 	engine->camera.SetPosWC( -25.f, 45.f, 30.f );	// standard test
 	engine->camera.SetYRotation( -60.f );

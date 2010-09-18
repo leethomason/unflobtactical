@@ -280,8 +280,8 @@ private:
 	gamui::ButtonLook buttonLooks[LOOK_COUNT];
 	
 	int		mapmaker_showPathing;	// 0 off, 1 path, 2 vis
-	std::string mapmaker_xmlFile;
-	grinliz::ProfileData profile;
+	grinliz::GLString		mapmaker_xmlFile;
+	grinliz::ProfileData	profile;
 
 	ItemDef*			itemDefArr[EL_MAX_ITEM_DEFS];
 };

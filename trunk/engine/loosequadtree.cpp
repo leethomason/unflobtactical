@@ -558,8 +558,7 @@ void SpaceTree::Draw()
 			else
 				shader.SetColor( 0.f, 1.f, 0.f, 0.5f );
 
-			static const int index[6] = { 0, 1, 2, 0, 2, 3 };
-//			shader.SetVertex( 3, 0, v );
+			static const uint16_t index[6] = { 0, 1, 2, 0, 2, 3 };
 			shader.Draw( 6, index );
 		}
 	}

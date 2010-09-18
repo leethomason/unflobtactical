@@ -302,7 +302,7 @@ void GPUShader::Draw( int index, const uint16_t* elements )
 	CHECK_GL_ERROR;
 }
 
-
+/*
 void GPUShader::Draw( int index, const int* elements ) 
 {
 	CHECK_GL_ERROR;
@@ -315,6 +315,7 @@ void GPUShader::Draw( int index, const int* elements )
 	glDrawElements( GL_TRIANGLES, index, GL_UNSIGNED_INT, elements );
 	CHECK_GL_ERROR;
 }
+*/
 
 
 void GPUShader::SwitchMatrixMode( MatrixType type )
