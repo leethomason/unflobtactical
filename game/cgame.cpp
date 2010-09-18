@@ -39,6 +39,7 @@ void* NewGame( int width, int height, int rotation, const char* path )
 
 void DeleteGame( void* handle )
 {
+	GLOUTPUT(( "DeleteGame. handle=%x\n", handle ));
 	if ( handle ) {
 		Game* game = (Game*)handle;
 		delete game;
@@ -47,12 +48,14 @@ void DeleteGame( void* handle )
 
 
 void GameResize( void* handle, int width, int height, int rotation ) {
+	GLOUTPUT(( "GameResize. handle=%x\n", handle ));
 	Game* game = (Game*)handle;
 	game->Resize( width, height, rotation );
 }
 
 
 void GameSave( void* handle ) {
+	GLOUTPUT(( "GameSave. handle=%x\n", handle ));
 	Game* game = (Game*)handle;
 	game->Save();
 }
@@ -60,6 +63,7 @@ void GameSave( void* handle ) {
 
 void GameDeviceLoss( void* handle )
 {
+	GLOUTPUT(( "GameDeviceLoss. handle=%x\n", handle ));
 	Game* game = (Game*)handle;
 	game->DeviceLoss();
 }

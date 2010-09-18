@@ -1635,7 +1635,7 @@ void Map::DrawPath( int mode )
 
 			Vector3F red[12];
 			Vector3F green[12];
-			static const int index[12] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+			static const uint16_t index[12] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 			int	nRed = 0, nGreen = 0;	
 			const float EPS = 0.2f;
 

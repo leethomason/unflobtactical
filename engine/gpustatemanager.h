@@ -77,7 +77,7 @@ public:
 	void PopMatrix( MatrixType type );
 
 	void Draw( int index, const uint16_t* elements );
-	void Draw( int index, const int* elements );
+	//void Draw( int index, const int* elements );
 
 	int SortOrder()	const { 
 		if ( blend ) return 2;

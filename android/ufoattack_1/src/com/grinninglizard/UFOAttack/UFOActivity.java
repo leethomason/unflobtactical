@@ -53,13 +53,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
-import android.gesture.GestureOverlayView.OnGestureListener;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.View.OnClickListener;
 
 public class UFOActivity extends Activity  {
     @Override
@@ -69,17 +64,9 @@ public class UFOActivity extends Activity  {
         mGLView = new DemoGLSurfaceView(this);
         setContentView(mGLView);
         loadUFOAssets();
-        
-//        mGLView.setOnClickListener( this );
     }
 
-    
-  //  public void onClick(View v) {
-  //      System.out.println( "onClick ");
-  //  }
-
-
-    @Override
+     @Override
     protected void onPause() {
         super.onPause();
         mGLView.onPause();
@@ -94,6 +81,7 @@ public class UFOActivity extends Activity  {
     }
     
     protected void onDestroy() {
+    	super.onDestroy();
     	DemoRenderer.nativeDone();
     }
     
@@ -130,94 +118,16 @@ public class UFOActivity extends Activity  {
     }
 }
 
-
-class GestureProcessor extends GestureDetector.SimpleOnGestureListener {
-	public GestureProcessor() {
-		super();
-	}
-	
-	@Override
-	public boolean onSingleTapConfirmed(MotionEvent  e) {
-		System.out.println( "single tap confirmed " + e.getX() + " " + e.getY() );
-		return false;
-	}
-	
-	@Override
-	public boolean onSingleTapUp( MotionEvent e ) {
-		System.out.println( "single tap confirmed " + e.getX() + " " + e.getY() );
-		return false;
-	}
-}
-
-class DemoGLSurfaceView extends GLSurfaceView implements GestureDetector.OnGestureListener { 
+class DemoGLSurfaceView extends GLSurfaceView  { 
     public DemoGLSurfaceView(Context context) {
         super(context);
         mRenderer = new DemoRenderer();
-        setRenderer(mRenderer);
-        
-        gestureDetector = new GestureDetector( this );
-        
-        //gestureProcessor = new GestureProcessor();
-        //gestureDetector = new GestureDetector( gestureProcessor );
-        //setOnTouchListener(gestureDetector);
-
-//        gestureDetector = new GestureDetector(new GestureProcessor() );
-//        new OnTouchListener() {
-//            public boolean onTouch(View v, MotionEvent event) {
-//                if (gestureDetector.onTouchEvent(event)) {
-//                    return true;
-//                }
-//                return false;
-//            }
-//        };
+        setRenderer(mRenderer);        
     }
-    
-//    public boolean onTouchEvent(MotionEvent  event) {
-//		System.out.println( "onTouchEvent" );
-//   	return gestureDetector.onTouchEvent( event );
-//    }
-    
-    @Override  
-    public boolean onTouchEvent(MotionEvent e) {  
-    	return gestureDetector.onTouchEvent(e);  
-    }      
-    @Override  
-    public boolean onDown(MotionEvent e) {  
-    	System.out.println( "onDown" ); 
-    	return true;  
-    }  
-          
-    @Override  
-    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {  
-    	System.out.println( "onFling" ); 
-    	return true;  
-    }  
-          
-    @Override  
-    public void onLongPress(MotionEvent e) {  
-    	System.out.println( "onLongPress" ); 
-    }  
-          
-    @Override  
-    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {  
-    	System.out.println( "onScroll" ); 
-    	return true;  
-    }  
-          
-    @Override  
-    public void onShowPress(MotionEvent e) {  
-    	System.out.println( "onShowPress" ); 
-    }      
-          
-    @Override  
-    public boolean onSingleTapUp(MotionEvent e) {  
-    	System.out.println( "onSingleTapUp" ); 
-    	return true;  
-    }  
+      
     public DemoRenderer mRenderer;
-//    private GestureProcessor gestureProcessor;
-    private GestureDetector gestureDetector;
 }
+
 
 class DemoRenderer implements GLSurfaceView.Renderer {
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
