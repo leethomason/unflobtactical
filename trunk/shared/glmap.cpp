@@ -115,7 +115,7 @@ void* CMapBase::Get( const char* key )
 	h = h & (nBuckets-1);
 
 	while ( buckets[h].key ) {
-		if ( Equal( buckets[h].key, key )) {
+		if ( (buckets[h].key > (const char*)(1)) && Equal( buckets[h].key, key )) {
 			return buckets[h].value;
 		}
 		++h;
