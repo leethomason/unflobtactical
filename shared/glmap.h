@@ -48,6 +48,7 @@ private:
 		GLASSERT( !same || strcmp( s0, s1 )==0 );	// if this fires, we have 2 pointers to 2 different strings, and the entire memory model is blown
 		return same;
 	}
+	const char* EMPTY_BUCKET;
 	bool stringKey;
 	Bucket* buckets;
 	int nBuckets;		// power of 2 - avoid the divide

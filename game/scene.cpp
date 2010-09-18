@@ -50,7 +50,7 @@ void BackgroundUI::Init( Game* game, gamui::Gamui* g )
 
 void NameRankUI::Init( gamui::Gamui* g )
 {
-	gamui::RenderAtom rankAtom = UIRenderer::CalcIconAtom( ICON_RANK_0 );	// fixme, need more ranks
+	gamui::RenderAtom rankAtom = UIRenderer::CalcIconAtom( ICON_RANK_0 );
 	rank.Init( g, rankAtom, true );
 	name.Init( g );
 }

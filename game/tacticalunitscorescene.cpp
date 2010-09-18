@@ -40,8 +40,8 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, const TacticalEndSc
 	int count=0;
 	float yPos = 100.0f;
 	float xPos0 = 50.0f;
-	float xPos1 = 220.0f;
-	float xPos2 = 300.0f;
+	float xPos1 = 240.0f;
+	float xPos2 = 320.0f;
 	float size = 20.0f;
 
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
@@ -64,7 +64,7 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, const TacticalEndSc
 			status[count].SetPos( xPos1, yPos );
 
 			int kills = data->units[i].KillsCredited();
-			bool purpleCircle = ( data->units[i].HP() != data->units[i].GetStats().TotalHP() && data->units[i].IsAlive() );
+			bool purpleCircle = data->units[i].HP() != data->units[i].GetStats().TotalHP() && !data->units[i].IsKIA();
 			int exp = kills + (purpleCircle ? 2 : 0);
 			float x = xPos2;
 

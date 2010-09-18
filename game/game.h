@@ -121,8 +121,8 @@ public:
 	void DeltaCurrentMapItem( int d );
 
 	// MapMaker methods
-	void ShowPathing( bool show )	{ mapmaker_showPathing = show; }
-	bool IsShowingPathing()			{ return mapmaker_showPathing; }
+	void ShowPathing( int show )	{ mapmaker_showPathing = show; }
+	int ShowingPathing()			{ return mapmaker_showPathing; }
 
 	enum {	MAX_NUM_LIGHT_MAPS = 16,
 
@@ -279,7 +279,7 @@ private:
 	gamui::RenderAtom renderAtoms[ATOM_COUNT];
 	gamui::ButtonLook buttonLooks[LOOK_COUNT];
 	
-	bool		mapmaker_showPathing;
+	int		mapmaker_showPathing;	// 0 off, 1 path, 2 vis
 	std::string mapmaker_xmlFile;
 	grinliz::ProfileData profile;
 

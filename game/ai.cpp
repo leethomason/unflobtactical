@@ -181,7 +181,6 @@ int AI::ThinkShoot(  const Unit* theUnit,
 
 					if ( theUnit->FireStatistics( (WeaponMode)mode, len, &chance, &anyChance, &tu, &dptu ) ) {
 						float score = dptu;	// Interesting: good AI, but results in odd choices.
-											// FIXME: add back in, less of a factor / (float)units[i].GetStats().HPFraction();
 
 						if ( wid->IsExplosive( (WeaponMode)mode ) ) {
 							if ( len < MINIMUM_EXPLOSIVE_RANGE ) {

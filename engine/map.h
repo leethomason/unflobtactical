@@ -84,21 +84,36 @@ struct MapItemDef
 		GLASSERT( x < cx && y < cy );
 		if ( !patherStr )
 			return 0;
-
+#ifdef DEBUG
+		GLASSERT( strlen( patherStr ) == cx*cy );
+		GLASSERT( strlen( visibilityStr ) == cx*cy );
+#endif
 		const char c = *(patherStr + y*cx + x );
+		U32 result = 0;
 		if ( c >= 'a' )
-			return c - 'a' + 10;
-		return c - '0';
+			result =  c - 'a' + 10;
+		else
+			result = c - '0';
+		GLASSERT( result >= 0 && result < 16 );
+		return result;
 	}
-	U32 Visibility( int x, int y ) const {
+	U32 Visibility( int x, int y ) const 
+	{
 		GLASSERT( x < cx && y < cy );
 		if ( !visibilityStr )
 			return 0;
-
+#ifdef DEBUG
+		GLASSERT( strlen( patherStr ) == cx*cy );
+		GLASSERT( strlen( visibilityStr ) == cx*cy );
+#endif
 		const char c = *(visibilityStr + y*cx + x );
+		U32 result = 0;
 		if ( c >= 'a' )
-			return c - 'a' + 10;
-		return c - '0';
+			result =  c - 'a' + 10;
+		else
+			result = c - '0';
+		GLASSERT( result >= 0 && result < 16 );
+		return result;
 	}
 
 	// return true if the object can take damage
@@ -249,7 +264,7 @@ public:
 	void DrawUnseen();		//< draw the map that currently can't be seen
 	void DrawPastSeen( const Color4F& );		//< draw the map that currently can't be seen
 
-	void DrawPath();		//< debugging
+	void DrawPath( int mode );		//< debugging
 	void DrawOverlay( int layer );		//< draw the "where can I walk" alpha overlay. Set up by ShowNearPath().
 
 	// Do damage to a singe map object.

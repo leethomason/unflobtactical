@@ -162,9 +162,10 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	seedButton.SetSize( 50, 50 );
 
 	{
-		int t = (int)time( 0 );
+		int t = (int)time( 0 ) + (int)clock();
+		Random random( t );
 		char buf[5];
-		SNPrintf( buf, 5, "%d" );
+		SNPrintf( buf, 5, "%d", random.Rand( 1000 ) );
 		seedButton.SetText( buf );
 	}
 	seedButton.SetVisible( false );

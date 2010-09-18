@@ -43,7 +43,12 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 	static const float DELTA = 20.0f;
 	
 	victory.Init( &gamui2D );
-	victory.SetText( data->nTerransAlive ? "Victory!" : "Defeat" );
+	if ( data->nTerransAlive && !data->nAliensAlive )
+		victory.SetText( "Victory!" );
+	else if ( !data->nTerransAlive && data->nTerrans )
+		victory.SetText( "Defeat." );
+	else 
+		victory.SetText( "Mission Summary:" );
 	victory.SetPos( XPOS, YPOS );
 
 	const char* text[TEXT_ROW] = { "Soldiers survived",  "Soldiers killed", "Aliens survived", "Aliens killed" };
