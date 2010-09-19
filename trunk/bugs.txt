@@ -1,8 +1,6 @@
 Issues:
 
 Bugs:
-- liftoff button
-- restart game
 - finish Android port
 
 Architecture
@@ -21,7 +19,6 @@ TBD:
 - mission types: terror
 - mission types: big ufos
 - mission types: base
-- mission types: crash
 - re-size after load?
 ? pauses when move - profiler?
 - Art: better human models
@@ -31,7 +28,6 @@ TBD:
 - Pinching doesn't feel right
 - tutorial notes infrastructure
 - performance: AI/Alien turn pauses
-- unconscious
 - eject shells
 - Center engine view on clip, not full screen
 - Reconsider when reaction fire occurs. And probability.
@@ -39,6 +35,10 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- mission types: crash
+- unconscious
+- liftoff button
+- restart game
 - Big beta note
 - help on intro screen
 - text on new screen (oops)
