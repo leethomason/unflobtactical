@@ -16,6 +16,7 @@ import android.content.res.Resources;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 public class UFOActivity extends Activity  {
@@ -87,7 +88,11 @@ class DemoGLSurfaceView extends GLSurfaceView  {
 	public DemoGLSurfaceView(Context context) {
         super(context);
         mRenderer = new UFORenderer();
-        setRenderer(mRenderer);        
+        setRenderer(mRenderer);
+        
+        requestFocusFromTouch();
+        setFocusableInTouchMode( true );
+        //setClickable( true );
     }
 	
 	// @Override
@@ -133,8 +138,9 @@ class DemoGLSurfaceView extends GLSurfaceView  {
         	return super.onTouchEvent( event );
         }
     }
-    /*
-    @Override
+    
+    
+   //  @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
     	int sendKey = 0;
     	int GAME_HK_NEXT_UNIT	=		0x0001;
@@ -154,19 +160,13 @@ class DemoGLSurfaceView extends GLSurfaceView  {
     	}
 
     	if ( sendKey != 0 ) {
-    		queueEvent(new Runnable() {
-                // This method will be called on the rendering
-                // thread:
-                public void run() {
-                    mRenderer.hotKey(sendKey);
-                }});
+        	queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_HOTKEY, sendKey, 0, 0 ) );
             return true;
         }
     	else {
     		return super.onKeyDown(keyCode, event);
     	}
     }
-    */
   
     private UFORenderer mRenderer;
 }
@@ -243,7 +243,7 @@ class UFORenderer implements GLSurfaceView.Renderer {
     }
 
     public void onDrawFrame(GL10 gl) {
-    	Log.v("UFOJAVA", "onDrawFrame");
+    	//Log.v("UFOJAVA", "onDrawFrame");
         nativeRender();
     }
     
