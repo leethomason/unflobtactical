@@ -3,11 +3,50 @@
 #include "texture.h"
 
 
+MatrixStack::MatrixStack() : index( 0 )
+{
+	stack[0].SetIdentity();
+}
+
+
+MatrixStack::~MatrixStack()
+{
+	GLASSERT( index == 0 );
+}
+
+
+void MatrixStack::Push()
+{
+	GLASSERT( index < MAX_DEPTH-1 );
+	if ( index < MAX_DEPTH-1 ) {
+		stack[index+1] = stack[index];
+		++index;
+	}
+}
+
+
+void MatrixStack::Pop()
+{
+	GLASSERT( index > 0 );
+	if ( index > 0 ) {
+		index--;
+	}
+}
+
+
+void MatrixStack::Multiply( const grinliz::Matrix4& m )
+{
+	stack[index] = stack[index] * m;
+}
+
+
 /*static*/ GPUShader GPUShader::current;
 /*static*/ int GPUShader::trianglesDrawn = 0;
 /*static*/ int GPUShader::drawCalls = 0;
 /*static*/ uint32_t GPUShader::uid = 0;
 /*static*/ GPUShader::MatrixType GPUShader::matrixMode = MODELVIEW_MATRIX;
+/*static*/ MatrixStack GPUShader::textureStack;
+
 
 //static 
 void GPUShader::ResetState()
@@ -76,7 +115,11 @@ void GPUShader::SetState( const GPUShader& ns )
 			glEnable( GL_TEXTURE_2D );
 			glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
-			glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+			// Craziness: code - by chance - is completely ES1.1 compliant (except for 
+			// auto mip-maps? not sure) except for this call, which just needed
+			// to be switched to [f] form.
+			//glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+			glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 		}
 		else if ( !ns.texture1 && current.texture1 ) {
 			glDisable( GL_TEXTURE_2D );
@@ -350,23 +393,56 @@ void GPUShader::SwitchMatrixMode( MatrixType type )
 		}
 	}
 	matrixMode = type;
+	CHECK_GL_ERROR;
 }
 
 
 void GPUShader::PushMatrix( MatrixType type )
 {
 	SwitchMatrixMode( type );
-	glPushMatrix();
+
+	switch( type ) {
+	case TEXTURE_MATRIX:
+		textureStack.Push();
+		break;
+	case MODELVIEW_MATRIX:
+	case PROJECTION_MATRIX:
+		glPushMatrix();
+		break;
+	default:
+		GLASSERT( 0 );
+		return;
+	}
 	matrixDepth[(int)type] += 1;
 
-	CHECK_GL_ERROR;
+#ifdef DEBUG
+	GLenum error = glGetError();
+	if ( error  != GL_NO_ERROR ) 
+	{	
+		GLOUTPUT(( "GL Error: %x matrixMode=%d depth=%d\n", error, (int)type, matrixDepth[(int)type] ));	
+		GLASSERT( 0 );							
+	}
+#endif
 }
 
 
 void GPUShader::MultMatrix( MatrixType type, const grinliz::Matrix4& m )
 {
 	SwitchMatrixMode( type );
-	glMultMatrixf( m.x );
+
+	switch( type ) {
+	case TEXTURE_MATRIX:
+		textureStack.Multiply( m );
+		glLoadMatrixf( textureStack.Top().x );
+		break;
+	case MODELVIEW_MATRIX:
+	case PROJECTION_MATRIX:
+		glMultMatrixf( m.x );
+		break;
+	default:
+		GLASSERT( 0 );
+		return;
+	}	
 
 	CHECK_GL_ERROR;
 }
@@ -378,7 +454,20 @@ void GPUShader::PopMatrix( MatrixType type )
 
 	SwitchMatrixMode( type );
 	GLASSERT( matrixDepth[(int)type] > 0 );
-	glPopMatrix();
+		switch( type ) {
+	case TEXTURE_MATRIX:
+		textureStack.Pop();
+		glLoadMatrixf( textureStack.Top().x );
+		break;
+	case MODELVIEW_MATRIX:
+	case PROJECTION_MATRIX:
+		glPopMatrix();
+		break;
+	default:
+		GLASSERT( 0 );
+		return;
+	}	
+	
 	matrixDepth[(int)type] -= 1;
 
 	CHECK_GL_ERROR;
@@ -447,7 +536,7 @@ void LightShader::SetLightParams() const
 #if defined( _MSC_VER )
 	return (GLEW_ARB_point_sprite) ? true : false;
 #elif defined( USING_ES )
-	return true;
+	return false;				// FIXME This should totally be working. Need decent detection. (works on device but not emulator?)
 #else
 	GLASSERT( 0 );	// nothing wrong with this code path; just unexpected. Check that logic is correct and remove assert.
 	return false;

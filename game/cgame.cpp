@@ -29,8 +29,23 @@ extern "C" char androidResourcePath[200];
 
 #include "../grinliz/glstringutil.h"
 
+
+class CheckThread
+{
+public:
+	CheckThread()	{ GLASSERT( active == false ); active = true; }
+	~CheckThread()	{ GLASSERT( active == true ); active = false; }
+private:
+	static bool active;
+};
+
+bool CheckThread::active = false;
+
+
 void* NewGame( int width, int height, int rotation, const char* path )
 {
+	CheckThread check;
+
 	Game* game = new Game( width, height, rotation, path );
 	GLOUTPUT(( "NewGame.\n" ));
 	return game;
@@ -39,6 +54,8 @@ void* NewGame( int width, int height, int rotation, const char* path )
 
 void DeleteGame( void* handle )
 {
+	CheckThread check;
+
 	GLOUTPUT(( "DeleteGame. handle=%x\n", handle ));
 	if ( handle ) {
 		Game* game = (Game*)handle;
@@ -48,6 +65,8 @@ void DeleteGame( void* handle )
 
 
 void GameResize( void* handle, int width, int height, int rotation ) {
+	CheckThread check;
+
 	GLOUTPUT(( "GameResize. handle=%x\n", handle ));
 	Game* game = (Game*)handle;
 	game->Resize( width, height, rotation );
@@ -55,6 +74,8 @@ void GameResize( void* handle, int width, int height, int rotation ) {
 
 
 void GameSave( void* handle ) {
+	CheckThread check;
+
 	GLOUTPUT(( "GameSave. handle=%x\n", handle ));
 	Game* game = (Game*)handle;
 	game->Save();
@@ -63,6 +84,8 @@ void GameSave( void* handle ) {
 
 void GameDeviceLoss( void* handle )
 {
+	CheckThread check;
+
 	GLOUTPUT(( "GameDeviceLoss. handle=%x\n", handle ));
 	Game* game = (Game*)handle;
 	game->DeviceLoss();
@@ -71,12 +94,16 @@ void GameDeviceLoss( void* handle )
 
 void GameZoom( void* handle, int action, int distance )
 {
+	CheckThread check;
+
 	Game* game = (Game*)handle;
 	game->Zoom( action, distance );
 }
 
 void GameCameraRotate( void* handle, int action, float degrees )
 {
+	CheckThread check;
+
 	Game* game = (Game*)handle;
 	game->Rotate( action, degrees );
 }
@@ -84,6 +111,8 @@ void GameCameraRotate( void* handle, int action, float degrees )
 
 void GameTap( void* handle, int action, int x, int y )
 {
+	CheckThread check;
+
 	Game* game = (Game*)handle;
 	game->Tap( action, x, y );
 }
@@ -91,6 +120,8 @@ void GameTap( void* handle, int action, int x, int y )
 
 void GameDoTick( void* handle, unsigned int timeInMSec )
 {
+	CheckThread check;
+
 	Game* game = (Game*)handle;
 	game->DoTick( timeInMSec );
 }
@@ -98,6 +129,8 @@ void GameDoTick( void* handle, unsigned int timeInMSec )
 
 void GameCameraGet( void* handle, int param, float* value ) 
 {
+	CheckThread check;
+
 	Game* game = (Game*)handle;
 	switch( param ) {
 		case GAME_CAMERA_TILT:
@@ -117,6 +150,8 @@ void GameCameraGet( void* handle, int param, float* value )
 
 void GameCameraSet( void* handle, int param, float value ) 
 {
+	CheckThread check;
+
 	Game* game = (Game*)handle;
 	switch( param ) {
 		case GAME_CAMERA_TILT:
@@ -136,6 +171,8 @@ void GameCameraSet( void* handle, int param, float value )
 
 void GameMoveCamera( void* handle, float dx, float dy, float dz )
 {
+	CheckThread check;
+
 	Game* game = (Game*)handle;
 	game->engine->camera.DeltaPosWC( dx, dy, dz );
 }
@@ -143,6 +180,8 @@ void GameMoveCamera( void* handle, float dx, float dy, float dz )
 
 void GameHotKey( void* handle, int mask )
 {
+	CheckThread check;
+
 	Game* game = (Game*)handle;
 	game->HandleHotKeyMask( mask );
 }

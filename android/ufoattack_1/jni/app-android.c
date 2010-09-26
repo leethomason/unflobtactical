@@ -1,22 +1,3 @@
-/* San Angeles Observation OpenGL ES version example
- * Copyright 2009 The Android Open Source Project
- * All rights reserved.
- *
- * This source is free software; you can redistribute it and/or
- * modify it under the terms of EITHER:
- *   (1) The GNU Lesser General Public License as published by the Free
- *       Software Foundation; either version 2.1 of the License, or (at
- *       your option) any later version. The text of the GNU Lesser
- *       General Public License is included with this source in the
- *       file LICENSE-LGPL.txt.
- *   (2) The BSD-style license that is included with this source in
- *       the file LICENSE-BSD.txt.
- *
- * This source is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the files
- * LICENSE-LGPL.txt and LICENSE-BSD.txt for more details.
- */
 #include <jni.h>
 #include <sys/time.h>
 #include <time.h>
@@ -47,8 +28,9 @@ _getTime(void)
     return (long)(now.tv_sec*1000 + now.tv_usec/1000);
 }
 
+// May get called before anything else is initialized. Not safe to call into the game object.
 void
-Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeResource( JNIEnv* env, jobject thiz, jstring _path, jlong offset, jlong len  )
+Java_com_grinninglizard_UFOAttack_UFORenderer_nativeResource( JNIEnv* env, jobject thiz, jstring _path, jlong offset, jlong len  )
 {
 	jboolean copy;
 	const char* path = (*env)->GetStringUTFChars( env, _path, 0 );
@@ -67,9 +49,9 @@ Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeResource( JNIEnv* env, jobj
 
 /* Call to initialize the graphics state */
 void
-Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeInit( JNIEnv*  env )
+Java_com_grinninglizard_UFOAttack_UFORenderer_nativeInit( JNIEnv*  env )
 {
-    importGLInit();
+    //importGLInit();
 
 	// UFO attack doesn't handle resize after init well, so 
 	// defer the resize until later.
@@ -86,7 +68,7 @@ Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeInit( JNIEnv*  env )
 }
 
 void
-Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeResize( JNIEnv*  env, jobject  thiz, jint w, jint h )
+Java_com_grinninglizard_UFOAttack_UFORenderer_nativeResize( JNIEnv*  env, jobject  thiz, jint w, jint h )
 {
 	if ( game == 0 )
 		game = NewGame( w, h, 1, ".\\" );
@@ -97,19 +79,19 @@ Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeResize( JNIEnv*  env, jobje
 
 /* Call to finalize the graphics state */
 void
-Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeDone( JNIEnv*  env )
+Java_com_grinninglizard_UFOAttack_UFORenderer_nativeDone( JNIEnv*  env )
 {
 	if ( game )
 		DeleteGame( game );
 	game = 0;
-    importGLDeinit();
+    //importGLDeinit();
 }
 
 /* This is called to indicate to the render loop that it should
  * stop as soon as possible.
  */
 void
-Java_com_grinninglizard_UFOAttack_DemoRenderer_nativePause( JNIEnv*  env, jint paused )
+Java_com_grinninglizard_UFOAttack_UFORenderer_nativePause( JNIEnv*  env, jint paused )
 {
     sDemoStopped = paused;
     if (sDemoStopped) {
@@ -127,7 +109,7 @@ Java_com_grinninglizard_UFOAttack_DemoRenderer_nativePause( JNIEnv*  env, jint p
 
 /* Call to render the next GL frame */
 void
-Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeRender( JNIEnv*  env )
+Java_com_grinninglizard_UFOAttack_UFORenderer_nativeRender( JNIEnv*  env )
 {
     long   curTime;
 
@@ -145,4 +127,23 @@ Java_com_grinninglizard_UFOAttack_DemoRenderer_nativeRender( JNIEnv*  env )
         }
 		GameDoTick( game, curTime );
     }
+}
+
+
+void
+Java_com_grinninglizard_UFOAttack_UFORenderer_nativeTap( JNIEnv* env, jobject thiz, jint action, jfloat x, jfloat y )
+{
+    //__android_log_print(ANDROID_LOG_INFO, "UFOAttack", "nativeTap action=%d %d,%d", (int)action, (int)x, (int)y );
+	if ( game ) {
+		GameTap( game, action, (int)x, (int)y );
+	}
+}
+
+
+void
+Java_com_grinninglizard_UFOAttack_UFORenderer_nativeHotKey( JNIEnv* env, jobject thiz, jint key )
+{
+	if ( game ) {
+		GameHotKey( game, key );
+	}
 }

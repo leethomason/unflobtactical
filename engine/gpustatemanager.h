@@ -3,12 +3,35 @@
 
 #include <stdint.h>
 #include "../grinliz/gldebug.h"
+#include "../grinliz/glmatrix.h"
 #include "vertex.h"
 
 class Texture;
+
 namespace grinliz {
 	class Matrix4;
 };
+
+
+class MatrixStack
+{
+public:
+	MatrixStack();
+	~MatrixStack();
+
+	void Push();
+	void Pop();
+	void Set( const grinliz::Matrix4& m )			{ stack[index] = m; }
+	void Multiply( const grinliz::Matrix4& m );
+
+	const grinliz::Matrix4& Top()					{ GLASSERT( index < MAX_DEPTH ); return stack[index]; }
+
+private:
+	enum { MAX_DEPTH = 4 };
+	int index;
+	grinliz::Matrix4 stack[MAX_DEPTH];
+};
+
 
 class GPUShader 
 {
@@ -77,7 +100,6 @@ public:
 	void PopMatrix( MatrixType type );
 
 	void Draw( int index, const uint16_t* elements );
-	//void Draw( int index, const int* elements );
 
 	int SortOrder()	const { 
 		if ( blend ) return 2;
@@ -110,6 +132,9 @@ private:
 	void SwitchMatrixMode( MatrixType type );	
 	static GPUShader		current;
 	static MatrixType		matrixMode;		// Note this is static and global!
+	// Seem to do okay on MODELVIEW and PERSPECTIVE stacks, but
+	// not so much on TEXTURE. Use our own texture stack.
+	static MatrixStack textureStack;
 
 protected:
 	static int trianglesDrawn;
