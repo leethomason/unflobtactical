@@ -52,7 +52,7 @@ void UFOText::InitTexture( Texture* tex )
 }
 
 
-void UFOText::Metrics(	int c,				// character in 
+void UFOText::Metrics(	int c,							// character in 
 						int* advance,					// advance, in pixels
 						int* width,
 						grinliz::Rectangle2I* src )		// location in texture, in pixels
@@ -63,21 +63,18 @@ void UFOText::Metrics(	int c,				// character in
 	// Flip the y axis:
 	cy = GLYPH_CY - cy;
 
+	GLASSERT( c < GLYPH_CX*GLYPH_CY );
+	GlyphMetric* g = &glyphMetric[c];
+	*width = g->width;
+	*advance = g->width+1;
+
 	if ( c == 0 ) {
 		*advance = *width = GLYPH_WIDTH * 2 / 4;
 	}
-	else {
-		GLASSERT( c < GLYPH_CX*GLYPH_CY );
-		GlyphMetric* g = &glyphMetric[c];
-
-		*width = g->width;
-		*advance = g->width+1;
-
-		src->Set(	cx*GLYPH_WIDTH + g->offset,
-					(cy-1)*GLYPH_HEIGHT,
-					cx*GLYPH_WIDTH + g->offset + g->width,
-					cy*GLYPH_HEIGHT );
-	}
+	src->Set(	cx*GLYPH_WIDTH + g->offset,
+				(cy-1)*GLYPH_HEIGHT,
+				cx*GLYPH_WIDTH + g->offset + g->width,
+				cy*GLYPH_HEIGHT );
 }
 
 

@@ -540,6 +540,8 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 
 		Action action;
 		action.Init( ACTION_LANDER, 0 );
+		action.type.lander.startTime = game->CurrentTime();
+		action.type.lander.endTime = game->CurrentTime() + 2000;
 		actionStack.Push( action );
 
 		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
@@ -1637,7 +1639,8 @@ int BattleScene::ProcessAction( U32 deltaTime )
 					float travel = Travel( deltaTime, SPEED );
 
 					while(    (move->pathStep < move->path.pathLen-1 )
-						   && travel > 0.0f ) 
+						   && travel > 0.0f
+						   && (!(result & STEP_COMPLETE))) 
 					{
 						move->path.Travel( &travel, &move->pathStep, &move->pathFraction );
 						if ( move->pathFraction == 0.0f ) {
@@ -1656,10 +1659,8 @@ int BattleScene::ProcessAction( U32 deltaTime )
 
 							visibility.InvalidateUnit( unit-units );
 							result |= STEP_COMPLETE;
-							break;
 						}
 						move->path.GetPos( move->pathStep, move->pathFraction, &x, &z, &r );
-
 						Vector3F v = { x+0.5f, 0.0f, z+0.5f };
 						unit->SetPos( v, model->GetRotation() );
 					}
@@ -1746,11 +1747,9 @@ int BattleScene::ProcessAction( U32 deltaTime )
 
 			case ACTION_LANDER:
 				{
-					float flight = engine->GetMap()->GetLanderFlight();
-					flight -= 0.02f;
-					engine->GetMap()->SetLanderFlight( flight );
-					if ( flight <= 0 ) {
+					if ( game->CurrentTime() >= action->type.lander.endTime ) {
 						actionStack.Pop();
+						engine->GetMap()->SetLanderFlight( 0 );
 
 						for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 							if ( units[i].GetModel() ) {
@@ -1758,6 +1757,10 @@ int BattleScene::ProcessAction( U32 deltaTime )
 								m->ClearFlag( Model::MODEL_INVISIBLE );
 							}
 						}
+					}
+					else {
+						float flight = (float)(game->CurrentTime() - action->type.lander.startTime) / (float)( action->type.lander.endTime - action->type.lander.startTime );
+						engine->GetMap()->SetLanderFlight( 1.0f - flight );
 					}
 				}
 				break;

@@ -187,7 +187,10 @@ private:
 		bool				center;
 	};
 
-	struct LanderAction {};
+	struct LanderAction {
+		U32					startTime;
+		U32					endTime;
+	};
 
 	struct Action
 	{

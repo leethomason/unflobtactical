@@ -34,6 +34,8 @@
 //#define TEST_ROTATION
 //#define TEST_FULLSPEED
 
+#define TIME_BETWEEN_FRAMES	800
+
 #define IPOD_SCREEN_WIDTH	320
 #define IPOD_SCREEN_HEIGHT	480
 
@@ -216,7 +218,7 @@ int main( int argc, char **argv )
 	}
 
 #ifndef TEST_FULLSPEED
-	SDL_TimerID timerID = SDL_AddTimer( 30, TimerCallback, 0 );
+	SDL_TimerID timerID = SDL_AddTimer( TIME_BETWEEN_FRAMES, TimerCallback, 0 );
 #endif
 
 	// ---- Main Loop --- //
