@@ -33,38 +33,38 @@ distribution.
 	#endif
 #endif
 
+void GrinlizReleaseAssert( const char* file, int line );
+
 #if defined(DEBUG)
 	#if defined(_MSC_VER)
 		void dprintf( const char* format, ... );
 		void WinDebugBreak();
 		
 		#define GLASSERT( x )		if ( !(x)) { _asm { int 3 } } //if ( !(x)) WinDebugBreak()
+		#define GLRELASSERT( x )	if ( !(x)) { _asm { int 3 } } //if ( !(x)) WinDebugBreak()
 		#define GLOUTPUT( x )		dprintf x
-		#define GLLOG( x )			dprintf x
 	#elif defined (ANDROID_NDK)
 		#include <android/log.h>
 		void dprintf( const char* format, ... );
 		#define GLASSERT( x )		if ( !(x)) { __android_log_assert( "assert", "grinliz", "ASSERT in '%s' at %d.", __FILE__, __LINE__ ); }
+		#define GLRELASSERT( x )	if ( !(x)) { __android_log_assert( "assert", "grinliz", "ASSERT in '%s' at %d.", __FILE__, __LINE__ ); }
 		#define	GLOUTPUT( x )		dprintf x
-		#define	GLLOG( x )			dprintf x
 	#else
 		#include <assert.h>
         #include <stdio.h>
 		#define GLASSERT		assert
+		#define GLRELASSERT		assert
 		#define GLOUTPUT( x )	printf x	
-		#define GLLOG( x )		printf x
 	#endif
 #else
-
  	#if defined(UNIX)
 		#define GLOUTPUT( x )
 	#else
 		#define GLOUTPUT( x )
 	#endif
 
-	#define GLASSERT( x )
-	#define GLLOG( x )			printf x
-
+	#define GLASSERT( x )		{}
+	#define GLRELASSERT( x )	if ( !(x)) { GrinlizReleaseAssert( __FILE__, __LINE__ ); }
 #endif
 
 #if defined(DEBUG)

@@ -71,7 +71,7 @@ void ProcessAC3D( ACObject* ob, ModelBuilder* builder, const Matrix4& parent )
 	    }
 		else
 		{
-			GLLOG(( "Input polygon or type not supported.\n" ));
+			GLOUTPUT(( "Input polygon or type not supported.\n" ));
 			GLASSERT( 0 );
 		}
 	}

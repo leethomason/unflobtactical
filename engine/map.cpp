@@ -153,7 +153,7 @@ Map::Map( SpaceTree* tree )
 	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
 
 	lightDefStart = GetItemDef( "landerLight" );
-	GLASSERT( lightDefStart );
+	GLRELASSERT( lightDefStart );
 
 	gamui::RenderAtom borderAtom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_DARK, 1, 1, true );
 #ifdef DEBUG_VISIBILITY
@@ -369,7 +369,7 @@ void Map::MapImageToWorld( int x, int y, int w, int h, int tileRotation, Matrix2
 			p.x += w-1; p.y += 0;
 			break;
 		default:
-			GLASSERT( 0 );
+			GLRELASSERT( 0 );
 	}
 	*m = t * p * r;
 }
@@ -377,7 +377,7 @@ void Map::MapImageToWorld( int x, int y, int w, int h, int tileRotation, Matrix2
 
 void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
 {
-	GLASSERT( s->Width() == s->Height() );
+	GLRELASSERT( s->Width() == s->Height() );
 
 	Rectangle2I src;
 	src.Set( 0, 0, s->Width()-1, s->Height()-1 );
@@ -411,7 +411,7 @@ void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
 				     + rgba2.r + rgba2.g + rgba2.g + rgba2.b 
 				     + rgba3.r + rgba3.g + rgba3.g + rgba3.b ) >> 4; 
 			
-			GLASSERT( c >= 0 && c < 255 );
+			GLRELASSERT( c >= 0 && c < 255 );
 			Surface::RGBA grey = { (U8)c, (U8)c, (U8)c, 255 };
 			//Surface::RGBA grey = { 128, 128, 128, 255 };
 			//Surface::RGBA test = Surface::CalcRGB16( Surface::CalcRGB16( grey ) );
@@ -428,12 +428,12 @@ void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
 
 void Map::SetLightMaps( const Surface* day, const Surface* night, int x, int y, int tileRotation )
 {
-	GLASSERT( day );
-	GLASSERT( night );
+	GLRELASSERT( day );
+	GLRELASSERT( night );
 	
-	GLASSERT( day->BytesPerPixel() == 2 );
-	GLASSERT( night->BytesPerPixel() == 2 );
-	GLASSERT(    day->Width() == night->Width() 
+	GLRELASSERT( day->BytesPerPixel() == 2 );
+	GLRELASSERT( night->BytesPerPixel() == 2 );
+	GLRELASSERT(    day->Width() == night->Width() 
 		      && day->Height() == night->Height() 
 			  && day->Width() == day->Height() );
 
@@ -518,7 +518,7 @@ void Map::GenerateLightMap()
 		for( ; item; item=item->next ) {
 
 			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
-			GLASSERT( itemDef.IsLight() );
+			GLRELASSERT( itemDef.IsLight() );
 
 			Matrix2I wToObj;
 			//CalcModelPos( item, 0, 0, &xform );
@@ -675,7 +675,7 @@ void Map::DoDamage( int x, int y, const DamageDesc& damage, Rectangle2I* dBounds
 
 	for( ; root; root=root->next ) {
 		if ( root->model ) {
-			GLASSERT( root->model->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) );
+			GLRELASSERT( root->model->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) );
 
 			DoDamage( root->model, damage, dBounds );
 		}
@@ -688,7 +688,7 @@ void Map::DoDamage( Model* m, const DamageDesc& damageDesc, Rectangle2I* dBounds
 	if ( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) 
 	{
 		MapItem* item = quadTree.FindItem( m );
-		GLASSERT( ( item->flags & MapItem::MI_IS_LIGHT ) == 0 );
+		GLRELASSERT( ( item->flags & MapItem::MI_IS_LIGHT ) == 0 );
 
 		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 
@@ -802,8 +802,8 @@ void Map::AddSmoke( int x, int y, int subTurns )
 
 void Map::SetPyro( int x, int y, int duration, int fire )
 {
-	GLASSERT( x >= 0 && x < SIZE );
-	GLASSERT( y >= 0 && y < SIZE );
+	GLRELASSERT( x >= 0 && x < SIZE );
+	GLRELASSERT( y >= 0 && y < SIZE );
 	int f = (fire) ? 0x80 : 0;
 	int p = duration | f;
 	pyro[y*SIZE+x] = p;
@@ -883,7 +883,7 @@ void Map::WorldToModel( const Matrix2I& mat, bool billboard, grinliz::Vector3F* 
 
 void Map::XYRToWorld( int x, int y, int rotation, Matrix2I* mat )
 {
-	GLASSERT( rotation == 0 || rotation == 90 || rotation == 180 || rotation == 270 );
+	GLRELASSERT( rotation == 0 || rotation == 90 || rotation == 180 || rotation == 270 );
 
 	Matrix2I r, t, gf;
 
@@ -918,7 +918,7 @@ void Map::WorldToXYR( const Matrix2I& mat, int *x, int *y, int* r, bool useRot01
 	}
 	else {
 		// Not valid simple rotation
-		GLASSERT( 0 );
+		GLRELASSERT( 0 );
 		*r = 0;
 	}
 }
@@ -926,7 +926,7 @@ void Map::WorldToXYR( const Matrix2I& mat, int *x, int *y, int* r, bool useRot01
 
 Map::MapItem* Map::AddLightItem( int x, int y, int rotation, int lightDef, int hp, int flags )
 {
-	GLASSERT( itemDefArr[lightDef].IsLight() );
+	GLRELASSERT( itemDefArr[lightDef].IsLight() );
 
 	int flags0 = flags | MapItem::MI_NOT_IN_DATABASE | MapItem::MI_IS_LIGHT;
 
@@ -946,14 +946,14 @@ Map::MapItem* Map::AddLightItem( int x, int y, int rotation, int lightDef, int h
 
 Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, int flags )
 {
-	GLASSERT( x >= 0 && x < width );
-	GLASSERT( y >= 0 && y < height );
-	GLASSERT( rotation >=0 && rotation < 4 );
-	GLASSERT( defIndex < NUM_ITEM_DEF );
+	GLRELASSERT( x >= 0 && x < width );
+	GLRELASSERT( y >= 0 && y < height );
+	GLRELASSERT( rotation >=0 && rotation < 4 );
+	GLRELASSERT( defIndex < NUM_ITEM_DEF );
 
 	if ( !itemDefArr[defIndex].resource ) {
 		GLOUTPUT(( "No model resource.\n" ));
-		GLASSERT( 0 );
+		GLRELASSERT( 0 );
 		return 0;
 	}
 
@@ -1017,7 +1017,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 		hp = itemDef.hp;
 
 	if ( StrEqual( itemDefArr[defIndex].Name(), "lander" )) {
-		GLASSERT( lander == 0 );
+		GLRELASSERT( lander == 0 );
 		lander = item;
 	}
 
@@ -1033,8 +1033,8 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 		flags |= MapItem::MI_DOOR;
 	item->flags = flags;
 
-	GLASSERT( mapBounds.min.x >= 0 && mapBounds.max.x < 256 );	// using int8
-	GLASSERT( mapBounds.min.y >= 0 && mapBounds.max.y < 256 );	// using int8
+	GLRELASSERT( mapBounds.min.x >= 0 && mapBounds.max.x < 256 );	// using int8
+	GLRELASSERT( mapBounds.min.y >= 0 && mapBounds.max.y < 256 );	// using int8
 	item->mapBounds8.Set( mapBounds.min.x, mapBounds.min.y, mapBounds.max.x, mapBounds.max.y );
 
 	item->next = 0;
@@ -1087,7 +1087,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 
 void Map::DeleteItem( MapItem* item )
 {	
-	GLASSERT( item );
+	GLRELASSERT( item );
 
 	// Delete the light first, if it exists:
 	if ( item->light ) {
@@ -1122,7 +1122,7 @@ void Map::PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rota
 
 	if ( team == TERRAN_TEAM ) {
 		// put 'em in the lander.
-		GLASSERT( lander );		
+		GLRELASSERT( lander );		
 
 		Matrix2I xform = lander->XForm();
 
@@ -1144,7 +1144,7 @@ void Map::PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rota
 			found = true;
 		}
 		if ( !found ) { // or scout
-			GLASSERT( nScoutPos > 0 );
+			GLRELASSERT( nScoutPos > 0 );
 			int i = random.Rand( nScoutPos );
 			*pos = scoutPos[i];
 			Swap( &scoutPos[i], &scoutPos[nScoutPos-1] );
@@ -1155,7 +1155,7 @@ void Map::PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rota
 		}
 	}
 	else {
-		GLASSERT( 0 );
+		GLRELASSERT( 0 );
 		pos->Set( 0, 0 );
 	}
 }
@@ -1175,7 +1175,7 @@ void Map::SaveDebris( const Debris& d, TiXmlElement* parent )
 void Map::LoadDebris( const TiXmlElement* debrisElement, ItemDef* const* arr )
 {
 	GLASSERT( StrEqual( debrisElement->Value(), "Debris" ) );
-	GLASSERT( debrisElement );
+	GLRELASSERT( debrisElement );
 	if ( debrisElement ) {
 		int x=0, y=0;
 
@@ -1273,7 +1273,7 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 	if ( strcmp( mapElement->Value(), "Game" ) == 0 ) {
 		mapElement = mapElement->FirstChildElement( "Map" );
 	}
-	GLASSERT( mapElement );
+	GLRELASSERT( mapElement );
 	GLASSERT( strcmp( mapElement->Value(), "Map" ) == 0 );
 	int sizeX = 64;
 	int sizeY = 64;
@@ -1308,7 +1308,7 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 
 			// store it to save later:
 			const char* name = image->Attribute( "name" ); 
-			GLASSERT( nImageData < MAX_IMAGE_DATA );
+			GLRELASSERT( nImageData < MAX_IMAGE_DATA );
 			imageData[ nImageData ].x = x;
 			imageData[ nImageData ].y = y;
 			imageData[ nImageData ].size = size;
@@ -1405,8 +1405,8 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 
 void Map::DeleteAt( int x, int y )
 {
-	GLASSERT( x >= 0 && x < width );
-	GLASSERT( y >= 0 && y < height );
+	GLRELASSERT( x >= 0 && x < width );
+	GLRELASSERT( y >= 0 && y < height );
 
 	MapItem* item = quadTree.FindItems( x, y, 0, MapItem::MI_IS_LIGHT );
 	// Delete the *last* item so it behaves more naturally when editing.
@@ -1450,12 +1450,12 @@ bool Map::ProcessDoors( const grinliz::Vector2I* openers, int nOpeners )
 		MapItem* item = doorArr[i];
 		const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 
-		GLASSERT( itemDef.IsDoor() );
-		GLASSERT( itemDef.resourceOpen );
-		GLASSERT( itemDef.cx == 1 && itemDef.cy == 1 );
+		GLRELASSERT( itemDef.IsDoor() );
+		GLRELASSERT( itemDef.resourceOpen );
+		GLRELASSERT( itemDef.cx == 1 && itemDef.cy == 1 );
 
 		if ( !item->Destroyed() ) {
-			GLASSERT( item->model );
+			GLRELASSERT( item->model );
 
 			bool change = false;
 
@@ -1562,11 +1562,11 @@ void Map::ReleaseStorage( Storage* storage )
 			break;
 		}
 	}
-	GLASSERT( index >= 0 );	// should always be found...
+	GLRELASSERT( index >= 0 );	// should always be found...
 
 	if ( storage->Empty() ) {
 		delete storage;
-		GLASSERT( debris[index].crate == 0 );
+		GLRELASSERT( debris[index].crate == 0 );
 		debris.SwapRemove( index );
 		return;
 	}
@@ -1600,7 +1600,7 @@ void Map::DumpTile( int x, int y )
 		int i=0;
 		MapItem* root = quadTree.FindItems( x, y, 0, 0 );
 		while ( root ) {
-			GLASSERT( root->itemDefIndex > 0 );
+			GLRELASSERT( root->itemDefIndex > 0 );
 			const MapItemDef& itemDef = itemDefArr[ root->itemDefIndex ];
 			GLASSERT( itemDef.Name() );
 
@@ -1664,8 +1664,8 @@ void Map::DrawPath( int mode )
 					nGreen += 3;
 				}
 			}
-			GLASSERT( nRed <= 12 );
-			GLASSERT( nGreen <= 12 );
+			GLRELASSERT( nRed <= 12 );
+			GLRELASSERT( nGreen <= 12 );
 
 			shader.SetColor( 1, 0, 0, 0.5f );
 			shader.SetVertex( 3, 0, red );
@@ -1718,11 +1718,11 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& _bounds )
 	MapItem* item = quadTree.FindItems( bounds, 0, MapItem::MI_IS_LIGHT );
 	while( item ) {
 		if ( !item->Destroyed() ) {
-			GLASSERT( item->itemDefIndex < NUM_ITEM_DEF );
+			GLRELASSERT( item->itemDefIndex < NUM_ITEM_DEF );
 			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 			
 			int rot = item->modelRotation;
-			GLASSERT( rot >= 0 && rot < 4 );
+			GLRELASSERT( rot >= 0 && rot < 4 );
 
 			Matrix2I mat = item->XForm();
 
@@ -1733,8 +1733,8 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& _bounds )
 					Vector2I obj = { i, j };
 					Vector2I world = mat * obj;
 
-					GLASSERT( world.x >= 0 && world.x < SIZE );
-					GLASSERT( world.y >= 0 && world.y < SIZE );
+					GLRELASSERT( world.x >= 0 && world.x < SIZE );
+					GLRELASSERT( world.y >= 0 && world.y < SIZE );
 
 					// Account for tile rotation. (Actually a bit rotation too, which is handy.)
 					// The OR operation is important. This routine will write outside of the bounds,
@@ -1746,7 +1746,7 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& _bounds )
 					{
 						// Path
 						U32 p = ( itemDef.Pather(obj.x, obj.y ) << rot );
-						GLASSERT( p == 0 || !itemDef.IsLight() );
+						GLRELASSERT( p == 0 || !itemDef.IsLight() );
 						p = p | (p>>4);
 						pathMap[ world.y*SIZE + world.x ] |= p;
 					}
@@ -1754,7 +1754,7 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& _bounds )
 					{
 						// Visibility
 						U32 p = ( itemDef.Visibility( obj.x, obj.y ) << rot );
-						GLASSERT( p == 0 || !itemDef.IsLight() );
+						GLRELASSERT( p == 0 || !itemDef.IsLight() );
 						p = p | (p>>4);
 						visMap[ world.y*SIZE + world.x ] |= p;
 					}
@@ -1798,9 +1798,9 @@ bool Map::Connected( ConnectionType c, int x, int y, int dir )
 		{ -1, 0 } 
 	};
 
-	GLASSERT( dir >= 0 && dir < 4 );
-	GLASSERT( x >=0 && x < SIZE );
-	GLASSERT( y >=0 && y < SIZE );
+	GLRELASSERT( dir >= 0 && dir < 4 );
+	GLRELASSERT( x >=0 && x < SIZE );
+	GLRELASSERT( y >=0 && y < SIZE );
 
 	int bit = 1<<dir;
 	Vector2I pos = { x, y };
@@ -1884,9 +1884,9 @@ void Map::PrintStateInfo( void* state )
 
 int Map::SolvePath( const void* user, const Vector2<S16>& start, const Vector2<S16>& end, float *cost, MP_VECTOR< Vector2<S16> >* path )
 {
-	GLASSERT( sizeof( int ) == sizeof( void* ));			// fix this for 64 bit
-	GLASSERT( sizeof(Vector2<S16>) == sizeof( void* ) );
-	GLASSERT( pathBlocker );
+	GLRELASSERT( sizeof( int ) == sizeof( void* ));			// fix this for 64 bit
+	GLRELASSERT( sizeof(Vector2<S16>) == sizeof( void* ) );
+	GLRELASSERT( pathBlocker );
 	if ( pathBlocker ) {
 		pathBlocker->MakePathBlockCurrent( this, user );
 	}
@@ -1895,12 +1895,14 @@ int Map::SolvePath( const void* user, const Vector2<S16>& start, const Vector2<S
 										reinterpret_cast< MP_VECTOR<void*>* >( path ),		// sleazy trick if void* is the same size as V2<S16>
 										cost );
 
+#if 0
 #ifdef DEBUG
 	{
 		for( unsigned i=0; i<path->size(); ++i ) {
 			GLASSERT( !pathBlock.IsSet( (*path)[i].x, (*path)[i].y ) );
 		}
 	}
+#endif
 #endif
 
 	/*
@@ -1980,8 +1982,8 @@ void Map::ClearNearPath()
 
 bool Map::CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& q, ConnectionType connection )
 {
-	GLASSERT( InRange( q.x-p.x, -1, 1 ) );
-	GLASSERT( InRange( q.y-p.y, -1, 1 ) );
+	GLRELASSERT( InRange( q.x-p.x, -1, 1 ) );
+	GLRELASSERT( InRange( q.y-p.y, -1, 1 ) );
 	if ( p.x < 0 || p.x >= SIZE || p.y < 0 || p.y >= SIZE )
 		return false;
 	if ( q.x < 0 || q.x >= SIZE || q.y < 0 || q.y >= SIZE )
@@ -2023,7 +2025,7 @@ bool Map::CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& q, Connec
 			dir1 = 0;
 			break;
 		default:
-			GLASSERT( 0 );
+			GLRELASSERT( 0 );
 			break;
 	}
 	if ( dir1 == -1 ) {
@@ -2049,10 +2051,10 @@ void Map::MapBoundsOfModel( const Model* m, grinliz::Rectangle2I* mapBounds )
 {
 	GLASSERT( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) );
 	MapItem* item = quadTree.FindItem( m );
-	GLASSERT( item );
+	GLRELASSERT( item );
 	*mapBounds = item->MapBounds();
-	GLASSERT( mapBounds->min.x <= mapBounds->max.x );
-	GLASSERT( mapBounds->min.y <= mapBounds->max.y );
+	GLRELASSERT( mapBounds->min.x <= mapBounds->max.x );
+	GLRELASSERT( mapBounds->min.y <= mapBounds->max.y );
 }
 
 
@@ -2129,7 +2131,7 @@ void Map::QuadTree::UnlinkItem( MapItem* item )
 	int d=0;
 	int index = CalcNode( item->mapBounds8, &d );
 	depthUse[d] -= 1;
-	GLASSERT( tree[index] ); // the item should be in the linked list somewhere.
+	GLRELASSERT( tree[index] ); // the item should be in the linked list somewhere.
 
 //	GLOUTPUT(( "QuadTree::UnlinkItem %x id=%d\n", item, item->itemDefIndex ));
 
@@ -2202,7 +2204,7 @@ Map::MapItem* Map::QuadTree::FindItems( const Rectangle2I& bounds, int required,
 
 Map::MapItem* Map::QuadTree::FindItem( const Model* model )
 {
-	GLASSERT( model->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) );
+	GLRELASSERT( model->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) );
 	Rectangle2I b;
 
 	// May or may not have 'mapBoundsCache' when called.
@@ -2220,7 +2222,7 @@ Map::MapItem* Map::QuadTree::FindItem( const Model* model )
 	filterModel = model;
 	MapItem* root = FindItems( b, 0, 0 );
 	filterModel = 0;
-	GLASSERT( root && root->next == 0 );
+	GLRELASSERT( root && root->next == 0 );
 	return root;
 }
 
@@ -2249,7 +2251,7 @@ int Map::QuadTree::CalcNode( const Rectangle2<U8>& bounds, int* d )
 			break;
 		}
 	}
-	GLASSERT( offset >= 0 && offset < NUM_QUAD_NODES );
+	GLRELASSERT( offset >= 0 && offset < NUM_QUAD_NODES );
 	return offset;
 }
 
@@ -2266,7 +2268,7 @@ void Map::CreateTexture( Texture* t )
 		t->Upload( lightMap[1] );
 	}
 	else {
-		GLASSERT( 0 );
+		GLRELASSERT( 0 );
 	}
 }
 
@@ -2308,7 +2310,7 @@ void Map::BeginRenderState( const void* renderState )
 			gamuiShader.SetBlend( true );
 			break;
 		default:
-			GLASSERT( 0 );
+			GLRELASSERT( 0 );
 	}
 }
 

@@ -351,7 +351,7 @@ void BattleScene::NextTurn()
 			break;
 
 		default:
-			GLASSERT( 0 );
+			GLRELASSERT( 0 );
 			break;
 	}
 
@@ -381,7 +381,7 @@ void BattleScene::OrderNextPrev()
 {
 #ifdef SMART_ORDER
 	const Model* lander = engine->GetMap()->GetLanderModel();
-	GLASSERT( lander );
+	GLRELASSERT( lander );
 
 	Matrix2I mat, inv;
 	mat.SetXZRotation( (int)lander->GetRotation() );
@@ -448,7 +448,7 @@ void BattleScene::OrderNextPrev()
 			}
 		}
 	}
-	GLASSERT( count == subTurnCount );
+	GLRELASSERT( count == subTurnCount );
 #else
 	int count = 0;
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
@@ -518,9 +518,9 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 			
 			team[t]++;
 
-			GLASSERT( team[0] <= TERRAN_UNITS_END );
-			GLASSERT( team[1] <= CIV_UNITS_END );
-			GLASSERT( team[2] <= ALIEN_UNITS_END );
+			GLRELASSERT( team[0] <= TERRAN_UNITS_END );
+			GLRELASSERT( team[1] <= CIV_UNITS_END );
+			GLRELASSERT( team[2] <= ALIEN_UNITS_END );
 		}
 	}
 	
@@ -978,8 +978,8 @@ bool BattleScene::EndCondition( TacticalEndSceneData* data )
 
 void BattleScene::DrawFireWidget()
 {
-	GLASSERT( HasTarget() );
-	GLASSERT( SelectedSoldierUnit() );
+	GLRELASSERT( HasTarget() );
+	GLRELASSERT( SelectedSoldierUnit() );
 
 	Unit* unit = SelectedSoldierUnit();
 	
@@ -1165,19 +1165,19 @@ void BattleScene::SetSelection( Unit* unit )
 		selection.targetUnit = 0;
 	}
 	else {
-		GLASSERT( unit->IsAlive() );
+		GLRELASSERT( unit->IsAlive() );
 
 		if ( unit->Team() == TERRAN_TEAM ) {
 			selection.soldierUnit = unit;
 			selection.targetUnit = 0;
 		}
 		else if ( unit->Team() == ALIEN_TEAM ) {
-			GLASSERT( SelectedSoldier() );
+			GLRELASSERT( SelectedSoldier() );
 			selection.targetUnit = unit;
 			selection.targetPos.Set( -1, -1 );
 		}
 		else {
-			GLASSERT( 0 );
+			GLRELASSERT( 0 );
 		}
 	}
 }
@@ -1185,7 +1185,7 @@ void BattleScene::SetSelection( Unit* unit )
 
 void BattleScene::PushRotateAction( Unit* src, const Vector3F& dst3F, bool quantize )
 {
-	GLASSERT( src->GetModel() );
+	GLRELASSERT( src->GetModel() );
 
 	Vector2I dst = { (int)dst3F.x, (int)dst3F.z };
 
@@ -1204,7 +1204,7 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 								   float useError,
 								   bool clearMoveIfShoot )
 {
-	GLASSERT( unit );
+	GLRELASSERT( unit );
 
 	if ( !unit->IsAlive() )
 		return false;
@@ -1351,7 +1351,7 @@ void BattleScene::DoReactionFire()
 
 bool BattleScene::ProcessAI()
 {
-	GLASSERT( actionStack.Empty() );
+	GLRELASSERT( actionStack.Empty() );
 	int count = 0;
 
 	while ( actionStack.Empty() ) {
@@ -1374,7 +1374,7 @@ bool BattleScene::ProcessAI()
 				{
 					AI_LOG(( "[ai] Unit %d SHOOT\n", currentUnitAI ));
 					bool shot = PushShootAction( &units[currentUnitAI], aiAction.shoot.target, aiAction.shoot.mode, 1.0f, false );
-					GLASSERT( shot );
+					GLRELASSERT( shot );
 					if ( !shot )
 						done = true;
 				}
@@ -1404,7 +1404,7 @@ bool BattleScene::ProcessAI()
 					// Drop all the weapons and clips. Pick up new weapons and clips.
 					Vector2I pos = units[currentUnitAI].Pos();
 					Storage* storage = engine->GetMap()->LockStorage( pos.x, pos.y, game->GetItemDefArr() );
-					GLASSERT( storage );
+					GLRELASSERT( storage );
 					Inventory* inventory = units[currentUnitAI].GetInventory();
 
 					if ( storage ) {
@@ -1455,12 +1455,12 @@ bool BattleScene::ProcessAI()
 						if ( best ) {
 							// The gun.
 							const WeaponItemDef* wid = best->IsWeapon();
-							GLASSERT( wid );
+							GLRELASSERT( wid );
 
 							Item item;
 							storage->RemoveItem( best, &item );
 							int slot = inventory->AddItem( item );
-							GLASSERT( slot == Inventory::WEAPON_SLOT );
+							GLRELASSERT( slot == Inventory::WEAPON_SLOT );
 							AI_LOG(( "'%s' ", item.Name() ));
 
 							// clips.
@@ -1490,7 +1490,7 @@ bool BattleScene::ProcessAI()
 				break;
 
 			default:
-				GLASSERT( 0 );
+				GLRELASSERT( 0 );
 				break;
 		}
 		if ( done ) {
@@ -1645,7 +1645,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 						move->path.Travel( &travel, &move->pathStep, &move->pathFraction );
 						if ( move->pathFraction == 0.0f ) {
 							// crossed a path boundary.
-							GLASSERT( unit->TU() >= 1.0 );	// one move is one TU
+							GLRELASSERT( unit->TU() >= 1.0 );	// one move is one TU
 							
 							Vector2<S16> v0 = move->path.GetPathAt( move->pathStep-1 );
 							Vector2<S16> v1 = move->path.GetPathAt( move->pathStep );
@@ -1655,7 +1655,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 								unit->UseTU( 1.0f );
 							else if ( d == 2 )
 								unit->UseTU( 1.41f );
-							else { GLASSERT( 0 ); }
+							else { GLRELASSERT( 0 ); }
 
 							visibility.InvalidateUnit( unit-units );
 							result |= STEP_COMPLETE;
@@ -1766,7 +1766,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 				break;
 
 			default:
-				GLASSERT( 0 );
+				GLRELASSERT( 0 );
 				break;
 		}
 	}
@@ -1796,9 +1796,9 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		Vector3F beam0 = { 0, 0, 0 }, beam1 = { 0, 0, 0 };
 
 		const Item* weaponItem = unit->GetWeapon();
-		GLASSERT( weaponItem );
+		GLRELASSERT( weaponItem );
 		weaponDef = weaponItem->GetItemDef()->IsWeapon();
-		GLASSERT( weaponDef );
+		GLRELASSERT( weaponDef );
 
 		model->CalcTrigger( &p0 );
 		p1 = action->type.shoot.target;
@@ -1879,7 +1879,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 	result |= UNIT_ACTION_COMPLETE;
 
 	if ( impact ) {
-		GLASSERT( weaponDef );
+		GLRELASSERT( weaponDef );
 		GLASSERT( intersection.x >= 0 && intersection.x <= (float)MAP_SIZE );
 		GLASSERT( intersection.z >= 0 && intersection.z <= (float)MAP_SIZE );
 		GLASSERT( intersection.y >= 0 && intersection.y <= 10.0f );
@@ -2106,7 +2106,7 @@ void BattleScene::HandleNextUnit( int bias )
 		}
 		else {
 			int index = subTurnOrder[ subTurnIndex ];
-			GLASSERT( index >= TERRAN_UNITS_START && index < TERRAN_UNITS_END );
+			GLRELASSERT( index >= TERRAN_UNITS_START && index < TERRAN_UNITS_END );
 
 			if ( units[index].IsAlive() ) {
 				SetSelection( &units[index] );
@@ -2150,14 +2150,14 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 			
 		if ( okay ) { 
 			// shooting creates a turn action then a shoot action.
-			GLASSERT( selection.soldierUnit >= 0 );
-			GLASSERT( selection.targetUnit >= 0 );
+			GLRELASSERT( selection.soldierUnit >= 0 );
+			GLRELASSERT( selection.targetUnit >= 0 );
 			//SoundManager::Instance()->QueueSound( "blip" );
 
 			Item* weapon = selection.soldierUnit->GetWeapon();
-			GLASSERT( weapon );
+			GLRELASSERT( weapon );
 			const WeaponItemDef* wid = weapon->GetItemDef()->IsWeapon();
-			GLASSERT( wid );
+			GLRELASSERT( wid );
 
 			Vector3F target;
 			if ( selection.targetPos.x >= 0 ) {
@@ -2399,7 +2399,7 @@ void BattleScene::Tap(	int action,
 				if ( units[i].IsAlive() ) {
 					units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
 					if ( units[i].Pos() == tilePos ) {
-						GLASSERT( !tappedUnit );
+						GLRELASSERT( !tappedUnit );
 						tappedUnit = units + i;
 						tappedModel = units[i].GetModel();
 					}
@@ -2414,7 +2414,7 @@ void BattleScene::Tap(	int action,
 				if ( canSelectAlien && units[i].IsAlive() ) {
 					units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
 					if ( units[i].Pos() == tilePos ) {
-						GLASSERT( !tappedUnit );
+						GLRELASSERT( !tappedUnit );
 						tappedUnit = units + i;
 						tappedModel = units[i].GetModel();
 					}
@@ -2509,7 +2509,7 @@ void BattleScene::ShowNearPath( const Unit* unit )
 void BattleScene::MakePathBlockCurrent( Map* map, const void* user )
 {
 	const Unit* exclude = (const Unit*)user;
-	GLASSERT( exclude >= units && exclude < &units[MAX_UNITS] );
+	GLRELASSERT( exclude >= units && exclude < &units[MAX_UNITS] );
 
 	grinliz::BitArray<MAP_SIZE, MAP_SIZE, 1> block;
 
@@ -2651,14 +2651,15 @@ void BattleScene::CalcTeamTargets()
 
 BattleScene::Visibility::Visibility() : battleScene( 0 ), units( 0 ), map( 0 )
 {
-	memset( current, 0, sizeof(bool)*MAX_UNITS );
+	for( int i=0; i<MAX_UNITS; ++i )
+		current[i] = false;
 	fogInvalid = true;
 }
 
 
 void BattleScene::Visibility::InvalidateUnit( int i ) 
 {
-	GLASSERT( i>=0 && i<MAX_UNITS );
+	GLRELASSERT( i>=0 && i<MAX_UNITS );
 	current[i] = false;
 	// Do not check IsAlive(). Specifically called when units are alive or just killed.
 	if ( i >= TERRAN_UNITS_START && i < TERRAN_UNITS_END ) {
@@ -2710,7 +2711,7 @@ int BattleScene::Visibility::TeamCanSee( int team, int x, int y )
 		r1 = ALIEN_UNITS_END;
 	}
 	else {
-		GLASSERT( 0 );
+		GLRELASSERT( 0 );
 	}
 	
 	for( int i=r0; i<r1; ++i ) {
@@ -2763,7 +2764,7 @@ int BattleScene::Visibility::UnitCanSee( int i, int x, int y )
 void BattleScene::Visibility::CalcUnitVisibility( int unitID )
 {
 	//unit = units;	// debugging: 1st unit only
-	GLASSERT( unitID >= 0 && unitID < MAX_UNITS );
+	GLRELASSERT( unitID >= 0 && unitID < MAX_UNITS );
 	const Unit* unit = &units[unitID];
 
 	Vector2I pos = unit->Pos();
@@ -2808,6 +2809,7 @@ void BattleScene::Visibility::CalcVisibilityRay( int unitID, const Vector2I& pos
 	*/
 
 
+#if 0
 #ifdef DEBUG
 	{
 		// Max sight
@@ -2819,9 +2821,10 @@ void BattleScene::Visibility::CalcVisibilityRay( int unitID, const Vector2I& pos
 			return;
 	}
 #endif
+#endif
 
 	const Surface* lightMap = map->GetLightMap(1);
-	GLASSERT( lightMap->Format() == Surface::RGB16 );
+	GLRELASSERT( lightMap->Format() == Surface::RGB16 );
 
 	const float OBSCURED = 0.50f;
 	const float DARK  = ((units[unitID].Team() == ALIEN_TEAM) ? 1.5f :2.0f) / (float)MAX_EYESIGHT_RANGE;
@@ -3049,7 +3052,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 		break;
 
 		default:
-			GLASSERT( 0 );
+			GLRELASSERT( 0 );
 			break;
 	}
 }
@@ -3076,7 +3079,7 @@ void BattleScene::Zoom( int action, int distance )
 			break;
 
 		default:
-			GLASSERT( 0 );
+			GLRELASSERT( 0 );
 			break;
 	}
 	//GLOUTPUT(( "Zoom action=%d distance=%d initZoomDistance=%d lastZoomDistance=%d z=%.2f\n",
@@ -3157,9 +3160,9 @@ void BattleScene::DrawHUD()
 float MotionPath::DeltaToRotation( int dx, int dy )
 {
 	float rot = 0.0f;
-	GLASSERT( dx || dy );
-	GLASSERT( dx >= -1 && dx <= 1 );
-	GLASSERT( dy >= -1 && dy <= 1 );
+	GLRELASSERT( dx || dy );
+	GLRELASSERT( dx >= -1 && dx <= 1 );
+	GLRELASSERT( dy >= -1 && dy <= 1 );
 
 	if ( dx == 1 ) 
 		if ( dy == 1 )
@@ -3186,13 +3189,13 @@ float MotionPath::DeltaToRotation( int dx, int dy )
 
 void MotionPath::Init( const MP_VECTOR< Vector2<S16> >& pathCache ) 
 {
-	GLASSERT( pathCache.size() <= MAX_TU );
-	GLASSERT( pathCache.size() > 1 );	// at least start and end
+	GLRELASSERT( pathCache.size() <= MAX_TU );
+	GLRELASSERT( pathCache.size() > 1 );	// at least start and end
 
 	pathLen = (int)pathCache.size();
 	for( unsigned i=0; i<pathCache.size(); ++i ) {
-		GLASSERT( pathCache[i].x < 256 );
-		GLASSERT( pathCache[i].y < 256 );
+		GLRELASSERT( pathCache[i].x < 256 );
+		GLRELASSERT( pathCache[i].y < 256 );
 		pathData[i*2+0] = (U8) pathCache[i].x;
 		pathData[i*2+1] = (U8) pathCache[i].y;
 	}
@@ -3245,8 +3248,8 @@ void MotionPath::Travel(	float* travel,
 
 void MotionPath::GetPos( int step, float fraction, float* x, float* z, float* rot )
 {
-	GLASSERT( step < pathLen );
-	GLASSERT( fraction >= 0.0f && fraction < 1.0f );
+	GLRELASSERT( step < pathLen );
+	GLRELASSERT( fraction >= 0.0f && fraction < 1.0f );
 	if ( step == pathLen-1 ) {
 		step = pathLen-2;
 		fraction = 1.0f;

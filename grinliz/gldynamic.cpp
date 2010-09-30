@@ -50,10 +50,11 @@ void* grinliz::grinlizLoadLibrary( const char* name )
 	#if defined( _WIN32 )
 		libraryName = name;
 		handle = SDL_LoadObject( libraryName.c_str() );
+		GLRELASSERT( handle );
 		
-		if ( !handle ) {
-			GLLOG(( "ERROR: could not load %s. Reason: %s\n", libraryName.c_str(), SDL_GetError() ));
-		}
+		//if ( !handle ) {
+		//	GLLOG(( "ERROR: could not load %s. Reason: %s\n", libraryName.c_str(), SDL_GetError() ));
+		//}
 	#elif defined(__APPLE__)
 		libraryName = name;
 		handle = dlopen ( libraryName.c_str(), RTLD_LAZY);
