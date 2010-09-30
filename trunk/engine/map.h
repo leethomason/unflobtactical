@@ -81,38 +81,40 @@ struct MapItemDef
 	const ModelResource* GetDestroyedResource() const;
 
 	U32 Pather( int x, int y ) const {
-		GLASSERT( x < cx && y < cy );
+		GLRELASSERT( x < cx && y < cy );
+		
 		if ( !patherStr )
 			return 0;
-#ifdef DEBUG
+		
 		GLASSERT( strlen( patherStr ) == cx*cy );
 		GLASSERT( strlen( visibilityStr ) == cx*cy );
-#endif
+
 		const char c = *(patherStr + y*cx + x );
 		U32 result = 0;
 		if ( c >= 'a' )
 			result =  c - 'a' + 10;
 		else
 			result = c - '0';
-		GLASSERT( result >= 0 && result < 16 );
+		GLRELASSERT( result >= 0 && result < 16 );
 		return result;
 	}
+
 	U32 Visibility( int x, int y ) const 
 	{
-		GLASSERT( x < cx && y < cy );
+		GLRELASSERT( x < cx && y < cy );
 		if ( !visibilityStr )
 			return 0;
-#ifdef DEBUG
+
 		GLASSERT( strlen( patherStr ) == cx*cy );
 		GLASSERT( strlen( visibilityStr ) == cx*cy );
-#endif
+
 		const char c = *(visibilityStr + y*cx + x );
 		U32 result = 0;
 		if ( c >= 'a' )
 			result =  c - 'a' + 10;
 		else
 			result = c - '0';
-		GLASSERT( result >= 0 && result < 16 );
+		GLRELASSERT( result >= 0 && result < 16 );
 		return result;
 	}
 
@@ -258,7 +260,7 @@ public:
 	// 0: Light map that was set in "SetLightMap", or white if none set
 	// 1: Light map 0 + lights
 	// Not currently used: 2: Light map 0 + lights + FogOfWar
-	const Surface* GetLightMap( int i)	{ GLASSERT( i>=0 && i<2 ); GenerateLightMap(); return &lightMap[i]; }
+	const Surface* GetLightMap( int i)	{ GLRELASSERT( i>=0 && i<2 ); GenerateLightMap(); return &lightMap[i]; }
 
 	void DrawSeen();		//< draw the map that is currently visible
 	void DrawUnseen();		//< draw the map that currently can't be seen
@@ -427,19 +429,19 @@ private:
 	private:
 		int WorldToNode( int x, int depth )					
 		{ 
-			GLASSERT( depth >=0 && depth < QUAD_DEPTH );
-			GLASSERT( x>=0 && x < Map::SIZE );
+			GLRELASSERT( depth >=0 && depth < QUAD_DEPTH );
+			GLRELASSERT( x>=0 && x < Map::SIZE );
 			return x >> (LOG2_SIZE-depth); 
 		}
 		int NodeToWorld( int x0, int depth )
 		{
-			GLASSERT( x0>=0 && x0 < (1<<depth) );
+			GLRELASSERT( x0>=0 && x0 < (1<<depth) );
 			return x0 << (LOG2_SIZE-depth);			
 		}
 		int NodeOffset( int x0, int y0, int depth )	
 		{	
-			GLASSERT( x0>=0 && x0 < (1<<depth) );
-			GLASSERT( y0>=0 && y0 < (1<<depth) );
+			GLRELASSERT( x0>=0 && x0 < (1<<depth) );
+			GLRELASSERT( y0>=0 && y0 < (1<<depth) );
 			return y0 * (1<<depth) + x0; 
 		}
 

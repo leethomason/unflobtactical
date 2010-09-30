@@ -27,17 +27,20 @@ distribution.
 */
 
 #ifdef _WIN32
-
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 #include <windows.h>
-#include <stdio.h>
-
 #endif	//_WIN32
 
+#ifdef ANDROID_NDK
+#include <android/log.h>
+#endif
+
+
 #include "gldebug.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 #ifdef DEBUG
-#include <stdlib.h>
 
 #ifdef GRINLIZ_DEBUG_MEM
 
@@ -263,7 +266,7 @@ void dprintf( const char* format, ... )
 #endif
 
 
-#ifdef ANDROID_NDK
+#if defined(DEBUG) && defined(ANDROID_NDK)
 void dprintf( const char* format, ... )
 {
     va_list     va;
@@ -277,3 +280,19 @@ void dprintf( const char* format, ... )
 
 }
 #endif
+
+void GrinlizReleaseAssert( const char* file, int line ) 
+{
+#ifdef ANDROID_NDK
+	__android_log_print(ANDROID_LOG_INFO, "UFOAttack", "ASSERT in '%s' at %d.", file, line );
+	__android_log_assert( "assert", "grinliz", "ASSERT in '%s' at %d.", file, line );
+#endif
+	// FIXME: switch to platform save directory!
+	FILE* fp = fopen( "ufoErrorLog.txt", "a" );
+	if ( fp ) {
+		fprintf( fp, "Release assert at file='%s' line=%d\n", file, line );
+		fclose( fp );
+	}
+	GLASSERT( 0 );
+	exit( 1 );
+}
