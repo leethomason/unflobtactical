@@ -92,7 +92,7 @@ void
 Java_com_grinninglizard_UFOAttack_UFORenderer_nativeResize( JNIEnv*  env, jobject  thiz, jint w, jint h )
 {
 	if ( game == 0 )
-		game = NewGame( w, h, 1, ".\\" );
+		game = NewGame( w, h, 1, androidSavePath );
 	else
 		GameResize( game, w, h, 1 );
     __android_log_print(ANDROID_LOG_INFO, "UFOAttack", "resize w=%d h=%d", w, h);
@@ -119,13 +119,15 @@ Java_com_grinninglizard_UFOAttack_UFORenderer_nativePause( JNIEnv*  env, jint pa
         /* we paused the animation, so store the current
          * time in sTimeStopped for future nativeRender calls */
         sTimeStopped = _getTime();
+		if ( game )
+			GameSave( game );
     } else {
         /* we resumed the animation, so adjust the time offset
          * to take care of the pause interval. */
         sTimeOffset -= _getTime() - sTimeStopped;
-		if ( game )
-			GameDeviceLoss( game );
     }
+	if ( game )
+		GameDeviceLoss( game );
 }
 
 /* Call to render the next GL frame */
