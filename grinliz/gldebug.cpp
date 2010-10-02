@@ -39,6 +39,8 @@ distribution.
 #include "gldebug.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
+#include "glstringutil.h"
 
 #ifdef DEBUG
 
@@ -281,18 +283,38 @@ void dprintf( const char* format, ... )
 }
 #endif
 
+grinliz::CStr<200> releasePath;
+
 void GrinlizReleaseAssert( const char* file, int line ) 
 {
+	time_t rawtime = time( 0 );
+	struct tm * timeinfo = localtime ( &rawtime );
+
+	if ( releasePath.empty() ) {
+		GrinlizSetReleaseAssertPath( "" );
+	}
+	//__android_log_print(ANDROID_LOG_INFO, "UFOAttack", "Release path %s", releasePath.c_str() );
+
+	FILE* fp = fopen( releasePath.c_str(), "a" );
+	if ( fp ) {
+		fprintf( fp, "Release assert at file='%s' line=%d at %s\n", file, line, asctime( timeinfo ) );
+		fclose( fp );
+	}
+
 #ifdef ANDROID_NDK
 	__android_log_print(ANDROID_LOG_INFO, "UFOAttack", "ASSERT in '%s' at %d.", file, line );
 	__android_log_assert( "assert", "grinliz", "ASSERT in '%s' at %d.", file, line );
 #endif
-	// FIXME: switch to platform save directory!
-	FILE* fp = fopen( "ufoErrorLog.txt", "a" );
-	if ( fp ) {
-		fprintf( fp, "Release assert at file='%s' line=%d\n", file, line );
-		fclose( fp );
-	}
 	GLASSERT( 0 );
 	exit( 1 );
 }
+
+extern "C" void GrinlizSetReleaseAssertPath( const char* path )
+{
+	releasePath = path;
+	if ( !releasePath.empty() && releasePath[ releasePath.Length()-1 ] != '/' ) {
+		releasePath += "/";
+	}
+	releasePath += "releaseErrorLog.txt";
+}
+

@@ -33,6 +33,9 @@ distribution.
 	#endif
 #endif
 
+extern "C" {
+void GrinlizSetReleaseAssertPath( const char* path );
+};
 void GrinlizReleaseAssert( const char* file, int line );
 
 #if defined(DEBUG)

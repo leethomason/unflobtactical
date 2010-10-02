@@ -1,7 +1,25 @@
 Issues:
 
 Bugs:
-- finish Android port
+- Android: save/load
+- Android: zoom / rotate
+- Android: DPAD/Trackball
+- Android: sound
+- Android: optimize performance
+	- subsystem analysis
+	- opaque buttons
+	- VBOs
+	- cap framerate
+- help text
+- 1/2 size images for character help
+- Android: UFOActivity rename
+- Initial lander activity
+- Android: icon
+- lower case rounds in character screen
+- description of current weapon
+- Android: correctly return from sleep / screen off
+
+
 
 Architecture
 - Map as interface
@@ -35,6 +53,8 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- Android: RELASSERT logging
+- timestamp RELASSERT
 - mission types: crash
 - unconscious
 - liftoff button

@@ -1,6 +1,7 @@
 
 package com.grinninglizard.UFOAttack;
 
+import java.io.File;
 import java.io.IOException;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -27,6 +28,7 @@ public class UFOActivity extends Activity  {
         
         // On the main thread, before we fire off the render thread:
         loadUFOAssets();
+        setWritePaths();
        
         mGLView = new DemoGLSurfaceView(this);
         setContentView(mGLView);
@@ -51,7 +53,7 @@ public class UFOActivity extends Activity  {
     
     private void loadUFOAssets() 
     {
-    	// Get the path
+    	// Get the path to the application resource.
 	    String apkFilePath = null;
 	    PackageManager packMgmr = getPackageManager();
 	    try
@@ -74,6 +76,15 @@ public class UFOActivity extends Activity  {
 	    }
 	    
 	}
+    
+    private void setWritePaths() 
+    {
+    	File file = this.getFilesDir();
+    	if ( file != null ) {
+    		UFORenderer.nativeSavePath( file.getAbsolutePath() );
+    	}
+    }
+
     
     private DemoGLSurfaceView mGLView;
 
@@ -269,6 +280,7 @@ class UFORenderer implements GLSurfaceView.Renderer {
     }
 
     public static native void nativeResource( String path, long offset, long len );
+    public static native void nativeSavePath( String path );
     
     private static native void nativeResize(int w, int h);
     private static native void nativeRender();
