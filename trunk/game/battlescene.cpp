@@ -45,6 +45,7 @@ using namespace gamui;
 
 BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 {
+	//GLRELASSERT( 0 );
 	subTurnCount = 0;
 	turnCount = 0;
 	rotationUIOn = nextUIOn = true;

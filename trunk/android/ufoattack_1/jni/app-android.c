@@ -15,9 +15,14 @@ static int  sTimeOffsetInit = 0;
 static long sTimeStopped  = 0;
 static void* game = 0;
 
+enum { UFO_MAX_PATH = 200 };
+
 int androidResourceOffset;
 int androidResourceLen;
-char androidResourcePath[200];
+char androidResourcePath[UFO_MAX_PATH];
+char androidSavePath[UFO_MAX_PATH];
+
+extern void GrinlizSetReleaseAssertPath( const char* path );
 
 static long
 _getTime(void)
@@ -32,17 +37,33 @@ _getTime(void)
 void
 Java_com_grinninglizard_UFOAttack_UFORenderer_nativeResource( JNIEnv* env, jobject thiz, jstring _path, jlong offset, jlong len  )
 {
-	jboolean copy;
 	const char* path = (*env)->GetStringUTFChars( env, _path, 0 );
 
 	androidResourcePath[0] = 0;
-	if ( strlen( path ) < 199 ) {
+	if ( strlen( path ) < (UFO_MAX_PATH-1) ) {
 		strcpy( androidResourcePath, path );
 	}
 	androidResourceOffset = (int)offset;
 	androidResourceLen = (int)len;
 
-    __android_log_print(ANDROID_LOG_INFO, "UFOAttack", "Resource path=%s offset=%d len=%d", path, (int)offset, (int)len );
+    __android_log_print(ANDROID_LOG_INFO, "UFOAttack", "Resource path=%s offset=%d len=%d", androidResourcePath, (int)offset, (int)len );
+	(*env)->ReleaseStringUTFChars( env, _path, path );
+}
+
+
+// May get called before anything else is initialized. Not safe to call into the game object.
+void
+Java_com_grinninglizard_UFOAttack_UFORenderer_nativeSavePath( JNIEnv* env, jobject thiz, jstring _path )
+{
+	const char* path = (*env)->GetStringUTFChars( env, _path, 0 );
+
+	androidSavePath[0] = 0;
+	if ( strlen( path ) < (UFO_MAX_PATH-1) ) {
+		strcpy( androidSavePath, path );
+	}
+
+    __android_log_print(ANDROID_LOG_INFO, "UFOAttack", "Save path=%s", androidSavePath );
+	GrinlizSetReleaseAssertPath( androidSavePath );
 	(*env)->ReleaseStringUTFChars( env, _path, path );
 }
 
