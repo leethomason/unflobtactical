@@ -177,6 +177,10 @@ int main( int argc, char **argv )
 	grinliz::Vector2I prevMouseDown = { 0, 0 };
 	U32 prevMouseDownTime = 0;
 
+	float zoom = 1.0f;
+	int zoomX = 0;
+	int zoomY = 0;
+
 	void* game = 0;
 	bool mapMakerMode = false;
 
@@ -381,8 +385,9 @@ int main( int argc, char **argv )
 				else if ( event.button.button == 3 ) {
 					GameTap( game, GAME_TAP_CANCEL, x, y );
 					zooming = true;
-					GameZoom( game, GAME_ZOOM_START, -event.button.y );
+					//GameZoom( game, GAME_ZOOM_START, -event.button.y );
 					GameCameraRotate( game, GAME_ROTATE_START, 0.0f );
+					SDL_GetRelativeMouseState( &zoomX, &zoomY );
 				}
 			}
 			break;
@@ -411,9 +416,11 @@ int main( int argc, char **argv )
 					GameTap( game, GAME_TAP_MOVE, x, y );
 				}
 				else if ( zooming && (state & SDL_BUTTON(3)) ) {
+					SDL_GetRelativeMouseState( &zoomX, &zoomY );
+					zoom += 0.01f * (float)zoomY;
 
-					GameZoom( game, GAME_ZOOM_MOVE, -event.button.y );
-					
+					GameZoom( game, zoom );
+
 					//GLOUTPUT(( "x,y=%d,%d  down=%d,%d\n", x, y, mouseDown.x, mouseDown.y ));
 					GameCameraRotate( game, GAME_ROTATE_MOVE, (float)(event.button.x-mouseDown.x)*0.5f );
 				}

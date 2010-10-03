@@ -510,7 +510,10 @@ void Engine::RestrictCamera()
 
 void Engine::SetZoom( float z )
 {
-	z = Clamp( z, 0.0f, 1.0f );
+	z = Clamp( z, 0.1f, 5.0f );
+	float d = Interpolate(	0.1f, engineData.cameraMin,
+							5.0f, engineData.cameraMax,
+							z );
 
 	const Vector3F* eyeDir = camera.EyeDir3();
 	Vector3F origin;
@@ -519,7 +522,7 @@ void Engine::SetZoom( float z )
 		MoveCameraHome();
 	}
 	else {
-		float len = ( engineData.cameraMin + z*(engineData.cameraMax-engineData.cameraMin) ) / eyeDir[0].y;
+		float len = ( d ) / eyeDir[0].y;
 		Vector3F pos = origin + len*eyeDir[0];
 		camera.SetPosWC( pos );
 	}

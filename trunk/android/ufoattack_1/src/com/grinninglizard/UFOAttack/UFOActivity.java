@@ -19,6 +19,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 
 public class UFOActivity extends Activity  {
 	
@@ -94,6 +95,21 @@ public class UFOActivity extends Activity  {
 }
 
 
+
+class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+    @Override
+    public boolean onScale(ScaleGestureDetector detector) {
+        mScaleFactor *= detector.getScaleFactor();
+        
+        // Don't let the object get too small or too large.
+        mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 5.0f));
+        //Log.v( "UFOATTACK", "Scale factor=" + mScaleFactor );
+        return true;
+    }
+    private float mScaleFactor = 1.0f;
+}
+
+
 class DemoGLSurfaceView extends GLSurfaceView  { 
 
 	public DemoGLSurfaceView(Context context) {
@@ -103,7 +119,8 @@ class DemoGLSurfaceView extends GLSurfaceView  {
         
         requestFocusFromTouch();
         setFocusableInTouchMode( true );
-        //setClickable( true );
+        
+        mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
     }
 	
 	// @Override
@@ -121,33 +138,79 @@ class DemoGLSurfaceView extends GLSurfaceView  {
 	public void destroy() {
 		queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_DESTROY, 0, 0, 0 ) );
 	}
-
+/*
+	private static int MOTION_OPEN = 0;
+	private static int MOTION_SINGLE = 1;
+	private static int MOTION_DOUBLE = 2;
+	private static int MOTION_CLOSED = 3;
+	private int motionState = MOTION_OPEN;
+*/
+	private ScaleGestureDetector mScaleDetector;
+	private static final int INVALID_POINTER_ID = -1;
+	private int mActivePointerID = INVALID_POINTER_ID;
 	
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+    	// Feed info to our helper class:
+    	mScaleDetector.onTouchEvent(event);
+    	
         int action = event.getAction();
         
-        int x = (int)event.getX();
-        int y = (int)(getHeight() - event.getY());
-        int type = -1;
-        
-        if (action == MotionEvent.ACTION_DOWN ) {
-            //Log.v( "UFOJAVA", "Action down at " + event.getX() + "," + event.getY() );
-        	type = 0;
-        }
-        else if ( action == MotionEvent.ACTION_UP ) {
-        	type = 2;
-        }
-        else if ( action == MotionEvent.ACTION_MOVE ) {
-        	type = 1;
-        }
-        if ( type >= 0 ) {
-        	queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_TAP, type, x, y ) );
-        	return true;
-        }
-        else {
-        	return super.onTouchEvent( event );
-        }
+        for( int i=0; i<event.getPointerCount(); ++i ) {
+
+            int pointerIndex = (action & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
+        	int pointerID = event.getPointerId(pointerIndex);
+
+            int x = (int)event.getX(pointerID);
+            int y = (int)(getHeight() - event.getY(pointerID));
+            int type = -1;
+            int idWas = mActivePointerID;
+            
+        	// Start tracking.
+        	if (    mActivePointerID == INVALID_POINTER_ID 
+        		 && action == MotionEvent.ACTION_DOWN 
+        		 && event.getPointerCount() == 1) 
+        	{
+        		mActivePointerID = pointerID;
+        	}
+        	
+        	// Stop tracking.
+        	if (    event.getPointerCount() > 1
+        		 && pointerID == mActivePointerID
+        		 && action == MotionEvent.ACTION_MOVE ) 
+        	{
+        		Log.v("UFOATTACK", "touch event up-on-move id=" + pointerID + " x=" + x + " y=" + y );
+	        	queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_TAP, 2, x, y ) );
+	        	mActivePointerID = INVALID_POINTER_ID;
+        	}
+        	
+        	if ( mActivePointerID != pointerID )
+        		continue;
+        	
+	        switch ( action & MotionEvent.ACTION_MASK ) {
+	        case MotionEvent.ACTION_DOWN:
+	        	type = 0;
+	        	break;
+	        	
+	        case MotionEvent.ACTION_UP:
+	        case MotionEvent.ACTION_CANCEL:
+	        case MotionEvent.ACTION_POINTER_UP: 
+	           	mActivePointerID = INVALID_POINTER_ID;
+	           	type = 2;
+	        	break;
+
+	        case MotionEvent.ACTION_MOVE:
+	        	type = 1;
+	        	break;
+	        }
+	        if ( type >= 0 ) {
+	        	if ( type != 1 )
+	        		Log.v("UFOATTACK", "touch event id=" + idWas + " type=" + type + " x=" + x + " y=" + y );
+	        	queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_TAP, type, x, y ) );
+	        	return true;
+	        }
+        }        
+    	return super.onTouchEvent( event );
     }
     
     
@@ -156,8 +219,8 @@ class DemoGLSurfaceView extends GLSurfaceView  {
     	int sendKey = 0;
     	int GAME_HK_NEXT_UNIT	=		0x0001;
     	int GAME_HK_PREV_UNIT	= 		0x0002;
-    	int GAME_HK_ROTATE_CCW	=		0x0004;
-    	int GAME_HK_ROTATE_CW	=		0x0008;
+    	//int GAME_HK_ROTATE_CCW	=		0x0004;
+    	//int GAME_HK_ROTATE_CW	=		0x0008;
 
     	switch ( keyCode ) {
     	case KeyEvent.KEYCODE_DPAD_LEFT:

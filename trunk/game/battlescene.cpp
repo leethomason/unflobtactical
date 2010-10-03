@@ -3059,9 +3059,9 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 }
 
 
-void BattleScene::Zoom( int action, int distance )
+void BattleScene::Zoom( float distance )
 {
-	switch ( action )
+/*	switch ( action )
 	{
 		case GAME_ZOOM_START:
 			initZoomDistance = distance;
@@ -3085,6 +3085,8 @@ void BattleScene::Zoom( int action, int distance )
 	}
 	//GLOUTPUT(( "Zoom action=%d distance=%d initZoomDistance=%d lastZoomDistance=%d z=%.2f\n",
 	//		   action, distance, initZoomDistance, lastZoomDistance, GetZoom() ));
+*/
+	engine->SetZoom( distance );
 }
 
 

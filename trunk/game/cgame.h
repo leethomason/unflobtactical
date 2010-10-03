@@ -46,9 +46,8 @@ void GameSave( void* handle );
 #define GAME_TAP_CANCEL	3
 void GameTap( void* handle, int action, int x, int y );
 
-#define GAME_ZOOM_START	0
-#define GAME_ZOOM_MOVE	1
-void GameZoom( void* handle, int action, int distance );
+// Set the zoom, where 1.0 is 'normal', based on a bitmap zoom.
+void GameZoom( void* handle, float zoom );
 
 #define GAME_ROTATE_START 0
 #define GAME_ROTATE_MOVE  1

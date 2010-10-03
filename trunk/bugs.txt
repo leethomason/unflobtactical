@@ -1,8 +1,10 @@
 Issues:
 
 Bugs:
+- Android: starting paused incorrect. General way to detect device loss?
 - Android: zoom / rotate
 - Android: DPAD/Trackball
+- Rotated coordinates: alien arrows in wrong place
 - Android: sound
 - Android: optimize performance
 	- subsystem analysis
@@ -10,14 +12,11 @@ Bugs:
 	- VBOs
 	- cap framerate
 - help text
-- 1/2 size images for character help
 - Android: UFOActivity rename
 - Initial lander activity
 - Android: icon
 - lower case rounds in character screen
 - description of current weapon
-
-
 
 Architecture
 - Map as interface
@@ -51,6 +50,7 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- 1/2 size images for character help
 - Android: save/load
 - Android: correctly return from sleep / screen off
 - Android: RELASSERT logging

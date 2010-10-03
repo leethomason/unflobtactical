@@ -349,8 +349,8 @@
     </page>
   </text>
 
-  <texture filename="helpImage4.png" />
-  <texture filename="helpImage5.png" />
+  <texture filename="helpImage4.png" width="128" height="128"/>
+  <texture filename="helpImage5.png" width="128" height="128"/>
 
   <text name="introHelp" >
     <page>
