@@ -3061,31 +3061,6 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 
 void BattleScene::Zoom( float distance )
 {
-/*	switch ( action )
-	{
-		case GAME_ZOOM_START:
-			initZoomDistance = distance;
-			initZoom = engine->GetZoom();
-//			GLOUTPUT(( "initZoomStart=%.2f distance=%d initDist=%d\n", initZoom, distance, initZoomDistance ));
-			break;
-
-		case GAME_ZOOM_MOVE:
-			{
-				//float z = initZoom * (float)distance / (float)initZoomDistance;	// original. wrong feel.
-				float z = initZoom - (float)(distance-initZoomDistance)/800.0f;	// better, but slow out zoom-out, fast at zoom-in
-				
-//				GLOUTPUT(( "initZoom=%.2f distance=%d initDist=%d\n", initZoom, distance, initZoomDistance ));
-				engine->SetZoom( z );
-			}
-			break;
-
-		default:
-			GLRELASSERT( 0 );
-			break;
-	}
-	//GLOUTPUT(( "Zoom action=%d distance=%d initZoomDistance=%d lastZoomDistance=%d z=%.2f\n",
-	//		   action, distance, initZoomDistance, lastZoomDistance, GetZoom() ));
-*/
 	engine->SetZoom( distance );
 }
 
