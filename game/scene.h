@@ -52,7 +52,7 @@ public:
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world )				{}
 
-	virtual void Zoom( int action, int distance )				{}
+	virtual void Zoom( float normal )							{}
 	virtual void Rotate( int action, float degrees )			{}
 	virtual void CancelInput()									{}
 

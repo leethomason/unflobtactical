@@ -95,7 +95,7 @@ public:
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
 
-	virtual void Zoom( int action, int distance );
+	virtual void Zoom( float normal );
 	virtual void Rotate( int aciton, float degreesFromStart );
 	virtual void CancelInput() {}
 	virtual void SceneResult( int sceneID, int result );

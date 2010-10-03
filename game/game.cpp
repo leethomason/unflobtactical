@@ -559,9 +559,9 @@ void Game::MouseMove( int x, int y )
 
 
 
-void Game::Zoom( int action, int distance )
+void Game::Zoom( float distance )
 {
-	sceneStack.Top().scene->Zoom( action, distance );
+	sceneStack.Top().scene->Zoom( distance );
 }
 
 

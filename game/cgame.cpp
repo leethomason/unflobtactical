@@ -92,12 +92,12 @@ void GameDeviceLoss( void* handle )
 }
 
 
-void GameZoom( void* handle, int action, int distance )
+void GameZoom( void* handle, float distance )
 {
 	CheckThread check;
 
 	Game* game = (Game*)handle;
-	game->Zoom( action, distance );
+	game->Zoom( distance );
 }
 
 void GameCameraRotate( void* handle, int action, float degrees )
