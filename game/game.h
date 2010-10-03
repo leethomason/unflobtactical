@@ -106,6 +106,7 @@ public:
 
 	void Tap( int action, int x, int y );
 	void Zoom( float distance );
+	float QueryZoom() const;
 	void Rotate( int action, float degreesFromStart );
 	void CancelInput();
 	
@@ -194,41 +195,7 @@ private:
 	bool scenePopQueued;
 	bool sceneResetQueued;
 	bool loadCompleted;
-/*
-	struct MapLightInit
-	{
-		const char* name;
-		int objectX;	// offset from object origin to light map origin.
-		int objectY;
-		int x;	// image position
-		int y;
-		int cx;	// light map size
-		int cy;
-	};
 
-	struct MapItemInit 
-	{
-		const char* Name() const { return model; }
-
-		const char* model;
-		const char* modelOpen;
-		const char* modelDestroyed;
-		int cx;
-		int cy;
-		int hp;
-		float flammable;		// 0 - 1
-		//
-		//	+----X
-		//	|			4
-		//	|		8		2
-		//	Z			1
-		//
-		
-		const char* pather;
-		const char* visibility;
-		int lightDef;
-	};
-*/
 	void Init();
 	void LoadTextures();
 	void LoadModels();
@@ -237,9 +204,6 @@ private:
 	void LoadAtoms();
 
 	void DumpWeaponInfo( FILE* fp, float range, const Stats& stats, int count );
-
-//	void InitMapLight( int index, const MapLightInit* init );
-//	void InitMapItemDef( int startIndex, const MapItemInit* );
 
 	int currentFrame;
 	U32 markFrameTime;

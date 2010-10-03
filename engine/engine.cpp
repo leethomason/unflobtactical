@@ -510,9 +510,9 @@ void Engine::RestrictCamera()
 
 void Engine::SetZoom( float z )
 {
-	z = Clamp( z, 0.1f, 5.0f );
-	float d = Interpolate(	0.1f, engineData.cameraMin,
-							5.0f, engineData.cameraMax,
+	z = Clamp( z, GAME_ZOOM_MIN, GAME_ZOOM_MAX );
+	float d = Interpolate(	GAME_ZOOM_MIN, engineData.cameraMin,
+							GAME_ZOOM_MAX, engineData.cameraMax,
 							z );
 
 	const Vector3F* eyeDir = camera.EyeDir3();
@@ -522,6 +522,7 @@ void Engine::SetZoom( float z )
 		MoveCameraHome();
 	}
 	else {
+		// The 'd' is the actual height. Adjust for the angle of the camera.
 		float len = ( d ) / eyeDir[0].y;
 		Vector3F pos = origin + len*eyeDir[0];
 		camera.SetPosWC( pos );
@@ -531,7 +532,9 @@ void Engine::SetZoom( float z )
 
 float Engine::GetZoom() 
 {
-	float z = ( camera.PosWC().y - engineData.cameraMin ) / ( engineData.cameraMax - engineData.cameraMin );
+	float z = Interpolate(	engineData.cameraMin, GAME_ZOOM_MIN,
+							engineData.cameraMax, GAME_ZOOM_MAX,
+							camera.PosWC().y );
 	return z;
 }
 

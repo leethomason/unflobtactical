@@ -565,6 +565,12 @@ void Game::Zoom( float distance )
 }
 
 
+float Game::QueryZoom() const
+{
+	return engine->GetZoom();
+}
+
+
 void Game::Rotate( int action, float degrees )
 {
 	sceneStack.Top().scene->Rotate( action, degrees );

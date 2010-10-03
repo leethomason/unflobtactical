@@ -177,7 +177,6 @@ int main( int argc, char **argv )
 	grinliz::Vector2I prevMouseDown = { 0, 0 };
 	U32 prevMouseDownTime = 0;
 
-	float zoom = 1.0f;
 	int zoomX = 0;
 	int zoomY = 0;
 
@@ -408,6 +407,7 @@ int main( int argc, char **argv )
 
 			case SDL_MOUSEMOTION:
 			{
+				SDL_GetRelativeMouseState( &zoomX, &zoomY );
 				int state = SDL_GetMouseState(NULL, NULL);
 				int x, y;
 				TransformXY( event.button.x, event.button.y, &x, &y );
@@ -416,8 +416,13 @@ int main( int argc, char **argv )
 					GameTap( game, GAME_TAP_MOVE, x, y );
 				}
 				else if ( zooming && (state & SDL_BUTTON(3)) ) {
-					SDL_GetRelativeMouseState( &zoomX, &zoomY );
+					float zoom = GameQueryZoom( game );
+
 					zoom += 0.01f * (float)zoomY;
+					if ( zoom < GAME_ZOOM_MIN )
+						zoom = GAME_ZOOM_MIN;
+					if ( zoom > GAME_ZOOM_MAX )
+						zoom = GAME_ZOOM_MAX;
 
 					GameZoom( game, zoom );
 
