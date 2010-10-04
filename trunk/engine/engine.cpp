@@ -510,6 +510,8 @@ void Engine::RestrictCamera()
 
 void Engine::SetZoom( float z )
 {
+	float startY = camera.PosWC().y;
+
 	z = Clamp( z, GAME_ZOOM_MIN, GAME_ZOOM_MAX );
 	float d = Interpolate(	GAME_ZOOM_MIN, engineData.cameraMin,
 							GAME_ZOOM_MAX, engineData.cameraMax,
@@ -527,6 +529,7 @@ void Engine::SetZoom( float z )
 		Vector3F pos = origin + len*eyeDir[0];
 		camera.SetPosWC( pos );
 	}
+	GLOUTPUT(( "Engine set zoom. y=%f to y=%f", startY, camera.PosWC().y ));
 }
 
 

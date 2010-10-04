@@ -2331,6 +2331,7 @@ void BattleScene::Tap(	int action,
 		}
 	}
 	else if ( action == GAME_TAP_CANCEL ) {
+		processTap = false;
 		if ( isDragging ) {
 			Drag( action, uiActive, view );
 		}
@@ -2980,8 +2981,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 				dragLength += (drag-dragEnd).Length();
 				dragEnd = drag;
 
-				//GLOUTPUT(( "screen=%d,%d drag=%.2f,%.2f  delta=%.2f,%.2f\n", screen.x, screen.y, drag.x, drag.z, delta.x, delta.z ));
-
+				//GLOUTPUT(( "GAME_TAP_MOVE delta=%.2f,%.2f\n", delta.x, delta.z ));
 				engine->camera.SetPosWC( dragStartCameraWC - delta );
 				engine->RestrictCamera();
 			}
@@ -3033,6 +3033,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 				dragLength += (drag-dragEnd).Length();
 				dragEnd = drag;
 
+				//GLOUTPUT(( "GAME_TAP_UP delta=%.2f,%.2f\n", delta.x, delta.z ));
 				engine->camera.SetPosWC( dragStartCameraWC - delta );
 				engine->RestrictCamera();
 			}
@@ -3059,9 +3060,10 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 }
 
 
-void BattleScene::Zoom( float distance )
+void BattleScene::Zoom( float delta )
 {
-	engine->SetZoom( distance );
+	//GLOUTPUT(( "Battlescene GetZoom=%f delta=%f\n", engine->GetZoom(), delta ));
+	engine->SetZoom( engine->GetZoom() + delta );
 }
 
 
@@ -3074,12 +3076,9 @@ void BattleScene::Rotate( int action, float degrees )
 		const Vector3F& pos = engine->camera.PosWC();
 
 		IntersectRayPlane( pos, dir[0], 1, 0.0f, &orbitPole );	
-		//orbitPole.Dump( "pole" );
-
 		orbitStart = ToDegree( atan2f( pos.x-orbitPole.x, pos.z-orbitPole.z ) );
 	}
 	else {
-		//GLOUTPUT(( "degrees=%.2f\n", degrees ));
 		engine->camera.Orbit( orbitPole, orbitStart + degrees );
 	}
 }
