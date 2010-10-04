@@ -259,6 +259,7 @@ int main( int argc, char **argv )
 							done = true;
 						break;
 
+						/*
 					case SDLK_KP_PLUS:
 					case SDLK_KP_MINUS:
 						{
@@ -268,6 +269,7 @@ int main( int argc, char **argv )
 							GameCameraSet( game, GAME_CAMERA_ZOOM, zoom );
 						}
 						break;
+						*/
 
 					case SDLK_RIGHT:
 						if ( !mapMakerMode ) {
@@ -416,6 +418,7 @@ int main( int argc, char **argv )
 					GameTap( game, GAME_TAP_MOVE, x, y );
 				}
 				else if ( zooming && (state & SDL_BUTTON(3)) ) {
+					/*
 					float zoom = GameQueryZoom( game );
 
 					zoom += 0.01f * (float)zoomY;
@@ -425,7 +428,10 @@ int main( int argc, char **argv )
 						zoom = GAME_ZOOM_MAX;
 
 					GameZoom( game, zoom );
+					*/
 
+					float deltaZoom = 0.01f * (float)zoomY;
+					GameZoom( game, deltaZoom );
 					//GLOUTPUT(( "x,y=%d,%d  down=%d,%d\n", x, y, mouseDown.x, mouseDown.y ));
 					GameCameraRotate( game, GAME_ROTATE_MOVE, (float)(event.button.x-mouseDown.x)*0.5f );
 				}

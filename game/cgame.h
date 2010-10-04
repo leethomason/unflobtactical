@@ -47,14 +47,17 @@ void GameSave( void* handle );
 void GameTap( void* handle, int action, int x, int y );
 
 // Set the zoom, where 1.0 is 'normal', based on a bitmap zoom.
-// Zoom is based on the absolute height.
+// Zoom is based on the absolute height, but passed in as a 
+// relative change.
 #define GAME_ZOOM_MIN	0.1f
 #define GAME_ZOOM_MAX	5.0f
 void GameZoom( void* handle, float zoom );
 
 // Query the current zoom.
-float GameQueryZoom( void* handle );
+//float GameQueryZoom( void* handle );
 
+// Unlike zoom, rotation is relative. There is no way to get the current
+// rotation. It starts, and then is incremented relative to that point.
 #define GAME_ROTATE_START 0
 #define GAME_ROTATE_MOVE  1
 void GameCameraRotate( void* handle, int action, float degreesFromStart );
@@ -83,7 +86,7 @@ enum {
 	GAME_CAMERA_ZOOM
 };
 void GameCameraGet( void* handle, int param, float* value );
-void GameCameraSet( void* handle, int param, float value );
+//void GameCameraSet( void* handle, int param, float value );
 
 void GameMoveCamera( void* handle, float dx, float dy, float dz );
 	

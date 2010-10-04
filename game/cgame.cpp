@@ -92,12 +92,12 @@ void GameDeviceLoss( void* handle )
 }
 
 
-void GameZoom( void* handle, float distance )
+void GameZoom( void* handle, float delta )
 {
 	CheckThread check;
 
 	Game* game = (Game*)handle;
-	game->Zoom( distance );
+	game->Zoom( delta );
 }
 
 
@@ -158,6 +158,7 @@ void GameCameraGet( void* handle, int param, float* value )
 }
 
 
+/*
 void GameCameraSet( void* handle, int param, float value ) 
 {
 	CheckThread check;
@@ -177,6 +178,7 @@ void GameCameraSet( void* handle, int param, float value )
 			GLASSERT( 0 );
 	}
 }
+*/
 
 
 void GameMoveCamera( void* handle, float dx, float dy, float dz )

@@ -75,7 +75,6 @@ public class UFOActivity extends Activity  {
 	    catch( IOException e) {
 	    	System.out.println( e.toString() );
 	    }
-	    
 	}
     
     private void setWritePaths() 
@@ -85,8 +84,7 @@ public class UFOActivity extends Activity  {
     		UFORenderer.nativeSavePath( file.getAbsolutePath() );
     	}
     }
-
-    
+   
     private DemoGLSurfaceView mGLView;
 
     static {
@@ -95,18 +93,20 @@ public class UFOActivity extends Activity  {
 }
 
 
-
-class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener 
+{
+	ScaleListener( DemoGLSurfaceView view ) {
+		super();
+		mView = view;
+	}
+	
     @Override
     public boolean onScale(ScaleGestureDetector detector) {
-        mScaleFactor *= detector.getScaleFactor();
-        
-        // Don't let the object get too small or too large.
-        mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 5.0f));
-        //Log.v( "UFOATTACK", "Scale factor=" + mScaleFactor );
+        //Log.v( "UFOATTACK", "Scale factor=" + (1.0f-detector.getScaleFactor()) );
+        mView.zoom( 1.0f - detector.getScaleFactor() );
         return true;
     }
-    private float mScaleFactor = 1.0f;
+    private DemoGLSurfaceView mView;
 }
 
 
@@ -120,34 +120,42 @@ class DemoGLSurfaceView extends GLSurfaceView  {
         requestFocusFromTouch();
         setFocusableInTouchMode( true );
         
-        mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
+        mScaleDetector = new ScaleGestureDetector(context, new ScaleListener( this ));
     }
 	
 	// @Override
 	public void onPause() {
 		super.onPause();
-		queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_PAUSE, 0, 0, 0 ) );
+		queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_PAUSE, 0, 0, 0, 0 ) );
 	}
 	
 	// @Override
 	public void onResume() {
 		super.onResume();
-		queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_RESUME, 0, 0, 0 ) );
+		queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_RESUME, 0, 0, 0, 0 ) );
 	}
 	
 	public void destroy() {
-		queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_DESTROY, 0, 0, 0 ) );
+		queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_DESTROY, 0, 0, 0, 0 ) );
 	}
-/*
-	private static int MOTION_OPEN = 0;
-	private static int MOTION_SINGLE = 1;
-	private static int MOTION_DOUBLE = 2;
-	private static int MOTION_CLOSED = 3;
-	private int motionState = MOTION_OPEN;
-*/
+	
+	public void zoom( float delta ) {
+		// Once zooming kicks in, have to stop moving. Bug in battlescene 
+		// can't handle zoom & pan at the same time. The drag is computed from
+		// a relative starting coordinate that conflicts with the zoom height
+		// getting changed.
+		// It would be nice to fix this restriction.
+		if ( mActivePointerID != INVALID_POINTER_ID ) {
+			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_TAP, 3, lastX, lastY, 0 ) );	// cancel
+			mActivePointerID = INVALID_POINTER_ID;
+		}
+		queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ZOOM, 0, 0, 0, delta ) );
+	}
+
 	private ScaleGestureDetector mScaleDetector;
 	private static final int INVALID_POINTER_ID = -1;
 	private int mActivePointerID = INVALID_POINTER_ID;
+	private int lastX, lastY;									
 	
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -173,17 +181,7 @@ class DemoGLSurfaceView extends GLSurfaceView  {
         	{
         		mActivePointerID = pointerID;
         	}
-        	
-        	// Stop tracking.
-        	if (    event.getPointerCount() > 1
-        		 && pointerID == mActivePointerID
-        		 && action == MotionEvent.ACTION_MOVE ) 
-        	{
-        		Log.v("UFOATTACK", "touch event up-on-move id=" + pointerID + " x=" + x + " y=" + y );
-	        	queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_TAP, 2, x, y ) );
-	        	mActivePointerID = INVALID_POINTER_ID;
-        	}
-        	
+  	
         	if ( mActivePointerID != pointerID )
         		continue;
         	
@@ -204,9 +202,11 @@ class DemoGLSurfaceView extends GLSurfaceView  {
 	        	break;
 	        }
 	        if ( type >= 0 ) {
+	        	lastX = x; lastY = y;
+	        	
 	        	if ( type != 1 )
 	        		Log.v("UFOATTACK", "touch event id=" + idWas + " type=" + type + " x=" + x + " y=" + y );
-	        	queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_TAP, type, x, y ) );
+	        	queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_TAP, type, x, y, 0 ) );
 	        	return true;
 	        }
         }        
@@ -234,7 +234,7 @@ class DemoGLSurfaceView extends GLSurfaceView  {
     	}
 
     	if ( sendKey != 0 ) {
-        	queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_HOTKEY, sendKey, 0, 0 ) );
+        	queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_HOTKEY, sendKey, 0, 0, 0 ) );
             return true;
         }
     	else {
@@ -260,20 +260,23 @@ final class RendererEvent implements Runnable
 	public static final int TYPE_DESTROY	= 3;
 	public static final int TYPE_TAP 		= 100;
 	public static final int TYPE_HOTKEY 	= 101;
+	public static final int TYPE_ZOOM		= 200;
 	
 	private UFORenderer renderer;
 	private int type;
 	private int action;
 	private int x;
 	private int y;
+	private float val;
 	
-	RendererEvent( UFORenderer renderer, int type, int action, int x, int y ) 
+	RendererEvent( UFORenderer renderer, int type, int action, int x, int y, float v ) 
 	{
 		this.renderer = renderer;
 		this.type = type;
 		this.action = action;
 		this.x = x;
 		this.y = y;
+		this.val = v;
 	}
 	
 	public void run() 
@@ -294,6 +297,8 @@ final class RendererEvent implements Runnable
 			case TYPE_HOTKEY:
 				renderer.hotKey( action );
 				break;
+			case TYPE_ZOOM:
+				renderer.zoom( val );
 			default:
 				break;
 		}
@@ -341,6 +346,10 @@ class UFORenderer implements GLSurfaceView.Renderer {
     	Log.v( "UFOJAVA", "sending key=" + key );
     	nativeHotKey( key );
     }
+    
+    public void zoom( float delta ) {
+    	nativeZoom( delta );
+    }
 
     public static native void nativeResource( String path, long offset, long len );
     public static native void nativeSavePath( String path );
@@ -354,4 +363,6 @@ class UFORenderer implements GLSurfaceView.Renderer {
     
     private static native void nativeTap( int action, float x, float y );
     private static native void nativeHotKey( int key );
+    
+    private static native void nativeZoom( float delta );
 }
