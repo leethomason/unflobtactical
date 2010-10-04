@@ -213,7 +213,7 @@ class DemoGLSurfaceView extends GLSurfaceView  {
     	return super.onTouchEvent( event );
     }
     
-    
+/*    
    //  @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
     	int sendKey = 0;
@@ -241,6 +241,7 @@ class DemoGLSurfaceView extends GLSurfaceView  {
     		return super.onKeyDown(keyCode, event);
     	}
     }
+ */
   
     private UFORenderer mRenderer;
 }

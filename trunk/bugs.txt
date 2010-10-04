@@ -3,7 +3,6 @@ Issues:
 Bugs:
 - Android: starting paused incorrect. General way to detect device loss?
 - Android: zoom / rotate
-- Android: DPAD/Trackball
 - Rotated coordinates: alien arrows in wrong place
 - Android: sound
 - Android: optimize performance
@@ -26,6 +25,7 @@ Features:
 - More items: optical computer for units to enhance vision
 
 TBD:
+- Android: DPAD/Trackball
 - check math (again yet again) in PushShootAction()
 - trees show up in the wrong place
 - add morale
