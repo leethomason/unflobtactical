@@ -274,14 +274,23 @@ void Item::UseRounds( int i )
 }
 
 
-void Item::Save( TiXmlElement* doc ) const
+void Item::Save( FILE* fp, int depth ) const
 {
 	if ( itemDef && rounds > 0 ) {
+		/*
 		TiXmlElement* itemEle = new TiXmlElement( "Item" );
 		doc->LinkEndChild( itemEle );
 		itemEle->SetAttribute( "name", itemDef->name );
 		if ( rounds != 1 )
 			itemEle->SetAttribute( "rounds", rounds );
+		*/
+
+		XMLUtil::OpenElement( fp, depth, "Item" );
+		XMLUtil::Attribute( fp, "name", itemDef->name );
+		if ( rounds != 1 ) {
+			XMLUtil::Attribute( fp, "rounds", rounds );
+		}
+		XMLUtil::SealCloseElement( fp );
 	}
 }
 
@@ -392,8 +401,9 @@ int Storage::GetCount( const ItemDef* itemDef) const
 }
 
 
-void Storage::Save( TiXmlElement* parent )
+void Storage::Save( FILE* fp, int depth )
 {
+	/*
 	TiXmlElement* storageElement = new TiXmlElement( "Storage" );
 	parent->LinkEndChild( storageElement );
 
@@ -405,6 +415,22 @@ void Storage::Save( TiXmlElement* parent )
 			storageElement->LinkEndChild( roundElement );
 		}
 	}
+	*/
+	// FIXME: USE NAMES!!!
+
+	XMLUtil::OpenElement( fp, depth, "Storage" );
+	XMLUtil::SealElement( fp );
+
+	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+		if ( rounds[i] > 0 ) {
+			XMLUtil::OpenElement( fp, depth+1, "Rounds" );
+			XMLUtil::Attribute( fp, "i", i );
+			XMLUtil::Attribute( fp, "n", rounds[i] );
+			XMLUtil::SealCloseElement( fp );
+		}
+	}
+
+	XMLUtil::CloseElement( fp, depth, "Storage" );
 }
 
 

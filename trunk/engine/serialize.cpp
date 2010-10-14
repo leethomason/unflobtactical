@@ -68,3 +68,64 @@ void ModelGroup::Load( const gamedb::Item* item )
 }
 
 
+void XMLUtil::OpenElement( FILE* fp, int depth, const char* value )
+{
+	Space( fp, depth );
+	fprintf( fp, "<%s ", value );	
+}
+
+
+void XMLUtil::SealElement( FILE* fp ) 
+{
+	fprintf( fp, ">\n" );
+}
+
+void XMLUtil::CloseElement( FILE* fp, int depth, const char* value )
+{
+	Space( fp, depth );
+	fprintf( fp, "</%s>\n", value );
+}
+
+void XMLUtil::SealCloseElement( FILE* fp )
+{
+	fprintf( fp, "/>\n" );
+}
+
+void XMLUtil::Text( FILE* fp, const char* text )
+{
+	fprintf( fp, "%s\n", text );
+}
+
+
+void XMLUtil::Attribute( FILE* fp, const char* name, const char* value )
+{
+	fprintf( fp, "%s=\"%s\" ", name, value );
+}
+
+void XMLUtil::Attribute( FILE* fp, const char* name, int value )
+{
+	fprintf( fp, "%s=\"%d\" ", name, value );
+}
+
+void XMLUtil::Attribute( FILE* fp, const char* name, unsigned value )
+{
+	fprintf( fp, "%s=\"%d\" ", name, value );
+}
+
+void XMLUtil::Attribute( FILE* fp, const char* name, float value )
+{
+	fprintf( fp, "%s=\"%f\" ", name, value );
+}
+
+void XMLUtil::Space( FILE* fp, int depth )
+{
+	static const int LEN = 24;
+	static const int SPACES = 4;
+
+	static const char space[LEN+1] = "                        ";
+
+	if ( depth > LEN / SPACES )
+		depth = LEN / SPACES;
+
+	fprintf( fp, "%s", &space[LEN] - depth*SPACES );
+}

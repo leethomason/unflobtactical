@@ -242,7 +242,7 @@ public:
 	bool IsNothing() const							{ return itemDef == 0; }
 	bool IsSomething() const						{ return itemDef != 0; }
 
-	void Save( TiXmlElement* doc ) const;
+	void Save( FILE* fp, int depth ) const;
 	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
 
 private:
@@ -273,7 +273,7 @@ public:
 	void SetCount( const ItemDef*, int count );
 	int GetCount( const ItemDef* ) const;
 
-	void Save( TiXmlElement* parent );
+	void Save( FILE* fp, int depth );
 	void Load( const TiXmlElement* mapNode );
 
 	const ModelResource* VisualRep( bool* zRotate ) const;

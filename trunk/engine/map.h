@@ -368,7 +368,7 @@ public:
 	bool ProcessDoors( const grinliz::Vector2I* openers, int nOpeners );
 	void SetPyro( int x, int y, int duration, int fire );
 
-	void Save( TiXmlElement* parent );
+	void Save( FILE* fp, int depth );
 	void Load( const TiXmlElement* mapNode, ItemDef* const* arr );
 
 	// Gets a starting location for a unit on the map.
@@ -515,7 +515,7 @@ private:
 		Model* crate;
 	};
 	CDynArray< Debris > debris;
-	void SaveDebris( const Debris& d, TiXmlElement* parent );
+	void SaveDebris( const Debris& d, FILE* fp, int depth );
 	void LoadDebris( const TiXmlElement* mapNode, ItemDef* const* arr );
 
 	int PyroOn( int x, int y ) const		{ return pyro[y*SIZE+x]; }

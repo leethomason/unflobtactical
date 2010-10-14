@@ -186,15 +186,15 @@ void Game::LoadItemResources()
 #	define COLORDEF( r, g, b ) { (float)r/255.f, (float)g/255.f, (float)b/255.f, 0.8f }
 
 	static const ClipInit clips[] = {
-		{ "Clip",	'C',	false,	DECO_SHELLS,	15,	 { 1, 0, 0 },
+		{ "Clip",	'c',	false,	DECO_SHELLS,	15,	 { 1, 0, 0 },
 					COLORDEF( 200, 204, 213 ), SPEED*2.0f,	WIDTH*0.5f, BOLT*3.0f, "7mm 15 round auto-clip" },
-		{ "Cell",	'E',	true,	DECO_CELL,		12,  { 0.0f, 0.8f, 0.2f },
+		{ "Cell",	'e',	true,	DECO_CELL,		12,  { 0.0f, 0.8f, 0.2f },
 					COLORDEF( 199, 216, 6 ),	SPEED,		 WIDTH,		BOLT,		"10MW Cell" },
-		{ "Tachy",	'T',	true,	DECO_CELL,		4,   { 0, 0.6f, 0.4f },
+		{ "Tachy",	't',	true,	DECO_CELL,		4,   { 0, 0.6f, 0.4f },
 					COLORDEF( 227, 125, 220 ),	SPEED,		WIDTH,		BOLT,		"Tachyon field rounds" },
-		{ "Flame",	'F',	false,	DECO_SHELLS,	3,	 { 0, 0, 1 },
+		{ "Flame",	'f',	false,	DECO_SHELLS,	3,	 { 0, 0, 1 },
 					COLORDEF( 213, 63, 63 ),	SPEED*0.7f,	WIDTH,		BOLT,		"Incendiary Heavy Round" },
-		{ "RPG",	'R',	false,	DECO_ROCKET,	4,	 { 0.8f, 0, 0.2f },
+		{ "RPG",	'r',	false,	DECO_ROCKET,	4,	 { 0.8f, 0, 0.2f },
 					COLORDEF( 200, 204, 213 ),  SPEED*0.8f, WIDTH,		BOLT,		"Grenade Rounds" },
 		{ 0 }
 	};

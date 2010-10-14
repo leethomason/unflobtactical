@@ -367,6 +367,11 @@ void BattleScene::NextTurn()
 	CalcTeamTargets();
 	targetEvents.Clear();
 
+	// Per turn save:
+	if ( currentTeamTurn == TERRAN_TEAM ) {
+		game->Save();
+	}
+
 	if ( aiArr[currentTeamTurn] ) {
 		aiArr[currentTeamTurn]->StartTurn( units, m_targets );
 	}
@@ -463,24 +468,37 @@ void BattleScene::OrderNextPrev()
 }
 
 
-void BattleScene::Save( TiXmlElement* doc )
+void BattleScene::Save( FILE* fp, int depth )
 {
-	TiXmlElement* battleElement = new TiXmlElement( "BattleScene" );
-	doc->LinkEndChild( battleElement );
+	//TiXmlElement* battleElement = new TiXmlElement( "BattleScene" );
+	//doc->LinkEndChild( battleElement );
+	XMLUtil::OpenElement( fp, depth, "BattleScene" );
 
-	battleElement->SetAttribute( "currentTeamTurn", currentTeamTurn );
-	battleElement->SetAttribute( "dayTime", engine->GetMap()->DayTime() ? 1 : 0 );
-	battleElement->SetAttribute( "turnCount", turnCount );
+	//battleElement->SetAttribute( "currentTeamTurn", currentTeamTurn );
+	//battleElement->SetAttribute( "dayTime", engine->GetMap()->DayTime() ? 1 : 0 );
+	//battleElement->SetAttribute( "turnCount", turnCount );
+	XMLUtil::Attribute( fp, "currentTeamTurn", currentTeamTurn );
+	XMLUtil::Attribute( fp, "dayTime", engine->GetMap()->DayTime() ? 1 : 0 );
+	XMLUtil::Attribute( fp, "turnCount", turnCount );
 
-	TiXmlElement* mapElement = new TiXmlElement( "Map" );
-	doc->LinkEndChild( mapElement );
-	engine->GetMap()->Save( mapElement );
+	XMLUtil::SealCloseElement( fp );
 
-	TiXmlElement* unitsElement = new TiXmlElement( "Units" );
-	doc->LinkEndChild( unitsElement );
+	//TiXmlElement* mapElement = new TiXmlElement( "Map" );
+	//doc->LinkEndChild( mapElement );
+	//engine->GetMap()->Save( mapElement );
+	engine->GetMap()->Save( fp, depth );
+
+	//TiXmlElement* unitsElement = new TiXmlElement( "Units" );
+	//doc->LinkEndChild( unitsElement );
+
+	{
+		XMLUtil::OpenElement( fp, depth, "Units" );
+		XMLUtil::SealElement( fp );
 	
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		units[i].Save( unitsElement );
+		for( int i=0; i<MAX_UNITS; ++i ) {
+			units[i].Save( fp, depth+1 );
+		}
+		XMLUtil::CloseElement( fp, depth, "Units" );
 	}
 }
 

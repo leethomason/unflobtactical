@@ -20,6 +20,7 @@
 #include "../tinyxml/tinyxml.h"
 #include "unit.h"
 #include "../grinliz//glgeometry.h"
+#include "../engine/serialize.h"
 
 using namespace grinliz;
 
@@ -57,14 +58,22 @@ void Stats::CalcBaselines()
 }
 
 
-void Stats::Save( TiXmlElement* doc ) const
+void Stats::Save( FILE* fp, int depth ) const
 {
+	/*
 	TiXmlElement* element = new TiXmlElement( "Stats" );
 	element->SetAttribute( "STR", _STR );
 	element->SetAttribute( "DEX", _DEX );
 	element->SetAttribute( "PSY", _PSY );
 	element->SetAttribute( "rank", rank );
 	doc->LinkEndChild( element );
+	*/
+	XMLUtil::OpenElement( fp, depth, "Stats" );
+	XMLUtil::Attribute( fp, "STR", _STR );
+	XMLUtil::Attribute( fp, "DEX", _DEX );
+	XMLUtil::Attribute( fp, "PSY", _PSY );
+	XMLUtil::Attribute( fp, "rank", rank );
+	XMLUtil::SealCloseElement( fp );
 }
 
 

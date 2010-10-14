@@ -1161,14 +1161,25 @@ void Map::PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rota
 }
 
 
-void Map::SaveDebris( const Debris& d, TiXmlElement* parent )
+void Map::SaveDebris( const Debris& d, FILE* fp, int depth )
 {
+	/*
 	TiXmlElement* debrisElement = new TiXmlElement( "Debris" );
 	debrisElement->SetAttribute( "x", d.storage->X() );
 	debrisElement->SetAttribute( "y", d.storage->Y() );
 
 	parent->LinkEndChild( debrisElement );
 	d.storage->Save( debrisElement );
+	*/
+
+	XMLUtil::OpenElement( fp, depth, "Debris" );
+	XMLUtil::Attribute( fp, "x", d.storage->X() );
+	XMLUtil::Attribute( fp, "y", d.storage->Y() );
+	XMLUtil::SealElement( fp );
+
+	d.storage->Save( fp, depth+1 );
+
+	XMLUtil::CloseElement( fp, depth, "Debris" );
 }
 
 
@@ -1189,82 +1200,134 @@ void Map::LoadDebris( const TiXmlElement* debrisElement, ItemDef* const* arr )
 }
 
 
-void Map::Save( TiXmlElement* mapElement )
+void Map::Save( FILE* fp, int depth )
 {
-	GLASSERT( strcmp( mapElement->Value(), "Map" ) == 0 );
-	mapElement->SetAttribute( "sizeX", width );
-	mapElement->SetAttribute( "sizeY", height );
+	//GLASSERT( strcmp( mapElement->Value(), "Map" ) == 0 );
+	//mapElement->SetAttribute( "sizeX", width );
+	//mapElement->SetAttribute( "sizeY", height );
+
+	XMLUtil::OpenElement( fp, depth, "Map" );
+	XMLUtil::Attribute( fp, "sizeX", width );
+	XMLUtil::Attribute( fp, "sizeY", height );
+	XMLUtil::SealElement( fp );
 
 	if ( !Engine::mapMakerMode ) {
-		TiXmlElement* pastSeenElement = new TiXmlElement( "Seen" );
-		mapElement->LinkEndChild( pastSeenElement );
+		//TiXmlElement* pastSeenElement = new TiXmlElement( "Seen" );
+		//mapElement->LinkEndChild( pastSeenElement );
+
+		XMLUtil::OpenElement( fp, depth+1, "Seen" );
+		XMLUtil::SealElement( fp );
 	
 		char buf[BitArray<Map::SIZE, Map::SIZE, 1>::STRING_SIZE];
 		pastSeenFOW.ToString( buf );
-		TiXmlText* pastSeenText = new TiXmlText( buf );
-		pastSeenElement->LinkEndChild( pastSeenText );
+		XMLUtil::Text( fp, buf );
+		//TiXmlText* pastSeenText = new TiXmlText( buf );
+		//pastSeenElement->LinkEndChild( pastSeenText );
+
+		XMLUtil::CloseElement( fp, depth+1, "Seen" );
 	}
 
-	TiXmlElement* itemsElement = new TiXmlElement( "Items" );
-	mapElement->LinkEndChild( itemsElement );
+	//TiXmlElement* itemsElement = new TiXmlElement( "Items" );
+	//mapElement->LinkEndChild( itemsElement );
+	XMLUtil::OpenElement( fp, depth+1, "Items" );
+	XMLUtil::SealElement( fp );
 
 	Rectangle2I b = Bounds();
 	MapItem* item = quadTree.FindItems( b, 0, MapItem::MI_NOT_IN_DATABASE );
 
 	for( ; item; item=item->next ) {
-		TiXmlElement* itemElement = new TiXmlElement( "Item" );
+		//TiXmlElement* itemElement = new TiXmlElement( "Item" );
+		XMLUtil::OpenElement( fp, depth+2, "Item" );
 
 		int x, y, r;
 		WorldToXYR( item->XForm(), &x, &y, &r, true );
 
-		itemElement->SetAttribute( "x", x );
-		itemElement->SetAttribute( "y", y );
+		//itemElement->SetAttribute( "x", x );
+		//itemElement->SetAttribute( "y", y );
+		XMLUtil::Attribute( fp, "x", x );
+		XMLUtil::Attribute( fp, "y", y );
+
 		if ( r != 0 )
-			itemElement->SetAttribute( "rot", r );
-		// old, rigid approach: itemElement->SetAttribute( "index", item->itemDefIndex );
-		itemElement->SetAttribute( "name", itemDefArr[item->itemDefIndex].Name() );
+			XMLUtil::Attribute( fp, "rot", r );
+			//itemElement->SetAttribute( "rot", r );
+		//itemElement->SetAttribute( "name", itemDefArr[item->itemDefIndex].Name() );
+		XMLUtil::Attribute( fp, "name", itemDefArr[item->itemDefIndex].Name() );
 
 		if ( item->hp != itemDefArr[item->itemDefIndex].hp )
-			itemElement->SetAttribute( "hp", item->hp );
+			XMLUtil::Attribute( fp, "hp", item->hp );
+			//itemElement->SetAttribute( "hp", item->hp );
 		if ( item->flags )
-			itemElement->SetAttribute( "flags", item->flags );
-		itemsElement->LinkEndChild( itemElement );
+			XMLUtil::Attribute( fp, "flags", item->flags );
+			//itemElement->SetAttribute( "flags", item->flags );
+		//itemsElement->LinkEndChild( itemElement );
+		XMLUtil::SealCloseElement( fp );
 	}
+	XMLUtil::CloseElement( fp, depth+1, "Items" );
 
-	TiXmlElement* imagesElement = new TiXmlElement( "Images" );
-	mapElement->LinkEndChild( imagesElement );
+	//TiXmlElement* imagesElement = new TiXmlElement( "Images" );
+	//mapElement->LinkEndChild( imagesElement );
+	XMLUtil::OpenElement( fp, depth+1, "Images" );
+	XMLUtil::SealElement( fp );
+
 	for( int i=0; i<nImageData; ++i ) {
-		TiXmlElement* imageElement = new TiXmlElement( "Image" );
-		imagesElement->LinkEndChild( imageElement );
+		//TiXmlElement* imageElement = new TiXmlElement( "Image" );
+		//imagesElement->LinkEndChild( imageElement );
+		XMLUtil::OpenElement( fp, depth+2, "Image" );
+
+		/*
 		imageElement->SetAttribute( "x", imageData[i].x );
 		imageElement->SetAttribute( "y", imageData[i].y );
 		imageElement->SetAttribute( "size", imageData[i].size );
 		imageElement->SetAttribute( "tileRotation", imageData[i].tileRotation );
 		imageElement->SetAttribute( "name", imageData[i].name.c_str() );
+		*/
+		XMLUtil::Attribute( fp, "x", imageData[i].x );
+		XMLUtil::Attribute( fp, "y", imageData[i].y );
+		XMLUtil::Attribute( fp, "size", imageData[i].size );
+		XMLUtil::Attribute( fp, "tileRotation", imageData[i].tileRotation );
+		XMLUtil::Attribute( fp, "name", imageData[i].name.c_str() );
+
+		XMLUtil::SealCloseElement( fp );
 	}
+	XMLUtil::CloseElement( fp, depth+1, "Images" );
 
-	TiXmlElement* groundDebrisElement = new TiXmlElement( "GroundDebris" );
-	mapElement->LinkEndChild( groundDebrisElement );
 
+	//TiXmlElement* groundDebrisElement = new TiXmlElement( "GroundDebris" );
+	//mapElement->LinkEndChild( groundDebrisElement );
+
+	XMLUtil::OpenElement( fp, depth+1, "GroundDebris" );
+	XMLUtil::SealElement( fp );
 	for( int i=0; i<debris.Size(); ++i ) {
-		SaveDebris( debris[i], groundDebrisElement );
+		SaveDebris( debris[i], fp, depth+2 );
 	}
+	XMLUtil::CloseElement( fp, depth+1, "GroundDebris" );
 
-	TiXmlElement* pyroGroupElement = new TiXmlElement( "PyroGroup" );
-	mapElement->LinkEndChild( pyroGroupElement );
+	//TiXmlElement* pyroGroupElement = new TiXmlElement( "PyroGroup" );
+	//mapElement->LinkEndChild( pyroGroupElement );
+	XMLUtil::OpenElement( fp, depth+1, "PyroGroup" );
+	XMLUtil::SealElement( fp );
 	for( int i=0; i<SIZE*SIZE; ++i ) {
 		if ( pyro[i] ) {
 			int y = i / SIZE;
 			int x = i - SIZE*y;
 
-			TiXmlElement* ele = new TiXmlElement( "Pyro" );
+			/*TiXmlElement* ele = new TiXmlElement( "Pyro" );
 			pyroGroupElement->LinkEndChild( ele );
 			ele->SetAttribute( "x", x );
 			ele->SetAttribute( "y", y );
 			ele->SetAttribute( "fire", PyroFire( x, y ) ? 1 : 0 );
 			ele->SetAttribute( "duration", PyroDuration( x, y ) );
+			*/
+			XMLUtil::OpenElement( fp, depth+2, "Pyro" );
+			XMLUtil::Attribute( fp, "x", x );
+			XMLUtil::Attribute( fp, "y", y );
+			XMLUtil::Attribute( fp, "fire", PyroFire( x, y ) ? 1 : 0 );
+			XMLUtil::Attribute( fp, "duration", PyroDuration( x, y ) );
+			XMLUtil::SealCloseElement( fp );
 		}
 	}
+	XMLUtil::CloseElement( fp, depth+1, "PyroGroup" );
+	XMLUtil::CloseElement( fp, depth, "Map" );
 }
 
 

@@ -1192,16 +1192,6 @@ const TiXmlAttribute* TiXmlAttribute::Previous() const
 	return prev;
 }
 
-/*
-TiXmlAttribute* TiXmlAttribute::Previous()
-{
-	// We are using knowledge of the sentinel. The sentinel
-	// have a value or name.
-	if ( prev->value.empty() && prev->name.empty() )
-		return 0;
-	return prev;
-}
-*/
 
 void TiXmlAttribute::Print( FILE* cfile, int /*depth*/, TIXML_STRING* str ) const
 {
@@ -1212,7 +1202,7 @@ void TiXmlAttribute::Print( FILE* cfile, int /*depth*/, TIXML_STRING* str ) cons
 
 	if (value.find ('\"') == TIXML_STRING::npos) {
 		if ( cfile ) {
-		fprintf (cfile, "%s=\"%s\"", n.c_str(), v.c_str() );
+			fprintf (cfile, "%s=\"%s\"", n.c_str(), v.c_str() );
 		}
 		if ( str ) {
 			(*str) += n; (*str) += "=\""; (*str) += v; (*str) += "\"";
@@ -1220,7 +1210,7 @@ void TiXmlAttribute::Print( FILE* cfile, int /*depth*/, TIXML_STRING* str ) cons
 	}
 	else {
 		if ( cfile ) {
-		fprintf (cfile, "%s='%s'", n.c_str(), v.c_str() );
+			fprintf (cfile, "%s='%s'", n.c_str(), v.c_str() );
 		}
 		if ( str ) {
 			(*str) += n; (*str) += "='"; (*str) += v; (*str) += "'";

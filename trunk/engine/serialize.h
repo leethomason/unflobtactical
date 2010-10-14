@@ -72,4 +72,24 @@ struct ModelHeader
 	void Save(	gamedb::WItem* parent );	// database connection
 };
 
+
+class XMLUtil
+{
+public:
+	static void OpenElement( FILE* fp, int depth, const char* value );
+	static void SealElement( FILE* fp );
+	static void CloseElement( FILE* fp, int depth, const char* value );
+	static void SealCloseElement( FILE* fp );
+
+	static void Text( FILE* fp, const char* text );
+
+	static void Attribute( FILE* fp, const char* name, const char* value );
+	static void Attribute( FILE* fp, const char* name, int value );
+	static void Attribute( FILE* fp, const char* name, unsigned value );
+	static void Attribute( FILE* fp, const char* name, float value );
+
+private:
+	static void Space( FILE* fp, int depth );
+};
+
 #endif // UFOATTACK_SERIALIZE_INCLUDED

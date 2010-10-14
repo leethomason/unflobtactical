@@ -22,8 +22,12 @@ InventoryWidget::InventoryWidget(	gamui::Gamui* g,
 	button[ARMOR].Init( g, carriedLook );
 	text0.Init( g );
 	text1.Init( g );
-	text0.SetText( "In use" );
-	text1.SetText( "Pack" );
+	//descriptionLabel.Init( g );
+	description.Init( g );
+
+	text0.SetText( "In use:" );
+	text1.SetText( "Pack:" );
+	//descriptionLabel.SetText( "Armed Weapon:" );
 
 	for( int i=0; i<NUM_BUTTONS; ++i ) {
 		button[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
@@ -51,6 +55,8 @@ void InventoryWidget::DoLayout()
 	// Carried:
 	text0.SetPos( pos.x, y );
 	y += TEXTHEIGHT;
+	description.SetPos( pos.x, y );
+	y += TEXTHEIGHT;
 
 	button[ARMOR].SetPos( pos.x, y );
 	button[WEAPON].SetPos( pos.x+GAME_BUTTON_SIZE_F, y );
@@ -65,6 +71,10 @@ void InventoryWidget::DoLayout()
 		itemArr[i] = &button[i];
 
 	gamui::Gamui::Layout( &itemArr[PACK_START], PACK_END-PACK_START, 3, pos.x, y );
+	
+	//y = itemArr[PACK_END-1]->Y() + itemArr[PACK_END-1]->Height();
+	//descriptionLabel.SetPos( pos.x, y );
+	//y += TEXTHEIGHT;
 }
 
 
@@ -126,6 +136,33 @@ void InventoryWidget::Update()
 
 			button[i].SetDeco( atom, atom );
 		}	
+	}
+
+	const Item& weaponItem = inventory->GetItem( Inventory::WEAPON_SLOT );
+	if ( weaponItem.IsWeapon() ) {
+		const WeaponItemDef* wid = weaponItem.IsWeapon();
+
+		CStr<40> cstr;
+		cstr += wid->name;
+		cstr += " ";
+		cstr += wid->desc;
+		cstr += " ";
+
+		cstr += "[";
+		if ( wid->HasWeapon( kAltFireMode ) ) {
+			cstr += wid->GetClipItemDef( kSnapFireMode )->name;
+			cstr += "/";
+			cstr += wid->GetClipItemDef( kAltFireMode )->name;
+		}
+		else {
+			cstr += wid->GetClipItemDef( kSnapFireMode )->name;
+		}
+		cstr += "]";
+
+		description.SetText( cstr.c_str() );
+	}
+	else {
+		description.SetText( "None" );
 	}
 }
 

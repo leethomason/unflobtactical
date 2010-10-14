@@ -35,7 +35,7 @@ private:
 
 	gamui::Gamui*		gamui;
 	gamui::PushButton	button[NUM_BUTTONS];
-	gamui::TextLabel	text0, text1;
+	gamui::TextLabel	text0, text1, description;
 	
 	gamui::Image		dragImage;
 	int					dragIndex;

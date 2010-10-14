@@ -874,7 +874,7 @@ public:
 		Print( cfile, depth, 0 );
 	}
 	void Print( FILE* cfile, int depth, TIXML_STRING* str ) const;
-
+	
 	// [internal use]
 	// Set the document pointer so the attribute can report errors.
 	void SetDocument( TiXmlDocument* doc )	{ document = doc; }

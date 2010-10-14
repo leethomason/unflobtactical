@@ -106,7 +106,7 @@ public:
 	virtual void DrawHUD();
 	virtual void HandleHotKeyMask( int mask );
 
-	virtual void Save( TiXmlElement* doc );
+	virtual void Save( FILE* fp, int depth );
 	virtual void Load( const TiXmlElement* doc );
 
 	// debugging / MapMaker
