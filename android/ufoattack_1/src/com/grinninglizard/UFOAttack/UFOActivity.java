@@ -17,7 +17,7 @@ import android.content.res.Resources;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
+//import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
@@ -28,8 +28,8 @@ public class UFOActivity extends Activity  {
         super.onCreate(savedInstanceState);
         
         // On the main thread, before we fire off the render thread:
-        loadUFOAssets();
         setWritePaths();
+        loadUFOAssets();
        
         mGLView = new DemoGLSurfaceView(this);
         setContentView(mGLView);
@@ -81,11 +81,15 @@ public class UFOActivity extends Activity  {
     {
     	File file = this.getFilesDir();
     	if ( file != null ) {
+    		logger = new CrashLogger( file.getAbsolutePath() );		// send crash logs
+    		//Thread thread = new Thread( logger );
+    		//thread.start();
     		UFORenderer.nativeSavePath( file.getAbsolutePath() );
     	}
     }
    
     private DemoGLSurfaceView mGLView;
+    private CrashLogger logger = null;
 
     static {
         System.loadLibrary("ufoattack");

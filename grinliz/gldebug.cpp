@@ -293,7 +293,6 @@ void GrinlizReleaseAssert( const char* file, int line )
 	if ( releasePath.empty() ) {
 		GrinlizSetReleaseAssertPath( "" );
 	}
-	//__android_log_print(ANDROID_LOG_INFO, "UFOAttack", "Release path %s", releasePath.c_str() );
 
 	FILE* fp = fopen( releasePath.c_str(), "a" );
 	if ( fp ) {
@@ -302,7 +301,6 @@ void GrinlizReleaseAssert( const char* file, int line )
 	}
 
 #ifdef ANDROID_NDK
-	__android_log_print(ANDROID_LOG_INFO, "UFOAttack", "ASSERT in '%s' at %d.", file, line );
 	__android_log_assert( "assert", "grinliz", "ASSERT in '%s' at %d.", file, line );
 #endif
 	GLASSERT( 0 );
