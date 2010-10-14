@@ -14,8 +14,6 @@ Bugs:
 - Android: UFOActivity rename
 - Initial lander activity
 - Android: icon
-- lower case rounds in character screen
-- description of current weapon
 
 Architecture
 - Map as interface
@@ -50,6 +48,9 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- description of current weapon
+- switch to per-turn saving
+- lower case rounds in character screen
 - 1/2 size images for character help
 - Android: save/load
 - Android: correctly return from sleep / screen off

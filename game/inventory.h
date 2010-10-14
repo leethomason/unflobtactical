@@ -68,7 +68,7 @@ public:
 	Item* ArmedWeapon();				// null if no weapon ready
 	const Item* ArmedWeapon() const;	// null if no weapon ready
 
-	void Save( TiXmlElement* doc ) const;
+	void Save( FILE* fp, int depth ) const;
 	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
 
 	Item GetItem( int slot ) const				{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot]; }				// return a copy...too easy to change while in use

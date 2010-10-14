@@ -56,7 +56,7 @@ public:
 	virtual void Rotate( int action, float degrees )			{}
 	virtual void CancelInput()									{}
 
-	virtual void Save( TiXmlElement* doc )						{}
+	virtual void Save( FILE* fp, int depth )					{}
 	virtual void Load( const TiXmlElement* doc )				{}
 	virtual void HandleHotKeyMask( int mask )					{}
 	virtual void SceneResult( int sceneID, int result )			{}

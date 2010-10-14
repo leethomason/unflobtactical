@@ -151,7 +151,7 @@ public:
 
 	void Load( const TiXmlDocument& doc );
 	void Save();
-	void Save( TiXmlDocument* doc );
+	void Save( FILE* fp );
 
 	const gamedb::Reader* GetDatabase()	{ return database; }
 

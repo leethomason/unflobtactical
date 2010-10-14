@@ -178,11 +178,17 @@ void Game::Init()
 Game::~Game()
 {
 	if ( Engine::mapMakerMode ) {
-		TiXmlDocument doc( mapmaker_xmlFile.c_str() );
-		TiXmlElement map( "Map" );
-		doc.InsertEndChild( map );
-		engine->GetMap()->Save( doc.FirstChildElement( "Map" ) );
-		doc.SaveFile();
+		//TiXmlDocument doc( mapmaker_xmlFile.c_str() );
+		//TiXmlElement map( "Map" );
+		//doc.InsertEndChild( map );
+
+		FILE* fp = fopen( mapmaker_xmlFile.c_str(), "w" );
+		GLASSERT( fp );
+		if ( fp ) {
+			engine->GetMap()->Save( fp, 0 );
+			fclose( fp );
+		}
+		//doc.SaveFile();
 	}
 
 	// Roll up to the main scene before saving.
@@ -370,17 +376,24 @@ void Game::Load( const TiXmlDocument& doc )
 void Game::Save()
 {
 	if ( loadCompleted ) {
-		TiXmlDocument doc;
-		Save( &doc );
+//		TiXmlDocument doc;
+//		Save( &doc );
 		GLString path = GameSavePath();
-		doc.SaveFile( path.c_str() );
+//		doc.SaveFile( path.c_str() );
+		FILE* fp = fopen( path.c_str(), "w" );
+		GLASSERT( fp );
+		if ( fp ) {
+			Save( fp );
+			fclose( fp );
+		}
 	}
 
 }
 
 
-void Game::Save( TiXmlDocument* doc )
+void Game::Save( FILE* fp )
 {
+	/*
 	TiXmlElement sceneElement( "Scene" );
 	sceneElement.SetAttribute( "id", 0 );
 
@@ -390,6 +403,20 @@ void Game::Save( TiXmlDocument* doc )
 
 	doc->InsertEndChild( gameElement );
 	sceneStack.Bottom().scene->Save( doc->RootElement() );
+	*/
+
+	XMLUtil::OpenElement( fp, 0, "Game" );
+	XMLUtil::Attribute( fp, "version", VERSION );
+	XMLUtil::SealElement( fp );
+
+	{
+		XMLUtil::OpenElement( fp, 1, "Scene" );
+		XMLUtil::Attribute( fp, "id", 0 );
+		XMLUtil::SealCloseElement( fp );
+	}
+	sceneStack.Bottom().scene->Save( fp, 1 );
+	
+	XMLUtil::CloseElement( fp, 0, "Game" );
 }
 
 

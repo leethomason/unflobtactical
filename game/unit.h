@@ -166,7 +166,7 @@ public:
 	void CreditKill()				{ kills++; }
 	int  KillsCredited() const		{ return kills; }
 
-	void Save( TiXmlElement* doc ) const;
+	void Save( FILE* fp, int depth ) const;
 	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
 
 private:

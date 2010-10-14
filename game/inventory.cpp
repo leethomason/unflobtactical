@@ -247,14 +247,19 @@ void Inventory::GetDamageReduction( DamageDesc* dd, int baseArmor )
 }
 
 
-void Inventory::Save( TiXmlElement* doc ) const
+void Inventory::Save( FILE* fp, int depth ) const
 {
-	TiXmlElement* inventoryEle = new TiXmlElement( "Inventory" );
-	doc->LinkEndChild( inventoryEle );
-
+//	TiXmlElement* inventoryEle = new TiXmlElement( "Inventory" );
+//	doc->LinkEndChild( inventoryEle );
+//	for( int i=0; i<NUM_SLOTS; ++i ) {
+//		slots[i].Save( inventoryEle );
+//	}
+	XMLUtil::OpenElement( fp, depth, "Inventory" );
+	XMLUtil::SealElement( fp );
 	for( int i=0; i<NUM_SLOTS; ++i ) {
-		slots[i].Save( inventoryEle );
-	}
+		slots[i].Save( fp, depth+1 );
+	}	
+	XMLUtil::CloseElement( fp, depth, "Inventory" );
 }
 
 

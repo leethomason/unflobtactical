@@ -552,13 +552,14 @@ void Unit::UpdateModel()
 }
 
 
-void Unit::Save( TiXmlElement* doc ) const
+void Unit::Save( FILE* fp, int depth ) const
 {
 	if ( status != STATUS_NOT_INIT ) {
-		TiXmlElement* unitElement = new TiXmlElement( "Unit" );
-		doc->LinkEndChild( unitElement );
+//		TiXmlElement* unitElement = new TiXmlElement( "Unit" );
+//		doc->LinkEndChild( unitElement );
+		XMLUtil::OpenElement( fp, depth, "Unit" );
 
-		unitElement->SetAttribute( "team", team );
+/*		unitElement->SetAttribute( "team", team );
 		unitElement->SetAttribute( "type", type );
 		unitElement->SetAttribute( "status", status );
 		unitElement->SetAttribute( "body", body );
@@ -568,9 +569,24 @@ void Unit::Save( TiXmlElement* doc ) const
 		unitElement->SetDoubleAttribute( "modelX", model->Pos().x );
 		unitElement->SetDoubleAttribute( "modelZ", model->Pos().z );
 		unitElement->SetDoubleAttribute( "yRot", model->GetRotation() );
+*/
+		XMLUtil::Attribute( fp, "team", team );
+		XMLUtil::Attribute( fp, "type", type );
+		XMLUtil::Attribute( fp, "status", status );
+		XMLUtil::Attribute( fp, "body", body );
+		XMLUtil::Attribute( fp, "hp", hp );
+		XMLUtil::Attribute( fp, "kills", kills );
+		XMLUtil::Attribute( fp, "tu", tu );
+		XMLUtil::Attribute( fp, "modelX", model->Pos().x );
+		XMLUtil::Attribute( fp, "modelZ", model->Pos().z );
+		XMLUtil::Attribute( fp, "yRot", model->GetRotation() );
 
-		stats.Save( unitElement );
-		inventory.Save( unitElement );
+		XMLUtil::SealElement( fp );
+
+		stats.Save( fp, depth+1 );
+		inventory.Save( fp, depth+1 );
+
+		XMLUtil::CloseElement( fp, depth, "Unit" );
 	}
 }
 
