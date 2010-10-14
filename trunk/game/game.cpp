@@ -54,6 +54,8 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	previousTime( 0 ),
 	isDragging( false )
 {
+	//GLRELASSERT( 0 );
+
 	savePath = path;
 	char c = savePath[savePath.size()-1];
 	if ( c != '\\' && c != '/' ) {	

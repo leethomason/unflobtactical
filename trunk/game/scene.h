@@ -22,6 +22,8 @@
 #include "../gamui/gamui.h"
 #include "../engine/uirendering.h"
 
+#include <stdio.h>
+
 class Game;
 class Engine;
 class TiXmlElement;
