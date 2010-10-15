@@ -1,5 +1,9 @@
 Useful code and links from the web. And sometimes a sort of development blog.
 
+= Preprocessor macros! =
+
+Sweet: http://predef.sourceforge.net/prearch.html
+
 = Resources =
 
 I have a goal to keep UFOattack at about a 1MB resources file. It's by no means a hard limit, but small files are good for both deployment and debugging. The largest consumer of file space so far is the help screens. Fully 1/3 of the file. I pulled them and am replacing them with text and images. The only downside...I am now writing Yet Another Line Breaker. It's a little break from the more grueling job of platform code.
