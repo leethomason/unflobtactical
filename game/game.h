@@ -107,7 +107,7 @@ public:
 	void Tap( int action, int x, int y );
 	void Zoom( float distance );
 	float QueryZoom() const;
-	void Rotate( int action, float degreesFromStart );
+	void Rotate( float degreesFromStart );
 	void CancelInput();
 	
 	const ItemDef*  GetItemDef( const char* name );

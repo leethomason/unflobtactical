@@ -42,7 +42,7 @@ public:
 	float GetBillboardYRotation() const				{	return yRotation; }
 
 	// Move the camera around a center pole. The idea of rotation from the users point of view.
-	void Orbit( const grinliz::Vector3F& pole, float delta );
+	void Orbit( float delta );
 
 	// 0-3, in view space (corresponds to device rotation). Normally one.
 	void SetViewRotation( int v )					{ viewRotation = v; valid = false; }

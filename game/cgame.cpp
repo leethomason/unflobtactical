@@ -110,12 +110,12 @@ float GameQueryZoom( void* handle )
 }
 
 
-void GameCameraRotate( void* handle, int action, float degrees )
+void GameCameraRotate( void* handle, float degrees )
 {
 	CheckThread check;
 
 	Game* game = (Game*)handle;
-	game->Rotate( action, degrees );
+	game->Rotate( degrees );
 }
 
 

@@ -392,8 +392,7 @@ int main( int argc, char **argv )
 				else if ( event.button.button == 3 ) {
 					GameTap( game, GAME_TAP_CANCEL, x, y );
 					zooming = true;
-					//GameZoom( game, GAME_ZOOM_START, -event.button.y );
-					GameCameraRotate( game, GAME_ROTATE_START, 0.0f );
+					//GameCameraRotate( game, GAME_ROTATE_START, 0.0f );
 					SDL_GetRelativeMouseState( &zoomX, &zoomY );
 				}
 			}
@@ -424,22 +423,11 @@ int main( int argc, char **argv )
 					GameTap( game, GAME_TAP_MOVE, x, y );
 				}
 				else if ( zooming && (state & SDL_BUTTON(3)) ) {
-					/*
-					float zoom = GameQueryZoom( game );
-
-					zoom += 0.01f * (float)zoomY;
-					if ( zoom < GAME_ZOOM_MIN )
-						zoom = GAME_ZOOM_MIN;
-					if ( zoom > GAME_ZOOM_MAX )
-						zoom = GAME_ZOOM_MAX;
-
-					GameZoom( game, zoom );
-					*/
-
 					float deltaZoom = 0.01f * (float)zoomY;
 					GameZoom( game, deltaZoom );
 					//GLOUTPUT(( "x,y=%d,%d  down=%d,%d\n", x, y, mouseDown.x, mouseDown.y ));
-					GameCameraRotate( game, GAME_ROTATE_MOVE, (float)(event.button.x-mouseDown.x)*0.5f );
+					//GameCameraRotate( game, GAME_ROTATE_MOVE, (float)(event.button.x-mouseDown.x)*0.5f );
+					GameCameraRotate( game, (float)(zoomX)*0.5f );
 				}
 				else if ( ( ( state & SDL_BUTTON(1) ) == 0 ) && Engine::mapMakerMode ) {
 					((Game*)game)->MouseMove( x, y );
