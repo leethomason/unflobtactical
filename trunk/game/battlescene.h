@@ -96,7 +96,7 @@ public:
 						const grinliz::Ray& world );
 
 	virtual void Zoom( float normal );
-	virtual void Rotate( int aciton, float degreesFromStart );
+	virtual void Rotate( float degreesFromStart );
 	virtual void CancelInput() {}
 	virtual void SceneResult( int sceneID, int result );
 
@@ -324,8 +324,8 @@ private:
 	int		initZoomDistance;
 	float	initZoom;
 	
-	grinliz::Vector3F orbitPole;
-	float	orbitStart;
+	//grinliz::Vector3F orbitPole;
+	//float	orbitStart;
 
 	enum {
 		UIM_NORMAL,			// normal click and move

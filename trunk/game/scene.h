@@ -55,7 +55,7 @@ public:
 						const grinliz::Ray& world )				{}
 
 	virtual void Zoom( float normal )							{}
-	virtual void Rotate( int action, float degrees )			{}
+	virtual void Rotate( float degrees )						{}
 	virtual void CancelInput()									{}
 
 	virtual void Save( FILE* fp, int depth )					{}

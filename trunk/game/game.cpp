@@ -600,9 +600,9 @@ float Game::QueryZoom() const
 }
 
 
-void Game::Rotate( int action, float degrees )
+void Game::Rotate( float degrees )
 {
-	sceneStack.Top().scene->Rotate( action, degrees );
+	sceneStack.Top().scene->Rotate( degrees );
 }
 
 

@@ -77,7 +77,7 @@ void Camera::CalcEyeDir()
 	}
 }
 
-
+/*
 void Camera::Orbit( const Vector3F& _pole, float rotation )
 {
 	Vector3F pole = { _pole.x, 0.0f, _pole.z };
@@ -96,4 +96,27 @@ void Camera::Orbit( const Vector3F& _pole, float rotation )
 
 	valid = false;
 }
+*/
 
+void Camera::Orbit( float rotation )
+{
+	// Find the rotation point (the pole)
+	EyeDir();			// bring cache current
+	Vector3F pole;
+	if ( IntersectRayPlane( posWC, eyeDir3[0], 1, 0, &pole ) == INTERSECT ) {
+
+		Matrix4 r;
+		r.SetYRotation( yRotation + rotation );
+
+		float length = sqrtf( (pole.x-posWC.x)*(pole.x-posWC.x) + (pole.z-posWC.z)*(pole.z-posWC.z) );
+
+		Vector3F vec = { 0.0f, 0.0f, length };
+		Vector3F vecPrime = r * vec;
+		vecPrime.y = posWC.y;
+
+		posWC = pole + vecPrime;
+
+		yRotation += rotation;
+	}
+	valid = false;
+}

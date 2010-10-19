@@ -518,7 +518,7 @@ int PointInPolygon( const Vector2F& p, const Vector2F* vertex, int numVertex );
 float PointBetweenPoints( const Vector3F& p0, const Vector3F& p1, const Vector3F& pi );
 
 /**
-    Intersection of 3 planes is a point. Returs INTERSECT if there is such
+    Intersection of 3 planes is a point. Returns INTERSECT if there is such
 	a point, or REJECT if planes are parallel.
 */
 int Intersect3Planes( const Plane& p0, const Plane& p1, const Plane& p2, Vector3F* intersection );

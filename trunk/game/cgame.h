@@ -36,9 +36,6 @@ void GameSave( void* handle );
 //		Taps (buttons, UI)
 //
 
-// Coordinates.
-// All coordinates (x,y) are in the iphone coordinate space.
-// (see screenport.h). Rotation has no impact on the coordinates.
 
 #define GAME_TAP_DOWN	0
 #define GAME_TAP_MOVE	1
@@ -46,21 +43,15 @@ void GameSave( void* handle );
 #define GAME_TAP_CANCEL	3
 void GameTap( void* handle, int action, int x, int y );
 
-// Set the zoom, where 1.0 is 'normal', based on a bitmap zoom.
-// Zoom is based on the absolute height, but passed in as a 
-// relative change.
+// Set the zoom. The zoom is in a range of 0.1-5.0, based on
+// distance from a hypothetical bitmap. Zoom is passed in
+// as a relative value.
 #define GAME_ZOOM_MIN	0.1f
 #define GAME_ZOOM_MAX	5.0f
 void GameZoom( void* handle, float zoom );
 
-// Query the current zoom.
-//float GameQueryZoom( void* handle );
-
-// Unlike zoom, rotation is relative. There is no way to get the current
-// rotation. It starts, and then is incremented relative to that point.
-#define GAME_ROTATE_START 0
-#define GAME_ROTATE_MOVE  1
-void GameCameraRotate( void* handle, int action, float degreesFromStart );
+// Relative rotation, in degrees.
+void GameCameraRotate( void* handle, float degrees );
 
 void GameDoTick( void* handle, unsigned int timeInMSec );
 

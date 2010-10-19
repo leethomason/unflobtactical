@@ -3093,20 +3093,22 @@ void BattleScene::Zoom( float delta )
 }
 
 
-void BattleScene::Rotate( int action, float degrees )
+void BattleScene::Rotate( float degrees )
 {
-	if ( action == GAME_ROTATE_START ) {
-		orbitPole.Set( 0.0f, 0.0f, 0.0f );
+//	if ( action == GAME_ROTATE_START ) {
+//		orbitPole.Set( 0.0f, 0.0f, 0.0f );
+//
+//		const Vector3F* dir = engine->camera.EyeDir3();
+//		const Vector3F& pos = engine->camera.PosWC();
+//
+//		IntersectRayPlane( pos, dir[0], 1, 0.0f, &orbitPole );	
+//		orbitStart = ToDegree( atan2f( pos.x-orbitPole.x, pos.z-orbitPole.z ) );
+//	}
+//	else {
+	
+	engine->camera.Orbit( degrees );
 
-		const Vector3F* dir = engine->camera.EyeDir3();
-		const Vector3F& pos = engine->camera.PosWC();
-
-		IntersectRayPlane( pos, dir[0], 1, 0.0f, &orbitPole );	
-		orbitStart = ToDegree( atan2f( pos.x-orbitPole.x, pos.z-orbitPole.z ) );
-	}
-	else {
-		engine->camera.Orbit( orbitPole, orbitStart + degrees );
-	}
+	//	}
 }
 
 
