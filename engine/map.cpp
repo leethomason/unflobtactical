@@ -162,7 +162,7 @@ Map::Map( SpaceTree* tree )
 	borderAtom.renderState = (const void*) RENDERSTATE_MAP_OPAQUE;
 #endif
 	for( int i=0; i<4; ++i ) {
-		border[i].Init( &overlay1, borderAtom, false );
+		border[i].Init( &overlay0, borderAtom, false );
 	}
 
 	TextureManager* texman = TextureManager::Instance();
