@@ -37,10 +37,18 @@ void GameSave( void* handle );
 //
 
 
-#define GAME_TAP_DOWN	0
-#define GAME_TAP_MOVE	1
-#define GAME_TAP_UP		2
-#define GAME_TAP_CANCEL	3
+#define GAME_TAP_DOWN		0
+#define GAME_TAP_MOVE		1
+#define GAME_TAP_UP			2
+#define GAME_TAP_CANCEL		3
+
+#define GAME_TAP_MASK		0x00ff
+#define GAME_TAP_PANNING	0x0100
+#define GAME_TAP_DOWN_PANNING		(GAME_TAP_DOWN | GAME_TAP_PANNING)
+#define GAME_TAP_MOVE_PANNING		(GAME_TAP_MOVE | GAME_TAP_PANNING)
+#define GAME_TAP_UP_PANNING			(GAME_TAP_UP | GAME_TAP_PANNING)
+#define GAME_TAP_CANCEL_PANNING		(GAME_TAP_CANCEL | GAME_TAP_PANNING)
+
 void GameTap( void* handle, int action, int x, int y );
 
 // Set the zoom. The zoom is in a range of 0.1-5.0, based on

@@ -101,15 +101,6 @@ void GameZoom( void* handle, float delta )
 }
 
 
-float GameQueryZoom( void* handle )
-{
-	CheckThread check;
-
-	Game* game = (Game*)handle;
-	return game->QueryZoom();
-}
-
-
 void GameCameraRotate( void* handle, float degrees )
 {
 	CheckThread check;

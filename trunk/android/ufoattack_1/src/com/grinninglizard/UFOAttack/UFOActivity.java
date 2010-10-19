@@ -7,6 +7,11 @@ import java.io.IOException;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+//import org.metalev.multitouch.controller.*;
+//import org.metalev.multitouch.controller.MultiTouchController.MultiTouchObjectCanvas;
+//import org.metalev.multitouch.controller.MultiTouchController.PointInfo;
+//import org.metalev.multitouch.controller.MultiTouchController.PositionAndScale;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -114,7 +119,26 @@ class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener
 }
 
 
-class DemoGLSurfaceView extends GLSurfaceView  { 
+/*
+class PinchPlane
+{
+	public float x;
+	public float y;
+	public float scale;
+	public PinchPlane() {
+		init();
+	}
+	
+	public void init() {
+		x = 0;
+		y = 0;
+		scale = 1;
+	}
+}
+*/
+
+
+class DemoGLSurfaceView extends GLSurfaceView { 	//implements MultiTouchObjectCanvas<PinchPlane>  { 
 
 	public DemoGLSurfaceView(Context context) {
         super(context);
@@ -124,6 +148,9 @@ class DemoGLSurfaceView extends GLSurfaceView  {
         requestFocusFromTouch();
         setFocusableInTouchMode( true );
         
+        //mScaleDetector = new ScaleGestureDetector(context, new ScaleListener( this ));
+        //mPinchPlane = new PinchPlane();
+        //mMultiTouchController = new MultiTouchController<PinchPlane>(this);
         mScaleDetector = new ScaleGestureDetector(context, new ScaleListener( this ));
     }
 	
@@ -149,74 +176,122 @@ class DemoGLSurfaceView extends GLSurfaceView  {
 		// a relative starting coordinate that conflicts with the zoom height
 		// getting changed.
 		// It would be nice to fix this restriction.
-		if ( mActivePointerID != INVALID_POINTER_ID ) {
-			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_TAP, 3, lastX, lastY, 0 ) );	// cancel
-			mActivePointerID = INVALID_POINTER_ID;
-		}
-		queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ZOOM, 0, 0, 0, delta ) );
+//		if ( multiMode == MODE_MULTI ) {
+			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ZOOM, 0, 0, 0, delta ) );
+//		}
 	}
 
-	private ScaleGestureDetector mScaleDetector;
-	private static final int INVALID_POINTER_ID = -1;
-	private int mActivePointerID = INVALID_POINTER_ID;
-	private int lastX, lastY;									
+	//private ScaleGestureDetector mScaleDetector;
+	//private static final int INVALID_POINTER_ID = -1;
+	//private int mActivePointerID = INVALID_POINTER_ID;
+	//private int lastX, lastY;									
+
+	private static final int GAME_TAP_DOWN		= 0;
+	private static final int GAME_TAP_MOVE		= 1;
+	private static final int GAME_TAP_UP		= 2;
+	private static final int GAME_TAP_CANCEL	= 3;
+	private static final int PANNING			= 0x0100;
+    private UFORenderer mRenderer;
+    //private PinchPlane mPinchPlane;
+    //private MultiTouchController<PinchPlane> mMultiTouchController;
+    private ScaleGestureDetector mScaleDetector;
+    
+    //private static final int MODE_NONE = 0;
+    //private static final int MODE_ONE  = 1;
+    //private static final int MODE_MULTI = 2;
+	//private int multiMode = MODE_NONE;
+	private boolean needToSendUpOrCancel = false;
 	
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
     	// Feed info to our helper class:
-    	mScaleDetector.onTouchEvent(event);
-    	
         int action = event.getAction();
+        int type = -1;
+        int x = (int)event.getX();
+        int y = (int)(getHeight() - event.getY());
         
-        for( int i=0; i<event.getPointerCount(); ++i ) {
+    	if ( event.getPointerCount() > 1 && needToSendUpOrCancel ) {
+   			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_TAP, GAME_TAP_CANCEL, x, y, 0 ) );
+   			needToSendUpOrCancel = false;
+    	}
+ 
+        mScaleDetector.onTouchEvent(event);
 
-            int pointerIndex = (action & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
-        	int pointerID = event.getPointerId(pointerIndex);
-
-            int x = (int)event.getX(pointerID);
-            int y = (int)(getHeight() - event.getY(pointerID));
-            int type = -1;
-            int idWas = mActivePointerID;
-            
-        	// Start tracking.
-        	if (    mActivePointerID == INVALID_POINTER_ID 
-        		 && action == MotionEvent.ACTION_DOWN 
-        		 && event.getPointerCount() == 1) 
-        	{
-        		mActivePointerID = pointerID;
-        	}
-  	
-        	if ( mActivePointerID != pointerID )
-        		continue;
-        	
-	        switch ( action & MotionEvent.ACTION_MASK ) {
-	        case MotionEvent.ACTION_DOWN:
-	        	type = 0;
-	        	break;
-	        	
-	        case MotionEvent.ACTION_UP:
-	        case MotionEvent.ACTION_CANCEL:
-	        case MotionEvent.ACTION_POINTER_UP: 
-	           	mActivePointerID = INVALID_POINTER_ID;
-	           	type = 2;
-	        	break;
-
-	        case MotionEvent.ACTION_MOVE:
-	        	type = 1;
-	        	break;
+        if ( event.getPointerCount() == 1 ) {
+	        switch ( action ) {
+		    	case MotionEvent.ACTION_DOWN:
+		        	type = GAME_TAP_DOWN;
+		        	needToSendUpOrCancel = true;
+		        	break;
+		        	
+		        case MotionEvent.ACTION_UP:
+		        	if ( needToSendUpOrCancel ) {
+		        		type = GAME_TAP_UP;
+		        		needToSendUpOrCancel = false;
+		        	}
+		        	break;
+		        	        	
+		        case MotionEvent.ACTION_CANCEL:
+		        	if ( needToSendUpOrCancel ) {
+		        		type = GAME_TAP_CANCEL;
+		        		needToSendUpOrCancel = false;
+		        	}
+		        	break;
+		        	
+		        case MotionEvent.ACTION_MOVE:
+		        	if ( needToSendUpOrCancel ) {
+		        		type = GAME_TAP_MOVE;
+		        	}
+		        	break;
 	        }
 	        if ( type >= 0 ) {
-	        	lastX = x; lastY = y;
-	        	
-	        	if ( type != 1 )
-	        		Log.v("UFOATTACK", "touch event id=" + idWas + " type=" + type + " x=" + x + " y=" + y );
 	        	queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_TAP, type, x, y, 0 ) );
 	        	return true;
 	        }
-        }        
-    	return super.onTouchEvent( event );
+        }
+       	return super.onTouchEvent(event);
     }
-    
+/*
+	@Override
+	public PinchPlane getDraggableObjectAtPoint(PointInfo touchPoint) {
+		return mPinchPlane;
+	}
+
+	@Override
+	public void getPositionAndScale(PinchPlane obj, PositionAndScale objPosAndScaleOut) {
+		objPosAndScaleOut.set( 0, 0, true, 1.0f, false, 1, 1, false, 0);
+		obj.init();
+	}
+
+	@Override
+	public boolean setPositionAndScale(PinchPlane obj, PositionAndScale newObjPosAndScale, PointInfo touchPoint) {
+		if (    multiMode == MODE_MULTI 
+			 && newObjPosAndScale.getScale() != obj.scale ) 
+		{
+	    	queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ZOOM, 0, 0, 0, obj.scale - newObjPosAndScale.getScale() ) );
+	    	obj.scale = newObjPosAndScale.getScale();
+		}
+		if (    multiMode == MODE_MULTI 
+		     && (newObjPosAndScale.getXOff() != obj.x || newObjPosAndScale.getYOff() != obj.y )) 
+		{
+	    	//queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_TAP, GAME_TAP_MOVE | PANNING, (int)newObjPosAndScale.getXOff(), (int)newObjPosAndScale.getYOff(), 0 ) );
+	    	obj.x = newObjPosAndScale.getXOff();
+	    	obj.y = newObjPosAndScale.getYOff();
+		}
+		return true;
+	}
+
+	@Override
+	public void selectObject(PinchPlane obj, PointInfo touchPoint) {
+		if ( multiMode == MODE_MULTI && obj == null ) {
+	    	//queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_TAP, GAME_TAP_UP | PANNING, (int)mPinchPlane.x, (int)mPinchPlane.y, 0 ) );
+	    	Log.v("UFOATTACK", "multi mode none" );
+			multiMode = MODE_NONE;
+		}
+	}
+*/
+	
 /*    
    //  @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -246,8 +321,6 @@ class DemoGLSurfaceView extends GLSurfaceView  {
     	}
     }
  */
-  
-    private UFORenderer mRenderer;
 }
 
 
@@ -298,6 +371,7 @@ final class RendererEvent implements Runnable
 				break;
 			case TYPE_TAP:
 				renderer.tap( action, (float)x, (float)y );
+				Log.v("UFOATTACK", "Tap action=" + action + " x=" + (int)x + " y=" + (int)y );
 				break;
 			case TYPE_HOTKEY:
 				renderer.hotKey( action );
