@@ -2310,8 +2310,9 @@ void BattleScene::Tap(	int action,
 	engine->GetScreenport().ViewToUI( view, &ui );
 	bool processTap = false;
 
-	if ( action == GAME_TAP_DOWN ) {
-		if ( uiActive ) {
+
+	if ( action == GAME_TAP_DOWN || action == GAME_TAP_DOWN_PANNING ) {
+		if ( uiActive && action == GAME_TAP_DOWN ) {
 			// First check buttons.
 			gamui2D.TapDown( ui.x, ui.y );
 			if ( !gamui2D.TapCaptured() ) {
@@ -2323,16 +2324,17 @@ void BattleScene::Tap(	int action,
 			Drag( action, uiActive, view );
 		}
 	}
-	else if ( action == GAME_TAP_MOVE ) {
+	else if ( action == GAME_TAP_MOVE || action == GAME_TAP_MOVE_PANNING ) {
 		if ( isDragging ) {
 			Drag( action, uiActive, view );
 		}
 	}
-	else if ( action == GAME_TAP_UP ) {
+	else if ( action == GAME_TAP_UP || action == GAME_TAP_UP_PANNING ) {
 		if ( isDragging ) {
 			Drag( action, uiActive, view );
 
-			if (    dragLength <= 1.0f 
+			if (    action == GAME_TAP_UP
+				 && dragLength <= 1.0f 
 				 && actionStack.Empty() )
 			{
 				processTap = true;
@@ -2348,7 +2350,10 @@ void BattleScene::Tap(	int action,
 				HandleIconTap( item );
 			}
 		}
-		if ( dragLength < 1.0f && selection.FireMode() ) {
+		if (    action == GAME_TAP_UP 
+			 && dragLength < 1.0f 
+			 && selection.FireMode() ) 
+		{
 			// Whether or not something was selected, drop back to normal mode.
 			selection.targetPos.Set( -1, -1 );
 			selection.targetUnit = 0;
@@ -2356,7 +2361,7 @@ void BattleScene::Tap(	int action,
 			processTap = false;
 		}
 	}
-	else if ( action == GAME_TAP_CANCEL ) {
+	else if ( action == GAME_TAP_CANCEL || action == GAME_TAP_CANCEL_PANNING ) {
 		processTap = false;
 		if ( isDragging ) {
 			Drag( action, uiActive, view );
@@ -2913,6 +2918,9 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 	Vector2F ui;
 	engine->GetScreenport().ViewToUI( view, &ui );
 	
+	bool panning = (action & GAME_TAP_PANNING) ? true : false;
+	action = action & GAME_TAP_MASK;
+	
 	switch ( action ) 
 	{
 		case GAME_TAP_DOWN:
@@ -2928,7 +2936,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 			dragEnd = dragStart;
 
 			// Drag a unit or drag the camera?
-			if ( uiActivated ) {
+			if ( uiActivated && !panning ) {
 				Vector2I mapPos = { (int)dragStart.x, (int)dragStart.z };
 				for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 					if ( units[i].IsAlive() && ( mapPos == units[i].Pos() ) ) {
@@ -3089,7 +3097,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 void BattleScene::Zoom( float delta )
 {
 	//GLOUTPUT(( "Battlescene GetZoom=%f delta=%f\n", engine->GetZoom(), delta ));
-	engine->SetZoom( engine->GetZoom() + delta );
+	engine->SetZoom( engine->GetZoom() *( 1.0+delta) );
 }
 
 

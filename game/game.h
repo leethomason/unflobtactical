@@ -106,7 +106,6 @@ public:
 
 	void Tap( int action, int x, int y );
 	void Zoom( float distance );
-	float QueryZoom() const;
 	void Rotate( float degreesFromStart );
 	void CancelInput();
 	
