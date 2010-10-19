@@ -291,10 +291,19 @@ void Screenport::WorldToView( const grinliz::Vector3F& world, grinliz::Vector2F*
 
 	// Normalize to view.
 	// r in range [-1,1] which maps to screen[0,Width()-1]
+	/*
 	Vector2F v0, v1;
 	Rectangle2F clipInView;
 	UIToView( clipInUI3D.min, &v0 );
 	UIToView( clipInUI3D.max, &v1 ); 
+	clipInView.FromPair( v0.x, v0.y, v1.x, v1.y );
+	*/
+	Vector2F v0, v1;
+	Rectangle2F clipInView;
+	Vector2F min = { 0, 0 };
+	Vector2F max = { UIWidth(), UIHeight() };
+	UIToView( min, &v0 );
+	UIToView( max, &v1 ); 
 	clipInView.FromPair( v0.x, v0.y, v1.x, v1.y );
 	
 	v->x = Interpolate( -1.0f, (float)clipInView.min.x,

@@ -42,6 +42,14 @@
 #define NEXUS_ONE_SCREEN_WIDTH  480
 #define NEXUS_ONE_SCREEN_HEIGHT  800
 
+#if 1
+static const int SCREEN_WIDTH  = IPOD_SCREEN_WIDTH;
+static const int SCREEN_HEIGHT = IPOD_SCREEN_HEIGHT;
+#else
+static const int SCREEN_WIDTH  = NEXUS_ONE_SCREEN_WIDTH;
+static const int SCREEN_HEIGHT = NEXUS_ONE_SCREEN_HEIGHT;
+#endif
+
 const int multisample = 2;
 bool fullscreen = false;
 int screenWidth = 0;
@@ -125,13 +133,11 @@ int main( int argc, char **argv )
 		videoFlags |= SDL_RESIZABLE;
 
 #ifdef TEST_ROTATION
-	screenWidth = NEXUS_ONE_SCREEN_WIDTH;
-	screenHeight = NEXUS_ONE_SCREEN_HEIGHT;
+	screenWidth  = SCREEN_WIDTH;
+	screenHeight = SCREEN_HEIGHT;
 #else
-	screenWidth = NEXUS_ONE_SCREEN_HEIGHT;
-	screenHeight = NEXUS_ONE_SCREEN_WIDTH;
-//	screenWidth = IPOD_SCREEN_HEIGHT;
-//	screenHeight = IPOD_SCREEN_WIDTH;
+	screenWidth  = SCREEN_HEIGHT;
+	screenHeight = SCREEN_WIDTH;
 #endif
 
 	// Note that our output surface is rotated from the iPod.

@@ -724,22 +724,17 @@ void BattleScene::SetUnitOverlays()
 		// layer 0 target arrow
 		// layer 1 target arrow
 
-		targetArrow[i-ALIEN_UNITS_START].SetVisible( false );
-		unitImage0[i].SetVisible( false );
-		unitImage1[i].SetVisible( false );
-		hpBars[i].SetVisible( false );
-
 		if ( unitMoving != &units[i] && units[i].IsAlive() && m_targets.TeamCanSee( TERRAN_TEAM, i ) ) {
 			Vector3F p;
 			units[i].CalcPos( &p );
 
 			// Is the unit on screen? If so, put in a simple foot decal. Else
 			// put in an "alien that way" decal.
-			Vector2F r;	
-			engine->GetScreenport().WorldToView( p, &r );
+			Vector2F ui;	
+			engine->GetScreenport().WorldToUI( p, &ui );
 			const Rectangle2F& uiBounds = engine->GetScreenport().UIBoundsClipped3D();
 
-			if ( uiBounds.Contains( r ) ) {
+			if ( uiBounds.Contains( ui ) ) {
 				unitImage0[i].SetVisible( true );
 				unitImage0[i].SetAtom( targetAtom0 );
 				unitImage0[i].SetSize( 1.2f, 1.2f );
@@ -753,8 +748,14 @@ void BattleScene::SetUnitOverlays()
 				hpBars[i].SetVisible( true );
 				hpBars[i].SetPos( p.x + HP_DX - 0.5f, p.z + HP_DY - 0.5f );
 				hpBars[i].SetRange( (float)units[i].HP()*0.01f, (float)units[i].GetStats().TotalHP()*0.01f );
+
+				targetArrow[i-ALIEN_UNITS_START].SetVisible( false );
 			}
 			else {
+				unitImage0[i].SetVisible( false );
+				unitImage1[i].SetVisible( false );
+				hpBars[i].SetVisible( false );
+
 				targetArrow[i-ALIEN_UNITS_START].SetVisible( true );
 
 				Vector2F center = { (uiBounds.min.x + uiBounds.max.x)/2,
@@ -763,16 +764,23 @@ void BattleScene::SetUnitOverlays()
 				const float EPS = 10;
 				inset.Outset( -EPS );
 				Vector2F intersection = { 0, 0 };
-				CenterRectIntersection( r, inset, &intersection );
+				CenterRectIntersection( ui, inset, &intersection );
 
-				targetArrow[i-ALIEN_UNITS_START].SetCenterPos( intersection.x, uiBounds.max.y-1.f-intersection.y );
-				float angle = atan2( (center.y-r.y), (r.x-center.x) );
-				angle = ToDegree( angle ) + 90.0f;	
+				targetArrow[i-ALIEN_UNITS_START].SetCenterPos( intersection.x, intersection.y );
+				float angle = atan2( (ui.y-center.y), (ui.x-center.x) );
+				angle = ToDegree( angle )+ 90.0f;	
 
 				targetArrow[i-ALIEN_UNITS_START].SetRotationZ( angle );
 				targetArrow[i-ALIEN_UNITS_START].SetVisible( true );
 				targetArrow[i-ALIEN_UNITS_START].SetSize( 50, 50 );
 			}
+		}
+		else {
+			targetArrow[i-ALIEN_UNITS_START].SetVisible( false );
+			unitImage0[i].SetVisible( false );
+			unitImage1[i].SetVisible( false );
+			hpBars[i].SetVisible( false );
+			targetArrow[i-ALIEN_UNITS_START].SetVisible( false );
 		}
 	}
 
