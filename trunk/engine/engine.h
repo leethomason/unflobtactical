@@ -111,11 +111,9 @@ public:
 	void CalcFrustumPlanes( grinliz::Plane* planes );
 
 	float GetZoom();
-	// 0.0 far, 1.0 close
-	void SetZoom( float z );
+	void SetZoom( float zoom );
 
 	const Screenport& GetScreenport() { return *screenport; }
-	//void SetClip( const grinliz::Rectangle2I* uiClip );
 
 	// FIXME - automatic??
 	void RestrictCamera();

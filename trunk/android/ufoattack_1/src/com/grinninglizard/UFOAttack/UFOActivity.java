@@ -86,15 +86,12 @@ public class UFOActivity extends Activity  {
     {
     	File file = this.getFilesDir();
     	if ( file != null ) {
-    		logger = new CrashLogger( file.getAbsolutePath() );		// send crash logs
-    		//Thread thread = new Thread( logger );
-    		//thread.start();
+    		CrashLogger logger = new CrashLogger( file.getAbsolutePath() );		// send crash logs
     		UFORenderer.nativeSavePath( file.getAbsolutePath() );
     	}
     }
    
     private DemoGLSurfaceView mGLView;
-    private CrashLogger logger = null;
 
     static {
         System.loadLibrary("ufoattack");
@@ -177,7 +174,7 @@ class DemoGLSurfaceView extends GLSurfaceView { 	//implements MultiTouchObjectCa
 		// getting changed.
 		// It would be nice to fix this restriction.
 //		if ( multiMode == MODE_MULTI ) {
-			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ZOOM, 0, 0, 0, delta ) );
+			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ZOOM, GAME_ZOOM_PINCH, 0, 0, delta ) );
 //		}
 	}
 
@@ -191,6 +188,11 @@ class DemoGLSurfaceView extends GLSurfaceView { 	//implements MultiTouchObjectCa
 	private static final int GAME_TAP_UP		= 2;
 	private static final int GAME_TAP_CANCEL	= 3;
 	private static final int PANNING			= 0x0100;
+	
+	private static final int GAME_ZOOM_DISTANCE = 0;
+	private static final int GAME_ZOOM_PINCH 	= 1;
+	
+	
     private UFORenderer mRenderer;
     //private PinchPlane mPinchPlane;
     //private MultiTouchController<PinchPlane> mMultiTouchController;
@@ -201,6 +203,17 @@ class DemoGLSurfaceView extends GLSurfaceView { 	//implements MultiTouchObjectCa
     //private static final int MODE_MULTI = 2;
 	//private int multiMode = MODE_NONE;
 	private boolean needToSendUpOrCancel = false;
+	
+	@Override
+	public boolean onTrackballEvent(MotionEvent event) {
+		
+		//Log.v("UFOATTACK", "dy=" + event.getX() );
+		if ( event.getX() != 0 )
+			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ZOOM, GAME_ZOOM_DISTANCE, 0, 0, -event.getX() ) );
+		if ( event.getY() != 0 )
+			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ROTATE, 0, 0, 0, event.getY()*90.0f ) );
+		return true;
+	}
 	
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -339,6 +352,7 @@ final class RendererEvent implements Runnable
 	public static final int TYPE_TAP 		= 100;
 	public static final int TYPE_HOTKEY 	= 101;
 	public static final int TYPE_ZOOM		= 200;
+	public static final int TYPE_ROTATE		= 201;
 	
 	private UFORenderer renderer;
 	private int type;
@@ -377,7 +391,9 @@ final class RendererEvent implements Runnable
 				renderer.hotKey( action );
 				break;
 			case TYPE_ZOOM:
-				renderer.zoom( val );
+				renderer.zoom( action, val );
+			case TYPE_ROTATE:
+				renderer.rotate( val );
 			default:
 				break;
 		}
@@ -426,8 +442,13 @@ class UFORenderer implements GLSurfaceView.Renderer {
     	nativeHotKey( key );
     }
     
-    public void zoom( float delta ) {
-    	nativeZoom( delta );
+    public void zoom( int style, float delta ) {
+    	//Log.v("UFOATTACK", "zoom=" + delta );
+    	nativeZoom( style, delta );
+    }
+    
+    public void rotate( float delta ) {
+    	nativeRotate( delta );
     }
 
     public static native void nativeResource( String path, long offset, long len );
@@ -443,5 +464,6 @@ class UFORenderer implements GLSurfaceView.Renderer {
     private static native void nativeTap( int action, float x, float y );
     private static native void nativeHotKey( int key );
     
-    private static native void nativeZoom( float delta );
+    private static native void nativeZoom( int style, float delta );
+    private static native void nativeRotate( float delta );
 }

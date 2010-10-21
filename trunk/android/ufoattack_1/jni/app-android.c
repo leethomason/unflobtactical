@@ -164,11 +164,21 @@ Java_com_grinninglizard_UFOAttack_UFORenderer_nativeTap( JNIEnv* env, jobject th
 
 
 void
-Java_com_grinninglizard_UFOAttack_UFORenderer_nativeZoom( JNIEnv* env, jobject thiz, jfloat distance )
+Java_com_grinninglizard_UFOAttack_UFORenderer_nativeZoom( JNIEnv* env, jobject thiz, jint style, jfloat distance )
 {
     //__android_log_print(ANDROID_LOG_INFO, "UFOAttack", "nativeTap action=%d %d,%d", (int)action, (int)x, (int)y );
 	if ( game ) {
-		GameZoom( game, distance );
+		GameZoom( game, style, distance );
+	}
+}
+
+
+void
+Java_com_grinninglizard_UFOAttack_UFORenderer_nativeRotate( JNIEnv* env, jobject thiz, jfloat delta )
+{
+    //__android_log_print(ANDROID_LOG_INFO, "UFOAttack", "nativeTap action=%d %d,%d", (int)action, (int)x, (int)y );
+	if ( game ) {
+		GameCameraRotate( game, delta );
 	}
 }
 

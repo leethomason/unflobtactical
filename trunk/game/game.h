@@ -105,7 +105,7 @@ public:
 	void DoTick( U32 msec );
 
 	void Tap( int action, int x, int y );
-	void Zoom( float distance );
+	void Zoom( int style, float distance );
 	void Rotate( float degreesFromStart );
 	void CancelInput();
 	

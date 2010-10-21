@@ -92,12 +92,12 @@ void GameDeviceLoss( void* handle )
 }
 
 
-void GameZoom( void* handle, float delta )
+void GameZoom( void* handle, int style, float delta )
 {
 	CheckThread check;
 
 	Game* game = (Game*)handle;
-	game->Zoom( delta );
+	game->Zoom( style, delta );
 }
 
 

@@ -424,7 +424,7 @@ int main( int argc, char **argv )
 				}
 				else if ( zooming && (state & SDL_BUTTON(3)) ) {
 					float deltaZoom = 0.01f * (float)zoomY;
-					GameZoom( game, deltaZoom );
+					GameZoom( game, GAME_ZOOM_DISTANCE, deltaZoom );
 					GameCameraRotate( game, (float)(zoomX)*0.5f );
 				}
 				else if ( ( ( state & SDL_BUTTON(1) ) == 0 ) && Engine::mapMakerMode ) {
