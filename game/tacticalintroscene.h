@@ -40,16 +40,12 @@ public:
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
 
-	virtual void Zoom( int action, int distance )				{}
-	virtual void CancelInput()									{}
-
 	// Rendering
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	{
 		clip3D->SetInvalid();
 		clip2D->SetInvalid();	// full screen
 		return RENDER_2D; 
 	}
-	virtual void DoTick( U32 currentTime, U32 deltaTime )		{}
 	virtual void DrawHUD();
 
 	//	Squad:		4 8

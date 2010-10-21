@@ -53,7 +53,7 @@ public:
 	virtual void Tap(	int action, 
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world )				{}
-	virtual void Zoom( float normal )							{}
+	virtual void Zoom( int style, float normal )				{}
 	virtual void Rotate( float degrees )						{}
 	virtual void CancelInput()									{}
 

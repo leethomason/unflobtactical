@@ -56,7 +56,10 @@ void GameTap( void* handle, int action, int x, int y );
 // as a relative value.
 #define GAME_ZOOM_MIN	0.1f
 #define GAME_ZOOM_MAX	5.0f
-void GameZoom( void* handle, float zoom );
+
+#define GAME_ZOOM_DISTANCE	0
+#define GAME_ZOOM_PINCH		1
+void GameZoom( void* handle, int style, float zoom );
 
 // Relative rotation, in degrees.
 void GameCameraRotate( void* handle, float degrees );
@@ -85,8 +88,6 @@ enum {
 	GAME_CAMERA_ZOOM
 };
 void GameCameraGet( void* handle, int param, float* value );
-//void GameCameraSet( void* handle, int param, float value );
-
 void GameMoveCamera( void* handle, float dx, float dy, float dz );
 	
 #ifdef __cplusplus

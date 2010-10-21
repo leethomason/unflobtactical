@@ -2,8 +2,6 @@ Issues:
 
 Bugs:
 - Android: starting paused incorrect. General way to detect device loss?
-- Android: zoom / rotate
-- Rotated coordinates: alien arrows in wrong place
 - Android: sound
 - Android: optimize performance
 	- subsystem analysis
@@ -48,6 +46,8 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- Android: zoom / rotate
+- Rotated coordinates: alien arrows in wrong place
 - description of current weapon
 - switch to per-turn saving
 - lower case rounds in character screen
