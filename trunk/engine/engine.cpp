@@ -236,59 +236,62 @@ void Engine::Draw()
 	Model* modelRoot = spaceTree->Query( planes, 6, 0, 0, false );
 	
 	// ------------ Process the models into the render queue -----------
-	GLASSERT( renderQueue->Empty() );
-	const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& fogOfWar = map->GetFogOfWar();
+	{
+		GRINLIZ_PERFTRACK_NAME( "Engine::Draw Models" );
 
-	Color4F ambient, diffuse;
-	Vector4F dir;
-	CalcLights( map->DayTime() ? DAY_TIME : NIGHT_TIME, &ambient, &dir, &diffuse );
+		GLASSERT( renderQueue->Empty() );
+		const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& fogOfWar = map->GetFogOfWar();
 
-	bool blend = Engine::mapMakerMode ? true : false;
-	bool alpha = Engine::mapMakerMode ? false : true;
+		Color4F ambient, diffuse;
+		Vector4F dir;
+		CalcLights( map->DayTime() ? DAY_TIME : NIGHT_TIME, &ambient, &dir, &diffuse );
 
-	LightShader lightShader( ambient, dir, diffuse, false, false );
-	LightShader alphaLightShader( ambient, dir, diffuse, alpha, blend );
+		bool blend = Engine::mapMakerMode ? true : false;
+		bool alpha = Engine::mapMakerMode ? false : true;
+
+		LightShader lightShader( ambient, dir, diffuse, false, false );
+		LightShader alphaLightShader( ambient, dir, diffuse, alpha, blend );
 	
-	FlatShader black;
-	black.SetColor( 0, 0, 0 );
+		FlatShader black;
+		black.SetColor( 0, 0, 0 );
 
-	for( Model* model=modelRoot; model; model=model->next ) {
+		for( Model* model=modelRoot; model; model=model->next ) {
+			if ( model->IsFlagSet( Model::MODEL_METADATA ) && !enableMeta )
+				continue;
 
-		if ( model->IsFlagSet( Model::MODEL_METADATA ) && !enableMeta )
-			continue;
+			const Vector3F& pos = model->Pos();
+			int x = LRintf( pos.x - 0.5f );
+			int y = LRintf( pos.z - 0.5f );
 
-		const Vector3F& pos = model->Pos();
-		int x = LRintf( pos.x - 0.5f );
-		int y = LRintf( pos.z - 0.5f );
+			if ( model->IsFlagSet(  Model::MODEL_OWNED_BY_MAP ) ) {
+				if ( model->mapBoundsCache.min.x < 0 ) {
+					map->MapBoundsOfModel( model, &model->mapBoundsCache );
+				}
 
-		if ( model->IsFlagSet(  Model::MODEL_OWNED_BY_MAP ) ) {
-			if ( model->mapBoundsCache.min.x < 0 ) {
-				map->MapBoundsOfModel( model, &model->mapBoundsCache );
+				Rectangle2I fogRect = model->mapBoundsCache;
+				if ( fogRect.min.x > 0 )	fogRect.min.x -= 1;
+				if ( fogRect.min.y > 0 )	fogRect.min.y -= 1;
+				if ( fogRect.max.x < Map::SIZE-1 ) fogRect.max.x += 1;
+				if ( fogRect.max.y < Map::SIZE-1 ) fogRect.max.y += 1;
+
+				// Map is always rendered, possibly in black.
+				if ( !fogOfWar.IsRectEmpty( fogRect ) ) {
+					model->Queue( renderQueue, &lightShader, &alphaLightShader );
+				}
+				else {
+					model->Queue( renderQueue, &black, &black );
+				}
 			}
-
-			Rectangle2I fogRect = model->mapBoundsCache;
-			if ( fogRect.min.x > 0 )	fogRect.min.x -= 1;
-			if ( fogRect.min.y > 0 )	fogRect.min.y -= 1;
-			if ( fogRect.max.x < Map::SIZE-1 ) fogRect.max.x += 1;
-			if ( fogRect.max.y < Map::SIZE-1 ) fogRect.max.y += 1;
-
-			// Map is always rendered, possibly in black.
-			if ( !fogOfWar.IsRectEmpty( fogRect ) ) {
+			else if ( fogOfWar.IsSet( x, y ) ) {
 				model->Queue( renderQueue, &lightShader, &alphaLightShader );
 			}
-			else {
-				model->Queue( renderQueue, &black, &black );
-			}
-		}
-		else if ( fogOfWar.IsSet( x, y ) ) {
-			model->Queue( renderQueue, &lightShader, &alphaLightShader );
 		}
 	}
-
 	// ----------- Render Passess ---------- //
 	Color4F color;
 
 	if ( enableMap ) {
+		GRINLIZ_PERFTRACK_NAME( "Engine::Draw Map" );
 		// If the map is enabled, we draw the basic map plane lighted. Then draw the model shadows.
 		// The shadows are the tricky part: one matrix is used to transform the vertices to the ground
 		// plane, and the other matrix is used to transform the vertices to texture coordinates.

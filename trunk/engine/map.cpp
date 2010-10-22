@@ -377,6 +377,7 @@ void Map::MapImageToWorld( int x, int y, int w, int h, int tileRotation, Matrix2
 
 void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
 {
+	//GRINLIZ_PERFTRACK
 	GLRELASSERT( s->Width() == s->Height() );
 
 	Rectangle2I src;
@@ -428,6 +429,7 @@ void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
 
 void Map::SetLightMaps( const Surface* day, const Surface* night, int x, int y, int tileRotation )
 {
+	//GRINLIZ_PERFTRACK
 	GLRELASSERT( day );
 	GLRELASSERT( night );
 	
@@ -495,6 +497,7 @@ void Map::ReleaseFogOfWar()
 
 void Map::GenerateLightMap()
 {
+	//GRINLIZ_PERFTRACK
 	if ( invalidLightMap.IsValid() )
 	{
 		// Input:
@@ -1498,6 +1501,7 @@ void Map::QueryAllDoors()
 
 bool Map::ProcessDoors( const grinliz::Vector2I* openers, int nOpeners )
 {
+	//GRINLIZ_PERFTRACK
 	bool anyChange = false;
 
 	BitArray< SIZE, SIZE, 1 > map;
@@ -1775,6 +1779,7 @@ void Map::ClearVisPathMap( grinliz::Rectangle2I& _bounds )
 
 void Map::CalcVisPathMap( grinliz::Rectangle2I& _bounds )
 {
+	GRINLIZ_PERFTRACK
 	Rectangle2I bounds = _bounds;
 	ClipToMap( &bounds );
 
@@ -1947,6 +1952,7 @@ void Map::PrintStateInfo( void* state )
 
 int Map::SolvePath( const void* user, const Vector2<S16>& start, const Vector2<S16>& end, float *cost, MP_VECTOR< Vector2<S16> >* path )
 {
+	GRINLIZ_PERFTRACK
 	GLRELASSERT( sizeof( int ) == sizeof( void* ));			// fix this for 64 bit
 	GLRELASSERT( sizeof(Vector2<S16>) == sizeof( void* ) );
 	GLRELASSERT( pathBlocker );
@@ -2214,6 +2220,7 @@ void Map::QuadTree::UnlinkItem( MapItem* item )
 
 Map::MapItem* Map::QuadTree::FindItems( const Rectangle2I& bounds, int required, int excluded )
 {
+	//GRINLIZ_PERFTRACK
 	// Walk the map and pull out items in bounds.
 	MapItem* root = 0;
 

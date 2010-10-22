@@ -141,7 +141,6 @@ void Game::Init()
 	scenePopQueued = false;
 	sceneResetQueued = false;
 	currentFrame = 0;
-	memset( &profile, 0, sizeof( ProfileData ) );
 	surface.Set( Surface::RGBA16, 256, 256 );		// All the memory we will ever need (? or that is the intention)
 
 	// Load the database.
@@ -424,70 +423,80 @@ void Game::Save( FILE* fp )
 
 void Game::DoTick( U32 _currentTime )
 {
-	currentTime = _currentTime;
-	if ( previousTime == 0 ) {
-		previousTime = currentTime-1;
-	}
-	U32 deltaTime = currentTime - previousTime;
+	{
+		GRINLIZ_PERFTRACK
 
-	if ( markFrameTime == 0 ) {
-		markFrameTime			= currentTime;
-		frameCountsSinceMark	= 0;
-		framesPerSecond			= 0.0f;
-		trianglesPerSecond		= 0;
-		trianglesSinceMark		= 0;
-	}
-	else {
-		++frameCountsSinceMark;
-		if ( currentTime - markFrameTime > 500 ) {
-			framesPerSecond		= 1000.0f*(float)(frameCountsSinceMark) / ((float)(currentTime - markFrameTime));
-			// actually K-tris/second
-			trianglesPerSecond  = trianglesSinceMark / (currentTime - markFrameTime);
-			markFrameTime		= currentTime;
-			frameCountsSinceMark = 0;
-			trianglesSinceMark = 0;
+		currentTime = _currentTime;
+		if ( previousTime == 0 ) {
+			previousTime = currentTime-1;
 		}
-	}
+		U32 deltaTime = currentTime - previousTime;
 
-	GPUShader::ResetState();
-	GPUShader::Clear();
+		if ( markFrameTime == 0 ) {
+			markFrameTime			= currentTime;
+			frameCountsSinceMark	= 0;
+			framesPerSecond			= 0.0f;
+			trianglesPerSecond		= 0;
+			trianglesSinceMark		= 0;
+		}
+		else {
+			++frameCountsSinceMark;
+			if ( currentTime - markFrameTime > 500 ) {
+				framesPerSecond		= 1000.0f*(float)(frameCountsSinceMark) / ((float)(currentTime - markFrameTime));
+				// actually K-tris/second
+				trianglesPerSecond  = trianglesSinceMark / (currentTime - markFrameTime);
+				markFrameTime		= currentTime;
+				frameCountsSinceMark = 0;
+				trianglesSinceMark = 0;
+			}
+		}
 
-	Scene* scene = sceneStack.Top().scene;
-	scene->DoTick( currentTime, deltaTime );
+		GPUShader::ResetState();
+		GPUShader::Clear();
 
-	Rectangle2I clip2D, clip3D;
-	int renderPass = scene->RenderPass( &clip3D, &clip2D );
-	GLASSERT( renderPass );
+		Scene* scene = sceneStack.Top().scene;
+		scene->DoTick( currentTime, deltaTime );
+
+		Rectangle2I clip2D, clip3D;
+		int renderPass = scene->RenderPass( &clip3D, &clip2D );
+		GLASSERT( renderPass );
 	
-	if ( renderPass & Scene::RENDER_3D ) {
-		//	r.Set( 100, 50, 300, 50+200*320/480 );
-		//	r.Set( 100, 50, 300, 150 );
-		screenport.SetPerspective(	2.f, 
-									240.f, 
-									20.f*(screenport.UIWidth()/screenport.UIHeight())*320.0f/480.0f, 
-									clip3D.IsValid() ? &clip3D : 0 );
+		if ( renderPass & Scene::RENDER_3D ) {
+			GRINLIZ_PERFTRACK_NAME( "Game::DoTick 3D" );
+			//	r.Set( 100, 50, 300, 50+200*320/480 );
+			//	r.Set( 100, 50, 300, 150 );
+			screenport.SetPerspective(	2.f, 
+										240.f, 
+										20.f*(screenport.UIWidth()/screenport.UIHeight())*320.0f/480.0f, 
+										clip3D.IsValid() ? &clip3D : 0 );
 
-		engine->Draw();
-		if ( mapmaker_showPathing ) {
-			engine->GetMap()->DrawPath( mapmaker_showPathing );
-		}
-		scene->Debug3D();
+			engine->Draw();
+			if ( mapmaker_showPathing ) {
+				engine->GetMap()->DrawPath( mapmaker_showPathing );
+			}
+			scene->Debug3D();
 		
-		const grinliz::Vector3F* eyeDir = engine->camera.EyeDir3();
-		ParticleSystem* particleSystem = ParticleSystem::Instance();
-		particleSystem->Update( deltaTime, currentTime );
-		particleSystem->Draw( eyeDir, &engine->GetMap()->GetFogOfWar() );
-	}
+			const grinliz::Vector3F* eyeDir = engine->camera.EyeDir3();
+			ParticleSystem* particleSystem = ParticleSystem::Instance();
+			particleSystem->Update( deltaTime, currentTime );
+			particleSystem->Draw( eyeDir, &engine->GetMap()->GetFogOfWar() );
+		}
 
-	// UI Pass
-	screenport.SetUI( clip2D.IsValid() ? &clip2D : 0 ); 
-	if ( renderPass & Scene::RENDER_3D ) {
-		scene->RenderGamui3D();
-	}
-	if ( renderPass & Scene::RENDER_2D ) {
-		screenport.SetUI( clip2D.IsValid() ? &clip2D : 0 );
-		scene->DrawHUD();
-		scene->RenderGamui2D();
+		{
+			GRINLIZ_PERFTRACK_NAME( "Game::DoTick UI" );
+
+			// UI Pass
+			screenport.SetUI( clip2D.IsValid() ? &clip2D : 0 ); 
+			if ( renderPass & Scene::RENDER_3D ) {
+				scene->RenderGamui3D();
+			}
+			if ( renderPass & Scene::RENDER_2D ) {
+				screenport.SetUI( clip2D.IsValid() ? &clip2D : 0 );
+				scene->DrawHUD();
+				scene->RenderGamui2D();
+			}
+		}
+		SoundManager::Instance()->PlayQueuedSounds();
 	}
 
 	const int Y = 305;
@@ -538,18 +547,16 @@ void Game::DoTick( U32 _currentTime )
 #ifdef GRINLIZ_PROFILE
 	const int SAMPLE = 8;
 	if ( (currentFrame & (SAMPLE-1)) == 0 ) {
-		memcpy( &profile, &Performance::GetData( false ), sizeof( ProfileData ) );
-		Performance::Clear();
+		Performance::SampleData();
 	}
-	for( unsigned i=0; i<profile.count; ++i ) {
-		UFOText::Draw( 0, 20+i*12, "%20s %6.1f %4d", 
-					  profile.item[i].name, 
-					  100.0f*profile.NormalTime( profile.item[i].functionTime ),
-					  profile.item[i].functionCalls/SAMPLE );
+	for( int i=0; i<Performance::NumData(); ++i ) {
+		const PerformanceData& data = Performance::GetData( i );
+
+		UFOText::Draw( 60,  20+i*12, "%s", data.name );
+		UFOText::Draw( 300, 20+i*12, "%.3f", data.normalTime );
+		UFOText::Draw( 380, 20+i*12, "%d", data.functionCalls/SAMPLE );
 	}
 #endif
-
-	SoundManager::Instance()->PlayQueuedSounds();
 
 	previousTime = currentTime;
 	++currentFrame;

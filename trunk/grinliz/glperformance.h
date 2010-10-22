@@ -40,10 +40,10 @@ distribution.
 #include "gltypes.h"
 #include <stdio.h>
 
-namespace grinliz {
 
-#if defined(_MSC_VER)
-	typedef U64 timeUnit;
+#if defined(_MSC_VER) && defined(_M_IX86)
+namespace grinliz {
+	typedef U64 TimeUnit;
 
 	inline U64 FastTime()
 	{
@@ -68,10 +68,11 @@ namespace grinliz {
 		}				
 		return u.result;
 	}
-	#define LILITH_CONVERT_TO_MSEC (10000)
+}
 
-#elif defined(__GNUC__) && !defined(__APPLE__) 
-	typedef U64 timeUnit;
+#elif defined(__GNUC__) && defined(__i386__) 
+namespace grinliz {
+	typedef U64 TimeUnit;
 
 	inline U64 FastTime()
 	{
@@ -79,21 +80,23 @@ namespace grinliz {
 		 __asm__ __volatile__ ("rdtsc" : "=A" (val));
 		 return val;
 	}
-#elif defined (__APPLE__)
-	/*typedef double timeUnit;
-	
-	inline double FastTime() {
-		return CFAbsoluteTimeGetCurrent();
-	}
-	*/
-	typedef U64 timeUnit;
+}
+#elif defined (__APPLE__) && defined(__arm__)
+namespace grinliz {
+	typedef U64 TimeUnit;
 	inline U64 FastTime() {
 		return mach_absolute_time();
 	}
+}
 #else
-#	error Platform not supported for profiling.
+#include <time.h>
+namespace grinliz {
+	typedef clock_t TimeUnit;
+	inline TimeUnit FastTime() { return clock(); }
+}
 #endif
 
+namespace grinliz {
 class QuickProfile
 {
 public:
@@ -107,48 +110,26 @@ public:
 	}
 
 private:
-	U64 startTime;
+	TimeUnit startTime;
 	const char* name;
 };
 
-const int GL_MAX_PROFILE_ITEM = 32;	// Max functions that can be profiled.
+const int GL_MAX_PROFILE_ITEM = 60;	// Max functions that can be profiled.
 
 // Static - there is only one of these for a given function.
 struct PerformanceData
 {
-	PerformanceData( const char* name, const char* subName );
+	PerformanceData( const char* name );
+	PerformanceData() : name( 0 ), id( 0 ), functionCalls( 0 ), functionTime( 0 ), functionTopTime( 0 ), normalTime( 0 ) {}
 
 	const char* name;
-	const char* subName;
 	int id;
-	U32 functionCallsTop;
-	timeUnit functionTimeTop;
-	U32 functionCallsSub;
-	timeUnit functionTimeSub;
+	U32			functionCalls;
+	TimeUnit	functionTime;
+	TimeUnit	functionTopTime;
+	float normalTime;
 
 	void Clear();
-};
-
-
-struct ProfileItem
-{
-	const char* name;
-	U32 functionCalls;	// # of calls
-	timeUnit functionTime;	// total time - in no particular unit (multiple of clock cycle)
-};
-
-struct ProfileData
-{
-	timeUnit totalTime;		// total time of all items (in CPU clocks)
-	U32 count;			// number of items
-	grinliz::ProfileItem item[ GL_MAX_PROFILE_ITEM*2 ];
-
-	float NormalTime( timeUnit t ) const {
-		if ( totalTime == 0 )
-			return 0.0f;
-		else
-			return (float)( (double)t / (double)totalTime );
-	}
 };
 
 
@@ -171,48 +152,48 @@ class Performance
 	Performance( PerformanceData* _data )	{
 		this->data = _data;
 
-		if ( inUse )
-			++data->functionCallsSub;
-		else
-			++data->functionCallsTop;
-
+		++data->functionCalls;
 		start = FastTime();
-		++inUse;
+		++callDepth;
 	}
 
 	~Performance()
 	{
-		--inUse;
-		U64 end = FastTime();
+		TimeUnit end = FastTime();
 		GLASSERT( end >= start );
-		if ( inUse )
-			data->functionTimeSub += ( end - start );
-		else	
-			data->functionTimeTop += ( end - start );
+		data->functionTime += ( end - start );
+		--callDepth;
+		if ( callDepth == 0 ) {
+			data->functionTopTime += (end - start);
+		}
 	}
 
 	/// Write the results of performance testing to a file.
     static void Dump( FILE* fp, const char* desc );
-	/// Get the profiling data in a useable format, optionally sorted on total time.
-	static const grinliz::ProfileData& GetData( bool sortOnTime );
 	/// Reset the profiling data.
 	static void Clear();
 
-  protected:
+	static void SampleData();
+	static int NumData()								{ return numMap; }
+	static const PerformanceData& GetData( int i )		{ GLASSERT( i >= 0 && i < numMap ); return sample[i]; }
 
+  protected:
 	static PerformanceData* map[ GL_MAX_PROFILE_ITEM ];
-	static ProfileData	  profile;
+	static PerformanceData  sample[ GL_MAX_PROFILE_ITEM ];
 	static int numMap;
-	static int inUse;
+	static int callDepth;
+	static TimeUnit totalTime;
 
 	PerformanceData* data;
-	U64 start;
+	TimeUnit start;
 };
 
 #ifdef GRINLIZ_PROFILE
-	#define GRINLIZ_PERFTRACK static PerformanceData data( __FUNCTION__, __FUNCTION__ ); Performance perf( &data );
+	#define GRINLIZ_PERFTRACK static PerformanceData data( __FUNCTION__ ); Performance perf( &data );
+	#define GRINLIZ_PERFTRACK_NAME( x ) static PerformanceData data( x ); Performance perf( &data );
 #else
-	#define GRINLIZ_PERFTRACK {}
+	#define GRINLIZ_PERFTRACK			{}
+	#define GRINLIZ_PERFTRACK_NAME( x )	{}
 #endif
 
 

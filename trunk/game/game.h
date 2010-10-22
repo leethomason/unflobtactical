@@ -244,7 +244,6 @@ private:
 	
 	int		mapmaker_showPathing;	// 0 off, 1 path, 2 vis
 	grinliz::GLString		mapmaker_xmlFile;
-	grinliz::ProfileData	profile;
 
 	ItemDef*			itemDefArr[EL_MAX_ITEM_DEFS];
 };
