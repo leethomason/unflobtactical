@@ -15,6 +15,7 @@
 
 #include "particle.h"
 #include "../grinliz/glgeometry.h"
+#include "../grinliz/glperformance.h"
 #include "surface.h"
 #include "camera.h"
 #include "particleeffect.h"
@@ -106,6 +107,7 @@ ParticleEffect* ParticleSystem::EffectFactory( const char* name )
 
 void ParticleSystem::Update( U32 deltaTime, U32 currentTime )
 {
+	GRINLIZ_PERFTRACK
 	// Process the effects (may change number of particles, etc.
 	for( int i=0; i<effectArr.Size(); ++i ) {
 		if ( !effectArr[i]->Done() ) {
@@ -491,6 +493,7 @@ void ParticleSystem::EmitSmokeAndFlame( U32 delta, const Vector3F& _pos, bool fl
 
 void ParticleSystem::Draw( const Vector3F* eyeDir, const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fogOfWar )
 {
+	GRINLIZ_PERFTRACK
 	if ( fogOfWar ) {
 		fogOfWarFilter.ClearAll();
 		for( int j=0; j<Map::SIZE; ++j ){

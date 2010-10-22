@@ -583,6 +583,8 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 
 void BattleScene::SetFogOfWar()
 {
+	//GRINLIZ_PERFTRACK
+
 	if ( visibility.FogCheckAndClear() ) {
 		grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fow = engine->GetMap()->LockFogOfWar();
 		for( int j=0; j<MAP_SIZE; ++j ) {
@@ -834,6 +836,7 @@ void BattleScene::SetUnitOverlays()
 
 void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 {
+	GRINLIZ_PERFTRACK
 	TestHitTesting();
 	engine->GetMap()->EmitParticles( deltaTime );
 
@@ -2617,6 +2620,7 @@ void BattleScene::DumpTargetEvents()
 
 void BattleScene::CalcTeamTargets()
 {
+	GRINLIZ_PERFTRACK
 	// generate events.
 	// - if team gets/loses target
 	// - if unit gets/loses target
@@ -2734,6 +2738,7 @@ void BattleScene::Visibility::InvalidateAll()
 
 int BattleScene::Visibility::TeamCanSee( int team, int x, int y )
 {
+	//GRINLIZ_PERFTRACK
 	int r0, r1;
 	if ( team == TERRAN_TEAM ) {
 		r0 = TERRAN_UNITS_START;
