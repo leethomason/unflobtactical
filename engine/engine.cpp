@@ -33,6 +33,23 @@
 
 using namespace grinliz;
 
+#define ENGINE_RENDER_MODELS
+#define ENGINE_RENDER_SHADOWS
+#define ENGINE_RENDER_MAP
+
+/* Optmization #2: Android
+	Baseline: 27
+
+	No:
+		ENGINE_RENDER_MODELS	36
+		ENGINE_RENDER_SHADOWS	32
+		ENGINE_RENDER_MAP		32
+
+		Interesting. Why would models be more costly than shadows? State changes?
+		
+
+*/
+
 /*
 	Optimization notes:
 	This all starts with tri-counts way high and frame rates way low.
@@ -298,7 +315,9 @@ void Engine::Draw()
 		// Shaders make this much, much, much easier.
 
 		// -------- Ground plane lighted -------- //
+#ifdef ENGINE_RENDER_MAP
 		map->DrawSeen();
+#endif
 
 		// -------- Shadow casters/ground plane ---------- //
 		// Set up the planar projection matrix, with a little z offset
@@ -310,6 +329,7 @@ void Engine::Draw()
 			shadowAmount = 1.0f - ( camera.PosWC().y - SHADOW_START_HEIGHT ) / ( SHADOW_END_HEIGHT - SHADOW_START_HEIGHT );
 		}
 		if ( shadowAmount > 0.0f ) {
+#ifdef ENGINE_RENDER_SHADOWS
 			CompositingShader shadowShader;
 			shadowShader.SetTexture0( map->BackgroundTexture() );
 
@@ -329,21 +349,28 @@ void Engine::Draw()
 
 			shadowShader.PopMatrix( GPUShader::MODELVIEW_MATRIX );
 			shadowShader.PopMatrix( GPUShader::TEXTURE_MATRIX );
+#endif // ENGINE_DRAW_SHADOWS
 		}
 
 		{
 			LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, OPEN_LIGHT, 0, &color );
 			float ave = 0.7f*((color.x + color.y + color.z)*0.333f);
 			Color4F c = { ave, ave, ave, 1.0f };
+#ifdef ENGINE_RENDER_MAP
 			map->DrawPastSeen( c );
+#endif
 		}
 
+#ifdef ENGINE_RENDER_MAP
 		map->DrawOverlay( 0 );
 		map->DrawUnseen();
+#endif
 	}
 
 	// -------- Models ---------- //
+#ifdef ENGINE_RENDER_MODELS
 	renderQueue->Submit( 0, 0, 0, 0, bbRotation );
+#endif
 	map->DrawOverlay( 1 );
 	renderQueue->Clear();
 
