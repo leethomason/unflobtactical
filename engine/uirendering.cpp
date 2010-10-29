@@ -88,14 +88,14 @@ void UIRenderer::BeginTexture( const void* textureHandle )
 }
 
 
-void UIRenderer::Render( const void* renderState, const void* textureHandle, int nIndex, const int16_t* index, int nVertex, const Gamui::Vertex* vertex )
+void UIRenderer::Render( const void* renderState, const void* textureHandle, int nIndex, const uint16_t* index, int nVertex, const Gamui::Vertex* vertex )
 {
 //	shader.SetVertex( 2, sizeof(Gamui::Vertex), &vertex[0].x );
 //	shader.SetTexture0( 2, sizeof(Gamui::Vertex), &vertex[0].tx );
 	GPUShader::Stream stream( GPUShader::Stream::kGamuiType );
-	shader.SetStream( stream, vertex );
+	shader.SetStream( stream, vertex, nIndex, index );
 
-	shader.Draw( nIndex, (const uint16_t*) index );
+	shader.Draw();
 }
 
 

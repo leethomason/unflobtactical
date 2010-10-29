@@ -100,7 +100,7 @@ UIItem::~UIItem()
 }
 
 
-void UIItem::PushQuad( int *nIndex, int16_t* index, int base, int a, int b, int c, int d, int e, int f )
+void UIItem::PushQuad( int *nIndex, uint16_t* index, int base, int a, int b, int c, int d, int e, int f )
 {
 	index[(*nIndex)++] = base+a;
 	index[(*nIndex)++] = base+b;
@@ -239,7 +239,7 @@ void TextLabel::CalcSize( float* width, float* height ) const
 }
 
 
-void TextLabel::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex )
+void TextLabel::Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex )
 {
 	if ( !m_gamui )
 		return;
@@ -345,7 +345,7 @@ void TextBox::Requires( int* indexNeeded, int* vertexNeeded )
 }
 
 
-void TextBox::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex )
+void TextBox::Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex )
 {
 	// does nothing - children draw
 }
@@ -505,7 +505,7 @@ void TiledImageBase::Requires( int* indexNeeded, int* vertexNeeded )
 }
 
 
-void TiledImageBase::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex )
+void TiledImageBase::Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex )
 {
 	int startVertex = *nVertex;
 
@@ -551,7 +551,7 @@ const RenderAtom* Image::GetRenderAtom() const
 }
 
 
-void Image::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex )
+void Image::Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex )
 {
 	if ( m_atom.textureHandle == 0 ) {
 		return;
@@ -830,7 +830,7 @@ void Button::Requires( int* indexNeeded, int* vertexNeeded )
 }
 
 
-void Button::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex )
+void Button::Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex )
 {
 	// does nothing - children draw
 }
@@ -1072,7 +1072,7 @@ void DigitalBar::Requires( int* indexNeeded, int* vertexNeeded )
 }
 
 
-void DigitalBar::Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex )
+void DigitalBar::Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex )
 {
 	// does nothing - children draw
 }

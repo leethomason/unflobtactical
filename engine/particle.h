@@ -179,7 +179,8 @@ private:
 	Texture* pointTexture;
 
 	CDynArray<ParticleEffect*>		effectArr;
-	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWarFilter;
+	//grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWarFilter;
+	const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fogOfWar;;
 
 	Particle		pointBuffer[ MAX_POINT_PARTICLES ];
 	Particle		quadBuffer[ MAX_QUAD_PARTICLES ];

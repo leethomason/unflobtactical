@@ -494,6 +494,7 @@ void ParticleSystem::EmitSmokeAndFlame( U32 delta, const Vector3F& _pos, bool fl
 void ParticleSystem::Draw( const Vector3F* eyeDir, const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fogOfWar )
 {
 	GRINLIZ_PERFTRACK
+	/*
 	if ( fogOfWar ) {
 		fogOfWarFilter.ClearAll();
 		for( int j=0; j<Map::SIZE; ++j ){
@@ -516,6 +517,8 @@ void ParticleSystem::Draw( const Vector3F* eyeDir, const grinliz::BitArray<Map::
 	else {
 		fogOfWarFilter.SetAll();
 	}
+	*/
+	this->fogOfWar = fogOfWar;
 
 	if ( !pointTexture ) {
 		pointTexture = TextureManager::Instance()->GetTexture( "particleSparkle" );
@@ -540,14 +543,15 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 //		U8* cPtr = (U8*)pointBuffer + 12;
 //		shader.SetVertex( 3, sizeof(Particle), vPtr );
 //		shader.SetColorArray( 4, sizeof(Particle), cPtr );
+
 		GPUShader::Stream stream;
-		stream.stride = sizeof(Particle);
+		stream.stride = sizeof(pointBuffer[0]);
 		stream.nPos = 3;
 		stream.posOffset = 0;
-		stream.nColor = 0;
+		stream.nColor = 4;
 		stream.colorOffset = 12;
-		shader.SetStream( stream, pointBuffer );
 
+		shader.SetStream( stream, pointBuffer, 0, 0 );
 		shader.DrawPoints( pointTexture, 4.f, 0, nParticles[POINT] );
 	}
 	else {
@@ -572,9 +576,15 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 		for( int i=0; i<count; ++i ) 
 		{
 			const Vector3F& pos  = pointBuffer[i].pos;
-			Vector2I fowPos = { (int)pos.x, (int)pos.z };
-			if ( !fogOfWarFilter.IsSet( fowPos.x, fowPos.y ) )
-				continue;
+
+			if ( fogOfWar ) {
+				Vector2I fowPos = { (int)pos.x, (int)pos.z };
+				if ( !fogOfWar->IsSet( fowPos.x, fowPos.y ) )
+					 continue;
+			}
+
+			//if ( !fogOfWarFilter.IsSet( fowPos.x, fowPos.y ) )
+			//	continue;
 			const Color4F& color = pointBuffer[i].color;
 
 			// Set up the particle that everything else is derived from:
@@ -601,26 +611,26 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 		//U8* tPtr = (U8*)vertexBuffer + 12;
 		//U8* cPtr = (U8*)vertexBuffer + 20;
 
-		QuadParticleShader shader;
-		//shader.SetVertex( 3, sizeof(QuadVertex), vPtr );
-		//shader.SetTexture0( TextureManager::Instance()->GetTexture( "particleSparkle" ),
-		//					2, sizeof(QuadVertex), tPtr );
-		//shader.SetColorArray( 4, sizeof(QuadVertex), cPtr );
-		GPUShader::Stream stream;
-		stream.stride = sizeof( QuadVertex );
-		stream.nPos = 3;
-		stream.posOffset = 0;
-		stream.nTexture0 = 2;
-		stream.texture0Offset = 12;
-		stream.nColor = 4;
-		stream.colorOffset = 20;
-
-		shader.SetStream( stream, vertexBuffer );
-		shader.SetTexture0( TextureManager::Instance()->GetTexture( "particleSparkle" ) );
-
-		// because of the skip, the #elements can be less than nParticles*6
 		if ( index ) {
-			shader.Draw( index, quadIndexBuffer );
+			QuadParticleShader shader;
+			//shader.SetVertex( 3, sizeof(QuadVertex), vPtr );
+			//shader.SetTexture0( TextureManager::Instance()->GetTexture( "particleSparkle" ),
+			//					2, sizeof(QuadVertex), tPtr );
+			//shader.SetColorArray( 4, sizeof(QuadVertex), cPtr );
+			GPUShader::Stream stream;
+			stream.stride = sizeof( vertexBuffer[0] );
+			stream.nPos = 3;
+			stream.posOffset = 0;
+			stream.nTexture0 = 2;
+			stream.texture0Offset = 12;
+			stream.nColor = 4;
+			stream.colorOffset = 20;
+
+			shader.SetStream( stream, vertexBuffer, index, quadIndexBuffer );
+			shader.SetTexture0( TextureManager::Instance()->GetTexture( "particleSparkle" ) );
+
+			// because of the skip, the #elements can be less than nParticles*6
+			shader.Draw();
 		}
 	}
 }
@@ -656,9 +666,13 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 		const Vector3F& pos  = quadBuffer[i].pos;
 		const Color4F& color = quadBuffer[i].color;
 
-		Vector2I fowPos = { (int)pos.x, (int)pos.z };
-		if ( !fogOfWarFilter.IsSet( fowPos.x, fowPos.y ) )
-			continue;
+		if ( fogOfWar ) {
+			Vector2I fowPos = { (int)pos.x, (int)pos.z };
+			if ( !fogOfWar->IsSet( fowPos.x, fowPos.y ) )
+				continue;
+			//if ( !fogOfWarFilter.IsSet( fowPos.x, fowPos.y ) )
+			//	continue;
+		}
 
 		// Set up the particle that everything else is derived from:
 		quadIndexBuffer[index++] = vertex+0;
@@ -707,29 +721,28 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 		vertex += 4;
 	}
 
-	QuadParticleShader shader;
-	shader.SetTexture0( quadTexture );
-
-//	U8* vPtr = (U8*)vertexBuffer + 0;
-//	U8* tPtr = (U8*)vertexBuffer + 12;
-//	U8* cPtr = (U8*)vertexBuffer + 20;	
-//	shader.SetVertex( 3, sizeof(QuadVertex), vPtr );
-//	shader.SetTexture0( 2, sizeof(QuadVertex), tPtr );
-//	shader.SetColorArray( 4, sizeof(QuadVertex), cPtr );
-
-	GPUShader::Stream stream;
-	stream.stride = sizeof( QuadVertex );
-	stream.nPos = 3;
-	stream.posOffset = 0;
-	stream.nTexture0 = 2;
-	stream.texture0Offset = 12;
-	stream.nColor = 4;
-	stream.colorOffset = 20;
-
-	shader.SetStream( stream, vertexBuffer );
-
 	if ( index ) {
-		shader.Draw( index, quadIndexBuffer );
+		QuadParticleShader shader;
+		shader.SetTexture0( quadTexture );
+
+	//	U8* vPtr = (U8*)vertexBuffer + 0;
+	//	U8* tPtr = (U8*)vertexBuffer + 12;
+	//	U8* cPtr = (U8*)vertexBuffer + 20;	
+	//	shader.SetVertex( 3, sizeof(QuadVertex), vPtr );
+	//	shader.SetTexture0( 2, sizeof(QuadVertex), tPtr );
+	//	shader.SetColorArray( 4, sizeof(QuadVertex), cPtr );
+
+		GPUShader::Stream stream;
+		stream.stride = sizeof( vertexBuffer[0] );
+		stream.nPos = 3;
+		stream.posOffset = 0;
+		stream.nTexture0 = 2;
+		stream.texture0Offset = 12;
+		stream.nColor = 4;
+		stream.colorOffset = 20;
+
+		shader.SetStream( stream, vertexBuffer, index, quadIndexBuffer );
+		shader.Draw();
 	}
 }
 

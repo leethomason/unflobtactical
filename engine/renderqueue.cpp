@@ -156,7 +156,7 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 					shader->PushMatrix( GPUShader::MODELVIEW_MATRIX );
 					shader->MultMatrix( GPUShader::MODELVIEW_MATRIX, model->XForm() );
 
-					shader->Draw( item->atom->nIndex, item->atom->index );
+					shader->Draw();
 
 					// Unravel all that.
 					shader->PopMatrix( GPUShader::TEXTURE_MATRIX );
@@ -173,7 +173,7 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 						s->MultMatrix( GPUShader::TEXTURE_MATRIX, model->TextureXForm() );
 					}
 					
-					s->Draw( item->atom->nIndex, item->atom->index );
+					s->Draw();
 
 					s->PopMatrix( GPUShader::MODELVIEW_MATRIX );
 					if ( model->HasTextureXForm() ) {

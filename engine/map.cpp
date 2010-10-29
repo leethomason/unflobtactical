@@ -287,7 +287,7 @@ void Map::DrawSeen()
 	stream.nTexture1 = 2;
 	stream.texture1Offset = 0;
 
-	shader.SetStream( stream, mapVertex );
+	shader.SetStream( stream, mapVertex, nSeenIndex, seenIndex );
 	shader.SetTexture0( backgroundTexture );
 	shader.SetTexture1( lightMapTex );
 
@@ -300,7 +300,7 @@ void Map::DrawSeen()
 
 	shader.PushMatrix( GPUShader::MODELVIEW_MATRIX );
 	shader.MultMatrix( GPUShader::MODELVIEW_MATRIX, swizzle );
-	shader.Draw( nSeenIndex, seenIndex );
+	shader.Draw();
 	shader.PopMatrix( GPUShader::MODELVIEW_MATRIX );
 }
 
@@ -316,7 +316,7 @@ void Map::DrawUnseen()
 	stream.stride = sizeof(mapVertex[0]);
 	stream.nPos = 2;
 	stream.posOffset = 0;
-	shader.SetStream( stream, mapVertex );
+	shader.SetStream( stream, mapVertex, nUnseenIndex, unseenIndex );
 
 	shader.SetColor( 0, 0, 0 );
 //	shader.SetVertex( 2, sizeof(mapVertex[0]), mapVertex );
@@ -328,7 +328,7 @@ void Map::DrawUnseen()
 
 	shader.PushMatrix( GPUShader::MODELVIEW_MATRIX );
 	shader.MultMatrix( GPUShader::MODELVIEW_MATRIX, swizzle );
-	shader.Draw( nUnseenIndex, unseenIndex );
+	shader.Draw();
 	shader.PopMatrix( GPUShader::MODELVIEW_MATRIX );
 }
 
@@ -346,7 +346,7 @@ void Map::DrawPastSeen( const Color4F& color )
 	stream.posOffset = 0;
 	stream.nTexture0 = 2;
 	stream.texture0Offset = 0;
-	shader.SetStream( stream, mapVertex );
+	shader.SetStream( stream, mapVertex, nPastSeenIndex, pastSeenIndex );
 	shader.SetTexture0( greyTexture );
 
 //	shader.SetVertex( 2, sizeof(mapVertex[0]), mapVertex );
@@ -361,7 +361,7 @@ void Map::DrawPastSeen( const Color4F& color )
 
 	shader.PushMatrix( GPUShader::MODELVIEW_MATRIX );
 	shader.MultMatrix( GPUShader::MODELVIEW_MATRIX, swizzle );
-	shader.Draw( nPastSeenIndex, pastSeenIndex );
+	shader.Draw();
 	shader.PopMatrix( GPUShader::MODELVIEW_MATRIX );
 }
 
@@ -1770,13 +1770,13 @@ void Map::DrawPath( int mode )
 
 			shader.SetColor( 1, 0, 0, 0.5f );
 			//shader.SetVertex( 3, 0, red );
-			shader.SetStream( stream, red );
-			shader.Draw( nRed, index );
+			shader.SetStream( stream, red, nRed, index );
+			shader.Draw();
 
 			shader.SetColor( 0, 1, 0, 0.5f );
 			//shader.SetVertex( 3, 0, green );
-			shader.SetStream( stream, green );
-			shader.Draw( nGreen, index );
+			shader.SetStream( stream, green, nGreen, index );
+			shader.Draw();
 		}
 	}
 }
@@ -2427,18 +2427,18 @@ void Map::BeginTexture( const void* textureHandle )
 }
 
 
-void Map::Render( const void* renderState, const void* textureHandle, int nIndex, const int16_t* index, int nVertex, const gamui::Gamui::Vertex* vertex )
+void Map::Render( const void* renderState, const void* textureHandle, int nIndex, const uint16_t* index, int nVertex, const gamui::Gamui::Vertex* vertex )
 {
 	//glVertexPointer(   2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].x );
 	//glTexCoordPointer( 2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].tx ); 
 
 	GPUShader::Stream stream( GPUShader::Stream::kGamuiType );
-	gamuiShader.SetStream( stream, vertex );
+	gamuiShader.SetStream( stream, vertex, nIndex, index );
 
 	//gamuiShader.SetVertex( 2, sizeof(gamui::Gamui::Vertex), &vertex[0].x );
 	//gamuiShader.SetTexture0( 2, sizeof(gamui::Gamui::Vertex), &vertex[0].tx );
 
-	gamuiShader.Draw( nIndex, (const uint16_t*)index );
+	gamuiShader.Draw();
 }
 
 /*

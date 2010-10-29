@@ -534,6 +534,7 @@ Model* SpaceTree::QueryRay( const Vector3F& _origin,
 #ifdef DEBUG
 void SpaceTree::Draw()
 {
+	/*
 	CompositingShader shader( true );
 
 	for( int i=0; i<NUM_NODES; ++i ) {
@@ -562,5 +563,6 @@ void SpaceTree::Draw()
 			shader.Draw( 6, index );
 		}
 	}
+	*/
 }
 #endif

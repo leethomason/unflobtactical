@@ -111,7 +111,7 @@ public:
 	}
 
 
-	virtual void Render( const void* renderState, const void* textureHandle, int nIndex, const int16_t* index, int nVertex, const Gamui::Vertex* vertex )
+	virtual void Render( const void* renderState, const void* textureHandle, int nIndex, const uint16_t* index, int nVertex, const Gamui::Vertex* vertex )
 	{
 		TESTGLERR();
 		glVertexPointer( 2, GL_FLOAT, sizeof(Gamui::Vertex), &vertex->x );

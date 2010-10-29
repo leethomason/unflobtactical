@@ -353,7 +353,7 @@ public:
 	virtual void EndRender();
 	virtual void BeginRenderState( const void* renderState );
 	virtual void BeginTexture( const void* textureHandle );
-	virtual void Render( const void* renderState, const void* textureHandle, int nIndex, const int16_t* index, int nVertex, const gamui::Gamui::Vertex* vertex );
+	virtual void Render( const void* renderState, const void* textureHandle, int nIndex, const uint16_t* index, int nVertex, const gamui::Gamui::Vertex* vertex );
 
 	Texture* BackgroundTexture() { return backgroundTexture; }
 
