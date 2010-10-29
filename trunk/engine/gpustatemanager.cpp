@@ -416,15 +416,17 @@ GPUShader::~GPUShader()
 }
 
 
-void GPUShader::Draw( int index, const uint16_t* elements )
+void GPUShader::Draw()	// int index, const uint16_t* elements )
 {
 	SetState( *this );
 
-	GLASSERT( index % 3 == 0 );
-	trianglesDrawn += index / 3;
+	GLASSERT( nIndex % 3 == 0 );
+	GLASSERT( indexPtr );
+
+	trianglesDrawn += nIndex / 3;
 	++drawCalls;
 
-	glDrawElements( GL_TRIANGLES, index, GL_UNSIGNED_SHORT, elements );
+	glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, indexPtr );
 	CHECK_GL_ERROR;
 }
 
@@ -566,8 +568,9 @@ void GPUShader::Stream::Clear()
 GPUShader::Stream::Stream( const Vertex* vertex )
 {
 	Clear();
+
 	stride = sizeof( Vertex );
-	nPos = 0;
+	nPos = 3;
 	posOffset = Vertex::POS_OFFSET;
 	nNormal = 3;
 	normalOffset = Vertex::NORMAL_OFFSET;

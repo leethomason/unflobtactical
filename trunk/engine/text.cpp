@@ -96,10 +96,6 @@ void UFOText::TextOut( GPUShader* shader, const char* str, int x, int y, int* w,
 	GLASSERT( !rendering || shader );
 
 	if ( rendering ) {
-		GPUShader::Stream stream( vBuf );
-		shader->SetStream( stream, vBuf );
-		shader->SetTexture0( texture );
-
 		if ( iBuf[1] == 0 ) {
 			// not initialized
 			for( int pos=0; pos<BUF_SIZE; ++pos ) {
@@ -172,7 +168,11 @@ void UFOText::TextOut( GPUShader* shader, const char* str, int x, int y, int* w,
 		if ( rendering ) {
 			if ( pos == BUF_SIZE || *(str+1) == 0 ) {
 				if ( pos > 0 ) {
-					shader->Draw( pos*6, iBuf );
+					GPUShader::Stream stream( vBuf );
+					shader->SetStream( stream, vBuf, pos*6, iBuf );
+					shader->SetTexture0( texture );
+
+					shader->Draw();
 					pos = 0;
 				}
 			}

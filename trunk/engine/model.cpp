@@ -306,7 +306,7 @@ void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent
 void ModelAtom::Bind( GPUShader* shader ) const
 {
 	GPUShader::Stream stream( vertex );
-	shader->SetStream( stream, vertex );
+	shader->SetStream( stream, vertex, nIndex, index );
 
 //	shader->SetVertex( 3, sizeof(Vertex), (const U8*)vertex + Vertex::POS_OFFSET );
 //	shader->SetNormal( sizeof(Vertex), (const U8*)vertex + Vertex::NORMAL_OFFSET );
@@ -322,7 +322,7 @@ void ModelAtom::BindPlanarShadow( GPUShader* shader ) const
 	stream.posOffset = Vertex::POS_OFFSET;
 	stream.nTexture0 = 3;
 	stream.texture0Offset = Vertex::POS_OFFSET;
-	shader->SetStream( stream, vertex );
+	shader->SetStream( stream, vertex, nIndex, index );
 }
 
 

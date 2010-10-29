@@ -38,8 +38,10 @@ private:
 class GPUBuffer
 {
 public:
-	GPUBuffer() : id( 0 ) {}
-	bool IsValid() { return id != 0; }
+	GPUBuffer() : id( 0 )			{}
+	bool IsValid()					{ return id != 0; }
+	U32 ID() const					{ return id; }
+
 protected:	
 	U32 id;
 };
@@ -58,7 +60,7 @@ public:
 class GPUIndexBuffer : public GPUBuffer
 {
 public:
-	static GPUIndexBuffer Create( const U16* index, int nIndex );
+	static GPUIndexBuffer Create( const uint16_t* index, int nIndex );
 
 	GPUIndexBuffer() : GPUBuffer() {}
 	void Destroy();
@@ -116,11 +118,30 @@ public:
 		bool HasTexture1() const	{ return nTexture1 > 0; }
 	};
 
-	void SetStream( const Stream& stream, const void* ptr ) {
+	void SetStream( const Stream& stream, const void* ptr, int nIndex, const uint16_t* indices ) {
 		GLASSERT( stream.stride > 0 );
+		GLASSERT( nIndex % 3 == 0 );
+
 		this->stream = stream;
 		this->streamPtr = ptr;
+		this->indexPtr = indices;
+		this->nIndex = nIndex;
+		this->vertexBuffer = 0;
+		this->indexBuffer = 0;
 	}
+
+	/*
+	void SetStream( const Stream& stream, const GPUVertexBuffer& vertex, const GPUIndexBuffer& index ) {
+		GLASSERT( stream.stride > 0 );
+		this->stream = stream;
+		this->streamPtr = 0;
+		GLASSERT( vertex.IsValid() );
+		GLASSERT( index.IsValid() );
+		this->vertexBuffer = vertex.ID();
+		this->indexBuffer = index.ID();
+	}
+	*/
+
 
 	/*
 	void SetVertex( int components, int stride, const void* ptr ) {
@@ -186,7 +207,7 @@ public:
 	void MultMatrix( MatrixType type, const grinliz::Matrix4& m );
 	void PopMatrix( MatrixType type );
 
-	void Draw( int index, const uint16_t* elements );
+	void Draw();
 
 	int SortOrder()	const { 
 		if ( blend ) return 2;
@@ -208,6 +229,8 @@ protected:
 				 //colorPtr( 0 ), colorStride( 0 ), colorComponents( 3 ),
 				 //texture0Ptr( 0 ), texture0Stride( 0 ), texture0Components( 2 ),
 				 //texture1Ptr( 0 ), texture1Stride( 0 ), texture1Components( 2 ),
+				 streamPtr( 0 ), nIndex( 0 ), indexPtr( 0 ),
+				 vertexBuffer( 0 ), indexBuffer( 0 ),
 				 blend( false ), alphaTest( 0 ), lighting( false ),
 				 depthWrite( true ), depthTest( true )
 	{
@@ -239,6 +262,10 @@ protected:
 	Texture* texture1;
 	Stream stream;
 	const void* streamPtr;
+	int nIndex;
+	const uint16_t* indexPtr;
+	U32 vertexBuffer;
+	U32 indexBuffer;
 
 	/*
 	const void* vertexPtr;
@@ -318,6 +345,7 @@ public:
 	static bool IsSupported();
 
 	PointParticleShader();
+	// Does not support VBOs and ignores the index binding.
 	void DrawPoints( Texture* texture, float pointSize, int start, int count );
 };
 

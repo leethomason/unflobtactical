@@ -243,7 +243,7 @@ private:
 
 	enum { INDEX_SIZE = 6000,
 		   VERTEX_SIZE = 4000 };
-	int16_t							m_indexBuffer[INDEX_SIZE];
+	uint16_t							m_indexBuffer[INDEX_SIZE];
 	Vertex							m_vertexBuffer[VERTEX_SIZE];
 };
 
@@ -257,7 +257,7 @@ public:
 
 	virtual void BeginRenderState( const void* renderState ) = 0;
 	virtual void BeginTexture( const void* textureHandle ) = 0;
-	virtual void Render( const void* renderState, const void* textureHandle, int nIndex, const int16_t* index, int nVertex, const Gamui::Vertex* vertex ) = 0;
+	virtual void Render( const void* renderState, const void* textureHandle, int nIndex, const uint16_t* index, int nVertex, const Gamui::Vertex* vertex ) = 0;
 };
 
 
@@ -317,7 +317,7 @@ public:
 
 	virtual const RenderAtom* GetRenderAtom() const = 0;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded ) = 0;
-	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex ) = 0;
+	virtual void Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex ) = 0;
 
 	virtual void Clear()	{ m_gamui = 0; }
 
@@ -337,7 +337,7 @@ protected:
 	template <class T> T Min( T a, T b ) const		{ return a<b ? a : b; }
 	template <class T> T Max( T a, T b ) const		{ return a>b ? a : b; }
 	float Mean( float a, float b ) const			{ return (a+b)*0.5f; }
-	static void PushQuad( int *nIndex, int16_t* index, int base, int a, int b, int c, int d, int e, int f );
+	static void PushQuad( int *nIndex, uint16_t* index, int base, int a, int b, int c, int d, int e, int f );
 
 	void ApplyRotation( int nVertex, Gamui::Vertex* vertex );
 
@@ -370,7 +370,7 @@ public:
 
 	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
-	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
+	virtual void Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex );
 
 private:
 	void CalcSize( float* width, float* height ) const;
@@ -406,7 +406,7 @@ public:
 
 	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
-	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
+	virtual void Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex );
 
 private:
 	bool		m_needsLayout;
@@ -437,7 +437,7 @@ public:
 
 	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
-	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
+	virtual void Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex );
 
 private:
 	RenderAtom m_atom;
@@ -465,7 +465,7 @@ public:
 
 	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
-	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
+	virtual void Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex );
 
 	virtual int CX() const = 0;
 	virtual int CY() const = 0;
@@ -560,7 +560,7 @@ public:
 
 	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
-	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
+	virtual void Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex );
 
 
 protected:
@@ -760,7 +760,7 @@ public:
 
 	virtual const RenderAtom* GetRenderAtom() const;
 	virtual void Requires( int* indexNeeded, int* vertexNeeded );
-	virtual void Queue( int *nIndex, int16_t* index, int *nVertex, Gamui::Vertex* vertex );
+	virtual void Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex );
 
 private:
 	enum { MAX_TICKS = 10 };
