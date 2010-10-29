@@ -171,9 +171,9 @@ int main( int argc, char **argv )
 	const unsigned char* version  = glGetString( GL_VERSION );
 
 	GLOUTPUT(( "OpenGL vendor: '%s'  Renderer: '%s'  Version: '%s'\n", vendor, renderer, version ));
+
 	Audio_Init();
 
-	
 	bool done = false;
 	bool zooming = false;
     SDL_Event event;

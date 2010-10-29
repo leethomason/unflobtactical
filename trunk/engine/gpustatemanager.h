@@ -1,6 +1,9 @@
 #ifndef UFOATTACK_STATE_MANAGER_INCLUDED
 #define UFOATTACK_STATE_MANAGER_INCLUDED
 
+// Be sure to NOT include the gl platform header, so this can be 
+// used as a platform-independent header file, and still exclude
+// the gl headers.
 #include <stdint.h>
 #include "../grinliz/gldebug.h"
 #include "../grinliz/glmatrix.h"
@@ -11,7 +14,6 @@ class Texture;
 namespace grinliz {
 	class Matrix4;
 };
-
 
 class MatrixStack
 {
@@ -33,11 +35,40 @@ private:
 };
 
 
+class GPUBuffer
+{
+public:
+	GPUBuffer() : id( 0 ) {}
+	bool IsValid() { return id != 0; }
+protected:	
+	U32 id;
+};
+
+
+class GPUVertexBuffer : public GPUBuffer
+{
+public:
+	static GPUVertexBuffer Create( const Vertex* vertex, int nVertex );
+
+	GPUVertexBuffer() : GPUBuffer() {}
+	void Destroy();
+};
+
+
+class GPUIndexBuffer : public GPUBuffer
+{
+public:
+	static GPUIndexBuffer Create( const U16* index, int nIndex );
+
+	GPUIndexBuffer() : GPUBuffer() {}
+	void Destroy();
+};
+
+
 class GPUShader 
 {
 public:
 	virtual ~GPUShader();
-
 
 	enum MatrixType {
 		TEXTURE_MATRIX,
@@ -49,11 +80,60 @@ public:
 	static void Clear();
 	static void SetMatrixMode( MatrixType m );
 
+	struct Stream {
+		// Defines float sized components.
+		int stride;
+		int nPos;		
+		int posOffset;
+		int nTexture0;
+		int texture0Offset;
+		int nTexture1;
+		int texture1Offset;
+		int nNormal;
+		int normalOffset;
+		int nColor;
+		int colorOffset;
+
+		Stream() :  stride( 0 ),
+					nPos( 0 ), posOffset( 0 ), 
+					nTexture0( 0 ), texture0Offset( 0 ),
+					nTexture1( 0 ), texture1Offset( 0 ), 
+					nNormal( 0 ), normalOffset( 0 ),
+					nColor( 0 ), colorOffset( 0 ) {}
+
+		Stream( const Vertex* vertex );
+		enum GamuiType { kGamuiType };
+		Stream( GamuiType );
+		Stream( const PTVertex2* vertex );
+		void Clear();
+
+		bool HasPos() const			{ return nPos > 0; }
+		bool HasNormal() const		{ return nNormal > 0; }
+		bool HasColor() const		{ return nColor > 0; }
+		bool HasTexture0() const	{ return nTexture0 > 0; }
+		bool HasTexture1() const	{ return nTexture1 > 0; }
+	};
+
+	void SetStream( const Stream& stream, const void* ptr ) {
+		GLASSERT( stream.stride > 0 );
+		this->stream = stream;
+		this->streamPtr = ptr;
+	}
+
+	/*
 	void SetVertex( int components, int stride, const void* ptr ) {
+//		vertexBuffer = 0;
 		vertexComponents = components;
 		vertexStride = stride;
 		vertexPtr = ptr;
 	}
+
+//	void SetVertex( int components, int stride, const GPUVertexBuffer& buffer, int offset ) {
+//		vertexBuffer = &buffer;
+//		vertexComponents = components;
+//		vertexStride = stride;
+//		vertexPtr = (const void*) offset;
+//	}
 
 	void SetNormal( int stride, const void* ptr ) {
 		normalStride = stride;
@@ -65,31 +145,36 @@ public:
 		colorStride = stride;
 		colorPtr = ptr;
 	}
+	*/
 
 	void SetTexture0( Texture* tex ) {
 		texture0 = tex;
 	}
 
-	void SetTexture0( Texture* tex, int components, int stride, const void* ptr ) {
-		texture0 = tex;
-		texture0Components = components;
-		texture0Stride = stride;
-		texture0Ptr = ptr;
-	}
-
-	void SetTexture0( int components, int stride, const void* ptr ) {
-		GLASSERT( texture0 );
-		texture0Components = components;
-		texture0Stride = stride;
-		texture0Ptr = ptr;
-	}
-
-	void SetTexture1( Texture* tex, int components, int stride, const void* ptr ) {
+	void SetTexture1( Texture* tex ) {
 		texture1 = tex;
-		texture1Components = components;
-		texture1Stride = stride;
-		texture1Ptr = ptr;
 	}
+
+//	void SetTexture0( Texture* tex, int components, int stride, const void* ptr ) {
+//		texture0 = tex;
+//		texture0Components = components;
+//		texture0Stride = stride;
+//		texture0Ptr = ptr;
+//	}
+
+//	void SetTexture0( int components, int stride, const void* ptr ) {
+//		GLASSERT( texture0 );
+//		texture0Components = components;
+//		texture0Stride = stride;
+//		texture0Ptr = ptr;
+//	}
+
+//	void SetTexture1( Texture* tex, int components, int stride, const void* ptr ) {
+//		texture1 = tex;
+//		texture1Components = components;
+//		texture1Stride = stride;
+//		texture1Ptr = ptr;
+//	}
 
 	void SetColor( float r, float g, float b )				{ color.x = r; color.y = g; color.z = b; color.w = 1; }
 	void SetColor( float r, float g, float b, float a )		{ color.x = r; color.y = g; color.z = b; color.w = a; }
@@ -111,14 +196,16 @@ public:
 	static int TrianglesDrawn() { return trianglesDrawn; }
 	static int DrawCalls()		{ return drawCalls; }
 
+	static bool SupportsVBOs();
+
 protected:
 
 	GPUShader() : texture0( 0 ), texture1( 0 ), 
-				 vertexPtr( 0 ), vertexStride( 0 ), vertexComponents( 3 ),
-				 normalPtr( 0 ), normalStride( 0 ),
-				 colorPtr( 0 ), colorStride( 0 ), colorComponents( 3 ),
-				 texture0Ptr( 0 ), texture0Stride( 0 ), texture0Components( 2 ),
-				 texture1Ptr( 0 ), texture1Stride( 0 ), texture1Components( 2 ),
+				 //vertexPtr( 0 ), vertexStride( 0 ), vertexComponents( 3 ),
+				 //normalPtr( 0 ), normalStride( 0 ),
+				 //colorPtr( 0 ), colorStride( 0 ), colorComponents( 3 ),
+				 //texture0Ptr( 0 ), texture0Stride( 0 ), texture0Components( 2 ),
+				 //texture1Ptr( 0 ), texture1Stride( 0 ), texture1Components( 2 ),
 				 blend( false ), alphaTest( 0 ), lighting( false ),
 				 depthWrite( true ), depthTest( true )
 	{
@@ -135,15 +222,23 @@ private:
 	// Seem to do okay on MODELVIEW and PERSPECTIVE stacks, but
 	// not so much on TEXTURE. Use our own texture stack.
 	static MatrixStack textureStack;
+	static int vboSupport;
 
 protected:
 	static int trianglesDrawn;
 	static int drawCalls;
 	static uint32_t uid;
 
+	static const void* PTR( const void* base, int offset ) {
+		return (const void*)((const U8*)base + offset);
+	}
+
 	Texture* texture0;
 	Texture* texture1;
+	Stream stream;
+	const void* streamPtr;
 
+	/*
 	const void* vertexPtr;
 	int			vertexStride;
 	int			vertexComponents;
@@ -162,7 +257,7 @@ protected:
 	const void* texture1Ptr;
 	int			texture1Stride;
 	int			texture1Components;
-
+	*/
 	bool		blend;
 	bool		alphaTest;
 	bool		lighting;

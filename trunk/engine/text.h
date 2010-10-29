@@ -21,6 +21,7 @@
 #include "../grinliz/glvector.h"
 #include "screenport.h"
 #include "texture.h"
+#include "vertex.h"
 
 class GPUShader;
 
@@ -59,8 +60,9 @@ private:
 	enum {
 		BUF_SIZE = 30
 	};
-	static grinliz::Vector2F	vBuf[BUF_SIZE*4];
-	static grinliz::Vector2F	tBuf[BUF_SIZE*4];
+	//static grinliz::Vector2F	vBuf[BUF_SIZE*4];
+	//static grinliz::Vector2F	tBuf[BUF_SIZE*4];
+	static PTVertex2			vBuf[BUF_SIZE*4];
 	static U16					iBuf[BUF_SIZE*6];
 	static GlyphMetric			glyphMetric[GLYPH_CX*GLYPH_CY];
 };

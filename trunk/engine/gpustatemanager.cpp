@@ -1,6 +1,54 @@
 #include "gpustatemanager.h"
 #include "platformgl.h"
 #include "texture.h"
+#include "../gamui/gamui.h"	// for auto setting up gamui stream
+
+/*static*/ GPUVertexBuffer GPUVertexBuffer::Create( const Vertex* vertex, int nVertex )
+{
+	GPUVertexBuffer buffer;
+	if ( GPUShader::SupportsVBOs() ) {
+		U32 dataSize  = sizeof(Vertex)*nVertex;
+		glGenBuffersX( 1, (GLuint*) &buffer.id );
+		glBindBufferX( GL_ARRAY_BUFFER, buffer.id );
+		glBufferDataX( GL_ARRAY_BUFFER, dataSize, vertex, GL_STATIC_DRAW );
+		glBindBufferX( GL_ARRAY_BUFFER, 0 );
+		CHECK_GL_ERROR;
+	}
+	return buffer;
+}
+
+
+void GPUVertexBuffer::Destroy() 
+{
+	if ( id ) {
+		glDeleteBuffersX( 1, (GLuint*) &id );
+		id = 0;
+	}
+}
+
+
+/*static*/ GPUIndexBuffer GPUIndexBuffer::Create( const U16* index, int nIndex )
+{
+	GPUIndexBuffer buffer;
+
+	U32 dataSize  = sizeof(U16)*nIndex;
+	glGenBuffersX( 1, (GLuint*) &buffer.id );
+	glBindBufferX( GL_ELEMENT_ARRAY_BUFFER, buffer.id );
+	glBufferDataX( GL_ELEMENT_ARRAY_BUFFER, dataSize, index, GL_STATIC_DRAW );
+	glBindBufferX( GL_ELEMENT_ARRAY_BUFFER, 0 );
+	CHECK_GL_ERROR;
+
+	return buffer;
+}
+
+
+void GPUIndexBuffer::Destroy() 
+{
+	if ( id ) {
+		glDeleteBuffersX( 1, (GLuint*) &id );
+		id = 0;
+	}
+}
 
 
 MatrixStack::MatrixStack() : index( 0 )
@@ -46,6 +94,20 @@ void MatrixStack::Multiply( const grinliz::Matrix4& m )
 /*static*/ uint32_t GPUShader::uid = 0;
 /*static*/ GPUShader::MatrixType GPUShader::matrixMode = MODELVIEW_MATRIX;
 /*static*/ MatrixStack GPUShader::textureStack;
+
+/*static*/ int GPUShader::vboSupport = 0;
+
+
+//static 
+bool GPUShader::SupportsVBOs()
+{
+	if ( vboSupport == 0 ) {
+		const char* extensions = (const char*)glGetString( GL_EXTENSIONS );
+		const char* vbo = strstr( extensions, "vertex_buffer_object" );
+		vboSupport = (vbo) ? 1 : -1;
+	}
+	return (vboSupport > 0);
+}
 
 
 //static 
@@ -101,16 +163,17 @@ void GPUShader::ResetState()
 void GPUShader::SetState( const GPUShader& ns )
 {
 	CHECK_GL_ERROR;
+	GLASSERT( ns.stream.stride > 0 );
 
 	// Texture1
-	if ( ns.texture1 || current.texture1 ) {
+	if ( ns.stream.HasTexture1() || current.stream.HasTexture1() ) {
 
 		glActiveTexture( GL_TEXTURE1 );
 		glClientActiveTexture( GL_TEXTURE1 );
 
 		if ( ns.texture1 && !current.texture1 ) {
 			GLASSERT( ns.texture0 );
-			GLASSERT( ns.texture1Ptr );
+			GLASSERT( ns.stream.nTexture1 );
 
 			glEnable( GL_TEXTURE_2D );
 			glEnableClientState( GL_TEXTURE_COORD_ARRAY );
@@ -121,19 +184,21 @@ void GPUShader::SetState( const GPUShader& ns )
 			//glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 			glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 		}
-		else if ( !ns.texture1 && current.texture1 ) {
+		else if ( !ns.stream.HasTexture1() && current.stream.HasTexture1() ) {
 			glDisable( GL_TEXTURE_2D );
 			glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 		}
 		
-		if (  ns.texture1 ) {
-			glTexCoordPointer( ns.texture1Components, GL_FLOAT, ns.texture1Stride, ns.texture1Ptr );	
-			if ( ns.texture1 != current.texture1 )
-			{
+		if (  ns.stream.HasTexture1() ) {
+			GLASSERT( ns.texture1 );
+			glTexCoordPointer(	ns.stream.nTexture1, 
+								GL_FLOAT, 
+								ns.stream.stride, 
+								PTR( ns.streamPtr, ns.stream.texture1Offset ) );
+			if ( ns.texture1 != current.texture1 ) {
 				glBindTexture( GL_TEXTURE_2D, ns.texture1->GLID() );
 			}
 		}
-
 		glActiveTexture( GL_TEXTURE0 );
 		glClientActiveTexture( GL_TEXTURE0 );
 	}
@@ -141,60 +206,78 @@ void GPUShader::SetState( const GPUShader& ns )
 	CHECK_GL_ERROR;
 
 	// Texture0
-	if ( ns.texture0 && !current.texture0 ) {
+	if ( ns.stream.HasTexture0() && !current.stream.HasTexture0() ) {
 		GLASSERT( ns.texture0 );
-		GLASSERT( ns.texture0Ptr );
+		GLASSERT( ns.stream.nTexture0 );
 
 		glEnable( GL_TEXTURE_2D );
 		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
-		glTexCoordPointer( ns.texture0Components, GL_FLOAT, ns.texture0Stride, ns.texture0Ptr );	
+		glTexCoordPointer(	ns.stream.nTexture0, 
+							GL_FLOAT, 
+							ns.stream.stride, 
+							PTR( ns.streamPtr, ns.stream.texture0Offset ) );	
 	}
-	else if ( !ns.texture0 && current.texture0 ) {
+	else if ( !ns.stream.HasTexture0() && current.stream.HasTexture0() ) {
 		glDisable( GL_TEXTURE_2D );
 		glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 	}
 	
-	if (  ns.texture0 ) {
-		glTexCoordPointer( ns.texture0Components, GL_FLOAT, ns.texture0Stride, ns.texture0Ptr );	
+	if (  ns.stream.HasTexture0() ) {
+		GLASSERT( ns.texture0 );
+		glTexCoordPointer(	ns.stream.nTexture0, 
+							GL_FLOAT, 
+							ns.stream.stride, 
+							PTR( ns.streamPtr, ns.stream.texture0Offset ) );	
 		if ( ns.texture0 != current.texture0 )
 		{
 			glBindTexture( GL_TEXTURE_2D, ns.texture0->GLID() );
 		}
 	}
+	CHECK_GL_ERROR;
 
 	// Vertex
-	if ( ns.vertexPtr && !current.vertexPtr ) {
+	if ( ns.stream.HasPos() && !current.stream.HasPos() ) {
 		glEnableClientState( GL_VERTEX_ARRAY );
 	}
-	else if ( !ns.vertexPtr && current.vertexPtr ) {
+	else if ( !ns.stream.HasPos() && current.stream.HasPos() ) {
 		glDisableClientState( GL_VERTEX_ARRAY );
 	}
-	if ( ns.vertexPtr ) {
-		glVertexPointer( ns.vertexComponents, GL_FLOAT, ns.vertexStride, ns.vertexPtr );
+	if ( ns.stream.HasPos() ) {
+		glVertexPointer(	ns.stream.nPos, 
+							GL_FLOAT, 
+							ns.stream.stride, 
+							PTR( ns.streamPtr, ns.stream.posOffset ) );
 	}
 
 	// Normal
-	if ( ns.normalPtr && !current.normalPtr ) {
+	if ( ns.stream.HasNormal() && !current.stream.HasNormal() ) {
 		glEnableClientState( GL_NORMAL_ARRAY );
 	}
-	else if ( !ns.normalPtr && current.normalPtr ) {
+	else if ( !ns.stream.HasNormal() && current.stream.HasNormal() ) {
 		glDisableClientState( GL_NORMAL_ARRAY );
 	}
-	if ( ns.normalPtr ) {
-		glNormalPointer( GL_FLOAT, ns.normalStride, ns.normalPtr );
+	if ( ns.stream.HasNormal() ) {
+		GLASSERT( ns.stream.nNormal == 3 );
+		glNormalPointer(	GL_FLOAT, 
+							ns.stream.stride, 
+							PTR( ns.streamPtr, ns.stream.normalOffset ) );
 	}
 
 	// Color
-	if ( ns.colorPtr && !current.colorPtr ) {
+	if ( ns.stream.HasColor() && !current.stream.HasColor() ) {
 		glEnableClientState( GL_COLOR_ARRAY );
 	}
-	else if ( !ns.colorPtr && current.colorPtr ) {
+	else if ( !ns.stream.HasColor() && current.stream.HasColor() ) {
 		glDisableClientState( GL_COLOR_ARRAY );
 	}
-	if ( ns.colorPtr ) {
-		glColorPointer( ns.colorComponents, GL_FLOAT, ns.colorStride, ns.colorPtr );
+	if ( ns.stream.HasColor() ) {
+		glColorPointer(	ns.stream.nColor, 
+						GL_FLOAT, 
+						ns.stream.stride,
+						PTR( ns.streamPtr, ns.stream.colorOffset ) );
 	}
+	CHECK_GL_ERROR;
 
 	// Blend
 	if ( ns.blend && !current.blend ) {
@@ -252,37 +335,37 @@ void GPUShader::SetState( const GPUShader& ns )
 	glActiveTexture( GL_TEXTURE1 );
 	glClientActiveTexture( GL_TEXTURE1 );
 	ASSERT_SAME( current.texture1, glIsEnabled( GL_TEXTURE_2D ) );
-	ASSERT_SAME( current.texture1, current.texture1Ptr );
+	ASSERT_SAME( current.texture1, current.stream.HasTexture1() );
 	ASSERT_SAME( current.texture1, glIsEnabled( GL_TEXTURE_COORD_ARRAY ) );
 	if ( current.texture1 ) {
 		glGetPointerv( GL_TEXTURE_COORD_ARRAY_POINTER, &ptr );
-		GLASSERT( ptr == current.texture1Ptr );
+		GLASSERT( ptr == PTR( current.streamPtr, current.stream.texture1Offset ) );
 	}
 
 	glActiveTexture( GL_TEXTURE0 );
 	glClientActiveTexture( GL_TEXTURE0 );
 	ASSERT_SAME( current.texture0, glIsEnabled( GL_TEXTURE_2D ) );
-	ASSERT_SAME( current.texture0, current.texture0Ptr );
+	ASSERT_SAME( current.texture0, current.stream.HasTexture0() );
 	ASSERT_SAME( current.texture0, glIsEnabled( GL_TEXTURE_COORD_ARRAY ) );
 	if ( current.texture0 ) {
 		glGetPointerv( GL_TEXTURE_COORD_ARRAY_POINTER, &ptr );
-		GLASSERT( ptr == current.texture0Ptr );
+		GLASSERT( ptr == PTR( current.streamPtr, current.stream.texture0Offset) );
 	}
 
-	ASSERT_SAME( current.vertexPtr, glIsEnabled( GL_VERTEX_ARRAY ) );
-	if ( current.vertexPtr ) {
+	ASSERT_SAME( current.stream.HasPos(), glIsEnabled( GL_VERTEX_ARRAY ) );
+	if ( current.stream.HasPos() ) {
 		glGetPointerv( GL_VERTEX_ARRAY_POINTER, &ptr );
-		GLASSERT( ptr == current.vertexPtr );
+		GLASSERT( ptr == PTR( current.streamPtr, current.stream.posOffset) );
 	}
-	ASSERT_SAME( current.normalPtr, glIsEnabled( GL_NORMAL_ARRAY ) );
-	if ( current.normalPtr ) {
+	ASSERT_SAME( current.stream.HasNormal(), glIsEnabled( GL_NORMAL_ARRAY ) );
+	if ( current.stream.HasNormal() ) {
 		glGetPointerv( GL_NORMAL_ARRAY_POINTER, &ptr );
-		GLASSERT( ptr == current.normalPtr );
+		GLASSERT( ptr == PTR( current.streamPtr, current.stream.normalOffset) );
 	}
-	ASSERT_SAME( current.colorPtr, glIsEnabled( GL_COLOR_ARRAY ) );
-	if ( current.colorPtr ) {
+	ASSERT_SAME( current.stream.HasColor(), glIsEnabled( GL_COLOR_ARRAY ) );
+	if ( current.stream.HasColor() ) {
 		glGetPointerv( GL_COLOR_ARRAY_POINTER, &ptr );
-		GLASSERT( ptr == current.colorPtr );
+		GLASSERT( ptr == PTR( current.streamPtr, current.stream.colorOffset) );
 	}
 
 	ASSERT_SAME( current.blend, glIsEnabled( GL_BLEND ) );
@@ -471,6 +554,42 @@ void GPUShader::PopMatrix( MatrixType type )
 	matrixDepth[(int)type] -= 1;
 
 	CHECK_GL_ERROR;
+}
+
+
+GPUShader::Stream::Stream( const Vertex* vertex )
+{
+	Clear();
+	stride = sizeof( Vertex );
+	nPos = 0;
+	posOffset = Vertex::POS_OFFSET;
+	nNormal = 3;
+	normalOffset = Vertex::NORMAL_OFFSET;
+	nTexture0 = 2;
+	texture0Offset = Vertex::TEXTURE_OFFSET;
+}
+
+
+GPUShader::Stream::Stream( GamuiType )
+{
+	Clear();
+	stride = sizeof( gamui::Gamui::Vertex );
+	nPos = 2;
+	posOffset = gamui::Gamui::Vertex::POS_OFFSET;
+	nTexture0 = 2;
+	texture0Offset = gamui::Gamui::Vertex::TEX_OFFSET;
+}
+
+
+GPUShader::Stream::Stream( const PTVertex2* vertex )
+{
+	Clear();
+	stride = sizeof( PTVertex2 );
+	nPos = 2;
+	posOffset = PTVertex2::POS_OFFSET;
+	nTexture0 = 2;
+	texture0Offset = PTVertex2::TEXTURE_OFFSET;
+
 }
 
 
