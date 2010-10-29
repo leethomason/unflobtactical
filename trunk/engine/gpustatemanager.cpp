@@ -557,6 +557,12 @@ void GPUShader::PopMatrix( MatrixType type )
 }
 
 
+void GPUShader::Stream::Clear()
+{
+	memset( this, 0, sizeof(*this) );
+}
+
+
 GPUShader::Stream::Stream( const Vertex* vertex )
 {
 	Clear();

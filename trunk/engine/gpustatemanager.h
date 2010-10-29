@@ -81,6 +81,8 @@ public:
 	static void SetMatrixMode( MatrixType m );
 
 	struct Stream {
+		// WARNING: Clear/init calls memset(0) on structure. Need to change
+		// if this gets a vtable
 		// Defines float sized components.
 		int stride;
 		int nPos;		
