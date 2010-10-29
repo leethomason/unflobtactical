@@ -120,18 +120,6 @@ void RenderQueue::Add( Model* model, const ModelAtom* atom, GPUShader* shader )
 	state->root = item;
 }
 
-/*
-void RenderQueue::Prepare()
-{
-	int count = 0;
-	for( int i=0; i<nState; ++i ) {
-		for( Item* item = statePool[i].root; item; item=item->next ) {
-
-		}
-	}
-}
-*/
-
 
 void RenderQueue::Submit( GPUShader* shader, int mode, int required, int excluded, float bbRotation )
 {
@@ -153,15 +141,13 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 					GLASSERT( statePool[i].texture == item->atom->texture );
 					statePool[i].shader->SetTexture0( statePool[i].texture );
 				}
-				item->atom->Bind( shader ? shader : statePool[i].shader );
 
 				const Model* model = item->model;
 				GLASSERT( model );
 
 				if ( mode & MODE_PLANAR_SHADOW ) {
 					GLASSERT( shader );
-					// Override the texture part of the Bind(), above.
-					shader->SetTexture0( 3, sizeof(Vertex), item->atom->vertex + Vertex::POS_OFFSET); 
+					item->atom->BindPlanarShadow( shader );
 
 					// Push the xform matrix to the texture and the model view.
 					shader->PushMatrix( GPUShader::TEXTURE_MATRIX );
@@ -172,11 +158,13 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 
 					shader->Draw( item->atom->nIndex, item->atom->index );
 
-					// Unravel all that. Not general purpose code. Call OpenGL directly.
+					// Unravel all that.
 					shader->PopMatrix( GPUShader::TEXTURE_MATRIX );
 					shader->PopMatrix( GPUShader::MODELVIEW_MATRIX );
 				}
 				else {
+					item->atom->Bind( shader ? shader : statePool[i].shader );
+
 					GPUShader* s = statePool[i].shader;
 					s->PushMatrix( GPUShader::MODELVIEW_MATRIX );
 					s->MultMatrix( GPUShader::MODELVIEW_MATRIX, model->XForm() );
@@ -195,8 +183,4 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 			}
 		}
 	}
-#ifdef EL_USE_VBO
-	glBindBuffer( GL_ARRAY_BUFFER, 0 );
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-#endif
 }

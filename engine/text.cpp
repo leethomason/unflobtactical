@@ -31,8 +31,8 @@ const int GLYPH_WIDTH = TEXTURE_WIDTH / UFOText::GLYPH_CX;
 const int GLYPH_HEIGHT = TEXTURE_HEIGHT / UFOText::GLYPH_CY;
 
 
-Vector2F UFOText::vBuf[BUF_SIZE*4];
-Vector2F UFOText::tBuf[BUF_SIZE*4];
+PTVertex2 UFOText::vBuf[BUF_SIZE*4];
+//Vector2F UFOText::tBuf[BUF_SIZE*4];
 U16 UFOText::iBuf[BUF_SIZE*6] = { 0, 0 };
 
 Screenport* UFOText::screenport = 0;
@@ -96,8 +96,9 @@ void UFOText::TextOut( GPUShader* shader, const char* str, int x, int y, int* w,
 	GLASSERT( !rendering || shader );
 
 	if ( rendering ) {
-		shader->SetVertex( 2, 0, vBuf );
-		shader->SetTexture0( texture, 2, 0, tBuf );
+		GPUShader::Stream stream( vBuf );
+		shader->SetStream( stream, vBuf );
+		shader->SetTexture0( texture );
 
 		if ( iBuf[1] == 0 ) {
 			// not initialized
@@ -149,10 +150,10 @@ void UFOText::TextOut( GPUShader* shader, const char* str, int x, int y, int* w,
 				float ty0 = (float)src.min.y / (float)TEXTURE_HEIGHT;
 				float ty1 = (float)src.max.y / (float)TEXTURE_HEIGHT;
 
-				tBuf[pos*4+0].Set( tx0, ty0 );
-				tBuf[pos*4+1].Set( tx1, ty0 );
-				tBuf[pos*4+2].Set( tx1, ty1 );
-				tBuf[pos*4+3].Set( tx0, ty1 );
+				vBuf[pos*4+0].tex.Set( tx0, ty0 );
+				vBuf[pos*4+1].tex.Set( tx1, ty0 );
+				vBuf[pos*4+2].tex.Set( tx1, ty1 );
+				vBuf[pos*4+3].tex.Set( tx0, ty1 );
 			}
 #ifdef USE_SMALLTEXT
 			float scale = smallText ? SMALL_SCALE : 1.0f;
@@ -160,10 +161,10 @@ void UFOText::TextOut( GPUShader* shader, const char* str, int x, int y, int* w,
 			float scale = 1.0f;
 #endif
 			if ( rendering ) {
-				vBuf[pos*4+0].Set( (float)x,					(float)(y+GLYPH_HEIGHT) );	
-				vBuf[pos*4+1].Set( (float)x+(float)width*scale,	(float)(y+GLYPH_HEIGHT) );	
-				vBuf[pos*4+2].Set( (float)x+(float)width*scale,	(float)(y+GLYPH_HEIGHT) - (float)GLYPH_HEIGHT*scale );	
-				vBuf[pos*4+3].Set( (float)x,					(float)(y+GLYPH_HEIGHT) - (float)GLYPH_HEIGHT*scale );	
+				vBuf[pos*4+0].pos.Set( (float)x,					(float)(y+GLYPH_HEIGHT) );	
+				vBuf[pos*4+1].pos.Set( (float)x+(float)width*scale,	(float)(y+GLYPH_HEIGHT) );	
+				vBuf[pos*4+2].pos.Set( (float)x+(float)width*scale,	(float)(y+GLYPH_HEIGHT) - (float)GLYPH_HEIGHT*scale );	
+				vBuf[pos*4+3].pos.Set( (float)x,					(float)(y+GLYPH_HEIGHT) - (float)GLYPH_HEIGHT*scale );	
 			}
 			x += LRintf((float)advance*scale);
 			++pos;

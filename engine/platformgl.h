@@ -38,12 +38,24 @@
 	#define glFrustumfX		glFrustumf
 	#define glOrthofX		glOrthof
 	#define USING_ES
+	// Of all the stupid, stupid driver bugs. (This one on my netbook, again.
+	// The ARB form resolves but not the normal form.)
+	#define glGenBuffersX	glGenBuffers
+	#define glBindBufferX	glBindBuffer
+	#define glBufferDataX	glBufferData
+	#define glBindBufferX	glBindBuffer
+	#define glDeleteBuffersX	glDeleteBuffers
 #elif defined( UFO_WIN32_SDL )
 	#include "../win32/glew.h"
 
 	#define glFrustumfX		glFrustum
 	#define glOrthofX		glOrtho
 	#define USING_GL
+	#define glGenBuffersX	glGenBuffersARB
+	#define glBindBufferX	glBindBufferARB
+	#define glBufferDataX	glBufferDataARB
+	#define glBindBufferX	glBindBufferARB
+	#define glDeleteBuffersX	glDeleteBuffersARB
 #else
 	#error Undefined platform
 #endif

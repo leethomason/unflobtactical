@@ -31,8 +31,8 @@ void ModelResource::Free()
 {
 	for( unsigned i=0; i<header.nGroups; ++i ) {
 #ifdef EL_USE_VBO
-		glDeleteBuffers( 1, (const GLuint*) &atom[i].indexID );		
-		glDeleteBuffers( 1, (const GLuint*) &atom[i].vertexID );
+		atom[i].vertexBuffer.Destroy();
+		atom[i].indexBuffer.Destroy();
 #endif
 		memset( &atom[i], 0, sizeof( ModelAtom ) );
 	}
@@ -127,36 +127,18 @@ void ModelLoader::Load( const gamedb::Item* item, ModelResource* res )
 	int iOffset = 0;
 	for( U32 i=0; i<res->header.nGroups; ++i )
 	{
-#ifdef EL_USE_VBO
-		// Index buffer
-		glGenBuffers( 1, (GLuint*) &res->atom[i].indexID );
-		glGenBuffers( 1, (GLuint*) &res->atom[i].vertexID );
-		CHECK_GL_ERROR
-		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, res->atom[i].indexID );
-		glBindBuffer( GL_ARRAY_BUFFER, res->atom[i].vertexID );
-		CHECK_GL_ERROR
-#endif
-		U32 indexSize = sizeof(U16)*res->atom[i].nIndex;
-		U32 dataSize  = sizeof(Vertex)*res->atom[i].nVertex;
-		(void) indexSize;
-		(void) dataSize;
-		
 		res->atom[i].index  = res->allIndex+iOffset;
 		res->atom[i].vertex = res->allVertex+vOffset;
 
 #ifdef EL_USE_VBO
-		glBufferData( GL_ELEMENT_ARRAY_BUFFER, indexSize, res->atom[i].index, GL_STATIC_DRAW );
-		glBufferData( GL_ARRAY_BUFFER, dataSize, res->atom[i].vertex, GL_STATIC_DRAW );
-		CHECK_GL_ERROR
+		if ( GPUShader::SupportsVBOs() ) {
+			res->atom[i].vertexBuffer = GPUVertexBuffer::Create( res->atom[i].vertex, res->atom[i].nVertex );
+			res->atom[i].indexBuffer = GPUIndexBuffer::Create( res->atom[i].index, res->atom[i].nIndex );
+		}
 #endif
 		iOffset += res->atom[i].nIndex;
 		vOffset += res->atom[i].nVertex;
 	}
-#ifdef EL_USE_VBO
-	// unbind
-	glBindBuffer( GL_ARRAY_BUFFER, 0 );
-	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-#endif
 }
 
 
@@ -323,9 +305,24 @@ void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent
 
 void ModelAtom::Bind( GPUShader* shader ) const
 {
-	shader->SetVertex( 3, sizeof(Vertex), (const U8*)vertex + Vertex::POS_OFFSET );
-	shader->SetNormal( sizeof(Vertex), (const U8*)vertex + Vertex::NORMAL_OFFSET );
-	shader->SetTexture0( 2, sizeof(Vertex), (const U8*)vertex + Vertex::TEXTURE_OFFSET );
+	GPUShader::Stream stream( vertex );
+	shader->SetStream( stream, vertex );
+
+//	shader->SetVertex( 3, sizeof(Vertex), (const U8*)vertex + Vertex::POS_OFFSET );
+//	shader->SetNormal( sizeof(Vertex), (const U8*)vertex + Vertex::NORMAL_OFFSET );
+//	shader->SetTexture0( 2, sizeof(Vertex), (const U8*)vertex + Vertex::TEXTURE_OFFSET );
+}
+
+
+void ModelAtom::BindPlanarShadow( GPUShader* shader ) const
+{
+	GPUShader::Stream stream;
+	stream.stride = sizeof( Vertex );
+	stream.nPos = 3;
+	stream.posOffset = Vertex::POS_OFFSET;
+	stream.nTexture0 = 3;
+	stream.texture0Offset = Vertex::POS_OFFSET;
+	shader->SetStream( stream, vertex );
 }
 
 

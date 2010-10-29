@@ -47,7 +47,6 @@ using namespace grinliz;
 
 		Interesting. Why would models be more costly than shadows? State changes?
 		
-
 */
 
 /*

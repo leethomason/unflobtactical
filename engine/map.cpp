@@ -273,9 +273,23 @@ void Map::DrawSeen()
 		return;
 
 	CompositingShader shader;
-	shader.SetVertex( 2, sizeof(mapVertex[0]), mapVertex );
-	shader.SetTexture0( backgroundTexture, 2, sizeof(mapVertex[0]), mapVertex );	
-	shader.SetTexture1( lightMapTex, 2, sizeof(mapVertex[0]), mapVertex );
+
+//	shader.SetVertex( 2, sizeof(mapVertex[0]), mapVertex );
+//	shader.SetTexture0( backgroundTexture, 2, sizeof(mapVertex[0]), mapVertex );	
+//	shader.SetTexture1( lightMapTex, 2, sizeof(mapVertex[0]), mapVertex );
+
+	GPUShader::Stream stream;
+	stream.stride = sizeof( mapVertex[0] );
+	stream.nPos = 2;
+	stream.posOffset = 0;
+	stream.nTexture0 = 2;
+	stream.texture0Offset = 0;
+	stream.nTexture1 = 2;
+	stream.texture1Offset = 0;
+
+	shader.SetStream( stream, mapVertex );
+	shader.SetTexture0( backgroundTexture );
+	shader.SetTexture1( lightMapTex );
 
 	// the vertices are storred in texture coordinates, to use less space.
 
@@ -298,8 +312,14 @@ void Map::DrawUnseen()
 		return;
 
 	CompositingShader shader;
+	GPUShader::Stream stream;
+	stream.stride = sizeof(mapVertex[0]);
+	stream.nPos = 2;
+	stream.posOffset = 0;
+	shader.SetStream( stream, mapVertex );
+
 	shader.SetColor( 0, 0, 0 );
-	shader.SetVertex( 2, sizeof(mapVertex[0]), mapVertex );
+//	shader.SetVertex( 2, sizeof(mapVertex[0]), mapVertex );
 
 	Matrix4 swizzle;
 	swizzle.m11 = 64.0f;
@@ -320,8 +340,17 @@ void Map::DrawPastSeen( const Color4F& color )
 		return;
 
 	CompositingShader shader;
-	shader.SetVertex( 2, sizeof(mapVertex[0]), mapVertex );
-	shader.SetTexture0( greyTexture, 2, sizeof(mapVertex[0]), mapVertex );	
+	GPUShader::Stream stream;
+	stream.stride = sizeof(mapVertex[0]);
+	stream.nPos = 2;
+	stream.posOffset = 0;
+	stream.nTexture0 = 2;
+	stream.texture0Offset = 0;
+	shader.SetStream( stream, mapVertex );
+	shader.SetTexture0( greyTexture );
+
+//	shader.SetVertex( 2, sizeof(mapVertex[0]), mapVertex );
+//	shader.SetTexture0( greyTexture, 2, sizeof(mapVertex[0]), mapVertex );	
 	shader.SetColor( color.x, color.y, color.z );
 
 	// the vertices are stored in texture coordinates, to use less space.
@@ -1733,13 +1762,20 @@ void Map::DrawPath( int mode )
 			}
 			GLRELASSERT( nRed <= 12 );
 			GLRELASSERT( nGreen <= 12 );
+			
+			GPUShader::Stream stream;
+			stream.stride = sizeof(Vector3F);
+			stream.nPos = 3;
+			stream.posOffset = 0;
 
 			shader.SetColor( 1, 0, 0, 0.5f );
-			shader.SetVertex( 3, 0, red );
+			//shader.SetVertex( 3, 0, red );
+			shader.SetStream( stream, red );
 			shader.Draw( nRed, index );
 
 			shader.SetColor( 0, 1, 0, 0.5f );
-			shader.SetVertex( 3, 0, green );
+			//shader.SetVertex( 3, 0, green );
+			shader.SetStream( stream, green );
 			shader.Draw( nGreen, index );
 		}
 	}
@@ -2395,8 +2431,12 @@ void Map::Render( const void* renderState, const void* textureHandle, int nIndex
 {
 	//glVertexPointer(   2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].x );
 	//glTexCoordPointer( 2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].tx ); 
-	gamuiShader.SetVertex( 2, sizeof(gamui::Gamui::Vertex), &vertex[0].x );
-	gamuiShader.SetTexture0( 2, sizeof(gamui::Gamui::Vertex), &vertex[0].tx );
+
+	GPUShader::Stream stream( GPUShader::Stream::kGamuiType );
+	gamuiShader.SetStream( stream, vertex );
+
+	//gamuiShader.SetVertex( 2, sizeof(gamui::Gamui::Vertex), &vertex[0].x );
+	//gamuiShader.SetTexture0( 2, sizeof(gamui::Gamui::Vertex), &vertex[0].tx );
 
 	gamuiShader.Draw( nIndex, (const uint16_t*)index );
 }

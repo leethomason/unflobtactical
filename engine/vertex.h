@@ -68,6 +68,16 @@ struct PTVertex
 	grinliz::Vector2F	tex;
 };
 
+struct PTVertex2
+{
+	enum {
+		POS_OFFSET		= 0,
+		TEXTURE_OFFSET	= 8
+	};
+
+	grinliz::Vector2F	pos;
+	grinliz::Vector2F	tex;
+};
 
 typedef grinliz::Vector3< U8 > Color3U;
 typedef grinliz::Vector4< U8 > Color4U;

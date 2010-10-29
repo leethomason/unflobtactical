@@ -25,6 +25,7 @@
 #include "enginelimits.h"
 #include "serialize.h"
 #include "ufoutil.h"
+#include "gpustatemanager.h"
 
 class Texture;
 class SpaceTree;
@@ -36,14 +37,25 @@ struct ModelAtom
 {
 	Texture* texture;
 #ifdef EL_USE_VBO
-	U32 vertexID;
-	U32 indexID;
+	GPUVertexBuffer vertexBuffer;
+	GPUIndexBuffer  indexBuffer;
 #endif
 	U32 nVertex;
 	U32 nIndex;
 
+	//enum {
+	//	BIND_VERTEX		= 0x01,
+	//	BIND_NORMAL		= 0x02,
+	//	BIND_TEXTURE_0	= 0x04
+	//};
 	void Bind( GPUShader* shader ) const;
+	void BindPlanarShadow( GPUShader* shader ) const;	// I gave up trying to make this general.
 
+	// A note on the memory model: the index and vertices are stored
+	// in continuous memory to cut down on allocation overhead. But
+	// that is an allocation trick. The 'index' and 'vertex' pointers
+	// work as if the buffers we allocated normally.
+	//
 	const U16* index;		// points back to ModelResource memory.
 	const Vertex* vertex;	// points back to ModelResource memory.
 };

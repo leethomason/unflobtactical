@@ -143,6 +143,10 @@ public:
 
 	/// Description of a vertex used by Gamui.
 	struct Vertex {
+		enum {
+			POS_OFFSET = 0,
+			TEX_OFFSET = 8
+		};
 		float x;
 		float y;
 		float tx;
