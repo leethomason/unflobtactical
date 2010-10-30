@@ -39,7 +39,7 @@ class GPUBuffer
 {
 public:
 	GPUBuffer() : id( 0 )			{}
-	bool IsValid()					{ return id != 0; }
+	bool IsValid() const			{ return id != 0; }
 	U32 ID() const					{ return id; }
 
 protected:	
@@ -118,7 +118,8 @@ public:
 		bool HasTexture1() const	{ return nTexture1 > 0; }
 	};
 
-	void SetStream( const Stream& stream, const void* ptr, int nIndex, const uint16_t* indices ) {
+	void SetStream( const Stream& stream, const void* ptr, int nIndex, const uint16_t* indices ) 
+	{
 		GLASSERT( stream.stride > 0 );
 		GLASSERT( nIndex % 3 == 0 );
 
@@ -130,17 +131,22 @@ public:
 		this->indexBuffer = 0;
 	}
 
-	/*
-	void SetStream( const Stream& stream, const GPUVertexBuffer& vertex, const GPUIndexBuffer& index ) {
+
+	void SetStream( const Stream& stream, const GPUVertexBuffer& vertex, int nIndex, const GPUIndexBuffer& index ) 
+	{
 		GLASSERT( stream.stride > 0 );
-		this->stream = stream;
-		this->streamPtr = 0;
+		GLASSERT( nIndex % 3 == 0 );
 		GLASSERT( vertex.IsValid() );
 		GLASSERT( index.IsValid() );
+
+		this->stream = stream;
+		this->streamPtr = 0;
+		this->indexPtr = 0;
+		this->nIndex = nIndex;
 		this->vertexBuffer = vertex.ID();
 		this->indexBuffer = index.ID();
 	}
-	*/
+
 
 
 	/*

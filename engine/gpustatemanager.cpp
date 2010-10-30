@@ -1,6 +1,7 @@
 #include "gpustatemanager.h"
 #include "platformgl.h"
 #include "texture.h"
+#include "enginelimits.h"
 #include "../gamui/gamui.h"	// for auto setting up gamui stream
 
 /*static*/ GPUVertexBuffer GPUVertexBuffer::Create( const Vertex* vertex, int nVertex )
@@ -31,13 +32,14 @@ void GPUVertexBuffer::Destroy()
 {
 	GPUIndexBuffer buffer;
 
-	U32 dataSize  = sizeof(U16)*nIndex;
-	glGenBuffersX( 1, (GLuint*) &buffer.id );
-	glBindBufferX( GL_ELEMENT_ARRAY_BUFFER, buffer.id );
-	glBufferDataX( GL_ELEMENT_ARRAY_BUFFER, dataSize, index, GL_STATIC_DRAW );
-	glBindBufferX( GL_ELEMENT_ARRAY_BUFFER, 0 );
-	CHECK_GL_ERROR;
-
+	if ( GPUShader::SupportsVBOs() ) {
+		U32 dataSize  = sizeof(U16)*nIndex;
+		glGenBuffersX( 1, (GLuint*) &buffer.id );
+		glBindBufferX( GL_ELEMENT_ARRAY_BUFFER, buffer.id );
+		glBufferDataX( GL_ELEMENT_ARRAY_BUFFER, dataSize, index, GL_STATIC_DRAW );
+		glBindBufferX( GL_ELEMENT_ARRAY_BUFFER, 0 );
+		CHECK_GL_ERROR;
+	}
 	return buffer;
 }
 
@@ -418,15 +420,45 @@ GPUShader::~GPUShader()
 
 void GPUShader::Draw()	// int index, const uint16_t* elements )
 {
+	if ( !indexPtr )
+		int debug=1;
+
 	SetState( *this );
 
 	GLASSERT( nIndex % 3 == 0 );
-	GLASSERT( indexPtr );
 
 	trianglesDrawn += nIndex / 3;
 	++drawCalls;
 
-	glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, indexPtr );
+	if ( indexPtr ) {
+		GLRELASSERT( !vertexBuffer );
+		GLRELASSERT( !indexBuffer );
+		glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, indexPtr );
+	}
+	else {
+#ifdef EL_USE_VBO
+		GLRELASSERT( vertexBuffer );
+		GLRELASSERT( indexBuffer );
+		GLRELASSERT( stream.stride == sizeof(Vertex) );	// Just a current limitation that only Vertex structs go in a VBO. Could be fixed.
+
+		GLASSERT( glIsBuffer( vertexBuffer ) );
+		GLASSERT( glIsBuffer( indexBuffer ) );
+		GLASSERT( glIsEnabled( GL_VERTEX_ARRAY ) );
+		GLASSERT( glIsEnabled( GL_TEXTURE_COORD_ARRAY ) );
+		//GLASSERT( glIsEnabled( GL_NORMAL_ARRAY ) );			// Both values are correct. Shadows: no normals, model: normals
+		GLASSERT( !glIsEnabled( GL_COLOR_ARRAY ) );
+
+		glBindBufferX( GL_ARRAY_BUFFER, vertexBuffer );
+		glBindBufferX( GL_ELEMENT_ARRAY_BUFFER, indexBuffer );
+
+		glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, 0 );
+
+		glBindBufferX( GL_ARRAY_BUFFER, 0 );
+		glBindBufferX( GL_ELEMENT_ARRAY_BUFFER, 0 );
+#else	
+		GLASSERT( 0 );
+#endif
+	}
 	CHECK_GL_ERROR;
 }
 

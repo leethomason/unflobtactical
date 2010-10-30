@@ -12,6 +12,7 @@ Bugs:
 - Android: UFOActivity rename
 - Initial lander activity
 - Android: icon
+- add "see into" haypiles. And possibly lander...
 
 Architecture
 - Map as interface
