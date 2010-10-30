@@ -133,7 +133,7 @@ void ModelLoader::Load( const gamedb::Item* item, ModelResource* res )
 #ifdef EL_USE_VBO
 		if ( GPUShader::SupportsVBOs() ) {
 			res->atom[i].vertexBuffer = GPUVertexBuffer::Create( res->atom[i].vertex, res->atom[i].nVertex );
-			res->atom[i].indexBuffer = GPUIndexBuffer::Create( res->atom[i].index, res->atom[i].nIndex );
+			res->atom[i].indexBuffer  = GPUIndexBuffer::Create( res->atom[i].index, res->atom[i].nIndex );
 		}
 #endif
 		iOffset += res->atom[i].nIndex;
@@ -306,11 +306,11 @@ void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent
 void ModelAtom::Bind( GPUShader* shader ) const
 {
 	GPUShader::Stream stream( vertex );
-	shader->SetStream( stream, vertex, nIndex, index );
 
-//	shader->SetVertex( 3, sizeof(Vertex), (const U8*)vertex + Vertex::POS_OFFSET );
-//	shader->SetNormal( sizeof(Vertex), (const U8*)vertex + Vertex::NORMAL_OFFSET );
-//	shader->SetTexture0( 2, sizeof(Vertex), (const U8*)vertex + Vertex::TEXTURE_OFFSET );
+	if ( vertexBuffer.IsValid() && indexBuffer.IsValid() ) 
+		shader->SetStream( stream, vertexBuffer, nIndex, indexBuffer );
+	else
+		shader->SetStream( stream, vertex, nIndex, index );
 }
 
 
@@ -322,7 +322,11 @@ void ModelAtom::BindPlanarShadow( GPUShader* shader ) const
 	stream.posOffset = Vertex::POS_OFFSET;
 	stream.nTexture0 = 3;
 	stream.texture0Offset = Vertex::POS_OFFSET;
-	shader->SetStream( stream, vertex, nIndex, index );
+
+	if ( vertexBuffer.IsValid() && indexBuffer.IsValid() ) 
+		shader->SetStream( stream, vertexBuffer, nIndex, indexBuffer );
+	else
+		shader->SetStream( stream, vertex, nIndex, index );
 }
 
 

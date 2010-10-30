@@ -461,7 +461,7 @@ void ParticleSystem::EmitSmokeAndFlame( U32 delta, const Vector3F& _pos, bool fl
 					1,
 					ParticleSystem::PARTICLE_RAY,
 					color,		colorVec,
-					pos, 0,		0.6f,	
+					pos, 0,		0.4f,	
 					velocity,	0.2f,
 					0.5f,		0.0f,
 					7000 );		
@@ -652,8 +652,8 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 		{ 0.0f, 0.25f }
 	};
 
-	int index = 0;
-	int vertex = 0;
+	int nIndex = 0;
+	int nVertex = 0;
 	GLASSERT( nParticles[QUAD] <= MAX_QUAD_PARTICLES );
 
 	for( int i=0; i<nParticles[QUAD]; ++i ) 
@@ -670,20 +670,18 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 			Vector2I fowPos = { (int)pos.x, (int)pos.z };
 			if ( !fogOfWar->IsSet( fowPos.x, fowPos.y ) )
 				continue;
-			//if ( !fogOfWarFilter.IsSet( fowPos.x, fowPos.y ) )
-			//	continue;
 		}
 
 		// Set up the particle that everything else is derived from:
-		quadIndexBuffer[index++] = vertex+0;
-		quadIndexBuffer[index++] = vertex+1;
-		quadIndexBuffer[index++] = vertex+2;
+		quadIndexBuffer[nIndex++] = nVertex+0;
+		quadIndexBuffer[nIndex++] = nVertex+1;
+		quadIndexBuffer[nIndex++] = nVertex+2;
 
-		quadIndexBuffer[index++] = vertex+0;
-		quadIndexBuffer[index++] = vertex+2;
-		quadIndexBuffer[index++] = vertex+3;
+		quadIndexBuffer[nIndex++] = nVertex+0;
+		quadIndexBuffer[nIndex++] = nVertex+2;
+		quadIndexBuffer[nIndex++] = nVertex+3;
 
-		QuadVertex* pV = &vertexBuffer[vertex];
+		QuadVertex* pV = &vertexBuffer[nVertex];
 
 		if ( type == BEAM ) {
 			const Vector3F pos1 = quadBuffer[i].pos1;
@@ -718,10 +716,10 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 				++pV;
 			}
 		}
-		vertex += 4;
+		nVertex += 4;
 	}
 
-	if ( index ) {
+	if ( nIndex ) {
 		QuadParticleShader shader;
 		shader.SetTexture0( quadTexture );
 
@@ -741,7 +739,7 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 		stream.nColor = 4;
 		stream.colorOffset = 20;
 
-		shader.SetStream( stream, vertexBuffer, index, quadIndexBuffer );
+		shader.SetStream( stream, vertexBuffer, nIndex, quadIndexBuffer );
 		shader.Draw();
 	}
 }
