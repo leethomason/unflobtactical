@@ -187,7 +187,7 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 	GLASSERT( count < MAX_PARTICLES[primitive] );
 	
 	if ( nParticles[primitive] + count > MAX_PARTICLES[primitive] ) {
-		GLOUTPUT(( "Remove old particles\n." ));
+		//GLOUTPUT(( "Remove old particles\n" ));
 		RemoveOldParticles( primitive );
 	}
 

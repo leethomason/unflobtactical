@@ -9,10 +9,18 @@
 
 int   gAppAlive   = 1;
 
-static int  sDemoStopped  = 0;
-static long sTimeOffset   = 0;
-static int  sTimeOffsetInit = 0;
-static long sTimeStopped  = 0;
+// This all seems like a good idea, but the state changes for the android
+// app are complex. I'm very concerned about one little bug holding up the
+// entire system.
+//static int  sDemoStopped  = 0;
+//static long sTimeOffset   = 0;
+//static int  sTimeOffsetInit = 0;
+//static long sTimeStopped  = 0;
+
+static long lastClockTime = 0;
+static long gameTime = 0;
+#define MAX_TIME_DELTA 100
+
 static void* game = 0;
 
 enum { UFO_MAX_PATH = 200 };
@@ -24,8 +32,7 @@ char androidSavePath[UFO_MAX_PATH];
 
 extern void GrinlizSetReleaseAssertPath( const char* path );
 
-static long
-_getTime(void)
+static long _getTime(void)
 {
     struct timeval  now;
 
@@ -76,11 +83,14 @@ Java_com_grinninglizard_UFOAttack_UFORenderer_nativeInit( JNIEnv*  env )
 
 	// UFO attack doesn't handle resize after init well, so 
 	// defer the resize until later.
-	//game = NewGame( 320, 480, 1, ".\\" );
+	// However, if the game has been created, this is context loss.
+	if ( game ) {
+		GameDeviceLoss( game );
+	}
 
     gAppAlive    = 1;
-    sDemoStopped = 0;
-    sTimeOffsetInit = 0;
+    //sDemoStopped = 0;
+    //sTimeOffsetInit = 0;
 #if defined(DEBUG) || defined(_DEBUG)
     __android_log_print(ANDROID_LOG_INFO, "UFOAttack", "NewGame DEBUG.");
 #else
@@ -91,10 +101,14 @@ Java_com_grinninglizard_UFOAttack_UFORenderer_nativeInit( JNIEnv*  env )
 void
 Java_com_grinninglizard_UFOAttack_UFORenderer_nativeResize( JNIEnv*  env, jobject  thiz, jint w, jint h )
 {
-	if ( game == 0 )
+	if ( game == 0 ) {
 		game = NewGame( w, h, 1, androidSavePath );
-	else
+	}
+	else {
+		//GameDeviceLoss( game );
 		GameResize( game, w, h, 1 );
+	}
+	
     __android_log_print(ANDROID_LOG_INFO, "UFOAttack", "resize w=%d h=%d", w, h);
 }
 
@@ -112,44 +126,54 @@ Java_com_grinninglizard_UFOAttack_UFORenderer_nativeDone( JNIEnv*  env )
  * stop as soon as possible.
  */
 void
-Java_com_grinninglizard_UFOAttack_UFORenderer_nativePause( JNIEnv*  env, jint paused )
+Java_com_grinninglizard_UFOAttack_UFORenderer_nativePause( JNIEnv* env, jobject thiz, jint paused )
 {
-    sDemoStopped = paused;
-    if (sDemoStopped) {
-        /* we paused the animation, so store the current
-         * time in sTimeStopped for future nativeRender calls */
-        sTimeStopped = _getTime();
+    __android_log_print(ANDROID_LOG_INFO, "UFOAttack", "nativePause=%s", paused ? "paused" : "resume" );
+
+    if ( paused ) {
+        // Pause
+        //sTimeStopped = _getTime();
 		if ( game )
 			GameSave( game );
     } else {
-        /* we resumed the animation, so adjust the time offset
-         * to take care of the pause interval. */
-        sTimeOffset -= _getTime() - sTimeStopped;
+        // Wake up
+        //sTimeOffset -= _getTime() - sTimeStopped;
+		if ( game )
+			GameDeviceLoss( game );
     }
-	if ( game )
-		GameDeviceLoss( game );
 }
 
 /* Call to render the next GL frame */
 void
 Java_com_grinninglizard_UFOAttack_UFORenderer_nativeRender( JNIEnv*  env )
 {
-    long   curTime;
+    long currentClockTime;
+	long delta;
 
     /* NOTE: if sDemoStopped is TRUE, then we re-render the same frame
      *       on each iteration.
      */
-    if (sDemoStopped) {
-        curTime = sTimeStopped + sTimeOffset;
-    } else {
-        curTime = _getTime() + sTimeOffset;
-        if (sTimeOffsetInit == 0) {
-            sTimeOffsetInit = 1;
-            sTimeOffset     = -curTime;
-            curTime         = 0;
-        }
-		GameDoTick( game, curTime );
-    }
+    //if (sDemoStopped) {
+    //    curTime = sTimeStopped + sTimeOffset;
+    //} else {
+    //   curTime = _getTime() + sTimeOffset;
+    //    if (sTimeOffsetInit == 0) {
+    //       sTimeOffsetInit = 1;
+    //        sTimeOffset     = -curTime;
+    //        curTime         = 0;
+    //    }
+		
+	currentClockTime = _getTime();
+	
+	delta = currentClockTime - lastClockTime;
+	if ( delta > MAX_TIME_DELTA ) {
+		delta = MAX_TIME_DELTA;
+	}
+	
+	gameTime += delta;
+	lastClockTime = currentClockTime;
+
+	GameDoTick( game, gameTime );
 }
 
 
@@ -176,7 +200,7 @@ Java_com_grinninglizard_UFOAttack_UFORenderer_nativeZoom( JNIEnv* env, jobject t
 void
 Java_com_grinninglizard_UFOAttack_UFORenderer_nativeRotate( JNIEnv* env, jobject thiz, jfloat delta )
 {
-    //__android_log_print(ANDROID_LOG_INFO, "UFOAttack", "nativeTap action=%d %d,%d", (int)action, (int)x, (int)y );
+    __android_log_print(ANDROID_LOG_INFO, "UFOAttack", "nativeRotate delta=%f", delta );
 	if ( game ) {
 		GameCameraRotate( game, delta );
 	}

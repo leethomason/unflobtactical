@@ -37,7 +37,7 @@ using namespace grinliz;
 #define ENGINE_RENDER_SHADOWS
 #define ENGINE_RENDER_MAP
 
-/* Optmization #2: Android
+/* Optmization #2: Android Nexus One
 	Baseline: 27
 
 	No:
@@ -46,6 +46,9 @@ using namespace grinliz;
 		ENGINE_RENDER_MAP		32
 
 		Interesting. Why would models be more costly than shadows? State changes?
+
+	Turning on VBOs
+	FPS: 31				Not a bad jump.
 		
 */
 

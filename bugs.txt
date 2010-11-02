@@ -3,11 +3,6 @@ Issues:
 Bugs:
 - Android: starting paused incorrect. General way to detect device loss?
 - Android: sound
-- Android: optimize performance
-	- subsystem analysis
-	- opaque buttons
-	- VBOs
-	- cap framerate
 - help text
 - Android: UFOActivity rename
 - Initial lander activity
@@ -22,7 +17,8 @@ Features:
 - More items: optical computer for units to enhance vision
 
 TBD:
-- Android: DPAD/Trackball
+- Android: cap framerate. Don't really need >30
+- Gamui: better cache. Don't regen / layout if nothing changed.
 - check math (again yet again) in PushShootAction()
 - trees show up in the wrong place
 - add morale
@@ -47,6 +43,8 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- VBO support
+- Android: DPAD/Trackball
 - Android: zoom / rotate
 - Rotated coordinates: alien arrows in wrong place
 - description of current weapon

@@ -109,6 +109,7 @@ bool GPUShader::SupportsVBOs()
 		vboSupport = (vbo) ? 1 : -1;
 	}
 	return (vboSupport > 0);
+	//return false;
 }
 
 
@@ -358,16 +359,19 @@ void GPUShader::SetState( const GPUShader& ns )
 	if ( current.stream.HasPos() ) {
 		glGetPointerv( GL_VERTEX_ARRAY_POINTER, &ptr );
 		GLASSERT( ptr == PTR( current.streamPtr, current.stream.posOffset) );
+		GLASSERT( current.stream.posOffset + 4*current.stream.nPos <= current.stream.stride );
 	}
 	ASSERT_SAME( current.stream.HasNormal(), glIsEnabled( GL_NORMAL_ARRAY ) );
 	if ( current.stream.HasNormal() ) {
 		glGetPointerv( GL_NORMAL_ARRAY_POINTER, &ptr );
 		GLASSERT( ptr == PTR( current.streamPtr, current.stream.normalOffset) );
+		GLASSERT( current.stream.normalOffset + 4*current.stream.nNormal <= current.stream.stride );
 	}
 	ASSERT_SAME( current.stream.HasColor(), glIsEnabled( GL_COLOR_ARRAY ) );
 	if ( current.stream.HasColor() ) {
 		glGetPointerv( GL_COLOR_ARRAY_POINTER, &ptr );
 		GLASSERT( ptr == PTR( current.streamPtr, current.stream.colorOffset) );
+		GLASSERT( current.stream.colorOffset + 4*current.stream.nColor <= current.stream.stride );
 	}
 
 	ASSERT_SAME( current.blend, glIsEnabled( GL_BLEND ) );
@@ -423,14 +427,14 @@ void GPUShader::Draw()	// int index, const uint16_t* elements )
 	if ( !indexPtr )
 		int debug=1;
 
-	SetState( *this );
-
 	GLASSERT( nIndex % 3 == 0 );
 
 	trianglesDrawn += nIndex / 3;
 	++drawCalls;
 
 	if ( indexPtr ) {
+		SetState( *this );
+	
 		GLRELASSERT( !vertexBuffer );
 		GLRELASSERT( !indexBuffer );
 		glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, indexPtr );
@@ -441,16 +445,23 @@ void GPUShader::Draw()	// int index, const uint16_t* elements )
 		GLRELASSERT( indexBuffer );
 		GLRELASSERT( stream.stride == sizeof(Vertex) );	// Just a current limitation that only Vertex structs go in a VBO. Could be fixed.
 
-		GLASSERT( glIsBuffer( vertexBuffer ) );
-		GLASSERT( glIsBuffer( indexBuffer ) );
-		GLASSERT( glIsEnabled( GL_VERTEX_ARRAY ) );
-		GLASSERT( glIsEnabled( GL_TEXTURE_COORD_ARRAY ) );
-		//GLASSERT( glIsEnabled( GL_NORMAL_ARRAY ) );			// Both values are correct. Shadows: no normals, model: normals
-		GLASSERT( !glIsEnabled( GL_COLOR_ARRAY ) );
-
+		// This took a long time to figure. OpenGL is a state machine, except, apparently, when it isn't.
+		// The VBOs impact how the SetxxxPointers work. If they aren't set, then the wrong thing gets
+		// bound. What a PITA. And ugly design problem with OpenGL.
+		//
 		glBindBufferX( GL_ARRAY_BUFFER, vertexBuffer );
 		glBindBufferX( GL_ELEMENT_ARRAY_BUFFER, indexBuffer );
+		SetState( *this );
 
+#if defined( _MSC_VER )
+		GLASSERT( glIsBuffer( vertexBuffer ) );
+		GLASSERT( glIsBuffer( indexBuffer ) );
+		
+		GLASSERT( glIsEnabled( GL_VERTEX_ARRAY ) );
+		GLASSERT( !glIsEnabled( GL_COLOR_ARRAY ) );
+		GLASSERT( !glIsEnabled( GL_INDEX_ARRAY ) );
+		GLASSERT( glIsEnabled( GL_TEXTURE_COORD_ARRAY ) );
+#endif
 		glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, 0 );
 
 		glBindBufferX( GL_ARRAY_BUFFER, 0 );

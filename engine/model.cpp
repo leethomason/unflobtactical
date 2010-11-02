@@ -42,6 +42,17 @@ void ModelResource::Free()
 
 
 
+void ModelResource::DeviceLoss()
+{
+#ifdef EL_USE_VBO
+	for( unsigned i=0; i<header.nGroups; ++i ) {
+		atom[i].vertexBuffer.Destroy();
+		atom[i].indexBuffer.Destroy();
+	}
+#endif
+}
+
+
 int ModelResource::Intersect(	const grinliz::Vector3F& point,
 								const grinliz::Vector3F& dir,
 								grinliz::Vector3F* intersect ) const
@@ -122,7 +133,6 @@ void ModelLoader::Load( const gamedb::Item* item, ModelResource* res )
 		//GLOUTPUT(( "  '%s' vertices=%d tris=%d\n", textureName, (int)res->atom[i].nVertex, (int)(res->atom[i].nIndex/3) ));
 	}
 
-	// Load to VBO
 	int vOffset = 0;
 	int iOffset = 0;
 	for( U32 i=0; i<res->header.nGroups; ++i )
@@ -130,12 +140,6 @@ void ModelLoader::Load( const gamedb::Item* item, ModelResource* res )
 		res->atom[i].index  = res->allIndex+iOffset;
 		res->atom[i].vertex = res->allVertex+vOffset;
 
-#ifdef EL_USE_VBO
-		if ( GPUShader::SupportsVBOs() ) {
-			res->atom[i].vertexBuffer = GPUVertexBuffer::Create( res->atom[i].vertex, res->atom[i].nVertex );
-			res->atom[i].indexBuffer  = GPUIndexBuffer::Create( res->atom[i].index, res->atom[i].nIndex );
-		}
-#endif
 		iOffset += res->atom[i].nIndex;
 		vOffset += res->atom[i].nVertex;
 	}
@@ -303,14 +307,28 @@ void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent
 }
 
 
-void ModelAtom::Bind( GPUShader* shader ) const
+void ModelAtom::LowerBind( GPUShader* shader, const GPUShader::Stream& stream ) const
 {
-	GPUShader::Stream stream( vertex );
+#ifdef EL_USE_VBO
+	if ( GPUShader::SupportsVBOs() && !vertexBuffer.IsValid() ) {
+		GLRELASSERT( !indexBuffer.IsValid() );
+
+		vertexBuffer = GPUVertexBuffer::Create( vertex, nVertex );
+		indexBuffer  = GPUIndexBuffer::Create(  index,  nIndex );
+	}
+#endif
 
 	if ( vertexBuffer.IsValid() && indexBuffer.IsValid() ) 
 		shader->SetStream( stream, vertexBuffer, nIndex, indexBuffer );
 	else
 		shader->SetStream( stream, vertex, nIndex, index );
+}
+
+
+void ModelAtom::Bind( GPUShader* shader ) const
+{
+	GPUShader::Stream stream( vertex );
+	LowerBind( shader, stream );
 }
 
 
@@ -323,10 +341,7 @@ void ModelAtom::BindPlanarShadow( GPUShader* shader ) const
 	stream.nTexture0 = 3;
 	stream.texture0Offset = Vertex::POS_OFFSET;
 
-	if ( vertexBuffer.IsValid() && indexBuffer.IsValid() ) 
-		shader->SetStream( stream, vertexBuffer, nIndex, indexBuffer );
-	else
-		shader->SetStream( stream, vertex, nIndex, index );
+	LowerBind( shader, stream );
 }
 
 
@@ -536,4 +551,12 @@ ModelResourceManager::~ModelResourceManager()
 {
 	for( unsigned i=0; i<modelResArr.Size(); ++i )
 		delete modelResArr[i];
+}
+
+
+void ModelResourceManager::DeviceLoss()
+{
+	for( unsigned i=0; i<modelResArr.Size(); ++i )
+		modelResArr[i]->DeviceLoss();
+
 }
