@@ -18,13 +18,6 @@
 
 #include "../grinliz/gldebug.h"
 
-#define TESTGLERR()	{	GLenum err = glGetError();				\
-						if ( err != GL_NO_ERROR ) {				\
-							GLOUTPUT(( "GL ERR=0x%x\n", err )); \
-							GLASSERT( 0 );						\
-						}										\
-					}
-
 #if defined(UFO_IPHONE)
 	// Really iPhone, not apple...
 	#import <OpenGLES/ES1/gl.h>

@@ -4,7 +4,11 @@ package com.grinninglizard.UFOAttack;
 import java.io.File;
 import java.io.IOException;
 
+import javax.microedition.khronos.egl.EGL;
+import javax.microedition.khronos.egl.EGL10;
+import javax.microedition.khronos.egl.EGL11;
 import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL10;
 
 //import org.metalev.multitouch.controller.*;
@@ -42,12 +46,14 @@ public class UFOActivity extends Activity  {
 
      @Override
     protected void onPause() {
+    	 Log.v( "UFOATTACK", "Activity onPause" );
         super.onPause();
         mGLView.onPause();
     }
 
     @Override
     protected void onResume() {
+    	Log.v( "UFOATTACK", "Activity onResume" );
         super.onResume();
         mGLView.onResume();
     }
@@ -406,30 +412,48 @@ final class RendererEvent implements Runnable
  * messages from queueEvent().
  */
 class UFORenderer implements GLSurfaceView.Renderer {
+	
+	public boolean HasContext() {
+        EGL egl = EGLContext.getEGL();
+        if ( egl instanceof EGL10 ) {
+        	EGL10 egl10 = (EGL10)egl;
+        	EGLContext context = egl10.eglGetCurrentContext();  
+            return context != EGL10.EGL_NO_CONTEXT && egl10.eglGetError() != EGL11.EGL_CONTEXT_LOST;
+        }
+        return false;
+	}
+
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
     	Log.v("UFOJAVA", "onSurfaceCreated");
-        nativeInit();
+    	if ( HasContext() )
+    		nativeInit();
     }
 
     public void onSurfaceChanged(GL10 gl, int w, int h) {
     	Log.v("UFOJAVA", "onSurfaceChanged");
-        nativeResize(w, h);
+    	if ( HasContext() )
+    		nativeResize(w, h);
     }
 
-    public void onDrawFrame(GL10 gl) {
+    public void onDrawFrame(GL10 gl) 
+    {
     	//Log.v("UFOJAVA", "onDrawFrame");
-        nativeRender();
+    	if ( HasContext() )
+    		nativeRender();
     }
     
     public void pause() {
+    	Log.v("UFOJAVA", "pause=1");
     	nativePause( 1 );
     }
     
     public void resume() {
+    	Log.v("UFOJAVA", "pause=0");
     	nativePause( 0 );
     }
     
     public void destroy() {
+    	Log.v("UFOJAVA", "destroy");
     	nativeDone();
     }
     

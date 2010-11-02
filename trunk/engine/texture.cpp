@@ -291,7 +291,7 @@ U32 TextureManager::CreateGLTexture( int w, int h, int format, int flags )
 	CalcOpenGL( format, &glFormat, &glType );
 
 	GLASSERT( w && h && (format >= 0) );
-	TESTGLERR();
+	CHECK_GL_ERROR;
 
 	glEnable( GL_TEXTURE_2D );
 
@@ -327,7 +327,7 @@ U32 TextureManager::CreateGLTexture( int w, int h, int format, int flags )
 	}
 	//GLOUTPUT(( "OpenGL texture %d created.\n", texID ));
 					
-	TESTGLERR();
+	CHECK_GL_ERROR;
 
 	return texID;
 }
@@ -355,7 +355,7 @@ void Texture::Upload( const void* pixels, int size )
 					glType,
 					pixels );
 //	GLOUTPUT(( "OpenGL texture %d Upload.\n", gpuMem->glID ));
-	TESTGLERR();
+	CHECK_GL_ERROR;
 }
 
 

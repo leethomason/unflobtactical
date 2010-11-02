@@ -506,7 +506,7 @@ void Game::DoTick( U32 _currentTime )
 #if 1
 	if ( debugTextOn ) {
 		UFOText::Draw(	0,  Y, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
-						VERSION,
+				 		VERSION,
 						framesPerSecond, 
 						(float)GPUShader::TrianglesDrawn()/1000.0f,
 						GPUShader::DrawCalls(),
@@ -527,7 +527,7 @@ void Game::DoTick( U32 _currentTime )
 		#endif
 	}
 	else {
-		UFOText::Draw(	0,  Y, "UFO#%d %5.1ffps", VERSION, framesPerSecond );
+		UFOText::Draw(	0,  Y, "UFO#%d %5.1ffps vbo=%d", VERSION, framesPerSecond, GPUShader::SupportsVBOs() ? 1 : 0 );
 	}
 #endif
 	GPUShader::ResetTriCount();
@@ -625,6 +625,8 @@ void Game::HandleHotKeyMask( int mask )
 void Game::DeviceLoss()
 {
 	TextureManager::Instance()->DeviceLoss();
+	ModelResourceManager::Instance()->DeviceLoss();
+	GPUShader::ResetState();
 }
 
 

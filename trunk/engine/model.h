@@ -37,8 +37,8 @@ struct ModelAtom
 {
 	Texture* texture;
 #ifdef EL_USE_VBO
-	GPUVertexBuffer vertexBuffer;
-	GPUIndexBuffer  indexBuffer;
+	mutable GPUVertexBuffer vertexBuffer;		// created on demand, hence 'mutable'
+	mutable GPUIndexBuffer  indexBuffer;
 #endif
 	U32 nVertex;
 	U32 nIndex;
@@ -50,6 +50,7 @@ struct ModelAtom
 	//};
 	void Bind( GPUShader* shader ) const;
 	void BindPlanarShadow( GPUShader* shader ) const;	// I gave up trying to make this general.
+	void LowerBind( GPUShader* shader, const GPUShader::Stream& stream ) const;
 
 	// A note on the memory model: the index and vertices are stored
 	// in continuous memory to cut down on allocation overhead. But
@@ -68,6 +69,7 @@ public:
 	~ModelResource()	{ Free(); }
 
 	void Free();
+	void DeviceLoss();
 
 	// In the coordinate space of the resource! (Object space.)
 	int Intersect(	const grinliz::Vector3F& point,
@@ -94,6 +96,7 @@ public:
 	
 	void  AddModelResource( ModelResource* res );
 	const ModelResource* GetModelResource( const char* name, bool errorIfNotFound=true );
+	void DeviceLoss();
 
 	static void Create();
 	static void Destroy();
