@@ -9,14 +9,6 @@
 
 int   gAppAlive   = 1;
 
-// This all seems like a good idea, but the state changes for the android
-// app are complex. I'm very concerned about one little bug holding up the
-// entire system.
-//static int  sDemoStopped  = 0;
-//static long sTimeOffset   = 0;
-//static int  sTimeOffsetInit = 0;
-//static long sTimeStopped  = 0;
-
 static long lastClockTime = 0;
 static long gameTime = 0;
 #define MAX_TIME_DELTA 100

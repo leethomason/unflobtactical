@@ -272,7 +272,9 @@ void Engine::Draw()
 		LightShader alphaLightShader( ambient, dir, diffuse, alpha, blend );
 	
 		FlatShader black;
-		black.SetColor( 0, 0, 0 );
+		Texture* blackTexture = TextureManager::Instance()->GetTexture( "black" );	// Fix for a strange bug. The Nexus One, when using VBOs, sometimes
+																					// ignores color. This used to be "white" with color=0,0,0,1, but
+																					// black fixes the bug and otherwise works just as well.
 
 		for( Model* model=modelRoot; model; model=model->next ) {
 			if ( model->IsFlagSet( Model::MODEL_METADATA ) && !enableMeta )
@@ -295,14 +297,15 @@ void Engine::Draw()
 
 				// Map is always rendered, possibly in black.
 				if ( !fogOfWar.IsRectEmpty( fogRect ) ) {
-					model->Queue( renderQueue, &lightShader, &alphaLightShader );
+					model->Queue( renderQueue, &lightShader, &alphaLightShader, 0 );
 				}
 				else {
-					model->Queue( renderQueue, &black, &black );
+					model->Queue( renderQueue, &black, &black, blackTexture );	// The blackTexture makes sure everything goes to the same render state.
+																				// (Otherwise sub-states are created for each texture.)
 				}
 			}
 			else if ( fogOfWar.IsSet( x, y ) ) {
-				model->Queue( renderQueue, &lightShader, &alphaLightShader );
+				model->Queue( renderQueue, &lightShader, &alphaLightShader, 0 );
 			}
 		}
 	}

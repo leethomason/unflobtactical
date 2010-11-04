@@ -134,7 +134,7 @@ public:
 	void Init( const ModelResource* resource, SpaceTree* tree );
 	void Free();
 
-	void Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent );
+	void Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent, Texture* replaceAllTextures );
 
 	enum {
 		MODEL_SELECTABLE			= 0x01,
@@ -173,7 +173,7 @@ public:
 	void SetTexXForm( float a=1.0f, float d=1.0f, float x=0.0f, float y=0.0f );
 
 	// Set the texture - overrides all textures
-	void SetTexture( Texture* t );
+	void SetTexture( Texture* t )	{ setTexture = t; }
 
 	// AABB for user selection (bigger than the true AABB)
 	void CalcHitAABB( grinliz::Rectangle3F* aabb ) const;
@@ -215,7 +215,6 @@ private:
 	grinliz::Matrix4 texMat;
 
 	Texture* setTexture;	// overrides the default texture
-	ModelAtom* textureAtoms;		// if the texture is set, a copy of the atoms (that use the texture instead)
 
 	int flags;
 	

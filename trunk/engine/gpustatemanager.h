@@ -147,35 +147,6 @@ public:
 		this->indexBuffer = index.ID();
 	}
 
-
-
-	/*
-	void SetVertex( int components, int stride, const void* ptr ) {
-//		vertexBuffer = 0;
-		vertexComponents = components;
-		vertexStride = stride;
-		vertexPtr = ptr;
-	}
-
-//	void SetVertex( int components, int stride, const GPUVertexBuffer& buffer, int offset ) {
-//		vertexBuffer = &buffer;
-//		vertexComponents = components;
-//		vertexStride = stride;
-//		vertexPtr = (const void*) offset;
-//	}
-
-	void SetNormal( int stride, const void* ptr ) {
-		normalStride = stride;
-		normalPtr = ptr;
-	}
-
-	void SetColorArray( int components, int stride, const void* ptr ) {
-		colorComponents = components;
-		colorStride = stride;
-		colorPtr = ptr;
-	}
-	*/
-
 	void SetTexture0( Texture* tex ) {
 		texture0 = tex;
 	}
@@ -183,27 +154,6 @@ public:
 	void SetTexture1( Texture* tex ) {
 		texture1 = tex;
 	}
-
-//	void SetTexture0( Texture* tex, int components, int stride, const void* ptr ) {
-//		texture0 = tex;
-//		texture0Components = components;
-//		texture0Stride = stride;
-//		texture0Ptr = ptr;
-//	}
-
-//	void SetTexture0( int components, int stride, const void* ptr ) {
-//		GLASSERT( texture0 );
-//		texture0Components = components;
-//		texture0Stride = stride;
-//		texture0Ptr = ptr;
-//	}
-
-//	void SetTexture1( Texture* tex, int components, int stride, const void* ptr ) {
-//		texture1 = tex;
-//		texture1Components = components;
-//		texture1Stride = stride;
-//		texture1Ptr = ptr;
-//	}
 
 	void SetColor( float r, float g, float b )				{ color.x = r; color.y = g; color.z = b; color.w = 1; }
 	void SetColor( float r, float g, float b, float a )		{ color.x = r; color.y = g; color.z = b; color.w = a; }
@@ -230,11 +180,6 @@ public:
 protected:
 
 	GPUShader() : texture0( 0 ), texture1( 0 ), 
-				 //vertexPtr( 0 ), vertexStride( 0 ), vertexComponents( 3 ),
-				 //normalPtr( 0 ), normalStride( 0 ),
-				 //colorPtr( 0 ), colorStride( 0 ), colorComponents( 3 ),
-				 //texture0Ptr( 0 ), texture0Stride( 0 ), texture0Components( 2 ),
-				 //texture1Ptr( 0 ), texture1Stride( 0 ), texture1Components( 2 ),
 				 streamPtr( 0 ), nIndex( 0 ), indexPtr( 0 ),
 				 vertexBuffer( 0 ), indexBuffer( 0 ),
 				 blend( false ), alphaTest( 0 ), lighting( false ),
@@ -273,26 +218,6 @@ protected:
 	U32 vertexBuffer;
 	U32 indexBuffer;
 
-	/*
-	const void* vertexPtr;
-	int			vertexStride;
-	int			vertexComponents;
-
-	const void* normalPtr;
-	int			normalStride;
-
-	const void* colorPtr;
-	int			colorStride;
-	int			colorComponents;
-
-	const void* texture0Ptr;
-	int			texture0Stride;
-	int			texture0Components;
-
-	const void* texture1Ptr;
-	int			texture1Stride;
-	int			texture1Components;
-	*/
 	bool		blend;
 	bool		alphaTest;
 	bool		lighting;

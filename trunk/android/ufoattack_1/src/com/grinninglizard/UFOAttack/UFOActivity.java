@@ -122,25 +122,6 @@ class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener
 }
 
 
-/*
-class PinchPlane
-{
-	public float x;
-	public float y;
-	public float scale;
-	public PinchPlane() {
-		init();
-	}
-	
-	public void init() {
-		x = 0;
-		y = 0;
-		scale = 1;
-	}
-}
-*/
-
-
 class DemoGLSurfaceView extends GLSurfaceView { 	//implements MultiTouchObjectCanvas<PinchPlane>  { 
 
 	public DemoGLSurfaceView(Context context) {
@@ -179,9 +160,7 @@ class DemoGLSurfaceView extends GLSurfaceView { 	//implements MultiTouchObjectCa
 		// a relative starting coordinate that conflicts with the zoom height
 		// getting changed.
 		// It would be nice to fix this restriction.
-//		if ( multiMode == MODE_MULTI ) {
-			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ZOOM, GAME_ZOOM_PINCH, 0, 0, delta ) );
-//		}
+		queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ZOOM, GAME_ZOOM_PINCH, 0, 0, delta ) );
 	}
 
 	//private ScaleGestureDetector mScaleDetector;
@@ -193,7 +172,7 @@ class DemoGLSurfaceView extends GLSurfaceView { 	//implements MultiTouchObjectCa
 	private static final int GAME_TAP_MOVE		= 1;
 	private static final int GAME_TAP_UP		= 2;
 	private static final int GAME_TAP_CANCEL	= 3;
-	private static final int PANNING			= 0x0100;
+	//private static final int PANNING			= 0x0100;
 	
 	private static final int GAME_ZOOM_DISTANCE = 0;
 	private static final int GAME_ZOOM_PINCH 	= 1;
@@ -271,75 +250,6 @@ class DemoGLSurfaceView extends GLSurfaceView { 	//implements MultiTouchObjectCa
         }
        	return super.onTouchEvent(event);
     }
-/*
-	@Override
-	public PinchPlane getDraggableObjectAtPoint(PointInfo touchPoint) {
-		return mPinchPlane;
-	}
-
-	@Override
-	public void getPositionAndScale(PinchPlane obj, PositionAndScale objPosAndScaleOut) {
-		objPosAndScaleOut.set( 0, 0, true, 1.0f, false, 1, 1, false, 0);
-		obj.init();
-	}
-
-	@Override
-	public boolean setPositionAndScale(PinchPlane obj, PositionAndScale newObjPosAndScale, PointInfo touchPoint) {
-		if (    multiMode == MODE_MULTI 
-			 && newObjPosAndScale.getScale() != obj.scale ) 
-		{
-	    	queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ZOOM, 0, 0, 0, obj.scale - newObjPosAndScale.getScale() ) );
-	    	obj.scale = newObjPosAndScale.getScale();
-		}
-		if (    multiMode == MODE_MULTI 
-		     && (newObjPosAndScale.getXOff() != obj.x || newObjPosAndScale.getYOff() != obj.y )) 
-		{
-	    	//queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_TAP, GAME_TAP_MOVE | PANNING, (int)newObjPosAndScale.getXOff(), (int)newObjPosAndScale.getYOff(), 0 ) );
-	    	obj.x = newObjPosAndScale.getXOff();
-	    	obj.y = newObjPosAndScale.getYOff();
-		}
-		return true;
-	}
-
-	@Override
-	public void selectObject(PinchPlane obj, PointInfo touchPoint) {
-		if ( multiMode == MODE_MULTI && obj == null ) {
-	    	//queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_TAP, GAME_TAP_UP | PANNING, (int)mPinchPlane.x, (int)mPinchPlane.y, 0 ) );
-	    	Log.v("UFOATTACK", "multi mode none" );
-			multiMode = MODE_NONE;
-		}
-	}
-*/
-	
-/*    
-   //  @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-    	int sendKey = 0;
-    	int GAME_HK_NEXT_UNIT	=		0x0001;
-    	int GAME_HK_PREV_UNIT	= 		0x0002;
-    	//int GAME_HK_ROTATE_CCW	=		0x0004;
-    	//int GAME_HK_ROTATE_CW	=		0x0008;
-
-    	switch ( keyCode ) {
-    	case KeyEvent.KEYCODE_DPAD_LEFT:
-    		sendKey = GAME_HK_PREV_UNIT;
-    		break;
-    	case KeyEvent.KEYCODE_DPAD_RIGHT:
-    		sendKey = GAME_HK_NEXT_UNIT;
-    		break;
-    	default:
-			break;
-    	}
-
-    	if ( sendKey != 0 ) {
-        	queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_HOTKEY, sendKey, 0, 0, 0 ) );
-            return true;
-        }
-    	else {
-    		return super.onKeyDown(keyCode, event);
-    	}
-    }
- */
 }
 
 

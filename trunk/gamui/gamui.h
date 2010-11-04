@@ -41,6 +41,49 @@ class UIItem;
 class ToggleButton;
 class TextLabel;
 
+
+template < class T > 
+class CDynArray
+{
+public:
+	CDynArray()
+	{
+		vec = (T*)malloc( ALLOCATE*sizeof(T) );
+		size = 0;
+		cap = ALLOCATE;
+	}
+	~CDynArray() {
+		free( vec );
+	}
+
+	T& operator[]( int i )				{ GAMUIASSERT( i>=0 && i<(int)size ); return vec[i]; }
+	const T& operator[]( int i ) const	{ GAMUIASSERT( i>=0 && i<(int)size ); return vec[i]; }
+
+	T* PushArr( int count ) {
+		if ( size + count > cap ) {
+			cap = (size+count) * 3 / 2;
+			vec = (T*)realloc( vec, cap*sizeof(T) );
+		}
+		T* result = vec + size;
+		size += count;
+		return result;
+	}
+
+	int Size() const		{ return (int)size; }
+	
+	void Clear()			{ size = 0; }
+	bool Empty() const		{ return size==0; }
+	const T* Mem() const	{ return vec; }
+	T* Mem()				{ return vec; }
+
+private:
+	enum { ALLOCATE=1000 };
+	T* vec;
+	unsigned size;
+	unsigned cap;
+};
+
+
 /**
 	The most basic unit of state. A set of vertices and indices are sent to the GPU with a given RenderAtom, which
 	encapselates a state (renderState), texture (textureHandle), and coordinates. 
@@ -64,6 +107,11 @@ struct RenderAtom
 		textureHandle = (const void*) _textureHandle;
 		srcWidth = _srcWidth;
 		srcHeight = _srcHeight;
+	}
+
+	bool Equal( const RenderAtom& atom ) const {
+		// Sleazy, depends on tight packing
+		return memcmp( this, &atom, sizeof(*this) ) == 0;
 	}
 
 	/*  These methods are crazy useful. Don't work with Android compiler, which doesn't seem to like template functions at all. Grr.
@@ -99,12 +147,11 @@ struct RenderAtom
 		ty1 = _ty1;
 	}
 
-	const void* renderState;		///< Application defined render state.
-	const void* textureHandle;		///< Application defined texture handle, noting that 0 (null) is assumed to be non-rendering.
-
-	// non-sorting
 	float tx0, ty0, tx1, ty1;		///< Texture coordinates to use within the atom.
 	float srcWidth, srcHeight;		///< The width and height of the sub-image (as defined by tx0, etc.) Used to know the "natural" size, and how to scale.
+
+	const void* renderState;		///< Application defined render state.
+	const void* textureHandle;		///< Application defined texture handle, noting that 0 (null) is assumed to be non-rendering.
 
 	void* user;						///< ignored by gamui
 };
@@ -174,7 +221,8 @@ public:
 	void Add( UIItem* item );
 	// normally not called by user code.
 	void Remove( UIItem* item );
-	void OrderChanged() { m_orderChanged = true; }
+	void OrderChanged() { m_orderChanged = true; m_modified = true; }
+	void Modify()		{ m_modified = true; }
 
 	/// Call to begin the rendering pass and commit all the UIItems to the display.
 	void Render();
@@ -235,16 +283,25 @@ private:
 	IGamuiText*						m_iText;
 
 	bool			m_orderChanged;
+	bool			m_modified;
 	UIItem**		m_itemArr;
 	int				m_nItems;
 	int				m_nItemsAllocated;
 	const UIItem*	m_dragStart;
 	const UIItem*	m_dragEnd;
 
-	enum { INDEX_SIZE = 6000,
-		   VERTEX_SIZE = 4000 };
-	uint16_t							m_indexBuffer[INDEX_SIZE];
-	Vertex							m_vertexBuffer[VERTEX_SIZE];
+	struct State {
+		uint16_t	vertexStart;
+		uint16_t	nVertex;
+		uint16_t	indexStart;
+		uint16_t	nIndex;
+		const void* renderState;
+		const void* textureHandle;
+	};
+
+	CDynArray< State >				m_stateBuffer;
+	CDynArray< uint16_t >			m_indexBuffer;
+	CDynArray< Vertex >				m_vertexBuffer;
 };
 
 
@@ -279,9 +336,15 @@ public:
 class UIItem
 {
 public:
-	virtual void SetPos( float x, float y )		{ m_x = x; m_y = y; }
+	virtual void SetPos( float x, float y )		
+	{ 
+		if ( m_x != x || m_y != y ) {
+			m_x = x; m_y = y; 
+			Modify(); 
+		}
+	}
 	void SetPos( const float* x )				{ SetPos( x[0], x[1] ); }
-	void SetCenterPos( float x, float y )		{ m_x = x - Width()*0.5f; m_y = y - Height()*0.5f; }
+	void SetCenterPos( float x, float y )		{ SetPos( x - Width()*0.5f, y - Height()*0.5f ); }
 	
 	float X() const								{ return m_x; }
 	float Y() const								{ return m_y; }
@@ -292,16 +355,27 @@ public:
 
 	virtual void SetEnabled( bool enabled )		{}		// does nothing for many items.
 	bool Enabled() const						{ return m_enabled; }
-	virtual void SetVisible( bool visible )		{ m_visible = visible; }
+	virtual void SetVisible( bool visible )		
+	{ 
+		if ( m_visible != visible ) { 
+			m_visible = visible; 
+			Modify();
+		}
+	}
 	bool Visible() const						{ return m_visible; }
 	
-	void SetLevel( int level )					{ m_level = level; 
-												  if ( m_gamui ) m_gamui->OrderChanged();
-												}
+	void SetLevel( int level )					
+	{
+		if ( m_level != level ) {
+			m_level = level; 
+			OrderChanged();
+			Modify();
+		}
+	}
 
-	void SetRotationX( float degrees )			{ m_rotationX = degrees; }
-	void SetRotationY( float degrees )			{ m_rotationY = degrees; }
-	void SetRotationZ( float degrees )			{ m_rotationZ = degrees; }
+	void SetRotationX( float degrees )			{ if ( m_rotationX != degrees ) { m_rotationX = degrees; Modify(); } }
+	void SetRotationY( float degrees )			{ if ( m_rotationY != degrees ) { m_rotationY = degrees; Modify(); } }
+	void SetRotationZ( float degrees )			{ if ( m_rotationZ != degrees ) { m_rotationZ = degrees; Modify(); } }
 	float RotationX() const						{ return m_rotationX; }
 	float RotationY() const						{ return m_rotationY; }
 	float RotationZ() const						{ return m_rotationZ; }
@@ -316,8 +390,8 @@ public:
 	virtual bool HandleTap( TapAction action, float x, float y )		{ return false; }
 
 	virtual const RenderAtom* GetRenderAtom() const = 0;
-	virtual void Requires( int* indexNeeded, int* vertexNeeded ) = 0;
-	virtual void Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex ) = 0;
+	virtual bool DoLayout() = 0;
+	virtual void Queue( CDynArray< uint16_t > *index, CDynArray< Gamui::Vertex > *vertex ) = 0;
 
 	virtual void Clear()	{ m_gamui = 0; }
 
@@ -337,7 +411,9 @@ protected:
 	template <class T> T Min( T a, T b ) const		{ return a<b ? a : b; }
 	template <class T> T Max( T a, T b ) const		{ return a>b ? a : b; }
 	float Mean( float a, float b ) const			{ return (a+b)*0.5f; }
-	static void PushQuad( int *nIndex, uint16_t* index, int base, int a, int b, int c, int d, int e, int f );
+	static Gamui::Vertex* PushQuad( CDynArray< uint16_t > *index, CDynArray< Gamui::Vertex > *vertex );
+	void Modify()		{ if ( m_gamui ) m_gamui->Modify(); }
+	void OrderChanged()	{ if ( m_gamui ) m_gamui->OrderChanged(); }
 
 	void ApplyRotation( int nVertex, Gamui::Vertex* vertex );
 
@@ -366,11 +442,17 @@ public:
 
 	const char* GetText() const;
 	void ClearText();
-	virtual void SetEnabled( bool enabled )		{ m_enabled = enabled; }
+	virtual void SetEnabled( bool enabled )		
+	{ 
+		if ( m_enabled != enabled ) {
+			m_enabled = enabled; 
+			Modify(); 
+		}
+	}
 
 	virtual const RenderAtom* GetRenderAtom() const;
-	virtual void Requires( int* indexNeeded, int* vertexNeeded );
-	virtual void Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex );
+	virtual bool DoLayout();
+	virtual void Queue( CDynArray< uint16_t > *index, CDynArray< Gamui::Vertex > *vertex );
 
 private:
 	void CalcSize( float* width, float* height ) const;
@@ -393,20 +475,20 @@ public:
 
 	void Init( Gamui* );
 
-	void SetSize( float width, float height )	{ m_width = width; m_height = height; m_needsLayout = true; }
+	void SetSize( float width, float height )	{ m_width = width; m_height = height; m_needsLayout = true; Modify(); }
 	virtual float Width() const					{ return m_width; }
 	virtual float Height() const				{ return m_height; }
 
-	void SetText( const char* t )				{ m_storage.SetText( t ); m_needsLayout = true; }
+	void SetText( const char* t )				{ m_storage.SetText( t ); m_needsLayout = true; Modify(); }
 
 	const char* GetText() const					{ return m_storage.GetText(); }
-	void ClearText()							{ m_storage.ClearText(); m_needsLayout = true; }
-	virtual void SetEnabled( bool enabled )		{ UIItem::SetEnabled( enabled ); m_needsLayout = true; }
-	virtual void SetVisible( bool visible )		{ UIItem::SetVisible( visible ); m_needsLayout = true; }
+	void ClearText()							{ m_storage.ClearText(); m_needsLayout = true; Modify(); }
+	virtual void SetEnabled( bool enabled )		{ UIItem::SetEnabled( enabled ); m_needsLayout = true; Modify(); }
+	virtual void SetVisible( bool visible )		{ UIItem::SetVisible( visible ); m_needsLayout = true; Modify(); }
 
 	virtual const RenderAtom* GetRenderAtom() const;
-	virtual void Requires( int* indexNeeded, int* vertexNeeded );
-	virtual void Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex );
+	virtual bool DoLayout();
+	virtual void Queue( CDynArray< uint16_t > *index, CDynArray< Gamui::Vertex > *vertex );
 
 private:
 	bool		m_needsLayout;
@@ -429,15 +511,22 @@ public:
 	void SetAtom( const RenderAtom& atom );
 	void SetSlice( bool enable );
 
-	void SetSize( float width, float height )							{ m_width = width; m_height = height; }
+	void SetSize( float width, float height )							
+	{ 
+		if ( m_width != width || m_height != height ) {
+			m_width = width; 
+			m_height = height; 
+			Modify(); 
+		}
+	}
 	void SetForeground( bool foreground );
 
 	virtual float Width() const											{ return m_width; }
 	virtual float Height() const										{ return m_height; }
 
 	virtual const RenderAtom* GetRenderAtom() const;
-	virtual void Requires( int* indexNeeded, int* vertexNeeded );
-	virtual void Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex );
+	virtual bool DoLayout();
+	virtual void Queue( CDynArray< uint16_t > *index, CDynArray< Gamui::Vertex > *vertex );
 
 private:
 	RenderAtom m_atom;
@@ -456,7 +545,7 @@ public:
 
 	void SetTile( int x, int y, const RenderAtom& atom );
 
-	void SetSize( float width, float height )							{ m_width = width; m_height = height; }
+	void SetSize( float width, float height )							{ m_width = width; m_height = height; Modify(); }
 	void SetForeground( bool foreground );
 
 	virtual float Width() const											{ return m_width; }
@@ -464,8 +553,8 @@ public:
 	void Clear();
 
 	virtual const RenderAtom* GetRenderAtom() const;
-	virtual void Requires( int* indexNeeded, int* vertexNeeded );
-	virtual void Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex );
+	virtual bool DoLayout();
+	virtual void Queue( CDynArray< uint16_t > *index, CDynArray< Gamui::Vertex > *vertex );
 
 	virtual int CX() const = 0;
 	virtual int CY() const = 0;
@@ -545,7 +634,7 @@ public:
 
 	bool Up() const		{ return m_up; }
 	bool Down() const	{ return !m_up; }
-	void SetDeco( const RenderAtom& atom, const RenderAtom& atomD )			{ m_atoms[DECO] = atom; m_atoms[DECO_D] = atomD; SetState(); }
+	void SetDeco( const RenderAtom& atom, const RenderAtom& atomD )			{ m_atoms[DECO] = atom; m_atoms[DECO_D] = atomD; SetState(); Modify(); }
 
 	void SetText( const char* text );
 	const char* GetText() const { return m_label[0].GetText(); }
@@ -555,12 +644,12 @@ public:
 	enum {
 		CENTER, LEFT, RIGHT
 	};
-	void SetTextLayout( int alignment, float dx=0.0f, float dy=0.0f )		{ m_textLayout = alignment; m_textDX = dx; m_textDY = dy; }
-	void SetDecoLayout( int alignment, float dx=0.0f, float dy=0.0f )		{ m_decoLayout = alignment; m_decoDX = dx; m_decoDY = dy; }
+	void SetTextLayout( int alignment, float dx=0.0f, float dy=0.0f )		{ m_textLayout = alignment; m_textDX = dx; m_textDY = dy; Modify(); }
+	void SetDecoLayout( int alignment, float dx=0.0f, float dy=0.0f )		{ m_decoLayout = alignment; m_decoDX = dx; m_decoDY = dy; Modify(); }
 
 	virtual const RenderAtom* GetRenderAtom() const;
-	virtual void Requires( int* indexNeeded, int* vertexNeeded );
-	virtual void Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex );
+	virtual bool DoLayout();
+	virtual void Queue( CDynArray< uint16_t > *index, CDynArray< Gamui::Vertex > *vertex );
 
 
 protected:
@@ -759,8 +848,8 @@ public:
 	virtual void SetVisible( bool visible );
 
 	virtual const RenderAtom* GetRenderAtom() const;
-	virtual void Requires( int* indexNeeded, int* vertexNeeded );
-	virtual void Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex );
+	virtual bool DoLayout();
+	virtual void Queue( CDynArray< uint16_t > *index, CDynArray< Gamui::Vertex > *vertex );
 
 private:
 	enum { MAX_TICKS = 10 };

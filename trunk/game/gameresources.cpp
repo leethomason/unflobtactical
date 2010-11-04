@@ -81,6 +81,12 @@ void Game::CreateTexture( Texture* t )
 		GLASSERT( t->BytesInImage() == 8 );
 		t->Upload( pixels, 8 );
 	}
+	if ( StrEqual( t->Name(), "black" ) ) {
+		U16 pixels[4] = { 0, 0, 0, 0 };
+		GLASSERT( t->Width() == 2 && t->Height() == 2 && t->Format() == Surface::RGB16 );
+		GLASSERT( t->BytesInImage() == 8 );
+		t->Upload( pixels, 8 );
+	}
 	else {
 		GLASSERT( 0 );
 	}
@@ -91,6 +97,7 @@ void Game::LoadTextures()
 {
 	TextureManager* texman = TextureManager::Instance();
 	texman->CreateTexture( "white", 2, 2, Surface::RGB16, Texture::PARAM_NONE, this );
+	texman->CreateTexture( "black", 2, 2, Surface::RGB16, Texture::PARAM_NONE, this );
 
 	const gamedb::Item* node = database->Root()->Child( "textures" )->Child( "stdfont2" );
 	GLASSERT( node );

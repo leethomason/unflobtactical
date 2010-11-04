@@ -48,7 +48,8 @@ public:
 	~RenderQueue();
 	void Add(	Model* model,					// Can be chaned: billboard rotation will be set.
 				const ModelAtom* atom, 
-				GPUShader* shader );
+				GPUShader* shader,
+				Texture* replaceAllTextures );
 
 	enum {
 		//MODE_IGNORE_TEXTURE				= 0x01,		// Ignore textures on all models. Don't set texture state, sort everything to same bucket.
