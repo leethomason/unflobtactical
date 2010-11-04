@@ -349,8 +349,6 @@ void Map::DrawPastSeen( const Color4F& color )
 	shader.SetStream( stream, mapVertex, nPastSeenIndex, pastSeenIndex );
 	shader.SetTexture0( greyTexture );
 
-//	shader.SetVertex( 2, sizeof(mapVertex[0]), mapVertex );
-//	shader.SetTexture0( greyTexture, 2, sizeof(mapVertex[0]), mapVertex );	
 	shader.SetColor( color.x, color.y, color.z );
 
 	// the vertices are stored in texture coordinates, to use less space.

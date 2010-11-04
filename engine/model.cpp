@@ -165,7 +165,7 @@ void Model::Init( const ModelResource* resource, SpaceTree* tree )
 {
 	this->resource = resource; 
 	this->tree = tree;
-	this->textureAtoms = 0;
+	this->setTexture = 0;
 
 	pos.Set( 0, 0, 0 );
 	rot[0] = rot[1] = rot[2] = 0.0f;
@@ -186,10 +186,6 @@ void Model::Init( const ModelResource* resource, SpaceTree* tree )
 
 void Model::Free()
 {
-	if ( textureAtoms )	{	// superfluous 'if', used for debugging
-		delete [] textureAtoms; 
-		textureAtoms = 0;
-	}
 }
 
 
@@ -277,32 +273,17 @@ void Model::CalcTarget( grinliz::Vector3F* target ) const
 }
 
 
-void Model::SetTexture( Texture* t )
-{
-	delete [] textureAtoms;
-	textureAtoms = 0;
-
-	if ( t ) {
-		textureAtoms = new ModelAtom[resource->header.nGroups];
-		for( int i=0; i<resource->header.nGroups; ++i ) {
-			textureAtoms[i] = resource->atom[i];
-			textureAtoms[i].texture = t;		// the whole point: assign to a different texture.
-		}
-	}
-}
-
-
-void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent )
+void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent, Texture* textureReplace )
 {
 	if ( flags & MODEL_INVISIBLE )
 		return;
 
+	Texture* overrideTexture = textureReplace ? textureReplace : setTexture;		// 'overrideTexture' is usually null
+
 	for( U32 i=0; i<resource->header.nGroups; ++i ) 
 	{
-		if ( textureAtoms )
-			queue->Add( this, &textureAtoms[i], textureAtoms[i].texture->Alpha() ? transparent : opaque );
-		else
-			queue->Add( this, &resource->atom[i], resource->atom[i].texture->Alpha() ? transparent : opaque );
+		Texture* t = overrideTexture ? overrideTexture : resource->atom[i].texture;	// 't' is never null. This is just used to pass the correct shader through.
+		queue->Add( this, &resource->atom[i], t->Alpha() ? transparent : opaque, overrideTexture );
 	}
 }
 
@@ -343,60 +324,6 @@ void ModelAtom::BindPlanarShadow( GPUShader* shader ) const
 
 	LowerBind( shader, stream );
 }
-
-
-/*
-void ModelAtom::Draw() const
-{
-	GRINLIZ_PERFTRACK
-	// mode, count, type, indices
-#ifdef EL_USE_VBO
-	glDrawElements( GL_TRIANGLES, 
-					nIndex,
-					GL_UNSIGNED_SHORT, 
-					0 );
-#else
-	glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, index );
-#endif
-	CHECK_GL_ERROR;
-	trianglesRendered += nIndex / 3;
-	drawCalls++;
-}
-*/
-
-/*
-void Model::PushMatrix( bool textureToo ) const
-{
-	glPushMatrix();
-	const Matrix4& xform = XForm();
-	glMultMatrixf( xform.x );
-
-	if ( textureToo && texMatSet ) {
-		glMatrixMode(GL_TEXTURE);
-		glPushMatrix();
-		
-		float m[16] = {
-			texMat.a, 0,	0,	0,		// column 1
-			0,	texMat.d, 0, 0,
-			0, 0, 0, 0,
-			texMat.x, texMat.y, 0, 1
-		};
-		glMultMatrixf( m );
-	}
-	CHECK_GL_ERROR;
-}
-
-
-void Model::PopMatrix( bool textureToo ) const
-{
-	if ( textureToo && texMatSet ) {
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-	}
-	glPopMatrix();
-	CHECK_GL_ERROR;
-}
-*/
 
 
 const grinliz::Rectangle3F& Model::AABB() const
@@ -466,9 +393,6 @@ int Model::IntersectRay(	const Vector3F& _origin,
 	Vector4F dir    = { _dir.x, _dir.y, _dir.z, 0.0f };
 	int result = grinliz::REJECT;
 
-	//Sphere sphere;
-	//CalcBoundSphere( &sphere );
-	//int initTest = IntersectRaySphere( sphere, _origin, _dir );
 	Vector3F dv;
 	float dt;
 	int initTest = IntersectRayAABB( _origin, _dir, AABB(), &dv, &dt );
@@ -517,14 +441,6 @@ const ModelResource* ModelResourceManager::GetModelResource( const char* name, b
 	}
 	return 0;
 }
-
-
-///*static*/ int ModelResourceManager::Compare( const void * elem1, const void * elem2 )
-//{
-//	const ModelResource* t1 = *((const ModelResource**)elem1);
-//	const ModelResource* t2 = *((const ModelResource**)elem2);
-//	return strcmp( t1->header.name, t2->header.name );
-//}
 
 
 /*static*/ void ModelResourceManager::Create()

@@ -149,29 +149,6 @@ void GameCameraGet( void* handle, int param, float* value )
 }
 
 
-/*
-void GameCameraSet( void* handle, int param, float value ) 
-{
-	CheckThread check;
-
-	Game* game = (Game*)handle;
-	switch( param ) {
-		case GAME_CAMERA_TILT:
-			game->engine->camera.SetTilt( value );
-			break;
-		case GAME_CAMERA_YROTATE:
-			game->engine->camera.SetYRotation( value );
-			break;
-		case GAME_CAMERA_ZOOM:
-			game->engine->SetZoom( value );
-			break;
-		default:
-			GLASSERT( 0 );
-	}
-}
-*/
-
-
 void GameMoveCamera( void* handle, float dx, float dy, float dz )
 {
 	CheckThread check;

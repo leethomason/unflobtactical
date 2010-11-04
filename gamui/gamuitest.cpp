@@ -316,8 +316,6 @@ int main( int argc, char **argv )
 
 	DigitalBar bar( &gamui, 10, tick0, tick1, tick2, 2 );
 	bar.SetRange( 0.33f, 0.66f );
-	//bar.SetRange( 0.5f, 1.0f );
-	//bar.SetRange( 0.0f, 1.0f );
 	bar.SetPos( 20, 350 );
 
 	RenderAtom nullAtom;

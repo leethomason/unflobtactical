@@ -787,10 +787,6 @@ void BattleScene::SetUnitOverlays()
 	}
 
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		unitImage0[i].SetVisible( false );
-		unitImage1[i].SetVisible( false );
-		hpBars[i].SetVisible( false );
-
 		if ( unitMoving != &units[i] && units[i].IsAlive() ) {
 			int remain = units[i].CalcWeaponTURemaining( 0 );
 			Vector2I pos = units[i].Pos();
@@ -820,6 +816,11 @@ void BattleScene::SetUnitOverlays()
 			hpBars[i].SetPos( (float)pos.x + HP_DX, (float)pos.y + HP_DY );
 			hpBars[i].SetVisible( true );
 			hpBars[i].SetRange( (float)units[i].HP()*0.01f, (float)units[i].GetStats().TotalHP()*0.01f );
+		}
+		else {
+			unitImage0[i].SetVisible( false );
+			unitImage1[i].SetVisible( false );
+			hpBars[i].SetVisible( false );
 		}
 	}
 
@@ -3156,7 +3157,10 @@ void BattleScene::DrawHUD()
 		float rotation = (float)(game->CurrentTime() % CYCLE)*(360.0f/(float)CYCLE);
 		if ( rotation > 90 && rotation < 270 )
 			rotation += 180;
-		alienImage.SetRotationY( rotation );
+		
+		if ( alienImage.Visible() ) {
+			alienImage.SetRotationY( rotation );
+		}
 
 		nameRankUI.SetVisible( SelectedSoldierUnit() != 0 );
 		nameRankUI.Set( 50, 0, SelectedSoldierUnit(), true );

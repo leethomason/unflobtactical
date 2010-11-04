@@ -1,24 +1,24 @@
 Issues:
 
 Bugs:
-- Android: starting paused incorrect. General way to detect device loss?
 - Android: sound
 - help text
 - Android: UFOActivity rename
 - Initial lander activity
 - Android: icon
 - add "see into" haypiles. And possibly lander...
+- debug crash logger on device
+- Gamui: better cache. Don't regen / layout if nothing changed.
+- Android: fix the crash logger
 
 Architecture
 - Map as interface
-- Build in profiler.
 
 Features:
 - More items: optical computer for units to enhance vision
 
 TBD:
 - Android: cap framerate. Don't really need >30
-- Gamui: better cache. Don't regen / layout if nothing changed.
 - check math (again yet again) in PushShootAction()
 - trees show up in the wrong place
 - add morale
@@ -43,6 +43,8 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- Build in profiler.
+- Android: starting paused incorrect. General way to detect device loss?
 - VBO support
 - Android: DPAD/Trackball
 - Android: zoom / rotate

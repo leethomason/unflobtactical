@@ -100,14 +100,19 @@ UIItem::~UIItem()
 }
 
 
-void UIItem::PushQuad( int *nIndex, uint16_t* index, int base, int a, int b, int c, int d, int e, int f )
+Gamui::Vertex* UIItem::PushQuad( CDynArray< uint16_t > *indexBuf, CDynArray< Gamui::Vertex > *vertexBuf )
 {
-	index[(*nIndex)++] = base+a;
-	index[(*nIndex)++] = base+b;
-	index[(*nIndex)++] = base+c;
-	index[(*nIndex)++] = base+d;
-	index[(*nIndex)++] = base+e;
-	index[(*nIndex)++] = base+f;
+	int base = vertexBuf->Size();
+	uint16_t *index = indexBuf->PushArr( 6 );
+
+	index[0] = base+0;
+	index[1] = base+1;
+	index[2] = base+2;
+	index[3] = base+0;
+	index[4] = base+2;
+	index[5] = base+3;
+
+	return vertexBuf->PushArr( 4 );
 }
 
 
@@ -160,8 +165,11 @@ void TextLabel::Init( Gamui* gamui )
 
 void TextLabel::ClearText()
 {
-	m_str[0] = 0;
-	m_width = m_height = -1;
+	if ( m_str[0] ) {
+		m_str[0] = 0;
+		m_width = m_height = -1;
+		Modify();
+	}
 }
 
 
@@ -188,26 +196,32 @@ void TextLabel::SetText( const char* t )
 
 void TextLabel::SetText( const char* start, const char* end )
 {
-	m_width = m_height = -1;
-	int len = end - start;
-	int allocatedNeeded = len+1;
-
-	if ( m_allocated < allocatedNeeded ) {
-		m_allocated = (allocatedNeeded+ALLOCATED)*3/2;
-		if ( m_str != m_buf )
-			delete m_str;
-		m_str = new char[m_allocated];
+	if (    memcmp( start, m_str, end-start ) == 0	// contain the same thing
+		 && m_str[end-start] == 0 )					// have the same length
+	{
+		// They are the same.
 	}
-	memcpy( m_str, start, len );
-	m_str[len] = 0;
+	else {
+		m_width = m_height = -1;
+		int len = end - start;
+		int allocatedNeeded = len+1;
+
+		if ( m_allocated < allocatedNeeded ) {
+			m_allocated = (allocatedNeeded+ALLOCATED)*3/2;
+			if ( m_str != m_buf )
+				delete m_str;
+			m_str = new char[m_allocated];
+		}
+		memcpy( m_str, start, len );
+		m_str[len] = 0;
+		Modify();
+	}
 }
 
 
-void TextLabel::Requires( int* indexNeeded, int* vertexNeeded ) 
+bool TextLabel::DoLayout() 
 {
-	int len = strlen( m_str );
-	*indexNeeded  = len*6;
-	*vertexNeeded = len*4;
+	return m_str[0] != 0;
 }
 
 
@@ -239,7 +253,7 @@ void TextLabel::CalcSize( float* width, float* height ) const
 }
 
 
-void TextLabel::Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex )
+void TextLabel::Queue( CDynArray< uint16_t > *indexBuf, CDynArray< Gamui::Vertex > *vertexBuf )
 {
 	if ( !m_gamui )
 		return;
@@ -254,12 +268,12 @@ void TextLabel::Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex
 	while ( p && *p ) {
 		iText->GamuiGlyph( *p, &metrics );
 
-		PushQuad( nIndex, index, *nVertex, 0, 1, 2, 0, 2, 3 );
+		Gamui::Vertex* vertex = PushQuad( indexBuf, vertexBuf );
 
-		vertex[(*nVertex)++].Set( x, y, metrics.tx0, metrics.ty0 );
-		vertex[(*nVertex)++].Set( x, (y+metrics.height), metrics.tx0, metrics.ty1 );
-		vertex[(*nVertex)++].Set( x + metrics.width, y+metrics.height, metrics.tx1, metrics.ty1 );
-		vertex[(*nVertex)++].Set( x + metrics.width, y, metrics.tx1, metrics.ty0 );
+		vertex[0].Set( x, y, metrics.tx0, metrics.ty0 );
+		vertex[1].Set( x, (y+metrics.height), metrics.tx0, metrics.ty1 );
+		vertex[2].Set( x + metrics.width, y+metrics.height, metrics.tx1, metrics.ty1 );
+		vertex[3].Set( x + metrics.width, y, metrics.tx1, metrics.ty0 );
 
 		++p;
 		x += metrics.advance;
@@ -317,7 +331,7 @@ const RenderAtom* TextBox::GetRenderAtom() const
 }
 
 
-void TextBox::Requires( int* indexNeeded, int* vertexNeeded )
+bool TextBox::DoLayout()
 {
 	if ( m_needsLayout ) {
 		float h = m_storage.Height();
@@ -339,13 +353,11 @@ void TextBox::Requires( int* indexNeeded, int* vertexNeeded )
 
 		m_needsLayout = false;
 	}
-
-	*indexNeeded = 0;
-	*vertexNeeded = 0;
+	return false;	// children render, not the textbox
 }
 
 
-void TextBox::Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex )
+void TextBox::Queue( CDynArray< uint16_t > *indexBuf, CDynArray< Gamui::Vertex > *vertexBuf )
 {
 	// does nothing - children draw
 }
@@ -386,13 +398,19 @@ void Image::Init( Gamui* gamui, const RenderAtom& atom, bool foreground )
 
 void Image::SetAtom( const RenderAtom& atom )
 {
-	m_atom = atom;
+	if ( !atom.Equal( m_atom ) ) {
+		m_atom = atom;
+		Modify();
+	}
 }
 
 
 void Image::SetSlice( bool enable )
 {
-	m_slice = enable;
+	if ( enable != m_slice ) {
+		m_slice = enable;
+		Modify();
+	}
 }
 
 
@@ -402,16 +420,9 @@ void Image::SetForeground( bool foreground )
 }
 
 
-void Image::Requires( int* indexNeeded, int* vertexNeeded )
+bool Image::DoLayout()
 {
-	if ( m_slice ) {
-		*indexNeeded = 6*9;
-		*vertexNeeded = 4*9;
-	}
-	else {
-		*indexNeeded = 6;
-		*vertexNeeded = 4;
-	}
+	return true;
 }
 
 
@@ -476,6 +487,7 @@ void TiledImageBase::SetTile( int x, int y, const RenderAtom& atom )
 		m_atom[index] = atom;
 	}
 	*(Mem()+y*CX()+x) = index;
+	Modify();
 }
 
 
@@ -494,20 +506,18 @@ const RenderAtom* TiledImageBase::GetRenderAtom() const
 void TiledImageBase::Clear()														
 { 
 	memset( Mem(), 0, CX()*CY() ); 
+	Modify();
 }
 
-void TiledImageBase::Requires( int* indexNeeded, int* vertexNeeded )
+bool TiledImageBase::DoLayout()
 {
-	int cx = CX();
-	int cy = CY();
-	*indexNeeded = cx*cy*6;
-	*vertexNeeded = cx*cy*4;
+	return true;
 }
 
 
-void TiledImageBase::Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex )
+void TiledImageBase::Queue( CDynArray< uint16_t > *indexBuf, CDynArray< Gamui::Vertex > *vertexBuf )
 {
-	int startVertex = *nVertex;
+	int startVertex = vertexBuf->Size();
 
 	int cx = CX();
 	int cy = CY();
@@ -521,17 +531,12 @@ void TiledImageBase::Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::V
 	for( int j=0; j<cy; ++j ) {
 		for( int i=0; i<cx; ++i ) {
 			if (*mem >= 0 && *mem < MAX_ATOMS && m_atom[*mem].textureHandle ) {
-				index[(*nIndex)++] = *nVertex + 0;
-				index[(*nIndex)++] = *nVertex + 1;
-				index[(*nIndex)++] = *nVertex + 2;
-				index[(*nIndex)++] = *nVertex + 0;
-				index[(*nIndex)++] = *nVertex + 2;
-				index[(*nIndex)++] = *nVertex + 3;
+				Gamui::Vertex* vertex = PushQuad( indexBuf, vertexBuf );
 
-				vertex[(*nVertex)++].Set( x,	y,		m_atom[*mem].tx0, m_atom[*mem].ty1 );
-				vertex[(*nVertex)++].Set( x,	y+dy,	m_atom[*mem].tx0, m_atom[*mem].ty0 );
-				vertex[(*nVertex)++].Set( x+dx, y+dy,	m_atom[*mem].tx1, m_atom[*mem].ty0 );
-				vertex[(*nVertex)++].Set( x+dx, y,		m_atom[*mem].tx1, m_atom[*mem].ty1 );
+				vertex[0].Set( x,	y,		m_atom[*mem].tx0, m_atom[*mem].ty1 );
+				vertex[1].Set( x,	y+dy,	m_atom[*mem].tx0, m_atom[*mem].ty0 );
+				vertex[2].Set( x+dx, y+dy,	m_atom[*mem].tx1, m_atom[*mem].ty0 );
+				vertex[3].Set( x+dx, y,		m_atom[*mem].tx1, m_atom[*mem].ty1 );
 
 				++count;
 			}
@@ -541,7 +546,7 @@ void TiledImageBase::Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::V
 		x = X();
 		y += dy;
 	}
-	ApplyRotation( count*4, &vertex[startVertex] );
+	ApplyRotation( count*4, vertexBuf->Mem() + startVertex );
 }
 
 
@@ -551,29 +556,28 @@ const RenderAtom* Image::GetRenderAtom() const
 }
 
 
-void Image::Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex )
+void Image::Queue( CDynArray< uint16_t > *indexBuf, CDynArray< Gamui::Vertex > *vertexBuf )
 {
 	if ( m_atom.textureHandle == 0 ) {
 		return;
 	}
 
-	int startVertex = *nVertex;
 
 	if (    !m_slice
 		 || ( m_width <= m_atom.srcWidth && m_height <= m_atom.srcHeight ) )
 	{
-		PushQuad( nIndex, index, *nVertex, 0, 1, 2, 0, 2, 3 );
+		Gamui::Vertex* vertex = PushQuad( indexBuf, vertexBuf );
 
 		float x0 = X();
 		float y0 = Y();
 		float x1 = X() + m_width;
 		float y1 = Y() + m_height;
 
-		vertex[(*nVertex)++].Set( x0, y0, m_atom.tx0, m_atom.ty1 );
-		vertex[(*nVertex)++].Set( x0, y1, m_atom.tx0, m_atom.ty0 );
-		vertex[(*nVertex)++].Set( x1, y1, m_atom.tx1, m_atom.ty0 );
-		vertex[(*nVertex)++].Set( x1, y0, m_atom.tx1, m_atom.ty1 );
-		ApplyRotation( 4, &vertex[startVertex] );
+		vertex[0].Set( x0, y0, m_atom.tx0, m_atom.ty1 );
+		vertex[1].Set( x0, y1, m_atom.tx0, m_atom.ty0 );
+		vertex[2].Set( x1, y1, m_atom.tx1, m_atom.ty0 );
+		vertex[3].Set( x1, y0, m_atom.tx1, m_atom.ty1 );
+		ApplyRotation( 4, vertex );
 	}
 	else {
 		float x[4] = { X(), X()+(m_atom.srcWidth*0.5f), X()+(m_width-m_atom.srcWidth*0.5f), X()+m_width };
@@ -588,19 +592,30 @@ void Image::Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* ve
 		float tx[4] = { m_atom.tx0, Mean( m_atom.tx0, m_atom.tx1 ), Mean( m_atom.tx0, m_atom.tx1 ), m_atom.tx1 };
 		float ty[4] = { m_atom.ty1, Mean( m_atom.ty0, m_atom.ty1 ), Mean( m_atom.ty0, m_atom.ty1 ), m_atom.ty0 };
 
+		int base = vertexBuf->Size();
+		Gamui::Vertex* vertex = vertexBuf->PushArr( 16 );
+
 		for( int j=0; j<4; ++j ) {
 			for( int i=0; i<4; ++i ) {
-				vertex[(*nVertex)+j*4+i].Set( x[i], y[j], tx[i], ty[j] );
+				vertex[j*4+i].Set( x[i], y[j], tx[i], ty[j] );
 			}
 		}
+		ApplyRotation( 16, vertex );
+
+		uint16_t* index = indexBuf->PushArr( 6*3*3 );
+		int count=0;
+
 		for( int j=0; j<3; ++j ) {
 			for( int i=0; i<3; ++i ) {
-				PushQuad( nIndex, index, *nVertex, j*4+i, (j+1)*4+i, (j+1)*4+(i+1),
-												   j*4+i, (j+1)*4+(i+1), j*4+(i+1) );
+				index[count++] = base + j*4+i;
+				index[count++] = base + (j+1)*4+i;
+				index[count++] = base + (j+1)*4+(i+1);
+
+				index[count++] = base + j*4+i;
+				index[count++] = base + (j+1)*4+(i+1);
+				index[count++] = base + j*4+(i+1);
 			}
 		}
-		*nVertex += 16;
-		ApplyRotation( 16, &vertex[startVertex] );
 	}
 }
 
@@ -743,6 +758,7 @@ void Button::PositionChildren()
 	m_label[0].SetVisible( Visible() );
 	m_deco.SetVisible( Visible() );
 	m_face.SetVisible( Visible() );
+	// Modify(); don't call let sub-functions check
 }
 
 
@@ -753,23 +769,26 @@ void Button::SetPos( float x, float y )
 	m_deco.SetPos( x, y );
 	m_label[0].SetPos( x, y );
 	m_label[1].SetPos( x, y );
+	// Modify(); don't call let sub-functions check
 }
 
 void Button::SetSize( float width, float height )
 {
 	m_face.SetSize( width, height );
+	// Modify(); don't call let sub-functions check
 }
 
 
 void Button::SetSizeByScale( float sx, float sy )
 {
 	m_face.SetSize( m_face.GetRenderAtom()->srcWidth*sx, m_face.GetRenderAtom()->srcHeight*sy );
+	// Modify(); don't call let sub-functions check
 }
 
 
 void Button::SetText( const char* text )
 {
-	m_label[0].SetText( text );
+	m_label[0].SetText( text );	// calls Modify()
 }
 
 
@@ -777,6 +796,7 @@ void Button::SetText2( const char* text )
 {
 	m_usingText1 = true;
 	m_label[1].SetText( text );
+	Modify();
 }
 
 
@@ -806,6 +826,7 @@ void Button::SetState()
 	m_deco.SetAtom( m_atoms[decoIndex] );
 	m_label[0].SetEnabled( m_enabled );
 	m_label[1].SetEnabled( m_enabled );
+	//Modify(); sub functions should call
 }
 
 
@@ -822,15 +843,14 @@ const RenderAtom* Button::GetRenderAtom() const
 }
 
 
-void Button::Requires( int* indexNeeded, int* vertexNeeded )
+bool Button::DoLayout()
 {
 	PositionChildren();
-	*indexNeeded = 0;
-	*vertexNeeded = 0;
+	return false;	// children render, not this
 }
 
 
-void Button::Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex )
+void Button::Queue( CDynArray< uint16_t > *indexBuf, CDynArray< Gamui::Vertex > *vertexBuf )
 {
 	// does nothing - children draw
 }
@@ -994,27 +1014,30 @@ void DigitalBar::Init(	Gamui* gamui,
 
 void DigitalBar::SetRange( float t0, float t1 )
 {
-	if ( t0 < 0 ) t0 = 0;
-	if ( t0 > 1 ) t1 = 1;
-	if ( t1 < 0 ) t1 = 0;
-	if ( t1 > 1 ) t1 = 1;
+	if ( t0 != m_t0 || t1 != m_t1 ) {
+		if ( t0 < 0 ) t0 = 0;
+		if ( t0 > 1 ) t1 = 1;
+		if ( t1 < 0 ) t1 = 0;
+		if ( t1 > 1 ) t1 = 1;
 
-	t1 = Max( t1, t0 );
+		t1 = Max( t1, t0 );
 
-	m_t0 = t0;
-	m_t1 = t1;
+		m_t0 = t0;
+		m_t1 = t1;
 
-	int index0 = (int)( t0 * (float)m_nTicks + 0.5f );
-	int index1 = (int)( t1 * (float)m_nTicks + 0.5f );
+		int index0 = (int)( t0 * (float)m_nTicks + 0.5f );
+		int index1 = (int)( t1 * (float)m_nTicks + 0.5f );
 
-	for( int i=0; i<index0; ++i ) {
-		m_image[i].SetAtom( m_atom[0] );
-	}
-	for( int i=index0; i<index1; ++i ) {
-		m_image[i].SetAtom( m_atom[1] );
-	}
-	for( int i=index1; i<m_nTicks; ++i ) {
-		m_image[i].SetAtom( m_atom[2] );
+		for( int i=0; i<index0; ++i ) {
+			m_image[i].SetAtom( m_atom[0] );
+		}
+		for( int i=index0; i<index1; ++i ) {
+			m_image[i].SetAtom( m_atom[1] );
+		}
+		for( int i=index1; i<m_nTicks; ++i ) {
+			m_image[i].SetAtom( m_atom[2] );
+		}
+		Modify();
 	}
 }
 
@@ -1058,7 +1081,7 @@ const RenderAtom* DigitalBar::GetRenderAtom() const
 }
 
 
-void DigitalBar::Requires( int* indexNeeded, int* vertexNeeded )
+bool DigitalBar::DoLayout()
 {
 	float x = X();
 	float y = Y();
@@ -1067,12 +1090,11 @@ void DigitalBar::Requires( int* indexNeeded, int* vertexNeeded )
 		m_image[i].SetPos( x, y );
 		x += m_spacing + m_image[i].GetRenderAtom()->srcWidth;
 	}
-	*indexNeeded = 0;
-	*vertexNeeded = 0;
+	return false;
 }
 
 
-void DigitalBar::Queue( int *nIndex, uint16_t* index, int *nVertex, Gamui::Vertex* vertex )
+void DigitalBar::Queue( CDynArray< uint16_t > *indexBuf, CDynArray< Gamui::Vertex > *vertexBuf )
 {
 	// does nothing - children draw
 }
@@ -1082,6 +1104,7 @@ Gamui::Gamui()
 	:	m_itemTapped( 0 ),
 		m_iText( 0 ),
 		m_orderChanged( true ),
+		m_modified( true ),
 		m_itemArr( 0 ),
 		m_nItems( 0 ),
 		m_nItemsAllocated( 0 ),
@@ -1098,6 +1121,7 @@ Gamui::Gamui(	IGamuiRenderer* renderer,
 	:	m_itemTapped( 0 ),
 		m_iText( 0 ),
 		m_orderChanged( true ),
+		m_modified( true ),
 		m_itemArr( 0 ),
 		m_nItems( 0 ),
 		m_nItemsAllocated( 0 )
@@ -1134,7 +1158,7 @@ void Gamui::Add( UIItem* item )
 		m_itemArr = (UIItem**) realloc( m_itemArr, m_nItemsAllocated*sizeof(UIItem*) );
 	}
 	m_itemArr[m_nItems++] = item;
-	m_orderChanged = true;
+	OrderChanged();
 }
 
 
@@ -1151,7 +1175,7 @@ void Gamui::Remove( UIItem* item )
 			break;
 		}
 	}
-	m_orderChanged = true;
+	OrderChanged();
 }
 
 
@@ -1272,59 +1296,68 @@ void Gamui::Render()
 		m_orderChanged = false;
 	}
 
-	int nIndex = 0;
-	int nVertex = 0;
+	if ( m_modified ) {
+		State* state = 0;
 
-	m_iRenderer->BeginRender();
+		m_stateBuffer.Clear();
+		m_indexBuffer.Clear();
+		m_vertexBuffer.Clear();
+
+		for( int i=0; i<m_nItems; ++i ) {
+			UIItem* item = m_itemArr[i];
+			const RenderAtom* atom = item->GetRenderAtom();
+
+			// Requires() does layout / sets child visibility. Can't skip this step:
+			bool needsToRender = item->DoLayout();
+
+			if ( !needsToRender || !item->Visible() || !atom || !atom->textureHandle )
+				continue;
+
+			// Do we need a new state?
+			if (    !state
+				 || atom->renderState   != state->renderState
+				 || atom->textureHandle != state->textureHandle ) 
+			{
+				state = m_stateBuffer.PushArr( 1 );
+				state->vertexStart = m_vertexBuffer.Size();
+				state->indexStart = m_indexBuffer.Size();
+				state->renderState = atom->renderState;
+				state->textureHandle = atom->textureHandle;
+			}
+			item->Queue( &m_indexBuffer, &m_vertexBuffer );
+
+			state->nVertex = (uint16_t)m_vertexBuffer.Size() - state->vertexStart;
+			state->nIndex  = (uint16_t)m_indexBuffer.Size() - state->indexStart;
+		}
+		m_modified = false;
+	}
+
+	if ( m_indexBuffer.Size() >= 65536 || m_vertexBuffer.Size() >= 65536 ) {
+		GAMUIASSERT( 0 );
+		return;
+	}
 
 	const void* renderState = 0;
 	const void* textureHandle = 0;
 
-	for( int i=0; i<m_nItems; ++i ) {
-		UIItem* item = m_itemArr[i];
-		const RenderAtom* atom = item->GetRenderAtom();
+	m_iRenderer->BeginRender();
+	for( int i=0; i<m_stateBuffer.Size(); ++i ) {
+		const State& state = m_stateBuffer[i];
 
-		// Requires() does layout / sets child visibility. Can't skip this step:
-		int indexNeeded=0, vertexNeeded=0;
-		item->Requires( &indexNeeded, &vertexNeeded );
-
-		if ( !item->Visible() || !atom || !atom->textureHandle )
-			continue;
-
-		// flush:
-		if (    nIndex
-			 && ( atom->renderState != renderState || atom->textureHandle != textureHandle ) )
-		{
-			m_iRenderer->Render( renderState, textureHandle, nIndex, &m_indexBuffer[0], nVertex, &m_vertexBuffer[0] );
-			nIndex = nVertex = 0;
+		if ( state.renderState != renderState ) {
+			m_iRenderer->BeginRenderState( state.renderState );
+			renderState = state.renderState;
+		}
+		if ( state.textureHandle != textureHandle ) {
+			m_iRenderer->BeginTexture( state.textureHandle );
+			textureHandle = state.textureHandle;
 		}
 
-		if ( atom->renderState != renderState ) {
-			m_iRenderer->BeginRenderState( atom->renderState );
-			renderState = atom->renderState;
-		}
-		if ( atom->textureHandle != textureHandle ) {
-			m_iRenderer->BeginTexture( atom->textureHandle );
-			textureHandle = atom->textureHandle;
-		}
-
-		if ( nIndex + indexNeeded >= INDEX_SIZE || nVertex + vertexNeeded >= VERTEX_SIZE ) {
-			m_iRenderer->Render( renderState, textureHandle, nIndex, &m_indexBuffer[0], nVertex, &m_vertexBuffer[0] );
-			nIndex = nVertex = 0;
-		}
-		if ( nIndex + indexNeeded <= INDEX_SIZE && nVertex + vertexNeeded <= VERTEX_SIZE ) {
-			item->Queue( &nIndex, m_indexBuffer, &nVertex, m_vertexBuffer );
-		}
-		else {
-			GAMUIASSERT( 0 );	// buffers aren't big enough - stuff won't render.
-		}
+		m_iRenderer->Render(	renderState, 
+								textureHandle, 
+								state.nIndex, &m_indexBuffer[state.indexStart], 
+								state.nVertex, &m_vertexBuffer[0] );
 	}
-	// flush:
-	if ( nIndex ) {
-		m_iRenderer->Render( renderState, textureHandle, nIndex, &m_indexBuffer[0], nVertex, &m_vertexBuffer[0] );
-		nIndex = nVertex = 0;
-	}
-
 	m_iRenderer->EndRender();
 }
 

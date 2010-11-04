@@ -97,14 +97,14 @@ RenderQueue::State* RenderQueue::FindState( const State& state )
 }
 
 
-void RenderQueue::Add( Model* model, const ModelAtom* atom, GPUShader* shader )
+void RenderQueue::Add( Model* model, const ModelAtom* atom, GPUShader* shader, Texture* replaceAllTextures )
 {
 	if ( nItem == MAX_ITEMS ) {
 		GLASSERT( 0 );
 		return;
 	}
 
-	State s0 = { shader, atom->texture, 0 };
+	State s0 = { shader, replaceAllTextures ? replaceAllTextures : atom->texture, 0 };
 
 	State* state = FindState( s0 );
 	if ( !state ) {
@@ -123,7 +123,7 @@ void RenderQueue::Add( Model* model, const ModelAtom* atom, GPUShader* shader )
 
 void RenderQueue::Submit( GPUShader* shader, int mode, int required, int excluded, float bbRotation )
 {
-	GRINLIZ_PERFTRACK	
+	GRINLIZ_PERFTRACK
 
 	for( int i=0; i<nState; ++i ) {
 		for( Item* item = statePool[i].root; item; item=item->next ) 
@@ -134,11 +134,12 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 			if (    ( (required & modelFlags) == required)
 				 && ( (excluded & modelFlags) == 0 ) )
 			{
+				//GRINLIZ_PERFTRACK_NAME( "Submit Inner" )
 				if ( model->IsBillboard() )
 					model->SetRotation( bbRotation );
 
 				if ( !shader ) {
-					GLASSERT( statePool[i].texture == item->atom->texture );
+					//GLASSERT( statePool[i].texture == item->atom->texture );
 					statePool[i].shader->SetTexture0( statePool[i].texture );
 				}
 
@@ -146,6 +147,7 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 				GLASSERT( model );
 
 				if ( mode & MODE_PLANAR_SHADOW ) {
+					GRINLIZ_PERFTRACK_NAME( "Submit Inner-1" )
 					GLASSERT( shader );
 					item->atom->BindPlanarShadow( shader );
 
@@ -163,6 +165,7 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 					shader->PopMatrix( GPUShader::MODELVIEW_MATRIX );
 				}
 				else {
+					GRINLIZ_PERFTRACK_NAME( "Submit Inner-2" )
 					item->atom->Bind( shader ? shader : statePool[i].shader );
 
 					GPUShader* s = statePool[i].shader;
