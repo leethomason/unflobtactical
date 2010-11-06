@@ -1,15 +1,14 @@
 Issues:
 
 Bugs:
-- Android: sound
 - help text
-- Android: UFOActivity rename
 - Initial lander activity
+- Android: sound
+- Android: UFOActivity rename
 - Android: icon
-- add "see into" haypiles. And possibly lander...
-- debug crash logger on device
-- Gamui: better cache. Don't regen / layout if nothing changed.
-- Android: fix the crash logger
+- Android: debug crash logger on device
+- Android: fix the crash logger to handle binary crashes
+- Android: crash logger should send current game
 
 Architecture
 - Map as interface
@@ -43,6 +42,8 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- add "see into" haypiles. And possibly lander...
+- Gamui: better cache. Don't regen / layout if nothing changed.
 - Build in profiler.
 - Android: starting paused incorrect. General way to detect device loss?
 - VBO support
