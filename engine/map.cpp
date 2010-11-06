@@ -49,9 +49,9 @@ const int Map::padArr0[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
 const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] = 
 {
 		// model		open			destroyed	cx, cz	hp			material	pather
-	{	"tree",			0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", 0 },
-	{	"tree2",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0" },
-	{	"tree3",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0" },
+	{	"tree",			0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", true },
+	{	"tree2",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", true },
+	{	"tree3",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", true },
 
 		// model		open			destroyed	cx, cz	hp			flammable	pather visibility
 	{	"farmBed",		0,				0,			2,	2,	HP_MED,		BURN,		"f"	 "0"	},
@@ -61,7 +61,7 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"stonewall_join",0,	"stonewall_unitD",		1,	1,	HP_MED,		0,			"f", "0" },
 	{	"woodfence",	0,				0,			2,	1,	HP_LOW,		FASTBURN,	"44", "00" },
 	{	"oldwell",		0,				0,			1,	1,	HP_MED,		SLOWBURN,	"f", "0" },
-	{	"haypile",		0,				0,			2,	2,	HP_MED,		FASTBURN,	"ffff", "ffff" },
+	{	"haypile",		0,				0,			2,	2,	HP_MED,		FASTBURN,	"ffff", "0000", true },
 	{	"whitepicketfence",	0,			0,			1,	1,	HP_LOW,		FASTBURN,	"1", "0" },
 
 	{	"woodCrnr",		0,				"woodCrnrD",1,	1,	HP_MED,		BURN,		"3", "3" },
@@ -71,7 +71,7 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 
 	// model		open			destroyed	cx, cz	hp			material	pather
 	{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	0,			"1", "1" },
-	{	"ufo_WallCurve4", 0,			0,			4,	4,	INDESTRUCT,	0,			"0002" "0003" "0030" "1300",		// pather
+	{	"ufo_WallCurve4", 0,			0,			4,	4,	INDESTRUCT,	0,			"0002" "0003" "0030" "1300",	// pather
 																					"0002" "0003" "0030" "1300" },	// visibility
 	{	"ufo_DoorCld",	"ufo_DoorOpn",	0,			1,	1,	HP_STEEL,	0,			"0", "1" },
 	{	"ufo_WallInn",	0,				0,			1,	1,	HP_STEEL,	0,			"1", "1" },
@@ -80,13 +80,15 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 		// model		open			destroyed	cx, cz	hp			material	pather
 	{	"lander",		0,				0,			6,	6,	INDESTRUCT,	0,			"00ff00" "00ff00" "ff00ff" "ff00ff" "ff00ff" "ff00ff",
 																					"00ff00" "00ff00" "0f00f0" "0f00f0" "0f00f0" "0f00f0", 
-																					1 },
+																					false,
+																					1 },		// light def
 	{	"guard",		0,				0,			1,  1,  INDESTRUCT, 0,			"0", "0" },
 	{	"scout",		0,				0,			1,  1,  INDESTRUCT, 0,			"0", "0" },
 
-	//	name			open	cx, cz		hp			fl	p	v	lt		x	y		cx  cy	 
-	{	"landerLight",	0,	0,	8, 10,		INDESTRUCT, 0,	0,	0,	0,		-1,	0,		1,	0 },
-	{	"fireLight",	0,	0,	5,	5,		INDESTRUCT, 0,	0,	0,	0,		-2, -2,		10, 0 }
+	// ---------- Lights ------------------------------------
+	//	name			open	cx, cz		hp			fl	p	v	csa		lt		x	y		cx  cy	 
+	{	"landerLight",	0,	0,	8, 10,		INDESTRUCT, 0,	0,	0,	false,	0,		-1,	0,		1,	0 },
+	{	"fireLight",	0,	0,	5,	5,		INDESTRUCT, 0,	0,	0,	false,	0,		-2, -2,		10, 0 }
 };
 
 const int Map::padArr1[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
@@ -126,6 +128,7 @@ Map::Map( SpaceTree* tree )
 	: itemPool( "mapItemPool", sizeof( MapItem ), sizeof( MapItem ) * 200, false )
 {
 	memset( pyro, 0, SIZE*SIZE*sizeof(U8) );
+	memset( obscured, 0, SIZE*SIZE*sizeof(U8) );
 	memset( visMap, 0, SIZE*SIZE );
 	memset( pathMap, 0, SIZE*SIZE );
 	nGuardPos = 0;
@@ -259,6 +262,7 @@ void Map::Clear()
 	debris.Clear();
 
 	memset( pyro, 0, SIZE*SIZE*sizeof(U8) );
+	memset( obscured, 0, SIZE*SIZE*sizeof(U8) );
 	memset( visMap, 0, SIZE*SIZE );
 	memset( pathMap, 0, SIZE*SIZE );
 
@@ -273,10 +277,6 @@ void Map::DrawSeen()
 		return;
 
 	CompositingShader shader;
-
-//	shader.SetVertex( 2, sizeof(mapVertex[0]), mapVertex );
-//	shader.SetTexture0( backgroundTexture, 2, sizeof(mapVertex[0]), mapVertex );	
-//	shader.SetTexture1( lightMapTex, 2, sizeof(mapVertex[0]), mapVertex );
 
 	GPUShader::Stream stream;
 	stream.stride = sizeof( mapVertex[0] );
@@ -319,7 +319,6 @@ void Map::DrawUnseen()
 	shader.SetStream( stream, mapVertex, nUnseenIndex, unseenIndex );
 
 	shader.SetColor( 0, 0, 0 );
-//	shader.SetVertex( 2, sizeof(mapVertex[0]), mapVertex );
 
 	Matrix4 swizzle;
 	swizzle.m11 = 64.0f;
@@ -1066,6 +1065,9 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	GLRELASSERT( mapBounds.min.x >= 0 && mapBounds.max.x < 256 );	// using int8
 	GLRELASSERT( mapBounds.min.y >= 0 && mapBounds.max.y < 256 );	// using int8
 	item->mapBounds8.Set( mapBounds.min.x, mapBounds.min.y, mapBounds.max.x, mapBounds.max.y );
+	
+	if ( itemDef.obscures )
+		ChangeObscured( mapBounds, 1 );
 
 	item->next = 0;
 	item->light = 0;
@@ -1127,6 +1129,8 @@ void Map::DeleteItem( MapItem* item )
 
 	quadTree.UnlinkItem( item );
 	Rectangle2I mapBounds = item->MapBounds();
+	if ( itemDefArr[item->itemDefIndex].obscures )
+		ChangeObscured( mapBounds, -1 );
 
 	// Reset the lights
 	if ( item->IsLight() ) {
@@ -1232,9 +1236,6 @@ void Map::LoadDebris( const TiXmlElement* debrisElement, ItemDef* const* arr )
 
 void Map::Save( FILE* fp, int depth )
 {
-	//GLASSERT( strcmp( mapElement->Value(), "Map" ) == 0 );
-	//mapElement->SetAttribute( "sizeX", width );
-	//mapElement->SetAttribute( "sizeY", height );
 
 	XMLUtil::OpenElement( fp, depth, "Map" );
 	XMLUtil::Attribute( fp, "sizeX", width );
@@ -1242,8 +1243,6 @@ void Map::Save( FILE* fp, int depth )
 	XMLUtil::SealElement( fp );
 
 	if ( !Engine::mapMakerMode ) {
-		//TiXmlElement* pastSeenElement = new TiXmlElement( "Seen" );
-		//mapElement->LinkEndChild( pastSeenElement );
 
 		XMLUtil::OpenElement( fp, depth+1, "Seen" );
 		XMLUtil::SealElement( fp );
@@ -1251,14 +1250,10 @@ void Map::Save( FILE* fp, int depth )
 		char buf[BitArray<Map::SIZE, Map::SIZE, 1>::STRING_SIZE];
 		pastSeenFOW.ToString( buf );
 		XMLUtil::Text( fp, buf );
-		//TiXmlText* pastSeenText = new TiXmlText( buf );
-		//pastSeenElement->LinkEndChild( pastSeenText );
 
 		XMLUtil::CloseElement( fp, depth+1, "Seen" );
 	}
 
-	//TiXmlElement* itemsElement = new TiXmlElement( "Items" );
-	//mapElement->LinkEndChild( itemsElement );
 	XMLUtil::OpenElement( fp, depth+1, "Items" );
 	XMLUtil::SealElement( fp );
 
@@ -1272,45 +1267,27 @@ void Map::Save( FILE* fp, int depth )
 		int x, y, r;
 		WorldToXYR( item->XForm(), &x, &y, &r, true );
 
-		//itemElement->SetAttribute( "x", x );
-		//itemElement->SetAttribute( "y", y );
 		XMLUtil::Attribute( fp, "x", x );
 		XMLUtil::Attribute( fp, "y", y );
 
 		if ( r != 0 )
 			XMLUtil::Attribute( fp, "rot", r );
-			//itemElement->SetAttribute( "rot", r );
-		//itemElement->SetAttribute( "name", itemDefArr[item->itemDefIndex].Name() );
 		XMLUtil::Attribute( fp, "name", itemDefArr[item->itemDefIndex].Name() );
 
 		if ( item->hp != itemDefArr[item->itemDefIndex].hp )
 			XMLUtil::Attribute( fp, "hp", item->hp );
-			//itemElement->SetAttribute( "hp", item->hp );
 		if ( item->flags )
 			XMLUtil::Attribute( fp, "flags", item->flags );
-			//itemElement->SetAttribute( "flags", item->flags );
-		//itemsElement->LinkEndChild( itemElement );
 		XMLUtil::SealCloseElement( fp );
 	}
 	XMLUtil::CloseElement( fp, depth+1, "Items" );
 
-	//TiXmlElement* imagesElement = new TiXmlElement( "Images" );
-	//mapElement->LinkEndChild( imagesElement );
 	XMLUtil::OpenElement( fp, depth+1, "Images" );
 	XMLUtil::SealElement( fp );
 
 	for( int i=0; i<nImageData; ++i ) {
-		//TiXmlElement* imageElement = new TiXmlElement( "Image" );
-		//imagesElement->LinkEndChild( imageElement );
 		XMLUtil::OpenElement( fp, depth+2, "Image" );
 
-		/*
-		imageElement->SetAttribute( "x", imageData[i].x );
-		imageElement->SetAttribute( "y", imageData[i].y );
-		imageElement->SetAttribute( "size", imageData[i].size );
-		imageElement->SetAttribute( "tileRotation", imageData[i].tileRotation );
-		imageElement->SetAttribute( "name", imageData[i].name.c_str() );
-		*/
 		XMLUtil::Attribute( fp, "x", imageData[i].x );
 		XMLUtil::Attribute( fp, "y", imageData[i].y );
 		XMLUtil::Attribute( fp, "size", imageData[i].size );
@@ -1322,9 +1299,6 @@ void Map::Save( FILE* fp, int depth )
 	XMLUtil::CloseElement( fp, depth+1, "Images" );
 
 
-	//TiXmlElement* groundDebrisElement = new TiXmlElement( "GroundDebris" );
-	//mapElement->LinkEndChild( groundDebrisElement );
-
 	XMLUtil::OpenElement( fp, depth+1, "GroundDebris" );
 	XMLUtil::SealElement( fp );
 	for( int i=0; i<debris.Size(); ++i ) {
@@ -1332,8 +1306,6 @@ void Map::Save( FILE* fp, int depth )
 	}
 	XMLUtil::CloseElement( fp, depth+1, "GroundDebris" );
 
-	//TiXmlElement* pyroGroupElement = new TiXmlElement( "PyroGroup" );
-	//mapElement->LinkEndChild( pyroGroupElement );
 	XMLUtil::OpenElement( fp, depth+1, "PyroGroup" );
 	XMLUtil::SealElement( fp );
 	for( int i=0; i<SIZE*SIZE; ++i ) {
@@ -1341,13 +1313,6 @@ void Map::Save( FILE* fp, int depth )
 			int y = i / SIZE;
 			int x = i - SIZE*y;
 
-			/*TiXmlElement* ele = new TiXmlElement( "Pyro" );
-			pyroGroupElement->LinkEndChild( ele );
-			ele->SetAttribute( "x", x );
-			ele->SetAttribute( "y", y );
-			ele->SetAttribute( "fire", PyroFire( x, y ) ? 1 : 0 );
-			ele->SetAttribute( "duration", PyroDuration( x, y ) );
-			*/
 			XMLUtil::OpenElement( fp, depth+2, "Pyro" );
 			XMLUtil::Attribute( fp, "x", x );
 			XMLUtil::Attribute( fp, "y", y );
@@ -2161,6 +2126,16 @@ void Map::MapBoundsOfModel( const Model* m, grinliz::Rectangle2I* mapBounds )
 }
 
 
+void Map::ChangeObscured( const grinliz::Rectangle2I& bounds, int delta )
+{
+	for( int y=bounds.min.y; y<=bounds.max.y; ++y ) {
+		for( int x=bounds.min.x; x<=bounds.max.x; ++x ) {
+			obscured[y*SIZE+x] += delta;
+		}
+	}
+}
+
+
 void Map::SetLanderFlight( float normal )
 {
 	landerFlight = Clamp( normal, 0.0f, 1.0f );
@@ -2438,27 +2413,3 @@ void Map::Render( const void* renderState, const void* textureHandle, int nIndex
 
 	gamuiShader.Draw();
 }
-
-/*
-void Map::InitMapLight( int index, const MapLightInit* init )
-{
-	while( init->name ) 
-	{
-		Map::MapItemDef* itemDef = engine->GetMap()->InitItemDef( index );
-		itemDef->Init();
-	
-		GLASSERT( init->x || init->y );
-
-		itemDef->name = init->name;
-		itemDef->lightOffsetX = init->objectX;
-		itemDef->lightOffsetY = init->objectY;
-		itemDef->lightTX = init->x;
-		itemDef->lightTY = init->y;
-		itemDef->cx = init->cx;
-		itemDef->cy = init->cy;
-
-		++init;
-		++index;
-	}
-}
-*/

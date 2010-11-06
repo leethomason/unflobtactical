@@ -68,6 +68,7 @@ struct MapItemDef
 
 	const char* patherStr;
 	const char* visibilityStr;
+	bool obscures;				// obscures, like smoke, haypiles, and trees
 
 	int		lightDef;			// itemdef index of the light associated with this (is auto-created)
 	int		lightOffsetX;		// if light, offset of light origin from model origin
@@ -283,7 +284,7 @@ public:
 	// Smoke from weapons, explosions, effects, etc.
 	void AddSmoke( int x, int y, int subturns );
 	// Returns true if view obscured by smoke, fire, etc.
-	bool Obscured( int x, int y ) const		{ return PyroOn( x, y ) ? true : false; }
+	bool Obscured( int x, int y ) const		{ return ( obscured[y*SIZE+x] | PyroOn( x, y ) ) != 0; }
 	void EmitParticles( U32 deltaTime );
 
 	// Set the path block (does nothing if they are equal.)
@@ -523,6 +524,8 @@ private:
 	bool PyroSmoke( int x, int y ) const	{ return PyroOn( x, y ) && !PyroFire( x, y ); }
 	int PyroDuration( int x, int y ) const	{ return pyro[y*SIZE+x] & 0x7F; }
 
+	void ChangeObscured( const grinliz::Rectangle2I& bounds, int delta );
+
 	grinliz::BitArray<SIZE, SIZE, 1>			pathBlock;	// spaces the pather can't use (units are there)	
 
 	MP_VECTOR<void*>							mapPath;
@@ -549,6 +552,9 @@ private:
 	// bits 0-6:	sub-turns remaining (0-127)		(0x7F)
 	// bit    7:	set: fire, clear: smoke			(0x80)
 	U8 pyro[SIZE*SIZE];
+	// This is a count. As an object (that obscures) is added, this gets added too.
+	// Subtracted back out when the object is removed.
+	U8 obscured[SIZE*SIZE];
 
 	U8									visMap[SIZE*SIZE];
 	U8									pathMap[SIZE*SIZE];

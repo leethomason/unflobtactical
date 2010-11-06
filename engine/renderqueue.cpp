@@ -147,7 +147,7 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 				GLASSERT( model );
 
 				if ( mode & MODE_PLANAR_SHADOW ) {
-					GRINLIZ_PERFTRACK_NAME( "Submit Inner-1" )
+					//GRINLIZ_PERFTRACK_NAME( "Submit Inner-1" )
 					GLASSERT( shader );
 					item->atom->BindPlanarShadow( shader );
 
@@ -165,7 +165,7 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 					shader->PopMatrix( GPUShader::MODELVIEW_MATRIX );
 				}
 				else {
-					GRINLIZ_PERFTRACK_NAME( "Submit Inner-2" )
+					//GRINLIZ_PERFTRACK_NAME( "Submit Inner-2" )
 					item->atom->Bind( shader ? shader : statePool[i].shader );
 
 					GPUShader* s = statePool[i].shader;
