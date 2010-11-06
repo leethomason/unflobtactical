@@ -188,8 +188,8 @@ private:
 	};
 
 	struct LanderAction {
-		U32					startTime;
-		U32					endTime;
+		enum				{ TOTAL_TIME = 1500 };
+		int					timeRemaining;
 	};
 
 	struct Action

@@ -1,8 +1,6 @@
 Issues:
 
 Bugs:
-- help text
-- Initial lander activity
 - Android: sound
 - Android: UFOActivity rename
 - Android: icon
@@ -17,6 +15,7 @@ Features:
 - More items: optical computer for units to enhance vision
 
 TBD:
+- Losing a fight is the equivalent of lander takeoff - need to assign MIAs
 - Android: cap framerate. Don't really need >30
 - check math (again yet again) in PushShootAction()
 - trees show up in the wrong place
@@ -42,6 +41,7 @@ TBD:
 - phat loot / edge of map / exploration
 
 FIXED
+- Initial lander activity
 - add "see into" haypiles. And possibly lander...
 - Gamui: better cache. Don't regen / layout if nothing changed.
 - Build in profiler.
