@@ -559,8 +559,7 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 
 		Action action;
 		action.Init( ACTION_LANDER, 0 );
-		action.type.lander.startTime = game->CurrentTime();
-		action.type.lander.endTime = game->CurrentTime() + 2000;
+		action.type.lander.timeRemaining = LanderAction::TOTAL_TIME;
 		actionStack.Push( action );
 
 		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
@@ -1778,7 +1777,11 @@ int BattleScene::ProcessAction( U32 deltaTime )
 
 			case ACTION_LANDER:
 				{
-					if ( game->CurrentTime() >= action->type.lander.endTime ) {
+					action->type.lander.timeRemaining -= (int)deltaTime;
+					if ( action->type.lander.timeRemaining < 0 )
+						action->type.lander.timeRemaining = 0;
+
+					if ( action->type.lander.timeRemaining == 0 ) {
 						actionStack.Pop();
 						engine->GetMap()->SetLanderFlight( 0 );
 
@@ -1790,8 +1793,8 @@ int BattleScene::ProcessAction( U32 deltaTime )
 						}
 					}
 					else {
-						float flight = (float)(game->CurrentTime() - action->type.lander.startTime) / (float)( action->type.lander.endTime - action->type.lander.startTime );
-						engine->GetMap()->SetLanderFlight( 1.0f - flight );
+						float flight = (float)(action->type.lander.timeRemaining) / (float)(LanderAction::TOTAL_TIME);
+						engine->GetMap()->SetLanderFlight( flight );
 					}
 				}
 				break;

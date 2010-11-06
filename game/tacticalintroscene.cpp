@@ -30,6 +30,7 @@ using namespace gamui;
 TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 {
 	Engine* engine = GetEngine();
+	const Screenport& port = engine->GetScreenport();
 
 	GLOUTPUT(( "TacticalIntroScene screen=%.1f,%.1f\n", engine->GetScreenport().UIWidth(), engine->GetScreenport().UIHeight() ));
 
@@ -52,7 +53,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	newButton.SetText( "New" );
 
 	helpButton.Init( &gamui2D, green );
-	helpButton.SetPos( 430, 220 );
+	helpButton.SetPos( port.UIWidth() - 100, 220 );
 	helpButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_HELP, true ),
 						UIRenderer::CalcDecoAtom( DECO_HELP, false ) );						
 

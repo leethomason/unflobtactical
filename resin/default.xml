@@ -187,7 +187,7 @@
         into oblivion.
       </p>
       <p>
-        Thefollowing screens cover the basics; much more info online
+        The following screens cover the basics; much more info online
         at http://code.google.com/p/unflobtactical/
       </p>
     </page>
@@ -200,8 +200,8 @@
         Right click and drap to zoom and rotate.
       </p>
       <p system="android">
-        UFOAttack supports pinch guestures to zoom and rotate. Using 2 fingers you
-        can rotate and move the view.
+        You can drag the map with your finger, or pinch with 2
+        fingers to zoom. The trackball/wheel also zooms and rotates.
       </p>
     </page>
     <page image="helpImage2">
@@ -211,11 +211,7 @@
       </p>
       <p system="pc">
         The keyboard left/right arrow keys will also select units. control-left/right rotate.
-        Pressing your 'u' key will turn off the control buttons, since they are available
-        on the keyboard.
-      </p>
-      <p system="android">
-        You can also select units by moving the DPAD left or right.
+        Pressing your 'u' key will hide the onscreen UI.
       </p>
     </page>
 
@@ -259,7 +255,7 @@
       <p>[UI Menu]</p>
       <p>
         From top to bottom, the icons are: 1) Abort mission. The lander takes off
-        with whoever is, or isn't, on board. 2) Help - these screens! 3) End turn.
+        with whoever is, or isn't, on board. 2) Help 3) End turn.
         You are done moving and the aliens move. 4) Target a location on the map.
         Tap any location on the map to shoot there. 5) Inventory and character screen.
       </p>
@@ -273,7 +269,7 @@
         selects different units.
       </p>
       <p system="pc">
-        Remember you can also use the keyboard, and press the 'u' key to hide this UI.
+        Remember you can also use the keyboard, and press the 'u' key to hide the control UI.
       </p>
     </page>
 
@@ -297,7 +293,7 @@
       <p>[Reaction fire]</p>
       <p>
         Reaction fire occurs when your units fire at the aliens during
-        the alien’s turn.It is key to an effective defense.
+        the alien’s turn. It is key to an effective defense.
       </p>
       <p>
         For reaction fire to occur, you must have enough TU left over
@@ -305,7 +301,7 @@
       </p>
       <p>
       Rotation greatly impacts reaction fire. Make sure you end your
-      turn facing where you think the aliens are!S
+      turn facing where you think the aliens are hiding!
       </p>
     </page>
 
@@ -326,7 +322,8 @@
       <p>
         What the unit is carrying. The top row is in use: the currently worn armor and currently carried
         weapon. You can tap to drop an item, or drag to organize items.</p>
-      <p>For weapons, the total rounds is displayed below the name. For clips, the number of rounds in the clip is displayed.
+      <p>
+        For weapons, the total rounds is displayed below the name. For clips, the number of rounds in the clip is displayed.
       </p>
     </page>
 
@@ -337,7 +334,7 @@
        and Miscellaneous items. Tap to select a tab. Tap an item to pick it up.
       </p>
       <p>
-        The number of items is displayed beneath the item name.
+        The number of items available is displayed beneath the item name.
       </p>
     </page>
 
@@ -345,7 +342,7 @@
       <p>[Stats and Numbers]</p>
       <p> For the number inclined, the lower right buttons show unit stat info.</p>
       <p> 'Inv' is the default inventory screen. 'Stats' shows the unit statistics. 'Comp' compares weapons carried and on the ground, 
-          with buttons to select the range at witch to compare.</p>
+          with buttons to select range.</p>
     </page>
   </text>
 
