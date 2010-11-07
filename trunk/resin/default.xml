@@ -59,10 +59,10 @@
   <model filename="ar3l.ac" />
   <model filename="canon.ac" />
 
-  <data filename="ar.wav" />  <!-- generic AR and pistol -->
-  <data filename="ar3p.wav" />
-  <data filename="ar3l.wav" />
-  <data filename="can.wav" />
+  <data filename="ar.wav"   compress="false" />  <!-- generic AR and pistol -->
+  <data filename="ar3p.wav" compress="false" />
+  <data filename="ar3l.wav" compress="false" />
+  <data filename="can.wav"  compress="false" />
 
   <model filename="ray1.ac" />
   <model filename="ray2.ac" />
@@ -72,12 +72,12 @@
   <model filename="beam.ac" />
   <model filename="nullp.ac" />
 
-  <data filename="ray1.wav" />
-  <data filename="ray2.wav" />
-  <data filename="ray3.wav" />
-  <data filename="plasma.wav" />
-  <data filename="beam.wav" />
-  <data filename="nullp.wav" />
+  <data filename="ray1.wav" compress="false"/>
+  <data filename="ray2.wav" compress="false"/>
+  <data filename="ray3.wav" compress="false"/>
+  <data filename="plasma.wav" compress="false"/>
+  <data filename="beam.wav" compress="false"/>
+  <data filename="nullp.wav" compress="false"/>
   
   <model filename="cellClip.ac" />
   <model filename="shellClip.ac" />
@@ -371,8 +371,7 @@
 
 
     <!-- Sound effects -->
-  <data filename="explosion.wav" />
-  <data filename="blip.wav" />
-  <data filename="hit.wav" />
+  <data filename="explosion.wav" compress="false"/>
+  <data filename="hit.wav" compress="false"/>
 
 </resource>

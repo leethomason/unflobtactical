@@ -117,7 +117,7 @@ void Writer::Save( const char* filename )
 		int compressed = 0;
 		uLongf compressedSize = 0;
 
-		if ( m->size > 20 ) {
+		if ( m->size > 20 && dataPool[i].compressData ) {
 			buffer.resize( m->size*8 / 10 );
 			compressedSize = buffer.size();
 
@@ -233,7 +233,7 @@ void WItem::Attrib::Free()
 }
 
 
-void WItem::SetData( const char* name, const void* d, int nData )
+void WItem::SetData( const char* name, const void* d, int nData, bool useCompression )
 {
 	GLASSERT( name && *name );
 	GLASSERT( d && nData );
@@ -245,6 +245,7 @@ void WItem::SetData( const char* name, const void* d, int nData )
 	a.type = ATTRIBUTE_DATA;
 	a.data = mem;
 	a.dataSize = nData;
+	a.compressData = useCompression;
 
 	data[ name ] = a;
 }
@@ -346,7 +347,7 @@ void WItem::Save(	FILE* fp,
 			case ATTRIBUTE_DATA:
 				{
 					int id = dataPool->size();
-					MemSize m = { a->data, a->dataSize };
+					MemSize m = { a->data, a->dataSize, a->compressData };
 					dataPool->push_back( m );
 					aStruct.dataID = id;
 				}

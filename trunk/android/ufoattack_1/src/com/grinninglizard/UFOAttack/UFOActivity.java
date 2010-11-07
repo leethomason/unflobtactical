@@ -350,6 +350,16 @@ class UFORenderer implements GLSurfaceView.Renderer {
     	//Log.v("UFOJAVA", "onDrawFrame");
     	if ( HasContext() )
     		nativeRender();
+    	
+    	while ( true ) {
+	    	long pop = nativeSoundPop();
+	    	if ( pop == 0 )
+	    		break;
+    		
+	    	int offset = (int)(pop & 0xffffffff);
+	    	int size = (int)((pop>>32) & 0xffffffff);
+    		// Play sound!!
+    	}
     }
     
     public void pause() {
@@ -400,4 +410,6 @@ class UFORenderer implements GLSurfaceView.Renderer {
     
     private static native void nativeZoom( int style, float delta );
     private static native void nativeRotate( float delta );
+    
+    private static native long nativeSoundPop();		// pops the sound, returns the offset(low) & size(high)
 }

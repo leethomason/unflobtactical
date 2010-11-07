@@ -17,6 +17,10 @@
 #include "cgame.h"
 #include "game.h"
 
+#if defined( UFO_WIN32_SDL )
+static const char* winResourcePath = "./res/uforesource.db";
+#endif
+
 #ifdef UFO_IPHONE
 #include <CoreFoundation/CoreFoundation.h>
 #endif
@@ -48,6 +52,7 @@ void* NewGame( int width, int height, int rotation, const char* path )
 
 	Game* game = new Game( width, height, rotation, path );
 	GLOUTPUT(( "NewGame.\n" ));
+
 	return game;
 }
 
@@ -62,6 +67,7 @@ void DeleteGame( void* handle )
 		delete game;
 	}
 }
+
 
 
 void GameResize( void* handle, int width, int height, int rotation ) {
@@ -183,7 +189,7 @@ void PlatformPathToResource( char* buffer, int bufferLen, int* offset, int* leng
 		
 	CFURLGetFileSystemRepresentation( imageURL, true, (unsigned char*)buffer, bufferLen );
 #elif defined( UFO_WIN32_SDL )
-	grinliz::StrNCpy( buffer, "./res/uforesource.db", bufferLen );
+	grinliz::StrNCpy( buffer, winResourcePath, bufferLen );
 	*offset = 0;
 	*length = 0;
 #elif defined (ANDROID_NDK)
@@ -208,18 +214,29 @@ const char* PlatformName()
 }
 
 
+int GamePopSound( void* handle, int* offset, int* size )
+{
+	CheckThread check;
+
+	Game* game = (Game*)handle;
+	bool result = game->PopSound( offset, size );	
+	return (result) ? 1 : 0;
+}
 
 
-void PlayWAVSound( const void* wavFile, int nBytes )
+/*
+void PlayWAVSound( int offset, int nBytes )
 {
 	//GLOUTPUT(( "Wav sound called.\n" ));
 #if defined( UFO_WIN32_SDL )
-	extern void Audio_PlayWav( const void* mem, int size );
+	extern void Audio_PlayWav( const char* path, int offset, int size );
 
-	Audio_PlayWav( wavFile, nBytes );
+	Audio_PlayWav( winResourcePath, offset, nBytes );
+
 #elif defined (ANDROID_NDK)
 	// do nothing for now.
 #else
 #	error UNDEFINED
 #endif
 }
+*/

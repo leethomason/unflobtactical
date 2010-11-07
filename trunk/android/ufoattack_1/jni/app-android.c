@@ -136,27 +136,18 @@ Java_com_grinninglizard_UFOAttack_UFORenderer_nativePause( JNIEnv* env, jobject 
 }
 
 /* Call to render the next GL frame */
-void
-Java_com_grinninglizard_UFOAttack_UFORenderer_nativeRender( JNIEnv*  env )
+void Java_com_grinninglizard_UFOAttack_UFORenderer_nativeRender( JNIEnv*  env )
 {
     long currentClockTime;
 	long delta;
 
-    /* NOTE: if sDemoStopped is TRUE, then we re-render the same frame
-     *       on each iteration.
-     */
-    //if (sDemoStopped) {
-    //    curTime = sTimeStopped + sTimeOffset;
-    //} else {
-    //   curTime = _getTime() + sTimeOffset;
-    //    if (sTimeOffsetInit == 0) {
-    //       sTimeOffsetInit = 1;
-    //        sTimeOffset     = -curTime;
-    //        curTime         = 0;
-    //    }
-		
-	currentClockTime = _getTime();
 	
+	currentClockTime = _getTime();
+
+	// It is very hard to keep track of paused state, so we don't.
+	// If a render comes in, just total up the current time from the
+	// delta time. Cap it in case there was a pause.
+	//
 	delta = currentClockTime - lastClockTime;
 	if ( delta > MAX_TIME_DELTA ) {
 		delta = MAX_TIME_DELTA;
@@ -205,4 +196,17 @@ Java_com_grinninglizard_UFOAttack_UFORenderer_nativeHotKey( JNIEnv* env, jobject
 	if ( game ) {
 		GameHotKey( game, key );
 	}
+}
+
+
+int64_t
+Java_com_grinninglizard_UFOAttack_UFORenderer_nativeSoundPop( JNIEnv* env, jobject thiz )
+{
+	if ( game ) {
+		int offset=0;
+		int size=0;
+		GamePopSound( game, &offset, &size );
+		return ((int64_t)offset) | (((int64_t)size)<<32);
+	}
+	return 0;
 }

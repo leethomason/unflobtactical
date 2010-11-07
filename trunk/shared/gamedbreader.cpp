@@ -481,6 +481,33 @@ int	Item::GetDataSize( const char* name ) const
 }
 
 
+void Item::GetDataInfo( int i, int* offset, int* size, bool* compressed ) const
+{
+	GLASSERT( AttributeType( i ) == ATTRIBUTE_DATA );
+	const AttribStruct* attrib = AttributePtr( i );
+	const Reader* context = Reader::GetContext( this );
+
+	const HeaderStruct* header = (const HeaderStruct*)context->BaseMem();
+	GLASSERT( header->offsetToDataDesc % 4 == 0 );
+
+	const DataDescStruct* dataDescPtr = (const DataDescStruct*)((const U8*)context->BaseMem() + header->offsetToDataDesc);
+	GLASSERT( attrib->dataID >= 0 && attrib->dataID < (int)header->nData );
+	const DataDescStruct& dataDesc = dataDescPtr[attrib->dataID];
+
+	*offset = dataDesc.offset;
+	*size = dataDesc.size;
+	*compressed = ( dataDesc.size != dataDesc.compressedSize );
+}
+
+
+void Item::GetDataInfo( const char* name, int* offset, int* size, bool* compressed ) const
+{
+	int i = AttributeIndex( name );
+	GLASSERT( i >= 0 );
+	GetDataInfo( i, offset, size, compressed );
+}
+
+
 void Item::GetData( int i, void* mem, int memSize ) const
 {
 	GLASSERT( AttributeType( i ) == ATTRIBUTE_DATA );
