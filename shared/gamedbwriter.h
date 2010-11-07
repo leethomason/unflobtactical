@@ -57,8 +57,8 @@ public:
 	/// Get a Child if it exists, create it if the child does not.
 	WItem* FetchChild( const char* name );
 
-	/// Add/Set binary data (or long/unique string). Data is compressed.
-	void SetData( const char* name, const void* data, int nData );
+	/// Add/Set binary data (or long/unique string). Data is compressed by default.
+	void SetData( const char* name, const void* data, int nData, bool compress=true );
 	/// Add/Set a integer attribute.
 	void SetInt( const char* name, int value );
 	/// Add/Set a floating point attribute
@@ -74,6 +74,7 @@ public:
 	struct MemSize {
 		const void* mem;
 		int size;
+		bool compressData;
 	};
 	void Save(	FILE* fp, 
 				const std::vector< std::string >& stringPool, 
@@ -86,10 +87,11 @@ private:
 		void Clear()	{ type=0; data=0; dataSize=0; intVal=0; floatVal=0; stringVal.clear(); }
 		void Free();
 
-		int type;		// ATTRIBUTE_INT, etc.
+		int type;				// ATTRIBUTE_INT, etc.
 		
 		void* data;
 		int dataSize;
+		bool compressData;
 
 		int intVal;
 		float floatVal;

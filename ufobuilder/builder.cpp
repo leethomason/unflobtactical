@@ -250,6 +250,12 @@ void PutPixel(SDL_Surface *surface, int x, int y, U32 pixel)
 
 void ProcessData( TiXmlElement* data )
 {
+	bool compression = true;
+	const char* compress = data->Attribute( "compress" );
+	if ( compress && StrEqual( compress, "false" ) ) {
+		compression = false;
+	}
+
 	string filename;
 	data->QueryStringAttribute( "filename", &filename );
 	string fullIn = inputPath + filename;
@@ -279,11 +285,11 @@ void ProcessData( TiXmlElement* data )
 
 	int index = 0;
 	gamedb::WItem* witem = writer->Root()->FetchChild( "data" )->CreateChild( name.c_str() );
-	witem->SetData( "binary", mem, len );
+	witem->SetData( "binary", mem, len, compression );
 
 	delete [] mem;
 
-	printf( "Data '%s' memory=%dk\n", filename.c_str(), len/1024 );
+	printf( "Data '%s' memory=%dk compression=%s\n", filename.c_str(), len/1024, compression ? "true" : "false" );
 	totalDataMem += len;
 
 	fclose( read );

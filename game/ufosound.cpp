@@ -33,21 +33,67 @@ void SoundManager::QueueSound( const char* name )
 }
 
 
+bool SoundManager::PopSound( int* _offset, int* _size )
+{
+	*_offset = 0;
+	*_size = 0;
+	if ( nSounds == 0 )
+		return false;
+
+	const gamedb::Item* data = database->Root()->Child( "data" );
+
+	const gamedb::Reader* reader = gamedb::Reader::GetContext( data );
+
+	int offset = 0;
+	int size = 0;
+	bool compressed = false;
+
+	const gamedb::Item* sndItem = data->Child( queue[nSounds-1] );
+	GLRELASSERT( sndItem );
+
+	if ( sndItem ) {
+		sndItem->GetDataInfo( "binary", &offset, &size, &compressed );
+		GLRELASSERT( size );
+		GLRELASSERT( !compressed );
+
+		if ( size && !compressed ) {
+			nSounds--;
+			*_offset = offset + reader->OffsetFromStart();
+			*_size = size;
+			return true;
+		}
+	}
+	return false;
+}
+
+
+/*
 void SoundManager::PlayQueuedSounds()
 {
 	if ( nSounds == 0 )
 		return;
 	const gamedb::Item* data = database->Root()->Child( "data" );
 
+	const gamedb::Reader* reader = gamedb::Reader::GetContext( data );
+
+	int offset=0;
+	int size = 0;
+	bool compressed = false;
+
 	for( int i=0; i<nSounds; ++i ) {
 		const gamedb::Item* sndItem = data->Child( queue[i] );
-		GLASSERT( sndItem );
-		int size=0;
-		const void* sound = database->AccessData( sndItem, "binary", &size );
-		GLASSERT( sound );
-		if ( sound ) {
-			PlayWAVSound( sound, size );
+		GLRELASSERT( sndItem );
+
+		if ( sndItem ) {
+			sndItem->GetDataInfo( "binary", &offset, &size, &compressed );
+			GLRELASSERT( size );
+			GLRELASSERT( !compressed );
+
+			if ( size && !compressed ) {
+				PlayWAVSound( offset + reader->OffsetFromStart(), size );
+			}
 		}
 	}
 	nSounds = 0;
 }
+*/

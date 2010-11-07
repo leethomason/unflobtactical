@@ -63,7 +63,6 @@ void GameZoom( void* handle, int style, float zoom );
 
 // Relative rotation, in degrees.
 void GameCameraRotate( void* handle, float degrees );
-
 void GameDoTick( void* handle, unsigned int timeInMSec );
 
 #define GAME_HK_NEXT_UNIT				0x0001
@@ -75,10 +74,12 @@ void GameDoTick( void* handle, unsigned int timeInMSec );
 #define GAME_HK_TOGGLE_DEBUG_TEXT		0x0040
 void GameHotKey( void* handle, int mask );
 
+int GamePopSound( void* handle, int* offset, int* size );	// returns 1 if a sound was available
+
 // --- Core to platform --- //
 void PlatformPathToResource( char* buffer, int bufferLen, int* offset, int* length );
 const char* PlatformName();
-void PlayWAVSound( const void* wavFile, int nBytes );
+//void PlayWAVSound( int offset, int nBytes );
 
 // ----------------------------------------------------------------
 // Debugging and adjustment

@@ -152,6 +152,8 @@ public:
 	void Save();
 	void Save( FILE* fp );
 
+	bool PopSound( int* offset, int* size );
+
 	const gamedb::Reader* GetDatabase()	{ return database; }
 
 	enum {

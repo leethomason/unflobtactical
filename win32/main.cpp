@@ -446,6 +446,11 @@ int main( int argc, char **argv )
 
 				GameDoTick( game, SDL_GetTicks() );
 				SDL_GL_SwapBuffers();
+
+				int size=0, offset=0;
+				while ( GamePopSound( game, &offset, &size ) ) {
+					Audio_PlayWav( "./res/uforesource.db", offset, size );
+				}
 			};
 
 			default:

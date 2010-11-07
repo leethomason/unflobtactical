@@ -1,8 +1,10 @@
 #ifndef UFOATTACK_AUDIO_INCLUDED
 #define UFOATTACK_AUDIO_INCLUDED
 
+#include <stdio.h>
+
 void Audio_Init();
-void Audio_PlayWav( const void* mem, int size );
+void Audio_PlayWav( const char* path, int offset, int size );
 void Audio_Close();
 
 

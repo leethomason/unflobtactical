@@ -6,6 +6,7 @@
 
 SDL_AudioSpec audioSpec;
 bool audioOpen = false;
+static SDL_RWops* fp = 0;
 
 
 #define NUM_SOUNDS 4
@@ -66,12 +67,24 @@ void Audio_Close()
 			free( sounds[i].data );
 		}
 	}
+	if ( fp ) {
+		SDL_FreeRW( fp );
+		fp = 0;
+	}
 }
 
 
-void Audio_PlayWav( const void* mem, int size )
+void Audio_PlayWav( const char* filename, int offset, int size )
 {
 	if ( !audioOpen )
+		return;
+
+
+	if ( !fp ) {
+		fp = SDL_RWFromFile( filename, "rb" );
+		GLASSERT( fp );
+	}
+	if ( !fp )
 		return;
 
     SDL_AudioSpec wave;
@@ -102,13 +115,20 @@ void Audio_PlayWav( const void* mem, int size )
     if ( index == NUM_SOUNDS )
         return;	// no empty slot
 
-	SDL_RWops* fp = SDL_RWFromConstMem( mem, size );
-	if ( !SDL_LoadWAV_RW( fp, 0, &wave, &data, &len ) )
-	{
-		SDL_FreeRW( fp );
+	SDL_RWseek( fp, offset, RW_SEEK_SET );
+	if ( !SDL_LoadWAV_RW( fp, false, &wave, &data, &len ) ) {
 		GLASSERT( 0 );
 		return;
 	}
+
+	//SDL_RWops* fp = SDL_RWFromConstMem( mem, size );
+	//if ( !SDL_LoadWAV_RW( fp, 0, &wave, &data, &len ) )
+	//{
+	//	SDL_FreeRW( fp );
+	//	GLASSERT( 0 );
+	//	return;
+	//}
+
 
     SDL_BuildAudioCVT(&cvt, wave.format, wave.channels, wave.freq,
 							audioSpec.format, audioSpec.channels, audioSpec.freq );
@@ -118,7 +138,6 @@ void Audio_PlayWav( const void* mem, int size )
     cvt.len = len;
     SDL_ConvertAudio(&cvt);
     SDL_FreeWAV(data);
-	SDL_FreeRW( fp );
 
 	SDL_LockAudio();
 	{

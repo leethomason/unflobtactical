@@ -68,8 +68,19 @@ public:
 	/// Return the type of the attribute (ATTRIBUTE_DATA, etc.)
 	int AttributeType( const char* ) const; 
 
-	int			GetDataSize( int i ) const;			/// Returns size of an ATTRIBUTE_DATA, -1 or failure.
-	int			GetDataSize( const char* ) const;	/// Returns size of an ATTRIBUTE_DATA, -1 or failure.
+	int			GetDataSize( int i ) const;			///< Returns size of an ATTRIBUTE_DATA, -1 or failure.
+	int			GetDataSize( const char* ) const;	///< Returns size of an ATTRIBUTE_DATA, -1 or failure.
+
+	/** Returns an offset to the raw (possibly compressed) data. NOTE, this is
+		past the end of the memory loaded, so this is an offset and size into
+		the file.
+	*/
+	void		GetDataInfo( int i, int* offset, int* size, bool* compressed ) const;		
+	/** Returns an offset to the raw (possibly compressed) data. NOTE, this is
+		past the end of the memory loaded, so this is an offset and size into
+		the file.
+	*/
+	void		GetDataInfo( const char*, int* offset, int* size, bool* compressed ) const;
 
 	/** Copies uncompressed data to 'mem'. 'memSize' must match the value from GetDataSize() */
 	void		GetData( int i, void* mem, int memSize ) const;			
@@ -79,17 +90,17 @@ public:
 	int			GetDataID( int i ) const;
 	int			GetDataID( const char* ) const;
 
-	int			GetInt( int i ) const;			/// Returns value of an ATTRIBUTE_INT
-	int			GetInt( const char* ) const;	/// Returns value of an ATTRIBUTE_INT
+	int			GetInt( int i ) const;			///< Returns value of an ATTRIBUTE_INT
+	int			GetInt( const char* ) const;	///< Returns value of an ATTRIBUTE_INT
 
-	float		GetFloat( int i ) const;		/// Returns value of an ATTRIBUTE_FLOAT
-	float		GetFloat( const char* ) const;	/// Returns value of an ATTRIBUTE_FLOAT
+	float		GetFloat( int i ) const;		///< Returns value of an ATTRIBUTE_FLOAT
+	float		GetFloat( const char* ) const;	///< Returns value of an ATTRIBUTE_FLOAT
 
-	const char*	GetString( int i ) const;		/// Returns value of an ATTRIBUTE_STRING
-	const char*	GetString( const char* ) const;	/// Returns value of an ATTRIBUTE_STRING
+	const char*	GetString( int i ) const;		///< Returns value of an ATTRIBUTE_STRING
+	const char*	GetString( const char* ) const;	///< Returns value of an ATTRIBUTE_STRING
 
-	bool		GetBool( int i ) const;			/// Returns value of an ATTRIBUTE_BOOL
-	bool		GetBool( const char* ) const;	/// Returns value of an ATTRIBUTE_BOOL
+	bool		GetBool( int i ) const;			///< Returns value of an ATTRIBUTE_BOOL
+	bool		GetBool( const char* ) const;	///< Returns value of an ATTRIBUTE_BOOL
 
 private:
 	Item();
@@ -144,6 +155,8 @@ public:
 	const void* AccessData( const Item* item, const char* name, int* size=0 ) const;
 
 	const void* BaseMem() const					{ return mem; }
+	int OffsetFromStart() const					{ return offset; }	///< Offset from the start of the file (passed in)
+
 	const char* GetString( int id ) const;
 	int GetStringID( const char* str ) const;
 

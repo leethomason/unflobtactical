@@ -496,7 +496,7 @@ void Game::DoTick( U32 _currentTime )
 				scene->RenderGamui2D();
 			}
 		}
-		SoundManager::Instance()->PlayQueuedSounds();
+//		SoundManager::Instance()->PlayQueuedSounds();
 	}
 
 	const int Y = 305;
@@ -562,6 +562,12 @@ void Game::DoTick( U32 _currentTime )
 	++currentFrame;
 
 	PushPopScene();
+}
+
+
+bool Game::PopSound( int* offset, int* size )
+{
+	return SoundManager::Instance()->PopSound( offset, size );
 }
 
 
