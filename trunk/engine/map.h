@@ -82,7 +82,7 @@ struct MapItemDef
 	const ModelResource* GetDestroyedResource() const;
 
 	U32 Pather( int x, int y ) const {
-		GLRELASSERT( x < cx && y < cy );
+		GLRELASSERT( x >= 0 && y >= 0 && x < cx && y < cy );
 		
 		if ( !patherStr )
 			return 0;
@@ -91,13 +91,7 @@ struct MapItemDef
 		GLASSERT( strlen( visibilityStr ) == cx*cy );
 
 		const char c = *(patherStr + y*cx + x );
-		U32 result = 0;
-		if ( c >= 'a' )
-			result =  c - 'a' + 10;
-		else
-			result = c - '0';
-		GLRELASSERT( result >= 0 && result < 16 );
-		return result;
+		return grinliz::HexLowerCharToInt( c );
 	}
 
 	U32 Visibility( int x, int y ) const 
@@ -110,13 +104,7 @@ struct MapItemDef
 		GLASSERT( strlen( visibilityStr ) == cx*cy );
 
 		const char c = *(visibilityStr + y*cx + x );
-		U32 result = 0;
-		if ( c >= 'a' )
-			result =  c - 'a' + 10;
-		else
-			result = c - '0';
-		GLRELASSERT( result >= 0 && result < 16 );
-		return result;
+		return grinliz::HexLowerCharToInt( c );
 	}
 
 	// return true if the object can take damage
@@ -161,7 +149,7 @@ public:
 		};
 
 		U8			open;
-		U8			itemDefIndex;	// 0: not in use, >0 is the index
+		U8			itemDefIndex;	
 		U8			modelRotation;
 		U16			hp;
 		U16			flags;
@@ -209,7 +197,7 @@ public:
 		}
 		float ModelRot() const { return (float)(modelRotation*90); }
 
-		bool InUse() const			{ return itemDefIndex > 0; }
+		//bool InUse() const			{ return itemDefIndex > 0; }
 		bool IsLight() const		{ return flags & MI_IS_LIGHT; }
 
 		// returns true if destroyed
@@ -297,7 +285,6 @@ public:
 	const Storage* GetStorage( int x, int y ) const;		//< take a peek
 	void FindStorage( const ItemDef* itemDef, int maxLoc, grinliz::Vector2I* loc, int* numLoc );
 
-	//MapItemDef* InitItemDef( int i );
 	const char* GetItemDefName( int i );
 	const MapItemDef* GetItemDef( const char* name );
 
@@ -462,7 +449,12 @@ private:
 	void SetLightMaps( const Surface* day, const Surface* night, int x, int y, int tileRotation );
 
 	int GetPathMask( ConnectionType c, int x, int z );
-	bool Connected( ConnectionType c, int x, int y, int dir );
+	bool Connected4( ConnectionType c, 
+					 const grinliz::Vector2<S16>& from,
+					 const grinliz::Vector2<S16>& delta );
+	bool Connected8( ConnectionType c, 
+					 const grinliz::Vector2<S16>& from,
+					 const grinliz::Vector2<S16>& delta );
 
 	void StateToVec( const void* state, grinliz::Vector2<S16>* vec ) { *vec = *((grinliz::Vector2<S16>*)&state); }
 	void* VecToState( const grinliz::Vector2<S16>& vec )			 { return (void*)(*(int*)&vec); }

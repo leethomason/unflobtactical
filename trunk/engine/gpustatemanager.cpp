@@ -3,6 +3,7 @@
 #include "texture.h"
 #include "enginelimits.h"
 #include "../gamui/gamui.h"	// for auto setting up gamui stream
+#include "../grinliz/glperformance.h"
 
 /*static*/ GPUVertexBuffer GPUVertexBuffer::Create( const Vertex* vertex, int nVertex )
 {
@@ -105,7 +106,7 @@ bool GPUShader::SupportsVBOs()
 {
 	if ( vboSupport == 0 ) {
 		const char* extensions = (const char*)glGetString( GL_EXTENSIONS );
-		const char* vbo = strstr( extensions, "vertex_buffer_object" );
+		const char* vbo = strstr( extensions, "ARB_vertex_buffer_object" );
 		vboSupport = (vbo) ? 1 : -1;
 	}
 	return (vboSupport > 0);
@@ -165,6 +166,7 @@ void GPUShader::ResetState()
 //static 
 void GPUShader::SetState( const GPUShader& ns )
 {
+	GRINLIZ_PERFTRACK
 	CHECK_GL_ERROR;
 	GLASSERT( ns.stream.stride > 0 );
 
@@ -424,9 +426,9 @@ GPUShader::~GPUShader()
 
 void GPUShader::Draw()	// int index, const uint16_t* elements )
 {
-	if ( !indexPtr )
-		int debug=1;
-
+	GRINLIZ_PERFTRACK
+	if ( nIndex == 0 )
+		return;
 	GLASSERT( nIndex % 3 == 0 );
 
 	trianglesDrawn += nIndex / 3;
@@ -454,8 +456,8 @@ void GPUShader::Draw()	// int index, const uint16_t* elements )
 		SetState( *this );
 
 #if defined( _MSC_VER )
-		GLASSERT( glIsBuffer( vertexBuffer ) );
-		GLASSERT( glIsBuffer( indexBuffer ) );
+		//GLASSERT( glIsBuffer( vertexBuffer ) );
+		//GLASSERT( glIsBuffer( indexBuffer ) );
 		
 		GLASSERT( glIsEnabled( GL_VERTEX_ARRAY ) );
 		GLASSERT( !glIsEnabled( GL_COLOR_ARRAY ) );
@@ -701,17 +703,16 @@ void LightShader::SetLightParams() const
 	CHECK_GL_ERROR;
 }
 
+/* static */ int PointParticleShader::particleSupport = 0;
 
 /*static*/ bool PointParticleShader::IsSupported()
 {
-#if defined( _MSC_VER )
-	return (GLEW_ARB_point_sprite) ? true : false;
-#elif defined( USING_ES )
-	return false;				// FIXME This should totally be working. Need decent detection. (works on device but not emulator?)
-#else
-	GLASSERT( 0 );	// nothing wrong with this code path; just unexpected. Check that logic is correct and remove assert.
-	return false;
-#endif
+	if ( particleSupport == 0 ) {
+		const char* extensions = (const char*)glGetString( GL_EXTENSIONS );
+		const char* sprite = strstr( extensions, "point_sprite" );
+		particleSupport = (sprite) ? 1 : -1;
+	}
+	return ( particleSupport > 0);
 }
 
 

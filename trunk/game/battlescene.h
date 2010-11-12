@@ -237,9 +237,11 @@ private:
 	int ProcessActionHit( Action* action );	
 	bool ProcessActionCameraBounds( U32 deltaTime, Action* action );
 	
-	grinliz::Rectangle2F InsetBounds();
+	grinliz::Rectangle2F CalcInsetUIBounds();
 
 	void OrderNextPrev();
+	// Returns true if the EndCondition is met (which also means
+	// the TacticalEndSceneData has been set.)
 	bool EndCondition( TacticalEndSceneData* data );
 
 	void StopForNewTeamTarget();
@@ -269,11 +271,9 @@ private:
 	void TestHitTesting();
 	void TestCoordinates();
 
-	bool rotationUIOn;
-	bool nextUIOn;
-
 	Unit* UnitFromModel( Model* m, bool useWeaponModel=false );
 	Unit* GetUnitFromTile( int x, int z );
+
 	bool HandleIconTap( const gamui::UIItem* item );
 	void HandleNextUnit( int bias );
 	void HandleRotation( float bias );
@@ -282,7 +282,7 @@ private:
 
 	struct Selection
 	{
-		Selection()	{ Clear(); }
+		Selection()			{ Clear(); }
 		void Clear()		{ soldierUnit = 0; targetUnit = 0; targetPos.Set( -1, -1 ); }
 		void ClearTarget()	{ targetUnit = 0; targetPos.Set( -1, -1 ); }
 		bool FireMode()		{ return targetUnit || (targetPos.x >= 0 && targetPos.y >= 0 ); }
@@ -321,17 +321,16 @@ private:
 	Unit*			  dragUnit;
 	grinliz::Vector2I dragUnitDest;
 
-	int		initZoomDistance;
-	float	initZoom;
-	
+	//int		initZoomDistance;
+	//float	initZoom;
 	//grinliz::Vector3F orbitPole;
 	//float	orbitStart;
 
-	enum {
-		UIM_NORMAL,			// normal click and move
-		UIM_TARGET_TILE,	// special target abitrary tile mode
-		UIM_FIRE_MENU		// fire menu is up
-	};
+//	enum {
+//		UIM_NORMAL,			// normal click and move
+//		UIM_TARGET_TILE,	// special target abitrary tile mode
+//		UIM_FIRE_MENU		// fire menu is up
+//	};
 
 	UIRenderer	uiRenderer;
 

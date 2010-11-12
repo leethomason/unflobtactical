@@ -1856,29 +1856,36 @@ float Map::LeastCostEstimate( void* stateStart, void* stateEnd )
 }
 
 
-bool Map::Connected( ConnectionType c, int x, int y, int dir )
+bool Map::Connected4(	ConnectionType c, 
+						const grinliz::Vector2<S16>& pos,
+						const grinliz::Vector2<S16>& delta )
 {
-	const Vector2I next[4] = {
-		{ 0, 1 },
-		{ 1, 0 },
-		{ 0, -1 },
-		{ -1, 0 } 
-	};
+///	const Vector2I next[4] = {
+//		{ 0, 1 },
+//		{ 1, 0 },
+//		{ 0, -1 },
+//		{ -1, 0 } 
+//	};
+//	GLRELASSERT( dir >= 0 && dir < 4 );
 
-	GLRELASSERT( dir >= 0 && dir < 4 );
-	GLRELASSERT( x >=0 && x < SIZE );
-	GLRELASSERT( y >=0 && y < SIZE );
+	static const int dirArr[9] = {  0, 2, 0,
+									3, 0, 1,
+									0, 0, 0 };
+	const int index = (delta.x+1) + (delta.y+1)*3;
+	// This method only checks in the 4 directions.
+	GLASSERT( index == 1 || index == 3 || index == 5 || index == 7 );
+	const int dir = dirArr[index];
+	const int bit = 1<<dir;
 
-	int bit = 1<<dir;
-	Vector2I pos = { x, y };
-	Vector2I nextPos = pos + next[dir];
-	Rectangle2I mapBounds = Bounds();
+	const Vector2I nextPos = { pos.x + delta.x, pos.y + delta.y };
+	const Rectangle2I mapBounds = Bounds();
+	GLASSERT( pos.x >= 0 && pos.x <= mapBounds.max.x && pos.y >= 0 && pos.y <= mapBounds.max.y );
 
 	// To be connected, it must be clear from a->b and b->a
-	if ( mapBounds.Contains( pos ) && mapBounds.Contains( nextPos ) ) {
-		int mask0 = GetPathMask( c, pos.x, pos.y );
-		int maskN = GetPathMask( c, nextPos.x, nextPos.y );
-		int inv = InvertPathMask( bit );
+	if ( mapBounds.Contains( nextPos ) ) {
+		const int mask0 = GetPathMask( c, pos.x, pos.y );
+		const int maskN = GetPathMask( c, nextPos.x, nextPos.y );
+		const int inv   = InvertPathMask( bit );
 
 		if ( (( mask0 & bit ) == 0 ) && (( maskN & inv ) == 0 ) ) {
 			return true;
@@ -1887,6 +1894,34 @@ bool Map::Connected( ConnectionType c, int x, int y, int dir )
 	return false;
 }
 
+
+bool Map::Connected8(	ConnectionType c, 
+						const grinliz::Vector2<S16>& pos,
+						const grinliz::Vector2<S16>& delta )
+{
+	int need8 = delta.x*delta.y;	// if both are set, it is a diagonal
+	if ( need8 ) {
+		const Rectangle2I mapBounds = Bounds();
+		if ( mapBounds.Contains( (int)(pos.x+delta.x), (int)(pos.y+delta.y) )) {
+			const grinliz::Vector2<S16> delta0 = { delta.x, 0 };
+			const grinliz::Vector2<S16> delta1 = { 0, delta.y };
+
+			// If pathing, both directions have to be open. For sight, only one.
+			if ( c == PATH_TYPE ) {
+				return    Connected4( c, pos, delta0 )
+					   && Connected4( c, pos+delta0, delta1 )
+					   && Connected4( c, pos, delta1 )
+					   && Connected4( c, pos+delta1, delta0 );
+			}
+			else {
+				return	  ( Connected4( c, pos, delta0 ) && Connected4( c, pos+delta0, delta1 ))
+					   || ( Connected4( c, pos, delta1 ) && Connected4( c, pos+delta1, delta0 ));
+			}
+		}
+		return false;
+	}
+	return Connected4( c, pos, delta );
+}
 
 void Map::AdjacentCost( void* state, MP_VECTOR< micropather::StateCost > *adjacent )
 {
@@ -1905,35 +1940,27 @@ void Map::AdjacentCost( void* state, MP_VECTOR< micropather::StateCost > *adjace
 		{ -1, 1 },
 	};
 	const float SQRT2 = 1.414f;
-	const float cost[8] = {	1.0f, 1.0f, 1.0f, 1.0f, SQRT2, SQRT2, SQRT2, SQRT2 };
 
 	adjacent->resize( 0 );
 	// N S E W
 	for( int i=0; i<4; i++ ) {
-		if ( Connected( PATH_TYPE, pos.x, pos.y, i ) ) {
+		if ( Connected4( PATH_TYPE, pos, next[i] ) ) {
 			Vector2<S16> nextPos = pos + next[i];
 
 			micropather::StateCost stateCost;
-			stateCost.cost = cost[i];
+			stateCost.cost = 1.0f;
 			stateCost.state = VecToState( nextPos );
 			adjacent->push_back( stateCost );
 		}
 	}
 	// Diagonals. Need to check if all the NSEW connections work. If
 	// so, then the diagonal connection works too.
-	for( int i=0; i<4; i++ ) {
-		int j=(i+1)&3;
-		Vector2<S16> nextPos = pos + next[i+4];
-		int iInv = (i+2)&3;
-		int jInv = (j+2)&3;
-		 
-		if (    Connected( PATH_TYPE, pos.x, pos.y, i ) 
-			 && Connected( PATH_TYPE, pos.x, pos.y, j )
-			 && Connected( PATH_TYPE, nextPos.x, nextPos.y, iInv )
-			 && Connected( PATH_TYPE, nextPos.x, nextPos.y, jInv ) ) 
-		{
+	for( int i=4; i<8; i++ ) {
+		if ( Connected8( PATH_TYPE, pos, next[i] ) ) {
+			Vector2<S16> nextPos = pos + next[i];
+
 			micropather::StateCost stateCost;
-			stateCost.cost = cost[i+4];
+			stateCost.cost = SQRT2;
 			stateCost.state = VecToState( nextPos );
 			adjacent->push_back( stateCost );
 		}
@@ -2057,61 +2084,9 @@ bool Map::CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& q, Connec
 	if ( q.x < 0 || q.x >= SIZE || q.y < 0 || q.y >= SIZE )
 		return false;
 
-	int dx = q.x-p.x;
-	int dy = q.y-p.y;
-	bool canSee = false;
-	int dir0 = -1;
-	int dir1 = -1;
-
-	switch( dy*4 + dx ) {
-		case 4:		// S
-			dir0 = 0;
-			break;
-		case 5:		// SE
-			dir0 = 0;
-			dir1 = 1;
-			break;
-		case 1:		// E
-			dir0 = 1;
-			break;
-		case -3:	// NE
-			dir0 = 1;
-			dir1 = 2;
-			break;
-		case -4:	// N
-			dir0 = 2;
-			break;
-		case -5:	// NW
-			dir0 = 2;
-			dir1 = 3;
-			break;
-		case -1:	// W
-			dir0 = 3;
-			break;
-		case 3:		// SW
-			dir0 = 3;
-			dir1 = 0;
-			break;
-		default:
-			GLRELASSERT( 0 );
-			break;
-	}
-	if ( dir1 == -1 ) {
-		canSee = Connected( connection, p.x, p.y, dir0 );
-	}
-	else {
-		const Vector2I next[4] = {	{ 0, 1 },
-									{ 1, 0 },
-									{ 0, -1 },
-									{ -1, 0 } };
-
-		Vector2I q0 = p+next[dir0];
-		Vector2I q1 = p+next[dir1];
-
-		canSee =  ( Connected( connection, p.x, p.y, dir0 ) && Connected( VISIBILITY_TYPE, q0.x, q0.y, dir1 ) )
-			   || ( Connected( connection, p.x, p.y, dir1 ) && Connected( VISIBILITY_TYPE, q1.x, q1.y, dir0 ) );
-	}
-	return canSee;
+	Vector2<S16> p16 = { p.x, p.y };
+	Vector2<S16> d16 = { q.x-p.x, q.y-p.y };
+	return Connected8( connection, p16, d16 );
 }
 
 
