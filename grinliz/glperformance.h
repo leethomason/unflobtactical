@@ -189,8 +189,8 @@ class Performance
 };
 
 #ifdef GRINLIZ_PROFILE
-	#define GRINLIZ_PERFTRACK static PerformanceData data( __FUNCTION__ ); Performance perf( &data );
-	#define GRINLIZ_PERFTRACK_NAME( x ) static PerformanceData data( x ); Performance perf( &data );
+	#define GRINLIZ_PERFTRACK static grinliz::PerformanceData data( __FUNCTION__ ); grinliz::Performance perf( &data );
+	#define GRINLIZ_PERFTRACK_NAME( x ) static grinliz::PerformanceData data( x ); grinliz::Performance perf( &data );
 #else
 	#define GRINLIZ_PERFTRACK			{}
 	#define GRINLIZ_PERFTRACK_NAME( x )	{}

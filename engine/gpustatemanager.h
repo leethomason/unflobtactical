@@ -272,6 +272,8 @@ public:
 
 class PointParticleShader : public GPUShader
 {
+private:
+	static int particleSupport;
 public:
 	static bool IsSupported();
 

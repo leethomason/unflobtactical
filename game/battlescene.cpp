@@ -48,7 +48,6 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	//GLRELASSERT( 0 );
 	subTurnCount = 0;
 	turnCount = 0;
-	rotationUIOn = nextUIOn = true;
 	isDragging = false;
 
 	engine  = game->engine;
@@ -999,6 +998,16 @@ bool BattleScene::EndCondition( TacticalEndSceneData* data )
 		if ( units[i].IsAlive() )
 			++data->nAliensAlive;
 	}
+
+	// If the terrans are all down for the count, then it acts like the 
+	// lander leaving. KO becomes MIA.
+	if ( data->nTerransAlive == 0 ) {
+		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+			if ( units[i].InUse() )
+				units[i].Leave();
+		}
+	}
+
 	if ( data->nAliensAlive == 0 ||data->nTerransAlive == 0 )
 		return true;
 	return false;
@@ -1136,7 +1145,7 @@ void BattleScene::TestCoordinates()
 }
 
 
-grinliz::Rectangle2F BattleScene::InsetBounds()
+grinliz::Rectangle2F BattleScene::CalcInsetUIBounds()
 {
 	// This should work, but isn't initalized when PushScrollOnScreen
 	// gets called the first time.
@@ -1167,7 +1176,7 @@ void BattleScene::PushScrollOnScreen( const Vector3F& pos, bool center )
 	port.WorldToView( pos, &view );
 	port.ViewToUI( view, &ui );
 
-	Rectangle2F inset = InsetBounds();
+	Rectangle2F inset = CalcInsetUIBounds();
 
 	if ( !inset.Contains( ui ) ) {
 		Vector3F c;
@@ -1609,7 +1618,7 @@ bool BattleScene::ProcessActionCameraBounds( U32 deltaTime, Action* action )
 		const Screenport& port = engine->GetScreenport();
 		port.WorldToUI( action->type.cameraBounds.target, &ui );
 
-		Rectangle2F inset = InsetBounds();
+		Rectangle2F inset = CalcInsetUIBounds();
 		if ( action->type.cameraBounds.center ) {
 			Vector2F center = inset.Center();
 			inset.min = center;
@@ -2106,10 +2115,15 @@ void BattleScene::HandleHotKeyMask( int mask )
 		HandleRotation( -45.f );
 	}
 	if ( mask & GAME_HK_TOGGLE_ROTATION_UI ) {
-		rotationUIOn = !rotationUIOn;
+		bool visible = !controlButton[ROTATE_CCW_BUTTON].Visible();
+		controlButton[ROTATE_CCW_BUTTON].SetVisible( visible );
+		controlButton[ROTATE_CW_BUTTON].SetVisible( visible );
 	}
 	if ( mask & GAME_HK_TOGGLE_NEXT_UI ) {
-		nextUIOn = !nextUIOn;
+		bool visible = !controlButton[NEXT_BUTTON].Visible();
+		controlButton[NEXT_BUTTON].SetVisible( visible );
+		controlButton[PREV_BUTTON].SetVisible( visible );
+
 	}
 }
 
@@ -2261,7 +2275,6 @@ void BattleScene::SceneResult( int sceneID, int result )
 		// Exit!
 		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 			if ( units[i].InUse() ) {
-				
 				Vector2I v = units[i].Pos();
 				if ( !bounds.Contains( v ) ) {
 					units[i].Leave();
@@ -3150,11 +3163,6 @@ void BattleScene::DrawHUD()
 			targetButton.SetEnabled( true );
 		}
 	
-		controlButton[ROTATE_CCW_BUTTON].SetVisible( rotationUIOn );
-		controlButton[ROTATE_CW_BUTTON].SetVisible( rotationUIOn );
-		controlButton[NEXT_BUTTON].SetVisible( nextUIOn );
-		controlButton[PREV_BUTTON].SetVisible( nextUIOn );
-
 		alienImage.SetVisible( currentTeamTurn == ALIEN_TEAM );
 		const int CYCLE = 5000;
 		float rotation = (float)(game->CurrentTime() % CYCLE)*(360.0f/(float)CYCLE);

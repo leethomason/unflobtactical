@@ -127,6 +127,11 @@ struct Rectangle2
 		return false;
 	}
 
+	bool Contains( T x, T y ) const {
+		Vector2<T> p = { x, y };
+		return Contains( p );
+	}
+
 	/// Merge the rect into this.
 	void DoUnion( const Rectangle2<T>& rect )
 	{
