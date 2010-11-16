@@ -1,6 +1,6 @@
 = UFO Attack =
 
-Updated for build 379.
+Updated for build 490.
 
 Welcome to UFO Attack! UFO Attack is a turned based tactical combat game. It is based on the classic game X-COM, but has been changing as I write it and add new concepts. It's very rewarding to take the game in a bit of a new direction.
 
@@ -26,11 +26,7 @@ The game saves whenever you exit. You can quit at any time and choose "Continue"
 
 == Android ==
 
-In development!
-
-== iPod Version ==
-
-The iPod version is retired, although the code is still in the source tree. Apple's draconian policy has pushed me over the edge. Go Android!
+Now available! The APK file is beta and not signed. It is a very simple and safe application. It does have permission to the use the internet connection to send back the current save game file if it detects a crash.
 
 == PC Version ==
 
