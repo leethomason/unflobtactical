@@ -414,7 +414,8 @@ void Game::Save( FILE* fp )
 		XMLUtil::Attribute( fp, "id", 0 );
 		XMLUtil::SealCloseElement( fp );
 	}
-	sceneStack.Bottom().scene->Save( fp, 1 );
+	if ( !sceneStack.Empty() )
+		sceneStack.Bottom().scene->Save( fp, 1 );
 	
 	XMLUtil::CloseElement( fp, 0, "Game" );
 }
