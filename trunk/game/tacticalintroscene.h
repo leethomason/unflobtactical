@@ -114,7 +114,7 @@ private:
 	BackgroundUI		backgroundUI;
 	gamui::PushButton	continueButton, newButton, helpButton, goButton, seedButton;
 	gamui::TextLabel	terranLabel, alienLabel, timeLabel, seedLabel, scenarioLabel;
-	gamui::ToggleButton	toggles[TOGGLE_COUNT];
+	gamui::ToggleButton	toggles[TOGGLE_COUNT], audioButton;
 };
 
 

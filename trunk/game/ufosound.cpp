@@ -1,6 +1,7 @@
 #include "ufosound.h"
 #include "../grinliz/glstringutil.h"
 #include "cgame.h"
+#include "settings.h"
 
 using namespace grinliz;
 
@@ -23,6 +24,10 @@ void SoundManager::Destroy()
 
 void SoundManager::QueueSound( const char* name )
 {
+	SettingsManager* settings = SettingsManager::Instance();
+	if ( !settings->GetAudioOn() )
+		return;
+
 	if ( nSounds < MAX_QUEUE ) {
 		for( int i=0; i<nSounds; ++i ) {
 			if ( StrEqual( queue[i], name ) )

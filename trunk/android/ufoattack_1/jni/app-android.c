@@ -22,7 +22,7 @@ int androidResourceLen;
 char androidResourcePath[UFO_MAX_PATH];
 char androidSavePath[UFO_MAX_PATH];
 
-extern void GrinlizSetReleaseAssertPath( const char* path );
+//extern void GrinlizSetReleaseAssertPath( const char* path );
 
 static long _getTime(void)
 {
@@ -62,7 +62,7 @@ Java_com_grinninglizard_UFOAttack_UFORenderer_nativeSavePath( JNIEnv* env, jobje
 	}
 
     __android_log_print(ANDROID_LOG_INFO, "UFOAttack", "Save path=%s", androidSavePath );
-	GrinlizSetReleaseAssertPath( androidSavePath );
+	//GrinlizSetReleaseAssertPath( androidSavePath );
 	(*env)->ReleaseStringUTFChars( env, _path, path );
 }
 
@@ -199,7 +199,7 @@ Java_com_grinninglizard_UFOAttack_UFORenderer_nativeHotKey( JNIEnv* env, jobject
 }
 
 
-int64_t
+jlong
 Java_com_grinninglizard_UFOAttack_UFORenderer_nativeSoundPop( JNIEnv* env, jobject thiz )
 {
 	if ( game ) {

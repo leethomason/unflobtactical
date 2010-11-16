@@ -1581,8 +1581,21 @@ const Storage* Map::GetStorage( int x, int y ) const
 void Map::FindStorage( const ItemDef* itemDef, int maxLoc, grinliz::Vector2I* loc, int* numLoc )
 {
 	*numLoc = 0;
+
+	// [Sun, 6:19 pm 	  	Exception version=470 device=passion]
+	// Wasn't handling itemDef being null (no weapon/weapon destroyed)
+
+	// 1st pass: look for re-supply.
 	for( int i=0; i<debris.Size() && *numLoc < maxLoc; ++i ) {
-		if ( debris[i].storage->IsResupply( itemDef->IsWeapon() ) ) {
+		if ( itemDef && debris[i].storage->IsResupply( itemDef->IsWeapon() ) ) {
+			loc[ *numLoc ].Set( debris[i].storage->X(), debris[i].storage->Y() );
+			*numLoc += 1;
+		}
+	}
+
+	// If that failed, look for anything!
+	if ( *numLoc == 0 ) {
+		for( int i=0; i<debris.Size() && *numLoc < maxLoc; ++i ) {
 			loc[ *numLoc ].Set( debris[i].storage->X(), debris[i].storage->Y() );
 			*numLoc += 1;
 		}

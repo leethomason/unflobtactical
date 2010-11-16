@@ -33,10 +33,10 @@ distribution.
 	#endif
 #endif
 
-extern "C" {
-void GrinlizSetReleaseAssertPath( const char* path );
-};
-void GrinlizReleaseAssert( const char* file, int line );
+//extern "C" {
+//void GrinlizSetReleaseAssertPath( const char* path );
+//};
+//void GrinlizReleaseAssert( const char* file, int line );
 
 #if defined(DEBUG)
 	#if defined(_MSC_VER)
@@ -67,7 +67,8 @@ void GrinlizReleaseAssert( const char* file, int line );
 	#endif
 
 	#define GLASSERT( x )		{}
-	#define GLRELASSERT( x )	if ( !(x)) { GrinlizReleaseAssert( __FILE__, __LINE__ ); }
+	// Turned off for now. The error reporting is hard enough.
+	#define GLRELASSERT( x )	{}		/*if ( !(x)) { GrinlizReleaseAssert( __FILE__, __LINE__ ); }*/
 #endif
 
 #if defined(DEBUG)

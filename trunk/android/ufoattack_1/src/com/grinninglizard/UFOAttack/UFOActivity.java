@@ -2,6 +2,7 @@
 package com.grinninglizard.UFOAttack;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.IOException;
 
 import javax.microedition.khronos.egl.EGL;
@@ -11,18 +12,13 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL10;
 
-//import org.metalev.multitouch.controller.*;
-//import org.metalev.multitouch.controller.MultiTouchController.MultiTouchObjectCanvas;
-//import org.metalev.multitouch.controller.MultiTouchController.PointInfo;
-//import org.metalev.multitouch.controller.MultiTouchController.PositionAndScale;
-
 import android.app.Activity;
-import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
+import android.media.MediaPlayer;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
@@ -31,6 +27,9 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
 public class UFOActivity extends Activity  {
+	
+	private AssetFileDescriptor afd = null;
+	public AssetFileDescriptor getAFD() { return afd; }
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +42,7 @@ public class UFOActivity extends Activity  {
         mGLView = new DemoGLSurfaceView(this);
         setContentView(mGLView);
     }
-
+    
      @Override
     protected void onPause() {
     	 Log.v( "UFOATTACK", "Activity onPause" );
@@ -61,6 +60,7 @@ public class UFOActivity extends Activity  {
     protected void onDestroy() {
     	super.onDestroy();
     	mGLView.destroy();
+    	logger.destroy();
     }
     
     private void loadUFOAssets() 
@@ -75,29 +75,30 @@ public class UFOActivity extends Activity  {
 	    }
 	    catch( NameNotFoundException e){}
 	    
-	    try {
+	    //try {
 	    	Resources r = getResources();
-	    	AssetFileDescriptor afd = r.openRawResourceFd( R.raw.uforesource );
+	    	afd = r.openRawResourceFd( R.raw.uforesource );
 	   		long offset = afd.getStartOffset();
 	        long fileSize = afd.getLength();
 	        UFORenderer.nativeResource( apkFilePath, offset, fileSize );
-	        afd.close();
-	    }
-	    catch( IOException e) {
-	    	System.out.println( e.toString() );
-	    }
+	        //afd.close();
+	    //}
+	    //catch( IOException e) {
+	    //	System.out.println( e.toString() );
+	    //}
 	}
     
     private void setWritePaths() 
     {
     	File file = this.getFilesDir();
     	if ( file != null ) {
-    		CrashLogger logger = new CrashLogger( file.getAbsolutePath() );		// send crash logs
+    		logger = new CrashLogger( this, file.getAbsolutePath() );		// send crash logs
     		UFORenderer.nativeSavePath( file.getAbsolutePath() );
     	}
     }
    
     private DemoGLSurfaceView mGLView;
+    private CrashLogger logger = null;
 
     static {
         System.loadLibrary("ufoattack");
@@ -124,18 +125,15 @@ class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener
 
 class DemoGLSurfaceView extends GLSurfaceView { 	//implements MultiTouchObjectCanvas<PinchPlane>  { 
 
-	public DemoGLSurfaceView(Context context) {
-        super(context);
-        mRenderer = new UFORenderer();
+	public DemoGLSurfaceView(UFOActivity ufoActivity) {
+        super(ufoActivity);
+        mRenderer = new UFORenderer( ufoActivity.getAFD().getFileDescriptor() );
         setRenderer(mRenderer);
         
         requestFocusFromTouch();
         setFocusableInTouchMode( true );
         
-        //mScaleDetector = new ScaleGestureDetector(context, new ScaleListener( this ));
-        //mPinchPlane = new PinchPlane();
-        //mMultiTouchController = new MultiTouchController<PinchPlane>(this);
-        mScaleDetector = new ScaleGestureDetector(context, new ScaleListener( this ));
+        mScaleDetector = new ScaleGestureDetector(ufoActivity, new ScaleListener( this ));
     }
 	
 	// @Override
@@ -163,11 +161,6 @@ class DemoGLSurfaceView extends GLSurfaceView { 	//implements MultiTouchObjectCa
 		queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ZOOM, GAME_ZOOM_PINCH, 0, 0, delta ) );
 	}
 
-	//private ScaleGestureDetector mScaleDetector;
-	//private static final int INVALID_POINTER_ID = -1;
-	//private int mActivePointerID = INVALID_POINTER_ID;
-	//private int lastX, lastY;									
-
 	private static final int GAME_TAP_DOWN		= 0;
 	private static final int GAME_TAP_MOVE		= 1;
 	private static final int GAME_TAP_UP		= 2;
@@ -179,14 +172,7 @@ class DemoGLSurfaceView extends GLSurfaceView { 	//implements MultiTouchObjectCa
 	
 	
     private UFORenderer mRenderer;
-    //private PinchPlane mPinchPlane;
-    //private MultiTouchController<PinchPlane> mMultiTouchController;
-    private ScaleGestureDetector mScaleDetector;
-    
-    //private static final int MODE_NONE = 0;
-    //private static final int MODE_ONE  = 1;
-    //private static final int MODE_MULTI = 2;
-	//private int multiMode = MODE_NONE;
+    private ScaleGestureDetector mScaleDetector; 
 	private boolean needToSendUpOrCancel = false;
 	
 	@Override
@@ -323,6 +309,15 @@ final class RendererEvent implements Runnable
  */
 class UFORenderer implements GLSurfaceView.Renderer {
 	
+	private FileDescriptor fd = null;
+	//private MediaPlayer mediaPlayer0 = null;
+	
+	public UFORenderer( FileDescriptor fd ) {
+		super();
+		this.fd = fd;
+		//mediaPlayer0 = new MediaPlayer();
+	}
+	
 	public boolean HasContext() {
         EGL egl = EGLContext.getEGL();
         if ( egl instanceof EGL10 ) {
@@ -359,6 +354,19 @@ class UFORenderer implements GLSurfaceView.Renderer {
 	    	int offset = (int)(pop & 0xffffffff);
 	    	int size = (int)((pop>>32) & 0xffffffff);
     		// Play sound!!
+	    	//Log.v("UFOJAVA", "play sound offest=" + offset + " size=" + size );
+	    	MediaPlayer mediaPlayer0 = new MediaPlayer();
+    		try {
+				mediaPlayer0.setDataSource( fd, offset, size );
+				mediaPlayer0.prepare();
+	    		mediaPlayer0.start();
+			} catch (IllegalArgumentException e) {
+				Log.v("UFOATTACK", "audio playback failed - IllegalArgumentException" );
+			} catch (IllegalStateException e) {
+				Log.v("UFOATTACK", "audio playback failed - IllegalStateException" );
+			} catch (IOException e) {
+				Log.v("UFOATTACK", "audio playback failed - IOException" );
+			}
     	}
     }
     
