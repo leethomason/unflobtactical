@@ -263,6 +263,7 @@ void TacticalIntroScene::Tap(	int action,
 	}
 	else if ( item == &goButton ) {
 		game->loadRequested = 1;
+		game->newGameXML.Clear();
 		WriteXML( &game->newGameXML );
 	}
 	else if ( item == &seedButton ) {
@@ -378,7 +379,7 @@ void TacticalIntroScene::WriteXML( TiXmlNode* xml )
 		gameElement->LinkEndChild( unitElement );
 	}
 
-#if 1
+#if 0
 	{
 		TiXmlDocument* doc = xml->ToDocument();
 		if ( doc ) 

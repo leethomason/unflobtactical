@@ -47,7 +47,7 @@
 #define NEXUS_ONE_SCREEN_WIDTH  480
 #define NEXUS_ONE_SCREEN_HEIGHT  800
 
-#if 1
+#if 0
 static const int SCREEN_WIDTH  = IPOD_SCREEN_WIDTH;
 static const int SCREEN_HEIGHT = IPOD_SCREEN_HEIGHT;
 #else
@@ -644,8 +644,9 @@ void PostCurrentGame()
 								   0 );
 
     // Report errors.
-    if (!bResults)
+    if (!bResults) {
         GLOUTPUT(("Error %d has occurred.\n",GetLastError()));
+	}
 
 	// If we close the handles too soon, it seems like the requests fails. Even though this is being run synchronously...
 	Sleep( 1000 );
