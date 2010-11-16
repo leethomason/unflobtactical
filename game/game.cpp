@@ -37,7 +37,9 @@
 #include "../grinliz/glstringutil.h"
 #include "../tinyxml/tinyxml.h"
 #include "../version.h"
+
 #include "ufosound.h"
+#include "settings.h"
 
 using namespace grinliz;
 
@@ -157,6 +159,7 @@ void Game::Init()
 	ImageManager::Create( database );
 	ModelResourceManager::Create();
 	ParticleSystem::Create();
+	SettingsManager::Create( savePath.c_str() );
 
 	engine = new Engine( &screenport, engineData, database );
 
@@ -179,17 +182,12 @@ void Game::Init()
 Game::~Game()
 {
 	if ( Engine::mapMakerMode ) {
-		//TiXmlDocument doc( mapmaker_xmlFile.c_str() );
-		//TiXmlElement map( "Map" );
-		//doc.InsertEndChild( map );
-
 		FILE* fp = fopen( mapmaker_xmlFile.c_str(), "w" );
 		GLASSERT( fp );
 		if ( fp ) {
 			engine->GetMap()->Save( fp, 0 );
 			fclose( fp );
 		}
-		//doc.SaveFile();
 	}
 
 	// Roll up to the main scene before saving.
@@ -206,6 +204,7 @@ Game::~Game()
 		delete itemDefArr[i];
 	}
 	delete engine;
+	SettingsManager::Destroy();
 	SoundManager::Destroy();
 	ParticleSystem::Destroy();
 	ModelResourceManager::Destroy();

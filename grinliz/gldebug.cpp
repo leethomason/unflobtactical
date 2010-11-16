@@ -283,6 +283,9 @@ void dprintf( const char* format, ... )
 }
 #endif
 
+/*
+Good code...but actually adds uncertainty once the "send current game on crash" system went in.
+
 grinliz::CStr<200> releasePath;
 
 void GrinlizReleaseAssert( const char* file, int line ) 
@@ -315,4 +318,4 @@ extern "C" void GrinlizSetReleaseAssertPath( const char* path )
 	}
 	releasePath += "releaseErrorLog.txt";
 }
-
+*/

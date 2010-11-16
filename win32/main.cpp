@@ -25,11 +25,16 @@
 #include "../game/cgame.h"
 #include "../grinliz/glstringutil.h"
 #include "audio.h"
+#include "../version.h"
 
 // Used for map maker mode - directly call the game object.
 #include "../game/game.h"
 
 #include "wglew.h"
+
+// For error logging.
+#define WINDOWS_LEAN_AND_MEAN
+#include <winhttp.h>
 
 //#define TEST_ROTATION
 //#define TEST_FULLSPEED
@@ -62,6 +67,7 @@ const int rotation = 0;
 #endif
 
 void ScreenCapture( const char* baseFilename );
+void PostCurrentGame();
 
 
 void TransformXY( int x0, int y0, int* x1, int* y1 )
@@ -171,6 +177,31 @@ int main( int argc, char **argv )
 	const unsigned char* version  = glGetString( GL_VERSION );
 
 	GLOUTPUT(( "OpenGL vendor: '%s'  Renderer: '%s'  Version: '%s'\n", vendor, renderer, version ));
+
+#if 0
+	PostCurrentGame();
+#else
+	{
+		// Check for a "didn't crash" file.
+		FILE* fp = fopen( "UFO_Running.txt", "r" );
+		if ( fp ) {
+			fseek( fp, 0, SEEK_END );
+			long len = ftell( fp );
+			if ( len > 1 ) {
+				// Wasn't deleted.
+				PostCurrentGame();
+			}
+			fclose( fp );
+		}
+	}
+	{
+		FILE* fp = fopen( "UFO_Running.txt", "w" );
+		if ( fp ) {
+			fprintf( fp, "Game running." );
+			fclose( fp );
+		}
+	}
+#endif
 
 	Audio_Init();
 
@@ -476,6 +507,13 @@ int main( int argc, char **argv )
 
 	SDL_Quit();
 
+	// Empty the file - quit went just fine.
+	{
+		FILE* fp = fopen( "UFO_Running.txt", "w" );
+		if ( fp )
+			fclose( fp );
+	}
+
 	MemLeakCheck();
 	return 0;
 }
@@ -535,4 +573,86 @@ void ScreenCapture( const char* baseFilename )
 	if ( index < 100 )
 		SDL_SaveBMP( surface, buf );
 	SDL_FreeSurface( surface );
+}
+
+
+void PostCurrentGame()
+{
+	GLOUTPUT(( "Posting current game.\n" ));
+
+    BOOL  bResults = FALSE;
+    HINTERNET hSession = NULL,
+              hConnect = NULL,
+              hRequest = NULL;
+
+    // Use WinHttpOpen to obtain a session handle.
+    hSession = WinHttpOpen(  L"UFO Attack", 
+                             WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+                             WINHTTP_NO_PROXY_NAME, 
+                             WINHTTP_NO_PROXY_BYPASS, 0);
+
+    // Specify an HTTP server.
+    if (hSession)
+        hConnect = WinHttpConnect( hSession, L"www.grinninglizard.com",
+                                   INTERNET_DEFAULT_HTTP_PORT, 0);
+
+    // Create an HTTP Request handle.
+    if (hConnect)
+        hRequest = WinHttpOpenRequest( hConnect, L"POST", 
+                                       L"/collect/server.php", 
+                                       NULL, WINHTTP_NO_REFERER, 
+                                       WINHTTP_DEFAULT_ACCEPT_TYPES, 
+                                       0);
+
+	char buf[32];
+	grinliz::SNPrintf( buf, 32, "version=%d", VERSION );
+
+	std::string data( buf );
+	data += "&device=win32&stacktrace=";
+	FILE* fp = fopen( "currentgame.xml", "r" );
+
+	if ( fp ) {
+		fseek( fp, 0, SEEK_END );
+		long len = ftell( fp );
+		fseek( fp, 0, SEEK_SET );
+
+		char* mem = new char[len+1];
+		fread( mem, 1, len, fp );
+		fclose( fp );
+
+		mem[len] = 0;
+	
+		data += mem;
+		delete [] mem;
+	}
+	else {
+		data += "none";
+	}
+
+    // Send a Request.
+	// BLACKEST VOODOO. Getting this to work: http://social.msdn.microsoft.com/Forums/en/vcgeneral/thread/917e9b99-4b8e-4173-99ad-001fec6a59e2
+	//
+	LPCWSTR additionalHeaders = L"Content-Type: application/x-www-form-urlencoded\r\n";
+	DWORD hLen   = -1;
+
+    bResults = WinHttpSendRequest( hRequest, 
+                                   additionalHeaders,
+                                   hLen, 
+								   (LPVOID)data.c_str(),
+								   data.size(), 
+                                   data.size(), 
+								   0 );
+
+    // Report errors.
+    if (!bResults)
+        GLOUTPUT(("Error %d has occurred.\n",GetLastError()));
+
+	// If we close the handles too soon, it seems like the requests fails. Even though this is being run synchronously...
+	Sleep( 1000 );
+
+    // Close open handles.
+    if (hRequest) WinHttpCloseHandle(hRequest);
+    if (hConnect) WinHttpCloseHandle(hConnect);
+    if (hSession) WinHttpCloseHandle(hSession);
+
 }

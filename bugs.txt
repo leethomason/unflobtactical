@@ -1,12 +1,6 @@
 Issues:
 
 Bugs:
-- Android: sound
-- Android: UFOActivity rename
-- Android: icon
-- Android: debug crash logger on device
-- Android: fix the crash logger to handle binary crashes
-- Android: crash logger should send current game
 
 Architecture
 - Map as interface
@@ -37,8 +31,17 @@ TBD:
 - Reconsider when reaction fire occurs. And probability.
 - performance: AI/Alien turn pauses
 - phat loot / edge of map / exploration
+- lander animation isn't good
 
 FIXED
+- Android: UFOActivity rename
+- Android: icon
+- sound on/off UI
+- Win32: crash reporting
+- Android: sound
+- Android: debug crash logger on device
+- Android: fix the crash logger to handle binary crashes
+- Android: crash logger should send current game
 - Pinching doesn't feel right
 - Losing a fight is the equivalent of lander takeoff - need to assign MIAs
 - Initial lander activity
@@ -204,3 +207,9 @@ Notes w/ Jeff:
 	- flare to AR-2
 - Bug: stuff on ground didn't get saved (!!??)
 - Inventory: filter on? Something to indicate tabs??
+
+Name ideas:
+
+XenoSiege
+XenoWar
+UFO Attack

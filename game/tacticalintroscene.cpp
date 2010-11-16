@@ -23,9 +23,12 @@
 #include "game.h"
 #include "cgame.h"
 #include "helpscene.h"
+#include "settings.h"
+
 
 using namespace grinliz;
 using namespace gamui;
+
 
 TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 {
@@ -55,7 +58,21 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	helpButton.Init( &gamui2D, green );
 	helpButton.SetPos( port.UIWidth() - 100, 220 );
 	helpButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_HELP, true ),
-						UIRenderer::CalcDecoAtom( DECO_HELP, false ) );						
+						UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
+
+	audioButton.Init( &gamui2D, green );
+	audioButton.SetPos( port.UIWidth() - 100, 150 );
+	SettingsManager* settings = SettingsManager::Instance();
+	if ( settings->GetAudioOn() ) {
+		audioButton.SetDown();
+		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_AUDIO, true ),
+							 UIRenderer::CalcDecoAtom( DECO_AUDIO, false ) );	
+	}
+	else {
+		audioButton.SetUp();
+		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_MUTE, true ),
+							 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
+	}
 
 	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "8", "Low", "Med", "Hi", "8", "16", "Low", "Med", "Hi", "Day", "Night", "Farm", "Land", "Crash" };
 	for( int i=0; i<TOGGLE_COUNT; ++i ) {
@@ -239,6 +256,7 @@ void TacticalIntroScene::Tap(	int action,
 		scenarioLabel.SetVisible( true );
 		
 		helpButton.SetVisible( false );
+		audioButton.SetVisible( false );
 	}
 	else if ( item == &continueButton ) {
 		game->loadRequested = 0;
@@ -262,6 +280,19 @@ void TacticalIntroScene::Tap(	int action,
 	}
 	else if ( item == &helpButton ) {
 		game->PushScene( Game::HELP_SCENE, new HelpSceneData("introHelp" ));
+	}
+	else if ( item == &audioButton ) {
+		SettingsManager* settings = SettingsManager::Instance();
+		if ( audioButton.Down() ) {
+			settings->SetAudioOn( true );
+			audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_AUDIO, true ),
+								 UIRenderer::CalcDecoAtom( DECO_AUDIO, false ) );	
+		}
+		else {
+			settings->SetAudioOn( false );
+			audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_MUTE, true ),
+								 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
+		}
 	}
 	if ( game->loadRequested >= 0 ) {
 		game->PopScene();
