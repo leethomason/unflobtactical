@@ -169,7 +169,10 @@ void InventoryWidget::Update()
 
 void InventoryWidget::Tap( const gamui::UIItem* item, int* move )
 {
-	*move = UIItemToIndex( item );
+	if ( item && move ) {
+		// Issue #9
+		*move = UIItemToIndex( item );
+	}
 
 	const UIItem* g0;
 	const UIItem* g1;
