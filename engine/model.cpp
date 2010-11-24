@@ -249,6 +249,8 @@ void Model::SetSkin( int gender, int armor, int appearance )
 	ty0 = float( gender ) / 2.0f;
 	tx1 = float( armor ) / 16.0f;
 
+	GLASSERT( resource->header.nGroups == 2 );
+
 	if ( StrEqual( resource->atom[0].texture->Name(), "characters" ) ) {
 		SetTexXForm( 0, 1, 1, tx0, ty0 );
 		SetTexXForm( 1, 1, 1, tx1, ty1 );

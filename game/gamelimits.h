@@ -67,6 +67,7 @@ static const int	TRAIT_MAX			= 100;
 static const int	TRAIT_RANK_BONUS	= 6;		// how much a trait increases per rank
 static const int	NUM_RANKS			= 5;		// 0-4
 static const int	NUM_ARMOR			= 3;
+static const float  ARM0				= 1.0f;
 static const float	ARM1				= 0.85f;
 static const float	ARM2				= 0.70f;
 static const float	ARM3				= 0.60f;

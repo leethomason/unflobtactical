@@ -175,7 +175,7 @@ private:
 		GENDER,			// 1, 0-1
 		APPEARANCE,		// 4, 0-15
 		LAST_NAME,		// 5, 0-31
-		FIRST_NAME,		// 5, 0-31
+		FIRST_NAME,		// 6, 0-63
 		NUM_TRAITS
 	};
 	U32 GetValue( int which ) const;

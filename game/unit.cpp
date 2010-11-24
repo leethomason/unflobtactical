@@ -23,7 +23,7 @@
 using namespace grinliz;
 
 // Name first name length: 6
-const char* gMaleFirstNames[32] = 
+const char* gMaleFirstNames[64] = 
 {
 	"Lee",		"Jeff",		"Sean",		"Vlad",
 	"Arnold",	"Max",		"Otto",		"James",
@@ -33,10 +33,18 @@ const char* gMaleFirstNames[32] =
 	"Asher",	"Andrew",	"Adam",		"Thane",
 	"Seth",		"Nathan",	"Mal",		"Simon",
 	"Joss",		"Mark",		"Luke",		"Alec",
+	"Robert",	"David",	"Charles",	"Paul",
+	"George",	"Ken",		"Steve",	"Ed",
+	"Brian",	"Ron",		"Tony",		"Kevin",
+	"Gary",		"Jose",		"Scott",	"Josh",
+	"Peter",	"Carl",		"Juan",		"Will",
+	"Aaron",	"Victor",	"Todd",		"Earl",
+	"Manuel",	"Kyle",		"Calvin",	"Leo",
+	"Andre",	"Brad",		"Javier",	"Tyrone"
 };
 
 // Name first name length: 6
-const char* gFemaleFirstNames[32] = 
+const char* gFemaleFirstNames[64] = 
 {
 	"Rayne",	"Anne",		"Jade",		"Suzie",
 	"Greta",	"Lilith",	"Luna",		"Riko",
@@ -45,7 +53,16 @@ const char* gFemaleFirstNames[32] =
 	"Abby",		"Liz",		"Tali",		"Tricia",
 	"Gina",		"Zoe",		"Inara",	"River",
 	"Ellen",	"Asa",		"Kasumi",	"Tia",
-	"Liza",		"Eva",		"Sharon",	"Evie",
+	"Donna",	"Eva",		"Sharon",	"Evie",
+	"Maria",	"Lisa",		"Kim",		"Jessica",
+	"Amy",		"Angela",	"Kate",		"Nicole",
+	"Julia",	"Paula",	"Dawn",		"Juanita",
+	"Alicia",	"Yvonne",	"Vivian",	"Alma",
+	"Vera",		"Heidi",	"Gwen",		"Sonia",
+	"Miriam",	"Violet",	"Misty",	"Claire",
+	"Isabel",	"Iris",		"Amelia",	"Hanna",
+	"Kari",		"Freda",	"Jena",		"Olive"
+
 };
 
 
@@ -73,9 +90,31 @@ const char* gRank[NUM_RANKS] = {
 };
 
 
+struct AlienDef
+{
+	const char* name;
+	float	kinetic;	// armor
+	float	energy;
+	float	incin;
+	int		str;
+	int		dex;
+	int		psy;
+};
+
+static const int NUM_ALIENS = 5;
+
+AlienDef gAlienDef[NUM_ALIENS] = {
+	{ "green",	ARM0, ARM0, ARM0,				30,	60, 50	},
+	{ "prime",	ARM2, ARM3, ARM2,				60, 70, 90  },
+	{ "hornet",	ARM1, ARM2, ARM2,				40, 65, 55  },
+	{ "jackal",	ARM3, ARM2, ARM1,				80, 50, 80  },
+	{ "viper",	ARM2, ARM1, ARM2,				70, 70, 70  }
+};
+
+
 U32 Unit::GetValue( int which ) const
 {
-	const int NBITS[NUM_TRAITS] = { 1, 4, 5, 5 };
+	const int NBITS[NUM_TRAITS] = { 1, 4, 5, 6 };
 
 	int i;
 	U32 shift = 0;
@@ -124,7 +163,6 @@ const char* Unit::Rank() const
 	Vector2I str, dex, psy;
 
 	static const int SOLDIER_MEAN = 50;
-	static const int ALIEN_MEAN = 75;
 	static const int CIV_MEAN = 25;
 	static const int VARIATION = 25;
 
@@ -137,37 +175,9 @@ const char* Unit::Rank() const
 			break;
 
 		case ALIEN_TEAM:
-			{
-				switch( type ) {
-					case 0:
-						// Grey. Similar to human, a little weaker & smarter.
-						str.Set( SOLDIER_MEAN-VARIATION, SOLDIER_MEAN );
-						dex.Set( SOLDIER_MEAN-VARIATION, SOLDIER_MEAN+VARIATION );
-						psy.Set( ALIEN_MEAN-VARIATION, ALIEN_MEAN+VARIATION );
-						break;
-					case 1:
-						// Mind-slayer
-						str.Set( SOLDIER_MEAN-VARIATION, SOLDIER_MEAN );
-						dex.Set( SOLDIER_MEAN-VARIATION, SOLDIER_MEAN+VARIATION );
-						psy.Set( ALIEN_MEAN-VARIATION, ALIEN_MEAN+VARIATION  );
-						break;
-					case 2:
-						// Assault
-						str.Set( ALIEN_MEAN-VARIATION, ALIEN_MEAN+VARIATION  );
-						dex.Set( ALIEN_MEAN-VARIATION, ALIEN_MEAN+VARIATION  );
-						psy.Set( SOLDIER_MEAN-VARIATION, SOLDIER_MEAN );
-						break;
-					case 3:
-						// Elite.
-						str.Set( ALIEN_MEAN-VARIATION, ALIEN_MEAN+VARIATION );
-						dex.Set( ALIEN_MEAN-VARIATION, ALIEN_MEAN+VARIATION );
-						psy.Set( ALIEN_MEAN-VARIATION, ALIEN_MEAN+VARIATION );
-						break;
-					default:
-						GLASSERT( 0 );
-						break;
-				}
-			}
+			str.Set( gAlienDef[type].str, gAlienDef[type].str );
+			dex.Set( gAlienDef[type].dex, gAlienDef[type].dex );
+			psy.Set( gAlienDef[type].psy, gAlienDef[type].psy );
 			break;
 
 		case CIV_TEAM:
@@ -450,15 +460,14 @@ void Unit::DoDamage( const DamageDesc& damage, Map* map )
 	GLASSERT( status != STATUS_NOT_INIT );
 	if ( status == STATUS_ALIVE ) {
 
-		int baseArmor = 0;
+		DamageDesc norm;
 
 		if ( team == ALIEN_TEAM ) {
-			static const int bonus[NUM_ALIEN_TYPES] = { 0, 1, 3, 2 };
-			baseArmor = bonus[ AlienType() ];
+			norm.Set( gAlienDef[AlienType()].kinetic, gAlienDef[AlienType()].energy, gAlienDef[AlienType()].incin );
 		}
-
-		DamageDesc norm;
-		inventory.GetDamageReduction( &norm, baseArmor );
+		else {
+			inventory.GetDamageReduction( &norm );
+		}
 
 		float damageDone = damage.Dot( norm );
 
@@ -498,15 +507,7 @@ void Unit::CreateModel()
 				break;
 
 			case ALIEN_TEAM:
-				{
-					switch( AlienType() ) {
-						case 0:	resource = modman->GetModelResource( "alien0" );	break;
-						case 1:	resource = modman->GetModelResource( "alien1" );	break;
-						case 2:	resource = modman->GetModelResource( "alien2" );	break;
-						case 3:	resource = modman->GetModelResource( "alien3" );	break;
-						default: GLASSERT( 0 );	break;
-					}
-				}
+				resource = modman->GetModelResource( gAlienDef[AlienType()].name );
 				break;
 			
 			default:

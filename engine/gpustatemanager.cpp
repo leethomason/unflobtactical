@@ -144,6 +144,9 @@ void GPUShader::ResetState()
 	glDisable( GL_ALPHA_TEST );
 	glAlphaFunc( GL_GREATER, 0.5f );
 
+	// Ligting
+	glDisable( GL_LIGHTING );
+
 	// Depth
 	glDepthMask( GL_TRUE );
 	glEnable( GL_DEPTH_TEST );
@@ -303,9 +306,11 @@ void GPUShader::SetState( const GPUShader& ns )
 	// Lighting
 	if ( ns.lighting && !current.lighting ) {
 		glEnable( GL_LIGHTING );
+		//GLOUTPUT(( "Lighting on.\n" ));
 	}
 	else if ( !ns.lighting && current.lighting ) {
 		glDisable( GL_LIGHTING );
+		//GLOUTPUT(( "Lighting off.\n" ));
 	}
 
 	// Depth Write
@@ -376,9 +381,12 @@ void GPUShader::SetState( const GPUShader& ns )
 		GLASSERT( current.stream.colorOffset + 4*current.stream.nColor <= current.stream.stride );
 	}
 
-	ASSERT_SAME( current.blend, glIsEnabled( GL_BLEND ) );
-	ASSERT_SAME( current.alphaTest, glIsEnabled( GL_ALPHA_TEST ) );
-	ASSERT_SAME( current.lighting, glIsEnabled( GL_LIGHTING ) );
+	GLboolean blendIsEnabled = glIsEnabled( GL_BLEND );
+	GLboolean alphaTestIsEnabled = glIsEnabled( GL_ALPHA_TEST );
+	GLboolean lightingIsEnabled = glIsEnabled( GL_LIGHTING );
+	ASSERT_SAME( current.blend, blendIsEnabled );
+	ASSERT_SAME( current.alphaTest, alphaTestIsEnabled );
+	ASSERT_SAME( current.lighting, lightingIsEnabled );
 
 	GLboolean param;
 	glGetBooleanv( GL_DEPTH_WRITEMASK, &param );

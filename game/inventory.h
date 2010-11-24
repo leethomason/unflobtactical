@@ -82,8 +82,7 @@ public:
 
 	// Writes to the 3 terms of damage desc as multipliers. 1: full damage from that type, 0: no damage.
 	// Walks the inventory to account for Armor (if worn) and shielding.
-	// 'baseArmor' applies "tough skin" for aliens.
-	void GetDamageReduction( DamageDesc*, int baseArmor );
+	void GetDamageReduction( DamageDesc* );
 
 private:
 
