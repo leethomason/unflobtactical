@@ -23,7 +23,9 @@
 #include "../ufobuilder/modelbuilder.h"
 
 bool ImportAC3D(	const std::string& filename, 
-					ModelBuilder* builder );
+					ModelBuilder* builder,
+					const grinliz::Vector3F origin,
+					const std::string& group );
 
 bool ImportOFF(		const std::string& filename, 
 					ModelBuilder* builder );

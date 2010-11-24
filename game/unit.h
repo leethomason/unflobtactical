@@ -173,10 +173,10 @@ private:
 	// WARNING: change this then change GetValue()
 	enum {	
 		GENDER,			// 1, 0-1
-		HAIR,			// 2, 0-3
-		SKIN,			// 2, 0-3
+		APPEARANCE,		// 4, 0-15
 		LAST_NAME,		// 5, 0-31
 		FIRST_NAME,		// 5, 0-31
+		NUM_TRAITS
 	};
 	U32 GetValue( int which ) const;
 

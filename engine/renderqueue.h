@@ -49,12 +49,11 @@ public:
 	void Add(	Model* model,					// Can be chaned: billboard rotation will be set.
 				const ModelAtom* atom, 
 				GPUShader* shader,
+				const grinliz::Matrix4* textureXForm,
 				Texture* replaceAllTextures );
 
 	enum {
-		//MODE_IGNORE_TEXTURE				= 0x01,		// Ignore textures on all models. Don't set texture state, sort everything to same bucket.
-		//MODE_IGNORE_ALPHA				= 0x02,		// Ignore alpha settings on texture.
-		MODE_PLANAR_SHADOW				= 0x04,		// Do all the fancy tricks to create planar shadows.
+		MODE_PLANAR_SHADOW				= 0x01,		// Do all the fancy tricks to create planar shadows.
 	};
 
 	/* If a shader is passed it, it will override the shader set by the Add. */
@@ -64,9 +63,10 @@ public:
 
 private:
 	struct Item {
-		Model*				model;
-		const ModelAtom*	atom;
-		Item*				next;
+		Model*					model;
+		const ModelAtom*		atom;
+		const grinliz::Matrix4*	textureXForm;
+		Item*					next;
 	};
 
 	struct State {

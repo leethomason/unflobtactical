@@ -9,7 +9,11 @@ Features:
 - More items: optical computer for units to enhance vision
 
 TBD:
+- exposive items
+- civilians: AI, accounting in score
 - Android: cap framerate. Don't really need >30
+- Android: switch to different application mode? Shut down on screen loss?
+- game plays itself? Enhance AI so it can run fully automated?
 - check math (again yet again) in PushShootAction()
 - trees show up in the wrong place
 - add morale
@@ -33,7 +37,20 @@ TBD:
 - phat loot / edge of map / exploration
 - lander animation isn't good
 
+Models
+- crate stacks
+- barrels
+
+Level Design
+- buildings / sheds for farm
+- Destroyer
+- Battleship
+- cityscape
+
 FIXED
+
+
+FIXED [for 490]
 - Android: UFOActivity rename
 - Android: icon
 - sound on/off UI

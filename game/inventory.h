@@ -68,6 +68,8 @@ public:
 	Item* ArmedWeapon();				// null if no weapon ready
 	const Item* ArmedWeapon() const;	// null if no weapon ready
 
+	int GetArmorLevel() const;			// return armor level: 0-3
+
 	void Save( FILE* fp, int depth ) const;
 	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
 

@@ -179,6 +179,24 @@ int Inventory::GetDeco( int s0 ) const
 }
 
 
+int Inventory::GetArmorLevel() const
+{
+	int armor = 0;
+	if ( slots[ARMOR_SLOT].IsArmor() ) {
+		if ( StrEqual( slots[ARMOR_SLOT].Name(), "ARM-1" ) ) {
+			armor = 1;
+		}
+		else if ( StrEqual( slots[ARMOR_SLOT].Name(), "ARM-2" ) ) {
+			armor = 2;
+		}
+		else if ( StrEqual( slots[ARMOR_SLOT].Name(), "ARM-3" ) ) {
+			armor = 3;
+		}
+	}
+	return armor;
+}
+
+
 void Inventory::GetDamageReduction( DamageDesc* dd, int baseArmor )
 {
 	float base = 1.0f;
@@ -199,18 +217,25 @@ void Inventory::GetDamageReduction( DamageDesc* dd, int baseArmor )
 			base = ARM1;
 		}
 	}
-	else if ( slots[ARMOR_SLOT].IsArmor() ) {
-		if ( StrEqual( slots[ARMOR_SLOT].Name(), "ARM-1" ) ) {
+	else {
+		switch ( GetArmorLevel() ) {
+		case 1:
 			base = ARM1;
 			hasArmor = true;
-		}
-		else if ( StrEqual( slots[ARMOR_SLOT].Name(), "ARM-2" ) ) {
+			break;
+
+		case 2:
 			base = ARM2;
 			hasArmor = true;
-		}
-		else if ( StrEqual( slots[ARMOR_SLOT].Name(), "ARM-3" ) ) {
+			break;
+
+		case 3:
 			base = ARM3;
 			hasArmor = true;
+			break;
+
+		default:
+			break;
 		}
 	}
 

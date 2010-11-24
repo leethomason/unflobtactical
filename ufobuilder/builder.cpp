@@ -382,6 +382,14 @@ void ProcessText( TiXmlElement* textEle )
 	}
 }
 
+void StringToVector( const char* str, Vector3F* vec )
+{
+#pragma warning ( push )
+#pragma warning ( disable : 4996 )
+		sscanf( str, "%f %f %f", &vec->x, &vec->y, &vec->z );
+#pragma warning ( pop )
+}
+
 
 void ProcessModel( TiXmlElement* model )
 {
@@ -389,17 +397,26 @@ void ProcessModel( TiXmlElement* model )
 	int nTotalVertex = 0;
 	int startIndex = 0;
 	int startVertex = 0;
-
+	Vector3F origin = { 0, 0, 0 };
 
 	string filename;
 	model->QueryStringAttribute( "filename", &filename );
+	string modelName;
+	model->QueryStringAttribute( "modelName", &modelName );
+	if ( model->Attribute( "origin" ) ) {
+		StringToVector( model->Attribute( "origin" ), &origin );
+	}
 	
 	GLString fullIn = inputPath.c_str(); 
 	fullIn += filename.c_str();
 
 	GLString base, name, extension;
 	grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
-	//string fullOut = outputPath + name + ".mod";
+
+	// If the model name is specified, it is one model in a lineup.
+	// Instead of the filename, use the specified model name.
+	if ( !modelName.empty() )
+		name = modelName.c_str();
 
 	printf( "Model '%s'", name.c_str() );
 
@@ -418,9 +435,10 @@ void ProcessModel( TiXmlElement* model )
 	}
 
 	if ( extension == ".ac" ) {
-		ImportAC3D(	std::string( fullIn.c_str() ), builder );
+		ImportAC3D(	std::string( fullIn.c_str() ), builder, origin, modelName );
 	}
 	else if ( extension == ".off" ) {
+		GLASSERT( modelName.empty() );
 		ImportOFF( std::string( fullIn.c_str() ), builder );
 	}
 	else {
@@ -457,18 +475,17 @@ void ProcessModel( TiXmlElement* model )
 	if ( grinliz::StrEqual( model->Attribute( "shadow" ), "rotate" ) ) {
 		header.flags |= ModelHeader::ROTATE_SHADOWS;
 	}
-//	if ( grinliz::StrEqual( model->Attribute( "origin" ), "upperLeft" ) ) {
-//		header.flags |= ModelHeader::UPPER_LEFT;
-//	}
 	if ( model->Attribute( "trigger" ) ) {
-#pragma warning ( disable : 4996 )
-		sscanf( model->Attribute( "trigger" ), "%f %f %f", &header.trigger.x, &header.trigger.y, &header.trigger.z );
+		StringToVector( model->Attribute( "trigger" ), &header.trigger );
+		header.trigger -= origin;
 	}
 	if ( model->Attribute( "eye" ) ) {
 		model->QueryFloatAttribute( "eye", &header.eye );
+		header.eye -= origin.y;
 	}
 	if ( model->Attribute( "target" ) ) {
 		model->QueryFloatAttribute( "target", &header.target );
+		header.target -= origin.y;
 	}
 
 	gamedb::WItem* witem = writer->Root()->FetchChild( "models" )->CreateChild( name.c_str() );

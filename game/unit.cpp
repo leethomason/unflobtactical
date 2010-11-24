@@ -75,7 +75,7 @@ const char* gRank[NUM_RANKS] = {
 
 U32 Unit::GetValue( int which ) const
 {
-	const int NBITS[] = { 1, 2, 2, 5, 5 };
+	const int NBITS[NUM_TRAITS] = { 1, 4, 5, 5 };
 
 	int i;
 	U32 shift = 0;
@@ -528,10 +528,10 @@ void Unit::CreateModel()
 			model->SetTexture( texture );
 
 			if ( team == TERRAN_TEAM ) {
-				model->SetTexXForm( 0.25, 0.25, 0.75f, 0.0f );
+				model->SetTexXForm( 0, 0.25f, 0.25f, 0.75f, 0.0f );
 			}
 			else {
-				model->SetTexXForm( 0.25, 0.25, 0.75f, 0.25f );
+				model->SetTexXForm( 0, 0.25f, 0.25f, 0.75f, 0.25f );
 			}
 		}
 	}
@@ -544,10 +544,10 @@ void Unit::UpdateModel()
 	GLASSERT( status != STATUS_NOT_INIT );
 
 	if ( IsAlive() && model && team == TERRAN_TEAM ) {
-		int armor = 0;
-		int hair = GetValue( HAIR );
-		int skin = GetValue( SKIN );
-		model->SetSkin( armor, skin, hair );
+		int armor = inventory.GetArmorLevel();
+		int appearance = GetValue( APPEARANCE );
+		int gender = GetValue( GENDER );
+		model->SetSkin( gender, armor, appearance );
 	}
 }
 
@@ -555,21 +555,8 @@ void Unit::UpdateModel()
 void Unit::Save( FILE* fp, int depth ) const
 {
 	if ( status != STATUS_NOT_INIT ) {
-//		TiXmlElement* unitElement = new TiXmlElement( "Unit" );
-//		doc->LinkEndChild( unitElement );
 		XMLUtil::OpenElement( fp, depth, "Unit" );
 
-/*		unitElement->SetAttribute( "team", team );
-		unitElement->SetAttribute( "type", type );
-		unitElement->SetAttribute( "status", status );
-		unitElement->SetAttribute( "body", body );
-		unitElement->SetAttribute( "hp", hp );
-		unitElement->SetAttribute( "kills", kills );
-		unitElement->SetDoubleAttribute( "tu", tu );
-		unitElement->SetDoubleAttribute( "modelX", model->Pos().x );
-		unitElement->SetDoubleAttribute( "modelZ", model->Pos().z );
-		unitElement->SetDoubleAttribute( "yRot", model->GetRotation() );
-*/
 		XMLUtil::Attribute( fp, "team", team );
 		XMLUtil::Attribute( fp, "type", type );
 		XMLUtil::Attribute( fp, "status", status );

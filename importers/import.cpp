@@ -22,7 +22,7 @@ extern "C" {
 
 using namespace grinliz;
 
-void ProcessAC3D( ACObject* ob, ModelBuilder* builder, const Matrix4& parent )
+void ProcessAC3D( ACObject* ob, ModelBuilder* builder, const Matrix4& parent, const char* groupFilter )
 {
 	Matrix4 m, matrix;
 	m.SetTranslation( ob->loc.x, ob->loc.y, ob->loc.z );
@@ -76,12 +76,23 @@ void ProcessAC3D( ACObject* ob, ModelBuilder* builder, const Matrix4& parent )
 		}
 	}
 	for ( int n = 0; n < ob->num_kids; n++) {
-	    ProcessAC3D(ob->kids[n], builder, matrix ); 
+		if ( groupFilter ) {
+			// Sleazy trick to only look at the top node. Set to node
+			// after we find the top.
+			if ( StrEqual( ob->kids[n]->name, groupFilter ) )
+			    ProcessAC3D(ob->kids[n], builder, matrix, 0 ); 
+		}
+		else {
+		    ProcessAC3D(ob->kids[n], builder, matrix, 0 ); 
+		}
 	}
 }
 
 
-bool ImportAC3D( const std::string& filename, ModelBuilder* builder )
+bool ImportAC3D(	const std::string& filename, 
+					ModelBuilder* builder, 
+					const grinliz::Vector3F origin,
+					const std::string& group )
 {
 	ACObject* acObject = ac_load_ac3d( (char*) filename.c_str() );
 	GLASSERT( acObject );
@@ -89,7 +100,8 @@ bool ImportAC3D( const std::string& filename, ModelBuilder* builder )
 	{
 		// Kind of a wicked recursive thing.
 		Matrix4 matrix;
-		ProcessAC3D( acObject, builder, matrix );	
+		matrix.SetTranslation( -origin );
+		ProcessAC3D( acObject, builder, matrix, group.empty() ? 0 : group.c_str() );	
 	}
 	builder->Flush();
 

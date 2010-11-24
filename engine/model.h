@@ -19,6 +19,7 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glgeometry.h"
+#include "../grinliz/glmemorypool.h"
 #include "../shared/glmap.h"
 #include "../shared/gamedbreader.h"
 #include "vertex.h"
@@ -89,6 +90,12 @@ public:
 };
 
 
+struct AuxTextureXForm {
+	void Init()	{ for( int i=0; i<EL_MAX_MODEL_GROUPS; ++i ) m[i].SetIdentity(); }
+	grinliz::Matrix4 m[EL_MAX_MODEL_GROUPS];
+};
+
+
 class ModelResourceManager
 {
 public:
@@ -100,6 +107,10 @@ public:
 
 	static void Create();
 	static void Destroy();
+
+	AuxTextureXForm* Alloc()		{ return (AuxTextureXForm*) auxPool.Alloc(); }
+	void Free( AuxTextureXForm* a )	{ auxPool.Free( a ); }
+
 private:
 	enum { 
 		MAX_MODELS = 100	// just pointers
@@ -110,6 +121,7 @@ private:
 	static ModelResourceManager* instance;
 	CArray< ModelResource*, MAX_MODELS > modelResArr;
 	CStringMap<	ModelResource* > map;
+	grinliz::MemoryPool auxPool;
 };
 
 
@@ -147,6 +159,8 @@ public:
 
 		// RESERVED!
 		// MODEL_local				= 0x00010000 and higher.
+
+		MODEL_TEXTURE_MATS			= 2
 	};
 
 	int IsFlagSet( int f ) const	{ return flags & f; }
@@ -168,9 +182,9 @@ public:
 	int IsShadowRotated() const		{ return resource->header.flags & ModelHeader::ROTATE_SHADOWS; }
 	
 	// Set the skin texture (which is a special texture xform)
-	void SetSkin( int armor, int skin, int hair );
+	void SetSkin(int gender, int armor, int appearance);
 	// Set the texture xform for rendering tricks
-	void SetTexXForm( float a=1.0f, float d=1.0f, float x=0.0f, float y=0.0f );
+	void SetTexXForm( int index, float a=1.0f, float d=1.0f, float x=0.0f, float y=0.0f );
 
 	// Set the texture - overrides all textures
 	void SetTexture( Texture* t )	{ setTexture = t; }
@@ -200,8 +214,8 @@ public:
 	grinliz::Rectangle2I mapBoundsCache;
 
 	const grinliz::Matrix4& XForm() const;
-	bool HasTextureXForm() const					{ return texMatSet; }
-	const grinliz::Matrix4& TextureXForm() const	{ return texMat; }
+	bool HasTextureXForm( int i ) const;
+	//const grinliz::Matrix4& TextureXForm( int i ) const	{ GLASSERT( i>=0 && i<EL_MAX_MODEL_GROUPS ); GLASSERT( auxTexture ); return auxTexture->m[i]; }
 
 private:
 	void Modify() { xformValid = false; invValid = false; mapBoundsCache.Set( -1, -1, -1, -1 ); }
@@ -211,10 +225,9 @@ private:
 	const ModelResource* resource;
 	grinliz::Vector3F pos;
 	float rot[3];
-	bool texMatSet;
-	grinliz::Matrix4 texMat;
 
-	Texture* setTexture;	// overrides the default texture
+	AuxTextureXForm		*auxTexture;	// if allocated, then this has texture xforms. Comes from the ModelResourceManager MemoryPool.
+	Texture				*setTexture;	// overrides the default texture
 
 	int flags;
 	

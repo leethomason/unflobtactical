@@ -302,9 +302,9 @@ void Game::LoadItemResources()
 		{ "BEAM",	"beam",		DECO_RIFLE,		"Blade Beam",			FAST, AIMED, 0,		SPEED_FAST,
 				"Cell",			0,										DAM_MEDHI,	ACC_HI,		"beam",
 				0  },
-		{ "NULL",	"nullp",	DECO_RIFLE,		"Null Point Blaster",	FAST, EXPLO, 0,		SPEED_NORMAL,
-				"Tachy",		WEAPON_EXPLOSIVE,						DAM_VHI, ACC_HI,		"nullp",
-				0  },
+		{ "STORM",	"nullp",	DECO_RIFLE,		"Fire Storm",			FAST, FLAME, EXPLO, SPEED_NORMAL,		// FIXME: make incindiary / energy
+				"Cell",		WEAPON_EXPLOSIVE,						DAM_VHI, ACC_LOW,		"nullp",
+				"Tachy",		WEAPON_EXPLOSIVE,						DAM_VHI, ACC_LOW,		"nullp" },
 		{ 0 }
 	};
 
