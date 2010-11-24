@@ -9,9 +9,13 @@
 	<texture filename="woodDarkUFO.tga" />
   <texture filename="woodPlank.png" />
   <texture filename="woodPlankD.png" />
-	<texture filename="marine.png" />
-	<texture filename="palette.png" />
-	<texture filename="ufoInner.png" width="64" height="64"/>
+  <!-- FIXME: size limit -->
+  <texture filename="palette.png" />
+  <!-- FIXME: size limit -->
+  <texture filename="charSwatch.png" />
+  <!-- FIXME: size limit -->
+  <texture filename="characters.png" />
+  <texture filename="ufoInner.png" width="64" height="64"/>
 	<texture filename="ufoOuter.png" width="16" height="64"/>
 	<texture filename="tree.tga" />
   <texture filename="tree2.png" />
@@ -28,10 +32,6 @@
   <texture filename="introText.png" />
   <texture filename="commandBarV.png" />
 
-
-  <!--
-  <texture filename="femaleSkin.png" />
-  -->
 
 	<!-- Models
        Model naming:
@@ -82,8 +82,10 @@
   <model filename="cellClip.ac" />
   <model filename="shellClip.ac" />
 
-  <model filename="maleMarine.ac"   shading="smooth" polyRemoval="pre" trigger="-0.31 1.20 0.38" eye="1.83" target="1.35"/>
-  <model filename="femaleMarine.ac" shading="smooth" polyRemoval="pre" trigger="-0.26 1.17 0.40" eye="1.81" target="1.43"/>
+  <model filename="chess_characters.ac" modelName="maleMarine"   origin="-1 0 0" shading="flat" polyRemoval="pre" trigger="-1.40 0.91 0.0" eye="1.81" target="1.15"/>
+  <model filename="chess_characters.ac" modelName="femaleMarine" origin="-2 0 0" shading="flat" polyRemoval="pre" trigger="-2.35 0.90 0.0" eye="1.75" target="1.25"/>
+  <model filename="chess_characters.ac" modelName="maleCiv"      origin="-3 0 0" shading="flat" polyRemoval="pre"                          eye="1.65" target="1.20"/>
+  <model filename="chess_characters.ac" modelName="femaleCiv"    origin="-4 0 0" shading="flat" polyRemoval="pre"                          eye="1.57" target="1.20"/>
 
   <!-- Trees are world models, but centered at the origin for billboarding. -->
   <model filename="tree.ac" billboard="true" shading="crease" polyRemoval="pre" shadow="rotate"/>

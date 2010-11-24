@@ -97,7 +97,7 @@ RenderQueue::State* RenderQueue::FindState( const State& state )
 }
 
 
-void RenderQueue::Add( Model* model, const ModelAtom* atom, GPUShader* shader, Texture* replaceAllTextures )
+void RenderQueue::Add( Model* model, const ModelAtom* atom, GPUShader* shader, const grinliz::Matrix4* textureXForm, Texture* replaceAllTextures )
 {
 	if ( nItem == MAX_ITEMS ) {
 		GLASSERT( 0 );
@@ -115,6 +115,7 @@ void RenderQueue::Add( Model* model, const ModelAtom* atom, GPUShader* shader, T
 	Item* item = &itemPool[nItem++];
 	item->model = model;
 	item->atom = atom;
+	item->textureXForm = textureXForm;
 
 	item->next  = state->root;
 	state->root = item;
@@ -171,15 +172,16 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 					GPUShader* s = statePool[i].shader;
 					s->PushMatrix( GPUShader::MODELVIEW_MATRIX );
 					s->MultMatrix( GPUShader::MODELVIEW_MATRIX, model->XForm() );
-					if ( model->HasTextureXForm() ) {
+
+					if ( item->textureXForm ) {
 						s->PushMatrix( GPUShader::TEXTURE_MATRIX );
-						s->MultMatrix( GPUShader::TEXTURE_MATRIX, model->TextureXForm() );
+						s->MultMatrix( GPUShader::TEXTURE_MATRIX, *item->textureXForm );
 					}
 					
 					s->Draw();
 
 					s->PopMatrix( GPUShader::MODELVIEW_MATRIX );
-					if ( model->HasTextureXForm() ) {
+					if ( item->textureXForm ) {
 						s->PopMatrix( GPUShader::TEXTURE_MATRIX );
 					}
 				}

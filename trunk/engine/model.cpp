@@ -166,10 +166,10 @@ void Model::Init( const ModelResource* resource, SpaceTree* tree )
 	this->resource = resource; 
 	this->tree = tree;
 	this->setTexture = 0;
+	this->auxTexture = 0;
 
 	pos.Set( 0, 0, 0 );
 	rot[0] = rot[1] = rot[2] = 0.0f;
-	texMatSet = false;
 	setTexture = 0;
 	Modify();
 
@@ -186,6 +186,10 @@ void Model::Init( const ModelResource* resource, SpaceTree* tree )
 
 void Model::Free()
 {
+	if ( auxTexture ) {
+		ModelResourceManager::Instance()->Free( auxTexture );
+		auxTexture = 0;
+	}
 }
 
 
@@ -213,39 +217,65 @@ void Model::SetRotation( float r, int axis )
 }
 
 
-
-void Model::SetSkin( int armor, int skin, int hair )
+bool Model::HasTextureXForm( int i ) const
 {
-	texMatSet = false;
-	if ( armor > 0 || skin > 0 || hair > 0 ) {
-	
-		float textureOffsetX = 0.0f;
+	if ( auxTexture ) {
+		// check for identity
+		Matrix4 identity;
+		if ( auxTexture->m[i] != identity ) 
+			return true;
+	}
+	return false;
+}
 
-		armor = Clamp( armor, 0, 3 );
-		skin = Clamp( skin, 0, 3 );
-		hair = Clamp( hair, 0, 3 );
 
-		textureOffsetX += float( armor ) / float( 4 );
-		textureOffsetX += float( skin ) / float( 16 );
-		textureOffsetX += float( hair ) / float( 64 );
+void Model::SetSkin( int gender, int armor, int appearance )
+{
+	// Very particular code. For a model, expects there to be
+	// 2 textures: 'characters' and 'charSwatch'. The 'characters'
+	// sets the head/skin texture and the 'charSwatch' the armor.
 
-		texMat.SetIdentity();
-		texMat.m14 = textureOffsetX;
-		texMatSet = (textureOffsetX != 0) ? true : false;
+	float tx0 = 0.0f;
+	float ty0 = 0.0f;
+
+	float tx1 = 0.0f;
+	float ty1 = 0.0f;
+
+	GLASSERT( gender < 2 );
+	GLASSERT( armor < 4 );
+	GLASSERT( appearance < 16 );
+
+	tx0 = float( appearance ) / 16.0f;
+	ty0 = float( gender ) / 2.0f;
+	tx1 = float( armor ) / 16.0f;
+
+	if ( StrEqual( resource->atom[0].texture->Name(), "characters" ) ) {
+		SetTexXForm( 0, 1, 1, tx0, ty0 );
+		SetTexXForm( 1, 1, 1, tx1, ty1 );
+	}
+	else if ( StrEqual( resource->atom[1].texture->Name(), "characters" ) ) {
+		SetTexXForm( 1, 1, 1, tx0, ty0 );
+		SetTexXForm( 0, 1, 1, tx1, ty1 );
+	}
+	else {
+		GLASSERT( 0 );
 	}
 }
 
 
-void Model::SetTexXForm( float a, float d, float x, float y )
+void Model::SetTexXForm( int id, float a, float d, float x, float y )
 {
-	texMat.SetIdentity();
-	texMatSet = false;
+	GLASSERT( id >= 0 && id < EL_MAX_MODEL_GROUPS );
+	if ( !auxTexture ) {
+		auxTexture = ModelResourceManager::Instance()->Alloc();
+		auxTexture->Init();
+	}
+
 	if ( a!=1.0f || d!=1.0f || x!=0.0f || y!=0.0f ){
-		texMat.m11 = a;
-		texMat.m22 = d;
-		texMat.m14 = x;
-		texMat.m24 = y;
-		texMatSet = true;
+		auxTexture->m[id].m11 = a;
+		auxTexture->m[id].m22 = d;
+		auxTexture->m[id].m14 = x;
+		auxTexture->m[id].m24 = y;
 	}
 }
 
@@ -283,7 +313,11 @@ void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent
 	for( U32 i=0; i<resource->header.nGroups; ++i ) 
 	{
 		Texture* t = overrideTexture ? overrideTexture : resource->atom[i].texture;	// 't' is never null. This is just used to pass the correct shader through.
-		queue->Add( this, &resource->atom[i], t->Alpha() ? transparent : opaque, overrideTexture );
+		queue->Add( this,									// reference back
+					&resource->atom[i],						// model atom to render
+					t->Alpha() ? transparent : opaque,		// select the shader
+					( auxTexture && HasTextureXForm(i) ) ? &auxTexture->m[i] : 0,	// texture transform, if this has it.
+					overrideTexture );
 	}
 }
 
@@ -458,7 +492,8 @@ const ModelResource* ModelResourceManager::GetModelResource( const char* name, b
 
 ModelResourceManager* ModelResourceManager::instance = 0;
 
-ModelResourceManager::ModelResourceManager()
+ModelResourceManager::ModelResourceManager() : 
+	auxPool( "auxTextureXForms", sizeof( AuxTextureXForm ) )
 {
 }
 	

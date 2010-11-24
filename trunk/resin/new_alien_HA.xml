@@ -26,7 +26,7 @@
 		<Item name="RAY-3" />
 		<Item name="Cell" />
 		<Item name="Cell" />
-		<Item name="NULL" />
+		<Item name="STORM" />
 		<Item name="Tachy" />
 		<Item name="ARM-3" />
 	</Inventory>
@@ -79,7 +79,7 @@
 <Unit team="2" type="3" status="1" ai="guard" >
 	<Stats level="3" />
 	<Inventory>
-		<Item name="NULL" />
+		<Item name="STORM" />
 		<Item name="Tachy" />
 		<Item name="Tachy" />
 		<Item name="RAY-1" />
