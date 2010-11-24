@@ -1,6 +1,14 @@
 Issues:
 
 Bugs:
+- graphics tweaks
+	- X: weapons: move trigger to 0 line (so fire is in correct place)
+	- green: move trigger -x
+	- X: canon: move forward of trigger point
+	- X: pls-1: green color odd
+	- NEW LAYER: hit points + target: above seen/unseen, below models
+- alien units: don't need to start in XML. Switch to generative system.
+
 
 Architecture
 - Map as interface

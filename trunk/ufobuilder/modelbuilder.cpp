@@ -23,7 +23,7 @@ using namespace grinliz;
 void ModelBuilder::SetTexture( const char* _textureName )
 {
 	CStr< EL_FILE_STRING_LEN >  textureName( _textureName );
-	current = 0;
+	current = -1;
 
 	for( int i=0; i<nGroup; ++i ) {
 		if (    ( textureName.empty() && group[i].textureName.empty() )
@@ -33,7 +33,8 @@ void ModelBuilder::SetTexture( const char* _textureName )
 			break;
 		}
 	}
-	if ( !current ) {
+	if ( current < 0 ) {
+		GLASSERT( nGroup < EL_MAX_MODEL_GROUPS );
 		group[nGroup].textureName = textureName;
 		current = nGroup++;
 	}

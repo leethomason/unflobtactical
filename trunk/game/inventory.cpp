@@ -197,46 +197,29 @@ int Inventory::GetArmorLevel() const
 }
 
 
-void Inventory::GetDamageReduction( DamageDesc* dd, int baseArmor )
+void Inventory::GetDamageReduction( DamageDesc* dd )
 {
 	float base = 1.0f;
 	bool hasArmor = false;
 
-	if ( baseArmor > 0 ) {
-		if ( baseArmor == 1 ) {
-			base = ARM1;
-		}
-		else if ( baseArmor == 2 ) {
-			base = ARM2;
-		}
-		else if ( baseArmor == 3 ) {
-			base = ARM3;
-		}
-		else {
-			GLASSERT( 0 );
-			base = ARM1;
-		}
-	}
-	else {
-		switch ( GetArmorLevel() ) {
-		case 1:
-			base = ARM1;
-			hasArmor = true;
-			break;
+	switch ( GetArmorLevel() ) {
+	case 1:
+		base = ARM1;
+		hasArmor = true;
+		break;
 
-		case 2:
-			base = ARM2;
-			hasArmor = true;
-			break;
+	case 2:
+		base = ARM2;
+		hasArmor = true;
+		break;
 
-		case 3:
-			base = ARM3;
-			hasArmor = true;
-			break;
+	case 3:
+		base = ARM3;
+		hasArmor = true;
+		break;
 
-		default:
-			break;
-		}
+	default:
+		break;
 	}
 
 	dd->Set( base, base, base );
@@ -274,11 +257,6 @@ void Inventory::GetDamageReduction( DamageDesc* dd, int baseArmor )
 
 void Inventory::Save( FILE* fp, int depth ) const
 {
-//	TiXmlElement* inventoryEle = new TiXmlElement( "Inventory" );
-//	doc->LinkEndChild( inventoryEle );
-//	for( int i=0; i<NUM_SLOTS; ++i ) {
-//		slots[i].Save( inventoryEle );
-//	}
 	XMLUtil::OpenElement( fp, depth, "Inventory" );
 	XMLUtil::SealElement( fp );
 	for( int i=0; i<NUM_SLOTS; ++i ) {

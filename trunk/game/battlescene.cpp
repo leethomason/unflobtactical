@@ -80,8 +80,9 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		unitImage0[i].Init( &engine->GetMap()->overlay0, nullAtom, false );
 		unitImage0[i].SetVisible( false );
 
-		unitImage1[i].Init( &engine->GetMap()->overlay1, nullAtom, false );
+		unitImage1[i].Init( &engine->GetMap()->overlay0, nullAtom, false );
 		unitImage1[i].SetVisible( false );
+		unitImage1[i].SetForeground( true );
 	}
 	selectionImage.Init( &engine->GetMap()->overlay1, UIRenderer::CalcIconAtom( ICON_STAND_HIGHLIGHT ), true );
 	selectionImage.SetSize( 1, 1 );
@@ -176,7 +177,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 		tick1Atom.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
 
 		for( int i=0; i<MAX_UNITS; ++i ) {
-			hpBars[i].Init( &engine->GetMap()->overlay1, 5, tick0Atom, tick1Atom, tick2Atom, S );
+			hpBars[i].Init( &engine->GetMap()->overlay0, 5, tick0Atom, tick1Atom, tick2Atom, S );
 			hpBars[i].SetVisible( false );
 		}
 	}
@@ -740,10 +741,12 @@ void BattleScene::SetUnitOverlays()
 				unitImage0[i].SetSize( 1.2f, 1.2f );
 				unitImage0[i].SetCenterPos( p.x, p.z );
 
+				/*
 				unitImage1[i].SetVisible( true );
 				unitImage1[i].SetAtom( targetAtom1 );
 				unitImage1[i].SetSize( 1.2f, 1.2f );
 				unitImage1[i].SetCenterPos( p.x, p.z );
+				*/
 
 				hpBars[i].SetVisible( true );
 				hpBars[i].SetPos( p.x + HP_DX - 0.5f, p.z + HP_DY - 0.5f );
