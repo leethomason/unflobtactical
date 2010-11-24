@@ -12,6 +12,6 @@ Some features need to be implemented to support the new art. New model skinning,
 
 === Links ===
 
-Big thanks to Michal for linking from his amazing UFO game: [http://ufotts.ninex.info/ The Two Sides]. He also posted a very nice beta (pre-)review at strategycore.co.uk:
+Big thanks to Ufo: TTS team for linking from their amazing UFO game: [http://ufotts.ninex.info/ The Two Sides]. Michal also posted a very nice beta (pre-)review at strategycore.co.uk:
  
 http://www.strategycore.co.uk/forums/UFO-Attack-working-title-X-com-t8160.html&p=100174#entry100174
