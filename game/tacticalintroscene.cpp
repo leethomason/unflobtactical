@@ -218,6 +218,7 @@ void TacticalIntroScene::Tap(	int action,
 								const Vector2F& screen,
 								const Ray& world )
 {
+	bool onToBattle = false;
 	Vector2F ui;
 	GetEngine()->GetScreenport().ViewToUI( screen, &ui );
 	
@@ -259,12 +260,17 @@ void TacticalIntroScene::Tap(	int action,
 		audioButton.SetVisible( false );
 	}
 	else if ( item == &continueButton ) {
-		game->loadRequested = 0;
+		onToBattle = true;
 	}
 	else if ( item == &goButton ) {
-		game->loadRequested = 1;
-		game->newGameXML.Clear();
-		WriteXML( &game->newGameXML );
+		GLString path = game->GameSavePath();
+		FILE* fp = fopen( path.c_str(), "w" );
+		GLASSERT( fp );
+		if ( fp ) {
+			onToBattle = true;
+			WriteXML( fp );
+			fclose( fp );
+		}
 	}
 	else if ( item == &seedButton ) {
 		const char* seedStr = seedButton.GetText();
@@ -295,7 +301,7 @@ void TacticalIntroScene::Tap(	int action,
 								 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
 		}
 	}
-	if ( game->loadRequested >= 0 ) {
+	if ( onToBattle ) {
 		game->PopScene();
 		game->PushScene( Game::BATTLE_SCENE, 0 );
 	}
@@ -303,26 +309,37 @@ void TacticalIntroScene::Tap(	int action,
 }
 
 
-void TacticalIntroScene::WriteXML( TiXmlNode* xml )
-{
+void TacticalIntroScene::WriteXML( FILE* fp )
+ {
 	//	Game
 	//		Scene
-	//			BattleScene
+	//		BattleScene
 	//		Map
-	//			Images
+	//			Seen
 	//			Items
+	//			Images
 	//			GroundDebris
 	//		Units
+	 //			Unit
 
-	TiXmlElement* gameElement = new TiXmlElement( "Game" );
-	TiXmlElement* sceneElement = new TiXmlElement( "Scene" );
-	TiXmlElement* battleElement = new TiXmlElement( "BattleScene" );
+//	TiXmlElement* gameElement = new TiXmlElement( "Game" );
+//	TiXmlElement* sceneElement = new TiXmlElement( "Scene" );
+//	TiXmlElement* battleElement = new TiXmlElement( "BattleScene" );
 
-	xml->LinkEndChild( gameElement );
-	gameElement->LinkEndChild( sceneElement );
-	gameElement->LinkEndChild( battleElement );
+//	xml->LinkEndChild( gameElement );
+//	gameElement->LinkEndChild( sceneElement );
+//	gameElement->LinkEndChild( battleElement );
 	
-	battleElement->SetAttribute( "dayTime", toggles[TIME_DAY].Down() ? 1 : 0 );
+	XMLUtil::OpenElement( fp, 0, "Game" );
+	XMLUtil::SealElement( fp );
+
+	XMLUtil::OpenElement( fp, 1, "Scene" );
+	XMLUtil::Attribute( fp, "id", Game::BATTLE_SCENE );
+	XMLUtil::SealCloseElement( fp );
+
+	XMLUtil::OpenElement( fp, 1, "BattleScene" );
+	XMLUtil::Attribute( fp, "dayTime", toggles[TIME_DAY].Down() ? 1 : 0 );
+	XMLUtil::SealCloseElement( fp );
 
 	const char* seedStr = seedButton.GetText();
 	int seed = atol( seedStr );
@@ -332,60 +349,76 @@ void TacticalIntroScene::WriteXML( TiXmlNode* xml )
 		scenario = SCEN_CRASH;
 	}
 
-	CreateMap( gameElement, seed, LOC_FARM, scenario, 1 );
+	CreateMap( fp, seed, LOC_FARM, scenario, 1 );
+	fprintf( fp, "\n" );
 
+	XMLUtil::OpenElement( fp, 1, "Units" );
+	XMLUtil::SealElement( fp );
+
+	const gamedb::Reader* database = game->GetDatabase();
+	const gamedb::Item* parent = database->Root()->Child( "data" );
+	const gamedb::Item* item = 0;
+
+	// Terran units
 	{
-		GLString buf = "<Units>";
-		const gamedb::Reader* database = game->GetDatabase();
-		const gamedb::Item* parent = database->Root()->Child( "data" );
-		const gamedb::Item* item = 0;
+		if ( toggles[TERRAN_LOW].Down() )
+			item = parent->Child( "new_squad_LA" );
+		else if ( toggles[TERRAN_MED].Down() )
+			item = parent->Child( "new_squad_MA" );
+		else if ( toggles[TERRAN_HIGH].Down() )
+			item = parent->Child( "new_squad_HA" );
 
-		// Terran units
-		{
-			if ( toggles[TERRAN_LOW].Down() )
-				item = parent->Child( "new_squad_LA" );
-			else if ( toggles[TERRAN_MED].Down() )
-				item = parent->Child( "new_squad_MA" );
-			else if ( toggles[TERRAN_HIGH].Down() )
-				item = parent->Child( "new_squad_HA" );
+		const char* squad = (const char*)database->AccessData( item, "binary" );
+		//int len = item->GetDataSize( "binary" );
+		TiXmlDocument snippet;
+		snippet.Parse( squad );
+		GLASSERT( !snippet.Error() );
 
-			const char* squad = (const char*)database->AccessData( item, "binary" );
-
-			buf += squad;
-			if ( toggles[SQUAD_8].Down() ) {
-				buf += squad;
-			}
+		snippet.Print( fp, 2 );
+		if ( toggles[SQUAD_8].Down() ) {
+			snippet.Print( fp, 2 );
 		}
-		// Alien units
-		{
-			if ( toggles[ALIEN_LOW].Down() )
-				item = parent->Child( "new_alien_LA" );
-			else if ( toggles[ALIEN_MED].Down() )
-				item = parent->Child( "new_alien_MA" );
-			else if ( toggles[ALIEN_HIGH].Down() )
-				item = parent->Child( "new_alien_HA" );
+	}
+	// Alien units
 
-			const char* alien = (const char*)database->AccessData( item, "binary" );
+	Unit units[MAX_ALIENS];
+	int rank = 0;
+	int count = 8;
+	int types[Unit::NUM_ALIEN_TYPES] = { 0 };
 
-			buf += alien;
-			if ( toggles[ALIEN_16].Down() ) {
-				buf += alien;
-			}
-		}
-		buf += "</Units>";
-
-		TiXmlElement* unitElement = new TiXmlElement( "Units" );
-		unitElement->Parse( buf.c_str(), 0, TIXML_ENCODING_UTF8 );
-		gameElement->LinkEndChild( unitElement );
+	if ( toggles[ALIEN_16].Down() ) {
+		count = 16;
 	}
 
-#if 0
-	{
-		TiXmlDocument* doc = xml->ToDocument();
-		if ( doc ) 
-			doc->SaveFile( "testnewgame.xml" );
+	if ( toggles[TERRAN_LOW].Down() ) {
+		types[Unit::ALIEN_GREEN] = count*3/4;
+		types[Unit::ALIEN_HORNET] = count*1/4;
+		rank = 0;
 	}
-#endif
+	else if ( toggles[ALIEN_MED].Down() ) {
+		types[Unit::ALIEN_GREEN] = count*1/4;
+		types[Unit::ALIEN_HORNET] = count*1/4;
+		types[Unit::ALIEN_JACKAL] = count*1/4;
+		types[Unit::ALIEN_VIPER] = count*1/4;
+		rank = 2;
+	}
+	else if ( toggles[ALIEN_HIGH].Down() ) {
+		types[Unit::ALIEN_PRIME] = count*1/4;
+		types[Unit::ALIEN_HORNET] = count*1/4;
+		types[Unit::ALIEN_JACKAL] = count*1/4;
+		types[Unit::ALIEN_VIPER] = count*1/4;
+		rank = 4;
+	}
+
+	GenerateAlienTeam( units, types, rank, seed );
+	for( int i=0; i<MAX_ALIENS; ++i ) {
+		if ( units[i].IsAlive() ) {
+			units[i].Save( fp, 2 );
+		}
+	}
+
+	XMLUtil::CloseElement( fp, 1, "Units" );
+	XMLUtil::CloseElement( fp, 0, "Game" );		
 }
 
 
@@ -508,7 +541,7 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 }
 
 
-void TacticalIntroScene::CreateMap(	TiXmlNode* parent, 
+void TacticalIntroScene::CreateMap(	FILE* fp, 
 									int seed,
 									int location,
 									int scenario,	
@@ -517,15 +550,15 @@ void TacticalIntroScene::CreateMap(	TiXmlNode* parent,
 	// Max world size is 64x64 units, in 16x16 unit blocks. That gives 4x4 blocks max.
 	BitArray< 4, 4, 1 > blocks;
 
-	TiXmlElement* mapElement = new TiXmlElement( "Map" );
-	parent->LinkEndChild( mapElement );
+//	XMLUtil::OpenElement( fp, 2, "Map" );
 
+	TiXmlElement mapElement( "Map" );
 	const gamedb::Item* dataItem = game->GetDatabase()->Root()->Child( "data" );
 
 	SceneInfo info;
 	CalcInfo( location, scenario, ufoSize, &info );
-	mapElement->SetAttribute( "sizeX", info.blockSizeX*16 );
-	mapElement->SetAttribute( "sizeY", info.blockSizeY*16 );
+	mapElement.SetAttribute( "sizeX", info.blockSizeX*16 );
+	mapElement.SetAttribute( "sizeY", info.blockSizeY*16 );
 	
 	random.SetSeed( seed );
 	for( int i=0; i<5; ++i ) 
@@ -550,7 +583,7 @@ void TacticalIntroScene::CreateMap(	TiXmlNode* parent,
 		blocks.Set( pos.x, pos.y );
 		int tileRotation = random.Rand(4);
 
-		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, "LAND", dataItem, mapElement );	
+		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, "LAND", dataItem, &mapElement );	
 	}
 
 	if ( info.ufoSize ) {
@@ -559,7 +592,7 @@ void TacticalIntroScene::CreateMap(	TiXmlNode* parent,
 		int tileRotation = random.Rand(4);
 
 		const char* ufoStr = info.crash ? "UFOB" : "UFOA";
-		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, ufoStr, dataItem, mapElement );
+		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, ufoStr, dataItem, &mapElement );
 	}
 
 	for( int j=0; j<info.blockSizeY; ++j ) {
@@ -567,13 +600,70 @@ void TacticalIntroScene::CreateMap(	TiXmlNode* parent,
 			if ( !blocks.IsSet( i, j ) ) {
 				Vector2I pos = { i, j };
 				int tileRotation = random.Rand(4);
-				AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, "TILE", dataItem, mapElement );	
+				AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, "TILE", dataItem, &mapElement );	
 			}
 		}
 	}
-
-#ifdef DEBUG
-	parent->Print( stdout, 0 );
-	fflush( stdout );
-#endif
+	mapElement.Print( fp, 2 );
 }
+
+
+void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to write
+											const int alienCount[],	// aliens per type
+											int averageRank,
+											int seed )
+{
+	const char* weapon[NUM_RANKS*Unit::NUM_ALIEN_TYPES] = {
+		"RAY-1",	"RAY-1",	"RAY-1",	"RAY-2",	"RAY-3",		// green
+		"RAY-2",	"RAY-2",	"RAY-3",	"RAY-3",	"BEAM",			// prime
+		"PLS-1",	"PLS-1",	"PLS-2",	"BEAM",		"PLS-2",		// hornet
+		"STORM",	"STORM",	"STORM",	"STORM",	"STORM",		// jackal
+		"PLS-1",	"PLS-1",	"PLS-2",	"BEAM",		"PLS-2",		// viper
+	};
+
+	int nAliens = 0;
+
+	for( int i=0; i<Unit::NUM_ALIEN_TYPES; ++i ) {
+		nAliens += alienCount[i];
+	}
+	GLASSERT( nAliens <= MAX_ALIENS );
+	// local random - the same inputs always create same outputs.
+	grinliz::Random aRand( (nAliens*averageRank) ^ seed );
+	aRand.Rand();
+
+	int index=0;
+	for( int i=0; i<Unit::NUM_ALIEN_TYPES; ++i ) {
+		for( int k=0; k<alienCount[i]; ++k ) {
+			
+			// Create the unit.
+			int rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS );
+ 			unit[index].Create( ALIEN_TEAM, i, rank, aRand.Rand() );
+
+			// About 1/3 should be guards that aren't green or prime.
+			if ( i >= 2 && index % 3 == 0 ) {
+				unit[index].SetAI( Unit::AI_GUARD );
+			}
+
+			rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS );
+
+			// Add the weapon.
+			Item item( game, weapon[Unit::NUM_ALIEN_TYPES*i + rank] );
+			unit[index].GetInventory()->AddItem( item );
+
+			// Add ammo.
+			const WeaponItemDef* weaponDef = item.GetItemDef()->IsWeapon();
+			GLASSERT( weaponDef );
+
+			for( int n=0; n<2; ++n ) {
+				Item ammo( weaponDef->GetClipItemDef( kSnapFireMode ) );
+				unit[index].GetInventory()->AddItem( ammo );
+			}
+			if ( weaponDef->HasWeapon( kAltFireMode ) ) {
+				Item ammo( weaponDef->GetClipItemDef( kAltFireMode ) );
+				unit[index].GetInventory()->AddItem( ammo );
+			}
+			++index;
+		}
+	}
+}
+

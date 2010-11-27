@@ -86,14 +86,14 @@ public:
 	};
 	static void CalcInfo( int location, int scenario, int ufoSize, SceneInfo* info );
 
-	void CreateMap( TiXmlNode* parent, 
+	void CreateMap( FILE* fp, 
 					int seed,
 					int location,			// LOC_FARM
 					int scenario,			// SCEN_LANDING
 					int ufoSize );			// 0: small, 1: big
 
 private:
-	void WriteXML( TiXmlNode* xml );
+	void WriteXML( FILE* fp );
 	void FindNodes( const char* set,
 					int size,
 					const char* type,
@@ -105,6 +105,12 @@ private:
 							const char* type,
 							const gamedb::Item* parent,
 							TiXmlElement* mapElement );
+
+	void GenerateAlienTeam( Unit* units,				// target units to write
+							const int alienCount[],		// aliens per type
+							int averageLevel,
+							int seed=0 );
+
 
 	enum { MAX_ITEM_MATCH = 32 };
 	const gamedb::Item* itemMatch[ MAX_ITEM_MATCH ];

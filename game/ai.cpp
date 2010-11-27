@@ -188,7 +188,7 @@ int AI::ThinkShoot(  const Unit* theUnit,
 							}
 							else {
 								Rectangle2I bounds;
-								bounds.min = bounds.max = theUnit->Pos();
+								bounds.min = bounds.max = m_units[i].Pos();
 								bounds.Outset( EXPLOSION_ZONE );
 								
 								int count = VisibleUnitsInArea( theUnit, m_units, targets, m_enemyStart, m_enemyEnd, bounds );

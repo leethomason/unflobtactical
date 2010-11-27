@@ -47,10 +47,11 @@ public:
 	};
 
 	enum {
-		ALIEN_0,	// grey
-		ALIEN_1,	// mind zapper
-		ALIEN_2,	// trooper
-		ALIEN_3,	// elite
+		ALIEN_GREEN,
+		ALIEN_PRIME,
+		ALIEN_HORNET,
+		ALIEN_JACKAL,
+		ALIEN_VIPER,
 		NUM_ALIEN_TYPES
 	};
 
@@ -66,14 +67,6 @@ public:
 
 	Unit() : status( STATUS_NOT_INIT ), model( 0 ) {}
 	~Unit();
-
-	// Note that the 'stats' should be set before init.
-	// Load calls init automatically
-	void Init(	Engine* engine, Game* game, 
-				int team,
-				int status,
-				int alienType,
-				int seed );
 	
 	void Free();
 
@@ -98,6 +91,8 @@ public:
 	int AlienType()	const		{ return type; }
 	int Gender() const			{ return GetValue( GENDER ); }
 	int AI() const				{ return ai; }
+
+	void SetAI( int value )		{ GLASSERT( value == AI_NORMAL || value == AI_GUARD ); ai = value; }
 
 	const char* FirstName() const;
 	const char* LastName() const;
@@ -167,7 +162,12 @@ public:
 	int  KillsCredited() const		{ return kills; }
 
 	void Save( FILE* fp, int depth ) const;
-	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
+
+	void Load( const TiXmlElement* doc, Game* game );
+	void Create(	int team,
+					int alienType,
+					int rank,
+					int seed );
 
 private:
 	// WARNING: change this then change GetValue()
@@ -179,6 +179,14 @@ private:
 		NUM_TRAITS
 	};
 	U32 GetValue( int which ) const;
+
+	// Note that the 'stats' should be set before init.
+	// Load calls init automatically
+	void Init(	Game* game, 
+				int team,
+				int status,
+				int alienType,
+				int seed );
 
 	void CreateModel();
 	void UpdateModel();		// make the model current with the unit status - armor, etc.
@@ -192,7 +200,6 @@ private:
 	U32 body;		// describes everything! a random #
 
 	Game*		game;
-	Engine*		engine;
 	Model*		model;
 	Model*		weapon;
 	bool		visibilityCurrent;	// if set, the visibility is current. Can be set by CalcAllVisibility()

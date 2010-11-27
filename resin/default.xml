@@ -20,7 +20,7 @@
 	<texture filename="tree.tga" />
   <texture filename="tree2.png" />
   <texture filename="tree3.png" />
-  <texture filename="lander.png" />
+  <texture filename="atlas0.png" />
   <texture filename="translucent.png" />
   <texture filename="clips.png" />
   <texture filename="stonewall.png" width="64" height="64" />
@@ -41,7 +41,7 @@
   -->
   
   <!-- Sprite models are centered at (0,0,0) -->
-  <model filename="chess_characters.ac" modelName="green"        origin="0 0 0"  shading="flat" polyRemoval="pre" trigger="-0.32 0.34 0" eye="1.22" target="1.10" />
+  <model filename="chess_characters.ac" modelName="green"        origin="0 0 0"  shading="flat" polyRemoval="pre" trigger="-0.42 0.34 0" eye="1.22" target="1.10" />
   <model filename="chess_characters.ac" modelName="prime"        origin="1 0 0"  shading="flat" polyRemoval="pre" trigger="1.31  0.86 0" eye="1.74" target="0.89" />
   <model filename="chess_characters.ac" modelName="hornet"       origin="2 0 0"  shading="flat" polyRemoval="pre" trigger="1.70  0.72 0" eye="1.67" target="1.07" />
   <model filename="chess_characters.ac" modelName="jackal"       origin="3 0 0"  shading="flat" polyRemoval="pre" trigger="2.48  0.60 0" eye="0.85" target="0.91" />
@@ -95,7 +95,7 @@
   <model filename="tree3.ac" billboard="true" shading="crease" polyRemoval="pre" shadow="rotate"/>
 
   <!-- World models have their origin at the upper left, so that they align with the unit grid -->
-  <model filename="lander.ac" />
+  <model filename="lander.ac" shading="crease"/>
 
   <model filename="ufo_DoorCld.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_DoorOpn.ac" shading="crease" polyRemoval="pre" />
@@ -174,9 +174,6 @@
   <data filename="new_squad_LA.xml" />
   <data filename="new_squad_MA.xml" />
   <data filename="new_squad_HA.xml" />
-  <data filename="new_alien_LA.xml" />
-  <data filename="new_alien_MA.xml" />
-  <data filename="new_alien_HA.xml" />
 
   <text name="tacticalHelp" >
     <page>

@@ -32,8 +32,9 @@ class ParticleSystem;
 
 
 enum {
-	WEAPON_AUTO		 = 0x01,
-	WEAPON_EXPLOSIVE = 0x04,
+	WEAPON_AUTO			= 0x01,
+	WEAPON_EXPLOSIVE	= 0x02,
+	WEAPON_INCINDIARY	= 0x04,	// adds incindiary damage regardless of the ammo type
 };
 
 
@@ -56,6 +57,13 @@ struct DamageDesc
 												energy *= x;
 												incind *= x;
 											}
+	void Normalize()						{
+												float lenInv = 1.0f / ( kinetic + energy + incind );	// not a 2D length.
+												kinetic *= lenInv;
+												energy *= lenInv;
+												incind *= lenInv;
+											}
+
 	float Dot( const DamageDesc& other ) const	{ return other.kinetic*kinetic + other.energy*energy + other.incind*incind; }
 };
 
@@ -185,24 +193,10 @@ public:
 
 
 /* POD.
-   An Item is made up of up to 3 parts.
-   The simple case:
-   ARMOR is one part.
-
-   More complex,
-   AR-2 is the main part.
-   AUTOCLIP is part[1]
-   GRENADE is part[2]
-
-   part[0] is what the Item "is" - gun, medket, etc.
 */
 class Item
 {
 public:
-//	enum {
-//		NUM_PARTS = 3
-//	};
-
 	Item()								{ rounds = 0; itemDef = 0; }
 	Item( const Item& rhs )				{ rounds = rhs.rounds; itemDef = rhs.itemDef; }
 	Item( const ItemDef* itemDef, int rounds=1 );
@@ -210,13 +204,6 @@ public:
 
 	void operator=( const Item& rhs )	{ rounds = rhs.rounds; itemDef = rhs.itemDef; }
 
-	// Add rounds to this Item. Returns 'true' if the items combine, and 'consumed' is set
-	// true if the added item (a clip) is fully used up.
-	//bool Combine( Item* withThis, bool* consumed );
-	// Works like combine, except the 'withThis' item isn't modified.
-	//bool Insert( const Item& withThis );
-	// Remove one of the parts (i=1 or 2)
-	//void RemovePart( int i, Item* item );
 	// wipe this item
 	void Clear()									{ rounds = 0; itemDef = 0; }
 

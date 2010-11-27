@@ -1,14 +1,6 @@
 Issues:
 
 Bugs:
-- graphics tweaks
-	- X: weapons: move trigger to 0 line (so fire is in correct place)
-	- green: move trigger -x
-	- X: canon: move forward of trigger point
-	- X: pls-1: green color odd
-	- NEW LAYER: hit points + target: above seen/unseen, below models
-- alien units: don't need to start in XML. Switch to generative system.
-
 
 Architecture
 - Map as interface
@@ -18,32 +10,19 @@ Features:
 
 TBD:
 - exposive items
+- change terran "splat" image
 - civilians: AI, accounting in score
 - Android: cap framerate. Don't really need >30
 - Android: switch to different application mode? Shut down on screen loss?
 - game plays itself? Enhance AI so it can run fully automated?
 - check math (again yet again) in PushShootAction()
 - trees show up in the wrong place
-- add morale
-? psi attack
 - mission types: landing
 - mission types: terror
 - mission types: big ufos
 - mission types: base
 - re-size after load?
-? pauses when move - profiler?
-- Art: better human models
-- Art: better alien models
-- Art: new weapon models
-- render managers
-- tutorial notes infrastructure
-- performance: AI/Alien turn pauses
-- eject shells
-- Center engine view on clip, not full screen
 - Reconsider when reaction fire occurs. And probability.
-- performance: AI/Alien turn pauses
-- phat loot / edge of map / exploration
-- lander animation isn't good
 
 Models
 - crate stacks
@@ -56,6 +35,17 @@ Level Design
 - cityscape
 
 FIXED
+- alien units: don't need to start in XML. Switch to generative system.
+- fix firestorm
+- Art: better human models
+- Art: better alien models
+- Art: new weapon models
+- graphics tweaks
+	- X: weapons: move trigger to 0 line (so fire is in correct place)
+	- X: green: move trigger -x
+	- X: canon: move forward of trigger point
+	- X: pls-1: green color odd
+	- X: NEW LAYER: hit points + target: above seen/unseen, below models
 
 
 FIXED [for 490]
@@ -216,6 +206,17 @@ FIXED [test #1]
 - map: check "view bounds" before invalidating a unit.
 
 Deferred/Cancelled
+- phat loot / edge of map / exploration
+- performance: AI/Alien turn pauses
+? pauses when move - profiler?
+- render managers
+- tutorial notes infrastructure
+- performance: AI/Alien turn pauses
+- eject shells
+- Center engine view on clip, not full screen
+- lander animation isn't good
+- add morale
+? psi attack
 - melee weapons
 - tu in character screen
 - simultaneous shots

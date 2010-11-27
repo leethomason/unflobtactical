@@ -17,6 +17,8 @@ public:
 	bool GetAudioOn() const				{ return audioOn != 0; }
 	void SetAudioOn( bool value );
 
+	bool GetSuppressCrashLog() const	{ return suppressCrashLog != 0; }
+
 private:
 	SettingsManager( const char* path );
 	~SettingsManager()	{}
@@ -25,6 +27,7 @@ private:
 	static SettingsManager* instance;
 
 	int audioOn;
+	int suppressCrashLog;
 	grinliz::GLString path;
 
 };

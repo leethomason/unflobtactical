@@ -74,7 +74,6 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	engine->camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 
 	PushScene( INTRO_SCENE, 0 );
-	loadRequested = -1;
 	loadCompleted = false;
 	PushPopScene();
 }
@@ -126,7 +125,6 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	engine->camera.SetYRotation( -60.f );
 
 	PushScene( BATTLE_SCENE, 0 );
-	loadRequested = -1;
 	loadCompleted = false;
 	PushPopScene();
 
@@ -223,7 +221,7 @@ void Game::SceneNode::Free()
 }
 
 
-
+/*
 void Game::ProcessLoadRequest()
 {
 	if ( loadRequested == 0 )	// continue
@@ -244,6 +242,7 @@ void Game::ProcessLoadRequest()
 	}
 	loadRequested = -1;
 }
+*/
 
 
 void Game::PushScene( int sceneID, SceneData* data )
@@ -317,8 +316,16 @@ void Game::PushPopScene()
 
 		sceneStack.Push( node );
 		node.scene->Activate();
-		if ( loadRequested >= 0 ) {
-			ProcessLoadRequest();
+
+		if ( node.sceneID == BATTLE_SCENE ) {
+			GLString path = GameSavePath();
+			TiXmlDocument doc;
+			doc.LoadFile( path.c_str() );
+			GLASSERT( !doc.Error() );
+			if ( !doc.Error() ) {
+				Load( doc );
+				loadCompleted = true;
+			}
 		}
 	}
 
@@ -376,10 +383,7 @@ void Game::Load( const TiXmlDocument& doc )
 void Game::Save()
 {
 	if ( loadCompleted ) {
-//		TiXmlDocument doc;
-//		Save( &doc );
 		GLString path = GameSavePath();
-//		doc.SaveFile( path.c_str() );
 		FILE* fp = fopen( path.c_str(), "w" );
 		GLASSERT( fp );
 		if ( fp ) {

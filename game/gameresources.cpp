@@ -303,7 +303,7 @@ void Game::LoadItemResources()
 				"Cell",			0,										DAM_MEDHI,	ACC_HI,		"beam",
 				0  },
 		{ "STORM",	"STORM",	DECO_RIFLE,		"Fire Storm",			FAST, FLAME, EXPLO, SPEED_NORMAL,		// FIXME: make incindiary / energy
-				"Cell",		WEAPON_EXPLOSIVE,						DAM_VHI, ACC_LOW,		"nullp",
+				"Cell",			WEAPON_EXPLOSIVE | WEAPON_INCINDIARY,	DAM_VHI, ACC_LOW,		"nullp",
 				"Tachy",		WEAPON_EXPLOSIVE,						DAM_VHI, ACC_LOW,		"nullp" },
 		{ 0 }
 	};
@@ -412,9 +412,6 @@ void Game::LoadItemResources()
 
 		const float range[] = { 4.0f, 8.0f, 16.0f, 0 };
 		const int rank[] = { 0, 2, 4, -1 };
-
-//		const float range[] = { 8.0f, 0 };
-//		const int rank[] = { 0, 4, -1 };
 
 		for( int rankIt=0; rank[rankIt]>=0; ++rankIt ) {
 			stats.SetRank( rank[rankIt] );

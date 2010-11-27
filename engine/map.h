@@ -367,8 +367,13 @@ public:
 
 	static void MapImageToWorld( int x, int y, int w, int h, int tileRotation, Matrix2I* mat );
 
-	gamui::Gamui	overlay0;
-	gamui::Gamui	overlay1;
+	enum {
+		LAYER_UNDER_LOW,		// obscurred by unseen and past-seen
+		LAYER_UNDER_HIGH,		// covers unseen and past-seen
+		LAYER_OVER,				// on top of models
+		NUM_LAYERS
+	};
+	gamui::Gamui	overlay[NUM_LAYERS];
 	grinliz::Random random;
 
 private:
