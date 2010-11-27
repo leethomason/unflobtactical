@@ -149,10 +149,10 @@ Map::Map( SpaceTree* tree )
 	//walkingVertex.Clear();
 
 	gamui::RenderAtom nullAtom;
-	overlay0.Init( this, nullAtom, nullAtom, 0 );
-	overlay1.Init( this, nullAtom, nullAtom, 0 );
+	for( int i=0; i<NUM_LAYERS; ++i )
+		overlay[i].Init( this, nullAtom, nullAtom, 0 );
 
-	walkingMap.Init( &overlay0 );
+	walkingMap.Init( &overlay[LAYER_UNDER_LOW] );
 	invalidLightMap.Set( 0, 0, SIZE-1, SIZE-1 );
 
 	lightDefStart = GetItemDef( "landerLight" );
@@ -165,7 +165,7 @@ Map::Map( SpaceTree* tree )
 	borderAtom.renderState = (const void*) RENDERSTATE_MAP_OPAQUE;
 #endif
 	for( int i=0; i<4; ++i ) {
-		border[i].Init( &overlay0, borderAtom, false );
+		border[i].Init( &overlay[LAYER_UNDER_HIGH], borderAtom, false );
 	}
 
 	TextureManager* texman = TextureManager::Instance();
@@ -366,10 +366,8 @@ void Map::DrawPastSeen( const Color4F& color )
 
 void Map::DrawOverlay( int layer )
 {
-	if ( layer == 0 )
-		overlay0.Render();
-	else
-		overlay1.Render();
+	GLASSERT( layer >= 0 && layer < NUM_LAYERS );
+	overlay[layer].Render();
 }
 
 

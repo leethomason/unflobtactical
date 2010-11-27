@@ -155,6 +155,14 @@ void WeaponItemDef::DamageBase( WeaponMode mode, DamageDesc* d ) const
 	int select = Index( mode );
 	GLASSERT( weapon[select].clipItemDef );
 	*d = weapon[select].clipItemDef->dd;
+
+	if ( weapon[select].flags & WEAPON_INCINDIARY ) {
+		if ( d->incind < 0.5f ) {
+			d->incind = 0.5f;
+			d->Normalize();
+		}
+	}
+
 	d->Scale( weapon[select].damage );
 }
 

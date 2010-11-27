@@ -34,6 +34,7 @@ SettingsManager::SettingsManager( const char* savepath )
 		TiXmlElement* root = doc.RootElement();
 		if ( root ) {
 			root->QueryIntAttribute( "audioOn", &audioOn );
+			root->QueryIntAttribute( "suppressCrashLog", &suppressCrashLog );
 		}
 	}
 }

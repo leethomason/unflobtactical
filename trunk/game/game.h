@@ -180,8 +180,8 @@ public:
 	virtual void CreateTexture( Texture* t );
 
 	// cheating: moves states between scenes.
-	int				loadRequested;	// 0-continue, 1-new, 2-test, -1 default
-	TiXmlDocument	newGameXML;
+	//int				loadRequested;	// 0-continue, 1-new, 2-test, -1 default
+	//TiXmlDocument	newGameXML;
 
 private:
 	Screenport screenport;
@@ -191,7 +191,7 @@ private:
 	Surface surface;
 
 	void PushPopScene();
-	void ProcessLoadRequest();
+//	void ProcessLoadRequest();
 
 	bool scenePopQueued;
 	bool sceneResetQueued;

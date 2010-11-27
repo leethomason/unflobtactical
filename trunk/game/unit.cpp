@@ -33,7 +33,7 @@ const char* gMaleFirstNames[64] =
 	"Asher",	"Andrew",	"Adam",		"Thane",
 	"Seth",		"Nathan",	"Mal",		"Simon",
 	"Joss",		"Mark",		"Luke",		"Alec",
-	"Robert",	"David",	"Charles",	"Paul",
+	"Robert",	"David",	"Jules",	"Paul",
 	"George",	"Ken",		"Steve",	"Ed",
 	"Brian",	"Ron",		"Tony",		"Kevin",
 	"Gary",		"Jose",		"Scott",	"Josh",
@@ -54,9 +54,9 @@ const char* gFemaleFirstNames[64] =
 	"Gina",		"Zoe",		"Inara",	"River",
 	"Ellen",	"Asa",		"Kasumi",	"Tia",
 	"Donna",	"Eva",		"Sharon",	"Evie",
-	"Maria",	"Lisa",		"Kim",		"Jessica",
+	"Maria",	"Lisa",		"Kim",		"Jess",
 	"Amy",		"Angela",	"Kate",		"Nicole",
-	"Julia",	"Paula",	"Dawn",		"Juanita",
+	"Julia",	"Paula",	"Dawn",		"Sally",
 	"Alicia",	"Yvonne",	"Vivian",	"Alma",
 	"Vera",		"Heidi",	"Gwen",		"Sonia",
 	"Miriam",	"Violet",	"Misty",	"Claire",
@@ -198,8 +198,7 @@ const char* Unit::Rank() const
 }
 
 
-void Unit::Init(	Engine* engine, 
-					Game* game, 
+void Unit::Init(	Game* game, 
 					int team,	 
 					int p_status,
 					int alienType,
@@ -207,13 +206,12 @@ void Unit::Init(	Engine* engine,
 {
 	kills = 0;
 	GLASSERT( this->status == STATUS_NOT_INIT );
-	this->engine = engine;
 	this->game = game;
 	this->team = team;
 	this->status = p_status;
 	this->type = alienType;
 	this->body = body;
-	GLASSERT( type >= 0 && type < 4 );
+	GLASSERT( type >= 0 && type < Unit::NUM_ALIEN_TYPES );
 
 	weapon = 0;
 	visibilityCurrent = false;
@@ -228,7 +226,8 @@ void Unit::Init(	Engine* engine,
 		hp = 0;
 	}
 
-	CreateModel();
+	if ( game )
+		CreateModel();
 }
 
 
@@ -244,11 +243,13 @@ void Unit::Free()
 		return;
 
 	if ( model ) {
-		engine->FreeModel( model );
+		GLASSERT( game );
+		game->engine->FreeModel( model );
 		model = 0;
 	}
 	if ( weapon ) {
-		engine->FreeModel( weapon );
+		GLASSERT( game );
+		game->engine->FreeModel( weapon );
 		weapon = 0;
 	}
 	status = STATUS_NOT_INIT;
@@ -329,15 +330,16 @@ void Unit::UpdateInventory()
 {
 	GLASSERT( status != STATUS_NOT_INIT );
 
-	if ( weapon ) {
-		engine->FreeModel( weapon );
+	if ( weapon  ) {
+		GLASSERT( game );
+		game->engine->FreeModel( weapon );
 	}
 	weapon = 0;	// don't render non-weapon items
 
 	if ( IsAlive() ) {
 		const Item* weaponItem = inventory.ArmedWeapon();
-		if ( weaponItem  ) {
-			weapon = engine->AllocModel( weaponItem->GetItemDef()->resource );
+		if ( weaponItem && game ) {
+			weapon = game->engine->AllocModel( weaponItem->GetItemDef()->resource );
 			weapon->SetFlag( Model::MODEL_NO_SHADOW );
 			weapon->SetFlag( Model::MODEL_MAP_TRANSPARENT );
 		}
@@ -514,25 +516,27 @@ void Unit::CreateModel()
 				GLASSERT( 0 );
 				break;
 		}
-		if ( resource ) {
-			model = engine->AllocModel( resource );
+		if ( resource && game ) {
+			model = game->engine->AllocModel( resource );
 			model->SetFlag( Model::MODEL_MAP_TRANSPARENT );
 		}
 	}
 	else {
 		if ( team != CIV_TEAM ) {
-			model = engine->AllocModel( modman->GetModelResource( "unitplate" ) );
-			model->SetFlag( Model::MODEL_MAP_TRANSPARENT );
-			model->SetFlag( Model::MODEL_NO_SHADOW );
+			if ( game ) {
+				model = game->engine->AllocModel( modman->GetModelResource( "unitplate" ) );
+				model->SetFlag( Model::MODEL_MAP_TRANSPARENT );
+				model->SetFlag( Model::MODEL_NO_SHADOW );
 
-			Texture* texture = TextureManager::Instance()->GetTexture( "particleQuad" );
-			model->SetTexture( texture );
+				Texture* texture = TextureManager::Instance()->GetTexture( "particleQuad" );
+				model->SetTexture( texture );
 
-			if ( team == TERRAN_TEAM ) {
-				model->SetTexXForm( 0, 0.25f, 0.25f, 0.75f, 0.0f );
-			}
-			else {
-				model->SetTexXForm( 0, 0.25f, 0.25f, 0.75f, 0.25f );
+				if ( team == TERRAN_TEAM ) {
+					model->SetTexXForm( 0, 0.25f, 0.25f, 0.75f, 0.0f );
+				}
+				else {
+					model->SetTexXForm( 0, 0.25f, 0.25f, 0.75f, 0.25f );
+				}
 			}
 		}
 	}
@@ -565,9 +569,14 @@ void Unit::Save( FILE* fp, int depth ) const
 		XMLUtil::Attribute( fp, "hp", hp );
 		XMLUtil::Attribute( fp, "kills", kills );
 		XMLUtil::Attribute( fp, "tu", tu );
-		XMLUtil::Attribute( fp, "modelX", model->Pos().x );
-		XMLUtil::Attribute( fp, "modelZ", model->Pos().z );
-		XMLUtil::Attribute( fp, "yRot", model->GetRotation() );
+		if ( ai == AI_GUARD )
+			XMLUtil::Attribute( fp, "ai", "guard" );
+
+		if ( model ) {
+			XMLUtil::Attribute( fp, "modelX", model->Pos().x );
+			XMLUtil::Attribute( fp, "modelZ", model->Pos().z );
+			XMLUtil::Attribute( fp, "yRot", model->GetRotation() );
+		}
 
 		XMLUtil::SealElement( fp );
 
@@ -579,7 +588,7 @@ void Unit::Save( FILE* fp, int depth ) const
 }
 
 
-void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
+void Unit::Load( const TiXmlElement* ele, Game* game  )
 {
 	Free();
 
@@ -615,9 +624,9 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 
 		GenStats( team, type, body, &stats );		// defaults if not provided
 		stats.Load( ele );
-		inventory.Load( ele, engine, game );
+		inventory.Load( ele, game->engine, game );
 
-		Init( engine, game, team, a_status, type, body );
+		Init( game, team, a_status, type, body );
 
 		hp = stats.TotalHP();
 		tu = stats.TotalTU();
@@ -636,7 +645,7 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 				GLASSERT( pos.z == 0.0f );
 
 				Vector2I pi;
-				engine->GetMap()->PopLocation( team, ai == AI_GUARD, &pi, &rot );
+				game->engine->GetMap()->PopLocation( team, ai == AI_GUARD, &pi, &rot );
 				pos.Set( (float)pi.x+0.5f, 0.0f, (float)pi.y+0.5f );
 			}
 
@@ -658,6 +667,22 @@ void Unit::Load( const TiXmlElement* ele, Engine* engine, Game* game  )
 					this->stats.AccuracyArea() ));
 #endif
 	}
+}
+
+
+void Unit::Create(	int team,
+					int alienType,
+					int rank,
+					int seed )
+{
+	Free();
+	Init( 0, team, STATUS_ALIVE, alienType, seed );
+	GenStats( team, type, body, &stats );		// defaults if not provided
+	stats.SetRank( rank );
+
+	hp = stats.TotalHP();
+	tu = stats.TotalTU();
+	UpdateInventory();
 }
 
 

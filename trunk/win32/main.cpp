@@ -26,6 +26,7 @@
 #include "../grinliz/glstringutil.h"
 #include "audio.h"
 #include "../version.h"
+#include "../game/settings.h"
 
 // Used for map maker mode - directly call the game object.
 #include "../game/game.h"
@@ -178,31 +179,6 @@ int main( int argc, char **argv )
 
 	GLOUTPUT(( "OpenGL vendor: '%s'  Renderer: '%s'  Version: '%s'\n", vendor, renderer, version ));
 
-#if 0
-	PostCurrentGame();
-#else
-	{
-		// Check for a "didn't crash" file.
-		FILE* fp = fopen( "UFO_Running.txt", "r" );
-		if ( fp ) {
-			fseek( fp, 0, SEEK_END );
-			long len = ftell( fp );
-			if ( len > 1 ) {
-				// Wasn't deleted.
-				PostCurrentGame();
-			}
-			fclose( fp );
-		}
-	}
-	{
-		FILE* fp = fopen( "UFO_Running.txt", "w" );
-		if ( fp ) {
-			fprintf( fp, "Game running." );
-			fclose( fp );
-		}
-	}
-#endif
-
 	Audio_Init();
 
 	bool done = false;
@@ -256,6 +232,33 @@ int main( int argc, char **argv )
 	else {
 		game = NewGame( screenWidth, screenHeight, rotation, ".\\" );
 	}
+
+
+#if 0
+	PostCurrentGame();
+#else
+	// Can't call this until after the game is created!
+	if ( !SettingsManager::Instance()->GetSuppressCrashLog() ) {
+		// Check for a "didn't crash" file.
+		FILE* fp = fopen( "UFO_Running.txt", "r" );
+		if ( fp ) {
+			fseek( fp, 0, SEEK_END );
+			long len = ftell( fp );
+			if ( len > 1 ) {
+				// Wasn't deleted.
+				PostCurrentGame();
+			}
+			fclose( fp );
+		}
+	}
+	{
+		FILE* fp = fopen( "UFO_Running.txt", "w" );
+		if ( fp ) {
+			fprintf( fp, "Game running." );
+			fclose( fp );
+		}
+	}
+#endif
 
 #ifndef TEST_FULLSPEED
 	SDL_TimerID timerID = SDL_AddTimer( TIME_BETWEEN_FRAMES, TimerCallback, 0 );

@@ -367,8 +367,9 @@ void Engine::Draw()
 		}
 
 #ifdef ENGINE_RENDER_MAP
-		map->DrawOverlay( 0 );
+		map->DrawOverlay( Map::LAYER_UNDER_LOW );
 		map->DrawUnseen();
+		map->DrawOverlay( Map::LAYER_UNDER_HIGH );
 #endif
 	}
 
@@ -376,7 +377,7 @@ void Engine::Draw()
 #ifdef ENGINE_RENDER_MODELS
 	renderQueue->Submit( 0, 0, 0, 0, bbRotation );
 #endif
-	map->DrawOverlay( 1 );
+	map->DrawOverlay( Map::LAYER_OVER );
 	renderQueue->Clear();
 
 	//spaceTree->Dump();
