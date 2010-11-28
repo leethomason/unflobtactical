@@ -27,6 +27,8 @@ SettingsManager::SettingsManager( const char* savepath )
 
 	// Set defaults.
 	audioOn = 1;
+	suppressCrashLog = 0;
+	playerAI = 0;
 
 	// Parse actuals.
 	TiXmlDocument doc;
@@ -35,6 +37,7 @@ SettingsManager::SettingsManager( const char* savepath )
 		if ( root ) {
 			root->QueryIntAttribute( "audioOn", &audioOn );
 			root->QueryIntAttribute( "suppressCrashLog", &suppressCrashLog );
+			root->QueryIntAttribute( "playerAI", &playerAI );
 		}
 	}
 }

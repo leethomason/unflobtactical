@@ -439,6 +439,9 @@ void Game::LoadItemResources()
 
 const ItemDef* Game::GetItemDef( const char* name )
 {
+	if ( grinliz::StrEqual( "NULL", name ) )
+		name = "STORM";		// compatibility for testing
+
 	GLASSERT( name && *name );
 	for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
 		if ( itemDefArr[i] && strcmp( itemDefArr[i]->name, name ) == 0 ) {

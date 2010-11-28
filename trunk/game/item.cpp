@@ -369,25 +369,25 @@ bool Storage::Contains( const ItemDef* def ) const
 
 
 
-bool Storage::IsResupply( const WeaponItemDef* weapon ) const
+const WeaponItemDef* Storage::IsResupply( const WeaponItemDef* weapon ) const
 {
 	if ( weapon ) {
 		const ClipItemDef* clip0 = weapon->GetClipItemDef( kSnapFireMode );
 		const ClipItemDef* clip1 = weapon->GetClipItemDef( kAltFireMode );
 
 		if ( GetCount( clip0 ) || GetCount( clip1 ) )
-			return true;
+			return weapon;
 	}
 
 	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-		if ( itemDefArr[i] && itemDefArr[i]->IsWeapon() ) {
+		if ( itemDefArr[i] && itemDefArr[i]->IsWeapon() && GetCount( itemDefArr[i] ) ) {
 			const ClipItemDef* clip0 = itemDefArr[i]->IsWeapon()->GetClipItemDef( kSnapFireMode );
 			const ClipItemDef* clip1 = itemDefArr[i]->IsWeapon()->GetClipItemDef( kAltFireMode );
 			if ( GetCount( clip0 ) || GetCount( clip1 ) )
-				return true;
+				return itemDefArr[i]->IsWeapon();
 		}
 	}
-	return false;
+	return 0;
 }
 
 

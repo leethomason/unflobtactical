@@ -397,18 +397,6 @@ void Game::Save()
 
 void Game::Save( FILE* fp )
 {
-	/*
-	TiXmlElement sceneElement( "Scene" );
-	sceneElement.SetAttribute( "id", 0 );
-
-	TiXmlElement gameElement( "Game" );
-	gameElement.SetAttribute( "version", VERSION );
-	gameElement.InsertEndChild( sceneElement );
-
-	doc->InsertEndChild( gameElement );
-	sceneStack.Bottom().scene->Save( doc->RootElement() );
-	*/
-
 	XMLUtil::OpenElement( fp, 0, "Game" );
 	XMLUtil::Attribute( fp, "version", VERSION );
 	XMLUtil::SealElement( fp );
