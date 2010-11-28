@@ -255,7 +255,8 @@ public:
 	// Return true if either is true:
 	// 1. This storage contains a clip (of either type) for 'weapon',
 	// 2. This storage contains any weapon and rounds for that weapon
-	bool IsResupply( const WeaponItemDef* weapon ) const;
+	// Returns the weapon def that is re-supplied.
+	const WeaponItemDef* IsResupply( const WeaponItemDef* weapon ) const;
 	
 	void SetCount( const ItemDef*, int count );
 	int GetCount( const ItemDef* ) const;

@@ -24,6 +24,7 @@
 #include "cgame.h"
 #include "helpscene.h"
 #include "settings.h"
+#include "ai.h"
 
 
 using namespace grinliz;
@@ -320,15 +321,7 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	//			Images
 	//			GroundDebris
 	//		Units
-	 //			Unit
-
-//	TiXmlElement* gameElement = new TiXmlElement( "Game" );
-//	TiXmlElement* sceneElement = new TiXmlElement( "Scene" );
-//	TiXmlElement* battleElement = new TiXmlElement( "BattleScene" );
-
-//	xml->LinkEndChild( gameElement );
-//	gameElement->LinkEndChild( sceneElement );
-//	gameElement->LinkEndChild( battleElement );
+	//			Unit
 	
 	XMLUtil::OpenElement( fp, 0, "Game" );
 	XMLUtil::SealElement( fp );
@@ -390,7 +383,7 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 		count = 16;
 	}
 
-	if ( toggles[TERRAN_LOW].Down() ) {
+	if ( toggles[ALIEN_LOW].Down() ) {
 		types[Unit::ALIEN_GREEN] = count*3/4;
 		types[Unit::ALIEN_HORNET] = count*1/4;
 		rank = 0;
@@ -411,11 +404,14 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	}
 
 	GenerateAlienTeam( units, types, rank, seed );
+	int created=0;
 	for( int i=0; i<MAX_ALIENS; ++i ) {
 		if ( units[i].IsAlive() ) {
 			units[i].Save( fp, 2 );
+			++created;
 		}
 	}
+	GLASSERT( created == count );
 
 	XMLUtil::CloseElement( fp, 1, "Units" );
 	XMLUtil::CloseElement( fp, 0, "Game" );		
@@ -613,12 +609,12 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 											int averageRank,
 											int seed )
 {
-	const char* weapon[NUM_RANKS*Unit::NUM_ALIEN_TYPES] = {
-		"RAY-1",	"RAY-1",	"RAY-1",	"RAY-2",	"RAY-3",		// green
-		"RAY-2",	"RAY-2",	"RAY-3",	"RAY-3",	"BEAM",			// prime
-		"PLS-1",	"PLS-1",	"PLS-2",	"BEAM",		"PLS-2",		// hornet
-		"STORM",	"STORM",	"STORM",	"STORM",	"STORM",		// jackal
-		"PLS-1",	"PLS-1",	"PLS-2",	"BEAM",		"PLS-2",		// viper
+	const char* weapon[Unit::NUM_ALIEN_TYPES][NUM_RANKS] = {
+		{	"RAY-1",	"RAY-1",	"RAY-1",	"RAY-2",	"RAY-3" },		// green
+		{	"RAY-2",	"RAY-2",	"RAY-3",	"RAY-3",	"BEAM"	},		// prime
+		{	"PLS-1",	"PLS-1",	"PLS-2",	"BEAM",		"PLS-2" },		// hornet
+		{	"STORM",	"STORM",	"STORM",	"STORM",	"STORM" },		// jackal
+		{	"PLS-1",	"PLS-1",	"PLS-2",	"BEAM",		"PLS-2" }		// viper
 	};
 
 	int nAliens = 0;
@@ -636,18 +632,18 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 		for( int k=0; k<alienCount[i]; ++k ) {
 			
 			// Create the unit.
-			int rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS );
+			int rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
  			unit[index].Create( ALIEN_TEAM, i, rank, aRand.Rand() );
 
 			// About 1/3 should be guards that aren't green or prime.
 			if ( i >= 2 && index % 3 == 0 ) {
-				unit[index].SetAI( Unit::AI_GUARD );
+				unit[index].SetAI( AI::AI_GUARD );
 			}
 
-			rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS );
+			rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
 
 			// Add the weapon.
-			Item item( game, weapon[Unit::NUM_ALIEN_TYPES*i + rank] );
+			Item item( game, weapon[i][rank] );
 			unit[index].GetInventory()->AddItem( item );
 
 			// Add ammo.

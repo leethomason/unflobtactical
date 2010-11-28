@@ -44,8 +44,13 @@ namespace grinliz
 	
 inline int HexLowerCharToInt( int c ) {
 	GLASSERT( (c>='0'&&c<='9') || (c>='a'&&c<='f') );
-	const int bit6 = (c&0x40) >> 6;
-	return bit6*( c - 'a' + 10 ) + (1-bit6)*( c - '0');
+	if ( c <= '9' )
+		return c - '0';
+	else
+		return 10 + c - 'a';
+
+	//const int bit6 = (c&0x40) >> 6;
+	//return bit6*( c - 'a' + 10 ) + (1-bit6)*( c - '0');
 }
 
 inline bool StrEqual( const char* a, const char* b ) 

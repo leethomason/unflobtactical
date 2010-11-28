@@ -36,6 +36,7 @@
 
 #include "../tinyxml/tinyxml.h"
 #include "ufosound.h"
+#include "settings.h"
 
 using namespace grinliz;
 using namespace gamui;
@@ -58,8 +59,13 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 
 	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, engine, units );
 	aiArr[TERRAN_TEAM]		= 0;
+
+	if ( SettingsManager::Instance()->GetPlayerAI() ) {
+		aiArr[TERRAN_TEAM] = new WarriorAI( TERRAN_TEAM, engine, units );
+	}
 	// FIXME: use warrior AI for now...
 	aiArr[CIV_TEAM]			= new WarriorAI( CIV_TEAM, engine, units );
+
 	mapmaker_currentMapItem = 1;
 
 	// On screen menu.
@@ -192,7 +198,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	}
 
 	currentTeamTurn = ALIEN_TEAM;
-	NextTurn();
+	NextTurn( false );
 }
 
 
@@ -221,109 +227,9 @@ void BattleScene::Activate()
 
 void BattleScene::DeActivate()
 {
-//	engine->SetClip( 0 );
 }
 
-/*
-void BattleScene::InitUnits()
-{
-	int Z = engine->GetMap()->Height();
-	Random random(1098305);
-	random.Rand();
-	random.Rand();
-
-	Item gun0( game, "PST" ),
-		 gun1( game, "RAY-1" ),
-		 ar3( game, "AR-3P" ),
-		 plasmaRifle( game, "PLS-2" ),
-		 medkit( game, "Med" ),
-		 armor( game, "ARM-1" ),
-		 fuel( game, "Gel" ),
-		 grenade( game, "RPG", 4 ),
-		 autoClip( game, "Clip", 15 ),
-		 cell( game, "Cell", 12 ),
-		 tachyon( game, "Tach", 4 ),
-		 clip( game, "Clip", 8 );
-
-	for( int i=0; i<4; ++i ) {
-		Vector2I pos = { (i*2)+10, Z-10 };
-		Unit* unit = &units[TERRAN_UNITS_START+i];
-
-		random.Rand();
-		unit->Init( engine, game, Unit::STATUS_ALIVE, TERRAN_TEAM, 0, random.Rand() );
-
-		Inventory* inventory = unit->GetInventory();
-
-		if ( i == 0 ) {
-			inventory->AddItem( gun0 );
-		}
-		else if ( (i & 1) == 0 ) {
-			inventory->AddItem( ar3 );
-			inventory->AddItem( gun0 );
-
-			inventory->AddItem( autoClip );
-			inventory->AddItem( grenade );
-		}
-		else {
-			inventory->AddItem( plasmaRifle );
-
-			inventory->AddItem( cell );
-			inventory->AddItem( tachyon );
-		}
-
-		inventory->AddItem( Item( clip ));
-		inventory->AddItem( Item( clip ));
-		inventory->AddItem( medkit );
-		inventory->AddItem( armor );
-
-		unit->UpdateInventory();
-		unit->SetMapPos( pos.x, pos.y );
-		unit->SetYRotation( (float)(((i+2)%8)*45) );
-	}
-	
-	const Vector2I alienPos[4] = { 
-		{ 16, 21 }, {12, 16 }, { 30, 25 }, { 29, 30 }
-	};
-	for( int i=0; i<4; ++i ) {
-		Unit* unit = &units[ALIEN_UNITS_START+i];
-
-		unit->Init( engine, game, ALIEN_TEAM, Unit::STATUS_ALIVE, i&3, random.Rand() );
-		Inventory* inventory = unit->GetInventory();
-		if ( (i&1) == 0 ) {
-			inventory->AddItem( gun1 );
-			inventory->AddItem( cell );
-			inventory->AddItem( tachyon );
-		}
-		else if ( i==1 ) {
-			inventory->AddItem( plasmaRifle );
-		}
-		else {
-			inventory->AddItem( plasmaRifle );
-			inventory->AddItem( cell );
-			inventory->AddItem( tachyon );
-		}
-		unit->UpdateInventory();
-		unit->SetMapPos( alienPos[i] );
-	}
-
-	Storage* extraAmmo = engine->GetMap()->LockStorage( 12, 20 );
-	if ( !extraAmmo )
-		extraAmmo = new Storage( game->GetItemDefArr() );
-	extraAmmo->AddItem( cell );
-	extraAmmo->AddItem( cell );
-	extraAmmo->AddItem( tachyon );
-	engine->GetMap()->ReleaseStorage( 12, 20, extraAmmo, game->GetItemDefArr() );
-
-	for( int i=0; i<4; ++i ) {
-		Vector2I pos = { (i*2)+10, Z-12 };
-		units[CIV_UNITS_START+i].Init( engine, game, CIV_TEAM, 0, random.Rand() );
-		units[CIV_UNITS_START+i].SetMapPos( pos.x, pos.y );
-	}
-	
-}
-*/
-
-void BattleScene::NextTurn()
+void BattleScene::NextTurn( bool saveOnTerranTurn )
 {
 	currentTeamTurn = (currentTeamTurn==ALIEN_TEAM) ? TERRAN_TEAM : ALIEN_TEAM;	// FIXME: go to 3 state
 	turnCount++;
@@ -368,7 +274,7 @@ void BattleScene::NextTurn()
 	targetEvents.Clear();
 
 	// Per turn save:
-	if ( currentTeamTurn == TERRAN_TEAM ) {
+	if ( saveOnTerranTurn && currentTeamTurn == TERRAN_TEAM ) {
 		game->Save();
 	}
 
@@ -885,28 +791,31 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	if ( result && EndCondition( &tacticalData ) ) {
 		game->PushScene( Game::END_SCENE, new TacticalEndSceneData( tacticalData ) );
 	}
-	else if	( currentTeamTurn == TERRAN_TEAM ) {
-		if ( selection.soldierUnit && !selection.soldierUnit->IsAlive() ) {
-			SetSelection( 0 );
+	else { 
+		if ( currentTeamTurn == TERRAN_TEAM ) {
+			if ( selection.soldierUnit && !selection.soldierUnit->IsAlive() ) {
+				SetSelection( 0 );
+			}
+			if ( actionStack.Empty() ) {
+				ShowNearPath( selection.soldierUnit );	// fast if it does nothing.
+			}
+			// Render the target (if it is on-screen)
+			if ( HasTarget() ) {
+				DrawFireWidget();
+			}
+			else {
+				fireButton[0].SetVisible( false );
+				fireButton[1].SetVisible( false );
+				fireButton[2].SetVisible( false );
+			}
 		}
 		if ( actionStack.Empty() ) {
-			ShowNearPath( selection.soldierUnit );	// fast if it does nothing.
-		}
-		// Render the target (if it is on-screen)
-		if ( HasTarget() ) {
-			DrawFireWidget();
-		}
-		else {
-			fireButton[0].SetVisible( false );
-			fireButton[1].SetVisible( false );
-			fireButton[2].SetVisible( false );
-		}
-	}
-	else {
-		if ( actionStack.Empty() ) {
-			bool done = ProcessAI();
-			if ( done )
-				NextTurn();
+			if ( aiArr[currentTeamTurn] ) {
+				bool done = ProcessAI();
+				if ( done ) {
+					NextTurn( true );
+				}
+			}
 		}
 	}
 }
@@ -1376,9 +1285,64 @@ void BattleScene::DoReactionFire()
 }
 
 
+void BattleScene::ProcessInventoryAI( Unit* theUnit )
+{
+	AI_LOG(( "[ai] Unit %d INVENTORY: ", currentUnitAI ));
+	// Drop all the weapons and clips. Pick up new weapons and clips.
+	Vector2I pos = theUnit->Pos();
+	Storage* storage = engine->GetMap()->LockStorage( pos.x, pos.y, game->GetItemDefArr() );
+	GLRELASSERT( storage );
+
+	Inventory* inventory = theUnit->GetInventory();
+	Item item;
+
+	if ( storage ) {
+		// Exception version=490 device=win32 at 	Sat, November 27, 2010 6:25 pm
+		// The IsResupply() is used by the AI query, an the same thing needs to 
+		// be used here, else we can infinte loop.
+		const WeaponItemDef* wid = storage->IsResupply( theUnit->GetWeaponDef() );
+
+		// Clear out everything actually being carried so we don't run out of space.
+		for( int i=0; i<Inventory::NUM_SLOTS; ++i ) {
+			item = inventory->GetItem( i );
+			if ( item.IsWeapon() || item.IsClip() ) {
+				storage->AddItem( item );
+				inventory->RemoveItem( i );
+			}
+		}
+
+		storage->RemoveItem( wid, &item );
+		int slot = inventory->AddItem( item );
+		GLRELASSERT( slot == Inventory::WEAPON_SLOT );
+		AI_LOG(( "'%s' ", item.Name() ));
+
+		// clips.
+		WeaponMode mode[2] = { kSnapFireMode, kAltFireMode };
+		for( int k=0; k<2; ++k ) {
+			while ( storage->GetCount( wid->GetClipItemDef( mode[k] ) ) ) {
+				Item item;
+				storage->RemoveItem( wid->GetClipItemDef( mode[k] ), &item );
+				if ( inventory->AddItem( item ) < 0 ) {
+					storage->AddItem( item );
+					break;
+				}
+				else {
+					AI_LOG(( "'%s' ", item.Name() ));
+				}
+			}
+		}
+		AI_LOG(( "\n" ));
+		engine->GetMap()->ReleaseStorage( storage );
+	}
+	theUnit->UpdateInventory();
+}
+
+
 bool BattleScene::ProcessAI()
 {
 	GLRELASSERT( actionStack.Empty() );
+	GLASSERT( aiArr[currentTeamTurn] );
+
 	int count = 0;
 
 	while ( actionStack.Empty() ) {
@@ -1391,10 +1355,10 @@ bool BattleScene::ProcessAI()
 			continue;
 		}
 
-		int flags = ( units[currentUnitAI].AI() == Unit::AI_GUARD ) ? AI::AI_GUARD : 0;
+		int flags = units[currentUnitAI].AI();
 		AI::AIAction aiAction;
 
-		bool done = aiArr[ALIEN_TEAM]->Think( &units[currentUnitAI], m_targets, flags, engine->GetMap(), &aiAction );
+		bool done = aiArr[currentTeamTurn]->Think( &units[currentUnitAI], m_targets, flags, engine->GetMap(), &aiAction );
 
 		switch ( aiAction.actionID ) {
 			case AI::ACTION_SHOOT:
@@ -1420,97 +1384,13 @@ bool BattleScene::ProcessAI()
 			case AI::ACTION_ROTATE:
 				{
 					AI_LOG(( "[ai] Unit %d ROTATE\n", currentUnitAI ));
-					Vector3F target = { float(aiAction.rotate.x)+0.5f, 0, (float)(aiAction.rotate.y)+0.5f };
+					Vector3F target = { (float)aiAction.rotate.x, 0, (float)aiAction.rotate.y};
 					PushRotateAction( &units[currentUnitAI], target, true );
 				}
 				break;
 
 			case AI::ACTION_INVENTORY:
-				{
-					AI_LOG(( "[ai] Unit %d INVENTORY: ", currentUnitAI ));
-					// Drop all the weapons and clips. Pick up new weapons and clips.
-					Vector2I pos = units[currentUnitAI].Pos();
-					Storage* storage = engine->GetMap()->LockStorage( pos.x, pos.y, game->GetItemDefArr() );
-					GLRELASSERT( storage );
-					Inventory* inventory = units[currentUnitAI].GetInventory();
-
-					if ( storage ) {
-						for( int i=0; i<Inventory::NUM_SLOTS; ++i ) {
-							Item item = inventory->GetItem( i );
-							if ( item.IsWeapon() || item.IsClip() ) {
-								storage->AddItem( item );
-								inventory->RemoveItem( i );
-							}
-						}
-
-						// Now find the best gun, pick it up, and all the clips we can.
-						const ItemDef* best = 0;
-						float bestScore = -1.0f;
-
-						ItemDef* const*	itemDefArr = game->GetItemDefArr();
-						for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-							if ( itemDefArr[i] && itemDefArr[i]->IsWeapon() && storage->GetCount( itemDefArr[i] ) ) {
-								const WeaponItemDef* wid = itemDefArr[i]->IsWeapon();
-								
-								float toHit, anyHit, damage, dptu;
-								wid->FireStatistics( kAutoFireMode, 
-													 units[currentUnitAI].GetStats().AccuracyArea(), 
-													 8.0f,		// typical distance
-													 &toHit, &anyHit, &damage, &dptu );
-
-								int nClips = storage->GetCount( wid->GetClipItemDef( kAutoFireMode ) );	// clip count...
-
-								float score = dptu * (float)nClips;
-
-								if ( wid->HasWeapon( kAltFireMode ) ) {
-									wid->FireStatistics( kAltFireMode, 
-														 units[currentUnitAI].GetStats().AccuracyArea(), 
-														 8.0f,
-														 &toHit, &anyHit, &damage, &dptu );
-									nClips = storage->GetCount( wid->GetClipItemDef( kAltFireMode ) );	// clip count...
-									
-									score += dptu * (float)nClips * 0.8f;
-								}
-
-								if ( score > bestScore ) {
-									bestScore = score;
-									best = itemDefArr[i];
-								}
-							}
-						}
-
-						if ( best ) {
-							// The gun.
-							const WeaponItemDef* wid = best->IsWeapon();
-							GLRELASSERT( wid );
-
-							Item item;
-							storage->RemoveItem( best, &item );
-							int slot = inventory->AddItem( item );
-							GLRELASSERT( slot == Inventory::WEAPON_SLOT );
-							AI_LOG(( "'%s' ", item.Name() ));
-
-							// clips.
-							WeaponMode mode[2] = { kSnapFireMode, kAltFireMode };
-							for( int k=0; k<2; ++k ) {
-								while ( storage->GetCount( wid->GetClipItemDef( mode[k] ) ) ) {
-									Item item;
-									storage->RemoveItem( wid->GetClipItemDef( mode[k] ), &item );
-									if ( inventory->AddItem( item ) < 0 ) {
-										storage->AddItem( item );
-										break;
-									}
-									else {
-										AI_LOG(( "'%s' ", item.Name() ));
-									}
-								}
-							}
-						}
-						AI_LOG(( "\n" ));
-					}
-					engine->GetMap()->ReleaseStorage( storage );
-					units[currentUnitAI].UpdateInventory();
-				}
+				ProcessInventoryAI( &units[currentUnitAI] );
 				break;
 
 			case AI::ACTION_NONE:
@@ -1672,7 +1552,8 @@ int BattleScene::ProcessAction( U32 deltaTime )
 						move->path.Travel( &travel, &move->pathStep, &move->pathFraction );
 						if ( move->pathFraction == 0.0f ) {
 							// crossed a path boundary.
-							GLRELASSERT( unit->TU() >= 1.0 );	// one move is one TU
+							GLRELASSERT( unit->TU() >= 0.99 );	// one move is one TU. Should never be less than one, but
+																// occasionally see magic floating point number bugs.
 							
 							Vector2<S16> v0 = move->path.GetPathAt( move->pathStep-1 );
 							Vector2<S16> v1 = move->path.GetPathAt( move->pathStep );
@@ -2229,7 +2110,7 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 				game->PushScene( Game::END_SCENE, new TacticalEndSceneData( tacticalData ) );
 			}
 			else {
-				NextTurn();
+				NextTurn( true );
 			}
 		}
 		else if ( tapped == controlButton + NEXT_BUTTON ) {

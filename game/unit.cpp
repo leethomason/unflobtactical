@@ -19,6 +19,7 @@
 #include "material.h"
 #include "../tinyxml/tinyxml.h"
 #include "../grinliz/glstringutil.h"
+#include "ai.h"
 
 using namespace grinliz;
 
@@ -215,7 +216,11 @@ void Unit::Init(	Game* game,
 
 	weapon = 0;
 	visibilityCurrent = false;
-	ai = AI_NORMAL;
+	
+	if ( team == TERRAN_TEAM )
+		ai = AI::AI_TRAVEL;
+	else
+		ai = AI::AI_NORMAL;
 
 	if ( p_status == STATUS_ALIVE ) {
 		tu = 1.0f;
@@ -569,7 +574,7 @@ void Unit::Save( FILE* fp, int depth ) const
 		XMLUtil::Attribute( fp, "hp", hp );
 		XMLUtil::Attribute( fp, "kills", kills );
 		XMLUtil::Attribute( fp, "tu", tu );
-		if ( ai == AI_GUARD )
+		if ( ai == AI::AI_GUARD )
 			XMLUtil::Attribute( fp, "ai", "guard" );
 
 		if ( model ) {
@@ -607,7 +612,7 @@ void Unit::Load( const TiXmlElement* ele, Game* game  )
 	float rot = 0;
 	type = 0;
 	int a_status = 0;
-	ai = AI_NORMAL;
+	ai = AI::AI_NORMAL;
 	kills = 0;
 
 	GLASSERT( StrEqual( ele->Value(), "Unit" ) );
@@ -637,7 +642,7 @@ void Unit::Load( const TiXmlElement* ele, Game* game  )
 		ele->QueryIntAttribute( "kills", &kills );
 
 		if ( StrEqual( ele->Attribute( "ai" ), "guard" ) ) {
-			ai = AI_GUARD;
+			ai = AI::AI_GUARD;
 		}
 
 		if ( model ) {
@@ -645,7 +650,7 @@ void Unit::Load( const TiXmlElement* ele, Game* game  )
 				GLASSERT( pos.z == 0.0f );
 
 				Vector2I pi;
-				game->engine->GetMap()->PopLocation( team, ai == AI_GUARD, &pi, &rot );
+				game->engine->GetMap()->PopLocation( team, ai == AI::AI_GUARD, &pi, &rot );
 				pos.Set( (float)pi.x+0.5f, 0.0f, (float)pi.y+0.5f );
 			}
 

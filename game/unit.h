@@ -55,11 +55,6 @@ public:
 		NUM_ALIEN_TYPES
 	};
 
-	enum { 
-		AI_NORMAL,
-		AI_GUARD
-	};
-
 	enum {
 		MALE,
 		FEMALE
@@ -92,7 +87,7 @@ public:
 	int Gender() const			{ return GetValue( GENDER ); }
 	int AI() const				{ return ai; }
 
-	void SetAI( int value )		{ GLASSERT( value == AI_NORMAL || value == AI_GUARD ); ai = value; }
+	void SetAI( int value )		{ ai = value; }
 
 	const char* FirstName() const;
 	const char* LastName() const;

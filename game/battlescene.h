@@ -305,7 +305,7 @@ private:
 
 	void	SetSelection( Unit* unit );
 
-	void NextTurn();
+	void NextTurn( bool saveOnTerranTurn );
 
 	void Drag( int action, bool uiActivated, const grinliz::Vector2F& view );
 	bool GamuiHasCapture()	{ return gamui2D.TapCaptured() || gamui3D.TapCaptured(); }
@@ -379,6 +379,7 @@ private:
 	CDynArray< grinliz::Vector2I > doors;
 	void ProcessDoors();
 	bool ProcessAI();			// return true if turn over.
+	void ProcessInventoryAI( Unit* unit );			// return true if turn over.
 
 	// Updates what units can and can not see. Sets the 'Targets' structure above,
 	// and generates targetEvents.

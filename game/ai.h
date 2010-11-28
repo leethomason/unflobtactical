@@ -81,8 +81,10 @@ public:
 	void Inform( const Unit* theUnit, int quality );
 
 	enum {
+		AI_NORMAL = 0x00,
 		AI_WANDER = 0x01,
-		AI_GUARD  = 0x02
+		AI_GUARD  = 0x02,
+		AI_TRAVEL = 0x04,
 	};
 
 	// Return true if done.
@@ -133,6 +135,11 @@ protected:
 							Map* map,
 							AIAction* action );
 
+	int ThinkTravel(		const Unit* theUnit,
+							const Targets& targets,
+							Map* map,
+							AIAction* action );
+
 	int ThinkRotate(		const Unit* theUnit,
 							const Targets& targets,
 							Map* map,
@@ -150,10 +157,6 @@ protected:
 		grinliz::Vector2I	pos;
 		int					turns;
 	};
-	enum {
-		MAX_TURNS_LKP = 100
-	};
-	LKP m_lkp[MAX_UNITS];
 	const Unit* m_units;
 
 	int m_team;
@@ -163,6 +166,12 @@ protected:
 	grinliz::Random m_random;
 	Engine* m_engine;	// for ray queries.
 	MP_VECTOR< grinliz::Vector2<S16> > m_path[4];
+
+	enum {
+		MAX_TURNS_LKP = 100
+	};
+	LKP m_lkp[MAX_UNITS];
+	grinliz::Vector2I travel[MAX_UNITS];
 };
 
 

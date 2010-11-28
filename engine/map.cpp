@@ -45,6 +45,17 @@ static const U8 BURN = 128;
 static const U8 FASTBURN = 255;
 
 const int Map::padArr0[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+
+/*
+	Totally non-obvious path/visibility coordinates. Some sort of axis flipping goes 
+	on in here somewhere. But from the point of view of the modeller (AC3D) the bits are:
+
+				bit	value
+	South	-z	1	1
+	East	+x	2	2
+	North	+z	3	4
+	West	-x	4	8
+*/
 	
 const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] = 
 {
@@ -59,7 +70,7 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"farmTable2x1",	0,				0,			2,	1,	HP_MED,		BURN,		"ff","00"	},
 	{	"stonewall_unit",0,	"stonewall_unitD",		1,	1,	HP_MED,		0,			"f", "0" },
 	{	"stonewall_join",0,	"stonewall_unitD",		1,	1,	HP_MED,		0,			"f", "0" },
-	{	"woodfence",	0,				0,			2,	1,	HP_LOW,		FASTBURN,	"44", "00" },
+	{	"woodfence",	0,				0,			2,	1,	HP_LOW,		FASTBURN,	"11", "00" },
 	{	"oldwell",		0,				0,			1,	1,	HP_MED,		SLOWBURN,	"f", "0" },
 	{	"haypile",		0,				0,			2,	2,	HP_MED,		FASTBURN,	"ffff", "0000", true },
 	{	"whitepicketfence",	0,			0,			1,	1,	HP_LOW,		FASTBURN,	"1", "0" },
@@ -1326,6 +1337,7 @@ void Map::Save( FILE* fp, int depth )
 
 void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 {
+	GLASSERT( mapElement );
 	if ( strcmp( mapElement->Value(), "Game" ) == 0 ) {
 		mapElement = mapElement->FirstChildElement( "Map" );
 	}
@@ -1697,9 +1709,7 @@ void Map::DrawPath( int mode )
 			float x = (float)i;
 			float y = (float)j;
 
-			//const Tile& tile = tileArr[j*SIZE+i];
 			int path = GetPathMask( mode == 2 ? VISIBILITY_TYPE : PATH_TYPE, i, j );
-
 			if ( path == 0 ) 
 				continue;
 
@@ -1743,12 +1753,10 @@ void Map::DrawPath( int mode )
 			stream.posOffset = 0;
 
 			shader.SetColor( 1, 0, 0, 0.5f );
-			//shader.SetVertex( 3, 0, red );
 			shader.SetStream( stream, red, nRed, index );
 			shader.Draw();
 
 			shader.SetColor( 0, 1, 0, 0.5f );
-			//shader.SetVertex( 3, 0, green );
 			shader.SetStream( stream, green, nGreen, index );
 			shader.Draw();
 		}
@@ -1796,8 +1804,12 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& _bounds )
 	MapItem* item = quadTree.FindItems( bounds, 0, MapItem::MI_IS_LIGHT );
 	while( item ) {
 		if ( !item->Destroyed() ) {
+
 			GLRELASSERT( item->itemDefIndex < NUM_ITEM_DEF );
 			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
+
+			if ( StrEqual( itemDef.Name(), "woodfence" ) )
+				int debug = 1;
 			
 			int rot = item->modelRotation;
 			GLRELASSERT( rot >= 0 && rot < 4 );
@@ -1820,18 +1832,16 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& _bounds )
 					//
 					// Open doors don't impede sight or movement.
 					//
-					if ( item->open == 0 )
+					if ( !item->open )
 					{
 						// Path
 						U32 p = ( itemDef.Pather(obj.x, obj.y ) << rot );
 						GLRELASSERT( p == 0 || !itemDef.IsLight() );
 						p = p | (p>>4);
 						pathMap[ world.y*SIZE + world.x ] |= p;
-					}
-					if ( item->open == 0 )
-					{
+
 						// Visibility
-						U32 p = ( itemDef.Visibility( obj.x, obj.y ) << rot );
+						p = ( itemDef.Visibility( obj.x, obj.y ) << rot );
 						GLRELASSERT( p == 0 || !itemDef.IsLight() );
 						p = p | (p>>4);
 						visMap[ world.y*SIZE + world.x ] |= p;
@@ -1871,18 +1881,14 @@ bool Map::Connected4(	ConnectionType c,
 						const grinliz::Vector2<S16>& pos,
 						const grinliz::Vector2<S16>& delta )
 {
-///	const Vector2I next[4] = {
-//		{ 0, 1 },
-//		{ 1, 0 },
-//		{ 0, -1 },
-//		{ -1, 0 } 
-//	};
+
 //	GLRELASSERT( dir >= 0 && dir < 4 );
 
 	static const int dirArr[9] = {  0, 2, 0,
 									3, 0, 1,
 									0, 0, 0 };
 	const int index = (delta.x+1) + (delta.y+1)*3;
+
 	// This method only checks in the 4 directions.
 	GLASSERT( index == 1 || index == 3 || index == 5 || index == 7 );
 	const int dir = dirArr[index];
@@ -1897,6 +1903,9 @@ bool Map::Connected4(	ConnectionType c,
 		const int mask0 = GetPathMask( c, pos.x, pos.y );
 		const int maskN = GetPathMask( c, nextPos.x, nextPos.y );
 		const int inv   = InvertPathMask( bit );
+
+		if ( mask0 == 4 )
+			int debug = 1;
 
 		if ( (( mask0 & bit ) == 0 ) && (( maskN & inv ) == 0 ) ) {
 			return true;

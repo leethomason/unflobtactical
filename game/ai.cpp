@@ -47,6 +47,7 @@ AI::AI( int team, Engine* engine, const Unit* units )
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		m_lkp[i].pos.Set( 0, 0 );
 		m_lkp[i].turns = MAX_TURNS_LKP;
+		travel[i].Set( m_random.Rand(MAP_SIZE), m_random.Rand(MAP_SIZE) );
 	}
 }
 
@@ -304,11 +305,21 @@ int AI::ThinkSearch(const Unit* theUnit,
 		return THINK_NO_ACTION;
 	}
 
+	// Are we more or less at the LKP? If so, mark it unknown. Keeps everyone from rushing a long cold spot.
+	Rectangle2I zone;
+	zone.min = zone.max = theUnit->Pos();
+	zone.Outset( 1 );
+
 	for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
 		if (    m_units[i].IsAlive() 
 			 && m_units[i].GetModel()
 			 && m_lkp[i].turns < MAX_TURNS_LKP ) 
 		{
+			if ( zone.Contains( m_lkp[i].pos )) {
+				m_lkp[i].turns = MAX_TURNS_LKP;
+				continue;
+			}
+
 			int len2 = (theUnit->Pos()-m_lkp[i].pos).LengthSquared();
 
 			// Limit just how far units will go charging off. 1/2 the map?
@@ -402,6 +413,48 @@ int AI::ThinkWander(const Unit* theUnit,
 }
 
 
+int AI::ThinkTravel(const Unit* theUnit,
+					const Targets& targets,
+					Map* map,
+					AIAction* action )
+{
+	// -------- Wander --------- //
+	// If the aliens don't see anything, they just stand around. That's okay, except it's weird
+	// that they completely skip their turn. Travelling units travel far over wide areas of the map.
+
+	int index = theUnit - m_units;
+	int result = -1;
+	float cost = 0;
+
+	Rectangle2I mapBounds = map->Bounds();
+
+	// Look for an acceptable travel destination. 4 is abitrary...3-5 all seem pretty modest.
+	for( int i=0; i<4; ++i ) {
+		if (    mapBounds.Contains( travel[index] ) 
+			 && travel[index] != theUnit->Pos() )
+		{
+			Vector2I pos = theUnit->Pos();
+			Vector2<S16> start = { pos.x, pos.y };
+			Vector2<S16> end = { travel[index].x, travel[index].y };
+			result = map->SolvePath( theUnit, start, end, &cost, &m_path[0] );
+			if ( result == micropather::MicroPather::SOLVED ) {
+				TrimPathToCost( &m_path[0], theUnit->TU() );
+				if ( m_path[0].size() > 2 ) {
+					action->actionID = ACTION_MOVE;
+					action->move.path.Init( m_path[0] );
+					return THINK_ACTION;
+				}
+			}
+		}
+
+		// Look for a new travel destination.
+		travel[index].x = m_random.Rand( mapBounds.Width() );
+		travel[index].y = m_random.Rand( mapBounds.Height() );
+	}
+	return THINK_NO_ACTION;
+}
+
+
 int AI::ThinkRotate(const Unit* theUnit,
 					const Targets& targets,
 					Map* map,
@@ -413,6 +466,7 @@ int AI::ThinkRotate(const Unit* theUnit,
 	for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
 		if (    m_units[i].IsAlive() 
 			 && m_units[i].GetModel()
+			 && targets.TeamCanSee( m_team, i )
 			 && m_lkp[i].turns < MAX_TURNS_LKP ) 
 		{
 			int len2 = (theUnit->Pos() - m_lkp[i].pos).LengthSquared();
@@ -425,8 +479,7 @@ int AI::ThinkRotate(const Unit* theUnit,
 			float len = sqrtf( (float)len2 );
 
 			// The older the data, the worse the score.
-			const float NORMAL_TU = (float)(MIN_TU + MAX_TU) * 0.5f;
-			float score = len + (float)(m_lkp[i].turns)*NORMAL_TU;
+			float score = len*(float)(m_lkp[i].turns);
 					
 			if ( score < bestGolfScore ) {
 				bestGolfScore = score;
@@ -435,7 +488,6 @@ int AI::ThinkRotate(const Unit* theUnit,
 		}
 	}
 	if ( best >= 0 ) {
-		float angle = atan2f( (float)(m_units[best].Pos().y - theUnit->Pos().y), (float)(m_units[best].Pos().x - theUnit->Pos().x) );
 		action->actionID = ACTION_ROTATE;
 		action->rotate.x = m_units[best].Pos().x;
 		action->rotate.y = m_units[best].Pos().y;
@@ -474,18 +526,32 @@ bool WarriorAI::Think(	const Unit* theUnit,
 
 	// -------- Shoot -------- //
 	if ( theUnit->HasGunAndAmmo( true ) ) {
-		if ( ThinkShoot( theUnit, targets, map, action ) == THINK_ACTION )
+		result = ThinkShoot( theUnit, targets, map, action );
+		//GLOUTPUT(( "HasGunAndAmmo. ThinkShoot=%d tu=%f\n", result, theUnit->TU() ));
+		if ( result == THINK_ACTION )
 			return false;	// not done - can shoot again!
 
 		// Generally speaking, only move if not doing shooting first.
 		if ( theUnit->TU() > theUnit->GetStats().TotalTU() * 0.9f ) {
-			if ( ThinkSearch( theUnit, targets, flags, map, action ) == THINK_ACTION )
+			result = ThinkSearch( theUnit, targets, flags, map, action );
+			//GLOUTPUT(( "  ThinkSearch=%d tu=%f\n", result, theUnit->TU() ));
+			if ( result  == THINK_ACTION )
 				return false;	// still will wander & rotate
 		}
 
 		if ( theUnit->TU() == theUnit->GetStats().TotalTU() ) {
-			if ( ThinkWander( theUnit, targets, map, action ) == THINK_ACTION )
-				return false;	// will still rotate
+			if ( flags & AI_TRAVEL ) {
+				result = ThinkTravel( theUnit, targets, map, action );
+				//GLOUTPUT(( "  ThinkTravel=%d tu=%f\n", result, theUnit->TU() ));
+				if ( result == THINK_ACTION )
+					return false;
+			}
+			else {
+				result = ThinkWander( theUnit, targets, map, action );
+				//GLOUTPUT(( "  ThinkWander=%d tu=%f\n", result, theUnit->TU() ));
+				if ( result == THINK_ACTION )
+					return false;	// will still rotate
+			}
 		}
 		ThinkRotate( theUnit, targets, map, action );
 		return true;
