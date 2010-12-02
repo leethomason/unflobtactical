@@ -1,4 +1,5 @@
-= UFO Attack =
+= Xenowar =
+(Working title UFO Attack)
 
 Updated for build 490.
 
