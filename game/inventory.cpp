@@ -276,7 +276,7 @@ void Inventory::Load( const TiXmlElement* parent, Engine* engine, Game* game )
 			 slot = slot->NextSiblingElement( "Item" ) )
 		{
 			Item item;
-			item.Load( slot, engine, game );
+			item.Load( slot, game->GetItemDefArr() );
 			AddItem( item );
 			++count;
 		}

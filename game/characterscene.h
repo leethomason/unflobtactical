@@ -96,7 +96,7 @@ protected:
 	class CompWidget {
 	public:
 		CompWidget()		{}
-		void Init(	ItemDef* const*, const Storage* storage, const Unit* unit,
+		void Init(	const ItemDefArr*, const Storage* storage, const Unit* unit,
 					gamui::Gamui* g, const gamui::ButtonLook& look, float x, float y, float w );
 		
 		void SetVisible( bool visible );
@@ -105,7 +105,7 @@ protected:
 		void SetCompText();
 		gamui::ToggleButton range[NUM_RANGE];
 
-		ItemDef* const* itemDefArr;
+		const ItemDefArr* itemDefArr;
 		const Storage* storage;
 		const Unit* unit;
 

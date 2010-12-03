@@ -60,6 +60,7 @@ const int multisample = 2;
 bool fullscreen = false;
 int screenWidth = 0;
 int screenHeight = 0;
+bool cameraIso = true;
 
 #ifdef TEST_ROTATION
 const int rotation = 1;
@@ -337,6 +338,13 @@ int main( int argc, char **argv )
 						}
 						else {
 							GameHotKey( game, GAME_HK_TOGGLE_ROTATION_UI | GAME_HK_TOGGLE_NEXT_UI );
+						}
+						break;
+
+					case SDLK_o:
+						if ( mapMakerMode ) {
+							cameraIso = !cameraIso;
+							((Game*)game)->engine->CameraIso( cameraIso );
 						}
 						break;
 

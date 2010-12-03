@@ -172,6 +172,21 @@ void Engine::MoveCameraHome()
 }
 
 
+void Engine::CameraIso( bool iso )
+{
+	if ( iso ) {
+		camera.SetYRotation( -45.f );
+		camera.SetTilt( engineData.cameraTilt );
+		MoveCameraHome();
+	}
+	else {
+		camera.SetYRotation( 0 );
+		camera.SetTilt( -90.0f );
+		camera.SetPosWC( 8, 70, 8 );
+	}
+}
+
+
 void Engine::CameraLookingAt( grinliz::Vector3F* at )
 {
 	const Vector3F* eyeDir = camera.EyeDir3();
@@ -565,7 +580,7 @@ void Engine::SetZoom( float z )
 		Vector3F pos = origin + len*eyeDir[0];
 		camera.SetPosWC( pos );
 	}
-	GLOUTPUT(( "Engine set zoom. y=%f to y=%f", startY, camera.PosWC().y ));
+	//GLOUTPUT(( "Engine set zoom. y=%f to y=%f", startY, camera.PosWC().y ));
 }
 
 

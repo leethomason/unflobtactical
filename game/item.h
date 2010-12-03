@@ -21,13 +21,13 @@
 #include "../engine/ufoutil.h"
 #include "../engine/enginelimits.h"
 #include "../engine/vertex.h"
+#include "../shared/glmap.h"
 #include "gamelimits.h"
 #include "stats.h"
 
 class ModelResource;
 class TiXmlElement;
 class Engine;
-class Game;
 class ParticleSystem;
 
 
@@ -79,15 +79,13 @@ public:
 	int				deco;
 	const ModelResource*	resource;	// can be null, in which case render with crate.
 
-	void InitBase( /*int type, */ const char* name, const char* desc, int deco, const ModelResource* resource, int index )
+	void InitBase( const char* name, const char* desc, int deco, const ModelResource* resource )
 	{
-		//GLASSERT( type >= ITEM_WEAPON && type <= ITEM_GENERAL );
-		//this->type = type; 
 		this->name = name; 
 		this->desc = desc; 
 		this->deco = deco; 
 		this->resource = resource; 
-		this->index = index;
+		this->index = 0;	// set later when added to ItemDefArr
 	}
 
 	virtual const WeaponItemDef* IsWeapon() const { return 0; }
@@ -98,6 +96,28 @@ public:
 	// optimization trickiness:
 	int index;
 };
+
+
+// So ItemDefs can be passed around without the entire Game.
+class ItemDefArr
+{
+public:
+	ItemDefArr();
+	~ItemDefArr();
+
+	void Add( ItemDef* );
+	const ItemDef* Query( const char* name ) const;
+	const ItemDef* Query( int id ) const;
+	int Size() const								{ return nItemDef; }
+
+private:
+	int							nItemDef;
+	ItemDef*					arr[EL_MAX_ITEM_DEFS];
+	CStringMap< ItemDef* >		map;
+};
+
+
+
 
 enum WeaponMode {
 	kSnapFireMode,
@@ -200,7 +220,7 @@ public:
 	Item()								{ rounds = 0; itemDef = 0; }
 	Item( const Item& rhs )				{ rounds = rhs.rounds; itemDef = rhs.itemDef; }
 	Item( const ItemDef* itemDef, int rounds=1 );
-	Item( Game*, const char* name, int rounds=1 );
+	Item( const ItemDefArr&, const char* name, int rounds=1 );
 
 	void operator=( const Item& rhs )	{ rounds = rhs.rounds; itemDef = rhs.itemDef; }
 
@@ -230,7 +250,7 @@ public:
 	bool IsSomething() const						{ return itemDef != 0; }
 
 	void Save( FILE* fp, int depth ) const;
-	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
+	void Load( const TiXmlElement* doc, const ItemDefArr& itemDefArr );
 
 private:
 	int rounds;
@@ -241,7 +261,7 @@ private:
 class Storage
 {
 public:
-	Storage( int _x, int _y, ItemDef* const* _itemDefArr ) : x( _x ), y( _y ), itemDefArr( _itemDefArr )	{	memset( rounds, 0, sizeof(int)*EL_MAX_ITEM_DEFS ); }
+	Storage( int _x, int _y, const ItemDefArr& _itemDefArr ) : x( _x ), y( _y ), itemDefArr( _itemDefArr )	{	memset( rounds, 0, sizeof(int)*EL_MAX_ITEM_DEFS ); }
 	~Storage();
 
 	void Init( const int* roundArr )			{ memcpy( rounds, roundArr, sizeof(int)*EL_MAX_ITEM_DEFS ); }
@@ -270,13 +290,8 @@ public:
 	int Y() const { return y; }
 
 private:
-	int GetIndex( const ItemDef* itemDef ) const {
-		int index = itemDef->index;
-		GLASSERT( index >=0 && index < EL_MAX_ITEM_DEFS );
-		return index;
-	}
 	int x, y;
-	ItemDef* const* itemDefArr;
+	const ItemDefArr& itemDefArr;
 	int rounds[EL_MAX_ITEM_DEFS];
 };
 

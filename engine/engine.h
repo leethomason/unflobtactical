@@ -74,6 +74,7 @@ public:
 	SpaceTree* GetSpaceTree()	{ return spaceTree; }
 
 	void MoveCameraHome();
+	void CameraIso( bool iso );
 	// Move the camera so that it points to x,z. If 'calc' is non-null,
 	// the camera will *not* be moved, but the destination for the camera
 	// is returned.

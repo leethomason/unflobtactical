@@ -15,7 +15,8 @@
 
 #include "item.h"
 #include "material.h"
-#include "game.h"
+//#include "game.h"
+#include "../engine/model.h"
 #include "../engine/serialize.h"
 #include "gamelimits.h"
 #include "../engine/particleeffect.h"
@@ -267,9 +268,9 @@ Item::Item( const ItemDef* itemDef, int rounds )
 }
 
 
-Item::Item( Game* game, const char* name, int rounds )
+Item::Item( const ItemDefArr& itemDefArr, const char* name, int rounds )
 {
-	const ItemDef* itemDef = game->GetItemDef( name );
+	const ItemDef* itemDef = itemDefArr.Query( name );
 	this->itemDef = itemDef;
 	this->rounds = rounds;
 }
@@ -285,14 +286,6 @@ void Item::UseRounds( int i )
 void Item::Save( FILE* fp, int depth ) const
 {
 	if ( itemDef && rounds > 0 ) {
-		/*
-		TiXmlElement* itemEle = new TiXmlElement( "Item" );
-		doc->LinkEndChild( itemEle );
-		itemEle->SetAttribute( "name", itemDef->name );
-		if ( rounds != 1 )
-			itemEle->SetAttribute( "rounds", rounds );
-		*/
-
 		XMLUtil::OpenElement( fp, depth, "Item" );
 		XMLUtil::Attribute( fp, "name", itemDef->name );
 		if ( rounds != 1 ) {
@@ -303,7 +296,7 @@ void Item::Save( FILE* fp, int depth ) const
 }
 
 
-void Item::Load( const TiXmlElement* ele, Engine* engine, Game* game )
+void Item::Load( const TiXmlElement* ele, const ItemDefArr& itemDefArr )
 {
 	Clear();
 	GLASSERT( StrEqual( ele->Value(), "Item" ) );
@@ -312,7 +305,8 @@ void Item::Load( const TiXmlElement* ele, Engine* engine, Game* game )
 	if ( !name || !*name )
 		return;
 	
-	itemDef = game->GetItemDef( name );
+	itemDef = itemDefArr.Query( name );
+	GLASSERT( itemDef );
 	rounds = itemDef->DefaultRounds();
 
 	ele->QueryIntAttribute( "rounds", &rounds );
@@ -328,7 +322,7 @@ Storage::~Storage()
 
 bool Storage::Empty() const
 {
-	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+	for( int i=0; i<itemDefArr.Size(); ++i ) {
 		if ( rounds[i] )
 			return false;
 	}
@@ -338,14 +332,14 @@ bool Storage::Empty() const
 
 void Storage::AddItem( const Item& item )
 {
-	int index = GetIndex( item.GetItemDef() );
+	int index = item.GetItemDef()->index;
 	rounds[index] += item.Rounds();
 }
 
 
 void Storage::RemoveItem( const ItemDef* _itemDef, Item* _item )
 {
-	int index = GetIndex( _itemDef );
+	int index = _itemDef->index;
 	int r = grinliz::Min( rounds[index], _itemDef->DefaultRounds() );
 
 	if ( r == 0 ) {
@@ -379,12 +373,14 @@ const WeaponItemDef* Storage::IsResupply( const WeaponItemDef* weapon ) const
 			return weapon;
 	}
 
-	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-		if ( itemDefArr[i] && itemDefArr[i]->IsWeapon() && GetCount( itemDefArr[i] ) ) {
-			const ClipItemDef* clip0 = itemDefArr[i]->IsWeapon()->GetClipItemDef( kSnapFireMode );
-			const ClipItemDef* clip1 = itemDefArr[i]->IsWeapon()->GetClipItemDef( kAltFireMode );
+	for( int i=0; i<itemDefArr.Size(); ++i ) {
+		const ItemDef* itemDef = itemDefArr.Query( i );
+
+		if ( itemDef && itemDef->IsWeapon() && GetCount( itemDef ) ) {
+			const ClipItemDef* clip0 = itemDef->IsWeapon()->GetClipItemDef( kSnapFireMode );
+			const ClipItemDef* clip1 = itemDef->IsWeapon()->GetClipItemDef( kAltFireMode );
 			if ( GetCount( clip0 ) || GetCount( clip1 ) )
-				return itemDefArr[i]->IsWeapon();
+				return itemDef->IsWeapon();
 		}
 	}
 	return 0;
@@ -393,7 +389,7 @@ const WeaponItemDef* Storage::IsResupply( const WeaponItemDef* weapon ) const
 
 void Storage::SetCount( const ItemDef* itemDef, int count )
 {
-	int index = GetIndex( itemDef );
+	int index = itemDef->index;
 	rounds[index] = count*itemDef->DefaultRounds();
 }
 
@@ -403,7 +399,7 @@ int Storage::GetCount( const ItemDef* itemDef) const
 	if ( !itemDef )
 		return 0;
 
-	int index = GetIndex( itemDef );
+	int index = itemDef->index;
 	int r = rounds[index];
 	return (r+itemDef->DefaultRounds()-1)/itemDef->DefaultRounds();
 }
@@ -411,28 +407,13 @@ int Storage::GetCount( const ItemDef* itemDef) const
 
 void Storage::Save( FILE* fp, int depth )
 {
-	/*
-	TiXmlElement* storageElement = new TiXmlElement( "Storage" );
-	parent->LinkEndChild( storageElement );
-
-	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-		if ( rounds[i] > 0 ) {
-			TiXmlElement* roundElement = new TiXmlElement( "Rounds" );
-			roundElement->SetAttribute( "i", i );
-			roundElement->SetAttribute( "n", rounds[i] );
-			storageElement->LinkEndChild( roundElement );
-		}
-	}
-	*/
-	// FIXME: USE NAMES!!!
-
 	XMLUtil::OpenElement( fp, depth, "Storage" );
 	XMLUtil::SealElement( fp );
 
-	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+	for( int i=0; i<itemDefArr.Size(); ++i ) {
 		if ( rounds[i] > 0 ) {
 			XMLUtil::OpenElement( fp, depth+1, "Rounds" );
-			XMLUtil::Attribute( fp, "i", i );
+			XMLUtil::Attribute( fp, "name", itemDefArr.Query(i)->name );
 			XMLUtil::Attribute( fp, "n", rounds[i] );
 			XMLUtil::SealCloseElement( fp );
 		}
@@ -452,10 +433,16 @@ void Storage::Load( const TiXmlElement* element )
 			 roundElement;
 			 roundElement = roundElement->NextSiblingElement( "Rounds" ) )
 		{
-			int i=0, n=0;
-			roundElement->QueryIntAttribute( "i", &i );
+			int i=-1, n=0;
+			if ( roundElement->Attribute( "name" ) ) {
+				const ItemDef* itemDef = itemDefArr.Query( roundElement->Attribute( "name" ) );
+				if ( itemDef ) 
+					i = itemDef->index;
+			}
+			else {
+				roundElement->QueryIntAttribute( "i", &i );
+			}
 			roundElement->QueryIntAttribute( "n", &n );
-			GLASSERT( i>=0 && i<EL_MAX_ITEM_DEFS );
 			if ( i>=0 && i<EL_MAX_ITEM_DEFS ) {
 				rounds[i] = n;
 			}
@@ -471,18 +458,18 @@ const ModelResource* Storage::VisualRep( bool* zRotate ) const
 	const ItemDef* best = 0;
 	*zRotate = false;
 
-	for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+	for( int i=0; i<itemDefArr.Size(); ++i ) {
 		if ( rounds[i] > 0 ) {
-
-			if ( itemDefArr[i]->IsWeapon() ) {
+			const ItemDef* itemDef = itemDefArr.Query( i );
+			if ( itemDef && itemDef->IsWeapon() ) {
 				DamageDesc d;
-				itemDefArr[i]->IsWeapon()->DamageBase( kAutoFireMode, &d );
+				itemDef->IsWeapon()->DamageBase( kAutoFireMode, &d );
 
 				float score = (float)rounds[i] * d.Total();
 				
 				if ( score > bestScore ) {
 					bestScore = score;
-					best = itemDefArr[i];
+					best = itemDef;
 				}
 			}
 		}
@@ -492,4 +479,48 @@ const ModelResource* Storage::VisualRep( bool* zRotate ) const
 		return ModelResourceManager::Instance()->GetModelResource( best->resource->header.name.c_str() );
 	}
 	return ModelResourceManager::Instance()->GetModelResource( "smallcrate" );
+}
+
+
+ItemDefArr::ItemDefArr()
+{
+	memset( arr, 0, sizeof(ItemDef*)*EL_MAX_ITEM_DEFS );
+	nItemDef = 0;
+}
+
+
+ItemDefArr::~ItemDefArr()
+{
+	for( int i=0; i<nItemDef; ++i ) {
+		delete arr[i];
+	}
+}
+
+
+void ItemDefArr::Add( ItemDef* itemDef )
+{
+	GLASSERT( itemDef );
+	GLASSERT( nItemDef < EL_MAX_ITEM_DEFS );
+	
+	arr[nItemDef] = itemDef;
+	map.Add( itemDef->name, itemDef );
+
+	itemDef->index = nItemDef;
+	nItemDef++;
+}
+
+
+const ItemDef* ItemDefArr::Query( const char* name ) const
+{
+	ItemDef* result = 0;
+	if ( map.Query( name, &result ) )
+		return result;
+	return 0;
+}
+
+
+const ItemDef* ItemDefArr::Query( int id ) const
+{
+	GLASSERT( id >= 0 && id < EL_MAX_ITEM_DEFS );
+	return arr[id];
 }

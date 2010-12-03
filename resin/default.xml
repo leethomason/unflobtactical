@@ -21,6 +21,7 @@
   <texture filename="tree2.png" />
   <texture filename="tree3.png" />
   <texture filename="atlas0.png" />
+  <texture filename="atlas1.png" width="32" height="128" />
   <texture filename="translucent.png" />
   <texture filename="clips.png" />
   <texture filename="stonewall.png" width="64" height="64" />
@@ -80,7 +81,6 @@
   <data filename="beam.wav" compress="false"/>
   <data filename="nullp.wav" compress="false"/>
 
-  <model filename="crate.ac" />
   <model filename="smallcrate.ac" />
   <model filename="unitplate.ac" />
 
@@ -109,11 +109,9 @@
   <model filename="woodDoorCld.ac" polyRemoval="pre" />
   <model filename="woodDoorOpn.ac" polyRemoval="pre" />
   <model filename="woodWall.ac" polyRemoval="pre" />
+  <model filename="woodWallRed.ac" polyRemoval="pre" />
   <model filename="woodWallWin.ac" polyRemoval="pre" />
 
-  <model filename="farmBed.ac" polyRemoval="pre" />
-  <model filename="farmTable.ac" polyRemoval="pre" />
-  <model filename="farmTable2x1.ac" polyRemoval="pre"/>
   <model filename="stonewall_unit.ac" shading="crease" polyRemoval="pre" />
   <model filename="stonewall_join.ac" shading="crease" polyRemoval="pre" />
   <model filename="stonewall_unitD.ac" shading="crease" polyRemoval="pre" />
@@ -121,10 +119,16 @@
   <model filename="oldwell.ac" shading="crease" polyRemoval="pre"/>
   <model filename="haypile.ac" polyRemoval="pre"/>
   <model filename="whitepicketfence.ac" polyRemoval="pre"/>
+  <model filename="barrel0.ac" shading="crease" polyRemoval="pre" />
+  <model filename="barrel1.ac" shading="crease" polyRemoval="pre" />
+  <model filename="crate0.ac" shading="crease" polyRemoval="pre" />
+  <model filename="crate1.ac" shading="crease" polyRemoval="pre" />
+  <model filename="crate2.ac" shading="crease" polyRemoval="pre" />
 
   <!-- Models used as markers by the map-maker. Don't appear in the game. -->
   <model filename="scout.ac" shading="smooth" />
   <model filename="guard.ac" />
+  <model filename="pawn.ac" />
 
   <!-- Particles -->
 	<texture filename="particleQuad.png" />
@@ -154,6 +158,16 @@
   <image filename="FARM_16_TILE_02_TEX.png" width="128" height="128" />
   <image filename="FARM_16_TILE_02_DAY.png" />
   <image filename="FARM_16_TILE_02_NGT.png" />
+
+  <data  filename="FARM_16_TILE_03.xml" />
+  <image filename="FARM_16_TILE_03_TEX.png" width="128" height="128" />
+  <image filename="FARM_16_TILE_03_DAY.png" />
+  <image filename="FARM_16_TILE_03_NGT.png" />
+
+  <data  filename="FARM_16_TILE_04.xml" />
+  <image filename="FARM_16_TILE_04_TEX.png" width="128" height="128" />
+  <image filename="FARM_16_TILE_04_DAY.png" />
+  <image filename="FARM_16_TILE_04_NGT.png" />
 
   <data  filename="FARM_16_UFOA_00.xml" />
   <image filename="FARM_16_UFOA_00_TEX.png" width="128" height="128" />
