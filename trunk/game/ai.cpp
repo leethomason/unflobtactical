@@ -315,7 +315,11 @@ int AI::ThinkSearch(const Unit* theUnit,
 			 && m_units[i].GetModel()
 			 && m_lkp[i].turns < MAX_TURNS_LKP ) 
 		{
-			if ( zone.Contains( m_lkp[i].pos )) {
+			
+			// Check for a position going invalid.
+			if (    m_lkp[i].turns >= 2 
+				 && zone.Contains( m_lkp[i].pos )) 
+			{
 				m_lkp[i].turns = MAX_TURNS_LKP;
 				continue;
 			}

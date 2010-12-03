@@ -13,17 +13,22 @@ TBD:
 - exposive items
 - change terran "splat" image
 - civilians: AI, accounting in score
+- mission types: scout (still need shed)
+- mission types: terror
+- mission types: destroyer
+- mission types: battleship
+- mission types: alien base
+- mission types: terran base
+- mission location: forest / jungle
+- mission location: desert
+- mission location: city
+- mission location: ice
+- re-size after load
 - Android: cap framerate. Don't really need >30
 - Android: switch to different application mode? Shut down on screen loss?
-- game plays itself? Enhance AI so it can run fully automated?
+- Reconsider when reaction fire occurs. And probability.
 - check math (again yet again) in PushShootAction()
 - trees show up in the wrong place
-- mission types: landing
-- mission types: terror
-- mission types: big ufos
-- mission types: base
-- re-size after load?
-- Reconsider when reaction fire occurs. And probability.
 
 Models
 - crate stacks
@@ -36,6 +41,7 @@ Level Design
 - cityscape
 
 FIXED
+- game plays itself. Enhance AI so it can run fully automated.
 - alien units: don't need to start in XML. Switch to generative system.
 - fix firestorm
 - Art: better human models
@@ -223,20 +229,3 @@ Deferred/Cancelled
 - simultaneous shots
 - Sounds: better sounds, latency
 - Gameplay: doors are death traps if guarded...blow up doors?
-
-Notes w/ Jeff:
-- Inventory screen: which is ground, which is inventory?
-	- equipped: move to top
-	- label: active vs. pack
-	- label: ground vs. pack
-- Idea Pistol:
-	- infinite ammo (fairly weak)
-	- flare to AR-2
-- Bug: stuff on ground didn't get saved (!!??)
-- Inventory: filter on? Something to indicate tabs??
-
-Name ideas:
-
-XenoSiege
-XenoWar
-UFO Attack

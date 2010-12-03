@@ -47,6 +47,7 @@ class SustainedPyroEffect;
 class ParticleSystem;
 class TiXmlElement;
 class Map;
+class ItemDefArr;
 
 
 class IPathBlocker
@@ -56,19 +57,26 @@ public:
 };
 
 
+// some strange android bug - the size of the structure gets mangled
+// by the compiler if all the fields weren't 32 bits
 struct MapItemDef 
 {
+	enum {
+		OBSCURES = 0x01,
+		EXPLODES = 0x02
+	};
+
 	const char* resource;
 	const char* resourceOpen;
 	const char* resourceDestroyed;
 
 	int		cx, cy;
 	int		hp;					// 0xffff infinite, 0 destroyed
-	int		flammable;			// 0 - 255
+	int		flammable;			// 0 - 255 flammability
 
 	const char* patherStr;
 	const char* visibilityStr;
-	bool obscures;				// obscures, like smoke, haypiles, and trees
+	int flags;					// obscures, like smoke, haypiles, and trees
 
 	int		lightDef;			// itemdef index of the light associated with this (is auto-created)
 	int		lightOffsetX;		// if light, offset of light origin from model origin
@@ -131,7 +139,7 @@ public:
 		SIZE = 64,					// maximum size. FIXME: duplicated in gamelimits.h
 		LOG2_SIZE = 6,
 
-		NUM_ITEM_DEF = 26,
+		NUM_ITEM_DEF = 30,
 	};
 
 
@@ -279,7 +287,7 @@ public:
 	// Generally called by MakePathBlockCurrent
 	void SetPathBlocks( const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& block );
 
-	Storage* LockStorage( int x, int y, ItemDef* const* arr );	// always returns something.
+	Storage* LockStorage( int x, int y, const ItemDefArr& );	// always returns something.
 	void ReleaseStorage( Storage* storage );					// updates the image
 
 	const Storage* GetStorage( int x, int y ) const;		//< take a peek
@@ -357,7 +365,7 @@ public:
 	void SetPyro( int x, int y, int duration, int fire );
 
 	void Save( FILE* fp, int depth );
-	void Load( const TiXmlElement* mapNode, ItemDef* const* arr );
+	void Load( const TiXmlElement* mapNode, const ItemDefArr& );
 
 	// Gets a starting location for a unit on the map.
 	// TERRAN_TEAM - from the lander
@@ -514,7 +522,7 @@ private:
 	};
 	CDynArray< Debris > debris;
 	void SaveDebris( const Debris& d, FILE* fp, int depth );
-	void LoadDebris( const TiXmlElement* mapNode, ItemDef* const* arr );
+	void LoadDebris( const TiXmlElement* mapNode, const ItemDefArr& );
 
 	int PyroOn( int x, int y ) const		{ return pyro[y*SIZE+x]; }
 	int PyroFire( int x, int y ) const		{ return pyro[y*SIZE+x] & 0x80; }
@@ -535,10 +543,11 @@ private:
 	grinliz::MemoryPool							itemPool;
 	QuadTree									quadTree;
 	CStringMap< const MapItemDef* >				itemDefMap;
+	
+	CDynArray< grinliz::Vector2I >				guardPos;
+	CDynArray< grinliz::Vector2I >				scoutPos;
+	CDynArray< grinliz::Vector2I >				civPos;
 
-	enum { MAX_GUARD_SCOUT = 24 };
-	int											nGuardPos;
-	int											nScoutPos;
 	int											nLanderPos;
 	const MapItem*								lander;
 	int											nSeenIndex, nUnseenIndex, nPastSeenIndex;
@@ -555,9 +564,6 @@ private:
 
 	U8									visMap[SIZE*SIZE];
 	U8									pathMap[SIZE*SIZE];
-
-	grinliz::Vector2I					guardPos[MAX_GUARD_SCOUT];
-	grinliz::Vector2I					scoutPos[MAX_GUARD_SCOUT];
 
 	grinliz::Vector2F					mapVertex[(SIZE+1)*(SIZE+1)];		// in TEXTURE coordinates - need to scale up and swizzle for vertices.
 	U16									seenIndex[SIZE*SIZE*6];		

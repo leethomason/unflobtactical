@@ -78,7 +78,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* input )
 	inventoryWidget = new InventoryWidget( &gamui2D, green, green, inventory );
 
 	statWidget.Init( &gamui2D, unit, storageWidget->X(), 0 );
-	compWidget.Init( game->GetItemDefArr(), storage, unit, &gamui2D, blue, storageWidget->X(), 0, storageWidget->Width() );
+	compWidget.Init( &game->GetItemDefArr(), storage, unit, &gamui2D, blue, storageWidget->X(), 0, storageWidget->Width() );
 
 	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE), storageWidget->Width(), GAME_BUTTON_SIZE_F );
 
@@ -169,9 +169,9 @@ void CharacterScene::StatWidget::SetVisible( bool visible )
 
 
 
-void CharacterScene::CompWidget::Init( ItemDef* const* arr, const Storage* storage, const Unit* unit, gamui::Gamui* g, const gamui::ButtonLook& look, float x, float y, float width )
+void CharacterScene::CompWidget::Init( const ItemDefArr* arr, const Storage* storage, const Unit* unit, gamui::Gamui* g, const gamui::ButtonLook& look, float x, float y, float width )
 {
-	itemDefArr = arr;
+	this->itemDefArr = arr;
 	this->unit = unit;
 	this->storage = storage;
 
@@ -237,18 +237,19 @@ void CharacterScene::CompWidget::SetCompText()
 	else if ( range[2].Down() )
 		r = 16.0f;
 
-	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-		if ( itemDefArr[i] && itemDefArr[i]->IsWeapon() ) {
+	for( int i=0; i<itemDefArr->Size(); ++i ) {
+		const ItemDef* itemDef = itemDefArr->Query( i );
+		if ( itemDef && itemDef->IsWeapon() ) {
 			bool inInventory = false;
 			bool onGround = false;
 
-			if ( inventory->Contains( itemDefArr[i] ) )
+			if ( inventory->Contains( itemDef ) )
 				inInventory = true;
-			if ( storage->Contains( itemDefArr[i] ) ) 
+			if ( storage->Contains( itemDef ) ) 
 				onGround = true;
 
 			if ( inInventory || onGround ) {
-				const WeaponItemDef* wid = itemDefArr[i]->IsWeapon();
+				const WeaponItemDef* wid = itemDef->IsWeapon();
 				WeaponMode mode = kAutoFireMode;
 		
 				DamageDesc dd;

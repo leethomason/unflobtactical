@@ -109,7 +109,7 @@ void CMapBase::Remove( const char* key )
 }
 
 
-void* CMapBase::Get( const char* key )
+void* CMapBase::Get( const char* key ) const
 {
 	unsigned h = Hash( key );
 	h = h & (nBuckets-1);
@@ -127,7 +127,7 @@ void* CMapBase::Get( const char* key )
 }
 
 
-bool CMapBase::Query( const char* key, void** value )
+bool CMapBase::Query( const char* key, void** value ) const
 {
 	unsigned h = Hash( key );
 	h = h & (nBuckets-1);

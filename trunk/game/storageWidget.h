@@ -26,7 +26,7 @@ public:
 	StorageWidget(	gamui::Gamui* container,
 					const gamui::ButtonLook& green,
 					const gamui::ButtonLook& blue,
-					ItemDef* const* itemDefArr,
+					const ItemDefArr& itemDefArr,
 					const Storage* storage );
 
 	~StorageWidget();
@@ -56,7 +56,7 @@ private:
 	
 	const Storage* storage;
 	const ItemDef* itemDefMap[NUM_BOX_BUTTONS];
-	ItemDef* const* itemDefArr;
+	const ItemDefArr& itemDefArr;
 };
 
 

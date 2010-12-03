@@ -28,6 +28,7 @@
 #include "../tinyxml/tinyxml.h"
 #include "../shared/gamedbreader.h"
 #include "../gamui/gamui.h"
+#include "item.h"
 
 #include <limits.h>
 
@@ -109,8 +110,7 @@ public:
 	void Rotate( float degreesFromStart );
 	void CancelInput();
 	
-	const ItemDef*  GetItemDef( const char* name );
-	ItemDef* const*	GetItemDefArr() const	{ return itemDefArr; }
+	const ItemDefArr&	GetItemDefArr() const	{ return itemDefArr; }
 
 	// debugging / testing / mapmaker
 	void MouseMove( int x, int y );
@@ -246,8 +246,7 @@ private:
 	
 	int		mapmaker_showPathing;	// 0 off, 1 path, 2 vis
 	grinliz::GLString		mapmaker_xmlFile;
-
-	ItemDef*			itemDefArr[EL_MAX_ITEM_DEFS];
+	ItemDefArr itemDefArr;
 };
 
 

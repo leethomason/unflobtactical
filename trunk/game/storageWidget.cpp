@@ -23,7 +23,7 @@ using namespace gamui;
 StorageWidget::StorageWidget(	gamui::Gamui* gamui,
 								const gamui::ButtonLook& green,
 								const gamui::ButtonLook& blue,
-								ItemDef* const* _itemDefArr,
+								const ItemDefArr& _itemDefArr,
 								const Storage* _storage )
 	: storage( _storage ),
 	  itemDefArr( _itemDefArr )
@@ -91,14 +91,15 @@ void StorageWidget::SetButtons()
 		}
 	}
 
-	for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-		if ( !itemDefArr[i] )
+	for( int i=0; i<itemDefArr.Size(); ++i ) {
+		const ItemDef* itemDef = itemDefArr.Query( i );
+		if ( !itemDef )
 			continue;
 
 		int group = 3;
 
-		const WeaponItemDef* wid = itemDefArr[i]->IsWeapon();
-		const ClipItemDef* cid = itemDefArr[i]->IsClip();
+		const WeaponItemDef* wid = itemDef->IsWeapon();
+		const ClipItemDef* cid = itemDef->IsClip();
 
 		// Terran non-melee weapons and clips.
 		if ( wid && !wid->IsAlien() )
@@ -113,22 +114,22 @@ void StorageWidget::SetButtons()
 			group=1;
 
 		// armor, melee
-		if ( itemDefArr[i]->IsArmor() || itemDefArr[i]->deco == DECO_SHIELD )
+		if ( itemDef->IsArmor() || itemDef->deco == DECO_SHIELD )
 			group=2;
 
-		itemsPerGroup[group] += storage->GetCount( itemDefArr[i] );
+		itemsPerGroup[group] += storage->GetCount( itemDef );
 
 		if ( group==groupSelected ) {
 			GLASSERT( slot < 12 );
 			if ( slot < 12 ) {
-				itemDefMap[slot] = itemDefArr[i];
-				int deco = itemDefArr[i]->deco;
+				itemDefMap[slot] = itemDef;
+				int deco = itemDef->deco;
 				boxButton[slot].SetDeco( UIRenderer::CalcDecoAtom( deco, false ), UIRenderer::CalcDecoAtom( deco, false ) );
 
 				char buffer[16];
-				if ( storage->GetCount( itemDefArr[i] ) ) {
-					SNPrintf( buffer, 16, "%d", storage->GetCount( itemDefArr[i] ) );
-					boxButton[slot].SetText( itemDefArr[i]->name );
+				if ( storage->GetCount( itemDef ) ) {
+					SNPrintf( buffer, 16, "%d", storage->GetCount( itemDef ) );
+					boxButton[slot].SetText( itemDef->name );
 					boxButton[slot].SetText2( buffer );
 					boxButton[slot].SetEnabled( true );
 				}

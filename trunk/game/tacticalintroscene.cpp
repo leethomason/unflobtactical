@@ -643,7 +643,7 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 			rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
 
 			// Add the weapon.
-			Item item( game, weapon[i][rank] );
+			Item item( game->GetItemDefArr(), weapon[i][rank] );
 			unit[index].GetInventory()->AddItem( item );
 
 			// Add ammo.

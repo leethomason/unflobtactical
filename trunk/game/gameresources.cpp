@@ -38,10 +38,11 @@ void Game::DumpWeaponInfo( FILE* fp, float range, const Stats& stats, int count 
 	fprintf( fp, "\n" );
 
 	for( int i=1; i<EL_MAX_ITEM_DEFS; ++i ) {
-		if ( itemDefArr[i] == 0 )
+		const ItemDef* itemDef = itemDefArr.Query( i );
+		if ( itemDef == 0 )
 			continue;
 
-		const WeaponItemDef* wid = itemDefArr[i]->IsWeapon();
+		const WeaponItemDef* wid = itemDef->IsWeapon();
 		if ( wid ) {
 
 			fprintf( fp, "%-10s", wid->name );
@@ -81,7 +82,7 @@ void Game::CreateTexture( Texture* t )
 		GLASSERT( t->BytesInImage() == 8 );
 		t->Upload( pixels, 8 );
 	}
-	if ( StrEqual( t->Name(), "black" ) ) {
+	else if ( StrEqual( t->Name(), "black" ) ) {
 		U16 pixels[4] = { 0, 0, 0, 0 };
 		GLASSERT( t->Width() == 2 && t->Height() == 2 && t->Format() == Surface::RGB16 );
 		GLASSERT( t->BytesInImage() == 8 );
@@ -166,10 +167,6 @@ void Game::LoadItemResources()
 	const int POW_MED = 20;
 	const int POW_HI  = 50;
 
-	memset( itemDefArr, 0, sizeof( ItemDef* )*EL_MAX_ITEM_DEFS );
-	int nItemDef = 1;	// keep the first entry null
-
-
 	struct ClipInit {
 		const char* name;
 		char		abbreviation;
@@ -213,8 +210,7 @@ void Game::LoadItemResources()
 		item->InitBase( clips[i].name,
 						clips[i].desc,
 						clips[i].deco,
-						0,
-						nItemDef );
+						0 );
 
 		item->defaultRounds = clips[i].rounds;
 		item->dd = clips[i].dd;
@@ -226,10 +222,8 @@ void Game::LoadItemResources()
 		item->width = clips[i].width;
 		item->length = clips[i].length;
 
-		itemDefArr[nItemDef++] = item;
+		itemDefArr.Add( item );
 	}
-	GLASSERT( nItemDef < EL_MAX_ITEM_DEFS );
-
 
 	struct WeaponInit {
 		const char* name;
@@ -316,8 +310,7 @@ void Game::LoadItemResources()
 		item->InitBase( weapons[i].name, 
 						weapons[i].desc, 
 						weapons[i].deco,
-						ModelResourceManager::Instance()->GetModelResource( weapons[i].resName ),
-						nItemDef );
+						ModelResourceManager::Instance()->GetModelResource( weapons[i].resName ) );
 
 		for( int j=0; j<3; ++j ) {
 			item->fireDesc[j]		= weapons[i].modes[j];
@@ -326,7 +319,9 @@ void Game::LoadItemResources()
 
 		item->weapon[0].clipItemDef = 0;
 		if ( weapons[i].clip0 ) {
-			item->weapon[0].clipItemDef = GetItemDef( weapons[i].clip0 )->IsClip();
+			const ItemDef* clipItemDef = itemDefArr.Query( weapons[i].clip0 );
+			GLASSERT( clipItemDef );
+			item->weapon[0].clipItemDef = clipItemDef->IsClip();
 			GLASSERT( item->weapon[0].clipItemDef );
 		}
 		item->weapon[0].flags		= weapons[i].flags0;
@@ -336,15 +331,17 @@ void Game::LoadItemResources()
 
 		item->weapon[1].clipItemDef = 0;
 		if ( weapons[i].clip1 ) {
-			item->weapon[1].clipItemDef = GetItemDef( weapons[i].clip1 )->IsClip();
-			GLASSERT( item->weapon[1].clipItemDef );
+			const ItemDef* clipItemDef = itemDefArr.Query( weapons[i].clip1 );
+			GLASSERT( clipItemDef );
+			item->weapon[1].clipItemDef = clipItemDef->IsClip();
+			GLASSERT( item->weapon[0].clipItemDef );
 		}
 		item->weapon[1].flags		= weapons[i].flags1;
 		item->weapon[1].damage		= weapons[i].damage1;
 		item->weapon[1].accuracy	= weapons[i].acc1;
 		item->weapon[1].sound		= weapons[i].sound1;
 
-		itemDefArr[nItemDef++] = item;
+		itemDefArr.Add( item );
 	}
 
 	struct ItemInit {
@@ -374,9 +371,8 @@ void Game::LoadItemResources()
 		item->InitBase( items[i].name,
 						items[i].desc,
 						items[i].deco,
-						items[i].resName ? ModelResourceManager::Instance()->GetModelResource( items[i].resName ) : 0,
-						nItemDef );
-		itemDefArr[nItemDef++] = item;
+						items[i].resName ? ModelResourceManager::Instance()->GetModelResource( items[i].resName ) : 0 );
+		itemDefArr.Add( item );
 	}
 
 	static const ItemInit armor[] = {		
@@ -391,9 +387,8 @@ void Game::LoadItemResources()
 		item->InitBase( armor[i].name,
 						armor[i].desc,
 						armor[i].deco,
-						armor[i].resName ? ModelResourceManager::Instance()->GetModelResource( items[i].resName ) : 0,
-						nItemDef );
-		itemDefArr[nItemDef++] = item;
+						armor[i].resName ? ModelResourceManager::Instance()->GetModelResource( items[i].resName ) : 0 );
+		itemDefArr.Add( item );
 	}
 
 #if defined( DEBUG ) && defined( _MSC_VER )
@@ -434,22 +429,6 @@ void Game::LoadItemResources()
 		fclose( fp );
 	}
 #endif
-}
-
-
-const ItemDef* Game::GetItemDef( const char* name )
-{
-	if ( grinliz::StrEqual( "NULL", name ) )
-		name = "STORM";		// compatibility for testing
-
-	GLASSERT( name && *name );
-	for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-		if ( itemDefArr[i] && strcmp( itemDefArr[i]->name, name ) == 0 ) {
-			return itemDefArr[i];
-		}
-	}
-	GLASSERT( 0 );
-	return 0;
 }
 
 

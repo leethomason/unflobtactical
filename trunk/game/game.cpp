@@ -197,10 +197,6 @@ Game::~Game()
 	sceneStack.Top().Free();
 	sceneStack.Pop();
 
-
-	for( unsigned i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-		delete itemDefArr[i];
-	}
 	delete engine;
 	SettingsManager::Destroy();
 	SoundManager::Destroy();
@@ -317,7 +313,7 @@ void Game::PushPopScene()
 		sceneStack.Push( node );
 		node.scene->Activate();
 
-		if ( node.sceneID == BATTLE_SCENE ) {
+		if ( node.sceneID == BATTLE_SCENE && !Engine::mapMakerMode ) {
 			GLString path = GameSavePath();
 			TiXmlDocument doc;
 			doc.LoadFile( path.c_str() );

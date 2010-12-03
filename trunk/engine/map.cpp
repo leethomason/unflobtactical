@@ -40,9 +40,12 @@ static const int HP_HIGH		= 200;
 static const int HP_STEEL		= 400;
 static const int INDESTRUCT	= 0xffff;
 
-static const U8 SLOWBURN = 50;
-static const U8 BURN = 128;
-static const U8 FASTBURN = 255;
+static const int SLOWBURN = 50;
+static const int BURN = 128;
+static const int FASTBURN = 255;
+
+static const int OBSCURES = MapItemDef::OBSCURES;
+static const int EXPLODES = MapItemDef::EXPLODES;
 
 const int Map::padArr0[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
@@ -60,27 +63,30 @@ const int Map::padArr0[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
 const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] = 
 {
 		// model		open			destroyed	cx, cz	hp			material	pather
-	{	"tree",			0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", true },
-	{	"tree2",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", true },
-	{	"tree3",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", true },
+	{	"tree",			0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
+	{	"tree2",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
+	{	"tree3",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
 
 		// model		open			destroyed	cx, cz	hp			flammable	pather visibility
-	{	"farmBed",		0,				0,			2,	2,	HP_MED,		BURN,		"f"	 "0"	},
-	{	"farmTable",	0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" 	},
-	{	"farmTable2x1",	0,				0,			2,	1,	HP_MED,		BURN,		"ff","00"	},
 	{	"stonewall_unit",0,	"stonewall_unitD",		1,	1,	HP_MED,		0,			"f", "0" },
 	{	"stonewall_join",0,	"stonewall_unitD",		1,	1,	HP_MED,		0,			"f", "0" },
-	{	"woodfence",	0,				0,			2,	1,	HP_LOW,		FASTBURN,	"11", "00" },
+	{	"woodfence",	0,				0,			2,	1,	HP_LOW,		BURN,		"11", "00" },
 	{	"oldwell",		0,				0,			1,	1,	HP_MED,		SLOWBURN,	"f", "0" },
-	{	"haypile",		0,				0,			2,	2,	HP_MED,		FASTBURN,	"ffff", "0000", true },
-	{	"whitepicketfence",	0,			0,			1,	1,	HP_LOW,		FASTBURN,	"1", "0" },
+	{	"haypile",		0,				0,			2,	2,	HP_MED,		FASTBURN,	"ffff", "0000", OBSCURES },
+	{	"whitepicketfence",	0,			0,			1,	1,	HP_LOW,		BURN,		"1", "0" },
+	{	"barrel0",		0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0" },
+	{	"barrel1",		0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0", EXPLODES },
+	{	"crate0",		0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0", 0 },
+	{	"crate1",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "f", 0 },
+	{	"crate2",		0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0", EXPLODES },
 
 	{	"woodCrnr",		0,				"woodCrnrD",1,	1,	HP_MED,		BURN,		"3", "3" },
 	{	"woodDoorCld",	"woodDoorOpn",	0,			1,	1,	HP_MED,		BURN,		"0", "1" },
 	{	"woodWall",		0,				0,			1,	1,	HP_MED,		BURN,		"1", "1" },
+	{	"woodWallRed",	0,				0,			1,	1,	HP_MED,		BURN,		"1", "1" },
 	{	"woodWallWin",	0,				0,			1,	1,	HP_MED,		BURN,		"1", "0" },
 
-	// model		open			destroyed	cx, cz	hp			material	pather
+	// model		open			destroyed	cx, cz	hp				material	pather
 	{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	0,			"1", "1" },
 	{	"ufo_WallCurve4", 0,			0,			4,	4,	INDESTRUCT,	0,			"0002" "0003" "0030" "1300",	// pather
 																					"0002" "0003" "0030" "1300" },	// visibility
@@ -91,15 +97,16 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 		// model		open			destroyed	cx, cz	hp			material	pather
 	{	"lander",		0,				0,			6,	6,	INDESTRUCT,	0,			"00ff00" "00ff00" "ff00ff" "ff00ff" "ff00ff" "ff00ff",
 																					"00ff00" "00ff00" "0f00f0" "0f00f0" "0f00f0" "0f00f0", 
-																					false,
+																					0,
 																					1 },		// light def
 	{	"guard",		0,				0,			1,  1,  INDESTRUCT, 0,			"0", "0" },
 	{	"scout",		0,				0,			1,  1,  INDESTRUCT, 0,			"0", "0" },
+	{	"pawn",			0,				0,			1,  1,  INDESTRUCT, 0,			"0", "0" },
 
 	// ---------- Lights ------------------------------------
 	//	name			open	cx, cz		hp			fl	p	v	csa		lt		x	y		cx  cy	 
-	{	"landerLight",	0,	0,	8, 10,		INDESTRUCT, 0,	0,	0,	false,	0,		-1,	0,		1,	0 },
-	{	"fireLight",	0,	0,	5,	5,		INDESTRUCT, 0,	0,	0,	false,	0,		-2, -2,		10, 0 }
+	{	"landerLight",	0,	0,	8, 10,		INDESTRUCT, 0,	0,	0,	0,		0,		-1,	0,		1,	0 },
+	{	"fireLight",	0,	0,	5,	5,		INDESTRUCT, 0,	0,	0,	0,		0,		-2, -2,		10, 0 }
 };
 
 const int Map::padArr1[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
@@ -142,8 +149,6 @@ Map::Map( SpaceTree* tree )
 	memset( obscured, 0, SIZE*SIZE*sizeof(U8) );
 	memset( visMap, 0, SIZE*SIZE );
 	memset( pathMap, 0, SIZE*SIZE );
-	nGuardPos = 0;
-	nScoutPos = 0;
 	nLanderPos = 0;
 	lander = 0;
 	dayTime = true;
@@ -1007,21 +1012,24 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	WorldToModel( xform, isBillboard, &modelPos );
 
 	// Check for meta data.
-	if ( StrEqual( itemDef.Name(), "guard") || StrEqual( itemDef.Name(), "scout" )) {
+	if (    StrEqual( itemDef.Name(), "guard") 
+		 || StrEqual( itemDef.Name(), "scout" )
+		 || StrEqual( itemDef.Name(), "pawn" ) )
+	{
 		metadata = true;
+		Vector2I v = { x, y };
 
 		if ( !Engine::mapMakerMode ) {
 			// If we aren't in MapMaker mode, push back the guard and scout positions for later use.
 			// Don't actually add the model.
 			if ( StrEqual( itemDef.Name(), "guard" )) {
-				if ( nGuardPos < MAX_GUARD_SCOUT ) {
-					guardPos[nGuardPos++].Set( x, y );
-				}
+				guardPos.Push( v );
 			}
 			else if ( StrEqual( itemDef.Name(), "scout" )) {
-				if ( nScoutPos < MAX_GUARD_SCOUT ) {
-					scoutPos[nScoutPos++].Set( x, y );
-				}
+				scoutPos.Push( v );
+			}
+			else if ( StrEqual( itemDef.Name(), "pawn" )) {
+				civPos.Push();
 			}
 			return 0;
 		}
@@ -1075,7 +1083,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	GLRELASSERT( mapBounds.min.y >= 0 && mapBounds.max.y < 256 );	// using int8
 	item->mapBounds8.Set( mapBounds.min.x, mapBounds.min.y, mapBounds.max.x, mapBounds.max.y );
 	
-	if ( itemDef.obscures )
+	if ( itemDef.flags & OBSCURES )
 		ChangeObscured( mapBounds, 1 );
 
 	item->next = 0;
@@ -1138,7 +1146,7 @@ void Map::DeleteItem( MapItem* item )
 
 	quadTree.UnlinkItem( item );
 	Rectangle2I mapBounds = item->MapBounds();
-	if ( itemDefArr[item->itemDefIndex].obscures )
+	if ( itemDefArr[item->itemDefIndex].flags & OBSCURES )
 		ChangeObscured( mapBounds, -1 );
 
 	// Reset the lights
@@ -1179,23 +1187,27 @@ void Map::PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rota
 	else if ( team == ALIEN_TEAM ) {
 		bool found = false;
 
-		if ( guard && nGuardPos ) {
-			int i = random.Rand( nGuardPos );
+		if ( guard && !guardPos.Empty() ) {
+			int i = random.Rand( guardPos.Size() );
 			*pos = guardPos[i];
-			Swap( &guardPos[i], &guardPos[nGuardPos-1] );
-			--nGuardPos;
+			guardPos.SwapRemove( i );
 			found = true;
 		}
 		if ( !found ) { // or scout
-			GLRELASSERT( nScoutPos > 0 );
-			int i = random.Rand( nScoutPos );
+			GLRELASSERT( !scoutPos.Empty() );
+			int i = random.Rand( scoutPos.Size() );
 			*pos = scoutPos[i];
-			Swap( &scoutPos[i], &scoutPos[nScoutPos-1] );
-			--nScoutPos;
+			scoutPos.SwapRemove( i );
 
 			// FIXME: the scout should always succeed. Need to make sure this can never
 			// fail. Each tile needs a minimum scout positions.
 		}
+	}
+	else if ( team == CIV_TEAM ) {
+		GLASSERT( !civPos.Empty() );
+		int i = random.Rand( civPos.Size() );
+		*pos = civPos[i];
+		civPos.SwapRemove( i );
 	}
 	else {
 		GLRELASSERT( 0 );
@@ -1206,15 +1218,6 @@ void Map::PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rota
 
 void Map::SaveDebris( const Debris& d, FILE* fp, int depth )
 {
-	/*
-	TiXmlElement* debrisElement = new TiXmlElement( "Debris" );
-	debrisElement->SetAttribute( "x", d.storage->X() );
-	debrisElement->SetAttribute( "y", d.storage->Y() );
-
-	parent->LinkEndChild( debrisElement );
-	d.storage->Save( debrisElement );
-	*/
-
 	XMLUtil::OpenElement( fp, depth, "Debris" );
 	XMLUtil::Attribute( fp, "x", d.storage->X() );
 	XMLUtil::Attribute( fp, "y", d.storage->Y() );
@@ -1226,7 +1229,7 @@ void Map::SaveDebris( const Debris& d, FILE* fp, int depth )
 }
 
 
-void Map::LoadDebris( const TiXmlElement* debrisElement, ItemDef* const* arr )
+void Map::LoadDebris( const TiXmlElement* debrisElement, const ItemDefArr& arr )
 {
 	GLASSERT( StrEqual( debrisElement->Value(), "Debris" ) );
 	GLRELASSERT( debrisElement );
@@ -1335,7 +1338,7 @@ void Map::Save( FILE* fp, int depth )
 }
 
 
-void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
+void Map::Load( const TiXmlElement* mapElement, const ItemDefArr& p_itemDefArr )
 {
 	GLASSERT( mapElement );
 	if ( strcmp( mapElement->Value(), "Game" ) == 0 ) {
@@ -1448,7 +1451,7 @@ void Map::Load( const TiXmlElement* mapElement, ItemDef* const* arr )
 			 debrisElement;
 			 debrisElement = debrisElement->NextSiblingElement( "Debris" ) )
 		{
-			LoadDebris( debrisElement, arr );
+			LoadDebris( debrisElement, p_itemDefArr );
 		}
 	}
 
@@ -1613,7 +1616,7 @@ void Map::FindStorage( const ItemDef* itemDef, int maxLoc, grinliz::Vector2I* lo
 }
 
 
-Storage* Map::LockStorage( int x, int y, ItemDef* const* arr )
+Storage* Map::LockStorage( int x, int y, const ItemDefArr& arr )
 {
 	Storage* storage = 0;
 	for( int i=0; i<debris.Size(); ++i ) {
@@ -1682,7 +1685,6 @@ void Map::DumpTile( int x, int y )
 		int i=0;
 		MapItem* root = quadTree.FindItems( x, y, 0, 0 );
 		while ( root ) {
-			GLRELASSERT( root->itemDefIndex > 0 );
 			const MapItemDef& itemDef = itemDefArr[ root->itemDefIndex ];
 			GLASSERT( itemDef.Name() );
 

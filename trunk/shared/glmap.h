@@ -19,8 +19,8 @@ public:
 	void Add( const char* key, void* value );
 	void Remove( const char* key );
 	
-	void* Get( const char* key );
-	bool Query( const char* key, void** value );
+	void* Get( const char* key ) const;
+	bool Query( const char* key, void** value ) const;
 
 	// FNV1a
 	static unsigned HashStr( const char* p );
@@ -36,14 +36,14 @@ public:
 	int NumItems() const	{ return nItems; }
 
 private:
-	unsigned Hash( const char* p ) {
+	unsigned Hash( const char* p ) const {
 		return stringKey ? HashStr(p) : (unsigned)(p);
 	}
-	bool Equal( const char* s0, const char* s1 ) {
+	bool Equal( const char* s0, const char* s1 ) const {
 		return stringKey ? CStrEqual( s0, s1 ) : (s0==s1);
 	}
 
-	bool CStrEqual( const char* s0, const char* s1 ) {
+	bool CStrEqual( const char* s0, const char* s1 ) const {
 		bool same = ( s0 == s1 ) || (strcmp( s0, s1 ) == 0);
 		GLASSERT( !same || strcmp( s0, s1 )==0 );	// if this fires, we have 2 pointers to 2 different strings, and the entire memory model is blown
 		return same;
@@ -74,8 +74,8 @@ public:
 	void Add( const char* key, V value )				{ cmap.Add( key, (void*)value ); }
 	void Remove( const char* key )						{ cmap.Remove( key ); }
 	
-	V Get( const char* key )							{ return (V)cmap.Get( key ); }
-	bool Query( const char* key, V* value )				{ return cmap.Query( key, (void**)value ); }
+	V Get( const char* key ) const						{ return (V)cmap.Get( key ); }
+	bool Query( const char* key, V* value ) const		{ return cmap.Query( key, (void**)value ); }
 	bool Empty() const									{ return cmap.NumItems() == 0; }
 
 	class Iterator {
