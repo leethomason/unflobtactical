@@ -1833,6 +1833,9 @@ int BattleScene::ProcessActionHit( Action* action )
 	Rectangle2I destroyed;
 	destroyed.SetInvalid();
 	int result = 0;
+	static const int MAX_EXPLOSION = 8;
+	Vector2I explosion[MAX_EXPLOSION];
+	int nExplosion = 0;
 
 	if ( !action->type.hit.explosive ) {
 		SoundManager::Instance()->QueueSound( "hit" );
@@ -1870,10 +1873,23 @@ int BattleScene::ProcessActionHit( Action* action )
 			engine->GetMap()->MapBoundsOfModel( m, &bounds );
 
 			// Hit world object.
-			engine->GetMap()->DoDamage( m, action->type.hit.damageDesc, &destroyed );
+			Vector2I exp = { -1, -1 };
+			engine->GetMap()->DoDamage( m, action->type.hit.damageDesc, &destroyed, &exp );
+			if ( exp.x >= 0 )
+				explosion[nExplosion++] = exp;
 		}
 	}
 	else {
+		// There is a small offset to move the explosion back towards the shooter.
+		// If it hits a wall (common) this will move it to the previous square.
+		// Also means a model hit may be a "near miss"...but explosions are messy.
+		explosion[0].Set(	(int)(action->type.hit.p.x - 0.2f*action->type.hit.n.x), 
+							(int)(action->type.hit.p.z - 0.2f*action->type.hit.n.z) );
+		nExplosion = 1;
+	}
+
+
+	if ( nExplosion ) {
 		// Explosion
 		SoundManager::Instance()->QueueSound( "explosion" );
 
@@ -1881,85 +1897,89 @@ int BattleScene::ProcessActionHit( Action* action )
 		const int MAX_RAD_2 = MAX_RAD*MAX_RAD;
 		Rectangle2I mapBounds = engine->GetMap()->Bounds();
 
-		// There is a small offset to move the explosion back towards the shooter.
-		// If it hits a wall (common) this will move it to the previous square.
-		// Also means a model hit may be a "near miss"...but explosions are messy.
-		const int x0 = (int)(action->type.hit.p.x - 0.2f*action->type.hit.n.x);
-		const int y0 = (int)(action->type.hit.p.z - 0.2f*action->type.hit.n.z);
-		// generates smoke:
-		destroyed.Set( x0-MAX_RAD, y0-MAX_RAD, x0+MAX_RAD, y0+MAX_RAD );
+		while ( nExplosion ) {
+			// generates smoke:
+			int x0 = explosion[nExplosion-1].x;
+			int y0 = explosion[nExplosion-1].y;
 
-		for( int rad=0; rad<=MAX_RAD; ++rad ) {
-			DamageDesc dd = action->type.hit.damageDesc;
-			dd.Scale( (float)(1+MAX_RAD-rad) / (float)(1+MAX_RAD) );
+			destroyed.Set( x0-MAX_RAD, y0-MAX_RAD, x0+MAX_RAD, y0+MAX_RAD );
 
-			for( int y=y0-rad; y<=y0+rad; ++y ) {
-				for( int x=x0-rad; x<=x0+rad; ++x ) {
-					if ( x==(x0-rad) || x==(x0+rad) || y==(y0-rad) || y==(y0+rad) ) {
+			for( int rad=0; rad<=MAX_RAD; ++rad ) {
+				DamageDesc dd = action->type.hit.damageDesc;
+				dd.Scale( (float)(1+MAX_RAD-rad) / (float)(1+MAX_RAD) );
 
-						Vector2I x0y0 = { x0, y0 };
-						if ( !mapBounds.Contains( x0y0 ) )	// keep explosions in-bounds
-							continue;
+				for( int y=y0-rad; y<=y0+rad; ++y ) {
+					for( int x=x0-rad; x<=x0+rad; ++x ) {
+						if ( x==(x0-rad) || x==(x0+rad) || y==(y0-rad) || y==(y0+rad) ) {
 
-						// Tried to do this with the pather, but the issue with 
-						// walls being on the inside and outside of squares got 
-						// ugly. But the other option - ray casting - also nasty.
-						// Go one further than could be walked.
-						int radius2 = (x-x0)*(x-x0) + (y-y0)*(y-y0);
-						if ( radius2 > MAX_RAD_2 )
-							continue;
-						
-						// can the tile to be damaged be reached by the explosion?
-						// visibility is checked up to the tile before this one, else
-						// it is possible to miss because "you can't see yourself"
-						bool canSee = true;
-						if ( rad > 0 ) {
-							LineWalk walk( x0, y0, x, y );
-							// Actually 'less than' so that damage goes through walls a little.
-							while( walk.CurrentStep() < walk.NumSteps() ) {
-								Vector2I p = walk.P();
-								Vector2I q = walk.Q();
-
-								// Was using CanSee, but that has the problem that
-								// some walls are inner and some walls are outer.
-								// *sigh* Use the pather.
-								if ( !engine->GetMap()->CanSee( p, q ) ) {
-									canSee = false;
-									break;
-								}
-								walk.Step();
-							}
-							// Go with the sight check to see if the explosion can
-							// reach this tile.
-							if ( !canSee )
+							Vector2I x0y0 = { x, y };
+							if ( !mapBounds.Contains( x0y0 ) )	// keep explosions in-bounds
 								continue;
-						}
 
-						Unit* unit = GetUnitFromTile( x, y );
-						if ( unit && unit->IsAlive() ) {
-							unit->DoDamage( dd, engine->GetMap() );
-							if ( !unit->IsAlive() ) {
-								visibility.InvalidateUnit( unit - units );
-								if ( unit == SelectedSoldierUnit() ) {
-									selection.ClearTarget();			
+							// Tried to do this with the pather, but the issue with 
+							// walls being on the inside and outside of squares got 
+							// ugly. But the other option - ray casting - also nasty.
+							// Go one further than could be walked.
+							int radius2 = (x-x0)*(x-x0) + (y-y0)*(y-y0);
+							if ( radius2 > MAX_RAD_2 )
+								continue;
+						
+							// can the tile to be damaged be reached by the explosion?
+							// visibility is checked up to the tile before this one, else
+							// it is possible to miss because "you can't see yourself"
+							bool canSee = true;
+							if ( rad > 0 ) {
+								LineWalk walk( x0, y0, x, y );
+								// Actually 'less than' so that damage goes through walls a little.
+								while( walk.CurrentStep() < walk.NumSteps() ) {
+									Vector2I p = walk.P();
+									Vector2I q = walk.Q();
+
+									// Was using CanSee, but that has the problem that
+									// some walls are inner and some walls are outer.
+									// *sigh* Use the pather.
+									if ( !engine->GetMap()->CanSee( p, q ) ) {
+										canSee = false;
+										break;
+									}
+									walk.Step();
 								}
-								if ( action->unit )
-									action->unit->CreditKill();
+								// Go with the sight check to see if the explosion can
+								// reach this tile.
+								if ( !canSee )
+									continue;
 							}
-						}
-						bool hitAnything = false;
-						engine->GetMap()->DoDamage( x, y, dd, &destroyed );
 
-						// Where to add smoke?
-						// - if we hit anything
-						// - change of smoke anyway
-						if ( hitAnything || random.Bit() ) {
-							int turns = 4 + random.Rand( 4 );
-							engine->GetMap()->AddSmoke( x, y, turns );
+							Unit* unit = GetUnitFromTile( x, y );
+							if ( unit && unit->IsAlive() ) {
+								unit->DoDamage( dd, engine->GetMap() );
+								if ( !unit->IsAlive() ) {
+									visibility.InvalidateUnit( unit - units );
+									if ( unit == SelectedSoldierUnit() ) {
+										selection.ClearTarget();			
+									}
+									if ( action->unit )
+										action->unit->CreditKill();
+								}
+							}
+							bool hitAnything = false;
+							Vector2I exp = { -1, -1 };
+							engine->GetMap()->DoDamage( x, y, dd, &destroyed, &exp );
+							if ( exp.x >= 0 && nExplosion < MAX_EXPLOSION )
+								explosion[nExplosion++] = exp;
+
+							// Where to add smoke?
+							// - if we hit anything
+							// - change of smoke anyway
+							if ( hitAnything || random.Bit() ) {
+								int turns = 4 + random.Rand( 4 );
+								engine->GetMap()->AddSmoke( x, y, turns );
+							}
 						}
 					}
 				}
 			}
+			nExplosion--;
 		}
 	}
 	visibility.InvalidateAll( destroyed ); 

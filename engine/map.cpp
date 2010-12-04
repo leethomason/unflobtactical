@@ -708,7 +708,7 @@ const MapItemDef* Map::GetItemDef( const char* name )
 
 
 
-void Map::DoDamage( int x, int y, const DamageDesc& damage, Rectangle2I* dBounds )
+void Map::DoDamage( int x, int y, const DamageDesc& damage, Rectangle2I* dBounds, Vector2I* explodes )
 {
 	float hp = damage.Total();
 	if ( hp <= 0.0f )
@@ -720,13 +720,13 @@ void Map::DoDamage( int x, int y, const DamageDesc& damage, Rectangle2I* dBounds
 		if ( root->model ) {
 			GLRELASSERT( root->model->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) );
 
-			DoDamage( root->model, damage, dBounds );
+			DoDamage( root->model, damage, dBounds, explodes );
 		}
 	}
 }
 
 
-void Map::DoDamage( Model* m, const DamageDesc& damageDesc, Rectangle2I* dBounds )
+void Map::DoDamage( Model* m, const DamageDesc& damageDesc, Rectangle2I* dBounds, Vector2I* explodes )
 {
 	if ( m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) 
 	{
@@ -756,6 +756,10 @@ void Map::DoDamage( Model* m, const DamageDesc& damageDesc, Rectangle2I* dBounds
 			int def = item->itemDefIndex;
 			int flags = item->flags;
 			int hp = item->hp;
+
+			if ( itemDef.flags & EXPLODES ) {
+				explodes->Set( x, y );
+			}
 
 			DeleteItem( item );
 			AddItem( x, y, rot, def, hp, flags );
@@ -798,12 +802,16 @@ void Map::DoSubTurn( Rectangle2I* change )
 				else {
 					// Will torch a building in no time. (Adjacent fires do multiple damage.)
 					DamageDesc d = { FIRE_DAMAGE_PER_SUBTURN*0.5f, FIRE_DAMAGE_PER_SUBTURN*0.5f, 0.0f };
-					DoDamage( x, y, d, change );
+					Vector2I explodes = { -1, -1 };
+					DoDamage( x, y, d, change, &explodes );	// FIXME BUG Burning objects don't blow up. Just needs code, and
+															// points out that the damage code probably shouldn't be in the 
+															// map class.
+
 					DamageDesc f = { 0, 0, FIRE_DAMAGE_PER_SUBTURN };
-					if ( x > 0 ) DoDamage( x-1, y, f, change );
-					if ( x < SIZE-1 ) DoDamage( x+1, y, f, change );
-					if ( y > 0 ) DoDamage( x, y-1, f, change );
-					if ( y < SIZE-1 ) DoDamage( x, y+1, f, change );
+					if ( x > 0 ) DoDamage( x-1, y, f, change, &explodes );
+					if ( x < SIZE-1 ) DoDamage( x+1, y, f, change, &explodes );
+					if ( y > 0 ) DoDamage( x, y-1, f, change, &explodes );
+					if ( y < SIZE-1 ) DoDamage( x, y+1, f, change, &explodes );
 				}
 			}
 		}
