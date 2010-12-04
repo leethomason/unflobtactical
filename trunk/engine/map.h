@@ -267,9 +267,9 @@ public:
 	void DrawOverlay( int layer );		//< draw the "where can I walk" alpha overlay. Set up by ShowNearPath().
 
 	// Do damage to a singe map object.
-	void DoDamage( Model* m, const DamageDesc& damage, grinliz::Rectangle2I* destroyedBounds );
+	void DoDamage( Model* m, const DamageDesc& damage, grinliz::Rectangle2I* destroyedBounds, grinliz::Vector2I* explosion  );
 	// Do damage to an entire map tile.
-	void DoDamage( int x, int y, const DamageDesc& damage, grinliz::Rectangle2I* destroyedBounds );
+	void DoDamage( int x, int y, const DamageDesc& damage, grinliz::Rectangle2I* destroyedBounds, grinliz::Vector2I* explosion );
 	
 	// Process a sub-turn: fire moves, smoke goes away, etc.
 	void DoSubTurn( grinliz::Rectangle2I* changeBounds );
