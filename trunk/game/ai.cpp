@@ -33,21 +33,32 @@ AI::AI( int team, Engine* engine, const Unit* units )
 	m_engine = engine;
 	m_units = units;
 
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		m_enemy[i] = 0.0f;
+	}
+
 	if ( m_team == ALIEN_TEAM) {
-		m_enemyTeam  = TERRAN_TEAM;
-		m_enemyStart = TERRAN_UNITS_START;
-		m_enemyEnd   = TERRAN_UNITS_END;
+		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i )
+			m_enemy[i] = 1.0f;
+		for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i ) 
+			m_enemy[i] = 0.3f;
+	}
+	else if ( m_team == TERRAN_TEAM ) {
+		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i )
+			m_enemy[i] = 1.0f;
+	}
+	else if ( m_team == CIV_TEAM ) {
+		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i )
+			m_enemy[i] = 1.0f;
 	}
 	else {
-		m_enemyTeam  = ALIEN_TEAM;
-		m_enemyStart = ALIEN_UNITS_START;
-		m_enemyEnd   = ALIEN_UNITS_END;
+		GLASSERT( 0 );
 	}
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		m_lkp[i].pos.Set( 0, 0 );
 		m_lkp[i].turns = MAX_TURNS_LKP;
-		travel[i].Set( m_random.Rand(MAP_SIZE), m_random.Rand(MAP_SIZE) );
+		m_travel[i].Set( m_random.Rand(MAP_SIZE), m_random.Rand(MAP_SIZE) );
 	}
 }
 
@@ -64,7 +75,7 @@ void AI::StartTurn( const Unit* units, const Targets& targets )
 				m_lkp[i].turns++;
 			}
 		}
-		thinkCount[i] = 0;
+		m_thinkCount[i] = 0;
 	}
 }
 
@@ -129,15 +140,17 @@ void AI::TrimPathToCost( MP_VECTOR< grinliz::Vector2<S16> >* path, float maxCost
 int AI::VisibleUnitsInArea(	const Unit* theUnit,
 							const Unit* units,
 							const Targets& targets,
-							int start, int end, const grinliz::Rectangle2I& bounds )
+							const grinliz::Rectangle2I& bounds )
 {
 	int count = 0;
-	for( int i=start; i<end; ++i ) {
-		if ( targets.TeamCanSee( theUnit->Team(), &units[i] ) ) {
-			Vector2I p;
-			units[i].CalcMapPos( &p, 0 );
-			if ( bounds.Contains( p ) )
-				++count;
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		if ( m_enemy[i] > 0 ) {
+			if ( targets.TeamCanSee( theUnit->Team(), &units[i] ) ) {
+				Vector2I p;
+				units[i].CalcMapPos( &p, 0 );
+				if ( bounds.Contains( p ) )
+					++count;
+			}
 		}
 	}
 	return count;
@@ -166,8 +179,9 @@ int AI::ThinkShoot(  const Unit* theUnit,
 	const WeaponItemDef* wid = theUnit->GetWeaponDef();
 	GLASSERT( wid );
 
-	for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
-		if (    m_units[i].IsAlive() 
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		if (    m_enemy[i] > 0
+			 && m_units[i].IsAlive() 
 			 && m_units[i].GetModel() 
 			 && targets.CanSee( theUnit, &m_units[i] )
 			 && LineOfSight( theUnit, &m_units[i]))
@@ -182,7 +196,7 @@ int AI::ThinkShoot(  const Unit* theUnit,
 					float chance, anyChance, tu, dptu;
 
 					if ( theUnit->FireStatistics( (WeaponMode)mode, len, &chance, &anyChance, &tu, &dptu ) ) {
-						float score = dptu;	// Interesting: good AI, but results in odd choices.
+						float score = dptu * m_enemy[i];	// Interesting: good AI, but results in odd choices.
 
 						if ( wid->IsExplosive( (WeaponMode)mode ) ) {
 							if ( len < MINIMUM_EXPLOSIVE_RANGE ) {
@@ -193,7 +207,7 @@ int AI::ThinkShoot(  const Unit* theUnit,
 								bounds.min = bounds.max = m_units[i].Pos();
 								bounds.Outset( EXPLOSION_ZONE );
 								
-								int count = VisibleUnitsInArea( theUnit, m_units, targets, m_enemyStart, m_enemyEnd, bounds );
+								int count = VisibleUnitsInArea( theUnit, m_units, targets, bounds );
 								score *= ( count <= 1 ) ? 0.5f : (float)count;
 							}
 						}
@@ -312,8 +326,9 @@ int AI::ThinkSearch(const Unit* theUnit,
 	zone.min = zone.max = theUnit->Pos();
 	zone.Outset( 1 );
 
-	for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
-		if (    m_units[i].IsAlive() 
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		if (    m_enemy[i] > 0 
+			 &&	m_units[i].IsAlive() 
 			 && m_units[i].GetModel()
 			 && m_lkp[i].turns < MAX_TURNS_LKP ) 
 		{
@@ -436,12 +451,12 @@ int AI::ThinkTravel(const Unit* theUnit,
 
 	// Look for an acceptable travel destination. 4 is abitrary...3-5 all seem pretty modest.
 	for( int i=0; i<4; ++i ) {
-		if (    mapBounds.Contains( travel[index] ) 
-			 && travel[index] != theUnit->Pos() )
+		if (    mapBounds.Contains( m_travel[index] ) 
+			 && m_travel[index] != theUnit->Pos() )
 		{
 			Vector2I pos = theUnit->Pos();
 			Vector2<S16> start = { pos.x, pos.y };
-			Vector2<S16> end = { travel[index].x, travel[index].y };
+			Vector2<S16> end = { m_travel[index].x, m_travel[index].y };
 			result = map->SolvePath( theUnit, start, end, &cost, &m_path[0] );
 			if ( result == micropather::MicroPather::SOLVED ) {
 				TrimPathToCost( &m_path[0], theUnit->TU() );
@@ -454,8 +469,8 @@ int AI::ThinkTravel(const Unit* theUnit,
 		}
 
 		// Look for a new travel destination.
-		travel[index].x = m_random.Rand( mapBounds.Width() );
-		travel[index].y = m_random.Rand( mapBounds.Height() );
+		m_travel[index].x = m_random.Rand( mapBounds.Width() );
+		m_travel[index].y = m_random.Rand( mapBounds.Height() );
 	}
 	return THINK_NO_ACTION;
 }
@@ -469,8 +484,9 @@ int AI::ThinkRotate(const Unit* theUnit,
 	int best = -1;
 	float bestGolfScore = FLT_MAX;
 
-	for( int i=m_enemyStart; i<m_enemyEnd; ++i ) {
-		if (    m_units[i].IsAlive() 
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		if (    m_enemy[i] > 0
+			 && m_units[i].IsAlive() 
 			 && m_units[i].GetModel()
 			 && targets.TeamCanSee( m_team, i )
 			 && m_lkp[i].turns < MAX_TURNS_LKP ) 
@@ -485,10 +501,10 @@ int AI::ThinkRotate(const Unit* theUnit,
 			float len = sqrtf( (float)len2 );
 
 			// The older the data, the worse the score.
-			float score = len*(float)(m_lkp[i].turns);
+			float golfScore = len*(float)(m_lkp[i].turns) / m_enemy[i];
 					
-			if ( score < bestGolfScore ) {
-				bestGolfScore = score;
+			if ( golfScore < bestGolfScore ) {
+				bestGolfScore = golfScore;
 				best = i;
 			}
 		}
@@ -507,9 +523,9 @@ int AI::ThinkBase( const Unit* theUnit )
 {
 	int index = theUnit - m_units;
 	GLASSERT( index >= 0 && index < MAX_UNITS );
-	thinkCount[index] += 1;
+	m_thinkCount[index] += 1;
 
-	if ( thinkCount[index] >= 5 )
+	if ( m_thinkCount[index] >= 5 )
 		return THINK_NOT_OPTION;
 	return THINK_NO_ACTION;
 }
@@ -606,3 +622,14 @@ bool WarriorAI::Think(	const Unit* theUnit,
 	return true;
 }
 
+
+
+bool NullAI::Think( const Unit* move,
+					const Targets& targets,
+					int flags,
+					Map* map,
+					AIAction* action )
+{
+	action->actionID = ACTION_NONE;
+	return true;	// and we're done!
+}

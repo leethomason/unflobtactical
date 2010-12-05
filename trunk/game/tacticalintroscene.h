@@ -112,6 +112,9 @@ private:
 							int averageLevel,
 							int seed=0 );
 
+	void GenerateCivTeam(	Unit* units,				// target units to write
+							int count,
+							int seed=0 );
 
 	enum { MAX_ITEM_MATCH = 32 };
 	const gamedb::Item* itemMatch[ MAX_ITEM_MATCH ];

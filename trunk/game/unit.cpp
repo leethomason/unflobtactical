@@ -498,6 +498,8 @@ void Unit::NewTurn()
 void Unit::CreateModel()
 {
 	GLASSERT( status != STATUS_NOT_INIT );
+	if ( !game )
+		return;
 
 	const ModelResource* resource = 0;
 	ModelResourceManager* modman = ModelResourceManager::Instance();
@@ -521,30 +523,28 @@ void Unit::CreateModel()
 				GLASSERT( 0 );
 				break;
 		}
+		GLASSERT( resource );
 		if ( resource && game ) {
 			model = game->engine->AllocModel( resource );
 			model->SetFlag( Model::MODEL_MAP_TRANSPARENT );
 		}
 	}
 	else {
-		if ( team != CIV_TEAM ) {
-			if ( game ) {
-				model = game->engine->AllocModel( modman->GetModelResource( "unitplate" ) );
-				model->SetFlag( Model::MODEL_MAP_TRANSPARENT );
-				model->SetFlag( Model::MODEL_NO_SHADOW );
+		model = game->engine->AllocModel( modman->GetModelResource( "unitplate" ) );
+		model->SetFlag( Model::MODEL_MAP_TRANSPARENT );
+		model->SetFlag( Model::MODEL_NO_SHADOW );
 
-				Texture* texture = TextureManager::Instance()->GetTexture( "particleQuad" );
-				model->SetTexture( texture );
+		Texture* texture = TextureManager::Instance()->GetTexture( "particleQuad" );
+		model->SetTexture( texture );
 
-				if ( team == TERRAN_TEAM ) {
-					model->SetTexXForm( 0, 0.25f, 0.25f, 0.75f, 0.0f );
-				}
-				else {
-					model->SetTexXForm( 0, 0.25f, 0.25f, 0.75f, 0.25f );
-				}
-			}
+		if ( team != ALIEN_TEAM ) {
+			model->SetTexXForm( 0, 0.25f, 0.25f, 0.75f, 0.0f );
+		}
+		else {
+			model->SetTexXForm( 0, 0.25f, 0.25f, 0.75f, 0.25f );
 		}
 	}
+	GLASSERT( model );
 	UpdateModel();
 }
 

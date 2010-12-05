@@ -59,12 +59,10 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 
 	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, engine, units );
 	aiArr[TERRAN_TEAM]		= 0;
-
 	if ( SettingsManager::Instance()->GetPlayerAI() ) {
 		aiArr[TERRAN_TEAM] = new WarriorAI( TERRAN_TEAM, engine, units );
 	}
-	// FIXME: use warrior AI for now...
-	aiArr[CIV_TEAM]			= new WarriorAI( CIV_TEAM, engine, units );
+	aiArr[CIV_TEAM]			= new NullAI( CIV_TEAM, engine, units );
 
 	mapmaker_currentMapItem = 1;
 

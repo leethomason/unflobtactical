@@ -1040,7 +1040,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 				scoutPos.Push( v );
 			}
 			else if ( StrEqual( itemDef.Name(), "pawn" )) {
-				civPos.Push();
+				civPos.Push( v );
 			}
 			return 0;
 		}
