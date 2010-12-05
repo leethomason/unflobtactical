@@ -1301,39 +1301,41 @@ void BattleScene::ProcessInventoryAI( Unit* theUnit )
 		// The IsResupply() is used by the AI query, an the same thing needs to 
 		// be used here, else we can infinte loop.
 		const WeaponItemDef* wid = storage->IsResupply( theUnit->GetWeaponDef() );
+		if ( wid ) {
 
-		// Clear out everything actually being carried so we don't run out of space.
-		for( int i=0; i<Inventory::NUM_SLOTS; ++i ) {
-			item = inventory->GetItem( i );
-			if ( item.IsWeapon() || item.IsClip() ) {
-				storage->AddItem( item );
-				inventory->RemoveItem( i );
-			}
-		}
-
-		storage->RemoveItem( wid, &item );
-		int slot = inventory->AddItem( item );
-		GLRELASSERT( slot == Inventory::WEAPON_SLOT );
-		AI_LOG(( "'%s' ", item.Name() ));
-
-		// clips.
-		WeaponMode mode[2] = { kSnapFireMode, kAltFireMode };
-		for( int k=0; k<2; ++k ) {
-			while ( storage->GetCount( wid->GetClipItemDef( mode[k] ) ) ) {
-				Item item;
-				storage->RemoveItem( wid->GetClipItemDef( mode[k] ), &item );
-				if ( inventory->AddItem( item ) < 0 ) {
+			// Clear out everything actually being carried so we don't run out of space.
+			for( int i=0; i<Inventory::NUM_SLOTS; ++i ) {
+				item = inventory->GetItem( i );
+				if ( item.IsWeapon() || item.IsClip() ) {
 					storage->AddItem( item );
-					break;
-				}
-				else {
-					AI_LOG(( "'%s' ", item.Name() ));
+					inventory->RemoveItem( i );
 				}
 			}
+
+			storage->RemoveItem( wid, &item );
+			int slot = inventory->AddItem( item );
+			GLRELASSERT( slot == Inventory::WEAPON_SLOT );
+			AI_LOG(( "'%s' ", item.Name() ));
+
+			// clips.
+			WeaponMode mode[2] = { kSnapFireMode, kAltFireMode };
+			for( int k=0; k<2; ++k ) {
+				while ( storage->GetCount( wid->GetClipItemDef( mode[k] ) ) ) {
+					Item item;
+					storage->RemoveItem( wid->GetClipItemDef( mode[k] ), &item );
+					if ( inventory->AddItem( item ) < 0 ) {
+						storage->AddItem( item );
+						break;
+					}
+					else {
+						AI_LOG(( "'%s' ", item.Name() ));
+					}
+				}
+			}
+			AI_LOG(( "\n" ));
 		}
-		AI_LOG(( "\n" ));
-		engine->GetMap()->ReleaseStorage( storage );
 	}
+	engine->GetMap()->ReleaseStorage( storage );
 	theUnit->UpdateInventory();
 }
 

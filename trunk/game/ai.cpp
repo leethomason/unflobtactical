@@ -64,6 +64,7 @@ void AI::StartTurn( const Unit* units, const Targets& targets )
 				m_lkp[i].turns++;
 			}
 		}
+		thinkCount[i] = 0;
 	}
 }
 
@@ -271,8 +272,9 @@ int AI::ThinkInventory(	const Unit* theUnit, Map* map, AIAction* action )
 	// Drop all the weapons, and pick up new ones.
 	const Storage* storage = map->GetStorage( pos.x, pos.y );
 
-	if (	  theUnit->HasGunAndAmmo( false )									// all good, just need to re-distribute
-		 || ( storage && storage->IsResupply( theUnit->GetWeaponDef() ) ) )		// can pick up new stuff
+//	if (	  theUnit->HasGunAndAmmo( false )									// all good, just need to re-distribute. Should work, but buggy. 
+	
+	if ( storage && storage->IsResupply( theUnit->GetWeaponDef() ) )		// can pick up new stuff
 	{
 		action->actionID = ACTION_INVENTORY;
 		return THINK_ACTION;
@@ -501,6 +503,18 @@ int AI::ThinkRotate(const Unit* theUnit,
 }
 
 
+int AI::ThinkBase( const Unit* theUnit )
+{
+	int index = theUnit - m_units;
+	GLASSERT( index >= 0 && index < MAX_UNITS );
+	thinkCount[index] += 1;
+
+	if ( thinkCount[index] >= 5 )
+		return THINK_NOT_OPTION;
+	return THINK_NO_ACTION;
+}
+
+
 bool WarriorAI::Think(	const Unit* theUnit,
 						const Targets& targets,
 						int flags,
@@ -525,6 +539,9 @@ bool WarriorAI::Think(	const Unit* theUnit,
 	Vector2I theUnitPos;
 	theUnit->CalcMapPos( &theUnitPos, 0 );
 	float theUnitNearTarget = FLT_MAX;
+
+	if ( ThinkBase( theUnit ) == THINK_NOT_OPTION )
+		return true;
 	
 	int result = 0;
 
@@ -565,8 +582,10 @@ bool WarriorAI::Think(	const Unit* theUnit,
 		// Out of ammo. Get Ammo!
 		if ( theUnit->HasGunAndAmmo( false ) ) {
 			result = ThinkInventory( theUnit, map, action );
-			GLASSERT( result == THINK_ACTION );
-			return false;
+			if ( result == THINK_ACTION )
+				return false;
+			else
+				return true;		// nothing more to do...
 		}
 		result = ThinkMoveToAmmo( theUnit, targets, map, action );
 		if ( result == THINK_SOLVED_NO_ACTION ) {

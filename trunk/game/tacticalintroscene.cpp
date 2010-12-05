@@ -467,6 +467,7 @@ void TacticalIntroScene::FindNodes(	const char* set,
 void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 											const char* set,
 											int size,
+											bool crash,
 											const char* type,
 											const gamedb::Item* parent,
 											TiXmlElement* mapElement )
@@ -494,9 +495,17 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 	Matrix2I m;
 	Map::MapImageToWorld( dx, dy, size, size, tileRotation, &m );
 
-	// Patch the off coordinates systems:
-	int patchx = 0;	//(tileRotation == 2 || tileRotation == 3 ) ? -1 : 0;
-	int patchy = 0;	//(tileRotation == 1 || tileRotation == 2 ) ? -1 : 0;
+	Rectangle2I crashRect, crashRect0;
+	crashRect.Set( 0, 0, 0, 0 );
+	if ( crash ) {
+		int half = size/2;
+		crashRect.min.Set( random.Rand( half ), random.Rand( half ) );
+		crashRect.max.x = crashRect.min.x + half;
+		crashRect.max.y = crashRect.min.y + half;
+	}
+	Vector2I cr0 = m * crashRect.min;
+	Vector2I cr1 = m * crashRect.max;
+	crashRect0.FromPair( cr0.x, cr0.y, cr1.x, cr1.y );
 
 	for( TiXmlElement* ele = snippet.FirstChildElement( "Map" )->FirstChildElement( "Items" )->FirstChildElement( "Item" );
 		 ele;
@@ -510,9 +519,18 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 
 		Vector2I v0 = m * v;
 
-		ele->SetAttribute( "x", v0.x+patchx );
-		ele->SetAttribute( "y", v0.y+patchy );
+		ele->SetAttribute( "x", v0.x );
+		ele->SetAttribute( "y", v0.y );
 		ele->SetAttribute( "rot", (rot + tileRotation)%4 );
+
+		if ( crashRect.Contains( v.x, v.y ) && random.Bit() ) {
+			Map* map = game->engine->GetMap();
+			const MapItemDef* mapItemDef = map->GetItemDef( ele->Attribute( "name" ) );
+
+			if ( mapItemDef && mapItemDef->CanDamage() ) {
+				ele->SetAttribute( "hp", 0 );
+			}
+		}
 
 		itemsElement->InsertEndChild( *ele );
 	}
@@ -534,6 +552,26 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 	image->SetAttribute( "size", size );
 	image->SetAttribute( "tileRotation", tileRotation );
 	imagesElement->LinkEndChild( image );
+
+	if ( crash ) {
+		TiXmlElement* pgElement = mapElement->FirstChildElement( "PyroGroup" );
+		if ( !pgElement ) {
+			pgElement = new TiXmlElement( "PyroGroup" );
+			mapElement->LinkEndChild( pgElement );
+		}
+		for( int j=crashRect0.min.y; j<=crashRect0.max.y; ++j ) {
+			for( int i=crashRect0.min.x; i<=crashRect0.max.x; ++i ) {
+				if ( random.Bit() ) {
+					TiXmlElement* fire = new TiXmlElement( "Pyro" );
+					fire->SetAttribute( "x", i );
+					fire->SetAttribute( "y", j );
+					fire->SetAttribute( "fire", 1 );
+					fire->SetAttribute( "duration", 0 );
+					pgElement->LinkEndChild( fire );
+				}
+			}
+		}
+	}
 }
 
 
@@ -579,7 +617,7 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 		blocks.Set( pos.x, pos.y );
 		int tileRotation = random.Rand(4);
 
-		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, "LAND", dataItem, &mapElement );	
+		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, false, "LAND", dataItem, &mapElement );	
 	}
 
 	if ( info.ufoSize ) {
@@ -587,8 +625,7 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 		blocks.Set( pos.x, pos.y );
 		int tileRotation = random.Rand(4);
 
-		const char* ufoStr = info.crash ? "UFOB" : "UFOA";
-		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, ufoStr, dataItem, &mapElement );
+		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, info.crash, "UFOA", dataItem, &mapElement );
 	}
 
 	for( int j=0; j<info.blockSizeY; ++j ) {
@@ -596,7 +633,7 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 			if ( !blocks.IsSet( i, j ) ) {
 				Vector2I pos = { i, j };
 				int tileRotation = random.Rand(4);
-				AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, "TILE", dataItem, &mapElement );	
+				AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, false, "TILE", dataItem, &mapElement );	
 			}
 		}
 	}

@@ -101,6 +101,9 @@ protected:
 		THINK_ACTION				// action filled in
 	};
 
+	// if THINK_NOT_OPTION end move.
+	int ThinkBase( const Unit* move );
+
 	// THINK_NOT_OPTION no weapon / ammo
 	// THINK_NO_ACTION  no target
 	// THINK_ACTION		shot taken
@@ -172,6 +175,7 @@ protected:
 	};
 	LKP m_lkp[MAX_UNITS];
 	grinliz::Vector2I travel[MAX_UNITS];
+	int thinkCount[MAX_UNITS];
 };
 
 

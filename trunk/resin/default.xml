@@ -11,8 +11,7 @@
   <texture filename="woodPlankD.png" />
   <!-- FIXME: size limit -->
   <texture filename="palette.png" />
-  <!-- FIXME: size limit -->
-  <texture filename="charSwatch.png" />
+  <texture filename="charSwatch.png" width="128" height="8" />
   <!-- FIXME: size limit -->
   <texture filename="characters.png" />
   <texture filename="ufoInner.png" width="64" height="64"/>
@@ -22,6 +21,7 @@
   <texture filename="tree3.png" />
   <texture filename="atlas0.png" />
   <texture filename="atlas1.png" width="32" height="128" />
+  <texture filename="atlas2.png" />
   <texture filename="translucent.png" />
   <texture filename="clips.png" />
   <texture filename="stonewall.png" width="64" height="64" />
@@ -33,8 +33,11 @@
   <texture filename="introText.png" />
   <texture filename="commandBarV.png" />
 
+  <!-- Particles -->
+  <texture filename="particleQuad.png" />
+  <texture filename="particleSparkle.png" />
 
-	<!-- Models
+  <!-- Models
        Model naming:
              group. 4 chars. wood, ufo_, stor, etc.
              type.  4 chars. wall, diag, crnr, etc.
@@ -103,6 +106,9 @@
   <model filename="ufo_CrnrInn.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_WallOut.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_WallCurve4.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_controlTable.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_controlScreen.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_power.ac" shading="smooth" />
 
   <model filename="woodCrnr.ac" polyRemoval="pre" />
   <model filename="woodCrnrD.ac" polyRemoval="pre" />
@@ -129,10 +135,6 @@
   <model filename="scout.ac" shading="smooth" />
   <model filename="guard.ac" />
   <model filename="pawn.ac" />
-
-  <!-- Particles -->
-	<texture filename="particleQuad.png" />
-	<texture filename="particleSparkle.png" />
 
 	<!-- Maps -->
   <image filename="objectLightMaps.png" />
