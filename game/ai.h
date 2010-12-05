@@ -154,7 +154,7 @@ protected:
 	int  VisibleUnitsInArea(	const Unit* theUnit,
 								const Unit* units,
 								const Targets& targets,
-								int start, int end, const grinliz::Rectangle2I& bounds );
+								const grinliz::Rectangle2I& bounds );
 
 	struct LKP {
 		grinliz::Vector2I	pos;
@@ -163,9 +163,6 @@ protected:
 	const Unit* m_units;
 
 	int m_team;
-	int m_enemyTeam;
-	int m_enemyStart;
-	int m_enemyEnd;
 	grinliz::Random m_random;
 	Engine* m_engine;	// for ray queries.
 	MP_VECTOR< grinliz::Vector2<S16> > m_path[4];
@@ -173,9 +170,10 @@ protected:
 	enum {
 		MAX_TURNS_LKP = 100
 	};
-	LKP m_lkp[MAX_UNITS];
-	grinliz::Vector2I travel[MAX_UNITS];
-	int thinkCount[MAX_UNITS];
+	LKP					m_lkp[MAX_UNITS];			// Last Known Position of enemies.
+	grinliz::Vector2I	m_travel[MAX_UNITS];		// Destination of Travel-ing AI
+	int					m_thinkCount[MAX_UNITS];	// number of times Think has been called this turn. If too high, abort.
+	float				m_enemy[MAX_UNITS];			// 1.0: enemy. 0.0: friend. in between, kind of malevalence
 };
 
 
@@ -191,6 +189,25 @@ public:
 						Map* map,
 						AIAction* action );
 
+};
+
+
+class CivAI : public AI
+{
+
+};
+
+
+class NullAI : public AI
+{
+public:
+	NullAI( int team, Engine* engine, const Unit* units ) : AI( team, engine, units )		{}
+	virtual ~NullAI()																		{}
+	virtual bool Think( const Unit* move,
+						const Targets& targets,
+						int flags,
+						Map* map,
+						AIAction* action );
 };
 
 

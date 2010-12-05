@@ -374,7 +374,7 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	}
 	// Alien units
 
-	Unit units[MAX_ALIENS];
+	Unit units[MAX_UNITS];
 	int rank = 0;
 	int count = 8;
 	int types[Unit::NUM_ALIEN_TYPES] = { 0 };
@@ -403,7 +403,9 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 		rank = 4;
 	}
 
+	memset( units, 0, sizeof(Unit)*MAX_UNITS );
 	GenerateAlienTeam( units, types, rank, seed );
+
 	int created=0;
 	for( int i=0; i<MAX_ALIENS; ++i ) {
 		if ( units[i].IsAlive() ) {
@@ -412,6 +414,14 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 		}
 	}
 	GLASSERT( created == count );
+
+	memset( units, 0, sizeof(Unit)*MAX_UNITS );
+	GenerateCivTeam( units, MAX_CIVS, seed );
+	for( int i=0; i<MAX_CIVS; ++i ) {
+		if ( units[i].IsAlive() ) {
+			units[i].Save( fp, 2 );
+		}
+	}
 
 	XMLUtil::CloseElement( fp, 1, "Units" );
 	XMLUtil::CloseElement( fp, 0, "Game" );		
@@ -700,3 +710,16 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 	}
 }
 
+
+void TacticalIntroScene::GenerateCivTeam( Unit* unit,				// target units to write
+										  int count,
+										  int seed )
+{
+	grinliz::Random aRand( seed );
+	aRand.Rand();
+	aRand.Rand();
+
+	for( int i=0; i<count; ++i ) {
+		unit[i].Create( CIV_TEAM, 0, 0, aRand.Rand() );
+	}
+}
