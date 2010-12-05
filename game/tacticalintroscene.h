@@ -102,6 +102,7 @@ private:
 	void AppendMapSnippet(	int x, int y, int tileRotation,
 							const char* set,
 							int size,
+							bool crash,
 							const char* type,
 							const gamedb::Item* parent,
 							TiXmlElement* mapElement );

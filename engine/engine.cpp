@@ -269,27 +269,24 @@ void Engine::Draw()
 	CalcFrustumPlanes( planes );
 	Model* modelRoot = spaceTree->Query( planes, 6, 0, 0, false );
 	
+	Color4F ambient, diffuse;
+	Vector4F dir;
+	CalcLights( map->DayTime() ? DAY_TIME : NIGHT_TIME, &ambient, &dir, &diffuse );
+
+	LightShader lightShader( ambient, dir, diffuse, false, false );
+	LightShader blendLightShader( ambient, dir, diffuse, false, true );
+	LightShader testLightShader( ambient, dir, diffuse, true, false ); 
+	
+	FlatShader black;
+	Texture* blackTexture = TextureManager::Instance()->GetTexture( "black" );	// Fix for a strange bug. The Nexus One, when using VBOs, sometimes
+																				// ignores color. This used to be "white" with color=0,0,0,1, but
+
 	// ------------ Process the models into the render queue -----------
 	{
 		GRINLIZ_PERFTRACK_NAME( "Engine::Draw Models" );
 
 		GLASSERT( renderQueue->Empty() );
 		const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& fogOfWar = map->GetFogOfWar();
-
-		Color4F ambient, diffuse;
-		Vector4F dir;
-		CalcLights( map->DayTime() ? DAY_TIME : NIGHT_TIME, &ambient, &dir, &diffuse );
-
-		bool blend = Engine::mapMakerMode ? true : false;
-		bool alpha = Engine::mapMakerMode ? false : true;
-
-		LightShader lightShader( ambient, dir, diffuse, false, false );
-		LightShader alphaLightShader( ambient, dir, diffuse, alpha, blend );
-	
-		FlatShader black;
-		Texture* blackTexture = TextureManager::Instance()->GetTexture( "black" );	// Fix for a strange bug. The Nexus One, when using VBOs, sometimes
-																					// ignores color. This used to be "white" with color=0,0,0,1, but
-																					// black fixes the bug and otherwise works just as well.
 
 		for( Model* model=modelRoot; model; model=model->next ) {
 			if ( model->IsFlagSet( Model::MODEL_METADATA ) && !enableMeta )
@@ -312,7 +309,8 @@ void Engine::Draw()
 
 				// Map is always rendered, possibly in black.
 				if ( !fogOfWar.IsRectEmpty( fogRect ) ) {
-					model->Queue( renderQueue, &lightShader, &alphaLightShader, 0 );
+					// Except for billboards, we want blending.
+					model->Queue( renderQueue, &lightShader, model->IsBillboard() ? &testLightShader : &blendLightShader, 0 );
 				}
 				else {
 					model->Queue( renderQueue, &black, &black, blackTexture );	// The blackTexture makes sure everything goes to the same render state.
@@ -320,7 +318,7 @@ void Engine::Draw()
 				}
 			}
 			else if ( fogOfWar.IsSet( x, y ) ) {
-				model->Queue( renderQueue, &lightShader, &alphaLightShader, 0 );
+				model->Queue( renderQueue, &lightShader, model->IsBillboard() ? &testLightShader : &blendLightShader, 0 );
 			}
 		}
 	}

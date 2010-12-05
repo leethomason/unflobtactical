@@ -93,6 +93,9 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"ufo_DoorCld",	"ufo_DoorOpn",	0,			1,	1,	HP_STEEL,	0,			"0", "1" },
 	{	"ufo_WallInn",	0,				0,			1,	1,	HP_STEEL,	0,			"1", "1" },
 	{	"ufo_CrnrInn",	0,				0,			1,	1,	HP_STEEL,	0,			"3", "3" },
+	{	"ufo_controlTable",	0,			0,			1,	1,	HP_HIGH,	0,			"f", "0" },
+	{	"ufo_controlScreen",0,			0,			1,	1,	HP_LOW,		0,			"f", "0" },
+	{	"ufo_power",	0,				0,			1,	1,	HP_HIGH,	FASTBURN,	"f", "0", EXPLODES | OBSCURES },
 
 		// model		open			destroyed	cx, cz	hp			material	pather
 	{	"lander",		0,				0,			6,	6,	INDESTRUCT,	0,			"00ff00" "00ff00" "ff00ff" "ff00ff" "ff00ff" "ff00ff",
@@ -1106,6 +1109,10 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	quadTree.Add( item );
 
 	const ModelResource* res = 0;
+	// Clean up XML errors
+	if ( !itemDefArr[defIndex].CanDamage() )
+		hp = 0xffff;
+
 	if ( itemDefArr[defIndex].CanDamage() && hp == 0 ) {
 		res = itemDef.GetDestroyedResource();
 	}
@@ -1281,7 +1288,6 @@ void Map::Save( FILE* fp, int depth )
 	MapItem* item = quadTree.FindItems( b, 0, MapItem::MI_NOT_IN_DATABASE );
 
 	for( ; item; item=item->next ) {
-		//TiXmlElement* itemElement = new TiXmlElement( "Item" );
 		XMLUtil::OpenElement( fp, depth+2, "Item" );
 
 		int x, y, r;

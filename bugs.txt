@@ -1,7 +1,10 @@
 Issues:
 
 Bugs:
-tweak: move AR-1 to sit more forward
+- civilians
+- new game choices UI
+- rework smoke and fire. too many dropouts.
+- Android: sound drops out (GC of MediaObject)
 
 Architecture
 - Map as interface
@@ -10,10 +13,7 @@ Features:
 - More items: optical computer for units to enhance vision
 
 TBD:
-- exposive items
-- change terran "splat" image
-- civilians: AI, accounting in score
-- mission types: scout (still need shed)
+- tweak: move AR-1 to sit more forward
 - mission types: terror
 - mission types: destroyer
 - mission types: battleship
@@ -29,18 +29,17 @@ TBD:
 - Reconsider when reaction fire occurs. And probability.
 - check math (again yet again) in PushShootAction()
 - trees show up in the wrong place
-
-Models
-- crate stacks
-- barrels
-
-Level Design
-- buildings / sheds for farm
-- Destroyer
-- Battleship
-- cityscape
+- rework fire spread & explosions.
 
 FIXED
+- auto generate crashed UFO
+- buildings / sheds for farm
+- crate stacks
+- barrels
+- mission types: scout (still need shed)
+- change terran "splat" image
+- civilians: AI, accounting in score
+- exposive items
 - game plays itself. Enhance AI so it can run fully automated.
 - alien units: don't need to start in XML. Switch to generative system.
 - fix firestorm
