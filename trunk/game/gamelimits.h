@@ -32,7 +32,8 @@ static const float FIRE_DAMAGE_PER_SUBTURN = 20.0f;
 
 static const int TERRAN_TEAM			= 0;
 static const int CIV_TEAM				= 1;
-static const int ALIEN_TEAM			= 2;
+static const int ALIEN_TEAM				= 2;
+static const int NUM_TEAMS				= 3;
 
 static const int TERRAN_UNITS_START	= 0;
 static const int TERRAN_UNITS_END		= 8;
