@@ -183,7 +183,7 @@ int AI::ThinkShoot(  const Unit* theUnit,
 		if (    m_enemy[i] > 0
 			 && m_units[i].IsAlive() 
 			 && m_units[i].GetModel() 
-			 && targets.CanSee( theUnit, &m_units[i] )
+			 && targets.UnitCanSee( theUnit, &m_units[i] )
 			 && LineOfSight( theUnit, &m_units[i]))
 		{
 			int len2 = (m_units[i].Pos()-theUnit->Pos()).LengthSquared();
@@ -356,7 +356,7 @@ int AI::ThinkSearch(const Unit* theUnit,
 
 			// Guards only move on what they can currently see
 			// so they don't go chasing things.
-			if ( ( flags & AI_GUARD ) && !targets.CanSee( theUnit, &m_units[i] ) ) {
+			if ( ( flags & AI_GUARD ) && !targets.UnitCanSee( theUnit, &m_units[i] ) ) {
 				score = FLT_MAX;
 			}
 					
@@ -632,4 +632,61 @@ bool NullAI::Think( const Unit* move,
 {
 	action->actionID = ACTION_NONE;
 	return true;	// and we're done!
+}
+
+
+bool CivAI::Think(	const Unit* theUnit,
+					const Targets& targets,
+					int flags,
+					Map* map,
+					AIAction* action )
+{
+	Vector2F sum = { 0, 0 };
+	bool shouldRun = false;
+
+	// Civs wander unless they are running away from something.
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		if (    m_enemy[i] > 0
+			 && m_units[i].IsAlive() )
+		{
+			if ( targets.UnitCanSee( theUnit, &m_units[i] ) )
+			{
+				Vector2I runI = theUnit->Pos() - m_units[i].Pos();
+				Vector2F run = { (float)runI.x, (float)runI.y };
+				run.Multiply( 1.0f / run.Length() );
+
+				sum += run;
+				shouldRun = true;
+			}
+		}
+	}
+
+	if ( shouldRun ) {
+		const float dest[2] = { 8.0f, 4.0f };
+
+		sum.Normalize();
+
+		// Try to move further, then closer. Failing that, wander.
+		for( int i=0; i<2; ++i ) {
+			Vector2I end32 = { theUnit->Pos().x + LRintf( sum.x*dest[i] ), theUnit->Pos().y + LRintf( sum.y*dest[i] ) };
+			if ( map->Bounds().Contains( end32 ) ) {
+				grinliz::Vector2<S16> start = { theUnit->Pos().x, theUnit->Pos().y };
+				grinliz::Vector2<S16> end = { end32.x, end32.y };
+
+				float cost = 0;
+				int result = map->SolvePath( theUnit, start, end, &cost, &m_path[0] );
+
+				if ( result == micropather::MicroPather::SOLVED ) {
+					TrimPathToCost( &m_path[0], theUnit->TU() );
+					action->actionID = ACTION_MOVE;
+					action->move.path.Init( m_path[0] );
+					return true;
+				}
+			}
+		}
+	}
+
+	// Didn't run...wander.
+	ThinkWander( theUnit, targets, map, action );
+	return true;	// civs are a 1-shot AI
 }

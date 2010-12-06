@@ -62,7 +62,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	if ( SettingsManager::Instance()->GetPlayerAI() ) {
 		aiArr[TERRAN_TEAM] = new WarriorAI( TERRAN_TEAM, engine, units );
 	}
-	aiArr[CIV_TEAM]			= new NullAI( CIV_TEAM, engine, units );
+	aiArr[CIV_TEAM]			= new CivAI( CIV_TEAM, engine, units );
 
 	mapmaker_currentMapItem = 1;
 
@@ -229,7 +229,9 @@ void BattleScene::DeActivate()
 
 void BattleScene::NextTurn( bool saveOnTerranTurn )
 {
-	currentTeamTurn = (currentTeamTurn==ALIEN_TEAM) ? TERRAN_TEAM : ALIEN_TEAM;	// FIXME: go to 3 state
+	currentTeamTurn++;
+	if ( currentTeamTurn == NUM_TEAMS )
+		currentTeamTurn = 0;
 	turnCount++;
 
 	switch ( currentTeamTurn ) {
@@ -1192,6 +1194,9 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 
 void BattleScene::DoReactionFire()
 {
+	if ( currentTeamTurn == CIV_TEAM )
+		return;
+
 	int antiTeam = ALIEN_TEAM;
 	if ( currentTeamTurn == ALIEN_TEAM )
 		antiTeam = TERRAN_TEAM;
@@ -1425,6 +1430,9 @@ void BattleScene::ProcessDoors()
 
 void BattleScene::StopForNewTeamTarget()
 {
+	if ( currentTeamTurn == CIV_TEAM )
+		return;
+
 	int antiTeam = ALIEN_TEAM;
 	if ( currentTeamTurn == ALIEN_TEAM )
 		antiTeam = TERRAN_TEAM;
@@ -2536,7 +2544,7 @@ void BattleScene::CalcTeamTargets()
 
 	Vector2I targets[] = { { ALIEN_UNITS_START, ALIEN_UNITS_END },   { TERRAN_UNITS_START, TERRAN_UNITS_END } };
 	Vector2I viewers[] = { { TERRAN_UNITS_START, TERRAN_UNITS_END }, { ALIEN_UNITS_START, ALIEN_UNITS_END } };
-	int viewerTeam[3]  = { TERRAN_TEAM, ALIEN_TEAM };
+	int viewerTeam[2]  = { TERRAN_TEAM, ALIEN_TEAM };
 
 	for( int range=0; range<2; ++range ) {
 		// Terran to Alien
@@ -2563,13 +2571,13 @@ void BattleScene::CalcTeamTargets()
 				}
 
 				// check unit change.
-				if ( old.CanSee( k, j ) && !m_targets.CanSee( k, j ) ) 
+				if ( old.UnitCanSee( k, j ) && !m_targets.UnitCanSee( k, j ) ) 
 				{
 					// Lost unit.
 					TargetEvent e = { 0, 0, k, j };
 					targetEvents.Push( e );
 				}
-				else if ( !old.CanSee( k, j )  && m_targets.CanSee( k, j ) ) 
+				else if ( !old.UnitCanSee( k, j )  && m_targets.UnitCanSee( k, j ) ) 
 				{
 					// Gain unit.
 					TargetEvent e = { 0, 1, k, j };
@@ -2589,6 +2597,26 @@ void BattleScene::CalcTeamTargets()
 			}
 		}
 	}
+
+	/*
+	// Civilians just need a simple check.
+	for ( int j=CIV_UNITS_START; j<CIV_UNITS_END; ++j ) {
+		if ( !units[j].InUse() )
+			continue;
+
+		Vector2I mapPos;
+		units[j].CalcMapPos( &mapPos, 0 );
+			
+		for( int k=ALIEN_UNITS_START; k<ALIEN_UNITS_END; ++k ) {
+			// Main test: can a civ see an alien at this location?
+			if (    units[k].IsAlive() 
+					&& units[j].IsAlive() 
+					&& visibility.UnitCanSee( k, mapPos.x, mapPos.y ) ) 
+			{
+				m_targets.Set( k, j );
+			}
+	}
+	*/
 }
 
 
@@ -2616,18 +2644,15 @@ void BattleScene::Visibility::InvalidateAll( const Rectangle2I& bounds )
 	if ( !bounds.IsValid() )
 		return;
 
-	Vector2I range[2] = {{ TERRAN_UNITS_START, TERRAN_UNITS_END }, {ALIEN_UNITS_START, ALIEN_UNITS_END}};
 	Rectangle2I vis;
 
-	for( int k=0; k<2; ++k ) {
-		for( int i=range[k].x; i<range[k].y; ++i ) {
-			if ( units[i].IsAlive() ) {
-				units[i].CalcVisBounds( &vis );
-				if ( bounds.Intersect( vis ) ) {
-					current[i] = false;
-					if ( units[i].Team() == TERRAN_TEAM ) {
-						fogInvalid = true;
-					}
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		if ( units[i].IsAlive() ) {
+			units[i].CalcVisBounds( &vis );
+			if ( bounds.Intersect( vis ) ) {
+				current[i] = false;
+				if ( units[i].Team() == TERRAN_TEAM ) {
+					fogInvalid = true;
 				}
 			}
 		}
@@ -2637,7 +2662,9 @@ void BattleScene::Visibility::InvalidateAll( const Rectangle2I& bounds )
 
 void BattleScene::Visibility::InvalidateAll()
 {
-	memset( current, 0, sizeof(bool)*MAX_UNITS );
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		current[i] = false;
+	}
 	fogInvalid = true;
 }
 
@@ -2653,6 +2680,10 @@ int BattleScene::Visibility::TeamCanSee( int team, int x, int y )
 	else if ( team == ALIEN_TEAM ) {
 		r0 = ALIEN_UNITS_START;
 		r1 = ALIEN_UNITS_END;
+	}
+	else if ( team == CIV_TEAM ) {
+		r0 = CIV_UNITS_START;
+		r1 = CIV_UNITS_END;
 	}
 	else {
 		GLRELASSERT( 0 );

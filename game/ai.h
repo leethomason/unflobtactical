@@ -194,7 +194,14 @@ public:
 
 class CivAI : public AI
 {
-
+public:
+	CivAI( int team, Engine* engine, const Unit* units ) : AI( team, engine, units )		{}
+	virtual ~CivAI()																		{}
+	virtual bool Think( const Unit* move,
+						const Targets& targets,
+						int flags,
+						Map* map,
+						AIAction* action );
 };
 
 

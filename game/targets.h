@@ -56,11 +56,11 @@ public:
 		teamTargets.Set( Team( viewer ), target );
 	}
 
-	int CanSee( int viewer, int target ) const	{
+	int UnitCanSee( int viewer, int target ) const	{
 		return targets.IsSet( viewer, target, 0 );
 	}
-	int CanSee( const Unit* viewer, const Unit* target ) const {
-		return CanSee( viewer-base, target-base );
+	int UnitCanSee( const Unit* viewer, const Unit* target ) const {
+		return UnitCanSee( viewer-base, target-base );
 	}
 
 	int TeamCanSee( int viewerTeam, int target ) const {
