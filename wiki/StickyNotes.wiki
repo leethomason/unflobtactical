@@ -1,5 +1,15 @@
 Useful code and links from the web. And sometimes a sort of development blog.
 
+= Duplicate classes = 
+
+This being a hobby project, it seems like I couldn't actually write 2 classes that did the same thing. But exhibit #1: Target and Visibility. Code in both classes get called, yet they both actually had a UnitCanSee( x, y ) method for example.
+
+I deleted Target, and went with the more sophisticated and smarter-caching Visibility.
+
+I'm somewhat mystified by the process to get here. I *think* they both grew up from different functionality that changed over time. But I'm not sure. They had one important difference: Target could be copied and compared to a previous Target, which is used to generate TargetEvents. For example: if you move and see an alien, the game will cancel the move to respond to that new information. The only way to reliably detect that is to compare states, because the number of reasons (fire, explosion, alien moved, player moved, tree burned down, etc. etc.) is too hard to track.
+
+Adding a simple utility method to Visibilty fixed the compare problem, and made it a better superset of Target. But strange. And an interesting reminder that it is easy to duplicate even your own code.
+
 = Preprocessor macros! =
 
 Sweet: http://predef.sourceforge.net/prearch.html
