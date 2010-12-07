@@ -44,7 +44,7 @@ using namespace gamui;
 //#define REACTION_FIRE_EVENT_ONLY
 
 
-BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
+BattleScene::BattleScene( Game* game ) : Scene( game )//, m_targets( units )
 {
 	//GLRELASSERT( 0 );
 	subTurnCount = 0;
@@ -57,12 +57,12 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), m_targets( units )
 	engine->GetMap()->SetPathBlocker( this );
 	dragUnit = 0;
 
-	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, engine, units );
+	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, &visibility, engine, units );
 	aiArr[TERRAN_TEAM]		= 0;
 	if ( SettingsManager::Instance()->GetPlayerAI() ) {
-		aiArr[TERRAN_TEAM] = new WarriorAI( TERRAN_TEAM, engine, units );
+		aiArr[TERRAN_TEAM] = new WarriorAI( TERRAN_TEAM, &visibility, engine, units );
 	}
-	aiArr[CIV_TEAM]			= new CivAI( CIV_TEAM, engine, units );
+	aiArr[CIV_TEAM]			= new CivAI( CIV_TEAM, &visibility, engine, units );
 
 	mapmaker_currentMapItem = 1;
 
@@ -279,7 +279,7 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 	}
 
 	if ( aiArr[currentTeamTurn] ) {
-		aiArr[currentTeamTurn]->StartTurn( units, m_targets );
+		aiArr[currentTeamTurn]->StartTurn( units );
 	}
 	else {
 		if ( engine->GetMap()->GetLanderModel() )
@@ -442,7 +442,7 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 	targetEvents.Clear();
 
 	if ( aiArr[currentTeamTurn] ) {
-		aiArr[currentTeamTurn]->StartTurn( units, m_targets );
+		aiArr[currentTeamTurn]->StartTurn( units );
 	}
 	if ( engine->GetMap()->GetLanderModel() )
 		OrderNextPrev();
@@ -618,7 +618,7 @@ void BattleScene::SetUnitOverlays()
 		// layer 0 target arrow
 		// layer 1 target arrow
 
-		if ( unitMoving != &units[i] && units[i].IsAlive() && m_targets.TeamCanSee( TERRAN_TEAM, i ) ) {
+		if ( unitMoving != &units[i] && units[i].IsAlive() && visibility.TeamCanSee( TERRAN_TEAM, units[i].Pos() ) ) {
 			Vector3F p;
 			units[i].CalcPos( &p );
 
@@ -781,6 +781,9 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	if ( result & STEP_COMPLETE ) {
 		ProcessDoors();			// Not fast. Only calc when needed.
 		CalcTeamTargets();
+
+		DumpTargetEvents();
+
 		StopForNewTeamTarget();
 		DoReactionFire();
 		targetEvents.Clear();	// All done! They don't get to carry on beyond the moment.
@@ -1223,7 +1226,6 @@ void BattleScene::DoReactionFire()
 			// Reaction fire occurs on the *antiTeam*. It's a little
 			// strange to get the ol' head wrapped around.
 			if (    t.team == 0				// individual
-				 && t.gain == 1 
 				 && units[t.viewerID].Team() == antiTeam
 				 && units[t.targetID].Team() == currentTeamTurn ) 
 			{
@@ -1363,7 +1365,7 @@ bool BattleScene::ProcessAI()
 		int flags = units[currentUnitAI].AI();
 		AI::AIAction aiAction;
 
-		bool done = aiArr[currentTeamTurn]->Think( &units[currentUnitAI], m_targets, flags, engine->GetMap(), &aiAction );
+		bool done = aiArr[currentTeamTurn]->Think( &units[currentUnitAI], flags, engine->GetMap(), &aiAction );
 
 		switch ( aiAction.actionID ) {
 			case AI::ACTION_SHOOT:
@@ -1439,7 +1441,7 @@ void BattleScene::StopForNewTeamTarget()
 
 	if ( actionStack.Size() == 1 ) {
 		const Action& action = actionStack.Top();
-		if (    action.actionID == ACTION_MOVE
+		if (   action.actionID == ACTION_MOVE
 			&& action.unit
 			&& action.unit->Team() == currentTeamTurn
 			&& action.type.move.pathFraction == 0 )
@@ -1448,13 +1450,14 @@ void BattleScene::StopForNewTeamTarget()
 			// Clear out the current team events, look for "new team"
 			// Player: only pauses on "new team"
 			// AI: pauses on "new team" OR "new target"
+			// No one pauses for Civs.
 			int i=0;
 			bool newTeam = false;
 			while( i < targetEvents.Size() ) {
 				TargetEvent t = targetEvents[i];
 				if (	( aiArr[currentTeamTurn] || t.team == 1 )	// AI always pause. Players pause on new team.
-					 && t.gain == 1 
-					 && t.viewerID == currentTeamTurn )
+					 && t.viewerID == currentTeamTurn
+					 && units[t.targetID].Team() != CIV_TEAM )
 				{
 					// New sighting!
 					GLOUTPUT(( "Sighting: Team %d sighted target %d on team %d.\n", t.viewerID, t.targetID, units[t.targetID].Team() ));
@@ -2514,17 +2517,15 @@ void BattleScene::DumpTargetEvents()
 		const char* teams[] = { "Terran", "Civ", "Alien" };
 
 		if ( !e.team ) {
-			GLOUTPUT(( "%s Unit %d %s %s %d\n",
+			GLOUTPUT(( "%s Unit %d %s %d\n",
 						teams[ units[e.viewerID].Team() ],
 						e.viewerID, 
-						e.gain ? "gain" : "loss", 
 						teams[ units[e.targetID].Team() ],
 						e.targetID ));
 		}
 		else {
-			GLOUTPUT(( "%s Team %s %s %d\n",
+			GLOUTPUT(( "%s Team %s %d\n",
 						teams[ e.viewerID ],
-						e.gain ? "gain" : "loss", 
 						teams[ units[e.targetID].Team() ],
 						e.targetID ));
 		}
@@ -2539,319 +2540,47 @@ void BattleScene::CalcTeamTargets()
 	// - if team gets/loses target
 	// - if unit gets/loses target
 
-	Targets old = m_targets;
-	m_targets.Clear();
+	grinliz::BitArray<MAX_UNITS, MAX_UNITS, 1> newUnitVis;
+	visibility.CalcVisMap( &newUnitVis );
 
-	Vector2I targets[] = { { ALIEN_UNITS_START, ALIEN_UNITS_END },   { TERRAN_UNITS_START, TERRAN_UNITS_END } };
-	Vector2I viewers[] = { { TERRAN_UNITS_START, TERRAN_UNITS_END }, { ALIEN_UNITS_START, ALIEN_UNITS_END } };
-	int viewerTeam[2]  = { TERRAN_TEAM, ALIEN_TEAM };
+	const static Vector2I range[3] = {
+		TERRAN_UNITS_START, TERRAN_UNITS_END,
+		CIV_UNITS_START, CIV_UNITS_END,
+		ALIEN_UNITS_START, ALIEN_UNITS_END
+	};
 
-	for( int range=0; range<2; ++range ) {
-		// Terran to Alien
-		// Go through each alien, and check #terrans that can target it.
-		//
-		for( int j=targets[range].x; j<targets[range].y; ++j ) {
-			// Push IsAlive() checks into the cases below, so that a unit
-			// death creates a visibility change. However, initialization 
-			// happens at the beginning, so we can skip that.
-
-			if ( !units[j].InUse() )
-				continue;
-
-			Vector2I mapPos;
-			units[j].CalcMapPos( &mapPos, 0 );
-			
-			for( int k=viewers[range].x; k<viewers[range].y; ++k ) {
-				// Main test: can a terran see an alien at this location?
-				if (    units[k].IsAlive() 
-					 && units[j].IsAlive() 
-					 && visibility.UnitCanSee( k, mapPos.x, mapPos.y ) ) 
-				{
-					m_targets.Set( k, j );
-				}
-
-				// check unit change.
-				if ( old.UnitCanSee( k, j ) && !m_targets.UnitCanSee( k, j ) ) 
-				{
-					// Lost unit.
-					TargetEvent e = { 0, 0, k, j };
-					targetEvents.Push( e );
-				}
-				else if ( !old.UnitCanSee( k, j )  && m_targets.UnitCanSee( k, j ) ) 
-				{
-					// Gain unit.
-					TargetEvent e = { 0, 1, k, j };
-					targetEvents.Push( e );
-				}
-			}
-			// Check team change.
-			if ( old.TeamCanSee( viewerTeam[range], j ) && !m_targets.TeamCanSee( viewerTeam[range], j ) )
-			{	
-				TargetEvent e = { 1, 0, viewerTeam[range], j };
-				targetEvents.Push( e );
-			}
-			else if ( !old.TeamCanSee( viewerTeam[range], j ) && m_targets.TeamCanSee( viewerTeam[range], j ) )
-			{	
-				TargetEvent e = { 1, 1, viewerTeam[range], j };
-				targetEvents.Push( e );
-			}
-		}
-	}
-
-	/*
-	// Civilians just need a simple check.
-	for ( int j=CIV_UNITS_START; j<CIV_UNITS_END; ++j ) {
-		if ( !units[j].InUse() )
+	for( int src=0; src<MAX_UNITS; ++src ) {
+		if ( !units[src].IsAlive() )
 			continue;
 
-		Vector2I mapPos;
-		units[j].CalcMapPos( &mapPos, 0 );
-			
-		for( int k=ALIEN_UNITS_START; k<ALIEN_UNITS_END; ++k ) {
-			// Main test: can a civ see an alien at this location?
-			if (    units[k].IsAlive() 
-					&& units[j].IsAlive() 
-					&& visibility.UnitCanSee( k, mapPos.x, mapPos.y ) ) 
+		for( int dst=0; dst<MAX_UNITS; ++dst ) {
+			if (    !units[src].IsAlive()
+				 || units[src].Team() == units[dst].Team() )	// Don't generate messages about team mates.
 			{
-				m_targets.Set( k, j );
+				 continue;
 			}
-	}
-	*/
-}
 
+			// check unit change - did we see something new?
+			if ( !unitVis.IsSet( src, dst ) && newUnitVis.IsSet( src, dst ) )
+			{
+				int srcTeam = units[src].Team();
 
-BattleScene::Visibility::Visibility() : battleScene( 0 ), units( 0 ), map( 0 )
-{
-	for( int i=0; i<MAX_UNITS; ++i )
-		current[i] = false;
-	fogInvalid = true;
-}
+				TargetEvent e = { 0, src, dst };
+				targetEvents.Push( e );
 
-
-void BattleScene::Visibility::InvalidateUnit( int i ) 
-{
-	GLRELASSERT( i>=0 && i<MAX_UNITS );
-	current[i] = false;
-	// Do not check IsAlive(). Specifically called when units are alive or just killed.
-	if ( i >= TERRAN_UNITS_START && i < TERRAN_UNITS_END ) {
-		fogInvalid = true;
-	}
-}
-
-
-void BattleScene::Visibility::InvalidateAll( const Rectangle2I& bounds )
-{
-	if ( !bounds.IsValid() )
-		return;
-
-	Rectangle2I vis;
-
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		if ( units[i].IsAlive() ) {
-			units[i].CalcVisBounds( &vis );
-			if ( bounds.Intersect( vis ) ) {
-				current[i] = false;
-				if ( units[i].Team() == TERRAN_TEAM ) {
-					fogInvalid = true;
+				// Check team change.
+				Rectangle2I teamRange;
+				teamRange.Set( range[srcTeam].x, dst, range[srcTeam].y, dst );
+				// No one on this team, prior to this check, could see the unit.
+				if ( !unitVis.IsRectSet( teamRange ) )
+				{	
+					TargetEvent e = { 1, srcTeam, dst };
+					targetEvents.Push( e );
 				}
 			}
 		}
 	}
-}
-
-
-void BattleScene::Visibility::InvalidateAll()
-{
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		current[i] = false;
-	}
-	fogInvalid = true;
-}
-
-
-int BattleScene::Visibility::TeamCanSee( int team, int x, int y )
-{
-	//GRINLIZ_PERFTRACK
-	int r0, r1;
-	if ( team == TERRAN_TEAM ) {
-		r0 = TERRAN_UNITS_START;
-		r1 = TERRAN_UNITS_END;
-	}
-	else if ( team == ALIEN_TEAM ) {
-		r0 = ALIEN_UNITS_START;
-		r1 = ALIEN_UNITS_END;
-	}
-	else if ( team == CIV_TEAM ) {
-		r0 = CIV_UNITS_START;
-		r1 = CIV_UNITS_END;
-	}
-	else {
-		GLRELASSERT( 0 );
-	}
-	
-	for( int i=r0; i<r1; ++i ) {
-		if ( UnitCanSee( i, x, y ) )
-			return true;
-	}
-	return false;
-}
-
-
-int BattleScene::Visibility::UnitCanSee( int i, int x, int y )
-{
-	if ( Engine::mapMakerMode ) {
-		return true;
-	}
-	else if ( units[i].IsAlive() ) {
-		if ( !current[i] ) {
-			CalcUnitVisibility( i );
-			current[i] = true;
-		}
-		if ( visibilityMap.IsSet( x, y, i ) ) {
-			return true;
-		}
-	}
-	return false;
-}
-
-
-
-/*	Huge ol' performance bottleneck.
-	The CalcVis() is pretty good (or at least doesn't chew up too much time)
-	but the CalcAll() is terrible.
-	Debug mode.
-	Start: 141 MClocks
-	Moving to "smart recursion": 18 MClocks - that's good! That's good enough to hide the cost is caching.
-		...but also has lots of artifacts in visibility.
-	Switched to a "cached ray" approach. 58 MClocks. Much better, correct results, and can be optimized more.
-
-	In Core clocks:
-	"cached ray" 45 clocks
-	33 clocks after tuning. (About 1/4 of initial cost.)
-	Tighter walk: 29 MClocks
-
-	Back on the Atom:
-	88 MClocks. But...experimenting with switching to 360degree view.
-	...now 79 MClocks. That makes little sense. Did facing take a bunch of cycles??
-*/
-
-
-void BattleScene::Visibility::CalcUnitVisibility( int unitID )
-{
-	//unit = units;	// debugging: 1st unit only
-	GLRELASSERT( unitID >= 0 && unitID < MAX_UNITS );
-	const Unit* unit = &units[unitID];
-
-	Vector2I pos = unit->Pos();
-
-	// Clear out the old settings.
-	// Walk the area in range around the unit and cast rays.
-	visibilityMap.ClearPlane( unitID );
-	visibilityProcessed.ClearAll();
-
-	Rectangle2I mapBounds = map->Bounds();
-
-	// Can always see yourself.
-	visibilityMap.Set( pos.x, pos.y, unitID );
-	visibilityProcessed.Set( pos.x, pos.y, 0 );
-
-	const int MAX_SIGHT_SQUARED = MAX_EYESIGHT_RANGE*MAX_EYESIGHT_RANGE;
-
-	for( int r=MAX_EYESIGHT_RANGE; r>0; --r ) {
-		Vector2I p = { pos.x-r, pos.y-r };
-		static const Vector2I delta[4] = { { 1,0 }, {0,1}, {-1,0}, {0,-1} };
-
-		for( int k=0; k<4; ++k ) {
-			for( int i=0; i<r*2; ++i ) {
-				if (    mapBounds.Contains( p )
-					 && !visibilityProcessed.IsSet( p.x, p.y )
-					 && (p-pos).LengthSquared() <= MAX_SIGHT_SQUARED ) 
-				{
-					CalcVisibilityRay( unitID, p, pos );
-				}
-				p += delta[k];
-			}
-		}
-	}
-}
-
-
-void BattleScene::Visibility::CalcVisibilityRay( int unitID, const Vector2I& pos, const Vector2I& origin )
-{
-	/* Previous pass used a true ray casting approach, but this doesn't get good results. Numerical errors,
-	   view stopped by leaves, rays going through cracks. Switching to a line walking approach to 
-	   acheive stability and simplicity. (And probably performance.)
-	*/
-
-
-#if 0
-#ifdef DEBUG
-	{
-		// Max sight
-		const int MAX_SIGHT_SQUARED = MAX_EYESIGHT_RANGE*MAX_EYESIGHT_RANGE;
-		Vector2I vec = pos - origin;
-		int len2 = vec.LengthSquared();
-		GLASSERT( len2 <= MAX_SIGHT_SQUARED );
-		if ( len2 > MAX_SIGHT_SQUARED )
-			return;
-	}
-#endif
-#endif
-
-	const Surface* lightMap = map->GetLightMap(1);
-	GLRELASSERT( lightMap->Format() == Surface::RGB16 );
-
-	const float OBSCURED = 0.50f;
-	const float DARK  = ((units[unitID].Team() == ALIEN_TEAM) ? 1.5f :2.0f) / (float)MAX_EYESIGHT_RANGE;
-	const float LIGHT = 1.0f / (float)MAX_EYESIGHT_RANGE;
-	//const int EPS = 10;
-
-	float light = 1.0f;
-	bool canSee = true;
-
-	// Always walk the entire line so that the places we can not see are set
-	// as well as the places we can.
-	LineWalk line( origin.x, origin.y, pos.x, pos.y ); 
-	while ( line.CurrentStep() <= line.NumSteps() )
-	{
-		Vector2I p = line.P();
-		Vector2I q = line.Q();
-		Vector2I delta = q-p;
-
-		if ( canSee ) {
-			canSee = map->CanSee( p, q );
-
-			if ( canSee ) {
-				U16 c = lightMap->GetImg16( q.x, q.y );
-				Surface::RGBA rgba = Surface::CalcRGB16( c );
-
-				const float distance = ( delta.LengthSquared() > 1 ) ? 1.4f : 1.0f;
-
-				if ( map->Obscured( q.x, q.y ) ) {
-					light -= OBSCURED * distance;
-				}
-				else
-				{
-					// Blue channel is typically high. So 
-					// very dark  ~255
-					// very light ~255*3 (white)
-					int lum = rgba.r + rgba.g + rgba.b;
-					float fraction = Interpolate( 255.0f, DARK, 765.0f, LIGHT, (float)lum ); 
-					light -= fraction * distance;
-				}
-			}
-		}
-		visibilityProcessed.Set( q.x, q.y );
-		if ( canSee ) {
-			visibilityMap.Set( q.x, q.y, unitID, true );
-		}
-
-		// If all the light is used up, we will see no further.	
-		if ( canSee && light < 0.0f )
-			canSee = false;	
-
-		line.Step(); 
-	}
+	unitVis = newUnitVis;
 }
 
 

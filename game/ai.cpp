@@ -27,9 +27,10 @@
 using namespace grinliz;
 
 
-AI::AI( int team, Engine* engine, const Unit* units )
+AI::AI( int team, Visibility* vis, Engine* engine, const Unit* units )
 {
 	m_team = team;
+	m_visibility = vis;
 	m_engine = engine;
 	m_units = units;
 
@@ -63,11 +64,11 @@ AI::AI( int team, Engine* engine, const Unit* units )
 }
 
 
-void AI::StartTurn( const Unit* units, const Targets& targets )
+void AI::StartTurn( const Unit* units )
 {
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if ( units[i].IsAlive() ) {
-			if ( targets.TeamCanSee( m_team, i ) ) {
+			if ( m_visibility->TeamCanSee( m_team, units[i].Pos() ) ) {
 				m_lkp[i].pos = units[i].Pos();
 				m_lkp[i].turns = 0;
 			}
@@ -139,13 +140,12 @@ void AI::TrimPathToCost( MP_VECTOR< grinliz::Vector2<S16> >* path, float maxCost
 
 int AI::VisibleUnitsInArea(	const Unit* theUnit,
 							const Unit* units,
-							const Targets& targets,
 							const grinliz::Rectangle2I& bounds )
 {
 	int count = 0;
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if ( m_enemy[i] > 0 ) {
-			if ( targets.TeamCanSee( theUnit->Team(), &units[i] ) ) {
+			if ( m_visibility->TeamCanSee( theUnit->Team(), units[i].Pos() ) ) {
 				Vector2I p;
 				units[i].CalcMapPos( &p, 0 );
 				if ( bounds.Contains( p ) )
@@ -157,10 +157,9 @@ int AI::VisibleUnitsInArea(	const Unit* theUnit,
 }
 
 
-int AI::ThinkShoot(  const Unit* theUnit,
-					  const Targets& targets,
-					  Map* map,
-					  AIAction* action )
+int AI::ThinkShoot(	const Unit* theUnit,
+					Map* map,
+					AIAction* action )
 {
 	static const float MINIMUM_FIRE_CHANCE			= 0.02f;	// A shot is only valid if it has this chance of hitting.
 	static const int   EXPLOSION_ZONE				= 2;		// radius to check of clusters of enemies to blow up
@@ -183,7 +182,7 @@ int AI::ThinkShoot(  const Unit* theUnit,
 		if (    m_enemy[i] > 0
 			 && m_units[i].IsAlive() 
 			 && m_units[i].GetModel() 
-			 && targets.UnitCanSee( theUnit, &m_units[i] )
+			 && m_visibility->UnitCanSee( theUnit, &m_units[i] )
 			 && LineOfSight( theUnit, &m_units[i]))
 		{
 			int len2 = (m_units[i].Pos()-theUnit->Pos()).LengthSquared();
@@ -207,7 +206,7 @@ int AI::ThinkShoot(  const Unit* theUnit,
 								bounds.min = bounds.max = m_units[i].Pos();
 								bounds.Outset( EXPLOSION_ZONE );
 								
-								int count = VisibleUnitsInArea( theUnit, m_units, targets, bounds );
+								int count = VisibleUnitsInArea( theUnit, m_units, bounds );
 								score *= ( count <= 1 ) ? 0.5f : (float)count;
 							}
 						}
@@ -234,7 +233,6 @@ int AI::ThinkShoot(  const Unit* theUnit,
 
 
 int AI::ThinkMoveToAmmo(	const Unit* theUnit,
-							const Targets& targets,
 							Map* map,
 							AIAction* action )
 {
@@ -298,7 +296,6 @@ int AI::ThinkInventory(	const Unit* theUnit, Map* map, AIAction* action )
 
 
 int AI::ThinkSearch(const Unit* theUnit,
-					const Targets& targets,
 					int flags,
 					Map* map,
 					AIAction* action )
@@ -356,7 +353,7 @@ int AI::ThinkSearch(const Unit* theUnit,
 
 			// Guards only move on what they can currently see
 			// so they don't go chasing things.
-			if ( ( flags & AI_GUARD ) && !targets.UnitCanSee( theUnit, &m_units[i] ) ) {
+			if ( ( flags & AI_GUARD ) && !m_visibility->UnitCanSee( theUnit, &m_units[i] ) ) {
 				score = FLT_MAX;
 			}
 					
@@ -401,10 +398,9 @@ int AI::ThinkSearch(const Unit* theUnit,
 }
 
 
-int AI::ThinkWander(const Unit* theUnit,
-					const Targets& targets,
-					Map* map,
-					AIAction* action )
+int AI::ThinkWander(	const Unit* theUnit,
+						Map* map,
+						AIAction* action )
 {
 	// -------- Wander --------- //
 	// If the aliens don't see anything, they just stand around. That's okay, except it's weird
@@ -434,10 +430,9 @@ int AI::ThinkWander(const Unit* theUnit,
 }
 
 
-int AI::ThinkTravel(const Unit* theUnit,
-					const Targets& targets,
-					Map* map,
-					AIAction* action )
+int AI::ThinkTravel(	const Unit* theUnit,
+						Map* map,
+						AIAction* action )
 {
 	// -------- Wander --------- //
 	// If the aliens don't see anything, they just stand around. That's okay, except it's weird
@@ -476,10 +471,9 @@ int AI::ThinkTravel(const Unit* theUnit,
 }
 
 
-int AI::ThinkRotate(const Unit* theUnit,
-					const Targets& targets,
-					Map* map,
-					AIAction* action )
+int AI::ThinkRotate(	const Unit* theUnit,
+						Map* map,
+						AIAction* action )
 {
 	int best = -1;
 	float bestGolfScore = FLT_MAX;
@@ -488,7 +482,7 @@ int AI::ThinkRotate(const Unit* theUnit,
 		if (    m_enemy[i] > 0
 			 && m_units[i].IsAlive() 
 			 && m_units[i].GetModel()
-			 && targets.TeamCanSee( m_team, i )
+			 && m_visibility->TeamCanSee( m_team, m_units[i].Pos() )
 			 && m_lkp[i].turns < MAX_TURNS_LKP ) 
 		{
 			int len2 = (theUnit->Pos() - m_lkp[i].pos).LengthSquared();
@@ -532,7 +526,6 @@ int AI::ThinkBase( const Unit* theUnit )
 
 
 bool WarriorAI::Think(	const Unit* theUnit,
-						const Targets& targets,
 						int flags,
 						Map* map,
 						AIAction* action )
@@ -563,14 +556,14 @@ bool WarriorAI::Think(	const Unit* theUnit,
 
 	// -------- Shoot -------- //
 	if ( theUnit->HasGunAndAmmo( true ) ) {
-		result = ThinkShoot( theUnit, targets, map, action );
+		result = ThinkShoot( theUnit, map, action );
 		//GLOUTPUT(( "HasGunAndAmmo. ThinkShoot=%d tu=%f\n", result, theUnit->TU() ));
 		if ( result == THINK_ACTION )
 			return false;	// not done - can shoot again!
 
 		// Generally speaking, only move if not doing shooting first.
 		if ( theUnit->TU() > theUnit->GetStats().TotalTU() * 0.9f ) {
-			result = ThinkSearch( theUnit, targets, flags, map, action );
+			result = ThinkSearch( theUnit, flags, map, action );
 			//GLOUTPUT(( "  ThinkSearch=%d tu=%f\n", result, theUnit->TU() ));
 			if ( result  == THINK_ACTION )
 				return false;	// still will wander & rotate
@@ -578,19 +571,19 @@ bool WarriorAI::Think(	const Unit* theUnit,
 
 		if ( theUnit->TU() == theUnit->GetStats().TotalTU() ) {
 			if ( flags & AI_TRAVEL ) {
-				result = ThinkTravel( theUnit, targets, map, action );
+				result = ThinkTravel( theUnit, map, action );
 				//GLOUTPUT(( "  ThinkTravel=%d tu=%f\n", result, theUnit->TU() ));
 				if ( result == THINK_ACTION )
 					return false;
 			}
 			else {
-				result = ThinkWander( theUnit, targets, map, action );
+				result = ThinkWander( theUnit, map, action );
 				//GLOUTPUT(( "  ThinkWander=%d tu=%f\n", result, theUnit->TU() ));
 				if ( result == THINK_ACTION )
 					return false;	// will still rotate
 			}
 		}
-		ThinkRotate( theUnit, targets, map, action );
+		ThinkRotate( theUnit, map, action );
 		return true;
 	}
 	else {
@@ -603,7 +596,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 			else
 				return true;		// nothing more to do...
 		}
-		result = ThinkMoveToAmmo( theUnit, targets, map, action );
+		result = ThinkMoveToAmmo( theUnit, map, action );
 		if ( result == THINK_SOLVED_NO_ACTION ) {
 			if ( ThinkInventory( theUnit, map, action ) == THINK_ACTION ) {
 				return false; // have ammo now!
@@ -625,7 +618,6 @@ bool WarriorAI::Think(	const Unit* theUnit,
 
 
 bool NullAI::Think( const Unit* move,
-					const Targets& targets,
 					int flags,
 					Map* map,
 					AIAction* action )
@@ -636,20 +628,20 @@ bool NullAI::Think( const Unit* move,
 
 
 bool CivAI::Think(	const Unit* theUnit,
-					const Targets& targets,
 					int flags,
 					Map* map,
 					AIAction* action )
 {
 	Vector2F sum = { 0, 0 };
 	bool shouldRun = false;
+	action->actionID = ACTION_NONE;
 
 	// Civs wander unless they are running away from something.
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if (    m_enemy[i] > 0
 			 && m_units[i].IsAlive() )
 		{
-			if ( targets.UnitCanSee( theUnit, &m_units[i] ) )
+			if ( m_visibility->UnitCanSee( theUnit, &m_units[i] ) )
 			{
 				Vector2I runI = theUnit->Pos() - m_units[i].Pos();
 				Vector2F run = { (float)runI.x, (float)runI.y };
@@ -687,6 +679,6 @@ bool CivAI::Think(	const Unit* theUnit,
 	}
 
 	// Didn't run...wander.
-	ThinkWander( theUnit, targets, map, action );
+	ThinkWander( theUnit, map, action );
 	return true;	// civs are a 1-shot AI
 }
