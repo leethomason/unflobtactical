@@ -28,6 +28,7 @@
 #include "../engine/uirendering.h"
 #include "../gamui/gamui.h"
 #include "tacticalendscene.h"
+#include "battlevisibility.h"
 
 class Model;
 class UIButtonBox;
@@ -321,17 +322,6 @@ private:
 	Unit*			  dragUnit;
 	grinliz::Vector2I dragUnitDest;
 
-	//int		initZoomDistance;
-	//float	initZoom;
-	//grinliz::Vector3F orbitPole;
-	//float	orbitStart;
-
-//	enum {
-//		UIM_NORMAL,			// normal click and move
-//		UIM_TARGET_TILE,	// special target abitrary tile mode
-//		UIM_FIRE_MENU		// fire menu is up
-//	};
-
 	UIRenderer	uiRenderer;
 
 	gamui::Image		alienImage;
@@ -369,13 +359,13 @@ private:
 	struct TargetEvent
 	{
 		U8 team;		// 1: team, 0: unit
-		U8 gain;		// 1: gain, 0: loss
 		U8 viewerID;	// unit id of viewer, or teamID if team event
 		U8 targetID;	// unit id of target
 	};
 
-	Targets m_targets;
-	CDynArray< TargetEvent > targetEvents;
+	grinliz::BitArray<MAX_UNITS, MAX_UNITS, 1>	unitVis;	// map of "previous" unit vis. Difference between this and current creates targetEvents.
+	CDynArray< TargetEvent >					targetEvents;
+
 	CDynArray< grinliz::Vector2I > doors;
 	void ProcessDoors();
 	bool ProcessAI();			// return true if turn over.
@@ -386,41 +376,6 @@ private:
 	void CalcTeamTargets();
 	void DumpTargetEvents();
 
-	// Groups all the visibility code together. In the battlescene itself, visibility quickly
-	// becomes difficult to track. 'Visibility' groups it all together and does the minimum
-	// amount of computation.
-	class Visibility {
-	public:
-		Visibility();
-		~Visibility()					{}
-
-		void Init( BattleScene* bs, const Unit* u, Map* m )	{ battleScene = bs; this->units = u; map = m; }
-
-		void InvalidateAll();
-		// The 'bounds' reflect the area that is invalid, not the visibility of the units.
-		void InvalidateAll( const grinliz::Rectangle2I& bounds );
-		void InvalidateUnit( int i );
-
-		int TeamCanSee( int team, int x, int y ); //< Can anyone on the 'team' see the location (x,y)
-		int UnitCanSee( int unit, int x, int y );
-
-		// returs the current state of the FoW bit - and clears it!
-		bool FogCheckAndClear()	{ bool result = fogInvalid; fogInvalid = false; return result; }
-
-	private:
-		void CalcUnitVisibility( int unitID );
-		void CalcVisibilityRay( int unitID, const grinliz::Vector2I& pos, const grinliz::Vector2I& origin );
-
-		BattleScene*	battleScene;
-		const Unit*		units;
-		Map*			map;
-		bool			fogInvalid;
-
-		bool current[MAX_UNITS];	//< Is the visibility current? Triggers CalcUnitVisibility if not.
-
-		grinliz::BitArray< MAP_SIZE, MAP_SIZE, MAX_UNITS >	visibilityMap;
-		grinliz::BitArray< MAP_SIZE, MAP_SIZE, 1 >			visibilityProcessed;		// temporary - used in vis calc.
-	};
 	Visibility visibility;
 
 	Unit				units[MAX_UNITS];
@@ -433,6 +388,7 @@ private:
 	Model* mapmaker_preview;
 	int    mapmaker_currentMapItem;
 };
+
 
 
 #endif // UFOATTACK_BATTLE_SCENE_INCLUDED

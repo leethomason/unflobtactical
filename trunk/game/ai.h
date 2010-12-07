@@ -24,10 +24,9 @@
 
 #include "gamelimits.h"
 #include "battlescene.h"	// FIXME: for MotionPath. Factor out?
-
+#include "battlevisibility.h"
 
 class Unit;
-class Targets;
 class SpaceTree;
 class Map;
 
@@ -72,12 +71,13 @@ public:
 	};
 
 	AI( int team,					// AI in instantiated for a TEAM, not a unit
+		Visibility* visibilit,	
 		Engine* engine, 			// Line of site checking
 		const Unit* units );		// all the units we can scan
 
 	virtual ~AI()	{}
 
-	void StartTurn( const Unit* units, const Targets& targets );
+	void StartTurn( const Unit* units );
 	void Inform( const Unit* theUnit, int quality );
 
 	enum {
@@ -89,7 +89,6 @@ public:
 
 	// Return true if done.
 	virtual bool Think( const Unit* move,
-						const Targets& targets,
 						int flags,
 						Map* map,
 						AIAction* action ) = 0;
@@ -108,7 +107,6 @@ protected:
 	// THINK_NO_ACTION  no target
 	// THINK_ACTION		shot taken
 	int ThinkShoot(			const Unit* move,
-							const Targets& targets,
 							Map* map,
 							AIAction* action );
 
@@ -116,7 +114,6 @@ protected:
 	// THINK_ACTION           move
 	// THINK_NO_ACTION		  nothing found, not enough time
 	int ThinkMoveToAmmo(	const Unit* theUnit,
-							const Targets& targets,
 							Map* map,
 							AIAction* action );
 
@@ -128,23 +125,19 @@ protected:
 	// THINK_ACTION			move
 	// THINK_NO_ACTION		not enough time, no destination,
 	int ThinkSearch(		const Unit* theUnit,
-							const Targets& targets,
 							int flags,
 							Map* map,
 							AIAction* action );
 
 	int ThinkWander(		const Unit* theUnit,
-							const Targets& targets,
 							Map* map,
 							AIAction* action );
 
 	int ThinkTravel(		const Unit* theUnit,
-							const Targets& targets,
 							Map* map,
 							AIAction* action );
 
 	int ThinkRotate(		const Unit* theUnit,
-							const Targets& targets,
 							Map* map,
 							AIAction* action );
 
@@ -153,7 +146,6 @@ protected:
 	void TrimPathToCost( MP_VECTOR< grinliz::Vector2<S16> >* path, float maxCost );
 	int  VisibleUnitsInArea(	const Unit* theUnit,
 								const Unit* units,
-								const Targets& targets,
 								const grinliz::Rectangle2I& bounds );
 
 	struct LKP {
@@ -163,6 +155,7 @@ protected:
 	const Unit* m_units;
 
 	int m_team;
+	Visibility* m_visibility;
 	grinliz::Random m_random;
 	Engine* m_engine;	// for ray queries.
 	MP_VECTOR< grinliz::Vector2<S16> > m_path[4];
@@ -180,11 +173,10 @@ protected:
 class WarriorAI : public AI
 {
 public:
-	WarriorAI( int team, Engine* engine, const Unit* units ) : AI( team, engine, units )		{}
+	WarriorAI( int team, Visibility* vis, Engine* engine, const Unit* units ) : AI( team, vis, engine, units )		{}
 	virtual ~WarriorAI()					{}
 
 	virtual bool Think( const Unit* move,
-						const Targets& targets,
 						int flags,
 						Map* map,
 						AIAction* action );
@@ -195,10 +187,9 @@ public:
 class CivAI : public AI
 {
 public:
-	CivAI( int team, Engine* engine, const Unit* units ) : AI( team, engine, units )		{}
+	CivAI( int team, Visibility* vis, Engine* engine, const Unit* units ) : AI( team, vis, engine, units )		{}
 	virtual ~CivAI()																		{}
 	virtual bool Think( const Unit* move,
-						const Targets& targets,
 						int flags,
 						Map* map,
 						AIAction* action );
@@ -208,10 +199,9 @@ public:
 class NullAI : public AI
 {
 public:
-	NullAI( int team, Engine* engine, const Unit* units ) : AI( team, engine, units )		{}
+	NullAI( int team, Visibility* vis, Engine* engine, const Unit* units ) : AI( team, vis, engine, units )		{}
 	virtual ~NullAI()																		{}
 	virtual bool Think( const Unit* move,
-						const Targets& targets,
 						int flags,
 						Map* map,
 						AIAction* action );
