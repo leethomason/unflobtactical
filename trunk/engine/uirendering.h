@@ -82,6 +82,7 @@ enum {
 	DECO_HELP			= 20,
 	DECO_LAUNCH			= 21,
 	DECO_END_TURN		= 22,
+	DECO_HUMAN			= 23,
 
 	DECO_PREV			= 24,
 	DECO_NEXT			= 25,

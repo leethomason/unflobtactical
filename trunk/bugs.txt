@@ -1,7 +1,6 @@
 Issues:
 
 Bugs:
-- civilians
 - new game choices UI
 - rework smoke and fire. too many dropouts.
 - Android: sound drops out (GC of MediaObject)
@@ -32,6 +31,7 @@ TBD:
 - rework fire spread & explosions.
 
 FIXED
+- civilians
 - auto generate crashed UFO
 - buildings / sheds for farm
 - crate stacks
