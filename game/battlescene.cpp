@@ -240,6 +240,7 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 			for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i )
 				units[i].NewTurn();
 			currentUnitAI = TERRAN_UNITS_START;
+			alienImage.SetVisible( false );
 			break;
 
 		case ALIEN_TEAM:
@@ -248,6 +249,9 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 				units[i].NewTurn();
 			}
 			currentUnitAI = ALIEN_UNITS_START;
+
+			alienImage.SetVisible( true );
+			alienImage.SetAtom( UIRenderer::CalcDecoAtom( DECO_ALIEN ) );
 			break;
 
 		case CIV_TEAM:
@@ -255,6 +259,9 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 			for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i )
 				units[i].NewTurn();
 			currentUnitAI = CIV_UNITS_START;
+
+			alienImage.SetVisible( true );
+			alienImage.SetAtom( UIRenderer::CalcDecoAtom( DECO_HUMAN ) );
 			break;
 
 		default:
@@ -1545,7 +1552,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 					// Used to do intermedia rotation, but it was annoying. Once vision was switched
 					// to 360 it did nothing. So rotation is free now.
 					//
-					const float SPEED = 4.5f;
+					float SPEED = 4.5f;
 					float x, z, r;
 
 					MoveAction* move = &action->type.move;
@@ -1553,6 +1560,17 @@ int BattleScene::ProcessAction( U32 deltaTime )
 					move->path.GetPos( action->type.move.pathStep, move->pathFraction, &x, &z, &r );
 					// Face in the direction of walking.
 					model->SetRotation( r );
+
+					// Move fast when can't be seen:
+					if ( move->pathStep < move->path.pathLen-1 ) {
+						Vector2<S16> v0 = move->path.GetPathAt( move->pathStep );
+						Vector2<S16> v1 = move->path.GetPathAt( move->pathStep+1 );
+						if (    !visibility.TeamCanSee( TERRAN_TEAM, v0.x, v0.y )
+							 && !visibility.TeamCanSee( TERRAN_TEAM, v1.x, v1.y ) )
+						{
+							SPEED *= 10.0f;
+						}
+					}
 
 					float travel = Travel( deltaTime, SPEED );
 
@@ -2812,7 +2830,6 @@ void BattleScene::DrawHUD()
 			targetButton.SetEnabled( true );
 		}
 	
-		alienImage.SetVisible( currentTeamTurn == ALIEN_TEAM );
 		const int CYCLE = 5000;
 		float rotation = (float)(game->CurrentTime() % CYCLE)*(360.0f/(float)CYCLE);
 		if ( rotation > 90 && rotation < 270 )
