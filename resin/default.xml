@@ -30,7 +30,7 @@
   
   <!-- UI elements -->
   <texture filename="intro.png" />
-  <texture filename="introText.png" />
+  <texture filename="title.png" />
   <texture filename="commandBarV.png" />
 
   <!-- Particles -->
@@ -193,9 +193,9 @@
 
   <text name="tacticalHelp" >
     <page>
-      <p>Welcome to UFO Attack!</p>
+      <p>Welcome to Xenowar!</p>
       <p>
-        UFO Attack is a tactical combat game for mobile devices as well as Windows PCs.
+        Xenowar is a tactical combat game for mobile devices as well as Windows PCs.
       </p>
       <p>
         The game is turn based like a traditional board game. You take a
@@ -367,7 +367,7 @@
 
   <text name="introHelp" >
     <page>
-      <p>[UFO Attack]</p>
+      <p>[Xenowar]</p>
       <p>
         Test / BETA. I hope you enjoy it, and feedback and info at http://code.google.com/p/unflobtactical/.
       </p>

@@ -44,19 +44,12 @@ void WeaponItemDef::RenderWeapon(	WeaponMode mode,
 {
 	enum { BEAM, TRAIL };
 	enum { SPLASH, EXPLOSION };
-	int first, second;
 	int select = Index( mode );
 
 	const ClipItemDef* cid = weapon[select].clipItemDef;
 
-	if ( cid->IsAlien() ) {
-		first = BEAM;
-		second = (weapon[select].flags & WEAPON_EXPLOSIVE) ? EXPLOSION : SPLASH;
-	}
-	else {
-		first = (weapon[select].flags & WEAPON_EXPLOSIVE) ? TRAIL : BEAM;
-		second = (weapon[select].flags & WEAPON_EXPLOSIVE) ? EXPLOSION : SPLASH;
-	}
+	int first = (weapon[select].flags & WEAPON_EXPLOSIVE) ? TRAIL : BEAM;
+	int second = (weapon[select].flags & WEAPON_EXPLOSIVE) ? EXPLOSION : SPLASH;
 
 	// effects: 
 	//		bolt then particle
@@ -85,7 +78,14 @@ void WeaponItemDef::RenderWeapon(	WeaponMode mode,
 		}
 
 		trail->Clear();
+
 		Color4F c = { 1, 1, 1, 1 };
+
+		if ( IsAlien() ) {
+			trail->SetQuad( ParticleSystem::CIRCLE, 1 );
+			c = cid->color;
+		}
+
 		trail->SetColor( c );
 		trail->SetSpeed( cid->speed*0.4f );
 		trail->Init( p0, p1, currentTime );

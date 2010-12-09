@@ -2,6 +2,13 @@ Issues:
 
 Bugs:
 - new game choices UI
+- big drag buttons
+- shield generators
+- rework weapons and tech
+- "comp" button -> WPN??
+- calibrate accuracy
+- Android: reduce scale/rotation sensitivity
+- Android: volume control
 - Android: sound drops out (GC of MediaObject)
 
 Architecture
@@ -11,6 +18,9 @@ Features:
 - More items: optical computer for units to enhance vision
 
 TBD:
+- skinning for weapons
+- logos switched out for 'Xenowar' style
+- 32 bit assets - xenowar logo
 - tweak: move AR-1 to sit more forward
 - mission types: terror
 - mission types: destroyer

@@ -18,6 +18,7 @@
 
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
+#include "../grinliz/glrandom.h"
 #include "vertex.h"
 
 class ParticleSystem;
@@ -124,8 +125,9 @@ public:
 				const grinliz::Vector3F& p1,
 				U32 startTime );
 
-	void SetSpeed( float s )			{ speed = s; }
-	void SetColor( const Color4F& c )	{ color = c; }
+	void SetSpeed( float s )				{ speed = s; }
+	void SetColor( const Color4F& c )		{ color = c; }
+	void SetQuad( int start, int count )	{ quadStart = start; quadCount = count; }
 
 	virtual bool Done();
 	virtual void DoTick( U32 time, U32 deltaTime );
@@ -138,6 +140,8 @@ private:
 	Color4F color;
 	bool done;
 	grinliz::Vector3F normal;
+	int quadStart, quadCount;
+	grinliz::Random random;
 
 	float distance;		// distance from the p0 to p1
 
