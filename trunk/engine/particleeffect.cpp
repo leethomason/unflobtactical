@@ -96,6 +96,7 @@ void BoltEffect::Draw( const Vector3F* eyeDir )
 
 		float halfWidth = width*0.5f;
 
+		// FIXME: hardcoded texture coordinates
 		static const float tx = 0.50f;
 		static const float ty = 0.0f;
 		PTVertex pV[4];
@@ -215,6 +216,8 @@ void SmokeTrailEffect::Clear()
 	color.Set( 1, 1, 1, 1 );
 	done = true;
 	normal.Set( 0, 0, 0 );
+	quadStart = ParticleSystem::SMOKE;
+	quadCount = 2;
 }
 
 
@@ -254,7 +257,7 @@ void SmokeTrailEffect::DoTick( U32 time, U32 deltaTime )
 		Color4F cvel = { 0, 0, 0, -0.4f };
 		Vector3F vel = { 0, 0, 0 };
 
-		particleSystem->EmitQuad(	ParticleSystem::SMOKE,
+		particleSystem->EmitQuad(	quadStart + random.Rand( quadCount ),
 									color,
 									cvel,
 									p, 0.1f,

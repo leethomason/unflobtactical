@@ -42,6 +42,9 @@ public:
 		NUM_FIRE		= 2,
 		SMOKE			= 4,
 		NUM_SMOKE		= 2,
+
+		BEAM			= 2,
+		CIRCLE			= 11,
 	};
 
 	enum {

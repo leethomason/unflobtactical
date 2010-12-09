@@ -43,7 +43,7 @@ void BackgroundUI::Init( Game* game, gamui::Gamui* g )
 
 	backgroundText.Init( g, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND_TEXT ), true );
 	backgroundText.SetForeground( true );
-	backgroundText.SetPos( 20, 20 );
+	backgroundText.SetPos( 20, 10 );
 }
 
 
