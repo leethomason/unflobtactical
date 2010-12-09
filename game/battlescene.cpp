@@ -1046,7 +1046,7 @@ void BattleScene::TestCoordinates()
 		if ( engine->RayFromViewToYPlane( corner, mvpi, 0, &pos ) ) {
 			Color4F c = { 0, 1, 1, 1 };
 			Color4F cv = { 0, 0, 0, 0 };
-			ParticleSystem::Instance()->EmitOnePoint( c, cv, pos, 0 );
+			ParticleSystem::Instance()->EmitOnePoint( c, cv, pos );
 		}
 	}
 }

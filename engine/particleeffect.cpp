@@ -15,6 +15,7 @@
 
 #include "particleeffect.h"
 #include "particle.h"
+#include "camera.h"
 using namespace grinliz;
 
 
@@ -67,8 +68,8 @@ void BoltEffect::DoTick( U32 time, U32 deltaTime )
 {
 	if ( time > startTime ) {
 		float delta = (float)(time-startTime);	
-		float d0 = delta*speed-boltLength;
-		float d1 = delta*speed;
+		d0 = delta*speed-boltLength;
+		d1 = delta*speed;
 
 		if ( d0 >= distance ) {
 			done = true;
@@ -78,14 +79,54 @@ void BoltEffect::DoTick( U32 time, U32 deltaTime )
 				d0 = 0.0f;
 			if ( d1 > distance )
 				d1 = distance;
-			if ( d1 > d0 ) {
-				Vector3F q0 = p0 + normal*d0;
-				Vector3F q1 = p0 + normal*d1;
-				Color4F cvel = { 0, 0, 0, 0 };
-
-				particleSystem->EmitBeam( color, cvel, q0, q1, width, 0 );
-			}
 		}
+	}
+}
+
+
+void BoltEffect::Draw( const Vector3F* eyeDir )
+{
+	if ( d1 > d0 ) {
+		Vector3F q0 = p0 + normal*d0;
+		Vector3F q1 = p0 + normal*d1;
+
+		Vector3F right;
+		CrossProduct( eyeDir[Camera::NORMAL], q1-q0, &right );
+		right.Normalize();
+
+		float halfWidth = width*0.5f;
+
+		static const float tx = 0.50f;
+		static const float ty = 0.0f;
+		PTVertex pV[4];
+
+		pV[0].pos = q0 - right*halfWidth;
+		pV[0].tex.Set( tx+0.0f, ty+0.0f );
+			
+		pV[1].pos = q0 + right*halfWidth;
+		pV[1].tex.Set( tx+0.25f, ty+0.0f );
+
+		pV[2].pos = q1 + right*halfWidth;
+		pV[2].tex.Set( tx+0.25f, ty+0.25f );
+
+		pV[3].pos = q1 - right*halfWidth;
+		pV[3].tex.Set( tx+0.0f, ty+0.25f );
+
+		static const U16 index[6] = { 0, 1, 2, 0, 2, 3 };
+
+		QuadParticleShader shader;
+		shader.SetTexture0( TextureManager::Instance()->GetTexture( "particleQuad" ) );
+
+		GPUShader::Stream stream;
+		stream.stride = sizeof( pV[0] );
+		stream.nPos = 3;
+		stream.posOffset = 0;
+		stream.nTexture0 = 2;
+		stream.texture0Offset = 12;
+		shader.SetColor( color.x, color.y, color.z, color.w );
+
+		shader.SetStream( stream, pV, 6, index );
+		shader.Draw();
 	}
 }
 
@@ -133,7 +174,7 @@ bool ImpactEffect::Done()
 void ImpactEffect::DoTick( U32 time, U32 deltaTime )
 {
 	if ( time >= startTime ) {
-		Color4F cvel = { 0, 0, 0, 0 };
+		Color4F cvel = { 0, 0, 0, -0.50f };
 
 		const float VEL = 2.0f;
 		Vector3F vel = { normal.x*VEL, normal.y*VEL, normal.z*VEL };
@@ -142,8 +183,7 @@ void ImpactEffect::DoTick( U32 time, U32 deltaTime )
 		particleSystem->EmitPoint(  40, config, 
 									color, cvel, 
 									p0, 0, 
-									vel, 0.1f, 
-									(U32)life );
+									vel, 0.1f );
 		done = true;
 	}
 }
@@ -218,8 +258,7 @@ void SmokeTrailEffect::DoTick( U32 time, U32 deltaTime )
 									color,
 									cvel,
 									p, 0.1f,
-									vel, 0, 0.2f, 0.2f,
-									3000 );
+									vel, 0, 0.2f, 0.2f );
 		timePool -= INC;
 	}
 	if ( time >= finishTime ) {
