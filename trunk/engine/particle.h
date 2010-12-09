@@ -36,19 +36,12 @@ public:
 	static void Create();
 	static void Destroy();
 
-	enum {
-		MAX_POINT_PARTICLES = 400,
-		MAX_QUAD_PARTICLES = 100,
-		MAX_DECALS = 48
-	};
-
 	// Texture particles. Location in texture follows.
 	enum {
 		FIRE			= 0,
 		NUM_FIRE		= 2,
 		SMOKE			= 4,
 		NUM_SMOKE		= 2,
-		BEAM			= 2,
 	};
 
 	enum {
@@ -63,13 +56,6 @@ public:
 		PARTICLE_SPHERE,
 	};
 
-	/*
-	enum {
-		DECAL_BOTTOM = 0x01,
-		DECAL_TOP = 0x02,
-		DECAL_BOTH = 0x03
-	};
-	*/
 
 	// Emit N point particles.
 	void EmitPoint(	int count,						// number of particles to create
@@ -79,8 +65,7 @@ public:
 					const grinliz::Vector3F& pos,	// origin
 					float posFuzz,					// fuzz in the position
 					const grinliz::Vector3F& vel,	// velocity
-					float velFuzz,					// fuzz in the velocity
-					U32 lifetime );					// lifetime in milliseconds (0 is one frame)
+					float velFuzz );					// fuzz in the velocity
 
 	// Emit one quad particle.
 	void EmitQuad(	int type,						// FIRE, SMOKE
@@ -91,28 +76,16 @@ public:
 					const grinliz::Vector3F& vel,	// velocity
 					float velFuzz,					// fuzz in the velocity
 					float halfWidth,				// 1/2 size of the particle
-					float velHalfWidth,				// rate of change of the 1/2 size
-					U32 lifetime );					// lifetime in milliseconds
+					float velHalfWidth );				// rate of change of the 1/2 size
 
 	// Simple call to emit a point at a location.
 	void EmitOnePoint(	const Color4F& color, 
 						const Color4F& colorVelocity,
-						const grinliz::Vector3F& pos,
-						U32 lifetime );
-
-	void EmitBeam(	const Color4F& color,			// color of the particle
-					const Color4F& colorVelocity,	// change in color / second
-					const grinliz::Vector3F& p0,	// beginning
-					const grinliz::Vector3F& p1,	// end
-					float beamWidth,
-					U32 lifetime );
+						const grinliz::Vector3F& pos );
 
 	// Emits a compound flame system for this frame of animation.
 	void EmitFlame( U32 delta, const grinliz::Vector3F& pos )	{ EmitSmokeAndFlame( delta, pos, true ); }
 	void EmitSmoke( U32 delta, const grinliz::Vector3F& pos )	{ EmitSmokeAndFlame( delta, pos, false ); }
-
-	// Place a decal for a frame (decals don't have lifetimes.)
-	//void EmitDecal( int id, int flags, const grinliz::Vector3F& pos, float alpha, float rotation );
 
 	void Update( U32 deltaTime, U32 currentTime );
 	void Draw( const grinliz::Vector3F* eyeDir, const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fogOfWar );
@@ -137,12 +110,15 @@ private:
 		// extra data
 		grinliz::Vector3F vel;			// units / second
 		grinliz::Vector4F colorVel;		// units / second
-		grinliz::Vector3F pos1;			// for rays
 		float			  halfWidth;	// for rays and quads
 		float			  velHalfWidth;	// for quads
-		U16 age;						// milliseconds
-		U16 lifetime;					// milliseconds
-		U8	type;	
+		U8				  type;	
+
+		void Process( float sec, unsigned msec ) {
+			pos			+= vel*sec;
+			color		+= colorVel*sec;
+			halfWidth	+= velHalfWidth*sec;
+		}
 	};
 
 	struct QuadVertex
@@ -160,33 +136,35 @@ private:
 				const Color4F& color,			// color of the particle
 				const Color4F& colorVelocity,	// change in color / second
 				const grinliz::Vector3F& pos0,	// origin
-				const grinliz::Vector3F* pos1,	// dst, used for rays
 				float posFuzz,					// fuzz in the position
 				const grinliz::Vector3F& vel,	// velocity
 				float velFuzz,					// fuzz in the velocity
 				float halfWidth,				// half width of beams and quads
-				float velHalfWidth,				// rate of change of the width
-				U32 lifetime );					// lifetime in milliseconds
+				float velHalfWidth );			// rate of change of the width
 
 	void DrawPointParticles( const grinliz::Vector3F* eyeDir );
 	void DrawQuadParticles( const grinliz::Vector3F* eyeDir );
 	void EmitSmokeAndFlame( U32 delta, const grinliz::Vector3F& pos, bool flame );
 	void RemoveOldParticles( int primitive );
+	int NumParticles( int type ) { return type == POINT ? pointBuffer.Size() : quadBuffer.Size(); };
+	
+	void Cull( CDynArray<Particle>* );
+	void Process( CDynArray<Particle>*, float time, unsigned msec );
 
 	grinliz::Random rand;
-	int nParticles[NUM_PRIMITIVES];
+
 	Texture* quadTexture;
 	Texture* pointTexture;
+	int frame;
 
-	CDynArray<ParticleEffect*>		effectArr;
-	//grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWarFilter;
-	const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fogOfWar;;
+	CDynArray<ParticleEffect*>							effectArr;
+	const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>*	fogOfWar;
+	CDynArray<Particle>									pointBuffer;
+	CDynArray<Particle>									quadBuffer;
 
-	Particle		pointBuffer[ MAX_POINT_PARTICLES ];
-	Particle		quadBuffer[ MAX_QUAD_PARTICLES ];
-
-	QuadVertex		vertexBuffer[ MAX_QUAD_PARTICLES*4];
-	U16				quadIndexBuffer[ MAX_QUAD_PARTICLES*6 ];
+	// When we don't have point sprites:
+	CDynArray<QuadVertex>								vertexBuffer;
+	CDynArray<U16>										indexBuffer;
 };
 
 #endif // UFOTACTICAL_PARTICLE_INCLUDED

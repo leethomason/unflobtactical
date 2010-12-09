@@ -2164,12 +2164,12 @@ void Map::SetLanderFlight( float normal )
 		Color4F color[3] = { { 213.0f/255.0f, 63.0f/255.0f, 63.0f/255.0f, 1.0f },
 							 { 248.0f/255.0f, 228.0f/255.0f, 8.0f/255.0f, 1.0f },
 							 { 1, 0, 0, 1 } };
-		Color4F colorV = { 0, 0, 0, -0.2f };
+		Color4F colorV = { 0, 0, 0, -0.3f };
 		Vector3F v = { 0, 0, 0 };
 
 		for( int i=0; i<4; ++i ) {
 			for( int k=0; k<3; ++k )
-				ParticleSystem::Instance()->EmitPoint( 1, ParticleSystem::PARTICLE_SPHERE, color[k], colorV, p[i], 0.8f, v, 0.4f, 2000 );
+				ParticleSystem::Instance()->EmitPoint( 1, ParticleSystem::PARTICLE_SPHERE, color[k], colorV, p[i], 0.8f, v, 0.4f );
 		}
 
 		model->SetPos( pos.x, h, pos.z );

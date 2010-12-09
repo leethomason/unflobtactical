@@ -119,6 +119,9 @@ public:
 	}
 
 	int Size() const		{ return (int)size; }
+	void Trim( int sz )		{ GLASSERT( sz <= (int)size );
+							  size = (unsigned)sz;
+							}
 	
 	void Clear()			{ size = 0; }
 	bool Empty() const		{ return size==0; }

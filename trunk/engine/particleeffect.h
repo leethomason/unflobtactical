@@ -32,7 +32,8 @@ public:
 
 	virtual bool Done() = 0;
 	virtual void DoTick( U32 time, U32 deltaTime ) = 0;
-	virtual U32 CalcDuration() = 0;		//< can return 0 if no time, or U32(-1) for ongoing (controlled by creator)
+	virtual void Draw( const grinliz::Vector3F* eyeDir ) {}	// mostly particles are created in DoTick; however, if the Effect actually draws, do it here.
+	virtual U32 CalcDuration() = 0;						//< can return 0 if no time, or U32(-1) for ongoing (controlled by creator)
 	virtual const char* Name() = 0;
 	virtual void Clear() = 0;
 
@@ -61,9 +62,12 @@ public:
 	virtual void DoTick( U32 time, U32 deltaTime );
 	virtual U32 CalcDuration();			// duration until the next thing should happen.
 	virtual const char* Name();
+	virtual void Draw( const grinliz::Vector3F* eyeDir );
 
 private:
-	grinliz::Vector3F p0;
+	grinliz::Vector3F p0;		// origin location
+	float d0, d1;				// current distance
+
 	U32 startTime;
 	float speed;
 	Color4F color;
