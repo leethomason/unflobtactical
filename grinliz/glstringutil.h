@@ -101,6 +101,7 @@ public:
 	bool empty() const					{ return buf[0] == 0; }
 
 	int Length() const 					{ return strlen( buf ); }
+	int Capacity() const				{ return ALLOCATE-1; }
 	void ClearBuf()						{ memset( buf, 0, ALLOCATE ); }
 	void Clear()						{ buf[0] = 0; }
 
@@ -130,6 +131,16 @@ public:
 			int len = size();
 			if ( len < ALLOCATE-1 )
 				StrNCpy( buf+len, src, ALLOCATE-len );
+		}
+		Validate();
+	}
+
+	void operator+=( int c ) {
+		GLASSERT( c > 0 );
+		int len = size();
+		if ( len < ALLOCATE-1 ) {
+			buf[len] = (char)c;
+			buf[len+1] = 0;
 		}
 		Validate();
 	}

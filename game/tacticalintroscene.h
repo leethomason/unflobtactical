@@ -107,6 +107,10 @@ private:
 							const gamedb::Item* parent,
 							TiXmlElement* mapElement );
 
+	void GenerateTerranTeam( Unit* units,				// target units to write
+							int count,
+							int averageLevel,
+							int seed=0 );
 	void GenerateAlienTeam( Unit* units,				// target units to write
 							const int alienCount[],		// aliens per type
 							int averageLevel,

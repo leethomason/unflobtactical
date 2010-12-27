@@ -193,7 +193,10 @@ void UIRenderer::GamuiGlyph( int c, IGamuiText::GlyphMetrics* metric )
 	int advance=0;
 	int width=0;
 	Rectangle2I src;
-	if ( c >= 32 && c < 128 ) {
+	if ( c < 0 )
+		c += 256;
+
+	if ( c >= 32 && c < 32+128 ) {
 		UFOText::Metrics( c-32, &advance, &width, &src );
 
 		static const float CX = (1.f/256.f);

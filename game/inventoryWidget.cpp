@@ -121,7 +121,7 @@ void InventoryWidget::Update()
 				SNPrintf( buffer, 16, "%d", item.Rounds() );
 			}
 			button[i].SetDeco( UIRenderer::CalcDecoAtom( item.Deco(), false ), UIRenderer::CalcDecoAtom( item.Deco() , false ) );
-			button[i].SetText( item.Name() );
+			button[i].SetText( item.DisplayName() );
 			button[i].SetText2( buffer );
 		}
 		else {
@@ -143,19 +143,19 @@ void InventoryWidget::Update()
 		const WeaponItemDef* wid = weaponItem.IsWeapon();
 
 		CStr<40> cstr;
-		cstr += wid->name;
+		cstr += wid->displayName.c_str();
 		cstr += " ";
 		cstr += wid->desc;
 		cstr += " ";
 
 		cstr += "[";
 		if ( wid->HasWeapon( kAltFireMode ) ) {
-			cstr += wid->GetClipItemDef( kSnapFireMode )->name;
+			cstr += wid->GetClipItemDef( kSnapFireMode )->displayName.c_str();
 			cstr += "/";
-			cstr += wid->GetClipItemDef( kAltFireMode )->name;
+			cstr += wid->GetClipItemDef( kAltFireMode )->displayName.c_str();
 		}
 		else {
-			cstr += wid->GetClipItemDef( kSnapFireMode )->name;
+			cstr += wid->GetClipItemDef( kSnapFireMode )->displayName.c_str();
 		}
 		cstr += "]";
 

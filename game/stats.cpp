@@ -150,7 +150,7 @@ float BulletSpread::ComputePercent( const Accuracy& accuracy, const BulletTarget
 
 	float hit = 0;
 
-	const int SAMPLES = 37;
+	const int SAMPLES = 117;
 	for( int i=0; i<SAMPLES; ++i ) {
 		Vector2F v;
 		Generate( i, &v );
