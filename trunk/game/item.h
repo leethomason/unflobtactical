@@ -24,6 +24,7 @@
 #include "../shared/glmap.h"
 #include "gamelimits.h"
 #include "stats.h"
+#include "../grinliz/glstringutil.h"
 
 class ModelResource;
 class TiXmlElement;
@@ -78,16 +79,9 @@ public:
 	const char*		desc;
 	int				deco;
 	const ModelResource*	resource;	// can be null, in which case render with crate.
+	grinliz::CStr<6>	displayName;
 
-	void InitBase( const char* name, const char* desc, int deco, const ModelResource* resource )
-	{
-		this->name = name; 
-		this->desc = desc; 
-		this->deco = deco; 
-		this->resource = resource; 
-		this->index = 0;	// set later when added to ItemDefArr
-	}
-
+	void InitBase( const char* name, const char* desc, int deco, const ModelResource* resource );
 	virtual const WeaponItemDef* IsWeapon() const { return 0; }
 	virtual const ClipItemDef* IsClip() const  { return 0; }
 	virtual int DefaultRounds() const { return 1; }
@@ -251,6 +245,7 @@ public:
 
 	const char* Name() const						{ return itemDef->name; }
 	const char* Desc() const						{ return itemDef->desc; }
+	const char* DisplayName() const					{ return itemDef->displayName.c_str(); }
 	int Deco() const								{ return itemDef->deco; }
 
 	bool IsNothing() const							{ return itemDef == 0; }

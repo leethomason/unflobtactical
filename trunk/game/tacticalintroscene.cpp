@@ -352,33 +352,35 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	const gamedb::Item* parent = database->Root()->Child( "data" );
 	const gamedb::Item* item = 0;
 
-	// Terran units
-	{
-		if ( toggles[TERRAN_LOW].Down() )
-			item = parent->Child( "new_squad_LA" );
-		else if ( toggles[TERRAN_MED].Down() )
-			item = parent->Child( "new_squad_MA" );
-		else if ( toggles[TERRAN_HIGH].Down() )
-			item = parent->Child( "new_squad_HA" );
-
-		const char* squad = (const char*)database->AccessData( item, "binary" );
-		//int len = item->GetDataSize( "binary" );
-		TiXmlDocument snippet;
-		snippet.Parse( squad );
-		GLASSERT( !snippet.Error() );
-
-		snippet.Print( fp, 2 );
-		if ( toggles[SQUAD_8].Down() ) {
-			snippet.Print( fp, 2 );
-		}
-	}
-	// Alien units
-
+	
 	Unit units[MAX_UNITS];
 	int rank = 0;
 	int count = 8;
 	int types[Unit::NUM_ALIEN_TYPES] = { 0 };
 
+	// Terran units
+	{
+		if ( toggles[TERRAN_LOW].Down() )
+			rank = 0;
+		else if ( toggles[TERRAN_MED].Down() )
+			rank = 2;
+		else if ( toggles[TERRAN_HIGH].Down() )
+			rank = 4;
+
+		count = 4;
+		if ( toggles[SQUAD_8].Down() ) {
+			count = 8;
+		}
+	}
+	memset( units, 0, sizeof(Unit)*MAX_UNITS );
+	GenerateTerranTeam( units, count, rank, seed );
+	for( int i=0; i<count; ++i ) {
+		if ( units[i].IsAlive() ) {
+			units[i].Save( fp, 2 );
+		}
+	}
+
+	// Alien units
 	if ( toggles[ALIEN_16].Down() ) {
 		count = 16;
 	}
@@ -415,6 +417,7 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	}
 	GLASSERT( created == count );
 
+	// Civ team
 	memset( units, 0, sizeof(Unit)*MAX_UNITS );
 	GenerateCivTeam( units, MAX_CIVS, seed );
 	for( int i=0; i<MAX_CIVS; ++i ) {
@@ -658,10 +661,10 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 {
 	const char* weapon[Unit::NUM_ALIEN_TYPES][NUM_RANKS] = {
 		{	"RAY-1",	"RAY-1",	"RAY-1",	"RAY-2",	"RAY-3" },		// green
-		{	"RAY-2",	"RAY-2",	"RAY-3",	"RAY-3",	"BEAM"	},		// prime
-		{	"PLS-1",	"PLS-1",	"PLS-2",	"BEAM",		"PLS-2" },		// hornet
-		{	"STORM",	"STORM",	"STORM",	"STORM",	"STORM" },		// jackal
-		{	"PLS-1",	"PLS-1",	"PLS-2",	"BEAM",		"PLS-2" }		// viper
+		{	"RAY-2",	"RAY-2",	"RAY-3",	"RAY-3",	"PLS-3"	},		// prime
+		{	"PLS-1",	"PLS-1",	"PLS-2",	"PLS-2",	"PLS-3" },		// hornet
+		{	"STRM-1",	"STRM-1",	"STRM-2",	"STRM-2",	"STRM-3" },	// jackal
+		{	"PLS-1",	"PLS-1",	"PLS-2",	"PLS-2",	"PLS-3" }		// viper
 	};
 
 	int nAliens = 0;
@@ -706,6 +709,72 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 				unit[index].GetInventory()->AddItem( ammo );
 			}
 			++index;
+		}
+	}
+}
+
+
+void TacticalIntroScene::GenerateTerranTeam( Unit* unit,				// target units to write
+											int count,	
+											int averageRank,
+											int seed )
+{
+	static const int POSITION = 4;
+	const char* weapon[POSITION][NUM_RANKS] = {
+		{	"ASLT-1",	"ASLT-1",	"ASLT-2",	"ASLT-2",	"ASLT-3" },		// assault
+		{	"ASLT-1",	"PLS-1",	"ASLT-2",	"PLS-2",	"PLS-3" },		// assault
+		{	"LR-1",		"LR-1",		"LR-2",		"LR-2",		"LR-3" },		// sniper
+		{	"MCAN-1",	"MCAN-1",	"MCAN-2",	"STRM-2",	"MCAN-3" },	// heavy
+	};
+	const char* armor[NUM_RANKS] = {
+		"ARM-1", "ARM-2", "ARM-2", "ARM-3", "ARM-3"
+	};
+	const char* extra[NUM_RANKS] = {
+		"", "", "SG:I", "SG:K", "SG:E"
+	};
+
+	// local random - the same inputs always create same outputs.
+	grinliz::Random aRand( (count*averageRank) ^ seed );
+	aRand.Rand();
+
+	for( int k=0; k<count; ++k ) 
+	{
+		int position = k % POSITION;
+
+		// Create the unit.
+		int rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
+ 		unit[k].Create( TERRAN_TEAM, 0, rank, aRand.Rand() );
+
+		rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
+
+		// Add the weapon.
+		Item item( game->GetItemDefArr(), weapon[position][rank] );
+		unit[k].GetInventory()->AddItem( item );
+
+		// Add ammo.
+		const WeaponItemDef* weaponDef = item.GetItemDef()->IsWeapon();
+		GLASSERT( weaponDef );
+
+		for( int n=0; n<2; ++n ) {
+			Item ammo( weaponDef->GetClipItemDef( kSnapFireMode ) );
+			unit[k].GetInventory()->AddItem( ammo );
+		}
+		if ( weaponDef->HasWeapon( kAltFireMode ) ) {
+			Item ammo( weaponDef->GetClipItemDef( kAltFireMode ) );
+			unit[k].GetInventory()->AddItem( ammo );
+		}
+
+		// Add extras
+		{
+			rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
+			Item armor( game->GetItemDefArr(), armor[rank] );
+			unit[k].GetInventory()->AddItem( armor );
+		}
+
+		rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
+		for( int i=0; i<=rank; ++i ) {
+			Item extra( game->GetItemDefArr(), extra[i] );
+			unit[k].GetInventory()->AddItem( extra );
 		}
 	}
 }

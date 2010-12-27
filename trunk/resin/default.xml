@@ -186,11 +186,6 @@
   <image filename="FARM_16_LAND_00_DAY.png" />
   <image filename="FARM_16_LAND_00_NGT.png" />
 
-  <!-- Other Data -->
-  <data filename="new_squad_LA.xml" />
-  <data filename="new_squad_MA.xml" />
-  <data filename="new_squad_HA.xml" />
-
   <text name="tacticalHelp" >
     <page>
       <p>Welcome to Xenowar!</p>

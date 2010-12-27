@@ -228,19 +228,19 @@ void Inventory::GetDamageReduction( DamageDesc* dd )
 	if ( hasArmor ) {
 		bool k=false, e=false, i=false;
 		for( int i=GENERAL_SLOT; i<NUM_SLOTS; ++i ) {
-			if ( slots[i].IsSomething() && StrEqual( slots[i].Name(), "Shield" ) ) {
+			if ( slots[i].IsSomething() && StrEqual( slots[i].Name(), "SG:E" ) ) {
 				e = true;
 				break;
 			}
 		}
 		for( int i=GENERAL_SLOT; i<NUM_SLOTS; ++i ) {
-			if ( slots[i].IsSomething() && StrEqual( slots[i].Name(), "Ablate" ) ) {
+			if ( slots[i].IsSomething() && StrEqual( slots[i].Name(), "SG:I" ) ) {
 				i = true;
 				break;
 			}
 		}
 		for( int i=GENERAL_SLOT; i<NUM_SLOTS; ++i ) {
-			if ( slots[i].IsSomething() && StrEqual( slots[i].Name(), "Fiber" ) ) {
+			if ( slots[i].IsSomething() && StrEqual( slots[i].Name(), "SG:K" ) ) {
 				k = true;
 				break;
 			}

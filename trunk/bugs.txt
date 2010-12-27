@@ -4,8 +4,8 @@ Bugs:
 - new game choices UI
 - big drag buttons
 - shield generators
-- rework weapons and tech
 - "comp" button -> WPN??
+- balance weapon damage, accuracy, and character acuracy
 - Android: reduce scale/rotation sensitivity
 - Android: volume control
 - Android: sound drops out (GC of MediaObject)
@@ -18,7 +18,6 @@ Features:
 
 TBD:
 - skinning for weapons
-- logos switched out for 'Xenowar' style
 - 32 bit assets - xenowar logo
 - tweak: move AR-1 to sit more forward
 - mission types: terror
@@ -39,6 +38,8 @@ TBD:
 - rework fire spread & explosions.
 
 FIXED
+- rework weapons and tech
+- logos switched out for 'Xenowar' style
 - calibrate accuracy
 - rework smoke and fire. too many dropouts.
 - civilians

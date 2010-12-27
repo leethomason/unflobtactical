@@ -32,6 +32,30 @@ int   WeaponItemDef::accHit = 0;
 int   WeaponItemDef::accTotal = 0;
 
 
+
+void ItemDef::InitBase( const char* name, const char* desc, int deco, const ModelResource* resource )
+{
+	this->name = name; 
+	this->desc = desc; 
+	this->deco = deco; 
+	this->resource = resource; 
+	this->index = 0;	// set later when added to ItemDefArr
+
+	// Replace the -# with a superscript.
+	displayName.Clear();
+	for( const char* p=name; *p; ++p ) {
+		if ( *p == '-' && InRange( *(p+1), '0', '9' ) ) {
+			int c = (*(p+1) + 16*6);
+			displayName += c;
+			++p;
+		}
+		else {
+			displayName += *p;
+		}
+	}
+}
+
+
 bool WeaponItemDef::IsAlien() const 
 { 
 	return weapon[0].clipItemDef->IsAlien(); 

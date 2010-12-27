@@ -72,7 +72,7 @@ void NameRankUI::Set( float x, float y, const Unit* unit, bool displayWeapon )
 	if ( displayWeapon && unit && unit->IsAlive() ) {
 		if ( unit && unit->GetWeapon() ) {
 			cstr += ", ";
-			cstr += unit->GetWeapon()->Name();
+			cstr += unit->GetWeapon()->DisplayName();
 			cstr += " ";
 			cstr += unit->GetWeapon()->Desc();
 		}
