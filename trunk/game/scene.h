@@ -114,7 +114,7 @@ struct BackgroundUI {
 	gamui::Image	background;
 	gamui::Image	backgroundText;
 
-	void Init( Game* game, gamui::Gamui* );
+	void Init( Game* game, gamui::Gamui*, bool logo );
 };
 
 #pragma warning ( pop )

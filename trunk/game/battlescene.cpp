@@ -44,7 +44,7 @@ using namespace gamui;
 //#define REACTION_FIRE_EVENT_ONLY
 
 
-BattleScene::BattleScene( Game* game ) : Scene( game )//, m_targets( units )
+BattleScene::BattleScene( Game* game ) : Scene( game )
 {
 	//GLRELASSERT( 0 );
 	subTurnCount = 0;
@@ -457,10 +457,9 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 	if ( turnCount == 0 ) {
 		engine->GetMap()->SetLanderFlight( 1 );
 
-		Action action;
-		action.Init( ACTION_LANDER, 0 );
-		action.type.lander.timeRemaining = LanderAction::TOTAL_TIME;
-		actionStack.Push( action );
+		Action* action = actionStack.Push();
+		action->Init( ACTION_LANDER, 0 );
+		action->type.lander.timeRemaining = LanderAction::TOTAL_TIME;
 
 		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 			if ( units[i].GetModel() ) {
@@ -613,8 +612,8 @@ void BattleScene::SetUnitOverlays()
 
 	const Unit* unitMoving = 0;
 	if ( !actionStack.Empty() ) {
-		if ( actionStack.Top().actionID == ACTION_MOVE ) {
-			unitMoving = actionStack.Top().unit;
+		if ( actionStack.Top()->actionID == ACTION_MOVE ) {
+			unitMoving = actionStack.Top()->unit;
 		}
 	}
 	
@@ -930,15 +929,20 @@ void BattleScene::DrawFireWidget()
 	Unit* unit = SelectedSoldierUnit();
 	
 	Vector3F target;
+	BulletTarget bulletTarget;
+
 	if ( selection.targetPos.x >= 0 ) {
 		target.Set( (float)selection.targetPos.x+0.5f, 1.0f, (float)selection.targetPos.y+0.5f );
 	}
 	else {
-		selection.targetUnit->GetModel()->CalcTarget( &target );
+		Model* m = selection.targetUnit->GetModel();
+		GLASSERT( m );
+		m->CalcTarget( &target );
+		m->CalcTargetSize( &bulletTarget.width, &bulletTarget.height );
 	}
 
 	Vector3F distVector = target - SelectedSoldierModel()->Pos();
-	float distToTarget = distVector.Length();
+	bulletTarget.distance = distVector.Length();
 
 	Inventory* inventory = unit->GetInventory();
 	const WeaponItemDef* wid = unit->GetWeaponDef();
@@ -952,8 +956,10 @@ void BattleScene::DrawFireWidget()
 		{
 			float fraction, anyFraction, dptu, tu;
 
-			unit->FireStatistics( (WeaponMode)i, distToTarget, &fraction, &anyFraction, &tu, &dptu );
+			unit->FireStatistics( (WeaponMode)i, bulletTarget, &fraction, &anyFraction, &tu, &dptu );
 			int nRounds = inventory->CalcClipRoundsTotal( wid->GetClipItemDef( (WeaponMode)i) );
+
+			anyFraction = Clamp( anyFraction, 0.0f, 0.95f );
 
 			char buffer0[32];
 			char buffer1[32];
@@ -1093,13 +1099,12 @@ void BattleScene::PushScrollOnScreen( const Vector3F& pos, bool center )
 		float len = delta.Length();
 		delta.Normalize();
 
-		Action action;
-		action.Init( ACTION_CAMERA_BOUNDS, 0 );
-		action.type.cameraBounds.target = pos;
-		action.type.cameraBounds.normal = delta;
-		action.type.cameraBounds.speed = (float)MAP_SIZE / 3.0f;
-		action.type.cameraBounds.center = center;
-		actionStack.Push( action );
+		Action* action = actionStack.Push();
+		action->Init( ACTION_CAMERA_BOUNDS, 0 );
+		action->type.cameraBounds.target = pos;
+		action->type.cameraBounds.normal = delta;
+		action->type.cameraBounds.speed = (float)MAP_SIZE / 3.0f;
+		action->type.cameraBounds.center = center;
 	}
 }
 
@@ -1137,15 +1142,16 @@ void BattleScene::PushRotateAction( Unit* src, const Vector3F& dst3F, bool quant
 
 	float rot = src->AngleBetween( dst, quantize );
 	if ( src->GetModel()->GetRotation() != rot ) {
-		Action action;
-		action.Init( ACTION_ROTATE, src );
-		action.type.rotate.rotation = rot;
-		actionStack.Push( action );
+		Action* action = actionStack.Push();
+		action->Init( ACTION_ROTATE, src );
+		action->type.rotate.rotation = rot;
 	}
 }
 
 
-bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target, 
+bool BattleScene::PushShootAction( Unit* unit, 
+								   const grinliz::Vector3F& target, 
+								   float targetWidth, float targetHeight,
 								   WeaponMode mode,
 								   float useError,
 								   bool clearMoveIfShoot )
@@ -1158,6 +1164,7 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 	Item* weapon = unit->GetWeapon();
 	if ( !weapon )
 		return false;
+
 	const WeaponItemDef* wid = weapon->IsWeapon();
 
 	Vector3F normal, right, up, p;
@@ -1170,10 +1177,20 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 	CrossProduct( normal, up, &right );
 	CrossProduct( normal, right, &up );
 
+	BulletTarget bulletTarget( length );
+	if ( targetWidth )
+		bulletTarget.width = targetWidth;
+	if ( targetHeight )
+		bulletTarget.height = targetHeight;
+
 	if ( unit->CanFire( mode ) )
 	{
 		int nShots = wid->RoundsNeeded( mode );
 		unit->UseTU( unit->FireTimeUnits( mode ) );
+
+		// Could be removed, if optimization needed. Computes the metrics.
+		float chanceToHit, chanceAnyHit, tu, dptu;
+		unit->FireStatistics( mode, bulletTarget, &chanceToHit, &chanceAnyHit, &tu, &dptu );
 
 		for( int i=0; i<nShots; ++i ) {
 			Vector3F t = target;
@@ -1184,15 +1201,16 @@ bool BattleScene::PushShootAction( Unit* unit, const grinliz::Vector3F& target,
 									   normal, target, &t );
 			}
 
-			if ( clearMoveIfShoot && !actionStack.Empty() && actionStack.Top().actionID == ACTION_MOVE ) {
+			if ( clearMoveIfShoot && !actionStack.Empty() && actionStack.Top()->actionID == ACTION_MOVE ) {
 				actionStack.Clear();
 			}
 
-			Action action;
-			action.Init( ACTION_SHOOT, unit );
-			action.type.shoot.target = t;
-			action.type.shoot.mode = mode;
-			actionStack.Push( action );
+			Action* action = actionStack.Push();
+			action->Init( ACTION_SHOOT, unit );
+			action->type.shoot.target = t;
+			action->type.shoot.mode = mode;
+			action->type.shoot.chanceToHit = chanceToHit;
+			GLASSERT( InRange( chanceToHit, 0.0f, 1.0f ) );
 			unit->GetInventory()->UseClipRound( wid->GetClipItemDef( mode ) );
 		}
 		PushRotateAction( unit, target, false );
@@ -1216,7 +1234,7 @@ void BattleScene::DoReactionFire()
 		react = true;
 	}
 	else { 
-		const Action& action = actionStack.Top();
+		const Action& action = *actionStack.Top();
 		if (    action.actionID == ACTION_MOVE
 			&& action.unit
 			&& action.unit->Team() == currentTeamTurn
@@ -1280,10 +1298,13 @@ void BattleScene::DoReactionFire()
 						if ( r <= reaction ) {
 							Vector3F target;
 							targetUnit->GetModel()->CalcTarget( &target );
+
+							float targetWidth, targetHeight;
+							targetUnit->GetModel()->CalcTargetSize( &targetWidth, &targetHeight );
 							
-							int shot = PushShootAction( srcUnit, target, kAutoFireMode, error, true );	// auto
+							int shot = PushShootAction( srcUnit, target, targetWidth, targetHeight, kAutoFireMode, error, true );	// auto
 							if ( !shot )
-								PushShootAction( srcUnit, target, kSnapFireMode, error, true );	// snap
+								PushShootAction( srcUnit, target, targetWidth, targetHeight, kSnapFireMode, error, true );	// snap
 						}
 				}
 				}
@@ -1378,7 +1399,10 @@ bool BattleScene::ProcessAI()
 			case AI::ACTION_SHOOT:
 				{
 					AI_LOG(( "[ai] Unit %d SHOOT\n", currentUnitAI ));
-					bool shot = PushShootAction( &units[currentUnitAI], aiAction.shoot.target, aiAction.shoot.mode, 1.0f, false );
+					bool shot = PushShootAction( &units[currentUnitAI], 
+												 aiAction.shoot.target, 
+												 aiAction.shoot.targetWidth, aiAction.shoot.targetHeight, 
+												 aiAction.shoot.mode, 1.0f, false );
 					GLRELASSERT( shot );
 					if ( !shot )
 						done = true;
@@ -1388,10 +1412,9 @@ bool BattleScene::ProcessAI()
 			case AI::ACTION_MOVE:
 				{
 					AI_LOG(( "[ai] Unit %d MOVE pathlen=%d\n", currentUnitAI, aiAction.move.path.pathLen ));
-					Action action;
-					action.Init( ACTION_MOVE, &units[currentUnitAI] );
-					action.type.move.path = aiAction.move.path;
-					actionStack.Push( action );
+					Action* action = actionStack.Push();
+					action->Init( ACTION_MOVE, &units[currentUnitAI] );
+					action->type.move.path = aiAction.move.path;
 				}
 				break;
 
@@ -1447,7 +1470,7 @@ void BattleScene::StopForNewTeamTarget()
 		antiTeam = TERRAN_TEAM;
 
 	if ( actionStack.Size() == 1 ) {
-		const Action& action = actionStack.Top();
+		const Action& action = *actionStack.Top();
 		if (   action.actionID == ACTION_MOVE
 			&& action.unit
 			&& action.unit->Team() == currentTeamTurn
@@ -1530,7 +1553,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 
 	if ( !actionStack.Empty() )
 	{
-		Action* action = &actionStack.Top();
+		Action* action = actionStack.Top();
 
 		Unit* unit = 0;
 		Model* model = 0;
@@ -1724,10 +1747,12 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 	U32 delayTime = 0;
 	const WeaponItemDef* weaponDef = 0;
 	Ray ray;
+	WeaponMode mode = action->type.shoot.mode;
 
 	int result = 0;
 
 	if ( unit && model && unit->IsAlive() ) {
+		// Shooting announces the units location.
 		for( int i=0; i<3; ++i ) {
 			if ( aiArr[i] )
 				aiArr[i]->Inform( unit, 2 );
@@ -1765,7 +1790,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 			m = 0;
 		}
 
-		weaponDef->DamageBase( action->type.shoot.mode, &damageDesc );
+		weaponDef->DamageBase( mode, &damageDesc );
 
 		if ( m ) {
 			impact = true;
@@ -1807,17 +1832,37 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		}
 
 		if ( beam0 != beam1 ) {
-			weaponDef->RenderWeapon( action->type.shoot.mode,
+			weaponDef->RenderWeapon( mode,
 									 ParticleSystem::Instance(),
 									 beam0, beam1, 
 									 impact, 
 									 game->CurrentTime(), 
 									 &delayTime );
-			SoundManager::Instance()->QueueSound( weaponDef->weapon[weaponDef->Index(action->type.shoot.mode)].sound );
+			SoundManager::Instance()->QueueSound( weaponDef->weapon[weaponDef->Index(mode)].sound );
 		}
 	}
+
+	// Messy. Did we hit a target? Problems with code below:
+	// - accepts any target as a hit...not necessary what we were aiming for.
+	// - Ignore explosive data! It is too hard to get right.
+
+	if ( weaponDef && !weaponDef->IsExplosive( mode ) ) {
+		Unit* hitUnit = 0;
+		Unit* hitWeapon = 0;
+		if ( modelHit ) {
+			hitUnit = UnitFromModel( modelHit, false );
+			if ( hitUnit && hitUnit->Team() == unit->Team() )
+				hitUnit = 0;	// don't count friendly fire
+			hitWeapon = UnitFromModel( modelHit, true );
+			if ( hitWeapon && hitWeapon->Team() == unit->Team() )
+				hitWeapon = 0;
+		}
+		WeaponItemDef::AddAccData( action->type.shoot.chanceToHit, hitUnit || hitWeapon );
+	}
+
 	actionStack.Pop();
 	result |= UNIT_ACTION_COMPLETE;
+	action = 0;	// invalidated by pop!!
 
 	if ( impact ) {
 		GLRELASSERT( weaponDef );
@@ -1825,24 +1870,22 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		GLASSERT( intersection.z >= 0 && intersection.z <= (float)MAP_SIZE );
 		GLASSERT( intersection.y >= 0 && intersection.y <= 10.0f );
 
-		Action h;
-		h.Init( ACTION_HIT, unit );
-		h.type.hit.damageDesc = damageDesc;
-		h.type.hit.explosive = weaponDef->IsExplosive( action->type.shoot.mode );
-		h.type.hit.p = intersection;
+		Action *h = actionStack.Push();
+		h->Init( ACTION_HIT, unit );
+		h->type.hit.damageDesc = damageDesc;
+		h->type.hit.explosive = weaponDef->IsExplosive( mode );
+		h->type.hit.p = intersection;
 		
-		h.type.hit.n = ray.direction;
-		h.type.hit.n.Normalize();
+		h->type.hit.n = ray.direction;
+		h->type.hit.n.Normalize();
 
-		h.type.hit.m = modelHit;
-		actionStack.Push( h );
+		h->type.hit.m = modelHit;
 	}
 
 	if ( delayTime ) {
-		Action a;
-		a.Init( ACTION_DELAY, 0 );
-		a.type.delay.delay = delayTime;
-		actionStack.Push( a );
+		Action* a = actionStack.Push();
+		a->Init( ACTION_DELAY, 0 );
+		a->type.delay.delay = delayTime;
 	}
 
 	if ( impact && modelHit ) {
@@ -2095,11 +2138,9 @@ void BattleScene::HandleRotation( float bias )
 		r = NormalizeAngleDegrees( r );
 		r = 45.f * float( (int)((r+20.0f) / 45.f) );
 
-		Action action;
-		action.Init( ACTION_ROTATE, unit );
-		action.type.rotate.rotation = r;
-		actionStack.Push( action );
-
+		Action* action = actionStack.Push();
+		action->Init( ACTION_ROTATE, unit );
+		action->type.rotate.rotation = r;
 	}
 }
 
@@ -2126,13 +2167,16 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 			GLRELASSERT( wid );
 
 			Vector3F target;
+			float targetWidth = 0.0f;
+			float targetHeight = 0.0f;
 			if ( selection.targetPos.x >= 0 ) {
 				target.Set( (float)selection.targetPos.x + 0.5f, 1.0f, (float)selection.targetPos.y + 0.5f );
 			}
 			else {
 				selection.targetUnit->GetModel()->CalcTarget( &target );
+				selection.targetUnit->GetModel()->CalcTargetSize( &targetWidth, &targetHeight );
 			}
-			PushShootAction( selection.soldierUnit, target, mode, 1.0f, false );
+			PushShootAction( selection.soldierUnit, target, targetWidth, targetHeight, mode, 1.0f, false );
 		}
 		selection.targetUnit = 0;
 		selection.targetPos.Set( -1, -1 );
@@ -2425,10 +2469,9 @@ void BattleScene::Tap(	int action,
 			int result = engine->GetMap()->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
 			if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
 				// Go!
-				Action action;
-				action.Init( ACTION_MOVE, SelectedSoldierUnit() );
-				action.type.move.path.Init( pathCache );
-				actionStack.Push( action );
+				Action* action = actionStack.Push();
+				action->Init( ACTION_MOVE, SelectedSoldierUnit() );
+				action->type.move.path.Init( pathCache );
 				engine->GetMap()->ClearNearPath();
 			}
 		}
@@ -2734,10 +2777,9 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 					if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
 						// TU for a move gets used up "as we go" to account for reaction fire and changes.
 						// Go!
-						Action action;
-						action.Init( ACTION_MOVE, SelectedSoldierUnit() );
-						action.type.move.path.Init( pathCache );
-						actionStack.Push( action );
+						Action* action = actionStack.Push();
+						action->Init( ACTION_MOVE, SelectedSoldierUnit() );
+						action->type.move.path.Init( pathCache );
 					}
 				}
 				dragUnit = 0;

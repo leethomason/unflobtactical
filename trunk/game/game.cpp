@@ -194,8 +194,12 @@ Game::~Game()
 		PushPopScene();
 	}
 
-	sceneStack.Top().Free();
+	sceneStack.Top()->Free();
 	sceneStack.Pop();
+
+	float predicted, actual;
+	WeaponItemDef::CurrentAccData( &predicted, &actual );
+	GLOUTPUT(( "Game accuracy: predicted=%.2f actual=%.2f\n", predicted, actual ));
 
 	delete engine;
 	SettingsManager::Destroy();
@@ -256,7 +260,7 @@ void Game::PopScene( int result )
 	GLASSERT( scenePopQueued == false );
 	scenePopQueued = true;
 	if ( result != INT_MAX )
-		sceneStack.Top().result = result;
+		sceneStack.Top()->result = result;
 }
 
 
@@ -271,17 +275,17 @@ void Game::PushPopScene()
 	{
 		GLASSERT( sceneResetQueued || (!sceneStack.Empty()) );
 
-		sceneStack.Top().scene->DeActivate();
-		int result = sceneStack.Top().result;
-		int id     = sceneStack.Top().sceneID;
+		sceneStack.Top()->scene->DeActivate();
+		int result = sceneStack.Top()->result;
+		int id     = sceneStack.Top()->sceneID;
 
-		sceneStack.Top().Free();
+		sceneStack.Top()->Free();
 		sceneStack.Pop();
 
 		if ( !sceneStack.Empty() ) {
-			sceneStack.Top().scene->Activate();
+			sceneStack.Top()->scene->Activate();
 			if ( result != INT_MIN ) {
-				sceneStack.Top().scene->SceneResult( id, result );
+				sceneStack.Top()->scene->SceneResult( id, result );
 			}
 		}
 		scenePopQueued = false;
@@ -303,17 +307,16 @@ void Game::PushPopScene()
 		GLASSERT( sceneQueued.sceneID < NUM_SCENES );
 
 		if ( sceneStack.Size() ) {
-			sceneStack.Top().scene->DeActivate();
+			sceneStack.Top()->scene->DeActivate();
 		}
-		SceneNode node;
-		CreateScene( sceneQueued, &node );
+		SceneNode* node = sceneStack.Push();
+		CreateScene( sceneQueued, node );
 		sceneQueued.data = 0;
 		sceneQueued.Free();
 
-		sceneStack.Push( node );
-		node.scene->Activate();
+		node->scene->Activate();
 
-		if ( node.sceneID == BATTLE_SCENE && !Engine::mapMakerMode ) {
+		if ( node->sceneID == BATTLE_SCENE && !Engine::mapMakerMode ) {
 			GLString path = GameSavePath();
 			TiXmlDocument doc;
 			doc.LoadFile( path.c_str() );
@@ -372,7 +375,7 @@ void Game::Load( const TiXmlDocument& doc )
 	// BOTTOM of the stack saves and loads. (BattleScene or GeoScene).
 	const TiXmlElement* game = doc.RootElement();
 	GLASSERT( StrEqual( game->Value(), "Game" ) );
-	sceneStack.Bottom().scene->Load( game );
+	sceneStack.Bottom()->scene->Load( game );
 }
 
 
@@ -403,7 +406,7 @@ void Game::Save( FILE* fp )
 		XMLUtil::SealCloseElement( fp );
 	}
 	if ( !sceneStack.Empty() )
-		sceneStack.Bottom().scene->Save( fp, 1 );
+		sceneStack.Bottom()->scene->Save( fp, 1 );
 	
 	XMLUtil::CloseElement( fp, 0, "Game" );
 }
@@ -442,7 +445,7 @@ void Game::DoTick( U32 _currentTime )
 		GPUShader::ResetState();
 		GPUShader::Clear();
 
-		Scene* scene = sceneStack.Top().scene;
+		Scene* scene = sceneStack.Top()->scene;
 		scene->DoTick( currentTime, deltaTime );
 
 		Rectangle2I clip2D, clip3D;
@@ -577,27 +580,27 @@ void Game::Tap( int action, int wx, int wy )
 			GLOUTPUT(( "Tap: action=%d window(%.1f,%.1f) view(%.1f,%.1f) ui(%.1f,%.1f)\n", action, window.x, window.y, view.x, view.y, ui.x, ui.y ));
 	}
 #endif
-	sceneStack.Top().scene->Tap( action, view, world );
+	sceneStack.Top()->scene->Tap( action, view, world );
 }
 
 
 void Game::MouseMove( int x, int y )
 {
 	GLASSERT( Engine::mapMakerMode );
-	((BattleScene*)sceneStack.Top().scene)->MouseMove( x, y );
+	((BattleScene*)sceneStack.Top()->scene)->MouseMove( x, y );
 }
 
 
 
 void Game::Zoom( int style, float distance )
 {
-	sceneStack.Top().scene->Zoom( style, distance );
+	sceneStack.Top()->scene->Zoom( style, distance );
 }
 
 
 void Game::Rotate( float degrees )
 {
-	sceneStack.Top().scene->Rotate( degrees );
+	sceneStack.Top()->scene->Rotate( degrees );
 }
 
 
@@ -612,7 +615,7 @@ void Game::HandleHotKeyMask( int mask )
 	if ( mask & GAME_HK_TOGGLE_DEBUG_TEXT ) {
 		debugTextOn = !debugTextOn;
 	}
-	sceneStack.Top().scene->HandleHotKeyMask( mask );
+	sceneStack.Top()->scene->HandleHotKeyMask( mask );
 }
 
 
@@ -632,17 +635,17 @@ void Game::Resize( int width, int height, int rotation )
 
 void Game::RotateSelection( int delta )
 {
-	((BattleScene*)sceneStack.Top().scene)->RotateSelection( delta );
+	((BattleScene*)sceneStack.Top()->scene)->RotateSelection( delta );
 }
 
 void Game::DeleteAtSelection()
 {
-	((BattleScene*)sceneStack.Top().scene)->DeleteAtSelection();
+	((BattleScene*)sceneStack.Top()->scene)->DeleteAtSelection();
 }
 
 
 void Game::DeltaCurrentMapItem( int d )
 {
-	((BattleScene*)sceneStack.Top().scene)->DeltaCurrentMapItem(d);
+	((BattleScene*)sceneStack.Top()->scene)->DeltaCurrentMapItem(d);
 }
 

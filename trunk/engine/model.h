@@ -197,6 +197,7 @@ public:
 
 	void CalcTrigger( grinliz::Vector3F* trigger ) const;
 	void CalcTarget( grinliz::Vector3F* target ) const;
+	void CalcTargetSize( float* width, float* height ) const;
 
 	// Returns grinliz::INTERSECT or grinliz::REJECT
 	int IntersectRay(	const grinliz::Vector3F& origin, 

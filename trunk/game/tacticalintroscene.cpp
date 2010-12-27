@@ -41,7 +41,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	// -- Background -- //
 	gamui::RenderAtom nullAtom;
 
-	backgroundUI.Init( game, &gamui2D );
+	backgroundUI.Init( game, &gamui2D, true );
 
 	const gamui::ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
 	const gamui::ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );

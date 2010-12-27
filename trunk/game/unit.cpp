@@ -804,28 +804,32 @@ int Unit::CalcWeaponTURemaining( float subtract ) const
 
 
 // Used by the AI
-bool Unit::FireStatistics( WeaponMode mode, float distance, 
-						   float* chanceToHit, float* chanceAnyHit, float* tu, float* damagePerTU ) const
+bool Unit::FireStatistics(	WeaponMode mode, 
+							const BulletTarget& target,
+							float* chanceToHit, float* chanceAnyHit, float* tu, float* damagePerTU ) const
 {
 	*chanceToHit = 0.0f;
 	*chanceAnyHit = 0.0f;
 	*tu = 0.0f;
 	*damagePerTU = 0.0f;
+	bool result = false;
 	
 	float damage;
 
 	const WeaponItemDef* wid = GetWeaponDef();
 	if ( wid && wid->HasWeapon( mode ) ) {
 		*tu = wid->TimeUnits( mode );
-		return GetWeapon()->IsWeapon()->FireStatistics(	mode,
-														stats.AccuracyArea(), 
-														distance, 
-														chanceToHit, 
-														chanceAnyHit, 
-														&damage, 
-														damagePerTU );
+		result = GetWeapon()->IsWeapon()->FireStatistics(	mode,
+															stats.AccuracyArea(), 
+															target,
+															chanceToHit, 
+															chanceAnyHit, 
+															&damage, 
+															damagePerTU );
 	}
-	return false;
+	GLASSERT( InRange( *chanceToHit, 0.0f, 1.0f ) );
+	GLASSERT( InRange( *chanceAnyHit, 0.0f, 1.0f ) );
+	return result;
 }
 
 

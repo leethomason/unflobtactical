@@ -104,18 +104,36 @@ private:
 };
 
 
+class BulletTarget
+{
+public:
+	BulletTarget() {
+		distance = 1.0f;
+		width = 0.6f;
+		height = 1.8f;
+	}
+
+	explicit BulletTarget( float range ) {
+		distance = range;
+		width = 0.6f;
+		height = 1.8f;
+	}
+
+	float				distance;
+	float				width;
+	float				height;
+};
+
 class BulletSpread
 {
 public:
+
 	BulletSpread()		{}
 	~BulletSpread()		{}
 
 	void Generate( U32 seed, grinliz::Vector2F* result );
 	void Generate( U32 seed, const Accuracy& accuracy, float distance, const grinliz::Vector3F& dir, const grinliz::Vector3F& target, grinliz::Vector3F* targetPrime );
-	float ComputePercent( const Accuracy& accuracy, float distance, float width=0.6f, float height=1.8f );
-private:
-	//void Generate( float uniformX, float uniformY, grinliz::Vector2F* result );
-	//float Deviation( float x )	{ return (x>=0) ? x*x : -x*x; }		// x [-1,1], returns [-1,1], but skewed to the center. so Dev(0.5) = 0.25
+	float ComputePercent( const Accuracy& accuracy, const BulletTarget& target );
 };
 
 

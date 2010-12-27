@@ -171,15 +171,22 @@ public:
 	// Accuracy of the weapon. 1.0 is normal, higher is worse.
 	Accuracy CalcAccuracy( float unitAccuracy, WeaponMode mode ) const;
 
+	static void AddAccData( float predicted, bool hit );
+	static void CurrentAccData( float* predicted, float* actual );
+
 	// Statistics for this weapon. 
 	bool FireStatistics( WeaponMode mode, 
 						 float unitAccuracy, 
-						 float distance, 
+						 const BulletTarget& target,
 						 float* chanceToHit,				// chance a round hits
 						 float* chanceAnyHit,				// chance any round (of 1 or 3) hits
 						 float* totalDamage,			
 						 float* damagePerTU ) const;		// damagePerTU = f( damage, TU, accuracyRadius, distance )
 
+private:
+	static float accPredicted;
+	static int accHit;
+	static int accTotal;
 };
 
 

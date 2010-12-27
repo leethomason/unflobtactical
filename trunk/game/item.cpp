@@ -27,6 +27,10 @@
 
 using namespace grinliz;
 
+float WeaponItemDef::accPredicted = 0;
+int   WeaponItemDef::accHit = 0;
+int   WeaponItemDef::accTotal = 0;
+
 
 bool WeaponItemDef::IsAlien() const 
 { 
@@ -223,7 +227,7 @@ Accuracy WeaponItemDef::CalcAccuracy( float accuracyArea, WeaponMode mode ) cons
 
 bool WeaponItemDef::FireStatistics( WeaponMode mode,
 								    float accuracyArea, 
-									float distance, 
+									const BulletTarget& target,
 									float* chanceToHit, float* anyChanceToHit,
 									float* totalDamage, float* damagePerTU ) const
 {
@@ -235,17 +239,15 @@ bool WeaponItemDef::FireStatistics( WeaponMode mode,
 
 	if ( tu > 0.0f ) {
 		Accuracy acc = CalcAccuracy( accuracyArea, mode );
-		//if( StrEqual( this->name, "PST" ) ) {
-		//	GLOUTPUT(( "AccArea=%.2f rad=%.2f\n", accuracyArea, acc.RadiusAtOne() ));
-		//}
 
 		BulletSpread bulletSpread;
-		*chanceToHit = bulletSpread.ComputePercent( acc, distance );
+		*chanceToHit = bulletSpread.ComputePercent( acc, target );
 
 		*anyChanceToHit = *chanceToHit;
 		int nRounds = RoundsNeeded( mode );
 
-		if ( nRounds == 3 ) {
+		if ( nRounds > 1 ) {
+			GLASSERT( nRounds == 3 );	// need to fix the power furtion if not 3
 			float chanceMiss = (1.0f - (*chanceToHit));
 			*anyChanceToHit = 1.0f - chanceMiss*chanceMiss*chanceMiss;
 		}
@@ -258,6 +260,23 @@ bool WeaponItemDef::FireStatistics( WeaponMode mode,
 		return true;
 	}
 	return false;
+}
+
+
+/*static*/ void WeaponItemDef::AddAccData( float predicted, bool hit )
+{
+	GLASSERT( predicted >= 0 && predicted <= 1 );
+
+	accPredicted += predicted;
+	accTotal++;
+	if ( hit ) accHit++;
+}
+
+
+/*static*/ void WeaponItemDef::CurrentAccData( float* predicted, float* actual )
+{
+	*predicted = accPredicted / (float)accTotal;
+	*actual    = (float)accHit / (float)accTotal;
 }
 
 

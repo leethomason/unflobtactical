@@ -6,7 +6,6 @@ Bugs:
 - shield generators
 - rework weapons and tech
 - "comp" button -> WPN??
-- calibrate accuracy
 - Android: reduce scale/rotation sensitivity
 - Android: volume control
 - Android: sound drops out (GC of MediaObject)
@@ -40,6 +39,7 @@ TBD:
 - rework fire spread & explosions.
 
 FIXED
+- calibrate accuracy
 - rework smoke and fire. too many dropouts.
 - civilians
 - auto generate crashed UFO
@@ -238,3 +238,4 @@ Deferred/Cancelled
 - simultaneous shots
 - Sounds: better sounds, latency
 - Gameplay: doors are death traps if guarded...blow up doors?
+
