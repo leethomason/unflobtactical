@@ -144,7 +144,7 @@ int AI::VisibleUnitsInArea(	const Unit* theUnit,
 {
 	int count = 0;
 	for( int i=0; i<MAX_UNITS; ++i ) {
-		if ( m_enemy[i] > 0 ) {
+		if ( m_enemy[i] > 0 && units[i].IsAlive() ) {
 			if ( m_visibility->TeamCanSee( theUnit->Team(), units[i].Pos() ) ) {
 				Vector2I p;
 				units[i].CalcMapPos( &p, 0 );
@@ -188,13 +188,18 @@ int AI::ThinkShoot(	const Unit* theUnit,
 			int len2 = (m_units[i].Pos()-theUnit->Pos()).LengthSquared();
 			float len = sqrtf( (float)len2 );
 
+			BulletTarget bulletTarget( len );
+			m_units[i].GetModel()->CalcTargetSize( &bulletTarget.width, &bulletTarget.height );
+
 			for ( int _mode=0; _mode<3; ++_mode ) {
 				WeaponMode mode = (WeaponMode)_mode;
 
 				if ( theUnit->CanFire( mode ) ) {
 					float chance, anyChance, tu, dptu;
+					
 
-					if ( theUnit->FireStatistics( (WeaponMode)mode, len, &chance, &anyChance, &tu, &dptu ) ) {
+
+					if ( theUnit->FireStatistics( (WeaponMode)mode, bulletTarget, &chance, &anyChance, &tu, &dptu ) ) {
 						float score = dptu * m_enemy[i];	// Interesting: good AI, but results in odd choices.
 
 						if ( wid->IsExplosive( (WeaponMode)mode ) ) {
@@ -226,6 +231,7 @@ int AI::ThinkShoot(	const Unit* theUnit,
 		action->actionID = ACTION_SHOOT;
 		action->shoot.mode = (WeaponMode)bestMode;
 		m_units[best].GetModel()->CalcTarget( &action->shoot.target );
+		m_units[best].GetModel()->CalcTargetSize( &action->shoot.targetWidth, &action->shoot.targetHeight );
 		return THINK_ACTION;
 	}
 	return THINK_NO_ACTION;
@@ -463,9 +469,14 @@ int AI::ThinkTravel(	const Unit* theUnit,
 			}
 		}
 
-		// Look for a new travel destination.
-		m_travel[index].x = m_random.Rand( mapBounds.Width() );
-		m_travel[index].y = m_random.Rand( mapBounds.Height() );
+		// Look for a new travel destination. Prefer destinations that aren't currently visible.
+		for( int j=0; j<4; ++j ) {
+			m_travel[index].x = m_random.Rand( mapBounds.Width() );
+			m_travel[index].y = m_random.Rand( mapBounds.Height() );
+			
+			if ( !m_visibility->TeamCanSee( m_team, m_travel[index] ) )
+				break;
+		}
 	}
 	return THINK_NO_ACTION;
 }
@@ -632,8 +643,7 @@ bool CivAI::Think(	const Unit* theUnit,
 					Map* map,
 					AIAction* action )
 {
-	Vector2F sum = { 0, 0 };
-	bool shouldRun = false;
+	Vector2F sumRun = { 0, 0 };
 	action->actionID = ACTION_NONE;
 
 	// Civs wander unless they are running away from something.
@@ -645,22 +655,24 @@ bool CivAI::Think(	const Unit* theUnit,
 			{
 				Vector2I runI = theUnit->Pos() - m_units[i].Pos();
 				Vector2F run = { (float)runI.x, (float)runI.y };
-				run.Multiply( 1.0f / run.Length() );
-
-				sum += run;
-				shouldRun = true;
+				float len = run.Length();
+				GLASSERT( len > 0 );
+				if ( len > 0 ) {
+					run.Multiply( 1.0f / len  );
+					sumRun += run;
+				}
 			}
 		}
 	}
 
-	if ( shouldRun ) {
+	if ( sumRun.LengthSquared() > 0 ) {
 		const float dest[2] = { 8.0f, 4.0f };
 
-		sum.Normalize();
+		sumRun.Normalize();
 
 		// Try to move further, then closer. Failing that, wander.
 		for( int i=0; i<2; ++i ) {
-			Vector2I end32 = { theUnit->Pos().x + LRintf( sum.x*dest[i] ), theUnit->Pos().y + LRintf( sum.y*dest[i] ) };
+			Vector2I end32 = { theUnit->Pos().x + LRintf( sumRun.x*dest[i] ), theUnit->Pos().y + LRintf( sumRun.y*dest[i] ) };
 			if ( map->Bounds().Contains( end32 ) ) {
 				grinliz::Vector2<S16> start = { theUnit->Pos().x, theUnit->Pos().y };
 				grinliz::Vector2<S16> end = { end32.x, end32.y };

@@ -34,7 +34,7 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, const TacticalEndSc
 	engine->EnableMap( false );
 
 	gamui::RenderAtom nullAtom;
-	backgroundUI.Init( game, &gamui2D );
+	backgroundUI.Init( game, &gamui2D, false );
 
 
 	int count=0;

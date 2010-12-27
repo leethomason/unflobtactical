@@ -256,7 +256,10 @@ void CharacterScene::CompWidget::SetCompText()
 				wid->DamageBase( mode, &dd );
 
 				float fraction, fraction2, damage, dptu;
-				wid->FireStatistics( mode, stats.AccuracyArea(), r, &fraction, &fraction2, &damage, &dptu );
+				wid->FireStatistics( mode, stats.AccuracyArea(), BulletTarget( r ), &fraction, &fraction2, &damage, &dptu );
+
+				fraction = Clamp( fraction, 0.0f, 0.95f );
+				fraction2 = Clamp( fraction2, 0.0f, 0.95f );
 
 				char buf[16];
 

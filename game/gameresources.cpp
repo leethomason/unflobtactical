@@ -53,7 +53,9 @@ void Game::DumpWeaponInfo( FILE* fp, float range, const Stats& stats, int count 
 				if ( wid->HasWeapon( mode )) {
 					DamageDesc dd;
 					wid->DamageBase( mode, &dd );
-					wid->FireStatistics( mode, stats.AccuracyArea(), range, &fraction, &fraction2, &damage, &dptu );
+
+					BulletTarget bulletTarget( range );
+					wid->FireStatistics( mode, stats.AccuracyArea(), bulletTarget, &fraction, &fraction2, &damage, &dptu );
 					int nShots = wid->RoundsNeeded( mode );
 
 					fprintf( fp, "%3d %d %3d%% [%3d%%] %5.1f  ",

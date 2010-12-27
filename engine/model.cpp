@@ -305,6 +305,13 @@ void Model::CalcTarget( grinliz::Vector3F* target ) const
 }
 
 
+void Model::CalcTargetSize( float* width, float* height ) const
+{
+	*width  = ( resource->AABB().SizeX() +resource->AABB().SizeZ() )*0.5f;
+	*height = resource->AABB().SizeY();
+}
+
+
 void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent, Texture* textureReplace )
 {
 	if ( flags & MODEL_INVISIBLE )

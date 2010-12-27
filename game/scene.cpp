@@ -36,14 +36,16 @@ Engine* Scene::GetEngine()
 
 
 
-void BackgroundUI::Init( Game* game, gamui::Gamui* g )
+void BackgroundUI::Init( Game* game, gamui::Gamui* g, bool logo )
 {
 	background.Init( g, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND ), false );
 	background.SetSize( game->engine->GetScreenport().UIWidth(), game->engine->GetScreenport().UIHeight() );
 
-	backgroundText.Init( g, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND_TEXT ), true );
-	backgroundText.SetForeground( true );
-	backgroundText.SetPos( 20, 10 );
+	if ( logo ) {
+		backgroundText.Init( g, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND_TEXT ), true );
+		backgroundText.SetForeground( true );
+		backgroundText.SetPos( 20, 10 );
+	}
 }
 
 

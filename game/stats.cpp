@@ -105,7 +105,7 @@ void BulletSpread::Generate( U32 seed, grinliz::Vector2F* result )
 }
 
 
-void BulletSpread::Generate( U32 seed, const Accuracy& accuracy, float distance, const grinliz::Vector3F& dir, const grinliz::Vector3F& target,  grinliz::Vector3F* targetPrime )
+void BulletSpread::Generate( U32 seed, const Accuracy& accuracy, float distance, const grinliz::Vector3F& dir, const grinliz::Vector3F& target, grinliz::Vector3F* targetPrime )
 {
 	Vector2F spread;
 	Generate( seed, &spread );
@@ -123,40 +123,49 @@ void BulletSpread::Generate( U32 seed, const Accuracy& accuracy, float distance,
 }
 
 
-float BulletSpread::ComputePercent( const Accuracy& accuracy, float distance, float width, float height )
+float BulletSpread::ComputePercent( const Accuracy& accuracy, const BulletTarget& target )
 {
-	enum { X = 6, Y = 8 };
-	static const char map[X*Y+1] =	"  xx  "
-									" xxxx "
-									"xxxxxx"
-									"xxxxxx"
-									"xxxxxx"
-									"xxxxxx"
-									" x  x "
-									" x  x ";
+	// Tests:
+	// Game accuracy: predicted=0.40 actual=0.32
+	// Game accuracy: predicted=0.36 actual=0.34
+	// Game accuracy: predicted=0.59 actual=0.46
+	// Game accuracy: predicted=0.53 actual=0.39
+	// average:					0.47        0.38
+	//
+	// with KLUGDE & bullseye: Game accuracy: predicted=0.29 actual=0.29. Groovy. Done with this, hopefully.
 
-	Vector2F center = { width*0.50f, height*0.65f };
-	int hit = 0;
+	static const float KLUDGE = 0.38f / 0.47f;
+	static const float EPS = 0.1f;
 
-	const int SAMPLES = 117;
+	GLASSERT( target.distance > 0 );
+	GLASSERT( target.width > 0 );
+	GLASSERT( target.height > 0 );
+
+	Vector2F center = { target.width*0.50f, target.height*0.65f };
+	
+	Rectangle2F bullseye, board;
+	board.Set( 0, 0, target.width, target.height );
+	bullseye.Set(	center.x-target.width*EPS, center.y-target.height*EPS,
+					center.x+target.width*EPS, center.y+target.height*EPS );
+
+	float hit = 0;
+
+	const int SAMPLES = 37;
 	for( int i=0; i<SAMPLES; ++i ) {
 		Vector2F v;
 		Generate( i, &v );
 
 		Vector2F pos;
-		pos.x = center.x + v.x*distance*accuracy.RadiusAtOne();
-		pos.y = center.y + v.y*distance*accuracy.RadiusAtOne();
+		pos.x = center.x + v.x*target.distance*accuracy.RadiusAtOne();
+		pos.y = center.y + v.y*target.distance*accuracy.RadiusAtOne();
 
-		if ( pos.x >= 0 && pos.x < width && pos.y >=0 && pos.y < height ) {
-			// Look up into our target dummy to approximate hit chance.
-			int mx = (int)( pos.x*float(X) / width );
-			int my = (int)( pos.y*float(Y) / height );
-			mx = Clamp( mx, 0, X-1);
-			my = Clamp( my, 0, Y-1);
-			if ( map[(Y-1-my)*X+mx] == 'x' )
-				++hit;
+		if ( bullseye.Contains( pos ) ) {
+			hit += 1.0f;
+		}
+		else if ( board.Contains( pos ) ) {
+			hit += KLUDGE;
 		}
 	}
-	float result = (float)hit / (float)SAMPLES;
+	float result = hit / (float)SAMPLES;
 	return Clamp( result, 0.0f, 0.95f );
 }

@@ -158,8 +158,9 @@ private:
 	};
 
 	struct ShootAction {
-		grinliz::Vector3F	target;
 		WeaponMode			mode;
+		float				chanceToHit;
+		grinliz::Vector3F	target;
 	};
 
 	struct DelayAction {
@@ -213,14 +214,15 @@ private:
 		void Init( int id, Unit* unit )			{ Clear(); actionID = id; this->unit = unit; }
 		bool NoAction()							{ return actionID == ACTION_NONE; }
 	};
-
 	CStack< Action > actionStack;
 
 	void PushRotateAction( Unit* src, const grinliz::Vector3F& dst, bool quantize );
 	
 	// Try to shoot. Return true if success.
 	bool PushShootAction(	Unit* src, 
-							const grinliz::Vector3F& dst, 
+							const grinliz::Vector3F& target, 
+							float targetWidth, 
+							float targetHeight,
 							WeaponMode mode,
 							float useError,				// if 0, perfect shot. <1 improve, 1 normal error, >1 more error
 							bool clearMoveIfShoot );	// clears move commands if needed

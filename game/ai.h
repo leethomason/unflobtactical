@@ -48,6 +48,8 @@ public:
 	struct ShootAIAction {
 		WeaponMode			mode;
 		grinliz::Vector3F	target;
+		float				targetWidth;
+		float				targetHeight;
 	};
 
 	struct RotateAIAction {
@@ -155,6 +157,7 @@ protected:
 	const Unit* m_units;
 
 	int m_team;
+
 	Visibility* m_visibility;
 	grinliz::Random m_random;
 	Engine* m_engine;	// for ray queries.

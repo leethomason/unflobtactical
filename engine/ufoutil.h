@@ -21,47 +21,68 @@
 #include "../grinliz/glvector.h"
 #include "../grinliz/glfixed.h"
 #include "../grinliz/glrectangle.h"
+#include "../grinliz/glmemorypool.h"
 
 void CEnsureCap( unsigned needInBytes, unsigned* capInBytes, void** stack );
 
-/* A stack class for c-structs. (No constructor, no destructor, can be copied.)
+/* Implements a stack as a linked list items.
+   Must be c-structs (No constructor, no destructor, can be copied.)
  */
 template < class T >
 class CStack
 {
 public:
-	CStack( int allocate = 16 ) : stack( 0 ), size( 0 ), capInBytes( 0 ) 
-	{
-		CEnsureCap( allocate*sizeof(T), &capInBytes, (void**) &stack );	
+	CStack() : root( 0 ), size( 0 ), pool( "CStackPool", sizeof( Node ) ) {
 	}
 	~CStack() {
-		free( stack );
+		Clear();
 	}
 
-	void Push( T t ) {
-		if ( capInBytes <= (size+1)*sizeof(T) ) {
-			CEnsureCap( (size+1)*sizeof(T), &capInBytes, (void**) &stack );	
-		}
-		stack[size++] = t;
+	T* Push() {
+		Node* n = (Node*)pool.Alloc();
+		n->next = root;
+		root = n;
+		++size;
+		return &n->data;
 	}
 	
-	void Pop()		{ GLASSERT( size > 0 ); size--; }
-	void Clear()	{ size = 0; }
-	bool Empty()	{ return size==0; }
-	T& Top()  {
-		GLASSERT( size > 0 );
-		return stack[size-1];
+	void Pop()		{ 
+		GLASSERT( root );
+		Node* next = root->next;
+		pool.Free( root );
+		--size;
+		root = next;
 	}
-	T& Bottom() {
-		GLASSERT( size > 0 );
-		return stack[0];
+
+	void Clear()	{
+		while( !Empty() )
+			Pop();
 	}
-	int Size()		{ return (int)size; }
+	bool Empty()	{ return root == 0; }
+
+	T* Top()  {
+		GLASSERT( root );
+		return &root->data;
+	}
+
+	T* Bottom() {
+		GLASSERT( root );
+		Node* b = root;
+		while( b->next && b->next->next )
+			b = b->next;
+		return &b->data;
+	}
+
+	int Size() { return size; }
 
 private:
-	T* stack;
-	unsigned size;
-	unsigned capInBytes;
+	struct Node {
+		Node* next;
+		T	  data;
+	};
+	Node* root;
+	int size;
+	grinliz::MemoryPool pool;
 };
 
 
