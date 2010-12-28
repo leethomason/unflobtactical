@@ -1,9 +1,7 @@
 Issues:
 
 Bugs:
-- Android: reduce scale/rotation sensitivity
-- Android: volume control
-- Android: sound drops out (GC of MediaObject)
+- Android: switch to different application mode? Shut down on screen loss?
 
 Architecture
 - Map as interface
@@ -25,13 +23,15 @@ TBD:
 - mission location: ice
 - re-size after load
 - Android: cap framerate. Don't really need >30
-- Android: switch to different application mode? Shut down on screen loss?
 - Reconsider when reaction fire occurs. And probability.
-- check math (again yet again) in PushShootAction()
 - trees show up in the wrong place
 - rework fire spread & explosions.
 
-FIXED
+FIXED [528]
+- Android: reduce scale/rotation sensitivity
+- Android: volume control
+- Android: sound drops out (GC of MediaObject)
+- check math (again yet again) in PushShootAction()
 - tweak: move AR-1 to sit more forward
 - report civ survival on score screen
 - balance weapon damage, accuracy, and character acuracy

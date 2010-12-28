@@ -496,7 +496,7 @@ void Game::DoTick( U32 _currentTime )
 	#endif
 #if 1
 	if ( debugTextOn ) {
-		UFOText::Draw(	0,  Y, "UFO#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
+		UFOText::Draw(	0,  Y, "#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
 				 		VERSION,
 						framesPerSecond, 
 						(float)GPUShader::TrianglesDrawn()/1000.0f,
@@ -518,7 +518,11 @@ void Game::DoTick( U32 _currentTime )
 		#endif
 	}
 	else {
-		UFOText::Draw(	0,  Y, "UFO#%d %5.1ffps vbo=%d", VERSION, framesPerSecond, GPUShader::SupportsVBOs() ? 1 : 0 );
+		UFOText::Draw(	0,  Y, "#%d %5.1ffps vbo=%d ps=%d", 
+						VERSION, 
+						framesPerSecond, 
+						GPUShader::SupportsVBOs() ? 1 : 0,
+						PointParticleShader::IsSupported() ? 1 : 0 );
 	}
 #endif
 	GPUShader::ResetTriCount();

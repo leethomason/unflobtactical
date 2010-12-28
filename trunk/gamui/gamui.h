@@ -111,8 +111,14 @@ struct RenderAtom
 	}
 
 	bool Equal( const RenderAtom& atom ) const {
-		// Sleazy, depends on tight packing
-		return memcmp( this, &atom, sizeof(*this) ) == 0;
+		return (    tx0 == atom.tx0
+			     && ty0 == atom.ty0
+				 && tx1 == atom.tx1
+				 && ty1 == atom.ty1
+				 && srcWidth == atom.srcWidth
+				 && srcHeight == atom.srcHeight
+				 && renderState == atom.renderState
+				 && textureHandle == atom.textureHandle );
 	}
 
 	/*  These methods are crazy useful. Don't work with Android compiler, which doesn't seem to like template functions at all. Grr.
