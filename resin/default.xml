@@ -51,8 +51,8 @@
   <model filename="chess_characters.ac" modelName="jackal"       origin="3 0 0"  shading="flat" polyRemoval="pre" trigger="2.48  0.60 0" eye="0.85" target="0.91" />
   <model filename="chess_characters.ac" modelName="viper"        origin="4 0 0"  shading="flat" polyRemoval="pre" trigger="3.69  0.72 0" eye="1.42" target="1.33" />
 
-  <model filename="chess_characters.ac" modelName="maleMarine"   origin="-1 0 0" shading="flat" polyRemoval="pre" trigger="-1.40 0.91 0.0" eye="1.81" target="1.15"/>
-  <model filename="chess_characters.ac" modelName="femaleMarine" origin="-2 0 0" shading="flat" polyRemoval="pre" trigger="-2.35 0.90 0.0" eye="1.75" target="1.25"/>
+  <model filename="chess_characters.ac" modelName="maleMarine"   origin="-1 0 0" shading="flat" polyRemoval="pre" trigger="-1.35 1.00 0.0" eye="1.81" target="1.15"/>
+  <model filename="chess_characters.ac" modelName="femaleMarine" origin="-2 0 0" shading="flat" polyRemoval="pre" trigger="-2.25 1.00 0.0" eye="1.75" target="1.25"/>
   <model filename="chess_characters.ac" modelName="maleCiv"      origin="-3 0 0" shading="flat" polyRemoval="pre"                          eye="1.65" target="1.20"/>
   <model filename="chess_characters.ac" modelName="femaleCiv"    origin="-4 0 0" shading="flat" polyRemoval="pre"                          eye="1.57" target="1.20"/>
 
@@ -199,7 +199,7 @@
       </p>
       <p>
         The following screens cover the basics; much more info online
-        at http://code.google.com/p/unflobtactical/
+        at xenowar.net
       </p>
     </page>
     <page>

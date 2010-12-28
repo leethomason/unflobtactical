@@ -30,7 +30,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* input )
 	: Scene( _game )
 {
 	unit = input->unit;
-	dragUIItem = 0;
+//	dragUIItem = 0;
 
 	engine = _game->engine;
 	const Screenport& port = _game->engine->GetScreenport();
@@ -52,7 +52,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* input )
 	helpButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_HELP, true ),  UIRenderer::CalcDecoAtom( DECO_HELP, false ) );
 
 	gamui::UIItem* controlArr[NUM_CONTROL+1] = { &helpButton };
-	static const char* const controlLabel[NUM_CONTROL] = { "Inv", "Stats", "Comp" };
+	static const char* const controlLabel[NUM_CONTROL] = { "Inv", "Stats", "Wpns" };
 	for( int i=0; i<NUM_CONTROL; ++i ) {
 		control[i].Init( &gamui2D, blue );
 		if ( i > 0 ) 
@@ -81,9 +81,6 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* input )
 	compWidget.Init( &game->GetItemDefArr(), storage, unit, &gamui2D, blue, storageWidget->X(), 0, storageWidget->Width() );
 
 	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE), storageWidget->Width(), GAME_BUTTON_SIZE_F );
-
-	RenderAtom nullAtom;
-	dragImage.Init( &gamui2D, nullAtom, true );
 }
 
 

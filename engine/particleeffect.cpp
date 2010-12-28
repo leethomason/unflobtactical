@@ -48,6 +48,7 @@ void BoltEffect::Init(	const grinliz::Vector3F& _p0,
 	distance = normal.Length();
 	normal.Normalize();
 	done = false;
+	d0 = d1 = 0;
 }
 
 
@@ -86,7 +87,9 @@ void BoltEffect::DoTick( U32 time, U32 deltaTime )
 
 void BoltEffect::Draw( const Vector3F* eyeDir )
 {
-	if ( d1 > d0 ) {
+	if (    d1 > d0
+		 && !done ) 
+	{
 		Vector3F q0 = p0 + normal*d0;
 		Vector3F q1 = p0 + normal*d1;
 

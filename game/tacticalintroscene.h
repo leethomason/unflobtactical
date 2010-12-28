@@ -70,8 +70,8 @@ public:
 
 		LOC_FARM,
 
-		SCEN_LANDING,
-		SCEN_CRASH,
+		CIVS_PRESENT,
+		UFO_CRASH,
 
 		TOGGLE_COUNT,
 	};
@@ -80,17 +80,15 @@ public:
 		const char*		base;			// FARM
 		int				blockSizeX;		// 2, 3, 4
 		int				blockSizeY;		// 2, 3, 4
-		bool			needsLander;	// true/false
+		//bool			needsLander;	// true/false
 		int				ufoSize;		// 0: no, >0: blocksize
 		bool			crash;
+		int				nCivs;
 	};
-	static void CalcInfo( int location, int scenario, int ufoSize, SceneInfo* info );
 
 	void CreateMap( FILE* fp, 
 					int seed,
-					int location,			// LOC_FARM
-					int scenario,			// SCEN_LANDING
-					int ufoSize );			// 0: small, 1: big
+					const SceneInfo& info );
 
 private:
 	void WriteXML( FILE* fp );

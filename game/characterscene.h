@@ -79,9 +79,6 @@ protected:
 	gamui::PushButton helpButton;
 	gamui::ToggleButton control[NUM_CONTROL];
 
-	gamui::Image			dragImage;
-	const gamui::UIItem*	dragUIItem;
-
 	class StatWidget {
 	public:
 		StatWidget()		{}

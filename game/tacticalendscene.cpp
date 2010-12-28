@@ -51,8 +51,11 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 		victory.SetText( "Mission Summary:" );
 	victory.SetPos( XPOS, YPOS );
 
-	const char* text[TEXT_ROW] = { "Soldiers survived",  "Soldiers killed", "Aliens survived", "Aliens killed" };
-	int value[TEXT_ROW]		   = { data->nTerransAlive,	data->nTerrans - data->nTerransAlive, data->nAliensAlive, data->nAliens - data->nAliensAlive };
+	const char* text[TEXT_ROW] = { "Soldiers survived",  "Soldiers killed", "Aliens survived", "Aliens killed", "Civs Saved", "Civs Killed" };
+	int value[TEXT_ROW]		   = {	data->nTerransAlive,	data->nTerrans - data->nTerransAlive, 
+									data->nAliensAlive, data->nAliens - data->nAliensAlive,
+									data->nCivsAlive,	data->nCivs - data->nCivsAlive
+								 };
 
 	for( int i=0; i<TEXT_ROW; ++i ) {
 		textTable[i*TEXT_COL].SetText( text[i] );

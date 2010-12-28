@@ -904,6 +904,12 @@ bool BattleScene::EndCondition( TacticalEndSceneData* data )
 		if ( units[i].IsAlive() )
 			++data->nAliensAlive;
 	}
+	for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i ) {
+		if ( units[i].InUse() )
+			++data->nCivs;
+		if ( units[i].IsAlive() )
+			++data->nCivsAlive;
+	}
 
 	// If the terrans are all down for the count, then it acts like the 
 	// lander leaving. KO becomes MIA.

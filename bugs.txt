@@ -1,11 +1,6 @@
 Issues:
 
 Bugs:
-- new game choices UI
-- big drag buttons
-- shield generators
-- "comp" button -> WPN??
-- balance weapon damage, accuracy, and character acuracy
 - Android: reduce scale/rotation sensitivity
 - Android: volume control
 - Android: sound drops out (GC of MediaObject)
@@ -19,7 +14,6 @@ Features:
 TBD:
 - skinning for weapons
 - 32 bit assets - xenowar logo
-- tweak: move AR-1 to sit more forward
 - mission types: terror
 - mission types: destroyer
 - mission types: battleship
@@ -38,6 +32,13 @@ TBD:
 - rework fire spread & explosions.
 
 FIXED
+- tweak: move AR-1 to sit more forward
+- report civ survival on score screen
+- balance weapon damage, accuracy, and character acuracy
+- big drag buttons
+- new game choices UI
+- "comp" button -> WPN??
+- shield generators
 - rework weapons and tech
 - logos switched out for 'Xenowar' style
 - calibrate accuracy

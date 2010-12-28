@@ -35,7 +35,7 @@ InventoryWidget::InventoryWidget(	gamui::Gamui* g,
 
 	RenderAtom nullAtom;
 	dragImage.Init( g, nullAtom, true );
-	dragImage.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	dragImage.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F*2.0f );
 	dragImage.SetVisible( false );
 
 	dragIndex = -1;

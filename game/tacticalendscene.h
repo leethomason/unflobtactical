@@ -32,6 +32,8 @@ public:
 	int nTerransAlive;
 	int nAliens;
 	int nAliensAlive;
+	int nCivs;
+	int nCivsAlive;
 	const Unit* units;
 };
 
@@ -57,7 +59,7 @@ public:
 	virtual void DrawHUD();
 
 private:
-	enum { TEXT_ROW = 4, TEXT_COL = 2 };
+	enum { TEXT_ROW = 6, TEXT_COL = 2 };
 	BackgroundUI		backgroundUI;
 	gamui::TextLabel	victory;
 	gamui::TextLabel	textTable[TEXT_ROW*TEXT_COL];
