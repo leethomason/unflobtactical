@@ -363,19 +363,14 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	int types[Unit::NUM_ALIEN_TYPES] = { 0 };
 
 	// Terran units
-	{
-		if ( toggles[TERRAN_LOW].Down() )
-			rank = 0;
-		else if ( toggles[TERRAN_MED].Down() )
-			rank = 2;
-		else if ( toggles[TERRAN_HIGH].Down() )
-			rank = 4;
+	if ( toggles[TERRAN_LOW].Down() )
+		rank = 0;
+	else if ( toggles[TERRAN_MED].Down() )
+		rank = 2;
+	else if ( toggles[TERRAN_HIGH].Down() )
+		rank = 4;
 
-		count = 4;
-		if ( toggles[SQUAD_8].Down() ) {
-			count = 8;
-		}
-	}
+	count = toggles[SQUAD_8].Down() ? 8 : 4;
 	memset( units, 0, sizeof(Unit)*MAX_UNITS );
 	GenerateTerranTeam( units, count, rank, seed );
 	for( int i=0; i<count; ++i ) {
@@ -385,9 +380,7 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	}
 
 	// Alien units
-	if ( toggles[ALIEN_16].Down() ) {
-		count = 16;
-	}
+	count = toggles[ALIEN_16].Down() ? 16 : 8;
 
 	if ( toggles[ALIEN_LOW].Down() ) {
 		types[Unit::ALIEN_GREEN] = count*3/4;
@@ -696,16 +689,16 @@ void TacticalIntroScene::GenerateTerranTeam( Unit* unit,				// target units to w
 											int seed )
 {
 	static const int POSITION = 4;
-	const char* weapon[POSITION][NUM_RANKS] = {
+	static const char* weapon[POSITION][NUM_RANKS] = {
 		{	"ASLT-1",	"ASLT-1",	"ASLT-2",	"ASLT-2",	"ASLT-3" },		// assault
 		{	"ASLT-1",	"PLS-1",	"ASLT-2",	"PLS-2",	"PLS-3" },		// assault
 		{	"LR-1",		"LR-1",		"LR-2",		"LR-2",		"LR-3" },		// sniper
 		{	"MCAN-1",	"MCAN-1",	"MCAN-2",	"STRM-2",	"MCAN-3" },	// heavy
 	};
-	const char* armor[NUM_RANKS] = {
+	static const char* armorType[NUM_RANKS] = {
 		"ARM-1", "ARM-2", "ARM-2", "ARM-3", "ARM-3"
 	};
-	const char* extra[NUM_RANKS] = {
+	static const char* extraItems[NUM_RANKS] = {
 		"", "", "SG:I", "SG:K", "SG:E"
 	};
 
@@ -743,13 +736,13 @@ void TacticalIntroScene::GenerateTerranTeam( Unit* unit,				// target units to w
 		// Add extras
 		{
 			rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
-			Item armor( game->GetItemDefArr(), armor[rank] );
+			Item armor( game->GetItemDefArr(), armorType[rank] );
 			unit[k].GetInventory()->AddItem( armor );
 		}
 
 		rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
 		for( int i=0; i<=rank; ++i ) {
-			Item extra( game->GetItemDefArr(), extra[i] );
+			Item extra( game->GetItemDefArr(), extraItems[i] );
 			unit[k].GetInventory()->AddItem( extra );
 		}
 	}

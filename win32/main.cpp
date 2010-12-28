@@ -265,6 +265,7 @@ int main( int argc, char **argv )
 	SDL_TimerID timerID = SDL_AddTimer( TIME_BETWEEN_FRAMES, TimerCallback, 0 );
 #endif
 
+
 	// ---- Main Loop --- //
 #ifdef TEST_FULLSPEED	
 	while ( !done ) {

@@ -61,6 +61,8 @@ void SettingsManager::Save()
 		XMLUtil::OpenElement( fp, 0, "Settings" );
 
 		XMLUtil::Attribute( fp, "audioOn", audioOn );
+		XMLUtil::Attribute( fp, "suppressCrashLog", suppressCrashLog );
+		XMLUtil::Attribute( fp, "playerAI", playerAI );
 
 		XMLUtil::SealCloseElement( fp );
 

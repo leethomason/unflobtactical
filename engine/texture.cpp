@@ -88,9 +88,14 @@ Texture* TextureManager::GetTexture( const char* name )
 			int h = item->GetInt( "height" );
 			const char* fstr = item->GetString( "format" );
 			int format = Surface::QueryFormat( fstr );
+			Texture::Param flags = Texture::PARAM_NONE;
+
+			//if ( strstr( name, "font" ) ) {
+			//	flags = Texture::PARAM_NEAREST;
+			//}
 			
 			t = textureArr.Push();
-			t->Set( name, w, h, format, Texture::PARAM_NONE );
+			t->Set( name, w, h, format, flags );
 			t->item = item;
 
 			map.Add( t->Name(), t );

@@ -1,7 +1,7 @@
 
 package com.grinninglizard.UFOAttack;
 
-import java.io.File;
+import java.io.File;                
 import java.io.FileDescriptor;
 import java.io.IOException;
 
@@ -18,6 +18,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
@@ -34,6 +35,8 @@ public class UFOActivity extends Activity  {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        this.setVolumeControlStream(AudioManager.STREAM_MUSIC); // switch the hardware volume control to control the sound level
         
         // On the main thread, before we fire off the render thread:
         setWritePaths();
@@ -165,7 +168,6 @@ class DemoGLSurfaceView extends GLSurfaceView { 	//implements MultiTouchObjectCa
 	private static final int GAME_TAP_MOVE		= 1;
 	private static final int GAME_TAP_UP		= 2;
 	private static final int GAME_TAP_CANCEL	= 3;
-	//private static final int PANNING			= 0x0100;
 	
 	private static final int GAME_ZOOM_DISTANCE = 0;
 	private static final int GAME_ZOOM_PINCH 	= 1;
@@ -178,11 +180,13 @@ class DemoGLSurfaceView extends GLSurfaceView { 	//implements MultiTouchObjectCa
 	@Override
 	public boolean onTrackballEvent(MotionEvent event) {
 		
-		//Log.v("UFOATTACK", "dy=" + event.getX() );
+		// NEXUS-ONE does fine with 1.0, Droid Inc likes the 0.5f
+		float ATTENUATION = 0.5f;
+		
 		if ( event.getX() != 0 )
-			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ZOOM, GAME_ZOOM_DISTANCE, 0, 0, -event.getX() ) );
+			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ZOOM, GAME_ZOOM_DISTANCE, 0, 0, -event.getX()*ATTENUATION ) );
 		if ( event.getY() != 0 )
-			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ROTATE, 0, 0, 0, event.getY()*90.0f ) );
+			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ROTATE, 0, 0, 0, event.getY()*90.0f*ATTENUATION ) );
 		return true;
 	}
 	
@@ -310,12 +314,14 @@ final class RendererEvent implements Runnable
 class UFORenderer implements GLSurfaceView.Renderer {
 	
 	private FileDescriptor fd = null;
-	//private MediaPlayer mediaPlayer0 = null;
+	private MediaPlayer[] player = new MediaPlayer[2];
 	
 	public UFORenderer( FileDescriptor fd ) {
 		super();
 		this.fd = fd;
-		//mediaPlayer0 = new MediaPlayer();
+		for( int i=0; i<player.length; ++i ) {
+			player[i] = new MediaPlayer();
+		}
 	}
 	
 	public boolean HasContext() {
@@ -355,18 +361,27 @@ class UFORenderer implements GLSurfaceView.Renderer {
 	    	int size = (int)((pop>>32) & 0xffffffff);
     		// Play sound!!
 	    	//Log.v("UFOJAVA", "play sound offest=" + offset + " size=" + size );
-	    	MediaPlayer mediaPlayer0 = new MediaPlayer();
-    		try {
-				mediaPlayer0.setDataSource( fd, offset, size );
-				mediaPlayer0.prepare();
-	    		mediaPlayer0.start();
-			} catch (IllegalArgumentException e) {
-				Log.v("UFOATTACK", "audio playback failed - IllegalArgumentException" );
-			} catch (IllegalStateException e) {
-				Log.v("UFOATTACK", "audio playback failed - IllegalStateException" );
-			} catch (IOException e) {
-				Log.v("UFOATTACK", "audio playback failed - IOException" );
-			}
+
+	    	boolean done = false;
+	    	for( int i=0; i<player.length && !done; ++i ) {
+	    		MediaPlayer mediaPlayer = player[i];
+	    		
+	    		if ( !mediaPlayer.isPlaying() ) {
+			    	try {
+						mediaPlayer.reset();
+			    		mediaPlayer.setDataSource( fd, offset, size );
+						mediaPlayer.prepare();
+			    		mediaPlayer.start();
+			    		done = true;
+					} catch (IllegalArgumentException e) {
+						Log.v("UFOATTACK", "audio playback failed - IllegalArgumentException" );
+					} catch (IllegalStateException e) {
+						Log.v("UFOATTACK", "audio playback failed - IllegalStateException" );
+					} catch (IOException e) {
+						Log.v("UFOATTACK", "audio playback failed - IOException" );
+					}
+	    		}
+	    	}
     	}
     }
     
