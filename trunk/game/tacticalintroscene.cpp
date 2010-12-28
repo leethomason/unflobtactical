@@ -75,10 +75,10 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 							 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
 	}
 
-	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "8", "Low", "Med", "Hi", "8", "16", "Low", "Med", "Hi", "Day", "Night", "Farm", "Land", "Crash" };
+	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "8", "Low", "Med", "Hi", "8", "16", "Low", "Med", "Hi", "Day", "Night", "Farm", "Civs", "Crash" };
 	for( int i=0; i<TOGGLE_COUNT; ++i ) {
 		GLASSERT( toggleLabel[i] );
-		toggles[i].Init( &gamui2D, green );
+		toggles[i].Init( &gamui2D, ( i <= LOC_FARM ) ? green : blue );
 		toggles[i].SetText( toggleLabel[i] );
 		toggles[i].SetVisible( false );
 		toggles[i].SetSize( 50, 50 );
@@ -96,7 +96,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 
 	toggles[TIME_DAY].AddToToggleGroup( &toggles[TIME_NIGHT] );
 
-	toggles[SCEN_LANDING].AddToToggleGroup( &toggles[SCEN_CRASH] );
+	//toggles[SCEN_LANDING].AddToToggleGroup( &toggles[SCEN_CRASH] );
 
 	toggles[SQUAD_8].SetDown();
 	toggles[TERRAN_MED].SetDown();
@@ -104,7 +104,8 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	toggles[ALIEN_MED].SetDown();
 	toggles[TIME_DAY].SetDown();
 	toggles[LOC_FARM].SetDown();
-	toggles[SCEN_LANDING].SetDown();
+
+	toggles[CIVS_PRESENT].SetDown();
 
 	terranLabel.Init( &gamui2D );
 	terranLabel.SetVisible( false );
@@ -160,7 +161,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 					215, 25,
 					250, 100 );
 
-	UIItem* scenItems[] = { &toggles[SCEN_LANDING], &toggles[SCEN_CRASH] };
+	UIItem* scenItems[] = { &toggles[CIVS_PRESENT], &toggles[UFO_CRASH] };
 	Gamui::Layout( scenItems, 2,
 				   5, 2,
 				   215, 75,
@@ -337,12 +338,15 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	const char* seedStr = seedButton.GetText();
 	int seed = atol( seedStr );
 
-	int scenario = SCEN_LANDING;
-	if ( toggles[SCEN_CRASH].Down() ) {
-		scenario = SCEN_CRASH;
-	}
+	SceneInfo info;
+	info.base = "FARM";
+	info.blockSizeX = 3;
+	info.blockSizeY = 2;
+	info.ufoSize = 1;
+	info.crash = toggles[UFO_CRASH].Down() ? true : false;
+	info.nCivs = toggles[CIVS_PRESENT].Down() ? 8 : 0;
 
-	CreateMap( fp, seed, LOC_FARM, scenario, 1 );
+	CreateMap( fp, seed, info );
 	fprintf( fp, "\n" );
 
 	XMLUtil::OpenElement( fp, 1, "Units" );
@@ -419,7 +423,7 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 
 	// Civ team
 	memset( units, 0, sizeof(Unit)*MAX_UNITS );
-	GenerateCivTeam( units, MAX_CIVS, seed );
+	GenerateCivTeam( units, info.nCivs, seed );
 	for( int i=0; i<MAX_CIVS; ++i ) {
 		if ( units[i].IsAlive() ) {
 			units[i].Save( fp, 2 );
@@ -428,31 +432,6 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 
 	XMLUtil::CloseElement( fp, 1, "Units" );
 	XMLUtil::CloseElement( fp, 0, "Game" );		
-}
-
-
-void TacticalIntroScene::CalcInfo( int location, int scenario, int ufoSize, SceneInfo* info )
-{
-	info->base = "FARM";
-	info->blockSizeX = 3;	// ufosize doesn't matter
-	info->blockSizeY = 2;
-	info->needsLander = true;
-	info->ufoSize = 1;
-	info->crash = false;
-
-	switch ( location ) {
-		case LOC_FARM:
-			break;
-
-		default:
-			GLASSERT( 0 );
-	}
-
-	switch ( scenario ) {
-	case SCEN_CRASH:
-		info->crash = true;
-		info->ufoSize = 1;
-	}
 }
 
 
@@ -590,9 +569,7 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 
 void TacticalIntroScene::CreateMap(	FILE* fp, 
 									int seed,
-									int location,
-									int scenario,	
-									int ufoSize )
+									const SceneInfo& info )
 {
 	// Max world size is 64x64 units, in 16x16 unit blocks. That gives 4x4 blocks max.
 	BitArray< 4, 4, 1 > blocks;
@@ -602,8 +579,6 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 	TiXmlElement mapElement( "Map" );
 	const gamedb::Item* dataItem = game->GetDatabase()->Root()->Child( "data" );
 
-	SceneInfo info;
-	CalcInfo( location, scenario, ufoSize, &info );
 	mapElement.SetAttribute( "sizeX", info.blockSizeX*16 );
 	mapElement.SetAttribute( "sizeY", info.blockSizeY*16 );
 	
@@ -625,7 +600,8 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 	}
 
 
-	if ( info.needsLander ) {
+//	if ( info.needsLander ) 
+	{
 		Vector2I pos = cornerPosBlock[ 0 ];
 		blocks.Set( pos.x, pos.y );
 		int tileRotation = random.Rand(4);
