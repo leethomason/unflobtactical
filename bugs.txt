@@ -28,6 +28,13 @@ TBD:
 - re-size after load
 - 32 bit assets - xenowar logo
 
+Missions:
+(Farm,Ice,Forest,Desert)+(Scout,Destroyer,Battleship)
+(City)
+(Battleship)
+(Alien Base)
+(Terran Base)
+
 FIXED [528]
 - Android: reduce scale/rotation sensitivity
 - Android: volume control

@@ -90,12 +90,15 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	0,			"1", "1" },
 	{	"ufo_WallCurve4", 0,			0,			4,	4,	INDESTRUCT,	0,			"0002" "0003" "0030" "1300",	// pather
 																					"0002" "0003" "0030" "1300" },	// visibility
+	{	"ufo_WallCurve8", 0,			0,			8,	8,	INDESTRUCT,	0,			"00000002" "00000002" "0000000f" "0000000f" "000000f0" "00000f00" "0000f000" "11ff0000",
+																					"00000002" "00000002" "00000003" "00000008" "00000030" "00000300" "00003000" "11340000" },
 	{	"ufo_DoorCld",	"ufo_DoorOpn",	0,			1,	1,	HP_STEEL,	0,			"0", "1" },
 	{	"ufo_WallInn",	0,				0,			1,	1,	HP_STEEL,	0,			"1", "1" },
 	{	"ufo_CrnrInn",	0,				0,			1,	1,	HP_STEEL,	0,			"3", "3" },
 	{	"ufo_controlTable",	0,			0,			1,	1,	HP_HIGH,	0,			"f", "0" },
 	{	"ufo_controlScreen",0,			0,			1,	1,	HP_LOW,		0,			"f", "0" },
 	{	"ufo_power",	0,				0,			1,	1,	HP_HIGH,	FASTBURN,	"f", "0", EXPLODES | OBSCURES },
+	{	"ufo_statue0",	0,				0,			1,	1,	HP_HIGH,	0,			"f", "0", OBSCURES },
 
 		// model		open			destroyed	cx, cz	hp			material	pather
 	{	"lander",		0,				0,			6,	6,	INDESTRUCT,	0,			"00ff00" "00ff00" "ff00ff" "ff00ff" "ff00ff" "ff00ff",
