@@ -106,9 +106,11 @@
   <model filename="ufo_CrnrInn.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_WallOut.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_WallCurve4.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_WallCurve8.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_controlTable.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_controlScreen.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_power.ac" shading="smooth" />
+  <model filename="ufo_statue0.ac" shading="flat" />
 
   <model filename="woodCrnr.ac" polyRemoval="pre" />
   <model filename="woodCrnrD.ac" polyRemoval="pre" />
@@ -138,13 +140,6 @@
 
 	<!-- Maps -->
   <image filename="objectLightMaps.png" />
-
-  <!--
-  <data  filename="FARM_32_TILE_00.xml" />
-  <image filename="FARM_32_TILE_00_TEX.png" width="256" height="256"/>
-  <image filename="FARM_32_TILE_00_DAY.png" />
-  <image filename="FARM_32_TILE_00_NGT.png" />
-  -->
 
   <data  filename="FARM_16_TILE_00.xml" />
   <image filename="FARM_16_TILE_00_TEX.png" width="128" height="128" />
@@ -176,10 +171,10 @@
   <image filename="FARM_16_UFOA_00_DAY.png" />
   <image filename="FARM_16_UFOA_00_NGT.png" />
 
-  <data  filename="FARM_16_UFOB_00.xml" />
-  <image filename="FARM_16_UFOB_00_TEX.png" width="128" height="128" />
-  <image filename="FARM_16_UFOB_00_DAY.png" />
-  <image filename="FARM_16_UFOB_00_NGT.png" />
+  <data  filename="FARM_32_UFOB_00.xml" />
+  <image filename="FARM_32_UFOB_00_TEX.png" width="256" height="256" />
+  <image filename="FARM_32_UFOB_00_DAY.png" />
+  <image filename="FARM_32_UFOB_00_NGT.png" />
 
   <data  filename="FARM_16_LAND_00.xml" />
   <image filename="FARM_16_LAND_00_TEX.png" width="128" height="128" />
