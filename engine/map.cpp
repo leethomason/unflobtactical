@@ -99,6 +99,11 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"ufo_controlScreen",0,			0,			1,	1,	HP_LOW,		0,			"f", "0" },
 	{	"ufo_power",	0,				0,			1,	1,	HP_HIGH,	FASTBURN,	"f", "0", EXPLODES | OBSCURES },
 	{	"ufo_statue0",	0,				0,			1,	1,	HP_HIGH,	0,			"f", "0", OBSCURES },
+	{	"ufo_crate0",	0,				0,			1,	1,	HP_MED,		0,			"f", "0", 0 },
+	{	"ufo_crate1",	0,				0,			1,	1,	HP_MED,		0,			"f", "f", 0 },
+	{	"ufo_crate2",	0,				0,			1,	1,	HP_LOW,		0,			"f", "0", EXPLODES },
+	{	"ufo_tube",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0", EXPLODES | OBSCURES },
+	{	"ufo_table",	0,				0,			2,	1,	HP_MED,		SLOWBURN,	"ff","00", 0 },
 
 		// model		open			destroyed	cx, cz	hp			material	pather
 	{	"lander",		0,				0,			6,	6,	INDESTRUCT,	0,			"00ff00" "00ff00" "ff00ff" "ff00ff" "ff00ff" "ff00ff",
