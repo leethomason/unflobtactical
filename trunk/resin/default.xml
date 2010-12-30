@@ -109,8 +109,13 @@
   <model filename="ufo_WallCurve8.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_controlTable.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_controlScreen.ac" shading="crease" polyRemoval="pre" />
-  <model filename="ufo_power.ac" shading="smooth" />
+  <model filename="ufo_power.ac" shading="flat" />
   <model filename="ufo_statue0.ac" shading="flat" />
+  <model filename="ufo_crate0.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_crate1.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_crate2.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_tube.ac" shading="smooth"/>
+  <model filename="ufo_table.ac" shading="crease" polyRemoval="pre" />
 
   <model filename="woodCrnr.ac" polyRemoval="pre" />
   <model filename="woodCrnrD.ac" polyRemoval="pre" />
