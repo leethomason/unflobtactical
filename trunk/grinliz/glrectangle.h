@@ -356,6 +356,11 @@ struct Rectangle3
 	}
 
 
+	Vector3< T > Center() const {
+		Vector3< T > v = { (min.x + max.x) / (T)2, (min.y + max.y) / (T)2, (min.z + max.z) / (T)2 };
+		return v;
+	}
+
 	/// Return true if 'rect' is inside this.
 	bool Contains( const Rectangle3<T>& rect ) const
 	{

@@ -247,9 +247,9 @@ void Engine::PushShadowSwizzleMatrix( GPUShader* shader )
 	swizzle.m22 = 0;	swizzle.m23 = -1.f/64.f;	swizzle.m24 = 1.0f;
 	swizzle.m33 = 0.0f;
 
-	shader->PushMatrix( GPUShader::TEXTURE_MATRIX );
-	shader->MultMatrix( GPUShader::TEXTURE_MATRIX, swizzle );
-	shader->MultMatrix( GPUShader::TEXTURE_MATRIX, shadowMatrix );
+	shader->PushTextureMatrix( 3 );
+	shader->MultTextureMatrix( 3, swizzle );
+	shader->MultTextureMatrix( 3, shadowMatrix );
 
 	shader->PushMatrix( GPUShader::MODELVIEW_MATRIX );
 	shader->MultMatrix( GPUShader::MODELVIEW_MATRIX, shadowMatrix );
@@ -276,6 +276,7 @@ void Engine::Draw()
 	LightShader lightShader( ambient, dir, diffuse, false, false );
 	LightShader blendLightShader( ambient, dir, diffuse, false, true );
 	LightShader testLightShader( ambient, dir, diffuse, true, false ); 
+	const Surface* lightmap = map->GetLightMap( 1 );
 	
 	FlatShader black;
 	Texture* blackTexture = TextureManager::Instance()->GetTexture( "black" );	// Fix for a strange bug. The Nexus One, when using VBOs, sometimes
@@ -292,7 +293,7 @@ void Engine::Draw()
 			if ( model->IsFlagSet( Model::MODEL_METADATA ) && !enableMeta )
 				continue;
 
-			const Vector3F& pos = model->Pos();
+			Vector3F pos = model->AABB().Center();
 			int x = LRintf( pos.x - 0.5f );
 			int y = LRintf( pos.z - 0.5f );
 
@@ -309,16 +310,36 @@ void Engine::Draw()
 
 				// Map is always rendered, possibly in black.
 				if ( !fogOfWar.IsRectEmpty( fogRect ) ) {
+					Color4F c = { 1, 1, 1, 1 };	// white, cool
+					if ( lightmap )
+					{
+						const Rectangle3F& b = model->GetResource()->header.bounds;
+						// Don't impact giant walls and such.
+						if ( b.SizeX() < 2.2f && b.SizeZ() < 2.2f )
+						{
+							U16 c16 = lightmap->GetImg16( x, y );
+							Surface::RGBA cRGB = Surface::CalcRGB16( c16 );
+							static const float INV = 1.f/255.f;
+							c.x = (float)cRGB.r * INV;
+							c.y = (float)cRGB.g * INV;
+							c.z = (float)cRGB.b * INV;
+						}
+					}
+
 					// Except for billboards, we want blending.
-					model->Queue( renderQueue, &lightShader, model->IsBillboard() ? &testLightShader : &blendLightShader, 0 );
+					model->Queue(	renderQueue, 
+									&lightShader, 
+									model->IsBillboard() ? &testLightShader : &blendLightShader, 
+									0,
+									&c );
 				}
 				else {
-					model->Queue( renderQueue, &black, &black, blackTexture );	// The blackTexture makes sure everything goes to the same render state.
+					model->Queue( renderQueue, &black, &black, blackTexture, 0 );	// The blackTexture makes sure everything goes to the same render state.
 																				// (Otherwise sub-states are created for each texture.)
 				}
 			}
 			else if ( fogOfWar.IsSet( x, y ) ) {
-				model->Queue( renderQueue, &lightShader, model->IsBillboard() ? &testLightShader : &blendLightShader, 0 );
+				model->Queue( renderQueue, &lightShader, model->IsBillboard() ? &testLightShader : &blendLightShader, 0, 0 );
 			}
 		}
 	}
@@ -350,6 +371,7 @@ void Engine::Draw()
 #ifdef ENGINE_RENDER_SHADOWS
 			CompositingShader shadowShader;
 			shadowShader.SetTexture0( map->BackgroundTexture() );
+			shadowShader.SetTexture1( map->LightMapTexture() );
 
 			// The shadow matrix pushes in a depth. Its the depth<0 that allows the GL_LESS
 			// test for the shadow write, below.
@@ -366,12 +388,13 @@ void Engine::Draw()
 									shadowRotation );
 
 			shadowShader.PopMatrix( GPUShader::MODELVIEW_MATRIX );
-			shadowShader.PopMatrix( GPUShader::TEXTURE_MATRIX );
+			shadowShader.PopTextureMatrix( 3 );
 #endif // ENGINE_DRAW_SHADOWS
 		}
 
 		{
 			LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, OPEN_LIGHT, 0, &color );
+
 			float ave = 0.7f*((color.x + color.y + color.z)*0.333f);
 			Color4F c = { ave, ave, ave, 1.0f };
 #ifdef ENGINE_RENDER_MAP
@@ -412,17 +435,10 @@ void Engine::CalcLights( DayNight dayNight, Color4F* ambient, Vector4F* dir, Col
 
 void Engine::LightGroundPlane( DayNight dayNight, ShadowState shadows, float shadowAmount, Color4F* outColor )
 {
-	// The color (unshadowed) is already committed to the ground plane shadow map.
-	// This just turns shadows on and off.
-	if ( dayNight == DAY_TIME ) {
-		outColor->Set( 1, 1, 1, 1 );
-	}
-	else {
-		outColor->Set( EL_NIGHT_RED, EL_NIGHT_GREEN, EL_NIGHT_BLUE, 1.0f );
-	}
+	outColor->Set( 1, 1, 1, 1 );
 
 	if ( shadows == IN_SHADOW ) {
-		float delta = 1.0f - 0.3f*shadowAmount;
+		float delta = 1.0f - 0.2f*shadowAmount;
 		outColor->x *= delta;
 		outColor->y *= delta;
 		outColor->z *= delta;

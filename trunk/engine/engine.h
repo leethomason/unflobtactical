@@ -134,7 +134,6 @@ private:
 
 	//void DrawCamera();
 	void CalcCameraRotation( grinliz::Matrix4* );
-	//void EnableLights( bool enable, DayNight dayNight );
 	void CalcLights( DayNight dayNight, Color4F* ambient, grinliz::Vector4F* dir, Color4F* diffuse );
 	void LightGroundPlane( DayNight dayNight, ShadowState shadows, float shadowAmount, Color4F* outColor );
 
@@ -143,7 +142,6 @@ private:
 	Screenport* screenport;
 	float	initZoom;
 	int		initZoomDistance;
-	//int		depthFunc;
 	bool	enableMeta;
 	
 	const EngineData& engineData;
@@ -152,10 +150,9 @@ private:
 	SpaceTree* spaceTree;
 	RenderQueue* renderQueue;
 	bool enableMap;
-	Surface diffuseLightMap;
 
 	grinliz::Vector3F lightDirection;
-	grinliz::Matrix4 shadowMatrix;
+	grinliz::Matrix4  shadowMatrix;
 };
 
 #endif // UFOATTACK_ENGINE_INCLUDED

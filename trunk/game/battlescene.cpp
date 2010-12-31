@@ -3105,6 +3105,15 @@ void BattleScene::MouseMove( int x, int y )
 	}
 }
 
+
+void BattleScene::SetLightMap( float r, float g, float b )
+{
+	int x = (int)mapmaker_mapSelection->X();
+	int y = (int)mapmaker_mapSelection->Z();
+	engine->GetMap()->SetLightMap0( x, y, r, g, b );
+}
+
+
 void BattleScene::RotateSelection( int delta )
 {
 	float rot = mapmaker_mapSelection->GetRotation() + 90.0f*(float)delta;

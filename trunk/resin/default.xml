@@ -116,6 +116,7 @@
   <model filename="ufo_crate2.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_tube.ac" shading="smooth"/>
   <model filename="ufo_table.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_pod.ac" shading="crease" polyRemoval="pre" />
 
   <model filename="woodCrnr.ac" polyRemoval="pre" />
   <model filename="woodCrnrD.ac" polyRemoval="pre" />

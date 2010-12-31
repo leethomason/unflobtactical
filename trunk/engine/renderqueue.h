@@ -50,7 +50,8 @@ public:
 				const ModelAtom* atom, 
 				GPUShader* shader,
 				const grinliz::Matrix4* textureXForm,
-				Texture* replaceAllTextures );
+				Texture* replaceAllTextures,
+				const grinliz::Vector4F* param );
 
 	enum {
 		MODE_PLANAR_SHADOW				= 0x01,		// Do all the fancy tricks to create planar shadows.
@@ -66,6 +67,7 @@ private:
 		Model*					model;
 		const ModelAtom*		atom;
 		const grinliz::Matrix4*	textureXForm;
+		grinliz::Vector4F		param;
 		Item*					next;
 	};
 

@@ -115,6 +115,7 @@ public:
 	void RotateSelection( int delta );
 	void DeleteAtSelection();
 	void DeltaCurrentMapItem( int d );
+	void SetLightMap( float r, float g, float b );
 
 	virtual void MakePathBlockCurrent( Map* map, const void* user );
 
