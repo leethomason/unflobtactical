@@ -146,7 +146,7 @@ public:
 	void Init( const ModelResource* resource, SpaceTree* tree );
 	void Free();
 
-	void Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent, Texture* replaceAllTextures );
+	void Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent, Texture* replaceAllTextures, const grinliz::Vector4F* param );
 
 	enum {
 		MODEL_SELECTABLE			= 0x01,
@@ -216,7 +216,6 @@ public:
 
 	const grinliz::Matrix4& XForm() const;
 	bool HasTextureXForm( int i ) const;
-	//const grinliz::Matrix4& TextureXForm( int i ) const	{ GLASSERT( i>=0 && i<EL_MAX_MODEL_GROUPS ); GLASSERT( auxTexture ); return auxTexture->m[i]; }
 
 private:
 	void Modify() { xformValid = false; invValid = false; mapBoundsCache.Set( -1, -1, -1, -1 ); }

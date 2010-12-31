@@ -123,6 +123,7 @@ public:
 	// MapMaker methods
 	void ShowPathing( int show )	{ mapmaker_showPathing = show; }
 	int ShowingPathing()			{ return mapmaker_showPathing; }
+	void SetLightMap( float r, float g, float b );
 
 	enum {	MAX_NUM_LIGHT_MAPS = 16,
 

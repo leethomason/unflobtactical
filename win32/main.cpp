@@ -69,7 +69,37 @@ const int rotation = 0;
 #endif
 
 void ScreenCapture( const char* baseFilename );
+void SaveLightMap( const Surface* surface );
 void PostCurrentGame();
+
+static const int SHADE = 6;
+
+static const U8 dayLight[30] = {
+	255, 140, 140,	// red
+	255, 244, 140,	// yellow
+	140, 255, 140,	// green
+	200, 200, 255,	// lt blue
+	140, 140, 255,	// dk blue
+	200, 145, 255,	// purple
+	140, 140, 140,	// shade
+	180, 180, 180,	//
+	220, 220, 220,	//
+	255, 255, 255	// sun
+};
+
+
+static const U8 nightLight[30] = {
+	255, 140, 140,	// red
+	255, 244, 140,	// yellow
+	140, 255, 140,	// green
+	200, 200, 255,	// lt blue
+	140, 140, 255,	// dk blue
+	200, 145, 255,	// purple
+	131, 125, 255,	// shade
+	172, 165, 255,	//
+	214, 225, 255,	//
+	255, 255, 255	// sun
+};
 
 
 void TransformXY( int x0, int y0, int* x1, int* y1 )
@@ -288,6 +318,46 @@ int main( int argc, char **argv )
 			{
 				SDLMod sdlMod = SDL_GetModState();
 
+				if ( mapMakerMode && event.key.keysym.sym >= SDLK_0 && event.key.keysym.sym <= SDLK_9 ) {
+					int index = 0;
+					switch ( event.key.keysym.sym ) {
+					case SDLK_1:	index = 0;	break;
+					case SDLK_2:	index = 1;	break;
+					case SDLK_3:	index = 2;	break;
+					case SDLK_4:	index = 3;	break;
+					case SDLK_5:	index = 4;	break;
+					case SDLK_6:	index = 5;	break;
+					case SDLK_7:	index = 6;	break;
+					case SDLK_8:	index = 7;	break;
+					case SDLK_9:	index = 8;	break;
+					case SDLK_0:	index = 9;	break;
+					};
+
+					const U8* light = ((Game*)game)->engine->GetMap()->DayTime() ? dayLight : nightLight;
+					static const float INV = 1.0f/255.0f;
+
+					U8 r = light[index*3+0];
+					U8 g = light[index*3+1];
+					U8 b = light[index*3+2];
+
+					if ( sdlMod & sdlMod & ( KMOD_LSHIFT | KMOD_RSHIFT ) ) {
+						if ( index < 6 ) {
+							// Average with shade.
+							r = (light[index*3+0] + light[SHADE*3+0]) / 2;
+							g = (light[index*3+1] + light[SHADE*3+1]) / 2;
+							b = (light[index*3+2] + light[SHADE*3+2]) / 2;
+						}
+						else if ( index > 6 ) {
+							// make darker (index 6 is the darkest. SHIFT does nothing.)
+							int m = index-1;
+							r = (light[index*3+0] + light[m*3+0]) / 2;
+							g = (light[index*3+1] + light[m*3+1]) / 2;
+							b = (light[index*3+2] + light[m*3+2]) / 2;
+						}
+					}
+					((Game*)game)->SetLightMap( (float)r * INV, (float)g * INV, (float)b * INV );
+				}
+
 				switch ( event.key.keysym.sym )
 				{
 #ifdef DEBUG
@@ -351,6 +421,13 @@ int main( int argc, char **argv )
 
 					case SDLK_s:
 						ScreenCapture( "cap" );
+						break;
+
+					case SDLK_l:
+						if ( mapMakerMode ) {
+							const Surface* lightmap = ((Game*)game)->engine->GetMap()->GetLightMap( 0 );
+							SaveLightMap( lightmap );
+						}
 						break;
 
 					case SDLK_d:
@@ -513,6 +590,11 @@ int main( int argc, char **argv )
 	SDL_RemoveTimer( timerID );
 #endif
 
+	if ( mapMakerMode ) {
+		const Surface* lightmap = ((Game*)game)->engine->GetMap()->GetLightMap( 0 );
+		SaveLightMap( lightmap );
+	}
+
 	GameSave( game );
 	DeleteGame( game );
 	Audio_Close();
@@ -529,6 +611,7 @@ int main( int argc, char **argv )
 	MemLeakCheck();
 	return 0;
 }
+
 
 
 
@@ -584,6 +667,27 @@ void ScreenCapture( const char* baseFilename )
 	}
 	if ( index < 100 )
 		SDL_SaveBMP( surface, buf );
+	SDL_FreeSurface( surface );
+}
+
+
+void SaveLightMap( const Surface* core )
+{
+	SDL_Surface* surface = SDL_CreateRGBSurface( SDL_SWSURFACE, core->Width(), core->Height(), 
+												 32, 0xff, 0xff<<8, 0xff<<16, 0xff<<24 );
+	if ( !surface )
+		return;
+
+	for( int j=0; j<core->Height(); ++j ) {
+		for( int i=0; i<core->Width(); ++i ) {
+
+			U16 c = core->GetImg16( i, j );
+			Surface::RGBA rgba = Surface::CalcRGB16( c );
+
+			*((U32*)surface->pixels + j*surface->pitch/4+i) = rgba.r | (rgba.g<<8) | (rgba.b<<16) | (0xff<<24);
+		}
+	}
+	SDL_SaveBMP( surface, "lightmap.bmp" );
 	SDL_FreeSurface( surface );
 }
 

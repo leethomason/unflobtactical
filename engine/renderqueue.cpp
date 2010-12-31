@@ -97,7 +97,7 @@ RenderQueue::State* RenderQueue::FindState( const State& state )
 }
 
 
-void RenderQueue::Add( Model* model, const ModelAtom* atom, GPUShader* shader, const grinliz::Matrix4* textureXForm, Texture* replaceAllTextures )
+void RenderQueue::Add( Model* model, const ModelAtom* atom, GPUShader* shader, const grinliz::Matrix4* textureXForm, Texture* replaceAllTextures, const Vector4F* param )
 {
 	if ( nItem == MAX_ITEMS ) {
 		GLASSERT( 0 );
@@ -116,6 +116,9 @@ void RenderQueue::Add( Model* model, const ModelAtom* atom, GPUShader* shader, c
 	item->model = model;
 	item->atom = atom;
 	item->textureXForm = textureXForm;
+	item->param.Set( 0, 0, 0, 0 );
+	if( param )
+		item->param = *param;
 
 	item->next  = state->root;
 	state->root = item;
@@ -153,8 +156,8 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 					item->atom->BindPlanarShadow( shader );
 
 					// Push the xform matrix to the texture and the model view.
-					shader->PushMatrix( GPUShader::TEXTURE_MATRIX );
-					shader->MultMatrix( GPUShader::TEXTURE_MATRIX, model->XForm() );
+					shader->PushTextureMatrix( 3 );
+					shader->MultTextureMatrix( 3, model->XForm() );
 
 					shader->PushMatrix( GPUShader::MODELVIEW_MATRIX );
 					shader->MultMatrix( GPUShader::MODELVIEW_MATRIX, model->XForm() );
@@ -162,7 +165,7 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 					shader->Draw();
 
 					// Unravel all that.
-					shader->PopMatrix( GPUShader::TEXTURE_MATRIX );
+					shader->PopTextureMatrix( 3 );
 					shader->PopMatrix( GPUShader::MODELVIEW_MATRIX );
 				}
 				else {
@@ -174,15 +177,18 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 					s->MultMatrix( GPUShader::MODELVIEW_MATRIX, model->XForm() );
 
 					if ( item->textureXForm ) {
-						s->PushMatrix( GPUShader::TEXTURE_MATRIX );
-						s->MultMatrix( GPUShader::TEXTURE_MATRIX, *item->textureXForm );
+						s->PushTextureMatrix( 1 );
+						s->MultTextureMatrix( 1, *item->textureXForm );
 					}
 					
+					if ( item->param.z > 0 ) {
+						s->SetColor( item->param );
+					}
 					s->Draw();
 
 					s->PopMatrix( GPUShader::MODELVIEW_MATRIX );
 					if ( item->textureXForm ) {
-						s->PopMatrix( GPUShader::TEXTURE_MATRIX );
+						s->PopTextureMatrix( 1 );
 					}
 				}
 			}

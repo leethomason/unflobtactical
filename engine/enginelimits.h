@@ -39,16 +39,12 @@ enum {
 	EL_NIGHT_BLUE_U8		= 255,
 };
 
-#define EL_NIGHT_RED		( (float)EL_NIGHT_RED_U8/255.f )
-#define	EL_NIGHT_GREEN		( (float)EL_NIGHT_GREEN_U8/255.f )
-#define	EL_NIGHT_BLUE		( (float)EL_NIGHT_BLUE_U8/255.f )
+static const float EL_NIGHT_RED		= ( (float)EL_NIGHT_RED_U8/255.f );
+static const float EL_NIGHT_GREEN	= ( (float)EL_NIGHT_GREEN_U8/255.f );
+static const float EL_NIGHT_BLUE	= ( (float)EL_NIGHT_BLUE_U8/255.f );
 
 
 //#define EL_SHOW_MODELS
-
-/* It is much faster, from 20fps to 27fps to run WITHOUT VBOs. Never trust the docs, apparently. 
-   This was removed to get it working on the Intel GMA chip, but accelerated the iPhone.
- */
 #define EL_USE_VBO
 //#define SHOW_FOW			// visual debugging
 

@@ -312,7 +312,7 @@ void Model::CalcTargetSize( float* width, float* height ) const
 }
 
 
-void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent, Texture* textureReplace )
+void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent, Texture* textureReplace, const Vector4F* param )
 {
 	if ( flags & MODEL_INVISIBLE )
 		return;
@@ -326,7 +326,8 @@ void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent
 					&resource->atom[i],						// model atom to render
 					t->Alpha() ? transparent : opaque,		// select the shader
 					( auxTexture && HasTextureXForm(i) ) ? &auxTexture->m[i] : 0,	// texture transform, if this has it.
-					overrideTexture );
+					overrideTexture,
+					param );
 	}
 }
 
@@ -364,6 +365,8 @@ void ModelAtom::BindPlanarShadow( GPUShader* shader ) const
 	stream.posOffset = Vertex::POS_OFFSET;
 	stream.nTexture0 = 3;
 	stream.texture0Offset = Vertex::POS_OFFSET;
+	stream.nTexture1 = 3;
+	stream.texture1Offset = Vertex::POS_OFFSET;
 
 	LowerBind( shader, stream );
 }

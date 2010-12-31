@@ -653,3 +653,10 @@ void Game::DeltaCurrentMapItem( int d )
 	((BattleScene*)sceneStack.Top()->scene)->DeltaCurrentMapItem(d);
 }
 
+
+void Game::SetLightMap( float r, float g, float b )
+{
+	((BattleScene*)sceneStack.Top()->scene)->SetLightMap( r, g, b );
+}
+
+

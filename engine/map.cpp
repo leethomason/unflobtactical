@@ -104,6 +104,7 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"ufo_crate2",	0,				0,			1,	1,	HP_LOW,		0,			"f", "0", EXPLODES },
 	{	"ufo_tube",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0", EXPLODES | OBSCURES },
 	{	"ufo_table",	0,				0,			2,	1,	HP_MED,		SLOWBURN,	"ff","00", 0 },
+	{	"ufo_pod",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0", OBSCURES },
 
 		// model		open			destroyed	cx, cz	hp			material	pather
 	{	"lander",		0,				0,			6,	6,	INDESTRUCT,	0,			"00ff00" "00ff00" "ff00ff" "ff00ff" "ff00ff" "ff00ff",
@@ -475,6 +476,16 @@ void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
 
 	backgroundTexture->Upload( backgroundSurface );
 	greyTexture->Upload( greySurface );
+}
+
+
+void Map::SetLightMap0( int x, int y, float r, float g, float b )
+{
+	static const float EXP = 255.0f;
+	Surface::RGBA rgba = { (U8)(r*EXP), (U8)(g*EXP), (U8)(b*EXP) };
+	
+	lightMap[0].SetImg16( x, y, Surface::CalcRGB16( rgba ) );
+	invalidLightMap.Set( x, y, x, y );
 }
 
 
@@ -1406,18 +1417,18 @@ void Map::Load( const TiXmlElement* mapElement, const ItemDefArr& p_itemDefArr )
 			imageData[ nImageData ].y = y;
 			imageData[ nImageData ].size = size;
 			imageData[ nImageData ].tileRotation = tileRotation;
-			imageData[ nImageData ].name = image->Attribute( "name" );
+			imageData[ nImageData ].name = name;
 			++nImageData;
 			
 			ImageManager* imageManager = ImageManager::Instance();
 
 			Surface background, day, night;
 
-			SNPrintf( buffer, 128, "%s_TEX", image->Attribute( "name" ) );
+			SNPrintf( buffer, 128, "%s_TEX", name );
 			imageManager->LoadImage( buffer, &background );
-			SNPrintf( buffer, 128, "%s_DAY", image->Attribute( "name" ) );
+			SNPrintf( buffer, 128, "%s_DAY", name );
 			imageManager->LoadImage( buffer, &day );
-			SNPrintf( buffer, 128, "%s_NGT", image->Attribute( "name" ) );
+			SNPrintf( buffer, 128, "%s_NGT", name );
 			imageManager->LoadImage( buffer, &night );
 
 			SetTexture( &background, x*512/64, y*512/64, tileRotation );

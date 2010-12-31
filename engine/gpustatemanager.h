@@ -26,7 +26,16 @@ public:
 	void Set( const grinliz::Matrix4& m )			{ stack[index] = m; }
 	void Multiply( const grinliz::Matrix4& m );
 
-	const grinliz::Matrix4& Top()					{ GLASSERT( index < MAX_DEPTH ); return stack[index]; }
+	const grinliz::Matrix4& Top() const				{ GLASSERT( index < MAX_DEPTH ); return stack[index]; }
+	bool Empty() const								{ 
+														#ifdef DEBUG
+																if ( index == 0 ) {
+																	grinliz::Matrix4 identity;
+																	GLASSERT( identity == Top() );
+																}
+														#endif
+														return index == 0; 
+													}
 
 private:
 	enum { MAX_DEPTH = 4 };
@@ -73,7 +82,6 @@ public:
 	virtual ~GPUShader();
 
 	enum MatrixType {
-		TEXTURE_MATRIX,
 		MODELVIEW_MATRIX,
 		PROJECTION_MATRIX
 	};
@@ -163,6 +171,13 @@ public:
 	void MultMatrix( MatrixType type, const grinliz::Matrix4& m );
 	void PopMatrix( MatrixType type );
 
+	// Special, because there is a texture matrix per texture unit. Painful painful system.
+	// Mask is a bit mask:
+	// 1: unit0, 2: unit1, 3:both units
+	void PushTextureMatrix( int mask );
+	void MultTextureMatrix( int mask, const grinliz::Matrix4& m );
+	void PopTextureMatrix( int mask );
+
 	void Draw();
 
 	int SortOrder()	const { 
@@ -195,10 +210,14 @@ private:
 	void SwitchMatrixMode( MatrixType type );	
 	static GPUShader		current;
 	static MatrixType		matrixMode;		// Note this is static and global!
-	// Seem to do okay on MODELVIEW and PERSPECTIVE stacks, but
-	// not so much on TEXTURE. Use our own texture stack.
-	static MatrixStack textureStack;
 	static int vboSupport;
+
+	// Seem to do okay on MODELVIEW and PERSPECTIVE stacks, but
+	// not so much on TEXTURE. Use our own texture stack, one for each texture unit.
+	static MatrixStack textureStack[2];
+	static bool textureXFormInUse[2];
+
+	static void SetTextureXForm( int unit );
 
 protected:
 	static int trianglesDrawn;
@@ -211,6 +230,7 @@ protected:
 
 	Texture* texture0;
 	Texture* texture1;
+
 	Stream stream;
 	const void* streamPtr;
 	int nIndex;

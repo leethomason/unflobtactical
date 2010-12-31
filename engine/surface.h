@@ -119,6 +119,7 @@ public:
 		GLASSERT( BytesPerPixel() == 2 );
 		return *((const U16*)pixels + (h-1-y)*w + x);
 	}
+
 	void SetImg16( int x, int y, U16 c ) {
 		GLASSERT( x >=0 && x < Width() );
 		GLASSERT( y >=0 && y < Height() );

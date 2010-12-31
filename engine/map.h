@@ -139,7 +139,7 @@ public:
 		SIZE = 64,					// maximum size. FIXME: duplicated in gamelimits.h
 		LOG2_SIZE = 6,
 
-		NUM_ITEM_DEF = 40,
+		NUM_ITEM_DEF = 41,
 	};
 
 
@@ -258,6 +258,7 @@ public:
 	// 1: Light map 0 + lights
 	// Not currently used: 2: Light map 0 + lights + FogOfWar
 	const Surface* GetLightMap( int i)	{ GLRELASSERT( i>=0 && i<2 ); GenerateLightMap(); return &lightMap[i]; }
+	void SetLightMap0( int x, int y, float r, float g, float b );
 
 	void DrawSeen();		//< draw the map that is currently visible
 	void DrawUnseen();		//< draw the map that currently can't be seen
@@ -351,7 +352,8 @@ public:
 	virtual void BeginTexture( const void* textureHandle );
 	virtual void Render( const void* renderState, const void* textureHandle, int nIndex, const uint16_t* index, int nVertex, const gamui::Gamui::Vertex* vertex );
 
-	Texture* BackgroundTexture() { return backgroundTexture; }
+	Texture* BackgroundTexture()	{ return backgroundTexture; }
+	Texture* LightMapTexture()		{ return lightMapTex; }
 
 	enum ConnectionType {
 		PATH_TYPE,

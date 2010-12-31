@@ -87,6 +87,7 @@ void MatrixStack::Pop()
 
 void MatrixStack::Multiply( const grinliz::Matrix4& m )
 {
+	GLASSERT( index > 0 );
 	stack[index] = stack[index] * m;
 }
 
@@ -96,7 +97,8 @@ void MatrixStack::Multiply( const grinliz::Matrix4& m )
 /*static*/ int GPUShader::drawCalls = 0;
 /*static*/ uint32_t GPUShader::uid = 0;
 /*static*/ GPUShader::MatrixType GPUShader::matrixMode = MODELVIEW_MATRIX;
-/*static*/ MatrixStack GPUShader::textureStack;
+/*static*/ MatrixStack GPUShader::textureStack[2];
+/*static*/ bool GPUShader::textureXFormInUse[2] = { false, false };
 
 /*static*/ int GPUShader::vboSupport = 0;
 
@@ -166,6 +168,18 @@ void GPUShader::ResetState()
 }
 
 
+void GPUShader::SetTextureXForm( int unit )
+{
+	if ( !textureStack[unit].Empty() || textureXFormInUse[unit] ) 
+	{
+		glMatrixMode( GL_TEXTURE );
+		glLoadMatrixf( textureStack[unit].Top().x );
+		glMatrixMode( matrixMode == MODELVIEW_MATRIX ? GL_MODELVIEW : GL_PROJECTION );
+		textureXFormInUse[unit] = !textureStack[unit].Empty();
+	}
+}
+
+
 //static 
 void GPUShader::SetState( const GPUShader& ns )
 {
@@ -206,6 +220,7 @@ void GPUShader::SetState( const GPUShader& ns )
 			if ( ns.texture1 != current.texture1 ) {
 				glBindTexture( GL_TEXTURE_2D, ns.texture1->GLID() );
 			}
+			SetTextureXForm( 1 );
 		}
 		glActiveTexture( GL_TEXTURE0 );
 		glClientActiveTexture( GL_TEXTURE0 );
@@ -241,6 +256,7 @@ void GPUShader::SetState( const GPUShader& ns )
 		{
 			glBindTexture( GL_TEXTURE_2D, ns.texture0->GLID() );
 		}
+		SetTextureXForm( 0 );
 	}
 	CHECK_GL_ERROR;
 
@@ -306,6 +322,8 @@ void GPUShader::SetState( const GPUShader& ns )
 	// Lighting
 	if ( ns.lighting && !current.lighting ) {
 		glEnable( GL_LIGHTING );
+		glEnable ( GL_COLOR_MATERIAL );
+		glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE ) ;
 		//GLOUTPUT(( "Lighting on.\n" ));
 	}
 	else if ( !ns.lighting && current.lighting ) {
@@ -398,7 +416,7 @@ void GPUShader::SetState( const GPUShader& ns )
 		int testMode = 0;
 		glGetIntegerv( GL_MATRIX_MODE, &testMode );
 		switch( current.matrixMode ) {
-		case TEXTURE_MATRIX:	GLASSERT( testMode == GL_TEXTURE );	break;
+//		case TEXTURE_MATRIX:	GLASSERT( testMode == GL_TEXTURE );	break;
 		case MODELVIEW_MATRIX:	GLASSERT( testMode == GL_MODELVIEW );	break;
 		case PROJECTION_MATRIX:	GLASSERT( testMode == GL_PROJECTION );	break;
 		default: GLASSERT( 0 ); break;
@@ -506,7 +524,7 @@ void GPUShader::SwitchMatrixMode( MatrixType type )
 		int testMode = 0;
 		glGetIntegerv( GL_MATRIX_MODE, &testMode );
 		switch( matrixMode ) {
-		case TEXTURE_MATRIX:	GLASSERT( testMode == GL_TEXTURE );	break;
+		//case TEXTURE_MATRIX:	GLASSERT( testMode == GL_TEXTURE );	break;
 		case MODELVIEW_MATRIX:	GLASSERT( testMode == GL_MODELVIEW );	break;
 		case PROJECTION_MATRIX:	GLASSERT( testMode == GL_PROJECTION );	break;
 		default: GLASSERT( 0 ); break;
@@ -516,9 +534,9 @@ void GPUShader::SwitchMatrixMode( MatrixType type )
 
 	if ( matrixMode != type ) {
 		switch ( type ) {
-		case TEXTURE_MATRIX:
-			glMatrixMode( GL_TEXTURE );
-			break;
+		//case TEXTURE_MATRIX:
+		//	glMatrixMode( GL_TEXTURE );
+		//	break;
 		case MODELVIEW_MATRIX:
 			glMatrixMode( GL_MODELVIEW );
 			break;
@@ -540,9 +558,9 @@ void GPUShader::PushMatrix( MatrixType type )
 	SwitchMatrixMode( type );
 
 	switch( type ) {
-	case TEXTURE_MATRIX:
-		textureStack.Push();
-		break;
+//	case TEXTURE_MATRIX:
+//		textureStack.Push();
+//		break;
 	case MODELVIEW_MATRIX:
 	case PROJECTION_MATRIX:
 		glPushMatrix();
@@ -569,10 +587,10 @@ void GPUShader::MultMatrix( MatrixType type, const grinliz::Matrix4& m )
 	SwitchMatrixMode( type );
 
 	switch( type ) {
-	case TEXTURE_MATRIX:
-		textureStack.Multiply( m );
-		glLoadMatrixf( textureStack.Top().x );
-		break;
+//	case TEXTURE_MATRIX:
+//		textureStack.Multiply( m );
+//		glLoadMatrixf( textureStack.Top().x );
+//		break;
 	case MODELVIEW_MATRIX:
 	case PROJECTION_MATRIX:
 		glMultMatrixf( m.x );
@@ -593,10 +611,10 @@ void GPUShader::PopMatrix( MatrixType type )
 	SwitchMatrixMode( type );
 	GLASSERT( matrixDepth[(int)type] > 0 );
 		switch( type ) {
-	case TEXTURE_MATRIX:
-		textureStack.Pop();
-		glLoadMatrixf( textureStack.Top().x );
-		break;
+//	case TEXTURE_MATRIX:
+//		textureStack.Pop();
+//		glLoadMatrixf( textureStack.Top().x );
+//		break;
 	case MODELVIEW_MATRIX:
 	case PROJECTION_MATRIX:
 		glPopMatrix();
@@ -609,6 +627,26 @@ void GPUShader::PopMatrix( MatrixType type )
 	matrixDepth[(int)type] -= 1;
 
 	CHECK_GL_ERROR;
+}
+
+
+void GPUShader::PushTextureMatrix( int mask )
+{
+	if ( mask & 1 ) textureStack[0].Push();
+	if ( mask & 2 ) textureStack[1].Push();
+}
+
+
+void GPUShader::MultTextureMatrix( int mask, const grinliz::Matrix4& m )
+{
+	if ( mask & 1 ) textureStack[0].Multiply( m );
+	if ( mask & 2 ) textureStack[1].Multiply( m );
+}
+
+void GPUShader::PopTextureMatrix( int mask )
+{
+	if ( mask & 1 ) textureStack[0].Pop();
+	if ( mask & 2 ) textureStack[1].Pop();
 }
 
 
