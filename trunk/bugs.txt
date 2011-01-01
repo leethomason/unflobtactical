@@ -29,7 +29,7 @@ TBD:
 - 32 bit assets - xenowar logo
 
 Missions:
-(Farm,Ice,Forest,Desert)+(Scout,Destroyer,Battleship)
+(Farm,Ice,Forest,Desert)+(Scout,Destroyer)
 (City)
 (Battleship)
 (Alien Base)

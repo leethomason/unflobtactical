@@ -244,7 +244,7 @@ int main( int argc, char **argv )
 
 		if ( argc > 3 ) {
 			desc.size = atol( argv[3] );
-			GLASSERT( desc.size == 16 || desc.size == 32 || desc.size == 64 );
+			GLASSERT( desc.size == 16 || desc.size == 32 || desc.size == 48 || desc.size == 64 );
 		}
 
 		if ( argc > 4 ) {
@@ -420,6 +420,14 @@ int main( int argc, char **argv )
 						break;
 
 					case SDLK_s:
+						if ( mapMakerMode ) {
+							((Game*)game)->SuppressText( true );
+						}
+						GameDoTick( game, SDL_GetTicks() );
+						SDL_GL_SwapBuffers();
+						if ( mapMakerMode ) {
+							((Game*)game)->SuppressText( false );
+						}
 						ScreenCapture( "cap" );
 						break;
 
