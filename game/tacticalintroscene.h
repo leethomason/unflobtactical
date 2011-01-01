@@ -68,7 +68,18 @@ public:
 		TIME_DAY,
 		TIME_NIGHT,
 
-		LOC_FARM,
+		FARM_SCOUT,
+		TNDR_SCOUT,
+		FRST_SCOUT,
+		DSRT_SCOUT,
+		FARM_DESTROYER,
+		TNDR_DESTROYER,
+		FRST_DESTROYER,
+		DSRT_DESTROYER,
+		CITY,
+		BATTLESHIP,
+		ALIEN_BASE,
+		TERRAN_BASE,
 
 		CIVS_PRESENT,
 		UFO_CRASH,
@@ -77,13 +88,20 @@ public:
 	};
 
 	struct SceneInfo {
-		const char*		base;			// FARM
-		int				blockSizeX;		// 2, 3, 4
-		int				blockSizeY;		// 2, 3, 4
-		//bool			needsLander;	// true/false
-		int				ufoSize;		// 0: no, >0: blocksize
-		bool			crash;
-		int				nCivs;
+		int		scenario;		// FARM_SCOUT -> TERRAN_BASE
+		bool	crash;
+		int		nCivs;
+
+		grinliz::Vector2I Size() const;
+
+		bool TileAlgorithm() const			{ return (scenario >= FARM_SCOUT && scenario <= DSRT_DESTROYER); }
+
+		bool SupportsCivs() const			{ return (scenario >= FARM_SCOUT && scenario <= DSRT_DESTROYER) || scenario == CITY || scenario == TERRAN_BASE; }
+		bool SupportsCrash() const			{ return (scenario >= FARM_SCOUT && scenario <= DSRT_DESTROYER); };
+
+		int UFOSize() const					{ return (scenario >= FARM_DESTROYER && scenario <= DSRT_DESTROYER) ? 2 : 1; }
+		const char* UFO() const;
+		const char* Base() const;
 	};
 
 	void CreateMap( FILE* fp, 
@@ -125,7 +143,7 @@ private:
 
 	BackgroundUI		backgroundUI;
 	gamui::PushButton	continueButton, newButton, helpButton, goButton, seedButton;
-	gamui::TextLabel	terranLabel, alienLabel, timeLabel, seedLabel, scenarioLabel;
+	gamui::TextLabel	terranLabel, alienLabel, timeLabel, seedLabel, scenarioLabel[4], rowLabel[3];
 	gamui::ToggleButton	toggles[TOGGLE_COUNT], audioButton;
 };
 
