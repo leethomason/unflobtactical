@@ -75,10 +75,13 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 							 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
 	}
 
-	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "8", "Low", "Med", "Hi", "8", "16", "Low", "Med", "Hi", "Day", "Night", "Farm", "Civs", "Crash" };
+	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "8", "Low", "Med", "Hi", "8", "16", "Low", "Med", "Hi", "Day", "Night",
+													 "Fa-S", "T-S", "Fo-S", "D-S", "Fa-D", "T-D", "Fo-D", "D-D",
+													 "City", "BShip", "ABase", "TBase",
+													 "Civs", "Crash" };
 	for( int i=0; i<TOGGLE_COUNT; ++i ) {
 		GLASSERT( toggleLabel[i] );
-		toggles[i].Init( &gamui2D, ( i <= LOC_FARM ) ? green : blue );
+		toggles[i].Init( &gamui2D, ( i < CIVS_PRESENT ) ? green : blue );
 		toggles[i].SetText( toggleLabel[i] );
 		toggles[i].SetVisible( false );
 		toggles[i].SetSize( 50, 50 );
@@ -103,7 +106,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	toggles[ALIEN_8].SetDown();
 	toggles[ALIEN_MED].SetDown();
 	toggles[TIME_DAY].SetDown();
-	toggles[LOC_FARM].SetDown();
+	toggles[FARM_SCOUT].SetDown();
 
 	toggles[CIVS_PRESENT].SetDown();
 
@@ -144,27 +147,54 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	timeLabel.SetVisible( false );
 	timeLabel.SetText( "Time" );
 	timeLabel.SetPos( 20, 270-20 );
-	UIItem* weatherItems[] = { &toggles[10], &toggles[11] };
+	UIItem* weatherItems[] = { &toggles[TIME_DAY], &toggles[TIME_NIGHT] };
 	Gamui::Layout(	weatherItems, 2,		// weather
 					2, 1, 
 					20, 270,
 					100, 50 );
 
-	scenarioLabel.Init( &gamui2D );
-	scenarioLabel.SetVisible( false );
-	scenarioLabel.SetText( "Scenario" );
-	scenarioLabel.SetPos( 215, 25-20 );
+	for( int i=0; i<3; ++i ) {
+		static const char* row[] = { "Scout", "Destroyer", "Special" };
+		rowLabel[i].Init( &gamui2D );
+		rowLabel[i].SetVisible( false );
+		rowLabel[i].SetText( row[i] );
+		rowLabel[i].SetPos( 425, 25.0f + 50.0f*i );
+	}
 
-	UIItem* locationItems[] = { &toggles[12] };
-	Gamui::Layout(  locationItems, 1,		// location
-					5, 2,
-					215, 25,
-					250, 100 );
+	for( int i=0; i<4; ++i ) {
+		static const float SIZE = 50;
+		static const char* scenario[] = { "Farm", "Tndra", "Forst", "Desrt" };
+
+		scenarioLabel[i].Init( &gamui2D );
+		scenarioLabel[i].SetVisible( false );
+		scenarioLabel[i].SetText( scenario[i] );
+		scenarioLabel[i].SetPos( 215+SIZE*i, 5 );
+
+		toggles[FARM_SCOUT+i].SetPos( 215+SIZE*i, 25 );
+		toggles[FARM_DESTROYER+i].SetPos( 215+SIZE*i, 75 );
+		toggles[CITY+i].SetPos( 215+SIZE*i, 125 );
+	}
+	for( int i=FARM_SCOUT; i<=TERRAN_BASE; ++i )
+		toggles[FARM_SCOUT].AddToToggleGroup( &toggles[i] );
+
+	toggles[FARM_SCOUT].SetEnabled(		true );
+	toggles[TNDR_SCOUT].SetEnabled(		false );
+	toggles[FRST_SCOUT].SetEnabled(		false );
+	toggles[DSRT_SCOUT].SetEnabled(		false );
+	toggles[FARM_DESTROYER].SetEnabled( true );
+	toggles[TNDR_DESTROYER].SetEnabled( false );
+	toggles[FRST_DESTROYER].SetEnabled( false );
+	toggles[DSRT_DESTROYER].SetEnabled( false );
+	toggles[CITY].SetEnabled(			false );
+	toggles[BATTLESHIP].SetEnabled(		true );
+	toggles[ALIEN_BASE].SetEnabled(		false );
+	toggles[TERRAN_BASE].SetEnabled(	false );
+
 
 	UIItem* scenItems[] = { &toggles[CIVS_PRESENT], &toggles[UFO_CRASH] };
 	Gamui::Layout( scenItems, 2,
-				   5, 2,
-				   215, 75,
+				   4, 2,
+				   215, 175,
 				   250, 100 );
 							
 	goButton.Init( &gamui2D, blue );
@@ -256,7 +286,10 @@ void TacticalIntroScene::Tap(	int action,
 		alienLabel.SetVisible( true );
 		timeLabel.SetVisible( true );
 		seedLabel.SetVisible( true );
-		scenarioLabel.SetVisible( true );
+		for( int i=0; i<4; ++i )
+			scenarioLabel[i].SetVisible( true );
+		for( int i=0; i<3; ++i )
+			rowLabel[i].SetVisible( true );
 		
 		helpButton.SetVisible( false );
 		audioButton.SetVisible( false );
@@ -339,12 +372,20 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	int seed = atol( seedStr );
 
 	SceneInfo info;
-	info.base = "FARM";
-	info.blockSizeX = 3;
-	info.blockSizeY = 2;
-	info.ufoSize = 1;
-	info.crash = toggles[UFO_CRASH].Down() ? true : false;
-	info.nCivs = toggles[CIVS_PRESENT].Down() ? 8 : 0;
+	info.scenario = FARM_SCOUT;
+	for( int i=FARM_SCOUT; i<=TERRAN_BASE; ++i ) {
+		if ( toggles[i].Down() ) {
+			info.scenario = i;
+			break;
+		}
+	}
+	info.crash = false;
+	info.nCivs = 0;
+
+	if ( info.SupportsCivs() )
+		info.nCivs = toggles[CIVS_PRESENT].Down() ? 8 : 0;
+	if ( info.SupportsCrash() )
+		info.crash = toggles[UFO_CRASH].Down() ? true : false;
 
 	CreateMap( fp, seed, info );
 	fprintf( fp, "\n" );
@@ -572,8 +613,9 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 	TiXmlElement mapElement( "Map" );
 	const gamedb::Item* dataItem = game->GetDatabase()->Root()->Child( "data" );
 
-	mapElement.SetAttribute( "sizeX", info.blockSizeX*16 );
-	mapElement.SetAttribute( "sizeY", info.blockSizeY*16 );
+	Vector2I size = info.Size();
+	mapElement.SetAttribute( "sizeX", size.x*16 );
+	mapElement.SetAttribute( "sizeY", size.y*16 );
 	
 	random.SetSeed( seed );
 	for( int i=0; i<5; ++i ) 
@@ -582,43 +624,67 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 	Vector2I cornerPosBlock[2];
 	if ( random.Bit() ) {
 		cornerPosBlock[0].Set( 0, 0 );
-		cornerPosBlock[1].Set( info.blockSizeX-1, info.blockSizeY-1 );
+		cornerPosBlock[1].Set( size.x-1, size.y-1 );
 	}
 	else {
-		cornerPosBlock[0].Set( info.blockSizeX-1, 0 );
-		cornerPosBlock[1].Set( 0, info.blockSizeY-1 );
+		cornerPosBlock[0].Set( size.x-1, 0 );
+		cornerPosBlock[1].Set( 0, size.y-1 );
 	}
 	if ( random.Bit() ) {
 		Swap( cornerPosBlock+0, cornerPosBlock+1 );
 	}
 
 
-//	if ( info.needsLander ) 
-	{
-		Vector2I pos = cornerPosBlock[ 0 ];
-		blocks.Set( pos.x, pos.y );
-		int tileRotation = random.Rand(4);
+	if ( info.TileAlgorithm() ) {
+		// Lander
+		{
+			Vector2I pos = cornerPosBlock[ 0 ];
+			blocks.Set( pos.x, pos.y );
+			int tileRotation = random.Rand(4);
 
-		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, false, "LAND", dataItem, &mapElement );	
-	}
+			AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.Base(), 16, false, "LAND", dataItem, &mapElement );	
+		}
 
-	if ( info.ufoSize ) {
-		Vector2I pos = cornerPosBlock[ 1 ];
-		blocks.Set( pos.x, pos.y );
-		int tileRotation = random.Rand(4);
+		// UFO
+		{
+			Rectangle2I pos;
+			pos.min = pos.max = cornerPosBlock[ 1 ];
+			int ufoSize = info.UFOSize();
 
-		AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, info.crash, "UFOA", dataItem, &mapElement );
-	}
+			if ( ufoSize == 2 ) {
+				if ( pos.min.x == 0 ) 
+					pos.max.x++;
+				else
+					pos.min.x--;
+				if ( pos.min.y == 0 )
+					pos.max.y++;
+				else
+					pos.min.y--;
+			}
 
-	for( int j=0; j<info.blockSizeY; ++j ) {
-		for( int i=0; i<info.blockSizeX; ++i ) {
-			if ( !blocks.IsSet( i, j ) ) {
-				Vector2I pos = { i, j };
-				int tileRotation = random.Rand(4);
-				AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.base, 16, false, "TILE", dataItem, &mapElement );	
+			for( int j=pos.min.y; j<=pos.max.y; ++j )
+				for( int i=pos.min.x; i<=pos.max.x; ++i )
+					blocks.Set( i, j );
+
+			int tileRotation = random.Rand(4);
+			AppendMapSnippet( pos.min.x*16, pos.min.y*16, tileRotation, info.Base(), 16*ufoSize, info.crash, info.UFO(), dataItem, &mapElement );
+		}
+
+		for( int j=0; j<size.y; ++j ) {
+			for( int i=0; i<size.x; ++i ) {
+				if ( !blocks.IsSet( i, j ) ) {
+					Vector2I pos = { i, j };
+					int tileRotation = random.Rand(4);
+					AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.Base(), 16, false, "TILE", dataItem, &mapElement );	
+				}
 			}
 		}
 	}
+	else if ( info.scenario == BATTLESHIP ) {
+		AppendMapSnippet( 0, 0, 0, "BATT", 48, false, "TILE", dataItem, &mapElement );	
+	}
+
+
 	mapElement.Print( fp, 2 );
 }
 
@@ -761,3 +827,43 @@ void TacticalIntroScene::GenerateCivTeam( Unit* unit,				// target units to writ
 		unit[i].Create( CIV_TEAM, 0, 0, aRand.Rand() );
 	}
 }
+
+
+Vector2I TacticalIntroScene::SceneInfo::Size() const
+{
+	Vector2I v = { 0, 0 };
+	if ( scenario >= FARM_SCOUT && scenario <= DSRT_SCOUT ) {
+		v.Set( 3, 2 );
+	}
+	else if ( scenario >= FARM_DESTROYER && scenario <= DSRT_DESTROYER ) {
+		v.Set( 3, 3 ); // or 3,2 ?
+	}
+	else if ( scenario == CITY ) {
+		v.Set( 4, 4 );
+	}
+	else if ( scenario == BATTLESHIP ) {
+		v.Set( 3, 3 );
+	}
+	else {
+		GLASSERT( 0 );
+	}
+	return v;
+}
+
+
+const char* TacticalIntroScene::SceneInfo::UFO() const
+{
+	static const char* ufo[2] = { "UFOA", "UFOB" };
+	return ( scenario >= FARM_SCOUT && scenario <= DSRT_SCOUT ) ? ufo[0] : ufo[1];
+}
+
+
+const char* TacticalIntroScene::SceneInfo::Base() const
+{
+	static const char* base[5] = { "FARM", "TNDR", "FRST", "DSRT", "" };
+	if ( scenario >= FARM_SCOUT && scenario <= DSRT_DESTROYER ) {
+		return base[(scenario-FARM_SCOUT)%4];
+	}
+	return base[4];
+}
+
