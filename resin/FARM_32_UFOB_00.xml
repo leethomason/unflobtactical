@@ -1,5 +1,8 @@
 <Map sizeX="32" sizeY="32" >
     <Items >
+        <Item x="29" y="29" name="tree2" />
+        <Item x="24" y="29" name="tree2" />
+        <Item x="26" y="27" name="tree2" />
         <Item x="17" y="26" name="ufo_WallOut" />
         <Item x="16" y="26" name="ufo_WallOut" />
         <Item x="17" y="24" rot="1" name="ufo_WallInn" />
@@ -21,6 +24,9 @@
         <Item x="9" y="24" rot="3" name="ufo_WallInn" />
         <Item x="9" y="24" rot="1" name="ufo_pod" />
         <Item x="11" y="25" rot="1" name="ufo_pod" />
+        <Item x="3" y="24" name="tree2" />
+        <Item x="2" y="25" name="tree2" />
+        <Item x="28" y="23" name="tree2" />
         <Item x="24" y="20" rot="2" name="ufo_power" />
         <Item x="24" y="21" rot="2" name="ufo_power" />
         <Item x="20" y="23" rot="1" name="ufo_table" />
@@ -134,8 +140,6 @@
         <Item x="7" y="14" rot="2" name="ufo_crate0" />
         <Item x="7" y="13" rot="2" name="ufo_crate1" />
         <Item x="7" y="12" rot="2" name="ufo_crate2" />
-        <Item x="3" y="13" name="tree2" />
-        <Item x="3" y="15" name="tree2" />
         <Item x="21" y="11" rot="2" name="ufo_tube" />
         <Item x="21" y="10" rot="2" name="ufo_tube" />
         <Item x="21" y="9" rot="2" name="ufo_tube" />
@@ -173,6 +177,9 @@
         <Item x="17" y="7" rot="1" name="ufo_WallInn" />
         <Item x="14" y="7" rot="2" name="ufo_WallOut" />
         <Item x="15" y="7" rot="2" name="ufo_WallOut" />
+        <Item x="12" y="5" name="tree2" />
+        <Item x="13" y="4" name="tree2" />
+        <Item x="10" y="3" name="tree2" />
         <Item x="18" y="19" name="ufo_WallCurve8" />
         <Item x="13" y="19" rot="3" name="ufo_WallCurve8" />
         <Item x="18" y="14" rot="1" name="ufo_WallCurve8" />

@@ -143,6 +143,8 @@ public:
 
 	U32 CurrentTime() const	{ return currentTime; }
 	U32 DeltaTime() const	{ return currentTime-previousTime; }
+	void SuppressText( bool suppress )	{ suppressText = suppress; }
+	bool IsTextSuppressed() const		{ return suppressText; }
 
 	const grinliz::GLString GameSavePath()	{	grinliz::GLString str( savePath );
 												str += "currentgame.xml";
@@ -214,6 +216,7 @@ private:
 	int trianglesPerSecond;
 	int trianglesSinceMark;
 	bool debugTextOn;
+	bool suppressText;
 
 	ModelLoader* modelLoader;
 	gamedb::Reader* database;

@@ -53,6 +53,7 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	trianglesPerSecond( 0 ),
 	trianglesSinceMark( 0 ),
 	debugTextOn( false ),
+	suppressText( false ),
 	previousTime( 0 ),
 	isDragging( false )
 {
@@ -87,6 +88,7 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	trianglesPerSecond( 0 ),
 	trianglesSinceMark( 0 ),
 	debugTextOn( false ),
+	suppressText( false ),
 	previousTime( 0 ),
 	isDragging( false )
 {
@@ -495,34 +497,36 @@ void Game::DoTick( U32 _currentTime )
 	const int memNewCount = 0;
 	#endif
 #if 1
-	if ( debugTextOn ) {
-		UFOText::Draw(	0,  Y, "#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
-				 		VERSION,
-						framesPerSecond, 
-						(float)GPUShader::TrianglesDrawn()/1000.0f,
-						GPUShader::DrawCalls(),
-						trianglesPerSecond );
+	if ( !suppressText ) {
+		if ( debugTextOn ) {
+			UFOText::Draw(	0,  Y, "#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
+				 			VERSION,
+							framesPerSecond, 
+							(float)GPUShader::TrianglesDrawn()/1000.0f,
+							GPUShader::DrawCalls(),
+							trianglesPerSecond );
 
-		#if defined(DEBUG)
-		if ( !Engine::mapMakerMode )  {
-			UFOText::Draw(  0, Y-15, "new=%d Tex(%d/%d) %dK/%dK mis=%d re=%d hit=%d",
-							memNewCount,
-							TextureManager::Instance()->NumTextures(),
-							TextureManager::Instance()->NumGPUResources(),
-							TextureManager::Instance()->CalcTextureMem()/1024,
-							TextureManager::Instance()->CalcGPUMem()/1024,
-							TextureManager::Instance()->CacheMiss(),
-							TextureManager::Instance()->CacheReuse(),
-							TextureManager::Instance()->CacheHit() );		
+			#if defined(DEBUG)
+			if ( !Engine::mapMakerMode )  {
+				UFOText::Draw(  0, Y-15, "new=%d Tex(%d/%d) %dK/%dK mis=%d re=%d hit=%d",
+								memNewCount,
+								TextureManager::Instance()->NumTextures(),
+								TextureManager::Instance()->NumGPUResources(),
+								TextureManager::Instance()->CalcTextureMem()/1024,
+								TextureManager::Instance()->CalcGPUMem()/1024,
+								TextureManager::Instance()->CacheMiss(),
+								TextureManager::Instance()->CacheReuse(),
+								TextureManager::Instance()->CacheHit() );		
+			}
+			#endif
 		}
-		#endif
-	}
-	else {
-		UFOText::Draw(	0,  Y, "#%d %5.1ffps vbo=%d ps=%d", 
-						VERSION, 
-						framesPerSecond, 
-						GPUShader::SupportsVBOs() ? 1 : 0,
-						PointParticleShader::IsSupported() ? 1 : 0 );
+		else {
+			UFOText::Draw(	0,  Y, "#%d %5.1ffps vbo=%d ps=%d", 
+							VERSION, 
+							framesPerSecond, 
+							GPUShader::SupportsVBOs() ? 1 : 0,
+							PointParticleShader::IsSupported() ? 1 : 0 );
+		}
 	}
 #endif
 	GPUShader::ResetTriCount();

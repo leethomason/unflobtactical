@@ -131,8 +131,8 @@ using namespace grinliz;
 
 Engine::Engine( Screenport* port, const EngineData& _engineData, const gamedb::Reader* database ) 
 	:	AMBIENT( 0.3f ),
-		DIFFUSE( 0.7f ),
-		DIFFUSE_SHADOW( 0.3f ),
+		DIFFUSE( 0.8f ),
+		DIFFUSE_SHADOW( 0.2f ),
 		screenport( port ),
 		engineData( _engineData ),
 		initZoomDistance( 0 ),
@@ -172,17 +172,25 @@ void Engine::MoveCameraHome()
 }
 
 
-void Engine::CameraIso( bool iso )
+void Engine::CameraIso( bool normal )
 {
-	if ( iso ) {
+	if ( normal ) {
 		camera.SetYRotation( -45.f );
 		camera.SetTilt( engineData.cameraTilt );
 		MoveCameraHome();
 	}
 	else {
+		// Hack to copy, from game.cpp
+		float fov = 20.f*(screenport->UIWidth()/screenport->UIHeight())*320.0f/480.0f;
+		float theta = fov * 0.5f;
+
+		float size = (float)Max( map->Width(), map->Height() );
+		float pixels = size * 12.0f;
+		float h = pixels * 0.5f / acosf( ToRadian( theta ) );
+
 		camera.SetYRotation( 0 );
 		camera.SetTilt( -90.0f );
-		camera.SetPosWC( 8, 70, 8 );
+		camera.SetPosWC( size/2, h, size/2 );
 	}
 }
 
@@ -277,6 +285,8 @@ void Engine::Draw()
 	LightShader blendLightShader( ambient, dir, diffuse, false, true );
 	LightShader testLightShader( ambient, dir, diffuse, true, false ); 
 	const Surface* lightmap = map->GetLightMap( 1 );
+
+	Rectangle2I mapBounds = map->Bounds();
 	
 	FlatShader black;
 	Texture* blackTexture = TextureManager::Instance()->GetTexture( "black" );	// Fix for a strange bug. The Nexus One, when using VBOs, sometimes
@@ -338,7 +348,7 @@ void Engine::Draw()
 																				// (Otherwise sub-states are created for each texture.)
 				}
 			}
-			else if ( fogOfWar.IsSet( x, y ) ) {
+			else if ( mapBounds.Contains( x, y ) && fogOfWar.IsSet( x, y ) ) {
 				model->Queue( renderQueue, &lightShader, model->IsBillboard() ? &testLightShader : &blendLightShader, 0, 0 );
 			}
 		}
@@ -438,7 +448,7 @@ void Engine::LightGroundPlane( DayNight dayNight, ShadowState shadows, float sha
 	outColor->Set( 1, 1, 1, 1 );
 
 	if ( shadows == IN_SHADOW ) {
-		float delta = 1.0f - 0.2f*shadowAmount;
+		float delta = 1.0f - DIFFUSE_SHADOW*shadowAmount;
 		outColor->x *= delta;
 		outColor->y *= delta;
 		outColor->z *= delta;

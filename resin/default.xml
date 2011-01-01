@@ -105,6 +105,7 @@
   <model filename="ufo_WallInn.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_CrnrInn.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_WallOut.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_WallCurve1I.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_WallCurve4.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_WallCurve8.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_controlTable.ac" shading="crease" polyRemoval="pre" />
@@ -117,6 +118,9 @@
   <model filename="ufo_tube.ac" shading="smooth"/>
   <model filename="ufo_table.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_pod.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_plant0.ac" shading="smooth" polyRemoval="pre" />
+  <model filename="ufo_plant1.ac" shading="smooth" polyRemoval="pre" />
+  <model filename="ufo_drone.ac" shading="crease"  polyRemoval="pre" />
 
   <model filename="woodCrnr.ac" polyRemoval="pre" />
   <model filename="woodCrnrD.ac" polyRemoval="pre" />
@@ -139,6 +143,10 @@
   <model filename="crate1.ac" shading="crease" polyRemoval="pre" />
   <model filename="crate2.ac" shading="crease" polyRemoval="pre" />
 
+  <model filename="pyramid_2.ac" shading="flat" polyRemoval="pre" />
+  <model filename="pyramid_4.ac" shading="flat" polyRemoval="pre" />
+  <model filename="obelisk.ac"   shading="flat" polyRemoval="pre" />
+
   <!-- Models used as markers by the map-maker. Don't appear in the game. -->
   <model filename="scout.ac" shading="smooth" />
   <model filename="guard.ac" />
@@ -147,6 +155,7 @@
 	<!-- Maps -->
   <image filename="objectLightMaps.png" />
 
+  <!-- Farm Tiles -->
   <data  filename="FARM_16_TILE_00.xml" />
   <image filename="FARM_16_TILE_00_TEX.png" width="128" height="128" />
   <image filename="FARM_16_TILE_00_DAY.png" />
@@ -172,20 +181,29 @@
   <image filename="FARM_16_TILE_04_DAY.png" />
   <image filename="FARM_16_TILE_04_NGT.png" />
 
+  <!-- Farm Scout -->
   <data  filename="FARM_16_UFOA_00.xml" />
   <image filename="FARM_16_UFOA_00_TEX.png" width="128" height="128" />
   <image filename="FARM_16_UFOA_00_DAY.png" />
   <image filename="FARM_16_UFOA_00_NGT.png" />
 
+  <!-- Farm Destroyer -->
   <data  filename="FARM_32_UFOB_00.xml" />
   <image filename="FARM_32_UFOB_00_TEX.png" width="256" height="256" />
   <image filename="FARM_32_UFOB_00_DAY.png" />
   <image filename="FARM_32_UFOB_00_NGT.png" />
 
+  <!-- Farm Lander -->
   <data  filename="FARM_16_LAND_00.xml" />
   <image filename="FARM_16_LAND_00_TEX.png" width="128" height="128" />
   <image filename="FARM_16_LAND_00_DAY.png" />
   <image filename="FARM_16_LAND_00_NGT.png" />
+
+  <!-- Battleship -->
+  <data  filename="BATT_48_TILE_00.xml" />
+  <image filename="BATT_48_TILE_00_TEX.png" width="384" height="384" />
+  <image filename="BATT_48_TILE_00_DAY.png" />
+  <image filename="BATT_48_TILE_00_NGT.png" />
 
   <text name="tacticalHelp" >
     <page>
