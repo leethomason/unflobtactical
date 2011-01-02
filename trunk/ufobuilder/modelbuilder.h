@@ -45,7 +45,7 @@ struct VertexStream {
 
 class ModelBuilder {
 public:
-	ModelBuilder() : current( 0 ), nGroup( 0 ), smooth( FLAT ), polyRemoval( POLY_NONE )	{}
+	ModelBuilder() : current( 0 ), nGroup( 0 ), shading( FLAT ), polyRemoval( POLY_NONE )	{}
 
 	void SetMatrix( const grinliz::Matrix4& mat )		{ matrix = mat; }
 
@@ -53,12 +53,12 @@ public:
 	void SetTexture( const char* textureName );
 
 	// Set smooth shading, generally true for characters and false for buildings.
-	enum {
+	enum ShadingType {
 		FLAT,
 		CREASE,
 		SMOOTH
 	};
-	void SetShading( int smooth )			{ this->smooth = smooth; }
+	void SetShading( ShadingType value )			{ this->shading = value; }
 	enum {
 		POLY_PRE,
 		POLY_POST,
@@ -90,7 +90,7 @@ private:
 	VertexStream stream[EL_MAX_MODEL_GROUPS];
 
 	int nGroup;
-	int smooth;
+	ShadingType shading;
 	int polyRemoval;
 };
 

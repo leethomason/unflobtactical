@@ -19,6 +19,8 @@
 	<texture filename="tree.tga" />
   <texture filename="tree2.png" />
   <texture filename="tree3.png" />
+  <texture filename="treetextures.png" />
+
   <texture filename="atlas0.png" />
   <texture filename="atlas1.png" width="32" height="128" />
   <texture filename="atlas2.png" />
@@ -27,6 +29,7 @@
   <texture filename="stonewall.png" width="64" height="64" />
   <texture filename="hay.png" width="64" height="64" />
   <texture filename="whitepicketfence.png" width="64" height="64" />
+  <texture filename="temple.png" width="64" height="64" />"
   
   <!-- UI elements -->
   <texture filename="intro.png" />
@@ -93,9 +96,15 @@
   <model filename="shellClip.ac" />
 
   <!-- Trees are world models, but centered at the origin for billboarding. -->
+  <!--
   <model filename="tree.ac" billboard="true" shading="crease" polyRemoval="pre" shadow="rotate"/>
   <model filename="tree2.ac" billboard="true" shading="crease" polyRemoval="pre" shadow="rotate"/>
   <model filename="tree3.ac" billboard="true" shading="crease" polyRemoval="pre" shadow="rotate"/>
+  -->
+  <model filename="alltree.ac" modelName="tree"   origin="0 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="tree2"  origin="2 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="tree3"  origin="4 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="tree4"  origin="6 0 0"  shading="smooth" polyRemoval="pre" />
 
   <!-- World models have their origin at the upper left, so that they align with the unit grid -->
   <model filename="lander.ac" shading="crease"/>
@@ -146,6 +155,7 @@
   <model filename="pyramid_2.ac" shading="flat" polyRemoval="pre" />
   <model filename="pyramid_4.ac" shading="flat" polyRemoval="pre" />
   <model filename="obelisk.ac"   shading="flat" polyRemoval="pre" />
+  <model filename="temple.ac"   shading="flat" polyRemoval="pre" />
 
   <!-- Models used as markers by the map-maker. Don't appear in the game. -->
   <model filename="scout.ac" shading="smooth" />
@@ -204,6 +214,40 @@
   <image filename="BATT_48_TILE_00_TEX.png" width="384" height="384" />
   <image filename="BATT_48_TILE_00_DAY.png" />
   <image filename="BATT_48_TILE_00_NGT.png" />
+
+  <!-- Forest Tiles -->
+  <data  filename="FRST_16_TILE_00.xml" />
+  <image filename="FRST_16_TILE_00_TEX.png" width="128" height="128" />
+  <image filename="FRST_16_TILE_00_DAY.png" />
+  <image filename="FRST_16_TILE_00_NGT.png" />
+
+  <data  filename="FRST_16_TILE_01.xml" />
+  <image filename="FRST_16_TILE_01_TEX.png" width="128" height="128" />
+  <image filename="FRST_16_TILE_01_DAY.png" />
+  <image filename="FRST_16_TILE_01_NGT.png" />
+
+  <data  filename="FRST_16_TILE_02.xml" />
+  <image filename="FRST_16_TILE_02_TEX.png" width="128" height="128" />
+  <image filename="FRST_16_TILE_02_DAY.png" />
+  <image filename="FRST_16_TILE_02_NGT.png" />
+  
+  <!-- Forest Lander -->
+  <data  filename="FRST_16_LAND_00.xml" />
+  <image filename="FRST_16_LAND_00_TEX.png" width="128" height="128" />
+  <image filename="FRST_16_LAND_00_DAY.png" />
+  <image filename="FRST_16_LAND_00_NGT.png" />
+
+  <!-- Forest Scout -->
+  <data  filename="FRST_16_UFOA_00.xml" />
+  <image filename="FRST_16_UFOA_00_TEX.png" width="128" height="128" />
+  <image filename="FRST_16_UFOA_00_DAY.png" />
+  <image filename="FRST_16_UFOA_00_NGT.png" />
+
+  <!-- Forest Destroyer -->
+  <data  filename="FRST_32_UFOB_00.xml" />
+  <image filename="FRST_32_UFOB_00_TEX.png" width="256" height="256" />
+  <image filename="FRST_32_UFOB_00_DAY.png" />
+  <image filename="FRST_32_UFOB_00_NGT.png" />
 
   <text name="tacticalHelp" >
     <page>

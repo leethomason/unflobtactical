@@ -179,11 +179,11 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 
 	toggles[FARM_SCOUT].SetEnabled(		true );
 	toggles[TNDR_SCOUT].SetEnabled(		false );
-	toggles[FRST_SCOUT].SetEnabled(		false );
+	toggles[FRST_SCOUT].SetEnabled(		true );
 	toggles[DSRT_SCOUT].SetEnabled(		false );
 	toggles[FARM_DESTROYER].SetEnabled( true );
 	toggles[TNDR_DESTROYER].SetEnabled( false );
-	toggles[FRST_DESTROYER].SetEnabled( false );
+	toggles[FRST_DESTROYER].SetEnabled( true );
 	toggles[DSRT_DESTROYER].SetEnabled( false );
 	toggles[CITY].SetEnabled(			false );
 	toggles[BATTLESHIP].SetEnabled(		true );

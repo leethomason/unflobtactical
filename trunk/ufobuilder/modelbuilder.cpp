@@ -125,7 +125,7 @@ void ModelBuilder::Flush()
 	// Smoothing: average normals.
 	// SMOOTH: everything with the same position should have the same normal.
 	// CREASE: all the normals that are "close" are averaged together
-	if ( smooth ) {
+	if ( shading == SMOOTH || shading == CREASE ) {
 		std::vector<int> match;
 
 		for( int g=0; g<nGroup; ++g ) {
@@ -142,7 +142,7 @@ void ModelBuilder::Flush()
 					// Equal, in this case, is only the position.
 					if ( !stream[g].normalProcessed[j] ) {
 
-						if ( smooth == SMOOTH ) {
+						if ( shading == SMOOTH ) {
 							if ( stream[g].vertex[i].pos.Equal( stream[g].vertex[j].pos, EPS_VERTEX ) ) {
 								match.push_back( j );
 								normalSum += stream[g].vertex[j].normal;
