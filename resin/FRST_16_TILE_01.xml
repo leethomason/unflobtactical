@@ -1,0 +1,45 @@
+<Map sizeX="16" sizeY="16" >
+    <Items >
+        <Item x="12" y="13" rot="2" name="tree4" />
+        <Item x="13" y="14" rot="2" name="tree" />
+        <Item x="12" y="14" name="tree4" />
+        <Item x="11" y="14" rot="1" name="tree" />
+        <Item x="8" y="15" name="scout" />
+        <Item x="7" y="13" name="tree4" />
+        <Item x="2" y="14" rot="3" name="tree4" />
+        <Item x="3" y="14" rot="3" name="tree" />
+        <Item x="1" y="13" rot="3" name="tree" />
+        <Item x="12" y="8" rot="3" name="tree" />
+        <Item x="13" y="9" rot="3" name="tree" />
+        <Item x="9" y="9" name="temple" />
+        <Item x="9" y="8" name="pawn" />
+        <Item x="6" y="9" name="temple" />
+        <Item x="4" y="9" rot="3" name="tree4" />
+        <Item x="4" y="11" name="tree4" />
+        <Item x="5" y="10" name="tree4" />
+        <Item x="7" y="8" name="pawn" />
+        <Item x="3" y="10" rot="1" name="tree4" />
+        <Item x="2" y="11" name="scout" />
+        <Item x="9" y="5" name="temple" />
+        <Item x="11" y="5" rot="1" name="tree4" />
+        <Item x="9" y="7" name="scout" />
+        <Item x="9" y="6" name="pawn" />
+        <Item x="11" y="7" name="pawn" />
+        <Item x="6" y="5" name="temple" />
+        <Item x="4" y="5" name="scout" />
+        <Item x="7" y="6" name="pawn" />
+        <Item x="5" y="7" name="pawn" />
+        <Item x="2" y="4" rot="3" name="tree4" />
+        <Item x="13" y="2" rot="3" name="tree4" />
+        <Item x="10" y="2" name="scout" />
+        <Item x="2" y="2" rot="3" name="tree4" />
+        <Item x="1" y="3" rot="3" name="tree4" />
+    </Items>
+    <Images >
+        <Image x="0" y="0" size="16" tileRotation="0" name="FRST_16_TILE_01" />
+    </Images>
+    <GroundDebris >
+    </GroundDebris>
+    <PyroGroup >
+    </PyroGroup>
+</Map>

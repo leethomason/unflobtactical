@@ -429,6 +429,9 @@ void ProcessModel( TiXmlElement* model )
 	else if ( grinliz::StrEqual( model->Attribute( "shading" ), "crease" ) ) {
 		builder->SetShading( ModelBuilder::CREASE );
 	}
+	else if ( grinliz::StrEqual(  model->Attribute( "shading" ), "smooth" ) ) {
+		builder->SetShading( ModelBuilder::SMOOTH );
+	}
 
 	if ( grinliz::StrEqual( model->Attribute( "polyRemoval" ), "pre" ) ) {
 		builder->SetPolygonRemoval( ModelBuilder::POLY_PRE );

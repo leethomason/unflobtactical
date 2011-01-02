@@ -3139,7 +3139,7 @@ void BattleScene::DeltaCurrentMapItem( int d )
 	static const int MAX = Map::NUM_ITEM_DEF + 2;	// placeholder for smoke and fire
 	while ( mapmaker_currentMapItem < 0 ) { mapmaker_currentMapItem += MAX; }
 	while ( mapmaker_currentMapItem >= MAX ) { mapmaker_currentMapItem -= MAX; }
-	if ( mapmaker_currentMapItem == 0 ) mapmaker_currentMapItem = 1;
+	//if ( mapmaker_currentMapItem == 0 ) mapmaker_currentMapItem = 1;
 	UpdatePreview();
 }
 

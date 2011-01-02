@@ -10,15 +10,15 @@ Features:
 - More items: optical computer for units to enhance vision
 
 TBD:
-- mission types: terror
-- mission types: destroyer
-- mission types: battleship
+- mission types: forest-d
+- mission types: forest-s
+- mission types: tundra-d
+- mission types: turdra-s
+- mission types: desert-d
+- mission types: desert-s
+- mission types: city
 - mission types: alien base
 - mission types: terran base
-- mission location: forest / jungle
-- mission location: desert
-- mission location: city
-- mission location: ice
 - skinning for weapons
 - Android: cap framerate. Don't really need >30
 
@@ -28,12 +28,10 @@ TBD:
 - re-size after load
 - 32 bit assets - xenowar logo
 
-Missions:
-(Farm,Ice,Forest,Desert)+(Scout,Destroyer)
-(City)
-(Battleship)
-(Alien Base)
-(Terran Base)
+FIXED
+- mission types: battleship
+- mission types: farm-d
+- mission types: farm-s
 
 FIXED [528]
 - Android: reduce scale/rotation sensitivity

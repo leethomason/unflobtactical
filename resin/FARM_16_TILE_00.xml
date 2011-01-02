@@ -2,6 +2,7 @@
     <Items >
         <Item x="8" y="13" name="tree" />
         <Item x="11" y="12" rot="1" name="stonewall_unit" />
+        <Item x="9" y="14" name="tree2" />
         <Item x="4" y="12" name="tree" />
         <Item x="6" y="12" name="scout" />
         <Item x="3" y="14" name="tree" />

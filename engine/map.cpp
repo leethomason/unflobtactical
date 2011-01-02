@@ -66,6 +66,7 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"tree",			0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
 	{	"tree2",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
 	{	"tree3",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
+	{	"tree4",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
 
 		// model		open			destroyed	cx, cz	hp			flammable	pather visibility
 	{	"stonewall_unit",0,	"stonewall_unitD",		1,	1,	HP_MED,		0,			"f", "0" },
@@ -89,6 +90,7 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"pyramid_2",	0,				0,			2,	2,	INDESTRUCT,	0,			"ffff", "0000" },
 	{	"pyramid_4",	0,				0,			4,	4,	INDESTRUCT,	0,			"ffff" "ffff" "ffff" "ffff", "0000" "0ff0" "0ff0" "0000" },
 	{	"obelisk",		0,				0,			1,	1,	HP_HIGH,	0,			"f", "0", OBSCURES },
+	{	"temple",		0,				0,			2,  1,  INDESTRUCT, 0,			"ff", "ff" },
 
 	// model		open			destroyed	cx, cz	hp				material	pather
 	{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	0,			"1", "1" },
@@ -715,7 +717,7 @@ void Map::GenerateLightMap()
 const char* Map::GetItemDefName( int i )
 {
 	const char* result = "";
-	if ( i > 0 && i < NUM_ITEM_DEF ) {
+	if ( i >= 0 && i < NUM_ITEM_DEF ) {
 		result = itemDefArr[i].Name();
 	}
 	return result;
@@ -822,7 +824,7 @@ void Map::DoSubTurn( Rectangle2I* change )
 				// Spread? Reduce to smoke?
 				// If there is nothing left, then fire ends. (ouchie.)
 				MapItem* root = quadTree.FindItems( x, y, 0, MapItem::MI_IS_LIGHT );
-				while ( root && root->Destroyed() )
+				while ( root && ( root->Destroyed() || !itemDefArr[root->itemDefIndex].flammable ) )	// skip things that are destroyed or inflammable
 					root = root->next;
 
 				if ( !root ) {
@@ -1101,7 +1103,9 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 		hp = itemDef.hp;
 
 	if ( StrEqual( itemDefArr[defIndex].Name(), "lander" )) {
-		GLRELASSERT( lander == 0 );
+		if ( !Engine::mapMakerMode ) {
+			GLRELASSERT( lander == 0 );
+		}
 		lander = item;
 	}
 
