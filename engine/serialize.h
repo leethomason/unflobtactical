@@ -47,12 +47,19 @@ struct ModelHeader
 {
 	// flags
 	enum {
+#ifdef EL_BILLBOARDS
 		BILLBOARD			= 0x01,		// if this is a billboard and always faces the camera
 		ROTATE_SHADOWS		= 0x04,		// for billboards, the shadow turns to face the light
+#endif
 		RESOURCE_NO_SHADOW	= 0x08,		// model casts no shadow
 	};
+#ifdef EL_BILLBOARDS
 	bool IsBillboard() const		{ return (flags&BILLBOARD) ? true : false; }
 	bool RotateShadow() const		{ return (flags&ROTATE_SHADOWS) ? true : false; }
+#else
+	bool IsBillboard() const		{ return false; }
+	bool RotateShadow() const		{ return false; }
+#endif
 	bool NoShadow() const			{ return (flags&RESOURCE_NO_SHADOW) ? true : false; }
 
 	grinliz::CStr<EL_FILE_STRING_LEN>	name;

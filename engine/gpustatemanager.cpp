@@ -162,6 +162,7 @@ void GPUShader::ResetState()
 	glColor4f( 1, 1, 1, 1 );
 
 	// General config:
+	glCullFace( GL_BACK );
 	glEnable( GL_CULL_FACE );
 
 	CHECK_GL_ERROR;

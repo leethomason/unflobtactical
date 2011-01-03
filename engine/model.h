@@ -178,8 +178,13 @@ public:
 	void SetRotation( float rot, int axis=1 );
 	float GetRotation( int axis=1 ) const			{ return rot[axis]; }
 
+#ifdef EL_BILLBOARDS
 	int IsBillboard() const 		{ return resource->header.flags & ModelHeader::BILLBOARD; }
 	int IsShadowRotated() const		{ return resource->header.flags & ModelHeader::ROTATE_SHADOWS; }
+#else
+	int IsBillboard() const 		{ return 0; }
+	int IsShadowRotated() const		{ return 0; }
+#endif
 	
 	// Set the skin texture (which is a special texture xform)
 	void SetSkin(int gender, int armor, int appearance);
