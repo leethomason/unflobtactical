@@ -16,9 +16,6 @@
   <texture filename="characters.png" />
   <texture filename="ufoInner.png" width="64" height="64"/>
 	<texture filename="ufoOuter.png" width="16" height="64"/>
-	<texture filename="tree.tga" />
-  <texture filename="tree2.png" />
-  <texture filename="tree3.png" />
   <texture filename="treetextures.png" />
 
   <texture filename="atlas0.png" />
@@ -95,12 +92,6 @@
   <model filename="cellClip.ac" />
   <model filename="shellClip.ac" />
 
-  <!-- Trees are world models, but centered at the origin for billboarding. -->
-  <!--
-  <model filename="tree.ac" billboard="true" shading="crease" polyRemoval="pre" shadow="rotate"/>
-  <model filename="tree2.ac" billboard="true" shading="crease" polyRemoval="pre" shadow="rotate"/>
-  <model filename="tree3.ac" billboard="true" shading="crease" polyRemoval="pre" shadow="rotate"/>
-  -->
   <model filename="alltree.ac" modelName="tree"   origin="0 0 0"  shading="smooth" polyRemoval="pre" />
   <model filename="alltree.ac" modelName="tree2"  origin="2 0 0"  shading="smooth" polyRemoval="pre" />
   <model filename="alltree.ac" modelName="tree3"  origin="4 0 0"  shading="smooth" polyRemoval="pre" />

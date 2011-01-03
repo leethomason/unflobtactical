@@ -42,27 +42,43 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	gamui::RenderAtom nullAtom;
 
 	backgroundUI.Init( game, &gamui2D, true );
+	//backgroundUI.backgroundText.SetPos( 200, backgroundUI.background.Y() );
 
 	const gamui::ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
 	const gamui::ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 
+	static const float LEFT = 25;
+	static const float SIZEX = 150;
+
 	continueButton.Init( &gamui2D, green );
-	continueButton.SetPos( 50, 150 );
-	continueButton.SetSizeByScale( 2.0f, 1.0f );
+	continueButton.SetPos( LEFT, 170 );
+	continueButton.SetSizeByScale( 2.2f, 1 );
 	continueButton.SetText( "Continue" );
 
-	newButton.Init( &gamui2D, green );
-	newButton.SetPos( 50, 220 );
-	newButton.SetSizeByScale( 2.0f, 1.0f );
-	newButton.SetText( "New" );
+	newCampaign.Init( &gamui2D, green );
+	newCampaign.SetPos( LEFT, 250 );
+	newCampaign.SetSizeByScale( 2.2f, 1 );
+	newCampaign.SetText( "Campaign" );
+	newCampaign.SetEnabled( false );
+
+	newTactical.Init( &gamui2D, green );
+	newTactical.SetPos( LEFT+SIZEX, 250 );
+	newTactical.SetSizeByScale( 2.2f, 1 );
+	newTactical.SetText( "New Tactical" );
+
+	newGeo.Init( &gamui2D, green );
+	newGeo.SetPos( LEFT+SIZEX*2, 250 );
+	newGeo.SetSizeByScale( 2.2f, 1 );
+	newGeo.SetText( "New Geo" );
+	newGeo.SetEnabled( false );
 
 	helpButton.Init( &gamui2D, green );
-	helpButton.SetPos( port.UIWidth() - 100, 220 );
+	helpButton.SetPos( port.UIWidth() - 100, 50 );
 	helpButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_HELP, true ),
 						UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
 
 	audioButton.Init( &gamui2D, green );
-	audioButton.SetPos( port.UIWidth() - 100, 150 );
+	audioButton.SetPos( port.UIWidth() - 100, 125 );
 	SettingsManager* settings = SettingsManager::Instance();
 	if ( settings->GetAudioOn() ) {
 		audioButton.SetDown();
@@ -272,8 +288,10 @@ void TacticalIntroScene::Tap(	int action,
 	}
 
 
-	if ( item == &newButton ) {
-		newButton.SetVisible( false );
+	if ( item == &newTactical ) {
+		newTactical.SetVisible( false );
+		newCampaign.SetVisible( false );
+		newGeo.SetVisible( false );
 		continueButton.SetVisible( false );
 		for( int i=0; i<TOGGLE_COUNT; ++i ) {
 			toggles[i].SetVisible( true );
