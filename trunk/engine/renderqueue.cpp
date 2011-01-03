@@ -139,9 +139,10 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 				 && ( (excluded & modelFlags) == 0 ) )
 			{
 				//GRINLIZ_PERFTRACK_NAME( "Submit Inner" )
+#ifdef EL_BILLBOARDS
 				if ( model->IsBillboard() )
 					model->SetRotation( bbRotation );
-
+#endif
 				if ( !shader ) {
 					//GLASSERT( statePool[i].texture == item->atom->texture );
 					statePool[i].shader->SetTexture0( statePool[i].texture );

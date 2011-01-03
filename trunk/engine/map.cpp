@@ -941,13 +941,15 @@ void Map::WorldToModel( const Matrix2I& mat, bool billboard, grinliz::Vector3F* 
 {
 	// Account for rounding from map (integer based) to model (float based) coordinates.
 	// Irritating transformation problem.
-
+#ifdef EL_BILLBOARDS
 	if ( billboard ) {
 		model->x  = (float)mat.x + 0.5f;
 		model->y  = 0.0f;
 		model->z  = (float)mat.y + 0.5f;
 	}
-	else {
+	else 
+#endif
+	{
 		Vector2I a = { 0, 0 };
 		Vector2I d = { 1, 1 };
 

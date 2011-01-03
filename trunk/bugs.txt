@@ -23,12 +23,13 @@ TBD:
 - Android: cap framerate. Don't really need >30
 
 - Reconsider when reaction fire occurs. And probability.
-- trees show up in the wrong place
+- check alpha textures on trees
 - rework fire spread & explosions.
 - re-size after load
 - 32 bit assets - xenowar logo
 
 FIXED
+- trees show up in the wrong place
 - mission types: battleship
 - mission types: farm-d
 - mission types: farm-s

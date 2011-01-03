@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "../engine/enginelimits.h"
 
 #include "SDL.h"
 #if defined(__APPLE__)	// OSX, not iphone
@@ -463,6 +464,7 @@ void ProcessModel( TiXmlElement* model )
 	ModelHeader header;
 	header.Set( name.c_str(), builder->NumGroups(), nTotalVertex, nTotalIndex, builder->Bounds() );
 
+#ifdef EL_BILLBOARDS
 	if ( grinliz::StrEqual( model->Attribute( "billboard" ), "true" ) ) {
 		header.flags |= ModelHeader::BILLBOARD;
 		// Make the bounds square.
@@ -472,11 +474,12 @@ void ProcessModel( TiXmlElement* model )
 		header.bounds.max.x = d;
 		header.bounds.max.z = d;
 	}
-	if ( grinliz::StrEqual( model->Attribute( "shadowCaster" ), "false" ) ) {
-		header.flags |= ModelHeader::RESOURCE_NO_SHADOW;
-	}
 	if ( grinliz::StrEqual( model->Attribute( "shadow" ), "rotate" ) ) {
 		header.flags |= ModelHeader::ROTATE_SHADOWS;
+	}
+#endif
+	if ( grinliz::StrEqual( model->Attribute( "shadowCaster" ), "false" ) ) {
+		header.flags |= ModelHeader::RESOURCE_NO_SHADOW;
 	}
 	if ( model->Attribute( "trigger" ) ) {
 		StringToVector( model->Attribute( "trigger" ), &header.trigger );

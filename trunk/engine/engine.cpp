@@ -268,9 +268,13 @@ void Engine::Draw()
 {
 	// -------- Camera & Frustum -------- //
 	screenport->SetView( camera.ViewMatrix() );	// Draw the camera
-
+#if EL_BILLBOARDS
 	float bbRotation = camera.GetBillboardYRotation();
 	float shadowRotation = ToDegree( atan2f( lightDirection.x, lightDirection.z ) );
+#else
+	float bbRotation = 0;
+	float shadowRotation = 0;
+#endif
 
 	// Compute the frustum planes and query the tree.
 	Plane planes[6];
@@ -338,8 +342,12 @@ void Engine::Draw()
 
 					// Except for billboards, we want blending.
 					model->Queue(	renderQueue, 
-									&lightShader, 
+									&lightShader,
+#ifdef EL_BILLBOARDS
 									model->IsBillboard() ? &testLightShader : &blendLightShader, 
+#else
+									&blendLightShader,
+#endif
 									0,
 									&c );
 				}
@@ -349,7 +357,11 @@ void Engine::Draw()
 				}
 			}
 			else if ( mapBounds.Contains( x, y ) && fogOfWar.IsSet( x, y ) ) {
+#ifdef EL_BILLBOARDS
 				model->Queue( renderQueue, &lightShader, model->IsBillboard() ? &testLightShader : &blendLightShader, 0, 0 );
+#else
+				model->Queue( renderQueue, &lightShader, &blendLightShader, 0, 0 );
+#endif
 			}
 		}
 	}
