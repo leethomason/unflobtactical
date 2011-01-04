@@ -67,6 +67,9 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"tree2",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
 	{	"tree3",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
 	{	"tree4",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
+	{	"cactus0",		0,				0,			1,	1,	HP_MEDLOW,	SLOWBURN,	"f", "0", OBSCURES },
+	{	"cactus1",		0,				0,			1,	1,	HP_MEDLOW,	SLOWBURN,	"f", "0", OBSCURES },
+	{	"cactus2",		0,				0,			1,	1,	HP_MEDLOW,	SLOWBURN,	"f", "0", OBSCURES },
 
 		// model		open			destroyed	cx, cz	hp			flammable	pather visibility
 	{	"stonewall_unit",0,	"stonewall_unitD",		1,	1,	HP_MED,		0,			"f", "0" },
@@ -80,6 +83,10 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"crate0",		0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0", 0 },
 	{	"crate1",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "f", 0 },
 	{	"crate2",		0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0", EXPLODES },
+
+	{	"rock0",		0,				0,			2,  1,	INDESTRUCT, 0,			"ff", "00", OBSCURES },
+	{	"rock1",		0,				0,			4,  1,	INDESTRUCT, 0,			"ff0f", "ff0f" },
+	{	"arch",			0,				0,			4,	1,	INDESTRUCT,	0,			"f00f", "f00f" },
 
 	{	"woodCrnr",		0,				"woodCrnrD",1,	1,	HP_MED,		BURN,		"3", "3" },
 	{	"woodDoorCld",	"woodDoorOpn",	0,			1,	1,	HP_MED,		BURN,		"0", "1" },
@@ -474,7 +481,7 @@ void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
 				     + rgba2.r + rgba2.g + rgba2.g + rgba2.b 
 				     + rgba3.r + rgba3.g + rgba3.g + rgba3.b ) >> 4; 
 			
-			GLRELASSERT( c >= 0 && c < 255 );
+			GLRELASSERT( c >= 0 && c <= 255 );
 			Surface::RGBA grey = { (U8)c, (U8)c, (U8)c, 255 };
 			//Surface::RGBA grey = { 128, 128, 128, 255 };
 			//Surface::RGBA test = Surface::CalcRGB16( Surface::CalcRGB16( grey ) );

@@ -10,12 +10,8 @@ Features:
 - More items: optical computer for units to enhance vision
 
 TBD:
-- mission types: forest-d
-- mission types: forest-s
 - mission types: tundra-d
 - mission types: turdra-s
-- mission types: desert-d
-- mission types: desert-s
 - mission types: city
 - mission types: alien base
 - mission types: terran base
@@ -29,6 +25,10 @@ TBD:
 - 32 bit assets - xenowar logo
 
 FIXED
+- mission types: forest-d
+- mission types: forest-s
+- mission types: desert-d
+- mission types: desert-s
 - trees show up in the wrong place
 - mission types: battleship
 - mission types: farm-d

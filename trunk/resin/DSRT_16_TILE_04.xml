@@ -1,0 +1,19 @@
+<Map sizeX="16" sizeY="16" >
+    <Items >
+        <Item x="4" y="12" name="scout" />
+        <Item x="7" y="12" name="pawn" />
+        <Item x="12" y="10" name="pawn" />
+        <Item x="8" y="9" name="scout" />
+        <Item x="12" y="4" name="scout" />
+        <Item x="8" y="4" name="pawn" />
+        <Item x="6" y="7" name="pawn" />
+        <Item x="3" y="7" name="scout" />
+    </Items>
+    <Images >
+        <Image x="0" y="0" size="16" tileRotation="0" name="DSRT_16_TILE_04" />
+    </Images>
+    <GroundDebris >
+    </GroundDebris>
+    <PyroGroup >
+    </PyroGroup>
+</Map>
