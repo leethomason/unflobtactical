@@ -27,6 +27,7 @@
   <texture filename="hay.png" width="64" height="64" />
   <texture filename="whitepicketfence.png" width="64" height="64" />
   <texture filename="temple.png" width="64" height="64" />"
+  <texture filename="desert.png" />
   
   <!-- UI elements -->
   <texture filename="intro.png" />
@@ -92,10 +93,13 @@
   <model filename="cellClip.ac" />
   <model filename="shellClip.ac" />
 
-  <model filename="alltree.ac" modelName="tree"   origin="0 0 0"  shading="smooth" polyRemoval="pre" />
-  <model filename="alltree.ac" modelName="tree2"  origin="2 0 0"  shading="smooth" polyRemoval="pre" />
-  <model filename="alltree.ac" modelName="tree3"  origin="4 0 0"  shading="smooth" polyRemoval="pre" />
-  <model filename="alltree.ac" modelName="tree4"  origin="6 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="tree"     origin="0 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="tree2"    origin="2 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="tree3"    origin="4 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="tree4"    origin="6 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="cactus0"  origin="8 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="cactus1"  origin="10 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="cactus2"  origin="12 0 0"  shading="smooth" polyRemoval="pre" />
 
   <!-- World models have their origin at the upper left, so that they align with the unit grid -->
   <model filename="lander.ac" shading="crease"/>
@@ -147,6 +151,10 @@
   <model filename="pyramid_4.ac" shading="flat" polyRemoval="pre" />
   <model filename="obelisk.ac"   shading="flat" polyRemoval="pre" />
   <model filename="temple.ac"   shading="flat" polyRemoval="pre" />
+
+  <model filename="desert.ac" modelName="rock0"  origin="0 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="desert.ac" modelName="rock1"  origin="8 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="desert.ac" modelName="arch"   origin="3 0 0"  shading="smooth" polyRemoval="pre" />
 
   <!-- Models used as markers by the map-maker. Don't appear in the game. -->
   <model filename="scout.ac" shading="smooth" />
@@ -239,6 +247,50 @@
   <image filename="FRST_32_UFOB_00_TEX.png" width="256" height="256" />
   <image filename="FRST_32_UFOB_00_DAY.png" />
   <image filename="FRST_32_UFOB_00_NGT.png" />
+
+  <!-- Desert Tiles -->
+  <data  filename="DSRT_16_TILE_00.xml" />
+  <image filename="DSRT_16_TILE_00_TEX.png" width="128" height="128" />
+  <image filename="DSRT_16_TILE_00_DAY.png" />
+  <image filename="DSRT_16_TILE_00_NGT.png" />
+
+  <data  filename="DSRT_16_TILE_01.xml" />
+  <image filename="DSRT_16_TILE_01_TEX.png" width="128" height="128" />
+  <image filename="DSRT_16_TILE_01_DAY.png" />
+  <image filename="DSRT_16_TILE_01_NGT.png" />
+
+  <data  filename="DSRT_16_TILE_02.xml" />
+  <image filename="DSRT_16_TILE_02_TEX.png" width="128" height="128" />
+  <image filename="DSRT_16_TILE_02_DAY.png" />
+  <image filename="DSRT_16_TILE_02_NGT.png" />
+
+  <data  filename="DSRT_16_TILE_03.xml" />
+  <image filename="DSRT_16_TILE_03_TEX.png" width="128" height="128" />
+  <image filename="DSRT_16_TILE_03_DAY.png" />
+  <image filename="DSRT_16_TILE_03_NGT.png" />
+
+  <data  filename="DSRT_16_TILE_04.xml" />
+  <image filename="DSRT_16_TILE_04_TEX.png" width="128" height="128" />
+  <image filename="DSRT_16_TILE_04_DAY.png" />
+  <image filename="DSRT_16_TILE_04_NGT.png" />
+
+  <!-- Desert Lander -->
+  <data  filename="DSRT_16_LAND_00.xml" />
+  <image filename="DSRT_16_LAND_00_TEX.png" width="128" height="128" />
+  <image filename="DSRT_16_LAND_00_DAY.png" />
+  <image filename="DSRT_16_LAND_00_NGT.png" />
+
+  <!-- Desert Scout -->
+  <data  filename="DSRT_16_UFOA_00.xml" />
+  <image filename="DSRT_16_UFOA_00_TEX.png" width="128" height="128" />
+  <image filename="DSRT_16_UFOA_00_DAY.png" />
+  <image filename="DSRT_16_UFOA_00_NGT.png" />
+
+  <!-- Desert Destroyer -->
+  <data  filename="DSRT_32_UFOB_00.xml" />
+  <image filename="DSRT_32_UFOB_00_TEX.png" width="256" height="256" />
+  <image filename="DSRT_32_UFOB_00_DAY.png" />
+  <image filename="DSRT_32_UFOB_00_NGT.png" />
 
   <text name="tacticalHelp" >
     <page>

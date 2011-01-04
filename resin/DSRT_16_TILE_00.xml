@@ -1,0 +1,43 @@
+<Map sizeX="16" sizeY="16" >
+    <Items >
+        <Item x="13" y="14" name="tree4" />
+        <Item x="14" y="13" rot="3" name="tree4" />
+        <Item x="12" y="14" rot="2" name="cactus2" />
+        <Item x="9" y="12" name="tree4" />
+        <Item x="8" y="13" name="tree4" />
+        <Item x="11" y="13" rot="2" name="cactus2" />
+        <Item x="6" y="12" name="scout" />
+        <Item x="3" y="13" rot="3" name="tree4" />
+        <Item x="2" y="12" rot="2" name="tree4" />
+        <Item x="12" y="9" rot="2" name="cactus0" />
+        <Item x="14" y="8" name="cactus0" />
+        <Item x="12" y="10" name="pawn" />
+        <Item x="8" y="10" name="scout" />
+        <Item x="11" y="8" name="pawn" />
+        <Item x="4" y="10" rot="2" name="tree4" />
+        <Item x="3" y="9" rot="2" name="tree4" />
+        <Item x="1" y="10" name="pawn" />
+        <Item x="13" y="4" name="tree4" />
+        <Item x="14" y="5" rot="3" name="tree4" />
+        <Item x="8" y="5" name="tree4" />
+        <Item x="10" y="6" name="tree4" />
+        <Item x="9" y="6" name="tree4" />
+        <Item x="8" y="6" rot="1" name="tree4" />
+        <Item x="4" y="6" rot="1" name="cactus0" />
+        <Item x="5" y="4" rot="1" name="cactus0" />
+        <Item x="7" y="7" name="pawn" />
+        <Item x="3" y="5" name="scout" />
+        <Item x="14" y="3" name="tree4" />
+        <Item x="12" y="3" name="scout" />
+        <Item x="0" y="1" name="tree4" />
+        <Item x="1" y="2" name="tree4" />
+        <Item x="3" y="0" name="tree4" />
+    </Items>
+    <Images >
+        <Image x="0" y="0" size="16" tileRotation="0" name="DSRT_16_TILE_00" />
+    </Images>
+    <GroundDebris >
+    </GroundDebris>
+    <PyroGroup >
+    </PyroGroup>
+</Map>
