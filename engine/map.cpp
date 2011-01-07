@@ -99,6 +99,10 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"obelisk",		0,				0,			1,	1,	HP_HIGH,	0,			"f", "0", OBSCURES },
 	{	"temple",		0,				0,			2,  1,  INDESTRUCT, 0,			"ff", "ff" },
 
+	//{	"blueCrystal",	0,				0,			1,  1,  HP_MED,		0,			"f", "f", EXPLODES },
+	//{	"greenCrystal",	0,				0,			1,  1,  HP_MED,		0,			"f", "f", EXPLODES },
+	//{	"redCrystal",	0,				0,			1,  1,  HP_MED,		0,			"f", "f", EXPLODES },
+
 	// model		open			destroyed	cx, cz	hp				material	pather
 	{	"ufo_WallOut",	0,				0,			1,	1,	HP_STEEL,	0,			"1", "1" },
 	{	"ufo_WallCurve1I", 0,			0,			1,	1,	INDESTRUCT,	0,			"f", "9" }, 
@@ -1524,6 +1528,22 @@ void Map::Load( const TiXmlElement* mapElement, const ItemDefArr& p_itemDefArr )
 		}
 	}
 
+	// Remove things that can't burn. (We don't want to generate unnecessary particles.)
+	for( int i=0; i<SIZE*SIZE; ++i ) {
+		if ( pyro[i] ) {
+			int y = i/SIZE;
+			int x = i-y*SIZE;
+
+			MapItem* root = quadTree.FindItems( x, y, 0, MapItem::MI_IS_LIGHT );
+			while ( root && ( root->Destroyed() || !itemDefArr[root->itemDefIndex].flammable ) )	// skip things that are destroyed or inflammable
+				root = root->next;
+
+			if ( !root ) {
+				// a few sub-turns of smoke
+				SetPyro( x, y, 0, 0 );
+			}
+		}
+	}
 	QueryAllDoors();
 }
 

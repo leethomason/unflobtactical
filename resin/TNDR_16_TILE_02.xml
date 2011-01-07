@@ -1,0 +1,19 @@
+<Map sizeX="16" sizeY="16" >
+    <Items >
+        <Item x="12" y="12" name="scout" />
+        <Item x="8" y="10" name="pawn" />
+        <Item x="4" y="10" name="scout" />
+        <Item x="7" y="11" name="pawn" />
+        <Item x="7" y="9" name="pawn" />
+        <Item x="5" y="11" name="pawn" />
+        <Item x="8" y="7" name="scout" />
+        <Item x="2" y="5" name="scout" />
+    </Items>
+    <Images >
+        <Image x="0" y="0" size="16" tileRotation="0" name="TNDR_16_TILE_02" />
+    </Images>
+    <GroundDebris >
+    </GroundDebris>
+    <PyroGroup >
+    </PyroGroup>
+</Map>
