@@ -1,0 +1,19 @@
+<Map sizeX="16" sizeY="16" >
+    <Items >
+        <Item x="12" y="13" name="tree3" />
+        <Item x="11" y="12" name="tree3" />
+        <Item x="2" y="12" name="tree3" />
+        <Item x="12" y="6" name="tree3" />
+        <Item x="13" y="4" name="tree3" />
+        <Item x="12" y="3" name="tree3" />
+        <Item x="8" y="1" name="tree3" />
+        <Item x="3" y="4" name="lander" />
+    </Items>
+    <Images >
+        <Image x="0" y="0" size="16" tileRotation="0" name="TNDR_16_LAND_00" />
+    </Images>
+    <GroundDebris >
+    </GroundDebris>
+    <PyroGroup >
+    </PyroGroup>
+</Map>

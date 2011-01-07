@@ -101,6 +101,12 @@
   <model filename="alltree.ac" modelName="cactus1"  origin="10 0 0"  shading="smooth" polyRemoval="pre" />
   <model filename="alltree.ac" modelName="cactus2"  origin="12 0 0"  shading="smooth" polyRemoval="pre" />
 
+  <!--
+  <model filename="crystals.ac" modelName="blueCrystal"   origin="0 0 0" shading="flat" polyRemoval="pre" />
+  <model filename="crystals.ac" modelName="greenCrystal"  origin="1 0 0" shading="flat" polyRemoval="pre" />
+  <model filename="crystals.ac" modelName="redCrystal"    origin="2 0 0" shading="flat" polyRemoval="pre" />
+  -->
+
   <!-- World models have their origin at the upper left, so that they align with the unit grid -->
   <model filename="lander.ac" shading="crease"/>
 
@@ -291,6 +297,40 @@
   <image filename="DSRT_32_UFOB_00_TEX.png" width="256" height="256" />
   <image filename="DSRT_32_UFOB_00_DAY.png" />
   <image filename="DSRT_32_UFOB_00_NGT.png" />
+
+  <!-- Tundra tiles -->
+  <data  filename="TNDR_16_TILE_00.xml" />
+  <image filename="TNDR_16_TILE_00_TEX.png" width="128" height="128" />
+  <image filename="TNDR_16_TILE_00_DAY.png" />
+  <image filename="TNDR_16_TILE_00_NGT.png" />
+
+  <data  filename="TNDR_16_TILE_01.xml" />
+  <image filename="TNDR_16_TILE_01_TEX.png" width="128" height="128" />
+  <image filename="TNDR_16_TILE_01_DAY.png" />
+  <image filename="TNDR_16_TILE_01_NGT.png" />
+
+  <data  filename="TNDR_16_TILE_02.xml" />
+  <image filename="TNDR_16_TILE_02_TEX.png" width="128" height="128" />
+  <image filename="TNDR_16_TILE_02_DAY.png" />
+  <image filename="TNDR_16_TILE_02_NGT.png" />
+
+  <!-- Tundra Lander -->
+  <data  filename="TNDR_16_LAND_00.xml" />
+  <image filename="TNDR_16_LAND_00_TEX.png" width="128" height="128" />
+  <image filename="TNDR_16_LAND_00_DAY.png" />
+  <image filename="TNDR_16_LAND_00_NGT.png" />
+
+  <!-- Tundra Scout -->
+  <data  filename="TNDR_16_UFOA_00.xml" />
+  <image filename="TNDR_16_UFOA_00_TEX.png" width="128" height="128" />
+  <image filename="TNDR_16_UFOA_00_DAY.png" />
+  <image filename="TNDR_16_UFOA_00_NGT.png" />
+
+  <!-- Tundra Destroyer -->
+  <data  filename="TNDR_32_UFOB_00.xml" />
+  <image filename="TNDR_32_UFOB_00_TEX.png" width="256" height="256" />
+  <image filename="TNDR_32_UFOB_00_DAY.png" />
+  <image filename="TNDR_32_UFOB_00_NGT.png" />
 
   <text name="tacticalHelp" >
     <page>

@@ -194,11 +194,11 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 		toggles[FARM_SCOUT].AddToToggleGroup( &toggles[i] );
 
 	toggles[FARM_SCOUT].SetEnabled(		true );
-	toggles[TNDR_SCOUT].SetEnabled(		false );
+	toggles[TNDR_SCOUT].SetEnabled(		true );
 	toggles[FRST_SCOUT].SetEnabled(		true );
 	toggles[DSRT_SCOUT].SetEnabled(		true );
 	toggles[FARM_DESTROYER].SetEnabled( true );
-	toggles[TNDR_DESTROYER].SetEnabled( false );
+	toggles[TNDR_DESTROYER].SetEnabled( true );
 	toggles[FRST_DESTROYER].SetEnabled( true );
 	toggles[DSRT_DESTROYER].SetEnabled( true );
 	toggles[CITY].SetEnabled(			false );
