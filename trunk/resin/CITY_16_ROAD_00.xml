@@ -1,0 +1,57 @@
+<Map sizeX="16" sizeY="16" >
+    <Items >
+        <Item x="7" y="9" rot="1" name="woodWall" />
+        <Item x="7" y="10" name="woodCrnr" />
+        <Item x="6" y="10" name="woodWall" />
+        <Item x="5" y="10" name="woodWall" />
+        <Item x="4" y="10" name="woodWallWin" />
+        <Item x="7" y="8" rot="1" name="woodWallWin" />
+        <Item x="5" y="8" rot="3" name="shelf_1" />
+        <Item x="5" y="9" rot="1" name="shelf_2" />
+        <Item x="1" y="8" rot="3" name="woodWall" />
+        <Item x="1" y="9" rot="3" name="woodWall" />
+        <Item x="1" y="10" rot="3" name="woodCrnr" />
+        <Item x="2" y="10" name="woodWall" />
+        <Item x="3" y="10" name="woodWall" />
+        <Item x="1" y="9" rot="3" name="sacks" />
+        <Item x="1" y="8" rot="3" name="sacks" />
+        <Item x="3" y="8" rot="1" name="shelf_2" />
+        <Item x="3" y="9" rot="1" name="shelf_0" />
+        <Item x="7" y="4" rot="1" name="woodWall" />
+        <Item x="7" y="5" rot="1" name="woodWallWin" />
+        <Item x="7" y="6" rot="1" name="woodWallWin" />
+        <Item x="7" y="7" rot="1" name="woodWallWin" />
+        <Item x="5" y="7" rot="1" name="shelf_1" />
+        <Item x="5" y="5" rot="1" name="shelf_0" />
+        <Item x="1" y="4" rot="3" name="woodWall" />
+        <Item x="1" y="5" rot="3" name="woodWall" />
+        <Item x="1" y="6" rot="3" name="woodWall" />
+        <Item x="1" y="7" rot="3" name="woodWallWin" />
+        <Item x="3" y="4" rot="1" name="counter_unit" />
+        <Item x="3" y="5" rot="1" name="counter_join" />
+        <Item x="2" y="5" name="counter_unit" />
+        <Item x="3" y="7" rot="1" name="shelf_1" />
+        <Item x="7" y="1" rot="1" name="woodCrnr" />
+        <Item x="6" y="1" rot="2" name="woodWall" />
+        <Item x="5" y="1" rot="2" name="woodWall" />
+        <Item x="7" y="2" rot="1" name="woodWall" />
+        <Item x="7" y="3" rot="1" name="woodDoorCld" flags="4" />
+        <Item x="4" y="1" rot="2" name="woodWallWin" />
+        <Item x="5" y="2" rot="1" name="shelf_empty" />
+        <Item x="5" y="3" rot="1" name="shelf_0" />
+        <Item x="1" y="1" rot="2" name="woodCrnr" />
+        <Item x="3" y="1" rot="2" name="woodWall" />
+        <Item x="2" y="1" rot="2" name="woodWall" />
+        <Item x="1" y="2" rot="3" name="woodWall" />
+        <Item x="1" y="3" rot="3" name="woodWallWin" />
+        <Item x="3" y="2" rot="1" name="counter_unit" />
+        <Item x="3" y="3" rot="1" name="counter_unit_reg" />
+    </Items>
+    <Images >
+        <Image x="0" y="0" size="16" tileRotation="0" name="CITY_16_ROAD_00" />
+    </Images>
+    <GroundDebris >
+    </GroundDebris>
+    <PyroGroup >
+    </PyroGroup>
+</Map>

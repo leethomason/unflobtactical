@@ -28,7 +28,10 @@
   <texture filename="whitepicketfence.png" width="64" height="64" />
   <texture filename="temple.png" width="64" height="64" />"
   <texture filename="desert.png" />
-  
+  <texture filename="counter_side.png" />
+  <texture filename="shelf_can_side_0.png" width="32" height="32" />
+  <texture filename="shelf_can_top_0.png" width="32" height="32" />
+
   <!-- UI elements -->
   <texture filename="intro.png" />
   <texture filename="title.png" />
@@ -152,6 +155,15 @@
   <model filename="crate0.ac" shading="crease" polyRemoval="pre" />
   <model filename="crate1.ac" shading="crease" polyRemoval="pre" />
   <model filename="crate2.ac" shading="crease" polyRemoval="pre" />
+
+  <model filename="counter_unit.ac" shading="flat" polyRemoval="pre" />
+  <model filename="counter_unit_reg.ac" shading="flat" polyRemoval="pre" />
+  <model filename="counter_join.ac" shading="flat" polyRemoval="pre" />
+  <model filename="shelf_empty.ac" shading="crease" polyRemoval="pre" />
+  <model filename="shelf_0.ac" shading="crease" polyRemoval="pre" />
+  <model filename="shelf_1.ac" shading="crease" polyRemoval="pre" />
+  <model filename="shelf_2.ac" shading="crease" polyRemoval="pre" />
+  <model filename="sacks.ac" shading="smooth" polyRemoval="pre" />
 
   <model filename="pyramid_2.ac" shading="flat" polyRemoval="pre" />
   <model filename="pyramid_4.ac" shading="flat" polyRemoval="pre" />
@@ -331,6 +343,13 @@
   <image filename="TNDR_32_UFOB_00_TEX.png" width="256" height="256" />
   <image filename="TNDR_32_UFOB_00_DAY.png" />
   <image filename="TNDR_32_UFOB_00_NGT.png" />
+  
+  <!-- City -->
+  <data  filename="CITY_16_ROAD_00.xml" />
+  <image filename="CITY_16_ROAD_00_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_ROAD_00_DAY.png" />
+  <image filename="CITY_16_ROAD_00_NGT.png" />
+  
 
   <text name="tacticalHelp" >
     <page>
