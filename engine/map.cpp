@@ -86,13 +86,22 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 
 	{	"rock0",		0,				0,			2,  1,	INDESTRUCT, 0,			"ff", "00", OBSCURES },
 	{	"rock1",		0,				0,			4,  1,	INDESTRUCT, 0,			"ff0f", "ff0f" },
-	{	"arch",			0,				0,			4,	1,	INDESTRUCT,	0,			"f00f", "f00f" },
+	{	"arch",			0,				0,			4,	1,	INDESTRUCT,	0,			"f00f", "0000" },	// should block vision, but looks too weird when it renders.
 
 	{	"woodCrnr",		0,				"woodCrnrD",1,	1,	HP_MED,		BURN,		"3", "3" },
 	{	"woodDoorCld",	"woodDoorOpn",	0,			1,	1,	HP_MED,		BURN,		"0", "1" },
 	{	"woodWall",		0,				0,			1,	1,	HP_MED,		BURN,		"1", "1" },
 	{	"woodWallRed",	0,				0,			1,	1,	HP_MED,		BURN,		"1", "1" },
 	{	"woodWallWin",	0,				0,			1,	1,	HP_MED,		BURN,		"1", "0" },
+
+	{	"counter_unit",	0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
+	{	"counter_join",	0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
+	{	"counter_unit_reg",	0,			0,			1,	1,	HP_MED,		BURN,		"f", "0" },
+	{	"shelf_empty",	0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
+	{	"shelf_0",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
+	{	"shelf_1",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
+	{	"shelf_2",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
+	{	"sacks",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
 
 	{	"pyramid_2",	0,				0,			2,	2,	INDESTRUCT,	0,			"ffff", "0000" },
 	{	"pyramid_4",	0,				0,			4,	4,	INDESTRUCT,	0,			"ffff" "ffff" "ffff" "ffff", "0000" "0ff0" "0ff0" "0000" },
