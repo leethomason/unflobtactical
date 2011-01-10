@@ -94,6 +94,11 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"woodWallRed",	0,				0,			1,	1,	HP_MED,		BURN,		"1", "1" },
 	{	"woodWallWin",	0,				0,			1,	1,	HP_MED,		BURN,		"1", "0" },
 
+	{	"brickCrnr",		0,			"brickCrnrD",1,	1,	HP_MED,		0,			"3", "3" },
+	{	"brickDoorCld",	"brickDoorOpn",	0,			1,	1,	HP_MED,		0,			"0", "1" },
+	{	"brickWall",		0,			0,			1,	1,	HP_MED,		0,			"1", "1" },
+	{	"brickWallWin",	0,				0,			1,	1,	HP_MED,		0,			"1", "0" },
+
 	{	"counter_unit",	0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
 	{	"counter_join",	0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
 	{	"counter_unit_reg",	0,			0,			1,	1,	HP_MED,		BURN,		"f", "0" },

@@ -143,6 +143,13 @@
   <model filename="woodWallRed.ac" polyRemoval="pre" />
   <model filename="woodWallWin.ac" polyRemoval="pre" />
 
+  <model filename="brickCrnr.ac" polyRemoval="pre" />
+  <model filename="brickCrnrD.ac" polyRemoval="pre" />
+  <model filename="brickDoorCld.ac" polyRemoval="pre" />
+  <model filename="brickDoorOpn.ac" polyRemoval="pre" />
+  <model filename="brickWall.ac" polyRemoval="pre" />
+  <model filename="brickWallWin.ac" polyRemoval="pre" />
+
   <model filename="stonewall_unit.ac" shading="crease" polyRemoval="pre" />
   <model filename="stonewall_join.ac" shading="crease" polyRemoval="pre" />
   <model filename="stonewall_unitD.ac" shading="crease" polyRemoval="pre" />
