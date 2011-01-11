@@ -1,5 +1,11 @@
 Useful code and links from the web. And sometimes a sort of development blog.
 
+= Ordering Rendering = 
+
+What order?
+Tom Forsyth suggestion:
+http://home.comcast.net/~tom_forsyth/blog.wiki.html
+
 = Duplicate classes = 
 
 This being a hobby project, it seems like I couldn't actually write 2 classes that did the same thing. But exhibit #1: Target and Visibility. Code in both classes get called, yet they both actually had a UnitCanSee( x, y ) method for example.
