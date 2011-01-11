@@ -1,0 +1,324 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="game">
+      <UniqueIdentifier>{d8f71bcb-ac01-43ab-87be-3e5384ccfec0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="win32">
+      <UniqueIdentifier>{ee895fa0-8508-45ed-b5c3-d721ee9b049a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine">
+      <UniqueIdentifier>{2430745c-fc09-4a09-8033-61be6adf919e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="database">
+      <UniqueIdentifier>{92f4a309-02a0-483c-a787-c10593b15ed8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tinyxml">
+      <UniqueIdentifier>{64d55030-3f4b-4b0f-8e21-956a84e8e06b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scenes">
+      <UniqueIdentifier>{694fdd82-1060-46b8-9638-f4a00bbe4889}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="game\ai.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\cgame.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\game.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\gameresources.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\inventory.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\item.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\material.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\scene.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\stats.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\storageWidget.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\unit.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="win32\audio.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="win32\glew.c">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="win32\main.cpp">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\camera.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\engine.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\fixedgeom.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\loosequadtree.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\map.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="micropather\micropather.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\model.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\particle.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\particleeffect.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\renderqueue.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\screenport.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\serialize.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\surface.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\text.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\texture.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\ufoutil.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\uirendering.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="shared\gamedbreader.cpp">
+      <Filter>database</Filter>
+    </ClCompile>
+    <ClCompile Include="game\ufosound.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml\tinystr.cpp">
+      <Filter>tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml\tinyxml.cpp">
+      <Filter>tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml\tinyxmlerror.cpp">
+      <Filter>tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml\tinyxmlparser.cpp">
+      <Filter>tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\gpustatemanager.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="game\inventoryWidget.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\battlescene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="game\characterscene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="game\helpscene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="game\tacticalendscene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="game\tacticalintroscene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="game\tacticalunitscorescene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="game\dialogscene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="game\settings.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\battlevisibility.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="game\ai.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\cgame.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\game.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\gamelimits.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\inventory.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\item.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\material.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\scene.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\stats.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\storageWidget.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\targets.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\unit.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="win32\audio.h">
+      <Filter>win32</Filter>
+    </ClInclude>
+    <ClInclude Include="win32\glew.h">
+      <Filter>win32</Filter>
+    </ClInclude>
+    <ClInclude Include="win32\wglew.h">
+      <Filter>win32</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\camera.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\engine.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\enginelimits.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\fixedgeom.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\loosequadtree.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\map.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="micropather\micropather.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\model.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\particle.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\particleeffect.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\platformgl.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\renderqueue.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\screenport.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\serialize.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\surface.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\text.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\texture.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\ufoutil.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\uirendering.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\vertex.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\gamedb.h">
+      <Filter>database</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\gamedbreader.h">
+      <Filter>database</Filter>
+    </ClInclude>
+    <ClInclude Include="game\ufosound.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyxml\tinystr.h">
+      <Filter>tinyxml</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyxml\tinyxml.h">
+      <Filter>tinyxml</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\gpustatemanager.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="game\inventoryWidget.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\battlescene.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\characterscene.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\helpscene.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\tacticalendscene.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\tacticalintroscene.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\tacticalunitscorescene.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\dialogscene.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\settings.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\battlevisibility.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
