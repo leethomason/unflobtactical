@@ -171,7 +171,10 @@
   <model filename="shelf_1.ac" shading="crease" polyRemoval="pre" />
   <model filename="shelf_2.ac" shading="crease" polyRemoval="pre" />
   <model filename="sacks.ac" shading="smooth" polyRemoval="pre" />
-
+  <model filename="cafetable.ac" polyRemoval="pre" />
+  <model filename="lamp0.ac"  polyRemoval="pre" />
+  <model filename="gaspump.ac"  shading="flat" polyRemoval="pre" />
+         
   <model filename="pyramid_2.ac" shading="flat" polyRemoval="pre" />
   <model filename="pyramid_4.ac" shading="flat" polyRemoval="pre" />
   <model filename="obelisk.ac"   shading="flat" polyRemoval="pre" />
@@ -356,7 +359,56 @@
   <image filename="CITY_16_ROAD_00_TEX.png" width="128" height="128" />
   <image filename="CITY_16_ROAD_00_DAY.png" />
   <image filename="CITY_16_ROAD_00_NGT.png" />
-  
+
+  <data  filename="CITY_16_ROAD_01.xml" />
+  <image filename="CITY_16_ROAD_01_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_ROAD_01_DAY.png" />
+  <image filename="CITY_16_ROAD_01_NGT.png" />
+
+  <data  filename="CITY_16_ROAD_02.xml" />
+  <image filename="CITY_16_ROAD_02_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_ROAD_02_DAY.png" />
+  <image filename="CITY_16_ROAD_02_NGT.png" />
+
+  <data  filename="CITY_16_ROAD_03.xml" />
+  <image filename="CITY_16_ROAD_03_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_ROAD_03_DAY.png" />
+  <image filename="CITY_16_ROAD_03_NGT.png" />
+
+  <data  filename="CITY_16_INTR_00.xml" />
+  <image filename="CITY_16_INTR_00_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_INTR_00_DAY.png" />
+  <image filename="CITY_16_INTR_00_NGT.png" />
+
+  <data  filename="CITY_16_INTR_01.xml" />
+  <image filename="CITY_16_INTR_01_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_INTR_01_DAY.png" />
+  <image filename="CITY_16_INTR_01_NGT.png" />
+
+  <data  filename="CITY_16_INTR_02.xml" />
+  <image filename="CITY_16_INTR_02_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_INTR_02_DAY.png" />
+  <image filename="CITY_16_INTR_02_NGT.png" />
+
+  <data  filename="CITY_16_OPEN_00.xml" />
+  <image filename="CITY_16_OPEN_00_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_OPEN_00_DAY.png" />
+  <image filename="CITY_16_OPEN_00_NGT.png" />
+
+  <data  filename="CITY_16_OPEN_01.xml" />
+  <image filename="CITY_16_OPEN_01_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_OPEN_01_DAY.png" />
+  <image filename="CITY_16_OPEN_01_NGT.png" />
+
+  <data  filename="CITY_16_OPEN_02.xml" />
+  <image filename="CITY_16_OPEN_02_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_OPEN_02_DAY.png" />
+  <image filename="CITY_16_OPEN_02_NGT.png" />
+
+  <data  filename="CITY_16_LAND_00.xml" />
+  <image filename="CITY_16_LAND_00_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_LAND_00_DAY.png" />
+  <image filename="CITY_16_LAND_00_NGT.png" />
 
   <text name="tacticalHelp" >
     <page>

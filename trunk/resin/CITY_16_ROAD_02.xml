@@ -1,0 +1,96 @@
+<Map sizeX="16" sizeY="16" >
+    <Items >
+        <Item x="11" y="12" name="scout" />
+        <Item x="7" y="14" name="brickCrnr" />
+        <Item x="7" y="12" rot="1" name="brickWall" />
+        <Item x="7" y="13" rot="1" name="brickWall" />
+        <Item x="6" y="14" name="brickWall" />
+        <Item x="5" y="14" name="brickWall" />
+        <Item x="4" y="14" name="brickWall" />
+        <Item x="6" y="14" rot="1" name="barrel1" />
+        <Item x="7" y="14" rot="1" name="barrel0" />
+        <Item x="7" y="13" rot="2" name="barrel0" />
+        <Item x="4" y="12" name="barrel0" />
+        <Item x="5" y="12" name="barrel0" />
+        <Item x="4" y="13" name="pawn" />
+        <Item x="1" y="14" rot="3" name="brickCrnr" />
+        <Item x="3" y="14" name="brickWall" />
+        <Item x="2" y="14" name="brickWall" />
+        <Item x="1" y="13" rot="3" name="brickWall" />
+        <Item x="1" y="12" rot="3" name="brickWall" />
+        <Item x="1" y="14" rot="2" name="barrel0" />
+        <Item x="1" y="13" rot="1" name="barrel0" />
+        <Item x="2" y="14" rot="1" name="barrel0" />
+        <Item x="3" y="14" rot="1" name="barrel1" />
+        <Item x="3" y="12" name="sacks" />
+        <Item x="9" y="9" name="scout" />
+        <Item x="7" y="8" rot="1" name="brickDoorCld" flags="4" />
+        <Item x="7" y="9" rot="1" name="brickWall" />
+        <Item x="7" y="10" rot="1" name="brickWall" />
+        <Item x="7" y="11" rot="1" name="brickWall" />
+        <Item x="4" y="9" rot="2" name="crate0" />
+        <Item x="5" y="9" rot="2" name="crate1" />
+        <Item x="6" y="9" rot="3" name="crate1" />
+        <Item x="5" y="10" rot="3" name="crate0" />
+        <Item x="6" y="10" rot="3" name="barrel1" />
+        <Item x="4" y="10" name="barrel0" />
+        <Item x="6" y="8" name="pawn" />
+        <Item x="1" y="11" rot="3" name="brickWall" />
+        <Item x="1" y="10" rot="3" name="brickWall" />
+        <Item x="1" y="9" rot="3" name="brickWall" />
+        <Item x="1" y="8" rot="3" name="brickWall" />
+        <Item x="1" y="11" name="sacks" />
+        <Item x="1" y="10" name="sacks" />
+        <Item x="1" y="9" rot="2" name="sacks" />
+        <Item x="3" y="10" rot="3" name="crate1" />
+        <Item x="3" y="9" name="sacks" />
+        <Item x="2" y="11" name="pawn" />
+        <Item x="14" y="6" name="scout" />
+        <Item x="9" y="4" name="guard" />
+        <Item x="7" y="7" rot="1" name="brickDoorCld" flags="4" />
+        <Item x="7" y="4" rot="1" name="brickWall" />
+        <Item x="7" y="5" rot="1" name="brickWall" />
+        <Item x="7" y="6" rot="1" name="brickWall" />
+        <Item x="4" y="4" rot="2" name="barrel0" />
+        <Item x="5" y="4" name="barrel0" />
+        <Item x="6" y="4" rot="1" name="barrel0" />
+        <Item x="5" y="6" rot="2" name="crate0" />
+        <Item x="6" y="6" rot="3" name="crate1" />
+        <Item x="4" y="6" name="crate1" />
+        <Item x="4" y="7" rot="2" name="crate1" />
+        <Item x="5" y="7" rot="2" name="crate2" />
+        <Item x="1" y="6" rot="3" name="brickWall" />
+        <Item x="1" y="5" rot="3" name="brickWall" />
+        <Item x="1" y="4" rot="3" name="brickWall" />
+        <Item x="1" y="4" rot="1" name="crate1" />
+        <Item x="3" y="6" rot="1" name="crate0" />
+        <Item x="3" y="7" name="crate1" />
+        <Item x="1" y="5" name="sacks" />
+        <Item x="1" y="7" rot="3" name="brickDoorCld" flags="4" />
+        <Item x="3" y="4" name="pawn" />
+        <Item x="11" y="2" name="scout" />
+        <Item x="7" y="2" rot="1" name="brickCrnr" />
+        <Item x="7" y="3" rot="1" name="brickWall" />
+        <Item x="4" y="2" rot="2" name="brickWall" />
+        <Item x="5" y="2" rot="2" name="brickWall" />
+        <Item x="6" y="2" rot="2" name="brickWall" />
+        <Item x="4" y="2" rot="1" name="crate2" />
+        <Item x="5" y="2" rot="3" name="crate1" />
+        <Item x="1" y="2" rot="2" name="brickCrnr" />
+        <Item x="1" y="3" rot="3" name="brickWall" />
+        <Item x="2" y="2" rot="2" name="brickWall" />
+        <Item x="3" y="2" rot="2" name="brickWall" />
+        <Item x="1" y="2" rot="2" name="crate0" />
+        <Item x="1" y="3" rot="2" name="crate1" />
+        <Item x="2" y="2" rot="1" name="crate2" />
+        <Item x="3" y="2" rot="1" name="crate1" />
+        <Item x="2" y="3" name="crate1" />
+    </Items>
+    <Images >
+        <Image x="0" y="0" size="16" tileRotation="0" name="CITY_16_ROAD_02" />
+    </Images>
+    <GroundDebris >
+    </GroundDebris>
+    <PyroGroup >
+    </PyroGroup>
+</Map>

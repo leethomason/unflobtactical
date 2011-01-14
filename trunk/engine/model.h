@@ -113,7 +113,7 @@ public:
 
 private:
 	enum { 
-		MAX_MODELS = 100	// just pointers
+		MAX_MODELS = 200	// just pointers
 	};
 	ModelResourceManager();
 	~ModelResourceManager();
