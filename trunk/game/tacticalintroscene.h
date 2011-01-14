@@ -78,8 +78,11 @@ public:
 		DSRT_DESTROYER,
 		CITY,
 		BATTLESHIP,
-		ALIEN_BASE,
-		TERRAN_BASE,
+		//ALIEN_BASE,
+		//TERRAN_BASE,
+
+		FIRST_SCENARIO = FARM_SCOUT,
+		LAST_SCENARIO = BATTLESHIP,
 
 		CIVS_PRESENT,
 		UFO_CRASH,
@@ -96,7 +99,7 @@ public:
 
 		bool TileAlgorithm() const			{ return (scenario >= FARM_SCOUT && scenario <= DSRT_DESTROYER); }
 
-		bool SupportsCivs() const			{ return (scenario >= FARM_SCOUT && scenario <= DSRT_DESTROYER) || scenario == CITY || scenario == TERRAN_BASE; }
+		bool SupportsCivs() const			{ return (scenario >= FARM_SCOUT && scenario <= DSRT_DESTROYER) || scenario == CITY /*|| scenario == TERRAN_BASE*/; }
 		bool SupportsCrash() const			{ return (scenario >= FARM_SCOUT && scenario <= DSRT_DESTROYER); };
 
 		int UFOSize() const					{ return (scenario >= FARM_DESTROYER && scenario <= DSRT_DESTROYER) ? 2 : 1; }
@@ -143,7 +146,7 @@ private:
 
 	BackgroundUI		backgroundUI;
 	gamui::PushButton	continueButton, helpButton, goButton, seedButton;
-	gamui::PushButton	newTactical, newGeo, newCampaign;
+	gamui::PushButton	newTactical;	//, newGeo, newCampaign;
 	gamui::TextLabel	terranLabel, alienLabel, timeLabel, seedLabel, scenarioLabel[4], rowLabel[3];
 	gamui::ToggleButton	toggles[TOGGLE_COUNT], audioButton;
 };

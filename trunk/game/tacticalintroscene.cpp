@@ -55,22 +55,26 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	continueButton.SetSizeByScale( 2.2f, 1 );
 	continueButton.SetText( "Continue" );
 
+	/*
 	newCampaign.Init( &gamui2D, green );
 	newCampaign.SetPos( LEFT, 250 );
 	newCampaign.SetSizeByScale( 2.2f, 1 );
 	newCampaign.SetText( "Campaign" );
 	newCampaign.SetEnabled( false );
+	*/
 
 	newTactical.Init( &gamui2D, green );
-	newTactical.SetPos( LEFT+SIZEX, 250 );
+	newTactical.SetPos( LEFT, 250 );
 	newTactical.SetSizeByScale( 2.2f, 1 );
 	newTactical.SetText( "New Tactical" );
 
+	/*
 	newGeo.Init( &gamui2D, green );
 	newGeo.SetPos( LEFT+SIZEX*2, 250 );
 	newGeo.SetSizeByScale( 2.2f, 1 );
 	newGeo.SetText( "New Geo" );
 	newGeo.SetEnabled( false );
+	*/
 
 	helpButton.Init( &gamui2D, green );
 	helpButton.SetPos( port.UIWidth() - 100, 50 );
@@ -93,7 +97,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 
 	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "8", "Low", "Med", "Hi", "8", "16", "Low", "Med", "Hi", "Day", "Night",
 													 "Fa-S", "T-S", "Fo-S", "D-S", "Fa-D", "T-D", "Fo-D", "D-D",
-													 "City", "BShip", "ABase", "TBase",
+													 "City", "BShip",	// "ABase", "TBase",
 													 "Civs", "Crash" };
 	for( int i=0; i<TOGGLE_COUNT; ++i ) {
 		GLASSERT( toggleLabel[i] );
@@ -190,7 +194,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 		toggles[FARM_DESTROYER+i].SetPos( 215+SIZE*i, 75 );
 		toggles[CITY+i].SetPos( 215+SIZE*i, 125 );
 	}
-	for( int i=FARM_SCOUT; i<=TERRAN_BASE; ++i )
+	for( int i=FIRST_SCENARIO; i<=LAST_SCENARIO; ++i )
 		toggles[FARM_SCOUT].AddToToggleGroup( &toggles[i] );
 
 	toggles[FARM_SCOUT].SetEnabled(		true );
@@ -201,10 +205,10 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	toggles[TNDR_DESTROYER].SetEnabled( true );
 	toggles[FRST_DESTROYER].SetEnabled( true );
 	toggles[DSRT_DESTROYER].SetEnabled( true );
-	toggles[CITY].SetEnabled(			false );
+	toggles[CITY].SetEnabled(			true );
 	toggles[BATTLESHIP].SetEnabled(		true );
-	toggles[ALIEN_BASE].SetEnabled(		false );
-	toggles[TERRAN_BASE].SetEnabled(	false );
+	//toggles[ALIEN_BASE].SetEnabled(		false );
+	//toggles[TERRAN_BASE].SetEnabled(	false );
 
 
 	UIItem* scenItems[] = { &toggles[CIVS_PRESENT], &toggles[UFO_CRASH] };
@@ -290,8 +294,8 @@ void TacticalIntroScene::Tap(	int action,
 
 	if ( item == &newTactical ) {
 		newTactical.SetVisible( false );
-		newCampaign.SetVisible( false );
-		newGeo.SetVisible( false );
+		//newCampaign.SetVisible( false );
+		//newGeo.SetVisible( false );
 		continueButton.SetVisible( false );
 		for( int i=0; i<TOGGLE_COUNT; ++i ) {
 			toggles[i].SetVisible( true );
@@ -391,7 +395,7 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 
 	SceneInfo info;
 	info.scenario = FARM_SCOUT;
-	for( int i=FARM_SCOUT; i<=TERRAN_BASE; ++i ) {
+	for( int i=FIRST_SCENARIO; i<=LAST_SCENARIO; ++i ) {
 		if ( toggles[i].Down() ) {
 			info.scenario = i;
 			break;
@@ -626,8 +630,6 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 	// Max world size is 64x64 units, in 16x16 unit blocks. That gives 4x4 blocks max.
 	BitArray< 4, 4, 1 > blocks;
 
-//	XMLUtil::OpenElement( fp, 2, "Map" );
-
 	TiXmlElement mapElement( "Map" );
 	const gamedb::Item* dataItem = game->GetDatabase()->Root()->Child( "data" );
 
@@ -697,6 +699,45 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 				}
 			}
 		}
+	}
+	else if ( info.scenario == CITY ) {
+		/*
+			_+_+
+			 | |
+			_+_+
+			 | |
+		*/
+		static const Vector2I open[4]  = { { 0,1 }, { 2,1 }, { 0,3 }, { 2,3 } };
+		static const Vector2I hroad[4] = { { 0,0 }, { 2,0 }, { 0,2 }, { 2,2 } };
+		static const Vector2I vroad[4] = { { 1,1 }, { 3,1 }, { 1,3 }, { 3,3 } };
+		static const Vector2I inter[4] = { { 1,0 }, { 3,0 }, { 1,2 }, { 3,2 } };
+
+		// Lander
+		Vector2I lander = { 0, 0 };
+		{
+			int tileRotation = random.Rand(4);
+			lander = open[random.Rand(4)];
+			AppendMapSnippet( lander.x*16, lander.y*16, tileRotation, "CITY", 16, false, "LAND", dataItem, &mapElement );	
+		}
+
+		// Open
+		for( int i=0; i<4; ++i ) {
+			if ( lander != open[i] ) {
+				int tileRotation = random.Rand(4);
+				AppendMapSnippet( open[i].x*16, open[i].y*16, tileRotation, "CITY", 16, false, "OPEN", dataItem, &mapElement );	
+			}
+		}
+		// Roads
+		for( int i=0; i<4; ++i ) {
+			AppendMapSnippet( hroad[i].x*16, hroad[i].y*16, 1, "CITY", 16, false, "ROAD", dataItem, &mapElement );	
+		}
+		for( int i=0; i<4; ++i ) {
+			AppendMapSnippet( vroad[i].x*16, vroad[i].y*16, 0, "CITY", 16, false, "ROAD", dataItem, &mapElement );	
+		}
+		for( int i=0; i<4; ++i ) {
+			AppendMapSnippet( inter[i].x*16, inter[i].y*16, 1, "CITY", 16, false, "INTR", dataItem, &mapElement );	
+		}
+		
 	}
 	else if ( info.scenario == BATTLESHIP ) {
 		AppendMapSnippet( 0, 0, 0, "BATT", 48, false, "TILE", dataItem, &mapElement );	
