@@ -146,7 +146,6 @@ public:
 	struct MapItem
 	{
 		enum {
-			MI_IS_LIGHT				= 0x01,
 			MI_NOT_IN_DATABASE		= 0x02,		// lights are usually generated, and are not stored in the DB
 			MI_DOOR					= 0x04,
 		};
@@ -206,7 +205,7 @@ public:
 		float ModelRot() const { return (float)(modelRotation*90); }
 
 		//bool InUse() const			{ return itemDefIndex > 0; }
-		bool IsLight() const		{ return flags & MI_IS_LIGHT; }
+		//bool IsLight() const		{ return flags & MI_IS_LIGHT; }
 
 		// returns true if destroyed
 		bool DoDamage( int _hp )		
@@ -255,9 +254,9 @@ public:
 
 	// Light Map
 	// 0: Light map that was set in "SetLightMap", or white if none set
-	// 1: Light map 0 + lights
+	// Not currently used: 1: Light map 0 + lights
 	// Not currently used: 2: Light map 0 + lights + FogOfWar
-	const Surface* GetLightMap( int i)	{ GLRELASSERT( i>=0 && i<2 ); GenerateLightMap(); return &lightMap[i]; }
+	const Surface* GetLightMap()	{ GenerateLightMap(); return lightMap; }
 	void SetLightMap0( int x, int y, float r, float g, float b );
 
 	void DrawSeen();		//< draw the map that is currently visible
@@ -306,7 +305,7 @@ public:
 	// Storage is owned by the map after this call.
 	MapItem* AddItem( int x, int z, int rotation, int itemDefIndex, int hp, int flags );
 	// Utility call to AddItem() that preprocesses the x,z params.
-	MapItem* AddLightItem( int x, int z, int rotation, int itemDefIndex, int hp, int flags );
+	//MapItem* AddLightItem( int x, int z, int rotation, int itemDefIndex, int hp, int flags );
 
 	void DeleteAt( int x, int z );
 	void MapBoundsOfModel( const Model* m, grinliz::Rectangle2I* mapBounds );
@@ -392,7 +391,7 @@ private:
 	static const int padArr1[16];
 
 
-	const MapItemDef*  lightDefStart;
+	//const MapItemDef*  lightDefStart;
 
 	// 0,90,180,270 rotation
 	static void XYRToWorld( int x, int y, int rotation, Matrix2I* mat );
@@ -504,11 +503,12 @@ private:
 
 	void GenerateLightMap();
 
-	Surface lightMap[2];
+	const Surface* lightMap;
+	Surface dayMap, nightMap;
+	bool lightMapValid;
 	Texture* lightMapTex;
 
-	Surface dayMap, nightMap;
-	grinliz::Rectangle2I invalidLightMap;
+	bool fogOfWarValid;
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWar;
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> pastSeenFOW;
 	Surface lightObject;

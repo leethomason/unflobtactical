@@ -223,23 +223,6 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	goButton.SetText( "Go!" );
 	goButton.SetVisible( false );
 
-	seedLabel.Init( &gamui2D );
-	seedLabel.SetVisible( false );
-	seedLabel.SetText( "Seed" );
-	seedLabel.SetPos( 155, 270-20 );
-	seedButton.Init( &gamui2D, green );
-	seedButton.SetPos( 155, 270 );
-	seedButton.SetSize( 50, 50 );
-
-	{
-		int t = (int)time( 0 ) + (int)clock();
-		Random random( t );
-		char buf[5];
-		SNPrintf( buf, 5, "%d", random.Rand( 1000 ) );
-		seedButton.SetText( buf );
-	}
-	seedButton.SetVisible( false );
-
 	// Is there a current game?
 	GLString savePath = game->GameSavePath();
 	continueButton.SetEnabled( false );
@@ -301,13 +284,11 @@ void TacticalIntroScene::Tap(	int action,
 			toggles[i].SetVisible( true );
 		}
 		goButton.SetVisible( true );
-		seedButton.SetVisible( true );
 		backgroundUI.backgroundText.SetVisible( false );
 
 		terranLabel.SetVisible( true );
 		alienLabel.SetVisible( true );
 		timeLabel.SetVisible( true );
-		seedLabel.SetVisible( true );
 		for( int i=0; i<4; ++i )
 			scenarioLabel[i].SetVisible( true );
 		for( int i=0; i<3; ++i )
@@ -328,19 +309,6 @@ void TacticalIntroScene::Tap(	int action,
 			WriteXML( fp );
 			fclose( fp );
 		}
-	}
-	else if ( item == &seedButton ) {
-		const char* seedStr = seedButton.GetText();
-		int seed = atol( seedStr );
-		seed += 1;
-		if ( seed >= 10 )
-			seed = 0;
-		if ( seed < 0 )
-			seed = 0;
-
-		char buffer[16];
-		SNPrintf( buffer, 16, "%d", seed );
-		seedButton.SetText( buffer );
 	}
 	else if ( item == &helpButton ) {
 		game->PushScene( Game::HELP_SCENE, new HelpSceneData("introHelp" ));
@@ -390,8 +358,7 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	XMLUtil::Attribute( fp, "dayTime", toggles[TIME_DAY].Down() ? 1 : 0 );
 	XMLUtil::SealCloseElement( fp );
 
-	const char* seedStr = seedButton.GetText();
-	int seed = atol( seedStr );
+	int seed = (int)time( 0 ) + (int)clock();
 
 	SceneInfo info;
 	info.scenario = FARM_SCOUT;

@@ -188,7 +188,7 @@ void Visibility::CalcVisibilityRay( int unitID, const Vector2I& pos, const Vecto
 #endif
 #endif
 
-	const Surface* lightMap = map->GetLightMap(1);
+	const Surface* lightMap = map->GetLightMap();
 	GLRELASSERT( lightMap->Format() == Surface::RGB16 );
 
 	const float OBSCURED = 0.50f;
