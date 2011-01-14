@@ -139,7 +139,7 @@ public:
 		SIZE = 64,					// maximum size. FIXME: duplicated in gamelimits.h
 		LOG2_SIZE = 6,
 
-		NUM_ITEM_DEF = 68,
+		NUM_ITEM_DEF = 72,
 	};
 
 

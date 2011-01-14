@@ -107,6 +107,9 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"shelf_1",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
 	{	"shelf_2",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
 	{	"sacks",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
+	{	"cafetable",	0,				0,			1,	1,	HP_MED,		0,			"f", "0" },
+	{	"lamp0",		0,				0,			1,	1,	HP_MED,		0,			"f", "0" },
+	{	"gaspump",		0,				0,			1,	1,	HP_MED,		FASTBURN,	"f", "0", EXPLODES },
 
 	{	"pyramid_2",	0,				0,			2,	2,	INDESTRUCT,	0,			"ffff", "0000" },
 	{	"pyramid_4",	0,				0,			4,	4,	INDESTRUCT,	0,			"ffff" "ffff" "ffff" "ffff", "0000" "0ff0" "0ff0" "0000" },
@@ -152,8 +155,9 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 
 	// ---------- Lights ------------------------------------
 	//	name			open	cx, cz		hp			fl	p	v	csa		lt		x	y		cx  cy	 
-	{	"landerLight",	0,	0,	8, 10,		INDESTRUCT, 0,	0,	0,	0,		0,		-1,	0,		1,	0 },
-	{	"fireLight",	0,	0,	5,	5,		INDESTRUCT, 0,	0,	0,	0,		0,		-2, -2,		10, 0 }
+	{	"landerLight",	0,	0,	8, 10,		INDESTRUCT, 0,	0,	0,	0,		0,		-1,	0,		1,	0 },	// 0
+	{	"fireLight",	0,	0,	5,	5,		INDESTRUCT, 0,	0,	0,	0,		0,		-2, -2,		10, 0 },	// 1
+//	{	"lamp0Light",	0,	0,	5,	5,		INDESTRUCT, 0,	0,	0,	0,		0,		-2, -2,		16, 0 }		// 2
 };
 
 const int Map::padArr1[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
