@@ -433,7 +433,7 @@ int main( int argc, char **argv )
 
 					case SDLK_l:
 						if ( mapMakerMode ) {
-							const Surface* lightmap = ((Game*)game)->engine->GetMap()->GetLightMap( 0 );
+							const Surface* lightmap = ((Game*)game)->engine->GetMap()->GetLightMap();
 							SaveLightMap( lightmap );
 						}
 						break;
@@ -599,7 +599,7 @@ int main( int argc, char **argv )
 #endif
 
 	if ( mapMakerMode ) {
-		const Surface* lightmap = ((Game*)game)->engine->GetMap()->GetLightMap( 0 );
+		const Surface* lightmap = ((Game*)game)->engine->GetMap()->GetLightMap();
 		SaveLightMap( lightmap );
 	}
 

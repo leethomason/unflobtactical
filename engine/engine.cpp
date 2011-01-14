@@ -287,8 +287,7 @@ void Engine::Draw()
 
 	LightShader lightShader( ambient, dir, diffuse, false, false );
 	LightShader blendLightShader( ambient, dir, diffuse, false, true );
-	LightShader testLightShader( ambient, dir, diffuse, true, false ); 
-	const Surface* lightmap = map->GetLightMap( 1 );
+	const Surface* lightmap = map->GetLightMap();
 
 	Rectangle2I mapBounds = map->Bounds();
 	
@@ -470,24 +469,12 @@ void Engine::LightGroundPlane( DayNight dayNight, ShadowState shadows, float sha
 
 bool Engine::RayFromViewToYPlane( const Vector2F& v, const Matrix4& mvpi, Ray* ray, Vector3F* out )
 {	
-	//Vector3F win0 ={ v.x, v.y, 0.0f };
-	//Vector3F win1 ={ v.x, v.y, 1.0f };
-
-	//Vector3F p0, p1;
-	
-	//screenport->ViewToWorld( win0, mvpi, &p0 );
 	screenport->ViewToWorld( v, &mvpi, ray );
 
 	Plane plane;
 	plane.n.Set( 0.0f, 1.0f, 0.0f );
 	plane.d = 0.0;
 	
-	//Vector3F dir = p1 - p0;
-	//
-	//if ( ray ) {
-	//	ray->origin = p0;
-	//	ray->direction = dir;
-	//}
 	int result = REJECT;
 	if ( out ) {
 		float t;

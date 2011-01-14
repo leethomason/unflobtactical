@@ -7,6 +7,23 @@ Architecture
 - Map as interface
 
 TBD:
+
+- skinning for weapons
+- Android: cap framerate. Don't really need >30
+- rework intro screen
+- add score
+- city - 'open' needs a building tile
+
+Deferred:
+- More items: optical computer for units to enhance vision
+- Reconsider when reaction fire occurs. And probability.
+- rework fire spread & explosions.
+- 32 bit assets - xenowar logo
+
+FIXED
+- remove 'seed'
+- remove dynamic lights
+- check alpha textures on trees (removed - not currently using)
 - mission types: city
 	- X store, wood		-
 	- X store, brick	-
@@ -19,22 +36,6 @@ TBD:
 	- x forest			o
 	- x park			o
 	- x lander			o
-
-- skinning for weapons
-- Android: cap framerate. Don't really need >30
-- check alpha textures on trees
-- remove 'seed'
-- rework intro screen
-- add score
-- remove dynamic lights
-
-Deferred:
-- More items: optical computer for units to enhance vision
-- Reconsider when reaction fire occurs. And probability.
-- rework fire spread & explosions.
-- 32 bit assets - xenowar logo
-
-FIXED
 - mission types: tundra-d
 - mission types: turdra-s
 - mission types: forest-d
