@@ -20,6 +20,11 @@
 #include "model.h"
 #include "../grinliz/glmemorypool.h"
 
+struct ModelCache
+{
+	ModelCache* next;
+};
+
 /*
 	A loose quad tree for culling models. Also stores all the models in the world,
 	and models are allocated and free'd from the Tree.

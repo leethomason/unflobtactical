@@ -256,10 +256,10 @@ Map::Map( SpaceTree* tree )
 	nightMap.Clear( 255 );
 	lightMap = &dayMap;
 
-	//lightMap.Set( Surface::RGB16, SIZE, SIZE );
+//	lightFogMap.Set( Surface::RGB16, SIZE, SIZE );
 
 	lightMapTex = texman->CreateTexture( "MapLightMap", SIZE, SIZE, Surface::RGB16, Texture::PARAM_NONE, this );
-	ImageManager::Instance()->LoadImage( "objectLightMaps", &lightObject );
+//	lightFogMapTex = texman->CreateTexture( "MapLightFogMap", SIZE, SIZE, Surface::RGB16, Texture::PARAM_NONE, this );
 
 	GLOUTPUT(( "Map created. %dK\n", sizeof( *this )/1024 ));
 }
@@ -271,6 +271,7 @@ Map::~Map()
 	texman->DeleteTexture( backgroundTexture );
 	texman->DeleteTexture( greyTexture );
 	texman->DeleteTexture( lightMapTex );
+//	texman->DeleteTexture( lightFogMapTex );
 
 	Clear();
 	delete microPather;
@@ -666,6 +667,21 @@ void Map::GenerateSeenUnseen()
 #endif
 
 #undef PUSHQUAD
+
+/*
+	for( int j=0; j<height; ++j ) {
+		for( int i=0; i<width; ++i ) {
+			if ( fogOfWar.IsSet( i, j ) ) {
+				U16 c = lightMap->GetImg16( i, j );
+				lightFogMap.SetImg16( i, j, c );
+			}
+			else {
+				lightFogMap.SetImg16( i, j, 0 );
+			}
+		}
+	}
+	lightFogMapTex->Upload( lightFogMap );
+*/
 }
 
 
@@ -2283,6 +2299,9 @@ void Map::CreateTexture( Texture* t )
 	else if ( t == lightMapTex ) {
 		t->Upload( *lightMap );
 	}
+//	else if ( t == lightFogMapTex ) {
+//		t->Upload( lightFogMap );
+//	}
 	else {
 		GLRELASSERT( 0 );
 	}

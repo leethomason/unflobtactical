@@ -168,6 +168,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\gpustatemanager.h" />
+    <ClInclude Include="engine\rendercache.h" />
     <ClInclude Include="game\ai.h" />
     <ClInclude Include="game\battlescene.h" />
     <ClInclude Include="game\battlevisibility.h" />

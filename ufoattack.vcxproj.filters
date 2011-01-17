@@ -320,5 +320,8 @@
     <ClInclude Include="game\battlevisibility.h">
       <Filter>scenes</Filter>
     </ClInclude>
+    <ClInclude Include="engine\rendercache.h">
+      <Filter>engine</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

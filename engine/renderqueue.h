@@ -59,9 +59,13 @@ public:
 	};
 
 	/* If a shader is passed it, it will override the shader set by the Add. */
-	void Submit( GPUShader* shader, int mode, int required, int excluded, float billboardRotation );
+	void Submit( GPUShader* shader, int mode, int required, int excluded );
 	bool Empty() { return nState == 0 && nItem == 0; }
 	void Clear() { nState = 0; nItem = 0; }
+
+	int VertexCacheSize() const { return vertexCacheSize; }
+	int VertexCacheCap() const	{ return vertexCacheCap; }
+	void ResetRenderCache();
 
 private:
 	struct Item {
@@ -99,9 +103,6 @@ private:
 	int nState;
 	int nItem;
 
-	enum {
-		CACHE_SIZE = 10*1000	// 10,000 vertices
-	};
 	GPUVertexBuffer vertexCache;
 	int vertexCacheSize;
 	int vertexCacheCap;
