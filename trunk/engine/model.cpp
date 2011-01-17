@@ -128,7 +128,6 @@ void ModelLoader::Load( const gamedb::Item* item, ModelResource* res )
 		res->atom[i].texture = t;
 		res->atom[i].nVertex = group.nVertex;
 		res->atom[i].nIndex = group.nIndex;
-		res->atom[i].cacheStart = -1;
 
 		//GLOUTPUT(( "  '%s' vertices=%d tris=%d\n", textureName, (int)res->atom[i].nVertex, (int)(res->atom[i].nIndex/3) ));
 	}
@@ -180,6 +179,12 @@ void Model::Init( const ModelResource* resource, SpaceTree* tree )
 	flags = 0;
 	if ( resource && (resource->header.flags & ModelHeader::RESOURCE_NO_SHADOW ) ) {
 		flags |= MODEL_NO_SHADOW;
+	}
+
+	bool cache = !StrEqual( resource->header.name.c_str(), "lander" );
+
+	for( int i=0; i<EL_MAX_MODEL_GROUPS; ++i ) {
+		cacheStart[i] = cache ? CACHE_UNINITIALIZED : DO_NOT_CACHE;
 	}
 }
 
@@ -332,18 +337,6 @@ void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent
 }
 
 
-void ModelAtom::AddIndices( CDynArray<U16>* indexArr ) const
-{
-	int base = indexArr->Size();
-	U16* dst = indexArr->PushArr( nIndex );
-	const U16* src = index;
-
-	for( int n=nIndex; n; --n, ++src, ++dst ) {
-		*dst = *src + base;
-	}
-}
-
-
 void ModelAtom::LowerBind( GPUShader* shader, const GPUShader::Stream& stream ) const
 {
 #ifdef EL_USE_VBO
@@ -353,11 +346,11 @@ void ModelAtom::LowerBind( GPUShader* shader, const GPUShader::Stream& stream ) 
 		vertexBuffer = GPUVertexBuffer::Create( vertex, nVertex );
 		indexBuffer  = GPUIndexBuffer::Create(  index,  nIndex );
 	}
-#endif
 
 	if ( vertexBuffer.IsValid() && indexBuffer.IsValid() ) 
 		shader->SetStream( stream, vertexBuffer, nIndex, indexBuffer );
 	else
+#endif
 		shader->SetStream( stream, vertex, nIndex, index );
 }
 
@@ -478,6 +471,20 @@ int Model::IntersectRay(	const Vector3F& _origin,
 	}
 	return result;
 }
+
+
+void Model::AddIndices( CDynArray<U16>* indexArr, int atomIndex ) const
+{
+	U16* dst = indexArr->PushArr( resource->atom[atomIndex].nIndex );
+	const U16* src = resource->atom[atomIndex].index;
+
+	for( int n=resource->atom[atomIndex].nIndex; n; --n, ++src, ++dst ) {
+		*dst = *src + cacheStart[atomIndex];
+	}
+}
+
+
+
 
 
 void ModelResourceManager::AddModelResource( ModelResource* res )

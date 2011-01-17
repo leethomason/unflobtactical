@@ -40,21 +40,15 @@ struct ModelAtom
 #ifdef EL_USE_VBO
 	mutable GPUVertexBuffer vertexBuffer;		// created on demand, hence 'mutable'
 	mutable GPUIndexBuffer  indexBuffer;
-
-	// If added to the "big vertex cache", where do the vertices start?
-	enum {
-		CACHE_UNINITIALIZED = -1,
-		NOT_IN_CACHE = -2
-	};
-	mutable int cacheStart;			
 #endif
+
 	U32 nVertex;
 	U32 nIndex;
 
 	void Bind( GPUShader* shader ) const;
 	void BindPlanarShadow( GPUShader* shader ) const;	// I gave up trying to make this general.
 	void LowerBind( GPUShader* shader, const GPUShader::Stream& stream ) const;
-	void AddIndices( CDynArray<U16>* index ) const;
+	//void AddIndices( CDynArray<U16>* index ) const;
 
 	// A note on the memory model: the index and vertices are stored
 	// in continuous memory to cut down on allocation overhead. But
@@ -170,9 +164,10 @@ public:
 	void SetFlag( int f )			{ flags |= f; }
 	void ClearFlag( int f )			{ flags &= (~f); }
 	int Flags()	const				{ return flags; }
+
 	// Can this be put in a render cache? Yes if owned by the
 	// rarely-changing map.
-	bool Cacheable() const			{ return IsFlagSet( MODEL_OWNED_BY_MAP ) != 0; }
+	bool Cacheable() const			{ return IsFlagSet( MODEL_OWNED_BY_MAP ) != 0; };
 
 	const grinliz::Vector3F& Pos() const			{ return pos; }
 	void SetPos( const grinliz::Vector3F& pos );
@@ -207,7 +202,7 @@ public:
 						const grinliz::Vector3F& dir,
 						grinliz::Vector3F* intersect ) const;
 
-	const ModelResource* GetResource()			{ return resource; }
+	const ModelResource* GetResource() const	{ return resource; }
 	bool Sentinel()	const						{ return resource==0 && tree==0; }
 
 	Model* next;			// used by the SpaceTree query
@@ -220,8 +215,20 @@ public:
 	const grinliz::Matrix4& XForm() const;
 	bool HasTextureXForm( int i ) const;
 
+	void AddIndices( CDynArray<U16>* indexArr, int atomIndex ) const;
+	enum {
+		CACHE_UNINITIALIZED = -1,
+		DO_NOT_CACHE = -2
+	};
+	int cacheStart[EL_MAX_MODEL_GROUPS];
+
 private:
-	void Modify() { xformValid = false; invValid = false; mapBoundsCache.Set( -1, -1, -1, -1 ); }
+	void Modify() 
+	{			
+		xformValid = false; 
+		invValid = false; 
+		mapBoundsCache.Set( -1, -1, -1, -1 ); 
+	}
 	const grinliz::Matrix4& InvXForm() const;
 
 	SpaceTree* tree;
