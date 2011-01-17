@@ -10,9 +10,9 @@ TBD:
 
 - skinning for weapons
 - Android: cap framerate. Don't really need >30
-- rework intro screen
-- add score
 - city - 'open' needs a building tile
+- help pass
+- tighten up weapon positions on jackal
 
 Deferred:
 - More items: optical computer for units to enhance vision
@@ -21,6 +21,8 @@ Deferred:
 - 32 bit assets - xenowar logo
 
 FIXED
+- add score
+- rework intro screen
 - remove 'seed'
 - remove dynamic lights
 - check alpha textures on trees (removed - not currently using)

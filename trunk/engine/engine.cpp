@@ -376,6 +376,7 @@ void Engine::Draw()
 
 		// -------- Ground plane lighted -------- //
 #ifdef ENGINE_RENDER_MAP
+		map->GenerateSeenUnseen();
 		map->DrawSeen();
 #endif
 

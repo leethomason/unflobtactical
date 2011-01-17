@@ -55,6 +55,9 @@ class BitArray
 	bool operator!=( const BitArray< WIDTH, HEIGHT, DEPTH >& rhs ) const {
 		return memcmp( array, rhs.array, TOTAL_MEM ) != 0;
 	}
+	void operator=( const BitArray< WIDTH, HEIGHT, DEPTH >& rhs ) {
+		memcpy( array, rhs.array, TOTAL_MEM );
+	}
 
 	/// Check if (x,y) is set. Returns non-0 if set, 0 if not.
 	U32 IsSet( int x, int y=0, int z=0 ) const	{ 

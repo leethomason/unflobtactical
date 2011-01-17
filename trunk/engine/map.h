@@ -259,6 +259,8 @@ public:
 	const Surface* GetLightMap()	{ GenerateLightMap(); return lightMap; }
 	void SetLightMap0( int x, int y, float r, float g, float b );
 
+	void GenerateSeenUnseen();	// NOT cached, so call only once/frame. (I'm not sure how to cache this effectively. Caching 
+								// attempts were very buggy.) Call before DrawSeen(), DrawUnseen(), or DrawPastSeen().
 	void DrawSeen();		//< draw the map that is currently visible
 	void DrawUnseen();		//< draw the map that currently can't be seen
 	void DrawPastSeen( const Color4F& );		//< draw the map that currently can't be seen
@@ -390,9 +392,6 @@ private:
 	static const MapItemDef itemDefArr[NUM_ITEM_DEF];
 	static const int padArr1[16];
 
-
-	//const MapItemDef*  lightDefStart;
-
 	// 0,90,180,270 rotation
 	static void XYRToWorld( int x, int y, int rotation, Matrix2I* mat );
 	// 0,90,180,270 rotation
@@ -508,8 +507,8 @@ private:
 	bool lightMapValid;
 	Texture* lightMapTex;
 
-	bool fogOfWarValid;
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWar;
+	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> cachedFogOfWar;
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> pastSeenFOW;
 	Surface lightObject;
 
@@ -568,6 +567,7 @@ private:
 	U8									pathMap[SIZE*SIZE];
 
 	grinliz::Vector2F					mapVertex[(SIZE+1)*(SIZE+1)];		// in TEXTURE coordinates - need to scale up and swizzle for vertices.
+
 	U16									seenIndex[SIZE*SIZE*6];		
 	U16									unseenIndex[SIZE*SIZE*6];		
 	U16									pastSeenIndex[SIZE*SIZE*6];		
