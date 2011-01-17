@@ -464,20 +464,6 @@ void ProcessModel( TiXmlElement* model )
 	ModelHeader header;
 	header.Set( name.c_str(), builder->NumGroups(), nTotalVertex, nTotalIndex, builder->Bounds() );
 
-#ifdef EL_BILLBOARDS
-	if ( grinliz::StrEqual( model->Attribute( "billboard" ), "true" ) ) {
-		header.flags |= ModelHeader::BILLBOARD;
-		// Make the bounds square.
-		float d = grinliz::Max( -header.bounds.min.x, -header.bounds.min.z, header.bounds.max.x, header.bounds.max.z );
-		header.bounds.min.x = -d;
-		header.bounds.min.z = -d;
-		header.bounds.max.x = d;
-		header.bounds.max.z = d;
-	}
-	if ( grinliz::StrEqual( model->Attribute( "shadow" ), "rotate" ) ) {
-		header.flags |= ModelHeader::ROTATE_SHADOWS;
-	}
-#endif
 	if ( grinliz::StrEqual( model->Attribute( "shadowCaster" ), "false" ) ) {
 		header.flags |= ModelHeader::RESOURCE_NO_SHADOW;
 	}

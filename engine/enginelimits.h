@@ -47,6 +47,5 @@ static const float EL_NIGHT_BLUE	= ( (float)EL_NIGHT_BLUE_U8/255.f );
 //#define EL_SHOW_MODELS
 #define EL_USE_VBO
 //#define SHOW_FOW			// visual debugging
-//#define EL_BILLBOARDS
 
 #endif

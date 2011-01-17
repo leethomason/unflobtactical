@@ -59,10 +59,13 @@ protected:
 class GPUVertexBuffer : public GPUBuffer
 {
 public:
+	// a null value for vertex will create an empty buffer
 	static GPUVertexBuffer Create( const Vertex* vertex, int nVertex );
+	void Upload( const Vertex* data, int size, int start );
 
 	GPUVertexBuffer() : GPUBuffer() {}
 	void Destroy();
+private:
 };
 
 

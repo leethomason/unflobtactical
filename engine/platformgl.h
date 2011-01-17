@@ -37,6 +37,7 @@
 	#define glBindBufferX	glBindBuffer
 	#define glBufferDataX	glBufferData
 	#define glBindBufferX	glBindBuffer
+	#define glBufferSubDataX	glBufferSubData
 	#define glDeleteBuffersX	glDeleteBuffers
 #elif defined( UFO_WIN32_SDL )
 	#include "../win32/glew.h"
@@ -47,6 +48,7 @@
 	#define glGenBuffersX	glGenBuffersARB
 	#define glBindBufferX	glBindBufferARB
 	#define glBufferDataX	glBufferDataARB
+	#define glBufferSubDataX	glBufferSubDataARB
 	#define glBindBufferX	glBindBufferARB
 	#define glDeleteBuffersX	glDeleteBuffersARB
 #else

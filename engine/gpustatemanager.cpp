@@ -8,15 +8,29 @@
 /*static*/ GPUVertexBuffer GPUVertexBuffer::Create( const Vertex* vertex, int nVertex )
 {
 	GPUVertexBuffer buffer;
+
 	if ( GPUShader::SupportsVBOs() ) {
 		U32 dataSize  = sizeof(Vertex)*nVertex;
 		glGenBuffersX( 1, (GLuint*) &buffer.id );
 		glBindBufferX( GL_ARRAY_BUFFER, buffer.id );
-		glBufferDataX( GL_ARRAY_BUFFER, dataSize, vertex, GL_STATIC_DRAW );
+		// if vertex is null this will just allocate
+		glBufferDataX( GL_ARRAY_BUFFER, dataSize, vertex, vertex ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW );
 		glBindBufferX( GL_ARRAY_BUFFER, 0 );
 		CHECK_GL_ERROR;
 	}
 	return buffer;
+}
+
+
+void GPUVertexBuffer::Upload( const Vertex* data, int count, int start )
+{
+	GLASSERT( GPUShader::SupportsVBOs() );
+	glBindBufferX( GL_ARRAY_BUFFER, id );
+	// target, offset, size, data
+	glBufferSubDataX( GL_ARRAY_BUFFER, start*sizeof(Vertex), count*sizeof(Vertex), data );
+	CHECK_GL_ERROR;
+	glBindBufferX( GL_ARRAY_BUFFER, 0 );
+	CHECK_GL_ERROR;
 }
 
 

@@ -126,9 +126,9 @@ void ModelLoader::Load( const gamedb::Item* item, ModelResource* res )
 
 		GLASSERT( t );                       
 		res->atom[i].texture = t;
-
 		res->atom[i].nVertex = group.nVertex;
 		res->atom[i].nIndex = group.nIndex;
+		res->atom[i].cacheStart = -1;
 
 		//GLOUTPUT(( "  '%s' vertices=%d tris=%d\n", textureName, (int)res->atom[i].nVertex, (int)(res->atom[i].nIndex/3) ));
 	}
@@ -328,6 +328,18 @@ void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent
 					( auxTexture && HasTextureXForm(i) ) ? &auxTexture->m[i] : 0,	// texture transform, if this has it.
 					overrideTexture,
 					param );
+	}
+}
+
+
+void ModelAtom::AddIndices( CDynArray<U16>* indexArr ) const
+{
+	int base = indexArr->Size();
+	U16* dst = indexArr->PushArr( nIndex );
+	const U16* src = index;
+
+	for( int n=nIndex; n; --n, ++src, ++dst ) {
+		*dst = *src + base;
 	}
 }
 

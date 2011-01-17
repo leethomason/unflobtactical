@@ -858,7 +858,7 @@ Model* Map::CreatePreview( int x, int y, int defIndex, int rotation )
 		Vector3F modelPos;
 
 		XYRToWorld( x, y, rotation*90, &m );
-		WorldToModel( m, resource->header.IsBillboard(), &modelPos );
+		WorldToModel( m, false, &modelPos );
 
 		model = tree->AllocModel( resource );
 		model->SetPos( modelPos );
@@ -872,14 +872,6 @@ void Map::WorldToModel( const Matrix2I& mat, bool billboard, grinliz::Vector3F* 
 {
 	// Account for rounding from map (integer based) to model (float based) coordinates.
 	// Irritating transformation problem.
-#ifdef EL_BILLBOARDS
-	if ( billboard ) {
-		model->x  = (float)mat.x + 0.5f;
-		model->y  = 0.0f;
-		model->z  = (float)mat.y + 0.5f;
-	}
-	else 
-#endif
 	{
 		Vector2I a = { 0, 0 };
 		Vector2I d = { 1, 1 };
@@ -961,8 +953,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	Matrix2I xform;
 	Vector3F modelPos;
 	XYRToWorld( x, y, rotation*90, &xform );
-	bool isBillboard = modelResource && modelResource->header.IsBillboard();
-	WorldToModel( xform, isBillboard, &modelPos );
+	WorldToModel( xform, false, &modelPos );
 
 	// Check for meta data.
 	if (    StrEqual( itemDef.Name(), "guard") 
@@ -1059,9 +1050,6 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 	}
 	if ( res ) {
 		Model* model = tree->AllocModel( res );
-		if ( res->header.IsBillboard() ) {
-			item->modelRotation = 0;
-		}
 
 		model->SetFlag( Model::MODEL_OWNED_BY_MAP );
 		if ( metadata )
