@@ -67,6 +67,7 @@ private:
 	struct Item {
 		Model*					model;
 		const ModelAtom*		atom;
+		int						atomIndex;
 		const grinliz::Matrix4*	textureXForm;
 		grinliz::Vector4F		param;
 		Item*					next;
@@ -91,7 +92,7 @@ private:
 		return s0.shader->SortOrder() - s1.shader->SortOrder();
 	}
 
-	void CacheAtom( const Model* model, const ModelAtom* atom );
+	void CacheAtom( Model* model, int atomIndex );
 
 	State* FindState( const State& state );
 

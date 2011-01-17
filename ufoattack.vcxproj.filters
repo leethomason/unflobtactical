@@ -165,9 +165,6 @@
     <ClCompile Include="game\battlevisibility.cpp">
       <Filter>scenes</Filter>
     </ClCompile>
-    <ClCompile Include="engine\rendercache.cpp">
-      <Filter>engine</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game\ai.h">
@@ -322,9 +319,6 @@
     </ClInclude>
     <ClInclude Include="game\battlevisibility.h">
       <Filter>scenes</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\rendercache.h">
-      <Filter>engine</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

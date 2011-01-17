@@ -158,6 +158,23 @@ public:
 		this->indexBuffer = index.ID();
 	}
 
+
+	void SetStream( const Stream& stream, const GPUVertexBuffer& vertex, int nIndex, const uint16_t* index ) 
+	{
+		GLASSERT( stream.stride > 0 );
+		GLASSERT( nIndex % 3 == 0 );
+		GLASSERT( vertex.IsValid() );
+		GLASSERT( index );
+
+		this->stream = stream;
+		this->streamPtr = 0;
+		this->indexPtr = index;
+		this->nIndex = nIndex;
+		this->vertexBuffer = vertex.ID();
+		this->indexBuffer = 0;
+	}
+
+
 	void SetTexture0( Texture* tex ) {
 		texture0 = tex;
 	}

@@ -465,7 +465,7 @@ GPUShader::~GPUShader()
 }
 
 
-void GPUShader::Draw()	// int index, const uint16_t* elements )
+void GPUShader::Draw()
 {
 	GRINLIZ_PERFTRACK
 	if ( nIndex == 0 )
@@ -476,11 +476,22 @@ void GPUShader::Draw()	// int index, const uint16_t* elements )
 	++drawCalls;
 
 	if ( indexPtr ) {
-		SetState( *this );
 	
-		GLRELASSERT( !vertexBuffer );
+#ifdef EL_USE_VBO
+		if ( vertexBuffer ) {
+			glBindBufferX( GL_ARRAY_BUFFER, vertexBuffer );
+		}
+#endif
+		SetState( *this );
+
 		GLRELASSERT( !indexBuffer );
 		glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, indexPtr );
+
+#ifdef EL_USE_VBO
+		if ( vertexBuffer ) {
+			glBindBufferX( GL_ARRAY_BUFFER, 0 );
+		}
+#endif
 	}
 	else {
 #ifdef EL_USE_VBO
