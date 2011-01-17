@@ -37,8 +37,9 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 		textTable[i].Init( &gamui2D );
 	}
 
-	static const float XPOS = 50.f;
-	static const float XPOS2 = 200.f;
+	static const float X_NAME = 50.f;
+	static const float X_COUNT = 250.f;
+	static const float X_SCORE = 300.0f;
 	static const float YPOS = 100.f;
 	static const float DELTA = 20.0f;
 	
@@ -49,22 +50,67 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 		victory.SetText( "Defeat." );
 	else 
 		victory.SetText( "Mission Summary:" );
-	victory.SetPos( XPOS, YPOS );
+	victory.SetPos( X_NAME, YPOS );
 
-	const char* text[TEXT_ROW] = { "Soldiers survived",  "Soldiers killed", "Aliens survived", "Aliens killed", "Civs Saved", "Civs Killed" };
-	int value[TEXT_ROW]		   = {	data->nTerransAlive,	data->nTerrans - data->nTerransAlive, 
-									data->nAliensAlive, data->nAliens - data->nAliensAlive,
-									data->nCivsAlive,	data->nCivs - data->nCivsAlive
+	const char* text[TEXT_ROW] = { "Soldiers survived",  "Soldiers KIA/MIA/KO", "Aliens survived", "Aliens killed", "Civs Saved", "Civs Killed" };
+
+	int soldiersOut = data->nTerrans - data->nTerransAlive;
+	int aliensKilled = data->nAliens - data->nAliensAlive;
+	int civsKilled = data->nCivs - data->nCivsAlive;
+
+	int value[TEXT_ROW]		   = {	data->nTerransAlive, soldiersOut,
+									data->nAliensAlive, aliensKilled,
+									data->nCivsAlive, civsKilled
 								 };
+
+	// Lose points for soldiers killed,
+	// Gain points for aliens killed,
+	// Gain + Lose points for civs
+
+	int score[3] = { 0 };
+
+	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+		if ( d->units[i].InUse() && !d->units[i].IsAlive() ) {
+			score[0] -= d->units[i].GetStats().ScoreLevel();
+		}
+	}
+	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+		if ( d->units[i].InUse() && !d->units[i].IsAlive() ) {
+			score[1] += d->units[i].GetStats().ScoreLevel();
+		}
+	}
+	for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i ) {
+		if ( d->units[i].InUse() ) {
+			if ( d->units[i].IsAlive() )
+				score[2] += d->units[i].GetStats().ScoreLevel();
+			else
+				score[2] -= d->units[i].GetStats().ScoreLevel();
+		}
+	}
 
 	for( int i=0; i<TEXT_ROW; ++i ) {
 		textTable[i*TEXT_COL].SetText( text[i] );
-		textTable[i*TEXT_COL].SetPos( XPOS, YPOS + (float)(i+1)*DELTA );
+		textTable[i*TEXT_COL].SetPos( X_NAME, YPOS + (float)(i+1)*DELTA );
 
 		CStr<16> sBuf = value[i];
 		textTable[i*TEXT_COL+1].SetText( sBuf.c_str() );
-		textTable[i*TEXT_COL+1].SetPos( XPOS2, YPOS + (float)(i+1)*DELTA );
+		textTable[i*TEXT_COL+1].SetPos( X_COUNT, YPOS + (float)(i+1)*DELTA );
+
+		if ( i&1 ) {
+			sBuf = score[i/2];
+			textTable[i*TEXT_COL+2].SetText( sBuf.c_str() );
+			textTable[i*TEXT_COL+2].SetPos( X_SCORE, YPOS + (float)(i+1)*DELTA );
+		}
 	}
+
+	CStr<16> totalBuf = score[0]+score[1]+score[2];
+	totalScoreValue.Init( &gamui2D );
+	totalScoreValue.SetPos( X_SCORE, YPOS + (float)(TEXT_ROW+2)*DELTA );
+	totalScoreValue.SetText( totalBuf.c_str() );
+
+	totalScoreLabel.Init( &gamui2D );
+	totalScoreLabel.SetPos( X_NAME, YPOS + (float)(TEXT_ROW+2)*DELTA );
+	totalScoreLabel.SetText( "Total Score" );
 
 	const gamui::ButtonLook& look = game->GetButtonLook( Game::GREEN_BUTTON );
 	okayButton.Init( &gamui2D, look );

@@ -32,6 +32,15 @@ int Stats::GenStat( grinliz::Random* rand, int min, int max )
 }
 
 
+int Stats::ScoreLevel() const
+{
+	int levSTR = Clamp( STR() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );
+	int levDEX = Clamp( DEX() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );
+	int levPSY = Clamp( PSY() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );
+	return levSTR + levDEX + levPSY;
+}
+
+
 void Stats::CalcBaselines()
 {
 	int levSTR = Clamp( STR() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );

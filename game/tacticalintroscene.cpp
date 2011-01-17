@@ -47,12 +47,12 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	const gamui::ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
 	const gamui::ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 
-	static const float LEFT = 25;
+	static const float BORDER = 25;
 	static const float SIZEX = 150;
 
 	continueButton.Init( &gamui2D, green );
-	continueButton.SetPos( LEFT, 170 );
 	continueButton.SetSizeByScale( 2.2f, 1 );
+	continueButton.SetPos( BORDER, 320-BORDER-continueButton.Height() );
 	continueButton.SetText( "Continue" );
 
 	/*
@@ -64,9 +64,9 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	*/
 
 	newTactical.Init( &gamui2D, green );
-	newTactical.SetPos( LEFT, 250 );
 	newTactical.SetSizeByScale( 2.2f, 1 );
-	newTactical.SetText( "New Tactical" );
+	newTactical.SetPos( port.UIWidth()-BORDER-newTactical.Width(), 320-BORDER-continueButton.Height() );
+	newTactical.SetText( "New Game" );
 
 	/*
 	newGeo.Init( &gamui2D, green );
@@ -77,12 +77,12 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	*/
 
 	helpButton.Init( &gamui2D, green );
-	helpButton.SetPos( port.UIWidth() - 100, 50 );
+	helpButton.SetPos( port.UIWidth() - helpButton.Width() - BORDER, BORDER );
 	helpButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_HELP, true ),
 						UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
 
 	audioButton.Init( &gamui2D, green );
-	audioButton.SetPos( port.UIWidth() - 100, 125 );
+	audioButton.SetPos( port.UIWidth() - helpButton.Width() - BORDER, helpButton.Y() + helpButton.Height() + BORDER );
 	SettingsManager* settings = SettingsManager::Instance();
 	if ( settings->GetAudioOn() ) {
 		audioButton.SetDown();
@@ -95,9 +95,9 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 							 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
 	}
 
-	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "8", "Low", "Med", "Hi", "8", "16", "Low", "Med", "Hi", "Day", "Night",
+	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "6", "8", "Low", "Med", "Hi", "8", "12", "16", "Low", "Med", "Hi", "Day", "Night",
 													 "Fa-S", "T-S", "Fo-S", "D-S", "Fa-D", "T-D", "Fo-D", "D-D",
-													 "City", "BShip",	// "ABase", "TBase",
+													 "City", "BattleShip",	// "ABase", "TBase",
 													 "Civs", "Crash" };
 	for( int i=0; i<TOGGLE_COUNT; ++i ) {
 		GLASSERT( toggleLabel[i] );
@@ -106,12 +106,15 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 		toggles[i].SetVisible( false );
 		toggles[i].SetSize( 50, 50 );
 	}
+	toggles[BATTLESHIP].SetSize( 100, 50 );
 
+	toggles[SQUAD_4].AddToToggleGroup( &toggles[SQUAD_6] );
 	toggles[SQUAD_4].AddToToggleGroup( &toggles[SQUAD_8] );
 
 	toggles[TERRAN_LOW].AddToToggleGroup( &toggles[TERRAN_MED] );
 	toggles[TERRAN_LOW].AddToToggleGroup( &toggles[TERRAN_HIGH] );
 
+	toggles[ALIEN_8].AddToToggleGroup( &toggles[ALIEN_12] );
 	toggles[ALIEN_8].AddToToggleGroup( &toggles[ALIEN_16] );
 
 	toggles[ALIEN_LOW].AddToToggleGroup( &toggles[ALIEN_MED] );
@@ -135,13 +138,13 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	terranLabel.SetText( "Terran Squad" );
 	terranLabel.SetPos( 20, 25-20 );
 
-	UIItem* squadItems[] = { &toggles[0], &toggles[1] };
-	Gamui::Layout(	squadItems, 2,			// squad #
+	UIItem* squadItems[] = { &toggles[SQUAD_4], &toggles[SQUAD_6], &toggles[SQUAD_8] };
+	Gamui::Layout(	squadItems, 3,			// squad #
 					4, 1, 
 					20, 25,
 					150, 50 );
 
-	UIItem* squadStrItems[] = { &toggles[2], &toggles[3], &toggles[4] };
+	UIItem* squadStrItems[] = { &toggles[TERRAN_LOW], &toggles[TERRAN_MED], &toggles[TERRAN_HIGH] };
 	Gamui::Layout(	squadStrItems, 3,			// squad strength
 					4, 1, 
 					20, 75,
@@ -152,12 +155,12 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	alienLabel.SetText( "Aliens" );
 	alienLabel.SetPos( 20, 150-20 );
 
-	UIItem* alienItems[] = { &toggles[5], &toggles[6] };
-	Gamui::Layout(	alienItems, 2,			// alien #
+	UIItem* alienItems[] = { &toggles[ALIEN_8], &toggles[ALIEN_12], &toggles[ALIEN_16] };
+	Gamui::Layout(	alienItems, 3,			// alien #
 					4, 1, 
 					20, 150,
 					150, 50 );
-	UIItem* alienStrItems[] = { &toggles[7], &toggles[8], &toggles[9] };
+	UIItem* alienStrItems[] = { &toggles[ALIEN_LOW], &toggles[ALIEN_MED], &toggles[ALIEN_HIGH] };
 	Gamui::Layout(	alienStrItems, 3,			// alien strength
 					4, 1, 
 					20, 200,
@@ -178,22 +181,25 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 		rowLabel[i].Init( &gamui2D );
 		rowLabel[i].SetVisible( false );
 		rowLabel[i].SetText( row[i] );
-		rowLabel[i].SetPos( 425, 25.0f + 50.0f*i );
+		rowLabel[i].SetPos( 425, 25.0f + 50.0f*i+15.0f );
+	}
+
+	static const float SIZE = 50;
+	{
+		scenarioLabel.Init( &gamui2D );
+		scenarioLabel.SetVisible( false );
+		scenarioLabel.SetText( "Farm Tundra Forest Desert" );
+		scenarioLabel.SetPos( 215, 5 );
+//		scenarioLabel[i].SetPos( 215+SIZE*i, 5 );
 	}
 
 	for( int i=0; i<4; ++i ) {
-		static const float SIZE = 50;
-		static const char* scenario[] = { "Farm", "Tndra", "Forst", "Desrt" };
-
-		scenarioLabel[i].Init( &gamui2D );
-		scenarioLabel[i].SetVisible( false );
-		scenarioLabel[i].SetText( scenario[i] );
-		scenarioLabel[i].SetPos( 215+SIZE*i, 5 );
-
 		toggles[FARM_SCOUT+i].SetPos( 215+SIZE*i, 25 );
 		toggles[FARM_DESTROYER+i].SetPos( 215+SIZE*i, 75 );
-		toggles[CITY+i].SetPos( 215+SIZE*i, 125 );
 	}
+	toggles[CITY].SetPos( 215+SIZE*0, 125 );
+	toggles[BATTLESHIP].SetPos( 215+SIZE*1, 125 );
+
 	for( int i=FIRST_SCENARIO; i<=LAST_SCENARIO; ++i )
 		toggles[FARM_SCOUT].AddToToggleGroup( &toggles[i] );
 
@@ -215,7 +221,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	Gamui::Layout( scenItems, 2,
 				   4, 2,
 				   215, 175,
-				   250, 100 );
+				   100, 100 );
 							
 	goButton.Init( &gamui2D, blue );
 	goButton.SetPos( 360, 270 );
@@ -289,8 +295,7 @@ void TacticalIntroScene::Tap(	int action,
 		terranLabel.SetVisible( true );
 		alienLabel.SetVisible( true );
 		timeLabel.SetVisible( true );
-		for( int i=0; i<4; ++i )
-			scenarioLabel[i].SetVisible( true );
+		scenarioLabel.SetVisible( true );
 		for( int i=0; i<3; ++i )
 			rowLabel[i].SetVisible( true );
 		
@@ -400,7 +405,13 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	else if ( toggles[TERRAN_HIGH].Down() )
 		rank = 4;
 
-	count = toggles[SQUAD_8].Down() ? 8 : 4;
+	if ( toggles[SQUAD_4].Down() )
+		count = 4;
+	else if ( toggles[SQUAD_6].Down() )
+		count = 6;
+	else if ( toggles[SQUAD_8].Down() )
+		count = 8;
+
 	memset( units, 0, sizeof(Unit)*MAX_UNITS );
 	GenerateTerranTeam( units, count, rank, seed );
 	for( int i=0; i<count; ++i ) {
@@ -410,7 +421,12 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	}
 
 	// Alien units
-	count = toggles[ALIEN_16].Down() ? 16 : 8;
+	if ( toggles[ALIEN_8].Down() )
+		count = 8;
+	else if ( toggles[ALIEN_12].Down() )
+		count = 12;
+	else if ( toggles[ALIEN_16].Down() )
+		count = 16;
 
 	if ( toggles[ALIEN_LOW].Down() ) {
 		types[Unit::ALIEN_GREEN] = count*3/4;

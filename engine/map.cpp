@@ -217,7 +217,6 @@ Map::Map( SpaceTree* tree )
 
 	walkingMap.Init( &overlay[LAYER_UNDER_LOW] );
 	lightMapValid = false;
-	fogOfWarValid = false;
 
 	gamui::RenderAtom borderAtom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_DARK, 1, 1, true );
 #ifdef DEBUG_VISIBILITY
@@ -571,7 +570,6 @@ void Map::SetDayTime( bool day )
 
 grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* Map::LockFogOfWar()
 {
-	fogOfWarValid = false;
 	return &fogOfWar;
 }
 
@@ -590,78 +588,84 @@ void Map::GenerateLightMap()
 		lightMapTex->Upload( *lightMap );
 		lightMapValid = true;
 	}
+}
 
-	if ( !fogOfWarValid ) {
 
-		// Test case: 
-		// (continue, back) 8.9 k/f
-		// Go to strip creation: 5.9 k/f (and that's total - the code below should get the submit down to 400-500 tris possibly?)
+void Map::GenerateSeenUnseen()
+{
+	GRINLIZ_PERFTRACK;
+	// Test case: 
+	// (continue, back) 8.9 k/f
+	// Go to strip creation: 5.9 k/f (and that's total - the code below should get the submit down to 400-500 tris possibly?)
 
-#define PUSHQUAD( _arr, _index, _x0, _x1, _y ) \
-			_arr[ _index++ ] = (_y+0)*(SIZE+1)+(_x0);	\
-			_arr[ _index++ ] = (_y+1)*(SIZE+1)+(_x0);	\
-			_arr[ _index++ ] = (_y+1)*(SIZE+1)+(_x1);	\
-			_arr[ _index++ ] = (_y+0)*(SIZE+1)+(_x0);	\
-			_arr[ _index++ ] = (_y+1)*(SIZE+1)+(_x1);	\
-			_arr[ _index++ ] = (_y+0)*(SIZE+1)+(_x1);	
+	// Ran at about 4% with out this check. Peaks at 0.5% with. Works surprisingly well.
+	if ( fogOfWar == cachedFogOfWar )
+		return;
 
-		int countArr[3] = { 0, 0, 0 };
-		nSeenIndex = nUnseenIndex = nPastSeenIndex = 0;
+	cachedFogOfWar = fogOfWar;
 
-		for( int j=0; j<height; ++j ) {
-			for( int i=0; i<width; i += 32 ) {
+#define PUSHQUAD( _arr, _index, _x0, _x1, _y )		\
+		_arr[ _index++ ] = (_y+0)*(SIZE+1)+(_x0);	\
+		_arr[ _index++ ] = (_y+1)*(SIZE+1)+(_x0);	\
+		_arr[ _index++ ] = (_y+1)*(SIZE+1)+(_x1);	\
+		_arr[ _index++ ] = (_y+0)*(SIZE+1)+(_x0);	\
+		_arr[ _index++ ] = (_y+1)*(SIZE+1)+(_x1);	\
+		_arr[ _index++ ] = (_y+0)*(SIZE+1)+(_x1);	
 
-				U32 fog = fogOfWar.Access32( i, j, 0 );
-				U32 past = pastSeenFOW.Access32( i, j, 0 );
+	int countArr[3] = { 0, 0, 0 };
+	nSeenIndex = nUnseenIndex = nPastSeenIndex = 0;
 
-				past = past ^ fog;				// if the fog is set, then we don't draw the past.
-				U32 unseen = ~( fog | past );	// everything else unseen.
+	for( int j=0; j<height; ++j ) {
+		for( int i=0; i<width; i += 32 ) {
 
-				if ( i+32 > width ) {
-					// mask off the end bits.
-					U32 mask = (1<<(width-i))-1;
+			U32 fog = fogOfWar.Access32( i, j, 0 );
+			U32 past = pastSeenFOW.Access32( i, j, 0 );
 
-					fog &= mask;
-					past &= mask;
-					unseen &= mask;
-				}
+			past = past ^ fog;				// if the fog is set, then we don't draw the past.
+			U32 unseen = ~( fog | past );	// everything else unseen.
 
-				const U32 arr[3] = { fog, past, unseen };
-				U16* indexArr[3] = { seenIndex, pastSeenIndex, unseenIndex };
+			if ( i+32 > width ) {
+				// mask off the end bits.
+				U32 mask = (1<<(width-i))-1;
 
-				for ( int k=0; k<3; ++k ) {
+				fog &= mask;
+				past &= mask;
+				unseen &= mask;
+			}
 
-					int start=0;
-					while( start < 32 ) {
-						int end = start+1;
+			const U32 arr[3] = { fog, past, unseen };
+			U16* indexArr[3] = { seenIndex, pastSeenIndex, unseenIndex };
 
-						if ( (1<<start) & arr[k] ) {
-							while( end < 32 ) {
-								if ( ((1<<end) & arr[k] ) == 0 ) {
-									break;
-								}
-								++end;
+			for ( int k=0; k<3; ++k ) {
+
+				int start=0;
+				while( start < 32 ) {
+					int end = start+1;
+
+					if ( (1<<start) & arr[k] ) {
+						while( end < 32 ) {
+							if ( ((1<<end) & arr[k] ) == 0 ) {
+								break;
 							}
-							PUSHQUAD( indexArr[k], countArr[k], i+start, i+end, j );
+							++end;
 						}
-						start = end;
+						PUSHQUAD( indexArr[k], countArr[k], i+start, i+end, j );
 					}
+					start = end;
 				}
 			}
 		}
-		nSeenIndex = countArr[0];
-		nPastSeenIndex = countArr[1];
-		nUnseenIndex = countArr[2];
+	}
+	nSeenIndex = countArr[0];
+	nPastSeenIndex = countArr[1];
+	nUnseenIndex = countArr[2];
 #ifdef SHOW_FOW
-		memcpy( pastSeenIndex+nPastSeenIndex, unseenIndex, sizeof(U16)*nUnseenIndex );
-		nPastSeenIndex += nUnseenIndex;
-		nUnseenIndex = 0;
+	memcpy( pastSeenIndex+nPastSeenIndex, unseenIndex, sizeof(U16)*nUnseenIndex );
+	nPastSeenIndex += nUnseenIndex;
+	nUnseenIndex = 0;
 #endif
 
 #undef PUSHQUAD
-
-		fogOfWarValid = true;
-	}
 }
 
 

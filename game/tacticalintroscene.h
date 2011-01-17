@@ -56,11 +56,13 @@ public:
 	enum {
 
 		SQUAD_4 = 0,
+		SQUAD_6,
 		SQUAD_8,
 		TERRAN_LOW,
 		TERRAN_MED,
 		TERRAN_HIGH,
 		ALIEN_8,
+		ALIEN_12,
 		ALIEN_16,
 		ALIEN_LOW,
 		ALIEN_MED,
@@ -147,7 +149,7 @@ private:
 	BackgroundUI		backgroundUI;
 	gamui::PushButton	continueButton, helpButton, goButton;
 	gamui::PushButton	newTactical;	//, newGeo, newCampaign;
-	gamui::TextLabel	terranLabel, alienLabel, timeLabel, scenarioLabel[4], rowLabel[3];
+	gamui::TextLabel	terranLabel, alienLabel, timeLabel, scenarioLabel, rowLabel[3];
 	gamui::ToggleButton	toggles[TOGGLE_COUNT], audioButton;
 };
 
