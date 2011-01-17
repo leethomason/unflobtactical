@@ -1,0 +1,70 @@
+<Map sizeX="16" sizeY="16" >
+    <Items >
+        <Item x="13" y="13" name="guard" />
+        <Item x="7" y="13" name="scout" />
+        <Item x="12" y="10" name="scout" />
+        <Item x="8" y="8" rot="2" name="whitepicketfence" />
+        <Item x="8" y="8" rot="3" name="whitepicketfence" />
+        <Item x="5" y="8" rot="2" name="whitepicketfence" />
+        <Item x="6" y="8" rot="2" name="whitepicketfence" />
+        <Item x="7" y="8" rot="2" name="whitepicketfence" />
+        <Item x="1" y="8" rot="1" name="whitepicketfence" />
+        <Item x="1" y="8" rot="2" name="whitepicketfence" />
+        <Item x="2" y="8" rot="2" name="whitepicketfence" />
+        <Item x="2" y="11" name="scout" />
+        <Item x="13" y="7" name="scout" />
+        <Item x="8" y="7" rot="3" name="whitepicketfence" />
+        <Item x="8" y="6" rot="3" name="whitepicketfence" />
+        <Item x="8" y="5" rot="3" name="whitepicketfence" />
+        <Item x="10" y="4" name="scout" />
+        <Item x="6" y="5" name="brickCrnr" />
+        <Item x="5" y="5" name="brickWall" />
+        <Item x="4" y="5" name="woodDoorCld" flags="4" />
+        <Item x="6" y="4" rot="1" name="woodDoorCld" flags="4" />
+        <Item x="6" y="5" rot="1" name="sacks" />
+        <Item x="5" y="5" rot="1" name="sacks" />
+        <Item x="7" y="5" name="cafetable" />
+        <Item x="5" y="6" name="cafetable" />
+        <Item x="7" y="7" rot="2" name="cafetable" />
+        <Item x="7" y="4" name="pawn" />
+        <Item x="1" y="4" rot="3" name="brickWall" />
+        <Item x="1" y="5" rot="3" name="brickCrnr" />
+        <Item x="2" y="5" name="brickWall" />
+        <Item x="1" y="6" rot="1" name="whitepicketfence" />
+        <Item x="1" y="7" rot="1" name="whitepicketfence" />
+        <Item x="3" y="5" name="woodDoorCld" flags="4" />
+        <Item x="1" y="5" rot="1" name="shelf_1" />
+        <Item x="1" y="4" rot="1" name="shelf_1" />
+        <Item x="2" y="7" rot="2" name="cafetable" />
+        <Item x="3" y="4" name="shelf_2" />
+        <Item x="3" y="7" name="pawn" />
+        <Item x="8" y="2" rot="3" name="whitepicketfence" />
+        <Item x="8" y="1" rot="3" name="whitepicketfence" />
+        <Item x="8" y="1" name="whitepicketfence" />
+        <Item x="4" y="1" rot="2" name="brickWall" />
+        <Item x="5" y="1" rot="2" name="brickWall" />
+        <Item x="6" y="1" rot="1" name="brickCrnr" />
+        <Item x="6" y="2" rot="1" name="brickWall" />
+        <Item x="7" y="1" name="whitepicketfence" />
+        <Item x="6" y="3" rot="1" name="woodDoorCld" flags="4" />
+        <Item x="4" y="2" name="counter_unit" />
+        <Item x="5" y="2" name="counter_unit_reg" />
+        <Item x="7" y="2" rot="3" name="cafetable" />
+        <Item x="4" y="3" name="pawn" />
+        <Item x="4" y="1" name="pawn" />
+        <Item x="1" y="1" rot="2" name="brickCrnr" />
+        <Item x="2" y="1" rot="2" name="brickWall" />
+        <Item x="3" y="1" rot="2" name="brickWall" />
+        <Item x="1" y="2" rot="3" name="brickWall" />
+        <Item x="1" y="3" rot="3" name="brickWall" />
+        <Item x="2" y="2" name="counter_unit" />
+        <Item x="3" y="2" name="counter_unit" />
+    </Items>
+    <Images >
+        <Image x="0" y="0" size="16" tileRotation="0" name="CITY_16_INTR_00" />
+    </Images>
+    <GroundDebris >
+    </GroundDebris>
+    <PyroGroup >
+    </PyroGroup>
+</Map>
