@@ -25,11 +25,18 @@ RenderQueue::RenderQueue()
 {
 	nState = 0;
 	nItem = 0;
+
+	vertexCacheSize = 0;
+	vertexCacheCap = 0;
+	vertexCache = GPUVertexBuffer::Create( 0, CACHE_SIZE );
+	if ( vertexCache.IsValid() )
+		vertexCacheCap = CACHE_SIZE;
 }
 
 
 RenderQueue::~RenderQueue()
 {
+	vertexCache.Destroy();
 }
 
 
@@ -124,6 +131,32 @@ void RenderQueue::Add( Model* model, const ModelAtom* atom, GPUShader* shader, c
 	state->root = item;
 }
 
+void RenderQueue::CacheAtom( const Model* model, const ModelAtom* atom )
+{
+	// Is there space in the vertex cache?
+	if ( vertexCacheSize + (int)atom->nVertex <= vertexCacheCap ) {
+		const Matrix4& m = model->XForm();
+		
+		// Transform into temporary buffer.
+		vertexBuf.Clear();
+		Vertex* dv = vertexBuf.PushArr( atom->nVertex );
+		const Vertex* sv = atom->vertex;
+
+		for( int n=atom->nVertex; n; --n, ++sv, ++dv ) {
+			MultMatrix4( m, sv->pos, &dv->pos, 1.0f );	// position
+			MultMatrix4( m, sv->normal, &dv->normal, 0.0 );
+			dv->tex = sv->tex;
+		}
+
+		vertexCache.Upload( vertexBuf.Mem(), atom->nVertex, vertexCacheSize );
+		atom->cacheStart = vertexCacheSize;
+		vertexCacheSize += atom->nVertex;
+	}
+	else {
+		atom->cacheStart = ModelAtom::NOT_IN_CACHE;
+	}
+}
+
 
 void RenderQueue::Submit( GPUShader* shader, int mode, int required, int excluded, float bbRotation )
 {
@@ -134,15 +167,12 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 		{
 			Model* model = item->model;
 			int modelFlags = model->Flags();
+			indexBuf.Clear();
 
 			if (    ( (required & modelFlags) == required)
 				 && ( (excluded & modelFlags) == 0 ) )
 			{
 				//GRINLIZ_PERFTRACK_NAME( "Submit Inner" )
-#ifdef EL_BILLBOARDS
-				if ( model->IsBillboard() )
-					model->SetRotation( bbRotation );
-#endif
 				if ( !shader ) {
 					//GLASSERT( statePool[i].texture == item->atom->texture );
 					statePool[i].shader->SetTexture0( statePool[i].texture );
@@ -150,6 +180,13 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 
 				const Model* model = item->model;
 				GLASSERT( model );
+
+				if ( item->atom->cacheStart == ModelAtom::CACHE_UNINITIALIZED ) {
+					if ( model->Cacheable() )
+						CacheAtom( model, item->atom );
+					else
+						item->atom->cacheStart = ModelAtom::NOT_IN_CACHE;
+				}
 
 				if ( mode & MODE_PLANAR_SHADOW ) {
 					//GRINLIZ_PERFTRACK_NAME( "Submit Inner-1" )
@@ -170,29 +207,41 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 					shader->PopMatrix( GPUShader::MODELVIEW_MATRIX );
 				}
 				else {
-					//GRINLIZ_PERFTRACK_NAME( "Submit Inner-2" )
-					item->atom->Bind( shader ? shader : statePool[i].shader );
+					if ( item->atom->cacheStart < 0 ) {
+						//GRINLIZ_PERFTRACK_NAME( "Submit Inner-2" )
+						item->atom->Bind( shader ? shader : statePool[i].shader );
 
-					GPUShader* s = statePool[i].shader;
-					s->PushMatrix( GPUShader::MODELVIEW_MATRIX );
-					s->MultMatrix( GPUShader::MODELVIEW_MATRIX, model->XForm() );
+						GPUShader* s = statePool[i].shader;
+						s->PushMatrix( GPUShader::MODELVIEW_MATRIX );
+						s->MultMatrix( GPUShader::MODELVIEW_MATRIX, model->XForm() );
 
-					if ( item->textureXForm ) {
-						s->PushTextureMatrix( 1 );
-						s->MultTextureMatrix( 1, *item->textureXForm );
-					}
+						if ( item->textureXForm ) {
+							s->PushTextureMatrix( 1 );
+							s->MultTextureMatrix( 1, *item->textureXForm );
+						}
 					
-					if ( item->param.z > 0 ) {
-						s->SetColor( item->param );
-					}
-					s->Draw();
+						if ( item->param.z > 0 ) {
+							s->SetColor( item->param );
+						}
+						s->Draw();
 
-					s->PopMatrix( GPUShader::MODELVIEW_MATRIX );
-					if ( item->textureXForm ) {
-						s->PopTextureMatrix( 1 );
+						s->PopMatrix( GPUShader::MODELVIEW_MATRIX );
+						if ( item->textureXForm ) {
+							s->PopTextureMatrix( 1 );
+						}
+					}
+					else {
+						item->atom->AddIndices( &indexBuf );
 					}
 				}
 			}
+		}
+		if ( !indexBuf.Empty() ) {
+			Vertex vertex;
+			GPUShader::Stream stream( &vertex );
+			GPUShader* s = shader ? shader : statePool[i].shader;
+			s->SetStream( stream, vertexCache, indexBuf.Mem(), indexBuf.Size() );
+			s->Draw();
 		}
 	}
 }

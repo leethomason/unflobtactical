@@ -21,6 +21,7 @@
 #include "enginelimits.h"
 #include "vertex.h"
 #include "gpustatemanager.h"
+#include "ufoutil.h"
 
 class Model;
 struct ModelAtom;
@@ -90,10 +91,22 @@ private:
 		return s0.shader->SortOrder() - s1.shader->SortOrder();
 	}
 
+	void CacheAtom( const Model* model, const ModelAtom* atom );
+
 	State* FindState( const State& state );
 
 	int nState;
 	int nItem;
+
+	enum {
+		CACHE_SIZE = 10*1000	// 10,000 vertices
+	};
+	GPUVertexBuffer vertexCache;
+	int vertexCacheSize;
+	int vertexCacheCap;
+
+	CDynArray<Vertex> vertexBuf;
+	CDynArray<U16>    indexBuf;
 
 	State statePool[MAX_STATE];
 	Item itemPool[MAX_ITEMS];

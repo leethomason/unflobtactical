@@ -123,9 +123,6 @@ using namespace grinliz;
 	faster again. *sigh* All that work and I'm back to the first approach. The single texture approach 
 	would be much simpler with shaders. Oh well. Still at 30fps.
 
-/// VBOs.
-	A complete waste. Turning them off improved performance on the iPod. From 20 to 27 fps.
-
 */
 
 
@@ -268,13 +265,6 @@ void Engine::Draw()
 {
 	// -------- Camera & Frustum -------- //
 	screenport->SetView( camera.ViewMatrix() );	// Draw the camera
-#if EL_BILLBOARDS
-	float bbRotation = camera.GetBillboardYRotation();
-	float shadowRotation = ToDegree( atan2f( lightDirection.x, lightDirection.z ) );
-#else
-	float bbRotation = 0;
-	float shadowRotation = 0;
-#endif
 
 	// Compute the frustum planes and query the tree.
 	Plane planes[6];
@@ -342,11 +332,7 @@ void Engine::Draw()
 					// Except for billboards, we want blending.
 					model->Queue(	renderQueue, 
 									&lightShader,
-#ifdef EL_BILLBOARDS
-									model->IsBillboard() ? &testLightShader : &blendLightShader, 
-#else
 									&blendLightShader,
-#endif
 									0,
 									&c );
 				}
@@ -356,11 +342,7 @@ void Engine::Draw()
 				}
 			}
 			else if ( mapBounds.Contains( x, y ) && fogOfWar.IsSet( x, y ) ) {
-#ifdef EL_BILLBOARDS
-				model->Queue( renderQueue, &lightShader, model->IsBillboard() ? &testLightShader : &blendLightShader, 0, 0 );
-#else
 				model->Queue( renderQueue, &lightShader, &blendLightShader, 0, 0 );
-#endif
 			}
 		}
 	}
@@ -407,7 +389,7 @@ void Engine::Draw()
 									RenderQueue::MODE_PLANAR_SHADOW,
 									0,
 									Model::MODEL_NO_SHADOW,
-									shadowRotation );
+									0 );
 
 			shadowShader.PopMatrix( GPUShader::MODELVIEW_MATRIX );
 			shadowShader.PopTextureMatrix( 3 );
@@ -433,7 +415,7 @@ void Engine::Draw()
 
 	// -------- Models ---------- //
 #ifdef ENGINE_RENDER_MODELS
-	renderQueue->Submit( 0, 0, 0, 0, bbRotation );
+	renderQueue->Submit( 0, 0, 0, 0, 0 );
 #endif
 	map->DrawOverlay( Map::LAYER_OVER );
 	renderQueue->Clear();

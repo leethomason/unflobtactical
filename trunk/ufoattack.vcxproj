@@ -118,6 +118,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="engine\gpustatemanager.cpp" />
+    <ClCompile Include="engine\rendercache.cpp" />
     <ClCompile Include="game\ai.cpp" />
     <ClCompile Include="game\battlescene.cpp" />
     <ClCompile Include="game\battlevisibility.cpp" />

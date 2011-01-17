@@ -40,18 +40,21 @@ struct ModelAtom
 #ifdef EL_USE_VBO
 	mutable GPUVertexBuffer vertexBuffer;		// created on demand, hence 'mutable'
 	mutable GPUIndexBuffer  indexBuffer;
+
+	// If added to the "big vertex cache", where do the vertices start?
+	enum {
+		CACHE_UNINITIALIZED = -1,
+		NOT_IN_CACHE = -2
+	};
+	mutable int cacheStart;			
 #endif
 	U32 nVertex;
 	U32 nIndex;
 
-	//enum {
-	//	BIND_VERTEX		= 0x01,
-	//	BIND_NORMAL		= 0x02,
-	//	BIND_TEXTURE_0	= 0x04
-	//};
 	void Bind( GPUShader* shader ) const;
 	void BindPlanarShadow( GPUShader* shader ) const;	// I gave up trying to make this general.
 	void LowerBind( GPUShader* shader, const GPUShader::Stream& stream ) const;
+	void AddIndices( CDynArray<U16>* index ) const;
 
 	// A note on the memory model: the index and vertices are stored
 	// in continuous memory to cut down on allocation overhead. But
@@ -167,6 +170,9 @@ public:
 	void SetFlag( int f )			{ flags |= f; }
 	void ClearFlag( int f )			{ flags &= (~f); }
 	int Flags()	const				{ return flags; }
+	// Can this be put in a render cache? Yes if owned by the
+	// rarely-changing map.
+	bool Cacheable() const			{ return IsFlagSet( MODEL_OWNED_BY_MAP ) != 0; }
 
 	const grinliz::Vector3F& Pos() const			{ return pos; }
 	void SetPos( const grinliz::Vector3F& pos );
@@ -177,14 +183,6 @@ public:
 
 	void SetRotation( float rot, int axis=1 );
 	float GetRotation( int axis=1 ) const			{ return rot[axis]; }
-
-#ifdef EL_BILLBOARDS
-	int IsBillboard() const 		{ return resource->header.flags & ModelHeader::BILLBOARD; }
-	int IsShadowRotated() const		{ return resource->header.flags & ModelHeader::ROTATE_SHADOWS; }
-#else
-	int IsBillboard() const 		{ return 0; }
-	int IsShadowRotated() const		{ return 0; }
-#endif
 	
 	// Set the skin texture (which is a special texture xform)
 	void SetSkin(int gender, int armor, int appearance);
@@ -235,7 +233,7 @@ private:
 	Texture				*setTexture;	// overrides the default texture
 
 	int flags;
-	
+
 	mutable bool xformValid;
 	mutable bool invValid;
 
