@@ -261,6 +261,18 @@ void Engine::PushShadowSwizzleMatrix( GPUShader* shader )
 }
 
 
+void Engine::PushLightSwizzleMatrix( GPUShader* shader )
+{
+	Matrix4 swizzle;
+	swizzle.m11 = 1.f/64.f;
+	swizzle.m22 = 0;	swizzle.m23 = -1.f/64.f;	swizzle.m24 = 1.0f;
+	swizzle.m33 = 0.0f;
+
+	shader->PushTextureMatrix( 2 );
+	shader->MultTextureMatrix( 2, swizzle );
+}
+
+
 void Engine::Draw()
 {
 	// -------- Camera & Frustum -------- //
@@ -269,6 +281,7 @@ void Engine::Draw()
 	// Compute the frustum planes and query the tree.
 	Plane planes[6];
 	CalcFrustumPlanes( planes );
+
 	Model* modelRoot = spaceTree->Query( planes, 6, 0, 0, false );
 	
 	Color4F ambient, diffuse;
@@ -277,13 +290,15 @@ void Engine::Draw()
 
 	LightShader lightShader( ambient, dir, diffuse, false, false );
 	LightShader blendLightShader( ambient, dir, diffuse, false, true );
-	const Surface* lightmap = map->GetLightMap();
+	LightShader mapItemShader( ambient, dir, diffuse, false, false );
 
-	Rectangle2I mapBounds = map->Bounds();
-	
 	FlatShader black;
 	Texture* blackTexture = TextureManager::Instance()->GetTexture( "black" );	// Fix for a strange bug. The Nexus One, when using VBOs, sometimes
-																				// ignores color. This used to be "white" with color=0,0,0,1, but
+																				// ignores color.
+
+	const Surface* lightmap = map->GetLightMap();
+	Rectangle2I mapBounds = map->Bounds();
+	
 
 	// ------------ Process the models into the render queue -----------
 	{
@@ -313,32 +328,15 @@ void Engine::Draw()
 
 				// Map is always rendered, possibly in black.
 				if ( !fogOfWar.IsRectEmpty( fogRect ) ) {
-					Color4F c = { 1, 1, 1, 1 };	// white, cool
-					if ( lightmap )
-					{
-						const Rectangle3F& b = model->GetResource()->header.bounds;
-						// Don't impact giant walls and such.
-						if ( b.SizeX() < 2.2f && b.SizeZ() < 2.2f )
-						{
-							U16 c16 = lightmap->GetImg16( x, y );
-							Surface::RGBA cRGB = Surface::CalcRGB16( c16 );
-							static const float INV = 1.f/255.f;
-							c.x = (float)cRGB.r * INV;
-							c.y = (float)cRGB.g * INV;
-							c.z = (float)cRGB.b * INV;
-						}
-					}
-
-					// Except for billboards, we want blending.
 					model->Queue(	renderQueue, 
-									&lightShader,
-									&blendLightShader,
+									&mapItemShader,
+									&mapItemShader,
 									0,
-									&c );
+									0 );
 				}
 				else {
 					model->Queue( renderQueue, &black, &black, blackTexture, 0 );	// The blackTexture makes sure everything goes to the same render state.
-																				// (Otherwise sub-states are created for each texture.)
+																					// (Otherwise sub-states are created for each texture.)
 				}
 			}
 			else if ( mapBounds.Contains( x, y ) && fogOfWar.IsSet( x, y ) ) {
@@ -388,8 +386,7 @@ void Engine::Draw()
 			renderQueue->Submit(	&shadowShader,
 									RenderQueue::MODE_PLANAR_SHADOW,
 									0,
-									Model::MODEL_NO_SHADOW,
-									0 );
+									Model::MODEL_NO_SHADOW );
 
 			shadowShader.PopMatrix( GPUShader::MODELVIEW_MATRIX );
 			shadowShader.PopTextureMatrix( 3 );
@@ -415,7 +412,18 @@ void Engine::Draw()
 
 	// -------- Models ---------- //
 #ifdef ENGINE_RENDER_MODELS
-	renderQueue->Submit( 0, 0, 0, 0, 0 );
+	{
+		{
+			mapItemShader.SetTexture1( map->LightMapTexture() );
+			PushLightSwizzleMatrix( &mapItemShader );
+
+			renderQueue->Submit( 0, 0, Model::MODEL_OWNED_BY_MAP, 0 );
+			lightShader.PopTextureMatrix( 2 );
+		}
+		{
+			renderQueue->Submit( 0, 0, 0, Model::MODEL_OWNED_BY_MAP );
+		}
+	}
 #endif
 	map->DrawOverlay( Map::LAYER_OVER );
 	renderQueue->Clear();
@@ -598,3 +606,13 @@ float Engine::GetZoom()
 	return z;
 }
 
+
+void Engine::ResetRenderCache()
+{
+	renderQueue->ResetRenderCache();
+	Model* model = spaceTree->Query( 0, 0, 0, 0 );
+	for( ; model; model = model->next ) {
+		for( int i=0; i<EL_MAX_MODEL_GROUPS; ++i )
+			model->cacheStart[i] = Model::CACHE_UNINITIALIZED;
+	}
+}

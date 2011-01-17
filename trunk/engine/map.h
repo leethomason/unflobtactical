@@ -355,6 +355,7 @@ public:
 
 	Texture* BackgroundTexture()	{ return backgroundTexture; }
 	Texture* LightMapTexture()		{ return lightMapTex; }
+//	Texture* LightFogMapTexture()	{ return lightFogMapTex; }
 
 	enum ConnectionType {
 		PATH_TYPE,
@@ -506,6 +507,9 @@ private:
 	Surface dayMap, nightMap;
 	bool lightMapValid;
 	Texture* lightMapTex;
+
+//	Surface lightFogMap;
+//	Texture* lightFogMapTex;
 
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWar;
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> cachedFogOfWar;

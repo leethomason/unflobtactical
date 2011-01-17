@@ -30,6 +30,7 @@
 #include "../engine/uirendering.h"
 #include "../engine/particle.h"
 #include "../engine/gpustatemanager.h"
+#include "../engine/renderqueue.h"
 
 #include "../grinliz/glmatrix.h"
 #include "../grinliz/glutil.h"
@@ -270,6 +271,7 @@ void Game::PushPopScene()
 {
 	if ( scenePopQueued || sceneQueued.sceneID != NUM_SCENES ) {
 		TextureManager::Instance()->ContextShift();
+		engine->ResetRenderCache();
 	}
 	GLASSERT( !(sceneResetQueued && sceneQueued.sceneID != NUM_SCENES ));
 
@@ -521,11 +523,13 @@ void Game::DoTick( U32 _currentTime )
 			#endif
 		}
 		else {
-			UFOText::Draw(	0,  Y, "#%d %5.1ffps vbo=%d ps=%d", 
+			UFOText::Draw(	0,  Y, "#%d %5.1ffps vbo=%d ps=%d cache=%d/%d", 
 							VERSION, 
 							framesPerSecond, 
 							GPUShader::SupportsVBOs() ? 1 : 0,
-							PointParticleShader::IsSupported() ? 1 : 0 );
+							PointParticleShader::IsSupported() ? 1 : 0,
+							engine->GetRenderQueue()->VertexCacheSize(),
+							engine->GetRenderQueue()->VertexCacheCap() );
 		}
 	}
 #endif
@@ -632,6 +636,7 @@ void Game::DeviceLoss()
 	TextureManager::Instance()->DeviceLoss();
 	ModelResourceManager::Instance()->DeviceLoss();
 	GPUShader::ResetState();
+	engine->ResetRenderCache();
 }
 
 

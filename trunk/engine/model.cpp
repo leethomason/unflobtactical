@@ -358,6 +358,11 @@ void ModelAtom::LowerBind( GPUShader* shader, const GPUShader::Stream& stream ) 
 void ModelAtom::Bind( GPUShader* shader ) const
 {
 	GPUShader::Stream stream( vertex );
+	// Handle light map, if we have one:
+	if ( shader->HasTexture1() ) {
+		stream.texture1Offset = Vertex::POS_OFFSET;
+		stream.nTexture1 = 3;
+	}
 	LowerBind( shader, stream );
 }
 
@@ -471,6 +476,7 @@ int Model::IntersectRay(	const Vector3F& _origin,
 	}
 	return result;
 }
+
 
 
 void Model::AddIndices( CDynArray<U16>* indexArr, int atomIndex ) const

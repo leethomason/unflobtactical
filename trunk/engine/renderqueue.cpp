@@ -18,6 +18,7 @@
 #include "texture.h"
 #include "gpustatemanager.h"
 #include "../grinliz/glperformance.h"
+#include <limits.h>
 
 using namespace grinliz;
 
@@ -28,15 +29,20 @@ RenderQueue::RenderQueue()
 
 	vertexCacheSize = 0;
 	vertexCacheCap = 0;
-	vertexCache = GPUVertexBuffer::Create( 0, CACHE_SIZE );
-	if ( vertexCache.IsValid() )
-		vertexCacheCap = CACHE_SIZE;
 }
 
 
 RenderQueue::~RenderQueue()
 {
 	vertexCache.Destroy();
+}
+
+
+void RenderQueue::ResetRenderCache()
+{
+	vertexCache.Destroy();
+	vertexCacheSize = 0;
+	vertexCacheCap = 0;
 }
 
 
@@ -142,6 +148,7 @@ void RenderQueue::Add( Model* model, const ModelAtom* atom, GPUShader* shader, c
 	state->root = item;
 }
 
+
 void RenderQueue::CacheAtom( Model* model, int atomIndex )
 {
 #ifdef EL_USE_VBO
@@ -181,17 +188,22 @@ void RenderQueue::CacheAtom( Model* model, int atomIndex )
 }
 
 
-void RenderQueue::Submit( GPUShader* shader, int mode, int required, int excluded, float bbRotation )
+
+void RenderQueue::Submit( GPUShader* overRideShader, int mode, int required, int excluded )
 {
 	GRINLIZ_PERFTRACK
 
-	// FIXME:
-	// See if this works.
-	// Refactor the cache vs. not cache logic.
-	// be sure the index buffer <64k! (Put in a flush?)
+	if ( !vertexCache.IsValid() ) {
+		static const int CACHE_SIZE = 40*1000;
+		vertexCache = GPUVertexBuffer::Create( 0, CACHE_SIZE );
+		if ( vertexCache.IsValid() ) {
+			vertexCacheCap = CACHE_SIZE;
+		}
+	}
 
 	for( int i=0; i<nState; ++i ) {
 		indexBuf.Clear();
+		GPUShader* shader = overRideShader ? overRideShader : statePool[i].shader;
 
 		for( Item* item = statePool[i].root; item; item=item->next ) 
 		{
@@ -202,14 +214,15 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 				 && ( (excluded & modelFlags) == 0 ) )
 			{
 				//GRINLIZ_PERFTRACK_NAME( "Submit Inner" )
-				if ( !shader ) {
+				if ( !overRideShader ) {
 					//GLASSERT( statePool[i].texture == item->atom->texture );
-					statePool[i].shader->SetTexture0( statePool[i].texture );
+					shader->SetTexture0( statePool[i].texture );
 				}
 
 				Model* model = item->model;
 				GLASSERT( model );
 
+				// Check for reset:
 				if ( model->cacheStart[ item->atomIndex ] == Model::CACHE_UNINITIALIZED ) {
 					CacheAtom( model, item->atomIndex );
 				}
@@ -240,25 +253,29 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 				else {
 					if ( model->cacheStart[ item->atomIndex ] < 0 ) {
 						//GRINLIZ_PERFTRACK_NAME( "Submit Inner-2" )
-						item->atom->Bind( shader ? shader : statePool[i].shader );
+						item->atom->Bind( shader );
 
-						GPUShader* s = statePool[i].shader;
-						s->PushMatrix( GPUShader::MODELVIEW_MATRIX );
-						s->MultMatrix( GPUShader::MODELVIEW_MATRIX, model->XForm() );
+						shader->PushMatrix( GPUShader::MODELVIEW_MATRIX );
+						shader->MultMatrix( GPUShader::MODELVIEW_MATRIX, model->XForm() );
 
 						if ( item->textureXForm ) {
-							s->PushTextureMatrix( 1 );
-							s->MultTextureMatrix( 1, *item->textureXForm );
+							shader->PushTextureMatrix( 1 );
+							shader->MultTextureMatrix( 1, *item->textureXForm );
 						}
 					
-						if ( item->param.z > 0 ) {
-							s->SetColor( item->param );
+						if ( shader->HasTexture1() ) {
+							shader->PushTextureMatrix( 2 );
+							shader->MultTextureMatrix( 2, model->XForm() );
 						}
-						s->Draw();
 
-						s->PopMatrix( GPUShader::MODELVIEW_MATRIX );
+						shader->Draw();
+
+						shader->PopMatrix( GPUShader::MODELVIEW_MATRIX );
 						if ( item->textureXForm ) {
-							s->PopTextureMatrix( 1 );
+							shader->PopTextureMatrix( 1 );
+						}
+						if (  shader->HasTexture1() ) {
+							shader->PopTextureMatrix( 2 );
 						}
 					}
 					else {
@@ -269,7 +286,6 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 		}
 		if ( !indexBuf.Empty() ) {
 			Vertex vertex;
-
 			if ( mode & MODE_PLANAR_SHADOW ) {
 				GPUShader::Stream stream;
 				stream.stride = sizeof( Vertex );
@@ -280,15 +296,18 @@ void RenderQueue::Submit( GPUShader* shader, int mode, int required, int exclude
 				stream.nTexture1 = 3;
 				stream.texture1Offset = Vertex::POS_OFFSET;
 
-				GPUShader* s = shader ? shader : statePool[i].shader;
-				s->SetStream( stream, vertexCache, indexBuf.Size(), indexBuf.Mem() );
-				s->Draw();
+				shader->SetStream( stream, vertexCache, indexBuf.Size(), indexBuf.Mem() );
+				shader->Draw();
 			}
 			else {
 				GPUShader::Stream stream( &vertex );
-				GPUShader* s = shader ? shader : statePool[i].shader;
-				s->SetStream( stream, vertexCache, indexBuf.Size(), indexBuf.Mem() );
-				s->Draw();
+				if ( shader->HasTexture1() ) {
+					stream.texture1Offset = Vertex::POS_OFFSET;
+					stream.nTexture1 = 3;
+					GLASSERT( stream.HasTexture1() );
+				}
+				shader->SetStream( stream, vertexCache, indexBuf.Size(), indexBuf.Mem() );
+				shader->Draw();
 			}
 		}
 	}

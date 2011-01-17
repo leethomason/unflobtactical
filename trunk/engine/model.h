@@ -167,6 +167,7 @@ public:
 
 	// Can this be put in a render cache? Yes if owned by the
 	// rarely-changing map.
+	// FIXME: also not cacheable if contains any alpha texture
 	bool Cacheable() const			{ return IsFlagSet( MODEL_OWNED_BY_MAP ) != 0; };
 
 	const grinliz::Vector3F& Pos() const			{ return pos; }

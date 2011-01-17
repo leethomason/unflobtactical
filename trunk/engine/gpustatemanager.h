@@ -178,10 +178,12 @@ public:
 	void SetTexture0( Texture* tex ) {
 		texture0 = tex;
 	}
+	bool HasTexture0() { return texture0 != 0; }
 
 	void SetTexture1( Texture* tex ) {
 		texture1 = tex;
 	}
+	bool HasTexture1() { return texture1 != 0; }
 
 	void SetColor( float r, float g, float b )				{ color.x = r; color.y = g; color.z = b; color.w = 1; }
 	void SetColor( float r, float g, float b, float a )		{ color.x = r; color.y = g; color.z = b; color.w = a; }
