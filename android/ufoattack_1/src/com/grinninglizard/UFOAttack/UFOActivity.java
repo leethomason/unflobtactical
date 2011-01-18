@@ -182,7 +182,7 @@ class DemoGLSurfaceView extends GLSurfaceView { 	//implements MultiTouchObjectCa
 		
 		// NEXUS-ONE does fine with 1.0, Droid Inc likes the 0.5f
 		float ATTENUATION = 0.5f;
-		
+		 
 		if ( event.getX() != 0 )
 			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ZOOM, GAME_ZOOM_DISTANCE, 0, 0, -event.getX()*ATTENUATION ) );
 		if ( event.getY() != 0 )

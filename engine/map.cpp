@@ -201,7 +201,6 @@ Map::Map( SpaceTree* tree )
 	dayTime = true;
 	pathBlocker = 0;
 	nImageData = 0;
-	landerFlight = 0.0f;
 
 	microPather = new MicroPather(	this,			// graph interface
 									SIZE*SIZE,		// max possible states (+1)
@@ -256,10 +255,10 @@ Map::Map( SpaceTree* tree )
 	nightMap.Clear( 255 );
 	lightMap = &dayMap;
 
-//	lightFogMap.Set( Surface::RGB16, SIZE, SIZE );
+	lightFogMap.Set( Surface::RGB16, SIZE, SIZE );
 
 	lightMapTex = texman->CreateTexture( "MapLightMap", SIZE, SIZE, Surface::RGB16, Texture::PARAM_NONE, this );
-//	lightFogMapTex = texman->CreateTexture( "MapLightFogMap", SIZE, SIZE, Surface::RGB16, Texture::PARAM_NONE, this );
+	lightFogMapTex = texman->CreateTexture( "MapLightFogMap", SIZE, SIZE, Surface::RGB16, Texture::PARAM_NEAREST, this );
 
 	GLOUTPUT(( "Map created. %dK\n", sizeof( *this )/1024 ));
 }
@@ -271,7 +270,7 @@ Map::~Map()
 	texman->DeleteTexture( backgroundTexture );
 	texman->DeleteTexture( greyTexture );
 	texman->DeleteTexture( lightMapTex );
-//	texman->DeleteTexture( lightFogMapTex );
+	texman->DeleteTexture( lightFogMapTex );
 
 	Clear();
 	delete microPather;
@@ -668,10 +667,18 @@ void Map::GenerateSeenUnseen()
 
 #undef PUSHQUAD
 
-/*
+
 	for( int j=0; j<height; ++j ) {
 		for( int i=0; i<width; ++i ) {
 			if ( fogOfWar.IsSet( i, j ) ) {
+				U16 c = lightMap->GetImg16( i, j );
+				lightFogMap.SetImg16( i, j, c );
+			}
+			else if (    (i>0      && fogOfWar.IsSet( i-1, j ))
+				      || (i<SIZE-1 && fogOfWar.IsSet( i+1, j ))
+					  || (j>0      && fogOfWar.IsSet( i, j-1 ))
+					  || (j<SIZE-1 && fogOfWar.IsSet( i, j+1 )) ) 
+			{
 				U16 c = lightMap->GetImg16( i, j );
 				lightFogMap.SetImg16( i, j, c );
 			}
@@ -681,8 +688,162 @@ void Map::GenerateSeenUnseen()
 		}
 	}
 	lightFogMapTex->Upload( lightFogMap );
-*/
+
 }
+
+
+#ifdef USE_MAP_CACHE
+const MapRenderBlock* Map::CalcRenderBlocks( const grinliz::Plane* planes, int nPlanes )
+{
+	MapRenderBlock* root = 0;
+
+	for( int j=0; j<RENDER_BLOCK_SIZE; ++j ) {
+		for( int i=0; i<RENDER_BLOCK_SIZE; ++i ) {
+
+			Rectangle3F aabb;
+			aabb.Set( (float)(i*RENDER_BLOCK_GRID_SIZE),     0.0f, (float)(j*RENDER_BLOCK_GRID_SIZE),
+					  (float)((i+1)*RENDER_BLOCK_GRID_SIZE), 2.5f, (float)((j+1)*RENDER_BLOCK_GRID_SIZE) );	// fixme - magic # for height
+
+			bool inView = true;
+			for( int p=0; p<nPlanes; ++p ) {
+				int result = ComparePlaneAABB( planes[p], aabb );
+				if ( result == REJECT ) {
+					inView = false;
+					break;
+				}
+			}
+
+			if ( inView ) {
+				UpdateRenderBlock( i, j );
+				int index = i + j*RENDER_BLOCK_SIZE;
+				int len = renderBlockArr[index].Size();
+
+				if ( len ) {
+					renderBlockArr[index][len-1].next = root;
+					root = renderBlockArr[index].Mem();
+				}
+			}
+		}
+	}
+	return root;
+}
+
+
+void Map::UpdateRenderBlock( int x, int y )
+{
+	int index = x + y*RENDER_BLOCK_SIZE;
+	int len = renderBlockArr[index].Size();
+
+	if ( len > 0 ) {
+		return;
+	}
+	// Either nothing in the block (rare, but possible) or invalid.
+	CDynArray<MapRenderBlock>& arr = renderBlockArr[index];
+
+	Rectangle3F aabb;
+	aabb.Set( (float)(x*RENDER_BLOCK_GRID_SIZE),     0.0f, (float)(y*RENDER_BLOCK_GRID_SIZE),
+			  (float)((x+1)*RENDER_BLOCK_GRID_SIZE), 2.5f, (float)((y+1)*RENDER_BLOCK_GRID_SIZE) );	// fixme - magic # for height
+
+	Plane planes[6];
+	Plane::CreatePlanes( aabb, planes );
+
+	// Note that this query makes it possible for objects to be in 2 different 
+	// blocks if they span the plane. The plane is set up to minimize this (it
+	// alignes with the world grid.) But possibly worth investigating.
+	Model* root = tree->Query( planes, 6, Model::MODEL_OWNED_BY_MAP, 0 );
+
+	// Count the vertices and indices needed per texture.
+	for( Model* model=root; model; model=model->next ) {
+		for( int g=0; g<model->GetResource()->header.nGroups; ++g ) {
+			const ModelAtom& atom = model->GetResource()->atom[g];
+
+			int b=0;
+			for( ; b<arr.Size(); ++b ) {
+				if ( arr[b].texture == atom.texture ) {
+					arr[b].nIndex += atom.nIndex;
+					arr[b].nVertex += atom.nVertex;
+					break;
+				}
+			}
+			if ( b == arr.Size() ) {
+				MapRenderBlock* mrb = arr.Push();
+				mrb->Init();
+				mrb->texture = atom.texture;
+				mrb->nIndex = atom.nIndex;
+				mrb->nVertex = atom.nVertex;
+			}
+		}
+	}
+
+	// Allocate the vertex & index buffers, copy in.
+	for( int b=0; b<arr.Size(); ++b ) {
+		GLASSERT( arr[b].nIndex < 0xffff );
+		GLASSERT( arr[b].nVertex < 0xffff );
+		if ( arr[b].nIndex < 0xffff && arr[b].nVertex < 0xffff ) {
+			if ( b == 33 )
+				int debug=1;
+			arr[b].vertexBuffer = GPUVertexBuffer::Create( 0, arr[b].nVertex );
+			arr[b].indexBuffer  = GPUIndexBuffer::Create( 0, arr[b].nIndex );
+		}
+		else {
+			arr[b].nIndex = 0;
+			arr[b].nVertex = 0;
+		}
+	}
+
+	for( Model* model=root; model; model=model->next ) {
+		for( int g=0; g<model->GetResource()->header.nGroups; ++g ) {
+			const ModelAtom& atom = model->GetResource()->atom[g];
+
+			for( int b=0; b<arr.Size(); ++b ) {
+				if (    arr[b].texture == atom.texture 
+					 && arr[b].nIndex > 0 
+					 && arr[b].nVertex > 0 ) 
+				{
+					const ModelAtom& atom = model->GetResource()->atom[g];
+					const Matrix4& m = model->XForm();
+					MapRenderBlock& block = arr[b];
+
+					vertexBuffer.Clear();
+					indexBuffer.Clear();
+		
+					// Transform into temporary buffer.
+					Vertex* dv = vertexBuffer.PushArr( atom.nVertex );
+					const Vertex* sv = atom.vertex;
+					const Vertex* end = atom.vertex + atom.nVertex;
+
+					for( ; sv < end; ++sv, ++dv ) {
+						MultMatrix4( m, sv->pos,    &dv->pos,	 1.0f );	// position
+						MultMatrix4( m, sv->normal, &dv->normal, 0.0f );	// normal
+						dv->tex = sv->tex;
+					}
+					block.vertexBuffer.Upload( vertexBuffer.Mem(), atom.nVertex, block.tempNVertex );
+					int base = block.tempNVertex;
+					block.tempNVertex += atom.nVertex;
+
+					U16* di = indexBuffer.PushArr( atom.nIndex );
+					const U16* si = atom.index;
+					const U16* send = atom.index + atom.nIndex;
+
+					for( ; si < send; ++si, ++di ) {
+						*di = *si + base;
+					}
+					block.indexBuffer.Upload( indexBuffer.Mem(), atom.nIndex, block.tempNIndex );
+					block.tempNIndex += atom.nIndex;
+
+					break;
+				}
+			}
+		}
+	}
+
+	for( int b=0; b<arr.Size(); ++b ) {
+		arr[b].next = 0;
+		if ( b>0 ) 
+			arr[b-1].next = &arr[b];
+	}
+}
+#endif
 
 
 const char* Map::GetItemDefName( int i )
@@ -2088,7 +2249,7 @@ void Map::ChangeObscured( const grinliz::Rectangle2I& bounds, int delta )
 	}
 }
 
-
+/*
 void Map::SetLanderFlight( float normal )
 {
 	landerFlight = Clamp( normal, 0.0f, 1.0f );
@@ -2117,6 +2278,7 @@ void Map::SetLanderFlight( float normal )
 		model->SetPos( pos.x, h, pos.z );
 	}
 }
+*/
 
 
 
@@ -2299,9 +2461,9 @@ void Map::CreateTexture( Texture* t )
 	else if ( t == lightMapTex ) {
 		t->Upload( *lightMap );
 	}
-//	else if ( t == lightFogMapTex ) {
-//		t->Upload( lightFogMap );
-//	}
+	else if ( t == lightFogMapTex ) {
+		t->Upload( lightFogMap );
+	}
 	else {
 		GLRELASSERT( 0 );
 	}

@@ -87,7 +87,7 @@ public:
 	void EnableMap( bool enable )		{ enableMap = enable; }
 	Map* GetMap()						{ return map; }
 	const RenderQueue* GetRenderQueue()	{ return renderQueue; }
-	void ResetRenderCache();
+	//void ResetRenderCache();
 
 	// Only matters for MapMaker. Game never renders the metadata.
 	void EnableMetadata( bool enable )	{ enableMeta = enable; }

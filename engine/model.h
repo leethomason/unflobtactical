@@ -216,12 +216,14 @@ public:
 	const grinliz::Matrix4& XForm() const;
 	bool HasTextureXForm( int i ) const;
 
-	void AddIndices( CDynArray<U16>* indexArr, int atomIndex ) const;
+
+/*	void AddIndices( CDynArray<U16>* indexArr, int atomIndex ) const;
 	enum {
 		CACHE_UNINITIALIZED = -1,
 		DO_NOT_CACHE = -2
 	};
 	int cacheStart[EL_MAX_MODEL_GROUPS];
+*/
 
 private:
 	void Modify() 
