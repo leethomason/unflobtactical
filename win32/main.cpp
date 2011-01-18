@@ -48,10 +48,15 @@
 #define NEXUS_ONE_SCREEN_WIDTH  480
 #define NEXUS_ONE_SCREEN_HEIGHT  800
 
+#if 1
+static const int SCREEN_WIDTH  = IPOD_SCREEN_WIDTH*2;
+static const int SCREEN_HEIGHT = IPOD_SCREEN_HEIGHT*2;
+#endif
 #if 0
 static const int SCREEN_WIDTH  = IPOD_SCREEN_WIDTH;
 static const int SCREEN_HEIGHT = IPOD_SCREEN_HEIGHT;
-#else
+#endif
+#if 0
 static const int SCREEN_WIDTH  = NEXUS_ONE_SCREEN_WIDTH;
 static const int SCREEN_HEIGHT = NEXUS_ONE_SCREEN_HEIGHT;
 #endif

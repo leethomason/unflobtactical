@@ -79,6 +79,11 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 			score[1] += d->units[i].GetStats().ScoreLevel();
 		}
 	}
+	if ( !d->dayTime ) {
+		// 50% bonus for night.
+		score[1] = score[1]*3/2;
+	}
+
 	for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i ) {
 		if ( d->units[i].InUse() ) {
 			if ( d->units[i].IsAlive() )

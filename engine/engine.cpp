@@ -295,8 +295,10 @@ void Engine::Draw()
 	CalcLights( map->DayTime() ? DAY_TIME : NIGHT_TIME, &ambient, &dir, &diffuse );
 
 	LightShader lightShader( ambient, dir, diffuse, false, false );
-	LightShader blendLightShader( ambient, dir, diffuse, false, true );
+	LightShader blendLightShader( ambient, dir, diffuse, false, true );	// Some tiles use alpha - for instance the "splat" image
+
 	LightShader mapItemShader( ambient, dir, diffuse, false, false );
+	LightShader mapBlendItemShader( ambient, dir, diffuse, false, true );
 
 	FlatShader black;
 	Texture* blackTexture = TextureManager::Instance()->GetTexture( "black" );	// Fix for a strange bug. The Nexus One, when using VBOs, sometimes
@@ -317,22 +319,21 @@ void Engine::Draw()
 			if ( model->IsFlagSet( Model::MODEL_METADATA ) && !enableMeta )
 				continue;
 
-//			if ( model->IsFlagSet(  Model::MODEL_OWNED_BY_MAP ) ) {
-//				model->Queue(	renderQueue, 
-//								&mapItemShader,
-//								&mapItemShader,
-//								0,
-//								0 );
-//			}
-//			else {
+			if ( model->IsFlagSet(  Model::MODEL_OWNED_BY_MAP ) ) {
+				model->Queue(	renderQueue, 
+								&mapItemShader,
+								&mapBlendItemShader,
+								0 );
+			}
+			else {
 				Vector3F pos = model->AABB().Center();
 				int x = LRintf( pos.x - 0.5f );
 				int y = LRintf( pos.z - 0.5f );
 
 				if ( mapBounds.Contains( x, y ) && fogOfWar.IsSet( x, y ) ) {
-					model->Queue( renderQueue, &lightShader, &blendLightShader, 0, 0 );
+					model->Queue( renderQueue, &lightShader, &blendLightShader, 0 );
 				}
-//			}
+			}
 		}
 	}
 
@@ -424,6 +425,8 @@ void Engine::Draw()
 	{
 		{
 			mapItemShader.SetTexture1( map->LightFogMapTexture() );
+			mapBlendItemShader.SetTexture1( map->LightFogMapTexture() );
+			
 			PushLightSwizzleMatrix( &mapItemShader );
 
 #ifdef USE_MAP_CACHE
@@ -437,14 +440,17 @@ void Engine::Draw()
 				mapItemShader.SetStream( stream, block->vertexBuffer, block->nIndex, block->indexBuffer );
 				mapItemShader.Draw();
 			}
+#else
+			renderQueue->Submit( 0, 0, Model::MODEL_OWNED_BY_MAP, 0 );
 #endif
 			lightShader.PopTextureMatrix( 2 );
 		}
 		{
-			renderQueue->Submit( 0, 0, 0, 0 );
+			renderQueue->Submit( 0, 0, 0, Model::MODEL_OWNED_BY_MAP );
 		}
 	}
 #endif
+
 	map->DrawOverlay( Map::LAYER_OVER );
 	renderQueue->Clear();
 

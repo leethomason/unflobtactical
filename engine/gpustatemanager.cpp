@@ -127,7 +127,7 @@ void MatrixStack::Multiply( const grinliz::Matrix4& m )
 /*static*/ bool GPUShader::textureXFormInUse[2] = { false, false };
 
 /*static*/ int GPUShader::vboSupport = 0;
-
+/*static*/ //GPUShader::TexParam GPUShader::texParam = { 0, 0, 0, 0 };
 
 //static 
 bool GPUShader::SupportsVBOs()
@@ -244,6 +244,7 @@ void GPUShader::SetState( const GPUShader& ns )
 								GL_FLOAT, 
 								ns.stream.stride, 
 								PTR( ns.streamPtr, ns.stream.texture1Offset ) );
+
 			if ( ns.texture1 != current.texture1 ) {
 				glBindTexture( GL_TEXTURE_2D, ns.texture1->GLID() );
 			}
@@ -262,11 +263,6 @@ void GPUShader::SetState( const GPUShader& ns )
 
 		glEnable( GL_TEXTURE_2D );
 		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-		glTexCoordPointer(	ns.stream.nTexture0, 
-							GL_FLOAT, 
-							ns.stream.stride, 
-							PTR( ns.streamPtr, ns.stream.texture0Offset ) );	
 	}
 	else if ( !ns.stream.HasTexture0() && current.stream.HasTexture0() ) {
 		glDisable( GL_TEXTURE_2D );
@@ -279,6 +275,7 @@ void GPUShader::SetState( const GPUShader& ns )
 							GL_FLOAT, 
 							ns.stream.stride, 
 							PTR( ns.streamPtr, ns.stream.texture0Offset ) );	
+
 		if ( ns.texture0 != current.texture0 )
 		{
 			glBindTexture( GL_TEXTURE_2D, ns.texture0->GLID() );
@@ -596,9 +593,6 @@ void GPUShader::PushMatrix( MatrixType type )
 	SwitchMatrixMode( type );
 
 	switch( type ) {
-//	case TEXTURE_MATRIX:
-//		textureStack.Push();
-//		break;
 	case MODELVIEW_MATRIX:
 	case PROJECTION_MATRIX:
 		glPushMatrix();
@@ -622,13 +616,13 @@ void GPUShader::PushMatrix( MatrixType type )
 
 void GPUShader::MultMatrix( MatrixType type, const grinliz::Matrix4& m )
 {
+	// A lot of identities seem to get through...
+	if ( m.IsIdentity() )
+		return;
+
 	SwitchMatrixMode( type );
 
 	switch( type ) {
-//	case TEXTURE_MATRIX:
-//		textureStack.Multiply( m );
-//		glLoadMatrixf( textureStack.Top().x );
-//		break;
 	case MODELVIEW_MATRIX:
 	case PROJECTION_MATRIX:
 		glMultMatrixf( m.x );
@@ -649,10 +643,6 @@ void GPUShader::PopMatrix( MatrixType type )
 	SwitchMatrixMode( type );
 	GLASSERT( matrixDepth[(int)type] > 0 );
 		switch( type ) {
-//	case TEXTURE_MATRIX:
-//		textureStack.Pop();
-//		glLoadMatrixf( textureStack.Top().x );
-//		break;
 	case MODELVIEW_MATRIX:
 	case PROJECTION_MATRIX:
 		glPopMatrix();

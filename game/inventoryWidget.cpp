@@ -148,6 +148,7 @@ void InventoryWidget::Update()
 		cstr += wid->desc;
 		cstr += " ";
 
+		/* Nice display, but too much space on a 4:3 screen.
 		cstr += "[";
 		if ( wid->HasWeapon( kAltFireMode ) ) {
 			cstr += wid->GetClipItemDef( kSnapFireMode )->displayName.c_str();
@@ -158,6 +159,7 @@ void InventoryWidget::Update()
 			cstr += wid->GetClipItemDef( kSnapFireMode )->displayName.c_str();
 		}
 		cstr += "]";
+		*/
 
 		description.SetText( cstr.c_str() );
 	}

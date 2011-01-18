@@ -147,7 +147,7 @@ void Screenport::SetPerspective( float near, float far, float fovDegrees, const 
 	GLASSERT( clipInUI3D.min.y >= 0 && clipInUI3D.max.y <= UIHeight() );
 	
 	Rectangle2F scissor;
-	UIToWindow( clipInUI2D,  &scissor );
+	UIToWindow( clipInUI3D,  &scissor );
 	glEnable( GL_SCISSOR_TEST );
 	glScissor( (int)scissor.min.x, (int)scissor.min.y, (int)scissor.max.x, (int)scissor.max.y );
 

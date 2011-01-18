@@ -51,8 +51,7 @@ public:
 				const ModelAtom* atom, 
 				GPUShader* shader,
 				const grinliz::Matrix4* textureXForm,
-				Texture* replaceAllTextures,
-				const grinliz::Vector4F* param );
+				Texture* replaceAllTextures );
 
 	enum {
 		MODE_PLANAR_SHADOW				= 0x01,		// Do all the fancy tricks to create planar shadows.
@@ -63,17 +62,12 @@ public:
 	bool Empty() { return nState == 0 && nItem == 0; }
 	void Clear() { nState = 0; nItem = 0; }
 
-	int VertexCacheSize() const { return vertexCacheSize; }
-	int VertexCacheCap() const	{ return vertexCacheCap; }
-	void ResetRenderCache();
-
 private:
 	struct Item {
 		Model*					model;
 		const ModelAtom*		atom;
 		int						atomIndex;
 		const grinliz::Matrix4*	textureXForm;
-		grinliz::Vector4F		param;
 		Item*					next;
 	};
 

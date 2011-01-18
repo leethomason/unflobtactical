@@ -143,7 +143,7 @@ public:
 	void Init( const ModelResource* resource, SpaceTree* tree );
 	void Free();
 
-	void Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent, Texture* replaceAllTextures, const grinliz::Vector4F* param );
+	void Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent, Texture* replaceAllTextures );
 
 	enum {
 		MODEL_SELECTABLE			= 0x01,

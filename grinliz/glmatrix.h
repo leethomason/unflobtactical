@@ -172,6 +172,14 @@ class Matrix4
 			x[i] *= v;
 	}
 
+
+	bool IsIdentity() const {
+		return    x[0] == 1.0f && x[5] == 1.0f && x[10] == 1.0f && x[15] == 1.0f
+			   && x[1] == 0 && x[2] == 0 && x[3] == 0 && x[4] == 0
+			   && x[6] == 0 && x[7] == 0 && x[8] == 0 && x[9] == 0
+			   && x[11] == 0 && x[12] == 0 && x[13] == 0 && x[14] == 0;
+	}
+
 	// Assumes this is a homogenous matrix.
 	bool IsTranslationOnly() const {
 		if ( x[0] == 1.0f && x[5] == 1.0f && x[10] == 1.0f ) {

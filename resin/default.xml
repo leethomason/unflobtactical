@@ -52,7 +52,7 @@
   <model filename="chess_characters.ac" modelName="green"        origin="0 0 0"  shading="flat" polyRemoval="pre" trigger="-0.42 0.34 0" eye="1.22" target="1.10" />
   <model filename="chess_characters.ac" modelName="prime"        origin="1 0 0"  shading="flat" polyRemoval="pre" trigger="1.31  0.86 0" eye="1.74" target="0.89" />
   <model filename="chess_characters.ac" modelName="hornet"       origin="2 0 0"  shading="flat" polyRemoval="pre" trigger="1.70  0.72 0" eye="1.67" target="1.07" />
-  <model filename="chess_characters.ac" modelName="jackal"       origin="3 0 0"  shading="flat" polyRemoval="pre" trigger="2.48  0.60 0" eye="0.85" target="0.91" />
+  <model filename="chess_characters.ac" modelName="jackal"       origin="3 0 0"  shading="flat" polyRemoval="pre" trigger="2.55  0.60 0" eye="0.85" target="0.91" />
   <model filename="chess_characters.ac" modelName="viper"        origin="4 0 0"  shading="flat" polyRemoval="pre" trigger="3.69  0.72 0" eye="1.42" target="1.33" />
 
   <model filename="chess_characters.ac" modelName="maleMarine"   origin="-1 0 0" shading="flat" polyRemoval="pre" trigger="-1.35 1.00 0.0" eye="1.81" target="1.15"/>
@@ -60,32 +60,39 @@
   <model filename="chess_characters.ac" modelName="maleCiv"      origin="-3 0 0" shading="flat" polyRemoval="pre"                          eye="1.65" target="1.20"/>
   <model filename="chess_characters.ac" modelName="femaleCiv"    origin="-4 0 0" shading="flat" polyRemoval="pre"                          eye="1.57" target="1.20"/>
 
-  <model filename="chess_weapons.ac"    modelName="AR-1"         origin="-3 0 0"/>
-  <model filename="chess_weapons.ac"    modelName="AR-2"         origin="-3 1 0"/>
-  <model filename="chess_weapons.ac"    modelName="AR-3P"        origin="-3 2 0"/>
-  <model filename="chess_weapons.ac"    modelName="AR-3L"        origin="-4 0 0"/>
-  <model filename="chess_weapons.ac"    modelName="PST"          origin="-4 1 0"/>
-  <model filename="chess_weapons.ac"    modelName="SLUG"         origin="-4 2 0"/>
-  <model filename="chess_weapons.ac"    modelName="CANON"        origin="-5 0 0"/>
+  <model filename="chess_weapons.ac"    modelName="ASLT-1"        origin="-3 0 0"/>
+  <model filename="chess_weapons.ac"    modelName="ASLT-2"        origin="-3 1 0"/>
+  <model filename="chess_weapons.ac"    modelName="ASLT-3"        origin="-3 2 0"/>
+  <model filename="chess_weapons.ac"    modelName="LR-1"          origin="-4 0 0"/>
+  <model filename="chess_weapons.ac"    modelName="LR-2"          origin="-4 1 0"/>
+  <model filename="chess_weapons.ac"    modelName="LR-3"          origin="-4 2 0"/>
+  <model filename="chess_weapons.ac"    modelName="CANON-1"       origin="-5 0 0"/>
+  <model filename="chess_weapons.ac"    modelName="CANON-2"       origin="-5 1 0"/>
+  <model filename="chess_weapons.ac"    modelName="CANON-3"       origin="-5 2 0"/>
 
   <model filename="chess_weapons.ac"    modelName="RAY-1"        origin="0 0 0"/>
   <model filename="chess_weapons.ac"    modelName="RAY-2"        origin="0 1 0"/>
   <model filename="chess_weapons.ac"    modelName="RAY-3"        origin="0 2 0"/>
   <model filename="chess_weapons.ac"    modelName="PLS-1"        origin="1 0 0"/>
   <model filename="chess_weapons.ac"    modelName="PLS-2"        origin="1 1 0"/>
-  <model filename="chess_weapons.ac"    modelName="BEAM"         origin="1 2 0"/>
-  <model filename="chess_weapons.ac"    modelName="STORM"        origin="2 0 0"/>
+  <model filename="chess_weapons.ac"    modelName="PLS-3"        origin="1 2 0"/>
+  <model filename="chess_weapons.ac"    modelName="STORM-1"      origin="2 0 0"/>
+  <model filename="chess_weapons.ac"    modelName="STORM-2"      origin="2 1 0"/>
+  <model filename="chess_weapons.ac"    modelName="STORM-3"      origin="2 2 0"/>
 
+  <!--
+  Sounds not currently in use.
   <data filename="ar.wav"   compress="false" />
+  <data filename="ray2.wav" compress="false"/>
+  <data filename="ray3.wav" compress="false"/>
+  <data filename="beam.wav" compress="false"/>
+  -->
   <!-- generic AR and pistol -->
   <data filename="ar3p.wav" compress="false" />
   <data filename="ar3l.wav" compress="false" />
   <data filename="can.wav"  compress="false" />
   <data filename="ray1.wav" compress="false"/>
-  <data filename="ray2.wav" compress="false"/>
-  <data filename="ray3.wav" compress="false"/>
   <data filename="plasma.wav" compress="false"/>
-  <data filename="beam.wav" compress="false"/>
   <data filename="nullp.wav" compress="false"/>
 
   <model filename="smallcrate.ac" />
@@ -103,12 +110,7 @@
   <model filename="alltree.ac" modelName="cactus0"  origin="8 0 0"  shading="smooth" polyRemoval="pre" />
   <model filename="alltree.ac" modelName="cactus1"  origin="10 0 0"  shading="smooth" polyRemoval="pre" />
   <model filename="alltree.ac" modelName="cactus2"  origin="12 0 0"  shading="smooth" polyRemoval="pre" />
-
-  <!--
-  <model filename="crystals.ac" modelName="blueCrystal"   origin="0 0 0" shading="flat" polyRemoval="pre" />
-  <model filename="crystals.ac" modelName="greenCrystal"  origin="1 0 0" shading="flat" polyRemoval="pre" />
-  <model filename="crystals.ac" modelName="redCrystal"    origin="2 0 0" shading="flat" polyRemoval="pre" />
-  -->
+  <model filename="alltree.ac" modelName="stump"    origin="0 0 2"  shading="smooth" polyRemoval="pre" />
 
   <!-- World models have their origin at the upper left, so that they align with the unit grid -->
   <model filename="lander.ac" shading="crease"/>
@@ -124,11 +126,13 @@
   <model filename="ufo_controlTable.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_controlScreen.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_power.ac" shading="flat" />
+  <model filename="ufo_powerD.ac" shading="flat" />
   <model filename="ufo_statue0.ac" shading="flat" />
   <model filename="ufo_crate0.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_crate1.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_crate2.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_tube.ac" shading="smooth"/>
+  <model filename="ufo_tubeD.ac" shading="smooth"/>
   <model filename="ufo_table.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_pod.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_plant0.ac" shading="smooth" polyRemoval="pre" />
@@ -155,6 +159,7 @@
   <model filename="stonewall_unitD.ac" shading="crease" polyRemoval="pre" />
   <model filename="woodfence.ac" polyRemoval="pre" />
   <model filename="oldwell.ac" shading="crease" polyRemoval="pre"/>
+  <model filename="bricks.ac" shading="flat" polyRemoval="pre"/>
   <model filename="haypile.ac" polyRemoval="pre"/>
   <model filename="whitepicketfence.ac" polyRemoval="pre"/>
   <model filename="barrel0.ac" shading="crease" polyRemoval="pre" />
@@ -170,10 +175,14 @@
   <model filename="shelf_0.ac" shading="crease" polyRemoval="pre" />
   <model filename="shelf_1.ac" shading="crease" polyRemoval="pre" />
   <model filename="shelf_2.ac" shading="crease" polyRemoval="pre" />
+  <model filename="shelf_0D.ac" shading="crease" polyRemoval="pre" />
+  <model filename="shelf_1D.ac" shading="crease" polyRemoval="pre" />
+  <model filename="shelf_2D.ac" shading="crease" polyRemoval="pre" />
   <model filename="sacks.ac" shading="smooth" polyRemoval="pre" />
   <model filename="cafetable.ac" polyRemoval="pre" />
   <model filename="lamp0.ac"  polyRemoval="pre" />
   <model filename="gaspump.ac"  shading="flat" polyRemoval="pre" />
+  <model filename="gaspumpD.ac"  shading="flat" polyRemoval="pre" />
          
   <model filename="pyramid_2.ac" shading="flat" polyRemoval="pre" />
   <model filename="pyramid_4.ac" shading="flat" polyRemoval="pre" />
@@ -405,6 +414,11 @@
   <image filename="CITY_16_OPEN_02_DAY.png" />
   <image filename="CITY_16_OPEN_02_NGT.png" />
 
+  <data  filename="CITY_16_OPEN_03.xml" />
+  <image filename="CITY_16_OPEN_03_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_OPEN_03_DAY.png" />
+  <image filename="CITY_16_OPEN_03_NGT.png" />
+
   <data  filename="CITY_16_LAND_00.xml" />
   <image filename="CITY_16_LAND_00_TEX.png" width="128" height="128" />
   <image filename="CITY_16_LAND_00_DAY.png" />
@@ -412,13 +426,10 @@
 
   <text name="tacticalHelp" >
     <page>
-      <p>Welcome to Xenowar!</p>
-      <p>
-        Xenowar is a tactical combat game for mobile devices as well as Windows PCs.
-      </p>
+      <p>Xenowar - How to Play</p>
       <p>
         The game is turn based like a traditional board game. You take a
-        turn, the aliens (computer) takes a turn, until one team is blasted
+        turn, the aliens takes a turn, until one team is blasted
         into oblivion.
       </p>
       <p>
@@ -466,8 +477,8 @@
       <p>
         When it is your turn, you may move
         as many units as you like. But each
-        unit has a certain amount of “Time
-        Units” per turn. One time unit
+        unit has a certain amount of Time
+        Units (TU) per turn. One time unit
         allows one space of movement. The
         squares on the ground show the
         range of movent for the unit.
@@ -514,7 +525,7 @@
         Shooting UI. Left click on your
         target to display shot  choices,
         including info about the type of
-        shot,the approximate odds of hitting,
+        shot, the approximate odds of hitting,
         and ammo remaining. Every
         weapon is different!
       </p>
@@ -528,7 +539,7 @@
       <p>[Reaction fire]</p>
       <p>
         Reaction fire occurs when your units fire at the aliens during
-        the alien’s turn. It is key to an effective defense.
+        the alien turn. It is key to an effective defense.
       </p>
       <p>
         For reaction fire to occur, you must have enough TU left over
@@ -551,6 +562,8 @@
       <p>[Unit Screen]</p>
       <p>Use this screen to pick up and drop items, wear armor, and select a weapon. You can also view statistics
          about the current unit.</p>
+      <p>The current weapon is use is shown in the top left. Beside the name is the tech level, from 1 to 3.
+         Higher tech levels are better weapons and armor.</p>
     </page>
     <page image="helpImage4">
       <p>[Inventory]</p>
@@ -576,7 +589,7 @@
     <page>
       <p>[Stats and Numbers]</p>
       <p> For the number inclined, the lower right buttons show unit stat info.</p>
-      <p> 'Inv' is the default inventory screen. 'Stats' shows the unit statistics. 'Comp' compares weapons carried and on the ground, 
+      <p> 'Inv' is the default inventory screen. 'Stats' shows the unit statistics. 'Wpns' compares weapons carried and on the ground, 
           with buttons to select range.</p>
     </page>
   </text>
@@ -588,18 +601,12 @@
     <page>
       <p>[Xenowar]</p>
       <p>
-        Test / BETA. I hope you enjoy it, and feedback and info at http://code.google.com/p/unflobtactical/.
+        Welcome to Xenowar! Xenowar is a turn based alien blasting strategy game. You can
+        submit feedback, read the community forum, or get more gameplay information 
+        at xenowar.net.
       </p>
       <p> The buttons on the lower right navigate help, the lower left exits help.</p>
       <p>'New' starts a new game. The game auto-saves at exit and you can resume your current game with 'Continue'.</p>
-    </page>
-    <page>
-      <p>[Status]</p>
-      <p>The tactical game is fully playable. Feedback on gameplay, pacing, difficulty, and bugs is especially valuable. 
-      </p>
-      <p>UI is near-final.</p>
-      <p>Model, texture, and map art is placeholder.</p>
-      <p>The geoscape (strategic) game is completely missing.</p>
     </page>
   </text>
 
@@ -607,5 +614,7 @@
     <!-- Sound effects -->
   <data filename="explosion.wav" compress="false"/>
   <data filename="hit.wav" compress="false"/>
+  <data filename="terrandown0.wav" compress="false"/>
+  <data filename="aliendown0.wav" compress="false"/>
 
 </resource>
