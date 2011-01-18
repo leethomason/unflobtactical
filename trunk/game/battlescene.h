@@ -145,7 +145,7 @@ private:
 		ACTION_HIT,
 		ACTION_CAMERA,
 		ACTION_CAMERA_BOUNDS,
-		ACTION_LANDER,
+		//ACTION_LANDER,
 	};
 
 	struct MoveAction	{
@@ -190,10 +190,10 @@ private:
 		bool				center;
 	};
 
-	struct LanderAction {
-		enum				{ TOTAL_TIME = 1500 };
-		int					timeRemaining;
-	};
+	//struct LanderAction {
+	//	enum				{ TOTAL_TIME = 1500 };
+	//	int					timeRemaining;
+	//};
 
 	struct Action
 	{
@@ -208,7 +208,7 @@ private:
 			HitAction			hit;
 			CameraAction		camera;
 			CameraBoundsAction	cameraBounds;
-			LanderAction		lander;
+			//LanderAction		lander;
 		} type;
 
 		void Clear()							{ actionID = ACTION_NONE; memset( &type, 0, sizeof( type ) ); }

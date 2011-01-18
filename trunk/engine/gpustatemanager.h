@@ -50,6 +50,7 @@ public:
 	GPUBuffer() : id( 0 )			{}
 	bool IsValid() const			{ return id != 0; }
 	U32 ID() const					{ return id; }
+	void Clear()					{ id = 0; }
 
 protected:	
 	U32 id;
@@ -73,6 +74,7 @@ class GPUIndexBuffer : public GPUBuffer
 {
 public:
 	static GPUIndexBuffer Create( const uint16_t* index, int nIndex );
+	void Upload( const uint16_t* data, int size, int start );
 
 	GPUIndexBuffer() : GPUBuffer() {}
 	void Destroy();

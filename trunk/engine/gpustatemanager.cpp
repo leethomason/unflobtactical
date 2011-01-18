@@ -58,6 +58,18 @@ void GPUVertexBuffer::Destroy()
 	return buffer;
 }
 
+void GPUIndexBuffer::Upload( const uint16_t* data, int count, int start )
+{
+	GLASSERT( GPUShader::SupportsVBOs() );
+	glBindBufferX( GL_ELEMENT_ARRAY_BUFFER, id );
+	// target, offset, size, data
+	glBufferSubDataX( GL_ELEMENT_ARRAY_BUFFER, start*sizeof(uint16_t), count*sizeof(uint16_t), data );
+	CHECK_GL_ERROR;
+	glBindBufferX( GL_ELEMENT_ARRAY_BUFFER, 0 );
+	CHECK_GL_ERROR;
+}
+
+
 
 void GPUIndexBuffer::Destroy() 
 {
@@ -338,7 +350,7 @@ void GPUShader::SetState( const GPUShader& ns )
 	if ( ns.lighting && !current.lighting ) {
 		glEnable( GL_LIGHTING );
 		glEnable ( GL_COLOR_MATERIAL );
-		glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE ) ;
+		//glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE ) ;	// fixme: ES2
 		//GLOUTPUT(( "Lighting on.\n" ));
 	}
 	else if ( !ns.lighting && current.lighting ) {

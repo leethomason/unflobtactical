@@ -271,7 +271,7 @@ void Game::PushPopScene()
 {
 	if ( scenePopQueued || sceneQueued.sceneID != NUM_SCENES ) {
 		TextureManager::Instance()->ContextShift();
-		engine->ResetRenderCache();
+//		engine->ResetRenderCache();
 	}
 	GLASSERT( !(sceneResetQueued && sceneQueued.sceneID != NUM_SCENES ));
 
@@ -636,7 +636,7 @@ void Game::DeviceLoss()
 	TextureManager::Instance()->DeviceLoss();
 	ModelResourceManager::Instance()->DeviceLoss();
 	GPUShader::ResetState();
-	engine->ResetRenderCache();
+//	engine->ResetRenderCache();
 }
 
 

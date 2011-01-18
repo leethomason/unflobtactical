@@ -38,12 +38,12 @@ RenderQueue::~RenderQueue()
 }
 
 
-void RenderQueue::ResetRenderCache()
-{
-	vertexCache.Destroy();
-	vertexCacheSize = 0;
-	vertexCacheCap = 0;
-}
+//void RenderQueue::ResetRenderCache()
+//{
+//	vertexCache.Destroy();
+//	vertexCacheSize = 0;
+//	vertexCacheCap = 0;
+//}
 
 
 RenderQueue::State* RenderQueue::FindState( const State& state )
@@ -148,7 +148,7 @@ void RenderQueue::Add( Model* model, const ModelAtom* atom, GPUShader* shader, c
 	state->root = item;
 }
 
-
+/*
 void RenderQueue::CacheAtom( Model* model, int atomIndex )
 {
 #ifdef EL_USE_VBO
@@ -186,6 +186,7 @@ void RenderQueue::CacheAtom( Model* model, int atomIndex )
 		atom->cacheStart = Model::DO_NOT_CACHE;
 #endif
 }
+*/
 
 
 
@@ -193,6 +194,7 @@ void RenderQueue::Submit( GPUShader* overRideShader, int mode, int required, int
 {
 	GRINLIZ_PERFTRACK
 
+#if 0
 	if ( !vertexCache.IsValid() ) {
 		static const int CACHE_SIZE = 40*1000;
 		vertexCache = GPUVertexBuffer::Create( 0, CACHE_SIZE );
@@ -200,6 +202,7 @@ void RenderQueue::Submit( GPUShader* overRideShader, int mode, int required, int
 			vertexCacheCap = CACHE_SIZE;
 		}
 	}
+#endif
 
 	for( int i=0; i<nState; ++i ) {
 		indexBuf.Clear();
@@ -223,12 +226,13 @@ void RenderQueue::Submit( GPUShader* overRideShader, int mode, int required, int
 				GLASSERT( model );
 
 				// Check for reset:
-				if ( model->cacheStart[ item->atomIndex ] == Model::CACHE_UNINITIALIZED ) {
+/*				if ( vertexCacheCap > 0 && model->cacheStart[ item->atomIndex ] == Model::CACHE_UNINITIALIZED ) {
 					CacheAtom( model, item->atomIndex );
 				}
+*/
 
 				if ( mode & MODE_PLANAR_SHADOW ) {
-					if ( model->cacheStart[ item->atomIndex ] < 0 ) {
+//					if ( model->cacheStart[ item->atomIndex ] < 0 ) {
 						//GRINLIZ_PERFTRACK_NAME( "Submit Inner-1" )
 						GLASSERT( shader );
 						item->atom->BindPlanarShadow( shader );
@@ -245,13 +249,13 @@ void RenderQueue::Submit( GPUShader* overRideShader, int mode, int required, int
 						// Unravel all that.
 						shader->PopTextureMatrix( 3 );
 						shader->PopMatrix( GPUShader::MODELVIEW_MATRIX );
-					}
-					else {
-						model->AddIndices( &indexBuf, item->atomIndex );
-					}
+//					}
+//					else {
+//						model->AddIndices( &indexBuf, item->atomIndex );
+//					}
 				}
 				else {
-					if ( model->cacheStart[ item->atomIndex ] < 0 ) {
+//					if ( model->cacheStart[ item->atomIndex ] < 0 ) {
 						//GRINLIZ_PERFTRACK_NAME( "Submit Inner-2" )
 						item->atom->Bind( shader );
 
@@ -277,13 +281,14 @@ void RenderQueue::Submit( GPUShader* overRideShader, int mode, int required, int
 						if (  shader->HasTexture1() ) {
 							shader->PopTextureMatrix( 2 );
 						}
-					}
-					else {
-						model->AddIndices( &indexBuf, item->atomIndex );
-					}
+//					}
+//					else {
+//						model->AddIndices( &indexBuf, item->atomIndex );
+//					}
 				}
 			}
 		}
+		/*
 		if ( !indexBuf.Empty() ) {
 			Vertex vertex;
 			if ( mode & MODE_PLANAR_SHADOW ) {
@@ -310,5 +315,6 @@ void RenderQueue::Submit( GPUShader* overRideShader, int mode, int required, int
 				shader->Draw();
 			}
 		}
+		*/
 	}
 }

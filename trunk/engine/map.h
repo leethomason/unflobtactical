@@ -23,6 +23,7 @@
 #include "../grinliz/glmemorypool.h"
 #include "../grinliz/glrandom.h"
 #include "../grinliz/glstringutil.h"
+#include "../grinliz/glgeometry.h"
 #include "../micropather/micropather.h"
 #include "vertex.h"
 #include "enginelimits.h"
@@ -55,6 +56,34 @@ class IPathBlocker
 public:
 	virtual void MakePathBlockCurrent( Map* map, const void* user ) = 0;
 };
+
+#ifdef USE_MAP_CACHE
+struct MapRenderBlock 
+{
+
+	U16 nVertex;
+	U16 tempNVertex;
+	U16 nIndex;
+	U16 tempNIndex;
+
+	MapRenderBlock* next;
+	Texture* texture;
+	GPUVertexBuffer vertexBuffer;
+	GPUIndexBuffer indexBuffer;
+
+	void Init() {
+		nVertex = 0;
+		tempNVertex = 0;
+		nIndex = 0;
+		tempNIndex = 0;
+
+		next = 0;
+		texture = 0;
+		vertexBuffer.Clear();
+		indexBuffer.Clear();
+	}
+};
+#endif
 
 
 // some strange android bug - the size of the structure gets mangled
@@ -204,9 +233,6 @@ public:
 		}
 		float ModelRot() const { return (float)(modelRotation*90); }
 
-		//bool InUse() const			{ return itemDefIndex > 0; }
-		//bool IsLight() const		{ return flags & MI_IS_LIGHT; }
-
 		// returns true if destroyed
 		bool DoDamage( int _hp )		
 		{	
@@ -276,8 +302,8 @@ public:
 	// Process a sub-turn: fire moves, smoke goes away, etc.
 	void DoSubTurn( grinliz::Rectangle2I* changeBounds );
 
-	void SetLanderFlight( float normal );
-	float GetLanderFlight() const			{ return landerFlight; }
+	//void SetLanderFlight( float normal );
+	//float GetLanderFlight() const			{ return landerFlight; }
 
 	// Smoke from weapons, explosions, effects, etc.
 	void AddSmoke( int x, int y, int subturns );
@@ -355,7 +381,11 @@ public:
 
 	Texture* BackgroundTexture()	{ return backgroundTexture; }
 	Texture* LightMapTexture()		{ return lightMapTex; }
-//	Texture* LightFogMapTexture()	{ return lightFogMapTex; }
+	Texture* LightFogMapTexture()	{ return lightFogMapTex; }
+
+#ifdef USE_MAP_CACHE
+	const MapRenderBlock* CalcRenderBlocks( const grinliz::Plane* planes, int nPlanes );
+#endif
 
 	enum ConnectionType {
 		PATH_TYPE,
@@ -477,13 +507,14 @@ private:
 	void CalcVisPathMap( grinliz::Rectangle2I& bounds );
 
 	void DeleteItem( MapItem* item );
+	void UpdateRenderBlock( int x, int y );
 
 	bool dayTime;
 	IPathBlocker* pathBlocker;
 	int width, height;
 	grinliz::Rectangle3F bounds;
 	SpaceTree* tree;
-	float landerFlight;
+	//float landerFlight;
 
 	Texture* backgroundTexture;		// background texture
 	Surface backgroundSurface;		// background surface
@@ -508,8 +539,8 @@ private:
 	bool lightMapValid;
 	Texture* lightMapTex;
 
-//	Surface lightFogMap;
-//	Texture* lightFogMapTex;
+	Surface lightFogMap;
+	Texture* lightFogMapTex;
 
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> fogOfWar;
 	grinliz::BitArray<Map::SIZE, Map::SIZE, 1> cachedFogOfWar;
@@ -557,6 +588,16 @@ private:
 	const MapItem*								lander;
 	int											nSeenIndex, nUnseenIndex, nPastSeenIndex;
 
+#ifdef USE_MAP_CACHE
+	enum {
+		RENDER_BLOCK_GRID_SIZE = 16,
+		RENDER_BLOCK_SIZE = SIZE / RENDER_BLOCK_GRID_SIZE,
+		NUM_RENDER_BLOCKS = RENDER_BLOCK_SIZE*RENDER_BLOCK_SIZE
+	};
+	CDynArray<MapRenderBlock> renderBlockArr[NUM_RENDER_BLOCKS];
+	CDynArray<Vertex> vertexBuffer;
+	CDynArray<U16> indexBuffer;
+#endif
 	ImageData imageData[ MAX_IMAGE_DATA ];
 
 	// U8:

@@ -96,7 +96,7 @@ private:
 		return s0.shader->SortOrder() - s1.shader->SortOrder();
 	}
 
-	void CacheAtom( Model* model, int atomIndex );
+	//void CacheAtom( Model* model, int atomIndex );
 
 	State* FindState( const State& state );
 

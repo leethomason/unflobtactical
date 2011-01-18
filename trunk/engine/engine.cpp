@@ -282,7 +282,13 @@ void Engine::Draw()
 	Plane planes[6];
 	CalcFrustumPlanes( planes );
 
+#ifdef USE_MAP_CACHE
+	// WARNING: map query must come first. Will invalidate the model->next pointers.
+	const MapRenderBlock* blockRoot = map->CalcRenderBlocks( planes, 6 );
+	Model* modelRoot = spaceTree->Query( planes, 6, 0, Model::MODEL_OWNED_BY_MAP, false );
+#else
 	Model* modelRoot = spaceTree->Query( planes, 6, 0, 0, false );
+#endif
 	
 	Color4F ambient, diffuse;
 	Vector4F dir;
@@ -311,39 +317,26 @@ void Engine::Draw()
 			if ( model->IsFlagSet( Model::MODEL_METADATA ) && !enableMeta )
 				continue;
 
-			Vector3F pos = model->AABB().Center();
-			int x = LRintf( pos.x - 0.5f );
-			int y = LRintf( pos.z - 0.5f );
+//			if ( model->IsFlagSet(  Model::MODEL_OWNED_BY_MAP ) ) {
+//				model->Queue(	renderQueue, 
+//								&mapItemShader,
+//								&mapItemShader,
+//								0,
+//								0 );
+//			}
+//			else {
+				Vector3F pos = model->AABB().Center();
+				int x = LRintf( pos.x - 0.5f );
+				int y = LRintf( pos.z - 0.5f );
 
-			if ( model->IsFlagSet(  Model::MODEL_OWNED_BY_MAP ) ) {
-				if ( model->mapBoundsCache.min.x < 0 ) {
-					map->MapBoundsOfModel( model, &model->mapBoundsCache );
+				if ( mapBounds.Contains( x, y ) && fogOfWar.IsSet( x, y ) ) {
+					model->Queue( renderQueue, &lightShader, &blendLightShader, 0, 0 );
 				}
-
-				Rectangle2I fogRect = model->mapBoundsCache;
-				if ( fogRect.min.x > 0 )	fogRect.min.x -= 1;
-				if ( fogRect.min.y > 0 )	fogRect.min.y -= 1;
-				if ( fogRect.max.x < Map::SIZE-1 ) fogRect.max.x += 1;
-				if ( fogRect.max.y < Map::SIZE-1 ) fogRect.max.y += 1;
-
-				// Map is always rendered, possibly in black.
-				if ( !fogOfWar.IsRectEmpty( fogRect ) ) {
-					model->Queue(	renderQueue, 
-									&mapItemShader,
-									&mapItemShader,
-									0,
-									0 );
-				}
-				else {
-					model->Queue( renderQueue, &black, &black, blackTexture, 0 );	// The blackTexture makes sure everything goes to the same render state.
-																					// (Otherwise sub-states are created for each texture.)
-				}
-			}
-			else if ( mapBounds.Contains( x, y ) && fogOfWar.IsSet( x, y ) ) {
-				model->Queue( renderQueue, &lightShader, &blendLightShader, 0, 0 );
-			}
+//			}
 		}
 	}
+
+
 	// ----------- Render Passess ---------- //
 	Color4F color;
 
@@ -379,7 +372,7 @@ void Engine::Draw()
 			// test for the shadow write, below.
 			PushShadowSwizzleMatrix( &shadowShader );
 
-			// Note this isn't correct. We really need to modulate against the maps light map. But close enough.
+			// Just computes how dark the shadow is.
 			LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, IN_SHADOW, shadowAmount, &color );
 			shadowShader.SetColor( color.x, color.y, color.z );
 
@@ -387,6 +380,22 @@ void Engine::Draw()
 									RenderQueue::MODE_PLANAR_SHADOW,
 									0,
 									Model::MODEL_NO_SHADOW );
+
+#ifdef USE_MAP_CACHE
+			for( const MapRenderBlock* block = blockRoot; block; block = block->next ) {
+				GPUShader::Stream stream;
+				stream.stride = sizeof( Vertex );
+				stream.nPos = 3;
+				stream.posOffset = Vertex::POS_OFFSET;
+				stream.nTexture0 = 3;
+				stream.texture0Offset = Vertex::POS_OFFSET;
+				stream.nTexture1 = 3;
+				stream.texture1Offset = Vertex::POS_OFFSET;
+
+				shadowShader.SetStream( stream, block->vertexBuffer, block->nIndex, block->indexBuffer );
+				shadowShader.Draw();
+			}
+#endif
 
 			shadowShader.PopMatrix( GPUShader::MODELVIEW_MATRIX );
 			shadowShader.PopTextureMatrix( 3 );
@@ -414,14 +423,25 @@ void Engine::Draw()
 #ifdef ENGINE_RENDER_MODELS
 	{
 		{
-			mapItemShader.SetTexture1( map->LightMapTexture() );
+			mapItemShader.SetTexture1( map->LightFogMapTexture() );
 			PushLightSwizzleMatrix( &mapItemShader );
 
-			renderQueue->Submit( 0, 0, Model::MODEL_OWNED_BY_MAP, 0 );
+#ifdef USE_MAP_CACHE
+			for( const MapRenderBlock* block = blockRoot; block; block = block->next ) {
+				Vertex v;
+				GPUShader::Stream stream( &v );
+				stream.texture1Offset = Vertex::POS_OFFSET;
+				stream.nTexture1 = 3;
+
+				mapItemShader.SetTexture0( block->texture );
+				mapItemShader.SetStream( stream, block->vertexBuffer, block->nIndex, block->indexBuffer );
+				mapItemShader.Draw();
+			}
+#endif
 			lightShader.PopTextureMatrix( 2 );
 		}
 		{
-			renderQueue->Submit( 0, 0, 0, Model::MODEL_OWNED_BY_MAP );
+			renderQueue->Submit( 0, 0, 0, 0 );
 		}
 	}
 #endif
@@ -607,6 +627,7 @@ float Engine::GetZoom()
 }
 
 
+/*
 void Engine::ResetRenderCache()
 {
 	renderQueue->ResetRenderCache();
@@ -616,3 +637,4 @@ void Engine::ResetRenderCache()
 			model->cacheStart[i] = Model::CACHE_UNINITIALIZED;
 	}
 }
+*/

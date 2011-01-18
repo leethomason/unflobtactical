@@ -454,20 +454,20 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 	if ( engine->GetMap()->GetLanderModel() )
 		OrderNextPrev();
 
-	if ( turnCount == 0 ) {
-		engine->GetMap()->SetLanderFlight( 1 );
+//	if ( turnCount == 0 ) {
+		//engine->GetMap()->SetLanderFlight( 1 );
 
-		Action* action = actionStack.Push();
-		action->Init( ACTION_LANDER, 0 );
-		action->type.lander.timeRemaining = LanderAction::TOTAL_TIME;
+		//Action* action = actionStack.Push();
+		//action->Init( ACTION_LANDER, 0 );
+		//action->type.lander.timeRemaining = LanderAction::TOTAL_TIME;
 
-		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-			if ( units[i].GetModel() ) {
-				Model* m = units[i].GetModel();
-				m->SetFlag( Model::MODEL_INVISIBLE );
-			}
-		}
-	}
+		//for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+		//	if ( units[i].GetModel() ) {
+		//		Model* m = units[i].GetModel();
+		//		m->SetFlag( Model::MODEL_INVISIBLE );
+		//	}
+		//}
+	//}
 
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		if ( units[i].IsAlive() && units[i].GetModel() ) {
@@ -1711,7 +1711,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 				}
 				break;
 
-			case ACTION_LANDER:
+/*			case ACTION_LANDER:
 				{
 					action->type.lander.timeRemaining -= (int)deltaTime;
 					if ( action->type.lander.timeRemaining < 0 )
@@ -1733,7 +1733,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 						engine->GetMap()->SetLanderFlight( flight );
 					}
 				}
-				break;
+				break; */
 
 			default:
 				GLRELASSERT( 0 );

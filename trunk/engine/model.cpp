@@ -181,11 +181,11 @@ void Model::Init( const ModelResource* resource, SpaceTree* tree )
 		flags |= MODEL_NO_SHADOW;
 	}
 
-	bool cache = !StrEqual( resource->header.name.c_str(), "lander" );
-
+	/*
 	for( int i=0; i<EL_MAX_MODEL_GROUPS; ++i ) {
-		cacheStart[i] = cache ? CACHE_UNINITIALIZED : DO_NOT_CACHE;
+		cacheStart[i] = CACHE_UNINITIALIZED;
 	}
+	*/
 }
 
 
@@ -479,6 +479,7 @@ int Model::IntersectRay(	const Vector3F& _origin,
 
 
 
+/*
 void Model::AddIndices( CDynArray<U16>* indexArr, int atomIndex ) const
 {
 	U16* dst = indexArr->PushArr( resource->atom[atomIndex].nIndex );
@@ -488,8 +489,7 @@ void Model::AddIndices( CDynArray<U16>* indexArr, int atomIndex ) const
 		*dst = *src + cacheStart[atomIndex];
 	}
 }
-
-
+*/
 
 
 
