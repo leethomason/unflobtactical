@@ -68,7 +68,7 @@ public:
 	T* Bottom() {
 		GLASSERT( root );
 		Node* b = root;
-		while( b->next && b->next->next )
+		while( b->next )
 			b = b->next;
 		return &b->data;
 	}

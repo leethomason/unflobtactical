@@ -251,32 +251,24 @@ int AI::ThinkMoveToAmmo(	const Unit* theUnit,
 	}
 
 	// Need to find Storage and go there.
-	Vector2I storeLocs[8];
-	int nFound = 0;
-	map->FindStorage( theUnit->GetWeaponDef(), 4, storeLocs, &nFound );
-
-	float lowCost = FLT_MAX;
-	int bestPath = -1;
-			
+	// This approach may find a destinatino that we can't go to, but
+	// there are strange bugs coming from the storage code, so I'm
+	// re-writing to be simple.
+	Vector2I found = map->FindStorage( theUnit->GetWeaponDef(), theUnitPos );
 	Vector2<S16> start = { theUnitPos.x, theUnitPos.y };
-			
-	for( int i=0; i<nFound; ++i ) {
-		Vector2<S16> end = { storeLocs[i].x, storeLocs[i].y };
-		float cost;
-		map->SolvePath( theUnit, start, end, &cost, &m_path[i] );
 
-		if ( cost < lowCost ) {
-			lowCost = cost;
-			bestPath = i;
-		}
-	}
-	if ( bestPath >= 0 ) {
-		MP_VECTOR< grinliz::Vector2<S16> >& path = m_path[bestPath];
-		TrimPathToCost( &path, theUnit->TU() );
-		if ( path.size() > 1 ) {
-			action->actionID = ACTION_MOVE;
-			action->move.path.Init( path );
-			return THINK_ACTION;
+	if ( found.x >= 0 && found.y >= 0 ) {
+		Vector2<S16> end = { found.x, found.y };
+		float cost;
+		if ( map->SolvePath( theUnit, start, end, &cost, &m_path[0] ) == micropather::MicroPather::SOLVED ) {
+			MP_VECTOR< grinliz::Vector2<S16> >& path = m_path[0];
+			TrimPathToCost( &path, theUnit->TU() );
+
+			if ( path.size() > 1 ) {
+				action->actionID = ACTION_MOVE;
+				action->move.path.Init( path );
+				return THINK_ACTION;
+			}
 		}
 	}
 	return THINK_NO_ACTION;

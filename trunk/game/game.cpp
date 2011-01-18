@@ -385,7 +385,7 @@ void Game::Load( const TiXmlDocument& doc )
 
 void Game::Save()
 {
-	if ( loadCompleted ) {
+	if ( loadCompleted && !sceneStack.Empty() ) {
 		GLString path = GameSavePath();
 		FILE* fp = fopen( path.c_str(), "w" );
 		GLASSERT( fp );
@@ -409,8 +409,10 @@ void Game::Save( FILE* fp )
 		XMLUtil::Attribute( fp, "id", 0 );
 		XMLUtil::SealCloseElement( fp );
 	}
-	if ( !sceneStack.Empty() )
-		sceneStack.Bottom()->scene->Save( fp, 1 );
+	if ( !sceneStack.Empty() ) {
+		SceneNode* bottom = sceneStack.Bottom();
+		bottom->scene->Save( fp, 1 );
+	}
 	
 	XMLUtil::CloseElement( fp, 0, "Game" );
 }
@@ -523,13 +525,11 @@ void Game::DoTick( U32 _currentTime )
 			#endif
 		}
 		else {
-			UFOText::Draw(	0,  Y, "#%d %5.1ffps vbo=%d ps=%d cache=%d/%d", 
+			UFOText::Draw(	0,  Y, "#%d %5.1ffps vbo=%d ps=%d", 
 							VERSION, 
 							framesPerSecond, 
 							GPUShader::SupportsVBOs() ? 1 : 0,
-							PointParticleShader::IsSupported() ? 1 : 0,
-							engine->GetRenderQueue()->VertexCacheSize(),
-							engine->GetRenderQueue()->VertexCacheCap() );
+							PointParticleShader::IsSupported() ? 1 : 0 );
 		}
 	}
 #endif

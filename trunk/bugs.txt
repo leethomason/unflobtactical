@@ -8,11 +8,11 @@ Architecture
 
 TBD:
 
-- skinning for weapons
+Android
 - Android: cap framerate. Don't really need >30
-- city - 'open' needs a building tile
+Art
+- lights on lander
 - help pass
-- tighten up weapon positions on jackal
 
 Deferred:
 - More items: optical computer for units to enhance vision
@@ -21,6 +21,14 @@ Deferred:
 - 32 bit assets - xenowar logo
 
 FIXED
+- need destroyed models
+- review art - fix LAND with old logo
+- city - 'open' needs a building tile
+- check for missing sounds. Added alien/terran getting zapped sounds
+- skinning for weapons
+- tighten up weapon positions on jackal
+- adjust weapons
+- exiting game from help screen deletes save game
 - add score
 - rework intro screen
 - remove 'seed'

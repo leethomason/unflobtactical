@@ -231,6 +231,22 @@ protected:
 	static void SetState( const GPUShader& );
 
 private:
+	/*
+	struct TexParam 
+	{
+		int p0, p1, p2;
+		const void* p3;
+
+		bool operator!=( const TexParam& rhs ) {
+			return	   p0 != rhs.p0
+					|| p1 != rhs.p1
+					|| p2 != rhs.p2
+					|| p3 != rhs.p3;
+		}
+	};
+	static TexParam texParam;
+	*/
+
 	void SwitchMatrixMode( MatrixType type );	
 	static GPUShader		current;
 	static MatrixType		matrixMode;		// Note this is static and global!
@@ -242,6 +258,22 @@ private:
 	static bool textureXFormInUse[2];
 
 	static void SetTextureXForm( int unit );
+
+	/*
+	struct ParamT {
+		int p0, p1, p2;
+		const void* p3;
+		bool operator==( const ParamT& rhs ) const {
+			return p0 == rhs.p0 && p1 == rhs.p1 && p2 == rhs.p2 && p3 == rhs.p3;
+		}
+		bool operator!=( const ParamT& rhs ) const {
+			return p0 != rhs.p0 || p1 != rhs.p1 || p2 != rhs.p2 || p3 != rhs.p3;
+		}
+	};
+	static ParamT lastTexture0;
+	static ParamT lastTexture1;
+	*/
+
 
 protected:
 	static int trianglesDrawn;

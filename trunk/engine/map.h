@@ -319,7 +319,7 @@ public:
 	void ReleaseStorage( Storage* storage );					// updates the image
 
 	const Storage* GetStorage( int x, int y ) const;		//< take a peek
-	void FindStorage( const ItemDef* itemDef, int maxLoc, grinliz::Vector2I* loc, int* numLoc );
+	grinliz::Vector2I FindStorage( const ItemDef* itemDef, const grinliz::Vector2I& source );
 
 	const char* GetItemDefName( int i );
 	const MapItemDef* GetItemDef( const char* name );

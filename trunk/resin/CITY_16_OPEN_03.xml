@@ -1,0 +1,66 @@
+<Map sizeX="16" sizeY="16" >
+    <Items >
+        <Item x="11" y="10" name="brickCrnr" />
+        <Item x="8" y="8" rot="2" name="brickWall" />
+        <Item x="9" y="8" rot="2" name="brickWall" />
+        <Item x="10" y="8" rot="2" name="brickWall" />
+        <Item x="11" y="8" rot="2" name="brickWall" />
+        <Item x="11" y="8" rot="1" name="brickWall" />
+        <Item x="11" y="9" rot="1" name="brickWall" />
+        <Item x="10" y="10" name="brickWall" />
+        <Item x="8" y="10" name="brickWall" />
+        <Item x="9" y="10" name="brickWallWin" />
+        <Item x="11" y="9" rot="3" name="shelf_0" />
+        <Item x="11" y="8" rot="3" name="shelf_1" />
+        <Item x="9" y="8" rot="3" name="shelf_1" />
+        <Item x="11" y="10" name="barrel0" />
+        <Item x="6" y="8" rot="2" name="brickDoorCld" flags="4" />
+        <Item x="7" y="8" rot="2" name="brickDoorCld" flags="4" />
+        <Item x="5" y="8" rot="2" name="brickWall" />
+        <Item x="4" y="8" rot="2" name="brickWall" />
+        <Item x="5" y="10" name="brickWall" />
+        <Item x="6" y="10" name="brickDoorCld" flags="4" />
+        <Item x="7" y="10" name="brickWall" />
+        <Item x="4" y="10" name="brickWallWin" />
+        <Item x="5" y="8" name="shelf_empty" />
+        <Item x="4" y="8" name="shelf_empty" />
+        <Item x="7" y="10" name="barrel0" />
+        <Item x="3" y="10" rot="3" name="brickCrnr" />
+        <Item x="3" y="8" rot="3" name="brickWall" />
+        <Item x="3" y="9" rot="3" name="brickWall" />
+        <Item x="3" y="8" rot="2" name="brickWall" />
+        <Item x="3" y="10" rot="2" name="sacks" />
+        <Item x="3" y="9" rot="2" name="sacks" />
+        <Item x="11" y="5" rot="1" name="brickDoorCld" flags="4" />
+        <Item x="11" y="6" rot="1" name="brickWall" />
+        <Item x="11" y="7" rot="1" name="brickWall" />
+        <Item x="11" y="4" rot="1" name="brickWallWin" />
+        <Item x="9" y="4" rot="2" name="cafetable" />
+        <Item x="10" y="6" rot="2" name="cafetable" />
+        <Item x="8" y="6" rot="2" name="cafetable" />
+        <Item x="4" y="4" rot="2" name="cafetable" />
+        <Item x="5" y="6" rot="2" name="cafetable" />
+        <Item x="7" y="4" rot="2" name="cafetable" />
+        <Item x="3" y="5" rot="3" name="brickDoorCld" flags="4" />
+        <Item x="3" y="6" rot="3" name="brickWall" />
+        <Item x="3" y="7" rot="3" name="brickWall" />
+        <Item x="3" y="4" rot="3" name="brickWallWin" />
+        <Item x="3" y="6" rot="1" name="counter_unit_reg" />
+        <Item x="11" y="3" rot="1" name="brickCrnr" />
+        <Item x="9" y="3" rot="2" name="brickWall" />
+        <Item x="8" y="3" rot="2" name="brickWallWin" />
+        <Item x="10" y="3" rot="2" name="brickWallWin" />
+        <Item x="7" y="3" rot="2" name="brickWall" />
+        <Item x="5" y="3" rot="2" name="brickWall" />
+        <Item x="4" y="3" rot="2" name="brickWallWin" />
+        <Item x="6" y="3" rot="2" name="brickWallWin" />
+        <Item x="3" y="3" rot="2" name="brickCrnr" />
+    </Items>
+    <Images >
+        <Image x="0" y="0" size="16" tileRotation="0" name="CITY_16_OPEN_03" />
+    </Images>
+    <GroundDebris >
+    </GroundDebris>
+    <PyroGroup >
+    </PyroGroup>
+</Map>

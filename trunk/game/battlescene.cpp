@@ -891,6 +891,7 @@ bool BattleScene::EndCondition( TacticalEndSceneData* data )
 {
 	memset( data, 0, sizeof( *data ) );
 	data->units = units;
+	data->dayTime = engine->GetMap()->DayTime();
 
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		if ( units[i].InUse() )
@@ -1967,6 +1968,7 @@ int BattleScene::ProcessActionHit( Action* action )
 	}
 
 
+	int totalExplosion = nExplosion;
 	if ( nExplosion ) {
 		// Explosion
 		SoundManager::Instance()->QueueSound( "explosion" );
@@ -2043,8 +2045,13 @@ int BattleScene::ProcessActionHit( Action* action )
 							bool hitAnything = false;
 							Vector2I exp = { -1, -1 };
 							engine->GetMap()->DoDamage( x, y, dd, &destroyed, &exp );
-							if ( exp.x >= 0 && nExplosion < MAX_EXPLOSION )
+
+							if (    totalExplosion < MAX_EXPLOSION 
+								 && exp.x >= 0 && nExplosion < MAX_EXPLOSION ) 
+							{
 								explosion[nExplosion++] = exp;
+								++totalExplosion;
+							}
 
 							// Where to add smoke?
 							// - if we hit anything
@@ -2249,6 +2256,13 @@ void BattleScene::SceneResult( int sceneID, int result )
 				}
 			}
 		}
+		// The aliens are going to get all the civs
+		for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i ) {
+			DamageDesc d = { 100, 100, 100 };
+			if ( units[i].IsAlive() )
+				units[i].DoDamage( d, engine->GetMap() );
+		}
+
 		EndCondition( &tacticalData );	// fills out tactical data...
 		game->PushScene( Game::END_SCENE, new TacticalEndSceneData( tacticalData ) );
 	}

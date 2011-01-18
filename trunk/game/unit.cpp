@@ -20,6 +20,7 @@
 #include "../tinyxml/tinyxml.h"
 #include "../grinliz/glstringutil.h"
 #include "ai.h"
+#include "ufosound.h"
 
 using namespace grinliz;
 
@@ -423,8 +424,12 @@ void Unit::Kill( Map* map )
 
 	status = STATUS_KIA;
 	if ( team == TERRAN_TEAM ) {
+		SoundManager::Instance()->QueueSound( "terrandown0" );
 		if ( map->random.Rand( 100 ) < stats.Constitution() )
 			status = STATUS_UNCONSCIOUS;
+	}
+	else if ( team == ALIEN_TEAM ) {
+		SoundManager::Instance()->QueueSound( "aliendown0" );
 	}
 	CreateModel();
 

@@ -317,7 +317,7 @@ void Model::CalcTargetSize( float* width, float* height ) const
 }
 
 
-void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent, Texture* textureReplace, const Vector4F* param )
+void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent, Texture* textureReplace )
 {
 	if ( flags & MODEL_INVISIBLE )
 		return;
@@ -331,8 +331,7 @@ void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent
 					&resource->atom[i],						// model atom to render
 					t->Alpha() ? transparent : opaque,		// select the shader
 					( auxTexture && HasTextureXForm(i) ) ? &auxTexture->m[i] : 0,	// texture transform, if this has it.
-					overrideTexture,
-					param );
+					overrideTexture );
 	}
 }
 

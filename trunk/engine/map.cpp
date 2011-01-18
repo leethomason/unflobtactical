@@ -63,9 +63,9 @@ const int Map::padArr0[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
 const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] = 
 {
 		// model		open			destroyed	cx, cz	hp			material	pather
-	{	"tree",			0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
-	{	"tree2",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
-	{	"tree3",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
+	{	"tree",			0,				"stump",	1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
+	{	"tree2",		0,				"stump",	1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
+	{	"tree3",		0,				"stump",	1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
 	{	"tree4",		0,				0,			1,	1,	HP_MEDLOW,	BURN,		"f", "0", OBSCURES },
 	{	"cactus0",		0,				0,			1,	1,	HP_MEDLOW,	SLOWBURN,	"f", "0", OBSCURES },
 	{	"cactus1",		0,				0,			1,	1,	HP_MEDLOW,	SLOWBURN,	"f", "0", OBSCURES },
@@ -75,7 +75,7 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"stonewall_unit",0,	"stonewall_unitD",		1,	1,	HP_MED,		0,			"f", "0" },
 	{	"stonewall_join",0,	"stonewall_unitD",		1,	1,	HP_MED,		0,			"f", "0" },
 	{	"woodfence",	0,				0,			2,	1,	HP_LOW,		BURN,		"11", "00" },
-	{	"oldwell",		0,				0,			1,	1,	HP_MED,		SLOWBURN,	"f", "0" },
+	{	"oldwell",		0,				"bricks",	1,	1,	HP_MED,		SLOWBURN,	"f", "0" },
 	{	"haypile",		0,				0,			2,	2,	HP_MED,		FASTBURN,	"ffff", "0000", OBSCURES },
 	{	"whitepicketfence",	0,			0,			1,	1,	HP_LOW,		BURN,		"1", "0" },
 	{	"barrel0",		0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0" },
@@ -103,13 +103,13 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"counter_join",	0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
 	{	"counter_unit_reg",	0,			0,			1,	1,	HP_MED,		BURN,		"f", "0" },
 	{	"shelf_empty",	0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
-	{	"shelf_0",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
-	{	"shelf_1",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
-	{	"shelf_2",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
+	{	"shelf_0",		0,				"shelf_0D",	1,	1,	HP_MED,		BURN,		"f", "0" },
+	{	"shelf_1",		0,				"shelf_1D",	1,	1,	HP_MED,		BURN,		"f", "0" },
+	{	"shelf_2",		0,				"shelf_2D",	1,	1,	HP_MED,		BURN,		"f", "0" },
 	{	"sacks",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
 	{	"cafetable",	0,				0,			1,	1,	HP_MED,		0,			"f", "0" },
 	{	"lamp0",		0,				0,			1,	1,	HP_MED,		0,			"f", "0" },
-	{	"gaspump",		0,				0,			1,	1,	HP_MED,		FASTBURN,	"f", "0", EXPLODES },
+	{	"gaspump",		0,				"gaspumpD",	1,	1,	HP_MED,		FASTBURN,	"f", "0", EXPLODES },
 
 	{	"pyramid_2",	0,				0,			2,	2,	INDESTRUCT,	0,			"ffff", "0000" },
 	{	"pyramid_4",	0,				0,			4,	4,	INDESTRUCT,	0,			"ffff" "ffff" "ffff" "ffff", "0000" "0ff0" "0ff0" "0000" },
@@ -128,12 +128,12 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"ufo_CrnrInn",	0,				0,			1,	1,	HP_STEEL,	0,			"3", "3" },
 	{	"ufo_controlTable",	0,			0,			1,	1,	HP_HIGH,	0,			"f", "0" },
 	{	"ufo_controlScreen",0,			0,			1,	1,	HP_LOW,		0,			"f", "0" },
-	{	"ufo_power",	0,				0,			1,	1,	HP_HIGH,	FASTBURN,	"f", "0", EXPLODES | OBSCURES },
+	{	"ufo_power",	0,				"ufo_powerD",1,	1,	HP_HIGH,	FASTBURN,	"f", "0", EXPLODES | OBSCURES },
 	{	"ufo_statue0",	0,				0,			1,	1,	HP_HIGH,	0,			"f", "0", OBSCURES },
 	{	"ufo_crate0",	0,				0,			1,	1,	HP_MED,		0,			"f", "0", 0 },
 	{	"ufo_crate1",	0,				0,			1,	1,	HP_MED,		0,			"f", "f", 0 },
 	{	"ufo_crate2",	0,				0,			1,	1,	HP_LOW,		0,			"f", "0", EXPLODES },
-	{	"ufo_tube",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0", EXPLODES | OBSCURES },
+	{	"ufo_tube",		0,				"ufo_tubeD",1,	1,	HP_MED,		BURN,		"f", "0", EXPLODES | OBSCURES },
 	{	"ufo_table",	0,				0,			2,	1,	HP_MED,		SLOWBURN,	"ff","00", 0 },
 	{	"ufo_pod",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0", OBSCURES },
 	{	"ufo_plant0",	0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0", OBSCURES },
@@ -258,7 +258,7 @@ Map::Map( SpaceTree* tree )
 	lightFogMap.Set( Surface::RGB16, SIZE, SIZE );
 
 	lightMapTex = texman->CreateTexture( "MapLightMap", SIZE, SIZE, Surface::RGB16, Texture::PARAM_NONE, this );
-	lightFogMapTex = texman->CreateTexture( "MapLightFogMap", SIZE, SIZE, Surface::RGB16, Texture::PARAM_NEAREST, this );
+	lightFogMapTex = texman->CreateTexture( "MapLightFogMap", SIZE, SIZE, Surface::RGB16, Texture::PARAM_NONE, this );
 
 	GLOUTPUT(( "Map created. %dK\n", sizeof( *this )/1024 ));
 }
@@ -667,10 +667,10 @@ void Map::GenerateSeenUnseen()
 
 #undef PUSHQUAD
 
-
 	for( int j=0; j<height; ++j ) {
 		for( int i=0; i<width; ++i ) {
-			if ( fogOfWar.IsSet( i, j ) ) {
+			if ( fogOfWar.IsSet( i, j ) ) 
+			{
 				U16 c = lightMap->GetImg16( i, j );
 				lightFogMap.SetImg16( i, j, c );
 			}
@@ -682,7 +682,8 @@ void Map::GenerateSeenUnseen()
 				U16 c = lightMap->GetImg16( i, j );
 				lightFogMap.SetImg16( i, j, c );
 			}
-			else {
+			else 
+			{
 				lightFogMap.SetImg16( i, j, 0 );
 			}
 		}
@@ -878,7 +879,7 @@ void Map::DoDamage( int x, int y, const DamageDesc& damage, Rectangle2I* dBounds
 	if ( hp <= 0.0f )
 		return;
 
-	const MapItem* root = quadTree.FindItems( x, y, 0, 0 );	//MapItem::MI_IS_LIGHT );
+	const MapItem* root = quadTree.FindItems( x, y, 0, 0 );
 
 	for( ; root; root=root->next ) {
 		if ( root->model ) {
@@ -1708,28 +1709,27 @@ const Storage* Map::GetStorage( int x, int y ) const
 }
 
 
-void Map::FindStorage( const ItemDef* itemDef, int maxLoc, grinliz::Vector2I* loc, int* numLoc )
+grinliz::Vector2I Map::FindStorage( const ItemDef* itemDef, const Vector2I& pos )
 {
-	*numLoc = 0;
+	Vector2I loc = { -1, -1 };
+	int close2 = INT_MAX;
 
 	// [Sun, 6:19 pm 	  	Exception version=470 device=passion]
 	// Wasn't handling itemDef being null (no weapon/weapon destroyed)
 
 	// 1st pass: look for re-supply.
-	for( int i=0; i<debris.Size() && *numLoc < maxLoc; ++i ) {
-		if ( itemDef && debris[i].storage->IsResupply( itemDef->IsWeapon() ) ) {
-			loc[ *numLoc ].Set( debris[i].storage->X(), debris[i].storage->Y() );
-			*numLoc += 1;
-		}
-	}
+	for( int i=0; i<debris.Size(); ++i ) {
+		if ( debris[i].storage->IsResupply( itemDef ? itemDef->IsWeapon() : 0 ) ) {
 
-	// If that failed, look for anything!
-	if ( *numLoc == 0 ) {
-		for( int i=0; i<debris.Size() && *numLoc < maxLoc; ++i ) {
-			loc[ *numLoc ].Set( debris[i].storage->X(), debris[i].storage->Y() );
-			*numLoc += 1;
+			Vector2I storeLoc = { debris[i].storage->X(), debris[i].storage->Y() };
+			int dist2 = ( storeLoc - pos ).LengthSquared();
+			if ( dist2 < close2 ) {
+				loc = storeLoc;
+				close2 = dist2;
+			}
 		}
 	}
+	return loc;
 }
 
 
@@ -2520,14 +2520,8 @@ void Map::BeginTexture( const void* textureHandle )
 
 void Map::Render( const void* renderState, const void* textureHandle, int nIndex, const uint16_t* index, int nVertex, const gamui::Gamui::Vertex* vertex )
 {
-	//glVertexPointer(   2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].x );
-	//glTexCoordPointer( 2, GL_FLOAT, sizeof(gamui::Gamui::Vertex), &vertex[0].tx ); 
-
 	GPUShader::Stream stream( GPUShader::Stream::kGamuiType );
 	gamuiShader.SetStream( stream, vertex, nIndex, index );
-
-	//gamuiShader.SetVertex( 2, sizeof(gamui::Gamui::Vertex), &vertex[0].x );
-	//gamuiShader.SetTexture0( 2, sizeof(gamui::Gamui::Vertex), &vertex[0].tx );
 
 	gamuiShader.Draw();
 }
