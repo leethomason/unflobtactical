@@ -51,9 +51,7 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	markFrameTime( 0 ),
 	frameCountsSinceMark( 0 ),
 	framesPerSecond( 0 ),
-	trianglesPerSecond( 0 ),
-	trianglesSinceMark( 0 ),
-	debugTextOn( false ),
+	debugLevel( 0 ),
 	suppressText( false ),
 	previousTime( 0 ),
 	isDragging( false )
@@ -86,9 +84,7 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	markFrameTime( 0 ),
 	frameCountsSinceMark( 0 ),
 	framesPerSecond( 0 ),
-	trianglesPerSecond( 0 ),
-	trianglesSinceMark( 0 ),
-	debugTextOn( false ),
+	debugLevel( 0 ),
 	suppressText( false ),
 	previousTime( 0 ),
 	isDragging( false )
@@ -433,18 +429,14 @@ void Game::DoTick( U32 _currentTime )
 			markFrameTime			= currentTime;
 			frameCountsSinceMark	= 0;
 			framesPerSecond			= 0.0f;
-			trianglesPerSecond		= 0;
-			trianglesSinceMark		= 0;
 		}
 		else {
 			++frameCountsSinceMark;
 			if ( currentTime - markFrameTime > 500 ) {
 				framesPerSecond		= 1000.0f*(float)(frameCountsSinceMark) / ((float)(currentTime - markFrameTime));
 				// actually K-tris/second
-				trianglesPerSecond  = trianglesSinceMark / (currentTime - markFrameTime);
 				markFrameTime		= currentTime;
 				frameCountsSinceMark = 0;
-				trianglesSinceMark = 0;
 			}
 		}
 
@@ -502,17 +494,22 @@ void Game::DoTick( U32 _currentTime )
 	#endif
 #if 1
 	if ( !suppressText ) {
-		if ( debugTextOn ) {
-			UFOText::Draw(	0,  Y, "#%d %5.1ffps %4.1fK/f %3ddc/f %4dK/s", 
-				 			VERSION,
+		if ( debugLevel >= 1 ) {
+			UFOText::Draw(	0,  Y, "#%d %5.1ffps vbo=%d ps=%d", 
+							VERSION, 
 							framesPerSecond, 
+							GPUShader::SupportsVBOs() ? 1 : 0,
+							PointParticleShader::IsSupported() ? 1 : 0 );
+		}
+		if ( debugLevel >= 2 ) {
+			UFOText::Draw(	0,  Y-15, "%4.1fK/f %3ddc/f", 
 							(float)GPUShader::TrianglesDrawn()/1000.0f,
-							GPUShader::DrawCalls(),
-							trianglesPerSecond );
-
+							GPUShader::DrawCalls() );
+		}
+		if ( debugLevel >= 3 ) {
 			#if defined(DEBUG)
 			if ( !Engine::mapMakerMode )  {
-				UFOText::Draw(  0, Y-15, "new=%d Tex(%d/%d) %dK/%dK mis=%d re=%d hit=%d",
+				UFOText::Draw(  0, Y-30, "new=%d Tex(%d/%d) %dK/%dK mis=%d reuse=%d hit=%d",
 								memNewCount,
 								TextureManager::Instance()->NumTextures(),
 								TextureManager::Instance()->NumGPUResources(),
@@ -523,13 +520,6 @@ void Game::DoTick( U32 _currentTime )
 								TextureManager::Instance()->CacheHit() );		
 			}
 			#endif
-		}
-		else {
-			UFOText::Draw(	0,  Y, "#%d %5.1ffps vbo=%d ps=%d", 
-							VERSION, 
-							framesPerSecond, 
-							GPUShader::SupportsVBOs() ? 1 : 0,
-							PointParticleShader::IsSupported() ? 1 : 0 );
 		}
 	}
 #endif
@@ -624,9 +614,6 @@ void Game::CancelInput()
 
 void Game::HandleHotKeyMask( int mask )
 {
-	if ( mask & GAME_HK_TOGGLE_DEBUG_TEXT ) {
-		debugTextOn = !debugTextOn;
-	}
 	sceneStack.Top()->scene->HandleHotKeyMask( mask );
 }
 

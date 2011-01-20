@@ -71,7 +71,7 @@ void GameDoTick( void* handle, unsigned int timeInMSec );
 #define GAME_HK_ROTATE_CW				0x0008
 #define GAME_HK_TOGGLE_ROTATION_UI		0x0010
 #define GAME_HK_TOGGLE_NEXT_UI			0x0020
-#define GAME_HK_TOGGLE_DEBUG_TEXT		0x0040
+//#define GAME_HK_TOGGLE_DEBUG_TEXT		0x0040
 void GameHotKey( void* handle, int mask );
 
 int GamePopSound( void* handle, int* offset, int* size );	// returns 1 if a sound was available

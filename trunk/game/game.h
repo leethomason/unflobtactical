@@ -143,8 +143,12 @@ public:
 
 	U32 CurrentTime() const	{ return currentTime; }
 	U32 DeltaTime() const	{ return currentTime-previousTime; }
+
 	void SuppressText( bool suppress )	{ suppressText = suppress; }
 	bool IsTextSuppressed() const		{ return suppressText; }
+
+	void SetDebugLevel( int level )		{ debugLevel = level; }
+	int GetDebugLevel() const			{ return debugLevel; }
 
 	const grinliz::GLString GameSavePath()	{	grinliz::GLString str( savePath );
 												str += "currentgame.xml";
@@ -182,10 +186,6 @@ public:
 	// For creating some required textures:
 	virtual void CreateTexture( Texture* t );
 
-	// cheating: moves states between scenes.
-	//int				loadRequested;	// 0-continue, 1-new, 2-test, -1 default
-	//TiXmlDocument	newGameXML;
-
 private:
 	Screenport screenport;
 public:
@@ -194,7 +194,6 @@ private:
 	Surface surface;
 
 	void PushPopScene();
-//	void ProcessLoadRequest();
 
 	bool scenePopQueued;
 	bool sceneResetQueued;
@@ -213,9 +212,7 @@ private:
 	U32 markFrameTime;
 	U32 frameCountsSinceMark;
 	float framesPerSecond;
-	int trianglesPerSecond;
-	int trianglesSinceMark;
-	bool debugTextOn;
+	int debugLevel;
 	bool suppressText;
 
 	ModelLoader* modelLoader;

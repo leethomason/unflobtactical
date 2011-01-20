@@ -1,26 +1,33 @@
 Issues:
 
 Bugs:
-- Android: switch to different application mode? Shut down on screen loss?
-
-Architecture
-- Map as interface
-
-TBD:
 
 Android
 - Android: cap framerate. Don't really need >30
-Art
-- lights on lander
-- help pass
+- eula
+- release assets and scripts
+- update grinninglizard to be a credible link site
+- Amazon
+- App Store
+
 
 Deferred:
 - More items: optical computer for units to enhance vision
 - Reconsider when reaction fire occurs. And probability.
 - rework fire spread & explosions.
 - 32 bit assets - xenowar logo
+Architecture
+- Map as interface
+
 
 FIXED
+- lights on lander
+- turn off debug display - move to options screen?
+- Android: switch to different application mode? Shut down on screen loss?
+- help pass
+- rotate some destroyed stuff
+- ItemDef / MapItemDef mark static. (gcc/Android)
+- convert trees to use one texture
 - need destroyed models
 - review art - fix LAND with old logo
 - city - 'open' needs a building tile

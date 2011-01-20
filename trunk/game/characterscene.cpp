@@ -141,7 +141,7 @@ void CharacterScene::StatWidget::Init( gamui::Gamui* g, const Unit* unit, float 
 	textTable[c++].SetText( buf );
 
 	textTable[c++].SetText( "Accuracy" );
-	SNPrintf( buf, 32, "%0.2f", 1.0f - stats.AccuracyArea() );
+	SNPrintf( buf, 32, "%d", stats.AccuracyRating() );
 	textTable[c++].SetText( buf );
 
 	textTable[c++].SetText( "Reaction" );

@@ -92,7 +92,8 @@ struct MapItemDef
 {
 	enum {
 		OBSCURES = 0x01,
-		EXPLODES = 0x02
+		EXPLODES = 0x02,
+		ROTATES  = 0x04,	// when destroyed, randomly rotate
 	};
 
 	const char* resource;

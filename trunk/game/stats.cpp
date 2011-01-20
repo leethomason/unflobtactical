@@ -67,6 +67,13 @@ void Stats::CalcBaselines()
 }
 
 
+int Stats::AccuracyRating() const
+{
+	int levDEX = Clamp( DEX() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );
+	return levDEX;
+}
+
+
 void Stats::Save( FILE* fp, int depth ) const
 {
 	/*

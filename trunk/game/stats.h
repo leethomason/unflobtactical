@@ -64,6 +64,7 @@ public:
 	// Computed:
 	int TotalHP() const			{ return totalHP; }
 	int ScoreLevel() const;
+	int AccuracyRating() const;
 
 	float TotalTU() const		{ return totalTU; }			// one TU is one move
 	float AccuracyArea() const	{ return accuracy; }		// radius at 1 unit out

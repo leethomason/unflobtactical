@@ -48,7 +48,7 @@
 #define NEXUS_ONE_SCREEN_WIDTH  480
 #define NEXUS_ONE_SCREEN_HEIGHT  800
 
-#if 1
+#if 0
 static const int SCREEN_WIDTH  = IPOD_SCREEN_WIDTH*2;
 static const int SCREEN_HEIGHT = IPOD_SCREEN_HEIGHT*2;
 #endif
@@ -56,7 +56,7 @@ static const int SCREEN_HEIGHT = IPOD_SCREEN_HEIGHT*2;
 static const int SCREEN_WIDTH  = IPOD_SCREEN_WIDTH;
 static const int SCREEN_HEIGHT = IPOD_SCREEN_HEIGHT;
 #endif
-#if 0
+#if 1
 static const int SCREEN_WIDTH  = NEXUS_ONE_SCREEN_WIDTH;
 static const int SCREEN_HEIGHT = NEXUS_ONE_SCREEN_HEIGHT;
 #endif
@@ -443,9 +443,9 @@ int main( int argc, char **argv )
 						}
 						break;
 
-					case SDLK_d:
-						GameHotKey( game, GAME_HK_TOGGLE_DEBUG_TEXT );
-						break;
+//					case SDLK_d:
+//						GameHotKey( game, GAME_HK_TOGGLE_DEBUG_TEXT );
+//						break;
 
 					case SDLK_DELETE:
 						if ( mapMakerMode )
