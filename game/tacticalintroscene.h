@@ -147,7 +147,7 @@ private:
 	grinliz::Random random;
 
 	BackgroundUI		backgroundUI;
-	gamui::PushButton	continueButton, helpButton, goButton;
+	gamui::PushButton	continueButton, helpButton, goButton, infoButton;
 	gamui::PushButton	newTactical;	//, newGeo, newCampaign;
 	gamui::TextLabel	terranLabel, alienLabel, timeLabel, scenarioLabel, rowLabel[3];
 	gamui::ToggleButton	toggles[TOGGLE_COUNT], audioButton;

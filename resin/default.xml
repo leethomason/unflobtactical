@@ -100,9 +100,6 @@
 
   <model filename="selection.ac" />
   
-  <model filename="cellClip.ac" />
-  <model filename="shellClip.ac" />
-
   <model filename="alltree.ac" modelName="tree"     origin="0 0 0"  shading="smooth" polyRemoval="pre" />
   <model filename="alltree.ac" modelName="tree2"    origin="2 0 0"  shading="smooth" polyRemoval="pre" />
   <model filename="alltree.ac" modelName="tree3"    origin="4 0 0"  shading="smooth" polyRemoval="pre" />
@@ -600,13 +597,20 @@
   <text name="introHelp" >
     <page>
       <p>[Xenowar]</p>
+      <p>Xenowar. Copyright 2011 Lee Thomason / Grinning Lizard Software.</p>
       <p>
         Welcome to Xenowar! Xenowar is a turn based alien blasting strategy game. You can
-        submit feedback, read the community forum, or get more gameplay information 
+        submit feedback, read the community forum, or get more gameplay information
         at xenowar.net.
       </p>
       <p> The buttons on the lower right navigate help, the lower left exits help.</p>
+    </page>
+    <page>
       <p>'New' starts a new game. The game auto-saves at exit and you can resume your current game with 'Continue'.</p>
+      <p>If you choose a new game, you can select the skill level and number of your squad, the skill level and 
+         number of aliens, and the terrain for the battle.
+       </p>
+      <p>Good luck and have fun!</p>
     </page>
   </text>
 

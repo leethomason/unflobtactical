@@ -40,7 +40,8 @@ class Random
 {
   public:
 	/// Constructor, with optional seed value.
-	Random( U32 seed = 0 )		{ SetSeed( seed ); }
+	Random( U32 seed = 0 )				{ SetSeed( seed ); }
+	Random( U32 seed, U32 subseed )		{ SetSeed( seed ); lowCount = subseed;  }
 
 	/** The current seed can be set at any time to
 		guarentee a certain sequence of random numbers.

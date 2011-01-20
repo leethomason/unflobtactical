@@ -77,12 +77,12 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	*/
 
 	helpButton.Init( &gamui2D, green );
-	helpButton.SetPos( port.UIWidth() - helpButton.Width() - BORDER, BORDER );
+	//helpButton.SetPos( port.UIWidth() - helpButton.Width() - BORDER, BORDER );
 	helpButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_HELP, true ),
 						UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
 
 	audioButton.Init( &gamui2D, green );
-	audioButton.SetPos( port.UIWidth() - helpButton.Width() - BORDER, helpButton.Y() + helpButton.Height() + BORDER );
+	//audioButton.SetPos( port.UIWidth() - helpButton.Width() - BORDER, helpButton.Y() + helpButton.Height() + BORDER );
 	SettingsManager* settings = SettingsManager::Instance();
 	if ( settings->GetAudioOn() ) {
 		audioButton.SetDown();
@@ -94,6 +94,14 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_MUTE, true ),
 							 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
 	}
+
+	infoButton.Init( &gamui2D, green );
+	infoButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_INFO, true ),
+						UIRenderer::CalcDecoAtom( DECO_INFO, false ) );	
+
+	UIItem* items[3] = { &helpButton, &audioButton, &infoButton };
+	Gamui::Layout( items, 3, 1, 3, port.UIWidth() - helpButton.Width() - BORDER, BORDER, helpButton.Width(), helpButton.Height()*3.0f+BORDER );
+
 
 	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "6", "8", "Low", "Med", "Hi", "8", "12", "16", "Low", "Med", "Hi", "Day", "Night",
 													 "Fa-S", "T-S", "Fo-S", "D-S", "Fa-D", "T-D", "Fo-D", "D-D",
@@ -301,6 +309,7 @@ void TacticalIntroScene::Tap(	int action,
 		
 		helpButton.SetVisible( false );
 		audioButton.SetVisible( false );
+		infoButton.SetVisible( false );
 	}
 	else if ( item == &continueButton ) {
 		onToBattle = true;
@@ -330,6 +339,9 @@ void TacticalIntroScene::Tap(	int action,
 			audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_MUTE, true ),
 								 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
 		}
+	}
+	else if ( item == &infoButton ) {
+		game->SetDebugLevel( (game->GetDebugLevel() + 1)%4 );
 	}
 	if ( onToBattle ) {
 		game->PopScene();

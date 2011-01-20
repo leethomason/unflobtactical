@@ -46,6 +46,7 @@ static const int FASTBURN = 255;
 
 static const int OBSCURES = MapItemDef::OBSCURES;
 static const int EXPLODES = MapItemDef::EXPLODES;
+static const int ROTATES = MapItemDef::ROTATES;
 
 const int Map::padArr0[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
@@ -75,7 +76,7 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"stonewall_unit",0,	"stonewall_unitD",		1,	1,	HP_MED,		0,			"f", "0" },
 	{	"stonewall_join",0,	"stonewall_unitD",		1,	1,	HP_MED,		0,			"f", "0" },
 	{	"woodfence",	0,				0,			2,	1,	HP_LOW,		BURN,		"11", "00" },
-	{	"oldwell",		0,				"bricks",	1,	1,	HP_MED,		SLOWBURN,	"f", "0" },
+	{	"oldwell",		0,				"bricks",	1,	1,	HP_MED,		SLOWBURN,	"f", "0", ROTATES },
 	{	"haypile",		0,				0,			2,	2,	HP_MED,		FASTBURN,	"ffff", "0000", OBSCURES },
 	{	"whitepicketfence",	0,			0,			1,	1,	HP_LOW,		BURN,		"1", "0" },
 	{	"barrel0",		0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0" },
@@ -103,9 +104,9 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"counter_join",	0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
 	{	"counter_unit_reg",	0,			0,			1,	1,	HP_MED,		BURN,		"f", "0" },
 	{	"shelf_empty",	0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
-	{	"shelf_0",		0,				"shelf_0D",	1,	1,	HP_MED,		BURN,		"f", "0" },
-	{	"shelf_1",		0,				"shelf_1D",	1,	1,	HP_MED,		BURN,		"f", "0" },
-	{	"shelf_2",		0,				"shelf_2D",	1,	1,	HP_MED,		BURN,		"f", "0" },
+	{	"shelf_0",		0,				"shelf_0D",	1,	1,	HP_MED,		BURN,		"f", "0", ROTATES },
+	{	"shelf_1",		0,				"shelf_1D",	1,	1,	HP_MED,		BURN,		"f", "0", ROTATES },
+	{	"shelf_2",		0,				"shelf_2D",	1,	1,	HP_MED,		BURN,		"f", "0", ROTATES },
 	{	"sacks",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
 	{	"cafetable",	0,				0,			1,	1,	HP_MED,		0,			"f", "0" },
 	{	"lamp0",		0,				0,			1,	1,	HP_MED,		0,			"f", "0" },
@@ -128,12 +129,12 @@ const MapItemDef Map::itemDefArr[NUM_ITEM_DEF] =
 	{	"ufo_CrnrInn",	0,				0,			1,	1,	HP_STEEL,	0,			"3", "3" },
 	{	"ufo_controlTable",	0,			0,			1,	1,	HP_HIGH,	0,			"f", "0" },
 	{	"ufo_controlScreen",0,			0,			1,	1,	HP_LOW,		0,			"f", "0" },
-	{	"ufo_power",	0,				"ufo_powerD",1,	1,	HP_HIGH,	FASTBURN,	"f", "0", EXPLODES | OBSCURES },
+	{	"ufo_power",	0,				"ufo_powerD",1,	1,	HP_HIGH,	FASTBURN,	"f", "0", EXPLODES | OBSCURES | ROTATES },
 	{	"ufo_statue0",	0,				0,			1,	1,	HP_HIGH,	0,			"f", "0", OBSCURES },
 	{	"ufo_crate0",	0,				0,			1,	1,	HP_MED,		0,			"f", "0", 0 },
 	{	"ufo_crate1",	0,				0,			1,	1,	HP_MED,		0,			"f", "f", 0 },
 	{	"ufo_crate2",	0,				0,			1,	1,	HP_LOW,		0,			"f", "0", EXPLODES },
-	{	"ufo_tube",		0,				"ufo_tubeD",1,	1,	HP_MED,		BURN,		"f", "0", EXPLODES | OBSCURES },
+	{	"ufo_tube",		0,				"ufo_tubeD",1,	1,	HP_MED,		BURN,		"f", "0", EXPLODES | OBSCURES | ROTATES },
 	{	"ufo_table",	0,				0,			2,	1,	HP_MED,		SLOWBURN,	"ff","00", 0 },
 	{	"ufo_pod",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "0", OBSCURES },
 	{	"ufo_plant0",	0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0", OBSCURES },
@@ -924,6 +925,12 @@ void Map::DoDamage( Model* m, const DamageDesc& damageDesc, Rectangle2I* dBounds
 
 			if ( itemDef.flags & EXPLODES ) {
 				explodes->Set( x, y );
+			}
+			if ( itemDef.flags & ROTATES ) {
+				U32 in = x | (y<<16);
+				U32 hash = Random::Hash( &in, sizeof(in) );
+				Random r( hash, x+y );
+				rot = r.Rand( 4 );
 			}
 
 			DeleteItem( item );

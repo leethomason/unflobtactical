@@ -65,6 +65,7 @@ enum {
 	DECO_ROCKET			= 4,
 	DECO_CELL			= 5,
 	DECO_RAYGUN			= 6,
+	DECO_INFO			= 7,
 
 	DECO_AIMED			= 8,
 	DECO_AUTO			= 9,
