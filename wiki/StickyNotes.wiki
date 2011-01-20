@@ -1,12 +1,5 @@
 Useful code and links from the web. And sometimes a sort of development blog.
 
-= End game to do list =
-  * convert trees to use one texture
-  * release assets and scripts
-  * ItemDef / MapItemDef mark static. (gcc/Android)
-  * update grinninglizard to be a credible link site
-  * Amazon
-  * App Store
 
 = Ordering Rendering = 
 
