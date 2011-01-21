@@ -29,8 +29,10 @@ class Engine;
 class TiXmlElement;
 class Unit;
 
+#ifdef _MSC_VER
 #pragma warning ( push )
 #pragma warning ( disable : 4100 )	// un-referenced formal parameter
+#endif
 
 class SceneData
 {
@@ -117,6 +119,8 @@ struct BackgroundUI {
 	void Init( Game* game, gamui::Gamui*, bool logo );
 };
 
+#ifdef _MSC_VER
 #pragma warning ( pop )
+#endif
 
 #endif // UFOATTACK_SCENE_INCLUDED

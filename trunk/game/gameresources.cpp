@@ -140,34 +140,34 @@ void Game::LoadModels()
 
 void Game::LoadItemResources()
 {
-	const float DAM_LOW		=   20.0f;
-	const float DAM_MEDLOW	=   30.0f;
+	//const float DAM_LOW		=   20.0f;
+	//const float DAM_MEDLOW	=   30.0f;
 	const float DAM_MED		=   40.0f;
 	const float DAM_MEDHI	=   60.0f;
 	const float DAM_HI		=   80.0f;
-	const float DAM_HIPLUS	=   90.0f;
-	const float DAM_VHI		=  100.0f;
+	//const float DAM_HIPLUS	=   90.0f;
+	//const float DAM_VHI		=  100.0f;
 
-	const float EXDAM_LOW   =  50.0f;
+	//const float EXDAM_LOW   =  50.0f;
 	const float EXDAM_MED   = 100.0f;
 	const float EXDAM_HI	= 150.0f;
-	const float EXDAM_VHI	= 200.0f;
+	//const float EXDAM_VHI	= 200.0f;
 
 	// lower is better, and in terms of AREA
-	const float ACC_VLOW	= 2.50f;
+	//const float ACC_VLOW	= 2.50f;
 	const float ACC_LOW		= 2.00f;
-	const float ACC_MEDLOW	= 1.50f;
+	//const float ACC_MEDLOW	= 1.50f;
 	const float ACC_MED		= 1.00f;
-	const float ACC_MEDHI	= 0.80f;
-	const float ACC_HI		= 0.50f;
+	//const float ACC_MEDHI	= 0.80f;
+	//const float ACC_HI		= 0.50f;
 	const float ACC_VHI		= 0.30f;
 
 	const float SPEED_FAST = 0.8f;
 	const float SPEED_NORMAL = 1.0f;
 	const float SPEED_SLOW	= 1.3f;
-	const int POW_LOW = 10;
-	const int POW_MED = 20;
-	const int POW_HI  = 50;
+	//const int POW_LOW = 10;
+	//const int POW_MED = 20;
+	//const int POW_HI  = 50;
 
 	struct ClipInit {
 		const char* name;
@@ -256,65 +256,65 @@ void Game::LoadItemResources()
 	static const WeaponInit weapons[] = {		
 		// Terran	resName		deco			description
 		//				
-		{ "ASLT-1",	"ASLT-1",	DECO_RIFLE,		"Assault Rifle",		"Snap", "Auto", "Boom",		SPEED_NORMAL,
+		{ "ASLT-1",	"ASLT-1",	DECO_RIFLE,		"Assault Rifle",		{ "Snap", "Auto", "Boom" },		SPEED_NORMAL,
 				"Clip",			WEAPON_AUTO,							DAM_MEDHI,		ACC_MED,	"ar3p",
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED,		ACC_LOW,	"can" },
-		{ "ASLT-2",	"ASLT-2",	DECO_RIFLE,		"Assault Rifle",		"Snap", "Auto", "Boom",		SPEED_NORMAL,
+		{ "ASLT-2",	"ASLT-2",	DECO_RIFLE,		"Assault Rifle",		{ "Snap", "Auto", "Boom" },		SPEED_NORMAL,
 				"Clip",			WEAPON_AUTO,							DAM_MEDHI*B2,	ACC_MED,	"ar3p",
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED*B2,	ACC_LOW,	"can" },
-		{ "ASLT-3",	"ASLT-3",	DECO_RIFLE,		"Assault Rifle",		"Snap", "Auto", "Boom",		SPEED_NORMAL,
+		{ "ASLT-3",	"ASLT-3",	DECO_RIFLE,		"Assault Rifle",		{ "Snap", "Auto", "Boom" },		SPEED_NORMAL,
 				"Clip",			WEAPON_AUTO,							DAM_MEDHI*B3,	ACC_MED,	"ar3p",
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED*B3,	ACC_LOW,	"can" },
 
-		{ "LR-1",	"LR-1",		DECO_RIFLE,		"Long Range",			"Snap", "Aimed", 0,		SPEED_NORMAL,
+		{ "LR-1",	"LR-1",		DECO_RIFLE,		"Long Range",			{ "Snap", "Aimed", 0 },		SPEED_NORMAL,
 				"Clip",			0,										DAM_HI,			ACC_VHI,	"ar3l",
 				0 },
-		{ "LR-2",	"LR-2",		DECO_RIFLE,		"Long Range",			"Snap", "Aimed", 0,		SPEED_NORMAL,
+		{ "LR-2",	"LR-2",		DECO_RIFLE,		"Long Range",			{ "Snap", "Aimed", 0 },		SPEED_NORMAL,
 				"Clip",			0,										DAM_HI,			ACC_VHI*A2,	"ar3l",
 				0 },
-		{ "LR-3",	"LR-3",		DECO_RIFLE,		"Long Range",			"Snap", "Aimed", 0,		SPEED_NORMAL,
+		{ "LR-3",	"LR-3",		DECO_RIFLE,		"Long Range",			{ "Snap", "Aimed", 0 },		SPEED_NORMAL,
 				"Clip",			0,										DAM_HI*B2,		ACC_VHI*A3,	"ar3l",
 				0 },
 
-		{ "MCAN-1",	"CANON-1",	DECO_PISTOL,	"Mini-Canon",			"Snap", "Flame", "Boom",	SPEED_SLOW,
+		{ "MCAN-1",	"CANON-1",	DECO_PISTOL,	"Mini-Canon",			{ "Snap", "Flame", "Boom" },	SPEED_SLOW,
 				"Flame",		WEAPON_EXPLOSIVE,						EXDAM_MED,		ACC_MED,	"can",
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED,		ACC_MED,	"can", },
-		{ "MCAN-2",	"CANON-2",	DECO_PISTOL,	"Mini-Canon",			"Snap", "Flame", "Boom",	SPEED_SLOW,
+		{ "MCAN-2",	"CANON-2",	DECO_PISTOL,	"Mini-Canon",			{ "Snap", "Flame", "Boom" },	SPEED_SLOW,
 				"Flame",		WEAPON_EXPLOSIVE,						EXDAM_MED*B2,	ACC_MED,	"can",
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED*B2,	ACC_MED,	"can", },
-		{ "MCAN-3",	"CANON-3",	DECO_PISTOL,	"Mini-Canon",			"Snap", "Flame", "Boom",	SPEED_SLOW,
+		{ "MCAN-3",	"CANON-3",	DECO_PISTOL,	"Mini-Canon",			{ "Snap", "Flame", "Boom" },	SPEED_SLOW,
 				"Flame",		WEAPON_EXPLOSIVE,						EXDAM_MED*B3,	ACC_MED,	"can",
 				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED*B3,	ACC_MED,	"can", },
 
 		// Alien
-		{ "RAY-1",	"RAY-1",	DECO_RAYGUN,	"Ray Gun",				"Snap", "Aimed", 0,			SPEED_FAST,
+		{ "RAY-1",	"RAY-1",	DECO_RAYGUN,	"Ray Gun",				{ "Snap", "Aimed", 0 },			SPEED_FAST,
 				"Cell",			0,										DAM_MED,		ACC_MED,	"ray1",
 				0  },
-		{ "RAY-2",	"RAY-2",	DECO_RAYGUN,	"Ray Gun",				"Snap", "Aimed", 0,			SPEED_FAST,
+		{ "RAY-2",	"RAY-2",	DECO_RAYGUN,	"Ray Gun",				{ "Snap", "Aimed", 0 },			SPEED_FAST,
 				"Cell",			0,										DAM_MED*B3,		ACC_MED*A2,	"ray1",
 				0  },
-		{ "RAY-3",	"RAY-3",	DECO_RAYGUN,	"Ray Gun",				"Snap", "Aimed", 0,			SPEED_FAST,
+		{ "RAY-3",	"RAY-3",	DECO_RAYGUN,	"Ray Gun",				{ "Snap", "Aimed", 0 },			SPEED_FAST,
 				"Cell",			0,										DAM_MED*B2*B3,	ACC_MED*A3,	"ray1",
 				0  },
 
-		{ "PLS-1",	"PLS-1",	DECO_RIFLE,		"Plasma Rifle",			"Snap", "Auto", "Boom",		SPEED_NORMAL,
+		{ "PLS-1",	"PLS-1",	DECO_RIFLE,		"Plasma Rifle",			{ "Snap", "Auto", "Boom" },		SPEED_NORMAL,
 				"Cell",			WEAPON_AUTO,							DAM_HI,			ACC_MED,	"plasma",
 				"Anti",			WEAPON_EXPLOSIVE,						EXDAM_HI,		ACC_MED,	"nullp", },
-		{ "PLS-2",	"PLS-2",	DECO_RIFLE,		"Plasma Rifle",			"Snap", "Auto", "Boom",		SPEED_NORMAL,
+		{ "PLS-2",	"PLS-2",	DECO_RIFLE,		"Plasma Rifle",			{ "Snap", "Auto", "Boom" },		SPEED_NORMAL,
 				"Cell",			WEAPON_AUTO,							DAM_HI*B2,		ACC_MED,	"plasma",
 				"Anti",			WEAPON_EXPLOSIVE,						EXDAM_HI,		ACC_MED,	"nullp", },
-		{ "PLS-3",	"PLS-3",	DECO_RIFLE,		"Plasma Rifle",			"Snap", "Auto", "Boom",		SPEED_NORMAL,
+		{ "PLS-3",	"PLS-3",	DECO_RIFLE,		"Plasma Rifle",			{ "Snap", "Auto", "Boom" },		SPEED_NORMAL,
 				"Cell",			WEAPON_AUTO,							DAM_HI*B3,		ACC_MED,	"plasma",
 				"Anti",	    	WEAPON_EXPLOSIVE,						EXDAM_HI*B2,	ACC_MED,	"nullp", },
 
 
-		{ "STRM-1",	"STORM-1",	DECO_RAYGUN,	"Fire Storm",			"Snap", "Flame", "Boom",	SPEED_NORMAL,
+		{ "STRM-1",	"STORM-1",	DECO_RAYGUN,	"Fire Storm",			{ "Snap", "Flame", "Boom" },	SPEED_NORMAL,
 				"Cell",			WEAPON_EXPLOSIVE | WEAPON_INCINDIARY,	EXDAM_MED,		ACC_LOW,	"nullp",
 				0 },
-		{ "STRM-2",	"STORM-2",	DECO_RAYGUN,	"Fire Storm",			"Snap", "Flame", "Boom",	SPEED_NORMAL,
+		{ "STRM-2",	"STORM-2",	DECO_RAYGUN,	"Fire Storm",			{ "Snap", "Flame", "Boom" },	SPEED_NORMAL,
 				"Cell",			WEAPON_EXPLOSIVE | WEAPON_INCINDIARY,	EXDAM_MED*B2,	ACC_LOW,	"nullp",
 				0 },
-		{ "STRM-3",	"STORM-3",	DECO_RAYGUN,	"Fire Storm",			"Snap", "Flame", "Boom",	SPEED_NORMAL,
+		{ "STRM-3",	"STORM-3",	DECO_RAYGUN,	"Fire Storm",			{ "Snap", "Flame", "Boom" },	SPEED_NORMAL,
 				"Cell",			WEAPON_EXPLOSIVE | WEAPON_INCINDIARY,	EXDAM_MED*B2,	ACC_LOW*A2,	"nullp",
 				0 },
 		{ 0 }

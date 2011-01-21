@@ -110,7 +110,7 @@ void Stats::Load( const TiXmlElement* parent )
 
 void BulletSpread::Generate( U32 seed, grinliz::Vector2F* result )
 {
-	const static float MULT = 1.f / 65535.f;
+	//const static float MULT = 1.f / 65535.f;
 
 	Random rand( seed );
 	rand.Rand();

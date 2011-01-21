@@ -22,10 +22,10 @@ private:
 
 	enum { MAX_QUEUE = 8 };
 	const char* queue[MAX_QUEUE];
+	const gamedb::Reader* database;
 	int nSounds;
 
 	static SoundManager* instance;
-	const gamedb::Reader* database;
 };
 
 

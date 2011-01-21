@@ -85,7 +85,7 @@ void CMapBase::Add( const char* key, void* value )
 			break;
 		}
 		++h;
-		if ( h == nBuckets )
+		if ( h == (unsigned int)nBuckets )
 			h = 0;
 	}
 }
@@ -103,7 +103,7 @@ void CMapBase::Remove( const char* key )
 			break;
 		}
 		++h;
-		if ( h == nBuckets )
+		if ( h == (unsigned int)nBuckets )
 			h = 0;
 	}
 }
@@ -119,7 +119,7 @@ void* CMapBase::Get( const char* key ) const
 			return buckets[h].value;
 		}
 		++h;
-		if ( h == nBuckets )
+		if ( h == (unsigned int)nBuckets )
 			h = 0;
 	}
 	GLASSERT( 0 );
@@ -139,7 +139,7 @@ bool CMapBase::Query( const char* key, void** value ) const
 			return true;
 		}
 		++h;
-		if ( h == nBuckets )
+		if ( h == (unsigned int)nBuckets )
 			h = 0;
 	}
 	return false;

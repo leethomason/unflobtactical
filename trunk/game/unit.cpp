@@ -417,7 +417,7 @@ void Unit::Kill( Map* map )
 {
 	GLASSERT( status == STATUS_ALIVE );
 	GLASSERT( model );
-	float r = model->GetRotation();
+	//float r = model->GetRotation();
 	Vector3F pos = model->Pos();
 
 	Free();
@@ -787,7 +787,7 @@ int Unit::CalcWeaponTURemaining( float subtract ) const
 	float snappedTU = 0.0f;
 	float autoTU = 0.0f;
 	float secondaryTU = 0.0f;
-	int select = 0, type = 0;
+	//int select = 0, type = 0;
 
 	snappedTU = FireTimeUnits( kSnapFireMode );
 	autoTU = FireTimeUnits( kAutoFireMode );

@@ -142,7 +142,7 @@ void HelpScene::Tap( int action, const grinliz::Vector2F& screen, const grinliz:
 
 	// Want to keep re-using main texture. Do a ContextShift() if anything
 	// will change on this screen.
-	TextureManager* texman = TextureManager::Instance();
+	//TextureManager* texman = TextureManager::Instance();
 
 	if ( item == &buttons[0] ) {
 		--currentScreen;	

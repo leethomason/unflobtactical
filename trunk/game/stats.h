@@ -45,7 +45,7 @@ class Random;
 class Stats
 {
 public:
-	Stats() : totalHP(1), totalTU((float)MIN_TU), _STR(1), _DEX(1), _PSY(1), rank( 0 ) {}
+	Stats() : _STR(1), _DEX(1), _PSY(1), rank( 0 ), totalHP(1), totalTU((float)MIN_TU) {}
 
 	void SetSTR( int value )			{ _STR = value; CalcBaselines(); }
 	void SetDEX( int value )			{ _DEX = value; CalcBaselines(); }

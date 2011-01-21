@@ -39,7 +39,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* input )
 	const gamui::ButtonLook& green		= game->GetButtonLook( Game::GREEN_BUTTON );
 	const gamui::ButtonLook& blue		= game->GetButtonLook( Game::BLUE_BUTTON );
 	const gamui::ButtonLook& blueTab	= game->GetButtonLook( Game::BLUE_TAB_BUTTON );
-	const gamui::ButtonLook& red		= game->GetButtonLook( Game::RED_BUTTON );
+	//const gamui::ButtonLook& red		= game->GetButtonLook( Game::RED_BUTTON );
 
 
 	backButton.Init( &gamui2D, blue );
@@ -104,7 +104,7 @@ void CharacterScene::StatWidget::Init( gamui::Gamui* g, const Unit* unit, float 
 	float dx = 100.0f;
 	char buf[32];
 	const Stats& stats = unit->GetStats();
-	int count=0;
+	//int count=0;
 
 	nameRankUI.Init( g );
 	nameRankUI.Set( x, y, unit, false );

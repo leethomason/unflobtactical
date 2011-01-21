@@ -545,12 +545,12 @@ bool WarriorAI::Think(	const Unit* theUnit,
 	//   current canSee and LKPs
 	// - if nothing to move to, stand around
 
-	const float CLOSE_ENOUGH				= 4.5f;		// don't close closer than this...
+	//const float CLOSE_ENOUGH				= 4.5f;		// don't close closer than this...
 
 	action->actionID = ACTION_NONE;
 	Vector2I theUnitPos;
 	theUnit->CalcMapPos( &theUnitPos, 0 );
-	float theUnitNearTarget = FLT_MAX;
+	//float theUnitNearTarget = FLT_MAX;
 
 	if ( ThinkBase( theUnit ) == THINK_NOT_OPTION )
 		return true;

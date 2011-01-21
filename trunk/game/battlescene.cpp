@@ -1103,7 +1103,7 @@ void BattleScene::PushScrollOnScreen( const Vector3F& pos, bool center )
 		engine->CameraLookingAt( &c );
 
 		Vector3F delta = pos - c;
-		float len = delta.Length();
+		//float len = delta.Length();
 		delta.Normalize();
 
 		Action* action = actionStack.Push();
@@ -1385,7 +1385,7 @@ bool BattleScene::ProcessAI()
 	GLRELASSERT( actionStack.Empty() );
 	GLASSERT( aiArr[currentTeamTurn] );
 
-	int count = 0;
+	//int count = 0;
 
 	while ( actionStack.Empty() ) {
 
@@ -2399,7 +2399,7 @@ void BattleScene::Tap(	int action,
 
 		// Get the map intersection. May be used by TARGET_TILE or NORMAL
 		Vector3F intersect;
-		Map* map = engine->GetMap();
+		//Map* map = engine->GetMap();
 
 		Vector2I tilePos = { 0, 0 };
 		bool hasTilePos = false;
@@ -2484,7 +2484,7 @@ void BattleScene::Tap(	int action,
 
 			// Compute the path:
 			float cost;
-			const Stats& stats = selection.soldierUnit->GetStats();
+			//const Stats& stats = selection.soldierUnit->GetStats();
 
 			int result = engine->GetMap()->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
 			if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
@@ -2518,7 +2518,7 @@ void BattleScene::ShowNearPath( const Unit* unit )
 		float snappedTU = 0.0f;
 
 		if ( unit->GetWeapon() ) {
-			const WeaponItemDef* wid = unit->GetWeapon()->GetItemDef()->IsWeapon();
+			//const WeaponItemDef* wid = unit->GetWeapon()->GetItemDef()->IsWeapon();
 			snappedTU = unit->FireTimeUnits( kSnapFireMode );
 			autoTU = unit->FireTimeUnits( kAutoFireMode );
 		}
@@ -2625,9 +2625,9 @@ void BattleScene::CalcTeamTargets()
 	visibility.CalcVisMap( &newUnitVis );
 
 	const static Vector2I range[3] = {
-		TERRAN_UNITS_START, TERRAN_UNITS_END,
-		CIV_UNITS_START, CIV_UNITS_END,
-		ALIEN_UNITS_START, ALIEN_UNITS_END
+		{ TERRAN_UNITS_START, TERRAN_UNITS_END },
+		{ CIV_UNITS_START, CIV_UNITS_END },
+		{ ALIEN_UNITS_START, ALIEN_UNITS_END }
 	};
 
 	for( int src=0; src<MAX_UNITS; ++src ) {
@@ -2941,7 +2941,7 @@ float MotionPath::DeltaToRotation( int dx, int dy )
 
 void MotionPath::Init( const MP_VECTOR< Vector2<S16> >& pathCache ) 
 {
-	GLRELASSERT( pathCache.size() <= MAX_TU );
+	GLRELASSERT( pathCache.size() <= (unsigned)MAX_TU );
 	GLRELASSERT( pathCache.size() > 1 );	// at least start and end
 
 	pathLen = (int)pathCache.size();
