@@ -507,7 +507,6 @@ void Game::DoTick( U32 _currentTime )
 							GPUShader::DrawCalls() );
 		}
 		if ( debugLevel >= 3 ) {
-			#if defined(DEBUG)
 			if ( !Engine::mapMakerMode )  {
 				UFOText::Draw(  0, Y-30, "new=%d Tex(%d/%d) %dK/%dK mis=%d reuse=%d hit=%d",
 								memNewCount,
@@ -519,7 +518,6 @@ void Game::DoTick( U32 _currentTime )
 								TextureManager::Instance()->CacheReuse(),
 								TextureManager::Instance()->CacheHit() );		
 			}
-			#endif
 		}
 	}
 #endif
