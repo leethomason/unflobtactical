@@ -16,6 +16,7 @@ Deferred:
 - Reconsider when reaction fire occurs. And probability.
 - rework fire spread & explosions.
 - 32 bit assets - xenowar logo
+- integrate profiler into main build
 Architecture
 - Map as interface
 
