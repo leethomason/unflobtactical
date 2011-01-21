@@ -182,7 +182,7 @@ void ImpactEffect::DoTick( U32 time, U32 deltaTime )
 
 		const float VEL = 2.0f;
 		Vector3F vel = { normal.x*VEL, normal.y*VEL, normal.z*VEL };
-		float life = radius / VEL * 1000.0f;
+		//float life = radius / VEL * 1000.0f;
 
 		particleSystem->EmitPoint(  40, config, 
 									color, cvel, 

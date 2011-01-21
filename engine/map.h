@@ -125,8 +125,8 @@ struct MapItemDef
 		if ( !patherStr )
 			return 0;
 		
-		GLASSERT( strlen( patherStr ) == cx*cy );
-		GLASSERT( strlen( visibilityStr ) == cx*cy );
+		GLASSERT( (int)strlen( patherStr ) == cx*cy );
+		GLASSERT( (int)strlen( visibilityStr ) == cx*cy );
 
 		const char c = *(patherStr + y*cx + x );
 		return grinliz::HexLowerCharToInt( c );
@@ -138,8 +138,8 @@ struct MapItemDef
 		if ( !visibilityStr )
 			return 0;
 
-		GLASSERT( strlen( patherStr ) == cx*cy );
-		GLASSERT( strlen( visibilityStr ) == cx*cy );
+		GLASSERT( (int)strlen( patherStr ) == cx*cy );
+		GLASSERT( (int)strlen( visibilityStr ) == cx*cy );
 
 		const char c = *(visibilityStr + y*cx + x );
 		return grinliz::HexLowerCharToInt( c );

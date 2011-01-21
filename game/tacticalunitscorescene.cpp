@@ -65,7 +65,7 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, const TacticalEndSc
 
 			int kills = data->units[i].KillsCredited();
 			bool purpleCircle = data->units[i].HP() != data->units[i].GetStats().TotalHP() && !data->units[i].IsKIA();
-			int exp = kills + (purpleCircle ? 2 : 0);
+			//int exp = kills + (purpleCircle ? 2 : 0);
 			float x = xPos2;
 
 			if ( purpleCircle && nAwards < MAX_AWARDS ) {

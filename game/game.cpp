@@ -69,7 +69,7 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	}	
 	
 	Init();
-	Map* map = engine->GetMap();
+	//Map* map = engine->GetMap();
 
 	engine->camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 
@@ -102,7 +102,7 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	
 	Init();
 	Map* map = engine->GetMap();
-	ImageManager* im = ImageManager::Instance();
+	//ImageManager* im = ImageManager::Instance();
 
 	map->SetSize( base.size, base.size );
 

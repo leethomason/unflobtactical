@@ -205,12 +205,12 @@ void UFOText::Draw( int x, int y, const char* format, ... )
     //
     va_start( va, format );
 #ifdef _MSC_VER
-    int result = vsnprintf_s( buffer, size, _TRUNCATE, format, va );
+    vsnprintf_s( buffer, size, _TRUNCATE, format, va );
 #else
 	// Reading the spec, the size does seem correct. The man pages
 	// say it will aways be null terminated (whereas the strcpy is not.)
 	// Pretty nervous about the implementation, so force a null after.
-    int result = vsnprintf( buffer, size, format, va );
+    vsnprintf( buffer, size, format, va );
 	buffer[size-1] = 0;
 #endif
 	va_end( va );

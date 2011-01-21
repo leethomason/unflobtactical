@@ -152,8 +152,8 @@ void StorageWidget::SetButtons()
 		boxButton[slot].SetEnabled( false );
 	}
 
-	bool selectionOkay = false;
-	int canSelect = -1;
+	//bool selectionOkay = false;
+	//int canSelect = -1;
 
 #if 1
 	static const int decoID[NUM_SELECT_BUTTONS] = { DECO_PISTOL, DECO_RAYGUN, DECO_ARMOR, DECO_ALIEN };

@@ -92,7 +92,7 @@ private:
 struct RenderAtom 
 {
 	/// Creates a default that renders nothing.
-	RenderAtom() : renderState( 0 ), textureHandle( 0 ), tx0( 0 ), ty0( 0 ), tx1( 0 ), ty1( 0 ), srcWidth( 0 ), srcHeight( 0 ), user( 0 ) {}
+	RenderAtom() : tx0( 0 ), ty0( 0 ), tx1( 0 ), ty1( 0 ), srcWidth( 0 ), srcHeight( 0 ), renderState( 0 ), textureHandle( 0 ), user( 0 ) {}
 	
 	RenderAtom( const void* _renderState, const void* _textureHandle, float _tx0, float _ty0, float _tx1, float _ty1, float _srcWidth, float _srcHeight ) {
 		Init( _renderState, _textureHandle, _tx0, _ty0, _tx1, _ty1, _srcWidth, _srcHeight );

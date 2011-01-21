@@ -131,8 +131,8 @@ Engine::Engine( Screenport* port, const EngineData& _engineData, const gamedb::R
 		DIFFUSE( 0.8f ),
 		DIFFUSE_SHADOW( 0.2f ),
 		screenport( port ),
-		engineData( _engineData ),
 		initZoomDistance( 0 ),
+		engineData( _engineData ),
 		enableMap( true )
 {
 	spaceTree = new SpaceTree( -0.1f, 3.0f );
@@ -300,11 +300,11 @@ void Engine::Draw()
 	LightShader mapItemShader( ambient, dir, diffuse, false, false );
 	LightShader mapBlendItemShader( ambient, dir, diffuse, false, true );
 
-	FlatShader black;
-	Texture* blackTexture = TextureManager::Instance()->GetTexture( "black" );	// Fix for a strange bug. The Nexus One, when using VBOs, sometimes
-																				// ignores color.
+	//FlatShader black;
+	//Texture* blackTexture = TextureManager::Instance()->GetTexture( "black" );	// Fix for a strange bug. The Nexus One, when using VBOs, sometimes
+	//																			// ignores color.
 
-	const Surface* lightmap = map->GetLightMap();
+	//const Surface* lightmap = map->GetLightMap();
 	Rectangle2I mapBounds = map->Bounds();
 	
 
@@ -601,7 +601,7 @@ void Engine::RestrictCamera()
 
 void Engine::SetZoom( float z )
 {
-	float startY = camera.PosWC().y;
+//	float startY = camera.PosWC().y;
 
 	z = Clamp( z, GAME_ZOOM_MIN, GAME_ZOOM_MAX );
 	float d = Interpolate(	GAME_ZOOM_MIN, engineData.cameraMin,

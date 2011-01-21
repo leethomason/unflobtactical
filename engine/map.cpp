@@ -1132,7 +1132,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, int defIndex, int hp, in
 
 		
 	const MapItemDef& itemDef			= itemDefArr[defIndex];
-	const ModelResource* modelResource	= itemDefArr[defIndex].GetModelResource();
+	//const ModelResource* modelResource	= itemDefArr[defIndex].GetModelResource();
 	bool metadata = false;
 
 	Matrix2I xform;
@@ -1934,8 +1934,8 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& _bounds )
 			GLRELASSERT( item->itemDefIndex < NUM_ITEM_DEF );
 			const MapItemDef& itemDef = itemDefArr[item->itemDefIndex];
 
-			if ( StrEqual( itemDef.Name(), "woodfence" ) )
-				int debug = 1;
+//			if ( StrEqual( itemDef.Name(), "woodfence" ) )
+//				int debug = 1;
 			
 			int rot = item->modelRotation;
 			GLRELASSERT( rot >= 0 && rot < 4 );
@@ -2030,8 +2030,8 @@ bool Map::Connected4(	ConnectionType c,
 		const int maskN = GetPathMask( c, nextPos.x, nextPos.y );
 		const int inv   = InvertPathMask( bit );
 
-		if ( mask0 == 4 )
-			int debug = 1;
+//		if ( mask0 == 4 )
+//			int debug = 1;
 
 		if ( (( mask0 & bit ) == 0 ) && (( maskN & inv ) == 0 ) ) {
 			return true;

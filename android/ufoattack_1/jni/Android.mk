@@ -5,7 +5,8 @@ LOCAL_MODULE := ufoattack
 
 LOCAL_CFLAGS := -DANDROID_NDK \
                 -DDISABLE_IMPORTGL \
-				-DGRINLIZ_NO_STL
+				-DGRINLIZ_NO_STL \
+				-Wall
 
 LOCAL_SRC_FILES := \
     app-android.c \

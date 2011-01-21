@@ -31,7 +31,9 @@
 #	include "../zlib/zlib.h"
 #endif
 
+#ifdef _MSC_VER
 #pragma warning ( disable : 4996 )
+#endif
 using namespace gamedb;
 
 struct CompStringID
@@ -297,7 +299,7 @@ void Reader::GetData( int dataID, void* target, int memSize ) const
 
 	if ( dataDesc.compressedSize == dataDesc.size ) {
 		// no compression.
-		GLASSERT( dataDesc.size == memSize );
+		GLASSERT( dataDesc.size == (U32)memSize );
 		fread( target, memSize, 1, fp );
 	}
 	else {
@@ -317,7 +319,7 @@ void Reader::GetData( int dataID, void* target, int memSize ) const
 									(const Bytef*)buffer,
 									dataDesc.compressedSize );
 		GLASSERT( result == Z_OK );
-		GLASSERT( dataDesc.size == memSize );
+		GLASSERT( dataDesc.size == (U32)memSize );
 	}
 }
 
@@ -442,7 +444,7 @@ int Item::AttributeType( const char* name ) const
 int Item::AttributeIndex( const char* name ) const
 {
 
-	const ItemStruct* istruct = (const ItemStruct*)this;
+	//const ItemStruct* istruct = (const ItemStruct*)this;
 
 	const Reader* context = Reader::GetContext( this );
 	int id = context->GetStringID( name );
@@ -491,7 +493,7 @@ void Item::GetDataInfo( int i, int* offset, int* size, bool* compressed ) const
 	GLASSERT( header->offsetToDataDesc % 4 == 0 );
 
 	const DataDescStruct* dataDescPtr = (const DataDescStruct*)((const U8*)context->BaseMem() + header->offsetToDataDesc);
-	GLASSERT( attrib->dataID >= 0 && attrib->dataID < (int)header->nData );
+	GLASSERT( attrib->dataID >= 0 && attrib->dataID < header->nData );
 	const DataDescStruct& dataDesc = dataDescPtr[attrib->dataID];
 
 	*offset = dataDesc.offset;

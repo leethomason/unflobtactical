@@ -16,7 +16,7 @@ DialogScene::DialogScene( Game* _game, const DialogSceneData* _data ) : Scene( _
 	static const float GUTTER = 20.0f;
 
 	// 248, 228, 8
-	const float INV = 1.f/255.f;
+	//const float INV = 1.f/255.f;
 	//uiRenderer.SetTextColor( 248.f*INV, 228.f*INV, 8.f*INV );
 
 	RenderAtom roundRectangle = UIRenderer::CalcPaletteAtom(	UIRenderer::PALETTE_GREEN, 

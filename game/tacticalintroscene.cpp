@@ -48,7 +48,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	const gamui::ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 
 	static const float BORDER = 25;
-	static const float SIZEX = 150;
+	//static const float SIZEX = 150;
 
 	continueButton.Init( &gamui2D, green );
 	continueButton.SetSizeByScale( 2.2f, 1 );
@@ -399,9 +399,9 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	XMLUtil::OpenElement( fp, 1, "Units" );
 	XMLUtil::SealElement( fp );
 
-	const gamedb::Reader* database = game->GetDatabase();
-	const gamedb::Item* parent = database->Root()->Child( "data" );
-	const gamedb::Item* item = 0;
+	//const gamedb::Reader* database = game->GetDatabase();
+	//const gamedb::Item* parent = database->Root()->Child( "data" );
+	//const gamedb::Item* item = 0;
 
 	
 	Unit units[MAX_UNITS];

@@ -22,9 +22,9 @@
 using namespace grinliz;
 
 Camera::Camera() : 
+	viewRotation( 0 ),
 	tilt( 45.f ), 
 	yRotation( 0.0f ), 
-	viewRotation( 0 ),
 	valid( false )
 {
 	posWC.Set( 0.f, 0.f, 0.f );
