@@ -185,7 +185,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 					100, 50 );
 
 	for( int i=0; i<3; ++i ) {
-		static const char* row[] = { "Scout", "Destroyer", "Special" };
+		static const char* row[] = { "Scout", "Frigate", "Special" };
 		rowLabel[i].Init( &gamui2D );
 		rowLabel[i].SetVisible( false );
 		rowLabel[i].SetText( row[i] );

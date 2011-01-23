@@ -60,7 +60,7 @@ void Visibility::InvalidateAll()
 bool Visibility::TeamCanSee( int team, int x, int y )
 {
 	//GRINLIZ_PERFTRACK
-	int r0, r1;
+	int r0=0, r1=0;
 	if ( team == TERRAN_TEAM ) {
 		r0 = TERRAN_UNITS_START;
 		r1 = TERRAN_UNITS_END;

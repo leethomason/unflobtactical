@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       android:versionCode="1"
       android:versionName="1.0" package="com.grinninglizard.UFOAttack" android:installLocation="auto">
-    <application android:label="Xenowar" android:debuggable="true" android:icon="@drawable/androidicon48">
+    <application android:label="Xenowar" android:icon="@drawable/androidicon48" android:debuggable="false">
         <activity android:name=".UFOActivity" android:label="Xenowar" android:screenOrientation="portrait" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

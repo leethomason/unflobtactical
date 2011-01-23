@@ -251,8 +251,10 @@ void Reader::RecWalk( const Item* item, int depth )
 
 const char* Reader::GetString( int id ) const
 {
+#ifdef DEBUG
 	const HeaderStruct* header = (const HeaderStruct*)mem;
 	GLASSERT( id >= 0 && id < (int)header->nString );
+#endif
 
 	const U32* stringOffset = (const U32*)((const char*)mem + sizeof(HeaderStruct));
 	const char* str = (const char*)mem + stringOffset[id];
@@ -314,10 +316,13 @@ void Reader::GetData( int dataID, void* target, int memSize ) const
 		}
 		fread( buffer, dataDesc.compressedSize, 1, fp );
 
-		int result = uncompress(	(Bytef*)target, 
-									(uLongf*)&dataDesc.size, 
-									(const Bytef*)buffer,
-									dataDesc.compressedSize );
+#ifdef DEBUG
+		int result =
+#endif
+		uncompress(	(Bytef*)target, 
+					(uLongf*)&dataDesc.size, 
+					(const Bytef*)buffer,
+					dataDesc.compressedSize );
 		GLASSERT( result == Z_OK );
 		GLASSERT( dataDesc.size == (U32)memSize );
 	}
