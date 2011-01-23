@@ -97,6 +97,7 @@ namespace grinliz {
 #endif
 
 namespace grinliz {
+#if 0
 class QuickProfile
 {
 public:
@@ -113,6 +114,7 @@ private:
 	TimeUnit startTime;
 	const char* name;
 };
+#endif
 
 const int GL_MAX_PROFILE_ITEM = 60;	// Max functions that can be profiled.
 

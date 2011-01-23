@@ -477,7 +477,7 @@
         unit has a certain amount of Time
         Units (TU) per turn. One time unit
         allows one space of movement. The
-        squares on the ground show the
+        circles on the ground show the
         range of movent for the unit.
       </p>
     </page>
@@ -485,8 +485,9 @@
     <page>
       <p>[Time Units (TU)]</p>
       <p>
-        Shooting also consumes TU. The color of the square indicates how
-        much time is left. Green for an aimed shot, Yellow for a fast shot,
+        Shooting also consumes TU. The color of the circle indicates how
+        much time is remaining after you move to that location. 
+        Green for an aimed shot, Yellow for a fast shot,
         and Orange indicates no time left to shoot.
       </p>
       <p>
@@ -519,8 +520,8 @@
     <page image="helpImage3" >
       <p>[Shooting UI]</p>
       <p>
-        Shooting UI. Left click on your
-        target to display shot  choices,
+        Left click on your
+        target to display shot choices,
         including info about the type of
         shot, the approximate odds of hitting,
         and ammo remaining. Every
@@ -540,7 +541,7 @@
       </p>
       <p>
         For reaction fire to occur, you must have enough TU left over
-        by ending your move in the Green or Yellow squares.
+        by ending your move in the Green or Yellow circles.
       </p>
       <p>
       Rotation greatly impacts reaction fire. Make sure you end your
@@ -559,8 +560,8 @@
       <p>[Unit Screen]</p>
       <p>Use this screen to pick up and drop items, wear armor, and select a weapon. You can also view statistics
          about the current unit.</p>
-      <p>The current weapon is use is shown in the top left. Beside the name is the tech level, from 1 to 3.
-         Higher tech levels are better weapons and armor.</p>
+      <p>The name of the weapon the unit is holding is displayed in the top left. Beside the name is the tech level, from 1 to 3.
+         Higher tech levels indicate better weapons and armor.</p>
     </page>
     <page image="helpImage4">
       <p>[Inventory]</p>
@@ -568,15 +569,15 @@
         What the unit is carrying. The top row is in use: the currently worn armor and currently carried
         weapon. You can tap to drop an item, or drag to organize items.</p>
       <p>
-        For weapons, the total rounds is displayed below the name. For clips, the number of rounds in the clip is displayed.
+        For weapons, the total rounds available for that weapon is displayed below the name.
       </p>
     </page>
 
     <page image="helpImage5">
       <p>[Items on the Ground]</p>
       <p>
-       The top row is tabs to select groups. Terran Weapons, Alien Weapons, Armor/Shields,
-       and Miscellaneous items. Tap to select a tab. Tap an item to pick it up.
+       The row of tabs select Terran Weapons, Alien Weapons, Armor/Shields,
+       and Miscellaneous items. Tap to select a group to view. Tap an item to pick it up.
       </p>
       <p>
         The number of items available is displayed beneath the item name.
@@ -585,7 +586,7 @@
 
     <page>
       <p>[Stats and Numbers]</p>
-      <p> For the number inclined, the lower right buttons show unit stat info.</p>
+      <p> The lower right buttons show unit traits, abilitites, and statistics.</p>
       <p> 'Inv' is the default inventory screen. 'Stats' shows the unit statistics. 'Wpns' compares weapons carried and on the ground, 
           with buttons to select range.</p>
     </page>

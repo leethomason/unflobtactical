@@ -148,7 +148,10 @@ void Game::Init()
 	int length;
 	PlatformPathToResource( buffer, 260, &offset, &length );
 	database = new gamedb::Reader();
-	bool okay = database->Init( buffer, offset );
+#ifdef DEBUG	
+	bool okay =
+#endif
+	database->Init( buffer, offset );
 	GLASSERT( okay );
 
 	SoundManager::Create( database );

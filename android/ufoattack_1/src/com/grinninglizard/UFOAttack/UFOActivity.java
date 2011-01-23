@@ -63,7 +63,7 @@ public class UFOActivity extends Activity  {
     protected void onDestroy() {
     	super.onDestroy();
     	mGLView.destroy();
-    	logger.destroy();
+    	//logger.destroy();
     }
     
     private void loadUFOAssets() 
@@ -95,13 +95,16 @@ public class UFOActivity extends Activity  {
     {
     	File file = this.getFilesDir();
     	if ( file != null ) {
-    		logger = new CrashLogger( this, file.getAbsolutePath() );		// send crash logs
+    		// Disable crash logger for now. The core code bugs are coming in from
+    		// the much more reliable Win32 code, and this hasn't found any
+    		// Android specific issues.
+    		//logger = new CrashLogger( this, file.getAbsolutePath() );		// send crash logs
     		UFORenderer.nativeSavePath( file.getAbsolutePath() );
     	}
     }
    
     private DemoGLSurfaceView mGLView;
-    private CrashLogger logger = null;
+    //private CrashLogger logger = null;
 
     static {
         System.loadLibrary("ufoattack");

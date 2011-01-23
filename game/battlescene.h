@@ -48,7 +48,7 @@ struct MotionPath
 
 	grinliz::Vector2<S16>	GetPathAt( unsigned i ) 
 	{
-		GLRELASSERT( (int)i < pathLen );
+		GLRELASSERT( i < pathLen );
 		grinliz::Vector2<S16> v = { pathData[i*2+0], pathData[i*2+1] };
 		return v;
 	}

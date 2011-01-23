@@ -168,6 +168,9 @@ const char* Unit::Rank() const
 	static const int CIV_MEAN = 25;
 	static const int VARIATION = 25;
 
+	str.Set( 0, 0 );
+	dex.Set( 0, 0 );
+	psy.Set( 0, 0 );
 
 	switch ( team ) {
 		case TERRAN_TEAM:

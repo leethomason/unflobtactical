@@ -68,7 +68,7 @@ distribution.
 
 	#define GLASSERT( x )		{}
 	// Turned off for now. The error reporting is hard enough.
-	#define GLRELASSERT( x )	{}		/*if ( !(x)) { GrinlizReleaseAssert( __FILE__, __LINE__ ); }*/
+	#define GLRELASSERT( x )	{}
 #endif
 
 #if defined(DEBUG)

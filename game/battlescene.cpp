@@ -1353,7 +1353,10 @@ void BattleScene::ProcessInventoryAI( Unit* theUnit )
 			}
 
 			storage->RemoveItem( wid, &item );
-			int slot = inventory->AddItem( item );
+#ifdef DEBUG
+			int slot = 
+#endif
+			inventory->AddItem( item );
 			GLRELASSERT( slot == Inventory::WEAPON_SLOT );
 			AI_LOG(( "'%s' ", item.Name() ));
 
@@ -2174,10 +2177,10 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 			GLRELASSERT( selection.targetUnit >= 0 );
 			//SoundManager::Instance()->QueueSound( "blip" );
 
-			Item* weapon = selection.soldierUnit->GetWeapon();
-			GLRELASSERT( weapon );
-			const WeaponItemDef* wid = weapon->GetItemDef()->IsWeapon();
-			GLRELASSERT( wid );
+			//Item* weapon = selection.soldierUnit->GetWeapon();
+			//GLRELASSERT( weapon );
+			//const WeaponItemDef* wid = weapon->GetItemDef()->IsWeapon();
+			//GLRELASSERT( wid );
 
 			Vector3F target;
 			float targetWidth = 0.0f;
@@ -2593,6 +2596,7 @@ Unit* BattleScene::GetUnitFromTile( int x, int z )
 
 void BattleScene::DumpTargetEvents()
 {
+#ifdef DEBUG
 	for( int i=0; i<targetEvents.Size(); ++i ) {
 		const TargetEvent& e = targetEvents[i];
 		const char* teams[] = { "Terran", "Civ", "Alien" };
@@ -2611,6 +2615,7 @@ void BattleScene::DumpTargetEvents()
 						e.targetID ));
 		}
 	}
+#endif
 }
 
 
