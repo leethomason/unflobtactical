@@ -41,14 +41,15 @@ class TiXmlDocument;
 class Stats;
 class Unit;
 
-static const float ONE8 = 1.0f / 8.0f;
+static const float ONE8  = 1.0f / 8.0f;
 static const float ONE16 = 1.0f / 16.0f;
+
 static const float TRANSLUCENT_WHITE	= ONE8*0.0f + ONE16;
 static const float TRANSLUCENT_GREEN	= ONE8*1.0f + ONE16;
-static const float TRANSLUCENT_BLUE	= ONE8*2.0f + ONE16;
+static const float TRANSLUCENT_BLUE		= ONE8*2.0f + ONE16;
 static const float TRANSLUCENT_RED		= ONE8*3.0f + ONE16;
 static const float TRANSLUCENT_YELLOW	= ONE8*4.0f + ONE16;
-static const float TRANSLUCENT_GREY	= ONE8*5.0f + ONE16;
+static const float TRANSLUCENT_GREY		= ONE8*5.0f + ONE16;
 
 
 struct TileSetDesc {
@@ -147,7 +148,7 @@ public:
 	void SuppressText( bool suppress )	{ suppressText = suppress; }
 	bool IsTextSuppressed() const		{ return suppressText; }
 
-	void SetDebugLevel( int level )		{ debugLevel = level; }
+	void SetDebugLevel( int level )		{ debugLevel = (level%4); }
 	int GetDebugLevel() const			{ return debugLevel; }
 
 	const grinliz::GLString GameSavePath()	{	grinliz::GLString str( savePath );

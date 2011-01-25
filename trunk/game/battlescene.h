@@ -46,7 +46,7 @@ struct MotionPath
 	int						pathLen;
 	U8						pathData[MAX_TU*2];
 
-	grinliz::Vector2<S16>	GetPathAt( unsigned i ) 
+	grinliz::Vector2<S16>	GetPathAt( int i ) 
 	{
 		GLRELASSERT( i < pathLen );
 		grinliz::Vector2<S16> v = { pathData[i*2+0], pathData[i*2+1] };
@@ -327,7 +327,9 @@ private:
 
 	UIRenderer	uiRenderer;
 
-	gamui::Image		alienImage;
+	gamui::Image		turnImage, alienTargetImage;
+	gamui::TextLabel	alienTargetText;
+
 	gamui::Image		menuImage;
 	gamui::PushButton	exitButton;
 	gamui::PushButton	helpButton;

@@ -29,6 +29,7 @@ public:
 
 	bool TeamCanSee( int team, int x, int y );	//< Can anyone on the 'team' see the location (x,y)
 	bool TeamCanSee( int team, const grinliz::Vector2I& pos )	{ return TeamCanSee( team, pos.x, pos.y ); }
+	int NumTeamCanSee( int viewer, int viewee );
 
 	bool UnitCanSee( int unit, int x, int y );
 	bool UnitCanSee( const Unit* src, const Unit* target ); 
@@ -41,6 +42,7 @@ public:
 private:
 	void CalcUnitVisibility( int unitID );
 	void CalcVisibilityRay( int unitID, const grinliz::Vector2I& pos, const grinliz::Vector2I& origin );
+	void CalcTeam( int team, int* start, int* end );
 
 	BattleScene*	battleScene;
 	const Unit*		units;

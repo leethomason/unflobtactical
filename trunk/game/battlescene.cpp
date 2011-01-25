@@ -73,9 +73,18 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 	const ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
 
-	alienImage.Init( &gamui3D, UIRenderer::CalcDecoAtom( DECO_ALIEN ), true );
-	alienImage.SetPos( float(port.UIWidth()-50), 0 );
-	alienImage.SetSize( 50, 50 );
+	turnImage.Init( &gamui3D, UIRenderer::CalcDecoAtom( DECO_ALIEN ), true );
+	turnImage.SetPos( float(port.UIWidth()-50), 0 );
+	turnImage.SetSize( 50, 50 );
+	
+	alienTargetImage.Init( &gamui3D, UIRenderer::CalcIconAtom( ICON_ALIEN_TARGETS ), true );
+	alienTargetImage.SetPos( float(port.UIWidth()-25), 0 );
+	alienTargetImage.SetSize( 20, 20 );
+	alienTargetImage.SetVisible( false );
+
+	alienTargetText.Init( &gamui3D );
+	alienTargetText.SetPos( alienTargetImage.X()+5, alienTargetImage.Y()+2 );
+	alienTargetText.SetVisible( false );
 
 	nameRankUI.Init( &gamui3D );
 
@@ -236,11 +245,14 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 
 	switch ( currentTeamTurn ) {
 		case TERRAN_TEAM:
-			GLOUTPUT(( "New Turn: Terran\n" ));
-			for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i )
-				units[i].NewTurn();
-			currentUnitAI = TERRAN_UNITS_START;
-			alienImage.SetVisible( false );
+			{
+				GLOUTPUT(( "New Turn: Terran\n" ));
+				for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i )
+					units[i].NewTurn();
+				currentUnitAI = TERRAN_UNITS_START;
+			
+				turnImage.SetVisible( false );
+			}
 			break;
 
 		case ALIEN_TEAM:
@@ -250,8 +262,10 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 			}
 			currentUnitAI = ALIEN_UNITS_START;
 
-			alienImage.SetVisible( true );
-			alienImage.SetAtom( UIRenderer::CalcDecoAtom( DECO_ALIEN ) );
+			turnImage.SetVisible( true );
+			alienTargetImage.SetVisible( false );
+			alienTargetText.SetVisible( false );
+			turnImage.SetAtom( UIRenderer::CalcDecoAtom( DECO_ALIEN ) );
 			break;
 
 		case CIV_TEAM:
@@ -260,8 +274,10 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 				units[i].NewTurn();
 			currentUnitAI = CIV_UNITS_START;
 
-			alienImage.SetVisible( true );
-			alienImage.SetAtom( UIRenderer::CalcDecoAtom( DECO_HUMAN ) );
+			turnImage.SetVisible( true );
+			alienTargetImage.SetVisible( false );
+			alienTargetText.SetVisible( false );
+			turnImage.SetAtom( UIRenderer::CalcDecoAtom( DECO_HUMAN ) );
 			break;
 
 		default:
@@ -2904,8 +2920,26 @@ void BattleScene::DrawHUD()
 		if ( rotation > 90 && rotation < 270 )
 			rotation += 180;
 		
-		if ( alienImage.Visible() ) {
-			alienImage.SetRotationY( rotation );
+		if ( turnImage.Visible() ) {
+			turnImage.SetRotationY( rotation );
+		}
+		if ( currentTeamTurn == TERRAN_TEAM ) {
+			int count = visibility.NumTeamCanSee( TERRAN_TEAM, ALIEN_TEAM );
+			if ( count > 0 ) {
+				CStr<6> str;
+				if ( count < 10 )
+					str = count;
+				else
+					str = "+";
+
+				alienTargetText.SetText( str.c_str() );
+				alienTargetText.SetVisible( true );
+				alienTargetImage.SetVisible( true );
+			}
+			else {
+				alienTargetText.SetVisible( false );
+				alienTargetImage.SetVisible( false );
+			}
 		}
 
 		nameRankUI.SetVisible( SelectedSoldierUnit() != 0 );

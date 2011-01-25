@@ -616,6 +616,9 @@ void Game::CancelInput()
 void Game::HandleHotKeyMask( int mask )
 {
 	sceneStack.Top()->scene->HandleHotKeyMask( mask );
+	if ( mask & GAME_HK_TOGGLE_DEBUG_TEXT ) {
+		SetDebugLevel( GetDebugLevel() + 1 );
+	}
 }
 
 

@@ -685,12 +685,12 @@ void Map::GenerateSeenUnseen()
 			}
 			else 
 			{
-				lightFogMap.SetImg16( i, j, 0 );
+				lightFogMap.SetImg16( i, j, 0 /*0x3333*/ );
 			}
 		}
 	}
 	lightFogMapTex->Upload( lightFogMap );
-
+	quadTree.MarkVisible( fogOfWar );
 }
 
 
@@ -1581,7 +1581,7 @@ void Map::Load( const TiXmlElement* mapElement, const ItemDefArr& p_itemDefArr )
 
 	// Remove things that can't burn. (We don't want to generate unnecessary particles.)
 	for( int i=0; i<SIZE*SIZE; ++i ) {
-		if ( pyro[i] ) {
+		if ( pyro[i] & 0x80 ) {		// check for flame
 			int y = i/SIZE;
 			int x = i-y*SIZE;
 
@@ -2409,17 +2409,17 @@ Map::MapItem* Map::QuadTree::FindItem( const Model* model )
 	Rectangle2I b;
 
 	// May or may not have 'mapBoundsCache' when called.
-	if ( model->mapBoundsCache.min.x >= 0 ) {
-		b = model->mapBoundsCache;
-	}
-	else {
+//	if ( model->mapBoundsCache.min.x >= 0 ) {
+//		b = model->mapBoundsCache;
+//	}
+//	else {
 		// Need a little space around the coordinates to account
 		// for object rotation.
 		b.min.x = Clamp( (int)model->X()-2, 0, SIZE-1 );
 		b.min.y = Clamp( (int)model->Z()-2, 0, SIZE-1 );
 		b.max.x = Clamp( (int)model->X()+2, 0, SIZE-1 );
 		b.max.y = Clamp( (int)model->Z()+2, 0, SIZE-1 );
-	}
+//	}
 	filterModel = model;
 	MapItem* root = FindItems( b, 0, 0 );
 	filterModel = 0;
@@ -2455,6 +2455,32 @@ int Map::QuadTree::CalcNode( const Rectangle2<U8>& bounds, int* d )
 	GLRELASSERT( offset >= 0 && offset < NUM_QUAD_NODES );
 	return offset;
 }
+
+
+void Map::QuadTree::MarkVisible( const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& fogOfWar )
+{
+	Rectangle2I mapBounds;
+	mapBounds.Set( 0, 0, SIZE-1, SIZE-1 );
+	MapItem* root = FindItems( mapBounds, 0, 0 );
+
+	for( MapItem* item=root; item; item=item->next ) {
+		
+		Rectangle2I b = item->MapBounds();
+		if ( b.min.x > 0 ) b.min.x--;
+		if ( b.max.x < SIZE-1 ) b.max.x++;
+		if ( b.min.y > 0 ) b.min.y--;
+		if ( b.max.y < SIZE-1 ) b.max.y++;
+
+		if ( fogOfWar.IsRectEmpty( b ) ) {
+			if ( item->model ) item->model->SetFlag( Model::MODEL_INVISIBLE );
+		}
+		else {
+			if ( item->model ) item->model->ClearFlag( Model::MODEL_INVISIBLE );
+		}
+	}
+}
+
+
 
 
 void Map::CreateTexture( Texture* t )

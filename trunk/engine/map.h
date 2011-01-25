@@ -459,6 +459,8 @@ private:
 
 		void UnlinkItem( MapItem* item );
 
+		void MarkVisible( const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& fogOfWar );
+
 	private:
 		int WorldToNode( int x, int depth )					
 		{ 

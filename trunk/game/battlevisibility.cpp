@@ -57,31 +57,58 @@ void Visibility::InvalidateAll()
 }
 
 
-bool Visibility::TeamCanSee( int team, int x, int y )
+void Visibility::CalcTeam( int team, int* r0, int* r1 )
 {
-	//GRINLIZ_PERFTRACK
-	int r0=0, r1=0;
 	if ( team == TERRAN_TEAM ) {
-		r0 = TERRAN_UNITS_START;
-		r1 = TERRAN_UNITS_END;
+		*r0 = TERRAN_UNITS_START;
+		*r1 = TERRAN_UNITS_END;
 	}
 	else if ( team == ALIEN_TEAM ) {
-		r0 = ALIEN_UNITS_START;
-		r1 = ALIEN_UNITS_END;
+		*r0 = ALIEN_UNITS_START;
+		*r1 = ALIEN_UNITS_END;
 	}
 	else if ( team == CIV_TEAM ) {
-		r0 = CIV_UNITS_START;
-		r1 = CIV_UNITS_END;
+		*r0 = CIV_UNITS_START;
+		*r1 = CIV_UNITS_END;
 	}
 	else {
 		GLRELASSERT( 0 );
 	}
-	
+}
+
+
+
+bool Visibility::TeamCanSee( int team, int x, int y )
+{
+	//GRINLIZ_PERFTRACK
+	int r0=0, r1=0;
+	CalcTeam( team, &r0, &r1 );
+
 	for( int i=r0; i<r1; ++i ) {
 		if ( UnitCanSee( i, x, y ) )
 			return true;
 	}
 	return false;
+}
+
+
+int Visibility::NumTeamCanSee( int viewer, int viewee )
+{
+	int b0=0, b1=0;
+	CalcTeam( viewee, &b0, &b1 );
+	
+	int count = 0;
+	
+	for( int i=b0; i<b1; ++i ) {
+		if ( units[i].IsAlive() ) {
+			Vector2I p = units[i].Pos();
+
+			if ( TeamCanSee( viewer, p.x, p.y ) ) {
+				++count;
+			}
+		}
+	}
+	return count;
 }
 
 
