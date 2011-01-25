@@ -3,6 +3,14 @@
 
 Captured on the Win32 version.
 
+*Build 580 - many new levels, models, and scenarios*
+
+[http://unflobtactical.googlecode.com/svn/wiki/images/xenowar_5.jpg]
+
+[http://unflobtactical.googlecode.com/svn/wiki/images/xenowar_6.jpg]
+
+[http://unflobtactical.googlecode.com/svn/wiki/images/xenowar_7.jpg]
+
 *Build 528 New art & models.*
 
 [http://unflobtactical.googlecode.com/svn/wiki/images/xenowar_0.jpg]
