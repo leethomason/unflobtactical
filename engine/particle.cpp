@@ -510,6 +510,8 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 
 	U16* iBuf = indexBuffer.PushArr( 6*quadBuffer.Size() );
 	QuadVertex* vBuf = vertexBuffer.PushArr( 4*quadBuffer.Size() );
+	Rectangle2I bounds;
+	bounds.Set( 0, 0, MAP_SIZE-1, MAP_SIZE-1 );
 
 	for( int i=0; i<quadBuffer.Size(); ++i ) 
 	{
@@ -532,8 +534,12 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 
 		if ( fogOfWar ) {
 			Vector2I fowPos = { (int)pos.x, (int)pos.z };
-			if ( !fogOfWar->IsSet( fowPos.x, fowPos.y ) )
+
+			if (    !bounds.Contains( fowPos )
+				 || !fogOfWar->IsSet( fowPos.x, fowPos.y ) )
+			{
 				continue;
+			}
 		}
 
 		// Set up the particle that everything else is derived from:

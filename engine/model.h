@@ -211,7 +211,7 @@ public:
 	
 	// Set by the engine. Any xform change will set this
 	// to (-1,-1)-(-1,-1) to then be set by the engine.
-	grinliz::Rectangle2I mapBoundsCache;
+	//grinliz::Rectangle2I mapBoundsCache;
 
 	const grinliz::Matrix4& XForm() const;
 	bool HasTextureXForm( int i ) const;
@@ -230,7 +230,7 @@ private:
 	{			
 		xformValid = false; 
 		invValid = false; 
-		mapBoundsCache.Set( -1, -1, -1, -1 ); 
+		//mapBoundsCache.Set( -1, -1, -1, -1 ); 
 	}
 	const grinliz::Matrix4& InvXForm() const;
 

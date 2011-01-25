@@ -294,7 +294,7 @@ final class RendererEvent implements Runnable
 				break;
 			case TYPE_TAP:
 				renderer.tap( action, (float)x, (float)y );
-				Log.v("UFOATTACK", "Tap action=" + action + " x=" + (int)x + " y=" + (int)y );
+				//Log.v("UFOATTACK", "Tap action=" + action + " x=" + (int)x + " y=" + (int)y );
 				break;
 			case TYPE_HOTKEY:
 				renderer.hotKey( action );
@@ -408,7 +408,7 @@ class UFORenderer implements GLSurfaceView.Renderer {
     }
     
     public void hotKey( int key ) {
-    	Log.v( "UFOJAVA", "sending key=" + key );
+    	//Log.v( "UFOJAVA", "sending key=" + key );
     	nativeHotKey( key );
     }
     

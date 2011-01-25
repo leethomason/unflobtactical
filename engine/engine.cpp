@@ -287,7 +287,7 @@ void Engine::Draw()
 	const MapRenderBlock* blockRoot = map->CalcRenderBlocks( planes, 6 );
 	Model* modelRoot = spaceTree->Query( planes, 6, 0, Model::MODEL_OWNED_BY_MAP, false );
 #else
-	Model* modelRoot = spaceTree->Query( planes, 6, 0, 0, false );
+	Model* modelRoot = spaceTree->Query( planes, 6, 0, Model::MODEL_INVISIBLE, false );
 #endif
 	
 	Color4F ambient, diffuse;
@@ -300,11 +300,6 @@ void Engine::Draw()
 	LightShader mapItemShader( ambient, dir, diffuse, false, false );
 	LightShader mapBlendItemShader( ambient, dir, diffuse, false, true );
 
-	//FlatShader black;
-	//Texture* blackTexture = TextureManager::Instance()->GetTexture( "black" );	// Fix for a strange bug. The Nexus One, when using VBOs, sometimes
-	//																			// ignores color.
-
-	//const Surface* lightmap = map->GetLightMap();
 	Rectangle2I mapBounds = map->Bounds();
 	
 
@@ -406,7 +401,7 @@ void Engine::Draw()
 		{
 			LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, OPEN_LIGHT, 0, &color );
 
-			float ave = 0.7f*((color.x + color.y + color.z)*0.333f);
+			float ave = 0.5f*((color.x + color.y + color.z)*0.333f);
 			Color4F c = { ave, ave, ave, 1.0f };
 #ifdef ENGINE_RENDER_MAP
 			map->DrawPastSeen( c );

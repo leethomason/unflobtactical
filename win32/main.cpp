@@ -443,9 +443,9 @@ int main( int argc, char **argv )
 						}
 						break;
 
-//					case SDLK_d:
-//						GameHotKey( game, GAME_HK_TOGGLE_DEBUG_TEXT );
-//						break;
+					case SDLK_d:
+						GameHotKey( game, GAME_HK_TOGGLE_DEBUG_TEXT );
+						break;
 
 					case SDLK_DELETE:
 						if ( mapMakerMode )

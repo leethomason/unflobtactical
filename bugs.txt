@@ -4,6 +4,7 @@ Bugs:
 
 Android
 - Android: cap framerate. Don't really need >30
+- Performance...cap somehow?
 - eula
 - release assets and scripts
 - update grinninglizard to be a credible link site
