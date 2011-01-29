@@ -37,7 +37,7 @@ const char* gMaleFirstNames[64] =
 	"Joss",		"Mark",		"Luke",		"Alec",
 	"Robert",	"David",	"Jules",	"Paul",
 	"George",	"Ken",		"Steve",	"Ed",
-	"Brian",	"Ron",		"Tony",		"Kevin",
+	"Duke",		"Ron",		"Tony",		"Kevin",
 	"Gary",		"Jose",		"Scott",	"Josh",
 	"Peter",	"Carl",		"Juan",		"Will",
 	"Aaron",	"Victor",	"Todd",		"Earl",

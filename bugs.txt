@@ -3,8 +3,6 @@ Issues:
 Bugs:
 
 Android
-- Android: cap framerate. Don't really need >30
-- Performance...cap somehow?
 - eula
 - release assets and scripts
 - update grinninglizard to be a credible link site
@@ -13,6 +11,7 @@ Android
 
 
 Deferred:
+- Android: cap framerate. Don't really need >30. A regrettably nasty problem.
 - More items: optical computer for units to enhance vision
 - Reconsider when reaction fire occurs. And probability.
 - rework fire spread & explosions.

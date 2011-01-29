@@ -35,6 +35,7 @@ public:
 	int nCivs;
 	int nCivsAlive;
 	const Unit* units;
+
 	bool dayTime;
 };
 
