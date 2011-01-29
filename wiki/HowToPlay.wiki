@@ -32,6 +32,8 @@ Note that you can also select units with the arrows keys and rotate with the con
 
 = Tactical Screen = 
 
+[http://unflobtactical.googlecode.com/svn/wiki/images/xenowar_2.jpg]
+
 == Concepts ==
 
 === Turns & Time ===
@@ -136,12 +138,14 @@ And on the bottom right:
 
 This is the character inventory screen. On the left side is what the selected unit is carrying. On the right are items on the ground. You can press the "stats" button to toggle between items on the ground and the unit stats.
 
-http://grinliz.smugmug.com/photos/889802276_ujrvG-M.png
+[http://unflobtactical.googlecode.com/svn/wiki/images/xenowar_inventory.png]
 
 === Carried (left) Items ===
-Items in green are in the unit's backpack. The left red item is armor worn. The middle red item is the weapon in holster, and the right red item the weapon in hand.
+Items in the left boxes are carried by the unit. The top 2 items - one armor slot and one weapon slot - are currently "in use". Items in the units "pack" are shown in the 6 slots below.
 
-Weapons automatically load from rounds carried in the backpack.
+You can tap and drag to organize items, or change weapons and armor. A single tap will drop the item on the ground.
+
+Weapons automatically load from rounds carried in the backpack. For the weapon in use, the number of rounds are shown below the name. In this example the ASLT-2 has 30 rounds in the clip (primary fire) and 4 rockets.
 
 === Inventory (right) Items ===
 The left (blue) column selects the groups of items to view.
@@ -149,4 +153,4 @@ The left (blue) column selects the groups of items to view.
   * Armor
   * Alien Weapons
   * Terran Weapons
-You can click to move items between the items on the ground (green) and items in your backpack.
+You can click to move items between the items on the ground and items in your backpack.
