@@ -3,11 +3,7 @@ Issues:
 Bugs:
 
 Android
-- eula
-- release assets and scripts
-- update grinninglizard to be a credible link site
 - Amazon
-- App Store
 
 
 Deferred:
