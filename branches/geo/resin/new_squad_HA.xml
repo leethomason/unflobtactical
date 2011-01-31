@@ -1,0 +1,50 @@
+<Unit team="0" status="1">
+	<Stats level="2" />
+	<Inventory>
+		<Item name="AR-3P" />
+		<Item name="SLUG" />
+		<Item name="Clip" />
+		<Item name="Clip" />
+		<Item name="RPG" />
+		<Item name="ARM-2" />
+		<Item name="Shield" />
+	</Inventory>
+</Unit>
+<Unit team="0" status="1">
+	<Stats level="3" />
+	<Inventory>
+		<Item name="AR-3L" />
+		<Item name="SLUG" />
+		<Item name="Clip" />
+		<Item name="Clip" />
+		<Item name="Clip" />
+		<Item name="RPG" />
+		<Item name="ARM-3" />
+		<Item name="Shield" />
+	</Inventory>
+</Unit>
+<Unit team="0" status="1">
+	<Stats level="3" />
+	<Inventory>
+		<Item name="PLS-2" />
+		<Item name="RAY-2" />
+		<Item name="Cell" />
+		<Item name="Cell" />
+		<Item name="Cell" />
+		<Item name="Tachy" />
+		<Item name="ARM-2" />
+		<Item name="Shield" />
+	</Inventory>
+</Unit>
+<Unit team="0" status="1">
+	<Stats level="4" />
+	<Inventory>
+		<Item name="CANON" />
+		<Item name="Flame" />
+		<Item name="RPG" />
+		<Item name="RAY-3" />
+		<Item name="Cell" />
+		<Item name="ARM-3" />
+		<Item name="Shield" />
+	</Inventory>
+</Unit>

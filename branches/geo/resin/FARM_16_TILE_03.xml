@@ -1,0 +1,69 @@
+<Map sizeX="64" sizeY="64" >
+    <Items >
+        <Item x="1" y="12" name="haypile" />
+        <Item x="13" y="10" name="scout" />
+        <Item x="11" y="8" rot="1" name="woodWallRed" />
+        <Item x="11" y="9" rot="1" name="woodWallRed" />
+        <Item x="11" y="9" name="woodWallRed" />
+        <Item x="10" y="9" name="woodWallRed" />
+        <Item x="10" y="9" rot="1" name="barrel0" />
+        <Item x="11" y="9" rot="1" name="barrel1" />
+        <Item x="11" y="8" rot="2" name="barrel0" />
+        <Item x="10" y="8" name="pawn" />
+        <Item x="10" y="10" name="pawn" />
+        <Item x="7" y="9" name="woodWallRed" />
+        <Item x="6" y="9" name="woodWallRed" />
+        <Item x="5" y="9" name="woodWallRed" />
+        <Item x="5" y="9" rot="3" name="woodWallRed" />
+        <Item x="5" y="8" rot="3" name="woodWallRed" />
+        <Item x="5" y="9" rot="1" name="crate1" />
+        <Item x="6" y="9" rot="1" name="crate0" />
+        <Item x="5" y="8" rot="1" name="crate2" />
+        <Item x="5" y="11" name="tree3" />
+        <Item x="4" y="10" name="tree3" />
+        <Item x="6" y="11" name="scout" />
+        <Item x="2" y="8" name="scout" />
+        <Item x="13" y="4" rot="1" name="tree2" />
+        <Item x="11" y="4" rot="1" name="woodWallRed" />
+        <Item x="11" y="5" rot="1" name="woodWallRed" />
+        <Item x="11" y="6" rot="1" name="woodWallRed" />
+        <Item x="11" y="7" rot="1" name="woodWallRed" />
+        <Item x="11" y="5" rot="2" name="haypile" />
+        <Item x="10" y="6" name="haypile" />
+        <Item x="5" y="7" rot="3" name="woodWallRed" />
+        <Item x="5" y="6" rot="3" name="woodWallRed" />
+        <Item x="5" y="5" rot="3" name="woodWallRed" />
+        <Item x="5" y="4" rot="3" name="woodWallRed" />
+        <Item x="6" y="7" name="pawn" />
+        <Item x="5" y="4" rot="3" name="barrel0" />
+        <Item x="5" y="5" name="barrel0" />
+        <Item x="5" y="6" rot="1" name="barrel0" />
+        <Item x="2" y="5" name="haypile" />
+        <Item x="14" y="3" rot="1" name="tree2" />
+        <Item x="13" y="3" name="scout" />
+        <Item x="9" y="2" rot="2" name="woodWallRed" />
+        <Item x="10" y="2" rot="2" name="woodWallRed" />
+        <Item x="11" y="2" rot="2" name="woodWallRed" />
+        <Item x="11" y="2" rot="1" name="woodWallRed" />
+        <Item x="11" y="3" rot="1" name="woodWallRed" />
+        <Item x="8" y="2" rot="2" name="woodWallRed" />
+        <Item x="11" y="2" rot="2" name="crate0" />
+        <Item x="10" y="2" rot="2" name="crate1" />
+        <Item x="9" y="2" rot="2" name="crate0" />
+        <Item x="11" y="3" name="pawn" />
+        <Item x="7" y="2" rot="2" name="woodWallRed" />
+        <Item x="5" y="3" rot="3" name="woodWallRed" />
+        <Item x="5" y="2" rot="3" name="woodWallRed" />
+        <Item x="5" y="2" rot="2" name="woodWallRed" />
+        <Item x="6" y="2" name="scout" />
+        <Item x="11" y="12" rot="1" name="haypile" />
+        <Item x="2" y="3" rot="3" name="haypile" />
+    </Items>
+    <Images >
+        <Image x="0" y="0" size="16" tileRotation="0" name="FARM_16_TILE_03" />
+    </Images>
+    <GroundDebris >
+    </GroundDebris>
+    <PyroGroup >
+    </PyroGroup>
+</Map>

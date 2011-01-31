@@ -1,0 +1,48 @@
+<Unit team="0" status="1">
+	<Stats level="1" />
+	<Inventory>
+		<Item name="AR-2" />
+		<Item name="PST" />
+		<Item name="Clip" />
+		<Item name="Clip" />
+		<Item name="Clip" />
+		<Item name="Flame" />
+		<Item name="ARM-1" />
+		<Item name="Fiber" />
+	</Inventory>
+</Unit>
+<Unit team="0" status="1">
+	<Stats level="2" />
+	<Inventory>
+		<Item name="AR-2" />
+		<Item name="SLUG" />
+		<Item name="Clip" />
+		<Item name="Clip" />
+		<Item name="Clip" />
+		<Item name="ARM-2" />
+	</Inventory>
+</Unit>
+<Unit team="0" status="1">
+	<Stats level="2" />
+	<Inventory>
+		<Item name="PLS-1" />
+		<Item name="PST" />
+		<Item name="Cell" />
+		<Item name="Cell" />
+		<Item name="Cell" />
+		<Item name="ARM-1" />
+		<Item name="Ablate" />
+	</Inventory>
+</Unit>
+<Unit team="0" status="1">
+	<Stats level="3" />
+	<Inventory>
+		<Item name="CANON" />
+		<Item name="RPG" />
+		<Item name="RPG" />
+		<Item name="PST" />
+		<Item name="Flame" />
+		<Item name="ARM-2" />
+		<Item name="Fiber" />
+	</Inventory>
+</Unit>

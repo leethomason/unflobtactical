@@ -1,0 +1,279 @@
+Issues:
+
+Bugs:
+
+Android
+- Amazon
+
+
+Deferred:
+- Android: cap framerate. Don't really need >30. A regrettably nasty problem.
+- More items: optical computer for units to enhance vision
+- Reconsider when reaction fire occurs. And probability.
+- rework fire spread & explosions.
+- 32 bit assets - xenowar logo
+- integrate profiler into main build
+Architecture
+- Map as interface
+
+
+FIXED
+- lights on lander
+- turn off debug display - move to options screen?
+- Android: switch to different application mode? Shut down on screen loss?
+- help pass
+- rotate some destroyed stuff
+- ItemDef / MapItemDef mark static. (gcc/Android)
+- convert trees to use one texture
+- need destroyed models
+- review art - fix LAND with old logo
+- city - 'open' needs a building tile
+- check for missing sounds. Added alien/terran getting zapped sounds
+- skinning for weapons
+- tighten up weapon positions on jackal
+- adjust weapons
+- exiting game from help screen deletes save game
+- add score
+- rework intro screen
+- remove 'seed'
+- remove dynamic lights
+- check alpha textures on trees (removed - not currently using)
+- mission types: city
+	- X store, wood		-
+	- X store, brick	-
+	- X warehouse		-
+	- X forest			-
+	- X cafe			+
+	- X gas station		+
+	- X trees			+
+	- X trees			o
+	- x forest			o
+	- x park			o
+	- x lander			o
+- mission types: tundra-d
+- mission types: turdra-s
+- mission types: forest-d
+- mission types: forest-s
+- mission types: desert-d
+- mission types: desert-s
+- trees show up in the wrong place
+- mission types: battleship
+- mission types: farm-d
+- mission types: farm-s
+
+FIXED [528]
+- Android: reduce scale/rotation sensitivity
+- Android: volume control
+- Android: sound drops out (GC of MediaObject)
+- check math (again yet again) in PushShootAction()
+- tweak: move AR-1 to sit more forward
+- report civ survival on score screen
+- balance weapon damage, accuracy, and character acuracy
+- big drag buttons
+- new game choices UI
+- "comp" button -> WPN??
+- shield generators
+- rework weapons and tech
+- logos switched out for 'Xenowar' style
+- calibrate accuracy
+- rework smoke and fire. too many dropouts.
+- civilians
+- auto generate crashed UFO
+- buildings / sheds for farm
+- crate stacks
+- barrels
+- mission types: scout (still need shed)
+- change terran "splat" image
+- civilians: AI, accounting in score
+- exposive items
+- game plays itself. Enhance AI so it can run fully automated.
+- alien units: don't need to start in XML. Switch to generative system.
+- fix firestorm
+- Art: better human models
+- Art: better alien models
+- Art: new weapon models
+- graphics tweaks
+	- X: weapons: move trigger to 0 line (so fire is in correct place)
+	- X: green: move trigger -x
+	- X: canon: move forward of trigger point
+	- X: pls-1: green color odd
+	- X: NEW LAYER: hit points + target: above seen/unseen, below models
+
+
+FIXED [for 490]
+- Android: UFOActivity rename
+- Android: icon
+- sound on/off UI
+- Win32: crash reporting
+- Android: sound
+- Android: debug crash logger on device
+- Android: fix the crash logger to handle binary crashes
+- Android: crash logger should send current game
+- Pinching doesn't feel right
+- Losing a fight is the equivalent of lander takeoff - need to assign MIAs
+- Initial lander activity
+- add "see into" haypiles. And possibly lander...
+- Gamui: better cache. Don't regen / layout if nothing changed.
+- Build in profiler.
+- Android: starting paused incorrect. General way to detect device loss?
+- VBO support
+- Android: DPAD/Trackball
+- Android: zoom / rotate
+- Rotated coordinates: alien arrows in wrong place
+- description of current weapon
+- switch to per-turn saving
+- lower case rounds in character screen
+- 1/2 size images for character help
+- Android: save/load
+- Android: correctly return from sleep / screen off
+- Android: RELASSERT logging
+- timestamp RELASSERT
+- mission types: crash
+- unconscious
+- liftoff button
+- restart game
+- Big beta note
+- help on intro screen
+- text on new screen (oops)
+- move fps somewhere not aweful
+- handle too many particles consistently
+- Netbook: text blinks yellow during bolts
+- Netbook: test particle (simulated using quads)
+- Netbook: render state bugs, buttons disappear
+- selection order gets strange if someone dies. Switch to linear selection??
+- faster rockets
+- last screen should show kills for KIA units
+- weapon labels don't make sense
+- inital armor / weapons needs update
+- show correct name abbreviations for clips
+- tap accuracy
+- alien doors not wide enough - block shots
+- fire generates light
+- start at action (not black screen)
+- add lander animation (and version & turn to save file...)
+- door bugs, redo door system
+- support drag in character screen
+- help in character screen
+- clean up canon
+- add slug-shooter
+- shooting UFO doors because they are too narrow.
+- cani/canx -> canon
+- grey zone where previously seen
+- AI objects 
+- add random sequence to low bits of random # gen
+- improve gamui toggle buttons - when looking for a default button, prefer visible & enabled
+- screen re-size / layout / device loss
+- click and drag unit
+- drawn edges of world
+- give aliens auto-armor
+- bug in AI memory. Need to moduarlize AI code.
+- tune unit skills, accuracy, hp, levels
+- tap tile to select unit
+- highlight model, not just feet
+- Arch: MicroGLUI separation
+- need correct colors in RenderWeapon()
+- move grid doesn't always update
+- rotation clears path
+- gameplay: rotation? reaction fire? need some advantage to flanking
+- alien hp appearing off screen
+- 'null' appears in secondary fire slot
+- resolve armor vs. hp
+- line of sight bugs
+
+FIXED [test #2]
+- Stats screen
+- Results + EXP screen
+- Pop location should never fail. (fixed enough.)
+- Art: help notes
+- Remove plants, go to trees.
+- Change reaction rules to account rotation
+- 'next' by proximity
+- selection metaphor 
+	- next/prev, click dest, click to fire?
+	- unit icons? click to select in UI?
+- gameplay
+	- crouching?
+	- rotation?
+- End game at any point (instead of just on terran end-turn)
+- Sounds
+- map generation, tile rotation (YAY! - fixed coordinate system, fixed rotation...)
+- Art: fix alien doors
+- different maps
+- proportional font
+- center on hit unit
+- AI: guard behavior
+- Armor. Affects hp. Can't change in tactical view.
+- AI: some random scout motion
+- rework low ammo weapons, fix test game
+- explosion not causing FoW update ???
+- Couldn't figure out crosshair: UI wasn't clear (rely on help)
+- showing too many particles (hide in FoW)
+- can't see who is selected / Hard to tell who the currently selected unit is.
+- Highlight looks stupid / intergrated button highlight (dark or light selected??)
+- UI covers up target icons
+- Fix: added distance check. explosive weapons should not reaction fire?? Or check for line of sight?
+- move controls to their own bar.
+- move clip to engine	
+- reconsider button placement
+- scaling
+- separate UI
+- rework low ammo weapons, fix test game
+- explosive weapons should not reaction fire?? Or check for line of sight?
+- fix issue with 2 aliens on same tile...
+- don't allow moving off of edge of map
+- account for aliens having better night vision in CalcVisibilityRay
+- all aliens should be rank0 
+- Alien HP too high / damage too low. Normalize traits.
+- need victory / defeat screen
+- call SetFogOfWar less (New visibility class defers as much calculation as possible)
+- AI: moves too close
+- better weapon accuracy calibration
+- alien turn indicator
+- AI: aliens not following LKP
+- FoW not updating properly when moving? or pausing incorrect?
+- Aliens come back to life! Or at least look that way.
+- crates could be more descriptive in their images...
+- hit point bar
+- disable controls during alien turn
+
+FIXED [test #1]
+- center on selected unit (w/ scrolling?)
+- reaction fire probability
+- weapon (in)accuracy
+- doors
+- map destruction isn't causing re-vis and reaction.
+- first unit in first slot doesn't seem to do damage correctly with rocket
+- sort out when to clear / process Events
+- reaction fire
+- sort out CalcVis vs. CalcAllVis.
+- fire - flammability
+- smoke from explosive weapons
+- smoke and fire effect visibility
+- explosive weapons
+- on object destroyed, re-calc visibility
+- remove double delay on weapon blasts
+- always fires primary weapon
+- weird delay when map objects destroyed
+- optimize CalcUnitVisibility() to look at a cone.
+- map: check "view bounds" before invalidating a unit.
+
+Deferred/Cancelled
+- mission types: alien base
+- mission types: terran base
+- phat loot / edge of map / exploration
+- performance: AI/Alien turn pauses
+? pauses when move - profiler?
+- render managers
+- tutorial notes infrastructure
+- performance: AI/Alien turn pauses
+- eject shells
+- Center engine view on clip, not full screen
+- lander animation isn't good
+- add morale
+? psi attack
+- melee weapons
+- tu in character screen
+- simultaneous shots
+- Sounds: better sounds, latency
+- Gameplay: doors are death traps if guarded...blow up doors?
+

@@ -1,0 +1,788 @@
+<Map sizeX="48" sizeY="48" >
+    <Items >
+        <Item x="44" y="45" name="ufo_controlScreen" />
+        <Item x="45" y="44" name="ufo_controlScreen" />
+        <Item x="41" y="44" rot="2" name="ufo_controlTable" />
+        <Item x="41" y="45" rot="2" name="ufo_controlTable" />
+        <Item x="41" y="46" rot="2" name="ufo_controlTable" />
+        <Item x="40" y="44" name="scout" />
+        <Item x="39" y="47" name="ufo_WallOut" />
+        <Item x="38" y="47" name="ufo_WallOut" />
+        <Item x="36" y="47" name="ufo_WallOut" />
+        <Item x="37" y="47" name="ufo_WallOut" />
+        <Item x="37" y="44" rot="2" name="ufo_power" />
+        <Item x="38" y="44" rot="2" name="ufo_power" />
+        <Item x="39" y="45" rot="2" name="ufo_power" />
+        <Item x="37" y="46" rot="2" name="ufo_power" />
+        <Item x="38" y="46" rot="2" name="ufo_power" />
+        <Item x="39" y="44" rot="1" name="ufo_power" />
+        <Item x="37" y="45" name="ufo_power" />
+        <Item x="38" y="45" rot="3" name="ufo_power" />
+        <Item x="39" y="46" rot="2" name="ufo_power" />
+        <Item x="34" y="47" name="ufo_WallOut" />
+        <Item x="35" y="47" name="ufo_WallOut" />
+        <Item x="35" y="44" name="ufo_controlTable" />
+        <Item x="35" y="45" name="ufo_controlTable" />
+        <Item x="35" y="46" name="ufo_controlTable" />
+        <Item x="32" y="45" rot="3" name="ufo_controlScreen" />
+        <Item x="33" y="46" rot="3" name="ufo_controlScreen" />
+        <Item x="33" y="44" name="scout" />
+        <Item x="31" y="44" rot="3" name="ufo_controlScreen" />
+        <Item x="12" y="47" name="ufo_WallOut" />
+        <Item x="13" y="47" name="ufo_WallOut" />
+        <Item x="14" y="44" rot="2" name="ufo_pod" />
+        <Item x="15" y="44" rot="3" name="ufo_controlTable" />
+        <Item x="12" y="44" rot="3" name="ufo_controlTable" />
+        <Item x="12" y="45" rot="3" name="ufo_tube" />
+        <Item x="15" y="45" rot="3" name="ufo_tube" />
+        <Item x="12" y="46" name="ufo_tube" />
+        <Item x="15" y="46" name="ufo_tube" />
+        <Item x="8" y="47" name="ufo_WallOut" />
+        <Item x="9" y="47" name="ufo_WallOut" />
+        <Item x="10" y="47" name="ufo_WallOut" />
+        <Item x="11" y="47" name="ufo_WallOut" />
+        <Item x="8" y="44" rot="2" name="ufo_pod" />
+        <Item x="11" y="44" rot="2" name="ufo_pod" />
+        <Item x="9" y="44" rot="3" name="ufo_controlTable" />
+        <Item x="9" y="45" rot="3" name="ufo_tube" />
+        <Item x="9" y="46" name="ufo_tube" />
+        <Item x="5" y="44" rot="2" name="ufo_pod" />
+        <Item x="6" y="44" rot="3" name="ufo_controlTable" />
+        <Item x="6" y="45" rot="3" name="ufo_tube" />
+        <Item x="6" y="46" name="ufo_tube" />
+        <Item x="46" y="43" name="ufo_controlScreen" />
+        <Item x="41" y="41" name="ufo_power" />
+        <Item x="42" y="41" rot="1" name="ufo_power" />
+        <Item x="43" y="41" rot="3" name="ufo_power" />
+        <Item x="42" y="40" name="ufo_power" />
+        <Item x="42" y="42" rot="3" name="ufo_power" />
+        <Item x="41" y="40" rot="3" name="ufo_tube" />
+        <Item x="43" y="40" rot="3" name="ufo_tube" />
+        <Item x="43" y="42" rot="3" name="ufo_tube" />
+        <Item x="41" y="42" rot="3" name="ufo_tube" />
+        <Item x="37" y="40" rot="2" name="ufo_tube" />
+        <Item x="37" y="41" rot="2" name="ufo_tube" />
+        <Item x="37" y="42" rot="2" name="ufo_tube" />
+        <Item x="39" y="40" rot="2" name="ufo_tube" />
+        <Item x="39" y="41" rot="2" name="ufo_tube" />
+        <Item x="39" y="42" rot="2" name="ufo_tube" />
+        <Item x="33" y="41" rot="3" name="ufo_power" />
+        <Item x="34" y="40" rot="1" name="ufo_power" />
+        <Item x="35" y="41" name="ufo_power" />
+        <Item x="34" y="41" rot="1" name="ufo_power" />
+        <Item x="34" y="42" name="ufo_power" />
+        <Item x="33" y="40" rot="3" name="ufo_tube" />
+        <Item x="35" y="40" rot="3" name="ufo_tube" />
+        <Item x="35" y="42" rot="3" name="ufo_tube" />
+        <Item x="33" y="42" rot="3" name="ufo_tube" />
+        <Item x="29" y="43" rot="2" name="ufo_WallCurve1I" />
+        <Item x="28" y="42" name="ufo_WallOut" />
+        <Item x="28" y="42" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="41" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="40" rot="1" name="ufo_WallInn" />
+        <Item x="27" y="42" name="ufo_WallOut" />
+        <Item x="26" y="42" name="ufo_WallOut" />
+        <Item x="25" y="42" name="ufo_WallOut" />
+        <Item x="24" y="42" name="ufo_WallOut" />
+        <Item x="25" y="40" name="ufo_table" />
+        <Item x="20" y="42" name="ufo_WallOut" />
+        <Item x="21" y="42" name="ufo_WallOut" />
+        <Item x="23" y="42" name="ufo_WallOut" />
+        <Item x="22" y="42" name="ufo_WallOut" />
+        <Item x="20" y="40" rot="3" name="ufo_WallInn" />
+        <Item x="20" y="42" rot="3" name="ufo_WallInn" />
+        <Item x="20" y="41" rot="3" name="ufo_WallInn" />
+        <Item x="22" y="40" name="ufo_table" />
+        <Item x="18" y="43" rot="3" name="ufo_WallCurve1I" />
+        <Item x="19" y="42" name="ufo_WallOut" />
+        <Item x="16" y="42" name="scout" />
+        <Item x="15" y="42" rot="2" name="ufo_table" />
+        <Item x="12" y="40" rot="1" name="ufo_crate0" />
+        <Item x="15" y="40" rot="1" name="ufo_crate0" />
+        <Item x="14" y="40" rot="1" name="ufo_crate2" />
+        <Item x="12" y="41" name="scout" />
+        <Item x="9" y="42" rot="2" name="ufo_table" />
+        <Item x="9" y="40" rot="3" name="ufo_crate0" />
+        <Item x="8" y="40" rot="1" name="ufo_crate2" />
+        <Item x="11" y="40" rot="1" name="ufo_crate2" />
+        <Item x="9" y="43" name="scout" />
+        <Item x="6" y="42" rot="2" name="ufo_table" />
+        <Item x="6" y="40" name="ufo_crate0" />
+        <Item x="5" y="40" rot="1" name="ufo_crate2" />
+        <Item x="6" y="41" name="scout" />
+        <Item x="2" y="40" name="guard" />
+        <Item x="3" y="42" name="guard" />
+        <Item x="47" y="39" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="38" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="37" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="36" rot="1" name="ufo_WallOut" />
+        <Item x="41" y="36" rot="2" name="ufo_tube" />
+        <Item x="42" y="36" rot="2" name="ufo_tube" />
+        <Item x="43" y="36" rot="2" name="ufo_tube" />
+        <Item x="41" y="38" rot="2" name="ufo_tube" />
+        <Item x="42" y="38" rot="2" name="ufo_tube" />
+        <Item x="43" y="38" rot="2" name="ufo_tube" />
+        <Item x="37" y="36" rot="2" name="ufo_power" />
+        <Item x="38" y="36" rot="2" name="ufo_power" />
+        <Item x="39" y="36" rot="2" name="ufo_power" />
+        <Item x="39" y="37" rot="2" name="ufo_power" />
+        <Item x="37" y="37" rot="2" name="ufo_power" />
+        <Item x="37" y="38" rot="2" name="ufo_power" />
+        <Item x="38" y="38" rot="2" name="ufo_power" />
+        <Item x="38" y="37" rot="3" name="ufo_power" />
+        <Item x="39" y="38" rot="3" name="ufo_power" />
+        <Item x="37" y="37" rot="1" name="ufo_power" />
+        <Item x="35" y="36" rot="2" name="ufo_tube" />
+        <Item x="34" y="36" rot="2" name="ufo_tube" />
+        <Item x="33" y="36" rot="2" name="ufo_tube" />
+        <Item x="33" y="38" rot="2" name="ufo_tube" />
+        <Item x="34" y="38" rot="2" name="ufo_tube" />
+        <Item x="35" y="38" rot="2" name="ufo_tube" />
+        <Item x="28" y="39" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="38" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="37" rot="1" name="ufo_WallInn" />
+        <Item x="30" y="37" name="guard" />
+        <Item x="25" y="38" name="ufo_table" />
+        <Item x="25" y="36" name="ufo_table" />
+        <Item x="26" y="39" name="scout" />
+        <Item x="20" y="36" rot="3" name="ufo_WallInn" />
+        <Item x="20" y="38" rot="3" name="ufo_WallInn" />
+        <Item x="20" y="37" rot="3" name="ufo_WallInn" />
+        <Item x="20" y="39" rot="3" name="ufo_WallInn" />
+        <Item x="22" y="36" name="ufo_table" />
+        <Item x="22" y="38" name="ufo_table" />
+        <Item x="21" y="37" name="scout" />
+        <Item x="17" y="36" name="ufo_CrnrInn" />
+        <Item x="16" y="36" name="ufo_WallInn" />
+        <Item x="13" y="36" rot="3" name="ufo_CrnrInn" />
+        <Item x="14" y="36" name="ufo_WallInn" />
+        <Item x="11" y="36" name="ufo_pod" />
+        <Item x="8" y="37" name="scout" />
+        <Item x="5" y="36" name="ufo_CrnrInn" />
+        <Item x="4" y="36" name="ufo_WallInn" />
+        <Item x="7" y="36" name="ufo_pod" />
+        <Item x="0" y="39" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="37" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="38" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="36" rot="3" name="ufo_WallOut" />
+        <Item x="1" y="36" rot="3" name="ufo_CrnrInn" />
+        <Item x="2" y="36" name="ufo_WallInn" />
+        <Item x="47" y="35" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="34" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="33" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="32" rot="1" name="ufo_WallOut" />
+        <Item x="44" y="33" rot="1" name="ufo_controlScreen" />
+        <Item x="41" y="32" rot="2" name="ufo_controlTable" />
+        <Item x="41" y="33" rot="2" name="ufo_controlTable" />
+        <Item x="41" y="34" rot="2" name="ufo_controlTable" />
+        <Item x="43" y="32" rot="1" name="ufo_controlScreen" />
+        <Item x="42" y="33" name="scout" />
+        <Item x="39" y="34" rot="2" name="ufo_tube" />
+        <Item x="37" y="32" rot="2" name="ufo_tube" />
+        <Item x="39" y="32" rot="2" name="ufo_tube" />
+        <Item x="37" y="34" rot="2" name="ufo_tube" />
+        <Item x="37" y="33" rot="2" name="ufo_tube" />
+        <Item x="39" y="33" rot="2" name="ufo_tube" />
+        <Item x="35" y="32" name="ufo_controlTable" />
+        <Item x="35" y="33" name="ufo_controlTable" />
+        <Item x="35" y="34" name="ufo_controlTable" />
+        <Item x="33" y="32" rot="2" name="ufo_controlScreen" />
+        <Item x="32" y="33" rot="2" name="ufo_controlScreen" />
+        <Item x="34" y="34" name="scout" />
+        <Item x="28" y="33" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="32" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="33" name="guard" />
+        <Item x="25" y="32" name="ufo_table" />
+        <Item x="25" y="34" name="ufo_table" />
+        <Item x="25" y="33" name="scout" />
+        <Item x="20" y="35" rot="3" name="ufo_WallInn" />
+        <Item x="20" y="34" rot="3" name="ufo_WallInn" />
+        <Item x="20" y="32" rot="3" name="ufo_WallInn" />
+        <Item x="20" y="33" rot="3" name="ufo_WallInn" />
+        <Item x="22" y="32" name="ufo_table" />
+        <Item x="22" y="34" name="ufo_table" />
+        <Item x="20" y="32" name="guard" />
+        <Item x="17" y="35" rot="1" name="ufo_WallInn" />
+        <Item x="17" y="34" rot="1" name="ufo_WallInn" />
+        <Item x="17" y="33" rot="1" name="ufo_WallInn" />
+        <Item x="17" y="32" rot="1" name="ufo_WallInn" />
+        <Item x="16" y="33" rot="3" name="ufo_tube" />
+        <Item x="16" y="35" rot="3" name="ufo_tube" />
+        <Item x="13" y="32" rot="3" name="ufo_WallInn" />
+        <Item x="13" y="33" rot="3" name="ufo_WallInn" />
+        <Item x="13" y="34" rot="3" name="ufo_WallInn" />
+        <Item x="13" y="35" rot="3" name="ufo_WallInn" />
+        <Item x="14" y="33" rot="3" name="ufo_tube" />
+        <Item x="14" y="35" rot="3" name="ufo_tube" />
+        <Item x="13" y="33" name="scout" />
+        <Item x="11" y="35" name="ufo_CrnrInn" />
+        <Item x="11" y="32" rot="1" name="ufo_WallInn" />
+        <Item x="11" y="33" rot="1" name="ufo_WallInn" />
+        <Item x="11" y="34" rot="1" name="ufo_WallInn" />
+        <Item x="10" y="35" name="ufo_WallInn" />
+        <Item x="8" y="35" name="ufo_WallInn" />
+        <Item x="10" y="33" rot="3" name="ufo_pod" />
+        <Item x="10" y="34" rot="3" name="ufo_pod" />
+        <Item x="8" y="33" rot="3" name="ufo_tube" />
+        <Item x="8" y="34" rot="3" name="ufo_tube" />
+        <Item x="9" y="32" name="scout" />
+        <Item x="7" y="35" rot="3" name="ufo_CrnrInn" />
+        <Item x="7" y="32" rot="3" name="ufo_WallInn" />
+        <Item x="7" y="33" rot="3" name="ufo_WallInn" />
+        <Item x="7" y="34" rot="3" name="ufo_WallInn" />
+        <Item x="5" y="32" rot="1" name="ufo_WallInn" />
+        <Item x="5" y="35" rot="1" name="ufo_WallInn" />
+        <Item x="5" y="34" rot="1" name="ufo_WallInn" />
+        <Item x="5" y="33" rot="1" name="ufo_WallInn" />
+        <Item x="5" y="32" rot="3" name="ufo_pod" />
+        <Item x="5" y="33" rot="3" name="ufo_pod" />
+        <Item x="5" y="34" rot="3" name="ufo_pod" />
+        <Item x="5" y="35" rot="3" name="ufo_pod" />
+        <Item x="4" y="33" name="scout" />
+        <Item x="0" y="35" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="33" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="34" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="32" rot="3" name="ufo_WallOut" />
+        <Item x="1" y="32" rot="3" name="ufo_WallInn" />
+        <Item x="1" y="33" rot="3" name="ufo_WallInn" />
+        <Item x="1" y="34" rot="3" name="ufo_WallInn" />
+        <Item x="1" y="35" rot="3" name="ufo_WallInn" />
+        <Item x="1" y="32" rot="1" name="ufo_pod" />
+        <Item x="1" y="33" rot="1" name="ufo_pod" />
+        <Item x="1" y="34" rot="1" name="ufo_pod" />
+        <Item x="1" y="35" rot="1" name="ufo_pod" />
+        <Item x="3" y="35" rot="3" name="ufo_pod" />
+        <Item x="3" y="33" rot="3" name="ufo_power" />
+        <Item x="3" y="34" rot="3" name="ufo_power" />
+        <Item x="47" y="31" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="30" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="29" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="28" rot="1" name="ufo_WallOut" />
+        <Item x="38" y="28" name="guard" />
+        <Item x="35" y="28" name="guard" />
+        <Item x="28" y="31" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="30" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="29" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="28" rot="1" name="ufo_CrnrInn" />
+        <Item x="30" y="31" name="guard" />
+        <Item x="27" y="28" rot="2" name="ufo_WallInn" />
+        <Item x="25" y="29" name="ufo_table" />
+        <Item x="22" y="29" name="ufo_table" />
+        <Item x="23" y="30" name="scout" />
+        <Item x="19" y="28" rot="1" name="ufo_WallInn" />
+        <Item x="19" y="29" name="ufo_CrnrInn" />
+        <Item x="18" y="29" name="ufo_WallInn" />
+        <Item x="17" y="29" name="ufo_WallInn" />
+        <Item x="16" y="29" name="ufo_WallInn" />
+        <Item x="18" y="28" name="ufo_statue0" />
+        <Item x="16" y="28" name="ufo_statue0" />
+        <Item x="17" y="28" rot="3" name="ufo_plant0" />
+        <Item x="18" y="29" name="ufo_plant1" />
+        <Item x="17" y="31" rot="1" name="ufo_CrnrInn" />
+        <Item x="16" y="31" rot="2" name="ufo_WallInn" />
+        <Item x="16" y="31" name="ufo_pod" />
+        <Item x="15" y="29" name="ufo_WallInn" />
+        <Item x="14" y="29" name="ufo_WallInn" />
+        <Item x="13" y="29" name="ufo_WallInn" />
+        <Item x="12" y="29" name="ufo_WallInn" />
+        <Item x="14" y="28" name="ufo_statue0" />
+        <Item x="12" y="28" name="ufo_statue0" />
+        <Item x="13" y="28" rot="2" name="ufo_plant0" />
+        <Item x="15" y="28" rot="1" name="ufo_plant1" />
+        <Item x="12" y="29" rot="3" name="ufo_plant1" />
+        <Item x="13" y="31" rot="2" name="ufo_CrnrInn" />
+        <Item x="15" y="31" rot="2" name="ufo_WallInn" />
+        <Item x="14" y="31" rot="2" name="ufo_WallInn" />
+        <Item x="15" y="31" rot="3" name="ufo_controlTable" />
+        <Item x="14" y="31" name="ufo_pod" />
+        <Item x="10" y="29" name="ufo_WallInn" />
+        <Item x="11" y="29" name="ufo_WallInn" />
+        <Item x="9" y="29" name="ufo_WallInn" />
+        <Item x="8" y="29" name="ufo_WallInn" />
+        <Item x="10" y="28" name="ufo_statue0" />
+        <Item x="8" y="28" name="ufo_statue0" />
+        <Item x="11" y="28" rot="2" name="ufo_plant1" />
+        <Item x="9" y="29" name="ufo_plant1" />
+        <Item x="11" y="31" rot="1" name="ufo_CrnrInn" />
+        <Item x="10" y="31" rot="2" name="ufo_WallInn" />
+        <Item x="9" y="31" rot="2" name="ufo_WallInn" />
+        <Item x="8" y="31" rot="2" name="ufo_WallInn" />
+        <Item x="9" y="31" rot="3" name="ufo_controlTable" />
+        <Item x="6" y="29" name="ufo_WallInn" />
+        <Item x="7" y="29" name="ufo_WallInn" />
+        <Item x="5" y="29" name="ufo_WallInn" />
+        <Item x="4" y="29" name="ufo_WallInn" />
+        <Item x="6" y="28" name="ufo_statue0" />
+        <Item x="4" y="28" name="ufo_statue0" />
+        <Item x="7" y="28" rot="3" name="ufo_plant0" />
+        <Item x="5" y="28" rot="1" name="ufo_plant1" />
+        <Item x="7" y="31" rot="2" name="ufo_CrnrInn" />
+        <Item x="5" y="31" rot="1" name="ufo_CrnrInn" />
+        <Item x="4" y="31" rot="2" name="ufo_WallInn" />
+        <Item x="0" y="30" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="31" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="29" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="28" rot="3" name="ufo_WallOut" />
+        <Item x="3" y="29" name="ufo_WallInn" />
+        <Item x="2" y="29" name="ufo_WallInn" />
+        <Item x="3" y="28" rot="2" name="ufo_plant0" />
+        <Item x="1" y="31" rot="2" name="ufo_CrnrInn" />
+        <Item x="3" y="31" rot="2" name="ufo_WallInn" />
+        <Item x="2" y="31" rot="2" name="ufo_WallInn" />
+        <Item x="3" y="31" rot="3" name="ufo_controlTable" />
+        <Item x="47" y="27" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="26" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="25" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="24" rot="1" name="ufo_WallOut" />
+        <Item x="44" y="27" name="ufo_WallInn" />
+        <Item x="45" y="27" name="ufo_WallInn" />
+        <Item x="47" y="27" name="ufo_WallInn" />
+        <Item x="44" y="26" rot="2" name="ufo_statue0" />
+        <Item x="44" y="25" name="guard" />
+        <Item x="40" y="27" name="ufo_WallInn" />
+        <Item x="41" y="27" name="ufo_WallInn" />
+        <Item x="42" y="27" name="ufo_WallInn" />
+        <Item x="43" y="27" name="ufo_WallInn" />
+        <Item x="41" y="27" rot="3" name="ufo_controlTable" />
+        <Item x="42" y="27" rot="3" name="ufo_controlTable" />
+        <Item x="37" y="27" rot="3" name="ufo_CrnrInn" />
+        <Item x="37" y="25" rot="3" name="ufo_WallInn" />
+        <Item x="37" y="26" rot="3" name="ufo_WallInn" />
+        <Item x="38" y="27" name="ufo_WallInn" />
+        <Item x="39" y="27" name="ufo_WallInn" />
+        <Item x="38" y="26" name="ufo_statue0" />
+        <Item x="38" y="25" name="guard" />
+        <Item x="35" y="27" name="ufo_CrnrInn" />
+        <Item x="32" y="27" name="ufo_WallInn" />
+        <Item x="33" y="27" name="ufo_WallInn" />
+        <Item x="34" y="27" name="ufo_WallInn" />
+        <Item x="35" y="26" rot="1" name="ufo_WallInn" />
+        <Item x="35" y="25" rot="1" name="ufo_WallInn" />
+        <Item x="35" y="25" rot="2" name="ufo_controlScreen" />
+        <Item x="34" y="26" rot="2" name="ufo_controlScreen" />
+        <Item x="33" y="27" rot="2" name="ufo_controlScreen" />
+        <Item x="32" y="27" rot="3" name="ufo_controlTable" />
+        <Item x="33" y="26" name="guard" />
+        <Item x="32" y="24" name="scout" />
+        <Item x="28" y="27" rot="3" name="ufo_CrnrInn" />
+        <Item x="29" y="27" name="ufo_WallInn" />
+        <Item x="30" y="27" name="ufo_WallInn" />
+        <Item x="31" y="27" name="ufo_WallInn" />
+        <Item x="28" y="25" rot="1" name="ufo_controlScreen" />
+        <Item x="29" y="26" rot="1" name="ufo_controlScreen" />
+        <Item x="30" y="27" rot="1" name="ufo_controlScreen" />
+        <Item x="31" y="27" rot="3" name="ufo_controlTable" />
+        <Item x="30" y="26" name="guard" />
+        <Item x="27" y="25" rot="1" name="ufo_WallInn" />
+        <Item x="27" y="26" rot="1" name="ufo_WallInn" />
+        <Item x="27" y="27" name="ufo_CrnrInn" />
+        <Item x="25" y="27" name="ufo_WallInn" />
+        <Item x="26" y="27" name="ufo_WallInn" />
+        <Item x="24" y="27" name="ufo_WallInn" />
+        <Item x="24" y="25" rot="1" name="ufo_controlTable" />
+        <Item x="25" y="25" rot="3" name="ufo_controlScreen" />
+        <Item x="25" y="24" rot="2" name="ufo_controlTable" />
+        <Item x="24" y="24" rot="2" name="ufo_tube" />
+        <Item x="27" y="27" name="guard" />
+        <Item x="20" y="27" rot="3" name="ufo_CrnrInn" />
+        <Item x="20" y="26" rot="3" name="ufo_WallInn" />
+        <Item x="20" y="25" rot="3" name="ufo_WallInn" />
+        <Item x="21" y="27" name="ufo_WallInn" />
+        <Item x="23" y="27" name="ufo_WallInn" />
+        <Item x="22" y="27" name="ufo_WallInn" />
+        <Item x="23" y="25" rot="1" name="ufo_controlTable" />
+        <Item x="22" y="25" rot="2" name="ufo_controlScreen" />
+        <Item x="22" y="24" name="ufo_controlTable" />
+        <Item x="23" y="24" rot="2" name="ufo_tube" />
+        <Item x="21" y="24" name="scout" />
+        <Item x="19" y="25" rot="1" name="ufo_WallInn" />
+        <Item x="19" y="27" rot="1" name="ufo_WallInn" />
+        <Item x="19" y="26" rot="1" name="ufo_WallInn" />
+        <Item x="19" y="25" rot="2" name="ufo_plant0" />
+        <Item x="17" y="27" rot="3" name="ufo_plant0" />
+        <Item x="18" y="27" rot="2" name="ufo_plant1" />
+        <Item x="19" y="26" rot="2" name="ufo_plant1" />
+        <Item x="15" y="27" name="ufo_plant0" />
+        <Item x="13" y="27" rot="3" name="ufo_plant1" />
+        <Item x="15" y="25" name="obelisk" />
+        <Item x="11" y="27" rot="2" name="ufo_plant0" />
+        <Item x="5" y="27" rot="1" name="ufo_plant0" />
+        <Item x="7" y="27" name="ufo_plant1" />
+        <Item x="6" y="25" name="obelisk" />
+        <Item x="7" y="25" name="scout" />
+        <Item x="0" y="27" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="26" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="25" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="24" rot="3" name="ufo_WallOut" />
+        <Item x="2" y="27" name="guard" />
+        <Item x="2" y="25" name="guard" />
+        <Item x="47" y="22" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="23" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="21" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="20" rot="1" name="ufo_WallOut" />
+        <Item x="44" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="45" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="47" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="44" y="21" rot="2" name="ufo_statue0" />
+        <Item x="44" y="22" name="guard" />
+        <Item x="41" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="40" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="42" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="43" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="42" y="20" rot="1" name="ufo_controlTable" />
+        <Item x="41" y="20" rot="1" name="ufo_controlTable" />
+        <Item x="41" y="21" name="scout" />
+        <Item x="37" y="20" rot="2" name="ufo_CrnrInn" />
+        <Item x="37" y="22" rot="3" name="ufo_WallInn" />
+        <Item x="37" y="21" rot="3" name="ufo_WallInn" />
+        <Item x="38" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="39" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="38" y="21" name="ufo_statue0" />
+        <Item x="38" y="22" name="guard" />
+        <Item x="35" y="20" rot="1" name="ufo_CrnrInn" />
+        <Item x="34" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="33" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="32" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="35" y="21" rot="1" name="ufo_WallInn" />
+        <Item x="35" y="22" rot="1" name="ufo_WallInn" />
+        <Item x="35" y="22" rot="3" name="ufo_controlScreen" />
+        <Item x="34" y="21" rot="3" name="ufo_controlScreen" />
+        <Item x="32" y="20" rot="1" name="ufo_controlTable" />
+        <Item x="28" y="20" rot="2" name="ufo_CrnrInn" />
+        <Item x="31" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="30" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="29" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="28" y="22" name="ufo_controlScreen" />
+        <Item x="29" y="21" name="ufo_controlScreen" />
+        <Item x="31" y="20" rot="1" name="ufo_controlTable" />
+        <Item x="31" y="22" name="scout" />
+        <Item x="24" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="25" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="27" y="22" rot="1" name="ufo_WallInn" />
+        <Item x="27" y="21" rot="1" name="ufo_WallInn" />
+        <Item x="26" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="27" y="20" rot="1" name="ufo_CrnrInn" />
+        <Item x="24" y="22" rot="3" name="ufo_controlTable" />
+        <Item x="25" y="22" name="ufo_controlScreen" />
+        <Item x="25" y="23" rot="2" name="ufo_controlTable" />
+        <Item x="24" y="23" rot="2" name="ufo_tube" />
+        <Item x="27" y="20" name="guard" />
+        <Item x="26" y="23" name="scout" />
+        <Item x="20" y="22" rot="3" name="ufo_WallInn" />
+        <Item x="23" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="22" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="21" y="20" rot="2" name="ufo_WallInn" />
+        <Item x="20" y="20" rot="2" name="ufo_CrnrInn" />
+        <Item x="20" y="21" rot="3" name="ufo_WallInn" />
+        <Item x="23" y="22" rot="3" name="ufo_controlTable" />
+        <Item x="22" y="22" rot="1" name="ufo_controlScreen" />
+        <Item x="22" y="23" name="ufo_controlTable" />
+        <Item x="23" y="23" rot="2" name="ufo_tube" />
+        <Item x="21" y="22" name="scout" />
+        <Item x="19" y="20" rot="1" name="ufo_WallInn" />
+        <Item x="19" y="21" rot="1" name="ufo_WallInn" />
+        <Item x="19" y="22" rot="1" name="ufo_WallInn" />
+        <Item x="17" y="20" name="ufo_plant0" />
+        <Item x="19" y="21" rot="1" name="ufo_plant0" />
+        <Item x="16" y="20" rot="3" name="ufo_plant1" />
+        <Item x="15" y="22" name="obelisk" />
+        <Item x="14" y="21" name="scout" />
+        <Item x="8" y="20" rot="2" name="ufo_plant0" />
+        <Item x="6" y="22" name="obelisk" />
+        <Item x="4" y="23" name="scout" />
+        <Item x="0" y="23" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="21" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="22" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="20" rot="3" name="ufo_WallOut" />
+        <Item x="2" y="20" name="guard" />
+        <Item x="2" y="22" name="guard" />
+        <Item x="47" y="16" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="19" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="18" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="17" rot="1" name="ufo_WallOut" />
+        <Item x="44" y="18" rot="2" name="ufo_crate0" />
+        <Item x="43" y="17" rot="2" name="ufo_crate1" />
+        <Item x="42" y="18" rot="2" name="ufo_crate0" />
+        <Item x="42" y="17" rot="2" name="ufo_crate0" />
+        <Item x="41" y="16" rot="2" name="ufo_crate1" />
+        <Item x="41" y="17" rot="2" name="ufo_crate0" />
+        <Item x="42" y="16" rot="2" name="ufo_crate2" />
+        <Item x="38" y="18" name="scout" />
+        <Item x="33" y="18" rot="1" name="ufo_tube" />
+        <Item x="34" y="18" rot="1" name="ufo_tube" />
+        <Item x="28" y="19" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="18" rot="1" name="ufo_WallInn" />
+        <Item x="30" y="18" rot="1" name="ufo_tube" />
+        <Item x="31" y="18" rot="1" name="ufo_tube" />
+        <Item x="16" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="17" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="18" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="19" y="18" rot="1" name="ufo_CrnrInn" />
+        <Item x="19" y="19" rot="1" name="ufo_WallInn" />
+        <Item x="18" y="19" name="ufo_statue0" />
+        <Item x="16" y="19" name="ufo_statue0" />
+        <Item x="17" y="18" rot="3" name="ufo_plant0" />
+        <Item x="19" y="19" name="ufo_plant1" />
+        <Item x="18" y="18" rot="1" name="ufo_plant1" />
+        <Item x="14" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="15" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="13" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="12" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="14" y="19" name="ufo_statue0" />
+        <Item x="12" y="19" name="ufo_statue0" />
+        <Item x="15" y="18" rot="2" name="ufo_plant0" />
+        <Item x="13" y="19" name="ufo_plant0" />
+        <Item x="15" y="19" rot="2" name="ufo_plant1" />
+        <Item x="11" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="10" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="9" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="8" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="10" y="19" name="ufo_statue0" />
+        <Item x="8" y="19" name="ufo_statue0" />
+        <Item x="11" y="18" rot="3" name="ufo_plant1" />
+        <Item x="9" y="19" rot="3" name="ufo_plant1" />
+        <Item x="10" y="18" rot="2" name="ufo_plant0" />
+        <Item x="7" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="6" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="4" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="5" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="6" y="19" name="ufo_statue0" />
+        <Item x="4" y="19" name="ufo_statue0" />
+        <Item x="7" y="18" name="ufo_plant1" />
+        <Item x="5" y="19" rot="1" name="ufo_plant1" />
+        <Item x="5" y="18" rot="3" name="ufo_plant0" />
+        <Item x="7" y="19" rot="1" name="ufo_plant0" />
+        <Item x="0" y="18" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="19" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="16" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="17" rot="3" name="ufo_WallOut" />
+        <Item x="2" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="3" y="18" rot="2" name="ufo_WallInn" />
+        <Item x="3" y="18" rot="2" name="ufo_plant0" />
+        <Item x="47" y="13" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="12" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="14" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="15" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="12" name="ufo_controlTable" />
+        <Item x="36" y="12" name="scout" />
+        <Item x="28" y="15" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="14" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="13" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="12" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="15" name="ufo_WallInn" />
+        <Item x="28" y="12" rot="3" name="ufo_crate1" />
+        <Item x="28" y="14" rot="1" name="ufo_crate1" />
+        <Item x="30" y="13" rot="1" name="ufo_tube" />
+        <Item x="30" y="14" rot="1" name="ufo_tube" />
+        <Item x="31" y="14" name="scout" />
+        <Item x="24" y="15" name="ufo_WallInn" />
+        <Item x="25" y="15" name="ufo_WallInn" />
+        <Item x="27" y="15" name="ufo_WallInn" />
+        <Item x="26" y="15" name="ufo_WallInn" />
+        <Item x="27" y="13" name="ufo_crate0" />
+        <Item x="27" y="15" name="ufo_crate0" />
+        <Item x="26" y="14" name="guard" />
+        <Item x="20" y="15" name="ufo_WallInn" />
+        <Item x="21" y="15" name="ufo_WallInn" />
+        <Item x="23" y="12" rot="1" name="ufo_WallInn" />
+        <Item x="21" y="12" rot="3" name="ufo_WallInn" />
+        <Item x="16" y="15" name="ufo_WallInn" />
+        <Item x="17" y="15" name="ufo_WallInn" />
+        <Item x="18" y="15" name="ufo_WallInn" />
+        <Item x="19" y="15" name="ufo_WallInn" />
+        <Item x="17" y="12" rot="1" name="ufo_WallInn" />
+        <Item x="16" y="12" rot="1" name="crate1" />
+        <Item x="16" y="14" rot="1" name="crate1" />
+        <Item x="16" y="15" rot="1" name="crate0" />
+        <Item x="18" y="12" name="ufo_crate1" />
+        <Item x="19" y="13" name="scout" />
+        <Item x="13" y="15" name="ufo_WallInn" />
+        <Item x="14" y="15" name="ufo_WallInn" />
+        <Item x="15" y="13" rot="1" name="ufo_WallInn" />
+        <Item x="15" y="14" rot="1" name="ufo_WallInn" />
+        <Item x="15" y="12" rot="1" name="ufo_WallInn" />
+        <Item x="15" y="15" name="ufo_CrnrInn" />
+        <Item x="15" y="12" rot="1" name="ufo_crate2" />
+        <Item x="15" y="14" rot="2" name="ufo_crate2" />
+        <Item x="12" y="13" name="guard" />
+        <Item x="13" y="14" name="scout" />
+        <Item x="8" y="15" name="ufo_WallInn" />
+        <Item x="9" y="15" name="ufo_WallInn" />
+        <Item x="10" y="15" name="ufo_WallInn" />
+        <Item x="11" y="15" name="ufo_WallInn" />
+        <Item x="8" y="15" rot="1" name="ufo_WallInn" />
+        <Item x="8" y="14" rot="1" name="ufo_WallInn" />
+        <Item x="8" y="13" rot="1" name="ufo_WallInn" />
+        <Item x="8" y="12" rot="1" name="ufo_WallInn" />
+        <Item x="10" y="12" rot="1" name="ufo_crate0" />
+        <Item x="9" y="13" rot="1" name="ufo_crate0" />
+        <Item x="8" y="12" rot="2" name="ufo_crate0" />
+        <Item x="9" y="12" rot="3" name="ufo_crate1" />
+        <Item x="8" y="13" name="ufo_crate2" />
+        <Item x="4" y="12" rot="3" name="ufo_WallInn" />
+        <Item x="4" y="13" rot="3" name="ufo_WallInn" />
+        <Item x="4" y="14" rot="3" name="ufo_WallInn" />
+        <Item x="4" y="15" rot="3" name="ufo_CrnrInn" />
+        <Item x="6" y="15" name="ufo_WallInn" />
+        <Item x="7" y="15" name="ufo_WallInn" />
+        <Item x="5" y="12" rot="2" name="ufo_crate0" />
+        <Item x="7" y="14" rot="3" name="ufo_crate0" />
+        <Item x="6" y="13" name="scout" />
+        <Item x="0" y="15" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="13" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="14" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="12" rot="3" name="ufo_WallOut" />
+        <Item x="3" y="14" name="guard" />
+        <Item x="47" y="8" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="10" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="9" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="11" rot="1" name="ufo_WallOut" />
+        <Item x="47" y="10" name="ufo_controlTable" />
+        <Item x="47" y="11" name="ufo_controlTable" />
+        <Item x="46" y="11" name="scout" />
+        <Item x="42" y="11" name="scout" />
+        <Item x="32" y="8" name="ufo_drone" />
+        <Item x="28" y="8" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="11" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="9" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="10" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="9" rot="3" name="ufo_crate1" />
+        <Item x="28" y="11" rot="2" name="ufo_crate1" />
+        <Item x="28" y="8" rot="3" name="ufo_crate2" />
+        <Item x="28" y="10" rot="3" name="ufo_crate2" />
+        <Item x="30" y="8" rot="1" name="ufo_tube" />
+        <Item x="30" y="10" rot="1" name="ufo_tube" />
+        <Item x="30" y="11" rot="1" name="ufo_tube" />
+        <Item x="27" y="10" rot="1" name="ufo_crate0" />
+        <Item x="24" y="8" name="ufo_crate1" />
+        <Item x="24" y="9" rot="2" name="ufo_crate2" />
+        <Item x="26" y="9" name="scout" />
+        <Item x="21" y="8" rot="3" name="ufo_WallInn" />
+        <Item x="21" y="9" rot="3" name="ufo_WallInn" />
+        <Item x="21" y="10" rot="3" name="ufo_WallInn" />
+        <Item x="23" y="8" rot="1" name="ufo_WallInn" />
+        <Item x="23" y="9" rot="1" name="ufo_WallInn" />
+        <Item x="23" y="10" rot="1" name="ufo_WallInn" />
+        <Item x="23" y="11" rot="1" name="ufo_WallInn" />
+        <Item x="21" y="11" rot="3" name="ufo_WallInn" />
+        <Item x="20" y="10" rot="3" name="ufo_crate0" />
+        <Item x="21" y="11" rot="3" name="ufo_crate0" />
+        <Item x="21" y="8" rot="1" name="ufo_crate0" />
+        <Item x="23" y="8" name="ufo_crate0" />
+        <Item x="23" y="9" name="ufo_crate0" />
+        <Item x="23" y="11" rot="3" name="ufo_crate0" />
+        <Item x="21" y="9" rot="1" name="ufo_crate1" />
+        <Item x="21" y="10" rot="2" name="ufo_crate2" />
+        <Item x="22" y="10" name="scout" />
+        <Item x="17" y="8" rot="1" name="ufo_WallInn" />
+        <Item x="17" y="10" name="ufo_CrnrInn" />
+        <Item x="16" y="10" name="ufo_WallInn" />
+        <Item x="17" y="9" rot="1" name="ufo_WallInn" />
+        <Item x="17" y="11" rot="1" name="ufo_WallInn" />
+        <Item x="16" y="11" rot="1" name="crate0" />
+        <Item x="17" y="11" name="crate0" />
+        <Item x="18" y="9" rot="2" name="ufo_crate0" />
+        <Item x="18" y="11" rot="2" name="ufo_crate0" />
+        <Item x="18" y="8" name="ufo_crate1" />
+        <Item x="18" y="10" rot="2" name="ufo_crate1" />
+        <Item x="15" y="10" name="ufo_WallInn" />
+        <Item x="14" y="10" name="ufo_WallInn" />
+        <Item x="13" y="10" name="ufo_WallInn" />
+        <Item x="12" y="10" name="ufo_WallInn" />
+        <Item x="15" y="11" rot="1" name="ufo_WallInn" />
+        <Item x="15" y="11" name="ufo_crate0" />
+        <Item x="13" y="11" rot="1" name="ufo_crate0" />
+        <Item x="14" y="11" rot="3" name="ufo_crate1" />
+        <Item x="11" y="10" name="ufo_WallInn" />
+        <Item x="10" y="10" name="ufo_WallInn" />
+        <Item x="9" y="10" name="ufo_WallInn" />
+        <Item x="8" y="10" name="ufo_WallInn" />
+        <Item x="8" y="11" rot="1" name="ufo_WallInn" />
+        <Item x="11" y="11" name="ufo_crate1" />
+        <Item x="9" y="11" rot="2" name="ufo_crate1" />
+        <Item x="7" y="10" name="ufo_WallInn" />
+        <Item x="6" y="10" name="ufo_WallInn" />
+        <Item x="5" y="10" name="ufo_WallInn" />
+        <Item x="4" y="10" name="ufo_WallInn" />
+        <Item x="4" y="11" rot="3" name="ufo_WallInn" />
+        <Item x="4" y="11" rot="3" name="ufo_crate1" />
+        <Item x="5" y="11" name="ufo_crate2" />
+        <Item x="0" y="8" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="9" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="10" rot="3" name="ufo_WallOut" />
+        <Item x="0" y="11" rot="3" name="ufo_WallOut" />
+        <Item x="45" y="4" name="ufo_crate1" />
+        <Item x="45" y="5" name="ufo_crate0" />
+        <Item x="45" y="6" rot="3" name="ufo_crate0" />
+        <Item x="45" y="7" rot="2" name="ufo_crate1" />
+        <Item x="46" y="6" rot="2" name="ufo_crate1" />
+        <Item x="46" y="7" rot="2" name="ufo_crate2" />
+        <Item x="36" y="6" name="scout" />
+        <Item x="28" y="5" rot="2" name="ufo_WallOut" />
+        <Item x="29" y="4" rot="1" name="ufo_WallCurve1I" />
+        <Item x="28" y="7" rot="1" name="ufo_WallInn" />
+        <Item x="28" y="7" rot="2" name="ufo_WallInn" />
+        <Item x="28" y="7" rot="1" name="ufo_crate1" />
+        <Item x="30" y="7" rot="1" name="ufo_tube" />
+        <Item x="24" y="5" rot="2" name="ufo_WallOut" />
+        <Item x="25" y="5" rot="2" name="ufo_WallOut" />
+        <Item x="26" y="5" rot="2" name="ufo_WallOut" />
+        <Item x="27" y="5" rot="2" name="ufo_WallOut" />
+        <Item x="24" y="7" rot="2" name="ufo_WallInn" />
+        <Item x="26" y="7" rot="2" name="ufo_WallInn" />
+        <Item x="27" y="7" rot="2" name="ufo_WallInn" />
+        <Item x="27" y="7" rot="3" name="ufo_crate0" />
+        <Item x="24" y="7" name="ufo_crate2" />
+        <Item x="20" y="5" rot="2" name="ufo_WallOut" />
+        <Item x="21" y="5" rot="2" name="ufo_WallOut" />
+        <Item x="22" y="5" rot="2" name="ufo_WallOut" />
+        <Item x="23" y="5" rot="2" name="ufo_WallOut" />
+        <Item x="20" y="7" rot="2" name="ufo_WallInn" />
+        <Item x="21" y="7" rot="2" name="ufo_WallInn" />
+        <Item x="21" y="7" rot="3" name="ufo_WallInn" />
+        <Item x="23" y="7" rot="2" name="ufo_WallInn" />
+        <Item x="23" y="7" rot="1" name="ufo_WallInn" />
+        <Item x="20" y="7" rot="1" name="ufo_crate0" />
+        <Item x="23" y="7" name="ufo_crate2" />
+        <Item x="18" y="4" name="ufo_WallCurve1I" />
+        <Item x="19" y="5" rot="2" name="ufo_WallOut" />
+        <Item x="17" y="7" rot="1" name="ufo_WallInn" />
+        <Item x="18" y="7" rot="2" name="ufo_WallInn" />
+        <Item x="18" y="7" name="ufo_crate0" />
+        <Item x="38" y="0" rot="2" name="ufo_WallOut" />
+        <Item x="39" y="0" rot="2" name="ufo_WallOut" />
+        <Item x="36" y="0" rot="2" name="ufo_WallOut" />
+        <Item x="37" y="0" rot="2" name="ufo_WallOut" />
+        <Item x="35" y="0" rot="2" name="ufo_WallOut" />
+        <Item x="34" y="0" rot="2" name="ufo_WallOut" />
+        <Item x="12" y="0" rot="2" name="ufo_WallOut" />
+        <Item x="13" y="0" rot="2" name="ufo_WallOut" />
+        <Item x="8" y="0" rot="2" name="ufo_WallOut" />
+        <Item x="9" y="0" rot="2" name="ufo_WallOut" />
+        <Item x="11" y="0" rot="2" name="ufo_WallOut" />
+        <Item x="10" y="0" rot="2" name="ufo_WallOut" />
+        <Item x="40" y="40" name="ufo_WallCurve8" />
+        <Item x="12" y="42" rot="2" name="ufo_table" />
+        <Item x="7" y="40" rot="3" name="ufo_WallCurve8" />
+        <Item x="40" y="7" rot="1" name="ufo_WallCurve8" />
+        <Item x="32" y="2" name="ufo_drone" />
+        <Item x="7" y="7" rot="2" name="ufo_WallCurve8" />
+        <Item x="33" y="24" rot="1" name="ufo_table" />
+        <Item x="30" y="23" rot="3" name="ufo_table" />
+        <Item x="9" y="22" name="pyramid_4" />
+        <Item x="37" y="2" name="ufo_drone" />
+        <Item x="37" y="8" name="ufo_drone" />
+        <Item x="6" y="7" rot="1" name="lander" />
+        <Item x="14" y="44" name="ufo_WallCurve4" />
+        <Item x="14" y="3" rot="1" name="ufo_WallCurve4" />
+        <Item x="33" y="3" rot="2" name="ufo_WallCurve4" />
+        <Item x="33" y="44" rot="3" name="ufo_WallCurve4" />
+    </Items>
+    <Images >
+        <Image x="0" y="0" size="48" tileRotation="0" name="BATT_48_TILE_00" />
+    </Images>
+    <GroundDebris >
+    </GroundDebris>
+    <PyroGroup >
+    </PyroGroup>
+</Map>
