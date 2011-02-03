@@ -32,6 +32,12 @@ int   WeaponItemDef::accHit = 0;
 int   WeaponItemDef::accTotal = 0;
 
 
+void DamageDesc::MapDamage( MapDamageDesc* damage )
+{
+	damage->damage = kinetic + energy;
+	damage->incendiary = incend;
+}
+
 
 void ItemDef::InitBase( const char* name, const char* desc, int deco, const ModelResource* resource )
 {
@@ -185,9 +191,9 @@ void WeaponItemDef::DamageBase( WeaponMode mode, DamageDesc* d ) const
 	GLASSERT( weapon[select].clipItemDef );
 	*d = weapon[select].clipItemDef->dd;
 
-	if ( weapon[select].flags & WEAPON_INCINDIARY ) {
-		if ( d->incind < 0.5f ) {
-			d->incind = 0.5f;
+	if ( weapon[select].flags & WEAPON_INCENDIARY ) {
+		if ( d->incend < 0.5f ) {
+			d->incend = 0.5f;
 			d->Normalize();
 		}
 	}
@@ -567,3 +573,5 @@ const ItemDef* ItemDefArr::Query( int id ) const
 	GLASSERT( id >= 0 && id < EL_MAX_ITEM_DEFS );
 	return arr[id];
 }
+
+

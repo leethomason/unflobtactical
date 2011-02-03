@@ -20,6 +20,9 @@
 
 #include "game.h"
 #include "cgame.h"
+#include "ufosound.h"
+#include "settings.h"
+#include "tacmap.h"
 
 #include "../engine/uirendering.h"
 #include "../engine/particle.h"
@@ -35,8 +38,6 @@
 #include "../grinliz/glgeometry.h"
 
 #include "../tinyxml/tinyxml.h"
-#include "ufosound.h"
-#include "settings.h"
 
 using namespace grinliz;
 using namespace gamui;
@@ -52,9 +53,11 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	isDragging = false;
 
 	engine  = game->engine;
-	visibility.Init( this, units, engine->GetMap() );
+	tacMap = new TacMap( engine->GetSpaceTree(), game->GetItemDefArr() );
+
+	visibility.Init( this, units, tacMap );
 	nearPathState.Clear();
-	engine->GetMap()->SetPathBlocker( this );
+	tacMap->SetPathBlocker( this );
 	dragUnit = 0;
 
 	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, &visibility, engine, units );
@@ -90,14 +93,14 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 
 	gamui::RenderAtom nullAtom;
 	for( int i=0; i<MAX_UNITS; ++i ) {
-		unitImage0[i].Init( &engine->GetMap()->overlay[Map::LAYER_UNDER_LOW], nullAtom, false );
+		unitImage0[i].Init( &tacMap->overlay[Map::LAYER_UNDER_LOW], nullAtom, false );
 		unitImage0[i].SetVisible( false );
 
-		unitImage1[i].Init( &engine->GetMap()->overlay[Map::LAYER_UNDER_HIGH], nullAtom, false );
+		unitImage1[i].Init( &tacMap->overlay[Map::LAYER_UNDER_HIGH], nullAtom, false );
 		unitImage1[i].SetVisible( false );
 		unitImage1[i].SetForeground( true );
 	}
-	selectionImage.Init( &engine->GetMap()->overlay[Map::LAYER_OVER], UIRenderer::CalcIconAtom( ICON_STAND_HIGHLIGHT ), true );
+	selectionImage.Init( &tacMap->overlay[Map::LAYER_OVER], UIRenderer::CalcIconAtom( ICON_STAND_HIGHLIGHT ), true );
 	selectionImage.SetSize( 1, 1 );
 
 	for( int i=0; i<MAX_ALIENS; ++i ) {
@@ -106,7 +109,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	}
 
 	for( int i=0; i<2; ++i ) {
-		dragBar[i].Init( &engine->GetMap()->overlay[Map::LAYER_OVER], nullAtom, false );
+		dragBar[i].Init( &tacMap->overlay[Map::LAYER_OVER], nullAtom, false );
 		dragBar[i].SetLevel( -1 );
 		dragBar[i].SetVisible( false );
 	}
@@ -190,12 +193,10 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		tick1Atom.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
 
 		for( int i=0; i<MAX_UNITS; ++i ) {
-			hpBars[i].Init( &engine->GetMap()->overlay[Map::LAYER_UNDER_HIGH], 5, tick0Atom, tick1Atom, tick2Atom, S );
+			hpBars[i].Init( &tacMap->overlay[Map::LAYER_UNDER_HIGH], 5, tick0Atom, tick1Atom, tick2Atom, S );
 			hpBars[i].SetVisible( false );
 		}
 	}
-	engine->EnableMap( true );
-
 	if ( Engine::mapMakerMode )
 	{
 		const ModelResource* res = ModelResourceManager::Instance()->GetModelResource( "selection" );
@@ -211,7 +212,6 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 
 BattleScene::~BattleScene()
 {
-	engine->GetMap()->SetPathBlocker( 0 );
 	ParticleSystem::Instance()->Clear();
 
 	if ( Engine::mapMakerMode ) {
@@ -223,12 +223,13 @@ BattleScene::~BattleScene()
 
 	for( int i=0; i<3; ++i )
 		delete aiArr[i];
+	delete tacMap;
 }
 
 
 void BattleScene::Activate()
 {
-	engine->EnableMap( true );
+	engine->SetMap( tacMap );
 }
 
 
@@ -288,7 +289,7 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 	// Allow the map to change (fire and smoke)
 	Rectangle2I change;
 	change.SetInvalid();
-	engine->GetMap()->DoSubTurn( &change );
+	tacMap->DoSubTurn( &change, FIRE_DAMAGE_PER_SUBTURN );
 	visibility.InvalidateAll( change );
 
 	// Since the map has changed:
@@ -305,8 +306,7 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 		aiArr[currentTeamTurn]->StartTurn( units );
 	}
 	else {
-		if ( engine->GetMap()->GetLanderModel() )
-			OrderNextPrev();
+		OrderNextPrev();
 	}
 
 }
@@ -315,7 +315,7 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 void BattleScene::OrderNextPrev()
 {
 #ifdef SMART_ORDER
-	const Model* lander = engine->GetMap()->GetLanderModel();
+	const Model* lander = tacMap->GetLanderModel();
 	GLRELASSERT( lander );
 
 	Matrix2I mat, inv;
@@ -401,12 +401,12 @@ void BattleScene::Save( FILE* fp, int depth )
 {
 	XMLUtil::OpenElement( fp, depth, "BattleScene" );
 	XMLUtil::Attribute( fp, "currentTeamTurn", currentTeamTurn );
-	XMLUtil::Attribute( fp, "dayTime", engine->GetMap()->DayTime() ? 1 : 0 );
+	XMLUtil::Attribute( fp, "dayTime", tacMap->DayTime() ? 1 : 0 );
 	XMLUtil::Attribute( fp, "turnCount", turnCount );
 
 	XMLUtil::SealCloseElement( fp );
 
-	engine->GetMap()->Save( fp, depth );
+	tacMap->Save( fp, depth );
 	{
 		XMLUtil::OpenElement( fp, depth, "Units" );
 		XMLUtil::SealElement( fp );
@@ -430,14 +430,14 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 		battleElement->QueryIntAttribute( "currentTeamTurn", &currentTeamTurn );
 		int daytime = 1;
 		battleElement->QueryIntAttribute( "dayTime", &daytime );
-		engine->GetMap()->SetDayTime( daytime ? true : false );
+		tacMap->SetDayTime( daytime ? true : false );
 
 		turnCount = 0;
 		battleElement->QueryIntAttribute( "turnCount", &turnCount );
 	}
 
-	engine->GetMap()->Clear();
-	engine->GetMap()->Load( gameElement->FirstChildElement( "Map"), game->GetItemDefArr() );
+	//tacMap->Clear();
+	tacMap->Load( gameElement->FirstChildElement( "Map") );
 	
 	int team[3] = { TERRAN_UNITS_START, CIV_UNITS_START, ALIEN_UNITS_START };
 
@@ -449,7 +449,7 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 			int t = 0;
 			unitElement->QueryIntAttribute( "team", &t );
 			Unit* unit = &units[team[t]];
-			unit->Load( unitElement, game );
+			unit->Load( unitElement, game, tacMap );
 			
 			team[t]++;
 
@@ -467,11 +467,10 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 	if ( aiArr[currentTeamTurn] ) {
 		aiArr[currentTeamTurn]->StartTurn( units );
 	}
-	if ( engine->GetMap()->GetLanderModel() )
-		OrderNextPrev();
+	OrderNextPrev();
 
 //	if ( turnCount == 0 ) {
-		//engine->GetMap()->SetLanderFlight( 1 );
+		//tacMap->SetLanderFlight( 1 );
 
 		//Action* action = actionStack.Push();
 		//action->Init( ACTION_LANDER, 0 );
@@ -500,7 +499,7 @@ void BattleScene::SetFogOfWar()
 	//GRINLIZ_PERFTRACK
 
 	if ( visibility.FogCheckAndClear() ) {
-		grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fow = engine->GetMap()->LockFogOfWar();
+		grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fow = tacMap->LockFogOfWar();
 		for( int j=0; j<MAP_SIZE; ++j ) {
 			for( int i=0; i<MAP_SIZE; ++i ) {
 				if ( visibility.TeamCanSee( TERRAN_TEAM, i, j ) )
@@ -511,13 +510,13 @@ void BattleScene::SetFogOfWar()
 		}
 
 		// Can always see around the lander.		
-		const Model* landerModel = engine->GetMap()->GetLanderModel();
+		const Model* landerModel = tacMap->GetLanderModel();
 		if ( landerModel ) {
 			Rectangle2I bounds;
-			engine->GetMap()->MapBoundsOfModel( landerModel, &bounds );
+			tacMap->MapBoundsOfModel( landerModel, &bounds );
 			fow->SetRect( bounds );
 		}
-		engine->GetMap()->ReleaseFogOfWar();
+		tacMap->ReleaseFogOfWar();
 	}
 }
 
@@ -537,7 +536,7 @@ void BattleScene::TestHitTesting()
 
 			for( int x=cx-DELTA; x<cx+DELTA; ++x ) {
 				for( int z=cz-DELTA; z<cz+DELTA; ++z ) {
-					if ( x>=0 && z>=0 && x<engine->GetMap()->Width() && z<engine->GetMap()->Height() ) {
+					if ( x>=0 && z>=0 && x<tacMap->Width() && z<tacMap->Height() ) {
 
 						Vector3F dest = {(float)x, 1.0f, (float)z};
 
@@ -753,13 +752,13 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 {
 	GRINLIZ_PERFTRACK
 	TestHitTesting();
-	engine->GetMap()->EmitParticles( deltaTime );
+	tacMap->EmitParticles( deltaTime );
 
 #if 0
 	// Test particle system.
 	{
 		ParticleSystem* system = ParticleSystem::Instance();
-		Vector3F pos = { (float)(engine->GetMap()->Width() - 2), 0, (float)(engine->GetMap()->Height() - 2) };
+		Vector3F pos = { (float)(tacMap->Width() - 2), 0, (float)(tacMap->Height() - 2) };
 		
 		system->EmitFlame( deltaTime, pos );
 		pos.z -= 1.0f;
@@ -907,7 +906,7 @@ bool BattleScene::EndCondition( TacticalEndSceneData* data )
 {
 	memset( data, 0, sizeof( *data ) );
 	data->units = units;
-	data->dayTime = engine->GetMap()->DayTime();
+	data->dayTime = tacMap->DayTime();
 
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		if ( units[i].InUse() )
@@ -1346,7 +1345,7 @@ void BattleScene::ProcessInventoryAI( Unit* theUnit )
 	AI_LOG(( "[ai] Unit %d INVENTORY: ", currentUnitAI ));
 	// Drop all the weapons and clips. Pick up new weapons and clips.
 	Vector2I pos = theUnit->Pos();
-	Storage* storage = engine->GetMap()->LockStorage( pos.x, pos.y, game->GetItemDefArr() );
+	Storage* storage = tacMap->LockStorage( pos.x, pos.y );
 	GLRELASSERT( storage );
 
 	Inventory* inventory = theUnit->GetInventory();
@@ -1394,7 +1393,7 @@ void BattleScene::ProcessInventoryAI( Unit* theUnit )
 			AI_LOG(( "\n" ));
 		}
 	}
-	engine->GetMap()->ReleaseStorage( storage );
+	tacMap->ReleaseStorage( storage );
 	theUnit->UpdateInventory();
 }
 
@@ -1419,7 +1418,7 @@ bool BattleScene::ProcessAI()
 		int flags = units[currentUnitAI].AI();
 		AI::AIAction aiAction;
 
-		bool done = aiArr[currentTeamTurn]->Think( &units[currentUnitAI], flags, engine->GetMap(), &aiAction );
+		bool done = aiArr[currentTeamTurn]->Think( &units[currentUnitAI], flags, tacMap, &aiAction );
 
 		switch ( aiAction.actionID ) {
 			case AI::ACTION_SHOOT:
@@ -1480,7 +1479,7 @@ void BattleScene::ProcessDoors()
 		if ( units[i].IsAlive() )
 			loc[nLoc++] = units[i].Pos();
 	}
-	if ( engine->GetMap()->ProcessDoors( loc, nLoc ) ) {
+	if ( tacMap->ProcessDoors( loc, nLoc ) ) {
 		visibility.InvalidateAll();
 	}
 }
@@ -1739,7 +1738,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 
 					if ( action->type.lander.timeRemaining == 0 ) {
 						actionStack.Pop();
-						engine->GetMap()->SetLanderFlight( 0 );
+						tacMap->SetLanderFlight( 0 );
 
 						for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 							if ( units[i].GetModel() ) {
@@ -1750,7 +1749,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 					}
 					else {
 						float flight = (float)(action->type.lander.timeRemaining) / (float)(LanderAction::TOTAL_TIME);
-						engine->GetMap()->SetLanderFlight( flight );
+						tacMap->SetLanderFlight( flight );
 					}
 				}
 				break; */
@@ -1833,9 +1832,9 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 			int inResult, outResult;
 			Rectangle3F worldBounds;
 			worldBounds.Set( 0, 0, 0, 
-							(float)engine->GetMap()->Width(), 
+							(float)tacMap->Width(), 
 							8.0f,
-							(float)engine->GetMap()->Height() );
+							(float)tacMap->Height() );
 
 			int result = IntersectRayAllAABB( ray.origin, ray.direction, worldBounds, 
 											  &inResult, &in, &outResult, &out );
@@ -1917,7 +1916,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 	if ( impact && modelHit ) {
 		int x = LRintf( intersection.x );
 		int y = LRintf( intersection.z );
-		if ( engine->GetMap()->GetFogOfWar().IsSet( x, y, 0 ) ) {
+		if ( tacMap->GetFogOfWar().IsSet( x, y, 0 ) ) {
 			PushScrollOnScreen( intersection );
 		}
 	}
@@ -1950,7 +1949,7 @@ int BattleScene::ProcessActionHit( Action* action )
 
 		if ( hitUnit ) {
 			if ( hitUnit->IsAlive() ) {
-				hitUnit->DoDamage( action->type.hit.damageDesc, engine->GetMap() );
+				hitUnit->DoDamage( action->type.hit.damageDesc, tacMap );
 				if ( !hitUnit->IsAlive() ) {
 					selection.ClearTarget();			
 					visibility.InvalidateUnit( hitUnit - units );
@@ -1968,11 +1967,15 @@ int BattleScene::ProcessActionHit( Action* action )
 		}
 		else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
 			Rectangle2I bounds;
-			engine->GetMap()->MapBoundsOfModel( m, &bounds );
+			tacMap->MapBoundsOfModel( m, &bounds );
 
 			// Hit world object.
 			Vector2I exp = { -1, -1 };
-			engine->GetMap()->DoDamage( m, action->type.hit.damageDesc, &destroyed, &exp );
+
+			MapDamageDesc damage;
+			action->type.hit.damageDesc.MapDamage( &damage );
+
+			tacMap->DoDamage( m, damage, &destroyed, &exp );
 			if ( exp.x >= 0 )
 				explosion[nExplosion++] = exp;
 		}
@@ -1994,7 +1997,7 @@ int BattleScene::ProcessActionHit( Action* action )
 
 		const int MAX_RAD = 2;
 		const int MAX_RAD_2 = MAX_RAD*MAX_RAD;
-		Rectangle2I mapBounds = engine->GetMap()->Bounds();
+		Rectangle2I mapBounds = tacMap->Bounds();
 
 		while ( nExplosion ) {
 			// generates smoke:
@@ -2037,7 +2040,7 @@ int BattleScene::ProcessActionHit( Action* action )
 									// Was using CanSee, but that has the problem that
 									// some walls are inner and some walls are outer.
 									// *sigh* Use the pather.
-									if ( !engine->GetMap()->CanSee( p, q ) ) {
+									if ( !tacMap->CanSee( p, q ) ) {
 										canSee = false;
 										break;
 									}
@@ -2051,7 +2054,7 @@ int BattleScene::ProcessActionHit( Action* action )
 
 							Unit* unit = GetUnitFromTile( x, y );
 							if ( unit && unit->IsAlive() ) {
-								unit->DoDamage( dd, engine->GetMap() );
+								unit->DoDamage( dd, tacMap );
 								if ( !unit->IsAlive() ) {
 									visibility.InvalidateUnit( unit - units );
 									if ( unit == SelectedSoldierUnit() ) {
@@ -2063,7 +2066,9 @@ int BattleScene::ProcessActionHit( Action* action )
 							}
 							bool hitAnything = false;
 							Vector2I exp = { -1, -1 };
-							engine->GetMap()->DoDamage( x, y, dd, &destroyed, &exp );
+							MapDamageDesc damage;
+							dd.MapDamage( &damage );
+							tacMap->DoDamage( x, y, damage, &destroyed, &exp );
 
 							if (    totalExplosion < MAX_EXPLOSION 
 								 && exp.x >= 0 && nExplosion < MAX_EXPLOSION ) 
@@ -2077,7 +2082,7 @@ int BattleScene::ProcessActionHit( Action* action )
 							// - change of smoke anyway
 							if ( hitAnything || random.Bit() ) {
 								int turns = 4 + random.Rand( 4 );
-								engine->GetMap()->AddSmoke( x, y, turns );
+								tacMap->AddSmoke( x, y, turns );
 							}
 						}
 					}
@@ -2225,12 +2230,13 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 			if ( actionStack.Empty() && SelectedSoldierUnit() ) {
 				CharacterSceneData* input = new CharacterSceneData();
 				input->unit = SelectedSoldierUnit();
+				input->tacMap = tacMap;
 				game->PushScene( Game::CHARACTER_SCENE, input );
 			}
 		}
 		else if ( tapped == &nextTurnButton ) {
 			SetSelection( 0 );
-			engine->GetMap()->ClearNearPath();
+			tacMap->ClearNearPath();
 			if ( EndCondition( &tacticalData ) ) {
 				game->PushScene( Game::END_SCENE, new TacticalEndSceneData( tacticalData ) );
 			}
@@ -2261,9 +2267,9 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 
 void BattleScene::SceneResult( int sceneID, int result )
 {
-	const Model* model = engine->GetMap()->GetLanderModel();
+	const Model* model = tacMap->GetLanderModel();
 	Rectangle2I bounds;
-	engine->GetMap()->MapBoundsOfModel( model, &bounds );
+	tacMap->MapBoundsOfModel( model, &bounds );
 
 	if ( sceneID == Game::DIALOG_SCENE && result ) {
 		// Exit!
@@ -2279,7 +2285,7 @@ void BattleScene::SceneResult( int sceneID, int result )
 		for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i ) {
 			DamageDesc d = { 100, 100, 100 };
 			if ( units[i].IsAlive() )
-				units[i].DoDamage( d, engine->GetMap() );
+				units[i].DoDamage( d, tacMap );
 		}
 
 		EndCondition( &tacticalData );	// fills out tactical data...
@@ -2401,24 +2407,21 @@ void BattleScene::Tap(	int action,
 
 			int ix = (int)pos.x;
 			int iz = (int)pos.z;
-			if (    ix >= 0 && ix < engine->GetMap()->Width()
-	  			 && iz >= 0 && iz < engine->GetMap()->Height() ) 
+			if (    ix >= 0 && ix < tacMap->Width()
+	  			 && iz >= 0 && iz < tacMap->Height() ) 
 			{
-				if ( *engine->GetMap()->GetItemDefName( mapmaker_currentMapItem ) ) {
-					engine->GetMap()->AddItem( ix, iz, rotation, mapmaker_currentMapItem, -1, 0 );
-				}
-				else if ( mapmaker_currentMapItem == 0x70 ) { // smoke
-					engine->GetMap()->SetPyro( ix, iz, 21, false );
-				}
-				else if ( mapmaker_currentMapItem == 0x71 ) { // fire
-					engine->GetMap()->SetPyro( ix, iz, 17, true );
+				const char* name = tacMap->GetItemDefName( mapmaker_currentMapItem );
+
+				if ( name && *name ) {
+					const MapItemDef* mapItemDef = tacMap->GetItemDef( name );
+					tacMap->AddItem( ix, iz, rotation, mapItemDef, -1, 0 );
 				}
 			}
 		}
 
 		// Get the map intersection. May be used by TARGET_TILE or NORMAL
 		Vector3F intersect;
-		//Map* map = engine->GetMap();
+		//Map* map = tacMap;
 
 		Vector2I tilePos = { 0, 0 };
 		bool hasTilePos = false;
@@ -2505,13 +2508,13 @@ void BattleScene::Tap(	int action,
 			float cost;
 			//const Stats& stats = selection.soldierUnit->GetStats();
 
-			int result = engine->GetMap()->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
+			int result = tacMap->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
 			if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
 				// Go!
 				Action* action = actionStack.Push();
 				action->Init( ACTION_MOVE, SelectedSoldierUnit() );
 				action->type.move.path.Init( pathCache );
-				engine->GetMap()->ClearNearPath();
+				tacMap->ClearNearPath();
 			}
 		}
 	}
@@ -2529,7 +2532,7 @@ void BattleScene::ShowNearPath( const Unit* unit )
 	}
 
 	nearPathState.Clear();
-	engine->GetMap()->ClearNearPath();
+	tacMap->ClearNearPath();
 
 	if ( unit && unit->GetModel() ) {
 
@@ -2554,7 +2557,7 @@ void BattleScene::ShowNearPath( const Unit* unit )
 			{ tu-autoTU, tu-snappedTU },
 			{ tu-snappedTU, tu }
 		};
-		engine->GetMap()->ShowNearPath( unit->Pos(), unit, start, tu, range );
+		tacMap->ShowNearPath( unit->Pos(), unit, start, tu, range );
 	}
 }
 
@@ -2717,8 +2720,8 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 						if ( selection.soldierUnit != dragUnit )
 							SetSelection( dragUnit );
 
-						dragBar[0].SetSize( (float)engine->GetMap()->Width(), 0.5f );
-						dragBar[1].SetSize( 0.5f, (float)engine->GetMap()->Height() );
+						dragBar[0].SetSize( (float)tacMap->Width(), 0.5f );
+						dragBar[1].SetSize( 0.5f, (float)tacMap->Height() );
 
 						break;
 					}
@@ -2743,13 +2746,13 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 
 				bool visible = false;
 				if (    end != start 
-					 && end.x >= 0 && end.x < engine->GetMap()->Width() 
-					 && end.y >= 0 && end.y < engine->GetMap()->Height() ) 
+					 && end.x >= 0 && end.x < tacMap->Width() 
+					 && end.y >= 0 && end.y < tacMap->Height() ) 
 				{
 					float cost;
 					gamui::RenderAtom atom;
 
-					int result = engine->GetMap()->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
+					int result = tacMap->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
 					if ( result == micropather::MicroPather::SOLVED ) {
 						int tuLeft = selection.soldierUnit->CalcWeaponTURemaining( cost );
 						visible = true;
@@ -2768,7 +2771,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 						dragBar[0].SetPos( 0, (float)end.y+0.25f );
 						dragBar[1].SetPos( (float)end.x+0.25f, 0 );
 					}
-					engine->GetMap()->ClearNearPath();
+					tacMap->ClearNearPath();
 					atom.renderState = (const void*) Map::RENDERSTATE_MAP_NORMAL;
 					dragBar[0].SetAtom( atom );
 					dragBar[1].SetAtom( atom );
@@ -2809,12 +2812,12 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 				Vector2<S16> end   = { (S16)intersection.x, (S16)intersection.z };
 
 				if (    end != start 
-					 && end.x >= 0 && end.x < engine->GetMap()->Width() 
-					 && end.y >= 0 && end.y < engine->GetMap()->Height() ) 
+					 && end.x >= 0 && end.x < tacMap->Width() 
+					 && end.y >= 0 && end.y < tacMap->Height() ) 
 				{
 					float cost;
 
-					int result = engine->GetMap()->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
+					int result = tacMap->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
 					if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
 						// TU for a move gets used up "as we go" to account for reaction fire and changes.
 						// Go!
@@ -2886,7 +2889,7 @@ void BattleScene::DrawHUD()
 	if ( Engine::mapMakerMode ) {
 		nameRankUI.SetVisible( false );
 		if ( !game->IsTextSuppressed() ) {
-			engine->GetMap()->DumpTile( (int)mapmaker_mapSelection->X(), (int)mapmaker_mapSelection->Z() );
+			tacMap->DumpTile( (int)mapmaker_mapSelection->X(), (int)mapmaker_mapSelection->Z() );
 
 			const char* desc = SelectionDesc();
 			UFOText::Draw( 0,  16, "(%2d,%2d) 0x%2x:'%s'", 
@@ -3104,18 +3107,10 @@ void BattleScene::MouseMove( int x, int y )
 
 const char* BattleScene::SelectionDesc()
 {
-	const char* result = "";
-	if ( mapmaker_currentMapItem >= Map::NUM_ITEM_DEF ) {
-		if ( mapmaker_currentMapItem == Map::NUM_ITEM_DEF )
-			result = "smoke";
-		else if ( mapmaker_currentMapItem == Map::NUM_ITEM_DEF+1 )
-			result = "fire";
-	}
-	else {
-		result = engine->GetMap()->GetItemDefName( mapmaker_currentMapItem );
-	}
+	const char* result = tacMap->GetItemDefName( mapmaker_currentMapItem );
 	return result;
 }
+
 
 void BattleScene::UpdatePreview()
 {
@@ -3124,15 +3119,21 @@ void BattleScene::UpdatePreview()
 		mapmaker_preview = 0;
 	}
 	if ( mapmaker_currentMapItem >= 0 ) {
-		mapmaker_preview = engine->GetMap()->CreatePreview(	(int)mapmaker_mapSelection->X(), 
-													(int)mapmaker_mapSelection->Z(), 
-													mapmaker_currentMapItem, 
-													(int)(mapmaker_mapSelection->GetRotation()/90.0f) );
+		const char* name = tacMap->GetItemDefName( mapmaker_currentMapItem );
 
-		if ( mapmaker_preview ) {
-			Texture* t = TextureManager::Instance()->GetTexture( "translucent" );
-			mapmaker_preview->SetTexture( t );
-			mapmaker_preview->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.0f );
+		if ( name && *name ) {
+			const MapItemDef* mapItemDef = tacMap->GetItemDef( name );
+
+			mapmaker_preview = tacMap->CreatePreview(	(int)mapmaker_mapSelection->X(), 
+														(int)mapmaker_mapSelection->Z(), 
+														mapItemDef, 
+														(int)(mapmaker_mapSelection->GetRotation()/90.0f) );
+
+			if ( mapmaker_preview ) {
+				Texture* t = TextureManager::Instance()->GetTexture( "translucent" );
+				mapmaker_preview->SetTexture( t );
+				mapmaker_preview->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.0f );
+			}
 		}
 	}
 }
@@ -3165,7 +3166,7 @@ void BattleScene::SetLightMap( float r, float g, float b )
 {
 	int x = (int)mapmaker_mapSelection->X();
 	int y = (int)mapmaker_mapSelection->Z();
-	engine->GetMap()->SetLightMap0( x, y, r, g, b );
+	tacMap->SetLightMap0( x, y, r, g, b );
 }
 
 
@@ -3179,20 +3180,19 @@ void BattleScene::RotateSelection( int delta )
 void BattleScene::DeleteAtSelection()
 {
 	const Vector3F& pos = mapmaker_mapSelection->Pos();
-	engine->GetMap()->DeleteAt( (int)pos.x, (int)pos.z );
+	tacMap->DeleteAt( (int)pos.x, (int)pos.z );
 	UpdatePreview();
 
-	engine->GetMap()->SetPyro( (int)pos.x, (int)pos.z, 0, false );
+	tacMap->SetPyro( (int)pos.x, (int)pos.z, 0, false );
 }
 
 
 void BattleScene::DeltaCurrentMapItem( int d )
 {
 	mapmaker_currentMapItem += d;
-	static const int MAX = Map::NUM_ITEM_DEF + 2;	// placeholder for smoke and fire
+	static const int MAX = TacMap::NUM_ITEM_DEF;
 	while ( mapmaker_currentMapItem < 0 ) { mapmaker_currentMapItem += MAX; }
 	while ( mapmaker_currentMapItem >= MAX ) { mapmaker_currentMapItem -= MAX; }
-	//if ( mapmaker_currentMapItem == 0 ) mapmaker_currentMapItem = 1;
 	UpdatePreview();
 }
 

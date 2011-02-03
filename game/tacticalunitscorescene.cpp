@@ -31,8 +31,6 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, const TacticalEndSc
 	data = d;
 	nAwards = 0;
 
-	engine->EnableMap( false );
-
 	gamui::RenderAtom nullAtom;
 	backgroundUI.Init( game, &gamui2D, false );
 
@@ -110,8 +108,13 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, const TacticalEndSc
 
 TacticalUnitScoreScene::~TacticalUnitScoreScene()
 {
-	GetEngine()->EnableMap( true );
 }
+
+void TacticalUnitScoreScene::Activate()
+{
+	GetEngine()->SetMap( 0 );
+}
+
 
 
 void TacticalUnitScoreScene::DrawHUD()

@@ -250,7 +250,7 @@ void Inventory::GetDamageReduction( DamageDesc* dd )
 		if ( e )
 			dd->energy -= ARM_EXTRA;
 		if ( i )
-			dd->incind -= ARM_EXTRA;
+			dd->incend -= ARM_EXTRA;
 	}
 }
 

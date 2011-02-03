@@ -34,21 +34,14 @@
 #include "gpustatemanager.h"
 #include "../shared/glmap.h"
 #include "../gamui/gamui.h"
-#include "../game/gamelimits.h"			// bad call to less general directory. FIXME. Move map to game?
 
 class Model;
 class ModelResource;
 class SpaceTree;
 class RenderQueue;
-class ItemDef;
-class Storage;
-class Game;
-struct DamageDesc;
-class SustainedPyroEffect;
 class ParticleSystem;
 class TiXmlElement;
 class Map;
-class ItemDefArr;
 
 
 class IPathBlocker
@@ -108,12 +101,6 @@ struct MapItemDef
 	const char* visibilityStr;
 	int flags;					// obscures, like smoke, haypiles, and trees
 
-	int		lightDef;			// itemdef index of the light associated with this (is auto-created)
-	int		lightOffsetX;		// if light, offset of light origin from model origin
-	int		lightOffsetY;
-	int		lightTX;			// if a light, x location in texture
-	int		lightTY;			// if a light, y location in texture
-
 	const char* Name() const { return resource; }
 	const ModelResource* GetModelResource() const;
 	const ModelResource* GetOpenResource() const;
@@ -147,8 +134,8 @@ struct MapItemDef
 
 	// return true if the object can take damage
 	bool CanDamage() const	{ return hp != 0xffff; }
-	int HasLight() const	{ return lightDef; }
-	bool IsLight() const	{ return lightTX || lightTY; }
+	//int HasLight() const	{ return lightDef; }
+	//bool IsLight() const	{ return lightTX || lightTY; }
 	bool IsDoor() const		{ return resourceOpen != 0; }
 
 	grinliz::Rectangle2I Bounds() const 
@@ -160,16 +147,21 @@ struct MapItemDef
 };
 
 
+struct MapDamageDesc
+{
+	float damage;		// damage done, in hp
+	float incendiary;	// damage done by flame ( <= hp )
+};
+
+
 class Map : public micropather::Graph,
 			public ITextureCreator,
 			public gamui::IGamuiRenderer
 {
 public:
 	enum {
-		SIZE = 64,					// maximum size. FIXME: duplicated in gamelimits.h
+		SIZE = EL_MAP_SIZE,
 		LOG2_SIZE = 6,
-
-		NUM_ITEM_DEF = 72,
 	};
 
 
@@ -186,7 +178,6 @@ public:
 		};
 
 		U8			open;
-		U8			itemDefIndex;	
 		U8			modelRotation;
 		U16			hp;
 		U16			flags;
@@ -194,8 +185,8 @@ public:
 		grinliz::Rectangle2<U8> mapBounds8;
 		float		modelX, modelZ;
 		
-		Model*	 model;
-		MapItem* light;
+		const MapItemDef* def;
+		Model*	model;
 		
 		MapItem* next;			// the 'next' after a query
 		MapItem* nextQuad;		// next pointer in the quadTree
@@ -270,8 +261,6 @@ public:
 														}
 
 	void SetSize( int w, int h );
-	const Model* GetLanderModel()					{ return lander ? lander->model : 0; }
-
 	bool DayTime() const { return dayTime; }
 	void SetDayTime( bool day );
 
@@ -296,15 +285,12 @@ public:
 	void DrawOverlay( int layer );		//< draw the "where can I walk" alpha overlay. Set up by ShowNearPath().
 
 	// Do damage to a singe map object.
-	void DoDamage( Model* m, const DamageDesc& damage, grinliz::Rectangle2I* destroyedBounds, grinliz::Vector2I* explosion  );
+	void DoDamage( Model* m, const MapDamageDesc& damage, grinliz::Rectangle2I* destroyedBounds, grinliz::Vector2I* explosion  );
 	// Do damage to an entire map tile.
-	void DoDamage( int x, int y, const DamageDesc& damage, grinliz::Rectangle2I* destroyedBounds, grinliz::Vector2I* explosion );
+	void DoDamage( int x, int y, const MapDamageDesc& damage, grinliz::Rectangle2I* destroyedBounds, grinliz::Vector2I* explosion );
 	
 	// Process a sub-turn: fire moves, smoke goes away, etc.
-	void DoSubTurn( grinliz::Rectangle2I* changeBounds );
-
-	//void SetLanderFlight( float normal );
-	//float GetLanderFlight() const			{ return landerFlight; }
+	void DoSubTurn( grinliz::Rectangle2I* changeBounds, float fireDamagePerSubTurn );
 
 	// Smoke from weapons, explosions, effects, etc.
 	void AddSmoke( int x, int y, int subturns );
@@ -316,31 +302,23 @@ public:
 	// Generally called by MakePathBlockCurrent
 	void SetPathBlocks( const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& block );
 
-	Storage* LockStorage( int x, int y, const ItemDefArr& );	// always returns something.
-	void ReleaseStorage( Storage* storage );					// updates the image
-
-	const Storage* GetStorage( int x, int y ) const;		//< take a peek
-	grinliz::Vector2I FindStorage( const ItemDef* itemDef, const grinliz::Vector2I& source );
-
-	const char* GetItemDefName( int i );
-	const MapItemDef* GetItemDef( const char* name );
+	virtual int GetNumItemDef() = 0;
+	virtual const char* GetItemDefName( int i ) = 0;
+	virtual const MapItemDef* GetItemDef( const char* name ) = 0;
 
 	// MapMaker method to create a translucent preview.
-	Model* CreatePreview( int x, int z, int itemDefIndex, int rotation );
+	Model* CreatePreview( int x, int z, const MapItemDef* def, int rotation );
 
 	// hp = -1 default
 	//       0 destroyed
 	//		1+ hp remaining
-	// Storage is owned by the map after this call.
-	MapItem* AddItem( int x, int z, int rotation, int itemDefIndex, int hp, int flags );
-	// Utility call to AddItem() that preprocesses the x,z params.
-	//MapItem* AddLightItem( int x, int z, int rotation, int itemDefIndex, int hp, int flags );
+	MapItem* AddItem( int x, int z, int rotation, const MapItemDef* def, int hp, int flags );
 
 	void DeleteAt( int x, int z );
 	void MapBoundsOfModel( const Model* m, grinliz::Rectangle2I* mapBounds );
 
 	void ResetPath();	// normally called automatically
-	void Clear();
+	//void Clear();
 
 	void DumpTile( int x, int z );
 
@@ -400,13 +378,8 @@ public:
 	void SetPyro( int x, int y, int duration, int fire );
 
 	void Save( FILE* fp, int depth );
-	void Load( const TiXmlElement* mapNode, const ItemDefArr& );
+	void Load( const TiXmlElement* mapNode );
 
-	// Gets a starting location for a unit on the map.
-	// TERRAN_TEAM - from the lander
-	// ALIEN_TEAM, guard or scout - on the map metadata
-	//
-	void PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* rotation );
 
 	static void MapImageToWorld( int x, int y, int w, int h, int tileRotation, Matrix2I* mat );
 
@@ -419,22 +392,15 @@ public:
 	gamui::Gamui	overlay[NUM_LAYERS];
 	grinliz::Random random;
 
-private:
-	static const int padArr0[16];
-	static const MapItemDef itemDefArr[NUM_ITEM_DEF];
-	static const int padArr1[16];
+protected:
+	virtual void SubSave( FILE* fp, int depth ) = 0;
+	virtual void SubLoad( const TiXmlElement* mapNode ) = 0;
 
 	// 0,90,180,270 rotation
 	static void XYRToWorld( int x, int y, int rotation, Matrix2I* mat );
 	// 0,90,180,270 rotation
 	static void WorldToXYR( const Matrix2I& mat, int *x, int *y, int* r, bool useRot0123 = false );
-
 	static void WorldToModel( const Matrix2I& mat, bool billboard, grinliz::Vector3F* m );
-
-	int InvertPathMask( U32 m ) {
-		U32 m0 = (m<<2) | (m>>2);
-		return m0 & 0xf;
-	}
 
 	class QuadTree
 	{
@@ -488,6 +454,21 @@ private:
 		const Model* filterModel;
 	};
 
+	SpaceTree*	tree;
+	QuadTree	quadTree;
+
+	CDynArray< grinliz::Vector2I >				guardPos;
+	CDynArray< grinliz::Vector2I >				scoutPos;
+	CDynArray< grinliz::Vector2I >				civPos;
+
+private:
+
+
+	int InvertPathMask( U32 m ) {
+		U32 m0 = (m<<2) | (m>>2);
+		return m0 & 0xf;
+	}
+
 	// The background texture of the map.
 	void SetTexture( const Surface* surface, int x, int y, int tileRotation );
 	// The light map is a 64x64 texture of the lighting at each point. Without
@@ -516,8 +497,6 @@ private:
 	IPathBlocker* pathBlocker;
 	int width, height;
 	grinliz::Rectangle3F bounds;
-	SpaceTree* tree;
-	//float landerFlight;
 
 	Texture* backgroundTexture;		// background texture
 	Surface backgroundSurface;		// background surface
@@ -555,14 +534,6 @@ private:
 
 	micropather::MicroPather* microPather;
 
-	struct Debris {
-		Storage* storage;
-		Model* crate;
-	};
-	CDynArray< Debris > debris;
-	void SaveDebris( const Debris& d, FILE* fp, int depth );
-	void LoadDebris( const TiXmlElement* mapNode, const ItemDefArr& );
-
 	int PyroOn( int x, int y ) const		{ return pyro[y*SIZE+x]; }
 	int PyroFire( int x, int y ) const		{ return pyro[y*SIZE+x] & 0x80; }
 	bool PyroSmoke( int x, int y ) const	{ return PyroOn( x, y ) && !PyroFire( x, y ); }
@@ -576,19 +547,11 @@ private:
 	MP_VECTOR< micropather::StateCost >			stateCostArr;
 
 	CompositingShader							gamuiShader;
-	gamui::TiledImage<MAX_TU*2+1, MAX_TU*2+1>	walkingMap;
+	gamui::TiledImage<EL_MAP_MAX_PATH*2+1, EL_MAP_MAX_PATH*2+1>	walkingMap;
 	gamui::Image								border[4];
 
 	grinliz::MemoryPool							itemPool;
-	QuadTree									quadTree;
-	CStringMap< const MapItemDef* >				itemDefMap;
 	
-	CDynArray< grinliz::Vector2I >				guardPos;
-	CDynArray< grinliz::Vector2I >				scoutPos;
-	CDynArray< grinliz::Vector2I >				civPos;
-
-	int											nLanderPos;
-	const MapItem*								lander;
 	int											nSeenIndex, nUnseenIndex, nPastSeenIndex;
 
 #ifdef USE_MAP_CACHE

@@ -309,13 +309,13 @@ void Game::LoadItemResources()
 
 
 		{ "STRM-1",	"STORM-1",	DECO_RAYGUN,	"Fire Storm",			{ "Snap", "Flame", "Boom" },	SPEED_NORMAL,
-				"Cell",			WEAPON_EXPLOSIVE | WEAPON_INCINDIARY,	EXDAM_MED,		ACC_LOW,	"nullp",
+				"Cell",			WEAPON_EXPLOSIVE | WEAPON_INCENDIARY,	EXDAM_MED,		ACC_LOW,	"nullp",
 				0 },
 		{ "STRM-2",	"STORM-2",	DECO_RAYGUN,	"Fire Storm",			{ "Snap", "Flame", "Boom" },	SPEED_NORMAL,
-				"Cell",			WEAPON_EXPLOSIVE | WEAPON_INCINDIARY,	EXDAM_MED*B2,	ACC_LOW,	"nullp",
+				"Cell",			WEAPON_EXPLOSIVE | WEAPON_INCENDIARY,	EXDAM_MED*B2,	ACC_LOW,	"nullp",
 				0 },
 		{ "STRM-3",	"STORM-3",	DECO_RAYGUN,	"Fire Storm",			{ "Snap", "Flame", "Boom" },	SPEED_NORMAL,
-				"Cell",			WEAPON_EXPLOSIVE | WEAPON_INCINDIARY,	EXDAM_MED*B2,	ACC_LOW*A2,	"nullp",
+				"Cell",			WEAPON_EXPLOSIVE | WEAPON_INCENDIARY,	EXDAM_MED*B2,	ACC_LOW*A2,	"nullp",
 				0 },
 		{ 0 }
 	};

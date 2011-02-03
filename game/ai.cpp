@@ -21,6 +21,7 @@
 #include "../engine/map.h"
 #include "../grinliz/glperformance.h"
 #include "../grinliz/glutil.h"
+#include "tacmap.h"
 
 #include <float.h>
 
@@ -158,7 +159,7 @@ int AI::VisibleUnitsInArea(	const Unit* theUnit,
 
 
 int AI::ThinkShoot(	const Unit* theUnit,
-					Map* map,
+					TacMap* map,
 					AIAction* action )
 {
 	static const float MINIMUM_FIRE_CHANCE			= 0.02f;	// A shot is only valid if it has this chance of hitting.
@@ -239,7 +240,7 @@ int AI::ThinkShoot(	const Unit* theUnit,
 
 
 int AI::ThinkMoveToAmmo(	const Unit* theUnit,
-							Map* map,
+							TacMap* map,
 							AIAction* action )
 {
 	// Is theUnit already standing on the Storage? If so, use!
@@ -275,7 +276,7 @@ int AI::ThinkMoveToAmmo(	const Unit* theUnit,
 }
 
 
-int AI::ThinkInventory(	const Unit* theUnit, Map* map, AIAction* action )
+int AI::ThinkInventory(	const Unit* theUnit, TacMap* map, AIAction* action )
 {
 	Vector2I pos = theUnit->Pos();
 
@@ -295,7 +296,7 @@ int AI::ThinkInventory(	const Unit* theUnit, Map* map, AIAction* action )
 
 int AI::ThinkSearch(const Unit* theUnit,
 					int flags,
-					Map* map,
+					TacMap* map,
 					AIAction* action )
 {
 	int best = -1;
@@ -397,7 +398,7 @@ int AI::ThinkSearch(const Unit* theUnit,
 
 
 int AI::ThinkWander(	const Unit* theUnit,
-						Map* map,
+						TacMap* map,
 						AIAction* action )
 {
 	// -------- Wander --------- //
@@ -429,7 +430,7 @@ int AI::ThinkWander(	const Unit* theUnit,
 
 
 int AI::ThinkTravel(	const Unit* theUnit,
-						Map* map,
+						TacMap* map,
 						AIAction* action )
 {
 	// -------- Wander --------- //
@@ -475,7 +476,7 @@ int AI::ThinkTravel(	const Unit* theUnit,
 
 
 int AI::ThinkRotate(	const Unit* theUnit,
-						Map* map,
+						TacMap* map,
 						AIAction* action )
 {
 	int best = -1;
@@ -530,7 +531,7 @@ int AI::ThinkBase( const Unit* theUnit )
 
 bool WarriorAI::Think(	const Unit* theUnit,
 						int flags,
-						Map* map,
+						TacMap* map,
 						AIAction* action )
 {
 	// QuickProfile qp( "WarriorAI::Think()" );
@@ -622,7 +623,7 @@ bool WarriorAI::Think(	const Unit* theUnit,
 
 bool NullAI::Think( const Unit* move,
 					int flags,
-					Map* map,
+					TacMap* map,
 					AIAction* action )
 {
 	action->actionID = ACTION_NONE;
@@ -632,7 +633,7 @@ bool NullAI::Think( const Unit* move,
 
 bool CivAI::Think(	const Unit* theUnit,
 					int flags,
-					Map* map,
+					TacMap* map,
 					AIAction* action )
 {
 	Vector2F sumRun = { 0, 0 };

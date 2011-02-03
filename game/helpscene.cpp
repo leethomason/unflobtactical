@@ -10,7 +10,6 @@ using namespace gamui;
 HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ), helpName( data->name )
 {
 	Engine* engine = GetEngine();
-	engine->EnableMap( false );
 	const Screenport& port = engine->GetScreenport();
 
 	// 248, 228, 8
@@ -60,6 +59,13 @@ HelpScene::~HelpScene()
 {
 	uiRenderer.SetTextColor( 1.0f, 1.0, 1.0 );
 }
+
+
+void HelpScene::Activate()
+{
+	GetEngine()->SetMap( 0 );
+}
+
 
 
 void HelpScene::Layout()

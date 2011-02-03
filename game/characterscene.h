@@ -26,11 +26,13 @@
 class UIButtonBox;
 class Texture;
 class InventoryWidget;
+class TacMap;
 
 class CharacterSceneData : public SceneData
 {
 public:
 	Unit* unit;
+	TacMap* tacMap;
 };
 
 
@@ -39,6 +41,8 @@ class CharacterScene : public Scene
 public:
 	CharacterScene( Game* _game, CharacterSceneData* data );
 	virtual ~CharacterScene();
+
+	virtual void Activate();
 
 	// UI
 	virtual void Tap(	int action, 
@@ -112,6 +116,7 @@ protected:
 		gamui::TextLabel compTable[COMP_COL*COMP_ROW];
 	};
 
+	CharacterSceneData* input;
 	InventoryWidget* inventoryWidget;
 
 	// Right side option #1

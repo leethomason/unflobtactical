@@ -10,7 +10,6 @@ using namespace gamui;
 DialogScene::DialogScene( Game* _game, const DialogSceneData* _data ) : Scene( _game ), data( _data )
 {
 	Engine* engine = GetEngine();
-	engine->EnableMap( false );
 	const Screenport& port = engine->GetScreenport();
 
 	static const float GUTTER = 20.0f;
@@ -57,6 +56,14 @@ DialogScene::DialogScene( Game* _game, const DialogSceneData* _data ) : Scene( _
 
 	}
 }
+
+
+void DialogScene::Activate()
+{
+	GetEngine()->SetMap( 0 );
+}
+
+
 
 
 

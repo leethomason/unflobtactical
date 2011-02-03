@@ -30,12 +30,13 @@ class ModelResource;
 class TiXmlElement;
 class Engine;
 class ParticleSystem;
+struct MapDamageDesc;
 
 
 enum {
 	WEAPON_AUTO			= 0x01,
 	WEAPON_EXPLOSIVE	= 0x02,
-	WEAPON_INCINDIARY	= 0x04,	// adds incindiary damage regardless of the ammo type
+	WEAPON_INCENDIARY	= 0x04,	// adds incendiary damage regardless of the ammo type
 };
 
 
@@ -48,24 +49,25 @@ struct DamageDesc
 {
 	float kinetic;
 	float energy;
-	float incind;
+	float incend;
 
-	float Total() const						{ return kinetic + energy + incind; }
-	void Clear()							{ kinetic = energy = incind = 0.0f; }
-	void Set( float k, float e, float i )	{ kinetic = k; energy = e; incind = i; }
+	float Total() const						{ return kinetic + energy + incend; }
+	void Clear()							{ kinetic = energy = incend = 0.0f; }
+	void Set( float k, float e, float i )	{ kinetic = k; energy = e; incend = i; }
 	void Scale( float x )					{
 												kinetic *= x;
 												energy *= x;
-												incind *= x;
+												incend *= x;
 											}
 	void Normalize()						{
-												float lenInv = 1.0f / ( kinetic + energy + incind );	// not a 2D length.
+												float lenInv = 1.0f / ( kinetic + energy + incend );	// not a 2D length.
 												kinetic *= lenInv;
 												energy *= lenInv;
-												incind *= lenInv;
+												incend *= lenInv;
 											}
 
-	float Dot( const DamageDesc& other ) const	{ return other.kinetic*kinetic + other.energy*energy + other.incind*incind; }
+	float Dot( const DamageDesc& other ) const	{ return other.kinetic*kinetic + other.energy*energy + other.incend*incend; }
+	void MapDamage( MapDamageDesc* );
 };
 
 
@@ -109,8 +111,6 @@ private:
 	ItemDef*					arr[EL_MAX_ITEM_DEFS];
 	CStringMap< ItemDef* >		map;
 };
-
-
 
 
 enum WeaponMode {

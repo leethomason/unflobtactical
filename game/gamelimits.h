@@ -22,6 +22,7 @@
         #define AI_LOG( x )      {}
 #endif
 
+#include "../engine/enginelimits.h"
 
 static const float FOV = 45.0f;
 static const int GAME_BUTTON_SIZE = 60;
@@ -29,6 +30,7 @@ static const float GAME_BUTTON_SIZE_F = (float)GAME_BUTTON_SIZE;
 
 static const int SUBTURNS_PER_TURN = 3;
 static const float FIRE_DAMAGE_PER_SUBTURN = 20.0f;
+static const int MAP_SIZE = EL_MAP_SIZE;
 
 static const int TERRAN_TEAM			= 0;
 static const int CIV_TEAM				= 1;
@@ -47,8 +49,6 @@ static const int MAX_CIVS = CIV_UNITS_END - CIV_UNITS_START;
 static const int MAX_UNITS	= 40;
 
 static const int MAX_MODELS = 256;
-static const int MAP_SIZE = 64;
-static const int MAP_TEXTURE_SIZE = 512;
 static const float EYE_HEIGHT = 1.2f;
 static const float EXPLOSIVE_RANGE = 2.0f;
 
@@ -62,8 +62,8 @@ static const int AUTO_SHOT			= 1;
 static const int AIMED_SHOT		    = 2;
 
 static const int MAX_EYESIGHT_RANGE     = 14;
-static const int MIN_TU					= 6;
-static const int MAX_TU					= 12;		// enforced: used for memory allocation, since this is the max walking
+static const int MIN_TU					= EL_MAP_MAX_PATH / 2;
+static const int MAX_TU					= EL_MAP_MAX_PATH;		// enforced: used for memory allocation, since this is the max walking
 
 static const int	TRAIT_MAX			= 100;
 static const int	TRAIT_RANK_BONUS	= 6;		// how much a trait increases per rank

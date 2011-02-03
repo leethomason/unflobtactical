@@ -38,6 +38,7 @@ class UIImage;
 class Engine;
 class Texture;
 class AI;
+struct MapDamageDesc;
 
 // Needs to be a POD because it gets 'union'ed in a bunch of events.
 // size is important for the same reason.
@@ -189,11 +190,6 @@ private:
 		float				speed;
 		bool				center;
 	};
-
-	//struct LanderAction {
-	//	enum				{ TOTAL_TIME = 1500 };
-	//	int					timeRemaining;
-	//};
 
 	struct Action
 	{
@@ -355,6 +351,7 @@ private:
 
 
 	Engine*			engine;
+	TacMap*			tacMap;
 	grinliz::Random random;	// "the" random number generator for the battle
 	int				currentTeamTurn;
 	AI*				aiArr[3];

@@ -37,6 +37,9 @@ enum {
 	EL_NIGHT_RED_U8			= 131,
 	EL_NIGHT_GREEN_U8		= 125,
 	EL_NIGHT_BLUE_U8		= 255,
+	EL_MAP_SIZE				= 64,		// maximum size.
+	EL_MAP_MAX_PATH			= 12,		// longest path anything can travel in one turn. Used to limit display memory.
+	EL_MAP_TEXTURE_SIZE		= 512
 };
 
 static const float EL_NIGHT_RED		= ( (float)EL_NIGHT_RED_U8/255.f );

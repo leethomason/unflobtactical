@@ -46,6 +46,8 @@ public:
 	TacticalEndScene( Game* _game, const TacticalEndSceneData* data );
 	virtual ~TacticalEndScene();
 
+	virtual void Activate();
+
 	// UI
 	virtual void Tap(	int count, 
 						const grinliz::Vector2F& screen,

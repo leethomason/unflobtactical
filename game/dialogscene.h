@@ -37,6 +37,8 @@ public:
 	DialogScene( Game* _game, const DialogSceneData* data );
 	virtual ~DialogScene()	{}
 
+	virtual void Activate();
+
 	// UI
 	virtual void Tap(	int count, 
 						const grinliz::Vector2F& screen,

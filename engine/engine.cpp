@@ -133,10 +133,9 @@ Engine::Engine( Screenport* port, const EngineData& _engineData, const gamedb::R
 		screenport( port ),
 		initZoomDistance( 0 ),
 		engineData( _engineData ),
-		enableMap( true )
+		map( 0 )
 {
 	spaceTree = new SpaceTree( -0.1f, 3.0f );
-	map = new Map( spaceTree );
 	renderQueue = new RenderQueue();
 
 	camera.SetViewRotation( screenport->Rotation() );
@@ -153,7 +152,6 @@ Engine::Engine( Screenport* port, const EngineData& _engineData, const gamedb::R
 Engine::~Engine()
 {
 	delete renderQueue;
-	delete map;
 	delete spaceTree;
 }
 
@@ -336,7 +334,7 @@ void Engine::Draw()
 	// ----------- Render Passess ---------- //
 	Color4F color;
 
-	if ( enableMap ) {
+	if ( map ) {
 		GRINLIZ_PERFTRACK_NAME( "Engine::Draw Map" );
 		// If the map is enabled, we draw the basic map plane lighted. Then draw the model shadows.
 		// The shadows are the tricky part: one matrix is used to transform the vertices to the ground
