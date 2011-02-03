@@ -21,6 +21,7 @@
 #include "../grinliz/glstringutil.h"
 #include "ai.h"
 #include "ufosound.h"
+#include "tacmap.h"
 
 using namespace grinliz;
 
@@ -416,7 +417,7 @@ void Unit::CalcMapPos( grinliz::Vector2I* vec, float* rot ) const
 }
 
 
-void Unit::Kill( Map* map )
+void Unit::Kill( TacMap* map )
 {
 	GLASSERT( status == STATUS_ALIVE );
 	GLASSERT( model );
@@ -444,7 +445,7 @@ void Unit::Kill( Map* map )
 
 	if ( map && !inventory.Empty() ) {
 		Vector2I pos = Pos();
-		Storage* storage = map->LockStorage( pos.x, pos.y, game->GetItemDefArr() );
+		Storage* storage = map->LockStorage( pos.x, pos.y );
 		GLASSERT( storage );
 
 		for( int i=0; i<Inventory::NUM_SLOTS; ++i ) {
@@ -470,7 +471,7 @@ void Unit::Leave()
 }
 
 
-void Unit::DoDamage( const DamageDesc& damage, Map* map )
+void Unit::DoDamage( const DamageDesc& damage, TacMap* map )
 {
 	GLASSERT( status != STATUS_NOT_INIT );
 	if ( status == STATUS_ALIVE ) {
@@ -601,7 +602,7 @@ void Unit::Save( FILE* fp, int depth ) const
 }
 
 
-void Unit::Load( const TiXmlElement* ele, Game* game  )
+void Unit::Load( const TiXmlElement* ele, Game* game, TacMap* tacmap  )
 {
 	Free();
 
@@ -658,7 +659,7 @@ void Unit::Load( const TiXmlElement* ele, Game* game  )
 				GLASSERT( pos.z == 0.0f );
 
 				Vector2I pi;
-				game->engine->GetMap()->PopLocation( team, ai == AI::AI_GUARD, &pi, &rot );
+				tacmap->PopLocation( team, ai == AI::AI_GUARD, &pi, &rot );
 				pos.Set( (float)pi.x+0.5f, 0.0f, (float)pi.y+0.5f );
 			}
 

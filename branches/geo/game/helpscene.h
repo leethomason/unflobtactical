@@ -36,6 +36,8 @@ public:
 	HelpScene( Game* _game, const HelpSceneData* helpName );
 	virtual ~HelpScene();
 
+	virtual void Activate();
+
 	// UI
 	virtual void Tap(	int count, 
 						const grinliz::Vector2F& screen,

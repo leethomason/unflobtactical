@@ -92,7 +92,7 @@ public:
 	// Return true if done.
 	virtual bool Think( const Unit* move,
 						int flags,
-						Map* map,
+						TacMap* map,
 						AIAction* action ) = 0;
 protected:
 	enum {
@@ -109,38 +109,38 @@ protected:
 	// THINK_NO_ACTION  no target
 	// THINK_ACTION		shot taken
 	int ThinkShoot(			const Unit* move,
-							Map* map,
+							TacMap* map,
 							AIAction* action );
 
 	// THINK_SOLVED_NO_ACTION standing on ammo
 	// THINK_ACTION           move
 	// THINK_NO_ACTION		  nothing found, not enough time
 	int ThinkMoveToAmmo(	const Unit* theUnit,
-							Map* map,
+							TacMap* map,
 							AIAction* action );
 
 	// THINK_NO_ACTION		no storage
 	int ThinkInventory(		const Unit* theUnit,
-							Map* map,
+							TacMap* map,
 							AIAction* action);
 
 	// THINK_ACTION			move
 	// THINK_NO_ACTION		not enough time, no destination,
 	int ThinkSearch(		const Unit* theUnit,
 							int flags,
-							Map* map,
+							TacMap* map,
 							AIAction* action );
 
 	int ThinkWander(		const Unit* theUnit,
-							Map* map,
+							TacMap* map,
 							AIAction* action );
 
 	int ThinkTravel(		const Unit* theUnit,
-							Map* map,
+							TacMap* map,
 							AIAction* action );
 
 	int ThinkRotate(		const Unit* theUnit,
-							Map* map,
+							TacMap* map,
 							AIAction* action );
 
 	// Utility:
@@ -181,7 +181,7 @@ public:
 
 	virtual bool Think( const Unit* move,
 						int flags,
-						Map* map,
+						TacMap* map,
 						AIAction* action );
 
 };
@@ -194,7 +194,7 @@ public:
 	virtual ~CivAI()																		{}
 	virtual bool Think( const Unit* move,
 						int flags,
-						Map* map,
+						TacMap* map,
 						AIAction* action );
 };
 
@@ -206,7 +206,7 @@ public:
 	virtual ~NullAI()																		{}
 	virtual bool Think( const Unit* move,
 						int flags,
-						Map* map,
+						TacMap* map,
 						AIAction* action );
 };
 

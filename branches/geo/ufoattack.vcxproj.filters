@@ -165,6 +165,9 @@
     <ClCompile Include="game\battlevisibility.cpp">
       <Filter>scenes</Filter>
     </ClCompile>
+    <ClCompile Include="game\tacmap.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game\ai.h">
@@ -319,6 +322,9 @@
     </ClInclude>
     <ClInclude Include="game\battlevisibility.h">
       <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\tacmap.h">
+      <Filter>game</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

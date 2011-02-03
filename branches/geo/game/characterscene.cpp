@@ -16,18 +16,22 @@
 #include "characterscene.h"
 #include "game.h"
 #include "cgame.h"
-#include "../engine/uirendering.h"
-#include "../engine/text.h"
 #include "battlestream.h"
-#include "../grinliz/glstringutil.h"
 #include "inventoryWidget.h"
 #include "helpscene.h"
+#include "tacmap.h"
+
+#include "../grinliz/glstringutil.h"
+
+#include "../engine/uirendering.h"
+#include "../engine/text.h"
 
 using namespace grinliz;
 using namespace gamui;
 
-CharacterScene::CharacterScene( Game* _game, CharacterSceneData* input ) 
-	: Scene( _game )
+CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input ) 
+	: Scene( _game ),
+	  input( _input )
 {
 	unit = input->unit;
 //	dragUIItem = 0;
@@ -67,11 +71,10 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* input )
 
 	Vector2I mapPos;
 	unit->CalcMapPos( &mapPos, 0 );
-	storage = engine->GetMap()->LockStorage( mapPos.x, mapPos.y, _game->GetItemDefArr() );
+	storage = input->tacMap->LockStorage( mapPos.x, mapPos.y );
 	GLASSERT( storage );
 
 	storageWidget = new StorageWidget( &gamui2D, green, blueTab, _game->GetItemDefArr(), storage );
-	engine->EnableMap( false );
 	storageWidget->SetOrigin( (float)port.UIWidth()-storageWidget->Width(), 0 );
 
 	Inventory* inventory = unit->GetInventory();
@@ -87,14 +90,19 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* input )
 CharacterScene::~CharacterScene()
 {
 	unit->UpdateInventory();
-	engine->EnableMap( true );
 	delete storageWidget;
 	delete inventoryWidget;
 
 	Vector2I mapPos;
 	unit->CalcMapPos( &mapPos, 0 );
-	engine->GetMap()->ReleaseStorage( storage );
+	input->tacMap->ReleaseStorage( storage );
 	storage = 0;
+}
+
+
+void CharacterScene::Activate()
+{
+	GetEngine()->SetMap( 0 );
 }
 
 

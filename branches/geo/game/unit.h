@@ -31,7 +31,7 @@ class Model;
 class ModelResource;
 class Engine;
 class Game;
-class Map;
+class TacMap;
 
 
 class Unit
@@ -76,7 +76,7 @@ public:
 	float TU() const			{ return tu; }
 
 	// Do damage to this unit. Will create a Storage on the map, if the map is provided.
-	void DoDamage( const DamageDesc& damage, Map* map );
+	void DoDamage( const DamageDesc& damage, TacMap* map );
 	void UseTU( float val )		{ tu = grinliz::Max( 0.0f, tu-val ); }
 	void Leave();
 
@@ -161,7 +161,7 @@ public:
 
 	void Save( FILE* fp, int depth ) const;
 
-	void Load( const TiXmlElement* doc, Game* game );
+	void Load( const TiXmlElement* doc, Game* game, TacMap* map );
 	void Create(	int team,
 					int alienType,
 					int rank,
@@ -189,7 +189,7 @@ private:
 	void CreateModel();
 	void UpdateModel();		// make the model current with the unit status - armor, etc.
 	void UpdateWeapon();	// set the gun position
-	void Kill( Map* map );
+	void Kill( TacMap* map );
 
 	int status;		// alive, dead, etc.
 	int ai;			// normal or guard

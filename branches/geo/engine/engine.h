@@ -83,9 +83,10 @@ public:
 
 	Model* AllocModel( const ModelResource* );
 	void FreeModel( Model* );
-	
-	void EnableMap( bool enable )		{ enableMap = enable; }
+
+	void SetMap( Map* m )				{ map = m; }
 	Map* GetMap()						{ return map; }
+
 	const RenderQueue* GetRenderQueue()	{ return renderQueue; }
 	//void ResetRenderCache();
 
@@ -152,7 +153,6 @@ private:
 	Map* map;
 	SpaceTree* spaceTree;
 	RenderQueue* renderQueue;
-	bool enableMap;
 
 	grinliz::Vector3F lightDirection;
 	grinliz::Matrix4  shadowMatrix;

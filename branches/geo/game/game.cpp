@@ -130,7 +130,7 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	TiXmlDocument doc( mapmaker_xmlFile.c_str() );
 	doc.LoadFile();
 	if ( !doc.Error() )
-		engine->GetMap()->Load( doc.FirstChildElement( "Map" ), GetItemDefArr() );
+		engine->GetMap()->Load( doc.FirstChildElement( "Map" ) );
 }
 
 

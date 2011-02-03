@@ -32,6 +32,8 @@ public:
 	TacticalUnitScoreScene( Game* _game, const TacticalEndSceneData* data );
 	virtual ~TacticalUnitScoreScene();
 
+	virtual void Activate();
+
 	// UI
 	virtual void Tap(	int count, 
 						const grinliz::Vector2F& screen,

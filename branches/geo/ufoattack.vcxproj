@@ -135,6 +135,7 @@
     <ClCompile Include="game\settings.cpp" />
     <ClCompile Include="game\stats.cpp" />
     <ClCompile Include="game\storageWidget.cpp" />
+    <ClCompile Include="game\tacmap.cpp" />
     <ClCompile Include="game\tacticalendscene.cpp" />
     <ClCompile Include="game\tacticalintroscene.cpp" />
     <ClCompile Include="game\tacticalunitscorescene.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="game\settings.h" />
     <ClInclude Include="game\stats.h" />
     <ClInclude Include="game\storageWidget.h" />
+    <ClInclude Include="game\tacmap.h" />
     <ClInclude Include="game\tacticalendscene.h" />
     <ClInclude Include="game\tacticalintroscene.h" />
     <ClInclude Include="game\tacticalunitscorescene.h" />

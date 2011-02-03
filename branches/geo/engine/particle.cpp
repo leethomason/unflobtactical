@@ -172,8 +172,8 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 	GLASSERT( primitive >= 0 && primitive < NUM_PRIMITIVES );
 	GLASSERT( type >=0 && type < 16 );
 	GLASSERT( config >= 0 && config <= PARTICLE_SPHERE );
-	GLASSERT( pos0.x >= 0 && pos0.x < (float)MAP_SIZE );
-	GLASSERT( pos0.y >= 0 && pos0.y < (float)MAP_SIZE );
+	GLASSERT( pos0.x >= 0 && pos0.x < (float)EL_MAP_SIZE );
+	GLASSERT( pos0.y >= 0 && pos0.y < (float)EL_MAP_SIZE );
 
 	Vector3F posP, velP, normal;
 	Color4F colP;
@@ -218,9 +218,9 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 				break;
 		};
 
-		posP.x = Clamp( pos0.x + posFuzz*(-0.5f + rand.Uniform() ), 0.0f, (float)MAP_SIZE-0.1f );
+		posP.x = Clamp( pos0.x + posFuzz*(-0.5f + rand.Uniform() ), 0.0f, (float)EL_MAP_SIZE-0.1f );
 		posP.y = pos0.y + posFuzz*(-0.5f + rand.Uniform() );
-		posP.z = Clamp( pos0.z + posFuzz*(-0.5f + rand.Uniform() ), 0.0f, (float)MAP_SIZE-0.1f );
+		posP.z = Clamp( pos0.z + posFuzz*(-0.5f + rand.Uniform() ), 0.0f, (float)EL_MAP_SIZE-0.1f );
 
 		const float CFUZZ_MUL = 0.90f;
 		const float CFUZZ_ADD = 0.20f;
@@ -511,7 +511,7 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 	U16* iBuf = indexBuffer.PushArr( 6*quadBuffer.Size() );
 	QuadVertex* vBuf = vertexBuffer.PushArr( 4*quadBuffer.Size() );
 	Rectangle2I bounds;
-	bounds.Set( 0, 0, MAP_SIZE-1, MAP_SIZE-1 );
+	bounds.Set( 0, 0, EL_MAP_SIZE-1, EL_MAP_SIZE-1 );
 
 	for( int i=0; i<quadBuffer.Size(); ++i ) 
 	{

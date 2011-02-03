@@ -28,8 +28,6 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 	Engine* engine = GetEngine();
 	data = d;
 
-	engine->EnableMap( false );
-
 	gamui::RenderAtom nullAtom;
 	backgroundUI.Init( game, &gamui2D, false );
 
@@ -129,8 +127,14 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 
 TacticalEndScene::~TacticalEndScene()
 {
-	GetEngine()->EnableMap( true );
 }
+
+
+void TacticalEndScene::Activate()
+{
+	GetEngine()->SetMap( 0 );
+}
+
 
 
 void TacticalEndScene::DrawHUD()
