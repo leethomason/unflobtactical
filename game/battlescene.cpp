@@ -230,6 +230,12 @@ BattleScene::~BattleScene()
 void BattleScene::Activate()
 {
 	engine->SetMap( tacMap );
+
+	engine->CameraLookAt( tacMap->Width()/2, tacMap->Height()/2, 25.0f, -45.0f, -50.0f );
+
+	//camera.SetPosWC( EL_MAP_SIZE/2, 25.0f, EL_MAP_SIZE/2 );
+	//camera.SetYRotation( -45.f );
+	//camera.SetTilt( engineData.cameraTilt );
 }
 
 
@@ -486,7 +492,7 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		if ( units[i].IsAlive() && units[i].GetModel() ) {
-			engine->camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
+			//engine->camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 			PushScrollOnScreen( units[i].GetModel()->Pos(), true );
 			break;
 		}
@@ -1117,14 +1123,14 @@ void BattleScene::PushScrollOnScreen( const Vector3F& pos, bool center )
 		Vector3F c;
 		engine->CameraLookingAt( &c );
 
-		Vector3F delta = pos - c;
+		//Vector3F delta = pos - c;
 		//float len = delta.Length();
-		delta.Normalize();
+		//delta.Normalize();
 
 		Action* action = actionStack.Push();
 		action->Init( ACTION_CAMERA_BOUNDS, 0 );
 		action->type.cameraBounds.target = pos;
-		action->type.cameraBounds.normal = delta;
+		//action->type.cameraBounds.normal = delta;
 		action->type.cameraBounds.speed = (float)MAP_SIZE / 3.0f;
 		action->type.cameraBounds.center = center;
 	}
@@ -1545,8 +1551,11 @@ bool BattleScene::ProcessActionCameraBounds( U32 deltaTime, Action* action )
 		pop = true;
 	}
 	else {
+		Vector3F normal = atToTarget;
+		normal.Normalize();
+
 		Vector2F ui;
-		Vector3F d = action->type.cameraBounds.normal * t;
+		Vector3F d = normal * t;
 		engine->camera.DeltaPosWC( d.x, d.y, d.z );
 
 		const Screenport& port = engine->GetScreenport();
@@ -1560,9 +1569,10 @@ bool BattleScene::ProcessActionCameraBounds( U32 deltaTime, Action* action )
 			inset.Outset( 20 );
 		}
 
-		GLOUTPUT(( "Camera (%.1f,%.1f) ui (%.1f,%.1f)-(%.1f,%.1f)\n",
-					ui.x, ui.y, 
-					inset.min.x, inset.min.y, inset.max.x, inset.max.y ));
+		GLOUTPUT(( "ProcessActionCameraBounds\n" )); 
+		//GLOUTPUT(( "Camera (%.1f,%.1f) ui (%.1f,%.1f)-(%.1f,%.1f)\n",
+		//			ui.x, ui.y, 
+		//			inset.min.x, inset.min.y, inset.max.x, inset.max.y ));
 
 		if ( inset.Contains( ui ) ) {
 			pop = true;

@@ -67,13 +67,12 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	newTactical.SetPos( port.UIWidth()-BORDER-newTactical.Width(), 320-BORDER-continueButton.Height() );
 	newTactical.SetText( "New Game" );
 
-	/*
+	
 	newGeo.Init( &gamui2D, green );
-	newGeo.SetPos( LEFT+SIZEX*2, 250 );
+	newGeo.SetPos( port.UIWidth()-BORDER*2-newTactical.Width()*2, 320-BORDER-continueButton.Height() );
 	newGeo.SetSizeByScale( 2.2f, 1 );
 	newGeo.SetText( "New Geo" );
-	newGeo.SetEnabled( false );
-	*/
+	
 
 	helpButton.Init( &gamui2D, green );
 	//helpButton.SetPos( port.UIWidth() - helpButton.Width() - BORDER, BORDER );
@@ -266,7 +265,7 @@ void TacticalIntroScene::Tap(	int action,
 								const Vector2F& screen,
 								const Ray& world )
 {
-	bool onToBattle = false;
+	int onToNext = -1;
 	Vector2F ui;
 	GetEngine()->GetScreenport().ViewToUI( screen, &ui );
 	
@@ -291,7 +290,7 @@ void TacticalIntroScene::Tap(	int action,
 	if ( item == &newTactical ) {
 		newTactical.SetVisible( false );
 		//newCampaign.SetVisible( false );
-		//newGeo.SetVisible( false );
+		newGeo.SetVisible( false );
 		continueButton.SetVisible( false );
 		for( int i=0; i<TOGGLE_COUNT; ++i ) {
 			toggles[i].SetVisible( true );
@@ -311,14 +310,14 @@ void TacticalIntroScene::Tap(	int action,
 		infoButton.SetVisible( false );
 	}
 	else if ( item == &continueButton ) {
-		onToBattle = true;
+		onToNext = Game::BATTLE_SCENE;
 	}
 	else if ( item == &goButton ) {
 		GLString path = game->GameSavePath();
 		FILE* fp = fopen( path.c_str(), "w" );
 		GLASSERT( fp );
 		if ( fp ) {
-			onToBattle = true;
+			onToNext = Game::BATTLE_SCENE;
 			WriteXML( fp );
 			fclose( fp );
 		}
@@ -342,9 +341,14 @@ void TacticalIntroScene::Tap(	int action,
 	else if ( item == &infoButton ) {
 		game->SetDebugLevel( (game->GetDebugLevel() + 1)%4 );
 	}
-	if ( onToBattle ) {
+	else if ( item == &newGeo ) {
+		onToNext = Game::GEO_SCENE;
+	}
+
+
+	if ( onToNext >= 0 ) {
 		game->PopScene();
-		game->PushScene( Game::BATTLE_SCENE, 0 );
+		game->PushScene( onToNext, 0 );
 	}
 
 }

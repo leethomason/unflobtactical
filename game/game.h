@@ -94,9 +94,6 @@ struct TileSetDesc {
 
 class Game : public ITextureCreator 
 {
-private:
-	EngineData engineData;
-
 public:
 	Game( int width, int height, int rotation, const char* savepath );
 	Game( int width, int height, int rotation, const char* path, const TileSetDesc& tileSetDesc );
@@ -135,6 +132,7 @@ public:
 			UNIT_SCORE_SCENE,
 			HELP_SCENE,
 			DIALOG_SCENE,
+			GEO_SCENE,
 			NUM_SCENES,
 		 };
 
@@ -168,10 +166,14 @@ public:
 		ATOM_TEXT, ATOM_TEXT_D,
 		ATOM_TACTICAL_BACKGROUND,
 		ATOM_TACTICAL_BACKGROUND_TEXT,
+
+		ATOM_GEO_BACKGROUND,
+
 		ATOM_GREEN_BUTTON_UP, ATOM_GREEN_BUTTON_UP_D, ATOM_GREEN_BUTTON_DOWN, ATOM_GREEN_BUTTON_DOWN_D,
 		ATOM_BLUE_BUTTON_UP, ATOM_BLUE_BUTTON_UP_D, ATOM_BLUE_BUTTON_DOWN, ATOM_BLUE_BUTTON_DOWN_D,
 		ATOM_RED_BUTTON_UP, ATOM_RED_BUTTON_UP_D, ATOM_RED_BUTTON_DOWN, ATOM_RED_BUTTON_DOWN_D,
 		ATOM_BLUE_TAB_BUTTON_UP, ATOM_BLUE_TAB_BUTTON_UP_D, ATOM_BLUE_TAB_BUTTON_DOWN, ATOM_BLUE_TAB_BUTTON_DOWN_D,
+
 		ATOM_COUNT
 	};
 	const gamui::RenderAtom& GetRenderAtom( int id );

@@ -40,13 +40,14 @@ class RenderQueue;
 	Blend		disabled
 */
 
+	/*
 struct EngineData
 {
 	EngineData() : 
 		cameraTilt( -50.f ),
 		cameraMin( 8.0f ),
 		cameraMax( 140.0f ),
-		cameraHeight( 15.f )
+		cameraHeight( 7.f )
 		{}
 
 	float cameraTilt;		// degrees
@@ -54,12 +55,12 @@ struct EngineData
 	float cameraMax;
 	float cameraHeight;
 };
-
+*/
 
 class Engine
 {
 public:
-	Engine( Screenport* screenport, const EngineData& engineData, const gamedb::Reader* database );
+	Engine( Screenport* screenport, const gamedb::Reader* database );
 	~Engine();
 
 	const float AMBIENT;
@@ -74,12 +75,14 @@ public:
 	SpaceTree* GetSpaceTree()	{ return spaceTree; }
 
 	void MoveCameraHome();
-	void CameraIso( bool iso );
+	void CameraIso(  bool normal, bool sizeToWidth, float width, float height );
 	// Move the camera so that it points to x,z. If 'calc' is non-null,
 	// the camera will *not* be moved, but the destination for the camera
 	// is returned.
 	void MoveCameraXZ( float x, float z, grinliz::Vector3F* calc=0 );
+
 	void CameraLookingAt( grinliz::Vector3F* at );
+	void CameraLookAt( float x, float z, float heightOfCamera, float yRotation=-45.0f, float tilt=-50.0f );
 
 	Model* AllocModel( const ModelResource* );
 	void FreeModel( Model* );
@@ -148,8 +151,6 @@ private:
 	int		initZoomDistance;
 	bool	enableMeta;
 	
-	const EngineData& engineData;
-
 	Map* map;
 	SpaceTree* spaceTree;
 	RenderQueue* renderQueue;

@@ -24,6 +24,7 @@
 #include "tacticalunitscorescene.h"
 #include "helpscene.h"
 #include "dialogscene.h"
+#include "geoscene.h"
 
 #include "../engine/text.h"
 #include "../engine/model.h"
@@ -70,8 +71,6 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	
 	Init();
 	//Map* map = engine->GetMap();
-
-	engine->camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 
 	PushScene( INTRO_SCENE, 0 );
 	loadCompleted = false;
@@ -120,8 +119,8 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	GLString	nightMap  = buffer;
 				nightMap += "_NGT";
 
-	engine->camera.SetPosWC( -25.f, 45.f, 30.f );	// standard test
-	engine->camera.SetYRotation( -60.f );
+	//engine->camera.SetPosWC( -25.f, 45.f, 30.f );	// standard test
+	//engine->camera.SetYRotation( -60.f );
 
 	PushScene( BATTLE_SCENE, 0 );
 	loadCompleted = false;
@@ -161,7 +160,7 @@ void Game::Init()
 	ParticleSystem::Create();
 	SettingsManager::Create( savePath.c_str() );
 
-	engine = new Engine( &screenport, engineData, database );
+	engine = new Engine( &screenport, database );
 
 	LoadTextures();
 	modelLoader = new ModelLoader();
@@ -301,7 +300,7 @@ void Game::PushPopScene()
 		GLASSERT( sceneStack.Empty() );
 
 		delete engine;
-		engine = new Engine( &screenport, engineData, database );
+		engine = new Engine( &screenport, database );
 
 		PushScene( INTRO_SCENE, 0 );
 	}
@@ -346,6 +345,7 @@ void Game::CreateScene( const SceneNode& in, SceneNode* node )
 		case UNIT_SCORE_SCENE:	scene = new TacticalUnitScoreScene( this, (const TacticalEndSceneData*) in.data );	break;
 		case HELP_SCENE:		scene = new HelpScene( this, (const HelpSceneData*)in.data );						break;
 		case DIALOG_SCENE:		scene = new DialogScene( this, (const DialogSceneData*)in.data );					break;
+		case GEO_SCENE:			scene = new GeoScene( this );														break;
 		default:
 			GLASSERT( 0 );
 			break;
@@ -457,9 +457,9 @@ void Game::DoTick( U32 _currentTime )
 			GRINLIZ_PERFTRACK_NAME( "Game::DoTick 3D" );
 			//	r.Set( 100, 50, 300, 50+200*320/480 );
 			//	r.Set( 100, 50, 300, 150 );
-			screenport.SetPerspective(	2.f, 
-										240.f, 
-										20.f*(screenport.UIWidth()/screenport.UIHeight())*320.0f/480.0f, 
+			screenport.SetPerspective(	//2.f, 
+										//240.f, 
+										//(EL_FOV*0.5f)*(screenport.UIWidth()/screenport.UIHeight())*320.0f/480.0f, 
 										clip3D.IsValid() ? &clip3D : 0 );
 
 			engine->Draw();
