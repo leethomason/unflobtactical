@@ -186,7 +186,7 @@ private:
 
 	struct CameraBoundsAction {
 		grinliz::Vector3F	target;
-		grinliz::Vector3F	normal;
+//		grinliz::Vector3F	normal;
 		float				speed;
 		bool				center;
 	};

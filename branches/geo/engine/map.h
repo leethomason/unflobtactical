@@ -551,7 +551,6 @@ private:
 	gamui::Image								border[4];
 
 	grinliz::MemoryPool							itemPool;
-	
 	int											nSeenIndex, nUnseenIndex, nPastSeenIndex;
 
 #ifdef USE_MAP_CACHE

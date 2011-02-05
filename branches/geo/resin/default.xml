@@ -1,5 +1,6 @@
 <resource output="./res/" outputDB="./res/uforesource.db">
-	<!-- Icon and UI -->
+  
+  <!-- Icon and UI -->
 	<texture filename="icons.png" dither="false"/>
   <texture filename="iconDeco.png" dither="false" />
 
@@ -9,7 +10,6 @@
 	<texture filename="woodDarkUFO.tga" />
   <texture filename="woodPlank.png" />
   <texture filename="woodPlankD.png" />
-  <!-- FIXME: size limit -->
   <texture filename="palette.png" />
   <texture filename="charSwatch.png" width="128" height="8" />
   <!-- FIXME: size limit -->
@@ -37,6 +37,8 @@
   <texture filename="title.png" />
   <texture filename="commandBarV.png" />
 
+  <texture filename="geomap.png" />
+
   <!-- Particles -->
   <texture filename="particleQuad.png" />
   <texture filename="particleSparkle.png" />
@@ -48,7 +50,7 @@
              sub.   3 chars. opn, cld, etc.
   -->
   
-  <!-- Sprite models are centered at (0,0,0) -->
+  <!-- Tactical Sprite models are centered at (0,0,0) -->
   <model filename="chess_characters.ac" modelName="green"        origin="0 0 0"  shading="flat" polyRemoval="pre" trigger="-0.42 0.34 0" eye="1.22" target="1.10" />
   <model filename="chess_characters.ac" modelName="prime"        origin="1 0 0"  shading="flat" polyRemoval="pre" trigger="1.31  0.86 0" eye="1.74" target="0.89" />
   <model filename="chess_characters.ac" modelName="hornet"       origin="2 0 0"  shading="flat" polyRemoval="pre" trigger="1.70  0.72 0" eye="1.67" target="1.07" />
@@ -79,6 +81,13 @@
   <model filename="chess_weapons.ac"    modelName="STORM-1"      origin="2 0 0"/>
   <model filename="chess_weapons.ac"    modelName="STORM-2"      origin="2 1 0"/>
   <model filename="chess_weapons.ac"    modelName="STORM-3"      origin="2 2 0"/>
+  
+  <!-- Geo Sprite models are centered at (0,0,0) -->
+  <model filename="ufos.ac" modelName="geo_scout"        origin="0 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="ufos.ac" modelName="geo_frigate"      origin="1 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="ufos.ac" modelName="geo_battleship"   origin="3 0 0"  shading="smooth" polyRemoval="pre" />
+
+  <model filename="geomap.ac" />
 
   <!--
   Sounds not currently in use.
@@ -194,9 +203,6 @@
   <model filename="scout.ac" shading="smooth" />
   <model filename="guard.ac" />
   <model filename="pawn.ac" />
-
-	<!-- Maps -->
-  <image filename="objectLightMaps.png" />
 
   <!-- Farm Tiles -->
   <data  filename="FARM_16_TILE_00.xml" />

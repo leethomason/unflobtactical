@@ -24,7 +24,6 @@
 
 #include "../engine/enginelimits.h"
 
-static const float FOV = 45.0f;
 static const int GAME_BUTTON_SIZE = 60;
 static const float GAME_BUTTON_SIZE_F = (float)GAME_BUTTON_SIZE;
 

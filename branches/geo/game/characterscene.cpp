@@ -34,12 +34,10 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	  input( _input )
 {
 	unit = input->unit;
-//	dragUIItem = 0;
 
 	engine = _game->engine;
 	const Screenport& port = _game->engine->GetScreenport();
 
-	//controlButtons = new UIButtonGroup( engine->GetScreenport() );
 	const gamui::ButtonLook& green		= game->GetButtonLook( Game::GREEN_BUTTON );
 	const gamui::ButtonLook& blue		= game->GetButtonLook( Game::BLUE_BUTTON );
 	const gamui::ButtonLook& blueTab	= game->GetButtonLook( Game::BLUE_TAB_BUTTON );

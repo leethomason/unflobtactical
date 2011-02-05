@@ -56,12 +56,12 @@ static const int SCREEN_HEIGHT = IPOD_SCREEN_HEIGHT*2;
 static const int SCREEN_WIDTH  = IPOD_SCREEN_WIDTH;
 static const int SCREEN_HEIGHT = IPOD_SCREEN_HEIGHT;
 #endif
-#if 0
+#if 1
 // A default screenshot size for market.
 static const int SCREEN_WIDTH  = NEXUS_ONE_SCREEN_WIDTH;
 static const int SCREEN_HEIGHT = NEXUS_ONE_SCREEN_HEIGHT;
 #endif
-#if 1
+#if 0
 // used in "how to play" and the source code web pages
 static const int SCREEN_WIDTH = 384;
 static const int SCREEN_HEIGHT = 640;
@@ -427,7 +427,7 @@ int main( int argc, char **argv )
 					case SDLK_o:
 						if ( mapMakerMode ) {
 							cameraIso = !cameraIso;
-							((Game*)game)->engine->CameraIso( cameraIso );
+							((Game*)game)->engine->CameraIso( cameraIso, true, (float)((Game*)game)->engine->GetMap()->Width(), (float)((Game*)game)->engine->GetMap()->Height() );
 						}
 						break;
 

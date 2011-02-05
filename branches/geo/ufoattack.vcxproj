@@ -119,6 +119,7 @@
   <ItemGroup>
     <ClCompile Include="engine\gpustatemanager.cpp" />
     <ClCompile Include="game\ai.cpp" />
+    <ClCompile Include="game\areaWidget.cpp" />
     <ClCompile Include="game\battlescene.cpp" />
     <ClCompile Include="game\battlevisibility.cpp" />
     <ClCompile Include="game\cgame.cpp" />
@@ -126,6 +127,7 @@
     <ClCompile Include="game\dialogscene.cpp" />
     <ClCompile Include="game\game.cpp" />
     <ClCompile Include="game\gameresources.cpp" />
+    <ClCompile Include="game\geoscene.cpp" />
     <ClCompile Include="game\helpscene.cpp" />
     <ClCompile Include="game\inventory.cpp" />
     <ClCompile Include="game\inventoryWidget.cpp" />
@@ -170,6 +172,7 @@
   <ItemGroup>
     <ClInclude Include="engine\gpustatemanager.h" />
     <ClInclude Include="game\ai.h" />
+    <ClInclude Include="game\areaWidget.h" />
     <ClInclude Include="game\battlescene.h" />
     <ClInclude Include="game\battlevisibility.h" />
     <ClInclude Include="game\cgame.h" />
@@ -177,6 +180,7 @@
     <ClInclude Include="game\dialogscene.h" />
     <ClInclude Include="game\game.h" />
     <ClInclude Include="game\gamelimits.h" />
+    <ClInclude Include="game\geoscene.h" />
     <ClInclude Include="game\helpscene.h" />
     <ClInclude Include="game\inventory.h" />
     <ClInclude Include="game\inventoryWidget.h" />

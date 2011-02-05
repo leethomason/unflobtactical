@@ -46,6 +46,12 @@ static const float EL_NIGHT_RED		= ( (float)EL_NIGHT_RED_U8/255.f );
 static const float EL_NIGHT_GREEN	= ( (float)EL_NIGHT_GREEN_U8/255.f );
 static const float EL_NIGHT_BLUE	= ( (float)EL_NIGHT_BLUE_U8/255.f );
 
+static const float EL_FOV  = 40.0f;
+static const float EL_NEAR = 2.0f;
+static const float EL_FAR  = 240.0f;
+static const float EL_CAMERA_MIN = 8.0f;
+static const float EL_CAMERA_MAX = 140.0f;
+
 
 // --- Debugging --- //
 //#define SHOW_FOW			// visual debugging

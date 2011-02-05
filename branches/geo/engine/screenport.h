@@ -57,6 +57,7 @@ class Screenport
 public:
 	Screenport( int screenWidth, int screenHeight, int rotation ); 
 	void Resize( int w, int h, int r );
+	float UIAspectRatio()		{ return UIHeight() / UIWidth(); }
 
 	int Rotation() const		{ return rotation; }
 
@@ -82,7 +83,7 @@ public:
 	void SetUI( const grinliz::Rectangle2I* clipInUI );
 
 	// Set the perspective PROJECTION.
-	void SetPerspective( float near, float far, float fovDegrees, const grinliz::Rectangle2I* clipInUI );
+	void SetPerspective( const grinliz::Rectangle2I* clipInUI );
 
 	// Set the MODELVIEW from the camera.
 	void SetView( const grinliz::Matrix4& view );

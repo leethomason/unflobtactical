@@ -20,9 +20,6 @@
 #include "surface.h"
 #include "text.h"
 #include "vertex.h"
-//#include "../game/material.h"		// bad call to less general directory. FIXME. Move map to game?
-//#include "../game/unit.h"			// bad call to less general directory. FIXME. Move map to game?
-//#include "../game/game.h"			// bad call to less general directory. FIXME. Move map to game?
 #include "../engine/particleeffect.h"
 #include "../engine/particle.h"
 #include "../grinliz/glstringutil.h"
