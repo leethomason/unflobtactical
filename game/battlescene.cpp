@@ -231,7 +231,7 @@ void BattleScene::Activate()
 {
 	engine->SetMap( tacMap );
 
-	engine->CameraLookAt( tacMap->Width()/2, tacMap->Height()/2, 25.0f, -45.0f, -50.0f );
+	engine->CameraLookAt( (float)tacMap->Width()/2.0f, (float)tacMap->Height()/2.0f, 25.0f, -45.0f, -50.0f );
 
 	//camera.SetPosWC( EL_MAP_SIZE/2, 25.0f, EL_MAP_SIZE/2 );
 	//camera.SetYRotation( -45.f );

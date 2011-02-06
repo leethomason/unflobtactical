@@ -154,7 +154,19 @@ struct MapDamageDesc
 };
 
 
-class Map : public micropather::Graph,
+// Map is crazy, crazy heavy weight. Also possible to use
+// just the IMap for minimal function. Yes, this is a 
+// factoring problem.
+class IMap
+{
+public:
+	virtual Texture* LightFogMapTexture() = 0;
+	virtual void LightFogMapParam( float* w, float* h, float* dx, float* dy ) = 0;
+};
+
+
+class Map : public IMap,
+			public micropather::Graph,
 			public ITextureCreator,
 			public gamui::IGamuiRenderer
 {
@@ -360,7 +372,9 @@ public:
 
 	Texture* BackgroundTexture()	{ return backgroundTexture; }
 	Texture* LightMapTexture()		{ return lightMapTex; }
+	// IMap
 	Texture* LightFogMapTexture()	{ return lightFogMapTex; }
+	virtual void LightFogMapParam( float* w, float* h, float* dx, float* dy )	{ *w = (float)EL_MAP_SIZE; *h = (float)EL_MAP_SIZE; *dx = 0; *dy = 0; };
 
 #ifdef USE_MAP_CACHE
 	const MapRenderBlock* CalcRenderBlocks( const grinliz::Plane* planes, int nPlanes );

@@ -127,6 +127,7 @@
     <ClCompile Include="game\dialogscene.cpp" />
     <ClCompile Include="game\game.cpp" />
     <ClCompile Include="game\gameresources.cpp" />
+    <ClCompile Include="game\geomap.cpp" />
     <ClCompile Include="game\geoscene.cpp" />
     <ClCompile Include="game\helpscene.cpp" />
     <ClCompile Include="game\inventory.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="game\dialogscene.h" />
     <ClInclude Include="game\game.h" />
     <ClInclude Include="game\gamelimits.h" />
+    <ClInclude Include="game\geomap.h" />
     <ClInclude Include="game\geoscene.h" />
     <ClInclude Include="game\helpscene.h" />
     <ClInclude Include="game\inventory.h" />

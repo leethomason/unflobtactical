@@ -87,7 +87,8 @@ public:
 	Model* AllocModel( const ModelResource* );
 	void FreeModel( Model* );
 
-	void SetMap( Map* m )				{ map = m; }
+	void SetMap( Map* m )				{ map = m; iMap = m;}
+	void SetIMap( IMap* m )				{ map = 0; iMap = m; }
 	Map* GetMap()						{ return map; }
 
 	const RenderQueue* GetRenderQueue()	{ return renderQueue; }
@@ -151,7 +152,9 @@ private:
 	int		initZoomDistance;
 	bool	enableMeta;
 	
-	Map* map;
+	Map*	map;	// If map is set, iMap and map are the same object
+	IMap*	iMap;	// If only the iMap is set, map may be null
+
 	SpaceTree* spaceTree;
 	RenderQueue* renderQueue;
 
