@@ -177,6 +177,9 @@
     <ClCompile Include="game\areaWidget.cpp">
       <Filter>widgets</Filter>
     </ClCompile>
+    <ClCompile Include="game\geomap.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game\ai.h">
@@ -340,6 +343,9 @@
     </ClInclude>
     <ClInclude Include="game\areaWidget.h">
       <Filter>widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="game\geomap.h">
+      <Filter>scenes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

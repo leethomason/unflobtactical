@@ -132,7 +132,8 @@ Engine::Engine( Screenport* port, const gamedb::Reader* database )
 		DIFFUSE_SHADOW( 0.2f ),
 		screenport( port ),
 		initZoomDistance( 0 ),
-		map( 0 )
+		map( 0 ),
+		iMap( 0 )
 {
 	spaceTree = new SpaceTree( -0.1f, 3.0f );
 	renderQueue = new RenderQueue();
@@ -255,8 +256,8 @@ void Engine::PushShadowSwizzleMatrix( GPUShader* shader )
 	//     =   0   0    0    0
 	//		
 	Matrix4 swizzle;
-	swizzle.m11 = 1.f/64.f;
-	swizzle.m22 = 0;	swizzle.m23 = -1.f/64.f;	swizzle.m24 = 1.0f;
+	swizzle.m11 = 1.f/((float)EL_MAP_SIZE);
+	swizzle.m22 = 0;	swizzle.m23 = -1.f/((float)EL_MAP_SIZE);	swizzle.m24 = 1.0f;
 	swizzle.m33 = 0.0f;
 
 	shader->PushTextureMatrix( 3 );
@@ -270,10 +271,17 @@ void Engine::PushShadowSwizzleMatrix( GPUShader* shader )
 
 void Engine::PushLightSwizzleMatrix( GPUShader* shader )
 {
+	GLASSERT( iMap );
+	float w, h, dx, dz;
+	iMap->LightFogMapParam( &w, &h, &dx, &dz );
+
 	Matrix4 swizzle;
-	swizzle.m11 = 1.f/64.f;
-	swizzle.m22 = 0;	swizzle.m23 = -1.f/64.f;	swizzle.m24 = 1.0f;
+	swizzle.m11 = 1.f/w;
+	swizzle.m22 = 0;	swizzle.m23 = -1.f/h;	swizzle.m24 = 1.0f;
 	swizzle.m33 = 0.0f;
+
+	swizzle.m14 = dx;
+	swizzle.m34 = dz;
 
 	shader->PushTextureMatrix( 2 );
 	shader->MultTextureMatrix( 2, swizzle );
@@ -282,6 +290,8 @@ void Engine::PushLightSwizzleMatrix( GPUShader* shader )
 
 void Engine::Draw()
 {
+	GRINLIZ_PERFTRACK;
+
 	// -------- Camera & Frustum -------- //
 	screenport->SetView( camera.ViewMatrix() );	// Draw the camera
 
@@ -327,13 +337,12 @@ void Engine::Draw()
 
 	Rectangle2I mapBounds;
 	mapBounds.Set( 0, 0, EL_MAP_SIZE, EL_MAP_SIZE );
-	if ( map )
+	if ( map ) {
 		mapBounds = map->Bounds();
+	}
 
 	// ------------ Process the models into the render queue -----------
 	{
-		GRINLIZ_PERFTRACK_NAME( "Engine::Draw Models" );
-
 		GLASSERT( renderQueue->Empty() );
 		const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fogOfWar = (map) ? &map->GetFogOfWar() : 0;
 
@@ -364,7 +373,6 @@ void Engine::Draw()
 	Color4F color;
 
 	if ( map ) {
-		GRINLIZ_PERFTRACK_NAME( "Engine::Draw Map" );
 		// If the map is enabled, we draw the basic map plane lighted. Then draw the model shadows.
 		// The shadows are the tricky part: one matrix is used to transform the vertices to the ground
 		// plane, and the other matrix is used to transform the vertices to texture coordinates.
@@ -445,9 +453,9 @@ void Engine::Draw()
 	// -------- Models ---------- //
 #ifdef ENGINE_RENDER_MODELS
 	{
-		if ( map ) {
-			mapItemShader.SetTexture1( map->LightFogMapTexture() );
-			mapBlendItemShader.SetTexture1( map->LightFogMapTexture() );
+		if ( iMap ) {
+			mapItemShader.SetTexture1( iMap->LightFogMapTexture() );
+			mapBlendItemShader.SetTexture1( iMap->LightFogMapTexture() );
 			
 			PushLightSwizzleMatrix( &mapItemShader );
 
@@ -467,6 +475,7 @@ void Engine::Draw()
 #endif
 			lightShader.PopTextureMatrix( 2 );
 		}
+		// Render everything NOT in the map.
 		renderQueue->Submit( 0, 0, 0, Model::MODEL_OWNED_BY_MAP );
 	}
 #endif
