@@ -36,3 +36,11 @@ void AreaWidget::SetOrigin( float x, float y )
 	bar.SetPos( x, y+DY );
 }
 
+
+void AreaWidget::SetInfluence( float x )
+{
+	bar.SetRange( 0, x/10.f );
+}
+
+
+

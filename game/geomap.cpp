@@ -20,14 +20,18 @@ GeoMap::GeoMap( SpaceTree* _tree ) : tree( _tree )
 
 	dayNightTex = TextureManager::Instance()->CreateTexture( "GeoDayNight", DAYNIGHT_TEX_SIZE, 1, Surface::RGB16, Texture::PARAM_NONE, this );
 
-	geoModel = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "geomap" ) );
-	geoModel->SetFlag( Model::MODEL_OWNED_BY_MAP );
+	for( int i=0; i<2; ++i ) {
+		geoModel[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "geomap" ) );
+		geoModel[i]->SetFlag( Model::MODEL_OWNED_BY_MAP );
+	}
+	geoModel[1]->SetPos( MAP_X, 0, 0 );
 }
 
 
 GeoMap::~GeoMap()
 {
-	tree->FreeModel( geoModel );
+	tree->FreeModel( geoModel[0] );
+	tree->FreeModel( geoModel[1] );
 	TextureManager::Instance()->DeleteTexture( dayNightTex );
 }
 
@@ -40,12 +44,13 @@ void GeoMap::LightFogMapParam( float* w, float* h, float* dx, float* dy )
 	*dy = 0;
 }
 
-
+/*
 void GeoMap::SetScrolling( float dx )
 {
 	scrolling = dx;
 	geoModel->SetTexXForm( 0, 1, 1, -dx, 0 );
 }
+*/
 
 
 void GeoMap::CreateTexture( Texture* t )

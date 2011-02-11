@@ -139,8 +139,6 @@ void TacticalEndScene::Activate()
 
 void TacticalEndScene::DrawHUD()
 {
-//	UFOText::Draw( 50, 200, "%s", data->nTerransAlive ? "Victory!" : "Defeat" );
-//	UFOText::Draw( 50, 80,  "For a new game, close and select 'new'" );
 }
 
 

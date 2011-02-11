@@ -25,6 +25,7 @@
 #include "helpscene.h"
 #include "dialogscene.h"
 #include "geoscene.h"
+#include "geoendscene.h"
 
 #include "../engine/text.h"
 #include "../engine/model.h"
@@ -195,6 +196,7 @@ Game::~Game()
 		PushPopScene();
 	}
 
+	sceneStack.Top()->scene->DeActivate();
 	sceneStack.Top()->Free();
 	sceneStack.Pop();
 
@@ -346,6 +348,7 @@ void Game::CreateScene( const SceneNode& in, SceneNode* node )
 		case HELP_SCENE:		scene = new HelpScene( this, (const HelpSceneData*)in.data );						break;
 		case DIALOG_SCENE:		scene = new DialogScene( this, (const DialogSceneData*)in.data );					break;
 		case GEO_SCENE:			scene = new GeoScene( this );														break;
+		case GEO_END_SCENE:		scene = new GeoEndScene( this, (const GeoEndSceneData*)in.data );					break;
 		default:
 			GLASSERT( 0 );
 			break;
@@ -471,7 +474,7 @@ void Game::DoTick( U32 _currentTime )
 			const grinliz::Vector3F* eyeDir = engine->camera.EyeDir3();
 			ParticleSystem* particleSystem = ParticleSystem::Instance();
 			particleSystem->Update( deltaTime, currentTime );
-			particleSystem->Draw( eyeDir, &engine->GetMap()->GetFogOfWar() );
+			particleSystem->Draw( eyeDir, engine->GetMap() ? &engine->GetMap()->GetFogOfWar() : 0 );
 		}
 
 		{

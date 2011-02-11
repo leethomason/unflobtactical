@@ -36,8 +36,11 @@
   <texture filename="intro.png" />
   <texture filename="title.png" />
   <texture filename="commandBarV.png" />
+  <texture filename="defeat.png" />
+  <texture filename="victory.png" />
 
   <texture filename="geomap.png" />
+  <texture filename="cropcircle.png" width="64" height="64" />
 
   <!-- Particles -->
   <texture filename="particleQuad.png" />
@@ -86,6 +89,8 @@
   <model filename="ufos.ac" modelName="geo_scout"        origin="0 0 0"  shading="smooth" polyRemoval="pre" />
   <model filename="ufos.ac" modelName="geo_frigate"      origin="1 0 0"  shading="smooth" polyRemoval="pre" />
   <model filename="ufos.ac" modelName="geo_battleship"   origin="3 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="cities.ac" modelName="city"        origin="0 0 0"  shading="flat" polyRemoval="pre" />
+  <model filename="cities.ac" modelName="capital"     origin="2 0 0"  shading="flat" polyRemoval="pre" />
 
   <model filename="geomap.ac" />
 

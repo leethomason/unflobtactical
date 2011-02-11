@@ -94,6 +94,9 @@ enum {
 	DECO_MUTE			= 30,
 
 	DECO_NONE			= 31,
+
+	CROP_CIRCLES_X		= 2,
+	CROP_CIRCLES_Y		= 2,
 };
 
 

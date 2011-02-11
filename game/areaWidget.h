@@ -14,6 +14,7 @@ public:
 				const char* name );
 
 	void SetOrigin( float x, float y );
+	void SetInfluence( float x );
 
 private:
 	gamui::TextLabel	name;
