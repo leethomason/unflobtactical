@@ -33,6 +33,16 @@ Screenport::Screenport( int w, int h, int r )
 	clipInUI3D.Set( 0, 0, UIWidth(), UIHeight() );
 }
 
+/*
+Screenport::Screenport( const Screenport& other )
+{
+	Resize( (int)other.physicalWidth, (int)other.physicalHeight, other.rotation );
+	uiMode = other.uiMode;
+	clipInUI2D = other.clipInUI2D;
+	clipInUI3D = other.clipInUI3D;
+}
+*/
+
 
 void Screenport::Resize( int w, int h, int r )
 {
@@ -288,18 +298,8 @@ void Screenport::WorldToView( const grinliz::Vector3F& world, grinliz::Vector2F*
 
 	Vector4F p, r;
 	p.Set( world, 1 );
-
 	r = mvp * p;
 
-	// Normalize to view.
-	// r in range [-1,1] which maps to screen[0,Width()-1]
-	/*
-	Vector2F v0, v1;
-	Rectangle2F clipInView;
-	UIToView( clipInUI3D.min, &v0 );
-	UIToView( clipInUI3D.max, &v1 ); 
-	clipInView.FromPair( v0.x, v0.y, v1.x, v1.y );
-	*/
 	Vector2F v0, v1;
 	Rectangle2F clipInView;
 	Vector2F min = { 0, 0 };

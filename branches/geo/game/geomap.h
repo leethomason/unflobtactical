@@ -26,8 +26,7 @@ public:
 	// ITextureCreator
 	virtual void CreateTexture( Texture* t );
 
-	void SetScrolling( float fraction );
-
+	// GeoMap functionality
 	void DoTick( U32 currentTime, U32 deltaTime );
 
 
@@ -47,7 +46,7 @@ private:
 	SpaceTree*			tree;
 	Texture*			dayNightTex;
 	Surface				dayNightSurface;
-	Model*				geoModel;
+	Model*				geoModel[2];
 };
 
 #endif // GEOMAP_INCLUDED

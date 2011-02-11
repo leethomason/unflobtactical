@@ -56,6 +56,8 @@ class Screenport
 {
 public:
 	Screenport( int screenWidth, int screenHeight, int rotation ); 
+	//Screenport( const Screenport& other );
+
 	void Resize( int w, int h, int r );
 	float UIAspectRatio()		{ return UIHeight() / UIWidth(); }
 
@@ -87,6 +89,7 @@ public:
 
 	// Set the MODELVIEW from the camera.
 	void SetView( const grinliz::Matrix4& view );
+	void SetViewMatrices( const grinliz::Matrix4& _view )			{ view2D = _view; view3D = _view; }
 
 	const grinliz::Matrix4& ProjectionMatrix3D() const				{ return projection3D; }
 	const grinliz::Matrix4& ViewMatrix3D() const					{ return view3D; }
@@ -106,8 +109,7 @@ public:
 	bool UIMode() const										{ return uiMode; }
 
 private:
-	Screenport( const Screenport& other );
-	void operator=( const Screenport& other );
+	//void operator=( const Screenport& other );
 
 	
 	void UIToWindow( const grinliz::Rectangle2F& ui, grinliz::Rectangle2F* clip ) const;
@@ -119,7 +121,7 @@ private:
 	float physicalWidth;
 	float physicalHeight;
 
-	float vScale, hScale;
+	//float vScale, hScale;
 
 	bool uiMode;
 	grinliz::Rectangle2F clipInUI2D, clipInUI3D;

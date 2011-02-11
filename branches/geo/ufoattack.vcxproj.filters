@@ -180,6 +180,12 @@
     <ClCompile Include="game\geomap.cpp">
       <Filter>scenes</Filter>
     </ClCompile>
+    <ClCompile Include="game\geoai.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\geoendscene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game\ai.h">
@@ -345,6 +351,12 @@
       <Filter>widgets</Filter>
     </ClInclude>
     <ClInclude Include="game\geomap.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\geoai.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\geoendscene.h">
       <Filter>scenes</Filter>
     </ClInclude>
   </ItemGroup>

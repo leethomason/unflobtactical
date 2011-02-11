@@ -106,6 +106,13 @@ class Random
 		return -1 + 2*Bit();
 	}
 
+	/**
+		Given a set of scores (weights), choose a random value. The scores don't have
+		to add to any particular value. For an array of [2,1] Select() will return
+		0 2/3rds of time, and 1 1/3rd of the time.
+	*/
+	int Select( const float* scores, int nItems );
+
 	// Return a random unit normal vector. 'dimension' is usual 2 (2D) or 3 (3D)
 	// This is hard to get correct. Generating a random x,y,z favors the corners of the 
 	// box. Geometrically easy to see if you think that there is more length - and therefore
