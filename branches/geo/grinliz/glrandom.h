@@ -56,6 +56,7 @@ class Random
 								}		
 
 	void SetSeed( const char* str );
+	void SetSeedFromTime();
 
 	/// Returns a 32 bit random number.
 	U32 Rand();						

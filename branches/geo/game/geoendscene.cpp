@@ -6,7 +6,7 @@ using namespace grinliz;
 
 GeoEndScene::GeoEndScene(  Game* game, const GeoEndSceneData* data ) : Scene(game)
 {
-	backgroundUI.Init( game, &gamui2D, false );
+	backgroundUI.Init( game, &gamui2D, true );
 
 	if ( data->victory )
 		backgroundUI.backgroundText.SetAtom( game->GetRenderAtom( Game::ATOM_GEO_VICTORY ) );

@@ -11,32 +11,58 @@ GeoAI::GeoAI( const GeoMapData& _data ) : geoMapData( _data )
 
 void GeoAI::GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vector2F* end, const RegionData* data )
 {
-	float score[GEO_REGIONS] = { 0 };
+	float score[GEO_REGIONS*2] = { 0 };
 	Vector2I dest = { -1, -1 };
 
 	if ( dest.x < 0 ) {
-		// Can the aliens occupy a capital?
-		if ( type == TravellingUFO::BATTLESHIP ) {
-			int count=0;
-			for( int i=0; i<GEO_REGIONS; ++i ) {
-				score[i] = 0;
-				if (    data[i].influence >= MIN_OCCUPATION_INFLUENCE 
-					 &&	!data[i].occupied )
-				{
-					++count;
-					score[i] = data[i].Score();
+		// Can the aliens occupy a capital or attack a base?
+		if ( type == UFOChit::BATTLESHIP ) {
+			// Base attack is a dicey business.
+			if ( random.Bit() ) {
+				// Consider it.
+				int count=0;
+				for( int i=0; i<GEO_REGIONS; ++i ) {
+					score[i] = 0;
+					if (    data[i].influence >= MIN_BASE_ATTACK_INFLUENCE 
+						 && data[i].NumBases() )
+					{
+						++count;
+						score[i] = data[i].Score();
+					}
+				}
+				if ( count > 0 ) {
+					int region = random.Select( score, GEO_REGIONS );
+					int id = random.Rand( data[region].NumBases() );
+					dest = data[region].Base( id );
 				}
 			}
-			if ( count > 0 ) {
-				int region = random.Select( score, GEO_REGIONS );
-				int cityID = geoMapData.CapitalID( region );
-				dest = geoMapData.City( region, cityID );
+
+			// We may or may not have found a match. Now
+			// look at occupation options.
+			if ( dest.x < 0 ) {
+				int count=0;
+				for( int i=0; i<GEO_REGIONS; ++i ) {
+					score[i] = 0;
+					if (    data[i].influence >= MIN_OCCUPATION_INFLUENCE 
+						 &&	!data[i].occupied )
+					{
+						++count;
+						score[i] = data[i].Score();
+					}
+				}
+				if ( count > 0 ) {
+					int region = random.Select( score, GEO_REGIONS );
+					int cityID = geoMapData.CapitalID( region );
+					dest = geoMapData.City( region, cityID );
+				}
 			}
 		}
 	}
 	if ( dest.x < 0 ) {
 		// Can the aliens attack a city?
-		if ( type == TravellingUFO::BATTLESHIP || TravellingUFO::FRIGATE ) {
+		if (    type == UFOChit::BATTLESHIP 
+			 || type == UFOChit::FRIGATE ) 
+		{
 			int count=0;
 			for( int i=0; i<GEO_REGIONS; ++i ) {
 				score[i] = 0;
@@ -61,7 +87,7 @@ void GeoAI::GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vect
 		for( int i=0; i<GEO_REGIONS; ++i ) {
 			score[i] = 0;
 			if ( !data[i].occupied ) {
-				if ( type == TravellingUFO::SCOUT )
+				if ( type == UFOChit::SCOUT )
 					score[i] = 1;						// make the scouts scout.
 				else
 					score[i] = data[i].Score();			// be more careful with the heavy ships
@@ -78,6 +104,15 @@ void GeoAI::GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vect
 	float len = (float)GEO_MAP_X * (0.7f + random.Uniform()*0.2f );
 	start->x = end->x + len*(float)random.Sign();
 	start->y = (float)GEO_MAP_Y * random.Uniform();
+
+#ifdef DEBUG
+	{
+		// Scouts should never end at cities.
+		if ( type == UFOChit::SCOUT ) {
+			GLASSERT( !geoMapData.IsCity( dest.x, dest.y ) );
+		}
+	}
+#endif
 }
 
 

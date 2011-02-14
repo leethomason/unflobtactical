@@ -58,6 +58,10 @@ enum {
 	ICON_RANK_3				= 30,
 	ICON_RANK_4				= 31,
 
+	ICON2_UFO_CROP_CIRCLING		= 0,
+	ICON2_UFO_CITY_ATTACKING	= 1,
+	ICON2_UFO_OCCUPYING			= 2,
+
 	DECO_CHARACTER		= 0,
 	DECO_PISTOL			= 1,
 	DECO_RIFLE			= 2,
@@ -68,10 +72,8 @@ enum {
 	DECO_INFO			= 7,
 
 	DECO_AIMED			= 8,
-	DECO_AUTO			= 9,
-	DECO_SNAP			= 10,
-	DECO_MEDKIT			= 11,
-	DECO_KNIFE			= 12,
+	DECO_BASE			= 9,
+	DECO_RESEARCH		= 10,
 	DECO_ALIEN			= 13,
 	DECO_ARMOR			= 14,
 	DECO_BOOM			= 15,
@@ -79,7 +81,6 @@ enum {
 	DECO_METAL			= 16,
 	DECO_TECH			= 17,
 	DECO_FUEL			= 18,
-	DECO_SWAP			= 19,
 	DECO_HELP			= 20,
 	DECO_LAUNCH			= 21,
 	DECO_END_TURN		= 22,
@@ -129,6 +130,7 @@ public:
 	static gamui::RenderAtom CalcDecoAtom( int id, bool enabled=true );
 	static gamui::RenderAtom CalcParticleAtom( int id, bool enabled=true );
 	static gamui::RenderAtom CalcIconAtom( int id, bool enabled=true );
+	static gamui::RenderAtom CalcIcon2Atom( int id, bool enabled=true );
 
 	enum {
 		PALETTE_GREEN, PALETTE_BLUE, PALETTE_RED, PALETTE_YELLOW, PALETTE_GREY,

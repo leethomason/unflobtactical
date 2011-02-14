@@ -23,6 +23,7 @@
 #include "../grinliz/glrandom.h"
 
 #include "gamelimits.h"
+#include "../engine/ufoutil.h"
 
 class SpaceTree;
 class GeoMapData;

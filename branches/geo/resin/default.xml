@@ -1,7 +1,8 @@
 <resource output="./res/" outputDB="./res/uforesource.db">
   
   <!-- Icon and UI -->
-	<texture filename="icons.png" dither="false"/>
+  <texture filename="icons.png" dither="false"/>
+  <texture filename="icons2.png" dither="false"/>
   <texture filename="iconDeco.png" dither="false" />
 
   <!-- Model textures -->
@@ -91,6 +92,7 @@
   <model filename="ufos.ac" modelName="geo_battleship"   origin="3 0 0"  shading="smooth" polyRemoval="pre" />
   <model filename="cities.ac" modelName="city"        origin="0 0 0"  shading="flat" polyRemoval="pre" />
   <model filename="cities.ac" modelName="capital"     origin="2 0 0"  shading="flat" polyRemoval="pre" />
+  <model filename="cities.ac" modelName="base"        origin="4 0 0"  shading="flat" polyRemoval="pre" />
 
   <model filename="geomap.ac" />
 

@@ -5,6 +5,9 @@ Bugs:
 Android
 - Amazon
 
+- geo: a ufo will return to orbit if it gets to a "parked" tile. Should find a new task.
+
+
 
 Deferred:
 - Android: cap framerate. Don't really need >30. A regrettably nasty problem.

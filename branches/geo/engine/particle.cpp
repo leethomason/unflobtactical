@@ -172,8 +172,8 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 	GLASSERT( primitive >= 0 && primitive < NUM_PRIMITIVES );
 	GLASSERT( type >=0 && type < 16 );
 	GLASSERT( config >= 0 && config <= PARTICLE_SPHERE );
-	GLASSERT( pos0.x >= 0 && pos0.x < (float)EL_MAP_SIZE );
-	GLASSERT( pos0.y >= 0 && pos0.y < (float)EL_MAP_SIZE );
+//	GLASSERT( pos0.x >= 0 && pos0.x < (float)EL_MAP_SIZE );
+//	GLASSERT( pos0.y >= 0 && pos0.y < (float)EL_MAP_SIZE );
 
 	Vector3F posP, velP, normal;
 	Color4F colP;

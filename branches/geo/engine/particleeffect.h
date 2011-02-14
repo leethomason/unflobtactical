@@ -20,9 +20,13 @@
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glrandom.h"
 #include "vertex.h"
+#include "ufoutil.h"
 
 class ParticleSystem;
 
+
+// Never hold on to ParticleEffect pointers! They are fire and forget. If 
+// you need to make sure an effect ends, use the ID(), and RemoveByID();
 class ParticleEffect
 {
 public:
@@ -149,6 +153,44 @@ private:
 	U32 currentTime;
 	U32 timePool;
 	U32 finishTime;
+};
+
+
+class RingEffect : public ParticleEffect
+{
+public:
+	RingEffect( ParticleSystem* system );
+	virtual ~RingEffect()	{}
+
+	virtual void Clear();
+	void Init(	const grinliz::Vector3F& origin,
+				float radius,
+				float halfsize,
+				int count );
+
+	void SetColor( const Color4F& c )		{ color = c; }
+
+	virtual bool Done();
+	virtual void DoTick( U32 time, U32 deltaTime );
+	virtual U32 CalcDuration()	{ return 0; }
+	virtual void Draw( const grinliz::Vector3F* eyeDir );
+	virtual const char* Name();
+
+private:
+	grinliz::Vector3F p0;
+	float radius;
+	Color4F color;
+	int count;
+	bool done;
+
+	struct RingVertex
+	{
+		grinliz::Vector3F	pos;
+		grinliz::Vector2F	tex;
+	};
+
+	CDynArray< RingVertex > quads;
+	CDynArray< U16 > index;
 };
 
 
