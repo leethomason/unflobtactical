@@ -27,8 +27,10 @@ distribution.
 */
 
 #include "glrandom.h"
+
 #include <math.h>
 #include <string.h>
+#include <time.h>
 	
 using namespace grinliz;
 
@@ -112,6 +114,13 @@ void Random::SetSeed( const char* str )
 {
 	int len = strlen( str );
 	U32 seed = Hash( str, len );
+	SetSeed( seed );
+}
+
+
+void Random::SetSeedFromTime()
+{
+	U32 seed = (U32)time( 0 ) + (U32)clock();
 	SetSeed( seed );
 }
 

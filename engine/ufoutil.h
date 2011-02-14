@@ -190,6 +190,12 @@ public:
 	}
 	bool Empty() const		{ return size==0; }
 	const T* Mem() const	{ return vec; }
+	void SwapRemove( int i ) {
+		GLASSERT( size > 0 );
+		GLASSERT( i >= 0 && i < (int)size );
+		vec[i] = vec[size-1];
+		--size;
+	}
 
 private:
 	T vec[CAPACITY];

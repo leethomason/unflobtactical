@@ -154,6 +154,25 @@ RenderAtom UIRenderer::CalcIconAtom( int id, bool enabled )
 }
 
 
+RenderAtom UIRenderer::CalcIcon2Atom( int id, bool enabled )
+{
+	GLASSERT( id >= 0 && id < 32 );
+	Texture* texture = TextureManager::Instance()->GetTexture( "icons2" );
+
+	static const int CX = 4;
+	static const int CY = 4;
+
+	int y = id / CX;
+	int x = id - y*CX;
+	float tx0 = (float)x / (float)CX;
+	float ty0 = (float)y / (float)CY;;
+	float tx1 = tx0 + 1.f/(float)CX;
+	float ty1 = ty0 + 1.f/(float)CY;
+
+	return RenderAtom( (const void*)(enabled ? RENDERSTATE_UI_NORMAL : RENDERSTATE_UI_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1, 64, 64 );
+}
+
+
 RenderAtom UIRenderer::CalcPaletteAtom( int c0, int c1, int blend, float w, float h, bool enabled )
 {
 	Vector2I c = { 0, 0 };
