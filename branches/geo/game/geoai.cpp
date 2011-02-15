@@ -1,5 +1,6 @@
 #include "geoai.h"
 #include "geoscene.h"
+#include "chits.h"
 
 using namespace grinliz;
 

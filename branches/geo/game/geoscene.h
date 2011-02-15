@@ -37,6 +37,7 @@ class GeoAI;
 class RingEffect;
 class BaseChit;
 class UFOChit;
+class Chit;
 
 
 
@@ -53,6 +54,7 @@ static const int MIN_CITY_ATTACK_INFLUENCE = 4;		// needed to attack cities
 static const int CITY_ATTACK_INFLUENCE = 2;
 static const int MIN_BASE_ATTACK_INFLUENCE = 7;
 static const int MIN_OCCUPATION_INFLUENCE = 9;
+static const int MAX_INFLUENCE = 10;
 
 static const float UFO_HEIGHT = 0.5f;
 static const float UFO_SPEED[3] = { 1.00f, 0.85f, 0.70f };
@@ -62,14 +64,13 @@ static const float UFO_ACCEL = 0.2f;	// units/second2
 static const float UFO_LAND_TIME  = 10*1000;
 static const float UFO_CRASH_TIME = 20*1000;
 
-static const U32 MISSILE_FREQ		= 1500;
-static const U32 GUN_FREQ			=  800;
-static const float MISSILE_SPEED	= 1.5f;		// faster than UFOs.
-static const U32   MISSILE_LIFETIME = 3000;		// range = lifetime * speed
-static const float GUN_SPEED		= 2.0f;
-static const U32   GUN_LIFETIME		=  800;
-
-static const float MISSILE_HEIGHT = 0.6f;
+static const U32	MISSILE_FREQ		= 1500;
+static const U32	GUN_FREQ			=  800;
+static const float	MISSILE_SPEED		= 1.5f;		// faster than UFOs.
+static const U32	MISSILE_LIFETIME	= 3000;		// range = lifetime * speed
+static const float	GUN_SPEED			= 2.0f;
+static const U32	GUN_LIFETIME		=  800;
+static const float	MISSILE_HEIGHT		= 0.6f;
 
 
 inline U32	 MissileFreq( int type )  { return ( type == 0 ) ? GUN_FREQ : MISSILE_FREQ; }
@@ -78,42 +79,6 @@ inline float MissileSpeed( int type ) { return ( type == 0 ) ? GUN_SPEED : MISSI
 inline U32   MissileLifetime( int type ) { return ( type == 0 ) ? GUN_LIFETIME : MISSILE_LIFETIME; }
 
 
-template < class T > 
-class Cylinder
-{
-public:
-	static bool InBounds( const grinliz::Vector2<T>& a ) {
-		return a.x >= 0 && a.x < GEO_MAP_X;
-	}
-
-	static grinliz::Vector2<T> Normalize( const grinliz::Vector2<T>& a )
-	{
-		grinliz::Vector2<T> v = a;
-		int it=0;
-		while ( it<4 && v.x >= GEO_MAP_X )	v.x -= GEO_MAP_X, ++it;
-		while ( it<4 && v.x < 0 )			v.x += GEO_MAP_X, ++it;
-		GLASSERT( InBounds( v ) );
-		return v;
-	}
-	static T LengthSquared( const grinliz::Vector2<T>& a, const grinliz::Vector2<T>& b ) {
-		T x0 = Min( a.x, b.x );
-		T x1 = Max( a.x, b.x );
-
-		T dx = x1 - x0;
-		// but wait, dx can't be greater than 1/2 the size (it is a cylinder)
-		if ( dx > GEO_MAP_X/2 ) {
-			// try the other way
-			dx = (x0+GEO_MAP_X)-x1;
-		}
-
-		T dy = a.y - b.y;
-		return dx*dx + dy*dy;
-	}
-
-	static float Length( const grinliz::Vector2<T>& a, const grinliz::Vector2<T>& b ) {
-		return sqrtf( LengthSquared( a, b ) );
-	}
-};
 
 
 class GeoMapData
@@ -254,169 +219,6 @@ private:
 };
 
 
-class Chit
-{
-protected:
-	Chit( SpaceTree* tree );
-public:
-	virtual ~Chit();
-
-	enum {
-		MSG_NONE,
-		MSG_DONE,						// delete this chit, left orbit, time up
-
-		MSG_UFO_AT_DESTINATION,			// create a crop circle, attack a city, occupy a capital
-		MSG_CROP_CIRCLE_COMPLETE,
-		MSG_CITY_ATTACK_COMPLETE,
-		MSG_BASE_ATTACK_COMPLETE,
-		MSG_UFO_CRASHED,
-	};
-	virtual int DoTick( U32 deltaTime ) = 0;
-
-	virtual bool Parked() const { return false; }
-
-	grinliz::Vector2I MapPos() const { 
-		grinliz::Vector2I v = { (int)pos.x, (int)pos.y }; 
-		return Cylinder<int>::Normalize( v );
-	}
-	void SetMapPos( int x, int y ) 
-	{ 
-		GLASSERT( x > -GEO_MAP_X && x < GEO_MAP_X*3 );
-		pos.Set( (float)x+0.5f, (float)y+0.5f );
-		pos = Cylinder<float>::Normalize( pos );
-	}
-	
-	const grinliz::Vector2F Pos() const { return Cylinder<float>::Normalize( pos ); }
-	void SetPos( float x, float y ) { 
-		GLASSERT( x > -GEO_MAP_X && x < GEO_MAP_X*3 );
-		pos.Set( x, y ); 
-	}
-
-	virtual BaseChit*	IsBaseChit()	{ return 0; }
-	virtual UFOChit*	IsUFOChit()		{ return 0; }
-	void SetDestroyed()					{ destroyed = true; }
-	bool IsDestroyed()					{ return destroyed; }
-
-protected:
-	grinliz::Vector2F pos;		// in map units - NOT normalized
-	grinliz::Vector2F dest;		// in map units - NOT normalized
-	Model* model[2];			// use 2 models, so that the camera can fake scrolling. the spacetree will sort it all out.
-	SpaceTree* tree;
-
-private:
-	bool destroyed;
-};
-
-
-// FIXME: move to memory pools?
-class UFOChit : public Chit
-{
-public:
-	enum {
-		AI_NONE,		// no ai, needs processing
-		AI_TRAVELLING,	// on route to destination
-		AI_ORBIT,		// accelerating to orbit
-
-		AI_CRASHED,		// crashed UFO
-		AI_CITY_ATTACK,	// attacking a city
-		AI_BASE_ATTACK, 
-		AI_OCCUPATION,	// a battleship has occupied a capital. It will not leave (until destroyed)
-		AI_CROP_CIRCLE,	// chillin' and making crop circles
-
-		AI_PARKED = AI_CRASHED,
-	};
-
-	enum {
-		SCOUT,
-		FRIGATE,
-		BATTLESHIP,
-		NUM_TYPES
-	};
-	UFOChit(	SpaceTree* tree, 
-				int type, 
-				const grinliz::Vector2F& start, 
-				const grinliz::Vector2F& dest );
-	~UFOChit();
-
-	virtual int DoTick( U32 deltaTime );
-
-	virtual UFOChit* IsUFOChit()		{ return this; }
-	
-	virtual bool Parked() const			{ return ai >= AI_PARKED; }
-	bool Flying() const					{ return ai == AI_TRAVELLING || ai == AI_ORBIT; }
-	int Type() const					{ return type; }
-
-	void SetAI( int _ai ); 
-	int AI() const						{ return ai; }
-	
-	float Speed() const					{ return speed; }
-	grinliz::Vector2F Velocity() const;
-	float Radius() const;
-	void DoDamage( float d );
-
-private:
-	void EmitEntryExitBurn( U32 deltaTime, const grinliz::Vector3F& p0, const grinliz::Vector3F& p1, bool entry );
-	void Decal( U32 timer, float speed, int id );
-	void RemoveDecal();
-
-	int type;
-	int ai;
-	float speed;
-	float hp;
-	
-	U32 effectTimer;
-	U32 jobTimer;
-
-	Model* decal[2];
-};
-
-
-class CropCircle : public Chit
-{
-public:
-	CropCircle( SpaceTree* tree, const grinliz::Vector2I& pos, U32 seed );
-	~CropCircle();
-
-	virtual int DoTick( U32 deltaTime );
-
-private:
-	enum {
-		CROP_CIRCLE_TIME_SECONDS = 20
-	};
-	U32 jobTimer;
-};
-
-
-class CityChit : public Chit
-{
-public:
-	CityChit( SpaceTree* tree, const grinliz::Vector2I& pos, bool capital );
-	~CityChit()	{}
-
-	virtual int DoTick( U32 deltaTime )	{ return MSG_NONE; }
-
-private:
-	bool capital;
-};
-
-
-class BaseChit : public Chit 
-{
-public:
-	BaseChit( SpaceTree* tree, const grinliz::Vector2I& pos );
-	~BaseChit();
-
-	virtual BaseChit* IsBaseChit()			{ return this; }
-	virtual int DoTick(  U32 deltaTime )	{ return MSG_NONE; }
-
-	// 0 short range, 1 long range
-	float MissileRange( const int type ) const	{ 
-		return ( type == 0 ) ? (float)GUN_LIFETIME * GUN_SPEED / 1000.0f : (float)MISSILE_LIFETIME * MISSILE_SPEED / 1000.0f; 
-	}
-
-private:
-};
-
 
 class GeoScene : public Scene
 {
@@ -458,9 +260,10 @@ private:
 	void InitLandTiles();
 	void FireBaseWeapons();
 	void UpdateMissiles( U32 deltaTime );
+	void PlaceBase( const grinliz::Vector2I& map );
 
 	BaseChit* IsBaseLocation( int x, int y );
-	void CalcBaseChits( BaseChit* array[MAX_BASES] );	// fills an array with all the base chits.
+	int CalcBaseChits( BaseChit* array[MAX_BASES] );	// fills an array with all the base chits.
 
 	GeoMap* geoMap;
 	SpaceTree* tree;
