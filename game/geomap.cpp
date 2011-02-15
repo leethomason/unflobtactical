@@ -44,14 +44,6 @@ void GeoMap::LightFogMapParam( float* w, float* h, float* dx, float* dy )
 	*dy = 0;
 }
 
-/*
-void GeoMap::SetScrolling( float dx )
-{
-	scrolling = dx;
-	geoModel->SetTexXForm( 0, 1, 1, -dx, 0 );
-}
-*/
-
 
 void GeoMap::CreateTexture( Texture* t )
 {

@@ -13,12 +13,10 @@
   <texture filename="woodPlankD.png" />
   <texture filename="palette.png" />
   <texture filename="charSwatch.png" width="128" height="8" />
-  <!-- FIXME: size limit -->
   <texture filename="characters.png" />
   <texture filename="ufoInner.png" width="64" height="64"/>
 	<texture filename="ufoOuter.png" width="16" height="64"/>
   <texture filename="treetextures.png" />
-
   <texture filename="atlas0.png" />
   <texture filename="atlas1.png" width="32" height="128" />
   <texture filename="atlas2.png" />
@@ -32,6 +30,7 @@
   <texture filename="counter_side.png" />
   <texture filename="shelf_can_side_0.png" width="32" height="32" />
   <texture filename="shelf_can_top_0.png" width="32" height="32" />
+  <texture filename="base.png" width="64" height="64" />
 
   <!-- UI elements -->
   <texture filename="intro.png" />
@@ -92,7 +91,10 @@
   <model filename="ufos.ac" modelName="geo_battleship"   origin="3 0 0"  shading="smooth" polyRemoval="pre" />
   <model filename="cities.ac" modelName="city"        origin="0 0 0"  shading="flat" polyRemoval="pre" />
   <model filename="cities.ac" modelName="capital"     origin="2 0 0"  shading="flat" polyRemoval="pre" />
-  <model filename="cities.ac" modelName="base"        origin="4 0 0"  shading="flat" polyRemoval="pre" />
+  <model filename="cities.ac" modelName="baseA"        origin="4 0 0"  shading="flat" polyRemoval="pre" />
+  <model filename="cities.ac" modelName="baseB"        origin="5 0 0"  shading="flat" polyRemoval="pre" />
+  <model filename="cities.ac" modelName="baseC"        origin="6 0 0"  shading="flat" polyRemoval="pre" />
+  <model filename="cities.ac" modelName="baseD"        origin="7 0 0"  shading="flat" polyRemoval="pre" />
 
   <model filename="geomap.ac" />
 

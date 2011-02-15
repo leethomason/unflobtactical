@@ -124,6 +124,7 @@
     <ClCompile Include="game\battlevisibility.cpp" />
     <ClCompile Include="game\cgame.cpp" />
     <ClCompile Include="game\characterscene.cpp" />
+    <ClCompile Include="game\chits.cpp" />
     <ClCompile Include="game\dialogscene.cpp" />
     <ClCompile Include="game\game.cpp" />
     <ClCompile Include="game\gameresources.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="game\battlevisibility.h" />
     <ClInclude Include="game\cgame.h" />
     <ClInclude Include="game\characterscene.h" />
+    <ClInclude Include="game\chits.h" />
     <ClInclude Include="game\dialogscene.h" />
     <ClInclude Include="game\game.h" />
     <ClInclude Include="game\gamelimits.h" />
