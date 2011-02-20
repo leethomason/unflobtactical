@@ -451,7 +451,7 @@ void Unit::Kill( TacMap* map )
 		for( int i=0; i<Inventory::NUM_SLOTS; ++i ) {
 			Item* item = inventory.AccessItem( i );
 			if ( item->IsSomething() ) {
-				storage->AddItem( *item );
+				storage->AddItem( item->GetItemDef() );
 				item->Clear();
 			}
 		}

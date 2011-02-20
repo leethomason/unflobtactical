@@ -5,10 +5,15 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/glvector.h"
 
+#include "unit.h"
+
 class SpaceTree;
 class BaseChit;
 class UFOChit;
+class CargoChit;
 class Model;
+class Storage;
+class ItemDefArr;
 
 
 template < class T > 
@@ -65,6 +70,8 @@ public:
 		MSG_CITY_ATTACK_COMPLETE,
 		MSG_BASE_ATTACK_COMPLETE,
 		MSG_UFO_CRASHED,
+
+		MSG_CARGO_ARRIVED,
 	};
 	virtual int DoTick( U32 deltaTime ) = 0;
 
@@ -81,6 +88,8 @@ public:
 
 	virtual BaseChit*	IsBaseChit()	{ return 0; }
 	virtual UFOChit*	IsUFOChit()		{ return 0; }
+	virtual CargoChit*  IsCargoChit()	{ return 0; }
+
 	void SetDestroyed()					{ destroyed = true; }
 	bool IsDestroyed()					{ return destroyed; }
 
@@ -190,7 +199,7 @@ private:
 class BaseChit : public Chit 
 {
 public:
-	BaseChit( SpaceTree* tree, const grinliz::Vector2I& pos, int id );
+	BaseChit( SpaceTree* tree, const grinliz::Vector2I& pos, int id, const ItemDefArr& _itemDefArr );
 	~BaseChit();
 
 	virtual BaseChit* IsBaseChit()			{ return this; }
@@ -200,9 +209,35 @@ public:
 	float MissileRange( const int type ) const;
 	int ID() const { return id; }
 
+	Storage* GetStorage() { return storage; }
+	
+	Unit* GetUnits() { return units; }
+	int NumUnits() { return MAX_TERRANS; }	// fixme
+
 private:
 	int id;
+	Storage* storage;
+	Unit units[MAX_TERRANS];
 };
 
+
+class CargoChit : public Chit
+{
+public:
+	CargoChit( SpaceTree* tree, const grinliz::Vector2I& start, const grinliz::Vector2I& end );
+	~CargoChit();
+
+	virtual int DoTick( U32 deltaTime );
+	virtual CargoChit* IsCargoChit() { return this; }
+
+	grinliz::Vector2I Base() { return baseInMap; }
+
+private:
+	grinliz::Vector2F city;
+	grinliz::Vector2F base;
+	bool goingToBase;
+	grinliz::Vector2I cityInMap;
+	grinliz::Vector2I baseInMap;
+};
 
 #endif // GEO_CHITS_INCLUDED

@@ -120,6 +120,7 @@
     <ClCompile Include="engine\gpustatemanager.cpp" />
     <ClCompile Include="game\ai.cpp" />
     <ClCompile Include="game\areaWidget.cpp" />
+    <ClCompile Include="game\basetradescene.cpp" />
     <ClCompile Include="game\battlescene.cpp" />
     <ClCompile Include="game\battlevisibility.cpp" />
     <ClCompile Include="game\cgame.cpp" />
@@ -177,6 +178,7 @@
     <ClInclude Include="engine\gpustatemanager.h" />
     <ClInclude Include="game\ai.h" />
     <ClInclude Include="game\areaWidget.h" />
+    <ClInclude Include="game\basetradescene.h" />
     <ClInclude Include="game\battlescene.h" />
     <ClInclude Include="game\battlevisibility.h" />
     <ClInclude Include="game\cgame.h" />

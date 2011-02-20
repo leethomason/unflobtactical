@@ -239,3 +239,29 @@ void UIRenderer::GamuiGlyph( int c, IGamuiText::GlyphMetrics* metric )
 	}
 }
 
+
+/*static*/ void UIRenderer::LayoutListOnScreen( gamui::UIItem* items, int nItems, int stride, float _x, float _y, float vSpace, const Screenport& port )
+{
+	float w = items->Width();
+	float h = items->Height()*(float)nItems + vSpace*(float)(nItems-1);
+	float x = _x;
+	float y = _y - h*0.5f;
+
+	if ( x < port.UIBoundsClipped3D().min.x ) {
+		x = port.UIBoundsClipped3D().min.x;
+	}
+	else if ( x+w >= port.UIBoundsClipped3D().max.x ) {
+		x = port.UIBoundsClipped3D().max.x - w;
+	}
+	if ( y < port.UIBoundsClipped3D().min.y ) {
+		y = port.UIBoundsClipped3D().min.y;
+	}
+	else if ( y+h >= port.UIBoundsClipped3D().max.y ) {
+		y = port.UIBoundsClipped3D().max.y - h;
+	}
+	for( int i=0; i<nItems; ++i ) {
+		gamui::UIItem* item = (UIItem*)((U8*)items + stride*i);
+		item->SetPos( x, y + items->Height()*(float)i + vSpace*(float)i );
+	}
+}
+

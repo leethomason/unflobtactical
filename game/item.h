@@ -80,14 +80,18 @@ public:
 	const char*		name;
 	const char*		desc;
 	int				deco;
+	int				price;
 	const ModelResource*	resource;	// can be null, in which case render with crate.
 	grinliz::CStr<6>	displayName;
 
-	void InitBase( const char* name, const char* desc, int deco, const ModelResource* resource );
+	void InitBase( const char* name, const char* desc, int deco, int price, const ModelResource* resource );
 	virtual const WeaponItemDef* IsWeapon() const { return 0; }
 	virtual const ClipItemDef* IsClip() const  { return 0; }
-	virtual int DefaultRounds() const { return 1; }
 	virtual const ArmorItemDef* IsArmor() const { return 0; }
+	
+	// Most items are 1 thing: a gun, armor, etc. But clips are formed of collections.
+	// It may take 10 rounds to form a clip.
+	virtual int DefaultRounds() const	{ return 1; }
 
 	// optimization trickiness:
 	int index;
@@ -105,6 +109,7 @@ public:
 	const ItemDef* Query( const char* name ) const;
 	const ItemDef* Query( int id ) const;
 	int Size() const								{ return nItemDef; }
+	const ItemDef* GetIndex( int i ) const			{ GLASSERT( i >= 0 && i < EL_MAX_ITEM_DEFS ); return arr[i]; }
 
 private:
 	int							nItemDef;
@@ -189,8 +194,8 @@ class ClipItemDef : public ItemDef
 public:
 
 	virtual const ClipItemDef* IsClip() const { return this; }
-	virtual int DefaultRounds() const { return defaultRounds; }
-
+	
+	virtual int DefaultRounds() const	{ return defaultRounds; }
 	bool IsAlien() const { return alien; }
 
 	bool alien;
@@ -220,8 +225,8 @@ class Item
 public:
 	Item()								{ rounds = 0; itemDef = 0; }
 	Item( const Item& rhs )				{ rounds = rhs.rounds; itemDef = rhs.itemDef; }
-	Item( const ItemDef* itemDef, int rounds=1 );
-	Item( const ItemDefArr&, const char* name, int rounds=1 );
+	Item( const ItemDef* itemDef, int rounds=0 );
+	Item( const ItemDefArr&, const char* name, int rounds=0 );
 
 	void operator=( const Item& rhs )	{ rounds = rhs.rounds; itemDef = rhs.itemDef; }
 
@@ -233,11 +238,10 @@ public:
 	const ClipItemDef* IsClip() const				{ return itemDef ? itemDef->IsClip() : 0; }
 	const ArmorItemDef* IsArmor() const				{ return itemDef ? itemDef->IsArmor() : 0; }
 
-	int Rounds() const								{ return rounds; }
 
-	// --- handle weapons ----//
-	// consume one rounds
+	// --- handle clips (and only clips) ----//
 	void UseRounds( int n=1 );
+	int Rounds() const								{ return rounds; }
 
 	const ClipItemDef* ClipType( int select ) const	{	GLASSERT( IsWeapon() );
 														return IsWeapon()->weapon[select].clipItemDef;
@@ -260,18 +264,31 @@ private:
 };
 
 
+// A complete list of all possible items and how many there are.
 class Storage
 {
 public:
 	Storage( int _x, int _y, const ItemDefArr& _itemDefArr ) : x( _x ), y( _y ), itemDefArr( _itemDefArr )	{	memset( rounds, 0, sizeof(int)*EL_MAX_ITEM_DEFS ); }
+	Storage( const Storage& rhs ) : x( rhs.x ), y( rhs.y ), itemDefArr( rhs.itemDefArr )					{	memcpy( rounds, rhs.rounds, sizeof(int)*EL_MAX_ITEM_DEFS ); }
+	void operator=( const Storage& rhs )	{
+		this->x = rhs.x;
+		this->y = rhs.y;
+		//this->itemDefArr = rhs.itemDefArr;	
+		GLASSERT( &this->itemDefArr == &rhs.itemDefArr );
+		memcpy( rounds, rhs.rounds, sizeof(int)*EL_MAX_ITEM_DEFS );
+	}
+
 	~Storage();
 
-	void Init( const int* roundArr )			{ memcpy( rounds, roundArr, sizeof(int)*EL_MAX_ITEM_DEFS ); }
-	const int* Rounds() const					{ return rounds; }
+	//void Init( const int* countArr )			{ memcpy( rounds, countArr, sizeof(int)*EL_MAX_ITEM_DEFS ); }
 
 	bool Empty() const;
-	void AddItem( const Item& item );
-	void RemoveItem( const ItemDef*, Item* item );
+
+	void AddItem( const ItemDef*, int n=1 );
+	void AddItem( const char* itemName, int n=1 );
+	void AddItem( const Item& item );				// doesn't change the item passed in (it is constant) but the caller must handle the item is consumed
+
+	bool RemoveItem( const ItemDef*, Item* item );	// returns true if successful
 	bool Contains( const ItemDef* ) const;
 
 	// Return true if either is true:
@@ -280,8 +297,9 @@ public:
 	// Returns the weapon def that is re-supplied.
 	const WeaponItemDef* IsResupply( const WeaponItemDef* weapon ) const;
 	
-	void SetCount( const ItemDef*, int count );
-	int GetCount( const ItemDef* ) const;
+	//void SetCount( const ItemDef*, int count );
+	int GetCount( const ItemDef* ) const;	// the number of items, corrected for the rounds
+	int GetCount( int index ) const;
 
 	void Save( FILE* fp, int depth );
 	void Load( const TiXmlElement* mapNode );

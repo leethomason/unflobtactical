@@ -352,6 +352,7 @@ private:
 
 	Engine*			engine;
 	TacMap*			tacMap;
+	Storage*		lockedStorage;	// locked for use by the character scene
 	grinliz::Random random;	// "the" random number generator for the battle
 	int				currentTeamTurn;
 	AI*				aiArr[3];

@@ -29,7 +29,7 @@ public:
 					const ItemDefArr& itemDefArr,
 					const Storage* storage );
 
-	~StorageWidget();
+	~StorageWidget();	
 
 	const ItemDef* ConvertTap( const gamui::UIItem* item );	
 	void SetOrigin( float x, float y );

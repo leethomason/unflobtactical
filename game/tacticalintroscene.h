@@ -113,6 +113,22 @@ public:
 					int seed,
 					const SceneInfo& info );
 
+	static void GenerateTerranTeam( Unit* units,				// target units to write
+									int count,
+									int averageLevel,
+									const ItemDefArr&,
+									int seed=0 );
+	static void GenerateAlienTeam(	Unit* units,				// target units to write
+									const int alienCount[],		// aliens per type
+									int averageLevel,
+									const ItemDefArr&,
+									int seed=0 );
+
+	static void GenerateCivTeam(	Unit* units,				// target units to write
+									int count,
+									const ItemDefArr&,
+									int seed=0 );
+
 private:
 	void WriteXML( FILE* fp );
 	void FindNodes( const char* set,
@@ -127,19 +143,6 @@ private:
 							const char* type,
 							const gamedb::Item* parent,
 							TiXmlElement* mapElement );
-
-	void GenerateTerranTeam( Unit* units,				// target units to write
-							int count,
-							int averageLevel,
-							int seed=0 );
-	void GenerateAlienTeam( Unit* units,				// target units to write
-							const int alienCount[],		// aliens per type
-							int averageLevel,
-							int seed=0 );
-
-	void GenerateCivTeam(	Unit* units,				// target units to write
-							int count,
-							int seed=0 );
 
 	enum { MAX_ITEM_MATCH = 32 };
 	const gamedb::Item* itemMatch[ MAX_ITEM_MATCH ];

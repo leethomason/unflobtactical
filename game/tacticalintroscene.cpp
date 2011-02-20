@@ -423,7 +423,7 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 		count = 8;
 
 	memset( units, 0, sizeof(Unit)*MAX_UNITS );
-	GenerateTerranTeam( units, count, rank, seed );
+	GenerateTerranTeam( units, count, rank, game->GetItemDefArr(), seed );
 	for( int i=0; i<count; ++i ) {
 		if ( units[i].IsAlive() ) {
 			units[i].Save( fp, 2 );
@@ -459,7 +459,7 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	}
 
 	memset( units, 0, sizeof(Unit)*MAX_UNITS );
-	GenerateAlienTeam( units, types, rank, seed );
+	GenerateAlienTeam( units, types, rank, game->GetItemDefArr(), seed );
 
 	int created=0;
 	for( int i=0; i<MAX_ALIENS; ++i ) {
@@ -472,7 +472,7 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 
 	// Civ team
 	memset( units, 0, sizeof(Unit)*MAX_UNITS );
-	GenerateCivTeam( units, info.nCivs, seed );
+	GenerateCivTeam( units, info.nCivs, game->GetItemDefArr(), seed );
 	for( int i=0; i<MAX_CIVS; ++i ) {
 		if ( units[i].IsAlive() ) {
 			units[i].Save( fp, 2 );
@@ -744,6 +744,7 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to write
 											const int alienCount[],	// aliens per type
 											int averageRank,
+											const ItemDefArr& itemDefArr,
 											int seed )
 {
 	const char* weapon[Unit::NUM_ALIEN_TYPES][NUM_RANKS] = {
@@ -780,7 +781,7 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 			rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
 
 			// Add the weapon.
-			Item item( game->GetItemDefArr(), weapon[i][rank] );
+			Item item( itemDefArr, weapon[i][rank] );
 			unit[index].GetInventory()->AddItem( item );
 
 			// Add ammo.
@@ -804,6 +805,7 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 void TacticalIntroScene::GenerateTerranTeam( Unit* unit,				// target units to write
 											int count,	
 											int averageRank,
+											const ItemDefArr& itemDefArr,
 											int seed )
 {
 	static const int POSITION = 4;
@@ -835,7 +837,7 @@ void TacticalIntroScene::GenerateTerranTeam( Unit* unit,				// target units to w
 		rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
 
 		// Add the weapon.
-		Item item( game->GetItemDefArr(), weapon[position][rank] );
+		Item item( itemDefArr, weapon[position][rank] );
 		unit[k].GetInventory()->AddItem( item );
 
 		// Add ammo.
@@ -854,13 +856,13 @@ void TacticalIntroScene::GenerateTerranTeam( Unit* unit,				// target units to w
 		// Add extras
 		{
 			rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
-			Item armor( game->GetItemDefArr(), armorType[rank] );
+			Item armor( itemDefArr, armorType[rank] );
 			unit[k].GetInventory()->AddItem( armor );
 		}
 
 		rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
 		for( int i=0; i<=rank; ++i ) {
-			Item extra( game->GetItemDefArr(), extraItems[i] );
+			Item extra( itemDefArr, extraItems[i] );
 			unit[k].GetInventory()->AddItem( extra );
 		}
 	}
@@ -869,6 +871,7 @@ void TacticalIntroScene::GenerateTerranTeam( Unit* unit,				// target units to w
 
 void TacticalIntroScene::GenerateCivTeam( Unit* unit,				// target units to write
 										  int count,
+										  const ItemDefArr& itemDefArr,
 										  int seed )
 {
 	grinliz::Random aRand( seed );

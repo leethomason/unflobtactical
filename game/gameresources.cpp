@@ -175,6 +175,7 @@ void Game::LoadItemResources()
 		bool		alien;
 		int			deco;
 		int			rounds;
+		U32			price;
 		DamageDesc	dd;
 
 		// Rendering description.
@@ -192,15 +193,15 @@ void Game::LoadItemResources()
 #	define COLORDEF( r, g, b ) { (float)r/255.f, (float)g/255.f, (float)b/255.f, 0.8f }
 
 	static const ClipInit clips[] = {
-		{ "Clip",	'c',	false,	DECO_SHELLS,	15,	 { 1, 0, 0 },
+		{ "Clip",	'c',	false,	DECO_SHELLS,	15,	 5,		{ 1, 0, 0 },
 					COLORDEF( 200, 204, 213 ), SPEED*2.0f,	WIDTH*0.5f, BOLT*3.0f, "7mm 15 round auto-clip" },
-		{ "Cell",	'e',	true,	DECO_CELL,		12,  { 0.0f, 0.8f, 0.2f },
+		{ "Cell",	'e',	true,	DECO_CELL,		12,  20,	{ 0.0f, 0.8f, 0.2f },
 					COLORDEF( 199, 216, 6 ),	SPEED*1.5f,	 WIDTH,		BOLT*2.0f,	"10MW Cell" },
-		{ "Anti",	't',	true,	DECO_CELL,		4,   { 0, 0.6f, 0.4f },
+		{ "Anti",	't',	true,	DECO_CELL,		4,   50,	{ 0, 0.6f, 0.4f },
 					COLORDEF( 227, 125, 220 ),	SPEED,		WIDTH,		BOLT,		"Anti matter field rounds" },
-		{ "Flame",	'f',	false,	DECO_SHELLS,	3,	 { 0, 0, 1 },
+		{ "Flame",	'f',	false,	DECO_SHELLS,	3,	 8,		{ 0, 0, 1 },
 					COLORDEF( 213, 63, 63 ),	SPEED*0.7f,	WIDTH,		BOLT,		"Incendiary Heavy Round" },
-		{ "RPG",	'r',	false,	DECO_ROCKET,	4,	 { 0.8f, 0, 0.2f },
+		{ "RPG",	'r',	false,	DECO_ROCKET,	4,	 8,		{ 0.8f, 0, 0.2f },
 					COLORDEF( 200, 204, 213 ),  SPEED*0.8f, WIDTH,		BOLT,		"Grenade Rounds" },
 		{ 0 }
 	};
@@ -212,6 +213,7 @@ void Game::LoadItemResources()
 		item->InitBase( clips[i].name,
 						clips[i].desc,
 						clips[i].deco,
+						clips[i].price,
 						0 );
 
 		item->defaultRounds = clips[i].rounds;
@@ -328,6 +330,7 @@ void Game::LoadItemResources()
 		item->InitBase( weapons[i].name, 
 						weapons[i].desc, 
 						weapons[i].deco,
+						0,	// set below
 						ModelResourceManager::Instance()->GetModelResource( weapons[i].resName ) );
 
 		for( int j=0; j<3; ++j ) {
@@ -359,6 +362,17 @@ void Game::LoadItemResources()
 		item->weapon[1].accuracy	= weapons[i].acc1;
 		item->weapon[1].sound		= weapons[i].sound1;
 
+		{
+			BulletTarget bulletTarget( 8.0f );
+			Stats stats; stats.SetSTR( 40 ); stats.SetDEX( 40 ); stats.SetPSY( 40 ); stats.SetRank( 2 );
+			float fraction, fraction2, damage, dptu;
+			item->FireStatistics( kAutoFireMode, stats.AccuracyArea(), bulletTarget, &fraction, &fraction2, &damage, &dptu );
+
+			U32 price = LRintf( dptu );
+			if ( item->IsAlien() )
+				price *= 2;
+			item->price = price;
+		}
 		itemDefArr.Add( item );
 	}
 
@@ -366,20 +380,21 @@ void Game::LoadItemResources()
 		const char* name;
 		const char* resName;
 		int deco;
+		U32 price;
 		const char* desc;
 	};
 
 	static const ItemInit items[] = {		
-		{ "Steel",	0,				DECO_METAL,		"Memsteel" },
-		{ "Tech",	0,				DECO_TECH,		"Alien Tech" },
-		{ "Gel",	0,				DECO_FUEL,		"Plasma Gel" },
-		{ "Aln-0",	0,				DECO_ALIEN,		"Alien 0" },
-		{ "Aln-1",	0,				DECO_ALIEN,		"Alien 1" },
-		{ "Aln-2",	0,				DECO_ALIEN,		"Alien 2" },
-		{ "Aln-3",	0,				DECO_ALIEN,		"Alien 3" },
-		{ "SG:E",	0,				DECO_SHIELD,	"Energy Shield" },
-		{ "SG:I",	0,				DECO_SHIELD,	"Alblative Shield" },
-		{ "SG:K",	0,				DECO_SHIELD,	"Kinetic Fiber Weave" },
+		//{ "Steel",	0,				DECO_METAL,		"Memsteel" },
+		//{ "Tech",	0,				DECO_TECH,		"Alien Tech" },
+		//{ "Gel",	0,				DECO_FUEL,		"Plasma Gel" },
+		{ "Aln-0",	0,				DECO_ALIEN,		20, "Alien 0" },
+		{ "Aln-1",	0,				DECO_ALIEN,		20, "Alien 1" },
+		{ "Aln-2",	0,				DECO_ALIEN,		20, "Alien 2" },
+		{ "Aln-3",	0,				DECO_ALIEN,		20, "Alien 3" },
+		{ "SG:E",	0,				DECO_SHIELD,	50, "Energy Shield" },
+		{ "SG:I",	0,				DECO_SHIELD,	50, "Alblative Shield" },
+		{ "SG:K",	0,				DECO_SHIELD,	50, "Kinetic Fiber Weave" },
 		{ 0 }
 	};
 
@@ -388,14 +403,15 @@ void Game::LoadItemResources()
 		item->InitBase( items[i].name,
 						items[i].desc,
 						items[i].deco,
+						items[i].price,
 						items[i].resName ? ModelResourceManager::Instance()->GetModelResource( items[i].resName ) : 0 );
 		itemDefArr.Add( item );
 	}
 
 	static const ItemInit armor[] = {		
-		{ "ARM-1",	0,				DECO_ARMOR,		"Memsteel Armor" },
-		{ "ARM-2",	0,				DECO_ARMOR,		"Power Armor" },
-		{ "ARM-3",	0,				DECO_ARMOR,		"Power Shield" },
+		{ "ARM-1",	0,				DECO_ARMOR, 100,		"Memsteel Armor" },
+		{ "ARM-2",	0,				DECO_ARMOR, 100,		"Power Armor" },
+		{ "ARM-3",	0,				DECO_ARMOR, 100,		"Power Shield" },
 		{ 0 }
 	};
 
@@ -404,6 +420,7 @@ void Game::LoadItemResources()
 		item->InitBase( armor[i].name,
 						armor[i].desc,
 						armor[i].deco,
+						armor[i].price,
 						armor[i].resName ? ModelResourceManager::Instance()->GetModelResource( items[i].resName ) : 0 );
 		itemDefArr.Add( item );
 	}

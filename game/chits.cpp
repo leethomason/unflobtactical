@@ -1,9 +1,12 @@
 #include "chits.h"
 #include "geoscene.h"
+#include "item.h"
 
 #include "../engine/loosequadtree.h"
 #include "../engine/particle.h"
 #include "../engine/uirendering.h"
+
+#include "tacticalintroscene.h"		// fixme: only for unit generation
 
 using namespace grinliz;
 
@@ -35,6 +38,7 @@ Chit::Chit( SpaceTree* _tree )
 	model[1] = 0;
 	destroyed = false;
 	pos.Set( 0, 0 );
+
 }
 
 Chit::~Chit()
@@ -416,7 +420,7 @@ CityChit::CityChit( SpaceTree* tree, const grinliz::Vector2I& posi, bool _capita
 }
 
 
-BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int _id ) : Chit( tree )
+BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int _id, const ItemDefArr& itemDefArr ) : Chit( tree )
 {
 	id = _id;
 
@@ -430,6 +434,11 @@ BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int _id ) : 
 	}
 	model[0]->SetPos( pos.x, 0, pos.y );
 	model[1]->SetPos( pos.x+(float)GEO_MAP_X, 0, pos.y  );
+
+	storage = new Storage( posi.x, posi.y, itemDefArr );
+
+	// FIXME: real values
+	TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, 2, itemDefArr, 0 );
 
 	/*
 	// Need to add code to track a particle effect instance, so
@@ -457,4 +466,55 @@ BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int _id ) : 
 
 BaseChit::~BaseChit()
 {
+	delete storage;
 }
+
+
+CargoChit::CargoChit( SpaceTree* tree, const grinliz::Vector2I& start, const grinliz::Vector2I& end ) : Chit( tree )
+{
+	this->city.Set( (float)start.x+0.5f, (float)start.y+0.5f );
+	this->base.Set( (float)end.x+0.5f, (float)end.y+0.5f );
+	this->goingToBase = true;
+	SetPos( city.x, city.y );
+	baseInMap = end;
+	cityInMap = start;
+
+	model[0] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "cargo" ) );
+	model[1] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "cargo" ) );
+}
+
+CargoChit::~CargoChit()
+{
+}
+
+
+int CargoChit::DoTick( U32 deltaTime )
+{
+	float distance = CARGO_SPEED * (float)deltaTime / 1000.0f;
+	
+	Vector2F dest = goingToBase ? base : city;
+
+	int msg = MSG_NONE;
+	if ( Cylinder<float>::LengthSquared( pos, dest ) <= (distance+0.1f)*(distance+0.1f) ) {
+		msg = goingToBase ? MSG_CARGO_ARRIVED : MSG_DONE;
+		goingToBase = false;
+	}
+	else {
+		Vector2F normal = dest - pos;
+		normal.Normalize();
+		pos += normal * distance;
+
+		for( int i=0; i<2; ++i ) {
+			float theta = ToDegree( atan2f( normal.x, normal.y ) );	// + 90.0f;
+			model[0]->SetRotation( theta );
+			model[1]->SetRotation( theta );
+		}
+		Vector3F p = { pos.x, UFO_HEIGHT, pos.y };
+		model[0]->SetPos( p );
+		p.x += GEO_MAP_XF;
+		model[1]->SetPos( p );
+	}
+	return msg;
+}
+
+

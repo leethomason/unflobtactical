@@ -134,12 +134,14 @@ public:
 			DIALOG_SCENE,
 			GEO_SCENE,
 			GEO_END_SCENE,
+			BASETRADE_SCENE,
 			NUM_SCENES,
 		 };
 
 	void PushScene( int sceneID, SceneData* data );
 	void PopScene( int result = INT_MAX );
 	void PopAllAndReset()	{ sceneResetQueued = true; }
+	bool IsScenePushed() const	{ return sceneQueued.sceneID != NUM_SCENES; }
 
 	U32 CurrentTime() const	{ return currentTime; }
 	U32 DeltaTime() const	{ return currentTime-previousTime; }
