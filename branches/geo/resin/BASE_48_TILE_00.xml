@@ -1,0 +1,329 @@
+<Map sizeX="48" sizeY="48" >
+        <Items >
+            <Item x="45" y="47" name="baseWall" />
+            <Item x="46" y="47" name="baseWall" />
+            <Item x="47" y="46" rot="1" name="baseWall" />
+            <Item x="47" y="45" rot="1" name="baseWall" />
+            <Item x="47" y="47" name="baseCrnr" />
+            <Item x="32" y="47" rot="3" name="baseCrnr" />
+            <Item x="28" y="47" name="baseWall4" />
+            <Item x="24" y="47" name="baseWall4" />
+            <Item x="20" y="47" name="baseWall4" />
+            <Item x="16" y="47" name="baseWall4" />
+            <Item x="15" y="47" name="baseCrnr" />
+            <Item x="14" y="47" name="baseWall" />
+            <Item x="0" y="47" rot="3" name="baseCrnr" />
+            <Item x="1" y="47" name="baseWall" />
+            <Item x="47" y="32" rot="1" name="baseCrnr" />
+            <Item x="34" y="32" rot="2" name="baseCrnr" />
+            <Item x="32" y="34" rot="2" name="baseCrnr" />
+            <Item x="34" y="33" rot="3" name="baseWall" />
+            <Item x="33" y="34" rot="2" name="baseWall" />
+            <Item x="31" y="34" rot="2" name="baseWall4" />
+            <Item x="27" y="34" rot="2" name="baseWall" />
+            <Item x="26" y="34" rot="2" name="baseWall" />
+            <Item x="25" y="34" rot="2" name="baseWall" />
+            <Item x="24" y="34" rot="2" name="baseWall" />
+            <Item x="20" y="34" rot="2" name="baseWall" />
+            <Item x="21" y="34" rot="2" name="baseWall" />
+            <Item x="22" y="34" rot="2" name="baseWall" />
+            <Item x="23" y="34" rot="2" name="baseWall" />
+            <Item x="19" y="34" rot="2" name="baseWall4" />
+            <Item x="15" y="34" rot="1" name="baseCrnr" />
+            <Item x="13" y="32" rot="1" name="baseCrnr" />
+            <Item x="14" y="34" rot="2" name="baseWall" />
+            <Item x="13" y="33" rot="1" name="baseWall" />
+            <Item x="0" y="32" rot="2" name="baseCrnr" />
+            <Item x="0" y="33" rot="3" name="baseWall" />
+            <Item x="0" y="34" rot="3" name="baseWall" />
+            <Item x="47" y="31" rot="1" name="baseWall4" />
+            <Item x="40" y="28" rot="3" name="baseWall4" />
+            <Item x="37" y="28" rot="3" name="cot" />
+            <Item x="39" y="28" rot="3" name="computerdesk" />
+            <Item x="34" y="28" rot="3" name="baseWall4" />
+            <Item x="35" y="28" rot="3" name="cot" />
+            <Item x="29" y="28" name="scout" />
+            <Item x="25" y="28" name="scout" />
+            <Item x="27" y="28" name="scout" />
+            <Item x="21" y="28" name="scout" />
+            <Item x="23" y="28" name="scout" />
+            <Item x="19" y="28" name="scout" />
+            <Item x="13" y="31" rot="1" name="baseWall4" />
+            <Item x="13" y="28" rot="3" name="computerdesk" />
+            <Item x="13" y="30" rot="3" name="computerdesk" />
+            <Item x="13" y="29" rot="3" name="desk" />
+            <Item x="12" y="28" name="pawn" />
+            <Item x="10" y="31" rot="1" name="cannister1" />
+            <Item x="11" y="31" name="cannister0" />
+            <Item x="9" y="31" rot="2" name="cannister0" />
+            <Item x="8" y="31" rot="2" name="cannister0" />
+            <Item x="8" y="28" rot="2" name="ufo_crate1" />
+            <Item x="9" y="28" rot="2" name="ufo_crate1" />
+            <Item x="4" y="30" rot="1" name="bookshelf" />
+            <Item x="4" y="28" rot="1" name="computerdesk" />
+            <Item x="6" y="31" name="cannister1" />
+            <Item x="7" y="31" rot="2" name="cannister0" />
+            <Item x="6" y="28" name="pawn" />
+            <Item x="0" y="28" rot="3" name="baseWall4" />
+            <Item x="1" y="30" rot="2" name="cot" />
+            <Item x="1" y="28" rot="2" name="cot" />
+            <Item x="2" y="28" name="pawn" />
+            <Item x="47" y="27" rot="1" name="baseWall4" />
+            <Item x="40" y="27" rot="3" name="baseWall" />
+            <Item x="40" y="26" rot="3" name="baseWall" />
+            <Item x="40" y="25" rot="3" name="baseDoorCld" flags="4" />
+            <Item x="40" y="24" rot="3" name="baseWall" />
+            <Item x="37" y="27" rot="1" name="cot" />
+            <Item x="39" y="26" rot="3" name="computerdesk" />
+            <Item x="39" y="27" rot="3" name="desk" />
+            <Item x="34" y="27" rot="3" name="baseWall" />
+            <Item x="34" y="26" rot="3" name="baseWall" />
+            <Item x="34" y="25" rot="3" name="baseWall" />
+            <Item x="35" y="27" rot="1" name="cot" />
+            <Item x="34" y="24" rot="3" name="baseDoorCld" flags="4" />
+            <Item x="29" y="26" name="scout" />
+            <Item x="29" y="24" name="scout" />
+            <Item x="19" y="26" name="scout" />
+            <Item x="19" y="24" name="scout" />
+            <Item x="13" y="27" rot="1" name="baseWall" />
+            <Item x="13" y="26" rot="1" name="baseWall" />
+            <Item x="13" y="25" rot="1" name="baseWall" />
+            <Item x="13" y="26" rot="3" name="computerdesk" />
+            <Item x="13" y="27" rot="3" name="desk" />
+            <Item x="12" y="26" name="pawn" />
+            <Item x="13" y="24" rot="1" name="baseDoorCld" flags="4" />
+            <Item x="8" y="24" rot="2" name="barrel2" />
+            <Item x="8" y="27" rot="2" name="ufo_crate0" />
+            <Item x="9" y="27" rot="3" name="ufo_crate2" />
+            <Item x="4" y="25" rot="1" name="bookshelf" />
+            <Item x="4" y="27" rot="1" name="desk" />
+            <Item x="7" y="27" rot="1" name="ufo_crate0" />
+            <Item x="0" y="24" rot="3" name="baseWall4" />
+            <Item x="1" y="26" rot="2" name="cot" />
+            <Item x="1" y="24" rot="2" name="cot" />
+            <Item x="47" y="23" rot="1" name="baseWall4" />
+            <Item x="40" y="20" rot="3" name="baseWall" />
+            <Item x="40" y="21" rot="3" name="baseWall" />
+            <Item x="40" y="22" rot="3" name="baseDoorCld" flags="4" />
+            <Item x="40" y="23" rot="3" name="baseWall" />
+            <Item x="37" y="20" rot="3" name="cot" />
+            <Item x="39" y="21" rot="3" name="computerdesk" />
+            <Item x="34" y="20" rot="3" name="baseWall" />
+            <Item x="34" y="21" rot="3" name="baseWall" />
+            <Item x="34" y="22" rot="3" name="baseWall" />
+            <Item x="35" y="20" rot="3" name="cot" />
+            <Item x="34" y="23" rot="3" name="baseDoorCld" flags="4" />
+            <Item x="29" y="21" name="scout" />
+            <Item x="29" y="22" name="scout" />
+            <Item x="29" y="20" name="scout" />
+            <Item x="19" y="22" name="scout" />
+            <Item x="19" y="20" name="scout" />
+            <Item x="13" y="20" rot="1" name="baseWall" />
+            <Item x="13" y="21" rot="1" name="baseWall" />
+            <Item x="13" y="22" rot="1" name="baseWall" />
+            <Item x="13" y="21" rot="3" name="computerdesk" />
+            <Item x="13" y="20" rot="3" name="desk" />
+            <Item x="13" y="23" rot="1" name="baseDoorCld" flags="4" />
+            <Item x="8" y="20" rot="2" name="crate1" />
+            <Item x="8" y="23" rot="1" name="barrel2" />
+            <Item x="4" y="23" rot="1" name="desk" />
+            <Item x="4" y="22" rot="1" name="desk" />
+            <Item x="4" y="20" rot="1" name="desk" />
+            <Item x="7" y="23" rot="2" name="barrel2" />
+            <Item x="5" y="23" name="pawn" />
+            <Item x="7" y="20" name="pawn" />
+            <Item x="0" y="20" rot="3" name="baseWall4" />
+            <Item x="1" y="22" rot="2" name="cot" />
+            <Item x="1" y="20" rot="2" name="cot" />
+            <Item x="2" y="22" name="pawn" />
+            <Item x="47" y="19" rot="1" name="baseWall4" />
+            <Item x="40" y="16" rot="3" name="baseWall4" />
+            <Item x="37" y="19" rot="1" name="cot" />
+            <Item x="39" y="19" rot="3" name="computerdesk" />
+            <Item x="39" y="18" rot="3" name="desk" />
+            <Item x="34" y="16" rot="3" name="baseWall4" />
+            <Item x="35" y="19" rot="1" name="cot" />
+            <Item x="29" y="18" name="scout" />
+            <Item x="27" y="18" name="scout" />
+            <Item x="25" y="18" name="scout" />
+            <Item x="23" y="18" name="scout" />
+            <Item x="21" y="18" name="scout" />
+            <Item x="19" y="18" name="scout" />
+            <Item x="13" y="19" rot="1" name="baseWall4" />
+            <Item x="13" y="17" rot="3" name="computerdesk" />
+            <Item x="13" y="19" rot="3" name="computerdesk" />
+            <Item x="13" y="18" rot="3" name="desk" />
+            <Item x="12" y="18" name="pawn" />
+            <Item x="10" y="16" name="bookshelf" />
+            <Item x="9" y="19" rot="2" name="crate1" />
+            <Item x="4" y="19" rot="1" name="bookshelf" />
+            <Item x="4" y="17" rot="1" name="computerdesk" />
+            <Item x="6" y="16" name="bookshelf" />
+            <Item x="7" y="19" rot="2" name="crate2" />
+            <Item x="0" y="16" rot="3" name="baseWall4" />
+            <Item x="1" y="18" rot="2" name="cot" />
+            <Item x="1" y="16" rot="2" name="cot" />
+            <Item x="47" y="15" name="baseCrnr" />
+            <Item x="46" y="12" name="basegun1" />
+            <Item x="46" y="13" name="basegun1" />
+            <Item x="42" y="15" name="baseDoorCld" flags="4" />
+            <Item x="41" y="15" name="baseWall" />
+            <Item x="40" y="15" name="baseWall" />
+            <Item x="39" y="15" rot="2" name="computerdesk" />
+            <Item x="38" y="15" rot="2" name="computerdesk" />
+            <Item x="39" y="14" name="pawn" />
+            <Item x="39" y="15" name="baseWall" />
+            <Item x="34" y="15" rot="3" name="baseCrnr" />
+            <Item x="32" y="13" rot="3" name="baseCrnr" />
+            <Item x="32" y="12" rot="1" name="cannister0" />
+            <Item x="32" y="13" rot="1" name="cannister0" />
+            <Item x="34" y="14" rot="3" name="baseDoorCld" flags="4" />
+            <Item x="33" y="13" name="baseDoorCld" flags="4" />
+            <Item x="28" y="13" name="baseWall4" />
+            <Item x="31" y="13" name="crate0" />
+            <Item x="30" y="13" name="crate1" />
+            <Item x="31" y="12" rot="1" name="barrel2" />
+            <Item x="27" y="13" name="baseWall" />
+            <Item x="26" y="13" name="baseWall" />
+            <Item x="25" y="13" name="baseWall" />
+            <Item x="24" y="13" name="baseDoorCld" flags="4" />
+            <Item x="20" y="13" name="baseWall" />
+            <Item x="21" y="13" name="baseWall" />
+            <Item x="22" y="13" name="baseWall" />
+            <Item x="21" y="12" name="pawn" />
+            <Item x="23" y="13" name="baseDoorCld" flags="4" />
+            <Item x="16" y="13" name="baseWall4" />
+            <Item x="16" y="13" name="ufo_crate0" />
+            <Item x="17" y="13" name="ufo_crate1" />
+            <Item x="16" y="12" name="ufo_crate0" />
+            <Item x="18" y="13" rot="1" name="ufo_crate0" />
+            <Item x="19" y="13" rot="1" name="ufo_crate1" />
+            <Item x="15" y="13" name="baseCrnr" />
+            <Item x="13" y="15" name="baseCrnr" />
+            <Item x="14" y="13" name="baseDoorCld" flags="4" />
+            <Item x="13" y="14" rot="1" name="baseDoorCld" flags="4" />
+            <Item x="11" y="15" rot="2" name="computerdesk" />
+            <Item x="10" y="15" rot="2" name="computerdesk" />
+            <Item x="10" y="13" name="pawn" />
+            <Item x="0" y="15" rot="3" name="baseCrnr" />
+            <Item x="0" y="12" rot="3" name="baseWall" />
+            <Item x="0" y="13" rot="3" name="baseWall" />
+            <Item x="0" y="14" rot="3" name="baseWall" />
+            <Item x="47" y="10" name="cannister1" />
+            <Item x="47" y="9" name="cannister0" />
+            <Item x="47" y="8" name="cannister0" />
+            <Item x="41" y="8" name="baseCrnr" />
+            <Item x="40" y="8" name="baseWall" />
+            <Item x="41" y="10" name="pawn" />
+            <Item x="36" y="8" rot="3" name="baseCrnr" />
+            <Item x="37" y="8" name="baseWall" />
+            <Item x="39" y="8" name="baseDoorCld" flags="4" />
+            <Item x="38" y="8" name="baseDoorCld" flags="4" />
+            <Item x="36" y="9" rot="1" name="barrel2" />
+            <Item x="37" y="9" rot="1" name="barrel2" />
+            <Item x="36" y="10" rot="1" name="barrel2" />
+            <Item x="31" y="11" name="barrel2" />
+            <Item x="0" y="8" rot="3" name="baseWall4" />
+            <Item x="47" y="7" name="cannister1" />
+            <Item x="41" y="7" rot="1" name="baseWall4" />
+            <Item x="38" y="5" name="basegun1" />
+            <Item x="39" y="5" name="basegun1" />
+            <Item x="39" y="6" name="basegun1" />
+            <Item x="38" y="6" name="basegun1" />
+            <Item x="36" y="4" rot="3" name="baseWall4" />
+            <Item x="0" y="4" rot="3" name="baseWall4" />
+            <Item x="47" y="0" rot="1" name="baseCrnr" />
+            <Item x="47" y="2" rot="1" name="baseWall" />
+            <Item x="47" y="1" rot="1" name="baseWall" />
+            <Item x="41" y="0" rot="2" name="baseWall" />
+            <Item x="42" y="0" rot="2" name="baseWall" />
+            <Item x="41" y="1" name="basegun1" />
+            <Item x="42" y="1" name="basegun1" />
+            <Item x="41" y="3" rot="1" name="baseCrnr" />
+            <Item x="37" y="1" name="basegun1" />
+            <Item x="38" y="1" name="basegun1" />
+            <Item x="36" y="3" rot="2" name="baseCrnr" />
+            <Item x="32" y="0" rot="2" name="baseCrnr" />
+            <Item x="33" y="1" name="basegun1" />
+            <Item x="34" y="1" name="basegun1" />
+            <Item x="31" y="0" rot="2" name="baseWall4" />
+            <Item x="31" y="0" name="ufo_crate0" />
+            <Item x="31" y="1" name="cannister1" />
+            <Item x="31" y="2" name="cannister0" />
+            <Item x="27" y="0" rot="2" name="baseWall4" />
+            <Item x="23" y="0" rot="2" name="baseWall4" />
+            <Item x="19" y="0" rot="2" name="baseWall4" />
+            <Item x="17" y="0" name="crate1" />
+            <Item x="16" y="0" name="crate1" />
+            <Item x="16" y="1" name="ufo_crate0" />
+            <Item x="15" y="0" rot="1" name="baseCrnr" />
+            <Item x="14" y="0" rot="2" name="baseWall" />
+            <Item x="13" y="0" rot="2" name="baseWall" />
+            <Item x="0" y="0" rot="2" name="baseCrnr" />
+            <Item x="0" y="1" rot="3" name="baseWall" />
+            <Item x="0" y="2" rot="3" name="baseWall" />
+            <Item x="0" y="3" rot="3" name="baseWall" />
+            <Item x="41" y="47" name="baseWall4" />
+            <Item x="47" y="44" rot="1" name="baseWall4" />
+            <Item x="32" y="43" rot="3" name="baseWall4" />
+            <Item x="33" y="47" name="baseWall4" />
+            <Item x="15" y="46" rot="1" name="baseWall4" />
+            <Item x="10" y="47" name="baseWall4" />
+            <Item x="2" y="47" name="baseWall4" />
+            <Item x="0" y="43" rot="3" name="baseWall4" />
+            <Item x="46" y="32" rot="2" name="baseWall4" />
+            <Item x="47" y="36" rot="1" name="baseWall4" />
+            <Item x="38" y="32" rot="2" name="baseWall4" />
+            <Item x="32" y="35" rot="3" name="baseWall4" />
+            <Item x="12" y="32" rot="2" name="baseWall4" />
+            <Item x="15" y="38" rot="1" name="baseWall4" />
+            <Item x="4" y="32" rot="2" name="baseWall4" />
+            <Item x="0" y="35" rot="3" name="baseWall4" />
+            <Item x="37" y="31" rot="2" name="lockers" />
+            <Item x="3" y="27" rot="3" name="lockers" />
+            <Item x="34" y="16" name="lockers" />
+            <Item x="3" y="17" rot="3" name="lockers" />
+            <Item x="43" y="15" name="baseWall4" />
+            <Item x="47" y="14" rot="1" name="baseWall4" />
+            <Item x="32" y="9" rot="3" name="baseWall4" />
+            <Item x="35" y="15" name="baseWall4" />
+            <Item x="15" y="12" rot="1" name="baseWall4" />
+            <Item x="9" y="15" name="baseWall4" />
+            <Item x="1" y="15" name="baseWall4" />
+            <Item x="5" y="9" rot="2" name="basegun0" />
+            <Item x="5" y="12" rot="2" name="basegun0" />
+            <Item x="47" y="6" rot="1" name="baseWall4" />
+            <Item x="46" y="0" rot="2" name="baseWall4" />
+            <Item x="36" y="0" rot="2" name="baseWall4" />
+            <Item x="32" y="1" rot="3" name="baseWall4" />
+            <Item x="12" y="0" rot="2" name="baseWall4" />
+            <Item x="15" y="4" rot="1" name="baseWall4" />
+            <Item x="10" y="6" rot="1" name="basegun0" />
+            <Item x="4" y="0" rot="2" name="baseWall4" />
+            <Item x="42" y="32" rot="2" name="baseWall4" />
+            <Item x="32" y="39" rot="3" name="baseWall4" />
+            <Item x="37" y="47" name="baseWall4" />
+            <Item x="47" y="40" rot="1" name="baseWall4" />
+            <Item x="8" y="32" rot="2" name="baseWall4" />
+            <Item x="15" y="42" rot="1" name="baseWall4" />
+            <Item x="6" y="47" name="baseWall4" />
+            <Item x="0" y="39" rot="3" name="baseWall4" />
+            <Item x="41" y="21" name="lander" />
+            <Item x="3" y="22" rot="3" name="lockers" />
+            <Item x="40" y="0" rot="2" name="baseWall4" />
+            <Item x="32" y="5" rot="3" name="baseWall4" />
+            <Item x="47" y="10" rot="1" name="baseWall4" />
+            <Item x="40" y="3" rot="2" name="baseWall4" />
+            <Item x="8" y="0" rot="2" name="baseWall4" />
+            <Item x="15" y="8" rot="1" name="baseWall4" />
+            <Item x="5" y="15" name="baseWall4" />
+            <Item x="7" y="6" rot="1" name="basegun0" />
+        </Items>
+        <GroundDebris >
+        </GroundDebris>
+    <Images >
+        <Image x="0" y="0" size="16" tileRotation="0" name="BASE_48_TILE_00" />
+    </Images>
+    <PyroGroup >
+    </PyroGroup>
+</Map>

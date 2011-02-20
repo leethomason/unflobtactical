@@ -38,8 +38,8 @@ class RingEffect;
 class BaseChit;
 class UFOChit;
 class Chit;
-
-
+class Storage;
+class ItemDefArr;
 
 static const int GEO_MAP_X = 20;
 static const int GEO_MAP_Y = 10;
@@ -58,6 +58,7 @@ static const int MAX_INFLUENCE = 10;
 
 static const float UFO_HEIGHT = 0.5f;
 static const float UFO_SPEED[3] = { 1.00f, 0.85f, 0.70f };
+static const float CARGO_SPEED  = 0.40f;
 static const float UFO_HP[3]    = { 4, 8, 20 };
 static const float UFO_ACCEL = 0.2f;	// units/second2
 
@@ -191,11 +192,9 @@ public:
 	int NumBases() const							{ return base.Size(); }
 	const grinliz::Vector2I& Base( int i ) const	{ return base[i]; }
 
-	void Init()	{ 
-		influence=0; 
-		for( int i=0; i<HISTORY; ++i ) history[i] = 1; 
-		occupied = false;
-	}
+	void Init( const ItemDefArr& itemDefArr );
+	void Free();
+
 	void Success()			{ Push( 2 ); }
 	void UFODestroyed()		{ Push( 0 ); }
 
@@ -208,6 +207,8 @@ public:
 		return grinliz::Max( ((float)influence*0.10f) * ((float)hScore*0.5f), 0.2f );	// the .2 adds some randomness to the alien actions
 	}
 
+	Storage* GetStorage() { return storage; }
+
 private:
 	void Push( int d )	{
 		for( int i=HISTORY-1; i>0; --i ) {
@@ -215,6 +216,8 @@ private:
 		}
 		history[0] = d;
 	}
+
+	Storage* storage;
 	CArray< grinliz::Vector2I, MAX_BASES > base;
 };
 
@@ -260,7 +263,19 @@ private:
 	void InitLandTiles();
 	void FireBaseWeapons();
 	void UpdateMissiles( U32 deltaTime );
+
 	void PlaceBase( const grinliz::Vector2I& map );
+	bool CanSendCargoPlane( const grinliz::Vector2I& base );
+
+	void HandleItemTapped( const gamui::UIItem* item );
+	
+	enum {
+		CM_NONE,
+		CM_BASE,
+		CM_UFO
+	};
+	void InitContextMenu( int type, Chit* chit );
+	void UpdateContextMenu();
 
 	BaseChit* IsBaseLocation( int x, int y );
 	int CalcBaseChits( BaseChit* array[MAX_BASES] );	// fills an array with all the base chits.
@@ -273,11 +288,24 @@ private:
 	U32					lastAlienTime;
 	U32					timeBetweenAliens;
 	U32					missileTimer[2];
+	Chit*				contextChit;
+	
+	int					cash;
 
 	grinliz::Random		random;
 
 	gamui::PushButton	helpButton, researchButton;
 	gamui::ToggleButton baseButton;
+	gamui::Image		cashBackground;
+	gamui::TextLabel	cashText;
+
+	enum {
+		CONTEXT_CARGO,
+		CONTEXT_EQUIP,
+		CONTEXT_BUILD,
+		MAX_CONTEXT = 6
+	};
+	gamui::PushButton	context[MAX_CONTEXT];
 
 	AreaWidget*			areaWidget[GEO_REGIONS];
 	RegionData regionData[GEO_REGIONS];

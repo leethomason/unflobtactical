@@ -26,6 +26,7 @@
 #include "dialogscene.h"
 #include "geoscene.h"
 #include "geoendscene.h"
+#include "basetradescene.h"
 
 #include "../engine/text.h"
 #include "../engine/model.h"
@@ -101,11 +102,7 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	}	
 	
 	Init();
-	Map* map = engine->GetMap();
-	//ImageManager* im = ImageManager::Instance();
-
-	map->SetSize( base.size, base.size );
-
+	
 	char buffer[128];
 	SNPrintf( buffer, 128, "%4s_%2d_%4s_%02d", base.set, base.size, base.type, base.variation );
 
@@ -126,6 +123,7 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	PushScene( BATTLE_SCENE, 0 );
 	loadCompleted = false;
 	PushPopScene();
+	engine->GetMap()->SetSize( base.size, base.size );
 
 	TiXmlDocument doc( mapmaker_xmlFile.c_str() );
 	doc.LoadFile();
@@ -349,6 +347,7 @@ void Game::CreateScene( const SceneNode& in, SceneNode* node )
 		case DIALOG_SCENE:		scene = new DialogScene( this, (const DialogSceneData*)in.data );					break;
 		case GEO_SCENE:			scene = new GeoScene( this );														break;
 		case GEO_END_SCENE:		scene = new GeoEndScene( this, (const GeoEndSceneData*)in.data );					break;
+		case BASETRADE_SCENE:	scene = new BaseTradeScene( this, (BaseTradeSceneData*)in.data );					break;
 		default:
 			GLASSERT( 0 );
 			break;

@@ -55,9 +55,19 @@ const MapItemDef TacMap::itemDefArr[NUM_ITEM_DEF] =
 	{	"whitepicketfence",	0,			0,			1,	1,	HP_LOW,		BURN,		"1", "0" },
 	{	"barrel0",		0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0" },
 	{	"barrel1",		0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0", EXPLODES },
+	{	"barrel2",		0,				0,			1,	1,	HP_LOW,		FASTBURN,	"f", "0" },
 	{	"crate0",		0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0", 0 },
 	{	"crate1",		0,				0,			1,	1,	HP_MED,		BURN,		"f", "f", 0 },
-	{	"crate2",		0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0", EXPLODES },
+	{	"crate2",		0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0", EXPLODES },	
+	{	"cannister0",	0,				0,			1,  1,  HP_LOW,		BURN,		"f", "0", EXPLODES },
+	{	"cannister1",	0,				0,			1,  1,  HP_LOW,		FASTBURN,	"f", "0" },
+	{	"computerdesk",	0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0" },
+	{	"desk",			0,				0,			1,	1,	HP_LOW,		BURN,		"f", "0" },
+	{	"bookshelf",	0,				0,			2,	1,	HP_LOW,		BURN,		"ff", "ff" },
+	{	"cot",			0,				0,			2,	1,	HP_LOW,		BURN,		"ff",	"00" },
+	{	"lockers",		0,				0,			4,	1,	HP_LOW,		0,			"ffff", "ffff" },
+	{	"basegun0",		0,				0,			4,	2,	INDESTRUCT,	0,			"ffff" "ffff", "0000" "0000", OBSCURES },
+	{	"basegun1",		0,				0,			1,	1,	INDESTRUCT,	0,			"f", "0", OBSCURES },
 
 	{	"rock0",		0,				0,			2,  1,	INDESTRUCT, 0,			"ff", "00", OBSCURES },
 	{	"rock1",		0,				0,			4,  1,	INDESTRUCT, 0,			"ff0f", "ff0f" },
@@ -73,6 +83,11 @@ const MapItemDef TacMap::itemDefArr[NUM_ITEM_DEF] =
 	{	"brickDoorCld",	"brickDoorOpn",	0,			1,	1,	HP_MED,		0,			"0", "1" },
 	{	"brickWall",		0,			0,			1,	1,	HP_MED,		0,			"1", "1" },
 	{	"brickWallWin",	0,				0,			1,	1,	HP_MED,		0,			"1", "0" },
+
+	{	"baseCrnr",		0,				0,			1,	1,	INDESTRUCT,	0,			"3", "3" },
+	{	"baseWall",		0,				0,			1,	1,	INDESTRUCT,	0,			"1", "1" },
+	{	"baseWall4",	0,				0,			4,	1,	INDESTRUCT,	0,			"1111", "1111" },
+	{	"baseDoorCld",	"baseDoorOpn",	0,			1,	1,	INDESTRUCT,	0,			"0", "1" },
 
 	{	"counter_unit",	0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
 	{	"counter_join",	0,				0,			1,	1,	HP_MED,		BURN,		"f", "0" },
@@ -181,7 +196,6 @@ const Map::MapItem* TacMap::FindLander()
 			}
 		}
 	}
-	GLASSERT( lander );
 	return lander;
 }
 

@@ -19,6 +19,7 @@
 #include "../gamui/gamui.h"
 #include "gpustatemanager.h"
 
+class Screenport;
 
 enum {
 	ICON_GREEN_BUTTON		= 0,
@@ -131,6 +132,8 @@ public:
 	static gamui::RenderAtom CalcParticleAtom( int id, bool enabled=true );
 	static gamui::RenderAtom CalcIconAtom( int id, bool enabled=true );
 	static gamui::RenderAtom CalcIcon2Atom( int id, bool enabled=true );
+
+	static void LayoutListOnScreen( gamui::UIItem* items, int nItems, int stride, float x, float y, float vSpace, const Screenport& port );
 
 	enum {
 		PALETTE_GREEN, PALETTE_BLUE, PALETTE_RED, PALETTE_YELLOW, PALETTE_GREY,

@@ -31,8 +31,10 @@ class TacMap;
 class CharacterSceneData : public SceneData
 {
 public:
-	Unit* unit;
-	TacMap* tacMap;
+	Unit* unit;	// array of units
+	int nUnits;
+	Storage* storage;
+	//TacMap* tacMap;
 };
 
 
@@ -77,6 +79,8 @@ protected:
 	Engine* engine;
 
 	gamui::PushButton backButton;
+	gamui::PushButton nextButton;
+	gamui::PushButton prevButton;
 
 	// control buttons:
 	enum { NUM_CONTROL = 3, NUM_RANGE=3 };
@@ -88,9 +92,10 @@ protected:
 		StatWidget()		{}
 		void Init( gamui::Gamui* g, const Unit* unit, float x, float y );
 		void SetVisible( bool visible );
+		void Update( Unit* unit );
 	private:
 		enum { STATS_ROWS = 10 };
-		NameRankUI	nameRankUI;
+		//NameRankUI	nameRankUI;
 		gamui::TextLabel textTable[2*STATS_ROWS];
 	};
 
@@ -102,15 +107,15 @@ protected:
 		
 		void SetVisible( bool visible );
 		void Tap( const gamui::UIItem* item );
-	private:
 		void SetCompText();
+	private:
 		gamui::ToggleButton range[NUM_RANGE];
 
 		const ItemDefArr* itemDefArr;
 		const Storage* storage;
 		const Unit* unit;
 
-		NameRankUI	nameRankUI;
+		//NameRankUI	nameRankUI;
 		// name tu % dam dptu
 		enum { COMP_COL = 5, COMP_ROW = 5 };
 		gamui::TextLabel compTable[COMP_COL*COMP_ROW];
@@ -130,6 +135,7 @@ protected:
 
 	Storage* storage;
 	Unit* unit;
+	int currentUnit;
 };
 
 

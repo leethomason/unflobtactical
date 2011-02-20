@@ -6,6 +6,8 @@
 #include "geoai.h"
 #include "geoendscene.h"
 #include "chits.h"
+#include "basetradescene.h"
+#include "characterscene.h"
 
 #include "../engine/loosequadtree.h"
 #include "../engine/particle.h"
@@ -114,17 +116,37 @@ void GeoMapData::Choose( grinliz::Random* random, int region, int required, int 
 }
 
 
+void RegionData::Init(  const ItemDefArr& itemDefArr )
+{ 
+	influence=0; 
+	for( int i=0; i<HISTORY; ++i ) history[i] = 1; 
+	occupied = false;
+	storage = new Storage( 0, 0, itemDefArr );
+
+	storage->AddItem( "ASLT-1", 10 );
+	storage->AddItem( "Clip", 15 );
+}
+
+
+void RegionData::Free()
+{
+	delete storage;
+}
+
+
 GeoScene::GeoScene( Game* _game ) : Scene( _game )
 {
 	missileTimer[0] = 0;
 	missileTimer[1] = 0;
+	contextChit = 0;
+	cash = 1000;
 
 	const Screenport& port = GetEngine()->GetScreenport();
 	random.SetSeedFromTime();
 
 	geoMapData.Init( MAP, &random );
 	for( int i=0; i<GEO_REGIONS; ++i ) {
-		regionData[i].Init();
+		regionData[i].Init( game->GetItemDefArr() );
 	}
 
 	geoMap = new GeoMap( GetEngine()->GetSpaceTree() );
@@ -154,6 +176,23 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game )
 	baseButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	baseButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_BASE, true ), UIRenderer::CalcDecoAtom( DECO_BASE, false ) );	
 
+	for( int i=0; i<MAX_CONTEXT; ++i ) {
+		context[i].Init( &gamui2D, game->GetButtonLook( Game::BLUE_BUTTON ) );
+		context[i].SetVisible( false );
+		context[i].SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
+	}
+
+	//RenderAtom cashBackAtom = UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK, true );
+	//cashBackground.Init( &gamui2D, cashBackAtom, false );
+	//cashBackground.SetSlice( true );
+	//cashBackground.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F*0.5f );
+	//cashBackground.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F*0.5f );
+
+	cashText.Init( &gamui2D );
+	cashText.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F*0.5f );
+	CStr<16> buf = cash;
+	cashText.SetText( buf.c_str() );
+
 	/*
 	RenderAtom upE = UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK_OUTLINE, true );
 	RenderAtom upD = UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK_OUTLINE, false );
@@ -161,6 +200,15 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game )
 	RenderAtom downD = UIRenderer::CalcIconAtom( ICON_YELLOW_STAND_MARK_OUTLINE, false );
 	RenderAtom nullAtom;
 	*/	
+
+	for( int j=0; j<GEO_REGIONS; ++j ) {
+		for( int i=0, n=geoMapData.NumCities( j ); i<n; ++i ) {
+			Vector2I pos = geoMapData.City( j, i );
+			Chit** chit= chitArr.Push();
+			*chit = new CityChit( GetEngine()->GetSpaceTree(), pos, (i==geoMapData.CapitalID(j) ) );
+		}
+	}
+
 }
 
 
@@ -169,6 +217,14 @@ GeoScene::~GeoScene()
 	for( int i=0; i<GEO_REGIONS; ++i ) {
 		delete areaWidget[i];
 	}
+	for( int i=0; i<GEO_REGIONS; ++i ) {
+		regionData[i].Free();
+	}
+	for( int i=0; i<chitArr.Size(); ++i ) {
+		delete chitArr[i];
+	}
+	chitArr.Clear();
+
 	delete geoMap;
 	delete geoAI;
 }
@@ -181,27 +237,64 @@ void GeoScene::Activate()
 	GetEngine()->SetIMap( geoMap );
 	SetMapLocation();
 
-	for( int j=0; j<GEO_REGIONS; ++j ) {
-		for( int i=0, n=geoMapData.NumCities( j ); i<n; ++i ) {
-			Vector2I pos = geoMapData.City( j, i );
-			Chit** chit= chitArr.Push();
-			*chit = new CityChit( GetEngine()->GetSpaceTree(), pos, (i==geoMapData.CapitalID(j) ) );
-		}
-	}
+	CStr<16> buf = cash;
+	cashText.SetText( buf.c_str() );
 }
 
 
 void GeoScene::DeActivate()
 {
-	for( int i=0; i<chitArr.Size(); ++i ) {
-		delete chitArr[i];
-	}
-	chitArr.Clear();
-
 	GetEngine()->CameraIso( true, false, 0, 0 );
 	GetEngine()->SetIMap( 0 );
 }
 
+
+bool GeoScene::CanSendCargoPlane( const Vector2I& base )
+{
+	bool inTransit = false;
+	// Make sure no plane is deployed:
+	for( int i=0; i<chitArr.Size(); ++i ) {
+		if ( chitArr[i]->IsCargoChit() && chitArr[i]->IsCargoChit()->Base() == base ) {
+			inTransit = true;
+			break;
+		}
+	}
+	if ( !inTransit ) {
+		int region = geoMapData.GetRegion( base.x, base.y );
+		if ( !regionData[region].occupied ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+void GeoScene::HandleItemTapped( const gamui::UIItem* item )
+{
+	if ( item == &context[CONTEXT_CARGO] && contextChit ) {
+		Vector2I mapi = contextChit->MapPos();
+		
+		if ( CanSendCargoPlane( mapi) ) {
+			int region = geoMapData.GetRegion( mapi.x, mapi.y );
+			int cityID = random.Rand( geoMapData.NumCities( region ) );
+			Vector2I city = geoMapData.City( region, cityID );
+
+			Chit** chit = chitArr.Push();
+			*chit = new CargoChit( tree, city, contextChit->MapPos() );
+		}
+	}
+	else if ( item == &context[CONTEXT_EQUIP] && contextChit && contextChit->IsBaseChit() ) {
+		BaseChit* baseChit = contextChit->IsBaseChit();
+
+		if ( !game->IsScenePushed() ) {
+			CharacterSceneData* input = new CharacterSceneData();
+			input->unit = baseChit->GetUnits();
+			input->nUnits = baseChit->NumUnits();
+			input->storage = baseChit->GetStorage();
+			game->PushScene( Game::CHARACTER_SCENE, input );
+		}
+	}
+}
 
 
 void GeoScene::Tap(	int action, 
@@ -248,6 +341,10 @@ void GeoScene::Tap(	int action,
 		
 		if ( gamui2D.TapCaptured() ) {
 			itemTapped = gamui2D.TapUp( ui.x, ui.y );
+
+			HandleItemTapped( itemTapped );
+			// Whatever it was, on this path, closes the context menu.
+			InitContextMenu( CM_NONE, 0 );
 		}
 		else if ( (dragLast-dragStart).Length() < GAME_BUTTON_SIZE_F / 2.0f ) {
 			Matrix4 mvpi;
@@ -281,6 +378,82 @@ void GeoScene::Tap(	int action,
 		if ( baseButton.Down() ) {
 			PlaceBase( mapi );
 		}
+		else {
+			// Search for what was clicked on. Go a little
+			// fuzzy to account for the small size of the 
+			// map tiles on a phone screen.
+			Vector2F mapTap2 = { mapTap.x, mapTap.z };
+			float bestRadius = 2.0f;	// in map units
+			Chit* bestChit = 0;
+
+			for( int i=0; i<chitArr.Size(); ++i ) {
+				if ( chitArr[i]->IsBaseChit() || chitArr[i]->IsUFOChit() ) {
+					float len = Cylinder<float>::Length( chitArr[i]->Pos(), mapTap2 );
+					if ( len < bestRadius ) {
+						bestRadius = len;
+						bestChit = chitArr[i];
+					}
+				}
+			}
+
+			if ( bestChit && bestChit->IsBaseChit() ) {
+				InitContextMenu( CM_BASE, bestChit );
+				UpdateContextMenu();
+			}
+		}
+	}
+}
+
+
+void GeoScene::InitContextMenu( int type, Chit* chit )
+{
+	static const char* base[MAX_CONTEXT] = { "Cargo", "Equip", "Build", "Cancel", 0, 0 };
+	contextChit = chit;
+
+	if ( type == CM_NONE ) {
+		for( int i=0; i<MAX_CONTEXT; ++i )
+			context[i].SetVisible( false );
+		contextChit = 0;
+	}
+	else if ( type == CM_BASE ) {
+		for( int i=0; i<MAX_CONTEXT; ++i ) {
+			if ( base[i] ) {
+				context[i].SetVisible( true );
+				context[i].SetText( base[i] );
+			}
+			else {
+				context[i].SetVisible( false );
+			}
+		}
+		context[ CONTEXT_CARGO ].SetEnabled( CanSendCargoPlane( contextChit->MapPos() ) );
+
+	}
+	else {
+		GLASSERT( 0 );
+	}
+}
+
+
+void GeoScene::UpdateContextMenu()
+{
+	if ( context[0].Visible() && contextChit ) {
+
+		int size=0;
+		while( context[size].Visible() && size < MAX_CONTEXT )
+			++size;
+		
+		Vector2F pos = contextChit->Pos();
+		Vector3F pos3 = { pos.x, 0, pos.y };
+		Vector2F ui0, ui1;
+
+		const Screenport& port = GetEngine()->GetScreenport();
+		
+		port.WorldToUI( pos3, &ui0 );
+		pos3.x += GEO_MAP_XF;
+		port.WorldToUI( pos3, &ui1 );
+
+		Vector2F ui = ( port.UIBoundsClipped3D().Contains( ui0 )) ? ui0 : ui1;
+		UIRenderer::LayoutListOnScreen( context, size, sizeof(context[0]), ui.x, ui.y, 2.0f, port );
 	}
 }
 
@@ -317,7 +490,7 @@ void GeoScene::PlaceBase( const grinliz::Vector2I& map )
 			GLASSERT( id < MAX_BASES );
 
 			Chit** chit = chitArr.Push();
-			*chit = new BaseChit( tree, map, id );
+			*chit = new BaseChit( tree, map, id, game->GetItemDefArr() );
 
 			baseButton.SetUp();
 			int region = geoMapData.GetRegion( map.x, map.y );
@@ -369,6 +542,7 @@ void GeoScene::SetMapLocation()
 
 		areaWidget[i]->SetOrigin( ui.x, ui.y );
 	}
+	UpdateContextMenu();
 }
 
 
@@ -587,6 +761,20 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 			chit->SetDestroyed();
 			break;
 
+		case Chit::MSG_CARGO_ARRIVED:
+			if ( !game->IsScenePushed() ) {
+
+				Vector2I basei = chit->MapPos();
+				BaseChit* baseChit = IsBaseLocation( basei.x, basei.y );
+				int region = geoMapData.GetRegion( basei.x, basei.y );
+
+				if ( !regionData[region].occupied && baseChit ) {
+					BaseTradeSceneData* data = new BaseTradeSceneData( baseChit->GetStorage(), regionData[region].GetStorage(), &cash );
+					game->PushScene( Game::BASETRADE_SCENE, data );
+				}
+			}
+			break;
+
 		case Chit::MSG_UFO_AT_DESTINATION:
 			{
 
@@ -752,6 +940,11 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 				int region = geoMapData.GetRegion( mapi.x, mapi.y );
 				regionData[region].RemoveBase( mapi );
 			}
+			if ( contextChit == chitArr[i] ) {
+				contextChit = 0;
+				InitContextMenu( CM_NONE, 0 );
+			}
+
 			delete chitArr[i];
 			chitArr.SwapRemove( i );
 		}

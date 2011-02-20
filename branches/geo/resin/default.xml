@@ -20,6 +20,7 @@
   <texture filename="atlas0.png" />
   <texture filename="atlas1.png" width="32" height="128" />
   <texture filename="atlas2.png" />
+  <texture filename="atlas3.png" width="256" height="512" />
   <texture filename="translucent.png" />
   <texture filename="clips.png" />
   <texture filename="stonewall.png" width="64" height="64" />
@@ -31,6 +32,7 @@
   <texture filename="shelf_can_side_0.png" width="32" height="32" />
   <texture filename="shelf_can_top_0.png" width="32" height="32" />
   <texture filename="base.png" width="64" height="64" />
+  <texture filename="basewall.png" />
 
   <!-- UI elements -->
   <texture filename="intro.png" />
@@ -41,6 +43,7 @@
 
   <texture filename="geomap.png" />
   <texture filename="cropcircle.png" width="64" height="64" />
+  <texture filename="basemap.png" />
 
   <!-- Particles -->
   <texture filename="particleQuad.png" />
@@ -89,6 +92,7 @@
   <model filename="ufos.ac" modelName="geo_scout"        origin="0 0 0"  shading="smooth" polyRemoval="pre" />
   <model filename="ufos.ac" modelName="geo_frigate"      origin="1 0 0"  shading="smooth" polyRemoval="pre" />
   <model filename="ufos.ac" modelName="geo_battleship"   origin="3 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="ufos.ac" modelName="cargo"           origin="7 0 0"  shading="smooth" polyRemoval="pre" />
   <model filename="cities.ac" modelName="city"        origin="0 0 0"  shading="flat" polyRemoval="pre" />
   <model filename="cities.ac" modelName="capital"     origin="2 0 0"  shading="flat" polyRemoval="pre" />
   <model filename="cities.ac" modelName="baseA"        origin="4 0 0"  shading="flat" polyRemoval="pre" />
@@ -169,6 +173,12 @@
   <model filename="brickWall.ac" polyRemoval="pre" />
   <model filename="brickWallWin.ac" polyRemoval="pre" />
 
+  <model filename="baseWall.ac" polyRemoval="pre" />
+  <model filename="baseWall4.ac" polyRemoval="pre" />
+  <model filename="baseCrnr.ac" polyRemoval="pre" />
+  <model filename="baseDoorOpn.ac" shading="flat" polyRemoval="pre" />
+  <model filename="baseDoorCld.ac" shading="flat" polyRemoval="pre" />
+
   <model filename="stonewall_unit.ac" shading="crease" polyRemoval="pre" />
   <model filename="stonewall_join.ac" shading="crease" polyRemoval="pre" />
   <model filename="stonewall_unitD.ac" shading="crease" polyRemoval="pre" />
@@ -179,9 +189,19 @@
   <model filename="whitepicketfence.ac" polyRemoval="pre"/>
   <model filename="barrel0.ac" shading="crease" polyRemoval="pre" />
   <model filename="barrel1.ac" shading="crease" polyRemoval="pre" />
+  <model filename="barrel2.ac" shading="crease" polyRemoval="pre" />
   <model filename="crate0.ac" shading="crease" polyRemoval="pre" />
   <model filename="crate1.ac" shading="crease" polyRemoval="pre" />
   <model filename="crate2.ac" shading="crease" polyRemoval="pre" />
+  <model filename="cannister0.ac" shading="crease" polyRemoval="pre" />
+  <model filename="cannister1.ac" shading="crease" polyRemoval="pre" />
+  <model filename="computerdesk.ac" shading="crease" polyRemoval="pre" />
+  <model filename="desk.ac" shading="crease" polyRemoval="pre" />
+  <model filename="bookshelf.ac" shading="flat" polyRemoval="pre" />
+  <model filename="cot.ac" shading="crease" polyRemoval="pre" />
+  <model filename="lockers.ac" shading="flat" polyRemoval="pre" />
+  <model filename="basegun0.ac" shading="crease" polyRemoval="pre" />
+  <model filename="basegun1.ac" shading="crease" polyRemoval="pre" />
 
   <model filename="counter_unit.ac" shading="flat" polyRemoval="pre" />
   <model filename="counter_unit_reg.ac" shading="flat" polyRemoval="pre" />
@@ -435,6 +455,11 @@
   <image filename="CITY_16_LAND_00_TEX.png" width="128" height="128" />
   <image filename="CITY_16_LAND_00_DAY.png" />
   <image filename="CITY_16_LAND_00_NGT.png" />
+
+  <data  filename="BASE_48_TILE_00.xml" />
+  <image filename="BASE_48_TILE_00_TEX.png" width="384" height="384" />
+  <image filename="BASE_48_TILE_00_DAY.png" />
+  <image filename="BASE_48_TILE_00_NGT.png" />
 
   <text name="tacticalHelp" >
     <page>

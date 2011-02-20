@@ -51,6 +51,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	subTurnCount = 0;
 	turnCount = 0;
 	isDragging = false;
+	lockedStorage = 0;
 
 	engine  = game->engine;
 	tacMap = new TacMap( engine->GetSpaceTree(), game->GetItemDefArr() );
@@ -1037,26 +1038,7 @@ void BattleScene::DrawFireWidget()
 	const int DX = 10;
 
 	// Make sure it fits on the screen.
-	float w = fireButton[0].Width();
-	float h = fireButton[0].Height()*3.f + (float)FIRE_BUTTON_SPACING*2.0f;
-	float x = (float)(ui.x+DX);
-	float y = (float)(ui.y) - h*0.5f;
-
-	if ( x < 0 ) {
-		x = 0;
-	}
-	else if ( x+w >= port.UIWidth() ) {
-		x = port.UIWidth() - w;
-	}
-	if ( y < 0 ) {
-		y = 0;
-	}
-	else if ( y+h >= port.UIHeight() ) {
-		y = port.UIHeight() - h;
-	}
-	fireButton[0].SetPos( x, y );
-	fireButton[1].SetPos( x, y+fireButton[0].Height()+(float)FIRE_BUTTON_SPACING );
-	fireButton[2].SetPos( x, y+fireButton[0].Height()*2.0f+(float)FIRE_BUTTON_SPACING*2.0f );
+	UIRenderer::LayoutListOnScreen( fireButton, 3, sizeof(fireButton[0]), ui.x+DX, ui.y, FIRE_BUTTON_SPACING, port );
 	fireButton[0].SetVisible( true );
 	fireButton[1].SetVisible( true );
 	fireButton[2].SetVisible( true );
@@ -2240,7 +2222,10 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 			if ( actionStack.Empty() && SelectedSoldierUnit() ) {
 				CharacterSceneData* input = new CharacterSceneData();
 				input->unit = SelectedSoldierUnit();
-				input->tacMap = tacMap;
+				input->nUnits = 1;
+
+				Vector2I mapi = input->unit->Pos();
+				lockedStorage = input->storage = tacMap->LockStorage( mapi.x, mapi.y );
 				game->PushScene( Game::CHARACTER_SCENE, input );
 			}
 		}
@@ -2300,6 +2285,10 @@ void BattleScene::SceneResult( int sceneID, int result )
 
 		EndCondition( &tacticalData );	// fills out tactical data...
 		game->PushScene( Game::END_SCENE, new TacticalEndSceneData( tacticalData ) );
+	}
+	else if ( sceneID == Game::CHARACTER_SCENE ) {
+		tacMap->ReleaseStorage( lockedStorage );
+		lockedStorage = 0;
 	}
 }
 

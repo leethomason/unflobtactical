@@ -44,10 +44,10 @@ void Inventory::UseClipRound( const ClipItemDef* cid )
 	for( int i=0; i<NUM_SLOTS; ++i ) {
 		if ( slots[i].IsSomething() && slots[i].IsClip() && slots[i].IsClip() == cid ) {
 			slots[i].UseRounds( 1 );
-			if ( slots[i].Rounds() == 0 ) {
-				// clip is consumed.
-				slots[i].Clear();
-			}
+//			if ( slots[i].Rounds() == 0 ) {
+//				// clip is consumed.
+//				slots[i].Clear();
+//			}
 			return;
 		}
 	}
