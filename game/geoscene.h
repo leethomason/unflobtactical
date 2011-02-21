@@ -59,6 +59,7 @@ static const int MAX_INFLUENCE = 10;
 static const float UFO_HEIGHT = 0.5f;
 static const float UFO_SPEED[3] = { 1.00f, 0.85f, 0.70f };
 static const float CARGO_SPEED  = 0.40f;
+static const float LANDER_SPEED = 0.80f;
 static const float UFO_HP[3]    = { 4, 8, 20 };
 static const float UFO_ACCEL = 0.2f;	// units/second2
 
@@ -291,6 +292,7 @@ private:
 	Chit*				contextChit;
 	
 	int					cash;
+	bool				firstBase;
 
 	grinliz::Random		random;
 

@@ -93,6 +93,7 @@
   <model filename="ufos.ac" modelName="geo_frigate"      origin="1 0 0"  shading="smooth" polyRemoval="pre" />
   <model filename="ufos.ac" modelName="geo_battleship"   origin="3 0 0"  shading="smooth" polyRemoval="pre" />
   <model filename="ufos.ac" modelName="cargo"           origin="7 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="ufos.ac" modelName="geolander"        origin="9 0 0"  shading="crease" polyRemoval="pre" />
   <model filename="cities.ac" modelName="city"        origin="0 0 0"  shading="flat" polyRemoval="pre" />
   <model filename="cities.ac" modelName="capital"     origin="2 0 0"  shading="flat" polyRemoval="pre" />
   <model filename="cities.ac" modelName="baseA"        origin="4 0 0"  shading="flat" polyRemoval="pre" />

@@ -192,6 +192,9 @@
     <ClCompile Include="game\basetradescene.cpp">
       <Filter>scenes</Filter>
     </ClCompile>
+    <ClCompile Include="game\buildbasescene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game\ai.h">
@@ -369,6 +372,9 @@
       <Filter>game</Filter>
     </ClInclude>
     <ClInclude Include="game\basetradescene.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\buildbasescene.h">
       <Filter>scenes</Filter>
     </ClInclude>
   </ItemGroup>

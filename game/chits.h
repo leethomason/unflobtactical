@@ -6,6 +6,7 @@
 #include "../grinliz/glvector.h"
 
 #include "unit.h"
+#include "geoscene.h"
 
 class SpaceTree;
 class BaseChit;
@@ -33,6 +34,21 @@ public:
 		GLASSERT( InBounds( v ) );
 		return v;
 	}
+
+	static void ShortestPath( const grinliz::Vector2<T>& _a, const grinliz::Vector2<T>& _b, grinliz::Vector2<T>* delta )
+	{
+		grinliz::Vector2<T> a = _a;
+		grinliz::Vector2<T> b = _b;
+		grinliz::Vector2<T> d0 = b - a;
+		if ( a.x < b.x )
+			a.x += GEO_MAP_X;
+		else
+			b.x += GEO_MAP_X;
+		grinliz::Vector2<T> d1 = b - a;
+
+		*delta = ( d0.LengthSquared() <= d1.LengthSquared() ) ? d0 : d1;
+	}
+
 	static T LengthSquared( const grinliz::Vector2<T>& a, const grinliz::Vector2<T>& b ) {
 		T x0 = Min( a.x, b.x );
 		T x1 = Max( a.x, b.x );
@@ -72,6 +88,7 @@ public:
 		MSG_UFO_CRASHED,
 
 		MSG_CARGO_ARRIVED,
+		MSG_LANDER_ARRIVED,
 	};
 	virtual int DoTick( U32 deltaTime ) = 0;
 
@@ -141,6 +158,14 @@ public:
 	virtual bool Parked() const			{ return ai >= AI_PARKED; }
 	bool Flying() const					{ return ai == AI_TRAVELLING || ai == AI_ORBIT; }
 	int Type() const					{ return type; }
+	bool CanSendLander( bool battleshipTech ) const			
+	{
+		if ( ai == AI_CRASHED || ai == AI_CITY_ATTACK || ai == AI_CROP_CIRCLE )
+			return true;
+		if ( ai == AI_BASE_ATTACK && battleshipTech )
+			return true;
+		return false;
+	}
 
 	void SetAI( int _ai ); 
 	int AI() const						{ return ai; }
@@ -199,24 +224,48 @@ private:
 class BaseChit : public Chit 
 {
 public:
-	BaseChit( SpaceTree* tree, const grinliz::Vector2I& pos, int id, const ItemDefArr& _itemDefArr );
+	enum {
+		FACILITY_LANDER,
+		FACILITY_MISSILE,
+		FACILITY_CARGO,
+		FACILITY_GUN,
+		FACILITY_SCILAB,
+		NUM_FACILITIES,
+
+		BUILD_TIME = 5,	// in seconds
+	};
+
+	BaseChit( SpaceTree* tree, const grinliz::Vector2I& pos, int id, const ItemDefArr& _itemDefArr, bool firstBase );
 	~BaseChit();
 
 	virtual BaseChit* IsBaseChit()			{ return this; }
-	virtual int DoTick(  U32 deltaTime )	{ return MSG_NONE; }
+	virtual int DoTick(  U32 deltaTime );
 
 	// 0 short range, 1 long range
 	float MissileRange( const int type ) const;
 	int ID() const { return id; }
+	const char* Name() const;
 
 	Storage* GetStorage() { return storage; }
 	
 	Unit* GetUnits() { return units; }
 	int NumUnits() { return MAX_TERRANS; }	// fixme
 
+	bool IsFacilityComplete( int i )	const	{ return facilityStatus[i] == 0; }
+	bool IsFacilityInProgress( int i )			{ return facilityStatus[i] > 0; }
+	void BuildFacility( int i )					{ GLASSERT( facilityStatus[i] < 0 ); facilityStatus[i] = BUILD_TIME*1000; }
+
+	bool LanderDeployed() const					{ return lander[0] != 0; }
+	void DeployLander( const grinliz::Vector2I& pos );
+
 private:
 	int id;
 	Storage* storage;
+
+	grinliz::Vector2I landerTarget;
+	Model* lander[2];
+
+	int facilityStatus[NUM_FACILITIES];	// -1, does not exist. 0, complete. >0 in progress
 	Unit units[MAX_TERRANS];
 };
 

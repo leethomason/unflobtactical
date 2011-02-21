@@ -420,7 +420,7 @@ CityChit::CityChit( SpaceTree* tree, const grinliz::Vector2I& posi, bool _capita
 }
 
 
-BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int _id, const ItemDefArr& itemDefArr ) : Chit( tree )
+BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int _id, const ItemDefArr& itemDefArr, bool firstBase ) : Chit( tree )
 {
 	id = _id;
 
@@ -434,11 +434,17 @@ BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int _id, con
 	}
 	model[0]->SetPos( pos.x, 0, pos.y );
 	model[1]->SetPos( pos.x+(float)GEO_MAP_X, 0, pos.y  );
+	lander[0] = 0;
+	lander[1] = 0;
 
 	storage = new Storage( posi.x, posi.y, itemDefArr );
 
 	// FIXME: real values
 	TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, 2, itemDefArr, 0 );
+
+	for( int i=0; i<NUM_FACILITIES; ++i ) {
+		facilityStatus[i] = firstBase ? 0 : -1;
+	}
 
 	/*
 	// Need to add code to track a particle effect instance, so
@@ -467,6 +473,98 @@ BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int _id, con
 BaseChit::~BaseChit()
 {
 	delete storage;
+	for( int i=0; i<2; ++i ) {
+		if ( lander[i] ) {
+			tree->FreeModel( lander[i] );
+		}
+	}
+}
+
+
+int BaseChit::DoTick(  U32 deltaTime )
+{
+	int msg = MSG_NONE;
+	for( int i=0; i<NUM_FACILITIES; ++i ) {
+		if ( facilityStatus[i] > 0 ) {
+			if ( deltaTime >= (U32)facilityStatus[i] ) {
+				facilityStatus[i] = 0;
+			}
+			else {
+				facilityStatus[i] -= (int)deltaTime;
+			}
+		}
+	}
+
+	if ( lander[0] ) {
+		// Way out or way in?
+		bool wayOut = (landerTarget.x >= 0);
+		Vector2F target;
+		if ( wayOut ) {
+			target.Set( (float)landerTarget.x + 0.5f, (float)landerTarget.y + 0.5f );
+		}
+		else {
+			target = pos;	// position of the base
+		}
+		Vector2F landerPos = { lander[0]->X(), lander[0]->Z() };
+		landerPos = Cylinder<float>::Normalize( landerPos );
+
+		Vector2F delta;
+		Cylinder<float>::ShortestPath( landerPos, target, &delta );
+
+		float travel = LANDER_SPEED * (float)deltaTime / 1000.0f;
+
+		if ( delta.Length() <= travel ) {
+			if ( wayOut ) {
+				landerPos = target;
+				landerTarget.Set( -1, -1 );
+				//msg = MSG_LANDER_ARRIVED;
+			}
+			else {
+				for( int i=0; i<2; ++i ) {
+					tree->FreeModel( lander[i] );
+					lander[i] = 0;
+				}
+			}
+		}
+		else {
+			delta.Normalize();
+			delta = delta * travel;
+			landerPos = landerPos + delta;
+		}
+
+		landerPos = Cylinder<float>::Normalize( landerPos );
+		if ( lander[0] ) {
+			lander[0]->SetPos( landerPos.x, UFO_HEIGHT, landerPos.y );
+			lander[1]->SetPos( landerPos.x+GEO_MAP_XF, UFO_HEIGHT, landerPos.y );
+
+			float theta = ToDegree( atan2f( delta.x, delta.y ) );
+			lander[0]->SetRotation( theta );
+			lander[1]->SetRotation( theta );
+		}
+	}
+
+	return MSG_NONE;
+}
+
+
+void BaseChit::DeployLander( const grinliz::Vector2I& pos )
+{
+	GLASSERT( lander[0] == 0 );
+	landerTarget = pos;
+
+	for( int i=0; i<2; ++i ) {
+		lander[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "geolander" ) );
+	}
+	lander[0]->SetPos( Pos().x, UFO_HEIGHT, Pos().y );
+	lander[1]->SetPos( Pos().x+GEO_MAP_XF, UFO_HEIGHT, Pos().y );
+}
+
+
+const char* BaseChit::Name() const
+{
+	static const char* names[MAX_BASES] = { "Alpha", "Bravo", "Charlie", "Delta" };
+	GLASSERT( id >=0 && id < MAX_BASES );
+	return names[id];
 }
 
 
@@ -505,7 +603,7 @@ int CargoChit::DoTick( U32 deltaTime )
 		pos += normal * distance;
 
 		for( int i=0; i<2; ++i ) {
-			float theta = ToDegree( atan2f( normal.x, normal.y ) );	// + 90.0f;
+			float theta = ToDegree( atan2f( normal.x, normal.y ) );
 			model[0]->SetRotation( theta );
 			model[1]->SetRotation( theta );
 		}

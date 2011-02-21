@@ -135,6 +135,7 @@ public:
 			GEO_SCENE,
 			GEO_END_SCENE,
 			BASETRADE_SCENE,
+			BUILDBASE_SCENE,
 			NUM_SCENES,
 		 };
 
