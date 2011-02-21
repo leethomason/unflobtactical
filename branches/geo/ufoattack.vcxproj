@@ -123,6 +123,7 @@
     <ClCompile Include="game\basetradescene.cpp" />
     <ClCompile Include="game\battlescene.cpp" />
     <ClCompile Include="game\battlevisibility.cpp" />
+    <ClCompile Include="game\buildbasescene.cpp" />
     <ClCompile Include="game\cgame.cpp" />
     <ClCompile Include="game\characterscene.cpp" />
     <ClCompile Include="game\chits.cpp" />
@@ -181,6 +182,7 @@
     <ClInclude Include="game\basetradescene.h" />
     <ClInclude Include="game\battlescene.h" />
     <ClInclude Include="game\battlevisibility.h" />
+    <ClInclude Include="game\buildbasescene.h" />
     <ClInclude Include="game\cgame.h" />
     <ClInclude Include="game\characterscene.h" />
     <ClInclude Include="game\chits.h" />

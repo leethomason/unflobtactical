@@ -27,6 +27,7 @@
 #include "geoscene.h"
 #include "geoendscene.h"
 #include "basetradescene.h"
+#include "buildbasescene.h"
 
 #include "../engine/text.h"
 #include "../engine/model.h"
@@ -348,6 +349,7 @@ void Game::CreateScene( const SceneNode& in, SceneNode* node )
 		case GEO_SCENE:			scene = new GeoScene( this );														break;
 		case GEO_END_SCENE:		scene = new GeoEndScene( this, (const GeoEndSceneData*)in.data );					break;
 		case BASETRADE_SCENE:	scene = new BaseTradeScene( this, (BaseTradeSceneData*)in.data );					break;
+		case BUILDBASE_SCENE:	scene = new BuildBaseScene( this, (BuildBaseSceneData*)in.data );					break;
 		default:
 			GLASSERT( 0 );
 			break;

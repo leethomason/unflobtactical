@@ -8,6 +8,7 @@
 #include "chits.h"
 #include "basetradescene.h"
 #include "characterscene.h"
+#include "buildbasescene.h"
 
 #include "../engine/loosequadtree.h"
 #include "../engine/particle.h"
@@ -140,6 +141,7 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game )
 	missileTimer[1] = 0;
 	contextChit = 0;
 	cash = 1000;
+	firstBase = true;
 
 	const Screenport& port = GetEngine()->GetScreenport();
 	random.SetSeedFromTime();
@@ -249,20 +251,23 @@ void GeoScene::DeActivate()
 }
 
 
-bool GeoScene::CanSendCargoPlane( const Vector2I& base )
+bool GeoScene::CanSendCargoPlane( const Vector2I& pos )
 {
-	bool inTransit = false;
-	// Make sure no plane is deployed:
-	for( int i=0; i<chitArr.Size(); ++i ) {
-		if ( chitArr[i]->IsCargoChit() && chitArr[i]->IsCargoChit()->Base() == base ) {
-			inTransit = true;
-			break;
+	BaseChit* base = IsBaseLocation( pos.x, pos.y );
+	if ( base && base->IsFacilityComplete( BaseChit::FACILITY_CARGO ) ) {
+		bool inTransit = false;
+		// Make sure no plane is deployed:
+		for( int i=0; i<chitArr.Size(); ++i ) {
+			if ( chitArr[i]->IsCargoChit() && chitArr[i]->IsCargoChit()->Base() == pos ) {
+				inTransit = true;
+				break;
+			}
 		}
-	}
-	if ( !inTransit ) {
-		int region = geoMapData.GetRegion( base.x, base.y );
-		if ( !regionData[region].occupied ) {
-			return true;
+		if ( !inTransit ) {
+			int region = geoMapData.GetRegion( pos.x, pos.y );
+			if ( !regionData[region].occupied ) {
+				return true;
+			}
 		}
 	}
 	return false;
@@ -271,7 +276,7 @@ bool GeoScene::CanSendCargoPlane( const Vector2I& base )
 
 void GeoScene::HandleItemTapped( const gamui::UIItem* item )
 {
-	if ( item == &context[CONTEXT_CARGO] && contextChit ) {
+	if ( item == &context[CONTEXT_CARGO] && contextChit && contextChit->IsBaseChit() ) {
 		Vector2I mapi = contextChit->MapPos();
 		
 		if ( CanSendCargoPlane( mapi) ) {
@@ -292,6 +297,32 @@ void GeoScene::HandleItemTapped( const gamui::UIItem* item )
 			input->nUnits = baseChit->NumUnits();
 			input->storage = baseChit->GetStorage();
 			game->PushScene( Game::CHARACTER_SCENE, input );
+		}
+	}
+	else if ( item == &context[CONTEXT_BUILD] && contextChit && contextChit->IsBaseChit() ) {
+		BaseChit* baseChit = contextChit->IsBaseChit();
+
+		if ( !game->IsScenePushed() ) {
+			BuildBaseSceneData* data = new BuildBaseSceneData();
+			data->baseChit = baseChit;
+			data->cash = &cash;
+
+			game->PushScene( Game::BUILDBASE_SCENE, data );
+		}
+	}
+	else if (    ( item == &context[0] || item == &context[1] || item == &context[2] || item == &context[3] )
+		      && contextChit
+			  && contextChit->IsUFOChit() )
+	{
+		PushButton* pushButton = (PushButton*)item;
+		const char* label = pushButton->GetText();
+
+		BaseChit* baseArr[MAX_BASES];
+		int n = CalcBaseChits( baseArr );
+		for( int i=0; i<n; ++i ) {
+			if ( StrEqual(  baseArr[i]->Name(), label ) ) {
+				baseArr[i]->DeployLander( contextChit->MapPos() );
+			}
 		}
 	}
 }
@@ -383,11 +414,13 @@ void GeoScene::Tap(	int action,
 			// fuzzy to account for the small size of the 
 			// map tiles on a phone screen.
 			Vector2F mapTap2 = { mapTap.x, mapTap.z };
-			float bestRadius = 2.0f;	// in map units
+			float bestRadius = 1.5f;	// in map units
 			Chit* bestChit = 0;
 
 			for( int i=0; i<chitArr.Size(); ++i ) {
-				if ( chitArr[i]->IsBaseChit() || chitArr[i]->IsUFOChit() ) {
+				if (    chitArr[i]->IsBaseChit() 
+					 || ( chitArr[i]->IsUFOChit() && chitArr[i]->IsUFOChit()->CanSendLander( true ) ))
+				{
 					float len = Cylinder<float>::Length( chitArr[i]->Pos(), mapTap2 );
 					if ( len < bestRadius ) {
 						bestRadius = len;
@@ -400,6 +433,10 @@ void GeoScene::Tap(	int action,
 				InitContextMenu( CM_BASE, bestChit );
 				UpdateContextMenu();
 			}
+			else if ( bestChit && bestChit->IsUFOChit() ) {
+				InitContextMenu( CM_UFO, bestChit );
+				UpdateContextMenu();
+			}
 		}
 	}
 }
@@ -407,7 +444,6 @@ void GeoScene::Tap(	int action,
 
 void GeoScene::InitContextMenu( int type, Chit* chit )
 {
-	static const char* base[MAX_CONTEXT] = { "Cargo", "Equip", "Build", "Cancel", 0, 0 };
 	contextChit = chit;
 
 	if ( type == CM_NONE ) {
@@ -416,6 +452,7 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 		contextChit = 0;
 	}
 	else if ( type == CM_BASE ) {
+		static const char* base[MAX_CONTEXT] = { "Cargo", "Equip", "Build", "Cancel", 0, 0 };
 		for( int i=0; i<MAX_CONTEXT; ++i ) {
 			if ( base[i] ) {
 				context[i].SetVisible( true );
@@ -427,6 +464,27 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 		}
 		context[ CONTEXT_CARGO ].SetEnabled( CanSendCargoPlane( contextChit->MapPos() ) );
 
+	}
+	else if ( type == CM_UFO ) {
+		BaseChit* baseArr[MAX_BASES];
+		int n = CalcBaseChits( baseArr );
+
+		for( int i=0; i<n; ++i ) {
+			context[i].SetVisible( true );
+			context[i].SetText( baseArr[i]->Name() );
+
+			if (    baseArr[i]->IsFacilityComplete( BaseChit::FACILITY_LANDER )
+				 && !baseArr[i]->LanderDeployed() )
+			{
+				context[i].SetEnabled( true );
+			}
+			else {
+				context[i].SetEnabled( false );
+			}
+		}
+		for( int i=n; i<MAX_CONTEXT; ++i ) {
+			context[i].SetVisible( false );
+		}
 	}
 	else {
 		GLASSERT( 0 );
@@ -490,7 +548,8 @@ void GeoScene::PlaceBase( const grinliz::Vector2I& map )
 			GLASSERT( id < MAX_BASES );
 
 			Chit** chit = chitArr.Push();
-			*chit = new BaseChit( tree, map, id, game->GetItemDefArr() );
+			*chit = new BaseChit( tree, map, id, game->GetItemDefArr(), firstBase );
+			firstBase = false;
 
 			baseButton.SetUp();
 			int region = geoMapData.GetRegion( map.x, map.y );
@@ -560,6 +619,11 @@ void GeoScene::FireBaseWeapons()
 
 			for( int i=0; i<MAX_BASES && bases[i]; ++i ) {
 				BaseChit* base = bases[i];
+
+				// Check if the base has the correct weapon:
+				if ( !base->IsFacilityComplete( type==0 ? BaseChit::FACILITY_GUN : BaseChit::FACILITY_MISSILE ))
+					continue;
+
 				float range2 = MissileRange( type ) * MissileRange( type );
 
 				for( int k=0; k<chitArr.Size(); ++k ) {
@@ -747,10 +811,10 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 	for( int i=0; i<chitArr.Size(); ++i ) {
 		
-		Chit* chit = chitArr[i];
-		int message = chit->DoTick( deltaTime );
+		Chit* chitIt = chitArr[i];
+		int message = chitIt->DoTick( deltaTime );
 		
-		Vector2I pos = chit->MapPos();
+		Vector2I pos = chitIt->MapPos();
 
 		switch ( message ) {
 
@@ -758,13 +822,13 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 			break;
 
 		case Chit::MSG_DONE:
-			chit->SetDestroyed();
+			chitIt->SetDestroyed();
 			break;
 
 		case Chit::MSG_CARGO_ARRIVED:
 			if ( !game->IsScenePushed() ) {
 
-				Vector2I basei = chit->MapPos();
+				Vector2I basei = chitIt->MapPos();
 				BaseChit* baseChit = IsBaseLocation( basei.x, basei.y );
 				int region = geoMapData.GetRegion( basei.x, basei.y );
 
@@ -783,7 +847,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 				// Battleship or Destroyer, at city, can city attack
 				// Any ship, not at city, can crop circle
 
-				UFOChit* ufoChit = chit->IsUFOChit();
+				UFOChit* ufoChit = chitIt->IsUFOChit();
 				int region = geoMapData.GetRegion( pos.x, pos.y );
 				int type = geoMapData.GetType( pos.x, pos.y );
 
@@ -876,11 +940,11 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 				}
 
 				if ( !parked ) {
-					chit->IsUFOChit()->SetAI( UFOChit::AI_CRASHED );
-					chit->SetMapPos( pos.x, pos.y );
+					chitIt->IsUFOChit()->SetAI( UFOChit::AI_CRASHED );
+					chitIt->SetMapPos( pos.x, pos.y );
 				}
 				else {
-					chit->SetDestroyed();
+					chitIt->SetDestroyed();
 				}
 
 				if ( !geoMapData.IsWater( pos.x, pos.y ) ) {
