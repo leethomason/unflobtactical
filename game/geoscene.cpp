@@ -9,6 +9,8 @@
 #include "basetradescene.h"
 #include "characterscene.h"
 #include "buildbasescene.h"
+#include "fastbattlescene.h"
+#include "tacticalintroscene.h"
 
 #include "../engine/loosequadtree.h"
 #include "../engine/particle.h"
@@ -139,7 +141,7 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game )
 {
 	missileTimer[0] = 0;
 	missileTimer[1] = 0;
-	contextChit = 0;
+	contextChitID = 0;
 	cash = 1000;
 	firstBase = true;
 
@@ -206,8 +208,8 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game )
 	for( int j=0; j<GEO_REGIONS; ++j ) {
 		for( int i=0, n=geoMapData.NumCities( j ); i<n; ++i ) {
 			Vector2I pos = geoMapData.City( j, i );
-			Chit** chit= chitArr.Push();
-			*chit = new CityChit( GetEngine()->GetSpaceTree(), pos, (i==geoMapData.CapitalID(j) ) );
+			CityChit* chit = new CityChit( GetEngine()->GetSpaceTree(), pos, (i==geoMapData.CapitalID(j) ) );
+			chitBag.Add( chit );
 		}
 	}
 
@@ -216,17 +218,13 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game )
 
 GeoScene::~GeoScene()
 {
+	chitBag.Clear();
 	for( int i=0; i<GEO_REGIONS; ++i ) {
 		delete areaWidget[i];
 	}
 	for( int i=0; i<GEO_REGIONS; ++i ) {
 		regionData[i].Free();
 	}
-	for( int i=0; i<chitArr.Size(); ++i ) {
-		delete chitArr[i];
-	}
-	chitArr.Clear();
-
 	delete geoMap;
 	delete geoAI;
 }
@@ -253,17 +251,12 @@ void GeoScene::DeActivate()
 
 bool GeoScene::CanSendCargoPlane( const Vector2I& pos )
 {
-	BaseChit* base = IsBaseLocation( pos.x, pos.y );
+	BaseChit* base = chitBag.GetBaseChitAt ( pos );
 	if ( base && base->IsFacilityComplete( BaseChit::FACILITY_CARGO ) ) {
-		bool inTransit = false;
+		
+		CargoChit* cargoChit = chitBag.GetCargoGoingTo( pos );
 		// Make sure no plane is deployed:
-		for( int i=0; i<chitArr.Size(); ++i ) {
-			if ( chitArr[i]->IsCargoChit() && chitArr[i]->IsCargoChit()->Base() == pos ) {
-				inTransit = true;
-				break;
-			}
-		}
-		if ( !inTransit ) {
+		if ( !cargoChit ) {
 			int region = geoMapData.GetRegion( pos.x, pos.y );
 			if ( !regionData[region].occupied ) {
 				return true;
@@ -276,6 +269,8 @@ bool GeoScene::CanSendCargoPlane( const Vector2I& pos )
 
 void GeoScene::HandleItemTapped( const gamui::UIItem* item )
 {
+	Chit* contextChit = chitBag.GetChit( contextChitID );
+
 	if ( item == &context[CONTEXT_CARGO] && contextChit && contextChit->IsBaseChit() ) {
 		Vector2I mapi = contextChit->MapPos();
 		
@@ -284,8 +279,8 @@ void GeoScene::HandleItemTapped( const gamui::UIItem* item )
 			int cityID = random.Rand( geoMapData.NumCities( region ) );
 			Vector2I city = geoMapData.City( region, cityID );
 
-			Chit** chit = chitArr.Push();
-			*chit = new CargoChit( tree, city, contextChit->MapPos() );
+			Chit* chit = new CargoChit( tree, city, contextChit->MapPos() );
+			chitBag.Add( chit );
 		}
 	}
 	else if ( item == &context[CONTEXT_EQUIP] && contextChit && contextChit->IsBaseChit() ) {
@@ -316,13 +311,9 @@ void GeoScene::HandleItemTapped( const gamui::UIItem* item )
 	{
 		PushButton* pushButton = (PushButton*)item;
 		const char* label = pushButton->GetText();
-
-		BaseChit* baseArr[MAX_BASES];
-		int n = CalcBaseChits( baseArr );
-		for( int i=0; i<n; ++i ) {
-			if ( StrEqual(  baseArr[i]->Name(), label ) ) {
-				baseArr[i]->DeployLander( contextChit->MapPos() );
-			}
+		BaseChit* base = chitBag.GetBaseChit( label );
+		if ( base ) {
+			base->DeployLander( contextChit->MapPos() );
 		}
 	}
 }
@@ -417,14 +408,14 @@ void GeoScene::Tap(	int action,
 			float bestRadius = 1.5f;	// in map units
 			Chit* bestChit = 0;
 
-			for( int i=0; i<chitArr.Size(); ++i ) {
-				if (    chitArr[i]->IsBaseChit() 
-					 || ( chitArr[i]->IsUFOChit() && chitArr[i]->IsUFOChit()->CanSendLander( true ) ))
+			for( Chit* it = chitBag.Begin(); it != chitBag.End(); it = it->Next() ) {
+				if (    it->IsBaseChit() 
+					 || ( it->IsUFOChit() && it->IsUFOChit()->CanSendLander( true ) ))
 				{
-					float len = Cylinder<float>::Length( chitArr[i]->Pos(), mapTap2 );
+					float len = Cylinder<float>::Length( it->Pos(), mapTap2 );
 					if ( len < bestRadius ) {
 						bestRadius = len;
-						bestChit = chitArr[i];
+						bestChit = it;
 					}
 				}
 			}
@@ -444,12 +435,12 @@ void GeoScene::Tap(	int action,
 
 void GeoScene::InitContextMenu( int type, Chit* chit )
 {
-	contextChit = chit;
+	contextChitID = chit ? chit->ID() : 0;
 
 	if ( type == CM_NONE ) {
 		for( int i=0; i<MAX_CONTEXT; ++i )
 			context[i].SetVisible( false );
-		contextChit = 0;
+		contextChitID = 0;
 	}
 	else if ( type == CM_BASE ) {
 		static const char* base[MAX_CONTEXT] = { "Cargo", "Equip", "Build", "Cancel", 0, 0 };
@@ -462,27 +453,27 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 				context[i].SetVisible( false );
 			}
 		}
-		context[ CONTEXT_CARGO ].SetEnabled( CanSendCargoPlane( contextChit->MapPos() ) );
+		context[ CONTEXT_CARGO ].SetEnabled( CanSendCargoPlane( chit->MapPos() ) );
 
 	}
 	else if ( type == CM_UFO ) {
-		BaseChit* baseArr[MAX_BASES];
-		int n = CalcBaseChits( baseArr );
+		for( int i=0; i<MAX_BASES; ++i ) {
+			BaseChit* chit = chitBag.GetBaseChit( i );
+			if ( chit ) {
+				context[i].SetVisible( true );
+				context[i].SetText( chit->Name() );
 
-		for( int i=0; i<n; ++i ) {
-			context[i].SetVisible( true );
-			context[i].SetText( baseArr[i]->Name() );
-
-			if (    baseArr[i]->IsFacilityComplete( BaseChit::FACILITY_LANDER )
-				 && !baseArr[i]->LanderDeployed() )
-			{
-				context[i].SetEnabled( true );
-			}
-			else {
-				context[i].SetEnabled( false );
+				if (    chit->IsFacilityComplete( BaseChit::FACILITY_LANDER )
+					 && !chit->LanderDeployed() )
+				{
+					context[i].SetEnabled( true );
+				}
+				else {
+					context[i].SetEnabled( false );
+				}
 			}
 		}
-		for( int i=n; i<MAX_CONTEXT; ++i ) {
+		for( int i=MAX_BASES; i<MAX_CONTEXT; ++i ) {
 			context[i].SetVisible( false );
 		}
 	}
@@ -494,6 +485,7 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 
 void GeoScene::UpdateContextMenu()
 {
+	Chit* contextChit = chitBag.GetChit( contextChitID );
 	if ( context[0].Visible() && contextChit ) {
 
 		int size=0;
@@ -518,37 +510,19 @@ void GeoScene::UpdateContextMenu()
 
 void GeoScene::PlaceBase( const grinliz::Vector2I& map )
 {
+	int index = chitBag.AllocBaseChitIndex();
+
 	if (    geoMapData.GetType( map.x, map.y ) 
 		 && !geoMapData.IsCity( map.x, map.y )
-		 && CalcBaseChits(0) < MAX_BASES ) 
+		 && index < MAX_BASES ) 
 	{
 		bool parked = false;
-		for( int i=0; i<chitArr.Size(); ++i ) {
-			if (    chitArr[i]->IsBaseChit() 
-					&& chitArr[i]->MapPos() == map ) 
-			{
-				parked = true;
-				break;
-			}
-		}
+		if ( chitBag.GetBaseChitAt( map ) )
+			parked = true;
+
 		if ( !parked ) {
-			BaseChit* bases[MAX_BASES] = {0};
-			int count = CalcBaseChits( bases );
-
-			int id=0, b=0;
-			for( id=0; id<MAX_BASES; id++ ) {
-				for( b=0; b<count; ++b ) {
-					if ( bases[b]->ID() == id )
-						break;
-				}
-				if ( b == count ) {
-					break;	// free slot!
-				}
-			}
-			GLASSERT( id < MAX_BASES );
-
-			Chit** chit = chitArr.Push();
-			*chit = new BaseChit( tree, map, id, game->GetItemDefArr(), firstBase );
+			Chit* chit = new BaseChit( tree, map, index, game->GetItemDefArr(), firstBase );
+			chitBag.Add( chit );
 			firstBase = false;
 
 			baseButton.SetUp();
@@ -610,15 +584,14 @@ void GeoScene::FireBaseWeapons()
 	float best2 = FLT_MAX;
 	const UFOChit* bestUFO = 0;
 	
-	BaseChit* bases[MAX_BASES];
-	CalcBaseChits( bases );
-
 	for( int type=0; type<2; ++type ) {
 		while ( missileTimer[type] > MissileFreq( type ) ) {
 			missileTimer[type] -= MissileFreq( type );
 
-			for( int i=0; i<MAX_BASES && bases[i]; ++i ) {
-				BaseChit* base = bases[i];
+			for( int i=0; i<MAX_BASES; ++i ) {
+				BaseChit* base = chitBag.GetBaseChit( i );
+				if ( !base )
+					continue;
 
 				// Check if the base has the correct weapon:
 				if ( !base->IsFacilityComplete( type==0 ? BaseChit::FACILITY_GUN : BaseChit::FACILITY_MISSILE ))
@@ -626,8 +599,8 @@ void GeoScene::FireBaseWeapons()
 
 				float range2 = MissileRange( type ) * MissileRange( type );
 
-				for( int k=0; k<chitArr.Size(); ++k ) {
-					UFOChit* ufo = chitArr[k]->IsUFOChit();
+				for( Chit* it=chitBag.Begin(); it != chitBag.End(); it=it->Next() ) {
+					UFOChit* ufo = it->IsUFOChit();
 					if ( ufo && ufo->Flying() ) {
 						float len2 = Cylinder<float>::LengthSquared( ufo->Pos(), base->Pos() );
 						if ( len2 < range2 && len2 < best2 ) {
@@ -727,8 +700,8 @@ void GeoScene::UpdateMissiles( U32 deltaTime )
 			}
 
 			// Check for impact!
-			for( int k=0; k<chitArr.Size(); ++k ) {
-				UFOChit* ufo = chitArr[k]->IsUFOChit();
+			for( Chit* it=chitBag.Begin(); it != chitBag.End(); it=it->Next() ) {
+				UFOChit* ufo = it->IsUFOChit();
 				if ( ufo && ufo->Flying() ) {
 
 					float d2 = Cylinder<float>::LengthSquared( ufo->Pos(), m->pos );
@@ -752,52 +725,15 @@ void GeoScene::UpdateMissiles( U32 deltaTime )
 }
 
 
-BaseChit* GeoScene::IsBaseLocation( int x, int y )
-{
-	Vector2I pos = { x, y };
-	BaseChit* bases[MAX_BASES];
-	CalcBaseChits( bases );
-
-	for( int i=0; i<MAX_BASES; ++i ) {
-		if ( bases[i] && bases[i]->MapPos() == pos )
-			return bases[i];
-	}
-	return 0;
-}
-
-
-int GeoScene::CalcBaseChits( BaseChit** array )
-{
-	if ( array ) {
-		for( int i=0; i<MAX_BASES; ++i )
-			array[i] = 0;
-	}
-
-	int count=0;
-	for( int i=0; i<chitArr.Size(); ++i ) {
-		if ( chitArr[i]->IsBaseChit() )
-		{
-			GLASSERT( count < MAX_BASES );
-			if ( array ) {
-				array[count] = chitArr[i]->IsBaseChit();
-			}
-			count++;
-		}
-	}
-	return count;
-}
-
-
-
 void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 {
 	if ( lastAlienTime==0 || (currentTime > lastAlienTime+timeBetweenAliens) ) {
-		Chit** test = chitArr.Push();
-
 		Vector2F start, dest;
 		int type = UFOChit::SCOUT+random.Rand( 3 );
 		geoAI->GenerateAlienShip( type, &start, &dest, regionData );
-		*test = new UFOChit( tree, type, start, dest );
+		
+		Chit *test = new UFOChit( tree, type, start, dest );
+		chitBag.Add( test );
 
 		lastAlienTime = currentTime;
 	}
@@ -809,9 +745,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 	UpdateMissiles( deltaTime );
 
-	for( int i=0; i<chitArr.Size(); ++i ) {
-		
-		Chit* chitIt = chitArr[i];
+	for( Chit* chitIt=chitBag.Begin(); chitIt != chitBag.End(); chitIt=chitIt->Next() ) {
 		int message = chitIt->DoTick( deltaTime );
 		
 		Vector2I pos = chitIt->MapPos();
@@ -825,11 +759,33 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 			chitIt->SetDestroyed();
 			break;
 
+		case Chit::MSG_LANDER_ARRIVED:
+			if ( !game->IsScenePushed() ) {
+				Vector2I posi = chitIt->IsBaseChit()->LanderMapPos();				
+				Chit* chitAt = chitBag.GetParkedChitAt( posi );
+				UFOChit* ufoChit = chitAt->IsUFOChit();
+				if ( ufoChit ) {
+					FastBattleSceneData* data = new FastBattleSceneData();
+					data->scenario = TacticalIntroScene::FARM_SCOUT;			// fixme
+					data->crash = ( ufoChit->AI() == UFOChit::AI_CRASHED );
+					data->soldierUnits = chitIt->IsBaseChit()->GetUnits();
+					data->dayTime = true;										// fixme
+					data->nAliens[0] = 2;										// fixme
+					data->nAliens[1] = 2;
+					data->nAliens[2] = 2;
+					data->nAliens[3] = 2;			
+					data->alienRank = 2;
+					data->storage = chitIt->IsBaseChit()->GetStorage();
+					game->PushScene( Game::FASTBATTLE_SCENE, data );
+				}
+			}
+			break;
+
 		case Chit::MSG_CARGO_ARRIVED:
 			if ( !game->IsScenePushed() ) {
 
 				Vector2I basei = chitIt->MapPos();
-				BaseChit* baseChit = IsBaseLocation( basei.x, basei.y );
+				BaseChit* baseChit = chitBag.GetBaseChitAt( basei );
 				int region = geoMapData.GetRegion( basei.x, basei.y );
 
 				if ( !regionData[region].occupied && baseChit ) {
@@ -854,20 +810,16 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 				bool returnToOrbit = false;
 
 				// If the destination space is taken, return to orbit.
-				for( int k=0; k<chitArr.Size(); ++k ) {
-					if ( i != k ) {
-						if ( chitArr[k]->Parked() && (chitArr[k]->MapPos()==pos ) ) {
-							returnToOrbit = true;
-							break;
-						}
-					}
+				Chit* parked = chitBag.GetParkedChitAt( pos );
+				if ( parked ) {
+					returnToOrbit = true;
 				}
 
 				if ( returnToOrbit ) {
 					ufoChit->SetAI( UFOChit::AI_ORBIT );
 				}
-				else if (    ufoChit->Type() == UFOChit::BATTLESHIP 
-							&& IsBaseLocation( pos.x, pos.y )
+				else if (      ufoChit->Type() == UFOChit::BATTLESHIP 
+							&& chitBag.GetBaseChitAt( pos )
 							&& regionData[region].influence >= MIN_BASE_ATTACK_INFLUENCE )
 				{
 					ufoChit->SetAI( UFOChit::AI_BASE_ATTACK );
@@ -901,8 +853,8 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 			case Chit::MSG_CROP_CIRCLE_COMPLETE:
 			{
-				Chit** chit = chitArr.Push();
-				*chit = new CropCircle( tree, pos, random.Rand() );
+				Chit *chit = new CropCircle( tree, pos, random.Rand() );
+				chitBag.Add( chit );
 
 				int region = geoMapData.GetRegion( pos.x, pos.y );
 				if ( regionData[region].influence < MAX_CROP_CIRCLE_INFLUENCE ) {
@@ -923,14 +875,11 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 				// Can only crash on open space.
 				// Check for UFOs, bases.
 				bool parked = false;
-				for( int k=0; k<chitArr.Size(); ++k ) {
-					if ( k!=i 
-							&& chitArr[k]->MapPos() == pos 
-							&& ( chitArr[k]->Parked() || chitArr[k]->IsBaseChit() ) )
-					{
-						parked = true;
-						break;
-					}
+				Chit* parkedChit = chitBag.GetParkedChitAt( pos );
+				BaseChit* baseChit = chitBag.GetBaseChitAt( pos );
+
+				if( ( parkedChit && (parkedChit != chitIt ) ) || baseChit ) {
+					parked = true;
 				}
 				// check for water, cities
 				int mapType = geoMapData.GetType( pos.x, pos.y );
@@ -971,7 +920,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 			case Chit::MSG_BASE_ATTACK_COMPLETE:
 			{
-				BaseChit* base = IsBaseLocation( pos.x, pos.y );
+				BaseChit* base = chitBag.GetBaseChitAt( pos );
 				base->SetDestroyed();	// can't delete in this loop
 			}
 			break;
@@ -982,41 +931,35 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 	}
 
 	// Check for deferred chit destruction.
-	for( int i=0; i<chitArr.Size(); ) {
-		if ( chitArr[i]->IsDestroyed() ) {
-			if ( chitArr[i]->IsBaseChit() ) {
-				static const float INV = 1.f/255.f;
-				static const Color4F particleColor = { 59.f*INV, 98.f*INV, 209.f*INV, 1.0f };
-				static const Color4F colorVec	= { 0.0f, -0.1f, -0.1f, -0.3f };
-				static const Vector3F particleVel = { 2.0f, 0, 0 };
+	for( Chit* chitIt=chitBag.Begin(); chitIt != chitBag.End(); chitIt=chitIt->Next() ) {
+		if ( chitIt->IsDestroyed() && chitIt->IsBaseChit() ) {
+			static const float INV = 1.f/255.f;
+			static const Color4F particleColor = { 59.f*INV, 98.f*INV, 209.f*INV, 1.0f };
+			static const Color4F colorVec	= { 0.0f, -0.1f, -0.1f, -0.3f };
+			static const Vector3F particleVel = { 2.0f, 0, 0 };
 
-				for( int k=0; k<2; ++k ) {
-					Vector3F pos = { chitArr[i]->Pos().x + (float)(GEO_MAP_X*k), 1.0f, chitArr[i]->Pos().y };
+			for( int k=0; k<2; ++k ) {
+				Vector3F pos = { chitIt->Pos().x + (float)(GEO_MAP_X*k), 1.0f, chitIt->Pos().y };
 
-					ParticleSystem::Instance()->EmitPoint( 
-						80, ParticleSystem::PARTICLE_HEMISPHERE, 
-						particleColor, colorVec,
-						pos, 
-						0.2f,
-						particleVel, 0.1f );
-				}
-				Vector2I mapi = chitArr[i]->MapPos();
-				int region = geoMapData.GetRegion( mapi.x, mapi.y );
-				regionData[region].RemoveBase( mapi );
+				ParticleSystem::Instance()->EmitPoint( 
+					80, ParticleSystem::PARTICLE_HEMISPHERE, 
+					particleColor, colorVec,
+					pos, 
+					0.2f,
+					particleVel, 0.1f );
 			}
-			if ( contextChit == chitArr[i] ) {
-				contextChit = 0;
-				InitContextMenu( CM_NONE, 0 );
-			}
-
-			delete chitArr[i];
-			chitArr.SwapRemove( i );
-		}
-		else {
-			++i;
+			Vector2I mapi = chitIt->MapPos();
+			int region = geoMapData.GetRegion( mapi.x, mapi.y );
+			regionData[region].RemoveBase( mapi );
 		}
 	}
-	baseButton.SetEnabled( CalcBaseChits(0) < MAX_BASES );
+	chitBag.Clean();
+	if ( contextChitID && !chitBag.GetChit( contextChitID ) ) {
+		contextChitID = 0;
+		InitContextMenu( CM_NONE, 0 );
+	}
+
+	baseButton.SetEnabled( chitBag.NumBaseChits() < MAX_BASES );
 
 	// Check for end game
 	{

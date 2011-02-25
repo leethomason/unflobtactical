@@ -195,6 +195,9 @@
     <ClCompile Include="game\buildbasescene.cpp">
       <Filter>scenes</Filter>
     </ClCompile>
+    <ClCompile Include="game\fastbattlescene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game\ai.h">
@@ -375,6 +378,9 @@
       <Filter>scenes</Filter>
     </ClInclude>
     <ClInclude Include="game\buildbasescene.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\fastbattlescene.h">
       <Filter>scenes</Filter>
     </ClInclude>
   </ItemGroup>

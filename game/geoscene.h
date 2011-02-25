@@ -21,11 +21,13 @@
 #include "../grinliz/glrandom.h"
 
 #include "scene.h"
+#include "chits.h"
 
 #include "../engine/ufoutil.h"
 #include "../engine/texture.h"
 #include "../engine/surface.h"
 #include "../engine/model.h"
+
 
 class UIImage;
 class UIButtonBox;
@@ -278,8 +280,8 @@ private:
 	void InitContextMenu( int type, Chit* chit );
 	void UpdateContextMenu();
 
-	BaseChit* IsBaseLocation( int x, int y );
-	int CalcBaseChits( BaseChit* array[MAX_BASES] );	// fills an array with all the base chits.
+	//BaseChit* IsBaseLocation( int x, int y );
+	//int CalcBaseChits( BaseChit* array[MAX_BASES] );	// fills an array with all the base chits.
 
 	GeoMap* geoMap;
 	SpaceTree* tree;
@@ -289,7 +291,6 @@ private:
 	U32					lastAlienTime;
 	U32					timeBetweenAliens;
 	U32					missileTimer[2];
-	Chit*				contextChit;
 	
 	int					cash;
 	bool				firstBase;
@@ -301,6 +302,9 @@ private:
 	gamui::Image		cashBackground;
 	gamui::TextLabel	cashText;
 
+	ChitBag				chitBag;
+	int					contextChitID;
+
 	enum {
 		CONTEXT_CARGO,
 		CONTEXT_EQUIP,
@@ -311,7 +315,6 @@ private:
 
 	AreaWidget*			areaWidget[GEO_REGIONS];
 	RegionData regionData[GEO_REGIONS];
-	CDynArray< Chit* >	chitArr;
 	CDynArray< Missile > missileArr;
 	GeoMapData			geoMapData;
 };

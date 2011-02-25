@@ -128,6 +128,7 @@
     <ClCompile Include="game\characterscene.cpp" />
     <ClCompile Include="game\chits.cpp" />
     <ClCompile Include="game\dialogscene.cpp" />
+    <ClCompile Include="game\fastbattlescene.cpp" />
     <ClCompile Include="game\game.cpp" />
     <ClCompile Include="game\gameresources.cpp" />
     <ClCompile Include="game\geoai.cpp" />
@@ -187,6 +188,7 @@
     <ClInclude Include="game\characterscene.h" />
     <ClInclude Include="game\chits.h" />
     <ClInclude Include="game\dialogscene.h" />
+    <ClInclude Include="game\fastbattlescene.h" />
     <ClInclude Include="game\game.h" />
     <ClInclude Include="game\gamelimits.h" />
     <ClInclude Include="game\geoai.h" />
