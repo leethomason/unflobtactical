@@ -5,6 +5,8 @@ Captured on the Win32 version.
 
 * Geo Branch - developing the geoscape game*
 
+I'm still struggling with the "look".
+
 [http://unflobtactical.googlecode.com/svn/wiki/images/geo0.jpg]
 
 *Build 580 - many new levels, models, and scenarios*
