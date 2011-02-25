@@ -38,14 +38,22 @@ Chit::Chit( SpaceTree* _tree )
 	model[1] = 0;
 	destroyed = false;
 	pos.Set( 0, 0 );
-
+	next = prev = 0;
+	chitBag = 0;
+	id = 0;
 }
 
 Chit::~Chit()
 {
 	for( int i=0; i<2; ++i ) {
-		tree->FreeModel( model[i] );
+		if ( model[i] )
+			tree->FreeModel( model[i] );
 	}
+	// unlink:
+	if ( chitBag )
+		chitBag->Remove( this );
+	prev->next = next;
+	next->prev = prev;
 }
 
 
@@ -420,17 +428,14 @@ CityChit::CityChit( SpaceTree* tree, const grinliz::Vector2I& posi, bool _capita
 }
 
 
-BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int _id, const ItemDefArr& itemDefArr, bool firstBase ) : Chit( tree )
+BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, const ItemDefArr& itemDefArr, bool firstBase ) : Chit( tree )
 {
-	id = _id;
-
 	pos.Set( (float)posi.x+0.5f, (float)posi.y+0.5f );
+	this->index = index;
 
 	static const char* name[MAX_BASES] = { "baseA", "baseB", "baseC", "baseD" };
-	GLASSERT( id < MAX_BASES );
-
 	for( int i=0; i<2; ++i ) {
-		model[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( name[id] ) );
+		model[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( name[index] ) );
 	}
 	model[0]->SetPos( pos.x, 0, pos.y );
 	model[1]->SetPos( pos.x+(float)GEO_MAP_X, 0, pos.y  );
@@ -517,7 +522,7 @@ int BaseChit::DoTick(  U32 deltaTime )
 			if ( wayOut ) {
 				landerPos = target;
 				landerTarget.Set( -1, -1 );
-				//msg = MSG_LANDER_ARRIVED;
+				msg = MSG_LANDER_ARRIVED;
 			}
 			else {
 				for( int i=0; i<2; ++i ) {
@@ -543,7 +548,7 @@ int BaseChit::DoTick(  U32 deltaTime )
 		}
 	}
 
-	return MSG_NONE;
+	return msg;
 }
 
 
@@ -560,11 +565,21 @@ void BaseChit::DeployLander( const grinliz::Vector2I& pos )
 }
 
 
+Vector2I BaseChit::LanderMapPos() const
+{
+	grinliz::Vector2I v = { 0, 0 };
+	if ( lander[0] ) {
+		v.Set( (int)lander[0]->X(), (int)lander[0]->Z() );
+	}
+	return v;
+}
+
+
 const char* BaseChit::Name() const
 {
 	static const char* names[MAX_BASES] = { "Alpha", "Bravo", "Charlie", "Delta" };
-	GLASSERT( id >=0 && id < MAX_BASES );
-	return names[id];
+	GLASSERT( index >=0 && index < MAX_BASES );
+	return names[index];
 }
 
 
@@ -615,4 +630,148 @@ int CargoChit::DoTick( U32 deltaTime )
 	return msg;
 }
 
+
+ChitBag::ChitBag() : sentinel( 0 )
+{
+	idPool = 1;
+	sentinel.next = &sentinel;
+	sentinel.prev = &sentinel;
+	memset( baseChitArr, 0, sizeof(BaseChit*)*MAX_BASES );
+}
+
+
+ChitBag::~ChitBag()
+{
+	Clear();
+}
+
+void ChitBag::Clear()
+{	
+	while( sentinel.next != &sentinel )
+		delete sentinel.next;
+}
+
+
+int ChitBag::AllocBaseChitIndex()
+{
+	for( int i=0; i<MAX_BASES; ++i ) {
+		if ( baseChitArr[i] == 0 ) {
+			return i;
+		}
+	}
+	return MAX_BASES;
+}
+
+
+
+void ChitBag::Add( Chit* chit )
+{
+	// Special arrays!
+	if ( chit->IsBaseChit() ) {
+		GLASSERT( baseChitArr[chit->IsBaseChit()->Index()] == 0 );
+		baseChitArr[chit->IsBaseChit()->Index()] = chit->IsBaseChit();
+	}
+
+	chit->chitBag = this;
+	chit->id = idPool++;
+
+	chit->next = sentinel.next;
+	chit->prev = &sentinel;
+
+	sentinel.next->prev = chit;
+	sentinel.next = chit;
+
+	map.Add( chit->ID(), chit );
+}
+
+
+void ChitBag::Remove( Chit* chit )
+{
+	map.Remove( chit->ID() );
+
+	if ( chit->IsBaseChit() ) {
+		GLASSERT( baseChitArr[chit->IsBaseChit()->Index()] == chit );
+		baseChitArr[chit->IsBaseChit()->Index()] = 0;
+	}
+}
+
+
+void ChitBag::Clean()
+{
+	Chit* it=sentinel.next;
+	while( it != &sentinel ) {
+		if ( it->IsDestroyed() ) {
+			Chit* temp=it;
+			it=it->next;
+			delete temp;
+		}
+		else {
+			it=it->Next();
+		}
+	}
+}
+
+
+Chit* ChitBag::GetChit( const grinliz::Vector2I& pos )
+{
+	for( Chit* chit = sentinel.next; chit != &sentinel; chit=chit->next ) {
+		if ( chit->MapPos() == pos ) {
+			return chit;
+		}
+	}
+	return 0;
+}
+
+
+BaseChit* ChitBag::GetBaseChitAt( const grinliz::Vector2I& pos )
+{
+	for( int i=0; i<MAX_BASES; ++i ) {
+		if ( baseChitArr[i] && baseChitArr[i]->MapPos() == pos )
+			return baseChitArr[i];
+	}
+	return 0;
+}
+
+
+CargoChit* ChitBag::GetCargoGoingTo( const grinliz::Vector2I& pos )
+{
+	for( Chit* chit = sentinel.next; chit != &sentinel; chit=chit->next ) {
+		if ( chit->IsCargoChit() && chit->IsCargoChit()->Base() == pos ) {
+			return chit->IsCargoChit();
+		}
+	}
+	return 0;
+}
+
+
+Chit* ChitBag::GetParkedChitAt( const grinliz::Vector2I& pos )
+{
+	for( Chit* chit = sentinel.next; chit != &sentinel; chit=chit->next ) {
+		if ( chit->Parked() && chit->MapPos() == pos ) {
+			return chit;
+		}
+	}
+	return 0;
+}
+
+
+BaseChit* ChitBag::GetBaseChit( const char* name )
+{
+	for( int i=0; i<MAX_BASES; ++i ) {
+		if ( StrEqual( baseChitArr[i]->Name(), name ) )
+			return baseChitArr[i];
+	}
+	return 0;
+}
+
+
+int	ChitBag::NumBaseChits()
+{
+	int count=0;
+	for( int i=0; i<MAX_BASES; ++i ) {
+		if ( baseChitArr[i] )
+			++count;
+	}
+	return count;
+}
 

@@ -459,7 +459,7 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	}
 
 	memset( units, 0, sizeof(Unit)*MAX_UNITS );
-	GenerateAlienTeam( units, types, rank, game->GetItemDefArr(), seed );
+	GenerateAlienTeam( units, types, (float)rank, game->GetItemDefArr(), seed );
 
 	int created=0;
 	for( int i=0; i<MAX_ALIENS; ++i ) {
@@ -741,9 +741,92 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 }
 
 
+
+void TacticalIntroScene::GenerateAlienTeamUpper(	int scenario,
+													bool crash,
+													float rank,
+													Unit* units,
+													const ItemDefArr& itemDefArr,
+													int seed )
+{
+	Random random( seed );
+	random.Rand();
+	random.Rand();
+
+	int count[Unit::NUM_ALIEN_TYPES] = { 0 };
+	switch ( scenario ) {
+	case FARM_SCOUT:
+	case TNDR_SCOUT:
+	case FRST_SCOUT:
+	case DSRT_SCOUT:
+		count[0] = 3+random.Rand(2);	// green 3-4
+		if ( rank >= 2.0f )
+			count[1] = random.Rand(2);	// prime 0-1
+		break;
+
+	case FARM_DESTROYER:
+	case TNDR_DESTROYER:
+	case FRST_DESTROYER:
+	case DSRT_DESTROYER:
+		count[1] = 1 + random.Rand(2);	// prime  1-2
+		count[2] = 4 + random.Rand(2);	// hornet 4-5
+		count[3] = random.Rand( 2 );	// jackal 0-1
+		count[4] = 4 + random.Rand(2);	// viper  4-5	// total: 9-13
+		break;
+
+	case CITY:
+		count[0] = 2;					// green  2-2
+		count[2] = 4 + random.Rand(3);	// hornet 4-6
+		count[3] = 4 + random.Rand(3);	// jackal 4-6
+		count[4] = random.Rand( 3 );	// viper  0-2	// total: 10-16
+		break;
+
+	case BATTLESHIP:
+	case ALIEN_BASE:
+		count[0] = 2;	// green
+		count[1] = 5;	// prime
+		count[2] = 5;	// hornet
+		count[4] = 4;	// viper
+		break;
+
+	case TERRAN_BASE:
+		count[0] = 3;	// green
+		count[2] = 5;	// hornet
+		count[3] = 3;	// jackal
+		count[4] = 5;	// viper
+		break;
+
+	default:
+		GLASSERT( 0 );
+	}
+
+	GenerateAlienTeam( units, count, rank, itemDefArr, random.Rand() );
+	if ( crash ) {
+		for( int i=0; i<MAX_ALIENS; ++i ) {
+			if ( units[i].IsAlive() ) {
+				DamageDesc dd;
+				float max = (float)units[i].GetStats().TotalHP() * 0.8f * random.Uniform();
+				dd.energy = max*0.33f;
+				dd.kinetic = max*0.33f;
+				dd.incend = max*0.33f;
+				units[i].DoDamage( dd, 0 );
+				GLASSERT( units[i].IsAlive() );
+			}
+		}
+	}
+}
+
+
+int TacticalIntroScene::RandomRank( grinliz::Random* random, float rank )
+{
+	int r = Clamp( (int)(rank+random->Uniform()*0.99f ), 0, NUM_RANKS-1 );
+	return r;
+}
+
+
 void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to write
 											const int alienCount[],	// aliens per type
-											int averageRank,
+											float averageRank,
 											const ItemDefArr& itemDefArr,
 											int seed )
 {
@@ -751,7 +834,7 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 		{	"RAY-1",	"RAY-1",	"RAY-1",	"RAY-2",	"RAY-3" },		// green
 		{	"RAY-2",	"RAY-2",	"RAY-3",	"RAY-3",	"PLS-3"	},		// prime
 		{	"PLS-1",	"PLS-1",	"PLS-2",	"PLS-2",	"PLS-3" },		// hornet
-		{	"STRM-1",	"STRM-1",	"STRM-2",	"STRM-2",	"STRM-3" },	// jackal
+		{	"STRM-1",	"STRM-1",	"STRM-2",	"STRM-2",	"STRM-3" },		// jackal
 		{	"PLS-1",	"PLS-1",	"PLS-2",	"PLS-2",	"PLS-3" }		// viper
 	};
 
@@ -762,7 +845,7 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 	}
 	GLASSERT( nAliens <= MAX_ALIENS );
 	// local random - the same inputs always create same outputs.
-	grinliz::Random aRand( (nAliens*averageRank) ^ seed );
+	grinliz::Random aRand( (nAliens*((int)averageRank)) ^ seed );
 	aRand.Rand();
 
 	int index=0;
@@ -770,7 +853,7 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 		for( int k=0; k<alienCount[i]; ++k ) {
 			
 			// Create the unit.
-			int rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
+			int rank = RandomRank( &aRand, averageRank );
  			unit[index].Create( ALIEN_TEAM, i, rank, aRand.Rand() );
 
 			// About 1/3 should be guards that aren't green or prime.
@@ -778,7 +861,7 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 				unit[index].SetAI( AI::AI_GUARD );
 			}
 
-			rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
+			rank = RandomRank( &aRand, averageRank );
 
 			// Add the weapon.
 			Item item( itemDefArr, weapon[i][rank] );

@@ -80,8 +80,8 @@ public:
 		DSRT_DESTROYER,
 		CITY,
 		BATTLESHIP,
-		//ALIEN_BASE,
-		//TERRAN_BASE,
+		ALIEN_BASE,
+		TERRAN_BASE,
 
 		FIRST_SCENARIO = FARM_SCOUT,
 		LAST_SCENARIO = BATTLESHIP,
@@ -113,14 +113,24 @@ public:
 					int seed,
 					const SceneInfo& info );
 
+	static int RandomRank( grinliz::Random* random, float rank );
+
 	static void GenerateTerranTeam( Unit* units,				// target units to write
 									int count,
 									int averageLevel,
 									const ItemDefArr&,
 									int seed=0 );
+
+	static void GenerateAlienTeamUpper( int scenario,	
+										bool crash,
+										float rank,
+										Unit* units,
+										const ItemDefArr&,
+										int seed=0 );
+
 	static void GenerateAlienTeam(	Unit* units,				// target units to write
 									const int alienCount[],		// aliens per type
-									int averageLevel,
+									float averageLevel,
 									const ItemDefArr&,
 									int seed=0 );
 

@@ -303,7 +303,7 @@ void Unit::SetPos( const grinliz::Vector3F& pos, float rotation )
 
 Item* Unit::GetWeapon()
 {
-	GLASSERT( status == STATUS_ALIVE );
+	//GLASSERT( status == STATUS_ALIVE );
 	return inventory.ArmedWeapon();
 }
 
@@ -420,27 +420,29 @@ void Unit::CalcMapPos( grinliz::Vector2I* vec, float* rot ) const
 void Unit::Kill( TacMap* map )
 {
 	GLASSERT( status == STATUS_ALIVE );
-	GLASSERT( model );
-	//float r = model->GetRotation();
-	Vector3F pos = model->Pos();
+	Vector3F pos = { 0, 0, 0 };
+	if ( model ) pos = model->Pos();
 
 	Free();
 
 	status = STATUS_KIA;
-	if ( team == TERRAN_TEAM ) {
-		SoundManager::Instance()->QueueSound( "terrandown0" );
-		if ( map->random.Rand( 100 ) < stats.Constitution() )
-			status = STATUS_UNCONSCIOUS;
-	}
-	else if ( team == ALIEN_TEAM ) {
-		SoundManager::Instance()->QueueSound( "aliendown0" );
-	}
-	CreateModel();
-
 	hp = 0;
-	model->SetRotation( 0 );	// set the y rotation to 0 for the "splat" icons
-	model->SetPos( pos );
-	model->SetFlag( Model::MODEL_NO_SHADOW );
+
+	if ( model ) {
+		if ( team == TERRAN_TEAM ) {
+			SoundManager::Instance()->QueueSound( "terrandown0" );
+			if ( map->random.Rand( 100 ) < stats.Constitution() )
+				status = STATUS_UNCONSCIOUS;
+		}
+		else if ( team == ALIEN_TEAM ) {
+			SoundManager::Instance()->QueueSound( "aliendown0" );
+		}
+		CreateModel();
+
+		model->SetRotation( 0 );	// set the y rotation to 0 for the "splat" icons
+		model->SetPos( pos );
+		model->SetFlag( Model::MODEL_NO_SHADOW );
+	}
 	visibilityCurrent = false;
 
 	if ( map && !inventory.Empty() ) {

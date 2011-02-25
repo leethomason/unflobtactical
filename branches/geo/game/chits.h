@@ -6,7 +6,6 @@
 #include "../grinliz/glvector.h"
 
 #include "unit.h"
-#include "geoscene.h"
 
 class SpaceTree;
 class BaseChit;
@@ -21,6 +20,9 @@ template < class T >
 class Cylinder
 {
 public:
+	enum {
+		GEO_MAP_X = 20		// copy!
+	};
 	static bool InBounds( const grinliz::Vector2<T>& a ) {
 		return a.x >= 0 && a.x < GEO_MAP_X;
 	}
@@ -72,6 +74,11 @@ public:
 
 class Chit
 {
+	friend class ChitBag;
+	Chit* next;
+	Chit* prev;
+	ChitBag* chitBag;
+
 protected:
 	Chit( SpaceTree* tree );
 public:
@@ -90,9 +97,9 @@ public:
 		MSG_CARGO_ARRIVED,
 		MSG_LANDER_ARRIVED,
 	};
-	virtual int DoTick( U32 deltaTime ) = 0;
+	virtual int DoTick( U32 deltaTime )		{ return MSG_NONE; }
 
-	virtual bool Parked() const { return false; }
+	virtual bool Parked() const				{ return false; }
 
 	grinliz::Vector2I MapPos() const { 
 		grinliz::Vector2I v = { (int)pos.x, (int)pos.y }; 
@@ -109,6 +116,8 @@ public:
 
 	void SetDestroyed()					{ destroyed = true; }
 	bool IsDestroyed()					{ return destroyed; }
+	int ID()							{ return id; }
+	Chit* Next()						{ return next; }
 
 protected:
 	grinliz::Vector2F pos;		// in map units - NOT normalized
@@ -118,6 +127,7 @@ protected:
 
 private:
 	bool destroyed;
+	int id;
 };
 
 
@@ -235,7 +245,7 @@ public:
 		BUILD_TIME = 5,	// in seconds
 	};
 
-	BaseChit( SpaceTree* tree, const grinliz::Vector2I& pos, int id, const ItemDefArr& _itemDefArr, bool firstBase );
+	BaseChit( SpaceTree* tree, const grinliz::Vector2I& pos, int index, const ItemDefArr& _itemDefArr, bool firstBase );
 	~BaseChit();
 
 	virtual BaseChit* IsBaseChit()			{ return this; }
@@ -243,7 +253,7 @@ public:
 
 	// 0 short range, 1 long range
 	float MissileRange( const int type ) const;
-	int ID() const { return id; }
+	int Index() const { return index; }
 	const char* Name() const;
 
 	Storage* GetStorage() { return storage; }
@@ -257,9 +267,10 @@ public:
 
 	bool LanderDeployed() const					{ return lander[0] != 0; }
 	void DeployLander( const grinliz::Vector2I& pos );
+	grinliz::Vector2I LanderMapPos() const;
 
 private:
-	int id;
+	int index;
 	Storage* storage;
 
 	grinliz::Vector2I landerTarget;
@@ -287,6 +298,51 @@ private:
 	bool goingToBase;
 	grinliz::Vector2I cityInMap;
 	grinliz::Vector2I baseInMap;
+};
+
+
+class ChitBag
+{
+public:
+	ChitBag();
+	~ChitBag();
+	void Clear();
+
+	void Add( Chit* );
+	void Remove( Chit* );	// called automatically for 'delete chit'
+	void Clean();			// delete destroyed chits
+
+	Chit* Begin() 	{ return sentinel.next; }
+	Chit* End() 	{ return &sentinel; }
+
+	Chit* GetChit( int id ) { 
+		Chit* chit=0;
+		map.Query( id, &chit );
+		return chit;
+	}
+
+	int AllocBaseChitIndex();
+
+	Chit*		GetChit( const grinliz::Vector2I& pos );
+	BaseChit*	GetBaseChit( const char* name );
+	BaseChit*	GetBaseChit( int i ) { GLASSERT( i>=0 && i<MAX_BASES ); return baseChitArr[i]; }
+	BaseChit*	GetBaseChitAt( const grinliz::Vector2I& pos );
+	int			NumBaseChits();
+
+	CargoChit*	GetCargoGoingTo( const grinliz::Vector2I& pos );
+	Chit*		GetParkedChitAt( const grinliz::Vector2I& pos );
+
+	// Length is MAX_BASES. Alpha, Bravo, Charlie, Delta
+	enum {
+		MAX_BASES = 4
+	};
+
+
+private:
+	int idPool;
+	Chit sentinel;
+	BaseChit* baseChitArr[MAX_BASES];
+	CMap< int, Chit* >	map;
 };
 
 #endif // GEO_CHITS_INCLUDED

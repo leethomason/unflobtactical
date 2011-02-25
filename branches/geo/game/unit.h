@@ -4,6 +4,7 @@
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -77,6 +78,7 @@ public:
 
 	// Do damage to this unit. Will create a Storage on the map, if the map is provided.
 	void DoDamage( const DamageDesc& damage, TacMap* map );
+	void Kill( TacMap* map );		// normally called by DoDamage
 	void UseTU( float val )		{ tu = grinliz::Max( 0.0f, tu-val ); }
 	void Leave();
 
@@ -189,7 +191,6 @@ private:
 	void CreateModel();
 	void UpdateModel();		// make the model current with the unit status - armor, etc.
 	void UpdateWeapon();	// set the gun position
-	void Kill( TacMap* map );
 
 	int status;		// alive, dead, etc.
 	int ai;			// normal or guard
