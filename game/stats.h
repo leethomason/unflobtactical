@@ -32,8 +32,8 @@ class Random;
 
 /*
 	STR, DEX, PSY:	fixed at character creation.
-	
 	RANK:			computed by experience		[ 0, NUM_RANKS-1 ]
+	
 	MEDALS:			awarded for field action
 
 	HP		 = f( STR )							[ 1, TRAIT_MAX ]

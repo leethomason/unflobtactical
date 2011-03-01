@@ -249,6 +249,43 @@ void PutPixel(SDL_Surface *surface, int x, int y, U32 pixel)
 }
 
 
+void ProcessTreeRec( gamedb::WItem* parent, TiXmlElement* ele )
+{
+	string name = ele->ValueStr();
+	gamedb::WItem* witem = parent->CreateChild( name.c_str() );
+
+	for( TiXmlAttribute* attrib=ele->FirstAttribute(); attrib; attrib=attrib->Next() ) {		
+		int i;
+
+		if ( attrib->QueryIntValue( &i ) ) {
+			witem->SetInt( attrib->Name(), i );
+		}
+		else {
+			witem->SetString( attrib->Name(), attrib->Value() );
+		}
+	}
+
+	if ( ele->GetText() ) {
+		witem->SetData( "text", ele->GetText(), strlen( ele->GetText() ) );
+	}
+
+	for( TiXmlElement* child=ele->FirstChildElement(); child; child=child->NextSiblingElement() ) {
+		ProcessTreeRec( witem, child );
+	}
+}
+
+
+void ProcessTree( TiXmlElement* data )
+{
+	// Create the root tree "research"
+	gamedb::WItem* witem = writer->Root()->FetchChild( "tree" );
+	if ( data->FirstChildElement() )
+		ProcessTreeRec( witem, data->FirstChildElement() );
+}
+
+
+
+
 void ProcessData( TiXmlElement* data )
 {
 	bool compression = true;
@@ -860,12 +897,14 @@ int main( int argc, char* argv[] )
 		else if ( child->ValueStr() == "model" ) {
 			ProcessModel( child );
 		}
-		else if (	 child->ValueStr() == "map" 
-			      || child->ValueStr() == "data" ) {
+		else if ( child->ValueStr() == "data" ) {
 			ProcessData( child );
 		}
 		else if ( child->ValueStr() == "text" ) {
 			ProcessText( child );
+		}
+		else if ( child->ValueStr() == "tree" ) {
+			ProcessTree( child );
 		}
 		else {
 			printf( "Unrecognized element: %s\n", child->Value() );

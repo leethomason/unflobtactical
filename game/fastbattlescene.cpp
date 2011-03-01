@@ -2,15 +2,17 @@
 #include "game.h"
 #include "cgame.h"
 #include "tacticalintroscene.h"
+#include "tacticalendscene.h"
 
 
 using namespace gamui;
 using namespace grinliz;
 
-FastBattleScene::FastBattleScene( Game* _game, FastBattleSceneData* data ) : Scene( _game )
+FastBattleScene::FastBattleScene( Game* _game, FastBattleSceneData* data ) : Scene( _game ), foundStorage( 0, 0, _game->GetItemDefArr() )
 {
 	this->data = data;
 	const Screenport& port = GetEngine()->GetScreenport();
+	random.SetSeed( data->seed );
 
 	backgroundUI.Init( _game, &gamui2D, false );
 
@@ -36,8 +38,7 @@ FastBattleScene::FastBattleScene( Game* _game, FastBattleSceneData* data ) : Sce
 
 	for( int i=0; i<NUM_BATTLE; ++i ) {
 		battle[i].Init( &gamui2D );
-		battle[i].SetPos( 100.f, 10.f+TEXT_SPACE*(float)i );
-		//scenarioText[i].SetText( "round" );
+		battle[i].SetPos( 150.f, 10.f+TEXT_SPACE*(float)i );
 	}
 
 	const ButtonLook& look = game->GetButtonLook( Game::BLUE_BUTTON );
@@ -46,9 +47,33 @@ FastBattleScene::FastBattleScene( Game* _game, FastBattleSceneData* data ) : Sce
 	button.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	button.SetText( "Okay" );
 
-	TacticalIntroScene::GenerateAlienTeamUpper( data->scenario, data->crash, data->alienRank, aliens, game->GetItemDefArr(), 0 );
+	TacticalIntroScene::GenerateAlienTeamUpper( data->scenario, data->crash, data->alienRank, aliens, game->GetItemDefArr(), random.Rand() );
 
-	RunSim( data->soldierUnits, aliens, data->dayTime );
+	memset( civs, 0, sizeof(Unit)*MAX_CIVS );
+	int nCiv = 0;
+	// fixme: handle terran base! should be # of scientists.
+
+	switch ( data->scenario ) {
+	case TacticalIntroScene::FARM_SCOUT:
+	case TacticalIntroScene::FARM_DESTROYER:
+	case TacticalIntroScene::CITY:
+		nCiv = MAX_CIVS;
+		break;
+
+	case TacticalIntroScene::FRST_SCOUT:
+	case TacticalIntroScene::FRST_DESTROYER:
+		nCiv = MAX_CIVS / 2;
+		break;
+
+	default:
+		break;
+	}
+	TacticalIntroScene::GenerateCivTeam( civs, nCiv, game->GetItemDefArr(), random.Rand() );
+
+	battleResult = RunSim( data->soldierUnits, aliens, data->dayTime );
+	static const char* battleResultName[] = { "Victory", "Defeat", "Tie" };
+	scenarioText[TL_RESULT].SetText( battleResultName[battleResult] );
+
 }
 
 
@@ -73,35 +98,67 @@ void FastBattleScene::Tap(	int action,
 	}
 
 	if ( item == &button ) {
-		game->PopScene( 0 );
+		for( int i=0; i<MAX_ALIENS; ++i ) {
+			aliens[i].GetInventory()->RestoreClips();
+			const Inventory* inv = aliens[i].GetInventory();
+
+			for( int j=0; j<Inventory::NUM_SLOTS; ++j ) {
+				Item item = inv->GetItem( j );
+				if ( item.IsSomething() )
+					foundStorage.AddItem( item );
+			}
+		}
+
+		TacticalEndSceneData* d = new TacticalEndSceneData();
+		d->aliens   = aliens;
+		d->soldiers = data->soldierUnits;
+		d->civs     = civs;
+		d->dayTime  = data->dayTime;
+		d->result =  battleResult;
+		d->storage = &foundStorage;
+		// Don't pop ourselves, since this objects has 'alien' and 'civs' memory.
+		game->PushScene( Game::END_SCENE, d );
 	}
 }
 
 
-void FastBattleScene::RunSim( Unit* soldier, Unit* alien, bool day )
+void FastBattleScene::SceneResult( int sceneID, int result )
 {
-	Random random;
+	GLASSERT( sceneID == Game::UNIT_SCORE_SCENE );
 
+	// add found storage to main storage
+	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+		if ( foundStorage.GetCount( i ) > 0 ) {			
+			data->storage->AddItem( game->GetItemDefArr().GetIndex( i ), foundStorage.GetCount( i ) );
+		}
+	}
+	game->PopScene( battleResult );
+}
+
+
+int FastBattleScene::RunSim( Unit* soldier, Unit* alien, bool day )
+{
 	int soldierIndex = random.Rand( MAX_TERRANS );
 	int alienIndex = random.Rand( MAX_ALIENS );
 
-	int nAliens = 0;
-	int nSoldiers = 0;
+	static const int BUF_SIZE=60;
+	char buf[BUF_SIZE];
+	static const char* alienName[Unit::NUM_ALIEN_TYPES] = { "Grn", "Prme", "Hrnt", "Jckl", "Vpr" };
+	
 	int nBattle = 0;
 
-	for( int i=0; i<MAX_TERRANS; ++i ) 
-		if ( soldier[i].IsAlive() )
-			++nSoldiers;
-	for( int i=0; i<MAX_ALIENS; ++i ) 
-		if ( alien[i].IsAlive() )
-			++nAliens;
+	while ( true ) {
+		if ( nBattle == NUM_BATTLE )
+			break;
+		int nSoldiers = Unit::Count( soldier, MAX_TERRANS, Unit::STATUS_ALIVE );
+		int nAliens = Unit::Count( alien, MAX_ALIENS, Unit::STATUS_ALIVE );
+		if ( nSoldiers == 0 || nAliens == 0 )
+			break;
 
-	static const int BUF_SIZE=40;
-	char buf[BUF_SIZE];
-	static const char* alienName[Unit::NUM_ALIEN_TYPES] = { "Green", "Prime", "Hornet", "Jackal", "Viper" };
-
-	while ( nSoldiers && nAliens ) {
-		GLASSERT( nBattle < NUM_BATTLE );
+		int civIndex = random.Rand( MAX_CIVS );
+		if ( civs[civIndex].IsAlive() ) {
+			civs[civIndex].Kill( 0 );
+		}
 
 		while( true ) {
 			++soldierIndex;
@@ -125,23 +182,14 @@ void FastBattleScene::RunSim( Unit* soldier, Unit* alien, bool day )
 			SNPrintf( buf, BUF_SIZE, "%s %s no weapon. DEFEAT.", pS->FirstName(), pS->LastName() );
 			battle[nBattle++].SetText( buf );
 			pS->Kill( 0 );
-			--nSoldiers;
 			continue;
 		}
 		if ( !pA->GetWeapon() ) {
 			SNPrintf( buf, BUF_SIZE, "%s #%d no weapon. VICTORY.", alienName[pA->AlienType()], pA-alien );
 			battle[nBattle++].SetText( buf );
 			pA->Kill( 0 );
-			--nAliens;
 			continue;
 		}
-
-		//GLOUTPUT(( "%s %s %d %s vs. %d r%d %s\n",
-		//	pS->FirstName(), pS->LastName(), pS->GetStats().Rank(), pS->GetWeapon() ? pS->GetWeapon()->Name() : "none",
-		//	pA->AlienType(), pA->GetStats().Rank(), pA->GetWeapon() ? pA->GetWeapon()->Name() : "none" ));
-
-		//float tuS = day ? random.Uniform() ? 5.0f;
-		//float tuA = random.Uniform();
 
 		Unit* att=pS;
 		Unit* def=pA;
@@ -149,7 +197,8 @@ void FastBattleScene::RunSim( Unit* soldier, Unit* alien, bool day )
 			Swap( &att, &def );
 		}
 
-		while ( pS->IsAlive() && pA->IsAlive() ) 
+		int subCount = 0;
+		while ( pS->IsAlive() && pA->IsAlive() && subCount < 20 ) 
 		{
 			float tu = att->GetStats().TotalTU() * (0.5f+0.5f*random.Uniform());	// cut some TU for movement
 
@@ -186,23 +235,41 @@ void FastBattleScene::RunSim( Unit* soldier, Unit* alien, bool day )
 				else {
 					++m;
 				}
+
+				if ( !def->IsAlive() ) {
+					att->CreditKill();
+					break;
+				}
 			}
 
+			++subCount;
 			Swap( &att, &def );
 		}
-		const char* result = 0;
-		if ( pS->IsAlive() ) {
-			result = "VICTORY";
-			--nAliens;
-		}
-		else {
-			result = "Defeat";
-			--nSoldiers;
-		}
 
-		SNPrintf( buf, BUF_SIZE, "%s %s %s vs %s #%d %s.", pS->FirstName(), pS->LastName(), pS->GetWeapon()->Name(),
-														 alienName[pA->AlienType()], pA-alien, result );
+		SNPrintf( buf, BUF_SIZE, "%s%s %s %s%s vs %s%s #%d %s%s", pS->IsAlive() ? "[" : "",
+																  pS->FirstName(), pS->LastName(), pS->GetWeapon()->Name(),
+																  pS->IsAlive() ? "]" : "",
+																  pA->IsAlive() ? "[" : "",
+														          alienName[pA->AlienType()], pA-alien, pA->GetWeapon()->Name(),
+																  pA->IsAlive() ? "]" : "" );
 		battle[nBattle++].SetText( buf );
 	}
+
+	int nSoldiers = Unit::Count( soldier, MAX_TERRANS, Unit::STATUS_ALIVE );
+	int nAliens = Unit::Count( alien, MAX_ALIENS, Unit::STATUS_ALIVE );
+
+	if ( nSoldiers == 0 ) {
+		for( int i=0; i<MAX_TERRANS; ++i ) {
+			if ( soldier[i].InUse() )
+				soldier[i].Leave();
+		}
+	}
+
+	int result = TacticalEndSceneData::TIE;
+	if ( nSoldiers > 0 && nAliens == 0 )
+		result = TacticalEndSceneData::VICTORY;
+	else if ( nSoldiers == 0 && nAliens > 0 )
+		result = TacticalEndSceneData::DEFEAT;
+	return result;
 }
 

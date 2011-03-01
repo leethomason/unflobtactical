@@ -25,7 +25,7 @@
 
 using namespace grinliz;
 
-TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, const TacticalEndSceneData* d ) : Scene( _game )
+TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, TacticalEndSceneData* d ) : Scene( _game )
 {
 	Engine* engine = GetEngine();
 	data = d;
@@ -37,34 +37,48 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, const TacticalEndSc
 
 	int count=0;
 	float yPos = 100.0f;
-	float xPos0 = 50.0f;
-	float xPos1 = 240.0f;
-	float xPos2 = 320.0f;
+	float xPosName = 50.0f;
+	float xPosStatus = 240.0f;
+	float xPosAward = 330.0f;
 	float size = 20.0f;
 
-	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		if ( data->units[i].InUse() ) {
+	for( int i=0; i<MAX_TERRANS; ++i ) {
+		if ( data->soldiers[i].InUse() ) {
 			
 			nameRank[count].Init( &gamui2D );
-			nameRank[count].Set( xPos0, yPos, &data->units[i], false );
+			nameRank[count].Set( xPosName, yPos, &data->soldiers[i], false );
 
 			status[count].Init( &gamui2D );
 
-			if ( data->units[i].IsAlive() )
+			if ( data->soldiers[i].IsAlive() )
 				status[count].SetText( "Active" );
-			else if ( data->units[i].IsKIA() )
+			else if ( data->soldiers[i].IsKIA() )
 				status[count].SetText( "KIA" );
-			else if ( data->units[i].IsUnconscious() )
+			else if ( data->soldiers[i].IsUnconscious() )
 				status[count].SetText( "Active(KO)" );
-			else if ( data->units[i].IsMIA() )
+			else if ( data->soldiers[i].IsMIA() )
 				status[count].SetText( "MIA" );
 
-			status[count].SetPos( xPos1, yPos );
+			status[count].SetPos( xPosStatus, yPos );
 
-			int kills = data->units[i].KillsCredited();
-			bool purpleCircle = data->units[i].HP() != data->units[i].GetStats().TotalHP() && !data->units[i].IsKIA();
-			//int exp = kills + (purpleCircle ? 2 : 0);
-			float x = xPos2;
+			int kills = data->soldiers[i].KillsCredited();
+			bool purpleCircle = data->soldiers[i].HP() != data->soldiers[i].GetStats().TotalHP() && !data->soldiers[i].IsKIA();
+
+			float x = xPosAward;
+
+			if ( data->soldiers[i].IsAlive() || data->soldiers[i].IsUnconscious() ) {
+				int rank = data->soldiers[i].GetStats().Rank();
+				data->soldiers[i].DoMissionEnd();
+
+				if ( rank != data->soldiers[i].GetStats().Rank() ) {
+					char buf[64];
+					SNPrintf( buf, 64, "%s", data->soldiers[i].Rank() );
+					promotion[count].Init( &gamui2D );
+					promotion[count].SetPos( x, yPos );
+					promotion[count].SetText( buf );
+					x += promotion[count].Width();
+				}
+			}
 
 			if ( purpleCircle && nAwards < MAX_AWARDS ) {
 				award[nAwards].Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_AWARD_PURPLE_CIRCLE ), true );
@@ -119,8 +133,6 @@ void TacticalUnitScoreScene::Activate()
 
 void TacticalUnitScoreScene::DrawHUD()
 {
-//	UFOText::Draw( 20, 25, "Game restart not yet implemented." );
-//	UFOText::Draw( 20, 10, "Close and select 'New' to play again." );
 }
 
 
@@ -138,12 +150,7 @@ void TacticalUnitScoreScene::Tap(	int action,
 		item = gamui2D.TapUp( ui.x, ui.y );
 		
 	if ( item == &button ) {
-		GLString savePath = game->GameSavePath();
-		FILE* fp = fopen( savePath.c_str(), "w" );
-		if ( fp ) {
-			fclose( fp );
-		}
-		game->PopAllAndReset();
+		game->PopScene( 0 );
 	}
 }
 

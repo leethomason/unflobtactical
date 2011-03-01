@@ -259,7 +259,7 @@ public:
 	Storage* GetStorage() { return storage; }
 	
 	Unit* GetUnits() { return units; }
-	int NumUnits() { return MAX_TERRANS; }	// fixme
+	int NumUnits();
 
 	bool IsFacilityComplete( int i )	const	{ return facilityStatus[i] == 0; }
 	bool IsFacilityInProgress( int i )			{ return facilityStatus[i] > 0; }
@@ -327,6 +327,7 @@ public:
 	BaseChit*	GetBaseChit( const char* name );
 	BaseChit*	GetBaseChit( int i ) { GLASSERT( i>=0 && i<MAX_BASES ); return baseChitArr[i]; }
 	BaseChit*	GetBaseChitAt( const grinliz::Vector2I& pos );
+	UFOChit*	GetLandedUFOChitAt( const grinliz::Vector2I& pos );
 	int			NumBaseChits();
 
 	CargoChit*	GetCargoGoingTo( const grinliz::Vector2I& pos );

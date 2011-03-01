@@ -34,7 +34,6 @@ public:
 	Unit* unit;	// array of units
 	int nUnits;
 	Storage* storage;
-	//TacMap* tacMap;
 };
 
 
@@ -72,6 +71,7 @@ protected:
 	};
 	void InventoryToStorage( int slot );
 	void StorageToInventory( const ItemDef* itemDef );
+	void SetCounter( int delta );
 
 	enum { INVENTORY, STATS, COMPARE };
 	void SwitchMode( int mode );
@@ -81,6 +81,7 @@ protected:
 	gamui::PushButton backButton;
 	gamui::PushButton nextButton;
 	gamui::PushButton prevButton;
+	gamui::TextLabel  unitCounter;
 
 	// control buttons:
 	enum { NUM_CONTROL = 3, NUM_RANGE=3 };

@@ -44,17 +44,31 @@ void Inventory::UseClipRound( const ClipItemDef* cid )
 	for( int i=0; i<NUM_SLOTS; ++i ) {
 		if (    slots[i].IsSomething() 
 			 && slots[i].IsClip() 
-			 && slots[i].IsClip() == cid ) 
+			 && slots[i].IsClip() == cid
+			 && slots[i].Rounds() > 0 ) 
 		{
 			slots[i].UseRounds( 1 );
-			if ( slots[i].Rounds() == 0 ) {
-				// clip is consumed.
-				slots[i].Clear();
-			}
+//			if ( slots[i].Rounds() == 0 ) {
+//				// clip is consumed.
+//				slots[i].Clear();
+//			}
 			return;
 		}
 	}
 	GLASSERT( 0 );
+}
+
+
+void Inventory::RestoreClips()
+{
+	for( int i=0; i<NUM_SLOTS; ++i ) {
+		if (    slots[i].IsSomething() 
+			 && slots[i].IsClip() )
+		{
+			Item item( slots[i].GetItemDef() );
+			slots[i] = item;
+		}
+	}
 }
 
 

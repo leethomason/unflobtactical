@@ -115,6 +115,17 @@ AlienDef gAlienDef[NUM_ALIENS] = {
 };
 
 
+/*static*/ int Unit::XPToRank( int xp )
+{
+	GLASSERT( NUM_RANKS == 5 );
+	if      ( xp > 25 ) return 4;
+	else if ( xp > 12 ) return 3;
+	else if ( xp > 5 )  return 2;
+	else if ( xp > 1 )  return 1;
+	return 0;
+}
+
+
 U32 Unit::GetValue( int which ) const
 {
 	const int NBITS[NUM_TRAITS] = { 1, 4, 5, 6 };
@@ -211,6 +222,10 @@ void Unit::Init(	Game* game,
 					int body )
 {
 	kills = 0;
+	nMissions = 0;
+	allMissionKills = 0;
+	allMissionOvals = 0;
+
 	GLASSERT( this->status == STATUS_NOT_INIT );
 	this->game = game;
 	this->team = team;
@@ -218,6 +233,10 @@ void Unit::Init(	Game* game,
 	this->type = alienType;
 	this->body = body;
 	GLASSERT( type >= 0 && type < Unit::NUM_ALIEN_TYPES );
+	
+	random.SetSeed( body ^ ((U32)this) );
+	random.Rand();
+	random.Rand();
 
 	weapon = 0;
 	visibilityCurrent = false;
@@ -428,15 +447,17 @@ void Unit::Kill( TacMap* map )
 	status = STATUS_KIA;
 	hp = 0;
 
-	if ( model ) {
-		if ( team == TERRAN_TEAM ) {
+	if ( team == TERRAN_TEAM ) {
+		if ( model )
 			SoundManager::Instance()->QueueSound( "terrandown0" );
-			if ( map->random.Rand( 100 ) < stats.Constitution() )
-				status = STATUS_UNCONSCIOUS;
-		}
-		else if ( team == ALIEN_TEAM ) {
+		if ( random.Rand( 100 ) < stats.Constitution() )
+			status = STATUS_UNCONSCIOUS;
+	}
+	else if ( team == ALIEN_TEAM ) {
+		if ( model )
 			SoundManager::Instance()->QueueSound( "aliendown0" );
-		}
+	}
+	if ( model ) {
 		CreateModel();
 
 		model->SetRotation( 0 );	// set the y rotation to 0 for the "splat" icons
@@ -584,6 +605,9 @@ void Unit::Save( FILE* fp, int depth ) const
 		XMLUtil::Attribute( fp, "body", body );
 		XMLUtil::Attribute( fp, "hp", hp );
 		XMLUtil::Attribute( fp, "kills", kills );
+		XMLUtil::Attribute( fp, "nMissions", nMissions );
+		XMLUtil::Attribute( fp, "allMissionKills", allMissionKills );
+		XMLUtil::Attribute( fp, "allMissionOvals", allMissionOvals );
 		XMLUtil::Attribute( fp, "tu", tu );
 		if ( ai == AI::AI_GUARD )
 			XMLUtil::Attribute( fp, "ai", "guard" );
@@ -612,8 +636,7 @@ void Unit::Load( const TiXmlElement* ele, Game* game, TacMap* tacmap  )
 	// Hard to get good randomness here (gender bit keeps being
 	// consistent.) A combination of the element address and 'this'
 	// seems to work pretty well.
-	UPTR key[2] = { (UPTR)ele, (UPTR)this };
-	Random random( Random::Hash( key, sizeof(UPTR)*2 ));
+	random.SetSeed( body ^ ((U32)ele) ^ ((U32)this) );
 	random.Rand();
 	random.Rand();
 
@@ -625,6 +648,9 @@ void Unit::Load( const TiXmlElement* ele, Game* game, TacMap* tacmap  )
 	int a_status = 0;
 	ai = AI::AI_NORMAL;
 	kills = 0;
+	nMissions = 0;
+	allMissionKills = 0;
+	allMissionOvals = 0;
 
 	GLASSERT( StrEqual( ele->Value(), "Unit" ) );
 	ele->QueryIntAttribute( "status", &a_status );
@@ -650,7 +676,11 @@ void Unit::Load( const TiXmlElement* ele, Game* game, TacMap* tacmap  )
 		// before loading, just so we get the correct defaults.
 		ele->QueryIntAttribute( "hp", &hp );
 		ele->QueryFloatAttribute( "tu", &tu );
+		
 		ele->QueryIntAttribute( "kills", &kills );
+		ele->QueryIntAttribute( "nMissions", &nMissions );
+		ele->QueryIntAttribute( "allMissionKills", &allMissionKills );
+		ele->QueryIntAttribute( "allMissionOvals", &allMissionOvals );
 
 		if ( StrEqual( ele->Attribute( "ai" ), "guard" ) ) {
 			ai = AI::AI_GUARD;
@@ -694,7 +724,9 @@ void Unit::Create(	int team,
 	Free();
 	Init( 0, team, STATUS_ALIVE, alienType, seed );
 	GenStats( team, type, body, &stats );		// defaults if not provided
-	stats.SetRank( rank );
+	allMissionKills = rank / 2;
+	allMissionOvals = rank / 2;
+	stats.SetRank( XPToRank( XP() ));
 
 	hp = stats.TotalHP();
 	tu = stats.TotalTU();

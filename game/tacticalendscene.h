@@ -28,15 +28,19 @@ class UITextTable;
 class TacticalEndSceneData : public SceneData
 {
 public:
-	int nTerrans;
-	int nTerransAlive;
-	int nAliens;
-	int nAliensAlive;
-	int nCivs;
-	int nCivsAlive;
-	const Unit* units;
-
+	enum {
+		VICTORY,
+		DEFEAT,
+		TIE
+	};
+	Unit* soldiers;
+	const Unit* aliens;
+	const Unit* civs;
+	
+	int result;
 	bool dayTime;
+
+	Storage* storage;
 };
 
 
@@ -63,11 +67,12 @@ public:
 	virtual void DrawHUD();
 
 private:
-	enum { TEXT_ROW = 6, TEXT_COL = 3 };
+	enum { TEXT_ROW = 6, TEXT_COL = 3, ITEM_NUM = 16 };
 	BackgroundUI		backgroundUI;
 	gamui::TextLabel	victory;
 	gamui::TextLabel	textTable[TEXT_ROW*TEXT_COL];
 	gamui::TextLabel	totalScoreLabel, totalScoreValue;
+	gamui::TextLabel	items[ITEM_NUM];
 	gamui::PushButton	okayButton;
 
 	const TacticalEndSceneData* data;

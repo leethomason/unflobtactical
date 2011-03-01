@@ -64,6 +64,7 @@ public:
 
 	int CalcClipRoundsTotal( const ClipItemDef* ) const;
 	void UseClipRound( const ClipItemDef* );
+	void RestoreClips();
 	
 	Item* ArmedWeapon();				// null if no weapon ready
 	const Item* ArmedWeapon() const;	// null if no weapon ready
@@ -85,7 +86,6 @@ public:
 	void GetDamageReduction( DamageDesc* );
 
 private:
-
 	Item slots[NUM_SLOTS];
 };
 
