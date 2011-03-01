@@ -78,18 +78,17 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	
 	this->unit = unit;
 
-//	Vector2I mapPos;
-//	unit->CalcMapPos( &mapPos, 0 );
-//	storage = input->tacMap->LockStorage( mapPos.x, mapPos.y );
-//	GLASSERT( storage );
-//	Inventory* inventory = unit->GetInventory();
-
 	storageWidget = new StorageWidget( &gamui2D, green, blueTab, _game->GetItemDefArr(), _input->storage );
 	storageWidget->SetOrigin( (float)port.UIWidth()-storageWidget->Width(), 0 );
 	inventoryWidget = new InventoryWidget( &gamui2D, green, green, unit );
 
 	statWidget.Init( &gamui2D, unit, storageWidget->X(), 0 );
 	compWidget.Init( &game->GetItemDefArr(), storage, unit, &gamui2D, blue, storageWidget->X(), 0, storageWidget->Width() );
+
+	unitCounter.Init( &gamui2D );
+	unitCounter.SetPos( 140, 0 );
+	unitCounter.SetVisible( false );
+	SetCounter( 0 );
 
 	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE), storageWidget->Width(), GAME_BUTTON_SIZE_F );
 }
@@ -105,6 +104,26 @@ CharacterScene::~CharacterScene()
 	//unit->CalcMapPos( &mapPos, 0 );
 	//input->tacMap->ReleaseStorage( storage );
 	//storage = 0;
+}
+
+
+void CharacterScene::SetCounter( int delta )
+{
+	if ( input->nUnits <= 1 )
+		return;
+
+	currentUnit += delta;
+	if ( currentUnit >= input->nUnits )
+		currentUnit = 0;
+	if ( currentUnit < 0 )
+		currentUnit = input->nUnits-1;
+
+	unit = &input->unit[ currentUnit ];
+
+	char buf[8];
+	SNPrintf( buf, 8, "[%d/%d]", currentUnit+1, input->nUnits );
+	unitCounter.SetText( buf );
+	unitCounter.SetVisible( true );
 }
 
 
@@ -380,15 +399,11 @@ void CharacterScene::Tap(	int action,
 	
 	if ( ( item == &prevButton || item == &nextButton) && input->nUnits > 1 ) {
 		if ( item == &prevButton ) {
-			--currentUnit;
-			if ( currentUnit < 0 ) currentUnit = input->nUnits-1;
+			SetCounter( -1 );
 		}
 		else {
-			++currentUnit;
-			if ( currentUnit == input->nUnits ) currentUnit = 0;
+			SetCounter( 1 );
 		}
-		unit = input->unit + currentUnit;
-
 		inventoryWidget->Update( unit );
 		statWidget.Init( 0, unit, storageWidget->X(), 0 );
 

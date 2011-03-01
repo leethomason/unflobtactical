@@ -385,16 +385,19 @@ void Game::LoadItemResources()
 	};
 
 	static const ItemInit items[] = {		
-		//{ "Steel",	0,				DECO_METAL,		"Memsteel" },
-		//{ "Tech",	0,				DECO_TECH,		"Alien Tech" },
-		//{ "Gel",	0,				DECO_FUEL,		"Plasma Gel" },
-		{ "Aln-0",	0,				DECO_ALIEN,		20, "Alien 0" },
-		{ "Aln-1",	0,				DECO_ALIEN,		20, "Alien 1" },
-		{ "Aln-2",	0,				DECO_ALIEN,		20, "Alien 2" },
-		{ "Aln-3",	0,				DECO_ALIEN,		20, "Alien 3" },
+		{ "S-Core",	0,				DECO_METAL,		20, "Scout tech core" },
+		{ "F-Core",	0,				DECO_METAL,		20, "Frigate tech core" },
+		{ "B-Core",	0,				DECO_METAL,		20, "Battleship tech core" },
+		{ "Tech",	0,				DECO_TECH,		20, "Alien Tech" },
+		{ "Green",	0,				DECO_ALIEN,		20, "Green" },
+		{ "Prime",	0,				DECO_ALIEN,		20, "Prime" },
+		{ "Hornet",	0,				DECO_ALIEN,		20, "Hornet" },
+		{ "Jackal",	0,				DECO_ALIEN,		20, "Jackal" },
+		{ "Viper",	0,				DECO_ALIEN,		20, "Viper" },
 		{ "SG:E",	0,				DECO_SHIELD,	50, "Energy Shield" },
-		{ "SG:I",	0,				DECO_SHIELD,	50, "Alblative Shield" },
-		{ "SG:K",	0,				DECO_SHIELD,	50, "Kinetic Fiber Weave" },
+		{ "SG:I",	0,				DECO_SHIELD,	50, "Incendiary Shield" },
+		{ "SG:K",	0,				DECO_SHIELD,	50, "Kinetic Shield" },
+
 		{ 0 }
 	};
 

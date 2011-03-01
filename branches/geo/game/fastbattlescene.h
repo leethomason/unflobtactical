@@ -25,13 +25,12 @@
 class FastBattleSceneData : public SceneData
 {
 public:
+	int	  seed;
 	int   scenario;			// FARM_SCOUT, etc.
-	bool  crash;	
+	bool  crash;			// is a crashed alien
 	Unit* soldierUnits;		// pointer to MAX_TERRAN units
-	bool  dayTime;
-
-	int   nAliens[Unit::NUM_ALIEN_TYPES];
-	float  alienRank;
+	bool  dayTime;			// fixme: set
+	float  alienRank;		// fixme: set consistent with game difficulty
 
 	Storage* storage;
 };
@@ -42,8 +41,6 @@ class FastBattleScene : public Scene
 public:
 	FastBattleScene( Game* _game, FastBattleSceneData* data );
 	virtual ~FastBattleScene()	{}
-
-	//virtual void Activate();
 
 	// UI
 	virtual void Tap(	int count, 
@@ -58,14 +55,18 @@ public:
 		return RENDER_2D;
 	}	
 
+	virtual void SceneResult( int sceneID, int result );
+
+
 private:
-	void RunSim( Unit* soldier, Unit* aliens, bool dayTime );
+	int RunSim( Unit* soldier, Unit* aliens, bool dayTime );
 
 	enum {
 		TL_SCENARIO,
 		TL_CRASH,
 		TL_DAYTIME,
 		TL_ALIEN_RANK,
+		TL_RESULT,
 		NUM_TL,
 
 		NUM_BATTLE = 24
@@ -76,7 +77,12 @@ private:
 	gamui::TextLabel		battle[NUM_BATTLE];
 	gamui::PushButton		button;
 
+	int						battleResult;
+	grinliz::Random			random;
+
+	Storage					foundStorage;
 	Unit aliens[MAX_ALIENS];
+	Unit civs[MAX_CIVS];
 };
 
 

@@ -29,7 +29,7 @@ class TacticalEndSceneData;
 class TacticalUnitScoreScene : public Scene
 {
 public:
-	TacticalUnitScoreScene( Game* _game, const TacticalEndSceneData* data );
+	TacticalUnitScoreScene( Game* _game, TacticalEndSceneData* data );
 	virtual ~TacticalUnitScoreScene();
 
 	virtual void Activate();
@@ -55,10 +55,11 @@ private:
 	BackgroundUI			backgroundUI;
 	NameRankUI				nameRank[MAX_ROWS];
 	gamui::TextLabel		status[MAX_ROWS];
+	gamui::TextLabel		promotion[MAX_ROWS];
 	gamui::PushButton		button;
 	gamui::Image			award[MAX_AWARDS];
 
-	const TacticalEndSceneData* data;
+	TacticalEndSceneData* data;
 	int nAwards;
 };
 

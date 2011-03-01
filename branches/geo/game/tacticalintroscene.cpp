@@ -885,11 +885,11 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 }
 
 
-void TacticalIntroScene::GenerateTerranTeam( Unit* unit,				// target units to write
-											int count,	
-											int averageRank,
-											const ItemDefArr& itemDefArr,
-											int seed )
+void TacticalIntroScene::GenerateTerranTeam(	Unit* unit,				// target units to write
+												int count,	
+												int averageRank,
+												const ItemDefArr& itemDefArr,
+												int seed )
 {
 	static const int POSITION = 4;
 	static const char* weapon[POSITION][NUM_RANKS] = {

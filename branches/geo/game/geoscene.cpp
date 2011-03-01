@@ -11,6 +11,7 @@
 #include "buildbasescene.h"
 #include "fastbattlescene.h"
 #include "tacticalintroscene.h"
+#include "tacticalendscene.h"
 
 #include "../engine/loosequadtree.h"
 #include "../engine/particle.h"
@@ -428,6 +429,9 @@ void GeoScene::Tap(	int action,
 				InitContextMenu( CM_UFO, bestChit );
 				UpdateContextMenu();
 			}
+			else {
+				InitContextMenu( CM_NONE, bestChit );
+			};
 		}
 	}
 }
@@ -443,7 +447,9 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 		contextChitID = 0;
 	}
 	else if ( type == CM_BASE ) {
-		static const char* base[MAX_CONTEXT] = { "Cargo", "Equip", "Build", "Cancel", 0, 0 };
+		BaseChit* baseChit = chit->IsBaseChit();
+
+		static const char* base[MAX_CONTEXT] = { "Cargo", "Equip", "Build", 0, 0, 0 };
 		for( int i=0; i<MAX_CONTEXT; ++i ) {
 			if ( base[i] ) {
 				context[i].SetVisible( true );
@@ -454,7 +460,7 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 			}
 		}
 		context[ CONTEXT_CARGO ].SetEnabled( CanSendCargoPlane( chit->MapPos() ) );
-
+		context[ CONTEXT_EQUIP ].SetEnabled( Unit::Count( baseChit->GetUnits(), MAX_TERRANS, Unit::STATUS_ALIVE ) > 0 );
 	}
 	else if ( type == CM_UFO ) {
 		for( int i=0; i<MAX_BASES; ++i ) {
@@ -725,6 +731,89 @@ void GeoScene::UpdateMissiles( U32 deltaTime )
 }
 
 
+void GeoScene::DoLanderArrived( Chit* chitIt )
+{
+	Vector2I posi = chitIt->IsBaseChit()->LanderMapPos();				
+	Chit* chitAt = chitBag.GetParkedChitAt( posi );
+	UFOChit* ufoChit = chitAt ? chitAt->IsUFOChit() : 0;
+	if ( ufoChit ) {
+		landerArrived = posi;
+		attackingBaseID = chitIt->ID();
+		Unit* units = chitIt->IsBaseChit()->GetUnits();
+
+		for( int i=0; i<MAX_TERRANS; ++i ) {
+			inventoryMemory[i] = *units[i].GetInventory();
+		}
+
+		int scenario = TacticalIntroScene::FARM_SCOUT;				// fixme
+
+		FastBattleSceneData* data = new FastBattleSceneData();
+		data->seed = posi.x + posi.y*GEO_MAP_X + scenario*37;
+		data->scenario = scenario;
+		data->crash = ( ufoChit->AI() == UFOChit::AI_CRASHED );
+		data->soldierUnits = units;
+		data->dayTime = true;										// fixme
+		data->alienRank = 2;										// fixme
+		data->storage = chitIt->IsBaseChit()->GetStorage();
+		game->PushScene( Game::FASTBATTLE_SCENE, data );
+	}
+}
+
+
+void GeoScene::SceneResult( int sceneID, int result )
+{
+	if ( sceneID == Game::FASTBATTLE_SCENE || sceneID == Game::BATTLE_SCENE ) {
+		
+		UFOChit* ufo = chitBag.GetLandedUFOChitAt( landerArrived );
+		
+		Chit* chit = chitBag.GetChit( attackingBaseID );
+		BaseChit* baseChit = chit->IsBaseChit();
+		GLASSERT( baseChit && ufo );
+		Unit* units = baseChit->GetUnits();
+
+		if ( result == TacticalEndSceneData::VICTORY ) {
+			delete ufo;
+		}
+
+		if ( result == TacticalEndSceneData::VICTORY || result == TacticalEndSceneData::TIE ) {
+
+			// Units are healed / deleted
+			for( int i=0; i<MAX_TERRANS; ++i ) {
+				if ( units[i].IsKIA() || units[i].IsMIA() ) {
+					units[i].Free();
+				}
+				else {
+					// Heal units, bring clips back up to full strength.
+					units[i].Heal();
+					units[i].GetInventory()->RestoreClips();
+				}
+			}
+		}
+
+		if ( result == TacticalEndSceneData::DEFEAT ) {
+			for( int i=0; i<MAX_TERRANS; ++i ) {
+				units[i].Free();
+			}
+		}
+
+		// Compress the units to group the living ones together. This
+		// is so the code only has to deal with "holes" from the tactical screen.
+		int i=0;
+		while( i<MAX_TERRANS ) {
+			if ( units[i].IsAlive() ) {
+				++i;
+			}
+			else {
+				for( int j=i+1; j<MAX_TERRANS; ++j ) {
+					units[j-1] = units[j];
+				}
+			}
+		}
+	}
+}
+
+
+
 void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 {
 	if ( lastAlienTime==0 || (currentTime > lastAlienTime+timeBetweenAliens) ) {
@@ -761,23 +850,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 		case Chit::MSG_LANDER_ARRIVED:
 			if ( !game->IsScenePushed() ) {
-				Vector2I posi = chitIt->IsBaseChit()->LanderMapPos();				
-				Chit* chitAt = chitBag.GetParkedChitAt( posi );
-				UFOChit* ufoChit = chitAt->IsUFOChit();
-				if ( ufoChit ) {
-					FastBattleSceneData* data = new FastBattleSceneData();
-					data->scenario = TacticalIntroScene::FARM_SCOUT;			// fixme
-					data->crash = ( ufoChit->AI() == UFOChit::AI_CRASHED );
-					data->soldierUnits = chitIt->IsBaseChit()->GetUnits();
-					data->dayTime = true;										// fixme
-					data->nAliens[0] = 2;										// fixme
-					data->nAliens[1] = 2;
-					data->nAliens[2] = 2;
-					data->nAliens[3] = 2;			
-					data->alienRank = 2;
-					data->storage = chitIt->IsBaseChit()->GetStorage();
-					game->PushScene( Game::FASTBATTLE_SCENE, data );
-				}
+				DoLanderArrived( chitIt );
 			}
 			break;
 

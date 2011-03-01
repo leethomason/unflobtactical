@@ -565,6 +565,12 @@ void BaseChit::DeployLander( const grinliz::Vector2I& pos )
 }
 
 
+int BaseChit::NumUnits()
+{
+	return Unit::Count( units, MAX_TERRANS, Unit::STATUS_ALIVE );
+}
+
+
 Vector2I BaseChit::LanderMapPos() const
 {
 	grinliz::Vector2I v = { 0, 0 };
@@ -760,6 +766,17 @@ BaseChit* ChitBag::GetBaseChit( const char* name )
 	for( int i=0; i<MAX_BASES; ++i ) {
 		if ( StrEqual( baseChitArr[i]->Name(), name ) )
 			return baseChitArr[i];
+	}
+	return 0;
+}
+
+
+UFOChit* ChitBag::GetLandedUFOChitAt( const grinliz::Vector2I& pos )
+{
+	for( Chit* chit = sentinel.next; chit != &sentinel; chit=chit->next ) {
+		if ( chit->MapPos() == pos && chit->IsUFOChit() && !chit->IsUFOChit()->Flying() ) {
+			return chit->IsUFOChit();
+		}
 	}
 	return 0;
 }

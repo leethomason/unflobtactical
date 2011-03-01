@@ -35,30 +35,42 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 		textTable[i].Init( &gamui2D );
 	}
 
-	static const float X_NAME = 50.f;
-	static const float X_COUNT = 250.f;
-	static const float X_SCORE = 300.0f;
-	static const float YPOS = 100.f;
-	static const float DELTA = 20.0f;
+	static const float X_NAME  = 20.f;
+	static const float X_COUNT = 220.f;
+	static const float X_SCORE = 270.0f;
+	static const float X_ITEMS = 320.0f;
+	static const float YPOS    = 20.f;
+	static const float DELTA   = 20.0f;
 	
 	victory.Init( &gamui2D );
-	if ( data->nTerransAlive && !data->nAliensAlive )
+	int nSoldiers = Unit::Count( data->soldiers, MAX_TERRANS, -1 );
+	int nSoldiersAlive = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_ALIVE );
+	int nSoldiersKIA = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_KIA );
+	int nSoldiersUnc = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_UNCONSCIOUS );
+	int nSoldiersMIA = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_MIA );
+
+	int nAliens = Unit::Count( data->aliens, MAX_ALIENS, -1 );
+	int nAliensAlive = Unit::Count( data->aliens, MAX_ALIENS, Unit::STATUS_ALIVE );
+	int nAliensKIA = Unit::Count( data->aliens, MAX_ALIENS, Unit::STATUS_KIA );
+
+	int nCivsAlive = Unit::Count( data->civs, MAX_CIVS, Unit::STATUS_ALIVE );
+	int nCivsKIA = Unit::Count( data->civs, MAX_CIVS, Unit::STATUS_KIA );
+
+	if ( nSoldiersAlive>0 && nAliensAlive==0 )
 		victory.SetText( "Victory!" );
-	else if ( !data->nTerransAlive && data->nTerrans )
+	else if ( nAliensAlive>0 && nSoldiersAlive==0 )
 		victory.SetText( "Defeat." );
 	else 
 		victory.SetText( "Mission Summary:" );
 	victory.SetPos( X_NAME, YPOS );
 
-	const char* text[TEXT_ROW] = { "Soldiers survived",  "Soldiers KIA/MIA/KO", "Aliens survived", "Aliens killed", "Civs Saved", "Civs Killed" };
+	const char* text[TEXT_ROW] = { "Soldiers survived",  "Soldiers KIA/MIA/KO",
+		                           "Aliens survived", "Aliens killed", 
+								   "Civs Saved", "Civs Killed" };
 
-	int soldiersOut = data->nTerrans - data->nTerransAlive;
-	int aliensKilled = data->nAliens - data->nAliensAlive;
-	int civsKilled = data->nCivs - data->nCivsAlive;
-
-	int value[TEXT_ROW]		   = {	data->nTerransAlive, soldiersOut,
-									data->nAliensAlive, aliensKilled,
-									data->nCivsAlive, civsKilled
+	int value[TEXT_ROW]		   = {	nSoldiers - nSoldiersKIA, nSoldiersKIA + nSoldiersUnc + nSoldiersMIA,
+									nAliensAlive, nAliensKIA,
+									nCivsAlive, nCivsKIA
 								 };
 
 	// Lose points for soldiers killed,
@@ -67,14 +79,14 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 
 	int score[3] = { 0 };
 
-	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		if ( d->units[i].InUse() && !d->units[i].IsAlive() ) {
-			score[0] -= d->units[i].GetStats().ScoreLevel();
+	for( int i=0; i<MAX_TERRANS; ++i ) {
+		if ( d->soldiers[i].InUse() && !d->soldiers[i].IsAlive() ) {
+			score[0] -= d->soldiers[i].GetStats().ScoreLevel();
 		}
 	}
-	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-		if ( d->units[i].InUse() && !d->units[i].IsAlive() ) {
-			score[1] += d->units[i].GetStats().ScoreLevel();
+	for( int i=0; i<MAX_ALIENS; ++i ) {
+		if ( d->aliens[i].InUse() && !d->aliens[i].IsAlive() ) {
+			score[1] += d->aliens[i].GetStats().ScoreLevel();
 		}
 	}
 	if ( !d->dayTime ) {
@@ -82,14 +94,14 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 		score[1] = score[1]*3/2;
 	}
 	// Adjust for odds, based on the starting out numbers.
-	score[1] = score[1] * d->nAliens / d->nTerrans;
+	score[1] = score[1] * nAliens / nSoldiers;
 
-	for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i ) {
-		if ( d->units[i].InUse() ) {
-			if ( d->units[i].IsAlive() )
-				score[2] += d->units[i].GetStats().ScoreLevel();
+	for( int i=0; i<MAX_CIVS; ++i ) {
+		if ( d->civs[i].InUse() ) {
+			if ( d->civs[i].IsAlive() )
+				score[2] += d->civs[i].GetStats().ScoreLevel();
 			else
-				score[2] -= d->units[i].GetStats().ScoreLevel();
+				score[2] -= d->civs[i].GetStats().ScoreLevel();
 		}
 	}
 
@@ -105,6 +117,23 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 			sBuf = score[i/2];
 			textTable[i*TEXT_COL+2].SetText( sBuf.c_str() );
 			textTable[i*TEXT_COL+2].SetPos( X_SCORE, YPOS + (float)(i+1)*DELTA );
+		}
+	}
+
+	int row=0;
+	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+		if ( row == ITEM_NUM )
+			break;
+		if ( d->storage->GetCount(i) ) {
+			char buf[30];
+			const char* name = game->GetItemDefArr().GetIndex(i)->displayName.c_str();
+			int count =  d->storage->GetCount(i);
+			SNPrintf( buf, 30, "%s +%d", name, count );
+
+			items[row].Init( &gamui2D );
+			items[row].SetPos( X_ITEMS, YPOS + (float)row*20.f );
+			items[row].SetText( buf );
+			++row;
 		}
 	}
 

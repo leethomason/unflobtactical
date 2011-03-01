@@ -81,6 +81,7 @@ public:
 	void Kill( TacMap* map );		// normally called by DoDamage
 	void UseTU( float val )		{ tu = grinliz::Max( 0.0f, tu-val ); }
 	void Leave();
+	void Heal()					{ tu = stats.TotalTU(); hp = stats.TotalHP(); }
 
 	void NewTurn();
 
@@ -120,6 +121,7 @@ public:
 	Inventory* GetInventory();
 	const Inventory* GetInventory() const;
 	void UpdateInventory();
+	//bool RestoreInventory( const Inventory& memory, Storage* storage );	// based on 'memory' restore items after battle. Returns 'true' if okay, 'false' if out of stuff
 
 	Model* GetModel()						{ return model; }
 	const Model* GetModel() const			{ return model; }
@@ -157,9 +159,22 @@ public:
 
 	const Stats& GetStats() const	{ return stats; }
 	static void GenStats( int team, int type, int seed, Stats* stats );
+	void DoMissionEnd() {
+		nMissions++;
+		if ( tu < stats.TotalTU() ) allMissionOvals++;
+		allMissionKills += kills;
+		stats.SetRank( XPToRank( XP() ));
+	}
 
 	void CreditKill()				{ kills++; }
 	int  KillsCredited() const		{ return kills; }
+
+	int Missions() const			{ return nMissions; }
+	int AllMissionKills() const		{ return allMissionKills; }
+	int AllMissionOvals() const		{ return allMissionOvals; }
+
+	int XP() const					{ return nMissions + allMissionKills + allMissionOvals; }
+	static int XPToRank( int xp );
 
 	void Save( FILE* fp, int depth ) const;
 
@@ -168,6 +183,16 @@ public:
 					int alienType,
 					int rank,
 					int seed );
+
+	static int Count( const Unit* unit, int n, int status ) {
+		int count = 0;
+		if ( status >= 0 )
+			for( int i=0; i<n; ++i ) { if ( unit[i].status == status ) ++count; }
+		else
+			for( int i=0; i<n; ++i ) { if ( unit[i].status != STATUS_NOT_INIT ) ++count; }
+
+		return count;
+	}
 
 private:
 	// WARNING: change this then change GetValue()
@@ -202,13 +227,17 @@ private:
 	Model*		model;
 	Model*		weapon;
 	bool		visibilityCurrent;	// if set, the visibility is current. Can be set by CalcAllVisibility()
+	grinliz::Random	random;
 
 	Inventory	inventory;
 	Stats		stats;
 	float		tu;
 	int			hp;
 
-	int			kills;
+	int			kills;	
+	int			nMissions;
+	int			allMissionKills;
+	int			allMissionOvals;
 };
 
 

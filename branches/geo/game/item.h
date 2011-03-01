@@ -280,8 +280,6 @@ public:
 
 	~Storage();
 
-	//void Init( const int* countArr )			{ memcpy( rounds, countArr, sizeof(int)*EL_MAX_ITEM_DEFS ); }
-
 	bool Empty() const;
 
 	void AddItem( const ItemDef*, int n=1 );
@@ -297,7 +295,6 @@ public:
 	// Returns the weapon def that is re-supplied.
 	const WeaponItemDef* IsResupply( const WeaponItemDef* weapon ) const;
 	
-	//void SetCount( const ItemDef*, int count );
 	int GetCount( const ItemDef* ) const;	// the number of items, corrected for the rounds
 	int GetCount( int index ) const;
 
@@ -315,5 +312,17 @@ private:
 	int rounds[EL_MAX_ITEM_DEFS];
 };
 
+
+class Research
+{
+public:
+	Research();
+	~Research();
+
+	bool HasTech( const ItemDef* tech );
+	void DoResearch( int points, const ItemDef* tech );
+
+private:
+};
 
 #endif // UFOATTACK_ITEM_INCLUDED

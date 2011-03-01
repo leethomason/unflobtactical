@@ -280,6 +280,7 @@ void Game::PushPopScene()
 		GLASSERT( sceneResetQueued || (!sceneStack.Empty()) );
 
 		sceneStack.Top()->scene->DeActivate();
+		scenePopQueued = false;
 		int result = sceneStack.Top()->result;
 		int id     = sceneStack.Top()->sceneID;
 
@@ -292,7 +293,6 @@ void Game::PushPopScene()
 				sceneStack.Top()->scene->SceneResult( id, result );
 			}
 		}
-		scenePopQueued = false;
 		if ( sceneStack.Empty() )
 			break;
 	}
@@ -344,7 +344,7 @@ void Game::CreateScene( const SceneNode& in, SceneNode* node )
 		case CHARACTER_SCENE:	scene = new CharacterScene( this, (CharacterSceneData*)in.data );					break;
 		case INTRO_SCENE:		scene = new TacticalIntroScene( this );												break;
 		case END_SCENE:			scene = new TacticalEndScene( this, (const TacticalEndSceneData*) in.data );		break;
-		case UNIT_SCORE_SCENE:	scene = new TacticalUnitScoreScene( this, (const TacticalEndSceneData*) in.data );	break;
+		case UNIT_SCORE_SCENE:	scene = new TacticalUnitScoreScene( this, (TacticalEndSceneData*) in.data );		break;
 		case HELP_SCENE:		scene = new HelpScene( this, (const HelpSceneData*)in.data );						break;
 		case DIALOG_SCENE:		scene = new DialogScene( this, (const DialogSceneData*)in.data );					break;
 		case GEO_SCENE:			scene = new GeoScene( this );														break;

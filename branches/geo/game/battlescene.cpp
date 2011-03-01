@@ -912,38 +912,30 @@ void BattleScene::Debug3D()
 bool BattleScene::EndCondition( TacticalEndSceneData* data )
 {
 	memset( data, 0, sizeof( *data ) );
-	data->units = units;
+	data->aliens = units + ALIEN_UNITS_START;
+	data->soldiers = units + TERRAN_UNITS_START;
+	data->civs = units + CIV_UNITS_START;
 	data->dayTime = tacMap->DayTime();
 
-	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		if ( units[i].InUse() )
-			++data->nTerrans;
-		if ( units[i].IsAlive() )
-			++data->nTerransAlive;
-	}
-	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-		if ( units[i].InUse() )
-			++data->nAliens;
-		if ( units[i].IsAlive() )
-			++data->nAliensAlive;
-	}
-	for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i ) {
-		if ( units[i].InUse() )
-			++data->nCivs;
-		if ( units[i].IsAlive() )
-			++data->nCivsAlive;
-	}
+	int nTerransAlive = Unit::Count( units+TERRAN_UNITS_START, MAX_TERRANS, Unit::STATUS_ALIVE );
+	int nAliensAlive = Unit::Count( units+ALIEN_UNITS_START, MAX_ALIENS, Unit::STATUS_ALIVE );
+
+	data->result = TacticalEndSceneData::TIE;
+	if ( nTerransAlive > 0 && nAliensAlive == 0 )
+		data->result = TacticalEndSceneData::VICTORY;
+	else if ( nTerransAlive == 0 && nAliensAlive > 0 )
+		data->result = TacticalEndSceneData::DEFEAT;
 
 	// If the terrans are all down for the count, then it acts like the 
 	// lander leaving. KO becomes MIA.
-	if ( data->nTerransAlive == 0 ) {
+	if ( nTerransAlive == 0 ) {
 		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 			if ( units[i].InUse() )
 				units[i].Leave();
 		}
 	}
 
-	if ( data->nAliensAlive == 0 ||data->nTerransAlive == 0 )
+	if ( nAliensAlive == 0 || nTerransAlive == 0 )
 		return true;
 	return false;
 }

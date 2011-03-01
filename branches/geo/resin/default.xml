@@ -1,5 +1,19 @@
 <resource output="./res/" outputDB="./res/uforesource.db">
-  
+
+  <tree>
+    <research>
+      <item0 name="Hornet" points="10">
+        The Hornet is a light alien assault troop.
+        <required0 item="Hornet" />
+      </item0>
+      <item1 item="ASLT-2" points="20">
+        Research on the alien plasma rifle has allowed us to the develop an improved assault rifle.
+        <required0 research="Hornet" />
+        <required1 item="PLS-" />
+      </item1>
+    </research>
+  </tree>
+
   <!-- Icon and UI -->
   <texture filename="icons.png" dither="false"/>
   <texture filename="icons2.png" dither="false"/>
@@ -654,10 +668,9 @@
        </p>
       <p>Good luck and have fun!</p>
     </page>
-  </text>
+  </text>  
 
-
-    <!-- Sound effects -->
+  <!-- Sound effects -->
   <data filename="explosion.wav" compress="false"/>
   <data filename="hit.wav" compress="false"/>
   <data filename="terrandown0.wav" compress="false"/>

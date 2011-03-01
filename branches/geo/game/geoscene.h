@@ -234,6 +234,7 @@ public:
 
 	virtual void Activate();
 	virtual void DeActivate();
+	virtual void SceneResult( int sceneID, int result );
 
 	// UI
 	virtual void Tap(	int count, 
@@ -271,6 +272,9 @@ private:
 	bool CanSendCargoPlane( const grinliz::Vector2I& base );
 
 	void HandleItemTapped( const gamui::UIItem* item );
+	void DoLanderArrived( Chit* chitIt );
+
+	//void AddConsoleMessage( const char* )	{}	// fixme: implement
 	
 	enum {
 		CM_NONE,
@@ -304,6 +308,10 @@ private:
 
 	ChitBag				chitBag;
 	int					contextChitID;
+
+	grinliz::Vector2I	landerArrived;					// the location the lander arrived at
+	int					attackingBaseID;				// the base the lander is from
+	Inventory			inventoryMemory[MAX_TERRANS];	// Inventory of the units before the attack. Used to restore clips later.
 
 	enum {
 		CONTEXT_CARGO,
