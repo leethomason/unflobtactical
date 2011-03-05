@@ -22,6 +22,7 @@
 
 #include "scene.h"
 #include "chits.h"
+#include "research.h"
 
 #include "../engine/ufoutil.h"
 #include "../engine/texture.h"
@@ -295,6 +296,7 @@ private:
 	U32					lastAlienTime;
 	U32					timeBetweenAliens;
 	U32					missileTimer[2];
+	U32					researchTimer;
 	
 	int					cash;
 	bool				firstBase;
@@ -325,6 +327,7 @@ private:
 	RegionData regionData[GEO_REGIONS];
 	CDynArray< Missile > missileArr;
 	GeoMapData			geoMapData;
+	Research			research;
 };
 
 

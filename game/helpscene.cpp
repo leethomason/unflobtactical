@@ -26,9 +26,8 @@ HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ),
 
 	textBox.Init( &gamui2D );
 
-	const float GUTTER = 20.0f;
-	textBox.SetPos( GUTTER, GUTTER );
-	textBox.SetSize( port.UIWidth()-GUTTER*2.0f, port.UIHeight()-GUTTER*2.0f );
+	textBox.SetPos( GAME_GUTTER, GAME_GUTTER );
+	textBox.SetSize( port.UIWidth()-GAME_GUTTER*2.0f, port.UIHeight()-GAME_GUTTER*2.0f );
 
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 	static const char* const text[3] = { "<", ">", "X" };
@@ -88,8 +87,6 @@ void HelpScene::Layout()
 	grinliz::GLString full = "text_";
 	full += PlatformName();
 
-	const float GUTTER = 20.0f;
-	
 	if ( pageItem->HasAttribute( full.c_str() ) ) {
 		text = (const char*)reader->AccessData( pageItem, full.c_str(), 0 );
 	}
@@ -98,9 +95,9 @@ void HelpScene::Layout()
 	}
 	const Screenport& port = game->engine->GetScreenport();
 	textBox.SetText( text ? text : "" );
-	textBox.SetPos( GUTTER, GUTTER );
-	float tw = port.UIWidth() - GUTTER*2.0f;
-	float th = buttons[0].Y() - GUTTER*2.0f;
+	textBox.SetPos( GAME_GUTTER, GAME_GUTTER );
+	float tw = port.UIWidth() - GAME_GUTTER*2.0f;
+	float th = buttons[0].Y() - GAME_GUTTER*2.0f;
 	image.SetVisible( false );
 
 	if ( pageItem->HasAttribute( "image" ) ) {
@@ -113,7 +110,7 @@ void HelpScene::Layout()
 		image.SetAtom( atom );
 		image.SetPos( port.UIWidth()-texture->Width(), 0 );
 		image.SetSize( atom.srcWidth, atom.srcHeight );
-		tw = image.X()-GUTTER;
+		tw = image.X()-GAME_GUTTER;
 		image.SetVisible( true );
 	}
 	textBox.SetSize( tw, th );

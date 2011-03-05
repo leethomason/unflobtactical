@@ -445,7 +445,7 @@ BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, c
 	storage = new Storage( posi.x, posi.y, itemDefArr );
 
 	// FIXME: real values
-	TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, 2, itemDefArr, 0 );
+	TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, 0, itemDefArr, 0 );
 
 	for( int i=0; i<NUM_FACILITIES; ++i ) {
 		facilityStatus[i] = firstBase ? 0 : -1;
