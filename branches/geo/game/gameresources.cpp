@@ -462,7 +462,6 @@ void Game::LoadItemResources()
 
 			DumpWeaponInfo( fp, 8.0f, stats, 1 );
 		}
-
 		fclose( fp );
 	}
 #endif

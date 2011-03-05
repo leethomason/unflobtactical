@@ -12,6 +12,7 @@
 #include "fastbattlescene.h"
 #include "tacticalintroscene.h"
 #include "tacticalendscene.h"
+#include "researchscene.h"
 
 #include "../engine/loosequadtree.h"
 #include "../engine/particle.h"
@@ -138,7 +139,7 @@ void RegionData::Free()
 }
 
 
-GeoScene::GeoScene( Game* _game ) : Scene( _game )
+GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase() )
 {
 	missileTimer[0] = 0;
 	missileTimer[1] = 0;
@@ -160,6 +161,7 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game )
 
 	lastAlienTime = 0;
 	timeBetweenAliens = 5*1000;
+	researchTimer = 0;
 
 	static const char* names[GEO_REGIONS] = { "North", "South", "Europe", "Asia", "Africa", "Under" };
 	for( int i=0; i<GEO_REGIONS; ++i ) {
@@ -798,16 +800,18 @@ void GeoScene::SceneResult( int sceneID, int result )
 
 		// Compress the units to group the living ones together. This
 		// is so the code only has to deal with "holes" from the tactical screen.
-		int i=0;
-		while( i<MAX_TERRANS ) {
-			if ( units[i].IsAlive() ) {
-				++i;
+		int dst=0, src=0;
+		for( dst=0, src=0; src<MAX_TERRANS; ++src ) {
+			if ( src > dst ) {
+				// Use memcpy to avoid constructor/destructor:
+				memcpy( &units[dst], &units[src], sizeof(Unit) );
 			}
-			else {
-				for( int j=i+1; j<MAX_TERRANS; ++j ) {
-					units[j-1] = units[j];
-				}
+			if ( units[dst].IsAlive() ) {
+				++dst;
 			}
+		}
+		for( dst; dst<MAX_TERRANS; ++dst ) {
+			units[dst].Free();
 		}
 	}
 }
@@ -816,6 +820,18 @@ void GeoScene::SceneResult( int sceneID, int result )
 
 void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 {
+	researchTimer += deltaTime;
+
+	if ( researchTimer > 1000 ) {
+		researchTimer -= 1000;
+		int nResearchers = 0;
+		for( int i=0; i<MAX_BASES; ++i ) {
+			if ( chitBag.GetBaseChit(i) )
+				nResearchers += chitBag.GetBaseChit(i)->NumResearchers();
+		}
+		research.DoResearch( nResearchers );
+	}
+
 	if ( lastAlienTime==0 || (currentTime > lastAlienTime+timeBetweenAliens) ) {
 		Vector2F start, dest;
 		int type = UFOChit::SCOUT+random.Rand( 3 );
@@ -914,7 +930,9 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 				{
 					ufoChit->SetAI( UFOChit::AI_CITY_ATTACK );
 				}
-				else if ( !geoMapData.IsCity( pos.x, pos.y ) ) {
+				else if (    !geoMapData.IsCity( pos.x, pos.y ) 
+						   && !chitBag.GetBaseChitAt( pos )) 
+				{
 					ufoChit->SetAI( UFOChit::AI_CROP_CIRCLE );
 				}
 				else {
@@ -1001,6 +1019,12 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 		default:
 			GLASSERT( 0 );
 		}
+	}
+
+	if ( !game->IsScenePushed() && research.ResearchReady() ) {
+		ResearchSceneData* data = new ResearchSceneData();
+		data->research = &research;
+		game->PushScene( Game::RESEARCH_SCENE, data );
 	}
 
 	// Check for deferred chit destruction.

@@ -257,7 +257,7 @@ void ProcessTreeRec( gamedb::WItem* parent, TiXmlElement* ele )
 	for( TiXmlAttribute* attrib=ele->FirstAttribute(); attrib; attrib=attrib->Next() ) {		
 		int i;
 
-		if ( attrib->QueryIntValue( &i ) ) {
+		if ( TIXML_SUCCESS == attrib->QueryIntValue( &i ) ) {
 			witem->SetInt( attrib->Name(), i );
 		}
 		else {

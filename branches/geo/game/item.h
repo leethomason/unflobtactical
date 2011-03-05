@@ -313,16 +313,4 @@ private:
 };
 
 
-class Research
-{
-public:
-	Research();
-	~Research();
-
-	bool HasTech( const ItemDef* tech );
-	void DoResearch( int points, const ItemDef* tech );
-
-private:
-};
-
 #endif // UFOATTACK_ITEM_INCLUDED

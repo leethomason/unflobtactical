@@ -832,7 +832,7 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 {
 	const char* weapon[Unit::NUM_ALIEN_TYPES][NUM_RANKS] = {
 		{	"RAY-1",	"RAY-1",	"RAY-1",	"RAY-2",	"RAY-3" },		// green
-		{	"RAY-2",	"RAY-2",	"RAY-3",	"RAY-3",	"PLS-3"	},		// prime
+		{	"RAY-1",	"RAY-2",	"RAY-2",	"RAY-3",	"PLS-3"	},		// prime
 		{	"PLS-1",	"PLS-1",	"PLS-2",	"PLS-2",	"PLS-3" },		// hornet
 		{	"STRM-1",	"STRM-1",	"STRM-2",	"STRM-2",	"STRM-3" },		// jackal
 		{	"PLS-1",	"PLS-1",	"PLS-2",	"PLS-2",	"PLS-3" }		// viper

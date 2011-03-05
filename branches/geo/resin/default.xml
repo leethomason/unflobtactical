@@ -1,16 +1,28 @@
 <resource output="./res/" outputDB="./res/uforesource.db">
 
+  <!-- This reflects XML into a database.
+       GameDB doesn't allow duplicate elements. The formatting is
+       strange for XML, but good for the database.
+   -->
   <tree>
     <research>
-      <item0 name="Hornet" points="10">
+      <!-- Arrival needs to be the lowest points. It starts the plot. Should be 10 - 1 for testing. -->
+      <Arrival points="1">
+        The aliens have arrived.
+      </Arrival>
+      <Test0 points="5">
+        A test with dependency.
+        <required0 research="Arrival" />
+      </Test0>
+      <Hornet points="20">
         The Hornet is a light alien assault troop.
         <required0 item="Hornet" />
-      </item0>
-      <item1 item="ASLT-2" points="20">
+      </Hornet>
+      <ASLT-2 points="40">
         Research on the alien plasma rifle has allowed us to the develop an improved assault rifle.
         <required0 research="Hornet" />
         <required1 item="PLS-" />
-      </item1>
+      </ASLT-2>
     </research>
   </tree>
 

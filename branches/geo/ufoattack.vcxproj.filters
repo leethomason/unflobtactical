@@ -198,6 +198,12 @@
     <ClCompile Include="game\fastbattlescene.cpp">
       <Filter>scenes</Filter>
     </ClCompile>
+    <ClCompile Include="game\research.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\researchscene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game\ai.h">
@@ -381,6 +387,12 @@
       <Filter>scenes</Filter>
     </ClInclude>
     <ClInclude Include="game\fastbattlescene.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\research.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\researchscene.h">
       <Filter>scenes</Filter>
     </ClInclude>
   </ItemGroup>

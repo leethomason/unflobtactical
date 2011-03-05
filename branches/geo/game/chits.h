@@ -260,6 +260,7 @@ public:
 	
 	Unit* GetUnits() { return units; }
 	int NumUnits();
+	int NumResearchers() { return 8; }		// FIXME
 
 	bool IsFacilityComplete( int i )	const	{ return facilityStatus[i] == 0; }
 	bool IsFacilityInProgress( int i )			{ return facilityStatus[i] > 0; }

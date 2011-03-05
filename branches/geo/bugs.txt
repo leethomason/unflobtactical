@@ -5,11 +5,15 @@ Bugs:
 Android
 - Amazon
 
-- geo: colors ugly, look not correct
+- geo: need to buy/sell soldiers
+- geo: need to buy/sell researchers
+- geo: numResearchers hard coded to 8
+- geo: research checked to "kick start" after mission.
+- geo: set accumulated stuff to research after mission
+- geo: KO'd units getting killed
 - geo: random money readout just hanging out
 - geo: help not hooked up
 - geo: research not implemented
-- geo: saucers will choose bases for crop circles
 - geo: paced start, difficulty coordinated
 - geo: place first base - flash? effect?
 - geo: base should have basic stores
@@ -35,10 +39,14 @@ Android
 - item prices aren't correct
 - geo: countries need special abilities
 - geo: art for cores
+- soldiers alive/killed counts incorrect
+- level up needs icon. rank is incorrect if soldier levels up. Move names up so the button is impinged.
+- geo: colors ugly, look not correct
 
 Fixed:
 - geo: cargo not working
 - geo: remove cancel, implement "click away"
+- geo: saucers will choose bases for crop circles
 
 
 Deferred:
