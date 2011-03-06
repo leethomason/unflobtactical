@@ -6,19 +6,15 @@ Android
 - Amazon
 
 - geo: apply civilian win/loss to something
-
-- geo: buy / sell should have one button, no going negative
-- geo: help not hooked up
+- tactical end screen: item list cramped
+- unit score screen: align with tactical end screen
 - geo: paced start, difficulty coordinated
-- geo: place first base - flash? effect?
-- check that clips don't get used up & refill
 - wpns screen: old school text
 - geo: character screen left/right should work
 - character screen: show character
 - geo: build screen: layout. Indicate all build?
 - geo: no indication of base capabilities
 - geo: free to build bases
-- geo: account for countries having stuff
 - geo: a ufo will return to orbit if it gets to a "parked" tile. Should find a new task.
 - geo: can't save / load
 - day/night not hooked up from geo to tactical
@@ -32,8 +28,14 @@ Android
 - level up needs icon. rank is incorrect if soldier levels up. Move names up so the button is impinged.
 - geo: colors ugly, look not correct
 - geo: research checked to "kick start" after mission. implemented; does it work?
+- check that clips don't get used up & refill
+- geo: place first base - flash? effect?
+- geo: help not hooked up
+- character screen: fix range at 8m, longer weapon list
 
 Fixed:
+- geo: account for countries having stuff
+- geo: buy / sell should have one button, no going negative
 - geo: need to buy/sell soldiers
 - geo: need to buy/sell researchers
 - geo: numResearchers hard coded to 8

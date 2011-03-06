@@ -25,6 +25,22 @@ void Chit::SetPos( float x, float y ) {
 }
 
 
+void Chit::Save( FILE* fp, int depth )
+{
+	XMLUtil::Attribute( fp, "pos.x", pos.x );
+	XMLUtil::Attribute( fp, "pos.y", pos.y );
+	XMLUtil::Attribute( fp, "dest.x", dest.x );
+	XMLUtil::Attribute( fp, "dest.y", dest.y );
+}
+
+
+void Chit::Load( const TiXmlElement* doc )
+{
+	GLASSERT( 0 );
+}
+
+
+
 float BaseChit::MissileRange( const int type ) const
 { 
 	return ( type == 0 ) ? (float)GUN_LIFETIME * GUN_SPEED / 1000.0f : (float)MISSILE_LIFETIME * MISSILE_SPEED / 1000.0f; 
@@ -33,15 +49,18 @@ float BaseChit::MissileRange( const int type ) const
 
 Chit::Chit( SpaceTree* _tree ) 
 {
-	tree = _tree;
+	pos.Set( 0, 0 );
+	dest.Set( 0, 0 );
 	model[0] = 0;
 	model[1] = 0;
+	tree = _tree;
 	destroyed = false;
-	pos.Set( 0, 0 );
+	id = 0;
+
 	next = prev = 0;
 	chitBag = 0;
-	id = 0;
 }
+
 
 Chit::~Chit()
 {
@@ -59,6 +78,7 @@ Chit::~Chit()
 
 UFOChit::UFOChit( SpaceTree* tree, int type, const grinliz::Vector2F& start, const grinliz::Vector2F& dest ) : Chit( tree )
 {
+	inBattle = false;
 	this->type = type;
 	this->ai = AI_TRAVELLING;
 	SetPos( start.x, start.y );
@@ -86,6 +106,28 @@ UFOChit::~UFOChit()
 	}
 }
 
+
+void UFOChit::Save( FILE* fp, int depth )
+{
+	XMLUtil::OpenElement( fp, depth, "UFOChit" );
+	Chit::Save( fp, depth );
+
+	XMLUtil::Attribute( fp, "type", type );
+	XMLUtil::Attribute( fp, "ai", ai );
+	XMLUtil::Attribute( fp, "speed", speed );
+	XMLUtil::Attribute( fp, "hp", hp );
+	XMLUtil::Attribute( fp, "inBattle", inBattle );
+	XMLUtil::Attribute( fp, "effectTimer", effectTimer );
+	XMLUtil::Attribute( fp, "jobTimer", jobTimer );
+
+	XMLUtil::SealCloseElement( fp );
+}
+
+
+void UFOChit::Load( const TiXmlElement* doc )
+{
+	GLASSERT( 0 );
+}
 
 
 void UFOChit::SetAI( int _ai )
@@ -405,6 +447,23 @@ CropCircle::~CropCircle()
 }
 
 
+void CropCircle::Save( FILE* fp, int depth )
+{
+	XMLUtil::OpenElement( fp, depth, "CropCircle" );
+	Chit::Save( fp, depth );
+
+	XMLUtil::Attribute( fp, "jobTimer", jobTimer );
+
+	XMLUtil::SealCloseElement( fp );
+}
+
+
+void CropCircle::Load( const TiXmlElement* doc )
+{
+	GLASSERT( 0 );
+}
+
+
 int CropCircle::DoTick( U32 deltaTime )
 {
 	jobTimer += deltaTime;
@@ -428,9 +487,29 @@ CityChit::CityChit( SpaceTree* tree, const grinliz::Vector2I& posi, bool _capita
 }
 
 
+void CityChit::Save( FILE* fp, int depth )
+{
+	XMLUtil::OpenElement( fp, depth, "CityChit" );
+	Chit::Save( fp, depth );
+
+	XMLUtil::Attribute( fp, "capital", capital );
+
+	XMLUtil::SealCloseElement( fp );
+}
+
+
+void CityChit::Load( const TiXmlElement* doc )
+{
+	GLASSERT( 0 );
+}
+
+
+
 BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, const ItemDefArr& itemDefArr, bool firstBase ) : Chit( tree )
 {
+	landerOutbound = false;
 	pos.Set( (float)posi.x+0.5f, (float)posi.y+0.5f );
+	landerTarget.Set( -1, -1 );
 	this->index = index;
 
 	static const char* name[MAX_BASES] = { "baseA", "baseB", "baseC", "baseD" };
@@ -443,10 +522,9 @@ BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, c
 	lander[1] = 0;
 
 	storage = new Storage( posi.x, posi.y, itemDefArr );
+	memset( units, 0, sizeof(Unit)*MAX_TERRANS );
 	if ( firstBase ) 
 		TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, 0, itemDefArr, 0 );
-	else
-		memset( units, 0, sizeof(Unit)*MAX_TERRANS );
 
 	for( int i=0; i<NUM_FACILITIES; ++i ) {
 		facilityStatus[i] = firstBase ? 0 : -1;
@@ -466,6 +544,45 @@ BaseChit::~BaseChit()
 }
 
 
+void BaseChit::Save( FILE* fp, int depth )
+{
+	XMLUtil::OpenElement( fp, depth, "BaseChit" );
+	Chit::Save( fp, depth );
+
+	XMLUtil::Attribute( fp, "index", index );
+	XMLUtil::Attribute( fp, "landerTarget.x", landerTarget.x );
+	XMLUtil::Attribute( fp, "landerTarget.y", landerTarget.y );
+	XMLUtil::Attribute( fp, "landerOutbound", landerOutbound );
+	XMLUtil::SealElement( fp );
+
+	storage->Save( fp, depth+1 );
+	
+	XMLUtil::OpenElement( fp, depth+1, "Facilities" );
+	XMLUtil::SealElement( fp );
+	for( int i=0; i<NUM_FACILITIES; ++i ) {
+		XMLUtil::OpenElement( fp, depth+2, "Facility" );
+		XMLUtil::Attribute( fp, "facilityStatus", facilityStatus[i] );
+		XMLUtil::SealCloseElement( fp );
+	}
+	XMLUtil::CloseElement( fp, depth+1, "Facilities" );
+
+	XMLUtil::OpenElement( fp, depth+1, "Units" );
+	XMLUtil::SealElement( fp );
+	for( int i=0; i<MAX_TERRANS; ++i ) {
+		units[i].Save( fp, depth+2 );
+	}
+	XMLUtil::CloseElement( fp, depth+1, "Units" );
+
+	XMLUtil::CloseElement( fp, depth, "BaseChit" );
+}
+
+
+void BaseChit::Load( const TiXmlElement* doc )
+{
+	GLASSERT( 0 );
+}
+
+
 int BaseChit::DoTick(  U32 deltaTime )
 {
 	int msg = MSG_NONE;
@@ -482,9 +599,8 @@ int BaseChit::DoTick(  U32 deltaTime )
 
 	if ( lander[0] ) {
 		// Way out or way in?
-		bool wayOut = (landerTarget.x >= 0);
 		Vector2F target;
-		if ( wayOut ) {
+		if ( landerOutbound ) {
 			target.Set( (float)landerTarget.x + 0.5f, (float)landerTarget.y + 0.5f );
 		}
 		else {
@@ -499,9 +615,9 @@ int BaseChit::DoTick(  U32 deltaTime )
 		float travel = LANDER_SPEED * (float)deltaTime / 1000.0f;
 
 		if ( delta.Length() <= travel ) {
-			if ( wayOut ) {
+			if ( landerOutbound ) {
 				landerPos = target;
-				landerTarget.Set( -1, -1 );
+				landerOutbound = false;
 				msg = MSG_LANDER_ARRIVED;
 			}
 			else {
@@ -536,6 +652,7 @@ void BaseChit::DeployLander( const grinliz::Vector2I& pos )
 {
 	GLASSERT( lander[0] == 0 );
 	landerTarget = pos;
+	landerOutbound = true;
 
 	for( int i=0; i<2; ++i ) {
 		lander[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "geolander" ) );
@@ -571,10 +688,8 @@ const char* BaseChit::Name() const
 
 CargoChit::CargoChit( SpaceTree* tree, const grinliz::Vector2I& start, const grinliz::Vector2I& end ) : Chit( tree )
 {
-	this->city.Set( (float)start.x+0.5f, (float)start.y+0.5f );
-	this->base.Set( (float)end.x+0.5f, (float)end.y+0.5f );
 	this->goingToBase = true;
-	SetPos( city.x, city.y );
+	SetPos( (float)cityInMap.x+0.5f, (float)cityInMap.y+0.5f );
 	baseInMap = end;
 	cityInMap = start;
 
@@ -587,12 +702,39 @@ CargoChit::~CargoChit()
 }
 
 
+void CargoChit::Save( FILE* fp, int depth )
+{
+	XMLUtil::OpenElement( fp, depth, "CargoChit" );
+	Chit::Save( fp, depth );
+
+	XMLUtil::Attribute( fp, "goingToBase", goingToBase );
+	XMLUtil::Attribute( fp, "cityInMap.x", cityInMap.x );
+	XMLUtil::Attribute( fp, "cityInMap.y", cityInMap.y );
+	XMLUtil::Attribute( fp, "baseInMap.x", baseInMap.x );
+	XMLUtil::Attribute( fp, "baseInMap.y", baseInMap.y );
+
+	XMLUtil::SealCloseElement( fp );
+}
+
+
+void CargoChit::Load( const TiXmlElement* doc )
+{
+	GLASSERT( 0 );
+}
+
+
 int CargoChit::DoTick( U32 deltaTime )
 {
 	float distance = CARGO_SPEED * (float)deltaTime / 1000.0f;
 	
-	Vector2F dest = goingToBase ? base : city;
+	Vector2F dest;
+	if ( goingToBase ) {
+		dest.Set( (float)baseInMap.x+0.5f, (float)baseInMap.y+0.5f );
+	}
+	else {
+		dest.Set( (float)cityInMap.x+0.5f, (float)cityInMap.y+0.5f );
 
+	}
 	int msg = MSG_NONE;
 	if ( Cylinder<float>::LengthSquared( pos, dest ) <= (distance+0.1f)*(distance+0.1f) ) {
 		msg = goingToBase ? MSG_CARGO_ARRIVED : MSG_DONE;

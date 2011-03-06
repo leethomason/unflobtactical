@@ -164,6 +164,8 @@ public:
 		if ( tu < stats.TotalTU() ) allMissionOvals++;
 		allMissionKills += kills;
 		stats.SetRank( XPToRank( XP() ));
+		
+		kills = 0;
 	}
 
 	void CreditKill()				{ kills++; }

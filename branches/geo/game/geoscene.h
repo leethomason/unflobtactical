@@ -208,8 +208,10 @@ public:
 	}
 
 	// Set the storage to "normal" for the region, tech level, and traits.
-	void SetStorageNormal( const Research& research );
-	Storage* GetStorage() { return storage; }
+	void SetStorageNormal( const Research& research, Storage* storage );
+
+	void Save( FILE* fp, int depth );
+	void Load( const TiXmlElement* doc );
 
 private:
 	void Push( int d )	{
@@ -218,8 +220,6 @@ private:
 		}
 		history[0] = d;
 	}
-
-	Storage* storage;
 };
 
 
@@ -250,6 +250,9 @@ public:
 	virtual void DoTick( U32 currentTime, U32 deltaTime );
 	virtual void Debug3D();
 
+	virtual bool CanSave()										{ return true; }
+	virtual void Save( FILE* fp, int depth );
+	virtual void Load( const TiXmlElement* doc );
 
 private:
 	struct Missile {
@@ -285,8 +288,8 @@ private:
 	GeoAI*	geoAI;
 
 	grinliz::Vector2F	dragStart, dragLast;
-	U32					lastAlienTime;
-	U32					timeBetweenAliens;
+
+	U32					alienTimer;
 	U32					missileTimer[2];
 	U32					researchTimer;
 	
@@ -300,10 +303,6 @@ private:
 
 	ChitBag				chitBag;
 	int					contextChitID;
-
-	grinliz::Vector2I	landerArrived;					// the location the lander arrived at
-	int					attackingBaseID;				// the base the lander is from
-	Inventory			inventoryMemory[MAX_TERRANS];	// Inventory of the units before the attack. Used to restore clips later.
 
 	enum {
 		CONTEXT_CARGO,

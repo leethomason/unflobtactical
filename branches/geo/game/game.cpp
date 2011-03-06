@@ -78,11 +78,11 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	//Map* map = engine->GetMap();
 
 	PushScene( INTRO_SCENE, 0 );
-	loadCompleted = false;
 	PushPopScene();
 }
 
 
+// WARNING: strange map maker code
 Game::Game( int width, int height, int rotation, const char* path, const TileSetDesc& base ) :
 	screenport( width, height, rotation ),
 	markFrameTime( 0 ),
@@ -124,7 +124,6 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	//engine->camera.SetYRotation( -60.f );
 
 	PushScene( BATTLE_SCENE, 0 );
-	loadCompleted = false;
 	PushPopScene();
 	engine->GetMap()->SetSize( base.size, base.size );
 
@@ -225,30 +224,6 @@ void Game::SceneNode::Free()
 }
 
 
-/*
-void Game::ProcessLoadRequest()
-{
-	if ( loadRequested == 0 )	// continue
-	{
-		GLString path = GameSavePath();
-		TiXmlDocument doc;
-		doc.LoadFile( path.c_str() );
-		GLASSERT( !doc.Error() );
-		if ( !doc.Error() ) {
-			Load( doc );
-			loadCompleted = true;
-		}
-	}
-	else if ( loadRequested == 1 )	// new game
-	{
-		Load( newGameXML );
-		loadCompleted = true;
-	}
-	loadRequested = -1;
-}
-*/
-
-
 void Game::PushScene( int sceneID, SceneData* data )
 {
 	GLASSERT( sceneQueued.sceneID == NUM_SCENES );
@@ -321,14 +296,12 @@ void Game::PushPopScene()
 
 		node->scene->Activate();
 
-		if ( node->sceneID == BATTLE_SCENE && !Engine::mapMakerMode ) {
+		if ( node->scene->CanSave() && !Engine::mapMakerMode ) {
 			GLString path = GameSavePath();
 			TiXmlDocument doc;
 			doc.LoadFile( path.c_str() );
-			GLASSERT( !doc.Error() );
 			if ( !doc.Error() ) {
 				Load( doc );
-				loadCompleted = true;
 			}
 		}
 	}
@@ -392,7 +365,7 @@ void Game::Load( const TiXmlDocument& doc )
 
 void Game::Save()
 {
-	if ( loadCompleted && !sceneStack.Empty() ) {
+	if ( !sceneStack.Empty() && sceneStack.Bottom()->scene->CanSave() ) {
 		GLString path = GameSavePath();
 		FILE* fp = fopen( path.c_str(), "w" );
 		GLASSERT( fp );

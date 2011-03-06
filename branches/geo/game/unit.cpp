@@ -225,6 +225,7 @@ void Unit::Init(	Game* game,
 	nMissions = 0;
 	allMissionKills = 0;
 	allMissionOvals = 0;
+	model = 0;
 
 	GLASSERT( this->status == STATUS_NOT_INIT );
 	this->game = game;
@@ -282,6 +283,7 @@ void Unit::Free()
 		weapon = 0;
 	}
 	status = STATUS_NOT_INIT;
+	model = 0;
 }
 
 
