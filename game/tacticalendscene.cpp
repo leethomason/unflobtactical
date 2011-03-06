@@ -20,6 +20,8 @@
 #include "game.h"
 #include "cgame.h"
 #include "../grinliz/glstringutil.h"
+#include "tacticalintroscene.h"
+#include "research.h"
 
 using namespace grinliz;
 
@@ -56,12 +58,43 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 	int nCivsAlive = Unit::Count( data->civs, MAX_CIVS, Unit::STATUS_ALIVE );
 	int nCivsKIA = Unit::Count( data->civs, MAX_CIVS, Unit::STATUS_KIA );
 
-	if ( nSoldiersAlive>0 && nAliensAlive==0 )
+	if ( nSoldiersAlive>0 && nAliensAlive==0 ) {
 		victory.SetText( "Victory!" );
-	else if ( nAliensAlive>0 && nSoldiersAlive==0 )
+		
+		// Award UFO stuff
+		int scenario = game->GetScenario();
+		if ( TacticalIntroScene::IsScoutScenario( scenario ) ) {
+			d->storage->AddItem( "Cor:S" );
+		}
+		else if ( TacticalIntroScene::IsFrigateScenario( scenario ) ) {
+			d->storage->AddItem( "Cor:F" );
+		}
+		else if ( scenario == TacticalIntroScene::BATTLESHIP ) {
+			d->storage->AddItem( "Cor:B" );
+		}
+
+		// Alien corpses:
+		for( int i=0; i<MAX_ALIENS; ++i ) {
+			if ( data->aliens[i].InUse() ) {
+				switch( data->aliens[i].AlienType() ) {
+
+				case Unit::ALIEN_GREEN:		d->storage->AddItem( "Green" );	break;
+				case Unit::ALIEN_PRIME:		d->storage->AddItem( "Prime" );	break;
+				case Unit::ALIEN_HORNET:	d->storage->AddItem( "Hrnet" );	break;
+				case Unit::ALIEN_JACKAL:	d->storage->AddItem( "Jackl" );	break;
+				case Unit::ALIEN_VIPER:		d->storage->AddItem( "Viper" );	break;
+				default: GLASSERT( 0 );	break;
+
+				}
+			}
+		}
+	}
+	else if ( nAliensAlive>0 && nSoldiersAlive==0 ) {
 		victory.SetText( "Defeat." );
-	else 
+	}
+	else {
 		victory.SetText( "Mission Summary:" );
+	}
 	victory.SetPos( X_NAME, YPOS );
 
 	const char* text[TEXT_ROW] = { "Soldiers survived",  "Soldiers KIA/MIA/KO",
@@ -120,15 +153,35 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 		}
 	}
 
+	// If the tech isn't high enough, can't use cells and anti
+	const Research* research = game->GetResearch();
+	static const char* remove[2] = { "Cell", "Anti" };
+	for( int i=0; i<2; ++i ) {
+		if ( research->GetStatus( remove[i] ) != Research::TECH_RESEARCH_COMPLETE ) {
+			const ItemDef* itemDef = game->GetItemDefArr().Query( remove[i] );
+
+			while( d->storage->Contains( itemDef ) ) {
+				Item item;
+				d->storage->RemoveItem( itemDef, &item );
+			}
+		}
+	}
+
 	int row=0;
 	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
 		if ( row == ITEM_NUM )
 			break;
+
+		const ItemDef* itemDef = game->GetItemDefArr().GetIndex(i);
+		if ( !itemDef )
+			continue;
+
 		if ( d->storage->GetCount(i) ) {
 			char buf[30];
-			const char* name = game->GetItemDefArr().GetIndex(i)->displayName.c_str();
+			const char* display = itemDef->displayName.c_str();
+
 			int count =  d->storage->GetCount(i);
-			SNPrintf( buf, 30, "%s +%d", name, count );
+			SNPrintf( buf, 30, "%s +%d", display, count );
 
 			items[row].Init( &gamui2D );
 			items[row].SetPos( X_ITEMS, YPOS + (float)row*20.f );

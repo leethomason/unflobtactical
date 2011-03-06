@@ -36,7 +36,8 @@ public:
 	~Research();
 
 	void DoResearch( int researcherSeconds );
-	bool ResearchReady() const  { return current && current->IsComplete(); }
+	bool ResearchReady() const			{ return current && current->IsComplete(); }
+	bool ResearchInProgress() const		{ return current != 0; }
 	void SetItemAcquired( const char* name );
 	
 	const Task* Current() const { return current; }
@@ -52,6 +53,13 @@ public:
 	const char* GetDescription( const Task* task );
 	const Task* TaskArr() const { return taskArr; }
 	int NumTasks() const { return nTasks; }
+
+	enum {
+		TECH_FREE,
+		TECH_NOT_RESEARCHED,
+		TECH_RESEARCH_COMPLETE
+	};
+	int GetStatus( const char* name ) const;
 
 private:
 	static int SortTasks( const void* _a, const void* _b );

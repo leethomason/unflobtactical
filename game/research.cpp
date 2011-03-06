@@ -108,11 +108,22 @@ bool Research::Task::HasPreReq() const
 {
 	for( int i=0; i<MAX_PREREQ; ++i ) {
 		if ( prereq[i] ) {
-			const Task* other = map->Get( prereq[i] );
-			if ( !other->IsComplete() )
+			Task* other = 0;
+			map->Query( prereq[i], &other );
+			if ( other && !other->IsComplete() )
 				return false;
 		}
 	}
 	return true;
 }
 
+
+int Research::GetStatus( const char* name ) const
+{
+	Task* task = 0;
+	map.Query( name, &task );
+	if ( task ) {
+		return task->IsComplete() ? TECH_RESEARCH_COMPLETE : TECH_NOT_RESEARCHED;
+	}
+	return TECH_FREE;
+}

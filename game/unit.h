@@ -81,7 +81,7 @@ public:
 	void Kill( TacMap* map );		// normally called by DoDamage
 	void UseTU( float val )		{ tu = grinliz::Max( 0.0f, tu-val ); }
 	void Leave();
-	void Heal()					{ tu = stats.TotalTU(); hp = stats.TotalHP(); }
+	void Heal()					{ if ( status != STATUS_NOT_INIT ) { tu = stats.TotalTU(); hp = stats.TotalHP(); status = STATUS_ALIVE; }}
 
 	void NewTurn();
 

@@ -6,26 +6,190 @@
    -->
   <tree>
     <research>
-      <!-- Arrival needs to be the lowest points. It starts the plot. Should be 10 - 1 for testing. -->
-      <Arrival points="1">
-        The aliens have arrived.
+      <!-- Arrival needs to be the lowest points. It starts the plot. -->
+      <Arrival points="10">
+        We have long watched the aliens. Listened to the occasional strange
+        digital chatter. A long frozen alien corpse sits in the deepest
+        levels of our facility. Things are changing. The chatter is common now
+        and we are picking up distant images on long range detectors.
       </Arrival>
-      <Test0 points="5">
-        A test with dependency.
-        <required0 research="Arrival" />
-      </Test0>
-      <Hornet points="20">
-        The Hornet is a light alien assault troop.
-        <required0 item="Hornet" />
+      
+      <!-- Alien genetics / reason to be here plotline -->
+      <Green points="20">
+        The same kind of creature is in the vaults from 70 years ago. Physically weak,
+        mentally well developed, with reaction time within human ranges. Eyesight is 
+        more adapted to darkness than ours, although the sight mechanisms are the same.
+        The greens are much better adapted to night fighting than humans.
+        <required0 item="Green" />
+      </Green>
+      <Hornet points="40">
+        The Hornet is a fast, mobile alien assault troop. The Hornet is genetically a blend
+        of the alien DNA we see in the Green with another race. The Greens or their masters
+        must be assimilating the genetics of other creatures.
+        <required0 research="Green" />
+        <required1 item="Hornet" />
       </Hornet>
+      <Viper points="40">
+        The Viper is a heavy alien assault troop with significant natural armor. Like the Hornet,
+        the Viper is a genetic blend. The genetic sources seem to indicate that the Hornet and Viper
+        are not from the Green's homeworld.
+        <required0 research="Green" />
+        <required1 research="Hornet" />
+        <required2 item="Viper" />
+      </Viper>
+      <Jackal points="60">
+        The Jackal is a cybort based on robotics and an alien creature. The creature - whatever it
+        is and wherever it from - is genetically distict yet again from the other aliens.
+        <required0 research="Green" />
+        <required1 research="Hornet" />
+        <required2 item="Jackal" />
+      </Jackal>
+      <Prime points="80">
+        The Prime and Green and lesser and greater creatures of the same race perhaps.
+        Very similar, yet the Prime is clearly the more intelligent with better
+        physical attributes as well. Clearly the ruling class. We must conclude that
+        the aliens are conquering and integrating the galaxy.
+        <required0 item="Prime" />
+        <required1 research="Green" />
+        <required2 research="Hornet" />
+        <required3 research="Viper" />
+      </Prime>
+
+      <!-- UFOs and Alien Base Plotline -->
+      <UFOs points="40" >
+        We have detected 3 classes of UFOs, which we refer to as the Scout, Frigate,
+        and Battleship. Something the size of the Battleship will never be able to
+        land on the Earth's surface; we're not sure how to attack it assuming it 
+        can hover like the other alien ships.
+        <required0 research="Arrival" />
+      </UFOs>
+      <AlienCores points="40">
+        We have retrieved an alien computer core. It is strange and adaptive, and
+        much of its purpose is inscruitable. But by connecting it to alien components
+        and our own sensors, we are beginning to get new information on the alien agenda.
+        <required0 item="Cor:S" />
+      </AlienCores>
+      <Scout points="40">
+        The Scout is a small ship undoubtlable responsible for many alient abductions
+        and sightings in the past. Why they leave crop circles as a part of their
+        abduction/scanning missions is a mystery. They hover for a short amount of
+        time and can be intercepted on land. 
+        <required0 research="AlienCores" />
+      </Scout>
+      <AlienTech points="40">
+        Alien weapons show tech classes we've designated T1, T2, and T3.
+        Whether higher tech weapons reflect manufacturing cost or alien
+        social status is unclear.
+        <required0 research="AlienCores" />
+      </AlienTech>
+      <Cell points="60">
+        We have research techniques to field stabilize the alien cells used to power
+        alien weapons. We can also charge them at the base. You may now collect cells in the field.
+        <required0 item="Cor:S" />
+        <required1 research="Hornet" />
+      </Cell>
+      <Anti points="80">
+        We have research techniques to field stabilize the alien anti-matter cells used in high
+        power alien weapons. We can also charge them at the base. You may now collect cells in the field.
+        <required0 item="Cor:F" />
+        <required1 research="Viper" />
+        <required2 research="Cell" />
+      </Anti>
+      <Frigate points="40">
+        The Frigate is a medium ship suited for both crop cirlcle missions and city
+        attack. It can carry about 12 aliens with full armament. The frigate computer 
+        core is larger than the Scout core, and it's navigation system is configured
+        differently. We need to research a Battleship core to compare the systems.
+        <required0 research="AlienTech" />
+        <required1 research="Scout" />
+        <required2 item="Cor:F" />
+      </Frigate>
+      <BattleshipAttack points="80">
+        The Battleships never come out of hover, and we have struggled with how to
+        attack them. The Frigate core contains the ability to authenticate with the
+        Battleships. We believe this can be used to dock our lander with a Battleship.
+        Obviously a very risky mission.
+        <required0 research="AlienTech" />
+        <required1 research="Scout" />
+        <required2 item="Cor:F" />
+      </BattleshipAttack>
+      <Battleship points="120">
+        The Battleship is well named. A fully capable alien vessel with massive firepower,
+        including a main downward facing gun for city control or base destruction. Even more
+        intriguing however is that the navigation system is based on a homing technology.
+        There must be a beacon, here on Earth, calling the Battleships!
+        <required0 item="Cor:B" />
+      </Battleship>
+      <Beacon points="200">
+        The beacon has been located. Without the ability to navigate over deep space, the
+        alien threat will be highly compromised. We feel confident that the beacon is
+        very heavily guarded.
+        <required0 item="Battleship" />
+      </Beacon>
+
+      <!-- Items -->
       <ASLT-2 points="40">
-        Research on the alien plasma rifle has allowed us to the develop an improved assault rifle.
+        Description Needed
         <required0 research="Hornet" />
-        <required1 item="PLS-" />
+        <required1 item="PLS-1" />
       </ASLT-2>
+      <ASLT-3 points="60">
+        Description Needed
+        <required0 research="Hornet" />
+        <required1 research="ASLT-2" />
+        <required2 item="PLS-3" />
+      </ASLT-3>
+
+      <LR-2 points="40">
+        Description Needed
+        <required0 item="RAY-1" />
+      </LR-2>
+      <LR-3 points="60">
+        Description Needed
+        <required0 research="Prime" />
+        <required1 research="LR-2" />
+        <required2 item="RAY-3" />
+      </LR-3>
+
+      <MCAN-2 points="40">
+        Description Needed
+        <required0 item="STORM-1" />
+        <required1 research="Jackal" />
+      </MCAN-2>
+      <MCAN-3 points="60">
+        Description Needed
+        <required0 research="MCAN-2" />
+        <required1 item="STORM-3" />
+      </MCAN-3>
+
+      <SG:K points="60">
+        Description Needed
+        <required0 research="Cor:S" />
+        <required1 research="Viper" />
+      </SG:K>
+      <SG:I points="80">
+        Description Needed
+        <required0 research="SG:I" />
+        <required1 research="Hornet" />
+      </SG:I>
+      <SG:E points="100">
+        Description Needed
+        <required0 research="SG:I" />
+        <required1 research="Prime" />
+      </SG:E>
+
+      <ARM-2 points="40">
+        Description Needed
+        <required1 research="Viper" />
+      </ARM-2>
+      <ARM-3 points="80">
+        Description Needed
+        <required0 research="ARM-2" />
+      </ARM-3>
+      
     </research>
   </tree>
-
+  
   <!-- Icon and UI -->
   <texture filename="icons.png" dither="false"/>
   <texture filename="icons2.png" dither="false"/>

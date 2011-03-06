@@ -10,7 +10,19 @@ GeoAI::GeoAI( const GeoMapData& _data ) : geoMapData( _data )
 }
 
 
-void GeoAI::GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vector2F* end, const RegionData* data )
+int GeoAI::ComputeBasesInRegion( int region, const ChitBag& chitBag )
+{
+	int nBasesInRegion = 0;
+	for( int j=0; j<MAX_BASES; ++j ) {
+		const BaseChit* baseChit = chitBag.GetBaseChit(j);
+		if ( baseChit && geoMapData.GetRegion( baseChit->MapPos().x, baseChit->MapPos().y ) == region ) {
+			baseInRegion[nBasesInRegion++] = baseChit;
+		}
+	}
+	return nBasesInRegion;
+}
+
+void GeoAI::GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vector2F* end, const RegionData* data, const ChitBag& chitBag )
 {
 	float score[GEO_REGIONS*2] = { 0 };
 	Vector2I dest = { -1, -1 };
@@ -23,9 +35,11 @@ void GeoAI::GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vect
 				// Consider it.
 				int count=0;
 				for( int i=0; i<GEO_REGIONS; ++i ) {
+					int nBasesInRegion = ComputeBasesInRegion( i, chitBag );
+
 					score[i] = 0;
 					if (    data[i].influence >= MIN_BASE_ATTACK_INFLUENCE 
-						 && data[i].NumBases() )
+						 && nBasesInRegion )
 					{
 						++count;
 						score[i] = data[i].Score();
@@ -33,8 +47,9 @@ void GeoAI::GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vect
 				}
 				if ( count > 0 ) {
 					int region = random.Select( score, GEO_REGIONS );
-					int id = random.Rand( data[region].NumBases() );
-					dest = data[region].Base( id );
+					int nBasesInRegion = ComputeBasesInRegion( region, chitBag );
+					int id = random.Rand( nBasesInRegion );
+					dest = baseInRegion[id]->MapPos();
 				}
 			}
 

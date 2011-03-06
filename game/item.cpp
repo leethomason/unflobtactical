@@ -39,12 +39,13 @@ void DamageDesc::MapDamage( MapDamageDesc* damage )
 }
 
 
-void ItemDef::InitBase( const char* name, const char* desc, int deco, int price, const ModelResource* resource )
+void ItemDef::InitBase( const char* name, const char* desc, int deco, int price, bool isAlien, const ModelResource* resource )
 {
 	this->name = name; 
 	this->desc = desc; 
 	this->deco = deco; 
 	this->price = price;
+	this->isAlien = isAlien;
 	this->resource = resource; 
 	this->index = 0;	// set later when added to ItemDefArr
 
@@ -60,12 +61,6 @@ void ItemDef::InitBase( const char* name, const char* desc, int deco, int price,
 			displayName += *p;
 		}
 	}
-}
-
-
-bool WeaponItemDef::IsAlien() const 
-{ 
-	return weapon[0].clipItemDef->IsAlien(); 
 }
 
 
@@ -371,6 +366,11 @@ Storage::~Storage()
 {
 }
 
+
+void Storage::Clear()
+{
+	memset( rounds, 0, sizeof(int)*EL_MAX_ITEM_DEFS );
+}
 
 bool Storage::Empty() const
 {

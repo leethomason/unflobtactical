@@ -43,6 +43,9 @@ static const char* MAP =
 ;
 
 
+static const char* gRegionName[GEO_REGIONS] = { "North", "South", "Europe", "Asia", "Africa", "Under" };
+
+
 void GeoMapData::Init( const char* map, Random* random )
 {
 	numLand = 0;
@@ -121,8 +124,14 @@ void GeoMapData::Choose( grinliz::Random* random, int region, int required, int 
 }
 
 
-void RegionData::Init(  const ItemDefArr& itemDefArr )
+void RegionData::Init(  const ItemDefArr& itemDefArr, Random* random )
 { 
+	traits = 0;
+	// Set 2 traits.
+	while ( traits == 0 || ( CeilPowerOf2( traits ) == traits ) ) {
+		traits |= ( 1 << random->Rand( TRAIT_NUM_BITS ) );
+	}
+
 	influence=0; 
 	for( int i=0; i<HISTORY; ++i ) history[i] = 1; 
 	occupied = false;
@@ -130,6 +139,44 @@ void RegionData::Init(  const ItemDefArr& itemDefArr )
 
 	storage->AddItem( "ASLT-1", 10 );
 	storage->AddItem( "Clip", 15 );
+}
+
+
+void RegionData::SetStorageNormal( const Research& research )
+{
+	int COUNT = 100;
+
+	storage->Clear();
+	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+		const ItemDef* itemDef = storage->GetItemDef( i );
+		if ( itemDef ) {
+			if ( itemDef->IsAlien() ) {
+				// do nothing. can not manufacture.
+			}
+			else {
+				// terran items.
+				int status = research.GetStatus( itemDef->name );
+				if ( status == Research::TECH_FREE ) {
+					storage->AddItem( itemDef, COUNT );
+				}
+				else if ( status == Research::TECH_RESEARCH_COMPLETE ) {
+					if (    itemDef->IsWeapon() 
+						 && ( itemDef->TechLevel() <= 2 || (traits & TRAIT_TECH ) ) ) 
+					{
+						storage->AddItem( itemDef, COUNT );
+					}
+					else if (    itemDef->IsArmor()
+						      && ( itemDef->TechLevel() <= 2 || (traits & TRAIT_MANUFACTURE ) ) ) 
+					{
+						storage->AddItem( itemDef, COUNT );
+					}
+					else {
+						storage->AddItem( itemDef, COUNT );
+					}
+				}
+			}
+		}
+	}
 }
 
 
@@ -152,7 +199,7 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 
 	geoMapData.Init( MAP, &random );
 	for( int i=0; i<GEO_REGIONS; ++i ) {
-		regionData[i].Init( game->GetItemDefArr() );
+		regionData[i].Init( game->GetItemDefArr(), &random );
 	}
 
 	geoMap = new GeoMap( GetEngine()->GetSpaceTree() );
@@ -163,9 +210,8 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 	timeBetweenAliens = 5*1000;
 	researchTimer = 0;
 
-	static const char* names[GEO_REGIONS] = { "North", "South", "Europe", "Asia", "Africa", "Under" };
 	for( int i=0; i<GEO_REGIONS; ++i ) {
-		areaWidget[i] = new AreaWidget( _game, &gamui2D, names[i] );
+		areaWidget[i] = new AreaWidget( _game, &gamui2D, gRegionName[i] );
 	}
 
 	helpButton.Init(&gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
@@ -188,25 +234,6 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 		context[i].SetVisible( false );
 		context[i].SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
 	}
-
-	//RenderAtom cashBackAtom = UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK, true );
-	//cashBackground.Init( &gamui2D, cashBackAtom, false );
-	//cashBackground.SetSlice( true );
-	//cashBackground.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F*0.5f );
-	//cashBackground.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F*0.5f );
-
-	cashText.Init( &gamui2D );
-	cashText.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F*0.5f );
-	CStr<16> buf = cash;
-	cashText.SetText( buf.c_str() );
-
-	/*
-	RenderAtom upE = UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK_OUTLINE, true );
-	RenderAtom upD = UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK_OUTLINE, false );
-	RenderAtom downE = UIRenderer::CalcIconAtom( ICON_YELLOW_STAND_MARK_OUTLINE, true );
-	RenderAtom downD = UIRenderer::CalcIconAtom( ICON_YELLOW_STAND_MARK_OUTLINE, false );
-	RenderAtom nullAtom;
-	*/	
 
 	for( int j=0; j<GEO_REGIONS; ++j ) {
 		for( int i=0, n=geoMapData.NumCities( j ); i<n; ++i ) {
@@ -239,9 +266,6 @@ void GeoScene::Activate()
 	SetMapLocation();
 	GetEngine()->SetIMap( geoMap );
 	SetMapLocation();
-
-	CStr<16> buf = cash;
-	cashText.SetText( buf.c_str() );
 }
 
 
@@ -317,6 +341,13 @@ void GeoScene::HandleItemTapped( const gamui::UIItem* item )
 		BaseChit* base = chitBag.GetBaseChit( label );
 		if ( base ) {
 			base->DeployLander( contextChit->MapPos() );
+		}
+	}
+	else if ( item == &researchButton ) {
+		if ( !game->IsScenePushed() ) {
+			ResearchSceneData* data = new ResearchSceneData();
+			data->research = &research;
+			game->PushScene( Game::RESEARCH_SCENE, data );
 		}
 	}
 }
@@ -535,7 +566,6 @@ void GeoScene::PlaceBase( const grinliz::Vector2I& map )
 
 			baseButton.SetUp();
 			int region = geoMapData.GetRegion( map.x, map.y );
-			regionData[region].AddBase( map );
 		}
 	}
 }
@@ -748,6 +778,7 @@ void GeoScene::DoLanderArrived( Chit* chitIt )
 		}
 
 		int scenario = TacticalIntroScene::FARM_SCOUT;				// fixme
+		game->SetCurrent( scenario, &research );
 
 		FastBattleSceneData* data = new FastBattleSceneData();
 		data->seed = posi.x + posi.y*GEO_MAP_X + scenario*37;
@@ -774,6 +805,21 @@ void GeoScene::SceneResult( int sceneID, int result )
 		Unit* units = baseChit->GetUnits();
 
 		if ( result == TacticalEndSceneData::VICTORY ) {
+			Storage* storage = baseChit->GetStorage();
+			for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+				const ItemDef* itemDef = storage->GetItemDef(i);
+				if ( itemDef && storage->GetCount( i )) {
+					research.SetItemAcquired( itemDef->name );
+				}
+			}
+
+			if ( !research.ResearchInProgress() ) {
+				if ( !game->IsScenePushed() ) {
+					ResearchSceneData* data = new ResearchSceneData();
+					data->research = &research;
+					game->PushScene( Game::RESEARCH_SCENE, data );
+				}
+			}
 			delete ufo;
 		}
 
@@ -835,7 +881,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 	if ( lastAlienTime==0 || (currentTime > lastAlienTime+timeBetweenAliens) ) {
 		Vector2F start, dest;
 		int type = UFOChit::SCOUT+random.Rand( 3 );
-		geoAI->GenerateAlienShip( type, &start, &dest, regionData );
+		geoAI->GenerateAlienShip( type, &start, &dest, regionData, chitBag );
 		
 		Chit *test = new UFOChit( tree, type, start, dest );
 		chitBag.Add( test );
@@ -878,7 +924,18 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 				int region = geoMapData.GetRegion( basei.x, basei.y );
 
 				if ( !regionData[region].occupied && baseChit ) {
-					BaseTradeSceneData* data = new BaseTradeSceneData( baseChit->GetStorage(), regionData[region].GetStorage(), &cash );
+					regionData[region].SetStorageNormal( research );
+
+					BaseTradeSceneData* data = new BaseTradeSceneData();			
+					data->baseName   = baseChit->Name();
+					data->regionName = gRegionName[region];
+					data->base		 = baseChit->GetStorage();
+					data->region	 = regionData[region].GetStorage();
+					data->cash		 = &cash;
+					data->costMult	 = regionData[region].traits & RegionData::TRAIT_CAPATALIST ? 1.2f : 1.4f;
+					data->soldierBoost = regionData[region].traits & RegionData::TRAIT_MILITARISTIC ? true : false;
+					data->soldiers	 = baseChit->GetUnits();
+					data->scientists = baseChit->IsFacilityComplete( BaseChit::FACILITY_SCILAB ) ? baseChit->GetResearcherPtr() : 0;
 					game->PushScene( Game::BASETRADE_SCENE, data );
 				}
 			}
@@ -1047,7 +1104,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 			}
 			Vector2I mapi = chitIt->MapPos();
 			int region = geoMapData.GetRegion( mapi.x, mapi.y );
-			regionData[region].RemoveBase( mapi );
+//			regionData[region].RemoveBase( mapi );
 		}
 	}
 	chitBag.Clean();

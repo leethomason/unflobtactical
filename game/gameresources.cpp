@@ -214,13 +214,13 @@ void Game::LoadItemResources()
 						clips[i].desc,
 						clips[i].deco,
 						clips[i].price,
+						clips[i].alien,
 						0 );
 
 		item->defaultRounds = clips[i].rounds;
 		item->dd = clips[i].dd;
 
 		item->abbreviation = clips[i].abbreviation;
-		item->alien = clips[i].alien;
 		item->color = clips[i].color;
 		item->speed = clips[i].speed;
 		item->width = clips[i].width;
@@ -322,8 +322,13 @@ void Game::LoadItemResources()
 		{ 0 }
 	};
 
+	bool alien = false;
 	for( int i=0; weapons[i].name; ++i ) {
 		WeaponItemDef* item = new WeaponItemDef();
+		
+		// HACK
+		if ( weapons[i].deco == DECO_RAYGUN )
+			alien = true;
 
 		GLASSERT( !weapons[i].clip0 || ( weapons[i].clip0 != weapons[i].clip1 ) );	// code later get confused.
 
@@ -331,6 +336,7 @@ void Game::LoadItemResources()
 						weapons[i].desc, 
 						weapons[i].deco,
 						0,	// set below
+						alien,
 						ModelResourceManager::Instance()->GetModelResource( weapons[i].resName ) );
 
 		for( int j=0; j<3; ++j ) {
@@ -381,22 +387,26 @@ void Game::LoadItemResources()
 		const char* resName;
 		int deco;
 		U32 price;
+		bool alien;
 		const char* desc;
 	};
 
 	static const ItemInit items[] = {		
-		{ "S-Core",	0,				DECO_METAL,		20, "Scout tech core" },
-		{ "F-Core",	0,				DECO_METAL,		20, "Frigate tech core" },
-		{ "B-Core",	0,				DECO_METAL,		20, "Battleship tech core" },
-		{ "Tech",	0,				DECO_TECH,		20, "Alien Tech" },
-		{ "Green",	0,				DECO_ALIEN,		20, "Green" },
-		{ "Prime",	0,				DECO_ALIEN,		20, "Prime" },
-		{ "Hornet",	0,				DECO_ALIEN,		20, "Hornet" },
-		{ "Jackal",	0,				DECO_ALIEN,		20, "Jackal" },
-		{ "Viper",	0,				DECO_ALIEN,		20, "Viper" },
-		{ "SG:E",	0,				DECO_SHIELD,	50, "Energy Shield" },
-		{ "SG:I",	0,				DECO_SHIELD,	50, "Incendiary Shield" },
-		{ "SG:K",	0,				DECO_SHIELD,	50, "Kinetic Shield" },
+//		{ "Soldr",0,				DECO_CHARACTER,	80, false, "Soldier" },
+//		{ "Scnce",0,				DECO_CHARACTER,	80, false, "Scientist" },
+		{ "Cor:S",	0,				DECO_METAL,		20, true, "Scout tech core" },
+		{ "Cor:F",	0,				DECO_METAL,		20, true, "Frigate tech core" },
+		{ "Cor:B",	0,				DECO_METAL,		20, true, "Battleship tech core" },
+		//{ "Tech",	0,				DECO_TECH,		20, true, "Alien Tech" },
+		{ "Green",	0,				DECO_ALIEN,		20, true, "Green" },
+		{ "Prime",	0,				DECO_ALIEN,		20, true, "Prime" },
+		{ "Hrnet",	0,				DECO_ALIEN,		20, true, "Hornet" },
+		{ "Jackl",	0,				DECO_ALIEN,		20, true, "Jackal" },
+		{ "Viper",	0,				DECO_ALIEN,		20, true, "Viper" },
+
+		{ "SG:E",	0,				DECO_SHIELD,	50, false, "Energy Shield" },
+		{ "SG:I",	0,				DECO_SHIELD,	50, false, "Incendiary Shield" },
+		{ "SG:K",	0,				DECO_SHIELD,	50, false, "Kinetic Shield" },
 
 		{ 0 }
 	};
@@ -407,6 +417,7 @@ void Game::LoadItemResources()
 						items[i].desc,
 						items[i].deco,
 						items[i].price,
+						items[i].alien,
 						items[i].resName ? ModelResourceManager::Instance()->GetModelResource( items[i].resName ) : 0 );
 		itemDefArr.Add( item );
 	}
@@ -424,6 +435,7 @@ void Game::LoadItemResources()
 						armor[i].desc,
 						armor[i].deco,
 						armor[i].price,
+						false,	// all armor is terran
 						armor[i].resName ? ModelResourceManager::Instance()->GetModelResource( items[i].resName ) : 0 );
 		itemDefArr.Add( item );
 	}

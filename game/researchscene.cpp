@@ -50,8 +50,8 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 	okayButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	okayButton.SetText( "Done" );
 
-	SetDescription();
 	SetOptions();
+	SetDescription();
 }
 
 
@@ -94,7 +94,21 @@ void ResearchScene::SetDescription()
 		mainDescription.SetText( r->GetDescription( task ) );
 	}
 	else {
-		mainDescription.SetText( "Research in progress." );
+		if ( r->ResearchInProgress() ) {
+			mainDescription.SetText( "Research in progress." );
+		}
+		else {
+			int i;
+			for( i=0; i<MAX_OPTIONS; i++ ) {
+				if ( optionButton[i].Down() && optionButton[i].Enabled() ) {
+					mainDescription.SetText( "Research in progress." );
+					break;
+				}
+			}
+			if ( i == MAX_OPTIONS ) {
+				mainDescription.SetText( "Research requirements not met." );
+			}
+		}
 	};
 }
 
@@ -107,18 +121,24 @@ void ResearchScene::SetOptions()
 	const Research::Task* taskArr = r->TaskArr();
 	static const int SZ=64;
 	char buf[SZ];
+	bool downSet = false;
 
 	for( i=0; i<r->NumTasks() && count < MAX_OPTIONS; ++i ) {
 		if ( !taskArr[i].IsComplete() && taskArr[i].HasPreReq() ) {
 			int percent = (int)(100.0f * (float)taskArr[i].rp / (float)taskArr[i].rpRequired );
 			SNPrintf( buf, SZ, "%d%%", percent );
-			optionButton[count].SetEnabled( true );
 			optionButton[count].SetText( buf );
 
 			optionName[count].SetText( taskArr[i].name );
 
+			if ( r->Current() && StrEqual( r->Current()->name, taskArr[i].name ) ) {
+				optionButton[count].SetDown();
+				downSet = true;
+			}
+
 			if ( taskArr[i].HasItems() ) {
 				optionRequires[count].SetText( "" );
+				optionButton[count].SetEnabled( true );
 			}
 			else {
 				GLASSERT( Research::MAX_ITEMS_REQUIRED == 4 );
@@ -139,6 +159,13 @@ void ResearchScene::SetOptions()
 		optionName[count].SetText( "" );
 		optionRequires[count].SetText( "" );
 	}
-	optionButton[0].SetDown();
+	if ( !downSet ) {
+		for( int i=0; i<MAX_OPTIONS; ++i ) {
+			if ( optionButton[i].Enabled() ) {
+				optionButton[i].SetDown();
+				break;
+			}
+		}
+	}
 }
 
