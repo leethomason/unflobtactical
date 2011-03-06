@@ -17,7 +17,7 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	const Screenport& port = GetEngine()->GetScreenport();
 
 	originalBase = new Storage( *data->base );
-	originalRegion = new Storage( *data->region );
+	originalRegion = new Storage( data->region );
 
 	static const float TEXTSPACE = 16.0f;
 
@@ -54,7 +54,7 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	baseWidget->SetFudgeFactor( -5, -5 );
 	baseWidget->SetOrigin( 0, TEXTSPACE );
 
-	regionWidget = new StorageWidget( &gamui2D, green, tab, game->GetItemDefArr(), data->region, data->costMult );
+	regionWidget = new StorageWidget( &gamui2D, green, tab, game->GetItemDefArr(), &data->region, data->costMult );
 	regionWidget->SetFudgeFactor( -5, -5 );
 	regionWidget->SetOrigin( (float)port.UIWidth()-regionWidget->Width(), TEXTSPACE );
 
@@ -121,16 +121,6 @@ void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const gri
 
 	if ( uiItem == &okay ) {
 		game->PopScene( 0 );
-		int total = 0;
-		if ( ComputePrice( &total ) ) {
-			// Can afford:
-			*data->cash += total;
-		}
-		else {
-			// Can't pay:
-			*data->base = *originalBase;
-			*data->region = *originalRegion;
-		}
 	}
 	else if ( uiItem == &hireSoldier ) {
 		if ( *data->cash >= SOLDIER_COST ) {
@@ -138,6 +128,8 @@ void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const gri
 			*data->cash -= SOLDIER_COST;
 			int nSoldiers = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_ALIVE );
 			GLASSERT( nSoldiers < MAX_TERRANS && !data->soldiers[nSoldiers].InUse() );
+			data->soldiers[nSoldiers].Free();	// just in case.
+			memset( &data->soldiers[nSoldiers], 0, sizeof(Unit) );
 
 			int seed = *data->cash ^ nSoldiers;
 			TacticalIntroScene::GenerateTerranTeam( &data->soldiers[nSoldiers], 1, 
@@ -162,12 +154,12 @@ void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const gri
 		if ( itemDef ) {
 			Item item;
 			if ( data->base->RemoveItem( itemDef, &item ) ) {
-				data->region->AddItem( item );
+				data->region.AddItem( item );
 
 				if ( !ComputePrice( 0 ) ) {
 					// unroll
 					data->base->AddItem( item );
-					data->region->RemoveItem( item.GetItemDef(), &item );
+					data->region.RemoveItem( item.GetItemDef(), &item );
 				}
 			}
 		}
@@ -175,12 +167,12 @@ void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const gri
 		itemDef = regionWidget->ConvertTap( uiItem );
 		if ( itemDef ) {
 			Item item;
-			if ( data->region->RemoveItem( itemDef, &item ) ) {
+			if ( data->region.RemoveItem( itemDef, &item ) ) {
 				data->base->AddItem( item );
 
 				if ( !ComputePrice( 0 ) ) {
 					// unroll
-					data->region->AddItem( item );
+					data->region.AddItem( item );
 					data->base->RemoveItem( item.GetItemDef(), &item );
 				}
 			}

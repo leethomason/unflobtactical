@@ -135,14 +135,10 @@ void RegionData::Init(  const ItemDefArr& itemDefArr, Random* random )
 	influence=0; 
 	for( int i=0; i<HISTORY; ++i ) history[i] = 1; 
 	occupied = false;
-	storage = new Storage( 0, 0, itemDefArr );
-
-	storage->AddItem( "ASLT-1", 10 );
-	storage->AddItem( "Clip", 15 );
 }
 
 
-void RegionData::SetStorageNormal( const Research& research )
+void RegionData::SetStorageNormal( const Research& research, Storage* storage )
 {
 	int COUNT = 100;
 
@@ -182,8 +178,31 @@ void RegionData::SetStorageNormal( const Research& research )
 
 void RegionData::Free()
 {
-	delete storage;
 }
+
+
+void RegionData::Save( FILE* fp, int depth )
+{
+	XMLUtil::OpenElement( fp, depth, "Region" );
+	XMLUtil::Attribute( fp, "traits", traits );
+	XMLUtil::Attribute( fp, "influence", influence );
+	XMLUtil::Attribute( fp, "occupied", occupied );
+	XMLUtil::SealElement( fp );
+
+	for( int i=0; i<HISTORY; ++i ) {
+		XMLUtil::OpenElement( fp, depth+1, "History" );
+		XMLUtil::Attribute( fp, "value", history[i] );
+		XMLUtil::SealCloseElement( fp );
+	}
+	XMLUtil::CloseElement( fp, depth, "Region" );
+}
+
+
+void RegionData::Load( const TiXmlElement* doc )
+{
+	GLASSERT( 0 );
+}
+
 
 
 GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase() )
@@ -206,8 +225,9 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 	tree = GetEngine()->GetSpaceTree();
 	geoAI = new GeoAI( geoMapData );
 
-	lastAlienTime = 0;
-	timeBetweenAliens = 5*1000;
+//	lastAlienTime = 0;
+//	timeBetweenAliens = 5*1000;
+	alienTimer = 0;
 	researchTimer = 0;
 
 	for( int i=0; i<GEO_REGIONS; ++i ) {
@@ -769,13 +789,15 @@ void GeoScene::DoLanderArrived( Chit* chitIt )
 	Chit* chitAt = chitBag.GetParkedChitAt( posi );
 	UFOChit* ufoChit = chitAt ? chitAt->IsUFOChit() : 0;
 	if ( ufoChit ) {
-		landerArrived = posi;
-		attackingBaseID = chitIt->ID();
+		//landerArrived = posi;
+		//attackingBaseID = chitIt->ID();
+
+		ufoChit->SetBattle( true );
 		Unit* units = chitIt->IsBaseChit()->GetUnits();
 
-		for( int i=0; i<MAX_TERRANS; ++i ) {
-			inventoryMemory[i] = *units[i].GetInventory();
-		}
+		//for( int i=0; i<MAX_TERRANS; ++i ) {
+			//inventoryMemory[i] = *units[i].GetInventory();
+		//}
 
 		int scenario = TacticalIntroScene::FARM_SCOUT;				// fixme
 		game->SetCurrent( scenario, &research );
@@ -796,12 +818,29 @@ void GeoScene::DoLanderArrived( Chit* chitIt )
 void GeoScene::SceneResult( int sceneID, int result )
 {
 	if ( sceneID == Game::FASTBATTLE_SCENE || sceneID == Game::BATTLE_SCENE ) {
-		
-		UFOChit* ufo = chitBag.GetLandedUFOChitAt( landerArrived );
-		
-		Chit* chit = chitBag.GetChit( attackingBaseID );
-		BaseChit* baseChit = chit->IsBaseChit();
-		GLASSERT( baseChit && ufo );
+
+		UFOChit* ufo = 0;
+		for( Chit* it=chitBag.Begin(); it != chitBag.End(); it=it->Next() ) {
+			if ( it->IsUFOChit() && it->IsUFOChit()->InBattle() ) {
+				ufo = it->IsUFOChit();
+				ufo->SetBattle( false );
+				break;
+			}
+		}
+		GLASSERT( ufo );
+
+		BaseChit* baseChit = 0;
+		for( int i=0; i<MAX_BASES; i++ ) {
+			BaseChit* it = chitBag.GetBaseChit(i);
+			if (    it 
+				 && it->LanderTarget() == ufo->MapPos()
+				 && it->LanderMapPos() == ufo->MapPos() )
+			{
+				baseChit = it;
+				break;
+			}
+		}
+		GLASSERT( baseChit );
 		Unit* units = baseChit->GetUnits();
 
 		if ( result == TacticalEndSceneData::VICTORY ) {
@@ -867,7 +906,6 @@ void GeoScene::SceneResult( int sceneID, int result )
 void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 {
 	researchTimer += deltaTime;
-
 	if ( researchTimer > 1000 ) {
 		researchTimer -= 1000;
 		int nResearchers = 0;
@@ -878,15 +916,16 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 		research.DoResearch( nResearchers );
 	}
 
-	if ( lastAlienTime==0 || (currentTime > lastAlienTime+timeBetweenAliens) ) {
+	alienTimer += deltaTime;
+	if ( alienTimer > 5000 ) {
+		alienTimer -= 5000;
+
 		Vector2F start, dest;
 		int type = UFOChit::SCOUT+random.Rand( 3 );
 		geoAI->GenerateAlienShip( type, &start, &dest, regionData, chitBag );
 		
 		Chit *test = new UFOChit( tree, type, start, dest );
 		chitBag.Add( test );
-
-		lastAlienTime = currentTime;
 	}
 	missileTimer[0] += deltaTime;
 	missileTimer[1] += deltaTime;
@@ -924,13 +963,11 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 				int region = geoMapData.GetRegion( basei.x, basei.y );
 
 				if ( !regionData[region].occupied && baseChit ) {
-					regionData[region].SetStorageNormal( research );
-
-					BaseTradeSceneData* data = new BaseTradeSceneData();			
+					BaseTradeSceneData* data = new BaseTradeSceneData( game->GetItemDefArr() );			
 					data->baseName   = baseChit->Name();
 					data->regionName = gRegionName[region];
 					data->base		 = baseChit->GetStorage();
-					data->region	 = regionData[region].GetStorage();
+					regionData[region].SetStorageNormal( research, &data->region );
 					data->cash		 = &cash;
 					data->costMult	 = regionData[region].traits & RegionData::TRAIT_CAPATALIST ? 1.2f : 1.4f;
 					data->soldierBoost = regionData[region].traits & RegionData::TRAIT_MILITARISTIC ? true : false;
@@ -1164,4 +1201,44 @@ void GeoScene::Debug3D()
 }
 
 
+void GeoScene::Save( FILE* fp, int depth )
+{
+	// Scene
+	// GeoScene
+	//		RegionData
+	//		Chits
+	//		Research
+	// Units
+
+	XMLUtil::OpenElement( fp, depth, "GeoScene" );
+	XMLUtil::Attribute( fp, "alienTimer", alienTimer );
+	XMLUtil::Attribute( fp, "missileTimer0", missileTimer[0] );
+	XMLUtil::Attribute( fp, "missileTimer1", missileTimer[1] );
+	XMLUtil::Attribute( fp, "researchTimer", researchTimer );
+	XMLUtil::Attribute( fp, "cash", cash );
+	XMLUtil::Attribute( fp, "firstBase", firstBase );
+	XMLUtil::SealElement( fp );
+
+	XMLUtil::OpenElement( fp, depth+1, "RegionData" );
+	XMLUtil::SealElement( fp );
+	for( int i=0; i<GEO_REGIONS; ++i ) {
+		regionData[i].Save( fp, depth+2 );
+	}
+	XMLUtil::CloseElement( fp, depth+1, "RegionData" );
+
+	XMLUtil::OpenElement( fp, depth+1, "Chits" );
+	XMLUtil::SealElement( fp );
+	for( Chit* it=chitBag.Begin(); it!=chitBag.End(); it=it->Next() ) {
+		it->Save( fp, depth+2 );
+	}
+	XMLUtil::CloseElement( fp, depth+1, "Chits" );
+
+	XMLUtil::CloseElement( fp, depth, "GeoScene" );
+}
+
+
+void GeoScene::Load( const TiXmlElement* doc )
+{
+//	GLASSERT( 0 );
+}
 

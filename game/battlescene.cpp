@@ -410,19 +410,16 @@ void BattleScene::Save( FILE* fp, int depth )
 	XMLUtil::Attribute( fp, "currentTeamTurn", currentTeamTurn );
 	XMLUtil::Attribute( fp, "dayTime", tacMap->DayTime() ? 1 : 0 );
 	XMLUtil::Attribute( fp, "turnCount", turnCount );
-
 	XMLUtil::SealCloseElement( fp );
 
 	tacMap->Save( fp, depth );
-	{
-		XMLUtil::OpenElement( fp, depth, "Units" );
-		XMLUtil::SealElement( fp );
-	
-		for( int i=0; i<MAX_UNITS; ++i ) {
-			units[i].Save( fp, depth+1 );
-		}
-		XMLUtil::CloseElement( fp, depth, "Units" );
+
+	XMLUtil::OpenElement( fp, depth, "Units" );
+	XMLUtil::SealElement( fp );
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		units[i].Save( fp, depth+1 );
 	}
+	XMLUtil::CloseElement( fp, depth, "Units" );
 }
 
 

@@ -2,24 +2,29 @@
 #define BASETRADE_INCLUDED
 
 #include "scene.h"
+#include "item.h"
 
 class Storage;
 class StorageWidget;
 
 
+
 class BaseTradeSceneData : public SceneData
 {
 public:
+	BaseTradeSceneData( const ItemDefArr& arr ) : region( 0, 0, arr ) {}
+
 	const char* baseName;
 	const char* regionName;
 	Storage* base;
-	Storage* region;
 	int* cash;
 	float costMult;			// multiplier applies to purchase price	
 
 	bool soldierBoost;
 	Unit* soldiers;			// can hire more soldiers!
 	int *scientists;
+
+	Storage region;
 };
 
 

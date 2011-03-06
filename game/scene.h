@@ -59,6 +59,7 @@ public:
 	virtual void Rotate( float degrees )						{}
 	virtual void CancelInput()									{}
 
+	virtual bool CanSave()										{ return false; }
 	virtual void Save( FILE* fp, int depth )					{}
 	virtual void Load( const TiXmlElement* doc )				{}
 	virtual void HandleHotKeyMask( int mask )					{}

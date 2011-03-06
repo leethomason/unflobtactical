@@ -119,6 +119,9 @@ public:
 	int ID()							{ return id; }
 	Chit* Next()						{ return next; }
 
+	virtual void Save( FILE* fp, int depth );
+	virtual void Load( const TiXmlElement* doc );
+
 protected:
 	grinliz::Vector2F pos;		// in map units - NOT normalized
 	grinliz::Vector2F dest;		// in map units - NOT normalized
@@ -179,11 +182,16 @@ public:
 
 	void SetAI( int _ai ); 
 	int AI() const						{ return ai; }
+	void SetBattle( bool inBattle )		{ this->inBattle = inBattle; }
+	bool InBattle()	const				{ return inBattle; }
 	
 	float Speed() const					{ return speed; }
 	grinliz::Vector2F Velocity() const;
 	float Radius() const;
 	void DoDamage( float d );
+
+	virtual void Save( FILE* fp, int depth );
+	virtual void Load( const TiXmlElement* doc );
 
 private:
 	void EmitEntryExitBurn( U32 deltaTime, const grinliz::Vector3F& p0, const grinliz::Vector3F& p1, bool entry );
@@ -194,6 +202,7 @@ private:
 	int ai;
 	float speed;
 	float hp;
+	bool inBattle;
 	
 	U32 effectTimer;
 	U32 jobTimer;
@@ -210,6 +219,9 @@ public:
 
 	virtual int DoTick( U32 deltaTime );
 
+	virtual void Save( FILE* fp, int depth );
+	virtual void Load( const TiXmlElement* doc );
+
 private:
 	enum {
 		CROP_CIRCLE_TIME_SECONDS = 20
@@ -225,6 +237,9 @@ public:
 	~CityChit()	{}
 
 	virtual int DoTick( U32 deltaTime )	{ return MSG_NONE; }
+
+	virtual void Save( FILE* fp, int depth );
+	virtual void Load( const TiXmlElement* doc );
 
 private:
 	bool capital;
@@ -268,18 +283,23 @@ public:
 	bool IsFacilityInProgress( int i )			{ return facilityStatus[i] > 0; }
 	void BuildFacility( int i )					{ GLASSERT( facilityStatus[i] < 0 ); facilityStatus[i] = BUILD_TIME*1000; }
 
-	bool LanderDeployed() const					{ return lander[0] != 0; }
+	bool LanderDeployed() const						{ return lander[0] != 0; }
+	const grinliz::Vector2I& LanderTarget() const	{ return landerTarget; }
 	void DeployLander( const grinliz::Vector2I& pos );
 	grinliz::Vector2I LanderMapPos() const;
+
+	virtual void Save( FILE* fp, int depth );
+	virtual void Load( const TiXmlElement* doc );
 
 private:
 	int index;
 	int nScientists;
-	Storage* storage;
 
 	grinliz::Vector2I landerTarget;
+	bool landerOutbound;
 	Model* lander[2];
 
+	Storage* storage;
 	int facilityStatus[NUM_FACILITIES];	// -1, does not exist. 0, complete. >0 in progress
 	Unit units[MAX_TERRANS];
 };
@@ -296,9 +316,10 @@ public:
 
 	grinliz::Vector2I Base() { return baseInMap; }
 
+	virtual void Save( FILE* fp, int depth );
+	virtual void Load( const TiXmlElement* doc );
+
 private:
-	grinliz::Vector2F city;
-	grinliz::Vector2F base;
 	bool goingToBase;
 	grinliz::Vector2I cityInMap;
 	grinliz::Vector2I baseInMap;

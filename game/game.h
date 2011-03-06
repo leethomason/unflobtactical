@@ -213,7 +213,6 @@ private:
 
 	bool scenePopQueued;
 	bool sceneResetQueued;
-	bool loadCompleted;
 
 	void Init();
 	void LoadTextures();

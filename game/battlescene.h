@@ -108,6 +108,7 @@ public:
 	virtual void DrawHUD();
 	virtual void HandleHotKeyMask( int mask );
 
+	virtual bool CanSave()										{ return true; }
 	virtual void Save( FILE* fp, int depth );
 	virtual void Load( const TiXmlElement* doc );
 
