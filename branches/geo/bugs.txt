@@ -5,30 +5,19 @@ Bugs:
 Android
 - Amazon
 
-- geo: need to buy/sell soldiers
-- geo: need to buy/sell researchers
-- geo: numResearchers hard coded to 8
-- geo: research checked to "kick start" after mission.
-- geo: set accumulated stuff to research after mission
-- geo: KO'd units getting killed
-- geo: random money readout just hanging out
+- geo: apply civilian win/loss to something
+
+- geo: buy / sell should have one button, no going negative
 - geo: help not hooked up
-- geo: research not implemented
 - geo: paced start, difficulty coordinated
 - geo: place first base - flash? effect?
-- geo: base should have basic stores
-- storage widget: uses "old shool" text display
 - check that clips don't get used up & refill
-- geo: need tech for alien clips
-- stat screen: reaction time incorrect readout, need mission kills & XP
 - wpns screen: old school text
 - geo: character screen left/right should work
 - character screen: show character
 - geo: build screen: layout. Indicate all build?
 - geo: no indication of base capabilities
 - geo: free to build bases
-- geo: buy / sell overwhelming
-- geo: buy / sell should have one button, no going negative
 - geo: account for countries having stuff
 - geo: a ufo will return to orbit if it gets to a "parked" tile. Should find a new task.
 - geo: can't save / load
@@ -42,8 +31,23 @@ Android
 - soldiers alive/killed counts incorrect
 - level up needs icon. rank is incorrect if soldier levels up. Move names up so the button is impinged.
 - geo: colors ugly, look not correct
+- geo: research checked to "kick start" after mission. implemented; does it work?
 
 Fixed:
+- geo: need to buy/sell soldiers
+- geo: need to buy/sell researchers
+- geo: numResearchers hard coded to 8
+- geo: random money readout just hanging out
+- geo: KO'd units getting killed
+- geo: set accumulated stuff to research after mission
+- geo: need tech for alien clips
+- geo: hook up research button
+- geo: buy / sell overwhelming
+- stat screen: reaction time incorrect readout, need mission kills & XP
+- storage widget: uses "old shool" text display
+- geo: research not implemented
+- "base", "region" needs proper names
+- short names on buttons
 - geo: cargo not working
 - geo: remove cancel, implement "click away"
 - geo: saucers will choose bases for crop circles

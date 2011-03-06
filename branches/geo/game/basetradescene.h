@@ -10,12 +10,16 @@ class StorageWidget;
 class BaseTradeSceneData : public SceneData
 {
 public:
-	BaseTradeSceneData( Storage* _base, Storage* _region, int *_cash ) : base( _base ), region( _region ), cash( _cash )
-	{
-	}
+	const char* baseName;
+	const char* regionName;
 	Storage* base;
 	Storage* region;
 	int* cash;
+	float costMult;			// multiplier applies to purchase price	
+
+	bool soldierBoost;
+	Unit* soldiers;			// can hire more soldiers!
+	int *scientists;
 };
 
 
@@ -42,9 +46,11 @@ public:
 
 protected:
 	bool ComputePrice( int* total );
+	void SetHireButtons();
 
 	BackgroundUI		backgroundUI;
-	gamui::PushButton	okay, cancel;
+	gamui::PushButton	okay;
+	gamui::PushButton	hireSoldier, hireScientist;
 	BaseTradeSceneData* data;
 
 	StorageWidget		*baseWidget, *regionWidget;

@@ -24,6 +24,7 @@ class UIImage;
 class UIButtonBox;
 class UIButtonGroup;
 class UITextTable;
+class Research;
 
 class TacticalEndSceneData : public SceneData
 {

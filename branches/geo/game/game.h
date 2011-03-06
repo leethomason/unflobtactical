@@ -40,6 +40,7 @@ class ItemDef;
 class TiXmlDocument;
 class Stats;
 class Unit;
+class Research;
 
 static const float ONE8  = 1.0f / 8.0f;
 static const float ONE16 = 1.0f / 16.0f;
@@ -166,6 +167,11 @@ public:
 
 	bool PopSound( int* offset, int* size );
 
+	// hack: pushes the current scenario to the game. Painful data to pass around, everyone needs it.
+	void SetCurrent( int scenario, const Research* research )	{ currentScenario = scenario; currentResearch = research; }
+	int GetScenario() const				{ return currentScenario; }
+	const Research* GetResearch() const	{ return currentResearch; }
+
 	const gamedb::Reader* GetDatabase()	{ return database; }
 
 	enum {
@@ -246,6 +252,9 @@ private:
 	U32 currentTime;
 	U32 previousTime;
 	bool isDragging;
+
+	int currentScenario;			// hack
+	const Research* currentResearch;		// hack
 
 	int rotTestStart;
 	int rotTestCount;

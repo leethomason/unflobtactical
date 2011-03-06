@@ -92,6 +92,17 @@ public:
 		TOGGLE_COUNT,
 	};
 
+	static bool IsScoutScenario( int s ) {
+		return (s >= FARM_SCOUT && s < FARM_DESTROYER);
+	}
+	static bool IsFrigateScenario( int s ) {
+		return (s >= FARM_DESTROYER && s < CITY);
+	}
+	static bool IsUFOScenario( int s ) {
+		return    ( s >= FARM_SCOUT && s < CITY )
+			   || ( s == BATTLESHIP );
+	}
+
 	struct SceneInfo {
 		int		scenario;		// FARM_SCOUT -> TERRAN_BASE
 		bool	crash;
@@ -117,7 +128,7 @@ public:
 
 	static void GenerateTerranTeam( Unit* units,				// target units to write
 									int count,
-									int averageLevel,
+									float averageLevel,
 									const ItemDefArr&,
 									int seed=0 );
 

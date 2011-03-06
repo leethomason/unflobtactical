@@ -443,35 +443,15 @@ BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, c
 	lander[1] = 0;
 
 	storage = new Storage( posi.x, posi.y, itemDefArr );
-
-	// FIXME: real values
-	TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, 0, itemDefArr, 0 );
+	if ( firstBase ) 
+		TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, 0, itemDefArr, 0 );
+	else
+		memset( units, 0, sizeof(Unit)*MAX_TERRANS );
 
 	for( int i=0; i<NUM_FACILITIES; ++i ) {
 		facilityStatus[i] = firstBase ? 0 : -1;
 	}
-
-	/*
-	// Need to add code to track a particle effect instance, so
-	// it can be removed later. Nice effect, but a lot of trouble.
-	ParticleSystem* system = ParticleSystem::Instance();
-
-	for( int i=0; i<2; ++i ) {
-		RingEffect* radar = (RingEffect*) system->EffectFactory( "RingEffect" );
-		if ( !radar ) { 
-			radar = new RingEffect( system );
-		}
-
-		Color4F blue = { 0, 0, 1, 1 };
-		
-		radar->Clear();
-		radar->SetColor( blue );
-		Vector3F posRadar = { pos.x, 0.2f, pos.y };
-		radar->Init( posRadar, 4.f, 0.05f, 40 );
-
-		system->AddEffect( radar );
-	}
-	*/
+	nScientists = firstBase ? MAX_SCIENTISTS : 0;
 }
 
 

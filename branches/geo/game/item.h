@@ -77,22 +77,31 @@ public:
 	ItemDef() {};
 	virtual ~ItemDef() {};
 
-	const char*		name;
-	const char*		desc;
+	const char*		name;	// the regular string name
+	const char*		desc;	// extended description
 	int				deco;
 	int				price;
-	const ModelResource*	resource;	// can be null, in which case render with crate.
-	grinliz::CStr<6>	displayName;
+	bool			isAlien;
+	int				maxCount;	// maximum allowed count
+	const ModelResource*	resource;		// can be null, in which case render with crate.
+	grinliz::CStr<6>		displayName;	// the short, formatted name for button display
 
-	void InitBase( const char* name, const char* desc, int deco, int price, const ModelResource* resource );
+	void InitBase( const char* name, const char* desc, int deco, int price, bool isAlien, const ModelResource* resource );
 	virtual const WeaponItemDef* IsWeapon() const { return 0; }
 	virtual const ClipItemDef* IsClip() const  { return 0; }
 	virtual const ArmorItemDef* IsArmor() const { return 0; }
+	bool IsAlien() const { return isAlien; }
 	
 	// Most items are 1 thing: a gun, armor, etc. But clips are formed of collections.
 	// It may take 10 rounds to form a clip.
 	virtual int DefaultRounds() const	{ return 1; }
 
+	int TechLevel() const {
+		if ( strstr( name, "-3" ) ) return 3;
+		else if ( strstr( name, "-2" ) ) return 2;
+		else if ( strstr( name, "-1" ) ) return 1;
+		return 0;
+	}
 	// optimization trickiness:
 	int index;
 };
@@ -150,8 +159,6 @@ public:
 	int RoundsNeeded( WeaponMode mode ) const						{ return ( mode == kAutoFireMode && weapon[0].flags & WEAPON_AUTO ) ? 3 : 1; }
 	bool IsExplosive( WeaponMode mode ) const						{ return ( weapon[Index(mode)].flags & WEAPON_EXPLOSIVE ) != 0; }
 
-	bool IsAlien() const;
-
 	void RenderWeapon(	WeaponMode mode,
 						ParticleSystem*,
 						const grinliz::Vector3F& p0, 
@@ -196,7 +203,6 @@ public:
 	virtual const ClipItemDef* IsClip() const { return this; }
 	
 	virtual int DefaultRounds() const	{ return defaultRounds; }
-	bool IsAlien() const { return alien; }
 
 	bool alien;
 
@@ -280,7 +286,14 @@ public:
 
 	~Storage();
 
+	void Clear();
 	bool Empty() const;
+
+	const ItemDef* GetItemDef( int i ) const {
+		if ( i < itemDefArr.Size() )
+			return itemDefArr.GetIndex( i );
+		return 0;
+	}
 
 	void AddItem( const ItemDef*, int n=1 );
 	void AddItem( const char* itemName, int n=1 );

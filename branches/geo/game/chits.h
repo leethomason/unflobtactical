@@ -260,7 +260,9 @@ public:
 	
 	Unit* GetUnits() { return units; }
 	int NumUnits();
-	int NumResearchers() { return 8; }		// FIXME
+
+	int NumResearchers()    { return 8; }
+	int* GetResearcherPtr() { return &nScientists; }
 
 	bool IsFacilityComplete( int i )	const	{ return facilityStatus[i] == 0; }
 	bool IsFacilityInProgress( int i )			{ return facilityStatus[i] > 0; }
@@ -272,6 +274,7 @@ public:
 
 private:
 	int index;
+	int nScientists;
 	Storage* storage;
 
 	grinliz::Vector2I landerTarget;
@@ -326,7 +329,7 @@ public:
 
 	Chit*		GetChit( const grinliz::Vector2I& pos );
 	BaseChit*	GetBaseChit( const char* name );
-	BaseChit*	GetBaseChit( int i ) { GLASSERT( i>=0 && i<MAX_BASES ); return baseChitArr[i]; }
+	BaseChit*	GetBaseChit( int i ) const { GLASSERT( i>=0 && i<MAX_BASES ); return baseChitArr[i]; }
 	BaseChit*	GetBaseChitAt( const grinliz::Vector2I& pos );
 	UFOChit*	GetLandedUFOChitAt( const grinliz::Vector2I& pos );
 	int			NumBaseChits();

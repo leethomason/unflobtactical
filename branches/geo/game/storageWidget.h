@@ -27,18 +27,20 @@ public:
 					const gamui::ButtonLook& green,
 					const gamui::ButtonLook& blue,
 					const ItemDefArr& itemDefArr,
-					const Storage* storage );
+					const Storage* storage,
+					float costMult = 0.0f );
 
 	~StorageWidget();	
 
 	const ItemDef* ConvertTap( const gamui::UIItem* item );	
+	void SetFudgeFactor( float dx, float dy )	{ fudgeFactor.Set( dx, dy ); }	// call before SetOrigin
 	void SetOrigin( float x, float y );
 	void SetButtons();
 	
 	float X() const			{ return selectButton[0].X(); }
 	float Y() const			{ return selectButton[0].Y(); }
-	float Width() const		{ return (float)(GAME_BUTTON_SIZE*BOX_CX); }
-	float Height() const	{ return (float)(GAME_BUTTON_SIZE*BOX_CY); }
+	float Width() const		{ return (float)(GAME_BUTTON_SIZE*BOX_CX) + fudgeFactor.x; }
+	float Height() const	{ return (float)(GAME_BUTTON_SIZE*BOX_CY) + fudgeFactor.y; }
 	void SetVisible( bool visible );
 
 private:
@@ -54,9 +56,11 @@ private:
 	gamui::PushButton	boxButton[ NUM_BOX_BUTTONS ];
 	gamui::UIItem*		itemArr[TOTAL_BUTTONS];
 	
+	float costMult;
 	const Storage* storage;
-	const ItemDef* itemDefMap[NUM_BOX_BUTTONS];
 	const ItemDefArr& itemDefArr;
+	grinliz::Vector2F fudgeFactor;
+	const ItemDef* itemDefMap[NUM_BOX_BUTTONS];
 };
 
 

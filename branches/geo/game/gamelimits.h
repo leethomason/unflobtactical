@@ -47,6 +47,7 @@ static const int MAX_ALIENS = ALIEN_UNITS_END - ALIEN_UNITS_START;
 static const int MAX_TERRANS = TERRAN_UNITS_END - TERRAN_UNITS_START;
 static const int MAX_CIVS = CIV_UNITS_END - CIV_UNITS_START;
 static const int MAX_UNITS	= 40;
+static const int MAX_SCIENTISTS = 8;
 
 static const int MAX_MODELS = 256;
 static const float EYE_HEIGHT = 1.2f;

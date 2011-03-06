@@ -29,6 +29,8 @@ class SpaceTree;
 class GeoMapData;
 class Chit;
 class RegionData;
+class ChitBag;
+class BaseChit;
 
 class GeoAI
 {
@@ -37,11 +39,20 @@ public:
 	GeoAI( const GeoMapData& data );
 	virtual ~GeoAI()	{}
 
-	void GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vector2F* dest, const RegionData* data );
+	void GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vector2F* dest, const RegionData* data, const ChitBag& chitBag );
 
 protected:
+	int ComputeBasesInRegion( int region, const ChitBag& chitBag );
+
 	const GeoMapData& geoMapData; 
 	grinliz::Random random;
+
+	// temporary for ComputeBasesInRegion
+	enum {
+		MAX_BASES = 4	// copied to a scary # of places
+	};
+	const BaseChit* baseInRegion[MAX_BASES];
+
 };
 
 

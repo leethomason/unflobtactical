@@ -177,26 +177,22 @@ class RegionData
 {
 public:
 	enum {
+		TRAIT_CAPATALIST	= 0x01,		// better sell price				
+		TRAIT_MILITARISTIC	= 0x02,		// better soldier units				// fixme
+		TRAIT_SCIENTIFIC	= 0x04,		// faster research					// fixme
+		TRAIT_NATIONALIST	= 0x08,		// slower alien takeover			// fixme
+		TRAIT_TECH			= 0x10,		// tech-3 weapons
+		TRAIT_MANUFACTURE	= 0x20,		// tech-3 armor
+		TRAIT_NUM_BITS = 6,
+
 		HISTORY = 5
 	};
+	int traits;
 	int influence;
 	int history[HISTORY];
 	bool occupied;			// true if this is currently under alien occupation
 
-	void AddBase( const grinliz::Vector2I& loc )		{ grinliz::Vector2I* v = base.Push(); *v = loc; }
-	void RemoveBase( const grinliz::Vector2I& loc ) {
-		for( unsigned i=0; i<base.Size(); ++i ) {
-			if ( base[i] == loc ) {
-				base.SwapRemove( i );
-				return;
-			}
-		}
-		GLASSERT( 0 );
-	}
-	int NumBases() const							{ return base.Size(); }
-	const grinliz::Vector2I& Base( int i ) const	{ return base[i]; }
-
-	void Init( const ItemDefArr& itemDefArr );
+	void Init( const ItemDefArr& itemDefArr, grinliz::Random* );
 	void Free();
 
 	void Success()			{ Push( 2 ); }
@@ -211,6 +207,8 @@ public:
 		return grinliz::Max( ((float)influence*0.10f) * ((float)hScore*0.5f), 0.2f );	// the .2 adds some randomness to the alien actions
 	}
 
+	// Set the storage to "normal" for the region, tech level, and traits.
+	void SetStorageNormal( const Research& research );
 	Storage* GetStorage() { return storage; }
 
 private:
@@ -222,7 +220,6 @@ private:
 	}
 
 	Storage* storage;
-	CArray< grinliz::Vector2I, MAX_BASES > base;
 };
 
 
@@ -274,8 +271,6 @@ private:
 
 	void HandleItemTapped( const gamui::UIItem* item );
 	void DoLanderArrived( Chit* chitIt );
-
-	//void AddConsoleMessage( const char* )	{}	// fixme: implement
 	
 	enum {
 		CM_NONE,
@@ -284,9 +279,6 @@ private:
 	};
 	void InitContextMenu( int type, Chit* chit );
 	void UpdateContextMenu();
-
-	//BaseChit* IsBaseLocation( int x, int y );
-	//int CalcBaseChits( BaseChit* array[MAX_BASES] );	// fills an array with all the base chits.
 
 	GeoMap* geoMap;
 	SpaceTree* tree;
@@ -305,8 +297,6 @@ private:
 
 	gamui::PushButton	helpButton, researchButton;
 	gamui::ToggleButton baseButton;
-	gamui::Image		cashBackground;
-	gamui::TextLabel	cashText;
 
 	ChitBag				chitBag;
 	int					contextChitID;

@@ -91,7 +91,7 @@ protected:
 	class StatWidget {
 	public:
 		StatWidget()		{}
-		void Init( gamui::Gamui* g, const Unit* unit, float x, float y );
+		void Init( gamui::Gamui* g, const Unit* unit, float x, float y, bool baseScene );
 		void SetVisible( bool visible );
 		void Update( Unit* unit );
 	private:

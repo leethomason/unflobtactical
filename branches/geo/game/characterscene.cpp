@@ -82,7 +82,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	storageWidget->SetOrigin( (float)port.UIWidth()-storageWidget->Width(), 0 );
 	inventoryWidget = new InventoryWidget( &gamui2D, green, green, unit );
 
-	statWidget.Init( &gamui2D, unit, storageWidget->X(), 0 );
+	statWidget.Init( &gamui2D, unit, storageWidget->X(), 0, input->nUnits > 1 );
 	compWidget.Init( &game->GetItemDefArr(), storage, unit, &gamui2D, blue, storageWidget->X(), 0, storageWidget->Width() );
 
 	unitCounter.Init( &gamui2D );
@@ -133,16 +133,12 @@ void CharacterScene::Activate()
 }
 
 
-void CharacterScene::StatWidget::Init( gamui::Gamui* g, const Unit* unit, float x, float y )
+void CharacterScene::StatWidget::Init( gamui::Gamui* g, const Unit* unit, float x, float y, bool baseScreen )
 {
 	float dy = 20.0f;
 	float dx = 100.0f;
 	char buf[32];
 	const Stats& stats = unit->GetStats();
-
-//	if ( g ) nameRankUI.Init( g );
-//	nameRankUI.Set( x, y, unit, false );
-//	if ( g ) nameRankUI.SetVisible( false );
 
 	for( int i=0; i<2*STATS_ROWS; ++i ) {
 		if ( g ) textTable[i].Init( g );
@@ -179,12 +175,26 @@ void CharacterScene::StatWidget::Init( gamui::Gamui* g, const Unit* unit, float 
 	textTable[c++].SetText( buf );
 
 	textTable[c++].SetText( "Reaction" );
-	SNPrintf( buf, 32, "%0.2f", stats.Reaction() );
+	SNPrintf( buf, 32, "%d", stats.ReactionRating() );
 	textTable[c++].SetText( buf );
 
 	textTable[c++].SetText( "Kills" );
-	SNPrintf( buf, 32, "%d", unit->KillsCredited() );
-	textTable[c++].SetText( buf );
+	if ( baseScreen ) {
+		SNPrintf( buf, 32, "%d", unit->AllMissionKills() );
+		textTable[c++].SetText( buf );
+
+		textTable[c++].SetText( "Missions" );
+		SNPrintf( buf, 32, "%d", unit->Missions() );
+		textTable[c++].SetText( buf );
+
+		textTable[c++].SetText( "XP" );
+		SNPrintf( buf, 32, "%d", unit->XP() );
+		textTable[c++].SetText( buf );
+	}
+	else {
+		SNPrintf( buf, 32, "%d", unit->KillsCredited() );
+		textTable[c++].SetText( buf );
+	}
 
 	GLASSERT( c <= 2*STATS_ROWS );
 }
@@ -192,7 +202,6 @@ void CharacterScene::StatWidget::Init( gamui::Gamui* g, const Unit* unit, float 
 
 void CharacterScene::StatWidget::SetVisible( bool visible )
 {
-//	nameRankUI.SetVisible( visible );
 	for( int i=0; i<2*STATS_ROWS; ++i ) {
 		textTable[i].SetVisible( visible );
 	}
@@ -405,7 +414,7 @@ void CharacterScene::Tap(	int action,
 			SetCounter( 1 );
 		}
 		inventoryWidget->Update( unit );
-		statWidget.Init( 0, unit, storageWidget->X(), 0 );
+		statWidget.Init( 0, unit, storageWidget->X(), 0, input->nUnits>1 );
 
 		const gamui::ButtonLook& blue		= game->GetButtonLook( Game::BLUE_BUTTON );
 		compWidget.Init( &game->GetItemDefArr(), storage, unit, 0, blue, storageWidget->X(), 0, storageWidget->Width() );		

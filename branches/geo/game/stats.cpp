@@ -74,6 +74,14 @@ int Stats::AccuracyRating() const
 }
 
 
+int Stats::ReactionRating() const
+{
+	int levDEX = Clamp( DEX() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );
+	int levPSY = Clamp( PSY() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );
+	return (levDEX + levPSY)/2;
+}
+
+
 void Stats::Save( FILE* fp, int depth ) const
 {
 	/*

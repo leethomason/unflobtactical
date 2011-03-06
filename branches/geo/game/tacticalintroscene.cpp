@@ -423,7 +423,7 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 		count = 8;
 
 	memset( units, 0, sizeof(Unit)*MAX_UNITS );
-	GenerateTerranTeam( units, count, rank, game->GetItemDefArr(), seed );
+	GenerateTerranTeam( units, count, (float)rank, game->GetItemDefArr(), seed );
 	for( int i=0; i<count; ++i ) {
 		if ( units[i].IsAlive() ) {
 			units[i].Save( fp, 2 );
@@ -887,7 +887,7 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 
 void TacticalIntroScene::GenerateTerranTeam(	Unit* unit,				// target units to write
 												int count,	
-												int averageRank,
+												float baseRank,
 												const ItemDefArr& itemDefArr,
 												int seed )
 {
@@ -899,14 +899,14 @@ void TacticalIntroScene::GenerateTerranTeam(	Unit* unit,				// target units to w
 		{	"MCAN-1",	"MCAN-1",	"MCAN-2",	"STRM-2",	"MCAN-3" },	// heavy
 	};
 	static const char* armorType[NUM_RANKS] = {
-		"ARM-1", "ARM-2", "ARM-2", "ARM-3", "ARM-3"
+		"ARM-1", "ARM-1", "ARM-2", "ARM-2", "ARM-3"
 	};
 	static const char* extraItems[NUM_RANKS] = {
 		"", "", "SG:I", "SG:K", "SG:E"
 	};
 
 	// local random - the same inputs always create same outputs.
-	grinliz::Random aRand( (count*averageRank) ^ seed );
+	grinliz::Random aRand( count ^ seed );
 	aRand.Rand();
 
 	for( int k=0; k<count; ++k ) 
@@ -914,10 +914,10 @@ void TacticalIntroScene::GenerateTerranTeam(	Unit* unit,				// target units to w
 		int position = k % POSITION;
 
 		// Create the unit.
-		int rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
+		int rank = RandomRank( &aRand, baseRank );
  		unit[k].Create( TERRAN_TEAM, 0, rank, aRand.Rand() );
 
-		rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
+		rank = RandomRank( &aRand, baseRank );
 
 		// Add the weapon.
 		Item item( itemDefArr, weapon[position][rank] );
@@ -938,12 +938,12 @@ void TacticalIntroScene::GenerateTerranTeam(	Unit* unit,				// target units to w
 
 		// Add extras
 		{
-			rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
+			rank = RandomRank( &aRand, baseRank );
 			Item armor( itemDefArr, armorType[rank] );
 			unit[k].GetInventory()->AddItem( armor );
 		}
 
-		rank = Clamp( averageRank + aRand.Sign()*aRand.Bit(), 0, NUM_RANKS-1 );
+		rank = RandomRank( &aRand, baseRank );
 		for( int i=0; i<=rank; ++i ) {
 			Item extra( itemDefArr, extraItems[i] );
 			unit[k].GetInventory()->AddItem( extra );
