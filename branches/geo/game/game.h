@@ -156,10 +156,15 @@ public:
 	void SetDebugLevel( int level )		{ debugLevel = (level%4); }
 	int GetDebugLevel() const			{ return debugLevel; }
 
-	const grinliz::GLString GameSavePath()	{	grinliz::GLString str( savePath );
-												str += "currentgame.xml";
-												return str;
-											}
+	const grinliz::GLString GameSavePath() const
+	{	
+		grinliz::GLString str( savePath );
+		str += "currentgame.xml";
+		return str;
+	}
+	bool HasSaveFile() const;
+	int  SaveFileScene() const;	// returns the ID of the scene to be loaded
+	void DeleteSaveFile();
 
 	void Load( const TiXmlDocument& doc );
 	void Save();

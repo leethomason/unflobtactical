@@ -215,6 +215,59 @@ Game::~Game()
 }
 
 
+bool Game::HasSaveFile() const
+{
+	bool result = false;
+
+	GLString path = GameSavePath();
+	FILE* fp = fopen( path.c_str(), "r" );
+	if ( fp ) {
+		fseek( fp, 0, SEEK_END );
+		long d = ftell( fp );
+		if ( d > 100 ) {	// has to be something there: sanity check
+			result = true;
+		}
+		fclose( fp );
+	}
+	return result;
+}
+
+
+void Game::DeleteSaveFile()
+{
+	GLString savePath = GameSavePath();
+	FILE* fp = fopen( savePath.c_str(), "w" );
+	if ( fp ) {
+		fclose( fp );
+	}
+}
+
+
+int Game::SaveFileScene() const
+{
+	GLString path = GameSavePath();
+	FILE* fp = fopen( path.c_str(), "r" );
+	int result = -1;
+
+	if ( fp ) {
+		char buf[100];
+		fread( buf, 100, 1, fp );
+		buf[99] = 0;
+		if ( strstr( buf, "<BattleScene" ) ) {
+			result = BATTLE_SCENE;
+		}
+		else if ( strstr( buf, "<GeoScene" ) ) {
+			result = GEO_SCENE;
+		}
+		else if ( strstr( buf, "<FastBattleScene" ) ) {
+			result = FASTBATTLE_SCENE;
+		}
+		fclose( fp );
+	}
+	return result;
+}
+
+
 void Game::SceneNode::Free()
 {
 	sceneID = Game::NUM_SCENES;
@@ -247,7 +300,6 @@ void Game::PushPopScene()
 {
 	if ( scenePopQueued || sceneQueued.sceneID != NUM_SCENES ) {
 		TextureManager::Instance()->ContextShift();
-//		engine->ResetRenderCache();
 	}
 	GLASSERT( !(sceneResetQueued && sceneQueued.sceneID != NUM_SCENES ));
 
@@ -359,7 +411,8 @@ void Game::Load( const TiXmlDocument& doc )
 	// BOTTOM of the stack saves and loads. (BattleScene or GeoScene).
 	const TiXmlElement* game = doc.RootElement();
 	GLASSERT( StrEqual( game->Value(), "Game" ) );
-	sceneStack.Bottom()->scene->Load( game );
+	const TiXmlElement* scene = game->FirstChildElement();
+	sceneStack.Top()->scene->Load( scene );
 }
 
 
@@ -380,19 +433,18 @@ void Game::Save()
 
 void Game::Save( FILE* fp )
 {
+	if ( sceneStack.Empty() ) {
+		return;
+	}
+
+	SceneNode* bottom = sceneStack.Bottom();
+
 	XMLUtil::OpenElement( fp, 0, "Game" );
 	XMLUtil::Attribute( fp, "version", VERSION );
+	XMLUtil::Attribute( fp, "sceneID", bottom->sceneID );
 	XMLUtil::SealElement( fp );
 
-	{
-		XMLUtil::OpenElement( fp, 1, "Scene" );
-		XMLUtil::Attribute( fp, "id", 0 );
-		XMLUtil::SealCloseElement( fp );
-	}
-	if ( !sceneStack.Empty() ) {
-		SceneNode* bottom = sceneStack.Bottom();
-		bottom->scene->Save( fp, 1 );
-	}
+	bottom->scene->Save( fp, 1 );
 	
 	XMLUtil::CloseElement( fp, 0, "Game" );
 }

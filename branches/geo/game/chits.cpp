@@ -29,14 +29,15 @@ void Chit::Save( FILE* fp, int depth )
 {
 	XMLUtil::Attribute( fp, "pos.x", pos.x );
 	XMLUtil::Attribute( fp, "pos.y", pos.y );
-	XMLUtil::Attribute( fp, "dest.x", dest.x );
-	XMLUtil::Attribute( fp, "dest.y", dest.y );
+	XMLUtil::Attribute( fp, "id", id );
 }
 
 
 void Chit::Load( const TiXmlElement* doc )
 {
-	GLASSERT( 0 );
+	doc->QueryFloatAttribute( "pos.x", &pos.x );
+	doc->QueryFloatAttribute( "pos.y", &pos.y );
+	doc->QueryIntAttribute( "id", &id );
 }
 
 
@@ -50,7 +51,6 @@ float BaseChit::MissileRange( const int type ) const
 Chit::Chit( SpaceTree* _tree ) 
 {
 	pos.Set( 0, 0 );
-	dest.Set( 0, 0 );
 	model[0] = 0;
 	model[1] = 0;
 	tree = _tree;
@@ -76,12 +76,12 @@ Chit::~Chit()
 }
 
 
+
 UFOChit::UFOChit( SpaceTree* tree, int type, const grinliz::Vector2F& start, const grinliz::Vector2F& dest ) : Chit( tree )
 {
 	inBattle = false;
 	this->type = type;
 	this->ai = AI_TRAVELLING;
-	SetPos( start.x, start.y );
 	this->dest = dest;
 	this->speed = UFO_SPEED[type]*2.0f;
 	this->effectTimer = 0;
@@ -89,12 +89,8 @@ UFOChit::UFOChit( SpaceTree* tree, int type, const grinliz::Vector2F& start, con
 	this->hp = UFO_HP[type];
 	decal[0] = 0;
 	decal[1] = 0;
-
-	static const char* name[3] = { "geo_scout", "geo_frigate", "geo_battleship" };
-	GLASSERT( type >= 0 && type < 3 );
-
-	model[0] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( name[type] ) );
-	model[1] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( name[type] ) );
+	SetPos( start.x, start.y );
+	Init();
 }
 
 
@@ -107,11 +103,25 @@ UFOChit::~UFOChit()
 }
 
 
+void UFOChit::Init()
+{
+	static const char* name[3] = { "geo_scout", "geo_frigate", "geo_battleship" };
+	GLASSERT( type >= 0 && type < 3 );
+
+	for( int i=0; i<2; ++i ) {
+		if ( model[i] ) tree->FreeModel( model[i] );
+		model[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( name[type] ) );
+	}
+}
+
+
 void UFOChit::Save( FILE* fp, int depth )
 {
 	XMLUtil::OpenElement( fp, depth, "UFOChit" );
 	Chit::Save( fp, depth );
 
+	XMLUtil::Attribute( fp, "dest.x", dest.x );
+	XMLUtil::Attribute( fp, "dest.y", dest.y );
 	XMLUtil::Attribute( fp, "type", type );
 	XMLUtil::Attribute( fp, "ai", ai );
 	XMLUtil::Attribute( fp, "speed", speed );
@@ -126,7 +136,18 @@ void UFOChit::Save( FILE* fp, int depth )
 
 void UFOChit::Load( const TiXmlElement* doc )
 {
-	GLASSERT( 0 );
+	Chit::Load( doc );
+
+	doc->QueryFloatAttribute( "dest.x", &dest.x );
+	doc->QueryFloatAttribute( "dest.y", &dest.y );
+	doc->QueryIntAttribute( "type", &type );
+	doc->QueryIntAttribute( "ai", &ai );
+	doc->QueryFloatAttribute( "speed", &speed );
+	doc->QueryFloatAttribute( "hp", &hp );
+	doc->QueryBoolAttribute( "inBattle", &inBattle );
+	doc->QueryUnsignedAttribute( "effectTimer", &effectTimer );
+	doc->QueryUnsignedAttribute( "jobTimer", &jobTimer );
+	Init();
 }
 
 
@@ -422,22 +443,31 @@ int UFOChit::DoTick( U32 deltaTime )
 
 CropCircle::CropCircle( SpaceTree* tree, const Vector2I& mapPos, U32 seed ) : Chit( tree )
 {
+	jobTimer = 0;
+	pos.Set( (float)mapPos.x+0.5f, (float)mapPos.y+0.5f );
+	Init( seed );
+}
+
+
+void CropCircle::Init( U32 seed )
+{
 	Texture* texture = TextureManager::Instance()->GetTexture( "cropcircle" );
 	Random r( seed );
 	float dx = (float)(r.Rand(CROP_CIRCLES_X)) / (float)CROP_CIRCLES_X;
 	float dy = (float)(r.Rand(CROP_CIRCLES_Y)) / (float)CROP_CIRCLES_Y;
-
-	Vector3F pos = { (float)mapPos.x+0.5f, UFO_HEIGHT*0.1f, (float)mapPos.y+0.5f };
 
 	for( int i=0; i<2; ++i ) {
 		model[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "unitplate" ) );
 		model[i]->SetTexture( texture );
 		model[i]->SetTexXForm( 0, 1.f/(float)CROP_CIRCLES_X, 1.f/(float)CROP_CIRCLES_Y, dx, dy );
 	}
-	model[0]->SetPos( pos );
+	if ( model[0] ) tree->FreeModel( model[0] );
+	if ( model[1] ) tree->FreeModel( model[1] );
+
+	Vector3F pos3 = { pos.x, UFO_HEIGHT*0.1f, pos.y };
+	model[0]->SetPos( pos3 );
 	pos.x += (float)GEO_MAP_X;
-	model[1]->SetPos( pos );
-	jobTimer = 0;
+	model[1]->SetPos( pos3 );
 }
 
 
@@ -460,7 +490,9 @@ void CropCircle::Save( FILE* fp, int depth )
 
 void CropCircle::Load( const TiXmlElement* doc )
 {
-	GLASSERT( 0 );
+	Chit::Load( doc );
+	doc->QueryUnsignedAttribute( "jobTimer", &jobTimer );
+	Init( jobTimer );
 }
 
 
@@ -479,11 +511,20 @@ int CropCircle::DoTick( U32 deltaTime )
 CityChit::CityChit( SpaceTree* tree, const grinliz::Vector2I& posi, bool _capital ) : Chit( tree ), capital( _capital )
 {
 	pos.Set( (float)posi.x+0.5f, (float)posi.y+0.5f );
+	Init();
+}
+
+
+void CityChit::Init()
+{
 	for( int i=0; i<2; ++i ) {
 		model[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( capital ? "capital" : "city" ) );
 	}
+	if ( model[0] ) tree->FreeModel( model[0] );
+	if ( model[1] ) tree->FreeModel( model[1] );
 	model[0]->SetPos( pos.x, 0, pos.y );
 	model[1]->SetPos( pos.x+(float)GEO_MAP_X, 0, pos.y  );
+
 }
 
 
@@ -500,26 +541,17 @@ void CityChit::Save( FILE* fp, int depth )
 
 void CityChit::Load( const TiXmlElement* doc )
 {
-	GLASSERT( 0 );
+	Chit::Load( doc );
+	doc->QueryBoolAttribute( "capital", &capital );
+	Init();
 }
 
 
 
 BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, const ItemDefArr& itemDefArr, bool firstBase ) : Chit( tree )
 {
-	landerOutbound = false;
 	pos.Set( (float)posi.x+0.5f, (float)posi.y+0.5f );
-	landerTarget.Set( -1, -1 );
 	this->index = index;
-
-	static const char* name[MAX_BASES] = { "baseA", "baseB", "baseC", "baseD" };
-	for( int i=0; i<2; ++i ) {
-		model[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( name[index] ) );
-	}
-	model[0]->SetPos( pos.x, 0, pos.y );
-	model[1]->SetPos( pos.x+(float)GEO_MAP_X, 0, pos.y  );
-	lander[0] = 0;
-	lander[1] = 0;
 
 	storage = new Storage( posi.x, posi.y, itemDefArr );
 	memset( units, 0, sizeof(Unit)*MAX_TERRANS );
@@ -530,17 +562,27 @@ BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, c
 		facilityStatus[i] = firstBase ? 0 : -1;
 	}
 	nScientists = firstBase ? MAX_SCIENTISTS : 0;
+
+	Init();
+}
+
+
+void BaseChit::Init()
+{
+	static const char* name[MAX_BASES] = { "baseA", "baseB", "baseC", "baseD" };
+	for( int i=0; i<2; ++i ) {
+		if ( model[i] ) tree->FreeModel( model[i] );
+		model[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( name[index] ) );
+	}
+
+	model[0]->SetPos( pos.x, 0, pos.y );
+	model[1]->SetPos( pos.x+(float)GEO_MAP_X, 0, pos.y  );
 }
 
 
 BaseChit::~BaseChit()
 {
 	delete storage;
-	for( int i=0; i<2; ++i ) {
-		if ( lander[i] ) {
-			tree->FreeModel( lander[i] );
-		}
-	}
 }
 
 
@@ -550,9 +592,9 @@ void BaseChit::Save( FILE* fp, int depth )
 	Chit::Save( fp, depth );
 
 	XMLUtil::Attribute( fp, "index", index );
-	XMLUtil::Attribute( fp, "landerTarget.x", landerTarget.x );
-	XMLUtil::Attribute( fp, "landerTarget.y", landerTarget.y );
-	XMLUtil::Attribute( fp, "landerOutbound", landerOutbound );
+	//XMLUtil::Attribute( fp, "landerTarget.x", landerTarget.x );
+	//XMLUtil::Attribute( fp, "landerTarget.y", landerTarget.y );
+	//XMLUtil::Attribute( fp, "landerOutbound", landerOutbound );
 	XMLUtil::SealElement( fp );
 
 	storage->Save( fp, depth+1 );
@@ -577,9 +619,33 @@ void BaseChit::Save( FILE* fp, int depth )
 }
 
 
-void BaseChit::Load( const TiXmlElement* doc )
+void BaseChit::Load( const TiXmlElement* doc, Game* game )
 {
-	GLASSERT( 0 );
+	Chit::Load( doc );
+	doc->QueryIntAttribute( "index", &index );
+	//doc->QueryIntAttribute( "landerTarget.x", &landerTarget.x );
+	//doc->QueryIntAttribute( "landerTarget.y", &landerTarget.y );
+	//doc->QueryBoolAttribute( "landerOutbound", &landerOutbound );
+
+	storage->Load( doc );
+
+	const TiXmlElement* facilities = doc->FirstChildElement( "Facilities" );
+	if ( facilities ) {
+		int i=0;
+		for( const TiXmlElement* f=facilities->FirstChildElement( "Facility" ); f && i<NUM_FACILITIES; f=f->NextSiblingElement( "Facility" ), ++i ) {
+			f->QueryIntAttribute( "facilityStatus", &facilityStatus[i] );
+		}
+	}
+
+	const TiXmlElement* unitsEle = doc->FirstChildElement( "Units" );
+	if ( unitsEle ) {
+		int i=0;
+		for( const TiXmlElement* unitEle=unitsEle->FirstChildElement( "Unit" ); unitEle && i<MAX_TERRANS; unitEle=unitEle->NextSiblingElement( "Unit" ) ) {
+			units[i].Load( unitEle, game, 0 );
+		}
+	}
+
+	Init();
 }
 
 
@@ -597,6 +663,7 @@ int BaseChit::DoTick(  U32 deltaTime )
 		}
 	}
 
+	/*
 	if ( lander[0] ) {
 		// Way out or way in?
 		Vector2F target;
@@ -643,11 +710,11 @@ int BaseChit::DoTick(  U32 deltaTime )
 			lander[1]->SetRotation( theta );
 		}
 	}
-
+	*/
 	return msg;
 }
 
-
+/*
 void BaseChit::DeployLander( const grinliz::Vector2I& pos )
 {
 	GLASSERT( lander[0] == 0 );
@@ -660,7 +727,7 @@ void BaseChit::DeployLander( const grinliz::Vector2I& pos )
 	lander[0]->SetPos( Pos().x, UFO_HEIGHT, Pos().y );
 	lander[1]->SetPos( Pos().x+GEO_MAP_XF, UFO_HEIGHT, Pos().y );
 }
-
+*/
 
 int BaseChit::NumUnits()
 {
@@ -668,6 +735,7 @@ int BaseChit::NumUnits()
 }
 
 
+/*
 Vector2I BaseChit::LanderMapPos() const
 {
 	grinliz::Vector2I v = { 0, 0 };
@@ -676,6 +744,7 @@ Vector2I BaseChit::LanderMapPos() const
 	}
 	return v;
 }
+*/
 
 
 const char* BaseChit::Name() const
@@ -686,19 +755,31 @@ const char* BaseChit::Name() const
 }
 
 
-CargoChit::CargoChit( SpaceTree* tree, const grinliz::Vector2I& start, const grinliz::Vector2I& end ) : Chit( tree )
+CargoChit::CargoChit( SpaceTree* tree, int type, const grinliz::Vector2I& start, const grinliz::Vector2I& end ) : Chit( tree )
 {
-	this->goingToBase = true;
-	SetPos( (float)cityInMap.x+0.5f, (float)cityInMap.y+0.5f );
-	baseInMap = end;
-	cityInMap = start;
+	this->type = type;
+	this->outbound = true;
+	this->origin = start;
+	this->dest = end;
+	SetPos( (float)start.x+0.5f, (float)start.y+0.5f );
+	model[0] = 0; 
+	model[1] = 0;
+	Init();
 
-	model[0] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "cargo" ) );
-	model[1] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "cargo" ) );
 }
 
 CargoChit::~CargoChit()
 {
+}
+
+
+void CargoChit::Init()
+{
+	const char* desc = (type == TYPE_CARGO) ? "cargo" : "geolander";
+	for( int i=0; i<2; ++i ) {
+		if ( model[i] ) tree->FreeModel( model[i] );
+		model[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( desc ) );
+	}
 }
 
 
@@ -707,11 +788,12 @@ void CargoChit::Save( FILE* fp, int depth )
 	XMLUtil::OpenElement( fp, depth, "CargoChit" );
 	Chit::Save( fp, depth );
 
-	XMLUtil::Attribute( fp, "goingToBase", goingToBase );
-	XMLUtil::Attribute( fp, "cityInMap.x", cityInMap.x );
-	XMLUtil::Attribute( fp, "cityInMap.y", cityInMap.y );
-	XMLUtil::Attribute( fp, "baseInMap.x", baseInMap.x );
-	XMLUtil::Attribute( fp, "baseInMap.y", baseInMap.y );
+	XMLUtil::Attribute( fp, "type", type );
+	XMLUtil::Attribute( fp, "outbound", outbound );
+	XMLUtil::Attribute( fp, "origin.x", origin.x );
+	XMLUtil::Attribute( fp, "origin.y", origin.y );
+	XMLUtil::Attribute( fp, "dest.x", dest.x );
+	XMLUtil::Attribute( fp, "dest.y", dest.y );
 
 	XMLUtil::SealCloseElement( fp );
 }
@@ -719,29 +801,46 @@ void CargoChit::Save( FILE* fp, int depth )
 
 void CargoChit::Load( const TiXmlElement* doc )
 {
-	GLASSERT( 0 );
+	doc->QueryIntAttribute( "type", &type );
+	doc->QueryBoolAttribute( "outbound", &outbound );
+	doc->QueryIntAttribute( "origin.x", &origin.x );
+	doc->QueryIntAttribute( "origin.y", &origin.y );
+	doc->QueryIntAttribute( "dest.x", &dest.x );
+	doc->QueryIntAttribute( "dest.y", &dest.y );
+
+	Init();
 }
 
 
 int CargoChit::DoTick( U32 deltaTime )
 {
 	float distance = CARGO_SPEED * (float)deltaTime / 1000.0f;
+	if ( type == TYPE_LANDER )
+		distance = LANDER_SPEED * (float)deltaTime / 1000.0f;
 	
-	Vector2F dest;
-	if ( goingToBase ) {
-		dest.Set( (float)baseInMap.x+0.5f, (float)baseInMap.y+0.5f );
+	Vector2F d;
+	if ( outbound ) {
+		d.Set( (float)dest.x+0.5f, (float)dest.y+0.5f );
 	}
 	else {
-		dest.Set( (float)cityInMap.x+0.5f, (float)cityInMap.y+0.5f );
+		d.Set( (float)origin.x+0.5f, (float)origin.y+0.5f );
 
 	}
 	int msg = MSG_NONE;
-	if ( Cylinder<float>::LengthSquared( pos, dest ) <= (distance+0.1f)*(distance+0.1f) ) {
-		msg = goingToBase ? MSG_CARGO_ARRIVED : MSG_DONE;
-		goingToBase = false;
+	if ( Cylinder<float>::LengthSquared( pos, d ) <= (distance+0.1f)*(distance+0.1f) ) {
+		if ( !outbound ) {
+			msg = MSG_DONE;
+		}
+		else if ( type == TYPE_CARGO ) {
+			msg = MSG_CARGO_ARRIVED;
+		}
+		else {
+			msg = MSG_LANDER_ARRIVED;
+		}
+		outbound = false;
 	}
 	else {
-		Vector2F normal = dest - pos;
+		Vector2F normal = d - pos;
 		normal.Normalize();
 		pos += normal * distance;
 
@@ -861,10 +960,23 @@ BaseChit* ChitBag::GetBaseChitAt( const grinliz::Vector2I& pos )
 }
 
 
-CargoChit* ChitBag::GetCargoGoingTo( const grinliz::Vector2I& pos )
+CargoChit* ChitBag::GetCargoGoingTo( int type, const grinliz::Vector2I& pos )
 {
 	for( Chit* chit = sentinel.next; chit != &sentinel; chit=chit->next ) {
-		if ( chit->IsCargoChit() && chit->IsCargoChit()->Base() == pos ) {
+		CargoChit* cargo = chit->IsCargoChit();
+		if ( cargo && cargo->Type() == type && cargo->Dest() == pos ) {
+			return chit->IsCargoChit();
+		}
+	}
+	return 0;
+}
+
+
+CargoChit* ChitBag::GetCargoComingFrom( int type, const grinliz::Vector2I& from )
+{
+	for( Chit* chit = sentinel.next; chit != &sentinel; chit=chit->next ) {
+		CargoChit* cargo = chit->IsCargoChit();
+		if ( cargo && cargo->Type() == type && cargo->Origin() == from ) {
 			return chit->IsCargoChit();
 		}
 	}
@@ -914,3 +1026,65 @@ int	ChitBag::NumBaseChits()
 	return count;
 }
 
+
+void ChitBag::Save( FILE* fp, int depth )
+{
+	XMLUtil::OpenElement( fp, depth, "ChitBag" );
+	XMLUtil::Attribute( fp, "battleUFOID", battleUFOID );
+	XMLUtil::Attribute( fp, "battleLanderID", battleLanderID );
+
+	XMLUtil::SealElement( fp );
+	for( Chit* it=Begin(); it!=End(); it=it->Next() ) {
+		it->Save( fp, depth+1 );
+	}
+	XMLUtil::CloseElement( fp, depth+1, "ChitBag" );
+
+}
+
+
+void ChitBag::Load( const TiXmlElement* doc, SpaceTree* tree, const ItemDefArr& arr, Game* game )
+{
+	Vector2F v0 = {0,0}, v1 = {0,0};
+	Vector2I vi0 = {0,0}, vi1 = {0,0};
+
+	const TiXmlElement* bag = doc->FirstChildElement( "ChitBag" );
+	Clear();
+	doc->QueryIntAttribute( "battleUFOID", &battleUFOID );
+	doc->QueryIntAttribute( "battleLanderID", &battleLanderID );
+
+	if ( bag ) {
+		for( const TiXmlElement* chitEle = bag->FirstChildElement(); chitEle; chitEle=chitEle->NextSiblingElement() ) {
+			if ( StrEqual( chitEle->Value(), "UFOChit" ) ) {
+				UFOChit* ufoChit = new UFOChit( tree, 0, v0, v1 );
+				ufoChit->Load( chitEle );
+				Add( ufoChit );
+			}
+			else if ( StrEqual( chitEle->Value(), "CropCircle" ) ) {
+				CropCircle* cropCircle = new CropCircle( tree, vi0, 0 );
+				cropCircle->Load( chitEle );
+				Add( cropCircle );
+			}
+			else if ( StrEqual( chitEle->Value(), "CityChit" ) ) {
+				CityChit* cityChit = new CityChit( tree, vi0, false );
+				cityChit->Load( chitEle );
+				Add( cityChit );
+			}
+			else if ( StrEqual( chitEle->Value(), "BaseChit" )) {
+				BaseChit* baseChit = new BaseChit( tree, vi0, 0, arr, false );
+				baseChit->Load( chitEle, game );
+				Add( baseChit );
+			}
+			else if ( StrEqual( chitEle->Value(), "CargoChit" )) {
+				CargoChit* cargoChit = new CargoChit( tree, 0, vi0, vi1 );
+				cargoChit->Load( chitEle );
+				Add( cargoChit );
+			}
+			else {
+				GLASSERT( 0 );
+			}
+		}
+	}
+	for( Chit* chit=Begin(); chit != End(); chit=chit->Next() ) {
+		idPool = Max( idPool, chit->ID()+1 );
+	}
+}

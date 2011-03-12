@@ -301,7 +301,7 @@ bool GeoScene::CanSendCargoPlane( const Vector2I& pos )
 	BaseChit* base = chitBag.GetBaseChitAt ( pos );
 	if ( base && base->IsFacilityComplete( BaseChit::FACILITY_CARGO ) ) {
 		
-		CargoChit* cargoChit = chitBag.GetCargoGoingTo( pos );
+		CargoChit* cargoChit = chitBag.GetCargoGoingTo( CargoChit::TYPE_CARGO, pos );
 		// Make sure no plane is deployed:
 		if ( !cargoChit ) {
 			int region = geoMapData.GetRegion( pos.x, pos.y );
@@ -326,7 +326,7 @@ void GeoScene::HandleItemTapped( const gamui::UIItem* item )
 			int cityID = random.Rand( geoMapData.NumCities( region ) );
 			Vector2I city = geoMapData.City( region, cityID );
 
-			Chit* chit = new CargoChit( tree, city, contextChit->MapPos() );
+			Chit* chit = new CargoChit( tree, CargoChit::TYPE_CARGO, city, contextChit->MapPos() );
 			chitBag.Add( chit );
 		}
 	}
@@ -358,9 +358,16 @@ void GeoScene::HandleItemTapped( const gamui::UIItem* item )
 	{
 		PushButton* pushButton = (PushButton*)item;
 		const char* label = pushButton->GetText();
+
 		BaseChit* base = chitBag.GetBaseChit( label );
 		if ( base ) {
-			base->DeployLander( contextChit->MapPos() );
+			if ( chitBag.GetCargoGoingTo( CargoChit::TYPE_LANDER, contextChit->MapPos() ) ) {
+				GLASSERT( 0 );
+			}
+			else {
+				CargoChit* cargoChit = new CargoChit( tree, CargoChit::TYPE_LANDER, base->MapPos(), contextChit->MapPos() );
+				chitBag.Add( cargoChit );
+			}
 		}
 	}
 	else if ( item == &researchButton ) {
@@ -517,13 +524,13 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 	}
 	else if ( type == CM_UFO ) {
 		for( int i=0; i<MAX_BASES; ++i ) {
-			BaseChit* chit = chitBag.GetBaseChit( i );
-			if ( chit ) {
+			BaseChit* baseChit = chitBag.GetBaseChit( i );
+			if ( baseChit ) {
 				context[i].SetVisible( true );
-				context[i].SetText( chit->Name() );
+				context[i].SetText( baseChit->Name() );
 
-				if (    chit->IsFacilityComplete( BaseChit::FACILITY_LANDER )
-					 && !chit->LanderDeployed() )
+				if (     baseChit->IsFacilityComplete( BaseChit::FACILITY_LANDER )
+					  && !chitBag.GetCargoComingFrom( CargoChit::TYPE_LANDER, baseChit->MapPos() ) )
 				{
 					context[i].SetEnabled( true );
 				}
@@ -783,27 +790,20 @@ void GeoScene::UpdateMissiles( U32 deltaTime )
 }
 
 
-void GeoScene::DoLanderArrived( Chit* chitIt )
+void GeoScene::DoLanderArrived( CargoChit* chitIt )
 {
-	Vector2I posi = chitIt->IsBaseChit()->LanderMapPos();				
-	Chit* chitAt = chitBag.GetParkedChitAt( posi );
+	Chit* chitAt = chitBag.GetParkedChitAt( chitIt->MapPos() );
 	UFOChit* ufoChit = chitAt ? chitAt->IsUFOChit() : 0;
 	if ( ufoChit ) {
-		//landerArrived = posi;
-		//attackingBaseID = chitIt->ID();
 
-		ufoChit->SetBattle( true );
+		chitBag.SetBattle( ufoChit->ID(), chitIt->ID() );
 		Unit* units = chitIt->IsBaseChit()->GetUnits();
-
-		//for( int i=0; i<MAX_TERRANS; ++i ) {
-			//inventoryMemory[i] = *units[i].GetInventory();
-		//}
 
 		int scenario = TacticalIntroScene::FARM_SCOUT;				// fixme
 		game->SetCurrent( scenario, &research );
 
 		FastBattleSceneData* data = new FastBattleSceneData();
-		data->seed = posi.x + posi.y*GEO_MAP_X + scenario*37;
+		data->seed = chitIt->MapPos().x + chitIt->MapPos().y*GEO_MAP_X + scenario*37;
 		data->scenario = scenario;
 		data->crash = ( ufoChit->AI() == UFOChit::AI_CRASHED );
 		data->soldierUnits = units;
@@ -819,84 +819,72 @@ void GeoScene::SceneResult( int sceneID, int result )
 {
 	if ( sceneID == Game::FASTBATTLE_SCENE || sceneID == Game::BATTLE_SCENE ) {
 
-		UFOChit* ufo = 0;
-		for( Chit* it=chitBag.Begin(); it != chitBag.End(); it=it->Next() ) {
-			if ( it->IsUFOChit() && it->IsUFOChit()->InBattle() ) {
-				ufo = it->IsUFOChit();
-				ufo->SetBattle( false );
-				break;
-			}
-		}
-		GLASSERT( ufo );
+		UFOChit*	ufoChit = chitBag.GetBattleUFO();
+		CargoChit*	landerChit = chitBag.GetBattleLander();
+		GLASSERT( ufoChit && landerChit );
 
-		BaseChit* baseChit = 0;
-		for( int i=0; i<MAX_BASES; i++ ) {
-			BaseChit* it = chitBag.GetBaseChit(i);
-			if (    it 
-				 && it->LanderTarget() == ufo->MapPos()
-				 && it->LanderMapPos() == ufo->MapPos() )
-			{
-				baseChit = it;
-				break;
-			}
-		}
-		GLASSERT( baseChit );
-		Unit* units = baseChit->GetUnits();
+		if ( ufoChit && landerChit ) {
+			BaseChit* baseChit = chitBag.GetBaseChitAt( landerChit->Origin() );
+			GLASSERT( baseChit );
 
-		if ( result == TacticalEndSceneData::VICTORY ) {
-			Storage* storage = baseChit->GetStorage();
-			for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-				const ItemDef* itemDef = storage->GetItemDef(i);
-				if ( itemDef && storage->GetCount( i )) {
-					research.SetItemAcquired( itemDef->name );
+			if ( baseChit ) {
+				Unit* units = baseChit->GetUnits();
+
+				if ( result == TacticalEndSceneData::VICTORY ) {
+					Storage* storage = baseChit->GetStorage();
+					for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+						const ItemDef* itemDef = storage->GetItemDef(i);
+						if ( itemDef && storage->GetCount( i )) {
+							research.SetItemAcquired( itemDef->name );
+						}
+					}
+
+					if ( !research.ResearchInProgress() ) {
+						if ( !game->IsScenePushed() ) {
+							ResearchSceneData* data = new ResearchSceneData();
+							data->research = &research;
+							game->PushScene( Game::RESEARCH_SCENE, data );
+						}
+					}
+					delete ufoChit;
+				}
+				if ( result == TacticalEndSceneData::VICTORY || result == TacticalEndSceneData::TIE ) {
+
+					// Units are healed / deleted
+					for( int i=0; i<MAX_TERRANS; ++i ) {
+						if ( units[i].IsKIA() || units[i].IsMIA() ) {
+							units[i].Free();
+						}
+						else {
+							// Heal units, bring clips back up to full strength.
+							units[i].Heal();
+							units[i].GetInventory()->RestoreClips();
+						}
+					}
+				}
+
+				if ( result == TacticalEndSceneData::DEFEAT ) {
+					for( int i=0; i<MAX_TERRANS; ++i ) {
+						units[i].Free();
+					}
+				}
+
+				// Compress the units to group the living ones together. This
+				// is so the code only has to deal with "holes" from the tactical screen.
+				int dst=0, src=0;
+				for( dst=0, src=0; src<MAX_TERRANS; ++src ) {
+					if ( src > dst ) {
+						// Use memcpy to avoid constructor/destructor:
+						memcpy( &units[dst], &units[src], sizeof(Unit) );
+					}
+					if ( units[dst].IsAlive() ) {
+						++dst;
+					}
+				}
+				for( dst; dst<MAX_TERRANS; ++dst ) {
+					units[dst].Free();
 				}
 			}
-
-			if ( !research.ResearchInProgress() ) {
-				if ( !game->IsScenePushed() ) {
-					ResearchSceneData* data = new ResearchSceneData();
-					data->research = &research;
-					game->PushScene( Game::RESEARCH_SCENE, data );
-				}
-			}
-			delete ufo;
-		}
-
-		if ( result == TacticalEndSceneData::VICTORY || result == TacticalEndSceneData::TIE ) {
-
-			// Units are healed / deleted
-			for( int i=0; i<MAX_TERRANS; ++i ) {
-				if ( units[i].IsKIA() || units[i].IsMIA() ) {
-					units[i].Free();
-				}
-				else {
-					// Heal units, bring clips back up to full strength.
-					units[i].Heal();
-					units[i].GetInventory()->RestoreClips();
-				}
-			}
-		}
-
-		if ( result == TacticalEndSceneData::DEFEAT ) {
-			for( int i=0; i<MAX_TERRANS; ++i ) {
-				units[i].Free();
-			}
-		}
-
-		// Compress the units to group the living ones together. This
-		// is so the code only has to deal with "holes" from the tactical screen.
-		int dst=0, src=0;
-		for( dst=0, src=0; src<MAX_TERRANS; ++src ) {
-			if ( src > dst ) {
-				// Use memcpy to avoid constructor/destructor:
-				memcpy( &units[dst], &units[src], sizeof(Unit) );
-			}
-			if ( units[dst].IsAlive() ) {
-				++dst;
-			}
-		}
-		for( dst; dst<MAX_TERRANS; ++dst ) {
-			units[dst].Free();
 		}
 	}
 }
@@ -951,7 +939,8 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 		case Chit::MSG_LANDER_ARRIVED:
 			if ( !game->IsScenePushed() ) {
-				DoLanderArrived( chitIt );
+				GLASSERT( chitIt->IsCargoChit() );
+				DoLanderArrived( chitIt->IsCargoChit() );
 			}
 			break;
 
@@ -1107,11 +1096,19 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 			{
 				BaseChit* base = chitBag.GetBaseChitAt( pos );
 				base->SetDestroyed();	// can't delete in this loop
+				// Very important to clean up cargo and lander!
+				CargoChit* cargoChit = 0;
+				cargoChit = chitBag.GetCargoComingFrom( CargoChit::TYPE_LANDER, base->MapPos() );
+				if ( cargoChit )
+					cargoChit->SetDestroyed();
+				cargoChit = chitBag.GetCargoGoingTo( CargoChit::TYPE_CARGO, base->MapPos() );
+				if ( cargoChit )
+					cargoChit->SetDestroyed();
 			}
 			break;
 
-		default:
-			GLASSERT( 0 );
+			default:
+				GLASSERT( 0 );
 		}
 	}
 
@@ -1226,19 +1223,27 @@ void GeoScene::Save( FILE* fp, int depth )
 	}
 	XMLUtil::CloseElement( fp, depth+1, "RegionData" );
 
-	XMLUtil::OpenElement( fp, depth+1, "Chits" );
-	XMLUtil::SealElement( fp );
-	for( Chit* it=chitBag.Begin(); it!=chitBag.End(); it=it->Next() ) {
-		it->Save( fp, depth+2 );
-	}
-	XMLUtil::CloseElement( fp, depth+1, "Chits" );
+	chitBag.Save( fp, depth+1 );
 
 	XMLUtil::CloseElement( fp, depth, "GeoScene" );
 }
 
 
-void GeoScene::Load( const TiXmlElement* doc )
+void GeoScene::Load( const TiXmlElement* scene )
 {
-//	GLASSERT( 0 );
+	GLASSERT( StrEqual( scene->Value(), "GeoScene" ) );
+	scene->QueryUnsignedAttribute( "alienTimer", &alienTimer );
+	scene->QueryUnsignedAttribute( "missileTimer0", &missileTimer[0] );
+	scene->QueryUnsignedAttribute( "missileTimer1", &missileTimer[1] );
+	scene->QueryUnsignedAttribute( "researchTimer", &researchTimer );
+	scene->QueryIntAttribute( "cash", &cash );
+	scene->QueryBoolAttribute( "firstBase", &firstBase );
+
+	int i=0;
+	for( const TiXmlElement* region=scene->FirstChildElement( "RegionData" ); region; ++i, region=region->NextSiblingElement() ) {
+		regionData[i].Load( region );
+	}
+
+	chitBag.Load( scene, tree, game->GetItemDefArr(), game );
 }
 

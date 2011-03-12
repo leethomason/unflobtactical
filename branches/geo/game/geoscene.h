@@ -273,7 +273,7 @@ private:
 	bool CanSendCargoPlane( const grinliz::Vector2I& base );
 
 	void HandleItemTapped( const gamui::UIItem* item );
-	void DoLanderArrived( Chit* chitIt );
+	void DoLanderArrived( CargoChit* chitIt );
 	
 	enum {
 		CM_NONE,
