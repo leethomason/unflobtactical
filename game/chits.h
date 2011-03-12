@@ -124,7 +124,6 @@ public:
 
 protected:
 	grinliz::Vector2F pos;		// in map units - NOT normalized
-	grinliz::Vector2F dest;		// in map units - NOT normalized
 	Model* model[2];			// use 2 models, so that the camera can fake scrolling. the spacetree will sort it all out.
 	SpaceTree* tree;
 
@@ -182,8 +181,6 @@ public:
 
 	void SetAI( int _ai ); 
 	int AI() const						{ return ai; }
-	void SetBattle( bool inBattle )		{ this->inBattle = inBattle; }
-	bool InBattle()	const				{ return inBattle; }
 	
 	float Speed() const					{ return speed; }
 	grinliz::Vector2F Velocity() const;
@@ -194,10 +191,13 @@ public:
 	virtual void Load( const TiXmlElement* doc );
 
 private:
+	void Init();
+
 	void EmitEntryExitBurn( U32 deltaTime, const grinliz::Vector3F& p0, const grinliz::Vector3F& p1, bool entry );
 	void Decal( U32 timer, float speed, int id );
 	void RemoveDecal();
 
+	grinliz::Vector2F dest;
 	int type;
 	int ai;
 	float speed;
@@ -223,6 +223,7 @@ public:
 	virtual void Load( const TiXmlElement* doc );
 
 private:
+	void Init( U32 seed );
 	enum {
 		CROP_CIRCLE_TIME_SECONDS = 20
 	};
@@ -242,6 +243,7 @@ public:
 	virtual void Load( const TiXmlElement* doc );
 
 private:
+	void Init();
 	bool capital;
 };
 
@@ -283,21 +285,13 @@ public:
 	bool IsFacilityInProgress( int i )			{ return facilityStatus[i] > 0; }
 	void BuildFacility( int i )					{ GLASSERT( facilityStatus[i] < 0 ); facilityStatus[i] = BUILD_TIME*1000; }
 
-	bool LanderDeployed() const						{ return lander[0] != 0; }
-	const grinliz::Vector2I& LanderTarget() const	{ return landerTarget; }
-	void DeployLander( const grinliz::Vector2I& pos );
-	grinliz::Vector2I LanderMapPos() const;
-
 	virtual void Save( FILE* fp, int depth );
-	virtual void Load( const TiXmlElement* doc );
+	virtual void Load( const TiXmlElement* doc, Game* game );
 
 private:
+	void Init();
 	int index;
 	int nScientists;
-
-	grinliz::Vector2I landerTarget;
-	bool landerOutbound;
-	Model* lander[2];
 
 	Storage* storage;
 	int facilityStatus[NUM_FACILITIES];	// -1, does not exist. 0, complete. >0 in progress
@@ -308,21 +302,30 @@ private:
 class CargoChit : public Chit
 {
 public:
-	CargoChit( SpaceTree* tree, const grinliz::Vector2I& start, const grinliz::Vector2I& end );
+	enum {
+		TYPE_CARGO,
+		TYPE_LANDER
+	};
+	CargoChit( SpaceTree* tree, int type, const grinliz::Vector2I& start, const grinliz::Vector2I& end );
 	~CargoChit();
 
 	virtual int DoTick( U32 deltaTime );
 	virtual CargoChit* IsCargoChit() { return this; }
-
-	grinliz::Vector2I Base() { return baseInMap; }
+	int Type() const { return type; }
 
 	virtual void Save( FILE* fp, int depth );
 	virtual void Load( const TiXmlElement* doc );
 
+	const grinliz::Vector2I& Dest() const { return dest; }
+	const grinliz::Vector2I& Origin() const { return origin; }
+
 private:
-	bool goingToBase;
-	grinliz::Vector2I cityInMap;
-	grinliz::Vector2I baseInMap;
+	void Init();
+
+	int type;
+	bool outbound;
+	grinliz::Vector2I origin;
+	grinliz::Vector2I dest;
 };
 
 
@@ -355,17 +358,26 @@ public:
 	UFOChit*	GetLandedUFOChitAt( const grinliz::Vector2I& pos );
 	int			NumBaseChits();
 
-	CargoChit*	GetCargoGoingTo( const grinliz::Vector2I& pos );
+	CargoChit*	GetCargoGoingTo( int type, const grinliz::Vector2I& to );
+	CargoChit*	GetCargoComingFrom( int type, const grinliz::Vector2I& from );
 	Chit*		GetParkedChitAt( const grinliz::Vector2I& pos );
+
+	void SetBattle( int ufoID, int landerID )	{ this->battleUFOID = ufoID; this->battleLanderID = landerID; }
+	UFOChit*	GetBattleUFO()					{ Chit* chit = GetChit( battleUFOID ); return (chit) ? chit->IsUFOChit() : 0; }
+	CargoChit*	GetBattleLander()				{ Chit* chit = GetChit( battleLanderID ); return (chit) ? chit->IsCargoChit() : 0; }
 
 	// Length is MAX_BASES. Alpha, Bravo, Charlie, Delta
 	enum {
 		MAX_BASES = 4
 	};
 
+	virtual void Save( FILE* fp, int depth );
+	virtual void Load( const TiXmlElement* doc, SpaceTree* tree, const ItemDefArr& arr, Game* game );
 
 private:
 	int idPool;
+	int battleUFOID;
+	int battleLanderID;
 	Chit sentinel;
 	BaseChit* baseChitArr[MAX_BASES];
 	CMap< int, Chit* >	map;

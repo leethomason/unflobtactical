@@ -658,6 +658,45 @@ int TiXmlElement::QueryIntAttribute( const char* name, int* ival ) const
 }
 
 
+int TiXmlElement::QueryUnsignedAttribute( const char* name, unsigned* value ) const
+{
+	const TiXmlAttribute* node = attributeSet.Find( name );
+	if ( !node )
+		return TIXML_NO_ATTRIBUTE;
+
+	int ival = 0;
+	int result = node->QueryIntValue( &ival );
+	*value = (unsigned)ival;
+	return result;
+}
+
+
+int TiXmlElement::QueryBoolAttribute( const char* name, bool* bval ) const
+{
+	const TiXmlAttribute* node = attributeSet.Find( name );
+	if ( !node )
+		return TIXML_NO_ATTRIBUTE;
+	
+	int result = TIXML_WRONG_TYPE;
+	if (    StringEqual( node->Value(), "true", true, TIXML_ENCODING_UNKNOWN ) 
+		 || StringEqual( node->Value(), "yes", true, TIXML_ENCODING_UNKNOWN ) 
+		 || StringEqual( node->Value(), "1", true, TIXML_ENCODING_UNKNOWN ) ) 
+	{
+		*bval = true;
+		result = TIXML_SUCCESS;
+	}
+	else if (    StringEqual( node->Value(), "false", true, TIXML_ENCODING_UNKNOWN ) 
+			  || StringEqual( node->Value(), "no", true, TIXML_ENCODING_UNKNOWN ) 
+			  || StringEqual( node->Value(), "0", true, TIXML_ENCODING_UNKNOWN ) ) 
+	{
+		*bval = false;
+		result = TIXML_SUCCESS;
+	}
+	return result;
+}
+
+
+
 #ifdef TIXML_USE_STL
 int TiXmlElement::QueryIntAttribute( const std::string& name, int* ival ) const
 {

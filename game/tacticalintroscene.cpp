@@ -286,7 +286,6 @@ void TacticalIntroScene::Tap(	int action,
 		return;
 	}
 
-
 	if ( item == &newTactical ) {
 		newTactical.SetVisible( false );
 		//newCampaign.SetVisible( false );
@@ -310,7 +309,7 @@ void TacticalIntroScene::Tap(	int action,
 		infoButton.SetVisible( false );
 	}
 	else if ( item == &continueButton ) {
-		onToNext = Game::BATTLE_SCENE;
+		onToNext = game->SaveFileScene();
 	}
 	else if ( item == &goButton ) {
 		GLString path = game->GameSavePath();
@@ -345,12 +344,10 @@ void TacticalIntroScene::Tap(	int action,
 		onToNext = Game::GEO_SCENE;
 	}
 
-
 	if ( onToNext >= 0 ) {
 		game->PopScene();
 		game->PushScene( onToNext, 0 );
 	}
-
 }
 
 
