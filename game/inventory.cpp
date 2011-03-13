@@ -283,7 +283,7 @@ void Inventory::Save( FILE* fp, int depth ) const
 }
 
 
-void Inventory::Load( const TiXmlElement* parent, Engine* engine, Game* game )
+void Inventory::Load( const TiXmlElement* parent, const ItemDefArr& arr )
 {
 	const TiXmlElement* ele = parent->FirstChildElement( "Inventory" );
 	int count = 0;
@@ -293,7 +293,7 @@ void Inventory::Load( const TiXmlElement* parent, Engine* engine, Game* game )
 			 slot = slot->NextSiblingElement( "Item" ) )
 		{
 			Item item;
-			item.Load( slot, game->GetItemDefArr() );
+			item.Load( slot, arr );
 			AddItem( item );
 			++count;
 		}

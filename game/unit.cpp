@@ -22,6 +22,7 @@
 #include "ai.h"
 #include "ufosound.h"
 #include "tacmap.h"
+#include "../engine/loosequadtree.h"
 
 using namespace grinliz;
 
@@ -215,8 +216,7 @@ const char* Unit::Rank() const
 }
 
 
-void Unit::Init(	Game* game, 
-					int team,	 
+void Unit::Init(	int team,	 
 					int p_status,
 					int alienType,
 					int body )
@@ -228,11 +228,12 @@ void Unit::Init(	Game* game,
 	model = 0;
 
 	GLASSERT( this->status == STATUS_NOT_INIT );
-	this->game = game;
+//	this->game = game;
+	tree = 0;
 	this->team = team;
 	this->status = p_status;
 	this->type = alienType;
-	this->body = body;
+	this->body = body & 0x7fffffff;	// strip off the high bit. Makes serialization odd to deal with negative numbers.
 	GLASSERT( type >= 0 && type < Unit::NUM_ALIEN_TYPES );
 	
 	random.SetSeed( body ^ ((U32)this) );
@@ -255,9 +256,6 @@ void Unit::Init(	Game* game,
 		tu = 0;
 		hp = 0;
 	}
-
-	if ( game )
-		CreateModel();
 }
 
 
@@ -273,13 +271,13 @@ void Unit::Free()
 		return;
 
 	if ( model ) {
-		GLASSERT( game );
-		game->engine->FreeModel( model );
+		GLASSERT( tree );
+		tree->FreeModel( model );
 		model = 0;
 	}
 	if ( weapon ) {
-		GLASSERT( game );
-		game->engine->FreeModel( weapon );
+		GLASSERT( tree );
+		tree->FreeModel( weapon );
 		weapon = 0;
 	}
 	status = STATUS_NOT_INIT;
@@ -362,15 +360,15 @@ void Unit::UpdateInventory()
 	GLASSERT( status != STATUS_NOT_INIT );
 
 	if ( weapon  ) {
-		GLASSERT( game );
-		game->engine->FreeModel( weapon );
+		GLASSERT( tree );
+		tree->FreeModel( weapon );
 	}
 	weapon = 0;	// don't render non-weapon items
 
 	if ( IsAlive() ) {
 		const Item* weaponItem = inventory.ArmedWeapon();
-		if ( weaponItem && game ) {
-			weapon = game->engine->AllocModel( weaponItem->GetItemDef()->resource );
+		if ( weaponItem && tree ) {
+			weapon = tree->AllocModel( weaponItem->GetItemDef()->resource );
 			weapon->SetFlag( Model::MODEL_NO_SHADOW );
 			weapon->SetFlag( Model::MODEL_MAP_TRANSPARENT );
 		}
@@ -441,8 +439,13 @@ void Unit::CalcMapPos( grinliz::Vector2I* vec, float* rot ) const
 void Unit::Kill( TacMap* map )
 {
 	GLASSERT( status == STATUS_ALIVE );
+	
+	bool hasModel = false;
 	Vector3F pos = { 0, 0, 0 };
-	if ( model ) pos = model->Pos();
+	if ( model ) { 
+		hasModel = true;
+		pos = model->Pos();
+	}
 
 	Free();
 
@@ -450,16 +453,16 @@ void Unit::Kill( TacMap* map )
 	hp = 0;
 
 	if ( team == TERRAN_TEAM ) {
-		if ( model )
+		if ( hasModel )
 			SoundManager::Instance()->QueueSound( "terrandown0" );
 		if ( random.Rand( 100 ) < stats.Constitution() )
 			status = STATUS_UNCONSCIOUS;
 	}
 	else if ( team == ALIEN_TEAM ) {
-		if ( model )
+		if ( hasModel )
 			SoundManager::Instance()->QueueSound( "aliendown0" );
 	}
-	if ( model ) {
+	if ( hasModel ) {
 		CreateModel();
 
 		model->SetRotation( 0 );	// set the y rotation to 0 for the "splat" icons
@@ -532,8 +535,7 @@ void Unit::NewTurn()
 void Unit::CreateModel()
 {
 	GLASSERT( status != STATUS_NOT_INIT );
-	if ( !game )
-		return;
+	GLASSERT( tree );
 
 	const ModelResource* resource = 0;
 	ModelResourceManager* modman = ModelResourceManager::Instance();
@@ -558,13 +560,13 @@ void Unit::CreateModel()
 				break;
 		}
 		GLASSERT( resource );
-		if ( resource && game ) {
-			model = game->engine->AllocModel( resource );
+		if ( resource ) {
+			model =tree->AllocModel( resource );
 			model->SetFlag( Model::MODEL_MAP_TRANSPARENT );
 		}
 	}
 	else {
-		model = game->engine->AllocModel( modman->GetModelResource( "unitplate" ) );
+		model = tree->AllocModel( modman->GetModelResource( "unitplate" ) );
 		model->SetFlag( Model::MODEL_MAP_TRANSPARENT );
 		model->SetFlag( Model::MODEL_NO_SHADOW );
 
@@ -579,6 +581,10 @@ void Unit::CreateModel()
 		}
 	}
 	GLASSERT( model );
+
+	model->SetPos( initPos );
+	if ( IsAlive() )
+		model->SetRotation( initRot );
 	UpdateModel();
 }
 
@@ -630,7 +636,23 @@ void Unit::Save( FILE* fp, int depth ) const
 }
 
 
-void Unit::Load( const TiXmlElement* ele, Game* game, TacMap* tacmap  )
+void Unit::InitModel( SpaceTree* tree, TacMap* tacmap )
+{
+	this->tree = tree;
+
+	if ( initPos.x == 0.0f ) {
+		GLASSERT( initPos.z == 0.0f );
+
+		Vector2I pi;
+		tacmap->PopLocation( team, ai == AI::AI_GUARD, &pi, &initRot );
+		initPos.Set( (float)pi.x+0.5f, 0.0f, (float)pi.y+0.5f );
+	}
+
+	CreateModel();
+}
+
+
+void Unit::Load( const TiXmlElement* ele, const ItemDefArr& itemDefArr )
 {
 	Free();
 
@@ -643,9 +665,9 @@ void Unit::Load( const TiXmlElement* ele, Game* game, TacMap* tacmap  )
 	random.Rand();
 
 	team = TERRAN_TEAM;
-	body = random.Rand();
-	Vector3F pos = { 0, 0, 0 };
-	float rot = 0;
+	body = random.Rand() & 0x7fffffff;
+	initPos.Set( 0, 0, 0 );
+	initRot = 0;
 	type = 0;
 	int a_status = 0;
 	ai = AI::AI_NORMAL;
@@ -662,15 +684,15 @@ void Unit::Load( const TiXmlElement* ele, Game* game, TacMap* tacmap  )
 		ele->QueryIntAttribute( "team", &team );
 		ele->QueryIntAttribute( "type", &type );
 		ele->QueryIntAttribute( "body", (int*) &body );
-		ele->QueryFloatAttribute( "modelX", &pos.x );
-		ele->QueryFloatAttribute( "modelZ", &pos.z );
-		ele->QueryFloatAttribute( "yRot", &rot );
+		ele->QueryFloatAttribute( "modelX", &initPos.x );
+		ele->QueryFloatAttribute( "modelZ", &initPos.z );
+		ele->QueryFloatAttribute( "yRot", &initRot );
 
 		GenStats( team, type, body, &stats );		// defaults if not provided
 		stats.Load( ele );
-		inventory.Load( ele, game->engine, game );
+		inventory.Load( ele, itemDefArr );
 
-		Init( game, team, a_status, type, body );
+		Init( team, a_status, type, body );
 
 		hp = stats.TotalHP();
 		tu = stats.TotalTU();
@@ -688,19 +710,6 @@ void Unit::Load( const TiXmlElement* ele, Game* game, TacMap* tacmap  )
 			ai = AI::AI_GUARD;
 		}
 
-		if ( model ) {
-			if ( pos.x == 0.0f ) {
-				GLASSERT( pos.z == 0.0f );
-
-				Vector2I pi;
-				tacmap->PopLocation( team, ai == AI::AI_GUARD, &pi, &rot );
-				pos.Set( (float)pi.x+0.5f, 0.0f, (float)pi.y+0.5f );
-			}
-
-			model->SetPos( pos );
-			if ( IsAlive() )
-				model->SetRotation( rot );
-		}
 		UpdateInventory();
 
 #if 0
@@ -724,7 +733,7 @@ void Unit::Create(	int team,
 					int seed )
 {
 	Free();
-	Init( 0, team, STATUS_ALIVE, alienType, seed );
+	Init( team, STATUS_ALIVE, alienType, seed );
 	GenStats( team, type, body, &stats );		// defaults if not provided
 	allMissionKills = rank / 2;
 	allMissionOvals = rank / 2;

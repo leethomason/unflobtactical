@@ -184,6 +184,17 @@ const MapItemDef* TacMap::GetItemDef( const char* name )
 }
 
 
+const MapItemDef* TacMap::StaticGetItemDef( const char* name )
+{
+	for( int i=0; i<NUM_ITEM_DEF; ++i ) {
+		if ( StrEqual( itemDefArr[i].Name(), name ) ) {
+			return &itemDefArr[i];
+		}
+	}
+	return 0;
+}
+
+
 const Map::MapItem* TacMap::FindLander()
 {
 	Rectangle2I bounds = Bounds();

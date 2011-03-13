@@ -72,7 +72,7 @@ public:
 	int GetArmorLevel() const;			// return armor level: 0-3
 
 	void Save( FILE* fp, int depth ) const;
-	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
+	void Load( const TiXmlElement* doc, const ItemDefArr& arr );
 
 	Item GetItem( int slot ) const				{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot]; }				// return a copy...too easy to change while in use
 	Item* AccessItem( int slot )				{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return &slots[slot]; }

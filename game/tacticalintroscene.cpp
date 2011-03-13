@@ -25,6 +25,8 @@
 #include "helpscene.h"
 #include "settings.h"
 #include "ai.h"
+#include "../version.h"
+#include "tacmap.h"
 
 
 using namespace grinliz;
@@ -341,6 +343,7 @@ void TacticalIntroScene::Tap(	int action,
 		game->SetDebugLevel( (game->GetDebugLevel() + 1)%4 );
 	}
 	else if ( item == &newGeo ) {
+		game->DeleteSaveFile();
 		onToNext = Game::GEO_SCENE;
 	}
 
@@ -354,7 +357,6 @@ void TacticalIntroScene::Tap(	int action,
 void TacticalIntroScene::WriteXML( FILE* fp )
  {
 	//	Game
-	//		Scene
 	//		BattleScene
 	//		Map
 	//			Seen
@@ -365,15 +367,13 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	//			Unit
 	
 	XMLUtil::OpenElement( fp, 0, "Game" );
+	XMLUtil::Attribute( fp, "version", VERSION );
+	XMLUtil::Attribute( fp, "sceneID", Game::BATTLE_SCENE );
 	XMLUtil::SealElement( fp );
-
-	XMLUtil::OpenElement( fp, 1, "Scene" );
-	XMLUtil::Attribute( fp, "id", Game::BATTLE_SCENE );
-	XMLUtil::SealCloseElement( fp );
 
 	XMLUtil::OpenElement( fp, 1, "BattleScene" );
 	XMLUtil::Attribute( fp, "dayTime", toggles[TIME_DAY].Down() ? 1 : 0 );
-	XMLUtil::SealCloseElement( fp );
+	XMLUtil::SealElement( fp );
 
 	int seed = (int)time( 0 ) + (int)clock();
 
@@ -396,7 +396,7 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	CreateMap( fp, seed, info );
 	fprintf( fp, "\n" );
 
-	XMLUtil::OpenElement( fp, 1, "Units" );
+	XMLUtil::OpenElement( fp, 2, "Units" );
 	XMLUtil::SealElement( fp );
 
 	Unit units[MAX_UNITS];
@@ -423,7 +423,7 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	GenerateTerranTeam( units, count, (float)rank, game->GetItemDefArr(), seed );
 	for( int i=0; i<count; ++i ) {
 		if ( units[i].IsAlive() ) {
-			units[i].Save( fp, 2 );
+			units[i].Save( fp, 3 );
 		}
 	}
 
@@ -461,7 +461,7 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	int created=0;
 	for( int i=0; i<MAX_ALIENS; ++i ) {
 		if ( units[i].IsAlive() ) {
-			units[i].Save( fp, 2 );
+			units[i].Save( fp, 3 );
 			++created;
 		}
 	}
@@ -472,11 +472,12 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	GenerateCivTeam( units, info.nCivs, game->GetItemDefArr(), seed );
 	for( int i=0; i<MAX_CIVS; ++i ) {
 		if ( units[i].IsAlive() ) {
-			units[i].Save( fp, 2 );
+			units[i].Save( fp, 3 );
 		}
 	}
 
-	XMLUtil::CloseElement( fp, 1, "Units" );
+	XMLUtil::CloseElement( fp, 2, "Units" );
+	XMLUtil::CloseElement( fp, 1, "BattleScene" );
 	XMLUtil::CloseElement( fp, 0, "Game" );		
 }
 
@@ -562,9 +563,7 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 		ele->SetAttribute( "rot", (rot + tileRotation)%4 );
 
 		if ( crashRect.Contains( v.x, v.y ) && random.Bit() ) {
-			Map* map = game->engine->GetMap();
-			const MapItemDef* mapItemDef = map->GetItemDef( ele->Attribute( "name" ) );
-
+			const MapItemDef* mapItemDef = TacMap::StaticGetItemDef( ele->Attribute( "name" ) );
 			if ( mapItemDef && mapItemDef->CanDamage() ) {
 				ele->SetAttribute( "hp", 0 );
 			}

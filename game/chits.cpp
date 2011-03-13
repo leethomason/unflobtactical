@@ -7,6 +7,7 @@
 #include "../engine/uirendering.h"
 
 #include "tacticalintroscene.h"		// fixme: only for unit generation
+#include "game.h"
 
 using namespace grinliz;
 
@@ -79,7 +80,6 @@ Chit::~Chit()
 
 UFOChit::UFOChit( SpaceTree* tree, int type, const grinliz::Vector2F& start, const grinliz::Vector2F& dest ) : Chit( tree )
 {
-	inBattle = false;
 	this->type = type;
 	this->ai = AI_TRAVELLING;
 	this->dest = dest;
@@ -111,6 +111,8 @@ void UFOChit::Init()
 	for( int i=0; i<2; ++i ) {
 		if ( model[i] ) tree->FreeModel( model[i] );
 		model[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( name[type] ) );
+		// Decals get re-created as needed.
+		if ( decal[i] ) { tree->FreeModel( decal[i] ); decal[i] = 0; }
 	}
 }
 
@@ -126,7 +128,6 @@ void UFOChit::Save( FILE* fp, int depth )
 	XMLUtil::Attribute( fp, "ai", ai );
 	XMLUtil::Attribute( fp, "speed", speed );
 	XMLUtil::Attribute( fp, "hp", hp );
-	XMLUtil::Attribute( fp, "inBattle", inBattle );
 	XMLUtil::Attribute( fp, "effectTimer", effectTimer );
 	XMLUtil::Attribute( fp, "jobTimer", jobTimer );
 
@@ -144,7 +145,6 @@ void UFOChit::Load( const TiXmlElement* doc )
 	doc->QueryIntAttribute( "ai", &ai );
 	doc->QueryFloatAttribute( "speed", &speed );
 	doc->QueryFloatAttribute( "hp", &hp );
-	doc->QueryBoolAttribute( "inBattle", &inBattle );
 	doc->QueryUnsignedAttribute( "effectTimer", &effectTimer );
 	doc->QueryUnsignedAttribute( "jobTimer", &jobTimer );
 	Init();
@@ -255,12 +255,13 @@ void UFOChit::Decal( U32 timer, float speed, int id )
 			decal[i]->SetTexture( (Texture*)atom.textureHandle );
 			decal[i]->SetTexXForm( 0, atom.tx1-atom.tx0, atom.ty1-atom.ty0, atom.tx0, atom.ty0 );
 			
-			Vector3F pos = model[i]->Pos();
-			decal[i]->SetPos( pos );
 		}
 	}
-	decal[0]->SetRotation( (float)timer * speed );
-	decal[1]->SetRotation( (float)timer * speed );
+	for( int i=0; i<2; ++i ) {
+		decal[i]->SetRotation( (float)timer * speed );
+		Vector3F pos = model[i]->Pos();
+		decal[i]->SetPos( pos );
+	}
 }
 
 
@@ -457,12 +458,11 @@ void CropCircle::Init( U32 seed )
 	float dy = (float)(r.Rand(CROP_CIRCLES_Y)) / (float)CROP_CIRCLES_Y;
 
 	for( int i=0; i<2; ++i ) {
+		if ( model[i] ) tree->FreeModel( model[i] );
 		model[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "unitplate" ) );
 		model[i]->SetTexture( texture );
 		model[i]->SetTexXForm( 0, 1.f/(float)CROP_CIRCLES_X, 1.f/(float)CROP_CIRCLES_Y, dx, dy );
 	}
-	if ( model[0] ) tree->FreeModel( model[0] );
-	if ( model[1] ) tree->FreeModel( model[1] );
 
 	Vector3F pos3 = { pos.x, UFO_HEIGHT*0.1f, pos.y };
 	model[0]->SetPos( pos3 );
@@ -518,10 +518,9 @@ CityChit::CityChit( SpaceTree* tree, const grinliz::Vector2I& posi, bool _capita
 void CityChit::Init()
 {
 	for( int i=0; i<2; ++i ) {
+		if ( model[i] ) tree->FreeModel( model[i] );
 		model[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( capital ? "capital" : "city" ) );
 	}
-	if ( model[0] ) tree->FreeModel( model[0] );
-	if ( model[1] ) tree->FreeModel( model[1] );
 	model[0]->SetPos( pos.x, 0, pos.y );
 	model[1]->SetPos( pos.x+(float)GEO_MAP_X, 0, pos.y  );
 
@@ -592,9 +591,7 @@ void BaseChit::Save( FILE* fp, int depth )
 	Chit::Save( fp, depth );
 
 	XMLUtil::Attribute( fp, "index", index );
-	//XMLUtil::Attribute( fp, "landerTarget.x", landerTarget.x );
-	//XMLUtil::Attribute( fp, "landerTarget.y", landerTarget.y );
-	//XMLUtil::Attribute( fp, "landerOutbound", landerOutbound );
+	XMLUtil::Attribute( fp, "nScientists", nScientists );
 	XMLUtil::SealElement( fp );
 
 	storage->Save( fp, depth+1 );
@@ -623,10 +620,7 @@ void BaseChit::Load( const TiXmlElement* doc, Game* game )
 {
 	Chit::Load( doc );
 	doc->QueryIntAttribute( "index", &index );
-	//doc->QueryIntAttribute( "landerTarget.x", &landerTarget.x );
-	//doc->QueryIntAttribute( "landerTarget.y", &landerTarget.y );
-	//doc->QueryBoolAttribute( "landerOutbound", &landerOutbound );
-
+	doc->QueryIntAttribute( "nScientists", &nScientists );
 	storage->Load( doc );
 
 	const TiXmlElement* facilities = doc->FirstChildElement( "Facilities" );
@@ -640,8 +634,8 @@ void BaseChit::Load( const TiXmlElement* doc, Game* game )
 	const TiXmlElement* unitsEle = doc->FirstChildElement( "Units" );
 	if ( unitsEle ) {
 		int i=0;
-		for( const TiXmlElement* unitEle=unitsEle->FirstChildElement( "Unit" ); unitEle && i<MAX_TERRANS; unitEle=unitEle->NextSiblingElement( "Unit" ) ) {
-			units[i].Load( unitEle, game, 0 );
+		for( const TiXmlElement* unitEle=unitsEle->FirstChildElement( "Unit" ); unitEle && i<MAX_TERRANS; unitEle=unitEle->NextSiblingElement( "Unit" ), ++i ) {
+			units[i].Load( unitEle, game->GetItemDefArr() );
 		}
 	}
 
@@ -801,6 +795,7 @@ void CargoChit::Save( FILE* fp, int depth )
 
 void CargoChit::Load( const TiXmlElement* doc )
 {
+	Chit::Load( doc );
 	doc->QueryIntAttribute( "type", &type );
 	doc->QueryBoolAttribute( "outbound", &outbound );
 	doc->QueryIntAttribute( "origin.x", &origin.x );
@@ -864,6 +859,8 @@ ChitBag::ChitBag() : sentinel( 0 )
 	sentinel.next = &sentinel;
 	sentinel.prev = &sentinel;
 	memset( baseChitArr, 0, sizeof(BaseChit*)*MAX_BASES );
+	battleLanderID = 0;
+	battleUFOID = 0;
 }
 
 
@@ -1034,10 +1031,15 @@ void ChitBag::Save( FILE* fp, int depth )
 	XMLUtil::Attribute( fp, "battleLanderID", battleLanderID );
 
 	XMLUtil::SealElement( fp );
-	for( Chit* it=Begin(); it!=End(); it=it->Next() ) {
-		it->Save( fp, depth+1 );
+
+	// Save all the chits. But the bases at the bottom for readability.
+	for( int i=0; i<2; ++i ) {
+		for( Chit* it=Begin(); it!=End(); it=it->Next() ) {
+			if ( i ^ (it->IsBaseChit() ? 0 : 1 ) )
+				it->Save( fp, depth+1 );
+		}
 	}
-	XMLUtil::CloseElement( fp, depth+1, "ChitBag" );
+	XMLUtil::CloseElement( fp, depth, "ChitBag" );
 
 }
 

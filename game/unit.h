@@ -33,6 +33,7 @@ class ModelResource;
 class Engine;
 class Game;
 class TacMap;
+class SpaceTree;
 
 
 class Unit
@@ -180,7 +181,9 @@ public:
 
 	void Save( FILE* fp, int depth ) const;
 
-	void Load( const TiXmlElement* doc, Game* game, TacMap* map );
+	// Loads the model. Follow with InitModel() if models needed.
+	void Load( const TiXmlElement* doc, const ItemDefArr& arr );
+	void InitModel(  SpaceTree* tree, TacMap* tacmap );
 	void Create(	int team,
 					int alienType,
 					int rank,
@@ -209,8 +212,7 @@ private:
 
 	// Note that the 'stats' should be set before init.
 	// Load calls init automatically
-	void Init(	Game* game, 
-				int team,
+	void Init(	int team,
 				int status,
 				int alienType,
 				int seed );
@@ -225,11 +227,14 @@ private:
 	int type;		// type of alien
 	U32 body;		// describes everything! a random #
 
-	Game*		game;
+	//Game*		game;
+	SpaceTree*	tree;
 	Model*		model;
 	Model*		weapon;
 	bool		visibilityCurrent;	// if set, the visibility is current. Can be set by CalcAllVisibility()
 	grinliz::Random	random;
+	grinliz::Vector3F	initPos;	// position used to create the model.
+	float				initRot;
 
 	Inventory	inventory;
 	Stats		stats;

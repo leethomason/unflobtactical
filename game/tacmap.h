@@ -35,6 +35,7 @@ public:
 	virtual int GetNumItemDef()	{ return NUM_ITEM_DEF; }
 	virtual const char* GetItemDefName( int i );
 	virtual const MapItemDef* GetItemDef( const char* name );
+	static const MapItemDef* StaticGetItemDef( const char* name );		// slow...but doesn't need an instance.
 
 	const Model* GetLanderModel();
 
@@ -51,7 +52,6 @@ private:
 	};
 	void SaveDebris( const Debris& d, FILE* fp, int depth );
 	void LoadDebris( const TiXmlElement* mapNode );
-
 
 	CDynArray< Debris > debris;
 	const ItemDefArr& gameItemDefArr;

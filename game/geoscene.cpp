@@ -200,7 +200,18 @@ void RegionData::Save( FILE* fp, int depth )
 
 void RegionData::Load( const TiXmlElement* doc )
 {
-	GLASSERT( 0 );
+	GLASSERT( StrEqual( doc->Value(), "Region" ));
+	doc->QueryIntAttribute( "traits", &traits );
+	doc->QueryIntAttribute( "influence", &influence );
+	doc->QueryBoolAttribute( "occupied", &occupied );
+
+	int count=0;
+	for( const TiXmlElement* historyEle = doc->FirstChildElement( "History" ); 
+		 historyEle && count<HISTORY; 
+		 historyEle=historyEle->NextSiblingElement( "History" ), ++count ) 
+	{
+		historyEle->QueryIntAttribute( "value", &history[count] );
+	}
 }
 
 
@@ -590,9 +601,8 @@ void GeoScene::PlaceBase( const grinliz::Vector2I& map )
 			Chit* chit = new BaseChit( tree, map, index, game->GetItemDefArr(), firstBase );
 			chitBag.Add( chit );
 			firstBase = false;
-
 			baseButton.SetUp();
-			int region = geoMapData.GetRegion( map.x, map.y );
+			research.KickResearch();
 		}
 	}
 }
@@ -790,33 +800,40 @@ void GeoScene::UpdateMissiles( U32 deltaTime )
 }
 
 
-void GeoScene::DoLanderArrived( CargoChit* chitIt )
+void GeoScene::DoLanderArrived( CargoChit* landerChit )
 {
-	Chit* chitAt = chitBag.GetParkedChitAt( chitIt->MapPos() );
+	GLASSERT( landerChit && landerChit->Type() == CargoChit::TYPE_LANDER );
+
+	Chit* chitAt = chitBag.GetParkedChitAt( landerChit->MapPos() );
 	UFOChit* ufoChit = chitAt ? chitAt->IsUFOChit() : 0;
 	if ( ufoChit ) {
+		chitBag.SetBattle( ufoChit->ID(), landerChit->ID() );
 
-		chitBag.SetBattle( ufoChit->ID(), chitIt->ID() );
-		Unit* units = chitIt->IsBaseChit()->GetUnits();
+		BaseChit* baseChit = chitBag.GetBaseChitAt( landerChit->Origin() );
+		GLASSERT( baseChit );	// now sure how this is possible, although not destructive
+		if ( baseChit ) {
+			Unit* units = baseChit->GetUnits();
 
-		int scenario = TacticalIntroScene::FARM_SCOUT;				// fixme
-		game->SetCurrent( scenario, &research );
+			int scenario = TacticalIntroScene::FARM_SCOUT;				// fixme
+			game->SetCurrent( scenario, &research );
 
-		FastBattleSceneData* data = new FastBattleSceneData();
-		data->seed = chitIt->MapPos().x + chitIt->MapPos().y*GEO_MAP_X + scenario*37;
-		data->scenario = scenario;
-		data->crash = ( ufoChit->AI() == UFOChit::AI_CRASHED );
-		data->soldierUnits = units;
-		data->dayTime = true;										// fixme
-		data->alienRank = 2;										// fixme
-		data->storage = chitIt->IsBaseChit()->GetStorage();
-		game->PushScene( Game::FASTBATTLE_SCENE, data );
+			FastBattleSceneData* data = new FastBattleSceneData();
+			data->seed = baseChit->MapPos().x + baseChit->MapPos().y*GEO_MAP_X + scenario*37;
+			data->scenario = scenario;
+			data->crash = ( ufoChit->AI() == UFOChit::AI_CRASHED );
+			data->soldierUnits = units;
+			data->dayTime = true;										// fixme
+			data->alienRank = 2;										// fixme
+			data->storage = baseChit->GetStorage();
+			game->PushScene( Game::FASTBATTLE_SCENE, data );
+		}
 	}
 }
 
 
 void GeoScene::SceneResult( int sceneID, int result )
 {
+	research.KickResearch();
 	if ( sceneID == Game::FASTBATTLE_SCENE || sceneID == Game::BATTLE_SCENE ) {
 
 		UFOChit*	ufoChit = chitBag.GetBattleUFO();
@@ -1207,6 +1224,7 @@ void GeoScene::Save( FILE* fp, int depth )
 	//		Research
 	// Units
 
+	// ----------- main scene --------- //
 	XMLUtil::OpenElement( fp, depth, "GeoScene" );
 	XMLUtil::Attribute( fp, "alienTimer", alienTimer );
 	XMLUtil::Attribute( fp, "missileTimer0", missileTimer[0] );
@@ -1216,6 +1234,7 @@ void GeoScene::Save( FILE* fp, int depth )
 	XMLUtil::Attribute( fp, "firstBase", firstBase );
 	XMLUtil::SealElement( fp );
 
+	// ---------- regions ----------- //
 	XMLUtil::OpenElement( fp, depth+1, "RegionData" );
 	XMLUtil::SealElement( fp );
 	for( int i=0; i<GEO_REGIONS; ++i ) {
@@ -1223,7 +1242,10 @@ void GeoScene::Save( FILE* fp, int depth )
 	}
 	XMLUtil::CloseElement( fp, depth+1, "RegionData" );
 
+	// ----------- chits ---------- //
 	chitBag.Save( fp, depth+1 );
+	// ----------- research ------- //
+	research.Save( fp, depth+1 );
 
 	XMLUtil::CloseElement( fp, depth, "GeoScene" );
 }
@@ -1240,8 +1262,12 @@ void GeoScene::Load( const TiXmlElement* scene )
 	scene->QueryBoolAttribute( "firstBase", &firstBase );
 
 	int i=0;
-	for( const TiXmlElement* region=scene->FirstChildElement( "RegionData" ); region; ++i, region=region->NextSiblingElement() ) {
-		regionData[i].Load( region );
+	const TiXmlElement* rdEle = scene->FirstChildElement( "RegionData" );
+	if ( rdEle ) {
+		for( const TiXmlElement* region=rdEle->FirstChildElement("Region"); region; ++i, region=region->NextSiblingElement( "Region" ) ) {
+			regionData[i].Load( region );
+			areaWidget[i]->SetInfluence( (float)regionData[i].influence );
+		}
 	}
 
 	chitBag.Load( scene, tree, game->GetItemDefArr(), game );
