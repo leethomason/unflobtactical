@@ -410,26 +410,28 @@ void BattleScene::Save( FILE* fp, int depth )
 	XMLUtil::Attribute( fp, "currentTeamTurn", currentTeamTurn );
 	XMLUtil::Attribute( fp, "dayTime", tacMap->DayTime() ? 1 : 0 );
 	XMLUtil::Attribute( fp, "turnCount", turnCount );
-	XMLUtil::SealCloseElement( fp );
+	XMLUtil::SealElement( fp );
 
-	tacMap->Save( fp, depth );
+	tacMap->Save( fp, depth+1 );
 
-	XMLUtil::OpenElement( fp, depth, "Units" );
+	XMLUtil::OpenElement( fp, depth+1, "Units" );
 	XMLUtil::SealElement( fp );
 	for( int i=0; i<MAX_UNITS; ++i ) {
-		units[i].Save( fp, depth+1 );
+		units[i].Save( fp, depth+2 );
 	}
-	XMLUtil::CloseElement( fp, depth, "Units" );
+	XMLUtil::CloseElement( fp, depth+1, "Units" );
+	XMLUtil::CloseElement( fp, depth, "BattleScene" );
 }
 
 
-void BattleScene::Load( const TiXmlElement* gameElement )
+void BattleScene::Load( const TiXmlElement* battleElement )
 {
 	// FIXME: Save/Load AI? Memory state is lost.
 
 	selection.Clear();
 
-	const TiXmlElement* battleElement = gameElement->FirstChildElement( "BattleScene" );
+	GLASSERT( battleElement );
+
 	if ( battleElement ) {
 		battleElement->QueryIntAttribute( "currentTeamTurn", &currentTeamTurn );
 		int daytime = 1;
@@ -440,20 +442,21 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 		battleElement->QueryIntAttribute( "turnCount", &turnCount );
 	}
 
-	//tacMap->Clear();
-	tacMap->Load( gameElement->FirstChildElement( "Map") );
+	tacMap->Load( battleElement->FirstChildElement( "Map") );
 	
 	int team[3] = { TERRAN_UNITS_START, CIV_UNITS_START, ALIEN_UNITS_START };
 
-	if ( gameElement->FirstChildElement( "Units" ) ) {
-		for( const TiXmlElement* unitElement = gameElement->FirstChildElement( "Units" )->FirstChildElement( "Unit" );
+	if ( battleElement->FirstChildElement( "Units" ) ) {
+		for( const TiXmlElement* unitElement = battleElement->FirstChildElement( "Units" )->FirstChildElement( "Unit" );
 			 unitElement;
 			 unitElement = unitElement->NextSiblingElement( "Unit" ) ) 
 		{
 			int t = 0;
 			unitElement->QueryIntAttribute( "team", &t );
 			Unit* unit = &units[team[t]];
-			unit->Load( unitElement, game, tacMap );
+
+			unit->Load( unitElement, game->GetItemDefArr() );
+			unit->InitModel( GetEngine()->GetSpaceTree(), tacMap );
 			
 			team[t]++;
 

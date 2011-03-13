@@ -7,6 +7,7 @@ using namespace grinliz;
 
 GeoAI::GeoAI( const GeoMapData& _data ) : geoMapData( _data )
 {
+	random.SetSeedFromTime();
 }
 
 

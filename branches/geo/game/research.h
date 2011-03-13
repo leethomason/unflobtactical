@@ -9,10 +9,13 @@
 
 class ItemDefArr;
 class ItemDef;
+class TiXmlElement;
 
 class Research
 {
 public:
+	struct Item;
+
 	enum { 
 		MAX_ITEMS_REQUIRED = 4,
 		MAX_PREREQ = 4
@@ -22,22 +25,30 @@ public:
 		const char* name;
 		int rp;
 		int rpRequired;
-		const char*	item[MAX_ITEMS_REQUIRED];	// note this can have null pointer gaps as items get acquired
+		const char*	item[MAX_ITEMS_REQUIRED];
 		const char* prereq[MAX_PREREQ];
-		const CStringMap<Research::Task*>* map;			
+		const CStringMap<Research::Task*>* taskMap;			
+		const CStringMap<Research::Item*>* itemMap;			
 
 		bool IsComplete() const { return rp == rpRequired; }
-		bool HasItems() const { for( int i=0; i<MAX_ITEMS_REQUIRED; ++i ) { if ( item[i] ) return false; } return true; }
+		
+		bool HasItems() const;
 		bool HasPreReq() const;
+	};
 
+	struct Item {
+		const char* name;
+		bool found;
 	};
 
 	Research( const gamedb::Reader* database );
 	~Research();
 
 	void DoResearch( int researcherSeconds );
-	bool ResearchReady() const			{ return current && current->IsComplete(); }
+	bool ResearchReady() const			{ return Current() && Current()->IsComplete(); }
 	bool ResearchInProgress() const		{ return current != 0; }
+
+	void KickResearch();	// if no research being done, do something
 	void SetItemAcquired( const char* name );
 	
 	const Task* Current() const { return current; }
@@ -45,7 +56,7 @@ public:
 		current = 0; 
 		if ( name ) {
 			Task* t = 0;
-			map.Query( name, &t );
+			taskMap.Query( name, &t );
 			if ( t ) current = t;
 		}
 	}
@@ -61,14 +72,23 @@ public:
 	};
 	int GetStatus( const char* name ) const;
 
+	void Save( FILE* fp, int depth );
+	void Load( const TiXmlElement* doc );
+
 private:
 	static int SortTasks( const void* _a, const void* _b );
 
-	CStringMap<Research::Task*> map;
+	CStringMap<Research::Task*> taskMap;
+	CStringMap<Research::Item*> itemMap;
+
 	const gamedb::Reader* database;
+
 	Task* current;
+	
 	Task* taskArr;
+	Item* itemArr;
 	int nTasks;
+	int nItems;
 };
 
 

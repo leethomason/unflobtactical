@@ -136,18 +136,20 @@ void ResearchScene::SetOptions()
 				downSet = true;
 			}
 
+			GLASSERT( Research::MAX_ITEMS_REQUIRED == 4 );
+			SNPrintf( buf, SZ, "Requires: %s %s %s %s", 
+						taskArr[i].item[0] ? taskArr[i].item[0] : "",
+						taskArr[i].item[1] ? taskArr[i].item[1] : "",
+						taskArr[i].item[2] ? taskArr[i].item[2] : "",
+						taskArr[i].item[3] ? taskArr[i].item[3] : "" );
+			optionRequires[count].SetText( buf );
+
 			if ( taskArr[i].HasItems() ) {
-				optionRequires[count].SetText( "" );
+				optionRequires[count].SetEnabled( false );
 				optionButton[count].SetEnabled( true );
 			}
 			else {
-				GLASSERT( Research::MAX_ITEMS_REQUIRED == 4 );
-				SNPrintf( buf, SZ, "Requires: %s %s %s %s", 
-						  taskArr[i].item[0] ? taskArr[i].item[0] : "",
-						  taskArr[i].item[1] ? taskArr[i].item[1] : "",
-						  taskArr[i].item[2] ? taskArr[i].item[2] : "",
-						  taskArr[i].item[3] ? taskArr[i].item[3] : "" );
-				optionRequires[count].SetText( buf );
+				optionRequires[count].SetEnabled( true );
 				optionButton[count].SetEnabled( false );
 			}
 			++count;

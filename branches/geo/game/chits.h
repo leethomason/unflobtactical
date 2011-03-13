@@ -202,7 +202,6 @@ private:
 	int ai;
 	float speed;
 	float hp;
-	bool inBattle;
 	
 	U32 effectTimer;
 	U32 jobTimer;
