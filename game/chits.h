@@ -361,9 +361,10 @@ public:
 	CargoChit*	GetCargoComingFrom( int type, const grinliz::Vector2I& from );
 	Chit*		GetParkedChitAt( const grinliz::Vector2I& pos );
 
-	void SetBattle( int ufoID, int landerID )	{ this->battleUFOID = ufoID; this->battleLanderID = landerID; }
+	void SetBattle( int ufoID, int landerID, int scenario )	{ this->battleUFOID = ufoID; this->battleLanderID = landerID; this->battleScenario = scenario; }
 	UFOChit*	GetBattleUFO()					{ Chit* chit = GetChit( battleUFOID ); return (chit) ? chit->IsUFOChit() : 0; }
 	CargoChit*	GetBattleLander()				{ Chit* chit = GetChit( battleLanderID ); return (chit) ? chit->IsCargoChit() : 0; }
+	int			GetBattleScenario()				{ return battleScenario; }
 
 	// Length is MAX_BASES. Alpha, Bravo, Charlie, Delta
 	enum {
@@ -377,6 +378,7 @@ private:
 	int idPool;
 	int battleUFOID;
 	int battleLanderID;
+	int battleScenario;
 	Chit sentinel;
 	BaseChit* baseChitArr[MAX_BASES];
 	CMap< int, Chit* >	map;

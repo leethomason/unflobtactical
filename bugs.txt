@@ -5,17 +5,10 @@ Bugs:
 Android
 - Amazon
 
-- geo: apply civilian win/loss to something
-- tactical end screen: item list cramped
-- unit score screen: align with tactical end screen
 - geo: paced start, difficulty coordinated
-- wpns screen: old school text
-- geo: character screen left/right should work
-- character screen: show character
 - geo: build screen: layout. Indicate all build?
 - geo: no indication of base capabilities
 - geo: free to build bases
-- geo: a ufo will return to orbit if it gets to a "parked" tile. Should find a new task.
 - geo: can't save / load
 - day/night not hooked up from geo to tactical
 - scenario and difficulty not hooked up
@@ -33,7 +26,16 @@ Android
 - geo: help not hooked up
 - character screen: fix range at 8m, longer weapon list
 
+Deferred:
+- character screen: show character
+- geo: a ufo will return to orbit if it gets to a "parked" tile. Should find a new task.
+
 Fixed:
+- geo: character screen left/right should work
+- wpns screen: old school text
+- tactical end screen: item list cramped
+- unit score screen: align with tactical end screen
+- geo: apply civilian win/loss to something
 - geo: account for countries having stuff
 - geo: buy / sell should have one button, no going negative
 - geo: need to buy/sell soldiers

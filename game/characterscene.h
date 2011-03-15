@@ -49,6 +49,7 @@ public:
 	virtual void Tap(	int action, 
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
+	virtual void HandleHotKeyMask( int mask );
 
 	// Rendering
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	
@@ -110,7 +111,7 @@ protected:
 		void Tap( const gamui::UIItem* item );
 		void SetCompText();
 	private:
-		gamui::ToggleButton range[NUM_RANGE];
+		//gamui::ToggleButton range[NUM_RANGE];
 
 		const ItemDefArr* itemDefArr;
 		const Storage* storage;
@@ -118,7 +119,7 @@ protected:
 
 		//NameRankUI	nameRankUI;
 		// name tu % dam dptu
-		enum { COMP_COL = 5, COMP_ROW = 5 };
+		enum { COMP_COL = 5, COMP_ROW = 12 };
 		gamui::TextLabel compTable[COMP_COL*COMP_ROW];
 	};
 

@@ -26,14 +26,23 @@ class UIButtonGroup;
 class UITextTable;
 class Research;
 
+struct BattleResult {
+	unsigned	result:3;
+	unsigned	totalCivs:8;
+	unsigned	civSurvived:8;
+};
+
+
 class TacticalEndSceneData : public SceneData
 {
 public:
+
 	enum {
-		VICTORY,
-		DEFEAT,
-		TIE
+		VICTORY		= 1,
+		DEFEAT		= 2,
+		TIE			= 3,
 	};
+
 	Unit* soldiers;
 	const Unit* aliens;
 	const Unit* civs;
@@ -71,9 +80,11 @@ private:
 	enum { TEXT_ROW = 6, TEXT_COL = 3, ITEM_NUM = 16 };
 	BackgroundUI		backgroundUI;
 	gamui::TextLabel	victory;
+
 	gamui::TextLabel	textTable[TEXT_ROW*TEXT_COL];
 	gamui::TextLabel	totalScoreLabel, totalScoreValue;
 	gamui::TextLabel	items[ITEM_NUM];
+
 	gamui::PushButton	okayButton;
 
 	const TacticalEndSceneData* data;

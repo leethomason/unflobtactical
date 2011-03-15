@@ -55,7 +55,6 @@ private:
 	BackgroundUI			backgroundUI;
 	NameRankUI				nameRank[MAX_ROWS];
 	gamui::TextLabel		status[MAX_ROWS];
-	gamui::TextLabel		promotion[MAX_ROWS];
 	gamui::PushButton		button;
 	gamui::Image			award[MAX_AWARDS];
 
