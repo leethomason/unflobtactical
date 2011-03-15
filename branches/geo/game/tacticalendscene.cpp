@@ -37,19 +37,24 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 		textTable[i].Init( &gamui2D );
 	}
 
-	static const float X_NAME  = 20.f;
-	static const float X_COUNT = 220.f;
-	static const float X_SCORE = 270.0f;
-	static const float X_ITEMS = 320.0f;
-	static const float YPOS    = 20.f;
-	static const float DELTA   = 20.0f;
-	
+	enum {
+		DESC,
+		COUNT,
+		SCORE,
+		ITEM
+	};
+	//									description  count				 score					items
+	static const float X_ORIGIN[4]  = { GAME_GUTTER, GAME_GUTTER+150.0f, GAME_GUTTER+200.0f,	GAME_GUTTER+270.0f };
+	static const float Y_ORIGIN		= GAME_GUTTER;
+	static const float SPACING		= GAME_SPACING;
+	float yPos = GAME_GUTTER;
+
 	victory.Init( &gamui2D );
 	int nSoldiers = Unit::Count( data->soldiers, MAX_TERRANS, -1 );
-	int nSoldiersAlive = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_ALIVE );
-	int nSoldiersKIA = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_KIA );
-	int nSoldiersUnc = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_UNCONSCIOUS );
-	int nSoldiersMIA = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_MIA );
+	int nSoldiersStanding = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_ALIVE );
+	int nSoldiersDown      =   Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_KIA )
+						     + Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_UNCONSCIOUS )
+							 + Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_MIA );
 
 	int nAliens = Unit::Count( data->aliens, MAX_ALIENS, -1 );
 	int nAliensAlive = Unit::Count( data->aliens, MAX_ALIENS, Unit::STATUS_ALIVE );
@@ -58,7 +63,7 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 	int nCivsAlive = Unit::Count( data->civs, MAX_CIVS, Unit::STATUS_ALIVE );
 	int nCivsKIA = Unit::Count( data->civs, MAX_CIVS, Unit::STATUS_KIA );
 
-	if ( nSoldiersAlive>0 && nAliensAlive==0 ) {
+	if ( nSoldiersStanding>0 && nAliensAlive==0 ) {
 		victory.SetText( "Victory!" );
 		
 		// Award UFO stuff
@@ -89,19 +94,20 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 			}
 		}
 	}
-	else if ( nAliensAlive>0 && nSoldiersAlive==0 ) {
+	else if ( nAliensAlive>0 && nSoldiersStanding==0 ) {
 		victory.SetText( "Defeat." );
 	}
 	else {
 		victory.SetText( "Mission Summary:" );
 	}
-	victory.SetPos( X_NAME, YPOS );
+	victory.SetPos( X_ORIGIN[DESC], yPos );
+	yPos += SPACING;
 
-	const char* text[TEXT_ROW] = { "Soldiers survived",  "Soldiers KIA/MIA/KO",
+	const char* text[TEXT_ROW] = { "Soldiers standing",  "Soldiers down",
 		                           "Aliens survived", "Aliens killed", 
 								   "Civs Saved", "Civs Killed" };
 
-	int value[TEXT_ROW]		   = {	nSoldiers - nSoldiersKIA, nSoldiersKIA + nSoldiersUnc + nSoldiersMIA,
+	int value[TEXT_ROW]		   = {	nSoldiersStanding, nSoldiersDown,
 									nAliensAlive, nAliensKIA,
 									nCivsAlive, nCivsKIA
 								 };
@@ -140,17 +146,18 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 
 	for( int i=0; i<TEXT_ROW; ++i ) {
 		textTable[i*TEXT_COL].SetText( text[i] );
-		textTable[i*TEXT_COL].SetPos( X_NAME, YPOS + (float)(i+1)*DELTA );
+		textTable[i*TEXT_COL].SetPos( X_ORIGIN[DESC], yPos );
 
 		CStr<16> sBuf = value[i];
 		textTable[i*TEXT_COL+1].SetText( sBuf.c_str() );
-		textTable[i*TEXT_COL+1].SetPos( X_COUNT, YPOS + (float)(i+1)*DELTA );
+		textTable[i*TEXT_COL+1].SetPos( X_ORIGIN[COUNT], yPos );
 
 		if ( i&1 ) {
 			sBuf = score[i/2];
 			textTable[i*TEXT_COL+2].SetText( sBuf.c_str() );
-			textTable[i*TEXT_COL+2].SetPos( X_SCORE, YPOS + (float)(i+1)*DELTA );
+			textTable[i*TEXT_COL+2].SetPos( X_ORIGIN[SCORE], yPos );
 		}
+		yPos += SPACING;
 	}
 
 	// If the tech isn't high enough, can't use cells and anti
@@ -184,19 +191,19 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 			SNPrintf( buf, 30, "%s +%d", display, count );
 
 			items[row].Init( &gamui2D );
-			items[row].SetPos( X_ITEMS, YPOS + (float)row*20.f );
+			items[row].SetPos( X_ORIGIN[ITEM], Y_ORIGIN + (float)row*SPACING );
 			items[row].SetText( buf );
 			++row;
 		}
 	}
 
-	CStr<16> totalBuf = score[0]+score[1]+score[2];
+	CStr<16> totalBuf = (score[0]+score[1]+score[2]);
 	totalScoreValue.Init( &gamui2D );
-	totalScoreValue.SetPos( X_SCORE, YPOS + (float)(TEXT_ROW+2)*DELTA );
+	totalScoreValue.SetPos( X_ORIGIN[SCORE], yPos );
 	totalScoreValue.SetText( totalBuf.c_str() );
 
 	totalScoreLabel.Init( &gamui2D );
-	totalScoreLabel.SetPos( X_NAME, YPOS + (float)(TEXT_ROW+2)*DELTA );
+	totalScoreLabel.SetPos( X_ORIGIN[DESC], yPos );
 	totalScoreLabel.SetText( "Total Score" );
 
 	const gamui::ButtonLook& look = game->GetButtonLook( Game::GREEN_BUTTON );

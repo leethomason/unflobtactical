@@ -132,7 +132,14 @@ void FastBattleScene::SceneResult( int sceneID, int result )
 			data->storage->AddItem( game->GetItemDefArr().GetIndex( i ), foundStorage.GetCount( i ) );
 		}
 	}
-	game->PopScene( battleResult );
+
+	BattleResult br;
+	br.result = battleResult;
+	br.totalCivs = Unit::Count( civs, MAX_CIVS, -1 );
+	br.civSurvived = Unit::Count( civs, MAX_CIVS, Unit::STATUS_ALIVE );
+
+	U32 r = *((U32*)(&battleResult));
+	game->PopScene( r );
 }
 
 
@@ -201,6 +208,10 @@ int FastBattleScene::RunSim( Unit* soldier, Unit* alien, bool day )
 		while ( pS->IsAlive() && pA->IsAlive() && subCount < 20 ) 
 		{
 			float tu = att->GetStats().TotalTU() * (0.5f+0.5f*random.Uniform());	// cut some TU for movement
+			// Player is smarter than AI
+			if ( pA == att ) {
+				tu *= 0.8f;
+			}
 
 			BulletTarget target( range );
 			float chanceToHit, chanceAnyHit, tuNeeded, dptu;

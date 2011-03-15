@@ -245,6 +245,7 @@ void CharacterScene::CompWidget::Init( const ItemDefArr* arr, const Storage* sto
 	compTable[3].SetText( "D" );
 	compTable[4].SetText( "D/TU" );
 
+/*
 	if ( g ) {
 		static const char* const rangeLabel[NUM_RANGE] = { "4m", "8m", "16m" };
 		for( int i=0; i<NUM_RANGE; ++i ) {
@@ -263,6 +264,7 @@ void CharacterScene::CompWidget::Init( const ItemDefArr* arr, const Storage* sto
 			range[i].SetPos( x+GAME_BUTTON_SIZE_F*i, y + DY*(COMP_ROW+1) );
 		}
 	}
+*/
 }
 
 
@@ -273,10 +275,10 @@ void CharacterScene::CompWidget::SetCompText()
 	int index = 1;
 
 	float r = 8.0f;
-	if ( range[0].Down() )
-		r = 4.0f;
-	else if ( range[2].Down() )
-		r = 16.0f;
+//	if ( range[0].Down() )
+//		r = 4.0f;
+//	else if ( range[2].Down() )
+//		r = 16.0f;
 
 	for( int i=0; i<itemDefArr->Size(); ++i ) {
 		const ItemDef* itemDef = itemDefArr->Query( i );
@@ -304,7 +306,7 @@ void CharacterScene::CompWidget::SetCompText()
 
 				char buf[16];
 
-				SNPrintf( buf, 16, "%s%s", inInventory ? "+" : "-", wid->name );
+				SNPrintf( buf, 16, "%s%s", inInventory ? "+" : "-", wid->displayName.c_str() );
 				compTable[index*COMP_COL + 0].SetText( buf );
 
 				SNPrintf( buf, 16, "%.1f", wid->TimeUnits( mode ) );
@@ -333,9 +335,8 @@ void CharacterScene::CompWidget::SetVisible( bool visible )
 	for( int i=0; i<COMP_COL*COMP_ROW; ++i ) {
 		compTable[i].SetVisible( visible );
 	}
-	for( int i=0; i<NUM_RANGE; ++i )
-		range[i].SetVisible( visible );
-//	nameRankUI.SetVisible( visible );
+//	for( int i=0; i<NUM_RANGE; ++i )
+//		range[i].SetVisible( visible );
 
 	if ( visible )
 		SetCompText();
@@ -344,9 +345,9 @@ void CharacterScene::CompWidget::SetVisible( bool visible )
 
 void CharacterScene::CompWidget::Tap( const gamui::UIItem* item )
 {
-	for( int i=0; i<NUM_RANGE; ++i )
-		if ( item == &range[i] )
-			SetCompText();
+//	for( int i=0; i<NUM_RANGE; ++i )
+//		if ( item == &range[i] )
+//			SetCompText();
 }
 
 
@@ -361,6 +362,23 @@ void CharacterScene::SwitchMode( int mode )
 
 void CharacterScene::DrawHUD()
 {
+}
+
+
+void CharacterScene::HandleHotKeyMask( int mask )
+{
+	if ( mask == GAME_HK_NEXT_UNIT && input->nUnits > 1  ) {
+		SetCounter( 1 );
+	}
+	else if ( mask == GAME_HK_PREV_UNIT && input->nUnits > 1 ) {
+		SetCounter( -1 );
+	}
+	inventoryWidget->Update( unit );
+	statWidget.Init( 0, unit, storageWidget->X(), 0, input->nUnits>1 );
+
+	const gamui::ButtonLook& blue		= game->GetButtonLook( Game::BLUE_BUTTON );
+	compWidget.Init( &game->GetItemDefArr(), storage, unit, 0, blue, storageWidget->X(), 0, storageWidget->Width() );		
+	compWidget.SetCompText();
 }
 
 

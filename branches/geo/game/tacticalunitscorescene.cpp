@@ -36,15 +36,18 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, TacticalEndSceneDat
 
 
 	int count=0;
-	float yPos = 100.0f;
-	float xPosName = 50.0f;
-	float xPosStatus = 240.0f;
-	float xPosAward = 330.0f;
+	float yPos			= GAME_GUTTER;
+	float xPosName		= GAME_GUTTER;
+	float xPosStatus	= GAME_GUTTER+200.0f;
+	float xPosAward		= GAME_GUTTER+300.0f;
 	float size = 20.0f;
 
 	for( int i=0; i<MAX_TERRANS; ++i ) {
 		if ( data->soldiers[i].InUse() ) {
 			
+			int rank = data->soldiers[i].GetStats().Rank();
+			data->soldiers[i].DoMissionEnd();
+
 			nameRank[count].Init( &gamui2D );
 			nameRank[count].Set( xPosName, yPos, &data->soldiers[i], false );
 
@@ -67,16 +70,13 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, TacticalEndSceneDat
 			float x = xPosAward;
 
 			if ( data->soldiers[i].IsAlive() || data->soldiers[i].IsUnconscious() ) {
-				int rank = data->soldiers[i].GetStats().Rank();
-				data->soldiers[i].DoMissionEnd();
 
 				if ( rank != data->soldiers[i].GetStats().Rank() ) {
-					char buf[64];
-					SNPrintf( buf, 64, "%s", data->soldiers[i].Rank() );
-					promotion[count].Init( &gamui2D );
-					promotion[count].SetPos( x, yPos );
-					promotion[count].SetText( buf );
-					x += promotion[count].Width();
+					award[nAwards].Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_LEVEL_UP ), true );
+					award[nAwards].SetPos( x, yPos );
+					award[nAwards].SetSize( size, size );
+					x += size;
+					++nAwards;
 				}
 			}
 

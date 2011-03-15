@@ -162,7 +162,7 @@ public:
 	static void GenStats( int team, int type, int seed, Stats* stats );
 	void DoMissionEnd() {
 		nMissions++;
-		if ( tu < stats.TotalTU() ) allMissionOvals++;
+		if ( hp < stats.TotalHP() ) allMissionOvals++;
 		allMissionKills += kills;
 		stats.SetRank( XPToRank( XP() ));
 		

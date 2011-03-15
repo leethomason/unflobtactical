@@ -202,7 +202,7 @@ void RegionData::Load( const TiXmlElement* doc )
 {
 	GLASSERT( StrEqual( doc->Value(), "Region" ));
 	doc->QueryIntAttribute( "traits", &traits );
-	doc->QueryIntAttribute( "influence", &influence );
+	doc->QueryFloatAttribute( "influence", &influence );
 	doc->QueryBoolAttribute( "occupied", &occupied );
 
 	int count=0;
@@ -807,8 +807,6 @@ void GeoScene::DoLanderArrived( CargoChit* landerChit )
 	Chit* chitAt = chitBag.GetParkedChitAt( landerChit->MapPos() );
 	UFOChit* ufoChit = chitAt ? chitAt->IsUFOChit() : 0;
 	if ( ufoChit ) {
-		chitBag.SetBattle( ufoChit->ID(), landerChit->ID() );
-
 		BaseChit* baseChit = chitBag.GetBaseChitAt( landerChit->Origin() );
 		GLASSERT( baseChit );	// now sure how this is possible, although not destructive
 		if ( baseChit ) {
@@ -826,6 +824,8 @@ void GeoScene::DoLanderArrived( CargoChit* landerChit )
 			data->alienRank = 2;										// fixme
 			data->storage = baseChit->GetStorage();
 			game->PushScene( Game::FASTBATTLE_SCENE, data );
+
+			chitBag.SetBattle( ufoChit->ID(), landerChit->ID(), scenario );
 		}
 	}
 }
@@ -836,6 +836,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 	research.KickResearch();
 	if ( sceneID == Game::FASTBATTLE_SCENE || sceneID == Game::BATTLE_SCENE ) {
 
+		BattleResult battleResult = *((BattleResult*)&result);
 		UFOChit*	ufoChit = chitBag.GetBattleUFO();
 		CargoChit*	landerChit = chitBag.GetBattleLander();
 		GLASSERT( ufoChit && landerChit );
@@ -843,11 +844,12 @@ void GeoScene::SceneResult( int sceneID, int result )
 		if ( ufoChit && landerChit ) {
 			BaseChit* baseChit = chitBag.GetBaseChitAt( landerChit->Origin() );
 			GLASSERT( baseChit );
+			int	region = geoMapData.GetRegion( baseChit->MapPos().x, baseChit->MapPos().y );
 
 			if ( baseChit ) {
 				Unit* units = baseChit->GetUnits();
 
-				if ( result == TacticalEndSceneData::VICTORY ) {
+				if ( battleResult.result == TacticalEndSceneData::VICTORY ) {
 					Storage* storage = baseChit->GetStorage();
 					for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
 						const ItemDef* itemDef = storage->GetItemDef(i);
@@ -855,17 +857,22 @@ void GeoScene::SceneResult( int sceneID, int result )
 							research.SetItemAcquired( itemDef->name );
 						}
 					}
+					research.KickResearch();
 
-					if ( !research.ResearchInProgress() ) {
-						if ( !game->IsScenePushed() ) {
-							ResearchSceneData* data = new ResearchSceneData();
-							data->research = &research;
-							game->PushScene( Game::RESEARCH_SCENE, data );
+					// Apply penalty for lost civs:
+					if ( battleResult.totalCivs > 0 ) {
+						float ratio = 1.0f - (float)battleResult.civSurvived / (float)battleResult.totalCivs;
+						if ( chitBag.GetBattleScenario() == TacticalIntroScene::CITY ) { 
+							ratio *= 2.0f; 
 						}
+						regionData[region].influence += ratio;
+						regionData[region].influence = Min( regionData[region].influence, (float)MAX_INFLUENCE );
+						areaWidget[region]->SetInfluence( regionData[region].influence );
 					}
+
 					delete ufoChit;
 				}
-				if ( result == TacticalEndSceneData::VICTORY || result == TacticalEndSceneData::TIE ) {
+				if ( battleResult.result == TacticalEndSceneData::VICTORY || battleResult.result == TacticalEndSceneData::TIE ) {
 
 					// Units are healed / deleted
 					for( int i=0; i<MAX_TERRANS; ++i ) {
@@ -880,7 +887,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 					}
 				}
 
-				if ( result == TacticalEndSceneData::DEFEAT ) {
+				if ( battleResult.result == TacticalEndSceneData::DEFEAT ) {
 					for( int i=0; i<MAX_TERRANS; ++i ) {
 						units[i].Free();
 					}
@@ -1020,7 +1027,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 				{
 					regionData[region].influence = MAX_INFLUENCE;
 					regionData[region].occupied = true;
-					areaWidget[region]->SetInfluence( (float)regionData[region].influence );
+					areaWidget[region]->SetInfluence( regionData[region].influence );
 					ufoChit->SetAI( UFOChit::AI_OCCUPATION );
 				}
 				else if (    ( ufoChit->Type() == UFOChit::BATTLESHIP || ufoChit->Type() == UFOChit::FRIGATE )
@@ -1049,9 +1056,9 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 				int region = geoMapData.GetRegion( pos.x, pos.y );
 				if ( regionData[region].influence < MAX_CROP_CIRCLE_INFLUENCE ) {
-					regionData[region].influence += CROP_CIRCLE_INFLUENCE;
-					regionData[region].influence = Min( regionData[region].influence, MAX_INFLUENCE );
-					areaWidget[region]->SetInfluence( (float)regionData[region].influence );
+					regionData[region].influence += (float)CROP_CIRCLE_INFLUENCE;
+					regionData[region].influence = Min( regionData[region].influence, (float)MAX_INFLUENCE );
+					areaWidget[region]->SetInfluence( regionData[region].influence );
 				}
 
 				if ( !geoMapData.IsWater( pos.x, pos.y ) ) {
@@ -1098,9 +1105,9 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 			case Chit::MSG_CITY_ATTACK_COMPLETE:
 			{
 				int region = geoMapData.GetRegion( pos.x, pos.y );
-				regionData[region].influence += CITY_ATTACK_INFLUENCE;
-				regionData[region].influence = Min( regionData[region].influence, MAX_INFLUENCE );
-				areaWidget[region]->SetInfluence( (float)regionData[region].influence );
+				regionData[region].influence += (float)CITY_ATTACK_INFLUENCE;
+				regionData[region].influence = Min( regionData[region].influence, (float)MAX_INFLUENCE );
+				areaWidget[region]->SetInfluence( regionData[region].influence );
 
 				if ( !geoMapData.IsWater( pos.x, pos.y ) ) {
 					int region = geoMapData.GetRegion( pos.x, pos.y );

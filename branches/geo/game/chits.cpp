@@ -861,6 +861,7 @@ ChitBag::ChitBag() : sentinel( 0 )
 	memset( baseChitArr, 0, sizeof(BaseChit*)*MAX_BASES );
 	battleLanderID = 0;
 	battleUFOID = 0;
+	battleScenario = 0;
 }
 
 
@@ -1029,6 +1030,7 @@ void ChitBag::Save( FILE* fp, int depth )
 	XMLUtil::OpenElement( fp, depth, "ChitBag" );
 	XMLUtil::Attribute( fp, "battleUFOID", battleUFOID );
 	XMLUtil::Attribute( fp, "battleLanderID", battleLanderID );
+	XMLUtil::Attribute( fp, "battleScenario", battleScenario );
 
 	XMLUtil::SealElement( fp );
 
@@ -1053,6 +1055,7 @@ void ChitBag::Load( const TiXmlElement* doc, SpaceTree* tree, const ItemDefArr& 
 	Clear();
 	doc->QueryIntAttribute( "battleUFOID", &battleUFOID );
 	doc->QueryIntAttribute( "battleLanderID", &battleLanderID );
+	doc->QueryIntAttribute( "battleScenario", &battleScenario );
 
 	if ( bag ) {
 		for( const TiXmlElement* chitEle = bag->FirstChildElement(); chitEle; chitEle=chitEle->NextSiblingElement() ) {
