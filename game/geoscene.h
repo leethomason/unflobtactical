@@ -77,6 +77,8 @@ static const float	GUN_SPEED			= 2.0f;
 static const U32	GUN_LIFETIME		=  800;
 static const float	MISSILE_HEIGHT		= 0.6f;
 
+static const int BASE_COST[MAX_BASES] = { 100, 500, 2000, 4000 };
+
 
 inline U32	 MissileFreq( int type )  { return ( type == 0 ) ? GUN_FREQ : MISSILE_FREQ; }
 inline float MissileRange( int type ) { return ( type == 0 ) ? (float)GUN_LIFETIME * GUN_SPEED / 1000.0f : (float)MISSILE_LIFETIME * MISSILE_SPEED / 1000.0f; }
@@ -117,9 +119,12 @@ public:
 	{
 		GLASSERT( x >= 0 && x < GEO_MAP_X );
 		GLASSERT( y >= 0 && y < GEO_MAP_Y );
-		GLASSERT( !IsWater( x, y ) );
+		if ( IsWater( x, y ) ) {
+			return -1;
+		}
 		return (data[y*GEO_MAP_X+x] >> 8);
 	}
+	int GetRegion( const grinliz::Vector2I& pos ) { return GetRegion( pos.x, pos.y ); }
 	int GetType( int x, int y ) const
 	{
 		GLASSERT( x >= 0 && x < GEO_MAP_X );
@@ -178,9 +183,9 @@ class RegionData
 public:
 	enum {
 		TRAIT_CAPATALIST	= 0x01,		// better sell price				
-		TRAIT_MILITARISTIC	= 0x02,		// better soldier units				// fixme
-		TRAIT_SCIENTIFIC	= 0x04,		// faster research					// fixme
-		TRAIT_NATIONALIST	= 0x08,		// slower alien takeover			// fixme
+		TRAIT_MILITARISTIC	= 0x02,		// better soldier units ('soliderBoost')
+		TRAIT_SCIENTIFIC	= 0x04,		// faster research - 50% better in DoResearch call
+		TRAIT_NATIONALIST	= 0x08,		// slower alien takeover - impacts crop circles and city attack
 		TRAIT_TECH			= 0x10,		// tech-3 weapons
 		TRAIT_MANUFACTURE	= 0x20,		// tech-3 armor
 		TRAIT_NUM_BITS = 6,
@@ -214,6 +219,7 @@ public:
 	void Load( const TiXmlElement* doc );
 
 private:
+
 	void Push( int d )	{
 		for( int i=HISTORY-1; i>0; --i ) {
 			history[i] = history[i-1];
@@ -268,12 +274,13 @@ private:
 	void InitLandTiles();
 	void FireBaseWeapons();
 	void UpdateMissiles( U32 deltaTime );
+	void GenerateCities();
 
 	void PlaceBase( const grinliz::Vector2I& map );
 	bool CanSendCargoPlane( const grinliz::Vector2I& base );
 
 	void HandleItemTapped( const gamui::UIItem* item );
-	void DoLanderArrived( CargoChit* chitIt );
+	void DoBattle( CargoChit* cargoChit, UFOChit* ufoChit );		// cargo OR ufo, not both
 	
 	enum {
 		CM_NONE,
@@ -300,6 +307,8 @@ private:
 
 	gamui::PushButton	helpButton, researchButton;
 	gamui::ToggleButton baseButton;
+	gamui::Image		cashImage;
+	gamui::TextLabel	cashLabel;
 
 	ChitBag				chitBag;
 	int					contextChitID;

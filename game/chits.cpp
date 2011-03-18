@@ -38,6 +38,7 @@ void Chit::Load( const TiXmlElement* doc )
 {
 	doc->QueryFloatAttribute( "pos.x", &pos.x );
 	doc->QueryFloatAttribute( "pos.y", &pos.y );
+	pos = Cylinder<float>::Normalize( pos );
 	doc->QueryIntAttribute( "id", &id );
 }
 
@@ -153,7 +154,8 @@ void UFOChit::Load( const TiXmlElement* doc )
 
 void UFOChit::SetAI( int _ai )
 {
-	GLASSERT( ai == AI_NONE || ai == AI_TRAVELLING || ai == AI_ORBIT );
+	//GLASSERT( ai == AI_NONE || ai == AI_TRAVELLING || ai == AI_ORBIT );
+	RemoveDecal();
 	ai = _ai;
 	jobTimer = 0;
 	effectTimer = 0;
@@ -268,7 +270,8 @@ void UFOChit::Decal( U32 timer, float speed, int id )
 void UFOChit::RemoveDecal()
 {
 	for( int i=0; i<2; ++i ) {
-		tree->FreeModel( decal[i] );
+		if ( decal[i] )
+			tree->FreeModel( decal[i] );
 		decal[i] = 0;
 	}
 }
@@ -384,8 +387,10 @@ int UFOChit::DoTick( U32 deltaTime )
 
 		if ( jobTimer >= UFO_LAND_TIME ) {
 			msg = MSG_BASE_ATTACK_COMPLETE;
-			ai = AI_ORBIT;
 			RemoveDecal();
+			// This method needs to keep being sent. If the lander
+			// is deployed, the UFO will wait until return. The
+			// AI will be set to ORBIT when the message is handled.
 		}
 		else {
 			Decal( jobTimer, 0.1f, ICON2_UFO_CITY_ATTACKING );
@@ -926,6 +931,7 @@ void ChitBag::Clean()
 	Chit* it=sentinel.next;
 	while( it != &sentinel ) {
 		if ( it->IsDestroyed() ) {
+			Remove( it );
 			Chit* temp=it;
 			it=it->next;
 			delete temp;
