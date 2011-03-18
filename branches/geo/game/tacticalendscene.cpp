@@ -94,7 +94,7 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 			}
 		}
 	}
-	else if ( nAliensAlive>0 && nSoldiersStanding==0 ) {
+	else if ( nSoldiersStanding==0 ) {
 		victory.SetText( "Defeat." );
 	}
 	else {
@@ -133,7 +133,9 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 		score[1] = score[1]*3/2;
 	}
 	// Adjust for odds, based on the starting out numbers.
-	score[1] = score[1] * nAliens / nSoldiers;
+	if ( nSoldiers ) {
+		score[1] = score[1] * nAliens / nSoldiers;
+	}
 
 	for( int i=0; i<MAX_CIVS; ++i ) {
 		if ( d->civs[i].InUse() ) {

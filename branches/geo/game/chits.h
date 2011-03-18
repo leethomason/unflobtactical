@@ -14,6 +14,7 @@ class CargoChit;
 class Model;
 class Storage;
 class ItemDefArr;
+class CityChit;
 
 
 template < class T > 
@@ -113,6 +114,7 @@ public:
 	virtual BaseChit*	IsBaseChit()	{ return 0; }
 	virtual UFOChit*	IsUFOChit()		{ return 0; }
 	virtual CargoChit*  IsCargoChit()	{ return 0; }
+	virtual CityChit*	IsCityChit()	{ return 0; }
 
 	void SetDestroyed()					{ destroyed = true; }
 	bool IsDestroyed()					{ return destroyed; }
@@ -240,6 +242,8 @@ public:
 
 	virtual void Save( FILE* fp, int depth );
 	virtual void Load( const TiXmlElement* doc );
+
+	virtual CityChit*	IsCityChit()	{ return this; }
 
 private:
 	void Init();

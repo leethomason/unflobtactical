@@ -476,6 +476,10 @@ void Game::DoTick( U32 _currentTime )
 			}
 		}
 
+		// Limit so we don't ever get big jumps:
+		if ( deltaTime > 100 )
+			deltaTime = 100;
+
 		GPUShader::ResetState();
 		GPUShader::Clear();
 

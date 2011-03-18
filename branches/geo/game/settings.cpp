@@ -29,6 +29,7 @@ SettingsManager::SettingsManager( const char* savepath )
 	audioOn = 1;
 	suppressCrashLog = 0;
 	playerAI = 0;
+	battleShipParty = 0;
 
 	// Parse actuals.
 	TiXmlDocument doc;
@@ -38,6 +39,7 @@ SettingsManager::SettingsManager( const char* savepath )
 			root->QueryIntAttribute( "audioOn", &audioOn );
 			root->QueryIntAttribute( "suppressCrashLog", &suppressCrashLog );
 			root->QueryIntAttribute( "playerAI", &playerAI );
+			root->QueryIntAttribute( "battleShipParty", &battleShipParty );
 		}
 	}
 }
@@ -63,6 +65,7 @@ void SettingsManager::Save()
 		XMLUtil::Attribute( fp, "audioOn", audioOn );
 		XMLUtil::Attribute( fp, "suppressCrashLog", suppressCrashLog );
 		XMLUtil::Attribute( fp, "playerAI", playerAI );
+		XMLUtil::Attribute( fp, "battleShipParty", battleShipParty );
 
 		XMLUtil::SealCloseElement( fp );
 

@@ -19,6 +19,7 @@ public:
 
 	bool GetSuppressCrashLog() const	{ return suppressCrashLog != 0; }
 	bool GetPlayerAI() const			{ return playerAI != 0; }
+	bool GetBattleShipParty() const		{ return battleShipParty != 0; }
 
 private:
 	SettingsManager( const char* path );
@@ -30,6 +31,7 @@ private:
 	int audioOn;
 	int suppressCrashLog;
 	int playerAI;
+	int battleShipParty;
 
 
 	grinliz::GLString path;

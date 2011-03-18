@@ -15,10 +15,12 @@ public:
 
 	void SetOrigin( float x, float y );
 	void SetInfluence( float x );
+	void SetTraits( int i );
 
 private:
 	gamui::TextLabel	name;
 	gamui::DigitalBar	bar;
+	gamui::Image		trait[2];
 };
 
 

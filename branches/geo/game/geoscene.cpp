@@ -13,6 +13,7 @@
 #include "tacticalintroscene.h"
 #include "tacticalendscene.h"
 #include "researchscene.h"
+#include "settings.h"
 
 #include "../engine/loosequadtree.h"
 #include "../engine/particle.h"
@@ -236,13 +237,12 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 	tree = GetEngine()->GetSpaceTree();
 	geoAI = new GeoAI( geoMapData );
 
-//	lastAlienTime = 0;
-//	timeBetweenAliens = 5*1000;
 	alienTimer = 0;
 	researchTimer = 0;
 
 	for( int i=0; i<GEO_REGIONS; ++i ) {
-		areaWidget[i] = new AreaWidget( _game, &gamui2D, gRegionName[i] );
+		areaWidget[i] = new AreaWidget( _game, &gamui3D, gRegionName[i] );
+		areaWidget[i]->SetTraits( regionData[i].traits );
 	}
 
 	helpButton.Init(&gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
@@ -258,22 +258,22 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 	baseButton.Init(&gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
 	baseButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	baseButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	baseButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_BASE, true ), UIRenderer::CalcDecoAtom( DECO_BASE, false ) );	
+	baseButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_BASE, true ), UIRenderer::CalcDecoAtom( DECO_BASE, false ) );
+
+	cashImage.Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK ), false );
+	cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F*0.5f );
+	cashImage.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
+	cashImage.SetSlice( true );
+
+	cashLabel.Init( &gamui2D );
+	cashLabel.SetPos( cashImage.X()+10.0f, cashImage.Y()+10.0f );
 
 	for( int i=0; i<MAX_CONTEXT; ++i ) {
 		context[i].Init( &gamui2D, game->GetButtonLook( Game::BLUE_BUTTON ) );
 		context[i].SetVisible( false );
 		context[i].SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
 	}
-
-	for( int j=0; j<GEO_REGIONS; ++j ) {
-		for( int i=0, n=geoMapData.NumCities( j ); i<n; ++i ) {
-			Vector2I pos = geoMapData.City( j, i );
-			CityChit* chit = new CityChit( GetEngine()->GetSpaceTree(), pos, (i==geoMapData.CapitalID(j) ) );
-			chitBag.Add( chit );
-		}
-	}
-
+	GenerateCities();
 }
 
 
@@ -304,6 +304,24 @@ void GeoScene::DeActivate()
 {
 	GetEngine()->CameraIso( true, false, 0, 0 );
 	GetEngine()->SetIMap( 0 );
+}
+
+
+void GeoScene::GenerateCities()
+{	
+	for( Chit* it=chitBag.Begin(); it!=chitBag.End(); it=it->Next() ) {
+		if ( it->IsCityChit() ) 
+			it->SetDestroyed();
+	}
+	chitBag.Clean();
+
+	for( int j=0; j<GEO_REGIONS; ++j ) {
+		for( int i=0, n=geoMapData.NumCities( j ); i<n; ++i ) {
+			Vector2I pos = geoMapData.City( j, i );
+			CityChit* chit = new CityChit( GetEngine()->GetSpaceTree(), pos, (i==geoMapData.CapitalID(j) ) );
+			chitBag.Add( chit );
+		}
+	}
 }
 
 
@@ -470,6 +488,7 @@ void GeoScene::Tap(	int action,
 
 		// Are we placing a base?
 		if ( baseButton.Down() ) {
+			cash -= BASE_COST[ chitBag.NumBaseChits() ];
 			PlaceBase( mapi );
 		}
 		else {
@@ -800,14 +819,25 @@ void GeoScene::UpdateMissiles( U32 deltaTime )
 }
 
 
-void GeoScene::DoLanderArrived( CargoChit* landerChit )
+void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 {
-	GLASSERT( landerChit && landerChit->Type() == CargoChit::TYPE_LANDER );
+	GLASSERT( !landerChit || landerChit->Type() == CargoChit::TYPE_LANDER );
+	GLASSERT( ufoChit || landerChit );
 
-	Chit* chitAt = chitBag.GetParkedChitAt( landerChit->MapPos() );
-	UFOChit* ufoChit = chitAt ? chitAt->IsUFOChit() : 0;
+	BaseChit* baseChit = 0;
+
 	if ( ufoChit ) {
-		BaseChit* baseChit = chitBag.GetBaseChitAt( landerChit->Origin() );
+		// BattleShip attacks base
+		baseChit = chitBag.GetBaseChitAt( ufoChit->MapPos() );
+	}
+	if ( landerChit ) {
+		// Lander attacks UFO
+		Chit* chitAt = chitBag.GetParkedChitAt( landerChit->MapPos() );
+		ufoChit = chitAt ? chitAt->IsUFOChit() : 0;
+		baseChit = chitBag.GetBaseChitAt( landerChit->Origin() );
+	}
+
+	if ( ufoChit ) {
 		GLASSERT( baseChit );	// now sure how this is possible, although not destructive
 		if ( baseChit ) {
 			Unit* units = baseChit->GetUnits();
@@ -825,7 +855,7 @@ void GeoScene::DoLanderArrived( CargoChit* landerChit )
 			data->storage = baseChit->GetStorage();
 			game->PushScene( Game::FASTBATTLE_SCENE, data );
 
-			chitBag.SetBattle( ufoChit->ID(), landerChit->ID(), scenario );
+			chitBag.SetBattle( ufoChit->ID(), landerChit ? landerChit->ID() : 0, scenario );
 		}
 	}
 }
@@ -837,12 +867,11 @@ void GeoScene::SceneResult( int sceneID, int result )
 	if ( sceneID == Game::FASTBATTLE_SCENE || sceneID == Game::BATTLE_SCENE ) {
 
 		BattleResult battleResult = *((BattleResult*)&result);
-		UFOChit*	ufoChit = chitBag.GetBattleUFO();
-		CargoChit*	landerChit = chitBag.GetBattleLander();
-		GLASSERT( ufoChit && landerChit );
+		UFOChit*	ufoChit = chitBag.GetBattleUFO();			// possibly null if UFO destroyed
+		CargoChit*	landerChit = chitBag.GetBattleLander();		// will be null if Battleship attacking base
 
-		if ( ufoChit && landerChit ) {
-			BaseChit* baseChit = chitBag.GetBaseChitAt( landerChit->Origin() );
+		if ( ufoChit ) {
+			BaseChit* baseChit = landerChit ? chitBag.GetBaseChitAt( landerChit->Origin() ) : chitBag.GetBaseChitAt( ufoChit->MapPos() );
 			GLASSERT( baseChit );
 			int	region = geoMapData.GetRegion( baseChit->MapPos().x, baseChit->MapPos().y );
 
@@ -890,6 +919,12 @@ void GeoScene::SceneResult( int sceneID, int result )
 				if ( battleResult.result == TacticalEndSceneData::DEFEAT ) {
 					for( int i=0; i<MAX_TERRANS; ++i ) {
 						units[i].Free();
+
+						// Did the terrans lose a base attack?
+						if ( !landerChit ) {
+							baseChit->SetDestroyed();
+							ufoChit->SetAI( UFOChit::AI_ORBIT );
+						}
 					}
 				}
 
@@ -922,22 +957,42 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 		researchTimer -= 1000;
 		int nResearchers = 0;
 		for( int i=0; i<MAX_BASES; ++i ) {
-			if ( chitBag.GetBaseChit(i) )
-				nResearchers += chitBag.GetBaseChit(i)->NumResearchers();
+			BaseChit* baseChit = chitBag.GetBaseChit(i);
+			if ( baseChit ) {
+				nResearchers += chitBag.GetBaseChit(i)->NumResearchers();				
+				
+				int region = geoMapData.GetRegion( baseChit->MapPos() );
+				if ( regionData[region].traits & RegionData::TRAIT_SCIENTIFIC ) {
+					nResearchers += chitBag.GetBaseChit(i)->NumResearchers() * 3 / 2;	// 50% bonus
+				}
+			}
 		}
 		research.DoResearch( nResearchers );
 	}
+
+	char cashBuf[16];
+	SNPrintf( cashBuf, 16, "$%d", cash );
+	cashLabel.SetText( cashBuf );
 
 	alienTimer += deltaTime;
 	if ( alienTimer > 5000 ) {
 		alienTimer -= 5000;
 
 		Vector2F start, dest;
-		int type = UFOChit::SCOUT+random.Rand( 3 );
-		geoAI->GenerateAlienShip( type, &start, &dest, regionData, chitBag );
-		
-		Chit *test = new UFOChit( tree, type, start, dest );
-		chitBag.Add( test );
+
+		if ( SettingsManager::Instance()->GetBattleShipParty() ) {
+			for( int i=0; i<3; ++i ) {
+				geoAI->GenerateAlienShip( UFOChit::BATTLESHIP, &start, &dest, regionData, chitBag );
+				Chit *test = new UFOChit( tree, UFOChit::BATTLESHIP, start, dest );
+				chitBag.Add( test );
+			}
+		}
+		else {
+			int type = UFOChit::SCOUT+random.Rand( 3 );
+			geoAI->GenerateAlienShip( type, &start, &dest, regionData, chitBag );
+			Chit *test = new UFOChit( tree, type, start, dest );
+			chitBag.Add( test );
+		}
 	}
 	missileTimer[0] += deltaTime;
 	missileTimer[1] += deltaTime;
@@ -947,10 +1002,25 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 	UpdateMissiles( deltaTime );
 
-	for( Chit* chitIt=chitBag.Begin(); chitIt != chitBag.End(); chitIt=chitIt->Next() ) {
+	for( Chit* chitIt=chitBag.Begin(); chitIt != chitBag.End(); chitIt=chitIt->Next() ) 
+	{
 		int message = chitIt->DoTick( deltaTime );
-		
 		Vector2I pos = chitIt->MapPos();
+
+		if (    chitIt->IsUFOChit() 
+			 && chitIt->IsUFOChit()->AI() == UFOChit::AI_BASE_ATTACK
+			 && !chitBag.GetCargoComingFrom( CargoChit::TYPE_LANDER, pos ) ) 
+		{
+			if ( !game->IsScenePushed() )
+				DoBattle( 0, chitIt->IsUFOChit() );
+			break;
+		}
+
+		float influenceModifier = 1.0f;
+		int region = geoMapData.GetRegion( chitIt->MapPos() );
+		if ( region >= 0 && ( regionData[region].traits & RegionData::TRAIT_NATIONALIST ) ) {
+			influenceModifier = 0.6f;
+		}
 
 		switch ( message ) {
 
@@ -964,7 +1034,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 		case Chit::MSG_LANDER_ARRIVED:
 			if ( !game->IsScenePushed() ) {
 				GLASSERT( chitIt->IsCargoChit() );
-				DoLanderArrived( chitIt->IsCargoChit() );
+				DoBattle( chitIt->IsCargoChit(), 0  );
 			}
 			break;
 
@@ -982,7 +1052,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 					data->base		 = baseChit->GetStorage();
 					regionData[region].SetStorageNormal( research, &data->region );
 					data->cash		 = &cash;
-					data->costMult	 = regionData[region].traits & RegionData::TRAIT_CAPATALIST ? 1.2f : 1.4f;
+					data->costMult	 = regionData[region].traits & RegionData::TRAIT_CAPATALIST ? 3.0f : 4.0f;
 					data->soldierBoost = regionData[region].traits & RegionData::TRAIT_MILITARISTIC ? true : false;
 					data->soldiers	 = baseChit->GetUnits();
 					data->scientists = baseChit->IsFacilityComplete( BaseChit::FACILITY_SCILAB ) ? baseChit->GetResearcherPtr() : 0;
@@ -1056,7 +1126,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 				int region = geoMapData.GetRegion( pos.x, pos.y );
 				if ( regionData[region].influence < MAX_CROP_CIRCLE_INFLUENCE ) {
-					regionData[region].influence += (float)CROP_CIRCLE_INFLUENCE;
+					regionData[region].influence += (float)CROP_CIRCLE_INFLUENCE * influenceModifier;
 					regionData[region].influence = Min( regionData[region].influence, (float)MAX_INFLUENCE );
 					areaWidget[region]->SetInfluence( regionData[region].influence );
 				}
@@ -1105,7 +1175,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 			case Chit::MSG_CITY_ATTACK_COMPLETE:
 			{
 				int region = geoMapData.GetRegion( pos.x, pos.y );
-				regionData[region].influence += (float)CITY_ATTACK_INFLUENCE;
+				regionData[region].influence += (float)CITY_ATTACK_INFLUENCE * influenceModifier;
 				regionData[region].influence = Min( regionData[region].influence, (float)MAX_INFLUENCE );
 				areaWidget[region]->SetInfluence( regionData[region].influence );
 
@@ -1119,15 +1189,13 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 			case Chit::MSG_BASE_ATTACK_COMPLETE:
 			{
 				BaseChit* base = chitBag.GetBaseChitAt( pos );
-				base->SetDestroyed();	// can't delete in this loop
-				// Very important to clean up cargo and lander!
-				CargoChit* cargoChit = 0;
-				cargoChit = chitBag.GetCargoComingFrom( CargoChit::TYPE_LANDER, base->MapPos() );
-				if ( cargoChit )
-					cargoChit->SetDestroyed();
-				cargoChit = chitBag.GetCargoGoingTo( CargoChit::TYPE_CARGO, base->MapPos() );
-				if ( cargoChit )
-					cargoChit->SetDestroyed();
+				if ( chitBag.GetCargoComingFrom( CargoChit::TYPE_LANDER, pos ) ) {
+					// There is a lander deployed. Don't destroy.
+				}
+				else {
+					chitIt->IsUFOChit()->SetAI( UFOChit::AI_ORBIT );
+					base->SetDestroyed();	// can't delete in this loop
+				}
 			}
 			break;
 
@@ -1161,8 +1229,15 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 					particleVel, 0.1f );
 			}
 			Vector2I mapi = chitIt->MapPos();
-			int region = geoMapData.GetRegion( mapi.x, mapi.y );
-//			regionData[region].RemoveBase( mapi );
+
+			// Very important to clean up cargo and lander!
+			CargoChit* cargoChit = 0;
+			cargoChit = chitBag.GetCargoComingFrom( CargoChit::TYPE_LANDER, chitIt->MapPos() );
+			if ( cargoChit )
+				cargoChit->SetDestroyed();
+			cargoChit = chitBag.GetCargoGoingTo( CargoChit::TYPE_CARGO, chitIt->MapPos() );
+			if ( cargoChit )
+				cargoChit->SetDestroyed();
 		}
 	}
 	chitBag.Clean();
@@ -1171,7 +1246,17 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 		InitContextMenu( CM_NONE, 0 );
 	}
 
-	baseButton.SetEnabled( chitBag.NumBaseChits() < MAX_BASES );
+	if ( chitBag.NumBaseChits() < MAX_BASES ) {
+		int n = chitBag.NumBaseChits();
+		baseButton.SetEnabled( cash >= BASE_COST[n] );
+		CStr<6> buf = BASE_COST[n];
+		baseButton.SetText( buf.c_str() );
+	}
+	else {
+		baseButton.SetEnabled( true );
+		baseButton.SetText( "" );
+	}
+	
 
 	// Check for end game
 	{
@@ -1274,9 +1359,10 @@ void GeoScene::Load( const TiXmlElement* scene )
 		for( const TiXmlElement* region=rdEle->FirstChildElement("Region"); region; ++i, region=region->NextSiblingElement( "Region" ) ) {
 			regionData[i].Load( region );
 			areaWidget[i]->SetInfluence( (float)regionData[i].influence );
+			areaWidget[i]->SetTraits( regionData[i].traits );
 		}
 	}
-
+	GenerateCities();
 	chitBag.Load( scene, tree, game->GetItemDefArr(), game );
 }
 
