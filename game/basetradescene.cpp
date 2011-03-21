@@ -179,6 +179,7 @@ void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const gri
 		}
 	};
 
+	ComputePrice( 0 );
 	baseWidget->SetButtons();
 	regionWidget->SetButtons();
 }
@@ -254,9 +255,6 @@ bool BaseTradeScene::ComputePrice( int* _total )
 	buf += val.c_str();
 	remainLabel.SetText( buf.c_str() );
 
-	if ( _total )
-		*_total = total;
-	okay.SetEnabled( *data->cash + total > 0 );
-	return okay.Enabled();
+	return (*data->cash + (sell-buy)) >= 0;
 }
 

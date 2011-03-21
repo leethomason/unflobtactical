@@ -64,6 +64,9 @@ private:
 	gamui::Image		mapImage;
 	gamui::PushButton	buyButton[NUM_FACILITIES];
 	gamui::TextLabel	progressLabel[NUM_FACILITIES];
+
+	gamui::Image		cashImage;
+	gamui::TextLabel	cashLabel;
 };
 
 

@@ -29,6 +29,7 @@ public:
 	// GeoMap functionality
 	void DoTick( U32 currentTime, U32 deltaTime );
 
+	bool GetDayTime( float x );
 
 	enum {
 		MAP_X = 20,

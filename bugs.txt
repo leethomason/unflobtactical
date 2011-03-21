@@ -5,16 +5,11 @@ Bugs:
 Android
 - Amazon
 
-
-- geo: build screen: layout. Indicate all build?
-- geo: no indication of base capabilities
-
-- day/night not hooked up from geo to tactical
-- geo: paced start, difficulty coordinated
-- scenario and difficulty not hooked up
-- alien tech doesn't increase
-- item prices aren't correct
-
+- geo-play: first timer faster
+- sell all button
+- make "okay" buttons standard location
+- need end fight!
+- geo: lander should return if destination invalid
 - geo: art for special abilities
 - geo: art for cores
 - geo: colors ugly, look not correct
@@ -22,11 +17,18 @@ Android
 - geo: help not hooked up
 
 Deferred:
+- geo: no indication of base capabilities
 - character screen: show character
 - geo: a ufo will return to orbit if it gets to a "parked" tile. Should find a new task.
 - geo: decals overdraw
 
 Fixed:
+- day/night not hooked up from geo to tactical
+- geo: paced start, difficulty coordinated
+- scenario and difficulty not hooked up
+- alien tech doesn't increase
+- item prices aren't correct
+- geo: build screen: layout. Indicate all build?
 - geo: free to build bases
 - geo: countries need special abilities
 - geo: ufos occupying not-capitals, or capitals not flagged correctly

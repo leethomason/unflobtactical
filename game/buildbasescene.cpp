@@ -7,7 +7,9 @@
 using namespace grinliz;
 using namespace gamui;
 
-static const int facilityCost[ BuildBaseScene::NUM_FACILITIES ] = { 100, 100, 100, 100, 100 };
+static const int   facilityCost[BuildBaseScene::NUM_FACILITIES]  = { 100, 100, 100, 100, 100 };
+static const char* facilityNames[BuildBaseScene::NUM_FACILITIES] = { "Troops", "Missile", "Cargo", "Guns", "SciLab" };
+
 
 BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene( _game )
 {
@@ -22,7 +24,7 @@ BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene(
 	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	backButton.SetText( "Back" );
 
-	static const float ORIGIN_X = 0;
+	static const float ORIGIN_X = (port.UIWidth()-256.0f)/2.0f;
 	static const float ORIGIN_Y = 0;
 	static const float SIZE = 256;
 
@@ -37,14 +39,13 @@ BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene(
 		{ 0, 0 },
 		{ 0, (SIZE-GAME_BUTTON_SIZE_F)/2 }
 	};
-	static const char* names[NUM_FACILITIES] = { "Troops", "Missile", "Cargo", "Guns", "SciLab" };
 	char buf[16];
 
 	for( int i=0; i<NUM_FACILITIES; ++i ) {
 		buyButton[i].Init( &gamui2D, green );
 		buyButton[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 		buyButton[i].SetPos( ORIGIN_X+pos[i].x, ORIGIN_Y+pos[i].y );
-		buyButton[i].SetText( names[i] );
+		buyButton[i].SetText( facilityNames[i] );
 
 		SNPrintf( buf, 16, "$%d", facilityCost[i] );
 		buyButton[i].SetText2( buf );
@@ -53,6 +54,14 @@ BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene(
 		progressLabel[i].SetCenterPos( ORIGIN_X+pos[i].x, ORIGIN_Y+pos[i].y );
 		progressLabel[i].SetText( "Building..." );
 	}
+
+	cashImage.Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK ), false );
+	cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F*0.5f );
+	cashImage.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
+	cashImage.SetSlice( true );
+
+	cashLabel.Init( &gamui2D );
+	cashLabel.SetPos( cashImage.X()+10.0f, cashImage.Y()+10.0f );
 
 	UpdateButtons();
 }
@@ -64,7 +73,8 @@ void BuildBaseScene::UpdateButtons()
 		if ( data->baseChit->IsFacilityComplete( i ) ) {
 			// Bought.
 			buyButton[i].SetVisible( false );
-			progressLabel[i].SetVisible( false );
+			progressLabel[i].SetVisible( true );
+			progressLabel[i].SetText( facilityNames[i] );
 		}
 		else if ( data->baseChit->IsFacilityInProgress( i ) ) {
 			// Being built. Can't buy.
@@ -78,6 +88,9 @@ void BuildBaseScene::UpdateButtons()
 			progressLabel[i].SetEnabled( *data->cash >= facilityCost[i] );
 		}
 	}
+	char cashBuf[16];
+	SNPrintf( cashBuf, 16, "$%d", *data->cash );
+	cashLabel.SetText( cashBuf );
 }
 
 
