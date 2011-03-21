@@ -260,13 +260,21 @@ public:
 	virtual void Save( FILE* fp, int depth );
 	virtual void Load( const TiXmlElement* doc );
 
+	virtual void DrawHUD();
+
 private:
 	struct Missile {
-		int type;
+		int					type;
 		grinliz::Vector2F	pos;
 		grinliz::Vector2F	velocity;
 		U32					time;			// accumulates time each frame
 		U32					lifetime;		// reduces as time is used up
+	};
+
+	struct TimeState {
+		U32		alienTime;		// time between aliens
+		float	alienType[3];	// chance of a given alien. Feed to Random.Select
+		float	alienRank;
 	};
 
 	void SetMapLocation();
@@ -281,6 +289,7 @@ private:
 
 	void HandleItemTapped( const gamui::UIItem* item );
 	void DoBattle( CargoChit* cargoChit, UFOChit* ufoChit );		// cargo OR ufo, not both
+	void CalcTimeState( U32 seconds, TimeState* state );
 	
 	enum {
 		CM_NONE,
@@ -296,12 +305,14 @@ private:
 
 	grinliz::Vector2F	dragStart, dragLast;
 
+	U32					timeline;			// where we are in the game, in msec. Used to figure out the frequency and type of aliens.
 	U32					alienTimer;
 	U32					missileTimer[2];
 	U32					researchTimer;
 	
 	int					cash;
 	bool				firstBase;
+	int					nBattles;
 
 	grinliz::Random		random;
 

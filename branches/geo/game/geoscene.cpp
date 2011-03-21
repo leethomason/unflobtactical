@@ -19,6 +19,9 @@
 #include "../engine/particle.h"
 #include "../engine/particleeffect.h"
 #include "../engine/ufoutil.h"
+#include "../engine/text.h"
+
+#include "../grinliz/glutil.h"
 
 using namespace grinliz;
 using namespace gamui;
@@ -224,6 +227,8 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 	contextChitID = 0;
 	cash = 1000;
 	firstBase = true;
+	timeline = 0;
+	nBattles = 0;
 
 	const Screenport& port = GetEngine()->GetScreenport();
 	random.SetSeedFromTime();
@@ -712,7 +717,7 @@ void GeoScene::FireBaseWeapons()
 					// c := sqr(target.startX - cannon.X) + sqr(target.startY - cannon.Y)
 					//
 					// Note that there are bugs around the seam of cylindrical coordinates, that I don't properly account for.
-					// (The scrolling world is a pain.) FIXME: account for the seam.
+					// (The scrolling world is a pain.)
 
 					float a = SquareF( bestUFO->Velocity().x ) + SquareF(  bestUFO->Velocity().y ) - SquareF( MissileSpeed( type ) );
 					float b = 2.0f*(bestUFO->Velocity().x * (bestUFO->Pos().x - base->Pos().x) + bestUFO->Velocity().y * (bestUFO->Pos().y - base->Pos().y));
@@ -825,10 +830,13 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 	GLASSERT( ufoChit || landerChit );
 
 	BaseChit* baseChit = 0;
+	bool baseAttack = false;
+	++nBattles;
 
 	if ( ufoChit ) {
 		// BattleShip attacks base
 		baseChit = chitBag.GetBaseChitAt( ufoChit->MapPos() );
+		baseAttack = true;
 	}
 	if ( landerChit ) {
 		// Lander attacks UFO
@@ -842,17 +850,38 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 		if ( baseChit ) {
 			Unit* units = baseChit->GetUnits();
 
-			int scenario = TacticalIntroScene::FARM_SCOUT;				// fixme
+			TimeState state;
+			CalcTimeState( timeline, &state );
+
+			int scenario = TacticalIntroScene::FARM_SCOUT;
+			if ( baseAttack ) {
+				scenario = TacticalIntroScene::TERRAN_BASE;
+			}
+			else if ( ufoChit->Type() == UFOChit::BATTLESHIP ) {
+				scenario = TacticalIntroScene::BATTLESHIP;
+			}
+			else {
+				int type = geoMapData.GetType( ufoChit->MapPos().x, ufoChit->MapPos().y );
+				switch ( type ) {
+				case GeoMapData::CITY:		scenario = TacticalIntroScene::CITY;	break;
+				case GeoMapData::FARM:		scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? TacticalIntroScene::FARM_SCOUT : TacticalIntroScene::FARM_DESTROYER;	break;
+				case GeoMapData::FOREST:	scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? TacticalIntroScene::FRST_SCOUT : TacticalIntroScene::FRST_DESTROYER;	break;
+				case GeoMapData::DESERT:	scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? TacticalIntroScene::DSRT_SCOUT : TacticalIntroScene::DSRT_DESTROYER;	break;
+				case GeoMapData::TUNDRA:	scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? TacticalIntroScene::TNDR_SCOUT : TacticalIntroScene::TNDR_DESTROYER;	break;
+				default: GLASSERT( 0 ); break;
+				}
+			}
+
 			game->SetCurrent( scenario, &research );
 
 			FastBattleSceneData* data = new FastBattleSceneData();
-			data->seed = baseChit->MapPos().x + baseChit->MapPos().y*GEO_MAP_X + scenario*37;
-			data->scenario = scenario;
-			data->crash = ( ufoChit->AI() == UFOChit::AI_CRASHED );
-			data->soldierUnits = units;
-			data->dayTime = true;										// fixme
-			data->alienRank = 2;										// fixme
-			data->storage = baseChit->GetStorage();
+			data->seed			= baseChit->MapPos().x + baseChit->MapPos().y*GEO_MAP_X + scenario*37;
+			data->scenario		= scenario;
+			data->crash			= ( ufoChit->AI() == UFOChit::AI_CRASHED );
+			data->soldierUnits	= units;
+			data->dayTime		= geoMap->GetDayTime( ufoChit->Pos().x );
+			data->alienRank		= scenario == ( TacticalIntroScene::ALIEN_BASE ) ? (float)(NUM_RANKS-1) : state.alienRank;
+			data->storage		= baseChit->GetStorage();
 			game->PushScene( Game::FASTBATTLE_SCENE, data );
 
 			chitBag.SetBattle( ufoChit->ID(), landerChit ? landerChit->ID() : 0, scenario );
@@ -952,9 +981,11 @@ void GeoScene::SceneResult( int sceneID, int result )
 
 void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 {
+	timeline += deltaTime;
 	researchTimer += deltaTime;
 	if ( researchTimer > 1000 ) {
 		researchTimer -= 1000;
+
 		int nResearchers = 0;
 		for( int i=0; i<MAX_BASES; ++i ) {
 			BaseChit* baseChit = chitBag.GetBaseChit(i);
@@ -975,20 +1006,29 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 	cashLabel.SetText( cashBuf );
 
 	alienTimer += deltaTime;
-	if ( alienTimer > 5000 ) {
-		alienTimer -= 5000;
 
-		Vector2F start, dest;
+	if ( SettingsManager::Instance()->GetBattleShipParty() ) {
+		if ( alienTimer > 5000 ) {
+			alienTimer -= 5000;
+			Vector2F start, dest;
 
-		if ( SettingsManager::Instance()->GetBattleShipParty() ) {
 			for( int i=0; i<3; ++i ) {
 				geoAI->GenerateAlienShip( UFOChit::BATTLESHIP, &start, &dest, regionData, chitBag );
 				Chit *test = new UFOChit( tree, UFOChit::BATTLESHIP, start, dest );
 				chitBag.Add( test );
 			}
 		}
-		else {
-			int type = UFOChit::SCOUT+random.Rand( 3 );
+	}
+	else {
+		TimeState state;
+		CalcTimeState( timeline, &state );
+		if ( alienTimer > state.alienTime ) {
+			alienTimer -= state.alienTime;
+
+			Vector2F start, dest;
+
+			int type = UFOChit::SCOUT + random.Select( state.alienType, 3 );
+
 			geoAI->GenerateAlienShip( type, &start, &dest, regionData, chitBag );
 			Chit *test = new UFOChit( tree, type, start, dest );
 			chitBag.Add( test );
@@ -1007,6 +1047,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 		int message = chitIt->DoTick( deltaTime );
 		Vector2I pos = chitIt->MapPos();
 
+		// Special case: Defer base attacks until lander arrives
 		if (    chitIt->IsUFOChit() 
 			 && chitIt->IsUFOChit()->AI() == UFOChit::AI_BASE_ATTACK
 			 && !chitBag.GetCargoComingFrom( CargoChit::TYPE_LANDER, pos ) ) 
@@ -1014,6 +1055,11 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 			if ( !game->IsScenePushed() )
 				DoBattle( 0, chitIt->IsUFOChit() );
 			break;
+		}
+
+		// Special case: send lander home if no target!
+		if ( chitIt->IsCargoChit() ) {
+			chitIt->IsCargoChit()->CheckDest( chitBag );
 		}
 
 		float influenceModifier = 1.0f;
@@ -1307,6 +1353,46 @@ void GeoScene::Debug3D()
 }
 
 
+void GeoScene::DrawHUD()
+{
+	TimeState ts;
+	CalcTimeState( timeline, &ts );
+	UFOText::Draw( 50, 0, "nBat=%d tmr=%.1fm alTm=%.1f rank=%.1f type=%.1f,%.1f,%.1f",
+		nBattles,
+		(float)(timeline / 1000) / 60.0f,
+		(float)ts.alienTime/1000.0f,
+		ts.alienRank,
+		ts.alienType[0], ts.alienType[1], ts.alienType[2] );
+}
+
+
+void GeoScene::CalcTimeState( U32 msec, TimeState* state )
+{
+	// Times in seconds.
+	const static U32 SECOND			= 1000;
+	const static U32 MINUTE			= 60 *SECOND;
+
+	const static U32 FULL_OUT		= 15 *MINUTE;
+	const static U32 DESTROYER		= 5  *MINUTE;
+	const static U32 BATTLESHIP		= 10 *MINUTE;
+
+	if ( msec > FULL_OUT )
+		msec = FULL_OUT;
+
+	state->alienTime = (U32)Interpolate( 0.0, (double)(30*SECOND), (double)FULL_OUT, (double)(5*SECOND), (double)msec );
+	state->alienRank = Interpolate( (U32)0, 0.0f, FULL_OUT, (float)(NUM_RANKS-1), msec );
+
+	state->alienType[ UFOChit::SCOUT ] = 1.0f;
+	state->alienType[ UFOChit::FRIGATE ] = 0.0f;
+	state->alienType[ UFOChit::BATTLESHIP ] = 0.0f;
+
+	if ( msec > DESTROYER )
+		state->alienType[ UFOChit::FRIGATE ] = 1.0f;
+	if ( msec > BATTLESHIP )
+		state->alienType[ UFOChit::BATTLESHIP ] = 1.0f;
+}
+
+
 void GeoScene::Save( FILE* fp, int depth )
 {
 	// Scene
@@ -1318,12 +1404,14 @@ void GeoScene::Save( FILE* fp, int depth )
 
 	// ----------- main scene --------- //
 	XMLUtil::OpenElement( fp, depth, "GeoScene" );
+	XMLUtil::Attribute( fp, "timeline", timeline );
 	XMLUtil::Attribute( fp, "alienTimer", alienTimer );
 	XMLUtil::Attribute( fp, "missileTimer0", missileTimer[0] );
 	XMLUtil::Attribute( fp, "missileTimer1", missileTimer[1] );
 	XMLUtil::Attribute( fp, "researchTimer", researchTimer );
 	XMLUtil::Attribute( fp, "cash", cash );
 	XMLUtil::Attribute( fp, "firstBase", firstBase );
+	XMLUtil::Attribute( fp, "nBattles", nBattles );
 	XMLUtil::SealElement( fp );
 
 	// ---------- regions ----------- //
@@ -1346,12 +1434,14 @@ void GeoScene::Save( FILE* fp, int depth )
 void GeoScene::Load( const TiXmlElement* scene )
 {
 	GLASSERT( StrEqual( scene->Value(), "GeoScene" ) );
+	scene->QueryUnsignedAttribute( "timeline", &timeline );
 	scene->QueryUnsignedAttribute( "alienTimer", &alienTimer );
 	scene->QueryUnsignedAttribute( "missileTimer0", &missileTimer[0] );
 	scene->QueryUnsignedAttribute( "missileTimer1", &missileTimer[1] );
 	scene->QueryUnsignedAttribute( "researchTimer", &researchTimer );
 	scene->QueryIntAttribute( "cash", &cash );
 	scene->QueryBoolAttribute( "firstBase", &firstBase );
+	scene->QueryIntAttribute( "nBattles", &nBattles );
 
 	int i=0;
 	const TiXmlElement* rdEle = scene->FirstChildElement( "RegionData" );
@@ -1364,5 +1454,6 @@ void GeoScene::Load( const TiXmlElement* scene )
 	}
 	GenerateCities();
 	chitBag.Load( scene, tree, game->GetItemDefArr(), game );
+	research.Load( scene->FirstChildElement( "Research" ) );
 }
 

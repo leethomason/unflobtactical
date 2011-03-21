@@ -25,11 +25,11 @@ FastBattleScene::FastBattleScene( Game* _game, FastBattleSceneData* data ) : Sce
 	const char* scenarioName[] = {
 		"Farm Scout", "Tundra Scout", "Forest Scout", "Desert Scout", 
 		"Farm Frigate", "Tundra Frigate", "Forest Frigate", "Desert Frigate",
-		"City", "Battleship"
+		"City", "Battleship", "Alien Base", "Terran Base"
 	};
 
 	char buf[32];
-	SNPrintf( buf, 32, "Rank=%d", data->alienRank );
+	SNPrintf( buf, 32, "Rank=%.2f", data->alienRank );
 
 	scenarioText[TL_SCENARIO].SetText( scenarioName[ data->scenario - TacticalIntroScene::FARM_SCOUT ] );
 	scenarioText[TL_CRASH].SetText( data->crash ? "Crash" : "Normal" );

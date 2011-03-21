@@ -376,7 +376,7 @@ void Game::LoadItemResources()
 
 			U32 price = LRintf( dptu );
 			if ( item->IsAlien() )
-				price *= 2;
+				price = price * 3 / 2;
 			item->price = price;
 		}
 		itemDefArr.Add( item );
@@ -392,21 +392,18 @@ void Game::LoadItemResources()
 	};
 
 	static const ItemInit items[] = {		
-//		{ "Soldr",0,				DECO_CHARACTER,	80, false, "Soldier" },
-//		{ "Scnce",0,				DECO_CHARACTER,	80, false, "Scientist" },
 		{ "Cor:S",	0,				DECO_METAL,		20, true, "Scout tech core" },
-		{ "Cor:F",	0,				DECO_METAL,		20, true, "Frigate tech core" },
-		{ "Cor:B",	0,				DECO_METAL,		20, true, "Battleship tech core" },
-		//{ "Tech",	0,				DECO_TECH,		20, true, "Alien Tech" },
-		{ "Green",	0,				DECO_ALIEN,		20, true, "Green" },
+		{ "Cor:F",	0,				DECO_METAL,		40, true, "Frigate tech core" },
+		{ "Cor:B",	0,				DECO_METAL,		80, true, "Battleship tech core" },
+		{ "Green",	0,				DECO_ALIEN,		10, true, "Green" },
 		{ "Prime",	0,				DECO_ALIEN,		20, true, "Prime" },
-		{ "Hrnet",	0,				DECO_ALIEN,		20, true, "Hornet" },
-		{ "Jackl",	0,				DECO_ALIEN,		20, true, "Jackal" },
-		{ "Viper",	0,				DECO_ALIEN,		20, true, "Viper" },
+		{ "Hrnet",	0,				DECO_ALIEN,		12, true, "Hornet" },
+		{ "Jackl",	0,				DECO_ALIEN,		15, true, "Jackal" },
+		{ "Viper",	0,				DECO_ALIEN,		18, true, "Viper" },
 
-		{ "SG:E",	0,				DECO_SHIELD,	50, false, "Energy Shield" },
+		{ "SG:E",	0,				DECO_SHIELD,	80, false, "Energy Shield" },
 		{ "SG:I",	0,				DECO_SHIELD,	50, false, "Incendiary Shield" },
-		{ "SG:K",	0,				DECO_SHIELD,	50, false, "Kinetic Shield" },
+		{ "SG:K",	0,				DECO_SHIELD,	40, false, "Kinetic Shield" },
 
 		{ 0 }
 	};
@@ -423,9 +420,9 @@ void Game::LoadItemResources()
 	}
 
 	static const ItemInit armor[] = {		
-		{ "ARM-1",	0,				DECO_ARMOR, 100,		"Memsteel Armor" },
-		{ "ARM-2",	0,				DECO_ARMOR, 100,		"Power Armor" },
-		{ "ARM-3",	0,				DECO_ARMOR, 100,		"Power Shield" },
+		{ "ARM-1",	0,				DECO_ARMOR, 10,		"Memsteel Armor" },
+		{ "ARM-2",	0,				DECO_ARMOR, 40,		"Power Armor" },
+		{ "ARM-3",	0,				DECO_ARMOR, 80,		"Power Shield" },
 		{ 0 }
 	};
 

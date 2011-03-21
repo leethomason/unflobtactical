@@ -11,9 +11,7 @@ GeoMap::GeoMap( SpaceTree* _tree ) : tree( _tree )
 	{
 		Surface::RGBA nc = { EL_NIGHT_RED_U8, EL_NIGHT_GREEN_U8, EL_NIGHT_BLUE_U8 };
 		U16 night = Surface::CalcRGB16( nc );
-		int i=0;
-
-		for( ; i<DAYNIGHT_TEX_SIZE; ++i ) {
+		for( int i=0; i<DAYNIGHT_TEX_SIZE; ++i ) {
 			dayNightSurface.SetTex16( i, 0, i<DAYNIGHT_TEX_SIZE/2 ? night : 0xffff );
 		}
 	}
@@ -33,6 +31,18 @@ GeoMap::~GeoMap()
 	tree->FreeModel( geoModel[0] );
 	tree->FreeModel( geoModel[1] );
 	TextureManager::Instance()->DeleteTexture( dayNightTex );
+}
+
+
+bool GeoMap::GetDayTime( float x )
+{
+	float night0 = -dayNightOffset*(float)MAP_X;
+	float night1 = night0 + 0.5f*(float)MAP_X;
+
+	if ( grinliz::InRange( x, night0, night1 ) || grinliz::InRange( x, night0+(float)MAP_X, night1+(float)MAP_X ) ) {
+		return false;
+	}
+	return true;
 }
 
 

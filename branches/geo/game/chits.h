@@ -315,6 +315,7 @@ public:
 	virtual int DoTick( U32 deltaTime );
 	virtual CargoChit* IsCargoChit() { return this; }
 	int Type() const { return type; }
+	void CheckDest( const ChitBag& chitBag );	// make sure we're going somewhere...
 
 	virtual void Save( FILE* fp, int depth );
 	virtual void Load( const TiXmlElement* doc );
@@ -363,7 +364,7 @@ public:
 
 	CargoChit*	GetCargoGoingTo( int type, const grinliz::Vector2I& to );
 	CargoChit*	GetCargoComingFrom( int type, const grinliz::Vector2I& from );
-	Chit*		GetParkedChitAt( const grinliz::Vector2I& pos );
+	Chit*		GetParkedChitAt( const grinliz::Vector2I& pos ) const;
 
 	void SetBattle( int ufoID, int landerID, int scenario )	{ this->battleUFOID = ufoID; this->battleLanderID = landerID; this->battleScenario = scenario; }
 	UFOChit*	GetBattleUFO()					{ Chit* chit = GetChit( battleUFOID ); return (chit) ? chit->IsUFOChit() : 0; }

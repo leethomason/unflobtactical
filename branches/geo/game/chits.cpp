@@ -812,6 +812,16 @@ void CargoChit::Load( const TiXmlElement* doc )
 }
 
 
+void CargoChit::CheckDest( const ChitBag& chitBag )
+{
+	if ( outbound && ( type == TYPE_LANDER ) && MapPos() != Dest() ) {
+		if ( !chitBag.GetParkedChitAt( Dest() ) ) {
+			outbound = false;	// go home.
+		}
+	}
+}
+
+
 int CargoChit::DoTick( U32 deltaTime )
 {
 	float distance = CARGO_SPEED * (float)deltaTime / 1000.0f;
@@ -988,7 +998,7 @@ CargoChit* ChitBag::GetCargoComingFrom( int type, const grinliz::Vector2I& from 
 }
 
 
-Chit* ChitBag::GetParkedChitAt( const grinliz::Vector2I& pos )
+Chit* ChitBag::GetParkedChitAt( const grinliz::Vector2I& pos ) const
 {
 	for( Chit* chit = sentinel.next; chit != &sentinel; chit=chit->next ) {
 		if ( chit->Parked() && chit->MapPos() == pos ) {

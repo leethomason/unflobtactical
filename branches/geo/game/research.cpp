@@ -204,16 +204,22 @@ void Research::Save( FILE* fp, int depth )
 
 void Research::Load( const TiXmlElement* doc )
 {
+	if ( !doc ) {
+		GLASSERT( 0 );
+		return;
+	}
+
 	GLASSERT( StrEqual( doc->Value(), "Research" ) );
 	current = 0;
-	int c;
-	if ( doc->QueryIntAttribute( "current", &c ) ) {
+	int c = -1;
+	if ( doc->QueryIntAttribute( "current", &c ) == TIXML_SUCCESS ) {
 		current = &taskArr[c];
 	}
 
 	for( const TiXmlElement* ele=doc->FirstChildElement( "Task" ); ele; ele=ele->NextSiblingElement( "Task" ) ) {
 		Task* t = 0;
-		if ( taskMap.Query( ele->Value(), &t ) ) {
+		const char* name = ele->Attribute( "name" );
+		if ( taskMap.Query( name, &t ) ) {
 			ele->QueryIntAttribute( "rp", &t->rp );
 		}
 	}
