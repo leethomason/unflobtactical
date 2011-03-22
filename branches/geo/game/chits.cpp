@@ -841,9 +841,11 @@ int CargoChit::DoTick( U32 deltaTime )
 		if ( !outbound ) {
 			msg = MSG_DONE;
 		}
+#ifndef IMMEDIATE_BUY
 		else if ( type == TYPE_CARGO ) {
 			msg = MSG_CARGO_ARRIVED;
 		}
+#endif
 		else {
 			msg = MSG_LANDER_ARRIVED;
 		}

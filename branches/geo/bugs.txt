@@ -6,6 +6,7 @@ Android
 - Amazon
 
 - geo-play: first timer faster
+- more early game research - LR2 is good, ASLT-2?
 - sell all button
 - make "okay" buttons standard location
 - need end fight!
@@ -15,6 +16,11 @@ Android
 - geo: colors ugly, look not correct
 - geo: place first base - flash? effect?
 - geo: help not hooked up
+- geo: can deficit spend on base
+- geo: check for successful base placement before charging
+- geo: the world shifts upon return from scene
+- geo: restrict all battleship attacks
+- geo: extend frigate time
 
 Deferred:
 - geo: no indication of base capabilities

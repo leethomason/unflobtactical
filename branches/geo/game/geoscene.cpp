@@ -157,7 +157,8 @@ void RegionData::SetStorageNormal( const Research& research, Storage* storage )
 				// terran items.
 				int status = research.GetStatus( itemDef->name );
 				if ( status == Research::TECH_FREE ) {
-					storage->AddItem( itemDef, COUNT );
+					if ( itemDef->price >= 0 )
+						storage->AddItem( itemDef, COUNT );
 				}
 				else if ( status == Research::TECH_RESEARCH_COMPLETE ) {
 					if (    itemDef->IsWeapon() 
@@ -330,6 +331,7 @@ void GeoScene::GenerateCities()
 }
 
 
+#ifndef IMMEDIATE_BUY
 bool GeoScene::CanSendCargoPlane( const Vector2I& pos )
 {
 	BaseChit* base = chitBag.GetBaseChitAt ( pos );
@@ -346,6 +348,7 @@ bool GeoScene::CanSendCargoPlane( const Vector2I& pos )
 	}
 	return false;
 }
+#endif
 
 
 void GeoScene::HandleItemTapped( const gamui::UIItem* item )
@@ -355,6 +358,13 @@ void GeoScene::HandleItemTapped( const gamui::UIItem* item )
 	if ( item == &context[CONTEXT_CARGO] && contextChit && contextChit->IsBaseChit() ) {
 		Vector2I mapi = contextChit->MapPos();
 		
+#ifdef IMMEDIATE_BUY
+		if ( contextChit->IsBaseChit()->IsFacilityComplete( BaseChit::FACILITY_CARGO ) ) {
+			if ( !game->IsScenePushed() ) {
+				PushBaseTradeScene( contextChit->IsBaseChit() );
+			}
+		}
+#else
 		if ( CanSendCargoPlane( mapi) ) {
 			int region = geoMapData.GetRegion( mapi.x, mapi.y );
 			int cityID = random.Rand( geoMapData.NumCities( region ) );
@@ -363,6 +373,7 @@ void GeoScene::HandleItemTapped( const gamui::UIItem* item )
 			Chit* chit = new CargoChit( tree, CargoChit::TYPE_CARGO, city, contextChit->MapPos() );
 			chitBag.Add( chit );
 		}
+#endif
 	}
 	else if ( item == &context[CONTEXT_EQUIP] && contextChit && contextChit->IsBaseChit() ) {
 		BaseChit* baseChit = contextChit->IsBaseChit();
@@ -554,7 +565,11 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 				context[i].SetVisible( false );
 			}
 		}
+#ifdef IMMEDIATE_BUY
+		context[ CONTEXT_CARGO ].SetEnabled( baseChit->IsFacilityComplete( BaseChit::FACILITY_CARGO ));
+#else
 		context[ CONTEXT_CARGO ].SetEnabled( CanSendCargoPlane( chit->MapPos() ) );
+#endif
 		context[ CONTEXT_EQUIP ].SetEnabled( Unit::Count( baseChit->GetUnits(), MAX_TERRANS, Unit::STATUS_ALIVE ) > 0 );
 	}
 	else if ( type == CM_UFO ) {
@@ -565,6 +580,7 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 				context[i].SetText( baseChit->Name() );
 
 				if (     baseChit->IsFacilityComplete( BaseChit::FACILITY_LANDER )
+					  && Unit::Count( baseChit->GetUnits(), MAX_TERRANS, Unit::STATUS_ALIVE )
 					  && !chitBag.GetCargoComingFrom( CargoChit::TYPE_LANDER, baseChit->MapPos() ) )
 				{
 					context[i].SetEnabled( true );
@@ -874,13 +890,22 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 
 			game->SetCurrent( scenario, &research );
 
+			float rank = state.alienRank;
+			if ( scenario == TacticalIntroScene::ALIEN_BASE )
+				rank = (float)(NUM_RANKS-1);
+			if ( TacticalIntroScene::IsScoutScenario( scenario ) )
+				rank = rank * 0.5f;	// lower ranks here
+			if ( scenario == TacticalIntroScene::BATTLESHIP )
+				rank = rank * 1.2f;
+			rank = Clamp( rank, 0.0f, (float)(NUM_RANKS-1) );
+
 			FastBattleSceneData* data = new FastBattleSceneData();
 			data->seed			= baseChit->MapPos().x + baseChit->MapPos().y*GEO_MAP_X + scenario*37;
 			data->scenario		= scenario;
 			data->crash			= ( ufoChit->AI() == UFOChit::AI_CRASHED );
 			data->soldierUnits	= units;
 			data->dayTime		= geoMap->GetDayTime( ufoChit->Pos().x );
-			data->alienRank		= scenario == ( TacticalIntroScene::ALIEN_BASE ) ? (float)(NUM_RANKS-1) : state.alienRank;
+			data->alienRank		= rank;
 			data->storage		= baseChit->GetStorage();
 			game->PushScene( Game::FASTBATTLE_SCENE, data );
 
@@ -977,6 +1002,24 @@ void GeoScene::SceneResult( int sceneID, int result )
 	}
 }
 
+
+void GeoScene::PushBaseTradeScene( BaseChit* baseChit )
+{
+	GLASSERT( baseChit );
+	int region = geoMapData.GetRegion( baseChit->MapPos() );
+
+	BaseTradeSceneData* data = new BaseTradeSceneData( game->GetItemDefArr() );			
+	data->baseName   = baseChit->Name();
+	data->regionName = gRegionName[region];
+	data->base		 = baseChit->GetStorage();
+	regionData[region].SetStorageNormal( research, &data->region );
+	data->cash		 = &cash;
+	data->costMult	 = regionData[region].traits & RegionData::TRAIT_CAPATALIST ? 3.0f : 4.0f;
+	data->soldierBoost = regionData[region].traits & RegionData::TRAIT_MILITARISTIC ? true : false;
+	data->soldiers	 = baseChit->GetUnits();
+	data->scientists = baseChit->IsFacilityComplete( BaseChit::FACILITY_SCILAB ) ? baseChit->GetResearcherPtr() : 0;
+	game->PushScene( Game::BASETRADE_SCENE, data );
+}
 
 
 void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
@@ -1084,6 +1127,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 			}
 			break;
 
+#ifndef IMMEDIATE_BUY
 		case Chit::MSG_CARGO_ARRIVED:
 			if ( !game->IsScenePushed() ) {
 
@@ -1092,20 +1136,11 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 				int region = geoMapData.GetRegion( basei.x, basei.y );
 
 				if ( !regionData[region].occupied && baseChit ) {
-					BaseTradeSceneData* data = new BaseTradeSceneData( game->GetItemDefArr() );			
-					data->baseName   = baseChit->Name();
-					data->regionName = gRegionName[region];
-					data->base		 = baseChit->GetStorage();
-					regionData[region].SetStorageNormal( research, &data->region );
-					data->cash		 = &cash;
-					data->costMult	 = regionData[region].traits & RegionData::TRAIT_CAPATALIST ? 3.0f : 4.0f;
-					data->soldierBoost = regionData[region].traits & RegionData::TRAIT_MILITARISTIC ? true : false;
-					data->soldiers	 = baseChit->GetUnits();
-					data->scientists = baseChit->IsFacilityComplete( BaseChit::FACILITY_SCILAB ) ? baseChit->GetResearcherPtr() : 0;
-					game->PushScene( Game::BASETRADE_SCENE, data );
+					PushBaseTradeScene( baseChit );
 				}
 			}
 			break;
+#endif
 
 		case Chit::MSG_UFO_AT_DESTINATION:
 			{
@@ -1372,8 +1407,9 @@ void GeoScene::CalcTimeState( U32 msec, TimeState* state )
 	const static U32 SECOND			= 1000;
 	const static U32 MINUTE			= 60 *SECOND;
 
-	const static U32 FULL_OUT		= 15 *MINUTE;
-	const static U32 DESTROYER		= 5  *MINUTE;
+	const static U32 FULL_OUT		= 20 *MINUTE;
+	const static U32 DESTROYER0		= 2  *MINUTE;
+	const static U32 DESTROYER1		= 5  *MINUTE;
 	const static U32 BATTLESHIP		= 10 *MINUTE;
 
 	if ( msec > FULL_OUT )
@@ -1386,7 +1422,9 @@ void GeoScene::CalcTimeState( U32 msec, TimeState* state )
 	state->alienType[ UFOChit::FRIGATE ] = 0.0f;
 	state->alienType[ UFOChit::BATTLESHIP ] = 0.0f;
 
-	if ( msec > DESTROYER )
+	if ( msec > DESTROYER0 )
+		state->alienType[ UFOChit::FRIGATE ] = 0.5f;
+	if ( msec > DESTROYER1 )
 		state->alienType[ UFOChit::FRIGATE ] = 1.0f;
 	if ( msec > BATTLESHIP )
 		state->alienType[ UFOChit::BATTLESHIP ] = 1.0f;

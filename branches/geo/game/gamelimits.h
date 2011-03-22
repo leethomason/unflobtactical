@@ -24,6 +24,8 @@
 
 #include "../engine/enginelimits.h"
 
+#define IMMEDIATE_BUY
+
 static const int GAME_BUTTON_SIZE = 60;
 static const float GAME_BUTTON_SIZE_F = (float)GAME_BUTTON_SIZE;
 static const float GAME_GUTTER = 20.0f;

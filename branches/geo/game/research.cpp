@@ -225,7 +225,8 @@ void Research::Load( const TiXmlElement* doc )
 	}
 	for( const TiXmlElement* ele=doc->FirstChildElement( "Item" ); ele; ele=ele->NextSiblingElement( "Item" ) ) {
 		Item* t = 0;
-		if ( itemMap.Query( ele->Value(), &t ) ) {
+		const char* name = ele->Attribute( "name" );
+		if ( itemMap.Query( name, &t ) ) {
 			ele->QueryBoolAttribute( "found", &t->found );
 		}
 	}

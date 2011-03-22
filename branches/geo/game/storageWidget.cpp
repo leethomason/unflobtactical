@@ -136,7 +136,7 @@ void StorageWidget::SetButtons()
 				if ( storage->GetCount( itemDef ) ) {
 					if ( costMult ) {
 						// show the cost
-						SNPrintf( buffer, SZ, "$%d", LRintf( (float)itemDef->price * costMult ) );
+						SNPrintf( buffer, SZ, "$%d", itemDef->Price( costMult ) );
 					}
 					else {
 						SNPrintf( buffer, SZ, "%d", storage->GetCount( itemDef ) );

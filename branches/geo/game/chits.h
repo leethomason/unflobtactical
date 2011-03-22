@@ -95,7 +95,9 @@ public:
 		MSG_BASE_ATTACK_COMPLETE,
 		MSG_UFO_CRASHED,
 
+#ifndef IMMEDIATE_BUY
 		MSG_CARGO_ARRIVED,
+#endif
 		MSG_LANDER_ARRIVED,
 	};
 	virtual int DoTick( U32 deltaTime )		{ return MSG_NONE; }

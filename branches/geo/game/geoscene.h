@@ -285,7 +285,10 @@ private:
 	void GenerateCities();
 
 	void PlaceBase( const grinliz::Vector2I& map );
+#ifndef IMMEDIATE_BUY
 	bool CanSendCargoPlane( const grinliz::Vector2I& base );
+#endif
+	void PushBaseTradeScene( BaseChit* base );
 
 	void HandleItemTapped( const gamui::UIItem* item );
 	void DoBattle( CargoChit* cargoChit, UFOChit* ufoChit );		// cargo OR ufo, not both
