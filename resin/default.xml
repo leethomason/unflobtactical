@@ -34,14 +34,12 @@
         the Viper is a genetic blend. The genetic sources seem to indicate that the Hornet and Viper
         are not from the Green's homeworld.
         <required0 research="Green" />
-        <required1 research="Hornet" />
         <required2 item="Viper" />
       </Viper>
       <Jackal points="60">
         The Jackal is a cybort based on robotics and an alien creature. The creature - whatever it
         is and wherever it from - is genetically distict yet again from the other aliens.
         <required0 research="Green" />
-        <required1 research="Hornet" />
         <required2 item="Jackal" />
       </Jackal>
       <Prime points="80">
@@ -124,13 +122,12 @@
         The beacon has been located. Without the ability to navigate over deep space, the
         alien threat will be highly compromised. We feel confident that the beacon is
         very heavily guarded.
-        <required0 item="Battleship" />
+        <required0 research="Battleship" />
       </Beacon>
 
       <!-- Items -->
       <ASLT-2 points="40">
         Description Needed
-        <required0 research="Hornet" />
         <required1 item="PLS-1" />
       </ASLT-2>
       <ASLT-3 points="60">
@@ -154,12 +151,12 @@
       <MCAN-2 points="40">
         Description Needed
         <required0 item="STORM-1" />
-        <required1 research="Jackal" />
       </MCAN-2>
       <MCAN-3 points="60">
         Description Needed
         <required0 research="MCAN-2" />
         <required1 item="STORM-3" />
+        <required2 research="Jackal" />
       </MCAN-3>
 
       <SG:K points="60">

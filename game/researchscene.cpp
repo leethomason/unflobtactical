@@ -117,47 +117,53 @@ void ResearchScene::SetOptions()
 {
 	Research* r = data->research;
 	int count = 0;
-	int i=0;
 	const Research::Task* taskArr = r->TaskArr();
 	static const int SZ=64;
 	char buf[SZ];
 	bool downSet = false;
 
-	for( i=0; i<r->NumTasks() && count < MAX_OPTIONS; ++i ) {
-		if ( !taskArr[i].IsComplete() && taskArr[i].HasPreReq() ) {
-			int percent = (int)(100.0f * (float)taskArr[i].rp / (float)taskArr[i].rpRequired );
-			SNPrintf( buf, SZ, "%d%%", percent );
-			optionButton[count].SetText( buf );
+	for( int pass=0; pass<2; ++pass ) {
+		for( int i=0; i<r->NumTasks() && count < MAX_OPTIONS; ++i ) {
+			if ( !taskArr[i].IsComplete() && taskArr[i].HasPreReq() ) {
+				if ( pass == 0 && !taskArr[i].HasItems() )
+					continue;
+				if ( pass == 1 && taskArr[i].HasItems() )
+					continue;
 
-			optionName[count].SetText( taskArr[i].name );
+				int percent = (int)(100.0f * (float)taskArr[i].rp / (float)taskArr[i].rpRequired );
+				SNPrintf( buf, SZ, "%d%%", percent );
+				optionButton[count].SetText( buf );
 
-			if ( r->Current() && StrEqual( r->Current()->name, taskArr[i].name ) ) {
-				optionButton[count].SetDown();
-				downSet = true;
-			}
+				optionName[count].SetText( taskArr[i].name );
 
-			GLASSERT( Research::MAX_ITEMS_REQUIRED == 4 );
-			if ( taskArr[i].item[0] || taskArr[i].item[1] || taskArr[i].item[2] || taskArr[i].item[3] ) {
-				SNPrintf( buf, SZ, "Requires: %s %s %s %s", 
-							taskArr[i].item[0] ? taskArr[i].item[0] : "",
-							taskArr[i].item[1] ? taskArr[i].item[1] : "",
-							taskArr[i].item[2] ? taskArr[i].item[2] : "",
-							taskArr[i].item[3] ? taskArr[i].item[3] : "" );
-				optionRequires[count].SetText( buf );
-			}
-			else {
-				optionRequires[count].SetText( "" );
-			}
+				if ( r->Current() && StrEqual( r->Current()->name, taskArr[i].name ) ) {
+					optionButton[count].SetDown();
+					downSet = true;
+				}
 
-			if ( taskArr[i].HasItems() ) {
-				optionRequires[count].SetEnabled( false );
-				optionButton[count].SetEnabled( true );
+				GLASSERT( Research::MAX_ITEMS_REQUIRED == 4 );
+				if ( taskArr[i].item[0] || taskArr[i].item[1] || taskArr[i].item[2] || taskArr[i].item[3] ) {
+					SNPrintf( buf, SZ, "Requires: %s %s %s %s", 
+								taskArr[i].item[0] ? taskArr[i].item[0] : "",
+								taskArr[i].item[1] ? taskArr[i].item[1] : "",
+								taskArr[i].item[2] ? taskArr[i].item[2] : "",
+								taskArr[i].item[3] ? taskArr[i].item[3] : "" );
+					optionRequires[count].SetText( buf );
+				}
+				else {
+					optionRequires[count].SetText( "" );
+				}
+
+				if ( taskArr[i].HasItems() ) {
+					optionRequires[count].SetEnabled( false );
+					optionButton[count].SetEnabled( true );
+				}
+				else {
+					optionRequires[count].SetEnabled( true );
+					optionButton[count].SetEnabled( false );
+				}
+				++count;
 			}
-			else {
-				optionRequires[count].SetEnabled( true );
-				optionButton[count].SetEnabled( false );
-			}
-			++count;
 		}
 	}
 	for( count; count<MAX_OPTIONS; ++count ) {

@@ -16,6 +16,16 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	this->data = data;
 	const Screenport& port = GetEngine()->GetScreenport();
 
+	minSoldiers = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_ALIVE );
+	data->base->AddItem( "Soldr", minSoldiers );
+	if ( data->scientists ) {
+		data->base->AddItem( "Sctst", *data->scientists );
+	}
+	data->region.AddItem( "Soldr", MAX_TERRANS - minSoldiers );
+	if ( data->scientists ) {
+		data->region.AddItem( "Sctst", MAX_SCIENTISTS - *data->scientists );
+	}
+
 	originalBase = new Storage( *data->base );
 	originalRegion = new Storage( data->region );
 
@@ -40,6 +50,7 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	okay.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	okay.SetText( "Okay" );
 
+	/*
 	hireSoldier.Init( &gamui2D, blue );
 	hireSoldier.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	hireSoldier.SetPos( GAME_BUTTON_SIZE_F*1.0f, port.UIHeight()-GAME_BUTTON_SIZE_F ); 
@@ -49,6 +60,13 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	hireScientist.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	hireScientist.SetPos( GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F ); 
 	hireScientist.SetDeco( UIRenderer::CalcDecoAtom( DECO_RESEARCH, true ), UIRenderer::CalcDecoAtom( DECO_RESEARCH, false ) );
+	*/
+
+	sellAll.Init( &gamui2D, red );
+	sellAll.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	sellAll.SetPos( GAME_BUTTON_SIZE_F*3.0f, port.UIHeight()-GAME_BUTTON_SIZE_F ); 
+	sellAll.SetText( "Sell" );
+	sellAll.SetText2( "All" );
 
 	baseWidget = new StorageWidget( &gamui2D, green, tab, game->GetItemDefArr(), data->base );
 	baseWidget->SetFudgeFactor( -5, -5 );
@@ -81,7 +99,7 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	remainLabel.SetPos( profitLabel.X(), profitLabel.Y()+TEXTSPACE*3 );
 
 	ComputePrice( 0 );
-	SetHireButtons();
+	//SetHireButtons();
 }
 
 
@@ -121,7 +139,47 @@ void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const gri
 
 	if ( uiItem == &okay ) {
 		game->PopScene( 0 );
+		ComputePrice( data->cash );
+
+		// Generate new soldiers.
+		const ItemDef* soldierDef = game->GetItemDefArr().Query( "Soldr" );
+		int nSoldiers = data->base->GetCount( soldierDef );
+
+		if ( nSoldiers < minSoldiers ) {
+			for( int i=nSoldiers; i<minSoldiers; ++i ) {
+				data->soldiers[i].Free();
+				memset( &data->soldiers[i], 0, sizeof(Unit) );
+			}	
+		}
+		else if ( nSoldiers > minSoldiers ) {
+			for( int i=minSoldiers; i<nSoldiers; ++i ) {
+				data->soldiers[i].Free();
+				memset( &data->soldiers[i], 0, sizeof(Unit) );
+			}
+			int seed = *data->cash ^ nSoldiers;
+			TacticalIntroScene::GenerateTerranTeam( &data->soldiers[minSoldiers], nSoldiers-minSoldiers, 
+													data->soldierBoost ? 0.0f : 0.5f,
+													game->GetItemDefArr(),
+													seed );
+		}
+		
+		// And scientists
+		const ItemDef* sDef = 0;
+		if ( data->scientists ) {
+			sDef = game->GetItemDefArr().Query( "Sctst" );
+			*data->scientists = data->base->GetCount( sDef );
+		}
+
+		// And clear out the fake items:
+		Item dummy;
+		while( data->base->Contains( soldierDef ) )
+			data->base->RemoveItem( soldierDef, &dummy );
+		if ( data->scientists ) {
+			while( data->base->Contains( sDef ) )
+				data->base->RemoveItem( sDef, &dummy );
+		}
 	}
+	/*
 	else if ( uiItem == &hireSoldier ) {
 		if ( *data->cash >= SOLDIER_COST ) {
 
@@ -148,19 +206,18 @@ void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const gri
 			SetHireButtons();
 		}
 	}
+	*/
 	else {
 		const ItemDef* itemDef = 0;
 		itemDef = baseWidget->ConvertTap( uiItem );
 		if ( itemDef ) {
 			Item item;
-			if ( data->base->RemoveItem( itemDef, &item ) ) {
-				data->region.AddItem( item );
-
-				if ( !ComputePrice( 0 ) ) {
-					// unroll
-					data->base->AddItem( item );
-					data->region.RemoveItem( item.GetItemDef(), &item );
+			while( data->base->Contains( itemDef ) ) {
+				if ( data->base->RemoveItem( itemDef, &item ) ) {
+					data->region.AddItem( item );
 				}
+				if ( !sellAll.Down() )
+					break;
 			}
 		}
 
@@ -177,7 +234,7 @@ void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const gri
 				}
 			}
 		}
-	};
+	}
 
 	ComputePrice( 0 );
 	baseWidget->SetButtons();
@@ -185,6 +242,7 @@ void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const gri
 }
 
 
+/*
 void BaseTradeScene::SetHireButtons()
 {
 	int nSoldiers = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_ALIVE );
@@ -208,6 +266,7 @@ void BaseTradeScene::SetHireButtons()
 		hireScientist.SetVisible( false );
 	};
 }
+*/
 
 
 bool BaseTradeScene::ComputePrice( int* _total )
@@ -223,12 +282,12 @@ bool BaseTradeScene::ComputePrice( int* _total )
 		if ( currentCount > originalCount ) {
 			// Bought stuff.
 			nBuy += (currentCount - originalCount );
-			buy += (currentCount - originalCount ) * LRintf( (float)itemDef->price * data->costMult );
+			buy += (currentCount - originalCount ) * itemDef->Price( data->costMult );
 		}
 		if ( currentCount < originalCount ) {
 			// Sold stuff.
 			nSell += (originalCount - currentCount);
-			sell += (originalCount - currentCount) * itemDef->price;
+			sell += (originalCount - currentCount) * abs( itemDef->price );
 		}
 	}
 	int total = sell - buy;
@@ -250,11 +309,15 @@ bool BaseTradeScene::ComputePrice( int* _total )
 	buf += val.c_str();
 	totalLabel.SetText( buf.c_str() );
 
+	int remaining = *data->cash + (sell-buy);
 	buf = "Remaining: ";
-	val = *data->cash + (sell-buy);
+	val = remaining;
 	buf += val.c_str();
 	remainLabel.SetText( buf.c_str() );
 
-	return (*data->cash + (sell-buy)) >= 0;
+	if ( _total )
+		*_total = remaining;
+
+	return    (remaining >= 0);
 }
 

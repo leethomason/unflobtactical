@@ -104,6 +104,13 @@ public:
 	}
 	// optimization trickiness:
 	int index;
+
+	int Price( float costMult ) const {
+		if ( price >= 0 )
+			return grinliz::LRintf( (float)price * costMult );
+		else
+			return -price;
+	}
 };
 
 

@@ -401,6 +401,10 @@ void Game::LoadItemResources()
 		{ "Jackl",	0,				DECO_ALIEN,		15, true, "Jackal" },
 		{ "Viper",	0,				DECO_ALIEN,		18, true, "Viper" },
 
+		// Special case: used *only* on the base screen.
+		{ "Soldr",	0,				DECO_CHARACTER,	-80,	false, "Soldier" },
+		{ "Sctst",	0,				DECO_CHARACTER, -120, false, "Scientist" },
+
 		{ "SG:E",	0,				DECO_SHIELD,	80, false, "Energy Shield" },
 		{ "SG:I",	0,				DECO_SHIELD,	50, false, "Incendiary Shield" },
 		{ "SG:K",	0,				DECO_SHIELD,	40, false, "Kinetic Shield" },

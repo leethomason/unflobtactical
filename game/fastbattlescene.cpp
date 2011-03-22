@@ -162,6 +162,14 @@ int FastBattleScene::RunSim( Unit* soldier, Unit* alien, bool day )
 		if ( nSoldiers == 0 || nAliens == 0 )
 			break;
 
+		if (    random.Bit() 
+			 && nSoldiers < Unit::Count( soldier, MAX_TERRANS, -1 )/2
+			 && nSoldiers < nAliens )
+		{
+			// Heavy losses. Run.
+			break;
+		}
+
 		int civIndex = random.Rand( MAX_CIVS );
 		if ( civs[civIndex].IsAlive() ) {
 			civs[civIndex].Kill( 0 );

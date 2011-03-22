@@ -51,12 +51,14 @@ public:
 
 protected:
 	bool ComputePrice( int* total );
-	void SetHireButtons();
+	//void SetHireButtons();
 
 	BackgroundUI		backgroundUI;
 	gamui::PushButton	okay;
-	gamui::PushButton	hireSoldier, hireScientist;
+	//gamui::PushButton	hireSoldier, hireScientist;
+	gamui::ToggleButton	sellAll;
 	BaseTradeSceneData* data;
+	int					minSoldiers;
 
 	StorageWidget		*baseWidget, *regionWidget;
 	Storage				*originalBase, *originalRegion;
