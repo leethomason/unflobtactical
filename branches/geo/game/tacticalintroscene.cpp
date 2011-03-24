@@ -827,7 +827,7 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 											int seed )
 {
 	const char* weapon[Unit::NUM_ALIEN_TYPES][NUM_RANKS] = {
-		{	"RAY-1",	"RAY-1",	"RAY-1",	"RAY-2",	"RAY-3" },		// green
+		{	"RAY-1",	"RAY-1",	"RAY-2",	"RAY-2",	"RAY-3" },		// green
 		{	"RAY-1",	"RAY-2",	"RAY-2",	"RAY-3",	"PLS-3"	},		// prime
 		{	"PLS-1",	"PLS-1",	"PLS-2",	"PLS-2",	"PLS-3" },		// hornet
 		{	"STRM-1",	"STRM-1",	"STRM-2",	"STRM-2",	"STRM-3" },		// jackal
@@ -890,9 +890,9 @@ void TacticalIntroScene::GenerateTerranTeam(	Unit* unit,				// target units to w
 	static const int POSITION = 4;
 	static const char* weapon[POSITION][NUM_RANKS] = {
 		{	"ASLT-1",	"ASLT-1",	"ASLT-2",	"ASLT-2",	"ASLT-3" },		// assault
-		{	"ASLT-1",	"PLS-1",	"ASLT-2",	"PLS-2",	"PLS-3" },		// assault
+		{	"ASLT-1",	"ASLT-1",	"ASLT-2",	"PLS-2",	"PLS-3" },		// assault
 		{	"LR-1",		"LR-1",		"LR-2",		"LR-2",		"LR-3" },		// sniper
-		{	"MCAN-1",	"MCAN-1",	"MCAN-2",	"STRM-2",	"MCAN-3" },	// heavy
+		{	"MCAN-1",	"MCAN-1",	"MCAN-2",	"STRM-2",	"MCAN-3" },		// heavy
 	};
 	static const char* armorType[NUM_RANKS] = {
 		"ARM-1", "ARM-1", "ARM-2", "ARM-2", "ARM-3"

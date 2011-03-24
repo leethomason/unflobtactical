@@ -212,7 +212,7 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 	const gamui::ButtonLook& look = game->GetButtonLook( Game::GREEN_BUTTON );
 	okayButton.Init( &gamui2D, look );
 	okayButton.SetText( "OK" );
-	okayButton.SetPos( 400, (float)(engine->GetScreenport().UIHeight() - (GAME_BUTTON_SIZE + 5)) );
+	okayButton.SetPos( 0, (float)(engine->GetScreenport().UIHeight() - (GAME_BUTTON_SIZE + 5)) );
 	okayButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 }
 

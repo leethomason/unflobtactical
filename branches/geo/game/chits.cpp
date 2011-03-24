@@ -825,7 +825,9 @@ void CargoChit::Load( const TiXmlElement* doc )
 
 void CargoChit::CheckDest( const ChitBag& chitBag )
 {
-	if ( outbound && ( type == TYPE_LANDER ) && MapPos() != Dest() ) {
+	if (    outbound && ( type == TYPE_LANDER ) 
+		 && MapPos() != Dest() ) 
+	{
 		if ( !chitBag.GetParkedChitAt( Dest() ) ) {
 			outbound = false;	// go home.
 		}

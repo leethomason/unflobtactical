@@ -9,16 +9,15 @@ Android
 - gameplay: runs of of steam, pre-frigates. Not enough reseach?
 - sound effects
 - more early game research - LR2 is good, ASLT-2?
-- make "okay" buttons standard location
 - need end fight!
 - geo: art for special abilities
 - geo: art for cores
 - geo: colors ugly, look not correct
 - geo: place first base - flash? effect?
 - geo: help not hooked up
-- geo: can deficit spend on base
 - geo: check for successful base placement before charging
 - geo: extend frigate time
+- fix battlescene not being power of 2
 
 Deferred:
 - geo: no indication of base capabilities
@@ -27,6 +26,8 @@ Deferred:
 - geo: decals overdraw
 
 Fixed:
+- geo: can deficit spend on base
+- make "okay" buttons standard location
 - geo-play: first timer faster
 - geo: restrict all battleship attacks?
 - show research icon - give context

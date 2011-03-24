@@ -87,7 +87,11 @@ void GeoAI::GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vect
 					 &&	!data[i].occupied )
 				{
 					++count;
-					score[i] = data[i].Score();
+					 
+					if ( data[i].influence < MAX_INFLUENCE )
+						score[i] = data[i].Score();
+					else
+						score[i] = data[i].Score() / 10.0f;
 				}
 			}
 			if ( count > 0 ) {

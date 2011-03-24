@@ -128,8 +128,8 @@
       <!-- Items -->
       <ASLT-2 points="40">
         Description Needed
-        <required1 item="PLS-1" />
-      </ASLT-2>
+        <required1 item="RAY-2" />  <!-- was PLS, but PLS is hard to get w/o destroyer. And destroyer hard to get without ALST-2 -->
+      </ASLT-2>      
       <ASLT-3 points="60">
         Description Needed
         <required0 research="Hornet" />
@@ -177,11 +177,12 @@
 
       <ARM-2 points="40">
         Description Needed
-        <required1 research="Viper" />
+        <required0 research="LR-2" />
       </ARM-2>
       <ARM-3 points="80">
         Description Needed
         <required0 research="ARM-2" />
+        <required1 research="Viper" />
       </ARM-3>
       
     </research>

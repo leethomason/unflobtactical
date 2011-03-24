@@ -1419,8 +1419,12 @@ void GeoScene::CalcTimeState( U32 msec, TimeState* state )
 	const static U32 SECOND			= 1000;
 	const static U32 MINUTE			= 60 *SECOND;
 
-	const static U32 FIRST_UFO      = 10 *SECOND;
 	const static U32 FULL_OUT		= 20 *MINUTE;
+
+	const static U32 FIRST_UFO      = 10 *SECOND;
+	const static U32 TIME_BETWEEN_0	= 20 *SECOND;
+	const static U32 TIME_BETWEEN_1 = 5  *SECOND;
+
 	const static U32 DESTROYER0		= 2  *MINUTE;
 	const static U32 DESTROYER1		= 5  *MINUTE;
 	const static U32 BATTLESHIP		= 10 *MINUTE;
@@ -1428,7 +1432,7 @@ void GeoScene::CalcTimeState( U32 msec, TimeState* state )
 	if ( msec > FULL_OUT )
 		msec = FULL_OUT;
 
-	state->alienTime = (U32)Interpolate( 0.0, (double)(30*SECOND), (double)FULL_OUT, (double)(5*SECOND), (double)msec );
+	state->alienTime = (U32)Interpolate( 0.0, (double)(TIME_BETWEEN_0), (double)FULL_OUT, (double)(TIME_BETWEEN_1), (double)msec );
 	if ( msec <= FIRST_UFO+1000 )	// rounding so we aren't racing this timer
 		state->alienTime = FIRST_UFO;	
 
