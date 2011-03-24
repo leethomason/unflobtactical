@@ -280,6 +280,7 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 		context[i].SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
 	}
 	GenerateCities();
+	savedCameraX = -1.0f;
 }
 
 
@@ -300,6 +301,11 @@ GeoScene::~GeoScene()
 void GeoScene::Activate()
 {
 	GetEngine()->CameraIso( false, false, (float)GeoMap::MAP_X, (float)GeoMap::MAP_Y );
+	if ( savedCameraX >= 0 ) {
+		Vector3F cameraPos = GetEngine()->camera.PosWC();
+		cameraPos.x = savedCameraX;
+		GetEngine()->camera.SetPosWC( cameraPos );
+	}
 	SetMapLocation();
 	GetEngine()->SetIMap( geoMap );
 	SetMapLocation();
@@ -308,6 +314,7 @@ void GeoScene::Activate()
 
 void GeoScene::DeActivate()
 {
+	savedCameraX = GetEngine()->camera.PosWC().x;
 	GetEngine()->CameraIso( true, false, 0, 0 );
 	GetEngine()->SetIMap( 0 );
 }
@@ -503,7 +510,12 @@ void GeoScene::Tap(	int action,
 		Vector2I mapi = { (int)mapTap.x, (int)mapTap.z };
 
 		// Are we placing a base?
-		if ( baseButton.Down() ) {
+		// Checks should be rendundant to button being enabled,
+		// but be sure. The order of events in this code is subtle.
+		if (    baseButton.Down()
+			 && chitBag.NumBaseChits() < MAX_BASES
+			 && cash >= BASE_COST[ chitBag.NumBaseChits() ] ) 
+		{
 			cash -= BASE_COST[ chitBag.NumBaseChits() ];
 			PlaceBase( mapi );
 		}
@@ -894,9 +906,9 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			if ( scenario == TacticalIntroScene::ALIEN_BASE )
 				rank = (float)(NUM_RANKS-1);
 			if ( TacticalIntroScene::IsScoutScenario( scenario ) )
-				rank = rank * 0.5f;	// lower ranks here
+				rank -= 0.5f;	// lower ranks here
 			if ( scenario == TacticalIntroScene::BATTLESHIP )
-				rank = rank * 1.2f;
+				rank += 0.5f;
 			rank = Clamp( rank, 0.0f, (float)(NUM_RANKS-1) );
 
 			FastBattleSceneData* data = new FastBattleSceneData();
@@ -1407,6 +1419,7 @@ void GeoScene::CalcTimeState( U32 msec, TimeState* state )
 	const static U32 SECOND			= 1000;
 	const static U32 MINUTE			= 60 *SECOND;
 
+	const static U32 FIRST_UFO      = 10 *SECOND;
 	const static U32 FULL_OUT		= 20 *MINUTE;
 	const static U32 DESTROYER0		= 2  *MINUTE;
 	const static U32 DESTROYER1		= 5  *MINUTE;
@@ -1416,6 +1429,9 @@ void GeoScene::CalcTimeState( U32 msec, TimeState* state )
 		msec = FULL_OUT;
 
 	state->alienTime = (U32)Interpolate( 0.0, (double)(30*SECOND), (double)FULL_OUT, (double)(5*SECOND), (double)msec );
+	if ( msec <= FIRST_UFO+1000 )	// rounding so we aren't racing this timer
+		state->alienTime = FIRST_UFO;	
+
 	state->alienRank = Interpolate( (U32)0, 0.0f, FULL_OUT, (float)(NUM_RANKS-1), msec );
 
 	state->alienType[ UFOChit::SCOUT ] = 1.0f;

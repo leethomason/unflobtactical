@@ -283,10 +283,21 @@ int UFOChit::DoTick( U32 deltaTime )
 	float travel = speed*timeFraction;
 	bool done = false;
 	int msg = MSG_NONE;
-
+	U32 timeBoost = 10;		// in 10ths
+	if ( hp < UFO_HP[type]) {
+		float tb = Interpolate( 0.0f, 20.0f, UFO_HP[type], 10.0f, hp );
+		GLASSERT( tb > 0 );
+		if ( tb > 0 )
+			timeBoost = (U32)tb;
+	}
 
 	if ( ai != AI_CRASHED && hp <= 0 ) {
-		msg = MSG_UFO_CRASHED;
+		// Minor issue: there are no crashed battleship models.
+		// Should fix this, but until then, just blow up battleships
+		if ( type != BATTLESHIP )
+			msg = MSG_UFO_CRASHED;
+		else
+			SetDestroyed();
 	} 
 	else if ( ai == AI_TRAVELLING )
 	{
@@ -373,7 +384,7 @@ int UFOChit::DoTick( U32 deltaTime )
 	else if ( ai == AI_CITY_ATTACK ) {
 		jobTimer += deltaTime;		
 
-		if ( jobTimer >= UFO_LAND_TIME ) {
+		if ( jobTimer >= UFO_LAND_TIME*timeBoost/10 ) {
 			msg = MSG_CITY_ATTACK_COMPLETE;
 			ai = AI_ORBIT;
 			RemoveDecal();
@@ -385,7 +396,7 @@ int UFOChit::DoTick( U32 deltaTime )
 	else if ( ai == AI_BASE_ATTACK ) {
 		jobTimer += deltaTime;		
 
-		if ( jobTimer >= UFO_LAND_TIME ) {
+		if ( jobTimer >= UFO_LAND_TIME*timeBoost/10 ) {
 			msg = MSG_BASE_ATTACK_COMPLETE;
 			RemoveDecal();
 			// This method needs to keep being sent. If the lander
@@ -398,7 +409,7 @@ int UFOChit::DoTick( U32 deltaTime )
 	}
 	else if ( ai == AI_CROP_CIRCLE ) {
 		jobTimer += deltaTime;
-		if ( jobTimer >= UFO_LAND_TIME ) {
+		if ( jobTimer >= UFO_LAND_TIME*timeBoost/10 ) {
 			msg = MSG_CROP_CIRCLE_COMPLETE;
 			ai = AI_ORBIT;
 			RemoveDecal();
@@ -852,7 +863,8 @@ int CargoChit::DoTick( U32 deltaTime )
 		outbound = false;
 	}
 	else {
-		Vector2F normal = d - pos;
+		Vector2F normal;
+		Cylinder<float>::ShortestPath( pos, d, &normal );
 		normal.Normalize();
 		pos += normal * distance;
 

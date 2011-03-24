@@ -52,6 +52,7 @@ private:
 	gamui::TextLabel		optionName[MAX_OPTIONS];
 	gamui::TextLabel		optionRequires[MAX_OPTIONS];
 	gamui::PushButton		okayButton;
+	gamui::Image			image;
 };
 
 

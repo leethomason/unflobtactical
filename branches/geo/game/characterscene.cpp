@@ -99,11 +99,6 @@ CharacterScene::~CharacterScene()
 	unit->UpdateInventory();
 	delete storageWidget;
 	delete inventoryWidget;
-
-	//Vector2I mapPos;
-	//unit->CalcMapPos( &mapPos, 0 );
-	//input->tacMap->ReleaseStorage( storage );
-	//storage = 0;
 }
 
 
@@ -215,10 +210,6 @@ void CharacterScene::CompWidget::Init( const ItemDefArr* arr, const Storage* sto
 	this->unit = unit;
 	this->storage = storage;
 
-//	if ( g ) nameRankUI.Init( g );
-//	nameRankUI.Set( x, y, unit, false );
-//	if ( g ) nameRankUI.SetVisible( false );
-
 	float NAME_WIDTH = 70.0f;
 	float DY = 16.0f;
 
@@ -280,7 +271,7 @@ void CharacterScene::CompWidget::SetCompText()
 //	else if ( range[2].Down() )
 //		r = 16.0f;
 
-	for( int i=0; i<itemDefArr->Size(); ++i ) {
+	for( int i=0; i<itemDefArr->Size() && index < COMP_ROW; ++i ) {
 		const ItemDef* itemDef = itemDefArr->Query( i );
 		if ( itemDef && itemDef->IsWeapon() ) {
 			bool inInventory = false;
@@ -322,10 +313,12 @@ void CharacterScene::CompWidget::SetCompText()
 				compTable[index*COMP_COL + 4].SetText( buf );
 
 				++index;
-				if ( index == COMP_ROW )
-					break;
 			}
 		}
+	}
+	for( ; index<COMP_ROW; ++index ) {
+		for( int k=0; k<COMP_COL; ++k )
+			compTable[index*COMP_COL+k].SetText( "" );
 	}
 }
 

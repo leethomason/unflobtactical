@@ -5,12 +5,12 @@ Bugs:
 Android
 - Amazon
 
-- geo-play: first timer faster
+- need to limit research text length
+- gameplay: runs of of steam, pre-frigates. Not enough reseach?
+- sound effects
 - more early game research - LR2 is good, ASLT-2?
-- sell all button
 - make "okay" buttons standard location
 - need end fight!
-- geo: lander should return if destination invalid
 - geo: art for special abilities
 - geo: art for cores
 - geo: colors ugly, look not correct
@@ -18,8 +18,6 @@ Android
 - geo: help not hooked up
 - geo: can deficit spend on base
 - geo: check for successful base placement before charging
-- geo: the world shifts upon return from scene
-- geo: restrict all battleship attacks
 - geo: extend frigate time
 
 Deferred:
@@ -29,6 +27,15 @@ Deferred:
 - geo: decals overdraw
 
 Fixed:
+- geo-play: first timer faster
+- geo: restrict all battleship attacks?
+- show research icon - give context
+- held weapon better than same on ground??
+- geo: lander should return if destination invalid
+- lander goes wrong way around world from USA->Aust
+- sell all button
+- geo: the world shifts upon return from scene
+- gameplay: does buying units help?
 - day/night not hooked up from geo to tactical
 - geo: paced start, difficulty coordinated
 - scenario and difficulty not hooked up

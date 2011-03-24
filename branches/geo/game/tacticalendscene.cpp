@@ -176,29 +176,30 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 		}
 	}
 
-	int row=0;
-	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-		if ( row == ITEM_NUM )
-			break;
+	if ( nSoldiersStanding>0 && nAliensAlive==0 ) {
+		int row=0;
+		for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+			if ( row == ITEM_NUM )
+				break;
 
-		const ItemDef* itemDef = game->GetItemDefArr().GetIndex(i);
-		if ( !itemDef )
-			continue;
+			const ItemDef* itemDef = game->GetItemDefArr().GetIndex(i);
+			if ( !itemDef )
+				continue;
 
-		if ( d->storage->GetCount(i) ) {
-			char buf[30];
-			const char* display = itemDef->displayName.c_str();
+			if ( d->storage->GetCount(i) ) {
+				char buf[30];
+				const char* display = itemDef->displayName.c_str();
 
-			int count =  d->storage->GetCount(i);
-			SNPrintf( buf, 30, "%s +%d", display, count );
+				int count =  d->storage->GetCount(i);
+				SNPrintf( buf, 30, "%s +%d", display, count );
 
-			items[row].Init( &gamui2D );
-			items[row].SetPos( X_ORIGIN[ITEM], Y_ORIGIN + (float)row*SPACING );
-			items[row].SetText( buf );
-			++row;
+				items[row].Init( &gamui2D );
+				items[row].SetPos( X_ORIGIN[ITEM], Y_ORIGIN + (float)row*SPACING );
+				items[row].SetText( buf );
+				++row;
+			}
 		}
 	}
-
 	CStr<16> totalBuf = (score[0]+score[1]+score[2]);
 	totalScoreValue.Init( &gamui2D );
 	totalScoreValue.SetPos( X_ORIGIN[SCORE], yPos );
