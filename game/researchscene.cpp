@@ -24,6 +24,10 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 	mainDescription.SetPos( X0, GAME_GUTTER );
 	mainDescription.SetText( "description" );
 
+	image.Init( &gamui2D, UIRenderer::CalcDecoAtom( DECO_RESEARCH, true ), true );
+	image.SetPos( 0, 0 );
+	image.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+
 	for( int i=0; i<MAX_OPTIONS; ++i ) {
 		float y = port.UIHeight() - (SPACE+GAME_BUTTON_SIZE_F)*(float)(MAX_OPTIONS-i) + SPACE;
 

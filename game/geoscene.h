@@ -167,8 +167,8 @@ private:
 	int Type( U16 d ) const { return d & 0xff; }
 	int Region( U16 d ) const { return d >> 8; }
 
-	// low 8 bits type, high 8 bits region#
 	int numLand;
+	// low 8 bits type, high 8 bits region#
 	U16 data[GEO_MAP_X*GEO_MAP_Y];
 	grinliz::Rectangle2I bounds[GEO_REGIONS];
 
@@ -316,6 +316,7 @@ private:
 	int					cash;
 	bool				firstBase;
 	int					nBattles;
+	float				savedCameraX;
 
 	grinliz::Random		random;
 
@@ -341,9 +342,5 @@ private:
 	GeoMapData			geoMapData;
 	Research			research;
 };
-
-
-
-
 
 #endif // UFO_ATTACK_GEO_SCENE_INCLUDED
