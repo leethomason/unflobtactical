@@ -209,7 +209,8 @@ public:
 		for( int i=0; i<HISTORY; ++i ) {
 			hScore += history[i];
 		}
-		return grinliz::Max( (influence*0.10f) * ((float)hScore*0.5f), 0.2f );	// the .2 adds some randomness to the alien actions
+		float score = grinliz::Max( (influence*0.10f) * ((float)hScore*0.5f), 0.2f );	// the .2 adds some randomness to the alien actions
+		return score;
 	}
 
 	// Set the storage to "normal" for the region, tech level, and traits.

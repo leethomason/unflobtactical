@@ -425,8 +425,8 @@ void Game::LoadItemResources()
 
 	static const ItemInit armor[] = {		
 		{ "ARM-1",	0,				DECO_ARMOR, 10,		"Memsteel Armor" },
-		{ "ARM-2",	0,				DECO_ARMOR, 40,		"Power Armor" },
-		{ "ARM-3",	0,				DECO_ARMOR, 80,		"Power Shield" },
+		{ "ARM-2",	0,				DECO_ARMOR, 30,		"Power Armor" },
+		{ "ARM-3",	0,				DECO_ARMOR, 60,		"Power Shield" },
 		{ 0 }
 	};
 

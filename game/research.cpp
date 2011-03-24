@@ -117,6 +117,24 @@ void Research::SetItemAcquired( const char* name )
 	if ( itemMap.Query( name, &item ) ) {
 		item->found = true;
 	}
+
+	char buf[20];
+	SNPrintf( buf, 20, "%s", name );
+	char* p = strstr( buf, "-3" );
+	if ( p ) {
+		*(p+1) = '2';
+		if ( itemMap.Query( buf, &item ) ) {
+			item->found = true;
+		}
+	}
+
+	p = strstr( buf, "-2" );
+	if ( p ) {
+		*(p+1) = '1';
+		if ( itemMap.Query( buf, &item ) ) {
+			item->found = true;
+		}
+	}
 }
 
 

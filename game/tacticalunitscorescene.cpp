@@ -114,7 +114,7 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, TacticalEndSceneDat
 	}
 
 	button.Init( &gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
-	button.SetPos( 400, 320 - 5 - GAME_BUTTON_SIZE );
+	button.SetPos( 0, 320 - 5 - GAME_BUTTON_SIZE );
 	button.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	button.SetText( "Done" );
 }
