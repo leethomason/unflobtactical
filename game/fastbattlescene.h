@@ -29,8 +29,8 @@ public:
 	int   scenario;			// FARM_SCOUT, etc.
 	bool  crash;			// is a crashed alien
 	Unit* soldierUnits;		// pointer to MAX_TERRAN units
-	bool  dayTime;			// fixme: set
-	float  alienRank;		// fixme: set consistent with game difficulty
+	bool  dayTime;
+	float alienRank;
 
 	Storage* storage;
 };

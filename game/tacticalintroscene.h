@@ -93,12 +93,15 @@ public:
 	};
 
 	static bool IsScoutScenario( int s ) {
+		GLASSERT( s >= FARM_SCOUT && s <= TERRAN_BASE );
 		return (s >= FARM_SCOUT && s < FARM_DESTROYER);
 	}
 	static bool IsFrigateScenario( int s ) {
-		return (s >= FARM_DESTROYER && s < CITY);
+		GLASSERT( s >= FARM_SCOUT && s <= TERRAN_BASE );
+		return (s >= FARM_DESTROYER && s <= DSRT_DESTROYER);
 	}
 	static bool IsUFOScenario( int s ) {
+		GLASSERT( s >= FARM_SCOUT && s <= TERRAN_BASE );
 		return    ( s >= FARM_SCOUT && s < CITY )
 			   || ( s == BATTLESHIP );
 	}

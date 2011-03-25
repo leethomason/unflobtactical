@@ -27,7 +27,7 @@
         of the alien DNA we see in the Green with another race. The Greens or their masters
         must be assimilating the genetics of other creatures.
         <required0 research="Green" />
-        <required1 item="Hornet" />
+        <required1 item="Hrnet" />
       </Hornet>
       <Viper points="40">
         The Viper is a heavy alien assault troop with significant natural armor. Like the Hornet,
@@ -40,7 +40,7 @@
         The Jackal is a cybort based on robotics and an alien creature. The creature - whatever it
         is and wherever it from - is genetically distict yet again from the other aliens.
         <required0 research="Green" />
-        <required2 item="Jackal" />
+        <required2 item="Jackl" />
       </Jackal>
       <Prime points="80">
         The Prime and Green and lesser and greater creatures of the same race perhaps.
@@ -150,12 +150,12 @@
 
       <MCAN-2 points="40">
         Description Needed
-        <required0 item="STORM-1" />
+        <required0 item="STRM-1" />
       </MCAN-2>
       <MCAN-3 points="60">
         Description Needed
         <required0 research="MCAN-2" />
-        <required1 item="STORM-3" />
+        <required1 item="STRM-3" />
         <required2 research="Jackal" />
       </MCAN-3>
 

@@ -92,7 +92,7 @@ public:
 		MSG_UFO_AT_DESTINATION,			// create a crop circle, attack a city, occupy a capital
 		MSG_CROP_CIRCLE_COMPLETE,
 		MSG_CITY_ATTACK_COMPLETE,
-		MSG_BASE_ATTACK_COMPLETE,
+		//MSG_BASE_ATTACK_COMPLETE,
 		MSG_UFO_CRASHED,
 
 #ifndef IMMEDIATE_BUY
@@ -148,7 +148,7 @@ public:
 
 		AI_CRASHED,		// crashed UFO
 		AI_CITY_ATTACK,	// attacking a city
-		AI_BASE_ATTACK, 
+		//AI_BASE_ATTACK, 
 		AI_OCCUPATION,	// a battleship has occupied a capital. It will not leave (until destroyed)
 		AI_CROP_CIRCLE,	// chillin' and making crop circles
 
@@ -176,9 +176,9 @@ public:
 	int Type() const					{ return type; }
 	bool CanSendLander( bool battleshipTech ) const			
 	{
+		if ( type == BATTLESHIP && !battleshipTech )
+			return false;
 		if ( ai == AI_CRASHED || ai == AI_CITY_ATTACK || ai == AI_CROP_CIRCLE )
-			return true;
-		if ( ai == AI_BASE_ATTACK && battleshipTech )
 			return true;
 		return false;
 	}

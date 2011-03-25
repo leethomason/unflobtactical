@@ -56,6 +56,9 @@ void AreaWidget::SetInfluence( float x )
 void AreaWidget::SetTraits( int traits )
 {
 	int count=0;
+	RenderAtom nullAtom;
+	trait[0].SetAtom( nullAtom );
+	trait[1].SetAtom( nullAtom );
 
 	for( int i=0; i<16 && count<2; ++i ) {
 		int value = traits & (1<<i);

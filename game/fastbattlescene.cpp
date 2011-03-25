@@ -71,7 +71,7 @@ FastBattleScene::FastBattleScene( Game* _game, FastBattleSceneData* data ) : Sce
 	TacticalIntroScene::GenerateCivTeam( civs, nCiv, game->GetItemDefArr(), random.Rand() );
 
 	battleResult = RunSim( data->soldierUnits, aliens, data->dayTime );
-	static const char* battleResultName[] = { "Victory", "Defeat", "Tie" };
+	static const char* battleResultName[] = { "", "Victory", "Defeat", "Tie" };
 	scenarioText[TL_RESULT].SetText( battleResultName[battleResult] );
 
 }
@@ -98,17 +98,34 @@ void FastBattleScene::Tap(	int action,
 	}
 
 	if ( item == &button ) {
-		for( int i=0; i<MAX_ALIENS; ++i ) {
-			aliens[i].GetInventory()->RestoreClips();
-			const Inventory* inv = aliens[i].GetInventory();
+		if ( battleResult == TacticalEndSceneData::VICTORY ) {
+			// Collect up alien stuff.
+			for( int i=0; i<MAX_ALIENS; ++i ) {
+				if ( aliens[i].InUse() ) {
+					aliens[i].GetInventory()->RestoreClips();
+					const Inventory* inv = aliens[i].GetInventory();
 
-			for( int j=0; j<Inventory::NUM_SLOTS; ++j ) {
-				Item item = inv->GetItem( j );
-				if ( item.IsSomething() )
-					foundStorage.AddItem( item );
+					for( int j=0; j<Inventory::NUM_SLOTS; ++j ) {
+						Item item = inv->GetItem( j );
+						if ( item.IsSomething() )
+							foundStorage.AddItem( item );
+					}
+				}
+			}
+			// Collect up dead soldier stuff.
+			for( int i=0; i<MAX_TERRANS; ++i ) {
+				if ( data->soldierUnits[i].IsKIA()) {	// ONY KIA. Other states will keep there weapons.
+					data->soldierUnits[i].GetInventory()->RestoreClips();
+					const Inventory* inv = data->soldierUnits[i].GetInventory();
+
+					for( int j=0; j<Inventory::NUM_SLOTS; ++j ) {
+						Item item = inv->GetItem( j );
+						if ( item.IsSomething() )
+							foundStorage.AddItem( item );
+					}
+				}
 			}
 		}
-
 		TacticalEndSceneData* d = new TacticalEndSceneData();
 		d->aliens   = aliens;
 		d->soldiers = data->soldierUnits;
@@ -275,7 +292,7 @@ int FastBattleScene::RunSim( Unit* soldier, Unit* alien, bool day )
 	}
 
 	int nSoldiers = Unit::Count( soldier, MAX_TERRANS, Unit::STATUS_ALIVE );
-	int nAliens = Unit::Count( alien, MAX_ALIENS, Unit::STATUS_ALIVE );
+	int nAliens   = Unit::Count( alien, MAX_ALIENS, Unit::STATUS_ALIVE );
 
 	if ( nSoldiers == 0 ) {
 		for( int i=0; i<MAX_TERRANS; ++i ) {

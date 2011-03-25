@@ -184,6 +184,7 @@ void UFOChit::DoDamage( float d )
 	hp -= d;
 
 	if ( hp <= 0 ) {
+		hp = 0;
 		static const float INV = 1.f/255.f;
 		static const Color4F particleColor = { 171.f*INV, 42.f*INV, 42.f*INV, 1.0f };
 		static const Color4F colorVec	= { 0.0f, -0.1f, -0.1f, -0.5f };
@@ -283,13 +284,13 @@ int UFOChit::DoTick( U32 deltaTime )
 	float travel = speed*timeFraction;
 	bool done = false;
 	int msg = MSG_NONE;
-	U32 timeBoost = 10;		// in 10ths
-	if ( hp < UFO_HP[type]) {
-		float tb = Interpolate( 0.0f, 20.0f, UFO_HP[type], 10.0f, hp );
-		GLASSERT( tb > 0 );
-		if ( tb > 0 )
-			timeBoost = (U32)tb;
-	}
+	//U32 timeBoost = 10;		// in 10ths
+	//if ( hp < UFO_HP[type]) {
+	//	float tb = Interpolate( 0.0f, 20.0f, UFO_HP[type], 10.0f, hp );
+	//	GLASSERT( tb > 0 );
+	//	if ( tb > 0 )
+	//		timeBoost = (U32)tb;
+	//}
 
 	if ( ai != AI_CRASHED && hp <= 0 ) {
 		// Minor issue: there are no crashed battleship models.
@@ -384,7 +385,7 @@ int UFOChit::DoTick( U32 deltaTime )
 	else if ( ai == AI_CITY_ATTACK ) {
 		jobTimer += deltaTime;		
 
-		if ( jobTimer >= UFO_LAND_TIME*timeBoost/10 ) {
+		if ( jobTimer >= UFO_LAND_TIME ) {
 			msg = MSG_CITY_ATTACK_COMPLETE;
 			ai = AI_ORBIT;
 			RemoveDecal();
@@ -393,23 +394,23 @@ int UFOChit::DoTick( U32 deltaTime )
 			Decal( jobTimer, 0.1f, ICON2_UFO_CITY_ATTACKING );
 		}
 	}
-	else if ( ai == AI_BASE_ATTACK ) {
-		jobTimer += deltaTime;		
-
-		if ( jobTimer >= UFO_LAND_TIME*timeBoost/10 ) {
-			msg = MSG_BASE_ATTACK_COMPLETE;
-			RemoveDecal();
-			// This method needs to keep being sent. If the lander
-			// is deployed, the UFO will wait until return. The
-			// AI will be set to ORBIT when the message is handled.
-		}
-		else {
-			Decal( jobTimer, 0.1f, ICON2_UFO_CITY_ATTACKING );
-		}
-	}
+//	else if ( ai == AI_BASE_ATTACK ) {
+//		jobTimer += deltaTime;		
+//
+//		if ( jobTimer >= UFO_LAND_TIME ) {
+//			msg = MSG_BASE_ATTACK_COMPLETE;
+//			RemoveDecal();
+//			// This method needs to keep being sent. If the lander
+//			// is deployed, the UFO will wait until return. The
+//			// AI will be set to ORBIT when the message is handled.
+//		}
+//		else {
+//			Decal( jobTimer, 0.1f, ICON2_UFO_CITY_ATTACKING );
+//		}
+//	}
 	else if ( ai == AI_CROP_CIRCLE ) {
 		jobTimer += deltaTime;
-		if ( jobTimer >= UFO_LAND_TIME*timeBoost/10 ) {
+		if ( jobTimer >= UFO_LAND_TIME ) {
 			msg = MSG_CROP_CIRCLE_COMPLETE;
 			ai = AI_ORBIT;
 			RemoveDecal();
@@ -545,20 +546,26 @@ void CityChit::Init()
 
 void CityChit::Save( FILE* fp, int depth )
 {
+	// Don't save or load. Generated from region data.
+	/*
 	XMLUtil::OpenElement( fp, depth, "CityChit" );
 	Chit::Save( fp, depth );
 
 	XMLUtil::Attribute( fp, "capital", capital );
 
 	XMLUtil::SealCloseElement( fp );
+	*/
 }
 
 
 void CityChit::Load( const TiXmlElement* doc )
 {
+	// Don't save or load. Generated from region data.
+	/*
 	Chit::Load( doc );
 	doc->QueryBoolAttribute( "capital", &capital );
 	Init();
+	*/
 }
 
 

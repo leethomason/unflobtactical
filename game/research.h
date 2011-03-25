@@ -41,7 +41,7 @@ public:
 		bool found;
 	};
 
-	Research( const gamedb::Reader* database );
+	Research( const gamedb::Reader* database, const ItemDefArr& itemDefArr, int totalResearchTime );
 	~Research();
 
 	void DoResearch( int researcherSeconds );

@@ -225,6 +225,7 @@ void Unit::Init(	int team,
 	nMissions = 0;
 	allMissionKills = 0;
 	allMissionOvals = 0;
+	gunner = 0;
 	model = 0;
 
 	GLASSERT( this->status == STATUS_NOT_INIT );
@@ -616,6 +617,7 @@ void Unit::Save( FILE* fp, int depth ) const
 		XMLUtil::Attribute( fp, "nMissions", nMissions );
 		XMLUtil::Attribute( fp, "allMissionKills", allMissionKills );
 		XMLUtil::Attribute( fp, "allMissionOvals", allMissionOvals );
+		XMLUtil::Attribute( fp, "gunner", gunner );
 		XMLUtil::Attribute( fp, "tu", tu );
 		if ( ai == AI::AI_GUARD )
 			XMLUtil::Attribute( fp, "ai", "guard" );
@@ -675,6 +677,7 @@ void Unit::Load( const TiXmlElement* ele, const ItemDefArr& itemDefArr )
 	nMissions = 0;
 	allMissionKills = 0;
 	allMissionOvals = 0;
+	gunner = 0;
 
 	GLASSERT( StrEqual( ele->Value(), "Unit" ) );
 	ele->QueryIntAttribute( "status", &a_status );
@@ -705,6 +708,7 @@ void Unit::Load( const TiXmlElement* ele, const ItemDefArr& itemDefArr )
 		ele->QueryIntAttribute( "nMissions", &nMissions );
 		ele->QueryIntAttribute( "allMissionKills", &allMissionKills );
 		ele->QueryIntAttribute( "allMissionOvals", &allMissionOvals );
+		ele->QueryIntAttribute( "gunner", &gunner );
 
 		if ( StrEqual( ele->Attribute( "ai" ), "guard" ) ) {
 			ai = AI::AI_GUARD;
@@ -737,6 +741,7 @@ void Unit::Create(	int team,
 	GenStats( team, type, body, &stats );		// defaults if not provided
 	allMissionKills = rank / 2;
 	allMissionOvals = rank / 2;
+	gunner = 0;
 	stats.SetRank( XPToRank( XP() ));
 
 	hp = stats.TotalHP();
