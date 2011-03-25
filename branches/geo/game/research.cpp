@@ -3,6 +3,7 @@
 #include "../engine/serialize.h"
 #include "../tinyxml/tinyxml.h"
 #include "../grinliz/glstringutil.h"
+#include "item.h"
 
 using namespace grinliz;
 
@@ -19,7 +20,7 @@ int Research::SortTasks( const void* _a, const void* _b )
 }
 
 
-Research::Research( const gamedb::Reader* _database )
+Research::Research( const gamedb::Reader* _database, const ItemDefArr& itemDefArr, int totalResearchSeconds )
 {
 	database = _database;
 	current = 0;
@@ -31,13 +32,14 @@ Research::Research( const gamedb::Reader* _database )
 
 	// Populate all the tasks.
 	int itemMax=0;
+	int totalRP = 0;
 	for( int i=0; i<nTasks; ++i ) {
 		const gamedb::Item* item = researchItem->Child( i );
 		memset( &taskArr[i], 0, sizeof( Task ) );
 		taskArr[i].name = item->Name();
 		taskArr[i].rp = 0;
-		static const int CONVERSION_TO_RESEARCHER_SECONDS = 8;
-		taskArr[i].rpRequired = CONVERSION_TO_RESEARCHER_SECONDS * item->GetInt( "points" );
+		taskArr[i].rpRequired = item->GetInt( "points" );
+		totalRP += taskArr[i].rpRequired;
 
 		int nReq = item->NumChildren();
 		int nPrereq = 0;
@@ -51,13 +53,19 @@ Research::Research( const gamedb::Reader* _database )
 			}
 			else if ( reqItem->HasAttribute( "item" ) ) {
 				GLASSERT( nItem < MAX_ITEMS_REQUIRED );
-				taskArr[i].item[nItem++] = reqItem->GetString( "item" );
+				const char* itemName = reqItem->GetString( "item" );
+				GLASSERT( itemDefArr.Query( itemName ) );
+				taskArr[i].item[nItem++] = itemName;
 				++itemMax;
 			}
 			else {
 				GLASSERT( 0 );
 			}
 		}
+	}
+
+	for( int i=0; i<nTasks; ++i ) {
+		taskArr[i].rpRequired = taskArr[i].rpRequired * totalResearchSeconds / totalRP;
 	}
 
 	qsort( taskArr, nTasks, sizeof(Task), SortTasks );

@@ -171,12 +171,13 @@ public:
 
 	void CreditKill()				{ kills++; }
 	int  KillsCredited() const		{ return kills; }
+	void CreditGunner()				{ gunner++; stats.SetRank( XPToRank( XP() )); }
 
 	int Missions() const			{ return nMissions; }
 	int AllMissionKills() const		{ return allMissionKills; }
 	int AllMissionOvals() const		{ return allMissionOvals; }
 
-	int XP() const					{ return nMissions + allMissionKills + allMissionOvals; }
+	int XP() const					{ return nMissions + allMissionKills + allMissionOvals + gunner; }
 	static int XPToRank( int xp );
 
 	void Save( FILE* fp, int depth ) const;
@@ -245,6 +246,7 @@ private:
 	int			nMissions;
 	int			allMissionKills;
 	int			allMissionOvals;
+	int			gunner;
 };
 
 

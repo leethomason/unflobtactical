@@ -130,12 +130,7 @@ void GeoMapData::Choose( grinliz::Random* random, int region, int required, int 
 
 void RegionData::Init(  const ItemDefArr& itemDefArr, Random* random )
 { 
-	traits = 0;
-	// Set 2 traits.
-	while ( traits == 0 || ( CeilPowerOf2( traits ) == traits ) ) {
-		traits |= ( 1 << random->Rand( TRAIT_NUM_BITS ) );
-	}
-
+	traits = ( 1 << random->Rand( TRAIT_NUM_BITS ) ) | ( 1 << random->Rand( TRAIT_NUM_BITS ) );
 	influence=0; 
 	for( int i=0; i<HISTORY; ++i ) history[i] = 1; 
 	occupied = false;
@@ -221,7 +216,7 @@ void RegionData::Load( const TiXmlElement* doc )
 
 
 
-GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase() )
+GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase(), _game->GetItemDefArr(), RESEARCH_SECONDS )
 {
 	missileTimer[0] = 0;
 	missileTimer[1] = 0;
@@ -328,10 +323,10 @@ void GeoScene::GenerateCities()
 	}
 	chitBag.Clean();
 
-	for( int j=0; j<GEO_REGIONS; ++j ) {
-		for( int i=0, n=geoMapData.NumCities( j ); i<n; ++i ) {
-			Vector2I pos = geoMapData.City( j, i );
-			CityChit* chit = new CityChit( GetEngine()->GetSpaceTree(), pos, (i==geoMapData.CapitalID(j) ) );
+	for( int region=0; region<GEO_REGIONS; ++region ) {
+		for( int i=0, n=geoMapData.NumCities( region ); i<n; ++i ) {
+			Vector2I pos = geoMapData.City( region, i );
+			CityChit* chit = new CityChit( GetEngine()->GetSpaceTree(), pos, (i==geoMapData.CapitalID(region) ) );
 			chitBag.Add( chit );
 		}
 	}
@@ -516,8 +511,9 @@ void GeoScene::Tap(	int action,
 			 && chitBag.NumBaseChits() < MAX_BASES
 			 && cash >= BASE_COST[ chitBag.NumBaseChits() ] ) 
 		{
-			cash -= BASE_COST[ chitBag.NumBaseChits() ];
-			PlaceBase( mapi );
+			if ( PlaceBase( mapi ) ) {
+				cash -= BASE_COST[ chitBag.NumBaseChits()-1 ];
+			}			
 		}
 		else {
 			// Search for what was clicked on. Go a little
@@ -529,7 +525,7 @@ void GeoScene::Tap(	int action,
 
 			for( Chit* it = chitBag.Begin(); it != chitBag.End(); it = it->Next() ) {
 				if (    it->IsBaseChit() 
-					 || ( it->IsUFOChit() && it->IsUFOChit()->CanSendLander( true ) ))
+					 || ( it->IsUFOChit() && it->IsUFOChit()->CanSendLander( research.GetStatus( "BattleshipAttack" ) == Research::TECH_RESEARCH_COMPLETE ) ) )
 				{
 					float len = Cylinder<float>::Length( it->Pos(), mapTap2 );
 					if ( len < bestRadius ) {
@@ -558,6 +554,9 @@ void GeoScene::Tap(	int action,
 void GeoScene::InitContextMenu( int type, Chit* chit )
 {
 	contextChitID = chit ? chit->ID() : 0;
+
+	for( int i=0; i<MAX_CONTEXT; ++i )
+		context[i].SetVisible( false );
 
 	if ( type == CM_NONE ) {
 		for( int i=0; i<MAX_CONTEXT; ++i )
@@ -637,7 +636,7 @@ void GeoScene::UpdateContextMenu()
 }
 
 
-void GeoScene::PlaceBase( const grinliz::Vector2I& map )
+bool GeoScene::PlaceBase( const grinliz::Vector2I& map )
 {
 	int index = chitBag.AllocBaseChitIndex();
 
@@ -655,8 +654,10 @@ void GeoScene::PlaceBase( const grinliz::Vector2I& map )
 			firstBase = false;
 			baseButton.SetUp();
 			research.KickResearch();
+			return true;
 		}
 	}
+	return false;
 }
 
 
@@ -905,10 +906,12 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			float rank = state.alienRank;
 			if ( scenario == TacticalIntroScene::ALIEN_BASE )
 				rank = (float)(NUM_RANKS-1);
-			if ( TacticalIntroScene::IsScoutScenario( scenario ) )
-				rank -= 0.5f;	// lower ranks here
-			if ( scenario == TacticalIntroScene::BATTLESHIP )
-				rank += 0.5f;
+
+			// Bad idea: difficulty of UFOs plenty broad already.
+			//if ( TacticalIntroScene::IsScoutScenario( scenario ) )
+			//	rank -= 0.5f;	// lower ranks here
+			//if ( scenario == TacticalIntroScene::BATTLESHIP )	// battleships are heard enough
+			//	rank += 0.5f;
 			rank = Clamp( rank, 0.0f, (float)(NUM_RANKS-1) );
 
 			FastBattleSceneData* data = new FastBattleSceneData();
@@ -939,23 +942,29 @@ void GeoScene::SceneResult( int sceneID, int result )
 		if ( ufoChit ) {
 			BaseChit* baseChit = landerChit ? chitBag.GetBaseChitAt( landerChit->Origin() ) : chitBag.GetBaseChitAt( ufoChit->MapPos() );
 			GLASSERT( baseChit );
-			int	region = geoMapData.GetRegion( baseChit->MapPos().x, baseChit->MapPos().y );
 
 			if ( baseChit ) {
 				Unit* units = baseChit->GetUnits();
 
-				if ( battleResult.result == TacticalEndSceneData::VICTORY ) {
-					Storage* storage = baseChit->GetStorage();
-					for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-						const ItemDef* itemDef = storage->GetItemDef(i);
-						if ( itemDef && storage->GetCount( i )) {
-							research.SetItemAcquired( itemDef->name );
-						}
+				Storage* storage = baseChit->GetStorage();
+				for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+					const ItemDef* itemDef = storage->GetItemDef(i);
+					if ( itemDef && storage->GetCount( i )) {
+						research.SetItemAcquired( itemDef->name );
 					}
-					research.KickResearch();
+				}
+				research.KickResearch();
+
+				// Special case: can't tie a base attack.
+				if ( !landerChit && (battleResult.result == TacticalEndSceneData::TIE) ) {
+					battleResult.result = TacticalEndSceneData::DEFEAT;
+				}
+
+				if ( battleResult.result == TacticalEndSceneData::VICTORY ) {
 
 					// Apply penalty for lost civs:
-					if ( battleResult.totalCivs > 0 ) {
+					int	region = geoMapData.GetRegion( baseChit->MapPos().x, baseChit->MapPos().y );
+					if ( battleResult.totalCivs > 0 && region >= 0 ) {
 						float ratio = 1.0f - (float)battleResult.civSurvived / (float)battleResult.totalCivs;
 						if ( chitBag.GetBattleScenario() == TacticalIntroScene::CITY ) { 
 							ratio *= 2.0f; 
@@ -1026,7 +1035,7 @@ void GeoScene::PushBaseTradeScene( BaseChit* baseChit )
 	data->base		 = baseChit->GetStorage();
 	regionData[region].SetStorageNormal( research, &data->region );
 	data->cash		 = &cash;
-	data->costMult	 = regionData[region].traits & RegionData::TRAIT_CAPATALIST ? 3.0f : 4.0f;
+	data->costMult	 = regionData[region].traits & RegionData::TRAIT_CAPATALIST ? COST_MULT_CAP : COST_MULT_STD;
 	data->soldierBoost = regionData[region].traits & RegionData::TRAIT_MILITARISTIC ? true : false;
 	data->soldiers	 = baseChit->GetUnits();
 	data->scientists = baseChit->IsFacilityComplete( BaseChit::FACILITY_SCILAB ) ? baseChit->GetResearcherPtr() : 0;
@@ -1061,6 +1070,18 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 	cashLabel.SetText( cashBuf );
 
 	alienTimer += deltaTime;
+
+	const int CYCLE = 5000;
+	float rotation = (float)(game->CurrentTime() % CYCLE)*(360.0f/(float)CYCLE);
+	if ( rotation > 90 && rotation < 270 )
+		rotation += 180;
+
+	if ( firstBase ) {
+		baseButton.SetDecoRotationY( rotation );
+	}
+	else {
+		baseButton.SetDecoRotationY( 0 );
+	}
 
 	if ( SettingsManager::Instance()->GetBattleShipParty() ) {
 		if ( alienTimer > 5000 ) {
@@ -1103,14 +1124,15 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 		Vector2I pos = chitIt->MapPos();
 
 		// Special case: Defer base attacks until lander arrives
-		if (    chitIt->IsUFOChit() 
-			 && chitIt->IsUFOChit()->AI() == UFOChit::AI_BASE_ATTACK
-			 && !chitBag.GetCargoComingFrom( CargoChit::TYPE_LANDER, pos ) ) 
-		{
-			if ( !game->IsScenePushed() )
-				DoBattle( 0, chitIt->IsUFOChit() );
-			break;
-		}
+		// Removed: nice, but hard to test.
+//		if (    chitIt->IsUFOChit() 
+//			 && chitIt->IsUFOChit()->AI() == UFOChit::AI_BASE_ATTACK
+//			 && !chitBag.GetCargoComingFrom( CargoChit::TYPE_LANDER, pos ) ) 
+//		{
+//			if ( !game->IsScenePushed() )
+//				DoBattle( 0, chitIt->IsUFOChit() );
+//			break;
+//		}
 
 		// Special case: send lander home if no target!
 		if ( chitIt->IsCargoChit() ) {
@@ -1181,7 +1203,10 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 							&& chitBag.GetBaseChitAt( pos )
 							&& regionData[region].influence >= MIN_BASE_ATTACK_INFLUENCE )
 				{
-					ufoChit->SetAI( UFOChit::AI_BASE_ATTACK );
+					if ( !game->IsScenePushed() ) {
+						DoBattle( 0, chitIt->IsUFOChit() );
+					}
+					ufoChit->SetAI( UFOChit::AI_ORBIT );
 				}
 				else if (    ufoChit->Type() == UFOChit::BATTLESHIP 
 						    && !regionData[region].occupied
@@ -1254,6 +1279,22 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 					chitIt->SetMapPos( pos.x, pos.y );
 				}
 				else {
+					// Find bases with units. Award "gunner" XP.
+					for( int i=0; i<MAX_BASES; ++i ) {
+						BaseChit* baseChit = chitBag.GetBaseChit( i );
+						if ( baseChit ) {
+							Unit* units = baseChit->GetUnits();
+							if ( units ) {
+								for( int i=0; i<MAX_TERRANS; ++i ) {
+									if ( units[i].IsAlive() ) {
+										units[i].CreditGunner();
+									}
+								}
+							}
+						}
+					}
+
+
 					chitIt->SetDestroyed();
 				}
 
@@ -1279,6 +1320,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 			}
 			break;
 
+			/*
 			case Chit::MSG_BASE_ATTACK_COMPLETE:
 			{
 				BaseChit* base = chitBag.GetBaseChitAt( pos );
@@ -1291,6 +1333,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 				}
 			}
 			break;
+			*/
 
 			default:
 				GLASSERT( 0 );
@@ -1416,11 +1459,6 @@ void GeoScene::DrawHUD()
 void GeoScene::CalcTimeState( U32 msec, TimeState* state )
 {
 	// Times in seconds.
-	const static U32 SECOND			= 1000;
-	const static U32 MINUTE			= 60 *SECOND;
-
-	const static U32 FULL_OUT		= 20 *MINUTE;
-
 	const static U32 FIRST_UFO      = 10 *SECOND;
 	const static U32 TIME_BETWEEN_0	= 20 *SECOND;
 	const static U32 TIME_BETWEEN_1 = 5  *SECOND;
@@ -1429,21 +1467,22 @@ void GeoScene::CalcTimeState( U32 msec, TimeState* state )
 	const static U32 DESTROYER1		= 5  *MINUTE;
 	const static U32 BATTLESHIP		= 10 *MINUTE;
 
-	if ( msec > FULL_OUT )
-		msec = FULL_OUT;
-
-	state->alienTime = (U32)Interpolate( 0.0, (double)(TIME_BETWEEN_0), (double)FULL_OUT, (double)(TIME_BETWEEN_1), (double)msec );
+	state->alienTime = (U32)Interpolate( 0.0, (double)(TIME_BETWEEN_0), (double)FULL_OUT_UFO, (double)(TIME_BETWEEN_1), (double)msec );
+	if ( state->alienTime < TIME_BETWEEN_1 )
+		state->alienTime = TIME_BETWEEN_1;
 	if ( msec <= FIRST_UFO+1000 )	// rounding so we aren't racing this timer
 		state->alienTime = FIRST_UFO;	
 
-	state->alienRank = Interpolate( (U32)0, 0.0f, FULL_OUT, (float)(NUM_RANKS-1), msec );
+	state->alienRank = (float)Interpolate( 0.0, 0.0, (double)FULL_OUT_RANK, (double)(NUM_RANKS)-1.5, (double)msec );	// the minus one is float/int conversion, the 0.5 is not maxing out the alien rank
+	if ( state->alienRank > (float)(NUM_RANKS-1) )
+		state->alienRank = (float)(NUM_RANKS-1);
 
 	state->alienType[ UFOChit::SCOUT ] = 1.0f;
 	state->alienType[ UFOChit::FRIGATE ] = 0.0f;
 	state->alienType[ UFOChit::BATTLESHIP ] = 0.0f;
 
 	if ( msec > DESTROYER0 )
-		state->alienType[ UFOChit::FRIGATE ] = 0.5f;
+		state->alienType[ UFOChit::FRIGATE ] = 0.3f;
 	if ( msec > DESTROYER1 )
 		state->alienType[ UFOChit::FRIGATE ] = 1.0f;
 	if ( msec > BATTLESHIP )
@@ -1510,8 +1549,9 @@ void GeoScene::Load( const TiXmlElement* scene )
 			areaWidget[i]->SetTraits( regionData[i].traits );
 		}
 	}
-	GenerateCities();
 	chitBag.Load( scene, tree, game->GetItemDefArr(), game );
 	research.Load( scene->FirstChildElement( "Research" ) );
+
+	GenerateCities();
 }
 

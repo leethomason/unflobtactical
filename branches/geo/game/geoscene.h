@@ -66,6 +66,15 @@ static const float LANDER_SPEED = 0.80f;
 static const float UFO_HP[3]    = { 4, 8, 20 };
 static const float UFO_ACCEL = 0.2f;	// units/second2
 
+static const float COST_MULT_CAP = 2.0f;
+static const float COST_MULT_STD = 3.0f;
+
+const static U32 SECOND			= 1000;
+const static U32 MINUTE			= 60 *SECOND;
+const static U32 FULL_OUT_UFO	= 20 *MINUTE;
+const static U32 FULL_OUT_RANK  = 40 *MINUTE;	// softer the rank.
+static const int RESEARCH_SECONDS = FULL_OUT_UFO / 40;	// /60 just uses "full out"
+
 static const float UFO_LAND_TIME  = 10*1000;
 static const float UFO_CRASH_TIME = 20*1000;
 
@@ -285,7 +294,7 @@ private:
 	void UpdateMissiles( U32 deltaTime );
 	void GenerateCities();
 
-	void PlaceBase( const grinliz::Vector2I& map );
+	bool PlaceBase( const grinliz::Vector2I& map );
 #ifndef IMMEDIATE_BUY
 	bool CanSendCargoPlane( const grinliz::Vector2I& base );
 #endif
