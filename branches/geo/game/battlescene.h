@@ -39,6 +39,7 @@ class Engine;
 class Texture;
 class AI;
 struct MapDamageDesc;
+class BattleSceneData;
 
 // Needs to be a POD because it gets 'union'ed in a bunch of events.
 // size is important for the same reason.
@@ -349,7 +350,6 @@ private:
 	int	subTurnOrder[MAX_TERRANS];
 	int	subTurnCount;
 	int turnCount;
-
 
 	Engine*			engine;
 	TacMap*			tacMap;

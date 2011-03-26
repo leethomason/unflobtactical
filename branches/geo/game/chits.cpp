@@ -43,6 +43,18 @@ void Chit::Load( const TiXmlElement* doc )
 }
 
 
+void Chit::SetVisible( bool visible ) 
+{
+	for( int i=0; i<2; ++i ) {
+		if ( model[i] ) {
+			if ( visible )
+				model[i]->ClearFlag( Model::MODEL_INVISIBLE );
+			else
+				model[i]->SetFlag( Model::MODEL_INVISIBLE );
+		}
+	}
+}
+
 
 float BaseChit::MissileRange( const int type ) const
 { 
@@ -114,6 +126,20 @@ void UFOChit::Init()
 		model[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( name[type] ) );
 		// Decals get re-created as needed.
 		if ( decal[i] ) { tree->FreeModel( decal[i] ); decal[i] = 0; }
+	}
+}
+
+
+void UFOChit::SetVisible( bool visible ) 
+{
+	Chit::SetVisible( visible );
+	for( int i=0; i<2; ++i ) {
+		if ( decal[i] ) {
+			if ( visible )
+				decal[i]->ClearFlag( Model::MODEL_INVISIBLE );
+			else
+				decal[i]->SetFlag( Model::MODEL_INVISIBLE );
+		}
 	}
 }
 
@@ -972,6 +998,14 @@ void ChitBag::Clean()
 		else {
 			it=it->Next();
 		}
+	}
+}
+
+
+void ChitBag::SetVisible( bool visible )
+{
+	for( Chit* chit = sentinel.next; chit != &sentinel; chit=chit->next ) {
+		chit->SetVisible( visible );
 	}
 }
 

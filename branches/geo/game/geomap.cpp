@@ -73,3 +73,14 @@ void GeoMap::DoTick( U32 currentTime, U32 deltaTime )
 	}
 }
 
+
+void GeoMap::SetVisible( bool visible )
+{
+	for( int i=0; i<2; ++i ) {
+		if ( visible )
+			geoModel[i]->ClearFlag( Model::MODEL_INVISIBLE );
+		else
+			geoModel[i]->SetFlag( Model::MODEL_INVISIBLE );
+	}
+}
+

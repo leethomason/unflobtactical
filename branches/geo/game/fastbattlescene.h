@@ -20,26 +20,14 @@
 #include "../gamui/gamui.h"
 #include "../grinliz/glstringutil.h"
 #include "unit.h"
+#include "battlescenedata.h"
 
-
-class FastBattleSceneData : public SceneData
-{
-public:
-	int	  seed;
-	int   scenario;			// FARM_SCOUT, etc.
-	bool  crash;			// is a crashed alien
-	Unit* soldierUnits;		// pointer to MAX_TERRAN units
-	bool  dayTime;
-	float alienRank;
-
-	Storage* storage;
-};
 
 
 class FastBattleScene : public Scene
 {
 public:
-	FastBattleScene( Game* _game, FastBattleSceneData* data );
+	FastBattleScene( Game* _game, BattleSceneData* data );
 	virtual ~FastBattleScene()	{}
 
 	// UI
@@ -71,7 +59,7 @@ private:
 
 		NUM_BATTLE = 24
 	};
-	FastBattleSceneData*	data;
+	BattleSceneData*		data;
 	BackgroundUI			backgroundUI;
 	gamui::TextLabel		scenarioText[NUM_TL];
 	gamui::TextLabel		battle[NUM_BATTLE];

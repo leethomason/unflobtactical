@@ -23,6 +23,7 @@
 #include "../shared/gamedbreader.h"
 #include "../gamui/gamui.h"
 #include "../engine/uirendering.h"
+#include "battlescenedata.h"
 
 class UIImage;
 class UIButtonBox;
@@ -105,8 +106,33 @@ public:
 		return    ( s >= FARM_SCOUT && s < CITY )
 			   || ( s == BATTLESHIP );
 	}
+	static int CivsInScenario( int scenario ) {
+		// fixme: handle terran base! should be # of scientists.
+		int nCiv = 0;
+		
+		switch ( scenario ) {
+		case TacticalIntroScene::FARM_SCOUT:
+		case TacticalIntroScene::FARM_DESTROYER:
+		case TacticalIntroScene::CITY:
+			nCiv = MAX_CIVS;
+			break;
+
+		case TacticalIntroScene::FRST_SCOUT:
+		case TacticalIntroScene::FRST_DESTROYER:
+			nCiv = MAX_CIVS / 2;
+			break;
+
+		default:
+			break;
+		}
+		return nCiv;
+	}
 
 	struct SceneInfo {
+		SceneInfo( int _scenario, bool _crash, int _nCivs ) : scenario( _scenario ), crash( _crash ), nCivs( _nCivs ) {
+			if ( !SupportsCrash() )
+				crash = false;
+		}
 		int		scenario;		// FARM_SCOUT -> TERRAN_BASE
 		bool	crash;
 		int		nCivs;
@@ -123,9 +149,6 @@ public:
 		const char* Base() const;
 	};
 
-	void CreateMap( FILE* fp, 
-					int seed,
-					const SceneInfo& info );
 
 	static int RandomRank( grinliz::Random* random, float rank );
 
@@ -153,24 +176,32 @@ public:
 									const ItemDefArr&,
 									int seed=0 );
 
-private:
-	void WriteXML( FILE* fp );
-	void FindNodes( const char* set,
-					int size,
-					const char* type,
-					const gamedb::Item* parent );
+	static void CreateMap(	FILE* fp, 
+							int seed,
+							const SceneInfo& info,
+							const gamedb::Reader* database );
 
-	void AppendMapSnippet(	int x, int y, int tileRotation,
-							const char* set,
+	static void WriteXML( FILE* fp, const BattleSceneData* data, const ItemDefArr&, const gamedb::Reader* database  );
+
+private:
+	enum { MAX_ITEM_MATCH = 32 };
+	static void FindNodes(	const char* set,
 							int size,
-							bool crash,
 							const char* type,
 							const gamedb::Item* parent,
-							TiXmlElement* mapElement );
+							const gamedb::Item** itemMatch,
+							int *nMatch );
 
-	enum { MAX_ITEM_MATCH = 32 };
-	const gamedb::Item* itemMatch[ MAX_ITEM_MATCH ];
-	int nItemMatch;
+	static void AppendMapSnippet(	int x, int y, int tileRotation,
+									const char* set,
+									int size,
+									bool crash,
+									const char* type,
+									const gamedb::Reader* database,
+									const gamedb::Item* parent,
+									TiXmlElement* mapElement,
+									int seed );
+
 	grinliz::Random random;
 
 	BackgroundUI		backgroundUI;

@@ -1434,6 +1434,9 @@ public:
 		doesn't stream - the entire object pointed at by the FILE*
 		will be interpreted as an XML file. TinyXML doesn't stream in XML from the current
 		file location. Streaming may be added in the future.
+		WARNING: The FILE* should have been opened as a binary file fopen( "foo", "rb" )
+				 not as a text file. TinyXML does its own line normalizations, and 
+				 files opened as text confuse it.
 	*/
 	bool LoadFile( FILE*, TiXmlEncoding encoding = TIXML_DEFAULT_ENCODING );
 	/// Save a file using the given FILE*. Returns true if successful.

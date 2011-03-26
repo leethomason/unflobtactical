@@ -395,5 +395,8 @@
     <ClInclude Include="game\researchscene.h">
       <Filter>scenes</Filter>
     </ClInclude>
+    <ClInclude Include="game\battlescenedata.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
