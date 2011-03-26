@@ -38,6 +38,7 @@
 #include "../grinliz/glgeometry.h"
 
 #include "../tinyxml/tinyxml.h"
+#include "battlescenedata.h"
 
 using namespace grinliz;
 using namespace gamui;

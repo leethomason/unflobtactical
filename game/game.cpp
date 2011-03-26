@@ -215,12 +215,11 @@ Game::~Game()
 }
 
 
-bool Game::HasSaveFile() const
+bool Game::HasSaveFile( SavePathType type ) const
 {
 	bool result = false;
 
-	GLString path = GameSavePath();
-	FILE* fp = fopen( path.c_str(), "r" );
+	FILE* fp = GameSavePath( type, SAVEPATH_READ );
 	if ( fp ) {
 		fseek( fp, 0, SEEK_END );
 		long d = ftell( fp );
@@ -233,10 +232,9 @@ bool Game::HasSaveFile() const
 }
 
 
-void Game::DeleteSaveFile()
+void Game::DeleteSaveFile( SavePathType type )
 {
-	GLString savePath = GameSavePath();
-	FILE* fp = fopen( savePath.c_str(), "w" );
+	FILE* fp = GameSavePath( type, SAVEPATH_WRITE );
 	if ( fp ) {
 		fclose( fp );
 	}
@@ -245,8 +243,7 @@ void Game::DeleteSaveFile()
 
 int Game::SaveFileScene() const
 {
-	GLString path = GameSavePath();
-	FILE* fp = fopen( path.c_str(), "r" );
+	FILE* fp = GameSavePath( SAVEPATH_GAME, SAVEPATH_READ );
 	int result = -1;
 
 	if ( fp ) {
@@ -341,6 +338,12 @@ void Game::PushPopScene()
 		if ( sceneStack.Size() ) {
 			sceneStack.Top()->scene->DeActivate();
 		}
+
+		SceneNode* oldTop = 0;
+		if ( !sceneStack.Empty() ) {
+			oldTop = sceneStack.Top();
+		}
+
 		SceneNode* node = sceneStack.Push();
 		CreateScene( sceneQueued, node );
 		sceneQueued.data = 0;
@@ -348,12 +351,21 @@ void Game::PushPopScene()
 
 		node->scene->Activate();
 
-		if ( node->scene->CanSave() && !Engine::mapMakerMode ) {
-			GLString path = GameSavePath();
-			TiXmlDocument doc;
-			doc.LoadFile( path.c_str() );
-			if ( !doc.Error() ) {
-				Load( doc );
+		if ( oldTop ) 
+			oldTop->scene->ChildActivated( node->sceneID, node->scene, node->data );
+
+		if (    node->scene->CanSave() 
+			 && !Engine::mapMakerMode 
+			 && sceneStack.Size() == 1 ) 
+		{
+			FILE* fp = GameSavePath( SAVEPATH_GAME, SAVEPATH_READ );
+			if ( fp ) {
+				TiXmlDocument doc;
+				doc.LoadFile( fp );
+				if ( !doc.Error() ) {
+					Load( doc );
+				}
+				fclose( fp );
 			}
 		}
 	}
@@ -377,7 +389,7 @@ void Game::CreateScene( const SceneNode& in, SceneNode* node )
 		case GEO_END_SCENE:		scene = new GeoEndScene( this, (const GeoEndSceneData*)in.data );					break;
 		case BASETRADE_SCENE:	scene = new BaseTradeScene( this, (BaseTradeSceneData*)in.data );					break;
 		case BUILDBASE_SCENE:	scene = new BuildBaseScene( this, (BuildBaseSceneData*)in.data );					break;
-		case FASTBATTLE_SCENE:	scene = new FastBattleScene( this, (FastBattleSceneData*)in.data );					break;
+		case FASTBATTLE_SCENE:	scene = new FastBattleScene( this, (BattleSceneData*)in.data );						break;
 		case RESEARCH_SCENE:	scene = new ResearchScene( this, (ResearchSceneData*)in.data );						break;
 		default:
 			GLASSERT( 0 );
@@ -416,11 +428,26 @@ void Game::Load( const TiXmlDocument& doc )
 }
 
 
+FILE* Game::GameSavePath( SavePathType type, SavePathMode mode ) const
+{	
+	grinliz::GLString str( savePath );
+	if ( type == SAVEPATH_GAME )
+		str += "currentgame.xml";
+	else if ( type == SAVEPATH_TACTICAL )
+		str += "tacgame.xml";
+	else
+		GLASSERT( 0 );
+
+	FILE* fp = fopen( str.c_str(), (mode == SAVEPATH_WRITE) ? "wb" : "rb" );
+	GLASSERT( fp );
+	return fp;
+}
+
+
 void Game::Save()
 {
 	if ( !sceneStack.Empty() && sceneStack.Bottom()->scene->CanSave() ) {
-		GLString path = GameSavePath();
-		FILE* fp = fopen( path.c_str(), "w" );
+		FILE* fp = GameSavePath( SAVEPATH_GAME, SAVEPATH_WRITE );
 		GLASSERT( fp );
 		if ( fp ) {
 			Save( fp );

@@ -271,6 +271,7 @@ public:
 	virtual void Load( const TiXmlElement* doc );
 
 	virtual void DrawHUD();
+	virtual void ChildActivated( int childID, Scene* childScene, SceneData* data );
 
 private:
 	struct Missile {

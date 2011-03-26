@@ -8,7 +8,7 @@
 using namespace gamui;
 using namespace grinliz;
 
-FastBattleScene::FastBattleScene( Game* _game, FastBattleSceneData* data ) : Scene( _game ), foundStorage( 0, 0, _game->GetItemDefArr() )
+FastBattleScene::FastBattleScene( Game* _game, BattleSceneData* data ) : Scene( _game ), foundStorage( 0, 0, _game->GetItemDefArr() )
 {
 	this->data = data;
 	const Screenport& port = GetEngine()->GetScreenport();
@@ -50,24 +50,7 @@ FastBattleScene::FastBattleScene( Game* _game, FastBattleSceneData* data ) : Sce
 	TacticalIntroScene::GenerateAlienTeamUpper( data->scenario, data->crash, data->alienRank, aliens, game->GetItemDefArr(), random.Rand() );
 
 	memset( civs, 0, sizeof(Unit)*MAX_CIVS );
-	int nCiv = 0;
-	// fixme: handle terran base! should be # of scientists.
-
-	switch ( data->scenario ) {
-	case TacticalIntroScene::FARM_SCOUT:
-	case TacticalIntroScene::FARM_DESTROYER:
-	case TacticalIntroScene::CITY:
-		nCiv = MAX_CIVS;
-		break;
-
-	case TacticalIntroScene::FRST_SCOUT:
-	case TacticalIntroScene::FRST_DESTROYER:
-		nCiv = MAX_CIVS / 2;
-		break;
-
-	default:
-		break;
-	}
+	int nCiv = TacticalIntroScene::CivsInScenario( data->scenario );
 	TacticalIntroScene::GenerateCivTeam( civs, nCiv, game->GetItemDefArr(), random.Rand() );
 
 	battleResult = RunSim( data->soldierUnits, aliens, data->dayTime );

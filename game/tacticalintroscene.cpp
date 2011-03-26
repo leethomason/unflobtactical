@@ -238,18 +238,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	goButton.SetVisible( false );
 
 	// Is there a current game?
-	GLString savePath = game->GameSavePath();
-	continueButton.SetEnabled( false );
-	FILE* fp = fopen( savePath.c_str(), "r" );
-	if ( fp ) {
-		fseek( fp, 0, SEEK_END );
-		unsigned long len = ftell( fp );
-		if ( len > 100 ) {
-			// 20 ignores empty XML noise (hopefully)
-			continueButton.SetEnabled( true );
-		}
-		fclose( fp );
-	}
+	continueButton.SetEnabled( game->HasSaveFile( Game::SAVEPATH_GAME ));
 }
 
 
@@ -314,12 +303,61 @@ void TacticalIntroScene::Tap(	int action,
 		onToNext = game->SaveFileScene();
 	}
 	else if ( item == &goButton ) {
-		GLString path = game->GameSavePath();
-		FILE* fp = fopen( path.c_str(), "w" );
+		FILE* fp = game->GameSavePath( Game::SAVEPATH_GAME, Game::SAVEPATH_WRITE );
 		GLASSERT( fp );
 		if ( fp ) {
 			onToNext = Game::BATTLE_SCENE;
-			WriteXML( fp );
+
+
+
+			BattleSceneData data;
+			data.seed = random.Rand();
+			data.scenario = FARM_SCOUT;
+			for( int i=FIRST_SCENARIO; i<=LAST_SCENARIO; ++i ) {
+				if ( toggles[i].Down() ) {
+					data.scenario = i;
+					break;
+				}
+			}
+			data.crash = toggles[UFO_CRASH].Down() ? true : false;
+
+			Unit units[MAX_TERRANS];
+			int rank = 0;
+			int count = 8;
+
+			// Terran units
+			if ( toggles[TERRAN_LOW].Down() )
+				rank = 0;
+			else if ( toggles[TERRAN_MED].Down() )
+				rank = 2;
+			else if ( toggles[TERRAN_HIGH].Down() )
+				rank = 4;
+
+			if ( toggles[SQUAD_4].Down() )
+				count = 4;
+			else if ( toggles[SQUAD_6].Down() )
+				count = 6;
+			else if ( toggles[SQUAD_8].Down() )
+				count = 8;
+
+			memset( units, 0, sizeof(Unit)*MAX_TERRANS );
+			GenerateTerranTeam( units, count, (float)rank, game->GetItemDefArr(), random.Rand() );
+			data.soldierUnits = units;
+
+			data.dayTime = toggles[TIME_DAY].Down() ? true : false;
+			data.alienRank = 0.0f;
+			if ( toggles[ALIEN_LOW].Down() ) {
+				data.alienRank = 0;
+			}
+			else if ( toggles[ALIEN_MED].Down() ) {
+				data.alienRank = 2;
+			}
+			else if ( toggles[ALIEN_HIGH].Down() ) {
+				data.alienRank = 4;
+			}
+			data.storage = 0;
+
+			WriteXML( fp, &data, game->GetItemDefArr(), game->GetDatabase() );
 			fclose( fp );
 		}
 	}
@@ -343,7 +381,7 @@ void TacticalIntroScene::Tap(	int action,
 		game->SetDebugLevel( (game->GetDebugLevel() + 1)%4 );
 	}
 	else if ( item == &newGeo ) {
-		game->DeleteSaveFile();
+		game->DeleteSaveFile( Game::SAVEPATH_GAME );
 		onToNext = Game::GEO_SCENE;
 	}
 
@@ -354,7 +392,7 @@ void TacticalIntroScene::Tap(	int action,
 }
 
 
-void TacticalIntroScene::WriteXML( FILE* fp )
+/*static*/ void TacticalIntroScene::WriteXML( FILE* fp, const BattleSceneData* data, const ItemDefArr& itemDefArr, const gamedb::Reader* database )
  {
 	//	Game
 	//		BattleScene
@@ -372,105 +410,34 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 	XMLUtil::SealElement( fp );
 
 	XMLUtil::OpenElement( fp, 1, "BattleScene" );
-	XMLUtil::Attribute( fp, "dayTime", toggles[TIME_DAY].Down() ? 1 : 0 );
+	XMLUtil::Attribute( fp, "dayTime", data->dayTime ? 1 : 0 );
 	XMLUtil::SealElement( fp );
 
-	int seed = (int)time( 0 ) + (int)clock();
+	Random random;
+	random.SetSeedFromTime();
 
-	SceneInfo info;
-	info.scenario = FARM_SCOUT;
-	for( int i=FIRST_SCENARIO; i<=LAST_SCENARIO; ++i ) {
-		if ( toggles[i].Down() ) {
-			info.scenario = i;
-			break;
-		}
-	}
-	info.crash = false;
-	info.nCivs = 0;
+	SceneInfo info( data->scenario, data->crash, CivsInScenario( data->scenario ) );
 
-	if ( info.SupportsCivs() )
-		info.nCivs = toggles[CIVS_PRESENT].Down() ? 8 : 0;
-	if ( info.SupportsCrash() )
-		info.crash = toggles[UFO_CRASH].Down() ? true : false;
-
-	CreateMap( fp, seed, info );
+	CreateMap( fp, random.Rand(), info, database );
 	fprintf( fp, "\n" );
 
 	XMLUtil::OpenElement( fp, 2, "Units" );
 	XMLUtil::SealElement( fp );
 
 	Unit units[MAX_UNITS];
-	int rank = 0;
-	int count = 8;
-	int types[Unit::NUM_ALIEN_TYPES] = { 0 };
-
-	// Terran units
-	if ( toggles[TERRAN_LOW].Down() )
-		rank = 0;
-	else if ( toggles[TERRAN_MED].Down() )
-		rank = 2;
-	else if ( toggles[TERRAN_HIGH].Down() )
-		rank = 4;
-
-	if ( toggles[SQUAD_4].Down() )
-		count = 4;
-	else if ( toggles[SQUAD_6].Down() )
-		count = 6;
-	else if ( toggles[SQUAD_8].Down() )
-		count = 8;
-
 	memset( units, 0, sizeof(Unit)*MAX_UNITS );
-	GenerateTerranTeam( units, count, (float)rank, game->GetItemDefArr(), seed );
-	for( int i=0; i<count; ++i ) {
-		if ( units[i].IsAlive() ) {
-			units[i].Save( fp, 3 );
-		}
-	}
+
+	// Terran soldier units.
+	memcpy( &units[TERRAN_UNITS_START], data->soldierUnits, sizeof(Unit)*MAX_TERRANS );
 
 	// Alien units
-	if ( toggles[ALIEN_8].Down() )
-		count = 8;
-	else if ( toggles[ALIEN_12].Down() )
-		count = 12;
-	else if ( toggles[ALIEN_16].Down() )
-		count = 16;
-
-	if ( toggles[ALIEN_LOW].Down() ) {
-		types[Unit::ALIEN_GREEN] = count*3/4;
-		types[Unit::ALIEN_HORNET] = count*1/4;
-		rank = 0;
-	}
-	else if ( toggles[ALIEN_MED].Down() ) {
-		types[Unit::ALIEN_GREEN] = count*1/4;
-		types[Unit::ALIEN_HORNET] = count*1/4;
-		types[Unit::ALIEN_JACKAL] = count*1/4;
-		types[Unit::ALIEN_VIPER] = count*1/4;
-		rank = 2;
-	}
-	else if ( toggles[ALIEN_HIGH].Down() ) {
-		types[Unit::ALIEN_PRIME] = count*1/4;
-		types[Unit::ALIEN_HORNET] = count*1/4;
-		types[Unit::ALIEN_JACKAL] = count*1/4;
-		types[Unit::ALIEN_VIPER] = count*1/4;
-		rank = 4;
-	}
-
-	memset( units, 0, sizeof(Unit)*MAX_UNITS );
-	GenerateAlienTeam( units, types, (float)rank, game->GetItemDefArr(), seed );
-
-	int created=0;
-	for( int i=0; i<MAX_ALIENS; ++i ) {
-		if ( units[i].IsAlive() ) {
-			units[i].Save( fp, 3 );
-			++created;
-		}
-	}
-	GLASSERT( created == count );
+	GenerateAlienTeamUpper( data->scenario, data->crash, data->alienRank, &units[ALIEN_UNITS_START], itemDefArr, random.Rand() );
 
 	// Civ team
-	memset( units, 0, sizeof(Unit)*MAX_UNITS );
-	GenerateCivTeam( units, info.nCivs, game->GetItemDefArr(), seed );
-	for( int i=0; i<MAX_CIVS; ++i ) {
+	GenerateCivTeam( &units[CIV_UNITS_START], info.nCivs, itemDefArr, random.Rand() );
+
+	// Save everybody
+	for( int i=0; i<MAX_UNITS; ++i ) {
 		if ( units[i].IsAlive() ) {
 			units[i].Save( fp, 3 );
 		}
@@ -485,19 +452,21 @@ void TacticalIntroScene::WriteXML( FILE* fp )
 void TacticalIntroScene::FindNodes(	const char* set,
 									int size,
 									const char* type,
-									const gamedb::Item* parent )
+									const gamedb::Item* parent,
+									const gamedb::Item** itemMatch,
+									int *nMatch )
 {
 	char buffer[64];
 	SNPrintf( buffer, 64, "%4s_%02d_%4s", set, size, type );
 	const int LEN=12;
-	nItemMatch = 0;
+	*nMatch = 0;
 
 	for( int i=0; i<parent->NumChildren(); ++i ) {
 		const gamedb::Item* node = parent->Child( i );
 		const char* name = node->Name();
 
 		if ( strncmp( name, buffer, LEN ) == 0 ) {
-			itemMatch[ nItemMatch++ ] = node;
+			itemMatch[ (*nMatch)++ ] = node;
 		}
 	}
 }
@@ -508,15 +477,23 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 											int size,
 											bool crash,
 											const char* type,
+											const gamedb::Reader* database,
 											const gamedb::Item* parent,
-											TiXmlElement* mapElement )
+											TiXmlElement* mapElement,
+											int _seed )
 {
-	FindNodes( set, size, type, parent );
+	const gamedb::Item* itemMatch[ MAX_ITEM_MATCH ];
+	int nItemMatch = 0;
+
+	FindNodes( set, size, type, parent, itemMatch, &nItemMatch );
 	GLASSERT( nItemMatch > 0 );
+	
+	Random random( _seed );
 	random.Rand();
 	int seed = random.Rand( nItemMatch );
 	const gamedb::Item* item = itemMatch[ seed ];
-	const char* xmlText = (const char*) game->GetDatabase()->AccessData( item, "binary" );
+
+	const char* xmlText = (const char*) database->AccessData( item, "binary" );
 
 	TiXmlDocument snippet;
 	snippet.Parse( xmlText );
@@ -614,19 +591,21 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 
 void TacticalIntroScene::CreateMap(	FILE* fp, 
 									int seed,
-									const SceneInfo& info )
+									const SceneInfo& info,
+									const gamedb::Reader* database )
 {
 	// Max world size is 64x64 units, in 16x16 unit blocks. That gives 4x4 blocks max.
 	BitArray< 4, 4, 1 > blocks;
 
 	TiXmlElement mapElement( "Map" );
-	const gamedb::Item* dataItem = game->GetDatabase()->Root()->Child( "data" );
+	const gamedb::Item* dataItem = database->Root()->Child( "data" );
 
 	Vector2I size = info.Size();
 	mapElement.SetAttribute( "sizeX", size.x*16 );
 	mapElement.SetAttribute( "sizeY", size.y*16 );
 	
-	random.SetSeed( seed );
+	Random random( seed );
+
 	for( int i=0; i<5; ++i ) 
 		random.Rand();
 
@@ -651,7 +630,7 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 			blocks.Set( pos.x, pos.y );
 			int tileRotation = random.Rand(4);
 
-			AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.Base(), 16, false, "LAND", dataItem, &mapElement );	
+			AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.Base(), 16, false, "LAND", database, dataItem, &mapElement, random.Rand() );	
 		}
 
 		// UFO
@@ -676,7 +655,7 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 					blocks.Set( i, j );
 
 			int tileRotation = random.Rand(4);
-			AppendMapSnippet( pos.min.x*16, pos.min.y*16, tileRotation, info.Base(), 16*ufoSize, info.crash, info.UFO(), dataItem, &mapElement );
+			AppendMapSnippet( pos.min.x*16, pos.min.y*16, tileRotation, info.Base(), 16*ufoSize, info.crash, info.UFO(), database, dataItem, &mapElement, random.Rand() );
 		}
 
 		for( int j=0; j<size.y; ++j ) {
@@ -684,7 +663,7 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 				if ( !blocks.IsSet( i, j ) ) {
 					Vector2I pos = { i, j };
 					int tileRotation = random.Rand(4);
-					AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.Base(), 16, false, "TILE", dataItem, &mapElement );	
+					AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.Base(), 16, false, "TILE", database, dataItem, &mapElement, random.Rand() );	
 				}
 			}
 		}
@@ -706,30 +685,30 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 		{
 			int tileRotation = random.Rand(4);
 			lander = open[random.Rand(4)];
-			AppendMapSnippet( lander.x*16, lander.y*16, tileRotation, "CITY", 16, false, "LAND", dataItem, &mapElement );	
+			AppendMapSnippet( lander.x*16, lander.y*16, tileRotation, "CITY", 16, false, "LAND", database, dataItem, &mapElement, random.Rand() );	
 		}
 
 		// Open
 		for( int i=0; i<4; ++i ) {
 			if ( lander != open[i] ) {
 				int tileRotation = random.Rand(4);
-				AppendMapSnippet( open[i].x*16, open[i].y*16, tileRotation, "CITY", 16, false, "OPEN", dataItem, &mapElement );	
+				AppendMapSnippet( open[i].x*16, open[i].y*16, tileRotation, "CITY", 16, false, "OPEN", database, dataItem, &mapElement, random.Rand() );	
 			}
 		}
 		// Roads
 		for( int i=0; i<4; ++i ) {
-			AppendMapSnippet( hroad[i].x*16, hroad[i].y*16, 1, "CITY", 16, false, "ROAD", dataItem, &mapElement );	
+			AppendMapSnippet( hroad[i].x*16, hroad[i].y*16, 1, "CITY", 16, false, "ROAD", database, dataItem, &mapElement, random.Rand() );	
 		}
 		for( int i=0; i<4; ++i ) {
-			AppendMapSnippet( vroad[i].x*16, vroad[i].y*16, 0, "CITY", 16, false, "ROAD", dataItem, &mapElement );	
+			AppendMapSnippet( vroad[i].x*16, vroad[i].y*16, 0, "CITY", 16, false, "ROAD", database, dataItem, &mapElement, random.Rand() );	
 		}
 		for( int i=0; i<4; ++i ) {
-			AppendMapSnippet( inter[i].x*16, inter[i].y*16, 1, "CITY", 16, false, "INTR", dataItem, &mapElement );	
+			AppendMapSnippet( inter[i].x*16, inter[i].y*16, 1, "CITY", 16, false, "INTR", database, dataItem, &mapElement, random.Rand() );	
 		}
 		
 	}
 	else if ( info.scenario == BATTLESHIP ) {
-		AppendMapSnippet( 0, 0, 0, "BATT", 48, false, "TILE", dataItem, &mapElement );	
+		AppendMapSnippet( 0, 0, 0, "BATT", 48, false, "TILE", database, dataItem, &mapElement, random.Rand() );	
 	}
 
 

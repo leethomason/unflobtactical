@@ -184,6 +184,7 @@
     <ClInclude Include="game\areaWidget.h" />
     <ClInclude Include="game\basetradescene.h" />
     <ClInclude Include="game\battlescene.h" />
+    <ClInclude Include="game\battlescenedata.h" />
     <ClInclude Include="game\battlevisibility.h" />
     <ClInclude Include="game\buildbasescene.h" />
     <ClInclude Include="game\cgame.h" />

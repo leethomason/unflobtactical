@@ -14,6 +14,7 @@
 #include "tacticalendscene.h"
 #include "researchscene.h"
 #include "settings.h"
+#include "battlescene.h"
 
 #include "../engine/loosequadtree.h"
 #include "../engine/particle.h"
@@ -304,6 +305,8 @@ void GeoScene::Activate()
 	SetMapLocation();
 	GetEngine()->SetIMap( geoMap );
 	SetMapLocation();
+	geoMap->SetVisible( true );
+	chitBag.SetVisible( true );
 }
 
 
@@ -312,6 +315,8 @@ void GeoScene::DeActivate()
 	savedCameraX = GetEngine()->camera.PosWC().x;
 	GetEngine()->CameraIso( true, false, 0, 0 );
 	GetEngine()->SetIMap( 0 );
+	geoMap->SetVisible( false );
+	chitBag.SetVisible( false );
 }
 
 
@@ -914,7 +919,7 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			//	rank += 0.5f;
 			rank = Clamp( rank, 0.0f, (float)(NUM_RANKS-1) );
 
-			FastBattleSceneData* data = new FastBattleSceneData();
+			BattleSceneData* data = new BattleSceneData();
 			data->seed			= baseChit->MapPos().x + baseChit->MapPos().y*GEO_MAP_X + scenario*37;
 			data->scenario		= scenario;
 			data->crash			= ( ufoChit->AI() == UFOChit::AI_CRASHED );
@@ -922,9 +927,44 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			data->dayTime		= geoMap->GetDayTime( ufoChit->Pos().x );
 			data->alienRank		= rank;
 			data->storage		= baseChit->GetStorage();
-			game->PushScene( Game::FASTBATTLE_SCENE, data );
+
+			if ( SettingsManager::Instance()->GetUseFastBattle() )
+				game->PushScene( Game::FASTBATTLE_SCENE, data );
+			else
+				game->PushScene( Game::BATTLE_SCENE, data );
 
 			chitBag.SetBattle( ufoChit->ID(), landerChit ? landerChit->ID() : 0, scenario );
+		}
+	}
+}
+
+
+
+void GeoScene::ChildActivated( int childID, Scene* childScene, SceneData* data )
+{
+	if ( childID == Game::BATTLE_SCENE ) {
+		FILE* fp = game->GameSavePath( Game::SAVEPATH_TACTICAL, Game::SAVEPATH_WRITE );
+		if ( fp ) {
+			TacticalIntroScene::WriteXML( fp, (const BattleSceneData*)data, game->GetItemDefArr(), game->GetDatabase() );
+			fclose( fp );
+
+			fp = game->GameSavePath( Game::SAVEPATH_TACTICAL, Game::SAVEPATH_READ );
+			if ( fp ) {
+				TiXmlDocument doc;
+				doc.LoadFile( fp );
+				GLASSERT( !doc.Error() );
+				if ( !doc.Error() ) {
+					TiXmlElement* game = doc.FirstChildElement( "Game" );
+					GLASSERT( game );
+					if ( game ) {
+						TiXmlElement* scene = game->FirstChildElement( "BattleScene" );
+						GLASSERT( scene );
+						if ( scene )
+							((BattleScene*)childScene)->Load( scene );
+					}
+				}
+				fclose( fp );
+			}
 		}
 	}
 }
