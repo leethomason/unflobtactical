@@ -863,6 +863,9 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 	GLASSERT( !landerChit || landerChit->Type() == CargoChit::TYPE_LANDER );
 	GLASSERT( ufoChit || landerChit );
 
+	// Save of the geo Scene before going to tactical:
+	game->Save();
+
 	BaseChit* baseChit = 0;
 	bool baseAttack = false;
 	++nBattles;
@@ -915,7 +918,7 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			// Bad idea: difficulty of UFOs plenty broad already.
 			//if ( TacticalIntroScene::IsScoutScenario( scenario ) )
 			//	rank -= 0.5f;	// lower ranks here
-			//if ( scenario == TacticalIntroScene::BATTLESHIP )	// battleships are heard enough
+			//if ( scenario == TacticalIntroScene::BATTLESHIP )	// battleships are hard enough
 			//	rank += 0.5f;
 			rank = Clamp( rank, 0.0f, (float)(NUM_RANKS-1) );
 
@@ -943,12 +946,12 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 void GeoScene::ChildActivated( int childID, Scene* childScene, SceneData* data )
 {
 	if ( childID == Game::BATTLE_SCENE ) {
-		FILE* fp = game->GameSavePath( Game::SAVEPATH_TACTICAL, Game::SAVEPATH_WRITE );
+		FILE* fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_WRITE );
 		if ( fp ) {
 			TacticalIntroScene::WriteXML( fp, (const BattleSceneData*)data, game->GetItemDefArr(), game->GetDatabase() );
 			fclose( fp );
 
-			fp = game->GameSavePath( Game::SAVEPATH_TACTICAL, Game::SAVEPATH_READ );
+			fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_READ );
 			if ( fp ) {
 				TiXmlDocument doc;
 				doc.LoadFile( fp );
@@ -991,7 +994,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 					const ItemDef* itemDef = storage->GetItemDef(i);
 					if ( itemDef && storage->GetCount( i )) {
 						research.SetItemAcquired( itemDef->name );
-					}
+						}
 				}
 				research.KickResearch();
 
@@ -1060,6 +1063,8 @@ void GeoScene::SceneResult( int sceneID, int result )
 				}
 			}
 		}
+		game->Save();
+		game->DeleteSaveFile( SAVEPATH_TACTICAL );
 	}
 }
 

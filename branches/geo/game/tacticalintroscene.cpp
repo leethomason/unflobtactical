@@ -67,7 +67,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	newTactical.Init( &gamui2D, green );
 	newTactical.SetSizeByScale( 2.2f, 1 );
 	newTactical.SetPos( port.UIWidth()-BORDER-newTactical.Width(), 320-BORDER-continueButton.Height() );
-	newTactical.SetText( "New Game" );
+	newTactical.SetText( "New Tactical" );
 
 	
 	newGeo.Init( &gamui2D, green );
@@ -103,13 +103,16 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	Gamui::Layout( items, 3, 1, 3, port.UIWidth() - helpButton.Width() - BORDER, BORDER, helpButton.Width(), helpButton.Height()*3.0f+BORDER );
 
 
-	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "6", "8", "Low", "Med", "Hi", "8", "12", "16", "Low", "Med", "Hi", "Day", "Night",
+	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "6", "8", "Low", "Med", "Hi", 
+													 //"8", "12", "16", 
+													 "Low", "Med", "Hi", "Day", "Night",
 													 "Fa-S", "T-S", "Fo-S", "D-S", "Fa-D", "T-D", "Fo-D", "D-D",
 													 "City", "BattleShip",	// "ABase", "TBase",
-													 "Civs", "Crash" };
+													 //"Civs", 
+													 "Crash" };
 	for( int i=0; i<TOGGLE_COUNT; ++i ) {
 		GLASSERT( toggleLabel[i] );
-		toggles[i].Init( &gamui2D, ( i < CIVS_PRESENT ) ? green : blue );
+		toggles[i].Init( &gamui2D, ( i < UFO_CRASH ) ? green : blue );
 		toggles[i].SetText( toggleLabel[i] );
 		toggles[i].SetVisible( false );
 		toggles[i].SetSize( 50, 50 );
@@ -122,8 +125,8 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	toggles[TERRAN_LOW].AddToToggleGroup( &toggles[TERRAN_MED] );
 	toggles[TERRAN_LOW].AddToToggleGroup( &toggles[TERRAN_HIGH] );
 
-	toggles[ALIEN_8].AddToToggleGroup( &toggles[ALIEN_12] );
-	toggles[ALIEN_8].AddToToggleGroup( &toggles[ALIEN_16] );
+	//toggles[ALIEN_8].AddToToggleGroup( &toggles[ALIEN_12] );
+	//toggles[ALIEN_8].AddToToggleGroup( &toggles[ALIEN_16] );
 
 	toggles[ALIEN_LOW].AddToToggleGroup( &toggles[ALIEN_MED] );
 	toggles[ALIEN_LOW].AddToToggleGroup( &toggles[ALIEN_HIGH] );
@@ -134,12 +137,12 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 
 	toggles[SQUAD_8].SetDown();
 	toggles[TERRAN_MED].SetDown();
-	toggles[ALIEN_8].SetDown();
+	//toggles[ALIEN_8].SetDown();
 	toggles[ALIEN_MED].SetDown();
 	toggles[TIME_DAY].SetDown();
 	toggles[FARM_SCOUT].SetDown();
 
-	toggles[CIVS_PRESENT].SetDown();
+	//toggles[CIVS_PRESENT].SetDown();
 
 	terranLabel.Init( &gamui2D );
 	terranLabel.SetVisible( false );
@@ -163,15 +166,15 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	alienLabel.SetText( "Aliens" );
 	alienLabel.SetPos( 20, 150-20 );
 
-	UIItem* alienItems[] = { &toggles[ALIEN_8], &toggles[ALIEN_12], &toggles[ALIEN_16] };
-	Gamui::Layout(	alienItems, 3,			// alien #
-					4, 1, 
-					20, 150,
-					150, 50 );
+	//UIItem* alienItems[] = { &toggles[ALIEN_8], &toggles[ALIEN_12], &toggles[ALIEN_16] };
+	//Gamui::Layout(	alienItems, 3,			// alien #
+	//				4, 1, 
+	//				20, 150,
+	//				150, 50 );
 	UIItem* alienStrItems[] = { &toggles[ALIEN_LOW], &toggles[ALIEN_MED], &toggles[ALIEN_HIGH] };
 	Gamui::Layout(	alienStrItems, 3,			// alien strength
 					4, 1, 
-					20, 200,
+					20, 150,
 					150, 50 );
 
 	timeLabel.Init( &gamui2D );
@@ -225,8 +228,8 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	//toggles[TERRAN_BASE].SetEnabled(	false );
 
 
-	UIItem* scenItems[] = { &toggles[CIVS_PRESENT], &toggles[UFO_CRASH] };
-	Gamui::Layout( scenItems, 2,
+	UIItem* scenItems[] = { /*&toggles[CIVS_PRESENT],*/ &toggles[UFO_CRASH] };
+	Gamui::Layout( scenItems, 1,
 				   4, 2,
 				   215, 175,
 				   100, 100 );
@@ -238,7 +241,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	goButton.SetVisible( false );
 
 	// Is there a current game?
-	continueButton.SetEnabled( game->HasSaveFile( Game::SAVEPATH_GAME ));
+	continueButton.SetEnabled( game->HasSaveFile( SAVEPATH_GEO ) || game->HasSaveFile( SAVEPATH_TACTICAL ) );
 }
 
 
@@ -300,15 +303,16 @@ void TacticalIntroScene::Tap(	int action,
 		infoButton.SetVisible( false );
 	}
 	else if ( item == &continueButton ) {
-		onToNext = game->SaveFileScene();
+		if ( game->HasSaveFile( SAVEPATH_GEO ) )
+			onToNext = Game::GEO_SCENE;
+		else if ( game->HasSaveFile( SAVEPATH_TACTICAL ) )
+			onToNext = Game::BATTLE_SCENE;
 	}
 	else if ( item == &goButton ) {
-		FILE* fp = game->GameSavePath( Game::SAVEPATH_GAME, Game::SAVEPATH_WRITE );
+		FILE* fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_WRITE );
 		GLASSERT( fp );
 		if ( fp ) {
 			onToNext = Game::BATTLE_SCENE;
-
-
 
 			BattleSceneData data;
 			data.seed = random.Rand();
@@ -381,7 +385,7 @@ void TacticalIntroScene::Tap(	int action,
 		game->SetDebugLevel( (game->GetDebugLevel() + 1)%4 );
 	}
 	else if ( item == &newGeo ) {
-		game->DeleteSaveFile( Game::SAVEPATH_GAME );
+		game->DeleteSaveFile( SAVEPATH_GEO );
 		onToNext = Game::GEO_SCENE;
 	}
 

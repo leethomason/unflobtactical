@@ -128,6 +128,7 @@ public:
 	const Model* GetModel() const			{ return model; }
 	Model* GetWeaponModel()					{ return weapon; }
 	const Model* GetWeaponModel() const		{ return weapon; }
+	void FreeModels();
 
 	// Returns true if the mode can be used: mode is supported, enough time units,
 	// enough rounds, etc.
@@ -228,7 +229,6 @@ private:
 	int type;		// type of alien
 	U32 body;		// describes everything! a random #
 
-	//Game*		game;
 	SpaceTree*	tree;
 	Model*		model;
 	Model*		weapon;

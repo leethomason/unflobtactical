@@ -26,6 +26,16 @@
 
 #define IMMEDIATE_BUY
 
+enum SavePathType {
+	SAVEPATH_NONE,
+	SAVEPATH_GEO,
+	SAVEPATH_TACTICAL
+};
+enum SavePathMode {
+	SAVEPATH_READ,
+	SAVEPATH_WRITE
+};
+
 static const int GAME_BUTTON_SIZE = 60;
 static const float GAME_BUTTON_SIZE_F = (float)GAME_BUTTON_SIZE;
 static const float GAME_GUTTER = 20.0f;

@@ -266,7 +266,7 @@ public:
 	virtual void DoTick( U32 currentTime, U32 deltaTime );
 	virtual void Debug3D();
 
-	virtual bool CanSave()										{ return true; }
+	virtual SavePathType CanSave()										{ return SAVEPATH_GEO; }
 	virtual void Save( FILE* fp, int depth );
 	virtual void Load( const TiXmlElement* doc );
 

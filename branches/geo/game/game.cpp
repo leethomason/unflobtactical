@@ -241,9 +241,10 @@ void Game::DeleteSaveFile( SavePathType type )
 }
 
 
-int Game::SaveFileScene() const
+/*
+int Game::SaveFileScene( SavePathType type ) const
 {
-	FILE* fp = GameSavePath( SAVEPATH_GAME, SAVEPATH_READ );
+	FILE* fp = GameSavePath( type, SAVEPATH_READ );
 	int result = -1;
 
 	if ( fp ) {
@@ -263,6 +264,7 @@ int Game::SaveFileScene() const
 	}
 	return result;
 }
+*/
 
 
 void Game::SceneNode::Free()
@@ -358,7 +360,8 @@ void Game::PushPopScene()
 			 && !Engine::mapMakerMode 
 			 && sceneStack.Size() == 1 ) 
 		{
-			FILE* fp = GameSavePath( SAVEPATH_GAME, SAVEPATH_READ );
+			SavePathType savePath = node->scene->CanSave();
+			FILE* fp = GameSavePath( savePath, SAVEPATH_READ );
 			if ( fp ) {
 				TiXmlDocument doc;
 				doc.LoadFile( fp );
@@ -371,6 +374,14 @@ void Game::PushPopScene()
 	}
 
 	sceneQueued.Free();
+}
+
+
+SceneData* Game::GetSceneData()
+{
+	if ( !sceneStack.Empty() )
+		return sceneStack.Top()->data;
+	return 0;
 }
 
 
@@ -431,15 +442,14 @@ void Game::Load( const TiXmlDocument& doc )
 FILE* Game::GameSavePath( SavePathType type, SavePathMode mode ) const
 {	
 	grinliz::GLString str( savePath );
-	if ( type == SAVEPATH_GAME )
-		str += "currentgame.xml";
+	if ( type == SAVEPATH_GEO )
+		str += "geogame.xml";
 	else if ( type == SAVEPATH_TACTICAL )
 		str += "tacgame.xml";
 	else
 		GLASSERT( 0 );
 
 	FILE* fp = fopen( str.c_str(), (mode == SAVEPATH_WRITE) ? "wb" : "rb" );
-	GLASSERT( fp );
 	return fp;
 }
 
@@ -447,7 +457,7 @@ FILE* Game::GameSavePath( SavePathType type, SavePathMode mode ) const
 void Game::Save()
 {
 	if ( !sceneStack.Empty() && sceneStack.Bottom()->scene->CanSave() ) {
-		FILE* fp = GameSavePath( SAVEPATH_GAME, SAVEPATH_WRITE );
+		FILE* fp = GameSavePath( sceneStack.Bottom()->scene->CanSave(), SAVEPATH_WRITE );
 		GLASSERT( fp );
 		if ( fp ) {
 			Save( fp );

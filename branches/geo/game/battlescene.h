@@ -109,7 +109,7 @@ public:
 	virtual void DrawHUD();
 	virtual void HandleHotKeyMask( int mask );
 
-	virtual bool CanSave()										{ return true; }
+	virtual SavePathType CanSave()										{ return SAVEPATH_TACTICAL; }
 	virtual void Save( FILE* fp, int depth );
 	virtual void Load( const TiXmlElement* doc );
 
@@ -323,7 +323,8 @@ private:
 	Unit*			  dragUnit;
 	grinliz::Vector2I dragUnitDest;
 
-	UIRenderer	uiRenderer;
+	UIRenderer			uiRenderer;
+	Storage				foundStorage;
 
 	gamui::Image		turnImage, alienTargetImage;
 	gamui::TextLabel	alienTargetText;

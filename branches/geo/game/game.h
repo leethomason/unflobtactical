@@ -145,7 +145,9 @@ public:
 	void PushScene( int sceneID, SceneData* data );
 	void PopScene( int result = INT_MAX );
 	void PopAllAndReset()	{ sceneResetQueued = true; }
-	bool IsScenePushed() const	{ return sceneQueued.sceneID != NUM_SCENES; }
+
+	bool IsScenePushed() const		{ return sceneQueued.sceneID != NUM_SCENES; }
+	SceneData* GetSceneData();
 
 	U32 CurrentTime() const	{ return currentTime; }
 	U32 DeltaTime() const	{ return currentTime-previousTime; }
@@ -156,19 +158,10 @@ public:
 	void SetDebugLevel( int level )		{ debugLevel = (level%4); }
 	int GetDebugLevel() const			{ return debugLevel; }
 
-	enum SavePathType {
-		SAVEPATH_GAME,
-		SAVEPATH_TACTICAL
-	};
-	enum SavePathMode {
-		SAVEPATH_READ,
-		SAVEPATH_WRITE
-	};
-
 	FILE* GameSavePath( SavePathType type, SavePathMode mode ) const;
 
 	bool HasSaveFile( SavePathType type ) const;
-	int  SaveFileScene() const;	// returns the ID of the scene to be loaded
+	//int  SaveFileScene( SavePathType type ) const;	// returns the ID of the scene to be loaded
 	void DeleteSaveFile( SavePathType type );
 
 	void Load( const TiXmlDocument& doc );

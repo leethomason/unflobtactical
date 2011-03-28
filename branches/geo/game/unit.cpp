@@ -270,6 +270,15 @@ void Unit::Free()
 {
 	if ( status == STATUS_NOT_INIT )
 		return;
+	FreeModels();
+	status = STATUS_NOT_INIT;
+}
+
+
+void Unit::FreeModels() 
+{
+	if ( status == STATUS_NOT_INIT )
+		return;
 
 	if ( model ) {
 		GLASSERT( tree );
@@ -281,8 +290,6 @@ void Unit::Free()
 		tree->FreeModel( weapon );
 		weapon = 0;
 	}
-	status = STATUS_NOT_INIT;
-	model = 0;
 }
 
 
