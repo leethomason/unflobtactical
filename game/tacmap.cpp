@@ -488,3 +488,22 @@ void TacMap::ReleaseStorage( Storage* storage )
 	// Don't set: model->SetFlag( Model::MODEL_OWNED_BY_MAP );	not really owned by map, in the sense of mapBounds, etc.
 	debris[index].crate = model;
 }
+
+
+void TacMap::CollectAllStorage( Storage* collect )
+{
+	for( int i=0; i<debris.Size(); ++i ) {
+		const Debris& d = debris[i];
+		const Storage* s = d.storage;
+		for( int k=0; k<EL_MAX_ITEM_DEFS; ++k ) {
+			const ItemDef* itemDef = s->GetItemDef( k );
+			if ( itemDef ) {
+				int count = s->GetCount( itemDef );
+				if ( count > 0 ) {
+					collect->AddItem( itemDef, count );
+				}
+			}
+		}
+	}
+}
+

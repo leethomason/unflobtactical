@@ -21,6 +21,7 @@
 #include "../grinliz/glrectangle.h"
 #include "../gamui/gamui.h"
 #include "../engine/uirendering.h"
+#include "gamelimits.h"
 
 #include <stdio.h>
 
@@ -42,6 +43,29 @@ public:
 };
 
 
+/**
+
+	Saving/Loading Notes
+	- A scene is self-saving, and has it's own save file (simpler)
+	- Game.Save() saves the current top scene, if that scene CanSave()
+	
+	For XenoWar:
+	- GeoScene and BattleScene CanSave()
+	
+	Geo		Tac
+	yes		no		geo scene
+	yes		yes		geo game, but in tactical scene. geo loads, then pushes BattleScene. When ChildActivated, loads Battlescene
+	no		yes		fast battle game
+	no		no		no game in progress
+
+	Actions:
+	Geo -> Tac
+		- geo: saves geo.xml
+		- geo: creates tac.xml
+	Tac-> Geo
+		- geo: saves geo.xml
+		- geo: deletes tac.xml
+*/
 class Scene
 {
 public:
@@ -59,7 +83,7 @@ public:
 	virtual void Rotate( float degrees )						{}
 	virtual void CancelInput()									{}
 
-	virtual bool CanSave()										{ return false; }
+	virtual SavePathType CanSave()								{ return SAVEPATH_NONE; }
 	virtual void Save( FILE* fp, int depth )					{}
 	virtual void Load( const TiXmlElement* doc )				{}
 	virtual void HandleHotKeyMask( int mask )					{}

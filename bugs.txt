@@ -1,10 +1,18 @@
 Issues:
 
 Bugs:
-
-Android
-- Amazon
-
+X Battlescene+Geo:
+	- counting 'down' as 'dead' for inventory, and removing stuff.
+	- research.Kick() doesn't seem to work
+- Tactical: occasionally camera pan...doesn't. Okay except for first one.
+- Tactical: guns not rendering
+- Tactical: AI shoots walls
+- Tactical: no guards getting created
+- review save system
+	x save geo on entering/exiting tactical?
+	x delete tactical saves?
+	- if battlescene active, connect BattleSceneData to Geo
+	- Big save / load testing
 - need to limit research text length
 - sound effects
 - need end fight!

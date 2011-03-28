@@ -54,11 +54,6 @@ void GeoEndScene::Tap(	int action,
 	}
 
 	if ( item == &okayButton ) {
-		//GLString savePath = game->GameSavePath();
-		//FILE* fp = fopen( savePath.c_str(), "w" );
-		//if ( fp ) {
-		//	fclose( fp );
-		//}
 		game->PopAllAndReset();
 	}
 }

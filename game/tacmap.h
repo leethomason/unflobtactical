@@ -25,6 +25,7 @@ public:
 
 	const Storage* GetStorage( int x, int y ) const;		//< take a peek
 	grinliz::Vector2I FindStorage( const ItemDef* itemDef, const grinliz::Vector2I& source );
+	void CollectAllStorage( Storage* storage );
 
 	// Gets a starting location for a unit on the map.
 	// TERRAN_TEAM - from the lander
