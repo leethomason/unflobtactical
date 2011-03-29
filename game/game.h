@@ -147,7 +147,6 @@ public:
 	void PopAllAndReset()	{ sceneResetQueued = true; }
 
 	bool IsScenePushed() const		{ return sceneQueued.sceneID != NUM_SCENES; }
-	SceneData* GetSceneData();
 
 	U32 CurrentTime() const	{ return currentTime; }
 	U32 DeltaTime() const	{ return currentTime-previousTime; }
@@ -161,20 +160,14 @@ public:
 	FILE* GameSavePath( SavePathType type, SavePathMode mode ) const;
 
 	bool HasSaveFile( SavePathType type ) const;
-	//int  SaveFileScene( SavePathType type ) const;	// returns the ID of the scene to be loaded
 	void DeleteSaveFile( SavePathType type );
 
 	void Load( const TiXmlDocument& doc );
 	void Save();
-	void Save( FILE* fp );
 
 	bool PopSound( int* offset, int* size );
 
-	// hack: pushes the current scenario to the game. Painful data to pass around, everyone needs it.
-	void SetCurrent( int scenario, const Research* research )	{ currentScenario = scenario; currentResearch = research; }
-	int GetScenario() const				{ return currentScenario; }
-	const Research* GetResearch() const	{ return currentResearch; }
-
+	const Research* GetResearch();
 	const gamedb::Reader* GetDatabase()	{ return database; }
 
 	enum {
@@ -255,8 +248,8 @@ private:
 	U32 previousTime;
 	bool isDragging;
 
-	int currentScenario;			// hack
-	const Research* currentResearch;		// hack
+	//int currentScenario;					// hack
+	//const Research* currentResearch;		// hack
 
 	int rotTestStart;
 	int rotTestCount;

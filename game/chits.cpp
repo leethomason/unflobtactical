@@ -962,22 +962,19 @@ void ChitBag::Add( Chit* chit )
 	}
 
 	chit->chitBag = this;
-	chit->id = idPool++;
+	if ( chit->id == 0 )
+		chit->id = idPool++;
 
 	chit->next = sentinel.next;
 	chit->prev = &sentinel;
 
 	sentinel.next->prev = chit;
 	sentinel.next = chit;
-
-	map.Add( chit->ID(), chit );
 }
 
 
 void ChitBag::Remove( Chit* chit )
 {
-	map.Remove( chit->ID() );
-
 	if ( chit->IsBaseChit() ) {
 		GLASSERT( baseChitArr[chit->IsBaseChit()->Index()] == chit );
 		baseChitArr[chit->IsBaseChit()->Index()] = 0;
@@ -1126,9 +1123,9 @@ void ChitBag::Load( const TiXmlElement* doc, SpaceTree* tree, const ItemDefArr& 
 
 	const TiXmlElement* bag = doc->FirstChildElement( "ChitBag" );
 	Clear();
-	doc->QueryIntAttribute( "battleUFOID", &battleUFOID );
-	doc->QueryIntAttribute( "battleLanderID", &battleLanderID );
-	doc->QueryIntAttribute( "battleScenario", &battleScenario );
+	bag->QueryIntAttribute( "battleUFOID", &battleUFOID );
+	bag->QueryIntAttribute( "battleLanderID", &battleLanderID );
+	bag->QueryIntAttribute( "battleScenario", &battleScenario );
 
 	if ( bag ) {
 		for( const TiXmlElement* chitEle = bag->FirstChildElement(); chitEle; chitEle=chitEle->NextSiblingElement() ) {

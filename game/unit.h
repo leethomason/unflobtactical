@@ -180,6 +180,7 @@ public:
 
 	int XP() const					{ return nMissions + allMissionKills + allMissionOvals + gunner; }
 	static int XPToRank( int xp );
+	const U32 Body() const			{ return body; }
 
 	void Save( FILE* fp, int depth ) const;
 
@@ -199,6 +200,14 @@ public:
 			for( int i=0; i<n; ++i ) { if ( unit[i].status != STATUS_NOT_INIT ) ++count; }
 
 		return count;
+	}
+
+	static const Unit* Find( const Unit* unit, int n, U32 body ) {
+		for( int i=0; i<n; ++i ) {
+			if ( unit[i].Body() == body )
+				return unit+i;
+		}
+		return 0;
 	}
 
 private:

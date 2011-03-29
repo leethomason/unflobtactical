@@ -114,6 +114,7 @@ void FastBattleScene::Tap(	int action,
 		d->soldiers = data->soldierUnits;
 		d->civs     = civs;
 		d->dayTime  = data->dayTime;
+		d->scenario = data->scenario;
 		d->result =  battleResult;
 		d->storage = &foundStorage;
 		// Don't pop ourselves, since this objects has 'alien' and 'civs' memory.
@@ -125,6 +126,7 @@ void FastBattleScene::Tap(	int action,
 void FastBattleScene::SceneResult( int sceneID, int result )
 {
 	GLASSERT( sceneID == Game::UNIT_SCORE_SCENE );
+	GLASSERT( 0 );	// fixme: need to write save file
 
 	// add found storage to main storage
 	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
@@ -133,13 +135,13 @@ void FastBattleScene::SceneResult( int sceneID, int result )
 		}
 	}
 
-	BattleResult br;
-	br.result = battleResult;
-	br.totalCivs = Unit::Count( civs, MAX_CIVS, -1 );
-	br.civSurvived = Unit::Count( civs, MAX_CIVS, Unit::STATUS_ALIVE );
-
-	U32 r = *((U32*)(&battleResult));
-	game->PopScene( r );
+//	BattleResult br;
+//	br.result = battleResult;
+//	br.totalCivs = Unit::Count( civs, MAX_CIVS, -1 );
+//	br.civSurvived = Unit::Count( civs, MAX_CIVS, Unit::STATUS_ALIVE );
+//
+//	U32 r = *((U32*)(&battleResult));
+	game->PopScene( battleResult );
 }
 
 

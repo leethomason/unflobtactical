@@ -11,7 +11,7 @@ X Battlescene+Geo:
 - review save system
 	x save geo on entering/exiting tactical?
 	x delete tactical saves?
-	- if battlescene active, connect BattleSceneData to Geo
+	x if battlescene active, connect BattleSceneData to Geo
 	- Big save / load testing
 - need to limit research text length
 - sound effects
@@ -22,6 +22,7 @@ X Battlescene+Geo:
 - geo: help not hooked up
 - fix battlescene not being power of 2
 - fix geo name locations
+- vary # of civs
 
 Deferred:
 - geo: no indication of base capabilities

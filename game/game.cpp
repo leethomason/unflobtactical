@@ -241,32 +241,6 @@ void Game::DeleteSaveFile( SavePathType type )
 }
 
 
-/*
-int Game::SaveFileScene( SavePathType type ) const
-{
-	FILE* fp = GameSavePath( type, SAVEPATH_READ );
-	int result = -1;
-
-	if ( fp ) {
-		char buf[100];
-		fread( buf, 100, 1, fp );
-		buf[99] = 0;
-		if ( strstr( buf, "<BattleScene" ) ) {
-			result = BATTLE_SCENE;
-		}
-		else if ( strstr( buf, "<GeoScene" ) ) {
-			result = GEO_SCENE;
-		}
-		else if ( strstr( buf, "<FastBattleScene" ) ) {
-			result = FASTBATTLE_SCENE;
-		}
-		fclose( fp );
-	}
-	return result;
-}
-*/
-
-
 void Game::SceneNode::Free()
 {
 	sceneID = Game::NUM_SCENES;
@@ -375,10 +349,13 @@ void Game::PushPopScene()
 }
 
 
-SceneData* Game::GetSceneData()
+const Research* Game::GetResearch()
 {
-	if ( !sceneStack.Empty() )
-		return sceneStack.Top()->data;
+	for( SceneNode* node = sceneStack.BeginTop(); node; node = sceneStack.Next() ) {
+		if ( node->sceneID == GEO_SCENE ) {
+			return &((GeoScene*)node->scene)->GetResearch();
+		}
+	}
 	return 0;
 }
 
@@ -459,34 +436,25 @@ void Game::Save()
 	// For saving, the GeoScene saves itself before pushing the tactical
 	// scene, so save from the top back. (But still need to save if
 	// we are in a character scene for example.)
-	FIXTHIS
-	if ( !sceneStack.Empty() && sceneStack.Bottom()->scene->CanSave() ) {
-		FILE* fp = GameSavePath( sceneStack.Bottom()->scene->CanSave(), SAVEPATH_WRITE );
-		GLASSERT( fp );
-		if ( fp ) {
-			Save( fp );
-			fclose( fp );
+	for( SceneNode* node=sceneStack.BeginTop(); node; node=sceneStack.Next() ) {
+		if ( node->scene->CanSave() ) {
+			FILE* fp = GameSavePath( node->scene->CanSave(), SAVEPATH_WRITE );
+			GLASSERT( fp );
+			if ( fp ) {
+				XMLUtil::OpenElement( fp, 0, "Game" );
+				XMLUtil::Attribute( fp, "version", VERSION );
+				XMLUtil::Attribute( fp, "sceneID", node->sceneID );
+				XMLUtil::SealElement( fp );
+
+				node->scene->Save( fp, 1 );
+	
+				XMLUtil::CloseElement( fp, 0, "Game" );
+
+				fclose( fp );
+			}
+			break;
 		}
 	}
-}
-
-
-void Game::Save( FILE* fp )
-{
-	if ( sceneStack.Empty() ) {
-		return;
-	}
-
-	SceneNode* bottom = sceneStack.Bottom();
-
-	XMLUtil::OpenElement( fp, 0, "Game" );
-	XMLUtil::Attribute( fp, "version", VERSION );
-	XMLUtil::Attribute( fp, "sceneID", bottom->sceneID );
-	XMLUtil::SealElement( fp );
-
-	bottom->scene->Save( fp, 1 );
-	
-	XMLUtil::CloseElement( fp, 0, "Game" );
 }
 
 

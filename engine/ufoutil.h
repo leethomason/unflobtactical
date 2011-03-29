@@ -32,7 +32,7 @@ template < class T >
 class CStack
 {
 public:
-	CStack() : root( 0 ), size( 0 ), pool( "CStackPool", sizeof( Node ) ) {
+	CStack() : root( 0 ), current( 0 ), size( 0 ), pool( "CStackPool", sizeof( Node ) ) {
 	}
 	~CStack() {
 		Clear();
@@ -75,12 +75,18 @@ public:
 
 	int Size() { return size; }
 
+	// in place iteration...with all its problems
+	T* BeginTop()	{ current = root; return Current(); }
+	T* Current()	{ return current ? &current->data : 0; }
+	T* Next()		{ current = current->next; return Current(); }
+
 private:
 	struct Node {
 		Node* next;
 		T	  data;
 	};
 	Node* root;
+	Node* current;
 	int size;
 	grinliz::MemoryPool pool;
 };

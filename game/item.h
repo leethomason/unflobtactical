@@ -305,6 +305,8 @@ public:
 	void AddItem( const ItemDef*, int n=1 );
 	void AddItem( const char* itemName, int n=1 );
 	void AddItem( const Item& item );				// doesn't change the item passed in (it is constant) but the caller must handle the item is consumed
+	void AddStorage( const Storage& storage );
+	void SetFullRounds();							// refill clips
 
 	bool RemoveItem( const ItemDef*, Item* item );	// returns true if successful
 	bool Contains( const ItemDef* ) const;

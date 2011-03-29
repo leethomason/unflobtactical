@@ -301,6 +301,9 @@ void TacticalIntroScene::Tap(	int action,
 		helpButton.SetVisible( false );
 		audioButton.SetVisible( false );
 		infoButton.SetVisible( false );
+
+		game->DeleteSaveFile( SAVEPATH_TACTICAL );
+		game->DeleteSaveFile( SAVEPATH_GEO );
 	}
 	else if ( item == &continueButton ) {
 		if ( game->HasSaveFile( SAVEPATH_GEO ) )
@@ -386,6 +389,7 @@ void TacticalIntroScene::Tap(	int action,
 	}
 	else if ( item == &newGeo ) {
 		game->DeleteSaveFile( SAVEPATH_GEO );
+		game->DeleteSaveFile( SAVEPATH_TACTICAL );
 		onToNext = Game::GEO_SCENE;
 	}
 
@@ -415,6 +419,7 @@ void TacticalIntroScene::Tap(	int action,
 
 	XMLUtil::OpenElement( fp, 1, "BattleScene" );
 	XMLUtil::Attribute( fp, "dayTime", data->dayTime ? 1 : 0 );
+	XMLUtil::Attribute( fp, "scenario", data->scenario );
 	XMLUtil::SealElement( fp );
 
 	Random random;
