@@ -39,7 +39,6 @@ class Engine;
 class Texture;
 class AI;
 struct MapDamageDesc;
-class BattleSceneData;
 
 // Needs to be a POD because it gets 'union'ed in a bunch of events.
 // size is important for the same reason.
@@ -324,7 +323,6 @@ private:
 	grinliz::Vector2I dragUnitDest;
 
 	UIRenderer			uiRenderer;
-	Storage				foundStorage;
 
 	gamui::Image		turnImage, alienTargetImage;
 	gamui::TextLabel	alienTargetText;
@@ -355,10 +353,11 @@ private:
 	Engine*			engine;
 	TacMap*			tacMap;
 	Storage*		lockedStorage;	// locked for use by the character scene
-	grinliz::Random random;	// "the" random number generator for the battle
+	grinliz::Random random;			// "the" random number generator for the battle
 	int				currentTeamTurn;
 	AI*				aiArr[3];
 	int				currentUnitAI;
+	int				scenario;
 	TacticalEndSceneData tacticalData;
 
 	struct TargetEvent

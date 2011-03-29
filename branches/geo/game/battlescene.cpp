@@ -46,7 +46,7 @@ using namespace gamui;
 //#define REACTION_FIRE_EVENT_ONLY
 
 
-BattleScene::BattleScene( Game* game ) : Scene( game ), foundStorage( 0, 0, game->GetItemDefArr() )
+BattleScene::BattleScene( Game* game ) : Scene( game )
 {
 	//GLRELASSERT( 0 );
 	subTurnCount = 0;
@@ -61,6 +61,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game ), foundStorage( 0, 0, game
 	nearPathState.Clear();
 	tacMap->SetPathBlocker( this );
 	dragUnit = 0;
+	scenario = 0;
 
 	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, &visibility, engine, units );
 	aiArr[TERRAN_TEAM]		= 0;
@@ -411,6 +412,7 @@ void BattleScene::Save( FILE* fp, int depth )
 	XMLUtil::Attribute( fp, "currentTeamTurn", currentTeamTurn );
 	XMLUtil::Attribute( fp, "dayTime", tacMap->DayTime() ? 1 : 0 );
 	XMLUtil::Attribute( fp, "turnCount", turnCount );
+	XMLUtil::Attribute( fp, "scenario", scenario );
 	XMLUtil::SealElement( fp );
 
 	tacMap->Save( fp, depth+1 );
@@ -441,6 +443,7 @@ void BattleScene::Load( const TiXmlElement* battleElement )
 
 		turnCount = 0;
 		battleElement->QueryIntAttribute( "turnCount", &turnCount );
+		battleElement->QueryIntAttribute( "scenario", &scenario );
 	}
 
 	tacMap->Load( battleElement->FirstChildElement( "Map") );
@@ -917,6 +920,8 @@ bool BattleScene::EndCondition( TacticalEndSceneData* data )
 	data->soldiers = units + TERRAN_UNITS_START;
 	data->civs = units + CIV_UNITS_START;
 	data->dayTime = tacMap->DayTime();
+	GLASSERT( scenario );
+	data->scenario = scenario;
 
 	int nTerransAlive = Unit::Count( units+TERRAN_UNITS_START, MAX_TERRANS, Unit::STATUS_ALIVE );
 	int nAliensAlive = Unit::Count( units+ALIEN_UNITS_START, MAX_ALIENS, Unit::STATUS_ALIVE );
@@ -927,12 +932,6 @@ bool BattleScene::EndCondition( TacticalEndSceneData* data )
 	else if ( nTerransAlive == 0 && nAliensAlive > 0 )
 		data->result = TacticalEndSceneData::DEFEAT;
 
-	data->storage = &foundStorage;
-	foundStorage.Clear();
-	if ( data->result == TacticalEndSceneData::VICTORY ) {
-		tacMap->CollectAllStorage( &foundStorage );
-	}
-
 	// If the terrans are all down for the count, then it acts like the 
 	// lander leaving. KO becomes MIA.
 	if ( nTerransAlive == 0 ) {
@@ -942,8 +941,12 @@ bool BattleScene::EndCondition( TacticalEndSceneData* data )
 		}
 	}
 
-	if ( nAliensAlive == 0 || nTerransAlive == 0 )
+	if ( nAliensAlive == 0 || nTerransAlive == 0 ) {
+		// Add a storage to shove the spoils of victory.
+		data->storage = tacMap->CollectAllStorage();
 		return true;
+	}
+
 	return false;
 }
 
@@ -1104,14 +1107,9 @@ void BattleScene::PushScrollOnScreen( const Vector3F& pos, bool center )
 		Vector3F c;
 		engine->CameraLookingAt( &c );
 
-		//Vector3F delta = pos - c;
-		//float len = delta.Length();
-		//delta.Normalize();
-
 		Action* action = actionStack.Push();
 		action->Init( ACTION_CAMERA_BOUNDS, 0 );
 		action->type.cameraBounds.target = pos;
-		//action->type.cameraBounds.normal = delta;
 		action->type.cameraBounds.speed = (float)MAP_SIZE / 3.0f;
 		action->type.cameraBounds.center = center;
 	}
@@ -2290,51 +2288,45 @@ void BattleScene::SceneResult( int sceneID, int result )
 		lockedStorage = 0;
 	}
 	else if ( sceneID == Game::UNIT_SCORE_SCENE ) {
-		BattleSceneData* data = (BattleSceneData*)game->GetSceneData();
-		if ( data ) {
-			// add found storage to main storage
-			for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-				if ( foundStorage.GetCount( i ) > 0 ) {			
-					data->storage->AddItem( game->GetItemDefArr().GetIndex( i ), foundStorage.GetCount( i ) );
-				}
+		/*
+		// add found storage to main storage
+		for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+			if ( foundStorage.GetCount( i ) > 0 ) {			
+				data->storage->AddItem( game->GetItemDefArr().GetIndex( i ), foundStorage.GetCount( i ) );
 			}
-			// pull stuff out of storage to try to restore items for downed units.
-			GLASSERT( TERRAN_UNITS_START == 0 );	// Assumed in the logic below.
-			for( int i=0; i<MAX_UNITS; ++i ) {
-				if ( units[i].IsUnconscious() ) {
-					for( int k=0; k<Inventory::NUM_SLOTS; ++k ) {
-						const ItemDef* itemDef = data->soldierUnits[k].GetInventory()->GetItemDef( k );
-						if ( itemDef ) {
-							Item item;
-							data->storage->RemoveItem( itemDef, &item );
-							data->soldierUnits[k].GetInventory()->AddItem( k, item );
-						}
+		}
+		// pull stuff out of storage to try to restore items for downed units.
+		GLASSERT( TERRAN_UNITS_START == 0 );	// Assumed in the logic below.
+		for( int i=0; i<MAX_UNITS; ++i ) {
+			if ( units[i].IsUnconscious() ) {
+				for( int k=0; k<Inventory::NUM_SLOTS; ++k ) {
+					const ItemDef* itemDef = data->soldierUnits[k].GetInventory()->GetItemDef( k );
+					if ( itemDef ) {
+						Item item;
+						data->storage->RemoveItem( itemDef, &item );
+						data->soldierUnits[k].GetInventory()->AddItem( k, item );
 					}
 				}
 			}
-			for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i )
-				units[i].FreeModels();
-			memcpy( data->soldierUnits, &units[TERRAN_UNITS_START], sizeof(Unit)*MAX_TERRANS );
-
-			int nSoldiersAlive	= Unit::Count( &units[TERRAN_UNITS_START], MAX_TERRANS, Unit::STATUS_ALIVE );
-			int nAliensAlive	= Unit::Count( &units[ALIEN_UNITS_START], MAX_ALIENS, Unit::STATUS_ALIVE );
-			int nCivsTotal		= Unit::Count( &units[CIV_UNITS_START], MAX_CIVS, -1 );
-			int nCivsAlive		= Unit::Count( &units[CIV_UNITS_START], MAX_CIVS, Unit::STATUS_ALIVE );
-
-			int result = TacticalEndSceneData::TIE;
-			if ( nSoldiersAlive > 0 && nAliensAlive == 0 )
-				result = TacticalEndSceneData::VICTORY;
-			else if ( nSoldiersAlive == 0 && nAliensAlive > 0 )
-				result = TacticalEndSceneData::DEFEAT;
-
-			BattleResult br;
-			br.result = result;
-			br.totalCivs = nCivsTotal;
-			br.civSurvived = nCivsAlive;
-
-			U32 r = *((U32*)(&br));
-			game->PopScene( r );
 		}
+		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i )
+			units[i].FreeModels();
+		memcpy( data->soldierUnits, &units[TERRAN_UNITS_START], sizeof(Unit)*MAX_TERRANS );
+		*/
+
+		int nSoldiersAlive	= Unit::Count( &units[TERRAN_UNITS_START], MAX_TERRANS, Unit::STATUS_ALIVE );
+		int nAliensAlive	= Unit::Count( &units[ALIEN_UNITS_START], MAX_ALIENS, Unit::STATUS_ALIVE );
+		int nCivsTotal		= Unit::Count( &units[CIV_UNITS_START], MAX_CIVS, -1 );
+		int nCivsAlive		= Unit::Count( &units[CIV_UNITS_START], MAX_CIVS, Unit::STATUS_ALIVE );
+
+		int result = TacticalEndSceneData::TIE;
+		if ( nSoldiersAlive > 0 && nAliensAlive == 0 )
+			result = TacticalEndSceneData::VICTORY;
+		else if ( nSoldiersAlive == 0 && nAliensAlive > 0 )
+			result = TacticalEndSceneData::DEFEAT;
+
+		game->Save();
+		game->PopScene( result );
 	}
 }
 

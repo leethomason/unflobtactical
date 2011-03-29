@@ -273,6 +273,8 @@ public:
 	virtual void DrawHUD();
 	virtual void ChildActivated( int childID, Scene* childScene, SceneData* data );
 
+	const Research& GetResearch() { return research; }
+
 private:
 	struct Missile {
 		int					type;

@@ -403,6 +403,25 @@ void Storage::AddItem( const Item& item )
 }
 
 
+void Storage::AddStorage( const Storage& storage )
+{
+	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+		rounds[i] += storage.rounds[i];
+	}
+}
+
+
+void Storage::SetFullRounds()
+{
+	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+		const ItemDef* itemDef = itemDefArr.GetIndex( i );
+		if ( itemDef ) {
+			rounds[i] = (rounds[i]+itemDef->DefaultRounds()-1)/itemDef->DefaultRounds();
+		}
+	}
+}
+
+
 bool Storage::RemoveItem( const ItemDef* _itemDef, Item* item )
 {
 	int index = _itemDef->index;

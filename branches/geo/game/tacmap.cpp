@@ -490,20 +490,28 @@ void TacMap::ReleaseStorage( Storage* storage )
 }
 
 
-void TacMap::CollectAllStorage( Storage* collect )
+Storage* TacMap::CollectAllStorage()
 {
-	for( int i=0; i<debris.Size(); ++i ) {
+	for( int i=1; i<debris.Size(); ++i ) {
 		const Debris& d = debris[i];
 		const Storage* s = d.storage;
-		for( int k=0; k<EL_MAX_ITEM_DEFS; ++k ) {
-			const ItemDef* itemDef = s->GetItemDef( k );
-			if ( itemDef ) {
-				int count = s->GetCount( itemDef );
-				if ( count > 0 ) {
-					collect->AddItem( itemDef, count );
-				}
-			}
-		}
+
+		debris[0].storage->AddStorage( *s );
 	}
+	while( debris.Size() > 1 ) {
+		delete debris[1].storage;
+		if ( debris[1].crate ) {
+			tree->FreeModel( debris[1].crate );
+		}
+		debris.SwapRemove( 1 );
+	}
+	if ( debris.Empty() ) {
+		Storage* storage = new Storage( 0, 0, gameItemDefArr );
+		Debris d;
+		d.crate = 0;
+		d.storage = storage;
+		debris.Push( d );
+	}
+	return debris[0].storage;
 }
 

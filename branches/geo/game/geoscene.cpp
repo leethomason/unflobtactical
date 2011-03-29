@@ -863,9 +863,6 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 	GLASSERT( !landerChit || landerChit->Type() == CargoChit::TYPE_LANDER );
 	GLASSERT( ufoChit || landerChit );
 
-	// Save of the geo Scene before going to tactical:
-	game->Save();
-
 	BaseChit* baseChit = 0;
 	bool baseAttack = false;
 	++nBattles;
@@ -909,8 +906,6 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 				}
 			}
 
-			game->SetCurrent( scenario, &research );
-
 			float rank = state.alienRank;
 			if ( scenario == TacticalIntroScene::ALIEN_BASE )
 				rank = (float)(NUM_RANKS-1);
@@ -930,13 +925,14 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			data->dayTime		= geoMap->GetDayTime( ufoChit->Pos().x );
 			data->alienRank		= rank;
 			data->storage		= baseChit->GetStorage();
+			chitBag.SetBattle( ufoChit->ID(), landerChit ? landerChit->ID() : 0, scenario );
+			game->Save();
 
 			if ( SettingsManager::Instance()->GetUseFastBattle() )
 				game->PushScene( Game::FASTBATTLE_SCENE, data );
 			else
 				game->PushScene( Game::BATTLE_SCENE, data );
 
-			chitBag.SetBattle( ufoChit->ID(), landerChit ? landerChit->ID() : 0, scenario );
 		}
 	}
 }
@@ -997,7 +993,6 @@ void GeoScene::SceneResult( int sceneID, int result )
 	research.KickResearch();
 	if ( sceneID == Game::FASTBATTLE_SCENE || sceneID == Game::BATTLE_SCENE ) {
 
-		BattleResult battleResult = *((BattleResult*)&result);
 		UFOChit*	ufoChit = chitBag.GetBattleUFO();			// possibly null if UFO destroyed
 		CargoChit*	landerChit = chitBag.GetBattleLander();		// will be null if Battleship attacking base
 
@@ -1007,78 +1002,139 @@ void GeoScene::SceneResult( int sceneID, int result )
 
 			if ( baseChit ) {
 				Unit* units = baseChit->GetUnits();
+				Storage* baseStorage = baseChit->GetStorage();
+				Unit newUnits[MAX_TERRANS];
+				memset( newUnits, 0, sizeof(Unit)*MAX_TERRANS );
 
-				Storage* storage = baseChit->GetStorage();
-				for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-					const ItemDef* itemDef = storage->GetItemDef(i);
-					if ( itemDef && storage->GetCount( i )) {
-						research.SetItemAcquired( itemDef->name );
-						}
-				}
-				research.KickResearch();
+				FILE* fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_READ );
+				GLASSERT( fp );
+				if ( fp ) {
 
-				// Special case: can't tie a base attack.
-				if ( !landerChit && (battleResult.result == TacticalEndSceneData::TIE) ) {
-					battleResult.result = TacticalEndSceneData::DEFEAT;
-				}
+					TiXmlDocument doc;
+					doc.LoadFile( fp );
+					GLASSERT( !doc.Error() );
+					TiXmlHandle docHandle( &doc );
 
-				if ( battleResult.result == TacticalEndSceneData::VICTORY ) {
-
-					// Apply penalty for lost civs:
-					int	region = geoMapData.GetRegion( baseChit->MapPos().x, baseChit->MapPos().y );
-					if ( battleResult.totalCivs > 0 && region >= 0 ) {
-						float ratio = 1.0f - (float)battleResult.civSurvived / (float)battleResult.totalCivs;
-						if ( chitBag.GetBattleScenario() == TacticalIntroScene::CITY ) { 
-							ratio *= 2.0f; 
-						}
-						regionData[region].influence += ratio;
-						regionData[region].influence = Min( regionData[region].influence, (float)MAX_INFLUENCE );
-						areaWidget[region]->SetInfluence( regionData[region].influence );
+					int scenario = 0;
+					const TiXmlElement* battleScene = docHandle.FirstChildElement( "Game" ).FirstChildElement( "BattleScene" ).ToElement();
+					if ( battleScene ) {
+						battleScene->QueryIntAttribute( "scenario", &scenario );
+					}
+					// Special case: can't tie a base attack.
+					if ( !landerChit && (result == TacticalEndSceneData::TIE) ) {
+						result = TacticalEndSceneData::DEFEAT;
 					}
 
-					delete ufoChit;
-				}
-				if ( battleResult.result == TacticalEndSceneData::VICTORY || battleResult.result == TacticalEndSceneData::TIE ) {
+					int unitCount=0;
+					int nAliensAlive = 0;
+					int nAliensDead = 0;
+					int nCivsAlive = 0;
+					int nCivsDead = 0;
+					Storage foundStorage( 0, 0, game->GetItemDefArr() );
 
-					// Units are healed / deleted
-					for( int i=0; i<MAX_TERRANS; ++i ) {
-						if ( units[i].IsKIA() || units[i].IsMIA() ) {
-							units[i].Free();
-						}
-						else {
-							// Heal units, bring clips back up to full strength.
-							units[i].Heal();
-							units[i].GetInventory()->RestoreClips();
+					// Scan and load all the units.
+					const TiXmlElement* unitsEle = docHandle.FirstChild( "Game" ).FirstChild( "BattleScene" ).FirstChild( "Units" ).ToElement();
+					if ( unitsEle && ( result != TacticalEndSceneData::DEFEAT ) ) {
+						for( const TiXmlElement* unitEle=unitsEle->FirstChildElement( "Unit" ); unitEle; unitEle=unitEle->NextSiblingElement( "Unit" ) ) {
+
+							int team, status;
+							unitEle->QueryIntAttribute( "team", &team );
+							unitEle->QueryIntAttribute( "status", &status );
+
+							if ( team == TERRAN_TEAM ) {
+								if ( status == Unit::STATUS_ALIVE || status == Unit::STATUS_UNCONSCIOUS ) {
+									newUnits[unitCount].Load( unitEle, game->GetItemDefArr() );
+									newUnits[unitCount].Heal();
+									newUnits[unitCount].GetInventory()->RestoreClips();
+									unitCount++;
+								}
+							}
+							else if ( team == CIV_TEAM ) {
+								if ( status == Unit::STATUS_ALIVE )		++nCivsAlive;
+								else if ( status ==  Unit::STATUS_KIA ) ++nCivsDead;
+							}
+							else if ( team == ALIEN_TEAM ) {
+								if ( status == Unit::STATUS_ALIVE )		++nAliensAlive;
+								else if ( status ==  Unit::STATUS_KIA ) ++nAliensDead;
+							}
 						}
 					}
-				}
 
-				if ( battleResult.result == TacticalEndSceneData::DEFEAT ) {
-					for( int i=0; i<MAX_TERRANS; ++i ) {
-						units[i].Free();
+					if ( result != TacticalEndSceneData::DEFEAT ) {
+						// Go through items, and collect them up. If the debris is at a unit location, add
+						// it back to the unit.
+						const TiXmlElement* groundDebris = docHandle.FirstChild( "Game" ).FirstChild( "BattleScene" ).FirstChild( "GroundDebris" ).ToElement();
+						if ( groundDebris ) {
+							for( const TiXmlElement* debris = groundDebris->FirstChildElement( "Debris" ); debris; debris=debris->NextSiblingElement( "Debris" ) ) {
+								const TiXmlElement* storageEle = debris->FirstChildElement( "Storage" );
+								if ( storageEle ) {
+									Storage storage( 0, 0, game->GetItemDefArr() );
+									storage.Load( debris );
+									storage.SetFullRounds();	// refill clips
 
+									foundStorage.AddStorage( storage );
+								}
+							}
+						}
+					}
+
+					for( int i=0; i<unitCount; ++i ) {
+						if ( newUnits[i].GetInventory()->Empty() ) {
+							const Unit* oldUnit = Unit::Find( units, MAX_TERRANS, newUnits[unitCount].Body() );
+							if ( oldUnit ) {
+								for( int k=0; k<Inventory::NUM_SLOTS; ++k ) {
+									const ItemDef* itemDef = oldUnit->GetInventory()->GetItemDef( k );
+									if ( itemDef ) {
+										Item item;
+										foundStorage.RemoveItem( itemDef, &item );
+										newUnits[unitCount].GetInventory()->AddItem( k, item );
+									}
+								}
+							}
+						}
+						unitCount++;
+					}
+
+
+					for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+						const ItemDef* itemDef = foundStorage.GetItemDef(i);
+						if ( itemDef && foundStorage.GetCount( i )) {
+							research.SetItemAcquired( itemDef->name );
+						}
+					}
+					research.KickResearch();
+
+					if ( result == TacticalEndSceneData::VICTORY ) {
+
+						// Apply penalty for lost civs:
+						int	region = geoMapData.GetRegion( baseChit->MapPos().x, baseChit->MapPos().y );
+						if ( (nCivsAlive+nCivsDead) > 0 && region >= 0 ) {
+							float ratio = 1.0f - (float)nCivsAlive / (float)(nCivsAlive+nCivsDead);
+							if ( chitBag.GetBattleScenario() == TacticalIntroScene::CITY ) { 
+								ratio *= 2.0f; 
+							}
+							regionData[region].influence += ratio;
+							regionData[region].influence = Min( regionData[region].influence, (float)MAX_INFLUENCE );
+							areaWidget[region]->SetInfluence( regionData[region].influence );
+						}
+
+						delete ufoChit;
+					}
+
+					if ( result == TacticalEndSceneData::DEFEAT ) {
 						// Did the terrans lose a base attack?
 						if ( !landerChit ) {
 							baseChit->SetDestroyed();
 							ufoChit->SetAI( UFOChit::AI_ORBIT );
 						}
 					}
-				}
 
-				// Compress the units to group the living ones together. This
-				// is so the code only has to deal with "holes" from the tactical screen.
-				int dst=0, src=0;
-				for( dst=0, src=0; src<MAX_TERRANS; ++src ) {
-					if ( src > dst ) {
-						// Use memcpy to avoid constructor/destructor:
-						memcpy( &units[dst], &units[src], sizeof(Unit) );
+					// Copy units over.
+					for( int i=0; i<MAX_TERRANS; ++i ) {
+						units[i].Free();
 					}
-					if ( units[dst].IsAlive() ) {
-						++dst;
-					}
-				}
-				for( dst; dst<MAX_TERRANS; ++dst ) {
-					units[dst].Free();
+					memset( units, 0, MAX_TERRANS*sizeof(Unit) );
+					memcpy( units, newUnits, unitCount*sizeof(Unit) );
 				}
 			}
 		}

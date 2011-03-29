@@ -67,14 +67,13 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 		victory.SetText( "Victory!" );
 		
 		// Award UFO stuff
-		int scenario = game->GetScenario();
-		if ( TacticalIntroScene::IsScoutScenario( scenario ) ) {
+		if ( TacticalIntroScene::IsScoutScenario( d->scenario ) ) {
 			d->storage->AddItem( "Cor:S" );
 		}
-		else if ( TacticalIntroScene::IsFrigateScenario( scenario ) ) {
+		else if ( TacticalIntroScene::IsFrigateScenario( d->scenario ) ) {
 			d->storage->AddItem( "Cor:F" );
 		}
-		else if ( scenario == TacticalIntroScene::BATTLESHIP ) {
+		else if ( d->scenario == TacticalIntroScene::BATTLESHIP ) {
 			d->storage->AddItem( "Cor:B" );
 		}
 
@@ -164,18 +163,19 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 
 	// If the tech isn't high enough, can't use cells and anti
 	const Research* research = game->GetResearch();
-	static const char* remove[2] = { "Cell", "Anti" };
-	for( int i=0; i<2; ++i ) {
-		if ( research->GetStatus( remove[i] ) != Research::TECH_RESEARCH_COMPLETE ) {
-			const ItemDef* itemDef = game->GetItemDefArr().Query( remove[i] );
+	if ( research ) {
+		static const char* remove[2] = { "Cell", "Anti" };
+		for( int i=0; i<2; ++i ) {
+			if ( research->GetStatus( remove[i] ) != Research::TECH_RESEARCH_COMPLETE ) {
+				const ItemDef* itemDef = game->GetItemDefArr().Query( remove[i] );
 
-			while( d->storage->Contains( itemDef ) ) {
-				Item item;
-				d->storage->RemoveItem( itemDef, &item );
+				while( d->storage->Contains( itemDef ) ) {
+					Item item;
+					d->storage->RemoveItem( itemDef, &item );
+				}
 			}
 		}
 	}
-
 	if ( nSoldiersStanding>0 && nAliensAlive==0 ) {
 		int row=0;
 		for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {

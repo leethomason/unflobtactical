@@ -353,9 +353,12 @@ public:
 	Chit* End() 	{ return &sentinel; }
 
 	Chit* GetChit( int id ) { 
-		Chit* chit=0;
-		map.Query( id, &chit );
-		return chit;
+		for( Chit* it=Begin(); it != End(); it=it->Next() ) {
+			if ( it->ID() == id ) {
+				return it;
+			}
+		}
+		return 0;
 	}
 
 	int AllocBaseChitIndex();
@@ -393,7 +396,6 @@ private:
 	int battleScenario;
 	Chit sentinel;
 	BaseChit* baseChitArr[MAX_BASES];
-	CMap< int, Chit* >	map;
 };
 
 #endif // GEO_CHITS_INCLUDED
