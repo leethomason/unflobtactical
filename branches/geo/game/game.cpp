@@ -372,8 +372,6 @@ void Game::PushPopScene()
 			}
 		}
 	}
-
-	sceneQueued.Free();
 }
 
 
@@ -431,7 +429,8 @@ const gamui::ButtonLook& Game::GetButtonLook( int id )
 void Game::Load( const TiXmlDocument& doc )
 {
 	// Already pushed the BattleScene. Note that the
-	// BOTTOM of the stack saves and loads. (BattleScene or GeoScene).
+	// BOTTOM of the stack loads. (BattleScene or GeoScene).
+	// A GeoScene will in turn load a BattleScene.
 	const TiXmlElement* game = doc.RootElement();
 	GLASSERT( StrEqual( game->Value(), "Game" ) );
 	const TiXmlElement* scene = game->FirstChildElement();
@@ -456,6 +455,11 @@ FILE* Game::GameSavePath( SavePathType type, SavePathMode mode ) const
 
 void Game::Save()
 {
+	// For loading, the BOTTOM loads and then loads higher scenes.
+	// For saving, the GeoScene saves itself before pushing the tactical
+	// scene, so save from the top back. (But still need to save if
+	// we are in a character scene for example.)
+	FIXTHIS
 	if ( !sceneStack.Empty() && sceneStack.Bottom()->scene->CanSave() ) {
 		FILE* fp = GameSavePath( sceneStack.Bottom()->scene->CanSave(), SAVEPATH_WRITE );
 		GLASSERT( fp );
@@ -464,7 +468,6 @@ void Game::Save()
 			fclose( fp );
 		}
 	}
-
 }
 
 
