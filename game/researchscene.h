@@ -47,6 +47,7 @@ private:
 		MAX_OPTIONS = 3
 	};
 
+	gamui::TextLabel		title;
 	gamui::TextBox			mainDescription;
 	gamui::ToggleButton		optionButton[MAX_OPTIONS];
 	gamui::TextLabel		optionName[MAX_OPTIONS];

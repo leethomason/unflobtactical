@@ -19,9 +19,13 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 	static const float X0 = GAME_BUTTON_SIZE_F + GAME_GUTTER;
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 
+	title.Init( &gamui2D );
+	title.SetPos( X0, GAME_GUTTER );
+	title.SetText( "title" );
+
 	mainDescription.Init( &gamui2D );
 	mainDescription.SetSize( port.UIWidth() - GAME_GUTTER - X0, 200 );
-	mainDescription.SetPos( X0, GAME_GUTTER );
+	mainDescription.SetPos( X0, GAME_GUTTER+GAME_SPACING );
 	mainDescription.SetText( "description" );
 
 	image.Init( &gamui2D, UIRenderer::CalcDecoAtom( DECO_RESEARCH, true ), true );
@@ -95,9 +99,11 @@ void ResearchScene::SetDescription()
 	Research* r = data->research;
 	if ( r->ResearchReady() ) {
 		const Research::Task* task = r->Current();
+		title.SetText( task->name );
 		mainDescription.SetText( r->GetDescription( task ) );
 	}
 	else {
+		title.SetText( "" );
 		if ( r->ResearchInProgress() ) {
 			mainDescription.SetText( "Research in progress." );
 		}

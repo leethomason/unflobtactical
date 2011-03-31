@@ -226,6 +226,7 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 	firstBase = true;
 	timeline = 0;
 	nBattles = 0;
+	gameVictory = false;
 
 	const Screenport& port = GetEngine()->GetScreenport();
 	random.SetSeedFromTime();
@@ -922,6 +923,7 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			data->scenario		= scenario;
 			data->crash			= ( ufoChit->AI() == UFOChit::AI_CRASHED );
 			data->soldierUnits	= units;
+			data->nScientists	= baseChit->NumResearchers();
 			data->dayTime		= geoMap->GetDayTime( ufoChit->Pos().x );
 			data->alienRank		= rank;
 			data->storage		= baseChit->GetStorage();
@@ -1117,6 +1119,12 @@ void GeoScene::SceneResult( int sceneID, int result )
 							areaWidget[region]->SetInfluence( regionData[region].influence );
 						}
 
+						if ( result == TacticalEndSceneData::VICTORY ) {
+							// Did the aliens lose the base?
+							if ( ufoChit->Type() == UFOChit::BASE ) {
+								gameVictory = true;
+							}
+						}
 						delete ufoChit;
 					}
 
@@ -1137,6 +1145,10 @@ void GeoScene::SceneResult( int sceneID, int result )
 
 					// Merge storage
 					baseStorage->AddStorage( foundStorage );
+
+					if ( scenario == TacticalIntroScene::TERRAN_BASE ) {
+						baseChit->SetNumResearchers( nCivsAlive );
+					}
 				}
 			}
 		}
@@ -1185,6 +1197,24 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 			}
 		}
 		research.DoResearch( nResearchers );
+
+		if ( research.GetStatus( "Beacon" ) == Research::TECH_RESEARCH_COMPLETE ) {
+			// find tundra
+			int x = random.Rand( GEO_MAP_X );
+			while( true ) {
+				Vector2I p = { x, 0 };
+
+				if (    geoMapData.GetType( x, 0 ) == GeoMapData::TUNDRA
+					&& chitBag.GetParkedChitAt( p ) == 0
+					&& chitBag.GetBaseChitAt( p ) == 0 ) 
+				{
+					Vector2F pf = { (float)x+0.5f, 0.5f };
+					UFOChit* chit = new UFOChit( GetEngine()->GetSpaceTree(), UFOChit::BASE, pf, pf );
+					chit->SetAI( UFOChit::AI_PARKED );
+					chitBag.Add( chit );
+				}
+			}
+		}
 	}
 
 	char cashBuf[16];
@@ -1528,6 +1558,11 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 			data->victory = false;
 			game->PushScene( Game::GEO_END_SCENE, data );
 		}
+	}
+	if ( gameVictory ) {
+		GeoEndSceneData* data = new GeoEndSceneData();
+		data->victory = true;
+		game->PushScene( Game::GEO_END_SCENE, data );
 	}
 }
 

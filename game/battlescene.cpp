@@ -53,6 +53,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	turnCount = 0;
 	isDragging = false;
 	lockedStorage = 0;
+	cameraSet = false;
 
 	engine  = game->engine;
 	tacMap = new TacMap( engine->GetSpaceTree(), game->GetItemDefArr() );
@@ -233,12 +234,9 @@ BattleScene::~BattleScene()
 void BattleScene::Activate()
 {
 	engine->SetMap( tacMap );
-
-	engine->CameraLookAt( (float)tacMap->Width()/2.0f, (float)tacMap->Height()/2.0f, 25.0f, -45.0f, -50.0f );
-
-	//camera.SetPosWC( EL_MAP_SIZE/2, 25.0f, EL_MAP_SIZE/2 );
-	//camera.SetYRotation( -45.f );
-	//camera.SetTilt( engineData.cameraTilt );
+	if ( !cameraSet )
+		engine->CameraLookAt( (float)tacMap->Width()/2.0f, (float)tacMap->Height()/2.0f, 25.0f, -45.0f, -50.0f );
+	cameraSet = true;
 }
 
 
@@ -1526,36 +1524,41 @@ bool BattleScene::ProcessActionCameraBounds( U32 deltaTime, Action* action )
 	engine->CameraLookingAt( &lookingAt );
 	Vector3F atToTarget = action->type.cameraBounds.target - lookingAt;
 
-	if ( atToTarget.Length() <= t ) {
-		pop = true;
+	Vector3F normal = atToTarget;
+	Vector3F maxTravel = normal;
+	normal.Normalize();
+
+	Vector2F ui;
+	Vector3F d = normal * t;
+	if ( d.Length() < maxTravel.Length() ) {
+		engine->camera.DeltaPosWC( d.x, d.y, d.z );
 	}
 	else {
-		Vector3F normal = atToTarget;
-		normal.Normalize();
+		float yrot = engine->camera.GetYRotation();
+		float tilt = engine->camera.GetTilt();
+		float height = engine->camera.PosWC().y;
+		engine->CameraLookAt( action->type.cameraBounds.target.x, action->type.cameraBounds.target.z, height, yrot, tilt );
+		pop = true;
+	}
 
-		Vector2F ui;
-		Vector3F d = normal * t;
-		engine->camera.DeltaPosWC( d.x, d.y, d.z );
+	const Screenport& port = engine->GetScreenport();
+	port.WorldToUI( action->type.cameraBounds.target, &ui );
 
-		const Screenport& port = engine->GetScreenport();
-		port.WorldToUI( action->type.cameraBounds.target, &ui );
+	Rectangle2F inset = CalcInsetUIBounds();
+	if ( action->type.cameraBounds.center ) {
+		Vector2F center = inset.Center();
+		inset.min = center;
+		inset.max = center;
+		inset.Outset( 20 );
+	}
 
-		Rectangle2F inset = CalcInsetUIBounds();
-		if ( action->type.cameraBounds.center ) {
-			Vector2F center = inset.Center();
-			inset.min = center;
-			inset.max = center;
-			inset.Outset( 20 );
-		}
+	GLOUTPUT(( "ProcessActionCameraBounds\n" )); 
+	//GLOUTPUT(( "Camera (%.1f,%.1f) ui (%.1f,%.1f)-(%.1f,%.1f)\n",
+	//			ui.x, ui.y, 
+	//			inset.min.x, inset.min.y, inset.max.x, inset.max.y ));
 
-		GLOUTPUT(( "ProcessActionCameraBounds\n" )); 
-		//GLOUTPUT(( "Camera (%.1f,%.1f) ui (%.1f,%.1f)-(%.1f,%.1f)\n",
-		//			ui.x, ui.y, 
-		//			inset.min.x, inset.min.y, inset.max.x, inset.max.y ));
-
-		if ( inset.Contains( ui ) ) {
-			pop = true;
-		}
+	if ( inset.Contains( ui ) ) {
+		pop = true;
 	}
 	return pop;
 }
@@ -1691,6 +1694,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 				}
 				break;
 
+/*
 			case ACTION_CAMERA:
 				{
 					action->type.camera.timeLeft -= deltaTime;
@@ -1711,6 +1715,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 					}
 				}
 				break;
+*/
 
 			case ACTION_CAMERA_BOUNDS:
 				{

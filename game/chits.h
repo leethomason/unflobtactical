@@ -148,7 +148,6 @@ public:
 
 		AI_CRASHED,		// crashed UFO
 		AI_CITY_ATTACK,	// attacking a city
-		//AI_BASE_ATTACK, 
 		AI_OCCUPATION,	// a battleship has occupied a capital. It will not leave (until destroyed)
 		AI_CROP_CIRCLE,	// chillin' and making crop circles
 
@@ -159,6 +158,7 @@ public:
 		SCOUT,
 		FRIGATE,
 		BATTLESHIP,
+		BASE,
 		NUM_TYPES
 	};
 	UFOChit(	SpaceTree* tree, 
@@ -283,7 +283,9 @@ public:
 	Unit* GetUnits() { return units; }
 	int NumUnits();
 
-	int NumResearchers()    { return 8; }
+	int NumResearchers()				{ return nScientists; }
+	void SetNumResearchers( int m )		{ GLASSERT( m <= nScientists ); nScientists = m; }
+
 	int* GetResearcherPtr() { return &nScientists; }
 
 	bool IsFacilityComplete( int i )	const	{ return facilityStatus[i] == 0; }

@@ -62,9 +62,6 @@ public:
 		TERRAN_LOW,
 		TERRAN_MED,
 		TERRAN_HIGH,
-		//ALIEN_8,
-		//ALIEN_12,
-		//ALIEN_16,
 		ALIEN_LOW,
 		ALIEN_MED,
 		ALIEN_HIGH,
@@ -85,11 +82,9 @@ public:
 		TERRAN_BASE,
 
 		FIRST_SCENARIO = FARM_SCOUT,
-		LAST_SCENARIO = BATTLESHIP,
+		LAST_SCENARIO = TERRAN_BASE,
 
-		//CIVS_PRESENT,
 		UFO_CRASH,
-
 		TOGGLE_COUNT,
 	};
 
@@ -107,14 +102,17 @@ public:
 			   || ( s == BATTLESHIP );
 	}
 	static int CivsInScenario( int scenario ) {
-		// fixme: handle terran base! should be # of scientists.
+		GLASSERT( scenario != TacticalIntroScene::TERRAN_BASE );
 		int nCiv = 0;
 		
 		switch ( scenario ) {
-		case TacticalIntroScene::FARM_SCOUT:
-		case TacticalIntroScene::FARM_DESTROYER:
 		case TacticalIntroScene::CITY:
 			nCiv = MAX_CIVS;
+			break;
+
+		case TacticalIntroScene::FARM_SCOUT:
+		case TacticalIntroScene::FARM_DESTROYER:
+			nCiv = MAX_CIVS * 2 / 3;
 			break;
 
 		case TacticalIntroScene::FRST_SCOUT:
@@ -125,6 +123,7 @@ public:
 		default:
 			break;
 		}
+		GLASSERT( nCiv >= 0 && nCiv < MAX_CIVS );
 		return nCiv;
 	}
 

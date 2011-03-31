@@ -1,0 +1,79 @@
+<Map sizeX="48" sizeY="48" >
+        <Items >
+            <Item x="16" y="38" rot="3" name="scout" />
+            <Item x="38" y="34" name="ufo_WallOut" />
+            <Item x="36" y="34" name="ufo_WallOut" />
+            <Item x="37" y="34" name="ufo_WallOut" />
+            <Item x="35" y="34" name="ufo_WallOut" />
+            <Item x="34" y="34" name="ufo_WallOut" />
+            <Item x="33" y="34" name="ufo_WallOut" />
+            <Item x="32" y="34" name="ufo_WallOut" />
+            <Item x="21" y="32" rot="3" name="scout" />
+            <Item x="41" y="30" rot="3" name="scout" />
+            <Item x="38" y="31" rot="3" name="scout" />
+            <Item x="34" y="29" rot="3" name="scout" />
+            <Item x="31" y="31" rot="3" name="scout" />
+            <Item x="31" y="28" rot="3" name="scout" />
+            <Item x="46" y="24" rot="1" name="ufo_WallOut" />
+            <Item x="46" y="25" rot="1" name="ufo_WallOut" />
+            <Item x="46" y="26" rot="1" name="ufo_WallOut" />
+            <Item x="40" y="26" rot="3" name="scout" />
+            <Item x="38" y="27" rot="3" name="scout" />
+            <Item x="33" y="26" rot="3" name="scout" />
+            <Item x="28" y="25" rot="3" name="guard" />
+            <Item x="30" y="25" rot="3" name="guard" />
+            <Item x="24" y="25" rot="3" name="ufo_WallOut" />
+            <Item x="24" y="26" rot="3" name="ufo_WallOut" />
+            <Item x="24" y="24" rot="3" name="ufo_DoorCld" flags="4" />
+            <Item x="26" y="25" rot="3" name="guard" />
+            <Item x="16" y="27" rot="1" name="obelisk" />
+            <Item x="12" y="27" rot="1" name="obelisk" />
+            <Item x="14" y="27" rot="1" name="obelisk" />
+            <Item x="10" y="27" rot="1" name="obelisk" />
+            <Item x="46" y="21" rot="1" name="ufo_WallOut" />
+            <Item x="46" y="22" rot="1" name="ufo_WallOut" />
+            <Item x="46" y="23" rot="1" name="ufo_WallOut" />
+            <Item x="40" y="22" rot="3" name="scout" />
+            <Item x="37" y="22" rot="3" name="scout" />
+            <Item x="35" y="22" rot="3" name="scout" />
+            <Item x="28" y="22" rot="3" name="guard" />
+            <Item x="30" y="22" rot="3" name="guard" />
+            <Item x="24" y="22" rot="3" name="ufo_WallOut" />
+            <Item x="24" y="21" rot="3" name="ufo_WallOut" />
+            <Item x="24" y="23" rot="3" name="ufo_DoorCld" flags="4" />
+            <Item x="26" y="22" rot="3" name="guard" />
+            <Item x="16" y="20" rot="1" name="obelisk" />
+            <Item x="12" y="20" rot="1" name="obelisk" />
+            <Item x="14" y="20" rot="1" name="obelisk" />
+            <Item x="10" y="20" rot="1" name="obelisk" />
+            <Item x="40" y="18" rot="3" name="scout" />
+            <Item x="36" y="17" rot="3" name="scout" />
+            <Item x="31" y="18" rot="3" name="scout" />
+            <Item x="38" y="13" rot="2" name="ufo_WallOut" />
+            <Item x="36" y="13" rot="2" name="ufo_WallOut" />
+            <Item x="37" y="13" rot="2" name="ufo_WallOut" />
+            <Item x="32" y="13" rot="2" name="ufo_WallOut" />
+            <Item x="33" y="13" rot="2" name="ufo_WallOut" />
+            <Item x="34" y="13" rot="2" name="ufo_WallOut" />
+            <Item x="35" y="13" rot="2" name="ufo_WallOut" />
+            <Item x="22" y="14" rot="3" name="scout" />
+            <Item x="16" y="11" rot="3" name="scout" />
+            <Item x="20" y="34" rot="3" name="ufo_drone" />
+            <Item x="22" y="8" rot="3" name="ufo_drone" />
+            <Item x="24" y="37" rot="3" name="ufo_drone" />
+            <Item x="1" y="26" rot="1" name="lander" />
+            <Item x="39" y="20" rot="1" name="ufo_WallCurve8" />
+            <Item x="11" y="16" rot="1" name="pyramid_4" />
+            <Item x="31" y="20" rot="2" name="ufo_WallCurve8" />
+            <Item x="12" y="33" rot="1" name="pyramid_4" />
+            <Item x="31" y="27" rot="3" name="ufo_WallCurve8" />
+            <Item x="39" y="27" name="ufo_WallCurve8" />
+        </Items>
+        <GroundDebris >
+        </GroundDebris>
+    <Images >
+        <Image x="0" y="0" size="48" tileRotation="0" name="ALIN_48_TILE_00" />
+    </Images>
+    <PyroGroup >
+    </PyroGroup>
+</Map>
