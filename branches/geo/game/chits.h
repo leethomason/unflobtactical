@@ -122,7 +122,6 @@ public:
 	bool IsDestroyed()					{ return destroyed; }
 	int ID()							{ return id; }
 	Chit* Next()						{ return next; }
-	virtual void SetVisible( bool visible );
 
 	virtual void Save( FILE* fp, int depth );
 	virtual void Load( const TiXmlElement* doc );
@@ -194,8 +193,6 @@ public:
 
 	virtual void Save( FILE* fp, int depth );
 	virtual void Load( const TiXmlElement* doc );
-
-	virtual void SetVisible( bool visible );
 
 private:
 	void Init();
@@ -386,8 +383,6 @@ public:
 
 	virtual void Save( FILE* fp, int depth );
 	virtual void Load( const TiXmlElement* doc, SpaceTree* tree, const ItemDefArr& arr, Game* game );
-
-	void SetVisible( bool visible );
 
 private:
 	int idPool;

@@ -305,8 +305,8 @@ void GeoScene::Activate()
 	SetMapLocation();
 	GetEngine()->SetIMap( geoMap );
 	SetMapLocation();
-	geoMap->SetVisible( true );
-	chitBag.SetVisible( true );
+
+	GetEngine()->GetSpaceTree()->ShelveAll( false );
 }
 
 
@@ -315,8 +315,8 @@ void GeoScene::DeActivate()
 	savedCameraX = GetEngine()->camera.PosWC().x;
 	GetEngine()->CameraIso( true, false, 0, 0 );
 	GetEngine()->SetIMap( 0 );
-	geoMap->SetVisible( false );
-	chitBag.SetVisible( false );
+
+	GetEngine()->GetSpaceTree()->ShelveAll( true );
 }
 
 
@@ -1063,7 +1063,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 					if ( result != TacticalEndSceneData::DEFEAT ) {
 						// Go through items, and collect them up. If the debris is at a unit location, add
 						// it back to the unit.
-						const TiXmlElement* groundDebris = docHandle.FirstChild( "Game" ).FirstChild( "BattleScene" ).FirstChild( "GroundDebris" ).ToElement();
+						const TiXmlElement* groundDebris = docHandle.FirstChild( "Game" ).FirstChild( "BattleScene" ).FirstChild( "Map" ).FirstChild( "GroundDebris" ).ToElement();
 						if ( groundDebris ) {
 							for( const TiXmlElement* debris = groundDebris->FirstChildElement( "Debris" ); debris; debris=debris->NextSiblingElement( "Debris" ) ) {
 								const TiXmlElement* storageEle = debris->FirstChildElement( "Storage" );
@@ -1080,22 +1080,21 @@ void GeoScene::SceneResult( int sceneID, int result )
 
 					for( int i=0; i<unitCount; ++i ) {
 						if ( newUnits[i].GetInventory()->Empty() ) {
-							const Unit* oldUnit = Unit::Find( units, MAX_TERRANS, newUnits[unitCount].Body() );
+							const Unit* oldUnit = Unit::Find( units, MAX_TERRANS, newUnits[i].Body() );
 							if ( oldUnit ) {
 								for( int k=0; k<Inventory::NUM_SLOTS; ++k ) {
 									const ItemDef* itemDef = oldUnit->GetInventory()->GetItemDef( k );
 									if ( itemDef ) {
 										Item item;
 										foundStorage.RemoveItem( itemDef, &item );
-										newUnits[unitCount].GetInventory()->AddItem( k, item );
+										newUnits[unitCount].GetInventory()->AddItem( item );
 									}
 								}
 							}
 						}
-						unitCount++;
 					}
 
-
+					// Inform the research system of found items.
 					for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
 						const ItemDef* itemDef = foundStorage.GetItemDef(i);
 						if ( itemDef && foundStorage.GetCount( i )) {
@@ -1135,6 +1134,9 @@ void GeoScene::SceneResult( int sceneID, int result )
 					}
 					memset( units, 0, MAX_TERRANS*sizeof(Unit) );
 					memcpy( units, newUnits, unitCount*sizeof(Unit) );
+
+					// Merge storage
+					baseStorage->AddStorage( foundStorage );
 				}
 			}
 		}
