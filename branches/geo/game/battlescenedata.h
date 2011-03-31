@@ -16,6 +16,7 @@ public:
 
 	// Input/output
 	Unit* soldierUnits;		// pointer to MAX_TERRAN units
+	int nScientists;
 	Storage* storage;
 };
 

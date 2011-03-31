@@ -1,28 +1,25 @@
 Issues:
 
 Bugs:
-X Battlescene+Geo:
-	- counting 'down' as 'dead' for inventory, and removing stuff.
-	- research.Kick() doesn't seem to work
-- Tactical: occasionally camera pan...doesn't. Okay except for first one.
-- Tactical: guns not rendering
-- Tactical: AI shoots walls
-- Tactical: no guards getting created
+- Tactical: no shadows on geo sceen when using netbook
+- Tactical: AI shoots walls. This one is strange. It certainly checks. ??
+
 - review save system
 	x save geo on entering/exiting tactical?
 	x delete tactical saves?
 	x if battlescene active, connect BattleSceneData to Geo
 	- Big save / load testing
+
 - need to limit research text length
 - sound effects
-- need end fight!
 - geo: art for special abilities
 - geo: art for cores
 - geo: colors ugly, look not correct
 - geo: help not hooked up
 - fix battlescene not being power of 2
 - fix geo name locations
-- vary # of civs
+- base: rethink layout. Brutal alien beginning. Hard to leave lander.
+- alienBase: ugyl. Incomplete. Needs coolness.
 
 Deferred:
 - geo: no indication of base capabilities
@@ -31,6 +28,15 @@ Deferred:
 - geo: decals overdraw
 
 Fixed:
+- need end fight!
+- vary # of civs
+- Tactical: no guards getting created (were set in XML)
+- Tactical: guns not rendering
+- Tactical: back loses camera
+- Tactical: occasionally camera pan...doesn't. Okay except for first one.
+- Battlescene+Geo:
+	- counting 'down' as 'dead' for inventory, and removing stuff.
+	- research.Kick() doesn't seem to work
 - geo: extend frigate time
 - capital/city screwed up again
 - gameplay: runs of of steam, pre-frigates. Not enough reseach?

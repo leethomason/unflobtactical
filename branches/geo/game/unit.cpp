@@ -658,6 +658,7 @@ void Unit::InitModel( SpaceTree* tree, TacMap* tacmap )
 	}
 
 	CreateModel();
+	UpdateInventory();
 }
 
 

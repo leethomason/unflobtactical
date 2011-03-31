@@ -198,8 +198,6 @@ int AI::ThinkShoot(	const Unit* theUnit,
 				if ( theUnit->CanFire( mode ) ) {
 					float chance, anyChance, tu, dptu;
 					
-
-
 					if ( theUnit->FireStatistics( (WeaponMode)mode, bulletTarget, &chance, &anyChance, &tu, &dptu ) ) {
 						float score = dptu * m_enemy[i];	// Interesting: good AI, but results in odd choices.
 

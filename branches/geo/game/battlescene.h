@@ -145,9 +145,8 @@ private:
 		ACTION_SHOOT,
 		ACTION_DELAY,
 		ACTION_HIT,
-		ACTION_CAMERA,
+		//ACTION_CAMERA,
 		ACTION_CAMERA_BOUNDS,
-		//ACTION_LANDER,
 	};
 
 	struct MoveAction	{
@@ -349,7 +348,7 @@ private:
 	int	subTurnOrder[MAX_TERRANS];
 	int	subTurnCount;
 	int turnCount;
-
+	
 	Engine*			engine;
 	TacMap*			tacMap;
 	Storage*		lockedStorage;	// locked for use by the character scene
@@ -358,6 +357,7 @@ private:
 	AI*				aiArr[3];
 	int				currentUnitAI;
 	int				scenario;
+	bool			cameraSet;
 	TacticalEndSceneData tacticalData;
 
 	struct TargetEvent

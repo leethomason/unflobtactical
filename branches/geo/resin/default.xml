@@ -650,6 +650,11 @@
   <image filename="BASE_48_TILE_00_DAY.png" />
   <image filename="BASE_48_TILE_00_NGT.png" />
 
+  <data  filename="ALIN_48_TILE_00.xml" />
+  <image filename="ALIN_48_TILE_00_TEX.png" width="384" height="384" />
+  <image filename="ALIN_48_TILE_00_DAY.png" />
+  <image filename="ALIN_48_TILE_00_NGT.png" />
+
   <text name="tacticalHelp" >
     <page>
       <p>Xenowar - How to Play</p>

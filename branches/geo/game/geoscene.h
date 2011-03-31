@@ -154,6 +154,7 @@ public:
 		v.x = city[region*MAX_CITIES_PER_REGION+index] - v.y*GEO_MAP_X;
 		return v;
 	}
+
 	int CapitalID( int region ) const 
 	{
 		GLASSERT( region >= 0 && region < GEO_REGIONS );
@@ -340,6 +341,7 @@ private:
 
 	ChitBag				chitBag;
 	int					contextChitID;
+	bool				gameVictory;
 
 	enum {
 		CONTEXT_CARGO,

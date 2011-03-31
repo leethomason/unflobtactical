@@ -105,8 +105,8 @@ UFOChit::~UFOChit()
 
 void UFOChit::Init()
 {
-	static const char* name[3] = { "geo_scout", "geo_frigate", "geo_battleship" };
-	GLASSERT( type >= 0 && type < 3 );
+	static const char* name[NUM_TYPES] = { "geo_scout", "geo_frigate", "geo_battleship", "geo_battleship" };	// FIXME: need base model
+	GLASSERT( type >= 0 && type < NUM_TYPES );
 
 	for( int i=0; i<2; ++i ) {
 		if ( model[i] ) tree->FreeModel( model[i] );
@@ -299,6 +299,10 @@ int UFOChit::DoTick( U32 deltaTime )
 		else
 			SetDestroyed();
 	} 
+	else if ( ai == AI_PARKED ) 
+	{
+		// sit forever!
+	}
 	else if ( ai == AI_TRAVELLING )
 	{
 		Vector2F normal = dest - pos;

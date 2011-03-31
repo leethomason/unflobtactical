@@ -66,29 +66,31 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 	if ( nSoldiersStanding>0 && nAliensAlive==0 ) {
 		victory.SetText( "Victory!" );
 		
-		// Award UFO stuff
-		if ( TacticalIntroScene::IsScoutScenario( d->scenario ) ) {
-			d->storage->AddItem( "Cor:S" );
-		}
-		else if ( TacticalIntroScene::IsFrigateScenario( d->scenario ) ) {
-			d->storage->AddItem( "Cor:F" );
-		}
-		else if ( d->scenario == TacticalIntroScene::BATTLESHIP ) {
-			d->storage->AddItem( "Cor:B" );
-		}
+		if ( d->storage ) {
+			// Award UFO stuff
+			if ( TacticalIntroScene::IsScoutScenario( d->scenario ) ) {
+				d->storage->AddItem( "Cor:S" );
+			}
+			else if ( TacticalIntroScene::IsFrigateScenario( d->scenario ) ) {
+				d->storage->AddItem( "Cor:F" );
+			}
+			else if ( d->scenario == TacticalIntroScene::BATTLESHIP ) {
+				d->storage->AddItem( "Cor:B" );
+			}
 
-		// Alien corpses:
-		for( int i=0; i<MAX_ALIENS; ++i ) {
-			if ( data->aliens[i].InUse() ) {
-				switch( data->aliens[i].AlienType() ) {
+			// Alien corpses:
+			for( int i=0; i<MAX_ALIENS; ++i ) {
+				if ( data->aliens[i].InUse() ) {
+					switch( data->aliens[i].AlienType() ) {
 
-				case Unit::ALIEN_GREEN:		d->storage->AddItem( "Green" );	break;
-				case Unit::ALIEN_PRIME:		d->storage->AddItem( "Prime" );	break;
-				case Unit::ALIEN_HORNET:	d->storage->AddItem( "Hrnet" );	break;
-				case Unit::ALIEN_JACKAL:	d->storage->AddItem( "Jackl" );	break;
-				case Unit::ALIEN_VIPER:		d->storage->AddItem( "Viper" );	break;
-				default: GLASSERT( 0 );	break;
+					case Unit::ALIEN_GREEN:		d->storage->AddItem( "Green" );	break;
+					case Unit::ALIEN_PRIME:		d->storage->AddItem( "Prime" );	break;
+					case Unit::ALIEN_HORNET:	d->storage->AddItem( "Hrnet" );	break;
+					case Unit::ALIEN_JACKAL:	d->storage->AddItem( "Jackl" );	break;
+					case Unit::ALIEN_VIPER:		d->storage->AddItem( "Viper" );	break;
+					default: GLASSERT( 0 );	break;
 
+					}
 				}
 			}
 		}
@@ -163,7 +165,7 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 
 	// If the tech isn't high enough, can't use cells and anti
 	const Research* research = game->GetResearch();
-	if ( research ) {
+	if ( research && d->storage ) {
 		static const char* remove[2] = { "Cell", "Anti" };
 		for( int i=0; i<2; ++i ) {
 			if ( research->GetStatus( remove[i] ) != Research::TECH_RESEARCH_COMPLETE ) {
@@ -186,7 +188,7 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 			if ( !itemDef )
 				continue;
 
-			if ( d->storage->GetCount(i) ) {
+			if ( d->storage && d->storage->GetCount(i) ) {
 				char buf[30];
 				const char* display = itemDef->displayName.c_str();
 

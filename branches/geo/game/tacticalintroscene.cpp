@@ -107,7 +107,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 													 //"8", "12", "16", 
 													 "Low", "Med", "Hi", "Day", "Night",
 													 "Fa-S", "T-S", "Fo-S", "D-S", "Fa-D", "T-D", "Fo-D", "D-D",
-													 "City", "BattleShip",	// "ABase", "TBase",
+													 "City", "BattleShip",	"AlienBase", "TerranBase",
 													 //"Civs", 
 													 "Crash" };
 	for( int i=0; i<TOGGLE_COUNT; ++i ) {
@@ -118,6 +118,8 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 		toggles[i].SetSize( 50, 50 );
 	}
 	toggles[BATTLESHIP].SetSize( 100, 50 );
+	toggles[ALIEN_BASE].SetSize( 100, 50 );
+	toggles[TERRAN_BASE].SetSize( 100, 50 );
 
 	toggles[SQUAD_4].AddToToggleGroup( &toggles[SQUAD_6] );
 	toggles[SQUAD_4].AddToToggleGroup( &toggles[SQUAD_8] );
@@ -125,24 +127,16 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	toggles[TERRAN_LOW].AddToToggleGroup( &toggles[TERRAN_MED] );
 	toggles[TERRAN_LOW].AddToToggleGroup( &toggles[TERRAN_HIGH] );
 
-	//toggles[ALIEN_8].AddToToggleGroup( &toggles[ALIEN_12] );
-	//toggles[ALIEN_8].AddToToggleGroup( &toggles[ALIEN_16] );
-
 	toggles[ALIEN_LOW].AddToToggleGroup( &toggles[ALIEN_MED] );
 	toggles[ALIEN_LOW].AddToToggleGroup( &toggles[ALIEN_HIGH] );
 
 	toggles[TIME_DAY].AddToToggleGroup( &toggles[TIME_NIGHT] );
 
-	//toggles[SCEN_LANDING].AddToToggleGroup( &toggles[SCEN_CRASH] );
-
 	toggles[SQUAD_8].SetDown();
 	toggles[TERRAN_MED].SetDown();
-	//toggles[ALIEN_8].SetDown();
 	toggles[ALIEN_MED].SetDown();
 	toggles[TIME_DAY].SetDown();
 	toggles[FARM_SCOUT].SetDown();
-
-	//toggles[CIVS_PRESENT].SetDown();
 
 	terranLabel.Init( &gamui2D );
 	terranLabel.SetVisible( false );
@@ -201,7 +195,6 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 		scenarioLabel.SetVisible( false );
 		scenarioLabel.SetText( "Farm Tundra Forest Desert" );
 		scenarioLabel.SetPos( 215, 5 );
-//		scenarioLabel[i].SetPos( 215+SIZE*i, 5 );
 	}
 
 	for( int i=0; i<4; ++i ) {
@@ -210,6 +203,8 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	}
 	toggles[CITY].SetPos( 215+SIZE*0, 125 );
 	toggles[BATTLESHIP].SetPos( 215+SIZE*1, 125 );
+	toggles[ALIEN_BASE].SetPos( 215+SIZE*0, 175 );
+	toggles[TERRAN_BASE].SetPos( 215+SIZE*2, 175 );
 
 	for( int i=FIRST_SCENARIO; i<=LAST_SCENARIO; ++i )
 		toggles[FARM_SCOUT].AddToToggleGroup( &toggles[i] );
@@ -224,14 +219,12 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	toggles[DSRT_DESTROYER].SetEnabled( true );
 	toggles[CITY].SetEnabled(			true );
 	toggles[BATTLESHIP].SetEnabled(		true );
-	//toggles[ALIEN_BASE].SetEnabled(		false );
-	//toggles[TERRAN_BASE].SetEnabled(	false );
 
 
 	UIItem* scenItems[] = { /*&toggles[CIVS_PRESENT],*/ &toggles[UFO_CRASH] };
 	Gamui::Layout( scenItems, 1,
 				   4, 2,
-				   215, 175,
+				   215, 225,
 				   100, 100 );
 							
 	goButton.Init( &gamui2D, blue );
@@ -350,6 +343,7 @@ void TacticalIntroScene::Tap(	int action,
 			memset( units, 0, sizeof(Unit)*MAX_TERRANS );
 			GenerateTerranTeam( units, count, (float)rank, game->GetItemDefArr(), random.Rand() );
 			data.soldierUnits = units;
+			data.nScientists = 8;
 
 			data.dayTime = toggles[TIME_DAY].Down() ? true : false;
 			data.alienRank = 0.0f;
@@ -425,7 +419,8 @@ void TacticalIntroScene::Tap(	int action,
 	Random random;
 	random.SetSeedFromTime();
 
-	SceneInfo info( data->scenario, data->crash, CivsInScenario( data->scenario ) );
+	int nCivs = ( data->scenario == TacticalIntroScene::TERRAN_BASE ) ? data->nScientists : CivsInScenario( data->scenario );
+	SceneInfo info( data->scenario, data->crash, nCivs );
 
 	CreateMap( fp, random.Rand(), info, database );
 	fprintf( fp, "\n" );
@@ -719,6 +714,15 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 	else if ( info.scenario == BATTLESHIP ) {
 		AppendMapSnippet( 0, 0, 0, "BATT", 48, false, "TILE", database, dataItem, &mapElement, random.Rand() );	
 	}
+	else if ( info.scenario == ALIEN_BASE ) {
+		AppendMapSnippet( 0, 0, 0, "ALIN", 48, false, "TILE", database, dataItem, &mapElement, random.Rand() );	
+	}
+	else if ( info.scenario == TERRAN_BASE ) {
+		AppendMapSnippet( 0, 0, 0, "BASE", 48, false, "TILE", database, dataItem, &mapElement, random.Rand() );	
+	}
+	else {
+		GLASSERT( 0 );
+	}
 
 
 	mapElement.Print( fp, 2 );
@@ -841,7 +845,7 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
  			unit[index].Create( ALIEN_TEAM, i, rank, aRand.Rand() );
 
 			// About 1/3 should be guards that aren't green or prime.
-			if ( i >= 2 && index % 3 == 0 ) {
+			if ( i >= 2 && (index % 3) == 0 ) {
 				unit[index].SetAI( AI::AI_GUARD );
 			}
 
@@ -963,7 +967,10 @@ Vector2I TacticalIntroScene::SceneInfo::Size() const
 	else if ( scenario == CITY ) {
 		v.Set( 4, 4 );
 	}
-	else if ( scenario == BATTLESHIP ) {
+	else if (    scenario == BATTLESHIP
+		      || scenario == TERRAN_BASE 
+			  || scenario == ALIEN_BASE ) 
+	{
 		v.Set( 3, 3 );
 	}
 	else {
