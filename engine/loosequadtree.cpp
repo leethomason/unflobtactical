@@ -34,6 +34,7 @@ SpaceTree::SpaceTree( float yMin, float yMax )
 	queryID = 0;
 
 	InitNode();
+	memset( &shelf, 0, sizeof(Node) );
 }
 
 
@@ -136,6 +137,44 @@ void SpaceTree::FreeModel( Model* model )
 	modelPool.Free( item );
 }
 
+
+void SpaceTree::ShelveModel( bool shelve, Model* model )
+{
+	Item* item = (Item*)model;	// cast depends on model being first in the structure.
+	GLASSERT( item->node );
+	item->node->Remove( item );
+
+	if ( shelve ) {
+		item->node = &shelf;
+		shelf.Add( item );
+	}
+	else {
+		GLASSERT( item->node );
+		item->node->Remove( item );
+		item->node = 0;
+		Update( model );
+	}
+}
+
+
+void SpaceTree::ShelveAll( bool shelve )
+{
+	if ( shelve ) {
+		Model* root = Query( 0, 0, 0, 0 );
+		while ( root ) {
+			Model* t = root->next;
+			ShelveModel( true, root );
+			root = t;
+		}
+	}
+	else {
+		while( shelf.root ) {
+			ShelveModel( false, (Model*)shelf.root );
+		}
+	}
+}
+
+
 // Based on this idea:
 	/* 
 	I've used a scheme which is like an octree, but tweaked to make it
@@ -170,6 +209,9 @@ void SpaceTree::Update( Model* model )
 {
 	// Unlink if currently in tree.
 	Item* item = (Item*)model;	// cast depends on model being first in the structure.
+
+	if ( item->node == &shelf )
+		return;	// no effect when items are on the shelf.
 
 	if ( item->node ) 
 		item->node->Remove( item );

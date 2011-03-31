@@ -16,13 +16,8 @@ GeoMap::GeoMap( SpaceTree* _tree ) : tree( _tree )
 		}
 	}
 
+	geoModel[0] = geoModel[1] = 0;
 	dayNightTex = TextureManager::Instance()->CreateTexture( "GeoDayNight", DAYNIGHT_TEX_SIZE, 1, Surface::RGB16, Texture::PARAM_NONE, this );
-
-	for( int i=0; i<2; ++i ) {
-		geoModel[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "geomap" ) );
-		geoModel[i]->SetFlag( Model::MODEL_OWNED_BY_MAP );
-	}
-	geoModel[1]->SetPos( MAP_X, 0, 0 );
 }
 
 
@@ -66,21 +61,20 @@ void GeoMap::CreateTexture( Texture* t )
 void GeoMap::DoTick( U32 currentTime, U32 deltaTime )
 {
 	dayNightOffset += (float)deltaTime / (40.0f*1000.0f);
-	
+
+	// Create geoModel as needed. (Deleted when we deactivate.)
+	if ( !geoModel[0] ) {
+		for( int i=0; i<2; ++i ) {
+			geoModel[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "geomap" ) );
+			geoModel[i]->SetFlag( Model::MODEL_OWNED_BY_MAP );
+		}
+		geoModel[1]->SetPos( MAP_X, 0, 0 );
+	}
+
 	if ( dayNightOffset > 1.0f ) {
 		double intpart;
 		dayNightOffset = (float)modf( dayNightOffset, &intpart );
 	}
 }
 
-
-void GeoMap::SetVisible( bool visible )
-{
-	for( int i=0; i<2; ++i ) {
-		if ( visible )
-			geoModel[i]->ClearFlag( Model::MODEL_INVISIBLE );
-		else
-			geoModel[i]->SetFlag( Model::MODEL_INVISIBLE );
-	}
-}
 

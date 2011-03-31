@@ -416,7 +416,8 @@ void Storage::SetFullRounds()
 	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
 		const ItemDef* itemDef = itemDefArr.GetIndex( i );
 		if ( itemDef ) {
-			rounds[i] = (rounds[i]+itemDef->DefaultRounds()-1)/itemDef->DefaultRounds();
+			int def = itemDef->DefaultRounds();
+			rounds[i] = def * ((rounds[i]+def-1)/def);
 		}
 	}
 }

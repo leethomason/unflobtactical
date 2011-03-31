@@ -30,7 +30,6 @@ public:
 	void DoTick( U32 currentTime, U32 deltaTime );
 
 	bool GetDayTime( float x );
-	void SetVisible( bool visible );
 
 	enum {
 		MAP_X = 20,
