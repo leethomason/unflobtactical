@@ -20,12 +20,12 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 
 	title.Init( &gamui2D );
-	title.SetPos( X0, GAME_GUTTER );
+	title.SetPos( X0, 0 );
 	title.SetText( "title" );
 
 	mainDescription.Init( &gamui2D );
 	mainDescription.SetSize( port.UIWidth() - GAME_GUTTER - X0, 200 );
-	mainDescription.SetPos( X0, GAME_GUTTER+GAME_SPACING );
+	mainDescription.SetPos( X0, GAME_GUTTER );
 	mainDescription.SetText( "description" );
 
 	image.Init( &gamui2D, UIRenderer::CalcDecoAtom( DECO_RESEARCH, true ), true );

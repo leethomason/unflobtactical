@@ -930,6 +930,7 @@ bool BattleScene::EndCondition( TacticalEndSceneData* data )
 	else if ( nTerransAlive == 0 && nAliensAlive > 0 )
 		data->result = TacticalEndSceneData::DEFEAT;
 
+#ifndef LANDER_RESCUE
 	// If the terrans are all down for the count, then it acts like the 
 	// lander leaving. KO becomes MIA.
 	if ( nTerransAlive == 0 ) {
@@ -938,6 +939,7 @@ bool BattleScene::EndCondition( TacticalEndSceneData* data )
 				units[i].Leave();
 		}
 	}
+#endif
 
 	if ( nAliensAlive == 0 || nTerransAlive == 0 ) {
 		// Add a storage to shove the spoils of victory.
@@ -2253,7 +2255,7 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 		else if ( tapped == &exitButton ) {
 			DialogSceneData* data = new DialogSceneData();
 			data->type = DialogSceneData::DS_YESNO;
-			data->text = "Do you wish to evacuate? All units not in lander will be lost.";
+			data->text = "Do you wish to evacuate? Items on ground will be lost.";
 
 			game->PushScene( Game::DIALOG_SCENE, data );
 		}
@@ -2270,6 +2272,7 @@ void BattleScene::SceneResult( int sceneID, int result )
 
 	if ( sceneID == Game::DIALOG_SCENE && result ) {
 		// Exit!
+#ifndef LANDER_RESCUE
 		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 			if ( units[i].InUse() ) {
 				Vector2I v = units[i].Pos();
@@ -2278,6 +2281,7 @@ void BattleScene::SceneResult( int sceneID, int result )
 				}
 			}
 		}
+#endif
 		// The aliens are going to get all the civs
 		for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i ) {
 			DamageDesc d = { 100, 100, 100 };

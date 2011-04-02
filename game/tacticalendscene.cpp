@@ -169,12 +169,7 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 		static const char* remove[2] = { "Cell", "Anti" };
 		for( int i=0; i<2; ++i ) {
 			if ( research->GetStatus( remove[i] ) != Research::TECH_RESEARCH_COMPLETE ) {
-				const ItemDef* itemDef = game->GetItemDefArr().Query( remove[i] );
-
-				while( d->storage->Contains( itemDef ) ) {
-					Item item;
-					d->storage->RemoveItem( itemDef, &item );
-				}
+				d->storage->ClearItem( remove[i] );
 			}
 		}
 	}

@@ -25,6 +25,7 @@
 #include "../engine/enginelimits.h"
 
 #define IMMEDIATE_BUY
+#define LANDER_RESCUE
 
 enum SavePathType {
 	SAVEPATH_NONE,

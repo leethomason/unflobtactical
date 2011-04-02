@@ -403,6 +403,14 @@ void Storage::AddItem( const Item& item )
 }
 
 
+void Storage::ClearItem( const char* name )
+{
+	const ItemDef* itemDef = itemDefArr.Query( name );
+	GLASSERT( itemDef );
+	rounds[ itemDef->index ] = 0;
+}
+
+
 void Storage::AddStorage( const Storage& storage )
 {
 	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {

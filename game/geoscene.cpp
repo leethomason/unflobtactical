@@ -15,6 +15,7 @@
 #include "researchscene.h"
 #include "settings.h"
 #include "battlescene.h"
+#include "helpscene.h"
 
 #include "../engine/loosequadtree.h"
 #include "../engine/particle.h"
@@ -428,6 +429,11 @@ void GeoScene::HandleItemTapped( const gamui::UIItem* item )
 			ResearchSceneData* data = new ResearchSceneData();
 			data->research = &research;
 			game->PushScene( Game::RESEARCH_SCENE, data );
+		}
+	}
+	else if ( item == &helpButton ) {
+		if ( !game->IsScenePushed() ) {
+			game->PushScene( Game::HELP_SCENE, new HelpSceneData( "geoHelp" ) );
 		}
 	}
 }
@@ -1063,8 +1069,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 					}
 
 					if ( result != TacticalEndSceneData::DEFEAT ) {
-						// Go through items, and collect them up. If the debris is at a unit location, add
-						// it back to the unit.
+						// Go through items, and collect them up.
 						const TiXmlElement* groundDebris = docHandle.FirstChild( "Game" ).FirstChild( "BattleScene" ).FirstChild( "Map" ).FirstChild( "GroundDebris" ).ToElement();
 						if ( groundDebris ) {
 							for( const TiXmlElement* debris = groundDebris->FirstChildElement( "Debris" ); debris; debris=debris->NextSiblingElement( "Debris" ) ) {
@@ -1080,6 +1085,8 @@ void GeoScene::SceneResult( int sceneID, int result )
 						}
 					}
 
+					// Try to restore items to downed units, by comparing
+					// old inventory to new inventory
 					for( int i=0; i<unitCount; ++i ) {
 						if ( newUnits[i].GetInventory()->Empty() ) {
 							const Unit* oldUnit = Unit::Find( units, MAX_TERRANS, newUnits[i].Body() );
@@ -1089,7 +1096,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 									if ( itemDef ) {
 										Item item;
 										foundStorage.RemoveItem( itemDef, &item );
-										newUnits[unitCount].GetInventory()->AddItem( item );
+										newUnits[i].GetInventory()->AddItem( item );
 									}
 								}
 							}
