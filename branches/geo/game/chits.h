@@ -151,7 +151,7 @@ public:
 		AI_OCCUPATION,	// a battleship has occupied a capital. It will not leave (until destroyed)
 		AI_CROP_CIRCLE,	// chillin' and making crop circles
 
-		AI_PARKED = AI_CRASHED,
+		AI_PARKED,
 	};
 
 	enum {
@@ -171,7 +171,7 @@ public:
 
 	virtual UFOChit* IsUFOChit()		{ return this; }
 	
-	virtual bool Parked() const			{ return ai >= AI_PARKED; }
+	virtual bool Parked() const			{ return ai >= AI_CRASHED; }
 	bool Flying() const					{ return ai == AI_TRAVELLING || ai == AI_ORBIT; }
 	int Type() const					{ return type; }
 	bool CanSendLander( bool battleshipTech ) const			

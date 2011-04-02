@@ -847,9 +847,15 @@
        </p>
       <p>Good luck and have fun!</p>
     </page>
-  </text>  
+  </text>
 
-  <!-- Sound effects -->
+  <text name="geoHelp" >
+    <page>
+      <p>Placeholder Geo help</p>
+    </page>
+  </text>
+
+        <!-- Sound effects -->
   <data filename="explosion.wav" compress="false"/>
   <data filename="hit.wav" compress="false"/>
   <data filename="terrandown0.wav" compress="false"/>

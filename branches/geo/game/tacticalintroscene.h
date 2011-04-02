@@ -123,7 +123,7 @@ public:
 		default:
 			break;
 		}
-		GLASSERT( nCiv >= 0 && nCiv < MAX_CIVS );
+		GLASSERT( nCiv >= 0 && nCiv <= MAX_CIVS );
 		return nCiv;
 	}
 

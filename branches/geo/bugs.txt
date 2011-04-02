@@ -1,16 +1,18 @@
 Issues:
 
 Bugs:
-- Tactical: no shadows on geo sceen when using netbook
 - Tactical: AI shoots walls. This one is strange. It certainly checks. ??
 
 - review save system
 	x save geo on entering/exiting tactical?
 	x delete tactical saves?
 	x if battlescene active, connect BattleSceneData to Geo
-	- Big save / load testing
+	x Big save / load testing
+	- disable FastBattle for now
+- making leaving non-fatal
 
 - need to limit research text length
+- new game...how to handle? Dialog screen?
 - sound effects
 - geo: art for special abilities
 - geo: art for cores
@@ -28,6 +30,7 @@ Deferred:
 - geo: decals overdraw
 
 Fixed:
+- Tactical: no shadows on geo sceen when using netbook
 - need end fight!
 - vary # of civs
 - Tactical: no guards getting created (were set in XML)

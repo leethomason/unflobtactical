@@ -279,12 +279,14 @@ int FastBattleScene::RunSim( Unit* soldier, Unit* alien, bool day )
 	int nSoldiers = Unit::Count( soldier, MAX_TERRANS, Unit::STATUS_ALIVE );
 	int nAliens   = Unit::Count( alien, MAX_ALIENS, Unit::STATUS_ALIVE );
 
+#ifndef LANDER_RESCUE
 	if ( nSoldiers == 0 ) {
 		for( int i=0; i<MAX_TERRANS; ++i ) {
 			if ( soldier[i].InUse() )
 				soldier[i].Leave();
 		}
 	}
+#endif
 
 	int result = TacticalEndSceneData::TIE;
 	if ( nSoldiers > 0 && nAliens == 0 )

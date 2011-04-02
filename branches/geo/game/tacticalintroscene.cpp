@@ -275,7 +275,6 @@ void TacticalIntroScene::Tap(	int action,
 
 	if ( item == &newTactical ) {
 		newTactical.SetVisible( false );
-		//newCampaign.SetVisible( false );
 		newGeo.SetVisible( false );
 		continueButton.SetVisible( false );
 		for( int i=0; i<TOGGLE_COUNT; ++i ) {

@@ -7,17 +7,19 @@ GeoMap::GeoMap( SpaceTree* _tree ) : tree( _tree )
 	scrolling = 0;
 	dayNightOffset = 0;
 
-	dayNightSurface.Set( Surface::RGB16, DAYNIGHT_TEX_SIZE, 1 );
+	// Use a size 2 texture. The netbook GPU driver doesn't like size 1 textures.
+	dayNightSurface.Set( Surface::RGB16, DAYNIGHT_TEX_SIZE, 2 );
 	{
 		Surface::RGBA nc = { EL_NIGHT_RED_U8, EL_NIGHT_GREEN_U8, EL_NIGHT_BLUE_U8 };
 		U16 night = Surface::CalcRGB16( nc );
 		for( int i=0; i<DAYNIGHT_TEX_SIZE; ++i ) {
 			dayNightSurface.SetTex16( i, 0, i<DAYNIGHT_TEX_SIZE/2 ? night : 0xffff );
+			dayNightSurface.SetTex16( i, 1, i<DAYNIGHT_TEX_SIZE/2 ? night : 0xffff );
 		}
 	}
 
 	geoModel[0] = geoModel[1] = 0;
-	dayNightTex = TextureManager::Instance()->CreateTexture( "GeoDayNight", DAYNIGHT_TEX_SIZE, 1, Surface::RGB16, Texture::PARAM_NONE, this );
+	dayNightTex = TextureManager::Instance()->CreateTexture( "GeoDayNight", DAYNIGHT_TEX_SIZE, 2, Surface::RGB16, Texture::PARAM_NONE, this );
 }
 
 

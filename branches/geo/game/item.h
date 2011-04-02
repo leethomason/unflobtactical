@@ -309,6 +309,7 @@ public:
 	void SetFullRounds();							// refill clips
 
 	bool RemoveItem( const ItemDef*, Item* item );	// returns true if successful
+	void ClearItem( const char* name );
 	bool Contains( const ItemDef* ) const;
 
 	// Return true if either is true:
