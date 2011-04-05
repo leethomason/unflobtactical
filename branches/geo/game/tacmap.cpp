@@ -152,7 +152,8 @@ TacMap::~TacMap()
 {
 	for( int i=0; i<debris.Size(); ++i ) {
 		delete debris[i].storage;
-		tree->FreeModel( debris[i].crate );
+		if ( debris[i].crate )
+			tree->FreeModel( debris[i].crate );
 	}
 	debris.Clear();
 }

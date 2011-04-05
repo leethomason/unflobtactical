@@ -53,6 +53,7 @@ using namespace grinliz;
 extern long memNewCount;
 
 Game::Game( int width, int height, int rotation, const char* path ) :
+	battleData( itemDefArr ),
 	screenport( width, height, rotation ),
 	markFrameTime( 0 ),
 	frameCountsSinceMark( 0 ),
@@ -84,6 +85,7 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 
 // WARNING: strange map maker code
 Game::Game( int width, int height, int rotation, const char* path, const TileSetDesc& base ) :
+	battleData( itemDefArr ),
 	screenport( width, height, rotation ),
 	markFrameTime( 0 ),
 	frameCountsSinceMark( 0 ),
@@ -138,7 +140,7 @@ void Game::Init()
 {
 	mapmaker_showPathing = 0;
 	scenePopQueued = false;
-	sceneResetQueued = false;
+//	sceneResetQueued = false;
 	currentFrame = 0;
 	surface.Set( Surface::RGBA16, 256, 256 );		// All the memory we will ever need (? or that is the intention)
 
@@ -252,6 +254,7 @@ void Game::SceneNode::Free()
 
 void Game::PushScene( int sceneID, SceneData* data )
 {
+	GLOUTPUT(( "PushScene %d\n", sceneID ));
 	GLASSERT( sceneQueued.sceneID == NUM_SCENES );
 	GLASSERT( sceneQueued.scene == 0 );
 
@@ -262,6 +265,7 @@ void Game::PushScene( int sceneID, SceneData* data )
 
 void Game::PopScene( int result )
 {
+	GLOUTPUT(( "PopScene result=%d\n", result ));
 	GLASSERT( scenePopQueued == false );
 	scenePopQueued = true;
 	if ( result != INT_MAX )
@@ -274,12 +278,9 @@ void Game::PushPopScene()
 	if ( scenePopQueued || sceneQueued.sceneID != NUM_SCENES ) {
 		TextureManager::Instance()->ContextShift();
 	}
-	GLASSERT( !(sceneResetQueued && sceneQueued.sceneID != NUM_SCENES ));
 
-	while ( scenePopQueued || sceneResetQueued )
+	if ( scenePopQueued )
 	{
-		GLASSERT( sceneResetQueued || (!sceneStack.Empty()) );
-
 		sceneStack.Top()->scene->DeActivate();
 		scenePopQueued = false;
 		int result = sceneStack.Top()->result;
@@ -294,21 +295,19 @@ void Game::PushPopScene()
 				sceneStack.Top()->scene->SceneResult( id, result );
 			}
 		}
-		if ( sceneStack.Empty() )
-			break;
 	}
 
-	if ( sceneResetQueued ) {
-		sceneResetQueued = false;
-		GLASSERT( sceneStack.Empty() );
-
+	if (    sceneQueued.sceneID == NUM_SCENES 
+		 && sceneStack.Empty() ) 
+	{
 		delete engine;
 		engine = new Engine( &screenport, database );
 
 		PushScene( INTRO_SCENE, 0 );
+		PushPopScene();
 	}
-
-	if ( sceneQueued.sceneID != NUM_SCENES ) {
+	else if ( sceneQueued.sceneID != NUM_SCENES ) 
+	{
 		GLASSERT( sceneQueued.sceneID < NUM_SCENES );
 
 		if ( sceneStack.Size() ) {
@@ -339,6 +338,7 @@ void Game::PushPopScene()
 			if ( fp ) {
 				TiXmlDocument doc;
 				doc.LoadFile( fp );
+				//GLASSERT( !doc.Error() );
 				if ( !doc.Error() ) {
 					Load( doc );
 				}
@@ -364,11 +364,11 @@ void Game::CreateScene( const SceneNode& in, SceneNode* node )
 {
 	Scene* scene = 0;
 	switch ( in.sceneID ) {
-		case BATTLE_SCENE:		scene = new BattleScene( this );													break;
+		case BATTLE_SCENE:		battleData.Init(); scene = new BattleScene( this );									break;
 		case CHARACTER_SCENE:	scene = new CharacterScene( this, (CharacterSceneData*)in.data );					break;
 		case INTRO_SCENE:		scene = new TacticalIntroScene( this );												break;
-		case END_SCENE:			scene = new TacticalEndScene( this, (const TacticalEndSceneData*) in.data );		break;
-		case UNIT_SCORE_SCENE:	scene = new TacticalUnitScoreScene( this, (TacticalEndSceneData*) in.data );		break;
+		case END_SCENE:			scene = new TacticalEndScene( this );												break;
+		case UNIT_SCORE_SCENE:	scene = new TacticalUnitScoreScene( this );											break;
 		case HELP_SCENE:		scene = new HelpScene( this, (const HelpSceneData*)in.data );						break;
 		case DIALOG_SCENE:		scene = new DialogScene( this, (const DialogSceneData*)in.data );					break;
 		case GEO_SCENE:			scene = new GeoScene( this );														break;
@@ -705,3 +705,72 @@ void Game::SetLightMap( float r, float g, float b )
 }
 
 
+int BattleData::CalcResult() const
+{
+	int nTerransAlive = Unit::Count( units+TERRAN_UNITS_START, MAX_TERRANS, Unit::STATUS_ALIVE );
+	int nAliensAlive  = Unit::Count( units+ALIEN_UNITS_START, MAX_ALIENS, Unit::STATUS_ALIVE );
+
+	int result = TIE;
+	if ( nTerransAlive > 0 && nAliensAlive == 0 )
+		result = VICTORY;
+	else if ( nTerransAlive == 0 && nAliensAlive > 0 )
+		result = DEFEAT;
+	return result;
+}
+
+
+void BattleData::Save( FILE* fp, int depth )
+{
+	XMLUtil::OpenElement( fp, depth, "BattleData" );
+	XMLUtil::Attribute( fp, "dayTime", dayTime );
+	XMLUtil::Attribute( fp, "scenario", scenario );
+	XMLUtil::SealElement( fp );
+
+	storage.Save( fp, depth+1 );
+
+	XMLUtil::OpenElement( fp, depth+1, "Units" );
+	XMLUtil::SealElement( fp );
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		units[i].Save( fp, depth+2 );
+	}
+	XMLUtil::CloseElement( fp, depth+1, "Units" );
+	XMLUtil::CloseElement( fp, depth, "BattleData" );
+}
+
+
+void BattleData::Load( const TiXmlElement* doc )
+{
+	for( int i=0; i<MAX_UNITS; ++i )
+		units[i].Free();
+	storage.Clear();
+
+	const TiXmlElement* ele = doc->FirstChildElement( "BattleData" );
+	GLASSERT( ele );
+
+	ele->QueryBoolAttribute( "dayTime", &dayTime );
+	ele->QueryIntAttribute( "scenario", &scenario );
+
+	storage.Load( ele );
+	const TiXmlElement* unitsEle = ele->FirstChildElement( "Units" );
+	GLASSERT( unitsEle );
+
+	int team[3] = { TERRAN_UNITS_START, CIV_UNITS_START, ALIEN_UNITS_START };
+	if ( unitsEle ) {
+		for( const TiXmlElement* unitElement = unitsEle->FirstChildElement( "Unit" );
+			 unitElement;
+			 unitElement = unitElement->NextSiblingElement( "Unit" ) ) 
+		{
+			int t = 0;
+			unitElement->QueryIntAttribute( "team", &t );
+			Unit* unit = &units[team[t]];
+
+			unit->Load( unitElement, storage.GetItemDefArr() );
+			
+			team[t]++;
+
+			GLRELASSERT( team[0] <= TERRAN_UNITS_END );
+			GLRELASSERT( team[1] <= CIV_UNITS_END );
+			GLRELASSERT( team[2] <= ALIEN_UNITS_END );
+		}
+	}
+}

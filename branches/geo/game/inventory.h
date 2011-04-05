@@ -58,6 +58,7 @@ public:
 		}
 		return true;
 	}
+	void ClearItem( const char* name );
 
 	bool IsGeneralSlotFree();
 	bool IsSlotFree( const ItemDef* itemDef );

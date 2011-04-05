@@ -3,21 +3,16 @@ Issues:
 Bugs:
 - Tactical: AI shoots walls. This one is strange. It certainly checks. ??
 
-- review save system
-	x save geo on entering/exiting tactical?
-	x delete tactical saves?
-	x if battlescene active, connect BattleSceneData to Geo
-	x Big save / load testing
-	- disable FastBattle for now
-- making leaving non-fatal
-
-- need to limit research text length
 - new game...how to handle? Dialog screen?
+
+- fix lighting on geo scene
 - sound effects
 - geo: art for special abilities
 - geo: art for cores
 - geo: colors ugly, look not correct
 - geo: help not hooked up
+- new city model
+- new base models
 - fix battlescene not being power of 2
 - fix geo name locations
 - base: rethink layout. Brutal alien beginning. Hard to leave lander.
@@ -30,6 +25,15 @@ Deferred:
 - geo: decals overdraw
 
 Fixed:
+- numScientists in base isn't getting saved correctly. (Goes to 8?)
+- need to limit research text length
+- review save system
+	x save geo on entering/exiting tactical?
+	x delete tactical saves?
+	x if battlescene active, connect BattleSceneData to Geo
+	x Big save / load testing
+	- disable FastBattle for now
+- making leaving non-fatal
 - Tactical: no shadows on geo sceen when using netbook
 - need end fight!
 - vary # of civs

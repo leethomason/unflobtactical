@@ -329,6 +329,8 @@ public:
 	int X() const { return x; }
 	int Y() const { return y; }
 
+	const ItemDefArr& GetItemDefArr() const { return itemDefArr; }
+
 private:
 	int x, y;
 	const ItemDefArr& itemDefArr;

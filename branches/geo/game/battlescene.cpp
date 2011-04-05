@@ -17,12 +17,14 @@
 #include "characterscene.h"
 #include "helpscene.h"
 #include "dialogscene.h"
+#include "tacticalintroscene.h"
 
 #include "game.h"
 #include "cgame.h"
 #include "ufosound.h"
 #include "settings.h"
 #include "tacmap.h"
+#include "research.h"
 
 #include "../engine/uirendering.h"
 #include "../engine/particle.h"
@@ -48,12 +50,13 @@ using namespace gamui;
 
 BattleScene::BattleScene( Game* game ) : Scene( game )
 {
-	//GLRELASSERT( 0 );
+	units = game->battleData.units;
 	subTurnCount = 0;
 	turnCount = 0;
 	isDragging = false;
 	lockedStorage = 0;
 	cameraSet = false;
+	battleEnding = false;
 
 	engine  = game->engine;
 	tacMap = new TacMap( engine->GetSpaceTree(), game->GetItemDefArr() );
@@ -62,7 +65,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	nearPathState.Clear();
 	tacMap->SetPathBlocker( this );
 	dragUnit = 0;
-	scenario = 0;
+//	scenario = 0;
 
 	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, &visibility, engine, units );
 	aiArr[TERRAN_TEAM]		= 0;
@@ -227,6 +230,9 @@ BattleScene::~BattleScene()
 
 	for( int i=0; i<3; ++i )
 		delete aiArr[i];
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		game->battleData.units[i].FreeModels();
+	}
 	delete tacMap;
 }
 
@@ -408,19 +414,14 @@ void BattleScene::Save( FILE* fp, int depth )
 {
 	XMLUtil::OpenElement( fp, depth, "BattleScene" );
 	XMLUtil::Attribute( fp, "currentTeamTurn", currentTeamTurn );
-	XMLUtil::Attribute( fp, "dayTime", tacMap->DayTime() ? 1 : 0 );
+	//XMLUtil::Attribute( fp, "dayTime", tacMap->DayTime() ? 1 : 0 );
 	XMLUtil::Attribute( fp, "turnCount", turnCount );
-	XMLUtil::Attribute( fp, "scenario", scenario );
+	//XMLUtil::Attribute( fp, "scenario", scenario );
 	XMLUtil::SealElement( fp );
 
 	tacMap->Save( fp, depth+1 );
-
-	XMLUtil::OpenElement( fp, depth+1, "Units" );
-	XMLUtil::SealElement( fp );
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		units[i].Save( fp, depth+2 );
-	}
-	XMLUtil::CloseElement( fp, depth+1, "Units" );
+	game->battleData.Save( fp, depth+1 );
+	//XMLUtil::CloseElement( fp, depth+1, "Units" );
 	XMLUtil::CloseElement( fp, depth, "BattleScene" );
 }
 
@@ -435,39 +436,18 @@ void BattleScene::Load( const TiXmlElement* battleElement )
 
 	if ( battleElement ) {
 		battleElement->QueryIntAttribute( "currentTeamTurn", &currentTeamTurn );
-		int daytime = 1;
-		battleElement->QueryIntAttribute( "dayTime", &daytime );
-		tacMap->SetDayTime( daytime ? true : false );
-
 		turnCount = 0;
 		battleElement->QueryIntAttribute( "turnCount", &turnCount );
-		battleElement->QueryIntAttribute( "scenario", &scenario );
 	}
 
 	tacMap->Load( battleElement->FirstChildElement( "Map") );
-	
-	int team[3] = { TERRAN_UNITS_START, CIV_UNITS_START, ALIEN_UNITS_START };
 
-	if ( battleElement->FirstChildElement( "Units" ) ) {
-		for( const TiXmlElement* unitElement = battleElement->FirstChildElement( "Units" )->FirstChildElement( "Unit" );
-			 unitElement;
-			 unitElement = unitElement->NextSiblingElement( "Unit" ) ) 
-		{
-			int t = 0;
-			unitElement->QueryIntAttribute( "team", &t );
-			Unit* unit = &units[team[t]];
-
-			unit->Load( unitElement, game->GetItemDefArr() );
-			unit->InitModel( GetEngine()->GetSpaceTree(), tacMap );
-			
-			team[t]++;
-
-			GLRELASSERT( team[0] <= TERRAN_UNITS_END );
-			GLRELASSERT( team[1] <= CIV_UNITS_END );
-			GLRELASSERT( team[2] <= ALIEN_UNITS_END );
-		}
+	game->battleData.Load( battleElement );
+	tacMap->SetDayTime( game->battleData.dayTime );
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		if ( units[i].InUse() )
+			units[i].InitModel( GetEngine()->GetSpaceTree(), tacMap );
 	}
-	
 
 	ProcessDoors();
 	CalcTeamTargets();
@@ -478,24 +458,8 @@ void BattleScene::Load( const TiXmlElement* battleElement )
 	}
 	OrderNextPrev();
 
-//	if ( turnCount == 0 ) {
-		//tacMap->SetLanderFlight( 1 );
-
-		//Action* action = actionStack.Push();
-		//action->Init( ACTION_LANDER, 0 );
-		//action->type.lander.timeRemaining = LanderAction::TOTAL_TIME;
-
-		//for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		//	if ( units[i].GetModel() ) {
-		//		Model* m = units[i].GetModel();
-		//		m->SetFlag( Model::MODEL_INVISIBLE );
-		//	}
-		//}
-	//}
-
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		if ( units[i].IsAlive() && units[i].GetModel() ) {
-			//engine->camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
 			PushScrollOnScreen( units[i].GetModel()->Pos(), true );
 			break;
 		}
@@ -821,10 +785,16 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 
 	SetUnitOverlays();
 
-	if ( result && EndCondition( &tacticalData ) ) {
-		game->PushScene( Game::END_SCENE, new TacticalEndSceneData( tacticalData ) );
+	// Creates a race condition. Sometimes re-pushes End scene between the sequence:
+	// Battle
+	//		End
+	//		UnitScore
+	// (Battle::SceneResult)
+	// Hence the check for battleEnding
+	if ( !battleEnding && game->battleData.IsBattleOver() ) {
+		PushEndScene();
 	}
-	else { 
+	{ 
 		if ( currentTeamTurn == TERRAN_TEAM ) {
 			if ( selection.soldierUnit && !selection.soldierUnit->IsAlive() ) {
 				SetSelection( 0 );
@@ -851,6 +821,63 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 			}
 		}
 	}
+}
+
+
+void BattleScene::PushEndScene()
+{
+	battleEnding = true;
+	// Note that the end scene can get pushed multiple times in a save/load
+	// cycle. It's important to not do anything that can "accumulate".
+	game->battleData.storage.Clear();
+	Storage* collect = tacMap->CollectAllStorage();
+	if ( collect && game->battleData.CalcResult() == BattleData::VICTORY ) {
+		game->battleData.storage.AddStorage( *collect );
+		game->battleData.storage.SetFullRounds();
+
+		// Remembering the accumulation problem: this is okay, because the
+		// battle storage was just cleared. Storage hasn't been committed
+		// back to the base yet.
+
+		// Award UFO stuff
+		if ( TacticalIntroScene::IsScoutScenario( game->battleData.scenario ) ) {
+			game->battleData.storage.AddItem( "Cor:S" );
+		}
+		else if ( TacticalIntroScene::IsFrigateScenario( game->battleData.scenario ) ) {
+			game->battleData.storage.AddItem( "Cor:F" );
+		}
+		else if ( game->battleData.scenario == TacticalIntroScene::BATTLESHIP ) {
+			game->battleData.storage.AddItem( "Cor:B" );
+		}
+
+		// Alien corpses:
+		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+			if ( units[i].InUse() ) {
+				switch( units[i].AlienType() ) {
+
+				case Unit::ALIEN_GREEN:		game->battleData.storage.AddItem( "Green" );	break;
+				case Unit::ALIEN_PRIME:		game->battleData.storage.AddItem( "Prime" );	break;
+				case Unit::ALIEN_HORNET:	game->battleData.storage.AddItem( "Hrnet" );	break;
+				case Unit::ALIEN_JACKAL:	game->battleData.storage.AddItem( "Jackl" );	break;
+				case Unit::ALIEN_VIPER:		game->battleData.storage.AddItem( "Viper" );	break;
+				default: GLASSERT( 0 );	break;
+
+				}
+			}
+		}
+	}
+	// If the tech isn't high enough, can't use cells and anti
+	const Research* research = game->GetResearch();
+	if ( research ) {
+		static const char* remove[2] = { "Cell", "Anti" };
+		for( int i=0; i<2; ++i ) {
+			if ( research->GetStatus( remove[i] ) != Research::TECH_RESEARCH_COMPLETE ) {
+				game->battleData.storage.ClearItem( remove[i] );
+			}
+		}
+	}
+	GLASSERT( !game->IsScenePushed() );
+	game->PushScene( Game::END_SCENE, 0 );
 }
 
 
@@ -911,15 +938,16 @@ void BattleScene::Debug3D()
 }
 
 
+/*
 bool BattleScene::EndCondition( TacticalEndSceneData* data )
 {
-	memset( data, 0, sizeof( *data ) );
-	data->aliens = units + ALIEN_UNITS_START;
-	data->soldiers = units + TERRAN_UNITS_START;
-	data->civs = units + CIV_UNITS_START;
-	data->dayTime = tacMap->DayTime();
-	GLASSERT( scenario );
-	data->scenario = scenario;
+	//memset( data, 0, sizeof( *data ) );
+	//data->aliens = units + ALIEN_UNITS_START;
+	//data->soldiers = units + TERRAN_UNITS_START;
+	//data->civs = units + CIV_UNITS_START;
+	//data->dayTime = tacMap->DayTime();
+	//GLASSERT( scenario );
+	//data->scenario = scenario;
 
 	int nTerransAlive = Unit::Count( units+TERRAN_UNITS_START, MAX_TERRANS, Unit::STATUS_ALIVE );
 	int nAliensAlive = Unit::Count( units+ALIEN_UNITS_START, MAX_ALIENS, Unit::STATUS_ALIVE );
@@ -949,6 +977,7 @@ bool BattleScene::EndCondition( TacticalEndSceneData* data )
 
 	return false;
 }
+*/
 
 
 
@@ -1554,7 +1583,7 @@ bool BattleScene::ProcessActionCameraBounds( U32 deltaTime, Action* action )
 		inset.Outset( 20 );
 	}
 
-	GLOUTPUT(( "ProcessActionCameraBounds\n" )); 
+	//GLOUTPUT(( "ProcessActionCameraBounds\n" )); 
 	//GLOUTPUT(( "Camera (%.1f,%.1f) ui (%.1f,%.1f)-(%.1f,%.1f)\n",
 	//			ui.x, ui.y, 
 	//			inset.min.x, inset.min.y, inset.max.x, inset.max.y ));
@@ -1859,7 +1888,8 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 									 impact, 
 									 game->CurrentTime(), 
 									 &delayTime );
-			SoundManager::Instance()->QueueSound( weaponDef->weapon[weaponDef->Index(mode)].sound );
+			if ( !battleEnding )
+				SoundManager::Instance()->QueueSound( weaponDef->weapon[weaponDef->Index(mode)].sound );
 		}
 	}
 
@@ -1931,7 +1961,8 @@ int BattleScene::ProcessActionHit( Action* action )
 	int nExplosion = 0;
 
 	if ( !action->type.hit.explosive ) {
-		SoundManager::Instance()->QueueSound( "hit" );
+		if ( !battleEnding )
+			SoundManager::Instance()->QueueSound( "hit" );
 
 		// Apply direct hit damage
 		Model* m = action->type.hit.m;
@@ -1989,7 +2020,8 @@ int BattleScene::ProcessActionHit( Action* action )
 	int totalExplosion = nExplosion;
 	if ( nExplosion ) {
 		// Explosion
-		SoundManager::Instance()->QueueSound( "explosion" );
+		if (!battleEnding)
+			SoundManager::Instance()->QueueSound( "explosion" );
 
 		const int MAX_RAD = 2;
 		const int MAX_RAD_2 = MAX_RAD*MAX_RAD;
@@ -2236,12 +2268,7 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 		else if ( tapped == &nextTurnButton ) {
 			SetSelection( 0 );
 			tacMap->ClearNearPath();
-			if ( EndCondition( &tacticalData ) ) {
-				game->PushScene( Game::END_SCENE, new TacticalEndSceneData( tacticalData ) );
-			}
-			else {
-				NextTurn( true );
-			}
+			NextTurn( true );
 		}
 		else if ( tapped == controlButton + NEXT_BUTTON ) {
 			HandleNextUnit( 1 );
@@ -2289,53 +2316,15 @@ void BattleScene::SceneResult( int sceneID, int result )
 				units[i].DoDamage( d, tacMap );
 		}
 
-		EndCondition( &tacticalData );	// fills out tactical data...
-		game->PushScene( Game::END_SCENE, new TacticalEndSceneData( tacticalData ) );
+		PushEndScene();
 	}
 	else if ( sceneID == Game::CHARACTER_SCENE ) {
 		tacMap->ReleaseStorage( lockedStorage );
 		lockedStorage = 0;
 	}
 	else if ( sceneID == Game::UNIT_SCORE_SCENE ) {
-		/*
-		// add found storage to main storage
-		for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-			if ( foundStorage.GetCount( i ) > 0 ) {			
-				data->storage->AddItem( game->GetItemDefArr().GetIndex( i ), foundStorage.GetCount( i ) );
-			}
-		}
-		// pull stuff out of storage to try to restore items for downed units.
-		GLASSERT( TERRAN_UNITS_START == 0 );	// Assumed in the logic below.
-		for( int i=0; i<MAX_UNITS; ++i ) {
-			if ( units[i].IsUnconscious() ) {
-				for( int k=0; k<Inventory::NUM_SLOTS; ++k ) {
-					const ItemDef* itemDef = data->soldierUnits[k].GetInventory()->GetItemDef( k );
-					if ( itemDef ) {
-						Item item;
-						data->storage->RemoveItem( itemDef, &item );
-						data->soldierUnits[k].GetInventory()->AddItem( k, item );
-					}
-				}
-			}
-		}
-		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i )
-			units[i].FreeModels();
-		memcpy( data->soldierUnits, &units[TERRAN_UNITS_START], sizeof(Unit)*MAX_TERRANS );
-		*/
-
-		int nSoldiersAlive	= Unit::Count( &units[TERRAN_UNITS_START], MAX_TERRANS, Unit::STATUS_ALIVE );
-		int nAliensAlive	= Unit::Count( &units[ALIEN_UNITS_START], MAX_ALIENS, Unit::STATUS_ALIVE );
-		int nCivsTotal		= Unit::Count( &units[CIV_UNITS_START], MAX_CIVS, -1 );
-		int nCivsAlive		= Unit::Count( &units[CIV_UNITS_START], MAX_CIVS, Unit::STATUS_ALIVE );
-
-		int result = TacticalEndSceneData::TIE;
-		if ( nSoldiersAlive > 0 && nAliensAlive == 0 )
-			result = TacticalEndSceneData::VICTORY;
-		else if ( nSoldiersAlive == 0 && nAliensAlive > 0 )
-			result = TacticalEndSceneData::DEFEAT;
-
 		game->Save();
-		game->PopScene( result );
+		game->PopScene( game->battleData.CalcResult() );
 	}
 }
 

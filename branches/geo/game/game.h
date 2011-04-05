@@ -29,6 +29,7 @@
 #include "../shared/gamedbreader.h"
 #include "../gamui/gamui.h"
 #include "item.h"
+#include "unit.h"
 
 #include <limits.h>
 
@@ -58,6 +59,49 @@ struct TileSetDesc {
 	int size;			// 16, 32, 64
 	const char* type;	// "TILE"
 	int variation;		// 0-99
+};
+
+
+/*	If a battle is in progress, this saves the data
+	across the many scenes. (BattleScene, EndScene,
+	etc.) Too many crashing errors when passing data
+	between them.
+*/
+struct BattleData
+{
+	BattleData( const ItemDefArr& arr ) : storage( 0, 0, arr )
+	{
+		Init();
+	}
+	void Init() {
+		for( int i=0; i<MAX_UNITS; ++i )
+			units[i].Free();
+		dayTime = true;
+		scenario = 0;
+		storage.Clear();
+	}
+
+	enum {
+		VICTORY		= 1,
+		DEFEAT		= 2,
+		TIE			= 3,
+	};
+
+	Unit units[MAX_UNITS];
+	
+	bool dayTime;
+	int scenario;
+
+	Storage storage;
+
+	int CalcResult() const;
+	bool IsBattleOver() const {
+		int result = CalcResult();
+		return (result==VICTORY) || (result==DEFEAT);
+	}
+
+	void Save( FILE* fp, int depth );
+	void Load( const TiXmlElement* doc );
 };
 
 
@@ -144,7 +188,7 @@ public:
 
 	void PushScene( int sceneID, SceneData* data );
 	void PopScene( int result = INT_MAX );
-	void PopAllAndReset()	{ sceneResetQueued = true; }
+	//void PopAllAndReset()	{ sceneResetQueued = true; }
 
 	bool IsScenePushed() const		{ return sceneQueued.sceneID != NUM_SCENES; }
 
@@ -169,6 +213,8 @@ public:
 
 	const Research* GetResearch();
 	const gamedb::Reader* GetDatabase()	{ return database; }
+
+	BattleData battleData;
 
 	enum {
 		ATOM_TEXT, ATOM_TEXT_D,
@@ -208,7 +254,7 @@ private:
 	void PushPopScene();
 
 	bool scenePopQueued;
-	bool sceneResetQueued;
+	//bool sceneResetQueued;
 
 	void Init();
 	void LoadTextures();
@@ -247,9 +293,6 @@ private:
 	U32 currentTime;
 	U32 previousTime;
 	bool isDragging;
-
-	//int currentScenario;					// hack
-	//const Research* currentResearch;		// hack
 
 	int rotTestStart;
 	int rotTestCount;
