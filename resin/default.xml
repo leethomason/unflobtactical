@@ -16,37 +16,38 @@
       
       <!-- Alien genetics / reason to be here plotline -->
       <Green points="20">
-        The same kind of creature is in the vaults from 70 years ago. Physically weak,
-        mentally well developed, with reaction time within human ranges. Eyesight is 
-        more adapted to darkness than ours, although the sight mechanisms are the same.
-        The greens are much better adapted to night fighting than humans.
+        The same kind of creature is in the vaults from 70 years ago. Compared 
+        to humans physically weak but mentally well developed. Eyesight is 
+        more adapted to darkness than ours, although the sight mechanisms are 
+        the same.
         <required0 item="Green" />
       </Green>
       <Hornet points="40">
-        The Hornet is a fast, mobile alien assault troop. The Hornet is genetically a blend
-        of the alien DNA we see in the Green with another race. The Greens or their masters
-        must be assimilating the genetics of other creatures.
+        The Hornet is a fast, mobile alien assault troop. The Hornet is genetically
+        a blend of the alien DNA we see in the Green with another race. The Greens 
+        or their masters must be assimilating the genetics of other creatures.
         <required0 research="Green" />
         <required1 item="Hrnet" />
       </Hornet>
       <Viper points="40">
-        The Viper is a heavy alien assault troop with significant natural armor. Like the Hornet,
-        the Viper is a genetic blend. The genetic sources seem to indicate that the Hornet and Viper
-        are not from the Green's homeworld.
+        The Viper is a heavy alien assault troop with significant natural armor.
+        The Viper is a genetic blend of the Green DNA with creatures of radically
+        different genetics, possibly from yet another world.
         <required0 research="Green" />
         <required2 item="Viper" />
       </Viper>
       <Jackal points="60">
-        The Jackal is a cybort based on robotics and an alien creature. The creature - whatever it
-        is and wherever it from - is genetically distict yet again from the other aliens.
+        The Jackal is a cyborg: on robotics melded to an alien creature. The 
+        creature - whatever it is and wherever it from - is genetically distict 
+        from all the other aliens.
         <required0 research="Green" />
         <required2 item="Jackl" />
       </Jackal>
       <Prime points="80">
-        The Prime and Green and lesser and greater creatures of the same race perhaps.
-        Very similar, yet the Prime is clearly the more intelligent with better
-        physical attributes as well. Clearly the ruling class. We must conclude that
-        the aliens are conquering and integrating the galaxy.
+        The Prime and Green and lesser and greater creatures of the same race.
+        The Prime is almost certainly the ruling class. Given the genetic variation
+        we see among the aliens, we must conclude that the Prime are conquering 
+        and integrating races of the galaxy...and have now come to Earth.
         <required0 item="Prime" />
         <required1 research="Green" />
         <required2 research="Hornet" />
@@ -56,9 +57,8 @@
       <!-- UFOs and Alien Base Plotline -->
       <UFOs points="40" >
         We have detected 3 classes of UFOs, which we refer to as the Scout, Frigate,
-        and Battleship. Something the size of the Battleship will never be able to
-        land on the Earth's surface; we're not sure how to attack it assuming it 
-        can hover like the other alien ships.
+        and Battleship. Note that the Battleship never actually lands; we will need
+        to develop technology to inflitrate them.
         <required0 research="Arrival" />
       </UFOs>
       <AlienCores points="40">
@@ -70,14 +70,14 @@
       <Scout points="40">
         The Scout is a small ship undoubtlable responsible for many alient abductions
         and sightings in the past. Why they leave crop circles as a part of their
-        abduction/scanning missions is a mystery. They hover for a short amount of
+        abduction/scanning missions is a mystery. They hover for only a short amount of
         time and can be intercepted on land. 
         <required0 research="AlienCores" />
       </Scout>
       <AlienTech points="40">
-        Alien weapons show tech classes we've designated T1, T2, and T3.
-        Whether higher tech weapons reflect manufacturing cost or alien
-        social status is unclear.
+        Alien weapons show tech classes we've designated T1, T2, and T3. Perhaps
+        weapon tech reflects rank or status? The cells used to power the weapons
+        are unstable off the field of battle.
         <required0 research="AlienCores" />
       </AlienTech>
       <Cell points="60">
@@ -88,7 +88,8 @@
       </Cell>
       <Anti points="80">
         We have research techniques to field stabilize the alien anti-matter cells used in high
-        power alien weapons. We can also charge them at the base. You may now collect cells in the field.
+        power alien weapons. We can also charge them at the base. You may now collect anti-matter 
+        clips in the field.
         <required0 item="Cor:F" />
         <required1 research="Viper" />
         <required2 research="Cell" />
@@ -127,60 +128,71 @@
 
       <!-- Items -->
       <ASLT-2 points="40">
-        Description Needed
+        We have improved the assault rifle based on analysis of alien Ray Guns. It is
+        now a lighter, more accurate, and more powerful weapon.
         <required1 item="RAY-2" />  <!-- was PLS, but PLS is hard to get w/o destroyer. And destroyer hard to get without ALST-2 -->
       </ASLT-2>      
       <ASLT-3 points="60">
-        Description Needed
+        The ASLT-3 Pulse Rifle is a hybrid of terran and alien technology. It is a very
+        effective all purpose weapon.
         <required0 research="Hornet" />
         <required1 research="ASLT-2" />
         <required2 item="PLS-3" />
       </ASLT-3>
 
       <LR-2 points="40">
-        Description Needed
+        The study of alien Ray Guns has allowed to improve the range and punch of 
+        the Long Range rifle.
         <required0 item="RAY-1" />
       </LR-2>
       <LR-3 points="60">
-        Description Needed
+        Based on alien stabilization technology, the LR-3 does high damage and
+        is extremely accurate.
         <required0 research="Prime" />
         <required1 research="LR-2" />
         <required2 item="RAY-3" />
       </LR-3>
 
       <MCAN-2 points="40">
-        Description Needed
+        Study of the alien Storm-1 has allowed us to improve the effectivess
+        of our heavy weapon platform.
         <required0 item="STRM-1" />
       </MCAN-2>
       <MCAN-3 points="60">
-        Description Needed
+        Study of the alien Storm-3 and Jackal's targeting system has allowed
+        us to develop a devastating yet portable weapon platform.
         <required0 research="MCAN-2" />
         <required1 item="STRM-3" />
         <required2 research="Jackal" />
       </MCAN-3>
 
       <SG:K points="60">
-        Description Needed
+        Shield Generators are based on alien field technology. They enhance 
+        armor. The SG:K protects against kinetic (mass driver) weapons.
         <required0 research="Cor:S" />
         <required1 research="Viper" />
       </SG:K>
       <SG:I points="80">
-        Description Needed
+        Shield Generators are based on alien field technology. They enhance
+        armor. The SG:I protects against incindiary weapons.
         <required0 research="SG:I" />
         <required1 research="Hornet" />
       </SG:I>
       <SG:E points="100">
-        Description Needed
+        Shield Generators are based on alien field technology. They enhance
+        armor. The SG:I protects against energy weapons.
         <required0 research="SG:I" />
         <required1 research="Prime" />
       </SG:E>
 
       <ARM-2 points="40">
-        Description Needed
+        We have improved the strength of standard combat armor, with the
+        same weight and mobility.
         <required0 research="LR-2" />
       </ARM-2>
       <ARM-3 points="80">
-        Description Needed
+        Based on alien memory allow technology, the ARM-3 is very good
+        protection for field engagements.
         <required0 research="ARM-2" />
         <required1 research="Viper" />
       </ARM-3>
@@ -229,7 +241,7 @@
   <texture filename="defeat.png" />
   <texture filename="victory.png" />
 
-  <texture filename="geomap.png" />
+  <texture filename="geomap.png" width="512" height="256"/>
   <texture filename="cropcircle.png" width="64" height="64" />
   <texture filename="basemap.png" />
 

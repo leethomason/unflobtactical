@@ -58,6 +58,14 @@ void NameRankUI::Init( gamui::Gamui* g )
 }
 
 
+void NameRankUI::SetRank( int r )
+{
+	gamui::RenderAtom rankAtom = UIRenderer::CalcIconAtom( ICON_RANK_0 + r );
+	rank.SetAtom( rankAtom );
+	rank.SetSize( name.Height(), name.Height() );
+}
+
+
 void NameRankUI::Set( float x, float y, const Unit* unit, bool displayWeapon )
 {
 	CStr<90> cstr;
@@ -80,9 +88,7 @@ void NameRankUI::Set( float x, float y, const Unit* unit, bool displayWeapon )
 	name.SetText( cstr.c_str() );
 
 	if ( unit ) {
-		gamui::RenderAtom rankAtom = UIRenderer::CalcIconAtom( ICON_RANK_0 + unit->GetStats().Rank() );
-		rank.SetAtom( rankAtom );
-		rank.SetSize( name.Height(), name.Height() );
+		SetRank( unit->GetStats().Rank() );
 	}
 	else {
 		gamui::RenderAtom nullAtom;

@@ -179,34 +179,6 @@ void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const gri
 				data->base->RemoveItem( sDef, &dummy );
 		}
 	}
-	/*
-	else if ( uiItem == &hireSoldier ) {
-		if ( *data->cash >= SOLDIER_COST ) {
-
-			*data->cash -= SOLDIER_COST;
-			int nSoldiers = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_ALIVE );
-			GLASSERT( nSoldiers < MAX_TERRANS && !data->soldiers[nSoldiers].InUse() );
-			data->soldiers[nSoldiers].Free();	// just in case.
-			memset( &data->soldiers[nSoldiers], 0, sizeof(Unit) );
-
-			int seed = *data->cash ^ nSoldiers;
-			TacticalIntroScene::GenerateTerranTeam( &data->soldiers[nSoldiers], 1, 
-													data->soldierBoost ? 0.0f : 0.5f,
-													game->GetItemDefArr(),
-													seed );
-			ComputePrice( 0 );
-			SetHireButtons();
-		}
-	}
-	else if ( uiItem == &hireScientist ) {
-		if ( *data->cash >= SCIENTIST_COST ) {
-			*data->cash -= SCIENTIST_COST;
-			*data->scientists = *data->scientists + 1;
-			ComputePrice( 0 );
-			SetHireButtons();
-		}
-	}
-	*/
 	else {
 		const ItemDef* itemDef = 0;
 		itemDef = baseWidget->ConvertTap( uiItem );
@@ -240,33 +212,6 @@ void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const gri
 	baseWidget->SetButtons();
 	regionWidget->SetButtons();
 }
-
-
-/*
-void BaseTradeScene::SetHireButtons()
-{
-	int nSoldiers = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_ALIVE );
-	static const int SZ=8;
-	char buf[SZ];
-
-	SNPrintf( buf, SZ, "%d/%d", nSoldiers, MAX_TERRANS );
-	hireSoldier.SetText( buf );
-	SNPrintf( buf, SZ, "$%d", SOLDIER_COST );
-	hireSoldier.SetText2( buf );
-	hireSoldier.SetEnabled( nSoldiers < MAX_TERRANS );
-
-	if ( data->scientists ) {
-		SNPrintf( buf, SZ, "%d/%d", *data->scientists, MAX_SCIENTISTS );
-		hireScientist.SetText( buf );
-		SNPrintf( buf, SZ, "$%d", SCIENTIST_COST );
-		hireScientist.SetText2( buf );
-		hireScientist.SetEnabled( *data->scientists < MAX_SCIENTISTS );
-	}
-	else {
-		hireScientist.SetVisible( false );
-	};
-}
-*/
 
 
 bool BaseTradeScene::ComputePrice( int* _total )

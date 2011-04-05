@@ -81,7 +81,7 @@ void FastBattleScene::Tap(	int action,
 	}
 
 	if ( item == &button ) {
-		if ( battleResult == TacticalEndSceneData::VICTORY ) {
+		if ( battleResult == BattleData::VICTORY ) {
 			// Collect up alien stuff.
 			for( int i=0; i<MAX_ALIENS; ++i ) {
 				if ( aliens[i].InUse() ) {
@@ -109,6 +109,8 @@ void FastBattleScene::Tap(	int action,
 				}
 			}
 		}
+		GLASSERT( 0 );	// not working..
+		/*
 		TacticalEndSceneData* d = new TacticalEndSceneData();
 		d->aliens   = aliens;
 		d->soldiers = data->soldierUnits;
@@ -118,7 +120,8 @@ void FastBattleScene::Tap(	int action,
 		d->result =  battleResult;
 		d->storage = &foundStorage;
 		// Don't pop ourselves, since this objects has 'alien' and 'civs' memory.
-		game->PushScene( Game::END_SCENE, d );
+		*/
+		game->PushScene( Game::END_SCENE, 0 );
 	}
 }
 
@@ -288,11 +291,12 @@ int FastBattleScene::RunSim( Unit* soldier, Unit* alien, bool day )
 	}
 #endif
 
-	int result = TacticalEndSceneData::TIE;
-	if ( nSoldiers > 0 && nAliens == 0 )
-		result = TacticalEndSceneData::VICTORY;
-	else if ( nSoldiers == 0 && nAliens > 0 )
-		result = TacticalEndSceneData::DEFEAT;
-	return result;
+//	int result = TacticalEndSceneData::TIE;
+//	if ( nSoldiers > 0 && nAliens == 0 )
+//		result = TacticalEndSceneData::VICTORY;
+//	else if ( nSoldiers == 0 && nAliens > 0 )
+//		result = TacticalEndSceneData::DEFEAT;
+//	return result;
+	return 0;
 }
 

@@ -54,6 +54,6 @@ void GeoEndScene::Tap(	int action,
 	}
 
 	if ( item == &okayButton ) {
-		game->PopAllAndReset();
+		game->PopScene();
 	}
 }

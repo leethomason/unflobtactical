@@ -119,8 +119,8 @@ AlienDef gAlienDef[NUM_ALIENS] = {
 /*static*/ int Unit::XPToRank( int xp )
 {
 	GLASSERT( NUM_RANKS == 5 );
-	if      ( xp > 25 ) return 4;
-	else if ( xp > 12 ) return 3;
+	if      ( xp > 30 ) return 4;
+	else if ( xp > 15 ) return 3;
 	else if ( xp > 5 )  return 2;
 	else if ( xp > 1 )  return 1;
 	return 0;

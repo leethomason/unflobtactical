@@ -159,6 +159,19 @@ bool Inventory::RemoveItem( int slot )
 }
 
 
+void Inventory::ClearItem( const char* name )
+{
+	for( int i=0; i<NUM_SLOTS; ++i ) {
+		if ( slots[i].IsSomething() ) {
+			const ItemDef* itemDef = slots[i].GetItemDef();
+			if ( StrEqual( name, itemDef->name ) ) {
+				slots[i].Clear();
+			}
+		}
+	}
+}
+
+
 Item* Inventory::ArmedWeapon()
 {
 	if ( slots[0].IsSomething() && slots[0].IsWeapon() )

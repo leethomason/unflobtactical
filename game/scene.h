@@ -132,6 +132,7 @@ struct NameRankUI {
 
 	void Init( gamui::Gamui* );
 	void Set( float x, float y, const Unit* unit, bool displayWeapon );
+	void SetRank( int rank );
 	void SetVisible( bool visible ) {
 		rank.SetVisible( visible );
 		name.SetVisible( visible );

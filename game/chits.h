@@ -283,10 +283,9 @@ public:
 	Unit* GetUnits() { return units; }
 	int NumUnits();
 
-	int NumResearchers()				{ return nScientists; }
-	void SetNumResearchers( int m )		{ GLASSERT( m <= nScientists ); nScientists = m; }
-
-	int* GetResearcherPtr() { return &nScientists; }
+	int NumScientists()					{ return nScientists; }
+	void SetNumScientists( int m )		{ nScientists = m; }
+	int* GetScientstPtr()				{ return &nScientists; }
 
 	bool IsFacilityComplete( int i )	const	{ return facilityStatus[i] == 0; }
 	bool IsFacilityInProgress( int i )			{ return facilityStatus[i] > 0; }

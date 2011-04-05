@@ -25,10 +25,10 @@
 
 using namespace grinliz;
 
-TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d ) : Scene( _game )
+TacticalEndScene::TacticalEndScene( Game* _game ) : Scene( _game )
 {
 	Engine* engine = GetEngine();
-	data = d;
+	//data = d;
 
 	gamui::RenderAtom nullAtom;
 	backgroundUI.Init( game, &gamui2D, false );
@@ -50,50 +50,25 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 	float yPos = GAME_GUTTER;
 
 	victory.Init( &gamui2D );
-	int nSoldiers = Unit::Count( data->soldiers, MAX_TERRANS, -1 );
-	int nSoldiersStanding = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_ALIVE );
-	int nSoldiersDown      =   Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_KIA )
-						     + Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_UNCONSCIOUS )
-							 + Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_MIA );
+	const Unit* soldiers = &game->battleData.units[TERRAN_UNITS_START];
+	const Unit* aliens = &game->battleData.units[ALIEN_UNITS_START];
+	const Unit* civs = &game->battleData.units[CIV_UNITS_START];
 
-	int nAliens = Unit::Count( data->aliens, MAX_ALIENS, -1 );
-	int nAliensAlive = Unit::Count( data->aliens, MAX_ALIENS, Unit::STATUS_ALIVE );
-	int nAliensKIA = Unit::Count( data->aliens, MAX_ALIENS, Unit::STATUS_KIA );
+	int nSoldiers = Unit::Count( soldiers, MAX_TERRANS, -1 );
+	int nSoldiersStanding = Unit::Count( soldiers, MAX_TERRANS, Unit::STATUS_ALIVE );
+	int nSoldiersDown      =   Unit::Count( soldiers, MAX_TERRANS, Unit::STATUS_KIA )
+						     + Unit::Count( soldiers, MAX_TERRANS, Unit::STATUS_UNCONSCIOUS )
+							 + Unit::Count( soldiers, MAX_TERRANS, Unit::STATUS_MIA );
 
-	int nCivsAlive = Unit::Count( data->civs, MAX_CIVS, Unit::STATUS_ALIVE );
-	int nCivsKIA = Unit::Count( data->civs, MAX_CIVS, Unit::STATUS_KIA );
+	int nAliens = Unit::Count( aliens, MAX_ALIENS, -1 );
+	int nAliensAlive = Unit::Count( aliens, MAX_ALIENS, Unit::STATUS_ALIVE );
+	int nAliensKIA = Unit::Count( aliens, MAX_ALIENS, Unit::STATUS_KIA );
+
+	int nCivsAlive = Unit::Count( civs, MAX_CIVS, Unit::STATUS_ALIVE );
+	int nCivsKIA = Unit::Count( civs, MAX_CIVS, Unit::STATUS_KIA );
 
 	if ( nSoldiersStanding>0 && nAliensAlive==0 ) {
 		victory.SetText( "Victory!" );
-		
-		if ( d->storage ) {
-			// Award UFO stuff
-			if ( TacticalIntroScene::IsScoutScenario( d->scenario ) ) {
-				d->storage->AddItem( "Cor:S" );
-			}
-			else if ( TacticalIntroScene::IsFrigateScenario( d->scenario ) ) {
-				d->storage->AddItem( "Cor:F" );
-			}
-			else if ( d->scenario == TacticalIntroScene::BATTLESHIP ) {
-				d->storage->AddItem( "Cor:B" );
-			}
-
-			// Alien corpses:
-			for( int i=0; i<MAX_ALIENS; ++i ) {
-				if ( data->aliens[i].InUse() ) {
-					switch( data->aliens[i].AlienType() ) {
-
-					case Unit::ALIEN_GREEN:		d->storage->AddItem( "Green" );	break;
-					case Unit::ALIEN_PRIME:		d->storage->AddItem( "Prime" );	break;
-					case Unit::ALIEN_HORNET:	d->storage->AddItem( "Hrnet" );	break;
-					case Unit::ALIEN_JACKAL:	d->storage->AddItem( "Jackl" );	break;
-					case Unit::ALIEN_VIPER:		d->storage->AddItem( "Viper" );	break;
-					default: GLASSERT( 0 );	break;
-
-					}
-				}
-			}
-		}
 	}
 	else if ( nSoldiersStanding==0 ) {
 		victory.SetText( "Defeat." );
@@ -120,16 +95,16 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 	int score[3] = { 0 };
 
 	for( int i=0; i<MAX_TERRANS; ++i ) {
-		if ( d->soldiers[i].InUse() && !d->soldiers[i].IsAlive() ) {
-			score[0] -= d->soldiers[i].GetStats().ScoreLevel();
+		if ( soldiers[i].InUse() && !soldiers[i].IsAlive() ) {
+			score[0] -= soldiers[i].GetStats().ScoreLevel();
 		}
 	}
 	for( int i=0; i<MAX_ALIENS; ++i ) {
-		if ( d->aliens[i].InUse() && !d->aliens[i].IsAlive() ) {
-			score[1] += d->aliens[i].GetStats().ScoreLevel();
+		if ( aliens[i].InUse() && !aliens[i].IsAlive() ) {
+			score[1] += aliens[i].GetStats().ScoreLevel();
 		}
 	}
-	if ( !d->dayTime ) {
+	if ( !game->battleData.dayTime ) {
 		// 50% bonus for night.
 		score[1] = score[1]*3/2;
 	}
@@ -139,11 +114,11 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 	}
 
 	for( int i=0; i<MAX_CIVS; ++i ) {
-		if ( d->civs[i].InUse() ) {
-			if ( d->civs[i].IsAlive() )
-				score[2] += d->civs[i].GetStats().ScoreLevel();
+		if ( civs[i].InUse() ) {
+			if ( civs[i].IsAlive() )
+				score[2] += civs[i].GetStats().ScoreLevel();
 			else
-				score[2] -= d->civs[i].GetStats().ScoreLevel();
+				score[2] -= civs[i].GetStats().ScoreLevel();
 		}
 	}
 
@@ -163,16 +138,6 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 		yPos += SPACING;
 	}
 
-	// If the tech isn't high enough, can't use cells and anti
-	const Research* research = game->GetResearch();
-	if ( research && d->storage ) {
-		static const char* remove[2] = { "Cell", "Anti" };
-		for( int i=0; i<2; ++i ) {
-			if ( research->GetStatus( remove[i] ) != Research::TECH_RESEARCH_COMPLETE ) {
-				d->storage->ClearItem( remove[i] );
-			}
-		}
-	}
 	if ( nSoldiersStanding>0 && nAliensAlive==0 ) {
 		int row=0;
 		for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
@@ -183,11 +148,11 @@ TacticalEndScene::TacticalEndScene( Game* _game, const TacticalEndSceneData* d )
 			if ( !itemDef )
 				continue;
 
-			if ( d->storage && d->storage->GetCount(i) ) {
+			if ( game->battleData.storage.GetCount(i) ) {
 				char buf[30];
 				const char* display = itemDef->displayName.c_str();
 
-				int count =  d->storage->GetCount(i);
+				int count =  game->battleData.storage.GetCount(i);
 				SNPrintf( buf, 30, "%s +%d", display, count );
 
 				items[row].Init( &gamui2D );
@@ -253,7 +218,7 @@ void TacticalEndScene::Tap(	int action,
 
 	if ( item == &okayButton ) {
 		game->PopScene();
-		game->PushScene( Game::UNIT_SCORE_SCENE, new TacticalEndSceneData( *data ) );
+		game->PushScene( Game::UNIT_SCORE_SCENE, 0 );
 	}
 }
 

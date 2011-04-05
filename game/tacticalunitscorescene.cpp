@@ -25,15 +25,13 @@
 
 using namespace grinliz;
 
-TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, TacticalEndSceneData* d ) : Scene( _game )
+TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game ) : Scene( _game )
 {
 	Engine* engine = GetEngine();
-	data = d;
 	nAwards = 0;
 
 	gamui::RenderAtom nullAtom;
 	backgroundUI.Init( game, &gamui2D, false );
-
 
 	int count=0;
 	float yPos			= GAME_GUTTER;
@@ -41,37 +39,41 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, TacticalEndSceneDat
 	float xPosStatus	= GAME_GUTTER+200.0f;
 	float xPosAward		= GAME_GUTTER+300.0f;
 	float size = 20.0f;
+	const Unit* soldiers = &game->battleData.units[TERRAN_UNITS_START];
 
 	for( int i=0; i<MAX_TERRANS; ++i ) {
-		if ( data->soldiers[i].InUse() ) {
+		if ( soldiers[i].InUse() ) {
 			
-			int rank = data->soldiers[i].GetStats().Rank();
-			data->soldiers[i].DoMissionEnd();
+			// Hack to compute XP since this scene can get run multiple times between saves.
+			// The Unit* must be const, so the rank can't be changed on this screen.
+			int oldRank = soldiers[i].GetStats().Rank();
+			int newRank = Unit::XPToRank( soldiers[i].XP() + soldiers[i].KillsCredited() + ( soldiers[i].HP() < soldiers[i].GetStats().TotalHP() ) );
 
 			nameRank[count].Init( &gamui2D );
-			nameRank[count].Set( xPosName, yPos, &data->soldiers[i], false );
+			nameRank[count].Set( xPosName, yPos, &soldiers[i], false );
+			nameRank[count].SetRank( newRank );
 
 			status[count].Init( &gamui2D );
 
-			if ( data->soldiers[i].IsAlive() )
+			if ( soldiers[i].IsAlive() )
 				status[count].SetText( "Active" );
-			else if ( data->soldiers[i].IsKIA() )
+			else if ( soldiers[i].IsKIA() )
 				status[count].SetText( "KIA" );
-			else if ( data->soldiers[i].IsUnconscious() )
+			else if ( soldiers[i].IsUnconscious() )
 				status[count].SetText( "Active(KO)" );
-			else if ( data->soldiers[i].IsMIA() )
+			else if ( soldiers[i].IsMIA() )
 				status[count].SetText( "MIA" );
 
 			status[count].SetPos( xPosStatus, yPos );
 
-			int kills = data->soldiers[i].KillsCredited();
-			bool purpleCircle = data->soldiers[i].HP() != data->soldiers[i].GetStats().TotalHP() && !data->soldiers[i].IsKIA();
+			int kills = soldiers[i].KillsCredited();
+			bool purpleCircle = soldiers[i].HP() != soldiers[i].GetStats().TotalHP() && !soldiers[i].IsKIA();
 
 			float x = xPosAward;
 
-			if ( data->soldiers[i].IsAlive() || data->soldiers[i].IsUnconscious() ) {
+			if ( soldiers[i].IsAlive() || soldiers[i].IsUnconscious() ) {
 
-				if ( rank != data->soldiers[i].GetStats().Rank() ) {
+				if ( oldRank != newRank ) {
 					award[nAwards].Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_LEVEL_UP ), true );
 					award[nAwards].SetPos( x, yPos );
 					award[nAwards].SetSize( size, size );

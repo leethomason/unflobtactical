@@ -62,7 +62,7 @@ public:
 		FEMALE
 	};
 
-	Unit() : status( STATUS_NOT_INIT ), model( 0 ) {}
+	Unit() : status( STATUS_NOT_INIT ), model( 0 ), weapon( 0 ) {}
 	~Unit();
 	
 	void Free();

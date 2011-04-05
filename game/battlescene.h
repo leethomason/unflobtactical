@@ -213,6 +213,7 @@ private:
 	};
 	CStack< Action > actionStack;
 
+	void PushEndScene();
 	void PushRotateAction( Unit* src, const grinliz::Vector3F& dst, bool quantize );
 	
 	// Try to shoot. Return true if success.
@@ -240,9 +241,8 @@ private:
 	grinliz::Rectangle2F CalcInsetUIBounds();
 
 	void OrderNextPrev();
-	// Returns true if the EndCondition is met (which also means
-	// the TacticalEndSceneData has been set.)
-	bool EndCondition( TacticalEndSceneData* data );
+	// Returns true if the EndCondition is met.
+	//bool EndCondition();
 
 	void StopForNewTeamTarget();
 	void DoReactionFire();
@@ -356,9 +356,8 @@ private:
 	int				currentTeamTurn;
 	AI*				aiArr[3];
 	int				currentUnitAI;
-	int				scenario;
+	bool			battleEnding;		// not saved - used to prevent event loops
 	bool			cameraSet;
-	TacticalEndSceneData tacticalData;
 
 	struct TargetEvent
 	{
@@ -382,7 +381,7 @@ private:
 
 	Visibility visibility;
 
-	Unit				units[MAX_UNITS];
+	Unit*				units;
 	gamui::DigitalBar	hpBars[MAX_UNITS];
 
 	// MapMaker

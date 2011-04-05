@@ -339,7 +339,6 @@ void TacticalIntroScene::Tap(	int action,
 			else if ( toggles[SQUAD_8].Down() )
 				count = 8;
 
-			memset( units, 0, sizeof(Unit)*MAX_TERRANS );
 			GenerateTerranTeam( units, count, (float)rank, game->GetItemDefArr(), random.Rand() );
 			data.soldierUnits = units;
 			data.nScientists = 8;
@@ -424,29 +423,23 @@ void TacticalIntroScene::Tap(	int action,
 	CreateMap( fp, random.Rand(), info, database );
 	fprintf( fp, "\n" );
 
-	XMLUtil::OpenElement( fp, 2, "Units" );
-	XMLUtil::SealElement( fp );
-
-	Unit units[MAX_UNITS];
-	memset( units, 0, sizeof(Unit)*MAX_UNITS );
+	BattleData battleData( itemDefArr );
+	battleData.dayTime = data->dayTime;
+	battleData.scenario = data->scenario;
 
 	// Terran soldier units.
-	memcpy( &units[TERRAN_UNITS_START], data->soldierUnits, sizeof(Unit)*MAX_TERRANS );
-
-	// Alien units
-	GenerateAlienTeamUpper( data->scenario, data->crash, data->alienRank, &units[ALIEN_UNITS_START], itemDefArr, random.Rand() );
-
-	// Civ team
-	GenerateCivTeam( &units[CIV_UNITS_START], info.nCivs, itemDefArr, random.Rand() );
-
-	// Save everybody
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		if ( units[i].IsAlive() ) {
-			units[i].Save( fp, 3 );
-		}
+	//memcpy( &battleData.units[TERRAN_UNITS_START], data->soldierUnits, sizeof(Unit)*MAX_TERRANS );
+	for( int i=0; i<MAX_TERRANS; ++i ) {
+		battleData.units[TERRAN_UNITS_START+i] = data->soldierUnits[i];
 	}
 
-	XMLUtil::CloseElement( fp, 2, "Units" );
+	// Alien units
+	GenerateAlienTeamUpper( data->scenario, data->crash, data->alienRank, &battleData.units[ALIEN_UNITS_START], itemDefArr, random.Rand() );
+
+	// Civ team
+	GenerateCivTeam( &battleData.units[CIV_UNITS_START], info.nCivs, itemDefArr, random.Rand() );
+
+	battleData.Save( fp, 1 );
 	XMLUtil::CloseElement( fp, 1, "BattleScene" );
 	XMLUtil::CloseElement( fp, 0, "Game" );		
 }

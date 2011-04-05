@@ -26,13 +26,8 @@ class UIButtonGroup;
 class UITextTable;
 class Research;
 
-//struct BattleResult {
-//	unsigned	result:3;
-//	unsigned	totalCivs:8;
-//	unsigned	civSurvived:8;
-//};
 
-
+/*
 class TacticalEndSceneData : public SceneData
 {
 public:
@@ -52,13 +47,14 @@ public:
 	int scenario;
 
 	Storage* storage;
-};
+};	
+*/
 
 
 class TacticalEndScene : public Scene
 {
 public:
-	TacticalEndScene( Game* _game, const TacticalEndSceneData* data );
+	TacticalEndScene( Game* _game );
 	virtual ~TacticalEndScene();
 
 	virtual void Activate();
@@ -88,7 +84,7 @@ private:
 
 	gamui::PushButton	okayButton;
 
-	const TacticalEndSceneData* data;
+//	const TacticalEndSceneData* data;
 };
 
 

@@ -579,7 +579,6 @@ BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, c
 	this->index = index;
 
 	storage = new Storage( posi.x, posi.y, itemDefArr );
-	memset( units, 0, sizeof(Unit)*MAX_TERRANS );
 	if ( firstBase ) 
 		TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, 0, itemDefArr, 0 );
 
