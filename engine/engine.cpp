@@ -138,7 +138,7 @@ Engine::Engine( Screenport* port, const gamedb::Reader* database )
 	spaceTree = new SpaceTree( -0.1f, 3.0f );
 	renderQueue = new RenderQueue();
 
-	lightDirection.Set( 0.7f, 3.0f, 1.4f );
+	lightDirection.Set( EL_LIGHT_X, EL_LIGHT_Y, EL_LIGHT_Z );
 	lightDirection.Normalize();
 	enableMeta = mapMakerMode;
 }
@@ -230,6 +230,15 @@ void Engine::MoveCameraXZ( float x, float z, Vector3F* calc )
 	}
 }
 
+
+void Engine::SetLightDirection( const grinliz::Vector3F* dir ) 
+{
+	lightDirection.Set( EL_LIGHT_X, EL_LIGHT_Y, EL_LIGHT_Z );
+	if ( dir ) {
+		lightDirection = *dir;
+	}
+	lightDirection.Normalize();
+}
 
 Model* Engine::AllocModel( const ModelResource* resource )
 {

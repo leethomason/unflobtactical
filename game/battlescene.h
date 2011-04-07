@@ -234,7 +234,7 @@ private:
 		OTHER_ACTION_COMPLETE	= 0x04,		// a non unit action (camera motion) finised (resulted in a Pop() )
 	};		
 	int ProcessAction( U32 deltaTime );
-	int ProcessActionShoot( Action* action, Unit* unit, Model* model );
+	int ProcessActionShoot( Action* action, Unit* unit );
 	int ProcessActionHit( Action* action );	
 	bool ProcessActionCameraBounds( U32 deltaTime, Action* action );
 	
@@ -271,7 +271,7 @@ private:
 	void TestHitTesting();
 	void TestCoordinates();
 
-	Unit* UnitFromModel( Model* m, bool useWeaponModel=false );
+	Unit* UnitFromModel( const Model* m, bool useWeaponModel=false );
 	Unit* GetUnitFromTile( int x, int z );
 
 	bool HandleIconTap( const gamui::UIItem* item );
@@ -296,12 +296,12 @@ private:
 
 	bool	SelectedSoldier()		{ return selection.soldierUnit != 0; }
 	Unit*	SelectedSoldierUnit()	{ return selection.soldierUnit; }
-	Model*	SelectedSoldierModel()	{ if ( selection.soldierUnit ) return selection.soldierUnit->GetModel(); return 0; }
+	const Model* SelectedSoldierModel() { if ( selection.soldierUnit ) return selection.soldierUnit->GetModel(); return 0; }
 
 	bool	HasTarget()				{ return selection.targetUnit || selection.targetPos.x >= 0; }
 	bool	AlienTargeted()			{ return selection.targetUnit != 0; }
 	Unit*	AlienUnit()				{ return selection.targetUnit; }
-	Model*	AlienModel()			{ if ( selection.targetUnit ) return selection.targetUnit->GetModel(); return 0; }
+	const Model* AlienModel()		{ if ( selection.targetUnit ) return selection.targetUnit->GetModel(); return 0; }
 
 	void	SetSelection( Unit* unit );
 

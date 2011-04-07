@@ -101,7 +101,8 @@ public:
 	void SetMapPos( const grinliz::Vector2I& pos ) { SetMapPos( pos.x, pos.y ); }
 	void SetPos( const grinliz::Vector3F& pos, float rotation );
 	void SetYRotation( float rotation );
-	void CalcPos( grinliz::Vector3F* ) const;
+	grinliz::Vector3F Pos() const;
+	void SetSelectable( bool selectable );
 
 	// Compute the bounding box of this unit's sight. (VERY loose.)
 	void CalcVisBounds( grinliz::Rectangle2I* b ) const;
@@ -109,7 +110,7 @@ public:
 	// Compute the map pos: x,y (always int) and rotation (always multiple of 45)
 	void CalcMapPos( grinliz::Vector2I*, float* rotation ) const;
 	// Convenience to CalcMapPos
-	grinliz::Vector2I Pos() const {
+	grinliz::Vector2I MapPos() const {
 		grinliz::Vector2I p;
 		CalcMapPos( &p, 0 );
 		return p;
@@ -122,11 +123,8 @@ public:
 	Inventory* GetInventory();
 	const Inventory* GetInventory() const;
 	void UpdateInventory();
-	//bool RestoreInventory( const Inventory& memory, Storage* storage );	// based on 'memory' restore items after battle. Returns 'true' if okay, 'false' if out of stuff
 
-	Model* GetModel()						{ return model; }
 	const Model* GetModel() const			{ return model; }
-	Model* GetWeaponModel()					{ return weapon; }
 	const Model* GetWeaponModel() const		{ return weapon; }
 	void FreeModels();
 

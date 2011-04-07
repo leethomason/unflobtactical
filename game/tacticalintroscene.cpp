@@ -48,6 +48,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 
 	const gamui::ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
 	const gamui::ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
+	const gamui::ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
 
 	static const float BORDER = 25;
 
@@ -56,25 +57,42 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	continueButton.SetPos( BORDER, 320-BORDER-continueButton.Height() );
 	continueButton.SetText( "Continue" );
 
-	/*
-	newCampaign.Init( &gamui2D, green );
-	newCampaign.SetPos( LEFT, 250 );
-	newCampaign.SetSizeByScale( 2.2f, 1 );
-	newCampaign.SetText( "Campaign" );
-	newCampaign.SetEnabled( false );
-	*/
-
 	newTactical.Init( &gamui2D, green );
 	newTactical.SetSizeByScale( 2.2f, 1 );
 	newTactical.SetPos( port.UIWidth()-BORDER-newTactical.Width(), 320-BORDER-continueButton.Height() );
 	newTactical.SetText( "New Tactical" );
-
 	
 	newGeo.Init( &gamui2D, green );
 	newGeo.SetPos( port.UIWidth()-BORDER*2-newTactical.Width()*2, 320-BORDER-continueButton.Height() );
 	newGeo.SetSizeByScale( 2.2f, 1 );
 	newGeo.SetText( "New Geo" );
 	
+	// Same place as new geo
+	newGame.Init( &gamui2D, blue );
+	newGame.SetSizeByScale( 2.2f, 1 );
+	newGame.SetPos( newGeo.X(), newGeo.Y() );
+	newGame.SetText( "New Game" );
+
+	newGameWarning.Init( &gamui2D );
+	newGameWarning.SetPos( newGeo.X()+5, newGeo.Y() + newGeo.Height() + 5 );
+	
+	if ( game->HasSaveFile( SAVEPATH_GEO ) ) {
+		newGeo.SetVisible( false );
+		newTactical.SetVisible( false );
+		newGame.SetVisible( true );
+		//newGameWarning.SetText( "Geo game in progress." );
+		newGameWarning.SetText( "'New' deletes current Geo game." );
+	}
+	else if ( game->HasSaveFile( SAVEPATH_TACTICAL ) ) {
+		newGeo.SetVisible( false );
+		newTactical.SetVisible( false );
+		//newGame.SetVisible( true );
+		newGameWarning.SetText( "'New' deletes current Tactical game." );
+	}
+	else {
+		newGame.SetVisible( false );
+		newGameWarning.SetVisible( false );
+	}
 
 	helpButton.Init( &gamui2D, green );
 	//helpButton.SetPos( port.UIWidth() - helpButton.Width() - BORDER, BORDER );
@@ -273,7 +291,13 @@ void TacticalIntroScene::Tap(	int action,
 		return;
 	}
 
-	if ( item == &newTactical ) {
+	if ( item == &newGame ) {
+		newGame.SetVisible( false );
+		newGameWarning.SetVisible( false );
+		newGeo.SetVisible( true );
+		newTactical.SetVisible( true );
+	}
+	else if ( item == &newTactical ) {
 		newTactical.SetVisible( false );
 		newGeo.SetVisible( false );
 		continueButton.SetVisible( false );

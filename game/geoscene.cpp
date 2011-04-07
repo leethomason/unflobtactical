@@ -309,6 +309,9 @@ void GeoScene::Activate()
 	SetMapLocation();
 
 	GetEngine()->GetSpaceTree()->ShelveAll( false );
+
+	Vector3F light = { 1, 1, -1 };
+	GetEngine()->SetLightDirection( &light );
 }
 
 

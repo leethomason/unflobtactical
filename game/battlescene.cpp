@@ -243,6 +243,7 @@ void BattleScene::Activate()
 	if ( !cameraSet )
 		engine->CameraLookAt( (float)tacMap->Width()/2.0f, (float)tacMap->Height()/2.0f, 25.0f, -45.0f, -50.0f );
 	cameraSet = true;
+	engine->SetLightDirection( 0 );
 }
 
 
@@ -612,9 +613,8 @@ void BattleScene::SetUnitOverlays()
 		// layer 0 target arrow
 		// layer 1 target arrow
 
-		if ( unitMoving != &units[i] && units[i].IsAlive() && visibility.TeamCanSee( TERRAN_TEAM, units[i].Pos() ) ) {
-			Vector3F p;
-			units[i].CalcPos( &p );
+		if ( unitMoving != &units[i] && units[i].IsAlive() && visibility.TeamCanSee( TERRAN_TEAM, units[i].MapPos() ) ) {
+			Vector3F p = units[i].Pos();
 
 			// Is the unit on screen? If so, put in a simple foot decal. Else
 			// put in an "alien that way" decal.
@@ -675,7 +675,7 @@ void BattleScene::SetUnitOverlays()
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		if ( unitMoving != &units[i] && units[i].IsAlive() ) {
 			int remain = units[i].CalcWeaponTURemaining( 0 );
-			Vector2I pos = units[i].Pos();
+			Vector2I pos = units[i].MapPos();
 
 			if ( remain >= Unit::AUTO_SHOT ) {
 				unitImage0[i].SetAtom( greenAtom0 );
@@ -711,7 +711,7 @@ void BattleScene::SetUnitOverlays()
 	}
 
 	if ( SelectedSoldierUnit() && unitMoving != SelectedSoldierUnit() ) {
-		Vector2I pos = SelectedSoldierUnit()->Pos();
+		Vector2I pos = SelectedSoldierUnit()->MapPos();
 		selectionImage.SetPos( (float)pos.x, (float)pos.y );
 		selectionImage.SetVisible( true );
 	}
@@ -995,7 +995,7 @@ void BattleScene::DrawFireWidget()
 		target.Set( (float)selection.targetPos.x+0.5f, 1.0f, (float)selection.targetPos.y+0.5f );
 	}
 	else {
-		Model* m = selection.targetUnit->GetModel();
+		const Model* m = selection.targetUnit->GetModel();
 		GLASSERT( m );
 		m->CalcTarget( &target );
 		m->CalcTargetSize( &bulletTarget.width, &bulletTarget.height );
@@ -1203,8 +1203,9 @@ bool BattleScene::PushShootAction( Unit* unit,
 
 	const WeaponItemDef* wid = weapon->IsWeapon();
 
-	Vector3F normal, right, up, p;
-	unit->CalcPos( &p );
+	Vector3F normal, right, up;
+	Vector3F p = unit->Pos();
+
 	normal = target - p;
 	float length = normal.Length();
 	normal.Normalize();
@@ -1301,7 +1302,7 @@ void BattleScene::DoReactionFire()
 					bool rangeOK = true;
 					// Filter out explosive weapons...
 					if ( srcUnit->GetWeapon()->IsWeapon()->IsExplosive( kSnapFireMode ) ) {
-						Vector2I d = srcUnit->Pos() - targetUnit->Pos();
+						Vector2I d = srcUnit->MapPos() - targetUnit->MapPos();
 						if ( d.LengthSquared() < EXPLOSIVE_RANGE * EXPLOSIVE_RANGE )
 							rangeOK = false;
 					}
@@ -1315,8 +1316,8 @@ void BattleScene::DoReactionFire()
 						// Multiple ways to do the math. Go with the normal of the src facing to
 						// the normal of the target.
 
-						Vector2I targetMapPos = targetUnit->Pos();
-						Vector2I srcMapPos = srcUnit->Pos();
+						Vector2I targetMapPos = targetUnit->MapPos();
+						Vector2I srcMapPos = srcUnit->MapPos();
 
 						Vector2F normalToTarget = { (float)(targetMapPos.x - srcMapPos.x), (float)(targetMapPos.y - srcMapPos.y) };
 						normalToTarget.Normalize();
@@ -1358,7 +1359,7 @@ void BattleScene::ProcessInventoryAI( Unit* theUnit )
 {
 	AI_LOG(( "[ai] Unit %d INVENTORY: ", currentUnitAI ));
 	// Drop all the weapons and clips. Pick up new weapons and clips.
-	Vector2I pos = theUnit->Pos();
+	Vector2I pos = theUnit->MapPos();
 	Storage* storage = tacMap->LockStorage( pos.x, pos.y );
 	GLRELASSERT( storage );
 
@@ -1491,7 +1492,7 @@ void BattleScene::ProcessDoors()
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if ( units[i].IsAlive() )
-			loc[nLoc++] = units[i].Pos();
+			loc[nLoc++] = units[i].MapPos();
 	}
 	if ( tacMap->ProcessDoors( loc, nLoc ) ) {
 		visibility.InvalidateAll();
@@ -1604,7 +1605,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 		Action* action = actionStack.Top();
 
 		Unit* unit = 0;
-		Model* model = 0;
+		const Model* model = 0;
 
 		if ( action->unit ) {
 			if ( !action->unit->IsAlive() || !action->unit->GetModel() ) {
@@ -1630,7 +1631,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 						
 					move->path.GetPos( action->type.move.pathStep, move->pathFraction, &x, &z, &r );
 					// Face in the direction of walking.
-					model->SetRotation( r );
+					unit->SetYRotation( r );
 
 					// Move fast when can't be seen:
 					if ( move->pathStep < move->path.pathLen-1 ) {
@@ -1701,7 +1702,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 
 			case ACTION_SHOOT:
 				{
-					int r = ProcessActionShoot( action, unit, model );
+					int r = ProcessActionShoot( action, unit );
 					result |= r;
 				}
 				break;
@@ -1788,7 +1789,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 }
 
 
-int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
+int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 {
 	DamageDesc damageDesc;
 	bool impact = false;
@@ -1801,7 +1802,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 
 	int result = 0;
 
-	if ( unit && model && unit->IsAlive() ) {
+	if ( unit && unit->GetModel() && unit->IsAlive() ) {
 		// Shooting announces the units location.
 		for( int i=0; i<3; ++i ) {
 			if ( aiArr[i] )
@@ -1816,7 +1817,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		weaponDef = weaponItem->GetItemDef()->IsWeapon();
 		GLRELASSERT( weaponDef );
 
-		model->CalcTrigger( &p0 );
+		unit->GetModel()->CalcTrigger( &p0 );
 		p1 = action->type.shoot.target;
 
 		ray.origin = p0;
@@ -2260,7 +2261,7 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 				input->unit = SelectedSoldierUnit();
 				input->nUnits = 1;
 
-				Vector2I mapi = input->unit->Pos();
+				Vector2I mapi = input->unit->MapPos();
 				lockedStorage = input->storage = tacMap->LockStorage( mapi.x, mapi.y );
 				game->PushScene( Game::CHARACTER_SCENE, input );
 			}
@@ -2476,7 +2477,7 @@ void BattleScene::Tap(	int action,
 			return;
 		}
 
-		Model* tappedModel = 0;
+		const Model* tappedModel = 0;
 		const Unit* tappedUnit = 0;
 
 		// Priorities:
@@ -2489,30 +2490,30 @@ void BattleScene::Tap(	int action,
 		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 			if ( units[i].GetModel() ) {
 				if ( units[i].IsAlive() ) {
-					units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
-					if ( units[i].Pos() == tilePos ) {
+					units[i].SetSelectable( true );
+					if ( units[i].MapPos() == tilePos ) {
 						GLRELASSERT( !tappedUnit );
 						tappedUnit = units + i;
 						tappedModel = units[i].GetModel();
 					}
 				}
 				else {
-					units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
+					units[i].SetSelectable( false );
 				}
 			}
 		}
 		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
 			if ( units[i].GetModel() ) {
 				if ( canSelectAlien && units[i].IsAlive() ) {
-					units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
-					if ( units[i].Pos() == tilePos ) {
+					units[i].SetSelectable( true );
+					if ( units[i].MapPos() == tilePos ) {
 						GLRELASSERT( !tappedUnit );
 						tappedUnit = units + i;
 						tappedModel = units[i].GetModel();
 					}
 				}
 				else {
-					units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
+					units[i].SetSelectable( false );
 				}
 			}
 		}
@@ -2562,7 +2563,7 @@ void BattleScene::ShowNearPath( const Unit* unit )
 		return;		// drawing nothing correctly
 	if (    unit == nearPathState.unit
 		 && unit->TU() == nearPathState.tu
-		 && unit->Pos() == nearPathState.pos ) {
+		 && unit->MapPos() == nearPathState.pos ) {
 			return;		// drawing something that is current.
 	}
 
@@ -2582,9 +2583,9 @@ void BattleScene::ShowNearPath( const Unit* unit )
 
 		nearPathState.unit = unit;
 		nearPathState.tu = unit->TU();
-		nearPathState.pos = unit->Pos();
+		nearPathState.pos = unit->MapPos();
 
-		Vector2<S16> start = { (S16)unit->Pos().x, (S16)unit->Pos().y };
+		Vector2<S16> start = { (S16)unit->MapPos().x, (S16)unit->MapPos().y };
 		float tu = unit->TU();
 
 		Vector2F range[3] = { 
@@ -2592,7 +2593,7 @@ void BattleScene::ShowNearPath( const Unit* unit )
 			{ tu-autoTU, tu-snappedTU },
 			{ tu-snappedTU, tu }
 		};
-		tacMap->ShowNearPath( unit->Pos(), unit, start, tu, range );
+		tacMap->ShowNearPath( unit->MapPos(), unit, start, tu, range );
 	}
 }
 
@@ -2618,7 +2619,7 @@ void BattleScene::MakePathBlockCurrent( Map* map, const void* user )
 	map->SetPathBlocks( block );
 }
 
-Unit* BattleScene::UnitFromModel( Model* m, bool useWeaponModel )
+Unit* BattleScene::UnitFromModel( const Model* m, bool useWeaponModel )
 {
 	if ( m ) {
 		for( int i=0; i<MAX_UNITS; ++i ) {
@@ -2750,7 +2751,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 			if ( uiActivated && !panning ) {
 				Vector2I mapPos = { (int)dragStart.x, (int)dragStart.z };
 				for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-					if ( units[i].IsAlive() && ( mapPos == units[i].Pos() ) ) {
+					if ( units[i].IsAlive() && ( mapPos == units[i].MapPos() ) ) {
 						dragUnit = units + i;
 						if ( selection.soldierUnit != dragUnit )
 							SetSelection( dragUnit );
@@ -2776,7 +2777,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 				engine->GetScreenport().ViewProjectionInverse3D( &mvpi );
 				engine->RayFromViewToYPlane( view, mvpi, &ray, &intersection );
 
-				Vector2<S16> start = { (S16)selection.soldierUnit->Pos().x, (S16)selection.soldierUnit->Pos().y };
+				Vector2<S16> start = { (S16)selection.soldierUnit->MapPos().x, (S16)selection.soldierUnit->MapPos().y };
 				Vector2<S16> end   = { (S16)intersection.x, (S16)intersection.z };
 
 				bool visible = false;
@@ -2843,7 +2844,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 				engine->GetScreenport().ViewProjectionInverse3D( &mvpi );
 				engine->RayFromViewToYPlane( view, mvpi, &ray, &intersection );
 
-				Vector2<S16> start = { (S16)selection.soldierUnit->Pos().x, (S16)selection.soldierUnit->Pos().y };
+				Vector2<S16> start = { (S16)selection.soldierUnit->MapPos().x, (S16)selection.soldierUnit->MapPos().y };
 				Vector2<S16> end   = { (S16)intersection.x, (S16)intersection.z };
 
 				if (    end != start 

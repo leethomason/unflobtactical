@@ -296,35 +296,62 @@ void Unit::FreeModels()
 void Unit::SetMapPos( int x, int z )
 {
 	GLASSERT( status != STATUS_NOT_INIT );
-	GLASSERT( model );
-
-	grinliz::Vector3F p = { (float)x + 0.5f, 0.0f, (float)z + 0.5f };
-	model->SetPos( p );
-	UpdateWeapon();
-	visibilityCurrent = false;
+	
+	if ( model ) {
+		grinliz::Vector3F p = { (float)x + 0.5f, 0.0f, (float)z + 0.5f };
+		model->SetPos( p );
+		UpdateWeapon();
+		visibilityCurrent = false;
+	}
 }
 
 
 void Unit::SetYRotation( float rotation )
 {
 	GLASSERT( status != STATUS_NOT_INIT );
-	GLASSERT( model );
-	if ( IsAlive() )
+	if ( model && IsAlive() ) {
 		model->SetRotation( rotation );
-	UpdateWeapon();
-	visibilityCurrent = false;
+		UpdateWeapon();
+		visibilityCurrent = false;
+	}
+}
+
+
+void Unit::SetSelectable( bool selectable )
+{
+	GLASSERT( status != STATUS_NOT_INIT );
+	if ( model ) {
+		if ( selectable )
+			model->SetFlag( Model::MODEL_SELECTABLE );
+		else
+			model->ClearFlag( Model::MODEL_SELECTABLE );
+	}
 }
 
 
 void Unit::SetPos( const grinliz::Vector3F& pos, float rotation )
 {
 	GLASSERT( status != STATUS_NOT_INIT );
+	if( model ) {
+		model->SetPos( pos );
+		if ( IsAlive() )
+			model->SetRotation( rotation );
+		UpdateWeapon();
+		visibilityCurrent = false;
+	}
+}
+
+
+Vector3F Unit::Pos() const
+{
 	GLASSERT( model );
-	model->SetPos( pos );
-	if ( IsAlive() )
-		model->SetRotation( rotation );
-	UpdateWeapon();
-	visibilityCurrent = false;
+	if ( model ) {
+		return model->Pos();
+	}
+	else {
+		Vector3F p = { 0, 0, 0 };
+		return p;
+	}
 }
 
 
@@ -403,13 +430,13 @@ void Unit::UpdateWeapon()
 }
 
 
-void Unit::CalcPos( grinliz::Vector3F* vec ) const
-{
-	GLASSERT( status != STATUS_NOT_INIT );
-	GLASSERT( model );
-
-	*vec = model->Pos();
-}
+//void Unit::CalcPos( grinliz::Vector3F* vec ) const
+//{
+//	GLASSERT( status != STATUS_NOT_INIT );
+//	GLASSERT( model );
+//
+//	*vec = model->Pos();
+//}
 
 
 void Unit::CalcVisBounds( grinliz::Rectangle2I* b ) const
@@ -431,15 +458,21 @@ void Unit::CalcMapPos( grinliz::Vector2I* vec, float* rot ) const
 	GLASSERT( status != STATUS_NOT_INIT );
 	GLASSERT( model );
 
-	// Account that model can be incrementally moved when animating.
-	if ( vec ) {
-		vec->x = LRintf( model->X() - 0.5f );
-		vec->y = LRintf( model->Z() - 0.5f );
+	if ( model ) {
+		// Account that model can be incrementally moved when animating.
+		if ( vec ) {
+			vec->x = LRintf( model->X() - 0.5f );
+			vec->y = LRintf( model->Z() - 0.5f );
+		}
+		if ( rot ) {
+			float r = model->GetRotation() + 45.0f/2.0f;
+			int ir = (int)( r / 45.0f );
+			*rot = (float)(ir*45);
+		}
 	}
-	if ( rot ) {
-		float r = model->GetRotation() + 45.0f/2.0f;
-		int ir = (int)( r / 45.0f );
-		*rot = (float)(ir*45);
+	else { 
+		vec->Set( 0, 0 );
+		*rot = 0;
 	}
 }
 
@@ -480,7 +513,7 @@ void Unit::Kill( TacMap* map )
 	visibilityCurrent = false;
 
 	if ( map && !inventory.Empty() ) {
-		Vector2I pos = Pos();
+		Vector2I pos = MapPos();
 		Storage* storage = map->LockStorage( pos.x, pos.y );
 		GLASSERT( storage );
 
