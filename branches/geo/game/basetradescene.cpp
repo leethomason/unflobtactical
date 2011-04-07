@@ -16,6 +16,11 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	this->data = data;
 	const Screenport& port = GetEngine()->GetScreenport();
 
+	data->base->ClearItem( "Soldr" );
+	data->base->ClearItem( "Sctst" );
+	data->region.ClearItem( "Soldr" );
+	data->region.ClearItem( "Sctst" );
+
 	minSoldiers = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_ALIVE );
 	data->base->AddItem( "Soldr", minSoldiers );
 	if ( data->scientists ) {
