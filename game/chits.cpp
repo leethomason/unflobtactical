@@ -796,7 +796,8 @@ CargoChit::~CargoChit()
 
 void CargoChit::Init()
 {
-	const char* desc = (type == TYPE_CARGO) ? "cargo" : "geolander";
+	//const char* desc = (type == TYPE_CARGO) ? "cargo" : "geolander";
+	const char* desc = "geolander";
 	for( int i=0; i<2; ++i ) {
 		if ( model[i] ) tree->FreeModel( model[i] );
 		model[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( desc ) );

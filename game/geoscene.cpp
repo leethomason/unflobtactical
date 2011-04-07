@@ -582,7 +582,7 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 	else if ( type == CM_BASE ) {
 		BaseChit* baseChit = chit->IsBaseChit();
 
-		static const char* base[MAX_CONTEXT] = { "Cargo", "Equip", "Build", 0, 0, 0 };
+		static const char* base[MAX_CONTEXT] = { "Supply", "Equip", "Build", 0, 0, 0 };
 		for( int i=0; i<MAX_CONTEXT; ++i ) {
 			if ( base[i] ) {
 				context[i].SetVisible( true );
@@ -928,6 +928,9 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			//if ( scenario == TacticalIntroScene::BATTLESHIP )	// battleships are hard enough
 			//	rank += 0.5f;
 			rank = Clamp( rank, 0.0f, (float)(NUM_RANKS-1) );
+
+			for( int i=0; i<MAX_TERRANS; ++i )
+				units[i].Heal();
 
 			BattleSceneData* data = new BattleSceneData();
 			data->seed			= baseChit->MapPos().x + baseChit->MapPos().y*GEO_MAP_X + scenario*37;
