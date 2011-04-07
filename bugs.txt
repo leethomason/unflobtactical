@@ -2,20 +2,11 @@ Issues:
 
 Bugs:
 - Tactical: AI shoots walls. This one is strange. It certainly checks. ??
-
-- sound effects
-- geo: art for special abilities
-- geo: art for cores
-- geo: colors ugly, look not correct
 - geo: help not hooked up
-- new city model
-- new base models
-- fix battlescene not being power of 2
-- fix geo name locations
-- base: rethink layout. Brutal alien beginning. Hard to leave lander.
-- alienBase: ugyl. Incomplete. Needs coolness.
 
 Deferred:
+- fix battlescene not being power of 2
+- geo: art for cores
 - geo: no indication of base capabilities
 - character screen: show character
 - geo: a ufo will return to orbit if it gets to a "parked" tile. Should find a new task.
@@ -23,6 +14,15 @@ Deferred:
 - tactical: when picking up weapon, walk zone doesn't update
 
 Fixed:
+- base: rethink layout. Brutal alien beginning. Hard to leave lander.
+- ufo base model
+- alienBase: ugyl. Incomplete. Needs coolness.
+- new city model
+- new base models
+- sound effects
+- fix geo name locations
+- geo: colors ugly, look not correct
+- geo: art for special abilities
 - new game...how to handle? Dialog screen?
 - fix lighting on geo scene
 - numScientists in base isn't getting saved correctly. (Goes to 8?)

@@ -16,6 +16,7 @@
 #include "settings.h"
 #include "battlescene.h"
 #include "helpscene.h"
+#include "ufosound.h"
 
 #include "../engine/loosequadtree.h"
 #include "../engine/particle.h"
@@ -691,13 +692,13 @@ void GeoScene::SetMapLocation()
 		GetEngine()->camera.DeltaPosWC( -GeoMap::MAP_X, 0, 0 );
 	}
 
-	static const Vector2F pos[GEO_REGIONS] = {
+	static const Vector2F pos[GEO_REGIONS] = {	// "North", "South", "Europe", "Asia", "Africa", "Under"
 		{ 64.f/1000.f, 9.f/500.f },
 		{ 97.f/1000.f, 455.f/500.f },
 		{ 502.f/1000.f, 9.f/500.f },
 		{ 718.f/1000.f, 106.f/500.f },
-		{ 503.f/1000.f, 459.f/500.f },
-		{ 744.f/1000.f, 459.f/500.f },
+		{ 520.f/1000.f, 459.f/500.f },
+		{ 720.f/1000.f, 459.f/500.f },
 	};
 
 	// The camera moved in the code above.
@@ -854,6 +855,7 @@ void GeoScene::UpdateMissiles( U32 deltaTime )
 							system->EmitPoint( 40, ParticleSystem::PARTICLE_HEMISPHERE, color[m->type], cvel, pos3, 0.1f, velUP, 0.2f );
 						}
 						ufo->DoDamage( 1.0f );
+						SoundManager::Instance()->QueueSound( "geo_ufo_hit" );
 						done = true;
 					}
 				}
@@ -1106,7 +1108,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 					// Did the terrans lose a base attack?
 					if ( !landerChit ) {
 						baseChit->SetDestroyed();
-						ufoChit->SetAI( UFOChit::AI_ORBIT );
+						ufoChit->SetAI( UFOChit::AI_ORBIT );						
 					}
 				}
 
@@ -1241,6 +1243,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 			geoAI->GenerateAlienShip( type, &start, &dest, regionData, chitBag );
 			Chit *test = new UFOChit( tree, type, start, dest );
+			SoundManager::Instance()->QueueSound( "geo_ufo_atmo" );
 			chitBag.Add( test );
 		}
 	}
@@ -1358,6 +1361,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 							&& regionData[region].influence >= MIN_CITY_ATTACK_INFLUENCE ) 
 				{
 					ufoChit->SetAI( UFOChit::AI_CITY_ATTACK );
+					SoundManager::Instance()->QueueSound( "geo_ufo_citybase" );
 				}
 				else if (    !geoMapData.IsCity( pos.x, pos.y ) 
 						   && !chitBag.GetBaseChitAt( pos )) 
@@ -1373,6 +1377,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 			case Chit::MSG_CROP_CIRCLE_COMPLETE:
 			{
+				SoundManager::Instance()->QueueSound( "geo_ufo_cropcircle" );
 				Chit *chit = new CropCircle( tree, pos, random.Rand() );
 				chitBag.Add( chit );
 
@@ -1392,6 +1397,8 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 			case Chit::MSG_UFO_CRASHED:
 			{
+				SoundManager::Instance()->QueueSound( "geo_ufo_crash" );
+
 				// Can only crash on open space.
 				// Check for UFOs, bases.
 				bool parked = false;

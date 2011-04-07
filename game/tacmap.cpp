@@ -103,6 +103,8 @@ const MapItemDef TacMap::itemDefArr[NUM_ITEM_DEF] =
 
 	{	"pyramid_2",	0,				0,			2,	2,	INDESTRUCT,	0,			"ffff", "0000" },
 	{	"pyramid_4",	0,				0,			4,	4,	INDESTRUCT,	0,			"ffff" "ffff" "ffff" "ffff", "0000" "0ff0" "0ff0" "0000" },
+	{	"pyramid_8",	0,				0,			8,	8,	INDESTRUCT,	0,			"fff00fff" "ffffffff" "ffffffff" "0ffffff0" "0ffffff0" "ffffffff" "ffffffff" "fff00fff", 
+																					"fff00fff" "fff00fff" "fff00fff" "00000000" "00000000" "fff00fff" "fff00fff" "fff00fff" },
 	{	"obelisk",		0,				0,			1,	1,	HP_HIGH,	0,			"f", "0", OBSCURES },
 	{	"temple",		0,				0,			2,  1,  INDESTRUCT, 0,			"ff", "ff" },
 
