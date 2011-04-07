@@ -203,7 +203,8 @@ void Model::SetPos( const grinliz::Vector3F& pos )
 	if ( pos != this->pos ) {
 		Modify();
 		this->pos = pos;	
-		tree->Update( this ); 
+		if ( tree )
+			tree->Update( this ); 
 	}
 }
 
@@ -217,7 +218,8 @@ void Model::SetRotation( float r, int axis )
 	if ( r != this->rot[axis] ) {
 		Modify();
 		this->rot[axis] = r;		
-		tree->Update( this );	// call because bound computation changes with rotation
+		if ( tree )
+			tree->Update( this );	// call because bound computation changes with rotation
 	}
 }
 

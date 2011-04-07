@@ -3,9 +3,6 @@ Issues:
 Bugs:
 - Tactical: AI shoots walls. This one is strange. It certainly checks. ??
 
-- new game...how to handle? Dialog screen?
-
-- fix lighting on geo scene
 - sound effects
 - geo: art for special abilities
 - geo: art for cores
@@ -23,8 +20,11 @@ Deferred:
 - character screen: show character
 - geo: a ufo will return to orbit if it gets to a "parked" tile. Should find a new task.
 - geo: decals overdraw
+- tactical: when picking up weapon, walk zone doesn't update
 
 Fixed:
+- new game...how to handle? Dialog screen?
+- fix lighting on geo scene
 - numScientists in base isn't getting saved correctly. (Goes to 8?)
 - need to limit research text length
 - review save system

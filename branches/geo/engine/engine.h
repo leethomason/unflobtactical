@@ -84,6 +84,9 @@ public:
 	void CameraLookingAt( grinliz::Vector3F* at );
 	void CameraLookAt( float x, float z, float heightOfCamera, float yRotation=-45.0f, float tilt=-50.0f );
 
+	// Direction from world TO sun. (y is positive). If null, sets the default.
+	void SetLightDirection( const grinliz::Vector3F* lightDir );
+
 	Model* AllocModel( const ModelResource* );
 	void FreeModel( Model* );
 

@@ -69,8 +69,8 @@ void AI::StartTurn( const Unit* units )
 {
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if ( units[i].IsAlive() ) {
-			if ( m_visibility->TeamCanSee( m_team, units[i].Pos() ) ) {
-				m_lkp[i].pos = units[i].Pos();
+			if ( m_visibility->TeamCanSee( m_team, units[i].MapPos() ) ) {
+				m_lkp[i].pos = units[i].MapPos();
 				m_lkp[i].turns = 0;
 			}
 			else {
@@ -88,7 +88,7 @@ void AI::Inform( const Unit* theUnit, int quality )
 		if ( m_units[i].Team() != theUnit->Team() ) {
 			if ( m_lkp[i].turns > quality ) {
 				m_lkp[i].turns = quality;		// Correct quality? 2 turns back for shooting?
-				m_lkp[i].pos = theUnit->Pos();
+				m_lkp[i].pos = theUnit->MapPos();
 			}
 		}
 	}
@@ -146,7 +146,7 @@ int AI::VisibleUnitsInArea(	const Unit* theUnit,
 	int count = 0;
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if ( m_enemy[i] > 0 && units[i].IsAlive() ) {
-			if ( m_visibility->TeamCanSee( theUnit->Team(), units[i].Pos() ) ) {
+			if ( m_visibility->TeamCanSee( theUnit->Team(), units[i].MapPos() ) ) {
 				Vector2I p;
 				units[i].CalcMapPos( &p, 0 );
 				if ( bounds.Contains( p ) )
@@ -186,7 +186,7 @@ int AI::ThinkShoot(	const Unit* theUnit,
 			 && m_visibility->UnitCanSee( theUnit, &m_units[i] )
 			 && LineOfSight( theUnit, &m_units[i]))
 		{
-			int len2 = (m_units[i].Pos()-theUnit->Pos()).LengthSquared();
+			int len2 = (m_units[i].MapPos() - theUnit->MapPos()).LengthSquared();
 			float len = sqrtf( (float)len2 );
 
 			BulletTarget bulletTarget( len );
@@ -207,7 +207,7 @@ int AI::ThinkShoot(	const Unit* theUnit,
 							}
 							else {
 								Rectangle2I bounds;
-								bounds.min = bounds.max = m_units[i].Pos();
+								bounds.min = bounds.max = m_units[i].MapPos();
 								bounds.Outset( EXPLOSION_ZONE );
 								
 								int count = VisibleUnitsInArea( theUnit, m_units, bounds );
@@ -242,7 +242,7 @@ int AI::ThinkMoveToAmmo(	const Unit* theUnit,
 							AIAction* action )
 {
 	// Is theUnit already standing on the Storage? If so, use!
-	Vector2I theUnitPos = theUnit->Pos();
+	Vector2I theUnitPos = theUnit->MapPos();
 	const Storage* storage = map->GetStorage( theUnitPos.x, theUnitPos.y );
 	
 	if ( storage && storage->IsResupply( theUnit->GetWeaponDef() )) {
@@ -276,7 +276,7 @@ int AI::ThinkMoveToAmmo(	const Unit* theUnit,
 
 int AI::ThinkInventory(	const Unit* theUnit, TacMap* map, AIAction* action )
 {
-	Vector2I pos = theUnit->Pos();
+	Vector2I pos = theUnit->MapPos();
 
 	// Drop all the weapons, and pick up new ones.
 	const Storage* storage = map->GetStorage( pos.x, pos.y );
@@ -317,7 +317,7 @@ int AI::ThinkSearch(const Unit* theUnit,
 
 	// Are we more or less at the LKP? If so, mark it unknown. Keeps everyone from rushing a long cold spot.
 	Rectangle2I zone;
-	zone.min = zone.max = theUnit->Pos();
+	zone.min = zone.max = theUnit->MapPos();
 	zone.Outset( 1 );
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
@@ -335,7 +335,7 @@ int AI::ThinkSearch(const Unit* theUnit,
 				continue;
 			}
 
-			int len2 = (theUnit->Pos()-m_lkp[i].pos).LengthSquared();
+			int len2 = (theUnit->MapPos()-m_lkp[i].pos).LengthSquared();
 
 			// Limit just how far units will go charging off. 1/2 the map?
 			// Somewhat limits the "zerg rush" AI
@@ -361,7 +361,7 @@ int AI::ThinkSearch(const Unit* theUnit,
 		}
 	}
 	if ( best >= 0 ) {
-		Vector2<S16> start = { theUnit->Pos().x, theUnit->Pos().y };
+		Vector2<S16> start = { theUnit->MapPos().x, theUnit->MapPos().y };
 		Vector2<S16> end   = { m_lkp[best].pos.x, m_lkp[best].pos.y };
 
 		float lowCost = FLT_MAX;
@@ -409,7 +409,7 @@ int AI::ThinkWander(	const Unit* theUnit,
 	}
 	for ( int i=0; i<8; ++i ) {
 		float cost;
-		Vector2I pos = theUnit->Pos();
+		Vector2I pos = theUnit->MapPos();
 		Vector2<S16> start = { pos.x, pos.y };
 		Vector2<S16> end = { pos.x+choices[i].x, pos.y+choices[i].y };
 
@@ -444,9 +444,9 @@ int AI::ThinkTravel(	const Unit* theUnit,
 	// Look for an acceptable travel destination. 4 is abitrary...3-5 all seem pretty modest.
 	for( int i=0; i<4; ++i ) {
 		if (    mapBounds.Contains( m_travel[index] ) 
-			 && m_travel[index] != theUnit->Pos() )
+			 && m_travel[index] != theUnit->MapPos() )
 		{
-			Vector2I pos = theUnit->Pos();
+			Vector2I pos = theUnit->MapPos();
 			Vector2<S16> start = { pos.x, pos.y };
 			Vector2<S16> end = { m_travel[index].x, m_travel[index].y };
 			result = map->SolvePath( theUnit, start, end, &cost, &m_path[0] );
@@ -484,10 +484,10 @@ int AI::ThinkRotate(	const Unit* theUnit,
 		if (    m_enemy[i] > 0
 			 && m_units[i].IsAlive() 
 			 && m_units[i].GetModel()
-			 && m_visibility->TeamCanSee( m_team, m_units[i].Pos() )
+			 && m_visibility->TeamCanSee( m_team, m_units[i].MapPos() )
 			 && m_lkp[i].turns < MAX_TURNS_LKP ) 
 		{
-			int len2 = (theUnit->Pos() - m_lkp[i].pos).LengthSquared();
+			int len2 = (theUnit->MapPos() - m_lkp[i].pos).LengthSquared();
 
 			// If the enemy isn't within some reasonable shoot range, doesn't matter.
 			// go with 1.4*max sight
@@ -507,8 +507,8 @@ int AI::ThinkRotate(	const Unit* theUnit,
 	}
 	if ( best >= 0 ) {
 		action->actionID = ACTION_ROTATE;
-		action->rotate.x = m_units[best].Pos().x;
-		action->rotate.y = m_units[best].Pos().y;
+		action->rotate.x = m_units[best].MapPos().x;
+		action->rotate.y = m_units[best].MapPos().y;
 		return THINK_ACTION;
 	}
 	return THINK_NO_ACTION;
@@ -644,7 +644,7 @@ bool CivAI::Think(	const Unit* theUnit,
 		{
 			if ( m_visibility->UnitCanSee( theUnit, &m_units[i] ) )
 			{
-				Vector2I runI = theUnit->Pos() - m_units[i].Pos();
+				Vector2I runI = theUnit->MapPos() - m_units[i].MapPos();
 				Vector2F run = { (float)runI.x, (float)runI.y };
 				float len = run.Length();
 				GLASSERT( len > 0 );
@@ -663,9 +663,9 @@ bool CivAI::Think(	const Unit* theUnit,
 
 		// Try to move further, then closer. Failing that, wander.
 		for( int i=0; i<2; ++i ) {
-			Vector2I end32 = { theUnit->Pos().x + LRintf( sumRun.x*dest[i] ), theUnit->Pos().y + LRintf( sumRun.y*dest[i] ) };
+			Vector2I end32 = { theUnit->MapPos().x + LRintf( sumRun.x*dest[i] ), theUnit->MapPos().y + LRintf( sumRun.y*dest[i] ) };
 			if ( map->Bounds().Contains( end32 ) ) {
-				grinliz::Vector2<S16> start = { theUnit->Pos().x, theUnit->Pos().y };
+				grinliz::Vector2<S16> start = { theUnit->MapPos().x, theUnit->MapPos().y };
 				grinliz::Vector2<S16> end = { end32.x, end32.y };
 
 				float cost = 0;

@@ -205,8 +205,8 @@ private:
 
 	BackgroundUI		backgroundUI;
 	gamui::PushButton	continueButton, helpButton, goButton, infoButton;
-	gamui::PushButton	newTactical, newGeo, newCampaign;
-	gamui::TextLabel	terranLabel, alienLabel, timeLabel, scenarioLabel, rowLabel[3];
+	gamui::PushButton	newTactical, newGeo, newCampaign, newGame;
+	gamui::TextLabel	terranLabel, alienLabel, timeLabel, scenarioLabel, rowLabel[3], newGameWarning;
 	gamui::ToggleButton	toggles[TOGGLE_COUNT], audioButton;
 };
 

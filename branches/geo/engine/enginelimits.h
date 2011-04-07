@@ -52,6 +52,9 @@ static const float EL_FAR  = 240.0f;
 static const float EL_CAMERA_MIN = 8.0f;
 static const float EL_CAMERA_MAX = 140.0f;
 
+static const float EL_LIGHT_X = 0.7f;
+static const float EL_LIGHT_Y = 3.0f;
+static const float EL_LIGHT_Z = 1.4f;
 
 // --- Debugging --- //
 //#define SHOW_FOW			// visual debugging

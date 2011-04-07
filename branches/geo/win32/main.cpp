@@ -190,6 +190,13 @@ int main( int argc, char **argv )
 	screenHeight = SCREEN_WIDTH;
 #endif
 
+	if ( argc == 3 ) {
+		screenWidth = atoi( argv[1] );
+		screenHeight = atoi( argv[2] );
+		if ( screenWidth <= 0 ) screenWidth = IPOD_SCREEN_WIDTH;
+		if ( screenHeight <= 0 ) screenHeight = IPOD_SCREEN_HEIGHT;
+	}
+
 	// Note that our output surface is rotated from the iPod.
 	//surface = SDL_SetVideoMode( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, 32, videoFlags );
 	surface = SDL_SetVideoMode( screenWidth, screenHeight, 32, videoFlags );
@@ -239,7 +246,7 @@ int main( int argc, char **argv )
 	void* game = 0;
 	bool mapMakerMode = false;
 
-	if ( argc > 1 ) {
+	if ( argc > 3 ) {
 		// -- MapMaker -- //
 		Engine::mapMakerMode = true;
 
