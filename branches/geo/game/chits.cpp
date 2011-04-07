@@ -8,6 +8,7 @@
 
 #include "tacticalintroscene.h"		// fixme: only for unit generation
 #include "game.h"
+#include "ufosound.h"
 
 using namespace grinliz;
 
@@ -105,7 +106,7 @@ UFOChit::~UFOChit()
 
 void UFOChit::Init()
 {
-	static const char* name[NUM_TYPES] = { "geo_scout", "geo_frigate", "geo_battleship", "geo_battleship" };	// FIXME: need base model
+	static const char* name[NUM_TYPES] = { "geo_scout", "geo_frigate", "geo_battleship", "geo_alienBase" };
 	GLASSERT( type >= 0 && type < NUM_TYPES );
 
 	for( int i=0; i<2; ++i ) {
@@ -353,6 +354,7 @@ int UFOChit::DoTick( U32 deltaTime )
 								0.2f,
 								particleVel, 0.1f );
 			}
+			SoundManager::Instance()->QueueSound( "geo_ufo_warp" );
 			msg = MSG_DONE;
 		}
 	}

@@ -37,7 +37,6 @@
             <Item x="0" y="33" rot="3" name="baseWall" />
             <Item x="0" y="34" rot="3" name="baseWall" />
             <Item x="47" y="31" rot="1" name="baseWall4" />
-            <Item x="40" y="28" rot="3" name="baseWall4" />
             <Item x="37" y="28" rot="3" name="cot" />
             <Item x="39" y="28" rot="3" name="computerdesk" />
             <Item x="34" y="28" rot="3" name="baseWall4" />
@@ -69,10 +68,6 @@
             <Item x="1" y="28" rot="2" name="cot" />
             <Item x="2" y="28" name="pawn" />
             <Item x="47" y="27" rot="1" name="baseWall4" />
-            <Item x="40" y="27" rot="3" name="baseWall" />
-            <Item x="40" y="26" rot="3" name="baseWall" />
-            <Item x="40" y="25" rot="3" name="baseDoorCld" flags="4" />
-            <Item x="40" y="24" rot="3" name="baseWall" />
             <Item x="37" y="27" rot="1" name="cot" />
             <Item x="39" y="26" rot="3" name="computerdesk" />
             <Item x="39" y="27" rot="3" name="desk" />
@@ -83,8 +78,10 @@
             <Item x="34" y="24" rot="3" name="baseDoorCld" flags="4" />
             <Item x="29" y="26" name="scout" />
             <Item x="29" y="24" name="scout" />
+            <Item x="31" y="27" rot="1" name="baseWall4" />
             <Item x="19" y="26" name="scout" />
             <Item x="19" y="24" name="scout" />
+            <Item x="16" y="24" rot="3" name="baseWall4" />
             <Item x="13" y="27" rot="1" name="baseWall" />
             <Item x="13" y="26" rot="1" name="baseWall" />
             <Item x="13" y="25" rot="1" name="baseWall" />
@@ -102,10 +99,6 @@
             <Item x="1" y="26" rot="2" name="cot" />
             <Item x="1" y="24" rot="2" name="cot" />
             <Item x="47" y="23" rot="1" name="baseWall4" />
-            <Item x="40" y="20" rot="3" name="baseWall" />
-            <Item x="40" y="21" rot="3" name="baseWall" />
-            <Item x="40" y="22" rot="3" name="baseDoorCld" flags="4" />
-            <Item x="40" y="23" rot="3" name="baseWall" />
             <Item x="37" y="20" rot="3" name="cot" />
             <Item x="39" y="21" rot="3" name="computerdesk" />
             <Item x="34" y="20" rot="3" name="baseWall" />
@@ -116,8 +109,10 @@
             <Item x="29" y="21" name="scout" />
             <Item x="29" y="22" name="scout" />
             <Item x="29" y="20" name="scout" />
+            <Item x="31" y="23" rot="1" name="baseWall4" />
             <Item x="19" y="22" name="scout" />
             <Item x="19" y="20" name="scout" />
+            <Item x="16" y="20" rot="3" name="baseWall4" />
             <Item x="13" y="20" rot="1" name="baseWall" />
             <Item x="13" y="21" rot="1" name="baseWall" />
             <Item x="13" y="22" rot="1" name="baseWall" />
@@ -137,7 +132,6 @@
             <Item x="1" y="20" rot="2" name="cot" />
             <Item x="2" y="22" name="pawn" />
             <Item x="47" y="19" rot="1" name="baseWall4" />
-            <Item x="40" y="16" rot="3" name="baseWall4" />
             <Item x="37" y="19" rot="1" name="cot" />
             <Item x="39" y="19" rot="3" name="computerdesk" />
             <Item x="39" y="18" rot="3" name="desk" />
@@ -146,8 +140,10 @@
             <Item x="29" y="18" name="scout" />
             <Item x="27" y="18" name="scout" />
             <Item x="25" y="18" name="scout" />
+            <Item x="27" y="16" rot="2" name="baseWall4" />
             <Item x="23" y="18" name="scout" />
             <Item x="21" y="18" name="scout" />
+            <Item x="23" y="16" rot="2" name="baseWall4" />
             <Item x="19" y="18" name="scout" />
             <Item x="13" y="19" rot="1" name="baseWall4" />
             <Item x="13" y="17" rot="3" name="computerdesk" />

@@ -13,7 +13,7 @@ class TacMap : public Map
 {
 public:
 	enum {
-		NUM_ITEM_DEF = 83,
+		NUM_ITEM_DEF = 84,
 	};
 
 
