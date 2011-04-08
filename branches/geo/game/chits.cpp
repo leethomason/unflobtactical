@@ -1047,7 +1047,7 @@ BaseChit* ChitBag::GetBaseChit( const char* name )
 }
 
 
-UFOChit* ChitBag::GetLandedUFOChitAt( const grinliz::Vector2I& pos )
+UFOChit* ChitBag::GetLandedUFOChitAt( const grinliz::Vector2I& pos ) const
 {
 	for( Chit* chit = sentinel.next; chit != &sentinel; chit=chit->next ) {
 		if ( chit->MapPos() == pos && chit->IsUFOChit() && !chit->IsUFOChit()->Flying() ) {

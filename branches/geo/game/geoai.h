@@ -31,12 +31,13 @@ class Chit;
 class RegionData;
 class ChitBag;
 class BaseChit;
+class GeoScene;
 
 class GeoAI
 {
 public:
 
-	GeoAI( const GeoMapData& data );
+	GeoAI( const GeoMapData& data, const GeoScene* scene );
 	virtual ~GeoAI()	{}
 
 	void GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vector2F* dest, const RegionData* data, const ChitBag& chitBag );
@@ -44,6 +45,7 @@ public:
 protected:
 	int ComputeBasesInRegion( int region, const ChitBag& chitBag );
 
+	const GeoScene* geoScene;
 	const GeoMapData& geoMapData; 
 	grinliz::Random random;
 
@@ -52,7 +54,6 @@ protected:
 		MAX_BASES = 4	// copied to a scary # of places
 	};
 	const BaseChit* baseInRegion[MAX_BASES];
-
 };
 
 

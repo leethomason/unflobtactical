@@ -5,7 +5,7 @@
 using namespace grinliz;
 
 
-GeoAI::GeoAI( const GeoMapData& _data ) : geoMapData( _data )
+GeoAI::GeoAI( const GeoMapData& _data, const GeoScene* scene ) : geoMapData( _data ), geoScene( scene )
 {
 	random.SetSeedFromTime();
 }
@@ -61,7 +61,7 @@ void GeoAI::GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vect
 				for( int i=0; i<GEO_REGIONS; ++i ) {
 					score[i] = 0;
 					if (    data[i].influence >= MIN_OCCUPATION_INFLUENCE 
-						 &&	!data[i].occupied )
+						 &&	!geoScene->RegionOccupied(i) )
 					{
 						++count;
 						score[i] = data[i].Score();
@@ -69,8 +69,7 @@ void GeoAI::GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vect
 				}
 				if ( count > 0 ) {
 					int region = random.Select( score, GEO_REGIONS );
-					int cityID = geoMapData.CapitalID( region );
-					dest = geoMapData.City( region, cityID );
+					dest = geoMapData.Capital( region );
 				}
 			}
 		}
@@ -85,7 +84,7 @@ void GeoAI::GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vect
 				score[i] = 0;
 				if (    data[i].influence >= MIN_CITY_ATTACK_INFLUENCE 
 					 && data[i].influence < MAX_INFLUENCE
-					 &&	!data[i].occupied )
+					 &&	!geoScene->RegionOccupied(i) )
 				{
 					++count;					 
 					score[i] = data[i].Score();
@@ -104,7 +103,7 @@ void GeoAI::GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vect
 		int count = 0;
 		for( int i=0; i<GEO_REGIONS; ++i ) {
 			score[i] = 0;
-			if ( !data[i].occupied ) {
+			if ( !geoScene->RegionOccupied(i) ) {
 				if ( type == UFOChit::SCOUT )
 					score[i] = 1;						// make the scouts scout.
 				else

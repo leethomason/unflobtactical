@@ -61,12 +61,14 @@
         to develop technology to inflitrate them.
         <required0 research="Arrival" />
       </UFOs>
+      <!-- Note this is a good text length. Maybe one more line. -->
       <AlienCores points="40">
         We have retrieved an alien computer core. It is strange and adaptive, and
         much of its purpose is inscruitable. But by connecting it to alien components
         and our own sensors, we are beginning to get new information on the alien agenda.
         <required0 item="Cor:S" />
       </AlienCores>
+      <!-- longest text that fits. -->
       <Scout points="40">
         The Scout is a small ship undoubtlable responsible for many alient abductions
         and sightings in the past. Why they leave crop circles as a part of their
