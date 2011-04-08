@@ -1609,7 +1609,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 
 		if ( action->unit ) {
 			if ( !action->unit->IsAlive() || !action->unit->GetModel() ) {
-				GLASSERT( 0 );	// may be okay, but untested.
+				//GLASSERT( 0 );	// may be okay, but untested.
 				actionStack.Pop();
 				return true;
 			}

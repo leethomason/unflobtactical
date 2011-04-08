@@ -3,6 +3,8 @@ Issues:
 Bugs:
 - Tactical: AI shoots walls. This one is strange. It certainly checks. ??
 - geo: help not hooked up
+- expand immediate buy to bases
+- base needs more internal structure
 
 Deferred:
 - fix battlescene not being power of 2

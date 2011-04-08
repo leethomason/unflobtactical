@@ -1031,6 +1031,8 @@ void GeoScene::SceneResult( int sceneID, int result )
 						result = BattleData::DEFEAT;	// can't tie on base attack
 				}
 				Unit* battleUnits = game->battleData.units;
+				for( int i=0; i<MAX_UNITS; ++i )
+					game->battleData.units[i].FreeModels();
 
 				// Inform the research system of found items.
 				for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
@@ -1107,11 +1109,26 @@ void GeoScene::SceneResult( int sceneID, int result )
 					delete ufoChit;
 				}
 
-				if ( result == BattleData::DEFEAT ) {
-					// Did the terrans lose a base attack?
-					if ( !landerChit ) {
+				if ( !landerChit ) {
+					// Base attack - really good or really bad.
+					if ( result == BattleData::DEFEAT ) {
 						baseChit->SetDestroyed();
 						ufoChit->SetAI( UFOChit::AI_ORBIT );						
+					}
+					else if ( result == BattleData::VICTORY ) {
+						// de-occupies
+						int region = geoMapData.GetRegion( baseChit->MapPos() );
+						if ( region >= 0 ) {
+							Vector2I capitalPos = geoMapData.Capital( region );
+							UFOChit* ufo = chitBag.GetLandedUFOChitAt( capitalPos );
+							if ( ufo ) {
+								ufoChit->SetAI( UFOChit::AI_ORBIT );
+								regionData[region].occupied = false;
+							}
+							regionData[region].influence -= BASE_WON_INFLUENCE;
+							regionData[region].influence = Clamp( regionData[region].influence, 0.0f, (float)MAX_INFLUENCE );
+							areaWidget[region]->SetInfluence( regionData[region].influence );
+						}
 					}
 				}
 
@@ -1128,9 +1145,9 @@ void GeoScene::SceneResult( int sceneID, int result )
 				for( int i=0; i<2; ++i ) {
 					if ( research.GetStatus( remove[i] ) != Research::TECH_RESEARCH_COMPLETE ) {
 						baseStorage->ClearItem( remove[i] );
-					}
-					for( int j=TERRAN_UNITS_START; j<TERRAN_UNITS_END; ++j ) {
-						baseUnits[j].GetInventory()->ClearItem( remove[i] );
+						for( int j=TERRAN_UNITS_START; j<TERRAN_UNITS_END; ++j ) {
+							baseUnits[j].GetInventory()->ClearItem( remove[i] );
+						}
 					}
 				}
 
