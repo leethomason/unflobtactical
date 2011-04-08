@@ -109,6 +109,7 @@ public:
 		return Cylinder<int>::Normalize( v );
 	}
 	void SetMapPos( int x, int y );
+	void SetMapPos( const grinliz::Vector2I& pos )	{ SetMapPos( pos.x, pos.y ); }
 	
 	const grinliz::Vector2F Pos() const { return Cylinder<float>::Normalize( pos ); }
 	void SetPos( float x, float y );
@@ -365,7 +366,7 @@ public:
 	BaseChit*	GetBaseChit( const char* name );
 	BaseChit*	GetBaseChit( int i ) const { GLASSERT( i>=0 && i<MAX_BASES ); return baseChitArr[i]; }
 	BaseChit*	GetBaseChitAt( const grinliz::Vector2I& pos );
-	UFOChit*	GetLandedUFOChitAt( const grinliz::Vector2I& pos );
+	UFOChit*	GetLandedUFOChitAt( const grinliz::Vector2I& pos ) const;
 	int			NumBaseChits();
 
 	CargoChit*	GetCargoGoingTo( int type, const grinliz::Vector2I& to );

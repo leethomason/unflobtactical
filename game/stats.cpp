@@ -63,7 +63,7 @@ void Stats::CalcBaselines()
 	reaction = Interpolate(		0.0f,					REACTION_FAST,
 								(float)TRAIT_MAX,		REACTION_SLOW,
 								(float)(levDEX + levPSY)*0.5f );
-	constitution = (float)levPSY;
+	constitution = (float)Min( levPSY, 95 );
 }
 
 

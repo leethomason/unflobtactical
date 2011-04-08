@@ -39,12 +39,12 @@ using namespace gamui;
 static const char* MAP =
 	"w. 0t 0t 0t 0t 0t 0t w. w. 2c 2t 2t 2t 2t 2t 2t 2t 2t 2t 2t "
 	"w. 0t 0t 0t 0t 0t 0t 2c 2c 2a 2a 2t 2t 2t 2t 2t 2t 2t w. w. "
-	"w. 0c 0d 0a 0c w. w. 2c 2a 2c 2a 2d 3d 2a 3a 3a 3a 3a w. w. "
+	"w. 0c 0d 0a 0C w. w. 2C 2a 2c 2a 2d 3d 2a 3a 3a 3a 3a w. w. "
 	"w. 0c 0d 0a w. w. w. 4c 4d 4d 4d 3d 3d 3a 3a 3a 3a 3c w. w. "
-	"w. w. 0c w. 0f w. w. 4f 4f 4d 4c 3d 3c w. 3f w. 3c w. w. w. "
+	"w. w. 0c w. 0f w. w. 4f 4f 4d 4C 3d 3c w. 3f w. 3C w. w. w. "
 	"w. w. w. 0f 1c w. w. 4f 4f 4f 4d 4f w. w. 3c w. w. w. w. w. "
 	"w. w. w. w. 1f 1f 1f w. w. 4f 4f w. w. w. w. w. 3f 3f w. w. "
-	"w. w. w. w. 1f 1a 1c w. w. 4f 4f w. w. w. w. w. w. w. 5c w. "
+	"w. w. w. w. 1f 1a 1C w. w. 4f 4f w. w. w. w. w. w. w. 5C w. "
 	"w. w. w. w. w. 1f 1f w. w. 4f 4f 4f w. w. w. w. w. 5f 5d 5a "
 	"w. w. w. w. w. 1f w. w. w. 4c w. w. w. w. w. w. w. 5f 5d 5c "
 ;
@@ -53,13 +53,25 @@ static const char* MAP =
 static const char* gRegionName[GEO_REGIONS] = { "North", "South", "Europe", "Asia", "Africa", "Under" };
 
 
+grinliz::Vector2I GeoMapData::Capital( int region ) const
+{
+	grinliz::Vector2I city = { 0, 0 };
+	for( int i=0; i<numCities[region]; ++i ) {
+		city = City( region, i );
+		if ( MAP[city.y*GEO_MAP_X*3 + city.x*3 + 1] == 'C' ) {
+			break;
+		}
+	}
+	return city;
+}
+
+
 void GeoMapData::Init( const char* map, Random* random )
 {
 	numLand = 0;
 	for( int i=0; i<GEO_REGIONS; ++i ) {
 		bounds[i].SetInvalid();
 		numCities[i] = 0;
-		capital[i] = 0;
 	}
 	const char* p = MAP;
 	for( int j=0; j<GEO_MAP_Y; ++j ) {
@@ -75,6 +87,7 @@ void GeoMapData::Init( const char* map, Random* random )
 					case 'a':	type = FARM;		break;
 					case 'd':	type = DESERT;		break;
 					case 'f':	type = FOREST;		break;
+					case 'C':	type = CITY;		break;	// the capital is a city
 					case 'c':	type = CITY;		break;
 					default: GLASSERT( 0 ); 
 				}
@@ -87,7 +100,6 @@ void GeoMapData::Init( const char* map, Random* random )
 
 	for( int i=0; i<GEO_REGIONS; ++i ) {
 		numCities[i] = Find( &city[i*MAX_CITIES_PER_REGION], MAX_CITIES_PER_REGION, i, CITY, 0 );
-		capital[i] = random->Rand( numCities[i] );
 	}
 }
 
@@ -135,8 +147,8 @@ void RegionData::Init(  const ItemDefArr& itemDefArr, Random* random )
 { 
 	traits = ( 1 << random->Rand( TRAIT_NUM_BITS ) ) | ( 1 << random->Rand( TRAIT_NUM_BITS ) );
 	influence=0; 
-	for( int i=0; i<HISTORY; ++i ) history[i] = 1; 
-	occupied = false;
+	for( int i=0; i<HISTORY; ++i ) 
+		history[i] = 1; 
 }
 
 
@@ -189,7 +201,6 @@ void RegionData::Save( FILE* fp, int depth )
 	XMLUtil::OpenElement( fp, depth, "Region" );
 	XMLUtil::Attribute( fp, "traits", traits );
 	XMLUtil::Attribute( fp, "influence", influence );
-	XMLUtil::Attribute( fp, "occupied", occupied );
 	XMLUtil::SealElement( fp );
 
 	for( int i=0; i<HISTORY; ++i ) {
@@ -206,7 +217,6 @@ void RegionData::Load( const TiXmlElement* doc )
 	GLASSERT( StrEqual( doc->Value(), "Region" ));
 	doc->QueryIntAttribute( "traits", &traits );
 	doc->QueryFloatAttribute( "influence", &influence );
-	doc->QueryBoolAttribute( "occupied", &occupied );
 
 	int count=0;
 	for( const TiXmlElement* historyEle = doc->FirstChildElement( "History" ); 
@@ -240,7 +250,7 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 
 	geoMap = new GeoMap( GetEngine()->GetSpaceTree() );
 	tree = GetEngine()->GetSpaceTree();
-	geoAI = new GeoAI( geoMapData );
+	geoAI = new GeoAI( geoMapData, this );
 
 	alienTimer = 0;
 	researchTimer = 0;
@@ -337,7 +347,7 @@ void GeoScene::GenerateCities()
 	for( int region=0; region<GEO_REGIONS; ++region ) {
 		for( int i=0, n=geoMapData.NumCities( region ); i<n; ++i ) {
 			Vector2I pos = geoMapData.City( region, i );
-			CityChit* chit = new CityChit( GetEngine()->GetSpaceTree(), pos, (i==geoMapData.CapitalID(region) ) );
+			CityChit* chit = new CityChit( GetEngine()->GetSpaceTree(), pos, pos==geoMapData.Capital(region) );
 			chitBag.Add( chit );
 		}
 	}
@@ -1123,7 +1133,6 @@ void GeoScene::SceneResult( int sceneID, int result )
 							UFOChit* ufo = chitBag.GetLandedUFOChitAt( capitalPos );
 							if ( ufo ) {
 								ufoChit->SetAI( UFOChit::AI_ORBIT );
-								regionData[region].occupied = false;
 							}
 							regionData[region].influence -= BASE_WON_INFLUENCE;
 							regionData[region].influence = Clamp( regionData[region].influence, 0.0f, (float)MAX_INFLUENCE );
@@ -1178,6 +1187,17 @@ void GeoScene::PushBaseTradeScene( BaseChit* baseChit )
 	data->soldiers	 = baseChit->GetUnits();
 	data->scientists = baseChit->IsFacilityComplete( BaseChit::FACILITY_SCILAB ) ? baseChit->GetScientstPtr() : 0;
 	game->PushScene( Game::BASETRADE_SCENE, data );
+}
+
+
+bool GeoScene::RegionOccupied( int region ) const
+{
+	Vector2I capitalLoc = geoMapData.Capital( region );
+	UFOChit* ufo = chitBag.GetLandedUFOChitAt( capitalLoc );
+	if ( ufo && ( ufo->AI() == UFOChit::AI_OCCUPATION ) ) {
+		return true;
+	}
+	return false;
 }
 
 
@@ -1278,7 +1298,6 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 	for( Chit* chitIt=chitBag.Begin(); chitIt != chitBag.End(); chitIt=chitIt->Next() ) 
 	{
 		int message = chitIt->DoTick( deltaTime );
-		Vector2I pos = chitIt->MapPos();
 
 		// Special case: Defer base attacks until lander arrives
 		// Removed: nice, but hard to test.
@@ -1342,13 +1361,13 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 				// Any ship, not at city, can crop circle
 
 				UFOChit* ufoChit = chitIt->IsUFOChit();
-				int region = geoMapData.GetRegion( pos.x, pos.y );
-				int type = geoMapData.GetType( pos.x, pos.y );
+				int region = geoMapData.GetRegion( ufoChit->MapPos() );
+				int type = geoMapData.GetType( ufoChit->MapPos() );
 
 				bool returnToOrbit = false;
 
 				// If the destination space is taken, return to orbit.
-				Chit* parked = chitBag.GetParkedChitAt( pos );
+				Chit* parked = chitBag.GetParkedChitAt( ufoChit->MapPos() );
 				if ( parked ) {
 					returnToOrbit = true;
 				}
@@ -1357,7 +1376,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 					ufoChit->SetAI( UFOChit::AI_ORBIT );
 				}
 				else if (      ufoChit->Type() == UFOChit::BATTLESHIP 
-							&& chitBag.GetBaseChitAt( pos )
+							&& chitBag.GetBaseChitAt( ufoChit->MapPos() )
 							&& regionData[region].influence >= MIN_BASE_ATTACK_INFLUENCE )
 				{
 					if ( !game->IsScenePushed() ) {
@@ -1365,26 +1384,25 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 					}
 					ufoChit->SetAI( UFOChit::AI_ORBIT );
 				}
-				else if (    ufoChit->Type() == UFOChit::BATTLESHIP 
-						    && !regionData[region].occupied
-						    && geoMapData.Capital( region ) == pos 
+				else if (      ufoChit->Type() == UFOChit::BATTLESHIP 
+						    && !RegionOccupied( region )
+						    && geoMapData.Capital( region ) == ufoChit->MapPos() 
 							&& regionData[region].influence >= MIN_OCCUPATION_INFLUENCE )
 				{
 					regionData[region].influence = MAX_INFLUENCE;
-					regionData[region].occupied = true;
 					areaWidget[region]->SetInfluence( regionData[region].influence );
 					ufoChit->SetAI( UFOChit::AI_OCCUPATION );
 				}
 				else if (    ( ufoChit->Type() == UFOChit::BATTLESHIP || ufoChit->Type() == UFOChit::FRIGATE )
-						    && !regionData[region].occupied
-						    && geoMapData.IsCity( pos.x, pos.y )
+						    && !RegionOccupied( region )
+						    && geoMapData.IsCity( ufoChit->MapPos() )
 							&& regionData[region].influence >= MIN_CITY_ATTACK_INFLUENCE ) 
 				{
 					ufoChit->SetAI( UFOChit::AI_CITY_ATTACK );
 					SoundManager::Instance()->QueueSound( "geo_ufo_citybase" );
 				}
-				else if (    !geoMapData.IsCity( pos.x, pos.y ) 
-						   && !chitBag.GetBaseChitAt( pos )) 
+				else if (    !geoMapData.IsCity( ufoChit->MapPos() ) 
+						   && !chitBag.GetBaseChitAt( ufoChit->MapPos() )) 
 				{
 					ufoChit->SetAI( UFOChit::AI_CROP_CIRCLE );
 				}
@@ -1398,18 +1416,18 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 			case Chit::MSG_CROP_CIRCLE_COMPLETE:
 			{
 				SoundManager::Instance()->QueueSound( "geo_ufo_cropcircle" );
-				Chit *chit = new CropCircle( tree, pos, random.Rand() );
+				Chit *chit = new CropCircle( tree, chitIt->MapPos(), random.Rand() );
 				chitBag.Add( chit );
 
-				int region = geoMapData.GetRegion( pos.x, pos.y );
+				int region = geoMapData.GetRegion( chitIt->MapPos() );
 				if ( regionData[region].influence < MAX_CROP_CIRCLE_INFLUENCE ) {
 					regionData[region].influence += (float)CROP_CIRCLE_INFLUENCE * influenceModifier;
 					regionData[region].influence = Min( regionData[region].influence, (float)MAX_INFLUENCE );
 					areaWidget[region]->SetInfluence( regionData[region].influence );
 				}
 
-				if ( !geoMapData.IsWater( pos.x, pos.y ) ) {
-					int region = geoMapData.GetRegion( pos.x, pos.y );
+				if ( !geoMapData.IsWater( chitIt->MapPos() ) ) {
+					int region = geoMapData.GetRegion( chitIt->MapPos() );
 					regionData[region].Success();
 				}
 			}
@@ -1422,14 +1440,14 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 				// Can only crash on open space.
 				// Check for UFOs, bases.
 				bool parked = false;
-				Chit* parkedChit = chitBag.GetParkedChitAt( pos );
-				BaseChit* baseChit = chitBag.GetBaseChitAt( pos );
+				Chit* parkedChit = chitBag.GetParkedChitAt( chitIt->MapPos() );
+				BaseChit* baseChit = chitBag.GetBaseChitAt( chitIt->MapPos() );
 
 				if( ( parkedChit && (parkedChit != chitIt ) ) || baseChit ) {
 					parked = true;
 				}
 				// check for water, cities
-				int mapType = geoMapData.GetType( pos.x, pos.y );
+				int mapType = geoMapData.GetType( chitIt->MapPos() );
 
 				if ( mapType == 0 || mapType == GeoMapData::CITY ) {
 					parked = true;
@@ -1437,7 +1455,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 				if ( !parked ) {
 					chitIt->IsUFOChit()->SetAI( UFOChit::AI_CRASHED );
-					chitIt->SetMapPos( pos.x, pos.y );
+					chitIt->SetMapPos( chitIt->MapPos() );
 				}
 				else {
 					// Find bases with units. Award "gunner" XP.
@@ -1459,8 +1477,8 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 					chitIt->SetDestroyed();
 				}
 
-				if ( !geoMapData.IsWater( pos.x, pos.y ) ) {
-					int region = geoMapData.GetRegion( pos.x, pos.y );
+				if ( !geoMapData.IsWater( chitIt->MapPos() ) ) {
+					int region = geoMapData.GetRegion( chitIt->MapPos() );
 					regionData[region].UFODestroyed();
 				}
 			}
@@ -1469,13 +1487,13 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 			case Chit::MSG_CITY_ATTACK_COMPLETE:
 			{
-				int region = geoMapData.GetRegion( pos.x, pos.y );
+				int region = geoMapData.GetRegion( chitIt->MapPos() );
 				regionData[region].influence += (float)CITY_ATTACK_INFLUENCE * influenceModifier;
 				regionData[region].influence = Min( regionData[region].influence, (float)MAX_INFLUENCE );
 				areaWidget[region]->SetInfluence( regionData[region].influence );
 
-				if ( !geoMapData.IsWater( pos.x, pos.y ) ) {
-					int region = geoMapData.GetRegion( pos.x, pos.y );
+				if ( !geoMapData.IsWater( chitIt->MapPos() ) ) {
+					int region = geoMapData.GetRegion( chitIt->MapPos() );
 					regionData[region].Success();
 				}
 			}
@@ -1559,19 +1577,21 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 	{
 		int i=0;
 		for( ; i<GEO_REGIONS; ++i ) {
-			if ( !regionData[i].occupied )
+			if ( !RegionOccupied( i ) )
 				break;
 		}
 		if ( i == GEO_REGIONS ) {
 			GeoEndSceneData* data = new GeoEndSceneData();
 			data->victory = false;
 			game->PushScene( Game::GEO_END_SCENE, data );
+			game->PopScene();
 		}
 	}
 	if ( gameVictory ) {
 		GeoEndSceneData* data = new GeoEndSceneData();
 		data->victory = true;
 		game->PushScene( Game::GEO_END_SCENE, data );
+		game->PopScene();
 	}
 }
 

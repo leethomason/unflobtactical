@@ -119,6 +119,7 @@ public:
 	void Init( const char* map, grinliz::Random* random );
 
 	void Choose( grinliz::Random* random, int region, int required, int excluded, grinliz::Vector2I* position ) const;
+	bool IsWater( const grinliz::Vector2I& pos ) const { return IsWater( pos.x, pos.y ); }
 	bool IsWater( int x, int y ) const 
 	{
 		GLASSERT( x >= 0 && x < GEO_MAP_X );
@@ -141,6 +142,7 @@ public:
 		GLASSERT( y >= 0 && y < GEO_MAP_Y );
 		return (data[y*GEO_MAP_X+x] & 0xff );
 	}
+	int GetType( const grinliz::Vector2I& pos ) const { return GetType( pos.x, pos.y ); }
 	int NumCities( int region ) const 
 	{
 		GLASSERT( region >= 0 && region < GEO_REGIONS );
@@ -156,16 +158,8 @@ public:
 		return v;
 	}
 
-	int CapitalID( int region ) const 
-	{
-		GLASSERT( region >= 0 && region < GEO_REGIONS );
-		return capital[region];
-	}
-	grinliz::Vector2I Capital( int region ) const 
-	{
-		int id = CapitalID( region );
-		return City( region, id );
-	}
+	grinliz::Vector2I Capital( int region ) const;
+	bool IsCity( const grinliz::Vector2I& pos ) const { return IsCity( pos.x, pos.y ); }
 	bool IsCity( int x, int y ) const 
 	{
 		return ( Type( data[GEO_MAP_X*y+x] ) == CITY ); 
@@ -184,8 +178,7 @@ private:
 	grinliz::Rectangle2I bounds[GEO_REGIONS];
 
 	U8 numCities[GEO_REGIONS];
-	U8 capital[GEO_REGIONS];						// index to capital (also a city)
-	U8 city[GEO_REGIONS*MAX_CITIES_PER_REGION];	// index to cities (one will be a capital)
+	U8 city[GEO_REGIONS*MAX_CITIES_PER_REGION];		// index to cities (one will be a capital)
 };
 
 
@@ -206,7 +199,7 @@ public:
 	int traits;
 	float influence;
 	int history[HISTORY];
-	bool occupied;			// true if this is currently under alien occupation
+	//bool occupied;			// true if this is currently under alien occupation
 
 	void Init( const ItemDefArr& itemDefArr, grinliz::Random* );
 	void Free();
@@ -276,6 +269,7 @@ public:
 	virtual void ChildActivated( int childID, Scene* childScene, SceneData* data );
 
 	const Research& GetResearch() { return research; }
+	bool RegionOccupied( int region ) const;
 
 private:
 	struct Missile {
