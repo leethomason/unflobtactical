@@ -58,7 +58,7 @@ static const int CITY_ATTACK_INFLUENCE = 2;
 static const int MIN_BASE_ATTACK_INFLUENCE = 7;
 static const int MIN_OCCUPATION_INFLUENCE = 9;
 static const int MAX_INFLUENCE = 10;
-static const float BASE_WON_INFLUENCE = 4.0f;
+static const float BASE_WON_INFLUENCE = 6.0f;
 
 static const float UFO_HEIGHT = 0.5f;
 static const float UFO_SPEED[3] = { 1.00f, 0.85f, 0.70f };
