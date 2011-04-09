@@ -21,13 +21,15 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	data->region.ClearItem( "Soldr" );
 	data->region.ClearItem( "Sctst" );
 
-	minSoldiers = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_ALIVE );
-	data->base->AddItem( "Soldr", minSoldiers );
+	minSoldiers = 0;
+
+	if ( data->soldiers ) {
+		minSoldiers = Unit::Count( data->soldiers, MAX_TERRANS, Unit::STATUS_ALIVE );
+		data->base->AddItem( "Soldr", minSoldiers );
+		data->region.AddItem( "Soldr", MAX_TERRANS - minSoldiers );
+	}
 	if ( data->scientists ) {
 		data->base->AddItem( "Sctst", *data->scientists );
-	}
-	data->region.AddItem( "Soldr", MAX_TERRANS - minSoldiers );
-	if ( data->scientists ) {
 		data->region.AddItem( "Sctst", MAX_SCIENTISTS - *data->scientists );
 	}
 
@@ -145,29 +147,30 @@ void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const gri
 	if ( uiItem == &okay ) {
 		game->PopScene( 0 );
 		ComputePrice( data->cash );
-
-		// Generate new soldiers.
 		const ItemDef* soldierDef = game->GetItemDefArr().Query( "Soldr" );
-		int nSoldiers = data->base->GetCount( soldierDef );
 
-		if ( nSoldiers < minSoldiers ) {
-			for( int i=nSoldiers; i<minSoldiers; ++i ) {
-				data->soldiers[i].Free();
-				memset( &data->soldiers[i], 0, sizeof(Unit) );
-			}	
-		}
-		else if ( nSoldiers > minSoldiers ) {
-			for( int i=minSoldiers; i<nSoldiers; ++i ) {
-				data->soldiers[i].Free();
-				memset( &data->soldiers[i], 0, sizeof(Unit) );
+		if ( data->soldiers ) {
+			// Generate new soldiers.
+			int nSoldiers = data->base->GetCount( soldierDef );
+
+			if ( nSoldiers < minSoldiers ) {
+				for( int i=nSoldiers; i<minSoldiers; ++i ) {
+					data->soldiers[i].Free();
+					memset( &data->soldiers[i], 0, sizeof(Unit) );
+				}	
 			}
-			int seed = *data->cash ^ nSoldiers;
-			TacticalIntroScene::GenerateTerranTeam( &data->soldiers[minSoldiers], nSoldiers-minSoldiers, 
-													data->soldierBoost ? 0.0f : 0.5f,
-													game->GetItemDefArr(),
-													seed );
-		}
-		
+			else if ( nSoldiers > minSoldiers ) {
+				for( int i=minSoldiers; i<nSoldiers; ++i ) {
+					data->soldiers[i].Free();
+					memset( &data->soldiers[i], 0, sizeof(Unit) );
+				}
+				int seed = *data->cash ^ nSoldiers;
+				TacticalIntroScene::GenerateTerranTeam( &data->soldiers[minSoldiers], nSoldiers-minSoldiers, 
+														data->soldierBoost ? 0.0f : 0.5f,
+														game->GetItemDefArr(),
+														seed );
+			}
+		}		
 		// And scientists
 		const ItemDef* sDef = 0;
 		if ( data->scientists ) {

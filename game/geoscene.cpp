@@ -1184,8 +1184,8 @@ void GeoScene::PushBaseTradeScene( BaseChit* baseChit )
 	data->cash		 = &cash;
 	data->costMult	 = regionData[region].traits & RegionData::TRAIT_CAPATALIST ? COST_MULT_CAP : COST_MULT_STD;
 	data->soldierBoost = regionData[region].traits & RegionData::TRAIT_MILITARISTIC ? true : false;
-	data->soldiers	 = baseChit->GetUnits();
-	data->scientists = baseChit->IsFacilityComplete( BaseChit::FACILITY_SCILAB ) ? baseChit->GetScientstPtr() : 0;
+	data->soldiers	 = baseChit->CanUseSoldiers() ? baseChit->GetUnits() : 0;
+	data->scientists = baseChit->CanUseScientists() ? baseChit->GetScientstPtr() : 0;
 	game->PushScene( Game::BASETRADE_SCENE, data );
 }
 

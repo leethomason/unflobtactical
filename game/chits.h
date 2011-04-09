@@ -292,6 +292,13 @@ public:
 	bool IsFacilityInProgress( int i )			{ return facilityStatus[i] > 0; }
 	void BuildFacility( int i )					{ GLASSERT( facilityStatus[i] < 0 ); facilityStatus[i] = BUILD_TIME*1000; }
 
+	bool CanUseSoldiers() const {
+		return IsFacilityComplete( FACILITY_CARGO ) && IsFacilityComplete( FACILITY_LANDER );
+	}
+	bool CanUseScientists() const {
+		return IsFacilityComplete( FACILITY_CARGO ) && IsFacilityComplete( FACILITY_SCILAB );
+	}
+
 	virtual void Save( FILE* fp, int depth );
 	virtual void Load( const TiXmlElement* doc, Game* game );
 
