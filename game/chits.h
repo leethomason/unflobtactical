@@ -179,7 +179,7 @@ public:
 	{
 		if ( type == BATTLESHIP && !battleshipTech )
 			return false;
-		if ( ai == AI_CRASHED || ai == AI_CITY_ATTACK || ai == AI_CROP_CIRCLE )
+		if ( ai == AI_CRASHED || ai == AI_CITY_ATTACK || ai == AI_CROP_CIRCLE || ai == AI_PARKED )
 			return true;
 		return false;
 	}
@@ -383,7 +383,8 @@ public:
 	void SetBattle( int ufoID, int landerID, int scenario )	{ this->battleUFOID = ufoID; this->battleLanderID = landerID; this->battleScenario = scenario; }
 	UFOChit*	GetBattleUFO()					{ Chit* chit = GetChit( battleUFOID ); return (chit) ? chit->IsUFOChit() : 0; }
 	CargoChit*	GetBattleLander()				{ Chit* chit = GetChit( battleLanderID ); return (chit) ? chit->IsCargoChit() : 0; }
-	int			GetBattleScenario()				{ return battleScenario; }
+	UFOChit*	GetUFOBase();
+	int         GetBattleScenario() const		{ return battleScenario; }
 
 	// Length is MAX_BASES. Alpha, Bravo, Charlie, Delta
 	enum {

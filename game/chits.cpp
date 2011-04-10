@@ -98,8 +98,10 @@ UFOChit::UFOChit( SpaceTree* tree, int type, const grinliz::Vector2F& start, con
 UFOChit::~UFOChit()
 {
 	for( int i=0; i<2; ++i ) {
-		if ( decal[i] )
+		if ( decal[i] ) {
 			tree->FreeModel( decal[i] );
+			decal[i] = 0;
+		}
 	}
 }
 
@@ -113,7 +115,10 @@ void UFOChit::Init()
 		if ( model[i] ) tree->FreeModel( model[i] );
 		model[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( name[type] ) );
 		// Decals get re-created as needed.
-		if ( decal[i] ) { tree->FreeModel( decal[i] ); decal[i] = 0; }
+		if ( decal[i] ) { 
+			tree->FreeModel( decal[i] ); 
+			decal[i] = 0; 
+		}
 	}
 }
 
@@ -271,9 +276,10 @@ void UFOChit::Decal( U32 timer, float speed, int id )
 void UFOChit::RemoveDecal()
 {
 	for( int i=0; i<2; ++i ) {
-		if ( decal[i] )
+		if ( decal[i] ) {
 			tree->FreeModel( decal[i] );
-		decal[i] = 0;
+			decal[i] = 0;
+		}
 	}
 }
 
@@ -430,7 +436,7 @@ int UFOChit::DoTick( U32 deltaTime )
 		Decal( jobTimer, 0.05f, ICON2_UFO_OCCUPYING );
 	}
 	else {
-		GLASSERT( 0 );
+		//GLASSERT( 0 );
 	}
 
 	Vector3F pos0 = { pos.x, UFO_HEIGHT, pos.y };
@@ -1066,6 +1072,17 @@ int	ChitBag::NumBaseChits()
 			++count;
 	}
 	return count;
+}
+
+
+UFOChit* ChitBag::GetUFOBase()
+{
+	for( Chit* chit = sentinel.next; chit != &sentinel; chit=chit->next ) {
+		if ( chit->IsUFOChit() && (chit->IsUFOChit()->Type() == UFOChit::BASE) ) {
+			return chit->IsUFOChit();
+		}
+	}
+	return 0;
 }
 
 
