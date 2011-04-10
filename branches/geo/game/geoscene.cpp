@@ -916,6 +916,9 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			else if ( ufoChit->Type() == UFOChit::BATTLESHIP ) {
 				scenario = TacticalIntroScene::BATTLESHIP;
 			}
+			else if ( ufoChit->Type() == UFOChit::BASE ) {
+				scenario = TacticalIntroScene::ALIEN_BASE;
+			}
 			else {
 				int type = geoMapData.GetType( ufoChit->MapPos().x, ufoChit->MapPos().y );
 				switch ( type ) {
@@ -1132,7 +1135,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 							Vector2I capitalPos = geoMapData.Capital( region );
 							UFOChit* ufo = chitBag.GetLandedUFOChitAt( capitalPos );
 							if ( ufo ) {
-								ufoChit->SetAI( UFOChit::AI_ORBIT );
+								ufo->SetAI( UFOChit::AI_ORBIT );
 							}
 							regionData[region].influence -= BASE_WON_INFLUENCE;
 							regionData[region].influence = Clamp( regionData[region].influence, 0.0f, (float)MAX_INFLUENCE );
@@ -1223,19 +1226,30 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 		research.DoResearch( nResearchers );
 
 		if ( research.GetStatus( "Beacon" ) == Research::TECH_RESEARCH_COMPLETE ) {
-			// find tundra
-			int x = random.Rand( GEO_MAP_X );
-			while( true ) {
-				Vector2I p = { x, 0 };
+			if ( !chitBag.GetUFOBase() ) {
+				// find tundra. We'de rather have tundra, but try everything.
+				int x = random.Rand( GEO_MAP_X );
+				int y = 0;
+				while( y < GEO_MAP_Y ) {
+					Vector2I p = { x, 0 };
 
-				if (    geoMapData.GetType( x, 0 ) == GeoMapData::TUNDRA
-					&& chitBag.GetParkedChitAt( p ) == 0
-					&& chitBag.GetBaseChitAt( p ) == 0 ) 
-				{
-					Vector2F pf = { (float)x+0.5f, 0.5f };
-					UFOChit* chit = new UFOChit( GetEngine()->GetSpaceTree(), UFOChit::BASE, pf, pf );
-					chit->SetAI( UFOChit::AI_PARKED );
-					chitBag.Add( chit );
+					if (    geoMapData.GetType( x, 0 ) == GeoMapData::TUNDRA
+						&& chitBag.GetParkedChitAt( p ) == 0
+						&& chitBag.GetBaseChitAt( p ) == 0 ) 
+					{
+						Vector2F pf = { (float)x+0.5f, 0.5f };
+						UFOChit* chit = new UFOChit( GetEngine()->GetSpaceTree(), UFOChit::BASE, pf, pf );
+						chit->SetAI( UFOChit::AI_PARKED );
+						chitBag.Add( chit );
+						break;
+					}
+					else {
+						++x;
+						if ( x == GEO_MAP_X ) {
+							x = 0;
+							y++;
+						}
+					}
 				}
 			}
 		}
