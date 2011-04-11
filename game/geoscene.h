@@ -218,7 +218,7 @@ public:
 	}
 
 	// Set the storage to "normal" for the region, tech level, and traits.
-	void SetStorageNormal( const Research& research, Storage* storage );
+	void SetStorageNormal( const Research& research, Storage* storage, bool tech, bool manufacture );
 
 	void Save( FILE* fp, int depth );
 	void Load( const TiXmlElement* doc );
@@ -292,6 +292,7 @@ private:
 	void FireBaseWeapons();
 	void UpdateMissiles( U32 deltaTime );
 	void GenerateCities();
+	bool AnyRegionHasTrait( int trait );
 
 	bool PlaceBase( const grinliz::Vector2I& map );
 #ifndef IMMEDIATE_BUY

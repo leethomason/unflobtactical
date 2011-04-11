@@ -590,8 +590,11 @@ BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, c
 
 	memset( units, 0, sizeof(Unit)*MAX_TERRANS );	// some horrible bug in the
 													// unit class. splatter fix.
+	Random random;
+	random.SetSeedFromTime();
+
 	if ( firstBase ) 
-		TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, 0, itemDefArr, 0 );
+		TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, 0, itemDefArr, random.Rand() );
 
 	for( int i=0; i<NUM_FACILITIES; ++i ) {
 		facilityStatus[i] = firstBase ? 0 : -1;

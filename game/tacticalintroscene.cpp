@@ -37,6 +37,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 {
 	Engine* engine = GetEngine();
 	const Screenport& port = engine->GetScreenport();
+	random.SetSeedFromTime();
 
 	GLOUTPUT(( "TacticalIntroScene screen=%.1f,%.1f\n", engine->GetScreenport().UIWidth(), engine->GetScreenport().UIHeight() ));
 
@@ -813,7 +814,7 @@ void TacticalIntroScene::GenerateAlienTeamUpper(	int scenario,
 				dd.energy = max*0.33f;
 				dd.kinetic = max*0.33f;
 				dd.incend = max*0.33f;
-				units[i].DoDamage( dd, 0 );
+				units[i].DoDamage( dd, 0, false );
 				GLASSERT( units[i].IsAlive() );
 			}
 		}

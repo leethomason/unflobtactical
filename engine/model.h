@@ -151,7 +151,6 @@ public:
 		MODEL_OWNED_BY_MAP			= 0x04,
 		MODEL_NO_SHADOW				= 0x08,
 		MODEL_INVISIBLE				= 0x10,
-		MODEL_MAP_TRANSPARENT		= 0x20,
 		MODEL_METADATA				= 0x80,		// mapmaker data that isn't displayed in-game
 
 		// RESERVED!

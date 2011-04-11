@@ -3,6 +3,7 @@
 #include "cgame.h"
 #include "../engine/uirendering.h"
 #include "chits.h"
+#include "helpscene.h"
 
 using namespace grinliz;
 using namespace gamui;
@@ -23,6 +24,11 @@ BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene(
 	backButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	backButton.SetText( "Back" );
+
+	helpButton.Init( &gamui2D, green );
+	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, 0 );
+	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	helpButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_HELP, true ), UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
 
 	static const float ORIGIN_X = (port.UIWidth()-256.0f)/2.0f;
 	static const float ORIGIN_Y = 0;
@@ -121,6 +127,10 @@ void BuildBaseScene::Tap(	int action,
 		game->PopScene( 0 );
 		return;
 	}
+	else if ( item == &helpButton ) {
+		game->PushScene( Game::HELP_SCENE, new HelpSceneData( "buildBaseHelp" ) );
+	}
+
 	for( int i=0; i<NUM_FACILITIES; ++i ) {
 		if ( item == &buyButton[i] ) {
 			if ( *data->cash >= facilityCost[i] ) {

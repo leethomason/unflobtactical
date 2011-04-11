@@ -116,6 +116,13 @@ AlienDef gAlienDef[NUM_ALIENS] = {
 };
 
 
+const char* Unit::AlienName() const
+{
+	GLASSERT( type >= 0 && type < NUM_ALIENS );
+	return gAlienDef[type].name;
+}
+
+
 /*static*/ int Unit::XPToRank( int xp )
 {
 	GLASSERT( NUM_RANKS == 5 );
@@ -226,11 +233,10 @@ void Unit::Init(	int team,
 	allMissionKills = 0;
 	allMissionOvals = 0;
 	gunner = 0;
-	model = 0;
+	pos.Set( 0, 0, 0 );
+	rot = 0;
 
 	GLASSERT( this->status == STATUS_NOT_INIT );
-//	this->game = game;
-	tree = 0;
 	this->team = team;
 	this->status = p_status;
 	this->type = alienType;
@@ -241,7 +247,6 @@ void Unit::Init(	int team,
 	random.Rand();
 	random.Rand();
 
-	weapon = 0;
 	visibilityCurrent = false;
 	
 	if ( team == TERRAN_TEAM )
@@ -270,88 +275,32 @@ void Unit::Free()
 {
 	if ( status == STATUS_NOT_INIT )
 		return;
-	FreeModels();
 	status = STATUS_NOT_INIT;
-}
-
-
-void Unit::FreeModels() 
-{
-	if ( status == STATUS_NOT_INIT )
-		return;
-
-	if ( model ) {
-		GLASSERT( tree );
-		tree->FreeModel( model );
-		model = 0;
-	}
-	if ( weapon ) {
-		GLASSERT( tree );
-		tree->FreeModel( weapon );
-		weapon = 0;
-	}
 }
 
 
 void Unit::SetMapPos( int x, int z )
 {
 	GLASSERT( status != STATUS_NOT_INIT );
-	
-	if ( model ) {
-		grinliz::Vector3F p = { (float)x + 0.5f, 0.0f, (float)z + 0.5f };
-		model->SetPos( p );
-		UpdateWeapon();
-		visibilityCurrent = false;
-	}
+	pos.Set( (float)x+0.5f, 0, (float)z+0.5f );
+	visibilityCurrent = false;
 }
 
 
 void Unit::SetYRotation( float rotation )
 {
 	GLASSERT( status != STATUS_NOT_INIT );
-	if ( model && IsAlive() ) {
-		model->SetRotation( rotation );
-		UpdateWeapon();
-		visibilityCurrent = false;
-	}
+	rot = rotation;
+	visibilityCurrent = false;
 }
 
 
-void Unit::SetSelectable( bool selectable )
+void Unit::SetPos( const grinliz::Vector3F& _pos, float rotation )
 {
 	GLASSERT( status != STATUS_NOT_INIT );
-	if ( model ) {
-		if ( selectable )
-			model->SetFlag( Model::MODEL_SELECTABLE );
-		else
-			model->ClearFlag( Model::MODEL_SELECTABLE );
-	}
-}
-
-
-void Unit::SetPos( const grinliz::Vector3F& pos, float rotation )
-{
-	GLASSERT( status != STATUS_NOT_INIT );
-	if( model ) {
-		model->SetPos( pos );
-		if ( IsAlive() )
-			model->SetRotation( rotation );
-		UpdateWeapon();
-		visibilityCurrent = false;
-	}
-}
-
-
-Vector3F Unit::Pos() const
-{
-	GLASSERT( model );
-	if ( model ) {
-		return model->Pos();
-	}
-	else {
-		Vector3F p = { 0, 0, 0 };
-		return p;
-	}
+	visibilityCurrent = false;
+	pos = _pos;
+	rot = rotation;
 }
 
 
@@ -390,45 +339,6 @@ const Inventory* Unit::GetInventory() const
 }
 
 
-void Unit::UpdateInventory() 
-{
-	GLASSERT( status != STATUS_NOT_INIT );
-
-	if ( weapon  ) {
-		GLASSERT( tree );
-		tree->FreeModel( weapon );
-	}
-	weapon = 0;	// don't render non-weapon items
-
-	if ( IsAlive() ) {
-		const Item* weaponItem = inventory.ArmedWeapon();
-		if ( weaponItem && tree ) {
-			weapon = tree->AllocModel( weaponItem->GetItemDef()->resource );
-			weapon->SetFlag( Model::MODEL_NO_SHADOW );
-			weapon->SetFlag( Model::MODEL_MAP_TRANSPARENT );
-		}
-		UpdateWeapon();
-	}
-}
-
-
-void Unit::UpdateWeapon()
-{
-	GLASSERT( status == STATUS_ALIVE );
-	if ( weapon && model ) {
-		Matrix4 r;
-		r.SetYRotation( model->GetRotation() );
-
-		Vector4F mPos, gPos, pos4;
-
-		mPos.Set( model->Pos(), 1 );
-		gPos.Set( model->GetResource()->header.trigger, 1.0 );
-		pos4 = mPos + r*gPos;
-		weapon->SetPos( pos4.x, pos4.y, pos4.z );
-		weapon->SetRotation( model->GetRotation() );
-	}
-}
-
 
 //void Unit::CalcPos( grinliz::Vector3F* vec ) const
 //{
@@ -442,7 +352,6 @@ void Unit::UpdateWeapon()
 void Unit::CalcVisBounds( grinliz::Rectangle2I* b ) const
 {
 	GLASSERT( status != STATUS_NOT_INIT );
-	GLASSERT( model );
 
 	Vector2I p;
 	CalcMapPos( &p, 0 );
@@ -453,62 +362,40 @@ void Unit::CalcVisBounds( grinliz::Rectangle2I* b ) const
 }
 
 
-void Unit::CalcMapPos( grinliz::Vector2I* vec, float* rot ) const
+void Unit::CalcMapPos( grinliz::Vector2I* vec, float* _rot ) const
 {
 	GLASSERT( status != STATUS_NOT_INIT );
-	GLASSERT( model );
 
-	if ( model ) {
-		// Account that model can be incrementally moved when animating.
-		if ( vec ) {
-			vec->x = LRintf( model->X() - 0.5f );
-			vec->y = LRintf( model->Z() - 0.5f );
-		}
-		if ( rot ) {
-			float r = model->GetRotation() + 45.0f/2.0f;
-			int ir = (int)( r / 45.0f );
-			*rot = (float)(ir*45);
-		}
+	// Account that model can be incrementally moved when animating.
+	if ( vec ) {
+		vec->x = LRintf( pos.x - 0.5f );
+		vec->y = LRintf( pos.z - 0.5f );
 	}
-	else { 
-		vec->Set( 0, 0 );
-		*rot = 0;
+	if ( _rot ) {
+		float r = rot + 45.0f/2.0f;
+		int ir = (int)( r / 45.0f );
+		*_rot = (float)(ir*45);
 	}
 }
 
 
-void Unit::Kill( TacMap* map )
+void Unit::Kill( TacMap* map, bool playSound )
 {
 	GLASSERT( status == STATUS_ALIVE );
 	
-	bool hasModel = false;
-	Vector3F pos = { 0, 0, 0 };
-	if ( model ) { 
-		hasModel = true;
-		pos = model->Pos();
-	}
-
 	Free();
-
 	status = STATUS_KIA;
 	hp = 0;
 
 	if ( team == TERRAN_TEAM ) {
-		if ( hasModel )
+		if ( playSound )
 			SoundManager::Instance()->QueueSound( "terrandown0" );
 		if ( random.Rand( 100 ) < stats.Constitution() )
 			status = STATUS_UNCONSCIOUS;
 	}
 	else if ( team == ALIEN_TEAM ) {
-		if ( hasModel )
+		if ( playSound )
 			SoundManager::Instance()->QueueSound( "aliendown0" );
-	}
-	if ( hasModel ) {
-		CreateModel();
-
-		model->SetRotation( 0 );	// set the y rotation to 0 for the "splat" icons
-		model->SetPos( pos );
-		model->SetFlag( Model::MODEL_NO_SHADOW );
 	}
 	visibilityCurrent = false;
 
@@ -540,7 +427,7 @@ void Unit::Leave()
 }
 
 
-void Unit::DoDamage( const DamageDesc& damage, TacMap* map )
+void Unit::DoDamage( const DamageDesc& damage, TacMap* map, bool playSound )
 {
 	GLASSERT( status != STATUS_NOT_INIT );
 	if ( status == STATUS_ALIVE ) {
@@ -558,7 +445,7 @@ void Unit::DoDamage( const DamageDesc& damage, TacMap* map )
 
 		hp = Max( 0, hp-(int)LRintf( damageDone ) );
 		if ( hp == 0 ) {
-			Kill( map );
+			Kill( map, playSound );
 			visibilityCurrent = false;
 		}
 	}
@@ -572,75 +459,6 @@ void Unit::NewTurn()
 	}
 }
 
-
-void Unit::CreateModel()
-{
-	GLASSERT( status != STATUS_NOT_INIT );
-	GLASSERT( tree );
-
-	const ModelResource* resource = 0;
-	ModelResourceManager* modman = ModelResourceManager::Instance();
-	bool alive = IsAlive();
-
-	if ( alive ) {
-		switch ( team ) {
-			case TERRAN_TEAM:
-				resource = modman->GetModelResource( ( Gender() == MALE ) ? "maleMarine" : "femaleMarine" );
-				break;
-
-			case CIV_TEAM:
-				resource = modman->GetModelResource( ( Gender() == MALE ) ? "maleCiv" : "femaleCiv" );
-				break;
-
-			case ALIEN_TEAM:
-				resource = modman->GetModelResource( gAlienDef[AlienType()].name );
-				break;
-			
-			default:
-				GLASSERT( 0 );
-				break;
-		}
-		GLASSERT( resource );
-		if ( resource ) {
-			model =tree->AllocModel( resource );
-			model->SetFlag( Model::MODEL_MAP_TRANSPARENT );
-		}
-	}
-	else {
-		model = tree->AllocModel( modman->GetModelResource( "unitplate" ) );
-		model->SetFlag( Model::MODEL_MAP_TRANSPARENT );
-		model->SetFlag( Model::MODEL_NO_SHADOW );
-
-		Texture* texture = TextureManager::Instance()->GetTexture( "particleQuad" );
-		model->SetTexture( texture );
-
-		if ( team != ALIEN_TEAM ) {
-			model->SetTexXForm( 0, 0.25f, 0.25f, 0.75f, 0.0f );
-		}
-		else {
-			model->SetTexXForm( 0, 0.25f, 0.25f, 0.75f, 0.25f );
-		}
-	}
-	GLASSERT( model );
-
-	model->SetPos( initPos );
-	if ( IsAlive() )
-		model->SetRotation( initRot );
-	UpdateModel();
-}
-
-
-void Unit::UpdateModel()
-{
-	GLASSERT( status != STATUS_NOT_INIT );
-
-	if ( IsAlive() && model && team == TERRAN_TEAM ) {
-		int armor = inventory.GetArmorLevel();
-		int appearance = GetValue( APPEARANCE );
-		int gender = GetValue( GENDER );
-		model->SetSkin( gender, armor, appearance );
-	}
-}
 
 
 void Unit::Save( FILE* fp, int depth ) const
@@ -662,11 +480,9 @@ void Unit::Save( FILE* fp, int depth ) const
 		if ( ai == AI::AI_GUARD )
 			XMLUtil::Attribute( fp, "ai", "guard" );
 
-		if ( model ) {
-			XMLUtil::Attribute( fp, "modelX", model->Pos().x );
-			XMLUtil::Attribute( fp, "modelZ", model->Pos().z );
-			XMLUtil::Attribute( fp, "yRot", model->GetRotation() );
-		}
+		XMLUtil::Attribute( fp, "modelX", pos.x );
+		XMLUtil::Attribute( fp, "modelZ", pos.z );
+		XMLUtil::Attribute( fp, "yRot", rot );
 
 		XMLUtil::SealElement( fp );
 
@@ -678,20 +494,15 @@ void Unit::Save( FILE* fp, int depth ) const
 }
 
 
-void Unit::InitModel( SpaceTree* tree, TacMap* tacmap )
+void Unit::InitLoc( TacMap* tacmap )
 {
-	this->tree = tree;
-
-	if ( initPos.x == 0.0f ) {
-		GLASSERT( initPos.z == 0.0f );
+	if ( pos.x == 0.0f ) {
+		GLASSERT( pos.z == 0.0f );
 
 		Vector2I pi;
-		tacmap->PopLocation( team, ai == AI::AI_GUARD, &pi, &initRot );
-		initPos.Set( (float)pi.x+0.5f, 0.0f, (float)pi.y+0.5f );
+		tacmap->PopLocation( team, ai == AI::AI_GUARD, &pi, &rot );
+		pos.Set( (float)pi.x+0.5f, 0.0f, (float)pi.y+0.5f );
 	}
-
-	CreateModel();
-	UpdateInventory();
 }
 
 
@@ -709,8 +520,6 @@ void Unit::Load( const TiXmlElement* ele, const ItemDefArr& itemDefArr )
 
 	team = TERRAN_TEAM;
 	body = random.Rand() & 0x7fffffff;
-	initPos.Set( 0, 0, 0 );
-	initRot = 0;
 	type = 0;
 	int a_status = 0;
 	ai = AI::AI_NORMAL;
@@ -719,6 +528,7 @@ void Unit::Load( const TiXmlElement* ele, const ItemDefArr& itemDefArr )
 	allMissionKills = 0;
 	allMissionOvals = 0;
 	gunner = 0;
+	pos.Set( 0, 0, 0 );
 
 	GLASSERT( StrEqual( ele->Value(), "Unit" ) );
 	ele->QueryIntAttribute( "status", &a_status );
@@ -728,15 +538,14 @@ void Unit::Load( const TiXmlElement* ele, const ItemDefArr& itemDefArr )
 		ele->QueryIntAttribute( "team", &team );
 		ele->QueryIntAttribute( "type", &type );
 		ele->QueryIntAttribute( "body", (int*) &body );
-		ele->QueryFloatAttribute( "modelX", &initPos.x );
-		ele->QueryFloatAttribute( "modelZ", &initPos.z );
-		ele->QueryFloatAttribute( "yRot", &initRot );
-
 		GenStats( team, type, body, &stats );		// defaults if not provided
 		stats.Load( ele );
 		inventory.Load( ele, itemDefArr );
 
 		Init( team, a_status, type, body );
+		ele->QueryFloatAttribute( "modelX", &pos.x );
+		ele->QueryFloatAttribute( "modelZ", &pos.z );
+		ele->QueryFloatAttribute( "yRot", &rot );
 
 		hp = stats.TotalHP();
 		tu = stats.TotalTU();
@@ -754,8 +563,6 @@ void Unit::Load( const TiXmlElement* ele, const ItemDefArr& itemDefArr )
 		if ( StrEqual( ele->Attribute( "ai" ), "guard" ) ) {
 			ai = AI::AI_GUARD;
 		}
-
-		UpdateInventory();
 
 #if 0
 		GLOUTPUT(( "Unit loaded: team=%d STR=%d DEX=%d PSY=%d rank=%d hp=%d/%d acc=%.2f\n",
@@ -787,7 +594,6 @@ void Unit::Create(	int team,
 
 	hp = stats.TotalHP();
 	tu = stats.TotalTU();
-	UpdateInventory();
 }
 
 
@@ -943,3 +749,149 @@ Accuracy Unit::CalcAccuracy( WeaponMode mode ) const
 }
 
 
+
+UnitRenderer::UnitRenderer() : tree( 0 ), model( 0 ), weapon( 0 )
+{
+}
+
+
+UnitRenderer::~UnitRenderer()
+{
+	GLASSERT( tree );
+	if ( model ) 
+		tree->FreeModel( model );
+	if ( weapon )
+		tree->FreeModel( weapon );
+}
+
+
+void UnitRenderer::SetSelectable( bool selectable )
+{
+	if ( model ) {
+		if ( selectable )
+			model->SetFlag( Model::MODEL_SELECTABLE );
+		else
+			model->ClearFlag( Model::MODEL_SELECTABLE );
+	}
+}
+
+
+void UnitRenderer::Update( SpaceTree* _tree, const Unit* unit )
+{
+	GLASSERT( _tree );
+	if ( !tree ) {
+		tree = _tree;
+	}
+	else {
+		GLASSERT( tree == _tree );
+	}
+
+	const ModelResource* resource = 0;
+	const ModelResource* weaponResource = 0;
+	ModelResourceManager* modman = ModelResourceManager::Instance();
+	Texture* texture = 0;
+	float texA = 0;
+	float texD = 0;
+	float texX = 0;
+	float texY = 0;
+	bool shadow = true;
+
+	if ( !unit->InUse() ) {
+		// Should be nothing.
+		if ( model ) {
+			tree->FreeModel( model );
+			model = 0;
+		}
+		if ( weapon ) {
+			tree->FreeModel( weapon );
+			weapon = 0;
+		}
+	}
+	else if ( unit->IsAlive() ) {
+		switch ( unit->Team() ) {
+			case TERRAN_TEAM:
+				resource = modman->GetModelResource( ( unit->Gender() == Unit::MALE ) ? "maleMarine" : "femaleMarine" );
+				break;
+
+			case CIV_TEAM:
+				resource = modman->GetModelResource( ( unit->Gender() == Unit::MALE ) ? "maleCiv" : "femaleCiv" );
+				break;
+
+			case ALIEN_TEAM:
+				resource = modman->GetModelResource( unit->AlienName() );
+				break;
+			
+			default:
+				GLASSERT( 0 );
+				break;
+		}
+		GLASSERT( resource );
+		if ( unit->GetWeapon() && unit->GetWeapon()->IsWeapon() ) {
+			weaponResource = unit->GetWeapon()->IsWeapon()->resource;
+			GLASSERT( weaponResource );
+		}
+	}
+	else {
+		resource = modman->GetModelResource( "unitplate" );
+		texture = TextureManager::Instance()->GetTexture( "particleQuad" );
+		shadow = false;
+
+		if ( unit->Team() != ALIEN_TEAM ) {
+			texA = 0.25f; texD = 0.25f; texX = 0.75f; texY = 0;
+		}
+		else {
+			texA = 0.25f; texD = 0.25f; texX = 0.75f; texY = 0.25f;
+		}
+	}
+
+
+	if ( model && model->GetResource() != resource ) {
+		tree->FreeModel( model );	model = 0;
+	}
+	if ( weapon && weapon->GetResource() != weaponResource ) {
+		tree->FreeModel( weapon );	weapon = 0;
+	}
+
+	if ( !model && resource ) {
+		GLASSERT( resource );
+		model = tree->AllocModel( resource );
+		if ( !shadow )
+			model->SetFlag( Model::MODEL_NO_SHADOW );
+		if ( texture )
+			model->SetTexture( texture );
+		if ( texA ) {
+			model->SetTexXForm( 0, texA, texD, texX, texY );
+		}
+
+		if ( unit->IsAlive() && unit->Team() == TERRAN_TEAM ) {
+			int armor		= unit->GetInventory()->GetArmorLevel();
+			int appearance	= unit->GetValue( Unit::APPEARANCE );
+			int gender		= unit->GetValue( Unit::GENDER );
+			model->SetSkin( gender, armor, appearance );
+		}
+		GLASSERT( model );
+	}
+	if ( !weapon && weaponResource ) {
+		weapon = tree->AllocModel( weaponResource );
+		weapon->SetFlag( Model::MODEL_NO_SHADOW );
+	}
+
+	// The model checks for redundancy.
+	if ( model ) {
+		model->SetPos( unit->Pos() );
+		model->SetRotation( unit->Rotation() );
+	}
+
+	if ( weapon && model ) {
+		Matrix4 r;
+		r.SetYRotation( model->GetRotation() );
+
+		Vector4F mPos, gPos, pos4;
+
+		mPos.Set( model->Pos(), 1 );
+		gPos.Set( model->GetResource()->header.trigger, 1.0 );
+		pos4 = mPos + r*gPos;
+		weapon->SetPos( pos4.x, pos4.y, pos4.z );
+		weapon->SetRotation( model->GetRotation() );
+	}
+}

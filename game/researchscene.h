@@ -52,7 +52,7 @@ private:
 	gamui::ToggleButton		optionButton[MAX_OPTIONS];
 	gamui::TextLabel		optionName[MAX_OPTIONS];
 	gamui::TextLabel		optionRequires[MAX_OPTIONS];
-	gamui::PushButton		okayButton;
+	gamui::PushButton		okayButton, helpButton;
 	gamui::Image			image;
 };
 

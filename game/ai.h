@@ -75,7 +75,8 @@ public:
 	AI( int team,					// AI in instantiated for a TEAM, not a unit
 		Visibility* visibilit,	
 		Engine* engine, 			// Line of site checking
-		const Unit* units );		// all the units we can scan
+		const Unit* units,			// all the units we can scan
+		BattleScene* battleScene );	// FIXME: hack to get unit->model conversion
 
 	virtual ~AI()	{}
 
@@ -155,6 +156,7 @@ protected:
 		int					turns;
 	};
 	const Unit* m_units;
+	BattleScene* m_battleScene;
 
 	int m_team;
 
@@ -176,7 +178,7 @@ protected:
 class WarriorAI : public AI
 {
 public:
-	WarriorAI( int team, Visibility* vis, Engine* engine, const Unit* units ) : AI( team, vis, engine, units )		{}
+	WarriorAI( int team, Visibility* vis, Engine* engine, const Unit* units, BattleScene* battleScene ) : AI( team, vis, engine, units, battleScene )		{}
 	virtual ~WarriorAI()					{}
 
 	virtual bool Think( const Unit* move,
@@ -190,7 +192,7 @@ public:
 class CivAI : public AI
 {
 public:
-	CivAI( int team, Visibility* vis, Engine* engine, const Unit* units ) : AI( team, vis, engine, units )		{}
+	CivAI( int team, Visibility* vis, Engine* engine, const Unit* units, BattleScene* battleScene ) : AI( team, vis, engine, units, battleScene )		{}
 	virtual ~CivAI()																		{}
 	virtual bool Think( const Unit* move,
 						int flags,
@@ -202,7 +204,7 @@ public:
 class NullAI : public AI
 {
 public:
-	NullAI( int team, Visibility* vis, Engine* engine, const Unit* units ) : AI( team, vis, engine, units )		{}
+	NullAI( int team, Visibility* vis, Engine* engine, const Unit* units, BattleScene* battleScene ) : AI( team, vis, engine, units, battleScene )		{}
 	virtual ~NullAI()																		{}
 	virtual bool Think( const Unit* move,
 						int flags,
