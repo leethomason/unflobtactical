@@ -28,12 +28,13 @@
 using namespace grinliz;
 
 
-AI::AI( int team, Visibility* vis, Engine* engine, const Unit* units )
+AI::AI( int team, Visibility* vis, Engine* engine, const Unit* units, BattleScene* battleScene )
 {
 	m_team = team;
 	m_visibility = vis;
 	m_engine = engine;
 	m_units = units;
+	m_battleScene = battleScene;
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		m_enemy[i] = 0.0f;
@@ -96,22 +97,22 @@ void AI::Inform( const Unit* theUnit, int quality )
 
 bool AI::LineOfSight( const Unit* shooter, const Unit* target )
 {
-	GLASSERT( shooter->GetModel() );
-	GLASSERT( target->GetModel() );
+	GLASSERT( m_battleScene->GetModel( shooter ));
+	GLASSERT( m_battleScene->GetModel( target ));
 	GLASSERT( shooter != target );
 
 	Vector3F p0, p1, intersection;
-	shooter->GetModel()->CalcTrigger( &p0 );
-	target->GetModel()->CalcTarget( &p1 );
+	m_battleScene->GetModel( shooter )->CalcTrigger( &p0 );
+	m_battleScene->GetModel( target )->CalcTarget( &p1 );
 
 	Ray ray;
 	ray.origin = p0;
 	ray.direction = p1 - p0;
 
-	const Model* ignore[3] = { shooter->GetModel(), shooter->GetWeaponModel(), 0 };
+	const Model* ignore[3] = { m_battleScene->GetModel( shooter ), m_battleScene->GetWeaponModel( shooter ), 0 };
 	Model* m = m_engine->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &intersection );
 	
-	if ( m == target->GetModel() || m == target->GetWeaponModel() ) {
+	if ( m == m_battleScene->GetModel( target ) || m == m_battleScene->GetWeaponModel( target ) ) {
 		return true;
 	}
 	return false;
@@ -182,7 +183,7 @@ int AI::ThinkShoot(	const Unit* theUnit,
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if (    m_enemy[i] > 0
 			 && m_units[i].IsAlive() 
-			 && m_units[i].GetModel() 
+			 && m_battleScene->GetModel( &m_units[i] )
 			 && m_visibility->UnitCanSee( theUnit, &m_units[i] )
 			 && LineOfSight( theUnit, &m_units[i]))
 		{
@@ -190,7 +191,7 @@ int AI::ThinkShoot(	const Unit* theUnit,
 			float len = sqrtf( (float)len2 );
 
 			BulletTarget bulletTarget( len );
-			m_units[i].GetModel()->CalcTargetSize( &bulletTarget.width, &bulletTarget.height );
+			m_battleScene->GetModel( &m_units[i] )->CalcTargetSize( &bulletTarget.width, &bulletTarget.height );
 
 			for ( int _mode=0; _mode<3; ++_mode ) {
 				WeaponMode mode = (WeaponMode)_mode;
@@ -229,8 +230,8 @@ int AI::ThinkShoot(	const Unit* theUnit,
 	if ( best >= 0 ) {
 		action->actionID = ACTION_SHOOT;
 		action->shoot.mode = (WeaponMode)bestMode;
-		m_units[best].GetModel()->CalcTarget( &action->shoot.target );
-		m_units[best].GetModel()->CalcTargetSize( &action->shoot.targetWidth, &action->shoot.targetHeight );
+		m_battleScene->GetModel( &m_units[best] )->CalcTarget( &action->shoot.target );
+		m_battleScene->GetModel( &m_units[best] )->CalcTargetSize( &action->shoot.targetWidth, &action->shoot.targetHeight );
 		return THINK_ACTION;
 	}
 	return THINK_NO_ACTION;
@@ -323,7 +324,7 @@ int AI::ThinkSearch(const Unit* theUnit,
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if (    m_enemy[i] > 0 
 			 &&	m_units[i].IsAlive() 
-			 && m_units[i].GetModel()
+			 && m_battleScene->GetModel( &m_units[i] )
 			 && m_lkp[i].turns < MAX_TURNS_LKP ) 
 		{
 			
@@ -483,7 +484,7 @@ int AI::ThinkRotate(	const Unit* theUnit,
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if (    m_enemy[i] > 0
 			 && m_units[i].IsAlive() 
-			 && m_units[i].GetModel()
+			 && m_battleScene->GetModel( &m_units[i] )
 			 && m_visibility->TeamCanSee( m_team, m_units[i].MapPos() )
 			 && m_lkp[i].turns < MAX_TURNS_LKP ) 
 		{

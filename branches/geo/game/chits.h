@@ -92,7 +92,6 @@ public:
 		MSG_UFO_AT_DESTINATION,			// create a crop circle, attack a city, occupy a capital
 		MSG_CROP_CIRCLE_COMPLETE,
 		MSG_CITY_ATTACK_COMPLETE,
-		//MSG_BASE_ATTACK_COMPLETE,
 		MSG_UFO_CRASHED,
 
 #ifndef IMMEDIATE_BUY
@@ -290,7 +289,15 @@ public:
 
 	bool IsFacilityComplete( int i )	const	{ return facilityStatus[i] == 0; }
 	bool IsFacilityInProgress( int i )			{ return facilityStatus[i] > 0; }
-	void BuildFacility( int i )					{ GLASSERT( facilityStatus[i] < 0 ); facilityStatus[i] = BUILD_TIME*1000; }
+	void BuildFacility( int i )					
+	{ 
+		GLASSERT( facilityStatus[i] < 0 ); 
+#ifdef IMMEDIATE_BUY
+		facilityStatus[i] = 0;
+#else
+		facilityStatus[i] = BUILD_TIME*1000; 
+#endif
+	}
 
 	bool CanUseSoldiers() const {
 		return IsFacilityComplete( FACILITY_CARGO ) && IsFacilityComplete( FACILITY_LANDER );

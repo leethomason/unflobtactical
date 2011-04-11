@@ -62,7 +62,7 @@ public:
 		FEMALE
 	};
 
-	Unit() : status( STATUS_NOT_INIT ), model( 0 ), weapon( 0 ) {}
+	Unit() : status( STATUS_NOT_INIT ) {}
 	~Unit();
 	
 	void Free();
@@ -78,8 +78,8 @@ public:
 	float TU() const			{ return tu; }
 
 	// Do damage to this unit. Will create a Storage on the map, if the map is provided.
-	void DoDamage( const DamageDesc& damage, TacMap* map );
-	void Kill( TacMap* map );		// normally called by DoDamage
+	void DoDamage( const DamageDesc& damage, TacMap* map, bool playSound );
+	void Kill( TacMap* map, bool playSound );		// normally called by DoDamage
 	void UseTU( float val )		{ tu = grinliz::Max( 0.0f, tu-val ); }
 	void Leave();
 	void Heal()					{ if ( status != STATUS_NOT_INIT ) { tu = stats.TotalTU(); hp = stats.TotalHP(); status = STATUS_ALIVE; }}
@@ -90,6 +90,7 @@ public:
 	int AlienType()	const		{ return type; }
 	int Gender() const			{ return GetValue( GENDER ); }
 	int AI() const				{ return ai; }
+	const char* AlienName() const;
 
 	void SetAI( int value )		{ ai = value; }
 
@@ -101,8 +102,9 @@ public:
 	void SetMapPos( const grinliz::Vector2I& pos ) { SetMapPos( pos.x, pos.y ); }
 	void SetPos( const grinliz::Vector3F& pos, float rotation );
 	void SetYRotation( float rotation );
-	grinliz::Vector3F Pos() const;
-	void SetSelectable( bool selectable );
+
+	grinliz::Vector3F Pos() const	{ return pos; }
+	float Rotation() const			{ return rot; }
 
 	// Compute the bounding box of this unit's sight. (VERY loose.)
 	void CalcVisBounds( grinliz::Rectangle2I* b ) const;
@@ -122,11 +124,6 @@ public:
 
 	Inventory* GetInventory();
 	const Inventory* GetInventory() const;
-	void UpdateInventory();
-
-	const Model* GetModel() const			{ return model; }
-	const Model* GetWeaponModel() const		{ return weapon; }
-	void FreeModels();
 
 	// Returns true if the mode can be used: mode is supported, enough time units,
 	// enough rounds, etc.
@@ -184,7 +181,7 @@ public:
 
 	// Loads the model. Follow with InitModel() if models needed.
 	void Load( const TiXmlElement* doc, const ItemDefArr& arr );
-	void InitModel(  SpaceTree* tree, TacMap* tacmap );
+	void InitLoc(  TacMap* tacmap );
 	void Create(	int team,
 					int alienType,
 					int rank,
@@ -208,7 +205,6 @@ public:
 		return 0;
 	}
 
-private:
 	// WARNING: change this then change GetValue()
 	enum {	
 		GENDER,			// 1, 0-1
@@ -218,6 +214,8 @@ private:
 		NUM_TRAITS
 	};
 	U32 GetValue( int which ) const;
+
+private:
 
 	// Note that the 'stats' should be set before init.
 	// Load calls init automatically
@@ -236,13 +234,10 @@ private:
 	int type;		// type of alien
 	U32 body;		// describes everything! a random #
 
-	SpaceTree*	tree;
-	Model*		model;
-	Model*		weapon;
-	bool		visibilityCurrent;	// if set, the visibility is current. Can be set by CalcAllVisibility()
-	grinliz::Random	random;
-	grinliz::Vector3F	initPos;	// position used to create the model.
-	float				initRot;
+	bool				visibilityCurrent;	// if set, the visibility is current. Can be set by CalcAllVisibility()
+	grinliz::Random		random;
+	grinliz::Vector3F	pos;		// y always 0
+	float				rot;
 
 	Inventory	inventory;
 	Stats		stats;
@@ -254,6 +249,26 @@ private:
 	int			allMissionKills;
 	int			allMissionOvals;
 	int			gunner;
+};
+
+
+class UnitRenderer
+{
+public:
+	UnitRenderer();
+	~UnitRenderer();
+
+	void Update( SpaceTree* tree, const Unit* unit );
+
+	const Model* GetModel() const		{ return model; }
+	const Model* GetWeapon() const		{ return weapon; }
+
+	void SetSelectable( bool selectable );
+
+private:
+	SpaceTree*  tree;
+	Model*		model;
+	Model*		weapon;
 };
 
 

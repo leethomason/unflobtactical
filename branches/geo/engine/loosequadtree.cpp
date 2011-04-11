@@ -129,6 +129,9 @@ Model* SpaceTree::AllocModel( const ModelResource* resource )
 
 void SpaceTree::FreeModel( Model* model )
 {
+	if ( model == 0 )
+		return;
+
 	Item* item = (Item*)model;	// cast depends on model being first in the structure.
 
 	GLASSERT( item->node );
@@ -256,11 +259,11 @@ SpaceTree::Node* SpaceTree::GetNode( int depth, int x, int z )
 	int nx = x / size;
 	int nz = z / size;
 
-	//const int base[DEPTH] = { 0, 1, 1+4, 1+4+16, 1+4+16+64, 1+4+16+64+256 };
 	const int base[DEPTH] = { 0, 1, 1+4, 1+4+16, 1+4+16+64 };
 	int dx = (1<<depth);
-	GLASSERT( nx < dx );
-	GLASSERT( nz < dx );
+
+	nx = Clamp( nx, 0, dx-1 );	// error correction...
+	nz = Clamp( nz, 0, dx-1 );	// error correction...
 
 	Node* result = &nodeArr[ base[depth] + nz*dx+nx ];
 	GLASSERT( result >= nodeArr && result < &nodeArr[NUM_NODES] );

@@ -152,7 +152,7 @@ void RegionData::Init(  const ItemDefArr& itemDefArr, Random* random )
 }
 
 
-void RegionData::SetStorageNormal( const Research& research, Storage* storage )
+void RegionData::SetStorageNormal( const Research& research, Storage* storage, bool tech, bool manufacture )
 {
 	int COUNT = 100;
 
@@ -172,12 +172,12 @@ void RegionData::SetStorageNormal( const Research& research, Storage* storage )
 				}
 				else if ( status == Research::TECH_RESEARCH_COMPLETE ) {
 					if (    itemDef->IsWeapon() 
-						 && ( itemDef->TechLevel() <= 2 || (traits & TRAIT_TECH ) ) ) 
+						 && ( itemDef->TechLevel() <= 2 || tech ) ) 
 					{
 						storage->AddItem( itemDef, COUNT );
 					}
 					else if (    itemDef->IsArmor()
-						      && ( itemDef->TechLevel() <= 2 || (traits & TRAIT_MANUFACTURE ) ) ) 
+						      && ( itemDef->TechLevel() <= 2 || manufacture ) ) 
 					{
 						storage->AddItem( itemDef, COUNT );
 					}
@@ -189,6 +189,23 @@ void RegionData::SetStorageNormal( const Research& research, Storage* storage )
 		}
 	}
 }
+
+
+bool GeoScene::AnyRegionHasTrait( int trait )
+{
+	for( int i=0; i<MAX_BASES; ++i ) {
+		BaseChit* baseChit = chitBag.GetBaseChit( i );
+		if ( baseChit ) {
+			int region = geoMapData.GetRegion( baseChit->MapPos() );
+			if ( regionData[region].traits & trait ) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
 
 
 void RegionData::Free()
@@ -1044,8 +1061,6 @@ void GeoScene::SceneResult( int sceneID, int result )
 						result = BattleData::DEFEAT;	// can't tie on base attack
 				}
 				Unit* battleUnits = game->battleData.units;
-				for( int i=0; i<MAX_UNITS; ++i )
-					game->battleData.units[i].FreeModels();
 
 				// Inform the research system of found items.
 				for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
@@ -1104,15 +1119,17 @@ void GeoScene::SceneResult( int sceneID, int result )
 
 				if ( result == BattleData::VICTORY ) {
 					// Apply penalty for lost civs:
-					int	region = geoMapData.GetRegion( baseChit->MapPos().x, baseChit->MapPos().y );
-					if ( (nCivsAlive+nCivsDead) > 0 && region >= 0 ) {
-						float ratio = 1.0f - (float)nCivsAlive / (float)(nCivsAlive+nCivsDead);
-						if ( chitBag.GetBattleScenario() == TacticalIntroScene::CITY ) { 
-							ratio *= 2.0f; 
+					if ( game->battleData.scenario == TacticalIntroScene::CITY ) {
+						int	region = geoMapData.GetRegion( baseChit->MapPos().x, baseChit->MapPos().y );
+						if ( (nCivsAlive+nCivsDead) > 0 && region >= 0 ) {
+							float ratio = 1.0f - (float)nCivsAlive / (float)(nCivsAlive+nCivsDead);
+							if ( chitBag.GetBattleScenario() == TacticalIntroScene::CITY ) { 
+								ratio *= 2.0f; 
+							}
+							regionData[region].influence += ratio;
+							regionData[region].influence = Min( regionData[region].influence, (float)MAX_INFLUENCE );
+							areaWidget[region]->SetInfluence( regionData[region].influence );
 						}
-						regionData[region].influence += ratio;
-						regionData[region].influence = Min( regionData[region].influence, (float)MAX_INFLUENCE );
-						areaWidget[region]->SetInfluence( regionData[region].influence );
 					}
 
 					// Did the aliens lose the base?
@@ -1183,7 +1200,7 @@ void GeoScene::PushBaseTradeScene( BaseChit* baseChit )
 	data->baseName   = baseChit->Name();
 	data->regionName = gRegionName[region];
 	data->base		 = baseChit->GetStorage();
-	regionData[region].SetStorageNormal( research, &data->region );
+	regionData[region].SetStorageNormal( research, &data->region, AnyRegionHasTrait( RegionData::TRAIT_TECH ), AnyRegionHasTrait( RegionData::TRAIT_MANUFACTURE ) );
 	data->cash		 = &cash;
 	data->costMult	 = regionData[region].traits & RegionData::TRAIT_CAPATALIST ? COST_MULT_CAP : COST_MULT_STD;
 	data->soldierBoost = regionData[region].traits & RegionData::TRAIT_MILITARISTIC ? true : false;
@@ -1645,6 +1662,7 @@ void GeoScene::Debug3D()
 
 void GeoScene::DrawHUD()
 {
+#if 0
 	TimeState ts;
 	CalcTimeState( timeline, &ts );
 	UFOText::Draw( 50, 0, "nBat=%d tmr=%.1fm alTm=%.1f rank=%.1f type=%.1f,%.1f,%.1f",
@@ -1653,6 +1671,7 @@ void GeoScene::DrawHUD()
 		(float)ts.alienTime/1000.0f,
 		ts.alienRank,
 		ts.alienType[0], ts.alienType[1], ts.alienType[2] );
+#endif
 }
 
 

@@ -17,6 +17,7 @@
 #define UFO_BUILD_BASE_SCENE_INCLUDED
 
 #include "scene.h"
+#include "gamelimits.h"
 #include "../gamui/gamui.h"
 
 class BaseChit;
@@ -64,6 +65,7 @@ private:
 	gamui::Image		mapImage;
 	gamui::PushButton	buyButton[NUM_FACILITIES];
 	gamui::TextLabel	progressLabel[NUM_FACILITIES];
+	gamui::PushButton	helpButton;
 
 	gamui::Image		cashImage;
 	gamui::TextLabel	cashLabel;

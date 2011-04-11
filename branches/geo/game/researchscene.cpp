@@ -5,6 +5,7 @@
 #include "gamelimits.h"
 #include "game.h"
 #include "cgame.h"
+#include "helpscene.h"
 
 using namespace gamui;
 using namespace grinliz;
@@ -18,6 +19,7 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 	static const float SPACE = 5.0f;
 	static const float X0 = GAME_BUTTON_SIZE_F + GAME_GUTTER;
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
+	const ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
 
 	title.Init( &gamui2D );
 	title.SetPos( X0, 0 );
@@ -58,6 +60,11 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 	okayButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	okayButton.SetText( "Done" );
 
+	helpButton.Init( &gamui2D, green );
+	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	helpButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_HELP, true ), UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
+
 	SetOptions();
 	SetDescription();
 }
@@ -90,6 +97,9 @@ void ResearchScene::Tap( int action, const grinliz::Vector2F& screen, const grin
 			}
 		}
 		game->PopScene();
+	}
+	else if ( item == &helpButton ) {
+		game->PushScene( Game::HELP_SCENE, new HelpSceneData( "researchHelp" ) );
 	}
 }
 

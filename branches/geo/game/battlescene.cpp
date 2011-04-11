@@ -65,14 +65,17 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	nearPathState.Clear();
 	tacMap->SetPathBlocker( this );
 	dragUnit = 0;
-//	scenario = 0;
 
-	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, &visibility, engine, units );
+	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, &visibility, engine, units, this );
 	aiArr[TERRAN_TEAM]		= 0;
 	if ( SettingsManager::Instance()->GetPlayerAI() ) {
-		aiArr[TERRAN_TEAM] = new WarriorAI( TERRAN_TEAM, &visibility, engine, units );
+		aiArr[TERRAN_TEAM] = new WarriorAI( TERRAN_TEAM, &visibility, engine, units, this );
 	}
-	aiArr[CIV_TEAM]			= new CivAI( CIV_TEAM, &visibility, engine, units );
+	aiArr[CIV_TEAM]			= new CivAI( CIV_TEAM, &visibility, engine, units, this );
+
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		unitRenderers[i].Update( GetEngine()->GetSpaceTree(), &units[i] );
+	}
 
 	mapmaker_currentMapItem = 1;
 
@@ -228,10 +231,8 @@ BattleScene::~BattleScene()
 			engine->FreeModel( mapmaker_preview );
 	}
 
-	for( int i=0; i<3; ++i )
+	for( int i=0; i<3; ++i ) {
 		delete aiArr[i];
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		game->battleData.units[i].FreeModels();
 	}
 	delete tacMap;
 }
@@ -445,9 +446,10 @@ void BattleScene::Load( const TiXmlElement* battleElement )
 
 	game->battleData.Load( battleElement );
 	tacMap->SetDayTime( game->battleData.dayTime );
+
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if ( units[i].InUse() )
-			units[i].InitModel( GetEngine()->GetSpaceTree(), tacMap );
+			units[i].InitLoc( tacMap );
 	}
 
 	ProcessDoors();
@@ -460,8 +462,8 @@ void BattleScene::Load( const TiXmlElement* battleElement )
 	OrderNextPrev();
 
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		if ( units[i].IsAlive() && units[i].GetModel() ) {
-			PushScrollOnScreen( units[i].GetModel()->Pos(), true );
+		if ( units[i].IsAlive() ) {
+			PushScrollOnScreen( units[i].Pos(), true );
 			break;
 		}
 	}
@@ -783,6 +785,9 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		targetEvents.Clear();	// All done! They don't get to carry on beyond the moment.
 	}
 
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		unitRenderers[i].Update( GetEngine()->GetSpaceTree(), &units[i] );
+	}
 	SetUnitOverlays();
 
 	// Creates a race condition. Sometimes re-pushes End scene between the sequence:
@@ -995,13 +1000,13 @@ void BattleScene::DrawFireWidget()
 		target.Set( (float)selection.targetPos.x+0.5f, 1.0f, (float)selection.targetPos.y+0.5f );
 	}
 	else {
-		const Model* m = selection.targetUnit->GetModel();
+		const Model* m = GetModel( selection.targetUnit );
 		GLASSERT( m );
 		m->CalcTarget( &target );
 		m->CalcTargetSize( &bulletTarget.width, &bulletTarget.height );
 	}
 
-	Vector3F distVector = target - SelectedSoldierModel()->Pos();
+	Vector3F distVector = target - GetModel( SelectedSoldierUnit() )->Pos();
 	bulletTarget.distance = distVector.Length();
 
 	Inventory* inventory = unit->GetInventory();
@@ -1172,12 +1177,12 @@ void BattleScene::SetSelection( Unit* unit )
 
 void BattleScene::PushRotateAction( Unit* src, const Vector3F& dst3F, bool quantize )
 {
-	GLRELASSERT( src->GetModel() );
+	GLRELASSERT( GetModel( src ) );
 
 	Vector2I dst = { (int)dst3F.x, (int)dst3F.z };
 
 	float rot = src->AngleBetween( dst, quantize );
-	if ( src->GetModel()->GetRotation() != rot ) {
+	if ( src->Rotation() != rot ) {
 		Action* action = actionStack.Push();
 		action->Init( ACTION_ROTATE, src );
 		action->type.rotate.rotation = rot;
@@ -1296,7 +1301,7 @@ void BattleScene::DoReactionFire()
 				Unit* srcUnit = &units[t.viewerID];
 
 				if (    targetUnit->IsAlive() 
-					 && targetUnit->GetModel()
+					 && GetModel( targetUnit )
 					 && srcUnit->GetWeapon() ) {
 
 					bool rangeOK = true;
@@ -1322,9 +1327,12 @@ void BattleScene::DoReactionFire()
 						Vector2F normalToTarget = { (float)(targetMapPos.x - srcMapPos.x), (float)(targetMapPos.y - srcMapPos.y) };
 						normalToTarget.Normalize();
 
-						Vector2F facing;
-						facing.x = sinf( ToRadian( srcUnit->GetModel()->GetRotation() ) );
-						facing.y = cosf( ToRadian( srcUnit->GetModel()->GetRotation() ) );
+						Vector2F facing = { 0, 0 };
+						GLASSERT( GetModel( srcUnit ) );
+						if ( GetModel( srcUnit ) ) {
+							facing.x = sinf( ToRadian( GetModel( srcUnit )->GetRotation() ) );
+							facing.y = cosf( ToRadian( GetModel( srcUnit )->GetRotation() ) );
+						}
 
 						float mod = DotProduct( facing, normalToTarget ) * 0.5f + 0.5f;  
 						reaction *= mod;				// linear with angle.
@@ -1333,11 +1341,12 @@ void BattleScene::DoReactionFire()
 						GLOUTPUT(( "reaction fire possible. (if %.2f < %.2f)\n", r, reaction ));
 
 						if ( r <= reaction ) {
-							Vector3F target;
-							targetUnit->GetModel()->CalcTarget( &target );
+							Vector3F target = { 0, 0, 0 };
+							GLASSERT( GetModel( targetUnit ) );
+							GetModel( targetUnit )->CalcTarget( &target );
 
 							float targetWidth, targetHeight;
-							targetUnit->GetModel()->CalcTargetSize( &targetWidth, &targetHeight );
+							GetModel( targetUnit )->CalcTargetSize( &targetWidth, &targetHeight );
 							
 							int shot = PushShootAction( srcUnit, target, targetWidth, targetHeight, kAutoFireMode, error, true );	// auto
 							if ( !shot )
@@ -1409,7 +1418,6 @@ void BattleScene::ProcessInventoryAI( Unit* theUnit )
 		}
 	}
 	tacMap->ReleaseStorage( storage );
-	theUnit->UpdateInventory();
 }
 
 
@@ -1608,13 +1616,12 @@ int BattleScene::ProcessAction( U32 deltaTime )
 		const Model* model = 0;
 
 		if ( action->unit ) {
-			if ( !action->unit->IsAlive() || !action->unit->GetModel() ) {
-				//GLASSERT( 0 );	// may be okay, but untested.
+			if ( !action->unit->IsAlive() ) {
 				actionStack.Pop();
 				return true;
 			}
 			unit = action->unit;
-			model = action->unit->GetModel();
+			model = GetModel( action->unit );
 		}
 
 		switch ( action->actionID ) {
@@ -1802,7 +1809,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 
 	int result = 0;
 
-	if ( unit && unit->GetModel() && unit->IsAlive() ) {
+	if ( unit && GetModel( unit ) && unit->IsAlive() ) {
 		// Shooting announces the units location.
 		for( int i=0; i<3; ++i ) {
 			if ( aiArr[i] )
@@ -1817,7 +1824,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 		weaponDef = weaponItem->GetItemDef()->IsWeapon();
 		GLRELASSERT( weaponDef );
 
-		unit->GetModel()->CalcTrigger( &p0 );
+		GetModel(unit)->CalcTrigger( &p0 );
 		p1 = action->type.shoot.target;
 
 		ray.origin = p0;
@@ -1832,7 +1839,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 		// ground / bounds
 
 		// Don't hit the shooter:
-		const Model* ignore[] = { unit->GetModel(), unit->GetWeaponModel(), 0 };
+		const Model* ignore[] = { GetModel(unit), GetWeaponModel(unit), 0 };
 		Model* m = engine->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &intersection );
 
 		if ( m && intersection.y < 0.0f ) {
@@ -1977,7 +1984,7 @@ int BattleScene::ProcessActionHit( Action* action )
 
 		if ( hitUnit ) {
 			if ( hitUnit->IsAlive() ) {
-				hitUnit->DoDamage( action->type.hit.damageDesc, tacMap );
+				hitUnit->DoDamage( action->type.hit.damageDesc, tacMap, true );
 				if ( !hitUnit->IsAlive() ) {
 					selection.ClearTarget();			
 					visibility.InvalidateUnit( hitUnit - units );
@@ -1990,7 +1997,6 @@ int BattleScene::ProcessActionHit( Action* action )
 		else if ( hitWeapon ) {
 			Inventory* inv = hitWeapon->GetInventory();
 			inv->RemoveItem( Inventory::WEAPON_SLOT );
-			hitWeapon->UpdateInventory();
 			GLOUTPUT(( "Shot the weapon out of Unit 0x%x hand.\n", (unsigned)hitWeapon ));
 		}
 		else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
@@ -2083,7 +2089,7 @@ int BattleScene::ProcessActionHit( Action* action )
 
 							Unit* unit = GetUnitFromTile( x, y );
 							if ( unit && unit->IsAlive() ) {
-								unit->DoDamage( dd, tacMap );
+								unit->DoDamage( dd, tacMap, true );
 								if ( !unit->IsAlive() ) {
 									visibility.InvalidateUnit( unit - units );
 									if ( unit == SelectedSoldierUnit() ) {
@@ -2185,7 +2191,7 @@ void BattleScene::HandleNextUnit( int bias )
 
 			if ( units[index].IsAlive() ) {
 				SetSelection( &units[index] );
-				PushScrollOnScreen( units[index].GetModel()->Pos() );
+				PushScrollOnScreen( units[index].Pos() );
 				break;
 			}
 		}
@@ -2199,7 +2205,7 @@ void BattleScene::HandleRotation( float bias )
 	if ( actionStack.Empty() && SelectedSoldierUnit() ) {
 		Unit* unit = SelectedSoldierUnit();
 
-		float r = unit->GetModel()->GetRotation();
+		float r = unit->Rotation();
 		r += bias;
 		r = NormalizeAngleDegrees( r );
 		r = 45.f * float( (int)((r+20.0f) / 45.f) );
@@ -2239,8 +2245,10 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 				target.Set( (float)selection.targetPos.x + 0.5f, 1.0f, (float)selection.targetPos.y + 0.5f );
 			}
 			else {
-				selection.targetUnit->GetModel()->CalcTarget( &target );
-				selection.targetUnit->GetModel()->CalcTargetSize( &targetWidth, &targetHeight );
+				if ( GetModel( selection.targetUnit ) ) {
+					GetModel( selection.targetUnit )->CalcTarget( &target );
+					GetModel( selection.targetUnit )->CalcTargetSize( &targetWidth, &targetHeight );
+				}
 			}
 			PushShootAction( selection.soldierUnit, target, targetWidth, targetHeight, mode, 1.0f, false );
 		}
@@ -2314,7 +2322,7 @@ void BattleScene::SceneResult( int sceneID, int result )
 		for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i ) {
 			DamageDesc d = { 100, 100, 100 };
 			if ( units[i].IsAlive() )
-				units[i].DoDamage( d, tacMap );
+				units[i].DoDamage( d, tacMap, true );
 		}
 
 		PushEndScene();
@@ -2488,32 +2496,32 @@ void BattleScene::Tap(	int action,
 		bool canSelectAlien = SelectedSoldier();			// a soldier is selected
 
 		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-			if ( units[i].GetModel() ) {
+			if ( GetModel( &units[i] ) ) {
 				if ( units[i].IsAlive() ) {
-					units[i].SetSelectable( true );
+					unitRenderers[i].SetSelectable( true );
 					if ( units[i].MapPos() == tilePos ) {
 						GLRELASSERT( !tappedUnit );
 						tappedUnit = units + i;
-						tappedModel = units[i].GetModel();
+						tappedModel = GetModel( &units[i] );
 					}
 				}
 				else {
-					units[i].SetSelectable( false );
+					unitRenderers[i].SetSelectable( false );
 				}
 			}
 		}
 		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-			if ( units[i].GetModel() ) {
+			if ( GetModel( &units[i] ) ) {
 				if ( canSelectAlien && units[i].IsAlive() ) {
-					units[i].SetSelectable( true );
+					unitRenderers[i].SetSelectable( true );
 					if ( units[i].MapPos() == tilePos ) {
 						GLRELASSERT( !tappedUnit );
 						tappedUnit = units + i;
-						tappedModel = units[i].GetModel();
+						tappedModel = GetModel( &units[i] );
 					}
 				}
 				else {
-					units[i].SetSelectable( false );
+					unitRenderers[i].SetSelectable( false );
 				}
 			}
 		}
@@ -2535,9 +2543,11 @@ void BattleScene::Tap(	int action,
 		if ( tappedModel && tappedUnit ) {
 			SetSelection( const_cast< Unit* >( tappedUnit ));		// sets either the Alien or the Unit
 		}
-		if ( SelectedSoldierUnit() && !tappedUnit && hasTilePos ) {
+		if ( SelectedSoldierUnit() && GetModel( SelectedSoldierUnit() ) && !tappedUnit && hasTilePos ) {
 			// Not a model - use the tile
-			Vector2<S16> start   = { (S16)SelectedSoldierModel()->X(), (S16)SelectedSoldierModel()->Z() };
+			Vector2<S16> start   =	{	(S16)GetModel( SelectedSoldierUnit() )->X(), 
+										(S16)GetModel( SelectedSoldierUnit() )->Z() 
+									};
 			Vector2<S16> end = { (S16)tilePos.x, (S16)tilePos.y };
 
 			// Compute the path:
@@ -2570,7 +2580,7 @@ void BattleScene::ShowNearPath( const Unit* unit )
 	nearPathState.Clear();
 	tacMap->ClearNearPath();
 
-	if ( unit && unit->GetModel() ) {
+	if ( unit && GetModel(unit) ) {
 
 		float autoTU = 0.0f;
 		float snappedTU = 0.0f;
@@ -2607,11 +2617,10 @@ void BattleScene::MakePathBlockCurrent( Map* map, const void* user )
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if (    units[i].IsAlive() 
-			 && units[i].GetModel() 
 			 && &units[i] != exclude ) // oops - don't cause self to not path
 		{
-			int x = (int)units[i].GetModel()->X();
-			int z = (int)units[i].GetModel()->Z();
+			int x = (int)units[i].Pos().x;
+			int z = (int)units[i].Pos().z;
 			block.Set( x, z );
 		}
 	}
@@ -2623,8 +2632,8 @@ Unit* BattleScene::UnitFromModel( const Model* m, bool useWeaponModel )
 {
 	if ( m ) {
 		for( int i=0; i<MAX_UNITS; ++i ) {
-			if (	( !useWeaponModel && units[i].GetModel() == m )
-				 || ( useWeaponModel && units[i].GetWeaponModel() == m ) )
+			if (	( !useWeaponModel && GetModel( &units[i] ) == m )
+				 || ( useWeaponModel &&  GetWeaponModel( &units[i] ) == m ) )
 				return &units[i];
 		}
 	}
@@ -2635,13 +2644,11 @@ Unit* BattleScene::UnitFromModel( const Model* m, bool useWeaponModel )
 Unit* BattleScene::GetUnitFromTile( int x, int z )
 {
 	for( int i=0; i<MAX_UNITS; ++i ) {
-		if ( units[i].GetModel() ) {
-			int ux = (int)units[i].GetModel()->X();
-			if ( ux == x ) {
-				int uz = (int)units[i].GetModel()->Z();
-				if ( uz == z ) { 
-					return &units[i];
-				}
+		int ux = (int)units[i].Pos().x;
+		if ( ux == x ) {
+			int uz = (int)units[i].Pos().z;
+			if ( uz == z ) { 
+				return &units[i];
 			}
 		}
 	}

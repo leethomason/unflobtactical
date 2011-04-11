@@ -1,10 +1,10 @@
 Issues:
 
 Bugs:
-- Tactical: AI shoots walls. This one is strange. It certainly checks. ??
-- geo: help not hooked up
+- help: Full help pass
 
 Deferred:
+- Tactical: AI shoots walls. This one is strange. It certainly checks. ??
 - expand immediate buy to bases
 - fix battlescene not being power of 2
 - geo: art for cores
@@ -15,6 +15,9 @@ Deferred:
 - tactical: when picking up weapon, walk zone doesn't update
 
 Fixed:
+- help: hiring soldiers and scientists
+- help: sell all button
+- help: explain research items
 - base needs more internal structure
 - base: rethink layout. Brutal alien beginning. Hard to leave lander.
 - ufo base model

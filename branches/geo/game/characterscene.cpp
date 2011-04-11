@@ -96,7 +96,6 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 
 CharacterScene::~CharacterScene()
 {
-	unit->UpdateInventory();
 	delete storageWidget;
 	delete inventoryWidget;
 }
@@ -235,27 +234,6 @@ void CharacterScene::CompWidget::Init( const ItemDefArr* arr, const Storage* sto
 	compTable[2].SetText( "%" );
 	compTable[3].SetText( "D" );
 	compTable[4].SetText( "D/TU" );
-
-/*
-	if ( g ) {
-		static const char* const rangeLabel[NUM_RANGE] = { "4m", "8m", "16m" };
-		for( int i=0; i<NUM_RANGE; ++i ) {
-			range[i].Init( g, look );
-			if ( i > 0 )
-				range[0].AddToToggleGroup( &range[i] );
-			range[i].SetVisible( false );
-			range[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-			range[i].SetText( rangeLabel[i] );
-			if ( i == 1 ) 
-				range[i].SetDown();
-			else 
-				range[i].SetUp();
-		}
-		for( int i=0; i<NUM_RANGE; ++i ) {
-			range[i].SetPos( x+GAME_BUTTON_SIZE_F*i, y + DY*(COMP_ROW+1) );
-		}
-	}
-*/
 }
 
 
@@ -266,10 +244,6 @@ void CharacterScene::CompWidget::SetCompText()
 	int index = 1;
 
 	float r = 8.0f;
-//	if ( range[0].Down() )
-//		r = 4.0f;
-//	else if ( range[2].Down() )
-//		r = 16.0f;
 
 	for( int i=0; i<itemDefArr->Size() && index < COMP_ROW; ++i ) {
 		const ItemDef* itemDef = itemDefArr->Query( i );
@@ -328,9 +302,6 @@ void CharacterScene::CompWidget::SetVisible( bool visible )
 	for( int i=0; i<COMP_COL*COMP_ROW; ++i ) {
 		compTable[i].SetVisible( visible );
 	}
-//	for( int i=0; i<NUM_RANGE; ++i )
-//		range[i].SetVisible( visible );
-
 	if ( visible )
 		SetCompText();
 }
@@ -458,7 +429,7 @@ void CharacterScene::InventoryToStorage( int slot )
 	Item item = inv->GetItem( slot );
 
 	if ( item.IsSomething() ) {
-		storage->AddItem( item.GetItemDef() );
+		storage->AddItem( item );
 		inv->RemoveItem( slot );
 	}
 }

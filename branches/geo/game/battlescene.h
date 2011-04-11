@@ -121,6 +121,25 @@ public:
 
 	virtual void MakePathBlockCurrent( Map* map, const void* user );
 
+	const Model* GetModel( const Unit* unit ) 
+	{ 
+		if ( unit ) {
+			int index = unit - units;
+			GLASSERT( index >= 0 && index < MAX_UNITS );
+			return unitRenderers[index].GetModel(); 
+		}
+		return 0; 
+	}
+	const Model* GetWeaponModel( const Unit* unit ) 
+	{ 
+		if ( unit ) {
+			int index = unit - units;
+			GLASSERT( index >= 0 && index < MAX_UNITS );
+			return unitRenderers[index].GetWeapon();
+		}
+		return 0; 
+	}
+
 private:
 	enum {
 		BTN_TAKE_OFF,
@@ -296,12 +315,10 @@ private:
 
 	bool	SelectedSoldier()		{ return selection.soldierUnit != 0; }
 	Unit*	SelectedSoldierUnit()	{ return selection.soldierUnit; }
-	const Model* SelectedSoldierModel() { if ( selection.soldierUnit ) return selection.soldierUnit->GetModel(); return 0; }
 
 	bool	HasTarget()				{ return selection.targetUnit || selection.targetPos.x >= 0; }
 	bool	AlienTargeted()			{ return selection.targetUnit != 0; }
 	Unit*	AlienUnit()				{ return selection.targetUnit; }
-	const Model* AlienModel()		{ if ( selection.targetUnit ) return selection.targetUnit->GetModel(); return 0; }
 
 	void	SetSelection( Unit* unit );
 
@@ -382,6 +399,7 @@ private:
 	Visibility visibility;
 
 	Unit*				units;
+	UnitRenderer		unitRenderers[MAX_UNITS];
 	gamui::DigitalBar	hpBars[MAX_UNITS];
 
 	// MapMaker

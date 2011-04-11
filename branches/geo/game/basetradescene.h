@@ -51,11 +51,9 @@ public:
 
 protected:
 	bool ComputePrice( int* total );
-	//void SetHireButtons();
 
 	BackgroundUI		backgroundUI;
 	gamui::PushButton	okay;
-	//gamui::PushButton	hireSoldier, hireScientist;
 	gamui::ToggleButton	sellAll;
 	BaseTradeSceneData* data;
 	int					minSoldiers;
@@ -65,6 +63,7 @@ protected:
 
 	gamui::TextLabel	baseLabel, regionLabel;
 	gamui::TextLabel	profitLabel, lossLabel, totalLabel, remainLabel;
+	gamui::PushButton	helpButton;
 };
 
 

@@ -8,46 +8,33 @@
     <research>
       <!-- Arrival needs to be the lowest points. It starts the plot. -->
       <Arrival points="10">
-        We have long watched the aliens. Listened to the occasional strange
-        digital chatter. A long frozen alien corpse sits in the deepest
-        levels of our facility. Things are changing. The chatter is common now
-        and we are picking up distant images on long range detectors.
+        We have long watched the aliens. Listened to the occasional strange digital chatter. A long frozen alien corpse sits in the deepest levels of a North facility. But the situation is changing - the chatter is common now and deep space scanners are lighting up.
       </Arrival>
       
       <!-- Alien genetics / reason to be here plotline -->
       <Green points="20">
-        The same kind of creature is in the vaults from 70 years ago. Compared 
-        to humans physically weak but mentally well developed. Eyesight is 
-        more adapted to darkness than ours, although the sight mechanisms are 
-        the same.
+        The same kind of creature is in the vaults from 70 years ago. Compared to humans the Green is physically weak but mentally well developed. Eyesight is more adapted to darkness than ours. Genetics are similar; we are studying the alien DNA.
         <required0 item="Green" />
       </Green>
       <Hornet points="40">
-        The Hornet is a fast, mobile alien assault troop. The Hornet is genetically
-        a blend of the alien DNA we see in the Green with another race. The Greens 
-        or their masters must be assimilating the genetics of other creatures.
+        The Hornet is a fast, mobile alien assault troop. Its exoskeleton is strangely well suited to the rigors of modern battle and may be capable of briefly surviving vacuum. Genetically the Hornet is shows some similarity to the Green, but has unique DNA structures as well.
         <required0 research="Green" />
         <required1 item="Hrnet" />
       </Hornet>
       <Viper points="40">
-        The Viper is a heavy alien assault troop with significant natural armor.
-        The Viper is a genetic blend of the Green DNA with creatures of radically
-        different genetics, possibly from yet another world.
+        The Viper is a heavy alien assault troop with significant natural armor. The Viper is a genetic blend of the “main” alien DNA with creatures of radically different genetics, possibly from yet another world.
         <required0 research="Green" />
         <required2 item="Viper" />
       </Viper>
       <Jackal points="60">
-        The Jackal is a cyborg: on robotics melded to an alien creature. The 
-        creature - whatever it is and wherever it from - is genetically distict 
-        from all the other aliens.
+        The Jackal is a cyborg: robotics melded to an alien creature. The Jackal is a heavy weapons platform with integrated targeting systems. The creature parts - whatever it is and wherever it is from - is genetically distinct from all the other aliens.
         <required0 research="Green" />
         <required2 item="Jackl" />
       </Jackal>
       <Prime points="80">
-        The Prime and Green and lesser and greater creatures of the same race.
-        The Prime is almost certainly the ruling class. Given the genetic variation
-        we see among the aliens, we must conclude that the Prime are conquering 
-        and integrating races of the galaxy...and have now come to Earth.
+        The Prime is a greater variant of the Green, and statuary indicates a ruling class.
+
+        Given the genetic splicing we see among the alien types, we must conclude that the Prime are conquering and integrating races of the galaxy...and have now come to Earth.
         <required0 item="Prime" />
         <required1 research="Green" />
         <required2 research="Hornet" />
@@ -56,99 +43,77 @@
 
       <!-- UFOs and Alien Base Plotline -->
       <UFOs points="40" >
-        We have detected 3 classes of UFOs, which we refer to as the Scout, Frigate,
-        and Battleship. Note that the Battleship never actually lands; we will need
-        to develop technology to inflitrate them.
+        We have detected 3 classes of UFOs. From smallest to largest we refer to them as the Scout, Frigate, and Battleship. Note that the Battleship never actually lands; we will need to develop technology to infiltrate them.
         <required0 research="Arrival" />
       </UFOs>
       <!-- Note this is a good text length. Maybe one more line. -->
       <AlienCores points="40">
-        We have retrieved an alien computer core. It is strange and adaptive, and
-        much of its purpose is inscruitable. But by connecting it to alien components
-        and our own sensors, we are beginning to get new information on the alien agenda.
+        We have retrieved an alien computer core. It is strange and adaptive, and much of its purpose is inscrutable. But by connecting it to alien components and our own sensors, we are beginning to get new information on the alien agenda.
         <required0 item="Cor:S" />
       </AlienCores>
       <!-- longest text that fits. -->
       <Scout points="40">
-        The Scout is a small ship undoubtlable responsible for many alient abductions
-        and sightings in the past. Why they leave crop circles as a part of their
-        abduction/scanning missions is a mystery. They hover for only a short amount of
-        time and can be intercepted on land. 
+        The Scout is a small ship undoubtedly responsible for many alien abductions and sightings in the past. Why they leave crop circles as a part of their 
+        abduction/scanning missions is a mystery. They carry a small crew and easily fall to missile attack.
         <required0 research="AlienCores" />
       </Scout>
       <AlienTech points="40">
-        Alien weapons show tech classes we've designated T1, T2, and T3. Perhaps
-        weapon tech reflects rank or status? The cells used to power the weapons
-        are unstable off the field of battle.
+        Alien weapons show tech classes we've designated T1, T2, and T3. Perhaps weapon tech reflects rank, status, or simply manufacturing capacity? The cells used to power the weapons are unstable off the field of battle. We can take the guns, but not the clips.
         <required0 research="AlienCores" />
       </AlienTech>
       <Cell points="60">
-        We have research techniques to field stabilize the alien cells used to power
-        alien weapons. We can also charge them at the base. You may now collect cells in the field.
+        The power Cell is primary power source for alien weapons. We have researched techniques to field stabilize the alien cells so they can be returned to the base. We can also re-charge the cells at the base.
         <required0 item="Cor:S" />
         <required1 research="Hornet" />
       </Cell>
       <Anti points="80">
-        We have research techniques to field stabilize the alien anti-matter cells used in high
-        power alien weapons. We can also charge them at the base. You may now collect anti-matter 
-        clips in the field.
+        The anti matter cell is a short mega power burst for alien weapons. We can now apply the Cell techniques to field stabilize the anti matter clips and transport them. We can also re-charge the anti matter cells at the base.
         <required0 item="Cor:F" />
         <required1 research="Viper" />
         <required2 research="Cell" />
       </Anti>
       <Frigate points="40">
-        The Frigate is a medium ship suited for both crop cirlcle missions and city
-        attack. It can carry about 12 aliens with full armament. The frigate computer 
-        core is larger than the Scout core, and it's navigation system is configured
-        differently. We need to research a Battleship core to compare the systems.
+        The Frigate is a medium ship that carries about 12 units, suited for both crop circle missions and city attack. The frigate computer core is has much more sophisticated navigation and communication abilities than the Scout.
         <required0 research="AlienTech" />
         <required1 research="Scout" />
         <required2 item="Cor:F" />
       </Frigate>
       <BattleshipAttack points="80">
-        The Battleships never come out of hover, and we have struggled with how to
-        attack them. The Frigate core contains the ability to authenticate with the
-        Battleships. We believe this can be used to dock our lander with a Battleship.
-        Obviously a very risky mission.
+        The Frigate core can authenticate with the Battleships. This will allow us to dock with the hovering Battleship and attack them.  It’s a very risky mission to attack a Battleship, but we now have the capacity.
         <required0 research="AlienTech" />
         <required1 research="Scout" />
         <required2 item="Cor:F" />
       </BattleshipAttack>
       <Battleship points="120">
-        The Battleship is well named. A fully capable alien vessel with massive firepower,
-        including a main downward facing gun for city control or base destruction. Even more
-        intriguing however is that the navigation system is based on a homing technology.
-        There must be a beacon, here on Earth, calling the Battleships!
+        Well named, a fully capable alien vessel with massive firepower, including a main gun for city control or base destruction. Intriguing however is that the navigation system is based on a homing technology. There must be a beacon, here on Earth!
         <required0 item="Cor:B" />
       </Battleship>
       <Beacon points="200">
-        The beacon has been located. Without the ability to navigate over deep space, the
-        alien threat will be highly compromised. We feel confident that the beacon is
-        very heavily guarded.
+        The beacon has been located. Without the ability to effectively navigate over deep space, the alien threat will be highly compromised. This is our opportunity, but we feel confident that the beacon is very heavily guarded. Be prepared.
         <required0 research="Battleship" />
+        <required1 research="Prime" />
       </Beacon>
 
       <!-- Items -->
       <ASLT-2 points="40">
-        We have improved the assault rifle based on analysis of alien Ray Guns. It is
-        now a lighter, more accurate, and more powerful weapon.
+        The versatile ASLT has been improved based on analysis of alien Ray Guns. ASLT-2 Gecko is a lighter, more accurate, and more powerful weapon than its predecessor.
         <required1 item="RAY-2" />  <!-- was PLS, but PLS is hard to get w/o destroyer. And destroyer hard to get without ALST-2 -->
       </ASLT-2>      
       <ASLT-3 points="60">
-        The ASLT-3 Pulse Rifle is a hybrid of terran and alien technology. It is a very
-        effective all purpose weapon.
+        The ASLT-3 Pulse Rifle is a hybrid of Terran and alien technology. It is a very
+        effective all purpose weapon for wiping out the alien scourge.
         <required0 research="Hornet" />
         <required1 research="ASLT-2" />
         <required2 item="PLS-3" />
       </ASLT-3>
 
       <LR-2 points="40">
-        The study of alien Ray Guns has allowed to improve the range and punch of 
-        the Long Range rifle.
+        The study of alien weapons has allowed to improve the range and punch of
+        the Long Range rifle and upgrade to the LR-2 Marksman.
         <required0 item="RAY-1" />
       </LR-2>
       <LR-3 points="60">
-        Based on alien stabilization technology, the LR-3 does high damage and
+        Based on alien stabilization technology, the Callahan LR-3 does high damage and
         is extremely accurate.
         <required0 research="Prime" />
         <required1 research="LR-2" />
@@ -156,33 +121,31 @@
       </LR-3>
 
       <MCAN-2 points="40">
-        Study of the alien Storm-1 has allowed us to improve the effectivess
-        of our heavy weapon platform.
+        Study of the alien Storm-1 has allowed us to improve the effectiveness of our heavy weapon platform. We present the MCAN-2 Valiant.
         <required0 item="STRM-1" />
       </MCAN-2>
       <MCAN-3 points="60">
-        Study of the alien Storm-3 and Jackal's targeting system has allowed
-        us to develop a devastating yet portable weapon platform.
+        Study of the alien Storm-3 and Jackal's targeting system has allowed us to develop a devastating yet portable weapon platform called the MCAN-3 Dauntless.
         <required0 research="MCAN-2" />
         <required1 item="STRM-3" />
         <required2 research="Jackal" />
       </MCAN-3>
 
       <SG:K points="60">
-        Shield Generators are based on alien field technology. They enhance 
+        Shield Generators are based on alien field technology. They enhance
         armor. The SG:K protects against kinetic (mass driver) weapons.
         <required0 research="Cor:S" />
         <required1 research="Viper" />
       </SG:K>
       <SG:I points="80">
         Shield Generators are based on alien field technology. They enhance
-        armor. The SG:I protects against incindiary weapons.
+        armor. The SG:I protects against incendiary weapons.
         <required0 research="SG:I" />
         <required1 research="Hornet" />
       </SG:I>
       <SG:E points="100">
         Shield Generators are based on alien field technology. They enhance
-        armor. The SG:I protects against energy weapons.
+        armor. The SG:E protects against energy weapons.
         <required0 research="SG:I" />
         <required1 research="Prime" />
       </SG:E>
@@ -865,13 +828,90 @@
     </page>
   </text>
 
+  <texture filename="helpImage6.png" width="64" height="256"/>
+
   <text name="geoHelp" >
     <page>
-      <p>Placeholder Geo help</p>
+      <p>[Xenowar]</p>
+      <p>The geo view shows the world, its nations, and the state of the alien invasion.</p>
+      <p>The strategic part of the game is played out on this screen, in real time. When combat 
+         occurs, it is turn based on the tactical screen.</p>
+      <p>The upper left button takes you to the research screen. The lower left toggles base building.
+         Start the game by building a base. The lower right display shows your current cash in megadollars.</p>
+      <p>Tap and drag to scroll the display.</p>
+    </page>
+    <page image="helpImage6">
+      <p>[Regions]</p>
+      <p>There are 6 geo-political entities: North, South, Europe, Asia, Africa, and Under.
+         Beneath the name of each region is a bar that indicates the amount of alien influence.</p>
+      <p>Beside the name of the region is the traits. Regions can be 1) capatalistic (better 
+         sell prices), 2) militaristic (better hired units), 3) scientific (faster research),
+         4) high tech (make tech 3 weapons), or 5) manufacturing (make tech 3 armor).</p>
+    </page>
+    <page>
+      <p>[Alien Invasion]</p>
+      <p>Aliens initially generate influence with crop circles. With more influence, the aliens will
+         mount city attacks or even attack your bases.</p>
+      <p>
+        When attacking, be aware that night fights are more
+        difficult than day fights, and a normal UFO is harder to assault than a crashed one.
+      </p>
+      <p>You win the game by destroying the alien base. You'll lose the game if the aliens
+         occupy all the world capitals.</p>      
+    </page>
+    <page>
+      <p>[Base Options]</p>
+      <p>Tapping any base brings up the base options.</p>
+      <p>Supply: Purchases and sells supplies from the host region. A base must have a 'cargo' facility to use supply.</p>
+      <p>Equip: Equip the base squad, see unit stats, and compare weapons. A base must have a 'cargo' and 'lander' facility to have units.</p>
+      <p>Build: Build base facilities.</p>
+    </page>
+    <page>
+      <p>[UFO Options]</p>
+      <p>Tapping a crashed UFO or UFO engaged in ground attack brings up a list of 
+         bases that can sent troops. Tap the base name to send a lander.</p>
+      <p>
+        If the battle is successful, items gathered from the battle field will
+        be placed in the base's storage holds. Any items needed for research
+        are automatically applied.
+      </p>
+    </page>
+    
+  </text>
+
+  <text name="buildBaseHelp" >
+    <page>
+      <p>[Build Base Help]</p>
+      <p>Here you can buy base facilities. Tap on the facility, it will be build, and funds deducted from you treasury.</p>
+      <p>Troops: purchases and lander and barracks so troops can be hired for missions. Missile: long range weapons.
+         Cargo: a cargo lander allows selling and purchasing from the geo-political region. Guns: short range weapons.
+         SciLab: allows the recruitment of scientists for research. </p>
     </page>
   </text>
 
-        <!-- Sound effects -->
+  <text name="supplyBaseHelp" >
+    <page>
+      <p>[Supply Base Help]</p>
+      <p>Tap to move items from the base storage (on the left) to the region's supply ship (on the right). 
+      The "Sell All" toggle, when on, when sell all items in a slot with a single tap.</p>
+      <p>Note that ammo clips refill after battle. (Which is reflected in their cost.) Also note that tech-3 items
+         can only be purchased from regions with the required traits.</p>
+      <p>You can hire soldiers and scientists buy purchasing them in the region's Alien tab.</p>
+    </page>
+  </text>
+
+  <text name="researchHelp" >
+    <page>
+      <p>[Research]</p>
+      <p>This scene shows the current research project, and options for other research you can do.
+         Research is applied over time, and is directly proportional to the number of scientists 
+         in your bases.</p>
+      <p>Beneath the name of each tasks is the item requirements to begin the research.</p>
+    </page>
+    
+  </text>
+
+  <!-- Sound effects -->
   <data filename="explosion.wav" compress="false"/>
   <data filename="hit.wav" compress="false"/>
   <data filename="terrandown0.wav" compress="false"/>

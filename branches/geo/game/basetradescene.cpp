@@ -4,6 +4,7 @@
 #include "storageWidget.h"
 #include "unit.h"
 #include "tacticalintroscene.h"
+#include "helpscene.h"
 
 using namespace grinliz;
 using namespace gamui;
@@ -44,6 +45,11 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	const gamui::ButtonLook& blue = _game->GetButtonLook( Game::BLUE_BUTTON );
 	const gamui::ButtonLook& green = _game->GetButtonLook( Game::GREEN_BUTTON );
 	const gamui::ButtonLook& red = _game->GetButtonLook( Game::RED_BUTTON );
+
+	helpButton.Init( &gamui2D, green );
+	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	helpButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_HELP, true ), UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
 
 #if 0
 	cancel.Init( &gamui2D, blue );
@@ -144,6 +150,9 @@ void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const gri
 	}
 
 
+	if ( uiItem == &helpButton ) {
+		game->PushScene( Game::HELP_SCENE, new HelpSceneData( "supplyBaseHelp" ) );
+	}
 	if ( uiItem == &okay ) {
 		game->PopScene( 0 );
 		ComputePrice( data->cash );

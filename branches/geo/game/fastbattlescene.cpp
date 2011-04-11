@@ -177,7 +177,7 @@ int FastBattleScene::RunSim( Unit* soldier, Unit* alien, bool day )
 
 		int civIndex = random.Rand( MAX_CIVS );
 		if ( civs[civIndex].IsAlive() ) {
-			civs[civIndex].Kill( 0 );
+			civs[civIndex].Kill( 0, false );
 		}
 
 		while( true ) {
@@ -201,13 +201,13 @@ int FastBattleScene::RunSim( Unit* soldier, Unit* alien, bool day )
 		if ( !pS->GetWeapon() ) {
 			SNPrintf( buf, BUF_SIZE, "%s %s no weapon. DEFEAT.", pS->FirstName(), pS->LastName() );
 			battle[nBattle++].SetText( buf );
-			pS->Kill( 0 );
+			pS->Kill( 0, false );
 			continue;
 		}
 		if ( !pA->GetWeapon() ) {
 			SNPrintf( buf, BUF_SIZE, "%s #%d no weapon. VICTORY.", alienName[pA->AlienType()], pA-alien );
 			battle[nBattle++].SetText( buf );
-			pA->Kill( 0 );
+			pA->Kill( 0, false );
 			continue;
 		}
 
@@ -252,7 +252,7 @@ int FastBattleScene::RunSim( Unit* soldier, Unit* alien, bool day )
 						if ( random.Uniform() < chanceToHit ) {
 							DamageDesc d;
 							wid->DamageBase( mode[m], &d );
-							def->DoDamage( d, 0 );
+							def->DoDamage( d, 0, false );
 						}
 					}
 				}
