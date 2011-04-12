@@ -85,7 +85,8 @@ bool Visibility::TeamCanSee( int team, int x, int y )
 	CalcTeam( team, &r0, &r1 );
 
 	for( int i=r0; i<r1; ++i ) {
-		if ( UnitCanSee( i, x, y ) )
+		// Check isAlive to avoid the function call.
+		if ( units[i].IsAlive() && UnitCanSee( i, x, y ) )
 			return true;
 	}
 	return false;
