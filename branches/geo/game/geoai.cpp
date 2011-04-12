@@ -108,6 +108,9 @@ void GeoAI::GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vect
 					score[i] = 1;						// make the scouts scout.
 				else
 					score[i] = data[i].Score();			// be more careful with the heavy ships
+
+				if ( data[i].influence == MAX_INFLUENCE )
+					score[i] *= 0.2f;	// crop circling occupied regions is boring
 			}
 		}
 		int region = random.Select( score, GEO_REGIONS );

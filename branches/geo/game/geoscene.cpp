@@ -171,15 +171,17 @@ void RegionData::SetStorageNormal( const Research& research, Storage* storage, b
 						storage->AddItem( itemDef, COUNT );
 				}
 				else if ( status == Research::TECH_RESEARCH_COMPLETE ) {
-					if (    itemDef->IsWeapon() 
-						 && ( itemDef->TechLevel() <= 2 || tech ) ) 
+					if ( itemDef->IsWeapon() )
 					{
-						storage->AddItem( itemDef, COUNT );
+						if ( itemDef->TechLevel() <= 2 || tech ) {
+							storage->AddItem( itemDef, COUNT );
+						}
 					}
-					else if (    itemDef->IsArmor()
-						      && ( itemDef->TechLevel() <= 2 || manufacture ) ) 
+					else if ( itemDef->IsArmor() )
 					{
-						storage->AddItem( itemDef, COUNT );
+						if ( itemDef->TechLevel() <= 2 || manufacture ) {
+							storage->AddItem( itemDef, COUNT );
+						}
 					}
 					else {
 						storage->AddItem( itemDef, COUNT );
@@ -959,8 +961,11 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			//	rank += 0.5f;
 			rank = Clamp( rank, 0.0f, (float)(NUM_RANKS-1) );
 
-			for( int i=0; i<MAX_TERRANS; ++i )
+			static const Vector3F zero = { 0, 0, 0 };
+			for( int i=0; i<MAX_TERRANS; ++i ) {
 				units[i].Heal();
+				units[i].SetPos( zero, 0 );		// no location
+			}
 
 			BattleSceneData* data = new BattleSceneData();
 			data->seed			= baseChit->MapPos().x + baseChit->MapPos().y*GEO_MAP_X + scenario*37;

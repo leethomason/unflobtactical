@@ -2262,9 +2262,9 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 
 void BattleScene::SceneResult( int sceneID, int result )
 {
-	const Model* model = tacMap->GetLanderModel();
-	Rectangle2I bounds;
-	tacMap->MapBoundsOfModel( model, &bounds );
+	//const Model* model = tacMap->GetLanderModel();
+	//Rectangle2I bounds;
+	//tacMap->MapBoundsOfModel( model, &bounds );
 
 	if ( sceneID == Game::DIALOG_SCENE && result ) {
 		// Exit!
