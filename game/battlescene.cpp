@@ -252,6 +252,31 @@ void BattleScene::DeActivate()
 {
 }
 
+
+const Model* BattleScene::GetModel( const Unit* unit ) 
+{ 
+	if ( unit ) {
+		int index = unit - units;
+		GLASSERT( index >= 0 && index < MAX_UNITS );
+		unitRenderers[index].Update( GetEngine()->GetSpaceTree(), unit );
+		return unitRenderers[index].GetModel(); 
+	}
+	return 0; 
+}
+
+
+const Model* BattleScene::GetWeaponModel( const Unit* unit ) 
+{ 
+	if ( unit ) {
+		int index = unit - units;
+		GLASSERT( index >= 0 && index < MAX_UNITS );
+		unitRenderers[index].Update( GetEngine()->GetSpaceTree(), unit );
+		return unitRenderers[index].GetWeapon();
+	}
+	return 0; 
+}
+
+
 void BattleScene::NextTurn( bool saveOnTerranTurn )
 {
 	currentTeamTurn++;
@@ -785,9 +810,6 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 		targetEvents.Clear();	// All done! They don't get to carry on beyond the moment.
 	}
 
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		unitRenderers[i].Update( GetEngine()->GetSpaceTree(), &units[i] );
-	}
 	SetUnitOverlays();
 
 	// Creates a race condition. Sometimes re-pushes End scene between the sequence:
@@ -825,6 +847,9 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 				}
 			}
 		}
+	}
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		unitRenderers[i].Update( GetEngine()->GetSpaceTree(), &units[i] );
 	}
 }
 
@@ -943,49 +968,6 @@ void BattleScene::Debug3D()
 }
 
 
-/*
-bool BattleScene::EndCondition( TacticalEndSceneData* data )
-{
-	//memset( data, 0, sizeof( *data ) );
-	//data->aliens = units + ALIEN_UNITS_START;
-	//data->soldiers = units + TERRAN_UNITS_START;
-	//data->civs = units + CIV_UNITS_START;
-	//data->dayTime = tacMap->DayTime();
-	//GLASSERT( scenario );
-	//data->scenario = scenario;
-
-	int nTerransAlive = Unit::Count( units+TERRAN_UNITS_START, MAX_TERRANS, Unit::STATUS_ALIVE );
-	int nAliensAlive = Unit::Count( units+ALIEN_UNITS_START, MAX_ALIENS, Unit::STATUS_ALIVE );
-
-	data->result = TacticalEndSceneData::TIE;
-	if ( nTerransAlive > 0 && nAliensAlive == 0 )
-		data->result = TacticalEndSceneData::VICTORY;
-	else if ( nTerransAlive == 0 && nAliensAlive > 0 )
-		data->result = TacticalEndSceneData::DEFEAT;
-
-#ifndef LANDER_RESCUE
-	// If the terrans are all down for the count, then it acts like the 
-	// lander leaving. KO becomes MIA.
-	if ( nTerransAlive == 0 ) {
-		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-			if ( units[i].InUse() )
-				units[i].Leave();
-		}
-	}
-#endif
-
-	if ( nAliensAlive == 0 || nTerransAlive == 0 ) {
-		// Add a storage to shove the spoils of victory.
-		data->storage = tacMap->CollectAllStorage();
-		return true;
-	}
-
-	return false;
-}
-*/
-
-
-
 void BattleScene::DrawFireWidget()
 {
 	GLRELASSERT( HasTarget() );
@@ -1006,7 +988,7 @@ void BattleScene::DrawFireWidget()
 		m->CalcTargetSize( &bulletTarget.width, &bulletTarget.height );
 	}
 
-	Vector3F distVector = target - GetModel( SelectedSoldierUnit() )->Pos();
+	Vector3F distVector = target - SelectedSoldierUnit()->Pos();
 	bulletTarget.distance = distVector.Length();
 
 	Inventory* inventory = unit->GetInventory();
@@ -1328,11 +1310,8 @@ void BattleScene::DoReactionFire()
 						normalToTarget.Normalize();
 
 						Vector2F facing = { 0, 0 };
-						GLASSERT( GetModel( srcUnit ) );
-						if ( GetModel( srcUnit ) ) {
-							facing.x = sinf( ToRadian( GetModel( srcUnit )->GetRotation() ) );
-							facing.y = cosf( ToRadian( GetModel( srcUnit )->GetRotation() ) );
-						}
+						facing.x = sinf( ToRadian( srcUnit->Rotation() ) );
+						facing.y = cosf( ToRadian( srcUnit->Rotation() ) );
 
 						float mod = DotProduct( facing, normalToTarget ) * 0.5f + 0.5f;  
 						reaction *= mod;				// linear with angle.
@@ -1343,10 +1322,11 @@ void BattleScene::DoReactionFire()
 						if ( r <= reaction ) {
 							Vector3F target = { 0, 0, 0 };
 							GLASSERT( GetModel( targetUnit ) );
-							GetModel( targetUnit )->CalcTarget( &target );
+							const Model* targetModel = GetModel( targetUnit );
+							targetModel->CalcTarget( &target );
 
 							float targetWidth, targetHeight;
-							GetModel( targetUnit )->CalcTargetSize( &targetWidth, &targetHeight );
+							targetModel->CalcTargetSize( &targetWidth, &targetHeight );
 							
 							int shot = PushShootAction( srcUnit, target, targetWidth, targetHeight, kAutoFireMode, error, true );	// auto
 							if ( !shot )
@@ -1678,7 +1658,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 						}
 						move->path.GetPos( move->pathStep, move->pathFraction, &x, &z, &r );
 						Vector3F v = { x+0.5f, 0.0f, z+0.5f };
-						unit->SetPos( v, model->GetRotation() );
+						unit->SetPos( v, unit->Rotation() );
 					}
 					if ( move->pathStep == move->path.pathLen-1 ) {
 						actionStack.Pop();
@@ -1694,7 +1674,9 @@ int BattleScene::ProcessAction( U32 deltaTime )
 					float travel = Travel( deltaTime, ROTSPEED );
 
 					float delta, bias;
-					MinDeltaDegrees( model->GetRotation(), action->type.rotate.rotation, &delta, &bias );
+					MinDeltaDegrees( unit->Rotation(), 
+									 action->type.rotate.rotation, 
+									 &delta, &bias );
 
 					if ( delta <= travel ) {
 						unit->SetYRotation( action->type.rotate.rotation );
@@ -1702,7 +1684,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 						result |= UNIT_ACTION_COMPLETE;
 					}
 					else {
-						unit->SetYRotation( model->GetRotation() + bias*travel );
+						unit->SetYRotation( unit->Rotation() + bias*travel );
 					}
 				}
 				break;
@@ -1763,30 +1745,6 @@ int BattleScene::ProcessAction( U32 deltaTime )
 				}
 				break;
 
-/*			case ACTION_LANDER:
-				{
-					action->type.lander.timeRemaining -= (int)deltaTime;
-					if ( action->type.lander.timeRemaining < 0 )
-						action->type.lander.timeRemaining = 0;
-
-					if ( action->type.lander.timeRemaining == 0 ) {
-						actionStack.Pop();
-						tacMap->SetLanderFlight( 0 );
-
-						for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-							if ( units[i].GetModel() ) {
-								Model* m = units[i].GetModel();
-								m->ClearFlag( Model::MODEL_INVISIBLE );
-							}
-						}
-					}
-					else {
-						float flight = (float)(action->type.lander.timeRemaining) / (float)(LanderAction::TOTAL_TIME);
-						tacMap->SetLanderFlight( flight );
-					}
-				}
-				break; */
-
 			default:
 				GLRELASSERT( 0 );
 				break;
@@ -1806,10 +1764,11 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 	const WeaponItemDef* weaponDef = 0;
 	Ray ray;
 	WeaponMode mode = action->type.shoot.mode;
+	const Model* unitModel = GetModel( unit );
 
 	int result = 0;
 
-	if ( unit && GetModel( unit ) && unit->IsAlive() ) {
+	if ( unit && unitModel && unit->IsAlive() ) {
 		// Shooting announces the units location.
 		for( int i=0; i<3; ++i ) {
 			if ( aiArr[i] )
@@ -1824,7 +1783,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 		weaponDef = weaponItem->GetItemDef()->IsWeapon();
 		GLRELASSERT( weaponDef );
 
-		GetModel(unit)->CalcTrigger( &p0 );
+		unitModel->CalcTrigger( &p0 );
 		p1 = action->type.shoot.target;
 
 		ray.origin = p0;
@@ -1839,7 +1798,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 		// ground / bounds
 
 		// Don't hit the shooter:
-		const Model* ignore[] = { GetModel(unit), GetWeaponModel(unit), 0 };
+		const Model* ignore[] = { unitModel, GetWeaponModel(unit), 0 };
 		Model* m = engine->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &intersection );
 
 		if ( m && intersection.y < 0.0f ) {
@@ -2245,9 +2204,10 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 				target.Set( (float)selection.targetPos.x + 0.5f, 1.0f, (float)selection.targetPos.y + 0.5f );
 			}
 			else {
-				if ( GetModel( selection.targetUnit ) ) {
-					GetModel( selection.targetUnit )->CalcTarget( &target );
-					GetModel( selection.targetUnit )->CalcTargetSize( &targetWidth, &targetHeight );
+				const Model* targetModel = GetModel( selection.targetUnit );
+				if ( targetModel ) {
+					targetModel->CalcTarget( &target );
+					targetModel->CalcTargetSize( &targetWidth, &targetHeight );
 				}
 			}
 			PushShootAction( selection.soldierUnit, target, targetWidth, targetHeight, mode, 1.0f, false );
@@ -2543,10 +2503,10 @@ void BattleScene::Tap(	int action,
 		if ( tappedModel && tappedUnit ) {
 			SetSelection( const_cast< Unit* >( tappedUnit ));		// sets either the Alien or the Unit
 		}
-		if ( SelectedSoldierUnit() && GetModel( SelectedSoldierUnit() ) && !tappedUnit && hasTilePos ) {
+		if ( SelectedSoldierUnit() && !tappedUnit && hasTilePos ) {
 			// Not a model - use the tile
-			Vector2<S16> start   =	{	(S16)GetModel( SelectedSoldierUnit() )->X(), 
-										(S16)GetModel( SelectedSoldierUnit() )->Z() 
+			Vector2<S16> start   =	{	(S16)SelectedSoldierUnit()->Pos().x, 
+										(S16)SelectedSoldierUnit()->Pos().z 
 									};
 			Vector2<S16> end = { (S16)tilePos.x, (S16)tilePos.y };
 

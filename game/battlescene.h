@@ -121,24 +121,8 @@ public:
 
 	virtual void MakePathBlockCurrent( Map* map, const void* user );
 
-	const Model* GetModel( const Unit* unit ) 
-	{ 
-		if ( unit ) {
-			int index = unit - units;
-			GLASSERT( index >= 0 && index < MAX_UNITS );
-			return unitRenderers[index].GetModel(); 
-		}
-		return 0; 
-	}
-	const Model* GetWeaponModel( const Unit* unit ) 
-	{ 
-		if ( unit ) {
-			int index = unit - units;
-			GLASSERT( index >= 0 && index < MAX_UNITS );
-			return unitRenderers[index].GetWeapon();
-		}
-		return 0; 
-	}
+	const Model* GetModel( const Unit* unit );
+	const Model* GetWeaponModel( const Unit* unit );
 
 private:
 	enum {
