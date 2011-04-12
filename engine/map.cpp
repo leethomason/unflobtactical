@@ -1613,9 +1613,6 @@ bool Map::Connected4(	ConnectionType c,
 		const int maskN = GetPathMask( c, nextPos.x, nextPos.y );
 		const int inv   = InvertPathMask( bit );
 
-//		if ( mask0 == 4 )
-//			int debug = 1;
-
 		if ( (( mask0 & bit ) == 0 ) && (( maskN & inv ) == 0 ) ) {
 			return true;
 		}

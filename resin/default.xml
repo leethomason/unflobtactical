@@ -8,33 +8,37 @@
     <research>
       <!-- Arrival needs to be the lowest points. It starts the plot. -->
       <Arrival points="10">
-        We have long watched the aliens. Listened to the occasional strange digital chatter. A long frozen alien corpse sits in the deepest levels of a North facility. But the situation is changing - the chatter is common now and deep space scanners are lighting up.
+        We have long watched the aliens. Listened to the occasional strange digital chatter. A long frozen alien corpse sits in the deepest levels of a North facility. 
+        But the situation is changing - the chatter is common now and deep space scanners are lighting up.
       </Arrival>
       
       <!-- Alien genetics / reason to be here plotline -->
       <Green points="20">
-        The same kind of creature is in the vaults from 70 years ago. Compared to humans the Green is physically weak but mentally well developed. Eyesight is more adapted to darkness than ours. Genetics are similar; we are studying the alien DNA.
+        The same kind of creature is in the vaults from 70 years ago. Compared to humans the Green is physically weak but mentally well developed. 
+        Eyesight is more adapted to darkness than ours. Genetics are similar; we are studying the alien DNA.
         <required0 item="Green" />
       </Green>
       <Hornet points="40">
-        The Hornet is a fast, mobile alien assault troop. Its exoskeleton is strangely well suited to the rigors of modern battle and may be capable of briefly surviving vacuum. Genetically the Hornet is shows some similarity to the Green, but has unique DNA structures as well.
+        The Hornet is a fast, mobile alien assault troop. Its exoskeleton is strangely well suited to the rigors of modern battle and may be capable of 
+        briefly surviving vacuum. Genetically the Hornet is shows some similarity to the Green, but has unique DNA structures as well.
         <required0 research="Green" />
         <required1 item="Hrnet" />
       </Hornet>
       <Viper points="40">
-        The Viper is a heavy alien assault troop with significant natural armor. The Viper is a genetic blend of the “main” alien DNA with creatures of radically different genetics, possibly from yet another world.
+        The Viper is a heavy alien assault troop with significant natural armor. The Viper is a genetic blend of the main alien DNA with creatures of 
+        radically different genetics, possibly from yet another world.
         <required0 research="Green" />
         <required2 item="Viper" />
       </Viper>
       <Jackal points="60">
-        The Jackal is a cyborg: robotics melded to an alien creature. The Jackal is a heavy weapons platform with integrated targeting systems. The creature parts - whatever it is and wherever it is from - is genetically distinct from all the other aliens.
+        The Jackal is a cyborg: robotics melded to an alien creature. The Jackal is a heavy weapons platform with integrated targeting systems. 
+        The creature - whatever it is and wherever it is from - is genetically distinct from all the other aliens.
         <required0 research="Green" />
         <required2 item="Jackl" />
       </Jackal>
       <Prime points="80">
-        The Prime is a greater variant of the Green, and statuary indicates a ruling class.
-
-        Given the genetic splicing we see among the alien types, we must conclude that the Prime are conquering and integrating races of the galaxy...and have now come to Earth.
+        The Prime is a greater variant of the Green, and statuary indicates a ruling class. Given the genetic splicing we see among the alien types, 
+        we must conclude that the Prime are conquering and integrating races of the galaxy...and have now come to Earth.
         <required0 item="Prime" />
         <required1 research="Green" />
         <required2 research="Hornet" />
@@ -43,12 +47,14 @@
 
       <!-- UFOs and Alien Base Plotline -->
       <UFOs points="40" >
-        We have detected 3 classes of UFOs. From smallest to largest we refer to them as the Scout, Frigate, and Battleship. Note that the Battleship never actually lands; we will need to develop technology to infiltrate them.
+        We have detected 3 classes of UFOs. From smallest to largest we refer to them as the Scout, Frigate, and Battleship. 
+        Note that the Battleship never actually lands; we will need to develop technology to infiltrate them.
         <required0 research="Arrival" />
       </UFOs>
       <!-- Note this is a good text length. Maybe one more line. -->
       <AlienCores points="40">
-        We have retrieved an alien computer core. It is strange and adaptive, and much of its purpose is inscrutable. But by connecting it to alien components and our own sensors, we are beginning to get new information on the alien agenda.
+        We have retrieved an alien computer core. It is strange and adaptive, and much of its purpose is inscrutable. 
+        But by connecting it to alien components and our own sensors, we are beginning to get new information on the alien agenda.
         <required0 item="Cor:S" />
       </AlienCores>
       <!-- longest text that fits. -->
@@ -58,38 +64,45 @@
         <required0 research="AlienCores" />
       </Scout>
       <AlienTech points="40">
-        Alien weapons show tech classes we've designated T1, T2, and T3. Perhaps weapon tech reflects rank, status, or simply manufacturing capacity? The cells used to power the weapons are unstable off the field of battle. We can take the guns, but not the clips.
+        Alien weapons show tech classes we've designated T1, T2, and T3. Perhaps weapon tech reflects rank, status, or simply manufacturing capacity? 
+        The cells used to power the weapons are unstable off the field of battle. We can take the guns, but not the clips.
         <required0 research="AlienCores" />
       </AlienTech>
       <Cell points="60">
-        The power Cell is primary power source for alien weapons. We have researched techniques to field stabilize the alien cells so they can be returned to the base. We can also re-charge the cells at the base.
+        The power Cell is primary power source for alien weapons. We have researched techniques to field stabilize the alien cells so they 
+        can be returned to the base. We can also re-charge the cells at the base.
         <required0 item="Cor:S" />
         <required1 research="Hornet" />
       </Cell>
       <Anti points="80">
-        The anti matter cell is a short mega power burst for alien weapons. We can now apply the Cell techniques to field stabilize the anti matter clips and transport them. We can also re-charge the anti matter cells at the base.
+        The anti matter cell is a short mega power burst for alien weapons. We can now apply the Cell techniques to field stabilize 
+        the anti matter clips and transport them. We can also re-charge the anti matter cells at the base.
         <required0 item="Cor:F" />
         <required1 research="Viper" />
         <required2 research="Cell" />
       </Anti>
       <Frigate points="40">
-        The Frigate is a medium ship that carries about 12 units, suited for both crop circle missions and city attack. The frigate computer core is has much more sophisticated navigation and communication abilities than the Scout.
+        The Frigate is a medium ship that carries about 12 units, suited for both crop circle missions and city attack. 
+        The frigate computer core is has much more sophisticated navigation and communication abilities than the Scout.
         <required0 research="AlienTech" />
         <required1 research="Scout" />
         <required2 item="Cor:F" />
       </Frigate>
       <BattleshipAttack points="80">
-        The Frigate core can authenticate with the Battleships. This will allow us to dock with the hovering Battleship and attack them.  It’s a very risky mission to attack a Battleship, but we now have the capacity.
+        The Frigate core can authenticate with the Battleships. This will allow us to dock with the hovering Battleship and attack them.  
+        It’s a very risky mission to attack a Battleship, but we now have the capacity.
         <required0 research="AlienTech" />
         <required1 research="Scout" />
         <required2 item="Cor:F" />
       </BattleshipAttack>
       <Battleship points="120">
-        Well named, a fully capable alien vessel with massive firepower, including a main gun for city control or base destruction. Intriguing however is that the navigation system is based on a homing technology. There must be a beacon, here on Earth!
+        Well named, a fully capable alien vessel with massive firepower, including a main gun for city control or base destruction. 
+        Intriguing however is that the navigation system is based on a homing technology. There must be a beacon, here on Earth!
         <required0 item="Cor:B" />
       </Battleship>
       <Beacon points="200">
-        The beacon has been located. Without the ability to effectively navigate over deep space, the alien threat will be highly compromised. This is our opportunity, but we feel confident that the beacon is very heavily guarded. Be prepared.
+        The beacon has been located. Without the ability to effectively navigate over deep space, the alien threat will be highly compromised. 
+        This is our opportunity, but we feel confident that the beacon is very heavily guarded. Be prepared.
         <required0 research="Battleship" />
         <required1 research="Prime" />
       </Beacon>
@@ -156,7 +169,7 @@
         <required0 research="LR-2" />
       </ARM-2>
       <ARM-3 points="80">
-        Based on alien memory allow technology, the ARM-3 is very good
+        Based on alien memory alloy technology, the ARM-3 is very good
         protection for field engagements.
         <required0 research="ARM-2" />
         <required1 research="Viper" />
