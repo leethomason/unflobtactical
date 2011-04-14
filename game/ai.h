@@ -75,7 +75,8 @@ public:
 	AI( int team,					// AI in instantiated for a TEAM, not a unit
 		Visibility* visibilit,	
 		Engine* engine, 			// Line of site checking
-		const Unit* units );		// all the units we can scan
+		const Unit* units,			// all the units we can scan
+		BattleScene* battleScene );	// FIXME: hack to get unit->model conversion
 
 	virtual ~AI()	{}
 
@@ -92,7 +93,7 @@ public:
 	// Return true if done.
 	virtual bool Think( const Unit* move,
 						int flags,
-						Map* map,
+						TacMap* map,
 						AIAction* action ) = 0;
 protected:
 	enum {
@@ -109,38 +110,38 @@ protected:
 	// THINK_NO_ACTION  no target
 	// THINK_ACTION		shot taken
 	int ThinkShoot(			const Unit* move,
-							Map* map,
+							TacMap* map,
 							AIAction* action );
 
 	// THINK_SOLVED_NO_ACTION standing on ammo
 	// THINK_ACTION           move
 	// THINK_NO_ACTION		  nothing found, not enough time
 	int ThinkMoveToAmmo(	const Unit* theUnit,
-							Map* map,
+							TacMap* map,
 							AIAction* action );
 
 	// THINK_NO_ACTION		no storage
 	int ThinkInventory(		const Unit* theUnit,
-							Map* map,
+							TacMap* map,
 							AIAction* action);
 
 	// THINK_ACTION			move
 	// THINK_NO_ACTION		not enough time, no destination,
 	int ThinkSearch(		const Unit* theUnit,
 							int flags,
-							Map* map,
+							TacMap* map,
 							AIAction* action );
 
 	int ThinkWander(		const Unit* theUnit,
-							Map* map,
+							TacMap* map,
 							AIAction* action );
 
 	int ThinkTravel(		const Unit* theUnit,
-							Map* map,
+							TacMap* map,
 							AIAction* action );
 
 	int ThinkRotate(		const Unit* theUnit,
-							Map* map,
+							TacMap* map,
 							AIAction* action );
 
 	// Utility:
@@ -155,6 +156,7 @@ protected:
 		int					turns;
 	};
 	const Unit* m_units;
+	BattleScene* m_battleScene;
 
 	int m_team;
 
@@ -176,12 +178,12 @@ protected:
 class WarriorAI : public AI
 {
 public:
-	WarriorAI( int team, Visibility* vis, Engine* engine, const Unit* units ) : AI( team, vis, engine, units )		{}
+	WarriorAI( int team, Visibility* vis, Engine* engine, const Unit* units, BattleScene* battleScene ) : AI( team, vis, engine, units, battleScene )		{}
 	virtual ~WarriorAI()					{}
 
 	virtual bool Think( const Unit* move,
 						int flags,
-						Map* map,
+						TacMap* map,
 						AIAction* action );
 
 };
@@ -190,11 +192,11 @@ public:
 class CivAI : public AI
 {
 public:
-	CivAI( int team, Visibility* vis, Engine* engine, const Unit* units ) : AI( team, vis, engine, units )		{}
+	CivAI( int team, Visibility* vis, Engine* engine, const Unit* units, BattleScene* battleScene ) : AI( team, vis, engine, units, battleScene )		{}
 	virtual ~CivAI()																		{}
 	virtual bool Think( const Unit* move,
 						int flags,
-						Map* map,
+						TacMap* map,
 						AIAction* action );
 };
 
@@ -202,11 +204,11 @@ public:
 class NullAI : public AI
 {
 public:
-	NullAI( int team, Visibility* vis, Engine* engine, const Unit* units ) : AI( team, vis, engine, units )		{}
+	NullAI( int team, Visibility* vis, Engine* engine, const Unit* units, BattleScene* battleScene ) : AI( team, vis, engine, units, battleScene )		{}
 	virtual ~NullAI()																		{}
 	virtual bool Think( const Unit* move,
 						int flags,
-						Map* map,
+						TacMap* map,
 						AIAction* action );
 };
 

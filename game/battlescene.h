@@ -38,6 +38,7 @@ class UIImage;
 class Engine;
 class Texture;
 class AI;
+struct MapDamageDesc;
 
 // Needs to be a POD because it gets 'union'ed in a bunch of events.
 // size is important for the same reason.
@@ -107,6 +108,7 @@ public:
 	virtual void DrawHUD();
 	virtual void HandleHotKeyMask( int mask );
 
+	virtual SavePathType CanSave()										{ return SAVEPATH_TACTICAL; }
 	virtual void Save( FILE* fp, int depth );
 	virtual void Load( const TiXmlElement* doc );
 
@@ -118,6 +120,9 @@ public:
 	void SetLightMap( float r, float g, float b );
 
 	virtual void MakePathBlockCurrent( Map* map, const void* user );
+
+	const Model* GetModel( const Unit* unit );
+	const Model* GetWeaponModel( const Unit* unit );
 
 private:
 	enum {
@@ -143,9 +148,8 @@ private:
 		ACTION_SHOOT,
 		ACTION_DELAY,
 		ACTION_HIT,
-		ACTION_CAMERA,
+		//ACTION_CAMERA,
 		ACTION_CAMERA_BOUNDS,
-		//ACTION_LANDER,
 	};
 
 	struct MoveAction	{
@@ -185,15 +189,10 @@ private:
 
 	struct CameraBoundsAction {
 		grinliz::Vector3F	target;
-		grinliz::Vector3F	normal;
+//		grinliz::Vector3F	normal;
 		float				speed;
 		bool				center;
 	};
-
-	//struct LanderAction {
-	//	enum				{ TOTAL_TIME = 1500 };
-	//	int					timeRemaining;
-	//};
 
 	struct Action
 	{
@@ -217,6 +216,7 @@ private:
 	};
 	CStack< Action > actionStack;
 
+	void PushEndScene();
 	void PushRotateAction( Unit* src, const grinliz::Vector3F& dst, bool quantize );
 	
 	// Try to shoot. Return true if success.
@@ -237,16 +237,15 @@ private:
 		OTHER_ACTION_COMPLETE	= 0x04,		// a non unit action (camera motion) finised (resulted in a Pop() )
 	};		
 	int ProcessAction( U32 deltaTime );
-	int ProcessActionShoot( Action* action, Unit* unit, Model* model );
+	int ProcessActionShoot( Action* action, Unit* unit );
 	int ProcessActionHit( Action* action );	
 	bool ProcessActionCameraBounds( U32 deltaTime, Action* action );
 	
 	grinliz::Rectangle2F CalcInsetUIBounds();
 
 	void OrderNextPrev();
-	// Returns true if the EndCondition is met (which also means
-	// the TacticalEndSceneData has been set.)
-	bool EndCondition( TacticalEndSceneData* data );
+	// Returns true if the EndCondition is met.
+	//bool EndCondition();
 
 	void StopForNewTeamTarget();
 	void DoReactionFire();
@@ -275,7 +274,7 @@ private:
 	void TestHitTesting();
 	void TestCoordinates();
 
-	Unit* UnitFromModel( Model* m, bool useWeaponModel=false );
+	Unit* UnitFromModel( const Model* m, bool useWeaponModel=false );
 	Unit* GetUnitFromTile( int x, int z );
 
 	bool HandleIconTap( const gamui::UIItem* item );
@@ -300,12 +299,10 @@ private:
 
 	bool	SelectedSoldier()		{ return selection.soldierUnit != 0; }
 	Unit*	SelectedSoldierUnit()	{ return selection.soldierUnit; }
-	Model*	SelectedSoldierModel()	{ if ( selection.soldierUnit ) return selection.soldierUnit->GetModel(); return 0; }
 
 	bool	HasTarget()				{ return selection.targetUnit || selection.targetPos.x >= 0; }
 	bool	AlienTargeted()			{ return selection.targetUnit != 0; }
 	Unit*	AlienUnit()				{ return selection.targetUnit; }
-	Model*	AlienModel()			{ if ( selection.targetUnit ) return selection.targetUnit->GetModel(); return 0; }
 
 	void	SetSelection( Unit* unit );
 
@@ -325,7 +322,7 @@ private:
 	Unit*			  dragUnit;
 	grinliz::Vector2I dragUnitDest;
 
-	UIRenderer	uiRenderer;
+	UIRenderer			uiRenderer;
 
 	gamui::Image		turnImage, alienTargetImage;
 	gamui::TextLabel	alienTargetText;
@@ -352,14 +349,16 @@ private:
 	int	subTurnOrder[MAX_TERRANS];
 	int	subTurnCount;
 	int turnCount;
-
-
+	
 	Engine*			engine;
-	grinliz::Random random;	// "the" random number generator for the battle
+	TacMap*			tacMap;
+	Storage*		lockedStorage;	// locked for use by the character scene
+	grinliz::Random random;			// "the" random number generator for the battle
 	int				currentTeamTurn;
 	AI*				aiArr[3];
 	int				currentUnitAI;
-	TacticalEndSceneData tacticalData;
+	bool			battleEnding;		// not saved - used to prevent event loops
+	bool			cameraSet;
 
 	struct TargetEvent
 	{
@@ -383,7 +382,8 @@ private:
 
 	Visibility visibility;
 
-	Unit				units[MAX_UNITS];
+	Unit*				units;
+	UnitRenderer		unitRenderers[MAX_UNITS];
 	gamui::DigitalBar	hpBars[MAX_UNITS];
 
 	// MapMaker

@@ -108,6 +108,8 @@ Texture* TextureManager::GetTexture( const char* name )
 Texture* TextureManager::CreateTexture( const char* name, int w, int h, int format, Texture::Param flags, ITextureCreator* creator )
 {
 	GLASSERT( !map.Query( name, 0 ) );
+	GLASSERT( w > 1 );	// some drivers don't like size=1 textures
+	GLASSERT( h > 1 );
 
 	Texture* t = 0;
 

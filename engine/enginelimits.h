@@ -37,12 +37,24 @@ enum {
 	EL_NIGHT_RED_U8			= 131,
 	EL_NIGHT_GREEN_U8		= 125,
 	EL_NIGHT_BLUE_U8		= 255,
+	EL_MAP_SIZE				= 64,		// maximum size.
+	EL_MAP_MAX_PATH			= 12,		// longest path anything can travel in one turn. Used to limit display memory.
+	EL_MAP_TEXTURE_SIZE		= 512
 };
 
 static const float EL_NIGHT_RED		= ( (float)EL_NIGHT_RED_U8/255.f );
 static const float EL_NIGHT_GREEN	= ( (float)EL_NIGHT_GREEN_U8/255.f );
 static const float EL_NIGHT_BLUE	= ( (float)EL_NIGHT_BLUE_U8/255.f );
 
+static const float EL_FOV  = 40.0f;
+static const float EL_NEAR = 2.0f;
+static const float EL_FAR  = 240.0f;
+static const float EL_CAMERA_MIN = 8.0f;
+static const float EL_CAMERA_MAX = 140.0f;
+
+static const float EL_LIGHT_X = 0.7f;
+static const float EL_LIGHT_Y = 3.0f;
+static const float EL_LIGHT_Z = 1.4f;
 
 // --- Debugging --- //
 //#define SHOW_FOW			// visual debugging

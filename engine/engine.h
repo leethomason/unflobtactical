@@ -40,13 +40,14 @@ class RenderQueue;
 	Blend		disabled
 */
 
+	/*
 struct EngineData
 {
 	EngineData() : 
 		cameraTilt( -50.f ),
 		cameraMin( 8.0f ),
 		cameraMax( 140.0f ),
-		cameraHeight( 15.f )
+		cameraHeight( 7.f )
 		{}
 
 	float cameraTilt;		// degrees
@@ -54,12 +55,12 @@ struct EngineData
 	float cameraMax;
 	float cameraHeight;
 };
-
+*/
 
 class Engine
 {
 public:
-	Engine( Screenport* screenport, const EngineData& engineData, const gamedb::Reader* database );
+	Engine( Screenport* screenport, const gamedb::Reader* database );
 	~Engine();
 
 	const float AMBIENT;
@@ -74,18 +75,25 @@ public:
 	SpaceTree* GetSpaceTree()	{ return spaceTree; }
 
 	void MoveCameraHome();
-	void CameraIso( bool iso );
+	void CameraIso(  bool normal, bool sizeToWidth, float width, float height );
 	// Move the camera so that it points to x,z. If 'calc' is non-null,
 	// the camera will *not* be moved, but the destination for the camera
 	// is returned.
 	void MoveCameraXZ( float x, float z, grinliz::Vector3F* calc=0 );
+
 	void CameraLookingAt( grinliz::Vector3F* at );
+	void CameraLookAt( float x, float z, float heightOfCamera, float yRotation=-45.0f, float tilt=-50.0f );
+
+	// Direction from world TO sun. (y is positive). If null, sets the default.
+	void SetLightDirection( const grinliz::Vector3F* lightDir );
 
 	Model* AllocModel( const ModelResource* );
 	void FreeModel( Model* );
-	
-	void EnableMap( bool enable )		{ enableMap = enable; }
+
+	void SetMap( Map* m )				{ map = m; iMap = m;}
+	void SetIMap( IMap* m )				{ map = 0; iMap = m; }
 	Map* GetMap()						{ return map; }
+
 	const RenderQueue* GetRenderQueue()	{ return renderQueue; }
 	//void ResetRenderCache();
 
@@ -147,12 +155,11 @@ private:
 	int		initZoomDistance;
 	bool	enableMeta;
 	
-	const EngineData& engineData;
+	Map*	map;	// If map is set, iMap and map are the same object
+	IMap*	iMap;	// If only the iMap is set, map may be null
 
-	Map* map;
 	SpaceTree* spaceTree;
 	RenderQueue* renderQueue;
-	bool enableMap;
 
 	grinliz::Vector3F lightDirection;
 	grinliz::Matrix4  shadowMatrix;

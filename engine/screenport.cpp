@@ -14,11 +14,13 @@
 */
 
 #include "screenport.h"
+#include "gpustatemanager.h"
+#include "platformgl.h"
+#include "enginelimits.h"
+
 #include "../grinliz/glrectangle.h"
 #include "../grinliz/glutil.h"
 #include "../grinliz/glmatrix.h"
-#include "gpustatemanager.h"
-#include "platformgl.h"
 
 using namespace grinliz;
 
@@ -30,6 +32,16 @@ Screenport::Screenport( int w, int h, int r )
 	clipInUI2D.Set( 0, 0, UIWidth(), UIHeight() );
 	clipInUI3D.Set( 0, 0, UIWidth(), UIHeight() );
 }
+
+/*
+Screenport::Screenport( const Screenport& other )
+{
+	Resize( (int)other.physicalWidth, (int)other.physicalHeight, other.rotation );
+	uiMode = other.uiMode;
+	clipInUI2D = other.clipInUI2D;
+	clipInUI3D = other.clipInUI3D;
+}
+*/
 
 
 void Screenport::Resize( int w, int h, int r )
@@ -132,7 +144,7 @@ void Screenport::SetView( const Matrix4& _view )
 }
 
 
-void Screenport::SetPerspective( float near, float far, float fovDegrees, const grinliz::Rectangle2I* clip )
+void Screenport::SetPerspective( const grinliz::Rectangle2I* clip )
 {
 	uiMode = false;
 
@@ -152,16 +164,16 @@ void Screenport::SetPerspective( float near, float far, float fovDegrees, const 
 	glScissor( (int)scissor.min.x, (int)scissor.min.y, (int)scissor.max.x, (int)scissor.max.y );
 
 	GLASSERT( uiMode == false );
-	GLASSERT( near > 0.0f );
-	GLASSERT( far > near );
+	GLASSERT( EL_NEAR > 0.0f );
+	GLASSERT( EL_FAR > EL_NEAR );
 
-	frustum.zNear = near;
-	frustum.zFar = far;
+	frustum.zNear = EL_NEAR;
+	frustum.zFar  = EL_FAR;
 
 	// Convert from the FOV to the half angle.
-	float theta = ToRadian( fovDegrees * 0.5f );
+	float theta = ToRadian( EL_FOV * 0.5f );
 	float tanTheta = tanf( theta );
-	float longSide = tanTheta * frustum.zNear;
+	float halfLongSide = tanTheta * frustum.zNear;
 
 	// left, right, top, & bottom are on the near clipping
 	// plane. (Not an obvious point to my mind.)
@@ -172,22 +184,22 @@ void Screenport::SetPerspective( float near, float far, float fovDegrees, const 
 		float ratio = (float)clipInUI3D.Height() / (float)clipInUI3D.Width();
 		
 		// frustum is in original screen coordinates.
-		frustum.top		=  longSide;
-		frustum.bottom	= -longSide;
+		frustum.top		=  halfLongSide;
+		frustum.bottom	= -halfLongSide;
 		
-		frustum.left	= -ratio * longSide;
-		frustum.right	=  ratio * longSide;
+		frustum.left	= -ratio * halfLongSide;
+		frustum.right	=  ratio * halfLongSide;
 	}
 	else {
 		// Since FOV is specified as the 1/2 width, the ratio
 		// is the height/width (different than gluPerspective)
 		float ratio = (float)clipInUI3D.Height() / (float)clipInUI3D.Width();
 
-		frustum.top		= ratio * longSide;
+		frustum.top		= ratio * halfLongSide;
 		frustum.bottom	= -frustum.top;
 
-		frustum.left	= -longSide;
-		frustum.right	=  longSide;
+		frustum.left	= -halfLongSide;
+		frustum.right	=  halfLongSide;
 	}
 	
 	glMatrixMode(GL_PROJECTION);
@@ -286,18 +298,8 @@ void Screenport::WorldToView( const grinliz::Vector3F& world, grinliz::Vector2F*
 
 	Vector4F p, r;
 	p.Set( world, 1 );
-
 	r = mvp * p;
 
-	// Normalize to view.
-	// r in range [-1,1] which maps to screen[0,Width()-1]
-	/*
-	Vector2F v0, v1;
-	Rectangle2F clipInView;
-	UIToView( clipInUI3D.min, &v0 );
-	UIToView( clipInUI3D.max, &v1 ); 
-	clipInView.FromPair( v0.x, v0.y, v1.x, v1.y );
-	*/
 	Vector2F v0, v1;
 	Rectangle2F clipInView;
 	Vector2F min = { 0, 0 };

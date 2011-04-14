@@ -27,8 +27,10 @@ distribution.
 */
 
 #include "glrandom.h"
+
 #include <math.h>
 #include <string.h>
+#include <time.h>
 	
 using namespace grinliz;
 
@@ -112,6 +114,13 @@ void Random::SetSeed( const char* str )
 {
 	int len = strlen( str );
 	U32 seed = Hash( str, len );
+	SetSeed( seed );
+}
+
+
+void Random::SetSeedFromTime()
+{
+	U32 seed = (U32)time( 0 ) + (U32)clock();
 	SetSeed( seed );
 }
 
@@ -355,3 +364,23 @@ float Random::DiceUniform( U32 nDice, U32 sides )
 
 	return ( dice + Uniform() ) / mx;
 }
+
+
+int Random::Select( const float* scores, int nItems )
+{
+	float total = 0.0f;
+	for( int i=0; i<nItems; ++i ) {
+		total += scores[i];
+	}
+	float uniform = Uniform() * total;
+
+	total = 0;
+	for( int i=0; i<nItems; ++i ) {
+		total += scores[i];
+		if ( uniform <= total )
+			return i;
+	}
+	GLASSERT( 0 );
+	return 0;
+}
+

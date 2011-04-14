@@ -26,11 +26,14 @@
 class UIButtonBox;
 class Texture;
 class InventoryWidget;
+class TacMap;
 
 class CharacterSceneData : public SceneData
 {
 public:
-	Unit* unit;
+	Unit* unit;	// array of units
+	int nUnits;
+	Storage* storage;
 };
 
 
@@ -40,10 +43,13 @@ public:
 	CharacterScene( Game* _game, CharacterSceneData* data );
 	virtual ~CharacterScene();
 
+	virtual void Activate();
+
 	// UI
 	virtual void Tap(	int action, 
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
+	virtual void HandleHotKeyMask( int mask );
 
 	// Rendering
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	
@@ -66,6 +72,7 @@ protected:
 	};
 	void InventoryToStorage( int slot );
 	void StorageToInventory( const ItemDef* itemDef );
+	void SetCounter( int delta );
 
 	enum { INVENTORY, STATS, COMPARE };
 	void SwitchMode( int mode );
@@ -73,6 +80,9 @@ protected:
 	Engine* engine;
 
 	gamui::PushButton backButton;
+	gamui::PushButton nextButton;
+	gamui::PushButton prevButton;
+	gamui::TextLabel  unitCounter;
 
 	// control buttons:
 	enum { NUM_CONTROL = 3, NUM_RANGE=3 };
@@ -82,11 +92,12 @@ protected:
 	class StatWidget {
 	public:
 		StatWidget()		{}
-		void Init( gamui::Gamui* g, const Unit* unit, float x, float y );
+		void Init( gamui::Gamui* g, const Unit* unit, float x, float y, bool baseScene );
 		void SetVisible( bool visible );
+		void Update( Unit* unit );
 	private:
 		enum { STATS_ROWS = 10 };
-		NameRankUI	nameRankUI;
+		//NameRankUI	nameRankUI;
 		gamui::TextLabel textTable[2*STATS_ROWS];
 	};
 
@@ -98,20 +109,21 @@ protected:
 		
 		void SetVisible( bool visible );
 		void Tap( const gamui::UIItem* item );
-	private:
 		void SetCompText();
-		gamui::ToggleButton range[NUM_RANGE];
+	private:
+		//gamui::ToggleButton range[NUM_RANGE];
 
 		const ItemDefArr* itemDefArr;
 		const Storage* storage;
 		const Unit* unit;
 
-		NameRankUI	nameRankUI;
+		//NameRankUI	nameRankUI;
 		// name tu % dam dptu
-		enum { COMP_COL = 5, COMP_ROW = 5 };
+		enum { COMP_COL = 5, COMP_ROW = 12 };
 		gamui::TextLabel compTable[COMP_COL*COMP_ROW];
 	};
 
+	CharacterSceneData* input;
 	InventoryWidget* inventoryWidget;
 
 	// Right side option #1
@@ -125,6 +137,7 @@ protected:
 
 	Storage* storage;
 	Unit* unit;
+	int currentUnit;
 };
 
 

@@ -29,6 +29,7 @@
 #include "../shared/gamedbreader.h"
 #include "../gamui/gamui.h"
 #include "item.h"
+#include "unit.h"
 
 #include <limits.h>
 
@@ -40,6 +41,7 @@ class ItemDef;
 class TiXmlDocument;
 class Stats;
 class Unit;
+class Research;
 
 static const float ONE8  = 1.0f / 8.0f;
 static const float ONE16 = 1.0f / 16.0f;
@@ -57,6 +59,49 @@ struct TileSetDesc {
 	int size;			// 16, 32, 64
 	const char* type;	// "TILE"
 	int variation;		// 0-99
+};
+
+
+/*	If a battle is in progress, this saves the data
+	across the many scenes. (BattleScene, EndScene,
+	etc.) Too many crashing errors when passing data
+	between them.
+*/
+struct BattleData
+{
+	BattleData( const ItemDefArr& arr ) : storage( 0, 0, arr )
+	{
+		Init();
+	}
+	void Init() {
+		for( int i=0; i<MAX_UNITS; ++i )
+			units[i].Free();
+		dayTime = true;
+		scenario = 0;
+		storage.Clear();
+	}
+
+	enum {
+		VICTORY		= 1,
+		DEFEAT		= 2,
+		TIE			= 3,
+	};
+
+	Unit units[MAX_UNITS];
+	
+	bool dayTime;
+	int scenario;
+
+	Storage storage;
+
+	int CalcResult() const;
+	bool IsBattleOver() const {
+		int result = CalcResult();
+		return (result==VICTORY) || (result==DEFEAT);
+	}
+
+	void Save( FILE* fp, int depth );
+	void Load( const TiXmlElement* doc );
 };
 
 
@@ -94,9 +139,6 @@ struct TileSetDesc {
 
 class Game : public ITextureCreator 
 {
-private:
-	EngineData engineData;
-
 public:
 	Game( int width, int height, int rotation, const char* savepath );
 	Game( int width, int height, int rotation, const char* path, const TileSetDesc& tileSetDesc );
@@ -135,12 +177,20 @@ public:
 			UNIT_SCORE_SCENE,
 			HELP_SCENE,
 			DIALOG_SCENE,
+			GEO_SCENE,
+			GEO_END_SCENE,
+			BASETRADE_SCENE,
+			BUILDBASE_SCENE,
+			FASTBATTLE_SCENE,
+			RESEARCH_SCENE,
 			NUM_SCENES,
 		 };
 
 	void PushScene( int sceneID, SceneData* data );
 	void PopScene( int result = INT_MAX );
-	void PopAllAndReset()	{ sceneResetQueued = true; }
+	//void PopAllAndReset()	{ sceneResetQueued = true; }
+
+	bool IsScenePushed() const		{ return sceneQueued.sceneID != NUM_SCENES; }
 
 	U32 CurrentTime() const	{ return currentTime; }
 	U32 DeltaTime() const	{ return currentTime-previousTime; }
@@ -151,27 +201,34 @@ public:
 	void SetDebugLevel( int level )		{ debugLevel = (level%4); }
 	int GetDebugLevel() const			{ return debugLevel; }
 
-	const grinliz::GLString GameSavePath()	{	grinliz::GLString str( savePath );
-												str += "currentgame.xml";
-												return str;
-											}
+	FILE* GameSavePath( SavePathType type, SavePathMode mode ) const;
+
+	bool HasSaveFile( SavePathType type ) const;
+	void DeleteSaveFile( SavePathType type );
 
 	void Load( const TiXmlDocument& doc );
 	void Save();
-	void Save( FILE* fp );
 
 	bool PopSound( int* offset, int* size );
 
+	const Research* GetResearch();
 	const gamedb::Reader* GetDatabase()	{ return database; }
+
+	BattleData battleData;
 
 	enum {
 		ATOM_TEXT, ATOM_TEXT_D,
 		ATOM_TACTICAL_BACKGROUND,
 		ATOM_TACTICAL_BACKGROUND_TEXT,
+
+		ATOM_GEO_VICTORY,
+		ATOM_GEO_DEFEAT,
+
 		ATOM_GREEN_BUTTON_UP, ATOM_GREEN_BUTTON_UP_D, ATOM_GREEN_BUTTON_DOWN, ATOM_GREEN_BUTTON_DOWN_D,
 		ATOM_BLUE_BUTTON_UP, ATOM_BLUE_BUTTON_UP_D, ATOM_BLUE_BUTTON_DOWN, ATOM_BLUE_BUTTON_DOWN_D,
 		ATOM_RED_BUTTON_UP, ATOM_RED_BUTTON_UP_D, ATOM_RED_BUTTON_DOWN, ATOM_RED_BUTTON_DOWN_D,
 		ATOM_BLUE_TAB_BUTTON_UP, ATOM_BLUE_TAB_BUTTON_UP_D, ATOM_BLUE_TAB_BUTTON_DOWN, ATOM_BLUE_TAB_BUTTON_DOWN_D,
+
 		ATOM_COUNT
 	};
 	const gamui::RenderAtom& GetRenderAtom( int id );
@@ -197,8 +254,7 @@ private:
 	void PushPopScene();
 
 	bool scenePopQueued;
-	bool sceneResetQueued;
-	bool loadCompleted;
+	//bool sceneResetQueued;
 
 	void Init();
 	void LoadTextures();

@@ -24,6 +24,12 @@
 #include "tacticalunitscorescene.h"
 #include "helpscene.h"
 #include "dialogscene.h"
+#include "geoscene.h"
+#include "geoendscene.h"
+#include "basetradescene.h"
+#include "buildbasescene.h"
+#include "fastbattlescene.h"
+#include "researchscene.h"
 
 #include "../engine/text.h"
 #include "../engine/model.h"
@@ -47,6 +53,7 @@ using namespace grinliz;
 extern long memNewCount;
 
 Game::Game( int width, int height, int rotation, const char* path ) :
+	battleData( itemDefArr ),
 	screenport( width, height, rotation ),
 	markFrameTime( 0 ),
 	frameCountsSinceMark( 0 ),
@@ -71,15 +78,14 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	Init();
 	//Map* map = engine->GetMap();
 
-	engine->camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
-
 	PushScene( INTRO_SCENE, 0 );
-	loadCompleted = false;
 	PushPopScene();
 }
 
 
+// WARNING: strange map maker code
 Game::Game( int width, int height, int rotation, const char* path, const TileSetDesc& base ) :
+	battleData( itemDefArr ),
 	screenport( width, height, rotation ),
 	markFrameTime( 0 ),
 	frameCountsSinceMark( 0 ),
@@ -101,11 +107,7 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	}	
 	
 	Init();
-	Map* map = engine->GetMap();
-	//ImageManager* im = ImageManager::Instance();
-
-	map->SetSize( base.size, base.size );
-
+	
 	char buffer[128];
 	SNPrintf( buffer, 128, "%4s_%2d_%4s_%02d", base.set, base.size, base.type, base.variation );
 
@@ -120,17 +122,17 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	GLString	nightMap  = buffer;
 				nightMap += "_NGT";
 
-	engine->camera.SetPosWC( -25.f, 45.f, 30.f );	// standard test
-	engine->camera.SetYRotation( -60.f );
+	//engine->camera.SetPosWC( -25.f, 45.f, 30.f );	// standard test
+	//engine->camera.SetYRotation( -60.f );
 
 	PushScene( BATTLE_SCENE, 0 );
-	loadCompleted = false;
 	PushPopScene();
+	engine->GetMap()->SetSize( base.size, base.size );
 
 	TiXmlDocument doc( mapmaker_xmlFile.c_str() );
 	doc.LoadFile();
 	if ( !doc.Error() )
-		engine->GetMap()->Load( doc.FirstChildElement( "Map" ), GetItemDefArr() );
+		engine->GetMap()->Load( doc.FirstChildElement( "Map" ) );
 }
 
 
@@ -138,7 +140,7 @@ void Game::Init()
 {
 	mapmaker_showPathing = 0;
 	scenePopQueued = false;
-	sceneResetQueued = false;
+//	sceneResetQueued = false;
 	currentFrame = 0;
 	surface.Set( Surface::RGBA16, 256, 256 );		// All the memory we will ever need (? or that is the intention)
 
@@ -161,7 +163,7 @@ void Game::Init()
 	ParticleSystem::Create();
 	SettingsManager::Create( savePath.c_str() );
 
-	engine = new Engine( &screenport, engineData, database );
+	engine = new Engine( &screenport, database );
 
 	LoadTextures();
 	modelLoader = new ModelLoader();
@@ -196,6 +198,7 @@ Game::~Game()
 		PushPopScene();
 	}
 
+	sceneStack.Top()->scene->DeActivate();
 	sceneStack.Top()->Free();
 	sceneStack.Pop();
 
@@ -214,6 +217,32 @@ Game::~Game()
 }
 
 
+bool Game::HasSaveFile( SavePathType type ) const
+{
+	bool result = false;
+
+	FILE* fp = GameSavePath( type, SAVEPATH_READ );
+	if ( fp ) {
+		fseek( fp, 0, SEEK_END );
+		long d = ftell( fp );
+		if ( d > 100 ) {	// has to be something there: sanity check
+			result = true;
+		}
+		fclose( fp );
+	}
+	return result;
+}
+
+
+void Game::DeleteSaveFile( SavePathType type )
+{
+	FILE* fp = GameSavePath( type, SAVEPATH_WRITE );
+	if ( fp ) {
+		fclose( fp );
+	}
+}
+
+
 void Game::SceneNode::Free()
 {
 	sceneID = Game::NUM_SCENES;
@@ -223,32 +252,9 @@ void Game::SceneNode::Free()
 }
 
 
-/*
-void Game::ProcessLoadRequest()
-{
-	if ( loadRequested == 0 )	// continue
-	{
-		GLString path = GameSavePath();
-		TiXmlDocument doc;
-		doc.LoadFile( path.c_str() );
-		GLASSERT( !doc.Error() );
-		if ( !doc.Error() ) {
-			Load( doc );
-			loadCompleted = true;
-		}
-	}
-	else if ( loadRequested == 1 )	// new game
-	{
-		Load( newGameXML );
-		loadCompleted = true;
-	}
-	loadRequested = -1;
-}
-*/
-
-
 void Game::PushScene( int sceneID, SceneData* data )
 {
+	GLOUTPUT(( "PushScene %d\n", sceneID ));
 	GLASSERT( sceneQueued.sceneID == NUM_SCENES );
 	GLASSERT( sceneQueued.scene == 0 );
 
@@ -259,6 +265,7 @@ void Game::PushScene( int sceneID, SceneData* data )
 
 void Game::PopScene( int result )
 {
+	GLOUTPUT(( "PopScene result=%d\n", result ));
 	GLASSERT( scenePopQueued == false );
 	scenePopQueued = true;
 	if ( result != INT_MAX )
@@ -270,15 +277,12 @@ void Game::PushPopScene()
 {
 	if ( scenePopQueued || sceneQueued.sceneID != NUM_SCENES ) {
 		TextureManager::Instance()->ContextShift();
-//		engine->ResetRenderCache();
 	}
-	GLASSERT( !(sceneResetQueued && sceneQueued.sceneID != NUM_SCENES ));
 
-	while ( scenePopQueued || sceneResetQueued )
+	if ( scenePopQueued )
 	{
-		GLASSERT( sceneResetQueued || (!sceneStack.Empty()) );
-
 		sceneStack.Top()->scene->DeActivate();
+		scenePopQueued = false;
 		int result = sceneStack.Top()->result;
 		int id     = sceneStack.Top()->sceneID;
 
@@ -291,27 +295,30 @@ void Game::PushPopScene()
 				sceneStack.Top()->scene->SceneResult( id, result );
 			}
 		}
-		scenePopQueued = false;
-		if ( sceneStack.Empty() )
-			break;
 	}
 
-	if ( sceneResetQueued ) {
-		sceneResetQueued = false;
-		GLASSERT( sceneStack.Empty() );
-
+	if (    sceneQueued.sceneID == NUM_SCENES 
+		 && sceneStack.Empty() ) 
+	{
 		delete engine;
-		engine = new Engine( &screenport, engineData, database );
+		engine = new Engine( &screenport, database );
 
 		PushScene( INTRO_SCENE, 0 );
+		PushPopScene();
 	}
-
-	if ( sceneQueued.sceneID != NUM_SCENES ) {
+	else if ( sceneQueued.sceneID != NUM_SCENES ) 
+	{
 		GLASSERT( sceneQueued.sceneID < NUM_SCENES );
 
 		if ( sceneStack.Size() ) {
 			sceneStack.Top()->scene->DeActivate();
 		}
+
+		SceneNode* oldTop = 0;
+		if ( !sceneStack.Empty() ) {
+			oldTop = sceneStack.Top();
+		}
+
 		SceneNode* node = sceneStack.Push();
 		CreateScene( sceneQueued, node );
 		sceneQueued.data = 0;
@@ -319,19 +326,37 @@ void Game::PushPopScene()
 
 		node->scene->Activate();
 
-		if ( node->sceneID == BATTLE_SCENE && !Engine::mapMakerMode ) {
-			GLString path = GameSavePath();
-			TiXmlDocument doc;
-			doc.LoadFile( path.c_str() );
-			GLASSERT( !doc.Error() );
-			if ( !doc.Error() ) {
-				Load( doc );
-				loadCompleted = true;
+		if ( oldTop ) 
+			oldTop->scene->ChildActivated( node->sceneID, node->scene, node->data );
+
+		if (    node->scene->CanSave() 
+			 && !Engine::mapMakerMode 
+			 && sceneStack.Size() == 1 ) 
+		{
+			SavePathType savePath = node->scene->CanSave();
+			FILE* fp = GameSavePath( savePath, SAVEPATH_READ );
+			if ( fp ) {
+				TiXmlDocument doc;
+				doc.LoadFile( fp );
+				//GLASSERT( !doc.Error() );
+				if ( !doc.Error() ) {
+					Load( doc );
+				}
+				fclose( fp );
 			}
 		}
 	}
+}
 
-	sceneQueued.Free();
+
+const Research* Game::GetResearch()
+{
+	for( SceneNode* node = sceneStack.BeginTop(); node; node = sceneStack.Next() ) {
+		if ( node->sceneID == GEO_SCENE ) {
+			return &((GeoScene*)node->scene)->GetResearch();
+		}
+	}
+	return 0;
 }
 
 
@@ -339,13 +364,19 @@ void Game::CreateScene( const SceneNode& in, SceneNode* node )
 {
 	Scene* scene = 0;
 	switch ( in.sceneID ) {
-		case BATTLE_SCENE:		scene = new BattleScene( this );													break;
+		case BATTLE_SCENE:		battleData.Init(); scene = new BattleScene( this );									break;
 		case CHARACTER_SCENE:	scene = new CharacterScene( this, (CharacterSceneData*)in.data );					break;
 		case INTRO_SCENE:		scene = new TacticalIntroScene( this );												break;
-		case END_SCENE:			scene = new TacticalEndScene( this, (const TacticalEndSceneData*) in.data );		break;
-		case UNIT_SCORE_SCENE:	scene = new TacticalUnitScoreScene( this, (const TacticalEndSceneData*) in.data );	break;
+		case END_SCENE:			scene = new TacticalEndScene( this );												break;
+		case UNIT_SCORE_SCENE:	scene = new TacticalUnitScoreScene( this );											break;
 		case HELP_SCENE:		scene = new HelpScene( this, (const HelpSceneData*)in.data );						break;
 		case DIALOG_SCENE:		scene = new DialogScene( this, (const DialogSceneData*)in.data );					break;
+		case GEO_SCENE:			scene = new GeoScene( this );														break;
+		case GEO_END_SCENE:		scene = new GeoEndScene( this, (const GeoEndSceneData*)in.data );					break;
+		case BASETRADE_SCENE:	scene = new BaseTradeScene( this, (BaseTradeSceneData*)in.data );					break;
+		case BUILDBASE_SCENE:	scene = new BuildBaseScene( this, (BuildBaseSceneData*)in.data );					break;
+		case FASTBATTLE_SCENE:	scene = new FastBattleScene( this, (BattleSceneData*)in.data );						break;
+		case RESEARCH_SCENE:	scene = new ResearchScene( this, (ResearchSceneData*)in.data );						break;
 		default:
 			GLASSERT( 0 );
 			break;
@@ -375,45 +406,55 @@ const gamui::ButtonLook& Game::GetButtonLook( int id )
 void Game::Load( const TiXmlDocument& doc )
 {
 	// Already pushed the BattleScene. Note that the
-	// BOTTOM of the stack saves and loads. (BattleScene or GeoScene).
+	// BOTTOM of the stack loads. (BattleScene or GeoScene).
+	// A GeoScene will in turn load a BattleScene.
 	const TiXmlElement* game = doc.RootElement();
 	GLASSERT( StrEqual( game->Value(), "Game" ) );
-	sceneStack.Bottom()->scene->Load( game );
+	const TiXmlElement* scene = game->FirstChildElement();
+	sceneStack.Top()->scene->Load( scene );
+}
+
+
+FILE* Game::GameSavePath( SavePathType type, SavePathMode mode ) const
+{	
+	grinliz::GLString str( savePath );
+	if ( type == SAVEPATH_GEO )
+		str += "geogame.xml";
+	else if ( type == SAVEPATH_TACTICAL )
+		str += "tacgame.xml";
+	else
+		GLASSERT( 0 );
+
+	FILE* fp = fopen( str.c_str(), (mode == SAVEPATH_WRITE) ? "wb" : "rb" );
+	return fp;
 }
 
 
 void Game::Save()
 {
-	if ( loadCompleted && !sceneStack.Empty() ) {
-		GLString path = GameSavePath();
-		FILE* fp = fopen( path.c_str(), "w" );
-		GLASSERT( fp );
-		if ( fp ) {
-			Save( fp );
-			fclose( fp );
+	// For loading, the BOTTOM loads and then loads higher scenes.
+	// For saving, the GeoScene saves itself before pushing the tactical
+	// scene, so save from the top back. (But still need to save if
+	// we are in a character scene for example.)
+	for( SceneNode* node=sceneStack.BeginTop(); node; node=sceneStack.Next() ) {
+		if ( node->scene->CanSave() ) {
+			FILE* fp = GameSavePath( node->scene->CanSave(), SAVEPATH_WRITE );
+			GLASSERT( fp );
+			if ( fp ) {
+				XMLUtil::OpenElement( fp, 0, "Game" );
+				XMLUtil::Attribute( fp, "version", VERSION );
+				XMLUtil::Attribute( fp, "sceneID", node->sceneID );
+				XMLUtil::SealElement( fp );
+
+				node->scene->Save( fp, 1 );
+	
+				XMLUtil::CloseElement( fp, 0, "Game" );
+
+				fclose( fp );
+			}
+			break;
 		}
 	}
-
-}
-
-
-void Game::Save( FILE* fp )
-{
-	XMLUtil::OpenElement( fp, 0, "Game" );
-	XMLUtil::Attribute( fp, "version", VERSION );
-	XMLUtil::SealElement( fp );
-
-	{
-		XMLUtil::OpenElement( fp, 1, "Scene" );
-		XMLUtil::Attribute( fp, "id", 0 );
-		XMLUtil::SealCloseElement( fp );
-	}
-	if ( !sceneStack.Empty() ) {
-		SceneNode* bottom = sceneStack.Bottom();
-		bottom->scene->Save( fp, 1 );
-	}
-	
-	XMLUtil::CloseElement( fp, 0, "Game" );
 }
 
 
@@ -443,6 +484,10 @@ void Game::DoTick( U32 _currentTime )
 			}
 		}
 
+		// Limit so we don't ever get big jumps:
+		if ( deltaTime > 100 )
+			deltaTime = 100;
+
 		GPUShader::ResetState();
 		GPUShader::Clear();
 
@@ -457,9 +502,9 @@ void Game::DoTick( U32 _currentTime )
 			GRINLIZ_PERFTRACK_NAME( "Game::DoTick 3D" );
 			//	r.Set( 100, 50, 300, 50+200*320/480 );
 			//	r.Set( 100, 50, 300, 150 );
-			screenport.SetPerspective(	2.f, 
-										240.f, 
-										20.f*(screenport.UIWidth()/screenport.UIHeight())*320.0f/480.0f, 
+			screenport.SetPerspective(	//2.f, 
+										//240.f, 
+										//(EL_FOV*0.5f)*(screenport.UIWidth()/screenport.UIHeight())*320.0f/480.0f, 
 										clip3D.IsValid() ? &clip3D : 0 );
 
 			engine->Draw();
@@ -471,7 +516,7 @@ void Game::DoTick( U32 _currentTime )
 			const grinliz::Vector3F* eyeDir = engine->camera.EyeDir3();
 			ParticleSystem* particleSystem = ParticleSystem::Instance();
 			particleSystem->Update( deltaTime, currentTime );
-			particleSystem->Draw( eyeDir, &engine->GetMap()->GetFogOfWar() );
+			particleSystem->Draw( eyeDir, engine->GetMap() ? &engine->GetMap()->GetFogOfWar() : 0 );
 		}
 
 		{
@@ -660,3 +705,72 @@ void Game::SetLightMap( float r, float g, float b )
 }
 
 
+int BattleData::CalcResult() const
+{
+	int nTerransAlive = Unit::Count( units+TERRAN_UNITS_START, MAX_TERRANS, Unit::STATUS_ALIVE );
+	int nAliensAlive  = Unit::Count( units+ALIEN_UNITS_START, MAX_ALIENS, Unit::STATUS_ALIVE );
+
+	int result = TIE;
+	if ( nTerransAlive > 0 && nAliensAlive == 0 )
+		result = VICTORY;
+	else if ( nTerransAlive == 0 && nAliensAlive > 0 )
+		result = DEFEAT;
+	return result;
+}
+
+
+void BattleData::Save( FILE* fp, int depth )
+{
+	XMLUtil::OpenElement( fp, depth, "BattleData" );
+	XMLUtil::Attribute( fp, "dayTime", dayTime );
+	XMLUtil::Attribute( fp, "scenario", scenario );
+	XMLUtil::SealElement( fp );
+
+	storage.Save( fp, depth+1 );
+
+	XMLUtil::OpenElement( fp, depth+1, "Units" );
+	XMLUtil::SealElement( fp );
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		units[i].Save( fp, depth+2 );
+	}
+	XMLUtil::CloseElement( fp, depth+1, "Units" );
+	XMLUtil::CloseElement( fp, depth, "BattleData" );
+}
+
+
+void BattleData::Load( const TiXmlElement* doc )
+{
+	for( int i=0; i<MAX_UNITS; ++i )
+		units[i].Free();
+	storage.Clear();
+
+	const TiXmlElement* ele = doc->FirstChildElement( "BattleData" );
+	GLASSERT( ele );
+
+	ele->QueryBoolAttribute( "dayTime", &dayTime );
+	ele->QueryIntAttribute( "scenario", &scenario );
+
+	storage.Load( ele );
+	const TiXmlElement* unitsEle = ele->FirstChildElement( "Units" );
+	GLASSERT( unitsEle );
+
+	int team[3] = { TERRAN_UNITS_START, CIV_UNITS_START, ALIEN_UNITS_START };
+	if ( unitsEle ) {
+		for( const TiXmlElement* unitElement = unitsEle->FirstChildElement( "Unit" );
+			 unitElement;
+			 unitElement = unitElement->NextSiblingElement( "Unit" ) ) 
+		{
+			int t = 0;
+			unitElement->QueryIntAttribute( "team", &t );
+			Unit* unit = &units[team[t]];
+
+			unit->Load( unitElement, storage.GetItemDefArr() );
+			
+			team[t]++;
+
+			GLRELASSERT( team[0] <= TERRAN_UNITS_END );
+			GLRELASSERT( team[1] <= CIV_UNITS_END );
+			GLRELASSERT( team[2] <= ALIEN_UNITS_END );
+		}
+	}
+}

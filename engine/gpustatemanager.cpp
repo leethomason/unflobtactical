@@ -552,6 +552,28 @@ void GPUShader::Draw( int index, const int* elements )
 */
 
 
+void GPUShader::Debug_DrawQuad( const grinliz::Vector3F p0, const grinliz::Vector3F p1 )
+{
+#ifdef DEBUG
+	grinliz::Vector3F pos[4] = { 
+		{ p0.x, p0.y, p0.z },
+		{ p1.x, p0.y, p0.z },
+		{ p1.x, p1.y, p1.z },
+		{ p0.x, p1.y, p1.z },
+	};
+	static const U16 index[6] = { 0, 2, 1, 0, 3, 2 };
+	GPUShader::Stream stream;
+	stream.stride = sizeof(grinliz::Vector3F);
+	stream.nPos = 3;
+	stream.posOffset = 0;
+
+	SetStream( stream, pos, 6, index );
+	Draw();
+#endif
+}
+
+
+
 void GPUShader::SwitchMatrixMode( MatrixType type )
 {
 #if defined( USING_GL ) && defined( DEBUG )

@@ -24,10 +24,15 @@ StorageWidget::StorageWidget(	gamui::Gamui* gamui,
 								const gamui::ButtonLook& green,
 								const gamui::ButtonLook& blue,
 								const ItemDefArr& _itemDefArr,
-								const Storage* _storage )
-	: storage( _storage ),
-	  itemDefArr( _itemDefArr )
+								const Storage* _storage,
+								float _costMult )
+	: 
+		costMult( _costMult ),
+		storage( _storage ),
+		itemDefArr( _itemDefArr )
 {
+	fudgeFactor.Set( 0, 0 );
+
 	static const int decoID[NUM_SELECT_BUTTONS] = { DECO_PISTOL, DECO_RAYGUN, DECO_ARMOR, DECO_ALIEN };
 
 	for( int i=0; i<NUM_SELECT_BUTTONS; ++i ) {
@@ -126,10 +131,17 @@ void StorageWidget::SetButtons()
 				int deco = itemDef->deco;
 				boxButton[slot].SetDeco( UIRenderer::CalcDecoAtom( deco, false ), UIRenderer::CalcDecoAtom( deco, false ) );
 
-				char buffer[16];
+				static const int SZ=16;
+				char buffer[SZ];
 				if ( storage->GetCount( itemDef ) ) {
-					SNPrintf( buffer, 16, "%d", storage->GetCount( itemDef ) );
-					boxButton[slot].SetText( itemDef->name );
+					if ( costMult ) {
+						// show the cost
+						SNPrintf( buffer, SZ, "$%d", itemDef->Price( costMult ) );
+					}
+					else {
+						SNPrintf( buffer, SZ, "%d", storage->GetCount( itemDef ) );
+					}
+					boxButton[slot].SetText( itemDef->displayName.c_str() );
 					boxButton[slot].SetText2( buffer );
 					boxButton[slot].SetEnabled( true );
 				}

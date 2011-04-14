@@ -25,48 +25,62 @@
 
 using namespace grinliz;
 
-TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, const TacticalEndSceneData* d ) : Scene( _game )
+TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game ) : Scene( _game )
 {
 	Engine* engine = GetEngine();
-	data = d;
 	nAwards = 0;
-
-	engine->EnableMap( false );
 
 	gamui::RenderAtom nullAtom;
 	backgroundUI.Init( game, &gamui2D, false );
 
-
 	int count=0;
-	float yPos = 100.0f;
-	float xPos0 = 50.0f;
-	float xPos1 = 240.0f;
-	float xPos2 = 320.0f;
+	float yPos			= GAME_GUTTER;
+	float xPosName		= GAME_GUTTER;
+	float xPosStatus	= GAME_GUTTER+200.0f;
+	float xPosAward		= GAME_GUTTER+300.0f;
 	float size = 20.0f;
+	const Unit* soldiers = &game->battleData.units[TERRAN_UNITS_START];
 
-	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		if ( data->units[i].InUse() ) {
+	for( int i=0; i<MAX_TERRANS; ++i ) {
+		if ( soldiers[i].InUse() ) {
 			
+			// Hack to compute XP since this scene can get run multiple times between saves.
+			// The Unit* must be const, so the rank can't be changed on this screen.
+			int oldRank = soldiers[i].GetStats().Rank();
+			int newRank = Unit::XPToRank( soldiers[i].XP() + soldiers[i].KillsCredited() + ( soldiers[i].HP() < soldiers[i].GetStats().TotalHP() ) );
+
 			nameRank[count].Init( &gamui2D );
-			nameRank[count].Set( xPos0, yPos, &data->units[i], false );
+			nameRank[count].Set( xPosName, yPos, &soldiers[i], false );
+			nameRank[count].SetRank( newRank );
 
 			status[count].Init( &gamui2D );
 
-			if ( data->units[i].IsAlive() )
+			if ( soldiers[i].IsAlive() )
 				status[count].SetText( "Active" );
-			else if ( data->units[i].IsKIA() )
+			else if ( soldiers[i].IsKIA() )
 				status[count].SetText( "KIA" );
-			else if ( data->units[i].IsUnconscious() )
+			else if ( soldiers[i].IsUnconscious() )
 				status[count].SetText( "Active(KO)" );
-			else if ( data->units[i].IsMIA() )
+			else if ( soldiers[i].IsMIA() )
 				status[count].SetText( "MIA" );
 
-			status[count].SetPos( xPos1, yPos );
+			status[count].SetPos( xPosStatus, yPos );
 
-			int kills = data->units[i].KillsCredited();
-			bool purpleCircle = data->units[i].HP() != data->units[i].GetStats().TotalHP() && !data->units[i].IsKIA();
-			//int exp = kills + (purpleCircle ? 2 : 0);
-			float x = xPos2;
+			int kills = soldiers[i].KillsCredited();
+			bool purpleCircle = soldiers[i].HP() != soldiers[i].GetStats().TotalHP() && !soldiers[i].IsKIA();
+
+			float x = xPosAward;
+
+			if ( soldiers[i].IsAlive() || soldiers[i].IsUnconscious() ) {
+
+				if ( oldRank != newRank ) {
+					award[nAwards].Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_LEVEL_UP ), true );
+					award[nAwards].SetPos( x, yPos );
+					award[nAwards].SetSize( size, size );
+					x += size;
+					++nAwards;
+				}
+			}
 
 			if ( purpleCircle && nAwards < MAX_AWARDS ) {
 				award[nAwards].Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_AWARD_PURPLE_CIRCLE ), true );
@@ -102,7 +116,7 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, const TacticalEndSc
 	}
 
 	button.Init( &gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
-	button.SetPos( 400, 320 - 5 - GAME_BUTTON_SIZE );
+	button.SetPos( 0, 320 - 5 - GAME_BUTTON_SIZE );
 	button.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	button.SetText( "Done" );
 }
@@ -110,14 +124,17 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game, const TacticalEndSc
 
 TacticalUnitScoreScene::~TacticalUnitScoreScene()
 {
-	GetEngine()->EnableMap( true );
 }
+
+void TacticalUnitScoreScene::Activate()
+{
+	GetEngine()->SetMap( 0 );
+}
+
 
 
 void TacticalUnitScoreScene::DrawHUD()
 {
-//	UFOText::Draw( 20, 25, "Game restart not yet implemented." );
-//	UFOText::Draw( 20, 10, "Close and select 'New' to play again." );
 }
 
 
@@ -135,12 +152,7 @@ void TacticalUnitScoreScene::Tap(	int action,
 		item = gamui2D.TapUp( ui.x, ui.y );
 		
 	if ( item == &button ) {
-		GLString savePath = game->GameSavePath();
-		FILE* fp = fopen( savePath.c_str(), "w" );
-		if ( fp ) {
-			fclose( fp );
-		}
-		game->PopAllAndReset();
+		game->PopScene( 0 );
 	}
 }
 

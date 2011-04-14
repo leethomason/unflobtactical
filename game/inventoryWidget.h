@@ -4,7 +4,9 @@
 #include "../grinliz/glvector.h"
 #include "../gamui/gamui.h"
 #include "inventory.h"
+#include "scene.h"
 
+class Unit;
 
 class InventoryWidget
 {
@@ -12,10 +14,10 @@ public:
 	InventoryWidget( gamui::Gamui* g,
 					 const gamui::ButtonLook& carriedLook,
 					 const gamui::ButtonLook& packLook,
-					 Inventory* inventory );
+					 Unit* unit );
 
 	void SetOrigin( float x, float y );
-	void Update();
+	void Update( Unit* unit = 0 );
 	void Tap( const gamui::UIItem* item, int* move );
 	void TapMove( const grinliz::Vector2F& screen );
 
@@ -35,12 +37,13 @@ private:
 
 	gamui::Gamui*		gamui;
 	gamui::PushButton	button[NUM_BUTTONS];
+	NameRankUI			nameRankUI;
 	gamui::TextLabel	text0, text1, description;
 	
 	gamui::Image		dragImage;
 	int					dragIndex;
 
-	Inventory* inventory;
+	Unit* unit;
 
 };
 

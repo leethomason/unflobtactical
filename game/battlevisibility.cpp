@@ -85,7 +85,8 @@ bool Visibility::TeamCanSee( int team, int x, int y )
 	CalcTeam( team, &r0, &r1 );
 
 	for( int i=r0; i<r1; ++i ) {
-		if ( UnitCanSee( i, x, y ) )
+		// Check isAlive to avoid the function call.
+		if ( units[i].IsAlive() && UnitCanSee( i, x, y ) )
 			return true;
 	}
 	return false;
@@ -101,7 +102,7 @@ int Visibility::NumTeamCanSee( int viewer, int viewee )
 	
 	for( int i=b0; i<b1; ++i ) {
 		if ( units[i].IsAlive() ) {
-			Vector2I p = units[i].Pos();
+			Vector2I p = units[i].MapPos();
 
 			if ( TeamCanSee( viewer, p.x, p.y ) ) {
 				++count;
@@ -159,7 +160,7 @@ void Visibility::CalcUnitVisibility( int unitID )
 	GLRELASSERT( unitID >= 0 && unitID < MAX_UNITS );
 	const Unit* unit = &units[unitID];
 
-	Vector2I pos = unit->Pos();
+	Vector2I pos = unit->MapPos();
 
 	// Clear out the old settings.
 	// Walk the area in range around the unit and cast rays.
@@ -274,7 +275,7 @@ void Visibility::CalcVisibilityRay( int unitID, const Vector2I& pos, const Vecto
 
 bool Visibility::UnitCanSee( const Unit* src, const Unit* target )
 {
-	const Vector2I t = target->Pos();
+	const Vector2I t = target->MapPos();
 	return UnitCanSee( src - units, t.x, t.y );
 }
 

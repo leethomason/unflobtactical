@@ -41,6 +41,9 @@ public:
 	Model* AllocModel( const ModelResource* );
 	void   FreeModel( Model* );
 
+	void ShelveModel( bool active, Model* );
+	void ShelveAll( bool active );
+
 	// Called whenever a model moves. (Usually called automatically be the model.)
 	void   Update( Model* );
 
@@ -130,6 +133,7 @@ private:
 
 	Node* GetNode( int depth, int x, int z ); 
 	Node nodeArr[NUM_NODES];
+	Node shelf;		// special place for allocated, but unused, models.
 };
 
 #endif // LOOSEQUADTREE_INCLUDED

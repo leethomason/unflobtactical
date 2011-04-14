@@ -1,9 +1,111 @@
 Issues:
 
 Bugs:
+- help: Full help pass
 
-Android
-- Amazon
+Deferred:
+- Tactical: AI shoots walls. This one is strange. It certainly checks. ??
+- expand immediate buy to bases
+- fix battlescene not being power of 2
+- geo: art for cores
+- geo: no indication of base capabilities
+- character screen: show character
+- geo: a ufo will return to orbit if it gets to a "parked" tile. Should find a new task.
+- geo: decals overdraw
+- tactical: when picking up weapon, walk zone doesn't update
+
+Fixed:
+- help: hiring soldiers and scientists
+- help: sell all button
+- help: explain research items
+- base needs more internal structure
+- base: rethink layout. Brutal alien beginning. Hard to leave lander.
+- ufo base model
+- alienBase: ugyl. Incomplete. Needs coolness.
+- new city model
+- new base models
+- sound effects
+- fix geo name locations
+- geo: colors ugly, look not correct
+- geo: art for special abilities
+- new game...how to handle? Dialog screen?
+- fix lighting on geo scene
+- numScientists in base isn't getting saved correctly. (Goes to 8?)
+- need to limit research text length
+- review save system
+	x save geo on entering/exiting tactical?
+	x delete tactical saves?
+	x if battlescene active, connect BattleSceneData to Geo
+	x Big save / load testing
+	- disable FastBattle for now
+- making leaving non-fatal
+- Tactical: no shadows on geo sceen when using netbook
+- need end fight!
+- vary # of civs
+- Tactical: no guards getting created (were set in XML)
+- Tactical: guns not rendering
+- Tactical: back loses camera
+- Tactical: occasionally camera pan...doesn't. Okay except for first one.
+- Battlescene+Geo:
+	- counting 'down' as 'dead' for inventory, and removing stuff.
+	- research.Kick() doesn't seem to work
+- geo: extend frigate time
+- capital/city screwed up again
+- gameplay: runs of of steam, pre-frigates. Not enough reseach?
+- more early game research - LR2 is good, ASLT-2?
+- end of battle: get stuff from dead aliens AND terrans
+- geo: check for successful base placement before charging
+- geo: place first base - flash? effect?
+- geo: can deficit spend on base
+- make "okay" buttons standard location
+- geo-play: first timer faster
+- geo: restrict all battleship attacks?
+- show research icon - give context
+- held weapon better than same on ground??
+- geo: lander should return if destination invalid
+- lander goes wrong way around world from USA->Aust
+- sell all button
+- geo: the world shifts upon return from scene
+- gameplay: does buying units help?
+- day/night not hooked up from geo to tactical
+- geo: paced start, difficulty coordinated
+- scenario and difficulty not hooked up
+- alien tech doesn't increase
+- item prices aren't correct
+- geo: build screen: layout. Indicate all build?
+- geo: free to build bases
+- geo: countries need special abilities
+- geo: ufos occupying not-capitals, or capitals not flagged correctly
+- check that clips don't get used up & refill
+- character screen: fix range at 8m, longer weapon list
+- level up needs icon. rank is incorrect if soldier levels up. Move names up so the button is impinged.
+- soldiers alive/killed counts incorrect
+- geo: can't save / load
+- geo: research checked to "kick start" after mission. implemented; does it work?
+- geo: character screen left/right should work
+- wpns screen: old school text
+- tactical end screen: item list cramped
+- unit score screen: align with tactical end screen
+- geo: apply civilian win/loss to something
+- geo: account for countries having stuff
+- geo: buy / sell should have one button, no going negative
+- geo: need to buy/sell soldiers
+- geo: need to buy/sell researchers
+- geo: numResearchers hard coded to 8
+- geo: random money readout just hanging out
+- geo: KO'd units getting killed
+- geo: set accumulated stuff to research after mission
+- geo: need tech for alien clips
+- geo: hook up research button
+- geo: buy / sell overwhelming
+- stat screen: reaction time incorrect readout, need mission kills & XP
+- storage widget: uses "old shool" text display
+- geo: research not implemented
+- "base", "region" needs proper names
+- short names on buttons
+- geo: cargo not working
+- geo: remove cancel, implement "click away"
+- geo: saucers will choose bases for crop circles
 
 
 Deferred:

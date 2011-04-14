@@ -154,6 +154,25 @@ RenderAtom UIRenderer::CalcIconAtom( int id, bool enabled )
 }
 
 
+RenderAtom UIRenderer::CalcIcon2Atom( int id, bool enabled )
+{
+	GLASSERT( id >= 0 && id < 32 );
+	Texture* texture = TextureManager::Instance()->GetTexture( "icons2" );
+
+	static const int CX = 4;
+	static const int CY = 4;
+
+	int y = id / CX;
+	int x = id - y*CX;
+	float tx0 = (float)x / (float)CX;
+	float ty0 = (float)y / (float)CY;;
+	float tx1 = tx0 + 1.f/(float)CX;
+	float ty1 = ty0 + 1.f/(float)CY;
+
+	return RenderAtom( (const void*)(enabled ? RENDERSTATE_UI_NORMAL : RENDERSTATE_UI_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1, 64, 64 );
+}
+
+
 RenderAtom UIRenderer::CalcPaletteAtom( int c0, int c1, int blend, float w, float h, bool enabled )
 {
 	Vector2I c = { 0, 0 };
@@ -217,6 +236,32 @@ void UIRenderer::GamuiGlyph( int c, IGamuiText::GlyphMetrics* metric )
 		metric->width = 1.0f;
 		metric->height = 16.0f;
 		metric->tx0 = metric->ty0 = metric->tx1 = metric->ty1 = 0.0f;
+	}
+}
+
+
+/*static*/ void UIRenderer::LayoutListOnScreen( gamui::UIItem* items, int nItems, int stride, float _x, float _y, float vSpace, const Screenport& port )
+{
+	float w = items->Width();
+	float h = items->Height()*(float)nItems + vSpace*(float)(nItems-1);
+	float x = _x;
+	float y = _y - h*0.5f;
+
+	if ( x < port.UIBoundsClipped3D().min.x ) {
+		x = port.UIBoundsClipped3D().min.x;
+	}
+	else if ( x+w >= port.UIBoundsClipped3D().max.x ) {
+		x = port.UIBoundsClipped3D().max.x - w;
+	}
+	if ( y < port.UIBoundsClipped3D().min.y ) {
+		y = port.UIBoundsClipped3D().min.y;
+	}
+	else if ( y+h >= port.UIBoundsClipped3D().max.y ) {
+		y = port.UIBoundsClipped3D().max.y - h;
+	}
+	for( int i=0; i<nItems; ++i ) {
+		gamui::UIItem* item = (UIItem*)((U8*)items + stride*i);
+		item->SetPos( x, y + items->Height()*(float)i + vSpace*(float)i );
 	}
 }
 

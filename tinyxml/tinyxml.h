@@ -989,6 +989,13 @@ public:
 		does not exist, then TIXML_NO_ATTRIBUTE is returned.
 	*/	
 	int QueryIntAttribute( const char* name, int* _value ) const;
+	/// QueryUnsignedAttribute examines the attribute - see QueryIntAttribute().
+	int QueryUnsignedAttribute( const char* name, unsigned* _value ) const;
+	/** QueryBoolAttribute examines the attribute - see QueryIntAttribute(). 
+		Note that '1', 'true', or 'yes' are considered true, while '0', 'false'
+		and 'no' are considered false.
+	*/
+	int QueryBoolAttribute( const char* name, bool* _value ) const;
 	/// QueryDoubleAttribute examines the attribute - see QueryIntAttribute().
 	int QueryDoubleAttribute( const char* name, double* _value ) const;
 	/// QueryFloatAttribute examines the attribute - see QueryIntAttribute().
@@ -1427,6 +1434,9 @@ public:
 		doesn't stream - the entire object pointed at by the FILE*
 		will be interpreted as an XML file. TinyXML doesn't stream in XML from the current
 		file location. Streaming may be added in the future.
+		WARNING: The FILE* should have been opened as a binary file fopen( "foo", "rb" )
+				 not as a text file. TinyXML does its own line normalizations, and 
+				 files opened as text confuse it.
 	*/
 	bool LoadFile( FILE*, TiXmlEncoding encoding = TIXML_DEFAULT_ENCODING );
 	/// Save a file using the given FILE*. Returns true if successful.

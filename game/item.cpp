@@ -32,12 +32,20 @@ int   WeaponItemDef::accHit = 0;
 int   WeaponItemDef::accTotal = 0;
 
 
+void DamageDesc::MapDamage( MapDamageDesc* damage )
+{
+	damage->damage = kinetic + energy;
+	damage->incendiary = incend;
+}
 
-void ItemDef::InitBase( const char* name, const char* desc, int deco, const ModelResource* resource )
+
+void ItemDef::InitBase( const char* name, const char* desc, int deco, int price, bool isAlien, const ModelResource* resource )
 {
 	this->name = name; 
 	this->desc = desc; 
 	this->deco = deco; 
+	this->price = price;
+	this->isAlien = isAlien;
 	this->resource = resource; 
 	this->index = 0;	// set later when added to ItemDefArr
 
@@ -53,12 +61,6 @@ void ItemDef::InitBase( const char* name, const char* desc, int deco, const Mode
 			displayName += *p;
 		}
 	}
-}
-
-
-bool WeaponItemDef::IsAlien() const 
-{ 
-	return weapon[0].clipItemDef->IsAlien(); 
 }
 
 
@@ -185,9 +187,9 @@ void WeaponItemDef::DamageBase( WeaponMode mode, DamageDesc* d ) const
 	GLASSERT( weapon[select].clipItemDef );
 	*d = weapon[select].clipItemDef->dd;
 
-	if ( weapon[select].flags & WEAPON_INCINDIARY ) {
-		if ( d->incind < 0.5f ) {
-			d->incind = 0.5f;
+	if ( weapon[select].flags & WEAPON_INCENDIARY ) {
+		if ( d->incend < 0.5f ) {
+			d->incend = 0.5f;
 			d->Normalize();
 		}
 	}
@@ -307,6 +309,8 @@ bool WeaponItemDef::FireStatistics( WeaponMode mode,
 Item::Item( const ItemDef* itemDef, int rounds )
 {
 	this->itemDef = itemDef;
+	if ( rounds <= 0 && itemDef )
+		rounds = itemDef->DefaultRounds();
 	this->rounds = rounds;
 }
 
@@ -315,6 +319,8 @@ Item::Item( const ItemDefArr& itemDefArr, const char* name, int rounds )
 {
 	const ItemDef* itemDef = itemDefArr.Query( name );
 	this->itemDef = itemDef;
+	if ( rounds <= 0 && itemDef )
+		rounds = itemDef->DefaultRounds();
 	this->rounds = rounds;
 }
 
@@ -356,12 +362,15 @@ void Item::Load( const TiXmlElement* ele, const ItemDefArr& itemDefArr )
 }
 
 
-
-
 Storage::~Storage()
 {
 }
 
+
+void Storage::Clear()
+{
+	memset( rounds, 0, sizeof(int)*EL_MAX_ITEM_DEFS );
+}
 
 bool Storage::Empty() const
 {
@@ -373,26 +382,68 @@ bool Storage::Empty() const
 }
 
 
-void Storage::AddItem( const Item& item )
+void Storage::AddItem( const ItemDef* itemDef, int n )
 {
-	int index = item.GetItemDef()->index;
-	rounds[index] += item.Rounds();
+	int index = itemDef->index;
+	rounds[index] += n*itemDef->DefaultRounds();
 }
 
 
-void Storage::RemoveItem( const ItemDef* _itemDef, Item* _item )
+void Storage::AddItem( const char* name, int n )
+{
+	const ItemDef* itemDef = itemDefArr.Query( name );
+	GLASSERT( itemDef );
+	rounds[ itemDef->index ] += n*itemDef->DefaultRounds();
+}
+
+
+void Storage::AddItem( const Item& item )
+{
+	rounds[ item.GetItemDef()->index ] += item.Rounds();
+}
+
+
+void Storage::ClearItem( const char* name )
+{
+	const ItemDef* itemDef = itemDefArr.Query( name );
+	GLASSERT( itemDef );
+	rounds[ itemDef->index ] = 0;
+}
+
+
+void Storage::AddStorage( const Storage& storage )
+{
+	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+		rounds[i] += storage.rounds[i];
+	}
+}
+
+
+void Storage::SetFullRounds()
+{
+	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+		const ItemDef* itemDef = itemDefArr.GetIndex( i );
+		if ( itemDef ) {
+			int def = itemDef->DefaultRounds();
+			rounds[i] = def * ((rounds[i]+def-1)/def);
+		}
+	}
+}
+
+
+bool Storage::RemoveItem( const ItemDef* _itemDef, Item* item )
 {
 	int index = _itemDef->index;
-	int r = grinliz::Min( rounds[index], _itemDef->DefaultRounds() );
+	item->Clear();
 
-	if ( r == 0 ) {
-		_item->Clear();
+	if ( rounds[index] > 0 ) {
+		int roundsToUse = Min( _itemDef->DefaultRounds(), rounds[index] );
+		rounds[index] -= roundsToUse;
+		Item newItem( _itemDef, roundsToUse );
+		*item = newItem;
+		return true;
 	}
-	else {
-		Item item( _itemDef, r );
-		rounds[index] -= r;
-		*_item = item;
-	}
+	return false;
 }
 
 
@@ -400,8 +451,7 @@ bool Storage::Contains( const ItemDef* def ) const
 {
 	if ( !def )
 		return false;
-	return GetCount( def ) > 0;
-
+	return rounds[def->index] > 0;
 }
 
 
@@ -412,17 +462,17 @@ const WeaponItemDef* Storage::IsResupply( const WeaponItemDef* weapon ) const
 		const ClipItemDef* clip0 = weapon->GetClipItemDef( kSnapFireMode );
 		const ClipItemDef* clip1 = weapon->GetClipItemDef( kAltFireMode );
 
-		if ( GetCount( clip0 ) || GetCount( clip1 ) )
+		if ( Contains( clip0 ) || Contains( clip1 ) )
 			return weapon;
 	}
 
 	for( int i=0; i<itemDefArr.Size(); ++i ) {
 		const ItemDef* itemDef = itemDefArr.Query( i );
 
-		if ( itemDef && itemDef->IsWeapon() && GetCount( itemDef ) ) {
+		if ( itemDef && itemDef->IsWeapon() && Contains( itemDef ) ) {
 			const ClipItemDef* clip0 = itemDef->IsWeapon()->GetClipItemDef( kSnapFireMode );
 			const ClipItemDef* clip1 = itemDef->IsWeapon()->GetClipItemDef( kAltFireMode );
-			if ( GetCount( clip0 ) || GetCount( clip1 ) )
+			if ( Contains( clip0 ) || Contains( clip1 ) )
 				return itemDef->IsWeapon();
 		}
 	}
@@ -430,10 +480,11 @@ const WeaponItemDef* Storage::IsResupply( const WeaponItemDef* weapon ) const
 }
 
 
-void Storage::SetCount( const ItemDef* itemDef, int count )
+int Storage::GetCount( int index ) const
 {
-	int index = itemDef->index;
-	rounds[index] = count*itemDef->DefaultRounds();
+	GLASSERT( index >= 0 && index < EL_MAX_ITEM_DEFS );
+	const ItemDef* itemDef = itemDefArr.GetIndex(index);
+	return GetCount( itemDef );
 }
 
 
@@ -443,8 +494,7 @@ int Storage::GetCount( const ItemDef* itemDef) const
 		return 0;
 
 	int index = itemDef->index;
-	int r = rounds[index];
-	return (r+itemDef->DefaultRounds()-1)/itemDef->DefaultRounds();
+	return (rounds[index] + itemDef->DefaultRounds()-1)/itemDef->DefaultRounds();
 }
 
 
@@ -567,3 +617,5 @@ const ItemDef* ItemDefArr::Query( int id ) const
 	GLASSERT( id >= 0 && id < EL_MAX_ITEM_DEFS );
 	return arr[id];
 }
+
+

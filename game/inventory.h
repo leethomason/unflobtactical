@@ -58,12 +58,14 @@ public:
 		}
 		return true;
 	}
+	void ClearItem( const char* name );
 
 	bool IsGeneralSlotFree();
 	bool IsSlotFree( const ItemDef* itemDef );
 
 	int CalcClipRoundsTotal( const ClipItemDef* ) const;
 	void UseClipRound( const ClipItemDef* );
+	void RestoreClips();
 	
 	Item* ArmedWeapon();				// null if no weapon ready
 	const Item* ArmedWeapon() const;	// null if no weapon ready
@@ -71,7 +73,7 @@ public:
 	int GetArmorLevel() const;			// return armor level: 0-3
 
 	void Save( FILE* fp, int depth ) const;
-	void Load( const TiXmlElement* doc, Engine* engine, Game* game );
+	void Load( const TiXmlElement* doc, const ItemDefArr& arr );
 
 	Item GetItem( int slot ) const				{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot]; }				// return a copy...too easy to change while in use
 	Item* AccessItem( int slot )				{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return &slots[slot]; }
@@ -85,7 +87,6 @@ public:
 	void GetDamageReduction( DamageDesc* );
 
 private:
-
 	Item slots[NUM_SLOTS];
 };
 
