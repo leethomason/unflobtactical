@@ -18,7 +18,3 @@ sources :=  camera.cpp \
 
 			
 LOCAL_SRC_FILES += $(sources:%=/../../../engine/%) 
-
-# removed:
-# glperformance
-

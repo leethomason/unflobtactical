@@ -303,7 +303,7 @@ int UFOChit::DoTick( U32 deltaTime )
 {
 	float timeFraction = (float)deltaTime / 1000.0f;
 	float travel = speed*timeFraction;
-	bool done = false;
+	//bool done = false;
 	int msg = MSG_NONE;
 	//U32 timeBoost = 10;		// in 10ths
 	//if ( hp < UFO_HP[type]) {

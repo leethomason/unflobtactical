@@ -4,12 +4,15 @@
 #include "tacticalintroscene.h"
 #include "tacticalendscene.h"
 
+// Currently not working, so supported is a bit of a detail.
+//#define FASTBATTLE_SUPPORTED
 
 using namespace gamui;
 using namespace grinliz;
 
 FastBattleScene::FastBattleScene( Game* _game, BattleSceneData* data ) : Scene( _game ), foundStorage( 0, 0, _game->GetItemDefArr() )
 {
+#ifdef FASTBATTLE_SUPPORTED
 	this->data = data;
 	const Screenport& port = GetEngine()->GetScreenport();
 	random.SetSeed( data->seed );
@@ -56,7 +59,7 @@ FastBattleScene::FastBattleScene( Game* _game, BattleSceneData* data ) : Scene( 
 	battleResult = RunSim( data->soldierUnits, aliens, data->dayTime );
 	static const char* battleResultName[] = { "", "Victory", "Defeat", "Tie" };
 	scenarioText[TL_RESULT].SetText( battleResultName[battleResult] );
-
+#endif
 }
 
 
@@ -64,6 +67,7 @@ void FastBattleScene::Tap(	int action,
 							const grinliz::Vector2F& screen,
 							const grinliz::Ray& world )
 {
+#ifdef FASTBATTLE_SUPPORTED
 	grinliz::Vector2F ui;
 	GetEngine()->GetScreenport().ViewToUI( screen, &ui );
 
@@ -123,11 +127,13 @@ void FastBattleScene::Tap(	int action,
 		*/
 		game->PushScene( Game::END_SCENE, 0 );
 	}
+#endif
 }
 
 
 void FastBattleScene::SceneResult( int sceneID, int result )
 {
+#ifdef FASTBATTLE_SUPPORTED
 	GLASSERT( sceneID == Game::UNIT_SCORE_SCENE );
 	GLASSERT( 0 );	// fixme: need to write save file
 
@@ -145,11 +151,13 @@ void FastBattleScene::SceneResult( int sceneID, int result )
 //
 //	U32 r = *((U32*)(&battleResult));
 	game->PopScene( battleResult );
+#endif
 }
 
 
 int FastBattleScene::RunSim( Unit* soldier, Unit* alien, bool day )
 {
+#ifdef FASTBATTLE_SUPPORTED
 	int soldierIndex = random.Rand( MAX_TERRANS );
 	int alienIndex = random.Rand( MAX_ALIENS );
 
@@ -297,6 +305,7 @@ int FastBattleScene::RunSim( Unit* soldier, Unit* alien, bool day )
 //	else if ( nSoldiers == 0 && nAliens > 0 )
 //		result = TacticalEndSceneData::DEFEAT;
 //	return result;
+#endif
 	return 0;
 }
 

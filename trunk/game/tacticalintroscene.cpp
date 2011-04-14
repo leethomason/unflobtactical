@@ -49,7 +49,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 
 	const gamui::ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
 	const gamui::ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
-	const gamui::ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
+	//const gamui::ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
 
 	static const float BORDER = 25;
 

@@ -42,9 +42,6 @@
     <ClCompile Include="game\item.cpp">
       <Filter>game</Filter>
     </ClCompile>
-    <ClCompile Include="game\material.cpp">
-      <Filter>game</Filter>
-    </ClCompile>
     <ClCompile Include="game\scene.cpp">
       <Filter>game</Filter>
     </ClCompile>
@@ -222,9 +219,6 @@
       <Filter>game</Filter>
     </ClInclude>
     <ClInclude Include="game\item.h">
-      <Filter>game</Filter>
-    </ClInclude>
-    <ClInclude Include="game\material.h">
       <Filter>game</Filter>
     </ClInclude>
     <ClInclude Include="game\scene.h">

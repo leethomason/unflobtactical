@@ -20,7 +20,7 @@
 using namespace grinliz;
 
 
-GeoAI::GeoAI( const GeoMapData& _data, const GeoScene* scene ) : geoMapData( _data ), geoScene( scene )
+GeoAI::GeoAI( const GeoMapData& _data, const GeoScene* scene ) : geoScene( scene ), geoMapData( _data )
 {
 	random.SetSeedFromTime();
 }
@@ -115,7 +115,6 @@ void GeoAI::GenerateAlienShip( int type, grinliz::Vector2F* start, grinliz::Vect
 
 	// Crop circle!
 	if ( dest.x < 0 ) {
-		int count = 0;
 		for( int i=0; i<GEO_REGIONS; ++i ) {
 			score[i] = 0;
 			if ( !geoScene->RegionOccupied(i) ) {

@@ -30,6 +30,7 @@ class Model;
 class Storage;
 class ItemDefArr;
 class CityChit;
+class ChitBag;
 
 
 template < class T > 
