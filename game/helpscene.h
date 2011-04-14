@@ -51,6 +51,7 @@ public:
 		return RENDER_2D;
 	}	
 	virtual void DrawHUD();
+	virtual void HandleHotKeyMask( int mask );
 
 private:
 	enum {	NUM_BUTTONS = 3,

@@ -6,7 +6,7 @@
    -->
   <tree>
     <research>
-      <!-- Arrival needs to be the lowest points. It starts the plot. -->
+      <!-- Arrival starts the plot. -->
       <Arrival points="10">
         We have long watched the aliens. Listened to the occasional strange digital chatter. A long frozen alien corpse sits in the deepest levels of a North facility. 
         But the situation is changing - the chatter is common now and deep space scanners are lighting up.
@@ -64,8 +64,10 @@
         <required0 research="AlienCores" />
       </Scout>
       <AlienTech points="40">
-        Alien weapons show tech classes we've designated T1, T2, and T3. Perhaps weapon tech reflects rank, status, or simply manufacturing capacity? 
-        The cells used to power the weapons are unstable off the field of battle. We can take the guns, but not the clips.
+        Alien weapons show tech classes we've designated T1, T2, and T3. Perhaps weapon tech 
+        reflects rank, status, or manufacturing capacity? 
+        The cells used to power the weapons are unstable during transport. 
+        We can take the guns, but not the clips.
         <required0 research="AlienCores" />
       </AlienTech>
       <Cell points="60">
@@ -134,11 +136,13 @@
       </LR-3>
 
       <MCAN-2 points="40">
-        Study of the alien Storm-1 has allowed us to improve the effectiveness of our heavy weapon platform. We present the MCAN-2 Valiant.
+        Study of the alien Storm-1 has allowed us to improve the effectiveness of our 
+        heavy weapon platform. We present the MCAN-2 Valiant.
         <required0 item="STRM-1" />
       </MCAN-2>
       <MCAN-3 points="60">
-        Study of the alien Storm-3 and Jackal's targeting system has allowed us to develop a devastating yet portable weapon platform called the MCAN-3 Dauntless.
+        Study of the alien Storm-3 and Jackal's targeting system has allowed us to 
+        develop a devastating yet portable weapon platform called the MCAN-3 Dauntless.
         <required0 research="MCAN-2" />
         <required1 item="STRM-3" />
         <required2 research="Jackal" />
@@ -656,7 +660,7 @@
         into oblivion.
       </p>
       <p>
-        The following screens cover the basics; much more info online
+        The following screens cover the basics; much more info on-line
         at xenowar.net
       </p>
     </page>
@@ -680,7 +684,7 @@
       </p>
       <p system="pc">
         The keyboard left/right arrow keys will also select units. control-left/right rotate.
-        Pressing your 'u' key will hide the superfluous onscreen UI.
+        Pressing your 'u' key will hide the superfluous on-screen UI.
       </p>
     </page>
 
@@ -704,7 +708,7 @@
         Units (TU) per turn. One time unit
         allows one space of movement. The
         circles on the ground show the
-        range of movent for the unit.
+        range of movement for the unit.
       </p>
     </page>
 
@@ -812,9 +816,9 @@
 
     <page>
       <p>[Stats and Numbers]</p>
-      <p> The lower right buttons show unit traits, abilitites, and statistics.</p>
-      <p> 'Inv' is the default inventory screen. 'Stats' shows the unit statistics. 'Wpns' compares weapons carried and on the ground, 
-          with buttons to select range.</p>
+      <p> The lower right buttons show unit traits, abilities, and statistics.</p>
+      <p> 'Inv' is the default inventory screen. 'Stats' shows the unit statistics. 'Wpns' compares 
+      weapons carried and on the ground at 8m range.</p>
     </page>
   </text>
 
@@ -826,17 +830,32 @@
       <p>[Xenowar]</p>
       <p>Xenowar. Copyright 2011 Lee Thomason / Grinning Lizard Software.</p>
       <p>
-        Welcome to Xenowar! Xenowar is a turn based alien blasting strategy game. You can
+        Welcome to Xenowar! Xenowar is an alien blasting strategy game. You can
         submit feedback, read the community forum, or get more gameplay information
         at xenowar.net.
       </p>
       <p> The buttons on the lower right navigate help, the lower left exits help.</p>
     </page>
     <page>
-      <p>'New' starts a new game. The game auto-saves at exit and you can resume your current game with 'Continue'.</p>
-      <p>If you choose a new game, you can select the skill level and number of your squad, the skill level and 
+      <p>[Overview]</p>
+      <p>
+        Xenowar combines strategic and tactical games.</p>
+		<p>The strategic game is the geo-scape where you build bases, defend against
+        UFOs, research, and allocate resources in real time. When ground combat occurs,
+        the tactical game is turn based combat.
+      </p>
+    </page>
+    <page>
+      <p>[Getting Started]</p>
+      <p>'Continue' resumes the game in progress.</p>
+      <p>'New Game' brings up the new game choices. Starting a new game will delete
+	      any game in progress. After selecting 'New Game', tap 'New Geo' to play the full game, 
+		  or 'New Tactical' to play a 
+          single battle.</p>
+      <p>The game auto-saves at exit.</p>
+      <!--<p>If you choose a new game, you can select the skill level and number of your squad, the skill level and 
          number of aliens, and the terrain for the battle.
-       </p>
+       </p>-->
       <p>Good luck and have fun!</p>
     </page>
   </text>
@@ -847,19 +866,35 @@
     <page>
       <p>[Xenowar]</p>
       <p>The geo view shows the world, its nations, and the state of the alien invasion.</p>
-      <p>The strategic part of the game is played out on this screen, in real time. When combat 
-         occurs, it is turn based on the tactical screen.</p>
-      <p>The upper left button takes you to the research screen. The lower left toggles base building.
-         Start the game by building a base. The lower right display shows your current cash in megadollars.</p>
-      <p>Tap and drag to scroll the display.</p>
+      <p>
+        The strategic part of the game is played out on this screen, in real time.
+        When combat occurs, it is turn based on the tactical screen.
+      </p>
+    </page>
+    <page>
+      <p>[Main UI]</p>
+      <p>
+        The upper left button takes you to the research screen.
+      </p>
+      <p>
+        The lower left toggles base building. With this button down, tap on the
+        map to build a base. Start the game by building a base. Your first base
+        comes fully provisioned.
+      </p>
+      <p>
+        The lower right display shows your current cash in megadollars.
+      </p>
+      <p>Tap and drag to scroll the display. You can tap a base or grounded
+         UFO for additional menus.</p>
     </page>
     <page image="helpImage6">
       <p>[Regions]</p>
-      <p>There are 6 geo-political entities: North, South, Europe, Asia, Africa, and Under.
-         Beneath the name of each region is a bar that indicates the amount of alien influence.</p>
-      <p>Beside the name of the region is the traits. Regions can be 1) capatalistic (better 
-         sell prices), 2) militaristic (better hired units), 3) scientific (faster research),
-         4) high tech (make tech 3 weapons), or 5) manufacturing (make tech 3 armor).</p>
+      <p>There are 6 geo-political regions: North, South, Europe, Asia, Africa, and Under.
+         Beneath the name of each region is a bar that indicates the amount of alien 
+         influence.</p>
+      <p>Each region has its own traits. Regions can be 1) capitalistic (better 
+         sell prices), 2) militaristic (better soldiers), 3) scientific (faster research),
+         4) high tech (make tech-3 weapons), or 5) manufacturing (make tech-3 armor).</p>
     </page>
     <page>
       <p>[Alien Invasion]</p>
@@ -875,17 +910,21 @@
     <page>
       <p>[Base Options]</p>
       <p>Tapping any base brings up the base options.</p>
-      <p>Supply: Purchases and sells supplies from the host region. A base must have a 'cargo' facility to use supply.</p>
-      <p>Equip: Equip the base squad, see unit stats, and compare weapons. A base must have a 'cargo' and 'lander' facility to have units.</p>
+      <p>Supply: Purchases and sells supplies from the host region. A base must have a 
+         'cargo' facility to use supply.</p>
+      <p>Equip: Equip the base squad, see unit stats, and compare weapons. A base must 
+         have a 'cargo' and 'troops' facility to have units.</p>
       <p>Build: Build base facilities.</p>
     </page>
     <page>
       <p>[UFO Options]</p>
-      <p>Tapping a crashed UFO or UFO engaged in ground attack brings up a list of 
-         bases that can sent troops. Tap the base name to send a lander.</p>
+      <p>Tapping a crashed or invading UFO brings up a list of 
+         bases that can send troops. Tap the base name to send a lander.</p>
+      <p>The lander carries troops to and from the battle. It can even retrieved
+         unconscious units and make an escape from the field.</p>
       <p>
         If the battle is successful, items gathered from the battle field will
-        be placed in the base's storage holds. Any items needed for research
+        be placed in the base's storage. Items needed for research
         are automatically applied.
       </p>
     </page>
@@ -895,9 +934,12 @@
   <text name="buildBaseHelp" >
     <page>
       <p>[Build Base Help]</p>
-      <p>Here you can buy base facilities. Tap on the facility, it will be build, and funds deducted from you treasury.</p>
-      <p>Troops: purchases and lander and barracks so troops can be hired for missions. Missile: long range weapons.
-         Cargo: a cargo lander allows selling and purchasing from the geo-political region. Guns: short range weapons.
+      <p>Here you can buy base facilities. Tap on the facility, it will be built, 
+         and funds deducted from you treasury.</p>
+      <p>Troops: purchases and lander and barracks so troops can be hired for missions. 
+         Missile: long range weapons.
+         Cargo: a cargo lander allows selling and purchasing from the host region. 
+         Guns: short range weapons.
          SciLab: allows the recruitment of scientists for research. </p>
     </page>
   </text>
@@ -906,10 +948,10 @@
     <page>
       <p>[Supply Base Help]</p>
       <p>Tap to move items from the base storage (on the left) to the region's supply ship (on the right). 
-      The "Sell All" toggle, when on, when sell all items in a slot with a single tap.</p>
-      <p>Note that ammo clips refill after battle. (Which is reflected in their cost.) Also note that tech-3 items
+      The "Sell All" toggle, when on, will sell all items in a slot with a single tap.</p>
+      <p>Ammo clips refill after battle. (Which is reflected in their cost.) Tech-3 items
          can only be purchased from regions with the required traits.</p>
-      <p>You can hire soldiers and scientists buy purchasing them in the region's Alien tab.</p>
+      <p>You can hire soldiers and scientists by purchasing them in the region's Alien tab.</p>
     </page>
   </text>
 
@@ -919,7 +961,7 @@
       <p>This scene shows the current research project, and options for other research you can do.
          Research is applied over time, and is directly proportional to the number of scientists 
          in your bases.</p>
-      <p>Beneath the name of each tasks is the item requirements to begin the research.</p>
+      <p>Beneath the name of each research task is items required to begin that task.</p>
     </page>
     
   </text>

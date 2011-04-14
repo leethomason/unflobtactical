@@ -9,7 +9,8 @@ using namespace grinliz;
 using namespace gamui;
 
 static const int   facilityCost[BuildBaseScene::NUM_FACILITIES]  = { 100, 100, 100, 100, 100 };
-static const char* facilityNames[BuildBaseScene::NUM_FACILITIES] = { "Troops", "Missile", "Cargo", "Guns", "SciLab" };
+static const char* facilityNames[BuildBaseScene::NUM_FACILITIES] 
+     = { "Troops", "Missile", "Cargo", "Guns", "SciLab" };
 
 
 BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene( _game )
