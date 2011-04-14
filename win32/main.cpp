@@ -39,6 +39,7 @@
 
 //#define TEST_ROTATION
 //#define TEST_FULLSPEED
+//#define SEND_CRASH_LOGS
 
 #define TIME_BETWEEN_FRAMES	30
 
@@ -284,9 +285,7 @@ int main( int argc, char **argv )
 	}
 
 
-#if 0
-	PostCurrentGame();
-#else
+#if SEND_CRASH_LOGS
 	// Can't call this until after the game is created!
 	if ( !SettingsManager::Instance()->GetSuppressCrashLog() ) {
 		// Check for a "didn't crash" file.
@@ -628,12 +627,14 @@ int main( int argc, char **argv )
 
 	SDL_Quit();
 
+#if SEND_CRASH_LOGS
 	// Empty the file - quit went just fine.
 	{
 		FILE* fp = fopen( "UFO_Running.txt", "w" );
 		if ( fp )
 			fclose( fp );
 	}
+#endif
 
 	MemLeakCheck();
 	return 0;

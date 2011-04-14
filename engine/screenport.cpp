@@ -118,7 +118,6 @@ void Screenport::SetUI( const Rectangle2I* clip )
 	glLoadIdentity();				// projection
 
 	// Set the ortho matrix, help the driver
-	//glMultMatrixf( projection.x );
 	glOrthofX( 0, screenWidth, screenHeight, 0, -100, 100 );
 	
 	glMatrixMode(GL_MODELVIEW);
@@ -202,12 +201,18 @@ void Screenport::SetPerspective( const grinliz::Rectangle2I* clip )
 		frustum.right	=  halfLongSide;
 	}
 	
+	Matrix4 rot;
+	rot.SetZRotation( (float)(-90 * Rotation()) );
+	
 	glMatrixMode(GL_PROJECTION);
 	// In normalized coordinates.
 	projection3D.SetFrustum( frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.zNear, frustum.zFar );
+	projection3D = projection3D * rot;
+	
 	// Give the driver hints:
 	glLoadIdentity();
 	glFrustumfX( frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.zNear, frustum.zFar );
+	glRotatef( (float)(-90 * Rotation()), 0, 0, 1 );
 	
 	glMatrixMode(GL_MODELVIEW);	
 	CHECK_GL_ERROR;

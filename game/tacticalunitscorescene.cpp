@@ -27,7 +27,7 @@ using namespace grinliz;
 
 TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game ) : Scene( _game )
 {
-	Engine* engine = GetEngine();
+	//Engine* engine = GetEngine();
 	nAwards = 0;
 
 	gamui::RenderAtom nullAtom;

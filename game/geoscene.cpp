@@ -1119,8 +1119,8 @@ void GeoScene::SceneResult( int sceneID, int result )
 
 				int nCivsAlive = Unit::Count( &game->battleData.units[CIV_UNITS_START], MAX_CIVS, Unit::STATUS_ALIVE );
 				int nCivsDead  = Unit::Count( &game->battleData.units[CIV_UNITS_START], MAX_CIVS, Unit::STATUS_KIA );
-				int nAliensAlive = Unit::Count( &game->battleData.units[ALIEN_UNITS_START], MAX_ALIENS, Unit::STATUS_ALIVE );
-				int nAliensDead  = Unit::Count( &game->battleData.units[ALIEN_UNITS_START], MAX_ALIENS, Unit::STATUS_KIA );
+				//int nAliensAlive = Unit::Count( &game->battleData.units[ALIEN_UNITS_START], MAX_ALIENS, Unit::STATUS_ALIVE );
+				//int nAliensDead  = Unit::Count( &game->battleData.units[ALIEN_UNITS_START], MAX_ALIENS, Unit::STATUS_KIA );
 
 				if ( result == BattleData::VICTORY ) {
 					// Apply penalty for lost civs:
@@ -1398,7 +1398,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 				UFOChit* ufoChit = chitIt->IsUFOChit();
 				int region = geoMapData.GetRegion( ufoChit->MapPos() );
-				int type = geoMapData.GetType( ufoChit->MapPos() );
+				//int type = geoMapData.GetType( ufoChit->MapPos() );
 
 				bool returnToOrbit = false;
 

@@ -1,3 +1,18 @@
+/*
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "researchscene.h"
 #include "../engine/engine.h"
 #include "research.h"
@@ -186,7 +201,7 @@ void ResearchScene::SetOptions()
 			}
 		}
 	}
-	for( count; count<MAX_OPTIONS; ++count ) {
+	for( /*count*/; count<MAX_OPTIONS; ++count ) {
 		optionButton[count].SetEnabled( false );
 		optionButton[count].SetText( "" );
 		optionName[count].SetText( "" );
