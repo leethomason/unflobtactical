@@ -151,7 +151,6 @@ public:
 		MODEL_OWNED_BY_MAP			= 0x04,
 		MODEL_NO_SHADOW				= 0x08,
 		MODEL_INVISIBLE				= 0x10,
-		MODEL_MAP_TRANSPARENT		= 0x20,
 		MODEL_METADATA				= 0x80,		// mapmaker data that isn't displayed in-game
 
 		// RESERVED!
@@ -185,7 +184,7 @@ public:
 	// Set the texture xform for rendering tricks
 	void SetTexXForm( int index, float a=1.0f, float d=1.0f, float x=0.0f, float y=0.0f );
 
-	// Set the texture - overrides all textures
+	// Set the texture.
 	void SetTexture( Texture* t )	{ setTexture = t; }
 
 	// AABB for user selection (bigger than the true AABB)
@@ -240,7 +239,8 @@ private:
 	float rot[3];
 
 	AuxTextureXForm		*auxTexture;	// if allocated, then this has texture xforms. Comes from the ModelResourceManager MemoryPool.
-	Texture				*setTexture;	// overrides the default texture
+	Texture				*setTexture;	// changes the texture, based on texBehavior
+
 
 	int flags;
 

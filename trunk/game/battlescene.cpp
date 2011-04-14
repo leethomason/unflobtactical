@@ -17,9 +17,14 @@
 #include "characterscene.h"
 #include "helpscene.h"
 #include "dialogscene.h"
+#include "tacticalintroscene.h"
 
 #include "game.h"
 #include "cgame.h"
+#include "ufosound.h"
+#include "settings.h"
+#include "tacmap.h"
+#include "research.h"
 
 #include "../engine/uirendering.h"
 #include "../engine/particle.h"
@@ -35,8 +40,7 @@
 #include "../grinliz/glgeometry.h"
 
 #include "../tinyxml/tinyxml.h"
-#include "ufosound.h"
-#include "settings.h"
+#include "battlescenedata.h"
 
 using namespace grinliz;
 using namespace gamui;
@@ -46,23 +50,32 @@ using namespace gamui;
 
 BattleScene::BattleScene( Game* game ) : Scene( game )
 {
-	//GLRELASSERT( 0 );
+	units = game->battleData.units;
 	subTurnCount = 0;
 	turnCount = 0;
 	isDragging = false;
+	lockedStorage = 0;
+	cameraSet = false;
+	battleEnding = false;
 
 	engine  = game->engine;
-	visibility.Init( this, units, engine->GetMap() );
+	tacMap = new TacMap( engine->GetSpaceTree(), game->GetItemDefArr() );
+
+	visibility.Init( this, units, tacMap );
 	nearPathState.Clear();
-	engine->GetMap()->SetPathBlocker( this );
+	tacMap->SetPathBlocker( this );
 	dragUnit = 0;
 
-	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, &visibility, engine, units );
+	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, &visibility, engine, units, this );
 	aiArr[TERRAN_TEAM]		= 0;
 	if ( SettingsManager::Instance()->GetPlayerAI() ) {
-		aiArr[TERRAN_TEAM] = new WarriorAI( TERRAN_TEAM, &visibility, engine, units );
+		aiArr[TERRAN_TEAM] = new WarriorAI( TERRAN_TEAM, &visibility, engine, units, this );
 	}
-	aiArr[CIV_TEAM]			= new CivAI( CIV_TEAM, &visibility, engine, units );
+	aiArr[CIV_TEAM]			= new CivAI( CIV_TEAM, &visibility, engine, units, this );
+
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		unitRenderers[i].Update( GetEngine()->GetSpaceTree(), &units[i] );
+	}
 
 	mapmaker_currentMapItem = 1;
 
@@ -90,14 +103,14 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 
 	gamui::RenderAtom nullAtom;
 	for( int i=0; i<MAX_UNITS; ++i ) {
-		unitImage0[i].Init( &engine->GetMap()->overlay[Map::LAYER_UNDER_LOW], nullAtom, false );
+		unitImage0[i].Init( &tacMap->overlay[Map::LAYER_UNDER_LOW], nullAtom, false );
 		unitImage0[i].SetVisible( false );
 
-		unitImage1[i].Init( &engine->GetMap()->overlay[Map::LAYER_UNDER_HIGH], nullAtom, false );
+		unitImage1[i].Init( &tacMap->overlay[Map::LAYER_UNDER_HIGH], nullAtom, false );
 		unitImage1[i].SetVisible( false );
 		unitImage1[i].SetForeground( true );
 	}
-	selectionImage.Init( &engine->GetMap()->overlay[Map::LAYER_OVER], UIRenderer::CalcIconAtom( ICON_STAND_HIGHLIGHT ), true );
+	selectionImage.Init( &tacMap->overlay[Map::LAYER_OVER], UIRenderer::CalcIconAtom( ICON_STAND_HIGHLIGHT ), true );
 	selectionImage.SetSize( 1, 1 );
 
 	for( int i=0; i<MAX_ALIENS; ++i ) {
@@ -106,7 +119,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	}
 
 	for( int i=0; i<2; ++i ) {
-		dragBar[i].Init( &engine->GetMap()->overlay[Map::LAYER_OVER], nullAtom, false );
+		dragBar[i].Init( &tacMap->overlay[Map::LAYER_OVER], nullAtom, false );
 		dragBar[i].SetLevel( -1 );
 		dragBar[i].SetVisible( false );
 	}
@@ -190,12 +203,10 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		tick1Atom.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
 
 		for( int i=0; i<MAX_UNITS; ++i ) {
-			hpBars[i].Init( &engine->GetMap()->overlay[Map::LAYER_UNDER_HIGH], 5, tick0Atom, tick1Atom, tick2Atom, S );
+			hpBars[i].Init( &tacMap->overlay[Map::LAYER_UNDER_HIGH], 5, tick0Atom, tick1Atom, tick2Atom, S );
 			hpBars[i].SetVisible( false );
 		}
 	}
-	engine->EnableMap( true );
-
 	if ( Engine::mapMakerMode )
 	{
 		const ModelResource* res = ModelResourceManager::Instance()->GetModelResource( "selection" );
@@ -211,7 +222,6 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 
 BattleScene::~BattleScene()
 {
-	engine->GetMap()->SetPathBlocker( 0 );
 	ParticleSystem::Instance()->Clear();
 
 	if ( Engine::mapMakerMode ) {
@@ -221,20 +231,51 @@ BattleScene::~BattleScene()
 			engine->FreeModel( mapmaker_preview );
 	}
 
-	for( int i=0; i<3; ++i )
+	for( int i=0; i<3; ++i ) {
 		delete aiArr[i];
+	}
+	delete tacMap;
 }
 
 
 void BattleScene::Activate()
 {
-	engine->EnableMap( true );
+	engine->SetMap( tacMap );
+	if ( !cameraSet )
+		engine->CameraLookAt( (float)tacMap->Width()/2.0f, (float)tacMap->Height()/2.0f, 25.0f, -45.0f, -50.0f );
+	cameraSet = true;
+	engine->SetLightDirection( 0 );
 }
 
 
 void BattleScene::DeActivate()
 {
 }
+
+
+const Model* BattleScene::GetModel( const Unit* unit ) 
+{ 
+	if ( unit ) {
+		int index = unit - units;
+		GLASSERT( index >= 0 && index < MAX_UNITS );
+		unitRenderers[index].Update( GetEngine()->GetSpaceTree(), unit );
+		return unitRenderers[index].GetModel(); 
+	}
+	return 0; 
+}
+
+
+const Model* BattleScene::GetWeaponModel( const Unit* unit ) 
+{ 
+	if ( unit ) {
+		int index = unit - units;
+		GLASSERT( index >= 0 && index < MAX_UNITS );
+		unitRenderers[index].Update( GetEngine()->GetSpaceTree(), unit );
+		return unitRenderers[index].GetWeapon();
+	}
+	return 0; 
+}
+
 
 void BattleScene::NextTurn( bool saveOnTerranTurn )
 {
@@ -288,7 +329,7 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 	// Allow the map to change (fire and smoke)
 	Rectangle2I change;
 	change.SetInvalid();
-	engine->GetMap()->DoSubTurn( &change );
+	tacMap->DoSubTurn( &change, FIRE_DAMAGE_PER_SUBTURN );
 	visibility.InvalidateAll( change );
 
 	// Since the map has changed:
@@ -305,8 +346,7 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 		aiArr[currentTeamTurn]->StartTurn( units );
 	}
 	else {
-		if ( engine->GetMap()->GetLanderModel() )
-			OrderNextPrev();
+		OrderNextPrev();
 	}
 
 }
@@ -315,7 +355,7 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 void BattleScene::OrderNextPrev()
 {
 #ifdef SMART_ORDER
-	const Model* lander = engine->GetMap()->GetLanderModel();
+	const Model* lander = tacMap->GetLanderModel();
 	GLRELASSERT( lander );
 
 	Matrix2I mat, inv;
@@ -401,64 +441,41 @@ void BattleScene::Save( FILE* fp, int depth )
 {
 	XMLUtil::OpenElement( fp, depth, "BattleScene" );
 	XMLUtil::Attribute( fp, "currentTeamTurn", currentTeamTurn );
-	XMLUtil::Attribute( fp, "dayTime", engine->GetMap()->DayTime() ? 1 : 0 );
+	//XMLUtil::Attribute( fp, "dayTime", tacMap->DayTime() ? 1 : 0 );
 	XMLUtil::Attribute( fp, "turnCount", turnCount );
+	//XMLUtil::Attribute( fp, "scenario", scenario );
+	XMLUtil::SealElement( fp );
 
-	XMLUtil::SealCloseElement( fp );
-
-	engine->GetMap()->Save( fp, depth );
-	{
-		XMLUtil::OpenElement( fp, depth, "Units" );
-		XMLUtil::SealElement( fp );
-	
-		for( int i=0; i<MAX_UNITS; ++i ) {
-			units[i].Save( fp, depth+1 );
-		}
-		XMLUtil::CloseElement( fp, depth, "Units" );
-	}
+	tacMap->Save( fp, depth+1 );
+	game->battleData.Save( fp, depth+1 );
+	//XMLUtil::CloseElement( fp, depth+1, "Units" );
+	XMLUtil::CloseElement( fp, depth, "BattleScene" );
 }
 
 
-void BattleScene::Load( const TiXmlElement* gameElement )
+void BattleScene::Load( const TiXmlElement* battleElement )
 {
 	// FIXME: Save/Load AI? Memory state is lost.
 
 	selection.Clear();
 
-	const TiXmlElement* battleElement = gameElement->FirstChildElement( "BattleScene" );
+	GLASSERT( battleElement );
+
 	if ( battleElement ) {
 		battleElement->QueryIntAttribute( "currentTeamTurn", &currentTeamTurn );
-		int daytime = 1;
-		battleElement->QueryIntAttribute( "dayTime", &daytime );
-		engine->GetMap()->SetDayTime( daytime ? true : false );
-
 		turnCount = 0;
 		battleElement->QueryIntAttribute( "turnCount", &turnCount );
 	}
 
-	engine->GetMap()->Clear();
-	engine->GetMap()->Load( gameElement->FirstChildElement( "Map"), game->GetItemDefArr() );
-	
-	int team[3] = { TERRAN_UNITS_START, CIV_UNITS_START, ALIEN_UNITS_START };
+	tacMap->Load( battleElement->FirstChildElement( "Map") );
 
-	if ( gameElement->FirstChildElement( "Units" ) ) {
-		for( const TiXmlElement* unitElement = gameElement->FirstChildElement( "Units" )->FirstChildElement( "Unit" );
-			 unitElement;
-			 unitElement = unitElement->NextSiblingElement( "Unit" ) ) 
-		{
-			int t = 0;
-			unitElement->QueryIntAttribute( "team", &t );
-			Unit* unit = &units[team[t]];
-			unit->Load( unitElement, game );
-			
-			team[t]++;
+	game->battleData.Load( battleElement );
+	tacMap->SetDayTime( game->battleData.dayTime );
 
-			GLRELASSERT( team[0] <= TERRAN_UNITS_END );
-			GLRELASSERT( team[1] <= CIV_UNITS_END );
-			GLRELASSERT( team[2] <= ALIEN_UNITS_END );
-		}
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		if ( units[i].InUse() )
+			units[i].InitLoc( tacMap );
 	}
-	
 
 	ProcessDoors();
 	CalcTeamTargets();
@@ -467,28 +484,11 @@ void BattleScene::Load( const TiXmlElement* gameElement )
 	if ( aiArr[currentTeamTurn] ) {
 		aiArr[currentTeamTurn]->StartTurn( units );
 	}
-	if ( engine->GetMap()->GetLanderModel() )
-		OrderNextPrev();
-
-//	if ( turnCount == 0 ) {
-		//engine->GetMap()->SetLanderFlight( 1 );
-
-		//Action* action = actionStack.Push();
-		//action->Init( ACTION_LANDER, 0 );
-		//action->type.lander.timeRemaining = LanderAction::TOTAL_TIME;
-
-		//for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		//	if ( units[i].GetModel() ) {
-		//		Model* m = units[i].GetModel();
-		//		m->SetFlag( Model::MODEL_INVISIBLE );
-		//	}
-		//}
-	//}
+	OrderNextPrev();
 
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		if ( units[i].IsAlive() && units[i].GetModel() ) {
-			engine->camera.SetPosWC( -12.f, 45.f, 52.f );	// standard test
-			PushScrollOnScreen( units[i].GetModel()->Pos(), true );
+		if ( units[i].IsAlive() ) {
+			PushScrollOnScreen( units[i].Pos(), true );
 			break;
 		}
 	}
@@ -500,7 +500,7 @@ void BattleScene::SetFogOfWar()
 	//GRINLIZ_PERFTRACK
 
 	if ( visibility.FogCheckAndClear() ) {
-		grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fow = engine->GetMap()->LockFogOfWar();
+		grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fow = tacMap->LockFogOfWar();
 		for( int j=0; j<MAP_SIZE; ++j ) {
 			for( int i=0; i<MAP_SIZE; ++i ) {
 				if ( visibility.TeamCanSee( TERRAN_TEAM, i, j ) )
@@ -511,13 +511,13 @@ void BattleScene::SetFogOfWar()
 		}
 
 		// Can always see around the lander.		
-		const Model* landerModel = engine->GetMap()->GetLanderModel();
+		const Model* landerModel = tacMap->GetLanderModel();
 		if ( landerModel ) {
 			Rectangle2I bounds;
-			engine->GetMap()->MapBoundsOfModel( landerModel, &bounds );
+			tacMap->MapBoundsOfModel( landerModel, &bounds );
 			fow->SetRect( bounds );
 		}
-		engine->GetMap()->ReleaseFogOfWar();
+		tacMap->ReleaseFogOfWar();
 	}
 }
 
@@ -537,7 +537,7 @@ void BattleScene::TestHitTesting()
 
 			for( int x=cx-DELTA; x<cx+DELTA; ++x ) {
 				for( int z=cz-DELTA; z<cz+DELTA; ++z ) {
-					if ( x>=0 && z>=0 && x<engine->GetMap()->Width() && z<engine->GetMap()->Height() ) {
+					if ( x>=0 && z>=0 && x<tacMap->Width() && z<tacMap->Height() ) {
 
 						Vector3F dest = {(float)x, 1.0f, (float)z};
 
@@ -640,9 +640,8 @@ void BattleScene::SetUnitOverlays()
 		// layer 0 target arrow
 		// layer 1 target arrow
 
-		if ( unitMoving != &units[i] && units[i].IsAlive() && visibility.TeamCanSee( TERRAN_TEAM, units[i].Pos() ) ) {
-			Vector3F p;
-			units[i].CalcPos( &p );
+		if ( unitMoving != &units[i] && units[i].IsAlive() && visibility.TeamCanSee( TERRAN_TEAM, units[i].MapPos() ) ) {
+			Vector3F p = units[i].Pos();
 
 			// Is the unit on screen? If so, put in a simple foot decal. Else
 			// put in an "alien that way" decal.
@@ -703,7 +702,7 @@ void BattleScene::SetUnitOverlays()
 	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 		if ( unitMoving != &units[i] && units[i].IsAlive() ) {
 			int remain = units[i].CalcWeaponTURemaining( 0 );
-			Vector2I pos = units[i].Pos();
+			Vector2I pos = units[i].MapPos();
 
 			if ( remain >= Unit::AUTO_SHOT ) {
 				unitImage0[i].SetAtom( greenAtom0 );
@@ -739,7 +738,7 @@ void BattleScene::SetUnitOverlays()
 	}
 
 	if ( SelectedSoldierUnit() && unitMoving != SelectedSoldierUnit() ) {
-		Vector2I pos = SelectedSoldierUnit()->Pos();
+		Vector2I pos = SelectedSoldierUnit()->MapPos();
 		selectionImage.SetPos( (float)pos.x, (float)pos.y );
 		selectionImage.SetVisible( true );
 	}
@@ -753,13 +752,13 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 {
 	GRINLIZ_PERFTRACK
 	TestHitTesting();
-	engine->GetMap()->EmitParticles( deltaTime );
+	tacMap->EmitParticles( deltaTime );
 
 #if 0
 	// Test particle system.
 	{
 		ParticleSystem* system = ParticleSystem::Instance();
-		Vector3F pos = { (float)(engine->GetMap()->Width() - 2), 0, (float)(engine->GetMap()->Height() - 2) };
+		Vector3F pos = { (float)(tacMap->Width() - 2), 0, (float)(tacMap->Height() - 2) };
 		
 		system->EmitFlame( deltaTime, pos );
 		pos.z -= 1.0f;
@@ -813,10 +812,16 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 
 	SetUnitOverlays();
 
-	if ( result && EndCondition( &tacticalData ) ) {
-		game->PushScene( Game::END_SCENE, new TacticalEndSceneData( tacticalData ) );
+	// Creates a race condition. Sometimes re-pushes End scene between the sequence:
+	// Battle
+	//		End
+	//		UnitScore
+	// (Battle::SceneResult)
+	// Hence the check for battleEnding
+	if ( !battleEnding && game->battleData.IsBattleOver() ) {
+		PushEndScene();
 	}
-	else { 
+	{ 
 		if ( currentTeamTurn == TERRAN_TEAM ) {
 			if ( selection.soldierUnit && !selection.soldierUnit->IsAlive() ) {
 				SetSelection( 0 );
@@ -843,6 +848,66 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 			}
 		}
 	}
+	for( int i=0; i<MAX_UNITS; ++i ) {
+		unitRenderers[i].Update( GetEngine()->GetSpaceTree(), &units[i] );
+	}
+}
+
+
+void BattleScene::PushEndScene()
+{
+	battleEnding = true;
+	// Note that the end scene can get pushed multiple times in a save/load
+	// cycle. It's important to not do anything that can "accumulate".
+	game->battleData.storage.Clear();
+	Storage* collect = tacMap->CollectAllStorage();
+	if ( collect && game->battleData.CalcResult() == BattleData::VICTORY ) {
+		game->battleData.storage.AddStorage( *collect );
+		game->battleData.storage.SetFullRounds();
+
+		// Remembering the accumulation problem: this is okay, because the
+		// battle storage was just cleared. Storage hasn't been committed
+		// back to the base yet.
+
+		// Award UFO stuff
+		if ( TacticalIntroScene::IsScoutScenario( game->battleData.scenario ) ) {
+			game->battleData.storage.AddItem( "Cor:S" );
+		}
+		else if ( TacticalIntroScene::IsFrigateScenario( game->battleData.scenario ) ) {
+			game->battleData.storage.AddItem( "Cor:F" );
+		}
+		else if ( game->battleData.scenario == TacticalIntroScene::BATTLESHIP ) {
+			game->battleData.storage.AddItem( "Cor:B" );
+		}
+
+		// Alien corpses:
+		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+			if ( units[i].InUse() ) {
+				switch( units[i].AlienType() ) {
+
+				case Unit::ALIEN_GREEN:		game->battleData.storage.AddItem( "Green" );	break;
+				case Unit::ALIEN_PRIME:		game->battleData.storage.AddItem( "Prime" );	break;
+				case Unit::ALIEN_HORNET:	game->battleData.storage.AddItem( "Hrnet" );	break;
+				case Unit::ALIEN_JACKAL:	game->battleData.storage.AddItem( "Jackl" );	break;
+				case Unit::ALIEN_VIPER:		game->battleData.storage.AddItem( "Viper" );	break;
+				default: GLASSERT( 0 );	break;
+
+				}
+			}
+		}
+	}
+	// If the tech isn't high enough, can't use cells and anti
+	const Research* research = game->GetResearch();
+	if ( research ) {
+		static const char* remove[2] = { "Cell", "Anti" };
+		for( int i=0; i<2; ++i ) {
+			if ( research->GetStatus( remove[i] ) != Research::TECH_RESEARCH_COMPLETE ) {
+				game->battleData.storage.ClearItem( remove[i] );
+			}
+		}
+	}
+	GLASSERT( !game->IsScenePushed() );
+	game->PushScene( Game::END_SCENE, 0 );
 }
 
 
@@ -903,47 +968,6 @@ void BattleScene::Debug3D()
 }
 
 
-bool BattleScene::EndCondition( TacticalEndSceneData* data )
-{
-	memset( data, 0, sizeof( *data ) );
-	data->units = units;
-	data->dayTime = engine->GetMap()->DayTime();
-
-	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-		if ( units[i].InUse() )
-			++data->nTerrans;
-		if ( units[i].IsAlive() )
-			++data->nTerransAlive;
-	}
-	for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-		if ( units[i].InUse() )
-			++data->nAliens;
-		if ( units[i].IsAlive() )
-			++data->nAliensAlive;
-	}
-	for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i ) {
-		if ( units[i].InUse() )
-			++data->nCivs;
-		if ( units[i].IsAlive() )
-			++data->nCivsAlive;
-	}
-
-	// If the terrans are all down for the count, then it acts like the 
-	// lander leaving. KO becomes MIA.
-	if ( data->nTerransAlive == 0 ) {
-		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-			if ( units[i].InUse() )
-				units[i].Leave();
-		}
-	}
-
-	if ( data->nAliensAlive == 0 ||data->nTerransAlive == 0 )
-		return true;
-	return false;
-}
-
-
-
 void BattleScene::DrawFireWidget()
 {
 	GLRELASSERT( HasTarget() );
@@ -958,13 +982,13 @@ void BattleScene::DrawFireWidget()
 		target.Set( (float)selection.targetPos.x+0.5f, 1.0f, (float)selection.targetPos.y+0.5f );
 	}
 	else {
-		Model* m = selection.targetUnit->GetModel();
+		const Model* m = GetModel( selection.targetUnit );
 		GLASSERT( m );
 		m->CalcTarget( &target );
 		m->CalcTargetSize( &bulletTarget.width, &bulletTarget.height );
 	}
 
-	Vector3F distVector = target - SelectedSoldierModel()->Pos();
+	Vector3F distVector = target - SelectedSoldierUnit()->Pos();
 	bulletTarget.distance = distVector.Length();
 
 	Inventory* inventory = unit->GetInventory();
@@ -1032,26 +1056,7 @@ void BattleScene::DrawFireWidget()
 	const int DX = 10;
 
 	// Make sure it fits on the screen.
-	float w = fireButton[0].Width();
-	float h = fireButton[0].Height()*3.f + (float)FIRE_BUTTON_SPACING*2.0f;
-	float x = (float)(ui.x+DX);
-	float y = (float)(ui.y) - h*0.5f;
-
-	if ( x < 0 ) {
-		x = 0;
-	}
-	else if ( x+w >= port.UIWidth() ) {
-		x = port.UIWidth() - w;
-	}
-	if ( y < 0 ) {
-		y = 0;
-	}
-	else if ( y+h >= port.UIHeight() ) {
-		y = port.UIHeight() - h;
-	}
-	fireButton[0].SetPos( x, y );
-	fireButton[1].SetPos( x, y+fireButton[0].Height()+(float)FIRE_BUTTON_SPACING );
-	fireButton[2].SetPos( x, y+fireButton[0].Height()*2.0f+(float)FIRE_BUTTON_SPACING*2.0f );
+	UIRenderer::LayoutListOnScreen( fireButton, 3, sizeof(fireButton[0]), ui.x+DX, ui.y, FIRE_BUTTON_SPACING, port );
 	fireButton[0].SetVisible( true );
 	fireButton[1].SetVisible( true );
 	fireButton[2].SetVisible( true );
@@ -1118,14 +1123,9 @@ void BattleScene::PushScrollOnScreen( const Vector3F& pos, bool center )
 		Vector3F c;
 		engine->CameraLookingAt( &c );
 
-		Vector3F delta = pos - c;
-		//float len = delta.Length();
-		delta.Normalize();
-
 		Action* action = actionStack.Push();
 		action->Init( ACTION_CAMERA_BOUNDS, 0 );
 		action->type.cameraBounds.target = pos;
-		action->type.cameraBounds.normal = delta;
 		action->type.cameraBounds.speed = (float)MAP_SIZE / 3.0f;
 		action->type.cameraBounds.center = center;
 	}
@@ -1159,12 +1159,12 @@ void BattleScene::SetSelection( Unit* unit )
 
 void BattleScene::PushRotateAction( Unit* src, const Vector3F& dst3F, bool quantize )
 {
-	GLRELASSERT( src->GetModel() );
+	GLRELASSERT( GetModel( src ) );
 
 	Vector2I dst = { (int)dst3F.x, (int)dst3F.z };
 
 	float rot = src->AngleBetween( dst, quantize );
-	if ( src->GetModel()->GetRotation() != rot ) {
+	if ( src->Rotation() != rot ) {
 		Action* action = actionStack.Push();
 		action->Init( ACTION_ROTATE, src );
 		action->type.rotate.rotation = rot;
@@ -1190,8 +1190,9 @@ bool BattleScene::PushShootAction( Unit* unit,
 
 	const WeaponItemDef* wid = weapon->IsWeapon();
 
-	Vector3F normal, right, up, p;
-	unit->CalcPos( &p );
+	Vector3F normal, right, up;
+	Vector3F p = unit->Pos();
+
 	normal = target - p;
 	float length = normal.Length();
 	normal.Normalize();
@@ -1282,13 +1283,13 @@ void BattleScene::DoReactionFire()
 				Unit* srcUnit = &units[t.viewerID];
 
 				if (    targetUnit->IsAlive() 
-					 && targetUnit->GetModel()
+					 && GetModel( targetUnit )
 					 && srcUnit->GetWeapon() ) {
 
 					bool rangeOK = true;
 					// Filter out explosive weapons...
 					if ( srcUnit->GetWeapon()->IsWeapon()->IsExplosive( kSnapFireMode ) ) {
-						Vector2I d = srcUnit->Pos() - targetUnit->Pos();
+						Vector2I d = srcUnit->MapPos() - targetUnit->MapPos();
 						if ( d.LengthSquared() < EXPLOSIVE_RANGE * EXPLOSIVE_RANGE )
 							rangeOK = false;
 					}
@@ -1302,15 +1303,15 @@ void BattleScene::DoReactionFire()
 						// Multiple ways to do the math. Go with the normal of the src facing to
 						// the normal of the target.
 
-						Vector2I targetMapPos = targetUnit->Pos();
-						Vector2I srcMapPos = srcUnit->Pos();
+						Vector2I targetMapPos = targetUnit->MapPos();
+						Vector2I srcMapPos = srcUnit->MapPos();
 
 						Vector2F normalToTarget = { (float)(targetMapPos.x - srcMapPos.x), (float)(targetMapPos.y - srcMapPos.y) };
 						normalToTarget.Normalize();
 
-						Vector2F facing;
-						facing.x = sinf( ToRadian( srcUnit->GetModel()->GetRotation() ) );
-						facing.y = cosf( ToRadian( srcUnit->GetModel()->GetRotation() ) );
+						Vector2F facing = { 0, 0 };
+						facing.x = sinf( ToRadian( srcUnit->Rotation() ) );
+						facing.y = cosf( ToRadian( srcUnit->Rotation() ) );
 
 						float mod = DotProduct( facing, normalToTarget ) * 0.5f + 0.5f;  
 						reaction *= mod;				// linear with angle.
@@ -1319,11 +1320,13 @@ void BattleScene::DoReactionFire()
 						GLOUTPUT(( "reaction fire possible. (if %.2f < %.2f)\n", r, reaction ));
 
 						if ( r <= reaction ) {
-							Vector3F target;
-							targetUnit->GetModel()->CalcTarget( &target );
+							Vector3F target = { 0, 0, 0 };
+							GLASSERT( GetModel( targetUnit ) );
+							const Model* targetModel = GetModel( targetUnit );
+							targetModel->CalcTarget( &target );
 
 							float targetWidth, targetHeight;
-							targetUnit->GetModel()->CalcTargetSize( &targetWidth, &targetHeight );
+							targetModel->CalcTargetSize( &targetWidth, &targetHeight );
 							
 							int shot = PushShootAction( srcUnit, target, targetWidth, targetHeight, kAutoFireMode, error, true );	// auto
 							if ( !shot )
@@ -1345,8 +1348,8 @@ void BattleScene::ProcessInventoryAI( Unit* theUnit )
 {
 	AI_LOG(( "[ai] Unit %d INVENTORY: ", currentUnitAI ));
 	// Drop all the weapons and clips. Pick up new weapons and clips.
-	Vector2I pos = theUnit->Pos();
-	Storage* storage = engine->GetMap()->LockStorage( pos.x, pos.y, game->GetItemDefArr() );
+	Vector2I pos = theUnit->MapPos();
+	Storage* storage = tacMap->LockStorage( pos.x, pos.y );
 	GLRELASSERT( storage );
 
 	Inventory* inventory = theUnit->GetInventory();
@@ -1394,8 +1397,7 @@ void BattleScene::ProcessInventoryAI( Unit* theUnit )
 			AI_LOG(( "\n" ));
 		}
 	}
-	engine->GetMap()->ReleaseStorage( storage );
-	theUnit->UpdateInventory();
+	tacMap->ReleaseStorage( storage );
 }
 
 
@@ -1419,7 +1421,7 @@ bool BattleScene::ProcessAI()
 		int flags = units[currentUnitAI].AI();
 		AI::AIAction aiAction;
 
-		bool done = aiArr[currentTeamTurn]->Think( &units[currentUnitAI], flags, engine->GetMap(), &aiAction );
+		bool done = aiArr[currentTeamTurn]->Think( &units[currentUnitAI], flags, tacMap, &aiAction );
 
 		switch ( aiAction.actionID ) {
 			case AI::ACTION_SHOOT:
@@ -1478,9 +1480,9 @@ void BattleScene::ProcessDoors()
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if ( units[i].IsAlive() )
-			loc[nLoc++] = units[i].Pos();
+			loc[nLoc++] = units[i].MapPos();
 	}
-	if ( engine->GetMap()->ProcessDoors( loc, nLoc ) ) {
+	if ( tacMap->ProcessDoors( loc, nLoc ) ) {
 		visibility.InvalidateAll();
 	}
 }
@@ -1542,32 +1544,41 @@ bool BattleScene::ProcessActionCameraBounds( U32 deltaTime, Action* action )
 	engine->CameraLookingAt( &lookingAt );
 	Vector3F atToTarget = action->type.cameraBounds.target - lookingAt;
 
-	if ( atToTarget.Length() <= t ) {
-		pop = true;
+	Vector3F normal = atToTarget;
+	Vector3F maxTravel = normal;
+	normal.Normalize();
+
+	Vector2F ui;
+	Vector3F d = normal * t;
+	if ( d.Length() < maxTravel.Length() ) {
+		engine->camera.DeltaPosWC( d.x, d.y, d.z );
 	}
 	else {
-		Vector2F ui;
-		Vector3F d = action->type.cameraBounds.normal * t;
-		engine->camera.DeltaPosWC( d.x, d.y, d.z );
+		float yrot = engine->camera.GetYRotation();
+		float tilt = engine->camera.GetTilt();
+		float height = engine->camera.PosWC().y;
+		engine->CameraLookAt( action->type.cameraBounds.target.x, action->type.cameraBounds.target.z, height, yrot, tilt );
+		pop = true;
+	}
 
-		const Screenport& port = engine->GetScreenport();
-		port.WorldToUI( action->type.cameraBounds.target, &ui );
+	const Screenport& port = engine->GetScreenport();
+	port.WorldToUI( action->type.cameraBounds.target, &ui );
 
-		Rectangle2F inset = CalcInsetUIBounds();
-		if ( action->type.cameraBounds.center ) {
-			Vector2F center = inset.Center();
-			inset.min = center;
-			inset.max = center;
-			inset.Outset( 20 );
-		}
+	Rectangle2F inset = CalcInsetUIBounds();
+	if ( action->type.cameraBounds.center ) {
+		Vector2F center = inset.Center();
+		inset.min = center;
+		inset.max = center;
+		inset.Outset( 20 );
+	}
 
-		GLOUTPUT(( "Camera (%.1f,%.1f) ui (%.1f,%.1f)-(%.1f,%.1f)\n",
-					ui.x, ui.y, 
-					inset.min.x, inset.min.y, inset.max.x, inset.max.y ));
+	//GLOUTPUT(( "ProcessActionCameraBounds\n" )); 
+	//GLOUTPUT(( "Camera (%.1f,%.1f) ui (%.1f,%.1f)-(%.1f,%.1f)\n",
+	//			ui.x, ui.y, 
+	//			inset.min.x, inset.min.y, inset.max.x, inset.max.y ));
 
-		if ( inset.Contains( ui ) ) {
-			pop = true;
-		}
+	if ( inset.Contains( ui ) ) {
+		pop = true;
 	}
 	return pop;
 }
@@ -1582,16 +1593,15 @@ int BattleScene::ProcessAction( U32 deltaTime )
 		Action* action = actionStack.Top();
 
 		Unit* unit = 0;
-		Model* model = 0;
+		const Model* model = 0;
 
 		if ( action->unit ) {
-			if ( !action->unit->IsAlive() || !action->unit->GetModel() ) {
-				GLASSERT( 0 );	// may be okay, but untested.
+			if ( !action->unit->IsAlive() ) {
 				actionStack.Pop();
 				return true;
 			}
 			unit = action->unit;
-			model = action->unit->GetModel();
+			model = GetModel( action->unit );
 		}
 
 		switch ( action->actionID ) {
@@ -1608,7 +1618,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 						
 					move->path.GetPos( action->type.move.pathStep, move->pathFraction, &x, &z, &r );
 					// Face in the direction of walking.
-					model->SetRotation( r );
+					unit->SetYRotation( r );
 
 					// Move fast when can't be seen:
 					if ( move->pathStep < move->path.pathLen-1 ) {
@@ -1648,7 +1658,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 						}
 						move->path.GetPos( move->pathStep, move->pathFraction, &x, &z, &r );
 						Vector3F v = { x+0.5f, 0.0f, z+0.5f };
-						unit->SetPos( v, model->GetRotation() );
+						unit->SetPos( v, unit->Rotation() );
 					}
 					if ( move->pathStep == move->path.pathLen-1 ) {
 						actionStack.Pop();
@@ -1664,7 +1674,9 @@ int BattleScene::ProcessAction( U32 deltaTime )
 					float travel = Travel( deltaTime, ROTSPEED );
 
 					float delta, bias;
-					MinDeltaDegrees( model->GetRotation(), action->type.rotate.rotation, &delta, &bias );
+					MinDeltaDegrees( unit->Rotation(), 
+									 action->type.rotate.rotation, 
+									 &delta, &bias );
 
 					if ( delta <= travel ) {
 						unit->SetYRotation( action->type.rotate.rotation );
@@ -1672,14 +1684,14 @@ int BattleScene::ProcessAction( U32 deltaTime )
 						result |= UNIT_ACTION_COMPLETE;
 					}
 					else {
-						unit->SetYRotation( model->GetRotation() + bias*travel );
+						unit->SetYRotation( unit->Rotation() + bias*travel );
 					}
 				}
 				break;
 
 			case ACTION_SHOOT:
 				{
-					int r = ProcessActionShoot( action, unit, model );
+					int r = ProcessActionShoot( action, unit );
 					result |= r;
 				}
 				break;
@@ -1703,6 +1715,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 				}
 				break;
 
+/*
 			case ACTION_CAMERA:
 				{
 					action->type.camera.timeLeft -= deltaTime;
@@ -1723,6 +1736,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 					}
 				}
 				break;
+*/
 
 			case ACTION_CAMERA_BOUNDS:
 				{
@@ -1730,30 +1744,6 @@ int BattleScene::ProcessAction( U32 deltaTime )
 						actionStack.Pop();
 				}
 				break;
-
-/*			case ACTION_LANDER:
-				{
-					action->type.lander.timeRemaining -= (int)deltaTime;
-					if ( action->type.lander.timeRemaining < 0 )
-						action->type.lander.timeRemaining = 0;
-
-					if ( action->type.lander.timeRemaining == 0 ) {
-						actionStack.Pop();
-						engine->GetMap()->SetLanderFlight( 0 );
-
-						for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-							if ( units[i].GetModel() ) {
-								Model* m = units[i].GetModel();
-								m->ClearFlag( Model::MODEL_INVISIBLE );
-							}
-						}
-					}
-					else {
-						float flight = (float)(action->type.lander.timeRemaining) / (float)(LanderAction::TOTAL_TIME);
-						engine->GetMap()->SetLanderFlight( flight );
-					}
-				}
-				break; */
 
 			default:
 				GLRELASSERT( 0 );
@@ -1764,7 +1754,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 }
 
 
-int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
+int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 {
 	DamageDesc damageDesc;
 	bool impact = false;
@@ -1774,10 +1764,11 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 	const WeaponItemDef* weaponDef = 0;
 	Ray ray;
 	WeaponMode mode = action->type.shoot.mode;
+	const Model* unitModel = GetModel( unit );
 
 	int result = 0;
 
-	if ( unit && model && unit->IsAlive() ) {
+	if ( unit && unitModel && unit->IsAlive() ) {
 		// Shooting announces the units location.
 		for( int i=0; i<3; ++i ) {
 			if ( aiArr[i] )
@@ -1792,7 +1783,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		weaponDef = weaponItem->GetItemDef()->IsWeapon();
 		GLRELASSERT( weaponDef );
 
-		model->CalcTrigger( &p0 );
+		unitModel->CalcTrigger( &p0 );
 		p1 = action->type.shoot.target;
 
 		ray.origin = p0;
@@ -1807,7 +1798,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 		// ground / bounds
 
 		// Don't hit the shooter:
-		const Model* ignore[] = { unit->GetModel(), unit->GetWeaponModel(), 0 };
+		const Model* ignore[] = { unitModel, GetWeaponModel(unit), 0 };
 		Model* m = engine->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &intersection );
 
 		if ( m && intersection.y < 0.0f ) {
@@ -1833,9 +1824,9 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 			int inResult, outResult;
 			Rectangle3F worldBounds;
 			worldBounds.Set( 0, 0, 0, 
-							(float)engine->GetMap()->Width(), 
+							(float)tacMap->Width(), 
 							8.0f,
-							(float)engine->GetMap()->Height() );
+							(float)tacMap->Height() );
 
 			int result = IntersectRayAllAABB( ray.origin, ray.direction, worldBounds, 
 											  &inResult, &in, &outResult, &out );
@@ -1864,7 +1855,8 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 									 impact, 
 									 game->CurrentTime(), 
 									 &delayTime );
-			SoundManager::Instance()->QueueSound( weaponDef->weapon[weaponDef->Index(mode)].sound );
+			if ( !battleEnding )
+				SoundManager::Instance()->QueueSound( weaponDef->weapon[weaponDef->Index(mode)].sound );
 		}
 	}
 
@@ -1917,7 +1909,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit, Model* model )
 	if ( impact && modelHit ) {
 		int x = LRintf( intersection.x );
 		int y = LRintf( intersection.z );
-		if ( engine->GetMap()->GetFogOfWar().IsSet( x, y, 0 ) ) {
+		if ( tacMap->GetFogOfWar().IsSet( x, y, 0 ) ) {
 			PushScrollOnScreen( intersection );
 		}
 	}
@@ -1936,7 +1928,8 @@ int BattleScene::ProcessActionHit( Action* action )
 	int nExplosion = 0;
 
 	if ( !action->type.hit.explosive ) {
-		SoundManager::Instance()->QueueSound( "hit" );
+		if ( !battleEnding )
+			SoundManager::Instance()->QueueSound( "hit" );
 
 		// Apply direct hit damage
 		Model* m = action->type.hit.m;
@@ -1950,7 +1943,7 @@ int BattleScene::ProcessActionHit( Action* action )
 
 		if ( hitUnit ) {
 			if ( hitUnit->IsAlive() ) {
-				hitUnit->DoDamage( action->type.hit.damageDesc, engine->GetMap() );
+				hitUnit->DoDamage( action->type.hit.damageDesc, tacMap, true );
 				if ( !hitUnit->IsAlive() ) {
 					selection.ClearTarget();			
 					visibility.InvalidateUnit( hitUnit - units );
@@ -1963,16 +1956,19 @@ int BattleScene::ProcessActionHit( Action* action )
 		else if ( hitWeapon ) {
 			Inventory* inv = hitWeapon->GetInventory();
 			inv->RemoveItem( Inventory::WEAPON_SLOT );
-			hitWeapon->UpdateInventory();
 			GLOUTPUT(( "Shot the weapon out of Unit 0x%x hand.\n", (unsigned)hitWeapon ));
 		}
 		else if ( m && m->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) ) {
 			Rectangle2I bounds;
-			engine->GetMap()->MapBoundsOfModel( m, &bounds );
+			tacMap->MapBoundsOfModel( m, &bounds );
 
 			// Hit world object.
 			Vector2I exp = { -1, -1 };
-			engine->GetMap()->DoDamage( m, action->type.hit.damageDesc, &destroyed, &exp );
+
+			MapDamageDesc damage;
+			action->type.hit.damageDesc.MapDamage( &damage );
+
+			tacMap->DoDamage( m, damage, &destroyed, &exp );
 			if ( exp.x >= 0 )
 				explosion[nExplosion++] = exp;
 		}
@@ -1990,11 +1986,12 @@ int BattleScene::ProcessActionHit( Action* action )
 	int totalExplosion = nExplosion;
 	if ( nExplosion ) {
 		// Explosion
-		SoundManager::Instance()->QueueSound( "explosion" );
+		if (!battleEnding)
+			SoundManager::Instance()->QueueSound( "explosion" );
 
 		const int MAX_RAD = 2;
 		const int MAX_RAD_2 = MAX_RAD*MAX_RAD;
-		Rectangle2I mapBounds = engine->GetMap()->Bounds();
+		Rectangle2I mapBounds = tacMap->Bounds();
 
 		while ( nExplosion ) {
 			// generates smoke:
@@ -2037,7 +2034,7 @@ int BattleScene::ProcessActionHit( Action* action )
 									// Was using CanSee, but that has the problem that
 									// some walls are inner and some walls are outer.
 									// *sigh* Use the pather.
-									if ( !engine->GetMap()->CanSee( p, q ) ) {
+									if ( !tacMap->CanSee( p, q ) ) {
 										canSee = false;
 										break;
 									}
@@ -2051,7 +2048,7 @@ int BattleScene::ProcessActionHit( Action* action )
 
 							Unit* unit = GetUnitFromTile( x, y );
 							if ( unit && unit->IsAlive() ) {
-								unit->DoDamage( dd, engine->GetMap() );
+								unit->DoDamage( dd, tacMap, true );
 								if ( !unit->IsAlive() ) {
 									visibility.InvalidateUnit( unit - units );
 									if ( unit == SelectedSoldierUnit() ) {
@@ -2063,7 +2060,9 @@ int BattleScene::ProcessActionHit( Action* action )
 							}
 							bool hitAnything = false;
 							Vector2I exp = { -1, -1 };
-							engine->GetMap()->DoDamage( x, y, dd, &destroyed, &exp );
+							MapDamageDesc damage;
+							dd.MapDamage( &damage );
+							tacMap->DoDamage( x, y, damage, &destroyed, &exp );
 
 							if (    totalExplosion < MAX_EXPLOSION 
 								 && exp.x >= 0 && nExplosion < MAX_EXPLOSION ) 
@@ -2077,7 +2076,7 @@ int BattleScene::ProcessActionHit( Action* action )
 							// - change of smoke anyway
 							if ( hitAnything || random.Bit() ) {
 								int turns = 4 + random.Rand( 4 );
-								engine->GetMap()->AddSmoke( x, y, turns );
+								tacMap->AddSmoke( x, y, turns );
 							}
 						}
 					}
@@ -2151,7 +2150,7 @@ void BattleScene::HandleNextUnit( int bias )
 
 			if ( units[index].IsAlive() ) {
 				SetSelection( &units[index] );
-				PushScrollOnScreen( units[index].GetModel()->Pos() );
+				PushScrollOnScreen( units[index].Pos() );
 				break;
 			}
 		}
@@ -2165,7 +2164,7 @@ void BattleScene::HandleRotation( float bias )
 	if ( actionStack.Empty() && SelectedSoldierUnit() ) {
 		Unit* unit = SelectedSoldierUnit();
 
-		float r = unit->GetModel()->GetRotation();
+		float r = unit->Rotation();
 		r += bias;
 		r = NormalizeAngleDegrees( r );
 		r = 45.f * float( (int)((r+20.0f) / 45.f) );
@@ -2205,8 +2204,11 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 				target.Set( (float)selection.targetPos.x + 0.5f, 1.0f, (float)selection.targetPos.y + 0.5f );
 			}
 			else {
-				selection.targetUnit->GetModel()->CalcTarget( &target );
-				selection.targetUnit->GetModel()->CalcTargetSize( &targetWidth, &targetHeight );
+				const Model* targetModel = GetModel( selection.targetUnit );
+				if ( targetModel ) {
+					targetModel->CalcTarget( &target );
+					targetModel->CalcTargetSize( &targetWidth, &targetHeight );
+				}
 			}
 			PushShootAction( selection.soldierUnit, target, targetWidth, targetHeight, mode, 1.0f, false );
 		}
@@ -2225,18 +2227,17 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 			if ( actionStack.Empty() && SelectedSoldierUnit() ) {
 				CharacterSceneData* input = new CharacterSceneData();
 				input->unit = SelectedSoldierUnit();
+				input->nUnits = 1;
+
+				Vector2I mapi = input->unit->MapPos();
+				lockedStorage = input->storage = tacMap->LockStorage( mapi.x, mapi.y );
 				game->PushScene( Game::CHARACTER_SCENE, input );
 			}
 		}
 		else if ( tapped == &nextTurnButton ) {
 			SetSelection( 0 );
-			engine->GetMap()->ClearNearPath();
-			if ( EndCondition( &tacticalData ) ) {
-				game->PushScene( Game::END_SCENE, new TacticalEndSceneData( tacticalData ) );
-			}
-			else {
-				NextTurn( true );
-			}
+			tacMap->ClearNearPath();
+			NextTurn( true );
 		}
 		else if ( tapped == controlButton + NEXT_BUTTON ) {
 			HandleNextUnit( 1 );
@@ -2250,7 +2251,7 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 		else if ( tapped == &exitButton ) {
 			DialogSceneData* data = new DialogSceneData();
 			data->type = DialogSceneData::DS_YESNO;
-			data->text = "Do you wish to evacuate? All units not in lander will be lost.";
+			data->text = "Do you wish to evacuate? Items on ground will be lost.";
 
 			game->PushScene( Game::DIALOG_SCENE, data );
 		}
@@ -2261,12 +2262,13 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 
 void BattleScene::SceneResult( int sceneID, int result )
 {
-	const Model* model = engine->GetMap()->GetLanderModel();
-	Rectangle2I bounds;
-	engine->GetMap()->MapBoundsOfModel( model, &bounds );
+	//const Model* model = tacMap->GetLanderModel();
+	//Rectangle2I bounds;
+	//tacMap->MapBoundsOfModel( model, &bounds );
 
 	if ( sceneID == Game::DIALOG_SCENE && result ) {
 		// Exit!
+#ifndef LANDER_RESCUE
 		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 			if ( units[i].InUse() ) {
 				Vector2I v = units[i].Pos();
@@ -2275,15 +2277,23 @@ void BattleScene::SceneResult( int sceneID, int result )
 				}
 			}
 		}
+#endif
 		// The aliens are going to get all the civs
 		for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i ) {
 			DamageDesc d = { 100, 100, 100 };
 			if ( units[i].IsAlive() )
-				units[i].DoDamage( d, engine->GetMap() );
+				units[i].DoDamage( d, tacMap, true );
 		}
 
-		EndCondition( &tacticalData );	// fills out tactical data...
-		game->PushScene( Game::END_SCENE, new TacticalEndSceneData( tacticalData ) );
+		PushEndScene();
+	}
+	else if ( sceneID == Game::CHARACTER_SCENE ) {
+		tacMap->ReleaseStorage( lockedStorage );
+		lockedStorage = 0;
+	}
+	else if ( sceneID == Game::UNIT_SCORE_SCENE ) {
+		game->Save();
+		game->PopScene( game->battleData.CalcResult() );
 	}
 }
 
@@ -2401,24 +2411,21 @@ void BattleScene::Tap(	int action,
 
 			int ix = (int)pos.x;
 			int iz = (int)pos.z;
-			if (    ix >= 0 && ix < engine->GetMap()->Width()
-	  			 && iz >= 0 && iz < engine->GetMap()->Height() ) 
+			if (    ix >= 0 && ix < tacMap->Width()
+	  			 && iz >= 0 && iz < tacMap->Height() ) 
 			{
-				if ( *engine->GetMap()->GetItemDefName( mapmaker_currentMapItem ) ) {
-					engine->GetMap()->AddItem( ix, iz, rotation, mapmaker_currentMapItem, -1, 0 );
-				}
-				else if ( mapmaker_currentMapItem == 0x70 ) { // smoke
-					engine->GetMap()->SetPyro( ix, iz, 21, false );
-				}
-				else if ( mapmaker_currentMapItem == 0x71 ) { // fire
-					engine->GetMap()->SetPyro( ix, iz, 17, true );
+				const char* name = tacMap->GetItemDefName( mapmaker_currentMapItem );
+
+				if ( name && *name ) {
+					const MapItemDef* mapItemDef = tacMap->GetItemDef( name );
+					tacMap->AddItem( ix, iz, rotation, mapItemDef, -1, 0 );
 				}
 			}
 		}
 
 		// Get the map intersection. May be used by TARGET_TILE or NORMAL
 		Vector3F intersect;
-		//Map* map = engine->GetMap();
+		//Map* map = tacMap;
 
 		Vector2I tilePos = { 0, 0 };
 		bool hasTilePos = false;
@@ -2438,7 +2445,7 @@ void BattleScene::Tap(	int action,
 			return;
 		}
 
-		Model* tappedModel = 0;
+		const Model* tappedModel = 0;
 		const Unit* tappedUnit = 0;
 
 		// Priorities:
@@ -2449,32 +2456,32 @@ void BattleScene::Tap(	int action,
 		bool canSelectAlien = SelectedSoldier();			// a soldier is selected
 
 		for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-			if ( units[i].GetModel() ) {
+			if ( GetModel( &units[i] ) ) {
 				if ( units[i].IsAlive() ) {
-					units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
-					if ( units[i].Pos() == tilePos ) {
+					unitRenderers[i].SetSelectable( true );
+					if ( units[i].MapPos() == tilePos ) {
 						GLRELASSERT( !tappedUnit );
 						tappedUnit = units + i;
-						tappedModel = units[i].GetModel();
+						tappedModel = GetModel( &units[i] );
 					}
 				}
 				else {
-					units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
+					unitRenderers[i].SetSelectable( false );
 				}
 			}
 		}
 		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-			if ( units[i].GetModel() ) {
+			if ( GetModel( &units[i] ) ) {
 				if ( canSelectAlien && units[i].IsAlive() ) {
-					units[i].GetModel()->SetFlag( Model::MODEL_SELECTABLE );
-					if ( units[i].Pos() == tilePos ) {
+					unitRenderers[i].SetSelectable( true );
+					if ( units[i].MapPos() == tilePos ) {
 						GLRELASSERT( !tappedUnit );
 						tappedUnit = units + i;
-						tappedModel = units[i].GetModel();
+						tappedModel = GetModel( &units[i] );
 					}
 				}
 				else {
-					units[i].GetModel()->ClearFlag( Model::MODEL_SELECTABLE );
+					unitRenderers[i].SetSelectable( false );
 				}
 			}
 		}
@@ -2498,20 +2505,22 @@ void BattleScene::Tap(	int action,
 		}
 		if ( SelectedSoldierUnit() && !tappedUnit && hasTilePos ) {
 			// Not a model - use the tile
-			Vector2<S16> start   = { (S16)SelectedSoldierModel()->X(), (S16)SelectedSoldierModel()->Z() };
+			Vector2<S16> start   =	{	(S16)SelectedSoldierUnit()->Pos().x, 
+										(S16)SelectedSoldierUnit()->Pos().z 
+									};
 			Vector2<S16> end = { (S16)tilePos.x, (S16)tilePos.y };
 
 			// Compute the path:
 			float cost;
 			//const Stats& stats = selection.soldierUnit->GetStats();
 
-			int result = engine->GetMap()->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
+			int result = tacMap->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
 			if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
 				// Go!
 				Action* action = actionStack.Push();
 				action->Init( ACTION_MOVE, SelectedSoldierUnit() );
 				action->type.move.path.Init( pathCache );
-				engine->GetMap()->ClearNearPath();
+				tacMap->ClearNearPath();
 			}
 		}
 	}
@@ -2524,14 +2533,14 @@ void BattleScene::ShowNearPath( const Unit* unit )
 		return;		// drawing nothing correctly
 	if (    unit == nearPathState.unit
 		 && unit->TU() == nearPathState.tu
-		 && unit->Pos() == nearPathState.pos ) {
+		 && unit->MapPos() == nearPathState.pos ) {
 			return;		// drawing something that is current.
 	}
 
 	nearPathState.Clear();
-	engine->GetMap()->ClearNearPath();
+	tacMap->ClearNearPath();
 
-	if ( unit && unit->GetModel() ) {
+	if ( unit && GetModel(unit) ) {
 
 		float autoTU = 0.0f;
 		float snappedTU = 0.0f;
@@ -2544,9 +2553,9 @@ void BattleScene::ShowNearPath( const Unit* unit )
 
 		nearPathState.unit = unit;
 		nearPathState.tu = unit->TU();
-		nearPathState.pos = unit->Pos();
+		nearPathState.pos = unit->MapPos();
 
-		Vector2<S16> start = { (S16)unit->Pos().x, (S16)unit->Pos().y };
+		Vector2<S16> start = { (S16)unit->MapPos().x, (S16)unit->MapPos().y };
 		float tu = unit->TU();
 
 		Vector2F range[3] = { 
@@ -2554,7 +2563,7 @@ void BattleScene::ShowNearPath( const Unit* unit )
 			{ tu-autoTU, tu-snappedTU },
 			{ tu-snappedTU, tu }
 		};
-		engine->GetMap()->ShowNearPath( unit->Pos(), unit, start, tu, range );
+		tacMap->ShowNearPath( unit->MapPos(), unit, start, tu, range );
 	}
 }
 
@@ -2568,11 +2577,10 @@ void BattleScene::MakePathBlockCurrent( Map* map, const void* user )
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if (    units[i].IsAlive() 
-			 && units[i].GetModel() 
 			 && &units[i] != exclude ) // oops - don't cause self to not path
 		{
-			int x = (int)units[i].GetModel()->X();
-			int z = (int)units[i].GetModel()->Z();
+			int x = (int)units[i].Pos().x;
+			int z = (int)units[i].Pos().z;
 			block.Set( x, z );
 		}
 	}
@@ -2580,12 +2588,12 @@ void BattleScene::MakePathBlockCurrent( Map* map, const void* user )
 	map->SetPathBlocks( block );
 }
 
-Unit* BattleScene::UnitFromModel( Model* m, bool useWeaponModel )
+Unit* BattleScene::UnitFromModel( const Model* m, bool useWeaponModel )
 {
 	if ( m ) {
 		for( int i=0; i<MAX_UNITS; ++i ) {
-			if (	( !useWeaponModel && units[i].GetModel() == m )
-				 || ( useWeaponModel && units[i].GetWeaponModel() == m ) )
+			if (	( !useWeaponModel && GetModel( &units[i] ) == m )
+				 || ( useWeaponModel &&  GetWeaponModel( &units[i] ) == m ) )
 				return &units[i];
 		}
 	}
@@ -2596,13 +2604,11 @@ Unit* BattleScene::UnitFromModel( Model* m, bool useWeaponModel )
 Unit* BattleScene::GetUnitFromTile( int x, int z )
 {
 	for( int i=0; i<MAX_UNITS; ++i ) {
-		if ( units[i].GetModel() ) {
-			int ux = (int)units[i].GetModel()->X();
-			if ( ux == x ) {
-				int uz = (int)units[i].GetModel()->Z();
-				if ( uz == z ) { 
-					return &units[i];
-				}
+		int ux = (int)units[i].Pos().x;
+		if ( ux == x ) {
+			int uz = (int)units[i].Pos().z;
+			if ( uz == z ) { 
+				return &units[i];
 			}
 		}
 	}
@@ -2712,13 +2718,13 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 			if ( uiActivated && !panning ) {
 				Vector2I mapPos = { (int)dragStart.x, (int)dragStart.z };
 				for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-					if ( units[i].IsAlive() && ( mapPos == units[i].Pos() ) ) {
+					if ( units[i].IsAlive() && ( mapPos == units[i].MapPos() ) ) {
 						dragUnit = units + i;
 						if ( selection.soldierUnit != dragUnit )
 							SetSelection( dragUnit );
 
-						dragBar[0].SetSize( (float)engine->GetMap()->Width(), 0.5f );
-						dragBar[1].SetSize( 0.5f, (float)engine->GetMap()->Height() );
+						dragBar[0].SetSize( (float)tacMap->Width(), 0.5f );
+						dragBar[1].SetSize( 0.5f, (float)tacMap->Height() );
 
 						break;
 					}
@@ -2738,18 +2744,18 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 				engine->GetScreenport().ViewProjectionInverse3D( &mvpi );
 				engine->RayFromViewToYPlane( view, mvpi, &ray, &intersection );
 
-				Vector2<S16> start = { (S16)selection.soldierUnit->Pos().x, (S16)selection.soldierUnit->Pos().y };
+				Vector2<S16> start = { (S16)selection.soldierUnit->MapPos().x, (S16)selection.soldierUnit->MapPos().y };
 				Vector2<S16> end   = { (S16)intersection.x, (S16)intersection.z };
 
 				bool visible = false;
 				if (    end != start 
-					 && end.x >= 0 && end.x < engine->GetMap()->Width() 
-					 && end.y >= 0 && end.y < engine->GetMap()->Height() ) 
+					 && end.x >= 0 && end.x < tacMap->Width() 
+					 && end.y >= 0 && end.y < tacMap->Height() ) 
 				{
 					float cost;
 					gamui::RenderAtom atom;
 
-					int result = engine->GetMap()->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
+					int result = tacMap->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
 					if ( result == micropather::MicroPather::SOLVED ) {
 						int tuLeft = selection.soldierUnit->CalcWeaponTURemaining( cost );
 						visible = true;
@@ -2768,7 +2774,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 						dragBar[0].SetPos( 0, (float)end.y+0.25f );
 						dragBar[1].SetPos( (float)end.x+0.25f, 0 );
 					}
-					engine->GetMap()->ClearNearPath();
+					tacMap->ClearNearPath();
 					atom.renderState = (const void*) Map::RENDERSTATE_MAP_NORMAL;
 					dragBar[0].SetAtom( atom );
 					dragBar[1].SetAtom( atom );
@@ -2805,16 +2811,16 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 				engine->GetScreenport().ViewProjectionInverse3D( &mvpi );
 				engine->RayFromViewToYPlane( view, mvpi, &ray, &intersection );
 
-				Vector2<S16> start = { (S16)selection.soldierUnit->Pos().x, (S16)selection.soldierUnit->Pos().y };
+				Vector2<S16> start = { (S16)selection.soldierUnit->MapPos().x, (S16)selection.soldierUnit->MapPos().y };
 				Vector2<S16> end   = { (S16)intersection.x, (S16)intersection.z };
 
 				if (    end != start 
-					 && end.x >= 0 && end.x < engine->GetMap()->Width() 
-					 && end.y >= 0 && end.y < engine->GetMap()->Height() ) 
+					 && end.x >= 0 && end.x < tacMap->Width() 
+					 && end.y >= 0 && end.y < tacMap->Height() ) 
 				{
 					float cost;
 
-					int result = engine->GetMap()->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
+					int result = tacMap->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
 					if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
 						// TU for a move gets used up "as we go" to account for reaction fire and changes.
 						// Go!
@@ -2886,7 +2892,7 @@ void BattleScene::DrawHUD()
 	if ( Engine::mapMakerMode ) {
 		nameRankUI.SetVisible( false );
 		if ( !game->IsTextSuppressed() ) {
-			engine->GetMap()->DumpTile( (int)mapmaker_mapSelection->X(), (int)mapmaker_mapSelection->Z() );
+			tacMap->DumpTile( (int)mapmaker_mapSelection->X(), (int)mapmaker_mapSelection->Z() );
 
 			const char* desc = SelectionDesc();
 			UFOText::Draw( 0,  16, "(%2d,%2d) 0x%2x:'%s'", 
@@ -3104,18 +3110,10 @@ void BattleScene::MouseMove( int x, int y )
 
 const char* BattleScene::SelectionDesc()
 {
-	const char* result = "";
-	if ( mapmaker_currentMapItem >= Map::NUM_ITEM_DEF ) {
-		if ( mapmaker_currentMapItem == Map::NUM_ITEM_DEF )
-			result = "smoke";
-		else if ( mapmaker_currentMapItem == Map::NUM_ITEM_DEF+1 )
-			result = "fire";
-	}
-	else {
-		result = engine->GetMap()->GetItemDefName( mapmaker_currentMapItem );
-	}
+	const char* result = tacMap->GetItemDefName( mapmaker_currentMapItem );
 	return result;
 }
+
 
 void BattleScene::UpdatePreview()
 {
@@ -3124,15 +3122,21 @@ void BattleScene::UpdatePreview()
 		mapmaker_preview = 0;
 	}
 	if ( mapmaker_currentMapItem >= 0 ) {
-		mapmaker_preview = engine->GetMap()->CreatePreview(	(int)mapmaker_mapSelection->X(), 
-													(int)mapmaker_mapSelection->Z(), 
-													mapmaker_currentMapItem, 
-													(int)(mapmaker_mapSelection->GetRotation()/90.0f) );
+		const char* name = tacMap->GetItemDefName( mapmaker_currentMapItem );
 
-		if ( mapmaker_preview ) {
-			Texture* t = TextureManager::Instance()->GetTexture( "translucent" );
-			mapmaker_preview->SetTexture( t );
-			mapmaker_preview->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.0f );
+		if ( name && *name ) {
+			const MapItemDef* mapItemDef = tacMap->GetItemDef( name );
+
+			mapmaker_preview = tacMap->CreatePreview(	(int)mapmaker_mapSelection->X(), 
+														(int)mapmaker_mapSelection->Z(), 
+														mapItemDef, 
+														(int)(mapmaker_mapSelection->GetRotation()/90.0f) );
+
+			if ( mapmaker_preview ) {
+				Texture* t = TextureManager::Instance()->GetTexture( "translucent" );
+				mapmaker_preview->SetTexture( t );
+				mapmaker_preview->SetTexXForm( 0, 0, TRANSLUCENT_WHITE, 0.0f );
+			}
 		}
 	}
 }
@@ -3165,7 +3169,7 @@ void BattleScene::SetLightMap( float r, float g, float b )
 {
 	int x = (int)mapmaker_mapSelection->X();
 	int y = (int)mapmaker_mapSelection->Z();
-	engine->GetMap()->SetLightMap0( x, y, r, g, b );
+	tacMap->SetLightMap0( x, y, r, g, b );
 }
 
 
@@ -3179,20 +3183,19 @@ void BattleScene::RotateSelection( int delta )
 void BattleScene::DeleteAtSelection()
 {
 	const Vector3F& pos = mapmaker_mapSelection->Pos();
-	engine->GetMap()->DeleteAt( (int)pos.x, (int)pos.z );
+	tacMap->DeleteAt( (int)pos.x, (int)pos.z );
 	UpdatePreview();
 
-	engine->GetMap()->SetPyro( (int)pos.x, (int)pos.z, 0, false );
+	tacMap->SetPyro( (int)pos.x, (int)pos.z, 0, false );
 }
 
 
 void BattleScene::DeltaCurrentMapItem( int d )
 {
 	mapmaker_currentMapItem += d;
-	static const int MAX = Map::NUM_ITEM_DEF + 2;	// placeholder for smoke and fire
+	static const int MAX = TacMap::NUM_ITEM_DEF;
 	while ( mapmaker_currentMapItem < 0 ) { mapmaker_currentMapItem += MAX; }
 	while ( mapmaker_currentMapItem >= MAX ) { mapmaker_currentMapItem -= MAX; }
-	//if ( mapmaker_currentMapItem == 0 ) mapmaker_currentMapItem = 1;
 	UpdatePreview();
 }
 

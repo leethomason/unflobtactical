@@ -4,6 +4,7 @@
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -31,7 +32,8 @@ class Model;
 class ModelResource;
 class Engine;
 class Game;
-class Map;
+class TacMap;
+class SpaceTree;
 
 
 class Unit
@@ -60,7 +62,7 @@ public:
 		FEMALE
 	};
 
-	Unit() : status( STATUS_NOT_INIT ), model( 0 ) {}
+	Unit() : status( STATUS_NOT_INIT ) {}
 	~Unit();
 	
 	void Free();
@@ -76,9 +78,11 @@ public:
 	float TU() const			{ return tu; }
 
 	// Do damage to this unit. Will create a Storage on the map, if the map is provided.
-	void DoDamage( const DamageDesc& damage, Map* map );
+	void DoDamage( const DamageDesc& damage, TacMap* map, bool playSound );
+	void Kill( TacMap* map, bool playSound );		// normally called by DoDamage
 	void UseTU( float val )		{ tu = grinliz::Max( 0.0f, tu-val ); }
 	void Leave();
+	void Heal()					{ if ( status != STATUS_NOT_INIT ) { tu = stats.TotalTU(); hp = stats.TotalHP(); status = STATUS_ALIVE; }}
 
 	void NewTurn();
 
@@ -86,6 +90,7 @@ public:
 	int AlienType()	const		{ return type; }
 	int Gender() const			{ return GetValue( GENDER ); }
 	int AI() const				{ return ai; }
+	const char* AlienName() const;
 
 	void SetAI( int value )		{ ai = value; }
 
@@ -97,7 +102,9 @@ public:
 	void SetMapPos( const grinliz::Vector2I& pos ) { SetMapPos( pos.x, pos.y ); }
 	void SetPos( const grinliz::Vector3F& pos, float rotation );
 	void SetYRotation( float rotation );
-	void CalcPos( grinliz::Vector3F* ) const;
+
+	grinliz::Vector3F Pos() const	{ return pos; }
+	float Rotation() const			{ return rot; }
 
 	// Compute the bounding box of this unit's sight. (VERY loose.)
 	void CalcVisBounds( grinliz::Rectangle2I* b ) const;
@@ -105,7 +112,7 @@ public:
 	// Compute the map pos: x,y (always int) and rotation (always multiple of 45)
 	void CalcMapPos( grinliz::Vector2I*, float* rotation ) const;
 	// Convenience to CalcMapPos
-	grinliz::Vector2I Pos() const {
+	grinliz::Vector2I MapPos() const {
 		grinliz::Vector2I p;
 		CalcMapPos( &p, 0 );
 		return p;
@@ -117,12 +124,6 @@ public:
 
 	Inventory* GetInventory();
 	const Inventory* GetInventory() const;
-	void UpdateInventory();
-
-	Model* GetModel()						{ return model; }
-	const Model* GetModel() const			{ return model; }
-	Model* GetWeaponModel()					{ return weapon; }
-	const Model* GetWeaponModel() const		{ return weapon; }
 
 	// Returns true if the mode can be used: mode is supported, enough time units,
 	// enough rounds, etc.
@@ -155,19 +156,55 @@ public:
 
 	const Stats& GetStats() const	{ return stats; }
 	static void GenStats( int team, int type, int seed, Stats* stats );
+	void DoMissionEnd() {
+		nMissions++;
+		if ( hp < stats.TotalHP() ) allMissionOvals++;
+		allMissionKills += kills;
+		stats.SetRank( XPToRank( XP() ));
+		
+		kills = 0;
+	}
 
 	void CreditKill()				{ kills++; }
 	int  KillsCredited() const		{ return kills; }
+	void CreditGunner()				{ gunner++; stats.SetRank( XPToRank( XP() )); }
+
+	int Missions() const			{ return nMissions; }
+	int AllMissionKills() const		{ return allMissionKills; }
+	int AllMissionOvals() const		{ return allMissionOvals; }
+
+	int XP() const					{ return nMissions + allMissionKills + allMissionOvals + gunner; }
+	static int XPToRank( int xp );
+	const U32 Body() const			{ return body; }
 
 	void Save( FILE* fp, int depth ) const;
 
-	void Load( const TiXmlElement* doc, Game* game );
+	// Loads the model. Follow with InitModel() if models needed.
+	void Load( const TiXmlElement* doc, const ItemDefArr& arr );
+	void InitLoc(  TacMap* tacmap );
 	void Create(	int team,
 					int alienType,
 					int rank,
 					int seed );
 
-private:
+	static int Count( const Unit* unit, int n, int status ) {
+		int count = 0;
+		if ( status >= 0 )
+			for( int i=0; i<n; ++i ) { if ( unit[i].status == status ) ++count; }
+		else
+			for( int i=0; i<n; ++i ) { if ( unit[i].status != STATUS_NOT_INIT ) ++count; }
+
+		return count;
+	}
+
+	static const Unit* Find( const Unit* unit, int n, U32 body ) {
+		for( int i=0; i<n; ++i ) {
+			if ( unit[i].Body() == body )
+				return unit+i;
+		}
+		return 0;
+	}
+
 	// WARNING: change this then change GetValue()
 	enum {	
 		GENDER,			// 1, 0-1
@@ -178,10 +215,11 @@ private:
 	};
 	U32 GetValue( int which ) const;
 
+private:
+
 	// Note that the 'stats' should be set before init.
 	// Load calls init automatically
-	void Init(	Game* game, 
-				int team,
+	void Init(	int team,
 				int status,
 				int alienType,
 				int seed );
@@ -189,7 +227,6 @@ private:
 	void CreateModel();
 	void UpdateModel();		// make the model current with the unit status - armor, etc.
 	void UpdateWeapon();	// set the gun position
-	void Kill( Map* map );
 
 	int status;		// alive, dead, etc.
 	int ai;			// normal or guard
@@ -197,17 +234,41 @@ private:
 	int type;		// type of alien
 	U32 body;		// describes everything! a random #
 
-	Game*		game;
-	Model*		model;
-	Model*		weapon;
-	bool		visibilityCurrent;	// if set, the visibility is current. Can be set by CalcAllVisibility()
+	bool				visibilityCurrent;	// if set, the visibility is current. Can be set by CalcAllVisibility()
+	grinliz::Random		random;
+	grinliz::Vector3F	pos;		// y always 0
+	float				rot;
 
 	Inventory	inventory;
 	Stats		stats;
 	float		tu;
 	int			hp;
 
-	int			kills;
+	int			kills;	
+	int			nMissions;
+	int			allMissionKills;
+	int			allMissionOvals;
+	int			gunner;
+};
+
+
+class UnitRenderer
+{
+public:
+	UnitRenderer();
+	~UnitRenderer();
+
+	void Update( SpaceTree* tree, const Unit* unit );
+
+	const Model* GetModel() const		{ return model; }
+	const Model* GetWeapon() const		{ return weapon; }
+
+	void SetSelectable( bool selectable );
+
+private:
+	SpaceTree*  tree;
+	Model*		model;
+	Model*		weapon;
 };
 
 

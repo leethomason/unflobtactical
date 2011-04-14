@@ -49,7 +49,7 @@ private:
 	Map*			map;
 	bool			fogInvalid;
 
-	bool			current[MAX_UNITS];	//< Is the visibility current? Triggers CalcUnitVisibility if not.
+	bool	current[MAX_UNITS];	//< Is the visibility current? Triggers CalcUnitVisibility if not.
 
 	grinliz::BitArray< MAP_SIZE, MAP_SIZE, MAX_UNITS >	visibilityMap;
 	grinliz::BitArray< MAP_SIZE, MAP_SIZE, 1 >			visibilityProcessed;		// temporary - used in vis calc.

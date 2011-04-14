@@ -145,7 +145,6 @@ public:
 		Validate();
 	}
 
-
 private:
 #ifdef DEBUG
 	void Validate() {

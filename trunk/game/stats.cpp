@@ -63,7 +63,7 @@ void Stats::CalcBaselines()
 	reaction = Interpolate(		0.0f,					REACTION_FAST,
 								(float)TRAIT_MAX,		REACTION_SLOW,
 								(float)(levDEX + levPSY)*0.5f );
-	constitution = (float)levPSY;
+	constitution = (float)Min( levPSY, 95 );
 }
 
 
@@ -71,6 +71,14 @@ int Stats::AccuracyRating() const
 {
 	int levDEX = Clamp( DEX() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );
 	return levDEX;
+}
+
+
+int Stats::ReactionRating() const
+{
+	int levDEX = Clamp( DEX() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );
+	int levPSY = Clamp( PSY() + TRAIT_RANK_BONUS*Rank(), 1, TRAIT_MAX );
+	return (levDEX + levPSY)/2;
 }
 
 

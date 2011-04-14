@@ -119,10 +119,10 @@ void XMLUtil::Attribute( FILE* fp, const char* name, float value )
 
 void XMLUtil::Space( FILE* fp, int depth )
 {
-	static const int LEN = 24;
+	static const int LEN = 32;
 	static const int SPACES = 4;
 
-	static const char space[LEN+1] = "                        ";
+	static const char space[LEN+1] = "                                ";
 
 	if ( depth > LEN / SPACES )
 		depth = LEN / SPACES;

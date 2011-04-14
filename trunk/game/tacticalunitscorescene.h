@@ -24,13 +24,14 @@ class UIImage;
 class UIButtonBox;
 class UIButtonGroup;
 class UITextTable;
-class TacticalEndSceneData;
 
 class TacticalUnitScoreScene : public Scene
 {
 public:
-	TacticalUnitScoreScene( Game* _game, const TacticalEndSceneData* data );
+	TacticalUnitScoreScene( Game* _game );
 	virtual ~TacticalUnitScoreScene();
+
+	virtual void Activate();
 
 	// UI
 	virtual void Tap(	int count, 
@@ -56,7 +57,7 @@ private:
 	gamui::PushButton		button;
 	gamui::Image			award[MAX_AWARDS];
 
-	const TacticalEndSceneData* data;
+	//TacticalEndSceneData* data;
 	int nAwards;
 };
 

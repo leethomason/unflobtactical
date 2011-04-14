@@ -34,6 +34,7 @@ SpaceTree::SpaceTree( float yMin, float yMax )
 	queryID = 0;
 
 	InitNode();
+	memset( &shelf, 0, sizeof(Node) );
 }
 
 
@@ -128,6 +129,9 @@ Model* SpaceTree::AllocModel( const ModelResource* resource )
 
 void SpaceTree::FreeModel( Model* model )
 {
+	if ( model == 0 )
+		return;
+
 	Item* item = (Item*)model;	// cast depends on model being first in the structure.
 
 	GLASSERT( item->node );
@@ -135,6 +139,44 @@ void SpaceTree::FreeModel( Model* model )
 	item->model.Free();
 	modelPool.Free( item );
 }
+
+
+void SpaceTree::ShelveModel( bool shelve, Model* model )
+{
+	Item* item = (Item*)model;	// cast depends on model being first in the structure.
+	GLASSERT( item->node );
+	item->node->Remove( item );
+
+	if ( shelve ) {
+		item->node = &shelf;
+		shelf.Add( item );
+	}
+	else {
+		GLASSERT( item->node );
+		item->node->Remove( item );
+		item->node = 0;
+		Update( model );
+	}
+}
+
+
+void SpaceTree::ShelveAll( bool shelve )
+{
+	if ( shelve ) {
+		Model* root = Query( 0, 0, 0, 0 );
+		while ( root ) {
+			Model* t = root->next;
+			ShelveModel( true, root );
+			root = t;
+		}
+	}
+	else {
+		while( shelf.root ) {
+			ShelveModel( false, (Model*)shelf.root );
+		}
+	}
+}
+
 
 // Based on this idea:
 	/* 
@@ -170,6 +212,9 @@ void SpaceTree::Update( Model* model )
 {
 	// Unlink if currently in tree.
 	Item* item = (Item*)model;	// cast depends on model being first in the structure.
+
+	if ( item->node == &shelf )
+		return;	// no effect when items are on the shelf.
 
 	if ( item->node ) 
 		item->node->Remove( item );
@@ -214,11 +259,11 @@ SpaceTree::Node* SpaceTree::GetNode( int depth, int x, int z )
 	int nx = x / size;
 	int nz = z / size;
 
-	//const int base[DEPTH] = { 0, 1, 1+4, 1+4+16, 1+4+16+64, 1+4+16+64+256 };
 	const int base[DEPTH] = { 0, 1, 1+4, 1+4+16, 1+4+16+64 };
 	int dx = (1<<depth);
-	GLASSERT( nx < dx );
-	GLASSERT( nz < dx );
+
+	nx = Clamp( nx, 0, dx-1 );	// error correction...
+	nz = Clamp( nz, 0, dx-1 );	// error correction...
 
 	Node* result = &nodeArr[ base[depth] + nz*dx+nx ];
 	GLASSERT( result >= nodeArr && result < &nodeArr[NUM_NODES] );

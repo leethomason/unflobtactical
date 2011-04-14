@@ -94,6 +94,11 @@ inline U32 CeilPowerOf2( U32 v )
 	return v + 1;
 }
 
+inline bool IsPowerOf2( U32 x ) 
+{
+	return x == CeilPowerOf2( x );
+}
+
 /// Linear interpolation.
 template <class A, class B> inline B Interpolate( A x0, B q0, A x1, B q1, A x )
 {

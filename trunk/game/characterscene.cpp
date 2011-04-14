@@ -16,36 +16,50 @@
 #include "characterscene.h"
 #include "game.h"
 #include "cgame.h"
-#include "../engine/uirendering.h"
-#include "../engine/text.h"
 #include "battlestream.h"
-#include "../grinliz/glstringutil.h"
 #include "inventoryWidget.h"
 #include "helpscene.h"
+#include "tacmap.h"
+
+#include "../grinliz/glstringutil.h"
+
+#include "../engine/uirendering.h"
+#include "../engine/text.h"
 
 using namespace grinliz;
 using namespace gamui;
 
-CharacterScene::CharacterScene( Game* _game, CharacterSceneData* input ) 
-	: Scene( _game )
+CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input ) 
+	: Scene( _game ),
+	  input( _input )
 {
 	unit = input->unit;
-//	dragUIItem = 0;
+	storage = _input->storage;
+	currentUnit = 0;
 
 	engine = _game->engine;
 	const Screenport& port = _game->engine->GetScreenport();
 
-	//controlButtons = new UIButtonGroup( engine->GetScreenport() );
 	const gamui::ButtonLook& green		= game->GetButtonLook( Game::GREEN_BUTTON );
 	const gamui::ButtonLook& blue		= game->GetButtonLook( Game::BLUE_BUTTON );
 	const gamui::ButtonLook& blueTab	= game->GetButtonLook( Game::BLUE_TAB_BUTTON );
-	//const gamui::ButtonLook& red		= game->GetButtonLook( Game::RED_BUTTON );
-
 
 	backButton.Init( &gamui2D, blue );
-	backButton.SetPos( 0, port.UIHeight()-backButton.Height() );
+	backButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	backButton.SetText( "Back" );
+
+	prevButton.Init( &gamui2D, blue );
+	prevButton.SetPos( GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	prevButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	prevButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_PREV, true ),  UIRenderer::CalcDecoAtom( DECO_PREV, false ) );
+	prevButton.SetVisible( input->nUnits > 1 );
+
+	nextButton.Init( &gamui2D, blue );
+	nextButton.SetPos( GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	nextButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	nextButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_NEXT, true ),  UIRenderer::CalcDecoAtom( DECO_NEXT, false ) );
+	nextButton.SetVisible( input->nUnits > 1 );
 
 	helpButton.Init( &gamui2D, blue );
 	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
@@ -61,24 +75,20 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* input )
 		control[i].SetText( controlLabel[i] );
 		controlArr[i+1] = &control[i];
 	}
-
 	
 	this->unit = unit;
 
-	Vector2I mapPos;
-	unit->CalcMapPos( &mapPos, 0 );
-	storage = engine->GetMap()->LockStorage( mapPos.x, mapPos.y, _game->GetItemDefArr() );
-	GLASSERT( storage );
-
-	storageWidget = new StorageWidget( &gamui2D, green, blueTab, _game->GetItemDefArr(), storage );
-	engine->EnableMap( false );
+	storageWidget = new StorageWidget( &gamui2D, green, blueTab, _game->GetItemDefArr(), _input->storage );
 	storageWidget->SetOrigin( (float)port.UIWidth()-storageWidget->Width(), 0 );
+	inventoryWidget = new InventoryWidget( &gamui2D, green, green, unit );
 
-	Inventory* inventory = unit->GetInventory();
-	inventoryWidget = new InventoryWidget( &gamui2D, green, green, inventory );
-
-	statWidget.Init( &gamui2D, unit, storageWidget->X(), 0 );
+	statWidget.Init( &gamui2D, unit, storageWidget->X(), 0, input->nUnits > 1 );
 	compWidget.Init( &game->GetItemDefArr(), storage, unit, &gamui2D, blue, storageWidget->X(), 0, storageWidget->Width() );
+
+	unitCounter.Init( &gamui2D );
+	unitCounter.SetPos( 140, 0 );
+	unitCounter.SetVisible( false );
+	SetCounter( 0 );
 
 	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE), storageWidget->Width(), GAME_BUTTON_SIZE_F );
 }
@@ -86,33 +96,47 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* input )
 
 CharacterScene::~CharacterScene()
 {
-	unit->UpdateInventory();
-	engine->EnableMap( true );
 	delete storageWidget;
 	delete inventoryWidget;
-
-	Vector2I mapPos;
-	unit->CalcMapPos( &mapPos, 0 );
-	engine->GetMap()->ReleaseStorage( storage );
-	storage = 0;
 }
 
 
-void CharacterScene::StatWidget::Init( gamui::Gamui* g, const Unit* unit, float x, float y )
+void CharacterScene::SetCounter( int delta )
+{
+	if ( input->nUnits <= 1 )
+		return;
+
+	currentUnit += delta;
+	if ( currentUnit >= input->nUnits )
+		currentUnit = 0;
+	if ( currentUnit < 0 )
+		currentUnit = input->nUnits-1;
+
+	unit = &input->unit[ currentUnit ];
+
+	char buf[8];
+	SNPrintf( buf, 8, "[%d/%d]", currentUnit+1, input->nUnits );
+	unitCounter.SetText( buf );
+	unitCounter.SetVisible( true );
+}
+
+
+void CharacterScene::Activate()
+{
+	GetEngine()->SetMap( 0 );
+}
+
+
+void CharacterScene::StatWidget::Init( gamui::Gamui* g, const Unit* unit, float x, float y, bool baseScreen )
 {
 	float dy = 20.0f;
 	float dx = 100.0f;
 	char buf[32];
 	const Stats& stats = unit->GetStats();
-	//int count=0;
-
-	nameRankUI.Init( g );
-	nameRankUI.Set( x, y, unit, false );
-	nameRankUI.SetVisible( false );
 
 	for( int i=0; i<2*STATS_ROWS; ++i ) {
-		textTable[i].Init( g );
-		textTable[i].SetVisible( false );
+		if ( g ) textTable[i].Init( g );
+		if ( g ) textTable[i].SetVisible( false );
 	}
 	for( int i=0; i<STATS_ROWS; ++i ) {
 		textTable[i*2+0].SetPos( x, y + (float)(i+1) * dy );
@@ -145,12 +169,26 @@ void CharacterScene::StatWidget::Init( gamui::Gamui* g, const Unit* unit, float 
 	textTable[c++].SetText( buf );
 
 	textTable[c++].SetText( "Reaction" );
-	SNPrintf( buf, 32, "%0.2f", stats.Reaction() );
+	SNPrintf( buf, 32, "%d", stats.ReactionRating() );
 	textTable[c++].SetText( buf );
 
 	textTable[c++].SetText( "Kills" );
-	SNPrintf( buf, 32, "%d", unit->KillsCredited() );
-	textTable[c++].SetText( buf );
+	if ( baseScreen ) {
+		SNPrintf( buf, 32, "%d", unit->AllMissionKills() );
+		textTable[c++].SetText( buf );
+
+		textTable[c++].SetText( "Missions" );
+		SNPrintf( buf, 32, "%d", unit->Missions() );
+		textTable[c++].SetText( buf );
+
+		textTable[c++].SetText( "XP" );
+		SNPrintf( buf, 32, "%d", unit->XP() );
+		textTable[c++].SetText( buf );
+	}
+	else {
+		SNPrintf( buf, 32, "%d", unit->KillsCredited() );
+		textTable[c++].SetText( buf );
+	}
 
 	GLASSERT( c <= 2*STATS_ROWS );
 }
@@ -158,7 +196,6 @@ void CharacterScene::StatWidget::Init( gamui::Gamui* g, const Unit* unit, float 
 
 void CharacterScene::StatWidget::SetVisible( bool visible )
 {
-	nameRankUI.SetVisible( visible );
 	for( int i=0; i<2*STATS_ROWS; ++i ) {
 		textTable[i].SetVisible( visible );
 	}
@@ -172,16 +209,12 @@ void CharacterScene::CompWidget::Init( const ItemDefArr* arr, const Storage* sto
 	this->unit = unit;
 	this->storage = storage;
 
-	nameRankUI.Init( g );
-	nameRankUI.Set( x, y, unit, false );
-	nameRankUI.SetVisible( false );
-
 	float NAME_WIDTH = 70.0f;
 	float DY = 16.0f;
 
 	for( int i=0; i<COMP_COL*COMP_ROW; ++i ) {
-		compTable[i].Init( g );
-		compTable[i].SetVisible( false );
+		if ( g ) compTable[i].Init( g );
+		if ( g ) compTable[i].SetVisible( false );
 	}
 	float delta = (width - NAME_WIDTH) / (COMP_COL-1);
 
@@ -201,24 +234,6 @@ void CharacterScene::CompWidget::Init( const ItemDefArr* arr, const Storage* sto
 	compTable[2].SetText( "%" );
 	compTable[3].SetText( "D" );
 	compTable[4].SetText( "D/TU" );
-
-	static const char* const rangeLabel[NUM_RANGE] = { "4m", "8m", "16m" };
-	for( int i=0; i<NUM_RANGE; ++i ) {
-		range[i].Init( g, look );
-		if ( i > 0 )
-			range[0].AddToToggleGroup( &range[i] );
-		range[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-		range[i].SetText( rangeLabel[i] );
-		range[i].SetVisible( false );
-		if ( i == 1 ) 
-			range[i].SetDown();
-		else 
-			range[i].SetUp();
-	}
-	for( int i=0; i<NUM_RANGE; ++i ) {
-		range[i].SetPos( x+GAME_BUTTON_SIZE_F*i, y + DY*(COMP_ROW+1) );
-	}
-
 }
 
 
@@ -229,12 +244,8 @@ void CharacterScene::CompWidget::SetCompText()
 	int index = 1;
 
 	float r = 8.0f;
-	if ( range[0].Down() )
-		r = 4.0f;
-	else if ( range[2].Down() )
-		r = 16.0f;
 
-	for( int i=0; i<itemDefArr->Size(); ++i ) {
+	for( int i=0; i<itemDefArr->Size() && index < COMP_ROW; ++i ) {
 		const ItemDef* itemDef = itemDefArr->Query( i );
 		if ( itemDef && itemDef->IsWeapon() ) {
 			bool inInventory = false;
@@ -260,7 +271,7 @@ void CharacterScene::CompWidget::SetCompText()
 
 				char buf[16];
 
-				SNPrintf( buf, 16, "%s%s", inInventory ? "+" : "-", wid->name );
+				SNPrintf( buf, 16, "%s%s", inInventory ? "+" : "-", wid->displayName.c_str() );
 				compTable[index*COMP_COL + 0].SetText( buf );
 
 				SNPrintf( buf, 16, "%.1f", wid->TimeUnits( mode ) );
@@ -276,10 +287,12 @@ void CharacterScene::CompWidget::SetCompText()
 				compTable[index*COMP_COL + 4].SetText( buf );
 
 				++index;
-				if ( index == COMP_ROW )
-					break;
 			}
 		}
+	}
+	for( ; index<COMP_ROW; ++index ) {
+		for( int k=0; k<COMP_COL; ++k )
+			compTable[index*COMP_COL+k].SetText( "" );
 	}
 }
 
@@ -289,10 +302,6 @@ void CharacterScene::CompWidget::SetVisible( bool visible )
 	for( int i=0; i<COMP_COL*COMP_ROW; ++i ) {
 		compTable[i].SetVisible( visible );
 	}
-	for( int i=0; i<NUM_RANGE; ++i )
-		range[i].SetVisible( visible );
-	nameRankUI.SetVisible( visible );
-
 	if ( visible )
 		SetCompText();
 }
@@ -300,9 +309,9 @@ void CharacterScene::CompWidget::SetVisible( bool visible )
 
 void CharacterScene::CompWidget::Tap( const gamui::UIItem* item )
 {
-	for( int i=0; i<NUM_RANGE; ++i )
-		if ( item == &range[i] )
-			SetCompText();
+//	for( int i=0; i<NUM_RANGE; ++i )
+//		if ( item == &range[i] )
+//			SetCompText();
 }
 
 
@@ -317,6 +326,23 @@ void CharacterScene::SwitchMode( int mode )
 
 void CharacterScene::DrawHUD()
 {
+}
+
+
+void CharacterScene::HandleHotKeyMask( int mask )
+{
+	if ( mask == GAME_HK_NEXT_UNIT && input->nUnits > 1  ) {
+		SetCounter( 1 );
+	}
+	else if ( mask == GAME_HK_PREV_UNIT && input->nUnits > 1 ) {
+		SetCounter( -1 );
+	}
+	inventoryWidget->Update( unit );
+	statWidget.Init( 0, unit, storageWidget->X(), 0, input->nUnits>1 );
+
+	const gamui::ButtonLook& blue		= game->GetButtonLook( Game::BLUE_BUTTON );
+	compWidget.Init( &game->GetItemDefArr(), storage, unit, 0, blue, storageWidget->X(), 0, storageWidget->Width() );		
+	compWidget.SetCompText();
 }
 
 
@@ -346,7 +372,7 @@ void CharacterScene::Tap(	int action,
 	}
 
 	if ( item == &backButton ) {
-		game->PopScene();
+		game->PopScene( 0 );
 		return;
 	}
 
@@ -361,6 +387,21 @@ void CharacterScene::Tap(	int action,
 		SwitchMode( STATS );
 	else if ( item == &control[2] )
 		SwitchMode( COMPARE );
+	
+	if ( ( item == &prevButton || item == &nextButton) && input->nUnits > 1 ) {
+		if ( item == &prevButton ) {
+			SetCounter( -1 );
+		}
+		else {
+			SetCounter( 1 );
+		}
+		inventoryWidget->Update( unit );
+		statWidget.Init( 0, unit, storageWidget->X(), 0, input->nUnits>1 );
+
+		const gamui::ButtonLook& blue		= game->GetButtonLook( Game::BLUE_BUTTON );
+		compWidget.Init( &game->GetItemDefArr(), storage, unit, 0, blue, storageWidget->X(), 0, storageWidget->Width() );		
+		compWidget.SetCompText();
+	}
 
 	compWidget.Tap( item );
 	
@@ -400,10 +441,12 @@ void CharacterScene::StorageToInventory( const ItemDef* itemDef )
 		Item item;
 		storage->RemoveItem( itemDef, &item );
 
-		Inventory* inv = unit->GetInventory();
-		if ( inv->AddItem( item ) < 0 ) {
-			// Couldn't add to inventory. Return to storage.
-			storage->AddItem( item );
+		if ( item.IsSomething() ) {
+			Inventory* inv = unit->GetInventory();
+			if ( inv->AddItem( item ) < 0 ) {
+				// Couldn't add to inventory. Return to storage.
+				storage->AddItem( item );
+			}
 		}
 	}
 }

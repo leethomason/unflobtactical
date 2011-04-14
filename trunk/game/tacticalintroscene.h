@@ -23,6 +23,7 @@
 #include "../shared/gamedbreader.h"
 #include "../gamui/gamui.h"
 #include "../engine/uirendering.h"
+#include "battlescenedata.h"
 
 class UIImage;
 class UIButtonBox;
@@ -61,9 +62,6 @@ public:
 		TERRAN_LOW,
 		TERRAN_MED,
 		TERRAN_HIGH,
-		ALIEN_8,
-		ALIEN_12,
-		ALIEN_16,
 		ALIEN_LOW,
 		ALIEN_MED,
 		ALIEN_HIGH,
@@ -80,19 +78,60 @@ public:
 		DSRT_DESTROYER,
 		CITY,
 		BATTLESHIP,
-		//ALIEN_BASE,
-		//TERRAN_BASE,
+		ALIEN_BASE,
+		TERRAN_BASE,
 
 		FIRST_SCENARIO = FARM_SCOUT,
-		LAST_SCENARIO = BATTLESHIP,
+		LAST_SCENARIO = TERRAN_BASE,
 
-		CIVS_PRESENT,
 		UFO_CRASH,
-
 		TOGGLE_COUNT,
 	};
 
+	static bool IsScoutScenario( int s ) {
+		GLASSERT( s >= FARM_SCOUT && s <= TERRAN_BASE );
+		return (s >= FARM_SCOUT && s < FARM_DESTROYER);
+	}
+	static bool IsFrigateScenario( int s ) {
+		GLASSERT( s >= FARM_SCOUT && s <= TERRAN_BASE );
+		return (s >= FARM_DESTROYER && s <= DSRT_DESTROYER);
+	}
+	static bool IsUFOScenario( int s ) {
+		GLASSERT( s >= FARM_SCOUT && s <= TERRAN_BASE );
+		return    ( s >= FARM_SCOUT && s < CITY )
+			   || ( s == BATTLESHIP );
+	}
+	static int CivsInScenario( int scenario ) {
+		GLASSERT( scenario != TacticalIntroScene::TERRAN_BASE );
+		int nCiv = 0;
+		
+		switch ( scenario ) {
+		case TacticalIntroScene::CITY:
+			nCiv = MAX_CIVS;
+			break;
+
+		case TacticalIntroScene::FARM_SCOUT:
+		case TacticalIntroScene::FARM_DESTROYER:
+			nCiv = MAX_CIVS * 2 / 3;
+			break;
+
+		case TacticalIntroScene::FRST_SCOUT:
+		case TacticalIntroScene::FRST_DESTROYER:
+			nCiv = MAX_CIVS / 2;
+			break;
+
+		default:
+			break;
+		}
+		GLASSERT( nCiv >= 0 && nCiv <= MAX_CIVS );
+		return nCiv;
+	}
+
 	struct SceneInfo {
+		SceneInfo( int _scenario, bool _crash, int _nCivs ) : scenario( _scenario ), crash( _crash ), nCivs( _nCivs ) {
+			if ( !SupportsCrash() )
+				crash = false;
+		}
 		int		scenario;		// FARM_SCOUT -> TERRAN_BASE
 		bool	crash;
 		int		nCivs;
@@ -109,47 +148,65 @@ public:
 		const char* Base() const;
 	};
 
-	void CreateMap( FILE* fp, 
-					int seed,
-					const SceneInfo& info );
+
+	static int RandomRank( grinliz::Random* random, float rank );
+
+	static void GenerateTerranTeam( Unit* units,				// target units to write
+									int count,
+									float averageLevel,
+									const ItemDefArr&,
+									int seed=0 );
+
+	static void GenerateAlienTeamUpper( int scenario,	
+										bool crash,
+										float rank,
+										Unit* units,
+										const ItemDefArr&,
+										int seed=0 );
+
+	static void GenerateAlienTeam(	Unit* units,				// target units to write
+									const int alienCount[],		// aliens per type
+									float averageLevel,
+									const ItemDefArr&,
+									int seed=0 );
+
+	static void GenerateCivTeam(	Unit* units,				// target units to write
+									int count,
+									const ItemDefArr&,
+									int seed=0 );
+
+	static void CreateMap(	FILE* fp, 
+							int seed,
+							const SceneInfo& info,
+							const gamedb::Reader* database );
+
+	static void WriteXML( FILE* fp, const BattleSceneData* data, const ItemDefArr&, const gamedb::Reader* database  );
 
 private:
-	void WriteXML( FILE* fp );
-	void FindNodes( const char* set,
-					int size,
-					const char* type,
-					const gamedb::Item* parent );
-
-	void AppendMapSnippet(	int x, int y, int tileRotation,
-							const char* set,
+	enum { MAX_ITEM_MATCH = 32 };
+	static void FindNodes(	const char* set,
 							int size,
-							bool crash,
 							const char* type,
 							const gamedb::Item* parent,
-							TiXmlElement* mapElement );
+							const gamedb::Item** itemMatch,
+							int *nMatch );
 
-	void GenerateTerranTeam( Unit* units,				// target units to write
-							int count,
-							int averageLevel,
-							int seed=0 );
-	void GenerateAlienTeam( Unit* units,				// target units to write
-							const int alienCount[],		// aliens per type
-							int averageLevel,
-							int seed=0 );
+	static void AppendMapSnippet(	int x, int y, int tileRotation,
+									const char* set,
+									int size,
+									bool crash,
+									const char* type,
+									const gamedb::Reader* database,
+									const gamedb::Item* parent,
+									TiXmlElement* mapElement,
+									int seed );
 
-	void GenerateCivTeam(	Unit* units,				// target units to write
-							int count,
-							int seed=0 );
-
-	enum { MAX_ITEM_MATCH = 32 };
-	const gamedb::Item* itemMatch[ MAX_ITEM_MATCH ];
-	int nItemMatch;
 	grinliz::Random random;
 
 	BackgroundUI		backgroundUI;
 	gamui::PushButton	continueButton, helpButton, goButton, infoButton;
-	gamui::PushButton	newTactical;	//, newGeo, newCampaign;
-	gamui::TextLabel	terranLabel, alienLabel, timeLabel, scenarioLabel, rowLabel[3];
+	gamui::PushButton	newTactical, newGeo, newCampaign, newGame;
+	gamui::TextLabel	terranLabel, alienLabel, timeLabel, scenarioLabel, rowLabel[3], newGameWarning;
 	gamui::ToggleButton	toggles[TOGGLE_COUNT], audioButton;
 };
 

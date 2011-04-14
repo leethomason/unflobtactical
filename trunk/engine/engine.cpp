@@ -126,25 +126,19 @@ using namespace grinliz;
 */
 
 
-Engine::Engine( Screenport* port, const EngineData& _engineData, const gamedb::Reader* database ) 
+Engine::Engine( Screenport* port, const gamedb::Reader* database ) 
 	:	AMBIENT( 0.3f ),
 		DIFFUSE( 0.8f ),
 		DIFFUSE_SHADOW( 0.2f ),
 		screenport( port ),
 		initZoomDistance( 0 ),
-		engineData( _engineData ),
-		enableMap( true )
+		map( 0 ),
+		iMap( 0 )
 {
 	spaceTree = new SpaceTree( -0.1f, 3.0f );
-	map = new Map( spaceTree );
 	renderQueue = new RenderQueue();
 
-	camera.SetViewRotation( screenport->Rotation() );
-	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)Map::SIZE + 5.0f );
-	camera.SetYRotation( -45.f );
-	camera.SetTilt( engineData.cameraTilt );
-
-	lightDirection.Set( 0.7f, 3.0f, 1.4f );
+	lightDirection.Set( EL_LIGHT_X, EL_LIGHT_Y, EL_LIGHT_Z );
 	lightDirection.Normalize();
 	enableMeta = mapMakerMode;
 }
@@ -153,7 +147,6 @@ Engine::Engine( Screenport* port, const EngineData& _engineData, const gamedb::R
 Engine::~Engine()
 {
 	delete renderQueue;
-	delete map;
 	delete spaceTree;
 }
 
@@ -161,34 +154,50 @@ Engine::~Engine()
 bool Engine::mapMakerMode = false;
 
 
-void Engine::MoveCameraHome()
-{
-	camera.SetPosWC( -5.0f, engineData.cameraHeight, (float)map->Height() + 5.0f );
-	camera.SetYRotation( -45.f );
-	camera.SetTilt( engineData.cameraTilt );
-}
-
-
-void Engine::CameraIso( bool normal )
+void Engine::CameraIso( bool normal, bool sizeToWidth, float width, float height )
 {
 	if ( normal ) {
 		camera.SetYRotation( -45.f );
-		camera.SetTilt( engineData.cameraTilt );
+		camera.SetTilt( -50.0f );
 		MoveCameraHome();
+		//camera.SetPosWC( 0, 10, 0 0 );
 	}
 	else {
-		// Hack to copy, from game.cpp
-		float fov = 20.f*(screenport->UIWidth()/screenport->UIHeight())*320.0f/480.0f;
-		float theta = fov * 0.5f;
+		float h = 0;
+		float theta = ToRadian( EL_FOV/2.0f );
+		float ratio = screenport->UIAspectRatio();
 
-		float size = (float)Max( map->Width(), map->Height() );
-		float pixels = size * 12.0f;
-		float h = pixels * 0.5f / acosf( ToRadian( theta ) );
-
+		if ( sizeToWidth ) {
+			h = (width) / tanf(theta);		
+		}
+		else {
+			h = (height/2) / (tanf(theta)*ratio);
+		}
 		camera.SetYRotation( 0 );
 		camera.SetTilt( -90.0f );
-		camera.SetPosWC( size/2, h, size/2 );
+		camera.SetPosWC( width/2.0f, h, height/2.0f );
 	}
+}
+
+
+void Engine::MoveCameraHome()
+{
+	camera.SetPosWC( EL_MAP_SIZE/2, 25.0f, EL_MAP_SIZE/2 );
+	camera.SetYRotation( -45.f );
+	camera.SetTilt( -50.0f );
+}
+
+
+void Engine::CameraLookAt( float x, float z, float heightOfCamera, float yRotation, float tilt )
+{
+	camera.SetPosWC( x, heightOfCamera, z );
+	camera.SetYRotation( yRotation );
+	camera.SetTilt( tilt );
+
+	Vector3F at;
+	CameraLookingAt( &at );
+	
+	camera.DeltaPosWC( x-at.x, 0, z-at.z );
 }
 
 
@@ -218,10 +227,18 @@ void Engine::MoveCameraXZ( float x, float z, Vector3F* calc )
 	}
 	else {
 		camera.SetPosWC( pos.x, pos.y, pos.z );
-		RestrictCamera();
 	}
 }
 
+
+void Engine::SetLightDirection( const grinliz::Vector3F* dir ) 
+{
+	lightDirection.Set( EL_LIGHT_X, EL_LIGHT_Y, EL_LIGHT_Z );
+	if ( dir ) {
+		lightDirection = *dir;
+	}
+	lightDirection.Normalize();
+}
 
 Model* Engine::AllocModel( const ModelResource* resource )
 {
@@ -248,8 +265,8 @@ void Engine::PushShadowSwizzleMatrix( GPUShader* shader )
 	//     =   0   0    0    0
 	//		
 	Matrix4 swizzle;
-	swizzle.m11 = 1.f/64.f;
-	swizzle.m22 = 0;	swizzle.m23 = -1.f/64.f;	swizzle.m24 = 1.0f;
+	swizzle.m11 = 1.f/((float)EL_MAP_SIZE);
+	swizzle.m22 = 0;	swizzle.m23 = -1.f/((float)EL_MAP_SIZE);	swizzle.m24 = 1.0f;
 	swizzle.m33 = 0.0f;
 
 	shader->PushTextureMatrix( 3 );
@@ -263,10 +280,17 @@ void Engine::PushShadowSwizzleMatrix( GPUShader* shader )
 
 void Engine::PushLightSwizzleMatrix( GPUShader* shader )
 {
+	GLASSERT( iMap );
+	float w, h, dx, dz;
+	iMap->LightFogMapParam( &w, &h, &dx, &dz );
+
 	Matrix4 swizzle;
-	swizzle.m11 = 1.f/64.f;
-	swizzle.m22 = 0;	swizzle.m23 = -1.f/64.f;	swizzle.m24 = 1.0f;
+	swizzle.m11 = 1.f/w;
+	swizzle.m22 = 0;	swizzle.m23 = -1.f/h;	swizzle.m24 = 1.0f;
 	swizzle.m33 = 0.0f;
+
+	swizzle.m14 = dx;
+	swizzle.m34 = dz;
 
 	shader->PushTextureMatrix( 2 );
 	shader->MultTextureMatrix( 2, swizzle );
@@ -275,8 +299,28 @@ void Engine::PushLightSwizzleMatrix( GPUShader* shader )
 
 void Engine::Draw()
 {
+	GRINLIZ_PERFTRACK;
+
 	// -------- Camera & Frustum -------- //
 	screenport->SetView( camera.ViewMatrix() );	// Draw the camera
+
+#ifdef DEBUG
+	{
+		Vector3F at;
+		CameraLookingAt( &at );
+		//GLOUTPUT(( "View set. Camera at (%.1f,%.1f,%.1f) looking at (%.1f,%.1f,%.1f)\n",
+		//	camera.PosWC().x, camera.PosWC().y, camera.PosWC().z,
+		//	at.x, at.y, at.z ));
+		if ( map ) {
+			Rectangle2I b = map->Bounds();
+			b.Outset( 2 );
+			if ( !b.Contains( (int)at.x, (int)at.z ) ) {
+				GLASSERT( 0 );	// looking at nothing.
+			}
+		}
+	}
+#endif
+				
 
 	// Compute the frustum planes and query the tree.
 	Plane planes[6];
@@ -292,7 +336,7 @@ void Engine::Draw()
 	
 	Color4F ambient, diffuse;
 	Vector4F dir;
-	CalcLights( map->DayTime() ? DAY_TIME : NIGHT_TIME, &ambient, &dir, &diffuse );
+	CalcLights( ( !map || map->DayTime() ) ? DAY_TIME : NIGHT_TIME, &ambient, &dir, &diffuse );
 
 	LightShader lightShader( ambient, dir, diffuse, false, false );
 	LightShader blendLightShader( ambient, dir, diffuse, false, true );	// Some tiles use alpha - for instance the "splat" image
@@ -300,15 +344,16 @@ void Engine::Draw()
 	LightShader mapItemShader( ambient, dir, diffuse, false, false );
 	LightShader mapBlendItemShader( ambient, dir, diffuse, false, true );
 
-	Rectangle2I mapBounds = map->Bounds();
-	
+	Rectangle2I mapBounds;
+	mapBounds.Set( 0, 0, EL_MAP_SIZE, EL_MAP_SIZE );
+	if ( map ) {
+		mapBounds = map->Bounds();
+	}
 
 	// ------------ Process the models into the render queue -----------
 	{
-		GRINLIZ_PERFTRACK_NAME( "Engine::Draw Models" );
-
 		GLASSERT( renderQueue->Empty() );
-		const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& fogOfWar = map->GetFogOfWar();
+		const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fogOfWar = (map) ? &map->GetFogOfWar() : 0;
 
 		for( Model* model=modelRoot; model; model=model->next ) {
 			if ( model->IsFlagSet( Model::MODEL_METADATA ) && !enableMeta )
@@ -325,7 +370,7 @@ void Engine::Draw()
 				int x = LRintf( pos.x - 0.5f );
 				int y = LRintf( pos.z - 0.5f );
 
-				if ( mapBounds.Contains( x, y ) && fogOfWar.IsSet( x, y ) ) {
+				if ( mapBounds.Contains( x, y ) && (!fogOfWar || fogOfWar->IsSet( x, y ) ) ) {
 					model->Queue( renderQueue, &lightShader, &blendLightShader, 0 );
 				}
 			}
@@ -336,8 +381,7 @@ void Engine::Draw()
 	// ----------- Render Passess ---------- //
 	Color4F color;
 
-	if ( enableMap ) {
-		GRINLIZ_PERFTRACK_NAME( "Engine::Draw Map" );
+	if ( map ) {
 		// If the map is enabled, we draw the basic map plane lighted. Then draw the model shadows.
 		// The shadows are the tricky part: one matrix is used to transform the vertices to the ground
 		// plane, and the other matrix is used to transform the vertices to texture coordinates.
@@ -418,9 +462,9 @@ void Engine::Draw()
 	// -------- Models ---------- //
 #ifdef ENGINE_RENDER_MODELS
 	{
-		{
-			mapItemShader.SetTexture1( map->LightFogMapTexture() );
-			mapBlendItemShader.SetTexture1( map->LightFogMapTexture() );
+		if ( iMap ) {
+			mapItemShader.SetTexture1( iMap->LightFogMapTexture() );
+			mapBlendItemShader.SetTexture1( iMap->LightFogMapTexture() );
 			
 			PushLightSwizzleMatrix( &mapItemShader );
 
@@ -440,16 +484,14 @@ void Engine::Draw()
 #endif
 			lightShader.PopTextureMatrix( 2 );
 		}
-		{
-			renderQueue->Submit( 0, 0, 0, Model::MODEL_OWNED_BY_MAP );
-		}
+		// Render everything NOT in the map.
+		renderQueue->Submit( 0, 0, 0, Model::MODEL_OWNED_BY_MAP );
 	}
 #endif
 
-	map->DrawOverlay( Map::LAYER_OVER );
+	if ( map )
+		map->DrawOverlay( Map::LAYER_OVER );
 	renderQueue->Clear();
-
-	//spaceTree->Dump();
 }
 
 
@@ -599,8 +641,8 @@ void Engine::SetZoom( float z )
 //	float startY = camera.PosWC().y;
 
 	z = Clamp( z, GAME_ZOOM_MIN, GAME_ZOOM_MAX );
-	float d = Interpolate(	GAME_ZOOM_MIN, engineData.cameraMin,
-							GAME_ZOOM_MAX, engineData.cameraMax,
+	float d = Interpolate(	GAME_ZOOM_MIN, EL_CAMERA_MIN,
+							GAME_ZOOM_MAX, EL_CAMERA_MAX,
 							z );
 
 	const Vector3F* eyeDir = camera.EyeDir3();
@@ -621,8 +663,8 @@ void Engine::SetZoom( float z )
 
 float Engine::GetZoom() 
 {
-	float z = Interpolate(	engineData.cameraMin, GAME_ZOOM_MIN,
-							engineData.cameraMax, GAME_ZOOM_MAX,
+	float z = Interpolate(	EL_CAMERA_MIN, GAME_ZOOM_MIN,
+							EL_CAMERA_MAX, GAME_ZOOM_MAX,
 							camera.PosWC().y );
 	return z;
 }

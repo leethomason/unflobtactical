@@ -42,16 +42,33 @@ int Inventory::CalcClipRoundsTotal( const ClipItemDef* cid ) const
 void Inventory::UseClipRound( const ClipItemDef* cid )
 {
 	for( int i=0; i<NUM_SLOTS; ++i ) {
-		if ( slots[i].IsSomething() && slots[i].IsClip() && slots[i].IsClip() == cid ) {
+		if (    slots[i].IsSomething() 
+			 && slots[i].IsClip() 
+			 && slots[i].IsClip() == cid
+			 && slots[i].Rounds() > 0 ) 
+		{
 			slots[i].UseRounds( 1 );
-			if ( slots[i].Rounds() == 0 ) {
-				// clip is consumed.
-				slots[i].Clear();
-			}
+//			if ( slots[i].Rounds() == 0 ) {
+//				// clip is consumed.
+//				slots[i].Clear();
+//			}
 			return;
 		}
 	}
 	GLASSERT( 0 );
+}
+
+
+void Inventory::RestoreClips()
+{
+	for( int i=0; i<NUM_SLOTS; ++i ) {
+		if (    slots[i].IsSomething() 
+			 && slots[i].IsClip() )
+		{
+			Item item( slots[i].GetItemDef() );
+			slots[i] = item;
+		}
+	}
 }
 
 
@@ -139,6 +156,19 @@ bool Inventory::RemoveItem( int slot )
 		return true;
 	}
 	return false;
+}
+
+
+void Inventory::ClearItem( const char* name )
+{
+	for( int i=0; i<NUM_SLOTS; ++i ) {
+		if ( slots[i].IsSomething() ) {
+			const ItemDef* itemDef = slots[i].GetItemDef();
+			if ( StrEqual( name, itemDef->name ) ) {
+				slots[i].Clear();
+			}
+		}
+	}
 }
 
 
@@ -250,7 +280,7 @@ void Inventory::GetDamageReduction( DamageDesc* dd )
 		if ( e )
 			dd->energy -= ARM_EXTRA;
 		if ( i )
-			dd->incind -= ARM_EXTRA;
+			dd->incend -= ARM_EXTRA;
 	}
 }
 
@@ -266,7 +296,7 @@ void Inventory::Save( FILE* fp, int depth ) const
 }
 
 
-void Inventory::Load( const TiXmlElement* parent, Engine* engine, Game* game )
+void Inventory::Load( const TiXmlElement* parent, const ItemDefArr& arr )
 {
 	const TiXmlElement* ele = parent->FirstChildElement( "Inventory" );
 	int count = 0;
@@ -276,7 +306,7 @@ void Inventory::Load( const TiXmlElement* parent, Engine* engine, Game* game )
 			 slot = slot->NextSiblingElement( "Item" ) )
 		{
 			Item item;
-			item.Load( slot, game->GetItemDefArr() );
+			item.Load( slot, arr );
 			AddItem( item );
 			++count;
 		}

@@ -56,12 +56,12 @@ static const int SCREEN_HEIGHT = IPOD_SCREEN_HEIGHT*2;
 static const int SCREEN_WIDTH  = IPOD_SCREEN_WIDTH;
 static const int SCREEN_HEIGHT = IPOD_SCREEN_HEIGHT;
 #endif
-#if 0
+#if 1
 // A default screenshot size for market.
 static const int SCREEN_WIDTH  = NEXUS_ONE_SCREEN_WIDTH;
 static const int SCREEN_HEIGHT = NEXUS_ONE_SCREEN_HEIGHT;
 #endif
-#if 1
+#if 0
 // used in "how to play" and the source code web pages
 static const int SCREEN_WIDTH = 384;
 static const int SCREEN_HEIGHT = 640;
@@ -190,6 +190,13 @@ int main( int argc, char **argv )
 	screenHeight = SCREEN_WIDTH;
 #endif
 
+	if ( argc == 3 ) {
+		screenWidth = atoi( argv[1] );
+		screenHeight = atoi( argv[2] );
+		if ( screenWidth <= 0 ) screenWidth = IPOD_SCREEN_WIDTH;
+		if ( screenHeight <= 0 ) screenHeight = IPOD_SCREEN_HEIGHT;
+	}
+
 	// Note that our output surface is rotated from the iPod.
 	//surface = SDL_SetVideoMode( IPOD_SCREEN_HEIGHT, IPOD_SCREEN_WIDTH, 32, videoFlags );
 	surface = SDL_SetVideoMode( screenWidth, screenHeight, 32, videoFlags );
@@ -239,7 +246,7 @@ int main( int argc, char **argv )
 	void* game = 0;
 	bool mapMakerMode = false;
 
-	if ( argc > 1 ) {
+	if ( argc > 3 ) {
 		// -- MapMaker -- //
 		Engine::mapMakerMode = true;
 
@@ -427,7 +434,7 @@ int main( int argc, char **argv )
 					case SDLK_o:
 						if ( mapMakerMode ) {
 							cameraIso = !cameraIso;
-							((Game*)game)->engine->CameraIso( cameraIso );
+							((Game*)game)->engine->CameraIso( cameraIso, true, (float)((Game*)game)->engine->GetMap()->Width(), (float)((Game*)game)->engine->GetMap()->Height() );
 						}
 						break;
 

@@ -19,6 +19,9 @@
     <Filter Include="scenes">
       <UniqueIdentifier>{694fdd82-1060-46b8-9638-f4a00bbe4889}</UniqueIdentifier>
     </Filter>
+    <Filter Include="widgets">
+      <UniqueIdentifier>{d18fff9f-1852-4e7e-9b61-0e40e898c33f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="game\ai.cpp">
@@ -46,9 +49,6 @@
       <Filter>game</Filter>
     </ClCompile>
     <ClCompile Include="game\stats.cpp">
-      <Filter>game</Filter>
-    </ClCompile>
-    <ClCompile Include="game\storageWidget.cpp">
       <Filter>game</Filter>
     </ClCompile>
     <ClCompile Include="game\unit.cpp">
@@ -135,9 +135,6 @@
     <ClCompile Include="engine\gpustatemanager.cpp">
       <Filter>engine</Filter>
     </ClCompile>
-    <ClCompile Include="game\inventoryWidget.cpp">
-      <Filter>game</Filter>
-    </ClCompile>
     <ClCompile Include="game\battlescene.cpp">
       <Filter>scenes</Filter>
     </ClCompile>
@@ -163,6 +160,48 @@
       <Filter>game</Filter>
     </ClCompile>
     <ClCompile Include="game\battlevisibility.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="game\tacmap.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\geoscene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="game\inventoryWidget.cpp">
+      <Filter>widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="game\storageWidget.cpp">
+      <Filter>widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="game\areaWidget.cpp">
+      <Filter>widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="game\geomap.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="game\geoai.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\geoendscene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="game\chits.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\basetradescene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="game\buildbasescene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="game\fastbattlescene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="game\research.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\researchscene.cpp">
       <Filter>scenes</Filter>
     </ClCompile>
   </ItemGroup>
@@ -192,9 +231,6 @@
       <Filter>game</Filter>
     </ClInclude>
     <ClInclude Include="game\stats.h">
-      <Filter>game</Filter>
-    </ClInclude>
-    <ClInclude Include="game\storageWidget.h">
       <Filter>game</Filter>
     </ClInclude>
     <ClInclude Include="game\targets.h">
@@ -290,9 +326,6 @@
     <ClInclude Include="engine\gpustatemanager.h">
       <Filter>engine</Filter>
     </ClInclude>
-    <ClInclude Include="game\inventoryWidget.h">
-      <Filter>game</Filter>
-    </ClInclude>
     <ClInclude Include="game\battlescene.h">
       <Filter>scenes</Filter>
     </ClInclude>
@@ -318,6 +351,51 @@
       <Filter>game</Filter>
     </ClInclude>
     <ClInclude Include="game\battlevisibility.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\tacmap.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\geoscene.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\inventoryWidget.h">
+      <Filter>widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="game\storageWidget.h">
+      <Filter>widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="game\areaWidget.h">
+      <Filter>widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="game\geomap.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\geoai.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\geoendscene.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\chits.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\basetradescene.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\buildbasescene.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\fastbattlescene.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\research.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\researchscene.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\battlescenedata.h">
       <Filter>scenes</Filter>
     </ClInclude>
   </ItemGroup>

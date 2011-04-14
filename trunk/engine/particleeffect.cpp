@@ -283,50 +283,103 @@ const char* SmokeTrailEffect::Name()
 	return "SmokeTrailEffect";
 }
 
-/*
-SustainedPyroEffect::SustainedPyroEffect( ParticleSystem* system ) : ParticleEffect( system )
+
+RingEffect::RingEffect( ParticleSystem* system ) : ParticleEffect( system )
 {
 	Clear();
 }
 
 
-void SustainedPyroEffect::Init( const grinliz::Vector3F& p )
+void RingEffect::Clear()
 {
-	pos = p;
+	p0.Set( 0, 0, 0 );
+	radius = 1.0f;
+	color.Set( 1, 1, 1, 1 );
+	count = 1;
+	done = true;
+
+	quads.Clear();
+	index.Clear();
 }
 
 
-void SustainedPyroEffect::Clear()
+void RingEffect::Init(	const grinliz::Vector3F& origin,
+						float radius,
+						float halfSize,
+						int count )
 {
-	pos.Set( 0, 0, 0 );
-	useFire = true;
+	p0 = origin;
+	this->radius = radius;
+	this->count = count;
+
 	done = false;
+
+	for( int i=0; i<count; ++i ) {
+		float theta = TWO_PI * (float)i / (float)count;
+		float x = cosf( theta )*radius + origin.x;
+		float z = sinf( theta )*radius + origin.z;
+
+		int base = quads.Size();
+		RingVertex* vertex = quads.Push();
+		vertex->pos.Set( x-halfSize, p0.y, z-halfSize );
+		vertex->tex.Set( 0, 0 );
+
+		vertex = quads.Push();
+		vertex->pos.Set( x+halfSize, p0.y, z-halfSize );
+		vertex->tex.Set( 1, 0 );
+
+		vertex = quads.Push();
+		vertex->pos.Set( x+halfSize, p0.y, z+halfSize );
+		vertex->tex.Set( 1, 1 );
+
+		vertex = quads.Push();
+		vertex->pos.Set( x-halfSize, p0.y, z+halfSize );
+		vertex->tex.Set( 0, 1 );
+
+		U16* idx = index.PushArr( 6 );
+		idx[0] = base+0;
+		idx[1] = base+2;
+		idx[2] = base+1;
+		idx[3] = base+0;
+		idx[4] = base+3;
+		idx[5] = base+2;
+	}
 }
 
 
-void SustainedPyroEffect::DoTick( U32 time, U32 delta )
-{
-	if ( useFire ) 
-		particleSystem->EmitFlame( delta, pos );
-	else
-		particleSystem->EmitSmoke( delta, pos );
-}	
-
-
-U32 SustainedPyroEffect::CalcDuration()
-{
-	return (U32)(-1);
-}
-
-
-const char* SustainedPyroEffect::Name()
-{
-	return "SustainedPyroEffect";
-}
-
-
-bool SustainedPyroEffect::Done()
+bool RingEffect::Done()
 {
 	return done;
 }
-*/
+
+void RingEffect::DoTick( U32 time, U32 deltaTime )
+{
+}
+
+
+const char* RingEffect::Name()
+{
+	return "RingEffect";
+}
+
+
+void RingEffect::Draw( const Vector3F* eyeDir )
+{
+	if ( !done && !quads.Empty() && !index.Empty() ) 
+	{
+		QuadParticleShader shader;
+		GPUShader::Stream stream;
+
+		stream.stride = sizeof( RingVertex );
+		stream.nPos = 3;
+		stream.posOffset = 0;
+		stream.nTexture0 = 2;
+		stream.texture0Offset = 12;
+
+		shader.SetColor( color.x, color.y, color.z, color.w );
+		shader.SetTexture0( TextureManager::Instance()->GetTexture( "particleSparkle" ) );
+
+		shader.SetStream( stream, quads.Mem(), index.Size(), index.Mem() );
+		shader.Draw();
+	}
+}

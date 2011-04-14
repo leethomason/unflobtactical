@@ -249,6 +249,43 @@ void PutPixel(SDL_Surface *surface, int x, int y, U32 pixel)
 }
 
 
+void ProcessTreeRec( gamedb::WItem* parent, TiXmlElement* ele )
+{
+	string name = ele->ValueStr();
+	gamedb::WItem* witem = parent->CreateChild( name.c_str() );
+
+	for( TiXmlAttribute* attrib=ele->FirstAttribute(); attrib; attrib=attrib->Next() ) {		
+		int i;
+
+		if ( TIXML_SUCCESS == attrib->QueryIntValue( &i ) ) {
+			witem->SetInt( attrib->Name(), i );
+		}
+		else {
+			witem->SetString( attrib->Name(), attrib->Value() );
+		}
+	}
+
+	if ( ele->GetText() ) {
+		witem->SetData( "text", ele->GetText(), strlen( ele->GetText() ) );
+	}
+
+	for( TiXmlElement* child=ele->FirstChildElement(); child; child=child->NextSiblingElement() ) {
+		ProcessTreeRec( witem, child );
+	}
+}
+
+
+void ProcessTree( TiXmlElement* data )
+{
+	// Create the root tree "research"
+	gamedb::WItem* witem = writer->Root()->FetchChild( "tree" );
+	if ( data->FirstChildElement() )
+		ProcessTreeRec( witem, data->FirstChildElement() );
+}
+
+
+
+
 void ProcessData( TiXmlElement* data )
 {
 	bool compression = true;
@@ -668,6 +705,10 @@ void ProcessTexture( TiXmlElement* texture )
 		exit( 1 );
 	}
 	else {
+//		if ( !IsPowerOf2( surface->w ) || !IsPowerOf2( surface->h ) ) {
+//			printf( "**Surface %s must be power of 2. w=%d h=%d\n", fullIn.c_str(), surface->w, surface->h );
+//			exit( 1 );
+//		}
 		printf( "  Loaded: '%s' bpp=%d", 
 				name.c_str(),
 				surface->format->BitsPerPixel );
@@ -860,12 +901,14 @@ int main( int argc, char* argv[] )
 		else if ( child->ValueStr() == "model" ) {
 			ProcessModel( child );
 		}
-		else if (	 child->ValueStr() == "map" 
-			      || child->ValueStr() == "data" ) {
+		else if ( child->ValueStr() == "data" ) {
 			ProcessData( child );
 		}
 		else if ( child->ValueStr() == "text" ) {
 			ProcessText( child );
+		}
+		else if ( child->ValueStr() == "tree" ) {
+			ProcessTree( child );
 		}
 		else {
 			printf( "Unrecognized element: %s\n", child->Value() );

@@ -36,6 +36,8 @@ public:
 	HelpScene( Game* _game, const HelpSceneData* helpName );
 	virtual ~HelpScene();
 
+	virtual void Activate();
+
 	// UI
 	virtual void Tap(	int count, 
 						const grinliz::Vector2F& screen,
@@ -49,6 +51,7 @@ public:
 		return RENDER_2D;
 	}	
 	virtual void DrawHUD();
+	virtual void HandleHotKeyMask( int mask );
 
 private:
 	enum {	NUM_BUTTONS = 3,

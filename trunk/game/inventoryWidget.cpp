@@ -1,6 +1,7 @@
 #include "inventoryWidget.h"
 #include "../engine/uirendering.h"
 #include "../grinliz/glstringutil.h"
+#include "unit.h"
 
 using namespace grinliz;
 using namespace gamui;
@@ -9,11 +10,12 @@ using namespace gamui;
 InventoryWidget::InventoryWidget(	gamui::Gamui* g,
 									const gamui::ButtonLook& carriedLook,
 									const gamui::ButtonLook& packLook,
-									Inventory* inventory )
+									Unit* unit )
 {
 	gamui = g;
 	pos.Set( 0, 0 );
-	this->inventory = inventory;
+	//this->inventory = inventory;
+	this->unit = unit;
 
 	for( int i=PACK_START; i<PACK_END; ++i ) {
 		button[i].Init( g, packLook );
@@ -25,7 +27,10 @@ InventoryWidget::InventoryWidget(	gamui::Gamui* g,
 	//descriptionLabel.Init( g );
 	description.Init( g );
 
-	text0.SetText( "In use:" );
+	nameRankUI.Init( g );
+	nameRankUI.Set( pos.x, pos.y, unit, false );
+
+	//text0.SetText( "In use:" );
 	text1.SetText( "Pack:" );
 	//descriptionLabel.SetText( "Armed Weapon:" );
 
@@ -89,11 +94,19 @@ int InventoryWidget::UIItemToIndex( const UIItem* item )
 }
 
 
-void InventoryWidget::Update()
+void InventoryWidget::Update( Unit* _unit )
 {
+	if ( _unit ) {
+		this->unit = _unit;
+		nameRankUI.Set( pos.x, pos.y, _unit, false );
+	}
+
+	GLASSERT( unit );
+
 	// armor
 	const gamui::RenderAtom& atomEmptyArmor  = UIRenderer::CalcDecoAtom( DECO_ARMOR, false );
 	const gamui::RenderAtom& atomEmptyWeapon = UIRenderer::CalcDecoAtom( DECO_PISTOL, false );
+	Inventory* inventory = unit->GetInventory();
 
 	for( int i=0; i<NUM_BUTTONS; ++i ) {
 		const Item& item = inventory->GetItem( i );
@@ -179,6 +192,7 @@ void InventoryWidget::Tap( const gamui::UIItem* item, int* move )
 	const UIItem* g0;
 	const UIItem* g1;
 	gamui->GetDragPair( &g0, &g1 );
+	Inventory* inventory = unit->GetInventory();
 
 	int start = UIItemToIndex( g0 );
 	int end = UIItemToIndex( g1 );
@@ -212,6 +226,7 @@ void InventoryWidget::TapMove( const grinliz::Vector2F& ui )
 {
 	const UIItem* capture = gamui->TapCaptured();
 	int index = UIItemToIndex( capture );
+	Inventory* inventory = unit->GetInventory();
 
 	if ( index >= 0 ) {
 		dragIndex = index;

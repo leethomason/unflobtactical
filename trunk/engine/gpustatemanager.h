@@ -190,6 +190,11 @@ public:
 	void SetColor( float r, float g, float b )				{ color.x = r; color.y = g; color.z = b; color.w = 1; }
 	void SetColor( float r, float g, float b, float a )		{ color.x = r; color.y = g; color.z = b; color.w = a; }
 	void SetColor( const Color4F& c )						{ color = c; }
+	void SetColor( const Color4U& color ) {
+		static const float INV = 1.0f/255.0f;
+		Color4F c = { (float)color.x*INV, (float)color.y*INV, (float)color.z*INV, (float)color.w*INV };
+		SetColor( c );
+	}
 
 	void PushMatrix( MatrixType type );
 	void MultMatrix( MatrixType type, const grinliz::Matrix4& m );
@@ -203,6 +208,8 @@ public:
 	void PopTextureMatrix( int mask );
 
 	void Draw();
+
+	void Debug_DrawQuad( const grinliz::Vector3F p0, const grinliz::Vector3F p1 );
 
 	int SortOrder()	const { 
 		if ( blend ) return 2;

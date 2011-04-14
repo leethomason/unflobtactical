@@ -19,6 +19,7 @@
 #include "../gamui/gamui.h"
 #include "gpustatemanager.h"
 
+class Screenport;
 
 enum {
 	ICON_GREEN_BUTTON		= 0,
@@ -47,6 +48,7 @@ enum {
 	ICON_TARGET_POINTER		= 20,
 	ICON_STAND_HIGHLIGHT	= 21,
 	ICON_ALIEN_TARGETS		= 22,
+	ICON_LEVEL_UP			= 23,
 
 	ICON_GREEN_WALK_MARK	= 24,
 	ICON_YELLOW_WALK_MARK	= 25,
@@ -58,6 +60,16 @@ enum {
 	ICON_RANK_3				= 30,
 	ICON_RANK_4				= 31,
 
+	ICON2_UFO_CROP_CIRCLING		= 0,
+	ICON2_UFO_CITY_ATTACKING	= 1,
+	ICON2_UFO_OCCUPYING			= 2,
+	ICON2_CAP					= 12,
+	ICON2_MIL					= 13,
+	ICON2_SCI					= 14,
+	ICON2_NAT					= 15,
+	ICON2_TEC					= 8,
+	ICON2_MAN					= 9,
+
 	DECO_CHARACTER		= 0,
 	DECO_PISTOL			= 1,
 	DECO_RIFLE			= 2,
@@ -68,10 +80,8 @@ enum {
 	DECO_INFO			= 7,
 
 	DECO_AIMED			= 8,
-	DECO_AUTO			= 9,
-	DECO_SNAP			= 10,
-	DECO_MEDKIT			= 11,
-	DECO_KNIFE			= 12,
+	DECO_BASE			= 9,
+	DECO_RESEARCH		= 10,
 	DECO_ALIEN			= 13,
 	DECO_ARMOR			= 14,
 	DECO_BOOM			= 15,
@@ -79,7 +89,6 @@ enum {
 	DECO_METAL			= 16,
 	DECO_TECH			= 17,
 	DECO_FUEL			= 18,
-	DECO_SWAP			= 19,
 	DECO_HELP			= 20,
 	DECO_LAUNCH			= 21,
 	DECO_END_TURN		= 22,
@@ -94,6 +103,9 @@ enum {
 	DECO_MUTE			= 30,
 
 	DECO_NONE			= 31,
+
+	CROP_CIRCLES_X		= 2,
+	CROP_CIRCLES_Y		= 2,
 };
 
 
@@ -126,6 +138,9 @@ public:
 	static gamui::RenderAtom CalcDecoAtom( int id, bool enabled=true );
 	static gamui::RenderAtom CalcParticleAtom( int id, bool enabled=true );
 	static gamui::RenderAtom CalcIconAtom( int id, bool enabled=true );
+	static gamui::RenderAtom CalcIcon2Atom( int id, bool enabled=true );
+
+	static void LayoutListOnScreen( gamui::UIItem* items, int nItems, int stride, float x, float y, float vSpace, const Screenport& port );
 
 	enum {
 		PALETTE_GREEN, PALETTE_BLUE, PALETTE_RED, PALETTE_YELLOW, PALETTE_GREY,

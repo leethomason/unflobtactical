@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="com.grinninglizard.UFOAttack" android:installLocation="auto" android:versionName="1.01" android:versionCode="2">
-    <application android:label="Xenowar" android:icon="@drawable/androidicon48" android:debuggable="false">
+      package="com.grinninglizard.UFOAttack" android:installLocation="auto" android:versionCode="1" android:versionName="1.0">
+    <application android:label="Xenowar" android:icon="@drawable/androidicon48" android:debuggable="true">
         <activity android:name=".UFOActivity" android:label="Xenowar" android:screenOrientation="portrait" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -9,7 +9,7 @@
             </intent-filter>
         </activity>
     </application>
-    <uses-sdk android:targetSdkVersion="8" android:minSdkVersion="8"/>
+    <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7"/>
     <uses-feature android:glEsVersion="0x00010001" />
   
 <uses-permission android:name="android.permission.INTERNET"></uses-permission>
