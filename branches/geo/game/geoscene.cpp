@@ -1685,7 +1685,7 @@ void GeoScene::CalcTimeState( U32 msec, TimeState* state )
 	// Times in seconds.
 	const static U32 FIRST_UFO      = 10 *SECOND;
 	const static U32 TIME_BETWEEN_0	= 20 *SECOND;
-	const static U32 TIME_BETWEEN_1 = 5  *SECOND;
+	const static U32 TIME_BETWEEN_1 = 10  *SECOND;
 
 	const static U32 DESTROYER0		= 2  *MINUTE;
 	const static U32 DESTROYER1		= 5  *MINUTE;

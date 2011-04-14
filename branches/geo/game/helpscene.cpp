@@ -158,3 +158,15 @@ void HelpScene::Tap( int action, const grinliz::Vector2F& screen, const grinliz:
 	}
 	Layout();
 }
+
+
+void HelpScene::HandleHotKeyMask( int mask )
+{
+	if ( mask == GAME_HK_NEXT_UNIT  ) {
+		++currentScreen;
+	}
+	else if ( mask == GAME_HK_PREV_UNIT ) {
+		--currentScreen;
+	}
+	Layout();
+}
