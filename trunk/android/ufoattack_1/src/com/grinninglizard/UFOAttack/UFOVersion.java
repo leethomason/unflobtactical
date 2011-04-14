@@ -1,4 +1,4 @@
 package com.grinninglizard.UFOAttack; 
 public class UFOVersion { 
-public static final int VERSION=635; 
+public static final int VERSION=642; 
 } 
