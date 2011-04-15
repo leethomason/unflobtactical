@@ -300,8 +300,11 @@ void Game::PushPopScene()
 	if (    sceneQueued.sceneID == NUM_SCENES 
 		 && sceneStack.Empty() ) 
 	{
+		// Unwind and full reset.
 		delete engine;
 		engine = new Engine( &screenport, database );
+		DeleteSaveFile( SAVEPATH_GEO );
+		DeleteSaveFile( SAVEPATH_TACTICAL );
 
 		PushScene( INTRO_SCENE, 0 );
 		PushPopScene();
