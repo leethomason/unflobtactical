@@ -1,4 +1,4 @@
-#summary How to Build Xenowar
+#summary How to Build Xenowar from source code
 
 = Introduction =
 
