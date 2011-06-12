@@ -441,14 +441,11 @@ void BattleScene::Save( FILE* fp, int depth )
 {
 	XMLUtil::OpenElement( fp, depth, "BattleScene" );
 	XMLUtil::Attribute( fp, "currentTeamTurn", currentTeamTurn );
-	//XMLUtil::Attribute( fp, "dayTime", tacMap->DayTime() ? 1 : 0 );
 	XMLUtil::Attribute( fp, "turnCount", turnCount );
-	//XMLUtil::Attribute( fp, "scenario", scenario );
 	XMLUtil::SealElement( fp );
 
 	tacMap->Save( fp, depth+1 );
 	game->battleData.Save( fp, depth+1 );
-	//XMLUtil::CloseElement( fp, depth+1, "Units" );
 	XMLUtil::CloseElement( fp, depth, "BattleScene" );
 }
 
@@ -2587,6 +2584,7 @@ void BattleScene::MakePathBlockCurrent( Map* map, const void* user )
 	// Checks for equality before the reset.
 	map->SetPathBlocks( block );
 }
+
 
 Unit* BattleScene::UnitFromModel( const Model* m, bool useWeaponModel )
 {

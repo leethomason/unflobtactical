@@ -1711,6 +1711,12 @@ int Map::SolvePath( const void* user, const Vector2<S16>& start, const Vector2<S
 	if ( pathBlocker ) {
 		pathBlocker->MakePathBlockCurrent( this, user );
 	}
+
+	// FIXME: optimization
+	// check that dest isn't path blocked
+	// check that dest is surrounded by path blocks / blocks
+	// check that start isn't surrounded by path blocks / blocks
+
 	int result = microPather->Solve(	VecToState( start ),
 										VecToState( end ),
 										reinterpret_cast< MP_VECTOR<void*>* >( path ),		// sleazy trick if void* is the same size as V2<S16>

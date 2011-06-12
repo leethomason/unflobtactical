@@ -348,9 +348,26 @@ class UFORenderer implements GLSurfaceView.Renderer {
     	if ( HasContext() )
     		nativeResize(w, h);
     }
+    
+    private long startTime = 0;
+    private static long FRAME_TIME = 33;	// 30 fps
 
     public void onDrawFrame(GL10 gl) 
     {
+    	// Implements a frame cap at ~30 fps. Since this isn't done
+    	// by the OS (that API seems to be missing) it isn't super
+    	// stable.
+    	long endTime = System.currentTimeMillis();
+    	long dt = endTime - startTime;
+    	if ( dt < FRAME_TIME ) {
+    		try {
+				Thread.sleep( FRAME_TIME-dt );
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+    	}
+    	startTime = System.currentTimeMillis();
+    	
     	//Log.v("UFOJAVA", "onDrawFrame");
     	if ( HasContext() )
     		nativeRender();
