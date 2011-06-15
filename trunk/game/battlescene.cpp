@@ -164,6 +164,11 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		controlButton[2].SetPos( port.UIWidth()-SIZE*2.f, port.UIHeight()-SIZE );
 		controlButton[3].SetPos( port.UIWidth()-SIZE*1.f, port.UIHeight()-SIZE );
 
+		orbitButton.Init( &gamui2D, green );
+		orbitButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_ORBIT, true ), UIRenderer::CalcDecoAtom( DECO_ORBIT, false ) );
+		orbitButton.SetSize( SIZE, SIZE );
+		orbitButton.SetPos( controlButton[NEXT_BUTTON].X(), controlButton[NEXT_BUTTON].Y()-SIZE );
+
 		RenderAtom menuImageAtom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)TextureManager::Instance()->GetTexture( "commandBarV" ), 0, 0, 1, 1, 50, 320 );
 		menuImage.Init( &gamui2D, menuImageAtom, false );
 
@@ -2708,13 +2713,14 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 
 			Ray ray;
 			engine->GetScreenport().ViewProjectionInverse3D( &dragMVPI );
-			engine->RayFromViewToYPlane( view, dragMVPI, &ray, &dragStart );
+			engine->RayFromViewToYPlane( view, dragMVPI, &ray, &dragStart3D );
 			dragStartCameraWC = engine->camera.PosWC();
-			dragEnd = dragStart;
+			dragEnd3D = dragStart3D;
+			dragEndUI = dragStartUI = ui;
 
 			// Drag a unit or drag the camera?
 			if ( uiActivated && !panning ) {
-				Vector2I mapPos = { (int)dragStart.x, (int)dragStart.z };
+				Vector2I mapPos = { (int)dragStart3D.x, (int)dragStart3D.z };
 				for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 					if ( units[i].IsAlive() && ( mapPos == units[i].MapPos() ) ) {
 						dragUnit = units + i;
@@ -2735,6 +2741,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 		{
 			GLASSERT( isDragging );
 			if ( dragUnit ) {
+				// Dragging unit (NOT world)
 				Matrix4 mvpi;
 				Ray ray;
 				Vector3F intersection;
@@ -2781,19 +2788,29 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 				dragBar[1].SetVisible( visible );
 			}
 			else {
-				Ray ray;
-				Vector3F drag;
-				engine->RayFromViewToYPlane( view, dragMVPI, &ray, &drag );
+				// Dragging world (NOT unit)
+				if ( orbitButton.Down() ) {
+					Vector2F delta = ui - dragEndUI;
+					dragEndUI = ui;
 
-				Vector3F delta = drag - dragStart;
-				delta.y = 0;
-				drag.y = 0;
+					engine->camera.Orbit( delta.x*1.f );
+					this->Zoom( GAME_ZOOM_DISTANCE, delta.y*0.006f );
+				}
+				else {
+					Ray ray;
+					Vector3F drag;
+					engine->RayFromViewToYPlane( view, dragMVPI, &ray, &drag );
 
-				dragLength += (drag-dragEnd).Length();
-				dragEnd = drag;
+					Vector3F delta = drag - dragStart3D;
+					delta.y = 0;
+					drag.y = 0;
 
-				//GLOUTPUT(( "GAME_TAP_MOVE delta=%.2f,%.2f\n", delta.x, delta.z ));
-				engine->camera.SetPosWC( dragStartCameraWC - delta );
+					dragLength += (drag-dragEnd3D).Length();
+					dragEnd3D = drag;
+
+					//GLOUTPUT(( "GAME_TAP_MOVE delta=%.2f,%.2f\n", delta.x, delta.z ));
+					engine->camera.SetPosWC( dragStartCameraWC - delta );
+				}
 				engine->RestrictCamera();
 			}
 		}
@@ -2802,6 +2819,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 		case GAME_TAP_UP:
 		{
 			if ( dragUnit ) {
+				// Dragging unit
 				Matrix4 mvpi;
 				Ray ray;
 				Vector3F intersection;
@@ -2833,18 +2851,30 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 				nearPathState.Clear();
 			}
 			else {
-				Ray ray;
-				Vector3F drag;
-				engine->RayFromViewToYPlane( view, dragMVPI, &ray, &drag );
+				// Dragging world
+				if ( orbitButton.Down() ) {
+					Vector2F delta = ui - dragEndUI;
+					dragEndUI = ui;
 
-				Vector3F delta = drag - dragStart;
-				delta.y = 0;
-				drag.y = 0;
-				dragLength += (drag-dragEnd).Length();
-				dragEnd = drag;
+					engine->camera.Orbit( delta.x*1.f );
+					this->Zoom( GAME_ZOOM_DISTANCE, delta.y*0.006f );
 
-				//GLOUTPUT(( "GAME_TAP_UP delta=%.2f,%.2f\n", delta.x, delta.z ));
-				engine->camera.SetPosWC( dragStartCameraWC - delta );
+					orbitButton.SetUp();
+				}
+				else {
+					Ray ray;
+					Vector3F drag;
+					engine->RayFromViewToYPlane( view, dragMVPI, &ray, &drag );
+
+					Vector3F delta = drag - dragStart3D;
+					delta.y = 0;
+					drag.y = 0;
+					dragLength += (drag-dragEnd3D).Length();
+					dragEnd3D = drag;
+
+					//GLOUTPUT(( "GAME_TAP_UP delta=%.2f,%.2f\n", delta.x, delta.z ));
+					engine->camera.SetPosWC( dragStartCameraWC - delta );
+				}
 				engine->RestrictCamera();
 			}
 			isDragging = false;
@@ -2860,6 +2890,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 				nearPathState.Clear();
 			}
 			isDragging = false;
+			orbitButton.SetUp();
 		}
 		break;
 
