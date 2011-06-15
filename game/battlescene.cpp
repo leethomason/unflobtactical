@@ -2112,6 +2112,7 @@ void BattleScene::HandleHotKeyMask( int mask )
 		bool visible = !controlButton[ROTATE_CCW_BUTTON].Visible();
 		controlButton[ROTATE_CCW_BUTTON].SetVisible( visible );
 		controlButton[ROTATE_CW_BUTTON].SetVisible( visible );
+		orbitButton.SetVisible( visible );
 	}
 	if ( mask & GAME_HK_TOGGLE_NEXT_UI ) {
 		bool visible = !controlButton[NEXT_BUTTON].Visible();
