@@ -89,6 +89,7 @@ enum {
 	DECO_METAL			= 16,
 	DECO_TECH			= 17,
 	DECO_FUEL			= 18,
+	DECO_ORBIT			= 19,
 	DECO_HELP			= 20,
 	DECO_LAUNCH			= 21,
 	DECO_END_TURN		= 22,

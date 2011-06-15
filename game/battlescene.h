@@ -189,7 +189,6 @@ private:
 
 	struct CameraBoundsAction {
 		grinliz::Vector3F	target;
-//		grinliz::Vector3F	normal;
 		float				speed;
 		bool				center;
 	};
@@ -207,7 +206,6 @@ private:
 			HitAction			hit;
 			CameraAction		camera;
 			CameraBoundsAction	cameraBounds;
-			//LanderAction		lander;
 		} type;
 
 		void Clear()							{ actionID = ACTION_NONE; memset( &type, 0, sizeof( type ) ); }
@@ -244,8 +242,6 @@ private:
 	grinliz::Rectangle2F CalcInsetUIBounds();
 
 	void OrderNextPrev();
-	// Returns true if the EndCondition is met.
-	//bool EndCondition();
 
 	void StopForNewTeamTarget();
 	void DoReactionFire();
@@ -313,14 +309,17 @@ private:
 
 	bool isDragging;
 
-	grinliz::Vector3F dragStart;
-	grinliz::Vector3F dragEnd;
-	float			  dragLength;
-	grinliz::Vector3F dragStartCameraWC;
-	grinliz::Matrix4  dragMVPI;
+	grinliz::Vector3F	dragStart3D;
+	grinliz::Vector3F	dragEnd3D;
+	grinliz::Vector2F	dragStartUI;
+	grinliz::Vector2F	dragEndUI;
 
-	Unit*			  dragUnit;
-	grinliz::Vector2I dragUnitDest;
+	float				dragLength;
+	grinliz::Vector3F	dragStartCameraWC;
+	grinliz::Matrix4	dragMVPI;
+
+	Unit*				dragUnit;
+	grinliz::Vector2I	dragUnitDest;
 
 	UIRenderer			uiRenderer;
 
@@ -332,6 +331,7 @@ private:
 	gamui::PushButton	helpButton;
 	gamui::PushButton	nextTurnButton;
 	gamui::ToggleButton	targetButton;
+	gamui::ToggleButton orbitButton;
 	gamui::PushButton	invButton;
 	enum { ROTATE_CCW_BUTTON, ROTATE_CW_BUTTON, PREV_BUTTON, NEXT_BUTTON, CONTROL_BUTTON_COUNT };
 	gamui::PushButton	controlButton[4];
