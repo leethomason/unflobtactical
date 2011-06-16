@@ -651,6 +651,15 @@
   <image filename="ALIN_48_TILE_00_DAY.png" />
   <image filename="ALIN_48_TILE_00_NGT.png" />
 
+  <texture filename="helpImage0.png" />
+  <texture filename="helpImage1.png" />
+  <texture filename="helpImage2.png" />
+  <texture filename="helpImage3.png" />
+  <texture filename="helpImage4.png" width="128" height="128"/>
+  <texture filename="helpImage5.png" width="128" height="128"/>
+  <texture filename="helpImage6.png" width="64" height="256"/>
+  <texture filename="helpImage7.png" />
+
   <text name="tacticalHelp" >
     <page>
       <p>Xenowar - How to Play</p>
@@ -664,7 +673,7 @@
         at xenowar.net
       </p>
     </page>
-    <page>
+    <page image="helpImage7">
       <p>[Moving the Camera]</p>
       <p system="pc">
         Left click and drag to scroll around the map.
@@ -676,6 +685,12 @@
         You can drag the map with your finger, or pinch with 2
         fingers to zoom. The trackball/wheel also zooms and rotates.
       </p>
+      <p>
+        If you tap the orbit button (pictured) your next drag
+        will rotate and zoom the camera. It's a quick way
+        to adjust the view.
+      </p>
+      
     </page>
     <page image="helpImage2">
       <p>[Select a Unit]</p>
@@ -780,10 +795,6 @@
     </page>
 
   </text>
-  <texture filename="helpImage0.png" />
-  <texture filename="helpImage1.png" />
-  <texture filename="helpImage2.png" />
-  <texture filename="helpImage3.png" />
 
   <text name="characterHelp" >
     <page>
@@ -822,9 +833,6 @@
     </page>
   </text>
 
-  <texture filename="helpImage4.png" width="128" height="128"/>
-  <texture filename="helpImage5.png" width="128" height="128"/>
-
   <text name="introHelp" >
     <page>
       <p>[Xenowar]</p>
@@ -859,8 +867,6 @@
       <p>Good luck and have fun!</p>
     </page>
   </text>
-
-  <texture filename="helpImage6.png" width="64" height="256"/>
 
   <text name="geoHelp" >
     <page>

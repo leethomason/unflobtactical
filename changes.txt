@@ -1,0 +1,36 @@
+- sync to source control
+- run setversion
+- run makeres.bat
+- check android API version. manifest: <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7"/>
+- set android manifest debuggable=false
+- check Win32 build=Release
+- check NDK build=Release, APP_OPTIM := release in Application.mk
+- up the android version code AND name in the manifest
+
+- build win32 
+- test win32
+
+- build android - refresh before building.
+  /cygdrive/c/src/android-ndk-r5b/ndk-build
+  /cygdrive/c/src/android-ndk-r5b/ndk-build -B		builds all
+
+- test Nexus One
+- upload to website
+	- win32
+		- buildrelease.bat
+		- zip up xenowar subdirectory
+	- android
+		- down in unflobtactical\android\ufoattack_1\bin
+		- grab apk and rename
+	Go!
+
+
+- test incredible (from website)
+- test galaxy tab (from website)
+
+
+
+Changes in 2.1 v3 b649:
+- Added framerate limiter on Android. Should stay ~30fps now.
+- Added the orbit button to support zoom/rotate on devices without a trackpad.
+- Work around for win32 ATI vsync issue
