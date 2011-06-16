@@ -122,6 +122,14 @@ class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener
     @Override
     public boolean onScale(ScaleGestureDetector detector) {
         //Log.v( "UFOATTACK", "Scale factor=" + (1.0f-detector.getScaleFactor()) );
+
+    	// The would be so useful methods:
+    	// 	getCurrentSpanX, getCurrentSpanY 
+    	// don't seem to actually exist. A search on code.google.com reveals no hits as well. *sigh*
+
+    	//Log.v("UFOATTACK",   "scale factor=" + (1.0f-detector.getScaleFactor())
+    	//		           + " span=" + detector.getCurrentSpanX() + "," + detector.getCurrentSpanY() );
+    			           
         mView.zoom( 1.0f - detector.getScaleFactor() );
         return true;
     }

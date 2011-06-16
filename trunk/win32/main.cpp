@@ -218,11 +218,13 @@ int main( int argc, char **argv )
 
 	int r = glewInit();
 	GLASSERT( r == GL_NO_ERROR );
-#ifdef TEST_FULLSPEED	
-	wglSwapIntervalEXT( 0 );	// vsync
-#else
-	wglSwapIntervalEXT( 1 );	// vsync
-#endif
+
+	// Calling this seems to confuse my ATI driver and cause lag / event back up?
+//#ifdef TEST_FULLSPEED	
+//	wglSwapIntervalEXT( 0 );	// vsync
+//#else
+//	wglSwapIntervalEXT( 1 );	// vsync
+//#endif
 
 	const unsigned char* vendor   = glGetString( GL_VENDOR );
 	const unsigned char* renderer = glGetString( GL_RENDERER );
