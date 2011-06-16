@@ -2793,6 +2793,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 				if ( orbitButton.Down() ) {
 					Vector2F delta = ui - dragEndUI;
 					dragEndUI = ui;
+					dragLength = 10.f;		// FIXME: draglength is a hack that answers "did we drag". Need to have a return for that.
 
 					engine->camera.Orbit( delta.x*1.f );
 					this->Zoom( GAME_ZOOM_DISTANCE, delta.y*0.006f );
@@ -2856,6 +2857,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 				if ( orbitButton.Down() ) {
 					Vector2F delta = ui - dragEndUI;
 					dragEndUI = ui;
+					dragLength = 10.f;		// FIXME: draglength is a hack that answers "did we drag". Need to have a return for that.
 
 					engine->camera.Orbit( delta.x*1.f );
 					this->Zoom( GAME_ZOOM_DISTANCE, delta.y*0.006f );
