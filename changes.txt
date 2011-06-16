@@ -28,9 +28,16 @@
 - test incredible (from website)
 - test galaxy tab (from website)
 
+- Sign & Publish
+	- http://developer.android.com/guide/publishing/app-signing.html#ExportWizard
+	- publish
+	- check on Samsung
 
 
 Changes in 2.1 v3 b649:
 - Added framerate limiter on Android. Should stay ~30fps now.
 - Added the orbit button to support zoom/rotate on devices without a trackpad.
 - Work around for win32 ATI vsync issue
+
+Recent changes:
+Added the orbit button to support zoom/rotate on devices without a trackpad. Also implemented a framerate limiter: game should stay at about 30fps and consume less battery.
