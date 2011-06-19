@@ -362,7 +362,8 @@ public:
 	enum {
 		RENDERSTATE_MAP_NORMAL = 100,
 		RENDERSTATE_MAP_OPAQUE,
-		RENDERSTATE_MAP_TRANSLUCENT
+		RENDERSTATE_MAP_TRANSLUCENT,
+		RENDERSTATE_MAP_MORE_TRANSLUCENT
 	};
 	virtual void BeginRender();
 	virtual void EndRender();
@@ -561,7 +562,11 @@ private:
 	MP_VECTOR< micropather::StateCost >			stateCostArr;
 
 	CompositingShader							gamuiShader;
-	gamui::TiledImage<EL_MAP_MAX_PATH*2+1, EL_MAP_MAX_PATH*2+1>	walkingMap;
+	enum {
+		MAX_WALKING_MAPS = 2		// 1 or 2
+	};
+	int nWalkingMaps;
+	gamui::TiledImage<EL_MAP_MAX_PATH*2+1, EL_MAP_MAX_PATH*2+1>	walkingMap[MAX_WALKING_MAPS];
 	gamui::Image								border[4];
 
 	grinliz::MemoryPool							itemPool;

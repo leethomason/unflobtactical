@@ -28,6 +28,7 @@
 #include "uirendering.h"
 #include "../grinliz/glperformance.h"
 #include "engine.h"
+#include "../game/settings.h"
 
 using namespace grinliz;
 using namespace micropather;
@@ -88,7 +89,12 @@ Map::Map( SpaceTree* tree )
 	for( int i=0; i<NUM_LAYERS; ++i )
 		overlay[i].Init( this, nullAtom, nullAtom, 0 );
 
-	walkingMap.Init( &overlay[LAYER_UNDER_LOW] );
+	walkingMap[0].Init( &overlay[LAYER_UNDER_LOW] );
+	nWalkingMaps = SettingsManager::Instance()->GetNumWalkingMaps();
+
+	if ( MAX_WALKING_MAPS > 1 ) {
+		walkingMap[1].Init( &overlay[LAYER_OVER] );
+	}
 	lightMapValid = false;
 
 	gamui::RenderAtom borderAtom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_DARK, 1, 1, true );
@@ -1767,20 +1773,35 @@ void Map::ShowNearPath(	const grinliz::Vector2I& unitPos,
 	}
 	*/
 
-	walkingMap.SetVisible( true );
-	walkingMap.Clear();
-	walkingMap.SetSize( (float)(2*EL_MAP_MAX_PATH+1), (float)(2*EL_MAP_MAX_PATH+1) );
-
 	Vector2I origin = { (unitPos.x - EL_MAP_MAX_PATH), (unitPos.y - EL_MAP_MAX_PATH) };
-	walkingMap.SetPos( (float)origin.x, (float)origin.y );
+	for( int i=0; i<MAX_WALKING_MAPS; ++i ) {
+		walkingMap[i].SetVisible( i < nWalkingMaps );
+		walkingMap[i].Clear();
+		walkingMap[i].SetSize( (float)(2*EL_MAP_MAX_PATH+1), (float)(2*EL_MAP_MAX_PATH+1) );
+		walkingMap[i].SetPos( (float)origin.x, (float)origin.y );
+	}
 
-	gamui::RenderAtom atom[3] = {	UIRenderer::CalcIconAtom( ICON_GREEN_WALK_MARK ), 
+	gamui::RenderAtom atom[6] = {	UIRenderer::CalcIconAtom( ICON_GREEN_WALK_MARK ), 
 									UIRenderer::CalcIconAtom( ICON_YELLOW_WALK_MARK ), 
-									UIRenderer::CalcIconAtom( ICON_ORANGE_WALK_MARK ) };
-	atom[0].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
-	atom[1].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
-	atom[2].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
+									UIRenderer::CalcIconAtom( ICON_ORANGE_WALK_MARK ), 
+									UIRenderer::CalcIconAtom( ICON_GREEN_WALK_MARK ), 
+									UIRenderer::CalcIconAtom( ICON_YELLOW_WALK_MARK ), 
+									UIRenderer::CalcIconAtom( ICON_ORANGE_WALK_MARK ) 
+	};
 
+	if ( nWalkingMaps == 1 ) {
+		atom[0].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
+		atom[1].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
+		atom[2].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
+	}
+	else {
+		atom[0].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
+		atom[1].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
+		atom[2].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
+		atom[3].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
+		atom[4].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
+		atom[5].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
+	}
 	for( unsigned i=0; i<stateCostArr.size(); ++i ) {
 		const micropather::StateCost& stateCost = stateCostArr[i];
 		Vector2<S16> v;
@@ -1792,7 +1813,9 @@ void Map::ShowNearPath(	const grinliz::Vector2I& unitPos,
 
 		for( int k=0; k<3; ++k ) {
 			if ( stateCost.cost >= range[k].x && stateCost.cost < range[k].y ) {
-				walkingMap.SetTile( v.x-origin.x, v.y-origin.y, atom[k] );
+				for( int n=0; n<nWalkingMaps; ++n ) {
+					walkingMap[n].SetTile( v.x-origin.x, v.y-origin.y, atom[k+n*3] );
+				}
 				break;
 			}
 		}
@@ -1803,7 +1826,9 @@ void Map::ShowNearPath(	const grinliz::Vector2I& unitPos,
 
 void Map::ClearNearPath()
 {
-	walkingMap.SetVisible( false );
+	for( int i=0; i<MAX_WALKING_MAPS; ++i ) {
+		walkingMap[i].SetVisible( false );
+	}
 }
 
 
@@ -2108,6 +2133,7 @@ void Map::EndRender()
 void Map::BeginRenderState( const void* renderState )
 {
 	const float ALPHA = 0.5f;
+	const float ALPHA_1 = 0.25f;
 	switch( (int)renderState ) {
 		case UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE:
 		case RENDERSTATE_MAP_OPAQUE:
@@ -2123,6 +2149,10 @@ void Map::BeginRenderState( const void* renderState )
 
 		case RENDERSTATE_MAP_TRANSLUCENT:
 			gamuiShader.SetColor( 1, 1, 1, ALPHA );
+			gamuiShader.SetBlend( true );
+			break;
+		case RENDERSTATE_MAP_MORE_TRANSLUCENT:
+			gamuiShader.SetColor( 1, 1, 1, ALPHA_1 );
 			gamuiShader.SetBlend( true );
 			break;
 		default:

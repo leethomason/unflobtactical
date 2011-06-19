@@ -46,6 +46,7 @@ SettingsManager::SettingsManager( const char* savepath )
 	playerAI = 0;
 	battleShipParty = 0;
 	useFastBattle = 0;
+	nWalkingMaps = 1;
 
 	// Parse actuals.
 	TiXmlDocument doc;
@@ -57,8 +58,10 @@ SettingsManager::SettingsManager( const char* savepath )
 			root->QueryIntAttribute( "playerAI", &playerAI );
 			root->QueryIntAttribute( "battleShipParty", &battleShipParty );
 			root->QueryIntAttribute( "useFastBattle", &useFastBattle );
+			root->QueryIntAttribute( "nWalkingMaps", &nWalkingMaps );
 		}
 	}
+	nWalkingMaps = grinliz::Clamp( nWalkingMaps, 1, 2 );
 }
 
 
@@ -84,6 +87,7 @@ void SettingsManager::Save()
 		XMLUtil::Attribute( fp, "playerAI", playerAI );
 		XMLUtil::Attribute( fp, "battleShipParty", battleShipParty );
 		XMLUtil::Attribute( fp, "useFastBattle", useFastBattle );
+		XMLUtil::Attribute( fp, "nWalkingMaps", nWalkingMaps );
 
 		XMLUtil::SealCloseElement( fp );
 

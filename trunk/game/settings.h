@@ -36,6 +36,7 @@ public:
 	bool GetPlayerAI() const			{ return playerAI != 0; }
 	bool GetBattleShipParty() const		{ return battleShipParty != 0; }
 	bool GetUseFastBattle() const		{ return useFastBattle != 0; }
+	int  GetNumWalkingMaps() const		{ return nWalkingMaps; }
 
 private:
 	SettingsManager( const char* path );
@@ -49,6 +50,7 @@ private:
 	int playerAI;
 	int battleShipParty;
 	int useFastBattle;
+	int nWalkingMaps;
 
 	grinliz::GLString path;
 
