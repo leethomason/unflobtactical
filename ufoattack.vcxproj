@@ -143,6 +143,7 @@
     <ClCompile Include="game\researchscene.cpp" />
     <ClCompile Include="game\scene.cpp" />
     <ClCompile Include="game\settings.cpp" />
+    <ClCompile Include="game\settingscene.cpp" />
     <ClCompile Include="game\stats.cpp" />
     <ClCompile Include="game\storageWidget.cpp" />
     <ClCompile Include="game\tacmap.cpp" />
@@ -205,6 +206,7 @@
     <ClInclude Include="game\researchscene.h" />
     <ClInclude Include="game\scene.h" />
     <ClInclude Include="game\settings.h" />
+    <ClInclude Include="game\settingscene.h" />
     <ClInclude Include="game\stats.h" />
     <ClInclude Include="game\storageWidget.h" />
     <ClInclude Include="game\tacmap.h" />

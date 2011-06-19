@@ -30,6 +30,7 @@
 #include "buildbasescene.h"
 #include "fastbattlescene.h"
 #include "researchscene.h"
+#include "settingscene.h"
 
 #include "../engine/text.h"
 #include "../engine/model.h"
@@ -380,6 +381,7 @@ void Game::CreateScene( const SceneNode& in, SceneNode* node )
 		case BUILDBASE_SCENE:	scene = new BuildBaseScene( this, (BuildBaseSceneData*)in.data );					break;
 		case FASTBATTLE_SCENE:	scene = new FastBattleScene( this, (BattleSceneData*)in.data );						break;
 		case RESEARCH_SCENE:	scene = new ResearchScene( this, (ResearchSceneData*)in.data );						break;
+		case SETTING_SCENE:		scene = new SettingScene( this );													break;
 		default:
 			GLASSERT( 0 );
 			break;
