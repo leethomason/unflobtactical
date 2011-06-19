@@ -92,7 +92,7 @@
       </Frigate>
       <BattleshipAttack points="80">
         The Frigate core can authenticate with the Battleships. This will allow us to dock with the hovering Battleship and attack them.  
-        It’s a very risky mission to attack a Battleship, but we now have the capacity.
+        It is a very risky mission to attack a Battleship, but we now have the capacity.
         <required0 research="AlienTech" />
         <required1 research="Scout" />
         <required2 item="Cor:F" />
@@ -687,7 +687,7 @@
       </p>
       <p>
         If you tap the orbit button (pictured) your next drag
-        will rotate and zoom the camera. It's a quick way
+        will rotate and zoom the camera. It is a quick way
         to adjust the view.
       </p>
       
