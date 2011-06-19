@@ -36,6 +36,8 @@ public:
 	bool GetPlayerAI() const			{ return playerAI != 0; }
 	bool GetBattleShipParty() const		{ return battleShipParty != 0; }
 	bool GetUseFastBattle() const		{ return useFastBattle != 0; }
+	
+	void SetNumWalkingMaps(int nMaps );
 	int  GetNumWalkingMaps() const		{ return nWalkingMaps; }
 
 private:

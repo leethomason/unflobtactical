@@ -96,12 +96,10 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	}
 
 	helpButton.Init( &gamui2D, green );
-	//helpButton.SetPos( port.UIWidth() - helpButton.Width() - BORDER, BORDER );
 	helpButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_HELP, true ),
 						UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
 
 	audioButton.Init( &gamui2D, green );
-	//audioButton.SetPos( port.UIWidth() - helpButton.Width() - BORDER, helpButton.Y() + helpButton.Height() + BORDER );
 	SettingsManager* settings = SettingsManager::Instance();
 	if ( settings->GetAudioOn() ) {
 		audioButton.SetDown();
@@ -114,12 +112,15 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 							 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
 	}
 
-	infoButton.Init( &gamui2D, green );
-	infoButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_INFO, true ),
-						UIRenderer::CalcDecoAtom( DECO_INFO, false ) );	
+	//infoButton.Init( &gamui2D, green );
+	//infoButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_INFO, true ),
+	//					UIRenderer::CalcDecoAtom( DECO_INFO, false ) );	
 
-	UIItem* items[3] = { &helpButton, &audioButton, &infoButton };
-	Gamui::Layout( items, 3, 1, 3, port.UIWidth() - helpButton.Width() - BORDER, BORDER, helpButton.Width(), helpButton.Height()*3.0f+BORDER );
+	settingButton.Init( &gamui2D, green );
+
+	static const int NUM_ITEMS=3;
+	UIItem* items[NUM_ITEMS] = { &helpButton, &audioButton, &settingButton };
+	Gamui::Layout( items, NUM_ITEMS, 1, NUM_ITEMS, port.UIWidth() - helpButton.Width() - BORDER, BORDER, helpButton.Width(), helpButton.Height()*(float)NUM_ITEMS+BORDER );
 
 
 	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "6", "8", "Low", "Med", "Hi", 
@@ -317,7 +318,8 @@ void TacticalIntroScene::Tap(	int action,
 		
 		helpButton.SetVisible( false );
 		audioButton.SetVisible( false );
-		infoButton.SetVisible( false );
+		//infoButton.SetVisible( false );
+		settingButton.SetVisible( false );
 
 		game->DeleteSaveFile( SAVEPATH_TACTICAL );
 		game->DeleteSaveFile( SAVEPATH_GEO );
@@ -401,8 +403,11 @@ void TacticalIntroScene::Tap(	int action,
 								 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
 		}
 	}
-	else if ( item == &infoButton ) {
-		game->SetDebugLevel( (game->GetDebugLevel() + 1)%4 );
+//	else if ( item == &infoButton ) {
+//		game->SetDebugLevel( (game->GetDebugLevel() + 1)%4 );
+//	}
+	else if ( item == &settingButton ) {
+		game->PushScene( Game::SETTING_SCENE, 0 );
 	}
 	else if ( item == &newGeo ) {
 		game->DeleteSaveFile( SAVEPATH_GEO );

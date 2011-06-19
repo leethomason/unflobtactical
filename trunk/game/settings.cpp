@@ -65,6 +65,16 @@ SettingsManager::SettingsManager( const char* savepath )
 }
 
 
+void SettingsManager::SetNumWalkingMaps( int maps )
+{
+	maps = grinliz::Clamp( maps, 1, 2 );
+	if ( maps != nWalkingMaps ) {
+		nWalkingMaps = maps;
+		Save();
+	}
+}
+
+
 void SettingsManager::SetAudioOn( bool _value )
 {
 	int value = _value ? 1 : 0;
