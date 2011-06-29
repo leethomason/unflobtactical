@@ -37,3 +37,43 @@ If you want to create your own mod, you must first be able to build the resource
 )
   # From the command line, run buildres.bat
   # Lots of output; should generate the uforesource.db file in the res directory.
+
+== Changing the Resources == 
+
+In the resin subdirectory, the 'default.xml' file contains all the information to put the assets in the resource file. You should back this file up, and then start putting in your own assets!
+
+The game expects to find a certain set of assets. While you can change the assets, if you remove assets the game will crash.
+
+=== <tree> ===
+
+Generally text data that is used in the game. Descriptions and research. You can freely modify the text, keeping in mind that it shouldn't be too long or will overflow the screen.
+
+=== <texture> ===
+
+Texture assets used in the game. They must be power of 2 (except for the battleship and base background textures, which are 384x384.). Many textures are hand-packed into texture atlases for performance. It would be nice if future versions of the builder would auto-gen the texture atlases.
+
+  * filename: the name of the file and the asset. (This is a bug.) If the filename is icons.png, then the asset name (which can't change) is icons. If you want to add your own file, you could: 1) change icons.png, 2) add icons.tga and point to that, or 3) request a bug fix.
+  * dither: if true, the image will be dithered from 32 to 16 bits in the builder. If false, nearest color match is used.
+  * width/height: the builder can downsample large source images. The original and destination size must both be powers of 2.
+ 
+=== <model> Single form ===
+
+If the model does NOT have a modelName attribute, then it is the "single form". One model is in the model file.
+
+Currently only the ac3d file is supported.
+
+This has the same bug as textures: the model filename (ufopod.ac) is also the model asset name (ufopod) and therefore the name can't be changed.
+
+  * shading: 'flat' shading is very angular. Good for walls and crates and such. 'smooth' shading is smooth everywhere - good for characters and organic shapes. 'crease' attempts to intelligently choose, but the algorithm isn't very intelligent.
+  * polyRemoval: 'pre' removes down facing bottom polys in the first stage. This should be set for anything that stands on the ground plane.
+ 
+=== <model> multi-form ===
+
+This allows many models to be in one .ac file. Very handy.
+
+  * filename: the name of the file, and correctly NOT the asset name
+  * modelName: the name of the asset as needed by the game. This must be the name of the 'group' in the .ac file, which is how a particular model is identified.
+  * origin: the coordinates of the models origin point - where it stands on the ground.
+  * trigger: the location where a character holds its gun
+  * eye: the origin of a character's line of site
+  * target: where others target the character. The center of its chest.
