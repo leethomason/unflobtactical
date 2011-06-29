@@ -1,0 +1,39 @@
+#How to mod xenowar
+
+= Introduction =
+
+This is a very early process. If mods and art becomes available, this process can be streamlined.
+
+= Using a Mod =
+
+Currently PC Only.
+
+  # Get a uforesource.db data file.
+  # Open your xenowar directory.
+  # Go into the res directory.
+  # rename uforesource.db to uforesource.db.bak so you can recover it later
+  # Put in the new uforesource.db
+  # Start the game - you have new resources!
+
+= Creating a Mod = 
+
+Note: although you need the full source code, you *do not* need to build from source. Most of the source code is the art assets, so it's easier to pull down the source base than to pack it all up.
+
+== Get the Source ==
+
+Do an anonymous source checkout. The command line, and tools you can use, are documented here:
+
+http://code.google.com/p/unflobtactical/source/checkout
+
+Setting up SVN is straightforward, but the time consuming part. Once you have SVN, it's easy to pull down the source code base.
+
+== Build a Resource File ==
+
+If you want to create your own mod, you must first be able to build the resource file the game uses.
+
+  # From the downloads page on the unflobtactical site, download the ufobuilder.zip file.
+  # Extract its contents into the top of the source tree. So if your extracted the source to c:\src\unflobtactical-read-only, the ufobuilder.exe file should be at c:\src\unflobtactical-read-only\ufobuilder.exe
+  # Make the subdirectory 'res'. (c:\src\unflobtactical-read-only\res\
+)
+  # From the command line, run buildres.bat
+  # Lots of output; should generate the uforesource.db file in the res directory.
