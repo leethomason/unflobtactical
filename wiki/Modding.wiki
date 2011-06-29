@@ -33,8 +33,7 @@ If you want to create your own mod, you must first be able to build the resource
 
   # From the downloads page on the unflobtactical site, download the ufobuilder.zip file.
   # Extract its contents into the top of the source tree. So if your extracted the source to c:\src\unflobtactical-read-only, the ufobuilder.exe file should be at c:\src\unflobtactical-read-only\ufobuilder.exe
-  # Make the subdirectory 'res'. (c:\src\unflobtactical-read-only\res\
-)
+  # Make the subdirectory 'res'. (c:\src\unflobtactical-read-only\res\)
   # From the command line, run buildres.bat
   # Lots of output; should generate the uforesource.db file in the res directory.
 
@@ -44,9 +43,9 @@ In the resin subdirectory, the 'default.xml' file contains all the information t
 
 The game expects to find a certain set of assets. While you can change the assets, if you remove assets the game will crash.
 
-=== <tree> ===
+=== <text> and <tree> ===
 
-Generally text data that is used in the game. Descriptions and research. You can freely modify the text, keeping in mind that it shouldn't be too long or will overflow the screen.
+General data that is used in the game. Descriptions and research. You can freely modify the text, keeping in mind that it shouldn't be too long or will overflow the screen.
 
 === <texture> ===
 
@@ -77,3 +76,11 @@ This allows many models to be in one .ac file. Very handy.
   * trigger: the location where a character holds its gun
   * eye: the origin of a character's line of site
   * target: where others target the character. The center of its chest.
+
+=== <data> sounds ===
+
+Generally sound files. The asset name and file name are the same. (Same bug as above.) For sounds, the attribute 'compress' must be set to 'false', since the sounds are played directly from the resource.
+
+== Creating New Levels ==
+
+TBD. It's possible to start xenowar in 'editor' mode, but it needs work to function without compiler support.
