@@ -117,6 +117,8 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	//					UIRenderer::CalcDecoAtom( DECO_INFO, false ) );	
 
 	settingButton.Init( &gamui2D, green );
+	settingButton.SetDeco(	UIRenderer::CalcDecoAtom( DECO_SETTINGS, true ),
+							UIRenderer::CalcDecoAtom( DECO_SETTINGS, false ) );	
 
 	static const int NUM_ITEMS=3;
 	UIItem* items[NUM_ITEMS] = { &helpButton, &audioButton, &settingButton };

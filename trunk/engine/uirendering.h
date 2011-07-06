@@ -82,6 +82,8 @@ enum {
 	DECO_AIMED			= 8,
 	DECO_BASE			= 9,
 	DECO_RESEARCH		= 10,
+	DECO_SETTINGS		= 11,
+	DECO_OKAY			= 12,
 	DECO_ALIEN			= 13,
 	DECO_ARMOR			= 14,
 	DECO_BOOM			= 15,

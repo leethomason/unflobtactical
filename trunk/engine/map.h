@@ -347,7 +347,8 @@ public:
 						const void* user,
 						const grinliz::Vector2<S16>& start,
 						float maxCost,
-						const grinliz::Vector2F* range );
+						const grinliz::Vector2F* range,				// array of range colorings
+						const grinliz::Vector2<S16>* dest );		// if not null, use a single destination, not all destinations
 	void ClearNearPath();	
 
 	// micropather:
@@ -548,6 +549,7 @@ private:
 	U32 visibilityQueryID;
 
 	micropather::MicroPather* microPather;
+	micropather::MPVector<void*> mpVector;
 
 	int PyroOn( int x, int y ) const		{ return pyro[y*SIZE+x]; }
 	int PyroFire( int x, int y ) const		{ return pyro[y*SIZE+x] & 0x80; }

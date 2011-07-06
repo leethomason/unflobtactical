@@ -40,6 +40,9 @@ public:
 	void SetNumWalkingMaps(int nMaps );
 	int  GetNumWalkingMaps() const		{ return nWalkingMaps; }
 
+	void SetConfirmMove( bool confirm );
+	bool GetConfirmMove() const			{ return confirmMove; }
+
 private:
 	SettingsManager( const char* path );
 	~SettingsManager()	{}
@@ -53,6 +56,7 @@ private:
 	int battleShipParty;
 	int useFastBattle;
 	int nWalkingMaps;
+	bool confirmMove;
 
 	grinliz::GLString path;
 

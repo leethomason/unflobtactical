@@ -28,11 +28,15 @@ private:
 	gamui::Image		background;
 	gamui::PushButton	doneButton;
 
+	gamui::TextBox		moveText;
+	gamui::ToggleButton	moveButton[2];
+
+	gamui::TextBox		dotText;
+	gamui::ToggleButton	dotButton[2];
+
 	gamui::TextBox		debugText;
 	gamui::ToggleButton	debugButton[4];
 
-	gamui::TextBox		moveText;
-	gamui::ToggleButton	moveButton[2];
 };
 
 
