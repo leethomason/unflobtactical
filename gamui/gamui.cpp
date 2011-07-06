@@ -460,6 +460,8 @@ void TiledImageBase::SetTile( int x, int y, const RenderAtom& atom )
 {
 	GAMUIASSERT( x<CX() );
 	GAMUIASSERT( y<CY() );
+	if ( x < 0 || x >= CX() || y < 0 || y >= CY() )
+		return;
 
 	int index = 0;
 

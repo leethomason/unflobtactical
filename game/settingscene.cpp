@@ -30,11 +30,40 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 	float deltaX = GAME_BUTTON_SIZE + 5.0f;
 	float boxWidth = 220.0f;
 
+
+	moveText.Init( &gamui2D );
+	moveText.SetSize( boxWidth, GAME_BUTTON_SIZE_F );
+	moveText.SetText( "Confirm movement. Recommended for smaller touch screens." );
+	moveText.SetPos( GAME_GUTTER, y );
+	static const char* move_TEXT[4] = { "Off", "On" };
+	for( int i=0; i<2; ++i ) {
+		moveButton[i].Init( &gamui2D, green );
+		moveButton[i].SetText( move_TEXT[i] );
+		moveButton[i].SetPos( x + deltaX*(float)i, y );
+		moveButton[0].AddToToggleGroup( &moveButton[i] );
+	}
+	moveButton[ sm->GetConfirmMove() ? 1 : 0].SetDown();
+	y += deltaY;
+
+
+	dotText.Init( &gamui2D );
+	dotText.SetSize( boxWidth, GAME_BUTTON_SIZE_F );
+	dotText.SetText( "Movement dots overlay map objects and units." );
+	dotText.SetPos( GAME_GUTTER, y );
+	static const char* dot_TEXT[4] = { "Off", "On" };
+	for( int i=0; i<2; ++i ) {
+		dotButton[i].Init( &gamui2D, green );
+		dotButton[i].SetText( dot_TEXT[i] );
+		dotButton[i].SetPos( x + deltaX*(float)i, y );
+		dotButton[0].AddToToggleGroup( &dotButton[i] );
+	}
+	dotButton[ sm->GetNumWalkingMaps()-1 ].SetDown();
+	y += deltaY;
+
 	debugText.Init( &gamui2D );
 	debugText.SetSize( boxWidth, GAME_BUTTON_SIZE_F );
 	debugText.SetText( "Debug Output\nLevel 1 displays framerate.\n(Setting doesn't save.)" );
 	debugText.SetPos( GAME_GUTTER, y );
-
 	static const char* DEBUG_TEXT[4] = { "Off", "1", "2", "3" };
 	for( int i=0; i<4; ++i ) {
 		debugButton[i].Init( &gamui2D, green );
@@ -43,23 +72,6 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 		debugButton[0].AddToToggleGroup( &debugButton[i] );
 	}
 	debugButton[game->GetDebugLevel()].SetDown();
-
-	y += deltaY;
-
-	moveText.Init( &gamui2D );
-	moveText.SetSize( boxWidth, GAME_BUTTON_SIZE_F );
-	moveText.SetText( "Movement dots overlay map objects and units." );
-	moveText.SetPos( GAME_GUTTER, y );
-
-	static const char* MOVE_TEXT[4] = { "Off", "On" };
-	for( int i=0; i<2; ++i ) {
-		moveButton[i].Init( &gamui2D, green );
-		moveButton[i].SetText( MOVE_TEXT[i] );
-		moveButton[i].SetPos( x + deltaX*(float)i, y );
-		moveButton[0].AddToToggleGroup( &moveButton[i] );
-	}
-	moveButton[ sm->GetNumWalkingMaps()-1 ].SetDown();
-
 	y += deltaY;
 }
 
@@ -75,11 +87,12 @@ SettingScene::~SettingScene()
 		}
 	}
 	for( int i=0; i<2; ++i ) {
-		if ( moveButton[i].Down() ) {
+		if ( dotButton[i].Down() ) {
 			sm->SetNumWalkingMaps( i+1 );
 			break;
 		}
 	}
+	sm->SetConfirmMove( moveButton[1].Down() );
 }
 
 

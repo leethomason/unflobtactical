@@ -47,6 +47,12 @@ SettingsManager::SettingsManager( const char* savepath )
 	battleShipParty = 0;
 	useFastBattle = 0;
 	nWalkingMaps = 1;
+	confirmMove = 
+		#ifdef ANDROID_NDK
+			1;
+		#else
+			0;
+		#endif
 
 	// Parse actuals.
 	TiXmlDocument doc;
@@ -59,6 +65,7 @@ SettingsManager::SettingsManager( const char* savepath )
 			root->QueryIntAttribute( "battleShipParty", &battleShipParty );
 			root->QueryIntAttribute( "useFastBattle", &useFastBattle );
 			root->QueryIntAttribute( "nWalkingMaps", &nWalkingMaps );
+			root->QueryBoolAttribute( "confirmMove", &confirmMove );
 		}
 	}
 	nWalkingMaps = grinliz::Clamp( nWalkingMaps, 1, 2 );
@@ -70,6 +77,15 @@ void SettingsManager::SetNumWalkingMaps( int maps )
 	maps = grinliz::Clamp( maps, 1, 2 );
 	if ( maps != nWalkingMaps ) {
 		nWalkingMaps = maps;
+		Save();
+	}
+}
+
+
+void SettingsManager::SetConfirmMove( bool confirm )
+{
+	if ( confirm != confirmMove ) {
+		confirmMove = confirm;
 		Save();
 	}
 }
@@ -98,6 +114,7 @@ void SettingsManager::Save()
 		XMLUtil::Attribute( fp, "battleShipParty", battleShipParty );
 		XMLUtil::Attribute( fp, "useFastBattle", useFastBattle );
 		XMLUtil::Attribute( fp, "nWalkingMaps", nWalkingMaps );
+		XMLUtil::Attribute( fp, "confirmMove", confirmMove );
 
 		XMLUtil::SealCloseElement( fp );
 

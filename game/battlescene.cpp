@@ -57,6 +57,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	lockedStorage = 0;
 	cameraSet = false;
 	battleEnding = false;
+	confirmDest.Set( -1, -1 );
 
 	engine  = game->engine;
 	tacMap = new TacMap( engine->GetSpaceTree(), game->GetItemDefArr() );
@@ -146,9 +147,15 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		invButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_CHARACTER, true ), UIRenderer::CalcDecoAtom( DECO_CHARACTER, false ) );
 		invButton.SetSize( SIZE, SIZE );
 
-		invButton.Init( &gamui2D, green );
-		invButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_CHARACTER, true ), UIRenderer::CalcDecoAtom( DECO_CHARACTER, false ) );
-		invButton.SetSize( SIZE, SIZE );
+		moveOkayButton.Init( &gamui2D, green );
+		moveOkayButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_OKAY, true ), UIRenderer::CalcDecoAtom( DECO_OKAY, false ) );
+		moveOkayButton.SetSize( SIZE*2, SIZE );
+		moveOkayButton.SetPos( port.UIWidth()-SIZE*4, port.UIHeight()-SIZE );
+
+		moveCancelButton.Init( &gamui2D, red );
+		moveCancelButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_END_TURN, true ), UIRenderer::CalcDecoAtom( DECO_END_TURN, false ) );
+		moveCancelButton.SetSize( SIZE*2, SIZE );
+		moveCancelButton.SetPos( SIZE*2, port.UIHeight()-SIZE );
 
 		static const int controlDecoID[CONTROL_BUTTON_COUNT] = { DECO_ROTATE_CCW, DECO_ROTATE_CW, DECO_PREV, DECO_NEXT };
 		for( int i=0; i<CONTROL_BUTTON_COUNT; ++i ) {
@@ -813,6 +820,8 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	}
 
 	SetUnitOverlays();
+	moveOkayButton.SetVisible( confirmDest.x >= 0 );
+	moveCancelButton.SetVisible( confirmDest.x >= 0 );
 
 	// Creates a race condition. Sometimes re-pushes End scene between the sequence:
 	// Battle
@@ -1136,6 +1145,8 @@ void BattleScene::PushScrollOnScreen( const Vector3F& pos, bool center )
 
 void BattleScene::SetSelection( Unit* unit ) 
 {
+	confirmDest.Set( -1, -1 );
+
 	if ( !unit ) {
 		selection.soldierUnit = 0;
 		selection.targetUnit = 0;
@@ -2258,6 +2269,17 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 
 			game->PushScene( Game::DIALOG_SCENE, data );
 		}
+		else if ( tapped == &moveOkayButton && confirmDest.x >= 0 ) {
+			// Go!
+			Action* action = actionStack.Push();
+			action->Init( ACTION_MOVE, SelectedSoldierUnit() );
+			action->type.move.path.Init( pathCache );
+			tacMap->ClearNearPath();
+			confirmDest.Set( -1, -1 );
+		}
+		else if ( tapped == &moveCancelButton ) {
+			confirmDest.Set( -1, -1 );
+		}
 	}
 	return tapped != 0;
 }
@@ -2515,15 +2537,18 @@ void BattleScene::Tap(	int action,
 
 			// Compute the path:
 			float cost;
-			//const Stats& stats = selection.soldierUnit->GetStats();
-
 			int result = tacMap->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
 			if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
-				// Go!
-				Action* action = actionStack.Push();
-				action->Init( ACTION_MOVE, SelectedSoldierUnit() );
-				action->type.move.path.Init( pathCache );
-				tacMap->ClearNearPath();
+				if ( SettingsManager::Instance()->GetConfirmMove() ) {
+					confirmDest.Set( end.x, end.y );
+				}
+				else {
+					// Go!
+					Action* action = actionStack.Push();
+					action->Init( ACTION_MOVE, SelectedSoldierUnit() );
+					action->type.move.path.Init( pathCache );
+					tacMap->ClearNearPath();
+				}
 			}
 		}
 	}
@@ -2534,10 +2559,15 @@ void BattleScene::ShowNearPath( const Unit* unit )
 {
 	if ( unit == 0 && nearPathState.unit == 0 )		
 		return;		// drawing nothing correctly
+
+	bool confirmMove = SettingsManager::Instance()->GetConfirmMove();
+
 	if (    unit == nearPathState.unit
 		 && unit->TU() == nearPathState.tu
-		 && unit->MapPos() == nearPathState.pos ) {
-			return;		// drawing something that is current.
+		 && unit->MapPos() == nearPathState.pos 
+		 && ( !confirmMove || confirmDest == nearPathState.dest ) )
+	{
+		return;		// drawing something that is current.
 	}
 
 	nearPathState.Clear();
@@ -2557,6 +2587,7 @@ void BattleScene::ShowNearPath( const Unit* unit )
 		nearPathState.unit = unit;
 		nearPathState.tu = unit->TU();
 		nearPathState.pos = unit->MapPos();
+		nearPathState.dest = confirmDest;
 
 		Vector2<S16> start = { (S16)unit->MapPos().x, (S16)unit->MapPos().y };
 		float tu = unit->TU();
@@ -2566,7 +2597,9 @@ void BattleScene::ShowNearPath( const Unit* unit )
 			{ tu-autoTU, tu-snappedTU },
 			{ tu-snappedTU, tu }
 		};
-		tacMap->ShowNearPath( unit->MapPos(), unit, start, tu, range );
+		Vector2<S16> confirmDest16 = { confirmDest.x, confirmDest.y };
+
+		tacMap->ShowNearPath( unit->MapPos(), unit, start, tu, range, (confirmMove && confirmDest.x >= 0 ) ? &confirmDest16 : 0 );
 	}
 }
 

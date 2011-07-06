@@ -254,13 +254,15 @@ private:
 
 	// Show the UI zones arount the selected unit
 	struct NearPathState {
-		const Unit* unit;
-		grinliz::Vector2I pos;	// pos and tu are probably redundant, but let's be careful.
-		float tu;
+		const Unit*			unit;
+		grinliz::Vector2I	pos;	// pos and tu are probably redundant, but let's be careful.
+		float				tu;
+		grinliz::Vector2I	dest;	// if a particular destination, this should be set.
 
-		void Clear() { unit = 0; pos.Set( -1, -1 ); tu = -1.0f; }
+		void Clear() { unit = 0; pos.Set( -1, -1 ); tu = -1.0f; dest.Set( -2, -2 ); }
 	};
-	NearPathState nearPathState;
+	NearPathState			nearPathState;
+	grinliz::Vector2I		confirmDest;
 	void ShowNearPath( const Unit* unit );		// call freely; does nothing if the current path is valid.
 
 	// set the fire widget to the primary and secondary weapon
@@ -333,6 +335,8 @@ private:
 	gamui::ToggleButton	targetButton;
 	gamui::ToggleButton orbitButton;
 	gamui::PushButton	invButton;
+	gamui::PushButton	moveOkayButton;
+	gamui::PushButton	moveCancelButton;
 	enum { ROTATE_CCW_BUTTON, ROTATE_CW_BUTTON, PREV_BUTTON, NEXT_BUTTON, CONTROL_BUTTON_COUNT };
 	gamui::PushButton	controlButton[4];
 	enum { FIRE_BUTTON_SPACING = 5 };

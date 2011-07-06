@@ -34,6 +34,8 @@ using namespace grinliz;
 using namespace micropather;
 
 
+const float DIAGONAL_COST = 1.414f;
+
 
 const ModelResource* MapItemDef::GetModelResource() const
 {
@@ -1671,7 +1673,6 @@ void Map::AdjacentCost( void* state, MP_VECTOR< micropather::StateCost > *adjace
 		{ -1, -1 },
 		{ -1, 1 },
 	};
-	const float SQRT2 = 1.414f;
 
 	adjacent->resize( 0 );
 	// N S E W
@@ -1756,13 +1757,26 @@ void Map::ShowNearPath(	const grinliz::Vector2I& unitPos,
 						const void* user, 
 						const grinliz::Vector2<S16>& start, 
 					    float maxCost,
-					    const grinliz::Vector2F* range )
+					    const grinliz::Vector2F* range,
+						const grinliz::Vector2<S16>* dest )
 {
 	if ( pathBlocker ) {
 		pathBlocker->MakePathBlockCurrent( this, user );
 	}
 	stateCostArr.clear();
+	mpVector.clear();
+
+	if ( dest ) {
+		float total;
+		int result = microPather->Solve( VecToState( start ), VecToState( *dest ), &mpVector, &total );
+
+		GLASSERT( total <= maxCost );
+		if ( result != micropather::MicroPather::SOLVED ) {
+			mpVector.clear();			
+		}
+	}
 	microPather->SolveForNearStates( VecToState( start ), &stateCostArr, maxCost );
+
 
 	/*
 	GLOUTPUT(( "Near states, result=%d\n", result ));
@@ -1810,6 +1824,19 @@ void Map::ShowNearPath(	const grinliz::Vector2I& unitPos,
 		// don't draw where standing.
 		if ( v.x == unitPos.x && v.y == unitPos.y )
 			continue;
+
+		// If a destination is set, only draw on the path.
+		if ( mpVector.size() ) {
+			bool found = false;
+			for( unsigned v=0; v<mpVector.size(); ++v ) {
+				if ( mpVector[v] == stateCost.state ) {
+					found = true;
+					break;
+				}
+			}
+			if ( !found )
+				continue;
+		}
 
 		for( int k=0; k<3; ++k ) {
 			if ( stateCost.cost >= range[k].x && stateCost.cost < range[k].y ) {
