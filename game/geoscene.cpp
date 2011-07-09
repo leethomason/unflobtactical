@@ -466,7 +466,7 @@ void GeoScene::HandleItemTapped( const gamui::UIItem* item )
 	}
 	else if ( item == &helpButton ) {
 		if ( !game->IsScenePushed() ) {
-			game->PushScene( Game::HELP_SCENE, new HelpSceneData( "geoHelp" ) );
+			game->PushScene( Game::HELP_SCENE, new HelpSceneData( "geoHelp", true ) );
 		}
 	}
 }

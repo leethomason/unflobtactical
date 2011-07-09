@@ -567,7 +567,7 @@ private:
 	enum {
 		MAX_WALKING_MAPS = 2		// 1 or 2
 	};
-	int nWalkingMaps;
+	//int nWalkingMaps;
 	gamui::TiledImage<EL_MAP_MAX_PATH*2+1, EL_MAP_MAX_PATH*2+1>	walkingMap[MAX_WALKING_MAPS];
 	gamui::Image								border[4];
 

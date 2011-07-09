@@ -28,6 +28,7 @@ sources :=  ai.cpp \
 			geoscene.cpp \
 			helpscene.cpp \
 			researchscene.cpp \
+			settingscene.cpp \
 			tacticalendscene.cpp \
 			tacticalintroscene.cpp \
 			tacticalunitscorescene.cpp \

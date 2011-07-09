@@ -129,7 +129,7 @@ void BuildBaseScene::Tap(	int action,
 		return;
 	}
 	else if ( item == &helpButton ) {
-		game->PushScene( Game::HELP_SCENE, new HelpSceneData( "buildBaseHelp" ) );
+		game->PushScene( Game::HELP_SCENE, new HelpSceneData( "buildBaseHelp", false ) );
 	}
 
 	for( int i=0; i<NUM_FACILITIES; ++i ) {

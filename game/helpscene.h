@@ -26,8 +26,9 @@ class UIButtonGroup;
 class HelpSceneData : public SceneData
 {
 public:
-	HelpSceneData( const char* _name ) : name( _name ) {}
+	HelpSceneData( const char* _name, bool _settings ) : name( _name ), settings( _settings ) {}
 	const char* name;
+	bool settings;
 };
 
 class HelpScene : public Scene
@@ -54,7 +55,7 @@ public:
 	virtual void HandleHotKeyMask( int mask );
 
 private:
-	enum {	NUM_BUTTONS = 3,
+	enum {	NUM_BUTTONS = 4,
 			NUM_TEXT_LABELS = 20
 	};
 
@@ -65,7 +66,7 @@ private:
 	gamui::Image		background;
 	gamui::Image		image;
 	gamui::TextBox		textBox;
-	gamui::PushButton	buttons[3];
+	gamui::PushButton	buttons[NUM_BUTTONS];
 };
 
 

@@ -508,6 +508,7 @@ const RenderAtom* TiledImageBase::GetRenderAtom() const
 void TiledImageBase::Clear()														
 { 
 	memset( Mem(), 0, CX()*CY() ); 
+	memset( m_atom, 0, sizeof(RenderAtom)*MAX_ATOMS );
 	Modify();
 }
 

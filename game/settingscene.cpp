@@ -22,7 +22,7 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 	doneButton.Init( &gamui2D, blue );
 	doneButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	doneButton.SetText( "X" );
-	doneButton.SetPos( GAME_GUTTER, port.UIHeight() - GAME_BUTTON_SIZE_F - GAME_GUTTER );
+	doneButton.SetPos( 0, port.UIHeight() - GAME_BUTTON_SIZE_F);
 
 	float y = GAME_GUTTER;
 	float deltaY = GAME_BUTTON_SIZE + 5.0f;
@@ -40,6 +40,7 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 		moveButton[i].Init( &gamui2D, green );
 		moveButton[i].SetText( move_TEXT[i] );
 		moveButton[i].SetPos( x + deltaX*(float)i, y );
+		moveButton[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 		moveButton[0].AddToToggleGroup( &moveButton[i] );
 	}
 	moveButton[ sm->GetConfirmMove() ? 1 : 0].SetDown();
@@ -48,13 +49,14 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 
 	dotText.Init( &gamui2D );
 	dotText.SetSize( boxWidth, GAME_BUTTON_SIZE_F );
-	dotText.SetText( "Movement dots overlay map objects and units." );
+	dotText.SetText( "Overlay Dots shows movement path on top of world objects." );
 	dotText.SetPos( GAME_GUTTER, y );
 	static const char* dot_TEXT[4] = { "Off", "On" };
 	for( int i=0; i<2; ++i ) {
 		dotButton[i].Init( &gamui2D, green );
 		dotButton[i].SetText( dot_TEXT[i] );
 		dotButton[i].SetPos( x + deltaX*(float)i, y );
+		dotButton[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 		dotButton[0].AddToToggleGroup( &dotButton[i] );
 	}
 	dotButton[ sm->GetNumWalkingMaps()-1 ].SetDown();
@@ -69,10 +71,27 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 		debugButton[i].Init( &gamui2D, green );
 		debugButton[i].SetText( DEBUG_TEXT[i] );
 		debugButton[i].SetPos( x + deltaX*(float)i, y );
+		debugButton[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 		debugButton[0].AddToToggleGroup( &debugButton[i] );
 	}
 	debugButton[game->GetDebugLevel()].SetDown();
 	y += deltaY;
+
+
+	audioButton.Init( &gamui2D, green );
+	audioButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	audioButton.SetPos( x, y );
+
+	if ( sm->GetAudioOn() ) {
+		audioButton.SetDown();
+		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_AUDIO, true ),
+							 UIRenderer::CalcDecoAtom( DECO_AUDIO, false ) );	
+	}
+	else {
+		audioButton.SetUp();
+		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_MUTE, true ),
+							 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
+	}
 }
 
 
@@ -93,6 +112,7 @@ SettingScene::~SettingScene()
 		}
 	}
 	sm->SetConfirmMove( moveButton[1].Down() );
+	sm->SetAudioOn( audioButton.Down() );
 }
 
 
@@ -119,6 +139,16 @@ void SettingScene::Tap( int action, const grinliz::Vector2F& screen, const grinl
 	else if ( action == GAME_TAP_UP ) {
 		item = gamui2D.TapUp( ui.x, ui.y );
 	}
+
+	if ( audioButton.Down() ) {
+		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_AUDIO, true ),
+							 UIRenderer::CalcDecoAtom( DECO_AUDIO, false ) );	
+	}
+	else {
+		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_MUTE, true ),
+							 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
+	}
+
 
 	if ( item == &doneButton ) {
 		game->PopScene();

@@ -377,7 +377,7 @@ void CharacterScene::Tap(	int action,
 	}
 
 	if ( item == &helpButton ) {
-		game->PushScene( Game::HELP_SCENE, new HelpSceneData( "characterHelp" ));
+		game->PushScene( Game::HELP_SCENE, new HelpSceneData( "characterHelp", false ));
 	}
 
 	// control buttons

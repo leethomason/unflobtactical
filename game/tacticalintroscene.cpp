@@ -100,17 +100,6 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 						UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
 
 	audioButton.Init( &gamui2D, green );
-	SettingsManager* settings = SettingsManager::Instance();
-	if ( settings->GetAudioOn() ) {
-		audioButton.SetDown();
-		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_AUDIO, true ),
-							 UIRenderer::CalcDecoAtom( DECO_AUDIO, false ) );	
-	}
-	else {
-		audioButton.SetUp();
-		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_MUTE, true ),
-							 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
-	}
 
 	//infoButton.Init( &gamui2D, green );
 	//infoButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_INFO, true ),
@@ -265,6 +254,22 @@ TacticalIntroScene::~TacticalIntroScene()
 }
 
 
+void TacticalIntroScene::Activate()
+{
+	SettingsManager* settings = SettingsManager::Instance();
+	if ( settings->GetAudioOn() ) {
+		audioButton.SetDown();
+		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_AUDIO, true ),
+							 UIRenderer::CalcDecoAtom( DECO_AUDIO, false ) );	
+	}
+	else {
+		audioButton.SetUp();
+		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_MUTE, true ),
+							 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
+	}
+}
+
+
 void TacticalIntroScene::DrawHUD()
 {
 }
@@ -390,7 +395,7 @@ void TacticalIntroScene::Tap(	int action,
 		}
 	}
 	else if ( item == &helpButton ) {
-		game->PushScene( Game::HELP_SCENE, new HelpSceneData("introHelp" ));
+		game->PushScene( Game::HELP_SCENE, new HelpSceneData("introHelp", false ));
 	}
 	else if ( item == &audioButton ) {
 		SettingsManager* settings = SettingsManager::Instance();

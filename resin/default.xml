@@ -672,6 +672,7 @@
         The following screens cover the basics; much more info on-line
         at xenowar.net
       </p>
+      <p>You can also access the game Settings from this help screen.</p>
     </page>
     <page image="helpImage7">
       <p>[Moving the Camera]</p>
@@ -711,6 +712,10 @@
       </p>
       <p>
         You can also drag a unit to move it.
+      </p>
+      <p>
+        If Confirm Movement is turned ON in the Settings, you need to accept or cancel the path shown.
+        You can select a new destination before accepting.
       </p>
     </page>
 
@@ -876,6 +881,7 @@
         The strategic part of the game is played out on this screen, in real time.
         When combat occurs, it is turn based on the tactical screen.
       </p>
+      <p>You can also access the game Settings from this help screen.</p>
     </page>
     <page>
       <p>[Main UI]</p>
