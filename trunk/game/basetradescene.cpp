@@ -166,7 +166,7 @@ void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const gri
 
 
 	if ( uiItem == &helpButton ) {
-		game->PushScene( Game::HELP_SCENE, new HelpSceneData( "supplyBaseHelp" ) );
+		game->PushScene( Game::HELP_SCENE, new HelpSceneData( "supplyBaseHelp", false ) );
 	}
 	if ( uiItem == &okay ) {
 		game->PopScene( 0 );

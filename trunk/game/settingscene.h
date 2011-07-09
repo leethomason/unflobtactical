@@ -37,6 +37,8 @@ private:
 	gamui::TextBox		debugText;
 	gamui::ToggleButton	debugButton[4];
 
+	gamui::ToggleButton	audioButton;
+
 };
 
 

@@ -36,6 +36,8 @@ public:
 	TacticalIntroScene( Game* _game );
 	virtual ~TacticalIntroScene();
 
+	virtual void Activate();
+
 	// UI
 	virtual void Tap(	int count, 
 						const grinliz::Vector2F& screen,

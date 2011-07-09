@@ -4,8 +4,8 @@
 - check android API version. manifest: <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7"/>
 - set android manifest debuggable=false
 - check Win32 build=Release
-- check NDK build=Release, APP_OPTIM := release in Application.mk
-- up the android version code AND name in the manifest
+- check NDK APP_OPTIM := release in Application.mk
+- up the android version code AND version name in the manifest
 
 - build win32 
 - test win32
@@ -13,6 +13,7 @@
 - build android - refresh before building.
   /cygdrive/c/src/android-ndk-r5b/ndk-build
   /cygdrive/c/src/android-ndk-r5b/ndk-build -B		builds all
+  check version when testing
 
 - test Nexus One
 - upload to website
@@ -33,6 +34,15 @@
 	- publish
 	- check on Samsung
 
+
+Changes in 2.2 v4 b660
+Release v2.2 b660 Windows 
+- Increased contrast in walking dots.
+- Added settings UI
+- Added move confirmation
+- Added dot overlay on main screen
+
+Improved UI for Android now shows movement path and confirms move. Also a settings UI to toggle features of the game and improved "walking dots" graphics.
 
 Changes in 2.1 v3 b649:
 - Added framerate limiter on Android. Should stay ~30fps now.

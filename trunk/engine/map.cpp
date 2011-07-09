@@ -92,7 +92,7 @@ Map::Map( SpaceTree* tree )
 		overlay[i].Init( this, nullAtom, nullAtom, 0 );
 
 	walkingMap[0].Init( &overlay[LAYER_UNDER_LOW] );
-	nWalkingMaps = SettingsManager::Instance()->GetNumWalkingMaps();
+	//nWalkingMaps = SettingsManager::Instance()->GetNumWalkingMaps();
 
 	if ( MAX_WALKING_MAPS > 1 ) {
 		walkingMap[1].Init( &overlay[LAYER_OVER] );
@@ -1787,6 +1787,8 @@ void Map::ShowNearPath(	const grinliz::Vector2I& unitPos,
 	}
 	*/
 
+	int nWalkingMaps = SettingsManager::Instance()->GetNumWalkingMaps();
+
 	Vector2I origin = { (unitPos.x - EL_MAP_MAX_PATH), (unitPos.y - EL_MAP_MAX_PATH) };
 	for( int i=0; i<MAX_WALKING_MAPS; ++i ) {
 		walkingMap[i].SetVisible( i < nWalkingMaps );
@@ -2160,7 +2162,7 @@ void Map::EndRender()
 void Map::BeginRenderState( const void* renderState )
 {
 	const float ALPHA = 0.5f;
-	const float ALPHA_1 = 0.25f;
+	const float ALPHA_1 = 0.30f;
 	switch( (int)renderState ) {
 		case UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE:
 		case RENDERSTATE_MAP_OPAQUE:

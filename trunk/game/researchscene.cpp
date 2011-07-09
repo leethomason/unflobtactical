@@ -114,7 +114,7 @@ void ResearchScene::Tap( int action, const grinliz::Vector2F& screen, const grin
 		game->PopScene();
 	}
 	else if ( item == &helpButton ) {
-		game->PushScene( Game::HELP_SCENE, new HelpSceneData( "researchHelp" ) );
+		game->PushScene( Game::HELP_SCENE, new HelpSceneData( "researchHelp", false ) );
 	}
 }
 

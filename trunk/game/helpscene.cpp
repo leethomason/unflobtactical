@@ -30,10 +30,10 @@ HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ),
 	textBox.SetSize( port.UIWidth()-GAME_GUTTER*2.0f, port.UIHeight()-GAME_GUTTER*2.0f );
 
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
-	static const char* const text[3] = { "<", ">", "X" };
-	UIItem* items[3] = { 0 };
+	static const char* const text[NUM_BUTTONS] = { "<", ">", "X", "" };
+	UIItem* items[NUM_BUTTONS] = { 0 };
 
-	for( int i=0; i<3; ++i ) {
+	for( int i=0; i<NUM_BUTTONS; ++i ) {
 		buttons[i].Init( &gamui2D, blue );
 		buttons[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 		buttons[i].SetText( text[i] );
@@ -42,6 +42,10 @@ HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ),
 	buttons[0].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*2.0f, port.UIHeight() - GAME_BUTTON_SIZE_F );
 	buttons[1].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F,		 port.UIHeight() - GAME_BUTTON_SIZE_F );
 	buttons[2].SetPos( 0, port.UIHeight() - GAME_BUTTON_SIZE_F );
+	buttons[3].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*3.0f, port.UIHeight() - GAME_BUTTON_SIZE_F );
+
+	buttons[3].SetDeco( UIRenderer::CalcDecoAtom( DECO_SETTINGS, true ), UIRenderer::CalcDecoAtom( DECO_SETTINGS, false ) );
+	buttons[3].SetVisible( data->settings );
 	/*
 	Gamui::Layout( items, 3, 3, 1, 
 				   (float)engine->GetScreenport().UIWidth()-GAME_BUTTON_SIZE_F*3.0f, 
@@ -155,6 +159,9 @@ void HelpScene::Tap( int action, const grinliz::Vector2F& screen, const grinliz:
 	}
 	else if ( item == &buttons[2] ) {
 		game->PopScene();
+	}
+	else if ( item == &buttons[3] ) {
+		game->PushScene( Game::SETTING_SCENE, 0 );
 	}
 	Layout();
 }

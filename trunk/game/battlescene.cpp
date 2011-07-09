@@ -2260,7 +2260,7 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 			HandleNextUnit( -1 );
 		}
 		else if ( tapped == &helpButton ) {
-			game->PushScene( Game::HELP_SCENE, new HelpSceneData( "tacticalHelp") );
+			game->PushScene( Game::HELP_SCENE, new HelpSceneData( "tacticalHelp", true ) );
 		}
 		else if ( tapped == &exitButton ) {
 			DialogSceneData* data = new DialogSceneData();
