@@ -294,12 +294,12 @@
   <data filename="beam.wav" compress="false"/>
   -->
   <!-- generic AR and pistol -->
-  <data filename="ar3p.wav" compress="false" />
-  <data filename="ar3l.wav" compress="false" />
-  <data filename="can.wav"  compress="false" />
-  <data filename="ray1.wav" compress="false"/>
+  <data filename="ar3p.wav"   compress="false" />
+  <data filename="ar3l.wav"   compress="false" />
+  <data filename="can.wav"    compress="false" />
+  <data filename="ray1.wav"   compress="false"/>
   <data filename="plasma.wav" compress="false"/>
-  <data filename="nullp.wav" compress="false"/>
+  <data filename="nullp.wav"  compress="false"/>
 
   <model filename="smallcrate.ac" />
   <model filename="unitplate.ac" />
@@ -979,16 +979,16 @@
   </text>
 
   <!-- Sound effects -->
-  <data filename="explosion.wav" compress="false"/>
-  <data filename="hit.wav" compress="false"/>
-  <data filename="terrandown0.wav" compress="false"/>
-  <data filename="aliendown0.wav" compress="false"/>
+  <data filename="explosion.wav"    compress="false"/>
+  <data filename="hit.wav"          compress="false"/>
+  <data filename="terrandown0.wav"  compress="false"/>
+  <data filename="aliendown0.wav"   compress="false"/>
 
   <data filename="geo_ufo_atmo.wav"       compress="false"/>
   <data filename="geo_ufo_citybase.wav"   compress="false"/>
   <data filename="geo_ufo_crash.wav"      compress="false"/>
   <data filename="geo_ufo_cropcircle.wav" compress="false"/>
   <data filename="geo_ufo_warp.wav"       compress="false"/>
-  <data filename="geo_ufo_hit.wav"       compress="false"/>
+  <data filename="geo_ufo_hit.wav"        compress="false"/>
 
 </resource>

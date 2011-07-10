@@ -249,6 +249,33 @@ void PutPixel(SDL_Surface *surface, int x, int y, U32 pixel)
 }
 
 
+void ParseNames( const TiXmlElement* element, GLString* _assetName, GLString* _fullPath, GLString* _extension )
+{
+	string filename;
+	element->QueryStringAttribute( "filename", &filename );
+
+	string assetName;
+	element->QueryStringAttribute( "modelName", &assetName );
+	element->QueryStringAttribute( "assetName", &assetName );
+
+	GLString fullIn = inputPath.c_str();
+	fullIn += filename.c_str();	
+
+	GLString base, name, extension;
+	grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
+	if ( assetName.empty() ) {
+		assetName = name.c_str();
+	}
+
+	if ( _assetName )
+		*_assetName = assetName.c_str();
+	if ( _fullPath )
+		*_fullPath = fullIn;
+	if ( _extension )
+		*_extension = extension;
+}
+
+
 void ProcessTreeRec( gamedb::WItem* parent, TiXmlElement* ele )
 {
 	string name = ele->ValueStr();
@@ -298,18 +325,18 @@ void ProcessData( TiXmlElement* data )
 	data->QueryStringAttribute( "filename", &filename );
 	string fullIn = inputPath + filename;
 
-	GLString name;
-	grinliz::StrSplitFilename( GLString( fullIn.c_str() ), 0, &name, 0 );
+	GLString assetName, pathName;
+	ParseNames( data, &assetName, &pathName, 0 );
 
 	// copy the entire file.
 #pragma warning ( push )
 #pragma warning ( disable : 4996 )	// fopen is unsafe. For video games that seems extreme.
-	FILE* read = fopen( fullIn.c_str(), "rb" );
+	FILE* read = fopen( pathName.c_str(), "rb" );
 #pragma warning (pop)
 
 	if ( !read ) {
 		printf( "**Unrecognized data file. '%s'\n",
-				 fullIn.c_str() );
+				 pathName.c_str() );
 		exit( 1 );
 	}
 
@@ -322,7 +349,7 @@ void ProcessData( TiXmlElement* data )
 	fread( mem, len, 1, read );
 
 	int index = 0;
-	gamedb::WItem* witem = writer->Root()->FetchChild( "data" )->CreateChild( name.c_str() );
+	gamedb::WItem* witem = writer->Root()->FetchChild( "data" )->CreateChild( assetName.c_str() );
 	witem->SetData( "binary", mem, len, compression );
 
 	delete [] mem;
@@ -437,26 +464,34 @@ void ProcessModel( TiXmlElement* model )
 	int startVertex = 0;
 	Vector3F origin = { 0, 0, 0 };
 
-	string filename;
-	model->QueryStringAttribute( "filename", &filename );
-	string modelName;
-	model->QueryStringAttribute( "modelName", &modelName );
+	//string filename;
+	//model->QueryStringAttribute( "filename", &filename );
+	//tring modelName;
+	//model->QueryStringAttribute( "modelName", &modelName );
+
+	GLString pathName, assetName, extension;
+	ParseNames( model, &assetName, &pathName, &extension );
+
 	if ( model->Attribute( "origin" ) ) {
 		StringToVector( model->Attribute( "origin" ), &origin );
 	}
+	bool usingSubModels = false;
+	if ( model->Attribute( "modelName" ) ) {
+		usingSubModels = true;
+	}
 	
-	GLString fullIn = inputPath.c_str(); 
-	fullIn += filename.c_str();
-
-	GLString base, name, extension;
-	grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
+	//GLString fullIn = inputPath.c_str(); 
+	//fullIn += filename.c_str();
+	//
+	//GLString base, name, extension;
+	//grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
 
 	// If the model name is specified, it is one model in a lineup.
 	// Instead of the filename, use the specified model name.
-	if ( !modelName.empty() )
-		name = modelName.c_str();
+	//if ( !modelName.empty() )
+	//	name = modelName.c_str();
 
-	printf( "Model '%s'", name.c_str() );
+	printf( "Model '%s'", assetName.c_str() );
 
 	ModelBuilder* builder = new ModelBuilder();
 	builder->SetShading( ModelBuilder::FLAT );
@@ -476,15 +511,14 @@ void ProcessModel( TiXmlElement* model )
 	}
 
 	if ( extension == ".ac" ) {
-		ImportAC3D(	std::string( fullIn.c_str() ), builder, origin, modelName );
+		ImportAC3D(	std::string( pathName.c_str() ), builder, origin, usingSubModels ? string( assetName.c_str()) : "" );
 	}
 	else if ( extension == ".off" ) {
-		GLASSERT( modelName.empty() );
-		ImportOFF( std::string( fullIn.c_str() ), builder );
+		ImportOFF( std::string( pathName.c_str() ), builder );
 	}
 	else {
-		printf( "**Unrecognized model file. full='%s' base='%s' name='%s' extension='%s'\n",
-				 fullIn.c_str(), base.c_str(), name.c_str(), extension.c_str() );
+		printf( "**Unrecognized model file. path='%s' asset='%s' extension='%s'\n",
+				 pathName.c_str(), assetName.c_str(), extension.c_str() );
 		exit( 1 );
 	}
 
@@ -499,7 +533,7 @@ void ProcessModel( TiXmlElement* model )
 	}	
 	printf( " groups=%d nVertex=%d nTri=%d\n", builder->NumGroups(), nTotalVertex, nTotalIndex/3 );
 	ModelHeader header;
-	header.Set( name.c_str(), builder->NumGroups(), nTotalVertex, nTotalIndex, builder->Bounds() );
+	header.Set( assetName.c_str(), builder->NumGroups(), nTotalVertex, nTotalIndex, builder->Bounds() );
 
 	if ( grinliz::StrEqual( model->Attribute( "shadowCaster" ), "false" ) ) {
 		header.flags |= ModelHeader::RESOURCE_NO_SHADOW;
@@ -517,7 +551,7 @@ void ProcessModel( TiXmlElement* model )
 		header.target -= origin.y;
 	}
 
-	gamedb::WItem* witem = writer->Root()->FetchChild( "models" )->CreateChild( name.c_str() );
+	gamedb::WItem* witem = writer->Root()->FetchChild( "models" )->CreateChild( assetName.c_str() );
 
 	int totalMemory = 0;
 
@@ -690,18 +724,19 @@ void ProcessTexture( TiXmlElement* texture )
 	texture->QueryIntAttribute( "width", &width );
 	texture->QueryIntAttribute( "height", &height );
 
-	string filename;
-	texture->QueryStringAttribute( "filename", &filename );
+//	string filename;
+//	texture->QueryStringAttribute( "filename", &filename );
+//	GLString fullIn = inputPath.c_str();
+//	fullIn += filename.c_str();	
+//	GLString base, name, extension;
+//	grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
+	
+	GLString pathName, assetName;
+	ParseNames( texture, &assetName, &pathName, 0 );
 
-	GLString fullIn = inputPath.c_str();
-	fullIn += filename.c_str();	
-
-	GLString base, name, extension;
-	grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
-
-	SDL_Surface* surface = libIMG_Load( fullIn.c_str() );
+	SDL_Surface* surface = libIMG_Load( pathName.c_str() );
 	if ( !surface ) {
-		printf( "**Could not load: %s\n", fullIn.c_str() );
+		printf( "**Could not load: %s\n", pathName.c_str() );
 		exit( 1 );
 	}
 	else {
@@ -710,7 +745,7 @@ void ProcessTexture( TiXmlElement* texture )
 //			exit( 1 );
 //		}
 		printf( "  Loaded: '%s' bpp=%d", 
-				name.c_str(),
+				assetName.c_str(),
 				surface->format->BitsPerPixel );
 	}
 
@@ -758,7 +793,7 @@ void ProcessTexture( TiXmlElement* texture )
 				pixelBuffer16.reserve( surface->w*surface->h );
 				DitherTo16( surface, RGBA16, true, &pixelBuffer16[0] );
 			}
-			InsertTextureToDB( name.c_str(), "RGBA16", isImage, isFont, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2 );
+			InsertTextureToDB( assetName.c_str(), "RGBA16", isImage, isFont, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2 );
 			break;
 
 		case 24:
@@ -786,7 +821,7 @@ void ProcessTexture( TiXmlElement* texture )
 				pixelBuffer16.reserve( surface->w*surface->h );
 				DitherTo16( surface, RGB16, true, &pixelBuffer16[0] );
 			}
-			InsertTextureToDB( name.c_str(), "RGB16", isImage, isFont, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2 );
+			InsertTextureToDB( assetName.c_str(), "RGB16", isImage, isFont, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2 );
 			break;
 
 		case 8:
@@ -801,7 +836,7 @@ void ProcessTexture( TiXmlElement* texture )
 					pixelBuffer8.push_back(*p);
 				}
 			}
-			InsertTextureToDB( name.c_str(), "ALPHA", isImage, isFont, surface->w, surface->h, &pixelBuffer8[0], pixelBuffer8.size() );
+			InsertTextureToDB( assetName.c_str(), "ALPHA", isImage, isFont, surface->w, surface->h, &pixelBuffer8[0], pixelBuffer8.size() );
 			break;
 
 		default:
