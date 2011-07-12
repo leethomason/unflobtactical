@@ -914,6 +914,9 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 		baseAttack = true;
 	}
 	if ( landerChit ) {
+		if ( landerChit->IsDestroyed() )
+			return;	// something went wrong, but don't keep going!
+
 		// Lander attacks UFO
 		Chit* chitAt = chitBag.GetParkedChitAt( landerChit->MapPos() );
 		ufoChit = chitAt ? chitAt->IsUFOChit() : 0;
@@ -922,7 +925,8 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 
 	if ( ufoChit ) {
 		GLASSERT( baseChit );	// now sure how this is possible, although not destructive
-		if ( baseChit ) {
+
+		if ( baseChit && !baseChit->IsDestroyed() ) {
 			Unit* units = baseChit->GetUnits();
 
 			TimeState state;
@@ -1119,8 +1123,6 @@ void GeoScene::SceneResult( int sceneID, int result )
 
 				int nCivsAlive = Unit::Count( &game->battleData.units[CIV_UNITS_START], MAX_CIVS, Unit::STATUS_ALIVE );
 				int nCivsDead  = Unit::Count( &game->battleData.units[CIV_UNITS_START], MAX_CIVS, Unit::STATUS_KIA );
-				//int nAliensAlive = Unit::Count( &game->battleData.units[ALIEN_UNITS_START], MAX_ALIENS, Unit::STATUS_ALIVE );
-				//int nAliensDead  = Unit::Count( &game->battleData.units[ALIEN_UNITS_START], MAX_ALIENS, Unit::STATUS_KIA );
 
 				if ( result == BattleData::VICTORY ) {
 					// Apply penalty for lost civs:
@@ -1147,6 +1149,11 @@ void GeoScene::SceneResult( int sceneID, int result )
 				if ( !landerChit ) {
 					// Base attack - really good or really bad.
 					if ( result == BattleData::DEFEAT ) {
+						// Make sure to destroy base and deployed lander.
+						CargoChit* baseLander = chitBag.GetCargoComingFrom( CargoChit::TYPE_LANDER, baseChit->MapPos() );
+						if ( baseLander ) { 
+							baseLander->SetDestroyed();
+						}
 						baseChit->SetDestroyed();
 						ufoChit->SetAI( UFOChit::AI_ORBIT );						
 					}
