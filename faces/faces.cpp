@@ -24,7 +24,8 @@ Surface::RGBA FaceGenerator::CalcShadowColor( Surface::RGBA in, float factor )
 
 
 void FaceGenerator::Composite( const Surface& srcSurface, const Rect2I& srcRect, 
-							   Surface* dstSurface, const Rect2I& dstRect )
+							   Surface* dstSurface, const Rect2I& dstRect,
+							   bool flip )
 {
 	GLASSERT( srcSurface.Format()  == Surface::RGBA16 );
 	GLASSERT( dstSurface->Format() == Surface::RGBA16 );
@@ -32,6 +33,9 @@ void FaceGenerator::Composite( const Surface& srcSurface, const Rect2I& srcRect,
 	for( int y=0; y<dstRect.h; ++y ) {
 		for( int x=0; x<dstRect.w; ++x ) {
 			U16 color16 = srcSurface.GetTex16( x+srcRect.x, y+srcRect.y );
+			if ( flip ) {
+				color16 = srcSurface.GetTex16( srcRect.x+srcRect.w-1-x, y+srcRect.y );
+			}
 			Surface::RGBA color = Surface::CalcRGBA16( color16 );
 			GLASSERT( color.a == 0 || color.a == 255 );
 			if ( color.a > 0 ) {
@@ -70,14 +74,14 @@ void FaceGenerator::GenerateFace( const FaceParam& param, Surface* image )
 				 mouths.Width(), mouths.Height()/nMouths );
 	dstRect.Set( image->Width()/2 - srcRect.w/2, 42+param.mouthOffset,
 				 srcRect.w, srcRect.h );
-	Composite( mouths, srcRect, image, dstRect );
+	Composite( mouths, srcRect, image, dstRect, param.mouthFlip );
 
 	// Eyes
 	srcRect.Set( 0, param.eyes*(eyes.Height()/nEyes),
 				 eyes.Width(), eyes.Height()/nEyes );
 	dstRect.Set( image->Width()/2 - srcRect.w/2, 22+param.eyeOffset,
 				 srcRect.w, srcRect.h );
-	Composite( eyes, srcRect, image, dstRect );
+	Composite( eyes, srcRect, image, dstRect, param.eyesFlip );
 
 	// Glasses
 	srcRect.Set( 0, param.glasses*(glasses.Height()/nGlasses),
@@ -91,7 +95,7 @@ void FaceGenerator::GenerateFace( const FaceParam& param, Surface* image )
 				 hairs.Width(), hairs.Height()/nHairs );
 	dstRect.Set( image->Width()/2-srcRect.w/2, 0,
 				 srcRect.w, srcRect.h );
-	Composite( hairs, srcRect, image, dstRect );
+	Composite( hairs, srcRect, image, dstRect, param.hairFlip );
 
 	// Patch the colors.
 

@@ -58,6 +58,6 @@ private:
 	void ChangeColor( Surface* surface, U16 src, U16 dst );
 	Surface::RGBA CalcShadowColor( Surface::RGBA, float ratio );
 	void Composite( const Surface& srcSurface, const grinliz::Rect2I& srcRect, 
-					Surface* dstSurface, const grinliz::Rect2I& dstRect );
+					Surface* dstSurface, const grinliz::Rect2I& dstRect, bool flip=false );
 
 };
