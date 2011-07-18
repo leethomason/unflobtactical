@@ -44,10 +44,16 @@ public:
 		RGBA16,		// 4444		2
 		RGB16,		// 565		2
 		ALPHA,		// 8		1
+
+//		NO_BLENDING = 0,
+//		ALPHA_ONE_MINUS,	// standard blending: c' = fragment*(1-alpha) + color*alpha
 	};
 
 	struct RGBA {
 		U8 r, g, b, a;
+		void Set( U8 r, U8 g, U8 b, U8 a=255 ) {
+			this->r = r; this->g = g; this->b = b; this->a = a; 
+		}
 	};
 
 	static U16 CalcRGB16( RGBA rgba )
@@ -72,6 +78,16 @@ public:
 		rgb.b = (b<<3)|(b>>2);
 		rgb.a = 255;
 		return rgb;
+	}
+
+	static U16 CalcRGBA16( int r, int g, int b, int a ) 
+	{
+		GLASSERT( r >= 0 && r < 256 );
+		GLASSERT( g >= 0 && g < 256 );
+		GLASSERT( b >= 0 && b < 256 );
+		GLASSERT( a >= 0 && a < 256 );
+		RGBA rgba = { (U8)r, (U8)g, (U8)b, (U8)a };
+		return CalcRGBA16( rgba );
 	}
 
 	static U16 CalcRGBA16( RGBA rgba )

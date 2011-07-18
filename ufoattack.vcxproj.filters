@@ -10,9 +10,6 @@
     <Filter Include="engine">
       <UniqueIdentifier>{2430745c-fc09-4a09-8033-61be6adf919e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="database">
-      <UniqueIdentifier>{92f4a309-02a0-483c-a787-c10593b15ed8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="tinyxml">
       <UniqueIdentifier>{64d55030-3f4b-4b0f-8e21-956a84e8e06b}</UniqueIdentifier>
     </Filter>
@@ -110,9 +107,6 @@
     </ClCompile>
     <ClCompile Include="engine\uirendering.cpp">
       <Filter>engine</Filter>
-    </ClCompile>
-    <ClCompile Include="shared\gamedbreader.cpp">
-      <Filter>database</Filter>
     </ClCompile>
     <ClCompile Include="game\ufosound.cpp">
       <Filter>game</Filter>
@@ -304,12 +298,6 @@
     </ClInclude>
     <ClInclude Include="engine\vertex.h">
       <Filter>engine</Filter>
-    </ClInclude>
-    <ClInclude Include="shared\gamedb.h">
-      <Filter>database</Filter>
-    </ClInclude>
-    <ClInclude Include="shared\gamedbreader.h">
-      <Filter>database</Filter>
     </ClInclude>
     <ClInclude Include="game\ufosound.h">
       <Filter>game</Filter>

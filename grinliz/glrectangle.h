@@ -31,7 +31,9 @@ distribution.
 
 namespace grinliz {
 
-/** A rectangle structure.
+
+/** A rectangle structure. Common, but deprecated. The min/max approach is abyssmal.
+    Use Rect instead.
 */
 template< class T >
 struct Rectangle2
@@ -504,6 +506,31 @@ struct Rectangle3F : public Rectangle3< float >
 	#endif
 };
 
+
+
+
+template< class T >
+struct Rect2
+{
+	T x, y, w, h;
+
+	/// Initialize. Convenience function.
+	void Set( T _x, T _y, T _w, T _h )	{ 
+		x = _x; y = _y; w = _w; h = _h;
+	}
+	/// Set all the members to zero.
+	void Zero() {
+		x = y = w = h = (T) 0;
+	}
+
+	/// Return true if this is potentially a valid rectangle.
+	bool IsValid() const {
+		return ( w > 0 ) && ( h > 0 );
+	}
+};
+
+typedef Rect2<int> Rect2I;
+typedef Rect2<float> Rect2F;
 
 };	// namespace grinliz
 

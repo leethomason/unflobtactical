@@ -77,7 +77,7 @@ void Surface::BlitImg( const grinliz::Vector2I& target, const Surface* src, cons
 
 	for( int j=0; j<srcRect.Height(); ++j ) {
 		memcpy( pixels + ((h-1)-(j+target.y))*w*bpp + target.x*bpp, 
-			    src->pixels + ((src->Height()-1)-(j+srcRect.min.y))*src->Width()*bpp + srcRect.min.x*bpp,
+				src->pixels + ((src->Height()-1)-(j+srcRect.min.y))*src->Width()*bpp + srcRect.min.x*bpp,
 				scan );
 	}
 }

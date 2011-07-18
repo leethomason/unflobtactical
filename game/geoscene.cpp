@@ -967,8 +967,10 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 
 			static const Vector3F zero = { 0, 0, 0 };
 			for( int i=0; i<MAX_TERRANS; ++i ) {
-				units[i].Heal();
-				units[i].SetPos( zero, 0 );		// no location
+				if ( units[i].InUse() ) {
+					units[i].Heal();
+					units[i].SetPos( zero, 0 );		// no location
+				}
 			}
 
 			BattleSceneData* data = new BattleSceneData();

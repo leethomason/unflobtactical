@@ -56,6 +56,7 @@ struct Color3F
 struct Color3U8
 {
 	void Set( U8 _r, U8 _g, U8 _b )	{ this->r = _r; this->g = _g; this->b = _b; }
+	void Set( U32 c )				{ r=c>>16; g=(c>>8)&0xff; b=c&0xff; }
 	U8 r, g, b;
 };
 

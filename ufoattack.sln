@@ -16,6 +16,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "extlib", "win32\extlib\extl
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gamui", "gamui\gamui.vcxproj", "{A734A817-DAC6-48BE-99B2-F3D27B576C33}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "faces", "faces\faces.vcxproj", "{EA21CE6E-0EB0-437A-BA0D-B5F5C9C2A0F5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -46,6 +48,10 @@ Global
 		{A734A817-DAC6-48BE-99B2-F3D27B576C33}.Debug|Win32.Build.0 = Debug|Win32
 		{A734A817-DAC6-48BE-99B2-F3D27B576C33}.Release|Win32.ActiveCfg = Release|Win32
 		{A734A817-DAC6-48BE-99B2-F3D27B576C33}.Release|Win32.Build.0 = Release|Win32
+		{EA21CE6E-0EB0-437A-BA0D-B5F5C9C2A0F5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EA21CE6E-0EB0-437A-BA0D-B5F5C9C2A0F5}.Debug|Win32.Build.0 = Debug|Win32
+		{EA21CE6E-0EB0-437A-BA0D-B5F5C9C2A0F5}.Release|Win32.ActiveCfg = Release|Win32
+		{EA21CE6E-0EB0-437A-BA0D-B5F5C9C2A0F5}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
