@@ -2875,9 +2875,14 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 					if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
 						// TU for a move gets used up "as we go" to account for reaction fire and changes.
 						// Go!
-						Action* action = actionStack.Push();
-						action->Init( ACTION_MOVE, SelectedSoldierUnit() );
-						action->type.move.path.Init( pathCache );
+						if ( SettingsManager::Instance()->GetConfirmMove() ) {
+							confirmDest.Set( end.x, end.y );
+						}
+						else {
+							Action* action = actionStack.Push();
+							action->Init( ACTION_MOVE, SelectedSoldierUnit() );
+							action->type.move.path.Init( pathCache );
+						}
 					}
 				}
 				dragUnit = 0;

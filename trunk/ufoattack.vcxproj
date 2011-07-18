@@ -176,7 +176,6 @@
     <ClCompile Include="engine\texture.cpp" />
     <ClCompile Include="engine\ufoutil.cpp" />
     <ClCompile Include="engine\uirendering.cpp" />
-    <ClCompile Include="shared\gamedbreader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\gpustatemanager.h" />
@@ -241,8 +240,6 @@
     <ClInclude Include="engine\ufoutil.h" />
     <ClInclude Include="engine\uirendering.h" />
     <ClInclude Include="engine\vertex.h" />
-    <ClInclude Include="shared\gamedb.h" />
-    <ClInclude Include="shared\gamedbreader.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="win32\extlib\extlib.vcxproj">

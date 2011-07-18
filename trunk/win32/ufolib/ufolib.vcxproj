@@ -89,6 +89,8 @@
     <ClInclude Include="..\..\grinliz\gltypes.h" />
     <ClInclude Include="..\..\grinliz\glutil.h" />
     <ClInclude Include="..\..\grinliz\glvector.h" />
+    <ClInclude Include="..\..\shared\gamedb.h" />
+    <ClInclude Include="..\..\shared\gamedbreader.h" />
     <ClInclude Include="..\..\shared\glmap.h" />
   </ItemGroup>
   <ItemGroup>
@@ -106,6 +108,7 @@
     <ClCompile Include="..\..\grinliz\glstringutil.cpp" />
     <ClCompile Include="..\..\grinliz\glutil.cpp" />
     <ClCompile Include="..\..\grinliz\glvector.cpp" />
+    <ClCompile Include="..\..\shared\gamedbreader.cpp" />
     <ClCompile Include="..\..\shared\glmap.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
