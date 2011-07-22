@@ -171,6 +171,7 @@ void Game::Init()
 	LoadModels();
 	LoadItemResources();
 	LoadAtoms();
+	LoadPalettes();
 
 	delete modelLoader;
 	modelLoader = 0;
@@ -179,6 +180,27 @@ void Game::Init()
 	GLASSERT( textTexture );
 	UFOText::InitTexture( textTexture );
 	UFOText::InitScreen( &screenport );
+
+	faceSurface.Set( Surface::RGBA16, FaceGenerator::SIZE*MAX_TERRANS, FaceGenerator::SIZE );	// harwire sizes for face system
+	oneFaceSurface.Set( Surface::RGBA16, FaceGenerator::SIZE, FaceGenerator::SIZE );
+	memset( faceCache, 0, sizeof(FaceCache)*MAX_TERRANS );
+	faceCacheSlot = 0;
+
+	const gamedb::Item* node = database->Root()->Child( "textures" );
+	GLASSERT( node );
+
+	faceGen.chins.Load( node->Child( "faceChins" ));	
+	faceGen.nChins = 17;
+	faceGen.mouths.Load( node->Child( "faceMouths" ));
+	faceGen.nMouths = 14;
+	faceGen.noses.Load( node->Child( "faceNoses" ));
+	faceGen.nNoses = 5;
+	faceGen.hairs.Load( node->Child( "faceHairs" ));
+	faceGen.nHairs = 17;
+	faceGen.eyes.Load( node->Child( "faceEyes" ));
+	faceGen.nEyes = 15;
+	faceGen.glasses.Load( node->Child( "faceGlasses" ));
+	faceGen.nGlasses = 5;
 }
 
 
@@ -677,7 +699,6 @@ void Game::DeviceLoss()
 	TextureManager::Instance()->DeviceLoss();
 	ModelResourceManager::Instance()->DeviceLoss();
 	GPUShader::ResetState();
-//	engine->ResetRenderCache();
 }
 
 

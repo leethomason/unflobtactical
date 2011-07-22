@@ -79,10 +79,4 @@ struct PTVertex2
 	grinliz::Vector2F	tex;
 };
 
-typedef grinliz::Vector3< U8 > Color3U;
-typedef grinliz::Vector4< U8 > Color4U;
-typedef grinliz::Vector3< float > Color3F;
-typedef grinliz::Vector4< float > Color4F;
-
-
 #endif //  UFOATTACK_VERTEX_INCLUDED

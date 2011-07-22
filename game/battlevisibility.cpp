@@ -256,7 +256,7 @@ void Visibility::CalcVisibilityRay( int unitID, const Vector2I& pos, const Vecto
 
 			if ( canSee ) {
 				U16 c = lightMap->GetImg16( q.x, q.y );
-				Surface::RGBA rgba = Surface::CalcRGB16( c );
+				Color4U8 rgba = Surface::CalcRGB16( c );
 
 				const float distance = ( delta.LengthSquared() > 1 ) ? 1.4f : 1.0f;
 

@@ -113,7 +113,7 @@ void ParticleSystem::Cull( CDynArray<Particle>* buffer )
 			q++;
 //			if ( p->age < p->lifetime )
 //				++p;
-			if ( p->color.w > 0.0f )
+			if ( p->color.a > 0.0f )
 				++p;
 		}
 		int size = p - buffer->Mem();
@@ -228,11 +228,11 @@ void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 		for( int j=0; j<3; ++j ) {
 			colP.X(j) = color.X(j)*CFUZZ_MUL + rand.Uniform()*CFUZZ_ADD;
 		}
-		colP.w = color.w;	// don't fuzz alpha
+		colP.a = color.a;	// don't fuzz alpha
 
 		Color4F colorVelocityP = colorVelocity;
-		if ( colorVelocityP.w > -0.1f )
-			colorVelocityP.w = -0.f;	// must fade!
+		if ( colorVelocityP.a > -0.1f )
+			colorVelocityP.a = -0.f;	// must fade!
 
 		Particle* p = (primitive==POINT) ? pointBuffer.Push() : quadBuffer.Push();
 
@@ -528,8 +528,8 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 		static const float FADE_IN = 0.95f;
 		static const float FADE_IN_INV = 1.0f / (1.0f-FADE_IN);
 
-		if ( color.w > FADE_IN ) {
-			color.w = (1.0f - color.w)*FADE_IN_INV;
+		if ( color.a > FADE_IN ) {
+			color.a = (1.0f - color.a)*FADE_IN_INV;
 		}
 
 		if ( fogOfWar ) {

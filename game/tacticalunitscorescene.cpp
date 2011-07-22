@@ -49,8 +49,8 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game ) : Scene( _game )
 			int oldRank = soldiers[i].GetStats().Rank();
 			int newRank = Unit::XPToRank( soldiers[i].XP() + soldiers[i].KillsCredited() + ( soldiers[i].HP() < soldiers[i].GetStats().TotalHP() ) );
 
-			nameRank[count].Init( &gamui2D );
-			nameRank[count].Set( xPosName, yPos, &soldiers[i], false );
+			nameRank[count].Init( &gamui2D, game );
+			nameRank[count].Set( xPosName, yPos, &soldiers[i], false, false );
 			nameRank[count].SetRank( newRank );
 
 			status[count].Init( &gamui2D );

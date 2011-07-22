@@ -5,6 +5,8 @@
 #include "../gamui/gamui.h"	// for auto setting up gamui stream
 #include "../grinliz/glperformance.h"
 
+using namespace grinliz;
+
 /*static*/ GPUVertexBuffer GPUVertexBuffer::Create( const Vertex* vertex, int nVertex )
 {
 	GPUVertexBuffer buffer;
@@ -373,7 +375,7 @@ void GPUShader::SetState( const GPUShader& ns )
 
 	// color
 	if ( ns.color != current.color ) {
-		glColor4f( ns.color.x, ns.color.y, ns.color.z, ns.color.w );
+		glColor4f( ns.color.r, ns.color.g, ns.color.b, ns.color.a );
 	}
 
 	current = ns;
@@ -786,8 +788,8 @@ void LightShader::SetLightParams() const
 	// Light 0. The Sun or Moon.
 	glEnable(GL_LIGHT0);
 	glLightfv(GL_LIGHT0, GL_POSITION, &direction.x );
-	glLightfv(GL_LIGHT0, GL_AMBIENT,  &ambient.x );
-	glLightfv(GL_LIGHT0, GL_DIFFUSE,  &diffuse.x );
+	glLightfv(GL_LIGHT0, GL_AMBIENT,  &ambient.r );
+	glLightfv(GL_LIGHT0, GL_DIFFUSE,  &diffuse.r );
 	glLightfv(GL_LIGHT0, GL_SPECULAR, black );
 	CHECK_GL_ERROR;
 

@@ -50,11 +50,14 @@ void BackgroundUI::Init( Game* game, gamui::Gamui* g, bool logo )
 
 
 
-void NameRankUI::Init( gamui::Gamui* g )
+void NameRankUI::Init( gamui::Gamui* g, Game* game )
 {
+	this->game = game;
 	gamui::RenderAtom rankAtom = UIRenderer::CalcIconAtom( ICON_RANK_0 );
-	rank.Init( g, rankAtom, true );
+	rank.Init( g, rankAtom, false );
 	name.Init( g );
+	gamui::RenderAtom nullAtom;
+	face.Init( g, nullAtom, true );
 }
 
 
@@ -66,7 +69,7 @@ void NameRankUI::SetRank( int r )
 }
 
 
-void NameRankUI::Set( float x, float y, const Unit* unit, bool displayWeapon )
+void NameRankUI::Set( float x, float y, const Unit* unit, bool displayFace, bool displayWeapon )
 {
 	CStr<90> cstr;
 
@@ -89,12 +92,30 @@ void NameRankUI::Set( float x, float y, const Unit* unit, bool displayWeapon )
 
 	if ( unit ) {
 		SetRank( unit->GetStats().Rank() );
+
+		Rectangle2F uv;
+		Texture* texture = game->CalcFaceTexture( unit, &uv );
+		gamui::RenderAtom atom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, 
+								(const void*)texture, 
+								uv.min.x, uv.min.y, uv.max.x, uv.max.y, 1, 1 );
+		face.SetAtom( atom );
 	}
 	else {
 		gamui::RenderAtom nullAtom;
 		rank.SetAtom( nullAtom );
+		face.SetAtom( nullAtom );
 	}
 
+	if ( displayFace ) {
+		static const float SIZE = 50.0f;
+		static const float FUDGE = -10.0f;
+
+		face.SetSize( SIZE, SIZE );
+		face.SetPos( x, y );
+		x += face.Width() + FUDGE;
+	}
 	rank.SetPos( x, y+1 );
-	name.SetPos( x+rank.Width()+3.f, y );
+	x += rank.Width();
+
+	name.SetPos( x+3.f, y );
 }

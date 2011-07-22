@@ -25,7 +25,7 @@ GeoMap::GeoMap( SpaceTree* _tree ) : tree( _tree )
 	// Use a size 2 texture. The netbook GPU driver doesn't like size 1 textures.
 	dayNightSurface.Set( Surface::RGB16, DAYNIGHT_TEX_SIZE, 2 );
 	{
-		Surface::RGBA nc = { EL_NIGHT_RED_U8, EL_NIGHT_GREEN_U8, EL_NIGHT_BLUE_U8 };
+		grinliz::Color4U8 nc = { EL_NIGHT_RED_U8, EL_NIGHT_GREEN_U8, EL_NIGHT_BLUE_U8 };
 		U16 night = Surface::CalcRGB16( nc );
 		for( int i=0; i<DAYNIGHT_TEX_SIZE; ++i ) {
 			dayNightSurface.SetTex16( i, 0, i<DAYNIGHT_TEX_SIZE/2 ? night : 0xffff );

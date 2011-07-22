@@ -16,9 +16,9 @@ void FaceGenerator::ChangeColor( Surface* surface, U16 src, U16 dst )
 }
 
 
-Surface::RGBA FaceGenerator::CalcShadowColor( Surface::RGBA in, float factor )
+grinliz::Color4U8 FaceGenerator::CalcShadowColor( grinliz::Color4U8 in, float factor )
 {
-	Surface::RGBA c = { U8(in.r*factor), U8(in.g*factor), U8(in.b*factor), 255 };
+	grinliz::Color4U8 c = { U8(in.r*factor), U8(in.g*factor), U8(in.b*factor), 255 };
 	return c;
 }
 
@@ -36,7 +36,7 @@ void FaceGenerator::Composite( const Surface& srcSurface, const Rect2I& srcRect,
 			if ( flip ) {
 				color16 = srcSurface.GetTex16( srcRect.x+srcRect.w-1-x, y+srcRect.y );
 			}
-			Surface::RGBA color = Surface::CalcRGBA16( color16 );
+			grinliz::Color4U8 color = Surface::CalcRGBA16( color16 );
 			GLASSERT( color.a == 0 || color.a == 255 );
 			if ( color.a > 0 ) {
 				dstSurface->SetTex16( x+dstRect.x, y+dstRect.y, color16 );

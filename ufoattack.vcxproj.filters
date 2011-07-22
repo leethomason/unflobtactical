@@ -19,6 +19,9 @@
     <Filter Include="widgets">
       <UniqueIdentifier>{d18fff9f-1852-4e7e-9b61-0e40e898c33f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="faces">
+      <UniqueIdentifier>{9802afa5-a23c-45cd-bb46-21de1495d363}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="game\ai.cpp">
@@ -197,6 +200,9 @@
     </ClCompile>
     <ClCompile Include="game\settingscene.cpp">
       <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="faces\faces.cpp">
+      <Filter>faces</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -385,6 +391,9 @@
     </ClInclude>
     <ClInclude Include="game\settingscene.h">
       <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="faces\faces.h">
+      <Filter>faces</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

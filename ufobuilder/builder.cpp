@@ -25,6 +25,7 @@
 
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
+#include "../grinliz/glcolor.h"
 #include "../engine/enginelimits.h"
 
 #include <string>
@@ -723,13 +724,6 @@ void ProcessTexture( TiXmlElement* texture )
 	int height = 0;
 	texture->QueryIntAttribute( "width", &width );
 	texture->QueryIntAttribute( "height", &height );
-
-//	string filename;
-//	texture->QueryStringAttribute( "filename", &filename );
-//	GLString fullIn = inputPath.c_str();
-//	fullIn += filename.c_str();	
-//	GLString base, name, extension;
-//	grinliz::StrSplitFilename( fullIn, &base, &name, &extension );
 	
 	GLString pathName, assetName;
 	ParseNames( texture, &assetName, &pathName, 0 );
@@ -851,6 +845,56 @@ void ProcessTexture( TiXmlElement* texture )
 }
 
 
+void ProcessPalette( TiXmlElement* pal )
+{
+	int dx=0;
+	int dy=0;
+	pal->QueryIntAttribute( "dx", &dx );
+	pal->QueryIntAttribute( "dy", &dy );
+	float sx=0, sy=0;
+	pal->QueryFloatAttribute( "sx", &sx );
+	pal->QueryFloatAttribute( "sy", &sy );
+	
+	GLString pathName, assetName;
+	ParseNames( pal, &assetName, &pathName, 0 );
+
+	SDL_Surface* surface = libIMG_Load( pathName.c_str() );
+	if ( !surface ) {
+		printf( "**Could not load: %s\n", pathName.c_str() );
+		exit( 1 );
+	}
+	printf( "Palette[data] asset=%s cx=%d cy=%d sx=%f sy=%f\n",
+		    assetName.c_str(), dx, dy, sx, sy );
+
+	std::vector<Color4U8> colors;
+	int offsetX = (int)(sx * (float)(surface->w / dx));
+	int offsetY = (int)(sy * (float)(surface->h / dy));
+
+	for( int y=0; y<dy; ++y ) {
+		for( int x=0; x<dx; ++x ) {
+			int px = surface->w * x / dx + offsetX;
+			int py = surface->h * y / dy + offsetY;
+			U32 color32 = GetPixel( surface, px, py );
+
+			Color4U8 rgba;
+			SDL_GetRGBA( color32, surface->format, &rgba.r, &rgba.g, &rgba.b, &rgba.a );
+			colors.push_back( rgba );
+		}
+	}
+
+	gamedb::WItem* witem = writer->Root()->FetchChild( "data" )
+										 ->FetchChild( "palettes" )
+										 ->CreateChild( assetName.c_str() );
+	witem->SetInt( "dx", dx );
+	witem->SetInt( "dy", dy );
+	witem->SetData( "colors", &colors[0], dx*dy*sizeof(Color4U8), true );
+
+	if ( surface ) { 
+		SDL_FreeSurface( surface );
+	}
+}
+
+
 int main( int argc, char* argv[] )
 {
 	printf( "UFO Builder. argc=%d argv[1]=%s\n", argc, argv[1] );
@@ -944,6 +988,9 @@ int main( int argc, char* argv[] )
 		}
 		else if ( child->ValueStr() == "tree" ) {
 			ProcessTree( child );
+		}
+		else if ( child->ValueStr() == "palette" ) {
+			ProcessPalette( child );
 		}
 		else {
 			printf( "Unrecognized element: %s\n", child->Value() );

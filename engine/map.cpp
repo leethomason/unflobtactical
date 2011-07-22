@@ -301,7 +301,7 @@ void Map::DrawPastSeen( const Color4F& color )
 	shader.SetStream( stream, mapVertex, nPastSeenIndex, pastSeenIndex );
 	shader.SetTexture0( greyTexture );
 
-	shader.SetColor( color.x, color.y, color.z );
+	shader.SetColor( color );
 
 	// the vertices are stored in texture coordinates, to use less space.
 	Matrix4 swizzle;
@@ -379,10 +379,10 @@ void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
 	greyTarget.Set( target.min.x/2, target.min.y/2, target.max.x/2, target.max.y/2 );
 	for( int j=greyTarget.min.y; j<=greyTarget.max.y; ++j ) {
 		for( int i=greyTarget.min.x; i<=greyTarget.max.x; ++i ) {
-			Surface::RGBA rgba0 = Surface::CalcRGB16( backgroundSurface.GetImg16( i*2+0, j*2+0 ) );
-			Surface::RGBA rgba1 = Surface::CalcRGB16( backgroundSurface.GetImg16( i*2+1, j*2+0 ) );
-			Surface::RGBA rgba2 = Surface::CalcRGB16( backgroundSurface.GetImg16( i*2+0, j*2+1 ) );
-			Surface::RGBA rgba3 = Surface::CalcRGB16( backgroundSurface.GetImg16( i*2+1, j*2+1 ) );
+			Color4U8 rgba0 = Surface::CalcRGB16( backgroundSurface.GetImg16( i*2+0, j*2+0 ) );
+			Color4U8 rgba1 = Surface::CalcRGB16( backgroundSurface.GetImg16( i*2+1, j*2+0 ) );
+			Color4U8 rgba2 = Surface::CalcRGB16( backgroundSurface.GetImg16( i*2+0, j*2+1 ) );
+			Color4U8 rgba3 = Surface::CalcRGB16( backgroundSurface.GetImg16( i*2+1, j*2+1 ) );
 
 			int c = (  rgba0.r + rgba0.g + rgba0.g + rgba0.b 
 				     + rgba1.r + rgba1.g + rgba1.g + rgba1.b 
@@ -390,9 +390,7 @@ void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
 				     + rgba3.r + rgba3.g + rgba3.g + rgba3.b ) >> 4; 
 			
 			GLRELASSERT( c >= 0 && c <= 255 );
-			Surface::RGBA grey = { (U8)c, (U8)c, (U8)c, 255 };
-			//Surface::RGBA grey = { 128, 128, 128, 255 };
-			//Surface::RGBA test = Surface::CalcRGB16( Surface::CalcRGB16( grey ) );
+			Color4U8 grey = { (U8)c, (U8)c, (U8)c, 255 };
 
 			greySurface.SetImg16( i, j, Surface::CalcRGB16( grey ) );
 		}
@@ -407,7 +405,7 @@ void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
 void Map::SetLightMap0( int x, int y, float r, float g, float b )
 {
 	static const float EXP = 255.0f;
-	Surface::RGBA rgba = { (U8)(r*EXP), (U8)(g*EXP), (U8)(b*EXP) };
+	Color4U8 rgba = { (U8)(r*EXP), (U8)(g*EXP), (U8)(b*EXP) };
 
 	if ( dayTime )
 		dayMap.SetImg16( x, y, Surface::CalcRGB16( rgba ) );

@@ -19,6 +19,7 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glrandom.h"
+#include "../grinliz/glcolor.h"
 #include "vertex.h"
 #include "ufoutil.h"
 
@@ -59,7 +60,7 @@ public:
 
 
 	void SetSpeed( float s )			{ speed = s; }
-	void SetColor( const Color4F& c )	{ color = c; }
+	void SetColor( const grinliz::Color4F& c )	{ color = c; }
 	void SetWidth( float w )			{ width = w; }
 	void SetLength( float len )			{ boltLength = len; }
 
@@ -75,7 +76,7 @@ private:
 
 	U32 startTime;
 	float speed;
-	Color4F color;
+	grinliz::Color4F color;
 	float width;
 	float boltLength;	// length of the bolt
 	bool done;
@@ -95,7 +96,7 @@ public:
 	void Init(	const grinliz::Vector3F& p0,
 				U32 startTime );
 
-	void SetColor( const Color4F& c )	{ color = c; }
+	void SetColor( const grinliz::Color4F& c )	{ color = c; }
 	void SetRadius( float r )			{ radius = r; }
 	void SetNormal( const grinliz::Vector3F& n ) { normal = n; }
 	// PARTICLE_HEMISPHERE is default
@@ -109,7 +110,7 @@ public:
 private:
 	grinliz::Vector3F normal;
 	float radius;
-	Color4F color;
+	grinliz::Color4F color;
 	int config;
 	bool done;
 
@@ -130,7 +131,7 @@ public:
 				U32 startTime );
 
 	void SetSpeed( float s )				{ speed = s; }
-	void SetColor( const Color4F& c )		{ color = c; }
+	void SetColor( const grinliz::Color4F& c )		{ color = c; }
 	void SetQuad( int start, int count )	{ quadStart = start; quadCount = count; }
 
 	virtual bool Done();
@@ -141,7 +142,7 @@ public:
 private:
 	grinliz::Vector3F p0;
 	float speed;
-	Color4F color;
+	grinliz::Color4F color;
 	bool done;
 	grinliz::Vector3F normal;
 	int quadStart, quadCount;
@@ -168,7 +169,7 @@ public:
 				float halfsize,
 				int count );
 
-	void SetColor( const Color4F& c )		{ color = c; }
+	void SetColor( const grinliz::Color4F& c )		{ color = c; }
 
 	virtual bool Done();
 	virtual void DoTick( U32 time, U32 deltaTime );
@@ -179,7 +180,7 @@ public:
 private:
 	grinliz::Vector3F p0;
 	float radius;
-	Color4F color;
+	grinliz::Color4F color;
 	int count;
 	bool done;
 

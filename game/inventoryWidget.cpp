@@ -22,7 +22,8 @@ using namespace grinliz;
 using namespace gamui;
 
 
-InventoryWidget::InventoryWidget(	gamui::Gamui* g,
+InventoryWidget::InventoryWidget(	Game* game,
+									gamui::Gamui* g,
 									const gamui::ButtonLook& carriedLook,
 									const gamui::ButtonLook& packLook,
 									Unit* unit )
@@ -42,8 +43,8 @@ InventoryWidget::InventoryWidget(	gamui::Gamui* g,
 	//descriptionLabel.Init( g );
 	description.Init( g );
 
-	nameRankUI.Init( g );
-	nameRankUI.Set( pos.x, pos.y, unit, false );
+	nameRankUI.Init( g, game );
+	nameRankUI.Set( pos.x, pos.y, unit, true, false );
 
 	//text0.SetText( "In use:" );
 	text1.SetText( "Pack:" );
@@ -113,7 +114,7 @@ void InventoryWidget::Update( Unit* _unit )
 {
 	if ( _unit ) {
 		this->unit = _unit;
-		nameRankUI.Set( pos.x, pos.y, _unit, false );
+		nameRankUI.Set( pos.x, pos.y, _unit, true, false );
 	}
 
 	GLASSERT( unit );

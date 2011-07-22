@@ -19,6 +19,7 @@
 #include "material.h"
 #include "../grinliz/glstringutil.h"
 #include "../engine/text.h"
+#include "../faces/faces.h"
 
 using namespace grinliz;
 
@@ -90,9 +91,41 @@ void Game::CreateTexture( Texture* t )
 		GLASSERT( t->BytesInImage() == 8 );
 		t->Upload( pixels, 8 );
 	}
+	else if ( StrEqual( t->Name(), "faces" ) ) {
+		t->Upload( faceSurface.Pixels(), faceSurface.Width()*faceSurface.Height()*2 );
+	}
 	else {
 		GLASSERT( 0 );
 	}
+}
+
+
+void Game::LoadPalettes()
+{
+	const gamedb::Item* parent = database->Root()->Child( "data" )->Child( "palettes" );
+	for( int i=0; i<parent->NumChildren(); ++i ) {
+		const gamedb::Item* child = parent->Child( i );
+		Palette* p = palettes.Push();
+		p->name = child->Name();
+		p->dx = child->GetInt( "dx" );
+		p->dy = child->GetInt( "dy" );
+		p->colors.Clear();
+		GLASSERT( (int)p->colors.Capacity() >= p->dx*p->dy );
+		p->colors.PushArr( p->dx*p->dy );
+		GLASSERT( child->GetDataSize( "colors" ) == p->dx*p->dy*sizeof(Color4U8) );
+		child->GetData( "colors", (void*)p->colors.Mem(), p->dx*p->dy*sizeof(Color4U8) );
+	}
+}
+
+
+const Game::Palette* Game::GetPalette( const char* name ) const
+{
+	for( int i=0; i<palettes.Size(); ++i ) {
+		if ( StrEqual( name, palettes[i].name ) ) {
+			return &palettes[i];
+		}
+	}
+	return 0;
 }
 
 
@@ -101,6 +134,7 @@ void Game::LoadTextures()
 	TextureManager* texman = TextureManager::Instance();
 	texman->CreateTexture( "white", 2, 2, Surface::RGB16, Texture::PARAM_NONE, this );
 	texman->CreateTexture( "black", 2, 2, Surface::RGB16, Texture::PARAM_NONE, this );
+	texman->CreateTexture( "faces", 64*MAX_TERRANS, 64, Surface::RGBA16, Texture::PARAM_NONE, this );
 
 	const gamedb::Item* node = database->Root()->Child( "textures" )->Child( "stdfont2" );
 	GLASSERT( node );
@@ -109,6 +143,54 @@ void Game::LoadTextures()
 	node->GetData( "metrics", UFOText::MetricsPtr(), metricsSize );
 }
 
+
+Texture* Game::CalcFaceTexture( const Unit* unit, grinliz::Rectangle2F* uv )
+{
+	Texture* tex = TextureManager::Instance()->GetTexture( "faces" );
+	GLASSERT( tex );
+
+	// Find and return.
+	for( int i=0; i<MAX_TERRANS; ++i ) {
+		if ( faceCache[i].seed == unit->Body() ) {
+			//GLOUTPUT(( "Cache hit %d\n", i ));
+			uv->Set( (float)i/(float)MAX_TERRANS, 0,
+					 (float)(i+1)/(float)MAX_TERRANS, 1.0f );
+			return tex;
+		}
+	}
+
+	// Didn't find. Create. Need this to work so that MAX_TERRANS in a row
+	// will return non-replacing results.
+	++faceCacheSlot;
+	if ( faceCacheSlot == MAX_TERRANS ) faceCacheSlot = 0;
+	//GLOUTPUT(( "Cache miss %d\n", faceCacheSlot ));
+
+	faceCache[faceCacheSlot].seed = unit->Body();
+			
+	FaceGenerator::FaceParam param;
+	param.Generate( unit->Gender(), unit->Body() );
+
+	U32 index = unit->GetValue( Unit::APPEARANCE );
+	const Game::Palette* palette = GetPalette( "characterPalette" );
+
+	param.skinColor = palette->colors[index + (1+unit->Gender()*2)*palette->dx]; 
+	param.hairColor = palette->colors[index + (0+unit->Gender()*2)*palette->dx];
+	param.glassesColor.Set( 100, 100, 200, 0xff );
+	
+	faceGen.GenerateFace( param, &oneFaceSurface );
+
+	// may need to flip:
+	int x = faceCacheSlot*64;
+	for( int y=0; y<FaceGenerator::SIZE; ++y ) {
+		memcpy( faceSurface.Pixels() + y*faceSurface.Pitch() + x*faceSurface.BytesPerPixel(),
+				oneFaceSurface.Pixels() + (FaceGenerator::SIZE-1-y)*oneFaceSurface.Pitch(),
+				FaceGenerator::BPP * FaceGenerator::SIZE );
+	}
+	tex->Upload( faceSurface );
+	uv->Set( (float)faceCacheSlot/(float)MAX_TERRANS, 0,
+			 (float)(faceCacheSlot+1)/(float)MAX_TERRANS, 1.0f );
+	return tex;
+}
 
 
 void Game::LoadModel( const char* name )

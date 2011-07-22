@@ -414,7 +414,7 @@ void Engine::Draw()
 
 			// Just computes how dark the shadow is.
 			LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, IN_SHADOW, shadowAmount, &color );
-			shadowShader.SetColor( color.x, color.y, color.z );
+			shadowShader.SetColor( color );
 
 			renderQueue->Submit(	&shadowShader,
 									RenderQueue::MODE_PLANAR_SHADOW,
@@ -445,7 +445,7 @@ void Engine::Draw()
 		{
 			LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, OPEN_LIGHT, 0, &color );
 
-			float ave = 0.5f*((color.x + color.y + color.z)*0.333f);
+			float ave = 0.5f*((color.r + color.g + color.b)*0.333f);
 			Color4F c = { ave, ave, ave, 1.0f };
 #ifdef ENGINE_RENDER_MAP
 			map->DrawPastSeen( c );
@@ -500,9 +500,9 @@ void Engine::CalcLights( DayNight dayNight, Color4F* ambient, Vector4F* dir, Col
 	ambient->Set( AMBIENT, AMBIENT, AMBIENT, 1.0f );
 	diffuse->Set( DIFFUSE, DIFFUSE, DIFFUSE, 1.0f );
 	if ( dayNight == NIGHT_TIME ) {
-		diffuse->x *= EL_NIGHT_RED;
-		diffuse->y *= EL_NIGHT_GREEN;
-		diffuse->z *= EL_NIGHT_BLUE;
+		diffuse->r *= EL_NIGHT_RED;
+		diffuse->g *= EL_NIGHT_GREEN;
+		diffuse->b *= EL_NIGHT_BLUE;
 	}
 	dir->Set( lightDirection.x, lightDirection.y, lightDirection.z, 0 );	// '0' in last term is parallel
 }
@@ -514,9 +514,9 @@ void Engine::LightGroundPlane( DayNight dayNight, ShadowState shadows, float sha
 
 	if ( shadows == IN_SHADOW ) {
 		float delta = 1.0f - DIFFUSE_SHADOW*shadowAmount;
-		outColor->x *= delta;
-		outColor->y *= delta;
-		outColor->z *= delta;
+		outColor->r *= delta;
+		outColor->g *= delta;
+		outColor->b *= delta;
 	}
 }
 

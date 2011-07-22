@@ -100,7 +100,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	alienTargetText.SetPos( alienTargetImage.X()+5, alienTargetImage.Y()+2 );
 	alienTargetText.SetVisible( false );
 
-	nameRankUI.Init( &gamui3D );
+	nameRankUI.Init( &gamui3D, game );
 
 	gamui::RenderAtom nullAtom;
 	for( int i=0; i<MAX_UNITS; ++i ) {
@@ -3019,7 +3019,7 @@ void BattleScene::DrawHUD()
 		}
 
 		nameRankUI.SetVisible( SelectedSoldierUnit() != 0 );
-		nameRankUI.Set( 50, 0, SelectedSoldierUnit(), true );
+		nameRankUI.Set( 50, 0, SelectedSoldierUnit(), true, true );
 	}
 }
 

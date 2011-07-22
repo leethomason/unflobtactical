@@ -28,8 +28,10 @@
 #include "../tinyxml/tinyxml.h"
 #include "../shared/gamedbreader.h"
 #include "../gamui/gamui.h"
+#include "../faces/faces.h"
 #include "item.h"
 #include "unit.h"
+
 
 #include <limits.h>
 
@@ -189,7 +191,6 @@ public:
 
 	void PushScene( int sceneID, SceneData* data );
 	void PopScene( int result = INT_MAX );
-	//void PopAllAndReset()	{ sceneResetQueued = true; }
 
 	bool IsScenePushed() const		{ return sceneQueued.sceneID != NUM_SCENES; }
 
@@ -242,20 +243,44 @@ public:
 	};
 	const gamui::ButtonLook& GetButtonLook( int id );
 
+	Texture* CalcFaceTexture( const Unit* unit, grinliz::Rectangle2F* uv );
+
 	// For creating some required textures:
 	virtual void CreateTexture( Texture* t );
+
+	struct Palette
+	{
+		const char* name;
+		int dx;
+		int dy;
+		CArray< grinliz::Color4U8, 128 > colors;
+	};
+	const Palette* GetPalette( const char* name ) const;
 
 private:
 	Screenport screenport;
 public:
 	Engine* engine;
 private:
+	// Face Generation
+	FaceGenerator faceGen;
+	Surface faceSurface;
+	Surface oneFaceSurface;
+	struct FaceCache {
+		U32 seed;
+	};
+	int faceCacheSlot;
+	FaceCache faceCache[MAX_TERRANS];
+
+	// Color palettes
+	CDynArray< Palette > palettes;
+	void LoadPalettes();
+
 	Surface surface;
 
 	void PushPopScene();
 
 	bool scenePopQueued;
-	//bool sceneResetQueued;
 
 	void Init();
 	void LoadTextures();

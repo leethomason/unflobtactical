@@ -80,7 +80,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 
 	storageWidget = new StorageWidget( &gamui2D, green, blueTab, _game->GetItemDefArr(), _input->storage );
 	storageWidget->SetOrigin( (float)port.UIWidth()-storageWidget->Width(), 0 );
-	inventoryWidget = new InventoryWidget( &gamui2D, green, green, unit );
+	inventoryWidget = new InventoryWidget( game, &gamui2D, green, green, unit );
 
 	statWidget.Init( &gamui2D, unit, storageWidget->X(), 0, input->nUnits > 1 );
 	compWidget.Init( &game->GetItemDefArr(), storage, unit, &gamui2D, blue, storageWidget->X(), 0, storageWidget->Width() );

@@ -242,29 +242,23 @@ void Model::SetSkin( int gender, int armor, int appearance )
 	// 2 textures: 'characters' and 'charSwatch'. The 'characters'
 	// sets the head/skin texture and the 'charSwatch' the armor.
 
-	float tx0 = 0.0f;
-	float ty0 = 0.0f;
-
-	float tx1 = 0.0f;
-	float ty1 = 0.0f;
-
 	GLASSERT( gender < 2 );
 	GLASSERT( armor < 4 );
 	GLASSERT( appearance < 16 );
 
-	tx0 = float( appearance ) / 16.0f;
-	ty0 = float( gender ) / 2.0f;
-	tx1 = float( armor ) / 16.0f;
+	float tHeadX = float( appearance ) / 16.0f;
+	//float tHeadY = float( gender ) / 2.0f;	// always 0! Models have correct Y xform for head.
+	float tArmor = float( armor ) / 16.0f;
 
 	GLASSERT( resource->header.nGroups == 2 );
 
 	if ( StrEqual( resource->atom[0].texture->Name(), "characters" ) ) {
-		SetTexXForm( 0, 1, 1, tx0, ty0 );
-		SetTexXForm( 1, 1, 1, tx1, ty1 );
+		SetTexXForm( 0, 1, 1, tHeadX, 0 );
+		SetTexXForm( 1, 1, 1, tArmor, 0 );
 	}
 	else if ( StrEqual( resource->atom[1].texture->Name(), "characters" ) ) {
-		SetTexXForm( 1, 1, 1, tx0, ty0 );
-		SetTexXForm( 0, 1, 1, tx1, ty1 );
+		SetTexXForm( 1, 1, 1, tHeadX, 0 );
+		SetTexXForm( 0, 1, 1, tArmor, 0 );
 	}
 	else {
 		GLASSERT( 0 );
