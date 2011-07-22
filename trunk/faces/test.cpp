@@ -49,7 +49,7 @@ void load_image( const char* name, Surface* surface )
   GLASSERT( image );
   surface->Set( Surface::RGBA16, image->w, image->h );
 
-  Surface::RGBA rgba;
+  grinliz::Color4U8 rgba;
 
 	// Pull the pixels out, put in surface.
 	for( int y=0; y<image->h; ++y ) {
@@ -120,10 +120,10 @@ int main(int argc, char* argv[]) {
 	param.Generate( i&1, rand() );
 
 	Uint32 c = skin_colors[i%NCOLOR];
-	param.skinColor.Set( c>>16, (c>>8)&0xff, c&0xff );
+	param.skinColor.Set( c>>16, (c>>8)&0xff, c&0xff, 255 );
 	c = hair_colors[rand()%NCOLOR];
-	param.hairColor.Set( c>>16, (c>>8)&0xff, c&0xff );
-	param.glassesColor.Set( 100, 100, 200 );
+	param.hairColor.Set( c>>16, (c>>8)&0xff, c&0xff, 255 );
+	param.glassesColor.Set( 100, 100, 200, 255 );
 
 	faceGen.GenerateFace( param, &faceSurface );
 	memcpy( face_image->pixels, faceSurface.Pixels(), 2*64*64 );

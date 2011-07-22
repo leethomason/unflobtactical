@@ -127,7 +127,7 @@ void BoltEffect::Draw( const Vector3F* eyeDir )
 		stream.posOffset = 0;
 		stream.nTexture0 = 2;
 		stream.texture0Offset = 12;
-		shader.SetColor( color.x, color.y, color.z, color.w );
+		shader.SetColor( color );
 
 		shader.SetStream( stream, pV, 6, index );
 		shader.Draw();
@@ -376,7 +376,7 @@ void RingEffect::Draw( const Vector3F* eyeDir )
 		stream.nTexture0 = 2;
 		stream.texture0Offset = 12;
 
-		shader.SetColor( color.x, color.y, color.z, color.w );
+		shader.SetColor( color );
 		shader.SetTexture0( TextureManager::Instance()->GetTexture( "particleSparkle" ) );
 
 		shader.SetStream( stream, quads.Mem(), index.Size(), index.Mem() );

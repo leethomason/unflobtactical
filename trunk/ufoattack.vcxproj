@@ -118,6 +118,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="engine\gpustatemanager.cpp" />
+    <ClCompile Include="faces\faces.cpp" />
     <ClCompile Include="game\ai.cpp" />
     <ClCompile Include="game\areaWidget.cpp" />
     <ClCompile Include="game\basetradescene.cpp" />
@@ -179,6 +180,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\gpustatemanager.h" />
+    <ClInclude Include="faces\faces.h" />
     <ClInclude Include="game\ai.h" />
     <ClInclude Include="game\areaWidget.h" />
     <ClInclude Include="game\basetradescene.h" />

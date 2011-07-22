@@ -32,56 +32,42 @@ distribution.
 
 namespace grinliz {
 
-/** RGB color represented as floats.*/
-struct Color3F
+/** RGB color.*/
+template <class T>
+struct Color3
 {
-	float r, g, b;
+	T r, g, b;
 
-	void Set( float _r, float _g, float _b )	{ this->r = _r; this->g = _g; this->b = _b; }
-	void Set255( int _r, int _g, int _b )		
-	{ 
-		const float INV = 1.0f/255.0f;	
-		Set( (float)_r*INV, (float)_g*INV, (float)_b*INV );
-	}
-	void Scale( float v )	{ r*=v; g*=v; b*=v; }
-	float Average()			{ return (r+g+b)/3.0f; }
-
-	friend Color3F operator*( const Color3F& rh, float lh ) {
-		Color3F result = { rh.r * lh, rh.g * lh, rh.b * lh };
-		return result;
-	}
+	void Set( T _r, T _g, T _b )	{ this->r = _r; this->g = _g; this->b = _b; }
+	T X( int i ) const				{ GLASSERT( i>=0 && i<3 ): return *(&r+i); }
+	T& X(int i)						{ GLASSERT( i>=0 && i<3 ): return *(&r+i); }
 };
 
-/** RGB color represented as bytes.*/
-struct Color3U8
-{
-	void Set( U8 _r, U8 _g, U8 _b )	{ this->r = _r; this->g = _g; this->b = _b; }
-	void Set( U32 c )				{ r=c>>16; g=(c>>8)&0xff; b=c&0xff; }
-	U8 r, g, b;
-};
+typedef Color3<float> Color3F;
+typedef Color3<U8> Color3U8;
+
 
 /** RGBA color represented as floats.*/
-struct Color4F
+template <class T>
+struct Color4
 {
-	float Average()			{ return (r+g+b)/3.0f; }
-	void Set( float _r, float _g, float _b, float _a )	{ this->r = _r; this->g = _g; this->b = _b; this->a = _a; }
-	float r, g, b, a;
+	T r, g, b, a;
+
+	void Set( T _r, T _g, T _b, T _a )	{ this->r = _r; this->g = _g; this->b = _b; this->a = _a; }
+	
+	T X(int i) const					{ GLASSERT( i>=0 && i<4 ); return *(&r+i); }
+	T& X(int i)							{ GLASSERT( i>=0 && i<4 ); return *(&r+i); }
+
+	bool operator==( const Color4<T>& rh ) const {
+		return r==rh.r && g==rh.g && b==rh.b && a==rh.a;
+	}
+	bool operator!=( const Color4<T>& rh ) const {
+		return r!=rh.r || g!=rh.g || b!=rh.b || a!=rh.a;
+	}
 };
 
-/** RGBA color represented as bytes.*/
-struct Color4U8
-{
-	void Set( U8 _r, U8 _g, U8 _b, U8 _a )	{ this->r = _r; this->g = _g; this->b = _b; this->a=_a; }
-	U8 r, g, b, a;
-};
-
-/** RGBA color represented as bytes.*/
-struct Color4U32
-{
-	void Set( U32 _r, U32 _g, U32 _b, U32 _a )	{ this->r = _r; this->g = _g; this->b = _b; this->a=_a; }
-	U32 r, g, b, a;
-};
-
+typedef Color4<float> Color4F;
+typedef Color4<U8> Color4U8;
 
 /// Color type conversion.
 inline void Convert( const Color4F& c0, Color3U8* c1 ) {

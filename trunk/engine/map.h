@@ -291,7 +291,7 @@ public:
 								// attempts were very buggy.) Call before DrawSeen(), DrawUnseen(), or DrawPastSeen().
 	void DrawSeen();		//< draw the map that is currently visible
 	void DrawUnseen();		//< draw the map that currently can't be seen
-	void DrawPastSeen( const Color4F& );		//< draw the map that currently can't be seen
+	void DrawPastSeen( const grinliz::Color4F& );		//< draw the map that currently can't be seen
 
 	void DrawPath( int mode );		//< debugging
 	void DrawOverlay( int layer );		//< draw the "where can I walk" alpha overlay. Set up by ShowNearPath().

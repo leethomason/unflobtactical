@@ -18,6 +18,7 @@
 
 #include <string.h>
 #include "../grinliz/glvector.h"
+#include "../grinliz/glcolor.h"
 #include "../engine/ufoutil.h"
 #include "../engine/enginelimits.h"
 #include "../engine/vertex.h"
@@ -217,7 +218,7 @@ public:
 	DamageDesc dd;
 
 	char	abbreviation;
-	Color4F color;
+	grinliz::Color4F color;
 	float speed;
 	float width;
 	float length;

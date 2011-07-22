@@ -144,8 +144,8 @@ private:
 
 	//void DrawCamera();
 	void CalcCameraRotation( grinliz::Matrix4* );
-	void CalcLights( DayNight dayNight, Color4F* ambient, grinliz::Vector4F* dir, Color4F* diffuse );
-	void LightGroundPlane( DayNight dayNight, ShadowState shadows, float shadowAmount, Color4F* outColor );
+	void CalcLights( DayNight dayNight, grinliz::Color4F* ambient, grinliz::Vector4F* dir, grinliz::Color4F* diffuse );
+	void LightGroundPlane( DayNight dayNight, ShadowState shadows, float shadowAmount, grinliz::Color4F* outColor );
 
 	void PushShadowSwizzleMatrix( GPUShader* );
 	void PushLightSwizzleMatrix( GPUShader* );

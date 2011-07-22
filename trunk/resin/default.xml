@@ -227,6 +227,19 @@
   <texture filename="cropcircle.png" width="64" height="64" />
   <texture filename="basemap.png" />
 
+  <palette assetName="mainPalette" filename="palette.png" dx="10" dy="10" sx="0.5" sy="0.5" />
+  <!-- y: male hair, male skin, female hair, female skin -->
+  <palette assetName="characterPalette" filename="characters.png" dx="16" dy="4" sx="0.5" />
+
+  <!-- face models -->
+  <image assetName="charactersImage" filename="characters.png" width="256" height="32" />
+  <image assetName="faceChins" filename="chins_64w.png" dither="false" />
+  <image assetName="faceNoses" filename="noses_64.png" dither="false" />
+  <image assetName="faceEyes"  filename="eyes_64w2.png" dither="false" />
+  <image assetName="faceGlasses" filename="glasses_64.png" dither="false" />
+  <image assetName="faceHairs" filename="hairs_64b.png" dither="false" />
+  <image assetName="faceMouths" filename="mouths_64.png" dither="false" /> 
+  
   <!-- Particles -->
   <texture filename="particleQuad.png" />
   <texture filename="particleSparkle.png" />

@@ -22,11 +22,13 @@
 #include "scene.h"
 
 class Unit;
+class Game;
 
 class InventoryWidget
 {
 public:
-	InventoryWidget( gamui::Gamui* g,
+	InventoryWidget( Game* game,
+					 gamui::Gamui* g,
 					 const gamui::ButtonLook& carriedLook,
 					 const gamui::ButtonLook& packLook,
 					 Unit* unit );

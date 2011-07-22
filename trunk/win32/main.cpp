@@ -712,7 +712,7 @@ void SaveLightMap( const Surface* core )
 		for( int i=0; i<core->Width(); ++i ) {
 
 			U16 c = core->GetImg16( i, j );
-			Surface::RGBA rgba = Surface::CalcRGB16( c );
+			grinliz::Color4U8 rgba = Surface::CalcRGB16( c );
 
 			*((U32*)surface->pixels + j*surface->pitch/4+i) = rgba.r | (rgba.g<<8) | (rgba.b<<16) | (0xff<<24);
 		}

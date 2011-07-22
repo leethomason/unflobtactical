@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include "../grinliz/gldebug.h"
 #include "../grinliz/glmatrix.h"
+#include "../grinliz/glcolor.h"
 #include "vertex.h"
 
 class Texture;
@@ -187,12 +188,12 @@ public:
 	}
 	bool HasTexture1() { return texture1 != 0; }
 
-	void SetColor( float r, float g, float b )				{ color.x = r; color.y = g; color.z = b; color.w = 1; }
-	void SetColor( float r, float g, float b, float a )		{ color.x = r; color.y = g; color.z = b; color.w = a; }
-	void SetColor( const Color4F& c )						{ color = c; }
-	void SetColor( const Color4U& color ) {
+	void SetColor( float r, float g, float b )				{ color.r = r; color.g = g; color.b = b; color.a = 1; }
+	void SetColor( float r, float g, float b, float a )		{ color.r = r; color.g = g; color.b = b; color.a = a; }
+	void SetColor( const grinliz::Color4F& c )				{ color = c; }
+	void SetColor( const grinliz::Color4U8& color ) {
 		static const float INV = 1.0f/255.0f;
-		Color4F c = { (float)color.x*INV, (float)color.y*INV, (float)color.z*INV, (float)color.w*INV };
+		grinliz::Color4F c = { (float)color.r*INV, (float)color.g*INV, (float)color.b*INV, (float)color.a*INV };
 		SetColor( c );
 	}
 
@@ -308,7 +309,7 @@ protected:
 	bool		depthWrite;
 	bool		depthTest;
 
-	Color4F		color;
+	grinliz::Color4F		color;
 	int			matrixDepth[3];
 };
 
@@ -332,7 +333,7 @@ class LightShader : public GPUShader
 {
 public:
 	/** Texture or color. Writes & tests z. Enables lighting. */
-	LightShader( const Color4F& ambient, const grinliz::Vector4F& direction, const Color4F& diffuse, bool alphaTest=false, bool blend=false );
+	LightShader( const grinliz::Color4F& ambient, const grinliz::Vector4F& direction, const grinliz::Color4F& diffuse, bool alphaTest=false, bool blend=false );
 	~LightShader();
 
 protected:
@@ -340,9 +341,9 @@ protected:
 
 	static int locked;
 
-	Color4F				ambient;
+	grinliz::Color4F				ambient;
 	grinliz::Vector4F	direction;
-	Color4F				diffuse;
+	grinliz::Color4F				diffuse;
 };
 
 

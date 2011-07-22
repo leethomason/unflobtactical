@@ -127,11 +127,13 @@ protected:
 
 // Utility class for standard display of the Unit name / rank / weapon
 struct NameRankUI {
+	gamui::Image		face;
 	gamui::Image		rank;
 	gamui::TextLabel	name;
+	Game* game;
 
-	void Init( gamui::Gamui* );
-	void Set( float x, float y, const Unit* unit, bool displayWeapon );
+	void Init( gamui::Gamui*, Game* game );
+	void Set( float x, float y, const Unit* unit, bool displayFace, bool displayWeapon );
 	void SetRank( int rank );
 	void SetVisible( bool visible ) {
 		rank.SetVisible( visible );

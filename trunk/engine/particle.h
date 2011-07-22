@@ -63,8 +63,8 @@ public:
 	// Emit N point particles.
 	void EmitPoint(	int count,						// number of particles to create
 					int configuration,				// PARTICLE_RAY, etc.
-					const Color4F& color,			// color of the particle
-					const Color4F& colorVelocity,	// change in color / second
+					const grinliz::Color4F& color,			// color of the particle
+					const grinliz::Color4F& colorVelocity,	// change in color / second
 					const grinliz::Vector3F& pos,	// origin
 					float posFuzz,					// fuzz in the position
 					const grinliz::Vector3F& vel,	// velocity
@@ -72,8 +72,8 @@ public:
 
 	// Emit one quad particle.
 	void EmitQuad(	int type,						// FIRE, SMOKE
-					const Color4F& color,			// color of the particle
-					const Color4F& colorVelocity,	// change in color / second
+					const grinliz::Color4F& color,			// color of the particle
+					const grinliz::Color4F& colorVelocity,	// change in color / second
 					const grinliz::Vector3F& pos,	// origin
 					float posFuzz,					// fuzz in the position
 					const grinliz::Vector3F& vel,	// velocity
@@ -82,8 +82,8 @@ public:
 					float velHalfWidth );				// rate of change of the 1/2 size
 
 	// Simple call to emit a point at a location.
-	void EmitOnePoint(	const Color4F& color, 
-						const Color4F& colorVelocity,
+	void EmitOnePoint(	const grinliz::Color4F& color, 
+						const grinliz::Color4F& colorVelocity,
 						const grinliz::Vector3F& pos );
 
 	// Emits a compound flame system for this frame of animation.
@@ -108,18 +108,21 @@ private:
 	{
 		// streamed to GL
 		grinliz::Vector3F	pos;		
-		Color4F				color;
+		grinliz::Color4F				color;
 
 		// extra data
 		grinliz::Vector3F vel;			// units / second
-		grinliz::Vector4F colorVel;		// units / second
+		grinliz::Color4F  colorVel;		// units / second
 		float			  halfWidth;	// for rays and quads
 		float			  velHalfWidth;	// for quads
 		U8				  type;	
 
 		void Process( float sec, unsigned msec ) {
 			pos			+= vel*sec;
-			color		+= colorVel*sec;
+			color.r		= color.r + colorVel.r*sec;
+			color.g		= color.g + colorVel.g*sec;
+			color.b		= color.b + colorVel.b*sec;
+			color.a		= color.a + colorVel.a*sec;
 			halfWidth	+= velHalfWidth*sec;
 		}
 	};
@@ -128,7 +131,7 @@ private:
 	{
 		grinliz::Vector3F	pos;
 		grinliz::Vector2F	tex;
-		Color4F				color;
+		grinliz::Color4F				color;
 	};
 
 	// General do-all for emmitting all kinds of particles (except decals.)
@@ -136,8 +139,8 @@ private:
 				int type,						// FIRE, SMOKE, BEAM (location in the texture)
 				int count,						// number of particles to create
 				int configuration,				// PARTICLE_RAY, QUAD_BEAM, etc.
-				const Color4F& color,			// color of the particle
-				const Color4F& colorVelocity,	// change in color / second
+				const grinliz::Color4F& color,			// color of the particle
+				const grinliz::Color4F& colorVelocity,	// change in color / second
 				const grinliz::Vector3F& pos0,	// origin
 				float posFuzz,					// fuzz in the position
 				const grinliz::Vector3F& vel,	// velocity
