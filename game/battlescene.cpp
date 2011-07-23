@@ -3019,7 +3019,7 @@ void BattleScene::DrawHUD()
 		}
 
 		nameRankUI.SetVisible( SelectedSoldierUnit() != 0 );
-		nameRankUI.Set( 50, 0, SelectedSoldierUnit(), true, true );
+		nameRankUI.Set( 50, 0, SelectedSoldierUnit(), 0xff );
 	}
 }
 

@@ -136,7 +136,7 @@ const char* Unit::AlienName() const
 
 U32 Unit::GetValue( int which ) const
 {
-	const int NBITS[NUM_TRAITS] = { 1, 4, 5, 6 };
+	const int NBITS[NUM_TRAITS] = { 1, 4, 5, 6, 4 };
 
 	int i;
 	U32 shift = 0;

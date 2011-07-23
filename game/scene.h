@@ -130,15 +130,30 @@ struct NameRankUI {
 	gamui::Image		face;
 	gamui::Image		rank;
 	gamui::TextLabel	name;
-	Game* game;
+
+	enum { FACE_SIZE = 50 };
+	enum {	DISPLAY_FACE = 0x01,
+		    DISPLAY_RANK = 0x02,
+			DISPLAY_WEAPON = 0x04,
+			DISPLAY_ALL = 0xff
+		 };
 
 	void Init( gamui::Gamui*, Game* game );
-	void Set( float x, float y, const Unit* unit, bool displayFace, bool displayWeapon );
+	void SetFaceSize( float s )	{ faceSize = s; }
 	void SetRank( int rank );
+
+	void Set( float x, float y, const Unit* unit, int display );
+
 	void SetVisible( bool visible ) {
+		face.SetVisible( visible );
 		rank.SetVisible( visible );
 		name.SetVisible( visible );
 	}
+private:
+	Game*			game;
+	gamui::RenderAtom	rankAtom;
+	int				display;
+	float			faceSize;
 };
 
 

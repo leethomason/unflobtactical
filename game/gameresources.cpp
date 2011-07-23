@@ -129,6 +129,17 @@ const Game::Palette* Game::GetPalette( const char* name ) const
 }
 
 
+grinliz::Color4U8 Game::MainPaletteColor( int x, int y )
+{
+	if ( mainPalette == 0 ) {
+		mainPalette = GetPalette( "mainPalette" );
+	}
+	GLASSERT( x >= 0 && x < mainPalette->dx );
+	GLASSERT( y >= 0 && y < mainPalette->dy );
+	return mainPalette->colors[ y*mainPalette->dx + x ];
+}
+
+
 void Game::LoadTextures()
 {
 	TextureManager* texman = TextureManager::Instance();
@@ -175,8 +186,16 @@ Texture* Game::CalcFaceTexture( const Unit* unit, grinliz::Rectangle2F* uv )
 
 	param.skinColor = palette->colors[index + (1+unit->Gender()*2)*palette->dx]; 
 	param.hairColor = palette->colors[index + (0+unit->Gender()*2)*palette->dx];
-	param.glassesColor.Set( 100, 100, 200, 0xff );
-	
+
+	// Terrible randomization in this range. Almost
+	// always even. Use a secondary lookup.
+	int glasses = unit->GetValue( Unit::APPEARANCE_EXT );
+	Random random( glasses );
+	if ( random.Boolean() ) 
+		param.glassesColor = MainPaletteColor( 5, 5 );
+	else 
+		param.glassesColor = MainPaletteColor( 1, 5 );
+
 	faceGen.GenerateFace( param, &oneFaceSurface );
 
 	// may need to flip:

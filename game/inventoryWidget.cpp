@@ -40,15 +40,12 @@ InventoryWidget::InventoryWidget(	Game* game,
 	button[ARMOR].Init( g, carriedLook );
 	text0.Init( g );
 	text1.Init( g );
-	//descriptionLabel.Init( g );
 	description.Init( g );
 
 	nameRankUI.Init( g, game );
-	nameRankUI.Set( pos.x, pos.y, unit, true, false );
+	nameRankUI.Set( pos.x, pos.y, unit, NameRankUI::DISPLAY_FACE | NameRankUI::DISPLAY_RANK );
 
-	//text0.SetText( "In use:" );
 	text1.SetText( "Pack:" );
-	//descriptionLabel.SetText( "Armed Weapon:" );
 
 	for( int i=0; i<NUM_BUTTONS; ++i ) {
 		button[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
@@ -73,19 +70,28 @@ void InventoryWidget::DoLayout()
 
 	float y = pos.y;
 
+	nameRankUI.Set( pos.x, y+SPACE, unit, 
+		            NameRankUI::DISPLAY_FACE | NameRankUI::DISPLAY_RANK );
+
 	// Carried:
 	text0.SetPos( pos.x, y );
 	y += TEXTHEIGHT;
-	description.SetPos( pos.x, y );
-	y += TEXTHEIGHT;
+	//description.SetPos( pos.x, y );
+	description.SetPos( nameRankUI.name.X(), y+SPACE );
+	//y += TEXTHEIGHT;
+	y = nameRankUI.name.Y() + NameRankUI::FACE_SIZE;
+
+	y = GAME_BUTTON_SIZE_F;
 
 	button[ARMOR].SetPos( pos.x, y );
 	button[WEAPON].SetPos( pos.x+GAME_BUTTON_SIZE_F, y );
 	y += GAME_BUTTON_SIZE_F;
 
-	y += SPACE;
-	text1.SetPos( pos.x, y );
-	y += TEXTHEIGHT;
+	//y += SPACE;
+
+	text1.SetVisible( false );
+	//text1.SetPos( pos.x, y );
+	//y += TEXTHEIGHT;
 
 	gamui::UIItem* itemArr[NUM_BUTTONS];
 	for( int i=PACK_START; i<PACK_END; ++i )
@@ -114,7 +120,8 @@ void InventoryWidget::Update( Unit* _unit )
 {
 	if ( _unit ) {
 		this->unit = _unit;
-		nameRankUI.Set( pos.x, pos.y, _unit, true, false );
+		nameRankUI.Set( pos.x, pos.y, _unit, 
+			            NameRankUI::DISPLAY_FACE | NameRankUI::DISPLAY_RANK );
 	}
 
 	GLASSERT( unit );

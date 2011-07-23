@@ -40,6 +40,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	engine = _game->engine;
 	const Screenport& port = _game->engine->GetScreenport();
 
+	const gamui::ButtonLook& red		= game->GetButtonLook( Game::RED_BUTTON );
 	const gamui::ButtonLook& green		= game->GetButtonLook( Game::GREEN_BUTTON );
 	const gamui::ButtonLook& blue		= game->GetButtonLook( Game::BLUE_BUTTON );
 	const gamui::ButtonLook& blueTab	= game->GetButtonLook( Game::BLUE_TAB_BUTTON );
@@ -78,15 +79,15 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	
 	this->unit = unit;
 
+	inventoryWidget = new InventoryWidget( game, &gamui2D, red, green, unit );
+
 	storageWidget = new StorageWidget( &gamui2D, green, blueTab, _game->GetItemDefArr(), _input->storage );
 	storageWidget->SetOrigin( (float)port.UIWidth()-storageWidget->Width(), 0 );
-	inventoryWidget = new InventoryWidget( game, &gamui2D, green, green, unit );
-
 	statWidget.Init( &gamui2D, unit, storageWidget->X(), 0, input->nUnits > 1 );
 	compWidget.Init( &game->GetItemDefArr(), storage, unit, &gamui2D, blue, storageWidget->X(), 0, storageWidget->Width() );
 
 	unitCounter.Init( &gamui2D );
-	unitCounter.SetPos( 140, 0 );
+	unitCounter.SetPos( 180, 0 );
 	unitCounter.SetVisible( false );
 	SetCounter( 0 );
 

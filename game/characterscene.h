@@ -97,7 +97,6 @@ protected:
 		void Update( Unit* unit );
 	private:
 		enum { STATS_ROWS = 10 };
-		//NameRankUI	nameRankUI;
 		gamui::TextLabel textTable[2*STATS_ROWS];
 	};
 
@@ -117,7 +116,6 @@ protected:
 		const Storage* storage;
 		const Unit* unit;
 
-		//NameRankUI	nameRankUI;
 		// name tu % dam dptu
 		enum { COMP_COL = 5, COMP_ROW = 12 };
 		gamui::TextLabel compTable[COMP_COL*COMP_ROW];

@@ -35,10 +35,11 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game ) : Scene( _game )
 
 	int count=0;
 	float yPos			= GAME_GUTTER;
-	float xPosName		= GAME_GUTTER;
-	float xPosStatus	= GAME_GUTTER+200.0f;
-	float xPosAward		= GAME_GUTTER+300.0f;
-	float size = 20.0f;
+	static const float xPosName		= GAME_GUTTER/2.0f+GAME_BUTTON_SIZE_F;
+	static const float xPosStatus	= xPosName+180.0f;
+	static const float xPosAward	= xPosStatus+100.0f;
+	static const float size = 20.0f;
+	static const float yStep = 35.0f;
 	const Unit* soldiers = &game->battleData.units[TERRAN_UNITS_START];
 
 	for( int i=0; i<MAX_TERRANS; ++i ) {
@@ -50,7 +51,8 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game ) : Scene( _game )
 			int newRank = Unit::XPToRank( soldiers[i].XP() + soldiers[i].KillsCredited() + ( soldiers[i].HP() < soldiers[i].GetStats().TotalHP() ) );
 
 			nameRank[count].Init( &gamui2D, game );
-			nameRank[count].Set( xPosName, yPos, &soldiers[i], false, false );
+			nameRank[count].SetFaceSize( yStep );
+			nameRank[count].Set( xPosName, yPos, &soldiers[i], NameRankUI::DISPLAY_FACE | NameRankUI::DISPLAY_RANK );
 			nameRank[count].SetRank( newRank );
 
 			status[count].Init( &gamui2D );
@@ -111,7 +113,7 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game ) : Scene( _game )
 				++nAwards;
 			}
 			++count;
-			yPos += size;
+			yPos += yStep;
 		}
 	}
 

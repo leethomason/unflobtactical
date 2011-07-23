@@ -211,6 +211,7 @@ public:
 		APPEARANCE,		// 4, 0-15
 		LAST_NAME,		// 5, 0-31
 		FIRST_NAME,		// 6, 0-63
+		APPEARANCE_EXT,	// 4, 0-15
 		NUM_TRAITS
 	};
 	U32 GetValue( int which ) const;
