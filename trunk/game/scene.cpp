@@ -53,34 +53,37 @@ void BackgroundUI::Init( Game* game, gamui::Gamui* g, bool logo )
 void NameRankUI::Init( gamui::Gamui* g, Game* game )
 {
 	this->game = game;
-	gamui::RenderAtom rankAtom = UIRenderer::CalcIconAtom( ICON_RANK_0 );
 	rank.Init( g, rankAtom, false );
+
 	name.Init( g );
 	gamui::RenderAtom nullAtom;
+	rankAtom = nullAtom;
 	face.Init( g, nullAtom, true );
+	display = 255;
+	faceSize = FACE_SIZE;
 }
 
 
 void NameRankUI::SetRank( int r )
 {
-	gamui::RenderAtom rankAtom = UIRenderer::CalcIconAtom( ICON_RANK_0 + r );
+	rankAtom = UIRenderer::CalcIconAtom( ICON_RANK_0 + r );
 	rank.SetAtom( rankAtom );
-	rank.SetSize( name.Height(), name.Height() );
 }
 
 
-void NameRankUI::Set( float x, float y, const Unit* unit, bool displayFace, bool displayWeapon )
+void NameRankUI::Set( float x, float y, const Unit* unit, int display )
 {
+	this->display = display;
 	CStr<90> cstr;
 
 	if ( unit ) {
+		SetRank( unit->GetStats().Rank() );
 		cstr = unit->FirstName();
 		cstr += " ";
 		cstr += unit->LastName();
-
 	}
 
-	if ( displayWeapon && unit && unit->IsAlive() ) {
+	if ( (display & DISPLAY_WEAPON) && unit && unit->IsAlive() ) {
 		if ( unit && unit->GetWeapon() ) {
 			cstr += ", ";
 			cstr += unit->GetWeapon()->DisplayName();
@@ -89,9 +92,12 @@ void NameRankUI::Set( float x, float y, const Unit* unit, bool displayFace, bool
 		}
 	}
 	name.SetText( cstr.c_str() );
+	rank.SetSize( name.Height(), name.Height() );
 
-	if ( unit ) {
-		SetRank( unit->GetStats().Rank() );
+	gamui::RenderAtom nullAtom;
+	face.SetAtom( nullAtom );
+
+	if ( (display & DISPLAY_FACE) && unit ) {
 
 		Rectangle2F uv;
 		Texture* texture = game->CalcFaceTexture( unit, &uv );
@@ -99,23 +105,22 @@ void NameRankUI::Set( float x, float y, const Unit* unit, bool displayFace, bool
 								(const void*)texture, 
 								uv.min.x, uv.min.y, uv.max.x, uv.max.y, 1, 1 );
 		face.SetAtom( atom );
-	}
-	else {
-		gamui::RenderAtom nullAtom;
-		rank.SetAtom( nullAtom );
-		face.SetAtom( nullAtom );
-	}
 
-	if ( displayFace ) {
-		static const float SIZE = 50.0f;
 		static const float FUDGE = -10.0f;
 
-		face.SetSize( SIZE, SIZE );
+		face.SetSize( faceSize, faceSize );
 		face.SetPos( x, y );
 		x += face.Width() + FUDGE;
 	}
-	rank.SetPos( x, y+1 );
-	x += rank.Width();
+
+	if ( display & DISPLAY_RANK ) {
+		rank.SetPos( x, y+1 );
+		x += rank.Width();
+		rank.SetAtom( rankAtom );
+	}
+	else {
+		rank.SetAtom( nullAtom );
+	}
 
 	name.SetPos( x+3.f, y );
 }

@@ -139,6 +139,7 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 
 void Game::Init()
 {
+	mainPalette = 0;
 	mapmaker_showPathing = 0;
 	scenePopQueued = false;
 //	sceneResetQueued = false;

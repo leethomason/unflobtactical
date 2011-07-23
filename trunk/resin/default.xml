@@ -227,7 +227,7 @@
   <texture filename="cropcircle.png" width="64" height="64" />
   <texture filename="basemap.png" />
 
-  <palette assetName="mainPalette" filename="palette.png" dx="10" dy="10" sx="0.5" sy="0.5" />
+  <palette assetName="mainPalette" filename="palette.png" dx="12" dy="6" sx="0.5" sy="0.5" />
   <!-- y: male hair, male skin, female hair, female skin -->
   <palette assetName="characterPalette" filename="characters.png" dx="16" dy="4" sx="0.5" />
 

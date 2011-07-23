@@ -256,6 +256,7 @@ public:
 		CArray< grinliz::Color4U8, 128 > colors;
 	};
 	const Palette* GetPalette( const char* name ) const;
+	grinliz::Color4U8 MainPaletteColor( int x, int y );
 
 private:
 	Screenport screenport;
@@ -274,6 +275,7 @@ private:
 
 	// Color palettes
 	CDynArray< Palette > palettes;
+	const Palette* mainPalette;
 	void LoadPalettes();
 
 	Surface surface;
