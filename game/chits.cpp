@@ -762,39 +762,30 @@ int BaseChit::DoTick(  U32 deltaTime )
 	return msg;
 }
 
-/*
-void BaseChit::DeployLander( const grinliz::Vector2I& pos )
-{
-	GLASSERT( lander[0] == 0 );
-	landerTarget = pos;
-	landerOutbound = true;
 
-	for( int i=0; i<2; ++i ) {
-		lander[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "geolander" ) );
-	}
-	lander[0]->SetPos( Pos().x, UFO_HEIGHT, Pos().y );
-	lander[1]->SetPos( Pos().x+GEO_MAP_XF, UFO_HEIGHT, Pos().y );
-}
-*/
-
-int BaseChit::NumUnits()
+int BaseChit::NumUnits() const
 {
 	return Unit::Count( units, MAX_TERRANS, Unit::STATUS_ALIVE );
 }
 
 
-/*
-Vector2I BaseChit::LanderMapPos() const
+bool BaseChit::IssueUnitWarning() const
 {
-	grinliz::Vector2I v = { 0, 0 };
-	if ( lander[0] ) {
-		v.Set( (int)lander[0]->X(), (int)lander[0]->Z() );
+	int nUnits = NumUnits();
+	if ( nUnits < 4 ) return true;
+	for( int i=0; i<MAX_TERRANS; ++i ) {
+		if ( units[i].IsAlive() ) {
+			const Item* weapon = units[i].GetWeapon();
+			if ( !weapon || weapon->IsNothing() )
+				return true;
+			if ( !units[i].HasGunAndAmmo( true ) )
+				return true;
+		}
 	}
-	return v;
+	return false;
 }
-*/
 
-
+	
 const char* BaseChit::Name() const
 {
 	static const char* names[MAX_BASES] = { "Alpha", "Bravo", "Charlie", "Delta" };

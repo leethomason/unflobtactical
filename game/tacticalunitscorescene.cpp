@@ -52,7 +52,8 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game ) : Scene( _game )
 
 			nameRank[count].Init( &gamui2D, game );
 			nameRank[count].SetFaceSize( yStep );
-			nameRank[count].Set( xPosName, yPos, &soldiers[i], NameRankUI::DISPLAY_FACE | NameRankUI::DISPLAY_RANK );
+			nameRank[count].Set( xPosName, yPos, &soldiers[i], 
+				                 NameRankUI::DISPLAY_FACE | NameRankUI::DISPLAY_RANK );
 			nameRank[count].SetRank( newRank );
 
 			status[count].Init( &gamui2D );
@@ -74,7 +75,6 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game ) : Scene( _game )
 			float x = xPosAward;
 
 			if ( soldiers[i].IsAlive() || soldiers[i].IsUnconscious() ) {
-
 				if ( oldRank != newRank ) {
 					award[nAwards].Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_LEVEL_UP ), true );
 					award[nAwards].SetPos( x, yPos );

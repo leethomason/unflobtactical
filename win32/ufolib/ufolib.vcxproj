@@ -71,6 +71,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\gamui\gamui.h" />
     <ClInclude Include="..\..\grinliz\glbitarray.h" />
+    <ClInclude Include="..\..\grinliz\glcolor.h" />
     <ClInclude Include="..\..\grinliz\glcontainer.h" />
     <ClInclude Include="..\..\grinliz\gldebug.h" />
     <ClInclude Include="..\..\grinliz\gldynamic.h" />

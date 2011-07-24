@@ -46,7 +46,8 @@ using namespace grinliz;
 using namespace gamui;
 
 //#define REACTION_FIRE_EVENT_ONLY
-
+#define FACES_ON_BUTTON
+#define REORDER_BUTTONS
 
 BattleScene::BattleScene( Game* game ) : Scene( game )
 {
@@ -164,7 +165,16 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 			controlButton[i].SetSize( SIZE, SIZE );
 		}
 
+#ifdef REORDER_BUTTONS
+		UIItem* items[6] = { &invButton,  
+							 &nextTurnButton,
+			                 &helpButton, 
+							 &exitButton,
+							 &targetButton, 
+							 &controlButton[0] };
+#else
 		UIItem* items[6] = { &exitButton, &helpButton, &nextTurnButton, &targetButton, &invButton, &controlButton[0] };
+#endif
 		Gamui::Layout( items, 6, 1, 6, 0, 0, SIZE, (float)port.UIHeight() );
 
 		controlButton[1].SetPos( SIZE, port.UIHeight()-SIZE );
@@ -985,6 +995,8 @@ void BattleScene::DrawFireWidget()
 	GLRELASSERT( SelectedSoldierUnit() );
 
 	Unit* unit = SelectedSoldierUnit();
+	const Model* targetModel = 0;
+	const Model* targetWeapon = 0;
 	
 	Vector3F target;
 	BulletTarget bulletTarget;
@@ -993,10 +1005,11 @@ void BattleScene::DrawFireWidget()
 		target.Set( (float)selection.targetPos.x+0.5f, 1.0f, (float)selection.targetPos.y+0.5f );
 	}
 	else {
-		const Model* m = GetModel( selection.targetUnit );
-		GLASSERT( m );
-		m->CalcTarget( &target );
-		m->CalcTargetSize( &bulletTarget.width, &bulletTarget.height );
+		targetModel = GetModel( selection.targetUnit );
+		targetWeapon = GetWeaponModel( selection.targetUnit );
+		GLASSERT( targetModel );
+		targetModel->CalcTarget( &target );
+		targetModel->CalcTargetSize( &bulletTarget.width, &bulletTarget.height );
 	}
 
 	Vector3F distVector = target - SelectedSoldierUnit()->Pos();
@@ -1071,6 +1084,30 @@ void BattleScene::DrawFireWidget()
 	fireButton[0].SetVisible( true );
 	fireButton[1].SetVisible( true );
 	fireButton[2].SetVisible( true );
+
+	ParticleSystem* ps = ParticleSystem::Instance();
+	Color4F color0 = Convert_4U8_4F( game->MainPaletteColor( 0, 5 ));
+	Color4F color1 = Convert_4U8_4F( game->MainPaletteColor( 0, 4 ));
+
+	const Model* model = GetModel( unit );
+	if ( model ) {
+		Vector3F trigger;
+		model->CalcTrigger( &trigger );
+
+		Ray ray = { trigger, target-trigger };
+		const Model* ignore[] = { model, GetWeaponModel( unit ), 0 };
+		Vector3F intersection;
+
+		Model* m = GetEngine()->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &intersection );
+		
+		if ( !m || m == targetModel || m == targetWeapon ) {
+			ps->EmitBeam( trigger, target, color0 );
+		}
+		else {
+			ps->EmitBeam( trigger, intersection, color0 );
+			ps->EmitBeam( intersection, target, color1 );
+		}
+	}
 }
 
 
@@ -3019,7 +3056,20 @@ void BattleScene::DrawHUD()
 		}
 
 		nameRankUI.SetVisible( SelectedSoldierUnit() != 0 );
+#ifdef FACES_ON_BUTTON
+		nameRankUI.Set( 50, 0, SelectedSoldierUnit(), ~NameRankUI::DISPLAY_FACE );
+		if ( SelectedSoldierUnit() ) {
+			Rectangle2F uv;
+			Texture* faceTex = game->CalcFaceTexture( SelectedSoldierUnit(), &uv );
+			RenderAtom atom( (const void*) UIRenderer::RENDERSTATE_UI_NORMAL, (const void*) faceTex, uv.min.x, uv.min.y, uv.max.x, uv.max.y, 1, 1 );
+			invButton.SetDeco( atom, atom );
+		}
+		else {
+			invButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_CHARACTER, true ), UIRenderer::CalcDecoAtom( DECO_CHARACTER, false ) );
+		}
+#else
 		nameRankUI.Set( 50, 0, SelectedSoldierUnit(), 0xff );
+#endif
 	}
 }
 

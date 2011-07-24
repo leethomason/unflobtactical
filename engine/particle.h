@@ -90,6 +90,9 @@ public:
 	void EmitFlame( U32 delta, const grinliz::Vector3F& pos )	{ EmitSmokeAndFlame( delta, pos, true ); }
 	void EmitSmoke( U32 delta, const grinliz::Vector3F& pos )	{ EmitSmokeAndFlame( delta, pos, false ); }
 
+	// Draw a beam. Always for one frame.
+	void EmitBeam( const grinliz::Vector3F& p0, const grinliz::Vector3F& p1, const grinliz::Color4F& color );
+
 	void Update( U32 deltaTime, U32 currentTime );
 	void Draw( const grinliz::Vector3F* eyeDir, const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fogOfWar );
 	void Clear();
@@ -131,7 +134,14 @@ private:
 	{
 		grinliz::Vector3F	pos;
 		grinliz::Vector2F	tex;
-		grinliz::Color4F				color;
+		grinliz::Color4F	color;
+	};
+
+	struct Beam
+	{
+		grinliz::Vector3F	pos0;
+		grinliz::Vector3F   pos1;
+		grinliz::Color4F	color;	
 	};
 
 	// General do-all for emmitting all kinds of particles (except decals.)
@@ -150,6 +160,7 @@ private:
 
 	void DrawPointParticles( const grinliz::Vector3F* eyeDir );
 	void DrawQuadParticles( const grinliz::Vector3F* eyeDir );
+	void DrawBeamParticles( const grinliz::Vector3F* eyeDir );
 	void EmitSmokeAndFlame( U32 delta, const grinliz::Vector3F& pos, bool flame );
 	void RemoveOldParticles( int primitive );
 	int NumParticles( int type ) { return type == POINT ? pointBuffer.Size() : quadBuffer.Size(); };
@@ -167,6 +178,7 @@ private:
 	const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>*	fogOfWar;
 	CDynArray<Particle>									pointBuffer;
 	CDynArray<Particle>									quadBuffer;
+	CDynArray<Beam>										beamBuffer;
 
 	// When we don't have point sprites:
 	CDynArray<QuadVertex>								vertexBuffer;

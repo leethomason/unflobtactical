@@ -53,11 +53,10 @@ void BackgroundUI::Init( Game* game, gamui::Gamui* g, bool logo )
 void NameRankUI::Init( gamui::Gamui* g, Game* game )
 {
 	this->game = game;
-	rank.Init( g, rankAtom, false );
 
 	name.Init( g );
 	gamui::RenderAtom nullAtom;
-	rankAtom = nullAtom;
+	rank.Init( g, nullAtom, true );
 	face.Init( g, nullAtom, true );
 	display = 255;
 	faceSize = FACE_SIZE;
@@ -66,7 +65,7 @@ void NameRankUI::Init( gamui::Gamui* g, Game* game )
 
 void NameRankUI::SetRank( int r )
 {
-	rankAtom = UIRenderer::CalcIconAtom( ICON_RANK_0 + r );
+	gamui::RenderAtom rankAtom = UIRenderer::CalcIconAtom( ICON_RANK_0 + r );
 	rank.SetAtom( rankAtom );
 }
 
@@ -106,7 +105,7 @@ void NameRankUI::Set( float x, float y, const Unit* unit, int display )
 								uv.min.x, uv.min.y, uv.max.x, uv.max.y, 1, 1 );
 		face.SetAtom( atom );
 
-		static const float FUDGE = -10.0f;
+		static const float FUDGE = -2.0f;
 
 		face.SetSize( faceSize, faceSize );
 		face.SetPos( x, y );
@@ -116,7 +115,6 @@ void NameRankUI::Set( float x, float y, const Unit* unit, int display )
 	if ( display & DISPLAY_RANK ) {
 		rank.SetPos( x, y+1 );
 		x += rank.Width();
-		rank.SetAtom( rankAtom );
 	}
 	else {
 		rank.SetAtom( nullAtom );
