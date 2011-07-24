@@ -599,9 +599,12 @@ void GeoScene::Tap(	int action,
 void GeoScene::InitContextMenu( int type, Chit* chit )
 {
 	contextChitID = chit ? chit->ID() : 0;
+	gamui::RenderAtom nullAtom;
 
-	for( int i=0; i<MAX_CONTEXT; ++i )
+	for( int i=0; i<MAX_CONTEXT; ++i ) {
 		context[i].SetVisible( false );
+		context[i].SetDeco( nullAtom, nullAtom );
+	}
 
 	if ( type == CM_NONE ) {
 		for( int i=0; i<MAX_CONTEXT; ++i )
@@ -634,11 +637,17 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 			if ( baseChit ) {
 				context[i].SetVisible( true );
 				context[i].SetText( baseChit->Name() );
+				context[i].SetDeco( nullAtom, nullAtom );
 
 				if (     baseChit->IsFacilityComplete( BaseChit::FACILITY_LANDER )
 					  && Unit::Count( baseChit->GetUnits(), MAX_TERRANS, Unit::STATUS_ALIVE )
 					  && !chitBag.GetCargoComingFrom( CargoChit::TYPE_LANDER, baseChit->MapPos() ) )
 				{
+					if ( baseChit->IssueUnitWarning() ) {
+						RenderAtom atom = UIRenderer::CalcIcon2Atom( ICON2_WARNING, true );
+						context[i].SetDeco( atom, atom );
+						context[i].SetDecoLayout( gamui::Button::RIGHT, context[i].Height()/2, 0 );
+					}
 					context[i].SetEnabled( true );
 				}
 				else {

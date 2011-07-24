@@ -156,6 +156,15 @@ void ParticleSystem::Update( U32 deltaTime, U32 currentTime )
 }
 
 
+void ParticleSystem::EmitBeam( const grinliz::Vector3F& p0, const grinliz::Vector3F& p1, const grinliz::Color4F& color )
+{
+	Beam* beam = beamBuffer.Push();
+	beam->pos0 = p0;
+	beam->pos1 = p1;
+	beam->color = color;
+}
+
+
 void ParticleSystem::Emit(	int primitive,					// POINT or QUAD
 							int type,						// FIRE, SMOKE
 							int count,						// number of particles to create
@@ -387,6 +396,8 @@ void ParticleSystem::Draw( const Vector3F* eyeDir, const grinliz::BitArray<Map::
 	//GLOUTPUT(( "Particles point=%d quad=%d\n", pointBuffer.Size(), quadBuffer.Size() ));
 	DrawPointParticles( eyeDir );
 	DrawQuadParticles( eyeDir );
+	DrawBeamParticles( eyeDir );
+	beamBuffer.Clear();
 
 	for( int i=0; i<effectArr.Size(); ++i ) {
 		if ( !effectArr[i]->Done() ) {
@@ -394,6 +405,85 @@ void ParticleSystem::Draw( const Vector3F* eyeDir, const grinliz::BitArray<Map::
 		}
 	}
 }
+
+
+void ParticleSystem::DrawBeamParticles( const Vector3F* eyeDir )
+{
+	if ( beamBuffer.Empty() ) {
+		return;
+	}
+
+	const static float cornerX[] = { -1, 1, 1, -1 };
+	const static float cornerY[] = { -1, -1, 1, 1 };
+
+	// fixme: hardcoded texture coordinates
+	static const Vector2F tex[4] = {
+		{ 0.50f, 0.0f },
+		{ 0.75f, 0.0f },
+		{ 0.75f, 0.25f },
+		{ 0.50f, 0.25f }
+	};
+
+	int nIndex = 0;
+	int nVertex = 0;
+
+	vertexBuffer.Clear();
+	indexBuffer.Clear();
+
+	U16* iBuf = indexBuffer.PushArr( 6*quadBuffer.Size() );
+	QuadVertex* vBuf = vertexBuffer.PushArr( 4*quadBuffer.Size() );
+
+	for( int i=0; i<beamBuffer.Size(); ++i ) 
+	{
+		const Beam& b = beamBuffer[i];
+
+		// Set up the particle that everything else is derived from:
+		iBuf[nIndex++] = nVertex+0;
+		iBuf[nIndex++] = nVertex+1;
+		iBuf[nIndex++] = nVertex+2;
+
+		iBuf[nIndex++] = nVertex+0;
+		iBuf[nIndex++] = nVertex+2;
+		iBuf[nIndex++] = nVertex+3;
+
+		QuadVertex* pV = &vBuf[nVertex];
+
+		const float hw = 0.1f;	//quadBuffer[i].halfWidth;
+		Vector3F n;
+		CrossProduct( eyeDir[Camera::NORMAL], b.pos1-b.pos0, &n );
+		n.Normalize();
+
+		pV[0].pos = b.pos0 - hw*n;
+		pV[1].pos = b.pos0 + hw*n;
+		pV[2].pos = b.pos1 + hw*n;
+		pV[3].pos = b.pos1 - hw*n;
+
+		for( int j=0; j<4; ++j ) {
+			pV->tex = tex[j];
+			pV->color = b.color;
+			++pV;
+		}
+		nVertex += 4;
+	}
+
+	if ( nIndex ) {
+		QuadParticleShader shader;
+		shader.SetTexture0( quadTexture );
+
+		GPUShader::Stream stream;
+		stream.stride = sizeof( vertexBuffer[0] );
+		stream.nPos = 3;
+		stream.posOffset = 0;
+		stream.nTexture0 = 2;
+		stream.texture0Offset = 12;
+		stream.nColor = 4;
+		stream.colorOffset = 20;
+
+		shader.SetStream( stream, vBuf, nIndex, iBuf );
+		shader.Draw();
+	}
+}
+
 
 
 void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )

@@ -89,6 +89,7 @@ public:
 											StrNCpy( buf, src, ALLOCATE ); 
 										Validate();
 									}
+	// fixme: inconsistent with += behavior
 	CStr( int value )				{	GLASSERT(sizeof(*this) == ALLOCATE );		// not required for class to work, but certainly the intended design
 										buf[0] = 0; 
 										SNPrintf( buf, ALLOCATE, "%d", value );

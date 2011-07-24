@@ -76,6 +76,26 @@ inline void Convert( const Color4F& c0, Color3U8* c1 ) {
 	c1->b = (U8)LRintf( c0.b * 255.0f );
 }
 
+inline Color4U8 Convert_4F_4U8( const Color4F& c0 ) {
+	Color4U8 c1;
+	c1.r = (U8)LRintf( c0.r * 255.0f );
+	c1.g = (U8)LRintf( c0.g * 255.0f );
+	c1.b = (U8)LRintf( c0.b * 255.0f );
+	c1.a = (U8)LRintf( c0.a * 255.0f );
+	return c1;
+}
+
+inline Color4F Convert_4U8_4F( const Color4U8& c0 ) {
+	Color4F c1;
+	static const float INV=1.0f/255.f;
+	c1.r = (float)c0.r * INV;
+	c1.g = (float)c0.g * INV;
+	c1.b = (float)c0.b * INV;
+	c1.a = (float)c0.a * INV;
+	return c1;
+}
+
+
 /// Interpolate between 2 colors. 'val' can range from 0 to 1.
 inline void InterpolateColor( const Color3U8& c0, const Color3U8& c1, float val, Color3U8* out ) {
 	GLASSERT( val >= 0.0f && val <= 1.0f );

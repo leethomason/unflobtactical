@@ -297,7 +297,8 @@ public:
 	Storage* GetStorage() { return storage; }
 	
 	Unit* GetUnits() { return units; }
-	int NumUnits();
+	int NumUnits() const;
+	bool IssueUnitWarning() const;
 
 	int NumScientists()					{ return nScientists; }
 	void SetNumScientists( int m )		{ nScientists = m; }

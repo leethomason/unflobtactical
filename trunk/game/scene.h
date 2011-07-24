@@ -151,7 +151,6 @@ struct NameRankUI {
 	}
 private:
 	Game*			game;
-	gamui::RenderAtom	rankAtom;
 	int				display;
 	float			faceSize;
 };
