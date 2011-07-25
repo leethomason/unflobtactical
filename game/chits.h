@@ -194,7 +194,11 @@ public:
 	{
 		if ( type == BATTLESHIP && !battleshipTech )
 			return false;
-		if ( ai == AI_CRASHED || ai == AI_CITY_ATTACK || ai == AI_CROP_CIRCLE || ai == AI_PARKED )
+		if (    ai == AI_CRASHED 
+			 || ai == AI_CITY_ATTACK 
+			 || ai == AI_CROP_CIRCLE 
+			 || ai == AI_OCCUPATION
+			 || ai == AI_PARKED )
 			return true;
 		return false;
 	}

@@ -324,6 +324,12 @@ int main( int argc, char **argv )
 	while ( !done && SDL_WaitEvent( &event ) )
 #endif
 	{
+		// The user event is the least important. Look for anything else.
+		SDL_Event e;
+		while ( event.type == SDL_USEREVENT && SDL_PollEvent( &e ) ) {
+			event = e;
+		}
+
 		switch( event.type )
 		{
 			case SDL_VIDEORESIZE:
