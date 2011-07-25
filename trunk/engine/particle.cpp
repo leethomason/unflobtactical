@@ -451,7 +451,10 @@ void ParticleSystem::DrawBeamParticles( const Vector3F* eyeDir )
 		const float hw = 0.1f;	//quadBuffer[i].halfWidth;
 		Vector3F n;
 		CrossProduct( eyeDir[Camera::NORMAL], b.pos1-b.pos0, &n );
-		n.Normalize();
+		if ( n.LengthSquared() > 0.0001f )
+			n.Normalize();
+		else
+			n = eyeDir[Camera::RIGHT];
 
 		pV[0].pos = b.pos0 - hw*n;
 		pV[1].pos = b.pos0 + hw*n;
