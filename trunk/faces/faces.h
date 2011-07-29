@@ -65,7 +65,7 @@ public:
 	void GenerateFace( const FaceParam& param, Surface* surface );
 
 private:
-	void ChangeColor( Surface* surface, U16 src, U16 dst );
+	void ChangeColor( Surface* surface, const U16* src, const U16* dst, int count );
 	grinliz::Color4U8 CalcShadowColor( grinliz::Color4U8, float ratio );
 	void Composite( const Surface& srcSurface, const grinliz::Rect2I& srcRect, 
 					Surface* dstSurface, const grinliz::Rect2I& dstRect, bool flip=false );
