@@ -5,13 +5,24 @@
 using namespace grinliz;
 
 // g++ -o faces faces.cpp -lSDL -lSDL_image
-void FaceGenerator::ChangeColor( Surface* surface, U16 src, U16 dst ) 
+void FaceGenerator::ChangeColor( Surface* surface, const U16* src, const U16* dst, int count ) 
 {
 	const int n = surface->Width() * surface->Height();
 	U16* p = (U16*) surface->Pixels();
+	U16 mask = 0;
+	for( int i=0; i<count; ++i ) {
+		mask |= src[i];
+	}
 
 	for( int i=0; i<n; ++i, ++p ) {
-		if ( *p == src ) *p = dst;
+		if ( *p & mask ) {
+			for( int j=0; j<count; ++j ) {
+				if ( *p == src[j] ) {
+					*p = dst[j];
+					break;
+				}
+			}
+		}
 	}
 }
 
@@ -98,40 +109,43 @@ void FaceGenerator::GenerateFace( const FaceParam& param, Surface* image )
 	Composite( hairs, srcRect, image, dstRect, param.hairFlip );
 
 	// Patch the colors.
+	U16 src[20];
+	U16 dst[20];
+	int count=0;
 
 	// skin
-	ChangeColor( image, 
-				 Surface::CalcRGBA16( 0, 255, 0, 255 ), 
-				 Surface::CalcRGBA16( param.skinColor ) ); 
+	src[count] = Surface::CalcRGBA16( 0, 255, 0, 255 );
+	dst[count] = Surface::CalcRGBA16( param.skinColor );
+	++count;
 
-	// skin shadow mask
-	ChangeColor( image, 
-				 Surface::CalcRGBA16( 255, 0, 0, 255 ), 
-				 Surface::CalcRGBA16( CalcShadowColor( param.skinColor, 0.66f )) ); 
+	src[count] = Surface::CalcRGBA16( 255, 0, 0, 255 );
+	dst[count] = Surface::CalcRGBA16( CalcShadowColor( param.skinColor, 0.66f ));
+	++count;
 
 	// hair 
-	ChangeColor( image,
-		Surface::CalcRGBA16( 241, 198, 96, 255 ),
-		Surface::CalcRGBA16( param.hairColor ));
+	src[count] = Surface::CalcRGBA16( 241, 198, 96, 255 );
+	dst[count] = Surface::CalcRGBA16( param.hairColor );
+	++count;
 
-	ChangeColor( image,
-		Surface::CalcRGBA16( 221, 136, 68, 255 ),
-		Surface::CalcRGBA16( CalcShadowColor( param.hairColor, 0.66f )));
+	src[count] = Surface::CalcRGBA16( 221, 136, 68, 255 );
+	dst[count] = Surface::CalcRGBA16( CalcShadowColor( param.hairColor, 0.66f ));
+	++count;
 
 	// glasses
-	ChangeColor( image,
-		Surface::CalcRGBA16( 153, 0, 255, 255 ),
-		Surface::CalcRGBA16( param.glassesColor ));
+	src[count] = Surface::CalcRGBA16( 153, 0, 255, 255 );
+	dst[count] = Surface::CalcRGBA16( param.glassesColor );
+	++count;
 
-	ChangeColor( image,
-		Surface::CalcRGBA16( 102, 0, 204, 255 ),
-		Surface::CalcRGBA16( CalcShadowColor( param.glassesColor, 0.66f )));
+	src[count] = Surface::CalcRGBA16( 102, 0, 204, 255 );
+	dst[count] = Surface::CalcRGBA16( CalcShadowColor( param.glassesColor, 0.66f ));
+	++count;
 
 	// beard
-	ChangeColor( image,
-		Surface::CalcRGBA16( 0, 0, 255, 255 ),
-		Surface::CalcRGBA16( param.unshaven ? CalcShadowColor( param.skinColor, 0.85f ) : param.skinColor ));
+	src[count] = Surface::CalcRGBA16( 0, 0, 255, 255 );
+	dst[count] = Surface::CalcRGBA16( param.unshaven ? CalcShadowColor( param.skinColor, 0.85f ) : param.skinColor );
+	++count;
 
+	ChangeColor( image, src, dst, count );
 }
 
 
