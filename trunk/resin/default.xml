@@ -761,10 +761,11 @@
     <page image="helpImage0">
       <p>[UI Menu]</p>
       <p>
-        From top to bottom, the icons are: 1) Abort mission. The lander takes off
-        with whoever is, or isn't, on board. 2) Help 3) End turn.
-        You are done moving and the aliens move. 4) Target a location on the map.
-        Tap any location on the map to shoot there. 5) Inventory and character screen.
+        From top to bottom, the icons are: 1) Character portrait. Tapping 
+        this take you to the inventory and stats screen. 2) End turn. 3) Help. 
+        4) Shoot at an arbitrary target. Follow by tapping a location on the map.
+        5) Abort mission. The lander will take all units, but items on the ground 
+        will be lost.
       </p>
     </page>
 
