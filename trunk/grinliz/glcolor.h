@@ -39,8 +39,8 @@ struct Color3
 	T r, g, b;
 
 	void Set( T _r, T _g, T _b )	{ this->r = _r; this->g = _g; this->b = _b; }
-	T X( int i ) const				{ GLASSERT( i>=0 && i<3 ): return *(&r+i); }
-	T& X(int i)						{ GLASSERT( i>=0 && i<3 ): return *(&r+i); }
+	T X( int i ) const				{ GLASSERT( i>=0 && i<3 ); return *(&r+i); }
+	T& X(int i)						{ GLASSERT( i>=0 && i<3 ); return *(&r+i); }
 };
 
 typedef Color3<float> Color3F;

@@ -855,7 +855,8 @@
   <text name="introHelp" >
     <page>
       <p>[Xenowar]</p>
-      <p>Xenowar. Copyright 2011 Lee Thomason / Grinning Lizard Software.</p>
+      <p>
+        Xenowar. Copyright 2011 Lee Thomason / Grinning Lizard Software. 'Face' renderer by Johan Forsberg.</p>
       <p>
         Welcome to Xenowar! Xenowar is an alien blasting strategy game. You can
         submit feedback, read the community forum, or get more gameplay information

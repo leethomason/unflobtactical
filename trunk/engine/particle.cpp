@@ -413,8 +413,8 @@ void ParticleSystem::DrawBeamParticles( const Vector3F* eyeDir )
 		return;
 	}
 
-	const static float cornerX[] = { -1, 1, 1, -1 };
-	const static float cornerY[] = { -1, -1, 1, 1 };
+	//const static float cornerX[] = { -1, 1, 1, -1 };
+	//const static float cornerY[] = { -1, -1, 1, 1 };
 
 	// fixme: hardcoded texture coordinates
 	static const Vector2F tex[4] = {
