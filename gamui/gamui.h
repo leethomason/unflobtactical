@@ -108,6 +108,7 @@ struct RenderAtom
 		textureHandle = (const void*) _textureHandle;
 		srcWidth = _srcWidth;
 		srcHeight = _srcHeight;
+		user = 0;
 	}
 
 	bool Equal( const RenderAtom& atom ) const {

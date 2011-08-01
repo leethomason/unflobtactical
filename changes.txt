@@ -35,6 +35,8 @@
 	- check on Samsung
 
 
+
+
 Changes in 2.2 v4 b660
 Release v2.2 b660 Windows 
 - Increased contrast in walking dots.

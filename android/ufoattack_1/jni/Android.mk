@@ -17,6 +17,7 @@ include $(LOCAL_PATH)/../../../tinyxml/sources.mk
 include $(LOCAL_PATH)/../../../micropather/sources.mk
 include $(LOCAL_PATH)/../../../engine/sources.mk
 include $(LOCAL_PATH)/../../../game/sources.mk
+include $(LOCAL_PATH)/../../../faces/sources.mk
 
 LOCAL_LDLIBS := -lGLESv1_CM -ldl -llog -lz
 
