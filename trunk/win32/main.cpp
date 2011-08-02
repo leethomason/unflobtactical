@@ -324,10 +324,13 @@ int main( int argc, char **argv )
 	while ( !done && SDL_WaitEvent( &event ) )
 #endif
 	{
-		// The user event is the least important. Look for anything else.
-		SDL_Event e;
-		while ( event.type == SDL_USEREVENT && SDL_PollEvent( &e ) ) {
-			event = e;
+		// The user event shouldn't be duplicated...if there are 2, pull out the dupe.
+		if ( event.type == SDL_USEREVENT ) {
+			SDL_Event e;
+			int n = SDL_PeepEvents( &e, 1, SDL_PEEKEVENT, SDL_ALLEVENTS );		
+			if ( n == 1 && e.type == SDL_USEREVENT ) {
+				SDL_PeepEvents( &e, 1, SDL_GETEVENT, SDL_ALLEVENTS );
+			}
 		}
 
 		switch( event.type )

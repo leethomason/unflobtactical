@@ -1,7 +1,7 @@
 - sync to source control
 - run setversion
 - run makeres.bat
-- check android API version. manifest: <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7"/>
+- check android API version. manifest: <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7"/> (easy to tweak during dev and forget.)
 - set android manifest debuggable=false
 - check Win32 build=Release
 - check NDK APP_OPTIM := release in Application.mk
@@ -35,7 +35,16 @@
 	- check on Samsung
 
 
+Changes in 2.3 v5 672
+Release v2.3 b672
+Meet the troops! A new face renderer gives identity and a unique look to the units. 2.3 also adds line-of-sight preview when firing and bug fixes.
 
+- Face rendering!
+- Preview line-of-sight when firing
+- Warning displays if you are about to send out unarmed units or a too-small squad.
+- Can now attack Battleships that have occupied capitals
+- Adjusted UI to accommodate faces.
+- Move confirmation applies to drag
 
 Changes in 2.2 v4 b660
 Release v2.2 b660 Windows 
