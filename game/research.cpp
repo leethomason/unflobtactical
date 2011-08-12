@@ -42,6 +42,7 @@ Research::Research( const gamedb::Reader* _database, const ItemDefArr& itemDefAr
 
 	const gamedb::Item* researchItem = database->Root()->Child( "tree" )->Child( "research" );
 	GLASSERT( researchItem );
+
 	nTasks = researchItem->NumChildren();
 	taskArr = new Task[nTasks];
 

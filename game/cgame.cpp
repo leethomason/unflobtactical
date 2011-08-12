@@ -214,12 +214,19 @@ const char* PlatformName()
 }
 
 
-int GamePopSound( void* handle, int* offset, int* size )
+void GameAddDatabase( void* handle, int databaseID, const char* path )
+{
+	Game* game = (Game*)handle;
+	game->AddDatabase( databaseID, path );
+}
+
+
+int GamePopSound( void* handle, int* database, int* offset, int* size )
 {
 	CheckThread check;
 
 	Game* game = (Game*)handle;
-	bool result = game->PopSound( offset, size );	
+	bool result = game->PopSound( database, offset, size );	
 	return (result) ? 1 : 0;
 }
 

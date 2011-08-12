@@ -41,7 +41,7 @@ void WriteU32( FILE* fp, U32 val )
 
 Writer::Writer()
 {
-	root = new WItem( "root" );
+	root = new WItem( "root", 0 );
 }
 
 Writer::~Writer()
@@ -154,10 +154,12 @@ void Writer::Save( const char* filename )
 }
 
 
-WItem::WItem( const char* name )
+WItem::WItem( const char* name, const WItem* parent )
 {
 	GLASSERT( name && *name );
 	itemName = name;
+	this->parent = parent;
+	offset = 0;
 }
 
 
@@ -210,7 +212,7 @@ WItem* WItem::CreateChild( const char* name )
 	GLASSERT( name && *name );
 	GLASSERT( child.find( std::string( name ) ) == child.end() );
 	
-	WItem* witem = new WItem( name );
+	WItem* witem = new WItem( name, this );
 	child[ name ] = witem;
 	return witem;
 }
@@ -323,8 +325,11 @@ void WItem::Save(	FILE* fp,
 					const std::vector< std::string >& stringPool, 
 					std::vector< MemSize >* dataPool )
 {
+	offset = ftell( fp );
+
 	ItemStruct itemStruct;
 	itemStruct.nameID = FindString( itemName, stringPool );
+	itemStruct.offsetToParent = Parent() ? Parent()->offset : 0;
 	itemStruct.nAttrib = data.size();
 	itemStruct.nChildren = child.size();
 

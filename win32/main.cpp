@@ -75,6 +75,9 @@ int screenWidth = 0;
 int screenHeight = 0;
 bool cameraIso = true;
 
+int nModDB = 0;
+grinliz::GLString* databases[GAME_MAX_MOD_DATABASES];	
+
 #ifdef TEST_ROTATION
 const int rotation = 1;
 #else
@@ -113,6 +116,7 @@ static const U8 nightLight[30] = {
 	214, 225, 255,	//
 	255, 255, 255	// sun
 };
+
 
 
 void TransformXY( int x0, int y0, int* x1, int* y1 )
@@ -310,6 +314,21 @@ int main( int argc, char **argv )
 		}
 	}
 #endif
+
+	WIN32_FIND_DATA findFileData;
+	HANDLE h;
+	h = FindFirstFile( ".\\mods\\*.xwdb", &findFileData );
+	if ( h != INVALID_HANDLE_VALUE ) {
+		BOOL findResult = TRUE;
+		while( findResult && nModDB < GAME_MAX_MOD_DATABASES ) {
+			grinliz::GLString* str = new grinliz::GLString( ".\\mods\\" );
+			str->append( findFileData.cFileName );
+			databases[nModDB++] = str;
+			GameAddDatabase( game, nModDB, str->c_str() );
+			findResult = FindNextFile( h, &findFileData );
+		}
+		FindClose( h );
+	}
 
 #ifndef TEST_FULLSPEED
 	SDL_TimerID timerID = SDL_AddTimer( TIME_BETWEEN_FRAMES, TimerCallback, 0 );
@@ -604,8 +623,9 @@ int main( int argc, char **argv )
 				GameDoTick( game, SDL_GetTicks() );
 				SDL_GL_SwapBuffers();
 
-				int size=0, offset=0;
-				while ( GamePopSound( game, &offset, &size ) ) {
+				int databaseID=0, size=0, offset=0;
+				// FIXME: account for databaseID when looking up sound.
+				while ( GamePopSound( game, &databaseID, &offset, &size ) ) {
 					Audio_PlayWav( "./res/uforesource.db", offset, size );
 				}
 			};
@@ -635,6 +655,10 @@ int main( int argc, char **argv )
 	GameSave( game );
 	DeleteGame( game );
 	Audio_Close();
+
+	for( int i=0; i<nModDB; ++i ) {
+		delete databases[i];
+	}
 
 	SDL_Quit();
 

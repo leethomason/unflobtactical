@@ -164,5 +164,6 @@ void ImageManager::LoadImage( const char* name, Surface* surface )
 	GLASSERT( textures );
 	const gamedb::Item* item = textures->Child( name );
 	GLASSERT( item );
+	item = database->ChainItem( item ); 
 	surface->Load( item );
 }

@@ -2384,19 +2384,6 @@ void BattleScene::Tap(	int action,
 		ParticleSystem::Instance()->EmitOnePoint( c, cv, pos, 1500 );
 	}
 #endif
-#if 0
-	{
-		// Test Sound.
-		int size=0;
-		const gamedb::Reader* reader = game->GetDatabase();
-		const gamedb::Item* data = reader->Root()->Child( "data" );
-		const gamedb::Item* item = data->Child( "testlaser44" );
-
-		const void* snd = reader->AccessData( item, "binary", &size );
-		GLASSERT( snd );
-		PlayWAVSound( snd, size );
-	}
-#endif
 
 	bool uiActive = actionStack.Empty() && (currentTeamTurn == TERRAN_TEAM);
 	Vector2F ui;

@@ -117,11 +117,34 @@ public:
 }
 
 
+const Item* Reader::ChainItem( const Item* item ) const
+{
+	if ( item && mod ) {
+		const static int MAX=16;
+		const char* path[MAX];
+		int pathSize = 0;
+
+		for( const Item* i=item; i && pathSize<MAX; i=i->Parent() ) {
+			path[pathSize++] = i->Name();
+		}
+		const Item* alt = mod->Root();
+		for( int k=1; k<pathSize && alt; ++k ) {
+			alt = alt->Child( path[pathSize-1-k] );
+		}
+		if ( alt ) 
+			return alt;
+	}
+	return item;
+}
+
+
+
 Reader::Reader()
 {
 	mem = 0;
 	memSize = 0;
 	fp = 0;
+	mod = 0;
 
 	// Add to linked list.
 	next = readerRoot;
@@ -163,8 +186,9 @@ Reader::~Reader()
 }
 
 
-bool Reader::Init( const char* filename, int _offset )
+bool Reader::Init( int id, const char* filename, int _offset )
 {
+	databaseID = id;
 	fp = fopen( filename, "rb" );
 	if ( !fp )
 		return false;
@@ -364,12 +388,24 @@ const char* Item::Name() const
 }
 
 
+const Item* Item::Parent() const
+{
+	const Reader* context = Reader::GetContext( this );
+	const U8* mem = (const U8*)context->BaseMem();
+	const ItemStruct* istruct = (const ItemStruct*)this;
+	if ( istruct->offsetToParent )
+		return (const Item*)(mem + istruct->offsetToParent);
+	return 0;
+}
+
+
 const Item* Item::Child( int i ) const
 {
 	const Reader* context = Reader::GetContext( this );
 	const U8* mem = (const U8*)context->BaseMem();
 
-	GLASSERT( i >= 0 && i < (int)((const ItemStruct*)this)->nChildren );
+	const ItemStruct* istruct = (const ItemStruct*)this;
+	GLASSERT( i >= 0 && i < (int)istruct->nChildren );
 
 	const U32* childOffset = (const U32*)((U8*)this + sizeof( ItemStruct ));
 	return (const Item*)( mem + childOffset[i]);
@@ -378,8 +414,6 @@ const Item* Item::Child( int i ) const
 
 const Item* Item::Child( const char* name ) const
 {
-
-
 	const ItemStruct* istruct = (const ItemStruct*)this;
 	const U32* childOffset = (const U32*)((U8*)this + sizeof( ItemStruct ));
 	const Reader* context = Reader::GetContext( this );
@@ -394,9 +428,7 @@ const Item* Item::Child( const char* name ) const
 			return Child( result );
 	}
 	return 0;
-
 }
-
 
 
 int Item::NumAttributes() const

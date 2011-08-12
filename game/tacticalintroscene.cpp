@@ -525,6 +525,7 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 	random.Rand();
 	int seed = random.Rand( nItemMatch );
 	const gamedb::Item* item = itemMatch[ seed ];
+	//item = database->ChainItem( item );
 
 	const char* xmlText = (const char*) database->AccessData( item, "binary" );
 

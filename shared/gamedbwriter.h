@@ -42,11 +42,14 @@ class WItem
 {
 public:
 	/// Construct a WItem. The name must be unique amongst its siblings.
-	WItem( const char* name );
+	WItem( const char* name, const WItem* parent );
 	~WItem();
 
-	/// Quere the name of this item.
-	const char* Name()	{ return itemName.c_str(); }
+	/// Query the name of this item.
+	const char* Name() const	{ return itemName.c_str(); }
+
+	/// The parent link
+	const WItem* Parent() const { return parent; }
 
 	/// Create a child item by name.
 	WItem* CreateChild( const char* name );
@@ -68,7 +71,6 @@ public:
 	/// Add/Set a boolean attribute.
 	void SetBool( const char* name, bool value );
 
-
 	void EnumerateStrings( std::set< std::string >* stringSet );
 
 	struct MemSize {
@@ -79,6 +81,9 @@ public:
 	void Save(	FILE* fp, 
 				const std::vector< std::string >& stringPool, 
 				std::vector< MemSize >* dataPool );
+
+	// internal
+	int offset;	// valid after save
 
 private:
 
@@ -101,8 +106,8 @@ private:
 	int FindString( const std::string& str, const std::vector< std::string >& stringPool );
 
 	std::string itemName;
+	const WItem* parent;
 	std::map<std::string, WItem*> child;
-
 	std::map<std::string, Attrib> data;
 };
 

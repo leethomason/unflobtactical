@@ -26,8 +26,7 @@ public:
 	static SoundManager* Instance()	{ GLASSERT( instance ); return instance; }
 
 	void QueueSound( const char* name );
-	//void PlayQueuedSounds();
-	bool PopSound( int* offset, int* size );
+	bool PopSound( int* databaseID, int* offset, int* size );
 
 	static void Create(  const gamedb::Reader* db );
 	static void Destroy();
