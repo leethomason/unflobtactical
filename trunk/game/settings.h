@@ -28,7 +28,6 @@ public:
 	static void Create( const char* savepath );
 	static void Destroy();
 
-
 	bool GetAudioOn() const				{ return audioOn != 0; }
 	void SetAudioOn( bool value );
 
@@ -42,6 +41,9 @@ public:
 
 	void SetConfirmMove( bool confirm );
 	bool GetConfirmMove() const			{ return confirmMove; }
+
+	void SetCurrentModName( const grinliz::GLString& string );
+	const grinliz::GLString& GetCurrentModName() const		{ return currentMod; }
 
 private:
 	SettingsManager( const char* path );
@@ -57,6 +59,7 @@ private:
 	int useFastBattle;
 	int nWalkingMaps;
 	bool confirmMove;
+	grinliz::GLString currentMod;
 
 	grinliz::GLString path;
 

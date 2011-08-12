@@ -31,7 +31,7 @@
 #include "../faces/faces.h"
 #include "item.h"
 #include "unit.h"
-
+#include "cgame.h"
 
 #include <limits.h>
 
@@ -211,10 +211,11 @@ public:
 	void Load( const TiXmlDocument& doc );
 	void Save();
 
-	bool PopSound( int* offset, int* size );
+	void AddDatabase( int id, const char* path );
+	bool PopSound( int* database, int* offset, int* size );
 
 	const Research* GetResearch();
-	const gamedb::Reader* GetDatabase()	{ return database; }
+	const gamedb::Reader* GetDatabase()	{ return database0; }
 
 	BattleData battleData;
 
@@ -258,6 +259,15 @@ public:
 	const Palette* GetPalette( const char* name ) const;
 	grinliz::Color4U8 MainPaletteColor( int x, int y );
 
+	struct ModDatabase
+	{
+		ModDatabase() : id( 0 ) {}
+		int id;
+		grinliz::GLString path;
+	};
+	const ModDatabase* GetModDatabases() const { return modDatabase; }
+	void LoadModDatabase( const char* name );
+
 private:
 	Screenport screenport;
 public:
@@ -277,6 +287,8 @@ private:
 	CDynArray< Palette > palettes;
 	const Palette* mainPalette;
 	void LoadPalettes();
+
+	ModDatabase modDatabase[GAME_MAX_MOD_DATABASES];
 
 	Surface surface;
 
@@ -301,7 +313,8 @@ private:
 	bool suppressText;
 
 	ModelLoader* modelLoader;
-	gamedb::Reader* database;
+	gamedb::Reader* database0;		// the basic, complete database
+	gamedb::Reader* database1;		// the mod database
 
 	struct SceneNode {
 		Scene*			scene;

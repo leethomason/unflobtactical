@@ -1,5 +1,4 @@
-<resource output="./res/" outputDB="./res/uforesource.db">
-
+<resource>
   <!-- This reflects XML into a database.
        GameDB doesn't allow duplicate elements. The formatting is
        strange for XML, but good for the database.
@@ -855,6 +854,7 @@
   <text name="introHelp" >
     <page>
       <p>[Xenowar]</p>
+      <p>Face rendering and additional art by Johan Forsberg.</p>
       <p>
         Xenowar. Copyright 2011 Lee Thomason / Grinning Lizard Software. 'Face' renderer by Johan Forsberg.</p>
       <p>

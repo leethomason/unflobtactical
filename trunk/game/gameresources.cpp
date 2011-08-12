@@ -102,9 +102,11 @@ void Game::CreateTexture( Texture* t )
 
 void Game::LoadPalettes()
 {
-	const gamedb::Item* parent = database->Root()->Child( "data" )->Child( "palettes" );
+	const gamedb::Item* parent = database0->Root()->Child( "data" )->Child( "palettes" );
 	for( int i=0; i<parent->NumChildren(); ++i ) {
 		const gamedb::Item* child = parent->Child( i );
+		child = database0->ChainItem( child );
+
 		Palette* p = palettes.Push();
 		p->name = child->Name();
 		p->dx = child->GetInt( "dx" );
@@ -147,8 +149,9 @@ void Game::LoadTextures()
 	texman->CreateTexture( "black", 2, 2, Surface::RGB16, Texture::PARAM_NONE, this );
 	texman->CreateTexture( "faces", 64*MAX_TERRANS, 64, Surface::RGBA16, Texture::PARAM_NONE, this );
 
-	const gamedb::Item* node = database->Root()->Child( "textures" )->Child( "stdfont2" );
+	const gamedb::Item* node = database0->Root()->Child( "textures" )->Child( "stdfont2" );
 	GLASSERT( node );
+	node = database0->ChainItem( node );
 	int metricsSize = node->GetDataSize( "metrics" );
 	GLASSERT( metricsSize == UFOText::GLYPH_CX*UFOText::GLYPH_CY*sizeof(GlyphMetric) );
 	node->GetData( "metrics", UFOText::MetricsPtr(), metricsSize );
@@ -216,8 +219,9 @@ void Game::LoadModel( const char* name )
 {
 	GLASSERT( modelLoader );
 
-	const gamedb::Item* item = database->Root()->Child( "models" )->Child( name );
+	const gamedb::Item* item = database0->Root()->Child( "models" )->Child( name );
 	GLASSERT( item );
+	item = database0->ChainItem( item );
 
 	ModelResource* res = new ModelResource();
 	modelLoader->Load( item, res );
@@ -228,7 +232,7 @@ void Game::LoadModel( const char* name )
 void Game::LoadModels()
 {
 	// Run through the database, and load all the models.
-	const gamedb::Item* parent = database->Root()->Child( "models" );
+	const gamedb::Item* parent = database0->Root()->Child( "models" );
 	GLASSERT( parent );
 
 	for( int i=0; i<parent->NumChildren(); ++i )

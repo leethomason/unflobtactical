@@ -142,7 +142,6 @@ void Game::Init()
 	mainPalette = 0;
 	mapmaker_showPathing = 0;
 	scenePopQueued = false;
-//	sceneResetQueued = false;
 	currentFrame = 0;
 	surface.Set( Surface::RGBA16, 256, 256 );		// All the memory we will ever need (? or that is the intention)
 
@@ -151,21 +150,25 @@ void Game::Init()
 	int offset;
 	int length;
 	PlatformPathToResource( buffer, 260, &offset, &length );
-	database = new gamedb::Reader();
-#ifdef DEBUG	
-	bool okay =
-#endif
-	database->Init( buffer, offset );
-	GLASSERT( okay );
+	database0 = new gamedb::Reader();
+	database0->Init( 0, buffer, offset );
+	database1 = 0;
 
-	SoundManager::Create( database );
-	TextureManager::Create( database );
-	ImageManager::Create( database );
+	SettingsManager::Create( savePath.c_str() );
+	{
+		SettingsManager* sm = SettingsManager::Instance();
+		if ( sm->GetCurrentModName().size() ) {
+			LoadModDatabase( SettingsManager::Instance()->GetCurrentModName().c_str() );
+		}
+	}
+
+	SoundManager::Create( database0 );
+	TextureManager::Create( database0 );
+	ImageManager::Create( database0 );
 	ModelResourceManager::Create();
 	ParticleSystem::Create();
-	SettingsManager::Create( savePath.c_str() );
 
-	engine = new Engine( &screenport, database );
+	engine = new Engine( &screenport, database0 );
 
 	LoadTextures();
 	modelLoader = new ModelLoader();
@@ -187,20 +190,21 @@ void Game::Init()
 	memset( faceCache, 0, sizeof(FaceCache)*MAX_TERRANS );
 	faceCacheSlot = 0;
 
-	const gamedb::Item* node = database->Root()->Child( "textures" );
+	const gamedb::Item* node = database0->Root()->Child( "textures" );
 	GLASSERT( node );
 
-	faceGen.chins.Load( node->Child( "faceChins" ));	
+	ImageManager* im = ImageManager::Instance();
+	im->LoadImage( "faceChins", &faceGen.chins );
 	faceGen.nChins = 17;
-	faceGen.mouths.Load( node->Child( "faceMouths" ));
+	im->LoadImage( "faceMouths", &faceGen.mouths );
 	faceGen.nMouths = 14;
-	faceGen.noses.Load( node->Child( "faceNoses" ));
+	im->LoadImage( "faceNoses", &faceGen.noses );
 	faceGen.nNoses = 5;
-	faceGen.hairs.Load( node->Child( "faceHairs" ));
+	im->LoadImage( "faceHairs", &faceGen.hairs );
 	faceGen.nHairs = 17;
-	faceGen.eyes.Load( node->Child( "faceEyes" ));
+	im->LoadImage( "faceEyes", &faceGen.eyes );
 	faceGen.nEyes = 15;
-	faceGen.glasses.Load( node->Child( "faceGlasses" ));
+	im->LoadImage( "faceGlasses", &faceGen.glasses );
 	faceGen.nGlasses = 5;
 }
 
@@ -237,7 +241,8 @@ Game::~Game()
 	ModelResourceManager::Destroy();
 	ImageManager::Destroy();
 	TextureManager::Destroy();
-	delete database;
+	delete database0;
+	delete database1;
 }
 
 
@@ -326,7 +331,7 @@ void Game::PushPopScene()
 	{
 		// Unwind and full reset.
 		delete engine;
-		engine = new Engine( &screenport, database );
+		engine = new Engine( &screenport, database0 );
 		DeleteSaveFile( SAVEPATH_GEO );
 		DeleteSaveFile( SAVEPATH_TACTICAL );
 
@@ -631,10 +636,42 @@ void Game::DoTick( U32 _currentTime )
 	PushPopScene();
 }
 
-
-bool Game::PopSound( int* offset, int* size )
+void Game::LoadModDatabase( const char* name )
 {
-	return SoundManager::Instance()->PopSound( offset, size );
+	database0->AttachChain( 0 );
+
+	if ( name == 0 || *name == 0 )
+		return;
+
+	database1 = new gamedb::Reader();
+	if  ( !database1->Init( 1, name, 0 ) ) {
+		delete database1;
+		database1 = 0;
+	}
+	else {
+		database0->AttachChain( database1 );
+	}
+}
+
+
+void Game::AddDatabase( int id, const char* path )
+{
+	if ( path ) {
+		for( int i=0; i<GAME_MAX_MOD_DATABASES; ++i ) {
+			if ( modDatabase[i].id == 0 ) {
+				modDatabase[i].id = id;
+				modDatabase[i].path = path;
+				GLOUTPUT(( "ModDatabase: id=%d name=%s\n", modDatabase[i].id, modDatabase[i].path.c_str() ));
+				break;
+			}
+		}
+	}
+}
+
+
+bool Game::PopSound( int* database, int* offset, int* size )
+{
+	return SoundManager::Instance()->PopSound( database, offset, size );
 }
 
 

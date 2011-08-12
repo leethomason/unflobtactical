@@ -34,8 +34,6 @@ TextureManager::TextureManager( const gamedb::Reader* reader )
 	cacheMiss = 0;
 	emptySpace = 0;
 	database = reader;
-	parent = database->Root()->Child( "textures" );
-	GLASSERT( parent );
 }
 
 
@@ -67,6 +65,10 @@ void TextureManager::DeviceLoss()
 	
 Texture* TextureManager::GetTexture( const char* name )
 {
+	if ( StrEqual( name, "title" ) ) {
+		int debug=1;
+	}
+
 	// First check for an existing texture, or one
 	// that was added. Failing that, check the database.
 	// The texture may not be allocated on the GPU - that
@@ -75,7 +77,8 @@ Texture* TextureManager::GetTexture( const char* name )
 	map.Query( name, &t );
 
 	if ( !t ) {
-		const gamedb::Item* item = parent->Child( name );
+		const gamedb::Item* item = database->Root()->Child( "textures" )->Child( name );
+		item = database->ChainItem( item );
 #ifdef DEBUG
 		if ( !item ) 
 			GLOUTPUT(( "GetTexture '%s' failed.\n", name ));
@@ -236,6 +239,9 @@ U32 Texture::GLID()
 {
 	if ( gpuMem ) 
 		return gpuMem->glID;
+	if ( name == "title" ) {
+		int debug=1;
+	}
 	
 	TextureManager* manager = TextureManager::Instance();
 	bool inCache = false;

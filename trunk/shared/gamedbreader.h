@@ -46,6 +46,9 @@ public:
 	/// Get the name of this node.
 	const char* Name() const;
 
+	/// Get the parent node, null if the root.
+	const Item* Parent() const;
+
 	/// Number of child nodes.
 	int NumChildren() const				{ return ((const ItemStruct*)this)->nChildren; }
 	/// Return the child item.
@@ -134,18 +137,22 @@ public:
 		@return true if filename could be opened and read.
 				false if error.
 	*/
-	bool Init( const char* filename, int offset=0 );
+	bool Init( int databaseID, const char* filename, int offset=0 );
+	int DatabaseID() const { return databaseID; }
 
 	/// Access the root of the database.
 	const Item* Root() const					{ return root; }
 	
 	static const Reader* GetContext( const Item* item );
 
+	void AttachChain( const Reader* mod )			{ this->mod = mod; }
+	const Item* ChainItem( const Item* in ) const;
+
 	int GetDataSize( int dataID ) const;
 	void GetData( int dataID, void* mem, int memSize ) const;
 
 	/** Utility function to access binary data without having to do memory management in the
-		host programm. Given an item, and binary attribute, returns a pointer to the uncompressed
+		host program. Given an item, and binary attribute, returns a pointer to the uncompressed
 		data. The data length is returned, if requested. The data is null terminated so can
 		always safely be treated as a string.
 
@@ -166,8 +173,10 @@ public:
 private:
 	static Reader* readerRoot;
 	Reader* next;
+	const Reader* mod;	// when chaining, 'this' is the base, 'mod' overrides
 
 	FILE* fp;
+	int databaseID;
 
 	void* mem;
 	const void* endMem;
@@ -181,7 +190,6 @@ private:
 
 	const Item* root;
 };
-
 
 };	// gamedb
 #endif	// GRINLIZ_GAME_DB_READER_INCLUDED

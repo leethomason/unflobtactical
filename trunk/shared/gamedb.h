@@ -116,6 +116,7 @@ namespace gamedb
 	struct ItemStruct
 	{
 		U32 nameID;
+		U32 offsetToParent;
 		U32 nChildren;
 		U32 nAttrib;
 	};

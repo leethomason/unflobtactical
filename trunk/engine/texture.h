@@ -126,9 +126,7 @@ private:
 	};
 
 	static TextureManager* instance;
-
 	const gamedb::Reader* database;
-	const gamedb::Item* parent;
 
 	int cacheMiss;
 	int cacheHit;

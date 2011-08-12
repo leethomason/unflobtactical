@@ -1,20 +1,27 @@
+Test:
+- chaining
+	- sound
+	- images
+	- textures
+	- models
+
 Issues:
 
 Bugs:
-- help: Full help pass
 
 Deferred:
 - Tactical: AI shoots walls. This one is strange. It certainly checks. ??
-- expand immediate buy to bases
 - fix battlescene not being power of 2
-- geo: art for cores
 - geo: no indication of base capabilities
-- character screen: show character
 - geo: a ufo will return to orbit if it gets to a "parked" tile. Should find a new task.
 - geo: decals overdraw
 - tactical: when picking up weapon, walk zone doesn't update
 
 Fixed:
+- expand immediate buy to bases
+- geo: art for cores
+- character screen: show character
+- help: Full help pass
 - help: hiring soldiers and scientists
 - help: sell all button
 - help: explain research items

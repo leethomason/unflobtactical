@@ -74,7 +74,9 @@ void GameDoTick( void* handle, unsigned int timeInMSec );
 #define GAME_HK_TOGGLE_DEBUG_TEXT		0x0040
 void GameHotKey( void* handle, int mask );
 
-int GamePopSound( void* handle, int* offset, int* size );	// returns 1 if a sound was available
+#define GAME_MAX_MOD_DATABASES			16
+void GameAddDatabase( void* handle, int databaseID, const char* path );
+int GamePopSound( void* handle, int* databaseID, int* offset, int* size );	// returns 1 if a sound was available
 
 // --- Core to platform --- //
 void PlatformPathToResource( char* buffer, int bufferLen, int* offset, int* length );

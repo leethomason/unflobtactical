@@ -2,6 +2,7 @@
 #define UFOATTACK_SETTINGS_SCENE_INCLUDED
 
 #include "scene.h"
+#include "../grinliz/glstringutil.h"
 
 class SettingScene : public Scene
 {
@@ -25,8 +26,15 @@ public:
 	}	
 
 private:
+	grinliz::GLString CalcMod( int delta );
+
 	gamui::Image		background;
 	gamui::PushButton	doneButton;
+
+	gamui::TextBox		modText;
+	gamui::PushButton	modDown;
+	gamui::TextLabel	modCurrent;
+	gamui::PushButton	modUp;
 
 	gamui::TextBox		moveText;
 	gamui::ToggleButton	moveButton[2];
@@ -38,7 +46,6 @@ private:
 	gamui::ToggleButton	debugButton[4];
 
 	gamui::ToggleButton	audioButton;
-
 };
 
 

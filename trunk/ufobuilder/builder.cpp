@@ -50,12 +50,13 @@ using namespace grinliz;
 typedef SDL_Surface* (SDLCALL * PFN_IMG_LOAD) (const char *file);
 PFN_IMG_LOAD libIMG_Load;
 
-string outputPath;
-string outputDB;
 vector<U16> pixelBuffer16;
 vector<U8> pixelBuffer8;
 
-string inputPath;
+string inputDirectory;
+string inputFullPath;
+string outputPath;
+
 int totalModelMem = 0;
 int totalTextureMem = 0;
 int totalDataMem = 0;
@@ -259,7 +260,7 @@ void ParseNames( const TiXmlElement* element, GLString* _assetName, GLString* _f
 	element->QueryStringAttribute( "modelName", &assetName );
 	element->QueryStringAttribute( "assetName", &assetName );
 
-	GLString fullIn = inputPath.c_str();
+	GLString fullIn = inputDirectory.c_str();
 	fullIn += filename.c_str();	
 
 	GLString base, name, extension;
@@ -324,7 +325,7 @@ void ProcessData( TiXmlElement* data )
 
 	string filename;
 	data->QueryStringAttribute( "filename", &filename );
-	string fullIn = inputPath + filename;
+	string fullIn = inputDirectory + filename;
 
 	GLString assetName, pathName;
 	ParseNames( data, &assetName, &pathName, 0 );
@@ -899,22 +900,26 @@ int main( int argc, char* argv[] )
 {
 	printf( "UFO Builder. argc=%d argv[1]=%s\n", argc, argv[1] );
 	if ( argc < 3 ) {
-		printf( "Usage: ufobuilder ./inputPath/ inputXMLName\n" );
+		printf( "Usage: ufobuilder ./path/xmlFile.xml ./outPath/filename.db\n" );
 		exit( 1 );
 	}
 
     SDL_Init( SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE | SDL_INIT_TIMER );
 	LoadLibrary();
 
-	inputPath = argv[1];
-	const char* xmlfile = argv[2];
-	printf( "Opening, path: '%s' filename: '%s'\n", inputPath.c_str(), xmlfile );
-	string input = inputPath + xmlfile;
+	inputFullPath = argv[1];
+	outputPath = argv[2];
 
+	GLString _inputFullPath( inputFullPath.c_str() ), _inputDirectory, name, extension;
+	grinliz::StrSplitFilename( _inputFullPath, &_inputDirectory, &name, &extension );
+	inputDirectory = _inputDirectory.c_str();
+
+	const char* xmlfile = argv[2];
+	printf( "Opening, path: '%s' filename: '%s'\n", inputDirectory.c_str(), inputFullPath.c_str() );
 	
 	// Test:
 	{
-		string testInput = inputPath + "Lenna.png";
+		string testInput = inputDirectory + "Lenna.png";
 		SDL_Surface* surface = libIMG_Load( testInput.c_str() );
 		if ( surface ) {
 			pixelBuffer16.resize( surface->w*surface->h );
@@ -924,7 +929,7 @@ int main( int argc, char* argv[] )
 			DitherTo16( surface, RGBA16, false, &pixelBuffer16[0] );
 			SDL_Surface* newSurf = SDL_CreateRGBSurfaceFrom(	&pixelBuffer16[0], surface->w, surface->h, 16, surface->w*2,
 																0xf000, 0x0f00, 0x00f0, 0 );
-			string out = inputPath + "Lenna4440.bmp";
+			string out = inputDirectory + "Lenna4440.bmp";
 			SDL_SaveBMP( newSurf, out.c_str() );
 			
 			SDL_FreeSurface( newSurf );
@@ -933,7 +938,7 @@ int main( int argc, char* argv[] )
 			DitherTo16( surface, RGB16, false, &pixelBuffer16[0] );
 			newSurf = SDL_CreateRGBSurfaceFrom(	&pixelBuffer16[0], surface->w, surface->h, 16, surface->w*2,
 												0xf800, 0x07e0, 0x001f, 0 );
-			string out1 = inputPath + "Lenna565.bmp";
+			string out1 = inputDirectory + "Lenna565.bmp";
 			SDL_SaveBMP( newSurf, out1.c_str() );
 
 			SDL_FreeSurface( surface );
@@ -942,26 +947,27 @@ int main( int argc, char* argv[] )
 	}
 
 	TiXmlDocument xmlDoc;
-	xmlDoc.LoadFile( input );
+	xmlDoc.LoadFile( inputFullPath );
 	if ( xmlDoc.Error() || !xmlDoc.FirstChildElement() ) {
 		printf( "Failed to parse XML file. err=%s\n", xmlDoc.ErrorDesc() );
 		exit( 2 );
 	}
 
-	xmlDoc.FirstChildElement()->QueryStringAttribute( "output", &outputPath );
-	xmlDoc.FirstChildElement()->QueryStringAttribute( "outputDB", &outputDB );
+	//xmlDoc.FirstChildElement()->QueryStringAttribute( "output", &outputPath );
+	//xmlDoc.FirstChildElement()->QueryStringAttribute( "outputDB", &outputDB );
 
-	printf( "Output Path: %s\n", outputPath.c_str() );
-	printf( "Output DataBase: %s\n", outputDB.c_str() );
+	//printf( "Output Path: %s\n", outputPath.c_str() );
+	//printf( "Output DataBase: %s\n", outputDB.c_str() );
 	printf( "Processing tags:\n" );
 
 	// Remove the old table.
+	/*
 #pragma warning ( push )
 #pragma warning ( disable : 4996 )	// fopen is unsafe. For video games that seems extreme.
-	FILE* fp = fopen( outputDB.c_str(), "wb" );
+	FILE* fp = fopen( outputPath.c_str(), "wb" );
 #pragma warning (pop)
 	fclose( fp );
-
+	*/
 	//int sqlResult = sqlite3_open( outputDB.c_str(), &db);
 	//GLASSERT( sqlResult == SQLITE_OK );
 	//writer = new BinaryDBWriter( db, true );
@@ -1004,7 +1010,7 @@ int main( int argc, char* argv[] )
 	printf( "All done.\n" );
 	SDL_Quit();
 
-	writer->Save( outputDB.c_str() );
+	writer->Save( outputPath.c_str() );
 	delete writer;
 	return 0;
 }

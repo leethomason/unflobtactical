@@ -17,7 +17,7 @@
 #include "../tinyxml/tinyxml.h"
 #include "../engine/serialize.h"
 
-
+using namespace grinliz;
 SettingsManager* SettingsManager::instance = 0;
 
 void SettingsManager::Create( const char* savepath )
@@ -66,6 +66,10 @@ SettingsManager::SettingsManager( const char* savepath )
 			root->QueryIntAttribute( "useFastBattle", &useFastBattle );
 			root->QueryIntAttribute( "nWalkingMaps", &nWalkingMaps );
 			root->QueryBoolAttribute( "confirmMove", &confirmMove );
+			currentMod = "";
+			if ( root->Attribute( "currentMod" ) ) {
+				currentMod = root->Attribute( "currentMod" );
+			}
 		}
 	}
 	nWalkingMaps = grinliz::Clamp( nWalkingMaps, 1, 2 );
@@ -77,6 +81,15 @@ void SettingsManager::SetNumWalkingMaps( int maps )
 	maps = grinliz::Clamp( maps, 1, 2 );
 	if ( maps != nWalkingMaps ) {
 		nWalkingMaps = maps;
+		Save();
+	}
+}
+
+
+void SettingsManager::SetCurrentModName( const GLString& name )
+{
+	if ( name != currentMod ) {
+		currentMod = name;
 		Save();
 	}
 }
@@ -115,6 +128,7 @@ void SettingsManager::Save()
 		XMLUtil::Attribute( fp, "useFastBattle", useFastBattle );
 		XMLUtil::Attribute( fp, "nWalkingMaps", nWalkingMaps );
 		XMLUtil::Attribute( fp, "confirmMove", confirmMove );
+		XMLUtil::Attribute( fp, "currentMod", currentMod.c_str() );
 
 		XMLUtil::SealCloseElement( fp );
 

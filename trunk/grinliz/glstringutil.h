@@ -225,11 +225,6 @@ private:
 };
 
 
-/** Loads a text file to the given string. Returns true on success, false
-    if the file could not be found.
-*/
-//bool LoadTextFile( const char* filename, std::string* str );
-
 void StrSplitFilename(	const GLString& fullPath, 
 						GLString* basePath,
 						GLString* name,

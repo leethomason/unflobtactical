@@ -53,16 +53,15 @@ void SoundManager::QueueSound( const char* name )
 }
 
 
-bool SoundManager::PopSound( int* _offset, int* _size )
+bool SoundManager::PopSound( int* _databaseID, int* _offset, int* _size )
 {
 	*_offset = 0;
 	*_size = 0;
+	*_databaseID = 0;
 	if ( nSounds == 0 )
 		return false;
 
 	const gamedb::Item* data = database->Root()->Child( "data" );
-
-	const gamedb::Reader* reader = gamedb::Reader::GetContext( data );
 
 	int offset = 0;
 	int size = 0;
@@ -70,15 +69,19 @@ bool SoundManager::PopSound( int* _offset, int* _size )
 
 	const gamedb::Item* sndItem = data->Child( queue[nSounds-1] );
 	GLRELASSERT( sndItem );
+	sndItem = database->ChainItem( sndItem );
 
 	if ( sndItem ) {
 		sndItem->GetDataInfo( "binary", &offset, &size, &compressed );
 		GLRELASSERT( size );
 		GLRELASSERT( !compressed );
+		// Figure out which database the sound is actually in
+		const gamedb::Reader* database = gamedb::Reader::GetContext( sndItem );
 
 		if ( size && !compressed ) {
 			nSounds--;
-			*_offset = offset + reader->OffsetFromStart();
+			*_databaseID = database->DatabaseID();
+			*_offset = offset + database->OffsetFromStart();
 			*_size = size;
 			return true;
 		}
@@ -87,33 +90,3 @@ bool SoundManager::PopSound( int* _offset, int* _size )
 }
 
 
-/*
-void SoundManager::PlayQueuedSounds()
-{
-	if ( nSounds == 0 )
-		return;
-	const gamedb::Item* data = database->Root()->Child( "data" );
-
-	const gamedb::Reader* reader = gamedb::Reader::GetContext( data );
-
-	int offset=0;
-	int size = 0;
-	bool compressed = false;
-
-	for( int i=0; i<nSounds; ++i ) {
-		const gamedb::Item* sndItem = data->Child( queue[i] );
-		GLRELASSERT( sndItem );
-
-		if ( sndItem ) {
-			sndItem->GetDataInfo( "binary", &offset, &size, &compressed );
-			GLRELASSERT( size );
-			GLRELASSERT( !compressed );
-
-			if ( size && !compressed ) {
-				PlayWAVSound( offset + reader->OffsetFromStart(), size );
-			}
-		}
-	}
-	nSounds = 0;
-}
-*/
