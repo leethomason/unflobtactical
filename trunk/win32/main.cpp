@@ -324,7 +324,7 @@ int main( int argc, char **argv )
 			grinliz::GLString* str = new grinliz::GLString( ".\\mods\\" );
 			str->append( findFileData.cFileName );
 			databases[nModDB++] = str;
-			GameAddDatabase( game, nModDB, str->c_str() );
+			GameAddDatabase( game, str->c_str() );
 			findResult = FindNextFile( h, &findFileData );
 		}
 		FindClose( h );

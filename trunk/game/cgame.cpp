@@ -214,10 +214,10 @@ const char* PlatformName()
 }
 
 
-void GameAddDatabase( void* handle, int databaseID, const char* path )
+void GameAddDatabase( void* handle, const char* path )
 {
 	Game* game = (Game*)handle;
-	game->AddDatabase( databaseID, path );
+	game->AddDatabase( path );
 }
 
 

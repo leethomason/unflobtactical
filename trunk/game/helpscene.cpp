@@ -108,11 +108,14 @@ void HelpScene::Layout()
 		const char* imageName = pageItem->GetString( "image" );
 		const Texture* texture = TextureManager::Instance()->GetTexture( imageName );
 		GLASSERT( texture );
+		float width = 100.0f;
+		float height = width / texture->AspectRatio();
+
 		RenderAtom atom(	(const char*) UIRenderer::RENDERSTATE_UI_NORMAL,
 							(const char*) texture,
-							0, 0, 1, 1, (float)texture->Width(), (float)texture->Height() );
+							0, 0, 1, 1, width, height );
 		image.SetAtom( atom );
-		image.SetPos( port.UIWidth()-texture->Width(), 0 );
+		image.SetPos( port.UIWidth()-width, 0 );
 		image.SetSize( atom.srcWidth, atom.srcHeight );
 		tw = image.X()-GAME_GUTTER;
 		image.SetVisible( true );

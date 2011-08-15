@@ -158,7 +158,7 @@ void Game::Init()
 	{
 		SettingsManager* sm = SettingsManager::Instance();
 		if ( sm->GetCurrentModName().size() ) {
-			LoadModDatabase( SettingsManager::Instance()->GetCurrentModName().c_str() );
+			LoadModDatabase( SettingsManager::Instance()->GetCurrentModName().c_str(), true );
 		}
 	}
 
@@ -636,13 +636,15 @@ void Game::DoTick( U32 _currentTime )
 	PushPopScene();
 }
 
-void Game::LoadModDatabase( const char* name )
+
+void Game::LoadModDatabase( const char* name, bool preload )
 {
 	database0->AttachChain( 0 );
 
 	if ( name == 0 || *name == 0 )
 		return;
 
+	delete database1;
 	database1 = new gamedb::Reader();
 	if  ( !database1->Init( 1, name, 0 ) ) {
 		delete database1;
@@ -650,18 +652,20 @@ void Game::LoadModDatabase( const char* name )
 	}
 	else {
 		database0->AttachChain( database1 );
+		if ( !preload ) {
+			TextureManager::Instance()->Reload();
+		}
 	}
 }
 
 
-void Game::AddDatabase( int id, const char* path )
+void Game::AddDatabase( const char* path )
 {
 	if ( path ) {
 		for( int i=0; i<GAME_MAX_MOD_DATABASES; ++i ) {
-			if ( modDatabase[i].id == 0 ) {
-				modDatabase[i].id = id;
-				modDatabase[i].path = path;
-				GLOUTPUT(( "ModDatabase: id=%d name=%s\n", modDatabase[i].id, modDatabase[i].path.c_str() ));
+			if ( modDatabase[i].size() == 0 ) {
+				modDatabase[i] = path;
+				GLOUTPUT(( "ModDatabase: id=%d name=%s\n", i, modDatabase[i].c_str() ));
 				break;
 			}
 		}

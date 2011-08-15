@@ -46,7 +46,7 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 
 	modCurrent.Init( &gamui2D );
 	modCurrent.SetPos( x+deltaX, y );
-	GLString modName = sm->GetCurrentModName();
+	GLString modName = CalcMod( 0 );
 	modCurrent.SetText( modName.size() ? modName.c_str() : "None" );
 
 	modUp.Init( &gamui2D, green );
@@ -147,33 +147,29 @@ void SettingScene::Activate()
 
 GLString SettingScene::CalcMod( int delta )
 {
-	// Make sure the current mod is okay.
-	const Game::ModDatabase* dbArr = game->GetModDatabases();
-	GLString dbName = SettingsManager::Instance()->GetCurrentModName();
+	SettingsManager* sm = SettingsManager::Instance();
 
+	const GLString* path = game->GetModDatabasePaths();
+	int nPaths=0;
 	int index = -1;
-	int nDatabase = 0;
-	for( nDatabase=0; nDatabase<GAME_MAX_MOD_DATABASES; ++nDatabase ) {
-		if ( dbArr[nDatabase].id == 0 )
-			break;
-		GLString name;
-		StrSplitFilename( dbArr[nDatabase].path, 0, &name, 0 );		
-		if ( name == dbName ) {
-			index = nDatabase;
+	while( nPaths<GAME_MAX_MOD_DATABASES && path[nPaths].size() ) {
+		if ( path[nPaths] == sm->GetCurrentModName() ) {
+			index = nPaths;
 		}
+		nPaths++;
 	}
 	index += delta;
-	if ( index >= nDatabase ) index = -1;
-	if ( index < -1 ) index = nDatabase-1;
+	if ( index >= nPaths ) index = -1;
+	if ( index < -1 ) index = nPaths-1;
 
 	GLString name = "";
 	if ( index >= 0 ) {
-		StrSplitFilename( dbArr[index].path, 0, &name, 0 );		
+		StrSplitFilename( path[index], 0, &name, 0 );		
+		sm->SetCurrentModName( path[index] );
 	}
-	SettingsManager::Instance()->SetCurrentModName( name );
-	//if ( name != dbName ) {
-	//	game->LoadModDatabase( name.c_str() );
-	//}
+	else {
+		sm->SetCurrentModName( name );
+	}
 	return name;
 }
 
@@ -206,18 +202,23 @@ void SettingScene::Tap( int action, const grinliz::Vector2F& screen, const grinl
 	}
 
 	GLString dbName = modCurrent.GetText();
+	GLString newDBName = dbName;
+
 	if ( item == &doneButton ) {
 		game->PopScene();
 	}
 	else if ( item == &modDown ) {
-		dbName = CalcMod( -1 );
+		newDBName = CalcMod( -1 );
 	}
 	else if ( item == &modUp ) {
-		dbName = CalcMod( +1 );
+		newDBName = CalcMod( +1 );
 	}
 
-	if ( dbName == "" ) {
+	if ( newDBName == "" ) {
 		dbName = "None";
 	}
-	modCurrent.SetText( dbName.c_str() );
+	if ( newDBName != dbName ) {
+		game->LoadModDatabase( SettingsManager::Instance()->GetCurrentModName().c_str(), false );
+		modCurrent.SetText( newDBName.c_str() );
+	}
 }

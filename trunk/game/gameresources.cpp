@@ -81,14 +81,12 @@ void Game::CreateTexture( Texture* t )
 {
 	if ( StrEqual( t->Name(), "white" ) ) {
 		U16 pixels[4] = { 0xffff, 0xffff, 0xffff, 0xffff };
-		GLASSERT( t->Width() == 2 && t->Height() == 2 && t->Format() == Surface::RGB16 );
-		GLASSERT( t->BytesInImage() == 8 );
+		GLASSERT( t->Format() == Surface::RGB16 );
 		t->Upload( pixels, 8 );
 	}
 	else if ( StrEqual( t->Name(), "black" ) ) {
 		U16 pixels[4] = { 0, 0, 0, 0 };
-		GLASSERT( t->Width() == 2 && t->Height() == 2 && t->Format() == Surface::RGB16 );
-		GLASSERT( t->BytesInImage() == 8 );
+		GLASSERT( t->Format() == Surface::RGB16 );
 		t->Upload( pixels, 8 );
 	}
 	else if ( StrEqual( t->Name(), "faces" ) ) {
