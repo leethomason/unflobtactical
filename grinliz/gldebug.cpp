@@ -117,8 +117,9 @@ void* DebugNew( size_t size, bool arrayType, const char* name, int line )
 	}
 
 	// #BREAKHERE
-//	if ( head->id == 138 )
+//	if ( head->id == 46 ) {
 //		int debug = 1;
+//	}
 
 #ifdef GRINLIZ_DEBUG_MEM_DEEP
 	MemHeapCheck();

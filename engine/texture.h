@@ -40,11 +40,8 @@ public:
 
 	const char* Name() const	{ return name.c_str(); }
 	bool Alpha() const			{ return (format != RGB16); }; 
-	int BytesInImage() const	{ return Width()*Height()*BytesPerPixel(); }
-	int BytesPerPixel() const	{ return (format == ALPHA) ? 1 : 2; }
+	float AspectRatio() const	{ return (float)w / (float)h; }
 
-	int Width() const			{ return w; }
-	int Height() const			{ return h; }
 	int Format() const			{ return format; }
 	int Flags() const			{ return flags; }
 
@@ -55,6 +52,8 @@ public:
 	U32 GLID();
 
 private:
+	int BytesInImage() const	{ return w*h*BytesPerPixel(); }
+	int BytesPerPixel() const	{ return (format == ALPHA) ? 1 : 2; }
 	void Set( const char* name, int w, int h, int format, Param flags );
 
 	grinliz::CStr< MAX_TEXTURE_NAME > name;
@@ -88,8 +87,9 @@ public:
 	static TextureManager* Instance()	{ GLASSERT( instance ); return instance; }
 
 	void DeviceLoss();
+	void Reload();
 
-	Texture* GetTexture( const char* name );
+	Texture* GetTexture( const char* name, bool reload=false );
 	Texture* CreateTexture( const char* name, int w, int h, int format, 
 							Texture::Param parems = Texture::PARAM_NONE, 
 							ITextureCreator* create = 0 );

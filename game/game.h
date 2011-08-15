@@ -211,7 +211,6 @@ public:
 	void Load( const TiXmlDocument& doc );
 	void Save();
 
-	void AddDatabase( int id, const char* path );
 	bool PopSound( int* database, int* offset, int* size );
 
 	const Research* GetResearch();
@@ -259,14 +258,9 @@ public:
 	const Palette* GetPalette( const char* name ) const;
 	grinliz::Color4U8 MainPaletteColor( int x, int y );
 
-	struct ModDatabase
-	{
-		ModDatabase() : id( 0 ) {}
-		int id;
-		grinliz::GLString path;
-	};
-	const ModDatabase* GetModDatabases() const { return modDatabase; }
-	void LoadModDatabase( const char* name );
+	void AddDatabase( const char* path );
+	const grinliz::GLString* GetModDatabasePaths() const { return modDatabase; }		
+	void LoadModDatabase( const char* path, bool preload );
 
 private:
 	Screenport screenport;
@@ -288,7 +282,7 @@ private:
 	const Palette* mainPalette;
 	void LoadPalettes();
 
-	ModDatabase modDatabase[GAME_MAX_MOD_DATABASES];
+	grinliz::GLString modDatabase[GAME_MAX_MOD_DATABASES];
 
 	Surface surface;
 

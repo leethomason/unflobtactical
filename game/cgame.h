@@ -75,7 +75,7 @@ void GameDoTick( void* handle, unsigned int timeInMSec );
 void GameHotKey( void* handle, int mask );
 
 #define GAME_MAX_MOD_DATABASES			16
-void GameAddDatabase( void* handle, int databaseID, const char* path );
+void GameAddDatabase( void* handle, const char* path );
 int GamePopSound( void* handle, int* databaseID, int* offset, int* size );	// returns 1 if a sound was available
 
 // --- Core to platform --- //

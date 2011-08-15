@@ -121,6 +121,7 @@ void SettingsManager::Save()
 	if ( fp ) {
 		XMLUtil::OpenElement( fp, 0, "Settings" );
 
+		XMLUtil::Attribute( fp, "currentMod", currentMod.c_str() );
 		XMLUtil::Attribute( fp, "audioOn", audioOn );
 		XMLUtil::Attribute( fp, "suppressCrashLog", suppressCrashLog );
 		XMLUtil::Attribute( fp, "playerAI", playerAI );
@@ -128,7 +129,6 @@ void SettingsManager::Save()
 		XMLUtil::Attribute( fp, "useFastBattle", useFastBattle );
 		XMLUtil::Attribute( fp, "nWalkingMaps", nWalkingMaps );
 		XMLUtil::Attribute( fp, "confirmMove", confirmMove );
-		XMLUtil::Attribute( fp, "currentMod", currentMod.c_str() );
 
 		XMLUtil::SealCloseElement( fp );
 

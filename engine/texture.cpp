@@ -60,10 +60,23 @@ void TextureManager::DeviceLoss()
 }
 
 
+void TextureManager::Reload()
+{
+	DeviceLoss();
+	for ( unsigned i=0; i<textureArr.Size(); ++i ) {
+		Texture* tex = &textureArr[i];
+		if ( tex->creator == 0 ) {
+			CStr< Texture::MAX_TEXTURE_NAME > name = tex->Name();
+			GetTexture( name.c_str(), true );
+		}
+	}
+}
+
+
 /*static*/ TextureManager* TextureManager::instance = 0;
 
 	
-Texture* TextureManager::GetTexture( const char* name )
+Texture* TextureManager::GetTexture( const char* name, bool reload )
 {
 	if ( StrEqual( name, "title" ) ) {
 		int debug=1;
@@ -76,7 +89,7 @@ Texture* TextureManager::GetTexture( const char* name )
 	Texture* t = 0;
 	map.Query( name, &t );
 
-	if ( !t ) {
+	if ( !t || reload ) {
 		const gamedb::Item* item = database->Root()->Child( "textures" )->Child( name );
 		item = database->ChainItem( item );
 #ifdef DEBUG
@@ -93,15 +106,17 @@ Texture* TextureManager::GetTexture( const char* name )
 			int format = Surface::QueryFormat( fstr );
 			Texture::Param flags = Texture::PARAM_NONE;
 
-			//if ( strstr( name, "font" ) ) {
-			//	flags = Texture::PARAM_NEAREST;
-			//}
-			
-			t = textureArr.Push();
+			if ( reload ) {
+				GLASSERT( t );
+			}
+			else {
+				t = textureArr.Push();
+			}
 			t->Set( name, w, h, format, flags );
 			t->item = item;
 
-			map.Add( t->Name(), t );
+			if ( !reload )
+				map.Add( t->Name(), t );
 		}
 	}
 	return t;
