@@ -178,6 +178,7 @@ void SettingScene::Tap( int action, const grinliz::Vector2F& screen, const grinl
 {
 	grinliz::Vector2F ui;
 	GetEngine()->GetScreenport().ViewToUI( screen, &ui );
+	SettingsManager* sm = SettingsManager::Instance();
 
 	const UIItem* item = 0;
 	if ( action == GAME_TAP_DOWN ) {
@@ -201,24 +202,18 @@ void SettingScene::Tap( int action, const grinliz::Vector2F& screen, const grinl
 							 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
 	}
 
-	GLString dbName = modCurrent.GetText();
-	GLString newDBName = dbName;
 
 	if ( item == &doneButton ) {
 		game->PopScene();
 	}
 	else if ( item == &modDown ) {
-		newDBName = CalcMod( -1 );
+		GLString name = CalcMod( -1 );
+		game->LoadModDatabase( sm->GetCurrentModName().c_str(), false );
+		modCurrent.SetText( name.size() ? name.c_str() : "None" );
 	}
 	else if ( item == &modUp ) {
-		newDBName = CalcMod( +1 );
-	}
-
-	if ( newDBName == "" ) {
-		dbName = "None";
-	}
-	if ( newDBName != dbName ) {
-		game->LoadModDatabase( SettingsManager::Instance()->GetCurrentModName().c_str(), false );
-		modCurrent.SetText( newDBName.c_str() );
+		GLString name = CalcMod( +1 );
+		game->LoadModDatabase( sm->GetCurrentModName().c_str(), false );
+		modCurrent.SetText( name.size() ? name.c_str() : "None" );
 	}
 }
