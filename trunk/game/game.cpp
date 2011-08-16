@@ -640,21 +640,20 @@ void Game::DoTick( U32 _currentTime )
 void Game::LoadModDatabase( const char* name, bool preload )
 {
 	database0->AttachChain( 0 );
-
-	if ( name == 0 || *name == 0 )
-		return;
-
 	delete database1;
-	database1 = new gamedb::Reader();
-	if  ( !database1->Init( 1, name, 0 ) ) {
-		delete database1;
-		database1 = 0;
-	}
-	else {
-		database0->AttachChain( database1 );
-		if ( !preload ) {
-			TextureManager::Instance()->Reload();
+	database1 = 0;
+
+	if ( name && *name ) {
+		database1 = new gamedb::Reader();
+
+		if  ( !database1->Init( 1, name, 0 ) ) {
+			delete database1;
+			database1 = 0;
 		}
+	}
+	database0->AttachChain( database1 );
+	if ( !preload ) {
+		TextureManager::Instance()->Reload();
 	}
 }
 
