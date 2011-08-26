@@ -45,6 +45,8 @@ void BackgroundUI::Init( Game* game, gamui::Gamui* g, bool logo )
 		backgroundText.Init( g, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND_TEXT ), true );
 		backgroundText.SetForeground( true );
 		backgroundText.SetPos( 20, 10 );
+		static const float SIZE = 320.0f;
+		backgroundText.SetSize( SIZE, SIZE*0.5f );
 	}
 }
 
@@ -102,7 +104,7 @@ void NameRankUI::Set( float x, float y, const Unit* unit, int display )
 		Texture* texture = game->CalcFaceTexture( unit, &uv );
 		gamui::RenderAtom atom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, 
 								(const void*)texture, 
-								uv.min.x, uv.min.y, uv.max.x, uv.max.y, 1, 1 );
+								uv.min.x, uv.min.y, uv.max.x, uv.max.y );
 		face.SetAtom( atom );
 
 		static const float FUDGE = -2.0f;
@@ -121,4 +123,22 @@ void NameRankUI::Set( float x, float y, const Unit* unit, int display )
 	}
 
 	name.SetPos( x+3.f, y );
+}
+
+
+void OKCancelUI::Init( Game* game, gamui::Gamui* gamui2D, float size ) 
+{
+	const Screenport& port = game->engine->GetScreenport();
+	const gamui::ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
+	const gamui::ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
+
+	okayButton.Init( gamui2D, green );
+	okayButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_OKAY, true ), UIRenderer::CalcDecoAtom( DECO_OKAY, false ) );
+	okayButton.SetSize( size*2, size );
+	okayButton.SetPos( port.UIWidth()-size*4, port.UIHeight()-size );
+
+	cancelButton.Init( gamui2D, red );
+	cancelButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_END_TURN, true ), UIRenderer::CalcDecoAtom( DECO_END_TURN, false ) );
+	cancelButton.SetSize( size*2, size );
+	cancelButton.SetPos( size*2, port.UIHeight()-size );
 }

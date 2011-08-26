@@ -39,6 +39,7 @@ enum SavePathMode {
 
 static const int	GAME_BUTTON_SIZE = 60;
 static const float	GAME_BUTTON_SIZE_F = (float)GAME_BUTTON_SIZE;
+static const float	GAME_BUTTON_SIZE_B = 50.0f;
 static const float	GAME_GUTTER = 20.0f;
 static const float	GAME_SPACING = 20.0f;
 static const int	SUBTURNS_PER_TURN = 3;

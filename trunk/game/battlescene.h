@@ -335,13 +335,13 @@ private:
 	gamui::ToggleButton	targetButton;
 	gamui::ToggleButton orbitButton;
 	gamui::PushButton	invButton;
-	gamui::PushButton	moveOkayButton;
-	gamui::PushButton	moveCancelButton;
 	enum { ROTATE_CCW_BUTTON, ROTATE_CW_BUTTON, PREV_BUTTON, NEXT_BUTTON, CONTROL_BUTTON_COUNT };
 	gamui::PushButton	controlButton[4];
 	enum { FIRE_BUTTON_SPACING = 5 };
 	gamui::PushButton	fireButton[3];
 	NameRankUI			nameRankUI;
+	OKCancelUI			moveOkayCancelUI;
+	DecoEffect			decoEffect;
 
 	gamui::Image		unitImage0[MAX_UNITS];			// map space
 	gamui::Image		unitImage1[MAX_UNITS];			// map space

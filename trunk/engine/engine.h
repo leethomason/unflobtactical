@@ -125,8 +125,6 @@ public:
 	void SetZoom( float zoom );
 
 	const Screenport& GetScreenport() { return *screenport; }
-
-	// FIXME - automatic??
 	void RestrictCamera();
 
 	static bool mapMakerMode;

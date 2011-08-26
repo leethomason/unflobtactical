@@ -349,7 +349,8 @@ void GPUShader::SetState( const GPUShader& ns )
 	if ( ns.lighting && !current.lighting ) {
 		glEnable( GL_LIGHTING );
 		glEnable ( GL_COLOR_MATERIAL );
-		//glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE ) ;	// fixme: ES2
+		// The call below isn't supported on all the mobile chipsets:
+		//glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE ) 
 		//GLOUTPUT(( "Lighting on.\n" ));
 	}
 	else if ( !ns.lighting && current.lighting ) {

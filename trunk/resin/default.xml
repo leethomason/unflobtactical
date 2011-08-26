@@ -666,7 +666,7 @@
   <texture filename="helpImage0.png" />
   <texture filename="helpImage1.png" />
   <texture filename="helpImage2.png" />
-  <texture filename="helpImage3.png" />
+  <texture filename="helpImage3.png" width="128" height="128"/>
   <texture filename="helpImage4.png" width="128" height="128"/>
   <texture filename="helpImage5.png" width="128" height="128"/>
   <texture filename="helpImage6.png" width="64" height="256"/>

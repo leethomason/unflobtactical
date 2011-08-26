@@ -654,6 +654,7 @@ void Game::LoadModDatabase( const char* name, bool preload )
 	database0->AttachChain( database1 );
 	if ( !preload ) {
 		TextureManager::Instance()->Reload();
+		this->LoadPalettes();
 	}
 }
 

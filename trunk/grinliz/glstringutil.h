@@ -164,10 +164,10 @@ private:
 class GLString
 {
 public:
-	GLString() : m_buf( 0 ), m_allocated( 0 ), m_size( 0 )							{}
-	GLString( const GLString& rhs ) : m_buf( 0 ), m_allocated( 0 ), m_size( 0 )		{ init( rhs ); }
-	GLString( const char* rhs ) : m_buf( 0 ), m_allocated( 0 ), m_size( 0 )			{ init( rhs ); }
-	~GLString()																		{ delete [] m_buf; }
+	GLString() : m_buf( nullBuf ), m_allocated( 0 ), m_size( 0 )							{}
+	GLString( const GLString& rhs ) : m_buf( nullBuf ), m_allocated( 0 ), m_size( 0 )		{ init( rhs ); }
+	GLString( const char* rhs ) : m_buf( nullBuf ), m_allocated( 0 ), m_size( 0 )			{ init( rhs ); }
+	~GLString()																				{ if (m_buf != nullBuf ) delete [] m_buf; }
 
 	void operator=( const GLString& rhs )		{ init( rhs ); }
 	void operator=( const char* rhs )			{ init( rhs ); }
@@ -185,17 +185,11 @@ public:
 													  return m_buf[i];
 													}
 
-	unsigned find( char c )	const					{	if ( m_buf ) {
-															const char* p = strchr( m_buf, c );
-															return ( p ) ? (p-m_buf) : size();
-														}
-														return 0;
+	unsigned find( char c )	const					{	const char* p = strchr( m_buf, c );
+														return ( p ) ? (p-m_buf) : size();
 													}
-	unsigned rfind( char c )	const				{	if ( m_buf ) {
-															const char* p = strrchr( m_buf, c );
-															return ( p ) ? (p-m_buf) : size();
-														}
-														return 0;
+	unsigned rfind( char c )	const				{	const char* p = strrchr( m_buf, c );
+														return ( p ) ? (p-m_buf) : size();
 													}
 	GLString substr( unsigned pos, unsigned n );
 
@@ -217,8 +211,7 @@ private:
 	void validate()	{}
 #endif
 
-
-
+	static char* nullBuf;
 	char*		m_buf;
 	unsigned	m_allocated;
 	unsigned	m_size;

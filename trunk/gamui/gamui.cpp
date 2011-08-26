@@ -364,16 +364,16 @@ void TextBox::Queue( CDynArray< uint16_t > *indexBuf, CDynArray< Gamui::Vertex >
 
 
 Image::Image() : UIItem( Gamui::LEVEL_BACKGROUND ),
-	  m_width( 0 ),
-	  m_height( 0 ),
+	  m_width( DEFAULT_SIZE ),
+	  m_height( DEFAULT_SIZE ),
 	  m_slice( false )
 {
 }
 
 
 Image::Image( Gamui* gamui, const RenderAtom& atom, bool foreground ): UIItem( Gamui::LEVEL_BACKGROUND ),
-	  m_width( 0 ),
-	  m_height( 0 ),
+	  m_width( DEFAULT_SIZE ),
+	  m_height( DEFAULT_SIZE ),
 	  m_slice( false )
 {
 	Init( gamui, atom, foreground );
@@ -387,8 +387,8 @@ Image::~Image()
 void Image::Init( Gamui* gamui, const RenderAtom& atom, bool foreground )
 {
 	m_atom = atom;
-	m_width = atom.srcWidth;
-	m_height = atom.srcHeight;
+	m_width  = DEFAULT_SIZE;
+	m_height = DEFAULT_SIZE;
 
 	m_gamui = gamui;
 	gamui->Add( this );
@@ -407,8 +407,10 @@ void Image::SetAtom( const RenderAtom& atom )
 
 void Image::SetSlice( bool enable )
 {
-	if ( enable != m_slice ) {
+	if ( enable != m_slice ) { // || w != m_sliceWidth || h != m_sliceHeight ) {
 		m_slice = enable;
+		//m_sliceWidth = w;
+		//m_sliceHeight = h;
 		Modify();
 	}
 }
@@ -448,8 +450,8 @@ TiledImageBase::~TiledImageBase()
 
 void TiledImageBase::Init( Gamui* gamui )
 {
-	m_width = 1;
-	m_height = 1;
+	m_width = DEFAULT_SIZE;
+	m_height = DEFAULT_SIZE;
 
 	m_gamui = gamui;
 	gamui->Add( this );
@@ -565,9 +567,11 @@ void Image::Queue( CDynArray< uint16_t > *indexBuf, CDynArray< Gamui::Vertex > *
 		return;
 	}
 
+	// Dislike magic numbers, but also dislike having to track atom sizes.
+	float sliceSize = 0.75f * Min( m_width, m_height );
 
 	if (    !m_slice
-		 || ( m_width <= m_atom.srcWidth && m_height <= m_atom.srcHeight ) )
+		 || ( m_width <= sliceSize && m_height <= sliceSize ) )
 	{
 		Gamui::Vertex* vertex = PushQuad( indexBuf, vertexBuf );
 
@@ -583,13 +587,13 @@ void Image::Queue( CDynArray< uint16_t > *indexBuf, CDynArray< Gamui::Vertex > *
 		ApplyRotation( 4, vertex );
 	}
 	else {
-		float x[4] = { X(), X()+(m_atom.srcWidth*0.5f), X()+(m_width-m_atom.srcWidth*0.5f), X()+m_width };
+		float x[4] = { X(), X()+(sliceSize*0.5f), X()+(m_width-sliceSize*0.5f), X()+m_width };
 		if ( x[2] < x[1] ) {
-			x[2] = x[1] = X() + (m_atom.srcWidth*0.5f);
+			x[2] = x[1] = X() + (sliceSize*0.5f);
 		}
-		float y[4] = { Y(), Y()+(m_atom.srcHeight*0.5f), Y()+(m_height-m_atom.srcHeight*0.5f), Y()+m_height };
+		float y[4] = { Y(), Y()+(sliceSize*0.5f), Y()+(m_height-sliceSize*0.5f), Y()+m_height };
 		if ( y[2] < y[1] ) {
-			y[2] = y[1] = Y() + (m_atom.srcHeight*0.5f);
+			y[2] = y[1] = Y() + (sliceSize*0.5f);
 		}
 
 		float tx[4] = { m_atom.tx0, Mean( m_atom.tx0, m_atom.tx1 ), Mean( m_atom.tx0, m_atom.tx1 ), m_atom.tx1 };
@@ -778,15 +782,18 @@ void Button::SetPos( float x, float y )
 void Button::SetSize( float width, float height )
 {
 	m_face.SetSize( width, height );
+	float size = Min( width, height );
+	m_deco.SetSize( width, height );
 	// Modify(); don't call let sub-functions check
 }
 
-
+/*
 void Button::SetSizeByScale( float sx, float sy )
 {
 	m_face.SetSize( m_face.GetRenderAtom()->srcWidth*sx, m_face.GetRenderAtom()->srcHeight*sy );
 	// Modify(); don't call let sub-functions check
 }
+*/
 
 
 void Button::SetText( const char* text )
@@ -983,8 +990,10 @@ bool ToggleButton::HandleTap( TapAction action, float x, float y )
 
 
 DigitalBar::DigitalBar() : UIItem( Gamui::LEVEL_FOREGROUND ),
+	SPACING( 0.1f ),
 	m_nTicks( 0 ),
-	m_spacing( 0 )
+	m_width( DEFAULT_SIZE ),
+	m_height( DEFAULT_SIZE )
 {
 }
 
@@ -993,8 +1002,7 @@ void DigitalBar::Init(	Gamui* gamui,
 						int nTicks,
 						const RenderAtom& atom0,
 						const RenderAtom& atom1,
-						const RenderAtom& atom2,
-						float spacing )
+						const RenderAtom& atom2 )
 {
 	m_gamui = gamui;
 	m_gamui->Add( this );
@@ -1011,10 +1019,16 @@ void DigitalBar::Init(	Gamui* gamui,
 	for( int i=0; i<nTicks; ++i ) {
 		m_image[i].Init( gamui, atom0, true );
 	}
-	m_spacing = spacing;
 	SetRange( 0, 0 );
 }
 
+
+void DigitalBar::SetSize( float w, float h )
+{
+	m_width = w;
+	m_height = h;
+	Modify();
+}
 
 
 void DigitalBar::SetRange( float t0, float t1 )
@@ -1049,25 +1063,13 @@ void DigitalBar::SetRange( float t0, float t1 )
 
 float DigitalBar::Width() const
 {
-	float w = 0;
-	if ( m_gamui ) {
-		for( int i=0; i<m_nTicks-1; ++i ) {
-			w += m_image[i].GetRenderAtom()->srcWidth;
-			w += m_spacing;
-		}
-		w += m_image[m_nTicks-1].GetRenderAtom()->srcWidth;
-	}
-	return w;
+	return m_width;
 }
 
 
 float DigitalBar::Height() const
 {
-	float h = 0;
-	if ( m_gamui ) {
-		h = Max( m_atom[0].srcHeight, Max( m_atom[1].srcHeight, m_atom[2].srcHeight ) );
-	}
-	return h;
+	return m_height;
 }
 
 
@@ -1088,12 +1090,13 @@ const RenderAtom* DigitalBar::GetRenderAtom() const
 
 bool DigitalBar::DoLayout()
 {
-	float x = X();
-	float y = Y();
+	float perItemWidth = m_width*(1.0f-SPACING) / (float)m_nTicks;
+	float space = m_width*SPACING / (float)m_nTicks;
 
 	for( int i=0; i<m_nTicks; ++i ) {
-		m_image[i].SetPos( x, y );
-		x += m_spacing + m_image[i].GetRenderAtom()->srcWidth;
+		m_image[i].SetSize( perItemWidth, m_height );
+		m_image[i].SetPos( X() + (float)i*perItemWidth + (float)i*space,
+						   Y() );
 	}
 	return false;
 }
@@ -1391,25 +1394,25 @@ void Gamui::Layout( UIItem** item, int nItems,
 	}
 
 	int c = 0;
-	int r = 0;
-	float x = originX;
-	float y = originY;
 
-	for( int i=0; i<nItems; ++i ) {
-		item[i]->SetPos( x, y );
-		x += item[i]->Width();
-		x += xSpacing;
-		
-		++c;
-		if ( c == cx ) {
-			++r;
-			x = originX;
-			y += item[i]->Height();
-			y += ySpacing;
-			c = 0;
+	float y = originY;
+	for( int j=0; j<cy && c<nItems; ++j ) {
+		float x=originX;
+		for( int i=0; i<cx && c<nItems; ++i ) {
+//			if ( i > 0 && i==(cx-1) ) {
+//				x = originX+tableWidth-item[c]->Width();	// be extra careful with rounding.
+//			}
+//			if ( j > 0 && j==(cy-1) ) {
+//				y = originY+tableHeight-item[c]->Height();	// be extra careful with rounding.
+//			}
+
+			item[c]->SetPos( x, y );
+			x += item[c]->Width();
+			x += xSpacing;
+			++c;
 		}
-		if ( r == cy )
-			break;
+		y += item[c-1]->Height();
+		y += ySpacing;
 	}
 }
 

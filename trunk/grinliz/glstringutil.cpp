@@ -29,36 +29,12 @@ distribution.
 
 using namespace grinliz;
 
-
-#if 0
-bool grinliz::LoadTextFile( const char* filename, std::string* str )
-{
-#pragma warning ( push )
-#pragma warning ( disable : 4996 )	// fopen is unsafe. For video games (what this library is for) that seems extreme.
-
-	FILE* fp = fopen( filename, "r" );
-
-#pragma warning (pop)
-
-	if ( !fp )
-		return false;
-
-	const int LEN = 1024;
-	char buffer[ LEN ];
-
-	while( fgets( buffer, LEN, fp ) ) 
-	{
-		str->append( buffer );
-	}
-	fclose( fp );
-	return true;
-}
-#endif
+/* static */ char* GLString::nullBuf = "";
 
 void GLString::init( const GLString& rhs ) 
 {
-	delete [] m_buf;
-	m_buf = 0;
+	if ( m_buf != nullBuf ) delete [] m_buf;
+	m_buf = nullBuf;
 	m_allocated = 0;
 	m_size = 0;
 
@@ -73,8 +49,8 @@ void GLString::init( const GLString& rhs )
 
 void GLString::init( const char* rhs ) 
 {
-	delete [] m_buf;
-	m_buf = 0;
+	if ( m_buf != nullBuf ) delete [] m_buf;
+	m_buf = nullBuf;
 	m_allocated = 0;
 	m_size = 0;
 
@@ -154,7 +130,7 @@ void GLString::ensureSize( unsigned s )
 		if ( m_size )
 			memcpy( newBuf, m_buf, m_size );
 
-		delete [] m_buf;
+		if ( m_buf != nullBuf ) delete [] m_buf;
 		m_buf = newBuf;
 		m_allocated = newAllocated;
 		newBuf[m_size] = 0;
@@ -166,7 +142,7 @@ void GLString::ensureSize( unsigned s )
 #ifdef DEBUG
 void GLString::validate()
 {
-	if ( m_buf ) {
+	if ( m_buf != nullBuf ) {
 		GLASSERT( m_allocated );
 		GLASSERT( m_allocated > m_size );	// strictly greater: need room for a null terminator!
 		GLASSERT( m_buf[m_size] == 0 );

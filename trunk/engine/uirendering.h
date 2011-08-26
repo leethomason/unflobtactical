@@ -160,5 +160,23 @@ private:
 };
 
 
+class DecoEffect
+{
+public:
+	DecoEffect() : startPauseTime( 0 ), 
+		           invisibleWhenDone( false ), 
+				   rotation( 0 ), 
+				   item( 0 ) {}
+
+	void Attach( gamui::UIItem* item )						{ this->item = item; }
+	void Play( int startPauseTime, bool invisibleWhenDone );
+	void DoTick( U32 delta );
+
+private:
+	int startPauseTime;
+	bool invisibleWhenDone;
+	float rotation;
+	gamui::UIItem* item;
+};
 
 #endif // UIRENDERING_INCLUDED

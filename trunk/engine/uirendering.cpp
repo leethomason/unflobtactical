@@ -120,7 +120,7 @@ RenderAtom UIRenderer::CalcDecoAtom( int id, bool enabled )
 	float tx1 = tx0 + 1.f/8.f;
 	float ty1 = ty0 + 1.f/4.f;
 
-	return RenderAtom( (const void*)(enabled ? RENDERSTATE_UI_DECO : RENDERSTATE_UI_DECO_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1, 64, 64 );
+	return RenderAtom( (const void*)(enabled ? RENDERSTATE_UI_DECO : RENDERSTATE_UI_DECO_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1 );
 }
 
 
@@ -135,7 +135,7 @@ RenderAtom UIRenderer::CalcParticleAtom( int id, bool enabled )
 	float tx1 = tx0 + 1.f/4.f;
 	float ty1 = ty0 + 1.f/4.f;
 
-	return RenderAtom( (const void*)(enabled ? RENDERSTATE_UI_NORMAL : RENDERSTATE_UI_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1, 64, 64 );
+	return RenderAtom( (const void*)(enabled ? RENDERSTATE_UI_NORMAL : RENDERSTATE_UI_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1 );
 }
 
 
@@ -150,7 +150,7 @@ RenderAtom UIRenderer::CalcIconAtom( int id, bool enabled )
 	float tx1 = tx0 + 1.f/8.f;
 	float ty1 = ty0 + 1.f/4.f;
 
-	return RenderAtom( (const void*)(enabled ? RENDERSTATE_UI_NORMAL : RENDERSTATE_UI_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1, 64, 64 );
+	return RenderAtom( (const void*)(enabled ? RENDERSTATE_UI_NORMAL : RENDERSTATE_UI_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1 );
 }
 
 
@@ -169,7 +169,7 @@ RenderAtom UIRenderer::CalcIcon2Atom( int id, bool enabled )
 	float tx1 = tx0 + 1.f/(float)CX;
 	float ty1 = ty0 + 1.f/(float)CY;
 
-	return RenderAtom( (const void*)(enabled ? RENDERSTATE_UI_NORMAL : RENDERSTATE_UI_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1, 64, 64 );
+	return RenderAtom( (const void*)(enabled ? RENDERSTATE_UI_NORMAL : RENDERSTATE_UI_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1 );
 }
 
 
@@ -201,7 +201,7 @@ RenderAtom UIRenderer::CalcPaletteAtom( int c0, int c1, int blend, float w, floa
 			c.y = offset[c1];
 		}
 	}
-	RenderAtom atom( (const void*)(enabled ? RENDERSTATE_UI_NORMAL : RENDERSTATE_UI_DISABLED), (const void*)texture, 0, 0, 0, 0, w, h );
+	RenderAtom atom( (const void*)(enabled ? RENDERSTATE_UI_NORMAL : RENDERSTATE_UI_DISABLED), (const void*)texture, 0, 0, 0, 0 );
 	SetAtomCoordFromPixel( c.x, c.y, c.x, c.y, 300, 300, &atom );
 	return atom;
 }
@@ -262,6 +262,41 @@ void UIRenderer::GamuiGlyph( int c, IGamuiText::GlyphMetrics* metric )
 	for( int i=0; i<nItems; ++i ) {
 		gamui::UIItem* item = (UIItem*)((U8*)items + stride*i);
 		item->SetPos( x, y + items->Height()*(float)i + vSpace*(float)i );
+	}
+}
+
+
+void DecoEffect::Play( int startPauseTime, bool invisibleWhenDone )	
+{
+	this->startPauseTime = startPauseTime;
+	this->invisibleWhenDone = invisibleWhenDone;
+	rotation = 0;
+	if ( item ) {
+		item->SetVisible( true );
+		item->SetRotationY( 0 );
+	}
+}
+
+
+void DecoEffect::DoTick( U32 delta )
+{
+	startPauseTime -= (int)delta;
+	if ( startPauseTime <= 0 ) {
+		static const float CYCLE = 5000.f;
+		rotation += (float)delta * 360.0f / CYCLE;
+
+		if ( rotation > 90.f && invisibleWhenDone ) {
+			if ( item ) 
+				item->SetVisible( false );
+		}
+		while( rotation >= 360.f )
+			rotation -= 360.f;
+
+		if ( rotation > 90 && rotation < 270 )
+			rotation += 180.f;
+
+		if ( item && item->Visible() )
+			item->SetRotationY( rotation );
 	}
 }
 

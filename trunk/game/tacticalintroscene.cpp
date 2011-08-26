@@ -45,37 +45,35 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	gamui::RenderAtom nullAtom;
 
 	backgroundUI.Init( game, &gamui2D, true );
-	//backgroundUI.backgroundText.SetPos( 200, backgroundUI.background.Y() );
+	backgroundUI.backgroundText.SetPos( GAME_GUTTER, GAME_GUTTER );
 
 	const gamui::ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
 	const gamui::ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 	//const gamui::ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
 
-	static const float BORDER = 25;
-
 	continueButton.Init( &gamui2D, green );
-	continueButton.SetSizeByScale( 2.2f, 1 );
-	continueButton.SetPos( BORDER, 320-BORDER-continueButton.Height() );
+	continueButton.SetSize( GAME_BUTTON_SIZE_B*2.5F, GAME_BUTTON_SIZE_B );
+	continueButton.SetPos( GAME_GUTTER, 320-GAME_GUTTER-continueButton.Height() );
 	continueButton.SetText( "Continue" );
 
 	newTactical.Init( &gamui2D, green );
-	newTactical.SetSizeByScale( 2.2f, 1 );
-	newTactical.SetPos( port.UIWidth()-BORDER-newTactical.Width(), 320-BORDER-continueButton.Height() );
+	newTactical.SetSize( GAME_BUTTON_SIZE_B*2.5F, GAME_BUTTON_SIZE_B );
+	newTactical.SetPos( port.UIWidth()-GAME_GUTTER-newTactical.Width(), 320-GAME_GUTTER-continueButton.Height() );
 	newTactical.SetText( "New Tactical" );
 	
 	newGeo.Init( &gamui2D, green );
-	newGeo.SetPos( port.UIWidth()-BORDER*2-newTactical.Width()*2, 320-BORDER-continueButton.Height() );
-	newGeo.SetSizeByScale( 2.2f, 1 );
+	newGeo.SetPos( port.UIWidth()-GAME_GUTTER*2-newTactical.Width()*2, 320-GAME_GUTTER-continueButton.Height() );
+	newGeo.SetSize( GAME_BUTTON_SIZE_B*2.5F, GAME_BUTTON_SIZE_B );
 	newGeo.SetText( "New Geo" );
 	
 	// Same place as new geo
 	newGame.Init( &gamui2D, blue );
-	newGame.SetSizeByScale( 2.2f, 1 );
+	newGame.SetSize( GAME_BUTTON_SIZE_B*2.2F, GAME_BUTTON_SIZE_B );
 	newGame.SetPos( newGeo.X(), newGeo.Y() );
 	newGame.SetText( "New Game" );
 
 	newGameWarning.Init( &gamui2D );
-	newGameWarning.SetPos( newGeo.X()+5, newGeo.Y() + newGeo.Height() + 5 );
+	newGameWarning.SetPos( newGeo.X()-15, newGeo.Y() + newGeo.Height() + 5 );
 	
 	if ( game->HasSaveFile( SAVEPATH_GEO ) ) {
 		newGeo.SetVisible( false );
@@ -96,23 +94,25 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	}
 
 	helpButton.Init( &gamui2D, green );
+	helpButton.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
 	helpButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_HELP, true ),
 						UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
 
 	audioButton.Init( &gamui2D, green );
-
-	//infoButton.Init( &gamui2D, green );
-	//infoButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_INFO, true ),
-	//					UIRenderer::CalcDecoAtom( DECO_INFO, false ) );	
+	audioButton.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
 
 	settingButton.Init( &gamui2D, green );
+	settingButton.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
 	settingButton.SetDeco(	UIRenderer::CalcDecoAtom( DECO_SETTINGS, true ),
 							UIRenderer::CalcDecoAtom( DECO_SETTINGS, false ) );	
 
 	static const int NUM_ITEMS=3;
 	UIItem* items[NUM_ITEMS] = { &helpButton, &audioButton, &settingButton };
-	Gamui::Layout( items, NUM_ITEMS, 1, NUM_ITEMS, port.UIWidth() - helpButton.Width() - BORDER, BORDER, helpButton.Width(), helpButton.Height()*(float)NUM_ITEMS+BORDER );
-
+	Gamui::Layout( items, NUM_ITEMS, 1, NUM_ITEMS, 
+		           port.UIWidth() - helpButton.Width() - GAME_GUTTER, 
+				   GAME_GUTTER, 
+				   helpButton.Width(), 
+				   helpButton.Height()*(float)NUM_ITEMS+GAME_GUTTER );
 
 	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "6", "8", "Low", "Med", "Hi", 
 													 //"8", "12", "16", 

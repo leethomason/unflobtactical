@@ -35,7 +35,7 @@ BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene(
 	static const float ORIGIN_Y = 0;
 	static const float SIZE = 256;
 
-	RenderAtom mapAtom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE, TextureManager::Instance()->GetTexture( "basemap" ), 0, 0, 1, 1, 256, 256 );
+	RenderAtom mapAtom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE, TextureManager::Instance()->GetTexture( "basemap" ), 0, 0, 1, 1 );
 	mapImage.Init( &gamui2D, mapAtom, false );
 	mapImage.SetPos( ORIGIN_X, ORIGIN_Y );
 

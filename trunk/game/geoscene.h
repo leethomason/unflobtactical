@@ -338,6 +338,7 @@ private:
 	ChitBag				chitBag;
 	int					contextChitID;
 	bool				gameVictory;
+	Storage*			baseStorage;
 
 	enum {
 		CONTEXT_CARGO,

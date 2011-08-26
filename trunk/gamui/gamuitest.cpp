@@ -207,14 +207,16 @@ int main( int argc, char **argv )
 	glTexImage2D( GL_TEXTURE_2D, 0,	GL_RGBA, imageSurface->w, imageSurface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageSurface->pixels );
 	SDL_FreeSurface( imageSurface );
 
-
-	RenderAtom textAtom( (const void*)RENDERSTATE_TEXT, (const void*)textTextureID, 0, 0, 0, 0, 256, 128 );
+	// 256, 128
+	RenderAtom textAtom( (const void*)RENDERSTATE_TEXT, (const void*)textTextureID, 0, 0, 0, 0 );
 	RenderAtom textAtomD = textAtom;
 	textAtomD.renderState = (const void*) RENDERSTATE_TEXT_DISABLED;
 
-	RenderAtom imageAtom( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0.5f, 0.5f, 228.f/256.f, 28.f/256.f, 100, 100 );
+	// 100x100
+	RenderAtom imageAtom( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0.5f, 0.5f, 228.f/256.f, 28.f/256.f );
 
-	RenderAtom decoAtom( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0, 0.25f, 0.25f, 0.f, 50, 50 );
+	// 50x50
+	RenderAtom decoAtom( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0, 0.25f, 0.25f, 0.f );
 	RenderAtom decoAtomD = decoAtom;
 	decoAtomD.renderState = (const void*) RENDERSTATE_DISABLED;
 
@@ -234,6 +236,7 @@ int main( int argc, char **argv )
 
 	Image image0( &gamui, imageAtom, true );
 	image0.SetPos( 50, 50 );
+	image0.SetSize( 100, 100 );
 
 	TextBox block;
 	block.Init( &gamui );
@@ -266,11 +269,13 @@ int main( int argc, char **argv )
 	image3.SetSize( 125, 125 );
 	image3.SetSlice( true );
 
-	RenderAtom up( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0, 1, (52.f/256.f), (204.f/256.f), 50, 50 );
+	// 50x50
+	RenderAtom up( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0, 1, (52.f/256.f), (204.f/256.f) );
 	RenderAtom upD = up;
 	upD.renderState = (const void*) RENDERSTATE_DISABLED;
 
-	RenderAtom down( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0, 0.75f, (52.f/256.f), (140.f/256.f), 50, 50 );
+	// 50x50
+	RenderAtom down( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0, 0.75f, (52.f/256.f), (140.f/256.f) );
 	RenderAtom downD( down, (const void*)RENDERSTATE_DISABLED );
 
 	PushButton button0( &gamui, up, upD, down, downD, decoAtom, decoAtomD );
@@ -308,15 +313,17 @@ int main( int argc, char **argv )
 	toggle0.AddToToggleGroup( &toggle1 );
 	toggle0.AddToToggleGroup( &toggle2 );
 
-	RenderAtom tick0( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0, 0, 0, 0, 15, 30 );
+	// 15x30
+	RenderAtom tick0( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0, 0, 0, 0 );
 	RenderAtom tick1=tick0, tick2=tick0;
 	tick0.SetCoord( 190.f/256.f, 225.f/256.f, 205.f/256.f, 1 );
 	tick2.SetCoord( 190.f/256.f, 180.f/256.f, 205.f/256.f, 210.f/256.f );
 	tick1.SetCoord( 230.f/256.f, 225.f/256.f, 245.f/256.f, 1 );
 
-	DigitalBar bar( &gamui, 10, tick0, tick1, tick2, 2 );
+	DigitalBar bar( &gamui, 10, tick0, tick1, tick2 );
 	bar.SetRange( 0.33f, 0.66f );
 	bar.SetPos( 20, 350 );
+	bar.SetSize( 100, 20 );
 
 	RenderAtom nullAtom;
 
