@@ -92,22 +92,20 @@ private:
 struct RenderAtom 
 {
 	/// Creates a default that renders nothing.
-	RenderAtom() : tx0( 0 ), ty0( 0 ), tx1( 0 ), ty1( 0 ), srcWidth( 0 ), srcHeight( 0 ), renderState( 0 ), textureHandle( 0 ), user( 0 ) {}
+	RenderAtom() : tx0( 0 ), ty0( 0 ), tx1( 0 ), ty1( 0 ), renderState( 0 ), textureHandle( 0 ), user( 0 ) {}
 	
-	RenderAtom( const void* _renderState, const void* _textureHandle, float _tx0, float _ty0, float _tx1, float _ty1, float _srcWidth, float _srcHeight ) {
-		Init( _renderState, _textureHandle, _tx0, _ty0, _tx1, _ty1, _srcWidth, _srcHeight );
+	RenderAtom( const void* _renderState, const void* _textureHandle, float _tx0, float _ty0, float _tx1, float _ty1 ) {
+		Init( _renderState, _textureHandle, _tx0, _ty0, _tx1, _ty1 );
 	}
 	
 	RenderAtom( const RenderAtom& rhs, const void* _renderState ) {
-		Init( _renderState, rhs.textureHandle, rhs.tx0, rhs.ty0, rhs.tx1, rhs.ty1, rhs.srcWidth, rhs.srcHeight );
+		Init( _renderState, rhs.textureHandle, rhs.tx0, rhs.ty0, rhs.tx1, rhs.ty1 );
 	}
 
-	void Init( const void* _renderState, const void* _textureHandle, float _tx0, float _ty0, float _tx1, float _ty1, float _srcWidth, float _srcHeight ) {
+	void Init( const void* _renderState, const void* _textureHandle, float _tx0, float _ty0, float _tx1, float _ty1 ) {
 		SetCoord( _tx0, _ty0, _tx1, _ty1 );
 		renderState = (const void*)_renderState;
 		textureHandle = (const void*) _textureHandle;
-		srcWidth = _srcWidth;
-		srcHeight = _srcHeight;
 		user = 0;
 	}
 
@@ -116,8 +114,6 @@ struct RenderAtom
 			     && ty0 == atom.ty0
 				 && tx1 == atom.tx1
 				 && ty1 == atom.ty1
-				 && srcWidth == atom.srcWidth
-				 && srcHeight == atom.srcHeight
 				 && renderState == atom.renderState
 				 && textureHandle == atom.textureHandle );
 	}
@@ -156,7 +152,7 @@ struct RenderAtom
 	}
 
 	float tx0, ty0, tx1, ty1;		///< Texture coordinates to use within the atom.
-	float srcWidth, srcHeight;		///< The width and height of the sub-image (as defined by tx0, etc.) Used to know the "natural" size, and how to scale.
+	//float srcWidth, srcHeight;		///< The width and height of the sub-image (as defined by tx0, etc.) Used to know the "natural" size, and how to scale.
 
 	const void* renderState;		///< Application defined render state.
 	const void* textureHandle;		///< Application defined texture handle, noting that 0 (null) is assumed to be non-rendering.
@@ -344,6 +340,10 @@ public:
 class UIItem
 {
 public:
+	enum {
+		DEFAULT_SIZE = 64
+	};
+
 	virtual void SetPos( float x, float y )		
 	{ 
 		if ( m_x != x || m_y != y ) {
@@ -636,7 +636,6 @@ public:
 
 	virtual void SetPos( float x, float y );
 	void SetSize( float width, float height );
-	void SetSizeByScale( float sx, float sy );
 
 	virtual void SetEnabled( bool enabled );
 
@@ -829,13 +828,13 @@ public:
 	DigitalBar();
 	DigitalBar( Gamui* gamui,
 				int nTicks,
+
 				const RenderAtom& atom0,
 				const RenderAtom& atom1,
-				const RenderAtom& atom2,
-				float spacing ) 
-		: UIItem( Gamui::LEVEL_FOREGROUND )
+				const RenderAtom& atom2 ) 
+		: UIItem( Gamui::LEVEL_FOREGROUND ), SPACING( 0.1f )
 	{
-		Init( gamui, nTicks, atom0, atom1, atom2, spacing );
+		Init( gamui, nTicks, atom0, atom1, atom2 );
 	}
 	virtual ~DigitalBar()		{}
 
@@ -843,8 +842,7 @@ public:
 				int nTicks,
 				const RenderAtom& atom0,
 				const RenderAtom& atom1,
-				const RenderAtom& atom2,
-				float spacing );
+				const RenderAtom& atom2 );
 
 	void SetRange( float t0, float t1 );
 	void SetRange0( float t0 )				{ SetRange( t0, m_t1 ); }
@@ -855,6 +853,7 @@ public:
 	virtual float Width() const;
 	virtual float Height() const;
 	virtual void SetVisible( bool visible );
+	void SetSize( float w, float h );
 
 	virtual const RenderAtom* GetRenderAtom() const;
 	virtual bool DoLayout();
@@ -865,7 +864,8 @@ private:
 	int			m_nTicks;
 	float		m_t0, m_t1;
 	RenderAtom	m_atom[3];
-	float		m_spacing;
+	const float	SPACING;
+	float		m_width, m_height;
 	Image		m_image[MAX_TICKS];
 };
 

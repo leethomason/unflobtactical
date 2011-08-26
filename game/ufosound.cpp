@@ -69,7 +69,7 @@ bool SoundManager::PopSound( int* _databaseID, int* _offset, int* _size )
 
 	const gamedb::Item* sndItem = data->Child( queue[nSounds-1] );
 	GLRELASSERT( sndItem );
-	sndItem = database->ChainItem( sndItem );
+//	sndItem = database->ChainItem( sndItem );
 
 	if ( sndItem ) {
 		sndItem->GetDataInfo( "binary", &offset, &size, &compressed );

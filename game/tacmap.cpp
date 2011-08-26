@@ -17,9 +17,7 @@
 #include "item.h"
 
 #include "../engine/loosequadtree.h"
-
 #include "../grinliz/glrectangle.h"
-
 #include "../tinyxml/tinyxml.h"
 
 using namespace grinliz;

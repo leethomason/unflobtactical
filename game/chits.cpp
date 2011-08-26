@@ -595,13 +595,12 @@ void CityChit::Load( const TiXmlElement* doc )
 }
 
 
-
 BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, const ItemDefArr& itemDefArr, bool firstBase ) : Chit( tree )
 {
 	pos.Set( (float)posi.x+0.5f, (float)posi.y+0.5f );
 	this->index = index;
 
-	storage = new Storage( posi.x, posi.y, itemDefArr );
+	//storage = new Storage( posi.x, posi.y, itemDefArr );
 
 	memset( units, 0, sizeof(Unit)*MAX_TERRANS );	// some horrible bug in the
 													// unit class. splatter fix.
@@ -635,7 +634,7 @@ void BaseChit::Init()
 
 BaseChit::~BaseChit()
 {
-	delete storage;
+	//delete storage;
 }
 
 
@@ -648,7 +647,9 @@ void BaseChit::Save( FILE* fp, int depth )
 	XMLUtil::Attribute( fp, "nScientists", nScientists );
 	XMLUtil::SealElement( fp );
 
-	storage->Save( fp, depth+1 );
+	// No longer need to save the storage; it will be saved
+	// in the joint base storage.
+	//storage->Save( fp, depth+1 );
 	
 	XMLUtil::OpenElement( fp, depth+1, "Facilities" );
 	XMLUtil::SealElement( fp );
@@ -670,12 +671,16 @@ void BaseChit::Save( FILE* fp, int depth )
 }
 
 
-void BaseChit::Load( const TiXmlElement* doc, Game* game )
+void BaseChit::Load( const TiXmlElement* doc, Game* game, Storage* baseStorage )
 {
 	Chit::Load( doc );
 	doc->QueryIntAttribute( "index", &index );
 	doc->QueryIntAttribute( "nScientists", &nScientists );
-	storage->Load( doc );
+
+	// Handle old files. Merge the local store into the global base storage.
+	Storage localStore( 0, 0, game->GetItemDefArr() );
+	localStore.Load( doc );
+	baseStorage->AddStorage( localStore );
 
 	const TiXmlElement* facilities = doc->FirstChildElement( "Facilities" );
 	if ( facilities ) {
@@ -1116,7 +1121,11 @@ void ChitBag::Save( FILE* fp, int depth )
 }
 
 
-void ChitBag::Load( const TiXmlElement* doc, SpaceTree* tree, const ItemDefArr& arr, Game* game )
+void ChitBag::Load( const TiXmlElement* doc, 
+					SpaceTree* tree, 
+					const ItemDefArr& arr, 
+					Game* game,
+					Storage* baseStorage )
 {
 	Vector2F v0 = {0,0}, v1 = {0,0};
 	Vector2I vi0 = {0,0}, vi1 = {0,0};
@@ -1146,7 +1155,7 @@ void ChitBag::Load( const TiXmlElement* doc, SpaceTree* tree, const ItemDefArr& 
 			}
 			else if ( StrEqual( chitEle->Value(), "BaseChit" )) {
 				BaseChit* baseChit = new BaseChit( tree, vi0, 0, arr, false );
-				baseChit->Load( chitEle, game );
+				baseChit->Load( chitEle, game, baseStorage );
 				Add( baseChit );
 			}
 			else if ( StrEqual( chitEle->Value(), "CargoChit" )) {

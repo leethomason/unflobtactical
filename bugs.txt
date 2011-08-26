@@ -1,15 +1,18 @@
 Test:
-- chaining
-	- sound
-	- images
-	- textures
-	- models
+- does multi base storage get merged and save correctly?
+- do soldiers & sci keep separate?
+- full UI run
 
 Issues:
+- capatilism now gives you a 50% credit back.
 
 Bugs:
+- mod lookup not implemented on android
 
 Deferred:
+- chaining
+	- sound
+	- models
 - Tactical: AI shoots walls. This one is strange. It certainly checks. ??
 - fix battlescene not being power of 2
 - geo: no indication of base capabilities
@@ -18,6 +21,15 @@ Deferred:
 - tactical: when picking up weapon, walk zone doesn't update
 
 Fixed:
+
+- new help images
+- shift when viewing units
+- capitalism broken
+- unified base storage
+- chaining
+	- images
+	- textures
+
 - expand immediate buy to bases
 - geo: art for cores
 - character screen: show character

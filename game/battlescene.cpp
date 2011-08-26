@@ -91,6 +91,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	turnImage.Init( &gamui3D, UIRenderer::CalcDecoAtom( DECO_ALIEN ), true );
 	turnImage.SetPos( float(port.UIWidth()-50), 0 );
 	turnImage.SetSize( 50, 50 );
+	decoEffect.Attach( &turnImage );
 	
 	alienTargetImage.Init( &gamui3D, UIRenderer::CalcIconAtom( ICON_ALIEN_TARGETS ), true );
 	alienTargetImage.SetPos( float(port.UIWidth()-25), 0 );
@@ -107,10 +108,12 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		unitImage0[i].Init( &tacMap->overlay[Map::LAYER_UNDER_LOW], nullAtom, false );
 		unitImage0[i].SetVisible( false );
+		unitImage0[i].SetSize( 1, 1 );
 
 		unitImage1[i].Init( &tacMap->overlay[Map::LAYER_UNDER_HIGH], nullAtom, false );
 		unitImage1[i].SetVisible( false );
 		unitImage1[i].SetForeground( true );
+		unitImage1[i].SetSize( 1, 1 );
 	}
 	selectionImage.Init( &tacMap->overlay[Map::LAYER_OVER], UIRenderer::CalcIconAtom( ICON_STAND_HIGHLIGHT ), true );
 	selectionImage.SetSize( 1, 1 );
@@ -148,15 +151,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		invButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_CHARACTER, true ), UIRenderer::CalcDecoAtom( DECO_CHARACTER, false ) );
 		invButton.SetSize( SIZE, SIZE );
 
-		moveOkayButton.Init( &gamui2D, green );
-		moveOkayButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_OKAY, true ), UIRenderer::CalcDecoAtom( DECO_OKAY, false ) );
-		moveOkayButton.SetSize( SIZE*2, SIZE );
-		moveOkayButton.SetPos( port.UIWidth()-SIZE*4, port.UIHeight()-SIZE );
-
-		moveCancelButton.Init( &gamui2D, red );
-		moveCancelButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_END_TURN, true ), UIRenderer::CalcDecoAtom( DECO_END_TURN, false ) );
-		moveCancelButton.SetSize( SIZE*2, SIZE );
-		moveCancelButton.SetPos( SIZE*2, port.UIHeight()-SIZE );
+		moveOkayCancelUI.Init( game, &gamui2D, SIZE );
 
 		static const int controlDecoID[CONTROL_BUTTON_COUNT] = { DECO_ROTATE_CCW, DECO_ROTATE_CW, DECO_PREV, DECO_NEXT };
 		for( int i=0; i<CONTROL_BUTTON_COUNT; ++i ) {
@@ -175,6 +170,10 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 #else
 		UIItem* items[6] = { &exitButton, &helpButton, &nextTurnButton, &targetButton, &invButton, &controlButton[0] };
 #endif
+		for( int i=0; i<6; ++i ) {
+			//items[i]->SetPos( 0, (float)i * port.UIHeight()/6.f );
+			((Button*)items[i])->SetSize( SIZE, SIZE );
+		}
 		Gamui::Layout( items, 6, 1, 6, 0, 0, SIZE, (float)port.UIHeight() );
 
 		controlButton[1].SetPos( SIZE, port.UIHeight()-SIZE );
@@ -186,8 +185,9 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		orbitButton.SetSize( SIZE, SIZE );
 		orbitButton.SetPos( controlButton[NEXT_BUTTON].X(), controlButton[NEXT_BUTTON].Y()-SIZE );
 
-		RenderAtom menuImageAtom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)TextureManager::Instance()->GetTexture( "commandBarV" ), 0, 0, 1, 1, 50, 320 );
+		RenderAtom menuImageAtom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)TextureManager::Instance()->GetTexture( "commandBarV" ), 0, 0, 1, 1 );
 		menuImage.Init( &gamui2D, menuImageAtom, false );
+		menuImage.SetSize( SIZE, port.UIHeight() );
 
 		if ( Engine::mapMakerMode ) {
 			for( int i=0; i<6; ++i ) {
@@ -225,8 +225,9 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		tick1Atom.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
 
 		for( int i=0; i<MAX_UNITS; ++i ) {
-			hpBars[i].Init( &tacMap->overlay[Map::LAYER_UNDER_HIGH], 5, tick0Atom, tick1Atom, tick2Atom, S );
+			hpBars[i].Init( &tacMap->overlay[Map::LAYER_UNDER_HIGH], 5, tick0Atom, tick1Atom, tick2Atom );
 			hpBars[i].SetVisible( false );
+			hpBars[i].SetSize( 0.8f, 0.25f );
 		}
 	}
 	if ( Engine::mapMakerMode )
@@ -314,7 +315,8 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 					units[i].NewTurn();
 				currentUnitAI = TERRAN_UNITS_START;
 			
-				turnImage.SetVisible( false );
+				turnImage.SetAtom( UIRenderer::CalcDecoAtom( DECO_OKAY ) );
+				decoEffect.Play( 1000, true );
 			}
 			break;
 
@@ -325,7 +327,7 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 			}
 			currentUnitAI = ALIEN_UNITS_START;
 
-			turnImage.SetVisible( true );
+			decoEffect.Play( 1000, false );
 			alienTargetImage.SetVisible( false );
 			alienTargetText.SetVisible( false );
 			turnImage.SetAtom( UIRenderer::CalcDecoAtom( DECO_ALIEN ) );
@@ -337,7 +339,7 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 				units[i].NewTurn();
 			currentUnitAI = CIV_UNITS_START;
 
-			turnImage.SetVisible( true );
+			decoEffect.Play( 1000, false );
 			alienTargetImage.SetVisible( false );
 			alienTargetText.SetVisible( false );
 			turnImage.SetAtom( UIRenderer::CalcDecoAtom( DECO_HUMAN ) );
@@ -830,8 +832,8 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	}
 
 	SetUnitOverlays();
-	moveOkayButton.SetVisible( confirmDest.x >= 0 );
-	moveCancelButton.SetVisible( confirmDest.x >= 0 );
+	moveOkayCancelUI.SetVisible( confirmDest.x >= 0 );
+	decoEffect.DoTick( deltaTime );
 
 	// Creates a race condition. Sometimes re-pushes End scene between the sequence:
 	// Battle
@@ -2306,7 +2308,7 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 
 			game->PushScene( Game::DIALOG_SCENE, data );
 		}
-		else if ( tapped == &moveOkayButton && confirmDest.x >= 0 ) {
+		else if ( tapped == &moveOkayCancelUI.okayButton && confirmDest.x >= 0 ) {
 			// Go!
 			Action* action = actionStack.Push();
 			action->Init( ACTION_MOVE, SelectedSoldierUnit() );
@@ -2314,7 +2316,7 @@ bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 			tacMap->ClearNearPath();
 			confirmDest.Set( -1, -1 );
 		}
-		else if ( tapped == &moveCancelButton ) {
+		else if ( tapped == &moveOkayCancelUI.cancelButton ) {
 			confirmDest.Set( -1, -1 );
 		}
 	}
@@ -2561,6 +2563,7 @@ void BattleScene::Tap(	int action,
 
 			// Compute the path:
 			float cost;
+			confirmDest.Set( -1, -1 );
 			int result = tacMap->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
 			if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
 				if ( SettingsManager::Instance()->GetConfirmMove() ) {
@@ -2599,8 +2602,8 @@ void BattleScene::ShowNearPath( const Unit* unit )
 
 	if ( unit && GetModel(unit) ) {
 
-		float autoTU = 0.0f;
-		float snappedTU = 0.0f;
+		float autoTU = MAX_TU;
+		float snappedTU = MAX_TU;
 
 		if ( unit->GetWeapon() ) {
 			//const WeaponItemDef* wid = unit->GetWeapon()->GetItemDef()->IsWeapon();
@@ -2896,6 +2899,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 					float cost;
 
 					int result = tacMap->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
+					confirmDest.Set( -1, -1 );
 					if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
 						// TU for a move gets used up "as we go" to account for reaction fire and changes.
 						// Go!
@@ -3014,15 +3018,16 @@ void BattleScene::DrawHUD()
 		if ( targetButton.Down() ) {
 			targetButton.SetEnabled( true );
 		}
-	
+
+		/*
 		const int CYCLE = 5000;
 		float rotation = (float)(game->CurrentTime() % CYCLE)*(360.0f/(float)CYCLE);
 		if ( rotation > 90 && rotation < 270 )
 			rotation += 180;
-		
-		if ( turnImage.Visible() ) {
-			turnImage.SetRotationY( rotation );
-		}
+		*/
+		//if ( turnImage.Visible() ) {
+		//	turnImage.SetRotationY( rotation );
+		//}
 		if ( currentTeamTurn == TERRAN_TEAM ) {
 			int count = visibility.NumTeamCanSee( TERRAN_TEAM, ALIEN_TEAM );
 			if ( count > 0 ) {
@@ -3048,7 +3053,7 @@ void BattleScene::DrawHUD()
 		if ( SelectedSoldierUnit() ) {
 			Rectangle2F uv;
 			Texture* faceTex = game->CalcFaceTexture( SelectedSoldierUnit(), &uv );
-			RenderAtom atom( (const void*) UIRenderer::RENDERSTATE_UI_NORMAL, (const void*) faceTex, uv.min.x, uv.min.y, uv.max.x, uv.max.y, 1, 1 );
+			RenderAtom atom( (const void*) UIRenderer::RENDERSTATE_UI_NORMAL, (const void*) faceTex, uv.min.x, uv.min.y, uv.max.x, uv.max.y );
 			invButton.SetDeco( atom, atom );
 		}
 		else {

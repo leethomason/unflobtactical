@@ -520,7 +520,6 @@ void Storage::Load( const TiXmlElement* element )
 {
 	memset( rounds, 0, sizeof(int)*EL_MAX_ITEM_DEFS );
 	const TiXmlElement* storageElement = element->FirstChildElement( "Storage" );
-	GLASSERT( storageElement );
 	if ( storageElement ) {
 		for( const TiXmlElement* roundElement = storageElement->FirstChildElement( "Rounds" );
 			 roundElement;

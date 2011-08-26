@@ -127,7 +127,6 @@ Map::Map( SpaceTree* tree )
 		}
 	}
 
-
 	pathQueryID = 1;
 	visibilityQueryID = 1;
 
@@ -188,39 +187,6 @@ void Map::SetSize( int w, int h )
 	border[3].SetPos( (float)w, 0 );
 	border[3].SetSize( 1, (float)h );
 }
-
-
-/*
-void Map::Clear()
-{
-	// Find everything:
-	Rectangle2I b = Bounds();
-	b.Set( 0, 0, SIZE-1, SIZE-1 );
-	MapItem* pItem = quadTree.FindItems( b, 0, 0 );
-
-	while( pItem ) {
-		MapItem* temp = pItem;
-		pItem = pItem->next;
-		if ( temp->model )
-			tree->FreeModel( temp->model );
-		itemPool.Free( temp );
-	}
-	quadTree.Clear();
-
-	for( int i=0; i<debris.Size(); ++i ) {
-		delete debris[i].storage;
-		tree->FreeModel( debris[i].crate );
-	}
-	debris.Clear();
-
-	memset( pyro, 0, SIZE*SIZE*sizeof(U8) );
-	memset( obscured, 0, SIZE*SIZE*sizeof(U8) );
-	memset( visMap, 0, SIZE*SIZE );
-	memset( pathMap, 0, SIZE*SIZE );
-
-	lander = 0;
-}
-*/
 
 
 void Map::DrawSeen()

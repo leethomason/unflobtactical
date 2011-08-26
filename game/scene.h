@@ -163,6 +163,18 @@ struct BackgroundUI {
 	void Init( Game* game, gamui::Gamui*, bool logo );
 };
 
+
+struct OKCancelUI {
+	gamui::PushButton	okayButton;
+	gamui::PushButton	cancelButton;
+
+	void Init( Game* game, gamui::Gamui*, float size );
+	void SetVisible( bool v ) {
+		okayButton.SetVisible( v );
+		cancelButton.SetVisible( v );
+	}
+};
+
 #ifdef _MSC_VER
 #pragma warning ( pop )
 #endif

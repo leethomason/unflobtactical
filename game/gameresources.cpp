@@ -105,7 +105,11 @@ void Game::LoadPalettes()
 		const gamedb::Item* child = parent->Child( i );
 		child = database0->ChainItem( child );
 
-		Palette* p = palettes.Push();
+		Palette* p = 0;
+		if ( palettes.Size() <= i ) 
+			p = palettes.Push();
+		else
+			p = &palettes[i];
 		p->name = child->Name();
 		p->dx = child->GetInt( "dx" );
 		p->dy = child->GetInt( "dy" );
@@ -219,7 +223,7 @@ void Game::LoadModel( const char* name )
 
 	const gamedb::Item* item = database0->Root()->Child( "models" )->Child( name );
 	GLASSERT( item );
-	item = database0->ChainItem( item );
+//	item = database0->ChainItem( item );
 
 	ModelResource* res = new ModelResource();
 	modelLoader->Load( item, res );
@@ -588,34 +592,34 @@ void Game::LoadAtoms()
 {
 	TextureManager* tm = TextureManager::Instance();
 
-	renderAtoms[ATOM_TEXT].Init( (const void*)UIRenderer::RENDERSTATE_UI_TEXT, (const void*)tm->GetTexture( "stdfont2" ), 0, 0, 1, 1, 256, 128 );
-	renderAtoms[ATOM_TEXT_D].Init( (const void*)UIRenderer::RENDERSTATE_UI_TEXT_DISABLED, (const void*)tm->GetTexture( "stdfont2" ), 0, 0, 1, 1, 256, 128 );
+	renderAtoms[ATOM_TEXT].Init( (const void*)UIRenderer::RENDERSTATE_UI_TEXT, (const void*)tm->GetTexture( "stdfont2" ), 0, 0, 1, 1 );
+	renderAtoms[ATOM_TEXT_D].Init( (const void*)UIRenderer::RENDERSTATE_UI_TEXT_DISABLED, (const void*)tm->GetTexture( "stdfont2" ), 0, 0, 1, 1 );
 
-	renderAtoms[ATOM_TACTICAL_BACKGROUND].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE, (const void*)tm->GetTexture( "intro" ), 0, 0, 1, 1, 64, 64 );
-	renderAtoms[ATOM_TACTICAL_BACKGROUND_TEXT].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "title" ), 0, 0, 1, 1, 256, 128 );
+	renderAtoms[ATOM_TACTICAL_BACKGROUND].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE, (const void*)tm->GetTexture( "intro" ), 0, 0, 1, 1 );
+	renderAtoms[ATOM_TACTICAL_BACKGROUND_TEXT].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "title" ), 0, 0, 1, 1 );
 
-	renderAtoms[ATOM_GEO_VICTORY].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "victory" ), 0, 0, 1, 1, 256, 128 );
-	renderAtoms[ATOM_GEO_DEFEAT].Init(  (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "defeat" ), 0, 0, 1, 1, 256, 128 );
+	renderAtoms[ATOM_GEO_VICTORY].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "victory" ), 0, 0, 1, 1 );
+	renderAtoms[ATOM_GEO_DEFEAT].Init(  (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "defeat" ), 0, 0, 1, 1 );
 
 	for( int i=0; i <= (ATOM_RED_BUTTON_UP-ATOM_GREEN_BUTTON_UP); i += 4 ) {
-		renderAtoms[ATOM_GREEN_BUTTON_UP+i].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "icons" ), 0, 0, 1, 1, 56, 56 );
+		renderAtoms[ATOM_GREEN_BUTTON_UP+i].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "icons" ), 0, 0, 1, 1 );
 		UIRenderer::SetAtomCoordFromPixel( 0+64*(i/4), 193, 62+64*(i/4), 253, 512, 256, &renderAtoms[ATOM_GREEN_BUTTON_UP+i] );
 		renderAtoms[ATOM_GREEN_BUTTON_UP_D+i] = renderAtoms[ATOM_GREEN_BUTTON_UP+i];
 		renderAtoms[ATOM_GREEN_BUTTON_UP_D+i].renderState = (const void*) UIRenderer::RENDERSTATE_UI_DISABLED;
 
-		renderAtoms[ATOM_GREEN_BUTTON_DOWN+i].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "icons" ), 0, 0, 1, 1, 56, 56 );
+		renderAtoms[ATOM_GREEN_BUTTON_DOWN+i].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "icons" ), 0, 0, 1, 1 );
 		UIRenderer::SetAtomCoordFromPixel( 0+64*(i/4), 129, 62+64*(i/4), 189, 512, 256, &renderAtoms[ATOM_GREEN_BUTTON_DOWN+i] );
 		renderAtoms[ATOM_GREEN_BUTTON_DOWN_D+i] = renderAtoms[ATOM_GREEN_BUTTON_DOWN+i];
 		renderAtoms[ATOM_GREEN_BUTTON_DOWN_D+i].renderState = (const void*) UIRenderer::RENDERSTATE_UI_DISABLED;
 	}
 
-	renderAtoms[ATOM_BLUE_TAB_BUTTON_UP].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "icons" ), 0, 0, 1, 1, 56, 56 );
+	renderAtoms[ATOM_BLUE_TAB_BUTTON_UP].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "icons" ), 0, 0, 1, 1 );
 	UIRenderer::SetAtomCoordFromPixel( 64*7, 128, 64*8, 192, 512, 256, &renderAtoms[ATOM_BLUE_TAB_BUTTON_UP] );
 
 	renderAtoms[ATOM_BLUE_TAB_BUTTON_UP_D] = renderAtoms[ATOM_BLUE_TAB_BUTTON_UP];
 	renderAtoms[ATOM_BLUE_TAB_BUTTON_UP_D].renderState = (const void*) UIRenderer::RENDERSTATE_UI_DISABLED;
 
-	renderAtoms[ATOM_BLUE_TAB_BUTTON_DOWN].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "icons" ), 0, 0, 1, 1, 56, 56 );
+	renderAtoms[ATOM_BLUE_TAB_BUTTON_DOWN].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "icons" ), 0, 0, 1, 1 );
 	UIRenderer::SetAtomCoordFromPixel( 64*6, 128, 64*7, 192, 512, 256, &renderAtoms[ATOM_BLUE_TAB_BUTTON_DOWN] );
 
 	renderAtoms[ATOM_BLUE_TAB_BUTTON_DOWN_D] = renderAtoms[ATOM_BLUE_TAB_BUTTON_DOWN];

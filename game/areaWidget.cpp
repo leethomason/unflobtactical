@@ -43,7 +43,8 @@ AreaWidget::AreaWidget( Game* game,
 	gamui::RenderAtom tick2Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREY, UIRenderer::PALETTE_GREY, UIRenderer::PALETTE_DARK, W, H );
 	tick1Atom.renderState = (const void*)UIRenderer::RENDERSTATE_UI_NORMAL;
 
-	bar.Init( container, 10, tick0Atom, tick1Atom, tick2Atom, S );
+	bar.Init( container, 10, tick0Atom, tick1Atom, tick2Atom );
+	bar.SetSize( 70, 6 );
 
 	SetOrigin( 0, 0 );
 }
