@@ -1,61 +1,49 @@
-#How to mod xenowar
 
 = Introduction =
 
-This is a very early process. If mods and art becomes available, this process can be streamlined.
+This outlines how to create mod files for Xenowar, and is current as of version 2.4 of the game.
 
 = Using a Mod =
 
 Currently PC Only.
 
-  # Get a uforesource.db data file.
+  # Get a .xwdb data file.
   # Open your xenowar directory.
-  # Go into the res directory.
-  # rename uforesource.db to uforesource.db.bak so you can recover it later
-  # Put in the new uforesource.db
-  # Start the game - you have new resources!
+  # Go into the 'mods' sub-directory.
+  # Put the .xwdb file in this directory.
+  # Run the game, and select the mod in the settings screen.
 
 = Creating a Mod = 
 
-Note: although you need the full source code, you *do not* need to build from source. Most of the source code is the art assets, so it's easier to pull down the source base than to pack it all up.
 
-== Get the Source ==
+== How Xenowar Mods work ==
 
-Do an anonymous source checkout. The command line, and tools you can use, are documented here:
+A .xwdb file extends the default database. Any resource in the .xwdb file will be used instead of the default. This allows mods to be created without the source code. (Although the source code can be helpful.)
 
-http://code.google.com/p/unflobtactical/source/checkout
+Most importantly, if future versions of the game add new resources, the mod will still work. The mod file modifies the database - it doesn't replace it.
 
-Setting up SVN is straightforward, but the time consuming part. Once you have SVN, it's easy to pull down the source code base.
+Note: currently only image types (bitmaps, textures, palettes, and images) can be modded. Sounds, models, and data are not supported. If you are interested in modding something not supported, post a message to the forum.
 
-== Build a Resource File ==
+== Creating a Mod File ==
 
-If you want to create your own mod, you must first be able to build the resource file the game uses.
+The builder for creating mod resources is included with the Win32 version of the game. The instructions for running it are in the README.txt file.
 
-  # From the downloads page on the unflobtactical site, download the ufobuilder.zip file.
-  # Extract its contents into the top of the source tree. So if your extracted the source to c:\src\unflobtactical-read-only, the ufobuilder.exe file should be at c:\src\unflobtactical-read-only\ufobuilder.exe
-  # Make the subdirectory 'res'. (c:\src\unflobtactical-read-only\res\)
-  # From the command line, run buildres.bat
-  # Lots of output; should generate the uforesource.db file in the res directory.
+The 'modstest' subdirectory contains example files.
+  * XML files that describe the assets in the mod files
+  * Image files to put in the database
 
-== Changing the Resources == 
-
-In the resin subdirectory, the 'default.xml' file contains all the information to put the assets in the resource file. You should back this file up, and then start putting in your own assets!
-
-The game expects to find a certain set of assets. While you can change the assets, if you remove assets the game will crash.
-
-=== <text> and <tree> ===
-
-General data that is used in the game. Descriptions and research. You can freely modify the text, keeping in mind that it shouldn't be too long or will overflow the screen.
+== Defining the Resources == 
 
 === <texture> ===
 
 Texture assets used in the game. They must be power of 2 (except for the battleship and base background textures, which are 384x384.). Many textures are hand-packed into texture atlases for performance. It would be nice if future versions of the builder would auto-gen the texture atlases.
 
-  * filename: the name of the file and the asset. (This is a bug.) If the filename is icons.png, then the asset name (which can't change) is icons. If you want to add your own file, you could: 1) change icons.png, 2) add icons.tga and point to that, or 3) request a bug fix.
-  * dither: if true, the image will be dithered from 32 to 16 bits in the builder. If false, nearest color match is used.
-  * width/height: the builder can downsample large source images. The original and destination size must both be powers of 2.
+  * assetName: the name of the asset.
+  * filename: the filename in the directory.
+  * dither: all images are converted to 16-bit. If dither is true, a dithering/smoothing algorithm is used. If false, a nearest color match is used.
+  * width/height: the builder can down sample large source images. The original and destination size must both be powers of 2.
  
-=== <model> Single form ===
+=== Not yet supported: <model> Single form ===
 
 If the model does NOT have a modelName attribute, then it is the "single form". One model is in the model file.
 
@@ -66,7 +54,7 @@ This has the same bug as textures: the model filename (ufopod.ac) is also the mo
   * shading: 'flat' shading is very angular. Good for walls and crates and such. 'smooth' shading is smooth everywhere - good for characters and organic shapes. 'crease' attempts to intelligently choose, but the algorithm isn't very intelligent.
   * polyRemoval: 'pre' removes down facing bottom polys in the first stage. This should be set for anything that stands on the ground plane.
  
-=== <model> multi-form ===
+=== Not yet supported: <model> multi-form ===
 
 This allows many models to be in one .ac file. Very handy.
 
@@ -77,10 +65,10 @@ This allows many models to be in one .ac file. Very handy.
   * eye: the origin of a character's line of site
   * target: where others target the character. The center of its chest.
 
-=== <data> sounds ===
+=== Not yet supported: <data> sounds ===
 
 Generally sound files. The asset name and file name are the same. (Same bug as above.) For sounds, the attribute 'compress' must be set to 'false', since the sounds are played directly from the resource.
 
-== Creating New Levels ==
+== Not yet supported: Creating New Levels ==
 
-TBD. It's possible to start xenowar in 'editor' mode, but it needs work to function without compiler support.
+It's possible to start xenowar in 'editor' mode, but it needs work to function without compiler support.
