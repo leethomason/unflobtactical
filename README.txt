@@ -40,3 +40,39 @@ http://code.google.com/p/unflobtactical/
 And install it. You'll need to have your phone set to accept unsigned apps. (The 2 dollar one
 is signed.)
 
+
+-- Using Mods --
+
+You can add mod files to change the graphics of the game. (Or write your own - below.) 
+Mod files allow people to share alternate graphics for the game. All mod files use the
+extension .xwdb
+
+You can select the mod you wish to use in the game settings.
+
+Please be aware than an ill-constructed mod file can cause you game to crash or render incorrectly. 
+If this happens, just delete the mod file.
+
+-- Using Mods, Win32 --
+
+On Win32, place the .xwdb files in the 'mods' subdirectory where you installed you game. When
+you next start the game, the mod will be available in the settings screen. You can change the 
+mod, or set it back to the default, at any time from the settings screen.
+
+-- Modding the Game --
+
+If you wish to mod the game yourself, the tool is provided on Win32. 
+
+The command line to create the mod is:
+ufobuilder.exe input-xml-file output-database
+Where: 
+	input-xml-file: The all the XML files and assets need to be in the same directory. The input-xml-file is 
+	the path to the XML file that describes how to build the assets, in that directory.
+	
+	output-database: the output file path to write. The extension should be .xwdb
+	
+You can build test mods by running 'makemod.bat'.
+Examples of how to call the builder are in the 'makemod.bat' file. (It is a text file.)
+Examples of the XML files used to build mods are in the 'modtest' subdirectory of the game.
+More information can be found at:
+	http://code.google.com/p/unflobtactical/wiki/Modding
+and in the Xenowar forum.
