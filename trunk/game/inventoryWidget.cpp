@@ -38,14 +38,10 @@ InventoryWidget::InventoryWidget(	Game* game,
 	}
 	button[WEAPON].Init( g, carriedLook );
 	button[ARMOR].Init( g, carriedLook );
-	text0.Init( g );
-	text1.Init( g );
 	description.Init( g );
+	ammo.Init( g );
 
 	nameRankUI.Init( g, game );
-//	nameRankUI.Set( pos.x, pos.y, unit, NameRankUI::DISPLAY_FACE | NameRankUI::DISPLAY_RANK );
-
-	text1.SetText( "Pack:" );
 
 	for( int i=0; i<NUM_BUTTONS; ++i ) {
 		button[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
@@ -66,20 +62,21 @@ InventoryWidget::InventoryWidget(	Game* game,
 void InventoryWidget::DoLayout()
 {
 	static const float TEXTHEIGHT = 18.f;
-	static const float SPACE = 5.0f;
+	static const float SPACE = 4.0f;
 
 	float y = pos.y;
 
 	nameRankUI.Set( pos.x, y+SPACE, unit, 
 		            NameRankUI::DISPLAY_FACE | NameRankUI::DISPLAY_RANK );
 
-	// Carried:
-	text0.SetPos( pos.x, y );
 	y += TEXTHEIGHT;
-	//description.SetPos( pos.x, y );
 	description.SetPos( nameRankUI.name.X(), y+SPACE );
+	y += TEXTHEIGHT;
+
+	ammo.SetPos( nameRankUI.name.X(), y + SPACE );
 	//y += TEXTHEIGHT;
 	y = nameRankUI.name.Y() + NameRankUI::FACE_SIZE;
+
 
 	y = GAME_BUTTON_SIZE_F;
 
@@ -89,7 +86,7 @@ void InventoryWidget::DoLayout()
 
 	//y += SPACE;
 
-	text1.SetVisible( false );
+	//text1.SetVisible( false );
 	//text1.SetPos( pos.x, y );
 	//y += TEXTHEIGHT;
 
@@ -125,33 +122,45 @@ void InventoryWidget::Update( Unit* _unit )
 	}
 
 	GLASSERT( unit );
+	char buffer[32] = { 0 };
 
 	// armor
 	const gamui::RenderAtom& atomEmptyArmor  = UIRenderer::CalcDecoAtom( DECO_ARMOR, false );
 	const gamui::RenderAtom& atomEmptyWeapon = UIRenderer::CalcDecoAtom( DECO_PISTOL, false );
 	Inventory* inventory = unit->GetInventory();
 
+	// weapon
+	const WeaponItemDef* wid = unit->GetWeaponDef();
+	if ( wid ) {
+		int rounds[2] = { 0, 0 };
+		rounds[0] = inventory->CalcClipRoundsTotal( wid->weapon[0].clipItemDef );
+		rounds[1] = inventory->CalcClipRoundsTotal( wid->weapon[1].clipItemDef );
+
+		const ClipItemDef* clipDef0 = wid->weapon[0].clipItemDef;
+		const ClipItemDef* clipDef1 = wid->weapon[1].clipItemDef;
+
+		if ( clipDef1 ) {
+			//SNPrintf( buffer, 16, "%c%d%c%d", clipDef0->abbreviation, rounds[0], clipDef1->abbreviation, rounds[1] );
+			SNPrintf( buffer, 32, "%s:%d %s:%d", clipDef0->name, rounds[0],
+													clipDef1->name, rounds[1] );
+		} 
+		else {
+			//SNPrintf( buffer, 16, "%c%d", clipDef0->abbreviation, rounds[0] );
+			SNPrintf( buffer, 32, "%s:%d", clipDef0->name, clipDef1->name );
+		}
+		ammo.SetText( buffer );
+	}
+	else {
+		ammo.SetText( "" );
+	}
 	for( int i=0; i<NUM_BUTTONS; ++i ) {
 		const Item& item = inventory->GetItem( i );
+		buffer[0] = 0;
 
 		if ( item.IsSomething() ) {
-			char buffer[16] = { 0 };
 
 			if ( item.IsWeapon() ) {
-				const WeaponItemDef* wid = item.IsWeapon();
-
-				int rounds[2] = { 0, 0 };
-				rounds[0] = inventory->CalcClipRoundsTotal( wid->weapon[0].clipItemDef );
-				rounds[1] = inventory->CalcClipRoundsTotal( wid->weapon[1].clipItemDef );
-
-				const ClipItemDef* clipDef0 = wid->weapon[0].clipItemDef;
-				const ClipItemDef* clipDef1 = wid->weapon[1].clipItemDef;
-
-				if ( clipDef1 )
-					SNPrintf( buffer, 16, "%c%d%c%d", clipDef0->abbreviation, rounds[0], clipDef1->abbreviation, rounds[1] );
-				else
-					SNPrintf( buffer, 16, "%c%d", clipDef0->abbreviation, rounds[0] );
-
+				buffer[0] = 0;
 			}
 			else if ( item.IsClip() ) {
 				SNPrintf( buffer, 16, "%d", item.Rounds() );

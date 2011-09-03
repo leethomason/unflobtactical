@@ -1,6 +1,4 @@
 Test:
-- does multi base storage get merged and save correctly?
-- do soldiers & sci keep separate?
 - full UI run
 
 Issues:
@@ -22,6 +20,8 @@ Deferred:
 
 Fixed:
 
+- does multi base storage get merged and save correctly?
+- do soldiers & sci keep separate?
 - new help images
 - shift when viewing units
 - capitalism broken

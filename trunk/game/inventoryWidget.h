@@ -55,7 +55,7 @@ private:
 	gamui::Gamui*		gamui;
 	gamui::PushButton	button[NUM_BUTTONS];
 	NameRankUI			nameRankUI;
-	gamui::TextLabel	text0, text1, description;
+	gamui::TextLabel	description, ammo;
 	
 	gamui::Image		dragImage;
 	int					dragIndex;
