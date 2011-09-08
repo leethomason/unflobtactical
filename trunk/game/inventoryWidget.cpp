@@ -40,6 +40,7 @@ InventoryWidget::InventoryWidget(	Game* game,
 	button[ARMOR].Init( g, carriedLook );
 	description.Init( g );
 	ammo.Init( g );
+	info.Init( g );
 
 	nameRankUI.Init( g, game );
 
@@ -99,6 +100,8 @@ void InventoryWidget::DoLayout()
 	//y = itemArr[PACK_END-1]->Y() + itemArr[PACK_END-1]->Height();
 	//descriptionLabel.SetPos( pos.x, y );
 	//y += TEXTHEIGHT;
+
+	info.SetPos( pos.x, y+GAME_BUTTON_SIZE_F*2.f ); 
 }
 
 
@@ -272,9 +275,24 @@ void InventoryWidget::TapMove( const grinliz::Vector2F& ui )
 			dragImage.SetAtom( atom );
 			dragImage.SetVisible( true );
 			dragImage.SetCenterPos( ui.x, ui.y );
+
+			SetInfoText( item.GetItemDef() );
 			return;
 		}
 	}
 	dragImage.SetVisible( false );
 	dragIndex = -1;
+}
+
+
+void InventoryWidget::SetInfoText( const ItemDef* itemDef )
+{
+	if ( itemDef && itemDef->desc ) {
+		char buffer[40];
+		SNPrintf( buffer, 40, "%s: %s", itemDef->displayName.c_str(), itemDef->desc );
+		info.SetText( buffer );
+	}
+	else {
+		info.SetText( "" );
+	}
 }

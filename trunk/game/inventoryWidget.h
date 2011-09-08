@@ -38,6 +38,8 @@ public:
 	void Tap( const gamui::UIItem* item, int* move );
 	void TapMove( const grinliz::Vector2F& screen );
 
+	void SetInfoText( const ItemDef* );
+
 private:
 	void DoLayout();
 	int UIItemToIndex( const gamui::UIItem* item );
@@ -55,7 +57,7 @@ private:
 	gamui::Gamui*		gamui;
 	gamui::PushButton	button[NUM_BUTTONS];
 	NameRankUI			nameRankUI;
-	gamui::TextLabel	description, ammo;
+	gamui::TextLabel	description, info, ammo;
 	
 	gamui::Image		dragImage;
 	int					dragIndex;
