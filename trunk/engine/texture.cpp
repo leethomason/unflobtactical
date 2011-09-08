@@ -78,10 +78,6 @@ void TextureManager::Reload()
 	
 Texture* TextureManager::GetTexture( const char* name, bool reload )
 {
-	if ( StrEqual( name, "title" ) ) {
-		int debug=1;
-	}
-
 	// First check for an existing texture, or one
 	// that was added. Failing that, check the database.
 	// The texture may not be allocated on the GPU - that
@@ -254,9 +250,6 @@ U32 Texture::GLID()
 {
 	if ( gpuMem ) 
 		return gpuMem->glID;
-	if ( name == "title" ) {
-		int debug=1;
-	}
 	
 	TextureManager* manager = TextureManager::Instance();
 	bool inCache = false;

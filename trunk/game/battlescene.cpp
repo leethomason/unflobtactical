@@ -215,7 +215,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	{
 		static const float W = 0.15f;
 		static const float H = 0.15f;
-		static const float S = 0.02f;
+		//static const float S = 0.02f;
 
 		gamui::RenderAtom tick0Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_BRIGHT, W, H );
 		tick0Atom.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;

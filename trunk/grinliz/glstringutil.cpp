@@ -29,12 +29,12 @@ distribution.
 
 using namespace grinliz;
 
-/* static */ char* GLString::nullBuf = "";
+/* static */ const char* GLString::nullBuf = "";
 
 void GLString::init( const GLString& rhs ) 
 {
 	if ( m_buf != nullBuf ) delete [] m_buf;
-	m_buf = nullBuf;
+	m_buf = (char*)nullBuf;
 	m_allocated = 0;
 	m_size = 0;
 
@@ -50,7 +50,7 @@ void GLString::init( const GLString& rhs )
 void GLString::init( const char* rhs ) 
 {
 	if ( m_buf != nullBuf ) delete [] m_buf;
-	m_buf = nullBuf;
+	m_buf = (char*)nullBuf;
 	m_allocated = 0;
 	m_size = 0;
 

@@ -67,6 +67,18 @@ Java_com_grinninglizard_UFOAttack_UFORenderer_nativeSavePath( JNIEnv* env, jobje
 }
 
 
+// May get called before anything else is initialized. Not safe to call into the game object.
+void
+Java_com_grinninglizard_UFOAttack_UFORenderer_nativeDatabase( JNIEnv* env, jobject thiz, jstring _path )
+{
+	const char* path = (*env)->GetStringUTFChars( env, _path, 0 );
+    __android_log_print(ANDROID_LOG_INFO, "UFOAttack", "Database path=%s", (path && *path) ? path : "<none>" );
+	GameAddDatabase( path );
+	(*env)->ReleaseStringUTFChars( env, _path, path );
+}
+
+
+
 /* Call to initialize the graphics state */
 void
 Java_com_grinninglizard_UFOAttack_UFORenderer_nativeInit( JNIEnv*  env )
@@ -205,8 +217,11 @@ Java_com_grinninglizard_UFOAttack_UFORenderer_nativeSoundPop( JNIEnv* env, jobje
 	if ( game ) {
 		int offset=0;
 		int size=0;
-		GamePopSound( game, &offset, &size );
+		int database=0;
+		GamePopSound( game, &database, &offset, &size );
 		return ((int64_t)offset) | (((int64_t)size)<<32);
 	}
 	return 0;
 }
+
+
