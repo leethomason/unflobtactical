@@ -253,6 +253,21 @@ int main( int argc, char **argv )
 	void* game = 0;
 	bool mapMakerMode = false;
 
+	WIN32_FIND_DATA findFileData;
+	HANDLE h;
+	h = FindFirstFile( ".\\mods\\*.xwdb", &findFileData );
+	if ( h != INVALID_HANDLE_VALUE ) {
+		BOOL findResult = TRUE;
+		while( findResult && nModDB < GAME_MAX_MOD_DATABASES ) {
+			grinliz::GLString* str = new grinliz::GLString( ".\\mods\\" );
+			str->append( findFileData.cFileName );
+			databases[nModDB++] = str;
+			GameAddDatabase( str->c_str() );
+			findResult = FindNextFile( h, &findFileData );
+		}
+		FindClose( h );
+	}
+
 	if ( argc > 3 ) {
 		// -- MapMaker -- //
 		Engine::mapMakerMode = true;
@@ -315,20 +330,6 @@ int main( int argc, char **argv )
 	}
 #endif
 
-	WIN32_FIND_DATA findFileData;
-	HANDLE h;
-	h = FindFirstFile( ".\\mods\\*.xwdb", &findFileData );
-	if ( h != INVALID_HANDLE_VALUE ) {
-		BOOL findResult = TRUE;
-		while( findResult && nModDB < GAME_MAX_MOD_DATABASES ) {
-			grinliz::GLString* str = new grinliz::GLString( ".\\mods\\" );
-			str->append( findFileData.cFileName );
-			databases[nModDB++] = str;
-			GameAddDatabase( game, str->c_str() );
-			findResult = FindNextFile( h, &findFileData );
-		}
-		FindClose( h );
-	}
 
 #ifndef TEST_FULLSPEED
 	SDL_TimerID timerID = SDL_AddTimer( TIME_BETWEEN_FRAMES, TimerCallback, 0 );

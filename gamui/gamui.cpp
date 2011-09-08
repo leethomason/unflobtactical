@@ -783,7 +783,7 @@ void Button::SetSize( float width, float height )
 {
 	m_face.SetSize( width, height );
 	float size = Min( width, height );
-	m_deco.SetSize( width, height );
+	m_deco.SetSize( size, size );
 	// Modify(); don't call let sub-functions check
 }
 

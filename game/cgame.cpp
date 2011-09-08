@@ -45,6 +45,8 @@ private:
 
 bool CheckThread::active = false;
 
+static char* modDatabases[ GAME_MAX_MOD_DATABASES ] = { 0 };
+
 
 void* NewGame( int width, int height, int rotation, const char* path )
 {
@@ -52,6 +54,13 @@ void* NewGame( int width, int height, int rotation, const char* path )
 
 	Game* game = new Game( width, height, rotation, path );
 	GLOUTPUT(( "NewGame.\n" ));
+
+	for( int i=0; i<GAME_MAX_MOD_DATABASES; ++i ) {
+		if ( modDatabases[i] ) {
+			//GLOUTPUT(( "adding database '%s'\n", modDatabases[i] ));
+			game->AddDatabase( modDatabases[i] );
+		}
+	}
 
 	return game;
 }
@@ -65,6 +74,12 @@ void DeleteGame( void* handle )
 	if ( handle ) {
 		Game* game = (Game*)handle;
 		delete game;
+	}
+	for( int i=0; i<GAME_MAX_MOD_DATABASES; ++i ) {
+		if ( modDatabases[i] ) {
+			free( modDatabases[i] );
+			modDatabases[i] = 0;
+		}
 	}
 }
 
@@ -214,10 +229,16 @@ const char* PlatformName()
 }
 
 
-void GameAddDatabase( void* handle, const char* path )
+void GameAddDatabase( const char* path )
 {
-	Game* game = (Game*)handle;
-	game->AddDatabase( path );
+	for( int i=0; i<GAME_MAX_MOD_DATABASES; ++i ) {
+		if ( modDatabases[i] == 0 ) {
+			int len = strlen( path ) + 1;
+			modDatabases[i] = (char*)malloc( len );
+			strcpy( modDatabases[i], path );
+			break;
+		}
+	}
 }
 
 

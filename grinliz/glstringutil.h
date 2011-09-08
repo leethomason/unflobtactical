@@ -164,9 +164,9 @@ private:
 class GLString
 {
 public:
-	GLString() : m_buf( nullBuf ), m_allocated( 0 ), m_size( 0 )							{}
-	GLString( const GLString& rhs ) : m_buf( nullBuf ), m_allocated( 0 ), m_size( 0 )		{ init( rhs ); }
-	GLString( const char* rhs ) : m_buf( nullBuf ), m_allocated( 0 ), m_size( 0 )			{ init( rhs ); }
+	GLString() : m_buf( (char*)nullBuf ), m_allocated( 0 ), m_size( 0 )							{}
+	GLString( const GLString& rhs ) : m_buf( (char*)nullBuf ), m_allocated( 0 ), m_size( 0 )		{ init( rhs ); }
+	GLString( const char* rhs ) : m_buf( (char*)nullBuf ), m_allocated( 0 ), m_size( 0 )			{ init( rhs ); }
 	~GLString()																				{ if (m_buf != nullBuf ) delete [] m_buf; }
 
 	void operator=( const GLString& rhs )		{ init( rhs ); }
@@ -211,7 +211,7 @@ private:
 	void validate()	{}
 #endif
 
-	static char* nullBuf;
+	static const char* nullBuf;
 	char*		m_buf;
 	unsigned	m_allocated;
 	unsigned	m_size;

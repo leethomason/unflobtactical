@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.grinninglizard.UFOAttack" android:installLocation="auto" android:versionCode="5" android:versionName="2.3">
-    <application android:label="Xenowar" android:icon="@drawable/androidicon48" android:debuggable="false">
+    <application android:label="Xenowar" android:icon="@drawable/androidicon48" android:debuggable="true">
         <activity android:name=".UFOActivity" android:label="Xenowar" android:screenOrientation="portrait" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+			    <action android:name="android.intent.action.VIEW" />
+			    <category android:name="android.intent.category.DEFAULT" />
+			    <category android:name="android.intent.category.BROWSABLE" />
+			    <data android:mimeType="*/*" />
+			    <data android:pathPattern="*.*\\.xwdb" />
+			</intent-filter>
+			            
         </activity>
     </application>
     <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7"/>

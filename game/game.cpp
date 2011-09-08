@@ -190,9 +190,6 @@ void Game::Init()
 	memset( faceCache, 0, sizeof(FaceCache)*MAX_TERRANS );
 	faceCacheSlot = 0;
 
-	const gamedb::Item* node = database0->Root()->Child( "textures" );
-	GLASSERT( node );
-
 	ImageManager* im = ImageManager::Instance();
 	im->LoadImage( "faceChins", &faceGen.chins );
 	faceGen.nChins = 17;

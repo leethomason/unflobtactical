@@ -142,11 +142,11 @@ void InventoryWidget::Update( Unit* _unit )
 		if ( clipDef1 ) {
 			//SNPrintf( buffer, 16, "%c%d%c%d", clipDef0->abbreviation, rounds[0], clipDef1->abbreviation, rounds[1] );
 			SNPrintf( buffer, 32, "%s:%d %s:%d", clipDef0->name, rounds[0],
-													clipDef1->name, rounds[1] );
+											     clipDef1->name, rounds[1] );
 		} 
 		else {
 			//SNPrintf( buffer, 16, "%c%d", clipDef0->abbreviation, rounds[0] );
-			SNPrintf( buffer, 32, "%s:%d", clipDef0->name, clipDef1->name );
+			SNPrintf( buffer, 32, "%s:%d", clipDef0->name, clipDef0->name );
 		}
 		ammo.SetText( buffer );
 	}

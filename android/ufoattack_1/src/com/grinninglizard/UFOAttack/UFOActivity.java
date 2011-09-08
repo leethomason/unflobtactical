@@ -3,6 +3,7 @@ package com.grinninglizard.UFOAttack;
 
 import java.io.File;                
 import java.io.FileDescriptor;
+import java.io.FilenameFilter;
 import java.io.IOException;
 
 import javax.microedition.khronos.egl.EGL;
@@ -22,6 +23,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 //import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -78,17 +80,37 @@ public class UFOActivity extends Activity  {
 	    }
 	    catch( NameNotFoundException e){}
 	    
-	    //try {
-	    	Resources r = getResources();
-	    	afd = r.openRawResourceFd( R.raw.uforesource );
-	   		long offset = afd.getStartOffset();
-	        long fileSize = afd.getLength();
-	        UFORenderer.nativeResource( apkFilePath, offset, fileSize );
-	        //afd.close();
-	    //}
-	    //catch( IOException e) {
-	    //	System.out.println( e.toString() );
-	    //}
+    	Resources r = getResources();
+    	afd = r.openRawResourceFd( R.raw.uforesource );
+   		long offset = afd.getStartOffset();
+        long fileSize = afd.getLength();
+        UFORenderer.nativeResource( apkFilePath, offset, fileSize );
+        
+        String state = Environment.getExternalStorageState();
+        boolean mExternalStorageAvailable = false;
+        
+        if (Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+            // We can only read the media
+            mExternalStorageAvailable = true;
+        }
+        
+        if ( mExternalStorageAvailable ) {
+	        File downloads = Environment.getExternalStoragePublicDirectory( Environment.DIRECTORY_DOWNLOADS );
+	        
+	        FilenameFilter filter = new FilenameFilter() {
+	            public boolean accept(File dir, String name) {
+	                return name.endsWith(".xwdb");
+	            }
+	        };	        	        
+	        
+	        String[] children = downloads.list( filter );
+	        if ( children != null && children.length > 0 ) {
+	        	for( int i=0; i<children.length; ++i ) {
+	        		String p = downloads.getAbsolutePath() + "/" + children[i];
+	        		UFORenderer.nativeDatabase( p );
+	        	}
+	        }
+        }
 	}
     
     private void setWritePaths() 
@@ -448,6 +470,7 @@ class UFORenderer implements GLSurfaceView.Renderer {
 
     public static native void nativeResource( String path, long offset, long len );
     public static native void nativeSavePath( String path );
+    public static native void nativeDatabase( String path );
     
     private static native void nativeResize(int w, int h);
     private static native void nativeRender();

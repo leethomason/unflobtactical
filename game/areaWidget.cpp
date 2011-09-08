@@ -25,7 +25,7 @@ AreaWidget::AreaWidget( Game* game,
 {
 	static const float W =  3.f;
 	static const float H =  5.f;
-	static const float S =  1.f;
+	//static const float S =  1.f;
 
 	RenderAtom nullAtom;
 

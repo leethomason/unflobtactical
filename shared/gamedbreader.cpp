@@ -194,14 +194,32 @@ bool Reader::Init( int id, const char* filename, int _offset )
 		return false;
 
 	offset = _offset;
+	fseek( fp, 0, SEEK_END );
+	int dbSize = (int)ftell( fp ) - (int)offset;
 	fseek( fp, offset, SEEK_SET );
 
 	// Read in the data structers. Leave the "data" compressed and in the file.
 	HeaderStruct header;
-	fread( &header, sizeof(header), 1, fp );
-	fseek( fp, offset, SEEK_SET );
+	int size = fread( &header, sizeof(header), 1, fp );
+	if ( size != 1 ) {
+		GLOUTPUT(( "CORRUPT DATABASE\n" ));
+		fclose( fp );
+		return false;
+	}
 
+	fseek( fp, offset, SEEK_SET );
 	memSize = header.offsetToData;
+
+	// FIXME: Should add a checksum...
+	if (    (int)header.offsetToItems > memSize 
+		 || (int)header.offsetToDataDesc > memSize
+		 || memSize > dbSize ) 
+	{
+		GLOUTPUT(( "CORRUPT DATABASE\n" ));
+		fclose( fp );
+		return false;
+	}
+
 	mem = malloc( memSize );
 	endMem = (const char*)mem + memSize;
 
@@ -404,8 +422,10 @@ const Item* Item::Child( int i ) const
 	const Reader* context = Reader::GetContext( this );
 	const U8* mem = (const U8*)context->BaseMem();
 
+#ifdef DEBUG
 	const ItemStruct* istruct = (const ItemStruct*)this;
 	GLASSERT( i >= 0 && i < (int)istruct->nChildren );
+#endif
 
 	const U32* childOffset = (const U32*)((U8*)this + sizeof( ItemStruct ));
 	return (const Item*)( mem + childOffset[i]);

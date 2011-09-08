@@ -861,10 +861,10 @@ public:
 
 private:
 	enum { MAX_TICKS = 10 };
+	const float	SPACING;
 	int			m_nTicks;
 	float		m_t0, m_t1;
 	RenderAtom	m_atom[3];
-	const float	SPACING;
 	float		m_width, m_height;
 	Image		m_image[MAX_TICKS];
 };
