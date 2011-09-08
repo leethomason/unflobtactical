@@ -820,16 +820,14 @@
       <p>Use this screen to pick up and drop items, wear armor, and select a weapon. You can also view statistics
          about the current unit.</p>
       <p>The name of the weapon the unit is holding is displayed in the top left. Beside the name is the tech level, from 1 to 3.
-         Higher tech levels indicate better weapons and armor.</p>
+         Higher tech levels indicate better weapons and armor. Below the name of the weapon is the rounds
+		 carried for that weapon. Some weapons use multiple types of ammo.</p>
     </page>
     <page image="helpImage4">
       <p>[Inventory]</p>
       <p>
         What the unit is carrying. The top row is in use: the currently worn armor and currently carried
         weapon. You can tap to drop an item, or drag to organize items.</p>
-      <p>
-        For weapons, the total rounds available for that weapon is displayed below the name.
-      </p>
     </page>
 
     <page image="helpImage5">
@@ -919,9 +917,10 @@
       <p>There are 6 geo-political regions: North, South, Europe, Asia, Africa, and Under.
          Beneath the name of each region is a bar that indicates the amount of alien 
          influence.</p>
-      <p>Each region has its own traits. Regions can be 1) capitalistic (better 
-         sell prices), 2) militaristic (better soldiers), 3) scientific (faster research),
-         4) high tech (make tech-3 weapons), or 5) manufacturing (make tech-3 armor).</p>
+      <p>Each region has its own traits. Regions can be 1) capitalistic (rebate on base purcases), 
+	     2) militaristic (better soldiers), 3) scientific (faster research),
+		 4) nationalistic (resists alien takeover), 
+         5) high tech (make tech-3 weapons), or 6) manufacturing (make tech-3 armor).</p>
     </page>
     <page>
       <p>[Alien Invasion]</p>

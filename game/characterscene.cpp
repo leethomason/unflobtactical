@@ -107,6 +107,7 @@ void CharacterScene::SetCounter( int delta )
 	if ( input->nUnits <= 1 )
 		return;
 
+	inventoryWidget->SetInfoText( 0 );
 	currentUnit += delta;
 	if ( currentUnit >= input->nUnits )
 		currentUnit = 0;
@@ -416,6 +417,7 @@ void CharacterScene::Tap(	int action,
 	const ItemDef* itemDef = storageWidget->ConvertTap( item );
 	if ( itemDef ) {
 		StorageToInventory( itemDef );
+		inventoryWidget->SetInfoText( itemDef );	
 	}
 
 	inventoryWidget->Update();
@@ -430,6 +432,7 @@ void CharacterScene::InventoryToStorage( int slot )
 	Item item = inv->GetItem( slot );
 
 	if ( item.IsSomething() ) {
+		inventoryWidget->SetInfoText( item.GetItemDef() );	
 		storage->AddItem( item );
 		inv->RemoveItem( slot );
 	}

@@ -301,15 +301,15 @@ void Game::LoadItemResources()
 
 	static const ClipInit clips[] = {
 		{ "Clip",	'c',	false,	DECO_SHELLS,	15,	 5,		{ 1, 0, 0 },
-					COLORDEF( 200, 204, 213 ), SPEED*2.0f,	WIDTH*0.5f, BOLT*3.0f, "7mm 15 round auto-clip" },
+					COLORDEF( 200, 204, 213 ), SPEED*2.0f,	WIDTH*0.5f, BOLT*3.0f, "15 round clip" },
 		{ "Cell",	'e',	true,	DECO_CELL,		12,  20,	{ 0.0f, 0.8f, 0.2f },
-					COLORDEF( 199, 216, 6 ),	SPEED*1.5f,	 WIDTH,		BOLT*2.0f,	"10MW Cell" },
+					COLORDEF( 199, 216, 6 ),	SPEED*1.5f,	 WIDTH,		BOLT*2.0f,	"12 MW Cell clip" },
 		{ "Anti",	't',	true,	DECO_CELL,		4,   50,	{ 0, 0.6f, 0.4f },
-					COLORDEF( 227, 125, 220 ),	SPEED,		WIDTH,		BOLT,		"Anti matter field rounds" },
+					COLORDEF( 227, 125, 220 ),	SPEED,		WIDTH,		BOLT,		"4 GW Anti matter clip" },
 		{ "Flame",	'f',	false,	DECO_SHELLS,	3,	 8,		{ 0, 0, 1 },
-					COLORDEF( 213, 63, 63 ),	SPEED*0.7f,	WIDTH,		BOLT,		"Incendiary Heavy Round" },
+					COLORDEF( 213, 63, 63 ),	SPEED*0.7f,	WIDTH,		BOLT,		"3 round flame clip" },
 		{ "RPG",	'r',	false,	DECO_ROCKET,	4,	 8,		{ 0.8f, 0, 0.2f },
-					COLORDEF( 200, 204, 213 ),  SPEED*0.8f, WIDTH,		BOLT,		"Grenade Rounds" },
+					COLORDEF( 200, 204, 213 ),  SPEED*0.8f, WIDTH,		BOLT,		"4 RPG (grenade) clip" },
 		{ 0 }
 	};
 
@@ -531,9 +531,9 @@ void Game::LoadItemResources()
 	}
 
 	static const ItemInit armor[] = {		
-		{ "ARM-1",	0,				DECO_ARMOR, 10,		"Memsteel Armor" },
-		{ "ARM-2",	0,				DECO_ARMOR, 30,		"Power Armor" },
-		{ "ARM-3",	0,				DECO_ARMOR, 60,		"Power Shield" },
+		{ "ARM-1",	0,				DECO_ARMOR, 10,	false,	"Armor" },
+		{ "ARM-2",	0,				DECO_ARMOR, 30,	false, 	"Armor" },
+		{ "ARM-3",	0,				DECO_ARMOR, 60,	false,	"Armor" },
 		{ 0 }
 	};
 

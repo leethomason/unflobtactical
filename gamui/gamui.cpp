@@ -190,7 +190,10 @@ const char* TextLabel::GetText() const
 
 void TextLabel::SetText( const char* t )
 {
-	SetText( t, t+strlen(t) );
+	if ( t ) 
+		SetText( t, t+strlen(t) );
+	else
+		SetText( "" );
 }
 
 
