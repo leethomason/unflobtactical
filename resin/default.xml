@@ -156,13 +156,13 @@
       <SG:I points="80">
         Shield Generators are based on alien field technology. They enhance
         armor. The SG:I protects against incendiary weapons.
-        <required0 research="SG:I" />
+        <required0 research="SG:K" />
         <required1 research="Hornet" />
       </SG:I>
       <SG:E points="100">
         Shield Generators are based on alien field technology. They enhance
         armor. The SG:E protects against energy weapons.
-        <required0 research="SG:I" />
+        <required0 research="SG:K" />
         <required1 research="Prime" />
       </SG:E>
 
