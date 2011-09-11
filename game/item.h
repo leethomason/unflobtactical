@@ -112,6 +112,8 @@ public:
 		else
 			return -price;
 	}
+
+	void PrintDesc( char*, int nChar ) const;
 };
 
 

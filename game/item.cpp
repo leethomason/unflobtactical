@@ -64,6 +64,18 @@ void ItemDef::InitBase( const char* name, const char* desc, int deco, int price,
 }
 
 
+void ItemDef::PrintDesc( char* buffer, int nChar ) const
+{
+	buffer[0] = 0;
+	if ( desc ) {
+		SNPrintf( buffer, nChar, "%s: %s", displayName.c_str(), desc );
+	}
+	else {
+		SNPrintf( buffer, nChar, "%s", displayName.c_str() );
+	}
+}
+
+
 void WeaponItemDef::RenderWeapon(	WeaponMode mode,
 									ParticleSystem* system,
 									const Vector3F& p0, 

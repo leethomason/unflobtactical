@@ -81,8 +81,12 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 
 	inventoryWidget = new InventoryWidget( game, &gamui2D, red, green, unit );
 
+	_input->storage->ClearItem( "Soldr" );
+	_input->storage->ClearItem( "Sctst" );
 	storageWidget = new StorageWidget( &gamui2D, green, blueTab, _game->GetItemDefArr(), _input->storage );
 	storageWidget->SetOrigin( (float)port.UIWidth()-storageWidget->Width(), 0 );
+	storageWidget->SetInfoVisible( false );
+
 	statWidget.Init( &gamui2D, unit, storageWidget->X(), 0, input->nUnits > 1 );
 	compWidget.Init( &game->GetItemDefArr(), storage, unit, &gamui2D, blue, storageWidget->X(), 0, storageWidget->Width() );
 

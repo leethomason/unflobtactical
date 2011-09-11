@@ -25,13 +25,17 @@ StorageWidget::StorageWidget(	gamui::Gamui* gamui,
 								const gamui::ButtonLook& blue,
 								const ItemDefArr& _itemDefArr,
 								const Storage* _storage,
+								float w, float h,
 								float _costMult )
 	: 
 		costMult( _costMult ),
 		storage( _storage ),
 		itemDefArr( _itemDefArr )
 {
+	buttonWidth = w;
+	buttonHeight = h;
 	fudgeFactor.Set( 0, 0 );
+	info.Init( gamui );
 
 	static const int decoID[NUM_SELECT_BUTTONS] = { DECO_PISTOL, DECO_RAYGUN, DECO_ARMOR, DECO_ALIEN };
 
@@ -39,13 +43,13 @@ StorageWidget::StorageWidget(	gamui::Gamui* gamui,
 		selectButton[i].Init( gamui, blue );
 		if ( i > 0 ) 
 			selectButton[0].AddToToggleGroup( &selectButton[i] );
-		selectButton[i].SetSize( (float)GAME_BUTTON_SIZE, (float)GAME_BUTTON_SIZE );
+		selectButton[i].SetSize( buttonWidth, buttonHeight );
 		selectButton[i].SetDeco( UIRenderer::CalcDecoAtom( decoID[i], true ), UIRenderer::CalcDecoAtom( decoID[i], false ) );
 		itemArr[i] = &selectButton[i];
 	}
 	for( int i=0; i<NUM_BOX_BUTTONS; ++i ) {
 		boxButton[i].Init( gamui, green );
-		boxButton[i].SetSize( (float)GAME_BUTTON_SIZE, (float)GAME_BUTTON_SIZE );
+		boxButton[i].SetSize( buttonWidth, buttonHeight );
 		itemArr[i+4] = &boxButton[i];
 	}
 	SetOrigin( 0, 0 );
@@ -61,6 +65,9 @@ StorageWidget::~StorageWidget()
 void StorageWidget::SetOrigin( float x, float y )
 {
 	Gamui::Layout( itemArr, TOTAL_BUTTONS, BOX_CX, BOX_CY, x, y, Width(), Height() );
+	
+	gamui::UIItem* item = itemArr[TOTAL_BUTTONS-BOX_CX];
+	info.SetPos( item->X(), item->Y() + item->Height() );
 }
 
 
@@ -69,7 +76,14 @@ const ItemDef* StorageWidget::ConvertTap( const gamui::UIItem* item )
 	if ( item >= &boxButton[0] && item < &boxButton[NUM_BOX_BUTTONS] ) {
 		int offset = (const PushButton*)item - boxButton;
 		GLASSERT( offset >= 0 && offset < NUM_BOX_BUTTONS );
-		return itemDefMap[offset];
+
+		const ItemDef* itemDef = itemDefMap[offset];
+		if ( itemDef ) {
+			char buf[40];
+			itemDef->PrintDesc( buf, 40 );
+			info.SetText( buf );
+		}
+		return itemDef;
 	}
 	return 0;
 }
