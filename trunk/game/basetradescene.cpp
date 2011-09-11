@@ -55,6 +55,7 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	static const float TEXTSPACE = 16.0f;
 
 	backgroundUI.Init( _game, &gamui2D, false );
+	backgroundUI.background.SetVisible( false );
 	
 	const gamui::ButtonLook& tab = _game->GetButtonLook( Game::BLUE_TAB_BUTTON );
 	const gamui::ButtonLook& blue = _game->GetButtonLook( Game::BLUE_BUTTON );
@@ -66,43 +67,28 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	helpButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_HELP, true ), UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
 
-#if 0
-	cancel.Init( &gamui2D, blue );
-	cancel.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	cancel.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
-	cancel.SetText( "Cancel" );
-#endif
-
 	okay.Init( &gamui2D, blue );
 	okay.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	okay.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	okay.SetText( "Okay" );
 
-	/*
-	hireSoldier.Init( &gamui2D, blue );
-	hireSoldier.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	hireSoldier.SetPos( GAME_BUTTON_SIZE_F*1.0f, port.UIHeight()-GAME_BUTTON_SIZE_F ); 
-	hireSoldier.SetDeco( UIRenderer::CalcDecoAtom( DECO_CHARACTER, true ), UIRenderer::CalcDecoAtom( DECO_CHARACTER, false ) );
+	float w = GAME_BUTTON_SIZE_F*0.95f;
+	float h = GAME_BUTTON_SIZE_F*0.95f;
 
-	hireScientist.Init( &gamui2D, blue );
-	hireScientist.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	hireScientist.SetPos( GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F ); 
-	hireScientist.SetDeco( UIRenderer::CalcDecoAtom( DECO_RESEARCH, true ), UIRenderer::CalcDecoAtom( DECO_RESEARCH, false ) );
-	*/
-
-	sellAll.Init( &gamui2D, red );
-	sellAll.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	sellAll.SetPos( GAME_BUTTON_SIZE_F*3.0f, port.UIHeight()-GAME_BUTTON_SIZE_F ); 
-	sellAll.SetText( "Sell" );
-	sellAll.SetText2( "All" );
-
-	baseWidget = new StorageWidget( &gamui2D, green, tab, game->GetItemDefArr(), data->base );
+	baseWidget = new StorageWidget( &gamui2D, green, tab, game->GetItemDefArr(), data->base, w, h );
 	baseWidget->SetFudgeFactor( -5, -5 );
 	baseWidget->SetOrigin( 0, TEXTSPACE );
 
-	regionWidget = new StorageWidget( &gamui2D, green, tab, game->GetItemDefArr(), &data->region, data->costMult );
+	sellAll.Init( &gamui2D, red );
+	sellAll.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	sellAll.SetPos( baseWidget->X()+baseWidget->Width()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F ); 
+	sellAll.SetText( "Sell" );
+	sellAll.SetText2( "All" );
+
+	regionWidget = new StorageWidget( &gamui2D, green, tab, game->GetItemDefArr(), &data->region, w, h, data->costMult );
 	regionWidget->SetFudgeFactor( -5, -5 );
 	regionWidget->SetOrigin( (float)port.UIWidth()-regionWidget->Width(), TEXTSPACE );
+	regionWidget->SetInfoVisible( false );
 
 	baseLabel.Init( &gamui2D );
 	baseLabel.SetPos( 0, 0 );
@@ -115,16 +101,16 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	const float PROFIT_X = regionWidget->X();
 
 	profitLabel.Init( &gamui2D );
-	profitLabel.SetPos( PROFIT_X, regionWidget->Y()+regionWidget->Height() );
+	profitLabel.SetPos( PROFIT_X, 320.f-TEXTSPACE*4.f );
 
 	lossLabel.Init( &gamui2D );
-	lossLabel.SetPos( profitLabel.X(), profitLabel.Y()+TEXTSPACE );
+	lossLabel.SetPos( profitLabel.X(), 320.f-TEXTSPACE*3.f );
 
 	totalLabel.Init( &gamui2D );
-	totalLabel.SetPos( profitLabel.X(), profitLabel.Y()+TEXTSPACE*2 );
+	totalLabel.SetPos( profitLabel.X(), 320.f-TEXTSPACE*2.f );
 
 	remainLabel.Init( &gamui2D );
-	remainLabel.SetPos( profitLabel.X(), profitLabel.Y()+TEXTSPACE*3 );
+	remainLabel.SetPos( profitLabel.X(), 320.f-TEXTSPACE*1.f );
 
 	ComputePrice( 0 );
 	//SetHireButtons();

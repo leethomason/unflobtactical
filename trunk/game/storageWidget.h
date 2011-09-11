@@ -28,6 +28,8 @@ public:
 					const gamui::ButtonLook& blue,
 					const ItemDefArr& itemDefArr,
 					const Storage* storage,
+					float width=GAME_BUTTON_SIZE_F,
+					float height=GAME_BUTTON_SIZE_F,
 					float costMult = 0.0f );
 
 	~StorageWidget();	
@@ -39,9 +41,10 @@ public:
 	
 	float X() const			{ return selectButton[0].X(); }
 	float Y() const			{ return selectButton[0].Y(); }
-	float Width() const		{ return (float)(GAME_BUTTON_SIZE*BOX_CX) + fudgeFactor.x; }
-	float Height() const	{ return (float)(GAME_BUTTON_SIZE*BOX_CY) + fudgeFactor.y; }
+	float Width() const		{ return (float)(buttonWidth*BOX_CX) + fudgeFactor.x; }
+	float Height() const	{ return (float)(buttonHeight*BOX_CY) + fudgeFactor.y; }
 	void SetVisible( bool visible );
+	void SetInfoVisible( bool visible ) { info.SetVisible( visible ); }
 
 private:
 
@@ -55,8 +58,10 @@ private:
 	gamui::ToggleButton selectButton[ NUM_SELECT_BUTTONS ];
 	gamui::PushButton	boxButton[ NUM_BOX_BUTTONS ];
 	gamui::UIItem*		itemArr[TOTAL_BUTTONS];
+	gamui::TextLabel	info;
 	
 	float costMult;
+	float buttonWidth, buttonHeight;
 	const Storage* storage;
 	const ItemDefArr& itemDefArr;
 	grinliz::Vector2F fudgeFactor;

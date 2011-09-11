@@ -287,9 +287,9 @@ void InventoryWidget::TapMove( const grinliz::Vector2F& ui )
 
 void InventoryWidget::SetInfoText( const ItemDef* itemDef )
 {
-	if ( itemDef && itemDef->desc ) {
+	if ( itemDef ) {
 		char buffer[40];
-		SNPrintf( buffer, 40, "%s: %s", itemDef->displayName.c_str(), itemDef->desc );
+		itemDef->PrintDesc( buffer, 40 );
 		info.SetText( buffer );
 	}
 	else {

@@ -38,6 +38,7 @@ BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene(
 	RenderAtom mapAtom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE, TextureManager::Instance()->GetTexture( "basemap" ), 0, 0, 1, 1 );
 	mapImage.Init( &gamui2D, mapAtom, false );
 	mapImage.SetPos( ORIGIN_X, ORIGIN_Y );
+	mapImage.SetSize( SIZE, SIZE );
 
 	static const Vector2F pos[NUM_FACILITIES] = {
 		{ SIZE-GAME_BUTTON_SIZE_F, (SIZE-GAME_BUTTON_SIZE_F)/2 },

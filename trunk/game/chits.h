@@ -298,7 +298,7 @@ public:
 	int Index() const { return index; }
 	const char* Name() const;
 
-	//Storage* GetStorage() { return storage; }
+	Storage* GetStorage() { return storage; }
 	
 	Unit* GetUnits() { return units; }
 	int NumUnits() const;
@@ -328,14 +328,14 @@ public:
 	}
 
 	virtual void Save( FILE* fp, int depth );
-	virtual void Load( const TiXmlElement* doc, Game* game, Storage* allBaseStorage );
+	virtual void Load( const TiXmlElement* doc, Game* game );
 
 private:
 	void Init();
 	int index;
 	int nScientists;
 
-	//Storage* storage;
+	Storage* storage;
 	int facilityStatus[NUM_FACILITIES];	// -1, does not exist. 0, complete. >0 in progress
 	Unit units[MAX_TERRANS];
 };
@@ -423,8 +423,7 @@ public:
 	void Load(	const TiXmlElement* doc, 
 				SpaceTree* tree, 
 				const ItemDefArr& arr, 
-				Game* game,
-				Storage* baseStorage );
+				Game* game );
 
 private:
 	int idPool;

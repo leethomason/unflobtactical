@@ -5,7 +5,7 @@ Issues:
 - capatilism now gives you a 50% credit back.
 
 Bugs:
-- mod lookup not implemented on android
+- switch from XP to money bonus?
 
 Deferred:
 - chaining
@@ -20,6 +20,9 @@ Deferred:
 
 Fixed:
 
+- equip screen can buy soldiers !!
+- Unified base storage: breaks region bonuses
+- mod lookup not implemented on android
 - does multi base storage get merged and save correctly?
 - do soldiers & sci keep separate?
 - new help images

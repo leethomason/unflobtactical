@@ -270,7 +270,6 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 	geoMap = new GeoMap( GetEngine()->GetSpaceTree() );
 	tree = GetEngine()->GetSpaceTree();
 	geoAI = new GeoAI( geoMapData, this );
-	baseStorage = new Storage( 0, 0, game->GetItemDefArr() );
 
 	alienTimer = 0;
 	researchTimer = 0;
@@ -324,7 +323,6 @@ GeoScene::~GeoScene()
 	}
 	delete geoMap;
 	delete geoAI;
-	delete baseStorage;
 }
 
 
@@ -426,7 +424,7 @@ void GeoScene::HandleItemTapped( const gamui::UIItem* item )
 			CharacterSceneData* input = new CharacterSceneData();
 			input->unit = baseChit->GetUnits();
 			input->nUnits = baseChit->NumUnits();
-			input->storage = baseStorage;
+			input->storage = baseChit->GetStorage();
 			game->PushScene( Game::CHARACTER_SCENE, input );
 		}
 	}
@@ -560,12 +558,7 @@ void GeoScene::Tap(	int action,
 		{
 			if ( PlaceBase( mapi ) ) {
 				int region = geoMapData.GetRegion( mapi );
-				if ( regionData[region].traits & RegionData::TRAIT_CAPATALIST ) {
-					cash -= BASE_COST[ chitBag.NumBaseChits()-1]/2;
-				}
-				else {
-					cash -= BASE_COST[ chitBag.NumBaseChits()-1 ];
-				}
+				cash -= BASE_COST[ chitBag.NumBaseChits()-1 ];
 			}			
 		}
 		else {
@@ -998,7 +991,7 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			data->nScientists	= baseChit->NumScientists();
 			data->dayTime		= geoMap->GetDayTime( ufoChit->Pos().x );
 			data->alienRank		= rank;
-			data->storage		= baseStorage;
+			data->storage		= baseChit->GetStorage();
 			chitBag.SetBattle( ufoChit->ID(), landerChit ? landerChit->ID() : 0, scenario );
 			game->Save();
 
@@ -1196,7 +1189,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 				memset( battleUnits, 0, sizeof(Unit)*MAX_UNITS );
 
 				// Merge storage
-				baseStorage->AddStorage( game->battleData.storage );
+				baseChit->GetStorage()->AddStorage( game->battleData.storage );
 				game->battleData.storage.Clear();
 
 				// If the tech isn't high enough, can't use cells and anti. Makes sure
@@ -1204,7 +1197,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 				static const char* remove[2] = { "Cell", "Anti" };
 				for( int i=0; i<2; ++i ) {
 					if ( research.GetStatus( remove[i] ) != Research::TECH_RESEARCH_COMPLETE ) {
-						baseStorage->ClearItem( remove[i] );
+						baseChit->GetStorage()->ClearItem( remove[i] );
 						for( int j=TERRAN_UNITS_START; j<TERRAN_UNITS_END; ++j ) {
 							baseUnits[j].GetInventory()->ClearItem( remove[i] );
 						}
@@ -1230,10 +1223,10 @@ void GeoScene::PushBaseTradeScene( BaseChit* baseChit )
 	BaseTradeSceneData* data = new BaseTradeSceneData( game->GetItemDefArr() );			
 	data->baseName   = baseChit->Name();
 	data->regionName = gRegionName[region];
-	data->base		 = baseStorage;	//baseChit->GetStorage();
+	data->base		 = baseChit->GetStorage();
 	regionData[region].SetStorageNormal( research, &data->region, AnyRegionHasTrait( RegionData::TRAIT_TECH ), AnyRegionHasTrait( RegionData::TRAIT_MANUFACTURE ) );
 	data->cash		 = &cash;
-	data->costMult	 = COST_MULT_STD; //regionData[region].traits & RegionData::TRAIT_CAPATALIST ? COST_MULT_CAP : COST_MULT_STD;
+	data->costMult	 = regionData[region].traits & RegionData::TRAIT_CAPATALIST ? COST_MULT_CAP : COST_MULT_STD;
 	data->soldierBoost = regionData[region].traits & RegionData::TRAIT_MILITARISTIC ? true : false;
 	data->soldiers	 = baseChit->CanUseSoldiers() ? baseChit->GetUnits() : 0;
 	data->scientists = baseChit->CanUseScientists() ? baseChit->GetScientstPtr() : 0;
@@ -1770,7 +1763,6 @@ void GeoScene::Save( FILE* fp, int depth )
 	XMLUtil::CloseElement( fp, depth+1, "RegionData" );
 
 	// ----------- chits ---------- //
-	baseStorage->Save( fp, depth+1 );
 	chitBag.Save( fp, depth+1 );
 	// ----------- research ------- //
 	research.Save( fp, depth+1 );
@@ -1800,8 +1792,7 @@ void GeoScene::Load( const TiXmlElement* scene )
 			areaWidget[i]->SetTraits( regionData[i].traits );
 		}
 	}
-	baseStorage->Load( scene );
-	chitBag.Load( scene, tree, game->GetItemDefArr(), game, baseStorage );
+	chitBag.Load( scene, tree, game->GetItemDefArr(), game );
 	research.Load( scene->FirstChildElement( "Research" ) );
 
 	GenerateCities();
