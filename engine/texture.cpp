@@ -66,8 +66,12 @@ void TextureManager::Reload()
 	for ( unsigned i=0; i<textureArr.Size(); ++i ) {
 		Texture* tex = &textureArr[i];
 		if ( tex->creator == 0 ) {
-			CStr< Texture::MAX_TEXTURE_NAME > name = tex->Name();
-			GetTexture( name.c_str(), true );
+			if ( tex->Name() ) {
+				CStr< Texture::MAX_TEXTURE_NAME > name = tex->Name();
+				if ( !name.empty() ) {
+					GetTexture( name.c_str(), true );
+				}
+			}
 		}
 	}
 }

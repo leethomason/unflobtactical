@@ -1514,6 +1514,12 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 				}
 				else {
 					// Find bases with units. Award "gunner" XP.
+					// Used to award xp. Not a bad thing,
+					// but awarding cash seems to make
+					// more sense to the player, and you
+					// don't get high level units who never
+					// run missions.
+					/*
 					for( int i=0; i<MAX_BASES; ++i ) {
 						BaseChit* baseChit = chitBag.GetBaseChit( i );
 						if ( baseChit ) {
@@ -1527,7 +1533,18 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 							}
 						}
 					}
-
+					*/
+					int type = chitIt->IsUFOChit()->Type();
+					switch( type ) {
+					case UFOChit::BATTLESHIP:
+						cash += 100;
+						break;
+					case UFOChit::FRIGATE:
+						cash += 50;
+						break;
+					default:
+						cash += 25;
+					}
 
 					chitIt->SetDestroyed();
 				}

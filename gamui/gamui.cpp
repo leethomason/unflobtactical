@@ -993,7 +993,7 @@ bool ToggleButton::HandleTap( TapAction action, float x, float y )
 
 
 DigitalBar::DigitalBar() : UIItem( Gamui::LEVEL_FOREGROUND ),
-	SPACING( 0.1f ),
+	SPACING( 0.15f ),
 	m_nTicks( 0 ),
 	m_width( DEFAULT_SIZE ),
 	m_height( DEFAULT_SIZE )

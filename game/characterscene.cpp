@@ -91,7 +91,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	compWidget.Init( &game->GetItemDefArr(), storage, unit, &gamui2D, blue, storageWidget->X(), 0, storageWidget->Width() );
 
 	unitCounter.Init( &gamui2D );
-	unitCounter.SetPos( 180, 0 );
+	unitCounter.SetPos( 190, inventoryWidget->TextY() );
 	unitCounter.SetVisible( false );
 	SetCounter( 0 );
 
