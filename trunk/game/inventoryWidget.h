@@ -39,6 +39,7 @@ public:
 	void TapMove( const grinliz::Vector2F& screen );
 
 	void SetInfoText( const ItemDef* );
+	float TextY() const { return nameRankUI.name.Y(); }
 
 private:
 	void DoLayout();

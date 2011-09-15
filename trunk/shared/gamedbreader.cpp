@@ -131,8 +131,10 @@ const Item* Reader::ChainItem( const Item* item ) const
 		for( int k=1; k<pathSize && alt; ++k ) {
 			alt = alt->Child( path[pathSize-1-k] );
 		}
-		if ( alt ) 
+		if ( alt ) {
+			GLOUTPUT(( "Chained item %x to %x\n", item, alt ));
 			return alt;
+		}
 	}
 	return item;
 }

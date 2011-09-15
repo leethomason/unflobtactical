@@ -45,6 +45,7 @@ AreaWidget::AreaWidget( Game* game,
 
 	bar.Init( container, 10, tick0Atom, tick1Atom, tick2Atom );
 	bar.SetSize( 70, 6 );
+	bar.SetRange( 0, 0 );
 
 	SetOrigin( 0, 0 );
 }
@@ -56,6 +57,7 @@ void AreaWidget::SetOrigin( float x, float y )
 
 	name.SetPos( x, y );
 	bar.SetPos( x, y+DY );
+
 	trait[0].SetPos( name.X() + name.Width(), name.Y() );
 	trait[1].SetPos( trait[0].X() + trait[0].Width(), trait[0].Y() );
 }
