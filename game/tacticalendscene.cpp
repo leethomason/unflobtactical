@@ -71,7 +71,12 @@ TacticalEndScene::TacticalEndScene( Game* _game ) : Scene( _game )
 		victory.SetText( "Victory!" );
 	}
 	else if ( nSoldiersStanding==0 ) {
-		victory.SetText( "Defeat." );
+		if ( game->battleData.scenario == TacticalIntroScene::TERRAN_BASE ) {
+			victory.SetText( "Base Destroyed." );
+		}
+		else {
+			victory.SetText( "Defeat." );
+		}
 	}
 	else {
 		victory.SetText( "Mission Summary:" );

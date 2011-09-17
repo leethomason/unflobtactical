@@ -35,6 +35,16 @@
 	- check on Samsung
 
 
+Alpha 685
+Windows Only
+- Mod file support! Check out README.txt for info.
+- Item descriptions
+- Gameplay: lost UFOs now get a cash bonus instead of XP
+- Gameplay: research dependencies fixed
+- UI: tweaked the inventory screen to hopefully be neater
+- Help: new images, cleaned up errors
+
+
 Changes in 2.3 v5 672
 Release v2.3 b672
 Meet the troops! A new face renderer gives identity and a unique look to the units. 2.3 also adds line-of-sight preview when firing and bug fixes.

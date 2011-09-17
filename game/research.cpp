@@ -91,6 +91,7 @@ Research::Research( const gamedb::Reader* _database, const ItemDefArr& itemDefAr
 		taskMap.Add( taskArr[i].name, &taskArr[i] ); 
 		taskArr[i].taskMap = &taskMap;
 		taskArr[i].itemMap = &itemMap;
+		//GLOUTPUT(( "Task: %s rp=%d\n", taskArr[i].name, taskArr[i].rpRequired ));
 	}
 
 	itemArr = new Item[itemMax];
@@ -106,6 +107,7 @@ Research::Research( const gamedb::Reader* _database, const ItemDefArr& itemDefAr
 			}
 		}
 	}
+
 }
 
 
