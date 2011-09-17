@@ -316,10 +316,13 @@ int UFOChit::DoTick( U32 deltaTime )
 	if ( ai != AI_CRASHED && hp <= 0 ) {
 		// Minor issue: there are no crashed battleship models.
 		// Should fix this, but until then, just blow up battleships
-		if ( type != BATTLESHIP )
+		if ( type != BATTLESHIP ) {
 			msg = MSG_UFO_CRASHED;
-		else
+		}
+		else {
+			msg = MSG_BATTLESHIP_DESTROYED;
 			SetDestroyed();
+		}
 	} 
 	else if ( ai == AI_PARKED ) 
 	{

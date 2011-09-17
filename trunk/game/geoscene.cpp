@@ -1488,9 +1488,21 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 			}
 			break;
 
+			case Chit::MSG_BATTLESHIP_DESTROYED:
+				cash += 50;
+				break;
+
 			case Chit::MSG_UFO_CRASHED:
 			{
 				SoundManager::Instance()->QueueSound( "geo_ufo_crash" );
+
+				// Battleships use a different message, above.
+				if ( chitIt->IsUFOChit()->Type() == UFOChit::FRIGATE ) {
+					cash += 25;
+				}
+				else {
+					cash += 10;
+				}
 
 				// Can only crash on open space.
 				// Check for UFOs, bases.
@@ -1534,18 +1546,6 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 						}
 					}
 					*/
-					int type = chitIt->IsUFOChit()->Type();
-					switch( type ) {
-					case UFOChit::BATTLESHIP:
-						cash += 100;
-						break;
-					case UFOChit::FRIGATE:
-						cash += 50;
-						break;
-					default:
-						cash += 25;
-					}
-
 					chitIt->SetDestroyed();
 				}
 

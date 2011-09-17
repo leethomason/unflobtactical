@@ -113,7 +113,7 @@
         The versatile ASLT has been improved based on analysis of alien Ray Guns. ASLT-2 Gecko is a lighter, more accurate, and more powerful weapon than its predecessor.
         <required1 item="RAY-2" />  <!-- was PLS, but PLS is hard to get w/o destroyer. And destroyer hard to get without ALST-2 -->
       </ASLT-2>      
-      <ASLT-3 points="40">
+      <ASLT-3 points="60">
         The ASLT-3 Pulse Rifle is a hybrid of Terran and alien technology. It is a very
         effective all purpose weapon for wiping out the alien scourge.
         <required0 research="Hornet" />
@@ -126,14 +126,11 @@
         the Long Range rifle and upgrade to the LR-2 Marksman.
         <required0 item="RAY-1" />
       </LR-2>
-      <!-- the T-3 weapons and armor can only be manufactured in 
-           certain regions. therefore the tech is cheap to get,
-           else the regien benefit is irrelevant. -->
-      <LR-3 points="40">
+      <LR-3 points="60">
         Based on alien stabilization technology, the Callahan LR-3 does high damage and
         is extremely accurate.
-        <!--<required0 research="Prime" />-->
-        <required0 research="LR-2" />
+        <required0 research="Hornet" />
+        <required1 research="LR-2" />
         <!--<required2 item="RAY-3" />-->
       </LR-3>
 
@@ -142,7 +139,7 @@
         heavy weapon platform. We present the MCAN-2 Valiant.
         <required0 item="STRM-1" />
       </MCAN-2>
-      <MCAN-3 points="40">
+      <MCAN-3 points="60">
         Study of the alien Storm-3 and Jackal's targeting system has allowed us to 
         develop a devastating yet portable weapon platform called the MCAN-3 Dauntless.
         <required0 research="MCAN-2" />
@@ -169,12 +166,12 @@
         <required1 research="Prime" />
       </SG:E>
 
-      <ARM-2 points="35">
+      <ARM-2 points="40">
         We have improved the strength of standard combat armor, with the
         same weight and mobility.
         <required0 research="LR-2" />
       </ARM-2>
-      <ARM-3 points="38">
+      <ARM-3 points="80">
         Based on alien memory alloy technology, the ARM-3 is very good
         protection for field engagements.
         <required0 research="ARM-2" />
