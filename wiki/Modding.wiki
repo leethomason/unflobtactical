@@ -1,20 +1,25 @@
-
 = Introduction =
 
 This outlines how to create mod files for Xenowar, and is current as of version 2.4 of the game.
 
 = Using a Mod =
 
-Currently PC Only.
+A list of mods files can be found here:
+http://code.google.com/p/unflobtactical/issues/list?can=2&q=label%3AMod
 
-  # Get a .xwdb data file.
+PC:
+  # Download a .xwdb data file.
   # Open your xenowar directory.
   # Go into the 'mods' sub-directory.
   # Put the .xwdb file in this directory.
   # Run the game, and select the mod in the settings screen.
 
-= Creating a Mod = 
+Android:
+  # Run the game, b688 or higher. (2.4). This registers .xwdb files.
+  # With the Android browser, download a mod file.
+  # Run the game, and select the mod in the settings screen.
 
+= Creating a Mod = 
 
 == How Xenowar Mods work ==
 
