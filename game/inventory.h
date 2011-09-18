@@ -46,8 +46,9 @@ public:
 
 	Inventory();
 
-	// Add an item. returns slot if successful, -1 if not
-	int AddItem( const Item& item );
+	// Add an item. returns slot if successful, -1 if not.
+	// Dropped item allows an upgrade; can be null.
+	int AddItem( const Item& item, Item* dropped );
 	int AddItem( int slot, const Item& item );
 
 	bool RemoveItem( int slot );
@@ -87,6 +88,7 @@ public:
 	void GetDamageReduction( DamageDesc* );
 
 private:
+	int UpgradeItem( const Item& item, int slot, Item* dropped );
 	Item slots[NUM_SLOTS];
 };
 

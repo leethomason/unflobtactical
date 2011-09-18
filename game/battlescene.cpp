@@ -481,13 +481,13 @@ void BattleScene::Load( const TiXmlElement* battleElement )
 	selection.Clear();
 
 	GLASSERT( battleElement );
+	if ( !battleElement )
+		return;
 
-	if ( battleElement ) {
-		battleElement->QueryIntAttribute( "currentTeamTurn", &currentTeamTurn );
-		turnCount = 0;
-		battleElement->QueryIntAttribute( "turnCount", &turnCount );
-	}
-
+	battleElement->QueryIntAttribute( "currentTeamTurn", &currentTeamTurn );
+	turnCount = 0;
+	battleElement->QueryIntAttribute( "turnCount", &turnCount );
+	
 	tacMap->Load( battleElement->FirstChildElement( "Map") );
 
 	game->battleData.Load( battleElement );
@@ -1427,7 +1427,7 @@ void BattleScene::ProcessInventoryAI( Unit* theUnit )
 #ifdef DEBUG
 			int slot = 
 #endif
-			inventory->AddItem( item );
+			inventory->AddItem( item, 0 );
 			GLRELASSERT( slot == Inventory::WEAPON_SLOT );
 			AI_LOG(( "'%s' ", item.Name() ));
 
@@ -1437,7 +1437,7 @@ void BattleScene::ProcessInventoryAI( Unit* theUnit )
 				while ( storage->GetCount( wid->GetClipItemDef( mode[k] ) ) ) {
 					Item item;
 					storage->RemoveItem( wid->GetClipItemDef( mode[k] ), &item );
-					if ( inventory->AddItem( item ) < 0 ) {
+					if ( inventory->AddItem( item, 0 ) < 0 ) {
 						storage->AddItem( item );
 						break;
 					}

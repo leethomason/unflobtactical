@@ -310,7 +310,7 @@ public:
 	int* GetScientstPtr()				{ return &nScientists; }
 
 	bool IsFacilityComplete( int i )	const	{ return facilityStatus[i] == 0; }
-	bool IsFacilityInProgress( int i )			{ return facilityStatus[i] > 0; }
+	//bool IsFacilityInProgress( int i )			{ return facilityStatus[i] > 0; }
 	void BuildFacility( int i )					
 	{ 
 		GLASSERT( facilityStatus[i] < 0 ); 

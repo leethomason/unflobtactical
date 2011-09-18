@@ -1132,11 +1132,11 @@ void ChitBag::Load( const TiXmlElement* doc,
 
 	const TiXmlElement* bag = doc->FirstChildElement( "ChitBag" );
 	Clear();
-	bag->QueryIntAttribute( "battleUFOID", &battleUFOID );
-	bag->QueryIntAttribute( "battleLanderID", &battleLanderID );
-	bag->QueryIntAttribute( "battleScenario", &battleScenario );
-
 	if ( bag ) {
+		bag->QueryIntAttribute( "battleUFOID", &battleUFOID );
+		bag->QueryIntAttribute( "battleLanderID", &battleLanderID );
+		bag->QueryIntAttribute( "battleScenario", &battleScenario );
+
 		for( const TiXmlElement* chitEle = bag->FirstChildElement(); chitEle; chitEle=chitEle->NextSiblingElement() ) {
 			if ( StrEqual( chitEle->Value(), "UFOChit" ) ) {
 				UFOChit* ufoChit = new UFOChit( tree, 0, v0, v1 );

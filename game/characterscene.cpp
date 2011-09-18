@@ -448,12 +448,16 @@ void CharacterScene::StorageToInventory( const ItemDef* itemDef )
 	if ( itemDef ) {
 		Item item;
 		storage->RemoveItem( itemDef, &item );
+		Item dropped;
 
 		if ( item.IsSomething() ) {
 			Inventory* inv = unit->GetInventory();
-			if ( inv->AddItem( item ) < 0 ) {
+			if ( inv->AddItem( item, &dropped ) < 0 ) {
 				// Couldn't add to inventory. Return to storage.
 				storage->AddItem( item );
+			}
+			if ( dropped.IsSomething() ) {
+				storage->AddItem( dropped );
 			}
 		}
 	}
