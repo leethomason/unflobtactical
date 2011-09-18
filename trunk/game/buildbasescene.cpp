@@ -84,11 +84,11 @@ void BuildBaseScene::UpdateButtons()
 			progressLabel[i].SetVisible( true );
 			progressLabel[i].SetText( facilityNames[i] );
 		}
-		else if ( data->baseChit->IsFacilityInProgress( i ) ) {
-			// Being built. Can't buy.
-			buyButton[i].SetVisible( false );
-			progressLabel[i].SetVisible( true );
-		}
+//		else if ( data->baseChit->IsFacilityInProgress( i ) ) {
+//			// Being built. Can't buy.
+//			buyButton[i].SetVisible( false );
+//			progressLabel[i].SetVisible( true );
+//		}
 		else {
 			// Can purchase.
 			buyButton[i].SetVisible( true );

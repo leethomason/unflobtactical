@@ -1108,7 +1108,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 									if ( itemDef ) {
 										Item item;
 										game->battleData.storage.RemoveItem( itemDef, &item );
-										battleUnits[i].GetInventory()->AddItem( item );
+										battleUnits[i].GetInventory()->AddItem( item, 0 );
 									}
 								}
 							}
@@ -1268,29 +1268,29 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 		if ( research.GetStatus( "Beacon" ) == Research::TECH_RESEARCH_COMPLETE ) {
 			if ( !chitBag.GetUFOBase() ) {
-				// find tundra. We'de rather have tundra, but try everything.
-				int x = random.Rand( GEO_MAP_X );
-				int y = 0;
-				while( y < GEO_MAP_Y ) {
-					Vector2I p = { x, 0 };
+				// Just run through everything to find the tundra.
+				const static int MAX=32;
+				int nLoc=0;
+				Vector2I loc[MAX];
 
-					if (    geoMapData.GetType( x, 0 ) == GeoMapData::TUNDRA
-						&& chitBag.GetParkedChitAt( p ) == 0
-						&& chitBag.GetBaseChitAt( p ) == 0 ) 
-					{
-						Vector2F pf = { (float)x+0.5f, 0.5f };
-						UFOChit* chit = new UFOChit( GetEngine()->GetSpaceTree(), UFOChit::BASE, pf, pf );
-						chit->SetAI( UFOChit::AI_PARKED );
-						chitBag.Add( chit );
-						break;
-					}
-					else {
-						++x;
-						if ( x == GEO_MAP_X ) {
-							x = 0;
-							y++;
+				for( int y=0; y<GEO_MAP_Y && nLoc < MAX; ++y ) {
+					for( int x=0; x<GEO_MAP_X && nLoc < MAX; ++x ) {
+						Vector2I p = { x, y };
+
+						if (    geoMapData.GetType( x, 0 ) == GeoMapData::TUNDRA
+							&& chitBag.GetParkedChitAt( p ) == 0
+							&& chitBag.GetBaseChitAt( p ) == 0 ) 
+						{
+							loc[nLoc++] = p;
 						}
 					}
+				}
+				if ( nLoc > 0 ) {
+					Vector2I p = loc[ random.Rand( nLoc ) ];
+					Vector2F pf = { (float)p.x+0.5f, (float)p.y+0.5f };
+					UFOChit* chit = new UFOChit( GetEngine()->GetSpaceTree(), UFOChit::BASE, pf, pf );
+					chit->SetAI( UFOChit::AI_PARKED );
+					chitBag.Add( chit );
 				}
 			}
 		}

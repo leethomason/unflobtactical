@@ -883,7 +883,7 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 
 			// Add the weapon.
 			Item item( itemDefArr, weapon[i][rank] );
-			unit[index].GetInventory()->AddItem( item );
+			unit[index].GetInventory()->AddItem( item, 0 );
 
 			// Add ammo.
 			const WeaponItemDef* weaponDef = item.GetItemDef()->IsWeapon();
@@ -891,11 +891,11 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 
 			for( int n=0; n<2; ++n ) {
 				Item ammo( weaponDef->GetClipItemDef( kSnapFireMode ) );
-				unit[index].GetInventory()->AddItem( ammo );
+				unit[index].GetInventory()->AddItem( ammo, 0 );
 			}
 			if ( weaponDef->HasWeapon( kAltFireMode ) ) {
 				Item ammo( weaponDef->GetClipItemDef( kAltFireMode ) );
-				unit[index].GetInventory()->AddItem( ammo );
+				unit[index].GetInventory()->AddItem( ammo, 0 );
 			}
 			++index;
 		}
@@ -939,7 +939,7 @@ void TacticalIntroScene::GenerateTerranTeam(	Unit* unit,				// target units to w
 
 		// Add the weapon.
 		Item item( itemDefArr, weapon[position][rank] );
-		unit[k].GetInventory()->AddItem( item );
+		unit[k].GetInventory()->AddItem( item, 0 );
 
 		// Add ammo.
 		const WeaponItemDef* weaponDef = item.GetItemDef()->IsWeapon();
@@ -947,24 +947,24 @@ void TacticalIntroScene::GenerateTerranTeam(	Unit* unit,				// target units to w
 
 		for( int n=0; n<2; ++n ) {
 			Item ammo( weaponDef->GetClipItemDef( kSnapFireMode ) );
-			unit[k].GetInventory()->AddItem( ammo );
+			unit[k].GetInventory()->AddItem( ammo, 0 );
 		}
 		if ( weaponDef->HasWeapon( kAltFireMode ) ) {
 			Item ammo( weaponDef->GetClipItemDef( kAltFireMode ) );
-			unit[k].GetInventory()->AddItem( ammo );
+			unit[k].GetInventory()->AddItem( ammo, 0 );
 		}
 
 		// Add extras
 		{
 			rank = RandomRank( &aRand, baseRank );
 			Item armor( itemDefArr, armorType[rank] );
-			unit[k].GetInventory()->AddItem( armor );
+			unit[k].GetInventory()->AddItem( armor, 0 );
 		}
 
 		rank = RandomRank( &aRand, baseRank );
 		for( int i=0; i<=rank; ++i ) {
 			Item extra( itemDefArr, extraItems[i] );
-			unit[k].GetInventory()->AddItem( extra );
+			unit[k].GetInventory()->AddItem( extra, 0 );
 		}
 	}
 }

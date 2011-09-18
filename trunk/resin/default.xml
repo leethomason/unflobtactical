@@ -118,7 +118,7 @@
         effective all purpose weapon for wiping out the alien scourge.
         <required0 research="Hornet" />
         <required1 research="ASLT-2" />
-        <!--<required2 item="PLS-3" />-->
+        <required2 item="PLS-2" />
       </ASLT-3>
 
       <LR-2 points="40">
@@ -131,7 +131,7 @@
         is extremely accurate.
         <required0 research="Hornet" />
         <required1 research="LR-2" />
-        <!--<required2 item="RAY-3" />-->
+        <required2 item="RAY-2" />
       </LR-3>
 
       <MCAN-2 points="40">
@@ -143,8 +143,8 @@
         Study of the alien Storm-3 and Jackal's targeting system has allowed us to 
         develop a devastating yet portable weapon platform called the MCAN-3 Dauntless.
         <required0 research="MCAN-2" />
-        <!--<required1 item="STRM-3" />-->
-        <required1 research="Jackal" />
+        <required1 item="STRM-2" />
+        <required2 research="Jackal" />
       </MCAN-3>
 
       <SG:K points="60">

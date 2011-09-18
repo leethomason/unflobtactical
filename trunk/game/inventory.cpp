@@ -85,7 +85,7 @@ bool Inventory::IsGeneralSlotFree()
 bool Inventory::IsSlotFree( const ItemDef* itemDef )
 {
 	Item item( itemDef );
-	int slot = AddItem( item );
+	int slot = AddItem( item, 0 );
 	if ( slot >= 0 ) {
 		RemoveItem( slot );
 		return true;
@@ -94,12 +94,36 @@ bool Inventory::IsSlotFree( const ItemDef* itemDef )
 }
 
 
-int Inventory::AddItem( const Item& item )
+int Inventory::UpgradeItem( const Item& item, int slot, Item* dropped )
+{
+	// Same kind?
+	int len = strlen( slots[slot].Name() );
+	if (       len > 2 
+			&& strncmp( slots[slot].Name(), item.Name(), len-1 )==0	// ASTL- the same
+			&& slots[slot].Name()[len-1] < item.Name()[len-1]// is it an upgrade?
+			&& IsGeneralSlotFree() )
+	{
+		*dropped = slots[slot];
+		slots[slot] = item;
+		return slot;
+	}
+	return -1;
+}
+
+
+int Inventory::AddItem( const Item& item, Item* dropped )
 {
 	GLASSERT( slots[WEAPON_SLOT].IsNothing() || slots[WEAPON_SLOT].IsWeapon() );
 	GLASSERT( slots[ARMOR_SLOT].IsNothing() || slots[ARMOR_SLOT].IsArmor() );
 
 	if ( item.IsWeapon() ) {
+
+		if ( dropped && slots[WEAPON_SLOT].IsWeapon() ) {
+			int result = UpgradeItem( item, WEAPON_SLOT, dropped );
+			if ( result >= 0 ) 
+				return result;
+		}
+
 		if ( slots[WEAPON_SLOT].IsNothing() ) {
 			slots[WEAPON_SLOT] = item;
 			return WEAPON_SLOT;
@@ -107,6 +131,11 @@ int Inventory::AddItem( const Item& item )
 	}
 
 	if ( item.IsArmor() ) {
+		if ( dropped && slots[ARMOR_SLOT].IsArmor() ) {
+			int result = UpgradeItem( item, ARMOR_SLOT, dropped );
+			if ( result >= 0 ) 
+				return result;
+		}
 		if ( slots[ARMOR_SLOT].IsNothing() ) {
 			slots[ARMOR_SLOT] = item;
 			return ARMOR_SLOT;
@@ -307,7 +336,7 @@ void Inventory::Load( const TiXmlElement* parent, const ItemDefArr& arr )
 		{
 			Item item;
 			item.Load( slot, arr );
-			AddItem( item );
+			AddItem( item, 0 );
 			++count;
 		}
 	}
