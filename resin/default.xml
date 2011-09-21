@@ -84,7 +84,7 @@
       </Anti>
       <Frigate points="40">
         The Frigate is a medium ship that carries about 12 units, suited for both crop circle missions and city attack. 
-        The frigate computer core is has much more sophisticated navigation and communication abilities than the Scout.
+        The frigate computer core has much more sophisticated navigation and communication abilities than the Scout.
         <required0 research="AlienTech" />
         <required1 research="Scout" />
         <required2 item="Cor:F" />
