@@ -45,7 +45,7 @@ public:
 		const CStringMap<Research::Task*>* taskMap;			
 		const CStringMap<Research::Item*>* itemMap;			
 
-		bool IsComplete() const { return rp == rpRequired; }
+		bool IsComplete() const { return rp >= rpRequired; }
 		
 		bool HasItems() const;
 		bool HasPreReq() const;

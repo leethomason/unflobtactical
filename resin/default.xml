@@ -150,7 +150,7 @@
       <SG:K points="60">
         Shield Generators are based on alien field technology. They enhance
         armor. The SG:K protects against kinetic (mass driver) weapons.
-        <required0 research="Cor:S" />
+        <required0 item="Cor:S" />
         <required1 research="Viper" />
       </SG:K>
       <SG:I points="80">
