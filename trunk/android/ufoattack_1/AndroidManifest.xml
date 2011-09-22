@@ -7,13 +7,16 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Attempt to get android browser to download xwdb files. Failed. 
             <intent-filter>
 			    <action android:name="android.intent.action.VIEW" />
 			    <category android:name="android.intent.category.DEFAULT" />
 			    <category android:name="android.intent.category.BROWSABLE" />
-			    <data android:mimeType="*/*" />
-			    <data android:pathPattern="*.*\\.xwdb" />
+			    <data android:scheme="file" />
+			    <data android:host="*" />
+			    <data android:pathPattern=".*\\.xwdb" />
 			</intent-filter>
+			-->
 			            
         </activity>
     </application>
