@@ -35,6 +35,20 @@
 	- check on Samsung
 
 
+Release v2.4 b691 Android / Windows
+Now supports mod files, so you can use or create alternate graphics for the game. Also
+many gameplay fixes and tweaks to smooth out the geo-game.
+
+- Mod file support! Check out README.txt for info.
+- Item descriptions (to some degree)
+- Gameplay: lost UFOs now get a cash bonus instead of XP
+- Gameplay: research dependencies fixed
+- UI: tweaked the inventory screen to hopefully be neater
+- Help: new images, cleaned up errors
+- Rebalanced begin game vs. end game cash flow (special thanks to Reenen in the forums for feedback on this and other issues.)
+- Tap to upgrade weapons / armor in inventory UI
+- Fix to research dependencies
+
 Xenowar_688_beta
 - Mod file support! Check out README.txt for info.
 - Item descriptions
