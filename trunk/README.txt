@@ -52,11 +52,27 @@ You can select the mod you wish to use in the game settings.
 Please be aware than an ill-constructed mod file can cause you game to crash or render incorrectly. 
 If this happens, just delete the mod file.
 
+
 -- Using Mods, Win32 --
 
 On Win32, place the .xwdb files in the 'mods' subdirectory where you installed you game. When
 you next start the game, the mod will be available in the settings screen. You can change the 
 mod, or set it back to the default, at any time from the settings screen.
+
+
+-- Using Mods, Android
+
+If your browser supports unknown file type downloads, you can download the .xwdb file. It will
+be placed in the 'dowloads' folder of your SD card, and Xenowar will scan it the next time 
+the game starts.
+
+If your browser does NOT support unknown file type downloads, you will get an error message 
+from the browser, or a "download could not be completed" in the notification drop down. You 
+can then place .xwbd files in the "downloads" subdirectory of your media card when it is 
+mounted to your PC.
+
+Some download managers can also download unknown file types.
+
 
 -- Modding the Game --
 
