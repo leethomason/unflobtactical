@@ -896,11 +896,84 @@ void ProcessPalette( TiXmlElement* pal )
 }
 
 
+void ProcessFont( TiXmlElement* font )
+{
+	GLString pathName, assetName;
+	ParseNames( font, &assetName, &pathName, 0 );
+
+	SDL_Surface* surface = libIMG_Load( pathName.c_str() );
+	if ( !surface ) {
+		printf( "**Could not load: %s\n", pathName.c_str() );
+		exit( 1 );
+	}
+	ProcessTexture( font );
+
+	printf( "font asset='%s'\n",
+		    assetName.c_str() );
+	gamedb::WItem* witem = writer->Root()->FetchChild( "data" )
+										 ->FetchChild( "fonts" )
+										 ->CreateChild( assetName.c_str() );
+	
+	// Read the data tags. These describe the font.
+	static const char* tags[] = { "info", "common", 0 };
+	for( int i=0; tags[i]; ++i ) {
+		const char* tag = tags[i];
+		
+		const TiXmlElement* element = font->FirstChildElement( tag );
+		if ( !element ) {
+			printf( "**Element '%s' not found, but expected in font.\n", tag );
+			exit( 1 );
+		}
+		
+		gamedb::WItem* tagItem = witem->CreateChild( tag );
+		for( const TiXmlAttribute* attrib=element->FirstAttribute();
+			 attrib;
+			 attrib = attrib->Next() )
+		{
+			tagItem->SetInt( attrib->Name(), attrib->IntValue() );
+		}
+	}
+
+	// Character data.
+	const TiXmlElement* charsElement = font->FirstChildElement( "chars" );
+	if ( !charsElement ) {
+		printf( "** Font contains no 'chars' element.\n" );
+		exit( 1 );
+	}
+
+	gamedb::WItem* charsItem = witem->CreateChild( "chars" );
+
+	for( const TiXmlElement* charElement = charsElement->FirstChildElement( "char" );
+		 charElement;
+		 charElement = charElement->NextSiblingElement( "char" ) )
+	{
+		// Gamedb items must be unique. Munge name and id.
+		char buffer[32];
+		int id = ' ';
+		charElement->QueryIntAttribute( "id", &id );
+		SNPrintf( buffer, 32, "%s%c", charElement->Value(), id );
+		gamedb::WItem* charItem = charsItem->CreateChild( buffer );
+
+		for( const TiXmlAttribute* attrib=charElement->FirstAttribute();
+			 attrib;
+			 attrib = attrib->Next() )
+		{
+			if ( !StrEqual( attrib->Name(), "id" ) ) {
+				charItem->SetInt( attrib->Name(), attrib->IntValue() );
+			}
+		}
+	}
+}
+
+
+
 int main( int argc, char* argv[] )
 {
 	printf( "UFO Builder. argc=%d argv[1]=%s\n", argc, argv[1] );
 	if ( argc < 3 ) {
-		printf( "Usage: ufobuilder ./path/xmlFile.xml ./outPath/filename.db\n" );
+		printf( "Usage: ufobuilder ./path/xmlFile.xml ./outPath/filename.db <options>\n" );
+		printf( "options:\n" );
+		printf( "    -d    print database\n" );
 		exit( 1 );
 	}
 
@@ -909,6 +982,12 @@ int main( int argc, char* argv[] )
 
 	inputFullPath = argv[1];
 	outputPath = argv[2];
+	bool printDatabase = false;
+	for( int i=3; i<argc; ++i ) {
+		if ( StrEqual( argv[i], "-d" ) ) {
+			printDatabase = true;
+		}
+	}
 
 	GLString _inputFullPath( inputFullPath.c_str() ), _inputDirectory, name, extension;
 	grinliz::StrSplitFilename( _inputFullPath, &_inputDirectory, &name, &extension );
@@ -953,25 +1032,9 @@ int main( int argc, char* argv[] )
 		exit( 2 );
 	}
 
-	//xmlDoc.FirstChildElement()->QueryStringAttribute( "output", &outputPath );
-	//xmlDoc.FirstChildElement()->QueryStringAttribute( "outputDB", &outputDB );
-
-	//printf( "Output Path: %s\n", outputPath.c_str() );
-	//printf( "Output DataBase: %s\n", outputDB.c_str() );
 	printf( "Processing tags:\n" );
 
 	// Remove the old table.
-	/*
-#pragma warning ( push )
-#pragma warning ( disable : 4996 )	// fopen is unsafe. For video games that seems extreme.
-	FILE* fp = fopen( outputPath.c_str(), "wb" );
-#pragma warning (pop)
-	fclose( fp );
-	*/
-	//int sqlResult = sqlite3_open( outputDB.c_str(), &db);
-	//GLASSERT( sqlResult == SQLITE_OK );
-	//writer = new BinaryDBWriter( db, true );
-	//CreateDatabase();
 	writer = new gamedb::Writer();
 
 	for( TiXmlElement* child = xmlDoc.FirstChildElement()->FirstChildElement();
@@ -998,6 +1061,9 @@ int main( int argc, char* argv[] )
 		else if ( child->ValueStr() == "palette" ) {
 			ProcessPalette( child );
 		}
+		else if ( child->ValueStr() == "font" ) {
+			ProcessFont( child );
+		}
 		else {
 			printf( "Unrecognized element: %s\n", child->Value() );
 		}
@@ -1012,5 +1078,12 @@ int main( int argc, char* argv[] )
 
 	writer->Save( outputPath.c_str() );
 	delete writer;
+
+	if ( printDatabase ) {
+		gamedb::Reader reader;
+		reader.Init( 0, outputPath.c_str(), 0 );
+		reader.RecWalk( reader.Root(), 0 );
+	}
+
 	return 0;
 }
