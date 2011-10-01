@@ -337,6 +337,25 @@ public:
 };
 
 
+/*
+class IGamuiText
+{
+public:
+	struct GlyphMetrics {
+		float advance;				// distance in pixels from this glyph to the next.
+		float lineHeight;
+		float x, y, w, h;			// glyph bounds - fed to the renderer - assuming (0,0) is
+									// the top left.
+		float tx0, ty0, tx1, ty1;	// texture coordinates of the glyph
+	};
+
+	virtual ~IGamuiText()	{}
+	virtual void GamuiGlyph( int c0, int c1,	// character, next character
+							 float height,
+							 gamui::IGamuiText::GlyphMetrics* metric ) = 0;
+};
+*/
+
 class UIItem
 {
 public:
