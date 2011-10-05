@@ -125,7 +125,7 @@ public:
 class TextMetrics : public IGamuiText
 {
 public:
-	virtual void GamuiGlyph( int c, GlyphMetrics* metric )
+	virtual void GamuiGlyph( int c, int c1, float height, GlyphMetrics* metric )
 	{
 		if ( c <= 32 || c >= 32+96 ) {
 			c = 32;
@@ -136,10 +136,14 @@ public:
 
 		float tx0 = (float)x / 16.0f;
 		float ty0 = (float)y / 8.0f;
+		float scale = height / 16.f;	// 16 is the intended size.
 
-		metric->advance = 10;
-		metric->width = 16;
-		metric->height = 16;
+		metric->advance = 10.f*scale;
+		metric->x = -3.f*scale;
+		metric->w = 16.f*scale;
+		metric->y = 0;
+		metric->h = 16.f*scale;
+
 		metric->tx0 = tx0;
 		metric->tx1 = tx0 + (1.f/16.f);
 

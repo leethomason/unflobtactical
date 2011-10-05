@@ -151,12 +151,12 @@ void Game::LoadTextures()
 	texman->CreateTexture( "black", 2, 2, Surface::RGB16, Texture::PARAM_NONE, this );
 	texman->CreateTexture( "faces", 64*MAX_TERRANS, 64, Surface::RGBA16, Texture::PARAM_NONE, this );
 
-	const gamedb::Item* node = database0->Root()->Child( "textures" )->Child( "stdfont2" );
+	const gamedb::Item* node = database0->Root()->Child( "textures" )->Child( "font" );
 	GLASSERT( node );
 	node = database0->ChainItem( node );
-	int metricsSize = node->GetDataSize( "metrics" );
-	GLASSERT( metricsSize == UFOText::GLYPH_CX*UFOText::GLYPH_CY*sizeof(GlyphMetric) );
-	node->GetData( "metrics", UFOText::MetricsPtr(), metricsSize );
+	//int metricsSize = node->GetDataSize( "metrics" );
+	//GLASSERT( metricsSize == UFOText::GLYPH_CX*UFOText::GLYPH_CY*sizeof(GlyphMetric) );
+	//node->GetData( "metrics", UFOText::MetricsPtr(), metricsSize );
 }
 
 
@@ -592,8 +592,8 @@ void Game::LoadAtoms()
 {
 	TextureManager* tm = TextureManager::Instance();
 
-	renderAtoms[ATOM_TEXT].Init( (const void*)UIRenderer::RENDERSTATE_UI_TEXT, (const void*)tm->GetTexture( "stdfont2" ), 0, 0, 1, 1 );
-	renderAtoms[ATOM_TEXT_D].Init( (const void*)UIRenderer::RENDERSTATE_UI_TEXT_DISABLED, (const void*)tm->GetTexture( "stdfont2" ), 0, 0, 1, 1 );
+	renderAtoms[ATOM_TEXT].Init( (const void*)UIRenderer::RENDERSTATE_UI_TEXT, (const void*)tm->GetTexture( "font" ), 0, 0, 1, 1 );
+	renderAtoms[ATOM_TEXT_D].Init( (const void*)UIRenderer::RENDERSTATE_UI_TEXT_DISABLED, (const void*)tm->GetTexture( "font" ), 0, 0, 1, 1 );
 
 	renderAtoms[ATOM_TACTICAL_BACKGROUND].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE, (const void*)tm->GetTexture( "intro" ), 0, 0, 1, 1 );
 	renderAtoms[ATOM_TACTICAL_BACKGROUND_TEXT].Init( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)tm->GetTexture( "title" ), 0, 0, 1, 1 );

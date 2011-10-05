@@ -25,10 +25,11 @@
 using namespace grinliz;
 
 const float SMALL_SCALE = 0.75f;
-const int TEXTURE_WIDTH = 256;
-const int TEXTURE_HEIGHT = 128;
-const int GLYPH_WIDTH = TEXTURE_WIDTH / UFOText::GLYPH_CX;
-const int GLYPH_HEIGHT = TEXTURE_HEIGHT / UFOText::GLYPH_CY;
+const float DEFAULT_HEIGHT = 16.f;
+//const int TEXTURE_WIDTH = 256;
+//const int TEXTURE_HEIGHT = 128;
+//const int GLYPH_WIDTH = TEXTURE_WIDTH / UFOText::GLYPH_CX;
+//const int GLYPH_HEIGHT = TEXTURE_HEIGHT / UFOText::GLYPH_CY;
 
 
 PTVertex2 UFOText::vBuf[BUF_SIZE*4];
@@ -37,7 +38,8 @@ U16 UFOText::iBuf[BUF_SIZE*6] = { 0, 0 };
 
 Screenport* UFOText::screenport = 0;
 Texture* UFOText::texture = 0;
-GlyphMetric UFOText::glyphMetric[GLYPH_CX*GLYPH_CY];
+const gamedb::Reader* UFOText::database = 0;
+//GlyphMetric UFOText::glyphMetric[GLYPH_CX*GLYPH_CY];
 
 void UFOText::InitScreen( Screenport* sp )
 {
@@ -45,51 +47,76 @@ void UFOText::InitScreen( Screenport* sp )
 }
 
 
-void UFOText::InitTexture( Texture* tex )
+void UFOText::Init( Texture* tex, const gamedb::Reader* db )
 {
 	GLASSERT( tex );
+	GLASSERT( db );
 	texture = tex;
+	database = db;
 }
 
 
-void UFOText::Metrics(	int c,							// character in 
-						int* advance,					// advance, in pixels
-						int* width,
-						grinliz::Rectangle2I* src )		// location in texture, in pixels
+void UFOText::Metrics(	int c, int c1,
+						float lineHeight,
+						gamui::IGamuiText::GlyphMetrics* metric )
 {
-	int cy = (int)c / GLYPH_CX;
-	int cx = (int)c - cy*GLYPH_CX;
+	if ( c < 0 )  c += 256;
+	if ( c1 < 0 ) c1 += 256;
 
-	// Flip the y axis:
-	cy = GLYPH_CY - cy;
+	char buffer[] = "char0";
+	buffer[4] = (char)c;
 
-	GLASSERT( c < GLYPH_CX*GLYPH_CY );
-	GlyphMetric* g = &glyphMetric[c];
-	*width = g->width;
-	*advance = g->width+1;
+	// Find (or not) the item is the database.
+	const gamedb::Item* fontItem = database->Root()->Child( "data" )
+												   ->Child( "fonts" )
+												   ->Child( "font" );
+	fontItem = database->ChainItem( fontItem );
+	const gamedb::Item* infoItem = fontItem->Child( "info" );
+	const gamedb::Item* commonItem = fontItem->Child( "common" );
+	const gamedb::Item* charItem = fontItem->Child( "chars" )->Child( buffer );
 
-	if ( c == 0 ) {
-		*advance = *width = GLYPH_WIDTH * 2 / 4;
+	float fontSize = (float)infoItem->GetInt( "size" );
+	float scale = lineHeight / fontSize;
+	float texWidthInv = 1.0f / (float)commonItem->GetInt( "scaleW" );
+	float texHeight = (float)commonItem->GetInt( "scaleH" );
+	float texHeightInv = 1.0f / texHeight;
+
+	if ( charItem ) {
+		metric->advance = (float)charItem->GetInt( "xadvance" ) * scale;
+
+		float x = (float)charItem->GetInt( "x" );
+		float y = (float)charItem->GetInt( "y" );
+		float width = (float)charItem->GetInt( "width" );
+		float height = (float)charItem->GetInt( "height" );
+
+		metric->x = (float)charItem->GetInt( "xoffset" ) * scale;
+		metric->w = width * scale;
+		metric->y = (float)charItem->GetInt( "yoffset" ) * scale;
+		metric->h = height * scale;
+
+		metric->tx0 = x * texWidthInv;
+		metric->tx1 = (x + width) * texWidthInv;
+		metric->ty0 = (texHeight - 1.f - y) * texHeightInv;
+		metric->ty1 = (texHeight - 1.f - y - height) * texHeightInv;
 	}
-	src->Set(	cx*GLYPH_WIDTH + g->offset,
-				(cy-1)*GLYPH_HEIGHT,
-				cx*GLYPH_WIDTH + g->offset + g->width,
-				cy*GLYPH_HEIGHT );
+	else {
+		metric->advance = lineHeight * 0.5f;
+
+		metric->x = metric->y = metric->w = metric->h = 0;
+		metric->tx0 = metric->tx1 = metric->ty0 = metric->ty1 = 0;
+	}
 }
 
 
-void UFOText::TextOut( GPUShader* shader, const char* str, int x, int y, int* w, int *h )
+void UFOText::TextOut( GPUShader* shader, const char* str, int _x, int _y, int _h, int* w )
 {
-#ifdef USE_SMALLTEXT
-	bool smallText = false;
-#endif
 	bool rendering = true;
-	int xStart = x;
+	float x = (float)_x;
+	float y = (float)_y;
+	float h = (float)_h;
 
 	if ( w ) {
-		GLASSERT( h );
 		*w = 0;
-		*h = GLYPH_HEIGHT;
 		rendering = false;
 	}
 
@@ -112,59 +139,26 @@ void UFOText::TextOut( GPUShader* shader, const char* str, int x, int y, int* w,
 	int pos = 0;
 	while( *str )
 	{
-#ifdef USE_SMALLTEXT
-		if ( *str == '.' && *(str+1) ) {
-			smallText = true;
-			++str;
-			continue;
-		}
-		if ( smallText && !( *str >= '0' && *str <= '9' ) ) {
-			smallText = false;
-		}
-#endif
-
 		// Draw a glyph or nothing, at this point:
 		GLASSERT( pos < BUF_SIZE );
-		int c = *str - 32;
 
-		Rectangle2I src;
-		int advance, width;
-		Metrics( c, &advance, &width, &src );
+		gamui::IGamuiText::GlyphMetrics metric;
+		Metrics( *str, *(str+1), (float)h, &metric );
 
-		if ( c<=0 || c >= 128 ) {
-#ifdef USE_SMALLTEXT
-			float scale = smallText ? SMALL_SCALE : 1.0f;
-#else
-			float scale = 1.0f;
-#endif
-			x += LRintf((float)advance*scale);
+		if ( rendering ) {
+			vBuf[pos*4+0].tex.Set( metric.tx0, metric.ty0 );
+			vBuf[pos*4+1].tex.Set( metric.tx1, metric.ty0 );
+			vBuf[pos*4+2].tex.Set( metric.tx1, metric.ty1 );
+			vBuf[pos*4+3].tex.Set( metric.tx0, metric.ty1 );
+
+			vBuf[pos*4+0].pos.Set( (float)x+metric.x,			(float)y+metric.y );	
+			vBuf[pos*4+1].pos.Set( (float)x+metric.x+metric.w,	(float)y+metric.y );	
+			vBuf[pos*4+2].pos.Set( (float)x+metric.x+metric.w,	(float)y+metric.y+metric.h );	
+			vBuf[pos*4+3].pos.Set( (float)x+metric.x,			(float)y+metric.y+metric.h );				
 		}
-		else {
-			if ( rendering ) {
-				float tx0 = (float)src.min.x / (float)TEXTURE_WIDTH;
-				float tx1 = (float)src.max.x / (float)TEXTURE_WIDTH;
-				float ty0 = (float)src.min.y / (float)TEXTURE_HEIGHT;
-				float ty1 = (float)src.max.y / (float)TEXTURE_HEIGHT;
+		x += metric.advance;
+		++pos;
 
-				vBuf[pos*4+0].tex.Set( tx0, ty0 );
-				vBuf[pos*4+1].tex.Set( tx1, ty0 );
-				vBuf[pos*4+2].tex.Set( tx1, ty1 );
-				vBuf[pos*4+3].tex.Set( tx0, ty1 );
-			}
-#ifdef USE_SMALLTEXT
-			float scale = smallText ? SMALL_SCALE : 1.0f;
-#else
-			float scale = 1.0f;
-#endif
-			if ( rendering ) {
-				vBuf[pos*4+0].pos.Set( (float)x,					(float)(y+GLYPH_HEIGHT) );	
-				vBuf[pos*4+1].pos.Set( (float)x+(float)width*scale,	(float)(y+GLYPH_HEIGHT) );	
-				vBuf[pos*4+2].pos.Set( (float)x+(float)width*scale,	(float)(y+GLYPH_HEIGHT) - (float)GLYPH_HEIGHT*scale );	
-				vBuf[pos*4+3].pos.Set( (float)x,					(float)(y+GLYPH_HEIGHT) - (float)GLYPH_HEIGHT*scale );	
-			}
-			x += LRintf((float)advance*scale);
-			++pos;
-		}
 		if ( rendering ) {
 			if ( pos == BUF_SIZE || *(str+1) == 0 ) {
 				if ( pos > 0 ) {
@@ -180,15 +174,15 @@ void UFOText::TextOut( GPUShader* shader, const char* str, int x, int y, int* w,
 		++str;
 	}
 	if ( w ) {
-		*w = x - xStart;
+		*w = int(x+0.5f) - _x;
 	}
 }
 
 
-void UFOText::GlyphSize( const char* str, int* width, int* height )
-{
-	TextOut( 0, str, 0, 0, width, height );
-}
+//void UFOText::GlyphSize( const char* str, int* width, int* height )
+//{
+//	TextOut( 0, str, 0, 0, width, height );
+//}
 
 
 void UFOText::Draw( int x, int y, const char* format, ... )

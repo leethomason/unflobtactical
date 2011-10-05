@@ -162,8 +162,8 @@ struct RenderAtom
 
 
 /**
-	Main class of the Gamui system. All Items and objects are attached to an instance of Gamui, which
-	does rendering, hit testing, and organization.
+	Main class of the Gamui system. All Items and objects are attached to an instance of 
+	Gamui, which does rendering, hit testing, and organization.
 
 	Coordinate system assumed by Gamui.
 
@@ -179,8 +179,8 @@ struct RenderAtom
 	|
 	+---tx
 
-	Note that you can use any coordinate system you want, this is only what Gamui assumes. Gamui can be
-	used to draw map overlays for instance, if projected into a 3D plane.
+	Note that you can use any coordinate system you want, this is only what Gamui assumes. 
+	Gamui can be used to draw map overlays for instance, if projected into a 3D plane.
 */
 class Gamui
 {
@@ -235,6 +235,8 @@ public:
 	RenderAtom* GetDisabledTextAtom()		{ return &m_textAtomDisabled; }
 
 	IGamuiText* GetTextInterface() const	{ return m_iText; }
+	void SetTextHeight( float h )			{ m_textHeight = h; }
+	float GetTextHeight() const				{ return m_textHeight; }
 
 	/** Feed touch/mouse events to Gamui. You should use TapDown/TapUp as a pair, OR just use Tap. TapDown/Up
 		is richer, but you need device support. (Mice certainly, fingers possibly.) 
@@ -293,6 +295,7 @@ private:
 	int				m_nItemsAllocated;
 	const UIItem*	m_dragStart;
 	const UIItem*	m_dragEnd;
+	float			m_textHeight;
 
 	struct State {
 		uint16_t	vertexStart;
@@ -326,26 +329,8 @@ class IGamuiText
 {
 public:
 	struct GlyphMetrics {
-		float advance;				// distance in pixels from this glyph to the next.
-		float width;				// width of this glyph
-		float height;
-		float tx0, ty0, tx1, ty1;	// texture coordinates of the glyph );
-	};
-
-	virtual ~IGamuiText()	{}
-	virtual void GamuiGlyph( int c, gamui::IGamuiText::GlyphMetrics* metric ) = 0;
-};
-
-
-/*
-class IGamuiText
-{
-public:
-	struct GlyphMetrics {
-		float advance;				// distance in pixels from this glyph to the next.
-		float lineHeight;
-		float x, y, w, h;			// glyph bounds - fed to the renderer - assuming (0,0) is
-									// the top left.
+		float advance;
+		float x, y, w, h;			// position, based at 0,0
 		float tx0, ty0, tx1, ty1;	// texture coordinates of the glyph
 	};
 
@@ -354,7 +339,7 @@ public:
 							 float height,
 							 gamui::IGamuiText::GlyphMetrics* metric ) = 0;
 };
-*/
+
 
 class UIItem
 {
