@@ -180,9 +180,9 @@ void Game::Init()
 	delete modelLoader;
 	modelLoader = 0;
 
-	Texture* textTexture = TextureManager::Instance()->GetTexture( "stdfont2" );
+	Texture* textTexture = TextureManager::Instance()->GetTexture( "font" );
 	GLASSERT( textTexture );
-	UFOText::InitTexture( textTexture );
+	UFOText::Init( textTexture, database0 );
 	UFOText::InitScreen( &screenport );
 
 	faceSurface.Set( Surface::RGBA16, FaceGenerator::SIZE*MAX_TERRANS, FaceGenerator::SIZE );	// harwire sizes for face system

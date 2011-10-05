@@ -207,36 +207,9 @@ RenderAtom UIRenderer::CalcPaletteAtom( int c0, int c1, int blend, float w, floa
 }
 
 
-void UIRenderer::GamuiGlyph( int c, IGamuiText::GlyphMetrics* metric )
+void UIRenderer::GamuiGlyph( int c, int c1, float height, IGamuiText::GlyphMetrics* metric )
 {
-	int advance=0;
-	int width=0;
-	Rectangle2I src;
-	if ( c < 0 )
-		c += 256;
-
-	if ( c >= 32 && c < 32+128 ) {
-		UFOText::Metrics( c-32, &advance, &width, &src );
-
-		static const float CX = (1.f/256.f);
-		static const float CY = (1.f/128.f);
-
-		metric->advance = (float)advance;
-		metric->width = (float)width;
-		metric->height = 16.0f;
-
-		metric->tx0 = (float)src.min.x * CX;
-		metric->tx1 = (float)src.max.x * CX;
-
-		metric->ty1 = (float)src.min.y * CY;
-		metric->ty0 = (float)src.max.y * CY;
-	}
-	else {
-		metric->advance = 1.0f;
-		metric->width = 1.0f;
-		metric->height = 16.0f;
-		metric->tx0 = metric->ty0 = metric->tx1 = metric->ty1 = 0.0f;
-	}
+	UFOText::Metrics( c, c1, height, metric );
 }
 
 

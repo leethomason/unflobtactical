@@ -243,16 +243,16 @@ void TextLabel::CalcSize( float* width, float* height ) const
 
 	IGamuiText::GlyphMetrics metrics;
 	float x = 0;
-	float x1 = 0;
+	float h = m_gamui->GetTextHeight();
 
 	while ( p && *p ) {
-		iText->GamuiGlyph( *p, &metrics );
+		iText->GamuiGlyph( *p, *(p+1), h, &metrics );
 		++p;
-		x1 = x + metrics.width;
 		x += metrics.advance;
-		*height = metrics.height;
 	}
-	*width = x1;
+	*width = x;
+	*height = m_gamui->GetTextHeight();
+	GAMUIASSERT( *height > 0 );
 }
 
 
@@ -267,16 +267,30 @@ void TextLabel::Queue( CDynArray< uint16_t > *indexBuf, CDynArray< Gamui::Vertex
 	float y=Y();
 
 	IGamuiText::GlyphMetrics metrics;
+	float height = m_gamui->GetTextHeight();
 
 	while ( p && *p ) {
-		iText->GamuiGlyph( *p, &metrics );
+		iText->GamuiGlyph( *p, *(p+1), height, &metrics );
 
 		Gamui::Vertex* vertex = PushQuad( indexBuf, vertexBuf );
 
-		vertex[0].Set( x, y, metrics.tx0, metrics.ty0 );
-		vertex[1].Set( x, (y+metrics.height), metrics.tx0, metrics.ty1 );
-		vertex[2].Set( x + metrics.width, y+metrics.height, metrics.tx1, metrics.ty1 );
-		vertex[3].Set( x + metrics.width, y, metrics.tx1, metrics.ty0 );
+		float x0 = x+metrics.x;
+		float x1 = x+metrics.x+metrics.w;
+		float y0 = y+metrics.y;
+		float y1 = y+metrics.y+metrics.h;
+
+		float dx = 0; //x0 - floor( x0 + 0.5f );
+		float dy = 0;	//y0 - floor( y0 + 0.5f );
+		x0 -= dx; x1 -= dx; y0 -= dy; y1 -= dy;
+
+		vertex[0].Set( x0, y0,				
+					   metrics.tx0, metrics.ty0 );
+		vertex[1].Set( x0, y1, 
+					   metrics.tx0, metrics.ty1 );
+		vertex[2].Set( x1, y1, 
+					   metrics.tx1, metrics.ty1 );
+		vertex[3].Set( x1, y0,
+			           metrics.tx1, metrics.ty0 );
 
 		++p;
 		x += metrics.advance;
@@ -1120,7 +1134,8 @@ Gamui::Gamui()
 		m_nItems( 0 ),
 		m_nItemsAllocated( 0 ),
 		m_dragStart( 0 ),
-		m_dragEnd( 0 )
+		m_dragEnd( 0 ),
+		m_textHeight( 16 )
 {
 }
 
@@ -1135,7 +1150,8 @@ Gamui::Gamui(	IGamuiRenderer* renderer,
 		m_modified( true ),
 		m_itemArr( 0 ),
 		m_nItems( 0 ),
-		m_nItemsAllocated( 0 )
+		m_nItemsAllocated( 0 ),
+		m_textHeight( 16 )
 {
 	Init( renderer, textEnabled, textDisabled, iText );
 }

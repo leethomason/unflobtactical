@@ -152,7 +152,7 @@ public:
 	};
 	static gamui::RenderAtom CalcPaletteAtom( int c0, int c1, int blend, float w, float h, bool enable=true );
 
-	virtual void GamuiGlyph( int c, gamui::IGamuiText::GlyphMetrics* metric );
+	virtual void GamuiGlyph( int c, int c1, float lineHeight, gamui::IGamuiText::GlyphMetrics* metric );
 	
 private:
 	CompositingShader shader;
