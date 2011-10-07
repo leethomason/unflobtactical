@@ -731,7 +731,7 @@ void ProcessTexture( TiXmlElement* texture )
 
 	SDL_Surface* surface = libIMG_Load( pathName.c_str() );
 	if ( !surface ) {
-		printf( "**Could not load: %s\n", pathName.c_str() );
+		printf( "**File not found. Looking for texture file: %s\n", pathName.c_str() );
 		exit( 1 );
 	}
 	else {

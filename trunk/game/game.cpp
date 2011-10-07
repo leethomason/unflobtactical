@@ -653,6 +653,10 @@ void Game::LoadModDatabase( const char* name, bool preload )
 	if ( !preload ) {
 		TextureManager::Instance()->Reload();
 		this->LoadPalettes();
+		
+		// Full wipe of text and text cache.
+		UFOText::Destroy();
+		UFOText::Create( database0, TextureManager::Instance()->GetTexture( "font" ), engine->GetScreenportMutable() );
 	}
 }
 
