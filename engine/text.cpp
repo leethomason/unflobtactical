@@ -246,12 +246,6 @@ void UFOText::TextOut( GPUShader* shader, const char* str, int _x, int _y, int _
 }
 
 
-//void UFOText::GlyphSize( const char* str, int* width, int* height )
-//{
-//	TextOut( 0, str, 0, 0, width, height );
-//}
-
-
 void UFOText::Draw( int x, int y, const char* format, ... )
 {
 	screenport->SetUI( 0 );

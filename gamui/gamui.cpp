@@ -263,8 +263,8 @@ void TextLabel::Queue( CDynArray< uint16_t > *indexBuf, CDynArray< Gamui::Vertex
 	IGamuiText* iText = m_gamui->GetTextInterface();
 
 	const char* p = m_str;
-	float x=X();
-	float y=Y();
+	float x = X();
+	float y = Y(); //floorf( Y()+0.5f );	// snapping seems to hurt quality. Text is so tricky.
 
 	IGamuiText::GlyphMetrics metrics;
 	float height = m_gamui->GetTextHeight();
@@ -274,14 +274,11 @@ void TextLabel::Queue( CDynArray< uint16_t > *indexBuf, CDynArray< Gamui::Vertex
 
 		Gamui::Vertex* vertex = PushQuad( indexBuf, vertexBuf );
 
+		//x = floorf( x + 0.5f );
 		float x0 = x+metrics.x;
 		float x1 = x+metrics.x+metrics.w;
 		float y0 = y+metrics.y;
 		float y1 = y+metrics.y+metrics.h;
-
-		float dx = 0; //x0 - floor( x0 + 0.5f );
-		float dy = 0;	//y0 - floor( y0 + 0.5f );
-		x0 -= dx; x1 -= dx; y0 -= dy; y1 -= dy;
 
 		vertex[0].Set( x0, y0,				
 					   metrics.tx0, metrics.ty0 );
