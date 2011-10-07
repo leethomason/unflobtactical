@@ -24,36 +24,100 @@
 
 using namespace grinliz;
 
-const float SMALL_SCALE = 0.75f;
-const float DEFAULT_HEIGHT = 16.f;
-//const int TEXTURE_WIDTH = 256;
-//const int TEXTURE_HEIGHT = 128;
-//const int GLYPH_WIDTH = TEXTURE_WIDTH / UFOText::GLYPH_CX;
-//const int GLYPH_HEIGHT = TEXTURE_HEIGHT / UFOText::GLYPH_CY;
 
-
-PTVertex2 UFOText::vBuf[BUF_SIZE*4];
-//Vector2F UFOText::tBuf[BUF_SIZE*4];
-U16 UFOText::iBuf[BUF_SIZE*6] = { 0, 0 };
-
-Screenport* UFOText::screenport = 0;
-Texture* UFOText::texture = 0;
-const gamedb::Reader* UFOText::database = 0;
-//GlyphMetric UFOText::glyphMetric[GLYPH_CX*GLYPH_CY];
-
-void UFOText::InitScreen( Screenport* sp )
+UFOText* UFOText::instance = 0;
+void UFOText::Create( const gamedb::Reader* db, Texture* texture, Screenport* screenport )
 {
-	screenport = sp;
+	instance = new UFOText( db, texture, screenport );
 }
 
 
-void UFOText::Init( Texture* tex, const gamedb::Reader* db )
+void UFOText::Destroy()
 {
-	GLASSERT( tex );
-	GLASSERT( db );
-	texture = tex;
-	database = db;
+	delete instance;
+	instance = 0;
 }
+
+
+UFOText::UFOText( const gamedb::Reader* database, Texture* texture, Screenport* screenport )
+{
+	this->database = database;
+	this->texture = texture;
+	this->screenport = screenport;
+
+	memset( metricCache, 0, sizeof(Metric)*CHAR_RANGE );
+	memset( kerningCache, 100, CHAR_RANGE*CHAR_RANGE );
+
+	const gamedb::Item* fontItem = database->Root()->Child( "data" )
+												   ->Child( "fonts" )
+												   ->Child( "font" );
+	fontItem = database->ChainItem( fontItem );
+	const gamedb::Item* infoItem = fontItem->Child( "info" );
+	const gamedb::Item* commonItem = fontItem->Child( "common" );
+
+	fontSize = (float)infoItem->GetInt( "size" );
+	texWidthInv = 1.0f / (float)commonItem->GetInt( "scaleW" );
+	texHeight = (float)commonItem->GetInt( "scaleH" );
+	texHeightInv = 1.0f / texHeight;
+}
+
+
+void UFOText::CacheMetric( int c )
+{
+
+	char buffer[] = "char0";
+	buffer[4] = (char)c;
+
+	const gamedb::Item* fontItem = database->Root()->Child( "data" )
+												   ->Child( "fonts" )
+												   ->Child( "font" );
+	fontItem = database->ChainItem( fontItem );
+	const gamedb::Item* charItem = fontItem->Child( "chars" )->Child( buffer );
+
+	int index = MetricIndex( c );
+	GLASSERT( index >= 0 && index < CHAR_RANGE );
+	Metric* mc = &metricCache[ index ];
+	mc->isSet = 1;
+
+	if ( charItem ) {
+		mc->advance = charItem->GetInt( "xadvance" );
+
+		mc->x =		 charItem->GetInt( "x" );
+		mc->y =		 charItem->GetInt( "y" );
+		mc->width =  charItem->GetInt( "width" );
+		mc->height = charItem->GetInt( "height" );
+
+		mc->xoffset = charItem->GetInt( "xoffset" );
+		mc->yoffset = charItem->GetInt( "yoffset" );
+	}
+}
+
+
+void UFOText::CacheKern( int c, int cPrev )
+{
+	char kernbuf[] = "kerning00";
+	kernbuf[7] = (char)cPrev;
+	kernbuf[8] = (char)c;
+
+	const gamedb::Item* fontItem = database->Root()->Child( "data" )
+												   ->Child( "fonts" )
+												   ->Child( "font" );
+
+	const gamedb::Item* kernsItem = fontItem->Child( "kernings" );
+	const gamedb::Item* kernItem = 0;
+	
+	int index = KernIndex( c, cPrev );
+	GLASSERT( index >= 0 && index < CHAR_RANGE*CHAR_RANGE );
+	kerningCache[index] = 0;
+	
+	if ( kernsItem ) {
+		kernItem = kernsItem->Child( kernbuf );
+		if ( kernItem ) {
+			kerningCache[index] = kernItem->GetInt( "amount" );
+		}
+	}
+}
+
 
 
 void UFOText::Metrics(	int c, int cPrev,
@@ -69,47 +133,32 @@ void UFOText::Metrics(	int c, int cPrev,
 		c -= 128;
 	}
 
-	char buffer[] = "char0";
-	buffer[4] = (char)c;
-	char kernbuf[] = "kerning00";
-	kernbuf[7] = (char)cPrev;
-	kernbuf[8] = (char)c;
+	const Metric& mc = metricCache[ MetricIndex( c ) ];
+	if ( !mc.isSet ) CacheMetric( c );
 
-	// Find (or not) the item is the database.
-	const gamedb::Item* fontItem = database->Root()->Child( "data" )
-												   ->Child( "fonts" )
-												   ->Child( "font" );
-	fontItem = database->ChainItem( fontItem );
-	const gamedb::Item* infoItem = fontItem->Child( "info" );
-	const gamedb::Item* commonItem = fontItem->Child( "common" );
-	const gamedb::Item* charItem = fontItem->Child( "chars" )->Child( buffer );
-	const gamedb::Item* kernsItem = fontItem->Child( "kernings" );
-	const gamedb::Item* kernItem = 0;
-	if ( kernsItem ) {
-		kernItem = kernsItem->Child( kernbuf );
+	int kernI = kerningCache[ KernIndex( c, cPrev ) ];
+	if ( kernI == 100 ) {
+		CacheKern( c, cPrev );
+		kernI = kerningCache[ KernIndex( c, cPrev ) ];
 	}
 
-	float fontSize = (float)infoItem->GetInt( "size" );
-	float scale = lineHeight / fontSize;
-	float texWidthInv = 1.0f / (float)commonItem->GetInt( "scaleW" );
-	float texHeight = (float)commonItem->GetInt( "scaleH" );
-	float texHeightInv = 1.0f / texHeight;
+	float scale = (float)lineHeight / fontSize;
 	float kern = 0;
-	if ( kernItem && s2 == 1.0f ) {
-		kern = (float)kernItem->GetInt( "amount" );
+	if ( kernI && s2 == 1.0f ) {
+		kern = (float)kernI;
 	}
 
-	if ( charItem ) {
-		metric->advance = ((float)charItem->GetInt( "xadvance" )+kern) * scale * s2;
+	if ( mc.width ) {
+		metric->advance = ((float)mc.advance+kern) * scale * s2;
 
-		float x = (float)charItem->GetInt( "x" );
-		float y = (float)charItem->GetInt( "y" );
-		float width = (float)charItem->GetInt( "width" );
-		float height = (float)charItem->GetInt( "height" );
+		float x = (float)mc.x;
+		float y = (float)mc.y;
+		float width = (float)mc.width;
+		float height = (float)mc.height;
 
-		metric->x = ((float)charItem->GetInt( "xoffset" )+kern) * scale;
+		metric->x = ((float)mc.xoffset+kern) * scale;
 		metric->w = width * scale * s2;
-		metric->y = (float)charItem->GetInt( "yoffset" ) * scale;
+		metric->y = (float)mc.yoffset * scale;
 		metric->h = height * scale * s2;
 
 		metric->tx0 = x * texWidthInv;

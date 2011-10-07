@@ -182,8 +182,7 @@ void Game::Init()
 
 	Texture* textTexture = TextureManager::Instance()->GetTexture( "font" );
 	GLASSERT( textTexture );
-	UFOText::Init( textTexture, database0 );
-	UFOText::InitScreen( &screenport );
+	UFOText::Create( database0, textTexture, engine->GetScreenportMutable() );
 
 	faceSurface.Set( Surface::RGBA16, FaceGenerator::SIZE*MAX_TERRANS, FaceGenerator::SIZE );	// harwire sizes for face system
 	oneFaceSurface.Set( Surface::RGBA16, FaceGenerator::SIZE, FaceGenerator::SIZE );
@@ -232,6 +231,7 @@ Game::~Game()
 	GLOUTPUT(( "Game accuracy: predicted=%.2f actual=%.2f\n", predicted, actual ));
 
 	delete engine;
+	UFOText::Destroy();
 	SettingsManager::Destroy();
 	SoundManager::Destroy();
 	ParticleSystem::Destroy();
@@ -572,21 +572,22 @@ void Game::DoTick( U32 _currentTime )
 	#endif
 #if 1
 	if ( !suppressText ) {
+		UFOText* ufoText = UFOText::Instance();
 		if ( debugLevel >= 1 ) {
-			UFOText::Draw(	0,  Y, "#%d %5.1ffps vbo=%d ps=%d", 
+			ufoText->Draw(	0,  Y, "#%d %5.1ffps vbo=%d ps=%d", 
 							VERSION, 
 							framesPerSecond, 
 							GPUShader::SupportsVBOs() ? 1 : 0,
 							PointParticleShader::IsSupported() ? 1 : 0 );
 		}
 		if ( debugLevel >= 2 ) {
-			UFOText::Draw(	0,  Y-15, "%4.1fK/f %3ddc/f", 
+			ufoText->Draw(	0,  Y-15, "%4.1fK/f %3ddc/f", 
 							(float)GPUShader::TrianglesDrawn()/1000.0f,
 							GPUShader::DrawCalls() );
 		}
 		if ( debugLevel >= 3 ) {
 			if ( !Engine::mapMakerMode )  {
-				UFOText::Draw(  0, Y-30, "new=%d Tex(%d/%d) %dK/%dK mis=%d reuse=%d hit=%d",
+				ufoText->Draw(  0, Y-30, "new=%d Tex(%d/%d) %dK/%dK mis=%d reuse=%d hit=%d",
 								memNewCount,
 								TextureManager::Instance()->NumTextures(),
 								TextureManager::Instance()->NumGPUResources(),

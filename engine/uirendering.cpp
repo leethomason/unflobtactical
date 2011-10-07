@@ -209,7 +209,7 @@ RenderAtom UIRenderer::CalcPaletteAtom( int c0, int c1, int blend, float w, floa
 
 void UIRenderer::GamuiGlyph( int c, int c1, float height, IGamuiText::GlyphMetrics* metric )
 {
-	UFOText::Metrics( c, c1, height, metric );
+	UFOText::Instance()->Metrics( c, c1, height, metric );
 }
 
 

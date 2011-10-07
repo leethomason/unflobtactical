@@ -125,6 +125,7 @@ public:
 	void SetZoom( float zoom );
 
 	const Screenport& GetScreenport() { return *screenport; }
+	Screenport* GetScreenportMutable() { return screenport; }
 	void RestrictCamera();
 
 	static bool mapMakerMode;

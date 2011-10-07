@@ -1374,15 +1374,15 @@ void Map::DumpTile( int x, int y )
 			GLASSERT( itemDef.Name() );
 
 			int r = root->modelRotation;
-			UFOText::Draw( 0, 100-12*i, "%s r=%d", itemDef.Name(), r );
+			UFOText::Instance()->Draw( 0, 100-12*i, "%s r=%d", itemDef.Name(), r );
 
 			++i;
 			root = root->next;
 		}
 		if ( PyroSmoke( x, y ) )
-			UFOText::Draw( 0, 100-12*i, "smoke" );
+			UFOText::Instance()->Draw( 0, 100-12*i, "smoke" );
 		if ( PyroFire( x, y ) )
-			UFOText::Draw( 0, 100-12*i, "fire" );
+			UFOText::Instance()->Draw( 0, 100-12*i, "fire" );
 	}
 }
 
