@@ -246,7 +246,7 @@ void TextLabel::CalcSize( float* width, float* height ) const
 	float h = m_gamui->GetTextHeight();
 
 	while ( p && *p ) {
-		iText->GamuiGlyph( *p, *(p+1), h, &metrics );
+		iText->GamuiGlyph( *p, p>m_str ? *(p-1):0, h, &metrics );
 		++p;
 		x += metrics.advance;
 	}
@@ -270,7 +270,7 @@ void TextLabel::Queue( CDynArray< uint16_t > *indexBuf, CDynArray< Gamui::Vertex
 	float height = m_gamui->GetTextHeight();
 
 	while ( p && *p ) {
-		iText->GamuiGlyph( *p, *(p+1), height, &metrics );
+		iText->GamuiGlyph( *p, p>m_str ? *(p-1):0, height, &metrics );
 
 		Gamui::Vertex* vertex = PushQuad( indexBuf, vertexBuf );
 

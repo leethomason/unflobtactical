@@ -942,16 +942,15 @@ void ProcessFont( TiXmlElement* font )
 	}
 
 	gamedb::WItem* charsItem = witem->CreateChild( "chars" );
-
 	for( const TiXmlElement* charElement = charsElement->FirstChildElement( "char" );
 		 charElement;
 		 charElement = charElement->NextSiblingElement( "char" ) )
 	{
 		// Gamedb items must be unique. Munge name and id.
-		char buffer[32];
-		int id = ' ';
+		char buffer[6] = "char0";
+		int id = 1;
 		charElement->QueryIntAttribute( "id", &id );
-		SNPrintf( buffer, 32, "%s%c", charElement->Value(), id );
+		buffer[4] = id;
 		gamedb::WItem* charItem = charsItem->CreateChild( buffer );
 
 		for( const TiXmlAttribute* attrib=charElement->FirstAttribute();
@@ -962,6 +961,28 @@ void ProcessFont( TiXmlElement* font )
 				charItem->SetInt( attrib->Name(), attrib->IntValue() );
 			}
 		}
+	}
+
+	const TiXmlElement* kerningsElement = font->FirstChildElement( "kernings" );
+	if ( !kerningsElement ) {
+		return;
+	}
+	gamedb::WItem* kerningsItem = witem->CreateChild( "kernings" );
+	for( const TiXmlElement* kerningElement = kerningsElement->FirstChildElement( "kerning" );
+		 kerningElement;
+		 kerningElement = kerningElement->NextSiblingElement( "kerning" ) )
+	{
+		// Gamedb items must be unique. Munge name and id.
+		char buffer[10] = "kerning00";
+		int first = 1, second = 1;
+		kerningElement->QueryIntAttribute( "first", &first );
+		kerningElement->QueryIntAttribute( "second", &second );
+		buffer[7] = first;
+		buffer[8] = second;
+		gamedb::WItem* kerningItem = kerningsItem->CreateChild( buffer );
+		int amount = 0;
+		kerningElement->QueryIntAttribute( "amount", &amount );
+		kerningItem->SetInt( "amount",	amount );
 	}
 }
 

@@ -26,7 +26,7 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 	doneButton.SetText( "X" );
 	doneButton.SetPos( 0, port.UIHeight() - GAME_BUTTON_SIZE_F);
 
-	static const float SIZE = 50.0f;
+	const float SIZE = gamui2D.GetTextHeight()*3.f;
 	float y = GAME_GUTTER;
 	float deltaY = SIZE + 5.0f;
 	float x = 220.0f + GAME_GUTTER*2.f;

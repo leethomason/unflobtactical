@@ -53,7 +53,7 @@ void ItemDef::InitBase( const char* name, const char* desc, int deco, int price,
 	displayName.Clear();
 	for( const char* p=name; *p; ++p ) {
 		if ( *p == '-' && InRange( *(p+1), '0', '9' ) ) {
-			int c = (*(p+1) + 16*6);
+			int c = 128 + *(p+1);
 			displayName += c;
 			++p;
 		}

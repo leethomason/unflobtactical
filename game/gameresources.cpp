@@ -150,13 +150,6 @@ void Game::LoadTextures()
 	texman->CreateTexture( "white", 2, 2, Surface::RGB16, Texture::PARAM_NONE, this );
 	texman->CreateTexture( "black", 2, 2, Surface::RGB16, Texture::PARAM_NONE, this );
 	texman->CreateTexture( "faces", 64*MAX_TERRANS, 64, Surface::RGBA16, Texture::PARAM_NONE, this );
-
-	const gamedb::Item* node = database0->Root()->Child( "textures" )->Child( "font" );
-	GLASSERT( node );
-	node = database0->ChainItem( node );
-	//int metricsSize = node->GetDataSize( "metrics" );
-	//GLASSERT( metricsSize == UFOText::GLYPH_CX*UFOText::GLYPH_CY*sizeof(GlyphMetric) );
-	//node->GetData( "metrics", UFOText::MetricsPtr(), metricsSize );
 }
 
 

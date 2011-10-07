@@ -335,7 +335,7 @@ public:
 	};
 
 	virtual ~IGamuiText()	{}
-	virtual void GamuiGlyph( int c0, int c1,	// character, next character
+	virtual void GamuiGlyph( int c0, int cPrev,	// character, prev character
 							 float height,
 							 gamui::IGamuiText::GlyphMetrics* metric ) = 0;
 };

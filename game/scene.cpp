@@ -26,8 +26,8 @@ Scene::Scene( Game* _game )
 {
 	gamui2D.Init( &uiRenderer, game->GetRenderAtom( Game::ATOM_TEXT ), game->GetRenderAtom( Game::ATOM_TEXT_D ), &uiRenderer );
 	gamui3D.Init( &uiRenderer, game->GetRenderAtom( Game::ATOM_TEXT ), game->GetRenderAtom( Game::ATOM_TEXT_D ), &uiRenderer );
-	gamui2D.SetTextHeight( 16 );
-	gamui3D.SetTextHeight( 16 );
+	gamui2D.SetTextHeight( 18 );
+	gamui3D.SetTextHeight( 18 );
 }
 
 
