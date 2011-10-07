@@ -2993,9 +2993,9 @@ void BattleScene::DrawHUD()
 			tacMap->DumpTile( (int)mapmaker_mapSelection->X(), (int)mapmaker_mapSelection->Z() );
 
 			const char* desc = SelectionDesc();
-			UFOText::Draw( 0,  16, "(%2d,%2d) 0x%2x:'%s'", 
-						   (int)mapmaker_mapSelection->X(), (int)mapmaker_mapSelection->Z(),
-						   mapmaker_currentMapItem, desc );
+			UFOText::Instance()->Draw(	0,  16, "(%2d,%2d) 0x%2x:'%s'", 
+										(int)mapmaker_mapSelection->X(), (int)mapmaker_mapSelection->Z(),
+										mapmaker_currentMapItem, desc );
 		}
 	}
 	else {

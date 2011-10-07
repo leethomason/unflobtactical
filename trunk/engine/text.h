@@ -27,47 +27,60 @@
 
 class GPUShader;
 
-/*
-struct GlyphMetric
-{
-	U16 offset;
-	U16 width;
-};
-*/
-
-
 class UFOText
 {
 public:
-	static void Init( Texture* texture, const gamedb::Reader* database );
-	static void InitScreen( Screenport* sp );
+	static UFOText* Instance() 	{ GLASSERT( instance ); return instance; }
 
-	//static void GlyphSize( const char* str, int* width, int* height );
+	void Draw( int x, int y, const char* format, ... );
+	void Metrics(	int c, int c1,
+					float lineHeight,
+					gamui::IGamuiText::GlyphMetrics* metric );
 
-	static void Draw( int x, int y, const char* format, ... );
-	static void Metrics(	int c, int c1,
-							float lineHeight,
-							gamui::IGamuiText::GlyphMetrics* metric );
+	static void Create( const gamedb::Reader*, Texture* texture, Screenport* screenport );
+	static void Destroy();
 
 private:
-/*	enum {
-		GLYPH_CX = 16,
-		GLYPH_CY = 8
-	};*/
-	
-	static void TextOut( GPUShader* shader, const char* str, int x, int y, int h, int *w );
+	UFOText( const gamedb::Reader*, Texture* texture, Screenport* screenport );
+	~UFOText()	{}
 
-	static Screenport* screenport;
-	static Texture* texture;
-	static const gamedb::Reader* database;
-	enum {
-		BUF_SIZE = 30
+	struct Metric
+	{
+		S16 isSet;
+		S16 advance;
+		S16 x, y, width, height;
+		S16 xoffset, yoffset;
 	};
-	//static grinliz::Vector2F	vBuf[BUF_SIZE*4];
-	//static grinliz::Vector2F	tBuf[BUF_SIZE*4];
-	static PTVertex2			vBuf[BUF_SIZE*4];
-	static U16					iBuf[BUF_SIZE*6];
-	//static GlyphMetric			glyphMetric[GLYPH_CX*GLYPH_CY];
+
+	void CacheMetric( int c );
+	void CacheKern( int c, int cPrev );
+
+	void TextOut( GPUShader* shader, const char* str, int x, int y, int h, int *w );
+
+	static UFOText* instance;
+	
+	const gamedb::Reader* database;
+	Texture* texture;
+	Screenport* screenport;
+
+	float fontSize;
+	float texWidthInv;
+	float texHeight;
+	float texHeightInv;
+
+	enum {
+		BUF_SIZE = 30,
+		CHAR_OFFSET = 32,
+		CHAR_RANGE  = 128 - CHAR_OFFSET
+	};
+
+	int MetricIndex( int c )          { return c - CHAR_OFFSET; }
+	int KernIndex( int c, int cPrev ) { return (c-CHAR_OFFSET)*CHAR_RANGE + (cPrev-CHAR_OFFSET); }
+
+	PTVertex2	vBuf[BUF_SIZE*4];
+	U16			iBuf[BUF_SIZE*6];
+	Metric		metricCache[ CHAR_RANGE ];
+	S8			kerningCache[ CHAR_RANGE*CHAR_RANGE ];
 };
 
 #endif // UFOATTACK_TEXT_INCLUDED
