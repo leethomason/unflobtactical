@@ -33,7 +33,8 @@ public:
 
 	enum Param {
 		PARAM_NONE		= 0,
-		PARAM_NEAREST	= 0x01
+		PARAM_NEAREST	= 0x01,
+		PARAM_LINEAR	= 0x02,
 	};
 
 	Texture()					{ creator = 0; } 

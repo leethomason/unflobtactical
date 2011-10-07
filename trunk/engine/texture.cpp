@@ -105,6 +105,10 @@ Texture* TextureManager::GetTexture( const char* name, bool reload )
 			const char* fstr = item->GetString( "format" );
 			int format = Surface::QueryFormat( fstr );
 			Texture::Param flags = Texture::PARAM_NONE;
+			// Special handling for fonts. Bit of a brittle hack:
+			if ( strstr( name, "font" ) ) {
+				flags = Texture::PARAM_LINEAR;
+			}
 
 			if ( reload ) {
 				GLASSERT( t );
@@ -336,6 +340,19 @@ U32 TextureManager::CreateGLTexture( int w, int h, int format, int flags )
 		glTexParameteri(	GL_TEXTURE_2D,
 							GL_TEXTURE_MIN_FILTER,
 							GL_NEAREST );
+	}
+	else if ( flags & Texture::PARAM_LINEAR ) {
+		glTexParameteri(	GL_TEXTURE_2D,
+							GL_GENERATE_MIPMAP,
+							GL_FALSE );
+
+		glTexParameteri(	GL_TEXTURE_2D,
+							GL_TEXTURE_MAG_FILTER,
+							GL_LINEAR );
+
+		glTexParameteri(	GL_TEXTURE_2D,
+							GL_TEXTURE_MIN_FILTER,
+							GL_LINEAR );
 	}
 	else {
 		glTexParameteri(	GL_TEXTURE_2D,

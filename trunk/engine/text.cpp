@@ -56,15 +56,24 @@ void UFOText::Init( Texture* tex, const gamedb::Reader* db )
 }
 
 
-void UFOText::Metrics(	int c, int c1,
+void UFOText::Metrics(	int c, int cPrev,
 						float lineHeight,
 						gamui::IGamuiText::GlyphMetrics* metric )
 {
 	if ( c < 0 )  c += 256;
-	if ( c1 < 0 ) c1 += 256;
+	if ( cPrev < 0 ) cPrev += 256;
+
+	float s2 = 1.f;
+	if ( c > 128 ) {
+		s2 = 0.75f;
+		c -= 128;
+	}
 
 	char buffer[] = "char0";
 	buffer[4] = (char)c;
+	char kernbuf[] = "kerning00";
+	kernbuf[7] = (char)cPrev;
+	kernbuf[8] = (char)c;
 
 	// Find (or not) the item is the database.
 	const gamedb::Item* fontItem = database->Root()->Child( "data" )
@@ -74,25 +83,34 @@ void UFOText::Metrics(	int c, int c1,
 	const gamedb::Item* infoItem = fontItem->Child( "info" );
 	const gamedb::Item* commonItem = fontItem->Child( "common" );
 	const gamedb::Item* charItem = fontItem->Child( "chars" )->Child( buffer );
+	const gamedb::Item* kernsItem = fontItem->Child( "kernings" );
+	const gamedb::Item* kernItem = 0;
+	if ( kernsItem ) {
+		kernItem = kernsItem->Child( kernbuf );
+	}
 
 	float fontSize = (float)infoItem->GetInt( "size" );
 	float scale = lineHeight / fontSize;
 	float texWidthInv = 1.0f / (float)commonItem->GetInt( "scaleW" );
 	float texHeight = (float)commonItem->GetInt( "scaleH" );
 	float texHeightInv = 1.0f / texHeight;
+	float kern = 0;
+	if ( kernItem && s2 == 1.0f ) {
+		kern = (float)kernItem->GetInt( "amount" );
+	}
 
 	if ( charItem ) {
-		metric->advance = (float)charItem->GetInt( "xadvance" ) * scale;
+		metric->advance = ((float)charItem->GetInt( "xadvance" )+kern) * scale * s2;
 
 		float x = (float)charItem->GetInt( "x" );
 		float y = (float)charItem->GetInt( "y" );
 		float width = (float)charItem->GetInt( "width" );
 		float height = (float)charItem->GetInt( "height" );
 
-		metric->x = (float)charItem->GetInt( "xoffset" ) * scale;
-		metric->w = width * scale;
+		metric->x = ((float)charItem->GetInt( "xoffset" )+kern) * scale;
+		metric->w = width * scale * s2;
 		metric->y = (float)charItem->GetInt( "yoffset" ) * scale;
-		metric->h = height * scale;
+		metric->h = height * scale * s2;
 
 		metric->tx0 = x * texWidthInv;
 		metric->tx1 = (x + width) * texWidthInv;
@@ -100,7 +118,7 @@ void UFOText::Metrics(	int c, int c1,
 		metric->ty1 = (texHeight - 1.f - y - height) * texHeightInv;
 	}
 	else {
-		metric->advance = lineHeight * 0.5f;
+		metric->advance = lineHeight * 0.4f;
 
 		metric->x = metric->y = metric->w = metric->h = 0;
 		metric->tx0 = metric->tx1 = metric->ty0 = metric->ty1 = 0;
