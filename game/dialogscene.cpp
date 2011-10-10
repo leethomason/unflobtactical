@@ -62,7 +62,13 @@ void DialogScene::Activate()
 }
 
 
-
+/*
+int DialogScene::HandleHotKeyMask( int mask )	
+{
+	if ( mask == GAME_HK_BACK ) {
+	}
+}
+*/
 
 
 void DialogScene::Tap( int action, const grinliz::Vector2F& screen, const grinliz::Ray& world )

@@ -193,7 +193,7 @@ public:
 	// The bounding box
 	const grinliz::Rectangle3F& AABB() const;
 
-	void CalcTrigger( grinliz::Vector3F* trigger ) const;
+	void CalcTrigger( grinliz::Vector3F* trigger, const float* alternateYRotation=0 ) const;
 	void CalcTarget( grinliz::Vector3F* target ) const;
 	void CalcTargetSize( float* width, float* height ) const;
 

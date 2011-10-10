@@ -1094,7 +1094,10 @@ void BattleScene::DrawFireWidget()
 	const Model* model = GetModel( unit );
 	if ( model ) {
 		Vector3F trigger;
-		model->CalcTrigger( &trigger );
+
+		Vector2I t2 = { (int)target.x, (int)target.z };
+		float fireRotation  = unit->AngleBetween( t2, false );
+		model->CalcTrigger( &trigger, &fireRotation );
 
 		Ray ray = { trigger, target-trigger };
 		const Model* ignore[] = { model, GetWeaponModel( unit ), 0 };
@@ -1148,7 +1151,7 @@ grinliz::Rectangle2F BattleScene::CalcInsetUIBounds()
 					(float)clip3D.max.x, (float)clip3D.max.y );
 	
 	Rectangle2F inset = uiBounds;
-	inset.Outset( -20 );
+	inset.Outset( -40 );
 	return inset;
 }
 
@@ -1597,12 +1600,19 @@ bool BattleScene::ProcessActionCameraBounds( U32 deltaTime, Action* action )
 	Vector3F atToTarget = action->type.cameraBounds.target - lookingAt;
 
 	Vector3F normal = atToTarget;
-	Vector3F maxTravel = normal;
-	normal.Normalize();
-
+	Vector3F d;
 	Vector2F ui;
-	Vector3F d = normal * t;
-	if ( d.Length() < maxTravel.Length() ) {
+
+	if ( normal.Length() > 0.01 ) {
+		normal.Normalize();
+		d = normal * t;
+	}
+	else {
+		normal.Set( 0, 0, 0 );
+		d = atToTarget;
+	}
+
+	if ( d.Length() < atToTarget.Length() ) {
 		engine->camera.DeltaPosWC( d.x, d.y, d.z );
 	}
 	else {
@@ -1610,7 +1620,7 @@ bool BattleScene::ProcessActionCameraBounds( U32 deltaTime, Action* action )
 		float tilt = engine->camera.GetTilt();
 		float height = engine->camera.PosWC().y;
 		engine->CameraLookAt( action->type.cameraBounds.target.x, action->type.cameraBounds.target.z, height, yrot, tilt );
-		pop = true;
+		//pop = true;
 	}
 
 	const Screenport& port = engine->GetScreenport();
@@ -1621,13 +1631,13 @@ bool BattleScene::ProcessActionCameraBounds( U32 deltaTime, Action* action )
 		Vector2F center = inset.Center();
 		inset.min = center;
 		inset.max = center;
-		inset.Outset( 20 );
+		inset.Outset( 50 );		// There is a 50 pixel sidebar that throws off this computation. Just make sure outset is large enough.
 	}
 
-	//GLOUTPUT(( "ProcessActionCameraBounds\n" )); 
-	//GLOUTPUT(( "Camera (%.1f,%.1f) ui (%.1f,%.1f)-(%.1f,%.1f)\n",
-	//			ui.x, ui.y, 
-	//			inset.min.x, inset.min.y, inset.max.x, inset.max.y ));
+	/*GLOUTPUT(( "ProcessActionCameraBounds\n" )); 
+	GLOUTPUT(( "Camera (%.1f,%.1f) ui (%.1f,%.1f)-(%.1f,%.1f)\n",
+				ui.x, ui.y, 
+				inset.min.x, inset.min.y, inset.max.x, inset.max.y ));*/
 
 	if ( inset.Contains( ui ) ) {
 		pop = true;
@@ -2682,7 +2692,7 @@ Unit* BattleScene::GetUnitFromTile( int x, int z )
 
 void BattleScene::DumpTargetEvents()
 {
-#ifdef DEBUG
+#if 0
 	for( int i=0; i<targetEvents.Size(); ++i ) {
 		const TargetEvent& e = targetEvents[i];
 		const char* teams[] = { "Terran", "Civ", "Alien" };
@@ -2739,15 +2749,18 @@ void BattleScene::CalcTeamTargets()
 
 				TargetEvent e = { 0, src, dst };
 				targetEvents.Push( e );
+				//e.Dump();
 
 				// Check team change.
 				Rectangle2I teamRange;
-				teamRange.Set( range[srcTeam].x, dst, range[srcTeam].y, dst );
+				teamRange.Set( range[srcTeam].x, dst, range[srcTeam].y-1, dst );	// note the -1 inclusive/exclusive thing
+
 				// No one on this team, prior to this check, could see the unit.
-				if ( !unitVis.IsRectSet( teamRange ) )
+				if ( unitVis.IsRectEmpty( teamRange ) )
 				{	
 					TargetEvent e = { 1, srcTeam, dst };
 					targetEvents.Push( e );
+					//e.Dump();
 				}
 			}
 		}

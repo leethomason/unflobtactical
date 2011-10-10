@@ -132,6 +132,53 @@ void BaseTradeScene::Activate()
 }
 
 
+void BaseTradeScene::SceneDone()
+{
+	game->PopScene( 0 );
+	ComputePrice( data->cash );
+	const ItemDef* soldierDef = game->GetItemDefArr().Query( "Soldr" );
+
+	if ( data->soldiers ) {
+		// Generate new soldiers.
+		int nSoldiers = data->base->GetCount( soldierDef );
+
+		if ( nSoldiers < minSoldiers ) {
+			for( int i=nSoldiers; i<minSoldiers; ++i ) {
+				data->soldiers[i].Free();
+				memset( &data->soldiers[i], 0, sizeof(Unit) );
+			}	
+		}
+		else if ( nSoldiers > minSoldiers ) {
+			for( int i=minSoldiers; i<nSoldiers; ++i ) {
+				data->soldiers[i].Free();
+				memset( &data->soldiers[i], 0, sizeof(Unit) );
+			}
+			int seed = *data->cash ^ nSoldiers;
+			TacticalIntroScene::GenerateTerranTeam( &data->soldiers[minSoldiers], nSoldiers-minSoldiers, 
+													data->soldierBoost ? 0.0f : 0.5f,
+													0,			// set to null; generate without items. Fixes exploit where you can hire soldiers, sell stuff, and fire soldiers.
+													seed );
+		}
+	}		
+	// And scientists
+	const ItemDef* sDef = 0;
+	if ( data->scientists ) {
+		sDef = game->GetItemDefArr().Query( "Sctst" );
+		*data->scientists = data->base->GetCount( sDef );
+	}
+
+	// And clear out the fake items:
+	Item dummy;
+	while( data->base->Contains( soldierDef ) )
+		data->base->RemoveItem( soldierDef, &dummy );
+	if ( data->scientists ) {
+		while( data->base->Contains( sDef ) )
+			data->base->RemoveItem( sDef, &dummy );
+	}
+
+}
+
+
 void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const grinliz::Ray& world )
 {
 	grinliz::Vector2F ui;
@@ -155,47 +202,7 @@ void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const gri
 		game->PushScene( Game::HELP_SCENE, new HelpSceneData( "supplyBaseHelp", false ) );
 	}
 	if ( uiItem == &okay ) {
-		game->PopScene( 0 );
-		ComputePrice( data->cash );
-		const ItemDef* soldierDef = game->GetItemDefArr().Query( "Soldr" );
-
-		if ( data->soldiers ) {
-			// Generate new soldiers.
-			int nSoldiers = data->base->GetCount( soldierDef );
-
-			if ( nSoldiers < minSoldiers ) {
-				for( int i=nSoldiers; i<minSoldiers; ++i ) {
-					data->soldiers[i].Free();
-					memset( &data->soldiers[i], 0, sizeof(Unit) );
-				}	
-			}
-			else if ( nSoldiers > minSoldiers ) {
-				for( int i=minSoldiers; i<nSoldiers; ++i ) {
-					data->soldiers[i].Free();
-					memset( &data->soldiers[i], 0, sizeof(Unit) );
-				}
-				int seed = *data->cash ^ nSoldiers;
-				TacticalIntroScene::GenerateTerranTeam( &data->soldiers[minSoldiers], nSoldiers-minSoldiers, 
-														data->soldierBoost ? 0.0f : 0.5f,
-														game->GetItemDefArr(),
-														seed );
-			}
-		}		
-		// And scientists
-		const ItemDef* sDef = 0;
-		if ( data->scientists ) {
-			sDef = game->GetItemDefArr().Query( "Sctst" );
-			*data->scientists = data->base->GetCount( sDef );
-		}
-
-		// And clear out the fake items:
-		Item dummy;
-		while( data->base->Contains( soldierDef ) )
-			data->base->RemoveItem( soldierDef, &dummy );
-		if ( data->scientists ) {
-			while( data->base->Contains( sDef ) )
-				data->base->RemoveItem( sDef, &dummy );
-		}
+		SceneDone();
 	}
 	else {
 		const ItemDef* itemDef = 0;

@@ -411,10 +411,11 @@ int main( int argc, char **argv )
 				{
 					case SDLK_ESCAPE:
 						{
-							int handled = GameHotKey( game, GAME_HK_BACK );
+							//int handled = GameHotKey( game, GAME_HK_BACK );
 #ifdef DEBUG
 							// only escape out in debug mode
-							if ( !handled ) done = true;
+							// if ( !handled ) 
+							done = true;
 #endif
 						}
 						break;

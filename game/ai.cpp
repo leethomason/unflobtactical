@@ -102,7 +102,9 @@ bool AI::LineOfSight( const Unit* shooter, const Unit* target )
 	GLASSERT( shooter != target );
 
 	Vector3F p0, p1, intersection;
-	m_battleScene->GetModel( shooter )->CalcTrigger( &p0 );
+	float fireRotation = shooter->AngleBetween( target->MapPos(), false );
+	
+	m_battleScene->GetModel( shooter )->CalcTrigger( &p0, &fireRotation );
 	m_battleScene->GetModel( target )->CalcTarget( &p1 );
 
 	Ray ray;

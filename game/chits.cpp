@@ -612,8 +612,9 @@ BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, c
 	Random random;
 	random.SetSeedFromTime();
 
-	if ( firstBase ) 
-		TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, 0, itemDefArr, random.Rand() );
+	if ( firstBase ) {
+		TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, 0, &itemDefArr, random.Rand() );
+	}
 
 	for( int i=0; i<NUM_FACILITIES; ++i ) {
 		facilityStatus[i] = firstBase ? 0 : -1;
