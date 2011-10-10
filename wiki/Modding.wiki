@@ -39,14 +39,40 @@ The 'modstest' subdirectory contains example files.
 
 == Defining the Resources == 
 
-=== <texture> ===
+=== texture ===
 
 Texture assets used in the game. They must be power of 2 (except for the battleship and base background textures, which are 384x384.). Many textures are hand-packed into texture atlases for performance. It would be nice if future versions of the builder would auto-gen the texture atlases.
 
   * assetName: the name of the asset.
   * filename: the filename in the directory.
   * dither: all images are converted to 16-bit. If dither is true, a dithering/smoothing algorithm is used. If false, a nearest color match is used.
-  * width/height: the builder can down sample large source images. The original and destination size must both be powers of 2.
+  * width/height: the builder can down sample large source images. The original and destination size must both be powers of 2. (Except ground textures for battleships and bases, which are 384x384)
+
+=== palette ===
+
+A palette is an input image that provides colors for the game. 
+  * dx: the number of columns
+  * dy: the number of rows
+  * sx/y: offset for the sample. 0.5 (typical) is the middle of the column / row
+
+=== font ===
+
+The font asset is the basis of text rendering. The asset is created with Bitmap Font Generator: http://www.angelcode.com/products/bmfont/
+
+The default asset size for Xenowar is 256x128, although you can use a larger one. (And more memory at runtime.) 2 padding is recommended. The font is interpreted as an alpha texture, so no colors or outlines are supported. 
+
+When you export:
+  * 2 padding in all directions
+  * png image file and xml data file
+  * WARNING: the name of the asset and filename must contain the word "font". This is used to throw the texture into a special rendering mode.
+
+BitmapFont will generate a .fnt file, that should be XML. You can cut and past the font tag into your mod file xml. You need to change the font tag to have these attributes:
+
+{{{
+<font assetName="font" filename="font_0.png">
+}}}
+
+Where the "font" and "font_0.png" are the names you are using. Please remember that "font" must be in the names.
  
 === Not yet supported: <model> Single form ===
 
