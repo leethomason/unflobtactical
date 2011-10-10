@@ -92,17 +92,3 @@ Examples of the XML files used to build mods are in the 'modtest' subdirectory o
 More information can be found at:
 	http://code.google.com/p/unflobtactical/wiki/Modding
 and in the Xenowar forum.
-
-
-
-default texture: 256x128
-28 high (but this can be whatever fits)
-2 padding
-File export: png, xml
-file name must contain "font"
-doesn't support outline
-
-wrap up tag in <resourc>
-font tag fix: <font assetName="font" filename="font_0.png">
-
-
