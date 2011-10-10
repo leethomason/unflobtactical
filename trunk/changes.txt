@@ -35,6 +35,18 @@
 	- check on Samsung
 
 
+Release v2.5
+
+- Higher quality text rendering. Text should look crisper across all screen.
+- Support for font modding.
+- Hired soldiers now do not arrive with basic weapon and armor. (Fixes economy exploit.)
+- Aliens should now calculate line of site correctly and not blast walls repeatedly
+- Sometimes units don't scroll onscreen - should be fixed.
+- Some bugs in visibility detection were fixed. Soldiers should no longer stop needlessly 
+  when an enemy has already been spotted by a teammate.
+  
+
+
 Release v2.4 b691 Android / Windows
 Now supports mod files, so you can use or create alternate graphics for the game. Also
 many gameplay fixes and tweaks to smooth out the geo-game.

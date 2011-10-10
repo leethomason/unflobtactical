@@ -66,6 +66,7 @@ public:
 
 protected:
 	bool ComputePrice( int* total );
+	void SceneDone();
 
 	BackgroundUI		backgroundUI;
 	gamui::PushButton	okay;

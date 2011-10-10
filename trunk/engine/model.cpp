@@ -291,10 +291,27 @@ void Model::CalcHitAABB( Rectangle3F* aabb ) const
 }
 
 
-void Model::CalcTrigger( grinliz::Vector3F* trigger ) const
+void Model::CalcTrigger( grinliz::Vector3F* trigger, const float* rotation ) const
 {
-	const Matrix4& xform = XForm();
-	*trigger = xform * resource->header.trigger;
+	if ( rotation ) {
+		Matrix4 t,x;
+		t.SetTranslation( pos );
+
+		Matrix4 r;
+		if ( rot[1] != 0.0f ) 
+			r.ConcatRotation( *rotation, 1 );
+		if ( rot[2] != 0.0f )
+			r.ConcatRotation( rot[2], 2 );
+		if ( rot[0] != 0.0f )
+			r.ConcatRotation( rot[0], 0 );
+
+		x = t*r;
+		*trigger = x * resource->header.trigger;
+	}
+	else {
+		const Matrix4& xform = XForm();
+		*trigger = xform * resource->header.trigger;
+	}
 }
 
 

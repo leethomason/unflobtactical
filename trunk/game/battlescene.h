@@ -369,6 +369,8 @@ private:
 		U8 team;		// 1: team, 0: unit
 		U8 viewerID;	// unit id of viewer, or teamID if team event
 		U8 targetID;	// unit id of target
+
+		void Dump() { GLOUTPUT(( "TargetEvent team=%d viewerID=%d targetID=%d\n", team, viewerID, targetID )); }
 	};
 
 	grinliz::BitArray<MAX_UNITS, MAX_UNITS, 1>	unitVis;	// map of "previous" unit vis. Difference between this and current creates targetEvents.

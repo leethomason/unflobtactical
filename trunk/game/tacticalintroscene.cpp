@@ -373,7 +373,7 @@ void TacticalIntroScene::Tap(	int action,
 			else if ( toggles[SQUAD_8].Down() )
 				count = 8;
 
-			GenerateTerranTeam( units, count, (float)rank, game->GetItemDefArr(), random.Rand() );
+			GenerateTerranTeam( units, count, (float)rank, &game->GetItemDefArr(), random.Rand() );
 			data.soldierUnits = units;
 			data.nScientists = 8;
 
@@ -906,7 +906,7 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 void TacticalIntroScene::GenerateTerranTeam(	Unit* unit,				// target units to write
 												int count,	
 												float baseRank,
-												const ItemDefArr& itemDefArr,
+												const ItemDefArr* itemDefArr,
 												int seed )
 {
 	static const int POSITION = 4;
@@ -938,33 +938,34 @@ void TacticalIntroScene::GenerateTerranTeam(	Unit* unit,				// target units to w
 		rank = RandomRank( &aRand, baseRank );
 
 		// Add the weapon.
-		Item item( itemDefArr, weapon[position][rank] );
-		unit[k].GetInventory()->AddItem( item, 0 );
+		if ( itemDefArr ) {
+			Item item( *itemDefArr, weapon[position][rank] );
+			unit[k].GetInventory()->AddItem( item, 0 );
 
-		// Add ammo.
-		const WeaponItemDef* weaponDef = item.GetItemDef()->IsWeapon();
-		GLASSERT( weaponDef );
+			// Add ammo.
+			const WeaponItemDef* weaponDef = item.GetItemDef()->IsWeapon();
+			GLASSERT( weaponDef );
 
-		for( int n=0; n<2; ++n ) {
-			Item ammo( weaponDef->GetClipItemDef( kSnapFireMode ) );
-			unit[k].GetInventory()->AddItem( ammo, 0 );
-		}
-		if ( weaponDef->HasWeapon( kAltFireMode ) ) {
-			Item ammo( weaponDef->GetClipItemDef( kAltFireMode ) );
-			unit[k].GetInventory()->AddItem( ammo, 0 );
-		}
+			for( int n=0; n<2; ++n ) {
+				Item ammo( weaponDef->GetClipItemDef( kSnapFireMode ) );
+				unit[k].GetInventory()->AddItem( ammo, 0 );
+			}
+			if ( weaponDef->HasWeapon( kAltFireMode ) ) {
+				Item ammo( weaponDef->GetClipItemDef( kAltFireMode ) );
+				unit[k].GetInventory()->AddItem( ammo, 0 );
+			}
 
-		// Add extras
-		{
+			// Add extras
+			{
+				rank = RandomRank( &aRand, baseRank );
+				Item armor( *itemDefArr, armorType[rank] );
+				unit[k].GetInventory()->AddItem( armor, 0 );
+			}
 			rank = RandomRank( &aRand, baseRank );
-			Item armor( itemDefArr, armorType[rank] );
-			unit[k].GetInventory()->AddItem( armor, 0 );
-		}
-
-		rank = RandomRank( &aRand, baseRank );
-		for( int i=0; i<=rank; ++i ) {
-			Item extra( itemDefArr, extraItems[i] );
-			unit[k].GetInventory()->AddItem( extra, 0 );
+			for( int i=0; i<=rank; ++i ) {
+				Item extra( *itemDefArr, extraItems[i] );
+				unit[k].GetInventory()->AddItem( extra, 0 );
+			}
 		}
 	}
 }

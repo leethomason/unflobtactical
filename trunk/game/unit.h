@@ -152,6 +152,10 @@ public:
 	};
 	int CalcWeaponTURemaining( float subtract ) const;
 
+	// Calculate the angle from 'this' to the 'dst'. The coordinates are
+	// in map coordinates, and the angle is the absolute y angle. (Not the delta.
+	// The function name could be better.) If 'quantize' is true, the angle
+	// will be rounded to the nearest 45 degrees.
 	float AngleBetween( const grinliz::Vector2I& dst, bool quantize ) const;
 
 	const Stats& GetStats() const	{ return stats; }

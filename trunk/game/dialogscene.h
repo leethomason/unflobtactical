@@ -44,6 +44,8 @@ public:
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
 
+	//virtual void HandleHotKeyMask( int mask )
+
 	// Rendering
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	
 	{ 
@@ -56,8 +58,8 @@ private:
 	const DialogSceneData*	data;
 	gamui::Image		background;
 	gamui::TextBox		textBox;
-	gamui::PushButton	button0;
-	gamui::PushButton	button1;
+	gamui::PushButton	button0;	// no, cancel, false
+	gamui::PushButton	button1;	// yes, accept, true
 };
 
 
