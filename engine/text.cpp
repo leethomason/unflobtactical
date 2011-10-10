@@ -47,6 +47,8 @@ UFOText::UFOText( const gamedb::Reader* database, Texture* texture, Screenport* 
 
 	memset( metricCache, 0, sizeof(Metric)*CHAR_RANGE );
 	memset( kerningCache, 100, CHAR_RANGE*CHAR_RANGE );
+	memset( vBuf, 0, sizeof(PTVertex2)*BUF_SIZE*4 );
+	memset( iBuf, 0, sizeof(U16)*BUF_SIZE*6 );
 
 	const gamedb::Item* fontItem = database->Root()->Child( "data" )
 												   ->Child( "fonts" )
@@ -133,21 +135,29 @@ void UFOText::Metrics(	int c, int cPrev,
 		c -= 128;
 	}
 
+	if ( c < CHAR_OFFSET || c >= END_CHAR ) {
+		c = ' ';
+		cPrev = 0;
+	}
 	const Metric& mc = metricCache[ MetricIndex( c ) ];
 	if ( !mc.isSet ) CacheMetric( c );
 
-	int kernI = kerningCache[ KernIndex( c, cPrev ) ];
-	if ( kernI == 100 ) {
-		CacheKern( c, cPrev );
-		kernI = kerningCache[ KernIndex( c, cPrev ) ];
+	float kern = 0;
+	if (    c >= CHAR_OFFSET && c < END_CHAR
+		 && cPrev >= CHAR_OFFSET && cPrev < END_CHAR ) 
+	{
+		int kernI = kerningCache[ KernIndex( c, cPrev ) ];
+		if ( kernI == 100 ) {
+			CacheKern( c, cPrev );
+			kernI = kerningCache[ KernIndex( c, cPrev ) ];
+		}
+
+		if ( kernI && s2 == 1.0f ) {
+			kern = (float)kernI;
+		}
 	}
 
 	float scale = (float)lineHeight / fontSize;
-	float kern = 0;
-	if ( kernI && s2 == 1.0f ) {
-		kern = (float)kernI;
-	}
-
 	if ( mc.width ) {
 		metric->advance = ((float)mc.advance+kern) * scale * s2;
 
@@ -194,11 +204,11 @@ void UFOText::TextOut( GPUShader* shader, const char* str, int _x, int _y, int _
 			// not initialized
 			for( int pos=0; pos<BUF_SIZE; ++pos ) {
 				iBuf[pos*6+0] = pos*4 + 0;
-				iBuf[pos*6+1] = pos*4 + 1;
-				iBuf[pos*6+2] = pos*4 + 2;
+				iBuf[pos*6+1] = pos*4 + 2;
+				iBuf[pos*6+2] = pos*4 + 1;
 				iBuf[pos*6+3] = pos*4 + 0;
-				iBuf[pos*6+4] = pos*4 + 2;
-				iBuf[pos*6+5] = pos*4 + 3;
+				iBuf[pos*6+4] = pos*4 + 3;
+				iBuf[pos*6+5] = pos*4 + 2;
 			}
 		}
 	}
@@ -210,7 +220,7 @@ void UFOText::TextOut( GPUShader* shader, const char* str, int _x, int _y, int _
 		GLASSERT( pos < BUF_SIZE );
 
 		gamui::IGamuiText::GlyphMetrics metric;
-		Metrics( *str, *(str+1), (float)h, &metric );
+		Metrics( *str, 0, (float)h, &metric );
 
 		if ( rendering ) {
 			vBuf[pos*4+0].tex.Set( metric.tx0, metric.ty0 );
@@ -270,5 +280,5 @@ void UFOText::Draw( int x, int y, const char* format, ... )
 #endif
 	va_end( va );
 
-    TextOut( &shader, buffer, x, y, 0, 0 );
+    TextOut( &shader, buffer, x, y, 16, 0 );
 }

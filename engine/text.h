@@ -71,7 +71,8 @@ private:
 	enum {
 		BUF_SIZE = 30,
 		CHAR_OFFSET = 32,
-		CHAR_RANGE  = 128 - CHAR_OFFSET
+		CHAR_RANGE  = 128 - CHAR_OFFSET,
+		END_CHAR = CHAR_OFFSET + CHAR_RANGE
 	};
 
 	int MetricIndex( int c )          { return c - CHAR_OFFSET; }
