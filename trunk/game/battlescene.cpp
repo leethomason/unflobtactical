@@ -2816,7 +2816,8 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 				bool visible = false;
 				if (    end != start 
 					 && end.x >= 0 && end.x < tacMap->Width() 
-					 && end.y >= 0 && end.y < tacMap->Height() ) 
+					 && end.y >= 0 && end.y < tacMap->Height()
+					 && confirmDest.x < 0 ) 
 				{
 					float cost;
 					gamui::RenderAtom atom;

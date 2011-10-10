@@ -409,11 +409,15 @@ int main( int argc, char **argv )
 
 				switch ( event.key.keysym.sym )
 				{
-#ifdef DEBUG
 					case SDLK_ESCAPE:
-						done = true;
-						break;
+						{
+							int handled = GameHotKey( game, GAME_HK_BACK );
+#ifdef DEBUG
+							// only escape out in debug mode
+							if ( !handled ) done = true;
 #endif
+						}
+						break;
 
 					case SDLK_F4:
 						if ( sdlMod & ( KMOD_RALT | KMOD_LALT ) )

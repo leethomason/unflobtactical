@@ -605,6 +605,7 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 	for( int i=0; i<MAX_CONTEXT; ++i ) {
 		context[i].SetVisible( false );
 		context[i].SetDeco( nullAtom, nullAtom );
+		context[i].SetEnabled( true );
 	}
 
 	if ( type == CM_NONE ) {

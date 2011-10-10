@@ -72,6 +72,8 @@ void GameDoTick( void* handle, unsigned int timeInMSec );
 #define GAME_HK_TOGGLE_ROTATION_UI		0x0010
 #define GAME_HK_TOGGLE_NEXT_UI			0x0020
 #define GAME_HK_TOGGLE_DEBUG_TEXT		0x0040
+//#define GAME_HK_BACK					0x0080	// return 1 if handled, 0 top of stack
+
 void GameHotKey( void* handle, int mask );
 
 #define GAME_MAX_MOD_DATABASES			16

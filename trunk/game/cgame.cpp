@@ -179,12 +179,12 @@ void GameMoveCamera( void* handle, float dx, float dy, float dz )
 }
 
 
-void GameHotKey( void* handle, int mask )
+int GameHotKey( void* handle, int mask )
 {
 	CheckThread check;
 
 	Game* game = (Game*)handle;
-	game->HandleHotKeyMask( mask );
+	return game->HandleHotKeyMask( mask );
 }
 
 
