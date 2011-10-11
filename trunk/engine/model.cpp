@@ -298,8 +298,7 @@ void Model::CalcTrigger( grinliz::Vector3F* trigger, const float* rotation ) con
 		t.SetTranslation( pos );
 
 		Matrix4 r;
-		if ( rot[1] != 0.0f ) 
-			r.ConcatRotation( *rotation, 1 );
+		r.ConcatRotation( *rotation, 1 );
 		if ( rot[2] != 0.0f )
 			r.ConcatRotation( rot[2], 2 );
 		if ( rot[0] != 0.0f )
