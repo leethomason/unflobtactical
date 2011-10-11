@@ -612,7 +612,7 @@ float Unit::AngleBetween( const Vector2I& p1, bool quantize ) const
 		int r = (int)( (angle+45.0f/2.0f) / 45.0f );
 		return (float)(r*45.0f);
 	}
-	return angle;
+	return NormalizeAngleDegrees( angle );
 }
 
 
