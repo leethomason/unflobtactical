@@ -40,10 +40,14 @@ Release v2.5
 - Higher quality text rendering. Text should look crisper across all screen.
 - Support for font modding.
 - Hired soldiers now do not arrive with basic weapon and armor. (Fixes economy exploit.)
+- Soldiers now cheaper since the arrive unequipped.
+- Scientists slightly cheaper.
 - Aliens should now calculate line of site correctly and not blast walls repeatedly
 - Sometimes units don't scroll onscreen - should be fixed.
 - Some bugs in visibility detection were fixed. Soldiers should no longer stop needlessly 
   when an enemy has already been spotted by a teammate.
+
+
   
 
 

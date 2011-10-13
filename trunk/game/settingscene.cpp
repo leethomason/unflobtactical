@@ -29,7 +29,7 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 	const float SIZE = gamui2D.GetTextHeight()*3.f;
 	float y = GAME_GUTTER;
 	float deltaY = SIZE + 5.0f;
-	float x = 220.0f + GAME_GUTTER*2.f;
+	float x = 196.0f + GAME_GUTTER*2.f;
 	float deltaX = SIZE + 5.0f;
 	float boxWidth = 220.0f;
 

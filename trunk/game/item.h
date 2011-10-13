@@ -106,11 +106,18 @@ public:
 	// optimization trickiness:
 	int index;
 
-	int Price( float costMult ) const {
+	int BuyPrice( float costMult ) const {
 		if ( price >= 0 )
 			return grinliz::LRintf( (float)price * costMult );
 		else
 			return -price;
+	}
+
+	int SellPrice() const {
+		// Fixes an exploit where you can hire a soldier, sell his stuff,
+		// and then fire the soldier to make money.
+		if ( grinliz::StrEqual( name, "Soldr" ) ) return grinliz::LRintf( abs( price ) * 0.15f );
+		return abs( price );
 	}
 
 	void PrintDesc( char*, int nChar ) const;

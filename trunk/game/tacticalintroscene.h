@@ -156,7 +156,7 @@ public:
 	static void GenerateTerranTeam( Unit* units,				// target units to write
 									int count,
 									float averageLevel,
-									const ItemDefArr*,			// if null, will have no items
+									const ItemDefArr&,			// if null, will have no items
 									int seed=0 );
 
 	static void GenerateAlienTeamUpper( int scenario,	
