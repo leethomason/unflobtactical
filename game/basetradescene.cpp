@@ -24,8 +24,8 @@
 using namespace grinliz;
 using namespace gamui;
 
-static const int SOLDIER_COST   = 80;
-static const int SCIENTIST_COST = 120;
+//static const int SOLDIER_COST   = 80;
+//static const int SCIENTIST_COST = 120;
 
 BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene( _game )
 {
@@ -156,7 +156,7 @@ void BaseTradeScene::SceneDone()
 			int seed = *data->cash ^ nSoldiers;
 			TacticalIntroScene::GenerateTerranTeam( &data->soldiers[minSoldiers], nSoldiers-minSoldiers, 
 													data->soldierBoost ? 0.0f : 0.5f,
-													0,			// set to null; generate without items. Fixes exploit where you can hire soldiers, sell stuff, and fire soldiers.
+													game->GetItemDefArr(),
 													seed );
 		}
 	}		
@@ -252,12 +252,12 @@ bool BaseTradeScene::ComputePrice( int* _total )
 		if ( currentCount > originalCount ) {
 			// Bought stuff.
 			nBuy += (currentCount - originalCount );
-			buy += (currentCount - originalCount ) * itemDef->Price( data->costMult );
+			buy += (currentCount - originalCount ) * itemDef->BuyPrice( data->costMult );
 		}
 		if ( currentCount < originalCount ) {
 			// Sold stuff.
 			nSell += (originalCount - currentCount);
-			sell += (originalCount - currentCount) * abs( itemDef->price );
+			sell += (originalCount - currentCount) * itemDef->SellPrice();
 		}
 	}
 	//int total = sell - buy;

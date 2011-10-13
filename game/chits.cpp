@@ -613,7 +613,7 @@ BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, c
 	random.SetSeedFromTime();
 
 	if ( firstBase ) {
-		TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, 0, &itemDefArr, random.Rand() );
+		TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, 0, itemDefArr, random.Rand() );
 	}
 
 	for( int i=0; i<NUM_FACILITIES; ++i ) {

@@ -1337,7 +1337,8 @@ void BattleScene::DoReactionFire()
 				Unit* targetUnit = &units[t.targetID];
 				Unit* srcUnit = &units[t.viewerID];
 
-				if (    targetUnit->IsAlive() 
+				if (    targetUnit->IsAlive()
+					 && srcUnit->DoesReactionFire()
 					 && GetModel( targetUnit )
 					 && srcUnit->GetWeapon() ) {
 
@@ -2364,6 +2365,7 @@ void BattleScene::SceneResult( int sceneID, int result )
 	else if ( sceneID == Game::CHARACTER_SCENE ) {
 		tacMap->ReleaseStorage( lockedStorage );
 		lockedStorage = 0;
+		ShowNearPath( 0 );	// force a redraw				
 	}
 	else if ( sceneID == Game::UNIT_SCORE_SCENE ) {
 		game->Save();
@@ -2619,6 +2621,10 @@ void BattleScene::ShowNearPath( const Unit* unit )
 			//const WeaponItemDef* wid = unit->GetWeapon()->GetItemDef()->IsWeapon();
 			snappedTU = unit->FireTimeUnits( kSnapFireMode );
 			autoTU = unit->FireTimeUnits( kAutoFireMode );
+			if ( !unit->DoesReactionFire() ) {
+				autoTU = 0;
+				snappedTU = 0;
+			}
 		}
 
 		nearPathState.unit = unit;
