@@ -134,6 +134,8 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	doc.LoadFile();
 	if ( !doc.Error() )
 		engine->GetMap()->Load( doc.FirstChildElement( "Map" ) );
+	
+	engine->CameraLookAt( (float)engine->GetMap()->Width()*0.5f, (float)engine->GetMap()->Height()*0.5f, engine->camera.PosWC().y );
 }
 
 
