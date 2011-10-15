@@ -187,7 +187,7 @@
   <texture filename="iconDeco.png" dither="false" />
 
   <!-- Model textures -->
-	<texture filename="stdfont2.tga" dither="false" font="true"/>
+	<!--<texture filename="stdfont2.tga" dither="false" font="true"/>-->
 	<texture filename="woodDark.png" />
 	<texture filename="woodDarkUFO.tga" />
   <texture filename="woodPlank.png" />
@@ -479,6 +479,11 @@
   <image filename="BATT_48_TILE_00_TEX.png" width="384" height="384" />
   <image filename="BATT_48_TILE_00_DAY.png" />
   <image filename="BATT_48_TILE_00_NGT.png" />
+
+  <data  filename="BATT_48_TILE_01.xml" />
+  <image filename="BATT_48_TILE_01_TEX.png" width="384" height="384" />
+  <image filename="BATT_48_TILE_01_DAY.png" />
+  <image filename="BATT_48_TILE_01_NGT.png" />
 
   <!-- Forest Tiles -->
   <data  filename="FRST_16_TILE_00.xml" />

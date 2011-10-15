@@ -197,6 +197,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 				controlButton[i].SetVisible( false );
 			}
 			menuImage.SetVisible( false );
+			orbitButton.SetVisible( false );
 		}
 	}
 
@@ -522,21 +523,27 @@ void BattleScene::SetFogOfWar()
 
 	if ( visibility.FogCheckAndClear() ) {
 		grinliz::BitArray<Map::SIZE, Map::SIZE, 1>* fow = tacMap->LockFogOfWar();
-		for( int j=0; j<MAP_SIZE; ++j ) {
-			for( int i=0; i<MAP_SIZE; ++i ) {
-				if ( visibility.TeamCanSee( TERRAN_TEAM, i, j ) )
-					fow->Set( i, j );
-				else
-					fow->Clear( i, j );
-			}
-		}
 
-		// Can always see around the lander.		
-		const Model* landerModel = tacMap->GetLanderModel();
-		if ( landerModel ) {
-			Rectangle2I bounds;
-			tacMap->MapBoundsOfModel( landerModel, &bounds );
-			fow->SetRect( bounds );
+		if ( Engine::mapMakerMode ) {
+			fow->SetAll();
+		}
+		else {
+			for( int j=0; j<MAP_SIZE; ++j ) {
+				for( int i=0; i<MAP_SIZE; ++i ) {
+					if ( visibility.TeamCanSee( TERRAN_TEAM, i, j ) )
+						fow->Set( i, j );
+					else
+						fow->Clear( i, j );
+				}
+			}
+
+			// Can always see around the lander.		
+			const Model* landerModel = tacMap->GetLanderModel();
+			if ( landerModel ) {
+				Rectangle2I bounds;
+				tacMap->MapBoundsOfModel( landerModel, &bounds );
+				fow->SetRect( bounds );
+			}
 		}
 		tacMap->ReleaseFogOfWar();
 	}
