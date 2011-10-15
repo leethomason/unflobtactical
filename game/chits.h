@@ -44,6 +44,8 @@ public:
 		return a.x >= 0 && a.x < GEO_MAP_X;
 	}
 
+	// If converting float->int, be sure to convert the result, else
+	// an input of x=-0.5 goes to 0, instead of a big number.
 	static grinliz::Vector2<T> Normalize( const grinliz::Vector2<T>& a )
 	{
 		grinliz::Vector2<T> v = a;
@@ -121,8 +123,10 @@ public:
 	virtual bool Parked() const				{ return false; }
 
 	grinliz::Vector2I MapPos() const { 
-		grinliz::Vector2I v = { (int)pos.x, (int)pos.y }; 
-		return Cylinder<int>::Normalize( v );
+		// Bug fix: beware negative numbers. -.5 rounds to 0...which is very wrong.
+		grinliz::Vector2F vf =  Cylinder<float>::Normalize( pos );
+		grinliz::Vector2I v  = { (int)vf.x, (int)vf.y };
+		return v;
 	}
 	void SetMapPos( int x, int y );
 	void SetMapPos( const grinliz::Vector2I& pos )	{ SetMapPos( pos.x, pos.y ); }
