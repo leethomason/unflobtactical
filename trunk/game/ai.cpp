@@ -105,13 +105,7 @@ bool AI::LineOfSight( const Unit* shooter, const Unit* target )
 	float fireRotation = shooter->AngleBetween( target->MapPos(), false );
 
 	const Model* shooterModel = m_battleScene->GetModel( shooter );
-	
 	shooterModel->CalcTrigger( &p0, &fireRotation );
-#ifdef DEBUG
-	Vector3F test;
-	shooterModel->CalcTrigger( &test );
-#endif
-
 	m_battleScene->GetModel( target )->CalcTarget( &p1 );
 
 	Ray ray;

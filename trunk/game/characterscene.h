@@ -82,7 +82,6 @@ protected:
 	gamui::PushButton backButton;
 	gamui::PushButton nextButton;
 	gamui::PushButton prevButton;
-	gamui::ToggleButton reactionButton;
 	gamui::TextLabel  unitCounter;
 
 	// control buttons:

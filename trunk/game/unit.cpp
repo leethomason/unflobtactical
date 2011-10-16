@@ -228,7 +228,6 @@ void Unit::Init(	int team,
 					int alienType,
 					int body )
 {
-	reactionFire = true;
 	kills = 0;
 	nMissions = 0;
 	allMissionKills = 0;
@@ -472,7 +471,6 @@ void Unit::Save( FILE* fp, int depth ) const
 		XMLUtil::Attribute( fp, "status", status );
 		XMLUtil::Attribute( fp, "body", body );
 		XMLUtil::Attribute( fp, "hp", hp );
-		XMLUtil::Attribute( fp, "reactionFire", reactionFire );
 		XMLUtil::Attribute( fp, "kills", kills );
 		XMLUtil::Attribute( fp, "nMissions", nMissions );
 		XMLUtil::Attribute( fp, "allMissionKills", allMissionKills );
@@ -555,8 +553,6 @@ void Unit::Load( const TiXmlElement* ele, const ItemDefArr& itemDefArr )
 		// before loading, just so we get the correct defaults.
 		ele->QueryIntAttribute( "hp", &hp );
 		ele->QueryFloatAttribute( "tu", &tu );
-		reactionFire = true;
-		ele->QueryBoolAttribute( "reactionFire", &reactionFire );
 		
 		ele->QueryIntAttribute( "kills", &kills );
 		ele->QueryIntAttribute( "nMissions", &nMissions );

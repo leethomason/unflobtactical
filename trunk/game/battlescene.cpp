@@ -1306,6 +1306,84 @@ bool BattleScene::PushShootAction( Unit* unit,
 }
 
 
+bool BattleScene::ShouldReactionFire( const Unit* source, const Unit* target, WeaponMode mode )
+{
+
+	const Model* sourceModel = GetModel( source );
+	const Model* sourceWeaponModel = GetWeaponModel( source );
+	const Model* targetModel = GetModel( target );
+	int sourceTeam = source->Team();
+	int targetTeam = target->Team();
+
+	Vector3F sourcePos, targetPos;
+
+	float fireRotation = source->AngleBetween( target->MapPos(), false );
+	sourceModel->CalcTrigger( &sourcePos, &fireRotation );
+	targetModel->CalcTarget( &targetPos );
+
+	float length = ( targetPos - sourcePos ).Length();
+	
+	Vector3F normal = ( targetPos - sourcePos );
+	normal.Normalize();
+
+	static const Vector3F up = { 0, 1, 0 };
+	Vector3F tangent;
+	CrossProduct( normal, up, &tangent );
+	
+	const WeaponItemDef* wid = source->GetWeaponDef();
+	Accuracy accuracy = source->CalcAccuracy( mode );
+
+	// Don't blow ourselves up.
+	if ( wid->IsExplosive( kSnapFireMode ) && length <= EXPLOSIVE_RANGE ) {
+		return false;
+	}
+
+	int COUNT = 5;
+	if ( source->Team() == ALIEN_TEAM ) {
+		COUNT = 1;	// I want a little more chaos with the aliens. More shooting walls, each other, etc.
+	}
+
+
+	// Send out rays over the possible shooting space, see what happens. Basically want to know:
+	// 1. Does the center ray hit.
+	// 2. Do other possible solutions do bad things.
+
+	bool result = false;
+	for( int i=0; i<COUNT; ++i ) {
+		float delta = Interpolate( -accuracy.RadiusAtOne()*length, 0.0f,
+									accuracy.RadiusAtOne()*length, (float)(COUNT-1),
+									float(i) );
+		Vector3F t = sourcePos + normal*length + tangent*delta;
+
+		Ray ray;
+		ray.origin = sourcePos;
+		ray.direction = t - sourcePos;
+		Vector3F intersection;
+
+		const Model* ignore[3] = { sourceModel, sourceWeaponModel, 0 };
+		Model* m = engine->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &intersection );
+		float distanceToImpact = (intersection - sourcePos).Length();
+
+		// Did we hit our own team?
+		Unit* u = UnitFromModel( m, true );
+		if ( u && u->Team() == sourceTeam ) {
+			return false;
+		}
+		// Is an explosive weapon too close?
+		if ( wid->IsExplosive(mode) && m && distanceToImpact <= EXPLOSIVE_RANGE ) {
+			return false;
+		}
+
+		// Do we actually hit the target? Only check for the center ray cast.
+		if ( i == COUNT/2 && u && u->Team() == targetTeam ) {
+			result = true;
+		}
+	}
+	return result;
+}
+
+
+
 void BattleScene::DoReactionFire()
 {
 	if ( currentTeamTurn == CIV_TEAM )
@@ -1345,19 +1423,10 @@ void BattleScene::DoReactionFire()
 				Unit* srcUnit = &units[t.viewerID];
 
 				if (    targetUnit->IsAlive()
-					 && srcUnit->DoesReactionFire()
 					 && GetModel( targetUnit )
 					 && srcUnit->GetWeapon() ) {
 
-					bool rangeOK = true;
-					// Filter out explosive weapons...
-					if ( srcUnit->GetWeapon()->IsWeapon()->IsExplosive( kSnapFireMode ) ) {
-						Vector2I d = srcUnit->MapPos() - targetUnit->MapPos();
-						if ( d.LengthSquared() < EXPLOSIVE_RANGE * EXPLOSIVE_RANGE )
-							rangeOK = false;
-					}
-					
-					if ( rangeOK ) {
+					if ( ShouldReactionFire( srcUnit, targetUnit, srcUnit-> )  ) {
 						// Do we really react? Are we that lucky? Well, are you, punk?
 						float r = random.Uniform();
 						float reaction = srcUnit->GetStats().Reaction();
@@ -2628,10 +2697,6 @@ void BattleScene::ShowNearPath( const Unit* unit )
 			//const WeaponItemDef* wid = unit->GetWeapon()->GetItemDef()->IsWeapon();
 			snappedTU = unit->FireTimeUnits( kSnapFireMode );
 			autoTU = unit->FireTimeUnits( kAutoFireMode );
-			if ( !unit->DoesReactionFire() ) {
-				autoTU = 0;
-				snappedTU = 0;
-			}
 		}
 
 		nearPathState.unit = unit;
