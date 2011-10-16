@@ -181,9 +181,6 @@ public:
 	static int XPToRank( int xp );
 	const U32 Body() const			{ return body; }
 
-	bool DoesReactionFire() const	{ return reactionFire; }
-	void SetReactionFire( bool r )	{ reactionFire = r; }
-
 	void Save( FILE* fp, int depth ) const;
 
 	// Loads the model. Follow with InitModel() if models needed.
@@ -251,7 +248,6 @@ private:
 	Stats		stats;
 	float		tu;
 	int			hp;
-	bool		reactionFire;
 
 	int			kills;	
 	int			nMissions;

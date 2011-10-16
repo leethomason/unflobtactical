@@ -62,12 +62,6 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	nextButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_NEXT, true ),  UIRenderer::CalcDecoAtom( DECO_NEXT, false ) );
 	nextButton.SetVisible( input->nUnits > 1 );
 
-	reactionButton.Init( &gamui2D, blue );
-	reactionButton.SetPos( GAME_BUTTON_SIZE_F*3.0f, port.UIHeight()-GAME_BUTTON_SIZE_F );
-	reactionButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	reactionButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_AIMED, false ),  UIRenderer::CalcDecoAtom( DECO_NEXT, false ) );
-	reactionButton.SetText( "React" );
-
 	helpButton.Init( &gamui2D, blue );
 	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	helpButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_HELP, true ),  UIRenderer::CalcDecoAtom( DECO_HELP, false ) );
@@ -114,11 +108,6 @@ CharacterScene::~CharacterScene()
 
 void CharacterScene::SetCounter( int delta )
 {
-	if ( unit->DoesReactionFire() )
-		reactionButton.SetDown();
-	else
-		reactionButton.SetUp();
-
 	if ( input->nUnits <= 1 )
 		return;
 
@@ -418,9 +407,6 @@ void CharacterScene::Tap(	int action,
 		const gamui::ButtonLook& blue		= game->GetButtonLook( Game::BLUE_BUTTON );
 		compWidget.Init( &game->GetItemDefArr(), storage, unit, 0, blue, storageWidget->X(), 0, storageWidget->Width() );		
 		compWidget.SetCompText();
-	}
-	if ( item == &reactionButton ) {
-		unit->SetReactionFire( reactionButton.Down() );
 	}
 
 	compWidget.Tap( item );
