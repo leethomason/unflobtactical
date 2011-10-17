@@ -347,9 +347,14 @@ int main( int argc, char **argv )
 		// The user event shouldn't be duplicated...if there are 2, pull out the dupe.
 		if ( event.type == SDL_USEREVENT ) {
 			SDL_Event e;
-			int n = SDL_PeepEvents( &e, 1, SDL_PEEKEVENT, SDL_ALLEVENTS );		
-			if ( n == 1 && e.type == SDL_USEREVENT ) {
-				SDL_PeepEvents( &e, 1, SDL_GETEVENT, SDL_ALLEVENTS );
+			while( true ) {
+				int n = SDL_PeepEvents( &e, 1, SDL_PEEKEVENT, SDL_ALLEVENTS );		
+				if ( n == 1 && e.type == SDL_USEREVENT ) {
+					SDL_PeepEvents( &e, 1, SDL_GETEVENT, SDL_ALLEVENTS );
+				}
+				else {
+					break;
+				}
 			}
 		}
 

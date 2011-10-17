@@ -1308,7 +1308,6 @@ bool BattleScene::PushShootAction( Unit* unit,
 
 bool BattleScene::ShouldReactionFire( const Unit* source, const Unit* target, WeaponMode mode )
 {
-
 	const Model* sourceModel = GetModel( source );
 	const Model* sourceWeaponModel = GetWeaponModel( source );
 	const Model* targetModel = GetModel( target );
@@ -1348,11 +1347,13 @@ bool BattleScene::ShouldReactionFire( const Unit* source, const Unit* target, We
 	// 1. Does the center ray hit.
 	// 2. Do other possible solutions do bad things.
 
-	bool result = false;
 	for( int i=0; i<COUNT; ++i ) {
-		float delta = Interpolate( -accuracy.RadiusAtOne()*length, 0.0f,
-									accuracy.RadiusAtOne()*length, (float)(COUNT-1),
-									float(i) );
+		float delta = 0;
+		if ( COUNT > 1 ) {
+			delta = Interpolate(  0.f,             -accuracy.RadiusAtOne()*length,
+								(float)(COUNT-1), accuracy.RadiusAtOne()*length,
+								float(i) );
+		}
 		Vector3F t = sourcePos + normal*length + tangent*delta;
 
 		Ray ray;
@@ -1362,24 +1363,36 @@ bool BattleScene::ShouldReactionFire( const Unit* source, const Unit* target, We
 
 		const Model* ignore[3] = { sourceModel, sourceWeaponModel, 0 };
 		Model* m = engine->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &intersection );
-		float distanceToImpact = (intersection - sourcePos).Length();
+		float distanceToImpact = m ? (intersection - sourcePos).Length() : (float)MAP_SIZE;
 
 		// Did we hit our own team?
-		Unit* u = UnitFromModel( m, true );
+		Unit* u = UnitFromModel( m, false );
+		if ( !u ) {
+			u = UnitFromModel( m, true );
+		}
 		if ( u && u->Team() == sourceTeam ) {
+			GLOUTPUT(( "Reaction fail %d: hit own team\n", source-units ));
 			return false;
 		}
 		// Is an explosive weapon too close?
 		if ( wid->IsExplosive(mode) && m && distanceToImpact <= EXPLOSIVE_RANGE ) {
+			GLOUTPUT(( "Reaction fail %d: blow up in face.\n", source-units ));
 			return false;
 		}
 
 		// Do we actually hit the target? Only check for the center ray cast.
-		if ( i == COUNT/2 && u && u->Team() == targetTeam ) {
-			result = true;
+		if ( i == COUNT/2 ) {
+			if ( u && u->Team() == targetTeam ) {
+				// all good.
+				GLOUTPUT(( "Reaction main ray pass %d.\n", source-units ));
+			}
+			else {
+				GLOUTPUT(( "Reaction fail %d: no line of site to target.\n", source-units ));
+				return false;
+			}
 		}
 	}
-	return result;
+	return true;
 }
 
 
@@ -1426,7 +1439,9 @@ void BattleScene::DoReactionFire()
 					 && GetModel( targetUnit )
 					 && srcUnit->GetWeapon() ) {
 
-					if ( ShouldReactionFire( srcUnit, targetUnit, srcUnit-> )  ) {
+					if ( ShouldReactionFire( srcUnit, targetUnit, 
+						                     srcUnit->CanFire( kAutoFireMode ) ? kAutoFireMode : kSnapFireMode  )  ) 
+					{
 						// Do we really react? Are we that lucky? Well, are you, punk?
 						float r = random.Uniform();
 						float reaction = srcUnit->GetStats().Reaction();
@@ -1449,7 +1464,7 @@ void BattleScene::DoReactionFire()
 						reaction *= mod;				// linear with angle.
 						float error = 2.0f - mod;		// doubles with rotation
 						
-						GLOUTPUT(( "reaction fire possible. (if %.2f < %.2f)\n", r, reaction ));
+						GLOUTPUT(( "reaction fire %s. (if %.2f < %.2f)\n", r <= reaction ? "Yes" : "No", r, reaction ));
 
 						if ( r <= reaction ) {
 							Vector3F target = { 0, 0, 0 };
