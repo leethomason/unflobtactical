@@ -77,6 +77,20 @@ struct GlyphMetric
 GlyphMetric gGlyphMetric[GLYPH_CX*GLYPH_CY];
 
 
+void ExitError( const char* tag, 
+				const char* pathName,
+				const char* assetName,
+				const char* message )
+{
+	printf( "\nERROR: tag='%s' path='%s asset='%s'. %s\n",
+		   tag ? tag : "<no tag>", 
+		   pathName ? pathName : "<no path>",
+		   assetName ? assetName : "<no asset>", 
+		   message );
+	exit( 1 );
+}
+
+
 void InsertTextureToDB( const char* name, 
 						const char* format, 
 						bool isImage, 
@@ -108,7 +122,7 @@ void LoadLibrary()
 		void* handle = grinliz::grinlizLoadLibrary( "SDL_image" );
 		if ( !handle )
 		{	
-			exit( 1 );
+			ExitError( "Initialization", 0, 0, "Could not load SDL_image library." );
 		}
 		libIMG_Load = (PFN_IMG_LOAD) grinliz::grinlizLoadFunction( handle, "IMG_Load" );
 		GLASSERT( libIMG_Load );
@@ -337,9 +351,7 @@ void ProcessData( TiXmlElement* data )
 #pragma warning (pop)
 
 	if ( !read ) {
-		printf( "**Unrecognized data file. '%s'\n",
-				 pathName.c_str() );
-		exit( 1 );
+		ExitError( "Data", pathName.c_str(), assetName.c_str(), "Could not load asset file." );
 	}
 
 	// length of file.
@@ -519,9 +531,7 @@ void ProcessModel( TiXmlElement* model )
 		ImportOFF( std::string( pathName.c_str() ), builder );
 	}
 	else {
-		printf( "**Unrecognized model file. path='%s' asset='%s' extension='%s'\n",
-				 pathName.c_str(), assetName.c_str(), extension.c_str() );
-		exit( 1 );
+		ExitError( "Model", pathName.c_str(), assetName.c_str(), "Could not load asset file." ); 
 	}
 
 	const VertexGroup* vertexGroup = builder->Groups();
@@ -731,14 +741,19 @@ void ProcessTexture( TiXmlElement* texture )
 
 	SDL_Surface* surface = libIMG_Load( pathName.c_str() );
 	if ( !surface ) {
-		printf( "**File not found. Looking for texture file: %s\n", pathName.c_str() );
-		exit( 1 );
+		ExitError( "Texture", pathName.c_str(), assetName.c_str(), "Could not load asset file." );
 	}
 	else {
-//		if ( !IsPowerOf2( surface->w ) || !IsPowerOf2( surface->h ) ) {
-//			printf( "**Surface %s must be power of 2. w=%d h=%d\n", fullIn.c_str(), surface->w, surface->h );
-//			exit( 1 );
-//		}
+		if (    isImage
+			 || ( surface->w == 384 && surface->h == 384 )			// weird exception (battleship and base)
+			 || ( IsPowerOf2( surface->w ) && IsPowerOf2( surface-> h ) ) )
+		{
+			// no problem.
+		}
+		else {
+			printf( "ERROR: width=%d height=%d\n", surface->w, surface->h );
+			ExitError( "Texture", pathName.c_str(), assetName.c_str(), "Textures must be power of 2 dimension." );
+		}
 		printf( "  Loaded: '%s' bpp=%d", 
 				assetName.c_str(),
 				surface->format->BitsPerPixel );
@@ -835,8 +850,7 @@ void ProcessTexture( TiXmlElement* texture )
 			break;
 
 		default:
-			printf( "Unsupported bit depth!\n" );
-			exit( 1 );
+			ExitError( "Texture", pathName.c_str(), assetName.c_str(), "Unsupported bit depth.\n" );
 			break;
 	}
 
@@ -861,8 +875,7 @@ void ProcessPalette( TiXmlElement* pal )
 
 	SDL_Surface* surface = libIMG_Load( pathName.c_str() );
 	if ( !surface ) {
-		printf( "**Could not load: %s\n", pathName.c_str() );
-		exit( 1 );
+		ExitError( "Palette", pathName.c_str(), assetName.c_str(), "Could not load asset." );
 	}
 	printf( "Palette[data] asset=%s cx=%d cy=%d sx=%f sy=%f\n",
 		    assetName.c_str(), dx, dy, sx, sy );
@@ -903,8 +916,7 @@ void ProcessFont( TiXmlElement* font )
 
 	SDL_Surface* surface = libIMG_Load( pathName.c_str() );
 	if ( !surface ) {
-		printf( "**Could not load: %s\n", pathName.c_str() );
-		exit( 1 );
+		ExitError( "Font", pathName.c_str(), assetName.c_str(), "Could not load asset." );
 	}
 	ProcessTexture( font );
 
@@ -921,8 +933,9 @@ void ProcessFont( TiXmlElement* font )
 		
 		const TiXmlElement* element = font->FirstChildElement( tag );
 		if ( !element ) {
-			printf( "**Element '%s' not found, but expected in font.\n", tag );
-			exit( 1 );
+			char buf[90];
+			SNPrintf( buf, 90, "XML Element %s not found.", tag );
+			ExitError( "Font", pathName.c_str(), assetName.c_str(), buf );
 		}
 		
 		gamedb::WItem* tagItem = witem->CreateChild( tag );
@@ -937,8 +950,7 @@ void ProcessFont( TiXmlElement* font )
 	// Character data.
 	const TiXmlElement* charsElement = font->FirstChildElement( "chars" );
 	if ( !charsElement ) {
-		printf( "** Font contains no 'chars' element.\n" );
-		exit( 1 );
+		ExitError( "Font", pathName.c_str(), assetName.c_str(), "Font contains no 'chars' XML Element." );
 	}
 
 	gamedb::WItem* charsItem = witem->CreateChild( "chars" );
@@ -995,7 +1007,7 @@ int main( int argc, char* argv[] )
 		printf( "Usage: ufobuilder ./path/xmlFile.xml ./outPath/filename.db <options>\n" );
 		printf( "options:\n" );
 		printf( "    -d    print database\n" );
-		exit( 1 );
+		exit( 0 );
 	}
 
     SDL_Init( SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE | SDL_INIT_TIMER );

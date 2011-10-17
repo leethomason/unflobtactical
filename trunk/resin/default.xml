@@ -929,11 +929,11 @@
       <p>There are 6 geo-political regions: North, South, Europe, Asia, Africa, and Under.
          Beneath the name of each region is a bar that indicates the amount of alien 
          influence.</p>
-      <p>Each region has its own traits. Regions can be 1) capitalistic (rebate on base purcases), 
+      <p>Each region has its own traits. Regions can be 1) capitalistic (better prices), 
 	     2) militaristic (better soldiers), 3) scientific (faster research),
 		 4) nationalistic (resists alien takeover), 
          5) high tech (make tech-3 weapons), or 6) manufacturing (make tech-3 armor).</p>
-    </page>
+    </page>  
     <page>
       <p>[Alien Invasion]</p>
       <p>Aliens initially generate influence with crop circles. With more influence, the aliens will

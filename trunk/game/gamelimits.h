@@ -16,7 +16,7 @@
 #ifndef GAMELIMITS_INCLUDED
 #define GAMELIMITS_INCLUDED
 
-#if 1
+#if 0
         #define AI_LOG GLOUTPUT
 #else
         #define AI_LOG( x )      {}

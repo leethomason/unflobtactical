@@ -56,7 +56,6 @@
             <Item x="19" y="40" rot="3" name="ufo_WallInn" />
             <Item x="19" y="42" name="ufo_power" />
             <Item x="19" y="41" name="ufo_power" />
-            <Item x="17" y="40" name="guard" />
             <Item x="15" y="43" name="guard" />
             <Item x="11" y="43" name="scout" />
             <Item x="47" y="36" rot="1" name="ufo_WallOut" />
@@ -91,7 +90,6 @@
             <Item x="20" y="36" name="guard" />
             <Item x="19" y="36" rot="3" name="ufo_WallInn" />
             <Item x="19" y="39" rot="3" name="ufo_WallInn" />
-            <Item x="9" y="39" name="scout" />
             <Item x="0" y="39" rot="3" name="ufo_WallOut" />
             <Item x="0" y="37" rot="3" name="ufo_WallOut" />
             <Item x="0" y="38" rot="3" name="ufo_WallOut" />
@@ -141,7 +139,6 @@
             <Item x="0" y="33" rot="3" name="ufo_WallOut" />
             <Item x="0" y="34" rot="3" name="ufo_WallOut" />
             <Item x="0" y="32" rot="3" name="ufo_WallOut" />
-            <Item x="3" y="35" name="scout" />
             <Item x="47" y="31" rot="1" name="ufo_WallOut" />
             <Item x="47" y="30" rot="1" name="ufo_WallOut" />
             <Item x="47" y="29" rot="1" name="ufo_WallOut" />
@@ -196,7 +193,6 @@
             <Item x="19" y="30" rot="1" name="ufo_plant0" />
             <Item x="19" y="29" rot="2" name="ufo_plant1" />
             <Item x="18" y="28" name="ufo_controlTable" />
-            <Item x="17" y="28" name="scout" />
             <Item x="0" y="30" rot="3" name="ufo_WallOut" />
             <Item x="0" y="31" rot="3" name="ufo_WallOut" />
             <Item x="0" y="29" rot="3" name="ufo_WallOut" />
