@@ -39,16 +39,14 @@ Release v2.5
 
 - Higher quality text rendering. Text should look crisper across all screen.
 - Support for font modding.
-- Hired soldiers now do not arrive with basic weapon and armor. (Fixes economy exploit.)
-- Soldiers now cheaper since the arrive unequipped.
-- Scientists slightly cheaper.
+- Hired soldiers sell/fire for much less money. Fixes expoit.
 - Aliens should now calculate line of site correctly and not blast walls repeatedly
-- Sometimes units don't scroll onscreen - should be fixed.
+- Reaction fire AI greatly improved. Should shoot own team, blow up weapons in face, much less often.
+- Sometimes units don't scroll onscreen - fixed.
 - Some bugs in visibility detection were fixed. Soldiers should no longer stop needlessly 
   when an enemy has already been spotted by a teammate.
-
-
-  
+- New battleship model.
+- Builder.exe is now hardened somewhat against bad inputs, and gives more errors. Particuarly will now detect correct texture sizes.
 
 
 Release v2.4 b691 Android / Windows
