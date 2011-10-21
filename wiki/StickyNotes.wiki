@@ -1,5 +1,36 @@
 Useful code and links from the web. And sometimes a sort of development blog.
 
+= Feature Wrap = 
+
+If 2.6 is the last feature version, I'm not sure it will be, but it's a plan to follow. What to do / not do?
+
+Not do:
+  * UI changes. Really hard to get right. Player re-education.
+  * Crouching. New mechanic, new UI.
+  * Highlights & such
+  * Emmissive & such
+  * installer
+  * button improvements / unique buttons
+
+Do:
+  * Save file support. #1 request from comments. Does have UI.
+  * back / escape key
+  * info console
+  * last names
+  * unique backgrounds
+  * dragging optional
+
+Ideas:
+  * Squid. Mind read team positions.
+  * Spitter / Crab. Civ takeover.
+  * Rocket types - how to select??
+  * Grenades - how to select?? (Choose the first in inventory?)
+    * (Explosive)
+    * (Incendiary)
+    * Flare
+    * Smoke
+
+
 
 = Ordering Rendering = 
 
