@@ -19,7 +19,7 @@ DialogScene::DialogScene( Game* _game, const DialogSceneData* _data ) : Scene( _
 	RenderAtom roundRectangle = UIRenderer::CalcPaletteAtom(	UIRenderer::PALETTE_GREEN, 
 																UIRenderer::PALETTE_GREEN, 
 																UIRenderer::PALETTE_DARK, 
-																10, 10, true );
+																true );
 
 	background.Init( &gamui2D, roundRectangle, false );
 	background.SetSlice( true );

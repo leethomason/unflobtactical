@@ -150,7 +150,7 @@ public:
 		PALETTE_GREEN, PALETTE_BLUE, PALETTE_RED, PALETTE_YELLOW, PALETTE_GREY,
 		PALETTE_NORM=0, PALETTE_BRIGHT, PALETTE_DARK
 	};
-	static gamui::RenderAtom CalcPaletteAtom( int c0, int c1, int blend, float w, float h, bool enable=true );
+	static gamui::RenderAtom CalcPaletteAtom( int c0, int c1, int blend, bool enable=true );
 
 	virtual void GamuiGlyph( int c, int c1, float lineHeight, gamui::IGamuiText::GlyphMetrics* metric );
 	

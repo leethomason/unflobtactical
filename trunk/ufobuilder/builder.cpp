@@ -43,6 +43,7 @@
 #include "../shared/gamedbwriter.h"
 #include "../grinliz/glstringutil.h"
 #include "dither.h"
+#include "../version.h"
 
 using namespace std;
 using namespace grinliz;
@@ -82,7 +83,7 @@ void ExitError( const char* tag,
 				const char* assetName,
 				const char* message )
 {
-	printf( "\nERROR: tag='%s' path='%s asset='%s'. %s\n",
+	printf( "\nERROR: tag='%s' path='%s' asset='%s'. %s\n",
 		   tag ? tag : "<no tag>", 
 		   pathName ? pathName : "<no path>",
 		   assetName ? assetName : "<no asset>", 
@@ -1002,7 +1003,7 @@ void ProcessFont( TiXmlElement* font )
 
 int main( int argc, char* argv[] )
 {
-	printf( "UFO Builder. argc=%d argv[1]=%s\n", argc, argv[1] );
+	printf( "UFO Builder. version=%d argc=%d argv[1]=%s\n", VERSION, argc, argv[1] );
 	if ( argc < 3 ) {
 		printf( "Usage: ufobuilder ./path/xmlFile.xml ./outPath/filename.db <options>\n" );
 		printf( "options:\n" );

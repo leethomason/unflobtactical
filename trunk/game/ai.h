@@ -95,6 +95,13 @@ public:
 						int flags,
 						TacMap* map,
 						AIAction* action ) = 0;
+
+	static bool SafeLineOfSight(	const Unit* source, 
+									const Unit* target, 
+									WeaponMode mode,
+									bool multicast,
+									Engine* engine,
+									BattleScene* battle );
 protected:
 	enum {
 		THINK_NOT_OPTION,			// can't do this (if (no weapon) can't shoot)
@@ -145,7 +152,7 @@ protected:
 							AIAction* action );
 
 	// Utility:
-	bool LineOfSight( const Unit* shooter, const Unit* target ); // calls the engine LoS to get an accurate value
+	//bool LineOfSight( const Unit* shooter, const Unit* target ); // calls the engine LoS to get an accurate value
 	void TrimPathToCost( MP_VECTOR< grinliz::Vector2<S16> >* path, float maxCost );
 	int  VisibleUnitsInArea(	const Unit* theUnit,
 								const Unit* units,

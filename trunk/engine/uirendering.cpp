@@ -173,7 +173,7 @@ RenderAtom UIRenderer::CalcIcon2Atom( int id, bool enabled )
 }
 
 
-RenderAtom UIRenderer::CalcPaletteAtom( int c0, int c1, int blend, float w, float h, bool enabled )
+RenderAtom UIRenderer::CalcPaletteAtom( int c0, int c1, int blend, bool enabled )
 {
 	Vector2I c = { 0, 0 };
 	Texture* texture = TextureManager::Instance()->GetTexture( "palette" );

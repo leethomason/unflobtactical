@@ -99,7 +99,7 @@ Map::Map( SpaceTree* tree )
 	}
 	lightMapValid = false;
 
-	gamui::RenderAtom borderAtom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_DARK, 1, 1, true );
+	gamui::RenderAtom borderAtom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_DARK, true );
 #ifdef DEBUG_VISIBILITY
 	borderAtom.renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
 #else

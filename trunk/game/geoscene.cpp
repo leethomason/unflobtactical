@@ -294,13 +294,17 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 	baseButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	baseButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_BASE, true ), UIRenderer::CalcDecoAtom( DECO_BASE, false ) );
 
-	cashImage.Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK ), false );
-	cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F*0.5f );
-	cashImage.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
+	//cashImage.Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK ), false );
+	cashImage.Init( &gamui2D, 
+		UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_NORM ),
+		false );
+	cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F*1.8f, 
+					  port.UIHeight()-GAME_BUTTON_SIZE_F*0.4f );
+	cashImage.SetSize( GAME_BUTTON_SIZE_F*1.7f, GAME_BUTTON_SIZE_F );
 	cashImage.SetSlice( true );
 
 	cashLabel.Init( &gamui2D );
-	cashLabel.SetPos( cashImage.X()+10.0f, cashImage.Y()+10.0f );
+	cashLabel.SetPos( cashImage.X()+5.0f, cashImage.Y()+5.0f );
 
 	for( int i=0; i<MAX_CONTEXT; ++i ) {
 		context[i].Init( &gamui2D, game->GetButtonLook( Game::BLUE_BUTTON ) );

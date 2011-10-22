@@ -95,6 +95,104 @@ void AI::Inform( const Unit* theUnit, int quality )
 	}
 }
 
+
+bool AI::SafeLineOfSight(	const Unit* source, 
+							const Unit* target, 
+							WeaponMode mode,
+							bool multicast,
+							Engine* engine,
+							BattleScene* battle )
+{
+	const Model* sourceModel		= battle->GetModel( source );
+	const Model* sourceWeaponModel	= battle->GetWeaponModel( source );
+	const Model* targetModel		= battle->GetModel( target );
+
+	if ( !sourceModel || !sourceWeaponModel || !targetModel ) {
+		return false;
+	}
+
+	int sourceTeam = source->Team();
+	int targetTeam = target->Team();
+
+	Vector3F sourcePos, targetPos;
+
+	float fireRotation = source->AngleBetween( target->MapPos(), false );
+	sourceModel->CalcTrigger( &sourcePos, &fireRotation );
+	targetModel->CalcTarget( &targetPos );
+
+	float length = ( targetPos - sourcePos ).Length();
+	
+	Vector3F normal = ( targetPos - sourcePos );
+	normal.Normalize();
+
+	static const Vector3F up = { 0, 1, 0 };
+	Vector3F tangent;
+	CrossProduct( normal, up, &tangent );
+	
+	const WeaponItemDef* wid = source->GetWeaponDef();
+	Accuracy accuracy = source->CalcAccuracy( mode );
+
+	// Don't blow ourselves up.
+	if ( wid->IsExplosive( kSnapFireMode ) && length <= EXPLOSIVE_RANGE ) {
+		return false;
+	}
+
+	const int COUNT = multicast ? 5 : 1;
+
+	// Send out rays over the possible shooting space, see what happens. Basically want to know:
+	// 1. Does the center ray hit.
+	// 2. Do other possible solutions do bad things.
+
+	for( int i=0; i<COUNT; ++i ) {
+		float delta = 0;
+		if ( COUNT > 1 ) {
+			delta = Interpolate(  0.f,             -accuracy.RadiusAtOne()*length,
+								(float)(COUNT-1), accuracy.RadiusAtOne()*length,
+								float(i) );
+		}
+		Vector3F t = sourcePos + normal*length + tangent*delta;
+
+		Ray ray;
+		ray.origin = sourcePos;
+		ray.direction = t - sourcePos;
+		Vector3F intersection;
+
+		const Model* ignore[3] = { sourceModel, sourceWeaponModel, 0 };
+		Model* m = engine->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &intersection );
+		float distanceToImpact = m ? (intersection - sourcePos).Length() : (float)MAP_SIZE;
+
+		// Did we hit our own team?
+		const Unit* u = battle->GetUnit( m, false );
+		if ( !u ) {
+			u = battle->GetUnit( m, true );
+		}
+		if ( u && u->Team() == sourceTeam ) {
+			GLOUTPUT(( "Reaction fail %d: hit own team\n", battle->GetUnitID( source ) ));
+			return false;
+		}
+		// Is an explosive weapon too close?
+		if ( wid->IsExplosive(mode) && m && distanceToImpact <= EXPLOSIVE_RANGE ) {
+			GLOUTPUT(( "Reaction fail %d: blow up in face.\n", battle->GetUnitID( source ) ));
+			return false;
+		}
+
+		// Do we actually hit the target? Only check for the center ray cast.
+		if ( i == COUNT/2 ) {
+			if ( u && u->Team() == targetTeam ) {
+				// all good.
+				GLOUTPUT(( "Reaction main ray pass %d.\n", battle->GetUnitID( source ) ));
+			}
+			else {
+				GLOUTPUT(( "Reaction fail %d: no line of site to target.\n", battle->GetUnitID( source ) ));
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+
+/*
 bool AI::LineOfSight( const Unit* shooter, const Unit* target )
 {
 	GLASSERT( m_battleScene->GetModel( shooter ));
@@ -120,6 +218,7 @@ bool AI::LineOfSight( const Unit* shooter, const Unit* target )
 	}
 	return false;
 }
+*/
 
 
 void AI::TrimPathToCost( MP_VECTOR< grinliz::Vector2<S16> >* path, float maxCost )
@@ -188,7 +287,7 @@ int AI::ThinkShoot(	const Unit* theUnit,
 			 && m_units[i].IsAlive() 
 			 && m_battleScene->GetModel( &m_units[i] )
 			 && m_visibility->UnitCanSee( theUnit, &m_units[i] )
-			 && LineOfSight( theUnit, &m_units[i]))
+			 && SafeLineOfSight( theUnit, &m_units[i], kSnapFireMode, false, m_engine, m_battleScene ) )
 		{
 			int len2 = (m_units[i].MapPos() - theUnit->MapPos()).LengthSquared();
 			float len = sqrtf( (float)len2 );
