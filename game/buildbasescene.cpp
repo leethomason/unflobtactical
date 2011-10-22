@@ -60,6 +60,7 @@ BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene(
 
 		progressLabel[i].Init( &gamui2D );
 		progressLabel[i].SetCenterPos( ORIGIN_X+pos[i].x, ORIGIN_Y+pos[i].y );
+		progressLabel[i].SetPos( progressLabel[i].X(), ORIGIN_Y+pos[i].y );
 		progressLabel[i].SetText( "Building..." );
 	}
 

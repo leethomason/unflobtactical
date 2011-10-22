@@ -36,11 +36,11 @@ AreaWidget::AreaWidget( Game* game,
 		trait[i].SetSize( name.Height(), name.Height() );
 	}
 
-	gamui::RenderAtom tick0Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_BLUE, 0, W, H );
+	gamui::RenderAtom tick0Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_BLUE, 0 );
 	tick0Atom.renderState = (const void*)UIRenderer::RENDERSTATE_UI_NORMAL;
-	gamui::RenderAtom tick1Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_GREEN, 0, W, H );
+	gamui::RenderAtom tick1Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_GREEN, 0 );
 	tick1Atom.renderState = (const void*)UIRenderer::RENDERSTATE_UI_NORMAL;
-	gamui::RenderAtom tick2Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREY, UIRenderer::PALETTE_GREY, UIRenderer::PALETTE_DARK, W, H );
+	gamui::RenderAtom tick2Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREY, UIRenderer::PALETTE_GREY, UIRenderer::PALETTE_DARK );
 	tick1Atom.renderState = (const void*)UIRenderer::RENDERSTATE_UI_NORMAL;
 
 	bar.Init( container, 10, tick0Atom, tick1Atom, tick2Atom );

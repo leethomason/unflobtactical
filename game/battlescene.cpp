@@ -218,11 +218,11 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		static const float H = 0.15f;
 		//static const float S = 0.02f;
 
-		gamui::RenderAtom tick0Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_BRIGHT, W, H );
+		gamui::RenderAtom tick0Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_BRIGHT );
 		tick0Atom.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
-		gamui::RenderAtom tick1Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_RED, UIRenderer::PALETTE_RED, 0, W, H );
+		gamui::RenderAtom tick1Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_RED, UIRenderer::PALETTE_RED, 0 );
 		tick1Atom.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
-		gamui::RenderAtom tick2Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREY, UIRenderer::PALETTE_GREY, UIRenderer::PALETTE_DARK, W, H );
+		gamui::RenderAtom tick2Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREY, UIRenderer::PALETTE_GREY, UIRenderer::PALETTE_DARK );
 		tick1Atom.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
 
 		for( int i=0; i<MAX_UNITS; ++i ) {
@@ -277,7 +277,7 @@ void BattleScene::DeActivate()
 }
 
 
-const Model* BattleScene::GetModel( const Unit* unit ) 
+const Model* BattleScene::GetModel( const Unit* unit )
 { 
 	if ( unit ) {
 		int index = unit - units;
@@ -1305,7 +1305,7 @@ bool BattleScene::PushShootAction( Unit* unit,
 	return false;
 }
 
-
+/*
 bool BattleScene::ShouldReactionFire( const Unit* source, const Unit* target, WeaponMode mode )
 {
 	const Model* sourceModel = GetModel( source );
@@ -1394,7 +1394,7 @@ bool BattleScene::ShouldReactionFire( const Unit* source, const Unit* target, We
 	}
 	return true;
 }
-
+*/
 
 
 void BattleScene::DoReactionFire()
@@ -1437,10 +1437,13 @@ void BattleScene::DoReactionFire()
 
 				if (    targetUnit->IsAlive()
 					 && GetModel( targetUnit )
-					 && srcUnit->GetWeapon() ) {
-
-					if ( ShouldReactionFire( srcUnit, targetUnit, 
-						                     srcUnit->CanFire( kAutoFireMode ) ? kAutoFireMode : kSnapFireMode  )  ) 
+					 && srcUnit->GetWeapon() ) 
+				{
+					if ( AI::SafeLineOfSight( srcUnit, 
+											  targetUnit,
+											  srcUnit->CanFire( kAutoFireMode ) ? kAutoFireMode : kSnapFireMode,
+											  srcUnit->Team() == TERRAN_TEAM ? true : false,
+											  GetEngine(), this ) )
 					{
 						// Do we really react? Are we that lucky? Well, are you, punk?
 						float r = random.Uniform();
@@ -2933,16 +2936,16 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 						int tuLeft = selection.soldierUnit->CalcWeaponTURemaining( cost );
 						visible = true;
 						if ( tuLeft >= Unit::AUTO_SHOT ) {
-							atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_GREEN, 0, 1, 1 );
+							atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_GREEN, 0 );
 						}
 						else if ( tuLeft == Unit::SNAP_SHOT ) {
-							atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_YELLOW, UIRenderer::PALETTE_YELLOW, 0, 1, 1 );
+							atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_YELLOW, UIRenderer::PALETTE_YELLOW, 0 );
 						}
 						else if ( cost <= selection.soldierUnit->TU() ) {
-							atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_YELLOW, UIRenderer::PALETTE_RED, 0, 1, 1 );
+							atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_YELLOW, UIRenderer::PALETTE_RED, 0 );
 						}
 						else {
-							atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_RED, UIRenderer::PALETTE_RED, 0, 1, 1 );
+							atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_RED, UIRenderer::PALETTE_RED, 0 );
 						}
 						dragBar[0].SetPos( 0, (float)end.y+0.25f );
 						dragBar[1].SetPos( (float)end.x+0.25f, 0 );

@@ -1,3 +1,4 @@
+
 #include "fastbattlescene.h"
 #include "game.h"
 #include "cgame.h"

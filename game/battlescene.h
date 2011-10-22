@@ -123,6 +123,10 @@ public:
 
 	const Model* GetModel( const Unit* unit );
 	const Model* GetWeaponModel( const Unit* unit );
+	const Unit* GetUnit( const Model* m, bool isWeaponModel ) {
+		return UnitFromModel( m, isWeaponModel );
+	}
+	int GetUnitID( const Unit* u ) const { return u-units; }
 
 private:
 	enum {
@@ -245,7 +249,7 @@ private:
 
 	void StopForNewTeamTarget();
 	void DoReactionFire();
-	bool ShouldReactionFire( const Unit* source, const Unit* target, WeaponMode mode );
+	//bool ShouldReactionFire( const Unit* source, const Unit* target, WeaponMode mode );
 
 	void DrawFireWidget();
 	int CenterRectIntersection( const grinliz::Vector2F& p,
