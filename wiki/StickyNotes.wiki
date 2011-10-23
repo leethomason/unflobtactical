@@ -15,8 +15,8 @@ Not do:
 Do:
   * Save file support. #1 request from comments. Does have UI.
   * back / escape key
-  * info console
-  * last names
+  * maybe: info console. Clutters game screen...
+  * last names.
   * unique backgrounds
   * dragging optional
 
