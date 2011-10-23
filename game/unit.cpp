@@ -71,7 +71,7 @@ const char* gFemaleFirstNames[64] =
 
 
 // Name last name length: 6
-const char* gLastNames[32] = 
+const char* gLastNames[64] = 
 {
 	"Payne",	"Havok",	"Fury",		"Scharz",
 	"Bourne",	"Bond",		"Smith",	"Anders",
@@ -81,7 +81,15 @@ const char* gLastNames[32] =
 	"Blume",	"Green",	"Hale",		"Serra",
 	"Cobb",		"Frye",		"Book",		"Wedon",
 	"Ford",		"Fisher",	"Weaver",	"Hicks",
-
+	
+	"Cook",		"Morgan",	"Brown",	"Davis",
+	"Miller",	"Wilson",	"Moore",	"Taylor",
+	"Thomas",	"White",	"Harris",	"Martin",
+	"Garcia",	"Clark",	"Lewis",	"Walker",
+	"Hall",		"Allen",	"Young",	"Wright",
+	"Lopez",	"Hill",		"Bell",		"Adams",
+	"Baker",	"Nelson",	"Carter",	"Perez",
+	"Turner",	"Parker",	"Evans",	"Morris"
 };
 
 
@@ -136,7 +144,7 @@ const char* Unit::AlienName() const
 
 U32 Unit::GetValue( int which ) const
 {
-	const int NBITS[NUM_TRAITS] = { 1, 4, 5, 6, 4 };
+	const int NBITS[NUM_TRAITS] = { 1, 4, 5, 6, 4, 1 };
 
 	int i;
 	U32 shift = 0;
@@ -166,7 +174,10 @@ const char* Unit::LastName() const
 {
 	const char* str = "";
 	if ( team == TERRAN_TEAM ) {
-		str = gLastNames[ GetValue( LAST_NAME ) ];
+		if ( version >= 1 && GetValue( LAST_NAME_EXT ) )
+			str = gLastNames[ GetValue( LAST_NAME ) + 32 ];
+		else
+			str = gLastNames[ GetValue( LAST_NAME ) ];
 	}
 	GLASSERT( strlen( str ) <= 7 );
 	return str;
@@ -235,6 +246,7 @@ void Unit::Init(	int team,
 	gunner = 0;
 	pos.Set( 0, 0, 0 );
 	rot = 0;
+	version = 1;
 
 	GLASSERT( this->status == STATUS_NOT_INIT );
 	this->team = team;
@@ -470,6 +482,7 @@ void Unit::Save( FILE* fp, int depth ) const
 		XMLUtil::Attribute( fp, "type", type );
 		XMLUtil::Attribute( fp, "status", status );
 		XMLUtil::Attribute( fp, "body", body );
+		XMLUtil::Attribute( fp, "version", version );
 		XMLUtil::Attribute( fp, "hp", hp );
 		XMLUtil::Attribute( fp, "kills", kills );
 		XMLUtil::Attribute( fp, "nMissions", nMissions );
@@ -543,6 +556,10 @@ void Unit::Load( const TiXmlElement* ele, const ItemDefArr& itemDefArr )
 		inventory.Load( ele, itemDefArr );
 
 		Init( team, a_status, type, body );
+		// Note version is after the init! This code is a mess. Otherwise can write
+		// a non-zero version when it shouldn't.
+		version = 0;
+		ele->QueryIntAttribute( "version", &version );
 		ele->QueryFloatAttribute( "modelX", &pos.x );
 		ele->QueryFloatAttribute( "modelZ", &pos.z );
 		ele->QueryFloatAttribute( "yRot", &rot );

@@ -26,9 +26,9 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 	doneButton.SetText( "X" );
 	doneButton.SetPos( 0, port.UIHeight() - GAME_BUTTON_SIZE_F);
 
-	const float SIZE = gamui2D.GetTextHeight()*3.f;
-	float y = GAME_GUTTER;
-	float deltaY = SIZE + 5.0f;
+	const float SIZE = gamui2D.GetTextHeight()*2.8f;
+	float y = GAME_GUTTER / 4;
+	float deltaY = SIZE + 2.0f;
 	float x = 196.0f + GAME_GUTTER*2.f;
 	float deltaX = SIZE + 5.0f;
 	float boxWidth = 220.0f;
@@ -101,6 +101,20 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 	debugButton[game->GetDebugLevel()].SetDown();
 	y += deltaY;
 
+	dragText.Init( &gamui2D );
+	dragText.SetSize( boxWidth, SIZE );
+	dragText.SetText( "Drag to move units." );
+	dragText.SetPos( GAME_GUTTER, y );
+	for( int i=0; i<2; ++i ) {
+		dragButton[i].Init( &gamui2D, green );
+		dragButton[i].SetText( i==0 ? "Off" : "On" );
+		dragButton[i].SetPos( x + deltaX*(float)i, y );
+		dragButton[i].SetSize( SIZE, SIZE );
+	}
+	dragButton[0].AddToToggleGroup( &dragButton[1] );
+	dragButton[ sm->GetAllowDrag() ? 1 : 0 ].SetDown();
+	y += deltaY;
+
 	audioButton.Init( &gamui2D, green );
 	audioButton.SetSize( SIZE, SIZE );
 	audioButton.SetPos( x, y );
@@ -136,6 +150,7 @@ SettingScene::~SettingScene()
 	}
 	sm->SetConfirmMove( moveButton[1].Down() );
 	sm->SetAudioOn( audioButton.Down() );
+	sm->SetAllowDrag( dragButton[1].Down() );
 }
 
 

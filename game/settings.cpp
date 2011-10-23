@@ -53,6 +53,7 @@ SettingsManager::SettingsManager( const char* savepath )
 		#else
 			0;
 		#endif
+	allowDrag = true;
 
 	// Parse actuals.
 	TiXmlDocument doc;
@@ -66,6 +67,7 @@ SettingsManager::SettingsManager( const char* savepath )
 			root->QueryIntAttribute( "useFastBattle", &useFastBattle );
 			root->QueryIntAttribute( "nWalkingMaps", &nWalkingMaps );
 			root->QueryBoolAttribute( "confirmMove", &confirmMove );
+			root->QueryBoolAttribute( "allowDrag", &allowDrag );
 			currentMod = "";
 			if ( root->Attribute( "currentMod" ) ) {
 				currentMod = root->Attribute( "currentMod" );
@@ -115,6 +117,15 @@ void SettingsManager::SetAudioOn( bool _value )
 }
 
 
+void SettingsManager::SetAllowDrag( bool allow ) 
+{
+	if ( allowDrag != allow ) {
+		allowDrag = allow;
+		Save();
+	}
+}
+
+
 void SettingsManager::Save()
 {
 	FILE* fp = fopen( path.c_str(), "w" );
@@ -129,6 +140,7 @@ void SettingsManager::Save()
 		XMLUtil::Attribute( fp, "useFastBattle", useFastBattle );
 		XMLUtil::Attribute( fp, "nWalkingMaps", nWalkingMaps );
 		XMLUtil::Attribute( fp, "confirmMove", confirmMove );
+		XMLUtil::Attribute( fp, "allowDrag", allowDrag );
 
 		XMLUtil::SealCloseElement( fp );
 
