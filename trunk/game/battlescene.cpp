@@ -2889,7 +2889,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 			dragEndUI = dragStartUI = ui;
 
 			// Drag a unit or drag the camera?
-			if ( uiActivated && !panning ) {
+			if ( uiActivated && !panning && SettingsManager::Instance()->GetAllowDrag() ) {
 				Vector2I mapPos = { (int)dragStart3D.x, (int)dragStart3D.z };
 				for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 					if ( units[i].IsAlive() && ( mapPos == units[i].MapPos() ) ) {

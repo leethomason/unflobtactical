@@ -45,6 +45,9 @@ private:
 	gamui::TextBox		debugText;
 	gamui::ToggleButton	debugButton[4];
 
+	gamui::TextBox		dragText;
+	gamui::ToggleButton dragButton[2];
+
 	gamui::ToggleButton	audioButton;
 };
 

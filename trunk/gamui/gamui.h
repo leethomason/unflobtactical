@@ -277,7 +277,6 @@ public:
 							TextLabel* textLabels, int nTextLabels,
 							float originX, float originY,
 							float width );
-						  
 
 private:
 	static int SortItems( const void* a, const void* b );

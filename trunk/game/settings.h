@@ -45,6 +45,9 @@ public:
 	void SetCurrentModName( const grinliz::GLString& string );
 	const grinliz::GLString& GetCurrentModName() const		{ return currentMod; }
 
+	void SetAllowDrag( bool allow );
+	bool GetAllowDrag() const			{ return allowDrag; }
+
 private:
 	SettingsManager( const char* path );
 	~SettingsManager()	{}
@@ -59,6 +62,7 @@ private:
 	int useFastBattle;
 	int nWalkingMaps;
 	bool confirmMove;
+	bool allowDrag;
 	grinliz::GLString currentMod;
 
 	grinliz::GLString path;

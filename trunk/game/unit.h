@@ -62,7 +62,7 @@ public:
 		FEMALE
 	};
 
-	Unit() : status( STATUS_NOT_INIT ) {}
+	Unit() : status( STATUS_NOT_INIT ), version( 1 ) {}
 	~Unit();
 	
 	void Free();
@@ -216,6 +216,7 @@ public:
 		LAST_NAME,		// 5, 0-31
 		FIRST_NAME,		// 6, 0-63
 		APPEARANCE_EXT,	// 4, 0-15
+		LAST_NAME_EXT,	// 1, 0-1, version >= 1	
 		NUM_TRAITS
 	};
 	U32 GetValue( int which ) const;
@@ -238,6 +239,7 @@ private:
 	int team;		// terran, alien, civ
 	int type;		// type of alien
 	U32 body;		// describes everything! a random #
+	int version;	
 
 	bool				visibilityCurrent;	// if set, the visibility is current. Can be set by CalcAllVisibility()
 	grinliz::Random		random;
