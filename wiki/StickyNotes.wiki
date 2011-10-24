@@ -1,8 +1,11 @@
 Useful code and links from the web. And sometimes a sort of development blog.
 
-= Feature Wrap = 
+= New Aliens = 
 
-If 2.6 is the last feature version, I'm not sure it will be, but it's a plan to follow. What to do / not do?
+Plan for the next couple of versions:
+- stop making UI changes. Painful to get right. Incremental value.
+- try to stabilize the assets for modding
+- new aliens 
 
 Not do:
   * UI changes. Really hard to get right. Player re-education.
@@ -14,11 +17,11 @@ Not do:
 
 Do:
   * Save file support. #1 request from comments. Does have UI.
-  * back / escape key
-  * maybe: info console. Clutters game screen...
-  * last names.
+  * back / escape key. Maybe: seems natural, but no other integration with OS
+  * maybe: info console. Clutters game screen.
+  * last names. [done]
   * unique backgrounds
-  * dragging optional
+  * dragging optional [done]
 
 Ideas:
   * Squid. Mind read team positions.
