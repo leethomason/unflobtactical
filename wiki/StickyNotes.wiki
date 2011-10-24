@@ -19,9 +19,9 @@ Do:
   * Save file support. #1 request from comments. Does have UI.
   * back / escape key. Maybe: seems natural, but no other integration with OS
   * maybe: info console. Clutters game screen.
-  * last names. [done]
+  * last names. (done)
   * unique backgrounds
-  * dragging optional [done]
+  * dragging optional (done)
 
 Ideas:
   * Squid. Mind read team positions.
