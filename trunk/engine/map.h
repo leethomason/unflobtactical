@@ -191,6 +191,7 @@ public:
 
 		U8			open;
 		U8			modelRotation;
+		U8			amountObscuring;		// if !0, amount to decrement 
 		U16			hp;
 		U16			flags;
 		MatPacked	xform;			// xform in map coordinates

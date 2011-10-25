@@ -238,6 +238,8 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		mapmaker_mapSelection->SetPos( 0.5f, 0.0f, 0.5f );
 		mapmaker_preview = 0;
 	}
+	//consoleWidget = new ConsoleWidget( &gamui2D );
+	//consoleWidget->SetOrigin( 150, 20 );
 
 	currentTeamTurn = ALIEN_TEAM;
 	NextTurn( false );
@@ -259,6 +261,7 @@ BattleScene::~BattleScene()
 		delete aiArr[i];
 	}
 	delete tacMap;
+	//delete consoleWidget;
 }
 
 
@@ -881,6 +884,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		unitRenderers[i].Update( GetEngine()->GetSpaceTree(), &units[i] );
 	}
+	//consoleWidget->DoTick( deltaTime );
 }
 
 
@@ -2313,6 +2317,13 @@ void BattleScene::HandleNextUnit( int bias )
 			}
 		}
 	}
+	/*
+	if ( SelectedSoldierUnit() ) {
+		char buf[20];
+		SNPrintf( buf, 20, "%s test.", SelectedSoldierUnit()->FirstName() );
+		consoleWidget->PushMessage( buf );
+	}
+	*/
 	//SoundManager::Instance()->QueueSound( "blip" );
 }
 

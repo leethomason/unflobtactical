@@ -29,6 +29,7 @@
 #include "../gamui/gamui.h"
 #include "tacticalendscene.h"
 #include "battlevisibility.h"
+#include "consolewidget.h"
 
 class Model;
 class UIButtonBox;
@@ -348,6 +349,8 @@ private:
 	NameRankUI			nameRankUI;
 	OKCancelUI			moveOkayCancelUI;
 	DecoEffect			decoEffect;
+	//Works, just not sure if it is a good thing:
+	//ConsoleWidget*		consoleWidget;
 
 	gamui::Image		unitImage0[MAX_UNITS];			// map space
 	gamui::Image		unitImage1[MAX_UNITS];			// map space

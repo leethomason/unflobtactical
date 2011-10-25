@@ -1026,6 +1026,7 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, const MapItemDef* def, i
 	item->SetXForm( xform );
 	item->def = def;
 	item->open = 0;
+	item->amountObscuring = 0;
 	item->modelX = modelPos.x;
 	item->modelZ = modelPos.z;
 	item->modelRotation = rotation;
@@ -1039,9 +1040,6 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, const MapItemDef* def, i
 	GLRELASSERT( mapBounds.min.y >= 0 && mapBounds.max.y < 256 );	// using int8
 	item->mapBounds8.Set( mapBounds.min.x, mapBounds.min.y, mapBounds.max.x, mapBounds.max.y );
 	
-	if ( def->flags & MapItemDef::OBSCURES )
-		ChangeObscured( mapBounds, 1 );
-
 	item->next = 0;
 	
 	quadTree.Add( item );
@@ -1056,6 +1054,10 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, const MapItemDef* def, i
 	}
 	else {
 		res = def->GetModelResource();
+		if ( def->flags & MapItemDef::OBSCURES ) {
+			ChangeObscured( mapBounds, 1 );
+			item->amountObscuring = 1;
+		}
 	}
 	if ( res ) {
 		Model* model = tree->AllocModel( res );
@@ -1083,9 +1085,9 @@ void Map::DeleteItem( MapItem* item )
 	// Delete the light first, if it exists:
 	quadTree.UnlinkItem( item );
 	Rectangle2I mapBounds = item->MapBounds();
-	if ( item->def->flags & MapItemDef::OBSCURES )
-		ChangeObscured( mapBounds, -1 );
-
+	if ( item->amountObscuring ) {
+		ChangeObscured( mapBounds, -((int)item->amountObscuring) );
+	}
 	if ( item->model )
 		tree->FreeModel( item->model );
 
