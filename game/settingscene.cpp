@@ -58,7 +58,7 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 
 	moveText.Init( &gamui2D );
 	moveText.SetSize( boxWidth, SIZE );
-	moveText.SetText( "Confirm movement. Recommended for smaller touch screens." );
+	moveText.SetText( "Confirm movement (for small screens.)" );
 	moveText.SetPos( GAME_GUTTER, y );
 	static const char* move_TEXT[4] = { "Off", "On" };
 	for( int i=0; i<2; ++i ) {
@@ -88,7 +88,7 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 
 	debugText.Init( &gamui2D );
 	debugText.SetSize( boxWidth, SIZE );
-	debugText.SetText( "Debug Output\nLevel 1 displays framerate.\n(Setting doesn't save.)" );
+	debugText.SetText( "Debug Output\nLevel 1 displays framerate." );
 	debugText.SetPos( GAME_GUTTER, y );
 	static const char* DEBUG_TEXT[4] = { "Off", "1", "2", "3" };
 	for( int i=0; i<4; ++i ) {

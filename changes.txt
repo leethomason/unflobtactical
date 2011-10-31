@@ -37,6 +37,7 @@
 
 Release v2.5
 
+- Save game support.
 - Higher quality text rendering. Text should look crisper across all screen.
 - Support for font modding.
 - Hired soldiers sell/fire for much less money. Fixes expoit.
@@ -48,6 +49,13 @@ Release v2.5
 - New battleship model.
 - Builder.exe is now hardened somewhat against bad inputs, and gives more errors. Particuarly will now detect correct texture sizes.
 - Items that are destroyed no longer obscure vision. (Blocking items workes; obscuring items did not.)
+- Unique backgrounds:
+	"intro" used for the title screen, options, help, and is the generic background
+	"basetrade"
+	"buildbase"
+	"units"
+	"research"
+
 
 
 Release v2.4 b691 Android / Windows
