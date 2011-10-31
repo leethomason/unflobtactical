@@ -562,7 +562,6 @@ void GeoScene::Tap(	int action,
 			 && cash >= BASE_COST[ chitBag.NumBaseChits() ] ) 
 		{
 			if ( PlaceBase( mapi ) ) {
-				int region = geoMapData.GetRegion( mapi );
 				cash -= BASE_COST[ chitBag.NumBaseChits()-1 ];
 			}			
 		}
