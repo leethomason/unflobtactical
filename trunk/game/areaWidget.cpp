@@ -23,8 +23,8 @@ AreaWidget::AreaWidget( Game* game,
 						gamui::Gamui* container,
 						const char* _name )
 {
-	static const float W =  3.f;
-	static const float H =  5.f;
+	//static const float W =  3.f;
+	//static const float H =  5.f;
 	//static const float S =  1.f;
 
 	RenderAtom nullAtom;

@@ -13,9 +13,8 @@
 - build android - refresh before building.
   /cygdrive/c/src/android-ndk-r5b/ndk-build
   /cygdrive/c/src/android-ndk-r5b/ndk-build -B		builds all
-  check version when testing
 
-- test Nexus One
+- test Nexus One. Check version is correct.
 - upload to website
 	- win32
 		- buildrelease.bat
@@ -37,6 +36,8 @@
 
 Release v2.5
 
+Improved text quality, save game support, and many bug fixes.
+
 - Save game support.
 - Higher quality text rendering. Text should look crisper across all screen.
 - Support for font modding.
@@ -48,14 +49,7 @@ Release v2.5
   when an enemy has already been spotted by a teammate.
 - New battleship model.
 - Builder.exe is now hardened somewhat against bad inputs, and gives more errors. Particuarly will now detect correct texture sizes.
-- Items that are destroyed no longer obscure vision. (Blocking items workes; obscuring items did not.)
-- Unique backgrounds:
-	"intro" used for the title screen, options, help, and is the generic background
-	"basetrade"
-	"buildbase"
-	"units"
-	"research"
-
+- Map objects that are destroyed no longer obscure vision. (Blocking items workes; obscuring items did not.)
 
 
 Release v2.4 b691 Android / Windows
