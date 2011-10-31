@@ -44,8 +44,8 @@ SaveLoadScene::SaveLoadScene( Game* _game, const SaveLoadSceneData* _data ) : Sc
 	loadButton.SetPos( GAME_GUTTER, saveButton.Y() + deltaY );
 
 	saveButton.AddToToggleGroup( &loadButton );
+	loadButton.SetDown();		// safer default
 	if ( !data->canSave ) {
-		loadButton.SetDown();
 		saveButton.SetEnabled( false );
 	}
 
@@ -150,19 +150,22 @@ void SaveLoadScene::Confirm( bool action )
 			break;
 		}
 	}
+	int slot = toggleDown+1;
 
 	char buf[32] = { 0 };
 	if ( saveButton.Down() ) {
-		SNPrintf( buf, 32, "Save game to slot %d?", toggleDown+1 );
+		SNPrintf( buf, 32, "Save game to slot %d?", slot );
 		if ( action ) {
-			game->Save( toggleDown + 1 );
+			game->DeleteSaveFile( SAVEPATH_GEO, slot );
+			game->DeleteSaveFile( SAVEPATH_TACTICAL, slot );
+			game->Save( slot, true );
 			game->PopScene();
 		}
 	}
 	else if ( loadButton.Down() && toggleDown >= 0 ) {
-		SNPrintf( buf, 32, "Load game in slot %d?", toggleDown+1 );
+		SNPrintf( buf, 32, "Load game in slot %d?", slot );
 		if ( action ) {
-			game->PopAllAndLoad( toggleDown + 1 );
+			game->PopAllAndLoad( slot );
 		}
 	}
 	confirmText.SetText( buf );
