@@ -207,6 +207,9 @@
     <ClCompile Include="game\consolewidget.cpp">
       <Filter>widgets</Filter>
     </ClCompile>
+    <ClCompile Include="game\saveloadscene.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game\ai.h">
@@ -400,6 +403,9 @@
     </ClInclude>
     <ClInclude Include="game\consolewidget.h">
       <Filter>widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="game\saveloadscene.h">
+      <Filter>scenes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

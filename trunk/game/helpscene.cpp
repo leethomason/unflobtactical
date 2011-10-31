@@ -1,6 +1,7 @@
 #include "helpscene.h"
 #include "game.h"
 #include "cgame.h"
+#include "saveloadscene.h"
 #include "../engine/engine.h"
 #include "../engine/uirendering.h"
 #include "../grinliz/glstringutil.h"
@@ -39,20 +40,18 @@ HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ),
 		buttons[i].SetText( text[i] );
 		items[i] = &buttons[i];
 	}
-	buttons[0].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*2.0f, port.UIHeight() - GAME_BUTTON_SIZE_F );
-	buttons[1].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F,		 port.UIHeight() - GAME_BUTTON_SIZE_F );
-	buttons[2].SetPos( 0, port.UIHeight() - GAME_BUTTON_SIZE_F );
-	buttons[3].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*3.0f, port.UIHeight() - GAME_BUTTON_SIZE_F );
+	buttons[PREV_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*2.0f, port.UIHeight() - GAME_BUTTON_SIZE_F );
+	buttons[NEXT_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F,		 port.UIHeight() - GAME_BUTTON_SIZE_F );
+	buttons[DONE_BUTTON].SetPos( 0, port.UIHeight() - GAME_BUTTON_SIZE_F );
+	buttons[SETTINGS_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*3.0f, port.UIHeight() - GAME_BUTTON_SIZE_F );
+	buttons[SAVE_LOAD_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*4.f, port.UIHeight() - GAME_BUTTON_SIZE_F );
 
-	buttons[3].SetDeco( UIRenderer::CalcDecoAtom( DECO_SETTINGS, true ), UIRenderer::CalcDecoAtom( DECO_SETTINGS, false ) );
-	buttons[3].SetVisible( data->settings );
-	/*
-	Gamui::Layout( items, 3, 3, 1, 
-				   (float)engine->GetScreenport().UIWidth()-GAME_BUTTON_SIZE_F*3.0f, 
-				   (float)engine->GetScreenport().UIHeight()-GAME_BUTTON_SIZE_F, 
-				   GAME_BUTTON_SIZE_F*3.0f, 
-				   GAME_BUTTON_SIZE_F );
-	*/
+	buttons[SETTINGS_BUTTON].SetDeco( UIRenderer::CalcDecoAtom( DECO_SETTINGS, true ), UIRenderer::CalcDecoAtom( DECO_SETTINGS, false ) );
+	buttons[SETTINGS_BUTTON].SetVisible( data->settings );
+
+	buttons[SAVE_LOAD_BUTTON].SetDeco( UIRenderer::CalcDecoAtom( DECO_SAVE_LOAD, true ), UIRenderer::CalcDecoAtom( DECO_SAVE_LOAD, false ) );
+	buttons[SAVE_LOAD_BUTTON].SetVisible( data->settings );
+
 	Layout();
 }
 
@@ -101,7 +100,7 @@ void HelpScene::Layout()
 	textBox.SetText( text ? text : "" );
 	textBox.SetPos( GAME_GUTTER, GAME_GUTTER );
 	float tw = port.UIWidth() - GAME_GUTTER*2.0f;
-	float th = buttons[0].Y() - GAME_GUTTER*2.0f;
+	float th = buttons[PREV_BUTTON].Y() - GAME_GUTTER*2.0f;
 	image.SetVisible( false );
 
 	if ( pageItem->HasAttribute( "image" ) ) {
@@ -116,7 +115,6 @@ void HelpScene::Layout()
 			width = height * texture->AspectRatio();
 		}
 
-
 		RenderAtom atom(	(const char*) UIRenderer::RENDERSTATE_UI_NORMAL,
 							(const char*) texture,
 							0, 0, 1, 1 );
@@ -128,8 +126,8 @@ void HelpScene::Layout()
 	}
 	textBox.SetSize( tw, th );
 
-	buttons[0].SetEnabled( currentScreen > 0 );
-	buttons[1].SetEnabled( currentScreen < nPages - 1 );
+	buttons[PREV_BUTTON].SetEnabled( currentScreen > 0 );
+	buttons[PREV_BUTTON].SetEnabled( currentScreen < nPages - 1 );
 }
 
 
@@ -160,17 +158,20 @@ void HelpScene::Tap( int action, const grinliz::Vector2F& screen, const grinliz:
 	// will change on this screen.
 	//TextureManager* texman = TextureManager::Instance();
 
-	if ( item == &buttons[0] ) {
+	if ( item == &buttons[PREV_BUTTON] ) {
 		--currentScreen;	
 	}
-	else if ( item == &buttons[1] ) {
+	else if ( item == &buttons[NEXT_BUTTON] ) {
 		++currentScreen;	
 	}
-	else if ( item == &buttons[2] ) {
+	else if ( item == &buttons[DONE_BUTTON] ) {
 		game->PopScene();
 	}
-	else if ( item == &buttons[3] ) {
+	else if ( item == &buttons[SETTINGS_BUTTON] ) {
 		game->PushScene( Game::SETTING_SCENE, 0 );
+	}
+	else if ( item == &buttons[SAVE_LOAD_BUTTON] ) {
+		game->PushScene( Game::SAVE_LOAD_SCENE, new SaveLoadSceneData( true ) ); 
 	}
 	Layout();
 }

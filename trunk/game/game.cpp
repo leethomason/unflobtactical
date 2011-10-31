@@ -28,9 +28,9 @@
 #include "geoendscene.h"
 #include "basetradescene.h"
 #include "buildbasescene.h"
-//#include "fastbattlescene.h"
 #include "researchscene.h"
 #include "settingscene.h"
+#include "saveloadscene.h"
 
 #include "../engine/text.h"
 #include "../engine/model.h"
@@ -48,6 +48,8 @@
 
 #include "ufosound.h"
 #include "settings.h"
+
+#include <time.h>
 
 using namespace grinliz;
 
@@ -77,7 +79,6 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	}	
 	
 	Init();
-	//Map* map = engine->GetMap();
 
 	PushScene( INTRO_SCENE, 0 );
 	PushPopScene();
@@ -144,6 +145,7 @@ void Game::Init()
 	mainPalette = 0;
 	mapmaker_showPathing = 0;
 	scenePopQueued = false;
+	loadSlot = 0;
 	currentFrame = 0;
 	surface.Set( Surface::RGBA16, 256, 256 );		// All the memory we will ever need (? or that is the intention)
 
@@ -245,11 +247,11 @@ Game::~Game()
 }
 
 
-bool Game::HasSaveFile( SavePathType type ) const
+bool Game::HasSaveFile( SavePathType type, int slot ) const
 {
 	bool result = false;
 
-	FILE* fp = GameSavePath( type, SAVEPATH_READ );
+	FILE* fp = GameSavePath( type, SAVEPATH_READ, slot );
 	if ( fp ) {
 		fseek( fp, 0, SEEK_END );
 		long d = ftell( fp );
@@ -262,9 +264,9 @@ bool Game::HasSaveFile( SavePathType type ) const
 }
 
 
-void Game::DeleteSaveFile( SavePathType type )
+void Game::DeleteSaveFile( SavePathType type, int slot )
 {
-	FILE* fp = GameSavePath( type, SAVEPATH_WRITE );
+	FILE* fp = GameSavePath( type, SAVEPATH_WRITE, slot );
 	if ( fp ) {
 		fclose( fp );
 	}
@@ -301,13 +303,22 @@ void Game::PopScene( int result )
 }
 
 
+void Game::PopAllAndLoad( int slot )
+{
+	GLASSERT( scenePopQueued == false );
+	GLASSERT( slot > 0 );
+	scenePopQueued = true;
+	loadSlot = slot;
+}
+
+
 void Game::PushPopScene() 
 {
 	if ( scenePopQueued || sceneQueued.sceneID != NUM_SCENES ) {
 		TextureManager::Instance()->ContextShift();
 	}
 
-	if ( scenePopQueued )
+	while ( ( scenePopQueued || loadSlot ) && !sceneStack.Empty() )
 	{
 		sceneStack.Top()->scene->DeActivate();
 		scenePopQueued = false;
@@ -325,14 +336,21 @@ void Game::PushPopScene()
 		}
 	}
 
+	if ( loadSlot ) {
+		if( HasSaveFile( SAVEPATH_GEO, loadSlot ) )
+			sceneQueued.sceneID = Game::GEO_SCENE;
+		else if ( HasSaveFile( SAVEPATH_TACTICAL, loadSlot ) )
+			sceneQueued.sceneID = Game::BATTLE_SCENE;		
+	}
+
 	if (    sceneQueued.sceneID == NUM_SCENES 
 		 && sceneStack.Empty() ) 
 	{
 		// Unwind and full reset.
 		delete engine;
 		engine = new Engine( &screenport, database0 );
-		DeleteSaveFile( SAVEPATH_GEO );
-		DeleteSaveFile( SAVEPATH_TACTICAL );
+		DeleteSaveFile( SAVEPATH_GEO, 0 );
+		DeleteSaveFile( SAVEPATH_TACTICAL, 0 );
 
 		PushScene( INTRO_SCENE, 0 );
 		PushPopScene();
@@ -365,7 +383,8 @@ void Game::PushPopScene()
 			 && sceneStack.Size() == 1 ) 
 		{
 			SavePathType savePath = node->scene->CanSave();
-			FILE* fp = GameSavePath( savePath, SAVEPATH_READ );
+			FILE* fp = GameSavePath( savePath, SAVEPATH_READ, loadSlot );
+			loadSlot = 0;
 			if ( fp ) {
 				TiXmlDocument doc;
 				doc.LoadFile( fp );
@@ -406,9 +425,9 @@ void Game::CreateScene( const SceneNode& in, SceneNode* node )
 		case GEO_END_SCENE:		scene = new GeoEndScene( this, (const GeoEndSceneData*)in.data );					break;
 		case BASETRADE_SCENE:	scene = new BaseTradeScene( this, (BaseTradeSceneData*)in.data );					break;
 		case BUILDBASE_SCENE:	scene = new BuildBaseScene( this, (BuildBaseSceneData*)in.data );					break;
-		//case FASTBATTLE_SCENE:	scene = new FastBattleScene( this, (BattleSceneData*)in.data );						break;
 		case RESEARCH_SCENE:	scene = new ResearchScene( this, (ResearchSceneData*)in.data );						break;
 		case SETTING_SCENE:		scene = new SettingScene( this );													break;
+		case SAVE_LOAD_SCENE:	scene = new SaveLoadScene( this, (const SaveLoadSceneData*)in.data );				break;
 		default:
 			GLASSERT( 0 );
 			break;
@@ -447,22 +466,54 @@ void Game::Load( const TiXmlDocument& doc )
 }
 
 
-FILE* Game::GameSavePath( SavePathType type, SavePathMode mode ) const
+FILE* Game::GameSavePath( SavePathType type, SavePathMode mode, int slot ) const
 {	
 	grinliz::GLString str( savePath );
 	if ( type == SAVEPATH_GEO )
-		str += "geogame.xml";
+		str += "geogame";
 	else if ( type == SAVEPATH_TACTICAL )
-		str += "tacgame.xml";
+		str += "tacgame";
 	else
 		GLASSERT( 0 );
+
+	if ( slot > 0 ) {
+		str += "-";
+		str += '0' + slot;
+	}
+	str += ".xml";
 
 	FILE* fp = fopen( str.c_str(), (mode == SAVEPATH_WRITE) ? "wb" : "rb" );
 	return fp;
 }
 
 
-void Game::Save()
+void Game::SavePathTimeStamp( SavePathType type, int slot, GLString* stamp )
+{
+	*stamp = "";
+	FILE* fp = GameSavePath( type, SAVEPATH_READ, slot );
+	if ( fp ) {
+		char buf[400];
+		for( int i=0; i<10; ++i ) {
+			fgets( buf, 400, fp );
+			buf[399] = 0;
+			const char* p = strstr( buf, "timestamp" );
+			if ( p ) {
+				const char* q0 = strstr( p+1, "\"" );
+				if ( q0 ) {
+					const char* q1 = strstr( q0+1, "\"" );
+					if ( q1 && (q1-q0)>2 ) {
+						stamp->append( q0+1, q1-q0-1 );
+					}
+				}
+				break;
+			}
+		}
+		fclose( fp );
+	}
+}
+
+
+void Game::Save( int slot )
 {
 	// For loading, the BOTTOM loads and then loads higher scenes.
 	// For saving, the GeoScene saves itself before pushing the tactical
@@ -470,12 +521,25 @@ void Game::Save()
 	// we are in a character scene for example.)
 	for( SceneNode* node=sceneStack.BeginTop(); node; node=sceneStack.Next() ) {
 		if ( node->scene->CanSave() ) {
-			FILE* fp = GameSavePath( node->scene->CanSave(), SAVEPATH_WRITE );
+			FILE* fp = GameSavePath( node->scene->CanSave(), SAVEPATH_WRITE, slot );
 			GLASSERT( fp );
 			if ( fp ) {
 				XMLUtil::OpenElement( fp, 0, "Game" );
 				XMLUtil::Attribute( fp, "version", VERSION );
 				XMLUtil::Attribute( fp, "sceneID", node->sceneID );
+
+				// Somewhat scary c code to get the current time.
+				char buf[40];
+			    time_t rawtime;
+				struct tm * timeinfo;  
+				time ( &rawtime );
+				timeinfo = localtime ( &rawtime );
+				const char* atime = asctime( timeinfo );
+
+				StrNCpy( buf, atime, 40 );
+				buf[ strlen(buf)-1 ] = 0;	// remove trailing newline.
+
+				XMLUtil::Attribute( fp, "timestamp", buf );
 				XMLUtil::SealElement( fp );
 
 				node->scene->Save( fp, 1 );

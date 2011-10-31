@@ -69,8 +69,8 @@ void GeoEndScene::Tap(	int action,
 	}
 
 	if ( item == &okayButton ) {
-		game->DeleteSaveFile( SAVEPATH_GEO );
-		game->DeleteSaveFile( SAVEPATH_TACTICAL );
+		game->DeleteSaveFile( SAVEPATH_GEO, 0 );
+		game->DeleteSaveFile( SAVEPATH_TACTICAL, 0 );
 		game->PopScene();
 	}
 }
