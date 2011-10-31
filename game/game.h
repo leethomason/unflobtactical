@@ -209,9 +209,10 @@ public:
 	bool HasSaveFile( SavePathType type, int slot ) const;
 	void DeleteSaveFile( SavePathType type, int slot );
 	void SavePathTimeStamp( SavePathType type, int slot, grinliz::GLString* stamp );
+	int LoadSlot() const				{ return loadSlot; }
 
 	void Load( const TiXmlDocument& doc );
-	void Save( int slot=0 );
+	void Save( int slot, bool saveBothGeoAndTac );
 
 	bool PopSound( int* database, int* offset, int* size );
 

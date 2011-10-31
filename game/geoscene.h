@@ -327,6 +327,7 @@ private:
 	bool				firstBase;
 	int					nBattles;
 	float				savedCameraX;
+	int					loadSlot;
 
 	grinliz::Random		random;
 

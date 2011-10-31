@@ -258,6 +258,7 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 	timeline = 0;
 	nBattles = 0;
 	gameVictory = false;
+	loadSlot = 0;
 
 	const Screenport& port = GetEngine()->GetScreenport();
 	random.SetSeedFromTime();
@@ -998,7 +999,7 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			data->alienRank		= rank;
 			data->storage		= baseChit->GetStorage();
 			chitBag.SetBattle( ufoChit->ID(), landerChit ? landerChit->ID() : 0, scenario );
-			game->Save();
+			game->Save( 0, false );
 
 			if ( SettingsManager::Instance()->GetUseFastBattle() )
 				game->PushScene( Game::FASTBATTLE_SCENE, data );
@@ -1018,9 +1019,9 @@ void GeoScene::ChildActivated( int childID, Scene* childScene, SceneData* data )
 
 		if ( !data ) {
 			// Load existing map
-			GLASSERT( game->HasSaveFile( SAVEPATH_TACTICAL, 0 ));
-			if ( game->HasSaveFile( SAVEPATH_TACTICAL, 0 ) ) {
-				FILE* fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_READ, 0 );
+			GLASSERT( game->HasSaveFile( SAVEPATH_TACTICAL, loadSlot ));
+			if ( game->HasSaveFile( SAVEPATH_TACTICAL, loadSlot ) ) {
+				FILE* fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_READ, loadSlot );
 				GLASSERT( fp );
 				if ( fp ) {
 					doc.LoadFile( fp );
@@ -1030,13 +1031,13 @@ void GeoScene::ChildActivated( int childID, Scene* childScene, SceneData* data )
 		}
 		else {
 			// Create new map.
-			GLASSERT( !game->HasSaveFile( SAVEPATH_TACTICAL, 0 ) );
-			FILE* fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_WRITE, 0 );
+			GLASSERT( !game->HasSaveFile( SAVEPATH_TACTICAL, loadSlot ) );
+			FILE* fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_WRITE, loadSlot );
 			if ( fp ) {
 				TacticalIntroScene::WriteXML( fp, (const BattleSceneData*)data, game->GetItemDefArr(), game->GetDatabase() );
 				fclose( fp );
 
-				fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_READ, 0 );
+				fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_READ, loadSlot );
 				if ( fp ) {
 					doc.LoadFile( fp );
 					fclose( fp );
@@ -1057,6 +1058,7 @@ void GeoScene::ChildActivated( int childID, Scene* childScene, SceneData* data )
 			}
 		}
 	}
+	loadSlot = 0;
 }
 
 
@@ -1214,7 +1216,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 				}
 			}
 		}
-		game->Save();
+		game->Save( 0, false );
 		game->DeleteSaveFile( SAVEPATH_TACTICAL, 0 );
 	}
 }
@@ -1819,7 +1821,8 @@ void GeoScene::Load( const TiXmlElement* scene )
 
 	GenerateCities();
 
-	if ( game->HasSaveFile( SAVEPATH_TACTICAL, 0 ) ) {
+	if ( game->HasSaveFile( SAVEPATH_TACTICAL, game->LoadSlot() ) ) {
+		loadSlot = game->LoadSlot();
 		// Push here. Do load in ChildActivated(). The data
 		// must be null, and the file has to exist.
 		game->PushScene( Game::BATTLE_SCENE, 0 );
