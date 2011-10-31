@@ -870,7 +870,7 @@
       <p>
         Welcome to Xenowar! Xenowar is an alien blasting strategy game. You can
         submit feedback, read the community forum, or get more gameplay information
-        at xenowar.net.
+        at xenowar.net. The gameplay wiki is at xenowar.wikispaces.com
       </p>
       <p> The buttons on the lower right navigate help, the lower left exits help.</p>
     </page>
@@ -887,13 +887,9 @@
       <p>[Getting Started]</p>
       <p>'Continue' resumes the game in progress.</p>
       <p>'New Game' brings up the new game choices. Starting a new game will delete
-	      any game in progress. After selecting 'New Game', tap 'New Geo' to play the full game, 
-		  or 'New Tactical' to play a 
-          single battle.</p>
-      <p>The game auto-saves at exit.</p>
-      <!--<p>If you choose a new game, you can select the skill level and number of your squad, the skill level and 
-         number of aliens, and the terrain for the battle.
-       </p>-->
+	        any game in progress. After selecting 'New Game', tap 'New Geo' to play the full game, 
+		      or 'New Tactical' to play a single battle.</p>
+      <p>The game auto-saves at exit. Optionally you have 4 additional save slots that can be accessed via the 'disk' icon.</p>
       <p>Good luck and have fun!</p>
     </page>
   </text>
@@ -930,8 +926,8 @@
          Beneath the name of each region is a bar that indicates the amount of alien 
          influence.</p>
       <p>Each region has its own traits. Regions can be 1) capitalistic (better prices), 
-	     2) militaristic (better soldiers), 3) scientific (faster research),
-		 4) nationalistic (resists alien takeover), 
+	       2) militaristic (better soldiers), 3) scientific (faster research),
+		     4) nationalistic (resists alien takeover), 
          5) high tech (make tech-3 weapons), or 6) manufacturing (make tech-3 armor).</p>
     </page>  
     <page>
