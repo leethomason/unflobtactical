@@ -47,6 +47,7 @@ Release v2.5
   when an enemy has already been spotted by a teammate.
 - New battleship model.
 - Builder.exe is now hardened somewhat against bad inputs, and gives more errors. Particuarly will now detect correct texture sizes.
+- Items that are destroyed no longer obscure vision. (Blocking items workes; obscuring items did not.)
 
 
 Release v2.4 b691 Android / Windows

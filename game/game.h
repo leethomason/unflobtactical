@@ -186,11 +186,13 @@ public:
 			FASTBATTLE_SCENE,
 			RESEARCH_SCENE,
 			SETTING_SCENE,
+			SAVE_LOAD_SCENE,
 			NUM_SCENES,
 		 };
 
 	void PushScene( int sceneID, SceneData* data );
 	void PopScene( int result = INT_MAX );
+	void PopAllAndLoad( int slot );
 
 	bool IsScenePushed() const		{ return sceneQueued.sceneID != NUM_SCENES; }
 
@@ -203,13 +205,13 @@ public:
 	void SetDebugLevel( int level )		{ debugLevel = (level%4); }
 	int GetDebugLevel() const			{ return debugLevel; }
 
-	FILE* GameSavePath( SavePathType type, SavePathMode mode ) const;
-
-	bool HasSaveFile( SavePathType type ) const;
-	void DeleteSaveFile( SavePathType type );
+	FILE* GameSavePath( SavePathType type, SavePathMode mode, int slot ) const;
+	bool HasSaveFile( SavePathType type, int slot ) const;
+	void DeleteSaveFile( SavePathType type, int slot );
+	void SavePathTimeStamp( SavePathType type, int slot, grinliz::GLString* stamp );
 
 	void Load( const TiXmlDocument& doc );
-	void Save();
+	void Save( int slot=0 );
 
 	bool PopSound( int* database, int* offset, int* size );
 
@@ -289,6 +291,7 @@ private:
 	void PushPopScene();
 
 	bool scenePopQueued;
+	int loadSlot;
 
 	void Init();
 	void LoadTextures();

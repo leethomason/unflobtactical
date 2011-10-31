@@ -143,6 +143,7 @@
     <ClCompile Include="game\item.cpp" />
     <ClCompile Include="game\research.cpp" />
     <ClCompile Include="game\researchscene.cpp" />
+    <ClCompile Include="game\saveloadscene.cpp" />
     <ClCompile Include="game\scene.cpp" />
     <ClCompile Include="game\settings.cpp" />
     <ClCompile Include="game\settingscene.cpp" />
@@ -207,6 +208,7 @@
     <ClInclude Include="game\item.h" />
     <ClInclude Include="game\research.h" />
     <ClInclude Include="game\researchscene.h" />
+    <ClInclude Include="game\saveloadscene.h" />
     <ClInclude Include="game\scene.h" />
     <ClInclude Include="game\settings.h" />
     <ClInclude Include="game\settingscene.h" />

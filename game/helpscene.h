@@ -55,7 +55,13 @@ public:
 	virtual void HandleHotKeyMask( int mask );
 
 private:
-	enum {	NUM_BUTTONS = 4,
+	enum {	PREV_BUTTON,
+			NEXT_BUTTON,
+			DONE_BUTTON,
+			SETTINGS_BUTTON,
+			SAVE_LOAD_BUTTON,
+		
+			NUM_BUTTONS,
 			NUM_TEXT_LABELS = 20
 	};
 

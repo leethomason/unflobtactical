@@ -1018,9 +1018,9 @@ void GeoScene::ChildActivated( int childID, Scene* childScene, SceneData* data )
 
 		if ( !data ) {
 			// Load existing map
-			GLASSERT( game->HasSaveFile( SAVEPATH_TACTICAL ));
-			if ( game->HasSaveFile( SAVEPATH_TACTICAL ) ) {
-				FILE* fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_READ );
+			GLASSERT( game->HasSaveFile( SAVEPATH_TACTICAL, 0 ));
+			if ( game->HasSaveFile( SAVEPATH_TACTICAL, 0 ) ) {
+				FILE* fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_READ, 0 );
 				GLASSERT( fp );
 				if ( fp ) {
 					doc.LoadFile( fp );
@@ -1030,13 +1030,13 @@ void GeoScene::ChildActivated( int childID, Scene* childScene, SceneData* data )
 		}
 		else {
 			// Create new map.
-			GLASSERT( !game->HasSaveFile( SAVEPATH_TACTICAL ) );
-			FILE* fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_WRITE );
+			GLASSERT( !game->HasSaveFile( SAVEPATH_TACTICAL, 0 ) );
+			FILE* fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_WRITE, 0 );
 			if ( fp ) {
 				TacticalIntroScene::WriteXML( fp, (const BattleSceneData*)data, game->GetItemDefArr(), game->GetDatabase() );
 				fclose( fp );
 
-				fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_READ );
+				fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_READ, 0 );
 				if ( fp ) {
 					doc.LoadFile( fp );
 					fclose( fp );
@@ -1215,7 +1215,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 			}
 		}
 		game->Save();
-		game->DeleteSaveFile( SAVEPATH_TACTICAL );
+		game->DeleteSaveFile( SAVEPATH_TACTICAL, 0 );
 	}
 }
 
@@ -1819,7 +1819,7 @@ void GeoScene::Load( const TiXmlElement* scene )
 
 	GenerateCities();
 
-	if ( game->HasSaveFile( SAVEPATH_TACTICAL ) ) {
+	if ( game->HasSaveFile( SAVEPATH_TACTICAL, 0 ) ) {
 		// Push here. Do load in ChildActivated(). The data
 		// must be null, and the file has to exist.
 		game->PushScene( Game::BATTLE_SCENE, 0 );

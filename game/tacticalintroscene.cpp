@@ -27,6 +27,7 @@
 #include "ai.h"
 #include "../version.h"
 #include "tacmap.h"
+#include "saveloadscene.h"
 
 
 using namespace grinliz;
@@ -56,14 +57,20 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	continueButton.SetPos( GAME_GUTTER, 320-GAME_GUTTER-continueButton.Height() );
 	continueButton.SetText( "Continue" );
 
+	loadButton.Init( &gamui2D, green );
+	loadButton.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
+	loadButton.SetPos( continueButton.X() + continueButton.Width(), continueButton.Y() );
+	loadButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_SAVE_LOAD, true ),
+						UIRenderer::CalcDecoAtom( DECO_SAVE_LOAD, false ) );	 
+
 	newTactical.Init( &gamui2D, green );
-	newTactical.SetSize( GAME_BUTTON_SIZE_B*2.5F, GAME_BUTTON_SIZE_B );
+	newTactical.SetSize( GAME_BUTTON_SIZE_B*2.0F, GAME_BUTTON_SIZE_B );
 	newTactical.SetPos( port.UIWidth()-GAME_GUTTER-newTactical.Width(), 320-GAME_GUTTER-continueButton.Height() );
 	newTactical.SetText( "New Tactical" );
 	
 	newGeo.Init( &gamui2D, green );
 	newGeo.SetPos( port.UIWidth()-GAME_GUTTER*2-newTactical.Width()*2, 320-GAME_GUTTER-continueButton.Height() );
-	newGeo.SetSize( GAME_BUTTON_SIZE_B*2.5F, GAME_BUTTON_SIZE_B );
+	newGeo.SetSize( GAME_BUTTON_SIZE_B*2.0F, GAME_BUTTON_SIZE_B );
 	newGeo.SetText( "New Geo" );
 	
 	// Same place as new geo
@@ -75,14 +82,13 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	newGameWarning.Init( &gamui2D );
 	newGameWarning.SetPos( newGeo.X()-15, newGeo.Y() + newGeo.Height() + 5 );
 	
-	if ( game->HasSaveFile( SAVEPATH_GEO ) ) {
+	if ( game->HasSaveFile( SAVEPATH_GEO, 0 ) ) {
 		newGeo.SetVisible( false );
 		newTactical.SetVisible( false );
 		newGame.SetVisible( true );
-		//newGameWarning.SetText( "Geo game in progress." );
 		newGameWarning.SetText( "'New' deletes current Geo game." );
 	}
-	else if ( game->HasSaveFile( SAVEPATH_TACTICAL ) ) {
+	else if ( game->HasSaveFile( SAVEPATH_TACTICAL, 0 ) ) {
 		newGeo.SetVisible( false );
 		newTactical.SetVisible( false );
 		//newGame.SetVisible( true );
@@ -204,8 +210,8 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	{
 		scenarioLabel.Init( &gamui2D );
 		scenarioLabel.SetVisible( false );
-		scenarioLabel.SetText( "Farm Tundra Forest Desert" );
-		scenarioLabel.SetPos( 215, 5 );
+		scenarioLabel.SetText( "Farm  Tundra Forest  Desert" );
+		scenarioLabel.SetPos( 220, 5 );
 	}
 
 	for( int i=0; i<4; ++i ) {
@@ -245,7 +251,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	goButton.SetVisible( false );
 
 	// Is there a current game?
-	continueButton.SetEnabled( game->HasSaveFile( SAVEPATH_GEO ) || game->HasSaveFile( SAVEPATH_TACTICAL ) );
+	continueButton.SetEnabled( game->HasSaveFile( SAVEPATH_GEO, 0 ) || game->HasSaveFile( SAVEPATH_TACTICAL, 0 ) );
 }
 
 
@@ -306,6 +312,9 @@ void TacticalIntroScene::Tap(	int action,
 		newGeo.SetVisible( true );
 		newTactical.SetVisible( true );
 	}
+	else if ( item == &loadButton ) {
+		game->PushScene( Game::SAVE_LOAD_SCENE, new SaveLoadSceneData( false ) );
+	}
 	else if ( item == &newTactical ) {
 		newTactical.SetVisible( false );
 		newGeo.SetVisible( false );
@@ -325,20 +334,20 @@ void TacticalIntroScene::Tap(	int action,
 		
 		helpButton.SetVisible( false );
 		audioButton.SetVisible( false );
-		//infoButton.SetVisible( false );
+		loadButton.SetVisible( false );
 		settingButton.SetVisible( false );
 
-		game->DeleteSaveFile( SAVEPATH_TACTICAL );
-		game->DeleteSaveFile( SAVEPATH_GEO );
+		game->DeleteSaveFile( SAVEPATH_TACTICAL, 0 );
+		game->DeleteSaveFile( SAVEPATH_GEO, 0 );
 	}
 	else if ( item == &continueButton ) {
-		if ( game->HasSaveFile( SAVEPATH_GEO ) )
+		if ( game->HasSaveFile( SAVEPATH_GEO, 0 ) )
 			onToNext = Game::GEO_SCENE;
-		else if ( game->HasSaveFile( SAVEPATH_TACTICAL ) )
+		else if ( game->HasSaveFile( SAVEPATH_TACTICAL, 0 ) )
 			onToNext = Game::BATTLE_SCENE;
 	}
 	else if ( item == &goButton ) {
-		FILE* fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_WRITE );
+		FILE* fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_WRITE, 0 );
 		GLASSERT( fp );
 		if ( fp ) {
 			onToNext = Game::BATTLE_SCENE;
@@ -410,15 +419,12 @@ void TacticalIntroScene::Tap(	int action,
 								 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
 		}
 	}
-//	else if ( item == &infoButton ) {
-//		game->SetDebugLevel( (game->GetDebugLevel() + 1)%4 );
-//	}
 	else if ( item == &settingButton ) {
 		game->PushScene( Game::SETTING_SCENE, 0 );
 	}
 	else if ( item == &newGeo ) {
-		game->DeleteSaveFile( SAVEPATH_GEO );
-		game->DeleteSaveFile( SAVEPATH_TACTICAL );
+		game->DeleteSaveFile( SAVEPATH_GEO, 0 );
+		game->DeleteSaveFile( SAVEPATH_TACTICAL, 0 );
 		onToNext = Game::GEO_SCENE;
 	}
 
