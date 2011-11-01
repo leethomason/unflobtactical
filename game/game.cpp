@@ -611,7 +611,7 @@ void Game::DoTick( U32 _currentTime )
 			if ( mapmaker_showPathing ) {
 				engine->GetMap()->DrawPath( mapmaker_showPathing );
 			}
-			scene->Debug3D();
+			scene->Draw3D();
 		
 			const grinliz::Vector3F* eyeDir = engine->camera.EyeDir3();
 			ParticleSystem* particleSystem = ParticleSystem::Instance();

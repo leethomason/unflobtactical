@@ -112,8 +112,9 @@ public:
 	// 2D overlay rendering.
 	virtual void DrawHUD()										{}
 
-	// Put in debugging output into the 3D stream.
-	virtual void Debug3D()										{}
+	// Put in debugging output into the 3D stream, or other
+	// scene specific 3D elements
+	virtual void Draw3D()										{}
 
 
 protected:

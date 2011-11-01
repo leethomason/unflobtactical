@@ -259,7 +259,7 @@ public:
 	}	
 
 	virtual void DoTick( U32 currentTime, U32 deltaTime );
-	virtual void Debug3D();
+	virtual void Draw3D();
 
 	virtual SavePathType CanSave()										{ return SAVEPATH_GEO; }
 	virtual void Save( FILE* fp, int depth );

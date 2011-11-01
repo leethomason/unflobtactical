@@ -265,7 +265,7 @@ public:
 	const grinliz::GLString* GetModDatabasePaths() const { return modDatabase; }		
 	void LoadModDatabase( const char* path, bool preload );
 
-private:
+//private:
 	Screenport screenport;
 public:
 	Engine* engine;
