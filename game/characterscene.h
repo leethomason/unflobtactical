@@ -79,6 +79,7 @@ protected:
 
 	Engine* engine;
 
+	gamui::Image	  background;
 	gamui::PushButton backButton;
 	gamui::PushButton nextButton;
 	gamui::PushButton prevButton;
