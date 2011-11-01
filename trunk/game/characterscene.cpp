@@ -26,6 +26,9 @@
 #include "../engine/uirendering.h"
 #include "../engine/text.h"
 
+#include "../engine/engine.h"
+#include "../engine//loosequadtree.h"
+
 using namespace grinliz;
 using namespace gamui;
 
@@ -40,10 +43,10 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	engine = _game->engine;
 	const Screenport& port = _game->engine->GetScreenport();
 
-	RenderAtom backgroundAtom(	(const void*)UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE, 
-								(const void*)TextureManager::Instance()->GetTexture( "background_units" ), 0, 0, 1, 1 );
-	background.Init( &gamui2D, backgroundAtom, false );
-	background.SetSize( port.UIWidth(), port.UIHeight() );
+	//RenderAtom backgroundAtom(	(const void*)UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE, 
+	//							(const void*)TextureManager::Instance()->GetTexture( "background_units" ), 0, 0, 1, 1 );
+	//background.Init( &gamui2D, backgroundAtom, false );
+	//background.SetSize( port.UIWidth(), port.UIHeight() );
 
 	const gamui::ButtonLook& red		= game->GetButtonLook( Game::RED_BUTTON );
 	const gamui::ButtonLook& green		= game->GetButtonLook( Game::GREEN_BUTTON );
@@ -101,13 +104,29 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	SetCounter( 0 );
 
 	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE), storageWidget->Width(), GAME_BUTTON_SIZE_F );
+
+	/* works, but not really what you want. 
+	localEngine = new Engine( &game->screenport, game->GetDatabase() );
+	const ModelResource* resource = ModelResourceManager::Instance()->GetModelResource( "maleMarine" );
+	model = localEngine->GetSpaceTree()->AllocModel( resource );
+	localEngine->CameraLookAt( model->X(), model->Z(), 30 );
+	*/
+	
 }
 
 
 CharacterScene::~CharacterScene()
 {
+	//localEngine->GetSpaceTree()->FreeModel( model );
+	//delete localEngine;
 	delete storageWidget;
 	delete inventoryWidget;
+}
+
+
+void CharacterScene::Draw3D()
+{
+	//localEngine->Draw();
 }
 
 

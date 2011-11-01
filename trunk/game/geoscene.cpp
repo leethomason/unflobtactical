@@ -1674,7 +1674,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 }
 
 
-void GeoScene::Debug3D()
+void GeoScene::Draw3D()
 {
 #if 0
 	// Show locations of the Regions

@@ -56,9 +56,11 @@ public:
 	{ 
 		clip3D->SetInvalid(); 
 		clip2D->SetInvalid(); 
-		return RENDER_2D;	// | RENDER_3D; FIXME: Would be nice to draw the current weapon. But don't want to render everything else in the engine.
+		return RENDER_2D;	// | RENDER_3D; Would be nice to draw the current weapon and possibly model. But dragging in the engine is painful.
+							// Need a model->Draw() call that can place 3D assets with minimal setup.
 	}
 	virtual void DrawHUD();
+	virtual void Draw3D();
 
 protected:
 	enum {
@@ -137,6 +139,8 @@ protected:
 	Storage* storage;
 	Unit* unit;
 	int currentUnit;
+
+//	Model* model;
 };
 
 

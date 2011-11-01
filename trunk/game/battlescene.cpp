@@ -945,7 +945,7 @@ void BattleScene::PushEndScene()
 }
 
 
-void BattleScene::Debug3D()
+void BattleScene::Draw3D()
 {
 	/*
 	int start[2] = { TERRAN_UNITS_START, ALIEN_UNITS_START };
