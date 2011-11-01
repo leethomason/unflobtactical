@@ -20,7 +20,7 @@ Do:
   * back / escape key. Maybe: seems natural, but no other integration with OS
   * maybe: info console. Clutters game screen.
   * last names. (done)
-  * unique backgrounds
+  * unique backgrounds. doesn't necessarily work as expected.
   * dragging optional (done)
 
 Ideas:
