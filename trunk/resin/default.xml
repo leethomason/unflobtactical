@@ -217,6 +217,11 @@
 
   <!-- UI elements -->
   <texture filename="intro.png" />
+  <texture filename="background_basetrade.png" />
+  <texture filename="background_buildbase.png" />
+  <texture filename="background_research.png" />
+  <texture filename="background_units.png" />
+  
   <texture filename="title.png" />
   <texture filename="commandBarV.png" />
   <texture filename="defeat.png" />

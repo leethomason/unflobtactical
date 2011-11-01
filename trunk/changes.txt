@@ -36,7 +36,7 @@
 
 Release v2.5
 
-Improved text quality, save game support, and many bug fixes.
+Improved text quality, additional save game support, and many bug fixes.
 
 - Save game support.
 - Higher quality text rendering. Text should look crisper across all screen.
