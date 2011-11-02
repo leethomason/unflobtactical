@@ -30,6 +30,7 @@
 #include "tacticalendscene.h"
 #include "battlevisibility.h"
 #include "consolewidget.h"
+#include "firewidget.h"
 
 class Model;
 class UIButtonBox;
@@ -250,9 +251,7 @@ private:
 
 	void StopForNewTeamTarget();
 	void DoReactionFire();
-	//bool ShouldReactionFire( const Unit* source, const Unit* target, WeaponMode mode );
 
-	void DrawFireWidget();
 	int CenterRectIntersection( const grinliz::Vector2F& p,
 								const grinliz::Rectangle2F& rect,
 								grinliz::Vector2F* out );
@@ -344,8 +343,7 @@ private:
 	gamui::PushButton	invButton;
 	enum { ROTATE_CCW_BUTTON, ROTATE_CW_BUTTON, PREV_BUTTON, NEXT_BUTTON, CONTROL_BUTTON_COUNT };
 	gamui::PushButton	controlButton[4];
-	enum { FIRE_BUTTON_SPACING = 5 };
-	gamui::PushButton	fireButton[3];
+	FireWidget			fireWidget;
 	NameRankUI			nameRankUI;
 	OKCancelUI			moveOkayCancelUI;
 	DecoEffect			decoEffect;

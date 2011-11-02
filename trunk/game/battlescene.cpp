@@ -201,23 +201,9 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		}
 	}
 
-	
-	for( int i=0; i<3; ++i ) {
-		fireButton[i].Init( &gamui3D, red );
-		fireButton[i].SetSize( 120.f, 60.f );
-		fireButton[i].SetDeco( UIRenderer::CalcIconAtom( ICON_GREEN_WALK_MARK, true ), UIRenderer::CalcIconAtom( ICON_GREEN_WALK_MARK, false ) );
-		fireButton[i].SetVisible( false );
-		fireButton[i].SetText( " " );
-		fireButton[i].SetText2( " " );
-		fireButton[i].SetDecoLayout( gamui::Button::RIGHT, 25, 0 );
-		fireButton[i].SetTextLayout( gamui::Button::LEFT, 20, 0 );
-	}	
+	fireWidget.Init( &gamui3D, red );	
 
 	{
-		//static const float W = 0.15f;
-		//static const float H = 0.15f;
-		//static const float S = 0.02f;
-
 		gamui::RenderAtom tick0Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_BRIGHT );
 		tick0Atom.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
 		gamui::RenderAtom tick1Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_RED, UIRenderer::PALETTE_RED, 0 );
@@ -864,12 +850,13 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 			}
 			// Render the target (if it is on-screen)
 			if ( HasTarget() ) {
-				DrawFireWidget();
+				fireWidget.Place(	this,
+									selection.soldierUnit, 
+									selection.targetUnit, 
+									selection.targetPos );
 			}
 			else {
-				fireButton[0].SetVisible( false );
-				fireButton[1].SetVisible( false );
-				fireButton[2].SetVisible( false );
+				fireWidget.Hide();
 			}
 		}
 		if ( actionStack.Empty() ) {
@@ -1002,129 +989,6 @@ void BattleScene::Draw3D()
 }
 
 
-void BattleScene::DrawFireWidget()
-{
-	GLRELASSERT( HasTarget() );
-	GLRELASSERT( SelectedSoldierUnit() );
-
-	Unit* unit = SelectedSoldierUnit();
-	const Model* targetModel = 0;
-	const Model* targetWeapon = 0;
-	
-	Vector3F target;
-	BulletTarget bulletTarget;
-
-	if ( selection.targetPos.x >= 0 ) {
-		target.Set( (float)selection.targetPos.x+0.5f, 1.0f, (float)selection.targetPos.y+0.5f );
-	}
-	else {
-		targetModel = GetModel( selection.targetUnit );
-		targetWeapon = GetWeaponModel( selection.targetUnit );
-		GLASSERT( targetModel );
-		targetModel->CalcTarget( &target );
-		targetModel->CalcTargetSize( &bulletTarget.width, &bulletTarget.height );
-	}
-
-	Vector3F distVector = target - SelectedSoldierUnit()->Pos();
-	bulletTarget.distance = distVector.Length();
-
-	Inventory* inventory = unit->GetInventory();
-	const WeaponItemDef* wid = unit->GetWeaponDef();
-
-	float snapTU=0, autoTU=0, altTU=0;
-	if ( wid ) 
-		unit->AllFireTimeUnits( &snapTU, &autoTU, &altTU );
-
-	for( int i=0; i<3; ++i ) {
-		if ( wid && wid->HasWeapon( (WeaponMode)i ) )
-		{
-			float fraction, anyFraction, dptu, tu;
-
-			unit->FireStatistics( (WeaponMode)i, bulletTarget, &fraction, &anyFraction, &tu, &dptu );
-			int nRounds = inventory->CalcClipRoundsTotal( wid->GetClipItemDef( (WeaponMode)i) );
-
-			anyFraction = Clamp( anyFraction, 0.0f, 0.95f );
-
-			char buffer0[32];
-			char buffer1[32];
-			SNPrintf( buffer0, 32, "%s %d%%", wid->fireDesc[i], (int)LRintf( anyFraction*100.0f ) );
-			SNPrintf( buffer1, 32, "%d/%d", wid->RoundsNeeded( (WeaponMode)i ), nRounds );
-
-			fireButton[i].SetEnabled( true );
-			fireButton[i].SetText( buffer0 );
-			fireButton[i].SetText2( buffer1 );
-
-			if ( unit->CanFire( (WeaponMode) i )) {
-				// Reflect the TU left.
-				float tuAfter = unit->TU() - tu;
-				int tuIndicator = ICON_ORANGE_WALK_MARK;
-
-				if ( tuAfter >= autoTU ) {
-					tuIndicator = ICON_GREEN_WALK_MARK;
-				}
-				else if ( tuAfter >= snapTU ) {
-					tuIndicator = ICON_YELLOW_WALK_MARK;
-				}
-				else if ( tuAfter < snapTU ) {
-					tuIndicator = ICON_ORANGE_WALK_MARK;
-				}
-				fireButton[i].SetDeco( UIRenderer::CalcIconAtom( tuIndicator, true ), UIRenderer::CalcIconAtom( tuIndicator, false ) );
-			}
-			else {
-				fireButton[i].SetEnabled( false );
-				RenderAtom nullAtom;
-				fireButton[i].SetDeco( nullAtom, nullAtom );
-			}
-		}				 
-		else {			 
-			fireButton[i].SetEnabled( false );
-			fireButton[i].SetText( "[none]" );
-			fireButton[i].SetText2( "" );
-			RenderAtom nullAtom;
-			fireButton[i].SetDeco( nullAtom, nullAtom );
-		}
-	}
-
-	Vector2F view, ui;
-	const Screenport& port = engine->GetScreenport();
-	port.WorldToView( target, &view );
-	port.ViewToUI( view, &ui );
-
-	const int DX = 10;
-
-	// Make sure it fits on the screen.
-	UIRenderer::LayoutListOnScreen( fireButton, 3, sizeof(fireButton[0]), ui.x+DX, ui.y, FIRE_BUTTON_SPACING, port );
-	fireButton[0].SetVisible( true );
-	fireButton[1].SetVisible( true );
-	fireButton[2].SetVisible( true );
-
-	ParticleSystem* ps = ParticleSystem::Instance();
-	Color4F color0 = Convert_4U8_4F( game->MainPaletteColor( 0, 5 ));
-	Color4F color1 = Convert_4U8_4F( game->MainPaletteColor( 0, 4 ));
-
-	const Model* model = GetModel( unit );
-	if ( model ) {
-		Vector3F trigger;
-
-		Vector2I t2 = { (int)target.x, (int)target.z };
-		float fireRotation  = unit->AngleBetween( t2, false );
-		model->CalcTrigger( &trigger, &fireRotation );
-
-		Ray ray = { trigger, target-trigger };
-		const Model* ignore[] = { model, GetWeaponModel( unit ), 0 };
-		Vector3F intersection;
-
-		Model* m = GetEngine()->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &intersection );
-		
-		if ( !m || m == targetModel || m == targetWeapon ) {
-			ps->EmitBeam( trigger, target, color0 );
-		}
-		else {
-			ps->EmitBeam( trigger, intersection, color0 );
-			ps->EmitBeam( intersection, target, color1 );
-		}
-	}
-}
 
 
 void BattleScene::TestCoordinates()
@@ -2348,12 +2212,8 @@ void BattleScene::HandleRotation( float bias )
 bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 {
 	if ( selection.FireMode() ) {
-		bool okay = false;
 		WeaponMode mode = kSnapFireMode;
-
-		if ( tapped == fireButton+0 )		{ okay = true; mode = kSnapFireMode; }
-		else if ( tapped == fireButton+1 )	{ okay = true; mode = kAutoFireMode; }
-		else if ( tapped == fireButton+2 )	{ okay = true; mode = kAltFireMode;  }
+		bool okay = fireWidget.ConvertTap( tapped, &mode );
 			
 		if ( okay ) { 
 			// shooting creates a turn action then a shoot action.

@@ -116,9 +116,10 @@ public:
 	// scene specific 3D elements
 	virtual void Draw3D()										{}
 
+	Engine* GetEngine();
+	Game* GetGame() { return game; }
 
 protected:
-	Engine* GetEngine();
 
 	Game*			game;
 	UIRenderer		uiRenderer;
