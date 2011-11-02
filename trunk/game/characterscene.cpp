@@ -43,10 +43,10 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	engine = _game->engine;
 	const Screenport& port = _game->engine->GetScreenport();
 
-	//RenderAtom backgroundAtom(	(const void*)UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE, 
-	//							(const void*)TextureManager::Instance()->GetTexture( "background_units" ), 0, 0, 1, 1 );
-	//background.Init( &gamui2D, backgroundAtom, false );
-	//background.SetSize( port.UIWidth(), port.UIHeight() );
+	RenderAtom backgroundAtom(	(const void*)UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE, 
+								(const void*)TextureManager::Instance()->GetTexture( "background_units" ), 0, 0, 1, 1 );
+	background.Init( &gamui2D, backgroundAtom, false );
+	background.SetSize( port.UIWidth(), port.UIHeight() );
 
 	const gamui::ButtonLook& red		= game->GetButtonLook( Game::RED_BUTTON );
 	const gamui::ButtonLook& green		= game->GetButtonLook( Game::GREEN_BUTTON );

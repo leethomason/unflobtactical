@@ -29,7 +29,12 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 {
 	const Screenport& port = GetEngine()->GetScreenport();
 
-	backgroundUI.Init( game, &gamui2D, false );
+	//backgroundUI.Init( game, &gamui2D, false );
+
+	RenderAtom backgroundAtom(	(const void*)UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE, 
+								(const void*)TextureManager::Instance()->GetTexture( "background_research" ), 0, 0, 1, 1 );
+	background.Init( &gamui2D, backgroundAtom, false );
+	background.SetSize( port.UIWidth(), port.UIHeight() );
 
 	static const float SPACE = 5.0f;
 	static const float X0 = GAME_BUTTON_SIZE_F + GAME_GUTTER;

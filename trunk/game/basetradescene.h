@@ -68,7 +68,8 @@ protected:
 	bool ComputePrice( int* total );
 	void SceneDone();
 
-	BackgroundUI		backgroundUI;
+	//BackgroundUI		backgroundUI;
+	gamui::Image		background;
 	gamui::PushButton	okay;
 	gamui::ToggleButton	sellAll;
 	BaseTradeSceneData* data;

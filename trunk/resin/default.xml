@@ -218,7 +218,7 @@
   <!-- UI elements -->
   <texture filename="intro.png" />
   <texture filename="background_basetrade.png" />
-  <texture filename="background_buildbase.png" />
+ <!-- <texture filename="background_buildbase.png" /> doesn't currently work because of gamui layer limitations -->
   <texture filename="background_research.png" />
   <texture filename="background_units.png" />
   

@@ -54,8 +54,12 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 
 	static const float TEXTSPACE = 16.0f;
 
-	backgroundUI.Init( _game, &gamui2D, false );
-	backgroundUI.background.SetVisible( false );
+	//backgroundUI.Init( _game, &gamui2D, false );
+	//backgroundUI.background.SetVisible( false );
+	RenderAtom backgroundAtom(	(const void*)UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE, 
+								(const void*)TextureManager::Instance()->GetTexture( "background_basetrade" ), 0, 0, 1, 1 );
+	background.Init( &gamui2D, backgroundAtom, false );
+	background.SetSize( port.UIWidth(), port.UIHeight() );
 	
 	const gamui::ButtonLook& tab = _game->GetButtonLook( Game::BLUE_TAB_BUTTON );
 	const gamui::ButtonLook& blue = _game->GetButtonLook( Game::BLUE_BUTTON );
