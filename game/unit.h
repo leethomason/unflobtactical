@@ -129,7 +129,7 @@ public:
 	// enough rounds, etc.
 	bool CanFire( WeaponMode mode ) const;
 	float FireTimeUnits( WeaponMode mode ) const;
-	void AllFireTimeUnits( float *snapTU, float* autoTU, float* altTU );
+	void AllFireTimeUnits( float *snapTU, float* autoTU, float* altTU ) const;
 
 	// returns true if this fire mode is supported
 	bool FireStatistics(	WeaponMode mode,

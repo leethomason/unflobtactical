@@ -210,6 +210,9 @@
     <ClCompile Include="game\saveloadscene.cpp">
       <Filter>scenes</Filter>
     </ClCompile>
+    <ClCompile Include="game\firewidget.cpp">
+      <Filter>widgets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game\ai.h">
@@ -406,6 +409,9 @@
     </ClInclude>
     <ClInclude Include="game\saveloadscene.h">
       <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\firewidget.h">
+      <Filter>widgets</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

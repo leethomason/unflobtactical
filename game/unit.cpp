@@ -685,7 +685,7 @@ float Unit::FireTimeUnits( WeaponMode mode ) const
 }
 
 
-void Unit::AllFireTimeUnits( float *snapTU, float* autoTU, float* altTU )
+void Unit::AllFireTimeUnits( float *snapTU, float* autoTU, float* altTU ) const
 {
 	*snapTU = FireTimeUnits( kSnapFireMode );
 	*autoTU = FireTimeUnits( kAutoFireMode );

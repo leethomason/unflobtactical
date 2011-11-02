@@ -131,6 +131,7 @@
     <ClCompile Include="game\consolewidget.cpp" />
     <ClCompile Include="game\dialogscene.cpp" />
     <ClCompile Include="game\fastbattlescene.cpp" />
+    <ClCompile Include="game\firewidget.cpp" />
     <ClCompile Include="game\game.cpp" />
     <ClCompile Include="game\gameresources.cpp" />
     <ClCompile Include="game\geoai.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="game\consolewidget.h" />
     <ClInclude Include="game\dialogscene.h" />
     <ClInclude Include="game\fastbattlescene.h" />
+    <ClInclude Include="game\firewidget.h" />
     <ClInclude Include="game\game.h" />
     <ClInclude Include="game\gamelimits.h" />
     <ClInclude Include="game\geoai.h" />
