@@ -56,7 +56,8 @@ private:
 	void SetOptions();
 
 	ResearchSceneData*	data;
-	BackgroundUI		backgroundUI;
+	//BackgroundUI		backgroundUI;
+	gamui::Image		background;
 
 	enum {
 		MAX_OPTIONS = 3
