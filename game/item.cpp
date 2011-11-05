@@ -76,7 +76,7 @@ void ItemDef::PrintDesc( char* buffer, int nChar ) const
 }
 
 
-void WeaponItemDef::RenderWeapon(	WeaponMode mode,
+void WeaponItemDef::RenderWeapon(	int mode,
 									ParticleSystem* system,
 									const Vector3F& p0, 
 									const Vector3F& p1,
@@ -86,12 +86,11 @@ void WeaponItemDef::RenderWeapon(	WeaponMode mode,
 {
 	enum { BEAM, TRAIL };
 	enum { SPLASH, EXPLOSION };
-	int select = Index( mode );
 
-	const ClipItemDef* cid = weapon[select].clipItemDef;
+	const ClipItemDef* cid = clipItemDef[mode];
 
-	int first = (weapon[select].flags & WEAPON_EXPLOSIVE) ? TRAIL : BEAM;
-	int second = (weapon[select].flags & WEAPON_EXPLOSIVE) ? EXPLOSION : SPLASH;
+	int first = (weapon[mode]->flags & WEAPON_EXPLOSIVE) ? TRAIL : BEAM;
+	int second = (weapon[mode]->flags & WEAPON_EXPLOSIVE) ? EXPLOSION : SPLASH;
 
 	// effects: 
 	//		bolt then particle
@@ -180,83 +179,58 @@ void WeaponItemDef::RenderWeapon(	WeaponMode mode,
 bool WeaponItemDef::CompatibleClip( const ItemDef* id, int* which ) const
 {
 	if ( id->IsClip() ) {
-		if ( weapon[0].clipItemDef == id ) {
-			*which = 0;
-			return true;
-		}
-		else if ( weapon[1].clipItemDef == id ) {
-			*which = 1;
-			return true;
+		for( int i=0; i<MAX_MODE; ++i ) {
+			if ( clipItemDef[i] == id ) {
+				*which = i;
+				return true;
+			}
 		}
 	}
 	return false;
 }
 
 
-void WeaponItemDef::DamageBase( WeaponMode mode, DamageDesc* d ) const
+void WeaponItemDef::DamageBase( int mode, DamageDesc* d ) const
 {
-	int select = Index( mode );
-	GLASSERT( weapon[select].clipItemDef );
-	*d = weapon[select].clipItemDef->dd;
+	GLASSERT( clipItemDef[mode] );
+	*d = clipItemDef[mode]->dd;
 
-	if ( weapon[select].flags & WEAPON_INCENDIARY ) {
+	if ( weapon[mode]->flags & WEAPON_INCENDIARY ) {
 		if ( d->incend < 0.5f ) {
 			d->incend = 0.5f;
 			d->Normalize();
 		}
 	}
 
-	d->Scale( weapon[select].damage );
+	d->Scale( weapon[mode]->damage );
 }
 
 
-float WeaponItemDef::TimeUnits( WeaponMode mode ) const
+float WeaponItemDef::TimeUnits( int mode ) const
 {
 	float s = 0.0f;
 	switch ( mode ) {
-		case kSnapFireMode:		
+		case 0:		
 			s = TU_SNAP_SHOT;	
 			break;
-		case kAutoFireMode:		
-			if ( weapon[0].flags & WEAPON_AUTO )
+		case 1:		
+			if ( weapon[mode]->flags & WEAPON_AUTO )
 				s = TU_AUTO_SHOT;	
 			else
 				s = TU_AIMED_SHOT;
 			break;
-		case kAltFireMode:	
-			s = TU_AIMED_SHOT;	
+		default:	
+			s = TU_AIMED_SHOT*SECONDARY_SHOT_SPEED_MULT;	
 			break;
-		default:
-			GLASSERT( 0 );
-	}
-	
+	}	
 	s *= speed;
-
-	// Secondary weapon is slower:
-	if ( mode == kAltFireMode )
-		s *= SECONDARY_SHOT_SPEED_MULT;
-
 	return s;
 }
 
 
-Accuracy WeaponItemDef::CalcAccuracy( float accuracyArea, WeaponMode mode ) const
+Accuracy WeaponItemDef::CalcAccuracy( float accuracyArea, int mode ) const
 {
-	float acc = weapon[Index(mode)].accuracy;
-
-	switch ( mode ) {
-	case kSnapFireMode:
-		acc *= ACC_SNAP_SHOT_MULTIPLIER;
-		break;
-	case kAutoFireMode:
-		if ( weapon[0].flags & WEAPON_AUTO )
-			acc *= ACC_AUTO_SHOT_MULTIPLIER;
-		else 
-			acc *= ACC_AIMED_SHOT_MULTIPLIER;
-	case kAltFireMode:
-		acc *= ACC_AIMED_SHOT_MULTIPLIER;			// secondary fire is aimed? FIXME: consider this.
-		break;
-	}
+	float acc = weapon[mode]->accuracy;
 	// a = PR2, R = sqrt(a/P)
 	float radius = sqrtf( acc * accuracyArea / 3.14f );
 	return Accuracy( radius );

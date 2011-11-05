@@ -169,7 +169,7 @@ private:
 	};
 
 	struct ShootAction {
-		WeaponMode			mode;
+		int					mode;
 		float				chanceToHit;
 		grinliz::Vector3F	target;
 	};
@@ -228,7 +228,7 @@ private:
 							const grinliz::Vector3F& target, 
 							float targetWidth, 
 							float targetHeight,
-							WeaponMode mode,
+							int mode,
 							float useError,				// if 0, perfect shot. <1 improve, 1 normal error, >1 more error
 							bool clearMoveIfShoot );	// clears move commands if needed
 

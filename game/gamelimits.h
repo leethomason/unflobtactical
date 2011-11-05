@@ -70,7 +70,7 @@ static const float EXPLOSIVE_RANGE = 2.0f;
 static const float TU_SNAP_SHOT	= 3.0f;
 static const float TU_AUTO_SHOT	= 5.0f;
 static const float TU_AIMED_SHOT	= 4.0f;
-static const float SECONDARY_SHOT_SPEED_MULT = 1.4f;
+static const float TU_SECONDARY_SHOT = 1.4f*4.0f;
 
 static const int SNAP_SHOT			= 0;
 static const int AUTO_SHOT			= 1;

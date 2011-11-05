@@ -143,13 +143,13 @@ private:
 	CStringMap< ItemDef* >		map;
 };
 
-
+/*
 enum WeaponMode {
 	kSnapFireMode,
 	kAutoFireMode,
 	kAltFireMode
 };
-
+*/
 
 class WeaponItemDef : public ItemDef
 {
@@ -157,26 +157,30 @@ public:
 
 	virtual const WeaponItemDef* IsWeapon() const { return this; }
 
+	enum { MAX_MODE=5 };
+
 	struct Weapon {
-		const ClipItemDef* clipItemDef;
+		const char* desc;
+		const char* clipItemDefName;
 		int flags;			// WEAPON_AUTO, etc.
 		float damage;		// damage done by weapon, 1.0 is normal
 		float accuracy;		// 1.0 is average
+		float tu;
 		const char* sound;
 	};
 
 	const char*	fireDesc[3];	// name of the 3 fire modes
-	float		speed;			// 1.0 is normal speed (and weight)
-	Weapon		weapon[2];		// primary and secondary
+	const Weapon*		weapon[MAX_MODE];
+	const ClipItemDef*	clipItemDef[MAX_MODE];
 
-	int Index( WeaponMode mode ) const								{ return ( mode == kAltFireMode ) ? 1 : 0; }
+//	int Index( WeaponMode mode ) const								{ return ( mode == kAltFireMode ) ? 1 : 0; }
 
-	bool HasWeapon( WeaponMode mode) const							{ return weapon[Index(mode)].damage > 0; }
-	const ClipItemDef* GetClipItemDef( WeaponMode mode ) const		{ return weapon[Index(mode)].clipItemDef; }
-	int RoundsNeeded( WeaponMode mode ) const						{ return ( mode == kAutoFireMode && weapon[0].flags & WEAPON_AUTO ) ? 3 : 1; }
-	bool IsExplosive( WeaponMode mode ) const						{ return ( weapon[Index(mode)].flags & WEAPON_EXPLOSIVE ) != 0; }
+	bool HasWeapon( int mode) const									{ return weapon[mode] != 0; }
+	const ClipItemDef* GetClipItemDef( int mode ) const				{ return clipItemDef[mode]; }
+	int RoundsNeeded( int mode ) const								{ return ( weapon[mode]->flags & WEAPON_AUTO ) ? 3 : 1; }
+	bool IsExplosive( int mode ) const								{ return ( weapon[mode]->flags & WEAPON_EXPLOSIVE ) != 0; }
 
-	void RenderWeapon(	WeaponMode mode,
+	void RenderWeapon(	int mode,
 						ParticleSystem*,
 						const grinliz::Vector3F& p0, 
 						const grinliz::Vector3F& p1,
@@ -187,18 +191,18 @@ public:
 	bool CompatibleClip( const ItemDef* itemDef, int* which ) const;
 	
 	// Basic damage for this weapon.
-	void DamageBase( WeaponMode mode, DamageDesc* damageArray ) const;
+	void DamageBase( int mode, DamageDesc* damageArray ) const;
 	// Amount of time it takes to use this weapon. (Does not depend on the Unit.)
-	float TimeUnits( WeaponMode mode ) const;
+	float TimeUnits( int mode ) const;
 	
 	// Accuracy of the weapon. 1.0 is normal, higher is worse.
-	Accuracy CalcAccuracy( float unitAccuracy, WeaponMode mode ) const;
+	Accuracy CalcAccuracy( float unitAccuracy, int mode ) const;
 
 	static void AddAccData( float predicted, bool hit );
 	static void CurrentAccData( float* predicted, float* actual );
 
 	// Statistics for this weapon. 
-	bool FireStatistics( WeaponMode mode, 
+	bool FireStatistics( int mode, 
 						 float unitAccuracy, 
 						 const BulletTarget& target,
 						 float* chanceToHit,				// chance a round hits
@@ -267,7 +271,7 @@ public:
 	int Rounds() const								{ return rounds; }
 
 	const ClipItemDef* ClipType( int select ) const	{	GLASSERT( IsWeapon() );
-														return IsWeapon()->weapon[select].clipItemDef;
+														return IsWeapon()->clipItemDef[select];
 													}
 
 	const char* Name() const						{ return itemDef->name; }

@@ -636,7 +636,7 @@ float Unit::AngleBetween( const Vector2I& p1, bool quantize ) const
 bool Unit::HasGunAndAmmo( bool atReady ) const
 {
 	const WeaponItemDef* wid = GetWeaponDef();
-	if ( wid && inventory.CalcClipRoundsTotal( wid->GetClipItemDef( kSnapFireMode ) ) > 0 ) {
+	if ( wid && inventory.CalcClipRoundsTotal( wid->GetClipItemDef( 0 ) ) > 0 ) {
 		// Unit has a gun. Has ammo. Can shoot something.
 		return true;
 	}
@@ -645,7 +645,7 @@ bool Unit::HasGunAndAmmo( bool atReady ) const
 		for( int i=0; i<Inventory::NUM_SLOTS; ++i ) {
 			Item item = inventory.GetItem( i );
 			wid = item.IsWeapon();
-			if ( wid && inventory.CalcClipRoundsTotal( wid->GetClipItemDef( kSnapFireMode ) ) > 0 ) {
+			if ( wid && inventory.CalcClipRoundsTotal( wid->GetClipItemDef( 0 ) ) > 0 ) {
 				return true;
 			}
 		}
@@ -654,7 +654,7 @@ bool Unit::HasGunAndAmmo( bool atReady ) const
 }
 
 
-bool Unit::CanFire( WeaponMode mode ) const
+bool Unit::CanFire( int mode ) const
 {
 	const WeaponItemDef* wid = GetWeaponDef();
 	if ( wid ) {
@@ -672,7 +672,7 @@ bool Unit::CanFire( WeaponMode mode ) const
 }
 
 
-float Unit::FireTimeUnits( WeaponMode mode ) const
+float Unit::FireTimeUnits( int mode ) const
 {
 	float time = 0.0f;
 
@@ -687,9 +687,9 @@ float Unit::FireTimeUnits( WeaponMode mode ) const
 
 void Unit::AllFireTimeUnits( float *snapTU, float* autoTU, float* altTU ) const
 {
-	*snapTU = FireTimeUnits( kSnapFireMode );
-	*autoTU = FireTimeUnits( kAutoFireMode );
-	*altTU = FireTimeUnits( kAltFireMode );
+	*snapTU = FireTimeUnits( 0 );
+	*autoTU = FireTimeUnits( 1 );
+	*altTU = FireTimeUnits( 2 );
 }
 
 
@@ -707,9 +707,9 @@ int Unit::CalcWeaponTURemaining( float subtract ) const
 	float secondaryTU = 0.0f;
 	//int select = 0, type = 0;
 
-	snappedTU = FireTimeUnits( kSnapFireMode );
-	autoTU = FireTimeUnits( kAutoFireMode );
-	secondaryTU = FireTimeUnits( kAltFireMode );
+	snappedTU = FireTimeUnits( 0 );
+	autoTU = FireTimeUnits( 1 );
+	secondaryTU = FireTimeUnits( 2 );
 
 	GLASSERT( secondaryTU >= autoTU );
 	GLASSERT( autoTU >= snappedTU );
@@ -727,9 +727,10 @@ int Unit::CalcWeaponTURemaining( float subtract ) const
 
 
 // Used by the AI
-bool Unit::FireStatistics(	WeaponMode mode, 
+bool Unit::FireStatistics(	int mode, 
 							const BulletTarget& target,
-							float* chanceToHit, float* chanceAnyHit, float* tu, float* damagePerTU ) const
+							float* chanceToHit, float* chanceAnyHit, 
+							float* tu, float* damagePerTU ) const
 {
 	*chanceToHit = 0.0f;
 	*chanceAnyHit = 0.0f;
@@ -756,7 +757,7 @@ bool Unit::FireStatistics(	WeaponMode mode,
 }
 
 
-Accuracy Unit::CalcAccuracy( WeaponMode mode ) const
+Accuracy Unit::CalcAccuracy( int mode ) const
 {
 	const WeaponItemDef* wid = GetWeaponDef();
 	if ( wid && wid->HasWeapon( mode ) ) {
