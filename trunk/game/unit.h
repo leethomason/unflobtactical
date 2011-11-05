@@ -127,18 +127,18 @@ public:
 
 	// Returns true if the mode can be used: mode is supported, enough time units,
 	// enough rounds, etc.
-	bool CanFire( WeaponMode mode ) const;
-	float FireTimeUnits( WeaponMode mode ) const;
+	bool CanFire( int mode ) const;
+	float FireTimeUnits( int mode ) const;
 	void AllFireTimeUnits( float *snapTU, float* autoTU, float* altTU ) const;
 
 	// returns true if this fire mode is supported
-	bool FireStatistics(	WeaponMode mode,
+	bool FireStatistics(	int mode,
 							const BulletTarget& target,
 							float* chanceToHit, float* chanceAnyHit, 
 							float* tu, float* damagePerTU ) const;
 
 	// get the accuracy of the current mode
-	Accuracy CalcAccuracy( WeaponMode mode ) const;
+	Accuracy CalcAccuracy( int mode ) const;
 
 	// An AI query: is this unit ready to go? Or do we need to find a new weapon?
 	bool HasGunAndAmmo( bool atReady ) const;

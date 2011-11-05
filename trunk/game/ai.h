@@ -46,7 +46,7 @@ public:
 	};
 
 	struct ShootAIAction {
-		WeaponMode			mode;
+		int					mode;
 		grinliz::Vector3F	target;
 		float				targetWidth;
 		float				targetHeight;
@@ -98,7 +98,7 @@ public:
 
 	static bool SafeLineOfSight(	const Unit* source, 
 									const Unit* target, 
-									WeaponMode mode,
+									int mode,
 									bool multicast,
 									Engine* engine,
 									BattleScene* battle );

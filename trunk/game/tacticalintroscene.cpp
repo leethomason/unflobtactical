@@ -895,12 +895,8 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 			const WeaponItemDef* weaponDef = item.GetItemDef()->IsWeapon();
 			GLASSERT( weaponDef );
 
-			for( int n=0; n<2; ++n ) {
-				Item ammo( weaponDef->GetClipItemDef( kSnapFireMode ) );
-				unit[index].GetInventory()->AddItem( ammo, 0 );
-			}
-			if ( weaponDef->HasWeapon( kAltFireMode ) ) {
-				Item ammo( weaponDef->GetClipItemDef( kAltFireMode ) );
+			for( int n=0; weaponDef->HasWeapon(n); ++n ) {
+				Item ammo( weaponDef->GetClipItemDef( n ) );
 				unit[index].GetInventory()->AddItem( ammo, 0 );
 			}
 			++index;
@@ -951,12 +947,8 @@ void TacticalIntroScene::GenerateTerranTeam(	Unit* unit,				// target units to w
 		const WeaponItemDef* weaponDef = item.GetItemDef()->IsWeapon();
 		GLASSERT( weaponDef );
 
-		for( int n=0; n<2; ++n ) {
-			Item ammo( weaponDef->GetClipItemDef( kSnapFireMode ) );
-			unit[k].GetInventory()->AddItem( ammo, 0 );
-		}
-		if ( weaponDef->HasWeapon( kAltFireMode ) ) {
-			Item ammo( weaponDef->GetClipItemDef( kAltFireMode ) );
+		for( int n=0; weaponDef->HasWeapon(n); ++n ) {
+			Item ammo( weaponDef->GetClipItemDef( n ) );
 			unit[k].GetInventory()->AddItem( ammo, 0 );
 		}
 

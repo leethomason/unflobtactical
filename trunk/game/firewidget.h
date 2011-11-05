@@ -23,7 +23,7 @@ public:
 				const Unit* target, 
 				const grinliz::Vector2I& pos );
 	void Hide();
-	bool ConvertTap( const gamui::UIItem* item, WeaponMode* mode );
+	bool ConvertTap( const gamui::UIItem* item, int* mode );
 
 private:
 	enum {  MAX_FIRE_BUTTONS	= 5,

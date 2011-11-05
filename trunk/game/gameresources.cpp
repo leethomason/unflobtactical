@@ -48,9 +48,8 @@ void Game::DumpWeaponInfo( FILE* fp, float range, const Stats& stats, int count 
 
 			fprintf( fp, "%-10s", wid->name );
 
-			for( int j=0; j<3; ++j ) {
+			for( int mode=0; mode<3; ++mode ) {
 				float fraction, fraction2, damage, dptu;
-				WeaponMode mode = (WeaponMode)j;
 				if ( wid->HasWeapon( mode )) {
 					DamageDesc dd;
 					wid->DamageBase( mode, &dd );
@@ -240,34 +239,25 @@ void Game::LoadModels()
 
 void Game::LoadItemResources()
 {
-	//const float DAM_LOW		=   20.0f;
-	//const float DAM_MEDLOW	=   30.0f;
-	const float DAM_MED		=   40.0f;
-	const float DAM_MEDHI	=   60.0f;
-	const float DAM_HI		=   80.0f;
-	//const float DAM_HIPLUS	=   90.0f;
-	//const float DAM_VHI		=  100.0f;
+	static const float DAM_MED		=   40.0f;
+	static const float DAM_MEDHI	=   60.0f;
+	static const float DAM_HI		=   80.0f;
 
-	//const float EXDAM_LOW   =  50.0f;
-	const float EXDAM_MED   = 100.0f;
-	const float EXDAM_HI	= 150.0f;
-	//const float EXDAM_VHI	= 200.0f;
+	static const float EXDAM_MED   = 100.0f;
+	static const float EXDAM_HI	= 150.0f;
 
 	// lower is better, and in terms of AREA
-	//const float ACC_VLOW	= 2.50f;
-	const float ACC_LOW		= 2.00f;
-	//const float ACC_MEDLOW	= 1.50f;
-	const float ACC_MED		= 1.00f;
-	//const float ACC_MEDHI	= 0.80f;
-	//const float ACC_HI		= 0.50f;
-	const float ACC_VHI		= 0.30f;
+	static const float ACC_LOW		= 2.00f;
+	static const float ACC_MED		= 1.00f;
+	static const float ACC_VHI		= 0.30f;
 
-	const float SPEED_FAST = 0.8f;
-	const float SPEED_NORMAL = 1.0f;
-	const float SPEED_SLOW	= 1.3f;
-	//const int POW_LOW = 10;
-	//const int POW_MED = 20;
-	//const int POW_HI  = 50;
+	static const float SPEED_FAST = 0.8f;
+	static const float SPEED_NORMAL = 1.0f;
+	static const float SPEED_SLOW	= 1.3f;
+
+	static const float SNAP = ACC_SNAP_SHOT_MULTIPLIER;
+	static const float AUTO = ACC_AUTO_SHOT_MULTIPLIER;
+	static const float AIM  = ACC_AIMED_SHOT_MULTIPLIER;
 
 	struct ClipInit {
 		const char* name;
@@ -329,25 +319,15 @@ void Game::LoadItemResources()
 		itemDefArr.Add( item );
 	}
 
+	static const int MAX_MODES = 5;
+
 	struct WeaponInit {
 		const char* name;
 		const char* resName;
 		int deco;
 		const char* desc;
-		const char* modes[3];
-		float	speed;		// speed/weight modifier - 1.0 is normal, 2.0 is twice as slow
 
-		const char* clip0;		// 
-		int		flags0;
-		float	damage0;	// damage modifier of clip - modifies shell
-		float	acc0;		// accuracy modifier - independent of shell
-		const char* sound0;
-
-		const char*	clip1;
-		int		flags1;
-		float	damage1;
-		float	acc1;
-		const char* sound1;
+		WeaponItemDef::Weapon mode[WeaponItemDef::MAX_MODE];
 	};
 
 	static const float B2 = 1.4f;
@@ -358,79 +338,121 @@ void Game::LoadItemResources()
 	static const WeaponInit weapons[] = {		
 		// Terran	resName		deco			description
 		//				
-		{ "ASLT-1",	"ASLT-1",	DECO_RIFLE,		"Assault Rifle",		{ "Snap", "Auto", "Boom" },		SPEED_NORMAL,
-				"Clip",			WEAPON_AUTO,							DAM_MEDHI,		ACC_MED,	"ar3p",
-				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED,		ACC_LOW,	"can" },
-		{ "ASLT-2",	"ASLT-2",	DECO_RIFLE,		"Assault Rifle",		{ "Snap", "Auto", "Boom" },		SPEED_NORMAL,
-				"Clip",			WEAPON_AUTO,							DAM_MEDHI*B2,	ACC_MED,	"ar3p",
-				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED*B2,	ACC_LOW,	"can" },
-		{ "ASLT-3",	"ASLT-3",	DECO_RIFLE,		"Pulse Rifle",			{ "Snap", "Auto", "Boom" },		SPEED_NORMAL,
-				"Clip",			WEAPON_AUTO,							DAM_MEDHI*B3,	ACC_MED,	"ar3p",
-				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED*B3,	ACC_LOW,	"can" },
+		{ "ASLT-1",	"ASLT-1",	DECO_RIFLE,		"Assault Rifle",
+			{{ "Snap", 	"Clip",		0,					DAM_MEDHI,		ACC_MED*SNAP,	SPEED_NORMAL*TU_SNAP_SHOT,	"ar3p" },
+			{ "Auto", 	"Clip",		WEAPON_AUTO,		DAM_MEDHI,		ACC_MED*AUTO,	SPEED_NORMAL*TU_AUTO_SHOT,	"ar3p" },
+			{ "Boom",	"RPG",		WEAPON_EXPLOSIVE,	EXDAM_MED,		ACC_LOW*AIM,	SPEED_NORMAL*TU_SECONDARY_SHOT, "can" },
+			{ 0 }}
+		},
+		{ "ASLT-2",	"ASLT-2",	DECO_RIFLE,		"Assault Rifle",
+			{{ "Snap", 	"Clip",		0,					DAM_MEDHI*B2,	ACC_MED*SNAP,	SPEED_NORMAL*TU_SNAP_SHOT,	"ar3p" },
+			{ "Auto", 	"Clip",		WEAPON_AUTO,		DAM_MEDHI*B2,	ACC_MED*AUTO,	SPEED_NORMAL*TU_AUTO_SHOT,	"ar3p" },
+			{ "Boom",	"RPG",		WEAPON_EXPLOSIVE,	EXDAM_MED*B2,	ACC_LOW*AIM,	SPEED_NORMAL*TU_SECONDARY_SHOT, "can" },
+			{ 0 }}
+		},
+		{ "ASLT-3",	"ASLT-3",	DECO_RIFLE,		"Pulse Rifle",			
+			{{ "Snap",	"Clip",		0,					DAM_MEDHI*B3,	ACC_MED*SNAP,	SPEED_NORMAL*TU_SNAP_SHOT,	"ar3p" },
+			{ "Auto",	"Clip",		WEAPON_AUTO,		DAM_MEDHI*B3,	ACC_MED*AUTO,	SPEED_NORMAL*TU_AUTO_SHOT,	"ar3p" },
+			{ "Boom",	"RPG",		WEAPON_EXPLOSIVE,	EXDAM_MED*B3,	ACC_LOW*AIM,	SPEED_NORMAL*TU_SECONDARY_SHOT,	"can" },
+			{ 0 }}
+		},
 
-		{ "LR-1",	"LR-1",		DECO_RIFLE,		"Long Range",			{ "Snap", "Aimed", 0 },		SPEED_NORMAL,
-				"Clip",			0,										DAM_HI,			ACC_VHI,	"ar3l",
-				0 },
-		{ "LR-2",	"LR-2",		DECO_RIFLE,		"Long Range",			{ "Snap", "Aimed", 0 },		SPEED_NORMAL,
-				"Clip",			0,										DAM_HI,			ACC_VHI*A2,	"ar3l",
-				0 },
-		{ "LR-3",	"LR-3",		DECO_RIFLE,		"Callahan LR",			{ "Snap", "Aimed", 0 },		SPEED_NORMAL,
-				"Clip",			0,										DAM_HI*B2,		ACC_VHI*A3,	"ar3l",
-				0 },
-
-		{ "MCAN-1",	"CANON-1",	DECO_PISTOL,	"Mini-Canon",			{ "Snap", "Flame", "Boom" },	SPEED_SLOW,
-				"Flame",		WEAPON_EXPLOSIVE,						EXDAM_MED,		ACC_MED,	"can",
-				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED,		ACC_MED,	"can", },
-		{ "MCAN-2",	"CANON-2",	DECO_PISTOL,	"Mini-Canon",			{ "Snap", "Flame", "Boom" },	SPEED_SLOW,
-				"Flame",		WEAPON_EXPLOSIVE,						EXDAM_MED*B2,	ACC_MED,	"can",
-				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED*B2,	ACC_MED,	"can", },
-		{ "MCAN-3",	"CANON-3",	DECO_PISTOL,	"Dauntless Canon",		{ "Snap", "Flame", "Boom" },	SPEED_SLOW,
-				"Flame",		WEAPON_EXPLOSIVE,						EXDAM_MED*B3,	ACC_MED,	"can",
-				"RPG",			WEAPON_EXPLOSIVE,						EXDAM_MED*B3,	ACC_MED,	"can", },
+		{ "LR-1",	"LR-1",		DECO_RIFLE,		"Long Range",		
+			{{ "Snap", 	"Clip",		0,					DAM_HI,			ACC_VHI*SNAP,	SPEED_NORMAL*TU_SNAP_SHOT,	"ar3l" },
+			{ "Aimed", "Clip",		0,					DAM_HI,			ACC_VHI*AIM,	SPEED_NORMAL*TU_AIMED_SHOT,	"ar3l" },
+			{ 0 }},
+		},
+		{ "LR-2",	"LR-2",		DECO_RIFLE,		"Long Range",	
+			{{ "Snap", 	"Clip",		0,					DAM_HI,			ACC_VHI*SNAP*A2,	SPEED_NORMAL*TU_SNAP_SHOT,	"ar3l" },
+			{ "Aimed", "Clip",		0,					DAM_HI,			ACC_VHI*AIM*A2,		SPEED_NORMAL*TU_AIMED_SHOT,	"ar3l" },
+			{ 0 }},
+		},
+		{ "LR-3",	"LR-3",		DECO_RIFLE,		"Callahan LR",
+			{{ "Snap", 	"Clip",		0,					DAM_HI*B2,		ACC_VHI*SNAP*A3,	SPEED_NORMAL*TU_SNAP_SHOT,	"ar3l" },
+			{ "Aimed", "Clip",		0,					DAM_HI*B2,		ACC_VHI*AIM*A3,		SPEED_NORMAL*TU_AIMED_SHOT,	"ar3l" },
+			{ 0 }},
+		},
+		{ "MCAN-1",	"CANON-1",	DECO_PISTOL,	"Mini-Canon",
+			{{ "Snap", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED,		ACC_MED*SNAP,		SPEED_SLOW*TU_SNAP_SHOT,	"can" },
+			{ "Flame", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
+			{ "RPG",   "RPG",	WEAPON_EXPLOSIVE,		EXDAM_MED,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
+			{ 0 }},
+		},
+		{ "MCAN-2",	"CANON-2",	DECO_PISTOL,	"Mini-Canon",
+			{{ "Snap", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED*B2,	ACC_MED*SNAP,		SPEED_SLOW*TU_SNAP_SHOT,	"can" },
+			{ "Flame", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED*B2,	ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
+			{ "RPG",   "RPG",	WEAPON_EXPLOSIVE,		EXDAM_MED*B2,	ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
+			{ 0 }},
+		},
+		{ "MCAN-3",	"CANON-3",	DECO_PISTOL,	"Dauntless Canon",
+			{{ "Snap", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED*B3,	ACC_MED*SNAP,		SPEED_SLOW*TU_SNAP_SHOT,	"can" },
+			{ "Flame", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED*B3,	ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
+			{ "RPG",   "RPG",	WEAPON_EXPLOSIVE,		EXDAM_MED*B3,	ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
+			{ 0 }},
+		},
 
 		// Alien
-		{ "RAY-1",	"RAY-1",	DECO_RAYGUN,	"Ray Gun",				{ "Snap", "Aimed", 0 },			SPEED_FAST,
-				"Cell",			0,										DAM_MED,		ACC_MED,	"ray1",
-				0  },
-		{ "RAY-2",	"RAY-2",	DECO_RAYGUN,	"Ray Gun",				{ "Snap", "Aimed", 0 },			SPEED_FAST,
-				"Cell",			0,										DAM_MED*B3,		ACC_MED*A2,	"ray1",
-				0  },
-		{ "RAY-3",	"RAY-3",	DECO_RAYGUN,	"Ray Gun",				{ "Snap", "Aimed", 0 },			SPEED_FAST,
-				"Cell",			0,										DAM_MED*B2*B3,	ACC_MED*A3,	"ray1",
-				0  },
+		{ "RAY-1",	"RAY-1",	DECO_RAYGUN,	"Ray Gun",		
+			{{ "Snap", "Cell",	0,						DAM_MED,		ACC_MED*SNAP,	SPEED_FAST*TU_SNAP_SHOT,	"ray1" },
+			{ "Aimed", "Cell",	0,						DAM_MED,		ACC_MED*AIM,	SPEED_FAST*TU_AIMED_SHOT,	"ray1" },
+			{ 0 }},
+		},
+		{ "RAY-2",	"RAY-2",	DECO_RAYGUN,	"Ray Gun",	
+			{{ "Snap", "Cell",	0,						DAM_MED*B3,		ACC_MED*SNAP*A2,	SPEED_FAST*TU_SNAP_SHOT,	"ray1" },
+			{ "Aimed", "Cell",	0,						DAM_MED*B3,		ACC_MED*AIM*A2,		SPEED_FAST*TU_AIMED_SHOT,	"ray1" },
+			{ 0 }},
+		},
+		{ "RAY-3",	"RAY-3",	DECO_RAYGUN,	"Ray Gun",		
+			{{ "Snap", "Cell",	0,						DAM_MED*B2*B3,	ACC_MED*SNAP*A3,	SPEED_FAST*TU_SNAP_SHOT,	"ray1" },
+			{ "Aimed", "Cell",	0,						DAM_MED*B2*B3,	ACC_MED*AIM*A3,		SPEED_FAST*TU_AIMED_SHOT,	"ray1" },
+			{ 0 }},
+		},
 
-		{ "PLS-1",	"PLS-1",	DECO_RIFLE,		"Plasma Rifle",			{ "Snap", "Auto", "Boom" },		SPEED_NORMAL,
-				"Cell",			WEAPON_AUTO,							DAM_HI,			ACC_MED,	"plasma",
-				"Anti",			WEAPON_EXPLOSIVE,						EXDAM_HI,		ACC_MED,	"nullp", },
-		{ "PLS-2",	"PLS-2",	DECO_RIFLE,		"Plasma Rifle",			{ "Snap", "Auto", "Boom" },		SPEED_NORMAL,
-				"Cell",			WEAPON_AUTO,							DAM_HI*B2,		ACC_MED,	"plasma",
-				"Anti",			WEAPON_EXPLOSIVE,						EXDAM_HI,		ACC_MED,	"nullp", },
-		{ "PLS-3",	"PLS-3",	DECO_RIFLE,		"Plasma Rifle",			{ "Snap", "Auto", "Boom" },		SPEED_NORMAL,
-				"Cell",			WEAPON_AUTO,							DAM_HI*B3,		ACC_MED,	"plasma",
-				"Anti",	    	WEAPON_EXPLOSIVE,						EXDAM_HI*B2,	ACC_MED,	"nullp", },
+		{ "PLS-1",	"PLS-1",	DECO_RIFLE,		"Plasma Rifle",
+			{{	"Snap", "Cell",	0,						DAM_HI,			ACC_MED*SNAP,	SPEED_NORMAL*TU_SNAP_SHOT,		"plasma" },
+			{	"Auto", "Cell",	WEAPON_AUTO,			DAM_HI,			ACC_MED*AUTO,	SPEED_NORMAL*TU_AUTO_SHOT,		"plasma" },
+			{	"Boom", "Anti",	WEAPON_EXPLOSIVE,		EXDAM_HI,		ACC_MED*AIM,	SPEED_NORMAL*TU_SECONDARY_SHOT,	"nullp", },
+			{ 0 }},
+		},
+		{ "PLS-2",	"PLS-2",	DECO_RIFLE,		"Plasma Rifle",
+			{{	"Snap", "Cell",	0,						DAM_HI*B2,		ACC_MED*SNAP,	SPEED_NORMAL*TU_SNAP_SHOT,		"plasma" },
+			{	"Auto", "Cell",	WEAPON_AUTO,			DAM_HI*B2,		ACC_MED*AUTO,	SPEED_NORMAL*TU_AUTO_SHOT,		"plasma" },
+			{	"Boom", "Anti",	WEAPON_EXPLOSIVE,		EXDAM_HI,		ACC_MED*AIM,	SPEED_NORMAL*TU_SECONDARY_SHOT,	"nullp", },
+			{ 0 }},
+		},
+		{ "PLS-3",	"PLS-3",	DECO_RIFLE,		"Plasma Rifle",
+			{{	"Snap", "Cell",	0,						DAM_HI*B3,		ACC_MED*SNAP,	SPEED_NORMAL*TU_SNAP_SHOT,		"plasma" },
+			{	"Auto", "Cell",	WEAPON_AUTO,			DAM_HI*B3,		ACC_MED*AUTO,	SPEED_NORMAL*TU_AUTO_SHOT,		"plasma" },
+			{	"Boom", "Anti",	WEAPON_EXPLOSIVE,		EXDAM_HI*B2,	ACC_MED*AIM,	SPEED_NORMAL*TU_SECONDARY_SHOT,	"nullp", },
+			{ 0 }},
+		},
 
-
-		{ "STRM-1",	"STORM-1",	DECO_RAYGUN,	"Fire Storm",			{ "Snap", "Flame", "Boom" },	SPEED_NORMAL,
-				"Cell",			WEAPON_EXPLOSIVE | WEAPON_INCENDIARY,	EXDAM_MED,		ACC_LOW,	"nullp",
-				0 },
-		{ "STRM-2",	"STORM-2",	DECO_RAYGUN,	"Fire Storm",			{ "Snap", "Flame", "Boom" },	SPEED_NORMAL,
-				"Cell",			WEAPON_EXPLOSIVE | WEAPON_INCENDIARY,	EXDAM_MED*B2,	ACC_LOW,	"nullp",
-				0 },
-		{ "STRM-3",	"STORM-3",	DECO_RAYGUN,	"Fire Storm",			{ "Snap", "Flame", "Boom" },	SPEED_NORMAL,
-				"Cell",			WEAPON_EXPLOSIVE | WEAPON_INCENDIARY,	EXDAM_MED*B2,	ACC_LOW*A2,	"nullp",
-				0 },
-		{ 0 }
+		{ "STRM-1",	"STORM-1",	DECO_RAYGUN,	"Fire Storm",
+			{{ "Snap", "Cell",	WEAPON_EXPLOSIVE | WEAPON_INCENDIARY,	EXDAM_MED,		ACC_LOW*SNAP,	SPEED_NORMAL*TU_SNAP_SHOT,	"nullp" },
+			{ "Aimed","Cell",	WEAPON_EXPLOSIVE | WEAPON_INCENDIARY,	EXDAM_MED,		ACC_LOW*AIM,	SPEED_NORMAL*TU_AIMED_SHOT,	"nullp" },
+			{ 0 }},
+		},
+		{ "STRM-2",	"STORM-2",	DECO_RAYGUN,	"Fire Storm",
+			{{ "Snap", "Cell",	WEAPON_EXPLOSIVE | WEAPON_INCENDIARY,	EXDAM_MED*B2,	ACC_LOW*SNAP,	SPEED_NORMAL*TU_SNAP_SHOT,	"nullp" },
+			{ "Aimed","Cell",	WEAPON_EXPLOSIVE | WEAPON_INCENDIARY,	EXDAM_MED*B2,	ACC_LOW*AIM,	SPEED_NORMAL*TU_AIMED_SHOT,	"nullp" },
+			{ 0 }}, 
+		},
+		{ "STRM-3",	"STORM-3",	DECO_RAYGUN,	"Fire Storm",
+			{{ "Snap", "Cell",	WEAPON_EXPLOSIVE | WEAPON_INCENDIARY,	EXDAM_MED*B2,	ACC_LOW*A2*SNAP,	SPEED_NORMAL*TU_SNAP_SHOT,	"nullp" },
+			{ "Aimed","Cell",	WEAPON_EXPLOSIVE | WEAPON_INCENDIARY,	EXDAM_MED*B2,	ACC_LOW*A2*AIM,		SPEED_NORMAL*TU_AIMED_SHOT,	"nullp" },
+			{ 0 }},
+		}
 	};
 
 	bool alien = false;
 	for( int i=0; weapons[i].name; ++i ) {
 		WeaponItemDef* item = new WeaponItemDef();
 		
-		// HACK
-		if ( weapons[i].deco == DECO_RAYGUN )
+		if (    StrEqual( weapons[i].mode[0].clipItemDefName, "Cell" )
+			 || StrEqual( weapons[i].mode[0].clipItemDefName, "Anti" ) ) 
+		{
 			alien = true;
-
-		GLASSERT( !weapons[i].clip0 || ( weapons[i].clip0 != weapons[i].clip1 ) );	// code later get confused.
+		}
 
 		item->InitBase( weapons[i].name, 
 						weapons[i].desc, 
@@ -439,40 +461,20 @@ void Game::LoadItemResources()
 						alien,
 						ModelResourceManager::Instance()->GetModelResource( weapons[i].resName ) );
 
-		for( int j=0; j<3; ++j ) {
-			item->fireDesc[j]		= weapons[i].modes[j];
+		for( int j=0; j<WeaponItemDef::MAX_MODE; ++j ) {
+			item->weapon[j] = &weapons[i].mode[j];
+			item->clipItemDef[j] = 0;
+			if ( item->weapon[j] ) {
+				item->clipItemDef[j] = itemDefArr.Query( weapons[i].mode[j].clipItemDefName )->IsClip();
+				GLASSERT( item->clipItemDef[j] );
+			}
 		}
-		item->speed					= weapons[i].speed;
-
-		item->weapon[0].clipItemDef = 0;
-		if ( weapons[i].clip0 ) {
-			const ItemDef* clipItemDef = itemDefArr.Query( weapons[i].clip0 );
-			GLASSERT( clipItemDef );
-			item->weapon[0].clipItemDef = clipItemDef->IsClip();
-			GLASSERT( item->weapon[0].clipItemDef );
-		}
-		item->weapon[0].flags		= weapons[i].flags0;
-		item->weapon[0].damage		= weapons[i].damage0;
-		item->weapon[0].accuracy	= weapons[i].acc0;
-		item->weapon[0].sound		= weapons[i].sound0;
-
-		item->weapon[1].clipItemDef = 0;
-		if ( weapons[i].clip1 ) {
-			const ItemDef* clipItemDef = itemDefArr.Query( weapons[i].clip1 );
-			GLASSERT( clipItemDef );
-			item->weapon[1].clipItemDef = clipItemDef->IsClip();
-			GLASSERT( item->weapon[0].clipItemDef );
-		}
-		item->weapon[1].flags		= weapons[i].flags1;
-		item->weapon[1].damage		= weapons[i].damage1;
-		item->weapon[1].accuracy	= weapons[i].acc1;
-		item->weapon[1].sound		= weapons[i].sound1;
 
 		{
 			BulletTarget bulletTarget( 8.0f );
 			Stats stats; stats.SetSTR( 40 ); stats.SetDEX( 40 ); stats.SetPSY( 40 ); stats.SetRank( 2 );
 			float fraction, fraction2, damage, dptu;
-			item->FireStatistics( kAutoFireMode, stats.AccuracyArea(), bulletTarget, &fraction, &fraction2, &damage, &dptu );
+			item->FireStatistics( 1, stats.AccuracyArea(), bulletTarget, &fraction, &fraction2, &damage, &dptu );
 
 			U32 price = LRintf( dptu );
 			if ( item->IsAlien() )
