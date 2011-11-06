@@ -1105,7 +1105,7 @@ void BattleScene::PushRotateAction( Unit* src, const Vector3F& dst3F, bool quant
 bool BattleScene::PushShootAction( Unit* unit, 
 								   const grinliz::Vector3F& target, 
 								   float targetWidth, float targetHeight,
-								   WeaponMode mode,
+								   int mode,
 								   float useError,
 								   bool clearMoveIfShoot )
 {
@@ -1309,7 +1309,7 @@ void BattleScene::DoReactionFire()
 				{
 					if ( AI::SafeLineOfSight( srcUnit, 
 											  targetUnit,
-											  srcUnit->CanFire( kAutoFireMode ) ? kAutoFireMode : kSnapFireMode,
+											  srcUnit->CanFire( 1 ) ? 1 : 0,
 											  srcUnit->Team() == TERRAN_TEAM ? true : false,
 											  GetEngine(), this ) )
 					{
@@ -1346,9 +1346,9 @@ void BattleScene::DoReactionFire()
 							float targetWidth, targetHeight;
 							targetModel->CalcTargetSize( &targetWidth, &targetHeight );
 							
-							int shot = PushShootAction( srcUnit, target, targetWidth, targetHeight, kAutoFireMode, error, true );	// auto
+							int shot = PushShootAction( srcUnit, target, targetWidth, targetHeight, 1, error, true );	// auto
 							if ( !shot )
-								PushShootAction( srcUnit, target, targetWidth, targetHeight, kSnapFireMode, error, true );	// snap
+								PushShootAction( srcUnit, target, targetWidth, targetHeight, 0, error, true );	// snap
 						}
 				}
 				}
@@ -1398,11 +1398,10 @@ void BattleScene::ProcessInventoryAI( Unit* theUnit )
 			AI_LOG(( "'%s' ", item.Name() ));
 
 			// clips.
-			WeaponMode mode[2] = { kSnapFireMode, kAltFireMode };
 			for( int k=0; k<2; ++k ) {
-				while ( storage->GetCount( wid->GetClipItemDef( mode[k] ) ) ) {
+				while ( storage->GetCount( wid->GetClipItemDef( k ) ) ) {
 					Item item;
-					storage->RemoveItem( wid->GetClipItemDef( mode[k] ), &item );
+					storage->RemoveItem( wid->GetClipItemDef( k ), &item );
 					if ( inventory->AddItem( item, 0 ) < 0 ) {
 						storage->AddItem( item );
 						break;
@@ -1788,7 +1787,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 	U32 delayTime = 0;
 	const WeaponItemDef* weaponDef = 0;
 	Ray ray;
-	WeaponMode mode = action->type.shoot.mode;
+	int mode = action->type.shoot.mode;
 	const Model* unitModel = GetModel( unit );
 
 	int result = 0;
@@ -1881,7 +1880,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 									 game->CurrentTime(), 
 									 &delayTime );
 			if ( !battleEnding )
-				SoundManager::Instance()->QueueSound( weaponDef->weapon[weaponDef->Index(mode)].sound );
+				SoundManager::Instance()->QueueSound( weaponDef->weapon[mode]->sound );
 		}
 	}
 
@@ -2212,7 +2211,7 @@ void BattleScene::HandleRotation( float bias )
 bool BattleScene::HandleIconTap( const gamui::UIItem* tapped )
 {
 	if ( selection.FireMode() ) {
-		WeaponMode mode = kSnapFireMode;
+		int mode = 0;
 		bool okay = fireWidget.ConvertTap( tapped, &mode );
 			
 		if ( okay ) { 
@@ -2584,8 +2583,8 @@ void BattleScene::ShowNearPath( const Unit* unit )
 
 		if ( unit->GetWeapon() ) {
 			//const WeaponItemDef* wid = unit->GetWeapon()->GetItemDef()->IsWeapon();
-			snappedTU = unit->FireTimeUnits( kSnapFireMode );
-			autoTU = unit->FireTimeUnits( kAutoFireMode );
+			snappedTU = unit->FireTimeUnits( 0 );
+			autoTU = unit->FireTimeUnits( 1 );
 		}
 
 		nearPathState.unit = unit;

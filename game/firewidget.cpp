@@ -62,25 +62,25 @@ void FireWidget::Place( BattleScene* battle,
 	}
 
 	for( int i=0; i<3; ++i ) {
-		if ( wid && wid->HasWeapon( (WeaponMode)i ) )
+		if ( wid && wid->HasWeapon( i ) )
 		{
 			float fraction, anyFraction, dptu, tu;
 
-			shooterUnit->FireStatistics( (WeaponMode)i, bulletTarget, &fraction, &anyFraction, &tu, &dptu );
-			int nRounds = inventory->CalcClipRoundsTotal( wid->GetClipItemDef( (WeaponMode)i) );
+			shooterUnit->FireStatistics( i, bulletTarget, &fraction, &anyFraction, &tu, &dptu );
+			int nRounds = inventory->CalcClipRoundsTotal( wid->GetClipItemDef( i) );
 
 			anyFraction = Clamp( anyFraction, 0.0f, 0.95f );
 
 			char buffer0[32];
 			char buffer1[32];
 			SNPrintf( buffer0, 32, "%s %d%%", wid->fireDesc[i], (int)LRintf( anyFraction*100.0f ) );
-			SNPrintf( buffer1, 32, "%d/%d", wid->RoundsNeeded( (WeaponMode)i ), nRounds );
+			SNPrintf( buffer1, 32, "%d/%d", wid->RoundsNeeded( i ), nRounds );
 
 			fireButton[i].SetEnabled( true );
 			fireButton[i].SetText( buffer0 );
 			fireButton[i].SetText2( buffer1 );
 
-			if ( shooterUnit->CanFire( (WeaponMode) i )) {
+			if ( shooterUnit->CanFire(  i )) {
 				// Reflect the TU left.
 				float tuAfter = shooterUnit->TU() - tu;
 				int tuIndicator = ICON_ORANGE_WALK_MARK;
@@ -162,12 +162,12 @@ void FireWidget::Hide()
 }
 
 
-bool FireWidget::ConvertTap( const gamui::UIItem* tapped, WeaponMode* mode )
+bool FireWidget::ConvertTap( const gamui::UIItem* tapped, int* mode )
 {
 	bool okay = false;
-	if ( tapped == fireButton+0 )		{ okay = true; *mode = kSnapFireMode; }
-	else if ( tapped == fireButton+1 )	{ okay = true; *mode = kAutoFireMode; }
-	else if ( tapped == fireButton+2 )	{ okay = true; *mode = kAltFireMode;  }
+	if ( tapped == fireButton+0 )		{ okay = true; *mode = 0; }
+	else if ( tapped == fireButton+1 )	{ okay = true; *mode = 1; }
+	else if ( tapped == fireButton+2 )	{ okay = true; *mode = 2;  }
 	return okay;
 }
 

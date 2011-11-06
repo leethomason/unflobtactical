@@ -157,9 +157,14 @@ public:
 
 	virtual const WeaponItemDef* IsWeapon() const { return this; }
 
-	enum { MAX_MODE=5 };
+	enum {	MAX_MODE	= 5,
+			NUM_PRIMARY	= 2,
+			BASE_MODES	= 3,
+		 };
 
 	struct Weapon {
+		bool InUse() const { return desc && *desc; }
+
 		const char* desc;
 		const char* clipItemDefName;
 		int flags;			// WEAPON_AUTO, etc.
@@ -173,9 +178,13 @@ public:
 	const Weapon*		weapon[MAX_MODE];
 	const ClipItemDef*	clipItemDef[MAX_MODE];
 
-//	int Index( WeaponMode mode ) const								{ return ( mode == kAltFireMode ) ? 1 : 0; }
+	bool HasWeapon( int mode) const									{ return (mode < MAX_MODE) && weapon[mode]->InUse(); }
+	int NumClipTypes() const										{ int count=1; for ( int i=1; i<MAX_MODE; ++i ) {
+																		if ( clipItemDef[i] && clipItemDef[i] != clipItemDef[i-1] ) ++count;
+																	  }
+																	  return count;
+																	}
 
-	bool HasWeapon( int mode) const									{ return weapon[mode] != 0; }
 	const ClipItemDef* GetClipItemDef( int mode ) const				{ return clipItemDef[mode]; }
 	int RoundsNeeded( int mode ) const								{ return ( weapon[mode]->flags & WEAPON_AUTO ) ? 3 : 1; }
 	bool IsExplosive( int mode ) const								{ return ( weapon[mode]->flags & WEAPON_EXPLOSIVE ) != 0; }

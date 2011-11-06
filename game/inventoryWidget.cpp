@@ -135,21 +135,42 @@ void InventoryWidget::Update( Unit* _unit )
 	// weapon
 	const WeaponItemDef* wid = unit->GetWeaponDef();
 	if ( wid ) {
-		int rounds[2] = { 0, 0 };
-		rounds[0] = inventory->CalcClipRoundsTotal( wid->weapon[0].clipItemDef );
-		rounds[1] = inventory->CalcClipRoundsTotal( wid->weapon[1].clipItemDef );
+		int types = wid->NumClipTypes();
 
-		const ClipItemDef* clipDef0 = wid->weapon[0].clipItemDef;
-		const ClipItemDef* clipDef1 = wid->weapon[1].clipItemDef;
+		if ( types == 1 ) {
+			int rounds = inventory->CalcClipRoundsTotal( wid->clipItemDef[0] );
+			SNPrintf( buffer, 32, "%s:%d", wid->clipItemDef[0]->name, rounds );
+		}
+		else if ( types == 2 ) {
+			int rounds[2] = { 0, 0 };
+			rounds[0] = inventory->CalcClipRoundsTotal( wid->clipItemDef[0] );
+			
+			int next=1;
+			while( wid->clipItemDef[0] == wid->clipItemDef[next] )
+				++next;
 
-		if ( clipDef1 ) {
-			//SNPrintf( buffer, 16, "%c%d%c%d", clipDef0->abbreviation, rounds[0], clipDef1->abbreviation, rounds[1] );
+			rounds[1] = inventory->CalcClipRoundsTotal( wid->clipItemDef[next] );
+
+
+			const ClipItemDef* clipDef0 = wid->clipItemDef[0];
+			const ClipItemDef* clipDef1 = wid->clipItemDef[next];
+
 			SNPrintf( buffer, 32, "%s:%d %s:%d", clipDef0->name, rounds[0],
 											     clipDef1->name, rounds[1] );
 		} 
-		else {
-			//SNPrintf( buffer, 16, "%c%d", clipDef0->abbreviation, rounds[0] );
-			SNPrintf( buffer, 32, "%s:%d", clipDef0->name, rounds[0] );
+		else if ( types > 2 ) {
+			int rounds[WeaponItemDef::MAX_MODE];
+			int count=0;
+			for( int i=0; i<WeaponItemDef::MAX_MODE; ++i ) {
+				if ( i == 0 || (wid->clipItemDef[i] != wid->clipItemDef[i-1] )) {
+					rounds[count++] = inventory->CalcClipRoundsTotal( wid->clipItemDef[i] );
+				}
+			}
+			switch ( types ) {
+			case 3:	SNPrintf( buffer, 32, "%d/%d/%d", rounds[0], rounds[1], rounds[2] );	break;
+			case 4: SNPrintf( buffer, 32, "%d/%d/%d/%d", rounds[0], rounds[1], rounds[2], rounds[3] );	break;
+			default: GLASSERT( 0 );	//need to implement
+			}
 		}
 		ammo.SetText( buffer );
 	}

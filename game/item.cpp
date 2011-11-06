@@ -208,23 +208,11 @@ void WeaponItemDef::DamageBase( int mode, DamageDesc* d ) const
 
 float WeaponItemDef::TimeUnits( int mode ) const
 {
-	float s = 0.0f;
-	switch ( mode ) {
-		case 0:		
-			s = TU_SNAP_SHOT;	
-			break;
-		case 1:		
-			if ( weapon[mode]->flags & WEAPON_AUTO )
-				s = TU_AUTO_SHOT;	
-			else
-				s = TU_AIMED_SHOT;
-			break;
-		default:	
-			s = TU_AIMED_SHOT*SECONDARY_SHOT_SPEED_MULT;	
-			break;
-	}	
-	s *= speed;
-	return s;
+	float tu = 0;
+	if ( weapon[mode] ) {
+		tu = weapon[mode]->tu;
+	}
+	return tu;
 }
 
 
@@ -237,7 +225,7 @@ Accuracy WeaponItemDef::CalcAccuracy( float accuracyArea, int mode ) const
 }
 
 
-bool WeaponItemDef::FireStatistics( WeaponMode mode,
+bool WeaponItemDef::FireStatistics( int mode,
 								    float accuracyArea, 
 									const BulletTarget& target,
 									float* chanceToHit, float* anyChanceToHit,
@@ -445,21 +433,25 @@ bool Storage::Contains( const ItemDef* def ) const
 const WeaponItemDef* Storage::IsResupply( const WeaponItemDef* weapon ) const
 {
 	if ( weapon ) {
-		const ClipItemDef* clip0 = weapon->GetClipItemDef( kSnapFireMode );
-		const ClipItemDef* clip1 = weapon->GetClipItemDef( kAltFireMode );
+		for( int i=0; i<WeaponItemDef::MAX_MODE; ++i ) {
+			const ClipItemDef* clip = weapon->clipItemDef[i];
 
-		if ( Contains( clip0 ) || Contains( clip1 ) )
-			return weapon;
+			if ( clip && clip->dd.Total() > 0 && Contains( clip ) ) {
+				return weapon;
+			}
+		}
 	}
 
 	for( int i=0; i<itemDefArr.Size(); ++i ) {
 		const ItemDef* itemDef = itemDefArr.Query( i );
 
 		if ( itemDef && itemDef->IsWeapon() && Contains( itemDef ) ) {
-			const ClipItemDef* clip0 = itemDef->IsWeapon()->GetClipItemDef( kSnapFireMode );
-			const ClipItemDef* clip1 = itemDef->IsWeapon()->GetClipItemDef( kAltFireMode );
-			if ( Contains( clip0 ) || Contains( clip1 ) )
-				return itemDef->IsWeapon();
+			for( int i=0; i<WeaponItemDef::MAX_MODE; ++i ) {
+				const ClipItemDef* clip = weapon->clipItemDef[i];
+				if ( clip && clip->dd.Total() > 0 && Contains( clip ) ) {
+					return itemDef->IsWeapon();
+				}
+			}
 		}
 	}
 	return 0;
@@ -541,7 +533,7 @@ const ModelResource* Storage::VisualRep( bool* zRotate ) const
 			const ItemDef* itemDef = itemDefArr.Query( i );
 			if ( itemDef && itemDef->IsWeapon() ) {
 				DamageDesc d;
-				itemDef->IsWeapon()->DamageBase( kAutoFireMode, &d );
+				itemDef->IsWeapon()->DamageBase( 1, &d );
 
 				float score = (float)rounds[i] * d.Total();
 				
