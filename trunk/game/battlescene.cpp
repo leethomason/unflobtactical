@@ -721,11 +721,11 @@ void BattleScene::SetUnitOverlays()
 			int remain = units[i].CalcWeaponTURemaining( 0 );
 			Vector2I pos = units[i].MapPos();
 
-			if ( remain >= Unit::AUTO_SHOT ) {
+			if ( remain >= 1 ) {
 				unitImage0[i].SetAtom( greenAtom0 );
 				unitImage1[i].SetAtom( greenAtom1 );
 			}
-			else if ( remain == Unit::SNAP_SHOT ) {
+			else if ( remain == 0 ) {
 				unitImage0[i].SetAtom( yellowAtom0 );
 				unitImage1[i].SetAtom( yellowAtom1 );
 			}
@@ -2805,10 +2805,10 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 					if ( result == micropather::MicroPather::SOLVED ) {
 						int tuLeft = selection.soldierUnit->CalcWeaponTURemaining( cost );
 						visible = true;
-						if ( tuLeft >= Unit::AUTO_SHOT ) {
+						if ( tuLeft >= 1 ) {
 							atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_GREEN, 0 );
 						}
-						else if ( tuLeft == Unit::SNAP_SHOT ) {
+						else if ( tuLeft == 0 ) {
 							atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_YELLOW, UIRenderer::PALETTE_YELLOW, 0 );
 						}
 						else if ( cost <= selection.soldierUnit->TU() ) {

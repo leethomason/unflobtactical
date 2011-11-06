@@ -61,8 +61,10 @@ void FireWidget::Place( BattleScene* battle,
 		shooterUnit->AllFireTimeUnits( &snapTU, &autoTU, &altTU );
 	}
 
-	for( int i=0; i<3; ++i ) {
-		if ( wid && wid->HasWeapon( i ) )
+	int numButtons = 0;
+	if ( wid )
+	{
+		for( int i=0; i<WeaponItemDef::MAX_MODE && wid->HasWeapon(i); ++i ) 
 		{
 			float fraction, anyFraction, dptu, tu;
 
@@ -73,10 +75,11 @@ void FireWidget::Place( BattleScene* battle,
 
 			char buffer0[32];
 			char buffer1[32];
-			SNPrintf( buffer0, 32, "%s %d%%", wid->fireDesc[i], (int)LRintf( anyFraction*100.0f ) );
+			SNPrintf( buffer0, 32, "%s %d%%", wid->weapon[i]->desc, (int)LRintf( anyFraction*100.0f ) );
 			SNPrintf( buffer1, 32, "%d/%d", wid->RoundsNeeded( i ), nRounds );
 
 			fireButton[i].SetEnabled( true );
+			fireButton[i].SetVisible( true );
 			fireButton[i].SetText( buffer0 );
 			fireButton[i].SetText2( buffer1 );
 
@@ -101,14 +104,20 @@ void FireWidget::Place( BattleScene* battle,
 				RenderAtom nullAtom;
 				fireButton[i].SetDeco( nullAtom, nullAtom );
 			}
-		}				 
-		else {			 
-			fireButton[i].SetEnabled( false );
-			fireButton[i].SetText( "[none]" );
-			fireButton[i].SetText2( "" );
-			RenderAtom nullAtom;
-			fireButton[i].SetDeco( nullAtom, nullAtom );
+			numButtons = i+1;
 		}
+	}
+	else {
+		fireButton[0].SetVisible( true );
+		fireButton[0].SetEnabled( false );
+		fireButton[0].SetText( "[none]" );
+		fireButton[0].SetText2( "" );
+		RenderAtom nullAtom;
+		fireButton[0].SetDeco( nullAtom, nullAtom );
+		numButtons = 1;
+	}
+	for( int i=numButtons; i<WeaponItemDef::MAX_MODE; ++i ) {
+		fireButton[i].SetVisible( false );
 	}
 
 	Vector2F view, ui;
@@ -119,10 +128,7 @@ void FireWidget::Place( BattleScene* battle,
 	const int DX = 10;
 
 	// Make sure it fits on the screen.
-	UIRenderer::LayoutListOnScreen( fireButton, 3, sizeof(fireButton[0]), ui.x+DX, ui.y, FIRE_BUTTON_SPACING, port );
-	fireButton[0].SetVisible( true );
-	fireButton[1].SetVisible( true );
-	fireButton[2].SetVisible( true );
+	UIRenderer::LayoutListOnScreen( fireButton, numButtons, sizeof(fireButton[0]), ui.x+DX, ui.y, FIRE_BUTTON_SPACING, port );
 
 	ParticleSystem* ps = ParticleSystem::Instance();
 	Game* game = battle->GetGame();
