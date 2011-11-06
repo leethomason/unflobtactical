@@ -144,11 +144,8 @@ public:
 	bool HasGunAndAmmo( bool atReady ) const;
 	
 	enum {
-		NO_WEAPON,
-		NO_TIME,
-		SNAP_SHOT,
-		AUTO_SHOT,
-		SECONDARY_SHOT
+		NO_WEAPON = -2,
+		NO_TIME = -1
 	};
 	int CalcWeaponTURemaining( float subtract ) const;
 

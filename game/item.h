@@ -143,13 +143,6 @@ private:
 	CStringMap< ItemDef* >		map;
 };
 
-/*
-enum WeaponMode {
-	kSnapFireMode,
-	kAutoFireMode,
-	kAltFireMode
-};
-*/
 
 class WeaponItemDef : public ItemDef
 {
@@ -174,7 +167,6 @@ public:
 		const char* sound;
 	};
 
-	const char*	fireDesc[3];	// name of the 3 fire modes
 	const Weapon*		weapon[MAX_MODE];
 	const ClipItemDef*	clipItemDef[MAX_MODE];
 

@@ -702,26 +702,13 @@ int Unit::CalcWeaponTURemaining( float subtract ) const
 	if ( !wid )
 		return NO_WEAPON;
 
-	float snappedTU = 0.0f;
-	float autoTU = 0.0f;
-	float secondaryTU = 0.0f;
-	//int select = 0, type = 0;
-
-	snappedTU = FireTimeUnits( 0 );
-	autoTU = FireTimeUnits( 1 );
-	secondaryTU = FireTimeUnits( 2 );
-
-	GLASSERT( secondaryTU >= autoTU );
-	GLASSERT( autoTU >= snappedTU );
-
 	float remainingTU = TU() - subtract;
-
-	if ( remainingTU >= secondaryTU )
-		return SECONDARY_SHOT;
-	else if ( remainingTU >= autoTU )
-		return AUTO_SHOT;
-	else if ( remainingTU >= snappedTU )
-		return SNAP_SHOT;
+	for( int i=WeaponItemDef::BASE_MODES-1; i>=0; --i ) {
+		float tu = FireTimeUnits( i );
+		if ( remainingTU >= tu ) {
+			return i;
+		}
+	}
 	return NO_TIME;
 }
 
