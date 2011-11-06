@@ -98,7 +98,7 @@ void AI::Inform( const Unit* theUnit, int quality )
 
 bool AI::SafeLineOfSight(	const Unit* source, 
 							const Unit* target, 
-							WeaponMode mode,
+							int mode,
 							bool multicast,
 							Engine* engine,
 							BattleScene* battle )
@@ -133,7 +133,7 @@ bool AI::SafeLineOfSight(	const Unit* source,
 	Accuracy accuracy = source->CalcAccuracy( mode );
 
 	// Don't blow ourselves up.
-	if ( wid->IsExplosive( kSnapFireMode ) && length <= EXPLOSIVE_RANGE ) {
+	if ( wid->IsExplosive( mode ) && length <= EXPLOSIVE_RANGE ) {
 		return false;
 	}
 
@@ -287,7 +287,7 @@ int AI::ThinkShoot(	const Unit* theUnit,
 			 && m_units[i].IsAlive() 
 			 && m_battleScene->GetModel( &m_units[i] )
 			 && m_visibility->UnitCanSee( theUnit, &m_units[i] )
-			 && SafeLineOfSight( theUnit, &m_units[i], kSnapFireMode, false, m_engine, m_battleScene ) )
+			 && SafeLineOfSight( theUnit, &m_units[i], 0, false, m_engine, m_battleScene ) )
 		{
 			int len2 = (m_units[i].MapPos() - theUnit->MapPos()).LengthSquared();
 			float len = sqrtf( (float)len2 );
@@ -295,16 +295,16 @@ int AI::ThinkShoot(	const Unit* theUnit,
 			BulletTarget bulletTarget( len );
 			m_battleScene->GetModel( &m_units[i] )->CalcTargetSize( &bulletTarget.width, &bulletTarget.height );
 
-			for ( int _mode=0; _mode<3; ++_mode ) {
-				WeaponMode mode = (WeaponMode)_mode;
+
+			for ( int mode=0; mode<WeaponItemDef::BASE_MODES; ++mode ) {
 
 				if ( theUnit->CanFire( mode ) ) {
 					float chance, anyChance, tu, dptu;
 					
-					if ( theUnit->FireStatistics( (WeaponMode)mode, bulletTarget, &chance, &anyChance, &tu, &dptu ) ) {
+					if ( theUnit->FireStatistics( mode, bulletTarget, &chance, &anyChance, &tu, &dptu ) ) {
 						float score = dptu * m_enemy[i];	// Interesting: good AI, but results in odd choices.
 
-						if ( wid->IsExplosive( (WeaponMode)mode ) ) {
+						if ( wid->IsExplosive( mode ) ) {
 							if ( len < MINIMUM_EXPLOSIVE_RANGE ) {
 								score = 0.0f;
 							}
@@ -331,7 +331,7 @@ int AI::ThinkShoot(	const Unit* theUnit,
 	}
 	if ( best >= 0 ) {
 		action->actionID = ACTION_SHOOT;
-		action->shoot.mode = (WeaponMode)bestMode;
+		action->shoot.mode = bestMode;
 		m_battleScene->GetModel( &m_units[best] )->CalcTarget( &action->shoot.target );
 		m_battleScene->GetModel( &m_units[best] )->CalcTargetSize( &action->shoot.targetWidth, &action->shoot.targetHeight );
 		return THINK_ACTION;
@@ -406,11 +406,11 @@ int AI::ThinkSearch(const Unit* theUnit,
 	// Reserve for auto or snap??
 	float tu = theUnit->TU();
 
-	if ( theUnit->CanFire( kAutoFireMode ) ) {
-		tu -= theUnit->FireTimeUnits( kAutoFireMode );
+	if ( theUnit->CanFire( 1 ) ) {
+		tu -= theUnit->FireTimeUnits( 1 );
 	}
-	else if ( theUnit->CanFire( kSnapFireMode ) ) {
-		tu -= theUnit->FireTimeUnits( kSnapFireMode );
+	else if ( theUnit->CanFire( 0 ) ) {
+		tu -= theUnit->FireTimeUnits( 0 );
 	}
 
 	// TU is adjusted for weapon time. If we can't effectively move any more, stop now.

@@ -288,7 +288,7 @@ void CharacterScene::CompWidget::SetCompText()
 
 			if ( inInventory || onGround ) {
 				const WeaponItemDef* wid = itemDef->IsWeapon();
-				WeaponMode mode = kAutoFireMode;
+				int mode = 1;
 		
 				DamageDesc dd;
 				wid->DamageBase( mode, &dd );

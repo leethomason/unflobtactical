@@ -464,7 +464,7 @@ void Game::LoadItemResources()
 		for( int j=0; j<WeaponItemDef::MAX_MODE; ++j ) {
 			item->weapon[j] = &weapons[i].mode[j];
 			item->clipItemDef[j] = 0;
-			if ( item->weapon[j] ) {
+			if ( item->weapon[j]->InUse() ) {
 				item->clipItemDef[j] = itemDefArr.Query( weapons[i].mode[j].clipItemDefName )->IsClip();
 				GLASSERT( item->clipItemDef[j] );
 			}
