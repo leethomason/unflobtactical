@@ -1931,8 +1931,8 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 	}
 
 	if ( impact && modelHit ) {
-		int x = LRintf( intersection.x );
-		int y = LRintf( intersection.z );
+		int x = Clamp( (int)LRintf( intersection.x ), 0, MAP_SIZE-1 );
+		int y = Clamp( (int)LRintf( intersection.z ), 0, MAP_SIZE-1 );
 		if ( tacMap->GetFogOfWar().IsSet( x, y, 0 ) ) {
 			PushScrollOnScreen( intersection );
 		}

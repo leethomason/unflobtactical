@@ -447,7 +447,7 @@ const WeaponItemDef* Storage::IsResupply( const WeaponItemDef* weapon ) const
 
 		if ( itemDef && itemDef->IsWeapon() && Contains( itemDef ) ) {
 			for( int i=0; i<WeaponItemDef::MAX_MODE; ++i ) {
-				const ClipItemDef* clip = weapon->clipItemDef[i];
+				const ClipItemDef* clip = itemDef->IsWeapon()->clipItemDef[i];
 				if ( clip && clip->dd.Total() > 0 && Contains( clip ) ) {
 					return itemDef->IsWeapon();
 				}

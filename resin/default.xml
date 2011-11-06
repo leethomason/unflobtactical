@@ -357,7 +357,7 @@
   <model filename="ufo_pod.ac" shading="crease" polyRemoval="pre" />
   <model filename="ufo_plant0.ac" shading="smooth" polyRemoval="pre" />
   <model filename="ufo_plant1.ac" shading="smooth" polyRemoval="pre" />
-  <model filename="ufo_drone.ac" shading="crease"  polyRemoval="pre" />
+  <model filename="ufo_drone.ac" shading="smooth"  polyRemoval="pre" />
 
   <model filename="woodCrnr.ac" polyRemoval="pre" />
   <model filename="woodCrnrD.ac" polyRemoval="pre" />

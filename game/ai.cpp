@@ -167,12 +167,12 @@ bool AI::SafeLineOfSight(	const Unit* source,
 			u = battle->GetUnit( m, true );
 		}
 		if ( u && u->Team() == sourceTeam ) {
-			GLOUTPUT(( "Reaction fail %d: hit own team\n", battle->GetUnitID( source ) ));
+			GLOUTPUT(( "Ray fail %d: hit own team\n", battle->GetUnitID( source ) ));
 			return false;
 		}
 		// Is an explosive weapon too close?
 		if ( wid->IsExplosive(mode) && m && distanceToImpact <= EXPLOSIVE_RANGE ) {
-			GLOUTPUT(( "Reaction fail %d: blow up in face.\n", battle->GetUnitID( source ) ));
+			GLOUTPUT(( "Ray fail %d: blow up in face.\n", battle->GetUnitID( source ) ));
 			return false;
 		}
 
@@ -180,45 +180,16 @@ bool AI::SafeLineOfSight(	const Unit* source,
 		if ( i == COUNT/2 ) {
 			if ( u && u->Team() == targetTeam ) {
 				// all good.
-				GLOUTPUT(( "Reaction main ray pass %d.\n", battle->GetUnitID( source ) ));
+				GLOUTPUT(( "Ray main pass %d.\n", battle->GetUnitID( source ) ));
 			}
 			else {
-				GLOUTPUT(( "Reaction fail %d: no line of site to target.\n", battle->GetUnitID( source ) ));
+				GLOUTPUT(( "Ray fail %d: no line of site to target.\n", battle->GetUnitID( source ) ));
 				return false;
 			}
 		}
 	}
 	return true;
 }
-
-
-/*
-bool AI::LineOfSight( const Unit* shooter, const Unit* target )
-{
-	GLASSERT( m_battleScene->GetModel( shooter ));
-	GLASSERT( m_battleScene->GetModel( target ));
-	GLASSERT( shooter != target );
-
-	Vector3F p0, p1, intersection;
-	float fireRotation = shooter->AngleBetween( target->MapPos(), false );
-
-	const Model* shooterModel = m_battleScene->GetModel( shooter );
-	shooterModel->CalcTrigger( &p0, &fireRotation );
-	m_battleScene->GetModel( target )->CalcTarget( &p1 );
-
-	Ray ray;
-	ray.origin = p0;
-	ray.direction = p1 - p0;
-
-	const Model* ignore[3] = { m_battleScene->GetModel( shooter ), m_battleScene->GetWeaponModel( shooter ), 0 };
-	Model* m = m_engine->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &intersection );
-	
-	if ( m == m_battleScene->GetModel( target ) || m == m_battleScene->GetWeaponModel( target ) ) {
-		return true;
-	}
-	return false;
-}
-*/
 
 
 void AI::TrimPathToCost( MP_VECTOR< grinliz::Vector2<S16> >* path, float maxCost )
