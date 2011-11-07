@@ -793,7 +793,7 @@ void Map::DoSubTurn( Rectangle2I* change, float fireDamagePerSubTurn )
 				int duration = PyroDuration( x, y );
 				if ( duration > 0 )
 					duration--;
-				SetPyro( x, y, duration, 0, 0 );
+				SetPyro( x, y, duration, false, false );
 			}
 			else {
 				// Spread? Reduce to smoke?
@@ -804,7 +804,7 @@ void Map::DoSubTurn( Rectangle2I* change, float fireDamagePerSubTurn )
 
 				if ( !root ) {
 					// a few sub-turns of smoke
-					SetPyro( x, y, 3, 0, 0 );
+					SetPyro( x, y, 3+random.Rand(2), false, false );
 				}
 				else {
 					// Will torch a building in no time. (Adjacent fires do multiple damage.)
@@ -833,12 +833,17 @@ void Map::EmitParticles( U32 delta )
 		if ( pyro[i] ) {
 			int y = i/SIZE;
 			int x = i-y*SIZE;
-			bool fire = PyroFire( x, y ) ? true : false;
 			Vector3F pos = { (float)x+0.5f, 0.0f, (float)y+0.5f };
-			if ( fire )
+			if ( PyroFire( x, y ) ) {
 				system->EmitFlame( delta, pos );
-			else
+			}
+			else if ( PyroSmoke( x, y ) ) {
 				system->EmitSmoke( delta, pos );
+			}
+			else if ( PyroFlare( x, y ) ) {
+				// fixme emit flare
+				GLASSERT( 0 );
+			}
 		}
 	}
 }
@@ -861,19 +866,24 @@ void Map::AddSmoke( int x, int y, int subTurns )
 void Map::AddFlare( int x, int y, int subturns )
 {
 	if ( !PyroFire( x, y ) ) {
-		SetPyro( x, y, subturns, 0, 1 );
+		SetPyro( x, y, subturns, false, true );
 	}
 }
 
 
-void Map::SetPyro( int x, int y, int duration, int fire, int flare )
+void Map::SetPyro( int x, int y, int duration, bool fire, bool flare )
 {
 	GLRELASSERT( x >= 0 && x < SIZE );
 	GLRELASSERT( y >= 0 && y < SIZE );
-	int p = 0;
+	U8 p = 0;
 
-	int f = (fire) ? 0x80 : 0;
-	int p = duration | f;
+	if ( fire ) {
+		p |= 0x80;
+	}
+	else if ( flare ) {
+		p |= 0x40;
+	}
+	p += Clamp( duration, 0, 0x3f );
 	pyro[y*SIZE+x] = p;
 }
 
@@ -1157,6 +1167,7 @@ void Map::Save( FILE* fp, int depth )
 			XMLUtil::Attribute( fp, "x", x );
 			XMLUtil::Attribute( fp, "y", y );
 			XMLUtil::Attribute( fp, "fire", PyroFire( x, y ) ? 1 : 0 );
+			XMLUtil::Attribute( fp, "flare", PyroFlare( x, y ) ? 1 : 0 );
 			XMLUtil::Attribute( fp, "duration", PyroDuration( x, y ) );
 			XMLUtil::SealCloseElement( fp );
 		}
@@ -1239,28 +1250,28 @@ void Map::Load( const TiXmlElement* mapElement )
 			 pyroElement;
 			 pyroElement = pyroElement->NextSiblingElement( "Pyro" ) )
 		{
-			int x=0, y=0, fire=0, duration=0;
+			int x=0, y=0, fire=0, duration=0, flare=0;
 			pyroElement->QueryIntAttribute( "x", &x );
 			pyroElement->QueryIntAttribute( "y", &y );
 			pyroElement->QueryIntAttribute( "fire", &fire );
+			pyroElement->QueryIntAttribute( "flare", &flare );
 			pyroElement->QueryIntAttribute( "duration", &duration );
-			SetPyro( x, y, duration, fire );
+			SetPyro( x, y, duration, fire ? true : false, flare ? true : false );
 		}
 	}
 
 	// Remove things that can't burn. (We don't want to generate unnecessary particles.)
-	for( int i=0; i<SIZE*SIZE; ++i ) {
-		if ( pyro[i] & 0x80 ) {		// check for flame
-			int y = i/SIZE;
-			int x = i-y*SIZE;
+	for( int y=0; y<SIZE; ++y ) {
+		for( int x=0; x<SIZE; ++x ) {
+			if ( PyroFire( x, y ) ) {
+				MapItem* root = quadTree.FindItems( x, y, 0, 0 );
+				while ( root && ( root->Destroyed() || !root->def->flammable ) )	// skip things that are destroyed or inflammable
+					root = root->next;
 
-			MapItem* root = quadTree.FindItems( x, y, 0, 0 );
-			while ( root && ( root->Destroyed() || !root->def->flammable ) )	// skip things that are destroyed or inflammable
-				root = root->next;
-
-			if ( !root ) {
-				// a few sub-turns of smoke
-				SetPyro( x, y, 0, 0 );
+				if ( !root ) {
+					// a few sub-turns of smoke
+					SetPyro( x, y, 0, false, false );
+				}
 			}
 		}
 	}
