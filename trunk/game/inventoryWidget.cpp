@@ -120,8 +120,6 @@ void InventoryWidget::Update( Unit* _unit )
 {
 	if ( _unit ) {
 		this->unit = _unit;
-//		nameRankUI.Set( pos.x, pos.y, _unit, 
-//			            NameRankUI::DISPLAY_FACE | NameRankUI::DISPLAY_RANK );
 	}
 
 	GLASSERT( unit );

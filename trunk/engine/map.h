@@ -134,8 +134,6 @@ struct MapItemDef
 
 	// return true if the object can take damage
 	bool CanDamage() const	{ return hp != 0xffff; }
-	//int HasLight() const	{ return lightDef; }
-	//bool IsLight() const	{ return lightTX || lightTY; }
 	bool IsDoor() const		{ return resourceOpen != 0; }
 
 	grinliz::Rectangle2I Bounds() const 
@@ -307,8 +305,11 @@ public:
 
 	// Smoke from weapons, explosions, effects, etc.
 	void AddSmoke( int x, int y, int subturns );
+	void AddFlare( int x, int y, int subturns );
+
 	// Returns true if view obscured by smoke, fire, etc.
-	bool Obscured( int x, int y ) const		{ return ( obscured[y*SIZE+x] | PyroOn( x, y ) ) != 0; }
+	bool Obscured( int x, int y ) const		{ return ( obscured[y*SIZE+x] || PyroSmoke( x, y ) ); }
+	int  Flared( int x, int y ) const		{ return PyroFlare( x, y ); }
 	void EmitParticles( U32 deltaTime );
 
 	// Set the path block (does nothing if they are equal.)
@@ -392,7 +393,7 @@ public:
 	bool CanSee( const grinliz::Vector2I& p, const grinliz::Vector2I& q, ConnectionType connection=VISIBILITY_TYPE );
 
 	bool ProcessDoors( const grinliz::Vector2I* openers, int nOpeners );
-	void SetPyro( int x, int y, int duration, int fire );
+	void SetPyro( int x, int y, int duration, bool fire, bool flare );
 
 	void Save( FILE* fp, int depth );
 	void Load( const TiXmlElement* mapNode );
@@ -552,10 +553,14 @@ private:
 	micropather::MicroPather* microPather;
 	micropather::MPVector<void*> mpVector;
 
+	// 0x80 fire bit		(128)
+	// 0x40 flare bit		(64)
+	// duration: 1->64
 	int PyroOn( int x, int y ) const		{ return pyro[y*SIZE+x]; }
 	int PyroFire( int x, int y ) const		{ return pyro[y*SIZE+x] & 0x80; }
-	bool PyroSmoke( int x, int y ) const	{ return PyroOn( x, y ) && !PyroFire( x, y ); }
-	int PyroDuration( int x, int y ) const	{ return pyro[y*SIZE+x] & 0x7F; }
+	int PyroFlare( int x, int y ) const		{ return pyro[y*SIZE+x] & 0x40; }
+	bool PyroSmoke( int x, int y ) const	{ int p = pyro[y*SIZE+x]; return ((p & 0xC0) == 0) && (p>0); }
+	int PyroDuration( int x, int y ) const	{ return pyro[y*SIZE+x] & 0x3F; }
 
 	void ChangeObscured( const grinliz::Rectangle2I& bounds, int delta );
 

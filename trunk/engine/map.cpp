@@ -775,7 +775,7 @@ void Map::DoDamage( Model* m, const MapDamageDesc& damageDesc, Rectangle2I* dBou
 		if ( !destroyed && itemDef.CanDamage() && itemDef.flammable > 0 ) {
 			if ( damageDesc.incendiary > random.Rand( 256-itemDef.flammable )) {
 				Rectangle2I b = item->MapBounds();
-				SetPyro( (b.min.x+b.max.x)/2, (b.min.y+b.max.y)/2, 0, 1 );
+				SetPyro( (b.min.x+b.max.x)/2, (b.min.y+b.max.y)/2, 0, 1, 0 );
 			}
 		}
 	}
@@ -793,7 +793,7 @@ void Map::DoSubTurn( Rectangle2I* change, float fireDamagePerSubTurn )
 				int duration = PyroDuration( x, y );
 				if ( duration > 0 )
 					duration--;
-				SetPyro( x, y, duration, 0 );
+				SetPyro( x, y, duration, 0, 0 );
 			}
 			else {
 				// Spread? Reduce to smoke?
@@ -804,7 +804,7 @@ void Map::DoSubTurn( Rectangle2I* change, float fireDamagePerSubTurn )
 
 				if ( !root ) {
 					// a few sub-turns of smoke
-					SetPyro( x, y, 3, 0 );
+					SetPyro( x, y, 3, 0, 0 );
 				}
 				else {
 					// Will torch a building in no time. (Adjacent fires do multiple damage.)
@@ -849,19 +849,29 @@ void Map::AddSmoke( int x, int y, int subTurns )
 	if ( PyroOn( x, y ) ) {
 		// If on fire, ignore. Already smokin'
 		if ( !PyroFire( x, y ) ) {
-			SetPyro( x, y, subTurns, 0 );
+			SetPyro( x, y, subTurns, 0, 0 );
 		}
 	}
 	else {
-		SetPyro( x, y, subTurns, 0 );
+		SetPyro( x, y, subTurns, 0, 0 );
 	}
 }
 
 
-void Map::SetPyro( int x, int y, int duration, int fire )
+void Map::AddFlare( int x, int y, int subturns )
+{
+	if ( !PyroFire( x, y ) ) {
+		SetPyro( x, y, subturns, 0, 1 );
+	}
+}
+
+
+void Map::SetPyro( int x, int y, int duration, int fire, int flare )
 {
 	GLRELASSERT( x >= 0 && x < SIZE );
 	GLRELASSERT( y >= 0 && y < SIZE );
+	int p = 0;
+
 	int f = (fire) ? 0x80 : 0;
 	int p = duration | f;
 	pyro[y*SIZE+x] = p;

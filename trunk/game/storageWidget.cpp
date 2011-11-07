@@ -110,37 +110,67 @@ void StorageWidget::SetButtons()
 		}
 	}
 
+	RenderAtom nullAtom;
+
+	for( int i=0; i<NUM_BOX_BUTTONS; ++i ) {
+		itemDefMap[i] = 0;
+		boxButton[i].SetDeco( nullAtom, nullAtom );
+		boxButton[i].SetText( "" );
+		boxButton[i].SetText2( "" );
+		boxButton[i].SetEnabled( false );
+	}
+
 	for( int i=0; i<itemDefArr.Size(); ++i ) {
 		const ItemDef* itemDef = itemDefArr.Query( i );
 		if ( !itemDef )
 			continue;
 
 		int group = 3;
+		int row = -1;
 
 		const WeaponItemDef* wid = itemDef->IsWeapon();
 		const ClipItemDef* cid = itemDef->IsClip();
 
-		// Terran non-melee weapons and clips.
+		// Terran weapons and clips.
 		if ( wid && !wid->IsAlien() )
 			group=0;
 		if ( cid && !cid->IsAlien() )
 			group=0;
 
-		// alien non-melee weapons and clips
+		// alien weapons and clips
 		if ( wid && wid->IsAlien() )
 			group=1;
 		if ( cid && cid->IsAlien() )
 			group=1;
 
-		// armor, melee
-		if ( itemDef->IsArmor() || itemDef->deco == DECO_SHIELD )
+		// armor, bonus rockets.
+		if ( itemDef->IsArmor() ) {
 			group=2;
+			row = 0;
+		}
+		if ( itemDef->deco == DECO_SHIELD ) {
+			group=2;
+			row = 1;
+		}
+		if ( StrEqual( itemDef->name, "Flare" ) || StrEqual( itemDef->name, "Smoke" ) ) {
+			group = 2;
+			row = 2;
+		}
 
 		itemsPerGroup[group] += storage->GetCount( itemDef );
 
 		if ( group==groupSelected ) {
 			GLASSERT( slot < 12 );
 			if ( slot < 12 ) {
+				if ( row >= 0 ) {
+					for( int j=row*4; j<12; ++j ) {
+						if ( itemDefMap[j] == 0 ) {
+							slot = j;
+							break;
+						}
+					}
+
+				}
 				itemDefMap[slot] = itemDef;
 				int deco = itemDef->deco;
 				boxButton[slot].SetDeco( UIRenderer::CalcDecoAtom( deco, false ), UIRenderer::CalcDecoAtom( deco, false ) );
@@ -167,15 +197,6 @@ void StorageWidget::SetButtons()
 			}
 			++slot;
 		}
-	}
-	RenderAtom nullAtom;
-
-	for( ; slot<NUM_BOX_BUTTONS; ++slot ) {
-		itemDefMap[slot] = 0;
-		boxButton[slot].SetDeco( nullAtom, nullAtom );
-		boxButton[slot].SetText( "" );
-		boxButton[slot].SetText2( "" );
-		boxButton[slot].SetEnabled( false );
 	}
 
 	//bool selectionOkay = false;

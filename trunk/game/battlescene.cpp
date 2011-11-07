@@ -1173,97 +1173,6 @@ bool BattleScene::PushShootAction( Unit* unit,
 	return false;
 }
 
-/*
-bool BattleScene::ShouldReactionFire( const Unit* source, const Unit* target, WeaponMode mode )
-{
-	const Model* sourceModel = GetModel( source );
-	const Model* sourceWeaponModel = GetWeaponModel( source );
-	const Model* targetModel = GetModel( target );
-	int sourceTeam = source->Team();
-	int targetTeam = target->Team();
-
-	Vector3F sourcePos, targetPos;
-
-	float fireRotation = source->AngleBetween( target->MapPos(), false );
-	sourceModel->CalcTrigger( &sourcePos, &fireRotation );
-	targetModel->CalcTarget( &targetPos );
-
-	float length = ( targetPos - sourcePos ).Length();
-	
-	Vector3F normal = ( targetPos - sourcePos );
-	normal.Normalize();
-
-	static const Vector3F up = { 0, 1, 0 };
-	Vector3F tangent;
-	CrossProduct( normal, up, &tangent );
-	
-	const WeaponItemDef* wid = source->GetWeaponDef();
-	Accuracy accuracy = source->CalcAccuracy( mode );
-
-	// Don't blow ourselves up.
-	if ( wid->IsExplosive( kSnapFireMode ) && length <= EXPLOSIVE_RANGE ) {
-		return false;
-	}
-
-	int COUNT = 5;
-	if ( source->Team() == ALIEN_TEAM ) {
-		COUNT = 1;	// I want a little more chaos with the aliens. More shooting walls, each other, etc.
-	}
-
-
-	// Send out rays over the possible shooting space, see what happens. Basically want to know:
-	// 1. Does the center ray hit.
-	// 2. Do other possible solutions do bad things.
-
-	for( int i=0; i<COUNT; ++i ) {
-		float delta = 0;
-		if ( COUNT > 1 ) {
-			delta = Interpolate(  0.f,             -accuracy.RadiusAtOne()*length,
-								(float)(COUNT-1), accuracy.RadiusAtOne()*length,
-								float(i) );
-		}
-		Vector3F t = sourcePos + normal*length + tangent*delta;
-
-		Ray ray;
-		ray.origin = sourcePos;
-		ray.direction = t - sourcePos;
-		Vector3F intersection;
-
-		const Model* ignore[3] = { sourceModel, sourceWeaponModel, 0 };
-		Model* m = engine->IntersectModel( ray, TEST_TRI, 0, 0, ignore, &intersection );
-		float distanceToImpact = m ? (intersection - sourcePos).Length() : (float)MAP_SIZE;
-
-		// Did we hit our own team?
-		Unit* u = UnitFromModel( m, false );
-		if ( !u ) {
-			u = UnitFromModel( m, true );
-		}
-		if ( u && u->Team() == sourceTeam ) {
-			GLOUTPUT(( "Reaction fail %d: hit own team\n", source-units ));
-			return false;
-		}
-		// Is an explosive weapon too close?
-		if ( wid->IsExplosive(mode) && m && distanceToImpact <= EXPLOSIVE_RANGE ) {
-			GLOUTPUT(( "Reaction fail %d: blow up in face.\n", source-units ));
-			return false;
-		}
-
-		// Do we actually hit the target? Only check for the center ray cast.
-		if ( i == COUNT/2 ) {
-			if ( u && u->Team() == targetTeam ) {
-				// all good.
-				GLOUTPUT(( "Reaction main ray pass %d.\n", source-units ));
-			}
-			else {
-				GLOUTPUT(( "Reaction fail %d: no line of site to target.\n", source-units ));
-				return false;
-			}
-		}
-	}
-	return true;
-}
-*/
-
 
 void BattleScene::DoReactionFire()
 {
@@ -1915,7 +1824,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 		Action *h = actionStack.Push();
 		h->Init( ACTION_HIT, unit );
 		h->type.hit.damageDesc = damageDesc;
-		h->type.hit.explosive = weaponDef->IsExplosive( mode );
+		h->type.hit.weapon = weaponDef->weapon[mode];
 		h->type.hit.p = intersection;
 		
 		h->type.hit.n = ray.direction;
@@ -1949,9 +1858,10 @@ int BattleScene::ProcessActionHit( Action* action )
 	int result = 0;
 	static const int MAX_EXPLOSION = 8;
 	Vector2I explosion[MAX_EXPLOSION];
+
 	int nExplosion = 0;
 
-	if ( !action->type.hit.explosive ) {
+	if ( !(action->type.hit.weapon->flags & WEAPON_EXPLOSIVE) ) {
 		if ( !battleEnding )
 			SoundManager::Instance()->QueueSound( "hit" );
 
@@ -2003,6 +1913,7 @@ int BattleScene::ProcessActionHit( Action* action )
 		// Also means a model hit may be a "near miss"...but explosions are messy.
 		explosion[0].Set(	(int)(action->type.hit.p.x - 0.2f*action->type.hit.n.x), 
 							(int)(action->type.hit.p.z - 0.2f*action->type.hit.n.z) );
+
 		nExplosion = 1;
 	}
 
@@ -2039,7 +1950,7 @@ int BattleScene::ProcessActionHit( Action* action )
 							// Tried to do this with the pather, but the issue with 
 							// walls being on the inside and outside of squares got 
 							// ugly. But the other option - ray casting - also nasty.
-							// Go one further than could be walked.
+							// Finally settled on a line walk with CanSee()
 							int radius2 = (x-x0)*(x-x0) + (y-y0)*(y-y0);
 							if ( radius2 > MAX_RAD_2 )
 								continue;
@@ -2055,17 +1966,12 @@ int BattleScene::ProcessActionHit( Action* action )
 									Vector2I p = walk.P();
 									Vector2I q = walk.Q();
 
-									// Was using CanSee, but that has the problem that
-									// some walls are inner and some walls are outer.
-									// *sigh* Use the pather.
 									if ( !tacMap->CanSee( p, q ) ) {
 										canSee = false;
 										break;
 									}
 									walk.Step();
 								}
-								// Go with the sight check to see if the explosion can
-								// reach this tile.
 								if ( !canSee )
 									continue;
 							}
@@ -2097,7 +2003,7 @@ int BattleScene::ProcessActionHit( Action* action )
 
 							// Where to add smoke?
 							// - if we hit anything
-							// - change of smoke anyway
+							// - chance of smoke anyway
 							if ( hitAnything || random.Bit() ) {
 								int turns = 4 + random.Rand( 4 );
 								tacMap->AddSmoke( x, y, turns );

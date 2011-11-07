@@ -38,6 +38,9 @@ enum {
 	WEAPON_AUTO			= 0x01,
 	WEAPON_EXPLOSIVE	= 0x02,
 	WEAPON_INCENDIARY	= 0x04,	// adds incendiary damage regardless of the ammo type
+	WEAPON_FLARE		= 0x08,	// adds light (no damage mod)
+	WEAPON_SMOKE		= 0x10,	// adds smoke (no damage mod)
+	WEAPON_DISTANCE		= 0x20,	// detonates at distance or target
 };
 
 
