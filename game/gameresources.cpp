@@ -243,8 +243,9 @@ void Game::LoadItemResources()
 	static const float DAM_MEDHI	=   60.0f;
 	static const float DAM_HI		=   80.0f;
 
-	static const float EXDAM_MED   = 100.0f;
-	static const float EXDAM_HI	= 150.0f;
+	static const float EXDAM_VLOW   =  20.0f;
+	static const float EXDAM_MED    = 100.0f;
+	static const float EXDAM_HI		= 150.0f;
 
 	// lower is better, and in terms of AREA
 	static const float ACC_LOW		= 2.00f;
@@ -261,7 +262,6 @@ void Game::LoadItemResources()
 
 	struct ClipInit {
 		const char* name;
-		char		abbreviation;
 		bool		alien;
 		int			deco;
 		int			rounds;
@@ -283,16 +283,20 @@ void Game::LoadItemResources()
 #	define COLORDEF( r, g, b ) { (float)r/255.f, (float)g/255.f, (float)b/255.f, 0.8f }
 
 	static const ClipInit clips[] = {
-		{ "Clip",	'c',	false,	DECO_SHELLS,	15,	 5,		{ 1, 0, 0 },
+		{ "Clip",	false,	DECO_SHELLS,	15,	 5,		{ 1, 0, 0 },
 					COLORDEF( 200, 204, 213 ), SPEED*2.0f,	WIDTH*0.5f, BOLT*3.0f, "Bullet clip" },
-		{ "Cell",	'e',	true,	DECO_CELL,		12,  12,	{ 0.0f, 0.8f, 0.2f },
+		{ "Cell",	true,	DECO_CELL,		12,  12,	{ 0.0f, 0.8f, 0.2f },
 					COLORDEF( 199, 216, 6 ),	SPEED*1.5f,	 WIDTH,		BOLT*2.0f,	"Alien Cell clip" },
-		{ "Anti",	't',	true,	DECO_CELL,		4,   20,	{ 0, 0.6f, 0.4f },
+		{ "Anti",	true,	DECO_CELL,		4,   20,	{ 0, 0.6f, 0.4f },
 					COLORDEF( 227, 125, 220 ),	SPEED,		WIDTH,		BOLT,		"Anti-matter clip" },
-		{ "Flame",	'f',	false,	DECO_SHELLS,	3,	 8,		{ 0, 0, 1 },
+		{ "Flame",	false,	DECO_SHELLS,	3,	 8,		{ 0, 0, 1 },
 					COLORDEF( 213, 63, 63 ),	SPEED*0.7f,	WIDTH,		BOLT,		"Flame clip" },
-		{ "RPG",	'r',	false,	DECO_ROCKET,	4,	 8,		{ 0.8f, 0, 0.2f },
+		{ "RPG",	false,	DECO_ROCKET,	4,	 8,		{ 0.8f, 0, 0.2f },
 					COLORDEF( 200, 204, 213 ),  SPEED*0.8f, WIDTH,		BOLT,		"RPG (grenade) clip" },
+		{ "Flare",	false,	DECO_ROCKET,	4,	 5,		{ 0,    0, 1.0f },
+					COLORDEF( 213, 63, 63 ),	SPEED*0.7f, WIDTH,		BOLT,		"Flare grenade clip" },
+		{ "Smoke",	false,	DECO_ROCKET,	4,	 5,		{ 0,    0, 1.0f },
+					COLORDEF( 144, 152, 171 ),	SPEED*0.7f, WIDTH,		BOLT,		"Smoke grenade clip" },
 		{ 0 }
 	};
 
@@ -310,7 +314,6 @@ void Game::LoadItemResources()
 		item->defaultRounds = clips[i].rounds;
 		item->dd = clips[i].dd;
 
-		item->abbreviation = clips[i].abbreviation;
 		item->color = clips[i].color;
 		item->speed = clips[i].speed;
 		item->width = clips[i].width;
@@ -376,19 +379,22 @@ void Game::LoadItemResources()
 			{{ "Snap", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED,		ACC_MED*SNAP,		SPEED_SLOW*TU_SNAP_SHOT,	"can" },
 			{ "Flame", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
 			{ "RPG",   "RPG",	WEAPON_EXPLOSIVE,		EXDAM_MED,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
-			{ 0 }},
+			{ "Flare", "Flare",	WEAPON_EXPLOSIVE | WEAPON_FLARE | WEAPON_DISTANCE,		EXDAM_VLOW,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
+			{ "Smoke", "Smoke",	WEAPON_EXPLOSIVE | WEAPON_SMOKE | WEAPON_DISTANCE,		EXDAM_VLOW,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" }},
 		},
 		{ "MCAN-2",	"CANON-2",	DECO_PISTOL,	"Mini-Canon",
 			{{ "Snap", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED*B2,	ACC_MED*SNAP,		SPEED_SLOW*TU_SNAP_SHOT,	"can" },
 			{ "Flame", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED*B2,	ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
 			{ "RPG",   "RPG",	WEAPON_EXPLOSIVE,		EXDAM_MED*B2,	ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
-			{ 0 }},
+			{ "Flare", "Flare",	WEAPON_EXPLOSIVE | WEAPON_FLARE | WEAPON_DISTANCE,		EXDAM_VLOW,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
+			{ "Smoke", "Smoke",	WEAPON_EXPLOSIVE | WEAPON_SMOKE | WEAPON_DISTANCE,		EXDAM_VLOW,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" }},
 		},
 		{ "MCAN-3",	"CANON-3",	DECO_PISTOL,	"Dauntless Canon",
 			{{ "Snap", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED*B3,	ACC_MED*SNAP,		SPEED_SLOW*TU_SNAP_SHOT,	"can" },
 			{ "Flame", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED*B3,	ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
 			{ "RPG",   "RPG",	WEAPON_EXPLOSIVE,		EXDAM_MED*B3,	ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
-			{ 0 }},
+			{ "Flare", "Flare",	WEAPON_EXPLOSIVE | WEAPON_FLARE | WEAPON_DISTANCE,		EXDAM_VLOW,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
+			{ "Smoke", "Smoke",	WEAPON_EXPLOSIVE | WEAPON_SMOKE | WEAPON_DISTANCE,		EXDAM_VLOW,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" }},
 		},
 
 		// Alien
