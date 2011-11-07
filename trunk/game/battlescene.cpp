@@ -1860,6 +1860,8 @@ int BattleScene::ProcessActionHit( Action* action )
 	Vector2I explosion[MAX_EXPLOSION];
 
 	int nExplosion = 0;
+	bool flareExplosion = (action->type.hit.weapon->flags & WEAPON_FLARE) != 0;
+	bool smokeExplosion = (action->type.hit.weapon->flags & WEAPON_SMOKE) != 0;
 
 	if ( !(action->type.hit.weapon->flags & WEAPON_EXPLOSIVE) ) {
 		if ( !battleEnding )
@@ -2004,7 +2006,15 @@ int BattleScene::ProcessActionHit( Action* action )
 							// Where to add smoke?
 							// - if we hit anything
 							// - chance of smoke anyway
-							if ( hitAnything || random.Bit() ) {
+							if ( flareExplosion ) {
+								int turns = 12 + random.Rand( 6 );
+								tacMap->AddFlare( x, y, turns );
+							}
+							else if ( smokeExplosion ) {
+								int turns = 12 + random.Rand( 6 );
+								tacMap->AddSmoke( x, y, turns );
+							}
+							else if ( hitAnything || random.Bit() ) {
 								int turns = 4 + random.Rand( 4 );
 								tacMap->AddSmoke( x, y, turns );
 							}
@@ -2013,6 +2023,8 @@ int BattleScene::ProcessActionHit( Action* action )
 				}
 			}
 			nExplosion--;
+			flareExplosion = false;
+			smokeExplosion = false;
 		}
 	}
 	visibility.InvalidateAll( destroyed ); 
@@ -3184,7 +3196,7 @@ void BattleScene::DeleteAtSelection()
 	tacMap->DeleteAt( (int)pos.x, (int)pos.z );
 	UpdatePreview();
 
-	tacMap->SetPyro( (int)pos.x, (int)pos.z, 0, false );
+	tacMap->SetPyro( (int)pos.x, (int)pos.z, 0, false, false );
 }
 
 

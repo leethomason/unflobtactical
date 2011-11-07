@@ -263,6 +263,9 @@ void Visibility::CalcVisibilityRay( int unitID, const Vector2I& pos, const Vecto
 				if ( map->Obscured( q.x, q.y ) ) {
 					light -= OBSCURED * distance;
 				}
+				else if ( map->Flared( q.x, q.y ) ) {
+					// Do nothing. Treat as perfect white.
+				}
 				else
 				{
 					// Blue channel is typically high. So 
