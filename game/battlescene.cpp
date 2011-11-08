@@ -1125,6 +1125,7 @@ bool BattleScene::PushShootAction( Unit* unit,
 
 	normal = target - p;
 	float length = normal.Length();
+	float range = length;
 	normal.Normalize();
 
 	up.Set( 0.0f, 1.0f, 0.0f );
@@ -1164,6 +1165,7 @@ bool BattleScene::PushShootAction( Unit* unit,
 			action->type.shoot.target = t;
 			action->type.shoot.mode = mode;
 			action->type.shoot.chanceToHit = chanceToHit;
+			action->type.shoot.range = range;
 			GLASSERT( InRange( chanceToHit, 0.0f, 1.0f ) );
 			unit->GetInventory()->UseClipRound( wid->GetClipItemDef( mode ) );
 		}
@@ -1739,6 +1741,22 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 			// The world bounds will pick this up later.
 			m = 0;
 		}
+		if ( weaponDef->weapon[mode]->flags & WEAPON_DISTANCE ) {
+			if ( m ) {
+				float len = (intersection-ray.origin).Length();
+				if ( len > action->type.shoot.range ) {
+					m = 0;
+				}
+			}
+			if ( m == 0 ) {
+				impact = true;
+				Vector3F normal = ray.direction;
+				normal.Normalize();
+				intersection = ray.origin + normal*action->type.shoot.range;
+				beam0 = ray.origin;
+				beam1 = intersection;
+			}
+		}
 
 		weaponDef->DamageBase( mode, &damageDesc );
 
@@ -1752,7 +1770,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 			GLASSERT( m->AABB().Contains( intersection ) );
 			modelHit = m;
 		}
-		else {		
+		else if ( !impact ) {		
 			Vector3F in, out;
 			int inResult, outResult;
 			Rectangle3F worldBounds;

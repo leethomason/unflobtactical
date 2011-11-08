@@ -789,13 +789,13 @@ void Map::DoSubTurn( Rectangle2I* change, float fireDamagePerSubTurn )
 			int y = i/SIZE;
 			int x = i-y*SIZE;
 
-			if ( PyroSmoke( x, y ) ) {
+			if ( PyroSmoke( x, y ) || PyroFlare( x, y ) ) {
 				int duration = PyroDuration( x, y );
 				if ( duration > 0 )
 					duration--;
-				SetPyro( x, y, duration, false, false );
+				SetPyro( x, y, duration, false, PyroFlare( x, y ) != 0 );
 			}
-			else {
+			else if ( PyroFire( x, y ) ) {
 				// Spread? Reduce to smoke?
 				// If there is nothing left, then fire ends. (ouchie.)
 				MapItem* root = quadTree.FindItems( x, y, 0, 0 );
@@ -841,8 +841,20 @@ void Map::EmitParticles( U32 delta )
 				system->EmitSmoke( delta, pos );
 			}
 			else if ( PyroFlare( x, y ) ) {
-				// fixme emit flare
-				GLASSERT( 0 );
+				if ( random.Rand( 1000 ) < delta ) {
+					static const Color4F color		= { 1, 0, 0, 1 };
+					static const Color4F colorVec	= { 0, 0, 0, -1.f };
+					static const Vector3F velocity	= { 0.0f, 0.5f, 0.0f };
+
+					system->EmitPoint(	5,
+										ParticleSystem::PARTICLE_RAY,
+										color,
+										colorVec,
+										pos,
+										0.01f,
+										velocity,
+										0.3f );
+				}
 			}
 		}
 	}

@@ -27,7 +27,7 @@ public:
 
 private:
 	enum {  MAX_FIRE_BUTTONS	= 5,
-			FIRE_BUTTON_SPACING = 5 };
+			FIRE_BUTTON_SPACING = 3 };
 
 	gamui::PushButton	fireButton[MAX_FIRE_BUTTONS];
 };

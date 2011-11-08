@@ -171,6 +171,7 @@ private:
 	struct ShootAction {
 		int					mode;
 		float				chanceToHit;
+		float				range;
 		grinliz::Vector3F	target;
 	};
 
