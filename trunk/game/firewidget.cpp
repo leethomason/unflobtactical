@@ -170,10 +170,12 @@ void FireWidget::Hide()
 
 bool FireWidget::ConvertTap( const gamui::UIItem* tapped, int* mode )
 {
-	bool okay = false;
-	if ( tapped == fireButton+0 )		{ okay = true; *mode = 0; }
-	else if ( tapped == fireButton+1 )	{ okay = true; *mode = 1; }
-	else if ( tapped == fireButton+2 )	{ okay = true; *mode = 2;  }
-	return okay;
+	for( int i=0; i<MAX_FIRE_BUTTONS; ++i ) {
+		if ( tapped == fireButton+i ) {
+			*mode = i;
+			return true;
+		}
+	}
+	return false;
 }
 
