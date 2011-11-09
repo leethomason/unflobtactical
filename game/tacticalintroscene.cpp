@@ -50,7 +50,6 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 
 	const gamui::ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
 	const gamui::ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
-	//const gamui::ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
 
 	continueButton.Init( &gamui2D, green );
 	continueButton.SetSize( GAME_BUTTON_SIZE_B*2.5F, GAME_BUTTON_SIZE_B );
@@ -121,11 +120,9 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 				   helpButton.Height()*(float)NUM_ITEMS+GAME_GUTTER );
 
 	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "6", "8", "Low", "Med", "Hi", 
-													 //"8", "12", "16", 
 													 "Low", "Med", "Hi", "Day", "Night",
 													 "Fa-S", "T-S", "Fo-S", "D-S", "Fa-D", "T-D", "Fo-D", "D-D",
 													 "City", "BattleShip",	"AlienBase", "TerranBase",
-													 //"Civs", 
 													 "Crash" };
 	for( int i=0; i<TOGGLE_COUNT; ++i ) {
 		GLASSERT( toggleLabel[i] );
@@ -935,6 +932,7 @@ void TacticalIntroScene::GenerateTerranTeam(	Unit* unit,				// target units to w
 
 		// Create the unit.
 		int rank = RandomRank( &aRand, baseRank );
+		memset( &unit[k], 0, sizeof(Unit) );
  		unit[k].Create( TERRAN_TEAM, 0, rank, aRand.Rand() );
 
 		rank = RandomRank( &aRand, baseRank );
