@@ -227,6 +227,16 @@ bool Inventory::Contains( const ItemDef* itemDef ) const
 }
 
 
+bool Inventory::Contains( const char* name ) const
+{
+	for( int i=0; i<NUM_SLOTS; ++i ) {
+		if ( slots[i].IsSomething() && StrEqual( slots[i].GetItemDef()->name, name )  )
+			return true;
+	}
+	return false;
+}
+
+
 int Inventory::GetDeco( int s0 ) const
 {
 	int deco = DECO_NONE;

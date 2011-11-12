@@ -772,24 +772,6 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	tacMap->EmitParticles( deltaTime );
 
 #if 0
-	// Test particle system.
-	{
-		ParticleSystem* system = ParticleSystem::Instance();
-		Vector3F pos = { (float)(tacMap->Width() - 2), 0, (float)(tacMap->Height() - 2) };
-		
-		system->EmitFlame( deltaTime, pos );
-		pos.z -= 1.0f;
-
-		Color4F c = { 1, 1, 0, 1 };
-		Color4F cVel = { -0.2f, -0.2f, 0.f, -0.2f };
-		Vector3F vel = { 0, 2, 0 };
-
-		system->EmitPoint( 3, ParticleSystem::PARTICLE_RAY, c, cVel, pos, 0.1f, vel, 0.1f, 5000 );
-	}
-#endif
-	
-
-#if 0
 		// Debug unit targets.
 		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
 			if ( targets.terran.alienTargets.IsSet( unitID-TERRAN_UNITS_START, i-ALIEN_UNITS_START ) ) {
@@ -904,16 +886,7 @@ void BattleScene::PushEndScene()
 		// Alien corpses:
 		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
 			if ( units[i].InUse() ) {
-				switch( units[i].AlienType() ) {
-
-				case Unit::ALIEN_GREEN:		game->battleData.storage.AddItem( "Green" );	break;
-				case Unit::ALIEN_PRIME:		game->battleData.storage.AddItem( "Prime" );	break;
-				case Unit::ALIEN_HORNET:	game->battleData.storage.AddItem( "Hrnet" );	break;
-				case Unit::ALIEN_JACKAL:	game->battleData.storage.AddItem( "Jackl" );	break;
-				case Unit::ALIEN_VIPER:		game->battleData.storage.AddItem( "Viper" );	break;
-				default: GLASSERT( 0 );	break;
-
-				}
+				game->battleData.storage.AddItem( units[i].AlienShortName() );
 			}
 		}
 	}
@@ -1365,6 +1338,15 @@ bool BattleScene::ProcessAI()
 				}
 				break;
 
+			case AI::ACTION_PSI_ATTACK:
+				{
+					AI_LOG(( "[ai] Unit %d PSI target=%d\n", currentUnitAI, aiAction.psi.targetID ));
+					Action* action = actionStack.Push();
+					action->Init( ACTION_PSI_ATTACK, &units[currentUnitAI] );
+					action->type.psi.targetID = aiAction.psi.targetID;
+				}
+				break;
+
 			case AI::ACTION_MOVE:
 				{
 					AI_LOG(( "[ai] Unit %d MOVE pathlen=%d\n", currentUnitAI, aiAction.move.path.pathLen ));
@@ -1599,6 +1581,27 @@ int BattleScene::ProcessAction( U32 deltaTime )
 						actionStack.Pop();
 						visibility.InvalidateUnit( unit-units );
 						result |= STEP_COMPLETE | UNIT_ACTION_COMPLETE;
+					}
+				}
+				break;
+
+			case ACTION_PSI_ATTACK:
+				{
+					GLASSERT( unit->TU() > TU_PSI - 0.1f );
+					unit->UseTU( TU_PSI );
+					const Unit* targetUnit = &units[action->type.psi.targetID];
+					int psiAttack = unit->GetStats().PsiPower();
+					int psiDefense = targetUnit->PsiDefense();
+					if ( random.Rand( psiAttack ) > random.Rand( psiDefense ) ) {
+						GLOUTPUT(( "psi attack success\n" ));
+						for( int i=0; i<MAX_UNITS; ++i ) {
+							if ( units[i].IsAlive() && units[i].Team() == targetUnit->Team() ) {
+								aiArr[unit->Team()]->Inform( &units[i], 0 );
+							}
+						}
+					}
+					else {
+						GLOUTPUT(( "psi attack fail\n" ));
 					}
 				}
 				break;

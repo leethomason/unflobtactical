@@ -105,6 +105,7 @@ const char* gRank[NUM_RANKS] = {
 struct AlienDef
 {
 	const char* name;
+	const char* shortName;
 	float	kinetic;	// armor
 	float	energy;
 	float	incin;
@@ -113,21 +114,27 @@ struct AlienDef
 	int		psy;
 };
 
-static const int NUM_ALIENS = 5;
-
-AlienDef gAlienDef[NUM_ALIENS] = {
-	{ "green",	ARM0, ARM0, ARM0,				30,	60, 50	},
-	{ "prime",	ARM2, ARM3, ARM2,				60, 70, 90  },
-	{ "hornet",	ARM1, ARM2, ARM2,				40, 65, 55  },
-	{ "jackal",	ARM3, ARM2, ARM1,				80, 50, 80  },
-	{ "viper",	ARM2, ARM1, ARM2,				70, 70, 70  }
+AlienDef gAlienDef[Unit::NUM_ALIEN_TYPES] = {
+	{ "green",	"Green",	ARM0, ARM0, ARM0,		30,	60, 50	},
+	{ "prime",	"Prime",	ARM2, ARM3, ARM2,		60, 70, 85  },
+	{ "hornet",	"Hrnet",	ARM1, ARM2, ARM2,		40, 65, 55  },
+	{ "jackal",	"Jackl",	ARM3, ARM2, ARM1,		80, 50, 80  },
+	{ "viper",	"Viper",	ARM2, ARM1, ARM2,		70, 70, 70  },
+	{ "squid",	"Squid",	ARM1, ARM2, ARM1,		40, 50, 95  },
 };
 
 
 const char* Unit::AlienName() const
 {
-	GLASSERT( type >= 0 && type < NUM_ALIENS );
+	GLASSERT( type >= 0 && type < NUM_ALIEN_TYPES );
 	return gAlienDef[type].name;
+}
+
+
+const char* Unit::AlienShortName() const
+{
+	GLASSERT( type >= 0 && type < NUM_ALIEN_TYPES );
+	return gAlienDef[type].shortName;
 }
 
 
@@ -336,6 +343,16 @@ const WeaponItemDef* Unit::GetWeaponDef() const
 	if ( item ) 
 		return item->GetItemDef()->IsWeapon();
 	return 0;
+}
+
+
+int Unit::PsiDefense() const
+{
+	int def = stats.PsiPower();
+	if ( inventory.Contains( "SG:P" ) ) {
+		def = def * 3 / 2;
+	}
+	return def;
 }
 
 

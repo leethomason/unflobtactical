@@ -82,6 +82,12 @@ int Stats::ReactionRating() const
 }
 
 
+int Stats::PsiPower() const
+{
+	return PSY() + TRAIT_RANK_BONUS*Rank();
+}
+
+
 void Stats::Save( FILE* fp, int depth ) const
 {
 	/*
