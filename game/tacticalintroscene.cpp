@@ -780,41 +780,42 @@ void TacticalIntroScene::GenerateAlienTeamUpper(	int scenario,
 	case TNDR_SCOUT:
 	case FRST_SCOUT:
 	case DSRT_SCOUT:
-		count[0] = 3+random.Rand(2);	// green 3-4
+		// FIXME: testing
+		count[Unit::ALIEN_SQUID] = 3+random.Rand(2);	// green 3-4
 		if ( rank >= 2.0f )
-			count[1] = random.Rand(2);	// prime 0-1
+			count[Unit::ALIEN_PRIME] = random.Rand(2);	// prime 0-1
 		break;
 
 	case FARM_DESTROYER:
 	case TNDR_DESTROYER:
 	case FRST_DESTROYER:
 	case DSRT_DESTROYER:
-		count[1] = 1 + random.Rand(2);	// prime  1-2
-		count[2] = 4 + random.Rand(2);	// hornet 4-5
-		count[3] = random.Rand( 2 );	// jackal 0-1
-		count[4] = 4 + random.Rand(2);	// viper  4-5	// total: 9-13
+		count[Unit::ALIEN_PRIME]  = 1 + random.Rand(2);	// prime  1-2
+		count[Unit::ALIEN_HORNET] = 4 + random.Rand(2);	// hornet 4-5
+		count[Unit::ALIEN_JACKAL] = random.Rand( 2 );	// jackal 0-1
+		count[Unit::ALIEN_VIPER]  = 4 + random.Rand(2);	// viper  4-5	// total: 9-13
 		break;
 
 	case CITY:
-		count[0] = 2;					// green  2-2
-		count[2] = 4 + random.Rand(3);	// hornet 4-6
-		count[3] = 4 + random.Rand(3);	// jackal 4-6
-		count[4] = random.Rand( 3 );	// viper  0-2	// total: 10-16
+		count[Unit::ALIEN_GREEN]  = 2;					// green  2-2
+		count[Unit::ALIEN_HORNET] = 4 + random.Rand(3);	// hornet 4-6
+		count[Unit::ALIEN_JACKAL] = 4 + random.Rand(3);	// jackal 4-6
+		count[Unit::ALIEN_VIPER]  = random.Rand( 3 );	    // viper  0-2	// total: 10-16
 		break;
 
 	case BATTLESHIP:
 	case ALIEN_BASE:
-		count[0] = 2;	// green
-		count[1] = 5;	// prime
-		count[2] = 5;	// hornet
-		count[4] = 4;	// viper
+		count[Unit::ALIEN_GREEN]  = 2;	// green
+		count[Unit::ALIEN_PRIME]  = 5;	// prime
+		count[Unit::ALIEN_HORNET] = 5;	// hornet
+		count[Unit::ALIEN_VIPER]  = 4;	// viper
 		break;
 
 	case TERRAN_BASE:
-		count[0] = 3;	// green
-		count[2] = 5;	// hornet
-		count[3] = 3;	// jackal
-		count[4] = 5;	// viper
+		count[Unit::ALIEN_GREEN]  = 3;	// green
+		count[Unit::ALIEN_HORNET] = 5;	// hornet
+		count[Unit::ALIEN_JACKAL] = 3;	// jackal
+		count[Unit::ALIEN_VIPER]  = 5;	// viper
 		break;
 
 	default:
@@ -856,7 +857,8 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 		{	"RAY-1",	"RAY-2",	"RAY-2",	"RAY-3",	"PLS-3"	},		// prime
 		{	"PLS-1",	"PLS-1",	"PLS-2",	"PLS-2",	"PLS-3" },		// hornet
 		{	"STRM-1",	"STRM-1",	"STRM-2",	"STRM-2",	"STRM-3" },		// jackal
-		{	"PLS-1",	"PLS-1",	"PLS-2",	"PLS-2",	"PLS-3" }		// viper
+		{	"PLS-1",	"PLS-1",	"PLS-2",	"PLS-2",	"PLS-3" },		// viper
+		{	"RAY-1",	"RAY-2",	"RAY-2",	"RAY-3",	"RAY-3"	},		// squid
 	};
 
 	int nAliens = 0;

@@ -24,6 +24,7 @@
 #include "tacmap.h"
 
 #include <float.h>
+#include <limits.h>
 
 using namespace grinliz;
 
@@ -35,6 +36,7 @@ AI::AI( int team, Visibility* vis, Engine* engine, const Unit* units, BattleScen
 	m_engine = engine;
 	m_units = units;
 	m_battleScene = battleScene;
+	m_turnsSinceLastPsiAttack = 100;
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		m_enemy[i] = 0.0f;
@@ -80,18 +82,16 @@ void AI::StartTurn( const Unit* units )
 		}
 		m_thinkCount[i] = 0;
 	}
+	++m_turnsSinceLastPsiAttack;
 }
 
 
 void AI::Inform( const Unit* theUnit, int quality )
 {
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		if ( m_units[i].Team() != theUnit->Team() ) {
-			if ( m_lkp[i].turns > quality ) {
-				m_lkp[i].turns = quality;		// Correct quality? 2 turns back for shooting?
-				m_lkp[i].pos = theUnit->MapPos();
-			}
-		}
+	int i = theUnit - m_units;
+	if ( m_lkp[i].turns > quality ) {
+		m_lkp[i].turns = quality;
+		m_lkp[i].pos = theUnit->MapPos();
 	}
 }
 
@@ -306,6 +306,31 @@ int AI::ThinkShoot(	const Unit* theUnit,
 		m_battleScene->GetModel( &m_units[best] )->CalcTarget( &action->shoot.target );
 		m_battleScene->GetModel( &m_units[best] )->CalcTargetSize( &action->shoot.targetWidth, &action->shoot.targetHeight );
 		return THINK_ACTION;
+	}
+	return THINK_NO_ACTION;
+}
+
+
+int AI::ThinkPsiAttack( const Unit* theUnit, AIAction* action )
+{
+	if (    theUnit->HasPsiAttack() 
+		 && m_turnsSinceLastPsiAttack > 0
+		 && theUnit->TU() >= TU_PSI  ) 
+	{
+		// This is only an alien power. Check the soldiers first,
+		// and then check the civs.
+		for( int i=0; i<MAX_UNITS; ++i ) {
+			if (    m_enemy[i] > 0
+				 && m_units[i].IsAlive()
+				 && m_visibility->UnitCanSee( theUnit, &m_units[i] ) )
+			{
+				// Global - fixme, says nothing about success
+				m_turnsSinceLastPsiAttack = 0;			
+				action->actionID = ACTION_PSI_ATTACK;
+				action->psi.targetID = i;
+				return THINK_ACTION;
+			}
+		}
 	}
 	return THINK_NO_ACTION;
 }
@@ -618,17 +643,19 @@ bool WarriorAI::Think(	const Unit* theUnit,
 	//   current canSee and LKPs
 	// - if nothing to move to, stand around
 
-	//const float CLOSE_ENOUGH				= 4.5f;		// don't close closer than this...
-
 	action->actionID = ACTION_NONE;
 	Vector2I theUnitPos;
 	theUnit->CalcMapPos( &theUnitPos, 0 );
-	//float theUnitNearTarget = FLT_MAX;
 
 	if ( ThinkBase( theUnit ) == THINK_NOT_OPTION )
 		return true;
 	
 	int result = 0;
+
+	// PSI takes no ammo. Check first.
+	if ( ThinkPsiAttack( theUnit, action ) == THINK_ACTION ) {
+		return false;	
+	}
 
 	// -------- Shoot -------- //
 	if ( theUnit->HasGunAndAmmo( true ) ) {

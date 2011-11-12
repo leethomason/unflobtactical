@@ -39,6 +39,7 @@ public:
 		ACTION_SHOOT = 3,
 		ACTION_ROTATE = 4,
 		ACTION_INVENTORY = 5,
+		ACTION_PSI_ATTACK = 6,
 	};
 
 	struct MoveAIAction {
@@ -50,6 +51,10 @@ public:
 		grinliz::Vector3F	target;
 		float				targetWidth;
 		float				targetHeight;
+	};
+
+	struct PsiAIAction {
+		int					targetID;
 	};
 
 	struct RotateAIAction {
@@ -67,6 +72,7 @@ public:
 		union {
 			MoveAIAction		move;
 			ShootAIAction		shoot;
+			PsiAIAction			psi;
 			RotateAIAction		rotate;
 			InventoryAIAction	inventory;
 		};
@@ -81,7 +87,7 @@ public:
 	virtual ~AI()	{}
 
 	void StartTurn( const Unit* units );
-	void Inform( const Unit* theUnit, int quality );
+	void Inform( const Unit* theUnit, int quality );	// 'theUnit' is spotted.
 
 	enum {
 		AI_NORMAL = 0x00,
@@ -112,6 +118,10 @@ protected:
 
 	// if THINK_NOT_OPTION end move.
 	int ThinkBase( const Unit* move );
+
+	// THINK_NO_ACTION  no target
+	// THINK_ACTION		psi attack taken
+	int ThinkPsiAttack( const Unit* theUnit, AIAction* action );
 
 	// THINK_NOT_OPTION no weapon / ammo
 	// THINK_NO_ACTION  no target
@@ -166,6 +176,7 @@ protected:
 	BattleScene* m_battleScene;
 
 	int m_team;
+	int m_turnsSinceLastPsiAttack;
 
 	Visibility* m_visibility;
 	grinliz::Random m_random;

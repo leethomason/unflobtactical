@@ -154,8 +154,8 @@ private:
 		ACTION_SHOOT,
 		ACTION_DELAY,
 		ACTION_HIT,
-		//ACTION_CAMERA,
 		ACTION_CAMERA_BOUNDS,
+		ACTION_PSI_ATTACK
 	};
 
 	struct MoveAction	{
@@ -173,6 +173,10 @@ private:
 		float				chanceToHit;
 		float				range;
 		grinliz::Vector3F	target;
+	};
+
+	struct PsiAction {
+		int targetID;
 	};
 
 	struct DelayAction {
@@ -210,6 +214,7 @@ private:
 			MoveAction			move;
 			RotateAction		rotate;
 			ShootAction			shoot;
+			PsiAction			psi;
 			DelayAction			delay;
 			HitAction			hit;
 			CameraAction		camera;

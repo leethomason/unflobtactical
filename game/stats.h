@@ -66,6 +66,7 @@ public:
 	int ScoreLevel() const;
 	int AccuracyRating() const;
 	int ReactionRating() const;
+	int PsiPower() const;		// not capped 0-200 or so
 
 	float TotalTU() const		{ return totalTU; }			// one TU is one move
 	float AccuracyArea() const	{ return accuracy; }

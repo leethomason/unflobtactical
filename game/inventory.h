@@ -78,7 +78,9 @@ public:
 
 	Item GetItem( int slot ) const				{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot]; }				// return a copy...too easy to change while in use
 	Item* AccessItem( int slot )				{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return &slots[slot]; }
+
 	bool Contains( const ItemDef* itemDef ) const;
+	bool Contains( const char* name ) const;
 
 	int GetDeco( int slot ) const;
 	const ItemDef* GetItemDef( int slot ) const	{ GLASSERT( slot >=0 && slot < NUM_SLOTS ); return slots[slot].GetItemDef(); }

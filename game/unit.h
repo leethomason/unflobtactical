@@ -54,6 +54,7 @@ public:
 		ALIEN_HORNET,
 		ALIEN_JACKAL,
 		ALIEN_VIPER,
+		ALIEN_SQUID,
 		NUM_ALIEN_TYPES
 	};
 
@@ -91,6 +92,7 @@ public:
 	int Gender() const			{ return GetValue( GENDER ); }
 	int AI() const				{ return ai; }
 	const char* AlienName() const;
+	const char* AlienShortName() const;
 
 	void SetAI( int value )		{ ai = value; }
 
@@ -121,6 +123,9 @@ public:
 	Item* GetWeapon();
 	const Item* GetWeapon() const;
 	const WeaponItemDef* GetWeaponDef() const;
+
+	bool HasPsiAttack() const { return IsAlive() && Team() == ALIEN_TEAM && AlienType() == ALIEN_SQUID; }
+	int PsiDefense() const;
 
 	Inventory* GetInventory();
 	const Inventory* GetInventory() const;
