@@ -15,6 +15,7 @@ sources :=  ai.cpp \
 			unit.cpp \
 			areawidget.cpp \
 			inventoryWidget.cpp \
+			firewidget.cpp \
 			storageWidget.cpp \
 			basetradescene.cpp \
 			battlescene.cpp \

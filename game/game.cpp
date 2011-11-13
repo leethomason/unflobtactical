@@ -158,6 +158,9 @@ void Game::Init()
 	database0->Init( 0, buffer, offset );
 	database1 = 0;
 
+	GLOUTPUT(( "Game::Init Database initialized.\n" ));
+
+	GLOUTPUT(( "Game::Init stage 0\n" ));
 	SettingsManager::Create( savePath.c_str() );
 	{
 		SettingsManager* sm = SettingsManager::Instance();
@@ -166,24 +169,33 @@ void Game::Init()
 		}
 	}
 
+	GLOUTPUT(( "Game::Init stage 10\n" ));
 	SoundManager::Create( database0 );
 	TextureManager::Create( database0 );
 	ImageManager::Create( database0 );
 	ModelResourceManager::Create();
 	ParticleSystem::Create();
 
+	GLOUTPUT(( "Game::Init stage 20\n" ));
 	engine = new Engine( &screenport, database0 );
+	GLOUTPUT(( "Game::Init stage 30\n" ));
 
 	LoadTextures();
+	GLOUTPUT(( "Game::Init stage 31\n" ));
 	modelLoader = new ModelLoader();
 	LoadModels();
+	GLOUTPUT(( "Game::Init stage 32\n" ));
 	LoadItemResources();
+	GLOUTPUT(( "Game::Init stage 33\n" ));
 	LoadAtoms();
+	GLOUTPUT(( "Game::Init stage 34\n" ));
 	LoadPalettes();
+	GLOUTPUT(( "Game::Init stage 35\n" ));
 
 	delete modelLoader;
 	modelLoader = 0;
 
+	GLOUTPUT(( "Game::Init stage 40\n" ));
 	Texture* textTexture = TextureManager::Instance()->GetTexture( "font" );
 	GLASSERT( textTexture );
 	UFOText::Create( database0, textTexture, engine->GetScreenportMutable() );
@@ -193,6 +205,7 @@ void Game::Init()
 	memset( faceCache, 0, sizeof(FaceCache)*MAX_TERRANS );
 	faceCacheSlot = 0;
 
+	GLOUTPUT(( "Game::Init stage 50\n" ));
 	ImageManager* im = ImageManager::Instance();
 	im->LoadImage( "faceChins", &faceGen.chins );
 	faceGen.nChins = 17;
@@ -206,6 +219,8 @@ void Game::Init()
 	faceGen.nEyes = 15;
 	im->LoadImage( "faceGlasses", &faceGen.glasses );
 	faceGen.nGlasses = 5;
+
+	GLOUTPUT(( "Game::Init complete.\n" ));
 }
 
 
