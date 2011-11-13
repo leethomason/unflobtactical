@@ -173,7 +173,7 @@ public:
 	const Weapon*		weapon[MAX_MODE];
 	const ClipItemDef*	clipItemDef[MAX_MODE];
 
-	bool HasWeapon( int mode) const									{ return (mode < MAX_MODE) && weapon[mode]->InUse(); }
+	bool HasWeapon( int mode) const									{ return (mode < MAX_MODE) && weapon[mode] && weapon[mode]->InUse(); }
 	int NumClipTypes() const										{ int count=1; for ( int i=1; i<MAX_MODE; ++i ) {
 																		if ( clipItemDef[i] && clipItemDef[i] != clipItemDef[i-1] ) ++count;
 																	  }
@@ -181,8 +181,8 @@ public:
 																	}
 
 	const ClipItemDef* GetClipItemDef( int mode ) const				{ return clipItemDef[mode]; }
-	int RoundsNeeded( int mode ) const								{ return ( weapon[mode]->flags & WEAPON_AUTO ) ? 3 : 1; }
-	bool IsExplosive( int mode ) const								{ return ( weapon[mode]->flags & WEAPON_EXPLOSIVE ) != 0; }
+	int RoundsNeeded( int mode ) const								{ return ( weapon[mode] && weapon[mode]->flags & WEAPON_AUTO ) ? 3 : 1; }
+	bool IsExplosive( int mode ) const								{ return ( weapon[mode] && weapon[mode]->flags & WEAPON_EXPLOSIVE ) != 0; }
 
 	void RenderWeapon(	int mode,
 						ParticleSystem*,
