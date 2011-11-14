@@ -1,11 +1,13 @@
-Test:
-- full UI run
+Bugs 
+- more sophisticated psi ai. 
+	- be aware civ vs. terran
+	- use if below a certain % of known locations
+- if spitters in use, no aliens should target civ
+- if no chance of conversion, spitters should prefer target terrans, else target civ
+- check that 'inform' is working as expected
+- add SG:P
+- sound for spitter
 
-Issues:
-- capatilism now gives you a 50% credit back.
-
-Bugs:
-- switch from XP to money bonus?
 
 Deferred:
 - chaining

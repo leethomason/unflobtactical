@@ -900,6 +900,7 @@ void BattleScene::PushEndScene()
 			}
 		}
 	}
+	game->battleData.storage.ClearHidden();
 	GLASSERT( !game->IsScenePushed() );
 	game->PushScene( Game::END_SCENE, 0 );
 }

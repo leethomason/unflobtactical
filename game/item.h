@@ -95,6 +95,7 @@ public:
 	virtual const ClipItemDef* IsClip() const  { return 0; }
 	virtual const ArmorItemDef* IsArmor() const { return 0; }
 	bool IsAlien() const { return isAlien; }
+	bool Hide() const    { return deco == 31; /*DECO_NONE;*/ }
 	
 	// Most items are 1 thing: a gun, armor, etc. But clips are formed of collections.
 	// It may take 10 rounds to form a clip.
@@ -161,11 +162,11 @@ public:
 	struct Weapon {
 		bool InUse() const { return desc && *desc; }
 
-		const char* desc;
+		const char* desc;				
 		const char* clipItemDefName;
-		int flags;			// WEAPON_AUTO, etc.
-		float damage;		// damage done by weapon, 1.0 is normal
-		float accuracy;		// 1.0 is average
+		int flags;						// WEAPON_AUTO, etc.
+		float damage;					// damage done by weapon, 1.0 is normal
+		float accuracy;					// 1.0 is average
 		float tu;
 		const char* sound;
 	};
@@ -328,6 +329,7 @@ public:
 
 	bool RemoveItem( const ItemDef*, Item* item );	// returns true if successful
 	void ClearItem( const char* name );
+	void ClearHidden();
 	bool Contains( const ItemDef* ) const;
 
 	// Return true if either is true:

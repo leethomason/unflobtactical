@@ -122,7 +122,7 @@ void StorageWidget::SetButtons()
 
 	for( int i=0; i<itemDefArr.Size(); ++i ) {
 		const ItemDef* itemDef = itemDefArr.Query( i );
-		if ( !itemDef )
+		if ( !itemDef || itemDef->Hide() )
 			continue;
 
 		int group = 3;

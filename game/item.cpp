@@ -385,6 +385,17 @@ void Storage::ClearItem( const char* name )
 }
 
 
+void Storage::ClearHidden()
+{
+	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+		const ItemDef* itemDef = itemDefArr.GetIndex( i );
+		if ( itemDef && itemDef->Hide() ) {
+			rounds[i] = 0;
+		}
+	}
+}
+
+
 void Storage::AddStorage( const Storage& storage )
 {
 	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
