@@ -31,11 +31,13 @@ public:
 	bool GetAudioOn() const				{ return audioOn != 0; }
 	void SetAudioOn( bool value );
 
+	// read only
 	bool GetSuppressCrashLog() const	{ return suppressCrashLog != 0; }
 	bool GetPlayerAI() const			{ return playerAI != 0; }
 	bool GetBattleShipParty() const		{ return battleShipParty != 0; }
-	bool GetUseFastBattle() const		{ return useFastBattle != 0; }
+	int GetTestAlien() const			{ return testAlien; }
 	
+	// read-write
 	void SetNumWalkingMaps(int nMaps );
 	int  GetNumWalkingMaps() const		{ return nWalkingMaps; }
 
@@ -59,7 +61,7 @@ private:
 	int suppressCrashLog;
 	int playerAI;
 	int battleShipParty;
-	int useFastBattle;
+	int testAlien;
 	int nWalkingMaps;
 	bool confirmMove;
 	bool allowDrag;

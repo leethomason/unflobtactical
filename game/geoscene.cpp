@@ -1000,10 +1000,7 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			chitBag.SetBattle( ufoChit->ID(), landerChit ? landerChit->ID() : 0, scenario );
 			game->Save( 0, false );
 
-			if ( SettingsManager::Instance()->GetUseFastBattle() )
-				game->PushScene( Game::FASTBATTLE_SCENE, data );
-			else
-				game->PushScene( Game::BATTLE_SCENE, data );
+			game->PushScene( Game::BATTLE_SCENE, data );
 
 		}
 	}

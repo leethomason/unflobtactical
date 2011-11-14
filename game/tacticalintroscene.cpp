@@ -780,8 +780,7 @@ void TacticalIntroScene::GenerateAlienTeamUpper(	int scenario,
 	case TNDR_SCOUT:
 	case FRST_SCOUT:
 	case DSRT_SCOUT:
-		// FIXME: testing
-		count[Unit::ALIEN_SQUID] = 3+random.Rand(2);	// green 3-4
+		count[SettingsManager::Instance()->GetTestAlien()] = 3+random.Rand(2);	// green 3-4 (typically green - use others if in settings)
 		if ( rank >= 2.0f )
 			count[Unit::ALIEN_PRIME] = random.Rand(2);	// prime 0-1
 		break;
