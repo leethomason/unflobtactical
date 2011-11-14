@@ -297,6 +297,8 @@ void Game::LoadItemResources()
 					COLORDEF( 213, 63, 63 ),	SPEED*0.7f, WIDTH,		BOLT,		"Flare grenade clip" },
 		{ "Smoke",	false,	DECO_ROCKET,	4,	 5,		{ 0,    0, 1.0f },
 					COLORDEF( 144, 152, 171 ),	SPEED*0.7f, WIDTH,		BOLT,		"Smoke grenade clip" },
+		{ "Spit-Clip",true,	DECO_NONE,	100,	 1,		{ 0.5f, 0, 0.5f },
+					COLORDEF( 66, 203, 3 ),		SPEED*0.5f, WIDTH*1.5f,	BOLT,		"Spit-Clip-Hidden" },
 		{ 0 }
 	};
 
@@ -445,7 +447,14 @@ void Game::LoadItemResources()
 			{{ "Snap", "Cell",	WEAPON_EXPLOSIVE | WEAPON_INCENDIARY,	EXDAM_MED*B2,	ACC_LOW*A2*SNAP,	SPEED_NORMAL*TU_SNAP_SHOT,	"nullp" },
 			{ "Aimed","Cell",	WEAPON_EXPLOSIVE | WEAPON_INCENDIARY,	EXDAM_MED*B2,	ACC_LOW*A2*AIM,		SPEED_NORMAL*TU_AIMED_SHOT,	"nullp" },
 			{ 0 }, { 0 }, { 0 }}
-		}
+		},
+
+		// Intrinsic:
+		{ "Spit",	0,	DECO_NONE,	"Spit-Hidden",	
+			{{ "Snap", "Spit-Clip",		0,						DAM_MED,		ACC_MED*SNAP*A2,	SPEED_SLOW*TU_SNAP_SHOT,	0 },
+			{ "Aimed", "Spit-Clip",		0,						DAM_MED,		ACC_MED*AIM*A2,		SPEED_SLOW*TU_AIMED_SHOT,	0 },
+			{ 0 }, { 0 }, { 0 }}
+		},
 	};
 
 	//GLOUTPUT(( "Start loading weapons.\n" ));
@@ -465,7 +474,7 @@ void Game::LoadItemResources()
 						weapons[i].deco,
 						0,	// set below
 						alien,
-						ModelResourceManager::Instance()->GetModelResource( weapons[i].resName ) );
+						weapons[i].resName ? ModelResourceManager::Instance()->GetModelResource( weapons[i].resName ) : 0 );
 
 		for( int j=0; j<WeaponItemDef::MAX_MODE; ++j ) {
 			//GLOUTPUT(( "weapon %d %d\n", i, j ));
