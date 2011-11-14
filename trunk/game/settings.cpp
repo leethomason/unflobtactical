@@ -45,7 +45,6 @@ SettingsManager::SettingsManager( const char* savepath )
 	suppressCrashLog = 0;
 	playerAI = 0;
 	battleShipParty = 0;
-	useFastBattle = 0;
 	nWalkingMaps = 1;
 	confirmMove = 
 		#ifdef ANDROID_NDK
@@ -54,6 +53,7 @@ SettingsManager::SettingsManager( const char* savepath )
 			0;
 		#endif
 	allowDrag = true;
+	testAlien = 0;
 
 	// Parse actuals.
 	TiXmlDocument doc;
@@ -64,10 +64,10 @@ SettingsManager::SettingsManager( const char* savepath )
 			root->QueryIntAttribute( "suppressCrashLog", &suppressCrashLog );
 			root->QueryIntAttribute( "playerAI", &playerAI );
 			root->QueryIntAttribute( "battleShipParty", &battleShipParty );
-			root->QueryIntAttribute( "useFastBattle", &useFastBattle );
 			root->QueryIntAttribute( "nWalkingMaps", &nWalkingMaps );
 			root->QueryBoolAttribute( "confirmMove", &confirmMove );
 			root->QueryBoolAttribute( "allowDrag", &allowDrag );
+			root->QueryIntAttribute( "testAlien", &testAlien );
 			currentMod = "";
 			if ( root->Attribute( "currentMod" ) ) {
 				currentMod = root->Attribute( "currentMod" );
@@ -137,10 +137,10 @@ void SettingsManager::Save()
 		XMLUtil::Attribute( fp, "suppressCrashLog", suppressCrashLog );
 		XMLUtil::Attribute( fp, "playerAI", playerAI );
 		XMLUtil::Attribute( fp, "battleShipParty", battleShipParty );
-		XMLUtil::Attribute( fp, "useFastBattle", useFastBattle );
 		XMLUtil::Attribute( fp, "nWalkingMaps", nWalkingMaps );
 		XMLUtil::Attribute( fp, "confirmMove", confirmMove );
 		XMLUtil::Attribute( fp, "allowDrag", allowDrag );
+		XMLUtil::Attribute( fp, "testAlien", testAlien );
 
 		XMLUtil::SealCloseElement( fp );
 
