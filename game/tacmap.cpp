@@ -477,6 +477,7 @@ void TacMap::ReleaseStorage( Storage* storage )
 	}
 	GLRELASSERT( index >= 0 );	// should always be found...
 
+	storage->ClearHidden();
 	if ( storage->Empty() ) {
 		delete storage;
 		GLRELASSERT( debris[index].crate == 0 );

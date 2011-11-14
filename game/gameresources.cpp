@@ -239,6 +239,7 @@ void Game::LoadModels()
 
 void Game::LoadItemResources()
 {
+	static const float DAM_LOW		=   30.0f;
 	static const float DAM_MED		=   40.0f;
 	static const float DAM_MEDHI	=   60.0f;
 	static const float DAM_HI		=   80.0f;
@@ -284,7 +285,7 @@ void Game::LoadItemResources()
 
 	static const ClipInit clips[] = {
 		{ "Clip",	false,	DECO_SHELLS,	15,	 5,		{ 1, 0, 0 },
-					COLORDEF( 200, 204, 213 ), SPEED*2.0f,	WIDTH*0.5f, BOLT*3.0f, "Bullet clip" },
+					COLORDEF( 200, 204, 213 ), SPEED*2.0f,	WIDTH*0.5f, BOLT*3.0f,  "Bullet clip" },
 		{ "Cell",	true,	DECO_CELL,		12,  12,	{ 0.0f, 0.8f, 0.2f },
 					COLORDEF( 199, 216, 6 ),	SPEED*1.5f,	 WIDTH,		BOLT*2.0f,	"Alien Cell clip" },
 		{ "Anti",	true,	DECO_CELL,		4,   20,	{ 0, 0.6f, 0.4f },
@@ -298,7 +299,7 @@ void Game::LoadItemResources()
 		{ "Smoke",	false,	DECO_ROCKET,	4,	 5,		{ 0,    0, 1.0f },
 					COLORDEF( 144, 152, 171 ),	SPEED*0.7f, WIDTH,		BOLT,		"Smoke grenade clip" },
 		{ "Spit-Clip",true,	DECO_NONE,	100,	 1,		{ 0.5f, 0, 0.5f },
-					COLORDEF( 66, 203, 3 ),		SPEED*0.5f, WIDTH*1.5f,	BOLT,		"Spit-Clip-Hidden" },
+					COLORDEF( 66, 203, 3 ),		SPEED*0.8f, WIDTH*1.2f,	BOLT*2.5f,	"Spit-Clip-Hidden" },
 		{ 0 }
 	};
 
@@ -450,9 +451,19 @@ void Game::LoadItemResources()
 		},
 
 		// Intrinsic:
-		{ "Spit",	0,	DECO_NONE,	"Spit-Hidden",	
-			{{ "Snap", "Spit-Clip",		0,						DAM_MED,		ACC_MED*SNAP*A2,	SPEED_SLOW*TU_SNAP_SHOT,	0 },
-			{ "Aimed", "Spit-Clip",		0,						DAM_MED,		ACC_MED*AIM*A2,		SPEED_SLOW*TU_AIMED_SHOT,	0 },
+		{ "Spit-1",	0,	DECO_NONE,	"Spit-Hidden",	
+			{{ "Snap", "Spit-Clip",		0,								DAM_LOW,		ACC_MED*SNAP*A2,	SPEED_NORMAL*TU_SNAP_SHOT,	0 },
+			{ "Aimed", "Spit-Clip",		0,								DAM_MED,		ACC_MED*AIM*A2,		SPEED_NORMAL*TU_AIMED_SHOT,	0 },
+			{ 0 }, { 0 }, { 0 }}
+		},
+		{ "Spit-2",	0,	DECO_NONE,	"Spit-Hidden",	
+			{{ "Snap", "Spit-Clip",		0,								DAM_LOW*B2,		ACC_MED*SNAP*A2,	SPEED_NORMAL*TU_SNAP_SHOT,	0 },
+			{ "Aimed", "Spit-Clip",		0,								DAM_MED*B2,		ACC_MED*AIM*A2,		SPEED_NORMAL*TU_AIMED_SHOT,	0 },
+			{ 0 }, { 0 }, { 0 }}
+		},
+		{ "Spit-3",	0,	DECO_NONE,	"Spit-Hidden",	
+			{{ "Snap", "Spit-Clip",		0,								DAM_LOW*B3,		ACC_MED*SNAP*A2,	SPEED_NORMAL*TU_SNAP_SHOT,	0 },
+			{ "Aimed", "Spit-Clip",		0,								DAM_MED*B3,		ACC_MED*AIM*A2,		SPEED_NORMAL*TU_AIMED_SHOT,	0 },
 			{ 0 }, { 0 }, { 0 }}
 		},
 	};

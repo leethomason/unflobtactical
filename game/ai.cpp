@@ -107,7 +107,7 @@ bool AI::SafeLineOfSight(	const Unit* source,
 	const Model* sourceWeaponModel	= battle->GetWeaponModel( source );
 	const Model* targetModel		= battle->GetModel( target );
 
-	if ( !sourceModel || !sourceWeaponModel || !targetModel ) {
+	if ( !sourceModel || !targetModel ) {
 		return false;
 	}
 

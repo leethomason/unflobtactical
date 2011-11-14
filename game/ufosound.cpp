@@ -39,6 +39,9 @@ void SoundManager::Destroy()
 
 void SoundManager::QueueSound( const char* name )
 {
+	if ( !name || !*name )
+		return;
+
 	SettingsManager* settings = SettingsManager::Instance();
 	if ( !settings->GetAudioOn() )
 		return;
