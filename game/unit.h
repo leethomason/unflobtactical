@@ -55,6 +55,8 @@ public:
 		ALIEN_JACKAL,
 		ALIEN_VIPER,
 		ALIEN_SQUID,			// 5
+		ALIEN_SPITTER,	
+		ALIEN_CRAWLER,
 		NUM_ALIEN_TYPES
 	};
 
@@ -125,6 +127,8 @@ public:
 	const WeaponItemDef* GetWeaponDef() const;
 
 	bool HasPsiAttack() const { return IsAlive() && Team() == ALIEN_TEAM && AlienType() == ALIEN_SQUID; }
+	bool AlwaysCivAI() const  { return IsAlive() && Team() == ALIEN_TEAM && AlienType() == ALIEN_CRAWLER; }
+
 	int PsiDefense() const;
 
 	Inventory* GetInventory();

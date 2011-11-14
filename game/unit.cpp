@@ -121,6 +121,8 @@ AlienDef gAlienDef[Unit::NUM_ALIEN_TYPES] = {
 	{ "jackal",	"Jackl",	ARM3, ARM2, ARM1,		80, 50, 80  },
 	{ "viper",	"Viper",	ARM2, ARM1, ARM2,		70, 70, 70  },
 	{ "squid",	"Squid",	ARM1, ARM2, ARM1,		40, 50, 95  },
+	{ "spitter","Spit",		ARM3, ARM2, ARM1,		70, 70, 40  },
+	{ "crawler","Crawl",	ARM2, ARM2, ARM1,		20, 50, 20  },
 };
 
 
