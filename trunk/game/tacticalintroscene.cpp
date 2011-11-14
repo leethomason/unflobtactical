@@ -858,6 +858,8 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 		{	"STRM-1",	"STRM-1",	"STRM-2",	"STRM-2",	"STRM-3" },		// jackal
 		{	"PLS-1",	"PLS-1",	"PLS-2",	"PLS-2",	"PLS-3" },		// viper
 		{	"RAY-1",	"RAY-2",	"RAY-2",	"RAY-3",	"RAY-3"	},		// squid
+		{   "", "", "", "", "" },											// spitter - intrinsics weapon
+		{	"", "", "", "", "" },											// crawler - can't use weapons
 	};
 
 	int nAliens = 0;
@@ -886,16 +888,18 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 			rank = RandomRank( &aRand, averageRank );
 
 			// Add the weapon.
-			Item item( itemDefArr, weapon[i][rank] );
-			unit[index].GetInventory()->AddItem( item, 0 );
+			if ( *weapon[i][rank] ) {
+				Item item( itemDefArr, weapon[i][rank] );
+				unit[index].GetInventory()->AddItem( item, 0 );
 
-			// Add ammo.
-			const WeaponItemDef* weaponDef = item.GetItemDef()->IsWeapon();
-			GLASSERT( weaponDef );
+				// Add ammo.
+				const WeaponItemDef* weaponDef = item.GetItemDef()->IsWeapon();
+				GLASSERT( weaponDef );
 
-			for( int n=0; weaponDef->HasWeapon(n); ++n ) {
-				Item ammo( weaponDef->GetClipItemDef( n ) );
-				unit[index].GetInventory()->AddItem( ammo, 0 );
+				for( int n=0; weaponDef->HasWeapon(n); ++n ) {
+					Item ammo( weaponDef->GetClipItemDef( n ) );
+					unit[index].GetInventory()->AddItem( ammo, 0 );
+				}
 			}
 			++index;
 		}

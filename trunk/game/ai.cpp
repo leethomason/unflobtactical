@@ -657,6 +657,12 @@ bool WarriorAI::Think(	const Unit* theUnit,
 		return false;	
 	}
 
+	// Special case: Crawler always runs around.
+	if ( theUnit->AlwaysCivAI() ) {
+		CivAI civAI( theUnit->Team(), m_visibility, m_engine, m_units, m_battleScene );
+		return civAI.Think( theUnit, flags, map, action );
+	}
+
 	// -------- Shoot -------- //
 	if ( theUnit->HasGunAndAmmo( true ) ) {
 		result = ThinkShoot( theUnit, map, action );

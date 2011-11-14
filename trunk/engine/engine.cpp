@@ -370,7 +370,11 @@ void Engine::Draw()
 				int x = LRintf( pos.x - 0.5f );
 				int y = LRintf( pos.z - 0.5f );
 
+#ifdef EL_SHOW_ALL_UNITS
+				{
+#else
 				if ( mapBounds.Contains( x, y ) && (!fogOfWar || fogOfWar->IsSet( x, y ) ) ) {
+#endif
 					model->Queue( renderQueue, &lightShader, &blendLightShader, 0 );
 				}
 			}
