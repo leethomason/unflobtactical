@@ -7,6 +7,8 @@ Bugs
 - check that 'inform' is working as expected
 - add SG:P
 - sound for spitter
+- tune spitter damage
+- up the alien unit max so there are extra slots for transformations
 
 
 Deferred:

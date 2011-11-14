@@ -852,7 +852,7 @@ void UnitRenderer::Update( SpaceTree* _tree, const Unit* unit )
 		GLASSERT( resource );
 		if ( unit->GetWeapon() && unit->GetWeapon()->IsWeapon() ) {
 			weaponResource = unit->GetWeapon()->IsWeapon()->resource;
-			GLASSERT( weaponResource );
+			// For instinsic weapons (spitter alien) can be null. GLASSERT( weaponResource );
 		}
 	}
 	else {

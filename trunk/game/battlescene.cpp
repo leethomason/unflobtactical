@@ -1873,6 +1873,24 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 }
 
 
+void BattleScene::GenerateCrawler( const Unit* hitUnit, const Unit* shooter )
+{
+	GLASSERT( !hitUnit->IsAlive() );
+
+	if (    hitUnit->Team() == CIV_TEAM 
+		 && shooter->Team() == ALIEN_TEAM
+		 && shooter->AlienType() == Unit::ALIEN_SPITTER )
+	{
+		// find slot
+		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+			if ( !units[i].InUse() ) {
+				units[i].Create( ALIEN_TEAM, Unit::ALIEN_SPITTER, shooter->GetStats().Rank(), random.Rand() );
+			}
+		}
+	}
+}
+
+
 int BattleScene::ProcessActionHit( Action* action )
 {
 	Rectangle2I destroyed;
@@ -1905,8 +1923,10 @@ int BattleScene::ProcessActionHit( Action* action )
 				if ( !hitUnit->IsAlive() ) {
 					selection.ClearTarget();			
 					visibility.InvalidateUnit( hitUnit - units );
-					if ( action->unit )
+					if ( action->unit ) {
 						action->unit->CreditKill();
+					}
+					GenerateCrawler( hitUnit, action->unit );
 				}
 				GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", (unsigned)hitUnit, (int)hitUnit->HP(), (int)hitUnit->GetStats().TotalHP() ));
 			}

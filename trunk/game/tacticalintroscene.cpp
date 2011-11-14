@@ -858,7 +858,7 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 		{	"STRM-1",	"STRM-1",	"STRM-2",	"STRM-2",	"STRM-3" },		// jackal
 		{	"PLS-1",	"PLS-1",	"PLS-2",	"PLS-2",	"PLS-3" },		// viper
 		{	"RAY-1",	"RAY-2",	"RAY-2",	"RAY-3",	"RAY-3"	},		// squid
-		{   "", "", "", "", "" },											// spitter - intrinsics weapon
+		{   "Spit-1",	"Spit-2",	"Spit-2",	"Spit-2",	"Spit-3" },		// spitter - intrinsic weapon
 		{	"", "", "", "", "" },											// crawler - can't use weapons
 	};
 

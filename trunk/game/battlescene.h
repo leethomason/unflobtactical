@@ -318,6 +318,8 @@ private:
 	void	SetSelection( Unit* unit );
 
 	void NextTurn( bool saveOnTerranTurn );
+	void GenerateCrawler( const Unit* unitKilled, const Unit* shooter );
+	void UpgradeCrawlerToSpitter( Unit* unit );
 
 	void Drag( int action, bool uiActivated, const grinliz::Vector2F& view );
 	bool GamuiHasCapture()	{ return gamui2D.TapCaptured() || gamui3D.TapCaptured(); }
