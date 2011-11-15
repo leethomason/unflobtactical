@@ -900,7 +900,6 @@ void BattleScene::PushEndScene()
 			}
 		}
 	}
-	game->battleData.storage.ClearHidden();
 	GLASSERT( !game->IsScenePushed() );
 	game->PushScene( Game::END_SCENE, 0 );
 }
@@ -1588,22 +1587,9 @@ int BattleScene::ProcessAction( U32 deltaTime )
 
 			case ACTION_PSI_ATTACK:
 				{
-					GLASSERT( unit->TU() > TU_PSI - 0.1f );
-					unit->UseTU( TU_PSI );
-					const Unit* targetUnit = &units[action->type.psi.targetID];
-					int psiAttack = unit->GetStats().PsiPower();
-					int psiDefense = targetUnit->PsiDefense();
-					if ( random.Rand( psiAttack ) > random.Rand( psiDefense ) ) {
-						GLOUTPUT(( "psi attack success\n" ));
-						for( int i=0; i<MAX_UNITS; ++i ) {
-							if ( units[i].IsAlive() && units[i].Team() == targetUnit->Team() ) {
-								aiArr[unit->Team()]->Inform( &units[i], 0 );
-							}
-						}
-					}
-					else {
-						GLOUTPUT(( "psi attack fail\n" ));
-					}
+					ProcessPsiAttack( action );
+					result |= UNIT_ACTION_COMPLETE;
+					actionStack.Pop();
 				}
 				break;
 
@@ -1873,20 +1859,25 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 }
 
 
-void BattleScene::GenerateCrawler( const Unit* hitUnit, const Unit* shooter )
+void BattleScene::ProcessPsiAttack( Action* action )
 {
-	GLASSERT( !hitUnit->IsAlive() );
+	Unit* unit = action->unit;
+	GLASSERT( unit->TU() > TU_PSI - 0.1f );
+	unit->UseTU( TU_PSI );
 
-	if (    hitUnit->Team() == CIV_TEAM 
-		 && shooter->Team() == ALIEN_TEAM
-		 && shooter->AlienType() == Unit::ALIEN_SPITTER )
-	{
-		// find slot
-		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
-			if ( !units[i].InUse() ) {
-				units[i].Create( ALIEN_TEAM, Unit::ALIEN_SPITTER, shooter->GetStats().Rank(), random.Rand() );
+	const Unit* targetUnit = &units[action->type.psi.targetID];
+	int psiAttack = unit->GetStats().PsiPower();
+	int psiDefense = targetUnit->PsiDefense();
+	if ( random.Rand( psiAttack ) > random.Rand( psiDefense ) ) {
+		GLOUTPUT(( "psi attack success\n" ));
+		for( int i=0; i<MAX_UNITS; ++i ) {
+			if ( units[i].IsAlive() && units[i].Team() == targetUnit->Team() ) {
+				aiArr[unit->Team()]->Inform( &units[i], 0 );
 			}
 		}
+	}
+	else {
+		GLOUTPUT(( "psi attack fail\n" ));
 	}
 }
 
@@ -1923,10 +1914,8 @@ int BattleScene::ProcessActionHit( Action* action )
 				if ( !hitUnit->IsAlive() ) {
 					selection.ClearTarget();			
 					visibility.InvalidateUnit( hitUnit - units );
-					if ( action->unit ) {
+					if ( action->unit )
 						action->unit->CreditKill();
-					}
-					GenerateCrawler( hitUnit, action->unit );
 				}
 				GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", (unsigned)hitUnit, (int)hitUnit->HP(), (int)hitUnit->GetStats().TotalHP() ));
 			}

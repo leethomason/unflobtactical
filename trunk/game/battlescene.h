@@ -251,6 +251,7 @@ private:
 	int ProcessActionShoot( Action* action, Unit* unit );
 	int ProcessActionHit( Action* action );	
 	bool ProcessActionCameraBounds( U32 deltaTime, Action* action );
+	void ProcessPsiAttack( Action* action );
 	
 	grinliz::Rectangle2F CalcInsetUIBounds();
 

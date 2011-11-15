@@ -36,7 +36,6 @@ AI::AI( int team, Visibility* vis, Engine* engine, const Unit* units, BattleScen
 	m_engine = engine;
 	m_units = units;
 	m_battleScene = battleScene;
-	m_turnsSinceLastPsiAttack = 100;
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		m_enemy[i] = 0.0f;
@@ -82,14 +81,13 @@ void AI::StartTurn( const Unit* units )
 		}
 		m_thinkCount[i] = 0;
 	}
-	++m_turnsSinceLastPsiAttack;
 }
 
 
 void AI::Inform( const Unit* theUnit, int quality )
 {
 	int i = theUnit - m_units;
-	if ( m_lkp[i].turns > quality ) {
+	if ( m_lkp[i].turns >= quality ) {
 		m_lkp[i].turns = quality;
 		m_lkp[i].pos = theUnit->MapPos();
 	}
@@ -314,22 +312,42 @@ int AI::ThinkShoot(	const Unit* theUnit,
 int AI::ThinkPsiAttack( const Unit* theUnit, AIAction* action )
 {
 	if (    theUnit->HasPsiAttack() 
-		 && m_turnsSinceLastPsiAttack > 0
 		 && theUnit->TU() >= TU_PSI  ) 
 	{
-		// This is only an alien power. Check the soldiers first,
-		// and then check the civs.
+		// Survey: 
+		float enemyScore[3] = { 0, 0, 0 };
 		for( int i=0; i<MAX_UNITS; ++i ) {
-			if (    m_enemy[i] > 0
-				 && m_units[i].IsAlive()
+			if ( m_units[i].IsAlive() ) {
+				int team = m_units[i].Team();
+
+				// This turn or last treated as the same, so we don't re-blast too much. 
+				int turns = m_lkp[i].turns - 1;
+				if ( turns < 0 ) turns = 0;	
+				enemyScore[team] += (float)turns * m_enemy[i]; 
+			}
+		}
+		int best = -1;
+		float bestScore = 0;
+
+		for( int i=0; i<MAX_UNITS; ++i ) {
+			if (    m_units[i].IsAlive() 
+				 && m_enemy[i] > 0
 				 && m_visibility->UnitCanSee( theUnit, &m_units[i] ) )
 			{
-				// Global - fixme, says nothing about success
-				m_turnsSinceLastPsiAttack = 0;			
-				action->actionID = ACTION_PSI_ATTACK;
-				action->psi.targetID = i;
-				return THINK_ACTION;
+				float score = enemyScore[m_units[i].Team()];
+				score *= 1.0f + 0.1f*m_random.Uniform();
+
+				if ( score > bestScore ) {
+					best = i;
+					bestScore = score;
+				}
 			}
+		}
+		GLOUTPUT(( "psi score %.1f %.1f %.1f id=%d\n", enemyScore[0], enemyScore[1], enemyScore[2], best ));
+		if ( best >= 0 ) {
+			action->actionID = ACTION_PSI_ATTACK;
+			action->psi.targetID = best;
+			return THINK_ACTION;
 		}
 	}
 	return THINK_NO_ACTION;

@@ -45,6 +45,7 @@ public:
 
 		BEAM			= 2,
 		CIRCLE			= 11,
+		RING			= 12,
 	};
 
 	enum {

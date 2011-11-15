@@ -89,7 +89,8 @@ static const float  ARM0				= 1.0f;
 static const float	ARM1				= 0.85f;
 static const float	ARM2				= 0.70f;
 static const float	ARM3				= 0.60f;
-static const float ARM_EXTRA			= 0.20f;
+static const float  ARM_EXTRA			= 0.20f;
+static const int	PSI_ARM				= 40;				
 
 static const float STANDARD_TARGET_H			= 2.0f;		// roughly meters
 static const float STANDARD_TARGET_W			= 0.6f;
