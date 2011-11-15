@@ -352,7 +352,7 @@ int Unit::PsiDefense() const
 {
 	int def = stats.PsiPower();
 	if ( inventory.Contains( "SG:P" ) ) {
-		def = def * 3 / 2;
+		def += PSI_ARM;
 	}
 	return def;
 }

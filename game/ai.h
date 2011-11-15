@@ -176,7 +176,6 @@ protected:
 	BattleScene* m_battleScene;
 
 	int m_team;
-	int m_turnsSinceLastPsiAttack;
 
 	Visibility* m_visibility;
 	grinliz::Random m_random;
