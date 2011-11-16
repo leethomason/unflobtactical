@@ -343,7 +343,7 @@ int AI::ThinkPsiAttack( const Unit* theUnit, AIAction* action )
 				}
 			}
 		}
-		GLOUTPUT(( "psi score %.1f %.1f %.1f id=%d\n", enemyScore[0], enemyScore[1], enemyScore[2], best ));
+		//GLOUTPUT(( "psi score %.1f %.1f %.1f id=%d\n", enemyScore[0], enemyScore[1], enemyScore[2], best ));
 		if ( best >= 0 ) {
 			action->actionID = ACTION_PSI_ATTACK;
 			action->psi.targetID = best;

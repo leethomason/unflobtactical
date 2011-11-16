@@ -83,9 +83,11 @@ class Random
 	float DiceUniform( U32 nDice, U32 sides );
 
 	/// Return a random number from 0 to upper: [0.0,1.0].
-	float Uniform()	{ 
-		const float INV = 1.0f / 65535.0f;	
-		return (float)( Rand(65536) ) * INV;
+	float Uniform()	{
+		// Be careful of using a number small enough to convert to a float
+		// (many year bug in Random, that)
+		const float INV = 1.0f / 1023.f;	
+		return (float)( Rand()&0x3ff ) * INV;
 	}
 
 	/// Return 0 or 1
