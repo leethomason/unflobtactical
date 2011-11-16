@@ -6,11 +6,11 @@ X check that 'inform' is working as expected
 
 - if spitters in use, no aliens should target civ
 - if no chance of conversion, spitters should prefer target terrans, else target civ
-- add SG:P
+X add SG:P
 - sound for spitter
 - tune spitter damage
 - up the alien unit max so there are extra slots for transformations
-
+X fix the research for spitters, squid, SG:P
 
 Deferred:
 - chaining

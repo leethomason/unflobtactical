@@ -57,9 +57,9 @@ static const int CIV_UNITS_START		= 8;
 static const int CIV_UNITS_END			= 24;
 static const int ALIEN_UNITS_START		= 24;
 static const int ALIEN_UNITS_END		= 40;
-static const int MAX_ALIENS = ALIEN_UNITS_END - ALIEN_UNITS_START;
-static const int MAX_TERRANS = TERRAN_UNITS_END - TERRAN_UNITS_START;
-static const int MAX_CIVS = CIV_UNITS_END - CIV_UNITS_START;
+static const int MAX_ALIENS		= ALIEN_UNITS_END - ALIEN_UNITS_START;
+static const int MAX_TERRANS	= TERRAN_UNITS_END - TERRAN_UNITS_START;
+static const int MAX_CIVS		= CIV_UNITS_END - CIV_UNITS_START;
 static const int MAX_UNITS	= 40;
 static const int MAX_SCIENTISTS = 8;
 
@@ -91,6 +91,7 @@ static const float	ARM2				= 0.70f;
 static const float	ARM3				= 0.60f;
 static const float  ARM_EXTRA			= 0.20f;
 static const int	PSI_ARM				= 40;				
+static const float  CRAWLER_GROWTH		= 0.40f;
 
 static const float STANDARD_TARGET_H			= 2.0f;		// roughly meters
 static const float STANDARD_TARGET_W			= 0.6f;

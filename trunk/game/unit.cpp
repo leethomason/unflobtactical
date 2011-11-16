@@ -294,9 +294,10 @@ Unit::~Unit()
 
 void Unit::Free()
 {
-	if ( status == STATUS_NOT_INIT )
-		return;
-	status = STATUS_NOT_INIT;
+	//if ( status == STATUS_NOT_INIT )
+	//	return;
+	//status = STATUS_NOT_INIT;
+	memset( this, 0, sizeof(Unit) );
 }
 
 

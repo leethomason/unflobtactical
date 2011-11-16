@@ -799,7 +799,7 @@ void TacticalIntroScene::GenerateAlienTeamUpper(	int scenario,
 		count[Unit::ALIEN_GREEN]  = 2;					// green  2-2
 		count[Unit::ALIEN_HORNET] = 4 + random.Rand(3);	// hornet 4-6
 		count[Unit::ALIEN_JACKAL] = 4 + random.Rand(3);	// jackal 4-6
-		count[Unit::ALIEN_VIPER]  = random.Rand( 3 );	    // viper  0-2	// total: 10-16
+		count[Unit::ALIEN_VIPER]  = random.Rand( 3 );   // viper  0-2	// total: 10-16
 		break;
 
 	case BATTLESHIP:

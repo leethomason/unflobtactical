@@ -290,6 +290,20 @@ const Model* BattleScene::GetWeaponModel( const Unit* unit )
 }
 
 
+void BattleScene::UpgradeCrawlerToSpitter( Unit* unit )
+{
+	int rank = unit->GetStats().Rank();
+	Vector3F pos = unit->Pos();
+	float rot = unit->Rotation();
+
+	unit->Free();
+	int alienCount[Unit::NUM_ALIEN_TYPES] = { 0 };
+	alienCount[Unit::ALIEN_SPITTER] = 1;
+	TacticalIntroScene::GenerateAlienTeam( unit, alienCount, (float)rank, game->GetItemDefArr(), random.Rand() );
+	unit->SetPos( pos, rot );
+}
+
+
 void BattleScene::NextTurn( bool saveOnTerranTurn )
 {
 	currentTeamTurn++;
@@ -313,6 +327,11 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 		case ALIEN_TEAM:
 			GLOUTPUT(( "New Turn: Alien\n" ));
 			for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+				if ( units[i].IsAlive() && units[i].AlienType() == Unit::ALIEN_CRAWLER ) {
+					if ( random.Uniform() < CRAWLER_GROWTH ) {
+						UpgradeCrawlerToSpitter( &units[i] );
+					}
+				}
 				units[i].NewTurn();
 			}
 			currentUnitAI = ALIEN_UNITS_START;

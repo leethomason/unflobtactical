@@ -17,25 +17,38 @@
         Eyesight is more adapted to darkness than ours. Genetics are similar; we are studying the alien DNA.
         <required0 item="Green" />
       </Green>
-      <Hornet points="40">
+      <Hornet points="30">
         The Hornet is a fast, mobile alien assault troop. Its exoskeleton is strangely well suited to the rigors of modern battle and may be capable of 
         briefly surviving vacuum. Genetically the Hornet shows some similarity to the Green, but has unique DNA structures as well.
         <required0 research="Green" />
         <required1 item="Hrnet" />
       </Hornet>
-      <Viper points="40">
+      <Viper points="30">
         The Viper is a heavy alien assault troop with significant natural armor. The Viper is a genetic blend of the main alien DNA with creatures of 
         radically different genetics, possibly from yet another world.
         <required0 research="Green" />
         <required2 item="Viper" />
       </Viper>
-      <Jackal points="60">
+      <Jackal points="40">
         The Jackal is a cyborg: robotics melded to an alien creature. The Jackal is a heavy weapons platform with integrated targeting systems. 
         The creature - whatever it is and wherever it is from - is genetically distinct from all the other aliens.
         <required0 research="Green" />
         <required2 item="Jackl" />
       </Jackal>
-      <Prime points="80">
+      <Spitter points="20">
+        The exoskeletoned horror of the Spitter seems related to the Hornet. Fast, strong,
+        with a toxic spit implants the Crawler into unarmored victims.
+        <required0 research="Hornet" />
+        <required1 item="Spit" />
+      </Spitter>
+      <Squid points="40">
+        The tentacled Squid is a greater variant of the Green, with unusual brain structures
+        that seem to confirm rumors of psi powers. Squids scan the mind of a trooper
+        and locate the entire team.
+        <required0 research="Green" />
+        <required1 item="Squid" />
+      </Squid>
+      <Prime points="60">
         The Prime is a greater variant of the Green, and statuary indicates a ruling class. Given the genetic splicing we see among the alien types, 
         we must conclude that the Prime are conquering and integrating races of the galaxy...and have now come to Earth.
         <required0 item="Prime" />
@@ -147,7 +160,7 @@
         <required2 research="Jackal" />
       </MCAN-3>
 
-      <SG:K points="60">
+      <SG:K points="40">
         Shield Generators are based on alien field technology. They enhance
         armor. The SG:K protects against kinetic (mass driver) weapons.
         <required0 item="Cor:S" />
@@ -159,12 +172,19 @@
         <required0 research="SG:K" />
         <required1 research="Hornet" />
       </SG:I>
-      <SG:E points="100">
+      <SG:E points="80">
         Shield Generators are based on alien field technology. They enhance
         armor. The SG:E protects against energy weapons.
         <required0 research="SG:K" />
         <required1 research="Prime" />
       </SG:E>
+      <SG:P points="40">
+        Shield Generators are based on alien field technology. The SG:P is
+        a high tech tin foil hat, offering substantial protection against
+        alien psi scanning.
+        <required0 research="SG:K" />
+        <required1 research="Squid" />
+      </SG:P>
 
       <ARM-2 points="40">
         We have improved the strength of standard combat armor, with the
