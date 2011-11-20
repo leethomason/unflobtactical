@@ -340,6 +340,7 @@
   <data filename="ray1.wav"   compress="false"/>
   <data filename="plasma.wav" compress="false"/>
   <data filename="nullp.wav"  compress="false"/>
+  <data filename="spitter.wav"  compress="false"/>
 
   <model filename="smallcrate.ac" />
   <model filename="unitplate.ac" />
