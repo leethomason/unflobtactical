@@ -59,7 +59,7 @@ static const float EL_LIGHT_Z = 1.4f;
 // --- Debugging --- //
 //#define SHOW_FOW			// visual debugging
 //#define EL_SHOW_MODELS
-#define EL_SHOW_ALL_UNITS
+//#define EL_SHOW_ALL_UNITS
 
 // --- Performance -- //
 #define EL_USE_VBO			// Use VBOs: a good thing, everywhere but the original iPhone

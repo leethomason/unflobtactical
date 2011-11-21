@@ -415,7 +415,6 @@ void Unit::Kill( TacMap* map, bool playSound )
 {
 	GLASSERT( status == STATUS_ALIVE );
 	
-	Free();
 	status = STATUS_KIA;
 	hp = 0;
 

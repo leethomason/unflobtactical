@@ -176,6 +176,7 @@ protected:
 	BattleScene* m_battleScene;
 
 	int m_team;
+	int m_numSpitters;	// the number of spitters on this team, at the start of turn
 
 	Visibility* m_visibility;
 	grinliz::Random m_random;

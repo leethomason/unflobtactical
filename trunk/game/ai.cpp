@@ -81,6 +81,14 @@ void AI::StartTurn( const Unit* units )
 		}
 		m_thinkCount[i] = 0;
 	}
+	m_numSpitters = 0;
+	if ( m_team == ALIEN_TEAM ) {
+		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+			if ( units[i].IsAlive() && units[i].AlienType() == Unit::ALIEN_SPITTER ) {
+				++m_numSpitters;
+			}
+		}
+	}
 }
 
 
@@ -258,6 +266,15 @@ int AI::ThinkShoot(	const Unit* theUnit,
 			 && m_visibility->UnitCanSee( theUnit, &m_units[i] )
 			 && SafeLineOfSight( theUnit, &m_units[i], 0, false, m_engine, m_battleScene ) )
 		{
+			// special case: aliens won't shoot terrans if they have spitters.
+			if (    m_numSpitters
+				 && m_team == ALIEN_TEAM
+				 && !(theUnit->AlienType() == Unit::ALIEN_SPITTER)
+				 && m_units[i].Team() == CIV_TEAM ) 
+			{
+				continue;
+			}
+
 			int len2 = (m_units[i].MapPos() - theUnit->MapPos()).LengthSquared();
 			float len = sqrtf( (float)len2 );
 

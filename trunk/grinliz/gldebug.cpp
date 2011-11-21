@@ -44,6 +44,9 @@ distribution.
 
 #ifdef DEBUG
 
+#define GRINLIZ_DEBUG_MEM
+//#define GRINLIZ_DEBUG_MEM_DEEP
+
 #ifdef GRINLIZ_DEBUG_MEM
 
 size_t memTotal = 0;
@@ -144,9 +147,12 @@ void DebugDelete( void* mem, bool arrayType )
 		GLASSERT( head->magic == MEM_MAGIC0 );
 		GLASSERT( tail->magic == MEM_MAGIC1 );
 		
-		// A bug in the OpenGL driver on Mac fires this.
-		// And other code on WIN32. Giving up on getting this to work:
-		//GLASSERT( head->arrayType == arrayType );
+		// This doesn't work as I expect.
+		// array allocation of primitive types: uses single form.
+		// array allocation of class types: uses array form.
+		// so an array destructor is meaningless - could go either way.
+		// can detect array destructor of single construct...
+		GLASSERT( head->arrayType == arrayType || !head->arrayType );
 
 		if ( head->prev )
 			head->prev->next = head->next;
@@ -235,8 +241,7 @@ void MemStartCheck()
 
 
 #endif // GRINLIZ_DEBUG_MEM
-
-#endif 
+#endif // DEBUG
 
 #ifdef _WIN32
 

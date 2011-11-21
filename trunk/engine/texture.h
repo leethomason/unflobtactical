@@ -123,7 +123,7 @@ private:
 	U32 CreateGLTexture( int w, int h, int format, int flags );
 
 	enum {
-		MAX_TEXTURES = 50		// increase as needed
+		MAX_TEXTURES = 100		// increase as needed
 	};
 
 	static TextureManager* instance;
