@@ -3,13 +3,13 @@ X more sophisticated psi ai.
 X	- be aware civ vs. terran
 X	- use if below a certain % of known locations
 X check that 'inform' is working as expected
+  alien ai doesn't spot a terran mid-turn
 
-- if spitters in use, no aliens should target civ
-- if no chance of conversion, spitters should prefer target terrans, else target civ
+X if spitters in use, no aliens should target civ
 X add SG:P
 - sound for spitter
 - tune spitter damage
-- up the alien unit max so there are extra slots for transformations
+X up the alien unit max so there are extra slots for transformations
 X fix the research for spitters, squid, SG:P
 
 Deferred:

@@ -775,36 +775,62 @@ void TacticalIntroScene::GenerateAlienTeamUpper(	int scenario,
 	random.Rand();
 
 	int count[Unit::NUM_ALIEN_TYPES] = { 0 };
+	int baseAlien = SettingsManager::Instance()->GetTestAlien();
+
 	switch ( scenario ) {
 	case FARM_SCOUT:
 	case TNDR_SCOUT:
 	case FRST_SCOUT:
 	case DSRT_SCOUT:
-		count[SettingsManager::Instance()->GetTestAlien()] = 3+random.Rand(2);	// green 3-4 (typically green - use others if in settings)
-		if ( rank >= 2.0f )
-			count[Unit::ALIEN_PRIME] = random.Rand(2);	// prime 0-1
+		if ( baseAlien ) {
+			count[baseAlien] = 3+random.Rand(2);				// green 3-4 (typically green - use others if in settings)
+		}
+		else if ( rank < 2 || random.Rand(3) || !CivsInScenario(scenario) ) {
+			count[Unit::ALIEN_GREEN] = 3 + random.Rand(2);		// OR green 3-4
+		}
+		else {
+			count[Unit::ALIEN_SPITTER] = 3 + random.Rand(2);	// OR spitter 3-4
+		}
+
+		if ( rank >= 2.0f ) {
+			if ( random.Bit() )
+				count[Unit::ALIEN_SQUID] = random.Rand(2);	// squid 0-1 OR
+			else
+				count[Unit::ALIEN_PRIME] = random.Rand(2);	// prime 0-1
+		}
 		break;
 
 	case FARM_DESTROYER:
 	case TNDR_DESTROYER:
 	case FRST_DESTROYER:
 	case DSRT_DESTROYER:
-		count[Unit::ALIEN_PRIME]  = 1 + random.Rand(2);	// prime  1-2
+		count[Unit::ALIEN_PRIME]  = 1;					// prime  1-1
 		count[Unit::ALIEN_HORNET] = 4 + random.Rand(2);	// hornet 4-5
-		count[Unit::ALIEN_JACKAL] = random.Rand( 2 );	// jackal 0-1
-		count[Unit::ALIEN_VIPER]  = 4 + random.Rand(2);	// viper  4-5	// total: 9-13
+		count[Unit::ALIEN_SQUID]  = 1 + random.Rand(2);	// squid  1-2
+		count[Unit::ALIEN_VIPER]  = 4 + random.Rand(2);	// viper  4-5	// total: 10-13
 		break;
 
 	case CITY:
 		count[Unit::ALIEN_GREEN]  = 2;					// green  2-2
-		count[Unit::ALIEN_HORNET] = 4 + random.Rand(3);	// hornet 4-6
-		count[Unit::ALIEN_JACKAL] = 4 + random.Rand(3);	// jackal 4-6
+		count[Unit::ALIEN_SQUID]  = random.Rand( 3 );	// squid  0-2
+		count[Unit::ALIEN_HORNET] = 4 + random.Rand(3);	// hornet 4-4
+		if ( random.Bit() )
+			count[Unit::ALIEN_JACKAL] = 4 + random.Rand(3);	    // jackal 4-6 OR
+		else
+			count[Unit::ALIEN_SPITTER] = 4 + random.Rand(3);	// spitter 4-6
 		count[Unit::ALIEN_VIPER]  = random.Rand( 3 );   // viper  0-2	// total: 10-16
 		break;
 
 	case BATTLESHIP:
+		count[Unit::ALIEN_GREEN]  = 2;
+		count[Unit::ALIEN_SQUID]  = 2;
+		count[Unit::ALIEN_PRIME]  = 3;	// prime
+		count[Unit::ALIEN_HORNET] = 5;	// hornet
+		count[Unit::ALIEN_VIPER]  = 4;	// viper
+		break;
+
 	case ALIEN_BASE:
-		count[Unit::ALIEN_GREEN]  = 2;	// green
+		count[Unit::ALIEN_SQUID]  = 2;
 		count[Unit::ALIEN_PRIME]  = 5;	// prime
 		count[Unit::ALIEN_HORNET] = 5;	// hornet
 		count[Unit::ALIEN_VIPER]  = 4;	// viper
@@ -881,8 +907,12 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
  			unit[index].Create( ALIEN_TEAM, i, rank, aRand.Rand() );
 
 			// About 1/3 should be guards that aren't green or prime.
-			if ( i >= 2 && (index % 3) == 0 ) {
-				unit[index].SetAI( AI::AI_GUARD );
+			if (    i == Unit::ALIEN_HORNET
+				 || i == Unit::ALIEN_VIPER ) 
+			{
+				if ( (index % 3) == 0 ) {
+					unit[index].SetAI( AI::AI_GUARD );
+				}
 			}
 
 			rank = RandomRank( &aRand, averageRank );

@@ -99,7 +99,7 @@ void GameSave( void* handle ) {
 
 	GLOUTPUT(( "GameSave. handle=%x\n", handle ));
 	Game* game = (Game*)handle;
-	game->Save( 0, false );
+	game->Save( 0, true );
 }
 
 

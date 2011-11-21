@@ -1900,6 +1900,29 @@ void BattleScene::ProcessPsiAttack( Action* action )
 	}
 }
 
+void BattleScene::GenerateCrawler( const Unit* unit, const Unit* shooter )
+{
+	if (    unit->Team() == CIV_TEAM
+		 && shooter->Team() == ALIEN_TEAM
+		 && shooter->AlienType() == Unit::ALIEN_SPITTER ) 
+	{
+		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
+			if ( !units[i].InUse() ) {
+				int rank = shooter->GetStats().Rank();
+				Vector3F pos = unit->Pos();
+				float rot = unit->Rotation();
+
+				int alienCount[Unit::NUM_ALIEN_TYPES] = { 0 };
+				alienCount[Unit::ALIEN_CRAWLER] = 1;
+				TacticalIntroScene::GenerateAlienTeam( &units[i], alienCount, (float)rank, game->GetItemDefArr(), random.Rand() );
+				units[i].SetPos( pos, rot );
+
+				return;
+			}
+		}
+	}
+}
+
 
 int BattleScene::ProcessActionHit( Action* action )
 {
@@ -1931,10 +1954,12 @@ int BattleScene::ProcessActionHit( Action* action )
 			if ( hitUnit->IsAlive() ) {
 				hitUnit->DoDamage( action->type.hit.damageDesc, tacMap, true );
 				if ( !hitUnit->IsAlive() ) {
+					GenerateCrawler( hitUnit, action->unit );
 					selection.ClearTarget();			
 					visibility.InvalidateUnit( hitUnit - units );
-					if ( action->unit )
+					if ( action->unit ) {
 						action->unit->CreditKill();
+					}
 				}
 				GLOUTPUT(( "Hit Unit 0x%x hp=%d/%d\n", (unsigned)hitUnit, (int)hitUnit->HP(), (int)hitUnit->GetStats().TotalHP() ));
 			}

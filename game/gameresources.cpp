@@ -299,7 +299,7 @@ void Game::LoadItemResources()
 		{ "Smoke",	false,	DECO_ROCKET,	4,	 5,		{ 0,    0, 1.0f },
 					COLORDEF( 144, 152, 171 ),	SPEED*0.7f, WIDTH,		BOLT,		"Smoke grenade clip" },
 		{ "Spit-Clip",true,	DECO_NONE,	100,	 1,		{ 0.5f, 0, 0.5f },
-					COLORDEF( 66, 203, 3 ),		SPEED*0.8f, WIDTH*1.2f,	BOLT*2.5f,	"Spit-Clip-Hidden" },
+					COLORDEF( 66, 203, 3 ),		SPEED*1.0f, WIDTH*1.2f,	BOLT*2.5f,	"Spit-Clip-Hidden" },
 		{ 0 }
 	};
 
