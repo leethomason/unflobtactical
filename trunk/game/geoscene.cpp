@@ -1063,153 +1063,158 @@ void GeoScene::SceneResult( int sceneID, int result )
 	research.KickResearch();
 	if ( sceneID == Game::FASTBATTLE_SCENE || sceneID == Game::BATTLE_SCENE ) {
 
-		UFOChit*	ufoChit = chitBag.GetBattleUFO();			// possibly null if UFO destroyed
+		UFOChit*	ufoChit = chitBag.GetBattleUFO();	// possibly null if UFO destroyed
+														// or null for some bug. :(
 		CargoChit*	landerChit = chitBag.GetBattleLander();		// will be null if Battleship attacking base
 
-		if ( ufoChit ) {
-			BaseChit* baseChit = landerChit ? chitBag.GetBaseChitAt( landerChit->Origin() ) : chitBag.GetBaseChitAt( ufoChit->MapPos() );
-			GLASSERT( baseChit );
+		BaseChit* baseChit = 0;
+		if ( landerChit ) {
+			baseChit = chitBag.GetBaseChitAt( landerChit->Origin() );
+		}
+		else {
+			if ( ufoChit ) baseChit = chitBag.GetBaseChitAt( ufoChit->MapPos() );
+		}
+		GLASSERT( baseChit );
+		if ( baseChit ) {
+			Unit* baseUnits = baseChit->GetUnits();
+			//Storage* baseStorage = baseChit->GetStorage();
 
-			if ( baseChit ) {
-				Unit* baseUnits = baseChit->GetUnits();
-				//Storage* baseStorage = baseChit->GetStorage();
+			// The battlescene has written (or loaded) the BattleData. It is current and
+			// in memory. All the stuff dropped on the battlefield is in the battleData.storage,
+			// if the battle was a victory. (For TIE or DEFEAT, it is empty, and the storage
+			// manipulation below will do nothing.)
 
-				// The battlescene has written (or loaded) the BattleData. It is current and
-				// in memory. All the stuff dropped on the battlefield is in the battleData.storage,
-				// if the battle was a victory. (For TIE or DEFEAT, it is empty, and the storage
-				// manipulation below will do nothing.)
+			int result = game->battleData.CalcResult();
+			if ( game->battleData.scenario == TacticalIntroScene::TERRAN_BASE ) {
+				if ( result == BattleData::TIE )
+					result = BattleData::DEFEAT;	// can't tie on base attack
+			}
+			Unit* battleUnits = game->battleData.units;
 
-				int result = game->battleData.CalcResult();
-				if ( game->battleData.scenario == TacticalIntroScene::TERRAN_BASE ) {
-					if ( result == BattleData::TIE )
-						result = BattleData::DEFEAT;	// can't tie on base attack
+			// Inform the research system of found items.
+			for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
+				const ItemDef* itemDef = game->battleData.storage.GetItemDef(i);
+				if ( itemDef && game->battleData.storage.GetCount( i )) {
+					research.SetItemAcquired( itemDef->name );
 				}
-				Unit* battleUnits = game->battleData.units;
+			}
+			research.KickResearch();
 
-				// Inform the research system of found items.
-				for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-					const ItemDef* itemDef = game->battleData.storage.GetItemDef(i);
-					if ( itemDef && game->battleData.storage.GetCount( i )) {
-						research.SetItemAcquired( itemDef->name );
-					}
-				}
-				research.KickResearch();
+			for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+				if ( battleUnits[i].IsAlive() || battleUnits[i].IsUnconscious() ) {
+					battleUnits[i].DoMissionEnd();
+					battleUnits[i].Heal();
+					battleUnits[i].GetInventory()->RestoreClips();
 
-				for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-					if ( battleUnits[i].IsAlive() || battleUnits[i].IsUnconscious() ) {
-						battleUnits[i].DoMissionEnd();
-						battleUnits[i].Heal();
-						battleUnits[i].GetInventory()->RestoreClips();
-
-						// Try to restore items to downed units, by comparing
-						// old inventory to new inventory
-						if ( battleUnits[i].GetInventory()->Empty() ) {
-							const Unit* oldUnit = Unit::Find( baseUnits, MAX_TERRANS, battleUnits[i].Body() );
-							if ( oldUnit ) {
-								for( int k=0; k<Inventory::NUM_SLOTS; ++k ) {
-									const ItemDef* itemDef = oldUnit->GetInventory()->GetItemDef( k );
-									if ( itemDef ) {
-										Item item;
-										game->battleData.storage.RemoveItem( itemDef, &item );
-										battleUnits[i].GetInventory()->AddItem( item, 0 );
-									}
+					// Try to restore items to downed units, by comparing
+					// old inventory to new inventory
+					if ( battleUnits[i].GetInventory()->Empty() ) {
+						const Unit* oldUnit = Unit::Find( baseUnits, MAX_TERRANS, battleUnits[i].Body() );
+						if ( oldUnit ) {
+							for( int k=0; k<Inventory::NUM_SLOTS; ++k ) {
+								const ItemDef* itemDef = oldUnit->GetInventory()->GetItemDef( k );
+								if ( itemDef ) {
+									Item item;
+									game->battleData.storage.RemoveItem( itemDef, &item );
+									battleUnits[i].GetInventory()->AddItem( item, 0 );
 								}
 							}
 						}
 					}
 				}
+			}
 
-				// Copy the units over.
-				// Should work, but there is a bug. Need to re-write unit code.
-				//for( int i=0; i<MAX_TERRANS; ++i ) {
-				//	units[i].Free();
-				//}
-				// Since the base can't render, can free
-				memset( baseUnits, 0, sizeof(Unit)*MAX_TERRANS );
-				{
-					int unitCount=0;
-					for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-						if ( battleUnits[i].IsAlive() || battleUnits[i].IsUnconscious() ) {
-							baseUnits[unitCount++] = battleUnits[i];
+			// Copy the units over.
+			// Should work, but there is a bug. Need to re-write unit code.
+			//for( int i=0; i<MAX_TERRANS; ++i ) {
+			//	units[i].Free();
+			//}
+			// Since the base can't render, can free
+			memset( baseUnits, 0, sizeof(Unit)*MAX_TERRANS );
+			{
+				int unitCount=0;
+				for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+					if ( battleUnits[i].IsAlive() || battleUnits[i].IsUnconscious() ) {
+						baseUnits[unitCount++] = battleUnits[i];
+					}
+				}
+			}
+
+
+			int nCivsAlive = Unit::Count( &game->battleData.units[CIV_UNITS_START], MAX_CIVS, Unit::STATUS_ALIVE );
+			int nCivsDead  = Unit::Count( &game->battleData.units[CIV_UNITS_START], MAX_CIVS, Unit::STATUS_KIA );
+
+			if ( result == BattleData::VICTORY ) {
+				// Apply penalty for lost civs:
+				if ( game->battleData.scenario == TacticalIntroScene::CITY ) {
+					int	region = geoMapData.GetRegion( baseChit->MapPos().x, baseChit->MapPos().y );
+					if ( (nCivsAlive+nCivsDead) > 0 && region >= 0 ) {
+						float ratio = 1.0f - (float)nCivsAlive / (float)(nCivsAlive+nCivsDead);
+						if ( chitBag.GetBattleScenario() == TacticalIntroScene::CITY ) { 
+							ratio *= 2.0f; 
 						}
+						regionData[region].influence += ratio;
+						regionData[region].influence = Min( regionData[region].influence, (float)MAX_INFLUENCE );
+						areaWidget[region]->SetInfluence( regionData[region].influence );
 					}
 				}
 
-
-				int nCivsAlive = Unit::Count( &game->battleData.units[CIV_UNITS_START], MAX_CIVS, Unit::STATUS_ALIVE );
-				int nCivsDead  = Unit::Count( &game->battleData.units[CIV_UNITS_START], MAX_CIVS, Unit::STATUS_KIA );
-
-				if ( result == BattleData::VICTORY ) {
-					// Apply penalty for lost civs:
-					if ( game->battleData.scenario == TacticalIntroScene::CITY ) {
-						int	region = geoMapData.GetRegion( baseChit->MapPos().x, baseChit->MapPos().y );
-						if ( (nCivsAlive+nCivsDead) > 0 && region >= 0 ) {
-							float ratio = 1.0f - (float)nCivsAlive / (float)(nCivsAlive+nCivsDead);
-							if ( chitBag.GetBattleScenario() == TacticalIntroScene::CITY ) { 
-								ratio *= 2.0f; 
-							}
-							regionData[region].influence += ratio;
-							regionData[region].influence = Min( regionData[region].influence, (float)MAX_INFLUENCE );
-							areaWidget[region]->SetInfluence( regionData[region].influence );
-						}
-					}
-
-					// Did the aliens lose the base?
-					if ( ufoChit->Type() == UFOChit::BASE ) {
-						gameVictory = true;
-					}
-					delete ufoChit;
+				// Did the aliens lose the base?
+				if ( ufoChit && ufoChit->Type() == UFOChit::BASE ) {
+					gameVictory = true;
 				}
+				delete ufoChit;
+			}
 
-				if ( !landerChit ) {
-					// Base attack - really good or really bad.
-					if ( result == BattleData::DEFEAT ) {
-						// Make sure to destroy base and deployed lander.
-						CargoChit* baseLander = chitBag.GetCargoComingFrom( CargoChit::TYPE_LANDER, baseChit->MapPos() );
-						if ( baseLander ) { 
-							baseLander->SetDestroyed();
-						}
-						baseChit->SetDestroyed();
+			if ( !landerChit ) {
+				// Base attack - really good or really bad.
+				if ( result == BattleData::DEFEAT ) {
+					// Make sure to destroy base and deployed lander.
+					CargoChit* baseLander = chitBag.GetCargoComingFrom( CargoChit::TYPE_LANDER, baseChit->MapPos() );
+					if ( baseLander ) { 
+						baseLander->SetDestroyed();
+					}
+					baseChit->SetDestroyed();
+					if ( ufoChit )
 						ufoChit->SetAI( UFOChit::AI_ORBIT );						
-					}
-					else if ( result == BattleData::VICTORY ) {
-						// de-occupies
-						int region = geoMapData.GetRegion( baseChit->MapPos() );
-						if ( region >= 0 ) {
-							Vector2I capitalPos = geoMapData.Capital( region );
-							UFOChit* ufo = chitBag.GetLandedUFOChitAt( capitalPos );
-							if ( ufo ) {
-								ufo->SetAI( UFOChit::AI_ORBIT );
-							}
-							regionData[region].influence -= BASE_WON_INFLUENCE;
-							regionData[region].influence = Clamp( regionData[region].influence, 0.0f, (float)MAX_INFLUENCE );
-							areaWidget[region]->SetInfluence( regionData[region].influence );
+				}
+				else if ( result == BattleData::VICTORY ) {
+					// de-occupies
+					int region = geoMapData.GetRegion( baseChit->MapPos() );
+					if ( region >= 0 ) {
+						Vector2I capitalPos = geoMapData.Capital( region );
+						UFOChit* ufo = chitBag.GetLandedUFOChitAt( capitalPos );
+						if ( ufo ) {
+							ufo->SetAI( UFOChit::AI_ORBIT );
 						}
+						regionData[region].influence -= BASE_WON_INFLUENCE;
+						regionData[region].influence = Clamp( regionData[region].influence, 0.0f, (float)MAX_INFLUENCE );
+						areaWidget[region]->SetInfluence( regionData[region].influence );
 					}
 				}
+			}
 
-				// Don't want pointers floating around.
-				memset( battleUnits, 0, sizeof(Unit)*MAX_UNITS );
+			// Don't want pointers floating around.
+			memset( battleUnits, 0, sizeof(Unit)*MAX_UNITS );
 
-				// Merge storage
-				baseChit->GetStorage()->AddStorage( game->battleData.storage );
-				game->battleData.storage.Clear();
+			// Merge storage
+			baseChit->GetStorage()->AddStorage( game->battleData.storage );
+			game->battleData.storage.Clear();
 
-				// If the tech isn't high enough, can't use cells and anti. Makes sure
-				// to clear from the base storage to filter out picked up weapons.
-				static const char* remove[2] = { "Cell", "Anti" };
-				for( int i=0; i<2; ++i ) {
-					if ( research.GetStatus( remove[i] ) != Research::TECH_RESEARCH_COMPLETE ) {
-						baseChit->GetStorage()->ClearItem( remove[i] );
-						for( int j=TERRAN_UNITS_START; j<TERRAN_UNITS_END; ++j ) {
-							baseUnits[j].GetInventory()->ClearItem( remove[i] );
-						}
+			// If the tech isn't high enough, can't use cells and anti. Makes sure
+			// to clear from the base storage to filter out picked up weapons.
+			static const char* remove[2] = { "Cell", "Anti" };
+			for( int i=0; i<2; ++i ) {
+				if ( research.GetStatus( remove[i] ) != Research::TECH_RESEARCH_COMPLETE ) {
+					baseChit->GetStorage()->ClearItem( remove[i] );
+					for( int j=TERRAN_UNITS_START; j<TERRAN_UNITS_END; ++j ) {
+						baseUnits[j].GetInventory()->ClearItem( remove[i] );
 					}
 				}
+			}
 
-				if ( game->battleData.scenario == TacticalIntroScene::TERRAN_BASE ) {
-					baseChit->SetNumScientists( nCivsAlive );
-				}
+			if ( game->battleData.scenario == TacticalIntroScene::TERRAN_BASE ) {
+				baseChit->SetNumScientists( nCivsAlive );
 			}
 		}
 		game->Save( 0, false );

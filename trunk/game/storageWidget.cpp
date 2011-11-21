@@ -146,15 +146,19 @@ void StorageWidget::SetButtons()
 		// armor, bonus rockets.
 		if ( itemDef->IsArmor() ) {
 			group=2;
-			row = 0;
+			//row = 0;
 		}
 		if ( itemDef->deco == DECO_SHIELD ) {
 			group=2;
-			row = 1;
+			//row = 1;
 		}
-		if ( StrEqual( itemDef->name, "Flare" ) || StrEqual( itemDef->name, "Smoke" ) ) {
+		if (    StrEqual( itemDef->name, "Flare" ) 
+			 || StrEqual( itemDef->name, "Smoke" ) 
+			 || StrEqual( itemDef->name, "Soldr" ) 
+			 || StrEqual( itemDef->name, "Sctst" ) ) 
+		{
 			group = 2;
-			row = 2;
+			//row = 2;
 		}
 
 		itemsPerGroup[group] += storage->GetCount( itemDef );
