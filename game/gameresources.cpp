@@ -532,6 +532,9 @@ void Game::LoadItemResources()
 		{ "Hrnet",	0,				DECO_ALIEN,		12, true, "Hornet" },
 		{ "Jackl",	0,				DECO_ALIEN,		15, true, "Jackal" },
 		{ "Viper",	0,				DECO_ALIEN,		18, true, "Viper" },
+		{ "Squid",	0,				DECO_ALIEN,		20, true, "Squid" },
+		{ "Spit",	0,				DECO_ALIEN,		30, true, "Spitter" },
+		{ "Crawl",	0,				DECO_ALIEN,		25, true, "Crawler" },
 
 		// Special case: used *only* on the base screen.
 		{ "Soldr",	0,				DECO_CHARACTER,	-80,	false, "Soldier" },

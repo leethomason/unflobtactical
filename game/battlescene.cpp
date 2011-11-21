@@ -1887,6 +1887,7 @@ void BattleScene::ProcessPsiAttack( Action* action )
 	const Unit* targetUnit = &units[action->type.psi.targetID];
 	int psiAttack = unit->GetStats().PsiPower();
 	int psiDefense = targetUnit->PsiDefense();
+
 	if ( random.Rand( psiAttack ) > random.Rand( psiDefense ) ) {
 		GLOUTPUT(( "psi attack success\n" ));
 		for( int i=0; i<MAX_UNITS; ++i ) {

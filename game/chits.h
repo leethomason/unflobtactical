@@ -392,11 +392,13 @@ public:
 	Chit* End() 	{ return &sentinel; }
 
 	Chit* GetChit( int id ) { 
+		if ( id == 0 ) return 0;
 		for( Chit* it=Begin(); it != End(); it=it->Next() ) {
 			if ( it->ID() == id ) {
 				return it;
 			}
 		}
+		GLASSERT( 0 );
 		return 0;
 	}
 

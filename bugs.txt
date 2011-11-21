@@ -11,6 +11,9 @@ X add SG:P
 - tune spitter damage
 X up the alien unit max so there are extra slots for transformations
 X fix the research for spitters, squid, SG:P
+- (re)implement psi attack
+- camera panning for psi attack
+- fix save( ?? ) to be save( geo, tactical )
 
 Deferred:
 - chaining
