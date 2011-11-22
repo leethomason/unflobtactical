@@ -998,7 +998,7 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			data->alienRank		= rank;
 			data->storage		= baseChit->GetStorage();
 			chitBag.SetBattle( ufoChit->ID(), landerChit ? landerChit->ID() : 0, scenario );
-			game->Save( 0, false );
+			game->Save( 0, true, false );
 
 			game->PushScene( Game::BATTLE_SCENE, data );
 
@@ -1217,7 +1217,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 				baseChit->SetNumScientists( nCivsAlive );
 			}
 		}
-		game->Save( 0, false );
+		game->Save( 0, true, false );
 		game->DeleteSaveFile( SAVEPATH_TACTICAL, 0 );
 	}
 }

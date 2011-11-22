@@ -158,7 +158,7 @@ void SaveLoadScene::Confirm( bool action )
 		if ( action ) {
 			game->DeleteSaveFile( SAVEPATH_GEO, slot );
 			game->DeleteSaveFile( SAVEPATH_TACTICAL, slot );
-			game->Save( slot, true );
+			game->Save( slot, true, true );
 			game->PopScene();
 		}
 	}
