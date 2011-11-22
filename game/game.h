@@ -212,7 +212,7 @@ public:
 	int LoadSlot() const				{ return loadSlot; }
 
 	void Load( const TiXmlDocument& doc );
-	void Save( int slot, bool saveBothGeoAndTac );
+	void Save( int slot, bool saveGeo, bool saveTac );
 
 	bool PopSound( int* database, int* offset, int* size );
 

@@ -372,7 +372,7 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 
 	// Per turn save:
 	if ( saveOnTerranTurn && currentTeamTurn == TERRAN_TEAM ) {
-		game->Save( 0, false );
+		game->Save( 0, false, true );
 	}
 
 	if ( aiArr[currentTeamTurn] ) {
@@ -2326,7 +2326,7 @@ void BattleScene::SceneResult( int sceneID, int result )
 		ShowNearPath( 0 );	// force a redraw				
 	}
 	else if ( sceneID == Game::UNIT_SCORE_SCENE ) {
-		game->Save( 0, false );
+		game->Save( 0, false, true );
 		game->PopScene( game->battleData.CalcResult() );
 	}
 }

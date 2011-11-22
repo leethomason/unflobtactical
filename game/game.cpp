@@ -530,17 +530,16 @@ void Game::SavePathTimeStamp( SavePathType type, int slot, GLString* stamp )
 }
 
 
-void Game::Save( int slot, bool saveBothGeoAndTac )
+void Game::Save( int slot, bool saveGeo, bool saveTac )
 {
 	// For loading, the BOTTOM loads and then loads higher scenes.
 	// For saving, the GeoScene saves itself before pushing the tactical
 	// scene, so save from the top back. (But still need to save if
 	// we are in a character scene for example.)
 	for( SceneNode* node=sceneStack.BeginTop(); node; node=sceneStack.Next() ) {
-		if ( !saveBothGeoAndTac && node != sceneStack.Top() )
-			continue;
-
-		if ( node->scene->CanSave() ) {
+		if (    ( saveGeo && node->scene->CanSave() == SAVEPATH_GEO )
+			 || ( saveTac && node->scene->CanSave() == SAVEPATH_TACTICAL ) )
+		{
 			FILE* fp = GameSavePath( node->scene->CanSave(), SAVEPATH_WRITE, slot );
 			GLASSERT( fp );
 			if ( fp ) {

@@ -132,14 +132,16 @@ Texture* TextureManager::CreateTexture( const char* name, int w, int h, int form
 	GLASSERT( !map.Query( name, 0 ) );
 	GLASSERT( w > 1 );	// some drivers don't like size=1 textures
 	GLASSERT( h > 1 );
+	GLASSERT( emptySpace >= 0 );
 
 	Texture* t = 0;
 
-	if ( emptySpace ) {
+	if ( emptySpace > 0 ) {
 		for( unsigned i=0; i<textureArr.Size(); ++i ) {
 			if ( textureArr[i].Empty() ) {
 				t = &textureArr[i];
 				--emptySpace;
+				break;
 			}
 		}
 	}
