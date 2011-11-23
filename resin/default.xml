@@ -36,15 +36,15 @@
         <required2 item="Jackl" />
       </Jackal>
       <Spitter points="20">
-        The exoskeletoned horror of the Spitter seems related to the Hornet. Fast, strong,
+        The exoskeletoned horror of the Spitter genetic relative of the Hornet. Fast, strong,
         with a toxic spit implants the Crawler into unarmored victims.
         <required0 research="Hornet" />
         <required1 item="Spit" />
       </Spitter>
       <Squid points="40">
-        The tentacled Squid is a greater variant of the Green, with unusual brain structures
-        that seem to confirm rumors of psi powers. Squids scan the mind of a trooper
-        and locate the entire team.
+        The tentacled Squid is a greater variant of the Green. Unusual brain structures
+        confirm field reports of psi powers that allow a Squid to see an
+        entire team through one mind.
         <required0 research="Green" />
         <required1 item="Squid" />
       </Squid>
@@ -179,7 +179,7 @@
         <required1 research="Prime" />
       </SG:E>
       <SG:P points="40">
-        Shield Generators are based on alien field technology. The SG:P is
+        The SG:P is
         a high tech tin foil hat, offering substantial protection against
         alien psi scanning.
         <required0 research="SG:K" />

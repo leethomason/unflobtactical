@@ -452,18 +452,18 @@ void Game::LoadItemResources()
 
 		// Intrinsic:
 		{ "Spit-1",	0,	DECO_NONE,	"Spit-Hidden",	
-			{{ "Snap", "Spit-Clip",		0,								DAM_LOW,		ACC_MED*SNAP*A2,	SPEED_NORMAL*TU_SNAP_SHOT,	0 },
-			{ "Aimed", "Spit-Clip",		0,								DAM_MED,		ACC_MED*AIM*A2,		SPEED_NORMAL*TU_AIMED_SHOT,	0 },
+			{{ "Snap", "Spit-Clip",		0,								DAM_LOW,		ACC_MED*SNAP*A2,	SPEED_NORMAL*TU_SNAP_SHOT,	"spitter" },
+			{ "Aimed", "Spit-Clip",		0,								DAM_MED,		ACC_MED*AIM*A2,		SPEED_NORMAL*TU_AIMED_SHOT,	"spitter" },
 			{ 0 }, { 0 }, { 0 }}
 		},
 		{ "Spit-2",	0,	DECO_NONE,	"Spit-Hidden",	
-			{{ "Snap", "Spit-Clip",		0,								DAM_LOW*B2,		ACC_MED*SNAP*A2,	SPEED_NORMAL*TU_SNAP_SHOT,	0 },
-			{ "Aimed", "Spit-Clip",		0,								DAM_MED*B2,		ACC_MED*AIM*A2,		SPEED_NORMAL*TU_AIMED_SHOT,	0 },
+			{{ "Snap", "Spit-Clip",		0,								DAM_LOW*B2,		ACC_MED*SNAP*A2,	SPEED_NORMAL*TU_SNAP_SHOT,	"spitter" },
+			{ "Aimed", "Spit-Clip",		0,								DAM_MED*B2,		ACC_MED*AIM*A2,		SPEED_NORMAL*TU_AIMED_SHOT,	"spitter" },
 			{ 0 }, { 0 }, { 0 }}
 		},
 		{ "Spit-3",	0,	DECO_NONE,	"Spit-Hidden",	
-			{{ "Snap", "Spit-Clip",		0,								DAM_LOW*B3,		ACC_MED*SNAP*A2,	SPEED_NORMAL*TU_SNAP_SHOT,	0 },
-			{ "Aimed", "Spit-Clip",		0,								DAM_MED*B3,		ACC_MED*AIM*A2,		SPEED_NORMAL*TU_AIMED_SHOT,	0 },
+			{{ "Snap", "Spit-Clip",		0,								DAM_LOW*B3,		ACC_MED*SNAP*A2,	SPEED_NORMAL*TU_SNAP_SHOT,	"spitter" },
+			{ "Aimed", "Spit-Clip",		0,								DAM_MED*B3,		ACC_MED*AIM*A2,		SPEED_NORMAL*TU_AIMED_SHOT,	"spitter" },
 			{ 0 }, { 0 }, { 0 }}
 		},
 	};
