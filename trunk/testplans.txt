@@ -35,3 +35,9 @@ Save/Load
   quit, continue
   restore slot 3 (tac)
   abort mission to main screen
+
+Base attack
+	Save game
+	win base attack - do you get stuff?
+				    - does influence drop?
+	lose base attack - is base destroyed?
