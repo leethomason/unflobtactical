@@ -3,7 +3,6 @@ X more sophisticated psi ai.
 X	- be aware civ vs. terran
 X	- use if below a certain % of known locations
 X check that 'inform' is working as expected
-  alien ai doesn't spot a terran mid-turn
 
 X if spitters in use, no aliens should target civ
 X add SG:P
@@ -11,9 +10,12 @@ X add SG:P
 - tune spitter damage
 X up the alien unit max so there are extra slots for transformations
 X fix the research for spitters, squid, SG:P
-- (re)implement psi attack
-- camera panning for psi attack
-- fix save( ?? ) to be save( geo, tactical )
+X (re)implement psi attack
+X camera panning for psi attack
+X fix save( ?? ) to be save( geo, tactical )
+- fix background colors
+X fix storage layout
+X sg:p should require research
 
 Deferred:
 - chaining

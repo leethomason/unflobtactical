@@ -152,6 +152,8 @@ void RegionData::Init(  const ItemDefArr& itemDefArr, Random* random )
 }
 
 
+// Sets up storage, and whether items are available due to
+// region, research, etc.
 void RegionData::SetStorageNormal( const Research& research, Storage* storage, bool tech, bool manufacture )
 {
 	int COUNT = 100;

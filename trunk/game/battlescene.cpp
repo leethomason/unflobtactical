@@ -1608,7 +1608,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 				{
 					ProcessPsiAttack( action );
 					result |= UNIT_ACTION_COMPLETE;
-					actionStack.Pop();
+					// actionStack.Pop(); called by the ProcessPsiAttack
 				}
 				break;
 
@@ -1887,9 +1887,33 @@ void BattleScene::ProcessPsiAttack( Action* action )
 	const Unit* targetUnit = &units[action->type.psi.targetID];
 	int psiAttack = unit->GetStats().PsiPower();
 	int psiDefense = targetUnit->PsiDefense();
+	bool success = random.Rand( psiAttack ) > (U32)psiDefense;
+	GLOUTPUT(( "Psi: id=%d attack=%d defense=%d %s\n", targetUnit-units, psiAttack, psiDefense, success ? "success" : "fail" ));
 
-	if ( random.Rand( psiAttack ) > random.Rand( psiDefense ) ) {
-		GLOUTPUT(( "psi attack success\n" ));
+	// Set up the particle effects.
+	static const int LAYERS=3;
+	ParticleSystem* ps = ParticleSystem::Instance();
+	Color4F colors[LAYERS];
+	colors[0] = Convert_4U8_4F( game->MainPaletteColor( 0, 2 ) );
+	colors[1] = Convert_4U8_4F( game->MainPaletteColor( 4, 3 ) );
+	colors[2] = Convert_4U8_4F( game->MainPaletteColor( 2, 2 ) );
+	Color4F colorVelocity = { 0, 0, 0, -0.5f };
+	Vector3F velocity = { 1.0f, 0, 0 };
+
+	Vector3F pos = targetUnit->Pos();
+	if ( GetModel( targetUnit ) ) GetModel( targetUnit )->CalcTrigger( &pos );
+
+	if ( success ) {
+
+		for( int i=0; i<LAYERS; ++i ) {
+			ps->EmitQuad(	ParticleSystem::RING,	
+							colors[i],	colorVelocity,
+							pos, 0.1f,
+							velocity, 0.1f,
+							0, 0.7f/(1.0f+i) );
+			pos.y += 0.1f;
+		}
+
 		for( int i=0; i<MAX_UNITS; ++i ) {
 			if ( units[i].IsAlive() && units[i].Team() == targetUnit->Team() ) {
 				aiArr[unit->Team()]->Inform( &units[i], 0 );
@@ -1897,7 +1921,14 @@ void BattleScene::ProcessPsiAttack( Action* action )
 		}
 	}
 	else {
-		GLOUTPUT(( "psi attack fail\n" ));
+		ps->EmitPoint( 5, ParticleSystem::PARTICLE_SPHERE,
+					   colors[0], colorVelocity,
+					   pos, 0.1f, velocity, 0.2f );
+	}
+	// Pop this - the PSI_ATTACK
+	actionStack.Pop();
+	if ( targetUnit->Team() == TERRAN_TEAM ) {
+		PushScrollOnScreen( targetUnit->Pos() );
 	}
 }
 

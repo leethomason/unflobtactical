@@ -37,7 +37,7 @@ StorageWidget::StorageWidget(	gamui::Gamui* gamui,
 	fudgeFactor.Set( 0, 0 );
 	info.Init( gamui );
 
-	static const int decoID[NUM_SELECT_BUTTONS] = { DECO_PISTOL, DECO_RAYGUN, DECO_ARMOR, DECO_ALIEN };
+	static const int decoID[NUM_SELECT_BUTTONS] = { DECO_PISTOL, DECO_RAYGUN, DECO_CHARACTER, DECO_ALIEN };
 
 	for( int i=0; i<NUM_SELECT_BUTTONS; ++i ) {
 		selectButton[i].Init( gamui, blue );
