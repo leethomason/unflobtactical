@@ -21,12 +21,13 @@ Deferred:
 - chaining
 	- sound
 	- models
-- Tactical: AI shoots walls. This one is strange. It certainly checks. ??
+X Tactical: AI shoots walls. This one is strange. It certainly checks. ??
+  The new safeLineOfSight addressess this
 - fix battlescene not being power of 2
 - geo: no indication of base capabilities
 - geo: a ufo will return to orbit if it gets to a "parked" tile. Should find a new task.
 - geo: decals overdraw
-- tactical: when picking up weapon, walk zone doesn't update
+X tactical: when picking up weapon, walk zone doesn't update
 
 Fixed:
 
