@@ -5,14 +5,14 @@ X	- use if below a certain % of known locations
 X check that 'inform' is working as expected
 X if spitters in use, no aliens should target civ
 X add SG:P
-- sound for spitter
-- tune spitter damage
+X sound for spitter
+X tune spitter damage
 X up the alien unit max so there are extra slots for transformations
 X fix the research for spitters, squid, SG:P
 X (re)implement psi attack
 X camera panning for psi attack
 X fix save( ?? ) to be save( geo, tactical )
-- fix background colors
+X fix background colors
 X fix storage layout
 X sg:p should require research
 - particles for spitter/crawler xform
