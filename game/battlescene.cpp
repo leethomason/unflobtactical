@@ -292,6 +292,11 @@ const Model* BattleScene::GetWeaponModel( const Unit* unit )
 
 void BattleScene::UpgradeCrawlerToSpitter( Unit* unit )
 {
+	bool okay = (unit->Team() == ALIEN_TEAM) && (unit->AlienType() == Unit::ALIEN_CRAWLER );
+	GLASSERT( okay );
+	if ( !okay )
+		return;
+
 	int rank = unit->GetStats().Rank();
 	Vector3F pos = unit->Pos();
 	float rot = unit->Rotation();

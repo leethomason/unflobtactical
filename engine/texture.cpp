@@ -49,6 +49,11 @@ void TextureManager::DeviceLoss()
 
 	for( unsigned i=0; i<gpuMemArr.Size(); ++i ) {
 		if ( gpuMemArr[i].glID ) {
+
+
+#if defined( UFO_WIN32_SDL ) && defined( DEBUG )
+			GLASSERT( glIsTexture( gpuMemArr[i].glID ) == GL_TRUE );
+#endif
 			glDeleteTextures( 1, (const GLuint*) &gpuMemArr[i].glID );
 		}
 	}
@@ -388,6 +393,18 @@ void Texture::Upload( const void* pixels, int size )
 	int glFormat, glType;
 	TextureManager::Instance()->CalcOpenGL( format, &glFormat, &glType );
 	glBindTexture( GL_TEXTURE_2D, gpuMem->glID );
+
+#if defined( UFO_WIN32_SDL ) && defined( DEBUG )
+	int data;
+	glGetTexLevelParameteriv( GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &data );
+	GLASSERT( data == 0 || data == w );
+	glGetTexLevelParameteriv( GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &data );
+	GLASSERT( data == 0 || data == h );
+	if ( data > 0 ) {
+		glGetTexLevelParameteriv( GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &data );
+		GLASSERT( data == glFormat );
+	}
+#endif
 
 	glTexImage2D(	GL_TEXTURE_2D,
 					0,
