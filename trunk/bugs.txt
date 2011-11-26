@@ -15,7 +15,8 @@ X fix save( ?? ) to be save( geo, tactical )
 X fix background colors
 X fix storage layout
 X sg:p should require research
-- particles for spitter/crawler xform
+X particles for spitter/crawler xform
+- Darken main green background
 
 Deferred:
 - chaining

@@ -51,9 +51,9 @@ void TextureManager::DeviceLoss()
 		if ( gpuMemArr[i].glID ) {
 
 
-#if defined( UFO_WIN32_SDL ) && defined( DEBUG )
-			GLASSERT( glIsTexture( gpuMemArr[i].glID ) == GL_TRUE );
-#endif
+//#if defined( UFO_WIN32_SDL ) && defined( DEBUG )
+//			GLASSERT( glIsTexture( gpuMemArr[i].glID ) == GL_TRUE );
+//#endif
 			glDeleteTextures( 1, (const GLuint*) &gpuMemArr[i].glID );
 		}
 	}

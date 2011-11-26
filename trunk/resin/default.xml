@@ -865,13 +865,6 @@
         weapon. You can tap to drop an item, or drag to organize items.</p>
     </page>
 
-    <page>
-      <p>[React]</p>
-      <p>The React button toggles reaction fire for this unit. Normally a unit
-         will automatically return fire during the alien turn, but you may turn
-         it off with this toggle.</p>
-    </page>
-
     <page image="helpImage5">
       <p>[Items on the Ground]</p>
       <p>

@@ -1638,7 +1638,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 		}
 	}
 	chitBag.Clean();
-	if ( contextChitID && !chitBag.GetChit( contextChitID ) ) {
+	if ( contextChitID && !chitBag.IsChit( contextChitID ) ) {
 		contextChitID = 0;
 		InitContextMenu( CM_NONE, 0 );
 	}

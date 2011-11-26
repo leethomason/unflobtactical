@@ -402,6 +402,16 @@ public:
 		return 0;
 	}
 
+
+	bool IsChit( int id ) {
+		for( Chit* it=Begin(); it != End(); it=it->Next() ) {
+			if ( it->ID() == id ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	int AllocBaseChitIndex();
 
 	Chit*		GetChit( const grinliz::Vector2I& pos );

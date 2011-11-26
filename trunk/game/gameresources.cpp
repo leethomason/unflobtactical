@@ -244,7 +244,7 @@ void Game::LoadItemResources()
 	static const float DAM_MEDHI	=   60.0f;
 	static const float DAM_HI		=   80.0f;
 
-	static const float EXDAM_VLOW   =  20.0f;
+	static const float EXDAM_VLOW   =  10.0f;
 	static const float EXDAM_MED    = 100.0f;
 	static const float EXDAM_HI		= 150.0f;
 
@@ -377,21 +377,24 @@ void Game::LoadItemResources()
 			{ 0 }, { 0 }}
 		},
 		{ "MCAN-1",	"CANON-1",	DECO_PISTOL,	"Mini-Canon",
-			{{ "Snap", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED,		ACC_MED*SNAP,		SPEED_SLOW*TU_SNAP_SHOT,	"can" },
+			{
+			//{ "Snap", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED,		ACC_MED*SNAP,		SPEED_SLOW*TU_SNAP_SHOT,	"can" },
 			{ "Flame", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
 			{ "RPG",   "RPG",	WEAPON_EXPLOSIVE,		EXDAM_MED,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
 			{ "Flare", "Flare",	WEAPON_EXPLOSIVE | WEAPON_FLARE | WEAPON_DISTANCE,		EXDAM_VLOW,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
 			{ "Smoke", "Smoke",	WEAPON_EXPLOSIVE | WEAPON_SMOKE | WEAPON_DISTANCE,		EXDAM_VLOW,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" }},
 		},
 		{ "MCAN-2",	"CANON-2",	DECO_PISTOL,	"Mini-Canon",
-			{{ "Snap", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED*B2,	ACC_MED*SNAP,		SPEED_SLOW*TU_SNAP_SHOT,	"can" },
+			{
+			//{ "Snap", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED*B2,	ACC_MED*SNAP,		SPEED_SLOW*TU_SNAP_SHOT,	"can" },
 			{ "Flame", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED*B2,	ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
 			{ "RPG",   "RPG",	WEAPON_EXPLOSIVE,		EXDAM_MED*B2,	ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
 			{ "Flare", "Flare",	WEAPON_EXPLOSIVE | WEAPON_FLARE | WEAPON_DISTANCE,		EXDAM_VLOW,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
 			{ "Smoke", "Smoke",	WEAPON_EXPLOSIVE | WEAPON_SMOKE | WEAPON_DISTANCE,		EXDAM_VLOW,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" }},
 		},
 		{ "MCAN-3",	"CANON-3",	DECO_PISTOL,	"Dauntless Canon",
-			{{ "Snap", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED*B3,	ACC_MED*SNAP,		SPEED_SLOW*TU_SNAP_SHOT,	"can" },
+			{
+			//{ "Snap", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED*B3,	ACC_MED*SNAP,		SPEED_SLOW*TU_SNAP_SHOT,	"can" },
 			{ "Flame", "Flame", WEAPON_EXPLOSIVE,		EXDAM_MED*B3,	ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
 			{ "RPG",   "RPG",	WEAPON_EXPLOSIVE,		EXDAM_MED*B3,	ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },
 			{ "Flare", "Flare",	WEAPON_EXPLOSIVE | WEAPON_FLARE | WEAPON_DISTANCE,		EXDAM_VLOW,		ACC_MED*AIM,		SPEED_SLOW*TU_AIMED_SHOT,	"can" },

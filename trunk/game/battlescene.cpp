@@ -306,6 +306,16 @@ void BattleScene::UpgradeCrawlerToSpitter( Unit* unit )
 	alienCount[Unit::ALIEN_SPITTER] = 1;
 	TacticalIntroScene::GenerateAlienTeam( unit, alienCount, (float)rank, game->GetItemDefArr(), random.Rand() );
 	unit->SetPos( pos, rot );
+
+	Color4F color = Convert_4U8_4F( game->MainPaletteColor( 4, 3 ) );
+	Color4F colorVec = { 0, 0, 0, -0.5f};
+	Vector3F particleVel = { 0, 1, 0 };
+
+	ParticleSystem::Instance()->EmitPoint( 
+		20, ParticleSystem::PARTICLE_HEMISPHERE, 
+		color, colorVec,
+		unit->Pos(), 0,
+		particleVel, 0.1f );
 }
 
 
@@ -1903,7 +1913,7 @@ void BattleScene::ProcessPsiAttack( Action* action )
 	colors[1] = Convert_4U8_4F( game->MainPaletteColor( 4, 3 ) );
 	colors[2] = Convert_4U8_4F( game->MainPaletteColor( 2, 2 ) );
 	Color4F colorVelocity = { 0, 0, 0, -0.5f };
-	Vector3F velocity = { 1.0f, 0, 0 };
+	Vector3F velocity = { 0, 0, 0 };
 
 	Vector3F pos = targetUnit->Pos();
 	if ( GetModel( targetUnit ) ) GetModel( targetUnit )->CalcTrigger( &pos );
@@ -1926,6 +1936,7 @@ void BattleScene::ProcessPsiAttack( Action* action )
 		}
 	}
 	else {
+		velocity.y = 1;
 		ps->EmitPoint( 5, ParticleSystem::PARTICLE_SPHERE,
 					   colors[0], colorVelocity,
 					   pos, 0.1f, velocity, 0.2f );
