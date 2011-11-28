@@ -22,6 +22,8 @@
 
 
 class Research;
+class Engine;
+class Model;
 
 class ResearchSceneData : public SceneData
 {
@@ -34,7 +36,7 @@ class ResearchScene : public Scene
 {
 public:
 	ResearchScene( Game* _game, ResearchSceneData* data );
-	virtual ~ResearchScene()	{}
+	virtual ~ResearchScene();
 
 	virtual void Activate()		{}
 
@@ -48,16 +50,19 @@ public:
 	{ 
 		clip3D->SetInvalid(); 
 		clip2D->SetInvalid(); 
-		return RENDER_2D;
+		return RENDER_2D | RENDER_3D;
 	}	
+	virtual void Draw3D();
 
 private:
 	void SetDescription();
 	void SetOptions();
 
 	ResearchSceneData*	data;
-	//BackgroundUI		backgroundUI;
 	gamui::Image		background;
+
+	Engine* localEngine;
+	Model*  model;
 
 	enum {
 		MAX_OPTIONS = 3

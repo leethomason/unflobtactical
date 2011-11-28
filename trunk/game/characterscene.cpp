@@ -56,18 +56,22 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	backButton.Init( &gamui2D, blue );
 	backButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	backButton.SetText( "Back" );
+	//backButton.SetText( "Back" );
+	backButton.SetDeco(	UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ),
+						UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	prevButton.Init( &gamui2D, blue );
 	prevButton.SetPos( GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	prevButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	prevButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_PREV, true ),  UIRenderer::CalcDecoAtom( DECO_PREV, false ) );
+	prevButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_UNIT_PREV, true ),  
+						UIRenderer::CalcDecoAtom( DECO_UNIT_PREV, false ) );
 	prevButton.SetVisible( input->nUnits > 1 );
 
 	nextButton.Init( &gamui2D, blue );
 	nextButton.SetPos( GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	nextButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	nextButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_NEXT, true ),  UIRenderer::CalcDecoAtom( DECO_NEXT, false ) );
+	nextButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_UNIT_NEXT, true ),  
+						UIRenderer::CalcDecoAtom( DECO_UNIT_NEXT, false ) );
 	nextButton.SetVisible( input->nUnits > 1 );
 
 	helpButton.Init( &gamui2D, blue );

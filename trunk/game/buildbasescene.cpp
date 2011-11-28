@@ -24,7 +24,9 @@ BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene(
 	backButton.Init( &gamui2D, blue );
 	backButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	backButton.SetText( "Back" );
+	//backButton.SetText( "Back" );
+	backButton.SetDeco(	UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ),
+						UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	helpButton.Init( &gamui2D, green );
 	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, 0 );

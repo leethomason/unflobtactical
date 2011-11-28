@@ -31,13 +31,16 @@ HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ),
 	textBox.SetSize( port.UIWidth()-GAME_GUTTER*2.0f, port.UIHeight()-GAME_GUTTER*2.0f );
 
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
-	static const char* const text[NUM_BUTTONS] = { "<", ">", "X", "" };
+	//static const char* const text[NUM_BUTTONS] = { "<", ">", "X", "" };
+	static const int deco[NUM_BUTTONS] = { DECO_BUTTON_PREV, DECO_BUTTON_NEXT, DECO_OKAY_CHECK, DECO_NONE };
 	UIItem* items[NUM_BUTTONS] = { 0 };
 
 	for( int i=0; i<NUM_BUTTONS; ++i ) {
 		buttons[i].Init( &gamui2D, blue );
 		buttons[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-		buttons[i].SetText( text[i] );
+		//buttons[i].SetText( text[i] );
+		buttons[i].SetDeco( UIRenderer::CalcDecoAtom( deco[i], true ), 
+							UIRenderer::CalcDecoAtom( deco[i], false ) );
 		items[i] = &buttons[i];
 	}
 	buttons[PREV_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*2.0f, port.UIHeight() - GAME_BUTTON_SIZE_F );

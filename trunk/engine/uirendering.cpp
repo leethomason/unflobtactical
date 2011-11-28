@@ -118,7 +118,7 @@ RenderAtom UIRenderer::CalcDecoAtom( int id, bool enabled )
 	float tx1 = 0;
 	float ty1 = 0;
 
-	if ( id == DECO_NONE ) {
+	if ( id != DECO_NONE ) {
 		int y = id / 8;
 		int x = id - y*8;
 		tx0 = (float)x / 8.f;

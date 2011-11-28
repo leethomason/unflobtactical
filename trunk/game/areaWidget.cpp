@@ -33,7 +33,7 @@ AreaWidget::AreaWidget( Game* game,
 	name.SetText( _name );
 	for( int i=0; i<2; ++i ) {
 		trait[i].Init( container, nullAtom, true );
-		trait[i].SetSize( name.Height(), name.Height() );
+		trait[i].SetSize( name.Height()*1.2f, name.Height()*1.2f );
 	}
 
 	gamui::RenderAtom tick0Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_BLUE, 0 );
@@ -54,12 +54,15 @@ AreaWidget::AreaWidget( Game* game,
 void AreaWidget::SetOrigin( float x, float y ) 
 {
 	static const float DY = 16.0f;
+	static const float SPACE = 5.0f;
 
 	name.SetPos( x, y );
 	bar.SetPos( x, y+DY );
 
-	trait[0].SetPos( name.X() + name.Width(), name.Y() );
-	trait[1].SetPos( trait[0].X() + trait[0].Width(), trait[0].Y() );
+	trait[0].SetPos( name.X() + name.Width() + SPACE, 
+		             name.Y()+name.Height()-trait[0].Height() );
+	trait[1].SetPos( trait[0].X() + trait[0].Width(), 
+		             trait[0].Y() );
 }
 
 
@@ -90,7 +93,9 @@ void AreaWidget::SetTraits( int traits )
 			case RegionData::TRAIT_MANUFACTURE:		id=ICON2_MAN;	break;
 			}
 
-			trait[count++].SetAtom( UIRenderer::CalcIcon2Atom( id, true ) );
+			RenderAtom atom = UIRenderer::CalcIcon2Atom( id, true );
+			atom.renderState = (const void*)UIRenderer::RENDERSTATE_UI_DECO;
+			trait[count++].SetAtom( atom );
 		}
 	}
 }

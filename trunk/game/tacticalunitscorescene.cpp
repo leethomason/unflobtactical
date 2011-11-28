@@ -120,7 +120,9 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game ) : Scene( _game )
 	button.Init( &gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
 	button.SetPos( 0, 320 - 5 - GAME_BUTTON_SIZE );
 	button.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	button.SetText( "Done" );
+	//button.SetText( "Done" );
+	button.SetDeco(	UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ),
+					UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 }
 
 
