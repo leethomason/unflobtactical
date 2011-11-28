@@ -111,15 +111,21 @@ void UIRenderer::SetAtomCoordFromPixel( int x0, int y0, int x1, int y1, int w, i
 
 RenderAtom UIRenderer::CalcDecoAtom( int id, bool enabled )
 {
-	GLASSERT( id >= 0 && id < 32 );
+	GLASSERT( id >= 0 && id <= 32 );
 	Texture* texture = TextureManager::Instance()->GetTexture( "iconDeco" );
-	int y = id / 8;
-	int x = id - y*8;
-	float tx0 = (float)x / 8.f;
-	float ty0 = (float)y / 4.f;
-	float tx1 = tx0 + 1.f/8.f;
-	float ty1 = ty0 + 1.f/4.f;
+	float tx0 = 0;
+	float ty0 = 0;
+	float tx1 = 0;
+	float ty1 = 0;
 
+	if ( id == DECO_NONE ) {
+		int y = id / 8;
+		int x = id - y*8;
+		tx0 = (float)x / 8.f;
+		ty0 = (float)y / 4.f;
+		tx1 = tx0 + 1.f/8.f;
+		ty1 = ty0 + 1.f/4.f;
+	}
 	return RenderAtom( (const void*)(enabled ? RENDERSTATE_UI_DECO : RENDERSTATE_UI_DECO_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1 );
 }
 

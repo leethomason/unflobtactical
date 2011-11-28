@@ -95,7 +95,7 @@ public:
 	virtual const ClipItemDef* IsClip() const  { return 0; }
 	virtual const ArmorItemDef* IsArmor() const { return 0; }
 	bool IsAlien() const { return isAlien; }
-	bool Hide() const    { return deco == 31; /*DECO_NONE;*/ }
+	bool Hide() const    { return deco == 32; /*DECO_NONE;*/ }
 	
 	// Most items are 1 thing: a gun, armor, etc. But clips are formed of collections.
 	// It may take 10 rounds to form a clip.
