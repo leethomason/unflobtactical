@@ -45,9 +45,6 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	// -- Background -- //
 	gamui::RenderAtom nullAtom;
 
-	backgroundUI.Init( game, &gamui2D, true );
-	backgroundUI.backgroundText.SetPos( GAME_GUTTER, GAME_GUTTER );
-
 	const gamui::ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
 	const gamui::ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 
@@ -118,6 +115,18 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 				   GAME_GUTTER, 
 				   helpButton.Width(), 
 				   helpButton.Height()*(float)NUM_ITEMS+GAME_GUTTER );
+
+	backgroundUI.Init( game, &gamui2D, true );
+	backgroundUI.backgroundText.SetPos( GAME_GUTTER, GAME_GUTTER );
+
+	float maxX = settingButton.X() - GAME_GUTTER*2.0f;
+	float maxY = continueButton.Y() - GAME_GUTTER*2.0f;
+	if ( maxX < maxY*2.0f ) {
+		backgroundUI.backgroundText.SetSize( maxX, maxX*0.5f );
+	}
+	else {
+		backgroundUI.backgroundText.SetSize( maxY*2.0f, maxY );
+	}
 
 	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "6", "8", "Low", "Med", "Hi", 
 													 "Low", "Med", "Hi", "Day", "Night",

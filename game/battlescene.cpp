@@ -140,7 +140,8 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		helpButton.SetSize( SIZE, SIZE );
 
 		nextTurnButton.Init( &gamui2D, green );
-		nextTurnButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_END_TURN, true ), UIRenderer::CalcDecoAtom( DECO_END_TURN, false ) );
+		nextTurnButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ), 
+								UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );
 		nextTurnButton.SetSize( SIZE, SIZE );
 
 		targetButton.Init( &gamui2D, red );
@@ -153,7 +154,10 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 
 		moveOkayCancelUI.Init( game, &gamui2D, SIZE );
 
-		static const int controlDecoID[CONTROL_BUTTON_COUNT] = { DECO_ROTATE_CCW, DECO_ROTATE_CW, DECO_PREV, DECO_NEXT };
+		static const int controlDecoID[CONTROL_BUTTON_COUNT] = { DECO_ROTATE_CCW, 
+																 DECO_ROTATE_CW, 
+																 DECO_UNIT_PREV, 
+																 DECO_UNIT_NEXT };
 		for( int i=0; i<CONTROL_BUTTON_COUNT; ++i ) {
 			controlButton[i].Init( (i==0) ? &gamui2D : &gamui3D, green );
 			controlButton[i].SetDeco( UIRenderer::CalcDecoAtom( controlDecoID[i], true ), UIRenderer::CalcDecoAtom( controlDecoID[i], false ) );
@@ -334,7 +338,7 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 					units[i].NewTurn();
 				currentUnitAI = TERRAN_UNITS_START;
 			
-				turnImage.SetAtom( UIRenderer::CalcDecoAtom( DECO_OKAY ) );
+				turnImage.SetAtom( UIRenderer::CalcDecoAtom( DECO_TERRAN_TURN ) );
 				decoEffect.Play( 1000, true );
 			}
 			break;
@@ -727,7 +731,7 @@ void BattleScene::SetUnitOverlays()
 				Vector2F center = { (uiBounds.min.x + uiBounds.max.x)/2,
 									(uiBounds.min.y + uiBounds.max.y)/2 };
 				Rectangle2F inset = uiBounds;
-				const float EPS = 10;
+				const float EPS = 12;
 				inset.Outset( -EPS );
 				Vector2F intersection = { 0, 0 };
 				CenterRectIntersection( ui, inset, &intersection );

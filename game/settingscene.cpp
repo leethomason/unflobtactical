@@ -23,7 +23,10 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 
 	doneButton.Init( &gamui2D, blue );
 	doneButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	doneButton.SetText( "X" );
+//	doneButton.SetText( "X" );
+	doneButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ),
+						UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );
+
 	doneButton.SetPos( 0, port.UIHeight() - GAME_BUTTON_SIZE_F);
 
 	const float SIZE = gamui2D.GetTextHeight()*2.8f;
@@ -41,8 +44,8 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 	modDown.Init( &gamui2D, green );
 	modDown.SetSize( SIZE, SIZE );
 	modDown.SetPos( x, y );
-	modDown.SetDeco( UIRenderer::CalcDecoAtom( DECO_PREV, true ),
-					 UIRenderer::CalcDecoAtom( DECO_PREV, false ) );
+	modDown.SetDeco( UIRenderer::CalcDecoAtom( DECO_BUTTON_PREV, true ),
+					 UIRenderer::CalcDecoAtom( DECO_BUTTON_PREV, false ) );
 
 	modCurrent.Init( &gamui2D );
 	modCurrent.SetPos( x+deltaX, y );
@@ -52,8 +55,8 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 	modUp.Init( &gamui2D, green );
 	modUp.SetSize( SIZE, SIZE );
 	modUp.SetPos( x+deltaX*3.f, y );
-	modUp.SetDeco( UIRenderer::CalcDecoAtom( DECO_NEXT, true ),
-				   UIRenderer::CalcDecoAtom( DECO_NEXT, false ) );
+	modUp.SetDeco( UIRenderer::CalcDecoAtom( DECO_BUTTON_NEXT, true ),
+				   UIRenderer::CalcDecoAtom( DECO_BUTTON_NEXT, false ) );
 	y += deltaY;
 
 	moveText.Init( &gamui2D );

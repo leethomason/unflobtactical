@@ -15,6 +15,7 @@
 
 #include "researchscene.h"
 #include "../engine/engine.h"
+#include "../engine/loosequadtree.h"
 #include "research.h"
 
 #include "gamelimits.h"
@@ -78,7 +79,9 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 	okayButton.Init( &gamui2D, blue );
 	okayButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	okayButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
-	okayButton.SetText( "Done" );
+	//okayButton.SetText( "Done" );
+	okayButton.SetDeco(	UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ),
+						UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	helpButton.Init( &gamui2D, green );
 	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
@@ -87,8 +90,25 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 
 	SetOptions();
 	SetDescription();
+
+	localEngine = new Engine( &game->screenport, game->GetDatabase() );
+	const ModelResource* resource = ModelResourceManager::Instance()->GetModelResource( "maleMarine" );
+	model = localEngine->GetSpaceTree()->AllocModel( resource );
+	localEngine->CameraLookAt( model->X(), model->Z(), 30 );
 }
 
+
+ResearchScene::~ResearchScene()
+{
+	localEngine->GetSpaceTree()->FreeModel( model );
+	delete localEngine;
+}
+
+
+void ResearchScene::Draw3D()
+{
+	localEngine->Draw();
+}
 
 void ResearchScene::Tap( int action, const grinliz::Vector2F& screen, const grinliz::Ray& world )
 {

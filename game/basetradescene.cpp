@@ -74,7 +74,9 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	okay.Init( &gamui2D, blue );
 	okay.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	okay.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
-	okay.SetText( "Okay" );
+	//okay.SetText( "Okay" );
+	okay.SetDeco(  UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ), 
+		           UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	float w = GAME_BUTTON_SIZE_F*0.95f;
 	float h = GAME_BUTTON_SIZE_F*0.95f;

@@ -418,19 +418,19 @@ void Game::LoadItemResources()
 			{ 0 }, { 0 }, { 0 }}
 		},
 
-		{ "PLS-1",	"PLS-1",	DECO_RIFLE,		"Plasma Rifle",
+		{ "PLS-1",	"PLS-1",	DECO_ALIEN_RIFLE,		"Plasma Rifle",
 			{{	"Snap", "Cell",	0,						DAM_HI,			ACC_MED*SNAP,	SPEED_NORMAL*TU_SNAP_SHOT,		"plasma" },
 			{	"Auto", "Cell",	WEAPON_AUTO,			DAM_HI,			ACC_MED*AUTO,	SPEED_NORMAL*TU_AUTO_SHOT,		"plasma" },
 			{	"Boom", "Anti",	WEAPON_EXPLOSIVE,		EXDAM_HI,		ACC_MED*AIM,	SPEED_NORMAL*TU_SECONDARY_SHOT,	"nullp", },
 			{ 0 }, { 0 }}
 		},
-		{ "PLS-2",	"PLS-2",	DECO_RIFLE,		"Plasma Rifle",
+		{ "PLS-2",	"PLS-2",	DECO_ALIEN_RIFLE,		"Plasma Rifle",
 			{{	"Snap", "Cell",	0,						DAM_HI*B2,		ACC_MED*SNAP,	SPEED_NORMAL*TU_SNAP_SHOT,		"plasma" },
 			{	"Auto", "Cell",	WEAPON_AUTO,			DAM_HI*B2,		ACC_MED*AUTO,	SPEED_NORMAL*TU_AUTO_SHOT,		"plasma" },
 			{	"Boom", "Anti",	WEAPON_EXPLOSIVE,		EXDAM_HI,		ACC_MED*AIM,	SPEED_NORMAL*TU_SECONDARY_SHOT,	"nullp", },
 			{ 0 }, { 0 }}
 		},
-		{ "PLS-3",	"PLS-3",	DECO_RIFLE,		"Plasma Rifle",
+		{ "PLS-3",	"PLS-3",	DECO_ALIEN_RIFLE,		"Plasma Rifle",
 			{{	"Snap", "Cell",	0,						DAM_HI*B3,		ACC_MED*SNAP,	SPEED_NORMAL*TU_SNAP_SHOT,		"plasma" },
 			{	"Auto", "Cell",	WEAPON_AUTO,			DAM_HI*B3,		ACC_MED*AUTO,	SPEED_NORMAL*TU_AUTO_SHOT,		"plasma" },
 			{	"Boom", "Anti",	WEAPON_EXPLOSIVE,		EXDAM_HI*B2,	ACC_MED*AIM,	SPEED_NORMAL*TU_SECONDARY_SHOT,	"nullp", },
@@ -527,9 +527,9 @@ void Game::LoadItemResources()
 	};
 
 	static const ItemInit items[] = {		
-		{ "Cor:S",	0,				DECO_METAL,		20, true, "Scout tech core" },
-		{ "Cor:F",	0,				DECO_METAL,		40, true, "Frigate tech core" },
-		{ "Cor:B",	0,				DECO_METAL,		80, true, "Battleship tech core" },
+		{ "Cor:S",	0,				DECO_CORE,		20, true, "Scout tech core" },
+		{ "Cor:F",	0,				DECO_CORE,		40, true, "Frigate tech core" },
+		{ "Cor:B",	0,				DECO_CORE,		80, true, "Battleship tech core" },
 		{ "Green",	0,				DECO_ALIEN,		10, true, "Green" },
 		{ "Prime",	0,				DECO_ALIEN,		20, true, "Prime" },
 		{ "Hrnet",	0,				DECO_ALIEN,		12, true, "Hornet" },

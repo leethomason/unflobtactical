@@ -17,6 +17,7 @@ X fix storage layout
 X sg:p should require research
 X particles for spitter/crawler xform
 - Darken main green background
+- New help screen pictures
 
 Deferred:
 - chaining

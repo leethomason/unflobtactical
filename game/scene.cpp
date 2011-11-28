@@ -135,12 +135,14 @@ void OKCancelUI::Init( Game* game, gamui::Gamui* gamui2D, float size )
 	const gamui::ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
 
 	okayButton.Init( gamui2D, green );
-	okayButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_OKAY, true ), UIRenderer::CalcDecoAtom( DECO_OKAY, false ) );
+	okayButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ), 
+						UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );
 	okayButton.SetSize( size*2, size );
 	okayButton.SetPos( port.UIWidth()-size*4, port.UIHeight()-size );
 
 	cancelButton.Init( gamui2D, red );
-	cancelButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_END_TURN, true ), UIRenderer::CalcDecoAtom( DECO_END_TURN, false ) );
+	cancelButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_CANCEL, true ), 
+						  UIRenderer::CalcDecoAtom( DECO_CANCEL, false ) );
 	cancelButton.SetSize( size*2, size );
 	cancelButton.SetPos( size*2, port.UIHeight()-size );
 }

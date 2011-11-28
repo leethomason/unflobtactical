@@ -31,7 +31,9 @@ GeoEndScene::GeoEndScene(  Game* game, const GeoEndSceneData* data ) : Scene(gam
 	okayButton.Init( &gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
 	okayButton.SetPos( 400, 320 - 5 - GAME_BUTTON_SIZE );
 	okayButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	okayButton.SetText( "Done" );
+	//okayButton.SetText( "Done" );
+	okayButton.SetDeco(	UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ),
+						UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 }
 
