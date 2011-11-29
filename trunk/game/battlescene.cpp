@@ -1781,6 +1781,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 				Vector3F normal = ray.direction;
 				normal.Normalize();
 				intersection = ray.origin + normal*action->type.shoot.range;
+				if ( intersection.y < 0 ) intersection.y = 0;
 				beam0 = ray.origin;
 				beam1 = intersection;
 			}

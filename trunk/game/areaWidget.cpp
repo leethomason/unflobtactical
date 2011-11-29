@@ -23,17 +23,13 @@ AreaWidget::AreaWidget( Game* game,
 						gamui::Gamui* container,
 						const char* _name )
 {
-	//static const float W =  3.f;
-	//static const float H =  5.f;
-	//static const float S =  1.f;
-
 	RenderAtom nullAtom;
 
 	name.Init( container );
 	name.SetText( _name );
 	for( int i=0; i<2; ++i ) {
 		trait[i].Init( container, nullAtom, true );
-		trait[i].SetSize( name.Height()*1.2f, name.Height()*1.2f );
+		trait[i].SetSize( name.Height()*1.2f, name.Height()*1.1f );
 	}
 
 	gamui::RenderAtom tick0Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_BLUE, 0 );
@@ -54,7 +50,7 @@ AreaWidget::AreaWidget( Game* game,
 void AreaWidget::SetOrigin( float x, float y ) 
 {
 	static const float DY = 16.0f;
-	static const float SPACE = 5.0f;
+	static const float SPACE = 0.0f;
 
 	name.SetPos( x, y );
 	bar.SetPos( x, y+DY );
