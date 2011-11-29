@@ -110,8 +110,10 @@ Texture* TextureManager::GetTexture( const char* name, bool reload )
 			const char* fstr = item->GetString( "format" );
 			int format = Surface::QueryFormat( fstr );
 			Texture::Param flags = Texture::PARAM_NONE;
-			// Special handling for fonts. Bit of a brittle hack:
-			if ( strstr( name, "font" ) ) {
+
+			// FIXME: need a texture parameter to create "linear"
+			// Hack hack hack:
+			if ( strstr( name, "font" ) || strstr( name, "icons2" )) {
 				flags = Texture::PARAM_LINEAR;
 			}
 
