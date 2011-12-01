@@ -65,10 +65,7 @@ void DitherTo16( const SDL_Surface* surface, int format, bool invert, U16* targe
 
 		for( int i=0; i<surface->w; ++i ) 
 		{
-			U8 r, g, b, a;
-
-			U32 c = GetPixel( surface, i, j );
-			SDL_GetRGBA( c, surface->format, &r, &g, &b, &a );
+			grinliz::Color4U8 c = GetPixel( surface, i, j );
 			U16 p = 0;
 			//int offset = (j&1)*2 + (i&1);
 			int offset = (j&3)*4 + (i&3);
@@ -77,17 +74,17 @@ void DitherTo16( const SDL_Surface* surface, int format, bool invert, U16* targe
 			switch ( format ) {
 				case RGBA16:
 					p =	  
-						  ( ReducePixelDiv( r, 4, numer, denom ) << 12 )
-						| ( ReducePixelDiv( g, 4, numer, denom ) << 8 )
-						| ( ReducePixelDiv( b, 4, numer, denom ) << 4)
-						| ( ( a>>4 ) << 0 );
+						  ( ReducePixelDiv( c.r, 4, numer, denom ) << 12 )
+						| ( ReducePixelDiv( c.g, 4, numer, denom ) << 8 )
+						| ( ReducePixelDiv( c.b, 4, numer, denom ) << 4)
+						| ( ( c.a>>4 ) << 0 );
 					break;
 
 				case RGB16:
 					p = 
-						  ( ReducePixelDiv( r, 3, numer, denom ) << 11 )
-						| ( ReducePixelDiv( g, 2, numer, denom ) << 5 )
-						| ( ReducePixelDiv( b, 3, numer, denom ) );
+						  ( ReducePixelDiv( c.r, 3, numer, denom ) << 11 )
+						| ( ReducePixelDiv( c.g, 2, numer, denom ) << 5 )
+						| ( ReducePixelDiv( c.b, 3, numer, denom ) );
 					break;
 
 				default:

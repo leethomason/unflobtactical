@@ -16,8 +16,10 @@
 #ifndef UFO_BUILDER_INCLUDED
 #define UFO_BUILDER_INCLUDED
 
-U32 GetPixel( const SDL_Surface *surface, int x, int y);
-void PutPixel(SDL_Surface *surface, int x, int y, U32 pixel);
+#include "../grinliz/glcolor.h"
+
+grinliz::Color4U8 GetPixel( const SDL_Surface *surface, int x, int y);
+void PutPixel(SDL_Surface *surface, int x, int y, const grinliz::Color4U8& pixel);
 
 
 #endif // UFO_BUILDER_INCLUDED

@@ -205,36 +205,42 @@ void ModelGroup::Set( const char* textureName, int nVertex, int nIndex )
 }
 
 
-U32 GetPixel( const SDL_Surface *surface, int x, int y)
+Color4U8 GetPixel( const SDL_Surface *surface, int x, int y)
 {
     int bpp = surface->format->BytesPerPixel;
     /* Here p is the address to the pixel we want to retrieve */
     U8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp;
+	U32 c = 0;
 
     switch(bpp) {
     case 1:
-        return *p;
+        c = *p;
+		break;
 
     case 2:
-        return *(Uint16 *)p;
+        c = *(Uint16 *)p;
+		break;
 
     case 3:
         if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
-            return p[0] << 16 | p[1] << 8 | p[2];
+            c =  p[0] << 16 | p[1] << 8 | p[2];
         else
-            return p[0] | p[1] << 8 | p[2] << 16;
+            c = p[0] | p[1] << 8 | p[2] << 16;
+		break;
 
     case 4:
-        return *(U32 *)p;
-
-    default:
-        return 0;       /* shouldn't happen, but avoids warnings */
+        c = *(U32 *)p;
+		break;
     }
+	Color4U8 color;
+	SDL_GetRGBA( c, surface->format, &color.r, &color.g, &color.b, &color.a );
+	return color;
 }
 
 
-void PutPixel(SDL_Surface *surface, int x, int y, U32 pixel)
+void PutPixel(SDL_Surface *surface, int x, int y, const Color4U8& c )
 {
+	U32 pixel = SDL_MapRGBA( surface->format, c.r, c.g, c.b, c.a );
     int bpp = surface->format->BytesPerPixel;
     U8 *p = (U8*)surface->pixels + y * surface->pitch + x * bpp;
 
@@ -632,13 +638,11 @@ void ProcessModel( TiXmlElement* model )
 
 bool BarIsBlack( SDL_Surface* surface, int x, int y0, int y1 )
 {
-	U8 r, g, b, a;
 	bool black = true;
 
 	for( int y=y0; y<=y1; ++y ) {
-		U32 c = GetPixel( surface, x, y );
-		SDL_GetRGBA( c, surface->format, &r, &g, &b, &a );
-		if ( a == 0 || ( r==0 && g==0 && b==0 ) ) {
+		Color4U8 c = GetPixel( surface, x, y );
+		if ( c.a == 0 || ( c.r==0 && c.g==0 && c.b==0 ) ) {
 			// do nothing.
 		}
 		else {
@@ -691,25 +695,83 @@ SDL_Surface* CreateScaledSurface( int w, int h, SDL_Surface* surface )
 	for( int y=0; y<h; ++y ) {
 		for( int x=0; x<w; ++x ) {
 			int r32=0, g32=0, b32=0, a32=0;
-			U8 r, g, b, a;
 			
 			int xSrc = x*sx;
 			int ySrc = y*sy;
 			for( int j=0; j<sy; ++j ) {
 				for( int i=0; i<sx; ++i ) {
-					U32 c = GetPixel( surface, xSrc+i, ySrc+j );
-					SDL_GetRGBA( c, surface->format, &r, &g, &b, &a );
-					r32 += r;
-					g32 += g;
-					b32 += b;
-					a32 += a;
+					Color4U8 c = GetPixel( surface, xSrc+i, ySrc+j );
+					r32 += c.r;
+					g32 += c.g;
+					b32 += c.b;
+					a32 += c.a;
 				}
 			}
-			U32 c = SDL_MapRGBA( newSurf->format, r32/(sx*sy), g32/(sx*sy), b32/(sx*sy), a32/(sx*sy) );
+			Color4U8 c = { r32/(sx*sy), g32/(sx*sy), b32/(sx*sy), a32/(sx*sy) };
 			PutPixel( newSurf, x, y, c );
 		}
 	}
 	return newSurf;
+}
+
+
+void BlitTexture( const TiXmlElement* element, SDL_Surface* target )
+{
+	int sx=0, sy=0, sw=0, sh=0, tx=0, ty=0, tw=0, th=0;
+	element->QueryIntAttribute( "sx", &sx );
+	element->QueryIntAttribute( "sy", &sy );
+	element->QueryIntAttribute( "sw", &sw );
+	element->QueryIntAttribute( "sh", &sh );
+	element->QueryIntAttribute( "tx", &tx );
+	element->QueryIntAttribute( "ty", &ty );
+	element->QueryIntAttribute( "tw", &tw );
+	element->QueryIntAttribute( "th", &th );
+
+	GLString pathName;
+	ParseNames( element, 0, &pathName, 0 );
+
+	SDL_Surface* surface = libIMG_Load( pathName.c_str() );
+	if ( !surface ) {
+		ExitError( "Blit Tag", pathName.c_str(), "Blit", "Could not load asset file." );
+	}
+
+	for( int j=0; j<th; ++j ) {
+		for( int i=0; i<tw; ++i ) {
+			int targetX = tx+i;
+			int targetY = ty+j;
+
+			float srcX = (float)sx + (float)i*(float)sw/(float)tw;
+			float srcY = (float)sy + (float)j*(float)sh/(float)th;
+
+			if (    srcX >= 0 && srcX <= (float)(surface->w - 2)
+				 && srcY >= 0 && srcY <= (float)(surface->h - 2)) 
+			{
+				int x = (int)srcX;
+				int y = (int)srcY;
+				Color4U8 c00 = GetPixel( surface, x, y );
+				Color4U8 c10 = GetPixel( surface, x+1, y );
+				Color4U8 c01 = GetPixel( surface, x, y+1 );
+				Color4U8 c11 = GetPixel( surface, x+1, y+1 );
+				Color4U8 c;
+				for( int i=0; i<4; ++i ) {
+					c[i] = (U8)BilinearInterpolate( (float)c00[i], 
+													(float)c10[i], 
+													(float)c01[i], 
+													(float)c11[i], 
+													srcX-(float)x, srcY-(float)y );
+				}
+				PutPixel( target, targetX, targetY, c );
+			}
+			else {
+				int x = Clamp( (int)srcX, 0, surface->w-1 );
+				int y = Clamp( (int)srcY, 0, surface->h-1 );
+
+				Color4U8 c = GetPixel( surface, x, y );
+				PutPixel( target, targetX, targetY, c );
+			}
+		}
+	}
+	SDL_FreeSurface( surface );
 }
 
 
@@ -773,7 +835,20 @@ void ProcessTexture( TiXmlElement* texture )
 		CalcFontWidths( surface );
 	}
 
-	U8 r, g, b, a;
+	// run through child tags.
+	// interpolate in
+	bool sub=false;
+	for( TiXmlElement* blit=texture->FirstChildElement( "blit" );
+		 blit;
+		 blit=blit->NextSiblingElement( "blit" ) ) 
+	{
+		BlitTexture( blit, surface );
+		sub = true;
+	}
+	if ( sub ) {
+		SDL_SaveBMP( surface, "comp.bmp" );
+	}
+
 	pixelBuffer16.resize(0);
 	pixelBuffer8.resize(0);
 
@@ -786,14 +861,13 @@ void ProcessTexture( TiXmlElement* texture )
 			if ( !dither ) {
 				for( int j=surface->h-1; j>=0; --j ) {
 					for( int i=0; i<surface->w; ++i ) {
-						U32 c = GetPixel( surface, i, j );
-						SDL_GetRGBA( c, surface->format, &r, &g, &b, &a );
+						Color4U8 c = GetPixel( surface, i, j );
 
 						U16 p =
-								  ( ( r>>4 ) << 12 )
-								| ( ( g>>4 ) << 8 )
-								| ( ( b>>4 ) << 4)
-								| ( ( a>>4 ) << 0 );
+								  ( ( c.r>>4 ) << 12 )
+								| ( ( c.g>>4 ) << 8 )
+								| ( ( c.b>>4 ) << 4)
+								| ( ( c.a>>4 ) << 0 );
 
 						pixelBuffer16.push_back(p);
 					}
@@ -815,13 +889,12 @@ void ProcessTexture( TiXmlElement* texture )
 			if ( !dither ) {
 				for( int j=surface->h-1; j>=0; --j ) {
 					for( int i=0; i<surface->w; ++i ) {
-						U32 c = GetPixel( surface, i, j );
-						SDL_GetRGBA( c, surface->format, &r, &g, &b, &a );
+						Color4U8 c = GetPixel( surface, i, j );
 
 						U16 p = 
-								  ( ( r>>3 ) << 11 )
-								| ( ( g>>2 ) << 5 )
-								| ( ( b>>3 ) );
+								  ( ( c.r>>3 ) << 11 )
+								| ( ( c.g>>2 ) << 5 )
+								| ( ( c.b>>3 ) );
 
 						pixelBuffer16.push_back(p);
 					}
@@ -889,10 +962,7 @@ void ProcessPalette( TiXmlElement* pal )
 		for( int x=0; x<dx; ++x ) {
 			int px = surface->w * x / dx + offsetX;
 			int py = surface->h * y / dy + offsetY;
-			U32 color32 = GetPixel( surface, px, py );
-
-			Color4U8 rgba;
-			SDL_GetRGBA( color32, surface->format, &rgba.r, &rgba.g, &rgba.b, &rgba.a );
+			Color4U8 rgba = GetPixel( surface, px, py );
 			colors.push_back( rgba );
 		}
 	}

@@ -64,6 +64,8 @@ struct Color4
 	bool operator!=( const Color4<T>& rh ) const {
 		return r!=rh.r || g!=rh.g || b!=rh.b || a!=rh.a;
 	}
+	T& operator[]( int i ) { return *(&r+i); }
+	const T& operator[]( int i ) const { return *(&r+i); }
 };
 
 typedef Color4<float> Color4F;
@@ -106,6 +108,38 @@ inline void InterpolateColor( const Color3U8& c0, const Color3U8& c1, float val,
 	out->b = (U8) Interpolate( 0, (int)c0.b, 255, (int)c1.b, ival );
 }
 
+/*
+template< class C >
+class Sampler
+{
+public:
+	Sampler( const C* src, int w, int h ) {
+		this->src = src;
+		srcW = w;
+		srcH = h;
+		dstW = dstH = 0;
+	}
+
+	void SetXForm( int dstW, int dstH ) {
+		this->dstW = dstW;
+		this->dstH = dstH;
+	}
+
+	C GetXForm( int dstX, int dstY ) {
+		float x = (float)dstX * (float)srcW / (float)dstW;
+		float y = (float)dstY * (float)srcH / (float)dstH;
+
+		int x0 = grinliz::Clamp( (int)x, 0, srcW-1 );
+		int y0 = grinliz::Clamp( (int)y, 0, srcH-1 );
+		return src + y0 * srcW + x0;
+	}
+
+private:
+	const C*	src;
+	int			srcW, srcH;
+	int			dstW, dstH;
+};
+*/
 
 };
 
