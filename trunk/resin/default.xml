@@ -697,7 +697,9 @@
   <image filename="ALIN_48_TILE_00_DAY.png" />
   <image filename="ALIN_48_TILE_00_NGT.png" />
 
-  <texture filename="helpImage0.png" />
+  <texture assetName="helpImag0" filename="transparent_64_256.png" >
+    <blit filename="capTac0.bmp" sx="0" sy="0" sw="72" sh="402" tx="8" ty="0" tw="46" th="256" />
+  </texture>
   <texture filename="helpImage1.png" />
   <texture filename="helpImage2.png" />
   <texture filename="helpImage3.png" width="128" height="128"/>
