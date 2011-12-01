@@ -99,3 +99,54 @@ void DitherTo16( const SDL_Surface* surface, int format, bool invert, U16* targe
 	}
 }
 
+
+/*
+void DiffusionDitherTo16( const SDL_Surface* _surface, int format, bool invert, U16* target )
+{
+	SDL_Surface* surface = 
+
+	for( int j0=0; j0<surface->h; ++j0 ) {
+		int j = (invert) ? (surface->h-1-j0) : j0;
+
+		for( int i=0; i<surface->w; ++i ) 
+		{
+			// 0 * 7		1/16
+			// 3 5 1
+
+			U8 r, g, b, a;
+			U32 c = GetPixel( surface, i, j );
+			SDL_GetRGBA( c, surface->format, &r, &g, &b, &a );
+
+
+
+
+			U16 p = 0;
+
+			int offset = (j&3)*4 + (i&3);
+			const int numer = pattern[offset];
+
+			switch ( format ) {
+				case RGBA16:
+					p =	  
+						  ( ReducePixelDiv( r, 4, numer, denom ) << 12 )
+						| ( ReducePixelDiv( g, 4, numer, denom ) << 8 )
+						| ( ReducePixelDiv( b, 4, numer, denom ) << 4)
+						| ( ( a>>4 ) << 0 );
+					break;
+
+				case RGB16:
+					p = 
+						  ( ReducePixelDiv( r, 3, numer, denom ) << 11 )
+						| ( ReducePixelDiv( g, 2, numer, denom ) << 5 )
+						| ( ReducePixelDiv( b, 3, numer, denom ) );
+					break;
+
+				default:
+					GLASSERT( 0 );
+					break;
+			}
+			*target++ = p;
+		}
+	}
+}
+*/
