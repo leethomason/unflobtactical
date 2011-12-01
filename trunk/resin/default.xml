@@ -236,7 +236,7 @@
   <texture filename="basewall.png" />
 
   <!-- UI elements -->
-  <texture filename="intro.png" />
+  <texture filename="intro.png" width="64" height="64" />
   <texture filename="background_basetrade.png" />
  <!-- <texture filename="background_buildbase.png" /> doesn't currently work because of gamui layer limitations -->
   <texture filename="background_research.png" />
