@@ -242,7 +242,7 @@
   <texture filename="background_research.png" />
   <texture filename="background_units.png" />
   
-  <texture filename="title.png" />
+  <texture assetName="title" filename="xeno_feature_texture.png"/>
   <texture filename="commandBarV.png" />
   <texture filename="defeat.png" />
   <texture filename="victory.png" />
@@ -697,9 +697,10 @@
   <image filename="ALIN_48_TILE_00_DAY.png" />
   <image filename="ALIN_48_TILE_00_NGT.png" />
 
-  <texture assetName="helpImag0" filename="transparent_64_256.png" >
+<!--  <texture assetName="helpImage0" filename="transparent_64_256.png" >
     <blit filename="capTac0.bmp" sx="0" sy="0" sw="72" sh="402" tx="8" ty="0" tw="46" th="256" />
-  </texture>
+  </texture>-->
+  <texture filename="helpImage0.png" />
   <texture filename="helpImage1.png" />
   <texture filename="helpImage2.png" />
   <texture filename="helpImage3.png" width="128" height="128"/>
@@ -707,6 +708,10 @@
   <texture filename="helpImage5.png" width="128" height="128"/>
   <texture filename="helpImage6.png" width="64" height="256"/>
   <texture filename="helpImage7.png" />
+
+  <texture assetName="greenMug" filename="transparent_64_128.png" >
+    <blit filename="alienLineup.png" sx="7" sy="128" sw="120" sh="240" />
+  </texture>
 
   <text name="tacticalHelp" >
     <page>

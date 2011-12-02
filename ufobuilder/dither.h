@@ -28,7 +28,8 @@ enum {		// channels	bytes
 };
 
 
-void DitherTo16( const SDL_Surface* inSurface, int format, bool invert, U16* target );
+void DiffusionDitherTo16( const SDL_Surface* _surface, int format, bool invert, U16* target );
+void OrderedDitherTo16( const SDL_Surface* surface, int format, bool invert, U16* target );
 
 
 #endif  // UFO_ATTACK_DITHER_INCLUDED

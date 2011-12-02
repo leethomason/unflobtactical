@@ -717,7 +717,7 @@ SDL_Surface* CreateScaledSurface( int w, int h, SDL_Surface* surface )
 
 void BlitTexture( const TiXmlElement* element, SDL_Surface* target )
 {
-	int sx=0, sy=0, sw=0, sh=0, tx=0, ty=0, tw=0, th=0;
+	int sx=0, sy=0, sw=0, sh=0, tx=0, ty=0, tw=target->w, th=target->h;
 	element->QueryIntAttribute( "sx", &sx );
 	element->QueryIntAttribute( "sy", &sy );
 	element->QueryIntAttribute( "sw", &sw );
@@ -876,7 +876,7 @@ void ProcessTexture( TiXmlElement* texture )
 			else {
 				pixelBuffer16.resize( surface->w*surface->h );
 				pixelBuffer16.reserve( surface->w*surface->h );
-				DitherTo16( surface, RGBA16, true, &pixelBuffer16[0] );
+				OrderedDitherTo16( surface, RGBA16, true, &pixelBuffer16[0] );
 			}
 			InsertTextureToDB( assetName.c_str(), "RGBA16", isImage, isFont, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2 );
 			break;
@@ -903,7 +903,7 @@ void ProcessTexture( TiXmlElement* texture )
 			else {
 				pixelBuffer16.resize( surface->w*surface->h );
 				pixelBuffer16.reserve( surface->w*surface->h );
-				DitherTo16( surface, RGB16, true, &pixelBuffer16[0] );
+				OrderedDitherTo16( surface, RGB16, true, &pixelBuffer16[0] );
 			}
 			InsertTextureToDB( assetName.c_str(), "RGB16", isImage, isFont, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2 );
 			break;
@@ -1109,7 +1109,7 @@ int main( int argc, char* argv[] )
 			pixelBuffer16.reserve( surface->w*surface->h );
 
 			// 444
-			DitherTo16( surface, RGBA16, false, &pixelBuffer16[0] );
+			OrderedDitherTo16( surface, RGBA16, false, &pixelBuffer16[0] );
 			SDL_Surface* newSurf = SDL_CreateRGBSurfaceFrom(	&pixelBuffer16[0], surface->w, surface->h, 16, surface->w*2,
 																0xf000, 0x0f00, 0x00f0, 0 );
 			string out = inputDirectory + "Lenna4440.bmp";
@@ -1118,14 +1118,24 @@ int main( int argc, char* argv[] )
 			SDL_FreeSurface( newSurf );
 
 			// 565
-			DitherTo16( surface, RGB16, false, &pixelBuffer16[0] );
+			OrderedDitherTo16( surface, RGB16, false, &pixelBuffer16[0] );
 			newSurf = SDL_CreateRGBSurfaceFrom(	&pixelBuffer16[0], surface->w, surface->h, 16, surface->w*2,
 												0xf800, 0x07e0, 0x001f, 0 );
 			string out1 = inputDirectory + "Lenna565.bmp";
 			SDL_SaveBMP( newSurf, out1.c_str() );
 
-			SDL_FreeSurface( surface );
 			SDL_FreeSurface( newSurf );
+
+			// 565 Diffusion
+			DiffusionDitherTo16( surface, RGB16, false, &pixelBuffer16[0] );
+			newSurf = SDL_CreateRGBSurfaceFrom(	&pixelBuffer16[0], surface->w, surface->h, 16, surface->w*2,
+												0xf800, 0x07e0, 0x001f, 0 );
+			string out2 = inputDirectory + "Lenna565Diffuse.bmp";
+			SDL_SaveBMP( newSurf, out2.c_str() );
+
+			SDL_FreeSurface( newSurf );
+			
+			SDL_FreeSurface( surface );
 		}
 	}
 
