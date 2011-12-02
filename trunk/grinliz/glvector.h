@@ -78,8 +78,8 @@ struct Vector2
 		return vec;
 	}
 		
-	friend Vector2<T> operator*( Vector2<T> head, T scalar ) { Vector2<T> r = { head.x*scalar, head.y*scalar }; return r; }
-	friend Vector2<T> operator*( T scalar, Vector2<T> head ) { Vector2<T> r = { head.x*scalar, head.y*scalar }; return r; }
+	friend Vector2<T> operator*( const Vector2<T>& head, T scalar ) { Vector2<T> r = { head.x*scalar, head.y*scalar }; return r; }
+	friend Vector2<T> operator*( T scalar, const Vector2<T>& head ) { Vector2<T> r = { head.x*scalar, head.y*scalar }; return r; }
 
 	void operator+=( const Vector2<T>& vec )		{ Add( vec ); }
 	void operator-=( const Vector2<T>& vec )		{ Subtract( vec ); }
@@ -230,8 +230,8 @@ struct Vector3
 		return vec;
 	}
 	
-	friend Vector3<T> operator*( Vector3<T> head, T scalar ) { Vector3<T> r = head; r.Multiply( scalar ); return r; }
-	friend Vector3<T> operator*( T scalar, Vector3<T> head ) { Vector3<T> r = head; r.Multiply( scalar ); return r; }
+	friend Vector3<T> operator*( const Vector3<T>& head, T scalar ) { Vector3<T> r = head; r.Multiply( scalar ); return r; }
+	friend Vector3<T> operator*( T scalar, const Vector3<T>& head ) { Vector3<T> r = head; r.Multiply( scalar ); return r; }
 
 	Vector3<T> operator-() const {
 		Vector3<T> vec = { -x, -y, -z };
@@ -387,8 +387,8 @@ struct Vector4
 		return vec;
 	}
 	
-	friend Vector4<T> operator*( Vector4<T> head, T scalar ) { Vector4<T> r = head; r.Multiply( scalar ); return r; }
-	friend Vector4<T> operator*( T scalar, Vector4<T> head ) { Vector4<T> r = head; r.Multiply( scalar ); return r; }
+	friend Vector4<T> operator*( const Vector4<T>& head, T scalar ) { Vector4<T> r = head; r.Multiply( scalar ); return r; }
+	friend Vector4<T> operator*( T scalar, const Vector4<T>& head ) { Vector4<T> r = head; r.Multiply( scalar ); return r; }
 
 	Vector4<T> operator-() const {
 		Vector4<T> vec = { -x, -y, -z, -w };
