@@ -60,9 +60,10 @@ private:
 
 	ResearchSceneData*	data;
 	gamui::Image		background;
+	gamui::Image		researchImage;
 
-	Engine* localEngine;
-	Model*  model;
+//	Engine* localEngine;
+//	Model*  model;
 
 	enum {
 		MAX_OPTIONS = 3

@@ -140,8 +140,8 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		helpButton.SetSize( SIZE, SIZE );
 
 		nextTurnButton.Init( &gamui2D, green );
-		nextTurnButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ), 
-								UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );
+		nextTurnButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_TERRAN_TURN, true ), 
+								UIRenderer::CalcDecoAtom( DECO_TERRAN_TURN, false ) );
 		nextTurnButton.SetSize( SIZE, SIZE );
 
 		targetButton.Init( &gamui2D, red );

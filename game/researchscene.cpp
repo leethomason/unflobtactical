@@ -55,6 +55,11 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 	image.SetPos( 0, 0 );
 	image.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 
+	RenderAtom nullAtom;
+	researchImage.Init( &gamui2D, nullAtom, true );
+	researchImage.SetPos( image.X(), image.Y()+image.Height()+GAME_GUTTER );
+	researchImage.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F*2.0f );
+
 	for( int i=0; i<MAX_OPTIONS; ++i ) {
 		float y = port.UIHeight() - (SPACE+GAME_BUTTON_SIZE_F)*(float)(MAX_OPTIONS-i) + SPACE;
 
@@ -91,23 +96,23 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 	SetOptions();
 	SetDescription();
 
-	localEngine = new Engine( &game->screenport, game->GetDatabase() );
-	const ModelResource* resource = ModelResourceManager::Instance()->GetModelResource( "maleMarine" );
-	model = localEngine->GetSpaceTree()->AllocModel( resource );
-	localEngine->CameraLookAt( model->X(), model->Z(), 30 );
+//	localEngine = new Engine( &game->screenport, game->GetDatabase() );
+//	const ModelResource* resource = ModelResourceManager::Instance()->GetModelResource( "maleMarine" );
+//	model = localEngine->GetSpaceTree()->AllocModel( resource );
+//	localEngine->CameraLookAt( model->X(), model->Z(), 30 );
 }
 
 
 ResearchScene::~ResearchScene()
 {
-	localEngine->GetSpaceTree()->FreeModel( model );
-	delete localEngine;
+//	localEngine->GetSpaceTree()->FreeModel( model );
+//	delete localEngine;
 }
 
 
 void ResearchScene::Draw3D()
 {
-	localEngine->Draw();
+//	localEngine->Draw();
 }
 
 void ResearchScene::Tap( int action, const grinliz::Vector2F& screen, const grinliz::Ray& world )
@@ -151,6 +156,19 @@ void ResearchScene::SetDescription()
 		const Research::Task* task = r->Current();
 		title.SetText( task->name );
 		mainDescription.SetText( r->GetDescription( task ) );
+
+		GLString textureName( task->name );
+		textureName += "Research";
+		if ( TextureManager::Instance()->IsTexture( textureName.c_str() ) ) {
+
+			RenderAtom imageAtom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL,
+								  (const void*)TextureManager::Instance()->GetTexture( textureName.c_str() ), 0, 0, 1, 1 );
+			researchImage.SetAtom( imageAtom );
+		}
+		else {
+			RenderAtom nullAtom;
+			researchImage.SetAtom( nullAtom );
+		}
 	}
 	else {
 		title.SetText( "" );

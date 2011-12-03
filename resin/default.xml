@@ -242,7 +242,10 @@
   <texture filename="background_research.png" />
   <texture filename="background_units.png" />
   
+ <!--
   <texture assetName="title" filename="xeno_feature_texture.png"/>
+  -->
+  <texture filename="title.png" />
   <texture filename="commandBarV.png" />
   <texture filename="defeat.png" />
   <texture filename="victory.png" />
@@ -697,20 +700,73 @@
   <image filename="ALIN_48_TILE_00_DAY.png" />
   <image filename="ALIN_48_TILE_00_NGT.png" />
 
-<!--  <texture assetName="helpImage0" filename="transparent_64_256.png" >
+  <texture assetName="helpImage0" filename="transparent_64_256.png" >
     <blit filename="capTac0.bmp" sx="0" sy="0" sw="72" sh="402" tx="8" ty="0" tw="46" th="256" />
-  </texture>-->
-  <texture filename="helpImage0.png" />
-  <texture filename="helpImage1.png" />
-  <texture filename="helpImage2.png" />
-  <texture filename="helpImage3.png" width="128" height="128"/>
-  <texture filename="helpImage4.png" width="128" height="128"/>
-  <texture filename="helpImage5.png" width="128" height="128"/>
-  <texture filename="helpImage6.png" width="64" height="256"/>
-  <texture filename="helpImage7.png" />
+  </texture>
+  <texture assetName="helpImage1" filename="transparent_64_256.png" >
+    <blit filename="capTac0.bmp" sx="0" sy="404" sw="76" sh="76" 
+                                 tx="0" ty="0" tw="64" th="64" />
+    <blit filename="capTac0.bmp" sx="75" sy="404" sw="76" sh="76"
+                                 tx="0" ty="64" tw="64" th="64" />
+    <blit filename="capTac0.bmp" sx="649" sy="404" sw="76" sh="76"
+                                 tx="0" ty="128" tw="64" th="64" />
+    <blit filename="capTac0.bmp" sx="725" sy="404" sw="76" sh="76"
+                                 tx="0" ty="192" tw="64" th="64" />
+  </texture>
+  <texture assetName="helpImage2" filename="transparent_64_256.png" >
+    <blit filename="capTac0.bmp" sx="186" sy="57" sw="80" sh="320" />
+  </texture>
+  <texture assetName="helpImage3" filename="transparent_64_256.png" >
+    <blit filename="capTac1.bmp" sx="476" sy="9" sw="209" sh="418" 
+                                 tx="0" ty="0" tw="64" th="128"/>
+  </texture>
+  <texture assetName="helpImage4" filename="transparent_64_256.png" >
+    <blit filename="capTac1.bmp" sx="0" sy="0" sw="300" sh="364"
+                                 tx="0" ty="0" tw="64" th="78"/>
+  </texture>
+  <texture assetName="helpImage5" filename="transparent_64_256.png" >
+    <blit filename="capTac1.bmp" sx="438" sy="5" sw="360" sh="360"
+                                 tx="0" ty="0" tw="64" th="64"/>
+  </texture>
+  <texture assetName="helpImage6" filename="transparent_64_256.png" >
+    <blit filename="icons2.png" sx="0" sy="0" sw="64" sh="64"
+                                 tx="11" ty="0" tw="42" th="42"/>
+    <blit filename="icons2.png" sx="64" sy="0" sw="64" sh="64"
+                                 tx="11" ty="42" tw="42" th="42"/>
+    <blit filename="icons2.png" sx="128" sy="0" sw="64" sh="64"
+                                 tx="11" ty="84" tw="42" th="42"/>
+    <blit filename="icons2.png" sx="192" sy="0" sw="64" sh="64"
+                                 tx="11" ty="126" tw="42" th="42"/>
+    <blit filename="icons2.png" sx="0" sy="64" sw="64" sh="64"
+                                 tx="11" ty="168" tw="42" th="42"/>
+    <blit filename="icons2.png" sx="64" sy="64" sw="64" sh="64"
+                                 tx="11" ty="210" tw="42" th="42"/>
+  </texture>
+  <texture assetName="helpImage7" filename="transparent_64_256.png" >
+    <blit filename="capTac0.bmp" sx="724" sy="328" sw="77" sh="77"
+                                 tx="0" ty="0" tw="64" th="64"/>
+  </texture>
 
-  <texture assetName="greenMug" filename="transparent_64_128.png" >
+  <texture assetName="GreenResearch" filename="transparent_64_128.png" >
     <blit filename="alienLineup.png" sx="7" sy="128" sw="120" sh="240" />
+  </texture>
+  <texture assetName="PrimeResearch" filename="transparent_64_128.png" >
+    <blit filename="alienLineup.png" sx="123" sy="34" sw="120" sh="240" />
+  </texture>
+  <texture assetName="HornetResearch" filename="transparent_64_128.png" >
+    <blit filename="alienLineup.png" sx="277" sy="67" sw="120" sh="240" />
+  </texture>
+  <texture assetName="JackalResearch" filename="transparent_64_128.png" >
+    <blit filename="alienLineup.png" sx="407" sy="133" sw="120" sh="240" />
+  </texture>
+  <texture assetName="ViperResearch" filename="transparent_64_128.png" >
+    <blit filename="alienLineup.png" sx="560" sy="109" sw="120" sh="240" />
+  </texture>
+  <texture assetName="SquidResearch" filename="transparent_64_128.png" >
+    <blit filename="alienLineup.png" sx="697" sy="65" sw="120" sh="240" />
+  </texture>
+  <texture assetName="SpitterResearch" filename="transparent_64_128.png" >
+    <blit filename="alienLineup.png" sx="834" sy="80" sw="120" sh="240" />
   </texture>
 
   <text name="tacticalHelp" >

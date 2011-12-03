@@ -84,7 +84,14 @@ void TextureManager::Reload()
 
 /*static*/ TextureManager* TextureManager::instance = 0;
 
-	
+
+bool TextureManager::IsTexture( const char* name )
+{
+	const gamedb::Item* item = database->Root()->Child( "textures" )->Child( name );
+	return item != 0;
+}
+
+
 Texture* TextureManager::GetTexture( const char* name, bool reload )
 {
 	// First check for an existing texture, or one
