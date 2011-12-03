@@ -90,6 +90,7 @@ public:
 	void DeviceLoss();
 	void Reload();
 
+	bool IsTexture( const char* name );
 	Texture* GetTexture( const char* name, bool reload=false );
 	Texture* CreateTexture( const char* name, int w, int h, int format, 
 							Texture::Param parems = Texture::PARAM_NONE, 
