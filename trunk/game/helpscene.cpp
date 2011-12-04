@@ -130,7 +130,7 @@ void HelpScene::Layout()
 	textBox.SetSize( tw, th );
 
 	buttons[PREV_BUTTON].SetEnabled( currentScreen > 0 );
-	buttons[PREV_BUTTON].SetEnabled( currentScreen < nPages - 1 );
+	buttons[NEXT_BUTTON].SetEnabled( currentScreen < nPages - 1 );
 }
 
 

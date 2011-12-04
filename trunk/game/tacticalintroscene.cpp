@@ -76,7 +76,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	newGame.SetText( "New Game" );
 
 	newGameWarning.Init( &gamui2D );
-	newGameWarning.SetPos( newGeo.X()-15, newGeo.Y() + newGeo.Height() + 5 );
+	newGameWarning.SetPos( newGeo.X()-15, newGeo.Y() + newGeo.Height()+2 );
 	
 	if ( game->HasSaveFile( SAVEPATH_GEO, 0 ) ) {
 		newGeo.SetVisible( false );
