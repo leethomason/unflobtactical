@@ -36,8 +36,9 @@
         <required2 item="Jackl" />
       </Jackal>
       <Spitter points="20">
-        The exoskeletoned horror of the Spitter genetic relative of the Hornet. Fast, strong,
-        with a toxic spit implants the Crawler into unarmored victims.
+        The exoskeletoned horror of the Spitter is a genetic relative of the Hornet. Fast, strong,
+        with a toxic spit implants the Crawler into unarmored victims. Crawlers quickly transform
+        into more Spitters.
         <required0 research="Hornet" />
         <required1 item="Spit" />
       </Spitter>
@@ -242,10 +243,11 @@
   <texture filename="background_research.png" />
   <texture filename="background_units.png" />
   
- <!--
+
   <texture assetName="title" filename="xeno_feature_texture.png"/>
-  -->
+<!--
   <texture filename="title.png" />
+  -->
   <texture filename="commandBarV.png" />
   <texture filename="defeat.png" />
   <texture filename="victory.png" />
@@ -714,12 +716,13 @@
                                  tx="0" ty="192" tw="64" th="64" />
   </texture>
   <texture assetName="helpImage2" filename="transparent_64_256.png" >
-    <blit filename="capTac0.bmp" sx="186" sy="57" sw="80" sh="320" />
+    <blit filename="capTac0.bmp" sx="245" sy="30" sw="80" sh="320" />
   </texture>
   <texture assetName="helpImage3" filename="transparent_64_256.png" >
     <blit filename="capTac1.bmp" sx="476" sy="9" sw="209" sh="418" 
                                  tx="0" ty="0" tw="64" th="128"/>
   </texture>
+  <!-- 
   <texture assetName="helpImage4" filename="transparent_64_256.png" >
     <blit filename="capTac1.bmp" sx="0" sy="0" sw="300" sh="364"
                                  tx="0" ty="0" tw="64" th="78"/>
@@ -728,6 +731,7 @@
     <blit filename="capTac1.bmp" sx="438" sy="5" sw="360" sh="360"
                                  tx="0" ty="0" tw="64" th="64"/>
   </texture>
+  -->
   <texture assetName="helpImage6" filename="transparent_64_256.png" >
     <blit filename="icons2.png" sx="0" sy="0" sw="64" sh="64"
                                  tx="11" ty="0" tw="42" th="42"/>
@@ -921,15 +925,17 @@
          Higher tech levels indicate better weapons and armor. Below the name of the weapon is the rounds
 		 carried for that weapon. Some weapons use multiple types of ammo.</p>
     </page>
-    <page image="helpImage4">
+    <page>
       <p>[Inventory]</p>
+      <p>Left side of the screen.</p>
       <p>
         What the unit is carrying. The top row is in use: the currently worn armor and currently carried
         weapon. You can tap to drop an item, or drag to organize items.</p>
     </page>
 
-    <page image="helpImage5">
+    <page>
       <p>[Items on the Ground]</p>
+      <p>Right side of the screen.</p>
       <p>
        The row of tabs select Terran Weapons, Alien Weapons, Armor/Shields,
        and Miscellaneous items. Tap to select a group to view. Tap an item to pick it up.
@@ -1071,7 +1077,7 @@
       The "Sell All" toggle, when on, will sell all items in a slot with a single tap.</p>
       <p>Ammo clips refill after battle. (Which is reflected in their cost.) Tech-3 items
          can only be purchased from regions with the required traits.</p>
-      <p>You can hire soldiers and scientists by purchasing them in the region's Alien tab.</p>
+      <p>You can hire soldiers and scientists by purchasing them in the region's Armor tab.</p>
     </page>
   </text>
 
