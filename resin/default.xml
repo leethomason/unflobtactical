@@ -761,7 +761,7 @@
     <blit filename="alienLineup.png" sx="277" sy="67" sw="120" sh="240" />
   </texture>
   <texture assetName="JackalResearch" filename="transparent_64_128.png" >
-    <blit filename="alienLineup.png" sx="407" sy="133" sw="120" sh="240" />
+    <blit filename="alienLineup.png" sx="390" sy="27" sw="175" sh="350" />
   </texture>
   <texture assetName="ViperResearch" filename="transparent_64_128.png" >
     <blit filename="alienLineup.png" sx="560" sy="109" sw="120" sh="240" />
