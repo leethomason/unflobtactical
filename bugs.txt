@@ -1,4 +1,7 @@
 Bugs 
+
+- need slightly larger than unit plate model for UFO effects
+
 X more sophisticated psi ai. 
 X	- be aware civ vs. terran
 X	- use if below a certain % of known locations

@@ -131,26 +131,28 @@ void StorageWidget::SetButtons()
 		const WeaponItemDef* wid = itemDef->IsWeapon();
 		const ClipItemDef* cid = itemDef->IsClip();
 
-		// Terran weapons and clips.
-		if ( wid && !wid->IsAlien() )
-			group=0;
-		if ( cid && !cid->IsAlien() )
-			group=0;
+		/*
+		if ( wid ) group = wid->IsAlien() ? 1 : 0;
+		if ( cid ) group = cid->IsAlien() ? 1 : 2;
+		if ( itemDef->IsArmor() ) group = 0;
+		if ( itemDef->deco == DECO_SHIELD ) group = 2;
+		if ( 	StrEqual( itemDef->name, "Soldr" ) 
+			 || StrEqual( itemDef->name, "Sctst" ) ) 
+		{
+			group = 2;
+		}
+		*/
 
-		// alien weapons and clips
-		if ( wid && wid->IsAlien() )
-			group=1;
-		if ( cid && cid->IsAlien() )
-			group=1;
+		// Terran weapons and clips.
+		if ( wid ) group = wid->IsAlien() ? 1 : 0;
+		if ( cid ) group = cid->IsAlien() ? 1 : 0;
 
 		// armor, bonus rockets.
 		if ( itemDef->IsArmor() ) {
 			group=2;
-			//row = 0;
 		}
 		if ( itemDef->deco == DECO_SHIELD ) {
 			group=2;
-			//row = 1;
 		}
 		if (    StrEqual( itemDef->name, "Flare" ) 
 			 || StrEqual( itemDef->name, "Smoke" ) 
@@ -158,9 +160,7 @@ void StorageWidget::SetButtons()
 			 || StrEqual( itemDef->name, "Sctst" ) ) 
 		{
 			group = 2;
-			//row = 2;
 		}
-
 		itemsPerGroup[group] += storage->GetCount( itemDef );
 
 		if ( group==groupSelected ) {

@@ -219,8 +219,12 @@ void BaseTradeScene::Tap( int action, const grinliz::Vector2F& screen, const gri
 				if ( data->base->RemoveItem( itemDef, &item ) ) {
 					data->region.AddItem( item );
 				}
-				if ( !sellAll.Down() )
+				if (    !sellAll.Down() 
+					 || StrEqual( itemDef->name, "Soldr" )
+					 || StrEqual( itemDef->name, "Sctst" ) ) 
+				{
 					break;
+				}
 			}
 		}
 

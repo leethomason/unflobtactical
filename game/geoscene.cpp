@@ -999,7 +999,7 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			data->dayTime		= geoMap->GetDayTime( ufoChit->Pos().x );
 			data->alienRank		= rank;
 			data->storage		= baseChit->GetStorage();
-			chitBag.SetBattle( ufoChit->ID(), landerChit ? landerChit->ID() : 0, scenario );
+			chitBag.SetBattle( ufoChit, landerChit, scenario );
 			game->Save( 0, true, false );
 
 			game->PushScene( Game::BATTLE_SCENE, data );

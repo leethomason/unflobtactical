@@ -349,6 +349,7 @@
 
   <model filename="smallcrate.ac" />
   <model filename="unitplate.ac" />
+  <model filename="unitplateplus.ac" />
 
   <model filename="selection.ac" />
   
