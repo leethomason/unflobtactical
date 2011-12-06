@@ -1917,7 +1917,7 @@ void BattleScene::ProcessPsiAttack( Action* action )
 	colors[0] = Convert_4U8_4F( game->MainPaletteColor( 0, 2 ) );
 	colors[1] = Convert_4U8_4F( game->MainPaletteColor( 4, 3 ) );
 	colors[2] = Convert_4U8_4F( game->MainPaletteColor( 2, 2 ) );
-	Color4F colorVelocity = { 0, 0, 0, -0.5f };
+	Color4F colorVelocity = { 0, 0, 0, -0.4f };
 	Vector3F velocity = { 0, 0, 0 };
 
 	Vector3F pos = targetUnit->Pos();

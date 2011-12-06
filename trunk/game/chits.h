@@ -141,7 +141,7 @@ public:
 
 	void SetDestroyed()					{ destroyed = true; }
 	bool IsDestroyed()					{ return destroyed; }
-	int ID()							{ return id; }
+	int ID() const						{ return id; }
 	Chit* Next()						{ return next; }
 
 	virtual void Save( FILE* fp, int depth );
@@ -425,7 +425,7 @@ public:
 	CargoChit*	GetCargoComingFrom( int type, const grinliz::Vector2I& from );
 	Chit*		GetParkedChitAt( const grinliz::Vector2I& pos ) const;
 
-	void SetBattle( int ufoID, int landerID, int scenario )	{ this->battleUFOID = ufoID; this->battleLanderID = landerID; this->battleScenario = scenario; }
+	void SetBattle( const UFOChit* ufo, const CargoChit* lander, int scenario );	
 	UFOChit*	GetBattleUFO()					{ Chit* chit = GetChit( battleUFOID ); return (chit) ? chit->IsUFOChit() : 0; }
 	CargoChit*	GetBattleLander()				{ Chit* chit = GetChit( battleLanderID ); return (chit) ? chit->IsCargoChit() : 0; }
 	UFOChit*	GetUFOBase();

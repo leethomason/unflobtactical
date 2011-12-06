@@ -272,7 +272,7 @@ void UFOChit::Decal( U32 timer, float speed, int id )
 {
 	if ( !decal[0] ) {
 		for( int i=0; i<2; ++i ) {
-			decal[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "unitplate" ) );
+			decal[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "unitplateplus" ) );
 
 			gamui::RenderAtom atom = UIRenderer::CalcIcon2Atom( id, true );
 			decal[i]->SetTexture( (Texture*)atom.textureHandle );
@@ -1088,6 +1088,15 @@ int	ChitBag::NumBaseChits()
 			++count;
 	}
 	return count;
+}
+
+
+void ChitBag::SetBattle( const UFOChit* ufo, const CargoChit* lander, int scenario )	
+{ 
+	this->battleUFOID = ufo->ID(); 
+	GLASSERT( lander || (scenario == TacticalIntroScene::TERRAN_BASE ) );
+	this->battleLanderID = lander ? lander->ID() : 0; 
+	this->battleScenario = scenario; 
 }
 
 
