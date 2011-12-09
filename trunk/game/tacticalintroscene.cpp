@@ -473,20 +473,28 @@ void TacticalIntroScene::Tap(	int action,
 	fprintf( fp, "\n" );
 
 	BattleData battleData( itemDefArr );
-	battleData.dayTime = data->dayTime;
-	battleData.scenario = data->scenario;
+	battleData.SetDayTime( data->dayTime );
+	battleData.SetScenario( data->scenario );
 
 	// Terran soldier units.
 	//memcpy( &battleData.units[TERRAN_UNITS_START], data->soldierUnits, sizeof(Unit)*MAX_TERRANS );
 	for( int i=0; i<MAX_TERRANS; ++i ) {
-		battleData.units[TERRAN_UNITS_START+i] = data->soldierUnits[i];
+		battleData.CopyUnit( TERRAN_UNITS_START+i, data->soldierUnits[i] );
 	}
 
 	// Alien units
-	GenerateAlienTeamUpper( data->scenario, data->crash, data->alienRank, &battleData.units[ALIEN_UNITS_START], itemDefArr, random.Rand() );
+	GenerateAlienTeamUpper( data->scenario, 
+							data->crash, 
+							data->alienRank, 
+							battleData.AlienPtr(), 
+							itemDefArr, 
+							random.Rand() );
 
 	// Civ team
-	GenerateCivTeam( &battleData.units[CIV_UNITS_START], info.nCivs, itemDefArr, random.Rand() );
+	GenerateCivTeam( battleData.CivPtr(), 
+					 info.nCivs, 
+					 itemDefArr, 
+					 random.Rand() );
 
 	battleData.Save( fp, 1 );
 	XMLUtil::CloseElement( fp, 1, "BattleScene" );

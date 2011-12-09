@@ -1087,16 +1087,16 @@ void GeoScene::SceneResult( int sceneID, int result )
 			// manipulation below will do nothing.)
 
 			int result = game->battleData.CalcResult();
-			if ( game->battleData.scenario == TacticalIntroScene::TERRAN_BASE ) {
+			if ( game->battleData.GetScenario() == TacticalIntroScene::TERRAN_BASE ) {
 				if ( result == BattleData::TIE )
 					result = BattleData::DEFEAT;	// can't tie on base attack
 			}
-			Unit* battleUnits = game->battleData.units;
+			Unit* battleUnits = game->battleData.UnitsPtr();
 
 			// Inform the research system of found items.
 			for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
-				const ItemDef* itemDef = game->battleData.storage.GetItemDef(i);
-				if ( itemDef && game->battleData.storage.GetCount( i )) {
+				const ItemDef* itemDef = game->battleData.GetStorage().GetItemDef(i);
+				if ( itemDef && game->battleData.GetStorage().GetCount( i )) {
 					research.SetItemAcquired( itemDef->name );
 				}
 			}
@@ -1107,6 +1107,10 @@ void GeoScene::SceneResult( int sceneID, int result )
 					battleUnits[i].DoMissionEnd();
 					battleUnits[i].Heal();
 					battleUnits[i].GetInventory()->RestoreClips();
+
+					/* This code use to essentially restore used clips, which 
+					   is now fixed by not destroying clips. This code echoes
+					   some bug reports and is of dubious value.
 
 					// Try to restore items to downed units, by comparing
 					// old inventory to new inventory
@@ -1123,6 +1127,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 							}
 						}
 					}
+					*/
 				}
 			}
 
@@ -1143,12 +1148,12 @@ void GeoScene::SceneResult( int sceneID, int result )
 			}
 
 
-			int nCivsAlive = Unit::Count( &game->battleData.units[CIV_UNITS_START], MAX_CIVS, Unit::STATUS_ALIVE );
-			int nCivsDead  = Unit::Count( &game->battleData.units[CIV_UNITS_START], MAX_CIVS, Unit::STATUS_KIA );
+			int nCivsAlive = Unit::Count( game->battleData.Units(CIV_UNITS_START), MAX_CIVS, Unit::STATUS_ALIVE );
+			int nCivsDead  = Unit::Count( game->battleData.Units(CIV_UNITS_START), MAX_CIVS, Unit::STATUS_KIA );
 
 			if ( result == BattleData::VICTORY ) {
 				// Apply penalty for lost civs:
-				if ( game->battleData.scenario == TacticalIntroScene::CITY ) {
+				if ( game->battleData.GetScenario() == TacticalIntroScene::CITY ) {
 					int	region = geoMapData.GetRegion( baseChit->MapPos().x, baseChit->MapPos().y );
 					if ( (nCivsAlive+nCivsDead) > 0 && region >= 0 ) {
 						float ratio = 1.0f - (float)nCivsAlive / (float)(nCivsAlive+nCivsDead);
@@ -1200,8 +1205,8 @@ void GeoScene::SceneResult( int sceneID, int result )
 			memset( battleUnits, 0, sizeof(Unit)*MAX_UNITS );
 
 			// Merge storage
-			baseChit->GetStorage()->AddStorage( game->battleData.storage );
-			game->battleData.storage.Clear();
+			baseChit->GetStorage()->AddStorage( game->battleData.GetStorage() );
+			game->battleData.ClearStorage();
 
 			// If the tech isn't high enough, can't use cells and anti. Makes sure
 			// to clear from the base storage to filter out picked up weapons.
@@ -1215,7 +1220,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 				}
 			}
 
-			if ( game->battleData.scenario == TacticalIntroScene::TERRAN_BASE ) {
+			if ( game->battleData.GetScenario() == TacticalIntroScene::TERRAN_BASE ) {
 				baseChit->SetNumScientists( nCivsAlive );
 			}
 		}

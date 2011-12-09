@@ -48,6 +48,7 @@ void Inventory::UseClipRound( const ClipItemDef* cid )
 			 && slots[i].Rounds() > 0 ) 
 		{
 			slots[i].UseRounds( 1 );
+			// clips replenish - don't destroy empties.
 //			if ( slots[i].Rounds() == 0 ) {
 //				// clip is consumed.
 //				slots[i].Clear();

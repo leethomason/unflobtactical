@@ -213,6 +213,9 @@
     <ClCompile Include="game\firewidget.cpp">
       <Filter>widgets</Filter>
     </ClCompile>
+    <ClCompile Include="game\battledata.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game\ai.h">
@@ -412,6 +415,9 @@
     </ClInclude>
     <ClInclude Include="game\firewidget.h">
       <Filter>widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="game\battledata.h">
+      <Filter>game</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
