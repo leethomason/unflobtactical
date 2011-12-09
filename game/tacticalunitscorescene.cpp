@@ -40,7 +40,7 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game ) : Scene( _game )
 	static const float xPosAward	= xPosStatus+100.0f;
 	static const float size = 20.0f;
 	static const float yStep = 35.0f;
-	const Unit* soldiers = &game->battleData.units[TERRAN_UNITS_START];
+	const Unit* soldiers = game->battleData.Units( TERRAN_UNITS_START );
 
 	for( int i=0; i<MAX_TERRANS; ++i ) {
 		if ( soldiers[i].InUse() ) {

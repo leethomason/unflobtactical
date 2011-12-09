@@ -51,7 +51,7 @@ using namespace gamui;
 
 BattleScene::BattleScene( Game* game ) : Scene( game )
 {
-	units = game->battleData.units;
+	units = game->battleData.UnitsPtr();
 	subTurnCount = 0;
 	turnCount = 0;
 	isDragging = false;
@@ -519,7 +519,7 @@ void BattleScene::Load( const TiXmlElement* battleElement )
 	tacMap->Load( battleElement->FirstChildElement( "Map") );
 
 	game->battleData.Load( battleElement );
-	tacMap->SetDayTime( game->battleData.dayTime );
+	tacMap->SetDayTime( game->battleData.GetDayTime() );
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if ( units[i].InUse() )
@@ -900,31 +900,31 @@ void BattleScene::PushEndScene()
 	battleEnding = true;
 	// Note that the end scene can get pushed multiple times in a save/load
 	// cycle. It's important to not do anything that can "accumulate".
-	game->battleData.storage.Clear();
+	game->battleData.ClearStorage();
 	Storage* collect = tacMap->CollectAllStorage();
 	if ( collect && game->battleData.CalcResult() == BattleData::VICTORY ) {
-		game->battleData.storage.AddStorage( *collect );
-		game->battleData.storage.SetFullRounds();
+		game->battleData.StoragePtr()->AddStorage( *collect );
+		game->battleData.StoragePtr()->SetFullRounds();
 
 		// Remembering the accumulation problem: this is okay, because the
 		// battle storage was just cleared. Storage hasn't been committed
 		// back to the base yet.
 
 		// Award UFO stuff
-		if ( TacticalIntroScene::IsScoutScenario( game->battleData.scenario ) ) {
-			game->battleData.storage.AddItem( "Cor:S" );
+		if ( TacticalIntroScene::IsScoutScenario( game->battleData.GetScenario() ) ) {
+			game->battleData.StoragePtr()->AddItem( "Cor:S" );
 		}
-		else if ( TacticalIntroScene::IsFrigateScenario( game->battleData.scenario ) ) {
-			game->battleData.storage.AddItem( "Cor:F" );
+		else if ( TacticalIntroScene::IsFrigateScenario( game->battleData.GetScenario() ) ) {
+			game->battleData.StoragePtr()->AddItem( "Cor:F" );
 		}
-		else if ( game->battleData.scenario == TacticalIntroScene::BATTLESHIP ) {
-			game->battleData.storage.AddItem( "Cor:B" );
+		else if ( game->battleData.GetScenario() == TacticalIntroScene::BATTLESHIP ) {
+			game->battleData.StoragePtr()->AddItem( "Cor:B" );
 		}
 
 		// Alien corpses:
 		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
 			if ( units[i].InUse() ) {
-				game->battleData.storage.AddItem( units[i].AlienShortName() );
+				game->battleData.StoragePtr()->AddItem( units[i].AlienShortName() );
 			}
 		}
 	}
@@ -934,7 +934,7 @@ void BattleScene::PushEndScene()
 		static const char* remove[2] = { "Cell", "Anti" };
 		for( int i=0; i<2; ++i ) {
 			if ( research->GetStatus( remove[i] ) != Research::TECH_RESEARCH_COMPLETE ) {
-				game->battleData.storage.ClearItem( remove[i] );
+				game->battleData.StoragePtr()->ClearItem( remove[i] );
 			}
 		}
 	}

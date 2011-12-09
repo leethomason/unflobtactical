@@ -50,9 +50,9 @@ TacticalEndScene::TacticalEndScene( Game* _game ) : Scene( _game )
 	float yPos = GAME_GUTTER;
 
 	victory.Init( &gamui2D );
-	const Unit* soldiers = &game->battleData.units[TERRAN_UNITS_START];
-	const Unit* aliens = &game->battleData.units[ALIEN_UNITS_START];
-	const Unit* civs = &game->battleData.units[CIV_UNITS_START];
+	const Unit* soldiers = game->battleData.Units( TERRAN_UNITS_START );
+	const Unit* aliens =   game->battleData.Units( ALIEN_UNITS_START );
+	const Unit* civs =     game->battleData.Units( CIV_UNITS_START );
 
 	int nSoldiers = Unit::Count( soldiers, MAX_TERRANS, -1 );
 	int nSoldiersStanding = Unit::Count( soldiers, MAX_TERRANS, Unit::STATUS_ALIVE );
@@ -71,7 +71,7 @@ TacticalEndScene::TacticalEndScene( Game* _game ) : Scene( _game )
 		victory.SetText( "Victory!" );
 	}
 	else if ( nSoldiersStanding==0 ) {
-		if ( game->battleData.scenario == TacticalIntroScene::TERRAN_BASE ) {
+		if ( game->battleData.GetScenario() == TacticalIntroScene::TERRAN_BASE ) {
 			victory.SetText( "Base Destroyed." );
 		}
 		else {
@@ -109,7 +109,7 @@ TacticalEndScene::TacticalEndScene( Game* _game ) : Scene( _game )
 			score[1] += aliens[i].GetStats().ScoreLevel();
 		}
 	}
-	if ( !game->battleData.dayTime ) {
+	if ( !game->battleData.GetDayTime() ) {
 		// 50% bonus for night.
 		score[1] = score[1]*3/2;
 	}
@@ -153,11 +153,11 @@ TacticalEndScene::TacticalEndScene( Game* _game ) : Scene( _game )
 			if ( !itemDef )
 				continue;
 
-			if ( game->battleData.storage.GetCount(i) ) {
+			if ( game->battleData.GetStorage().GetCount(i) ) {
 				char buf[30];
 				const char* display = itemDef->displayName.c_str();
 
-				int count =  game->battleData.storage.GetCount(i);
+				int count =  game->battleData.GetStorage().GetCount(i);
 				SNPrintf( buf, 30, "%s +%d", display, count );
 
 				items[row].Init( &gamui2D );

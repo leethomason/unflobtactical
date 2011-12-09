@@ -123,6 +123,7 @@
     <ClCompile Include="game\ai.cpp" />
     <ClCompile Include="game\areaWidget.cpp" />
     <ClCompile Include="game\basetradescene.cpp" />
+    <ClCompile Include="game\battledata.cpp" />
     <ClCompile Include="game\battlescene.cpp" />
     <ClCompile Include="game\battlevisibility.cpp" />
     <ClCompile Include="game\buildbasescene.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="game\ai.h" />
     <ClInclude Include="game\areaWidget.h" />
     <ClInclude Include="game\basetradescene.h" />
+    <ClInclude Include="game\battledata.h" />
     <ClInclude Include="game\battlescene.h" />
     <ClInclude Include="game\battlescenedata.h" />
     <ClInclude Include="game\battlevisibility.h" />
