@@ -18,6 +18,7 @@ sources :=  ai.cpp \
 			firewidget.cpp \
 			storageWidget.cpp \
 			basetradescene.cpp \
+			battledata.cpp \
 			battlescene.cpp \
 			battlevisibility.cpp \
 			buildbasescene.cpp \

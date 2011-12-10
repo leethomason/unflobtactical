@@ -40,6 +40,8 @@ Release v2.6
 New aliens! Improved graphics! Flares and smoke! 2.6 is a big upgrade to the game,
 with bug fixes thrown in as well.
 
+Special thanks to Johan Forsberg for the icon graphics.
+
 - Researching alien corpses now shows you a picture of the alien.
 - New title screen.
 - Updated help images.
@@ -49,13 +51,15 @@ with bug fixes thrown in as well.
 - Added new background images.
 - Fixed the alien AI to detect weapon blasts.
 - Fixed some (scary) save/load bugs.
+- Can no longer "sell all" soldiers and scientists
+
 
 Release v2.5
 
 Improved text quality, additional save game support, and many bug fixes.
 
 - Save game support.
-- Higher quality text rendering. Text should look crisper across all screen.
+- Higher quality text rendering. Text should look crisper across all screens.
 - Support for font modding.
 - Hired soldiers sell/fire for much less money. Fixes expoit.
 - Aliens should now calculate line of site correctly and not blast walls repeatedly
@@ -65,7 +69,7 @@ Improved text quality, additional save game support, and many bug fixes.
   when an enemy has already been spotted by a teammate.
 - New battleship model.
 - Builder.exe is now hardened somewhat against bad inputs, and gives more errors. Particuarly will now detect correct texture sizes.
-- Map objects that are destroyed no longer obscure vision. (Blocking items workes; obscuring items did not.)
+- Map objects that are destroyed no longer obscure vision. (Blocking items works; obscuring items did not.)
 
 
 Release v2.4 b691 Android / Windows
