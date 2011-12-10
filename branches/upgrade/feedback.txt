@@ -1,0 +1,37 @@
+[Cherie build 231]
+- Need phat loot (should dead aliens just become stuff?)
+- Tap accuracy. Scoots around. Be more forgiving?
+- [done] sScroll jumping bug
+- "shades of green" on the movement dots.
+- Lee: Alien HP too high / damage too low
+- Next turn indicator
+- Lee: Rewards for exploring? Edge of map is...nothing.
+- Aliens come back to life! Or at least look that way.
+- [done] Move should be faster.
+- Doesn't alway go where wanted. Touch doesn't do anything. (More forgiving? Go to "feet move" model?)
+- Pinching doesn't feel right
+- [done] Lee: 30fps frame limit on the iPod
+- [done] only pause on first alien spotted
+
+[Jeff Build 230-ish]
+- [done-removed for now] Confused by Next vs. Next Done
+- [done] Time unit: confused by running
+- Move dots were very clear
+- Did not read any instructions
+- Couldn't figure out crosshair: UI wasn't clear
+- Tap troubles. Didn't think to zoom in.
+- Terran weapons inaccurate
+- [Lee] Needs tutorial mode
+- [done - went 360] shadows chasing behind is weird - gray for stuff that has been seen before
+- touch interface frustrating - large percentage doesn't work. Moves on you. [lee]Increase the "selection" area? Scroll also selects? Tap-move selects
+- [done] Too many shooting options - 6 is too many
+
+Main feedbacks:
+- too hard to select people, disable "screen twitching"
+- [done] too many shooting options
+- [done] 3 buttons: Snap, Aimed, B-feature (Fast/Good/Blow Up)
+
+Further idea:
+- no changing numbers: HP, TU, Armor to interface
+- [done] see in 360: fixes the "chasing darkness", simpler, gets rotation out
+- [done] arrows to all targets all the time

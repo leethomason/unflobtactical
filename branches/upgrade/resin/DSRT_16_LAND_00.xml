@@ -1,0 +1,22 @@
+<Map sizeX="16" sizeY="16" >
+    <Items >
+        <Item x="12" y="14" name="tree4" />
+        <Item x="11" y="15" rot="1" name="tree4" />
+        <Item x="2" y="13" name="cactus2" />
+        <Item x="3" y="14" rot="1" name="cactus2" />
+        <Item x="14" y="9" name="cactus0" />
+        <Item x="15" y="8" name="cactus0" />
+        <Item x="11" y="4" name="tree4" />
+        <Item x="10" y="3" name="tree4" />
+        <Item x="5" y="3" name="cactus0" />
+        <Item x="4" y="2" rot="1" name="tree4" />
+        <Item x="3" y="11" rot="1" name="lander" />
+    </Items>
+    <Images >
+        <Image x="0" y="0" size="16" tileRotation="0" name="DSRT_16_LAND_00" />
+    </Images>
+    <GroundDebris >
+    </GroundDebris>
+    <PyroGroup >
+    </PyroGroup>
+</Map>

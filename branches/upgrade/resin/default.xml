@@ -1,0 +1,1373 @@
+<resource>
+  <!-- This reflects XML into a database.
+       GameDB doesn't allow duplicate elements. The formatting is
+       strange for XML, but good for the database.
+   -->
+  <tree>
+    <research>
+      <!-- Arrival starts the plot. -->
+      <Arrival points="10">
+        We have long watched the aliens. Listened to the occasional strange digital chatter. A long frozen alien corpse sits in the deepest levels of a North facility. 
+        But the situation is changing - the chatter is common now and deep space scanners are lighting up.
+      </Arrival>
+      
+      <!-- Alien genetics / reason to be here plotline -->
+      <Green points="20">
+        The same kind of creature is in the vaults from 70 years ago. Compared to humans the Green is physically weak but mentally well developed. 
+        Eyesight is more adapted to darkness than ours. Genetics are similar; we are studying the alien DNA.
+        <required0 item="Green" />
+      </Green>
+      <Hornet points="30">
+        The Hornet is a fast, mobile alien assault troop. Its exoskeleton is strangely well suited to the rigors of modern battle and may be capable of 
+        briefly surviving vacuum. Genetically the Hornet shows some similarity to the Green, but has unique DNA structures as well.
+        <required0 research="Green" />
+        <required1 item="Hrnet" />
+      </Hornet>
+      <Viper points="30">
+        The Viper is a heavy alien assault troop with significant natural armor. The Viper is a genetic blend of the main alien DNA with creatures of 
+        radically different genetics, possibly from yet another world.
+        <required0 research="Green" />
+        <required2 item="Viper" />
+      </Viper>
+      <Jackal points="40">
+        The Jackal is a cyborg: robotics melded to an alien creature. The Jackal is a heavy weapons platform with integrated targeting systems. 
+        The creature - whatever it is and wherever it is from - is genetically distinct from all the other aliens.
+        <required0 research="Green" />
+        <required2 item="Jackl" />
+      </Jackal>
+      <Spitter points="20">
+        The exoskeletoned horror of the Spitter is a genetic relative of the Hornet. Fast, strong,
+        with a toxic spit implants the Crawler into unarmored victims. Crawlers quickly transform
+        into more Spitters.
+        <required0 research="Hornet" />
+        <required1 item="Spit" />
+      </Spitter>
+      <Squid points="40">
+        The tentacled Squid is a greater variant of the Green. Unusual brain structures
+        confirm field reports of psi powers that allow a Squid to see an
+        entire team through one mind.
+        <required0 research="Green" />
+        <required1 item="Squid" />
+      </Squid>
+      <Prime points="60">
+        The Prime is a greater variant of the Green, and statuary indicates a ruling class. Given the genetic splicing we see among the alien types, 
+        we must conclude that the Prime are conquering and integrating races of the galaxy...and have now come to Earth.
+        <required0 item="Prime" />
+        <required1 research="Green" />
+        <required2 research="Hornet" />
+        <required3 research="Viper" />
+      </Prime>
+
+      <!-- UFOs and Alien Base Plotline -->
+      <UFOs points="40" >
+        We have detected 3 classes of UFOs. From smallest to largest we refer to them as the Scout, Frigate, and Battleship. 
+        Note that the Battleship never actually lands; we will need to develop technology to infiltrate them.
+        <required0 research="Arrival" />
+      </UFOs>
+      <!-- Note this is a good text length. Maybe one more line. -->
+      <AlienCores points="40">
+        We have retrieved an alien computer core. It is strange and adaptive, and much of its purpose is inscrutable. 
+        But by connecting it to alien components and our own sensors, we are beginning to get new information on the alien agenda.
+        <required0 item="Cor:S" />
+      </AlienCores>
+      <!-- longest text that fits. -->
+      <Scout points="40">
+        The Scout is a small ship undoubtedly responsible for many alien abductions and sightings in the past. Why they leave crop circles as a part of their 
+        abduction/scanning missions is a mystery. They carry a small crew and easily fall to missile attack.
+        <required0 research="AlienCores" />
+      </Scout>
+      <AlienTech points="40">
+        Alien weapons show tech classes we've designated T1, T2, and T3. Perhaps weapon tech 
+        reflects rank, status, or manufacturing capacity? 
+        The cells used to power the weapons are unstable during transport. 
+        We can take the guns, but not the clips.
+        <required0 research="AlienCores" />
+      </AlienTech>
+      <Cell points="60">
+        The power Cell is the primary power source for alien weapons. We have researched techniques to field stabilize the alien cells so they 
+        can be returned to the base. We can also re-charge the cells at the base.
+        <required0 item="Cor:S" />
+        <required1 research="Hornet" />
+      </Cell>
+      <Anti points="80">
+        The anti matter cell is a short mega power burst for alien weapons. We can now apply the Cell techniques to field stabilize 
+        the anti matter clips and transport them. We can also re-charge the anti matter cells at the base.
+        <required0 item="Cor:F" />
+        <required1 research="Viper" />
+        <required2 research="Cell" />
+      </Anti>
+      <Frigate points="40">
+        The Frigate is a medium ship that carries about 12 units, suited for both crop circle missions and city attack. 
+        The frigate computer core has a much more sophisticated navigation and communication abilities than the Scout.
+        <required0 research="AlienTech" />
+        <required1 research="Scout" />
+        <required2 item="Cor:F" />
+      </Frigate>
+      <BattleshipAttack points="80">
+        The Frigate core can authenticate with the Battleships. This will allow us to dock with the hovering Battleship and attack them.  
+        It is a very risky mission to attack a Battleship, but we now have the capacity.
+        <required0 research="AlienTech" />
+        <required1 research="Scout" />
+        <required2 item="Cor:F" />
+      </BattleshipAttack>
+      <Battleship points="120">
+        Well named, a fully capable alien vessel with massive firepower, including a main gun for city control or base destruction. 
+        Intriguing however is that the navigation system is based on a homing technology. There must be a beacon, here on Earth!
+        <required0 item="Cor:B" />
+      </Battleship>
+      <Beacon points="200">
+        The beacon has been located. Without the ability to effectively navigate over deep space, the alien threat will be highly compromised. 
+        This is our opportunity, but we feel confident that the beacon is very heavily guarded. Be prepared.
+        <required0 research="Battleship" />
+        <required1 research="Prime" />
+      </Beacon>
+
+      <!-- Items -->
+      <ASLT-2 points="40">
+        The versatile ASLT has been improved based on analysis of alien Ray Guns. ASLT-2 Gecko is a lighter, more accurate, and more powerful weapon than its predecessor.
+        <required1 item="RAY-2" />  <!-- was PLS, but PLS is hard to get w/o destroyer. And destroyer hard to get without ALST-2 -->
+      </ASLT-2>      
+      <ASLT-3 points="60">
+        The ASLT-3 Pulse Rifle is a hybrid of Terran and alien technology. It is a very
+        effective all purpose weapon for wiping out the alien scourge.
+        <required0 research="Hornet" />
+        <required1 research="ASLT-2" />
+        <required2 item="PLS-2" />
+      </ASLT-3>
+
+      <LR-2 points="40">
+        The study of alien weapons has allowed to improve the range and punch of
+        the Long Range rifle and upgrade to the LR-2 Marksman.
+        <required0 item="RAY-1" />
+      </LR-2>
+      <LR-3 points="60">
+        Based on alien stabilization technology, the Callahan LR-3 does high damage and
+        is extremely accurate.
+        <required0 research="Hornet" />
+        <required1 research="LR-2" />
+        <required2 item="RAY-2" />
+      </LR-3>
+
+      <MCAN-2 points="40">
+        Study of the alien Storm-1 has allowed us to improve the effectiveness of our 
+        heavy weapon platform. We present the MCAN-2 Valiant.
+        <required0 item="STRM-1" />
+      </MCAN-2>
+      <MCAN-3 points="60">
+        Study of the alien Storm-3 and Jackal's targeting system has allowed us to 
+        develop a devastating yet portable weapon platform called the MCAN-3 Dauntless.
+        <required0 research="MCAN-2" />
+        <required1 item="STRM-2" />
+        <required2 research="Jackal" />
+      </MCAN-3>
+
+      <SG:K points="40">
+        Shield Generators are based on alien field technology. They enhance
+        armor. The SG:K protects against kinetic (mass driver) weapons.
+        <required0 item="Cor:S" />
+        <required1 research="Viper" />
+      </SG:K>
+      <SG:I points="80">
+        Shield Generators are based on alien field technology. They enhance
+        armor. The SG:I protects against incendiary weapons.
+        <required0 research="SG:K" />
+        <required1 research="Hornet" />
+      </SG:I>
+      <SG:E points="80">
+        Shield Generators are based on alien field technology. They enhance
+        armor. The SG:E protects against energy weapons.
+        <required0 research="SG:K" />
+        <required1 research="Prime" />
+      </SG:E>
+      <SG:P points="40">
+        The SG:P is
+        a high tech tin foil hat, offering substantial protection against
+        alien psi scanning.
+        <required0 research="SG:K" />
+        <required1 research="Squid" />
+      </SG:P>
+
+      <ARM-2 points="40">
+        We have improved the strength of standard combat armor, with the
+        same weight and mobility.
+        <required0 research="LR-2" />
+      </ARM-2>
+      <ARM-3 points="80">
+        Based on alien memory alloy technology, the ARM-3 is very good
+        protection for field engagements.
+        <required0 research="ARM-2" />
+        <required1 research="Viper" />
+      </ARM-3>
+      
+    </research>
+  </tree>
+  
+  <!-- Icon and UI -->
+  <texture filename="icons.png" dither="false"/>
+  <texture filename="icons2.png" dither="false"/>
+  <texture filename="iconDeco.png" dither="false" />
+
+  <!-- Model textures -->
+	<!--<texture filename="stdfont2.tga" dither="false" font="true"/>-->
+	<texture filename="woodDark.png" />
+	<texture filename="woodDarkUFO.tga" />
+  <texture filename="woodPlank.png" />
+  <texture filename="woodPlankD.png" />
+  <texture filename="palette.png" />
+  <texture filename="charSwatch.png" width="128" height="8" />
+  <texture filename="characters.png" />
+  <texture filename="ufoInner.png" width="64" height="64"/>
+	<texture filename="ufoOuter.png" width="16" height="64"/>
+  <texture filename="treetextures.png" />
+  <texture filename="atlas0.png" />
+  <texture filename="atlas1.png" width="32" height="128" />
+  <texture filename="atlas2.png" />
+  <texture filename="atlas3.png" width="256" height="512" />
+  <texture filename="translucent.png" />
+  <texture filename="clips.png" />
+  <texture filename="stonewall.png" width="64" height="64" />
+  <texture filename="hay.png" width="64" height="64" />
+  <texture filename="whitepicketfence.png" width="64" height="64" />
+  <texture filename="temple.png" width="64" height="64" />"
+  <texture filename="desert.png" />
+  <texture filename="counter_side.png" />
+  <texture filename="shelf_can_side_0.png" width="32" height="32" />
+  <texture filename="shelf_can_top_0.png" width="32" height="32" />
+  <texture filename="base.png" width="64" height="64" />
+  <texture filename="basewall.png" />
+
+  <!-- UI elements -->
+  <texture filename="intro.png" width="64" height="64" />
+  <texture filename="background_basetrade.png" />
+ <!-- <texture filename="background_buildbase.png" /> doesn't currently work because of gamui layer limitations -->
+  <texture filename="background_research.png" />
+  <texture filename="background_units.png" />
+  
+
+  <texture assetName="title" filename="xeno_feature_texture.png"/>
+<!--
+  <texture filename="title.png" />
+  -->
+  <texture filename="commandBarV.png" />
+  <texture filename="defeat.png" />
+  <texture filename="victory.png" />
+
+  <texture filename="geomap.png" width="512" height="256"/>
+  <texture filename="cropcircle.png" width="64" height="64" />
+  <texture filename="basemap.png" />
+
+  <palette assetName="mainPalette" filename="palette.png" dx="12" dy="6" sx="0.5" sy="0.5" />
+  <!-- y: male hair, male skin, female hair, female skin -->
+  <palette assetName="characterPalette" filename="characters.png" dx="16" dy="4" sx="0.5" />
+
+  <!-- face models -->
+  <image assetName="charactersImage" filename="characters.png" width="256" height="32" />
+  <image assetName="faceChins" filename="chins_64w.png" dither="false" />
+  <image assetName="faceNoses" filename="noses_64.png" dither="false" />
+  <image assetName="faceEyes"  filename="eyes_64w2.png" dither="false" />
+  <image assetName="faceGlasses" filename="glasses_64.png" dither="false" />
+  <image assetName="faceHairs" filename="hairs_64b.png" dither="false" />
+  <image assetName="faceMouths" filename="mouths_64.png" dither="false" /> 
+  
+  <!-- Particles -->
+  <texture filename="particleQuad.png" />
+  <texture filename="particleSparkle.png" />
+
+  <!-- Models
+       Model naming:
+             group. 4 chars. wood, ufo_, stor, etc.
+             type.  4 chars. wall, diag, crnr, etc.
+             sub.   3 chars. opn, cld, etc.
+  -->
+  
+  <!-- Tactical Sprite models are centered at (0,0,0) -->
+  <model filename="chess_characters.ac" modelName="green"        origin="0 0 0"  shading="flat" polyRemoval="pre" trigger="-0.42 0.34 0" eye="1.22" target="1.10" />
+  <model filename="chess_characters.ac" modelName="prime"        origin="1 0 0"  shading="flat" polyRemoval="pre" trigger="1.31  0.86 0" eye="1.74" target="0.89" />
+  <model filename="chess_characters.ac" modelName="hornet"       origin="2 0 0"  shading="flat" polyRemoval="pre" trigger="1.70  0.72 0" eye="1.67" target="1.07" />
+  <model filename="chess_characters.ac" modelName="jackal"       origin="3 0 0"  shading="flat" polyRemoval="pre" trigger="2.55  0.60 0" eye="0.85" target="0.91" />
+  <model filename="chess_characters.ac" modelName="viper"        origin="4 0 0"  shading="flat" polyRemoval="pre" trigger="3.69  0.72 0" eye="1.42" target="1.33" />
+  <model filename="chess_characters.ac" modelName="squid"        origin="5 0 0"  shading="flat" polyRemoval="pre" trigger="4.72  0.80 0" eye="1.63" target="1.10" />
+  <model filename="chess_characters.ac" modelName="spitter"      origin="6 0 0"  shading="flat" polyRemoval="pre" trigger="6.00  1.41 0" eye="1.57" target="1.30" />
+  <model filename="chess_characters.ac" modelName="crawler"      origin="7 0 0"  shading="flat" polyRemoval="pre" trigger="7.00  0.00 0" eye="0.14" target="0.10" />
+
+  <model filename="chess_characters.ac" modelName="maleMarine"   origin="-1 0 0" shading="flat" polyRemoval="pre" trigger="-1.35 1.00 0.0" eye="1.81" target="1.15"/>
+  <model filename="chess_characters.ac" modelName="femaleMarine" origin="-2 0 0" shading="flat" polyRemoval="pre" trigger="-2.25 1.00 0.0" eye="1.75" target="1.25"/>
+  <model filename="chess_characters.ac" modelName="maleCiv"      origin="-3 0 0" shading="flat" polyRemoval="pre"                          eye="1.65" target="1.20"/>
+  <model filename="chess_characters.ac" modelName="femaleCiv"    origin="-4 0 0" shading="flat" polyRemoval="pre"                          eye="1.57" target="1.20"/>
+
+  <model filename="chess_weapons.ac"    modelName="ASLT-1"        origin="-3 0 0"/>
+  <model filename="chess_weapons.ac"    modelName="ASLT-2"        origin="-3 1 0"/>
+  <model filename="chess_weapons.ac"    modelName="ASLT-3"        origin="-3 2 0"/>
+  <model filename="chess_weapons.ac"    modelName="LR-1"          origin="-4 0 0"/>
+  <model filename="chess_weapons.ac"    modelName="LR-2"          origin="-4 1 0"/>
+  <model filename="chess_weapons.ac"    modelName="LR-3"          origin="-4 2 0"/>
+  <model filename="chess_weapons.ac"    modelName="CANON-1"       origin="-5 0 0"/>
+  <model filename="chess_weapons.ac"    modelName="CANON-2"       origin="-5 1 0"/>
+  <model filename="chess_weapons.ac"    modelName="CANON-3"       origin="-5 2 0"/>
+
+  <model filename="chess_weapons.ac"    modelName="RAY-1"        origin="0 0 0"/>
+  <model filename="chess_weapons.ac"    modelName="RAY-2"        origin="0 1 0"/>
+  <model filename="chess_weapons.ac"    modelName="RAY-3"        origin="0 2 0"/>
+  <model filename="chess_weapons.ac"    modelName="PLS-1"        origin="1 0 0"/>
+  <model filename="chess_weapons.ac"    modelName="PLS-2"        origin="1 1 0"/>
+  <model filename="chess_weapons.ac"    modelName="PLS-3"        origin="1 2 0"/>
+  <model filename="chess_weapons.ac"    modelName="STORM-1"      origin="2 0 0"/>
+  <model filename="chess_weapons.ac"    modelName="STORM-2"      origin="2 1 0"/>
+  <model filename="chess_weapons.ac"    modelName="STORM-3"      origin="2 2 0"/>
+  
+  <!-- Geo Sprite models are centered at (0,0,0) -->
+  <model filename="ufos.ac" modelName="geo_scout"        origin="0 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="ufos.ac" modelName="geo_frigate"      origin="1 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="ufos.ac" modelName="geo_battleship"   origin="3 0 0"  shading="smooth" polyRemoval="pre" />
+  <!--<model filename="ufos.ac" modelName="cargo"           origin="7 0 0"  shading="smooth" polyRemoval="pre" />-->
+  <model filename="ufos.ac" modelName="geolander"        origin="9 0 0"  shading="crease" polyRemoval="pre" />
+  <model filename="ufos.ac" modelName="geo_alienBase"    origin="-1 0 0" shading="flat"   polyRemoval="pre" />
+  <model filename="cities.ac" modelName="city"        origin="0 0 0"  shading="flat" polyRemoval="pre" />
+  <model filename="cities.ac" modelName="capital"     origin="2 0 0"  shading="flat" polyRemoval="pre" />
+  <model filename="cities.ac" modelName="baseA"        origin="4 0 0"  shading="flat" polyRemoval="pre" />
+  <model filename="cities.ac" modelName="baseB"        origin="5 0 0"  shading="flat" polyRemoval="pre" />
+  <model filename="cities.ac" modelName="baseC"        origin="6 0 0"  shading="flat" polyRemoval="pre" />
+  <model filename="cities.ac" modelName="baseD"        origin="7 0 0"  shading="flat" polyRemoval="pre" />
+
+  <model filename="geomap.ac" />
+
+  <!--
+  Sounds not currently in use.
+  <data filename="ar.wav"   compress="false" />
+  <data filename="ray2.wav" compress="false"/>
+  <data filename="ray3.wav" compress="false"/>
+  <data filename="beam.wav" compress="false"/>
+  -->
+  <!-- generic AR and pistol -->
+  <data filename="ar3p.wav"   compress="false" />
+  <data filename="ar3l.wav"   compress="false" />
+  <data filename="can.wav"    compress="false" />
+  <data filename="ray1.wav"   compress="false"/>
+  <data filename="plasma.wav" compress="false"/>
+  <data filename="nullp.wav"  compress="false"/>
+  <data filename="spitter.wav"  compress="false"/>
+
+  <model filename="smallcrate.ac" />
+  <model filename="unitplate.ac" />
+  <model filename="unitplateplus.ac" />
+
+  <model filename="selection.ac" />
+  
+  <model filename="alltree.ac" modelName="tree"     origin="0 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="tree2"    origin="2 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="tree3"    origin="4 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="tree4"    origin="6 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="cactus0"  origin="8 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="cactus1"  origin="10 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="cactus2"  origin="12 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="alltree.ac" modelName="stump"    origin="0 0 2"  shading="smooth" polyRemoval="pre" />
+
+  <!-- World models have their origin at the upper left, so that they align with the unit grid -->
+  <model filename="lander.ac" shading="crease"/>
+
+  <model filename="ufo_DoorCld.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_DoorOpn.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_WallInn.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_CrnrInn.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_WallOut.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_WallCurve1I.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_WallCurve4.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_WallCurve8.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_controlTable.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_controlScreen.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_power.ac" shading="flat" />
+  <model filename="ufo_powerD.ac" shading="flat" />
+  <model filename="ufo_statue0.ac" shading="flat" />
+  <model filename="ufo_crate0.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_crate1.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_crate2.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_tube.ac" shading="smooth"/>
+  <model filename="ufo_tubeD.ac" shading="smooth"/>
+  <model filename="ufo_table.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_pod.ac" shading="crease" polyRemoval="pre" />
+  <model filename="ufo_plant0.ac" shading="smooth" polyRemoval="pre" />
+  <model filename="ufo_plant1.ac" shading="smooth" polyRemoval="pre" />
+  <model filename="ufo_drone.ac" shading="smooth"  polyRemoval="pre" />
+
+  <model filename="woodCrnr.ac" polyRemoval="pre" />
+  <model filename="woodCrnrD.ac" polyRemoval="pre" />
+  <model filename="woodDoorCld.ac" polyRemoval="pre" />
+  <model filename="woodDoorOpn.ac" polyRemoval="pre" />
+  <model filename="woodWall.ac" polyRemoval="pre" />
+  <model filename="woodWallRed.ac" polyRemoval="pre" />
+  <model filename="woodWallWin.ac" polyRemoval="pre" />
+
+  <model filename="brickCrnr.ac" polyRemoval="pre" />
+  <model filename="brickCrnrD.ac" polyRemoval="pre" />
+  <model filename="brickDoorCld.ac" polyRemoval="pre" />
+  <model filename="brickDoorOpn.ac" polyRemoval="pre" />
+  <model filename="brickWall.ac" polyRemoval="pre" />
+  <model filename="brickWallWin.ac" polyRemoval="pre" />
+
+  <model filename="baseWall.ac" polyRemoval="pre" />
+  <model filename="baseWall4.ac" polyRemoval="pre" />
+  <model filename="baseCrnr.ac" polyRemoval="pre" />
+  <model filename="baseDoorOpn.ac" shading="flat" polyRemoval="pre" />
+  <model filename="baseDoorCld.ac" shading="flat" polyRemoval="pre" />
+
+  <model filename="stonewall_unit.ac" shading="crease" polyRemoval="pre" />
+  <model filename="stonewall_join.ac" shading="crease" polyRemoval="pre" />
+  <model filename="stonewall_unitD.ac" shading="crease" polyRemoval="pre" />
+  <model filename="woodfence.ac" polyRemoval="pre" />
+  <model filename="oldwell.ac" shading="crease" polyRemoval="pre"/>
+  <model filename="bricks.ac" shading="flat" polyRemoval="pre"/>
+  <model filename="haypile.ac" polyRemoval="pre"/>
+  <model filename="whitepicketfence.ac" polyRemoval="pre"/>
+  <model filename="barrel0.ac" shading="crease" polyRemoval="pre" />
+  <model filename="barrel1.ac" shading="crease" polyRemoval="pre" />
+  <model filename="barrel2.ac" shading="crease" polyRemoval="pre" />
+  <model filename="crate0.ac" shading="crease" polyRemoval="pre" />
+  <model filename="crate1.ac" shading="crease" polyRemoval="pre" />
+  <model filename="crate2.ac" shading="crease" polyRemoval="pre" />
+  <model filename="cannister0.ac" shading="crease" polyRemoval="pre" />
+  <model filename="cannister1.ac" shading="crease" polyRemoval="pre" />
+  <model filename="computerdesk.ac" shading="crease" polyRemoval="pre" />
+  <model filename="desk.ac" shading="crease" polyRemoval="pre" />
+  <model filename="bookshelf.ac" shading="flat" polyRemoval="pre" />
+  <model filename="cot.ac" shading="crease" polyRemoval="pre" />
+  <model filename="lockers.ac" shading="flat" polyRemoval="pre" />
+  <model filename="basegun0.ac" shading="crease" polyRemoval="pre" />
+  <model filename="basegun1.ac" shading="crease" polyRemoval="pre" />
+
+  <model filename="counter_unit.ac" shading="flat" polyRemoval="pre" />
+  <model filename="counter_unit_reg.ac" shading="flat" polyRemoval="pre" />
+  <model filename="counter_join.ac" shading="flat" polyRemoval="pre" />
+  <model filename="shelf_empty.ac" shading="crease" polyRemoval="pre" />
+  <model filename="shelf_0.ac" shading="crease" polyRemoval="pre" />
+  <model filename="shelf_1.ac" shading="crease" polyRemoval="pre" />
+  <model filename="shelf_2.ac" shading="crease" polyRemoval="pre" />
+  <model filename="shelf_0D.ac" shading="crease" polyRemoval="pre" />
+  <model filename="shelf_1D.ac" shading="crease" polyRemoval="pre" />
+  <model filename="shelf_2D.ac" shading="crease" polyRemoval="pre" />
+  <model filename="sacks.ac" shading="smooth" polyRemoval="pre" />
+  <model filename="cafetable.ac" polyRemoval="pre" />
+  <model filename="lamp0.ac"  polyRemoval="pre" />
+  <model filename="gaspump.ac"  shading="flat" polyRemoval="pre" />
+  <model filename="gaspumpD.ac"  shading="flat" polyRemoval="pre" />
+         
+  <model filename="pyramid_2.ac" shading="flat" polyRemoval="pre" />
+  <model filename="pyramid_4.ac" shading="flat" polyRemoval="pre" />
+  <model filename="pyramid_8.ac" shading="flat" polyRemoval="pre" />
+  <model filename="obelisk.ac"   shading="flat" polyRemoval="pre" />
+  <model filename="temple.ac"   shading="flat" polyRemoval="pre" />
+
+  <model filename="desert.ac" modelName="rock0"  origin="0 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="desert.ac" modelName="rock1"  origin="8 0 0"  shading="smooth" polyRemoval="pre" />
+  <model filename="desert.ac" modelName="arch"   origin="3 0 0"  shading="smooth" polyRemoval="pre" />
+
+  <!-- Models used as markers by the map-maker. Don't appear in the game. -->
+  <model filename="scout.ac" shading="smooth" />
+  <model filename="guard.ac" />
+  <model filename="pawn.ac" />
+
+  <!-- Farm Tiles -->
+  <data  filename="FARM_16_TILE_00.xml" />
+  <image filename="FARM_16_TILE_00_TEX.png" width="128" height="128" />
+  <image filename="FARM_16_TILE_00_DAY.png" />
+  <image filename="FARM_16_TILE_00_NGT.png" />
+
+  <data  filename="FARM_16_TILE_01.xml" />
+  <image filename="FARM_16_TILE_01_TEX.png" width="128" height="128" />
+  <image filename="FARM_16_TILE_01_DAY.png" />
+  <image filename="FARM_16_TILE_01_NGT.png" />
+
+  <data  filename="FARM_16_TILE_02.xml" />
+  <image filename="FARM_16_TILE_02_TEX.png" width="128" height="128" />
+  <image filename="FARM_16_TILE_02_DAY.png" />
+  <image filename="FARM_16_TILE_02_NGT.png" />
+
+  <data  filename="FARM_16_TILE_03.xml" />
+  <image filename="FARM_16_TILE_03_TEX.png" width="128" height="128" />
+  <image filename="FARM_16_TILE_03_DAY.png" />
+  <image filename="FARM_16_TILE_03_NGT.png" />
+
+  <data  filename="FARM_16_TILE_04.xml" />
+  <image filename="FARM_16_TILE_04_TEX.png" width="128" height="128" />
+  <image filename="FARM_16_TILE_04_DAY.png" />
+  <image filename="FARM_16_TILE_04_NGT.png" />
+
+  <!-- Farm Scout -->
+  <data  filename="FARM_16_UFOA_00.xml" />
+  <image filename="FARM_16_UFOA_00_TEX.png" width="128" height="128" />
+  <image filename="FARM_16_UFOA_00_DAY.png" />
+  <image filename="FARM_16_UFOA_00_NGT.png" />
+
+  <!-- Farm Destroyer -->
+  <data  filename="FARM_32_UFOB_00.xml" />
+  <image filename="FARM_32_UFOB_00_TEX.png" width="256" height="256" />
+  <image filename="FARM_32_UFOB_00_DAY.png" />
+  <image filename="FARM_32_UFOB_00_NGT.png" />
+
+  <!-- Farm Lander -->
+  <data  filename="FARM_16_LAND_00.xml" />
+  <image filename="FARM_16_LAND_00_TEX.png" width="128" height="128" />
+  <image filename="FARM_16_LAND_00_DAY.png" />
+  <image filename="FARM_16_LAND_00_NGT.png" />
+
+  <!-- Battleship -->
+  <data  filename="BATT_48_TILE_00.xml" />
+  <image filename="BATT_48_TILE_00_TEX.png" width="384" height="384" />
+  <image filename="BATT_48_TILE_00_DAY.png" />
+  <image filename="BATT_48_TILE_00_NGT.png" />
+
+  <data  filename="BATT_48_TILE_01.xml" />
+  <image filename="BATT_48_TILE_01_TEX.png" width="384" height="384" />
+  <image filename="BATT_48_TILE_01_DAY.png" />
+  <image filename="BATT_48_TILE_01_NGT.png" />
+
+  <!-- Forest Tiles -->
+  <data  filename="FRST_16_TILE_00.xml" />
+  <image filename="FRST_16_TILE_00_TEX.png" width="128" height="128" />
+  <image filename="FRST_16_TILE_00_DAY.png" />
+  <image filename="FRST_16_TILE_00_NGT.png" />
+
+  <data  filename="FRST_16_TILE_01.xml" />
+  <image filename="FRST_16_TILE_01_TEX.png" width="128" height="128" />
+  <image filename="FRST_16_TILE_01_DAY.png" />
+  <image filename="FRST_16_TILE_01_NGT.png" />
+
+  <data  filename="FRST_16_TILE_02.xml" />
+  <image filename="FRST_16_TILE_02_TEX.png" width="128" height="128" />
+  <image filename="FRST_16_TILE_02_DAY.png" />
+  <image filename="FRST_16_TILE_02_NGT.png" />
+  
+  <!-- Forest Lander -->
+  <data  filename="FRST_16_LAND_00.xml" />
+  <image filename="FRST_16_LAND_00_TEX.png" width="128" height="128" />
+  <image filename="FRST_16_LAND_00_DAY.png" />
+  <image filename="FRST_16_LAND_00_NGT.png" />
+
+  <!-- Forest Scout -->
+  <data  filename="FRST_16_UFOA_00.xml" />
+  <image filename="FRST_16_UFOA_00_TEX.png" width="128" height="128" />
+  <image filename="FRST_16_UFOA_00_DAY.png" />
+  <image filename="FRST_16_UFOA_00_NGT.png" />
+
+  <!-- Forest Destroyer -->
+  <data  filename="FRST_32_UFOB_00.xml" />
+  <image filename="FRST_32_UFOB_00_TEX.png" width="256" height="256" />
+  <image filename="FRST_32_UFOB_00_DAY.png" />
+  <image filename="FRST_32_UFOB_00_NGT.png" />
+
+  <!-- Desert Tiles -->
+  <data  filename="DSRT_16_TILE_00.xml" />
+  <image filename="DSRT_16_TILE_00_TEX.png" width="128" height="128" />
+  <image filename="DSRT_16_TILE_00_DAY.png" />
+  <image filename="DSRT_16_TILE_00_NGT.png" />
+
+  <data  filename="DSRT_16_TILE_01.xml" />
+  <image filename="DSRT_16_TILE_01_TEX.png" width="128" height="128" />
+  <image filename="DSRT_16_TILE_01_DAY.png" />
+  <image filename="DSRT_16_TILE_01_NGT.png" />
+
+  <data  filename="DSRT_16_TILE_02.xml" />
+  <image filename="DSRT_16_TILE_02_TEX.png" width="128" height="128" />
+  <image filename="DSRT_16_TILE_02_DAY.png" />
+  <image filename="DSRT_16_TILE_02_NGT.png" />
+
+  <data  filename="DSRT_16_TILE_03.xml" />
+  <image filename="DSRT_16_TILE_03_TEX.png" width="128" height="128" />
+  <image filename="DSRT_16_TILE_03_DAY.png" />
+  <image filename="DSRT_16_TILE_03_NGT.png" />
+
+  <data  filename="DSRT_16_TILE_04.xml" />
+  <image filename="DSRT_16_TILE_04_TEX.png" width="128" height="128" />
+  <image filename="DSRT_16_TILE_04_DAY.png" />
+  <image filename="DSRT_16_TILE_04_NGT.png" />
+
+  <!-- Desert Lander -->
+  <data  filename="DSRT_16_LAND_00.xml" />
+  <image filename="DSRT_16_LAND_00_TEX.png" width="128" height="128" />
+  <image filename="DSRT_16_LAND_00_DAY.png" />
+  <image filename="DSRT_16_LAND_00_NGT.png" />
+
+  <!-- Desert Scout -->
+  <data  filename="DSRT_16_UFOA_00.xml" />
+  <image filename="DSRT_16_UFOA_00_TEX.png" width="128" height="128" />
+  <image filename="DSRT_16_UFOA_00_DAY.png" />
+  <image filename="DSRT_16_UFOA_00_NGT.png" />
+
+  <!-- Desert Destroyer -->
+  <data  filename="DSRT_32_UFOB_00.xml" />
+  <image filename="DSRT_32_UFOB_00_TEX.png" width="256" height="256" />
+  <image filename="DSRT_32_UFOB_00_DAY.png" />
+  <image filename="DSRT_32_UFOB_00_NGT.png" />
+
+  <!-- Tundra tiles -->
+  <data  filename="TNDR_16_TILE_00.xml" />
+  <image filename="TNDR_16_TILE_00_TEX.png" width="128" height="128" />
+  <image filename="TNDR_16_TILE_00_DAY.png" />
+  <image filename="TNDR_16_TILE_00_NGT.png" />
+
+  <data  filename="TNDR_16_TILE_01.xml" />
+  <image filename="TNDR_16_TILE_01_TEX.png" width="128" height="128" />
+  <image filename="TNDR_16_TILE_01_DAY.png" />
+  <image filename="TNDR_16_TILE_01_NGT.png" />
+
+  <data  filename="TNDR_16_TILE_02.xml" />
+  <image filename="TNDR_16_TILE_02_TEX.png" width="128" height="128" />
+  <image filename="TNDR_16_TILE_02_DAY.png" />
+  <image filename="TNDR_16_TILE_02_NGT.png" />
+
+  <!-- Tundra Lander -->
+  <data  filename="TNDR_16_LAND_00.xml" />
+  <image filename="TNDR_16_LAND_00_TEX.png" width="128" height="128" />
+  <image filename="TNDR_16_LAND_00_DAY.png" />
+  <image filename="TNDR_16_LAND_00_NGT.png" />
+
+  <!-- Tundra Scout -->
+  <data  filename="TNDR_16_UFOA_00.xml" />
+  <image filename="TNDR_16_UFOA_00_TEX.png" width="128" height="128" />
+  <image filename="TNDR_16_UFOA_00_DAY.png" />
+  <image filename="TNDR_16_UFOA_00_NGT.png" />
+
+  <!-- Tundra Destroyer -->
+  <data  filename="TNDR_32_UFOB_00.xml" />
+  <image filename="TNDR_32_UFOB_00_TEX.png" width="256" height="256" />
+  <image filename="TNDR_32_UFOB_00_DAY.png" />
+  <image filename="TNDR_32_UFOB_00_NGT.png" />
+  
+  <!-- City -->
+  <data  filename="CITY_16_ROAD_00.xml" />
+  <image filename="CITY_16_ROAD_00_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_ROAD_00_DAY.png" />
+  <image filename="CITY_16_ROAD_00_NGT.png" />
+
+  <data  filename="CITY_16_ROAD_01.xml" />
+  <image filename="CITY_16_ROAD_01_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_ROAD_01_DAY.png" />
+  <image filename="CITY_16_ROAD_01_NGT.png" />
+
+  <data  filename="CITY_16_ROAD_02.xml" />
+  <image filename="CITY_16_ROAD_02_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_ROAD_02_DAY.png" />
+  <image filename="CITY_16_ROAD_02_NGT.png" />
+
+  <data  filename="CITY_16_ROAD_03.xml" />
+  <image filename="CITY_16_ROAD_03_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_ROAD_03_DAY.png" />
+  <image filename="CITY_16_ROAD_03_NGT.png" />
+
+  <data  filename="CITY_16_INTR_00.xml" />
+  <image filename="CITY_16_INTR_00_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_INTR_00_DAY.png" />
+  <image filename="CITY_16_INTR_00_NGT.png" />
+
+  <data  filename="CITY_16_INTR_01.xml" />
+  <image filename="CITY_16_INTR_01_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_INTR_01_DAY.png" />
+  <image filename="CITY_16_INTR_01_NGT.png" />
+
+  <data  filename="CITY_16_INTR_02.xml" />
+  <image filename="CITY_16_INTR_02_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_INTR_02_DAY.png" />
+  <image filename="CITY_16_INTR_02_NGT.png" />
+
+  <data  filename="CITY_16_OPEN_00.xml" />
+  <image filename="CITY_16_OPEN_00_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_OPEN_00_DAY.png" />
+  <image filename="CITY_16_OPEN_00_NGT.png" />
+
+  <data  filename="CITY_16_OPEN_01.xml" />
+  <image filename="CITY_16_OPEN_01_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_OPEN_01_DAY.png" />
+  <image filename="CITY_16_OPEN_01_NGT.png" />
+
+  <data  filename="CITY_16_OPEN_02.xml" />
+  <image filename="CITY_16_OPEN_02_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_OPEN_02_DAY.png" />
+  <image filename="CITY_16_OPEN_02_NGT.png" />
+
+  <data  filename="CITY_16_OPEN_03.xml" />
+  <image filename="CITY_16_OPEN_03_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_OPEN_03_DAY.png" />
+  <image filename="CITY_16_OPEN_03_NGT.png" />
+
+  <data  filename="CITY_16_LAND_00.xml" />
+  <image filename="CITY_16_LAND_00_TEX.png" width="128" height="128" />
+  <image filename="CITY_16_LAND_00_DAY.png" />
+  <image filename="CITY_16_LAND_00_NGT.png" />
+
+  <data  filename="BASE_48_TILE_00.xml" />
+  <image filename="BASE_48_TILE_00_TEX.png" width="384" height="384" />
+  <image filename="BASE_48_TILE_00_DAY.png" />
+  <image filename="BASE_48_TILE_00_NGT.png" />
+
+  <data  filename="ALIN_48_TILE_00.xml" />
+  <image filename="ALIN_48_TILE_00_TEX.png" width="384" height="384" />
+  <image filename="ALIN_48_TILE_00_DAY.png" />
+  <image filename="ALIN_48_TILE_00_NGT.png" />
+
+  <texture assetName="helpImage0" filename="transparent_64_256.png" >
+    <blit filename="capTac0.bmp" sx="0" sy="0" sw="72" sh="402" tx="8" ty="0" tw="46" th="256" />
+  </texture>
+  <texture assetName="helpImage1" filename="transparent_64_256.png" >
+    <blit filename="capTac0.bmp" sx="0" sy="404" sw="76" sh="76" 
+                                 tx="0" ty="0" tw="64" th="64" />
+    <blit filename="capTac0.bmp" sx="75" sy="404" sw="76" sh="76"
+                                 tx="0" ty="64" tw="64" th="64" />
+    <blit filename="capTac0.bmp" sx="649" sy="404" sw="76" sh="76"
+                                 tx="0" ty="128" tw="64" th="64" />
+    <blit filename="capTac0.bmp" sx="725" sy="404" sw="76" sh="76"
+                                 tx="0" ty="192" tw="64" th="64" />
+  </texture>
+  <texture assetName="helpImage2" filename="transparent_64_256.png" >
+    <blit filename="capTac0.bmp" sx="245" sy="30" sw="80" sh="320" />
+  </texture>
+  <texture assetName="helpImage3" filename="transparent_64_256.png" >
+    <blit filename="capTac1.bmp" sx="476" sy="9" sw="209" sh="418" 
+                                 tx="0" ty="0" tw="64" th="128"/>
+  </texture>
+  <!-- 
+  <texture assetName="helpImage4" filename="transparent_64_256.png" >
+    <blit filename="capTac1.bmp" sx="0" sy="0" sw="300" sh="364"
+                                 tx="0" ty="0" tw="64" th="78"/>
+  </texture>
+  <texture assetName="helpImage5" filename="transparent_64_256.png" >
+    <blit filename="capTac1.bmp" sx="438" sy="5" sw="360" sh="360"
+                                 tx="0" ty="0" tw="64" th="64"/>
+  </texture>
+  -->
+  <texture assetName="helpImage6" filename="transparent_64_256.png" >
+    <blit filename="icons2.png" sx="0" sy="0" sw="64" sh="64"
+                                 tx="11" ty="0" tw="42" th="42"/>
+    <blit filename="icons2.png" sx="64" sy="0" sw="64" sh="64"
+                                 tx="11" ty="42" tw="42" th="42"/>
+    <blit filename="icons2.png" sx="128" sy="0" sw="64" sh="64"
+                                 tx="11" ty="84" tw="42" th="42"/>
+    <blit filename="icons2.png" sx="192" sy="0" sw="64" sh="64"
+                                 tx="11" ty="126" tw="42" th="42"/>
+    <blit filename="icons2.png" sx="0" sy="64" sw="64" sh="64"
+                                 tx="11" ty="168" tw="42" th="42"/>
+    <blit filename="icons2.png" sx="64" sy="64" sw="64" sh="64"
+                                 tx="11" ty="210" tw="42" th="42"/>
+  </texture>
+  <texture assetName="helpImage7" filename="transparent_64_256.png" >
+    <blit filename="capTac0.bmp" sx="724" sy="328" sw="77" sh="77"
+                                 tx="0" ty="0" tw="64" th="64"/>
+  </texture>
+
+  <texture assetName="GreenResearch" filename="transparent_64_128.png" >
+    <blit filename="alienLineup.png" sx="7" sy="128" sw="120" sh="240" />
+  </texture>
+  <texture assetName="PrimeResearch" filename="transparent_64_128.png" >
+    <blit filename="alienLineup.png" sx="123" sy="34" sw="120" sh="240" />
+  </texture>
+  <texture assetName="HornetResearch" filename="transparent_64_128.png" >
+    <blit filename="alienLineup.png" sx="277" sy="67" sw="120" sh="240" />
+  </texture>
+  <texture assetName="JackalResearch" filename="transparent_64_128.png" >
+    <blit filename="alienLineup.png" sx="390" sy="27" sw="175" sh="350" />
+  </texture>
+  <texture assetName="ViperResearch" filename="transparent_64_128.png" >
+    <blit filename="alienLineup.png" sx="560" sy="109" sw="120" sh="240" />
+  </texture>
+  <texture assetName="SquidResearch" filename="transparent_64_128.png" >
+    <blit filename="alienLineup.png" sx="697" sy="65" sw="120" sh="240" />
+  </texture>
+  <texture assetName="SpitterResearch" filename="transparent_64_128.png" >
+    <blit filename="alienLineup.png" sx="834" sy="80" sw="120" sh="240" />
+  </texture>
+
+  <text name="tacticalHelp" >
+    <page>
+      <p>Xenowar - How to Play</p>
+      <p>
+        The game is turn based like a traditional board game. You take a
+        turn, the aliens takes a turn, until one team is blasted
+        into oblivion.
+      </p>
+      <p>
+        The following screens cover the basics; much more info on-line
+        at xenowar.net
+      </p>
+      <p>You can also access the game Settings from this help screen.</p>
+    </page>
+    <page image="helpImage7">
+      <p>[Moving the Camera]</p>
+      <p system="pc">
+        Left click and drag to scroll around the map.
+      </p>
+      <p system="pc">
+        Right click and drag to zoom and rotate.
+      </p>
+      <p system="android">
+        You can drag the map with your finger, or pinch with 2
+        fingers to zoom. The trackball/wheel also zooms and rotates.
+      </p>
+      <p>
+        If you tap the orbit button (pictured) your next drag
+        will rotate and zoom the camera. It is a quick way
+        to adjust the view.
+      </p>
+      
+    </page>
+    <page image="helpImage2">
+      <p>[Select a Unit]</p>
+      <p>
+        You can select a unit by tapping on the tile where it stands.
+      </p>
+      <p system="pc">
+        The keyboard left/right arrow keys will also select units. control-left/right rotate.
+        Pressing your 'u' key will hide the superfluous on-screen UI.
+      </p>
+    </page>
+
+    <page image="helpImage2">
+      <p>[Move a Unit]</p>
+      <p>
+        You can tap the destination for unit (any colored ground
+        location) and it will move there.
+      </p>
+      <p>
+        You can also drag a unit to move it.
+      </p>
+      <p>
+        If Confirm Movement is turned ON in the Settings, you need to accept or cancel the path shown.
+        You can select a new destination before accepting.
+      </p>
+    </page>
+
+    <page>
+      <p>[Moving on your turn]</p>
+      <p>
+        When it is your turn, you may move
+        as many units as you like. But each
+        unit has a certain amount of Time
+        Units (TU) per turn. One time unit
+        allows one space of movement. The
+        circles on the ground show the
+        range of movement for the unit.
+      </p>
+    </page>
+
+    <page>
+      <p>[Time Units (TU)]</p>
+      <p>
+        Shooting also consumes TU. The color of the circle indicates how
+        much time is remaining after you move to that location. 
+        Green for an aimed shot, Yellow for a fast shot,
+        and Orange indicates no time left to shoot.
+      </p>
+      <p>
+        Inventory management and rotation consume no Time Units.
+      </p>
+    </page>
+
+    <page image="helpImage0">
+      <p>[UI Menu]</p>
+      <p>
+        From top to bottom, the icons are: 1) Character portrait. Tapping
+        this take you to the inventory and stats screen. 2) End turn. 3) Help.
+        4) Abort mission. The lander will take all units, but items on the ground
+        will be lost.
+        5) Shoot at an arbitrary target. Follow by tapping a location on the map.
+
+      </p>
+    </page>
+
+
+    <page image="helpImage1">
+      <p>[Unit Menu]</p>
+      <p>
+        Rotate left and rotate right rotates the currently selected unit. Left and right
+        selects different units.
+      </p>
+      <p system="pc">
+        Remember you can also use the keyboard, and press the 'u' key to hide the control UI.
+      </p>
+    </page>
+
+    <page image="helpImage3" >
+      <p>[Shooting UI]</p>
+      <p>
+        Left click on your
+        target to display shot choices,
+        including info about the type of
+        shot, the approximate odds of hitting,
+        and ammo remaining. Every
+        weapon is different!
+      </p>
+      <p>
+        The color block on the right is
+        the amount of TU left after you fire.
+      </p>
+    </page>
+
+    <page>
+      <p>[Reaction fire]</p>
+      <p>
+        Reaction fire occurs when your units fire at the aliens during
+        the alien turn. It is key to an effective defense.
+      </p>
+      <p>
+        For reaction fire to occur, you must have enough TU left over
+        by ending your move in the Green or Yellow circles.
+      </p>
+      <p>
+      Rotation greatly impacts reaction fire. Make sure you end your
+      turn facing where you think the aliens are hiding!
+      </p>
+    </page>
+
+  </text>
+
+  <text name="characterHelp" >
+    <page>
+      <p>[Unit Screen]</p>
+      <p>Use this screen to pick up and drop items, wear armor, and select a weapon. You can also view statistics
+         about the current unit.</p>
+      <p>The name of the weapon the unit is holding is displayed in the top left. Beside the name is the tech level, from 1 to 3.
+         Higher tech levels indicate better weapons and armor. Below the name of the weapon is the rounds
+		 carried for that weapon. Some weapons use multiple types of ammo.</p>
+    </page>
+    <page>
+      <p>[Inventory]</p>
+      <p>Left side of the screen.</p>
+      <p>
+        What the unit is carrying. The top row is in use: the currently worn armor and currently carried
+        weapon. You can tap to drop an item, or drag to organize items.</p>
+    </page>
+
+    <page>
+      <p>[Items on the Ground]</p>
+      <p>Right side of the screen.</p>
+      <p>
+       The row of tabs select Terran Weapons, Alien Weapons, Armor/Shields,
+       and Miscellaneous items. Tap to select a group to view. Tap an item to pick it up.
+      </p>
+      <p>
+        The number of items available is displayed beneath the item name.
+      </p>
+    </page>
+
+    <page>
+      <p>[Stats and Numbers]</p>
+      <p> The lower right buttons show unit traits, abilities, and statistics.</p>
+      <p> 'Inv' is the default inventory screen. 'Stats' shows the unit statistics. 'Wpns' compares 
+      weapons carried and on the ground at 8m range.</p>
+    </page>
+  </text>
+
+  <text name="introHelp" >
+    <page>
+      <p>[Xenowar]</p>
+      <p>
+        Xenowar. Copyright 2011 Lee Thomason / Grinning Lizard Software. 
+        'Face' renderer, icons, and additional art by Johan Forsberg.</p>
+      <p>
+        Welcome to Xenowar! You can
+        submit feedback, read the community forum, or get more gameplay information
+        at xenowar.net. The gameplay wiki is at xenowar.wikispaces.com
+      </p>
+      <p> The buttons on the lower right navigate help, the lower left exits help.</p>
+    </page>
+    <page>
+      <p>[Overview]</p>
+      <p>
+        Xenowar combines strategic and tactical games.</p>
+		<p>The strategic game is the geo-scape where you build bases, defend against
+        UFOs, research, and allocate resources in real time. When ground combat occurs,
+        the tactical game is turn based combat.
+      </p>
+    </page>
+    <page>
+      <p>[Getting Started]</p>
+      <p>'Continue' resumes the game in progress.</p>
+      <p>'New Game' brings up the new game choices. Starting a new game will delete
+	        any game in progress. After selecting 'New Game', tap 'New Geo' to play the full game, 
+		      or 'New Tactical' to play a single battle.</p>
+      <p>The game auto-saves at exit. Optionally you have 4 additional save slots that can be accessed via the 'disk' icon.</p>
+      <p>Good luck and have fun!</p>
+    </page>
+  </text>
+
+  <text name="geoHelp" >
+    <page>
+      <p>[Xenowar]</p>
+      <p>The geo view shows the world, its nations, and the state of the alien invasion.</p>
+      <p>
+        The strategic part of the game is played out on this screen, in real time.
+        When combat occurs, it is turn based on the tactical screen.
+      </p>
+      <p>You can also access the game Settings from this help screen.</p>
+    </page>
+    <page>
+      <p>[Main UI]</p>
+      <p>
+        The upper left button takes you to the research screen.
+      </p>
+      <p>
+        The lower left toggles base building. With this button down, tap on the
+        map to build a base. Start the game by building a base. Your first base
+        comes fully provisioned.
+      </p>
+      <p>
+        The lower right display shows your current cash in megadollars.
+      </p>
+      <p>Tap and drag to scroll the display. You can tap a base or grounded
+         UFO for additional menus.</p>
+    </page>
+    <page image="helpImage6">
+      <p>[Regions]</p>
+      <p>There are 6 geo-political regions: North, South, Europe, Asia, Africa, and Under.
+         Beneath the name of each region is a bar that indicates the amount of alien 
+         influence.</p>
+      <p>Each region has its own traits. Regions can be 1) capitalistic (better prices), 
+	       2) militaristic (better soldiers), 3) scientific (faster research),
+		     4) nationalistic (resists alien takeover), 
+         5) high tech (make tech-3 weapons), or 6) manufacturing (make tech-3 armor).</p>
+    </page>  
+    <page>
+      <p>[Alien Invasion]</p>
+      <p>Aliens initially generate influence with crop circles. With more influence, the aliens will
+         mount city attacks or even attack your bases.</p>
+      <p>
+        When attacking, be aware that night fights are more
+        difficult than day fights, and a normal UFO is harder to assault than a crashed one.
+      </p>
+      <p>You win the game by destroying the alien base. You'll lose the game if the aliens
+         occupy all the world capitals.</p>      
+    </page>
+    <page>
+      <p>[Base Options]</p>
+      <p>Tapping any base brings up the base options.</p>
+      <p>Supply: Purchases and sells supplies from the host region. A base must have a 
+         'cargo' facility to use supply.</p>
+      <p>Equip: Equip the base squad, see unit stats, and compare weapons. A base must 
+         have a 'cargo' and 'troops' facility to have units.</p>
+      <p>Build: Build base facilities.</p>
+    </page>
+    <page>
+      <p>[UFO Options]</p>
+      <p>Tapping a crashed or invading UFO brings up a list of 
+         bases that can send troops. Tap the base name to send a lander.</p>
+      <p>The lander carries troops to and from the battle. It can even retrieved
+         unconscious units and make an escape from the field.</p>
+      <p>
+        If the battle is successful, items gathered from the battle field will
+        be placed in the base's storage. Items needed for research
+        are automatically applied.
+      </p>
+    </page>
+    
+  </text>
+
+  <text name="buildBaseHelp" >
+    <page>
+      <p>[Build Base Help]</p>
+      <p>Here you can buy base facilities. Tap on the facility, it will be built, 
+         and funds deducted from you treasury.</p>
+      <p>Troops: purchases and lander and barracks so troops can be hired for missions. 
+         Missile: long range weapons.
+         Cargo: a cargo lander allows selling and purchasing from the host region. 
+         Guns: short range weapons.
+         SciLab: allows the recruitment of scientists for research. </p>
+    </page>
+  </text>
+
+  <text name="supplyBaseHelp" >
+    <page>
+      <p>[Supply Base Help]</p>
+      <p>Tap to move items from the base storage (on the left) to the region's supply ship (on the right). 
+      The "Sell All" toggle, when on, will sell all items in a slot with a single tap.</p>
+      <p>Ammo clips refill after battle. (Which is reflected in their cost.) Tech-3 items
+         can only be purchased from regions with the required traits.</p>
+      <p>You can hire soldiers and scientists by purchasing them in the region's Armor tab.</p>
+    </page>
+  </text>
+
+  <text name="researchHelp" >
+    <page>
+      <p>[Research]</p>
+      <p>This scene shows the current research project, and options for other research you can do.
+         Research is applied over time, and is directly proportional to the number of scientists 
+         in your bases.</p>
+      <p>Beneath the name of each research task is items required to begin that task.</p>
+    </page>
+    
+  </text>
+
+  <!-- Sound effects -->
+  <data filename="explosion.wav"    compress="false"/>
+  <data filename="hit.wav"          compress="false"/>
+  <data filename="terrandown0.wav"  compress="false"/>
+  <data filename="aliendown0.wav"   compress="false"/>
+
+  <data filename="geo_ufo_atmo.wav"       compress="false"/>
+  <data filename="geo_ufo_citybase.wav"   compress="false"/>
+  <data filename="geo_ufo_crash.wav"      compress="false"/>
+  <data filename="geo_ufo_cropcircle.wav" compress="false"/>
+  <data filename="geo_ufo_warp.wav"       compress="false"/>
+  <data filename="geo_ufo_hit.wav"        compress="false"/>
+
+  <font assetName="font" filename="font_0.png">
+    <info face="Tahoma" size="28" bold="0" italic="0" charset="" unicode="1" stretchH="100" smooth="1" aa="1" padding="2,2,2,2" spacing="1,1" outline="0"/>
+    <common lineHeight="28" base="23" scaleW="256" scaleH="128" pages="1" packed="0" alphaChnl="0" redChnl="3" greenChnl="3" blueChnl="3"/>
+    <chars count="92">
+      <char id="33" x="0" y="95" width="6" height="21" xoffset="1" yoffset="4" xadvance="8" page="0" chnl="15" />
+      <char id="34" x="231" y="107" width="10" height="10" xoffset="-1" yoffset="3" xadvance="9" page="0" chnl="15" />
+      <char id="35" x="135" y="26" width="19" height="21" xoffset="-1" yoffset="4" xadvance="17" page="0" chnl="15" />
+      <char id="36" x="24" y="0" width="15" height="26" xoffset="-1" yoffset="3" xadvance="13" page="0" chnl="15" />
+      <char id="37" x="89" y="27" width="24" height="21" xoffset="-1" yoffset="4" xadvance="22" page="0" chnl="15" />
+      <char id="38" x="114" y="27" width="20" height="21" xoffset="-1" yoffset="4" xadvance="16" page="0" chnl="15" />
+      <char id="39" x="242" y="107" width="6" height="10" xoffset="-1" yoffset="3" xadvance="5" page="0" chnl="15" />
+      <char id="40" x="0" y="0" width="11" height="27" xoffset="-1" yoffset="3" xadvance="9" page="0" chnl="15" />
+      <char id="41" x="12" y="0" width="11" height="27" xoffset="-1" yoffset="3" xadvance="9" page="0" chnl="15" />
+      <char id="42" x="170" y="110" width="14" height="14" xoffset="0" yoffset="3" xadvance="13" page="0" chnl="15" />
+      <char id="43" x="7" y="95" width="18" height="18" xoffset="-1" yoffset="7" xadvance="17" page="0" chnl="15" />
+      <char id="44" x="202" y="107" width="9" height="11" xoffset="-1" yoffset="18" xadvance="7" page="0" chnl="15" />
+      <char id="45" x="18" y="114" width="10" height="6" xoffset="-1" yoffset="13" xadvance="8" page="0" chnl="15" />
+      <char id="46" x="10" y="114" width="7" height="7" xoffset="0" yoffset="18" xadvance="7" page="0" chnl="15" />
+      <char id="47" x="70" y="0" width="12" height="26" xoffset="-2" yoffset="3" xadvance="9" page="0" chnl="15" />
+      <char id="48" x="48" y="72" width="15" height="21" xoffset="-1" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="49" x="197" y="67" width="12" height="21" xoffset="1" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="50" x="0" y="73" width="15" height="21" xoffset="-1" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="51" x="126" y="71" width="14" height="21" xoffset="-1" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="52" x="141" y="48" width="16" height="21" xoffset="-2" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="53" x="111" y="71" width="14" height="21" xoffset="-1" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="54" x="239" y="45" width="15" height="21" xoffset="-1" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="55" x="64" y="72" width="15" height="21" xoffset="-1" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="56" x="223" y="45" width="15" height="21" xoffset="-1" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="57" x="80" y="71" width="15" height="21" xoffset="-1" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="58" x="162" y="110" width="7" height="17" xoffset="1" yoffset="8" xadvance="8" page="0" chnl="15" />
+      <char id="59" x="233" y="67" width="9" height="21" xoffset="0" yoffset="8" xadvance="8" page="0" chnl="15" />
+      <char id="60" x="86" y="93" width="16" height="17" xoffset="0" yoffset="7" xadvance="17" page="0" chnl="15" />
+      <char id="61" x="185" y="109" width="16" height="11" xoffset="0" yoffset="10" xadvance="17" page="0" chnl="15" />
+      <char id="62" x="69" y="94" width="16" height="17" xoffset="0" yoffset="7" xadvance="17" page="0" chnl="15" />
+      <char id="63" x="170" y="69" width="13" height="21" xoffset="-1" yoffset="4" xadvance="11" page="0" chnl="15" />
+      <char id="64" x="148" y="0" width="23" height="24" xoffset="-1" yoffset="4" xadvance="21" page="0" chnl="15" />
+      <char id="65" x="0" y="51" width="18" height="21" xoffset="-2" yoffset="4" xadvance="14" page="0" chnl="15" />
+      <char id="66" x="16" y="73" width="15" height="21" xoffset="0" yoffset="4" xadvance="14" page="0" chnl="15" />
+      <char id="67" x="73" y="49" width="16" height="21" xoffset="-1" yoffset="4" xadvance="14" page="0" chnl="15" />
+      <char id="68" x="37" y="50" width="17" height="21" xoffset="0" yoffset="4" xadvance="16" page="0" chnl="15" />
+      <char id="69" x="96" y="71" width="14" height="21" xoffset="0" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="70" x="141" y="70" width="14" height="21" xoffset="0" yoffset="4" xadvance="12" page="0" chnl="15" />
+      <char id="71" x="55" y="50" width="17" height="21" xoffset="-1" yoffset="4" xadvance="15" page="0" chnl="15" />
+      <char id="72" x="107" y="49" width="16" height="21" xoffset="0" yoffset="4" xadvance="16" page="0" chnl="15" />
+      <char id="73" x="222" y="67" width="10" height="21" xoffset="-1" yoffset="4" xadvance="9" page="0" chnl="15" />
+      <char id="74" x="184" y="67" width="12" height="21" xoffset="-2" yoffset="4" xadvance="10" page="0" chnl="15" />
+      <char id="75" x="90" y="49" width="16" height="21" xoffset="0" yoffset="4" xadvance="14" page="0" chnl="15" />
+      <char id="76" x="156" y="70" width="13" height="21" xoffset="0" yoffset="4" xadvance="11" page="0" chnl="15" />
+      <char id="77" x="193" y="23" width="18" height="21" xoffset="0" yoffset="4" xadvance="18" page="0" chnl="15" />
+      <char id="78" x="175" y="45" width="15" height="21" xoffset="0" yoffset="4" xadvance="15" page="0" chnl="15" />
+      <char id="79" x="212" y="23" width="18" height="21" xoffset="-1" yoffset="4" xadvance="16" page="0" chnl="15" />
+      <char id="80" x="207" y="45" width="15" height="21" xoffset="0" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="81" x="129" y="0" width="18" height="25" xoffset="-1" yoffset="4" xadvance="16" page="0" chnl="15" />
+      <char id="82" x="158" y="47" width="16" height="21" xoffset="0" yoffset="4" xadvance="14" page="0" chnl="15" />
+      <char id="83" x="191" y="45" width="15" height="21" xoffset="-1" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="84" x="231" y="23" width="18" height="21" xoffset="-3" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="85" x="124" y="49" width="16" height="21" xoffset="0" yoffset="4" xadvance="15" page="0" chnl="15" />
+      <char id="86" x="174" y="23" width="18" height="21" xoffset="-2" yoffset="4" xadvance="14" page="0" chnl="15" />
+      <char id="87" x="63" y="27" width="25" height="21" xoffset="-2" yoffset="4" xadvance="21" page="0" chnl="15" />
+      <char id="88" x="19" y="51" width="17" height="21" xoffset="-2" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="89" x="155" y="25" width="18" height="21" xoffset="-3" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="90" x="32" y="73" width="15" height="21" xoffset="-1" yoffset="4" xadvance="13" page="0" chnl="15" />
+      <char id="91" x="107" y="0" width="10" height="26" xoffset="0" yoffset="3" xadvance="9" page="0" chnl="15" />
+      <char id="92" x="83" y="0" width="12" height="26" xoffset="-1" yoffset="3" xadvance="9" page="0" chnl="15" />
+      <char id="93" x="96" y="0" width="10" height="26" xoffset="-1" yoffset="3" xadvance="9" page="0" chnl="15" />
+      <char id="95" x="29" y="113" width="17" height="5" xoffset="-2" yoffset="23" xadvance="13" page="0" chnl="15" />
+      <char id="96" x="0" y="117" width="9" height="8" xoffset="1" yoffset="2" xadvance="13" page="0" chnl="15" />
+      <char id="97" x="196" y="89" width="14" height="17" xoffset="-1" yoffset="8" xadvance="12" page="0" chnl="15" />
+      <char id="98" x="236" y="0" width="15" height="22" xoffset="0" yoffset="3" xadvance="13" page="0" chnl="15" />
+      <char id="99" x="211" y="89" width="13" height="17" xoffset="-1" yoffset="8" xadvance="11" page="0" chnl="15" />
+      <char id="100" x="220" y="0" width="15" height="22" xoffset="-1" yoffset="3" xadvance="13" page="0" chnl="15" />
+      <char id="101" x="103" y="93" width="15" height="17" xoffset="-1" yoffset="8" xadvance="12" page="0" chnl="15" />
+      <char id="102" x="44" y="27" width="11" height="22" xoffset="-1" yoffset="3" xadvance="7" page="0" chnl="15" />
+      <char id="103" x="204" y="0" width="15" height="22" xoffset="-1" yoffset="8" xadvance="13" page="0" chnl="15" />
+      <char id="104" x="0" y="28" width="14" height="22" xoffset="0" yoffset="3" xadvance="13" page="0" chnl="15" />
+      <char id="105" x="243" y="67" width="6" height="21" xoffset="0" yoffset="4" xadvance="5" page="0" chnl="15" />
+      <char id="106" x="118" y="0" width="10" height="26" xoffset="-3" yoffset="4" xadvance="6" page="0" chnl="15" />
+      <char id="107" x="30" y="27" width="13" height="22" xoffset="0" yoffset="3" xadvance="11" page="0" chnl="15" />
+      <char id="108" x="56" y="27" width="6" height="22" xoffset="0" yoffset="3" xadvance="5" page="0" chnl="15" />
+      <char id="109" x="48" y="94" width="20" height="17" xoffset="0" yoffset="8" xadvance="19" page="0" chnl="15" />
+      <char id="110" x="151" y="92" width="14" height="17" xoffset="0" yoffset="8" xadvance="13" page="0" chnl="15" />
+      <char id="111" x="119" y="93" width="15" height="17" xoffset="-1" yoffset="8" xadvance="12" page="0" chnl="15" />
+      <char id="112" x="188" y="0" width="15" height="22" xoffset="0" yoffset="8" xadvance="13" page="0" chnl="15" />
+      <char id="113" x="172" y="0" width="15" height="22" xoffset="-1" yoffset="8" xadvance="13" page="0" chnl="15" />
+      <char id="114" x="151" y="110" width="10" height="17" xoffset="0" yoffset="8" xadvance="8" page="0" chnl="15" />
+      <char id="115" x="225" y="89" width="13" height="17" xoffset="-1" yoffset="8" xadvance="10" page="0" chnl="15" />
+      <char id="116" x="210" y="67" width="11" height="21" xoffset="-1" yoffset="4" xadvance="8" page="0" chnl="15" />
+      <char id="117" x="166" y="92" width="14" height="17" xoffset="0" yoffset="8" xadvance="13" page="0" chnl="15" />
+      <char id="118" x="181" y="91" width="14" height="17" xoffset="-1" yoffset="8" xadvance="11" page="0" chnl="15" />
+      <char id="119" x="26" y="95" width="21" height="17" xoffset="-2" yoffset="8" xadvance="17" page="0" chnl="15" />
+      <char id="120" x="135" y="93" width="15" height="17" xoffset="-2" yoffset="8" xadvance="11" page="0" chnl="15" />
+      <char id="121" x="15" y="28" width="14" height="22" xoffset="-1" yoffset="8" xadvance="11" page="0" chnl="15" />
+      <char id="122" x="239" y="89" width="12" height="17" xoffset="-1" yoffset="8" xadvance="10" page="0" chnl="15" />
+      <char id="123" x="40" y="0" width="14" height="26" xoffset="-1" yoffset="3" xadvance="11" page="0" chnl="15" />
+      <char id="125" x="55" y="0" width="14" height="26" xoffset="-2" yoffset="3" xadvance="11" page="0" chnl="15" />
+      <char id="126" x="212" y="107" width="18" height="10" xoffset="0" yoffset="11" xadvance="17" page="0" chnl="15" />
+    </chars>
+    <kernings count="162">
+      <kerning first="39" second="65" amount="-1" />
+      <kerning first="40" second="106" amount="1" />
+      <kerning first="44" second="41" amount="-1" />
+      <kerning first="44" second="55" amount="-1" />
+      <kerning first="44" second="93" amount="-1" />
+      <kerning first="44" second="125" amount="-1" />
+      <kerning first="45" second="65" amount="-1" />
+      <kerning first="45" second="74" amount="-1" />
+      <kerning first="45" second="84" amount="-2" />
+      <kerning first="45" second="86" amount="-1" />
+      <kerning first="45" second="87" amount="-1" />
+      <kerning first="45" second="88" amount="-1" />
+      <kerning first="45" second="89" amount="-1" />
+      <kerning first="45" second="120" amount="-1" />
+      <kerning first="46" second="41" amount="-1" />
+      <kerning first="46" second="44" amount="-2" />
+      <kerning first="46" second="45" amount="-2" />
+      <kerning first="46" second="55" amount="-1" />
+      <kerning first="46" second="93" amount="-1" />
+      <kerning first="46" second="125" amount="-1" />
+      <kerning first="55" second="44" amount="-2" />
+      <kerning first="55" second="46" amount="-2" />
+      <kerning first="65" second="45" amount="-1" />
+      <kerning first="65" second="84" amount="-1" />
+      <kerning first="65" second="86" amount="-1" />
+      <kerning first="65" second="87" amount="-1" />
+      <kerning first="65" second="89" amount="-1" />
+      <kerning first="66" second="84" amount="-1" />
+      <kerning first="67" second="45" amount="-1" />
+      <kerning first="68" second="44" amount="-1" />
+      <kerning first="68" second="46" amount="-1" />
+      <kerning first="68" second="84" amount="-1" />
+      <kerning first="70" second="44" amount="-3" />
+      <kerning first="70" second="46" amount="-3" />
+      <kerning first="70" second="58" amount="-1" />
+      <kerning first="70" second="63" amount="1" />
+      <kerning first="70" second="65" amount="-1" />
+      <kerning first="70" second="74" amount="-1" />
+      <kerning first="70" second="97" amount="-1" />
+      <kerning first="70" second="101" amount="-1" />
+      <kerning first="70" second="111" amount="-1" />
+      <kerning first="75" second="45" amount="-1" />
+      <kerning first="75" second="97" amount="-1" />
+      <kerning first="75" second="101" amount="-1" />
+      <kerning first="75" second="111" amount="-1" />
+      <kerning first="75" second="118" amount="-1" />
+      <kerning first="75" second="119" amount="-1" />
+      <kerning first="75" second="121" amount="-1" />
+      <kerning first="76" second="39" amount="-1" />
+      <kerning first="76" second="45" amount="-2" />
+      <kerning first="76" second="74" amount="1" />
+      <kerning first="76" second="84" amount="-2" />
+      <kerning first="76" second="86" amount="-1" />
+      <kerning first="76" second="87" amount="-1" />
+      <kerning first="76" second="89" amount="-2" />
+      <kerning first="76" second="118" amount="-1" />
+      <kerning first="76" second="121" amount="-1" />
+      <kerning first="79" second="84" amount="-1" />
+      <kerning first="80" second="44" amount="-3" />
+      <kerning first="80" second="46" amount="-3" />
+      <kerning first="80" second="65" amount="-1" />
+      <kerning first="80" second="74" amount="-1" />
+      <kerning first="80" second="97" amount="-1" />
+      <kerning first="80" second="101" amount="-1" />
+      <kerning first="80" second="111" amount="-1" />
+      <kerning first="82" second="45" amount="-1" />
+      <kerning first="82" second="84" amount="-1" />
+      <kerning first="82" second="121" amount="-1" />
+      <kerning first="84" second="44" amount="-3" />
+      <kerning first="84" second="45" amount="-2" />
+      <kerning first="84" second="46" amount="-3" />
+      <kerning first="84" second="58" amount="-2" />
+      <kerning first="84" second="63" amount="1" />
+      <kerning first="84" second="65" amount="-1" />
+      <kerning first="84" second="74" amount="-1" />
+      <kerning first="84" second="79" amount="-1" />
+      <kerning first="84" second="84" amount="-1" />
+      <kerning first="84" second="89" amount="-1" />
+      <kerning first="84" second="97" amount="-3" />
+      <kerning first="84" second="99" amount="-2" />
+      <kerning first="84" second="101" amount="-2" />
+      <kerning first="84" second="103" amount="-2" />
+      <kerning first="84" second="111" amount="-2" />
+      <kerning first="84" second="114" amount="-2" />
+      <kerning first="84" second="115" amount="-2" />
+      <kerning first="84" second="117" amount="-2" />
+      <kerning first="84" second="118" amount="-2" />
+      <kerning first="84" second="119" amount="-2" />
+      <kerning first="84" second="121" amount="-2" />
+      <kerning first="84" second="122" amount="-2" />
+      <kerning first="86" second="44" amount="-3" />
+      <kerning first="86" second="45" amount="-1" />
+      <kerning first="86" second="46" amount="-3" />
+      <kerning first="86" second="58" amount="-1" />
+      <kerning first="86" second="65" amount="-1" />
+      <kerning first="86" second="97" amount="-1" />
+      <kerning first="86" second="101" amount="-1" />
+      <kerning first="86" second="111" amount="-1" />
+      <kerning first="86" second="117" amount="-1" />
+      <kerning first="86" second="121" amount="-1" />
+      <kerning first="87" second="44" amount="-3" />
+      <kerning first="87" second="45" amount="-1" />
+      <kerning first="87" second="46" amount="-2" />
+      <kerning first="87" second="58" amount="-1" />
+      <kerning first="87" second="65" amount="-1" />
+      <kerning first="87" second="97" amount="-1" />
+      <kerning first="87" second="101" amount="-1" />
+      <kerning first="87" second="111" amount="-1" />
+      <kerning first="87" second="121" amount="-1" />
+      <kerning first="88" second="45" amount="-1" />
+      <kerning first="88" second="101" amount="-1" />
+      <kerning first="88" second="111" amount="-1" />
+      <kerning first="88" second="121" amount="-1" />
+      <kerning first="89" second="44" amount="-3" />
+      <kerning first="89" second="45" amount="-1" />
+      <kerning first="89" second="46" amount="-3" />
+      <kerning first="89" second="58" amount="-2" />
+      <kerning first="89" second="65" amount="-1" />
+      <kerning first="89" second="74" amount="-1" />
+      <kerning first="89" second="97" amount="-1" />
+      <kerning first="89" second="100" amount="-1" />
+      <kerning first="89" second="101" amount="-1" />
+      <kerning first="89" second="103" amount="-1" />
+      <kerning first="89" second="109" amount="-1" />
+      <kerning first="89" second="110" amount="-1" />
+      <kerning first="89" second="111" amount="-1" />
+      <kerning first="89" second="112" amount="-1" />
+      <kerning first="89" second="113" amount="-1" />
+      <kerning first="89" second="114" amount="-1" />
+      <kerning first="89" second="115" amount="-1" />
+      <kerning first="89" second="117" amount="-1" />
+      <kerning first="89" second="118" amount="-1" />
+      <kerning first="90" second="45" amount="-1" />
+      <kerning first="90" second="97" amount="-1" />
+      <kerning first="90" second="101" amount="-1" />
+      <kerning first="90" second="111" amount="-1" />
+      <kerning first="90" second="121" amount="-1" />
+      <kerning first="91" second="106" amount="1" />
+      <kerning first="99" second="84" amount="-1" />
+      <kerning first="101" second="84" amount="-1" />
+      <kerning first="102" second="34" amount="1" />
+      <kerning first="102" second="39" amount="1" />
+      <kerning first="102" second="41" amount="1" />
+      <kerning first="102" second="42" amount="1" />
+      <kerning first="102" second="44" amount="-2" />
+      <kerning first="102" second="45" amount="-1" />
+      <kerning first="102" second="46" amount="-2" />
+      <kerning first="102" second="63" amount="1" />
+      <kerning first="102" second="92" amount="1" />
+      <kerning first="102" second="93" amount="1" />
+      <kerning first="102" second="125" amount="1" />
+      <kerning first="107" second="45" amount="-1" />
+      <kerning first="114" second="44" amount="-3" />
+      <kerning first="114" second="46" amount="-3" />
+      <kerning first="118" second="44" amount="-2" />
+      <kerning first="118" second="46" amount="-2" />
+      <kerning first="119" second="44" amount="-1" />
+      <kerning first="119" second="46" amount="-1" />
+      <kerning first="120" second="45" amount="-1" />
+      <kerning first="121" second="44" amount="-2" />
+      <kerning first="121" second="46" amount="-2" />
+      <kerning first="123" second="106" amount="1" />
+    </kernings>
+  </font>
+
+
+</resource>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="com.grinninglizard.UFOAttack" android:installLocation="auto" android:versionCode="9" android:versionName="2.6">
+    <application android:label="Xenowar" android:icon="@drawable/androidicon48" android:debuggable="false">
+        <activity android:name=".UFOActivity" android:label="Xenowar" android:screenOrientation="portrait" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:launchMode="singleInstance">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Attempt to get android browser to download xwdb files. Failed. 
+            <intent-filter>
+			    <action android:name="android.intent.action.VIEW" />
+			    <category android:name="android.intent.category.DEFAULT" />
+			    <category android:name="android.intent.category.BROWSABLE" />
+			    <data android:scheme="file" />
+			    <data android:host="*" />
+			    <data android:pathPattern=".*\\.xwdb" />
+			</intent-filter>
+			-->
+			            
+        </activity>
+    </application>
+    <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7"/>
+    <uses-feature android:glEsVersion="0x00010001" />
+  
+<uses-permission android:name="android.permission.INTERNET"></uses-permission>
+</manifest> 

@@ -1,0 +1,37 @@
+<Map sizeX="16" sizeY="16" >
+    <Items >
+        <Item x="9" y="13" name="tree3" />
+        <Item x="10" y="13" name="pawn" />
+        <Item x="8" y="12" rot="2" name="tree3" />
+        <Item x="4" y="12" name="tree3" />
+        <Item x="2" y="14" name="scout" />
+        <Item x="10" y="11" name="tree3" />
+        <Item x="8" y="9" name="scout" />
+        <Item x="6" y="9" name="pawn" />
+        <Item x="5" y="11" name="pawn" />
+        <Item x="3" y="8" name="scout" />
+        <Item x="3" y="11" rot="3" name="tree3" />
+        <Item x="12" y="5" name="scout" />
+        <Item x="8" y="5" name="tree3" />
+        <Item x="9" y="6" rot="1" name="tree3" />
+        <Item x="7" y="4" name="tree3" />
+        <Item x="6" y="5" name="tree3" />
+        <Item x="6" y="4" name="tree3" />
+        <Item x="5" y="4" name="tree3" />
+        <Item x="2" y="4" name="tree3" />
+        <Item x="3" y="4" rot="2" name="tree3" />
+        <Item x="8" y="2" name="pawn" />
+        <Item x="5" y="3" name="tree3" />
+        <Item x="4" y="2" name="tree3" />
+        <Item x="4" y="3" rot="3" name="tree3" />
+        <Item x="3" y="3" name="tree3" />
+        <Item x="2" y="2" name="tree3" />
+    </Items>
+    <Images >
+        <Image x="0" y="0" size="16" tileRotation="0" name="TNDR_16_TILE_00" />
+    </Images>
+    <GroundDebris >
+    </GroundDebris>
+    <PyroGroup >
+    </PyroGroup>
+</Map>
