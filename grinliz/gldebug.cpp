@@ -44,7 +44,9 @@ distribution.
 
 #ifdef DEBUG
 
-#define GRINLIZ_DEBUG_MEM
+#if defined(_MSC_VER)
+	#define GRINLIZ_DEBUG_MEM
+#endif
 //#define GRINLIZ_DEBUG_MEM_DEEP
 
 #ifdef GRINLIZ_DEBUG_MEM
