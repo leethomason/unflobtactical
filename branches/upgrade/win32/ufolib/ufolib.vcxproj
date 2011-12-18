@@ -72,7 +72,6 @@
     <ClInclude Include="..\..\gamui\gamui.h" />
     <ClInclude Include="..\..\grinliz\glbitarray.h" />
     <ClInclude Include="..\..\grinliz\glcolor.h" />
-    <ClInclude Include="..\..\grinliz\glcontainer.h" />
     <ClInclude Include="..\..\grinliz\gldebug.h" />
     <ClInclude Include="..\..\grinliz\gldynamic.h" />
     <ClInclude Include="..\..\grinliz\glfixed.h" />
@@ -96,7 +95,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\gamui\gamui.cpp" />
-    <ClCompile Include="..\..\grinliz\glcontainer.cpp" />
     <ClCompile Include="..\..\grinliz\gldebug.cpp" />
     <ClCompile Include="..\..\grinliz\gldynamic.cpp" />
     <ClCompile Include="..\..\grinliz\glfixed.cpp" />
