@@ -1,5 +1,14 @@
 Useful code and links from the web. And sometimes a sort of development blog.
 
+= XenoEngine = 
+
+  * Separate game logic out of engine layer.
+  * Layout system - that isn't terrible - for gamui. 
+  * Memory use of TinyXML.
+  * Clean up XML output utility
+  * Fix rectangle class.
+  * Remove deprecated utility.
+
 = New Aliens = 
 
 Plan for the next couple of versions:
