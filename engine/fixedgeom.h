@@ -12,7 +12,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#if 0
 #ifndef FIXEDGEOM_INCLUDED
 #define FIXEDGEOM_INCLUDED
 
@@ -95,3 +95,4 @@ int IntersectRayAABBX(	const Vector3X& origin, const Vector3X& dir,
 int ComparePlaneSphereX( const PlaneX& plane, const SphereX& sphere );
 
 #endif // FIXEDGEOM_INCLUDED
+#endif
