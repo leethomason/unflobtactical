@@ -100,10 +100,9 @@ void ModelLoader::Load( const gamedb::Item* item, ModelResource* res )
 	item->GetData( "index", res->allIndex, res->header.nTotalIndices*sizeof(U16) );
 
 	// compute the hit testing AABB
-	float ave = grinliz::Max( res->header.bounds.SizeX(), res->header.bounds.SizeZ() )*0.5f;
-	//float ave = Max( res->header.bounds.SizeX(), res->header.bounds.SizeZ() );
-	res->hitBounds.min.Set( -ave, res->header.bounds.min.y, -ave );
-	res->hitBounds.max.Set( ave, res->header.bounds.max.y, ave );
+	float ave = grinliz::Max( res->header.bounds.size.x, res->header.bounds.size.z )*0.5f;
+	res->hitBounds.Set( -ave, res->header.bounds.Y0(), -ave,
+						 ave, res->header.bounds.Y1(), ave );
 
 	//GLOUTPUT(( "Load Model: %s\n", res->header.name.c_str() ));
 
@@ -286,8 +285,8 @@ void Model::SetTexXForm( int id, float a, float d, float x, float y )
 void Model::CalcHitAABB( Rectangle3F* aabb ) const
 {
 	// This is already an approximation - ignore rotation.
-	aabb->min = pos + resource->hitBounds.min;
-	aabb->max = pos + resource->hitBounds.max;
+	aabb->pos = pos + resource->hitBounds.pos;
+	aabb->size = resource->hitBounds.size;
 }
 
 
@@ -324,8 +323,8 @@ void Model::CalcTarget( grinliz::Vector3F* target ) const
 
 void Model::CalcTargetSize( float* width, float* height ) const
 {
-	*width  = ( resource->AABB().SizeX() +resource->AABB().SizeZ() )*0.5f;
-	*height = resource->AABB().SizeY();
+	*width  = ( resource->AABB().size.x +resource->AABB().size.z )*0.5f;
+	*height = resource->AABB().size.y;
 }
 
 

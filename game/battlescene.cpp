@@ -1803,10 +1803,10 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 			Vector3F in, out;
 			int inResult, outResult;
 			Rectangle3F worldBounds;
-			worldBounds.Set( 0, 0, 0, 
-							(float)tacMap->Width(), 
-							8.0f,
-							(float)tacMap->Height() );
+			worldBounds.pos.Set( 0, 0, 0 );
+			worldBounds.size.Set( (float)tacMap->Width(), 
+								  8.0f,
+								  (float)tacMap->Height() );
 
 			int result = IntersectRayAllAABB( ray.origin, ray.direction, worldBounds, 
 											  &inResult, &in, &outResult, &out );
@@ -3286,20 +3286,49 @@ void BattleScene::MouseMove( int x, int y )
 	Vector2F view;
 	engine->GetScreenport().WindowToView( window, &view );
 
-	grinliz::Ray world;
-	engine->GetScreenport().ViewToWorld( view, 0, &world );
+	if ( Engine::mapMakerMode ) {
+		grinliz::Ray world;
+		engine->GetScreenport().ViewToWorld( view, 0, &world );
 
-	Vector3F p;
-	int result = IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &p );
-	if ( result == grinliz::INTERSECT && p.x >= 0 && p.x < Map::SIZE && p.z >= 0 && p.z < Map::SIZE ) {
-		int newX = (int)( p.x );
-		int newZ = (int)( p.z );
-		newX = Clamp( newX, 0, Map::SIZE-1 );
-		newZ = Clamp( newZ, 0, Map::SIZE-1 );
-		mapmaker_mapSelection->SetPos( (float)newX + 0.5f, 0.0f, (float)newZ + 0.5f );
+		Vector3F p;
+		int result = IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &p );
+		if ( result == grinliz::INTERSECT && p.x >= 0 && p.x < Map::SIZE && p.z >= 0 && p.z < Map::SIZE ) {
+			int newX = (int)( p.x );
+			int newZ = (int)( p.z );
+			newX = Clamp( newX, 0, Map::SIZE-1 );
+			newZ = Clamp( newZ, 0, Map::SIZE-1 );
+			mapmaker_mapSelection->SetPos( (float)newX + 0.5f, 0.0f, (float)newZ + 0.5f );
 	
-		UpdatePreview();
+			UpdatePreview();
+		}
+	}	
+#if 0
+	{
+		grinliz::Matrix4 mvpi;
+		grinliz::Ray ray;
+		Vector3F intersection;
+
+		engine->GetScreenport().ViewProjectionInverse3D( &mvpi );
+		engine->RayFromViewToYPlane( view, mvpi, &ray, &intersection );
+		Model* model = engine->IntersectModel( ray, TEST_TRI, 0, 0, 0, &intersection );
+
+		if ( model ) {
+			GLOUTPUT(( "Intersection (%.2f,%.2f,%.2f) %s\n", intersection.x, intersection.y, intersection.z, model->GetResource()->header.name.c_str() ));
+			Color4F color = { 1.0f, 0.0f, 0.0f, 1.0f };
+			Color4F colorVel = { 0.0f, 0.0f, 0.0f, -0.2f };
+			Vector3F vel = { 0, 0, 0 };
+
+			ParticleSystem::Instance()->EmitPoint(	1,
+										ParticleSystem::PARTICLE_RAY,
+										color,
+										colorVel,
+										intersection,
+										0.0f,			// posFuzz
+										vel,
+										0.0f );
+		}	
 	}
+#endif
 }
 
 

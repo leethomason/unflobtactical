@@ -180,12 +180,18 @@ struct Vector3
 	T y;
 	T z;
 
+//	Vector3<T>()	{ x = y = z = 0; }
+//	Vector3<T>( const Vector3<T>& other ) : x( other.x ), y( other.y ), z( other.z ) {}
+//	Vector3<T>( T _x, T _y, T _z ) : x( _x ), y( _y ), z( _y )	{}
+
 	// I avoid non-const references - but this one is just so handy! And, in
 	// use in the code, it is clear it is an assignment.
 	T& X( int i )    		{	GLASSERT( InRange( i, 0, COMPONENTS-1 ));
 								return *( &x + i ); }
 	T  X( int i ) const		{	GLASSERT( InRange( i, 0, COMPONENTS-1 ));
 								return *( &x + i ); }
+
+	void Zero() { x = y = z = 0; }
 
 	void Add( const Vector3<T>& vec ) {
 		x += vec.x;
@@ -268,12 +274,6 @@ struct Vector3
 		this->x = _x;
 		this->y = _y;
 		this->z = _z;
-	}
-
-	void Zero() {
-		x = (T)0;
-		y = (T)0;
-		z = (T)0;
 	}
 
 	void Normalize()	

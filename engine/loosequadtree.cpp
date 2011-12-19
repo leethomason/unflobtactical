@@ -228,13 +228,13 @@ void SpaceTree::Update( Model* model )
 	Rectangle3F bounds = model->AABB();
 
 	// Clamp to tree range.
-	if (bounds.min.y < yMin ) 
-		bounds.min.y = yMin;
-	if (bounds.max.y > yMax )
-		bounds.max.y = yMax;
+	if (bounds.pos.y < yMin ) 
+		bounds.pos.y = yMin;
+	if (bounds.Y1() > yMax )
+		bounds.size.y = yMax-bounds.pos.y;
 
-	int x = (int)bounds.min.x;
-	int z = (int)bounds.min.z;
+	int x = (int)bounds.pos.x;
+	int z = (int)bounds.pos.z;
 
 	while( depth > 0 ) {
 		node = GetNode( depth, x, z );
@@ -353,8 +353,8 @@ void SpaceTree::Node::Dump()
 		GLOUTPUT(( "  " ));
 	GLOUTPUT(( "depth=%d nModels=%d (%.1f,%.1f)-(%.1f,%.1f)\n",
 				depth, nModels, 
-				looseAABB.min.x, looseAABB.min.z, 
-				looseAABB.max.x, looseAABB.max.z ));
+				looseAABB.pos.x, looseAABB.pos.z, 
+				looseAABB.X1(), looseAABB.Z1() ));
 }
 
 
@@ -508,8 +508,8 @@ Model* SpaceTree::QueryRay( const Vector3F& _origin,
 	dir.Normalize();
 
 	Rectangle3F aabb;
-	aabb.min.Set( 0, yMin, 0 );
-	aabb.max.Set( Map::SIZE, yMax, Map::SIZE );
+	aabb.Set( 0, yMin, 0,
+			  Map::SIZE, yMax, Map::SIZE );
 
 	// Where does this ray enter and leave the spaceTree?
 	// It enters at 'p0' and leaves at 'p1'

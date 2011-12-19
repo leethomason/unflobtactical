@@ -465,15 +465,15 @@ bool Matrix4::SetLookAt( const Vector3F& eye, const Vector3F& center, const Vect
 void grinliz::MultMatrix4( const Matrix4& m, const Rectangle3F& in, Rectangle3F* out )
 {
 	Vector3F q;
-	Vector3F p = m * in.min;
+	Vector3F p = m * in.pos;
 
-	out->min = p;
-	out->max = p;
+	out->pos = p;
+	out->size.Zero();
 
 	for( int i=1; i<8; ++i ) {
-		q.Set(	(i&1) ? in.max.x : in.min.x,
-				(i&2) ? in.max.y : in.min.y,
-				(i&4) ? in.max.z : in.min.z );
+		q.Set(	(i&1) ? in.X1(0) : in.X0(0),
+				(i&2) ? in.X1(1) : in.X0(1),
+				(i&4) ? in.X1(2) : in.X0(2) );
 		p = m * q;
 		out->DoUnion( p );
 	}

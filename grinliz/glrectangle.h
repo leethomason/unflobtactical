@@ -26,7 +26,6 @@ distribution.
 #ifndef GRINLIZ_RECTANGLE_INCLUDED
 #define GRINLIZ_RECTANGLE_INCLUDED
 
-#include <limits.h>
 #include "glvector.h"
 
 namespace grinliz {
@@ -286,43 +285,60 @@ struct Rectangle2F : public Rectangle2< float >
 	float Area()   const	{ return Width() * Height();	}   ///< Area of the rectangle
 };
 
-
+/** Rectangle class based on vectors. (Actually an AABB.) 
+    inclusive-exclusive edges.
+*/
 template< class T > 
 struct Rectangle3
 {
-	Vector3< T > min;
-	Vector3< T > max;
+	Vector3<T> pos, size;
 
-	/// If i==0 return min, else return max
-	const Vector3< T >& Vec( int i ) { return (i==0) ? min : max; }
+	Rectangle3<T>() {}
+	Rectangle3<T>( T _x, T _y, T _z, T _cx, T _cy, T _cz ) : pos( _x, _y, _z ), size( _cx, _cy, _cz ) {}
+	Rectangle3<T>( const Vector3<T>& _pos, const Vector3<T>& _size ) : pos( _pos ), size( _size ) {}
 
-	/// Initialize. Convenience function.
-	void Set( T _xmin, T _ymin, T _zmin, T _xmax, T _ymax, T _zmax )	{ 
-		min.x = _xmin; min.y = _ymin; min.z = _zmin; 
-		max.x = _xmax; max.y = _ymax; max.z = _zmax;
+	T X0( int i ) const { return pos.X(i); }
+	T X1( int i ) const { return pos.X(i) + size.X(i); }
+
+	T X0() const { return pos.x; }
+	T Y0() const { return pos.y; }
+	T Z0() const { return pos.z; }
+	T X1() const { return pos.x+size.x; }
+	T Y1() const { return pos.y+size.y; }
+	T Z1() const { return pos.z+size.z; }
+
+	void Set( const Vector3<T>& a ) {
+		pos = a;
+		size.Zero();
 	}
+
 	void Set( const Vector3<T>& a, const Vector3<T>& b ) {
-		min.x = Min( a.x, b.x );
-		min.y = Min( a.y, b.y );
-		min.z = Min( a.z, b.z );
-		max.x = Max( a.x, b.x );
-		max.y = Max( a.y, b.y );
-		max.z = Max( a.z, b.z );
+		pos = a;
+		size.Zero();
+		DoUnion( b );
 	}
+
+	void Set( T x0, T y0, T z0, T x1, T y1, T z1 ) {
+		Vector3<T> a = { x0, y0, z0 };
+		Vector3<T> b = { x1, y1, z1 };
+		Set( a, b );
+	}
+
 	/// Set all the members to zero.
 	void Zero() {
-		min.x = min.y = max.x = max.y = min.z = max.z = (T) 0;
+		pos.Zero();
+		size.Zero();
 	}
 
 	/// Return true if the rectangles intersect.
 	bool Intersect( const Rectangle3<T>& rect ) const
 	{
-		if (	rect.max.x < min.x
-			 || rect.min.x > max.x
-			 || rect.max.y < min.y
-			 || rect.min.y > max.y
-			 || rect.max.z < min.z
-			 || rect.min.z > max.z )
+		if (	(rect.pos.x+rect.size.x) <= pos.x
+			 || rect.pos.x >= (pos.x+size.x)
+			 || (rect.pos.y+rect.size.y) <= pos.y
+			 || rect.pos.y >= (pos.y+size.y)
+			 || (rect.pos.z+rect.size.z) <= pos.z
+			 || rect.pos.z >= (pos.z+size.z) )
 		{
 			return false;
 		}
@@ -331,12 +347,12 @@ struct Rectangle3
 
 	bool Intersect( const Vector3<T>& point ) const
 	{
-		if (	point.x < min.x
-			 || point.x > max.x
-			 || point.y < min.y
-			 || point.y > max.y
-			 || point.z < min.z
-			 || point.z > max.z )
+		if (	point.x < pos.x
+			 || point.x >= (pos.x+size.x)
+			 || point.y < pos.y
+			 || point.y >= (pos.y+size.y)
+			 || point.z < pos.z
+			 || point.z >= (pos.z+size.z) )
 		{
 			return false;
 		}
@@ -345,169 +361,100 @@ struct Rectangle3
 
 	bool Intersect( T x, T y, T z ) const
 	{
-		if (	x < min.x
-			 || x > max.x
-			 || y < min.y
-			 || y > max.y
-			 || z < min.z
-			 || z > max.z )
-		{
-			return false;
-		}
-		return true;
+		return Intersect( Vector3<T>( x, y, z ) );
 	}
 
-
 	Vector3< T > Center() const {
-		Vector3< T > v = { (min.x + max.x) / (T)2, (min.y + max.y) / (T)2, (min.z + max.z) / (T)2 };
+		Vector3< T > v = {	pos.x + size.x/2, 
+							pos.y + size.y/2,
+							pos.z + size.z/2 };
 		return v;
 	}
 
 	/// Return true if 'rect' is inside this.
 	bool Contains( const Rectangle3<T>& rect ) const
 	{
-		if (	rect.min.x >= min.x
-			 && rect.max.x <= max.x
-			 && rect.min.y >= min.y
-			 && rect.max.y <= max.y
-			 && rect.min.z >= min.z
-			 && rect.max.z <= max.z )
-		{
-			return true;
+		for( int i=0; i<3; ++i ) {
+			if ( rect.X0(i) < X0(i) || rect.X1(i) > X1(i) ) {
+				return false;
+			}
 		}
-		return false;
+		return true;
 	}
 
 	bool Contains( const Vector3<T>& point ) const
 	{
-		if (	point.x >= min.x
-			 && point.x <= max.x
-			 && point.y >= min.y
-			 && point.y <= max.y
-			 && point.z >= min.z
-			 && point.z <= max.z )
-		{
-			return true;
+		for( int i=0; i<3; ++i ) {
+			if ( point.X(i) < X0(i) || point.X(i) >= X1(i) ) {
+				return false;
+			}
 		}
-		return false;
-	}
-
-	/// Merge the rect into this.
-	void DoUnion( const Rectangle3<T>& rect )
-	{
-		min.x = grinliz::Min( min.x, rect.min.x );
-		max.x = grinliz::Max( max.x, rect.max.x );
-		min.y = grinliz::Min( min.y, rect.min.y );
-		max.y = grinliz::Max( max.y, rect.max.y );
-		min.z = grinliz::Min( min.z, rect.min.z );
-		max.z = grinliz::Max( max.z, rect.max.z );
+		return true;
 	}
 
 	/// Merge the Vector into this.
 	void DoUnion( const Vector3<T>& vec )
 	{
-		min.x = grinliz::Min( min.x, vec.x );
-		max.x = grinliz::Max( max.x, vec.x );
-		min.y = grinliz::Min( min.y, vec.y );
-		max.y = grinliz::Max( max.y, vec.y );
-		min.z = grinliz::Min( min.z, vec.z );
-		max.z = grinliz::Max( max.z, vec.z );
+		for( int i=0; i<3; ++i ) {
+			T x0 = grinliz::Min( X0(i), vec.X(i) );
+			T x1 = grinliz::Max( X1(i), vec.X(i) );
+			pos.X(i) = x0;
+			size.X(i) = x1 - x0;
+		}
 	}
+
+
+	/// Merge the rect into this.
+	void DoUnion( const Rectangle3<T>& rect )
+	{
+		DoUnion( rect.pos );
+		DoUnion( rect.pos + rect.size );
+	}
+
 	
 	/// Turn this into the intersection.
 	void DoIntersection( const Rectangle2<T>& rect )
 	{
-		min.x = grinliz::Max( min.x, rect.min.x );
-		max.x = grinliz::Min( max.x, rect.max.x );
-		min.y = grinliz::Max( min.y, rect.min.y );
-		max.y = grinliz::Min( max.y, rect.max.y );
-		min.z = grinliz::Max( min.z, rect.min.z );
-		max.z = grinliz::Min( max.z, rect.max.z );
-	}
-
-	/// Clip this to the passed in rectangle. Will become invalid if they don't intersect.
-	void DoClip( const Rectangle3<T>& rect )
-	{
-		min.x = rect.min.x > min.x ? rect.min.x : min.x;
-		max.x = rect.max.x < max.x ? rect.max.x : max.x;
-		min.y = rect.min.y > min.y ? rect.min.y : min.y;
-		max.y = rect.max.y < max.y ? rect.max.y : max.y;
-		min.z = rect.min.z > min.z ? rect.min.z : min.z;
-		max.z = rect.max.z < max.z ? rect.max.z : max.z;
+		for( int i=0; i<3; ++i ) {
+			T x0 = grinliz::Max( X0(i), rect.X0(i) );
+			T x1 = grinliz::Min( X1(i), rect.X1(i) );
+			pos.X(i) = x0;
+			T sz = x1 - x0;
+			size.X(i) = sz > 0 ? sz : 0;
+		}
 	}
 
 
 	/// Scale all coordinates by the given ratios:
 	void Scale( T x, T y, T z )
 	{
-		min.x = ( x * min.x );
-		max.x = ( x * max.x );
-		min.y = ( y * min.y );
-		max.y = ( y * max.y );
-		min.z = ( z * min.z );
-		max.z = ( z * max.z );
+		// x0=2 x1=4 -> x0=1 x1=2
+		// x0=2 x1=5 -> x0=6 x1=15
+		pos.x  *= x;
+		size.x *= x;
+		pos.y  *= y;
+		size.y *= y;
+		pos.z  *= z;
+		size.z *= z;
 	}
 
 	/// Changes the boundaries
 	void EdgeAdd( T i )
 	{
-		min.x -= i;
-		max.x += i;
-		min.y -= i;
-		max.y += i;
-		min.z -= i;
-		max.z += i;
+		pos.x  -= i;
+		size.x += i+i;
+		pos.y  -= i;
+		size.y += i+i;
+		pos.z  -= i;
+		size.z += i+i;
 	}
 
-	bool operator==( const Rectangle2<T>& that ) const { return	( min.x == that.min.x )
-																&& ( max.x == that.max.x )
-																&& ( min.y == that.min.y )
-																&& ( max.y == that.max.y )
-																&& ( min.z == that.min.z )
-																&& ( max.z == that.max.z ); }
-	bool operator!=( const Rectangle2<T>& that ) const { return	( min.x != that.min.x )
-																|| ( max.x != that.max.x )
-																|| ( min.y != that.min.y )
-																|| ( max.y != that.max.y )
-																|| ( min.z != that.min.z )
-																|| ( max.z != that.max.z ); }
-
+	bool operator==( const Rectangle2<T>& that ) const { return	pos == that.pos && size == that.size; }
+	bool operator!=( const Rectangle2<T>& that ) const { return	pos != that.pos || size != that.size; }
 };
 
-
-
-struct Rectangle3I : public Rectangle3< int >
-{
-	enum { INVALID = INT_MIN };
-
-	int SizeX()	 const 	{ return max.x - min.x + 1; }		///< width of the rectangle
-	int SizeY() const	{ return max.y - min.y + 1; }		///< height of the rectangle
-	int SizeZ()  const  { return max.z - min.z + 1; }
-	int Volume() const	{ return SizeX() * SizeY() * SizeZ();	}   ///< Volume of the 3D rectangle
-	int Size( int i ) const { return max.X(i) - min.X(i) + 1; }
-	#ifdef DEBUG
-	void Dump() { GLOUTPUT(( "(%d,%d,%d)-(%d,%d,%d)", min.x, min.y, min.z, max.x, max.y, max.z )); }
-	#endif
-};
-
-
-struct Rectangle3F : public Rectangle3< float >
-{
-	float SizeX() const 	{ return max.x - min.x; }		///< width of the rectangle
-	float SizeY() const		{ return max.y - min.y; }		///< height of the rectangle
-	float SizeZ() const		{ return max.z - min.z; }		///< depth of the rectangle
-	float Volume()const		{ return SizeX() * SizeY() * SizeZ();	}   ///< Volume of the 3D rectangle
-	float Size( int i ) const { return max.X(i) - min.X(i); }
-
-	#ifdef DEBUG
-	void Dump() { 
-		GLOUTPUT(( "(%.1f,%.1f,%.1f)-(%.1f,%.1f,%.1f)", min.x, min.y, min.z, max.x, max.y, max.z )); 
-	}
-	#endif
-};
-
-
-
+typedef Rectangle3< int > Rectangle3I;
+typedef Rectangle3< float > Rectangle3F;
 
 template< class T >
 struct Rect2

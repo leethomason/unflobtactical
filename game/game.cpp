@@ -789,8 +789,10 @@ void Game::Tap( int action, int wx, int wy )
 
 void Game::MouseMove( int x, int y )
 {
-	GLASSERT( Engine::mapMakerMode );
-	((BattleScene*)sceneStack.Top()->scene)->MouseMove( x, y );
+	//GLASSERT( Engine::mapMakerMode );
+	if ( sceneStack.Top()->sceneID == BATTLE_SCENE ) {
+		((BattleScene*)sceneStack.Top()->scene)->MouseMove( x, y );
+	}
 }
 
 

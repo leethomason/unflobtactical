@@ -118,27 +118,27 @@ void grinliz::MinDeltaDegrees( float angle0, float angle1, float* distance, floa
 	Vector3F normal, point;
 
 	normal.Set( -1, 0, 0 );
-	point = r.max;
+	point = r.pos + r.size;
 	CreatePlane( normal, point, &planes[0] );
 
 	normal.Set( 1, 0, 0 );
-	point = r.min;
+	point = r.pos;
 	CreatePlane( normal, point, &planes[1] );
 
 	normal.Set( 0, -1, 0 );
-	point = r.max;
+	point = r.pos + r.size;
 	CreatePlane( normal, point, &planes[2] );
 
 	normal.Set( 0, 1, 0 );
-	point = r.min;
+	point = r.pos;
 	CreatePlane( normal, point, &planes[3] );
 
 	normal.Set( 0, 0, -1 );
-	point = r.max;
+	point = r.pos + r.size;
 	CreatePlane( normal, point, &planes[4] );
 
 	normal.Set( 0, 0, 1 );
-	point = r.min;
+	point = r.pos;
 	CreatePlane( normal, point, &planes[5] );
 }
 
@@ -867,29 +867,15 @@ int grinliz::ComparePlaneAABB( const Plane& plane, const Rectangle3F& aabb )
 
 	Vector3F posPoint, negPoint;
 
-	if ( plane.n.x > 0.0f )	{
-		posPoint.x = aabb.max.x;
-		negPoint.x = aabb.min.x;
-	} else {
-		posPoint.x = aabb.min.x;
-		negPoint.x = aabb.max.x;
+	for( int i=0; i<3; ++i ) {
+		if ( plane.n.X(i) > 0.0f )	{
+			posPoint.X(i) = aabb.X1(i);
+			negPoint.X(i) = aabb.X0(i);
+		} else {
+			posPoint.X(i) = aabb.X0(i);
+			negPoint.X(i) = aabb.X1(i);
+		}
 	}
-
-	if ( plane.n.y > 0.0f )	{
-		posPoint.y = aabb.max.y;
-		negPoint.y = aabb.min.y;
-	} else {
-		posPoint.y = aabb.min.y;
-		negPoint.y = aabb.max.y;
-	}
-
-	if ( plane.n.z > 0.0f ) {
-		posPoint.z = aabb.max.z;
-		negPoint.z = aabb.min.z;
-	} else {
-		posPoint.z = aabb.min.z;
-		negPoint.z = aabb.max.z;
-	}		
 
 	// RTR 735
 	// f(P) = N*P + d
@@ -1070,8 +1056,9 @@ int grinliz::IntersectRayAABB(	const Vector3F& origin,
 	float candidatePlane[3];
 
 	const float *pOrigin = &origin.x;
-	const float *pBoxMin = &aabb.min.x;
-	const float *pBoxMax = &aabb.max.x;
+	const float *pBoxMin = &aabb.pos.x;
+	Vector3F aabbMax = aabb.pos + aabb.size;
+	const float *pBoxMax = &aabbMax.x;
 	const float *pDir    = &dir.x;
 	float *pIntersect = &intersect->x;
 
@@ -1165,7 +1152,7 @@ int grinliz::IntersectRayAllAABB(	const Vector3F& origin, const Vector3F& dir,
 
 	// Could get fancy and intersect from the inside. But that's hard, so I'll run
 	// the ray out and shoot it backwards.
-	float deltaLen = aabb.SizeX() + aabb.SizeY() + aabb.SizeZ();
+	float deltaLen = aabb.size.x + aabb.size.y + aabb.size.z;
 
 	Vector3F dirNormal = dir;
 	dirNormal.Normalize();

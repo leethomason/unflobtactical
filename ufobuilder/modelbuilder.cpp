@@ -199,16 +199,10 @@ void ModelBuilder::Flush()
 		GLASSERT( group[g].nIndex % 3 == 0 );
 	}
 
-	bounds.min = bounds.max = group[0].vertex[0].pos;
+	bounds.Set( group[0].vertex[0].pos );
 	for( int i=0; i<nGroup; ++i ) {
 		for( int j=0; j<group[i].nVertex; ++j ) {
-			bounds.min.x = Min( bounds.min.x, group[i].vertex[j].pos.x );
-			bounds.min.y = Min( bounds.min.y, group[i].vertex[j].pos.y );
-			bounds.min.z = Min( bounds.min.z, group[i].vertex[j].pos.z );
-
-			bounds.max.x = Max( bounds.max.x, group[i].vertex[j].pos.x );
-			bounds.max.y = Max( bounds.max.y, group[i].vertex[j].pos.y );
-			bounds.max.z = Max( bounds.max.z, group[i].vertex[j].pos.z );
+			bounds.DoUnion( group[i].vertex[j].pos );
 		}
 	}
 }
