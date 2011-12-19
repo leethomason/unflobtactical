@@ -20,8 +20,6 @@
 #include "../grinliz/glgeometry.h"
 #include "../grinliz/glperformance.h"
 
-#include "../game/cgame.h"
-
 #include "gpustatemanager.h"
 #include "engine.h"
 #include "loosequadtree.h"

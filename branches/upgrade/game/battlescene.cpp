@@ -22,7 +22,7 @@
 #include "game.h"
 #include "cgame.h"
 #include "ufosound.h"
-#include "settings.h"
+#include "gamesettings.h"
 #include "tacmap.h"
 #include "research.h"
 
@@ -70,7 +70,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 
 	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, &visibility, engine, units, this );
 	aiArr[TERRAN_TEAM]		= 0;
-	if ( SettingsManager::Instance()->GetPlayerAI() ) {
+	if ( GameSettingsManager::Instance()->GetPlayerAI() ) {
 		aiArr[TERRAN_TEAM] = new WarriorAI( TERRAN_TEAM, &visibility, engine, units, this );
 	}
 	aiArr[CIV_TEAM]			= new CivAI( CIV_TEAM, &visibility, engine, units, this );
@@ -2588,7 +2588,7 @@ void BattleScene::Tap(	int action,
 			confirmDest.Set( -1, -1 );
 			int result = tacMap->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
 			if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
-				if ( SettingsManager::Instance()->GetConfirmMove() ) {
+				if ( GameSettingsManager::Instance()->GetConfirmMove() ) {
 					confirmDest.Set( end.x, end.y );
 				}
 				else {
@@ -2609,7 +2609,7 @@ void BattleScene::ShowNearPath( const Unit* unit )
 	if ( unit == 0 && nearPathState.unit == 0 )		
 		return;		// drawing nothing correctly
 
-	bool confirmMove = SettingsManager::Instance()->GetConfirmMove();
+	bool confirmMove = GameSettingsManager::Instance()->GetConfirmMove();
 
 	if (    unit == nearPathState.unit
 		 && unit->TU() == nearPathState.tu
@@ -2805,7 +2805,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 			dragEndUI = dragStartUI = ui;
 
 			// Drag a unit or drag the camera?
-			if ( uiActivated && !panning && SettingsManager::Instance()->GetAllowDrag() ) {
+			if ( uiActivated && !panning && GameSettingsManager::Instance()->GetAllowDrag() ) {
 				Vector2I mapPos = { (int)dragStart3D.x, (int)dragStart3D.z };
 				for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 					if ( units[i].IsAlive() && ( mapPos == units[i].MapPos() ) ) {
@@ -2929,7 +2929,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 					if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
 						// TU for a move gets used up "as we go" to account for reaction fire and changes.
 						// Go!
-						if ( SettingsManager::Instance()->GetConfirmMove() ) {
+						if ( GameSettingsManager::Instance()->GetConfirmMove() ) {
 							confirmDest.Set( end.x, end.y );
 						}
 						else {

@@ -56,6 +56,13 @@ static const float EL_LIGHT_X = 0.7f;
 static const float EL_LIGHT_Y = 3.0f;
 static const float EL_LIGHT_Z = 1.4f;
 
+// Set the zoom. The zoom is in a range of 0.1-5.0, based on
+// distance from a hypothetical bitmap. Zoom is passed in
+// as a relative value.
+static const float GAME_ZOOM_MIN = 0.1f;
+static const float GAME_ZOOM_MAX = 5.0f;
+
+
 // --- Debugging --- //
 //#define SHOW_FOW			// visual debugging
 //#define EL_SHOW_MODELS

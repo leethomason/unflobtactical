@@ -47,7 +47,7 @@
 #include "../version.h"
 
 #include "ufosound.h"
-#include "settings.h"
+#include "gamesettings.h"
 
 #include <time.h>
 
@@ -161,11 +161,11 @@ void Game::Init()
 	GLOUTPUT(( "Game::Init Database initialized.\n" ));
 
 	GLOUTPUT(( "Game::Init stage 0\n" ));
-	SettingsManager::Create( savePath.c_str() );
+	GameSettingsManager::Create( savePath.c_str() );
 	{
-		SettingsManager* sm = SettingsManager::Instance();
+		GameSettingsManager* sm = GameSettingsManager::Instance();
 		if ( sm->GetCurrentModName().size() ) {
-			LoadModDatabase( SettingsManager::Instance()->GetCurrentModName().c_str(), true );
+			LoadModDatabase( sm->GetCurrentModName().c_str(), true );
 		}
 	}
 
@@ -251,7 +251,7 @@ Game::~Game()
 
 	delete engine;
 	UFOText::Destroy();
-	SettingsManager::Destroy();
+	GameSettingsManager::Destroy();
 	SoundManager::Destroy();
 	ParticleSystem::Destroy();
 	ModelResourceManager::Destroy();

@@ -26,7 +26,7 @@
 #include "../grinliz/glstringutil.h"
 #include "audio.h"
 #include "../version.h"
-#include "../game/settings.h"
+#include "../game/gamesettings.h"
 
 // Used for map maker mode - directly call the game object.
 #include "../game/game.h"

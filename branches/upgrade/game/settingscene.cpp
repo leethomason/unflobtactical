@@ -2,7 +2,7 @@
 #include "../engine/engine.h"
 #include "game.h"
 #include "cgame.h"
-#include "settings.h"
+#include "gamesettings.h"
 #include "../grinliz/glstringutil.h"
 
 using namespace gamui;
@@ -12,7 +12,7 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 {
 	Engine* engine = GetEngine();
 	const Screenport& port = engine->GetScreenport();
-	SettingsManager* sm = SettingsManager::Instance();
+	GameSettingsManager* sm = GameSettingsManager::Instance();
 
 	background.Init( &gamui2D, game->GetRenderAtom( Game::ATOM_TACTICAL_BACKGROUND ), false );
 	background.SetSize( game->engine->GetScreenport().UIWidth(), game->engine->GetScreenport().UIHeight() );
@@ -137,7 +137,7 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 
 SettingScene::~SettingScene()
 {
-	SettingsManager* sm = SettingsManager::Instance();
+	GameSettingsManager* sm = GameSettingsManager::Instance();
 
 	for( int i=0; i<4; ++i ) {
 		if ( debugButton[i].Down() ) {
@@ -165,7 +165,7 @@ void SettingScene::Activate()
 
 GLString SettingScene::CalcMod( int delta )
 {
-	SettingsManager* sm = SettingsManager::Instance();
+	GameSettingsManager* sm = GameSettingsManager::Instance();
 
 	const GLString* path = game->GetModDatabasePaths();
 	int nPaths=0;
@@ -196,7 +196,7 @@ void SettingScene::Tap( int action, const grinliz::Vector2F& screen, const grinl
 {
 	grinliz::Vector2F ui;
 	GetEngine()->GetScreenport().ViewToUI( screen, &ui );
-	SettingsManager* sm = SettingsManager::Instance();
+	GameSettingsManager* sm = GameSettingsManager::Instance();
 
 	const UIItem* item = 0;
 	if ( action == GAME_TAP_DOWN ) {
