@@ -28,12 +28,11 @@ distribution.
 
 #include "gldebug.h"
 #include "glvector.h"
+#include "glmath.h"
+#include "glrectangle.h"
 #include <memory.h>
 
 namespace grinliz {
-
-struct Rectangle2F;
-struct Rectangle3F;
 
 /** A 3D homogenous matrix. Although the bottom row is typically 0,0,0,1 this
 	implementation uses the full 4x4 computation.
@@ -194,7 +193,7 @@ class Matrix4
 	friend void MultMatrix4( const Matrix4& a, const Matrix4& b, Matrix4* c );
 	friend void MultMatrix4( const Matrix4& a, const Vector3F& b, Vector3F* c, float w );
 	friend void MultMatrix4( const Matrix4& a, const Vector4F& b, Vector4F* c );
-	friend void MultMatrix4( const Matrix4& m, const Rectangle3F& in, Rectangle3F* out );
+	friend void MultMatrix4( const Matrix4& m, const Rectangle3<float>& in, Rectangle3<float>* out );
 	
 	#ifdef DEBUG
 	void Dump( const char* name=0 ) const
@@ -257,7 +256,7 @@ class Matrix4
 	friend bool Equal( const Matrix4& a, const Matrix4& b, float epsilon = 0.001f )
 	{
 		for( unsigned i=0; i<16; ++i )
-			if ( !grinliz::Equal( a.x[i], b.x[i], epsilon ) )
+			if ( !::grinliz::Equal( a.x[i], b.x[i], epsilon ) )
 				return false;
 		return true;
 	}

@@ -171,12 +171,12 @@ void ModelHeader::Save( gamedb::WItem* parent )
 	node->SetInt( "nGroups", nGroups );
 
 	gamedb::WItem* boundNode = node->CreateChild( "bounds" );
-	boundNode->SetFloat( "min.x", bounds.min.x );
-	boundNode->SetFloat( "min.y", bounds.min.y );
-	boundNode->SetFloat( "min.z", bounds.min.z );
-	boundNode->SetFloat( "max.x", bounds.max.x );
-	boundNode->SetFloat( "max.y", bounds.max.y );
-	boundNode->SetFloat( "max.z", bounds.max.z );
+	boundNode->SetFloat( "min.x", bounds.pos.x );
+	boundNode->SetFloat( "min.y", bounds.pos.y );
+	boundNode->SetFloat( "min.z", bounds.pos.z );
+	boundNode->SetFloat( "max.x", bounds.X1(0) );
+	boundNode->SetFloat( "max.y", bounds.X1(1) );
+	boundNode->SetFloat( "max.z", bounds.X1(2) );
 
 	if ( trigger.x != 0.0f || trigger.y != 0.0f || trigger.z != 0.0f ) {
 		gamedb::WItem* triggerNode = node->CreateChild( "trigger" );

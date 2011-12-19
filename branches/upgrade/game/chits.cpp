@@ -196,7 +196,7 @@ Vector2F UFOChit::Velocity() const
 
 float UFOChit::Radius() const
 {
-	return model[0]->AABB().SizeX() * 0.40f;	// fudge factor - bounds are quite circular
+	return model[0]->AABB().size.x * 0.40f;	// fudge factor - bounds are quite circular
 }
 
 void UFOChit::DoDamage( float d )
@@ -243,7 +243,7 @@ void UFOChit::EmitEntryExitBurn( U32 deltaTime, const Vector3F& p0, const Vector
 		static const Color4F colorVec	= { 0.0f, -0.1f, -0.1f, -0.5f };
 		static const Vector3F particleVel = { 0.4f, 0, 0 };
 
-		float halfSize = model[0]->AABB().SizeX()* 0.5f;
+		float halfSize = model[0]->AABB().size.x* 0.5f;
 		static const float GROW = 0.2f;
 
 		for( int i=0; i<2; ++i ) {

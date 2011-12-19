@@ -69,7 +69,7 @@ inline void ConvertVector3( const Vector3X& f, grinliz::Vector3F* v )
 
 
 grinliz::Fixed PlanePointDistanceSquared( const PlaneX& plane, const Vector3X& point );
-int ComparePlaneAABBX( const PlaneX& plane, const Rectangle3X& aabb );
+//int ComparePlaneAABBX( const PlaneX& plane, const Rectangle3X& aabb );
 
 /*	Intersect a ray with a sphere.
 	@return REJECT, INSIDE, INTERSECT
@@ -84,10 +84,10 @@ int IntersectRaySphereX(	const SphereX& sphere,
 	is inside the box, the intersection point will be the origin and t=0.
 	@return REJECT, INTERSECT, or INSIDE.
 */
-int IntersectRayAABBX(	const Vector3X& origin, const Vector3X& dir,
-						const Rectangle3X& aabb,
-						Vector3X* intersect,
-						grinliz::Fixed* t );
+//int IntersectRayAABBX(	const Vector3X& origin, const Vector3X& dir,
+//						const Rectangle3X& aabb,
+//						Vector3X* intersect,
+//						grinliz::Fixed* t );
 
 /** Compare a sphere to a Axis-Aligned Bounding Box.
 	@return INTERSECT, POSITIVE, NEGATIVE

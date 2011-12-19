@@ -31,15 +31,15 @@ void ModelHeader::Load( const gamedb::Item* item )
 	flags = header->GetInt( "flags" );
 	nGroups = header->GetInt( "nGroups" );
 
-	bounds.Set( 0, 0, 0, 0, 0, 0 );
+	bounds.Zero();
 	const gamedb::Item* boundsItem = header->Child( "bounds" );
 	if ( boundsItem ) {
-		bounds.min.x = boundsItem->GetFloat( "min.x" );
-		bounds.min.y = boundsItem->GetFloat( "min.y" );
-		bounds.min.z = boundsItem->GetFloat( "min.z" );
-		bounds.max.x = boundsItem->GetFloat( "max.x" );
-		bounds.max.y = boundsItem->GetFloat( "max.y" );
-		bounds.max.z = boundsItem->GetFloat( "max.z" );
+		bounds.pos.x = boundsItem->GetFloat( "min.x" );
+		bounds.pos.y = boundsItem->GetFloat( "min.y" );
+		bounds.pos.z = boundsItem->GetFloat( "min.z" );
+		bounds.size.x = boundsItem->GetFloat( "max.x" ) - bounds.pos.x;
+		bounds.size.y = boundsItem->GetFloat( "max.y" ) - bounds.pos.y;
+		bounds.size.z = boundsItem->GetFloat( "max.z" ) - bounds.pos.z;
 	}
 
 	trigger.Set( 0, 0, 0 );
