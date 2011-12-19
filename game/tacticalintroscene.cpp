@@ -23,7 +23,7 @@
 #include "game.h"
 #include "cgame.h"
 #include "helpscene.h"
-#include "settings.h"
+#include "gamesettings.h"
 #include "ai.h"
 #include "../version.h"
 #include "tacmap.h"
@@ -792,7 +792,7 @@ void TacticalIntroScene::GenerateAlienTeamUpper(	int scenario,
 	random.Rand();
 
 	int count[Unit::NUM_ALIEN_TYPES] = { 0 };
-	int baseAlien = SettingsManager::Instance()->GetTestAlien();
+	int baseAlien = GameSettingsManager::Instance()->GetTestAlien();
 
 	switch ( scenario ) {
 	case FARM_SCOUT:

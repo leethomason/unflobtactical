@@ -13,7 +13,7 @@
 #include "tacticalintroscene.h"
 #include "tacticalendscene.h"
 #include "researchscene.h"
-#include "settings.h"
+#include "gamesettings.h"
 #include "battlescene.h"
 #include "helpscene.h"
 #include "ufosound.h"
@@ -1329,7 +1329,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 		baseButton.SetDecoRotationY( 0 );
 	}
 
-	if ( SettingsManager::Instance()->GetBattleShipParty() ) {
+	if ( GameSettingsManager::Instance()->GetBattleShipParty() ) {
 		if ( alienTimer > 5000 ) {
 			alienTimer -= 5000;
 			Vector2F start, dest;

@@ -19,6 +19,10 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glstringutil.h"
+#include <stdio.h>
+
+class TiXmlElement;
+
 
 class SettingsManager
 {
@@ -31,44 +35,26 @@ public:
 	bool GetAudioOn() const				{ return audioOn != 0; }
 	void SetAudioOn( bool value );
 
-	// read only
-	bool GetSuppressCrashLog() const	{ return suppressCrashLog != 0; }
-	bool GetPlayerAI() const			{ return playerAI != 0; }
-	bool GetBattleShipParty() const		{ return battleShipParty != 0; }
-	int GetTestAlien() const			{ return testAlien; }
-	
 	// read-write
 	void SetNumWalkingMaps(int nMaps );
 	int  GetNumWalkingMaps() const		{ return nWalkingMaps; }
 
-	void SetConfirmMove( bool confirm );
-	bool GetConfirmMove() const			{ return confirmMove; }
-
-	void SetCurrentModName( const grinliz::GLString& string );
-	const grinliz::GLString& GetCurrentModName() const		{ return currentMod; }
-
-	void SetAllowDrag( bool allow );
-	bool GetAllowDrag() const			{ return allowDrag; }
-
-private:
+protected:
 	SettingsManager( const char* path );
-	~SettingsManager()	{}
+	virtual ~SettingsManager()	{ instance = 0; }
+	
+	void Load();
 	void Save();
 
+	virtual void ReadAttributes( const TiXmlElement* element );
+	virtual void WriteAttributes( FILE* fp );
+
+private:
 	static SettingsManager* instance;
 
 	int audioOn;
-	int suppressCrashLog;
-	int playerAI;
-	int battleShipParty;
-	int testAlien;
 	int nWalkingMaps;
-	bool confirmMove;
-	bool allowDrag;
-	grinliz::GLString currentMod;
-
 	grinliz::GLString path;
-
 };
 
 

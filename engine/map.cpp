@@ -20,15 +20,18 @@
 #include "surface.h"
 #include "text.h"
 #include "vertex.h"
+#include "uirendering.h"
+#include "engine.h"
+#include "settings.h"
+
 #include "../engine/particleeffect.h"
 #include "../engine/particle.h"
-#include "../grinliz/glstringutil.h"
+
 #include "../tinyxml/tinyxml.h"
+
+#include "../grinliz/glstringutil.h"
 #include "../grinliz/glrectangle.h"
-#include "uirendering.h"
 #include "../grinliz/glperformance.h"
-#include "engine.h"
-#include "../game/settings.h"
 
 using namespace grinliz;
 using namespace micropather;

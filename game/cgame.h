@@ -51,11 +51,6 @@ void GameSave( void* handle );
 
 void GameTap( void* handle, int action, int x, int y );
 
-// Set the zoom. The zoom is in a range of 0.1-5.0, based on
-// distance from a hypothetical bitmap. Zoom is passed in
-// as a relative value.
-#define GAME_ZOOM_MIN	0.1f
-#define GAME_ZOOM_MAX	5.0f
 
 #define GAME_ZOOM_DISTANCE	0
 #define GAME_ZOOM_PINCH		1

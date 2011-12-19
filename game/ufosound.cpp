@@ -16,7 +16,7 @@
 #include "ufosound.h"
 #include "../grinliz/glstringutil.h"
 #include "cgame.h"
-#include "settings.h"
+#include "gamesettings.h"
 
 using namespace grinliz;
 
