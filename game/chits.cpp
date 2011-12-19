@@ -274,7 +274,7 @@ void UFOChit::Decal( U32 timer, float speed, int id )
 		for( int i=0; i<2; ++i ) {
 			decal[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "unitplateplus" ) );
 
-			gamui::RenderAtom atom = UIRenderer::CalcIcon2Atom( id, true );
+			gamui::RenderAtom atom = Game::CalcIcon2Atom( id, true );
 			decal[i]->SetTexture( (Texture*)atom.textureHandle );
 			decal[i]->SetTexXForm( 0, atom.tx1-atom.tx0, atom.ty1-atom.ty0, atom.tx0, atom.ty0 );
 			

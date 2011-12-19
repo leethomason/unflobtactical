@@ -76,7 +76,7 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game ) : Scene( _game )
 
 			if ( soldiers[i].IsAlive() || soldiers[i].IsUnconscious() ) {
 				if ( oldRank != newRank ) {
-					award[nAwards].Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_LEVEL_UP ), true );
+					award[nAwards].Init( &gamui2D, Game::CalcIconAtom( ICON_LEVEL_UP ), true );
 					award[nAwards].SetPos( x, yPos );
 					award[nAwards].SetSize( size, size );
 					x += size;
@@ -85,7 +85,7 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game ) : Scene( _game )
 			}
 
 			if ( purpleCircle && nAwards < MAX_AWARDS ) {
-				award[nAwards].Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_AWARD_PURPLE_CIRCLE ), true );
+				award[nAwards].Init( &gamui2D, Game::CalcIconAtom( ICON_AWARD_PURPLE_CIRCLE ), true );
 				award[nAwards].SetPos( x, yPos );
 				award[nAwards].SetSize( size, size );
 				x += size;
@@ -106,7 +106,7 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game ) : Scene( _game )
 					kills -= 1;
 				}
 
-				award[nAwards].Init( &gamui2D, UIRenderer::CalcIconAtom( icon ), true );
+				award[nAwards].Init( &gamui2D, Game::CalcIconAtom( icon ), true );
 				award[nAwards].SetPos( x, yPos );
 				award[nAwards].SetSize( size, size );
 				x += size;
@@ -121,8 +121,8 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game ) : Scene( _game )
 	button.SetPos( 0, 320 - 5 - GAME_BUTTON_SIZE );
 	button.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	//button.SetText( "Done" );
-	button.SetDeco(	UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ),
-					UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
+	button.SetDeco(	Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
+					Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 }
 
 

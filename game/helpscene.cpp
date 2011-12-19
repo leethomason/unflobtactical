@@ -39,8 +39,8 @@ HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ),
 		buttons[i].Init( &gamui2D, blue );
 		buttons[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 		//buttons[i].SetText( text[i] );
-		buttons[i].SetDeco( UIRenderer::CalcDecoAtom( deco[i], true ), 
-							UIRenderer::CalcDecoAtom( deco[i], false ) );
+		buttons[i].SetDeco( Game::CalcDecoAtom( deco[i], true ), 
+							Game::CalcDecoAtom( deco[i], false ) );
 		items[i] = &buttons[i];
 	}
 	buttons[PREV_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*2.0f, port.UIHeight() - GAME_BUTTON_SIZE_F );
@@ -49,10 +49,10 @@ HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ),
 	buttons[SETTINGS_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*3.0f, port.UIHeight() - GAME_BUTTON_SIZE_F );
 	buttons[SAVE_LOAD_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*4.f, port.UIHeight() - GAME_BUTTON_SIZE_F );
 
-	buttons[SETTINGS_BUTTON].SetDeco( UIRenderer::CalcDecoAtom( DECO_SETTINGS, true ), UIRenderer::CalcDecoAtom( DECO_SETTINGS, false ) );
+	buttons[SETTINGS_BUTTON].SetDeco( Game::CalcDecoAtom( DECO_SETTINGS, true ), Game::CalcDecoAtom( DECO_SETTINGS, false ) );
 	buttons[SETTINGS_BUTTON].SetVisible( data->settings );
 
-	buttons[SAVE_LOAD_BUTTON].SetDeco( UIRenderer::CalcDecoAtom( DECO_SAVE_LOAD, true ), UIRenderer::CalcDecoAtom( DECO_SAVE_LOAD, false ) );
+	buttons[SAVE_LOAD_BUTTON].SetDeco( Game::CalcDecoAtom( DECO_SAVE_LOAD, true ), Game::CalcDecoAtom( DECO_SAVE_LOAD, false ) );
 	buttons[SAVE_LOAD_BUTTON].SetVisible( data->settings );
 
 	Layout();

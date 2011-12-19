@@ -24,8 +24,8 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 	doneButton.Init( &gamui2D, blue );
 	doneButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 //	doneButton.SetText( "X" );
-	doneButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ),
-						UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );
+	doneButton.SetDeco( Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
+						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );
 
 	doneButton.SetPos( 0, port.UIHeight() - GAME_BUTTON_SIZE_F);
 
@@ -44,8 +44,8 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 	modDown.Init( &gamui2D, green );
 	modDown.SetSize( SIZE, SIZE );
 	modDown.SetPos( x, y );
-	modDown.SetDeco( UIRenderer::CalcDecoAtom( DECO_BUTTON_PREV, true ),
-					 UIRenderer::CalcDecoAtom( DECO_BUTTON_PREV, false ) );
+	modDown.SetDeco( Game::CalcDecoAtom( DECO_BUTTON_PREV, true ),
+					 Game::CalcDecoAtom( DECO_BUTTON_PREV, false ) );
 
 	modCurrent.Init( &gamui2D );
 	modCurrent.SetPos( x+deltaX, y );
@@ -55,8 +55,8 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 	modUp.Init( &gamui2D, green );
 	modUp.SetSize( SIZE, SIZE );
 	modUp.SetPos( x+deltaX*3.f, y );
-	modUp.SetDeco( UIRenderer::CalcDecoAtom( DECO_BUTTON_NEXT, true ),
-				   UIRenderer::CalcDecoAtom( DECO_BUTTON_NEXT, false ) );
+	modUp.SetDeco( Game::CalcDecoAtom( DECO_BUTTON_NEXT, true ),
+				   Game::CalcDecoAtom( DECO_BUTTON_NEXT, false ) );
 	y += deltaY;
 
 	moveText.Init( &gamui2D );
@@ -124,13 +124,13 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 
 	if ( sm->GetAudioOn() ) {
 		audioButton.SetDown();
-		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_AUDIO, true ),
-							 UIRenderer::CalcDecoAtom( DECO_AUDIO, false ) );	
+		audioButton.SetDeco( Game::CalcDecoAtom( DECO_AUDIO, true ),
+							 Game::CalcDecoAtom( DECO_AUDIO, false ) );	
 	}
 	else {
 		audioButton.SetUp();
-		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_MUTE, true ),
-							 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
+		audioButton.SetDeco( Game::CalcDecoAtom( DECO_MUTE, true ),
+							 Game::CalcDecoAtom( DECO_MUTE, false ) );	
 	}
 }
 
@@ -212,12 +212,12 @@ void SettingScene::Tap( int action, const grinliz::Vector2F& screen, const grinl
 	}
 
 	if ( audioButton.Down() ) {
-		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_AUDIO, true ),
-							 UIRenderer::CalcDecoAtom( DECO_AUDIO, false ) );	
+		audioButton.SetDeco( Game::CalcDecoAtom( DECO_AUDIO, true ),
+							 Game::CalcDecoAtom( DECO_AUDIO, false ) );	
 	}
 	else {
-		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_MUTE, true ),
-							 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
+		audioButton.SetDeco( Game::CalcDecoAtom( DECO_MUTE, true ),
+							 Game::CalcDecoAtom( DECO_MUTE, false ) );	
 	}
 
 

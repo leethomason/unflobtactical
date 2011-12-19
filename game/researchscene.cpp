@@ -51,7 +51,7 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 	mainDescription.SetPos( X0, GAME_GUTTER );
 	mainDescription.SetText( "description" );
 
-	image.Init( &gamui2D, UIRenderer::CalcDecoAtom( DECO_RESEARCH, true ), true );
+	image.Init( &gamui2D, Game::CalcDecoAtom( DECO_RESEARCH, true ), true );
 	image.SetPos( 0, 0 );
 	image.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 
@@ -85,13 +85,13 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 	okayButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	okayButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	//okayButton.SetText( "Done" );
-	okayButton.SetDeco(	UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ),
-						UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
+	okayButton.SetDeco(	Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
+						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	helpButton.Init( &gamui2D, green );
 	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	helpButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_HELP, true ), UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
+	helpButton.SetDeco(  Game::CalcDecoAtom( DECO_HELP, true ), Game::CalcDecoAtom( DECO_HELP, false ) );	
 
 	SetOptions();
 	SetDescription();
