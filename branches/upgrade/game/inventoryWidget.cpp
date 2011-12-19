@@ -17,6 +17,7 @@
 #include "../engine/uirendering.h"
 #include "../grinliz/glstringutil.h"
 #include "unit.h"
+#include "game.h"
 
 using namespace grinliz;
 using namespace gamui;
@@ -126,8 +127,8 @@ void InventoryWidget::Update( Unit* _unit )
 	char buffer[32] = { 0 };
 
 	// armor
-	const gamui::RenderAtom& atomEmptyArmor  = UIRenderer::CalcDecoAtom( DECO_ARMOR, false );
-	const gamui::RenderAtom& atomEmptyWeapon = UIRenderer::CalcDecoAtom( DECO_PISTOL, false );
+	const gamui::RenderAtom& atomEmptyArmor  = Game::CalcDecoAtom( DECO_ARMOR, false );
+	const gamui::RenderAtom& atomEmptyWeapon = Game::CalcDecoAtom( DECO_PISTOL, false );
 	Inventory* inventory = unit->GetInventory();
 
 	// weapon
@@ -187,7 +188,7 @@ void InventoryWidget::Update( Unit* _unit )
 			else if ( item.IsClip() ) {
 				SNPrintf( buffer, 16, "%d", item.Rounds() );
 			}
-			button[i].SetDeco( UIRenderer::CalcDecoAtom( item.Deco(), false ), UIRenderer::CalcDecoAtom( item.Deco() , false ) );
+			button[i].SetDeco( Game::CalcDecoAtom( item.Deco(), false ), Game::CalcDecoAtom( item.Deco() , false ) );
 			button[i].SetText( item.DisplayName() );
 			button[i].SetText2( buffer );
 		}
@@ -288,7 +289,7 @@ void InventoryWidget::TapMove( const grinliz::Vector2F& ui )
 		Item item = inventory->GetItem( dragIndex );	
 
 		if ( item.IsSomething() ) {
-			RenderAtom atom = UIRenderer::CalcDecoAtom( item.Deco(), false );
+			RenderAtom atom = Game::CalcDecoAtom( item.Deco(), false );
 			atom.renderState = (const void*) UIRenderer::RENDERSTATE_UI_NORMAL;
 
 			dragImage.SetAtom( atom );

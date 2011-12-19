@@ -56,8 +56,8 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	loadButton.Init( &gamui2D, green );
 	loadButton.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
 	loadButton.SetPos( continueButton.X() + continueButton.Width(), continueButton.Y() );
-	loadButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_SAVE_LOAD, true ),
-						UIRenderer::CalcDecoAtom( DECO_SAVE_LOAD, false ) );	 
+	loadButton.SetDeco( Game::CalcDecoAtom( DECO_SAVE_LOAD, true ),
+						Game::CalcDecoAtom( DECO_SAVE_LOAD, false ) );	 
 
 	newTactical.Init( &gamui2D, green );
 	newTactical.SetSize( GAME_BUTTON_SIZE_B*2.0F, GAME_BUTTON_SIZE_B );
@@ -97,16 +97,16 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 
 	helpButton.Init( &gamui2D, green );
 	helpButton.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
-	helpButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_HELP, true ),
-						UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
+	helpButton.SetDeco( Game::CalcDecoAtom( DECO_HELP, true ),
+						Game::CalcDecoAtom( DECO_HELP, false ) );	
 
 	audioButton.Init( &gamui2D, green );
 	audioButton.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
 
 	settingButton.Init( &gamui2D, green );
 	settingButton.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
-	settingButton.SetDeco(	UIRenderer::CalcDecoAtom( DECO_SETTINGS, true ),
-							UIRenderer::CalcDecoAtom( DECO_SETTINGS, false ) );	
+	settingButton.SetDeco(	Game::CalcDecoAtom( DECO_SETTINGS, true ),
+							Game::CalcDecoAtom( DECO_SETTINGS, false ) );	
 
 	static const int NUM_ITEMS=3;
 	UIItem* items[NUM_ITEMS] = { &helpButton, &audioButton, &settingButton };
@@ -271,13 +271,13 @@ void TacticalIntroScene::Activate()
 	SettingsManager* settings = SettingsManager::Instance();
 	if ( settings->GetAudioOn() ) {
 		audioButton.SetDown();
-		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_AUDIO, true ),
-							 UIRenderer::CalcDecoAtom( DECO_AUDIO, false ) );	
+		audioButton.SetDeco( Game::CalcDecoAtom( DECO_AUDIO, true ),
+							 Game::CalcDecoAtom( DECO_AUDIO, false ) );	
 	}
 	else {
 		audioButton.SetUp();
-		audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_MUTE, true ),
-							 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
+		audioButton.SetDeco( Game::CalcDecoAtom( DECO_MUTE, true ),
+							 Game::CalcDecoAtom( DECO_MUTE, false ) );	
 	}
 }
 
@@ -416,13 +416,13 @@ void TacticalIntroScene::Tap(	int action,
 		SettingsManager* settings = SettingsManager::Instance();
 		if ( audioButton.Down() ) {
 			settings->SetAudioOn( true );
-			audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_AUDIO, true ),
-								 UIRenderer::CalcDecoAtom( DECO_AUDIO, false ) );	
+			audioButton.SetDeco( Game::CalcDecoAtom( DECO_AUDIO, true ),
+								 Game::CalcDecoAtom( DECO_AUDIO, false ) );	
 		}
 		else {
 			settings->SetAudioOn( false );
-			audioButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_MUTE, true ),
-								 UIRenderer::CalcDecoAtom( DECO_MUTE, false ) );	
+			audioButton.SetDeco( Game::CalcDecoAtom( DECO_MUTE, true ),
+								 Game::CalcDecoAtom( DECO_MUTE, false ) );	
 		}
 	}
 	else if ( item == &settingButton ) {

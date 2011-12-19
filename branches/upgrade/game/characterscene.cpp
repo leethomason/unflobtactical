@@ -57,26 +57,26 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	backButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	//backButton.SetText( "Back" );
-	backButton.SetDeco(	UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ),
-						UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
+	backButton.SetDeco(	Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
+						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	prevButton.Init( &gamui2D, blue );
 	prevButton.SetPos( GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	prevButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	prevButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_UNIT_PREV, true ),  
-						UIRenderer::CalcDecoAtom( DECO_UNIT_PREV, false ) );
+	prevButton.SetDeco( Game::CalcDecoAtom( DECO_UNIT_PREV, true ),  
+						Game::CalcDecoAtom( DECO_UNIT_PREV, false ) );
 	prevButton.SetVisible( input->nUnits > 1 );
 
 	nextButton.Init( &gamui2D, blue );
 	nextButton.SetPos( GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	nextButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	nextButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_UNIT_NEXT, true ),  
-						UIRenderer::CalcDecoAtom( DECO_UNIT_NEXT, false ) );
+	nextButton.SetDeco( Game::CalcDecoAtom( DECO_UNIT_NEXT, true ),  
+						Game::CalcDecoAtom( DECO_UNIT_NEXT, false ) );
 	nextButton.SetVisible( input->nUnits > 1 );
 
 	helpButton.Init( &gamui2D, blue );
 	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	helpButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_HELP, true ),  UIRenderer::CalcDecoAtom( DECO_HELP, false ) );
+	helpButton.SetDeco( Game::CalcDecoAtom( DECO_HELP, true ),  Game::CalcDecoAtom( DECO_HELP, false ) );
 
 	gamui::UIItem* controlArr[NUM_CONTROL+1] = { &helpButton };
 	static const char* const controlLabel[NUM_CONTROL] = { "Inv", "Stats", "Wpns" };

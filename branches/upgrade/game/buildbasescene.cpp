@@ -25,13 +25,13 @@ BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene(
 	backButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	//backButton.SetText( "Back" );
-	backButton.SetDeco(	UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ),
-						UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
+	backButton.SetDeco(	Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
+						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	helpButton.Init( &gamui2D, green );
 	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, 0 );
 	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	helpButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_HELP, true ), UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
+	helpButton.SetDeco(  Game::CalcDecoAtom( DECO_HELP, true ), Game::CalcDecoAtom( DECO_HELP, false ) );	
 
 	static const float ORIGIN_X = (port.UIWidth()-256.0f)/2.0f;
 	static const float ORIGIN_Y = 0;
@@ -66,7 +66,7 @@ BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene(
 		progressLabel[i].SetText( "Building..." );
 	}
 
-	cashImage.Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK ), false );
+	cashImage.Init( &gamui2D, Game::CalcIconAtom( ICON_GREEN_STAND_MARK ), false );
 	cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F*0.5f );
 	cashImage.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
 	cashImage.SetSlice( true );

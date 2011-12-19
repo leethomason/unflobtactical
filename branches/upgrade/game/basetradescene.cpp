@@ -69,14 +69,14 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	helpButton.Init( &gamui2D, green );
 	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	helpButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_HELP, true ), UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
+	helpButton.SetDeco(  Game::CalcDecoAtom( DECO_HELP, true ), Game::CalcDecoAtom( DECO_HELP, false ) );	
 
 	okay.Init( &gamui2D, blue );
 	okay.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	okay.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	//okay.SetText( "Okay" );
-	okay.SetDeco(  UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ), 
-		           UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
+	okay.SetDeco(  Game::CalcDecoAtom( DECO_OKAY_CHECK, true ), 
+		           Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	float w = GAME_BUTTON_SIZE_F*0.95f;
 	float h = GAME_BUTTON_SIZE_F*0.95f;

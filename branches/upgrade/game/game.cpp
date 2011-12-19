@@ -52,6 +52,7 @@
 #include <time.h>
 
 using namespace grinliz;
+using namespace gamui;
 
 extern long memNewCount;
 
@@ -861,72 +862,105 @@ void Game::SetLightMap( float r, float g, float b )
 }
 
 
-int BattleData::CalcResult() const
+RenderAtom Game::CalcDecoAtom( int id, bool enabled )
 {
-	int nTerransAlive = Unit::Count( units+TERRAN_UNITS_START, MAX_TERRANS, Unit::STATUS_ALIVE );
-	int nAliensAlive  = Unit::Count( units+ALIEN_UNITS_START, MAX_ALIENS, Unit::STATUS_ALIVE );
+	GLASSERT( id >= 0 && id <= 32 );
+	Texture* texture = TextureManager::Instance()->GetTexture( "iconDeco" );
+	float tx0 = 0;
+	float ty0 = 0;
+	float tx1 = 0;
+	float ty1 = 0;
 
-	int result = TIE;
-	if ( nTerransAlive > 0 && nAliensAlive == 0 )
-		result = VICTORY;
-	else if ( nTerransAlive == 0 && nAliensAlive > 0 )
-		result = DEFEAT;
-	return result;
-}
-
-
-void BattleData::Save( FILE* fp, int depth )
-{
-	XMLUtil::OpenElement( fp, depth, "BattleData" );
-	XMLUtil::Attribute( fp, "dayTime", dayTime );
-	XMLUtil::Attribute( fp, "scenario", scenario );
-	XMLUtil::SealElement( fp );
-
-	storage.Save( fp, depth+1 );
-
-	XMLUtil::OpenElement( fp, depth+1, "Units" );
-	XMLUtil::SealElement( fp );
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		units[i].Save( fp, depth+2 );
+	if ( id != DECO_NONE ) {
+		int y = id / 8;
+		int x = id - y*8;
+		tx0 = (float)x / 8.f;
+		ty0 = (float)y / 4.f;
+		tx1 = tx0 + 1.f/8.f;
+		ty1 = ty0 + 1.f/4.f;
 	}
-	XMLUtil::CloseElement( fp, depth+1, "Units" );
-	XMLUtil::CloseElement( fp, depth, "BattleData" );
+	return RenderAtom( (const void*)(enabled ? UIRenderer::RENDERSTATE_UI_DECO : UIRenderer::RENDERSTATE_UI_DECO_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1 );
 }
 
 
-void BattleData::Load( const TiXmlElement* doc )
+RenderAtom Game::CalcParticleAtom( int id, bool enabled )
 {
-	for( int i=0; i<MAX_UNITS; ++i )
-		units[i].Free();
-	storage.Clear();
+	GLASSERT( id >= 0 && id < 16 );
+	Texture* texture = TextureManager::Instance()->GetTexture( "particleQuad" );
+	int y = id / 4;
+	int x = id - y*4;
+	float tx0 = (float)x / 4.f;
+	float ty0 = (float)y / 4.f;
+	float tx1 = tx0 + 1.f/4.f;
+	float ty1 = ty0 + 1.f/4.f;
 
-	const TiXmlElement* ele = doc->FirstChildElement( "BattleData" );
-	GLASSERT( ele );
+	return RenderAtom( (const void*)(enabled ? UIRenderer::RENDERSTATE_UI_NORMAL : UIRenderer::RENDERSTATE_UI_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1 );
+}
 
-	ele->QueryBoolAttribute( "dayTime", &dayTime );
-	ele->QueryIntAttribute( "scenario", &scenario );
 
-	storage.Load( ele );
-	const TiXmlElement* unitsEle = ele->FirstChildElement( "Units" );
-	GLASSERT( unitsEle );
+RenderAtom Game::CalcIconAtom( int id, bool enabled )
+{
+	GLASSERT( id >= 0 && id < 32 );
+	Texture* texture = TextureManager::Instance()->GetTexture( "icons" );
+	int y = id / 8;
+	int x = id - y*8;
+	float tx0 = (float)x / 8.f;
+	float ty0 = (float)y / 4.f;
+	float tx1 = tx0 + 1.f/8.f;
+	float ty1 = ty0 + 1.f/4.f;
 
-	int team[3] = { TERRAN_UNITS_START, CIV_UNITS_START, ALIEN_UNITS_START };
-	if ( unitsEle ) {
-		for( const TiXmlElement* unitElement = unitsEle->FirstChildElement( "Unit" );
-			 unitElement;
-			 unitElement = unitElement->NextSiblingElement( "Unit" ) ) 
-		{
-			int t = 0;
-			unitElement->QueryIntAttribute( "team", &t );
-			Unit* unit = &units[team[t]];
+	return RenderAtom( (const void*)(enabled ? UIRenderer::RENDERSTATE_UI_NORMAL : UIRenderer::RENDERSTATE_UI_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1 );
+}
 
-			unit->Load( unitElement, storage.GetItemDefArr() );
-			
-			team[t]++;
 
-			GLRELASSERT( team[0] <= TERRAN_UNITS_END );
-			GLRELASSERT( team[1] <= CIV_UNITS_END );
-			GLRELASSERT( team[2] <= ALIEN_UNITS_END );
+RenderAtom Game::CalcIcon2Atom( int id, bool enabled )
+{
+	GLASSERT( id >= 0 && id < 32 );
+	Texture* texture = TextureManager::Instance()->GetTexture( "icons2" );
+
+	static const int CX = 4;
+	static const int CY = 4;
+
+	int y = id / CX;
+	int x = id - y*CX;
+	float tx0 = (float)x / (float)CX;
+	float ty0 = (float)y / (float)CY;;
+	float tx1 = tx0 + 1.f/(float)CX;
+	float ty1 = ty0 + 1.f/(float)CY;
+
+	return RenderAtom( (const void*)(enabled ? UIRenderer::RENDERSTATE_UI_NORMAL : UIRenderer::RENDERSTATE_UI_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1 );
+}
+
+
+RenderAtom Game::CalcPaletteAtom( int c0, int c1, int blend, bool enabled )
+{
+	Vector2I c = { 0, 0 };
+	Texture* texture = TextureManager::Instance()->GetTexture( "palette" );
+
+	static const int offset[5] = { 75, 125, 175, 225, 275 };
+	static const int subOffset[3] = { 0, -12, 12 };
+
+	if ( blend == PALETTE_NORM ) {
+		if ( c1 > c0 )
+			Swap( &c1, &c0 );
+		c.x = offset[c0];
+		c.y = offset[c1];
+	}
+	else {
+		if ( c0 > c1 )
+			Swap( &c0, &c1 );
+
+		if ( c0 == c1 ) {
+			// first column special:
+			c.x = 25 + subOffset[blend];
+			c.y = offset[c1];
+		}
+		else {
+			c.x = offset[c0] + subOffset[blend];;
+			c.y = offset[c1];
 		}
 	}
+	RenderAtom atom( (const void*)(enabled ? UIRenderer::RENDERSTATE_UI_NORMAL : UIRenderer::RENDERSTATE_UI_DISABLED), (const void*)texture, 0, 0, 0, 0 );
+	UIRenderer::SetAtomCoordFromPixel( c.x, c.y, c.x, c.y, 300, 300, &atom );
+	return atom;
 }

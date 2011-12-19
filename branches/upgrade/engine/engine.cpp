@@ -324,13 +324,7 @@ void Engine::Draw()
 	Plane planes[6];
 	CalcFrustumPlanes( planes );
 
-#ifdef USE_MAP_CACHE
-	// WARNING: map query must come first. Will invalidate the model->next pointers.
-	const MapRenderBlock* blockRoot = map->CalcRenderBlocks( planes, 6 );
-	Model* modelRoot = spaceTree->Query( planes, 6, 0, Model::MODEL_OWNED_BY_MAP, false );
-#else
 	Model* modelRoot = spaceTree->Query( planes, 6, 0, Model::MODEL_INVISIBLE, false );
-#endif
 	
 	Color4F ambient, diffuse;
 	Vector4F dir;
@@ -423,27 +417,10 @@ void Engine::Draw()
 									0,
 									Model::MODEL_NO_SHADOW );
 
-#ifdef USE_MAP_CACHE
-			for( const MapRenderBlock* block = blockRoot; block; block = block->next ) {
-				GPUShader::Stream stream;
-				stream.stride = sizeof( Vertex );
-				stream.nPos = 3;
-				stream.posOffset = Vertex::POS_OFFSET;
-				stream.nTexture0 = 3;
-				stream.texture0Offset = Vertex::POS_OFFSET;
-				stream.nTexture1 = 3;
-				stream.texture1Offset = Vertex::POS_OFFSET;
-
-				shadowShader.SetStream( stream, block->vertexBuffer, block->nIndex, block->indexBuffer );
-				shadowShader.Draw();
-			}
-#endif
-
 			shadowShader.PopMatrix( GPUShader::MODELVIEW_MATRIX );
 			shadowShader.PopTextureMatrix( 3 );
-#endif // ENGINE_DRAW_SHADOWS
 		}
-
+#endif
 		{
 			LightGroundPlane( map->DayTime() ? DAY_TIME : NIGHT_TIME, OPEN_LIGHT, 0, &color );
 
@@ -470,20 +447,7 @@ void Engine::Draw()
 			
 			PushLightSwizzleMatrix( &mapItemShader );
 
-#ifdef USE_MAP_CACHE
-			for( const MapRenderBlock* block = blockRoot; block; block = block->next ) {
-				Vertex v;
-				GPUShader::Stream stream( &v );
-				stream.texture1Offset = Vertex::POS_OFFSET;
-				stream.nTexture1 = 3;
-
-				mapItemShader.SetTexture0( block->texture );
-				mapItemShader.SetStream( stream, block->vertexBuffer, block->nIndex, block->indexBuffer );
-				mapItemShader.Draw();
-			}
-#else
 			renderQueue->Submit( 0, 0, Model::MODEL_OWNED_BY_MAP, 0 );
-#endif
 			lightShader.PopTextureMatrix( 2 );
 		}
 		// Render everything NOT in the map.

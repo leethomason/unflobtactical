@@ -16,10 +16,10 @@ DialogScene::DialogScene( Game* _game, const DialogSceneData* _data ) : Scene( _
 	//const float INV = 1.f/255.f;
 	//uiRenderer.SetTextColor( 248.f*INV, 228.f*INV, 8.f*INV );
 
-	RenderAtom roundRectangle = UIRenderer::CalcPaletteAtom(	UIRenderer::PALETTE_GREEN, 
-																UIRenderer::PALETTE_GREEN, 
-																UIRenderer::PALETTE_DARK, 
-																true );
+	RenderAtom roundRectangle = Game::CalcPaletteAtom(	Game::PALETTE_GREEN, 
+														Game::PALETTE_GREEN, 
+														Game::PALETTE_DARK, 
+														true );
 
 	background.Init( &gamui2D, roundRectangle, false );
 	background.SetSlice( true );

@@ -70,6 +70,5 @@ static const float GAME_ZOOM_MAX = 5.0f;
 
 // --- Performance -- //
 #define EL_USE_VBO			// Use VBOs: a good thing, everywhere but the original iPhone
-//#define USE_MAP_CACHE		// Puts the map in big VBO blocks. Kills the Nexus One performance. Should move work to the GPU.
 
 #endif

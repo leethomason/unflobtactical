@@ -21,16 +21,16 @@ SaveLoadScene::SaveLoadScene( Game* _game, const SaveLoadSceneData* _data ) : Sc
 	backButton.Init( &gamui2D, blue );
 	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	//backButton.SetText( "Cancel" );
-	backButton.SetDeco(	UIRenderer::CalcDecoAtom( DECO_CANCEL, true ),
-						UIRenderer::CalcDecoAtom( DECO_CANCEL, false ) );	
+	backButton.SetDeco(	Game::CalcDecoAtom( DECO_CANCEL, true ),
+						Game::CalcDecoAtom( DECO_CANCEL, false ) );	
 	backButton.SetPos( GAME_GUTTER, 
 					   port.UIHeight() - GAME_BUTTON_SIZE_F - GAME_GUTTER );
 
 	okayButton.Init( &gamui2D, blue );
 	okayButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	//okayButton.SetText( "Okay" );
-	okayButton.SetDeco(	UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ),
-						UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
+	okayButton.SetDeco(	Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
+						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 	okayButton.SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F - GAME_GUTTER, 
 					   port.UIHeight() - GAME_BUTTON_SIZE_F - GAME_GUTTER );
 

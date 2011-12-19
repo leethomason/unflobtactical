@@ -285,21 +285,21 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 	helpButton.Init(&gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
 	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, 0 );
 	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	helpButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_HELP, true ), UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
+	helpButton.SetDeco(  Game::CalcDecoAtom( DECO_HELP, true ), Game::CalcDecoAtom( DECO_HELP, false ) );	
 
 	researchButton.Init(&gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
 	researchButton.SetPos( 0, 0 );
 	researchButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	researchButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_RESEARCH, true ), UIRenderer::CalcDecoAtom( DECO_RESEARCH, false ) );	
+	researchButton.SetDeco(  Game::CalcDecoAtom( DECO_RESEARCH, true ), Game::CalcDecoAtom( DECO_RESEARCH, false ) );	
 
 	baseButton.Init(&gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
 	baseButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	baseButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	baseButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_BASE, true ), UIRenderer::CalcDecoAtom( DECO_BASE, false ) );
+	baseButton.SetDeco(  Game::CalcDecoAtom( DECO_BASE, true ), Game::CalcDecoAtom( DECO_BASE, false ) );
 
 	//cashImage.Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK ), false );
 	cashImage.Init( &gamui2D, 
-		UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_NORM ),
+		Game::CalcPaletteAtom( Game::PALETTE_GREEN, Game::PALETTE_GREEN, Game::PALETTE_NORM ),
 		false );
 	cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F*1.8f, 
 					  port.UIHeight()-GAME_BUTTON_SIZE_F*0.4f );
@@ -652,7 +652,7 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 					  && !chitBag.GetCargoComingFrom( CargoChit::TYPE_LANDER, baseChit->MapPos() ) )
 				{
 					if ( baseChit->IssueUnitWarning() ) {
-						RenderAtom atom = UIRenderer::CalcIcon2Atom( ICON2_WARNING, true );
+						RenderAtom atom = Game::CalcIcon2Atom( ICON2_WARNING, true );
 						context[i].SetDeco( atom, atom );
 						context[i].SetDecoLayout( gamui::Button::RIGHT, context[i].Height()/2, 0 );
 					}

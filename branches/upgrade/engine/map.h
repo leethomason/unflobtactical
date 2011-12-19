@@ -50,34 +50,6 @@ public:
 	virtual void MakePathBlockCurrent( Map* map, const void* user ) = 0;
 };
 
-#ifdef USE_MAP_CACHE
-struct MapRenderBlock 
-{
-
-	U16 nVertex;
-	U16 tempNVertex;
-	U16 nIndex;
-	U16 tempNIndex;
-
-	MapRenderBlock* next;
-	Texture* texture;
-	GPUVertexBuffer vertexBuffer;
-	GPUIndexBuffer indexBuffer;
-
-	void Init() {
-		nVertex = 0;
-		tempNVertex = 0;
-		nIndex = 0;
-		tempNIndex = 0;
-
-		next = 0;
-		texture = 0;
-		vertexBuffer.Clear();
-		indexBuffer.Clear();
-	}
-};
-#endif
-
 
 // some strange android bug - the size of the structure gets mangled
 // by the compiler if all the fields weren't 32 bits
@@ -380,10 +352,6 @@ public:
 	Texture* LightFogMapTexture()	{ return lightFogMapTex; }
 	virtual void LightFogMapParam( float* w, float* h, float* dx, float* dy )	{ *w = (float)EL_MAP_SIZE; *h = (float)EL_MAP_SIZE; *dx = 0; *dy = 0; };
 
-#ifdef USE_MAP_CACHE
-	const MapRenderBlock* CalcRenderBlocks( const grinliz::Plane* planes, int nPlanes );
-#endif
-
 	enum ConnectionType {
 		PATH_TYPE,
 		VISIBILITY_TYPE
@@ -580,16 +548,6 @@ private:
 	grinliz::MemoryPool							itemPool;
 	int											nSeenIndex, nUnseenIndex, nPastSeenIndex;
 
-#ifdef USE_MAP_CACHE
-	enum {
-		RENDER_BLOCK_GRID_SIZE = 16,
-		RENDER_BLOCK_SIZE = SIZE / RENDER_BLOCK_GRID_SIZE,
-		NUM_RENDER_BLOCKS = RENDER_BLOCK_SIZE*RENDER_BLOCK_SIZE
-	};
-	CDynArray<MapRenderBlock> renderBlockArr[NUM_RENDER_BLOCKS];
-	CDynArray<Vertex> vertexBuffer;
-	CDynArray<U16> indexBuffer;
-#endif
 	ImageData imageData[ MAX_IMAGE_DATA ];
 
 	// U8:

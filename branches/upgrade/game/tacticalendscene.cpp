@@ -179,8 +179,8 @@ TacticalEndScene::TacticalEndScene( Game* _game ) : Scene( _game )
 	const gamui::ButtonLook& look = game->GetButtonLook( Game::GREEN_BUTTON );
 	okayButton.Init( &gamui2D, look );
 	//okayButton.SetText( "OK" );
-	okayButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ), 
-		                 UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
+	okayButton.SetDeco(  Game::CalcDecoAtom( DECO_OKAY_CHECK, true ), 
+		                 Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 	okayButton.SetPos( 0, (float)(engine->GetScreenport().UIHeight() - (GAME_BUTTON_SIZE + 5)) );
 	okayButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 }
