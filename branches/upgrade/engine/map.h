@@ -24,7 +24,13 @@
 #include "../grinliz/glrandom.h"
 #include "../grinliz/glstringutil.h"
 #include "../grinliz/glgeometry.h"
+
 #include "../micropather/micropather.h"
+
+#include "../shared/glmap.h"
+
+#include "../gamui/gamui.h"
+
 #include "vertex.h"
 #include "enginelimits.h"
 #include "serialize.h"
@@ -32,8 +38,6 @@
 #include "surface.h"
 #include "texture.h"
 #include "gpustatemanager.h"
-#include "../shared/glmap.h"
-#include "../gamui/gamui.h"
 
 class Model;
 class ModelResource;
@@ -243,7 +247,7 @@ public:
 															if ( b->max.y >= height ) b->max.y = height-1;
 														}
 
-	void SetSize( int w, int h );
+	virtual void SetSize( int w, int h );
 	bool DayTime() const { return dayTime; }
 	void SetDayTime( bool day );
 
@@ -381,6 +385,7 @@ public:
 protected:
 	virtual void SubSave( FILE* fp, int depth ) = 0;
 	virtual void SubLoad( const TiXmlElement* mapNode ) = 0;
+	virtual void InitWalkingMapAtoms( gamui::RenderAtom* atoms, int nWalkingMaps ) = 0;	// 3 colors per walking map
 
 	// 0,90,180,270 rotation
 	static void XYRToWorld( int x, int y, int rotation, Matrix2I* mat );
@@ -541,9 +546,7 @@ private:
 	enum {
 		MAX_WALKING_MAPS = 2		// 1 or 2
 	};
-	//int nWalkingMaps;
 	gamui::TiledImage<EL_MAP_MAX_PATH*2+1, EL_MAP_MAX_PATH*2+1>	walkingMap[MAX_WALKING_MAPS];
-	gamui::Image								border[4];
 
 	grinliz::MemoryPool							itemPool;
 	int											nSeenIndex, nUnseenIndex, nPastSeenIndex;

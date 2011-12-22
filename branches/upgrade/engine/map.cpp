@@ -33,8 +33,6 @@
 #include "../grinliz/glrectangle.h"
 #include "../grinliz/glperformance.h"
 
-#include "../game/game.h"	// THE BIG FIXME
-
 using namespace grinliz;
 using namespace micropather;
 
@@ -104,16 +102,6 @@ Map::Map( SpaceTree* tree )
 	}
 	lightMapValid = false;
 
-	gamui::RenderAtom borderAtom = Game::CalcPaletteAtom( Game::PALETTE_BLUE, Game::PALETTE_BLUE, Game::PALETTE_DARK, true );
-#ifdef DEBUG_VISIBILITY
-	borderAtom.renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
-#else
-	borderAtom.renderState = (const void*) RENDERSTATE_MAP_OPAQUE;
-#endif
-	for( int i=0; i<4; ++i ) {
-		border[i].Init( &overlay[LAYER_UNDER_HIGH], borderAtom, false );
-	}
-
 	TextureManager* texman = TextureManager::Instance();
 	backgroundTexture = texman->CreateTexture( "MapBackground", EL_MAP_TEXTURE_SIZE, EL_MAP_TEXTURE_SIZE, Surface::RGB16, Texture::PARAM_NONE, this );
 	greyTexture = texman->CreateTexture( "MapGrey", EL_MAP_TEXTURE_SIZE/2, EL_MAP_TEXTURE_SIZE/2, Surface::RGB16, Texture::PARAM_NONE, this );
@@ -179,18 +167,6 @@ void Map::SetSize( int w, int h )
 {
 	width = w; 
 	height = h; 
-	
-	border[0].SetPos( -1, -1 );
-	border[0].SetSize( (float)(w+2), 1 );
-
-	border[1].SetPos( -1, (float)h );
-	border[1].SetSize( (float)(w+2), 1 );
-
-	border[2].SetPos( -1, 0 );
-	border[2].SetSize( 1, (float)h );
-
-	border[3].SetPos( (float)w, 0 );
-	border[3].SetSize( 1, (float)h );
 }
 
 
@@ -1644,27 +1620,9 @@ void Map::ShowNearPath(	const grinliz::Vector2I& unitPos,
 		walkingMap[i].SetPos( (float)origin.x, (float)origin.y );
 	}
 
-	gamui::RenderAtom atom[6] = {	Game::CalcIconAtom( ICON_GREEN_WALK_MARK ), 
-									Game::CalcIconAtom( ICON_YELLOW_WALK_MARK ), 
-									Game::CalcIconAtom( ICON_ORANGE_WALK_MARK ), 
-									Game::CalcIconAtom( ICON_GREEN_WALK_MARK ), 
-									Game::CalcIconAtom( ICON_YELLOW_WALK_MARK ), 
-									Game::CalcIconAtom( ICON_ORANGE_WALK_MARK ) 
-	};
+	gamui::RenderAtom atom[6];
+	InitWalkingMapAtoms( atom, nWalkingMaps );
 
-	if ( nWalkingMaps == 1 ) {
-		atom[0].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
-		atom[1].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
-		atom[2].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
-	}
-	else {
-		atom[0].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
-		atom[1].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
-		atom[2].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
-		atom[3].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
-		atom[4].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
-		atom[5].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
-	}
 	for( unsigned i=0; i<stateCostArr.size(); ++i ) {
 		const micropather::StateCost& stateCost = stateCostArr[i];
 		Vector2<S16> v;
