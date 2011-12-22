@@ -42,6 +42,9 @@ public:
 	grinliz::Vector2I FindStorage( const ItemDef* itemDef, const grinliz::Vector2I& source );
 	Storage* CollectAllStorage();
 
+	virtual void SetSize( int w, int h );
+	virtual void InitWalkingMapAtoms( gamui::RenderAtom* atoms, int nWalkingMaps );
+
 	// Gets a starting location for a unit on the map.
 	// TERRAN_TEAM - from the lander
 	// ALIEN_TEAM, guard or scout - on the map metadata
@@ -74,6 +77,7 @@ private:
 
 	const MapItem* lander;
 	int nLanderPos;
+	gamui::Image border[4];		// border around the edges of the map
 
 	static const MapItemDef itemDefArr[NUM_ITEM_DEF];
 	CStringMap< const MapItemDef* >	itemDefMap;
