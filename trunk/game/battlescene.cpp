@@ -2545,7 +2545,7 @@ void BattleScene::Tap(	int action,
 		}
 		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
 			if ( GetModel( &units[i] ) ) {
-				if ( canSelectAlien && units[i].IsAlive() ) {
+				if ( canSelectAlien && units[i].IsAlive() && visibility.TeamCanSee( TERRAN_TEAM, units[i].MapPos() ) ) {
 					unitRenderers[i].SetSelectable( true );
 					if ( units[i].MapPos() == tilePos ) {
 						GLRELASSERT( !tappedUnit );
