@@ -380,7 +380,6 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 
 	// Allow the map to change (fire and smoke)
 	Rectangle2I change;
-	change.SetInvalid();
 	tacMap->DoSubTurn( &change, FIRE_DAMAGE_PER_SUBTURN );
 	visibility.InvalidateAll( change );
 
@@ -614,7 +613,7 @@ int BattleScene::CenterRectIntersection(	const Vector2F& r,
 											const Rectangle2F& rect,
 											Vector2F* out )
 {
-	Vector2F center = { (rect.min.x+rect.max.x)*0.5f, (rect.min.y+rect.max.y)*0.5f };
+	Vector2F center = rect.Center();
 	Vector2F rf = { r.x, r.y };
 	Vector2F outf;
 
@@ -643,8 +642,8 @@ int BattleScene::CenterRectIntersection(	const Vector2F& r,
 int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )
 {
 	if ( Engine::mapMakerMode ) {
-		clip3D->SetInvalid();
-		clip2D->SetInvalid();
+		clip3D->Zero();
+		clip2D->Zero();
 		return RENDER_3D | RENDER_2D; 
 	}
 	else {
@@ -653,8 +652,12 @@ int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I*
 		size.y = menuImage.Height();
 		const Screenport& port = engine->GetScreenport();
 
-		clip3D->Set( (int)size.x, 0, (int)port.UIWidth(), (int)port.UIHeight() );
-		clip2D->Set(0, 0, (int)port.UIWidth(), (int)port.UIHeight() );
+		clip3D->Zero();
+		clip3D->pos.Set( (int)size.x, 0 );
+		clip3D->DoUnion( (int)port.UIWidth(), (int)port.UIHeight() );
+		
+		clip2D->pos.Set( 0, 0 );
+		clip2D->size.Set( (int)port.UIWidth(), (int)port.UIHeight() );
 		return RENDER_3D | RENDER_2D; 
 	}
 }
@@ -728,8 +731,7 @@ void BattleScene::SetUnitOverlays()
 
 				targetArrow[i-ALIEN_UNITS_START].SetVisible( true );
 
-				Vector2F center = { (uiBounds.min.x + uiBounds.max.x)/2,
-									(uiBounds.min.y + uiBounds.max.y)/2 };
+				Vector2F center = uiBounds.Center();
 				Rectangle2F inset = uiBounds;
 				const float EPS = 12;
 				inset.Outset( -EPS );
@@ -1014,8 +1016,7 @@ void BattleScene::TestCoordinates()
 
 	for( int i=0; i<4; ++i ) {
 		Vector3F pos;
-		Vector2F corner;
-		uiBounds.Corner( i, &corner );
+		Vector2F corner = uiBounds.Corner( i );
 		if ( engine->RayFromViewToYPlane( corner, mvpi, 0, &pos ) ) {
 			Color4F c = { 0, 1, 1, 1 };
 			Color4F cv = { 0, 0, 0, 0 };
@@ -1032,9 +1033,7 @@ grinliz::Rectangle2F BattleScene::CalcInsetUIBounds()
 	//	Rectangle2F uiBounds = port.UIBoundsClipped3D();
 	Rectangle2I clip3D, clip2D;
 	RenderPass( &clip3D, &clip2D );
-	Rectangle2F uiBounds;
-	uiBounds.Set(	(float)clip3D.min.x, (float)clip3D.min.y, 
-					(float)clip3D.max.x, (float)clip3D.max.y );
+	Rectangle2F uiBounds( (float)clip3D.pos.x, (float)clip3D.pos.y, (float)clip3D.size.x, (float)clip3D.size.y );
 	
 	Rectangle2F inset = uiBounds;
 	inset.Outset( -40 );
@@ -1522,8 +1521,8 @@ bool BattleScene::ProcessActionCameraBounds( U32 deltaTime, Action* action )
 	Rectangle2F inset = CalcInsetUIBounds();
 	if ( action->type.cameraBounds.center ) {
 		Vector2F center = inset.Center();
-		inset.min = center;
-		inset.max = center;
+		inset.pos = center;
+		inset.size.Zero();
 		inset.Outset( 50 );		// There is a 50 pixel sidebar that throws off this computation. Just make sure outset is large enough.
 	}
 
@@ -1980,7 +1979,6 @@ void BattleScene::GenerateCrawler( const Unit* unit, const Unit* shooter )
 int BattleScene::ProcessActionHit( Action* action )
 {
 	Rectangle2I destroyed;
-	destroyed.SetInvalid();
 	int result = 0;
 	static const int MAX_EXPLOSION = 8;
 	Vector2I explosion[MAX_EXPLOSION];
@@ -2063,7 +2061,8 @@ int BattleScene::ProcessActionHit( Action* action )
 			int x0 = explosion[nExplosion-1].x;
 			int y0 = explosion[nExplosion-1].y;
 
-			destroyed.Set( x0-MAX_RAD, y0-MAX_RAD, x0+MAX_RAD, y0+MAX_RAD );
+			destroyed.pos.Set( x0-MAX_RAD, y0-MAX_RAD );
+			destroyed.size.Set( MAX_RAD*2+1, MAX_RAD*2+1 );
 
 			for( int rad=0; rad<=MAX_RAD; ++rad ) {
 				DamageDesc dd = action->type.hit.damageDesc;
@@ -2764,8 +2763,8 @@ void BattleScene::CalcTeamTargets()
 				//e.Dump();
 
 				// Check team change.
-				Rectangle2I teamRange;
-				teamRange.Set( range[srcTeam].x, dst, range[srcTeam].y-1, dst );	// note the -1 inclusive/exclusive thing
+				Rectangle2I teamRange( range[srcTeam].x, dst, 0, 0 );
+				teamRange.DoUnion( range[srcTeam].y, 1 );
 
 				// No one on this team, prior to this check, could see the unit.
 				if ( unitVis.IsRectEmpty( teamRange ) )
@@ -3079,7 +3078,7 @@ void BattleScene::DrawHUD()
 		if ( SelectedSoldierUnit() ) {
 			Rectangle2F uv;
 			Texture* faceTex = game->CalcFaceTexture( SelectedSoldierUnit(), &uv );
-			RenderAtom atom( (const void*) UIRenderer::RENDERSTATE_UI_NORMAL, (const void*) faceTex, uv.min.x, uv.min.y, uv.max.x, uv.max.y );
+			RenderAtom atom( (const void*) UIRenderer::RENDERSTATE_UI_NORMAL, (const void*) faceTex, uv.X0(), uv.Y0(), uv.X1(), uv.Y1() );
 			invButton.SetDeco( atom, atom );
 		}
 		else {

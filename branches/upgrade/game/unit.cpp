@@ -387,10 +387,11 @@ void Unit::CalcVisBounds( grinliz::Rectangle2I* b ) const
 
 	Vector2I p;
 	CalcMapPos( &p, 0 );
-	b->Set( Max( 0, p.x-MAX_EYESIGHT_RANGE ), 
-			Max( 0, p.y-MAX_EYESIGHT_RANGE ),
-			Min( p.x+MAX_EYESIGHT_RANGE, MAP_SIZE-1),
-			Min( p.y+MAX_EYESIGHT_RANGE, MAP_SIZE-1) );
+	Rectangle2I bounds;
+	bounds.Set( p );
+	bounds.Outset( MAX_EYESIGHT_RANGE );
+	bounds.DoIntersection( Rectangle2I( 0, 0, MAP_SIZE, MAP_SIZE ) );
+	*b = bounds;
 }
 
 

@@ -253,8 +253,8 @@ public:
 	// Rendering
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	
 	{ 
-		clip3D->SetInvalid(); 
-		clip2D->SetInvalid(); 
+		clip3D->Zero(); 
+		clip2D->Zero(); 
 		return RENDER_2D | RENDER_3D;
 	}	
 

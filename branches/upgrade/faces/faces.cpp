@@ -34,23 +34,24 @@ grinliz::Color4U8 FaceGenerator::CalcShadowColor( grinliz::Color4U8 in, float fa
 }
 
 
-void FaceGenerator::Composite( const Surface& srcSurface, const Rect2I& srcRect, 
-							   Surface* dstSurface, const Rect2I& dstRect,
+void FaceGenerator::Composite( const Surface& srcSurface, const Rectangle2I& srcRect, 
+							   Surface* dstSurface, const Rectangle2I& dstRect,
 							   bool flip )
 {
 	GLASSERT( srcSurface.Format()  == Surface::RGBA16 );
 	GLASSERT( dstSurface->Format() == Surface::RGBA16 );
 
-	for( int y=0; y<dstRect.h; ++y ) {
-		for( int x=0; x<dstRect.w; ++x ) {
-			U16 color16 = srcSurface.GetTex16( x+srcRect.x, y+srcRect.y );
+	for( int y=0; y<dstRect.size.y; ++y ) {
+		for( int x=0; x<dstRect.size.x; ++x ) {
+			U16 color16 = srcSurface.GetTex16( x+srcRect.pos.x, y+srcRect.pos.y );
 			if ( flip ) {
-				color16 = srcSurface.GetTex16( srcRect.x+srcRect.w-1-x, y+srcRect.y );
+				color16 = srcSurface.GetTex16( srcRect.pos.x+srcRect.size.x-1-x, 
+											   y+srcRect.pos.y );
 			}
 			grinliz::Color4U8 color = Surface::CalcRGBA16( color16 );
 			GLASSERT( color.a == 0 || color.a == 255 );
 			if ( color.a > 0 ) {
-				dstSurface->SetTex16( x+dstRect.x, y+dstRect.y, color16 );
+				dstSurface->SetTex16( x+dstRect.pos.x, y+dstRect.pos.y, color16 );
 			}
 		}
 	}
@@ -64,50 +65,54 @@ void FaceGenerator::GenerateFace( const FaceParam& param, Surface* image )
 	GLASSERT( image->Format() == Surface::RGBA16 );
 	image->Clear( 0 );
 
-	Rect2I srcRect, dstRect;
-
-	// Chin
-	srcRect.Set( 0, param.chin*(chins.Height()/nChins),
-				 chins.Width(), chins.Height()/nChins );
-	dstRect.Set( image->Width()/2 - srcRect.w/2, 16,
-				  srcRect.w, srcRect.h );			 
-	Composite( chins, srcRect, image, dstRect );
-
-	// Nose
-	srcRect.Set( 0, param.nose*(noses.Height()/nNoses),
-				 noses.Width(), noses.Height()/nNoses );
-	dstRect.Set( image->Width()/2 - srcRect.w/2, 34+param.noseOffset,
-				 srcRect.w, srcRect.h );
-	Composite( noses, srcRect, image, dstRect );
-
-	// Mouth
-	srcRect.Set( 0, param.mouth*(mouths.Height()/nMouths),
-				 mouths.Width(), mouths.Height()/nMouths );
-	dstRect.Set( image->Width()/2 - srcRect.w/2, 42+param.mouthOffset,
-				 srcRect.w, srcRect.h );
-	Composite( mouths, srcRect, image, dstRect, param.mouthFlip );
-
-	// Eyes
-	srcRect.Set( 0, param.eyes*(eyes.Height()/nEyes),
-				 eyes.Width(), eyes.Height()/nEyes );
-	dstRect.Set( image->Width()/2 - srcRect.w/2, 22+param.eyeOffset,
-				 srcRect.w, srcRect.h );
-	Composite( eyes, srcRect, image, dstRect, param.eyesFlip );
-
-	// Glasses
-	srcRect.Set( 0, param.glasses*(glasses.Height()/nGlasses),
-				 glasses.Width(), glasses.Height()/nGlasses );
-	dstRect.Set( image->Width()/2-srcRect.w/2, 28+param.glassesOffset,
-				 srcRect.w, srcRect.h );
-	Composite( glasses, srcRect, image, dstRect );
-
-	// Hair
-	srcRect.Set( 0, param.hair*(hairs.Height()/nHairs),
-				 hairs.Width(), hairs.Height()/nHairs );
-	dstRect.Set( image->Width()/2-srcRect.w/2, 0,
-				 srcRect.w, srcRect.h );
-	Composite( hairs, srcRect, image, dstRect, param.hairFlip );
-
+	{
+		// Chin
+		Rectangle2I srcRect( 0, param.chin*(chins.Height()/nChins),
+							 chins.Width(), chins.Height()/nChins );
+		Rectangle2I dstRect( image->Width()/2 - srcRect.size.x/2, 16,
+							 srcRect.size.x, srcRect.size.y );			 
+		Composite( chins, srcRect, image, dstRect );
+	}
+	{
+		// Nose
+		Rectangle2I srcRect( 0, param.nose*(noses.Height()/nNoses),
+							 noses.Width(), noses.Height()/nNoses );
+		Rectangle2I dstRect( image->Width()/2 - srcRect.size.x/2, 34+param.noseOffset,
+							 srcRect.size.x, srcRect.size.y );
+		Composite( noses, srcRect, image, dstRect );
+	}
+	{
+		// Mouth
+		Rectangle2I srcRect( 0, param.mouth*(mouths.Height()/nMouths),
+							 mouths.Width(), mouths.Height()/nMouths );
+		Rectangle2I dstRect( image->Width()/2 - srcRect.size.x/2, 42+param.mouthOffset,
+							 srcRect.size.x, srcRect.size.y );
+		Composite( mouths, srcRect, image, dstRect, param.mouthFlip );
+	}
+	{
+		// Eyes
+		Rectangle2I srcRect( 0, param.eyes*(eyes.Height()/nEyes),
+							 eyes.Width(), eyes.Height()/nEyes );
+		Rectangle2I dstRect( image->Width()/2 - srcRect.size.x/2, 22+param.eyeOffset,
+							 srcRect.size.x, srcRect.size.y );
+		Composite( eyes, srcRect, image, dstRect, param.eyesFlip );
+	}
+	{
+		// Glasses
+		Rectangle2I srcRect( 0, param.glasses*(glasses.Height()/nGlasses),
+							 glasses.Width(), glasses.Height()/nGlasses );
+		Rectangle2I dstRect( image->Width()/2-srcRect.size.x/2, 28+param.glassesOffset,
+							 srcRect.size.x, srcRect.size.y );
+		Composite( glasses, srcRect, image, dstRect );
+	}
+	{
+		// Hair
+		Rectangle2I srcRect( 0, param.hair*(hairs.Height()/nHairs),
+							 hairs.Width(), hairs.Height()/nHairs );
+		Rectangle2I dstRect( image->Width()/2-srcRect.size.x/2, 0,
+							 srcRect.size.x, srcRect.size.y );
+		Composite( hairs, srcRect, image, dstRect, param.hairFlip );
+	}
 	// Patch the colors.
 	U16 src[20];
 	U16 dst[20];

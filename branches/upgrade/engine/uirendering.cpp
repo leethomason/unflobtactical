@@ -124,17 +124,17 @@ void UIRenderer::GamuiGlyph( int c, int c1, float height, IGamuiText::GlyphMetri
 	float x = _x;
 	float y = _y - h*0.5f;
 
-	if ( x < port.UIBoundsClipped3D().min.x ) {
-		x = port.UIBoundsClipped3D().min.x;
+	if ( x < port.UIBoundsClipped3D().X0() ) {
+		x = port.UIBoundsClipped3D().X0();
 	}
-	else if ( x+w >= port.UIBoundsClipped3D().max.x ) {
-		x = port.UIBoundsClipped3D().max.x - w;
+	else if ( x+w >= port.UIBoundsClipped3D().X1() ) {
+		x = port.UIBoundsClipped3D().X1() - w;
 	}
-	if ( y < port.UIBoundsClipped3D().min.y ) {
-		y = port.UIBoundsClipped3D().min.y;
+	if ( y < port.UIBoundsClipped3D().Y0() ) {
+		y = port.UIBoundsClipped3D().Y0();
 	}
-	else if ( y+h >= port.UIBoundsClipped3D().max.y ) {
-		y = port.UIBoundsClipped3D().max.y - h;
+	else if ( y+h >= port.UIBoundsClipped3D().Y1() ) {
+		y = port.UIBoundsClipped3D().Y1() - h;
 	}
 	for( int i=0; i<nItems; ++i ) {
 		gamui::UIItem* item = (UIItem*)((U8*)items + stride*i);

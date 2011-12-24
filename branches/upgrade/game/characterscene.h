@@ -54,8 +54,8 @@ public:
 	// Rendering
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	
 	{ 
-		clip3D->SetInvalid(); 
-		clip2D->SetInvalid(); 
+		clip3D->Zero(); 
+		clip2D->Zero(); 
 		return RENDER_2D;	// | RENDER_3D; Would be nice to draw the current weapon and possibly model. But dragging in the engine is painful.
 							// Need a model->Draw() call that can place 3D assets with minimal setup.
 	}

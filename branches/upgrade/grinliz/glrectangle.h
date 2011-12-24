@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2000-2007 Lee Thomason (www.grinninglizard.com)
+Copyright (c) 2000-2011 Lee Thomason (www.grinninglizard.com)
 Grinning Lizard Utilities.
 
 This software is provided 'as-is', without any express or implied 
@@ -30,261 +30,6 @@ distribution.
 
 namespace grinliz {
 
-
-/** A rectangle structure. Common, but deprecated. The min/max approach is abyssmal.
-    Use Rect instead.
-*/
-template< class T >
-struct Rectangle2
-{
-	Vector2< T > min;
-	Vector2< T > max;
-
-	/// Initialize. Convenience function.
-	void Set( T _xmin, T _ymin, T _xmax, T _ymax )	{ 
-		min.x = _xmin; min.y = _ymin; max.x = _xmax; max.y = _ymax;
-	}
-	/// Set all the members to zero.
-	void Zero() {
-		min.x = min.y = max.x = max.y = (T) 0;
-	}
-
-	/// Return true if this is potentially a valid rectangle.
-	bool IsValid() const {
-		return ( min.x <= max.x ) && ( min.y <= max.y );
-	}
-
-	/** Creates the rectangle from 2 points, which can be 
-		in any relationship to each other.
-	*/
-	void FromPair( T x0, T y0, T x1, T y1 )
-	{
-		min.x = grinliz::Min( x0, x1 );
-		max.x = grinliz::Max( x0, x1 );
-		min.y = grinliz::Min( y0, y1 );
-		max.y = grinliz::Max( y0, y1 );
-	}
-
-	/// Return true if the rectangles intersect.
-	bool Intersect( const Rectangle2<T>& rect ) const
-	{
-		if (	rect.max.x < min.x
-			 || rect.min.x > max.x
-			 || rect.max.y < min.y
-			 || rect.min.y > max.y )
-		{
-			return false;
-		}
-		return true;
-	}	
-
-	bool Intersect( const Vector2<T>& point ) const
-	{
-		if (	point.x < min.x
-			 || point.x > max.x
-			 || point.y < min.y
-			 || point.y > max.y )
-		{
-			return false;
-		}
-		return true;
-	}
-
-	bool Intersect( T x, T y ) const
-	{
-		if (	x < min.x
-			 || x > max.x
-			 || y < min.y
-			 || y > max.y )
-		{
-			return false;
-		}
-		return true;
-	}
-
-
-	/// Return true if 'rect' is inside this.
-	bool Contains( const Rectangle2<T>& rect ) const
-	{
-		if (	rect.min.x >= min.x
-			 && rect.max.x <= max.x
-			 && rect.min.y >= min.y
-			 && rect.max.y <= max.y )
-		{
-			return true;
-		}
-		return false;
-	}
-
-	bool Contains( const Vector2<T>& point ) const
-	{
-		if (	point.x >= min.x
-			 && point.x <= max.x
-			 && point.y >= min.y
-			 && point.y <= max.y )
-		{
-			return true;
-		}
-		return false;
-	}
-
-	bool Contains( T x, T y ) const {
-		Vector2<T> p = { x, y };
-		return Contains( p );
-	}
-
-	/// Merge the rect into this.
-	void DoUnion( const Rectangle2<T>& rect )
-	{
-		if ( IsValid() ) {
-			min.x = grinliz::Min( min.x, rect.min.x );
-			max.x = grinliz::Max( max.x, rect.max.x );
-			min.y = grinliz::Min( min.y, rect.min.y );
-			max.y = grinliz::Max( max.y, rect.max.y );
-		}
-		else {
-			*this = rect;
-		}
-	}
-
-	/// Merge the rect into this.
-	void DoUnion( T x, T y )
-	{
-		if ( IsValid() ) {
-			min.x = grinliz::Min( min.x, x );
-			max.x = grinliz::Max( max.x, x );
-			min.y = grinliz::Min( min.y, y );
-			max.y = grinliz::Max( max.y, y );
-		}
-		else {
-			Set( x, y, x, y );
-		}
-	}
-
-
-	void DoUnion( const Vector2<T>& v ) { DoUnion( v.x, v.y ); }
- 
- 	/// Turn this into the intersection.
-	void DoIntersection( const Rectangle2<T>& rect )
-	{
-		GLASSERT( IsValid() );
-		min.x = grinliz::Max( min.x, rect.min.x );
-		max.x = grinliz::Min( max.x, rect.max.x );
-		min.y = grinliz::Max( min.y, rect.min.y );
-		max.y = grinliz::Min( max.y, rect.max.y );
-	}
-
-	/// Clip this to the passed in rectangle. Will become invalid if they don't intersect.
-	void DoClip( const Rectangle2<T>& rect )
-	{
-		min.x = rect.min.x > min.x ? rect.min.x : min.x;
-		max.x = rect.max.x < max.x ? rect.max.x : max.x;
-		min.y = rect.min.y > min.y ? rect.min.y : min.y;
-		max.y = rect.max.y < max.y ? rect.max.y : max.y;
-	}
-
-
-	/// Scale all coordinates by the given ratios:
-	void Scale( T x, T y )
-	{
-		min.x = ( x * min.x );
-		min.y = ( y * min.y );
-		max.x = ( x * max.x );
-		max.y = ( y * max.y );
-	}
-
-	/// Changes the boundaries
-	void EdgeAdd( T i )
-	{
-		min.x -= i;
-		max.x += i;
-		min.y -= i;
-		max.y += i;
-	}
-
-	/// Query the edge of the rectangle. The edges are ordered: bottom, right, top, left.
-	void Edge( int i, Vector2< T >* head, Vector2< T >* tail ) const
-	{	
-		switch ( i ) {
-			case 0:		tail->Set( min.x, min.y );	head->Set( max.x, min.y );	break;
-			case 1:		tail->Set( max.x, min.y );	head->Set( max.x, max.y );	break;
-			case 2:		tail->Set( max.x, max.y );	head->Set( min.x, max.y );	break;
-			case 3:		tail->Set( min.x, max.y );	head->Set( min.x, min.y );	break;
-			default:	GLASSERT( 0 );
-		}
-	}
-
-	/// Query the corners of the rectangle.
-	void Corner( int i, Vector2< T >* c ) const
-	{	
-		switch ( i ) {
-			case 0:		c->Set( min.x, min.y );	break;
-			case 1:		c->Set( max.x, min.y );	break;
-			case 2:		c->Set( max.x, max.y );	break;
-			case 3:		c->Set( min.x, max.y );	break;
-			default:	GLASSERT( 0 );
-		}
-	}
-
-
-	void Outset( T dist ) {
-		min.x -= dist;
-		min.y -= dist;
-		max.x += dist;
-		max.y += dist;
-	}
-
-	Vector2< T > Center() const {
-		Vector2< T > v = { (min.x + max.x) / (T)2, (min.y + max.y) / (T)2 };
-		return v;
-	}
-
-	bool operator==( const Rectangle2<T>& that ) const { return     ( min.x == that.min.x )
-													&& ( max.x == that.max.x )
-													&& ( min.y == that.min.y )
-													&& ( max.y == that.max.y ); }
-	bool operator!=( const Rectangle2<T>& that ) const { return     ( min.x != that.min.x )
-													|| ( max.x != that.max.x )
-													|| ( min.y != that.min.y )
-													|| ( max.y != that.max.y ); }
-
-};
-
-
-struct Rectangle2I : public Rectangle2< int >
-{
-	enum { INVALID = INT_MIN };
-
-	int Width()	 const 	{ return max.x - min.x + 1; }		///< width of the rectangle
-	int Height() const	{ return max.y - min.y + 1; }		///< height of the rectangle
-	int Area()   const	{ return Width() * Height();	}   ///< Area of the rectangle
-
-	/// Initialize to an invalid rectangle.
-	void SetInvalid()	{ min.x = INVALID + 1; max.x = INVALID; min.y = INVALID + 1; max.y = INVALID; }
-
-	/// Just like DoUnion, except takes validity into account.
-	void DoUnionV( int x, int y )
-	{
-		if ( !IsValid() ) {
-			min.x = max.x = x;
-			min.y = max.y = y;
-		}
-		else {
-			min.x = Min( min.x, x );
-			max.x = Max( max.x, x );
-			min.y = Min( min.y, y );
-			max.y = Max( max.y, y );
-		}
-	}
-};
-
-struct Rectangle2F : public Rectangle2< float >
-{
-	float Width()	 const 	{ return max.x - min.x; }		///< width of the rectangle
-	float Height() const	{ return max.y - min.y; }		///< height of the rectangle
-	float Area()   const	{ return Width() * Height();	}   ///< Area of the rectangle
-};
-
 /** Rectangle class based on vectors. (Actually an AABB.) 
     inclusive-exclusive edges.
 */
@@ -293,7 +38,7 @@ struct Rectangle3
 {
 	Vector3<T> pos, size;
 
-	Rectangle3<T>() {}
+	Rectangle3<T>() { pos.Zero(); size.Zero(); }
 	Rectangle3<T>( T _x, T _y, T _z, T _cx, T _cy, T _cz ) : pos( _x, _y, _z ), size( _cx, _cy, _cz ) {}
 	Rectangle3<T>( const Vector3<T>& _pos, const Vector3<T>& _size ) : pos( _pos ), size( _size ) {}
 
@@ -413,7 +158,7 @@ struct Rectangle3
 
 	
 	/// Turn this into the intersection.
-	void DoIntersection( const Rectangle2<T>& rect )
+	void DoIntersection( const Rectangle3<T>& rect )
 	{
 		for( int i=0; i<3; ++i ) {
 			T x0 = grinliz::Max( X0(i), rect.X0(i) );
@@ -449,35 +194,200 @@ struct Rectangle3
 		size.z += i+i;
 	}
 
-	bool operator==( const Rectangle2<T>& that ) const { return	pos == that.pos && size == that.size; }
-	bool operator!=( const Rectangle2<T>& that ) const { return	pos != that.pos || size != that.size; }
+	bool operator==( const Rectangle3<T>& that ) const { return	pos == that.pos && size == that.size; }
+	bool operator!=( const Rectangle3<T>& that ) const { return	pos != that.pos || size != that.size; }
 };
 
 typedef Rectangle3< int > Rectangle3I;
 typedef Rectangle3< float > Rectangle3F;
 
-template< class T >
-struct Rect2
-{
-	T x, y, w, h;
 
-	/// Initialize. Convenience function.
-	void Set( T _x, T _y, T _w, T _h )	{ 
-		x = _x; y = _y; w = _w; h = _h;
+template< class T >
+struct Rectangle2
+{
+	Vector2< T > pos;
+	Vector2< T > size;
+
+	Rectangle2<T>() { pos.Zero(); size.Zero(); }
+	Rectangle2<T>( T _x, T _y, T _cx, T _cy )  { pos.x = _x; pos.y = _y; size.x = _cx; size.y = _cy; }
+	Rectangle2<T>( const Vector2<T>& _pos, const Vector2<T>& _size ) : pos( _pos ), size( _size ) {}
+
+	T X0( int i ) const { return pos.X(i); }
+	T X1( int i ) const { return pos.X(i)+size.X(i); }
+
+	T X0() const { return pos.x; }
+	T Y0() const { return pos.y; }
+	T X1() const { return pos.x+size.x; }
+	T Y1() const { return pos.y+size.y; }
+
+	void Set( const Vector2<T>& a ) {
+		pos = a;
+		size.Zero();
 	}
+
+	void Set( const Vector2<T>& a, const Vector2<T>& b ) {
+		pos = a;
+		size.Zero();
+		DoUnion( b );
+	}
+
 	/// Set all the members to zero.
 	void Zero() {
-		x = y = w = h = (T) 0;
+		pos.Zero();
+		size.Zero();
 	}
 
-	/// Return true if this is potentially a valid rectangle.
-	bool IsValid() const {
-		return ( w > 0 ) && ( h > 0 );
+	bool Empty() const { return size.x == 0 || size.y == 0; }
+
+	/// Return true if the rectangles intersect.
+	bool Intersect( const Rectangle2<T>& rect ) const
+	{
+		if (	(rect.pos.x+rect.size.x) <= pos.x
+			 || rect.pos.x >= (pos.x+size.x)
+			 || (rect.pos.y+rect.size.y) <= pos.y
+			 || rect.pos.y >= (pos.y+size.y) )
+		{
+			return false;
+		}
+		return true;
+	}	
+
+	bool Intersect( const Vector2<T>& point ) const
+	{
+		if (	point.x < pos.x
+			 || point.x >= (pos.x+size.x)
+			 || point.y < pos.y
+			 || point.y >= (pos.y+size.y) )
+		{
+			return false;
+		}
+		return true;
 	}
+
+	bool Intersect( T x, T y ) const
+	{
+		return Intersect( Vector2<T>( x, y ) );
+	}
+
+	Vector2< T > Center() const {
+		Vector2< T > v = {	pos.x + size.x/2, 
+							pos.y + size.y/2 };
+		return v;
+	}
+
+	bool Contains( const Rectangle2<T>& rect ) const
+	{
+		for( int i=0; i<2; ++i ) {
+			if ( rect.X0(i) < X0(i) || rect.X1(i) > X1(i) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	bool Contains( const Vector2<T>& point ) const
+	{
+		for( int i=0; i<2; ++i ) {
+			if ( point.X(i) < X0(i) || point.X(i) >= X1(i) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	bool Contains( T x, T y ) const {
+		Vector2<T> p = { x, y };
+		return Contains( p );
+	}
+
+	/// Merge the Vector into this.
+	void DoUnion( const Vector2<T>& vec )
+	{
+		for( int i=0; i<2; ++i ) {
+			T x0 = grinliz::Min( X0(i), vec.X(i) );
+			T x1 = grinliz::Max( X1(i), vec.X(i) );
+			pos.X(i) = x0;
+			size.X(i) = x1 - x0;
+		}
+	}
+
+	void DoUnion( T x, T y ) { 
+		Vector2<T> v = { x, y };
+		DoUnion( v );
+	}
+
+	/// Merge the rect into this.
+	void DoUnion( const Rectangle2<T>& rect )
+	{
+		DoUnion( rect.pos );
+		DoUnion( rect.pos + rect.size );
+	}
+ 
+ 	/// Turn this into the intersection.
+	void DoIntersection( const Rectangle2<T>& rect )
+	{
+		for( int i=0; i<2; ++i ) {
+			T x0 = grinliz::Max( X0(i), rect.X0(i) );
+			T x1 = grinliz::Min( X1(i), rect.X1(i) );
+			pos.X(i) = x0;
+			T sz = x1 - x0;
+			size.X(i) = sz > 0 ? sz : 0;
+		}
+	}
+
+	/// Scale all coordinates by the given ratios:
+	void Scale( T x, T y )
+	{
+		pos.x  *= x;
+		size.x *= x;
+		pos.y  *= y;
+		size.y *= y;
+	}
+
+	/// Changes the boundaries
+	void EdgeAdd( T i )
+	{
+		pos.x  -= i;
+		size.x += i+i;
+		pos.y  -= i;
+		size.y += i+i;
+	}
+
+	void Outset( T i ) { EdgeAdd( i ); }
+
+	/// Query the corners of the rectangle.
+	Vector2<T> Corner( int i ) const
+	{	
+		Vector2<T> c = { 0, 0 };
+		switch ( i ) {
+			case 0:		c.Set( pos.x, pos.y );					break;
+			case 1:		c.Set( pos.x+size.x, pos.y );			break;
+			case 2:		c.Set( pos.x+size.x, pos.y+size.y );	break;
+			case 3:		c.Set( pos.x, pos.y+size.y );			break;
+			default:	GLASSERT( 0 );
+		}
+		return c;
+	}
+	/// Query the edge of the rectangle. The edges are ordered: bottom, right, top, left.
+	void Edge( int i, Vector2< T >* head, Vector2< T >* tail ) const
+	{	
+		*tail = Corner(i);
+		*head = Corner((i+1)&3);
+	}
+
+	bool operator==( const Rectangle2<T>& that ) const { return pos == that.pos && size == that.size; }
+	bool operator!=( const Rectangle2<T>& that ) const { return pos != that.pos || size != that.size; }
+
 };
 
-typedef Rect2<int> Rect2I;
-typedef Rect2<float> Rect2F;
+typedef Rectangle2<int>   Rectangle2I;
+typedef Rectangle2<float> Rectangle2F;
+
+inline Rectangle2F Rectangle2I_To_2F( const Rectangle2I& in ) 
+{
+	Rectangle2F r( (float)in.pos.x, (float)in.pos.y, (float)in.size.x, (float)in.size.y );
+	return r;
+}
 
 };	// namespace grinliz
 

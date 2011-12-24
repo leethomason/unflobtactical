@@ -70,7 +70,7 @@ void GeoMapData::Init( const char* map, Random* random )
 {
 	numLand = 0;
 	for( int i=0; i<GEO_REGIONS; ++i ) {
-		bounds[i].SetInvalid();
+		bounds[i].Zero();
 		numCities[i] = 0;
 	}
 	const char* p = MAP;
@@ -107,8 +107,8 @@ void GeoMapData::Init( const char* map, Random* random )
 int GeoMapData::Find( U8* choiceBuffer, int bufSize, int region, int required, int excluded ) const
 {
 	int count=0;
-	for( int j=bounds[region].min.y; j<=bounds[region].max.y; ++j ) {
-		for( int i=bounds[region].min.x; i<=bounds[region].max.x; ++i ) {
+	for( int j=bounds[region].Y0(); j<bounds[region].Y1(); ++j ) {
+		for( int i=bounds[region].X0(); i<bounds[region].X1(); ++i ) {
 			int type   = Type( data[j*GEO_MAP_X+i] );
 			int r      = Region( data[j*GEO_MAP_X+i] );
 

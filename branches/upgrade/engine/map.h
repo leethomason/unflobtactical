@@ -114,9 +114,7 @@ struct MapItemDef
 
 	grinliz::Rectangle2I Bounds() const 
 	{
-		grinliz::Rectangle2I b;
-		b.Set( 0, 0, cx-1, cy-1 );
-		return b;
+		return grinliz::Rectangle2I( 0, 0, cx, cy );
 	}
 };
 
@@ -180,9 +178,8 @@ public:
 
 		grinliz::Rectangle2I MapBounds() const 
 		{	
-			grinliz::Rectangle2I r;
-			r.Set( mapBounds8.min.x, mapBounds8.min.y, mapBounds8.max.x, mapBounds8.max.y );
-			return r;
+			return grinliz::Rectangle2I( mapBounds8.pos.x, mapBounds8.pos.y, 
+										 mapBounds8.size.x, mapBounds8.size.y );
 		}
 		Matrix2I XForm() const {
 			Matrix2I m;
@@ -237,15 +234,14 @@ public:
 	// The size of the map in use, which is <=SIZE
 	int Height() const { return height; }
 	int Width()  const { return width; }
-	grinliz::Rectangle2I Bounds() const					{	grinliz::Rectangle2I b;
-															b.Set( 0, 0, width-1, height-1 ); 
-															return b;
-														}
-	void ClipToMap( grinliz::Rectangle2I* b ) const		{	if ( b->min.x < 0 ) b->min.x = 0;
-															if ( b->min.y < 0 ) b->min.y = 0;
-															if ( b->max.x >= width ) b->max.x = width-1;
-															if ( b->max.y >= height ) b->max.y = height-1;
-														}
+	grinliz::Rectangle2I Bounds() const	{ return grinliz::Rectangle2I( 0, 0, width, height ); }
+
+/*	void ClipToMap( grinliz::Rectangle2I* b ) const		
+	{
+		grinliz::Rectangle2I cpy = *b;
+		cpy.DoIntersection( Bounds() );
+		*b = cpy;
+	}*/
 
 	virtual void SetSize( int w, int h );
 	bool DayTime() const { return dayTime; }
@@ -409,7 +405,7 @@ protected:
 		MapItem* FindItems( const grinliz::Rectangle2I& bounds, int required, int excluded );
 		MapItem* FindItems( int x, int y, int required, int excluded ) 
 		{ 
-			grinliz::Rectangle2I b; b.Set( x, y, x, y ); 
+			grinliz::Rectangle2I b( x, y, 1, 1 ); 
 			return FindItems( b, required, excluded ); 
 		}
 		MapItem* FindItem( const Model* model );

@@ -603,8 +603,7 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 
 	U16* iBuf = indexBuffer.PushArr( 6*quadBuffer.Size() );
 	QuadVertex* vBuf = vertexBuffer.PushArr( 4*quadBuffer.Size() );
-	Rectangle2I bounds;
-	bounds.Set( 0, 0, EL_MAP_SIZE-1, EL_MAP_SIZE-1 );
+	Rectangle2I bounds( 0, 0, EL_MAP_SIZE, EL_MAP_SIZE );
 
 	for( int i=0; i<quadBuffer.Size(); ++i ) 
 	{

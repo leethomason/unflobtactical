@@ -296,7 +296,8 @@ int AI::ThinkShoot(	const Unit* theUnit,
 							}
 							else {
 								Rectangle2I bounds;
-								bounds.min = bounds.max = m_units[i].MapPos();
+								bounds.pos = m_units[i].MapPos();
+								bounds.size.Set( 1, 1 );
 								bounds.Outset( EXPLOSION_ZONE );
 								
 								int count = VisibleUnitsInArea( theUnit, m_units, bounds );
@@ -451,7 +452,8 @@ int AI::ThinkSearch(const Unit* theUnit,
 
 	// Are we more or less at the LKP? If so, mark it unknown. Keeps everyone from rushing a long cold spot.
 	Rectangle2I zone;
-	zone.min = zone.max = theUnit->MapPos();
+	zone.pos = theUnit->MapPos();
+	zone.size.Set( 1, 1 );
 	zone.Outset( 1 );
 
 	for( int i=0; i<MAX_UNITS; ++i ) {
@@ -596,8 +598,8 @@ int AI::ThinkTravel(	const Unit* theUnit,
 
 		// Look for a new travel destination. Prefer destinations that aren't currently visible.
 		for( int j=0; j<4; ++j ) {
-			m_travel[index].x = m_random.Rand( mapBounds.Width() );
-			m_travel[index].y = m_random.Rand( mapBounds.Height() );
+			m_travel[index].x = m_random.Rand( mapBounds.size.x );
+			m_travel[index].y = m_random.Rand( mapBounds.size.y );
 			
 			if ( !m_visibility->TeamCanSee( m_team, m_travel[index] ) )
 				break;
