@@ -336,8 +336,7 @@ void Engine::Draw()
 	LightShader mapItemShader( ambient, dir, diffuse, false, false );
 	LightShader mapBlendItemShader( ambient, dir, diffuse, false, true );
 
-	Rectangle2I mapBounds;
-	mapBounds.Set( 0, 0, EL_MAP_SIZE, EL_MAP_SIZE );
+	Rectangle2I mapBounds( 0, 0, EL_MAP_SIZE, EL_MAP_SIZE );
 	if ( map ) {
 		mapBounds = map->Bounds();
 	}

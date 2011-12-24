@@ -44,7 +44,7 @@ void Visibility::InvalidateUnit( int i )
 
 void Visibility::InvalidateAll( const Rectangle2I& bounds )
 {
-	if ( !bounds.IsValid() )
+	if ( bounds.Empty() )
 		return;
 
 	Rectangle2I vis;

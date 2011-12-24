@@ -147,7 +147,6 @@ Map::~Map()
 	texman->DeleteTexture( lightFogMapTex );
 
 	Rectangle2I b = Bounds();
-	b.Set( 0, 0, SIZE-1, SIZE-1 );
 	MapItem* pItem = quadTree.FindItems( b, 0, 0 );
 
 	while( pItem ) {
@@ -304,14 +303,11 @@ void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
 	//GRINLIZ_PERFTRACK
 	GLRELASSERT( s->Width() == s->Height() );
 
-	Rectangle2I src;
-	src.Set( 0, 0, s->Width()-1, s->Height()-1 );
-
-	Rectangle2I target;
-	target.Set( x, y, x+s->Width()-1, y+s->Height()-1 );	// always square for this to work, obviously.
+	Rectangle2I src( 0, 0, s->Width(), s->Height() );
+	Rectangle2I target( x, y, s->Width(), s->Height() );
 
 	if ( tileRotation == 0 ) {
-		backgroundSurface.BlitImg( target.min, s, src );
+		backgroundSurface.BlitImg( target.pos, s, src );
 	}
 	else 
 	{
@@ -322,10 +318,9 @@ void Map::SetTexture( const Surface* s, int x, int y, int tileRotation )
 		backgroundSurface.BlitImg( target, s, inv );
 	}
 
-	Rectangle2I greyTarget;
-	greyTarget.Set( target.min.x/2, target.min.y/2, target.max.x/2, target.max.y/2 );
-	for( int j=greyTarget.min.y; j<=greyTarget.max.y; ++j ) {
-		for( int i=greyTarget.min.x; i<=greyTarget.max.x; ++i ) {
+	Rectangle2I greyTarget( target.pos.x/2, target.pos.y/2, target.size.x/2, target.size.y/2 );
+	for( int j=greyTarget.Y0(); j<greyTarget.Y1(); ++j ) {
+		for( int i=greyTarget.X0(); i<greyTarget.X1(); ++i ) {
 			Color4U8 rgba0 = Surface::CalcRGB16( backgroundSurface.GetImg16( i*2+0, j*2+0 ) );
 			Color4U8 rgba1 = Surface::CalcRGB16( backgroundSurface.GetImg16( i*2+1, j*2+0 ) );
 			Color4U8 rgba2 = Surface::CalcRGB16( backgroundSurface.GetImg16( i*2+0, j*2+1 ) );
@@ -375,8 +370,7 @@ void Map::SetLightMaps( const Surface* day, const Surface* night, int x, int y, 
 		      && day->Height() == night->Height() 
 			  && day->Width() == day->Height() );
 
-	Rectangle2I rect;
-	rect.Set( 0, 0, day->Width()-1, day->Height()-1 );
+	Rectangle2I rect( 0, 0, day->Width(), day->Height() );
 
 	if ( tileRotation == 0 ) {
 		Vector2I target = { x, y };
@@ -388,8 +382,7 @@ void Map::SetLightMaps( const Surface* day, const Surface* night, int x, int y, 
 		MapImageToWorld( x, y, day->Width(), day->Height(), tileRotation, &m );
 		m.Invert( &inv );
 		
-		Rectangle2I target;
-		target.Set( x, y, x+day->Width()-1, y+day->Height()-1 );
+		Rectangle2I target( x, y, day->Width(), day->Height() );
 
 		dayMap.BlitImg( target, day, inv );
 		nightMap.BlitImg( target, night, inv );
@@ -599,7 +592,7 @@ void Map::DoDamage( Model* m, const MapDamageDesc& damageDesc, Rectangle2I* dBou
 		if ( !destroyed && itemDef.CanDamage() && itemDef.flammable > 0 ) {
 			if ( damageDesc.incendiary > random.Rand( 256-itemDef.flammable )) {
 				Rectangle2I b = item->MapBounds();
-				SetPyro( (b.min.x+b.max.x)/2, (b.min.y+b.max.y)/2, 0, 1, 0 );
+				SetPyro( b.Center().x, b.Center().y, 0, 1, 0 );
 			}
 		}
 	}
@@ -856,7 +849,9 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, const MapItemDef* def, i
 	MultMatrix2I( xform, def->Bounds(), &mapBounds );
 
 	// Check bounds on map.
-	if ( mapBounds.min.x < 0 || mapBounds.min.y < 0 || mapBounds.max.x >= SIZE || mapBounds.max.y >= SIZE ) {
+	if (    mapBounds.pos.x < 0 || mapBounds.pos.y < 0 
+		 || mapBounds.X1() > SIZE || mapBounds.Y1() > SIZE ) 
+	{
 		GLOUTPUT(( "Out of bounds.\n" ));
 		return 0;
 	}
@@ -892,9 +887,10 @@ Map::MapItem* Map::AddItem( int x, int y, int rotation, const MapItemDef* def, i
 		flags |= MapItem::MI_DOOR;
 	item->flags = flags;
 
-	GLRELASSERT( mapBounds.min.x >= 0 && mapBounds.max.x < 256 );	// using int8
-	GLRELASSERT( mapBounds.min.y >= 0 && mapBounds.max.y < 256 );	// using int8
-	item->mapBounds8.Set( mapBounds.min.x, mapBounds.min.y, mapBounds.max.x, mapBounds.max.y );
+	GLRELASSERT( mapBounds.pos.x >= 0 && mapBounds.X1() <= 256 );	// using int8
+	GLRELASSERT( mapBounds.pos.y >= 0 && mapBounds.Y1() <= 256 );	// using int8
+	item->mapBounds8 = Rectangle2<U8>(	mapBounds.pos.x, mapBounds.pos.y, 
+										mapBounds.size.x, mapBounds.size.y );
 	
 	item->next = 0;
 	
@@ -1151,10 +1147,9 @@ bool Map::ProcessDoors( const grinliz::Vector2I* openers, int nOpeners )
 	bool anyChange = false;
 
 	BitArray< SIZE, SIZE, 1 > map;
-	Rectangle2I b;
 
 	for( int i=0; i<nOpeners; ++i ) {
-		b.Set( openers[i].x-1, openers[i].y-1, openers[i].x+1, openers[i].y+1 );
+		Rectangle2I b( openers[i].x-1, openers[i].y-1, 3, 3 );
 		ClipToMap( &b );
 		map.SetRect( b );
 	}
@@ -1332,8 +1327,8 @@ void Map::ClearVisPathMap( grinliz::Rectangle2I& _bounds )
 	Rectangle2I bounds = _bounds;
 	ClipToMap( &bounds );
 
-	for( int j=bounds.min.y; j<=bounds.max.y; ++j ) {
-		for( int i=bounds.min.x; i<=bounds.max.x; ++i ) {
+	for( int j=bounds.Y0(); j<bounds.Y1(); ++j ) {
+		for( int i=bounds.X0(); i<bounds.X1(); ++i ) {
 			visMap[j*SIZE+i] = 0;
 			pathMap[j*SIZE+i] = 0;
 		}
@@ -1436,7 +1431,8 @@ bool Map::Connected4(	ConnectionType c,
 
 	const Vector2I nextPos = { pos.x + delta.x, pos.y + delta.y };
 	const Rectangle2I mapBounds = Bounds();
-	GLASSERT( pos.x >= 0 && pos.x <= mapBounds.max.x && pos.y >= 0 && pos.y <= mapBounds.max.y );
+	GLASSERT(    pos.x >= 0 && pos.x < mapBounds.X1() 
+		      && pos.y >= 0 && pos.y < mapBounds.Y1() );
 
 	// To be connected, it must be clear from a->b and b->a
 	if ( mapBounds.Contains( nextPos ) ) {
@@ -1687,15 +1683,14 @@ void Map::MapBoundsOfModel( const Model* m, grinliz::Rectangle2I* mapBounds )
 	MapItem* item = quadTree.FindItem( m );
 	GLRELASSERT( item );
 	*mapBounds = item->MapBounds();
-	GLRELASSERT( mapBounds->min.x <= mapBounds->max.x );
-	GLRELASSERT( mapBounds->min.y <= mapBounds->max.y );
+	GLASSERT( mapBounds->size.x > 0 && mapBounds->size.y > 0 );
 }
 
 
 void Map::ChangeObscured( const grinliz::Rectangle2I& bounds, int delta )
 {
-	for( int y=bounds.min.y; y<=bounds.max.y; ++y ) {
-		for( int x=bounds.min.x; x<=bounds.max.x; ++x ) {
+	for( int y=bounds.Y0(); y<bounds.Y1(); ++y ) {
+		for( int x=bounds.X0(); x<bounds.X1(); ++x ) {
 			obscured[y*SIZE+x] += delta;
 		}
 	}
@@ -1800,20 +1795,19 @@ Map::MapItem* Map::QuadTree::FindItems( const Rectangle2I& bounds, int required,
 	// Walk the map and pull out items in bounds.
 	MapItem* root = 0;
 
-	GLASSERT( bounds.min.x >= 0 && bounds.max.x < 256 );	// using int8
-	GLASSERT( bounds.min.y >= 0 && bounds.max.y < 256 );	// using int8
-	GLASSERT( bounds.min.x >= 0 && bounds.max.x < EL_MAP_SIZE );
-	GLASSERT( bounds.min.y >= 0 && bounds.max.y < EL_MAP_SIZE );	// using int8
-	Rectangle2<U8> bounds8;
-	bounds8.Set( bounds.min.x, bounds.min.y, bounds.max.x, bounds.max.y );
+	GLASSERT( bounds.pos.x >= 0 && bounds.X1() <= 256 );	// using int8
+	GLASSERT( bounds.pos.y >= 0 && bounds.Y1() <= 256 );	// using int8
+	GLASSERT( bounds.pos.x >= 0 && bounds.X1() <= EL_MAP_SIZE );
+	GLASSERT( bounds.pos.y >= 0 && bounds.Y1() <= EL_MAP_SIZE );	// using int8
+	Rectangle2<U8> bounds8( bounds.pos.x, bounds.pos.y, bounds.size.x, bounds.size.y );
 
 	for( int depth=0; depth<QUAD_DEPTH; ++depth ) 
 	{
 		// Translate into coordinates for this node level:
-		int x0 = WorldToNode( bounds.min.x, depth );
-		int x1 = WorldToNode( bounds.max.x, depth );
-		int y0 = WorldToNode( bounds.min.y, depth );
-		int y1 = WorldToNode( bounds.max.y, depth );
+		int x0 = WorldToNode( bounds.X0(), depth );
+		int x1 = WorldToNode( bounds.X1()-1, depth );
+		int y0 = WorldToNode( bounds.Y0(), depth );
+		int y1 = WorldToNode( bounds.Y1()-1, depth );
 
 		// i, j, x0.. all in node coordinates.
 		for( int j=y0; j<=y1; ++j ) {
@@ -1851,20 +1845,17 @@ Map::MapItem* Map::QuadTree::FindItems( const Rectangle2I& bounds, int required,
 Map::MapItem* Map::QuadTree::FindItem( const Model* model )
 {
 	GLRELASSERT( model->IsFlagSet( Model::MODEL_OWNED_BY_MAP ) );
+	
+	Vector2I mapPos = { (int)model->X(), (int)model->Z() };
 	Rectangle2I b;
+	b.Set( mapPos );
+	// Need a little space around the coordinates to account
+	// for object rotation.
+	b.Outset( 2 );
 
-	// May or may not have 'mapBoundsCache' when called.
-//	if ( model->mapBoundsCache.min.x >= 0 ) {
-//		b = model->mapBoundsCache;
-//	}
-//	else {
-		// Need a little space around the coordinates to account
-		// for object rotation.
-		b.min.x = Clamp( (int)model->X()-2, 0, SIZE-1 );
-		b.min.y = Clamp( (int)model->Z()-2, 0, SIZE-1 );
-		b.max.x = Clamp( (int)model->X()+2, 0, SIZE-1 );
-		b.max.y = Clamp( (int)model->Z()+2, 0, SIZE-1 );
-//	}
+	Rectangle2I mapBounds( 0, 0, Map::SIZE, Map::SIZE );
+	b.DoIntersection( mapBounds );
+
 	filterModel = model;
 	MapItem* root = FindItems( b, 0, 0 );
 	filterModel = 0;
@@ -1879,16 +1870,14 @@ int Map::QuadTree::CalcNode( const Rectangle2<U8>& bounds, int* d )
 
 	for( int depth=QUAD_DEPTH-1; depth>0; --depth ) 
 	{
-		int x0 = WorldToNode( bounds.min.x, depth );
-		int y0 = WorldToNode( bounds.min.y, depth );
+		int x0 = WorldToNode( bounds.pos.x, depth );
+		int y0 = WorldToNode( bounds.pos.y, depth );
 
 		int wSize = SIZE >> depth;
 
-		Rectangle2<U8> wBounds;
-		wBounds.Set(	NodeToWorld( x0, depth ),
-						NodeToWorld( y0, depth ),
-						NodeToWorld( x0, depth ) + wSize - 1,
-						NodeToWorld( y0, depth ) + wSize - 1 );
+		Rectangle2<U8> wBounds( NodeToWorld( x0, depth ),
+								NodeToWorld( y0, depth ),
+								wSize, wSize );
 
 		if ( wBounds.Contains( bounds ) ) {
 			offset = depthBase[depth] + NodeOffset( x0, y0, depth );
@@ -1904,17 +1893,14 @@ int Map::QuadTree::CalcNode( const Rectangle2<U8>& bounds, int* d )
 
 void Map::QuadTree::MarkVisible( const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& fogOfWar )
 {
-	Rectangle2I mapBounds;
-	mapBounds.Set( 0, 0, SIZE-1, SIZE-1 );
+	Rectangle2I mapBounds( 0, 0, SIZE, SIZE );
 	MapItem* root = FindItems( mapBounds, 0, 0 );
 
 	for( MapItem* item=root; item; item=item->next ) {
 		
 		Rectangle2I b = item->MapBounds();
-		if ( b.min.x > 0 ) b.min.x--;
-		if ( b.max.x < SIZE-1 ) b.max.x++;
-		if ( b.min.y > 0 ) b.min.y--;
-		if ( b.max.y < SIZE-1 ) b.max.y++;
+		b.Outset( 1 );
+		b.DoIntersection( Rectangle2I( 0, 0, Map::SIZE, Map::SIZE ) );
 
 		if ( fogOfWar.IsRectEmpty( b ) ) {
 			if ( item->model ) item->model->SetFlag( Model::MODEL_INVISIBLE );

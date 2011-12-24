@@ -66,18 +66,18 @@ void Surface::Clear( int c )
 void Surface::BlitImg( const grinliz::Vector2I& target, const Surface* src, const grinliz::Rectangle2I& srcRect )
 {
 	GLASSERT( target.x >= 0 && target.y >= 0 );
-	GLASSERT( target.x + srcRect.Width() <= w );
-	GLASSERT( target.y + srcRect.Height() <= h );
-	GLASSERT( srcRect.min.x >= 0 && srcRect.max.x < src->Width() );
-	GLASSERT( srcRect.min.y >= 0 && srcRect.max.x < src->Height() );
+	GLASSERT( target.x + srcRect.size.x <= w );
+	GLASSERT( target.y + srcRect.size.y <= h );
+	GLASSERT( srcRect.pos.x >= 0 && srcRect.X1() <= src->Width() );
+	GLASSERT( srcRect.pos.y >= 0 && srcRect.X1() <= src->Height() );
 	GLASSERT( src->format == format );
 
-	const int scan = srcRect.Width() * BytesPerPixel();
+	const int scan = srcRect.size.x * BytesPerPixel();
 	const int bpp = BytesPerPixel();
 
-	for( int j=0; j<srcRect.Height(); ++j ) {
+	for( int j=0; j<srcRect.size.y; ++j ) {
 		memcpy( pixels + ((h-1)-(j+target.y))*w*bpp + target.x*bpp, 
-				src->pixels + ((src->Height()-1)-(j+srcRect.min.y))*src->Width()*bpp + srcRect.min.x*bpp,
+				src->pixels + ((src->Height()-1)-(j+srcRect.pos.y))*src->Width()*bpp + srcRect.pos.x*bpp,
 				scan );
 	}
 }
@@ -90,8 +90,8 @@ void Surface::BlitImg(	const grinliz::Rectangle2I& target,
 	Vector3I t = { 0, 0, 1 };
 	Vector3I s = { 0, 0, 1 };
 
-	for( t.y=target.min.y; t.y<=target.max.y; ++t.y ) {
-		for( t.x=target.min.x; t.x<=target.max.x; ++t.x ) {
+	for( t.y=target.Y0(); t.y<target.Y1(); ++t.y ) {
+		for( t.x=target.X0(); t.x<target.X1(); ++t.x ) {
 			MultMatrix2I( xform, t, &s );		
 			GLASSERT( s.x >= 0 && s.x < src->Width() );
 			GLASSERT( s.y >= 0 && s.y < src->Height() );

@@ -22,10 +22,6 @@
 #include "../grinliz/glrectangle.h"
 #include "../grinliz/glgeometry.h"
 
-namespace grinliz {
-	struct Rectangle2I;
-};
-
 
 struct Frustum
 {

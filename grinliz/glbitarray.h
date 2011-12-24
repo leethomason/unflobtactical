@@ -103,8 +103,8 @@ class BitArray
 	/// Clear a rectangle of bits in z=0.
 	void SetRect( const Rectangle2I& rect, int z=0 )	
 	{
-		for( int j=rect.min.y; j<=rect.max.y; ++j )
-			for( int i=rect.min.x; i<=rect.max.x; ++i )	
+		for( int j=rect.Y0(); j<rect.Y1(); ++j )
+			for( int i=rect.X0(); i<rect.X1(); ++i )	
 				Set( i, j, z );
 	}
 
@@ -112,8 +112,8 @@ class BitArray
 	/// Check if a rectangle is empty in z=0.
 	bool IsRectEmpty( const Rectangle2I& rect, int z=0 ) const 
 	{
-		for( int j=rect.min.y; j<=rect.max.y; ++j )
-			for( int i=rect.min.x; i<=rect.max.x; ++i )
+		for( int j=rect.Y0(); j<rect.Y1(); ++j )
+			for( int i=rect.X0(); i<rect.X1(); ++i )
 				if ( IsSet( i, j, z ) )
 					return false;
 		return true;

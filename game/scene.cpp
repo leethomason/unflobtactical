@@ -106,7 +106,7 @@ void NameRankUI::Set( float x, float y, const Unit* unit, int display )
 		Texture* texture = game->CalcFaceTexture( unit, &uv );
 		gamui::RenderAtom atom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, 
 								(const void*)texture, 
-								uv.min.x, uv.min.y, uv.max.x, uv.max.y );
+								uv.X0(), uv.Y0(), uv.X1(), uv.Y1() );
 		face.SetAtom( atom );
 
 		static const float FUDGE = -2.0f;

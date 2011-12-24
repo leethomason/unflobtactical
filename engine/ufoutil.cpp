@@ -119,19 +119,16 @@ void Matrix2I::Invert( Matrix2I* inverse ) const
 }
 
 
-void MultMatrix2I( const Matrix2I& a, const grinliz::Rectangle2I& b, grinliz::Rectangle2I* c )
+void MultMatrix2I( const Matrix2I& a, 
+	               const grinliz::Rectangle2I& b, 
+				   grinliz::Rectangle2I* c )
 {
-	Vector2I v[4] = {	{ b.min.x, b.min.y }, 
-						{ b.max.x, b.min.y },
-						{ b.min.x, b.max.y },
-						{ b.max.x, b.max.y } };
-
-	Vector2I out = a * v[0];
-	c->min = out;
-	c->max = out;
+	Vector2I out = a * b.Corner(0);
+	c->pos = out;
+	c->size.Zero();
 
 	for( int i=1; i<4; ++i ) {
-		Vector2I w = a * v[i];
+		Vector2I w = a * b.Corner(i);
 		c->DoUnion( w );
 	}
 }

@@ -1,5 +1,8 @@
 Bugs 
 
+- recenter screen, remove clip in battle scene?
+- test visibility in side by side games
+
 X need slightly larger than unit plate model for UFO effects
 
 X more sophisticated psi ai. 

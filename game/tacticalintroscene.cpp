@@ -566,16 +566,14 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 	Map::MapImageToWorld( dx, dy, size, size, tileRotation, &m );
 
 	Rectangle2I crashRect, crashRect0;
-	crashRect.Set( 0, 0, 0, 0 );
 	if ( crash ) {
 		int half = size/2;
-		crashRect.min.Set( random.Rand( half ), random.Rand( half ) );
-		crashRect.max.x = crashRect.min.x + half;
-		crashRect.max.y = crashRect.min.y + half;
+		crashRect.pos.Set( random.Rand( half ), random.Rand( half ) );
+		crashRect.size.Set( half, half );
 	}
-	Vector2I cr0 = m * crashRect.min;
-	Vector2I cr1 = m * crashRect.max;
-	crashRect0.FromPair( cr0.x, cr0.y, cr1.x, cr1.y );
+	Vector2I cr0 = m * crashRect.pos;
+	Vector2I cr1 = m * (crashRect.pos + crashRect.size);
+	crashRect0.Set( cr0, cr1 );
 
 	for( TiXmlElement* ele = snippet.FirstChildElement( "Map" )->FirstChildElement( "Items" )->FirstChildElement( "Item" );
 		 ele;
@@ -627,8 +625,8 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 			pgElement = new TiXmlElement( "PyroGroup" );
 			mapElement->LinkEndChild( pgElement );
 		}
-		for( int j=crashRect0.min.y; j<=crashRect0.max.y; ++j ) {
-			for( int i=crashRect0.min.x; i<=crashRect0.max.x; ++i ) {
+		for( int j=crashRect0.Y0(); j<crashRect0.Y1(); ++j ) {
+			for( int i=crashRect0.X0(); i<crashRect0.X1(); ++i ) {
 				if ( random.Bit() ) {
 					TiXmlElement* fire = new TiXmlElement( "Pyro" );
 					fire->SetAttribute( "x", i );
@@ -690,26 +688,23 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 		// UFO
 		{
 			Rectangle2I pos;
-			pos.min = pos.max = cornerPosBlock[ 1 ];
+			pos.pos = cornerPosBlock[ 1 ];
 			int ufoSize = info.UFOSize();
+			pos.size.Set( ufoSize, ufoSize );
 
 			if ( ufoSize == 2 ) {
-				if ( pos.min.x == 0 ) 
-					pos.max.x++;
-				else
-					pos.min.x--;
-				if ( pos.min.y == 0 )
-					pos.max.y++;
-				else
-					pos.min.y--;
+				if ( pos.pos.x > 0 ) 
+					pos.pos.x--;
+				if ( pos.pos.y > 0 )
+					pos.pos.y--;
 			}
 
-			for( int j=pos.min.y; j<=pos.max.y; ++j )
-				for( int i=pos.min.x; i<=pos.max.x; ++i )
+			for( int j=pos.Y0(); j<pos.Y1(); ++j )
+				for( int i=pos.X0(); i<pos.X1(); ++i )
 					blocks.Set( i, j );
 
 			int tileRotation = random.Rand(4);
-			AppendMapSnippet( pos.min.x*16, pos.min.y*16, tileRotation, info.Base(), 16*ufoSize, info.crash, info.UFO(), database, dataItem, &mapElement, random.Rand() );
+			AppendMapSnippet( pos.pos.x*16, pos.pos.y*16, tileRotation, info.Base(), 16*ufoSize, info.crash, info.UFO(), database, dataItem, &mapElement, random.Rand() );
 		}
 
 		for( int j=0; j<size.y; ++j ) {

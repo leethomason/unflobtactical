@@ -615,12 +615,7 @@ void Game::DoTick( U32 _currentTime )
 	
 		if ( renderPass & Scene::RENDER_3D ) {
 			GRINLIZ_PERFTRACK_NAME( "Game::DoTick 3D" );
-			//	r.Set( 100, 50, 300, 50+200*320/480 );
-			//	r.Set( 100, 50, 300, 150 );
-			screenport.SetPerspective(	//2.f, 
-										//240.f, 
-										//(EL_FOV*0.5f)*(screenport.UIWidth()/screenport.UIHeight())*320.0f/480.0f, 
-										clip3D.IsValid() ? &clip3D : 0 );
+			screenport.SetPerspective( clip3D.size.x > 0 ? &clip3D : 0 );
 
 			engine->Draw();
 			if ( mapmaker_showPathing ) {
@@ -638,12 +633,12 @@ void Game::DoTick( U32 _currentTime )
 			GRINLIZ_PERFTRACK_NAME( "Game::DoTick UI" );
 
 			// UI Pass
-			screenport.SetUI( clip2D.IsValid() ? &clip2D : 0 ); 
+			screenport.SetUI( clip2D.size.x > 0 ? &clip2D : 0 ); 
 			if ( renderPass & Scene::RENDER_3D ) {
 				scene->RenderGamui3D();
 			}
 			if ( renderPass & Scene::RENDER_2D ) {
-				screenport.SetUI( clip2D.IsValid() ? &clip2D : 0 );
+				screenport.SetUI( clip2D.size.x > 0 ? &clip2D : 0 );
 				scene->DrawHUD();
 				scene->RenderGamui2D();
 			}

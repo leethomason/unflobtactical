@@ -258,14 +258,11 @@ void LineLoop::SortToTop()
 void LineLoop::Bounds( Rectangle2F* bounds )
 {
 	if ( first ) {
-		bounds->min = bounds->max = first->point;
+		bounds->Set( first->point );
 
 		for( LineNode* node = first->next; node != first; node = node->next )
 		{
-			bounds->min.x = Min( bounds->min.x, node->point.x );
-			bounds->max.x = Max( bounds->max.x, node->point.x );
-			bounds->min.y = Min( bounds->min.y, node->point.y );
-			bounds->max.y = Max( bounds->max.y, node->point.y );
+			bounds->DoUnion( node->point );
 		}
 	}
 }
@@ -279,8 +276,8 @@ void LineLoop::Render( float* surface, int width, int height, bool fill )
 		Bounds( &lineBounds );
 		SortToTop();
 
-		int yStart = Max( (int)ceilf( lineBounds.min.y ), 0 );
-		int yEnd   = Min( (int)floorf( lineBounds.max.y ), height-1 );
+		int yStart = Max( (int)ceilf( lineBounds.Y0() ), 0 );
+		int yEnd   = Min( (int)floorf( lineBounds.Y1() ), height-1 );
 
 		LineNode *left0	 = First();
 		LineNode *left1	 = left0->prev;			// left goes prev
@@ -1436,8 +1433,9 @@ int grinliz::IntersectRayAABB(	const Vector2F& origin, const Vector2F& dir,
 	float candidatePlane[2];
 
 	const float *pOrigin = &origin.x;
-	const float *pBoxMin = &aabb.min.x;
-	const float *pBoxMax = &aabb.max.x;
+	const float *pBoxMin = &aabb.pos.x;
+	Vector2F boxMax = aabb.pos + aabb.size;
+	const float *pBoxMax = &boxMax.x;
 	const float *pDir    = &dir.x;
 	float *pIntersect = &intersect->x;
 

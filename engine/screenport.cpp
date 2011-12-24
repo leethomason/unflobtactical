@@ -29,24 +29,14 @@ Screenport::Screenport( int w, int h, int r )
 {
 	Resize( w, h, r );
 	uiMode = false;
-	clipInUI2D.Set( 0, 0, UIWidth(), UIHeight() );
-	clipInUI3D.Set( 0, 0, UIWidth(), UIHeight() );
+	clipInUI2D = Rectangle2F( 0, 0, UIWidth(), UIHeight() );
+	clipInUI3D = Rectangle2F( 0, 0, UIWidth(), UIHeight() );
 }
-
-/*
-Screenport::Screenport( const Screenport& other )
-{
-	Resize( (int)other.physicalWidth, (int)other.physicalHeight, other.rotation );
-	uiMode = other.uiMode;
-	clipInUI2D = other.clipInUI2D;
-	clipInUI3D = other.clipInUI3D;
-}
-*/
 
 
 void Screenport::Resize( int w, int h, int r )
 {
-	physicalWidth = (float)w;
+	physicalWidth  = (float)w;
 	physicalHeight = (float)h;
 	rotation =	r;
 	GLASSERT( rotation >= 0 && rotation < 4 );
@@ -79,19 +69,19 @@ void Screenport::Resize( int w, int h, int r )
 void Screenport::SetUI( const Rectangle2I* clip )	
 {
 	if ( clip ) {
-		clipInUI2D.Set( (float)clip->min.x, (float)clip->min.x, (float)clip->max.x, (float)clip->max.y );
+		clipInUI2D = Rectangle2I_To_2F( *clip );
 	}
 	else {
-		clipInUI2D.Set( 0, 0, UIWidth(), UIHeight() );
+		clipInUI2D = Rectangle2F( 0, 0, UIWidth(), UIHeight() );
 	}
-	GLASSERT( clipInUI2D.IsValid() );
-	GLASSERT( clipInUI2D.min.x >= 0 && clipInUI2D.max.x <= UIWidth() );
-	GLASSERT( clipInUI2D.min.y >= 0 && clipInUI2D.max.y <= UIHeight() );
+	GLASSERT( !clipInUI2D.Empty() );
+	GLASSERT( clipInUI2D.X0() >= 0 && clipInUI2D.X1() <= UIWidth() );
+	GLASSERT( clipInUI2D.Y0() >= 0 && clipInUI2D.Y1() <= UIHeight() );
 
 	Rectangle2F scissor;
 	UIToWindow( clipInUI2D, &scissor );
 	glEnable( GL_SCISSOR_TEST );
-	glScissor( (int)scissor.min.x, (int)scissor.min.y, (int)scissor.max.x, (int)scissor.max.y );
+	glScissor( (int)scissor.X0(), (int)scissor.Y0(), (int)scissor.X1(), (int)scissor.Y1() );
 	
 	view2D.SetIdentity();
 	Matrix4 r, t;
@@ -148,19 +138,19 @@ void Screenport::SetPerspective( const grinliz::Rectangle2I* clip )
 	uiMode = false;
 
 	if ( clip ) {
-		clipInUI3D.Set( (float)clip->min.x, (float)clip->min.y, (float)clip->max.x, (float)clip->max.y );
+		clipInUI3D = Rectangle2I_To_2F( *clip );
 	}
 	else {
-		clipInUI3D.Set( 0, 0, UIWidth(), UIHeight() );
+		clipInUI3D = Rectangle2F( 0, 0, UIWidth(), UIHeight() );
 	}
-	GLASSERT( clipInUI3D.IsValid() );
-	GLASSERT( clipInUI3D.min.x >= 0 && clipInUI3D.max.x <= UIWidth() );
-	GLASSERT( clipInUI3D.min.y >= 0 && clipInUI3D.max.y <= UIHeight() );
+	GLASSERT( !clipInUI3D.Empty() );
+	GLASSERT( clipInUI3D.X0() >= 0 && clipInUI3D.X1() <= UIWidth() );
+	GLASSERT( clipInUI3D.Y0() >= 0 && clipInUI3D.Y1() <= UIHeight() );
 	
 	Rectangle2F scissor;
 	UIToWindow( clipInUI3D,  &scissor );
 	glEnable( GL_SCISSOR_TEST );
-	glScissor( (int)scissor.min.x, (int)scissor.min.y, (int)scissor.max.x, (int)scissor.max.y );
+	glScissor( (int)scissor.X0(), (int)scissor.Y0(), (int)scissor.X1(), (int)scissor.Y1() );
 
 	GLASSERT( uiMode == false );
 	GLASSERT( EL_NEAR > 0.0f );
@@ -180,7 +170,7 @@ void Screenport::SetPerspective( const grinliz::Rectangle2I* clip )
 	// Also, the 3D camera applies the rotation.
 	
 	if ( Rotation() & 1 ) {
-		float ratio = (float)clipInUI3D.Height() / (float)clipInUI3D.Width();
+		float ratio = (float)clipInUI3D.size.y / (float)clipInUI3D.size.x;
 		
 		// frustum is in original screen coordinates.
 		frustum.top		=  halfLongSide;
@@ -192,8 +182,7 @@ void Screenport::SetPerspective( const grinliz::Rectangle2I* clip )
 	else {
 		// Since FOV is specified as the 1/2 width, the ratio
 		// is the height/width (different than gluPerspective)
-		float ratio = (float)clipInUI3D.Height() / (float)clipInUI3D.Width();
-
+		float ratio = (float)clipInUI3D.size.y / (float)clipInUI3D.size.x;
 		frustum.top		= ratio * halfLongSide;
 		frustum.bottom	= -frustum.top;
 
@@ -310,14 +299,15 @@ void Screenport::WorldToView( const grinliz::Vector3F& world, grinliz::Vector2F*
 	Vector2F min = { 0, 0 };
 	Vector2F max = { UIWidth(), UIHeight() };
 	UIToView( min, &v0 );
-	UIToView( max, &v1 ); 
-	clipInView.FromPair( v0.x, v0.y, v1.x, v1.y );
+	UIToView( max, &v1 );
+
+	clipInView.Set( v0, v1 );
 	
-	v->x = Interpolate( -1.0f, (float)clipInView.min.x,
-						1.0f,  (float)clipInView.max.x,
+	v->x = Interpolate( -1.0f, (float)clipInView.X0(),
+						1.0f,  (float)clipInView.X1(),
 						r.x/r.w );
-	v->y = Interpolate( -1.0f, (float)clipInView.min.y,
-						1.0f,  (float)clipInView.max.y,
+	v->y = Interpolate( -1.0f, (float)clipInView.Y0(),
+						1.0f,  (float)clipInView.Y1(),
 						r.y/r.w );
 }
 
@@ -341,11 +331,12 @@ void Screenport::UIToWindow( const grinliz::Rectangle2F& ui, grinliz::Rectangle2
 	Vector2F v;
 	Vector2F w;
 	
-	UIToView( ui.min, &v );
+	UIToView( ui.pos, &v );
 	ViewToWindow( v, &w );
-	clip->min = clip->max = w;
+	clip->pos = w;
+	clip->size.Zero();
 
-	UIToView( ui.max, &v );
+	UIToView( ui.pos + ui.size, &v );
 	ViewToWindow( v, &w );
 	clip->DoUnion( w );
 }

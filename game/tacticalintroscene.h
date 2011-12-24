@@ -45,8 +45,8 @@ public:
 
 	// Rendering
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	{
-		clip3D->SetInvalid();
-		clip2D->SetInvalid();	// full screen
+		clip3D->Zero();
+		clip2D->Zero();	// full screen
 		return RENDER_2D; 
 	}
 	virtual void DrawHUD();
