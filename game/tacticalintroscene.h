@@ -50,6 +50,7 @@ public:
 		return RENDER_2D; 
 	}
 	virtual void DrawHUD();
+	virtual void Resize();
 
 	//	Squad:		4 8
 	//	  exp:		Low Med Hi

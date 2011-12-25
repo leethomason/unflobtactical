@@ -84,7 +84,6 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 	okayButton.Init( &gamui2D, blue );
 	okayButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	okayButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
-	//okayButton.SetText( "Done" );
 	okayButton.SetDeco(	Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
 						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
@@ -95,24 +94,16 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 
 	SetOptions();
 	SetDescription();
-
-//	localEngine = new Engine( &game->screenport, game->GetDatabase() );
-//	const ModelResource* resource = ModelResourceManager::Instance()->GetModelResource( "maleMarine" );
-//	model = localEngine->GetSpaceTree()->AllocModel( resource );
-//	localEngine->CameraLookAt( model->X(), model->Z(), 30 );
 }
 
 
 ResearchScene::~ResearchScene()
 {
-//	localEngine->GetSpaceTree()->FreeModel( model );
-//	delete localEngine;
 }
 
 
 void ResearchScene::Draw3D()
 {
-//	localEngine->Draw();
 }
 
 void ResearchScene::Tap( int action, const grinliz::Vector2F& screen, const grinliz::Ray& world )

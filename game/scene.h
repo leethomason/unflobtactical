@@ -87,6 +87,7 @@ public:
 	virtual void Save( FILE* fp, int depth )					{}
 	virtual void Load( const TiXmlElement* doc )				{}
 	virtual void HandleHotKeyMask( int mask )					{}
+	virtual void Resize()										{}
 
 	virtual void SceneResult( int sceneID, int result )			{}
 	virtual void ChildActivated( int childID, Scene* childScene, SceneData* data )		{}

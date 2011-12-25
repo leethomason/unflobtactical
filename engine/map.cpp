@@ -562,7 +562,7 @@ void Map::DoDamage( Model* m, const MapDamageDesc& damageDesc, Rectangle2I* dBou
 			if ( dBounds ) {
 				Rectangle2I r = item->MapBounds();
 				dBounds->DoUnion( r );
-				ClipToMap( dBounds );
+				dBounds->DoIntersection( Bounds() );
 			}
 
 			// Destroy the current model. Replace it with "destroyed"
@@ -1150,7 +1150,7 @@ bool Map::ProcessDoors( const grinliz::Vector2I* openers, int nOpeners )
 
 	for( int i=0; i<nOpeners; ++i ) {
 		Rectangle2I b( openers[i].x-1, openers[i].y-1, 3, 3 );
-		ClipToMap( &b );
+		b.DoIntersection( Bounds() );
 		map.SetRect( b );
 	}
 	for( int i=0; i<doorArr.Size(); ++i ) {
@@ -1325,7 +1325,7 @@ void Map::SetPathBlocks( const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& block
 void Map::ClearVisPathMap( grinliz::Rectangle2I& _bounds )
 {
 	Rectangle2I bounds = _bounds;
-	ClipToMap( &bounds );
+	bounds.DoIntersection( Bounds() );
 
 	for( int j=bounds.Y0(); j<bounds.Y1(); ++j ) {
 		for( int i=bounds.X0(); i<bounds.X1(); ++i ) {
@@ -1340,7 +1340,7 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& _bounds )
 {
 	GRINLIZ_PERFTRACK
 	Rectangle2I bounds = _bounds;
-	ClipToMap( &bounds );
+	bounds.DoIntersection( Bounds() );
 
 	MapItem* item = quadTree.FindItems( bounds, 0, 0 );
 	while( item ) {
