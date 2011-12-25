@@ -46,8 +46,6 @@ using namespace grinliz;
 using namespace gamui;
 
 //#define REACTION_FIRE_EVENT_ONLY
-#define FACES_ON_BUTTON
-#define REORDER_BUTTONS
 
 BattleScene::BattleScene( Game* game ) : Scene( game )
 {
@@ -164,18 +162,13 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 			controlButton[i].SetSize( SIZE, SIZE );
 		}
 
-#ifdef REORDER_BUTTONS
 		UIItem* items[6] = { &invButton,  
 							 &nextTurnButton,
 			                 &helpButton, 
 							 &exitButton,
 							 &targetButton, 
 							 &controlButton[0] };
-#else
-		UIItem* items[6] = { &exitButton, &helpButton, &nextTurnButton, &targetButton, &invButton, &controlButton[0] };
-#endif
 		for( int i=0; i<6; ++i ) {
-			//items[i]->SetPos( 0, (float)i * port.UIHeight()/6.f );
 			((Button*)items[i])->SetSize( SIZE, SIZE );
 		}
 		Gamui::Layout( items, 6, 1, 6, 0, 0, SIZE, (float)port.UIHeight() );
@@ -3073,7 +3066,6 @@ void BattleScene::DrawHUD()
 		}
 
 		nameRankUI.SetVisible( SelectedSoldierUnit() != 0 );
-#ifdef FACES_ON_BUTTON
 		nameRankUI.Set( 50, 0, SelectedSoldierUnit(), ~NameRankUI::DISPLAY_FACE );
 		if ( SelectedSoldierUnit() ) {
 			Rectangle2F uv;
@@ -3084,9 +3076,6 @@ void BattleScene::DrawHUD()
 		else {
 			invButton.SetDeco( Game::CalcDecoAtom( DECO_CHARACTER, true ), Game::CalcDecoAtom( DECO_CHARACTER, false ) );
 		}
-#else
-		nameRankUI.Set( 50, 0, SelectedSoldierUnit(), 0xff );
-#endif
 	}
 }
 

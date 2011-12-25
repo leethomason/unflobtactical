@@ -50,33 +50,27 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 
 	continueButton.Init( &gamui2D, green );
 	continueButton.SetSize( GAME_BUTTON_SIZE_B*2.5F, GAME_BUTTON_SIZE_B );
-	continueButton.SetPos( GAME_GUTTER, 320-GAME_GUTTER-continueButton.Height() );
 	continueButton.SetText( "Continue" );
 
 	loadButton.Init( &gamui2D, green );
 	loadButton.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
-	loadButton.SetPos( continueButton.X() + continueButton.Width(), continueButton.Y() );
 	loadButton.SetDeco( Game::CalcDecoAtom( DECO_SAVE_LOAD, true ),
 						Game::CalcDecoAtom( DECO_SAVE_LOAD, false ) );	 
 
 	newTactical.Init( &gamui2D, green );
 	newTactical.SetSize( GAME_BUTTON_SIZE_B*2.0F, GAME_BUTTON_SIZE_B );
-	newTactical.SetPos( port.UIWidth()-GAME_GUTTER-newTactical.Width(), 320-GAME_GUTTER-continueButton.Height() );
 	newTactical.SetText( "New Tactical" );
 	
 	newGeo.Init( &gamui2D, green );
-	newGeo.SetPos( port.UIWidth()-GAME_GUTTER*2-newTactical.Width()*2, 320-GAME_GUTTER-continueButton.Height() );
 	newGeo.SetSize( GAME_BUTTON_SIZE_B*2.0F, GAME_BUTTON_SIZE_B );
 	newGeo.SetText( "New Geo" );
 	
 	// Same place as new geo
 	newGame.Init( &gamui2D, blue );
 	newGame.SetSize( GAME_BUTTON_SIZE_B*2.2F, GAME_BUTTON_SIZE_B );
-	newGame.SetPos( newGeo.X(), newGeo.Y() );
 	newGame.SetText( "New Game" );
 
 	newGameWarning.Init( &gamui2D );
-	newGameWarning.SetPos( newGeo.X()-15, newGeo.Y() + newGeo.Height()+2 );
 	
 	if ( game->HasSaveFile( SAVEPATH_GEO, 0 ) ) {
 		newGeo.SetVisible( false );
@@ -108,25 +102,7 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	settingButton.SetDeco(	Game::CalcDecoAtom( DECO_SETTINGS, true ),
 							Game::CalcDecoAtom( DECO_SETTINGS, false ) );	
 
-	static const int NUM_ITEMS=3;
-	UIItem* items[NUM_ITEMS] = { &helpButton, &audioButton, &settingButton };
-	Gamui::Layout( items, NUM_ITEMS, 1, NUM_ITEMS, 
-		           port.UIWidth() - helpButton.Width() - GAME_GUTTER, 
-				   GAME_GUTTER, 
-				   helpButton.Width(), 
-				   helpButton.Height()*(float)NUM_ITEMS+GAME_GUTTER );
-
 	backgroundUI.Init( game, &gamui2D, true );
-	backgroundUI.backgroundText.SetPos( GAME_GUTTER, GAME_GUTTER );
-
-	float maxX = settingButton.X() - GAME_GUTTER*2.0f;
-	float maxY = continueButton.Y() - GAME_GUTTER*2.0f;
-	if ( maxX < maxY*2.0f ) {
-		backgroundUI.backgroundText.SetSize( maxX, maxX*0.5f );
-	}
-	else {
-		backgroundUI.backgroundText.SetSize( maxY*2.0f, maxY );
-	}
 
 	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "6", "8", "Low", "Med", "Hi", 
 													 "Low", "Med", "Hi", "Day", "Night",
@@ -266,6 +242,39 @@ TacticalIntroScene::~TacticalIntroScene()
 }
 
 
+void TacticalIntroScene::Resize()
+{
+	const Screenport& port = GetEngine()->GetScreenport();
+
+	continueButton.SetPos( GAME_GUTTER, port.UIHeight()-GAME_GUTTER-continueButton.Height() );
+	loadButton.SetPos( continueButton.X() + continueButton.Width(), continueButton.Y() );
+	
+	newTactical.SetPos( port.UIWidth()-GAME_GUTTER-newTactical.Width(), 320-GAME_GUTTER-continueButton.Height() );
+	newGeo.SetPos( port.UIWidth()-GAME_GUTTER*2-newTactical.Width()*2, 320-GAME_GUTTER-continueButton.Height() );
+	newGame.SetPos( newGeo.X(), newGeo.Y() );
+	newGameWarning.SetPos( newGeo.X()-15, newGeo.Y() + newGeo.Height()+2 );
+
+	static const int NUM_ITEMS=3;
+	UIItem* items[NUM_ITEMS] = { &helpButton, &audioButton, &settingButton };
+	Gamui::Layout( items, NUM_ITEMS, 1, NUM_ITEMS, 
+		           port.UIWidth() - helpButton.Width() - GAME_GUTTER, 
+				   GAME_GUTTER, 
+				   helpButton.Width(), 
+				   helpButton.Height()*(float)NUM_ITEMS+GAME_GUTTER );
+
+	backgroundUI.backgroundText.SetPos( GAME_GUTTER, GAME_GUTTER );
+	float maxX = settingButton.X() - GAME_GUTTER*2.0f;
+	float maxY = continueButton.Y() - GAME_GUTTER*2.0f;
+	if ( maxX < maxY*2.0f ) {
+		backgroundUI.backgroundText.SetSize( maxX, maxX*0.5f );
+	}
+	else {
+		backgroundUI.backgroundText.SetSize( maxY*2.0f, maxY );
+	}
+	backgroundUI.background.SetSize( port.UIWidth(), port.UIHeight() );
+}
+
+
 void TacticalIntroScene::Activate()
 {
 	SettingsManager* settings = SettingsManager::Instance();
@@ -279,6 +288,7 @@ void TacticalIntroScene::Activate()
 		audioButton.SetDeco( Game::CalcDecoAtom( DECO_MUTE, true ),
 							 Game::CalcDecoAtom( DECO_MUTE, false ) );	
 	}
+	Resize();
 }
 
 

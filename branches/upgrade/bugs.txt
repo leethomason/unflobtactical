@@ -1,6 +1,6 @@
 Bugs 
 
-- recenter screen, remove clip in battle scene?
+- recenter screen, remove scissor rectangle in battle scene?
 - test visibility in side by side games
 
 X need slightly larger than unit plate model for UFO effects

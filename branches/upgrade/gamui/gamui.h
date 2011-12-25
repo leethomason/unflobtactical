@@ -160,7 +160,6 @@ struct RenderAtom
 	}
 
 	float tx0, ty0, tx1, ty1;		///< Texture coordinates to use within the atom.
-	//float srcWidth, srcHeight;		///< The width and height of the sub-image (as defined by tx0, etc.) Used to know the "natural" size, and how to scale.
 
 	const void* renderState;		///< Application defined render state.
 	const void* textureHandle;		///< Application defined texture handle, noting that 0 (null) is assumed to be non-rendering.
@@ -280,6 +279,7 @@ public:
 	static void Layout( UIItem** item, int nItem,
 						int columns,
 						float originX, float originY );
+
 
 	void LayoutTextBlock(	const char* text,
 							TextLabel* textLabels, int nTextLabels,

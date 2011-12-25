@@ -831,6 +831,7 @@ void Game::DeviceLoss()
 void Game::Resize( int width, int height, int rotation ) 
 {
 	screenport.Resize( width, height, rotation );
+	sceneStack.Top()->scene->Resize();
 }
 
 
