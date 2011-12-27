@@ -46,7 +46,7 @@ TacticalEndScene::TacticalEndScene( Game* _game ) : Scene( _game )
 	//									description  count				 score					items
 	static const float X_ORIGIN[4]  = { GAME_GUTTER, GAME_GUTTER+150.0f, GAME_GUTTER+200.0f,	GAME_GUTTER+270.0f };
 	static const float Y_ORIGIN		= GAME_GUTTER;
-	static const float SPACING		= GAME_SPACING;
+	static const float SPACING		= GAME_GUTTER;
 	float yPos = GAME_GUTTER;
 
 	victory.Init( &gamui2D );

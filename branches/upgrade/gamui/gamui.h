@@ -881,6 +881,27 @@ private:
 };
 
 
+class LayoutCalculator
+{
+public:
+	LayoutCalculator( float screenWidth, float screenHeight );
+	~LayoutCalculator();
+
+	void SetSize( float width, float height )	{ this->width = width; this->height = height; }
+	void SetGutter( float gutter )				{ this->gutter = gutter; }
+	void SetSpacing( float spacing )			{ this->spacing = spacing; }
+
+	void PosAbs( UIItem* item, int x, int y );
+
+private:
+	float screenWidth;
+	float screenHeight;
+	float width;
+	float height;
+	float gutter;
+	float spacing;
+};
+
 class Matrix
 {
   public:
