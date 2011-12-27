@@ -245,22 +245,25 @@ TacticalIntroScene::~TacticalIntroScene()
 void TacticalIntroScene::Resize()
 {
 	const Screenport& port = GetEngine()->GetScreenport();
+	LayoutCalculator layout( port.UIWidth(), port.UIHeight() );
+	layout.SetGutter( GAME_GUTTER );
+	layout.SetSpacing( GAME_GUTTER/2 );
 
-	continueButton.SetPos( GAME_GUTTER, port.UIHeight()-GAME_GUTTER-continueButton.Height() );
+	// Double wide buttons
+	layout.SetSize( GAME_BUTTON_SIZE_B*2.0f, GAME_BUTTON_SIZE_B );
+	layout.PosAbs( &continueButton, 0, -1 );
 	loadButton.SetPos( continueButton.X() + continueButton.Width(), continueButton.Y() );
 	
-	newTactical.SetPos( port.UIWidth()-GAME_GUTTER-newTactical.Width(), 320-GAME_GUTTER-continueButton.Height() );
-	newGeo.SetPos( port.UIWidth()-GAME_GUTTER*2-newTactical.Width()*2, 320-GAME_GUTTER-continueButton.Height() );
-	newGame.SetPos( newGeo.X(), newGeo.Y() );
+	layout.PosAbs( &newGeo,			-2, -1 );
+	layout.PosAbs( &newTactical,	-1, -1 );
+	layout.PosAbs( &newGame,		-2, -1 );
 	newGameWarning.SetPos( newGeo.X()-15, newGeo.Y() + newGeo.Height()+2 );
 
-	static const int NUM_ITEMS=3;
-	UIItem* items[NUM_ITEMS] = { &helpButton, &audioButton, &settingButton };
-	Gamui::Layout( items, NUM_ITEMS, 1, NUM_ITEMS, 
-		           port.UIWidth() - helpButton.Width() - GAME_GUTTER, 
-				   GAME_GUTTER, 
-				   helpButton.Width(), 
-				   helpButton.Height()*(float)NUM_ITEMS+GAME_GUTTER );
+	// Square buttons
+	layout.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
+	layout.PosAbs( &helpButton,		-1, 0 );
+	layout.PosAbs( &audioButton,	-1, 1 );
+	layout.PosAbs( &settingButton,  -1, 2 );
 
 	backgroundUI.backgroundText.SetPos( GAME_GUTTER, GAME_GUTTER );
 	float maxX = settingButton.X() - GAME_GUTTER*2.0f;

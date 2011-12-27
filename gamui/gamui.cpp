@@ -1534,3 +1534,44 @@ void Gamui::LayoutTextBlock(	const char* text,
 		++i;
 	}
 }
+
+
+LayoutCalculator::LayoutCalculator( float w, float h ) 
+	: screenWidth( w ),
+	  screenHeight( h ),
+	  width( 10 ),
+	  height( 10 ),
+	  gutter( 0 ), 
+	  spacing( 0 ) 
+{
+}
+
+
+LayoutCalculator::~LayoutCalculator()
+{
+}
+
+
+void LayoutCalculator::PosAbs( UIItem* item, int _x, int _y )
+{
+	float pos[2] = { 0, 0 };
+	int xArr[2] = { _x, _y };
+	float size[2] = { width, height };
+	float screen[2] = { screenWidth, screenHeight };
+
+	for( int i=0; i<2; ++i ) {
+		if ( xArr[i] >= 0 ) {
+			float x = (float)xArr[i];	// 0 based
+			float space = spacing*x;
+			pos[i] = gutter + space + size[i]*x;
+		}
+		else {
+			float x = -(float)xArr[i]; // 1 based
+			float space = spacing*(x-1.0f);
+			pos[i] = screen[i] - gutter - space - size[i]*x; 
+		}
+	}
+
+	item->SetPos( pos[0], pos[1] );
+}
+
