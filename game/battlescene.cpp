@@ -912,7 +912,7 @@ void BattleScene::PushEndScene()
 		else if ( TacticalIntroScene::IsFrigateScenario( game->battleData.GetScenario() ) ) {
 			game->battleData.StoragePtr()->AddItem( "Cor:F" );
 		}
-		else if ( game->battleData.GetScenario() == TacticalIntroScene::BATTLESHIP ) {
+		else if ( game->battleData.GetScenario() == BATTLESHIP ) {
 			game->battleData.StoragePtr()->AddItem( "Cor:B" );
 		}
 

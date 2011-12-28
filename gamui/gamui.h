@@ -890,8 +890,14 @@ public:
 	void SetSize( float width, float height )	{ this->width = width; this->height = height; }
 	void SetGutter( float gutter )				{ this->gutter = gutter; }
 	void SetSpacing( float spacing )			{ this->spacing = spacing; }
+	void SetTextOffset( float x, float y )		{ this->textOffsetX = x; this->textOffsetY = y; }
 
 	void PosAbs( UIItem* item, int x, int y );
+	void PosAbs( TextLabel* label, int x, int y ) {
+		offsetX = textOffsetX; offsetY = textOffsetY;
+		PosAbs( (UIItem*) label, x, y ); 
+		offsetX = offsetY = 0;
+	}
 
 private:
 	float screenWidth;
@@ -900,6 +906,10 @@ private:
 	float height;
 	float gutter;
 	float spacing;
+	float textOffsetX;
+	float textOffsetY;
+	float offsetX;
+	float offsetY;
 };
 
 class Matrix
