@@ -104,133 +104,6 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 
 	backgroundUI.Init( game, &gamui2D, true );
 
-	static const char* toggleLabel[TOGGLE_COUNT] = { "4", "6", "8", "Low", "Med", "Hi", 
-													 "Low", "Med", "Hi", "Day", "Night",
-													 "Fa-S", "T-S", "Fo-S", "D-S", "Fa-D", "T-D", "Fo-D", "D-D",
-													 "City", "BattleShip",	"AlienBase", "TerranBase",
-													 "Crash" };
-	for( int i=0; i<TOGGLE_COUNT; ++i ) {
-		GLASSERT( toggleLabel[i] );
-		toggles[i].Init( &gamui2D, ( i < UFO_CRASH ) ? green : blue );
-		toggles[i].SetText( toggleLabel[i] );
-		toggles[i].SetVisible( false );
-		toggles[i].SetSize( 50, 50 );
-	}
-	toggles[BATTLESHIP].SetSize( 100, 50 );
-	toggles[ALIEN_BASE].SetSize( 100, 50 );
-	toggles[TERRAN_BASE].SetSize( 100, 50 );
-
-	toggles[SQUAD_4].AddToToggleGroup( &toggles[SQUAD_6] );
-	toggles[SQUAD_4].AddToToggleGroup( &toggles[SQUAD_8] );
-
-	toggles[TERRAN_LOW].AddToToggleGroup( &toggles[TERRAN_MED] );
-	toggles[TERRAN_LOW].AddToToggleGroup( &toggles[TERRAN_HIGH] );
-
-	toggles[ALIEN_LOW].AddToToggleGroup( &toggles[ALIEN_MED] );
-	toggles[ALIEN_LOW].AddToToggleGroup( &toggles[ALIEN_HIGH] );
-
-	toggles[TIME_DAY].AddToToggleGroup( &toggles[TIME_NIGHT] );
-
-	toggles[SQUAD_8].SetDown();
-	toggles[TERRAN_MED].SetDown();
-	toggles[ALIEN_MED].SetDown();
-	toggles[TIME_DAY].SetDown();
-	toggles[FARM_SCOUT].SetDown();
-
-	terranLabel.Init( &gamui2D );
-	terranLabel.SetVisible( false );
-	terranLabel.SetText( "Terran Squad" );
-	terranLabel.SetPos( 20, 25-20 );
-
-	UIItem* squadItems[] = { &toggles[SQUAD_4], &toggles[SQUAD_6], &toggles[SQUAD_8] };
-	Gamui::Layout(	squadItems, 3,			// squad #
-					4, 1, 
-					20, 25,
-					150, 50 );
-
-	UIItem* squadStrItems[] = { &toggles[TERRAN_LOW], &toggles[TERRAN_MED], &toggles[TERRAN_HIGH] };
-	Gamui::Layout(	squadStrItems, 3,			// squad strength
-					4, 1, 
-					20, 75,
-					150, 50 );
-
-	alienLabel.Init( &gamui2D );
-	alienLabel.SetVisible( false );
-	alienLabel.SetText( "Aliens" );
-	alienLabel.SetPos( 20, 150-20 );
-
-	//UIItem* alienItems[] = { &toggles[ALIEN_8], &toggles[ALIEN_12], &toggles[ALIEN_16] };
-	//Gamui::Layout(	alienItems, 3,			// alien #
-	//				4, 1, 
-	//				20, 150,
-	//				150, 50 );
-	UIItem* alienStrItems[] = { &toggles[ALIEN_LOW], &toggles[ALIEN_MED], &toggles[ALIEN_HIGH] };
-	Gamui::Layout(	alienStrItems, 3,			// alien strength
-					4, 1, 
-					20, 150,
-					150, 50 );
-
-	timeLabel.Init( &gamui2D );
-	timeLabel.SetVisible( false );
-	timeLabel.SetText( "Time" );
-	timeLabel.SetPos( 20, 270-20 );
-	UIItem* weatherItems[] = { &toggles[TIME_DAY], &toggles[TIME_NIGHT] };
-	Gamui::Layout(	weatherItems, 2,		// weather
-					2, 1, 
-					20, 270,
-					100, 50 );
-
-	for( int i=0; i<3; ++i ) {
-		static const char* row[] = { "Scout", "Frigate", "Special" };
-		rowLabel[i].Init( &gamui2D );
-		rowLabel[i].SetVisible( false );
-		rowLabel[i].SetText( row[i] );
-		rowLabel[i].SetPos( 425, 25.0f + 50.0f*i+15.0f );
-	}
-
-	static const float SIZE = 50;
-	{
-		scenarioLabel.Init( &gamui2D );
-		scenarioLabel.SetVisible( false );
-		scenarioLabel.SetText( "Farm  Tundra Forest  Desert" );
-		scenarioLabel.SetPos( 220, 5 );
-	}
-
-	for( int i=0; i<4; ++i ) {
-		toggles[FARM_SCOUT+i].SetPos( 215+SIZE*i, 25 );
-		toggles[FARM_DESTROYER+i].SetPos( 215+SIZE*i, 75 );
-	}
-	toggles[CITY].SetPos( 215+SIZE*0, 125 );
-	toggles[BATTLESHIP].SetPos( 215+SIZE*1, 125 );
-	toggles[ALIEN_BASE].SetPos( 215+SIZE*0, 175 );
-	toggles[TERRAN_BASE].SetPos( 215+SIZE*2, 175 );
-
-	for( int i=FIRST_SCENARIO; i<=LAST_SCENARIO; ++i )
-		toggles[FARM_SCOUT].AddToToggleGroup( &toggles[i] );
-
-	toggles[FARM_SCOUT].SetEnabled(		true );
-	toggles[TNDR_SCOUT].SetEnabled(		true );
-	toggles[FRST_SCOUT].SetEnabled(		true );
-	toggles[DSRT_SCOUT].SetEnabled(		true );
-	toggles[FARM_DESTROYER].SetEnabled( true );
-	toggles[TNDR_DESTROYER].SetEnabled( true );
-	toggles[FRST_DESTROYER].SetEnabled( true );
-	toggles[DSRT_DESTROYER].SetEnabled( true );
-	toggles[CITY].SetEnabled(			true );
-	toggles[BATTLESHIP].SetEnabled(		true );
-
-
-	UIItem* scenItems[] = { /*&toggles[CIVS_PRESENT],*/ &toggles[UFO_CRASH] };
-	Gamui::Layout( scenItems, 1,
-				   4, 2,
-				   215, 225,
-				   100, 100 );
-							
-	goButton.Init( &gamui2D, blue );
-	goButton.SetPos( 360, 270 );
-	goButton.SetSize( 100, 50 );
-	goButton.SetText( "Go!" );
-	goButton.SetVisible( false );
 
 	// Is there a current game?
 	continueButton.SetEnabled( game->HasSaveFile( SAVEPATH_GEO, 0 ) || game->HasSaveFile( SAVEPATH_TACTICAL, 0 ) );
@@ -335,27 +208,7 @@ void TacticalIntroScene::Tap(	int action,
 		game->PushScene( Game::SAVE_LOAD_SCENE, new SaveLoadSceneData( false ) );
 	}
 	else if ( item == &newTactical ) {
-		newTactical.SetVisible( false );
-		newGeo.SetVisible( false );
-		continueButton.SetVisible( false );
-		for( int i=0; i<TOGGLE_COUNT; ++i ) {
-			toggles[i].SetVisible( true );
-		}
-		goButton.SetVisible( true );
-		backgroundUI.backgroundText.SetVisible( false );
-
-		terranLabel.SetVisible( true );
-		alienLabel.SetVisible( true );
-		timeLabel.SetVisible( true );
-		scenarioLabel.SetVisible( true );
-		for( int i=0; i<3; ++i )
-			rowLabel[i].SetVisible( true );
-		
-		helpButton.SetVisible( false );
-		audioButton.SetVisible( false );
-		loadButton.SetVisible( false );
-		settingButton.SetVisible( false );
-
+		game->PushScene( Game::NEW_TAC_OPTIONS, &newTacData ); 
 		game->DeleteSaveFile( SAVEPATH_TACTICAL, 0 );
 		game->DeleteSaveFile( SAVEPATH_GEO, 0 );
 	}
@@ -365,6 +218,7 @@ void TacticalIntroScene::Tap(	int action,
 		else if ( game->HasSaveFile( SAVEPATH_TACTICAL, 0 ) )
 			onToNext = Game::BATTLE_SCENE;
 	}
+	/*
 	else if ( item == &goButton ) {
 		FILE* fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_WRITE, 0 );
 		GLASSERT( fp );
@@ -422,6 +276,7 @@ void TacticalIntroScene::Tap(	int action,
 			fclose( fp );
 		}
 	}
+	*/
 	else if ( item == &helpButton ) {
 		game->PushScene( Game::HELP_SCENE, new HelpSceneData("introHelp", false ));
 	}
@@ -479,7 +334,7 @@ void TacticalIntroScene::Tap(	int action,
 	Random random;
 	random.SetSeedFromTime();
 
-	int nCivs = ( data->scenario == TacticalIntroScene::TERRAN_BASE ) ? data->nScientists : CivsInScenario( data->scenario );
+	int nCivs = ( data->scenario == TERRAN_BASE ) ? data->nScientists : CivsInScenario( data->scenario );
 	SceneInfo info( data->scenario, data->crash, nCivs );
 
 	CreateMap( fp, random.Rand(), info, database );

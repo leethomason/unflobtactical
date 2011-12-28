@@ -200,4 +200,22 @@ static const float ACC_SNAP_SHOT_MULTIPLIER		= 4.0f;
 static const float REACTION_FAST = 0.90f;
 static const float REACTION_SLOW = 0.40f;
 
+enum {
+	FARM_SCOUT=11,	// coded in from the beginning of the game, when this was button order
+	TNDR_SCOUT,
+	FRST_SCOUT,
+	DSRT_SCOUT,
+	FARM_DESTROYER,
+	TNDR_DESTROYER,
+	FRST_DESTROYER,
+	DSRT_DESTROYER,
+	CITY,
+	BATTLESHIP,
+	ALIEN_BASE,
+	TERRAN_BASE,
+
+	FIRST_SCENARIO = FARM_SCOUT,
+	LAST_SCENARIO = TERRAN_BASE,
+};
+
 #endif // GAMELIMITS_INCLUDED

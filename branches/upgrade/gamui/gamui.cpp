@@ -1542,7 +1542,11 @@ LayoutCalculator::LayoutCalculator( float w, float h )
 	  width( 10 ),
 	  height( 10 ),
 	  gutter( 0 ), 
-	  spacing( 0 ) 
+	  spacing( 0 ),
+	  textOffsetX( 0 ),
+	  textOffsetY( 0 ),
+	  offsetX( 0 ),
+	  offsetY( 0 )
 {
 }
 
@@ -1572,6 +1576,6 @@ void LayoutCalculator::PosAbs( UIItem* item, int _x, int _y )
 		}
 	}
 
-	item->SetPos( pos[0], pos[1] );
+	item->SetPos( pos[0]+offsetX, pos[1]+offsetY );
 }
 

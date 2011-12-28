@@ -146,6 +146,7 @@
     <ClCompile Include="game\inventory.cpp" />
     <ClCompile Include="game\inventoryWidget.cpp" />
     <ClCompile Include="game\item.cpp" />
+    <ClCompile Include="game\newtacticaloptions.cpp" />
     <ClCompile Include="game\research.cpp" />
     <ClCompile Include="game\researchscene.cpp" />
     <ClCompile Include="game\saveloadscene.cpp" />
@@ -213,6 +214,7 @@
     <ClInclude Include="game\inventory.h" />
     <ClInclude Include="game\inventoryWidget.h" />
     <ClInclude Include="game\item.h" />
+    <ClInclude Include="game\newtacticaloptions.h" />
     <ClInclude Include="game\research.h" />
     <ClInclude Include="game\researchscene.h" />
     <ClInclude Include="game\saveloadscene.h" />

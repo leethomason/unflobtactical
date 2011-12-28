@@ -216,6 +216,9 @@
     <ClCompile Include="engine\settings.cpp">
       <Filter>engine</Filter>
     </ClCompile>
+    <ClCompile Include="game\newtacticaloptions.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game\ai.h">
@@ -418,6 +421,9 @@
     </ClInclude>
     <ClInclude Include="engine\settings.h">
       <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="game\newtacticaloptions.h">
+      <Filter>scenes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

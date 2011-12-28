@@ -1094,7 +1094,7 @@ int	ChitBag::NumBaseChits()
 void ChitBag::SetBattle( const UFOChit* ufo, const CargoChit* lander, int scenario )	
 { 
 	this->battleUFOID = ufo->ID(); 
-	GLASSERT( lander || (scenario == TacticalIntroScene::TERRAN_BASE ) );
+	GLASSERT( lander || (scenario == TERRAN_BASE ) );
 	this->battleLanderID = lander ? lander->ID() : 0; 
 	this->battleScenario = scenario; 
 }

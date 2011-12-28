@@ -949,36 +949,36 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			TimeState state;
 			CalcTimeState( timeline, &state );
 
-			int scenario = TacticalIntroScene::FARM_SCOUT;
+			int scenario = FARM_SCOUT;
 			if ( baseAttack ) {
-				scenario = TacticalIntroScene::TERRAN_BASE;
+				scenario = TERRAN_BASE;
 			}
 			else if ( ufoChit->Type() == UFOChit::BATTLESHIP ) {
-				scenario = TacticalIntroScene::BATTLESHIP;
+				scenario = BATTLESHIP;
 			}
 			else if ( ufoChit->Type() == UFOChit::BASE ) {
-				scenario = TacticalIntroScene::ALIEN_BASE;
+				scenario = ALIEN_BASE;
 			}
 			else {
 				int type = geoMapData.GetType( ufoChit->MapPos().x, ufoChit->MapPos().y );
 				switch ( type ) {
-				case GeoMapData::CITY:		scenario = TacticalIntroScene::CITY;	break;
-				case GeoMapData::FARM:		scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? TacticalIntroScene::FARM_SCOUT : TacticalIntroScene::FARM_DESTROYER;	break;
-				case GeoMapData::FOREST:	scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? TacticalIntroScene::FRST_SCOUT : TacticalIntroScene::FRST_DESTROYER;	break;
-				case GeoMapData::DESERT:	scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? TacticalIntroScene::DSRT_SCOUT : TacticalIntroScene::DSRT_DESTROYER;	break;
-				case GeoMapData::TUNDRA:	scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? TacticalIntroScene::TNDR_SCOUT : TacticalIntroScene::TNDR_DESTROYER;	break;
+				case GeoMapData::CITY:		scenario = CITY;	break;
+				case GeoMapData::FARM:		scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? FARM_SCOUT : FARM_DESTROYER;	break;
+				case GeoMapData::FOREST:	scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? FRST_SCOUT : FRST_DESTROYER;	break;
+				case GeoMapData::DESERT:	scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? DSRT_SCOUT : DSRT_DESTROYER;	break;
+				case GeoMapData::TUNDRA:	scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? TNDR_SCOUT : TNDR_DESTROYER;	break;
 				default: GLASSERT( 0 ); break;
 				}
 			}
 
 			float rank = state.alienRank;
-			if ( scenario == TacticalIntroScene::ALIEN_BASE )
+			if ( scenario == ALIEN_BASE )
 				rank = (float)(NUM_RANKS-1);
 
 			// Bad idea: difficulty of UFOs plenty broad already.
-			//if ( TacticalIntroScene::IsScoutScenario( scenario ) )
+			//if ( IsScoutScenario( scenario ) )
 			//	rank -= 0.5f;	// lower ranks here
-			//if ( scenario == TacticalIntroScene::BATTLESHIP )	// battleships are hard enough
+			//if ( scenario == BATTLESHIP )	// battleships are hard enough
 			//	rank += 0.5f;
 			rank = Clamp( rank, 0.0f, (float)(NUM_RANKS-1) );
 
@@ -1087,7 +1087,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 			// manipulation below will do nothing.)
 
 			int result = game->battleData.CalcResult();
-			if ( game->battleData.GetScenario() == TacticalIntroScene::TERRAN_BASE ) {
+			if ( game->battleData.GetScenario() == TERRAN_BASE ) {
 				if ( result == BattleData::TIE )
 					result = BattleData::DEFEAT;	// can't tie on base attack
 			}
@@ -1153,11 +1153,11 @@ void GeoScene::SceneResult( int sceneID, int result )
 
 			if ( result == BattleData::VICTORY ) {
 				// Apply penalty for lost civs:
-				if ( game->battleData.GetScenario() == TacticalIntroScene::CITY ) {
+				if ( game->battleData.GetScenario() == CITY ) {
 					int	region = geoMapData.GetRegion( baseChit->MapPos().x, baseChit->MapPos().y );
 					if ( (nCivsAlive+nCivsDead) > 0 && region >= 0 ) {
 						float ratio = 1.0f - (float)nCivsAlive / (float)(nCivsAlive+nCivsDead);
-						if ( chitBag.GetBattleScenario() == TacticalIntroScene::CITY ) { 
+						if ( chitBag.GetBattleScenario() == CITY ) { 
 							ratio *= 2.0f; 
 						}
 						regionData[region].influence += ratio;
@@ -1220,7 +1220,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 				}
 			}
 
-			if ( game->battleData.GetScenario() == TacticalIntroScene::TERRAN_BASE ) {
+			if ( game->battleData.GetScenario() == TERRAN_BASE ) {
 				baseChit->SetNumScientists( nCivsAlive );
 			}
 		}

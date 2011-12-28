@@ -30,6 +30,12 @@ class UIButtonBox;
 class UIButtonGroup;
 
 
+class NewTacticalOptionsData : public SceneData
+{
+public:
+	int test;
+};
+
 class TacticalIntroScene : public Scene
 {
 public:
@@ -57,39 +63,6 @@ public:
 	//  Alien:		8 16
 	//    exp:		Low Med Hi
 	//  Weather:	Day Night
-	enum {
-
-		SQUAD_4 = 0,
-		SQUAD_6,
-		SQUAD_8,
-		TERRAN_LOW,
-		TERRAN_MED,
-		TERRAN_HIGH,
-		ALIEN_LOW,
-		ALIEN_MED,
-		ALIEN_HIGH,
-		TIME_DAY,
-		TIME_NIGHT,
-
-		FARM_SCOUT,
-		TNDR_SCOUT,
-		FRST_SCOUT,
-		DSRT_SCOUT,
-		FARM_DESTROYER,
-		TNDR_DESTROYER,
-		FRST_DESTROYER,
-		DSRT_DESTROYER,
-		CITY,
-		BATTLESHIP,
-		ALIEN_BASE,
-		TERRAN_BASE,
-
-		FIRST_SCENARIO = FARM_SCOUT,
-		LAST_SCENARIO = TERRAN_BASE,
-
-		UFO_CRASH,
-		TOGGLE_COUNT,
-	};
 
 	static bool IsScoutScenario( int s ) {
 		GLASSERT( s >= FARM_SCOUT && s <= TERRAN_BASE );
@@ -105,21 +78,21 @@ public:
 			   || ( s == BATTLESHIP );
 	}
 	static int CivsInScenario( int scenario ) {
-		GLASSERT( scenario != TacticalIntroScene::TERRAN_BASE );
+		GLASSERT( scenario != TERRAN_BASE );
 		int nCiv = 0;
 		
 		switch ( scenario ) {
-		case TacticalIntroScene::CITY:
+		case CITY:
 			nCiv = MAX_CIVS;
 			break;
 
-		case TacticalIntroScene::FARM_SCOUT:
-		case TacticalIntroScene::FARM_DESTROYER:
+		case FARM_SCOUT:
+		case FARM_DESTROYER:
 			nCiv = MAX_CIVS * 2 / 3;
 			break;
 
-		case TacticalIntroScene::FRST_SCOUT:
-		case TacticalIntroScene::FRST_DESTROYER:
+		case FRST_SCOUT:
+		case FRST_DESTROYER:
 			nCiv = MAX_CIVS / 2;
 			break;
 
@@ -210,8 +183,10 @@ private:
 	gamui::PushButton	continueButton, helpButton, goButton, settingButton;
 	gamui::PushButton	loadButton;
 	gamui::PushButton	newTactical, newGeo, newCampaign, newGame;
-	gamui::TextLabel	terranLabel, alienLabel, timeLabel, scenarioLabel, rowLabel[3], newGameWarning;
-	gamui::ToggleButton	toggles[TOGGLE_COUNT], audioButton;
+	gamui::TextLabel	newGameWarning;
+	gamui::ToggleButton audioButton;
+
+	NewTacticalOptionsData newTacData;
 };
 
 
