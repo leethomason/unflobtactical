@@ -24,8 +24,6 @@
 using namespace grinliz;
 using namespace gamui;
 
-//static const int SOLDIER_COST   = 80;
-//static const int SCIENTIST_COST = 120;
 
 BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene( _game )
 {
@@ -54,8 +52,6 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 
 	static const float TEXTSPACE = 16.0f;
 
-	//backgroundUI.Init( _game, &gamui2D, false );
-	//backgroundUI.background.SetVisible( false );
 	RenderAtom backgroundAtom(	(const void*)UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE, 
 								(const void*)TextureManager::Instance()->GetTexture( "background_basetrade" ), 0, 0, 1, 1 );
 	background.Init( &gamui2D, backgroundAtom, false );

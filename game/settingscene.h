@@ -25,6 +25,8 @@ public:
 		return RENDER_2D;
 	}	
 
+	virtual void Resize();
+
 private:
 	grinliz::GLString CalcMod( int delta );
 
