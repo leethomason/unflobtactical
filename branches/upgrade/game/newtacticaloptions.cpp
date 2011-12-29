@@ -90,7 +90,7 @@ void NewTacticalOptions::Resize()
 	layout.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
 	layout.SetGutter( 0 );
 	layout.SetSpacing( 0 );
-	layout.SetOffset( 0, -32.0f );
+	layout.SetOffset( 0, GAME_CROWDED_YTWEAK );
 	layout.SetTextOffset( 5.f, 32.f );
 
 	// Left group.

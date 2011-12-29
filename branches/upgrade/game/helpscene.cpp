@@ -43,11 +43,6 @@ HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ),
 							Game::CalcDecoAtom( deco[i], false ) );
 		items[i] = &buttons[i];
 	}
-	buttons[PREV_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*2.0f, port.UIHeight() - GAME_BUTTON_SIZE_F );
-	buttons[NEXT_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F,		 port.UIHeight() - GAME_BUTTON_SIZE_F );
-	buttons[DONE_BUTTON].SetPos( 0, port.UIHeight() - GAME_BUTTON_SIZE_F );
-	buttons[SETTINGS_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*3.0f, port.UIHeight() - GAME_BUTTON_SIZE_F );
-	buttons[SAVE_LOAD_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*4.f, port.UIHeight() - GAME_BUTTON_SIZE_F );
 
 	buttons[SETTINGS_BUTTON].SetDeco( Game::CalcDecoAtom( DECO_SETTINGS, true ), Game::CalcDecoAtom( DECO_SETTINGS, false ) );
 	buttons[SETTINGS_BUTTON].SetVisible( data->settings );
@@ -55,7 +50,7 @@ HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ),
 	buttons[SAVE_LOAD_BUTTON].SetDeco( Game::CalcDecoAtom( DECO_SAVE_LOAD, true ), Game::CalcDecoAtom( DECO_SAVE_LOAD, false ) );
 	buttons[SAVE_LOAD_BUTTON].SetVisible( data->settings );
 
-	Layout();
+	Resize();
 }
 
 
@@ -73,8 +68,11 @@ void HelpScene::Activate()
 
 
 
-void HelpScene::Layout()
+void HelpScene::Resize()
 {
+	const Screenport& port = GetEngine()->GetScreenport();
+	background.SetSize( port.UIWidth(), port.UIHeight() );
+
 	const gamedb::Reader* reader = game->GetDatabase();
 	const gamedb::Item* rootItem = reader->Root();
 	GLASSERT( rootItem );
@@ -99,11 +97,10 @@ void HelpScene::Layout()
 	else {
 		text = (const char*)reader->AccessData( pageItem, "text", 0 );
 	}
-	const Screenport& port = game->engine->GetScreenport();
-	textBox.SetText( text ? text : "" );
-	textBox.SetPos( GAME_GUTTER, GAME_GUTTER );
+
 	float tw = port.UIWidth() - GAME_GUTTER*2.0f;
 	float th = buttons[PREV_BUTTON].Y() - GAME_GUTTER*2.0f;
+
 	image.SetVisible( false );
 
 	if ( pageItem->HasAttribute( "image" ) ) {
@@ -127,10 +124,19 @@ void HelpScene::Layout()
 		tw = image.X()-GAME_GUTTER;
 		image.SetVisible( true );
 	}
-	textBox.SetSize( tw, th );
+
+	textBox.SetPos( GAME_GUTTER, GAME_GUTTER );
+	textBox.SetSize( port.UIWidth()-GAME_GUTTER*2.f, port.UIHeight()-GAME_GUTTER*2.f );
+	textBox.SetText( text ? text : "" );
 
 	buttons[PREV_BUTTON].SetEnabled( currentScreen > 0 );
 	buttons[NEXT_BUTTON].SetEnabled( currentScreen < nPages - 1 );
+
+	buttons[PREV_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*2.0f, port.UIHeight() - GAME_BUTTON_SIZE_F );
+	buttons[NEXT_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F,		 port.UIHeight() - GAME_BUTTON_SIZE_F );
+	buttons[DONE_BUTTON].SetPos( 0, port.UIHeight() - GAME_BUTTON_SIZE_F );
+	buttons[SETTINGS_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*3.0f, port.UIHeight() - GAME_BUTTON_SIZE_F );
+	buttons[SAVE_LOAD_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*4.f, port.UIHeight() - GAME_BUTTON_SIZE_F );
 }
 
 
@@ -176,7 +182,7 @@ void HelpScene::Tap( int action, const grinliz::Vector2F& screen, const grinliz:
 	else if ( item == &buttons[SAVE_LOAD_BUTTON] ) {
 		game->PushScene( Game::SAVE_LOAD_SCENE, new SaveLoadSceneData( true ) ); 
 	}
-	Layout();
+	Resize();
 }
 
 
@@ -188,5 +194,5 @@ void HelpScene::HandleHotKeyMask( int mask )
 	else if ( mask == GAME_HK_PREV_UNIT ) {
 		--currentScreen;
 	}
-	Layout();
+	Resize();
 }

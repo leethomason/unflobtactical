@@ -53,6 +53,7 @@ public:
 	}	
 	virtual void DrawHUD();
 	virtual void HandleHotKeyMask( int mask );
+	virtual void Resize();
 
 private:
 	enum {	PREV_BUTTON,
@@ -64,8 +65,6 @@ private:
 			NUM_BUTTONS,
 			NUM_TEXT_LABELS = 20
 	};
-
-	void Layout();
 
 	const char*			helpName;
 	int					currentScreen;
