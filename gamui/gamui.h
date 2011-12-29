@@ -890,13 +890,15 @@ public:
 	void SetSize( float width, float height )	{ this->width = width; this->height = height; }
 	void SetGutter( float gutter )				{ this->gutter = gutter; }
 	void SetSpacing( float spacing )			{ this->spacing = spacing; }
+
+	void SetOffset( float x, float y )			{ this->offsetX = x; this->offsetY = y; }
 	void SetTextOffset( float x, float y )		{ this->textOffsetX = x; this->textOffsetY = y; }
 
 	void PosAbs( UIItem* item, int x, int y );
 	void PosAbs( TextLabel* label, int x, int y ) {
-		offsetX = textOffsetX; offsetY = textOffsetY;
+		useTextOffset = true;
 		PosAbs( (UIItem*) label, x, y ); 
-		offsetX = offsetY = 0;
+		useTextOffset = false;
 	}
 
 private:
@@ -910,6 +912,7 @@ private:
 	float textOffsetY;
 	float offsetX;
 	float offsetY;
+	bool  useTextOffset;
 };
 
 class Matrix

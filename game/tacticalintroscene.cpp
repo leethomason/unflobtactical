@@ -208,7 +208,7 @@ void TacticalIntroScene::Tap(	int action,
 		game->PushScene( Game::SAVE_LOAD_SCENE, new SaveLoadSceneData( false ) );
 	}
 	else if ( item == &newTactical ) {
-		game->PushScene( Game::NEW_TAC_OPTIONS, &newTacData ); 
+		game->PushScene( Game::NEW_TAC_OPTIONS, 0 ); 
 		game->DeleteSaveFile( SAVEPATH_TACTICAL, 0 );
 		game->DeleteSaveFile( SAVEPATH_GEO, 0 );
 	}
@@ -218,65 +218,6 @@ void TacticalIntroScene::Tap(	int action,
 		else if ( game->HasSaveFile( SAVEPATH_TACTICAL, 0 ) )
 			onToNext = Game::BATTLE_SCENE;
 	}
-	/*
-	else if ( item == &goButton ) {
-		FILE* fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_WRITE, 0 );
-		GLASSERT( fp );
-		if ( fp ) {
-			onToNext = Game::BATTLE_SCENE;
-
-			BattleSceneData data;
-			data.seed = random.Rand();
-			data.scenario = FARM_SCOUT;
-			for( int i=FIRST_SCENARIO; i<=LAST_SCENARIO; ++i ) {
-				if ( toggles[i].Down() ) {
-					data.scenario = i;
-					break;
-				}
-			}
-			data.crash = toggles[UFO_CRASH].Down() ? true : false;
-
-			Unit units[MAX_TERRANS];
-			int rank = 0;
-			int count = 8;
-
-			// Terran units
-			if ( toggles[TERRAN_LOW].Down() )
-				rank = 0;
-			else if ( toggles[TERRAN_MED].Down() )
-				rank = 2;
-			else if ( toggles[TERRAN_HIGH].Down() )
-				rank = 4;
-
-			if ( toggles[SQUAD_4].Down() )
-				count = 4;
-			else if ( toggles[SQUAD_6].Down() )
-				count = 6;
-			else if ( toggles[SQUAD_8].Down() )
-				count = 8;
-
-			GenerateTerranTeam( units, count, (float)rank, game->GetItemDefArr(), random.Rand() );
-			data.soldierUnits = units;
-			data.nScientists = 8;
-
-			data.dayTime = toggles[TIME_DAY].Down() ? true : false;
-			data.alienRank = 0.0f;
-			if ( toggles[ALIEN_LOW].Down() ) {
-				data.alienRank = 0;
-			}
-			else if ( toggles[ALIEN_MED].Down() ) {
-				data.alienRank = 2;
-			}
-			else if ( toggles[ALIEN_HIGH].Down() ) {
-				data.alienRank = 4;
-			}
-			data.storage = 0;
-
-			WriteXML( fp, &data, game->GetItemDefArr(), game->GetDatabase() );
-			fclose( fp );
-		}
-	}
-	*/
 	else if ( item == &helpButton ) {
 		game->PushScene( Game::HELP_SCENE, new HelpSceneData("introHelp", false ));
 	}
@@ -305,6 +246,40 @@ void TacticalIntroScene::Tap(	int action,
 	if ( onToNext >= 0 ) {
 		game->PopScene();
 		game->PushScene( onToNext, 0 );
+	}
+}
+
+
+void TacticalIntroScene::SceneResult( int sceneID, int r )
+{
+	if ( sceneID == Game::NEW_TAC_OPTIONS ) {
+		NewSceneOptionsReturn result;
+		result = *((NewSceneOptionsReturn*)&r);
+
+		FILE* fp = game->GameSavePath( SAVEPATH_TACTICAL, SAVEPATH_WRITE, 0 );
+		GLASSERT( fp );
+		if ( fp ) {
+			BattleSceneData data;
+			data.seed = random.Rand();
+			data.scenario = result.scenario;
+			data.crash = result.crash != 0;
+
+			Unit units[MAX_TERRANS];
+
+			GenerateTerranTeam( units, result.nTerrans, (float)result.terranRank, 
+							    game->GetItemDefArr(), random.Rand() );
+			data.soldierUnits = units;
+			data.nScientists = 8;
+
+			data.dayTime = result.dayTime != 0;
+			data.alienRank = (float)result.alienRank;
+			data.storage = 0;
+
+			WriteXML( fp, &data, game->GetItemDefArr(), game->GetDatabase() );
+			fclose( fp );
+			game->PopScene();
+			game->PushScene( Game::BATTLE_SCENE, 0 );
+		}
 	}
 }
 

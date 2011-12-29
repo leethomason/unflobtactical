@@ -1546,7 +1546,8 @@ LayoutCalculator::LayoutCalculator( float w, float h )
 	  textOffsetX( 0 ),
 	  textOffsetY( 0 ),
 	  offsetX( 0 ),
-	  offsetY( 0 )
+	  offsetY( 0 ),
+	  useTextOffset( false )
 {
 }
 
@@ -1575,7 +1576,10 @@ void LayoutCalculator::PosAbs( UIItem* item, int _x, int _y )
 			pos[i] = screen[i] - gutter - space - size[i]*x; 
 		}
 	}
-
+	if ( useTextOffset ) {
+		pos[0] += textOffsetX;
+		pos[1] += textOffsetY;
+	}
 	item->SetPos( pos[0]+offsetX, pos[1]+offsetY );
 }
 
