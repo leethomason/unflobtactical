@@ -26,7 +26,7 @@ class NewTacticalOptionsData;
 class NewTacticalOptions : public Scene
 {
 public:
-	NewTacticalOptions( Game*, NewTacticalOptionsData* );
+	NewTacticalOptions( Game* );
 	virtual ~NewTacticalOptions()	{}
 
 	// UI

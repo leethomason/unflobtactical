@@ -445,7 +445,7 @@ void Game::CreateScene( const SceneNode& in, SceneNode* node )
 		case RESEARCH_SCENE:	scene = new ResearchScene( this, (ResearchSceneData*)in.data );						break;
 		case SETTING_SCENE:		scene = new SettingScene( this );													break;
 		case SAVE_LOAD_SCENE:	scene = new SaveLoadScene( this, (const SaveLoadSceneData*)in.data );				break;
-		case NEW_TAC_OPTIONS:	scene = new NewTacticalOptions( this, (NewTacticalOptionsData*)in.data);			break;
+		case NEW_TAC_OPTIONS:	scene = new NewTacticalOptions( this );												break;
 		default:
 			GLASSERT( 0 );
 			break;

@@ -6,7 +6,7 @@
 using namespace grinliz;
 using namespace gamui;
 
-NewTacticalOptions::NewTacticalOptions( Game* _game, NewTacticalOptionsData* ) : Scene( _game )
+NewTacticalOptions::NewTacticalOptions( Game* _game ) : Scene( _game )
 {
 	backgroundUI.Init( game, &gamui2D, false );
 
@@ -76,7 +76,6 @@ NewTacticalOptions::NewTacticalOptions( Game* _game, NewTacticalOptionsData* ) :
 		toggles[FARM_SCOUT].AddToToggleGroup( &toggles[i] );
 							
 	goButton.Init( &gamui2D, blue );
-	goButton.SetPos( 360, 270 );
 	goButton.SetSize( 100, 50 );
 	goButton.SetText( "Go!" );
 
@@ -91,7 +90,8 @@ void NewTacticalOptions::Resize()
 	layout.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
 	layout.SetGutter( 0 );
 	layout.SetSpacing( 0 );
-	layout.SetTextOffset( 0, 25.f );
+	layout.SetOffset( 0, -32.0f );
+	layout.SetTextOffset( 5.f, 32.f );
 
 	// Left group.
 	layout.PosAbs( &terranLabel, 0, 0 );
@@ -109,10 +109,10 @@ void NewTacticalOptions::Resize()
 	}
 
 	// Right group
-	static const int RIGHT=5;
+	static const int RIGHT=-6; //4;
 	layout.PosAbs( &scenarioLabel, RIGHT, 0 );
 
-	layout.SetTextOffset( 10.f, 25.f );
+	layout.SetTextOffset( 10.f, 15.f );
 	for( int i=0; i<3; ++i ) {
 		layout.PosAbs( &rowLabel[i], RIGHT+4, i+1 );
 	}	
@@ -126,14 +126,72 @@ void NewTacticalOptions::Resize()
 	layout.PosAbs( &toggles[TERRAN_BASE], RIGHT+2, 4 );
 
 	layout.PosAbs( &toggles[UFO_CRASH], RIGHT, 6 );
+
+	layout.PosAbs( &goButton, -3, 6 );
+	backgroundUI.background.SetSize( port.UIWidth(), port.UIHeight() );
 }
 
 
-void NewTacticalOptions::Tap(	int count, 
+void NewTacticalOptions::Tap(	int action, 
 								const grinliz::Vector2F& screen,
 								const grinliz::Ray& world )
 {
+	Vector2F ui;
+	GetEngine()->GetScreenport().ViewToUI( screen, &ui );
+	
+	const gamui::UIItem* item = 0;
 
+	if ( action == GAME_TAP_DOWN ) {
+		gamui2D.TapDown( ui.x, ui.y );
+		return;
+	}
+	else if ( action == GAME_TAP_MOVE ) {
+		return;
+	}
+	else if ( action == GAME_TAP_UP ) {
+		item = gamui2D.TapUp( ui.x, ui.y );
+	}
+	else if ( action == GAME_TAP_CANCEL ) {
+		gamui2D.TapCancel();
+		return;
+	}
+
+	if ( item == &goButton ) {
+		NewSceneOptionsReturn data;
+
+		data.scenario = FARM_SCOUT;
+		for( int i=FIRST_SCENARIO; i<=LAST_SCENARIO; ++i ) {
+			if ( toggles[i].Down() ) {
+				data.scenario = i;
+				break;
+			}
+		}
+		data.crash = toggles[UFO_CRASH].Down() ? 1 : 0;
+
+		data.nTerrans = 8;
+		data.terranRank = 0;
+
+		if ( toggles[TERRAN_MED].Down() )
+			data.terranRank = 2;
+		else if ( toggles[TERRAN_HIGH].Down() )
+			data.terranRank = 4;
+
+		if ( toggles[SQUAD_4].Down() )
+			data.nTerrans= 4;
+		else if ( toggles[SQUAD_6].Down() )
+			data.nTerrans = 6;
+
+		data.alienRank = 0;
+		if ( toggles[ALIEN_MED].Down() ) {
+			data.alienRank = 2;
+		}
+		else if ( toggles[ALIEN_HIGH].Down() ) {
+			data.alienRank = 4;
+		}
+
+		data.dayTime = toggles[TIME_DAY].Down() ? 1 : 0;
+		game->PopScene( *((int*)&data) );
+	}
 }
 
 

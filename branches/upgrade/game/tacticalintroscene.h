@@ -30,10 +30,14 @@ class UIButtonBox;
 class UIButtonGroup;
 
 
-class NewTacticalOptionsData : public SceneData
+struct NewSceneOptionsReturn
 {
-public:
-	int test;
+	unsigned scenario	: 8;
+	unsigned crash		: 1;
+	unsigned nTerrans	: 4;
+	unsigned terranRank : 4;
+	unsigned alienRank  : 4;
+	unsigned dayTime	: 1;
 };
 
 class TacticalIntroScene : public Scene
@@ -48,6 +52,8 @@ public:
 	virtual void Tap(	int count, 
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
+	virtual void SceneResult( int sceneID, int result );
+
 
 	// Rendering
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	{
@@ -158,6 +164,7 @@ public:
 
 	static void WriteXML( FILE* fp, const BattleSceneData* data, const ItemDefArr&, const gamedb::Reader* database  );
 
+	
 private:
 	enum { MAX_ITEM_MATCH = 32 };
 	static void FindNodes(	const char* set,
@@ -185,8 +192,6 @@ private:
 	gamui::PushButton	newTactical, newGeo, newCampaign, newGame;
 	gamui::TextLabel	newGameWarning;
 	gamui::ToggleButton audioButton;
-
-	NewTacticalOptionsData newTacData;
 };
 
 
