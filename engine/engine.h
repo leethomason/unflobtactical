@@ -31,8 +31,6 @@
 
 class RenderQueue;
 
-
-
 /*
 	Standard state:
 	Z-Write		enabled
@@ -40,22 +38,6 @@ class RenderQueue;
 	Blend		disabled
 */
 
-	/*
-struct EngineData
-{
-	EngineData() : 
-		cameraTilt( -50.f ),
-		cameraMin( 8.0f ),
-		cameraMax( 140.0f ),
-		cameraHeight( 7.f )
-		{}
-
-	float cameraTilt;		// degrees
-	float cameraMin;
-	float cameraMax;
-	float cameraHeight;
-};
-*/
 
 class Engine
 {
@@ -140,7 +122,6 @@ private:
 		NIGHT_TIME
 	};
 
-	//void DrawCamera();
 	void CalcCameraRotation( grinliz::Matrix4* );
 	void CalcLights( DayNight dayNight, grinliz::Color4F* ambient, grinliz::Vector4F* dir, grinliz::Color4F* diffuse );
 	void LightGroundPlane( DayNight dayNight, ShadowState shadows, float shadowAmount, grinliz::Color4F* outColor );

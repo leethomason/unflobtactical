@@ -94,8 +94,19 @@ public:
 
 	static void ResetState();
 	static void Clear();
-	static void SetMatrixMode( MatrixType m );
 
+	// Set the top level state. The engine has top level (root transforms)
+	// for the screen size, scissor, and transform:
+	static void SetViewport( int w, int h );
+	static void SetOrthoTransform( int width, int height, int rotation );
+	static void SetPerspectiveTransform( float left, float right, 
+										 float bottom, float top, 
+										 float near, float far,
+										 int rotation );
+	// The top level MV matrix in perspective mode.
+	static void SetCameraTransform( const grinliz::Matrix4& camera );
+	static void SetScissor( int x, int y, int w, int h );
+	
 	struct Stream {
 		// WARNING: Clear/init calls memset(0) on structure. Need to change
 		// if this gets a vtable
@@ -239,21 +250,6 @@ protected:
 	static void SetState( const GPUShader& );
 
 private:
-	/*
-	struct TexParam 
-	{
-		int p0, p1, p2;
-		const void* p3;
-
-		bool operator!=( const TexParam& rhs ) {
-			return	   p0 != rhs.p0
-					|| p1 != rhs.p1
-					|| p2 != rhs.p2
-					|| p3 != rhs.p3;
-		}
-	};
-	static TexParam texParam;
-	*/
 
 	void SwitchMatrixMode( MatrixType type );	
 	static GPUShader		current;
@@ -266,22 +262,6 @@ private:
 	static bool textureXFormInUse[2];
 
 	static void SetTextureXForm( int unit );
-
-	/*
-	struct ParamT {
-		int p0, p1, p2;
-		const void* p3;
-		bool operator==( const ParamT& rhs ) const {
-			return p0 == rhs.p0 && p1 == rhs.p1 && p2 == rhs.p2 && p3 == rhs.p3;
-		}
-		bool operator!=( const ParamT& rhs ) const {
-			return p0 != rhs.p0 || p1 != rhs.p1 || p2 != rhs.p2 || p3 != rhs.p3;
-		}
-	};
-	static ParamT lastTexture0;
-	static ParamT lastTexture1;
-	*/
-
 
 protected:
 	static int trianglesDrawn;

@@ -44,9 +44,6 @@ public:
 	// Move the camera around a center pole. The idea of rotation from the users point of view.
 	void Orbit( float delta );
 
-	// 0-3, in view space (corresponds to device rotation). Normally one.
-	void SetViewRotation( int v )					{ viewRotation = v; valid = false; }
-
 	// Position in world coordinates.
 	const grinliz::Vector3F& PosWC() const			{ return posWC; }
 	void SetPosWC( const grinliz::Vector3F& value )	{ posWC = value; valid = false; }
@@ -72,8 +69,6 @@ private:
 	// Position of the camera in the world - no view rotation, no inverse.
 	void CalcWorldXForm();
 	void CalcEyeDir();
-
-	int viewRotation;
 
 	float tilt;
 	float yRotation;
