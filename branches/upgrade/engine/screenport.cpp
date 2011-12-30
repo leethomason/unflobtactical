@@ -15,7 +15,6 @@
 
 #include "screenport.h"
 #include "gpustatemanager.h"
-#include "platformgl.h"
 #include "enginelimits.h"
 
 #include "../grinliz/glrectangle.h"
@@ -41,8 +40,8 @@ void Screenport::Resize( int w, int h, int r )
 	rotation =	r;
 	GLASSERT( rotation >= 0 && rotation < 4 );
 
-	glViewport( 0, 0, w, h );
-	glDisable( GL_SCISSOR_TEST );
+	GPUShader::SetViewport( w, h );
+	GPUShader::SetScissor( 0, 0, 0, 0 );
 
 	// Sad but true: the game assets are set up for 480x320 resolution.
 	// How to scale?
@@ -80,43 +79,15 @@ void Screenport::SetUI( const Rectangle2I* clip )
 
 	Rectangle2F scissor;
 	UIToWindow( clipInUI2D, &scissor );
-	glEnable( GL_SCISSOR_TEST );
-	glScissor( (int)scissor.X0(), (int)scissor.Y0(), (int)scissor.X1(), (int)scissor.Y1() );
-	
-	view2D.SetIdentity();
-	Matrix4 r, t;
-	r.SetZRotation( (float)(90*Rotation() ));
-	
-	// the tricky bit. After rotating the ortho display, move it back on screen.
-	switch (Rotation()) {
-		case 0:
-			break;
-		case 1:
-			t.SetTranslation( 0, -screenWidth, 0 );	
-			break;
-			
-		default:
-			GLASSERT( 0 );	// work out...
-			break;
-	}
-	view2D = r*t;
+	GPUShader::SetScissor( (int)scissor.pos.x, (int)scissor.pos.y,
+						   (int)ceilf(scissor.size.x), (int)ceilf(scissor.size.y) );
+
+	//view2D.SetIdentity();
 	
 	projection2D.SetIdentity();
 	projection2D.SetOrtho( 0, screenWidth, screenHeight, 0, -1, 1 );
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();				// projection
-
-	// Set the ortho matrix, help the driver
-	glOrthofX( 0, screenWidth, screenHeight, 0, -100, 100 );
-	
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();				// model
-	glMultMatrixf( view2D.x );
-	GPUShader::SetMatrixMode( GPUShader::MODELVIEW_MATRIX );	// tell the manager we twiddled with state.
-
+	GPUShader::SetOrthoTransform( (int)screenWidth, (int)screenHeight, Rotation()*90 );
 	uiMode = true;
-	CHECK_GL_ERROR;
 }
 
 
@@ -124,12 +95,7 @@ void Screenport::SetView( const Matrix4& _view )
 {
 	GLASSERT( uiMode == false );
 	view3D = _view;
-
-	glMatrixMode(GL_MODELVIEW);
-	// In normalized coordinates.
-	glLoadMatrixf( view3D.x );
-	GPUShader::SetMatrixMode( GPUShader::MODELVIEW_MATRIX );	// tell the manager we twiddled with state.
-	CHECK_GL_ERROR;
+	GPUShader::SetCameraTransform( view3D );
 }
 
 
@@ -149,8 +115,8 @@ void Screenport::SetPerspective( const grinliz::Rectangle2I* clip )
 	
 	Rectangle2F scissor;
 	UIToWindow( clipInUI3D,  &scissor );
-	glEnable( GL_SCISSOR_TEST );
-	glScissor( (int)scissor.X0(), (int)scissor.Y0(), (int)scissor.X1(), (int)scissor.Y1() );
+	GPUShader::SetScissor( (int)scissor.pos.x, (int)scissor.pos.y,
+						   (int)ceilf(scissor.size.x), (int)ceilf(scissor.size.y) );
 
 	GLASSERT( uiMode == false );
 	GLASSERT( EL_NEAR > 0.0f );
@@ -193,19 +159,13 @@ void Screenport::SetPerspective( const grinliz::Rectangle2I* clip )
 	Matrix4 rot;
 	rot.SetZRotation( (float)(-90 * Rotation()) );
 	
-	glMatrixMode(GL_PROJECTION);
 	// In normalized coordinates.
 	projection3D.SetFrustum( frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.zNear, frustum.zFar );
 	projection3D = projection3D * rot;
-	
-	// Give the driver hints:
-	glLoadIdentity();
-	glFrustumfX( frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.zNear, frustum.zFar );
-	glRotatef( (float)(-90 * Rotation()), 0, 0, 1 );
-	
-	glMatrixMode(GL_MODELVIEW);	
-	CHECK_GL_ERROR;
-	GPUShader::SetMatrixMode( GPUShader::MODELVIEW_MATRIX );	// tell the manager we twiddled with state.
+	GPUShader::SetPerspectiveTransform( frustum.left, frustum.right,
+										frustum.bottom, frustum.top,	
+										frustum.zNear, frustum.zFar,
+										(90*Rotation()) );
 }
 
 
