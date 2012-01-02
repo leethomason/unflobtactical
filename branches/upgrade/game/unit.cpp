@@ -93,7 +93,7 @@ const char* gLastNames[64] =
 };
 
 
-const char* gRank[NUM_RANKS] = {
+const char* gRank[NUM_TERRAN_RANKS] = {
 	"Rki",
 	"Prv",
 	"Sgt",
@@ -142,7 +142,7 @@ const char* Unit::AlienShortName() const
 
 /*static*/ int Unit::XPToRank( int xp )
 {
-	GLASSERT( NUM_RANKS == 5 );
+	GLASSERT( NUM_TERRAN_RANKS == 5 );
 	if      ( xp > 30 ) return 4;
 	else if ( xp > 15 ) return 3;
 	else if ( xp > 5 )  return 2;
@@ -195,7 +195,8 @@ const char* Unit::LastName() const
 
 const char* Unit::Rank() const
 {
-	GLASSERT( stats.Rank() >=0 && stats.Rank() < NUM_RANKS ); 
+	GLASSERT( Team() == TERRAN_TEAM );
+	GLASSERT( stats.Rank() >=0 && stats.Rank() < NUM_TERRAN_RANKS ); 
 	return gRank[ stats.Rank() ];
 }
 

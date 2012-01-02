@@ -250,7 +250,7 @@ void RegionData::Load( const TiXmlElement* doc )
 
 
 
-GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase(), _game->GetItemDefArr(), RESEARCH_SECONDS )
+GeoScene::GeoScene( Game* _game, const GeoSceneData* data ) : Scene( _game ), research( _game->GetDatabase(), _game->GetItemDefArr(), RESEARCH_SECONDS )
 {
 	missileTimer[0] = 0;
 	missileTimer[1] = 0;
@@ -261,6 +261,10 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 	nBattles = 0;
 	gameVictory = false;
 	loadSlot = 0;
+	difficulty = NORMAL;
+	if ( data ) {
+		difficulty = data->difficulty;
+	}
 
 	const Screenport& port = GetEngine()->GetScreenport();
 	random.SetSeedFromTime();
@@ -900,7 +904,12 @@ void GeoScene::UpdateMissiles( U32 deltaTime )
 							Vector3F pos3 = { m->pos.x + (float)(GEO_MAP_X*z), MISSILE_HEIGHT, m->pos.y };
 							system->EmitPoint( 40, ParticleSystem::PARTICLE_HEMISPHERE, color[m->type], cvel, pos3, 0.1f, velUP, 0.2f );
 						}
-						ufo->DoDamage( 1.0f );
+						switch ( difficulty ) {
+						case EASY:		ufo->DoDamage( 1.5f );	break;
+						case NORMAL:	ufo->DoDamage( 1.0f );	break;
+						case HARD:		ufo->DoDamage( 0.8f );	break;
+						case VERY_HARD:	ufo->DoDamage( 0.6f );	break;
+						};
 						SoundManager::Instance()->QueueSound( "geo_ufo_hit" );
 						done = true;
 					}
@@ -971,16 +980,16 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 				}
 			}
 
-			float rank = state.alienRank;
-			if ( scenario == ALIEN_BASE )
-				rank = (float)(NUM_RANKS-1);
-
+			float alienRank = state.alienRank;
+			if ( scenario == ALIEN_BASE ) {
+				alienRank = (float)(NUM_ALIEN_RANKS-4+difficulty);
+			}
 			// Bad idea: difficulty of UFOs plenty broad already.
 			//if ( IsScoutScenario( scenario ) )
 			//	rank -= 0.5f;	// lower ranks here
 			//if ( scenario == BATTLESHIP )	// battleships are hard enough
 			//	rank += 0.5f;
-			rank = Clamp( rank, 0.0f, (float)(NUM_RANKS-1) );
+			alienRank = Clamp( alienRank, 0.0f, (float)(NUM_ALIEN_RANKS-1) );
 
 			static const Vector3F zero = { 0, 0, 0 };
 			for( int i=0; i<MAX_TERRANS; ++i ) {
@@ -997,7 +1006,7 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			data->soldierUnits	= units;
 			data->nScientists	= baseChit->NumScientists();
 			data->dayTime		= geoMap->GetDayTime( ufoChit->Pos().x );
-			data->alienRank		= rank;
+			data->alienRank		= alienRank;
 			data->storage		= baseChit->GetStorage();
 			chitBag.SetBattle( ufoChit, landerChit, scenario );
 			game->Save( 0, true, false );
@@ -1736,7 +1745,7 @@ void GeoScene::CalcTimeState( U32 msec, TimeState* state )
 	// Times in seconds.
 	const static U32 FIRST_UFO      = 10 *SECOND;
 	const static U32 TIME_BETWEEN_0	= 20 *SECOND;
-	const static U32 TIME_BETWEEN_1 = 10  *SECOND;
+	const static U32 TIME_BETWEEN_1 = 10 *SECOND;
 
 	const static U32 DESTROYER0		= 2  *MINUTE;
 	const static U32 DESTROYER1		= 5  *MINUTE;
@@ -1748,9 +1757,12 @@ void GeoScene::CalcTimeState( U32 msec, TimeState* state )
 	if ( msec <= FIRST_UFO+1000 )	// rounding so we aren't racing this timer
 		state->alienTime = FIRST_UFO;	
 
-	state->alienRank = (float)Interpolate( 0.0, 0.0, (double)FULL_OUT_RANK, (double)(NUM_RANKS)-1.5, (double)msec );	// the minus one is float/int conversion, the 0.5 is not maxing out the alien rank
-	if ( state->alienRank > (float)(NUM_RANKS-1) )
-		state->alienRank = (float)(NUM_RANKS-1);
+	double nAlienRanks = (double)(NUM_ALIEN_RANKS-3+difficulty);
+	state->alienRank = (float)Interpolate( 0.0, 0.0, 
+		                                   (double)FULL_OUT_RANK, (double)(nAlienRanks)-1.5, 
+										   (double)msec );	// the minus one is float/int conversion, the 0.5 is not maxing out the alien rank
+	if ( state->alienRank > (float)(nAlienRanks-1) )
+		state->alienRank = (float)(nAlienRanks-1);
 
 	state->alienType[ UFOChit::SCOUT ] = 1.0f;
 	state->alienType[ UFOChit::FRIGATE ] = 0.0f;
@@ -1777,6 +1789,7 @@ void GeoScene::Save( FILE* fp, int depth )
 	// ----------- main scene --------- //
 	XMLUtil::OpenElement( fp, depth, "GeoScene" );
 	XMLUtil::Attribute( fp, "timeline", timeline );
+	XMLUtil::Attribute( fp, "difficulty", difficulty );
 	XMLUtil::Attribute( fp, "alienTimer", alienTimer );
 	XMLUtil::Attribute( fp, "missileTimer0", missileTimer[0] );
 	XMLUtil::Attribute( fp, "missileTimer1", missileTimer[1] );
@@ -1807,6 +1820,8 @@ void GeoScene::Load( const TiXmlElement* scene )
 {
 	GLASSERT( StrEqual( scene->Value(), "GeoScene" ) );
 	scene->QueryUnsignedAttribute( "timeline", &timeline );
+	difficulty = NORMAL;
+	scene->QueryIntAttribute( "difficulty", &difficulty );
 	scene->QueryUnsignedAttribute( "alienTimer", &alienTimer );
 	scene->QueryUnsignedAttribute( "missileTimer0", &missileTimer[0] );
 	scene->QueryUnsignedAttribute( "missileTimer1", &missileTimer[1] );

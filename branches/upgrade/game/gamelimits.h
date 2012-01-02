@@ -181,7 +181,8 @@ static const int MAX_TU					= EL_MAP_MAX_PATH;		// enforced: used for memory all
 
 static const int	TRAIT_MAX			= 100;
 static const int	TRAIT_RANK_BONUS	= 6;		// how much a trait increases per rank
-static const int	NUM_RANKS			= 5;		// 0-4
+static const int	NUM_TERRAN_RANKS	= 5;
+static const int	NUM_ALIEN_RANKS		= 7;
 static const int	NUM_ARMOR			= 3;
 static const float  ARM0				= 1.0f;
 static const float	ARM1				= 0.85f;

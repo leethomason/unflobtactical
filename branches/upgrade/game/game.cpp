@@ -32,6 +32,7 @@
 #include "settingscene.h"
 #include "saveloadscene.h"
 #include "newtacticaloptions.h"
+#include "newgeooptions.h"
 
 #include "../engine/text.h"
 #include "../engine/model.h"
@@ -438,7 +439,7 @@ void Game::CreateScene( const SceneNode& in, SceneNode* node )
 		case UNIT_SCORE_SCENE:	scene = new TacticalUnitScoreScene( this );											break;
 		case HELP_SCENE:		scene = new HelpScene( this, (const HelpSceneData*)in.data );						break;
 		case DIALOG_SCENE:		scene = new DialogScene( this, (const DialogSceneData*)in.data );					break;
-		case GEO_SCENE:			scene = new GeoScene( this );														break;
+		case GEO_SCENE:			scene = new GeoScene( this, (const GeoSceneData*)in.data );														break;
 		case GEO_END_SCENE:		scene = new GeoEndScene( this, (const GeoEndSceneData*)in.data );					break;
 		case BASETRADE_SCENE:	scene = new BaseTradeScene( this, (BaseTradeSceneData*)in.data );					break;
 		case BUILDBASE_SCENE:	scene = new BuildBaseScene( this, (BuildBaseSceneData*)in.data );					break;
@@ -446,6 +447,7 @@ void Game::CreateScene( const SceneNode& in, SceneNode* node )
 		case SETTING_SCENE:		scene = new SettingScene( this );													break;
 		case SAVE_LOAD_SCENE:	scene = new SaveLoadScene( this, (const SaveLoadSceneData*)in.data );				break;
 		case NEW_TAC_OPTIONS:	scene = new NewTacticalOptions( this );												break;
+		case NEW_GEO_OPTIONS:	scene = new NewGeoOptions( this );												break;
 		default:
 			GLASSERT( 0 );
 			break;

@@ -234,11 +234,19 @@ private:
 };
 
 
+class GeoSceneData : public SceneData
+{
+public:
+	GeoSceneData( int _difficulty ) : difficulty( _difficulty ) {}
+
+	int difficulty;
+};
+
 
 class GeoScene : public Scene
 {
 public:
-	GeoScene( Game* _game );
+	GeoScene( Game* _game, const GeoSceneData* data );
 	virtual ~GeoScene();
 
 	virtual void Activate();
@@ -270,6 +278,11 @@ public:
 
 	const Research& GetResearch() { return research; }
 	bool RegionOccupied( int region ) const;
+
+	enum {	EASY,			
+			NORMAL,			
+			HARD,			
+			VERY_HARD };	
 
 private:
 	struct Missile {
@@ -303,7 +316,7 @@ private:
 	void HandleItemTapped( const gamui::UIItem* item );
 	void DoBattle( CargoChit* cargoChit, UFOChit* ufoChit );		// cargo OR ufo, not both
 	void CalcTimeState( U32 seconds, TimeState* state );
-	
+
 	enum {
 		CM_NONE,
 		CM_BASE,
@@ -322,7 +335,11 @@ private:
 	U32					alienTimer;
 	U32					missileTimer[2];
 	U32					researchTimer;
-	
+
+	// Difficulty affects:
+	// 1. UFO damage from missiles (geo scene)
+	// 2. Alien rank (tactical)
+	int					difficulty;
 	int					cash;
 	bool				firstBase;
 	int					nBattles;

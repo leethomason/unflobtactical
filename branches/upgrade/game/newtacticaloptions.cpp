@@ -76,7 +76,7 @@ NewTacticalOptions::NewTacticalOptions( Game* _game ) : Scene( _game )
 		toggles[FARM_SCOUT].AddToToggleGroup( &toggles[i] );
 							
 	goButton.Init( &gamui2D, blue );
-	goButton.SetSize( 100, 50 );
+	goButton.SetSize( GAME_BUTTON_SIZE_B*2.0f, GAME_BUTTON_SIZE_B );
 	goButton.SetText( "Go!" );
 
 	Resize();
