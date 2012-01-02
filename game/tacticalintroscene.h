@@ -131,7 +131,7 @@ public:
 	};
 
 
-	static int RandomRank( grinliz::Random* random, float rank );
+	static int RandomRank( grinliz::Random* random, float rank, int nRanks );
 
 	static void GenerateTerranTeam( Unit* units,				// target units to write
 									int count,

@@ -17,7 +17,6 @@
 
 #include "../grinliz/glbitarray.h"
 #include "../grinliz/glstringutil.h"
-#include "tacticalintroscene.h"
 #include "../engine/uirendering.h"
 #include "../engine/engine.h"
 #include "game.h"
@@ -25,10 +24,12 @@
 #include "helpscene.h"
 #include "gamesettings.h"
 #include "ai.h"
-#include "../version.h"
 #include "tacmap.h"
 #include "saveloadscene.h"
+#include "geoscene.h"
+#include "tacticalintroscene.h"
 
+#include "../version.h"
 
 using namespace grinliz;
 using namespace gamui;
@@ -238,9 +239,10 @@ void TacticalIntroScene::Tap(	int action,
 		game->PushScene( Game::SETTING_SCENE, 0 );
 	}
 	else if ( item == &newGeo ) {
+		game->PushScene( Game::NEW_GEO_OPTIONS, 0 ); 
 		game->DeleteSaveFile( SAVEPATH_GEO, 0 );
 		game->DeleteSaveFile( SAVEPATH_TACTICAL, 0 );
-		onToNext = Game::GEO_SCENE;
+		//onToNext = Game::GEO_SCENE;
 	}
 
 	if ( onToNext >= 0 ) {
@@ -280,6 +282,11 @@ void TacticalIntroScene::SceneResult( int sceneID, int r )
 			game->PopScene();
 			game->PushScene( Game::BATTLE_SCENE, 0 );
 		}
+	}
+	else if ( sceneID == Game::NEW_GEO_OPTIONS ) {
+		GLOUTPUT(( "Difficulty=%d\n", r ));
+		game->PopScene();
+		game->PushScene( Game::GEO_SCENE, new GeoSceneData( r ) );
 	}
 }
 
@@ -719,9 +726,9 @@ void TacticalIntroScene::GenerateAlienTeamUpper(	int scenario,
 }
 
 
-int TacticalIntroScene::RandomRank( grinliz::Random* random, float rank )
+int TacticalIntroScene::RandomRank( grinliz::Random* random, float rank, int nRanks )
 {
-	int r = Clamp( (int)(rank+random->Uniform()*0.99f ), 0, NUM_RANKS-1 );
+	int r = Clamp( (int)(rank+random->Uniform()*0.99f ), 0, nRanks-1 );
 	return r;
 }
 
@@ -732,7 +739,8 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 											const ItemDefArr& itemDefArr,
 											int seed )
 {
-	const char* weapon[Unit::NUM_ALIEN_TYPES][NUM_RANKS] = {
+	static const int WEAPON_RANKS = 5;
+	const char* weapon[Unit::NUM_ALIEN_TYPES][WEAPON_RANKS] = {
 		{	"RAY-1",	"RAY-1",	"RAY-2",	"RAY-2",	"RAY-3" },		// green
 		{	"RAY-1",	"RAY-2",	"RAY-2",	"RAY-3",	"PLS-3"	},		// prime
 		{	"PLS-1",	"PLS-1",	"PLS-2",	"PLS-2",	"PLS-3" },		// hornet
@@ -758,7 +766,7 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 		for( int k=0; k<alienCount[i]; ++k ) {
 			
 			// Create the unit.
-			int rank = RandomRank( &aRand, averageRank );
+			int rank = RandomRank( &aRand, averageRank, NUM_ALIEN_RANKS );
  			unit[index].Create( ALIEN_TEAM, i, rank, aRand.Rand() );
 
 			// About 1/3 should be guards that aren't green or prime.
@@ -770,7 +778,7 @@ void TacticalIntroScene::GenerateAlienTeam( Unit* unit,				// target units to wr
 				}
 			}
 
-			rank = RandomRank( &aRand, averageRank );
+			rank = RandomRank( &aRand, averageRank, WEAPON_RANKS );
 
 			// Add the weapon.
 			if ( *weapon[i][rank] ) {
@@ -799,16 +807,16 @@ void TacticalIntroScene::GenerateTerranTeam(	Unit* unit,				// target units to w
 												int seed )
 {
 	static const int POSITION = 4;
-	static const char* weapon[POSITION][NUM_RANKS] = {
+	static const char* weapon[POSITION][NUM_TERRAN_RANKS] = {
 		{	"ASLT-1",	"ASLT-1",	"ASLT-2",	"ASLT-2",	"ASLT-3" },		// assault
 		{	"ASLT-1",	"ASLT-1",	"ASLT-2",	"PLS-2",	"PLS-3" },		// assault
 		{	"LR-1",		"LR-1",		"LR-2",		"LR-2",		"LR-3" },		// sniper
 		{	"MCAN-1",	"MCAN-1",	"MCAN-2",	"STRM-2",	"MCAN-3" },		// heavy
 	};
-	static const char* armorType[NUM_RANKS] = {
+	static const char* armorType[NUM_TERRAN_RANKS] = {
 		"ARM-1", "ARM-1", "ARM-2", "ARM-2", "ARM-3"
 	};
-	static const char* extraItems[NUM_RANKS] = {
+	static const char* extraItems[NUM_TERRAN_RANKS] = {
 		"", "", "SG:I", "SG:K", "SG:E"
 	};
 
@@ -821,11 +829,11 @@ void TacticalIntroScene::GenerateTerranTeam(	Unit* unit,				// target units to w
 		int position = k % POSITION;
 
 		// Create the unit.
-		int rank = RandomRank( &aRand, baseRank );
+		int rank = RandomRank( &aRand, baseRank, NUM_TERRAN_RANKS );
 		memset( &unit[k], 0, sizeof(Unit) );
  		unit[k].Create( TERRAN_TEAM, 0, rank, aRand.Rand() );
 
-		rank = RandomRank( &aRand, baseRank );
+		rank = RandomRank( &aRand, baseRank, NUM_TERRAN_RANKS );
 
 		// Add the weapon.
 		Item item( itemDefArr, weapon[position][rank] );
@@ -842,11 +850,11 @@ void TacticalIntroScene::GenerateTerranTeam(	Unit* unit,				// target units to w
 
 		// Add extras
 		{
-			rank = RandomRank( &aRand, baseRank );
+			rank = RandomRank( &aRand, baseRank, NUM_TERRAN_RANKS );
 			Item armor( itemDefArr, armorType[rank] );
 			unit[k].GetInventory()->AddItem( armor, 0 );
 		}
-		rank = RandomRank( &aRand, baseRank );
+		rank = RandomRank( &aRand, baseRank, NUM_TERRAN_RANKS );
 		for( int i=0; i<=rank; ++i ) {
 			Item extra( itemDefArr, extraItems[i] );
 			unit[k].GetInventory()->AddItem( extra, 0 );
