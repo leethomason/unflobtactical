@@ -38,6 +38,7 @@ public:
 	virtual ~DialogScene()	{}
 
 	virtual void Activate();
+	virtual void Resize();
 
 	// UI
 	virtual void Tap(	int count, 

@@ -456,6 +456,8 @@ void Game::CreateScene( const SceneNode& in, SceneNode* node )
 	node->sceneID = in.sceneID;
 	node->data = in.data;
 	node->result = INT_MIN;
+
+	scene->Resize();
 }
 
 
@@ -835,7 +837,11 @@ void Game::DeviceLoss()
 void Game::Resize( int width, int height, int rotation ) 
 {
 	screenport.Resize( width, height, rotation );
-	sceneStack.Top()->scene->Resize();
+	//sceneStack.Top()->scene->Resize();
+	// Resize entire stack so we don't return to screwed up scene.
+	for( SceneNode* node = sceneStack.BeginTop(); node; node = sceneStack.Next() ) {
+		node->scene->Resize();
+	}
 }
 
 

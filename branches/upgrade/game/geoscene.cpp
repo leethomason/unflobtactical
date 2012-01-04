@@ -287,17 +287,14 @@ GeoScene::GeoScene( Game* _game, const GeoSceneData* data ) : Scene( _game ), re
 	}
 
 	helpButton.Init(&gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
-	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, 0 );
 	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	helpButton.SetDeco(  Game::CalcDecoAtom( DECO_HELP, true ), Game::CalcDecoAtom( DECO_HELP, false ) );	
 
 	researchButton.Init(&gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
-	researchButton.SetPos( 0, 0 );
 	researchButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	researchButton.SetDeco(  Game::CalcDecoAtom( DECO_RESEARCH, true ), Game::CalcDecoAtom( DECO_RESEARCH, false ) );	
 
 	baseButton.Init(&gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
-	baseButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	baseButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	baseButton.SetDeco(  Game::CalcDecoAtom( DECO_BASE, true ), Game::CalcDecoAtom( DECO_BASE, false ) );
 
@@ -305,13 +302,10 @@ GeoScene::GeoScene( Game* _game, const GeoSceneData* data ) : Scene( _game ), re
 	cashImage.Init( &gamui2D, 
 		Game::CalcPaletteAtom( Game::PALETTE_GREEN, Game::PALETTE_GREEN, Game::PALETTE_NORM ),
 		false );
-	cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F*1.8f, 
-					  port.UIHeight()-GAME_BUTTON_SIZE_F*0.4f );
 	cashImage.SetSize( GAME_BUTTON_SIZE_F*1.7f, GAME_BUTTON_SIZE_F );
 	cashImage.SetSlice( true );
 
 	cashLabel.Init( &gamui2D );
-	cashLabel.SetPos( cashImage.X()+5.0f, cashImage.Y()+5.0f );
 
 	for( int i=0; i<MAX_CONTEXT; ++i ) {
 		context[i].Init( &gamui2D, game->GetButtonLook( Game::BLUE_BUTTON ) );
@@ -334,6 +328,27 @@ GeoScene::~GeoScene()
 	}
 	delete geoMap;
 	delete geoAI;
+}
+
+
+void GeoScene::Resize()
+{
+	const Screenport& port = GetEngine()->GetScreenport();
+
+	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, 0 );
+	researchButton.SetPos( 0, 0 );
+	baseButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F*1.8f, 
+					  port.UIHeight()-GAME_BUTTON_SIZE_F*0.4f );
+	cashLabel.SetPos( cashImage.X()+5.0f, cashImage.Y()+5.0f );
+
+	GetEngine()->CameraIso( false, false, (float)GeoMap::MAP_X, (float)GeoMap::MAP_Y );
+	if ( savedCameraX >= 0 ) {
+		Vector3F cameraPos = GetEngine()->camera.PosWC();
+		cameraPos.x = savedCameraX;
+		GetEngine()->camera.SetPosWC( cameraPos );
+	}
+	SetMapLocation();
 }
 
 

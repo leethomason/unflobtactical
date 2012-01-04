@@ -252,6 +252,7 @@ public:
 	virtual void Activate();
 	virtual void DeActivate();
 	virtual void SceneResult( int sceneID, int result );
+	virtual void Resize();
 
 	// UI
 	virtual void Tap(	int count, 

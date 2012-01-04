@@ -54,21 +54,18 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	const gamui::ButtonLook& blueTab	= game->GetButtonLook( Game::BLUE_TAB_BUTTON );
 
 	backButton.Init( &gamui2D, blue );
-	backButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	//backButton.SetText( "Back" );
 	backButton.SetDeco(	Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
 						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	prevButton.Init( &gamui2D, blue );
-	prevButton.SetPos( GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	prevButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	prevButton.SetDeco( Game::CalcDecoAtom( DECO_UNIT_PREV, true ),  
 						Game::CalcDecoAtom( DECO_UNIT_PREV, false ) );
 	prevButton.SetVisible( input->nUnits > 1 );
 
 	nextButton.Init( &gamui2D, blue );
-	nextButton.SetPos( GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	nextButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	nextButton.SetDeco( Game::CalcDecoAtom( DECO_UNIT_NEXT, true ),  
 						Game::CalcDecoAtom( DECO_UNIT_NEXT, false ) );
@@ -96,14 +93,12 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	_input->storage->ClearItem( "Soldr" );
 	_input->storage->ClearItem( "Sctst" );
 	storageWidget = new StorageWidget( &gamui2D, green, blueTab, _game->GetItemDefArr(), _input->storage );
-	storageWidget->SetOrigin( (float)port.UIWidth()-storageWidget->Width(), 0 );
 	storageWidget->SetInfoVisible( false );
 
 	statWidget.Init( &gamui2D, unit, storageWidget->X(), 0, input->nUnits > 1 );
 	compWidget.Init( &game->GetItemDefArr(), storage, unit, &gamui2D, blue, storageWidget->X(), 0, storageWidget->Width() );
 
 	unitCounter.Init( &gamui2D );
-	unitCounter.SetPos( 190, inventoryWidget->TextY() );
 	unitCounter.SetVisible( false );
 	SetCounter( 0 );
 
@@ -115,7 +110,6 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	model = localEngine->GetSpaceTree()->AllocModel( resource );
 	localEngine->CameraLookAt( model->X(), model->Z(), 30 );
 	*/
-	
 }
 
 
@@ -127,6 +121,21 @@ CharacterScene::~CharacterScene()
 	delete inventoryWidget;
 }
 
+
+void CharacterScene::Resize()
+{
+	const Screenport& port = game->engine->GetScreenport();
+	background.SetSize( port.UIWidth(), port.UIHeight() );
+	backButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	prevButton.SetPos( GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	nextButton.SetPos( GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F );
+
+	storageWidget->SetOrigin( (float)port.UIWidth()-storageWidget->Width(), 0 );
+	unitCounter.SetPos( 190, inventoryWidget->TextY() );
+
+	gamui::UIItem* controlArr[NUM_CONTROL+1] = { &helpButton, &control[0], &control[1], &control[2] };
+	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE), storageWidget->Width(), GAME_BUTTON_SIZE_F );
+}
 
 void CharacterScene::Draw3D()
 {
