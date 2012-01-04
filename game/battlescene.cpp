@@ -87,17 +87,14 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	const ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
 
 	turnImage.Init( &gamui3D, Game::CalcDecoAtom( DECO_ALIEN ), true );
-	turnImage.SetPos( float(port.UIWidth()-50), 0 );
 	turnImage.SetSize( 50, 50 );
 	decoEffect.Attach( &turnImage );
 	
 	alienTargetImage.Init( &gamui3D, Game::CalcIconAtom( ICON_ALIEN_TARGETS ), true );
-	alienTargetImage.SetPos( float(port.UIWidth()-25), 0 );
 	alienTargetImage.SetSize( 20, 20 );
 	alienTargetImage.SetVisible( false );
 
 	alienTargetText.Init( &gamui3D );
-	alienTargetText.SetPos( alienTargetImage.X()+5, alienTargetImage.Y()+2 );
 	alienTargetText.SetVisible( false );
 
 	nameRankUI.Init( &gamui3D, game );
@@ -163,24 +160,18 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		}
 
 		UIItem* items[6] = { &invButton,  
-							 &nextTurnButton,
-			                 &helpButton, 
-							 &exitButton,
-							 &targetButton, 
-							 &controlButton[0] };
+							&nextTurnButton,
+			                &helpButton, 
+							&exitButton,
+							&targetButton, 
+							&controlButton[0] };
 		for( int i=0; i<6; ++i ) {
 			((Button*)items[i])->SetSize( SIZE, SIZE );
 		}
-		Gamui::Layout( items, 6, 1, 6, 0, 0, SIZE, (float)port.UIHeight() );
-
-		controlButton[1].SetPos( SIZE, port.UIHeight()-SIZE );
-		controlButton[2].SetPos( port.UIWidth()-SIZE*2.f, port.UIHeight()-SIZE );
-		controlButton[3].SetPos( port.UIWidth()-SIZE*1.f, port.UIHeight()-SIZE );
 
 		orbitButton.Init( &gamui2D, green );
 		orbitButton.SetDeco( Game::CalcDecoAtom( DECO_ORBIT, true ), Game::CalcDecoAtom( DECO_ORBIT, false ) );
 		orbitButton.SetSize( SIZE, SIZE );
-		orbitButton.SetPos( controlButton[NEXT_BUTTON].X(), controlButton[NEXT_BUTTON].Y()-SIZE );
 
 		RenderAtom menuImageAtom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)TextureManager::Instance()->GetTexture( "commandBarV" ), 0, 0, 1, 1 );
 		menuImage.Init( &gamui2D, menuImageAtom, false );
@@ -247,6 +238,29 @@ BattleScene::~BattleScene()
 	//delete consoleWidget;
 }
 
+
+void BattleScene::Resize()
+{
+	const float SIZE = 50.0f;
+	const Screenport& port = GetEngine()->GetScreenport();
+
+	turnImage.SetPos( float(port.UIWidth()-50), 0 );
+	alienTargetImage.SetPos( float(port.UIWidth()-25), 0 );
+	alienTargetText.SetPos( alienTargetImage.X()+5, alienTargetImage.Y()+2 );
+
+	UIItem* items[6] = { &invButton,  
+							&nextTurnButton,
+			                &helpButton, 
+							&exitButton,
+							&targetButton, 
+							&controlButton[0] };
+	Gamui::Layout( items, 6, 1, 6, 0, 0, SIZE, (float)port.UIHeight() );
+
+	controlButton[1].SetPos( SIZE, port.UIHeight()-SIZE );
+	controlButton[2].SetPos( port.UIWidth()-SIZE*2.f, port.UIHeight()-SIZE );
+	controlButton[3].SetPos( port.UIWidth()-SIZE*1.f, port.UIHeight()-SIZE );
+	orbitButton.SetPos( controlButton[NEXT_BUTTON].X(), controlButton[NEXT_BUTTON].Y()-SIZE );
+}
 
 void BattleScene::Activate()
 {

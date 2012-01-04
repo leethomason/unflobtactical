@@ -116,7 +116,6 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 		audioButton.SetDeco( Game::CalcDecoAtom( DECO_MUTE, true ),
 							 Game::CalcDecoAtom( DECO_MUTE, false ) );	
 	}
-	Resize();
 }
 
 

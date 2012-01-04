@@ -33,6 +33,7 @@ public:
 	virtual ~GeoEndScene();
 
 	virtual void Activate();
+	virtual void Resize();
 
 	// UI
 	virtual void Tap(	int count, 

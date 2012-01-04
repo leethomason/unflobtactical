@@ -50,7 +50,6 @@ HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ),
 	buttons[SAVE_LOAD_BUTTON].SetDeco( Game::CalcDecoAtom( DECO_SAVE_LOAD, true ), Game::CalcDecoAtom( DECO_SAVE_LOAD, false ) );
 	buttons[SAVE_LOAD_BUTTON].SetVisible( data->settings );
 
-	Resize();
 }
 
 

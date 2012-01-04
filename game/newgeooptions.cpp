@@ -28,7 +28,6 @@ NewGeoOptions::NewGeoOptions( Game* game ) : Scene( game )
 		toggle[0].AddToToggleGroup( &toggle[i] );
 	}
 	toggle[1].SetDown();
-	Resize();
 }
 
 
