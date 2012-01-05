@@ -37,6 +37,8 @@ public:
 	SaveLoadScene( Game* _game, const SaveLoadSceneData* data );
 	virtual ~SaveLoadScene();
 
+	virtual void Resize();
+
 	// UI
 	virtual void Tap(	int count, 
 						const grinliz::Vector2F& screen,

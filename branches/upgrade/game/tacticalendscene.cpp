@@ -24,11 +24,11 @@
 #include "research.h"
 
 using namespace grinliz;
+using namespace gamui;
 
 TacticalEndScene::TacticalEndScene( Game* _game ) : Scene( _game )
 {
 	Engine* engine = GetEngine();
-	//data = d;
 
 	gamui::RenderAtom nullAtom;
 	backgroundUI.Init( game, &gamui2D, false );
@@ -36,18 +36,6 @@ TacticalEndScene::TacticalEndScene( Game* _game ) : Scene( _game )
 	for( int i=0; i<TEXT_ROW*TEXT_COL; ++i ) {
 		textTable[i].Init( &gamui2D );
 	}
-
-	enum {
-		DESC,
-		COUNT,
-		SCORE,
-		ITEM
-	};
-	//									description  count				 score					items
-	static const float X_ORIGIN[4]  = { GAME_GUTTER, GAME_GUTTER+150.0f, GAME_GUTTER+200.0f,	GAME_GUTTER+270.0f };
-	static const float Y_ORIGIN		= GAME_GUTTER;
-	static const float SPACING		= GAME_GUTTER;
-	float yPos = GAME_GUTTER;
 
 	victory.Init( &gamui2D );
 	const Unit* soldiers = game->battleData.Units( TERRAN_UNITS_START );
@@ -81,8 +69,6 @@ TacticalEndScene::TacticalEndScene( Game* _game ) : Scene( _game )
 	else {
 		victory.SetText( "Mission Summary:" );
 	}
-	victory.SetPos( X_ORIGIN[DESC], yPos );
-	yPos += SPACING;
 
 	const char* text[TEXT_ROW] = { "Soldiers standing",  "Soldiers down",
 		                           "Aliens survived", "Aliens killed", 
@@ -129,18 +115,14 @@ TacticalEndScene::TacticalEndScene( Game* _game ) : Scene( _game )
 
 	for( int i=0; i<TEXT_ROW; ++i ) {
 		textTable[i*TEXT_COL].SetText( text[i] );
-		textTable[i*TEXT_COL].SetPos( X_ORIGIN[DESC], yPos );
 
 		CStr<16> sBuf = value[i];
 		textTable[i*TEXT_COL+1].SetText( sBuf.c_str() );
-		textTable[i*TEXT_COL+1].SetPos( X_ORIGIN[COUNT], yPos );
 
 		if ( i&1 ) {
 			sBuf = score[i/2];
 			textTable[i*TEXT_COL+2].SetText( sBuf.c_str() );
-			textTable[i*TEXT_COL+2].SetPos( X_ORIGIN[SCORE], yPos );
 		}
-		yPos += SPACING;
 	}
 
 	if ( nSoldiersStanding>0 && nAliensAlive==0 ) {
@@ -161,7 +143,6 @@ TacticalEndScene::TacticalEndScene( Game* _game ) : Scene( _game )
 				SNPrintf( buf, 30, "%s +%d", display, count );
 
 				items[row].Init( &gamui2D );
-				items[row].SetPos( X_ORIGIN[ITEM], Y_ORIGIN + (float)row*SPACING );
 				items[row].SetText( buf );
 				++row;
 			}
@@ -169,11 +150,9 @@ TacticalEndScene::TacticalEndScene( Game* _game ) : Scene( _game )
 	}
 	CStr<16> totalBuf = (score[0]+score[1]+score[2]);
 	totalScoreValue.Init( &gamui2D );
-	totalScoreValue.SetPos( X_ORIGIN[SCORE], yPos );
 	totalScoreValue.SetText( totalBuf.c_str() );
 
 	totalScoreLabel.Init( &gamui2D );
-	totalScoreLabel.SetPos( X_ORIGIN[DESC], yPos );
 	totalScoreLabel.SetText( "Total Score" );
 
 	const gamui::ButtonLook& look = game->GetButtonLook( Game::GREEN_BUTTON );
@@ -181,13 +160,48 @@ TacticalEndScene::TacticalEndScene( Game* _game ) : Scene( _game )
 	//okayButton.SetText( "OK" );
 	okayButton.SetDeco(  Game::CalcDecoAtom( DECO_OKAY_CHECK, true ), 
 		                 Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
-	okayButton.SetPos( 0, (float)(engine->GetScreenport().UIHeight() - (GAME_BUTTON_SIZE + 5)) );
 	okayButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 }
 
 
 TacticalEndScene::~TacticalEndScene()
 {
+}
+
+
+void TacticalEndScene::Resize() 
+{
+	enum {
+		DESC,
+		COUNT,
+		SCORE,
+		ITEM
+	};
+
+	const Screenport& port = GetEngine()->GetScreenport();
+	backgroundUI.background.SetSize( port.UIWidth(), port.UIHeight() );
+
+	//									description  count				 score					items
+	static const float X_ORIGIN[4]  = { GAME_GUTTER, GAME_GUTTER+150.0f, GAME_GUTTER+200.0f,	GAME_GUTTER+270.0f };
+	static const float Y_ORIGIN		= GAME_GUTTER;
+	static const float SPACING		= GAME_GUTTER;
+	float yPos = GAME_GUTTER;
+
+	victory.SetPos( X_ORIGIN[DESC], yPos );
+	yPos += SPACING;
+
+	for( int i=0; i<TEXT_ROW; ++i ) {
+		textTable[i*TEXT_COL].SetPos( X_ORIGIN[DESC], yPos );
+		textTable[i*TEXT_COL+1].SetPos( X_ORIGIN[COUNT], yPos );
+		textTable[i*TEXT_COL+2].SetPos( X_ORIGIN[SCORE], yPos );
+		yPos += SPACING;
+	}
+	for( int i=0; i<ITEM_NUM; ++i ) {
+		items[i].SetPos( X_ORIGIN[ITEM], Y_ORIGIN + (float)i*SPACING );
+	}
+	totalScoreValue.SetPos( X_ORIGIN[SCORE], yPos );
+	totalScoreLabel.SetPos( X_ORIGIN[DESC], yPos );
+	okayButton.SetPos( 0, (float)(port.UIHeight() - (GAME_BUTTON_SIZE + 5)) );
 }
 
 
