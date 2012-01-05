@@ -130,6 +130,14 @@ TacticalUnitScoreScene::~TacticalUnitScoreScene()
 {
 }
 
+
+void TacticalUnitScoreScene::Resize()
+{
+	const Screenport& port = GetEngine()->GetScreenport();
+	backgroundUI.background.SetSize( port.UIWidth(), port.UIHeight() );
+}
+
+
 void TacticalUnitScoreScene::Activate()
 {
 	GetEngine()->SetMap( 0 );

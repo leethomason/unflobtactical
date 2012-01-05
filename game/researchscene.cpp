@@ -37,43 +37,35 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 	background.Init( &gamui2D, backgroundAtom, false );
 	background.SetSize( port.UIWidth(), port.UIHeight() );
 
-	static const float SPACE = 5.0f;
-	static const float X0 = GAME_BUTTON_SIZE_F + GAME_GUTTER;
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 	const ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
 
 	title.Init( &gamui2D );
-	title.SetPos( X0, 0 );
 	title.SetText( "title" );
+
+	static const float X0 = GAME_BUTTON_SIZE_F + GAME_GUTTER;
 
 	mainDescription.Init( &gamui2D );
 	mainDescription.SetSize( port.UIWidth() - GAME_GUTTER - X0, 200 );
-	mainDescription.SetPos( X0, GAME_GUTTER );
 	mainDescription.SetText( "description" );
 
 	image.Init( &gamui2D, Game::CalcDecoAtom( DECO_RESEARCH, true ), true );
-	image.SetPos( 0, 0 );
 	image.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 
 	RenderAtom nullAtom;
 	researchImage.Init( &gamui2D, nullAtom, true );
-	researchImage.SetPos( image.X(), image.Y()+image.Height()+GAME_GUTTER );
 	researchImage.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F*2.0f );
 
 	for( int i=0; i<MAX_OPTIONS; ++i ) {
-		float y = port.UIHeight() - (SPACE+GAME_BUTTON_SIZE_F)*(float)(MAX_OPTIONS-i) + SPACE;
 
 		optionButton[i].Init( &gamui2D, blue );
 		optionButton[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-		optionButton[i].SetPos( X0, y );
 		optionButton[i].SetText( "test" );
 
 		optionName[i].Init( &gamui2D );
-		optionName[i].SetPos( X0+GAME_GUTTER+GAME_BUTTON_SIZE_F, y+5 );
 		optionName[i].SetText( "Research" );
 
 		optionRequires[i].Init( &gamui2D );
-		optionRequires[i].SetPos(  X0+GAME_GUTTER+GAME_BUTTON_SIZE_F, y+25 );
 		optionRequires[i].SetText( "Requires" );
 
 		if ( i ) {
@@ -83,12 +75,10 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 
 	okayButton.Init( &gamui2D, blue );
 	okayButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	okayButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	okayButton.SetDeco(	Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
 						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	helpButton.Init( &gamui2D, green );
-	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	helpButton.SetDeco(  Game::CalcDecoAtom( DECO_HELP, true ), Game::CalcDecoAtom( DECO_HELP, false ) );	
 
@@ -99,6 +89,29 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 
 ResearchScene::~ResearchScene()
 {
+}
+
+
+void ResearchScene::Resize()
+{
+	const Screenport& port = GetEngine()->GetScreenport();
+	background.SetSize( port.UIWidth(), port.UIHeight() );
+
+	static const float SPACE = 5.0f;
+	static const float X0 = GAME_BUTTON_SIZE_F + GAME_GUTTER;
+	title.SetPos( X0, 0 );
+	mainDescription.SetPos( X0, GAME_GUTTER );
+	image.SetPos( 0, 0 );
+	researchImage.SetPos( image.X(), image.Y()+image.Height()+GAME_GUTTER );
+
+	for( int i=0; i<MAX_OPTIONS; ++i ) {
+		float y = port.UIHeight() - (SPACE+GAME_BUTTON_SIZE_F)*(float)(MAX_OPTIONS-i) + SPACE;
+		optionButton[i].SetPos( X0, y );
+		optionName[i].SetPos( X0+GAME_GUTTER+GAME_BUTTON_SIZE_F, y+5 );
+		optionRequires[i].SetPos(  X0+GAME_GUTTER+GAME_BUTTON_SIZE_F, y+25 );
+	}
+	okayButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
 }
 
 

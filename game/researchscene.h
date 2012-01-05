@@ -39,6 +39,7 @@ public:
 	virtual ~ResearchScene();
 
 	virtual void Activate()		{}
+	virtual void Resize();
 
 	// UI
 	virtual void Tap(	int count, 

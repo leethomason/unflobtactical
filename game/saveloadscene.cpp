@@ -23,29 +23,21 @@ SaveLoadScene::SaveLoadScene( Game* _game, const SaveLoadSceneData* _data ) : Sc
 	//backButton.SetText( "Cancel" );
 	backButton.SetDeco(	Game::CalcDecoAtom( DECO_CANCEL, true ),
 						Game::CalcDecoAtom( DECO_CANCEL, false ) );	
-	backButton.SetPos( GAME_GUTTER, 
-					   port.UIHeight() - GAME_BUTTON_SIZE_F - GAME_GUTTER );
 
 	okayButton.Init( &gamui2D, blue );
 	okayButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	//okayButton.SetText( "Okay" );
 	okayButton.SetDeco(	Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
 						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
-	okayButton.SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F - GAME_GUTTER, 
-					   port.UIHeight() - GAME_BUTTON_SIZE_F - GAME_GUTTER );
 
 	confirmText.Init( &gamui2D );
-	confirmText.SetPos( okayButton.X() - 180, okayButton.Y()+30 );
 
 	saveButton.Init( &gamui2D, blue );
 	saveButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	saveButton.SetText( "Save" );
-	saveButton.SetPos( GAME_GUTTER, GAME_GUTTER );
 
 	loadButton.Init( &gamui2D, blue );
 	loadButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 	loadButton.SetText( "Load" );
-	loadButton.SetPos( GAME_GUTTER, saveButton.Y() + deltaY );
 
 	saveButton.AddToToggleGroup( &loadButton );
 	loadButton.SetDown();		// safer default
@@ -59,14 +51,9 @@ SaveLoadScene::SaveLoadScene( Game* _game, const SaveLoadSceneData* _data ) : Sc
 		char buf[10];
 		SNPrintf( buf, 10, "%d", i+1 );
 		slotButton[i].SetText( buf );
-		slotButton[i].SetPos( 120, GAME_GUTTER + deltaY*(float)i );
-		if ( i > 0 ) {
-			slotButton[0].AddToToggleGroup( &slotButton[i] );
-		}
+		slotButton[0].AddToToggleGroup( &slotButton[i] );
 		slotText[i].Init( &gamui2D );
-		slotText[i].SetPos( slotButton[i].X() + slotButton[i].Width() + GAME_GUTTER, slotButton[i].Y() );
 		slotTime[i].Init( &gamui2D );
-		slotTime[i].SetPos( slotText[i].X(), slotText[i].Y()+gamui2D.GetTextHeight() );
 		
 		GLString t;
 		CStr<16> str = "<empty>";
@@ -89,6 +76,32 @@ SaveLoadScene::SaveLoadScene( Game* _game, const SaveLoadSceneData* _data ) : Sc
 SaveLoadScene::~SaveLoadScene()
 {
 }
+
+void SaveLoadScene::Resize()
+{
+	const Screenport& port = GetEngine()->GetScreenport();
+	background.SetSize( port.UIWidth(), port.UIHeight() );
+
+	LayoutCalculator layout( port.UIWidth(), port.UIHeight() );
+
+	layout.SetGutter( GAME_GUTTER );
+	layout.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	//layout.SetSpacing( GAME_BUTTON_SPACING * 0.5f );
+
+	layout.PosAbs( &backButton, 0, -1 );
+	layout.PosAbs( &okayButton, -1, -1 );
+	confirmText.SetPos( okayButton.X() - 150, okayButton.Y()+40 );
+
+	layout.PosAbs( &saveButton, 0, 0 );
+	layout.PosAbs( &loadButton, 0, 1 );
+
+	for( int i=0; i<SAVE_SLOTS; ++i ) {
+		layout.PosAbs( &slotButton[i], 2, i );
+		layout.PosAbs( &slotText[i], 3, i );
+		layout.PosAbs( &slotTime[i], 4, i );
+	}
+}
+
 
 void SaveLoadScene::Tap( int action, const grinliz::Vector2F& screen, const grinliz::Ray& world )
 {
