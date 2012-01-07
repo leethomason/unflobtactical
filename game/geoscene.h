@@ -69,6 +69,7 @@ static const float UFO_ACCEL = 0.2f;	// units/second2
 
 static const float COST_MULT_CAP = 1.5f;
 static const float COST_MULT_STD = 2.0f;
+static const float COST_MULT_HIGH = 4.0f;
 
 const static U32 SECOND			= 1000;
 const static U32 MINUTE			= 60 *SECOND;
@@ -306,7 +307,7 @@ private:
 	void FireBaseWeapons();
 	void UpdateMissiles( U32 deltaTime );
 	void GenerateCities();
-	bool AnyRegionHasTrait( int trait );
+	//bool AnyRegionHasTrait( int trait );
 
 	bool PlaceBase( const grinliz::Vector2I& map );
 #ifndef IMMEDIATE_BUY
