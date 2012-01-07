@@ -730,9 +730,11 @@ int Unit::CalcWeaponTURemaining( float subtract ) const
 
 	float remainingTU = TU() - subtract;
 	for( int i=WeaponItemDef::BASE_MODES-1; i>=0; --i ) {
-		float tu = FireTimeUnits( i );
-		if ( remainingTU >= tu ) {
-			return i;
+		if ( wid->HasWeapon( i ) ) {
+			float tu = FireTimeUnits( i );
+			if ( remainingTU >= tu ) {
+				return i;
+			}
 		}
 	}
 	return NO_TIME;

@@ -938,6 +938,12 @@ void BattleScene::PushEndScene()
 			}
 		}
 	}
+	if ( game->battleData.CalcResult() == BattleData::DEFEAT ) {
+		// The Civs don't make it.
+		for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i ) {
+			units[i].Kill( 0, false );
+		}
+	}
 	// If the tech isn't high enough, can't use cells and anti
 	const Research* research = game->GetResearch();
 	if ( research ) {
