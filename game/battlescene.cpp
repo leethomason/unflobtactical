@@ -244,8 +244,8 @@ void BattleScene::Resize()
 	const float SIZE = 50.0f;
 	const Screenport& port = GetEngine()->GetScreenport();
 
-	turnImage.SetPos( float(port.UIWidth()-50), 0 );
-	alienTargetImage.SetPos( float(port.UIWidth()-25), 0 );
+	turnImage.SetPos( float(port.UIWidth()-SIZE), 0 );
+	alienTargetImage.SetPos( float(port.UIWidth()-SIZE/2), 0 );
 	alienTargetText.SetPos( alienTargetImage.X()+5, alienTargetImage.Y()+2 );
 
 	UIItem* items[6] = { &invButton,  
@@ -254,6 +254,7 @@ void BattleScene::Resize()
 							&exitButton,
 							&targetButton, 
 							&controlButton[0] };
+
 	Gamui::Layout( items, 6, 1, 6, 0, 0, SIZE, (float)port.UIHeight() );
 
 	controlButton[1].SetPos( SIZE, port.UIHeight()-SIZE );
@@ -2770,8 +2771,8 @@ void BattleScene::CalcTeamTargets()
 				//e.Dump();
 
 				// Check team change.
-				Rectangle2I teamRange( range[srcTeam].x, dst, 0, 0 );
-				teamRange.DoUnion( range[srcTeam].y, 1 );
+				Rectangle2I teamRange( range[srcTeam].x, dst, 
+									   range[srcTeam].y-range[srcTeam].x, 1 );
 
 				// No one on this team, prior to this check, could see the unit.
 				if ( unitVis.IsRectEmpty( teamRange ) )
