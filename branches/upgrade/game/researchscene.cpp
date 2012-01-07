@@ -101,7 +101,9 @@ void ResearchScene::Resize()
 	static const float X0 = GAME_BUTTON_SIZE_F + GAME_GUTTER;
 	title.SetPos( X0, 0 );
 	mainDescription.SetPos( X0, GAME_GUTTER );
+	mainDescription.SetSize( port.UIWidth() - GAME_GUTTER - X0, 200 );
 	image.SetPos( 0, 0 );
+
 	researchImage.SetPos( image.X(), image.Y()+image.Height()+GAME_GUTTER );
 
 	for( int i=0; i<MAX_OPTIONS; ++i ) {

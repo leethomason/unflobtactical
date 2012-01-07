@@ -348,6 +348,7 @@ void Game::PushPopScene()
 
 		if ( !sceneStack.Empty() ) {
 			sceneStack.Top()->scene->Activate();
+			sceneStack.Top()->scene->Resize();
 			if ( result != INT_MIN ) {
 				sceneStack.Top()->scene->SceneResult( id, result );
 			}
@@ -392,6 +393,7 @@ void Game::PushPopScene()
 		sceneQueued.Free();
 
 		node->scene->Activate();
+		node->scene->Resize();
 
 		if ( oldTop ) 
 			oldTop->scene->ChildActivated( node->sceneID, node->scene, node->data );
@@ -456,8 +458,6 @@ void Game::CreateScene( const SceneNode& in, SceneNode* node )
 	node->sceneID = in.sceneID;
 	node->data = in.data;
 	node->result = INT_MIN;
-
-	scene->Resize();
 }
 
 
@@ -837,11 +837,7 @@ void Game::DeviceLoss()
 void Game::Resize( int width, int height, int rotation ) 
 {
 	screenport.Resize( width, height, rotation );
-	//sceneStack.Top()->scene->Resize();
-	// Resize entire stack so we don't return to screwed up scene.
-	for( SceneNode* node = sceneStack.BeginTop(); node; node = sceneStack.Next() ) {
-		node->scene->Resize();
-	}
+	sceneStack.Top()->scene->Resize();
 }
 
 
