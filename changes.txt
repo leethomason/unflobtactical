@@ -35,8 +35,12 @@
 	- check on Samsung
 
 
-Release v2.6
+Release v2.6.1 b793
+Update for Fire
+- Fixes "can target aliens you can't see"
+- Switches off android rotation in game, use OS rotation (Fire fix)
 
+Release v2.6
 New aliens! Improved graphics! Flares and smoke! 2.6 is a big upgrade to the game,
 with bug fixes thrown in as well.
 

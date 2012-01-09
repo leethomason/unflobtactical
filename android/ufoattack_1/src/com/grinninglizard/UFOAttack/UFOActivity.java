@@ -213,13 +213,14 @@ class DemoGLSurfaceView extends GLSurfaceView { 	//implements MultiTouchObjectCa
 	@Override
 	public boolean onTrackballEvent(MotionEvent event) {
 		
-		// NEXUS-ONE does fine with 1.0, Droid Inc likes the 0.5f
+		// NEXUS-ONE does fine with 1.0, Droid Incredible likes the 0.5f
+		// Very few trackballs left these days.
 		float ATTENUATION = 0.5f;
 		 
-		if ( event.getX() != 0 )
-			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ZOOM, GAME_ZOOM_DISTANCE, 0, 0, -event.getX()*ATTENUATION ) );
 		if ( event.getY() != 0 )
-			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ROTATE, 0, 0, 0, event.getY()*90.0f*ATTENUATION ) );
+			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ZOOM, GAME_ZOOM_DISTANCE, 0, 0, event.getY()*ATTENUATION ) );
+		if ( event.getX() != 0 )
+			queueEvent( new RendererEvent( mRenderer, RendererEvent.TYPE_ROTATE, 0, 0, 0, event.getX()*90.0f*ATTENUATION ) );
 		return true;
 	}
 	

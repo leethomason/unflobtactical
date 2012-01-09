@@ -106,11 +106,11 @@ void
 Java_com_grinninglizard_UFOAttack_UFORenderer_nativeResize( JNIEnv*  env, jobject  thiz, jint w, jint h )
 {
 	if ( game == 0 ) {
-		game = NewGame( w, h, 1, androidSavePath );
+		game = NewGame( w, h, 0, androidSavePath );
 	}
 	else {
 		//GameDeviceLoss( game );
-		GameResize( game, w, h, 1 );
+		GameResize( game, w, h, 0 );
 	}
 	
     __android_log_print(ANDROID_LOG_INFO, "UFOAttack", "resize w=%d h=%d", w, h);

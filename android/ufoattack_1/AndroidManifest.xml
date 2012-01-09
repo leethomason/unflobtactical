@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="com.grinninglizard.UFOAttack" android:installLocation="auto" android:versionCode="10" android:versionName="2.6">
+      package="com.grinninglizard.UFOAttack" android:installLocation="auto" android:versionName="2.6.1" android:versionCode="11">
     <application android:label="Xenowar" android:icon="@drawable/androidicon48" android:debuggable="false">
-        <activity android:name=".UFOActivity" android:label="Xenowar" android:screenOrientation="portrait" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:launchMode="singleInstance">
+        <activity android:name=".UFOActivity" android:label="Xenowar" android:screenOrientation="landscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
