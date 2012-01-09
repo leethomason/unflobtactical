@@ -1,0 +1,59 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ufoattack", "ufoattack.vcxproj", "{26527007-5B22-4080-8459-76330876BC26}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ufobuilder", "ufobuilder.vcxproj", "{9DD68418-EE20-4197-AB3A-9F51B99B9834}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ufolib", "win32\ufolib\ufolib.vcxproj", "{C420D075-5C6A-4C40-800A-069AECE4B518}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gamedbreader", "gamedbreader\gamedbreader.vcxproj", "{C104CD2C-FF36-40F0-9083-6CE370AF9B1A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ADE0E303-3E2E-4F11-9319-954ADDA2579C} = {ADE0E303-3E2E-4F11-9319-954ADDA2579C}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "extlib", "win32\extlib\extlib.vcxproj", "{ADE0E303-3E2E-4F11-9319-954ADDA2579C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gamui", "gamui\gamui.vcxproj", "{A734A817-DAC6-48BE-99B2-F3D27B576C33}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "faces", "faces\faces.vcxproj", "{EA21CE6E-0EB0-437A-BA0D-B5F5C9C2A0F5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{26527007-5B22-4080-8459-76330876BC26}.Debug|Win32.ActiveCfg = Debug|Win32
+		{26527007-5B22-4080-8459-76330876BC26}.Debug|Win32.Build.0 = Debug|Win32
+		{26527007-5B22-4080-8459-76330876BC26}.Release|Win32.ActiveCfg = Release|Win32
+		{26527007-5B22-4080-8459-76330876BC26}.Release|Win32.Build.0 = Release|Win32
+		{9DD68418-EE20-4197-AB3A-9F51B99B9834}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9DD68418-EE20-4197-AB3A-9F51B99B9834}.Debug|Win32.Build.0 = Debug|Win32
+		{9DD68418-EE20-4197-AB3A-9F51B99B9834}.Release|Win32.ActiveCfg = Release|Win32
+		{9DD68418-EE20-4197-AB3A-9F51B99B9834}.Release|Win32.Build.0 = Release|Win32
+		{C420D075-5C6A-4C40-800A-069AECE4B518}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C420D075-5C6A-4C40-800A-069AECE4B518}.Debug|Win32.Build.0 = Debug|Win32
+		{C420D075-5C6A-4C40-800A-069AECE4B518}.Release|Win32.ActiveCfg = Release|Win32
+		{C420D075-5C6A-4C40-800A-069AECE4B518}.Release|Win32.Build.0 = Release|Win32
+		{C104CD2C-FF36-40F0-9083-6CE370AF9B1A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C104CD2C-FF36-40F0-9083-6CE370AF9B1A}.Debug|Win32.Build.0 = Debug|Win32
+		{C104CD2C-FF36-40F0-9083-6CE370AF9B1A}.Release|Win32.ActiveCfg = Release|Win32
+		{C104CD2C-FF36-40F0-9083-6CE370AF9B1A}.Release|Win32.Build.0 = Release|Win32
+		{ADE0E303-3E2E-4F11-9319-954ADDA2579C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ADE0E303-3E2E-4F11-9319-954ADDA2579C}.Debug|Win32.Build.0 = Debug|Win32
+		{ADE0E303-3E2E-4F11-9319-954ADDA2579C}.Release|Win32.ActiveCfg = Release|Win32
+		{ADE0E303-3E2E-4F11-9319-954ADDA2579C}.Release|Win32.Build.0 = Release|Win32
+		{A734A817-DAC6-48BE-99B2-F3D27B576C33}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A734A817-DAC6-48BE-99B2-F3D27B576C33}.Debug|Win32.Build.0 = Debug|Win32
+		{A734A817-DAC6-48BE-99B2-F3D27B576C33}.Release|Win32.ActiveCfg = Release|Win32
+		{A734A817-DAC6-48BE-99B2-F3D27B576C33}.Release|Win32.Build.0 = Release|Win32
+		{EA21CE6E-0EB0-437A-BA0D-B5F5C9C2A0F5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EA21CE6E-0EB0-437A-BA0D-B5F5C9C2A0F5}.Debug|Win32.Build.0 = Debug|Win32
+		{EA21CE6E-0EB0-437A-BA0D-B5F5C9C2A0F5}.Release|Win32.ActiveCfg = Release|Win32
+		{EA21CE6E-0EB0-437A-BA0D-B5F5C9C2A0F5}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

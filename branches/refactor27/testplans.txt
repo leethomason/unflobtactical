@@ -1,0 +1,43 @@
+Test Plans
+
+Save/Load
+  - does continue work?
+  - do slots work?
+
+  Start geo game
+  Quit, continue
+  check research
+
+  continue
+  go to subscreen (base equip)
+  check research
+
+  continue
+  save to slot 1
+  play
+  restore from slot
+
+  go to tactical
+  save 2
+  restore slot 1 (back to geo)
+  restore slot 2 (back to tac)
+  play
+  quit, continue
+
+  ---
+  new tactical
+  go subscreen
+  quit, continue
+  save slot 3
+  restore slot 1 (geo)
+  restore slot 2 (tac)
+  abort mission to geo
+  quit, continue
+  restore slot 3 (tac)
+  abort mission to main screen
+
+Base attack
+	Save game
+	win base attack - do you get stuff?
+				    - does influence drop?
+	lose base attack - is base destroyed?

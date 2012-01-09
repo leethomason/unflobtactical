@@ -1,0 +1,267 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug Mapmaker|Win32">
+      <Configuration>Debug Mapmaker</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{26527007-5B22-4080-8459-76330876BC26}</ProjectGuid>
+    <RootNamespace>ufoattack</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Mapmaker|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug Mapmaker|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)\win32\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)\win32\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)\win32\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)\win32\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug Mapmaker|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug Mapmaker|Win32'">$(Configuration)\</IntDir>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>GRINLIZ_NO_STL;_CRT_SECURE_NO_WARNINGS;UFO_WIN32_SDL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winhttp.lib;sdl.lib;sdlmain.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>GRINLIZ_NO_STL;_CRT_SECURE_NO_WARNINGS;UFO_WIN32_SDL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winhttp.lib;sdlmain.lib;sdl.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateMapFile>true</GenerateMapFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Mapmaker|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS; MAPMAKER;UFO_WIN32_SDL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>sdl.lib;sdlmain.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="engine\gpustatemanager.cpp" />
+    <ClCompile Include="faces\faces.cpp" />
+    <ClCompile Include="game\ai.cpp" />
+    <ClCompile Include="game\areaWidget.cpp" />
+    <ClCompile Include="game\basetradescene.cpp" />
+    <ClCompile Include="game\battledata.cpp" />
+    <ClCompile Include="game\battlescene.cpp" />
+    <ClCompile Include="game\battlevisibility.cpp" />
+    <ClCompile Include="game\buildbasescene.cpp" />
+    <ClCompile Include="game\cgame.cpp" />
+    <ClCompile Include="game\characterscene.cpp" />
+    <ClCompile Include="game\chits.cpp" />
+    <ClCompile Include="game\consolewidget.cpp" />
+    <ClCompile Include="game\dialogscene.cpp" />
+    <ClCompile Include="game\fastbattlescene.cpp" />
+    <ClCompile Include="game\firewidget.cpp" />
+    <ClCompile Include="game\game.cpp" />
+    <ClCompile Include="game\gameresources.cpp" />
+    <ClCompile Include="game\geoai.cpp" />
+    <ClCompile Include="game\geoendscene.cpp" />
+    <ClCompile Include="game\geomap.cpp" />
+    <ClCompile Include="game\geoscene.cpp" />
+    <ClCompile Include="game\helpscene.cpp" />
+    <ClCompile Include="game\inventory.cpp" />
+    <ClCompile Include="game\inventoryWidget.cpp" />
+    <ClCompile Include="game\item.cpp" />
+    <ClCompile Include="game\research.cpp" />
+    <ClCompile Include="game\researchscene.cpp" />
+    <ClCompile Include="game\saveloadscene.cpp" />
+    <ClCompile Include="game\scene.cpp" />
+    <ClCompile Include="game\settings.cpp" />
+    <ClCompile Include="game\settingscene.cpp" />
+    <ClCompile Include="game\stats.cpp" />
+    <ClCompile Include="game\storageWidget.cpp" />
+    <ClCompile Include="game\tacmap.cpp" />
+    <ClCompile Include="game\tacticalendscene.cpp" />
+    <ClCompile Include="game\tacticalintroscene.cpp" />
+    <ClCompile Include="game\tacticalunitscorescene.cpp" />
+    <ClCompile Include="game\ufosound.cpp" />
+    <ClCompile Include="game\unit.cpp" />
+    <ClCompile Include="tinyxml\tinystr.cpp" />
+    <ClCompile Include="tinyxml\tinyxml.cpp" />
+    <ClCompile Include="tinyxml\tinyxmlerror.cpp" />
+    <ClCompile Include="tinyxml\tinyxmlparser.cpp" />
+    <ClCompile Include="win32\audio.cpp" />
+    <ClCompile Include="win32\glew.c" />
+    <ClCompile Include="win32\main.cpp" />
+    <ClCompile Include="engine\camera.cpp" />
+    <ClCompile Include="engine\engine.cpp" />
+    <ClCompile Include="engine\fixedgeom.cpp" />
+    <ClCompile Include="engine\loosequadtree.cpp" />
+    <ClCompile Include="engine\map.cpp" />
+    <ClCompile Include="micropather\micropather.cpp" />
+    <ClCompile Include="engine\model.cpp" />
+    <ClCompile Include="engine\particle.cpp" />
+    <ClCompile Include="engine\particleeffect.cpp" />
+    <ClCompile Include="engine\renderqueue.cpp" />
+    <ClCompile Include="engine\screenport.cpp" />
+    <ClCompile Include="engine\serialize.cpp" />
+    <ClCompile Include="engine\surface.cpp" />
+    <ClCompile Include="engine\text.cpp" />
+    <ClCompile Include="engine\texture.cpp" />
+    <ClCompile Include="engine\ufoutil.cpp" />
+    <ClCompile Include="engine\uirendering.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="engine\gpustatemanager.h" />
+    <ClInclude Include="faces\faces.h" />
+    <ClInclude Include="game\ai.h" />
+    <ClInclude Include="game\areaWidget.h" />
+    <ClInclude Include="game\basetradescene.h" />
+    <ClInclude Include="game\battledata.h" />
+    <ClInclude Include="game\battlescene.h" />
+    <ClInclude Include="game\battlescenedata.h" />
+    <ClInclude Include="game\battlevisibility.h" />
+    <ClInclude Include="game\buildbasescene.h" />
+    <ClInclude Include="game\cgame.h" />
+    <ClInclude Include="game\characterscene.h" />
+    <ClInclude Include="game\chits.h" />
+    <ClInclude Include="game\consolewidget.h" />
+    <ClInclude Include="game\dialogscene.h" />
+    <ClInclude Include="game\fastbattlescene.h" />
+    <ClInclude Include="game\firewidget.h" />
+    <ClInclude Include="game\game.h" />
+    <ClInclude Include="game\gamelimits.h" />
+    <ClInclude Include="game\geoai.h" />
+    <ClInclude Include="game\geoendscene.h" />
+    <ClInclude Include="game\geomap.h" />
+    <ClInclude Include="game\geoscene.h" />
+    <ClInclude Include="game\helpscene.h" />
+    <ClInclude Include="game\inventory.h" />
+    <ClInclude Include="game\inventoryWidget.h" />
+    <ClInclude Include="game\item.h" />
+    <ClInclude Include="game\research.h" />
+    <ClInclude Include="game\researchscene.h" />
+    <ClInclude Include="game\saveloadscene.h" />
+    <ClInclude Include="game\scene.h" />
+    <ClInclude Include="game\settings.h" />
+    <ClInclude Include="game\settingscene.h" />
+    <ClInclude Include="game\stats.h" />
+    <ClInclude Include="game\storageWidget.h" />
+    <ClInclude Include="game\tacmap.h" />
+    <ClInclude Include="game\tacticalendscene.h" />
+    <ClInclude Include="game\tacticalintroscene.h" />
+    <ClInclude Include="game\tacticalunitscorescene.h" />
+    <ClInclude Include="game\targets.h" />
+    <ClInclude Include="game\ufosound.h" />
+    <ClInclude Include="game\unit.h" />
+    <ClInclude Include="tinyxml\tinystr.h" />
+    <ClInclude Include="tinyxml\tinyxml.h" />
+    <ClInclude Include="win32\audio.h" />
+    <ClInclude Include="win32\glew.h" />
+    <ClInclude Include="win32\wglew.h" />
+    <ClInclude Include="engine\camera.h" />
+    <ClInclude Include="engine\engine.h" />
+    <ClInclude Include="engine\enginelimits.h" />
+    <ClInclude Include="engine\fixedgeom.h" />
+    <ClInclude Include="engine\loosequadtree.h" />
+    <ClInclude Include="engine\map.h" />
+    <ClInclude Include="micropather\micropather.h" />
+    <ClInclude Include="engine\model.h" />
+    <ClInclude Include="engine\particle.h" />
+    <ClInclude Include="engine\particleeffect.h" />
+    <ClInclude Include="engine\platformgl.h" />
+    <ClInclude Include="engine\renderqueue.h" />
+    <ClInclude Include="engine\screenport.h" />
+    <ClInclude Include="engine\serialize.h" />
+    <ClInclude Include="engine\surface.h" />
+    <ClInclude Include="engine\text.h" />
+    <ClInclude Include="engine\texture.h" />
+    <ClInclude Include="engine\ufoutil.h" />
+    <ClInclude Include="engine\uirendering.h" />
+    <ClInclude Include="engine\vertex.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="win32\extlib\extlib.vcxproj">
+      <Project>{ade0e303-3e2e-4f11-9319-954adda2579c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="win32\ufolib\ufolib.vcxproj">
+      <Project>{c420d075-5c6a-4c40-800a-069aece4b518}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,19 @@
+<Map sizeX="64" sizeY="64" >
+    <Items >
+        <Item x="8" y="14" name="tree2" />
+        <Item x="2" y="12" name="tree" />
+        <Item x="3" y="14" name="tree2" />
+        <Item x="13" y="4" name="tree" />
+        <Item x="12" y="3" name="tree" />
+        <Item x="5" y="2" name="tree" />
+        <Item x="0" y="0" name="tree" />
+        <Item x="3" y="11" rot="1" name="lander" />
+    </Items>
+    <Images >
+        <Image x="0" y="0" size="16" tileRotation="0" name="FARM_16_LAND_00" />
+    </Images>
+    <GroundDebris >
+    </GroundDebris>
+    <PyroGroup >
+    </PyroGroup>
+</Map>

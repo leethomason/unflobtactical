@@ -1,0 +1,139 @@
+- sync to source control
+- run setversion
+- build win32 debug & release
+- run makeres.bat
+- check android API version. manifest: <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7"/> (easy to tweak during dev and forget.)
+- set android manifest debuggable=false
+- check Win32 build=Release
+- check NDK APP_OPTIM := release in Application.mk
+- up the android version code AND version name in the manifest
+
+- build win32 
+- test win32
+
+- build android - refresh before building.
+  /cygdrive/c/src/android-ndk-r5b/ndk-build
+  /cygdrive/c/src/android-ndk-r5b/ndk-build -B		builds all
+
+- test Nexus One. Check version is correct.
+- upload to website
+	- win32
+		- buildrelease.bat
+		- zip up xenowar subdirectory
+	- android
+		- down in unflobtactical\android\ufoattack_1\bin
+		- grab apk and rename
+	Go!
+
+
+- test incredible (from website)
+- test galaxy tab (from website)
+
+- Sign & Publish
+	- http://developer.android.com/guide/publishing/app-signing.html#ExportWizard
+	- publish
+	- check on Samsung
+
+
+Release v2.6.1 b793
+Update for Fire
+- Fixes "can target aliens you can't see"
+- Switches off android rotation in game, use OS rotation (Fire fix)
+
+Release v2.6
+New aliens! Improved graphics! Flares and smoke! 2.6 is a big upgrade to the game,
+with bug fixes thrown in as well.
+
+Special thanks to Johan Forsberg for the icon graphics.
+
+- Researching alien corpses now shows you a picture of the alien.
+- New title screen.
+- Updated help images.
+- Psi attacks & squid. Psi shields.
+- Addition 2-stage alien.
+- Reworked MCAN. No longer has snap fire. Added flares and smoke rockets, which explode at distance.
+- Added new background images.
+- Fixed the alien AI to detect weapon blasts.
+- Fixed some (scary) save/load bugs.
+- Can no longer "sell all" soldiers and scientists
+
+
+Release v2.5
+
+Improved text quality, additional save game support, and many bug fixes.
+
+- Save game support.
+- Higher quality text rendering. Text should look crisper across all screens.
+- Support for font modding.
+- Hired soldiers sell/fire for much less money. Fixes expoit.
+- Aliens should now calculate line of site correctly and not blast walls repeatedly
+- Reaction fire AI greatly improved. Should shoot own team, blow up weapons in face, much less often.
+- Sometimes units don't scroll onscreen - fixed.
+- Some bugs in visibility detection were fixed. Soldiers should no longer stop needlessly 
+  when an enemy has already been spotted by a teammate.
+- New battleship model.
+- Builder.exe is now hardened somewhat against bad inputs, and gives more errors. Particuarly will now detect correct texture sizes.
+- Map objects that are destroyed no longer obscure vision. (Blocking items works; obscuring items did not.)
+
+
+Release v2.4 b691 Android / Windows
+Now supports mod files, so you can use or create alternate graphics for the game. Also
+many gameplay fixes and tweaks to smooth out the geo-game.
+
+- Mod file support! Check out README.txt for info.
+- Item descriptions (to some degree)
+- Gameplay: lost UFOs now get a cash bonus instead of XP
+- Gameplay: research dependencies fixed
+- UI: tweaked the inventory screen to hopefully be neater
+- Help: new images, cleaned up errors
+- Rebalanced begin game vs. end game cash flow (special thanks to Reenen in the forums for feedback on this and other issues.)
+- Tap to upgrade weapons / armor in inventory UI
+- Fix to research dependencies
+
+Xenowar_688_beta
+- Mod file support! Check out README.txt for info.
+- Item descriptions
+- Gameplay: lost UFOs now get a cash bonus instead of XP
+- Gameplay: research dependencies fixed
+- UI: tweaked the inventory screen to hopefully be neater
+- Help: new images, cleaned up errors
+- Rebalanced begin game vs. end game cash flow (special thanks to Reenen in the forums for feedback on this and other issues.)
+- Tap to upgrade weapons / armor in inventory UI
+
+Alpha 685
+Windows Only
+- Mod file support! Check out README.txt for info.
+- Item descriptions
+- Gameplay: lost UFOs now get a cash bonus instead of XP
+- Gameplay: research dependencies fixed
+- UI: tweaked the inventory screen to hopefully be neater
+- Help: new images, cleaned up errors
+
+
+Changes in 2.3 v5 672
+Release v2.3 b672
+Meet the troops! A new face renderer gives identity and a unique look to the units. 2.3 also adds line-of-sight preview when firing and bug fixes.
+
+- Face rendering!
+- Preview line-of-sight when firing
+- Warning displays if you are about to send out unarmed units or a too-small squad.
+- Can now attack Battleships that have occupied capitals
+- Adjusted UI to accommodate faces.
+- Move confirmation applies to drag
+
+Changes in 2.2 v4 b660
+Release v2.2 b660 Windows 
+- Increased contrast in walking dots.
+- Added settings UI
+- Added move confirmation
+- Added dot overlay on main screen
+
+Improved UI for Android now shows movement path and confirms move. Also a settings UI to toggle features of the game and improved "walking dots" graphics.
+
+Changes in 2.1 v3 b649:
+- Added framerate limiter on Android. Should stay ~30fps now.
+- Added the orbit button to support zoom/rotate on devices without a trackpad.
+- Work around for win32 ATI vsync issue
+
+Recent changes:
+Added the orbit button to support zoom/rotate on devices without a trackpad. Also implemented a framerate limiter: game should stay at about 30fps and consume less battery.

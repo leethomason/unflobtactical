@@ -1,0 +1,23 @@
+<Map sizeX="16" sizeY="16" >
+    <Items >
+        <Item x="11" y="12" rot="1" name="tree3" />
+        <Item x="13" y="8" rot="1" name="stonewall_unit" />
+        <Item x="13" y="9" name="stonewall_join" />
+        <Item x="12" y="9" name="stonewall_unit" />
+        <Item x="4" y="11" rot="3" name="tree" />
+        <Item x="6" y="9" name="stonewall_unit" />
+        <Item x="5" y="9" name="stonewall_unit" />
+        <Item x="9" y="5" rot="3" name="tree" />
+        <Item x="4" y="5" rot="1" name="tree2" />
+        <Item x="2" y="4" name="tree2" />
+        <Item x="12" y="3" rot="2" name="tree" />
+        <Item x="10" y="2" rot="3" name="tree" />
+    </Items>
+    <Images >
+        <Image x="0" y="0" size="16" tileRotation="0" name="CITY_16_OPEN_02" />
+    </Images>
+    <GroundDebris >
+    </GroundDebris>
+    <PyroGroup >
+    </PyroGroup>
+</Map>
