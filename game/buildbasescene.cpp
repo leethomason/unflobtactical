@@ -22,25 +22,56 @@ BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene(
 	const gamui::ButtonLook& green		= game->GetButtonLook( Game::GREEN_BUTTON );
 
 	backButton.Init( &gamui2D, blue );
-	backButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	//backButton.SetText( "Back" );
-	backButton.SetDeco(	UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ),
-						UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
+	backButton.SetDeco(	Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
+						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	helpButton.Init( &gamui2D, green );
-	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, 0 );
 	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	helpButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_HELP, true ), UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
+	helpButton.SetDeco(  Game::CalcDecoAtom( DECO_HELP, true ), Game::CalcDecoAtom( DECO_HELP, false ) );	
 
-	static const float ORIGIN_X = (port.UIWidth()-256.0f)/2.0f;
-	static const float ORIGIN_Y = 0;
-	static const float SIZE = 256;
+	const float ORIGIN_X = (port.UIWidth()-256.0f)/2.0f;
+	const float ORIGIN_Y = 0;
+	const float SIZE = 256;
 
 	RenderAtom mapAtom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE, TextureManager::Instance()->GetTexture( "basemap" ), 0, 0, 1, 1 );
 	mapImage.Init( &gamui2D, mapAtom, false );
-	mapImage.SetPos( ORIGIN_X, ORIGIN_Y );
 	mapImage.SetSize( SIZE, SIZE );
+
+	char buf[16];
+
+	for( int i=0; i<NUM_FACILITIES; ++i ) {
+		buyButton[i].Init( &gamui2D, green );
+		buyButton[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+		buyButton[i].SetText( facilityNames[i] );
+
+		SNPrintf( buf, 16, "$%d", facilityCost[i] );
+		buyButton[i].SetText2( buf );
+
+		progressLabel[i].Init( &gamui2D );
+		progressLabel[i].SetText( facilityNames[i] );
+	}
+
+	cashImage.Init( &gamui2D, Game::CalcIconAtom( ICON_GREEN_STAND_MARK ), false );
+	cashImage.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
+	cashImage.SetSlice( true );
+
+	cashLabel.Init( &gamui2D );
+
+	UpdateButtons();
+}
+
+
+void BuildBaseScene::Resize()
+{
+	const Screenport& port = GetEngine()->GetScreenport();
+	const float ORIGIN_X = (port.UIWidth()-256.0f)/2.0f;
+	const float ORIGIN_Y = 0;
+	const float SIZE = 256;
+
+	backButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, 0 );
+	mapImage.SetPos( ORIGIN_X, ORIGIN_Y );
 
 	static const Vector2F pos[NUM_FACILITIES] = {
 		{ SIZE-GAME_BUTTON_SIZE_F, (SIZE-GAME_BUTTON_SIZE_F)/2 },
@@ -49,32 +80,13 @@ BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene(
 		{ 0, 0 },
 		{ 0, (SIZE-GAME_BUTTON_SIZE_F)/2 }
 	};
-	char buf[16];
-
 	for( int i=0; i<NUM_FACILITIES; ++i ) {
-		buyButton[i].Init( &gamui2D, green );
-		buyButton[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
 		buyButton[i].SetPos( ORIGIN_X+pos[i].x, ORIGIN_Y+pos[i].y );
-		buyButton[i].SetText( facilityNames[i] );
-
-		SNPrintf( buf, 16, "$%d", facilityCost[i] );
-		buyButton[i].SetText2( buf );
-
-		progressLabel[i].Init( &gamui2D );
-		progressLabel[i].SetCenterPos( ORIGIN_X+pos[i].x, ORIGIN_Y+pos[i].y );
-		progressLabel[i].SetPos( progressLabel[i].X(), ORIGIN_Y+pos[i].y );
-		progressLabel[i].SetText( "Building..." );
+		progressLabel[i].SetCenterPos( buyButton[i].X() + buyButton[i].Width()/2,
+									   buyButton[i].Y() + gamui2D.GetTextHeight() );
 	}
-
-	cashImage.Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK ), false );
 	cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F*0.5f );
-	cashImage.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
-	cashImage.SetSlice( true );
-
-	cashLabel.Init( &gamui2D );
 	cashLabel.SetPos( cashImage.X()+10.0f, cashImage.Y()+10.0f );
-
-	UpdateButtons();
 }
 
 
@@ -85,13 +97,7 @@ void BuildBaseScene::UpdateButtons()
 			// Bought.
 			buyButton[i].SetVisible( false );
 			progressLabel[i].SetVisible( true );
-			progressLabel[i].SetText( facilityNames[i] );
 		}
-//		else if ( data->baseChit->IsFacilityInProgress( i ) ) {
-//			// Being built. Can't buy.
-//			buyButton[i].SetVisible( false );
-//			progressLabel[i].SetVisible( true );
-//		}
 		else {
 			// Can purchase.
 			buyButton[i].SetVisible( true );

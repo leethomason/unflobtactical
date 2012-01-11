@@ -522,7 +522,7 @@ Model* SpaceTree::QueryRay( const Vector3F& _origin,
 	}
 	Plane planes[6];
 	Rectangle3F rect;
-	rect.Set( p0, p1 );
+	rect.FromPair( p0, p1 );
 	Plane::CreatePlanes( rect, planes );
 
 	Model* modelRoot = Query( planes, 6, required, excluded );

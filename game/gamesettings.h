@@ -13,23 +13,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef UFO_SETTINGS_INCLUDED
-#define UFO_SETTINGS_INCLUDED
+#ifndef UFO_GAMESETTINGS_INCLUDED
+#define UFO_GAMESETTINGS_INCLUDED
 
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glstringutil.h"
+#include "../engine/settings.h"
 
-class SettingsManager
+class GameSettingsManager : public SettingsManager
 {
 public:
-	static SettingsManager* Instance()	{ GLASSERT( instance );	return instance; }
+	static GameSettingsManager* Instance()	{ GLASSERT( gameInstance );	return gameInstance; }
 
 	static void Create( const char* savepath );
 	static void Destroy();
-
-	bool GetAudioOn() const				{ return audioOn != 0; }
-	void SetAudioOn( bool value );
 
 	// read only
 	bool GetSuppressCrashLog() const	{ return suppressCrashLog != 0; }
@@ -38,9 +36,6 @@ public:
 	int GetTestAlien() const			{ return testAlien; }
 	
 	// read-write
-	void SetNumWalkingMaps(int nMaps );
-	int  GetNumWalkingMaps() const		{ return nWalkingMaps; }
-
 	void SetConfirmMove( bool confirm );
 	bool GetConfirmMove() const			{ return confirmMove; }
 
@@ -50,26 +45,24 @@ public:
 	void SetAllowDrag( bool allow );
 	bool GetAllowDrag() const			{ return allowDrag; }
 
+protected:
+	GameSettingsManager( const char* path );
+	virtual ~GameSettingsManager()	{ gameInstance = 0; }
+
+	virtual void ReadAttributes( const TiXmlElement* element );
+	virtual void WriteAttributes( FILE* fp );
+
 private:
-	SettingsManager( const char* path );
-	~SettingsManager()	{}
-	void Save();
+	static GameSettingsManager* gameInstance;
 
-	static SettingsManager* instance;
-
-	int audioOn;
 	int suppressCrashLog;
 	int playerAI;
 	int battleShipParty;
 	int testAlien;
-	int nWalkingMaps;
 	bool confirmMove;
 	bool allowDrag;
 	grinliz::GLString currentMod;
-
-	grinliz::GLString path;
-
 };
 
 
-#endif // UFO_SETTINGS_INCLUDED
+#endif // UFO_GAMESETTINGS_INCLUDED

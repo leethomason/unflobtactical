@@ -22,10 +22,6 @@
 #include "../grinliz/glrectangle.h"
 #include "../grinliz/glgeometry.h"
 
-namespace grinliz {
-	struct Rectangle2I;
-};
-
 
 struct Frustum
 {
@@ -89,7 +85,7 @@ public:
 
 	// Set the MODELVIEW from the camera.
 	void SetView( const grinliz::Matrix4& view );
-	void SetViewMatrices( const grinliz::Matrix4& _view )			{ view2D = _view; view3D = _view; }
+	void SetViewMatrices( const grinliz::Matrix4& _view )			{ view3D = _view; }
 
 	const grinliz::Matrix4& ProjectionMatrix3D() const				{ return projection3D; }
 	const grinliz::Matrix4& ViewMatrix3D() const					{ return view3D; }
@@ -109,9 +105,6 @@ public:
 	bool UIMode() const										{ return uiMode; }
 
 private:
-	//void operator=( const Screenport& other );
-
-	
 	void UIToWindow( const grinliz::Rectangle2F& ui, grinliz::Rectangle2F* clip ) const;
 
 	int rotation;		
@@ -121,12 +114,10 @@ private:
 	float physicalWidth;
 	float physicalHeight;
 
-	//float vScale, hScale;
-
 	bool uiMode;
 	grinliz::Rectangle2F clipInUI2D, clipInUI3D;
 	Frustum frustum;
-	grinliz::Matrix4 projection2D, view2D;
+	grinliz::Matrix4 projection2D;
 	grinliz::Matrix4 projection3D, view3D;
 };
 

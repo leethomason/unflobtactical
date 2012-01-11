@@ -65,8 +65,6 @@ struct TileSetDesc {
 };
 
 
-
-
 /*
 	Assets
 	---------------------------------
@@ -147,6 +145,8 @@ public:
 			RESEARCH_SCENE,
 			SETTING_SCENE,
 			SAVE_LOAD_SCENE,
+			NEW_TAC_OPTIONS,
+			NEW_GEO_OPTIONS,
 			NUM_SCENES,
 		 };
 
@@ -207,6 +207,16 @@ public:
 	const gamui::ButtonLook& GetButtonLook( int id );
 
 	Texture* CalcFaceTexture( const Unit* unit, grinliz::Rectangle2F* uv );
+
+	static gamui::RenderAtom CalcDecoAtom( int id, bool enabled=true );
+	static gamui::RenderAtom CalcParticleAtom( int id, bool enabled=true );
+	static gamui::RenderAtom CalcIconAtom( int id, bool enabled=true );
+	static gamui::RenderAtom CalcIcon2Atom( int id, bool enabled=true );
+	enum {
+		PALETTE_GREEN, PALETTE_BLUE, PALETTE_RED, PALETTE_YELLOW, PALETTE_GREY,
+		PALETTE_NORM=0, PALETTE_BRIGHT, PALETTE_DARK
+	};
+	static gamui::RenderAtom CalcPaletteAtom( int c0, int c1, int blend, bool enable=true );
 
 	// For creating some required textures:
 	virtual void CreateTexture( Texture* t );

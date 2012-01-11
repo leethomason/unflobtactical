@@ -31,7 +31,7 @@ void ModelHeader::Load( const gamedb::Item* item )
 	flags = header->GetInt( "flags" );
 	nGroups = header->GetInt( "nGroups" );
 
-	bounds.Set( 0, 0, 0, 0, 0, 0 );
+	bounds.Zero();
 	const gamedb::Item* boundsItem = header->Child( "bounds" );
 	if ( boundsItem ) {
 		bounds.min.x = boundsItem->GetFloat( "min.x" );

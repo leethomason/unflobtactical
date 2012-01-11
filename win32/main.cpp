@@ -26,7 +26,7 @@
 #include "../grinliz/glstringutil.h"
 #include "audio.h"
 #include "../version.h"
-#include "../game/settings.h"
+#include "../game/gamesettings.h"
 
 // Used for map maker mode - directly call the game object.
 #include "../game/game.h"
@@ -614,7 +614,7 @@ int main( int argc, char **argv )
 					GameZoom( game, GAME_ZOOM_DISTANCE, deltaZoom );
 					GameCameraRotate( game, (float)(zoomX)*0.5f );
 				}
-				else if ( ( ( state & SDL_BUTTON(1) ) == 0 ) && Engine::mapMakerMode ) {
+				else if ( ( ( state & SDL_BUTTON(1) ) == 0 ) ) {
 					((Game*)game)->MouseMove( x, y );
 				}
 			}

@@ -31,6 +31,8 @@
 #include "researchscene.h"
 #include "settingscene.h"
 #include "saveloadscene.h"
+#include "newtacticaloptions.h"
+#include "newgeooptions.h"
 
 #include "../engine/text.h"
 #include "../engine/model.h"
@@ -47,11 +49,12 @@
 #include "../version.h"
 
 #include "ufosound.h"
-#include "settings.h"
+#include "gamesettings.h"
 
 #include <time.h>
 
 using namespace grinliz;
+using namespace gamui;
 
 extern long memNewCount;
 
@@ -161,11 +164,11 @@ void Game::Init()
 	GLOUTPUT(( "Game::Init Database initialized.\n" ));
 
 	GLOUTPUT(( "Game::Init stage 0\n" ));
-	SettingsManager::Create( savePath.c_str() );
+	GameSettingsManager::Create( savePath.c_str() );
 	{
-		SettingsManager* sm = SettingsManager::Instance();
+		GameSettingsManager* sm = GameSettingsManager::Instance();
 		if ( sm->GetCurrentModName().size() ) {
-			LoadModDatabase( SettingsManager::Instance()->GetCurrentModName().c_str(), true );
+			LoadModDatabase( sm->GetCurrentModName().c_str(), true );
 		}
 	}
 
@@ -251,7 +254,7 @@ Game::~Game()
 
 	delete engine;
 	UFOText::Destroy();
-	SettingsManager::Destroy();
+	GameSettingsManager::Destroy();
 	SoundManager::Destroy();
 	ParticleSystem::Destroy();
 	ModelResourceManager::Destroy();
@@ -345,6 +348,7 @@ void Game::PushPopScene()
 
 		if ( !sceneStack.Empty() ) {
 			sceneStack.Top()->scene->Activate();
+			sceneStack.Top()->scene->Resize();
 			if ( result != INT_MIN ) {
 				sceneStack.Top()->scene->SceneResult( id, result );
 			}
@@ -389,6 +393,7 @@ void Game::PushPopScene()
 		sceneQueued.Free();
 
 		node->scene->Activate();
+		node->scene->Resize();
 
 		if ( oldTop ) 
 			oldTop->scene->ChildActivated( node->sceneID, node->scene, node->data );
@@ -436,13 +441,15 @@ void Game::CreateScene( const SceneNode& in, SceneNode* node )
 		case UNIT_SCORE_SCENE:	scene = new TacticalUnitScoreScene( this );											break;
 		case HELP_SCENE:		scene = new HelpScene( this, (const HelpSceneData*)in.data );						break;
 		case DIALOG_SCENE:		scene = new DialogScene( this, (const DialogSceneData*)in.data );					break;
-		case GEO_SCENE:			scene = new GeoScene( this );														break;
+		case GEO_SCENE:			scene = new GeoScene( this, (const GeoSceneData*)in.data );														break;
 		case GEO_END_SCENE:		scene = new GeoEndScene( this, (const GeoEndSceneData*)in.data );					break;
 		case BASETRADE_SCENE:	scene = new BaseTradeScene( this, (BaseTradeSceneData*)in.data );					break;
 		case BUILDBASE_SCENE:	scene = new BuildBaseScene( this, (BuildBaseSceneData*)in.data );					break;
 		case RESEARCH_SCENE:	scene = new ResearchScene( this, (ResearchSceneData*)in.data );						break;
 		case SETTING_SCENE:		scene = new SettingScene( this );													break;
 		case SAVE_LOAD_SCENE:	scene = new SaveLoadScene( this, (const SaveLoadSceneData*)in.data );				break;
+		case NEW_TAC_OPTIONS:	scene = new NewTacticalOptions( this );												break;
+		case NEW_GEO_OPTIONS:	scene = new NewGeoOptions( this );												break;
 		default:
 			GLASSERT( 0 );
 			break;
@@ -614,12 +621,7 @@ void Game::DoTick( U32 _currentTime )
 	
 		if ( renderPass & Scene::RENDER_3D ) {
 			GRINLIZ_PERFTRACK_NAME( "Game::DoTick 3D" );
-			//	r.Set( 100, 50, 300, 50+200*320/480 );
-			//	r.Set( 100, 50, 300, 150 );
-			screenport.SetPerspective(	//2.f, 
-										//240.f, 
-										//(EL_FOV*0.5f)*(screenport.UIWidth()/screenport.UIHeight())*320.0f/480.0f, 
-										clip3D.IsValid() ? &clip3D : 0 );
+			screenport.SetPerspective( clip3D.Width() > 0 ? &clip3D : 0 );
 
 			engine->Draw();
 			if ( mapmaker_showPathing ) {
@@ -789,8 +791,10 @@ void Game::Tap( int action, int wx, int wy )
 
 void Game::MouseMove( int x, int y )
 {
-	GLASSERT( Engine::mapMakerMode );
-	((BattleScene*)sceneStack.Top()->scene)->MouseMove( x, y );
+	//GLASSERT( Engine::mapMakerMode );
+	if ( sceneStack.Top()->sceneID == BATTLE_SCENE ) {
+		((BattleScene*)sceneStack.Top()->scene)->MouseMove( x, y );
+	}
 }
 
 
@@ -833,6 +837,7 @@ void Game::DeviceLoss()
 void Game::Resize( int width, int height, int rotation ) 
 {
 	screenport.Resize( width, height, rotation );
+	sceneStack.Top()->scene->Resize();
 }
 
 
@@ -859,72 +864,105 @@ void Game::SetLightMap( float r, float g, float b )
 }
 
 
-int BattleData::CalcResult() const
+RenderAtom Game::CalcDecoAtom( int id, bool enabled )
 {
-	int nTerransAlive = Unit::Count( units+TERRAN_UNITS_START, MAX_TERRANS, Unit::STATUS_ALIVE );
-	int nAliensAlive  = Unit::Count( units+ALIEN_UNITS_START, MAX_ALIENS, Unit::STATUS_ALIVE );
+	GLASSERT( id >= 0 && id <= 32 );
+	Texture* texture = TextureManager::Instance()->GetTexture( "iconDeco" );
+	float tx0 = 0;
+	float ty0 = 0;
+	float tx1 = 0;
+	float ty1 = 0;
 
-	int result = TIE;
-	if ( nTerransAlive > 0 && nAliensAlive == 0 )
-		result = VICTORY;
-	else if ( nTerransAlive == 0 && nAliensAlive > 0 )
-		result = DEFEAT;
-	return result;
-}
-
-
-void BattleData::Save( FILE* fp, int depth )
-{
-	XMLUtil::OpenElement( fp, depth, "BattleData" );
-	XMLUtil::Attribute( fp, "dayTime", dayTime );
-	XMLUtil::Attribute( fp, "scenario", scenario );
-	XMLUtil::SealElement( fp );
-
-	storage.Save( fp, depth+1 );
-
-	XMLUtil::OpenElement( fp, depth+1, "Units" );
-	XMLUtil::SealElement( fp );
-	for( int i=0; i<MAX_UNITS; ++i ) {
-		units[i].Save( fp, depth+2 );
+	if ( id != DECO_NONE ) {
+		int y = id / 8;
+		int x = id - y*8;
+		tx0 = (float)x / 8.f;
+		ty0 = (float)y / 4.f;
+		tx1 = tx0 + 1.f/8.f;
+		ty1 = ty0 + 1.f/4.f;
 	}
-	XMLUtil::CloseElement( fp, depth+1, "Units" );
-	XMLUtil::CloseElement( fp, depth, "BattleData" );
+	return RenderAtom( (const void*)(enabled ? UIRenderer::RENDERSTATE_UI_DECO : UIRenderer::RENDERSTATE_UI_DECO_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1 );
 }
 
 
-void BattleData::Load( const TiXmlElement* doc )
+RenderAtom Game::CalcParticleAtom( int id, bool enabled )
 {
-	for( int i=0; i<MAX_UNITS; ++i )
-		units[i].Free();
-	storage.Clear();
+	GLASSERT( id >= 0 && id < 16 );
+	Texture* texture = TextureManager::Instance()->GetTexture( "particleQuad" );
+	int y = id / 4;
+	int x = id - y*4;
+	float tx0 = (float)x / 4.f;
+	float ty0 = (float)y / 4.f;
+	float tx1 = tx0 + 1.f/4.f;
+	float ty1 = ty0 + 1.f/4.f;
 
-	const TiXmlElement* ele = doc->FirstChildElement( "BattleData" );
-	GLASSERT( ele );
+	return RenderAtom( (const void*)(enabled ? UIRenderer::RENDERSTATE_UI_NORMAL : UIRenderer::RENDERSTATE_UI_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1 );
+}
 
-	ele->QueryBoolAttribute( "dayTime", &dayTime );
-	ele->QueryIntAttribute( "scenario", &scenario );
 
-	storage.Load( ele );
-	const TiXmlElement* unitsEle = ele->FirstChildElement( "Units" );
-	GLASSERT( unitsEle );
+RenderAtom Game::CalcIconAtom( int id, bool enabled )
+{
+	GLASSERT( id >= 0 && id < 32 );
+	Texture* texture = TextureManager::Instance()->GetTexture( "icons" );
+	int y = id / 8;
+	int x = id - y*8;
+	float tx0 = (float)x / 8.f;
+	float ty0 = (float)y / 4.f;
+	float tx1 = tx0 + 1.f/8.f;
+	float ty1 = ty0 + 1.f/4.f;
 
-	int team[3] = { TERRAN_UNITS_START, CIV_UNITS_START, ALIEN_UNITS_START };
-	if ( unitsEle ) {
-		for( const TiXmlElement* unitElement = unitsEle->FirstChildElement( "Unit" );
-			 unitElement;
-			 unitElement = unitElement->NextSiblingElement( "Unit" ) ) 
-		{
-			int t = 0;
-			unitElement->QueryIntAttribute( "team", &t );
-			Unit* unit = &units[team[t]];
+	return RenderAtom( (const void*)(enabled ? UIRenderer::RENDERSTATE_UI_NORMAL : UIRenderer::RENDERSTATE_UI_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1 );
+}
 
-			unit->Load( unitElement, storage.GetItemDefArr() );
-			
-			team[t]++;
 
-			GLRELASSERT( team[0] <= TERRAN_UNITS_END );
-			GLRELASSERT( team[1] <= CIV_UNITS_END );
-			GLRELASSERT( team[2] <= ALIEN_UNITS_END );
+RenderAtom Game::CalcIcon2Atom( int id, bool enabled )
+{
+	GLASSERT( id >= 0 && id < 32 );
+	Texture* texture = TextureManager::Instance()->GetTexture( "icons2" );
+
+	static const int CX = 4;
+	static const int CY = 4;
+
+	int y = id / CX;
+	int x = id - y*CX;
+	float tx0 = (float)x / (float)CX;
+	float ty0 = (float)y / (float)CY;;
+	float tx1 = tx0 + 1.f/(float)CX;
+	float ty1 = ty0 + 1.f/(float)CY;
+
+	return RenderAtom( (const void*)(enabled ? UIRenderer::RENDERSTATE_UI_NORMAL : UIRenderer::RENDERSTATE_UI_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1 );
+}
+
+
+RenderAtom Game::CalcPaletteAtom( int c0, int c1, int blend, bool enabled )
+{
+	Vector2I c = { 0, 0 };
+	Texture* texture = TextureManager::Instance()->GetTexture( "palette" );
+
+	static const int offset[5] = { 75, 125, 175, 225, 275 };
+	static const int subOffset[3] = { 0, -12, 12 };
+
+	if ( blend == PALETTE_NORM ) {
+		if ( c1 > c0 )
+			Swap( &c1, &c0 );
+		c.x = offset[c0];
+		c.y = offset[c1];
+	}
+	else {
+		if ( c0 > c1 )
+			Swap( &c0, &c1 );
+
+		if ( c0 == c1 ) {
+			// first column special:
+			c.x = 25 + subOffset[blend];
+			c.y = offset[c1];
+		}
+		else {
+			c.x = offset[c0] + subOffset[blend];;
+			c.y = offset[c1];
 		}
 	}
+	RenderAtom atom( (const void*)(enabled ? UIRenderer::RENDERSTATE_UI_NORMAL : UIRenderer::RENDERSTATE_UI_DISABLED), (const void*)texture, 0, 0, 0, 0 );
+	UIRenderer::SetAtomCoordFromPixel( c.x, c.y, c.x, c.y, 300, 300, &atom );
+	return atom;
 }

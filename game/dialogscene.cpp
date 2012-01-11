@@ -16,10 +16,10 @@ DialogScene::DialogScene( Game* _game, const DialogSceneData* _data ) : Scene( _
 	//const float INV = 1.f/255.f;
 	//uiRenderer.SetTextColor( 248.f*INV, 228.f*INV, 8.f*INV );
 
-	RenderAtom roundRectangle = UIRenderer::CalcPaletteAtom(	UIRenderer::PALETTE_GREEN, 
-																UIRenderer::PALETTE_GREEN, 
-																UIRenderer::PALETTE_DARK, 
-																true );
+	RenderAtom roundRectangle = Game::CalcPaletteAtom(	Game::PALETTE_GREEN, 
+														Game::PALETTE_GREEN, 
+														Game::PALETTE_DARK, 
+														true );
 
 	background.Init( &gamui2D, roundRectangle, false );
 	background.SetSlice( true );
@@ -27,7 +27,6 @@ DialogScene::DialogScene( Game* _game, const DialogSceneData* _data ) : Scene( _
 	background.SetSize( port.UIWidth(), port.UIHeight() );
 
 	textBox.Init( &gamui2D );
-	textBox.SetPos( GAME_GUTTER, GAME_GUTTER );
 	textBox.SetSize( port.UIWidth()-GAME_GUTTER*2.0f, port.UIHeight()-GAME_GUTTER*2.0f );
 	textBox.SetText( data->text.c_str() );
 
@@ -35,11 +34,9 @@ DialogScene::DialogScene( Game* _game, const DialogSceneData* _data ) : Scene( _
 
 	button0.Init( &gamui2D, look );
 	button0.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
-	button0.SetPos( GAME_GUTTER, port.UIHeight()-GAME_GUTTER-GAME_BUTTON_SIZE_F );
 
 	button1.Init( &gamui2D, look );
 	button1.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
-	button1.SetPos( port.UIWidth()-GAME_GUTTER-GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_GUTTER-GAME_BUTTON_SIZE_F );
 
 	switch ( data->type ) {
 	case DialogSceneData::DS_YESNO:
@@ -53,6 +50,16 @@ DialogScene::DialogScene( Game* _game, const DialogSceneData* _data ) : Scene( _
 		break;
 
 	}
+}
+
+
+void DialogScene::Resize()
+{
+	const Screenport& port = GetEngine()->GetScreenport();
+	background.SetSize( port.UIWidth(), port.UIHeight() );
+	textBox.SetPos( GAME_GUTTER, GAME_GUTTER );
+	button0.SetPos( GAME_GUTTER, port.UIHeight()-GAME_GUTTER-GAME_BUTTON_SIZE_F );
+	button1.SetPos( port.UIWidth()-GAME_GUTTER-GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_GUTTER-GAME_BUTTON_SIZE_F );
 }
 
 

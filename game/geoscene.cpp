@@ -13,7 +13,7 @@
 #include "tacticalintroscene.h"
 #include "tacticalendscene.h"
 #include "researchscene.h"
-#include "settings.h"
+#include "gamesettings.h"
 #include "battlescene.h"
 #include "helpscene.h"
 #include "ufosound.h"
@@ -158,6 +158,15 @@ void RegionData::SetStorageNormal( const Research& research, Storage* storage, b
 {
 	int COUNT = 100;
 
+	bool hasAllT3 = false;
+	if (    research.GetStatus( "ASLT-3" ) == Research::TECH_RESEARCH_COMPLETE
+		 && research.GetStatus( "LR-3" ) == Research::TECH_RESEARCH_COMPLETE
+		 && research.GetStatus( "MCAN-3" ) == Research::TECH_RESEARCH_COMPLETE
+		 && research.GetStatus( "ARM-3" ) == Research::TECH_RESEARCH_COMPLETE )
+	{
+		hasAllT3 = true;
+	}
+
 	storage->Clear();
 	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
 		const ItemDef* itemDef = storage->GetItemDef( i );
@@ -175,13 +184,13 @@ void RegionData::SetStorageNormal( const Research& research, Storage* storage, b
 				else if ( status == Research::TECH_RESEARCH_COMPLETE ) {
 					if ( itemDef->IsWeapon() )
 					{
-						if ( itemDef->TechLevel() <= 2 || tech ) {
+						if ( itemDef->TechLevel() <= 2 || tech || hasAllT3 ) {
 							storage->AddItem( itemDef, COUNT );
 						}
 					}
 					else if ( itemDef->IsArmor() )
 					{
-						if ( itemDef->TechLevel() <= 2 || manufacture ) {
+						if ( itemDef->TechLevel() <= 2 || manufacture || hasAllT3 ) {
 							storage->AddItem( itemDef, COUNT );
 						}
 					}
@@ -193,24 +202,6 @@ void RegionData::SetStorageNormal( const Research& research, Storage* storage, b
 		}
 	}
 }
-
-
-bool GeoScene::AnyRegionHasTrait( int trait )
-{
-	for( int i=0; i<MAX_BASES; ++i ) {
-		BaseChit* baseChit = chitBag.GetBaseChit( i );
-		if ( baseChit ) {
-			int region = geoMapData.GetRegion( baseChit->MapPos() );
-			if ( regionData[region].traits & trait ) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-
-
 
 void RegionData::Free()
 {
@@ -250,7 +241,7 @@ void RegionData::Load( const TiXmlElement* doc )
 
 
 
-GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase(), _game->GetItemDefArr(), RESEARCH_SECONDS )
+GeoScene::GeoScene( Game* _game, const GeoSceneData* data ) : Scene( _game ), research( _game->GetDatabase(), _game->GetItemDefArr(), RESEARCH_SECONDS )
 {
 	missileTimer[0] = 0;
 	missileTimer[1] = 0;
@@ -261,6 +252,10 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 	nBattles = 0;
 	gameVictory = false;
 	loadSlot = 0;
+	difficulty = NORMAL;
+	if ( data ) {
+		difficulty = data->difficulty;
+	}
 
 	const Screenport& port = GetEngine()->GetScreenport();
 	random.SetSeedFromTime();
@@ -283,31 +278,25 @@ GeoScene::GeoScene( Game* _game ) : Scene( _game ), research( _game->GetDatabase
 	}
 
 	helpButton.Init(&gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
-	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, 0 );
 	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	helpButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_HELP, true ), UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
+	helpButton.SetDeco(  Game::CalcDecoAtom( DECO_HELP, true ), Game::CalcDecoAtom( DECO_HELP, false ) );	
 
 	researchButton.Init(&gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
-	researchButton.SetPos( 0, 0 );
 	researchButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	researchButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_RESEARCH, true ), UIRenderer::CalcDecoAtom( DECO_RESEARCH, false ) );	
+	researchButton.SetDeco(  Game::CalcDecoAtom( DECO_RESEARCH, true ), Game::CalcDecoAtom( DECO_RESEARCH, false ) );	
 
 	baseButton.Init(&gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
-	baseButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	baseButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	baseButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_BASE, true ), UIRenderer::CalcDecoAtom( DECO_BASE, false ) );
+	baseButton.SetDeco(  Game::CalcDecoAtom( DECO_BASE, true ), Game::CalcDecoAtom( DECO_BASE, false ) );
 
 	//cashImage.Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK ), false );
 	cashImage.Init( &gamui2D, 
-		UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_NORM ),
+		Game::CalcPaletteAtom( Game::PALETTE_GREEN, Game::PALETTE_GREEN, Game::PALETTE_NORM ),
 		false );
-	cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F*1.8f, 
-					  port.UIHeight()-GAME_BUTTON_SIZE_F*0.4f );
 	cashImage.SetSize( GAME_BUTTON_SIZE_F*1.7f, GAME_BUTTON_SIZE_F );
 	cashImage.SetSlice( true );
 
 	cashLabel.Init( &gamui2D );
-	cashLabel.SetPos( cashImage.X()+5.0f, cashImage.Y()+5.0f );
 
 	for( int i=0; i<MAX_CONTEXT; ++i ) {
 		context[i].Init( &gamui2D, game->GetButtonLook( Game::BLUE_BUTTON ) );
@@ -330,6 +319,27 @@ GeoScene::~GeoScene()
 	}
 	delete geoMap;
 	delete geoAI;
+}
+
+
+void GeoScene::Resize()
+{
+	const Screenport& port = GetEngine()->GetScreenport();
+
+	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, 0 );
+	researchButton.SetPos( 0, 0 );
+	baseButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F*1.8f, 
+					  port.UIHeight()-GAME_BUTTON_SIZE_F*0.4f );
+	cashLabel.SetPos( cashImage.X()+5.0f, cashImage.Y()+5.0f );
+
+	GetEngine()->CameraIso( false, false, (float)GeoMap::MAP_X, (float)GeoMap::MAP_Y );
+	if ( savedCameraX >= 0 ) {
+		Vector3F cameraPos = GetEngine()->camera.PosWC();
+		cameraPos.x = savedCameraX;
+		GetEngine()->camera.SetPosWC( cameraPos );
+	}
+	SetMapLocation();
 }
 
 
@@ -652,7 +662,7 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 					  && !chitBag.GetCargoComingFrom( CargoChit::TYPE_LANDER, baseChit->MapPos() ) )
 				{
 					if ( baseChit->IssueUnitWarning() ) {
-						RenderAtom atom = UIRenderer::CalcIcon2Atom( ICON2_WARNING, true );
+						RenderAtom atom = Game::CalcIcon2Atom( ICON2_WARNING, true );
 						context[i].SetDeco( atom, atom );
 						context[i].SetDecoLayout( gamui::Button::RIGHT, context[i].Height()/2, 0 );
 					}
@@ -711,7 +721,10 @@ bool GeoScene::PlaceBase( const grinliz::Vector2I& map )
 			parked = true;
 
 		if ( !parked ) {
-			Chit* chit = new BaseChit( tree, map, index, game->GetItemDefArr(), firstBase );
+			int	region = geoMapData.GetRegion( map.x, map.y);
+			Chit* chit = new BaseChit( tree, map, index, game->GetItemDefArr(), 
+									   firstBase, 
+									   (regionData[region].traits & RegionData::TRAIT_MILITARISTIC ) != 0 );
 			chitBag.Add( chit );
 			firstBase = false;
 			baseButton.SetUp();
@@ -900,7 +913,12 @@ void GeoScene::UpdateMissiles( U32 deltaTime )
 							Vector3F pos3 = { m->pos.x + (float)(GEO_MAP_X*z), MISSILE_HEIGHT, m->pos.y };
 							system->EmitPoint( 40, ParticleSystem::PARTICLE_HEMISPHERE, color[m->type], cvel, pos3, 0.1f, velUP, 0.2f );
 						}
-						ufo->DoDamage( 1.0f );
+						switch ( difficulty ) {
+						case EASY:		ufo->DoDamage( 1.5f );	break;
+						case NORMAL:	ufo->DoDamage( 1.0f );	break;
+						case HARD:		ufo->DoDamage( 0.8f );	break;
+						case VERY_HARD:	ufo->DoDamage( 0.6f );	break;
+						};
 						SoundManager::Instance()->QueueSound( "geo_ufo_hit" );
 						done = true;
 					}
@@ -949,38 +967,38 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			TimeState state;
 			CalcTimeState( timeline, &state );
 
-			int scenario = TacticalIntroScene::FARM_SCOUT;
+			int scenario = FARM_SCOUT;
 			if ( baseAttack ) {
-				scenario = TacticalIntroScene::TERRAN_BASE;
+				scenario = TERRAN_BASE;
 			}
 			else if ( ufoChit->Type() == UFOChit::BATTLESHIP ) {
-				scenario = TacticalIntroScene::BATTLESHIP;
+				scenario = BATTLESHIP;
 			}
 			else if ( ufoChit->Type() == UFOChit::BASE ) {
-				scenario = TacticalIntroScene::ALIEN_BASE;
+				scenario = ALIEN_BASE;
 			}
 			else {
 				int type = geoMapData.GetType( ufoChit->MapPos().x, ufoChit->MapPos().y );
 				switch ( type ) {
-				case GeoMapData::CITY:		scenario = TacticalIntroScene::CITY;	break;
-				case GeoMapData::FARM:		scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? TacticalIntroScene::FARM_SCOUT : TacticalIntroScene::FARM_DESTROYER;	break;
-				case GeoMapData::FOREST:	scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? TacticalIntroScene::FRST_SCOUT : TacticalIntroScene::FRST_DESTROYER;	break;
-				case GeoMapData::DESERT:	scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? TacticalIntroScene::DSRT_SCOUT : TacticalIntroScene::DSRT_DESTROYER;	break;
-				case GeoMapData::TUNDRA:	scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? TacticalIntroScene::TNDR_SCOUT : TacticalIntroScene::TNDR_DESTROYER;	break;
+				case GeoMapData::CITY:		scenario = CITY;	break;
+				case GeoMapData::FARM:		scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? FARM_SCOUT : FARM_DESTROYER;	break;
+				case GeoMapData::FOREST:	scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? FRST_SCOUT : FRST_DESTROYER;	break;
+				case GeoMapData::DESERT:	scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? DSRT_SCOUT : DSRT_DESTROYER;	break;
+				case GeoMapData::TUNDRA:	scenario = (ufoChit->Type() == UFOChit::SCOUT ) ? TNDR_SCOUT : TNDR_DESTROYER;	break;
 				default: GLASSERT( 0 ); break;
 				}
 			}
 
-			float rank = state.alienRank;
-			if ( scenario == TacticalIntroScene::ALIEN_BASE )
-				rank = (float)(NUM_RANKS-1);
-
+			float alienRank = state.alienRank;
+			if ( scenario == ALIEN_BASE ) {
+				alienRank = (float)(NUM_ALIEN_RANKS-4+difficulty);
+			}
 			// Bad idea: difficulty of UFOs plenty broad already.
-			//if ( TacticalIntroScene::IsScoutScenario( scenario ) )
+			//if ( IsScoutScenario( scenario ) )
 			//	rank -= 0.5f;	// lower ranks here
-			//if ( scenario == TacticalIntroScene::BATTLESHIP )	// battleships are hard enough
+			//if ( scenario == BATTLESHIP )	// battleships are hard enough
 			//	rank += 0.5f;
-			rank = Clamp( rank, 0.0f, (float)(NUM_RANKS-1) );
+			alienRank = Clamp( alienRank, 0.0f, (float)(NUM_ALIEN_RANKS-1) );
 
 			static const Vector3F zero = { 0, 0, 0 };
 			for( int i=0; i<MAX_TERRANS; ++i ) {
@@ -997,7 +1015,7 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 			data->soldierUnits	= units;
 			data->nScientists	= baseChit->NumScientists();
 			data->dayTime		= geoMap->GetDayTime( ufoChit->Pos().x );
-			data->alienRank		= rank;
+			data->alienRank		= alienRank;
 			data->storage		= baseChit->GetStorage();
 			chitBag.SetBattle( ufoChit, landerChit, scenario );
 			game->Save( 0, true, false );
@@ -1079,7 +1097,6 @@ void GeoScene::SceneResult( int sceneID, int result )
 		GLASSERT( baseChit );
 		if ( baseChit ) {
 			Unit* baseUnits = baseChit->GetUnits();
-			//Storage* baseStorage = baseChit->GetStorage();
 
 			// The battlescene has written (or loaded) the BattleData. It is current and
 			// in memory. All the stuff dropped on the battlefield is in the battleData.storage,
@@ -1087,7 +1104,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 			// manipulation below will do nothing.)
 
 			int result = game->battleData.CalcResult();
-			if ( game->battleData.GetScenario() == TacticalIntroScene::TERRAN_BASE ) {
+			if ( game->battleData.GetScenario() == TERRAN_BASE ) {
 				if ( result == BattleData::TIE )
 					result = BattleData::DEFEAT;	// can't tie on base attack
 			}
@@ -1153,11 +1170,11 @@ void GeoScene::SceneResult( int sceneID, int result )
 
 			if ( result == BattleData::VICTORY ) {
 				// Apply penalty for lost civs:
-				if ( game->battleData.GetScenario() == TacticalIntroScene::CITY ) {
+				if ( game->battleData.GetScenario() == CITY ) {
 					int	region = geoMapData.GetRegion( baseChit->MapPos().x, baseChit->MapPos().y );
 					if ( (nCivsAlive+nCivsDead) > 0 && region >= 0 ) {
 						float ratio = 1.0f - (float)nCivsAlive / (float)(nCivsAlive+nCivsDead);
-						if ( chitBag.GetBattleScenario() == TacticalIntroScene::CITY ) { 
+						if ( chitBag.GetBattleScenario() == CITY ) { 
 							ratio *= 2.0f; 
 						}
 						regionData[region].influence += ratio;
@@ -1220,7 +1237,7 @@ void GeoScene::SceneResult( int sceneID, int result )
 				}
 			}
 
-			if ( game->battleData.GetScenario() == TacticalIntroScene::TERRAN_BASE ) {
+			if ( game->battleData.GetScenario() == TERRAN_BASE ) {
 				baseChit->SetNumScientists( nCivsAlive );
 			}
 		}
@@ -1239,9 +1256,13 @@ void GeoScene::PushBaseTradeScene( BaseChit* baseChit )
 	data->baseName   = baseChit->Name();
 	data->regionName = gRegionName[region];
 	data->base		 = baseChit->GetStorage();
-	regionData[region].SetStorageNormal( research, &data->region, AnyRegionHasTrait( RegionData::TRAIT_TECH ), AnyRegionHasTrait( RegionData::TRAIT_MANUFACTURE ) );
+	regionData[region].SetStorageNormal( research, &data->region,
+		                                 (regionData[region].traits & RegionData::TRAIT_TECH) != 0,
+										 (regionData[region].traits & RegionData::TRAIT_MANUFACTURE) != 0 );
 	data->cash		 = &cash;
 	data->costMult	 = regionData[region].traits & RegionData::TRAIT_CAPATALIST ? COST_MULT_CAP : COST_MULT_STD;
+	//data->armor3Mult  = regionData[region].traits & RegionData::TRAIT_MANUFACTURE ? COST_MULT_CAP : COST_MULT_HIGH;
+	//data->weapon3Mult = regionData[region].traits & RegionData::TRAIT_TECH ? COST_MULT_CAP : COST_MULT_HIGH;
 	data->soldierBoost = regionData[region].traits & RegionData::TRAIT_MILITARISTIC ? true : false;
 	data->soldiers	 = baseChit->CanUseSoldiers() ? baseChit->GetUnits() : 0;
 	data->scientists = baseChit->CanUseScientists() ? baseChit->GetScientstPtr() : 0;
@@ -1329,7 +1350,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 		baseButton.SetDecoRotationY( 0 );
 	}
 
-	if ( SettingsManager::Instance()->GetBattleShipParty() ) {
+	if ( GameSettingsManager::Instance()->GetBattleShipParty() ) {
 		if ( alienTimer > 5000 ) {
 			alienTimer -= 5000;
 			Vector2F start, dest;
@@ -1718,10 +1739,11 @@ void GeoScene::Draw3D()
 
 void GeoScene::DrawHUD()
 {
-#if 0
+#if 1
 	TimeState ts;
 	CalcTimeState( timeline, &ts );
-	UFOText::Draw( 50, 0, "nBat=%d tmr=%.1fm alTm=%.1f rank=%.1f type=%.1f,%.1f,%.1f",
+	UFOText::Instance()->
+		Draw( 50, 0, "nBat=%d tmr=%.1fm alTm=%.1f rank=%.1f type=%.1f,%.1f,%.1f",
 		nBattles,
 		(float)(timeline / 1000) / 60.0f,
 		(float)ts.alienTime/1000.0f,
@@ -1736,7 +1758,7 @@ void GeoScene::CalcTimeState( U32 msec, TimeState* state )
 	// Times in seconds.
 	const static U32 FIRST_UFO      = 10 *SECOND;
 	const static U32 TIME_BETWEEN_0	= 20 *SECOND;
-	const static U32 TIME_BETWEEN_1 = 10  *SECOND;
+	const static U32 TIME_BETWEEN_1 = 10 *SECOND;
 
 	const static U32 DESTROYER0		= 2  *MINUTE;
 	const static U32 DESTROYER1		= 5  *MINUTE;
@@ -1748,9 +1770,12 @@ void GeoScene::CalcTimeState( U32 msec, TimeState* state )
 	if ( msec <= FIRST_UFO+1000 )	// rounding so we aren't racing this timer
 		state->alienTime = FIRST_UFO;	
 
-	state->alienRank = (float)Interpolate( 0.0, 0.0, (double)FULL_OUT_RANK, (double)(NUM_RANKS)-1.5, (double)msec );	// the minus one is float/int conversion, the 0.5 is not maxing out the alien rank
-	if ( state->alienRank > (float)(NUM_RANKS-1) )
-		state->alienRank = (float)(NUM_RANKS-1);
+	double nAlienRanks = (double)(NUM_ALIEN_RANKS-3+difficulty);
+	state->alienRank = (float)Interpolate( 0.0, 0.0, 
+		                                   (double)FULL_OUT_RANK, (double)(nAlienRanks)-1.5, 
+										   (double)msec );	// the minus one is float/int conversion, the 0.5 is not maxing out the alien rank
+	if ( state->alienRank > (float)(nAlienRanks-1) )
+		state->alienRank = (float)(nAlienRanks-1);
 
 	state->alienType[ UFOChit::SCOUT ] = 1.0f;
 	state->alienType[ UFOChit::FRIGATE ] = 0.0f;
@@ -1777,6 +1802,7 @@ void GeoScene::Save( FILE* fp, int depth )
 	// ----------- main scene --------- //
 	XMLUtil::OpenElement( fp, depth, "GeoScene" );
 	XMLUtil::Attribute( fp, "timeline", timeline );
+	XMLUtil::Attribute( fp, "difficulty", difficulty );
 	XMLUtil::Attribute( fp, "alienTimer", alienTimer );
 	XMLUtil::Attribute( fp, "missileTimer0", missileTimer[0] );
 	XMLUtil::Attribute( fp, "missileTimer1", missileTimer[1] );
@@ -1807,6 +1833,8 @@ void GeoScene::Load( const TiXmlElement* scene )
 {
 	GLASSERT( StrEqual( scene->Value(), "GeoScene" ) );
 	scene->QueryUnsignedAttribute( "timeline", &timeline );
+	difficulty = NORMAL;
+	scene->QueryIntAttribute( "difficulty", &difficulty );
 	scene->QueryUnsignedAttribute( "alienTimer", &alienTimer );
 	scene->QueryUnsignedAttribute( "missileTimer0", &missileTimer[0] );
 	scene->QueryUnsignedAttribute( "missileTimer1", &missileTimer[1] );

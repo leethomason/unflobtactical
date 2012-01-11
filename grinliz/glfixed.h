@@ -148,12 +148,12 @@ public:
 	inline Fixed Sqrt()	{ Fixed t; t.x = FloatToFixed( sqrtf( FixedToFloat( x ) ) ); return t; }
 
 	// a must be [0,1]
-	Fixed ApproxSqrt();
+	//Fixed ApproxSqrt();
 
 private:
-	enum { SQRT_TABLE_SIZE = 64 };
-	static bool approxSqrtTableInit;
-	static Fixed approxSqrtTable[ SQRT_TABLE_SIZE ];
+	//enum { SQRT_TABLE_SIZE = 64 };
+	//static bool approxSqrtTableInit;
+	//static Fixed approxSqrtTable[ SQRT_TABLE_SIZE ];
 };
 
 };	// grinliz
