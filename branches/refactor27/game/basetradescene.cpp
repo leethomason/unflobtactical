@@ -82,7 +82,7 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	sellAll.SetText( "Sell" );
 	sellAll.SetText2( "All" );
 
-	regionWidget = new StorageWidget( &gamui2D, green, tab, game->GetItemDefArr(), &data->region, w, h, data->costMult );
+	regionWidget = new StorageWidget( &gamui2D, green, tab, game->GetItemDefArr(), &data->region, w, h, data->costFlag );
 	regionWidget->SetFudgeFactor( -5, -5 );
 	regionWidget->SetInfoVisible( false );
 
@@ -263,7 +263,7 @@ bool BaseTradeScene::ComputePrice( int* _total )
 		if ( currentCount > originalCount ) {
 			// Bought stuff.
 			nBuy += (currentCount - originalCount );
-			buy += (currentCount - originalCount ) * itemDef->BuyPrice( data->costMult );
+			buy += (currentCount - originalCount ) * itemDef->BuyPrice( data->costFlag );
 		}
 		if ( currentCount < originalCount ) {
 			// Sold stuff.

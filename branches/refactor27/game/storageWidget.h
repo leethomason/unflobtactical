@@ -30,7 +30,7 @@ public:
 					const Storage* storage,
 					float width=GAME_BUTTON_SIZE_F,
 					float height=GAME_BUTTON_SIZE_F,
-					float costMult = 0.0f );
+					int costFlag=0 );
 
 	~StorageWidget();	
 
@@ -60,7 +60,7 @@ private:
 	gamui::UIItem*		itemArr[TOTAL_BUTTONS];
 	gamui::TextLabel	info;
 	
-	float costMult;
+	int  costFlag;
 	float buttonWidth, buttonHeight;
 	const Storage* storage;
 	const ItemDefArr& itemDefArr;

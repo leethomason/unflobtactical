@@ -174,6 +174,14 @@ static const int SNAP_SHOT			= 0;
 static const int AUTO_SHOT			= 1;
 static const int AIMED_SHOT		    = 2;
 
+static const int COST_FLAG_CAPATALISM = 0x01;
+static const int COST_FLAG_WEAPON_T3  = 0x02;
+static const int COST_FLAG_ARMOR_T3   = 0x04;
+static const int COST_IN_USE		  = 0x100;
+
+static const float COST_MULT_CAP = 1.5f;
+static const float COST_MULT_STD = 2.0f;
+
 static const int MAX_EYESIGHT_RANGE     = 14;
 static const int MIN_TU					= EL_MAP_MAX_PATH / 2;
 static const int MAX_TU					= EL_MAP_MAX_PATH;		// enforced: used for memory allocation, since this is the max walking

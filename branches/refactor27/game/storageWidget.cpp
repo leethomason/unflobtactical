@@ -27,9 +27,9 @@ StorageWidget::StorageWidget(	gamui::Gamui* gamui,
 								const ItemDefArr& _itemDefArr,
 								const Storage* _storage,
 								float w, float h,
-								float _costMult )
+								int _costFlag )
 	: 
-		costMult( _costMult ),
+		costFlag( _costFlag ),
 		storage( _storage ),
 		itemDefArr( _itemDefArr )
 {
@@ -183,9 +183,9 @@ void StorageWidget::SetButtons()
 				static const int SZ=16;
 				char buffer[SZ];
 				if ( storage->GetCount( itemDef ) ) {
-					if ( costMult ) {
+					if ( costFlag ) {
 						// show the cost
-						SNPrintf( buffer, SZ, "$%d", itemDef->BuyPrice( costMult ) );
+						SNPrintf( buffer, SZ, "$%d", itemDef->BuyPrice( costFlag ) );
 					}
 					else {
 						SNPrintf( buffer, SZ, "%d", storage->GetCount( itemDef ) );

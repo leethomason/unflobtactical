@@ -67,10 +67,6 @@ static const float LANDER_SPEED = 0.80f;
 static const float UFO_HP[3]    = { 4, 8, 20 };
 static const float UFO_ACCEL = 0.2f;	// units/second2
 
-static const float COST_MULT_CAP = 1.5f;
-static const float COST_MULT_STD = 2.0f;
-static const float COST_MULT_HIGH = 4.0f;
-
 const static U32 SECOND			= 1000;
 const static U32 MINUTE			= 60 *SECOND;
 const static U32 FULL_OUT_UFO	= 20 *MINUTE;
