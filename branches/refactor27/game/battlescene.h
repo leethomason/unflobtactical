@@ -95,6 +95,7 @@ public:
 	virtual void Activate();
 	virtual void DeActivate();
 
+	virtual void Resize();
 	virtual void Tap(	int action, 
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );

@@ -267,7 +267,7 @@ class Flag
 	an unsigned something, this is a utility class to pack bits...starting
 	with the highest bit.
 */
-
+/*
 template < class T >
 class HighBitWriter 
 {
@@ -340,7 +340,7 @@ class HighBitWriter
 	T*	data;
 	int bitPos;
 };
-
+*/
 
 };	// namespace grinliz
 

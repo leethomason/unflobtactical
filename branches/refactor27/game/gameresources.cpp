@@ -160,9 +160,8 @@ Texture* Game::CalcFaceTexture( const Unit* unit, grinliz::Rectangle2F* uv )
 	// Find and return.
 	for( int i=0; i<MAX_TERRANS; ++i ) {
 		if ( faceCache[i].seed == unit->Body() ) {
-			//GLOUTPUT(( "Cache hit %d\n", i ));
-			uv->Set( (float)i/(float)MAX_TERRANS, 0,
-					 (float)(i+1)/(float)MAX_TERRANS, 1.0f );
+			*uv = Rectangle2F(	(float)i/(float)MAX_TERRANS, 0,
+								(float)(i+1)/(float)MAX_TERRANS, 1.0f );
 			return tex;
 		}
 	}
@@ -203,8 +202,8 @@ Texture* Game::CalcFaceTexture( const Unit* unit, grinliz::Rectangle2F* uv )
 				FaceGenerator::BPP * FaceGenerator::SIZE );
 	}
 	tex->Upload( faceSurface );
-	uv->Set( (float)faceCacheSlot/(float)MAX_TERRANS, 0,
-			 (float)(faceCacheSlot+1)/(float)MAX_TERRANS, 1.0f );
+	*uv = Rectangle2F(	(float)faceCacheSlot/(float)MAX_TERRANS, 0,
+						(float)(faceCacheSlot+1)/(float)MAX_TERRANS, 1.0f );
 	return tex;
 }
 

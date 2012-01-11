@@ -64,6 +64,8 @@ public:
 		return RENDER_2D;
 	}
 
+	virtual void Resize();
+
 protected:
 	bool ComputePrice( int* total );
 	void SceneDone();

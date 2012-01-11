@@ -1,3 +1,4 @@
+#if 0
 #include "glfixed.h"
 using namespace grinliz;
 
@@ -23,3 +24,4 @@ Fixed Fixed::ApproxSqrt()
 	GLASSERT( i>=0 && i<SQRT_TABLE_SIZE );
 	return approxSqrtTable[i];
 }
+#endif

@@ -150,9 +150,6 @@
     <ClCompile Include="game\dialogscene.cpp">
       <Filter>scenes</Filter>
     </ClCompile>
-    <ClCompile Include="game\settings.cpp">
-      <Filter>game</Filter>
-    </ClCompile>
     <ClCompile Include="game\battlevisibility.cpp">
       <Filter>scenes</Filter>
     </ClCompile>
@@ -214,6 +211,18 @@
       <Filter>widgets</Filter>
     </ClCompile>
     <ClCompile Include="game\battledata.cpp">
+      <Filter>game</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\settings.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="game\newgeooptions.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="game\newtacticaloptions.cpp">
+      <Filter>scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="game\gamesettings.cpp">
       <Filter>game</Filter>
     </ClCompile>
   </ItemGroup>
@@ -350,9 +359,6 @@
     <ClInclude Include="game\dialogscene.h">
       <Filter>scenes</Filter>
     </ClInclude>
-    <ClInclude Include="game\settings.h">
-      <Filter>game</Filter>
-    </ClInclude>
     <ClInclude Include="game\battlevisibility.h">
       <Filter>scenes</Filter>
     </ClInclude>
@@ -417,6 +423,18 @@
       <Filter>widgets</Filter>
     </ClInclude>
     <ClInclude Include="game\battledata.h">
+      <Filter>game</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\settings.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="game\newtacticaloptions.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\newgeooptions.h">
+      <Filter>scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="game\gamesettings.h">
       <Filter>game</Filter>
     </ClInclude>
   </ItemGroup>

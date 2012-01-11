@@ -119,6 +119,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="engine\gpustatemanager.cpp" />
+    <ClCompile Include="engine\settings.cpp" />
     <ClCompile Include="faces\faces.cpp" />
     <ClCompile Include="game\ai.cpp" />
     <ClCompile Include="game\areaWidget.cpp" />
@@ -136,6 +137,7 @@
     <ClCompile Include="game\firewidget.cpp" />
     <ClCompile Include="game\game.cpp" />
     <ClCompile Include="game\gameresources.cpp" />
+    <ClCompile Include="game\gamesettings.cpp" />
     <ClCompile Include="game\geoai.cpp" />
     <ClCompile Include="game\geoendscene.cpp" />
     <ClCompile Include="game\geomap.cpp" />
@@ -144,11 +146,12 @@
     <ClCompile Include="game\inventory.cpp" />
     <ClCompile Include="game\inventoryWidget.cpp" />
     <ClCompile Include="game\item.cpp" />
+    <ClCompile Include="game\newgeooptions.cpp" />
+    <ClCompile Include="game\newtacticaloptions.cpp" />
     <ClCompile Include="game\research.cpp" />
     <ClCompile Include="game\researchscene.cpp" />
     <ClCompile Include="game\saveloadscene.cpp" />
     <ClCompile Include="game\scene.cpp" />
-    <ClCompile Include="game\settings.cpp" />
     <ClCompile Include="game\settingscene.cpp" />
     <ClCompile Include="game\stats.cpp" />
     <ClCompile Include="game\storageWidget.cpp" />
@@ -185,6 +188,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\gpustatemanager.h" />
+    <ClInclude Include="engine\settings.h" />
     <ClInclude Include="faces\faces.h" />
     <ClInclude Include="game\ai.h" />
     <ClInclude Include="game\areaWidget.h" />
@@ -203,6 +207,7 @@
     <ClInclude Include="game\firewidget.h" />
     <ClInclude Include="game\game.h" />
     <ClInclude Include="game\gamelimits.h" />
+    <ClInclude Include="game\gamesettings.h" />
     <ClInclude Include="game\geoai.h" />
     <ClInclude Include="game\geoendscene.h" />
     <ClInclude Include="game\geomap.h" />
@@ -211,11 +216,12 @@
     <ClInclude Include="game\inventory.h" />
     <ClInclude Include="game\inventoryWidget.h" />
     <ClInclude Include="game\item.h" />
+    <ClInclude Include="game\newgeooptions.h" />
+    <ClInclude Include="game\newtacticaloptions.h" />
     <ClInclude Include="game\research.h" />
     <ClInclude Include="game\researchscene.h" />
     <ClInclude Include="game\saveloadscene.h" />
     <ClInclude Include="game\scene.h" />
-    <ClInclude Include="game\settings.h" />
     <ClInclude Include="game\settingscene.h" />
     <ClInclude Include="game\stats.h" />
     <ClInclude Include="game\storageWidget.h" />

@@ -37,7 +37,7 @@ public:
 	BuildBaseScene( Game* _game, BuildBaseSceneData* data );
 	virtual ~BuildBaseScene()	{}
 
-	virtual void Activate()		{}
+	virtual void Resize();
 
 	// UI
 	virtual void Tap(	int count, 

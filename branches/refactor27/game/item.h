@@ -110,11 +110,13 @@ public:
 	// optimization trickiness:
 	int index;
 
-	int BuyPrice( float costMult ) const {
-		if ( price >= 0 )
+	int BuyPrice( float costMult ) const { //bool cap, bool techT3, bool armorT3  ) const {
+		if ( price >= 0 ) {
 			return grinliz::LRintf( (float)price * costMult );
-		else
+		}
+		else {
 			return -price;
+		}
 	}
 
 	int SellPrice() const {

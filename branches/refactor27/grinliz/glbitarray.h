@@ -209,40 +209,6 @@ private:
 	U32 array[ TOTAL_MEM32 ];
 };
 
-/**
-	A class to quickly walk a BitArary.
-*/
-/*
-template< int WIDTH, int HEIGHT, int DEPTH >
-class BitArrayRowIterator
-{
-  public:
-	BitArrayRowIterator( const BitArray<WIDTH, HEIGHT, DEPTH>& _array ) : bitArray( _array ), mask( 0 ), loc( 0 )	{}
-
-	/// Initialize the walk.
-	void Begin( int x, int y, int z=0 )	
-								{	loc = bitArray.Access32( x, y, z );
-									U32 bit = x & 31;
-									mask = 0x01 << bit;
-								}
-	/// Get the next bit.
-	void Next()					{	mask <<= 1;
-									if ( !mask ) {
-										mask = 0x01;
-										++loc;
-									}
-								}
-	/// Return non-0 if the current location is set.
-	U32 IsSet()					{	return ( *loc ) & ( mask ); }
-	/// Return true if the current 32 bits are not set.
-	bool WordEmpty()			{	return !(*loc); }
-
-  private:
-	const BitArray<WIDTH, HEIGHT, DEPTH>& bitArray;
-	U32 mask;
-	const U32 *loc;
-};*/
-
 };
 #endif
 

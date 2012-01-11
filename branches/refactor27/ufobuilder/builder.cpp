@@ -99,7 +99,8 @@ void InsertTextureToDB( const char* name,
 						int width, 
 						int height, 
 						const void* pixels, 
-						int sizeInBytes )
+						int sizeInBytes,
+						bool noMip )
 {
 	gamedb::WItem* witem = writer->Root()->FetchChild( "textures" )->CreateChild( name );
 
@@ -112,6 +113,7 @@ void InsertTextureToDB( const char* name,
 	witem->SetBool( "isImage", isImage );
 	witem->SetInt( "width", width );
 	witem->SetInt( "height", height );
+	witem->SetBool( "noMip", noMip );
 }
 
 
@@ -653,6 +655,8 @@ bool BarIsBlack( SDL_Surface* surface, int x, int y0, int y1 )
 	return black;
 }
 
+
+#if 0
 void CalcFontWidths( SDL_Surface* surface )
 {
 	// Walk all the glyphs, calculate the minimum width
@@ -682,6 +686,7 @@ void CalcFontWidths( SDL_Surface* surface )
 		}
 	}
 }
+#endif
 
 
 SDL_Surface* CreateScaledSurface( int w, int h, SDL_Surface* surface )
@@ -787,12 +792,12 @@ void ProcessTexture( TiXmlElement* texture )
 	}
 
 	bool dither = true;
-	bool isFont = false;
+	bool nomip = false;
 	if ( StrEqual( texture->Attribute( "dither" ), "false" ) ) {
 		dither = false;
 	}
-	if ( StrEqual( texture->Attribute( "font" ), "true" ) ) {
-		isFont = true;
+	if ( StrEqual( texture->Attribute( "noMip" ), "true" ) ) {
+		nomip = true;
 	}
 	int width = 0;
 	int height = 0;
@@ -830,10 +835,6 @@ void ProcessTexture( TiXmlElement* texture )
 		printf( " Scaled" );
 	}
 	printf( " w=%d h=%d", surface->w, surface->h );
-
-	if ( isFont ) {
-		CalcFontWidths( surface );
-	}
 
 	// run through child tags.
 	// interpolate in
@@ -878,7 +879,7 @@ void ProcessTexture( TiXmlElement* texture )
 				pixelBuffer16.reserve( surface->w*surface->h );
 				OrderedDitherTo16( surface, RGBA16, true, &pixelBuffer16[0] );
 			}
-			InsertTextureToDB( assetName.c_str(), "RGBA16", isImage, isFont, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2 );
+			InsertTextureToDB( assetName.c_str(), "RGBA16", isImage, false, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2, nomip );
 			break;
 
 		case 24:
@@ -905,7 +906,7 @@ void ProcessTexture( TiXmlElement* texture )
 				pixelBuffer16.reserve( surface->w*surface->h );
 				OrderedDitherTo16( surface, RGB16, true, &pixelBuffer16[0] );
 			}
-			InsertTextureToDB( assetName.c_str(), "RGB16", isImage, isFont, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2 );
+			InsertTextureToDB( assetName.c_str(), "RGB16", isImage, false, surface->w, surface->h, &pixelBuffer16[0], pixelBuffer16.size()*2, nomip );
 			break;
 
 		case 8:
@@ -920,7 +921,7 @@ void ProcessTexture( TiXmlElement* texture )
 					pixelBuffer8.push_back(*p);
 				}
 			}
-			InsertTextureToDB( assetName.c_str(), "ALPHA", isImage, isFont, surface->w, surface->h, &pixelBuffer8[0], pixelBuffer8.size() );
+			InsertTextureToDB( assetName.c_str(), "ALPHA", isImage, false, surface->w, surface->h, &pixelBuffer8[0], pixelBuffer8.size(), nomip );
 			break;
 
 		default:

@@ -32,11 +32,11 @@ AreaWidget::AreaWidget( Game* game,
 		trait[i].SetSize( name.Height()*1.2f, name.Height()*1.1f );
 	}
 
-	gamui::RenderAtom tick0Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_BLUE, 0 );
+	gamui::RenderAtom tick0Atom = Game::CalcPaletteAtom( Game::PALETTE_BLUE, Game::PALETTE_BLUE, 0 );
 	tick0Atom.renderState = (const void*)UIRenderer::RENDERSTATE_UI_NORMAL;
-	gamui::RenderAtom tick1Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_GREEN, 0 );
+	gamui::RenderAtom tick1Atom = Game::CalcPaletteAtom( Game::PALETTE_GREEN, Game::PALETTE_GREEN, 0 );
 	tick1Atom.renderState = (const void*)UIRenderer::RENDERSTATE_UI_NORMAL;
-	gamui::RenderAtom tick2Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREY, UIRenderer::PALETTE_GREY, UIRenderer::PALETTE_DARK );
+	gamui::RenderAtom tick2Atom = Game::CalcPaletteAtom( Game::PALETTE_GREY, Game::PALETTE_GREY, Game::PALETTE_DARK );
 	tick1Atom.renderState = (const void*)UIRenderer::RENDERSTATE_UI_NORMAL;
 
 	bar.Init( container, 10, tick0Atom, tick1Atom, tick2Atom );
@@ -89,7 +89,7 @@ void AreaWidget::SetTraits( int traits )
 			case RegionData::TRAIT_MANUFACTURE:		id=ICON2_MAN;	break;
 			}
 
-			RenderAtom atom = UIRenderer::CalcIcon2Atom( id, true );
+			RenderAtom atom = Game::CalcIcon2Atom( id, true );
 			atom.renderState = (const void*)UIRenderer::RENDERSTATE_UI_DECO;
 			trait[count++].SetAtom( atom );
 		}

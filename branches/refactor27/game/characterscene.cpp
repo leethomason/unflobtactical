@@ -54,29 +54,25 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	const gamui::ButtonLook& blueTab	= game->GetButtonLook( Game::BLUE_TAB_BUTTON );
 
 	backButton.Init( &gamui2D, blue );
-	backButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	//backButton.SetText( "Back" );
-	backButton.SetDeco(	UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ),
-						UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
+	backButton.SetDeco(	Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
+						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	prevButton.Init( &gamui2D, blue );
-	prevButton.SetPos( GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	prevButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	prevButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_UNIT_PREV, true ),  
-						UIRenderer::CalcDecoAtom( DECO_UNIT_PREV, false ) );
+	prevButton.SetDeco( Game::CalcDecoAtom( DECO_UNIT_PREV, true ),  
+						Game::CalcDecoAtom( DECO_UNIT_PREV, false ) );
 	prevButton.SetVisible( input->nUnits > 1 );
 
 	nextButton.Init( &gamui2D, blue );
-	nextButton.SetPos( GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	nextButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	nextButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_UNIT_NEXT, true ),  
-						UIRenderer::CalcDecoAtom( DECO_UNIT_NEXT, false ) );
+	nextButton.SetDeco( Game::CalcDecoAtom( DECO_UNIT_NEXT, true ),  
+						Game::CalcDecoAtom( DECO_UNIT_NEXT, false ) );
 	nextButton.SetVisible( input->nUnits > 1 );
 
 	helpButton.Init( &gamui2D, blue );
 	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	helpButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_HELP, true ),  UIRenderer::CalcDecoAtom( DECO_HELP, false ) );
+	helpButton.SetDeco( Game::CalcDecoAtom( DECO_HELP, true ),  Game::CalcDecoAtom( DECO_HELP, false ) );
 
 	gamui::UIItem* controlArr[NUM_CONTROL+1] = { &helpButton };
 	static const char* const controlLabel[NUM_CONTROL] = { "Inv", "Stats", "Wpns" };
@@ -96,14 +92,12 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	_input->storage->ClearItem( "Soldr" );
 	_input->storage->ClearItem( "Sctst" );
 	storageWidget = new StorageWidget( &gamui2D, green, blueTab, _game->GetItemDefArr(), _input->storage );
-	storageWidget->SetOrigin( (float)port.UIWidth()-storageWidget->Width(), 0 );
 	storageWidget->SetInfoVisible( false );
 
 	statWidget.Init( &gamui2D, unit, storageWidget->X(), 0, input->nUnits > 1 );
 	compWidget.Init( &game->GetItemDefArr(), storage, unit, &gamui2D, blue, storageWidget->X(), 0, storageWidget->Width() );
 
 	unitCounter.Init( &gamui2D );
-	unitCounter.SetPos( 190, inventoryWidget->TextY() );
 	unitCounter.SetVisible( false );
 	SetCounter( 0 );
 
@@ -115,7 +109,6 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	model = localEngine->GetSpaceTree()->AllocModel( resource );
 	localEngine->CameraLookAt( model->X(), model->Z(), 30 );
 	*/
-	
 }
 
 
@@ -127,6 +120,24 @@ CharacterScene::~CharacterScene()
 	delete inventoryWidget;
 }
 
+
+void CharacterScene::Resize()
+{
+	const Screenport& port = game->engine->GetScreenport();
+	background.SetSize( port.UIWidth(), port.UIHeight() );
+	backButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	prevButton.SetPos( GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	nextButton.SetPos( GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F );
+
+	storageWidget->SetOrigin( (float)port.UIWidth()-storageWidget->Width(), 0 );
+	unitCounter.SetPos( 190, inventoryWidget->TextY() );
+
+	gamui::UIItem* controlArr[NUM_CONTROL+1] = { &helpButton, &control[0], &control[1], &control[2] };
+	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE), storageWidget->Width(), GAME_BUTTON_SIZE_F );
+
+	statWidget.SetPos( storageWidget->X(), 0 );
+	compWidget.SetPos( storageWidget->X(), 0 );
+}
 
 void CharacterScene::Draw3D()
 {
@@ -236,12 +247,24 @@ void CharacterScene::StatWidget::SetVisible( bool visible )
 }
 
 
+void CharacterScene::StatWidget::SetPos( float x, float y )
+{
+	float dy = 20.0f;
+	float dx = 100.0f;
+	for( int i=0; i<STATS_ROWS; ++i ) {
+		textTable[i*2+0].SetPos( x, y + (float)(i+1) * dy );
+		textTable[i*2+1].SetPos( x+dx, y + (float)(i+1) * dy );
+	}
+}
+
+
 
 void CharacterScene::CompWidget::Init( const ItemDefArr* arr, const Storage* storage, const Unit* unit, gamui::Gamui* g, const gamui::ButtonLook& look, float x, float y, float width )
 {
 	this->itemDefArr = arr;
 	this->unit = unit;
 	this->storage = storage;
+	this->width = width;
 
 	float NAME_WIDTH = 70.0f;
 	float DY = 16.0f;
@@ -338,6 +361,25 @@ void CharacterScene::CompWidget::SetVisible( bool visible )
 	}
 	if ( visible )
 		SetCompText();
+}
+
+
+void CharacterScene::CompWidget::SetPos( float x, float y )
+{
+	float NAME_WIDTH = 70.0f;
+	float DY = 16.0f;
+	float delta = (width - NAME_WIDTH) / (COMP_COL-1);
+
+	for( int j=0; j<COMP_ROW; ++j ) {
+		for( int i=0; i<COMP_COL; ++i ) {
+			float rx = x;
+
+			if ( i>0 )
+				rx = x + NAME_WIDTH + delta*(i-1);
+
+			compTable[j*COMP_COL+i].SetPos( rx, y + (float)(j+1)*DY );
+		}
+	}
 }
 
 
