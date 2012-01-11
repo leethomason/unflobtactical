@@ -158,15 +158,6 @@ void RegionData::SetStorageNormal( const Research& research, Storage* storage, b
 {
 	int COUNT = 100;
 
-	bool hasAllT3 = false;
-	if (    research.GetStatus( "ASLT-3" ) == Research::TECH_RESEARCH_COMPLETE
-		 && research.GetStatus( "LR-3" ) == Research::TECH_RESEARCH_COMPLETE
-		 && research.GetStatus( "MCAN-3" ) == Research::TECH_RESEARCH_COMPLETE
-		 && research.GetStatus( "ARM-3" ) == Research::TECH_RESEARCH_COMPLETE )
-	{
-		hasAllT3 = true;
-	}
-
 	storage->Clear();
 	for( int i=0; i<EL_MAX_ITEM_DEFS; ++i ) {
 		const ItemDef* itemDef = storage->GetItemDef( i );
@@ -184,15 +175,11 @@ void RegionData::SetStorageNormal( const Research& research, Storage* storage, b
 				else if ( status == Research::TECH_RESEARCH_COMPLETE ) {
 					if ( itemDef->IsWeapon() )
 					{
-						if ( itemDef->TechLevel() <= 2 || tech || hasAllT3 ) {
-							storage->AddItem( itemDef, COUNT );
-						}
+						storage->AddItem( itemDef, COUNT );
 					}
 					else if ( itemDef->IsArmor() )
 					{
-						if ( itemDef->TechLevel() <= 2 || manufacture || hasAllT3 ) {
-							storage->AddItem( itemDef, COUNT );
-						}
+						storage->AddItem( itemDef, COUNT );
 					}
 					else {
 						storage->AddItem( itemDef, COUNT );
@@ -1260,9 +1247,14 @@ void GeoScene::PushBaseTradeScene( BaseChit* baseChit )
 		                                 (regionData[region].traits & RegionData::TRAIT_TECH) != 0,
 										 (regionData[region].traits & RegionData::TRAIT_MANUFACTURE) != 0 );
 	data->cash		 = &cash;
-	data->costMult	 = regionData[region].traits & RegionData::TRAIT_CAPATALIST ? COST_MULT_CAP : COST_MULT_STD;
-	//data->armor3Mult  = regionData[region].traits & RegionData::TRAIT_MANUFACTURE ? COST_MULT_CAP : COST_MULT_HIGH;
-	//data->weapon3Mult = regionData[region].traits & RegionData::TRAIT_TECH ? COST_MULT_CAP : COST_MULT_HIGH;
+	data->costFlag   = COST_IN_USE;
+	if ( regionData[region].traits & RegionData::TRAIT_CAPATALIST )
+		data->costFlag |= COST_FLAG_CAPATALISM;
+	if ( regionData[region].traits & RegionData::TRAIT_MANUFACTURE )
+		data->costFlag |= COST_FLAG_ARMOR_T3;
+	if ( regionData[region].traits & RegionData::TRAIT_TECH )
+		data->costFlag |= COST_FLAG_WEAPON_T3;
+
 	data->soldierBoost = regionData[region].traits & RegionData::TRAIT_MILITARISTIC ? true : false;
 	data->soldiers	 = baseChit->CanUseSoldiers() ? baseChit->GetUnits() : 0;
 	data->scientists = baseChit->CanUseScientists() ? baseChit->GetScientstPtr() : 0;
