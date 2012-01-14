@@ -600,7 +600,7 @@ void CityChit::Load( const TiXmlElement* doc )
 }
 
 
-BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, const ItemDefArr& itemDefArr, bool firstBase ) : Chit( tree )
+BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, const ItemDefArr& itemDefArr, bool firstBase, bool soldierBoost ) : Chit( tree )
 {
 	pos.Set( (float)posi.x+0.5f, (float)posi.y+0.5f );
 	this->index = index;
@@ -613,7 +613,7 @@ BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, c
 	random.SetSeedFromTime();
 
 	if ( firstBase ) {
-		TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, 0, itemDefArr, random.Rand() );
+		TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, soldierBoost ? 0.8f : 0, itemDefArr, random.Rand() );
 	}
 
 	for( int i=0; i<NUM_FACILITIES; ++i ) {
@@ -1164,7 +1164,7 @@ void ChitBag::Load( const TiXmlElement* doc,
 				Add( cityChit );
 			}
 			else if ( StrEqual( chitEle->Value(), "BaseChit" )) {
-				BaseChit* baseChit = new BaseChit( tree, vi0, 0, arr, false );
+				BaseChit* baseChit = new BaseChit( tree, vi0, 0, arr, false, false );
 				baseChit->Load( chitEle, game );
 				Add( baseChit );
 			}

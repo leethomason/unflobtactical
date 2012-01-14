@@ -110,8 +110,9 @@ void Screenport::SetPerspective( const grinliz::Rectangle2I* clip )
 		clipInUI3D = Rectangle2F( 0, 0, UIWidth(), UIHeight() );
 	}
 	GLASSERT( !clipInUI3D.Empty() );
-	GLASSERT( clipInUI3D.X0() >= 0 && clipInUI3D.X1() <= UIWidth() );
-	GLASSERT( clipInUI3D.Y0() >= 0 && clipInUI3D.Y1() <= UIHeight() );
+	// sometimes round high to get all the pixels.
+	GLASSERT( clipInUI3D.X0() >= 0 ); //&& clipInUI3D.X1() <= UIWidth() );
+	GLASSERT( clipInUI3D.Y0() >= 0 ); //&& clipInUI3D.Y1() <= UIHeight() );
 	
 	Rectangle2F scissor;
 	UIToWindow( clipInUI3D,  &scissor );

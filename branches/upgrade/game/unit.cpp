@@ -625,14 +625,14 @@ void Unit::Create(	int team,
 	Free();
 	Init( team, STATUS_ALIVE, alienType, seed );
 	GenStats( team, type, body, &stats );		// defaults if not provided
+	gunner = 0;
 	switch( rank ) {
-		case 1: allMissionKills = 2;	break;
-		case 2: allMissionKills = 6;	break;
-		case 3: allMissionKills = 20;	break;
-		case 4: allMissionKills = 40;	break;
+		case 1: gunner = 2;	break;
+		case 2: gunner = 6;	break;
+		case 3: gunner = 20;	break;
+		case 4: gunner = 40;	break;
 	}
 	
-	gunner = 0;
 	stats.SetRank( XPToRank( XP() ));
 
 	hp = stats.TotalHP();

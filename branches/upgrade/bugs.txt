@@ -1,7 +1,11 @@
 Bugs 
 
 - recenter screen, remove scissor rectangle in battle scene?
-- test visibility in side by side games
+X fix T3 to use cost instead of the composite tech (too weird)
+- fix scissor
+- test difficulty
+- test sound on Fire
+- run through the save game tests (save in geo, prev tactical, loads tactical. grr.)
 
 X need slightly larger than unit plate model for UFO effects
 

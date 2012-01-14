@@ -127,11 +127,22 @@ struct Rectangle3
 		return true;
 	}
 
-	bool Contains( const Vector3<T>& point ) const
+	bool Contains( const Vector3<T>& point, bool inclusive=false ) const
 	{
-		for( int i=0; i<3; ++i ) {
-			if ( point.X(i) < X0(i) || point.X(i) >= X1(i) ) {
-				return false;
+		if ( !inclusive ) {
+			// normal case
+			for( int i=0; i<3; ++i ) {
+				if ( point.X(i) < X0(i) || point.X(i) >= X1(i) ) {
+					return false;
+				}
+			}
+		}
+		else {
+			// asserts, old compatibility
+			for( int i=0; i<3; ++i ) {
+				if ( point.X(i) < X0(i) || point.X(i) > X1(i) ) {
+					return false;
+				}
 			}
 		}
 		return true;
