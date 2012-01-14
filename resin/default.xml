@@ -75,6 +75,7 @@
         The Scout is a small ship undoubtedly responsible for many alien abductions and sightings in the past. Why they leave crop circles as a part of their 
         abduction/scanning missions is a mystery. They carry a small crew and easily fall to missile attack.
         <required0 research="AlienCores" />
+        <required1 research="UFOs" />
       </Scout>
       <AlienTech points="40">
         Alien weapons show tech classes we've designated T1, T2, and T3. Perhaps weapon tech 

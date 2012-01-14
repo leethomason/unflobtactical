@@ -79,8 +79,10 @@ void Screenport::SetUI( const Rectangle2I* clip )
 
 	Rectangle2F scissor;
 	UIToWindow( clipInUI2D, &scissor );
-	GPUShader::SetScissor( (int)scissor.min.x, (int)scissor.min.y,
-						   (int)ceilf(scissor.Width()), (int)ceilf(scissor.Height() ) );
+
+	Rectangle2I clean;
+	CleanScissor( scissor, &clean );
+	GPUShader::SetScissor(  clean.min.x, clean.min.y, clean.Width(), clean.Height() );
 
 	//view2D.SetIdentity();
 	
@@ -115,8 +117,10 @@ void Screenport::SetPerspective( const grinliz::Rectangle2I* clip )
 	
 	Rectangle2F scissor;
 	UIToWindow( clipInUI3D,  &scissor );
-	GPUShader::SetScissor( (int)scissor.min.x, (int)scissor.min.y,
-						   (int)ceilf(scissor.Width()), (int)ceilf(scissor.Height()) );
+
+	Rectangle2I clean;
+	CleanScissor( scissor, &clean );
+	GPUShader::SetScissor(  clean.min.x, clean.min.y, clean.Width(), clean.Height() );
 
 	GLASSERT( uiMode == false );
 	GLASSERT( EL_NEAR > 0.0f );
@@ -299,4 +303,25 @@ void Screenport::UIToWindow( const grinliz::Rectangle2F& ui, grinliz::Rectangle2
 	UIToView( ui.max, &v );
 	ViewToWindow( v, &w );
 	clip->DoUnion( w );
+}
+
+
+void Screenport::CleanScissor( const grinliz::Rectangle2F& scissor, grinliz::Rectangle2I* clean )
+{
+	if ( scissor.min.x == 0 && scissor.min.y == 0 && scissor.max.x == physicalWidth && scissor.max.y == physicalHeight ) {
+		clean->min.Set( 0, 0 );
+		clean->max.Set( (int)physicalWidth, (int)physicalHeight );
+		return;
+	}
+
+	clean->min.x = (int)scissor.min.x;
+	clean->max.x = (int)scissor.max.x;
+	if ( abs( clean->max.x - physicalWidth ) < 4 ) {
+		clean->max.x = (int)physicalWidth;
+	}
+	clean->min.y = (int)scissor.min.y;
+	clean->max.y = (int)scissor.max.y;
+	if ( abs( clean->max.y - physicalHeight ) < 4 ) {
+		clean->max.y = (int)physicalHeight;
+	}
 }

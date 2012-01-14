@@ -904,7 +904,7 @@ void GeoScene::UpdateMissiles( U32 deltaTime )
 						case EASY:		ufo->DoDamage( 1.5f );	break;
 						case NORMAL:	ufo->DoDamage( 1.0f );	break;
 						case HARD:		ufo->DoDamage( 0.8f );	break;
-						case VERY_HARD:	ufo->DoDamage( 0.6f );	break;
+						case VERY_HARD:	ufo->DoDamage( 0.7f );	break;
 						};
 						SoundManager::Instance()->QueueSound( "geo_ufo_hit" );
 						done = true;
@@ -978,7 +978,7 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 
 			float alienRank = state.alienRank;
 			if ( scenario == ALIEN_BASE ) {
-				alienRank = (float)(NUM_ALIEN_RANKS-4+difficulty);
+				alienRank = (float)(DEFAULT_NUM_ALIEN_RANKS-2+difficulty);
 			}
 			// Bad idea: difficulty of UFOs plenty broad already.
 			//if ( IsScoutScenario( scenario ) )
@@ -1735,8 +1735,9 @@ void GeoScene::DrawHUD()
 	TimeState ts;
 	CalcTimeState( timeline, &ts );
 	UFOText::Instance()->
-		Draw( 50, 0, "nBat=%d tmr=%.1fm alTm=%.1f rank=%.1f type=%.1f,%.1f,%.1f",
+		Draw( 50, 0, "nBat=%d diff=%d tmr=%.1fm alTm=%.1f rank=%.1f type=%.1f,%.1f,%.1f",
 		nBattles,
+		difficulty,
 		(float)(timeline / 1000) / 60.0f,
 		(float)ts.alienTime/1000.0f,
 		ts.alienRank,
@@ -1762,12 +1763,15 @@ void GeoScene::CalcTimeState( U32 msec, TimeState* state )
 	if ( msec <= FIRST_UFO+1000 )	// rounding so we aren't racing this timer
 		state->alienTime = FIRST_UFO;	
 
-	double nAlienRanks = (double)(NUM_ALIEN_RANKS-3+difficulty);
 	state->alienRank = (float)Interpolate( 0.0, 0.0, 
-		                                   (double)FULL_OUT_RANK, (double)(nAlienRanks)-1.5, 
-										   (double)msec );	// the minus one is float/int conversion, the 0.5 is not maxing out the alien rank
-	if ( state->alienRank > (float)(nAlienRanks-1) )
-		state->alienRank = (float)(nAlienRanks-1);
+						(double)FULL_OUT_RANK, (double)(DEFAULT_NUM_ALIEN_RANKS)-1.5, 
+						(double)msec );	// the minus one is float/int conversion, the 0.5 is not maxing out the alien rank
+
+	int maxAlienRank = DEFAULT_NUM_ALIEN_RANKS + difficulty - 2;
+	GLASSERT( maxAlienRank <= NUM_ALIEN_RANKS-1 );
+	state->alienRank += (float)(difficulty-1);
+
+	state->alienRank = Clamp( state->alienRank, 0.0f, (float)maxAlienRank );
 
 	state->alienType[ UFOChit::SCOUT ] = 1.0f;
 	state->alienType[ UFOChit::FRIGATE ] = 0.0f;

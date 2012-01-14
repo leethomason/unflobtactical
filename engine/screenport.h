@@ -106,6 +106,7 @@ public:
 
 private:
 	void UIToWindow( const grinliz::Rectangle2F& ui, grinliz::Rectangle2F* clip ) const;
+	void CleanScissor( const grinliz::Rectangle2F& scissor, grinliz::Rectangle2I* clean );
 
 	int rotation;		
 	float screenWidth; 
