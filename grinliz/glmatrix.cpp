@@ -475,6 +475,7 @@ void grinliz::MultMatrix4( const Matrix4& m, const Rectangle3F& in, Rectangle3F*
 				(i&2) ? in.X1(1) : in.X0(1),
 				(i&4) ? in.X1(2) : in.X0(2) );
 		p = m * q;
+		fixme inclusive union
 		out->DoUnion( p );
 	}
 }

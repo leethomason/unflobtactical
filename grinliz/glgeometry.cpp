@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2000-2007 Lee Thomason (www.grinninglizard.com)
+Copyright (c) 2000-2012 Lee Thomason (www.grinninglizard.com)
 Grinning Lizard Utilities.
 
 This software is provided 'as-is', without any express or implied 
@@ -1068,7 +1068,7 @@ int grinliz::IntersectRayAABB(	const Vector3F& origin,
 			candidatePlane[i] = pBoxMin[i];
 			inside = false;
 		}
-		else if ( pOrigin[i] > pBoxMax[i] ) 
+		else if ( pOrigin[i] >= pBoxMax[i] ) 
 		{
 			quadrant[i] = RIGHT;
 			candidatePlane[i] = pBoxMax[i];

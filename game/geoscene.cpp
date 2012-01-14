@@ -92,6 +92,7 @@ void GeoMapData::Init( const char* map, Random* random )
 					default: GLASSERT( 0 ); 
 				}
 				data[j*GEO_MAP_X+i] = type | (region<<8);
+				fixme integer union
 				bounds[region].DoUnion( i, j );
 				++numLand;
 			}
@@ -739,7 +740,10 @@ bool GeoScene::PlaceBase( const grinliz::Vector2I& map )
 			parked = true;
 
 		if ( !parked ) {
-			Chit* chit = new BaseChit( tree, map, index, game->GetItemDefArr(), firstBase );
+			int	region = geoMapData.GetRegion( map.x, map.y);
+			Chit* chit = new BaseChit( tree, map, index, game->GetItemDefArr(), 
+									   firstBase, 
+									   (regionData[region].traits & RegionData::TRAIT_MILITARISTIC ) != 0 );
 			chitBag.Add( chit );
 			firstBase = false;
 			baseButton.SetUp();
@@ -1754,10 +1758,11 @@ void GeoScene::Draw3D()
 
 void GeoScene::DrawHUD()
 {
-#if 0
+#if 1
 	TimeState ts;
 	CalcTimeState( timeline, &ts );
-	UFOText::Draw( 50, 0, "nBat=%d tmr=%.1fm alTm=%.1f rank=%.1f type=%.1f,%.1f,%.1f",
+	UFOText::Instance()->
+		Draw( 50, 0, "nBat=%d tmr=%.1fm alTm=%.1f rank=%.1f type=%.1f,%.1f,%.1f",
 		nBattles,
 		(float)(timeline / 1000) / 60.0f,
 		(float)ts.alienTime/1000.0f,

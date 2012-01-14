@@ -307,7 +307,6 @@ private:
 	void FireBaseWeapons();
 	void UpdateMissiles( U32 deltaTime );
 	void GenerateCities();
-	//bool AnyRegionHasTrait( int trait );
 
 	bool PlaceBase( const grinliz::Vector2I& map );
 #ifndef IMMEDIATE_BUY

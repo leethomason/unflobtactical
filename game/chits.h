@@ -292,7 +292,7 @@ public:
 		BUILD_TIME = 5,	// in seconds
 	};
 
-	BaseChit( SpaceTree* tree, const grinliz::Vector2I& pos, int index, const ItemDefArr& _itemDefArr, bool firstBase );
+	BaseChit( SpaceTree* tree, const grinliz::Vector2I& pos, int index, const ItemDefArr& _itemDefArr, bool firstBase, bool soldierBoost );
 	~BaseChit();
 
 	virtual BaseChit* IsBaseChit()			{ return this; }

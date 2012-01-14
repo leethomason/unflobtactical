@@ -129,6 +129,7 @@ void MultMatrix2I( const Matrix2I& a,
 
 	for( int i=1; i<4; ++i ) {
 		Vector2I w = a * b.Corner(i);
+		fixme integer union
 		c->DoUnion( w );
 	}
 }

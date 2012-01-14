@@ -162,7 +162,7 @@ void BaseTradeScene::SceneDone()
 			}
 			int seed = *data->cash ^ nSoldiers;
 			TacticalIntroScene::GenerateTerranTeam( &data->soldiers[minSoldiers], nSoldiers-minSoldiers, 
-													data->soldierBoost ? 0.0f : 0.5f,
+													data->soldierBoost ? 0.8f : 0,
 													game->GetItemDefArr(),
 													seed );
 		}

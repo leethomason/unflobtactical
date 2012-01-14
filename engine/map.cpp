@@ -561,6 +561,7 @@ void Map::DoDamage( Model* m, const MapDamageDesc& damageDesc, Rectangle2I* dBou
 		{
 			if ( dBounds ) {
 				Rectangle2I r = item->MapBounds();
+				FIXME: not correct. integer union.
 				dBounds->DoUnion( r );
 				dBounds->DoIntersection( Bounds() );
 			}

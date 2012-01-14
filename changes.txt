@@ -35,8 +35,18 @@
 	- check on Samsung
 
 Release v2.7
-
 - Can no longer target aliens you can't see
+- Resize now supported (only currently relevant to PC game)
+- Difficulty levels.
+- Fixed bug where "militiristic" bonus on geo screen wasn't applied
+- Fixed bug where the "standing color" of a unit is wrong for some weapons
+- Fixed scissor rectangle causing visual noise on the right hand edge
+- cleanup
+	- dead code in camera / transorms
+	- moved dead caching code
+	- separated out game code from engine code (at least compile independently.)
+	- moved GL code out of the screenport
+	- upgraded layout system in gamui
 
 Release v2.6
 

@@ -202,6 +202,7 @@ void ModelBuilder::Flush()
 	bounds.Set( group[0].vertex[0].pos );
 	for( int i=0; i<nGroup; ++i ) {
 		for( int j=0; j<group[i].nVertex; ++j ) {
+			fixme inclusive union
 			bounds.DoUnion( group[i].vertex[j].pos );
 		}
 	}

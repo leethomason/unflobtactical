@@ -662,7 +662,8 @@ int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I*
 
 		clip3D->Zero();
 		clip3D->pos.Set( (int)size.x, 0 );
-		clip3D->DoUnion( (int)port.UIWidth(), (int)port.UIHeight() );
+		// rounding / math errors creeping in. Add to the width.
+		clip3D->DoUnion( 10+(int)port.UIWidth(), (int)port.UIHeight() );
 		
 		clip2D->pos.Set( 0, 0 );
 		clip2D->size.Set( (int)port.UIWidth(), (int)port.UIHeight() );
@@ -1809,7 +1810,7 @@ int BattleScene::ProcessActionShoot( Action* action, Unit* unit )
 			GLASSERT( intersection.y >= 0 && intersection.y <= 10.0f );
 			beam0 = p0;
 			beam1 = intersection;
-			GLASSERT( m->AABB().Contains( intersection ) );
+			GLASSERT( m->AABB().Contains( intersection, true ) );
 			modelHit = m;
 		}
 		else if ( !impact ) {		
