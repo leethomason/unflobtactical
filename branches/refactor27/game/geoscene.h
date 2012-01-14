@@ -280,7 +280,9 @@ public:
 	enum {	EASY,			
 			NORMAL,			
 			HARD,			
-			VERY_HARD };	
+			VERY_HARD,
+			NUM_DIFFICULTY
+		};	
 
 private:
 	struct Missile {

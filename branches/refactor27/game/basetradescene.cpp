@@ -117,12 +117,12 @@ void BaseTradeScene::Resize()
 	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	okay.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	sellAll.SetPos( baseWidget->X()+baseWidget->Width()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F ); 
-	baseLabel.SetPos( 0, 0 );
-	regionLabel.SetPos( regionWidget->X(), 0 );
 
 	static const float TEXTSPACE = 16.0f;
 	baseWidget->SetOrigin( 0, TEXTSPACE );
 	regionWidget->SetOrigin( (float)port.UIWidth()-regionWidget->Width(), TEXTSPACE );
+	baseLabel.SetPos( 0, 0 );
+	regionLabel.SetPos( regionWidget->X(), 0 );
 
 	const float PROFIT_X = regionWidget->X();
 
