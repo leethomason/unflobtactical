@@ -41,8 +41,6 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	//const Screenport& port = engine->GetScreenport();
 	random.SetSeedFromTime();
 
-	GLOUTPUT(( "TacticalIntroScene screen=%.1f,%.1f\n", engine->GetScreenport().UIWidth(), engine->GetScreenport().UIHeight() ));
-
 	// -- Background -- //
 	gamui::RenderAtom nullAtom;
 
@@ -119,6 +117,8 @@ TacticalIntroScene::~TacticalIntroScene()
 void TacticalIntroScene::Resize()
 {
 	const Screenport& port = GetEngine()->GetScreenport();
+	GLOUTPUT(( "TacticalIntroScene Resize screen=%.1f,%.1f\n", port.UIWidth(), port.UIHeight() ));
+
 	LayoutCalculator layout( port.UIWidth(), port.UIHeight() );
 	layout.SetGutter( GAME_GUTTER );
 	layout.SetSpacing( GAME_GUTTER/2 );
