@@ -58,6 +58,7 @@ public:
 	virtual ~TacticalEndScene();
 
 	virtual void Activate();
+	virtual void Resize();
 
 	// UI
 	virtual void Tap(	int count, 
@@ -83,8 +84,6 @@ private:
 	gamui::TextLabel	items[ITEM_NUM];
 
 	gamui::PushButton	okayButton;
-
-//	const TacticalEndSceneData* data;
 };
 
 

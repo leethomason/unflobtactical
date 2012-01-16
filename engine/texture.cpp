@@ -118,9 +118,7 @@ Texture* TextureManager::GetTexture( const char* name, bool reload )
 			int format = Surface::QueryFormat( fstr );
 			Texture::Param flags = Texture::PARAM_NONE;
 
-			// FIXME: need a texture parameter to create "linear"
-			// Hack hack hack:
-			if ( strstr( name, "font" ) || strstr( name, "icons2" )) {
+			if ( item->GetBool( "noMip" )) {
 				flags = Texture::PARAM_LINEAR;
 			}
 

@@ -462,12 +462,87 @@ void GPUShader::Clear()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-
-void GPUShader::SetMatrixMode( MatrixType m )
+#if 0
+/*static*/void GPUShader::SetMatrixMode( MatrixType m )
 {
 	matrixMode = m;
 }
+#else
 
+/*static*/ void GPUShader::SetViewport( int w, int h )
+{
+	glViewport( 0, 0, w, h );
+}
+
+
+/*static*/ void GPUShader::SetOrthoTransform( int screenWidth, int screenHeight, int rotation )
+{
+	Matrix4 r, t;
+	r.SetZRotation( (float)rotation );
+	
+	// the tricky bit. After rotating the ortho display, move it back on screen.
+	switch (rotation) {
+		case 0:
+			break;
+		case 90:
+			t.SetTranslation( 0, (float)(-screenWidth), 0 );	
+			break;
+			
+		default:
+			GLASSERT( 0 );	// work out...
+			break;
+	}
+	Matrix4 view2D = r*t;
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();				// projection
+
+	// Set the ortho matrix, help the driver
+	glOrthofX( 0, screenWidth, screenHeight, 0, -100, 100 );
+	
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();				// model
+	glMultMatrixf( view2D.x );
+	CHECK_GL_ERROR;
+}
+
+
+/*static*/ void GPUShader::SetPerspectiveTransform( float left, float right, 
+													 float bottom, float top, 
+													 float near, float far,
+													 int rotation)
+{
+	// Give the driver hints:
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glFrustumfX( left, right, bottom, top, near, far );
+	glRotatef( (float)(-rotation), 0, 0, 1 );
+	
+	glMatrixMode(GL_MODELVIEW);	
+	CHECK_GL_ERROR;
+}
+
+
+/*static*/ void GPUShader::SetCameraTransform( const grinliz::Matrix4& camera )
+{
+	glMatrixMode(GL_MODELVIEW);
+	// In normalized coordinates.
+	glLoadMatrixf( camera.x );
+	CHECK_GL_ERROR;
+}
+
+
+/*static*/ void GPUShader::SetScissor( int x, int y, int w, int h )
+{
+	if ( w > 0 && h > 0 ) {
+		glEnable( GL_SCISSOR_TEST );
+		glScissor( x, y, w, h );
+	}
+	else {
+		glDisable( GL_SCISSOR_TEST );
+	}
+}
+#endif
 
 GPUShader::~GPUShader()
 {

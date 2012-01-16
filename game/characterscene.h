@@ -44,6 +44,7 @@ public:
 	virtual ~CharacterScene();
 
 	virtual void Activate();
+	virtual void Resize();
 
 	// UI
 	virtual void Tap(	int action, 
@@ -96,6 +97,7 @@ protected:
 	public:
 		StatWidget()		{}
 		void Init( gamui::Gamui* g, const Unit* unit, float x, float y, bool baseScene );
+		void SetPos( float x, float y );
 		void SetVisible( bool visible );
 		void Update( Unit* unit );
 	private:
@@ -110,14 +112,14 @@ protected:
 					gamui::Gamui* g, const gamui::ButtonLook& look, float x, float y, float w );
 		
 		void SetVisible( bool visible );
+		void SetPos( float x, float y );
 		void Tap( const gamui::UIItem* item );
 		void SetCompText();
 	private:
-		//gamui::ToggleButton range[NUM_RANGE];
-
 		const ItemDefArr* itemDefArr;
 		const Storage* storage;
 		const Unit* unit;
+		float width;
 
 		// name tu % dam dptu
 		enum { COMP_COL = 5, COMP_ROW = 12 };

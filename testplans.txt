@@ -17,12 +17,13 @@ Save/Load
   play
   restore from slot
 
-  go to tactical
+  play to tactical
   save 2
   restore slot 1 (back to geo)
   restore slot 2 (back to tac)
   play
-  quit, continue
+  exit game
+  continue
 
   ---
   new tactical

@@ -173,10 +173,9 @@ float BulletSpread::ComputePercent( const Accuracy& accuracy, const BulletTarget
 
 	Vector2F center = { target.width*0.50f, target.height*0.65f };
 	
-	Rectangle2F bullseye, board;
-	board.Set( 0, 0, target.width, target.height );
-	bullseye.Set(	center.x-target.width*EPS, center.y-target.height*EPS,
-					center.x+target.width*EPS, center.y+target.height*EPS );
+	Rectangle2F board( 0, 0, target.width, target.height );
+	Rectangle2F bullseye(	center.x-target.width*EPS, center.y-target.height*EPS,
+							center.x+target.width*EPS, center.y+target.height*EPS );
 
 	float hit = 0;
 

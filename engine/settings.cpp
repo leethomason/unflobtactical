@@ -24,54 +24,39 @@ void SettingsManager::Create( const char* savepath )
 {
 	GLASSERT( instance == 0 );
 	instance = new SettingsManager( savepath );
+	instance->Load();
 }
 
 
 void SettingsManager::Destroy()
 {
 	delete instance;
-	instance = 0;
 }
 
 
 SettingsManager::SettingsManager( const char* savepath )
 {
-	
+	GLASSERT( instance == 0 );
+	instance = this;
+
 	path = savepath;
 	path += "settings.xml";
 
 	// Set defaults.
 	audioOn = 1;
-	suppressCrashLog = 0;
-	playerAI = 0;
-	battleShipParty = 0;
 	nWalkingMaps = 1;
-	confirmMove = 
-		#ifdef ANDROID_NDK
-			1;
-		#else
-			0;
-		#endif
-	allowDrag = true;
-	testAlien = 0;
 
+}
+
+
+void SettingsManager::Load()
+{
 	// Parse actuals.
 	TiXmlDocument doc;
 	if ( doc.LoadFile( path.c_str() ) ) {
 		TiXmlElement* root = doc.RootElement();
 		if ( root ) {
-			root->QueryIntAttribute( "audioOn", &audioOn );
-			root->QueryIntAttribute( "suppressCrashLog", &suppressCrashLog );
-			root->QueryIntAttribute( "playerAI", &playerAI );
-			root->QueryIntAttribute( "battleShipParty", &battleShipParty );
-			root->QueryIntAttribute( "nWalkingMaps", &nWalkingMaps );
-			root->QueryBoolAttribute( "confirmMove", &confirmMove );
-			root->QueryBoolAttribute( "allowDrag", &allowDrag );
-			root->QueryIntAttribute( "testAlien", &testAlien );
-			currentMod = "";
-			if ( root->Attribute( "currentMod" ) ) {
-				currentMod = root->Attribute( "currentMod" );
-			}
+			ReadAttributes( root );
 		}
 	}
 	nWalkingMaps = grinliz::Clamp( nWalkingMaps, 1, 2 );
@@ -88,24 +73,6 @@ void SettingsManager::SetNumWalkingMaps( int maps )
 }
 
 
-void SettingsManager::SetCurrentModName( const GLString& name )
-{
-	if ( name != currentMod ) {
-		currentMod = name;
-		Save();
-	}
-}
-
-
-void SettingsManager::SetConfirmMove( bool confirm )
-{
-	if ( confirm != confirmMove ) {
-		confirmMove = confirm;
-		Save();
-	}
-}
-
-
 void SettingsManager::SetAudioOn( bool _value )
 {
 	int value = _value ? 1 : 0;
@@ -117,33 +84,29 @@ void SettingsManager::SetAudioOn( bool _value )
 }
 
 
-void SettingsManager::SetAllowDrag( bool allow ) 
-{
-	if ( allowDrag != allow ) {
-		allowDrag = allow;
-		Save();
-	}
-}
-
-
 void SettingsManager::Save()
 {
 	FILE* fp = fopen( path.c_str(), "w" );
 	if ( fp ) {
 		XMLUtil::OpenElement( fp, 0, "Settings" );
-
-		XMLUtil::Attribute( fp, "currentMod", currentMod.c_str() );
-		XMLUtil::Attribute( fp, "audioOn", audioOn );
-		XMLUtil::Attribute( fp, "suppressCrashLog", suppressCrashLog );
-		XMLUtil::Attribute( fp, "playerAI", playerAI );
-		XMLUtil::Attribute( fp, "battleShipParty", battleShipParty );
-		XMLUtil::Attribute( fp, "nWalkingMaps", nWalkingMaps );
-		XMLUtil::Attribute( fp, "confirmMove", confirmMove );
-		XMLUtil::Attribute( fp, "allowDrag", allowDrag );
-		XMLUtil::Attribute( fp, "testAlien", testAlien );
-
+		WriteAttributes( fp );
 		XMLUtil::SealCloseElement( fp );
-
 		fclose( fp );
 	}
+}
+
+
+void SettingsManager::ReadAttributes( const TiXmlElement* root )
+{
+	// Actuals:
+	root->QueryIntAttribute( "audioOn", &audioOn );
+	root->QueryIntAttribute( "nWalkingMaps", &nWalkingMaps );
+	nWalkingMaps = grinliz::Clamp( nWalkingMaps, 1, 2 );
+}
+
+
+void SettingsManager::WriteAttributes( FILE* fp )
+{
+	XMLUtil::Attribute( fp, "audioOn", audioOn );
+	XMLUtil::Attribute( fp, "nWalkingMaps", nWalkingMaps );
 }

@@ -8,7 +8,7 @@ sources :=  ai.cpp \
 			item.cpp \
 			research.cpp \
 			scene.cpp \
-			settings.cpp \
+			gamesettings.cpp \
 			stats.cpp \
 			tacmap.cpp \
 			ufosound.cpp \
@@ -29,6 +29,8 @@ sources :=  ai.cpp \
 			geomap.cpp \
 			geoscene.cpp \
 			helpscene.cpp \
+			newgeooptions.cpp \
+			newtacticaloptions.cpp \
 			researchscene.cpp \
 			saveloadscene.cpp \
 			settingscene.cpp \

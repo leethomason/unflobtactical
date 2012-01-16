@@ -22,7 +22,6 @@
 using namespace grinliz;
 
 Camera::Camera() : 
-	viewRotation( 0 ),
 	tilt( 45.f ), 
 	yRotation( 0.0f ), 
 	valid( false )
@@ -53,7 +52,7 @@ void Camera::CalcWorldXForm()
 		// Calc the View Matrix
 		Matrix4 inv, zRot;
 		worldXForm.Invert( &inv );
-		zRot.SetZRotation( -(float)(viewRotation)*90.0f );
+		//zRot.SetZRotation( -(float)(viewRotation)*90.0f );
 		viewMatrix = zRot*inv;
 
 		valid = true;

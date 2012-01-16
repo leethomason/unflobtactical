@@ -24,8 +24,6 @@
 using namespace grinliz;
 using namespace gamui;
 
-//static const int SOLDIER_COST   = 80;
-//static const int SCIENTIST_COST = 120;
 
 BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene( _game )
 {
@@ -52,10 +50,6 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	originalBase = new Storage( *data->base );
 	originalRegion = new Storage( data->region );
 
-	static const float TEXTSPACE = 16.0f;
-
-	//backgroundUI.Init( _game, &gamui2D, false );
-	//backgroundUI.background.SetVisible( false );
 	RenderAtom backgroundAtom(	(const void*)UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE, 
 								(const void*)TextureManager::Instance()->GetTexture( "background_basetrade" ), 0, 0, 1, 1 );
 	background.Init( &gamui2D, backgroundAtom, false );
@@ -67,59 +61,41 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	const gamui::ButtonLook& red = _game->GetButtonLook( Game::RED_BUTTON );
 
 	helpButton.Init( &gamui2D, green );
-	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
 	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	helpButton.SetDeco(  UIRenderer::CalcDecoAtom( DECO_HELP, true ), UIRenderer::CalcDecoAtom( DECO_HELP, false ) );	
+	helpButton.SetDeco(  Game::CalcDecoAtom( DECO_HELP, true ), Game::CalcDecoAtom( DECO_HELP, false ) );	
 
 	okay.Init( &gamui2D, blue );
 	okay.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	okay.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
-	//okay.SetText( "Okay" );
-	okay.SetDeco(  UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ), 
-		           UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
+	okay.SetDeco(  Game::CalcDecoAtom( DECO_OKAY_CHECK, true ), 
+		           Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	float w = GAME_BUTTON_SIZE_F*0.95f;
 	float h = GAME_BUTTON_SIZE_F*0.95f;
 
 	baseWidget = new StorageWidget( &gamui2D, green, tab, game->GetItemDefArr(), data->base, w, h );
 	baseWidget->SetFudgeFactor( -5, -5 );
-	baseWidget->SetOrigin( 0, TEXTSPACE );
 
 	sellAll.Init( &gamui2D, red );
 	sellAll.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	sellAll.SetPos( baseWidget->X()+baseWidget->Width()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F ); 
 	sellAll.SetText( "Sell" );
 	sellAll.SetText2( "All" );
 
-	regionWidget = new StorageWidget( &gamui2D, green, tab, game->GetItemDefArr(), &data->region, w, h, data->costMult );
+	regionWidget = new StorageWidget( &gamui2D, green, tab, game->GetItemDefArr(), &data->region, w, h, data->costFlag );
 	regionWidget->SetFudgeFactor( -5, -5 );
-	regionWidget->SetOrigin( (float)port.UIWidth()-regionWidget->Width(), TEXTSPACE );
 	regionWidget->SetInfoVisible( false );
 
 	baseLabel.Init( &gamui2D );
-	baseLabel.SetPos( 0, 0 );
 	baseLabel.SetText( data->baseName );
 
 	regionLabel.Init( &gamui2D );
-	regionLabel.SetPos( regionWidget->X(), 0 );
 	regionLabel.SetText( data->regionName );
 
-	const float PROFIT_X = regionWidget->X();
-
 	profitLabel.Init( &gamui2D );
-	profitLabel.SetPos( PROFIT_X, 320.f-TEXTSPACE*4.f );
-
 	lossLabel.Init( &gamui2D );
-	lossLabel.SetPos( profitLabel.X(), 320.f-TEXTSPACE*3.f );
-
 	totalLabel.Init( &gamui2D );
-	totalLabel.SetPos( profitLabel.X(), 320.f-TEXTSPACE*2.f );
-
 	remainLabel.Init( &gamui2D );
-	remainLabel.SetPos( profitLabel.X(), 320.f-TEXTSPACE*1.f );
 
 	ComputePrice( 0 );
-	//SetHireButtons();
 }
 
 
@@ -129,6 +105,29 @@ BaseTradeScene::~BaseTradeScene()
 	delete regionWidget;
 	delete originalBase;
 	delete originalRegion;
+}
+
+void BaseTradeScene::Resize()
+{
+	const Screenport& port = GetEngine()->GetScreenport();
+	background.SetSize( port.UIWidth(), port.UIHeight() );
+
+	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	okay.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	sellAll.SetPos( baseWidget->X()+baseWidget->Width()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F ); 
+
+	static const float TEXTSPACE = 16.0f;
+	baseWidget->SetOrigin( 0, TEXTSPACE );
+	regionWidget->SetOrigin( (float)port.UIWidth()-regionWidget->Width(), TEXTSPACE );
+	baseLabel.SetPos( 0, 0 );
+	regionLabel.SetPos( regionWidget->X(), 0 );
+
+	const float PROFIT_X = regionWidget->X();
+
+	profitLabel.SetPos( PROFIT_X, 320.f-TEXTSPACE*4.f );
+	lossLabel.SetPos( profitLabel.X(), 320.f-TEXTSPACE*3.f );
+	totalLabel.SetPos( profitLabel.X(), 320.f-TEXTSPACE*2.f );
+	remainLabel.SetPos( profitLabel.X(), 320.f-TEXTSPACE*1.f );
 }
 
 
@@ -161,7 +160,7 @@ void BaseTradeScene::SceneDone()
 			}
 			int seed = *data->cash ^ nSoldiers;
 			TacticalIntroScene::GenerateTerranTeam( &data->soldiers[minSoldiers], nSoldiers-minSoldiers, 
-													data->soldierBoost ? 0.0f : 0.5f,
+													data->soldierBoost ? 0.8f : 0,
 													game->GetItemDefArr(),
 													seed );
 		}
@@ -262,7 +261,7 @@ bool BaseTradeScene::ComputePrice( int* _total )
 		if ( currentCount > originalCount ) {
 			// Bought stuff.
 			nBuy += (currentCount - originalCount );
-			buy += (currentCount - originalCount ) * itemDef->BuyPrice( data->costMult );
+			buy += (currentCount - originalCount ) * itemDef->BuyPrice( data->costFlag );
 		}
 		if ( currentCount < originalCount ) {
 			// Sold stuff.

@@ -15,6 +15,7 @@
 
 #include "tacmap.h"
 #include "item.h"
+#include "game.h"
 
 #include "../engine/loosequadtree.h"
 #include "../grinliz/glrectangle.h"
@@ -160,6 +161,16 @@ TacMap::TacMap( SpaceTree* tree, const ItemDefArr& _itemDefArr ) : Map( tree ),
 {
 	lander = 0;
 	nLanderPos = 0;
+
+	gamui::RenderAtom borderAtom = Game::CalcPaletteAtom( Game::PALETTE_BLUE, Game::PALETTE_BLUE, Game::PALETTE_DARK, true );
+#ifdef DEBUG_VISIBILITY
+	borderAtom.renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
+#else
+	borderAtom.renderState = (const void*) RENDERSTATE_MAP_OPAQUE;
+#endif
+	for( int i=0; i<4; ++i ) {
+		border[i].Init( &overlay[LAYER_UNDER_HIGH], borderAtom, false );
+	}
 }
 
 
@@ -173,6 +184,49 @@ TacMap::~TacMap()
 	debris.Clear();
 }
 
+
+void TacMap::SetSize( int w, int h )					
+{
+	Map::SetSize( w, h );
+
+	border[0].SetPos( -1, -1 );
+	border[0].SetSize( (float)(w+2), 1 );
+
+	border[1].SetPos( -1, (float)h );
+	border[1].SetSize( (float)(w+2), 1 );
+
+	border[2].SetPos( -1, 0 );
+	border[2].SetSize( 1, (float)h );
+
+	border[3].SetPos( (float)w, 0 );
+	border[3].SetSize( 1, (float)h );
+}
+
+
+void TacMap::InitWalkingMapAtoms( gamui::RenderAtom* atom, int nWalkingMaps )
+{
+	atom[0] = Game::CalcIconAtom( ICON_GREEN_WALK_MARK );
+	atom[1] = Game::CalcIconAtom( ICON_YELLOW_WALK_MARK ); 
+	atom[2] = Game::CalcIconAtom( ICON_ORANGE_WALK_MARK ); 
+	atom[3] = Game::CalcIconAtom( ICON_GREEN_WALK_MARK ); 
+	atom[4] = Game::CalcIconAtom( ICON_YELLOW_WALK_MARK ); 
+	atom[5] = Game::CalcIconAtom( ICON_ORANGE_WALK_MARK ); 
+
+	if ( nWalkingMaps == 1 ) {
+		atom[0].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
+		atom[1].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
+		atom[2].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
+	}
+	else {
+		atom[0].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
+		atom[1].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
+		atom[2].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
+		atom[3].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
+		atom[4].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
+		atom[5].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
+	}
+
+}
 
 
 const char* TacMap::GetItemDefName( int i )

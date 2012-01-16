@@ -15,7 +15,6 @@
 
 #include "screenport.h"
 #include "gpustatemanager.h"
-#include "platformgl.h"
 #include "enginelimits.h"
 
 #include "../grinliz/glrectangle.h"
@@ -29,30 +28,20 @@ Screenport::Screenport( int w, int h, int r )
 {
 	Resize( w, h, r );
 	uiMode = false;
-	clipInUI2D.Set( 0, 0, UIWidth(), UIHeight() );
-	clipInUI3D.Set( 0, 0, UIWidth(), UIHeight() );
+	clipInUI2D = Rectangle2F( 0, 0, UIWidth(), UIHeight() );
+	clipInUI3D = Rectangle2F( 0, 0, UIWidth(), UIHeight() );
 }
-
-/*
-Screenport::Screenport( const Screenport& other )
-{
-	Resize( (int)other.physicalWidth, (int)other.physicalHeight, other.rotation );
-	uiMode = other.uiMode;
-	clipInUI2D = other.clipInUI2D;
-	clipInUI3D = other.clipInUI3D;
-}
-*/
 
 
 void Screenport::Resize( int w, int h, int r )
 {
-	physicalWidth = (float)w;
+	physicalWidth  = (float)w;
 	physicalHeight = (float)h;
 	rotation =	r;
 	GLASSERT( rotation >= 0 && rotation < 4 );
 
-	glViewport( 0, 0, w, h );
-	glDisable( GL_SCISSOR_TEST );
+	GPUShader::SetViewport( w, h );
+	GPUShader::SetScissor( 0, 0, 0, 0 );
 
 	// Sad but true: the game assets are set up for 480x320 resolution.
 	// How to scale?
@@ -78,11 +67,11 @@ void Screenport::Resize( int w, int h, int r )
 
 void Screenport::SetUI( const Rectangle2I* clip )	
 {
-	if ( clip ) {
-		clipInUI2D.Set( (float)clip->min.x, (float)clip->min.x, (float)clip->max.x, (float)clip->max.y );
+	if ( clip && clip->Area() > 1 ) {
+		clipInUI2D = Rectangle2F( (float)clip->min.x, (float)clip->min.y, (float)clip->max.x, (float)clip->max.y );
 	}
 	else {
-		clipInUI2D.Set( 0, 0, UIWidth(), UIHeight() );
+		clipInUI2D = Rectangle2F( 0, 0, UIWidth(), UIHeight() );
 	}
 	GLASSERT( clipInUI2D.IsValid() );
 	GLASSERT( clipInUI2D.min.x >= 0 && clipInUI2D.max.x <= UIWidth() );
@@ -90,43 +79,17 @@ void Screenport::SetUI( const Rectangle2I* clip )
 
 	Rectangle2F scissor;
 	UIToWindow( clipInUI2D, &scissor );
-	glEnable( GL_SCISSOR_TEST );
-	glScissor( (int)scissor.min.x, (int)scissor.min.y, (int)scissor.max.x, (int)scissor.max.y );
-	
-	view2D.SetIdentity();
-	Matrix4 r, t;
-	r.SetZRotation( (float)(90*Rotation() ));
-	
-	// the tricky bit. After rotating the ortho display, move it back on screen.
-	switch (Rotation()) {
-		case 0:
-			break;
-		case 1:
-			t.SetTranslation( 0, -screenWidth, 0 );	
-			break;
-			
-		default:
-			GLASSERT( 0 );	// work out...
-			break;
-	}
-	view2D = r*t;
+
+	Rectangle2I clean;
+	CleanScissor( scissor, &clean );
+	GPUShader::SetScissor(  clean.min.x, clean.min.y, clean.Width(), clean.Height() );
+
+	//view2D.SetIdentity();
 	
 	projection2D.SetIdentity();
 	projection2D.SetOrtho( 0, screenWidth, screenHeight, 0, -1, 1 );
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();				// projection
-
-	// Set the ortho matrix, help the driver
-	glOrthofX( 0, screenWidth, screenHeight, 0, -100, 100 );
-	
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();				// model
-	glMultMatrixf( view2D.x );
-	GPUShader::SetMatrixMode( GPUShader::MODELVIEW_MATRIX );	// tell the manager we twiddled with state.
-
+	GPUShader::SetOrthoTransform( (int)screenWidth, (int)screenHeight, Rotation()*90 );
 	uiMode = true;
-	CHECK_GL_ERROR;
 }
 
 
@@ -134,12 +97,7 @@ void Screenport::SetView( const Matrix4& _view )
 {
 	GLASSERT( uiMode == false );
 	view3D = _view;
-
-	glMatrixMode(GL_MODELVIEW);
-	// In normalized coordinates.
-	glLoadMatrixf( view3D.x );
-	GPUShader::SetMatrixMode( GPUShader::MODELVIEW_MATRIX );	// tell the manager we twiddled with state.
-	CHECK_GL_ERROR;
+	GPUShader::SetCameraTransform( view3D );
 }
 
 
@@ -147,11 +105,11 @@ void Screenport::SetPerspective( const grinliz::Rectangle2I* clip )
 {
 	uiMode = false;
 
-	if ( clip ) {
-		clipInUI3D.Set( (float)clip->min.x, (float)clip->min.y, (float)clip->max.x, (float)clip->max.y );
+	if ( clip && clip->Area() > 1 ) {
+		clipInUI3D = Rectangle2F( (float)clip->min.x, (float)clip->min.y, (float)clip->max.x, (float)clip->max.y );
 	}
 	else {
-		clipInUI3D.Set( 0, 0, UIWidth(), UIHeight() );
+		clipInUI3D = Rectangle2F( 0, 0, UIWidth(), UIHeight() );
 	}
 	GLASSERT( clipInUI3D.IsValid() );
 	GLASSERT( clipInUI3D.min.x >= 0 && clipInUI3D.max.x <= UIWidth() );
@@ -159,8 +117,10 @@ void Screenport::SetPerspective( const grinliz::Rectangle2I* clip )
 	
 	Rectangle2F scissor;
 	UIToWindow( clipInUI3D,  &scissor );
-	glEnable( GL_SCISSOR_TEST );
-	glScissor( (int)scissor.min.x, (int)scissor.min.y, (int)scissor.max.x, (int)scissor.max.y );
+
+	Rectangle2I clean;
+	CleanScissor( scissor, &clean );
+	GPUShader::SetScissor(  clean.min.x, clean.min.y, clean.Width(), clean.Height() );
 
 	GLASSERT( uiMode == false );
 	GLASSERT( EL_NEAR > 0.0f );
@@ -204,19 +164,13 @@ void Screenport::SetPerspective( const grinliz::Rectangle2I* clip )
 	Matrix4 rot;
 	rot.SetZRotation( (float)(-90 * Rotation()) );
 	
-	glMatrixMode(GL_PROJECTION);
 	// In normalized coordinates.
 	projection3D.SetFrustum( frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.zNear, frustum.zFar );
 	projection3D = projection3D * rot;
-	
-	// Give the driver hints:
-	glLoadIdentity();
-	glFrustumfX( frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.zNear, frustum.zFar );
-	glRotatef( (float)(-90 * Rotation()), 0, 0, 1 );
-	
-	glMatrixMode(GL_MODELVIEW);	
-	CHECK_GL_ERROR;
-	GPUShader::SetMatrixMode( GPUShader::MODELVIEW_MATRIX );	// tell the manager we twiddled with state.
+	GPUShader::SetPerspectiveTransform( frustum.left, frustum.right,
+										frustum.bottom, frustum.top,	
+										frustum.zNear, frustum.zFar,
+										(90*Rotation()) );
 }
 
 
@@ -310,7 +264,8 @@ void Screenport::WorldToView( const grinliz::Vector3F& world, grinliz::Vector2F*
 	Vector2F min = { 0, 0 };
 	Vector2F max = { UIWidth(), UIHeight() };
 	UIToView( min, &v0 );
-	UIToView( max, &v1 ); 
+	UIToView( max, &v1 );
+
 	clipInView.FromPair( v0.x, v0.y, v1.x, v1.y );
 	
 	v->x = Interpolate( -1.0f, (float)clipInView.min.x,
@@ -348,4 +303,25 @@ void Screenport::UIToWindow( const grinliz::Rectangle2F& ui, grinliz::Rectangle2
 	UIToView( ui.max, &v );
 	ViewToWindow( v, &w );
 	clip->DoUnion( w );
+}
+
+
+void Screenport::CleanScissor( const grinliz::Rectangle2F& scissor, grinliz::Rectangle2I* clean )
+{
+	if ( scissor.min.x == 0 && scissor.min.y == 0 && scissor.max.x == physicalWidth && scissor.max.y == physicalHeight ) {
+		clean->min.Set( 0, 0 );
+		clean->max.Set( (int)physicalWidth, (int)physicalHeight );
+		return;
+	}
+
+	clean->min.x = (int)scissor.min.x;
+	clean->max.x = (int)scissor.max.x;
+	if ( abs( clean->max.x - physicalWidth ) < 4 ) {
+		clean->max.x = (int)physicalWidth;
+	}
+	clean->min.y = (int)scissor.min.y;
+	clean->max.y = (int)scissor.max.y;
+	if ( abs( clean->max.y - physicalHeight ) < 4 ) {
+		clean->max.y = (int)physicalHeight;
+	}
 }

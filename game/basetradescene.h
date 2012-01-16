@@ -33,7 +33,7 @@ public:
 	const char* regionName;
 	Storage* base;
 	int* cash;
-	float costMult;			// multiplier applies to purchase price	
+	int costFlag;	
 
 	bool soldierBoost;
 	Unit* soldiers;			// can hire more soldiers!
@@ -63,6 +63,8 @@ public:
 		clip2D->SetInvalid(); 
 		return RENDER_2D;
 	}
+
+	virtual void Resize();
 
 protected:
 	bool ComputePrice( int* total );

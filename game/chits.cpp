@@ -274,7 +274,7 @@ void UFOChit::Decal( U32 timer, float speed, int id )
 		for( int i=0; i<2; ++i ) {
 			decal[i] = tree->AllocModel( ModelResourceManager::Instance()->GetModelResource( "unitplateplus" ) );
 
-			gamui::RenderAtom atom = UIRenderer::CalcIcon2Atom( id, true );
+			gamui::RenderAtom atom = Game::CalcIcon2Atom( id, true );
 			decal[i]->SetTexture( (Texture*)atom.textureHandle );
 			decal[i]->SetTexXForm( 0, atom.tx1-atom.tx0, atom.ty1-atom.ty0, atom.tx0, atom.ty0 );
 			
@@ -600,7 +600,7 @@ void CityChit::Load( const TiXmlElement* doc )
 }
 
 
-BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, const ItemDefArr& itemDefArr, bool firstBase ) : Chit( tree )
+BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, const ItemDefArr& itemDefArr, bool firstBase, bool soldierBoost ) : Chit( tree )
 {
 	pos.Set( (float)posi.x+0.5f, (float)posi.y+0.5f );
 	this->index = index;
@@ -613,7 +613,7 @@ BaseChit::BaseChit( SpaceTree* tree, const grinliz::Vector2I& posi, int index, c
 	random.SetSeedFromTime();
 
 	if ( firstBase ) {
-		TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, 0, itemDefArr, random.Rand() );
+		TacticalIntroScene::GenerateTerranTeam( units, MAX_TERRANS, soldierBoost ? 0.8f : 0, itemDefArr, random.Rand() );
 	}
 
 	for( int i=0; i<NUM_FACILITIES; ++i ) {
@@ -1094,7 +1094,7 @@ int	ChitBag::NumBaseChits()
 void ChitBag::SetBattle( const UFOChit* ufo, const CargoChit* lander, int scenario )	
 { 
 	this->battleUFOID = ufo->ID(); 
-	GLASSERT( lander || (scenario == TacticalIntroScene::TERRAN_BASE ) );
+	GLASSERT( lander || (scenario == TERRAN_BASE ) );
 	this->battleLanderID = lander ? lander->ID() : 0; 
 	this->battleScenario = scenario; 
 }
@@ -1164,7 +1164,7 @@ void ChitBag::Load( const TiXmlElement* doc,
 				Add( cityChit );
 			}
 			else if ( StrEqual( chitEle->Value(), "BaseChit" )) {
-				BaseChit* baseChit = new BaseChit( tree, vi0, 0, arr, false );
+				BaseChit* baseChit = new BaseChit( tree, vi0, 0, arr, false, false );
 				baseChit->Load( chitEle, game );
 				Add( baseChit );
 			}

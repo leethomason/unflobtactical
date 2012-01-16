@@ -35,6 +35,19 @@
 	- check on Samsung
 
 
+Release v2.7 b798
+- T3 armor/weapons now always available after research. Region traits determine cost, not availability.
+- scissor rectangle fixed, should clean up right hand edge noise
+- difficulty levels
+- resize supported
+- fixed bug where "militiristic" bonus wasn't being applied
+- fixed bug where standing color isn't correct for some weapons
+- code cleanup / maintenance items
+  - game code separated from engine code
+  - new gamui layout
+- testing: passed save/load testplan
+
+
 Release v2.6.1 b793
 Update for Fire
 - Fixes "can target aliens you can't see"

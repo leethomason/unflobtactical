@@ -187,6 +187,8 @@ struct Vector3
 	T  X( int i ) const		{	GLASSERT( InRange( i, 0, COMPONENTS-1 ));
 								return *( &x + i ); }
 
+	void Zero() { x = y = z = 0; }
+
 	void Add( const Vector3<T>& vec ) {
 		x += vec.x;
 		y += vec.y;
@@ -268,12 +270,6 @@ struct Vector3
 		this->x = _x;
 		this->y = _y;
 		this->z = _z;
-	}
-
-	void Zero() {
-		x = (T)0;
-		y = (T)0;
-		z = (T)0;
 	}
 
 	void Normalize()	

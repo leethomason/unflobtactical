@@ -30,6 +30,16 @@ class UIButtonBox;
 class UIButtonGroup;
 
 
+struct NewSceneOptionsReturn
+{
+	unsigned scenario	: 8;
+	unsigned crash		: 1;
+	unsigned nTerrans	: 4;
+	unsigned terranRank : 4;
+	unsigned alienRank  : 4;
+	unsigned dayTime	: 1;
+};
+
 class TacticalIntroScene : public Scene
 {
 public:
@@ -42,6 +52,8 @@ public:
 	virtual void Tap(	int count, 
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
+	virtual void SceneResult( int sceneID, int result );
+
 
 	// Rendering
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	{
@@ -50,45 +62,13 @@ public:
 		return RENDER_2D; 
 	}
 	virtual void DrawHUD();
+	virtual void Resize();
 
 	//	Squad:		4 8
 	//	  exp:		Low Med Hi
 	//  Alien:		8 16
 	//    exp:		Low Med Hi
 	//  Weather:	Day Night
-	enum {
-
-		SQUAD_4 = 0,
-		SQUAD_6,
-		SQUAD_8,
-		TERRAN_LOW,
-		TERRAN_MED,
-		TERRAN_HIGH,
-		ALIEN_LOW,
-		ALIEN_MED,
-		ALIEN_HIGH,
-		TIME_DAY,
-		TIME_NIGHT,
-
-		FARM_SCOUT,
-		TNDR_SCOUT,
-		FRST_SCOUT,
-		DSRT_SCOUT,
-		FARM_DESTROYER,
-		TNDR_DESTROYER,
-		FRST_DESTROYER,
-		DSRT_DESTROYER,
-		CITY,
-		BATTLESHIP,
-		ALIEN_BASE,
-		TERRAN_BASE,
-
-		FIRST_SCENARIO = FARM_SCOUT,
-		LAST_SCENARIO = TERRAN_BASE,
-
-		UFO_CRASH,
-		TOGGLE_COUNT,
-	};
 
 	static bool IsScoutScenario( int s ) {
 		GLASSERT( s >= FARM_SCOUT && s <= TERRAN_BASE );
@@ -104,21 +84,21 @@ public:
 			   || ( s == BATTLESHIP );
 	}
 	static int CivsInScenario( int scenario ) {
-		GLASSERT( scenario != TacticalIntroScene::TERRAN_BASE );
+		GLASSERT( scenario != TERRAN_BASE );
 		int nCiv = 0;
 		
 		switch ( scenario ) {
-		case TacticalIntroScene::CITY:
+		case CITY:
 			nCiv = MAX_CIVS;
 			break;
 
-		case TacticalIntroScene::FARM_SCOUT:
-		case TacticalIntroScene::FARM_DESTROYER:
+		case FARM_SCOUT:
+		case FARM_DESTROYER:
 			nCiv = MAX_CIVS * 2 / 3;
 			break;
 
-		case TacticalIntroScene::FRST_SCOUT:
-		case TacticalIntroScene::FRST_DESTROYER:
+		case FRST_SCOUT:
+		case FRST_DESTROYER:
 			nCiv = MAX_CIVS / 2;
 			break;
 
@@ -151,7 +131,7 @@ public:
 	};
 
 
-	static int RandomRank( grinliz::Random* random, float rank );
+	static int RandomRank( grinliz::Random* random, float rank, int nRanks );
 
 	static void GenerateTerranTeam( Unit* units,				// target units to write
 									int count,
@@ -184,6 +164,7 @@ public:
 
 	static void WriteXML( FILE* fp, const BattleSceneData* data, const ItemDefArr&, const gamedb::Reader* database  );
 
+	
 private:
 	enum { MAX_ITEM_MATCH = 32 };
 	static void FindNodes(	const char* set,
@@ -209,8 +190,8 @@ private:
 	gamui::PushButton	continueButton, helpButton, goButton, settingButton;
 	gamui::PushButton	loadButton;
 	gamui::PushButton	newTactical, newGeo, newCampaign, newGame;
-	gamui::TextLabel	terranLabel, alienLabel, timeLabel, scenarioLabel, rowLabel[3], newGameWarning;
-	gamui::ToggleButton	toggles[TOGGLE_COUNT], audioButton;
+	gamui::TextLabel	newGameWarning;
+	gamui::ToggleButton audioButton;
 };
 
 

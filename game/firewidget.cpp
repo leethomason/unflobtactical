@@ -15,8 +15,8 @@ void FireWidget::Init( Gamui* gamui, const ButtonLook& red )
 	for( int i=0; i<MAX_FIRE_BUTTONS; ++i ) {
 		fireButton[i].Init( gamui, red );
 		fireButton[i].SetSize( 120.f, 60.f );
-		fireButton[i].SetDeco( UIRenderer::CalcIconAtom( ICON_GREEN_WALK_MARK, true ), 
-			                   UIRenderer::CalcIconAtom( ICON_GREEN_WALK_MARK, false ) );
+		fireButton[i].SetDeco( Game::CalcIconAtom( ICON_GREEN_WALK_MARK, true ), 
+			                   Game::CalcIconAtom( ICON_GREEN_WALK_MARK, false ) );
 		fireButton[i].SetVisible( false );
 		fireButton[i].SetText( " " );
 		fireButton[i].SetText2( " " );
@@ -97,7 +97,7 @@ void FireWidget::Place( BattleScene* battle,
 				else if ( tuAfter < snapTU ) {
 					tuIndicator = ICON_ORANGE_WALK_MARK;
 				}
-				fireButton[i].SetDeco( UIRenderer::CalcIconAtom( tuIndicator, true ), UIRenderer::CalcIconAtom( tuIndicator, false ) );
+				fireButton[i].SetDeco( Game::CalcIconAtom( tuIndicator, true ), Game::CalcIconAtom( tuIndicator, false ) );
 			}
 			else {
 				fireButton[i].SetEnabled( false );
