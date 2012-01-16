@@ -19,7 +19,7 @@ NewGeoOptions::NewGeoOptions( Game* game ) : Scene( game )
 	goButton.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
 	goButton.SetText( "Go!" );
 
-	const static char* TEXT[NUM_DIFFICULTY] = { "Easy", "Normal", "Hard", "Smoking Crater" };
+	const static char* TEXT[NUM_DIFFICULTY] = { "Easier", "Normal", "Hard", "Smoking Crater" };
 
 	for( int i=0; i<NUM_DIFFICULTY; ++i ) {
 		toggle[i].Init( &gamui2D, green );

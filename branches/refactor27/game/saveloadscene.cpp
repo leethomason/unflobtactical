@@ -20,7 +20,6 @@ SaveLoadScene::SaveLoadScene( Game* _game, const SaveLoadSceneData* _data ) : Sc
 
 	backButton.Init( &gamui2D, blue );
 	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	//backButton.SetText( "Cancel" );
 	backButton.SetDeco(	Game::CalcDecoAtom( DECO_CANCEL, true ),
 						Game::CalcDecoAtom( DECO_CANCEL, false ) );	
 
