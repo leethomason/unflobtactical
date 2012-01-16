@@ -35,12 +35,12 @@
 	- check on Samsung
 
 
-Release v2.7 b798
+Beta b804
 - T3 armor/weapons now always available after research. Region traits determine cost, not availability.
 - scissor rectangle fixed, should clean up right hand edge noise
 - difficulty levels
 - resize supported
-- fixed bug where "militiristic" bonus wasn't being applied
+- fixed bug where "military" bonus wasn't being applied
 - fixed bug where standing color isn't correct for some weapons
 - code cleanup / maintenance items
   - game code separated from engine code
