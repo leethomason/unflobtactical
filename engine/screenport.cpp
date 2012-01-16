@@ -67,8 +67,8 @@ void Screenport::Resize( int w, int h, int r )
 
 void Screenport::SetUI( const Rectangle2I* clip )	
 {
-	if ( clip ) {
-		clipInUI2D = Rectangle2F( (float)clip->min.x, (float)clip->min.x, (float)clip->max.x, (float)clip->max.y );
+	if ( clip && clip->Area() > 1 ) {
+		clipInUI2D = Rectangle2F( (float)clip->min.x, (float)clip->min.y, (float)clip->max.x, (float)clip->max.y );
 	}
 	else {
 		clipInUI2D = Rectangle2F( 0, 0, UIWidth(), UIHeight() );
@@ -105,7 +105,7 @@ void Screenport::SetPerspective( const grinliz::Rectangle2I* clip )
 {
 	uiMode = false;
 
-	if ( clip ) {
+	if ( clip && clip->Area() > 1 ) {
 		clipInUI3D = Rectangle2F( (float)clip->min.x, (float)clip->min.y, (float)clip->max.x, (float)clip->max.y );
 	}
 	else {
