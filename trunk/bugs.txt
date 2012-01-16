@@ -1,4 +1,6 @@
 Bugs 
+- test sound on fire
+- save/load bug. going into tactical where it should be in geo
 
 X need slightly larger than unit plate model for UFO effects
 

@@ -15,7 +15,6 @@
 
 #include "item.h"
 #include "material.h"
-//#include "game.h"
 #include "../engine/model.h"
 #include "../engine/serialize.h"
 #include "gamelimits.h"

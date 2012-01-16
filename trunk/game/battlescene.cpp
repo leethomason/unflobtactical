@@ -22,7 +22,7 @@
 #include "game.h"
 #include "cgame.h"
 #include "ufosound.h"
-#include "settings.h"
+#include "gamesettings.h"
 #include "tacmap.h"
 #include "research.h"
 
@@ -46,8 +46,6 @@ using namespace grinliz;
 using namespace gamui;
 
 //#define REACTION_FIRE_EVENT_ONLY
-#define FACES_ON_BUTTON
-#define REORDER_BUTTONS
 
 BattleScene::BattleScene( Game* game ) : Scene( game )
 {
@@ -70,7 +68,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 
 	aiArr[ALIEN_TEAM]		= new WarriorAI( ALIEN_TEAM, &visibility, engine, units, this );
 	aiArr[TERRAN_TEAM]		= 0;
-	if ( SettingsManager::Instance()->GetPlayerAI() ) {
+	if ( GameSettingsManager::Instance()->GetPlayerAI() ) {
 		aiArr[TERRAN_TEAM] = new WarriorAI( TERRAN_TEAM, &visibility, engine, units, this );
 	}
 	aiArr[CIV_TEAM]			= new CivAI( CIV_TEAM, &visibility, engine, units, this );
@@ -88,18 +86,15 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 	const ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
 
-	turnImage.Init( &gamui3D, UIRenderer::CalcDecoAtom( DECO_ALIEN ), true );
-	turnImage.SetPos( float(port.UIWidth()-50), 0 );
+	turnImage.Init( &gamui3D, Game::CalcDecoAtom( DECO_ALIEN ), true );
 	turnImage.SetSize( 50, 50 );
 	decoEffect.Attach( &turnImage );
 	
-	alienTargetImage.Init( &gamui3D, UIRenderer::CalcIconAtom( ICON_ALIEN_TARGETS ), true );
-	alienTargetImage.SetPos( float(port.UIWidth()-25), 0 );
+	alienTargetImage.Init( &gamui3D, Game::CalcIconAtom( ICON_ALIEN_TARGETS ), true );
 	alienTargetImage.SetSize( 20, 20 );
 	alienTargetImage.SetVisible( false );
 
 	alienTargetText.Init( &gamui3D );
-	alienTargetText.SetPos( alienTargetImage.X()+5, alienTargetImage.Y()+2 );
 	alienTargetText.SetVisible( false );
 
 	nameRankUI.Init( &gamui3D, game );
@@ -115,11 +110,11 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		unitImage1[i].SetForeground( true );
 		unitImage1[i].SetSize( 1, 1 );
 	}
-	selectionImage.Init( &tacMap->overlay[Map::LAYER_OVER], UIRenderer::CalcIconAtom( ICON_STAND_HIGHLIGHT ), true );
+	selectionImage.Init( &tacMap->overlay[Map::LAYER_OVER], Game::CalcIconAtom( ICON_STAND_HIGHLIGHT ), true );
 	selectionImage.SetSize( 1, 1 );
 
 	for( int i=0; i<MAX_ALIENS; ++i ) {
-		targetArrow[i].Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_TARGET_POINTER ), false );
+		targetArrow[i].Init( &gamui2D, Game::CalcIconAtom( ICON_TARGET_POINTER ), false );
 		targetArrow[i].SetVisible( false );
 	}
 
@@ -132,24 +127,24 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	const float SIZE = 50.0f;
 	{
 		exitButton.Init( &gamui2D, blue );
-		exitButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_LAUNCH, true ), UIRenderer::CalcDecoAtom( DECO_LAUNCH, false ) );
+		exitButton.SetDeco( Game::CalcDecoAtom( DECO_LAUNCH, true ), Game::CalcDecoAtom( DECO_LAUNCH, false ) );
 		exitButton.SetSize( SIZE, SIZE );
 
 		helpButton.Init( &gamui2D, green );
-		helpButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_HELP, true ), UIRenderer::CalcDecoAtom( DECO_HELP, false ) );
+		helpButton.SetDeco( Game::CalcDecoAtom( DECO_HELP, true ), Game::CalcDecoAtom( DECO_HELP, false ) );
 		helpButton.SetSize( SIZE, SIZE );
 
 		nextTurnButton.Init( &gamui2D, green );
-		nextTurnButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_TERRAN_TURN, true ), 
-								UIRenderer::CalcDecoAtom( DECO_TERRAN_TURN, false ) );
+		nextTurnButton.SetDeco( Game::CalcDecoAtom( DECO_TERRAN_TURN, true ), 
+								Game::CalcDecoAtom( DECO_TERRAN_TURN, false ) );
 		nextTurnButton.SetSize( SIZE, SIZE );
 
 		targetButton.Init( &gamui2D, red );
-		targetButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_AIMED, true ), UIRenderer::CalcDecoAtom( DECO_AIMED, false ) );
+		targetButton.SetDeco( Game::CalcDecoAtom( DECO_AIMED, true ), Game::CalcDecoAtom( DECO_AIMED, false ) );
 		targetButton.SetSize( SIZE, SIZE );
 
 		invButton.Init( &gamui2D, green );
-		invButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_CHARACTER, true ), UIRenderer::CalcDecoAtom( DECO_CHARACTER, false ) );
+		invButton.SetDeco( Game::CalcDecoAtom( DECO_CHARACTER, true ), Game::CalcDecoAtom( DECO_CHARACTER, false ) );
 		invButton.SetSize( SIZE, SIZE );
 
 		moveOkayCancelUI.Init( game, &gamui2D, SIZE );
@@ -160,34 +155,23 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 																 DECO_UNIT_NEXT };
 		for( int i=0; i<CONTROL_BUTTON_COUNT; ++i ) {
 			controlButton[i].Init( (i==0) ? &gamui2D : &gamui3D, green );
-			controlButton[i].SetDeco( UIRenderer::CalcDecoAtom( controlDecoID[i], true ), UIRenderer::CalcDecoAtom( controlDecoID[i], false ) );
+			controlButton[i].SetDeco( Game::CalcDecoAtom( controlDecoID[i], true ), Game::CalcDecoAtom( controlDecoID[i], false ) );
 			controlButton[i].SetSize( SIZE, SIZE );
 		}
 
-#ifdef REORDER_BUTTONS
 		UIItem* items[6] = { &invButton,  
-							 &nextTurnButton,
-			                 &helpButton, 
-							 &exitButton,
-							 &targetButton, 
-							 &controlButton[0] };
-#else
-		UIItem* items[6] = { &exitButton, &helpButton, &nextTurnButton, &targetButton, &invButton, &controlButton[0] };
-#endif
+							&nextTurnButton,
+			                &helpButton, 
+							&exitButton,
+							&targetButton, 
+							&controlButton[0] };
 		for( int i=0; i<6; ++i ) {
-			//items[i]->SetPos( 0, (float)i * port.UIHeight()/6.f );
 			((Button*)items[i])->SetSize( SIZE, SIZE );
 		}
-		Gamui::Layout( items, 6, 1, 6, 0, 0, SIZE, (float)port.UIHeight() );
-
-		controlButton[1].SetPos( SIZE, port.UIHeight()-SIZE );
-		controlButton[2].SetPos( port.UIWidth()-SIZE*2.f, port.UIHeight()-SIZE );
-		controlButton[3].SetPos( port.UIWidth()-SIZE*1.f, port.UIHeight()-SIZE );
 
 		orbitButton.Init( &gamui2D, green );
-		orbitButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_ORBIT, true ), UIRenderer::CalcDecoAtom( DECO_ORBIT, false ) );
+		orbitButton.SetDeco( Game::CalcDecoAtom( DECO_ORBIT, true ), Game::CalcDecoAtom( DECO_ORBIT, false ) );
 		orbitButton.SetSize( SIZE, SIZE );
-		orbitButton.SetPos( controlButton[NEXT_BUTTON].X(), controlButton[NEXT_BUTTON].Y()-SIZE );
 
 		RenderAtom menuImageAtom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)TextureManager::Instance()->GetTexture( "commandBarV" ), 0, 0, 1, 1 );
 		menuImage.Init( &gamui2D, menuImageAtom, false );
@@ -208,11 +192,11 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	fireWidget.Init( &gamui3D, red );	
 
 	{
-		gamui::RenderAtom tick0Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_BRIGHT );
+		gamui::RenderAtom tick0Atom = Game::CalcPaletteAtom( Game::PALETTE_GREEN, Game::PALETTE_GREEN, Game::PALETTE_BRIGHT );
 		tick0Atom.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
-		gamui::RenderAtom tick1Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_RED, UIRenderer::PALETTE_RED, 0 );
+		gamui::RenderAtom tick1Atom = Game::CalcPaletteAtom( Game::PALETTE_RED, Game::PALETTE_RED, 0 );
 		tick1Atom.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
-		gamui::RenderAtom tick2Atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREY, UIRenderer::PALETTE_GREY, UIRenderer::PALETTE_DARK );
+		gamui::RenderAtom tick2Atom = Game::CalcPaletteAtom( Game::PALETTE_GREY, Game::PALETTE_GREY, Game::PALETTE_DARK );
 		tick1Atom.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
 
 		for( int i=0; i<MAX_UNITS; ++i ) {
@@ -254,6 +238,30 @@ BattleScene::~BattleScene()
 	//delete consoleWidget;
 }
 
+
+void BattleScene::Resize()
+{
+	const float SIZE = 50.0f;
+	const Screenport& port = GetEngine()->GetScreenport();
+
+	turnImage.SetPos( float(port.UIWidth()-SIZE), 0 );
+	alienTargetImage.SetPos( float(port.UIWidth()-SIZE/2), 0 );
+	alienTargetText.SetPos( alienTargetImage.X()+5, alienTargetImage.Y()+2 );
+
+	UIItem* items[6] = { &invButton,  
+							&nextTurnButton,
+			                &helpButton, 
+							&exitButton,
+							&targetButton, 
+							&controlButton[0] };
+
+	Gamui::Layout( items, 6, 1, 6, 0, 0, SIZE, (float)port.UIHeight() );
+
+	controlButton[1].SetPos( SIZE, port.UIHeight()-SIZE );
+	controlButton[2].SetPos( port.UIWidth()-SIZE*2.f, port.UIHeight()-SIZE );
+	controlButton[3].SetPos( port.UIWidth()-SIZE*1.f, port.UIHeight()-SIZE );
+	orbitButton.SetPos( controlButton[NEXT_BUTTON].X(), controlButton[NEXT_BUTTON].Y()-SIZE );
+}
 
 void BattleScene::Activate()
 {
@@ -338,7 +346,7 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 					units[i].NewTurn();
 				currentUnitAI = TERRAN_UNITS_START;
 			
-				turnImage.SetAtom( UIRenderer::CalcDecoAtom( DECO_TERRAN_TURN ) );
+				turnImage.SetAtom( Game::CalcDecoAtom( DECO_TERRAN_TURN ) );
 				decoEffect.Play( 1000, true );
 			}
 			break;
@@ -358,7 +366,7 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 			decoEffect.Play( 1000, false );
 			alienTargetImage.SetVisible( false );
 			alienTargetText.SetVisible( false );
-			turnImage.SetAtom( UIRenderer::CalcDecoAtom( DECO_ALIEN ) );
+			turnImage.SetAtom( Game::CalcDecoAtom( DECO_ALIEN ) );
 			break;
 
 		case CIV_TEAM:
@@ -370,7 +378,7 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 			decoEffect.Play( 1000, false );
 			alienTargetImage.SetVisible( false );
 			alienTargetText.SetVisible( false );
-			turnImage.SetAtom( UIRenderer::CalcDecoAtom( DECO_HUMAN ) );
+			turnImage.SetAtom( Game::CalcDecoAtom( DECO_HUMAN ) );
 			break;
 
 		default:
@@ -662,17 +670,17 @@ int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I*
 
 void BattleScene::SetUnitOverlays()
 {
-	gamui::RenderAtom targetAtom0 = UIRenderer::CalcIconAtom( ICON_TARGET_STAND );
+	gamui::RenderAtom targetAtom0 = Game::CalcIconAtom( ICON_TARGET_STAND );
 	gamui::RenderAtom targetAtom1 = targetAtom0;
 	targetAtom0.renderState = (const void*)Map::RENDERSTATE_MAP_NORMAL;
 
-	gamui::RenderAtom greenAtom0 = UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK );
-	gamui::RenderAtom yellowAtom0 = UIRenderer::CalcIconAtom( ICON_YELLOW_STAND_MARK );
-	gamui::RenderAtom orangeAtom0 = UIRenderer::CalcIconAtom( ICON_ORANGE_STAND_MARK );
+	gamui::RenderAtom greenAtom0 = Game::CalcIconAtom( ICON_GREEN_STAND_MARK );
+	gamui::RenderAtom yellowAtom0 = Game::CalcIconAtom( ICON_YELLOW_STAND_MARK );
+	gamui::RenderAtom orangeAtom0 = Game::CalcIconAtom( ICON_ORANGE_STAND_MARK );
 
-	gamui::RenderAtom greenAtom1 = UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK_OUTLINE );
-	gamui::RenderAtom yellowAtom1 = UIRenderer::CalcIconAtom( ICON_YELLOW_STAND_MARK_OUTLINE );
-	gamui::RenderAtom orangeAtom1 = UIRenderer::CalcIconAtom( ICON_ORANGE_STAND_MARK_OUTLINE );
+	gamui::RenderAtom greenAtom1 = Game::CalcIconAtom( ICON_GREEN_STAND_MARK_OUTLINE );
+	gamui::RenderAtom yellowAtom1 = Game::CalcIconAtom( ICON_YELLOW_STAND_MARK_OUTLINE );
+	gamui::RenderAtom orangeAtom1 = Game::CalcIconAtom( ICON_ORANGE_STAND_MARK_OUTLINE );
 
 	greenAtom0.renderState = (const void*)Map::RENDERSTATE_MAP_TRANSLUCENT;
 	yellowAtom0.renderState = (const void*)Map::RENDERSTATE_MAP_TRANSLUCENT;
@@ -917,7 +925,7 @@ void BattleScene::PushEndScene()
 		else if ( TacticalIntroScene::IsFrigateScenario( game->battleData.GetScenario() ) ) {
 			game->battleData.StoragePtr()->AddItem( "Cor:F" );
 		}
-		else if ( game->battleData.GetScenario() == TacticalIntroScene::BATTLESHIP ) {
+		else if ( game->battleData.GetScenario() == BATTLESHIP ) {
 			game->battleData.StoragePtr()->AddItem( "Cor:B" );
 		}
 
@@ -925,6 +933,14 @@ void BattleScene::PushEndScene()
 		for( int i=ALIEN_UNITS_START; i<ALIEN_UNITS_END; ++i ) {
 			if ( units[i].InUse() ) {
 				game->battleData.StoragePtr()->AddItem( units[i].AlienShortName() );
+			}
+		}
+	}
+	if ( game->battleData.CalcResult() == BattleData::DEFEAT ) {
+		// The Civs don't make it.
+		for( int i=CIV_UNITS_START; i<CIV_UNITS_END; ++i ) {
+			if ( units[i].IsAlive() ) {
+				units[i].Kill( 0, false );
 			}
 		}
 	}
@@ -2588,7 +2604,7 @@ void BattleScene::Tap(	int action,
 			confirmDest.Set( -1, -1 );
 			int result = tacMap->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
 			if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
-				if ( SettingsManager::Instance()->GetConfirmMove() ) {
+				if ( GameSettingsManager::Instance()->GetConfirmMove() ) {
 					confirmDest.Set( end.x, end.y );
 				}
 				else {
@@ -2609,7 +2625,7 @@ void BattleScene::ShowNearPath( const Unit* unit )
 	if ( unit == 0 && nearPathState.unit == 0 )		
 		return;		// drawing nothing correctly
 
-	bool confirmMove = SettingsManager::Instance()->GetConfirmMove();
+	bool confirmMove = GameSettingsManager::Instance()->GetConfirmMove();
 
 	if (    unit == nearPathState.unit
 		 && unit->TU() == nearPathState.tu
@@ -2805,7 +2821,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 			dragEndUI = dragStartUI = ui;
 
 			// Drag a unit or drag the camera?
-			if ( uiActivated && !panning && SettingsManager::Instance()->GetAllowDrag() ) {
+			if ( uiActivated && !panning && GameSettingsManager::Instance()->GetAllowDrag() ) {
 				Vector2I mapPos = { (int)dragStart3D.x, (int)dragStart3D.z };
 				for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
 					if ( units[i].IsAlive() && ( mapPos == units[i].MapPos() ) ) {
@@ -2852,16 +2868,16 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 						int tuLeft = selection.soldierUnit->CalcWeaponTURemaining( cost );
 						visible = true;
 						if ( tuLeft >= 1 ) {
-							atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_GREEN, UIRenderer::PALETTE_GREEN, 0 );
+							atom = Game::CalcPaletteAtom( Game::PALETTE_GREEN, Game::PALETTE_GREEN, 0 );
 						}
 						else if ( tuLeft == 0 ) {
-							atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_YELLOW, UIRenderer::PALETTE_YELLOW, 0 );
+							atom = Game::CalcPaletteAtom( Game::PALETTE_YELLOW, Game::PALETTE_YELLOW, 0 );
 						}
 						else if ( cost <= selection.soldierUnit->TU() ) {
-							atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_YELLOW, UIRenderer::PALETTE_RED, 0 );
+							atom = Game::CalcPaletteAtom( Game::PALETTE_YELLOW, Game::PALETTE_RED, 0 );
 						}
 						else {
-							atom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_RED, UIRenderer::PALETTE_RED, 0 );
+							atom = Game::CalcPaletteAtom( Game::PALETTE_RED, Game::PALETTE_RED, 0 );
 						}
 						dragBar[0].SetPos( 0, (float)end.y+0.25f );
 						dragBar[1].SetPos( (float)end.x+0.25f, 0 );
@@ -2929,7 +2945,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 					if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
 						// TU for a move gets used up "as we go" to account for reaction fire and changes.
 						// Go!
-						if ( SettingsManager::Instance()->GetConfirmMove() ) {
+						if ( GameSettingsManager::Instance()->GetConfirmMove() ) {
 							confirmDest.Set( end.x, end.y );
 						}
 						else {
@@ -3074,7 +3090,6 @@ void BattleScene::DrawHUD()
 		}
 
 		nameRankUI.SetVisible( SelectedSoldierUnit() != 0 );
-#ifdef FACES_ON_BUTTON
 		nameRankUI.Set( 50, 0, SelectedSoldierUnit(), ~NameRankUI::DISPLAY_FACE );
 		if ( SelectedSoldierUnit() ) {
 			Rectangle2F uv;
@@ -3083,11 +3098,8 @@ void BattleScene::DrawHUD()
 			invButton.SetDeco( atom, atom );
 		}
 		else {
-			invButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_CHARACTER, true ), UIRenderer::CalcDecoAtom( DECO_CHARACTER, false ) );
+			invButton.SetDeco( Game::CalcDecoAtom( DECO_CHARACTER, true ), Game::CalcDecoAtom( DECO_CHARACTER, false ) );
 		}
-#else
-		nameRankUI.Set( 50, 0, SelectedSoldierUnit(), 0xff );
-#endif
 	}
 }
 
@@ -3286,20 +3298,49 @@ void BattleScene::MouseMove( int x, int y )
 	Vector2F view;
 	engine->GetScreenport().WindowToView( window, &view );
 
-	grinliz::Ray world;
-	engine->GetScreenport().ViewToWorld( view, 0, &world );
+	if ( Engine::mapMakerMode ) {
+		grinliz::Ray world;
+		engine->GetScreenport().ViewToWorld( view, 0, &world );
 
-	Vector3F p;
-	int result = IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &p );
-	if ( result == grinliz::INTERSECT && p.x >= 0 && p.x < Map::SIZE && p.z >= 0 && p.z < Map::SIZE ) {
-		int newX = (int)( p.x );
-		int newZ = (int)( p.z );
-		newX = Clamp( newX, 0, Map::SIZE-1 );
-		newZ = Clamp( newZ, 0, Map::SIZE-1 );
-		mapmaker_mapSelection->SetPos( (float)newX + 0.5f, 0.0f, (float)newZ + 0.5f );
+		Vector3F p;
+		int result = IntersectRayPlane( world.origin, world.direction, 1, 0.0f, &p );
+		if ( result == grinliz::INTERSECT && p.x >= 0 && p.x < Map::SIZE && p.z >= 0 && p.z < Map::SIZE ) {
+			int newX = (int)( p.x );
+			int newZ = (int)( p.z );
+			newX = Clamp( newX, 0, Map::SIZE-1 );
+			newZ = Clamp( newZ, 0, Map::SIZE-1 );
+			mapmaker_mapSelection->SetPos( (float)newX + 0.5f, 0.0f, (float)newZ + 0.5f );
 	
-		UpdatePreview();
+			UpdatePreview();
+		}
+	}	
+#if 0
+	{
+		grinliz::Matrix4 mvpi;
+		grinliz::Ray ray;
+		Vector3F intersection;
+
+		engine->GetScreenport().ViewProjectionInverse3D( &mvpi );
+		engine->RayFromViewToYPlane( view, mvpi, &ray, &intersection );
+		Model* model = engine->IntersectModel( ray, TEST_TRI, 0, 0, 0, &intersection );
+
+		if ( model ) {
+			GLOUTPUT(( "Intersection (%.2f,%.2f,%.2f) %s\n", intersection.x, intersection.y, intersection.z, model->GetResource()->header.name.c_str() ));
+			Color4F color = { 1.0f, 0.0f, 0.0f, 1.0f };
+			Color4F colorVel = { 0.0f, 0.0f, 0.0f, -0.2f };
+			Vector3F vel = { 0, 0, 0 };
+
+			ParticleSystem::Instance()->EmitPoint(	1,
+										ParticleSystem::PARTICLE_RAY,
+										color,
+										colorVel,
+										intersection,
+										0.0f,			// posFuzz
+										vel,
+										0.0f );
+		}	
 	}
+#endif
 }
 
 

@@ -8,6 +8,7 @@ sources :=  camera.cpp \
 			particle.cpp \
 			particleeffect.cpp \
 			renderqueue.cpp \
+			settings.cpp \
 			screenport.cpp \
 			serialize.cpp \
 			surface.cpp \

@@ -67,9 +67,6 @@ static const float LANDER_SPEED = 0.80f;
 static const float UFO_HP[3]    = { 4, 8, 20 };
 static const float UFO_ACCEL = 0.2f;	// units/second2
 
-static const float COST_MULT_CAP = 1.5f;
-static const float COST_MULT_STD = 2.0f;
-
 const static U32 SECOND			= 1000;
 const static U32 MINUTE			= 60 *SECOND;
 const static U32 FULL_OUT_UFO	= 20 *MINUTE;
@@ -234,16 +231,25 @@ private:
 };
 
 
+class GeoSceneData : public SceneData
+{
+public:
+	GeoSceneData( int _difficulty ) : difficulty( _difficulty ) {}
+
+	int difficulty;
+};
+
 
 class GeoScene : public Scene
 {
 public:
-	GeoScene( Game* _game );
+	GeoScene( Game* _game, const GeoSceneData* data );
 	virtual ~GeoScene();
 
 	virtual void Activate();
 	virtual void DeActivate();
 	virtual void SceneResult( int sceneID, int result );
+	virtual void Resize();
 
 	// UI
 	virtual void Tap(	int count, 
@@ -271,6 +277,13 @@ public:
 	const Research& GetResearch() { return research; }
 	bool RegionOccupied( int region ) const;
 
+	enum {	EASY,			
+			NORMAL,			
+			HARD,			
+			VERY_HARD,
+			NUM_DIFFICULTY
+		};	
+
 private:
 	struct Missile {
 		int					type;
@@ -292,7 +305,6 @@ private:
 	void FireBaseWeapons();
 	void UpdateMissiles( U32 deltaTime );
 	void GenerateCities();
-	bool AnyRegionHasTrait( int trait );
 
 	bool PlaceBase( const grinliz::Vector2I& map );
 #ifndef IMMEDIATE_BUY
@@ -303,7 +315,7 @@ private:
 	void HandleItemTapped( const gamui::UIItem* item );
 	void DoBattle( CargoChit* cargoChit, UFOChit* ufoChit );		// cargo OR ufo, not both
 	void CalcTimeState( U32 seconds, TimeState* state );
-	
+
 	enum {
 		CM_NONE,
 		CM_BASE,
@@ -322,7 +334,11 @@ private:
 	U32					alienTimer;
 	U32					missileTimer[2];
 	U32					researchTimer;
-	
+
+	// Difficulty affects:
+	// 1. UFO damage from missiles (geo scene)
+	// 2. Alien rank (tactical)
+	int					difficulty;
 	int					cash;
 	bool				firstBase;
 	int					nBattles;

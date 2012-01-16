@@ -110,11 +110,20 @@ public:
 	// optimization trickiness:
 	int index;
 
-	int BuyPrice( float costMult ) const {
-		if ( price >= 0 )
+	int BuyPrice( int costFlag ) const {
+		if ( price >= 0 ) {
+			float costMult = (costFlag & COST_FLAG_CAPATALISM) ? COST_MULT_CAP : COST_MULT_STD;
+			if ( this->IsArmor() && TechLevel() == 3 ) {
+				if ( (costFlag & COST_FLAG_ARMOR_T3) == 0 ) costMult *= 2.0f;
+			}
+			if ( this->IsWeapon() && TechLevel() == 3 ) {
+				if ( (costFlag & COST_FLAG_WEAPON_T3) == 0 ) costMult *= 2.0f;
+			}
 			return grinliz::LRintf( (float)price * costMult );
-		else
+		}
+		else {
 			return -price;
+		}
 	}
 
 	int SellPrice() const {

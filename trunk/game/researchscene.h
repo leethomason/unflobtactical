@@ -39,6 +39,7 @@ public:
 	virtual ~ResearchScene();
 
 	virtual void Activate()		{}
+	virtual void Resize();
 
 	// UI
 	virtual void Tap(	int count, 
@@ -61,9 +62,6 @@ private:
 	ResearchSceneData*	data;
 	gamui::Image		background;
 	gamui::Image		researchImage;
-
-//	Engine* localEngine;
-//	Model*  model;
 
 	enum {
 		MAX_OPTIONS = 3

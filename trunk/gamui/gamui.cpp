@@ -1,16 +1,24 @@
 /*
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ Copyright (c) 2010 Lee Thomason
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This software is provided 'as-is', without any express or implied
+ warranty. In no event will the authors be held liable for any damages
+ arising from the use of this software.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ Permission is granted to anyone to use this software for any purpose,
+ including commercial applications, and to alter it and redistribute it
+ freely, subject to the following restrictions:
+
+    1. The origin of this software must not be misrepresented; you must not
+    claim that you wrote the original software. If you use this software
+    in a product, an acknowledgment in the product documentation would be
+    appreciated but is not required.
+
+    2. Altered source versions must be plainly marked as such, and must not be
+    misrepresented as being the original software.
+
+    3. This notice may not be removed or altered from any source
+    distribution.
 */
 
 #include "gamui.h"
@@ -1526,3 +1534,52 @@ void Gamui::LayoutTextBlock(	const char* text,
 		++i;
 	}
 }
+
+
+LayoutCalculator::LayoutCalculator( float w, float h ) 
+	: screenWidth( w ),
+	  screenHeight( h ),
+	  width( 10 ),
+	  height( 10 ),
+	  gutter( 0 ), 
+	  spacing( 0 ),
+	  textOffsetX( 0 ),
+	  textOffsetY( 0 ),
+	  offsetX( 0 ),
+	  offsetY( 0 ),
+	  useTextOffset( false )
+{
+}
+
+
+LayoutCalculator::~LayoutCalculator()
+{
+}
+
+
+void LayoutCalculator::PosAbs( UIItem* item, int _x, int _y )
+{
+	float pos[2] = { 0, 0 };
+	int xArr[2] = { _x, _y };
+	float size[2] = { width, height };
+	float screen[2] = { screenWidth, screenHeight };
+
+	for( int i=0; i<2; ++i ) {
+		if ( xArr[i] >= 0 ) {
+			float x = (float)xArr[i];	// 0 based
+			float space = spacing*x;
+			pos[i] = gutter + space + size[i]*x;
+		}
+		else {
+			float x = -(float)xArr[i]; // 1 based
+			float space = spacing*(x-1.0f);
+			pos[i] = screen[i] - gutter - space - size[i]*x; 
+		}
+	}
+	if ( useTextOffset ) {
+		pos[0] += textOffsetX;
+		pos[1] += textOffsetY;
+	}
+	item->SetPos( pos[0]+offsetX, pos[1]+offsetY );
+}
+

@@ -20,15 +20,18 @@
 #include "surface.h"
 #include "text.h"
 #include "vertex.h"
+#include "uirendering.h"
+#include "engine.h"
+#include "settings.h"
+
 #include "../engine/particleeffect.h"
 #include "../engine/particle.h"
-#include "../grinliz/glstringutil.h"
+
 #include "../tinyxml/tinyxml.h"
+
+#include "../grinliz/glstringutil.h"
 #include "../grinliz/glrectangle.h"
-#include "uirendering.h"
 #include "../grinliz/glperformance.h"
-#include "engine.h"
-#include "../game/settings.h"
 
 using namespace grinliz;
 using namespace micropather;
@@ -99,16 +102,6 @@ Map::Map( SpaceTree* tree )
 	}
 	lightMapValid = false;
 
-	gamui::RenderAtom borderAtom = UIRenderer::CalcPaletteAtom( UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_BLUE, UIRenderer::PALETTE_DARK, true );
-#ifdef DEBUG_VISIBILITY
-	borderAtom.renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
-#else
-	borderAtom.renderState = (const void*) RENDERSTATE_MAP_OPAQUE;
-#endif
-	for( int i=0; i<4; ++i ) {
-		border[i].Init( &overlay[LAYER_UNDER_HIGH], borderAtom, false );
-	}
-
 	TextureManager* texman = TextureManager::Instance();
 	backgroundTexture = texman->CreateTexture( "MapBackground", EL_MAP_TEXTURE_SIZE, EL_MAP_TEXTURE_SIZE, Surface::RGB16, Texture::PARAM_NONE, this );
 	greyTexture = texman->CreateTexture( "MapGrey", EL_MAP_TEXTURE_SIZE/2, EL_MAP_TEXTURE_SIZE/2, Surface::RGB16, Texture::PARAM_NONE, this );
@@ -153,8 +146,7 @@ Map::~Map()
 	texman->DeleteTexture( lightMapTex );
 	texman->DeleteTexture( lightFogMapTex );
 
-	Rectangle2I b = Bounds();
-	b.Set( 0, 0, SIZE-1, SIZE-1 );
+	Rectangle2I b( 0, 0, SIZE-1, SIZE-1 );
 	MapItem* pItem = quadTree.FindItems( b, 0, 0 );
 
 	while( pItem ) {
@@ -174,18 +166,6 @@ void Map::SetSize( int w, int h )
 {
 	width = w; 
 	height = h; 
-	
-	border[0].SetPos( -1, -1 );
-	border[0].SetSize( (float)(w+2), 1 );
-
-	border[1].SetPos( -1, (float)h );
-	border[1].SetSize( (float)(w+2), 1 );
-
-	border[2].SetPos( -1, 0 );
-	border[2].SetSize( 1, (float)h );
-
-	border[3].SetPos( (float)w, 0 );
-	border[3].SetSize( 1, (float)h );
 }
 
 
@@ -552,163 +532,6 @@ void Map::GenerateSeenUnseen()
 }
 
 
-#ifdef USE_MAP_CACHE
-const MapRenderBlock* Map::CalcRenderBlocks( const grinliz::Plane* planes, int nPlanes )
-{
-	MapRenderBlock* root = 0;
-
-	for( int j=0; j<RENDER_BLOCK_SIZE; ++j ) {
-		for( int i=0; i<RENDER_BLOCK_SIZE; ++i ) {
-
-			Rectangle3F aabb;
-			aabb.Set( (float)(i*RENDER_BLOCK_GRID_SIZE),     0.0f, (float)(j*RENDER_BLOCK_GRID_SIZE),
-					  (float)((i+1)*RENDER_BLOCK_GRID_SIZE), 2.5f, (float)((j+1)*RENDER_BLOCK_GRID_SIZE) );	// fixme - magic # for height
-
-			bool inView = true;
-			for( int p=0; p<nPlanes; ++p ) {
-				int result = ComparePlaneAABB( planes[p], aabb );
-				if ( result == REJECT ) {
-					inView = false;
-					break;
-				}
-			}
-
-			if ( inView ) {
-				UpdateRenderBlock( i, j );
-				int index = i + j*RENDER_BLOCK_SIZE;
-				int len = renderBlockArr[index].Size();
-
-				if ( len ) {
-					renderBlockArr[index][len-1].next = root;
-					root = renderBlockArr[index].Mem();
-				}
-			}
-		}
-	}
-	return root;
-}
-
-
-void Map::UpdateRenderBlock( int x, int y )
-{
-	int index = x + y*RENDER_BLOCK_SIZE;
-	int len = renderBlockArr[index].Size();
-
-	if ( len > 0 ) {
-		return;
-	}
-	// Either nothing in the block (rare, but possible) or invalid.
-	CDynArray<MapRenderBlock>& arr = renderBlockArr[index];
-
-	Rectangle3F aabb;
-	aabb.Set( (float)(x*RENDER_BLOCK_GRID_SIZE),     0.0f, (float)(y*RENDER_BLOCK_GRID_SIZE),
-			  (float)((x+1)*RENDER_BLOCK_GRID_SIZE), 2.5f, (float)((y+1)*RENDER_BLOCK_GRID_SIZE) );	// fixme - magic # for height
-
-	Plane planes[6];
-	Plane::CreatePlanes( aabb, planes );
-
-	// Note that this query makes it possible for objects to be in 2 different 
-	// blocks if they span the plane. The plane is set up to minimize this (it
-	// alignes with the world grid.) But possibly worth investigating.
-	Model* root = tree->Query( planes, 6, Model::MODEL_OWNED_BY_MAP, 0 );
-
-	// Count the vertices and indices needed per texture.
-	for( Model* model=root; model; model=model->next ) {
-		for( int g=0; g<model->GetResource()->header.nGroups; ++g ) {
-			const ModelAtom& atom = model->GetResource()->atom[g];
-
-			int b=0;
-			for( ; b<arr.Size(); ++b ) {
-				if ( arr[b].texture == atom.texture ) {
-					arr[b].nIndex += atom.nIndex;
-					arr[b].nVertex += atom.nVertex;
-					break;
-				}
-			}
-			if ( b == arr.Size() ) {
-				MapRenderBlock* mrb = arr.Push();
-				mrb->Init();
-				mrb->texture = atom.texture;
-				mrb->nIndex = atom.nIndex;
-				mrb->nVertex = atom.nVertex;
-			}
-		}
-	}
-
-	// Allocate the vertex & index buffers, copy in.
-	for( int b=0; b<arr.Size(); ++b ) {
-		GLASSERT( arr[b].nIndex < 0xffff );
-		GLASSERT( arr[b].nVertex < 0xffff );
-		if ( arr[b].nIndex < 0xffff && arr[b].nVertex < 0xffff ) {
-			if ( b == 33 )
-				int debug=1;
-			arr[b].vertexBuffer = GPUVertexBuffer::Create( 0, arr[b].nVertex );
-			arr[b].indexBuffer  = GPUIndexBuffer::Create( 0, arr[b].nIndex );
-		}
-		else {
-			arr[b].nIndex = 0;
-			arr[b].nVertex = 0;
-		}
-	}
-
-	for( Model* model=root; model; model=model->next ) {
-		for( int g=0; g<model->GetResource()->header.nGroups; ++g ) {
-			const ModelAtom& atom = model->GetResource()->atom[g];
-
-			for( int b=0; b<arr.Size(); ++b ) {
-				if (    arr[b].texture == atom.texture 
-					 && arr[b].nIndex > 0 
-					 && arr[b].nVertex > 0 ) 
-				{
-					const ModelAtom& atom = model->GetResource()->atom[g];
-					const Matrix4& m = model->XForm();
-					MapRenderBlock& block = arr[b];
-
-					vertexBuffer.Clear();
-					indexBuffer.Clear();
-		
-					// Transform into temporary buffer.
-					Vertex* dv = vertexBuffer.PushArr( atom.nVertex );
-					const Vertex* sv = atom.vertex;
-					const Vertex* end = atom.vertex + atom.nVertex;
-
-					for( ; sv < end; ++sv, ++dv ) {
-						MultMatrix4( m, sv->pos,    &dv->pos,	 1.0f );	// position
-						MultMatrix4( m, sv->normal, &dv->normal, 0.0f );	// normal
-						dv->tex = sv->tex;
-					}
-					block.vertexBuffer.Upload( vertexBuffer.Mem(), atom.nVertex, block.tempNVertex );
-					int base = block.tempNVertex;
-					block.tempNVertex += atom.nVertex;
-
-					U16* di = indexBuffer.PushArr( atom.nIndex );
-					const U16* si = atom.index;
-					const U16* send = atom.index + atom.nIndex;
-
-					for( ; si < send; ++si, ++di ) {
-						*di = *si + base;
-					}
-					block.indexBuffer.Upload( indexBuffer.Mem(), atom.nIndex, block.tempNIndex );
-					block.tempNIndex += atom.nIndex;
-
-					break;
-				}
-			}
-		}
-	}
-
-	for( int b=0; b<arr.Size(); ++b ) {
-		arr[b].next = 0;
-		if ( b>0 ) 
-			arr[b-1].next = &arr[b];
-	}
-}
-#endif
-
-
-
-
-
 void Map::DoDamage( int x, int y, const MapDamageDesc& damage, Rectangle2I* dBounds, Vector2I* explodes )
 {
 	float hp = damage.damage;
@@ -745,7 +568,7 @@ void Map::DoDamage( Model* m, const MapDamageDesc& damageDesc, Rectangle2I* dBou
 			if ( dBounds ) {
 				Rectangle2I r = item->MapBounds();
 				dBounds->DoUnion( r );
-				ClipToMap( dBounds );
+				dBounds->DoIntersection( Bounds() );
 			}
 
 			// Destroy the current model. Replace it with "destroyed"
@@ -1331,7 +1154,7 @@ bool Map::ProcessDoors( const grinliz::Vector2I* openers, int nOpeners )
 
 	for( int i=0; i<nOpeners; ++i ) {
 		b.Set( openers[i].x-1, openers[i].y-1, openers[i].x+1, openers[i].y+1 );
-		ClipToMap( &b );
+		b.DoIntersection( Bounds() );
 		map.SetRect( b );
 	}
 	for( int i=0; i<doorArr.Size(); ++i ) {
@@ -1506,7 +1329,7 @@ void Map::SetPathBlocks( const grinliz::BitArray<Map::SIZE, Map::SIZE, 1>& block
 void Map::ClearVisPathMap( grinliz::Rectangle2I& _bounds )
 {
 	Rectangle2I bounds = _bounds;
-	ClipToMap( &bounds );
+	bounds.DoIntersection( Bounds() );
 
 	for( int j=bounds.min.y; j<=bounds.max.y; ++j ) {
 		for( int i=bounds.min.x; i<=bounds.max.x; ++i ) {
@@ -1521,7 +1344,7 @@ void Map::CalcVisPathMap( grinliz::Rectangle2I& _bounds )
 {
 	GRINLIZ_PERFTRACK
 	Rectangle2I bounds = _bounds;
-	ClipToMap( &bounds );
+	bounds.DoIntersection( Bounds() );
 
 	MapItem* item = quadTree.FindItems( bounds, 0, 0 );
 	while( item ) {
@@ -1795,28 +1618,9 @@ void Map::ShowNearPath(	const grinliz::Vector2I& unitPos,
 		walkingMap[i].SetSize( (float)(2*EL_MAP_MAX_PATH+1), (float)(2*EL_MAP_MAX_PATH+1) );
 		walkingMap[i].SetPos( (float)origin.x, (float)origin.y );
 	}
+	gamui::RenderAtom atom[6];
+	InitWalkingMapAtoms( atom, nWalkingMaps );
 
-	gamui::RenderAtom atom[6] = {	UIRenderer::CalcIconAtom( ICON_GREEN_WALK_MARK ), 
-									UIRenderer::CalcIconAtom( ICON_YELLOW_WALK_MARK ), 
-									UIRenderer::CalcIconAtom( ICON_ORANGE_WALK_MARK ), 
-									UIRenderer::CalcIconAtom( ICON_GREEN_WALK_MARK ), 
-									UIRenderer::CalcIconAtom( ICON_YELLOW_WALK_MARK ), 
-									UIRenderer::CalcIconAtom( ICON_ORANGE_WALK_MARK ) 
-	};
-
-	if ( nWalkingMaps == 1 ) {
-		atom[0].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
-		atom[1].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
-		atom[2].renderState = (const void*) RENDERSTATE_MAP_TRANSLUCENT;
-	}
-	else {
-		atom[0].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
-		atom[1].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
-		atom[2].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
-		atom[3].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
-		atom[4].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
-		atom[5].renderState = (const void*) RENDERSTATE_MAP_MORE_TRANSLUCENT;
-	}
 	for( unsigned i=0; i<stateCostArr.size(); ++i ) {
 		const micropather::StateCost& stateCost = stateCostArr[i];
 		Vector2<S16> v;

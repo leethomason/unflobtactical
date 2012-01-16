@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2000-2007 Lee Thomason (www.grinninglizard.com)
+Copyright (c) 2000-2012 Lee Thomason (www.grinninglizard.com)
 Grinning Lizard Utilities.
 
 This software is provided 'as-is', without any express or implied 
@@ -26,14 +26,13 @@ distribution.
 #ifndef GRINLIZ_RECTANGLE_INCLUDED
 #define GRINLIZ_RECTANGLE_INCLUDED
 
-#include <limits.h>
 #include "glvector.h"
 
 namespace grinliz {
 
 
-/** A rectangle structure. Common, but deprecated. The min/max approach is abyssmal.
-    Use Rect instead.
+/** A rectangle structure. Uses a min/max approach, which is inclusive/inclusive.
+    Awkward sometimes, handy union behavior. Be aware the the size is type dependent.
 */
 template< class T >
 struct Rectangle2
@@ -41,10 +40,13 @@ struct Rectangle2
 	Vector2< T > min;
 	Vector2< T > max;
 
-	/// Initialize. Convenience function.
-	void Set( T _xmin, T _ymin, T _xmax, T _ymax )	{ 
-		min.x = _xmin; min.y = _ymin; max.x = _xmax; max.y = _ymax;
+	void Set( T xmin, T ymin, T xmax, T ymax ) {
+		GLASSERT( xmax >= xmin );
+		GLASSERT( ymax >= ymin );
+		min.Set( xmin, ymin );
+		max.Set( xmax, ymax );
 	}
+
 	/// Set all the members to zero.
 	void Zero() {
 		min.x = min.y = max.x = max.y = (T) 0;
@@ -158,7 +160,8 @@ struct Rectangle2
 			max.y = grinliz::Max( max.y, y );
 		}
 		else {
-			Set( x, y, x, y );
+			min.Set( x, y );
+			max.Set( x, y );
 		}
 	}
 
@@ -173,15 +176,6 @@ struct Rectangle2
 		max.x = grinliz::Min( max.x, rect.max.x );
 		min.y = grinliz::Max( min.y, rect.min.y );
 		max.y = grinliz::Min( max.y, rect.max.y );
-	}
-
-	/// Clip this to the passed in rectangle. Will become invalid if they don't intersect.
-	void DoClip( const Rectangle2<T>& rect )
-	{
-		min.x = rect.min.x > min.x ? rect.min.x : min.x;
-		max.x = rect.max.x < max.x ? rect.max.x : max.x;
-		min.y = rect.min.y > min.y ? rect.min.y : min.y;
-		max.y = rect.max.y < max.y ? rect.max.y : max.y;
 	}
 
 
@@ -240,20 +234,20 @@ struct Rectangle2
 		return v;
 	}
 
-	bool operator==( const Rectangle2<T>& that ) const { return     ( min.x == that.min.x )
-													&& ( max.x == that.max.x )
-													&& ( min.y == that.min.y )
-													&& ( max.y == that.max.y ); }
-	bool operator!=( const Rectangle2<T>& that ) const { return     ( min.x != that.min.x )
-													|| ( max.x != that.max.x )
-													|| ( min.y != that.min.y )
-													|| ( max.y != that.max.y ); }
-
+	bool operator==( const Rectangle2<T>& that ) const { return min == that.min && max == that.max; }
+	bool operator!=( const Rectangle2<T>& that ) const { return min != that.min || max != that.max; }
 };
 
 
 struct Rectangle2I : public Rectangle2< int >
 {
+	Rectangle2I() { min.Zero(); max.Zero(); }
+	Rectangle2I( const Rectangle2I& rhs ) { *this = rhs; }
+	Rectangle2I( int _xmin, int _ymin, int _xmax, int _ymax ) {
+		min.Set( _xmin, _ymin );
+		max.Set( _xmax, _ymax );
+	} 
+
 	enum { INVALID = INT_MIN };
 
 	int Width()	 const 	{ return max.x - min.x + 1; }		///< width of the rectangle
@@ -262,25 +256,17 @@ struct Rectangle2I : public Rectangle2< int >
 
 	/// Initialize to an invalid rectangle.
 	void SetInvalid()	{ min.x = INVALID + 1; max.x = INVALID; min.y = INVALID + 1; max.y = INVALID; }
-
-	/// Just like DoUnion, except takes validity into account.
-	void DoUnionV( int x, int y )
-	{
-		if ( !IsValid() ) {
-			min.x = max.x = x;
-			min.y = max.y = y;
-		}
-		else {
-			min.x = Min( min.x, x );
-			max.x = Max( max.x, x );
-			min.y = Min( min.y, y );
-			max.y = Max( max.y, y );
-		}
-	}
 };
 
 struct Rectangle2F : public Rectangle2< float >
 {
+	Rectangle2F() { min.Zero(); max.Zero(); }
+	Rectangle2F( const Rectangle2F& rhs ) { *this = rhs; }
+	Rectangle2F( float _xmin, float _ymin, float _xmax, float _ymax ) { 
+		min.Set( _xmin, _ymin );
+		max.Set( _xmax, _ymax );
+	} 
+
 	float Width()	 const 	{ return max.x - min.x; }		///< width of the rectangle
 	float Height() const	{ return max.y - min.y; }		///< height of the rectangle
 	float Area()   const	{ return Width() * Height();	}   ///< Area of the rectangle
@@ -293,15 +279,18 @@ struct Rectangle3
 	Vector3< T > min;
 	Vector3< T > max;
 
+	void Set( T xmin, T ymin, T zmin, T xmax, T ymax, T zmax ) {
+		GLASSERT( xmax >= xmin );
+		GLASSERT( ymax >= ymin );
+		GLASSERT( zmax >= zmin );
+		min.Set( xmin, ymin, zmin );
+		max.Set( xmax, ymax, zmax );
+	}
+
 	/// If i==0 return min, else return max
 	const Vector3< T >& Vec( int i ) { return (i==0) ? min : max; }
 
-	/// Initialize. Convenience function.
-	void Set( T _xmin, T _ymin, T _zmin, T _xmax, T _ymax, T _zmax )	{ 
-		min.x = _xmin; min.y = _ymin; min.z = _zmin; 
-		max.x = _xmax; max.y = _ymax; max.z = _zmax;
-	}
-	void Set( const Vector3<T>& a, const Vector3<T>& b ) {
+	void FromPair( const Vector3<T>& a, const Vector3<T>& b ) {
 		min.x = Min( a.x, b.x );
 		min.y = Min( a.y, b.y );
 		min.z = Min( a.z, b.z );
@@ -309,6 +298,7 @@ struct Rectangle3
 		max.y = Max( a.y, b.y );
 		max.z = Max( a.z, b.z );
 	}
+
 	/// Set all the members to zero.
 	void Zero() {
 		min.x = min.y = max.x = max.y = min.z = max.z = (T) 0;
@@ -425,18 +415,6 @@ struct Rectangle3
 		max.z = grinliz::Min( max.z, rect.max.z );
 	}
 
-	/// Clip this to the passed in rectangle. Will become invalid if they don't intersect.
-	void DoClip( const Rectangle3<T>& rect )
-	{
-		min.x = rect.min.x > min.x ? rect.min.x : min.x;
-		max.x = rect.max.x < max.x ? rect.max.x : max.x;
-		min.y = rect.min.y > min.y ? rect.min.y : min.y;
-		max.y = rect.max.y < max.y ? rect.max.y : max.y;
-		min.z = rect.min.z > min.z ? rect.min.z : min.z;
-		max.z = rect.max.z < max.z ? rect.max.z : max.z;
-	}
-
-
 	/// Scale all coordinates by the given ratios:
 	void Scale( T x, T y, T z )
 	{
@@ -459,25 +437,20 @@ struct Rectangle3
 		max.z += i;
 	}
 
-	bool operator==( const Rectangle2<T>& that ) const { return	( min.x == that.min.x )
-																&& ( max.x == that.max.x )
-																&& ( min.y == that.min.y )
-																&& ( max.y == that.max.y )
-																&& ( min.z == that.min.z )
-																&& ( max.z == that.max.z ); }
-	bool operator!=( const Rectangle2<T>& that ) const { return	( min.x != that.min.x )
-																|| ( max.x != that.max.x )
-																|| ( min.y != that.min.y )
-																|| ( max.y != that.max.y )
-																|| ( min.z != that.min.z )
-																|| ( max.z != that.max.z ); }
-
+	bool operator==( const Rectangle2<T>& that ) const { return	min == that.min && max == that.max; }
+	bool operator!=( const Rectangle2<T>& that ) const { return	min != that.min || max != that.max; }
 };
 
 
 
 struct Rectangle3I : public Rectangle3< int >
 {
+	Rectangle3I() { min.Zero(); max.Zero(); }
+	Rectangle3I( const Rectangle3I& rhs ) { *this = rhs; }
+	Rectangle3I( int _xmin, int _ymin, int _zmin, int _xmax, int _ymax, int _zmax )	{ 
+		min.Set( _xmin, _ymin, _zmin );
+		max.Set( _xmax, _ymax, _zmax );
+	} 
 	enum { INVALID = INT_MIN };
 
 	int SizeX()	 const 	{ return max.x - min.x + 1; }		///< width of the rectangle
@@ -493,6 +466,12 @@ struct Rectangle3I : public Rectangle3< int >
 
 struct Rectangle3F : public Rectangle3< float >
 {
+	Rectangle3F() { min.Zero(); max.Zero(); }
+	Rectangle3F( const Rectangle3F& rhs ) { *this = rhs; }
+	Rectangle3F( float _xmin, float _ymin, float _zmin, float _xmax, float _ymax, float _zmax )	{ 
+		min.Set( _xmin, _ymin, _zmin );
+		max.Set( _xmax, _ymax, _zmax );
+	} 
 	float SizeX() const 	{ return max.x - min.x; }		///< width of the rectangle
 	float SizeY() const		{ return max.y - min.y; }		///< height of the rectangle
 	float SizeZ() const		{ return max.z - min.z; }		///< depth of the rectangle
@@ -514,10 +493,14 @@ struct Rect2
 {
 	T x, y, w, h;
 
-	/// Initialize. Convenience function.
-	void Set( T _x, T _y, T _w, T _h )	{ 
+	Rect2() : x(0), y(0), w(0), h(0) {}
+	Rect2( const Rectangle2<T>& rhs ) { *this = rhs; }
+	Rect2( T _x, T _y, T _w, T _h ) : x( _x ), y( _y ), w( _w ), h( _h ) {}
+
+	void Set( T _x, T _y, T _w, T _h ) {
 		x = _x; y = _y; w = _w; h = _h;
 	}
+
 	/// Set all the members to zero.
 	void Zero() {
 		x = y = w = h = (T) 0;

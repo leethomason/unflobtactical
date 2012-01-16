@@ -69,7 +69,7 @@ void NameRankUI::Init( gamui::Gamui* g, Game* game )
 
 void NameRankUI::SetRank( int r )
 {
-	gamui::RenderAtom rankAtom = UIRenderer::CalcIconAtom( ICON_RANK_0 + r );
+	gamui::RenderAtom rankAtom = Game::CalcIconAtom( ICON_RANK_0 + r );
 	rank.SetAtom( rankAtom );
 }
 
@@ -135,14 +135,14 @@ void OKCancelUI::Init( Game* game, gamui::Gamui* gamui2D, float size )
 	const gamui::ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
 
 	okayButton.Init( gamui2D, green );
-	okayButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, true ), 
-						UIRenderer::CalcDecoAtom( DECO_OKAY_CHECK, false ) );
+	okayButton.SetDeco( Game::CalcDecoAtom( DECO_OKAY_CHECK, true ), 
+						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );
 	okayButton.SetSize( size*2, size );
 	okayButton.SetPos( port.UIWidth()-size*4, port.UIHeight()-size );
 
 	cancelButton.Init( gamui2D, red );
-	cancelButton.SetDeco( UIRenderer::CalcDecoAtom( DECO_CANCEL, true ), 
-						  UIRenderer::CalcDecoAtom( DECO_CANCEL, false ) );
+	cancelButton.SetDeco( Game::CalcDecoAtom( DECO_CANCEL, true ), 
+						  Game::CalcDecoAtom( DECO_CANCEL, false ) );
 	cancelButton.SetSize( size*2, size );
 	cancelButton.SetPos( size*2, port.UIHeight()-size );
 }

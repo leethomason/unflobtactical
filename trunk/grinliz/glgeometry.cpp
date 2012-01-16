@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2000-2007 Lee Thomason (www.grinninglizard.com)
+Copyright (c) 2000-2012 Lee Thomason (www.grinninglizard.com)
 Grinning Lizard Utilities.
 
 This software is provided 'as-is', without any express or implied 

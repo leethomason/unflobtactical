@@ -14,6 +14,7 @@
 */
 
 #include "storageWidget.h"
+#include "game.h"
 #include "../grinliz/glstringutil.h"
 #include "../engine/uirendering.h"
 
@@ -26,9 +27,9 @@ StorageWidget::StorageWidget(	gamui::Gamui* gamui,
 								const ItemDefArr& _itemDefArr,
 								const Storage* _storage,
 								float w, float h,
-								float _costMult )
+								int _costFlag )
 	: 
-		costMult( _costMult ),
+		costFlag( _costFlag ),
 		storage( _storage ),
 		itemDefArr( _itemDefArr )
 {
@@ -44,7 +45,7 @@ StorageWidget::StorageWidget(	gamui::Gamui* gamui,
 		if ( i > 0 ) 
 			selectButton[0].AddToToggleGroup( &selectButton[i] );
 		selectButton[i].SetSize( buttonWidth, buttonHeight );
-		selectButton[i].SetDeco( UIRenderer::CalcDecoAtom( decoID[i], true ), UIRenderer::CalcDecoAtom( decoID[i], false ) );
+		selectButton[i].SetDeco( Game::CalcDecoAtom( decoID[i], true ), Game::CalcDecoAtom( decoID[i], false ) );
 		itemArr[i] = &selectButton[i];
 	}
 	for( int i=0; i<NUM_BOX_BUTTONS; ++i ) {
@@ -177,14 +178,14 @@ void StorageWidget::SetButtons()
 				}
 				itemDefMap[slot] = itemDef;
 				int deco = itemDef->deco;
-				boxButton[slot].SetDeco( UIRenderer::CalcDecoAtom( deco, false ), UIRenderer::CalcDecoAtom( deco, false ) );
+				boxButton[slot].SetDeco( Game::CalcDecoAtom( deco, false ), Game::CalcDecoAtom( deco, false ) );
 
 				static const int SZ=16;
 				char buffer[SZ];
 				if ( storage->GetCount( itemDef ) ) {
-					if ( costMult ) {
+					if ( costFlag ) {
 						// show the cost
-						SNPrintf( buffer, SZ, "$%d", itemDef->BuyPrice( costMult ) );
+						SNPrintf( buffer, SZ, "$%d", itemDef->BuyPrice( costFlag ) );
 					}
 					else {
 						SNPrintf( buffer, SZ, "%d", storage->GetCount( itemDef ) );
@@ -210,8 +211,8 @@ void StorageWidget::SetButtons()
 	static const int decoID[NUM_SELECT_BUTTONS] = { DECO_PISTOL, DECO_RAYGUN, DECO_ARMOR, DECO_ALIEN };
 	for( int i=0; i<NUM_SELECT_BUTTONS; ++i ) {
 		selectButton[i].SetEnabled( true );
-		selectButton[i].SetDeco( UIRenderer::CalcDecoAtom( decoID[i], (itemsPerGroup[i]>0) ), 
-								 UIRenderer::CalcDecoAtom( decoID[i], (itemsPerGroup[i]>0) ) );
+		selectButton[i].SetDeco( Game::CalcDecoAtom( decoID[i], (itemsPerGroup[i]>0) ), 
+								 Game::CalcDecoAtom( decoID[i], (itemsPerGroup[i]>0) ) );
 
 	}
 #else

@@ -24,7 +24,13 @@
 #include "../grinliz/glrandom.h"
 #include "../grinliz/glstringutil.h"
 #include "../grinliz/glgeometry.h"
+
 #include "../micropather/micropather.h"
+
+#include "../shared/glmap.h"
+
+#include "../gamui/gamui.h"
+
 #include "vertex.h"
 #include "enginelimits.h"
 #include "serialize.h"
@@ -32,8 +38,6 @@
 #include "surface.h"
 #include "texture.h"
 #include "gpustatemanager.h"
-#include "../shared/glmap.h"
-#include "../gamui/gamui.h"
 
 class Model;
 class ModelResource;
@@ -49,34 +53,6 @@ class IPathBlocker
 public:
 	virtual void MakePathBlockCurrent( Map* map, const void* user ) = 0;
 };
-
-#ifdef USE_MAP_CACHE
-struct MapRenderBlock 
-{
-
-	U16 nVertex;
-	U16 tempNVertex;
-	U16 nIndex;
-	U16 tempNIndex;
-
-	MapRenderBlock* next;
-	Texture* texture;
-	GPUVertexBuffer vertexBuffer;
-	GPUIndexBuffer indexBuffer;
-
-	void Init() {
-		nVertex = 0;
-		tempNVertex = 0;
-		nIndex = 0;
-		tempNIndex = 0;
-
-		next = 0;
-		texture = 0;
-		vertexBuffer.Clear();
-		indexBuffer.Clear();
-	}
-};
-#endif
 
 
 // some strange android bug - the size of the structure gets mangled
@@ -138,9 +114,7 @@ struct MapItemDef
 
 	grinliz::Rectangle2I Bounds() const 
 	{
-		grinliz::Rectangle2I b;
-		b.Set( 0, 0, cx-1, cy-1 );
-		return b;
+		return grinliz::Rectangle2I( 0, 0, cx-1, cy-1 );
 	}
 };
 
@@ -204,9 +178,7 @@ public:
 
 		grinliz::Rectangle2I MapBounds() const 
 		{	
-			grinliz::Rectangle2I r;
-			r.Set( mapBounds8.min.x, mapBounds8.min.y, mapBounds8.max.x, mapBounds8.max.y );
-			return r;
+			return grinliz::Rectangle2I( mapBounds8.min.x, mapBounds8.min.y, mapBounds8.max.x, mapBounds8.max.y );
 		}
 		Matrix2I XForm() const {
 			Matrix2I m;
@@ -261,17 +233,8 @@ public:
 	// The size of the map in use, which is <=SIZE
 	int Height() const { return height; }
 	int Width()  const { return width; }
-	grinliz::Rectangle2I Bounds() const					{	grinliz::Rectangle2I b;
-															b.Set( 0, 0, width-1, height-1 ); 
-															return b;
-														}
-	void ClipToMap( grinliz::Rectangle2I* b ) const		{	if ( b->min.x < 0 ) b->min.x = 0;
-															if ( b->min.y < 0 ) b->min.y = 0;
-															if ( b->max.x >= width ) b->max.x = width-1;
-															if ( b->max.y >= height ) b->max.y = height-1;
-														}
-
-	void SetSize( int w, int h );
+	grinliz::Rectangle2I Bounds() const		{	return grinliz::Rectangle2I( 0, 0, width-1, height-1 ); }
+	virtual void SetSize( int w, int h );
 	bool DayTime() const { return dayTime; }
 	void SetDayTime( bool day );
 
@@ -380,10 +343,6 @@ public:
 	Texture* LightFogMapTexture()	{ return lightFogMapTex; }
 	virtual void LightFogMapParam( float* w, float* h, float* dx, float* dy )	{ *w = (float)EL_MAP_SIZE; *h = (float)EL_MAP_SIZE; *dx = 0; *dy = 0; };
 
-#ifdef USE_MAP_CACHE
-	const MapRenderBlock* CalcRenderBlocks( const grinliz::Plane* planes, int nPlanes );
-#endif
-
 	enum ConnectionType {
 		PATH_TYPE,
 		VISIBILITY_TYPE
@@ -413,6 +372,7 @@ public:
 protected:
 	virtual void SubSave( FILE* fp, int depth ) = 0;
 	virtual void SubLoad( const TiXmlElement* mapNode ) = 0;
+	virtual void InitWalkingMapAtoms( gamui::RenderAtom* atoms, int nWalkingMaps ) = 0;	// 3 colors per walking map
 
 	// 0,90,180,270 rotation
 	static void XYRToWorld( int x, int y, int rotation, Matrix2I* mat );
@@ -436,7 +396,7 @@ protected:
 		MapItem* FindItems( const grinliz::Rectangle2I& bounds, int required, int excluded );
 		MapItem* FindItems( int x, int y, int required, int excluded ) 
 		{ 
-			grinliz::Rectangle2I b; b.Set( x, y, x, y ); 
+			grinliz::Rectangle2I b( x, y, x, y ); 
 			return FindItems( b, required, excluded ); 
 		}
 		MapItem* FindItem( const Model* model );
@@ -573,23 +533,11 @@ private:
 	enum {
 		MAX_WALKING_MAPS = 2		// 1 or 2
 	};
-	//int nWalkingMaps;
 	gamui::TiledImage<EL_MAP_MAX_PATH*2+1, EL_MAP_MAX_PATH*2+1>	walkingMap[MAX_WALKING_MAPS];
-	gamui::Image								border[4];
 
 	grinliz::MemoryPool							itemPool;
 	int											nSeenIndex, nUnseenIndex, nPastSeenIndex;
 
-#ifdef USE_MAP_CACHE
-	enum {
-		RENDER_BLOCK_GRID_SIZE = 16,
-		RENDER_BLOCK_SIZE = SIZE / RENDER_BLOCK_GRID_SIZE,
-		NUM_RENDER_BLOCKS = RENDER_BLOCK_SIZE*RENDER_BLOCK_SIZE
-	};
-	CDynArray<MapRenderBlock> renderBlockArr[NUM_RENDER_BLOCKS];
-	CDynArray<Vertex> vertexBuffer;
-	CDynArray<U16> indexBuffer;
-#endif
 	ImageData imageData[ MAX_IMAGE_DATA ];
 
 	// U8:

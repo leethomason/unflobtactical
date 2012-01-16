@@ -1,16 +1,24 @@
 /*
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ Copyright (c) 2010 Lee Thomason
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This software is provided 'as-is', without any express or implied
+ warranty. In no event will the authors be held liable for any damages
+ arising from the use of this software.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ Permission is granted to anyone to use this software for any purpose,
+ including commercial applications, and to alter it and redistribute it
+ freely, subject to the following restrictions:
+
+    1. The origin of this software must not be misrepresented; you must not
+    claim that you wrote the original software. If you use this software
+    in a product, an acknowledgment in the product documentation would be
+    appreciated but is not required.
+
+    2. Altered source versions must be plainly marked as such, and must not be
+    misrepresented as being the original software.
+
+    3. This notice may not be removed or altered from any source
+    distribution.
 */
 
 #ifndef GAMUI_INCLUDED
@@ -152,7 +160,6 @@ struct RenderAtom
 	}
 
 	float tx0, ty0, tx1, ty1;		///< Texture coordinates to use within the atom.
-	//float srcWidth, srcHeight;		///< The width and height of the sub-image (as defined by tx0, etc.) Used to know the "natural" size, and how to scale.
 
 	const void* renderState;		///< Application defined render state.
 	const void* textureHandle;		///< Application defined texture handle, noting that 0 (null) is assumed to be non-rendering.
@@ -272,6 +279,7 @@ public:
 	static void Layout( UIItem** item, int nItem,
 						int columns,
 						float originX, float originY );
+
 
 	void LayoutTextBlock(	const char* text,
 							TextLabel* textLabels, int nTextLabels,
@@ -649,6 +657,7 @@ public:
 
 	void SetText( const char* text );
 	const char* GetText() const { return m_label[0].GetText(); }
+
 	void SetText2( const char* text );
 	const char* GetText2() const { return m_label[1].GetText(); }
 
@@ -872,6 +881,40 @@ private:
 	Image		m_image[MAX_TICKS];
 };
 
+
+class LayoutCalculator
+{
+public:
+	LayoutCalculator( float screenWidth, float screenHeight );
+	~LayoutCalculator();
+
+	void SetSize( float width, float height )	{ this->width = width; this->height = height; }
+	void SetGutter( float gutter )				{ this->gutter = gutter; }
+	void SetSpacing( float spacing )			{ this->spacing = spacing; }
+
+	void SetOffset( float x, float y )			{ this->offsetX = x; this->offsetY = y; }
+	void SetTextOffset( float x, float y )		{ this->textOffsetX = x; this->textOffsetY = y; }
+
+	void PosAbs( UIItem* item, int x, int y );
+	void PosAbs( TextLabel* label, int x, int y ) {
+		useTextOffset = true;
+		PosAbs( (UIItem*) label, x, y ); 
+		useTextOffset = false;
+	}
+
+private:
+	float screenWidth;
+	float screenHeight;
+	float width;
+	float height;
+	float gutter;
+	float spacing;
+	float textOffsetX;
+	float textOffsetY;
+	float offsetX;
+	float offsetY;
+	bool  useTextOffset;
+};
 
 class Matrix
 {
