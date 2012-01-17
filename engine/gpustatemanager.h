@@ -8,7 +8,10 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/glmatrix.h"
 #include "../grinliz/glcolor.h"
+
 #include "vertex.h"
+#include "enginelimits.h"
+
 
 class Texture;
 
@@ -37,6 +40,7 @@ public:
 														#endif
 														return index == 0; 
 													}
+	int NumMatrix() const							{	return index+1; }
 
 private:
 	enum { MAX_DEPTH = 4 };
@@ -142,6 +146,7 @@ public:
 		bool HasTexture0() const	{ return nTexture0 > 0; }
 		bool HasTexture1() const	{ return nTexture1 > 0; }
 	};
+
 
 	void SetStream( const Stream& stream, const void* ptr, int nIndex, const uint16_t* indices ) 
 	{
@@ -260,6 +265,10 @@ private:
 	// not so much on TEXTURE. Use our own texture stack, one for each texture unit.
 	static MatrixStack textureStack[2];
 	static bool textureXFormInUse[2];
+#if (XENOENGINE_OPENGL == 2)
+	static MatrixStack mvStack;			// FIXME: check opengl preserves it's matrix stack in programmable mode, and delete this
+	static MatrixStack projStack;
+#endif
 
 	static void SetTextureXForm( int unit );
 

@@ -189,6 +189,7 @@
   <ItemGroup>
     <ClInclude Include="engine\gpustatemanager.h" />
     <ClInclude Include="engine\settings.h" />
+    <ClInclude Include="engine\shadermanager.h" />
     <ClInclude Include="faces\faces.h" />
     <ClInclude Include="game\ai.h" />
     <ClInclude Include="game\areaWidget.h" />

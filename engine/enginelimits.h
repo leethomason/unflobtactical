@@ -17,6 +17,8 @@
 #define ENGINELIMITS_INCLUDED
 
 
+#define XENOENGINE_OPENGL 2
+
 
 enum HitTestMethod 
 {

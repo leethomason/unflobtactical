@@ -437,5 +437,8 @@
     <ClInclude Include="game\gamesettings.h">
       <Filter>game</Filter>
     </ClInclude>
+    <ClInclude Include="engine\shadermanager.h">
+      <Filter>engine</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
