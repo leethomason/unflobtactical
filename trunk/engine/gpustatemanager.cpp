@@ -126,13 +126,14 @@ void MatrixStack::Multiply( const grinliz::Matrix4& m )
 /*static*/ uint32_t GPUShader::uid = 0;
 /*static*/ GPUShader::MatrixType GPUShader::matrixMode = MODELVIEW_MATRIX;
 /*static*/ MatrixStack GPUShader::textureStack[2];
+#if XENOENGINE_OPENGL == 2
+/*static*/ MatrixStack GPUShader::mvStack;
+/*static*/ MatrixStack GPUShader::projStack;
+#endif
 /*static*/ bool GPUShader::textureXFormInUse[2] = { false, false };
-
 /*static*/ int GPUShader::vboSupport = 0;
-/*static*/ //GPUShader::TexParam GPUShader::texParam = { 0, 0, 0, 0 };
 
-//static 
-bool GPUShader::SupportsVBOs()
+/*static*/ bool GPUShader::SupportsVBOs()
 {
 	if ( vboSupport == 0 ) {
 		const char* extensions = (const char*)glGetString( GL_EXTENSIONS );
@@ -140,12 +141,10 @@ bool GPUShader::SupportsVBOs()
 		vboSupport = (vbo) ? 1 : -1;
 	}
 	return (vboSupport > 0);
-	//return false;
 }
 
 
-//static 
-void GPUShader::ResetState()
+/*static */ void GPUShader::ResetState()
 {
 	GPUShader state;
 	current = state;
@@ -527,7 +526,12 @@ void GPUShader::Clear()
 {
 	glMatrixMode(GL_MODELVIEW);
 	// In normalized coordinates.
+#if XENOENGINE_OPENGL == 1
 	glLoadMatrixf( camera.x );
+#elif XENOENGINE_OPENGL == 2
+	GLASSERT( mvStack.NumMatrix() == 1 );
+	mvStack.Set( camera );
+#endif
 	CHECK_GL_ERROR;
 }
 
@@ -693,10 +697,19 @@ void GPUShader::PushMatrix( MatrixType type )
 	SwitchMatrixMode( type );
 
 	switch( type ) {
+#if XENOENGINE_OPENGL == 1
 	case MODELVIEW_MATRIX:
 	case PROJECTION_MATRIX:
 		glPushMatrix();
 		break;
+#elif XENOENGINE_OPENGL == 2
+	case MODELVIEW_MATRIX:
+		mvStack.Push();
+		break;
+	case PROJECTION_MATRIX:
+		projStack.Push();
+		break;
+#endif
 	default:
 		GLASSERT( 0 );
 		return;
@@ -723,15 +736,25 @@ void GPUShader::MultMatrix( MatrixType type, const grinliz::Matrix4& m )
 	SwitchMatrixMode( type );
 
 	switch( type ) {
+#if XENOENGINE_OPENGL == 1
 	case MODELVIEW_MATRIX:
 	case PROJECTION_MATRIX:
 		glMultMatrixf( m.x );
 		break;
+#elif XENOENGINE_OPENGL == 2
+	case MODELVIEW_MATRIX:
+		mvStack.Multiply( m );
+		glLoadMatrixf( mvStack.Top().x );
+		break;
+	case PROJECTION_MATRIX:
+		projStack.Multiply( m );
+		glLoadMatrixf( projStack.Top().x );
+		break;
+#endif
 	default:
 		GLASSERT( 0 );
 		return;
 	}	
-
 	CHECK_GL_ERROR;
 }
 
@@ -742,11 +765,22 @@ void GPUShader::PopMatrix( MatrixType type )
 
 	SwitchMatrixMode( type );
 	GLASSERT( matrixDepth[(int)type] > 0 );
-		switch( type ) {
+	switch( type ) {
+#if XENOENGINE_OPENGL == 1
 	case MODELVIEW_MATRIX:
 	case PROJECTION_MATRIX:
 		glPopMatrix();
 		break;
+#elif XENOENGINE_OPENGL == 2
+	case MODELVIEW_MATRIX:
+		mvStack.Pop();
+		glLoadMatrixf( mvStack.Top().x );
+		break;
+	case PROJECTION_MATRIX:
+		projStack.Pop();
+		glLoadMatrixf( projStack.Top().x );
+		break;
+#endif
 	default:
 		GLASSERT( 0 );
 		return;
