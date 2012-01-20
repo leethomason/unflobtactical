@@ -225,6 +225,9 @@
     <ClCompile Include="game\gamesettings.cpp">
       <Filter>game</Filter>
     </ClCompile>
+    <ClCompile Include="engine\shadermanager.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game\ai.h">
