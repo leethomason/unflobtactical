@@ -5,6 +5,7 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/glcolor.h"
 #include "../grinliz/glstringutil.h"
+#include "../grinliz/glmatrix.h"
 
 #include "enginelimits.h"
 
@@ -16,6 +17,8 @@ class ShaderManager
 public:
 	ShaderManager();
 	~ShaderManager();
+
+	static ShaderManager* Instance() { if ( !instance ) instance = new ShaderManager(); return instance; }
 
 	enum {
 		TEXTURE0			= 0x01,		// Texture0 is in use. Note that the sampling state (linear, nearest) is saved with the texture.
@@ -29,14 +32,20 @@ public:
 
 	void ActivateShader( int flags );
 
-	// Texture units.
-	void SetTexture0( const Texture* );
-	void SetTexture1( const Texture* );
+	// All
+	void SetTransforms( const grinliz::Matrix4& mvp, const grinliz::Matrix4& normal );
 
-	// Diffuse lighting parameters.
-	void SetDiffuse( const grinliz::Color4U8& ambient, const grinliz::Color4U8& diffuse );
+	// Texture units.
+	void SetTexture( int index, const Texture* );
+	void SetTextureTransform( int index, const grinliz::Matrix4& mat );
+
+	// Color & Lights
+	void SetColorMultiplier( const grinliz::Color4F& color );
+	void SetDiffuse( const grinliz::Vector3F& dir, const grinliz::Vector4F& ambient, const grinliz::Vector4F& diffuse );
 
 private:
+	static ShaderManager* instance;
+
 	enum { MAX_SHADERS = 10 };	// or I need to go in there and create proper lookups and such
 								// actually, this only needs to be a reasonable at steady state
 	struct Shader {

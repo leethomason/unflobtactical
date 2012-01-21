@@ -330,11 +330,11 @@ void Engine::Draw()
 	Vector4F dir;
 	CalcLights( ( !map || map->DayTime() ) ? DAY_TIME : NIGHT_TIME, &ambient, &dir, &diffuse );
 
-	LightShader lightShader( ambient, dir, diffuse, false, false );
-	LightShader blendLightShader( ambient, dir, diffuse, false, true );	// Some tiles use alpha - for instance the "splat" image
+	LightShader lightShader( ambient, dir, diffuse, false );
+	LightShader blendLightShader( ambient, dir, diffuse, true );	// Some tiles use alpha - for instance the "splat" image
 
-	LightShader mapItemShader( ambient, dir, diffuse, false, false );
-	LightShader mapBlendItemShader( ambient, dir, diffuse, false, true );
+	LightShader mapItemShader( ambient, dir, diffuse, false );
+	LightShader mapBlendItemShader( ambient, dir, diffuse, true );
 
 	Rectangle2I mapBounds( 0, 0, EL_MAP_SIZE-1, EL_MAP_SIZE-1 );
 	if ( map ) {
