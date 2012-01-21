@@ -322,7 +322,7 @@ class LightShader : public GPUShader
 {
 public:
 	/** Texture or color. Writes & tests z. Enables lighting. */
-	LightShader( const grinliz::Color4F& ambient, const grinliz::Vector4F& direction, const grinliz::Color4F& diffuse, bool alphaTest=false, bool blend=false );
+	LightShader( const grinliz::Color4F& ambient, const grinliz::Vector4F& direction, const grinliz::Color4F& diffuse, bool blend );
 	~LightShader();
 
 protected:

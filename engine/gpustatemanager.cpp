@@ -5,6 +5,10 @@
 #include "../gamui/gamui.h"	// for auto setting up gamui stream
 #include "../grinliz/glperformance.h"
 
+#if XENOENGINE_OPENGL == 2
+#include "shadermanager.h"
+#endif
+
 using namespace grinliz;
 
 /*static*/ GPUVertexBuffer GPUVertexBuffer::Create( const Vertex* vertex, int nVertex )
@@ -200,11 +204,16 @@ void GPUShader::SetTextureXForm( int unit )
 {
 	if ( !textureStack[unit].Empty() || textureXFormInUse[unit] ) 
 	{
+#if XENOENGINE_OPENGL == 1
 		glMatrixMode( GL_TEXTURE );
 		glLoadMatrixf( textureStack[unit].Top().x );
 		glMatrixMode( matrixMode == MODELVIEW_MATRIX ? GL_MODELVIEW : GL_PROJECTION );
+#elif XENOENGINE_OPENGL == 2
+#error error
+#endif
 		textureXFormInUse[unit] = !textureStack[unit].Empty();
 	}
+	CHECK_GL_ERROR;
 }
 
 
@@ -215,6 +224,7 @@ void GPUShader::SetState( const GPUShader& ns )
 	CHECK_GL_ERROR;
 	GLASSERT( ns.stream.stride > 0 );
 
+#if XENOENGINE_OPENGL == 1
 	// Texture1
 	if ( ns.stream.HasTexture1() || current.stream.HasTexture1() ) {
 
@@ -328,22 +338,6 @@ void GPUShader::SetState( const GPUShader& ns )
 	}
 	CHECK_GL_ERROR;
 
-	// Blend
-	if ( ns.blend && !current.blend ) {
-		glEnable( GL_BLEND );
-	}
-	else if ( !ns.blend && current.blend ) {
-		glDisable( GL_BLEND );
-	}
-
-	// Alpha Test
-	if ( ns.alphaTest && !current.alphaTest ) {
-		glEnable( GL_ALPHA_TEST );
-	}
-	else if ( !ns.alphaTest && current.alphaTest ) {
-		glDisable( GL_ALPHA_TEST );
-	}
-
 	// Lighting
 	if ( ns.lighting && !current.lighting ) {
 		glEnable( GL_LIGHTING );
@@ -355,6 +349,45 @@ void GPUShader::SetState( const GPUShader& ns )
 	else if ( !ns.lighting && current.lighting ) {
 		glDisable( GL_LIGHTING );
 		//GLOUTPUT(( "Lighting off.\n" ));
+	}
+
+	// color
+	if ( ns.color != current.color ) {
+		glColor4f( ns.color.r, ns.color.g, ns.color.b, ns.color.a );
+	}
+
+#elif XENOENGINE_OPENGL == 2
+	ShaderManager* shadman = ShaderManager::Instance();
+
+	int flags = 0;
+	flags |= ( ns.HasTexture0() ) ? ShaderManager::TEXTURE0 : 0;
+	flags |= (!textureStack[0].Empty() || textureXFormInUse[0]) ? ShaderManager::TEXTURE0_TRANSFORM : 0;
+	flags |= ( ns.HasTexture0() ) ? ShaderManager::TEXTURE1 : 0;
+	flags |= (!textureStack[1].Empty() || textureXFormInUse[1]) ? ShaderManager::TEXTURE1_TRANSFORM : 0;
+	flags |= ns.stream.HasColor() ? ShaderManager::COLORS : 0;
+	flags |= ( ns.color.r != 1.f || ns.color.g != 1.f || ns.color.b != 1.f || ns.color.a != 1.f ) ? ShaderManager::COLOR_MULTIPLIER : 0;
+	flags |= ns.lighting ? ShaderManager::LIGHTING_DIFFUSE : 0;
+
+	shadman->ActivateShader( flags );
+
+#endif
+
+/*
+	// Alpha Test
+	if ( ns.alphaTest && !current.alphaTest ) {
+		glEnable( GL_ALPHA_TEST );
+	}
+	else if ( !ns.alphaTest && current.alphaTest ) {
+		glDisable( GL_ALPHA_TEST );
+	}
+*/
+
+	// Blend
+	if ( ns.blend && !current.blend ) {
+		glEnable( GL_BLEND );
+	}
+	else if ( !ns.blend && current.blend ) {
+		glDisable( GL_BLEND );
 	}
 
 	// Depth Write
@@ -373,15 +406,10 @@ void GPUShader::SetState( const GPUShader& ns )
 		glDisable( GL_DEPTH_TEST );
 	}
 
-	// color
-	if ( ns.color != current.color ) {
-		glColor4f( ns.color.r, ns.color.g, ns.color.b, ns.color.a );
-	}
-
 	current = ns;
 	CHECK_GL_ERROR;
 
-#if defined( USING_GL ) && defined( DEBUG )
+#if (XENOENGINE_OPENGL == 1 ) && defined( USING_GL ) && defined( DEBUG )
 #	define ASSERT_SAME( x, y ) if ( x ) { GLASSERT( y ); } else { GLASSERT( !(y) ); }
 
 	void* ptr = 0;
@@ -618,21 +646,6 @@ void GPUShader::Draw()
 	CHECK_GL_ERROR;
 }
 
-/*
-void GPUShader::Draw( int index, const int* elements ) 
-{
-	CHECK_GL_ERROR;
-	SetState( *this );
-
-	GLASSERT( index % 3 == 0 );
-	trianglesDrawn += index / 3;
-	++drawCalls;
-
-	glDrawElements( GL_TRIANGLES, index, GL_UNSIGNED_INT, elements );
-	CHECK_GL_ERROR;
-}
-*/
-
 
 void GPUShader::Debug_DrawQuad( const grinliz::Vector3F p0, const grinliz::Vector3F p1 )
 {
@@ -866,11 +879,11 @@ CompositingShader::CompositingShader( bool _blend )
 int LightShader::locked = 0;
 
 
-LightShader::LightShader( const Color4F& ambient, const grinliz::Vector4F& direction, const Color4F& diffuse, bool alphaTest, bool blend )
+LightShader::LightShader( const Color4F& ambient, const grinliz::Vector4F& direction, const Color4F& diffuse, bool blend )
 {
 	GLASSERT( !(blend && alphaTest ) );	// technically fine, probably not intended behavior.
 
-	this->alphaTest = alphaTest;
+	//this->alphaTest = alphaTest;
 	this->blend = blend;
 	this->lighting = true;
 	this->ambient = ambient;
