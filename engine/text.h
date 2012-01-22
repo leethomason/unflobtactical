@@ -72,6 +72,7 @@ private:
 		BUF_SIZE = 30,
 		CHAR_OFFSET = 32,
 		CHAR_RANGE  = 128 - CHAR_OFFSET,
+		CACHE_SIZE = CHAR_RANGE * CHAR_RANGE,
 		END_CHAR = CHAR_OFFSET + CHAR_RANGE
 	};
 
@@ -81,7 +82,7 @@ private:
 	PTVertex2	vBuf[BUF_SIZE*4];
 	U16			iBuf[BUF_SIZE*6];
 	Metric		metricCache[ CHAR_RANGE ];
-	S8			kerningCache[ CHAR_RANGE*CHAR_RANGE ];
+	S8			kerningCache[ CACHE_SIZE ];
 };
 
 #endif // UFOATTACK_TEXT_INCLUDED
