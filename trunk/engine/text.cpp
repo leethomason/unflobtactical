@@ -109,7 +109,7 @@ void UFOText::CacheKern( int c, int cPrev )
 	const gamedb::Item* kernItem = 0;
 	
 	int index = KernIndex( c, cPrev );
-	GLASSERT( index >= 0 && index < CHAR_RANGE*CHAR_RANGE );
+	GLASSERT( index >= 0 && index < CACHE_SIZE );
 	kerningCache[index] = 0;
 	
 	if ( kernsItem ) {
