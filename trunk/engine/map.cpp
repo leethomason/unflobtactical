@@ -177,7 +177,7 @@ void Map::DrawSeen()
 
 	CompositingShader shader;
 
-	GPUShader::Stream stream;
+	GPUStream stream;
 	stream.stride = sizeof( mapVertex[0] );
 	stream.nPos = 2;
 	stream.posOffset = 0;
@@ -211,7 +211,7 @@ void Map::DrawUnseen()
 		return;
 
 	CompositingShader shader;
-	GPUShader::Stream stream;
+	GPUStream stream;
 	stream.stride = sizeof(mapVertex[0]);
 	stream.nPos = 2;
 	stream.posOffset = 0;
@@ -238,7 +238,7 @@ void Map::DrawPastSeen( const Color4F& color )
 		return;
 
 	CompositingShader shader;
-	GPUShader::Stream stream;
+	GPUStream stream;
 	stream.stride = sizeof(mapVertex[0]);
 	stream.nPos = 2;
 	stream.posOffset = 0;
@@ -1292,7 +1292,7 @@ void Map::DrawPath( int mode )
 			GLRELASSERT( nRed <= 12 );
 			GLRELASSERT( nGreen <= 12 );
 			
-			GPUShader::Stream stream;
+			GPUStream stream;
 			stream.stride = sizeof(Vector3F);
 			stream.nPos = 3;
 			stream.posOffset = 0;
@@ -2001,7 +2001,7 @@ void Map::BeginTexture( const void* textureHandle )
 
 void Map::Render( const void* renderState, const void* textureHandle, int nIndex, const uint16_t* index, int nVertex, const gamui::Gamui::Vertex* vertex )
 {
-	GPUShader::Stream stream( GPUShader::Stream::kGamuiType );
+	GPUStream stream( GPUStream::kGamuiType );
 	gamuiShader.SetStream( stream, vertex, nIndex, index );
 
 	gamuiShader.Draw();

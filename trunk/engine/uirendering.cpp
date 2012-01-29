@@ -92,7 +92,7 @@ void UIRenderer::Render( const void* renderState, const void* textureHandle, int
 {
 //	shader.SetVertex( 2, sizeof(Gamui::Vertex), &vertex[0].x );
 //	shader.SetTexture0( 2, sizeof(Gamui::Vertex), &vertex[0].tx );
-	GPUShader::Stream stream( GPUShader::Stream::kGamuiType );
+	GPUStream stream( GPUStream::kGamuiType );
 	shader.SetStream( stream, vertex, nIndex, index );
 
 	shader.Draw();

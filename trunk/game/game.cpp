@@ -40,6 +40,7 @@
 #include "../engine/particle.h"
 #include "../engine/gpustatemanager.h"
 #include "../engine/renderqueue.h"
+#include "../engine/shadermanager.h"
 
 #include "../grinliz/glmatrix.h"
 #include "../grinliz/glutil.h"
@@ -262,6 +263,9 @@ Game::~Game()
 	TextureManager::Destroy();
 	delete database0;
 	delete database1;
+#if XENOENGINE_OPENGL == 2
+	delete ShaderManager::Instance();
+#endif
 }
 
 

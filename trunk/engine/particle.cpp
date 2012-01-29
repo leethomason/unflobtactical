@@ -473,7 +473,7 @@ void ParticleSystem::DrawBeamParticles( const Vector3F* eyeDir )
 		QuadParticleShader shader;
 		shader.SetTexture0( quadTexture );
 
-		GPUShader::Stream stream;
+		GPUStream stream;
 		stream.stride = sizeof( vertexBuffer[0] );
 		stream.nPos = 3;
 		stream.posOffset = 0;
@@ -498,7 +498,7 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 	{
 		PointParticleShader shader;
 
-		GPUShader::Stream stream;
+		GPUStream stream;
 		stream.stride = sizeof(pointBuffer[0]);
 		stream.nPos = 3;
 		stream.posOffset = 0;
@@ -562,7 +562,7 @@ void ParticleSystem::DrawPointParticles( const Vector3F* eyeDir )
 
 		if ( index ) {
 			QuadParticleShader shader;
-			GPUShader::Stream stream;
+			GPUStream stream;
 			stream.stride = sizeof( vertexBuffer[0] );
 			stream.nPos = 3;
 			stream.posOffset = 0;
@@ -661,7 +661,7 @@ void ParticleSystem::DrawQuadParticles( const Vector3F* eyeDir )
 		QuadParticleShader shader;
 		shader.SetTexture0( quadTexture );
 
-		GPUShader::Stream stream;
+		GPUStream stream;
 		stream.stride = sizeof( vertexBuffer[0] );
 		stream.nPos = 3;
 		stream.posOffset = 0;

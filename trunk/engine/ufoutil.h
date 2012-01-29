@@ -133,9 +133,9 @@ public:
 		return result;
 	}
 
-	void Pop() {
+	T Pop() {
 		GLASSERT( size > 0 );
-		--size;
+		return vec[--size];
 	}
 
 	void SwapRemove( int i ) {
