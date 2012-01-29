@@ -86,6 +86,43 @@ public:
 };
 
 
+struct GPUStream {
+	// WARNING: Clear/init calls memset(0) on structure. Need to change
+	// if this gets a vtable
+	// Defines float sized components.
+	int stride;
+	int nPos;		
+	int posOffset;
+	int nTexture0;
+	int texture0Offset;
+	int nTexture1;
+	int texture1Offset;
+	int nNormal;
+	int normalOffset;
+	int nColor;
+	int colorOffset;
+
+	GPUStream() :  stride( 0 ),
+				nPos( 0 ), posOffset( 0 ), 
+				nTexture0( 0 ), texture0Offset( 0 ),
+				nTexture1( 0 ), texture1Offset( 0 ), 
+				nNormal( 0 ), normalOffset( 0 ),
+				nColor( 0 ), colorOffset( 0 ) {}
+
+	GPUStream( const Vertex* vertex );
+	enum GamuiType { kGamuiType };
+	GPUStream( GamuiType );
+	GPUStream( const PTVertex2* vertex );
+	void Clear();
+
+	bool HasPos() const			{ return nPos > 0; }
+	bool HasNormal() const		{ return nNormal > 0; }
+	bool HasColor() const		{ return nColor > 0; }
+	bool HasTexture0() const	{ return nTexture0 > 0; }
+	bool HasTexture1() const	{ return nTexture1 > 0; }
+};
+
+
 class GPUShader 
 {
 public:
@@ -93,7 +130,7 @@ public:
 
 	enum MatrixType {
 		MODELVIEW_MATRIX,
-		PROJECTION_MATRIX
+		PROJECTION_MATRIX,
 	};
 
 	static void ResetState();
@@ -111,44 +148,8 @@ public:
 	static void SetCameraTransform( const grinliz::Matrix4& camera );
 	static void SetScissor( int x, int y, int w, int h );
 	
-	struct Stream {
-		// WARNING: Clear/init calls memset(0) on structure. Need to change
-		// if this gets a vtable
-		// Defines float sized components.
-		int stride;
-		int nPos;		
-		int posOffset;
-		int nTexture0;
-		int texture0Offset;
-		int nTexture1;
-		int texture1Offset;
-		int nNormal;
-		int normalOffset;
-		int nColor;
-		int colorOffset;
 
-		Stream() :  stride( 0 ),
-					nPos( 0 ), posOffset( 0 ), 
-					nTexture0( 0 ), texture0Offset( 0 ),
-					nTexture1( 0 ), texture1Offset( 0 ), 
-					nNormal( 0 ), normalOffset( 0 ),
-					nColor( 0 ), colorOffset( 0 ) {}
-
-		Stream( const Vertex* vertex );
-		enum GamuiType { kGamuiType };
-		Stream( GamuiType );
-		Stream( const PTVertex2* vertex );
-		void Clear();
-
-		bool HasPos() const			{ return nPos > 0; }
-		bool HasNormal() const		{ return nNormal > 0; }
-		bool HasColor() const		{ return nColor > 0; }
-		bool HasTexture0() const	{ return nTexture0 > 0; }
-		bool HasTexture1() const	{ return nTexture1 > 0; }
-	};
-
-
-	void SetStream( const Stream& stream, const void* ptr, int nIndex, const uint16_t* indices ) 
+	void SetStream( const GPUStream& stream, const void* ptr, int nIndex, const uint16_t* indices ) 
 	{
 		GLASSERT( stream.stride > 0 );
 		GLASSERT( nIndex % 3 == 0 );
@@ -162,7 +163,7 @@ public:
 	}
 
 
-	void SetStream( const Stream& stream, const GPUVertexBuffer& vertex, int nIndex, const GPUIndexBuffer& index ) 
+	void SetStream( const GPUStream& stream, const GPUVertexBuffer& vertex, int nIndex, const GPUIndexBuffer& index ) 
 	{
 		GLASSERT( stream.stride > 0 );
 		GLASSERT( nIndex % 3 == 0 );
@@ -178,7 +179,7 @@ public:
 	}
 
 
-	void SetStream( const Stream& stream, const GPUVertexBuffer& vertex, int nIndex, const uint16_t* index ) 
+	void SetStream( const GPUStream& stream, const GPUVertexBuffer& vertex, int nIndex, const uint16_t* index ) 
 	{
 		GLASSERT( stream.stride > 0 );
 		GLASSERT( nIndex % 3 == 0 );
@@ -194,15 +195,11 @@ public:
 	}
 
 
-	void SetTexture0( Texture* tex ) {
-		texture0 = tex;
-	}
-	bool HasTexture0() { return texture0 != 0; }
+	void SetTexture0( Texture* tex ) { texture0 = tex; }
+	bool HasTexture0() const { return texture0 != 0; }
 
-	void SetTexture1( Texture* tex ) {
-		texture1 = tex;
-	}
-	bool HasTexture1() { return texture1 != 0; }
+	void SetTexture1( Texture* tex ) { texture1 = tex; }
+	bool HasTexture1() const { return texture1 != 0; }
 
 	void SetColor( float r, float g, float b )				{ color.r = r; color.g = g; color.b = b; color.a = 1; }
 	void SetColor( float r, float g, float b, float a )		{ color.r = r; color.g = g; color.b = b; color.a = a; }
@@ -211,6 +208,12 @@ public:
 		static const float INV = 1.0f/255.0f;
 		grinliz::Color4F c = { (float)color.r*INV, (float)color.g*INV, (float)color.b*INV, (float)color.a*INV };
 		SetColor( c );
+	}
+
+	void SetDiffuse( const grinliz::Vector3F direction, const grinliz::Color3F ambient, const grinliz::Color3F diffuse ) {
+		this->direction = direction;
+		this->ambient = ambient;
+		this->diffuse = diffuse;
 	}
 
 	void PushMatrix( MatrixType type );
@@ -223,6 +226,11 @@ public:
 	void PushTextureMatrix( int mask );
 	void MultTextureMatrix( int mask, const grinliz::Matrix4& m );
 	void PopTextureMatrix( int mask );
+
+#if XENOENGINE_OPENGL == 2
+	const grinliz::Matrix4& ConcatedMatrix( MatrixType type ) const;
+	const grinliz::Matrix4& ConcatedTextureMatrix( int unit ) const;
+#endif
 
 	void Draw();
 
@@ -284,7 +292,7 @@ protected:
 	Texture* texture0;
 	Texture* texture1;
 
-	Stream stream;
+	GPUStream stream;
 	const void* streamPtr;
 	int nIndex;
 	const uint16_t* indexPtr;
@@ -294,6 +302,9 @@ protected:
 	bool		blend;
 	bool		alphaTest;
 	bool		lighting;
+	grinliz::Color3F	diffuse;
+	grinliz::Color3F	ambient;
+	grinliz::Vector3F   direction;
 
 	bool		depthWrite;
 	bool		depthTest;

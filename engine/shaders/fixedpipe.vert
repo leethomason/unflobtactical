@@ -45,10 +45,10 @@ attribute vec3 a_normal;		// vertex normal
 
 vec4 v_color;					// color passed to fragment shader
 #if TEXTURE0 == 1
-vec2 v_uv0;
+varying vec2 v_uv0;
 #endif
 #if TEXTURE1 == 1
-vec v_uv1;
+varying vec v_uv1;
 #endif
 
 
@@ -76,15 +76,17 @@ void main() {
 			v_uv0 = a_uv0;
 		#else
 			v_uv0 = ( u_texMat0 * vec4( a_uv0.x, a_uv0.y, 0, 1 ) ).xy;
+		#endif
 	#endif
 	#if TEXTURE1 == 1
 		#if TEXTURE1_TRANSFORM == 0
 			v_uv1 = a_uv1;
 		#else
 			v_uv1 = ( u_texMat1 * vec4( a_uv1.x, a_uv1.y, 0, 1 ) ).xy;
+		#endif
 	#endif
 
 	v_color = color;
-	gl_Position = u_mvpMatrix * a_pos;
+	gl_Position = u_mvpMatrix * vec4( a_pos.x, a_pos.y, a_pos.z, 1.0 );
 }
 

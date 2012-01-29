@@ -348,7 +348,7 @@ void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent
 }
 
 
-void ModelAtom::LowerBind( GPUShader* shader, const GPUShader::Stream& stream ) const
+void ModelAtom::LowerBind( GPUShader* shader, const GPUStream& stream ) const
 {
 #ifdef EL_USE_VBO
 	if ( GPUShader::SupportsVBOs() && !vertexBuffer.IsValid() ) {
@@ -368,7 +368,7 @@ void ModelAtom::LowerBind( GPUShader* shader, const GPUShader::Stream& stream ) 
 
 void ModelAtom::Bind( GPUShader* shader ) const
 {
-	GPUShader::Stream stream( vertex );
+	GPUStream stream( vertex );
 	// Handle light map, if we have one:
 	if ( shader->HasTexture1() ) {
 		stream.texture1Offset = Vertex::POS_OFFSET;
@@ -380,7 +380,7 @@ void ModelAtom::Bind( GPUShader* shader ) const
 
 void ModelAtom::BindPlanarShadow( GPUShader* shader ) const
 {
-	GPUShader::Stream stream;
+	GPUStream stream;
 	stream.stride = sizeof( Vertex );
 	stream.nPos = 3;
 	stream.posOffset = Vertex::POS_OFFSET;

@@ -121,7 +121,7 @@ void BoltEffect::Draw( const Vector3F* eyeDir )
 		QuadParticleShader shader;
 		shader.SetTexture0( TextureManager::Instance()->GetTexture( "particleQuad" ) );
 
-		GPUShader::Stream stream;
+		GPUStream stream;
 		stream.stride = sizeof( pV[0] );
 		stream.nPos = 3;
 		stream.posOffset = 0;
@@ -368,7 +368,7 @@ void RingEffect::Draw( const Vector3F* eyeDir )
 	if ( !done && !quads.Empty() && !index.Empty() ) 
 	{
 		QuadParticleShader shader;
-		GPUShader::Stream stream;
+		GPUStream stream;
 
 		stream.stride = sizeof( RingVertex );
 		stream.nPos = 3;
