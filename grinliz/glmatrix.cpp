@@ -226,24 +226,13 @@ void Matrix4::SetOrtho( float left, float right, float bottom, float top, float 
 	SetIdentity();
 	if ( ( right != left ) && ( zFar != zNear ) && ( top != bottom ) ) { 
 		Set( 0, 0, 2.0f / (right-left ) );	
-		Set( 0, 1, 0 );						
-		Set( 0, 2, 0 );		
 		Set( 0, 3, -(right+left) / (right-left) );
 
-		Set( 1, 0, 0 );						
 		Set( 1, 1, 2.0f / (top-bottom) );	
-		Set( 1, 2, 0 );		
 		Set( 1, 3, -(top+bottom) / (top-bottom) );
 		
-		Set( 2, 0, 0 );						
-		Set( 2, 1, 0 );						
 		Set( 2, 2, -2.0f / (zFar-zNear) );	
 		Set( 2, 3, -(zFar+zNear) / (zFar-zNear) );
-
-		Set( 3, 0, 0 );
-		Set( 3, 1, 0 );
-		Set( 3, 2, 0 );
-		Set( 3, 3, 1 );
 	}
 	else {
 		GLASSERT( 0 );

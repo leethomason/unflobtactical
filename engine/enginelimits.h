@@ -19,7 +19,6 @@
 
 #define XENOENGINE_OPENGL 2
 
-
 enum HitTestMethod 
 {
 	TEST_HIT_AABB,
