@@ -57,6 +57,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	cameraSet = false;
 	battleEnding = false;
 	confirmDest.Set( -1, -1 );
+	random.SetSeedFromTime();
 
 	engine  = game->engine;
 	tacMap = new TacMap( engine->GetSpaceTree(), game->GetItemDefArr() );

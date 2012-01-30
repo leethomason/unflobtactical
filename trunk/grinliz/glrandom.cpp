@@ -120,7 +120,7 @@ void Random::SetSeed( const char* str )
 
 void Random::SetSeedFromTime()
 {
-	U32 seed = (U32)time( 0 ) + (U32)clock();
+	U32 seed = (U32)time( 0 ) ^ (U32)clock();
 	SetSeed( seed );
 }
 

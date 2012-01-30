@@ -11,6 +11,8 @@
 
 using namespace grinliz;
 
+int GPUShader::matrixDepth[3];
+
 /*static*/ GPUVertexBuffer GPUVertexBuffer::Create( const Vertex* vertex, int nVertex )
 {
 	GPUVertexBuffer buffer;
@@ -202,14 +204,14 @@ void MatrixStack::Multiply( const grinliz::Matrix4& m )
 
 void GPUShader::SetTextureXForm( int unit )
 {
-	if ( !textureStack[unit].Empty() || textureXFormInUse[unit] ) 
+	if ( textureStack[unit].NumMatrix()>1 || textureXFormInUse[unit] ) 
 	{
 #if XENOENGINE_OPENGL == 1
 		glMatrixMode( GL_TEXTURE );
 		glLoadMatrixf( textureStack[unit].Top().x );
 		glMatrixMode( matrixMode == MODELVIEW_MATRIX ? GL_MODELVIEW : GL_PROJECTION );
 #endif
-		textureXFormInUse[unit] = !textureStack[unit].Empty();
+		textureXFormInUse[unit] = textureStack[unit].NumMatrix()>1;
 	}
 	CHECK_GL_ERROR;
 }
@@ -359,9 +361,9 @@ void GPUShader::SetState( const GPUShader& ns )
 
 	int flags = 0;
 	flags |= ( ns.HasTexture0() ) ? ShaderManager::TEXTURE0 : 0;
-	flags |= (!textureStack[0].Empty() || textureXFormInUse[0]) ? ShaderManager::TEXTURE0_TRANSFORM : 0;
+	flags |= (textureStack[0].NumMatrix()>1 || textureXFormInUse[0]) ? ShaderManager::TEXTURE0_TRANSFORM : 0;
 	flags |= ( ns.HasTexture1() ) ? ShaderManager::TEXTURE1 : 0;
-	flags |= (!textureStack[1].Empty() || textureXFormInUse[1]) ? ShaderManager::TEXTURE1_TRANSFORM : 0;
+	flags |= (textureStack[1].NumMatrix()>1 || textureXFormInUse[1]) ? ShaderManager::TEXTURE1_TRANSFORM : 0;
 	flags |= ns.stream.HasColor() ? ShaderManager::COLORS : 0;
 	flags |= ( ns.color.r != 1.f || ns.color.g != 1.f || ns.color.b != 1.f || ns.color.a != 1.f ) ? ShaderManager::COLOR_MULTIPLIER : 0;
 	flags |= ns.lighting ? ShaderManager::LIGHTING_DIFFUSE : 0;
@@ -370,31 +372,38 @@ void GPUShader::SetState( const GPUShader& ns )
 	shadman->ClearStream();
 	Matrix4 mvp;
 	MultMatrix4( ns.ConcatedMatrix( GPUShader::MODELVIEW_MATRIX ), ns.ConcatedMatrix( GPUShader::PROJECTION_MATRIX ), &mvp );
+	//MultMatrix4( ns.ConcatedMatrix( GPUShader::PROJECTION_MATRIX ), ns.ConcatedMatrix( GPUShader::MODELVIEW_MATRIX ), &mvp );
 
 	// FIXME: the normal matrix can be used because the game doesn't support scaling.
-	shadman->SetTransforms( mvp, ns.ConcatedMatrix( GPUShader::MODELVIEW_MATRIX ) );
+	const Matrix4& normalMat = ns.ConcatedMatrix( GPUShader::MODELVIEW_MATRIX );
+	shadman->SetTransforms( mvp, normalMat );
 
 	glEnableClientState( GL_VERTEX_ARRAY );
-	// Texture0
-	glActiveTexture( GL_TEXTURE0 );
-	if (  ns.stream.HasTexture0() ) {
-		GLASSERT( ns.stream.nTexture0 == 2 );
-		shadman->SetStreamData( ShaderManager::A_TEXTURE0, 2, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture0Offset ) );
-		glBindTexture( GL_TEXTURE_2D, ns.texture0->GLID() );
-		if ( flags & ShaderManager::TEXTURE0_TRANSFORM ) {
-			shadman->SetTextureTransform( 0, textureStack[0].Top() );
+
+	// Texture1
+	glActiveTexture( GL_TEXTURE1 ); // fixme: remove
+	glClientActiveTexture( GL_TEXTURE1 );
+	if (  ns.stream.HasTexture1() ) {
+		shadman->SetTexture( 1, ns.texture1 );
+		GLASSERT( ns.stream.nTexture1 == 2 );
+		shadman->SetStreamData( ShaderManager::A_TEXTURE1, 2, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture1Offset ) );	 			glBindTexture( GL_TEXTURE_2D, ns.texture0->GLID() );
+		glBindTexture( GL_TEXTURE_2D, ns.texture1->GLID() ); // fixme remove
+		if ( flags & ShaderManager::TEXTURE1_TRANSFORM ) {
+			shadman->SetTextureTransform( 1, textureStack[1].Top() );
 		}
 	}
 	CHECK_GL_ERROR;
 
-	// Texture1
-	glActiveTexture( GL_TEXTURE1 );
-	if (  ns.stream.HasTexture1() ) {
-		GLASSERT( ns.stream.nTexture1 == 2 );
-		shadman->SetStreamData( ShaderManager::A_TEXTURE1, 2, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture1Offset ) );	 			glBindTexture( GL_TEXTURE_2D, ns.texture0->GLID() );
-		glBindTexture( GL_TEXTURE_2D, ns.texture1->GLID() );
-		if ( flags & ShaderManager::TEXTURE1_TRANSFORM ) {
-			shadman->SetTextureTransform( 1, textureStack[1].Top() );
+	// Texture0
+	glActiveTexture( GL_TEXTURE0 ); // fixme remove
+	glClientActiveTexture( GL_TEXTURE0 );
+	if (  ns.stream.HasTexture0() ) {
+		shadman->SetTexture( 0, ns.texture0 );
+		GLASSERT( ns.stream.nTexture0 == 2 );
+		glBindTexture( GL_TEXTURE_2D, ns.texture0->GLID() ); // fixme remove
+		shadman->SetStreamData( ShaderManager::A_TEXTURE0, 2, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture0Offset ) );
+		if ( flags & ShaderManager::TEXTURE0_TRANSFORM ) {
+			shadman->SetTextureTransform( 0, textureStack[0].Top() );
 		}
 	}
 	CHECK_GL_ERROR;
@@ -406,7 +415,11 @@ void GPUShader::SetState( const GPUShader& ns )
 
 	// normal
 	if ( ns.stream.HasNormal() ) {
+		GLASSERT( flags & ShaderManager::LIGHTING_DIFFUSE );
 		shadman->SetStreamData( ShaderManager::A_NORMAL, 3, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.normalOffset ) );	 
+	}
+	else {
+		GLASSERT( !(flags & ShaderManager::LIGHTING_DIFFUSE) );
 	}
 
 	// color
@@ -416,8 +429,8 @@ void GPUShader::SetState( const GPUShader& ns )
 	}
 
 	// lighting 
-
 	if ( ns.lighting ) {
+		GLASSERT( flags & ShaderManager::LIGHTING_DIFFUSE );
 		Vector4F d = { ns.diffuse.r, ns.diffuse.g, ns.diffuse.b, 1.f };
 		Vector4F a = { ns.ambient.r, ns.ambient.g, ns.ambient.b, 1.f };
 		Vector4F dir = { ns.direction.x, ns.direction.y, ns.direction.z, 0.0f };
@@ -425,8 +438,9 @@ void GPUShader::SetState( const GPUShader& ns )
 	}
 
 	// color multiplier
-	shadman->SetColorMultiplier( ns.color );
-
+	if ( flags & ShaderManager::COLOR_MULTIPLIER ) {
+		shadman->SetColorMultiplier( ns.color );
+	}
 #endif
 
 /*
@@ -578,6 +592,19 @@ void GPUShader::Clear()
 	}
 	Matrix4 view2D = r*t;
 
+#if XENOENGINE_OPENGL == 1
+	SwitchMatrixMode( PROJECTION_MATRIX );
+	glLoadIdentity();				// projection
+	glOrthofX( 0, screenWidth, screenHeight, 0, -100, 100 );	// go with helping the driver.
+#else
+	Matrix4 ortho;
+	ortho.SetOrtho( 0, (float)screenWidth, (float)screenHeight, 0, -100.f, 100.f );
+	SetMatrix( PROJECTION_MATRIX, ortho );
+#endif
+
+	SetMatrix( MODELVIEW_MATRIX, view2D );
+
+	/*
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();				// projection
 
@@ -587,6 +614,7 @@ void GPUShader::Clear()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();				// model
 	glMultMatrixf( view2D.x );
+	*/
 	CHECK_GL_ERROR;
 }
 
@@ -728,7 +756,7 @@ void GPUShader::Debug_DrawQuad( const grinliz::Vector3F p0, const grinliz::Vecto
 
 void GPUShader::SwitchMatrixMode( MatrixType type )
 {
-#if defined( USING_GL ) && defined( DEBUG )
+#if defined( USING_GL ) && defined( DEBUG ) && (XENOENGINE_OPENGL == 1 )
 	{
 		int testMode = 0;
 		glGetIntegerv( GL_MATRIX_MODE, &testMode );
@@ -741,11 +769,9 @@ void GPUShader::SwitchMatrixMode( MatrixType type )
 	}
 #endif
 
+#if XENOENGINE_OPENGL == 1
 	if ( matrixMode != type ) {
 		switch ( type ) {
-		//case TEXTURE_MATRIX:
-		//	glMatrixMode( GL_TEXTURE );
-		//	break;
 		case MODELVIEW_MATRIX:
 			glMatrixMode( GL_MODELVIEW );
 			break;
@@ -757,6 +783,7 @@ void GPUShader::SwitchMatrixMode( MatrixType type )
 			return;
 		}
 	}
+#endif
 	matrixMode = type;
 	CHECK_GL_ERROR;
 }
@@ -844,10 +871,9 @@ void GPUShader::PopMatrix( MatrixType type )
 #elif XENOENGINE_OPENGL == 2
 	case MODELVIEW_MATRIX:
 		mvStack.Pop();
-		glLoadMatrixf( mvStack.Top().x );
 		break;
 	case PROJECTION_MATRIX:
-		glLoadMatrixf( projStack.Top().x );
+		projStack.Pop();
 		break;
 #endif
 	default:
@@ -861,8 +887,30 @@ void GPUShader::PopMatrix( MatrixType type )
 }
 
 
+void GPUShader::SetMatrix( MatrixType type, const Matrix4& m )
+{
+	CHECK_GL_ERROR;
+
+	SwitchMatrixMode( type );
+	GLASSERT( matrixDepth[(int)type] == 0 );
+
+#if XENOENGINE_OPENGL == 1
+	glLoadMatrixf( m.x );
+#else
+	if ( type == PROJECTION_MATRIX ) {
+		GLASSERT( projStack.NumMatrix() == 1 );
+		projStack.Set( m ); 
+	}
+	else if ( type == MODELVIEW_MATRIX ) {
+		GLASSERT( mvStack.NumMatrix() == 1 );
+		mvStack.Set( m );
+	}
+#endif
+}
+
+
 #if XENOENGINE_OPENGL == 2
-const grinliz::Matrix4& GPUShader::ConcatedMatrix( MatrixType type ) const
+const grinliz::Matrix4& GPUShader::ConcatedMatrix( MatrixType type )
 {
 	if ( type == MODELVIEW_MATRIX ) {
 		return mvStack.Top();
@@ -871,7 +919,7 @@ const grinliz::Matrix4& GPUShader::ConcatedMatrix( MatrixType type ) const
 }
 
 
-const grinliz::Matrix4& GPUShader::ConcatedTextureMatrix( int unit ) const
+const grinliz::Matrix4& GPUShader::ConcatedTextureMatrix( int unit )
 {
 	GLASSERT( unit >= 0 && unit < 2 );
 	return textureStack[unit].Top();

@@ -46,6 +46,7 @@ void ShaderManager::SetStreamData( int id, int size, int type, int stride, const
 	}
 	
 	int loc = glGetAttribLocation( active->prog, var );
+	GLASSERT( loc >= 0 );
 	glEnableVertexAttribArray(loc);
 	glVertexAttribPointer( loc, size, type, 0, stride, data );
 	CHECK_GL_ERROR;
@@ -57,11 +58,24 @@ void ShaderManager::SetStreamData( int id, int size, int type, int stride, const
 void ShaderManager::SetTransforms( const grinliz::Matrix4& mvp, const grinliz::Matrix4& normal )
 {
 	int loc = glGetUniformLocation( active->prog, "u_mvpMatrix" );
+	GLASSERT( loc >= 0 );
 	glUniformMatrix4fv( loc, 1, false, mvp.x );
 	if ( active->flags & LIGHTING_DIFFUSE ) {
-		int loc = glGetUniformLocation( active->prog, "u_normalMatrix" );
+		loc = glGetUniformLocation( active->prog, "u_normalMatrix" );
+		GLASSERT( loc >= 0 );
 		glUniformMatrix4fv( loc, 1, false, normal.x );
 	}
+	CHECK_GL_ERROR;
+}
+
+
+void ShaderManager::SetTexture( int index, Texture* texture )
+{
+	char name[9] = "texture0";
+	name[7] = '0' + index;
+	int loc = glGetUniformLocation( active->prog, name );
+	GLASSERT( loc >= 0 );
+	glUniform1i( loc, texture->GLID() );
 	CHECK_GL_ERROR;
 }
 
@@ -69,6 +83,7 @@ void ShaderManager::SetTransforms( const grinliz::Matrix4& mvp, const grinliz::M
 void ShaderManager::SetTextureTransform( int index, const grinliz::Matrix4& mat )
 {
 	int loc = glGetUniformLocation( active->prog, index==0 ? "u_texMat0" : "u_texMat1" );
+	GLASSERT( loc >= 0 );
 	glUniformMatrix4fv( loc, 1, false, mat.x );
 }
 
@@ -76,6 +91,7 @@ void ShaderManager::SetTextureTransform( int index, const grinliz::Matrix4& mat 
 void ShaderManager::SetColorMultiplier( const grinliz::Color4F& color )
 {
 	int loc = glGetUniformLocation( active->prog, "u_colorMult" );
+	GLASSERT( loc >= 0 );
 	glUniform4fv( loc, 1, &color.r );
 	CHECK_GL_ERROR;
 }
@@ -84,10 +100,13 @@ void ShaderManager::SetColorMultiplier( const grinliz::Color4F& color )
 void ShaderManager::SetDiffuse( const grinliz::Vector4F& dir, const grinliz::Vector4F& ambient, const grinliz::Vector4F& diffuse )
 {
 	int loc = glGetUniformLocation( active->prog, "u_lightDir" );
+	GLASSERT( loc >= 0 );
 	glUniform4fv( loc, 1, &dir.x );
 	loc = glGetUniformLocation( active->prog, "u_ambient" );
+	GLASSERT( loc >= 0 );
 	glUniform4fv( loc, 1, &ambient.x );
 	loc = glGetUniformLocation( active->prog, "u_diffuse" );
+	GLASSERT( loc >= 0 );
 	glUniform4fv( loc, 1, &diffuse.x );
 }
 

@@ -16,6 +16,7 @@
 #include "uirendering.h"
 #include "texture.h"
 #include "../grinliz/glvector.h"
+#include "../grinliz/glrandom.h"
 #include "text.h"
 
 using namespace grinliz;
@@ -83,15 +84,14 @@ void UIRenderer::BeginRenderState( const void* renderState )
 void UIRenderer::BeginTexture( const void* textureHandle )
 {
 	Texture* texture = (Texture*)textureHandle;
-	//glBindTexture( GL_TEXTURE_2D, texture->GLID() );
 	shader.SetTexture0( texture );
+	//Random random( (U32)textureHandle );
+	//shader.SetColor( random.Uniform(), random.Uniform(), random.Uniform() );
 }
 
 
 void UIRenderer::Render( const void* renderState, const void* textureHandle, int nIndex, const uint16_t* index, int nVertex, const Gamui::Vertex* vertex )
 {
-//	shader.SetVertex( 2, sizeof(Gamui::Vertex), &vertex[0].x );
-//	shader.SetTexture0( 2, sizeof(Gamui::Vertex), &vertex[0].tx );
 	GPUStream stream( GPUStream::kGamuiType );
 	shader.SetStream( stream, vertex, nIndex, index );
 

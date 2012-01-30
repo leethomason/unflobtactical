@@ -48,6 +48,7 @@ public:
 	void SetStreamData( int id, int count, int type, int stride, const void* data );	 
 
 	// Texture units.
+	void SetTexture( int index, Texture* texture );
 	void SetTextureTransform( int index, const grinliz::Matrix4& mat );
 
 	// Color & Lights
