@@ -170,8 +170,8 @@ void MatrixStack::Multiply( const grinliz::Matrix4& m )
 	// Client state
 	glDisableClientState( GL_VERTEX_ARRAY );
 	glDisableClientState( GL_NORMAL_ARRAY );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 	glDisableClientState( GL_COLOR_ARRAY );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 
 	// Blend/Alpha
 	glDisable( GL_BLEND );
@@ -378,29 +378,31 @@ void GPUShader::SetState( const GPUShader& ns )
 	const Matrix4& normalMat = ns.ConcatedMatrix( GPUShader::MODELVIEW_MATRIX );
 	shadman->SetTransforms( mvp, normalMat );
 
-	glEnableClientState( GL_VERTEX_ARRAY );
+	//glEnableClientState( GL_VERTEX_ARRAY );
 
 	// Texture1
-	glActiveTexture( GL_TEXTURE1 ); // fixme: remove
-	glClientActiveTexture( GL_TEXTURE1 );
+	//glEnable( GL_TEXTURE_2D );
+	//glActiveTexture( GL_TEXTURE1 ); // fixme: remove
+	//glClientActiveTexture( GL_TEXTURE1 );
+	/*
 	if (  ns.stream.HasTexture1() ) {
 		shadman->SetTexture( 1, ns.texture1 );
 		GLASSERT( ns.stream.nTexture1 == 2 );
-		shadman->SetStreamData( ShaderManager::A_TEXTURE1, 2, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture1Offset ) );	 			glBindTexture( GL_TEXTURE_2D, ns.texture0->GLID() );
-		glBindTexture( GL_TEXTURE_2D, ns.texture1->GLID() ); // fixme remove
+		shadman->SetStreamData( ShaderManager::A_TEXTURE1, 2, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture1Offset ) );	
+		//glBindTexture( GL_TEXTURE_2D, ns.texture1->GLID() ); // fixme remove
 		if ( flags & ShaderManager::TEXTURE1_TRANSFORM ) {
 			shadman->SetTextureTransform( 1, textureStack[1].Top() );
 		}
 	}
 	CHECK_GL_ERROR;
-
+	*/
 	// Texture0
-	glActiveTexture( GL_TEXTURE0 ); // fixme remove
-	glClientActiveTexture( GL_TEXTURE0 );
+	glActiveTexture( GL_TEXTURE0 );
+
 	if (  ns.stream.HasTexture0() ) {
+		glBindTexture( GL_TEXTURE_2D, ns.texture0->GLID() );
 		shadman->SetTexture( 0, ns.texture0 );
 		GLASSERT( ns.stream.nTexture0 == 2 );
-		glBindTexture( GL_TEXTURE_2D, ns.texture0->GLID() ); // fixme remove
 		shadman->SetStreamData( ShaderManager::A_TEXTURE0, 2, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture0Offset ) );
 		if ( flags & ShaderManager::TEXTURE0_TRANSFORM ) {
 			shadman->SetTextureTransform( 0, textureStack[0].Top() );
@@ -410,7 +412,7 @@ void GPUShader::SetState( const GPUShader& ns )
 
 	// vertex
 	if ( ns.stream.HasPos() ) {
-		shadman->SetStreamData( ShaderManager::A_POS, 3, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.posOffset ) );	 
+		shadman->SetStreamData( ShaderManager::A_POS, ns.stream.nPos, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.posOffset ) );	 
 	}
 
 	// normal

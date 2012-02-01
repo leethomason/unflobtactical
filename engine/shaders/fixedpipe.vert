@@ -6,15 +6,48 @@
 // COLOR_MULTIPLIER
 // LIGHTING_DIFFUSE
 
+#if 1
+uniform mat4 u_mvpMatrix;		// model-view-projection
+#if TEXTURE0 == 1
+uniform sampler2D texture0;
+#endif
+#if COLOR_MULTIPLIER == 1
+uniform vec4 u_colorMult;		
+#endif
+
+attribute vec3 a_pos;			// vertex position
+attribute vec2 a_uv0;
+
+varying vec2 v_uv0;
+varying vec4 v_color;
+
+void main() {
+	#if COLOR_MULTIPLIER == 0
+		vec4 color = vec4( 1,1,1,1 );
+	#elif COLOR_MULTIPLIER == 1
+		vec4 color = u_colorMult;
+	#endif
+
+	v_uv0 = a_uv0;
+	v_color = color;
+	gl_Position = u_mvpMatrix * vec4( a_pos.x, a_pos.y, a_pos.z, 1.0 );
+}
+#endif
+
+#if 0
 uniform mat4 u_mvpMatrix;		// model-view-projection
 //uniform mat4 u_mvMatrix;		// model-view
 
-#if TEXTURE0_TRANSFORM == 1
+#if TEXTURE0 == 1
 uniform sampler2D texture0;
+#endif
+#if TEXTURE0_TRANSFORM == 1
 uniform mat4 u_texMat0;
 #endif
-#if TEXTURE1_TRANSFORM == 1
+#if TEXTURE1 == 1
 uniform sampler2D texture1;
+#endif
+#if TEXTURE1_TRANSFORM == 1
 uniform mat4 u_texMat1;
 #endif
 
@@ -48,7 +81,7 @@ vec4 v_color;					// color passed to fragment shader
 varying vec2 v_uv0;
 #endif
 #if TEXTURE1 == 1
-varying vec v_uv1;
+varying vec2 v_uv1;
 #endif
 
 
@@ -63,7 +96,7 @@ void main() {
 		color = color * a_color;
 	#endif	
 	
-	#if LIGHTING_DIFFUSE	
+	#if LIGHTING_DIFFUSE > 0
 		vec3 normal = normalize( u_normalMatrix * vec4(a_normal,0) ).xyz;
 		float nDotL = max( dot( normal, u_lightDir ), 0.0 );
 		vec4 light = u_ambient + u_diffuse * nDotL;
@@ -89,4 +122,4 @@ void main() {
 	v_color = color;
 	gl_Position = u_mvpMatrix * vec4( a_pos.x, a_pos.y, a_pos.z, 1.0 );
 }
-
+#endif

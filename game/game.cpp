@@ -835,6 +835,9 @@ void Game::DeviceLoss()
 	TextureManager::Instance()->DeviceLoss();
 	ModelResourceManager::Instance()->DeviceLoss();
 	GPUShader::ResetState();
+#if XENOENGINE_OPENGL == 2
+	ShaderManager::Instance()->DeviceLoss();
+#endif
 }
 
 

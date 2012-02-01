@@ -32,6 +32,7 @@ public:
 		LIGHTING_DIFFUSE	= 0x80		// Diffuse lighting. Requires per vertex normals.
 	};
 
+	void DeviceLoss();
 	void ActivateShader( int flags );
 
 	// All

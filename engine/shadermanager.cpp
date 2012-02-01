@@ -24,6 +24,13 @@ ShaderManager::~ShaderManager()
 }
 
 
+void ShaderManager::DeviceLoss() 
+{
+	// Can't delete cleared shaders.
+	memset( shaderArr, 0, sizeof(Shader)*MAX_SHADERS );
+}
+
+
 void ShaderManager::ClearStream()
 {
 	while( !activeStreams.Empty() ) {
@@ -45,10 +52,17 @@ void ShaderManager::SetStreamData( int id, int size, int type, int stride, const
 	default:			GLASSERT( 0 );		break;
 	}
 	
+	//glEnableClientState( GL_VERTEX_ARRAY );
 	int loc = glGetAttribLocation( active->prog, var );
 	GLASSERT( loc >= 0 );
-	glEnableVertexAttribArray(loc);
+#ifdef DEBUG
+	const float* ft = (const float*)data;
+	for( int i=0; i<activeStreams.Size(); ++i ) {
+		GLASSERT( activeStreams[i] != loc );
+	}
+#endif
 	glVertexAttribPointer( loc, size, type, 0, stride, data );
+	glEnableVertexAttribArray(loc);
 	CHECK_GL_ERROR;
 
 	activeStreams.Push( loc );
@@ -75,7 +89,7 @@ void ShaderManager::SetTexture( int index, Texture* texture )
 	name[7] = '0' + index;
 	int loc = glGetUniformLocation( active->prog, name );
 	GLASSERT( loc >= 0 );
-	glUniform1i( loc, texture->GLID() );
+	glUniform1i( loc, index );
 	CHECK_GL_ERROR;
 }
 
@@ -91,8 +105,9 @@ void ShaderManager::SetTextureTransform( int index, const grinliz::Matrix4& mat 
 void ShaderManager::SetColorMultiplier( const grinliz::Color4F& color )
 {
 	int loc = glGetUniformLocation( active->prog, "u_colorMult" );
-	GLASSERT( loc >= 0 );
-	glUniform4fv( loc, 1, &color.r );
+//	GLASSERT( loc >= 0 );
+	if ( loc >= 0 )
+		glUniform4fv( loc, 1, &color.r );
 	CHECK_GL_ERROR;
 }
 
