@@ -85,8 +85,6 @@ void UIRenderer::BeginTexture( const void* textureHandle )
 {
 	Texture* texture = (Texture*)textureHandle;
 	shader.SetTexture0( texture );
-	//Random random( (U32)textureHandle );
-	//shader.SetColor( random.Uniform(), random.Uniform(), random.Uniform() );
 }
 
 

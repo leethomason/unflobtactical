@@ -148,6 +148,7 @@ void TacticalIntroScene::Resize()
 	else {
 		backgroundUI.backgroundText.SetSize( maxY*2.0f, maxY );
 	}
+	backgroundUI.background.SetVisible( false );
 	backgroundUI.background.SetSize( port.UIWidth(), port.UIHeight() );
 }
 
