@@ -178,8 +178,10 @@ const ShaderManager::Shader* ShaderManager::CreateProgram( int flags )
 
 	header = "";
 	AppendFlag( &header, "TEXTURE0",			flags & TEXTURE0 );
+	AppendFlag( &header, "TEXTURE0_ALPHA_ONLY",	flags & TEXTURE0_ALPHA_ONLY );
 	AppendFlag( &header, "TEXTURE0_TRANSFORM",	flags & TEXTURE0_TRANSFORM );
 	AppendFlag( &header, "TEXTURE1",			flags & TEXTURE1 );
+	AppendFlag( &header, "TEXTURE1_ALPHA_ONLY",	flags & TEXTURE1_ALPHA_ONLY );
 	AppendFlag( &header, "TEXTURE1_TRANSFORM",	flags & TEXTURE1_TRANSFORM );
 	AppendFlag( &header, "COLORS",				flags & COLORS );
 	AppendFlag( &header, "COLOR_MULTIPLIER",	flags & COLOR_MULTIPLIER );
