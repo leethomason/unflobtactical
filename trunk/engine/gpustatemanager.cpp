@@ -362,8 +362,12 @@ void GPUShader::SetState( const GPUShader& ns )
 	int flags = 0;
 	flags |= ( ns.HasTexture0() ) ? ShaderManager::TEXTURE0 : 0;
 	flags |= (textureStack[0].NumMatrix()>1 || textureXFormInUse[0]) ? ShaderManager::TEXTURE0_TRANSFORM : 0;
+	flags |= (ns.HasTexture0() && (ns.texture0->Format() == Texture::ALPHA )) ? ShaderManager::TEXTURE0_ALPHA_ONLY : 0;
+
 	flags |= ( ns.HasTexture1() ) ? ShaderManager::TEXTURE1 : 0;
 	flags |= (textureStack[1].NumMatrix()>1 || textureXFormInUse[1]) ? ShaderManager::TEXTURE1_TRANSFORM : 0;
+	flags |= (ns.HasTexture1() && (ns.texture1->Format() == Texture::ALPHA )) ? ShaderManager::TEXTURE1_ALPHA_ONLY : 0;
+
 	flags |= ns.stream.HasColor() ? ShaderManager::COLORS : 0;
 	flags |= ( ns.color.r != 1.f || ns.color.g != 1.f || ns.color.b != 1.f || ns.color.a != 1.f ) ? ShaderManager::COLOR_MULTIPLIER : 0;
 	flags |= ns.lighting ? ShaderManager::LIGHTING_DIFFUSE : 0;
@@ -378,24 +382,20 @@ void GPUShader::SetState( const GPUShader& ns )
 	const Matrix4& normalMat = ns.ConcatedMatrix( GPUShader::MODELVIEW_MATRIX );
 	shadman->SetTransforms( mvp, normalMat );
 
-	//glEnableClientState( GL_VERTEX_ARRAY );
-
 	// Texture1
-	//glEnable( GL_TEXTURE_2D );
-	//glActiveTexture( GL_TEXTURE1 ); // fixme: remove
-	//glClientActiveTexture( GL_TEXTURE1 );
-	/*
+	glActiveTexture( GL_TEXTURE1 );
+
 	if (  ns.stream.HasTexture1() ) {
+		glBindTexture( GL_TEXTURE_2D, ns.texture1->GLID() );
 		shadman->SetTexture( 1, ns.texture1 );
 		GLASSERT( ns.stream.nTexture1 == 2 );
-		shadman->SetStreamData( ShaderManager::A_TEXTURE1, 2, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture1Offset ) );	
-		//glBindTexture( GL_TEXTURE_2D, ns.texture1->GLID() ); // fixme remove
+		shadman->SetStreamData( ShaderManager::A_TEXTURE1, 2, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture1Offset ) );
 		if ( flags & ShaderManager::TEXTURE1_TRANSFORM ) {
 			shadman->SetTextureTransform( 1, textureStack[1].Top() );
 		}
 	}
 	CHECK_GL_ERROR;
-	*/
+
 	// Texture0
 	glActiveTexture( GL_TEXTURE0 );
 

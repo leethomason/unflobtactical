@@ -23,13 +23,15 @@ public:
 	static ShaderManager* Instance() { if ( !instance ) instance = new ShaderManager(); return instance; }
 
 	enum {
-		TEXTURE0			= 0x01,		// Texture0 is in use. Note that the sampling state (linear, nearest) is saved with the texture.
-		TEXTURE0_TRANSFORM	= 0x02,		// Texture0 has a texture transform.
-		TEXTURE1			= 0x04,
-		TEXTURE1_TRANSFORM	= 0x08,
-		COLORS				= 0x20,		// Per-vertex colors.
-		COLOR_MULTIPLIER	= 0x40,		// Global color multiplier.
-		LIGHTING_DIFFUSE	= 0x80		// Diffuse lighting. Requires per vertex normals.
+		TEXTURE0			= (1<<0),		// Texture is in use. Note that the sampling state (linear, nearest) is saved with the texture.
+		TEXTURE0_ALPHA_ONLY = (1<<1),		// Texture is only alpha, which composites differently.
+		TEXTURE0_TRANSFORM	= (1<<2),		// Texture has a texture transform.
+		TEXTURE1			= (1<<3),
+		TEXTURE1_ALPHA_ONLY	= (1<<4),
+		TEXTURE1_TRANSFORM	= (1<<5),
+		COLORS				= (1<<6),		// Per-vertex colors.
+		COLOR_MULTIPLIER	= (1<<7),		// Global color multiplier.
+		LIGHTING_DIFFUSE	= (1<<8)		// Diffuse lighting. Requires per vertex normals.
 	};
 
 	void DeviceLoss();

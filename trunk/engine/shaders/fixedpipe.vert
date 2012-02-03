@@ -6,11 +6,7 @@
 // COLOR_MULTIPLIER
 // LIGHTING_DIFFUSE
 
-#if 1
 uniform mat4 u_mvpMatrix;		// model-view-projection
-#if TEXTURE0 == 1
-uniform sampler2D texture0;
-#endif
 #if COLOR_MULTIPLIER == 1
 uniform vec4 u_colorMult;		
 #endif
@@ -18,7 +14,12 @@ uniform vec4 u_colorMult;
 attribute vec3 a_pos;			// vertex position
 attribute vec2 a_uv0;
 
+#if TEXTURE0 == 1
 varying vec2 v_uv0;
+#endif
+#if TEXTURE1 == 1
+varying vec2 v_uv0;
+#endif
 varying vec4 v_color;
 
 void main() {
@@ -27,12 +28,17 @@ void main() {
 	#elif COLOR_MULTIPLIER == 1
 		vec4 color = u_colorMult;
 	#endif
+	
+	#if TEXTURE0 == 1
+		v_uv0 = a_uv0;
+	#endif
+	#if TEXTURE1 == 1
+		v_uv1 = a_uv1;
+	#endif
 
-	v_uv0 = a_uv0;
 	v_color = color;
 	gl_Position = u_mvpMatrix * vec4( a_pos.x, a_pos.y, a_pos.z, 1.0 );
 }
-#endif
 
 #if 0
 uniform mat4 u_mvpMatrix;		// model-view-projection
