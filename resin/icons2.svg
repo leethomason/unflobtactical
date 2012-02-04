@@ -1,0 +1,956 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="svg3205"
+   version="1.1"
+   inkscape:version="0.48+devel r"
+   width="256"
+   height="256"
+   sodipodi:docname="icons2.svg"
+   inkscape:export-filename="/home/jofo/progga/XenowarMod/nurblmod/icons2.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <metadata
+     id="metadata3211">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs3209">
+    <linearGradient
+       id="linearGradient6518">
+      <stop
+         style="stop-color:#07ff0b;stop-opacity:1;"
+         offset="0"
+         id="stop6520" />
+      <stop
+         id="stop6522"
+         offset="0.30000001"
+         style="stop-color:#10ff21;stop-opacity:1;" />
+      <stop
+         style="stop-color:#0bff1c;stop-opacity:0;"
+         offset="1"
+         id="stop6524" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient6288">
+      <stop
+         style="stop-color:#ff0707;stop-opacity:1;"
+         offset="0"
+         id="stop6290" />
+      <stop
+         id="stop6292"
+         offset="0.50000006"
+         style="stop-color:#ff1010;stop-opacity:1;" />
+      <stop
+         style="stop-color:#ff0b0b;stop-opacity:0;"
+         offset="1"
+         id="stop6294" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient6276">
+      <stop
+         id="stop6278"
+         offset="0"
+         style="stop-color:#07ff0b;stop-opacity:1;" />
+      <stop
+         style="stop-color:#10ff21;stop-opacity:1;"
+         offset="0.5"
+         id="stop6282" />
+      <stop
+         id="stop6280"
+         offset="1"
+         style="stop-color:#0bff1c;stop-opacity:0;" />
+    </linearGradient>
+    <linearGradient
+       y2="142.38071"
+       x2="351.98185"
+       y1="142.38071"
+       x1="339.69625"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient7512"
+       xlink:href="#linearGradient7502"
+       inkscape:collect="always" />
+    <linearGradient
+       gradientUnits="userSpaceOnUse"
+       y2="142.38071"
+       x2="351.98185"
+       y1="142.38071"
+       x1="339.69625"
+       id="linearGradient7508"
+       xlink:href="#linearGradient7502"
+       inkscape:collect="always" />
+    <linearGradient
+       id="linearGradient7502"
+       inkscape:collect="always">
+      <stop
+         id="stop7504"
+         offset="0"
+         style="stop-color:#000000;stop-opacity:1;" />
+      <stop
+         id="stop7506"
+         offset="1"
+         style="stop-color:#000000;stop-opacity:0;" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient7610"
+       inkscape:collect="always">
+      <stop
+         id="stop7612"
+         offset="0"
+         style="stop-color:#ffffff;stop-opacity:1;" />
+      <stop
+         id="stop7614"
+         offset="1"
+         style="stop-color:#ffffff;stop-opacity:0;" />
+    </linearGradient>
+    <filter
+       inkscape:collect="always"
+       id="filter6373"
+       x="-0.093902545"
+       width="1.1878051"
+       y="-0.10814909"
+       height="1.2162982">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="2.8271185"
+         id="feGaussianBlur6375" />
+    </filter>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient6518"
+       id="radialGradient6274"
+       cx="76.899719"
+       cy="205.44667"
+       fx="76.899719"
+       fy="205.44667"
+       r="30.119602"
+       gradientTransform="matrix(1.2874683,-0.00820889,0.00861759,1.3515685,-23.960049,-71.648481)"
+       gradientUnits="userSpaceOnUse" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient6288"
+       id="radialGradient6286"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.4025335,0,0,1.3901032,-31.130095,-80.155717)"
+       cx="77.32016"
+       cy="205.23827"
+       fx="77.32016"
+       fy="205.23827"
+       r="30.119602" />
+    <filter
+       inkscape:collect="always"
+       id="filter6486"
+       x="-0.21745358"
+       width="1.4349072"
+       y="-0.12498965"
+       height="1.2499793">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="2.5211787"
+         id="feGaussianBlur6488" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter6494"
+       x="-0.15143763"
+       width="1.3028753"
+       y="-0.14517299"
+       height="1.290346">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="2.5211787"
+         id="feGaussianBlur6496" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter6498"
+       x="-0.15738649"
+       width="1.314773"
+       y="-0.21113729"
+       height="1.4222746">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="2.5211787"
+         id="feGaussianBlur6500" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter6502"
+       x="-0.3920048"
+       width="1.7840096"
+       y="-0.12722028"
+       height="1.2544406">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="2.5211787"
+         id="feGaussianBlur6504" />
+    </filter>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient6518"
+       id="radialGradient5581"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.4025335,0,0,1.3901032,-31.130095,-80.155717)"
+       cx="77.32016"
+       cy="205.23827"
+       fx="77.32016"
+       fy="205.23827"
+       r="30.119602" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient7610"
+       id="linearGradient14474"
+       gradientUnits="userSpaceOnUse"
+       x1="180.09651"
+       y1="110.26424"
+       x2="180.09651"
+       y2="112.4026" />
+    <filter
+       inkscape:collect="always"
+       id="filter14484"
+       x="-0.11584342"
+       width="1.2316868"
+       y="-0.12912439"
+       height="1.2582488">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.65680678"
+         id="feGaussianBlur14486" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter14638"
+       x="-0.12310668"
+       width="1.2462134"
+       y="-0.12115668"
+       height="1.2423134">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="1.1086312"
+         id="feGaussianBlur14640" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter14646"
+       x="-0.19727123"
+       width="1.3945425"
+       y="-0.15760494"
+       height="1.3152099">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="1.584296"
+         id="feGaussianBlur14648" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1037"
+     id="namedview3207"
+     showgrid="false"
+     inkscape:snap-smooth-nodes="false"
+     inkscape:snap-bbox="true"
+     inkscape:snap-bbox-midpoints="false"
+     inkscape:object-paths="true"
+     inkscape:snap-nodes="true"
+     inkscape:zoom="1.2153398"
+     inkscape:cx="-200.31087"
+     inkscape:cy="295.64833"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer2"
+     width="0px"
+     height="0px"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Layer#1"
+     style="display:inline">
+    <text
+       xml:space="preserve"
+       style="font-size:64.75832367px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:'Times New Roman, Bold';filter:url(#filter6486)"
+       x="16.866096"
+       y="51.749035"
+       id="text6404"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan6406"
+         x="16.866096"
+         y="51.749035">$</tspan></text>
+    <path
+       sodipodi:nodetypes="ccccccccccccccccccc"
+       inkscape:connector-curvature="0"
+       id="path6414"
+       d="m 153.12942,9.6939948 c -0.58206,0.122821 -0.92666,0.8766062 -0.6387,1.3971442 l 0.99796,1.75641 0,10.937645 -13.13316,22.793414 c -0.034,0.06324 -0.0608,0.130343 -0.0798,0.199592 -0.26604,0.84264 -0.34648,1.747109 -0.0399,2.594697 0.30656,0.847587 1.04277,1.611798 2.03584,1.956002 0.10321,0.03119 0.21166,0.04476 0.31935,0.03992 l 34.6891,0 c 0.0399,0.0026 0.0798,0.0026 0.11969,0 2.00803,-0.307992 3.32444,-2.775804 2.15559,-5.189393 -0.0115,-0.02721 -0.0253,-0.05387 -0.0399,-0.07984 l -13.13322,-22.154719 0,-11.0574 1.0778,-1.75641 c 0.33946,-0.581131 -0.16534,-1.446512 -0.83829,-1.4370632 l -13.33275,0 c -0.0531,-0.00447 -0.10653,-0.00447 -0.15967,0 z"
+       style="font-size:xx-small;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;color-interpolation:sRGB;color-interpolation-filters:linearRGB;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.49556041;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;clip-rule:nonzero;font-family:Sans;-inkscape-font-specification:Sans;filter:url(#filter6494)" />
+    <path
+       sodipodi:nodetypes="czzcczzcc"
+       inkscape:connector-curvature="0"
+       id="path6416"
+       d="m 206.14446,17.210045 c 0,0 6.30309,-5.142138 10.62302,-5.519321 4.31994,-0.377183 9.39747,4.691284 13.39868,4.218099 4.0012,-0.473185 8.68432,-5.210593 8.68432,-5.210593 -0.56802,8.132711 1.3452,15.024805 5.73965,21.420652 0,0 -5.59952,4.935357 -9.70963,5.252626 -4.1101,0.317269 -8.7786,-5.170839 -12.90242,-4.590285 -4.12383,0.580554 -9.18057,6.575274 -9.18057,6.575274 2.49666,-8.74683 1.02335,-17.865845 -6.65305,-22.146452"
+       style="fill:#000000;stroke:none;filter:url(#filter6498)" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path6418"
+       d="m 205.55446,16.082528 a 1.8095073,1.8095073 0 0 0 -1.58316,2.299352 l 11.79831,43.913859 a 1.8150108,1.8150108 0 1 0 3.50557,-0.942358 L 207.43917,17.439523 a 1.8095073,1.8095073 0 0 0 -1.88471,-1.356995 z"
+       style="font-size:xx-small;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;color-interpolation:sRGB;color-interpolation-filters:linearRGB;fill:#000000;fill-opacity:1;stroke:none;stroke-width:3;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;clip-rule:nonzero;font-family:Sans;-inkscape-font-specification:Sans;filter:url(#filter6502)" />
+    <path
+       transform="matrix(0.5151019,-0.21224143,0.21224143,0.5151019,76.486277,164.27525)"
+       d="m 228.07273,240.58182 -66.68418,-27.82714 57.4411,-43.83663 z"
+       inkscape:randomized="0"
+       inkscape:rounded="0"
+       inkscape:flatsided="true"
+       sodipodi:arg2="1.9661248"
+       sodipodi:arg1="0.91892721"
+       sodipodi:r2="16.076059"
+       sodipodi:r1="41.717823"
+       sodipodi:cy="207.41818"
+       sodipodi:cx="202.76364"
+       sodipodi:sides="3"
+       id="path6355"
+       style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:14.57794094;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;filter:url(#filter6373)"
+       sodipodi:type="star" />
+    <g
+       inkscape:label="Layer 1"
+       id="layer1-4"
+       style="display:none"
+       transform="translate(-74.271793,-349.11965)">
+      <rect
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect6513"
+         width="40"
+         height="40"
+         x="40"
+         y="92.362183"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         y="92.362183"
+         x="80"
+         height="40"
+         width="40"
+         id="rect7025"
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7027"
+         width="40"
+         height="40"
+         x="120"
+         y="92.362183"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         y="92.362183"
+         x="160"
+         height="40"
+         width="40"
+         id="rect7029"
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7031"
+         width="40"
+         height="40"
+         x="200"
+         y="92.362183"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         y="92.362183"
+         x="240"
+         height="40"
+         width="40"
+         id="rect7033"
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7035"
+         width="40"
+         height="40"
+         x="280"
+         y="92.362183"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         y="92.362183"
+         x="320"
+         height="40"
+         width="40"
+         id="rect7037"
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         y="132.36218"
+         x="40"
+         height="40"
+         width="40"
+         id="rect7039"
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7041"
+         width="40"
+         height="40"
+         x="80"
+         y="132.36218"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         y="132.36218"
+         x="120"
+         height="40"
+         width="40"
+         id="rect7043"
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7045"
+         width="40"
+         height="40"
+         x="160"
+         y="132.36218"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         y="132.36218"
+         x="200"
+         height="40"
+         width="40"
+         id="rect7047"
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7049"
+         width="40"
+         height="40"
+         x="240"
+         y="132.36218"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         y="132.36218"
+         x="280"
+         height="40"
+         width="40"
+         id="rect7051"
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7053"
+         width="40"
+         height="40"
+         x="320"
+         y="132.36218"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7055"
+         width="40"
+         height="40"
+         x="40"
+         y="172.36218"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         y="172.36218"
+         x="80"
+         height="40"
+         width="40"
+         id="rect7057"
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7059"
+         width="40"
+         height="40"
+         x="120"
+         y="172.36218"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         y="172.36218"
+         x="160"
+         height="40"
+         width="40"
+         id="rect7061"
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7063"
+         width="40"
+         height="40"
+         x="200"
+         y="172.36218"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         y="172.36218"
+         x="240"
+         height="40"
+         width="40"
+         id="rect7065"
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7067"
+         width="40"
+         height="40"
+         x="280"
+         y="172.36218"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         y="172.36218"
+         x="320"
+         height="40"
+         width="40"
+         id="rect7069"
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         y="212.36218"
+         x="40"
+         height="40"
+         width="40"
+         id="rect7071"
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7073"
+         width="40"
+         height="40"
+         x="80"
+         y="212.36218"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         y="212.36218"
+         x="120"
+         height="40"
+         width="40"
+         id="rect7075"
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7077"
+         width="40"
+         height="40"
+         x="160"
+         y="212.36218"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         y="212.36218"
+         x="200"
+         height="40"
+         width="40"
+         id="rect7079"
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7081"
+         width="40"
+         height="40"
+         x="240"
+         y="212.36218"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         y="212.36218"
+         x="280"
+         height="40"
+         width="40"
+         id="rect7083"
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         style="opacity:0.78873243;fill:none;stroke:#000000;stroke-width:0.2;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7085"
+         width="40"
+         height="40"
+         x="320"
+         y="212.36218"
+         inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+         inkscape:export-xdpi="143.80121"
+         inkscape:export-ydpi="143.80121" />
+      <rect
+         style="opacity:0.78873243;fill:#999999;stroke:#000000;stroke-width:1;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="rect7088"
+         width="335.5"
+         height="227.59174"
+         x="31.732233"
+         y="33.184673" />
+    </g>
+    <g
+       transform="translate(-75.332453,-388.89441)"
+       id="g7469">
+      <path
+         sodipodi:type="arc"
+         style="fill:none;stroke:#ffffff;stroke-width:4;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+         id="path7094"
+         sodipodi:cx="139.5"
+         sodipodi:cy="112.36218"
+         sodipodi:rx="7.25"
+         sodipodi:ry="7.25"
+         d="m 134.36687,107.24227 c 2.82766,-2.83495 7.4181,-2.84086 10.25304,-0.0132 2.83495,2.82765 2.84087,7.41809 0.0132,10.25304 -2.75202,2.75911 -7.19285,2.84917 -10.05446,0.2039"
+         sodipodi:start="3.9257023"
+         sodipodi:end="8.600115"
+         sodipodi:open="true" />
+      <path
+         style="fill:#ffffff;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:round;stroke-opacity:1"
+         d="m 130.14274,111.48276 8.91691,-1.57668 -4.41725,-2.7969 -2.54973,-4.56462 z"
+         id="path7096"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="ccccc" />
+    </g>
+    <g
+       transform="translate(-43.512648,-384.12144)"
+       id="g7565">
+      <g
+         id="g7475"
+         transform="matrix(-0.95089192,0,0,0.95089192,467.39638,-30.405037)"
+         inkscape:export-filename="/home/jofo/pix/mina/xenowar/icons21.png"
+         inkscape:export-xdpi="143.65909"
+         inkscape:export-ydpi="143.65909">
+        <g
+           transform="matrix(0.72058819,0,0,0.72058819,100.8226,36.472126)"
+           id="g7477">
+          <path
+             style="fill:#ffffff;stroke:none"
+             d="m 334.71117,145.47467 -3.56297,10.63574 2.12715,0.55838 1.51559,-4.97221 0,14.41143 2.76529,0 0.82427,-8.40224 0.82427,8.40224 2.7653,0 0,-12.49594 5.25537,-4.60526 -1.15656,-1.65295 -2.69363,2.07047 -1.32542,-3.94966 c -2.44622,0 -4.89244,0 -7.33866,0 z"
+             id="path7479"
+             inkscape:connector-curvature="0"
+             sodipodi:nodetypes="ccccccccccccccc" />
+          <path
+             sodipodi:type="arc"
+             style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none"
+             id="path7481"
+             sodipodi:cx="340.0625"
+             sodipodi:cy="143.92468"
+             sodipodi:rx="1.4375"
+             sodipodi:ry="1.4375"
+             d="m 341.5,143.92468 c 0,0.79391 -0.64359,1.4375 -1.4375,1.4375 -0.79391,0 -1.4375,-0.64359 -1.4375,-1.4375 0,-0.79391 0.64359,-1.4375 1.4375,-1.4375 0.79391,0 1.4375,0.64359 1.4375,1.4375 z"
+             transform="matrix(2.0434783,0,0,2.0434783,-356.52983,-152.26342)" />
+          <rect
+             transform="matrix(0.77661661,-0.62997352,0.62997352,0.77661661,0,0)"
+             y="331.03336"
+             x="173.74492"
+             height="1.6418527"
+             width="5.1992006"
+             id="rect7483"
+             style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none" />
+          <path
+             sodipodi:end="6.0120724"
+             sodipodi:start="4.7116238"
+             transform="matrix(2.0434783,0,0,2.0434783,-356.43308,-152.26342)"
+             d="m 340.0611,142.48718 c 0.82337,-4.9e-4 1.54602,0.43008 1.76652,1.05253 l -1.76512,0.38497 z"
+             sodipodi:ry="1.4375"
+             sodipodi:rx="1.832036"
+             sodipodi:cy="143.92468"
+             sodipodi:cx="340.0625"
+             id="path7485"
+             style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none"
+             sodipodi:type="arc" />
+        </g>
+      </g>
+    </g>
+    <g
+       style="fill:#000000"
+       transform="matrix(1.4488449,0,0,1.4488449,-274.64331,-271.14742)"
+       id="g5724"
+       inkscape:export-filename="/home/jofo/pix/mina/xenowar/icons21.png"
+       inkscape:export-xdpi="287.10226"
+       inkscape:export-ydpi="287.10226">
+      <g
+         style="fill:#000000"
+         id="g5726"
+         transform="translate(0.51765375,1.0353075)" />
+    </g>
+    <g
+       id="g5742"
+       style="fill:#000000"
+       transform="matrix(1.4488449,0,0,1.4488449,-273.89331,-269.64742)" />
+    <path
+       sodipodi:type="star"
+       style="fill:#ffff00;fill-opacity:1;fill-rule:nonzero;stroke:#ffff00;stroke-width:14.57794094;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="path6263"
+       sodipodi:sides="3"
+       sodipodi:cx="202.76364"
+       sodipodi:cy="207.41818"
+       sodipodi:r1="41.717823"
+       sodipodi:r2="16.076059"
+       sodipodi:arg1="0.91892721"
+       sodipodi:arg2="1.9661248"
+       inkscape:flatsided="true"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       d="m 228.07273,240.58182 -66.68418,-27.82714 57.4411,-43.83663 z"
+       transform="matrix(0.5151019,-0.21224143,0.21224143,0.5151019,76.486277,164.27525)" />
+    <text
+       xml:space="preserve"
+       style="font-size:44.34278107px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:'Times New Roman, Bold'"
+       x="217.69159"
+       y="240.05743"
+       id="text6265"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan6267"
+         x="217.69159"
+         y="240.05743">!</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text6423"
+       y="51.749035"
+       x="16.866096"
+       style="font-size:64.75832367px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:'Times New Roman, Bold'"
+       xml:space="preserve"><tspan
+         y="51.749035"
+         x="16.866096"
+         id="tspan6425"
+         sodipodi:role="line">$</tspan></text>
+    <path
+       style="font-size:xx-small;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;color-interpolation:sRGB;color-interpolation-filters:linearRGB;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.49556041;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;clip-rule:nonzero;font-family:Sans;-inkscape-font-specification:Sans"
+       d="m 153.12942,9.6939948 c -0.58206,0.122821 -0.92666,0.8766062 -0.6387,1.3971442 l 0.99796,1.75641 0,10.937645 -13.13316,22.793414 c -0.034,0.06324 -0.0608,0.130343 -0.0798,0.199592 -0.26604,0.84264 -0.34648,1.747109 -0.0399,2.594697 0.30656,0.847587 1.04277,1.611798 2.03584,1.956002 0.10321,0.03119 0.21166,0.04476 0.31935,0.03992 l 34.6891,0 c 0.0399,0.0026 0.0798,0.0026 0.11969,0 2.00803,-0.307992 3.32444,-2.775804 2.15559,-5.189393 -0.0115,-0.02721 -0.0253,-0.05387 -0.0399,-0.07984 l -13.13322,-22.154719 0,-11.0574 1.0778,-1.75641 c 0.33946,-0.581131 -0.16534,-1.446512 -0.83829,-1.4370632 l -13.33275,0 c -0.0531,-0.00447 -0.10653,-0.00447 -0.15967,0 z"
+       id="path4516"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccccccccccccccccc" />
+    <path
+       style="fill:#ffffff;stroke:none"
+       d="m 206.14446,17.210045 c 0,0 6.30309,-5.142138 10.62302,-5.519321 4.31994,-0.377183 9.39747,4.691284 13.39868,4.218099 4.0012,-0.473185 8.68432,-5.210593 8.68432,-5.210593 -0.56802,8.132711 1.3452,15.024805 5.73965,21.420652 0,0 -5.59952,4.935357 -9.70963,5.252626 -4.1101,0.317269 -8.7786,-5.170839 -12.90242,-4.590285 -4.12383,0.580554 -9.18057,6.575274 -9.18057,6.575274 2.49666,-8.74683 1.02335,-17.865845 -6.65305,-22.146452"
+       id="path6118"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="czzcczzcc" />
+    <path
+       style="font-size:xx-small;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;color-interpolation:sRGB;color-interpolation-filters:linearRGB;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;clip-rule:nonzero;font-family:Sans;-inkscape-font-specification:Sans"
+       d="m 205.55446,16.082528 a 1.8095073,1.8095073 0 0 0 -1.58316,2.299352 l 11.79831,43.913859 a 1.8150108,1.8150108 0 1 0 3.50557,-0.942358 L 207.43917,17.439523 a 1.8095073,1.8095073 0 0 0 -1.88471,-1.356995 z"
+       id="path6120"
+       inkscape:connector-curvature="0" />
+    <path
+       transform="matrix(0.79252821,0,0,0.79252821,-28.739952,61.640072)"
+       d="m 104.14546,205.38182 a 26.763636,26.763636 0 1 1 -53.527275,0 26.763636,26.763636 0 1 1 53.527275,0 z"
+       sodipodi:ry="26.763636"
+       sodipodi:rx="26.763636"
+       sodipodi:cy="205.38182"
+       sodipodi:cx="77.381821"
+       id="path6264"
+       style="fill:none;stroke:url(#radialGradient6274);stroke-width:28.35070801;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:28.35070871, 28.35070870999999926;stroke-dashoffset:266.4966936"
+       sodipodi:type="arc" />
+    <path
+       sodipodi:type="arc"
+       style="fill:none;stroke:url(#radialGradient6286);stroke-width:33.47104645;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:16.73552261, 16.73552261000000030;stroke-dashoffset:314.62788356"
+       id="path6284"
+       sodipodi:cx="77.381821"
+       sodipodi:cy="205.38182"
+       sodipodi:rx="26.763636"
+       sodipodi:ry="26.763636"
+       d="m 104.14546,205.38182 a 26.763636,26.763636 0 1 1 -53.527275,0 26.763636,26.763636 0 1 1 53.527275,0 z"
+       transform="matrix(0.74133048,0,0,0.74133048,38.798464,71.747137)" />
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:'Times New Roman, Bold'"
+       x="-20.570379"
+       y="16.766495"
+       id="text6526"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan6528"
+         x="-20.570379"
+         y="16.766495" /></text>
+    <path
+       transform="matrix(0.74133048,0,0,0.74133048,102.15523,71.747137)"
+       d="m 104.14546,205.38182 a 26.763636,26.763636 0 1 1 -53.527275,0 26.763636,26.763636 0 1 1 53.527275,0 z"
+       sodipodi:ry="26.763636"
+       sodipodi:rx="26.763636"
+       sodipodi:cy="205.38182"
+       sodipodi:cx="77.381821"
+       id="path5579"
+       style="fill:none;stroke:url(#radialGradient5581);stroke-width:33.47104645;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:16.73552261, 16.73552261;stroke-dashoffset:314.62788356"
+       sodipodi:type="arc" />
+    <path
+       sodipodi:nodetypes="cccccccccccccccc"
+       inkscape:connector-curvature="0"
+       id="path13672"
+       d="m 89.36497,30.708615 -0.94037,1.8826 -5.88779,0.64919 1.61114,5.21702 7.96162,-3.61725 c 0.8347,-0.0575 1.4023,0.11863 1.20196,1.32983 l -1.32699,2.42665 3.07736,0.93486 0.66491,-4.29637 2.63409,-0.0255 1.40654,4.11735 4.04064,-1.04852 -1.12524,-3.11998 6.45054,-0.0512 0,-4.39866 z"
+       style="fill:#000000;stroke:none;filter:url(#filter14638)"
+       inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+       inkscape:export-xdpi="143.80121"
+       inkscape:export-ydpi="143.80121"
+       transform="matrix(1.790284,-1.4946512,1.4946512,1.790284,-189.32009,177.15794)" />
+    <path
+       style="fill:#ffffff;stroke:none"
+       d="m 16.567245,98.565619 1.130301,4.775921 -9.5705038,9.96242 10.6820238,6.93186 8.847034,-18.37575 c 1.408407,-1.35053 2.687825,-1.883566 4.13948,0.58426 l 1.251306,6.32778 6.906635,-2.92591 -5.231192,-8.685534 4.677649,-3.982701 8.672113,5.268938 5.66672,-7.916496 -6.677786,-3.903804 11.471773,-9.732971 -6.574467,-7.874852 z"
+       id="path13674"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccccccccccccc"
+       inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+       inkscape:export-xdpi="143.80121"
+       inkscape:export-ydpi="143.80121" />
+    <g
+       transform="matrix(3.7954341,0,0,3.7954341,-587.84802,-367.53882)"
+       style="fill:#000000;filter:url(#filter14484)"
+       id="g14456"
+       inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+       inkscape:export-xdpi="143.80121"
+       inkscape:export-ydpi="143.80121">
+      <path
+         style="fill:#000000;fill-opacity:1;stroke:none"
+         d="m 184.76855,103.75393 0.98744,6.86543 -1.97705,0.0648 -0.4712,-1.33248 -0.16211,1.29346 -5.39991,0.0305 -0.17717,-0.99059 -0.93277,0.61218 -3.37164,-3.71807 1.19115,-1.37511 1.68048,1.69732 0.71711,-3.14749 c 1.88773,0 6.02793,0 7.91567,0 z"
+         id="path14458"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="ccccccccccccc" />
+      <rect
+         transform="matrix(-0.69757161,-0.71651507,-0.71651507,0.69757161,0,0)"
+         y="-52.448971"
+         x="-198.2229"
+         height="1.2670105"
+         width="4.0121999"
+         id="rect14460"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none" />
+      <path
+         sodipodi:nodetypes="ccccc"
+         inkscape:connector-curvature="0"
+         id="path14462"
+         d="m 178.65774,98.476271 3.95378,0 -0.54535,4.742859 -2.93124,0 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none" />
+    </g>
+    <g
+       transform="matrix(3.7954341,0,0,3.7954341,-589.81273,-371.46826)"
+       id="g14464"
+       inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+       inkscape:export-xdpi="143.80121"
+       inkscape:export-ydpi="143.80121">
+      <g
+         id="g14466"
+         transform="translate(0.51765375,1.0353075)">
+        <path
+           sodipodi:nodetypes="ccccccccccccc"
+           inkscape:connector-curvature="0"
+           id="path14468"
+           d="m 184.76855,103.75393 1.20096,8.20756 -1.64152,0.43089 -1.02025,-3.04065 -0.37563,3.27616 -4.88136,0 -0.4822,-2.94279 -0.93277,0.61218 -3.37164,-3.71807 1.19115,-1.37511 1.68048,1.69732 0.71711,-3.14749 c 1.88773,0 6.02793,0 7.91567,0 z"
+           style="fill:url(#linearGradient14474);fill-opacity:1;stroke:none" />
+        <rect
+           style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none"
+           id="rect14470"
+           width="4.0121999"
+           height="1.2670105"
+           x="-198.2229"
+           y="-52.448971"
+           transform="matrix(-0.69757161,-0.71651507,-0.71651507,0.69757161,0,0)" />
+        <path
+           style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none"
+           d="m 178.65774,98.476271 3.95378,0 -0.54535,4.742859 -2.93124,0 z"
+           id="path14472"
+           inkscape:connector-curvature="0"
+           sodipodi:nodetypes="ccccc" />
+      </g>
+    </g>
+    <path
+       id="path14630"
+       d="m 299,180.84375 c -3.01409,2.04453 -6.6993,2.74377 -9.625,2.84375 0,0 -0.19503,7.44307 0.96875,11.65625 1.16103,4.20322 4.48653,8.78424 8.65625,9.625 0.01,0.002 0.0214,-0.002 0.0312,0 4.16972,-0.84076 7.46397,-5.42178 8.625,-9.625 1.16378,-4.21318 0.96875,-11.65625 0.96875,-11.65625 -2.9257,-0.1 -6.61091,-0.79922 -9.625,-2.84375 z"
+       style="fill:#000000;stroke:none;display:inline;filter:url(#filter14646)"
+       inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+       inkscape:export-xdpi="143.80121"
+       inkscape:export-ydpi="143.80121"
+       inkscape:connector-curvature="0"
+       transform="matrix(2.0950682,0,0,2.0950682,-530.41754,-308.58402)" />
+    <path
+       style="fill:#ffffff;stroke:none;display:inline"
+       d="m 96.007859,70.295963 c -6.314716,4.28342 -14.035493,5.748372 -20.165038,5.957852 0,0 -0.408601,15.593737 2.029614,24.420625 2.432428,8.80605 9.399582,18.40361 18.135424,20.16505 0.02018,0.004 0.04463,-0.004 0.06548,0 8.735867,-1.76144 15.637537,-11.359 18.069957,-20.16505 2.43822,-8.826888 2.02962,-24.420625 2.02962,-24.420625 -6.12955,-0.209458 -13.85032,-1.674432 -20.165038,-5.957852 z"
+       id="path14632"
+       inkscape:export-filename="/home/jofo/bygg/XenowarMod/nurblmod/iconDeco.png"
+       inkscape:export-xdpi="143.80121"
+       inkscape:export-ydpi="143.80121"
+       inkscape:connector-curvature="0" />
+  </g>
+</svg>
