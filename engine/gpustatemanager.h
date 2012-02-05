@@ -188,6 +188,7 @@ public:
 
 	void SetTexture0( Texture* tex ) { texture0 = tex; }
 	bool HasTexture0() const { return texture0 != 0; }
+	virtual bool HasLighting( grinliz::Vector4F* dir, grinliz::Vector4F* ambient, grinliz::Vector4F* diffuse ) const { return false; }
 
 	void SetTexture1( Texture* tex ) { texture1 = tex; }
 	bool HasTexture1() const { return texture1 != 0; }
@@ -199,12 +200,6 @@ public:
 		static const float INV = 1.0f/255.0f;
 		grinliz::Color4F c = { (float)color.r*INV, (float)color.g*INV, (float)color.b*INV, (float)color.a*INV };
 		SetColor( c );
-	}
-
-	void SetDiffuse( const grinliz::Vector3F direction, const grinliz::Color3F ambient, const grinliz::Color3F diffuse ) {
-		this->direction = direction;
-		this->ambient = ambient;
-		this->diffuse = diffuse;
 	}
 
 	static void PushMatrix( MatrixType type );
@@ -245,7 +240,7 @@ protected:
 	GPUShader() : texture0( 0 ), texture1( 0 ), 
 				 streamPtr( 0 ), nIndex( 0 ), indexPtr( 0 ),
 				 vertexBuffer( 0 ), indexBuffer( 0 ),
-				 blend( false ), alphaTest( 0 ), lighting( false ),
+				 blend( false ), alphaTest( 0 ),
 				 depthWrite( true ), depthTest( true )
 	{
 		color.Set( 1, 1, 1, 1 );
@@ -292,10 +287,6 @@ protected:
 
 	bool		blend;
 	bool		alphaTest;
-	bool		lighting;
-	grinliz::Color3F	diffuse;
-	grinliz::Color3F	ambient;
-	grinliz::Vector3F   direction;
 
 	bool		depthWrite;
 	bool		depthTest;
@@ -327,14 +318,23 @@ public:
 	LightShader( const grinliz::Color4F& ambient, const grinliz::Vector4F& direction, const grinliz::Color4F& diffuse, bool blend );
 	~LightShader();
 
+	virtual bool HasLighting(  grinliz::Vector4F* dir, grinliz::Vector4F* ambient, grinliz::Vector4F* diffuse  ) const { 
+		if ( dir ) *dir = this->direction;
+		GLASSERT( this->ambient.a == 1 );	// supported? but probably not intended
+		GLASSERT( this->diffuse.a == 1 );
+		if ( ambient ) ambient->Set( this->ambient.r, this->ambient.g, this->ambient.b, this->ambient.a );
+		if ( diffuse ) diffuse->Set( this->diffuse.r, this->diffuse.g, this->diffuse.b, this->diffuse.a );
+		return true; 
+	}
+	
 protected:
 	void SetLightParams() const;
 
 	static int locked;
 
-	grinliz::Color4F				ambient;
+	grinliz::Color4F	ambient;
 	grinliz::Vector4F	direction;
-	grinliz::Color4F				diffuse;
+	grinliz::Color4F	diffuse;
 };
 
 
