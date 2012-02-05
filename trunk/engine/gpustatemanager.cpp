@@ -361,7 +361,7 @@ void GPUShader::SetState( const GPUShader& ns )
 
 	int flags = 0;
 	flags |= ( ns.HasTexture0() ) ? ShaderManager::TEXTURE0 : 0;
-	flags |= (textureStack[0].NumMatrix()>1 || textureXFormInUse[0]) ? ShaderManager::TEXTURE0_TRANSFORM : 0;
+//	flags |= (textureStack[0].NumMatrix()>1 || textureXFormInUse[0]) ? ShaderManager::TEXTURE0_TRANSFORM : 0;
 	flags |= (ns.HasTexture0() && (ns.texture0->Format() == Texture::ALPHA )) ? ShaderManager::TEXTURE0_ALPHA_ONLY : 0;
 
 	flags |= ( ns.HasTexture1() ) ? ShaderManager::TEXTURE1 : 0;
@@ -370,31 +370,35 @@ void GPUShader::SetState( const GPUShader& ns )
 
 	flags |= ns.stream.HasColor() ? ShaderManager::COLORS : 0;
 	flags |= ( ns.color.r != 1.f || ns.color.g != 1.f || ns.color.b != 1.f || ns.color.a != 1.f ) ? ShaderManager::COLOR_MULTIPLIER : 0;
-	flags |= ns.lighting ? ShaderManager::LIGHTING_DIFFUSE : 0;
+	flags |= ns.HasLighting( 0, 0, 0 ) ? ShaderManager::LIGHTING_DIFFUSE : 0;
 
 	shadman->ActivateShader( flags );
 	shadman->ClearStream();
 	Matrix4 mvp;
-	MultMatrix4( ns.ConcatedMatrix( GPUShader::MODELVIEW_MATRIX ), ns.ConcatedMatrix( GPUShader::PROJECTION_MATRIX ), &mvp );
-	//MultMatrix4( ns.ConcatedMatrix( GPUShader::PROJECTION_MATRIX ), ns.ConcatedMatrix( GPUShader::MODELVIEW_MATRIX ), &mvp );
+	MultMatrix4( ns.ConcatedMatrix( GPUShader::PROJECTION_MATRIX ), ns.ConcatedMatrix( GPUShader::MODELVIEW_MATRIX ), &mvp );
 
 	// FIXME: the normal matrix can be used because the game doesn't support scaling.
-	const Matrix4& normalMat = ns.ConcatedMatrix( GPUShader::MODELVIEW_MATRIX );
-	shadman->SetTransforms( mvp, normalMat );
+	const Matrix4& mv = ns.ConcatedMatrix( GPUShader::MODELVIEW_MATRIX );
+	shadman->SetTransforms( mvp, mv );
 
 	// Texture1
 	glActiveTexture( GL_TEXTURE1 );
 
+	/*
 	if (  ns.stream.HasTexture1() ) {
 		glBindTexture( GL_TEXTURE_2D, ns.texture1->GLID() );
 		shadman->SetTexture( 1, ns.texture1 );
-		GLASSERT( ns.stream.nTexture1 == 2 );
 		shadman->SetStreamData( ShaderManager::A_TEXTURE1, 2, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture1Offset ) );
 		if ( flags & ShaderManager::TEXTURE1_TRANSFORM ) {
+			GLASSERT( ns.stream.nTexture1 == 3 );
 			shadman->SetTextureTransform( 1, textureStack[1].Top() );
+		}
+		else {
+			GLASSERT( ns.stream.nTexture1 == 2 );
 		}
 	}
 	CHECK_GL_ERROR;
+	*/
 
 	// Texture0
 	glActiveTexture( GL_TEXTURE0 );
@@ -402,10 +406,13 @@ void GPUShader::SetState( const GPUShader& ns )
 	if (  ns.stream.HasTexture0() ) {
 		glBindTexture( GL_TEXTURE_2D, ns.texture0->GLID() );
 		shadman->SetTexture( 0, ns.texture0 );
-		GLASSERT( ns.stream.nTexture0 == 2 );
 		shadman->SetStreamData( ShaderManager::A_TEXTURE0, 2, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture0Offset ) );
 		if ( flags & ShaderManager::TEXTURE0_TRANSFORM ) {
+			GLASSERT( ns.stream.nTexture0 == 3 );
 			shadman->SetTextureTransform( 0, textureStack[0].Top() );
+		}
+		else {
+			GLASSERT( ns.stream.nTexture0 == 2 );
 		}
 	}
 	CHECK_GL_ERROR;
@@ -415,15 +422,6 @@ void GPUShader::SetState( const GPUShader& ns )
 		shadman->SetStreamData( ShaderManager::A_POS, ns.stream.nPos, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.posOffset ) );	 
 	}
 
-	// normal
-	if ( ns.stream.HasNormal() ) {
-		GLASSERT( flags & ShaderManager::LIGHTING_DIFFUSE );
-		shadman->SetStreamData( ShaderManager::A_NORMAL, 3, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.normalOffset ) );	 
-	}
-	else {
-		GLASSERT( !(flags & ShaderManager::LIGHTING_DIFFUSE) );
-	}
-
 	// color
 	if ( ns.stream.HasColor() ) {
 		GLASSERT( ns.stream.nColor == 4 );
@@ -431,12 +429,13 @@ void GPUShader::SetState( const GPUShader& ns )
 	}
 
 	// lighting 
-	if ( ns.lighting ) {
-		GLASSERT( flags & ShaderManager::LIGHTING_DIFFUSE );
-		Vector4F d = { ns.diffuse.r, ns.diffuse.g, ns.diffuse.b, 1.f };
-		Vector4F a = { ns.ambient.r, ns.ambient.g, ns.ambient.b, 1.f };
-		Vector4F dir = { ns.direction.x, ns.direction.y, ns.direction.z, 0.0f };
-		shadman->SetDiffuse( dir, a, d );	
+	if ( flags & ShaderManager::LIGHTING_DIFFUSE ) {
+		Vector4F dirWC, d, a;
+		ns.HasLighting( &dirWC, &a, &d ); 
+
+		Vector4F dirEye = mv * dirWC;
+		shadman->SetDiffuse( dirEye, a, d );	
+		shadman->SetStreamData( ShaderManager::A_NORMAL, 3, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.normalOffset ) );	 
 	}
 
 	// color multiplier
@@ -605,18 +604,6 @@ void GPUShader::Clear()
 #endif
 
 	SetMatrix( MODELVIEW_MATRIX, view2D );
-
-	/*
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();				// projection
-
-	// Set the ortho matrix, help the driver
-	glOrthofX( 0, screenWidth, screenHeight, 0, -100, 100 );
-	
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();				// model
-	glMultMatrixf( view2D.x );
-	*/
 	CHECK_GL_ERROR;
 }
 
@@ -627,12 +614,18 @@ void GPUShader::Clear()
 													 int rotation)
 {
 	// Give the driver hints:
+#if XENOENGINE_OPENGL == 1
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glFrustumfX( left, right, bottom, top, near, far );
 	glRotatef( (float)(-rotation), 0, 0, 1 );
-	
 	glMatrixMode(GL_MODELVIEW);	
+#else
+	GLASSERT( rotation == 0 );
+	Matrix4 perspective;
+	perspective.SetFrustum( left, right, bottom, top, near, far );
+	SetMatrix( PROJECTION_MATRIX, perspective );
+#endif
 	CHECK_GL_ERROR;
 }
 
@@ -713,10 +706,7 @@ void GPUShader::Draw()
 		glBindBufferX( GL_ELEMENT_ARRAY_BUFFER, indexBuffer );
 		SetState( *this );
 
-#if defined( _MSC_VER )
-		//GLASSERT( glIsBuffer( vertexBuffer ) );
-		//GLASSERT( glIsBuffer( indexBuffer ) );
-		
+#if defined( _MSC_VER ) && (XENOENGINE_OPENGL == 1)
 		GLASSERT( glIsEnabled( GL_VERTEX_ARRAY ) );
 		GLASSERT( !glIsEnabled( GL_COLOR_ARRAY ) );
 		GLASSERT( !glIsEnabled( GL_INDEX_ARRAY ) );
@@ -1009,7 +999,6 @@ LightShader::LightShader( const Color4F& ambient, const grinliz::Vector4F& direc
 
 	//this->alphaTest = alphaTest;
 	this->blend = blend;
-	this->lighting = true;
 	this->ambient = ambient;
 	this->direction = direction;
 	this->diffuse = diffuse;
@@ -1029,6 +1018,7 @@ LightShader::~LightShader()
 
 void LightShader::SetLightParams() const
 {
+#if XENOENGINE_OPENGL == 1
 	static const float white[4]	= { 1.0f, 1.0f, 1.0f, 1.0f };
 	static const float black[4]	= { 0.0f, 0.0f, 0.0f, 1.0f };
 
@@ -1046,6 +1036,7 @@ void LightShader::SetLightParams() const
 	glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,  white );
 	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,  white );
 	CHECK_GL_ERROR;
+#endif
 }
 
 /* static */ int PointParticleShader::particleSupport = 0;

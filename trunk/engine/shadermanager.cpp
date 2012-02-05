@@ -115,8 +115,8 @@ void ShaderManager::SetColorMultiplier( const grinliz::Color4F& color )
 void ShaderManager::SetDiffuse( const grinliz::Vector4F& dir, const grinliz::Vector4F& ambient, const grinliz::Vector4F& diffuse )
 {
 	int loc = glGetUniformLocation( active->prog, "u_lightDir" );
-	GLASSERT( loc >= 0 );
-	glUniform4fv( loc, 1, &dir.x );
+	//GLASSERT( loc >= 0 );
+	glUniform3fv( loc, 1, &dir.x );
 	loc = glGetUniformLocation( active->prog, "u_ambient" );
 	GLASSERT( loc >= 0 );
 	glUniform4fv( loc, 1, &ambient.x );
