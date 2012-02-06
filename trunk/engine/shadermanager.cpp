@@ -16,7 +16,7 @@ ShaderManager::ShaderManager() : active( 0 )
 
 ShaderManager::~ShaderManager()
 {
-	for( int i=0; i<MAX_SHADERS; ++i ) {
+	for( int i=0; i<shaderArr.Size(); ++i ) {
 		if ( shaderArr[i].prog ) {
 			DeleteProgram( &shaderArr[i] );
 		}
@@ -26,8 +26,6 @@ ShaderManager::~ShaderManager()
 
 void ShaderManager::DeviceLoss() 
 {
-	// Can't delete cleared shaders.
-	memset( shaderArr, 0, sizeof(Shader)*MAX_SHADERS );
 }
 
 
@@ -74,6 +72,7 @@ void ShaderManager::SetTransforms( const grinliz::Matrix4& mvp, const grinliz::M
 	int loc = glGetUniformLocation( active->prog, "u_mvpMatrix" );
 	GLASSERT( loc >= 0 );
 	glUniformMatrix4fv( loc, 1, false, mvp.x );
+
 	if ( active->flags & LIGHTING_DIFFUSE ) {
 		loc = glGetUniformLocation( active->prog, "u_normalMatrix" );
 		GLASSERT( loc >= 0 );
@@ -156,8 +155,7 @@ const ShaderManager::Shader* ShaderManager::CreateProgram( int flags )
 	char buf[LEN];
 	int outLen = 0;
 
-	int i;
-	for( i=0; i<MAX_SHADERS; ++i ) {
+	for( int i=0; i<shaderArr.Size(); ++i ) {
 		if ( shaderArr[i].prog && shaderArr[i].flags == flags ) {
 			return &shaderArr[i];
 		}
@@ -165,12 +163,8 @@ const ShaderManager::Shader* ShaderManager::CreateProgram( int flags )
 			break;
 		}
 	}
-	GLASSERT( i < MAX_SHADERS );
-	if ( i == MAX_SHADERS ) {
-		return &shaderArr[0];
-	}
 
-	Shader* shader = &shaderArr[i];
+	Shader* shader = shaderArr.Push();
 	shader->flags = flags;
 
 	shader->vertexProg = glCreateShader( GL_VERTEX_SHADER );
@@ -180,9 +174,13 @@ const ShaderManager::Shader* ShaderManager::CreateProgram( int flags )
 	AppendFlag( &header, "TEXTURE0",			flags & TEXTURE0 );
 	AppendFlag( &header, "TEXTURE0_ALPHA_ONLY",	flags & TEXTURE0_ALPHA_ONLY );
 	AppendFlag( &header, "TEXTURE0_TRANSFORM",	flags & TEXTURE0_TRANSFORM );
+	AppendFlag( &header, "TEXTURE0_3COMP",		flags & TEXTURE0_3COMP );
+	
 	AppendFlag( &header, "TEXTURE1",			flags & TEXTURE1 );
 	AppendFlag( &header, "TEXTURE1_ALPHA_ONLY",	flags & TEXTURE1_ALPHA_ONLY );
 	AppendFlag( &header, "TEXTURE1_TRANSFORM",	flags & TEXTURE1_TRANSFORM );
+	AppendFlag( &header, "TEXTURE1_3COMP",		flags & TEXTURE1_3COMP );
+	
 	AppendFlag( &header, "COLORS",				flags & COLORS );
 	AppendFlag( &header, "COLOR_MULTIPLIER",	flags & COLOR_MULTIPLIER );
 	AppendFlag( &header, "LIGHTING_DIFFUSE",	flags & LIGHTING_DIFFUSE );	
