@@ -361,12 +361,14 @@ void GPUShader::SetState( const GPUShader& ns )
 
 	int flags = 0;
 	flags |= ( ns.HasTexture0() ) ? ShaderManager::TEXTURE0 : 0;
-//	flags |= (textureStack[0].NumMatrix()>1 || textureXFormInUse[0]) ? ShaderManager::TEXTURE0_TRANSFORM : 0;
+	flags |= (textureStack[0].NumMatrix()>1 || textureXFormInUse[0]) ? ShaderManager::TEXTURE0_TRANSFORM : 0;
 	flags |= (ns.HasTexture0() && (ns.texture0->Format() == Texture::ALPHA )) ? ShaderManager::TEXTURE0_ALPHA_ONLY : 0;
+	flags |= (ns.stream.nTexture0 == 3 ) ? ShaderManager::TEXTURE0_3COMP : 0;
 
 	flags |= ( ns.HasTexture1() ) ? ShaderManager::TEXTURE1 : 0;
 	flags |= (textureStack[1].NumMatrix()>1 || textureXFormInUse[1]) ? ShaderManager::TEXTURE1_TRANSFORM : 0;
 	flags |= (ns.HasTexture1() && (ns.texture1->Format() == Texture::ALPHA )) ? ShaderManager::TEXTURE1_ALPHA_ONLY : 0;
+	flags |= (ns.stream.nTexture1 == 3 ) ? ShaderManager::TEXTURE1_3COMP : 0;
 
 	flags |= ns.stream.HasColor() ? ShaderManager::COLORS : 0;
 	flags |= ( ns.color.r != 1.f || ns.color.g != 1.f || ns.color.b != 1.f || ns.color.a != 1.f ) ? ShaderManager::COLOR_MULTIPLIER : 0;
@@ -375,30 +377,24 @@ void GPUShader::SetState( const GPUShader& ns )
 	shadman->ActivateShader( flags );
 	shadman->ClearStream();
 	Matrix4 mvp;
-	MultMatrix4( ns.ConcatedMatrix( GPUShader::PROJECTION_MATRIX ), ns.ConcatedMatrix( GPUShader::MODELVIEW_MATRIX ), &mvp );
+	const Matrix4& mv = ns.ConcatedMatrix( GPUShader::MODELVIEW_MATRIX );
+	MultMatrix4( ns.ConcatedMatrix( GPUShader::PROJECTION_MATRIX ), mv, &mvp );
 
 	// FIXME: the normal matrix can be used because the game doesn't support scaling.
-	const Matrix4& mv = ns.ConcatedMatrix( GPUShader::MODELVIEW_MATRIX );
 	shadman->SetTransforms( mvp, mv );
 
 	// Texture1
 	glActiveTexture( GL_TEXTURE1 );
 
-	/*
 	if (  ns.stream.HasTexture1() ) {
 		glBindTexture( GL_TEXTURE_2D, ns.texture1->GLID() );
 		shadman->SetTexture( 1, ns.texture1 );
-		shadman->SetStreamData( ShaderManager::A_TEXTURE1, 2, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture1Offset ) );
+		shadman->SetStreamData( ShaderManager::A_TEXTURE1, ns.stream.nTexture1, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture1Offset ) );
 		if ( flags & ShaderManager::TEXTURE1_TRANSFORM ) {
-			GLASSERT( ns.stream.nTexture1 == 3 );
 			shadman->SetTextureTransform( 1, textureStack[1].Top() );
-		}
-		else {
-			GLASSERT( ns.stream.nTexture1 == 2 );
 		}
 	}
 	CHECK_GL_ERROR;
-	*/
 
 	// Texture0
 	glActiveTexture( GL_TEXTURE0 );
@@ -406,13 +402,9 @@ void GPUShader::SetState( const GPUShader& ns )
 	if (  ns.stream.HasTexture0() ) {
 		glBindTexture( GL_TEXTURE_2D, ns.texture0->GLID() );
 		shadman->SetTexture( 0, ns.texture0 );
-		shadman->SetStreamData( ShaderManager::A_TEXTURE0, 2, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture0Offset ) );
+		shadman->SetStreamData( ShaderManager::A_TEXTURE0, ns.stream.nTexture0, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture0Offset ) );
 		if ( flags & ShaderManager::TEXTURE0_TRANSFORM ) {
-			GLASSERT( ns.stream.nTexture0 == 3 );
 			shadman->SetTextureTransform( 0, textureStack[0].Top() );
-		}
-		else {
-			GLASSERT( ns.stream.nTexture0 == 2 );
 		}
 	}
 	CHECK_GL_ERROR;
@@ -833,11 +825,9 @@ void GPUShader::MultMatrix( MatrixType type, const grinliz::Matrix4& m )
 #elif XENOENGINE_OPENGL == 2
 	case MODELVIEW_MATRIX:
 		mvStack.Multiply( m );
-		glLoadMatrixf( mvStack.Top().x );
 		break;
 	case PROJECTION_MATRIX:
 		projStack.Multiply( m );
-		glLoadMatrixf( projStack.Top().x );
 		break;
 #endif
 	default:

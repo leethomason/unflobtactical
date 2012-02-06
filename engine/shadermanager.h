@@ -26,12 +26,16 @@ public:
 		TEXTURE0			= (1<<0),		// Texture is in use. Note that the sampling state (linear, nearest) is saved with the texture.
 		TEXTURE0_ALPHA_ONLY = (1<<1),		// Texture is only alpha, which composites differently.
 		TEXTURE0_TRANSFORM	= (1<<2),		// Texture has a texture transform.
-		TEXTURE1			= (1<<3),
-		TEXTURE1_ALPHA_ONLY	= (1<<4),
-		TEXTURE1_TRANSFORM	= (1<<5),
-		COLORS				= (1<<6),		// Per-vertex colors.
-		COLOR_MULTIPLIER	= (1<<7),		// Global color multiplier.
-		LIGHTING_DIFFUSE	= (1<<8)		// Diffuse lighting. Requires per vertex normals.
+		TEXTURE0_3COMP		= (1<<3),		// Uses 3 components for the texture (for feeding a travsform, usually.)
+
+		TEXTURE1			= (1<<4),
+		TEXTURE1_ALPHA_ONLY	= (1<<5),
+		TEXTURE1_TRANSFORM	= (1<<6),
+		TEXTURE1_3COMP		= (1<<7),
+		
+		COLORS				= (1<<8),		// Per-vertex colors.
+		COLOR_MULTIPLIER	= (1<<9),		// Global color multiplier.
+		LIGHTING_DIFFUSE	= (1<<10)		// Diffuse lighting. Requires per vertex normals.
 	};
 
 	void DeviceLoss();
@@ -61,8 +65,6 @@ public:
 private:
 	static ShaderManager* instance;
 
-	enum { MAX_SHADERS = 10 };	// or I need to go in there and create proper lookups and such
-								// actually, this only needs to be a reasonable at steady state
 	struct Shader {
 		Shader::Shader() : flags(0), vertexProg(0), fragmentProg(0), prog(0) {}
 
@@ -72,7 +74,7 @@ private:
 		U32 prog;
 	};
 
-	Shader shaderArr[MAX_SHADERS];
+	CDynArray< Shader > shaderArr;
 	grinliz::GLString header;
 	const Shader* active;
 	CDynArray<int> activeStreams;
