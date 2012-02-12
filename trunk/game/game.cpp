@@ -664,11 +664,12 @@ void Game::DoTick( U32 _currentTime )
 	if ( !suppressText ) {
 		UFOText* ufoText = UFOText::Instance();
 		if ( debugLevel >= 1 ) {
-			ufoText->Draw(	0,  Y, "#%d %5.1ffps vbo=%d ps=%d", 
+			ufoText->Draw(	0,  Y, "#%d %5.1ffps vbo=%d ps=%d ogl=%d", 
 							VERSION, 
 							framesPerSecond, 
 							GPUShader::SupportsVBOs() ? 1 : 0,
-							PointParticleShader::IsSupported() ? 1 : 0 );
+							PointParticleShader::IsSupported() ? 1 : 0,
+							XENOENGINE_OPENGL );
 		}
 		if ( debugLevel >= 2 ) {
 			ufoText->Draw(	0,  Y-15, "%4.1fK/f %3ddc/f", 

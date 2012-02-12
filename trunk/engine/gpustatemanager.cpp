@@ -339,14 +339,14 @@ void GPUShader::SetState( const GPUShader& ns )
 	CHECK_GL_ERROR;
 
 	// Lighting
-	if ( ns.lighting && !current.lighting ) {
+	if ( ns.HasLighting(0,0,0) && !current.HasLighting(0,0,0) ) {
 		glEnable( GL_LIGHTING );
 		glEnable ( GL_COLOR_MATERIAL );
 		// The call below isn't supported on all the mobile chipsets:
 		//glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE ) 
 		//GLOUTPUT(( "Lighting on.\n" ));
 	}
-	else if ( !ns.lighting && current.lighting ) {
+	else if ( !ns.HasLighting(0,0,0) && current.HasLighting(0,0,0) ) {
 		glDisable( GL_LIGHTING );
 		//GLOUTPUT(( "Lighting off.\n" ));
 	}
@@ -357,7 +357,7 @@ void GPUShader::SetState( const GPUShader& ns )
 	}
 
 #elif XENOENGINE_OPENGL == 2
-	ShaderManager* shadman = ShaderManager::Instance();
+	ShaderManager* shadman =	 ShaderManager::Instance();
 
 	int flags = 0;
 	flags |= ( ns.HasTexture0() ) ? ShaderManager::TEXTURE0 : 0;
@@ -377,10 +377,10 @@ void GPUShader::SetState( const GPUShader& ns )
 	shadman->ActivateShader( flags );
 	shadman->ClearStream();
 	Matrix4 mvp;
-	const Matrix4& mv = ns.ConcatedMatrix( GPUShader::MODELVIEW_MATRIX );
-	MultMatrix4( ns.ConcatedMatrix( GPUShader::PROJECTION_MATRIX ), mv, &mvp );
+	const Matrix4& mv = ns.TopMatrix( GPUShader::MODELVIEW_MATRIX );
+	MultMatrix4( ns.TopMatrix( GPUShader::PROJECTION_MATRIX ), mv, &mvp );
 
-	// FIXME: the normal matrix can be used because the game doesn't support scaling.
+	// NOTE: the normal matrix can be used because the game doesn't support scaling.
 	shadman->SetTransforms( mvp, mv );
 
 	// Texture1
@@ -423,9 +423,10 @@ void GPUShader::SetState( const GPUShader& ns )
 	// lighting 
 	if ( flags & ShaderManager::LIGHTING_DIFFUSE ) {
 		Vector4F dirWC, d, a;
-		ns.HasLighting( &dirWC, &a, &d ); 
+		ns.HasLighting( &dirWC, &a, &d );
 
-		Vector4F dirEye = mv * dirWC;
+		Vector4F dirEye = GPUShader::ViewMatrix() * dirWC;
+		GLASSERT( Equal( dirEye.Length(), 1.f, 0.01f ));
 		shadman->SetDiffuse( dirEye, a, d );	
 		shadman->SetStreamData( ShaderManager::A_NORMAL, 3, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.normalOffset ) );	 
 	}
@@ -522,7 +523,7 @@ void GPUShader::SetState( const GPUShader& ns )
 	GLboolean lightingIsEnabled = glIsEnabled( GL_LIGHTING );
 	ASSERT_SAME( current.blend, blendIsEnabled );
 	ASSERT_SAME( current.alphaTest, alphaTestIsEnabled );
-	ASSERT_SAME( current.lighting, lightingIsEnabled );
+	ASSERT_SAME( current.HasLighting(0,0,0), lightingIsEnabled );
 
 	GLboolean param;
 	glGetBooleanv( GL_DEPTH_WRITEMASK, &param );
@@ -892,7 +893,7 @@ void GPUShader::SetMatrix( MatrixType type, const Matrix4& m )
 
 
 #if XENOENGINE_OPENGL == 2
-const grinliz::Matrix4& GPUShader::ConcatedMatrix( MatrixType type )
+const grinliz::Matrix4& GPUShader::TopMatrix( MatrixType type )
 {
 	if ( type == MODELVIEW_MATRIX ) {
 		return mvStack.Top();
@@ -901,10 +902,15 @@ const grinliz::Matrix4& GPUShader::ConcatedMatrix( MatrixType type )
 }
 
 
-const grinliz::Matrix4& GPUShader::ConcatedTextureMatrix( int unit )
+const grinliz::Matrix4& GPUShader::TopTextureMatrix( int unit )
 {
 	GLASSERT( unit >= 0 && unit < 2 );
 	return textureStack[unit].Top();
+}
+
+const grinliz::Matrix4& GPUShader::ViewMatrix()
+{
+	return mvStack.Bottom();
 }
 
 #endif

@@ -125,8 +125,14 @@ using namespace grinliz;
 
 
 Engine::Engine( Screenport* port, const gamedb::Reader* database ) 
-	:	AMBIENT( 0.3f ),
+	:	
+#if XENOENGINE_OPENGL == 1
+		AMBIENT( 0.3f ),
 		DIFFUSE( 0.8f ),
+#else
+		AMBIENT( 0.5f ),
+		DIFFUSE( 0.6f ),
+#endif
 		DIFFUSE_SHADOW( 0.2f ),
 		screenport( port ),
 		initZoomDistance( 0 ),
