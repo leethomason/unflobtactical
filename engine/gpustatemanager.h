@@ -31,6 +31,7 @@ public:
 	void Multiply( const grinliz::Matrix4& m );
 
 	const grinliz::Matrix4& Top() const				{ GLASSERT( index < MAX_DEPTH ); return stack[index]; }
+	const grinliz::Matrix4& Bottom() const			{ return stack[0]; }
 	int NumMatrix() const							{ return index+1; }
 
 private:
@@ -114,6 +115,10 @@ struct GPUStream {
 };
 
 
+/* WARNING: this gets copied around, and slices.
+   Sub-classes are for initialization. They can't
+   store data.
+*/
 class GPUShader 
 {
 public:
@@ -135,7 +140,7 @@ public:
 										 float bottom, float top, 
 										 float near, float far,
 										 int rotation );
-	// The top level MV matrix in perspective mode.
+	// The top level V matrix in perspective mode.
 	static void SetCameraTransform( const grinliz::Matrix4& camera );
 	static void SetScissor( int x, int y, int w, int h );
 	
@@ -188,7 +193,12 @@ public:
 
 	void SetTexture0( Texture* tex ) { texture0 = tex; }
 	bool HasTexture0() const { return texture0 != 0; }
-	virtual bool HasLighting( grinliz::Vector4F* dir, grinliz::Vector4F* ambient, grinliz::Vector4F* diffuse ) const { return false; }
+	bool HasLighting( grinliz::Vector4F* dir, grinliz::Vector4F* ambient, grinliz::Vector4F* diffuse ) const { 
+		if ( dir ) *dir = direction;
+		if ( ambient ) ambient->Set( this->ambient.r, this->ambient.g, this->ambient.b, this->ambient.a );
+		if ( diffuse ) diffuse->Set( this->diffuse.r, this->diffuse.g, this->diffuse.b, this->diffuse.a );
+		return direction.Length() > 0;
+	}
 
 	void SetTexture1( Texture* tex ) { texture1 = tex; }
 	bool HasTexture1() const { return texture1 != 0; }
@@ -215,8 +225,9 @@ public:
 	static void PopTextureMatrix( int mask );
 
 #if XENOENGINE_OPENGL == 2
-	static const grinliz::Matrix4& ConcatedMatrix( MatrixType type );
-	static const grinliz::Matrix4& ConcatedTextureMatrix( int unit );
+	static const grinliz::Matrix4& TopMatrix( MatrixType type );
+	static const grinliz::Matrix4& TopTextureMatrix( int unit );
+	static const grinliz::Matrix4& ViewMatrix();
 #endif
 
 	void Draw();
@@ -244,6 +255,9 @@ protected:
 				 depthWrite( true ), depthTest( true )
 	{
 		color.Set( 1, 1, 1, 1 );
+		direction.Set( 0, 0, 0, 0 );
+		ambient.Set( 0, 0, 0, 0 );
+		diffuse.Set( 0, 0, 0, 0 );
 	}
 
 	static void SetState( const GPUShader& );
@@ -293,6 +307,10 @@ protected:
 
 	grinliz::Color4F		color;
 	static int			matrixDepth[3];
+
+	grinliz::Color4F	ambient;
+	grinliz::Vector4F	direction;
+	grinliz::Color4F	diffuse;
 };
 
 
@@ -317,24 +335,11 @@ public:
 	/** Texture or color. Writes & tests z. Enables lighting. */
 	LightShader( const grinliz::Color4F& ambient, const grinliz::Vector4F& direction, const grinliz::Color4F& diffuse, bool blend );
 	~LightShader();
-
-	virtual bool HasLighting(  grinliz::Vector4F* dir, grinliz::Vector4F* ambient, grinliz::Vector4F* diffuse  ) const { 
-		if ( dir ) *dir = this->direction;
-		GLASSERT( this->ambient.a == 1 );	// supported? but probably not intended
-		GLASSERT( this->diffuse.a == 1 );
-		if ( ambient ) ambient->Set( this->ambient.r, this->ambient.g, this->ambient.b, this->ambient.a );
-		if ( diffuse ) diffuse->Set( this->diffuse.r, this->diffuse.g, this->diffuse.b, this->diffuse.a );
-		return true; 
-	}
 	
 protected:
 	void SetLightParams() const;
 
 	static int locked;
-
-	grinliz::Color4F	ambient;
-	grinliz::Vector4F	direction;
-	grinliz::Color4F	diffuse;
 };
 
 
