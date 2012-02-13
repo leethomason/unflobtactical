@@ -9,6 +9,53 @@ using namespace grinliz;
 
 ShaderManager* ShaderManager::instance = 0;
 
+static const char* gAttributeName[ShaderManager::MAX_ATTRIBUTE] =
+{
+	"a_uv0",
+	"a_uv1",
+	"a_pos",
+	"a_normal",
+	"a_color"
+};
+
+
+static const char* gUniformName[ShaderManager::MAX_UNIFORM] = 
+{
+	"u_mvpMatrix",
+	"u_normalMatrix",
+	"u_texMat0",
+	"u_texMat1",
+	"u_colorMult",
+	"u_lightDir",
+	"u_ambient",
+	"u_diffuse"
+};
+
+
+int ShaderManager::Shader::GetAttributeLocation( int attribute )
+{
+	GLASSERT( attribute >= 0 && attribute < ShaderManager::MAX_ATTRIBUTE );
+
+	if ( attributeLoc[attribute] < 0 ) {
+		attributeLoc[attribute] = glGetAttribLocation( prog, gAttributeName[attribute] );
+		GLASSERT( attributeLoc[attribute] >= 0 );
+	}
+	return attributeLoc[attribute];
+}
+
+
+int ShaderManager::Shader::GetUniformLocation( int uniform )
+{
+	GLASSERT( uniform >= 0 && uniform < ShaderManager::MAX_UNIFORM );
+
+	if ( uniformLoc[uniform] < 0 ) {
+		uniformLoc[uniform] = glGetUniformLocation( prog, gUniformName[uniform] );
+		GLASSERT( uniformLoc[uniform] >= 0 );
+	}
+	return uniformLoc[uniform];
+}
+
+
 ShaderManager::ShaderManager() : active( 0 )
 {
 }
@@ -26,6 +73,10 @@ ShaderManager::~ShaderManager()
 
 void ShaderManager::DeviceLoss() 
 {
+	// The programs are already deleted.
+	active = 0;
+	activeStreams.Clear();
+	shaderArr.Clear();
 }
 
 
@@ -40,18 +91,7 @@ void ShaderManager::ClearStream()
 
 void ShaderManager::SetStreamData( int id, int size, int type, int stride, const void* data )
 {
-	const char* var = "";
-	switch ( id ) {
-	case A_TEXTURE0:	var = "a_uv0";		break;
-	case A_TEXTURE1:	var = "a_uv1";		break;
-	case A_POS:			var = "a_pos";		break;
-	case A_NORMAL:		var = "a_normal";	break;
-	case A_COLOR:		var = "a_color";	break;
-	default:			GLASSERT( 0 );		break;
-	}
-	
-	//glEnableClientState( GL_VERTEX_ARRAY );
-	int loc = glGetAttribLocation( active->prog, var );
+	int loc = active->GetAttributeLocation( id );
 	GLASSERT( loc >= 0 );
 #ifdef DEBUG
 	const float* ft = (const float*)data;
@@ -67,17 +107,31 @@ void ShaderManager::SetStreamData( int id, int size, int type, int stride, const
 }
 
 
-void ShaderManager::SetTransforms( const grinliz::Matrix4& mvp, const grinliz::Matrix4& normal )
+void ShaderManager::SetUniform( int id, const grinliz::Matrix4& value )
 {
-	int loc = glGetUniformLocation( active->prog, "u_mvpMatrix" );
+	int loc = active->GetUniformLocation( id );
 	GLASSERT( loc >= 0 );
-	glUniformMatrix4fv( loc, 1, false, mvp.x );
+	glUniformMatrix4fv( loc, 1, false, value.x );
+	CHECK_GL_ERROR;
+}
 
-	if ( active->flags & LIGHTING_DIFFUSE ) {
-		loc = glGetUniformLocation( active->prog, "u_normalMatrix" );
-		GLASSERT( loc >= 0 );
-		glUniformMatrix4fv( loc, 1, false, normal.x );
-	}
+
+void ShaderManager::SetUniform( int id, const grinliz::Vector4F& value )
+{
+	CHECK_GL_ERROR;
+	int loc = active->GetUniformLocation( id );
+	GLASSERT( loc >= 0 );
+	glUniform4fv( loc, 1, &value.x );
+	CHECK_GL_ERROR;
+}
+
+
+void ShaderManager::SetUniform( int id, const grinliz::Vector3F& value )
+{
+	CHECK_GL_ERROR;
+	int loc = active->GetUniformLocation( id );
+	GLASSERT( loc >= 0 );
+	glUniform3fv( loc, 1, &value.x );
 	CHECK_GL_ERROR;
 }
 
@@ -92,7 +146,7 @@ void ShaderManager::SetTexture( int index, Texture* texture )
 	CHECK_GL_ERROR;
 }
 
-
+/*
 void ShaderManager::SetTextureTransform( int index, const grinliz::Matrix4& mat )
 {
 	int loc = glGetUniformLocation( active->prog, index==0 ? "u_texMat0" : "u_texMat1" );
@@ -123,6 +177,7 @@ void ShaderManager::SetDiffuse( const grinliz::Vector4F& dir, const grinliz::Vec
 	GLASSERT( loc >= 0 );
 	glUniform4fv( loc, 1, &diffuse.x );
 }
+*/
 
 
 void ShaderManager::AppendFlag( GLString* str, const char* flag, int set )
@@ -141,7 +196,7 @@ void ShaderManager::AppendFlag( GLString* str, const char* flag, int set )
 
 void ShaderManager::ActivateShader( int flags )
 {
-	const Shader* shader = CreateProgram( flags );
+	Shader* shader = CreateProgram( flags );
 	CHECK_GL_ERROR;
 	glUseProgram( shader->prog );
 	active = shader;
@@ -149,7 +204,7 @@ void ShaderManager::ActivateShader( int flags )
 }
 
 
-const ShaderManager::Shader* ShaderManager::CreateProgram( int flags )
+ShaderManager::Shader* ShaderManager::CreateProgram( int flags )
 {
 	static const int LEN = 200;
 	char buf[LEN];
@@ -165,6 +220,7 @@ const ShaderManager::Shader* ShaderManager::CreateProgram( int flags )
 	}
 
 	Shader* shader = shaderArr.Push();
+	shader->Init();
 	shader->flags = flags;
 
 	shader->vertexProg = glCreateShader( GL_VERTEX_SHADER );

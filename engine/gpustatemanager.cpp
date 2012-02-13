@@ -381,7 +381,7 @@ void GPUShader::SetState( const GPUShader& ns )
 	MultMatrix4( ns.TopMatrix( GPUShader::PROJECTION_MATRIX ), mv, &mvp );
 
 	// NOTE: the normal matrix can be used because the game doesn't support scaling.
-	shadman->SetTransforms( mvp, mv );
+	shadman->SetUniform( ShaderManager::U_MVP_MAT, mvp );
 
 	// Texture1
 	glActiveTexture( GL_TEXTURE1 );
@@ -391,7 +391,7 @@ void GPUShader::SetState( const GPUShader& ns )
 		shadman->SetTexture( 1, ns.texture1 );
 		shadman->SetStreamData( ShaderManager::A_TEXTURE1, ns.stream.nTexture1, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture1Offset ) );
 		if ( flags & ShaderManager::TEXTURE1_TRANSFORM ) {
-			shadman->SetTextureTransform( 1, textureStack[1].Top() );
+			shadman->SetUniform( ShaderManager::U_TEXTURE1_MAT, textureStack[1].Top() );
 		}
 	}
 	CHECK_GL_ERROR;
@@ -404,7 +404,7 @@ void GPUShader::SetState( const GPUShader& ns )
 		shadman->SetTexture( 0, ns.texture0 );
 		shadman->SetStreamData( ShaderManager::A_TEXTURE0, ns.stream.nTexture0, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.texture0Offset ) );
 		if ( flags & ShaderManager::TEXTURE0_TRANSFORM ) {
-			shadman->SetTextureTransform( 0, textureStack[0].Top() );
+			shadman->SetUniform( ShaderManager::U_TEXTURE0_MAT, textureStack[0].Top() );
 		}
 	}
 	CHECK_GL_ERROR;
@@ -427,13 +427,18 @@ void GPUShader::SetState( const GPUShader& ns )
 
 		Vector4F dirEye = GPUShader::ViewMatrix() * dirWC;
 		GLASSERT( Equal( dirEye.Length(), 1.f, 0.01f ));
-		shadman->SetDiffuse( dirEye, a, d );	
+		Vector3F dirEye3 = { dirEye.x, dirEye.y, dirEye.z };
+
+		shadman->SetUniform( ShaderManager::U_NORMAL_MAT, mv );
+		shadman->SetUniform( ShaderManager::U_LIGHT_DIR, dirEye3 );
+		shadman->SetUniform( ShaderManager::U_AMBIENT, a );
+		shadman->SetUniform( ShaderManager::U_DIFFUSE, d );
 		shadman->SetStreamData( ShaderManager::A_NORMAL, 3, GL_FLOAT, ns.stream.stride, PTR( ns.streamPtr, ns.stream.normalOffset ) );	 
 	}
 
 	// color multiplier
 	if ( flags & ShaderManager::COLOR_MULTIPLIER ) {
-		shadman->SetColorMultiplier( ns.color );
+		shadman->SetUniform( ShaderManager::U_COLOR_MULT, ns.color );
 	}
 #endif
 
