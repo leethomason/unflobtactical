@@ -41,45 +41,70 @@ public:
 	void DeviceLoss();
 	void ActivateShader( int flags );
 
-	// All
-	void SetTransforms( const grinliz::Matrix4& mvp, const grinliz::Matrix4& normal );
-
+	// Warning: must match gAttributeName
 	enum {
 		A_TEXTURE0,
 		A_TEXTURE1,
 		A_POS,
 		A_NORMAL,
-		A_COLOR
+		A_COLOR,
+		MAX_ATTRIBUTE
 	};
 	void ClearStream();
 	void SetStreamData( int id, int count, int type, int stride, const void* data );	 
 
-	// Texture units.
-	void SetTexture( int index, Texture* texture );
-	void SetTextureTransform( int index, const grinliz::Matrix4& mat );
+	// Warning: must match gUniformName
+	enum {
+		U_MVP_MAT,
+		U_NORMAL_MAT,
+		U_TEXTURE0_MAT,
+		U_TEXTURE1_MAT,
+		U_COLOR_MULT,
+		U_LIGHT_DIR,
+		U_AMBIENT,
+		U_DIFFUSE,
+		MAX_UNIFORM
+	};
 
-	// Color & Lights
-	void SetColorMultiplier( const grinliz::Color4F& color );
-	void SetDiffuse( const grinliz::Vector4F& dir, const grinliz::Vector4F& ambient, const grinliz::Vector4F& diffuse );
+	void SetTexture( int index, Texture* texture );
+	void SetUniform( int id, const grinliz::Matrix4& mat );
+	void SetUniform( int id, const grinliz::Color4F& color ) {
+		grinliz::Vector4F v = { color.r, color.g, color.b, color.a };
+		SetUniform( id, v );
+	}
+	void SetUniform( int id, const grinliz::Vector4F& vector );
+	void SetUniform( int id, const grinliz::Vector3F& vector );
+
 
 private:
 	static ShaderManager* instance;
-
+	
 	struct Shader {
-		Shader::Shader() : flags(0), vertexProg(0), fragmentProg(0), prog(0) {}
+		void Init() {
+			flags = 0;
+			vertexProg = fragmentProg = prog = 0;
+			for( int i=0; i<MAX_ATTRIBUTE; ++i ) attributeLoc[i] = -1;
+			for( int i=0; i<MAX_UNIFORM; ++i ) uniformLoc[i] = -1;
+		}
 
 		int flags;
 		U32 vertexProg;
 		U32 fragmentProg;
 		U32 prog;
+
+		int attributeLoc[MAX_ATTRIBUTE];
+		int uniformLoc[MAX_UNIFORM];
+
+		int GetAttributeLocation( int attribute );
+		int GetUniformLocation( int uniform );
 	};
 
 	CDynArray< Shader > shaderArr;
 	grinliz::GLString header;
-	const Shader* active;
+	Shader* active;
 	CDynArray<int> activeStreams;
 
-	const Shader* CreateProgram( int flag );
+	Shader* CreateProgram( int flag );
 	void DeleteProgram( Shader* );
 
 	void AppendFlag( grinliz::GLString* str, const char* flag, int set );
