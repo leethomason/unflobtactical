@@ -37,10 +37,8 @@ class GPUShader;
 struct ModelAtom 
 {
 	Texture* texture;
-#ifdef EL_USE_VBO
 	mutable GPUVertexBuffer vertexBuffer;		// created on demand, hence 'mutable'
 	mutable GPUIndexBuffer  indexBuffer;
-#endif
 
 	U32 nVertex;
 	U32 nIndex;
@@ -48,7 +46,6 @@ struct ModelAtom
 	void Bind( GPUShader* shader ) const;
 	void BindPlanarShadow( GPUShader* shader ) const;	// I gave up trying to make this general.
 	void LowerBind( GPUShader* shader, const GPUStream& stream ) const;
-	//void AddIndices( CDynArray<U16>* index ) const;
 
 	// A note on the memory model: the index and vertices are stored
 	// in continuous memory to cut down on allocation overhead. But

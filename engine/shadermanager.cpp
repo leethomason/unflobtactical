@@ -146,39 +146,6 @@ void ShaderManager::SetTexture( int index, Texture* texture )
 	CHECK_GL_ERROR;
 }
 
-/*
-void ShaderManager::SetTextureTransform( int index, const grinliz::Matrix4& mat )
-{
-	int loc = glGetUniformLocation( active->prog, index==0 ? "u_texMat0" : "u_texMat1" );
-	GLASSERT( loc >= 0 );
-	glUniformMatrix4fv( loc, 1, false, mat.x );
-}
-
-
-void ShaderManager::SetColorMultiplier( const grinliz::Color4F& color )
-{
-	int loc = glGetUniformLocation( active->prog, "u_colorMult" );
-//	GLASSERT( loc >= 0 );
-	if ( loc >= 0 )
-		glUniform4fv( loc, 1, &color.r );
-	CHECK_GL_ERROR;
-}
-
-
-void ShaderManager::SetDiffuse( const grinliz::Vector4F& dir, const grinliz::Vector4F& ambient, const grinliz::Vector4F& diffuse )
-{
-	int loc = glGetUniformLocation( active->prog, "u_lightDir" );
-	//GLASSERT( loc >= 0 );
-	glUniform3fv( loc, 1, &dir.x );
-	loc = glGetUniformLocation( active->prog, "u_ambient" );
-	GLASSERT( loc >= 0 );
-	glUniform4fv( loc, 1, &ambient.x );
-	loc = glGetUniformLocation( active->prog, "u_diffuse" );
-	GLASSERT( loc >= 0 );
-	glUniform4fv( loc, 1, &diffuse.x );
-}
-*/
-
 
 void ShaderManager::AppendFlag( GLString* str, const char* flag, int set )
 {

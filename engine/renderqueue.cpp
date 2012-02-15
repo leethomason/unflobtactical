@@ -38,14 +38,6 @@ RenderQueue::~RenderQueue()
 }
 
 
-//void RenderQueue::ResetRenderCache()
-//{
-//	vertexCache.Destroy();
-//	vertexCacheSize = 0;
-//	vertexCacheCap = 0;
-//}
-
-
 RenderQueue::State* RenderQueue::FindState( const State& state )
 {
 	int low = 0;
@@ -144,47 +136,6 @@ void RenderQueue::Add( Model* model, const ModelAtom* atom, GPUShader* shader, c
 	state->root = item;
 }
 
-/*
-void RenderQueue::CacheAtom( Model* model, int atomIndex )
-{
-#ifdef EL_USE_VBO
-	GLASSERT( model->cacheStart[ atomIndex ] == Model::CACHE_UNINITIALIZED );
-	if ( model->Cacheable() ) {
-
-		// Is there space in the vertex cache?
-		const ModelAtom& atom = model->GetResource()->atom[ atomIndex ];
-
-		if ( vertexCacheSize + (int)atom.nVertex <= vertexCacheCap ) {
-			const Matrix4& m = model->XForm();
-		
-			// Transform into temporary buffer.
-			vertexBuf.Clear();
-			Vertex* dv = vertexBuf.PushArr( atom.nVertex );
-			const Vertex* sv = atom.vertex;
-			const Vertex* end = atom.vertex + atom.nVertex;
-
-			for( ; sv < end; ++sv, ++dv ) {
-				MultMatrix4( m, sv->pos,    &dv->pos,	 1.0f );	// position
-				MultMatrix4( m, sv->normal, &dv->normal, 0.0f );	// normal
-				dv->tex = sv->tex;
-			}
-			vertexCache.Upload( vertexBuf.Mem(), atom.nVertex, vertexCacheSize );
-			model->cacheStart[ atomIndex ] = vertexCacheSize;
-			vertexCacheSize += atom.nVertex;
-		}
-	}
-
-	// If we didn't succeed in caching, mark "no cache". Don't keep trying.
-	if ( model->cacheStart[ atomIndex ] < 0 ) {
-		model->cacheStart[ atomIndex ] = Model::DO_NOT_CACHE;
-	}
-#else
-		atom->cacheStart = Model::DO_NOT_CACHE;
-#endif
-}
-*/
-
-
 
 void RenderQueue::Submit( GPUShader* overRideShader, int mode, int required, int excluded )
 {
@@ -221,96 +172,52 @@ void RenderQueue::Submit( GPUShader* overRideShader, int mode, int required, int
 				Model* model = item->model;
 				GLASSERT( model );
 
-				// Check for reset:
-/*				if ( vertexCacheCap > 0 && model->cacheStart[ item->atomIndex ] == Model::CACHE_UNINITIALIZED ) {
-					CacheAtom( model, item->atomIndex );
-				}
-*/
-
 				if ( mode & MODE_PLANAR_SHADOW ) {
-//					if ( model->cacheStart[ item->atomIndex ] < 0 ) {
-						//GRINLIZ_PERFTRACK_NAME( "Submit Inner-1" )
-						GLASSERT( shader );
-						item->atom->BindPlanarShadow( shader );
+					//GRINLIZ_PERFTRACK_NAME( "Submit Inner-1" )
+					GLASSERT( shader );
+					item->atom->BindPlanarShadow( shader );
 
-						// Push the xform matrix to the texture and the model view.
-						shader->PushTextureMatrix( 3 );
-						shader->MultTextureMatrix( 3, model->XForm() );
+					// Push the xform matrix to the texture and the model view.
+					shader->PushTextureMatrix( 3 );
+					shader->MultTextureMatrix( 3, model->XForm() );
 
-						shader->PushMatrix( GPUShader::MODELVIEW_MATRIX );
-						shader->MultMatrix( GPUShader::MODELVIEW_MATRIX, model->XForm() );
+					shader->PushMatrix( GPUShader::MODELVIEW_MATRIX );
+					shader->MultMatrix( GPUShader::MODELVIEW_MATRIX, model->XForm() );
 
-						shader->Draw();
+					shader->Draw();
 
-						// Unravel all that.
-						shader->PopTextureMatrix( 3 );
-						shader->PopMatrix( GPUShader::MODELVIEW_MATRIX );
-//					}
-//					else {
-//						model->AddIndices( &indexBuf, item->atomIndex );
-//					}
+					// Unravel all that.
+					shader->PopTextureMatrix( 3 );
+					shader->PopMatrix( GPUShader::MODELVIEW_MATRIX );
 				}
 				else {
-//					if ( model->cacheStart[ item->atomIndex ] < 0 ) {
-						//GRINLIZ_PERFTRACK_NAME( "Submit Inner-2" )
-						item->atom->Bind( shader );
+					//GRINLIZ_PERFTRACK_NAME( "Submit Inner-2" )
+					item->atom->Bind( shader );
 
-						shader->PushMatrix( GPUShader::MODELVIEW_MATRIX );
-						shader->MultMatrix( GPUShader::MODELVIEW_MATRIX, model->XForm() );
+					shader->PushMatrix( GPUShader::MODELVIEW_MATRIX );
+					shader->MultMatrix( GPUShader::MODELVIEW_MATRIX, model->XForm() );
 
-						if ( item->textureXForm ) {
-							shader->PushTextureMatrix( 1 );
-							shader->MultTextureMatrix( 1, *item->textureXForm );
-						}
+					if ( item->textureXForm ) {
+						shader->PushTextureMatrix( 1 );
+						shader->MultTextureMatrix( 1, *item->textureXForm );
+					}
 					
-						if ( shader->HasTexture1() ) {
-							shader->PushTextureMatrix( 2 );
-							shader->MultTextureMatrix( 2, model->XForm() );
-						}
+					if ( shader->HasTexture1() ) {
+						shader->PushTextureMatrix( 2 );
+						shader->MultTextureMatrix( 2, model->XForm() );
+					}
 
-						shader->Draw();
+					shader->Draw();
 
-						shader->PopMatrix( GPUShader::MODELVIEW_MATRIX );
-						if ( item->textureXForm ) {
-							shader->PopTextureMatrix( 1 );
-						}
-						if (  shader->HasTexture1() ) {
-							shader->PopTextureMatrix( 2 );
-						}
-//					}
-//					else {
-//						model->AddIndices( &indexBuf, item->atomIndex );
-//					}
+					shader->PopMatrix( GPUShader::MODELVIEW_MATRIX );
+					if ( item->textureXForm ) {
+						shader->PopTextureMatrix( 1 );
+					}
+					if (  shader->HasTexture1() ) {
+						shader->PopTextureMatrix( 2 );
+					}
 				}
 			}
 		}
-		/*
-		if ( !indexBuf.Empty() ) {
-			Vertex vertex;
-			if ( mode & MODE_PLANAR_SHADOW ) {
-				GPUShader::Stream stream;
-				stream.stride = sizeof( Vertex );
-				stream.nPos = 3;
-				stream.posOffset = Vertex::POS_OFFSET;
-				stream.nTexture0 = 3;
-				stream.texture0Offset = Vertex::POS_OFFSET;
-				stream.nTexture1 = 3;
-				stream.texture1Offset = Vertex::POS_OFFSET;
-
-				shader->SetStream( stream, vertexCache, indexBuf.Size(), indexBuf.Mem() );
-				shader->Draw();
-			}
-			else {
-				GPUShader::Stream stream( &vertex );
-				if ( shader->HasTexture1() ) {
-					stream.texture1Offset = Vertex::POS_OFFSET;
-					stream.nTexture1 = 3;
-					GLASSERT( stream.HasTexture1() );
-				}
-				shader->SetStream( stream, vertexCache, indexBuf.Size(), indexBuf.Mem() );
-				shader->Draw();
-			}
-		}
-		*/
 	}
 }
