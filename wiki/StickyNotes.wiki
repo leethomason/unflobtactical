@@ -6,11 +6,9 @@ Useful code and links from the web. And sometimes a sort of development blog.
     * (in progress) Memory use of TinyXML.
     * (in progress) Clean up XML output utility
   
-  * XenoEngine 1.5
+  * XenoEngine 2.0
     * 32 bit (opaque) textures
     * ETC-1 support
-
-  * XenoEngine 2.0
     * (done) Basic shader support
     * instancing
     * atlasing
