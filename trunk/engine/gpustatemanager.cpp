@@ -141,12 +141,16 @@ void MatrixStack::Multiply( const grinliz::Matrix4& m )
 
 /*static*/ bool GPUShader::SupportsVBOs()
 {
+#ifdef EL_USE_VBO
 	if ( vboSupport == 0 ) {
 		const char* extensions = (const char*)glGetString( GL_EXTENSIONS );
 		const char* vbo = strstr( extensions, "ARB_vertex_buffer_object" );
 		vboSupport = (vbo) ? 1 : -1;
 	}
 	return (vboSupport > 0);
+#else
+	return false;
+#endif
 }
 
 
@@ -674,24 +678,19 @@ void GPUShader::Draw()
 
 	if ( indexPtr ) {
 	
-#ifdef EL_USE_VBO
 		if ( vertexBuffer ) {
 			glBindBufferX( GL_ARRAY_BUFFER, vertexBuffer );
 		}
-#endif
 		SetState( *this );
 
 		GLRELASSERT( !indexBuffer );
 		glDrawElements( GL_TRIANGLES, nIndex, GL_UNSIGNED_SHORT, indexPtr );
 
-#ifdef EL_USE_VBO
 		if ( vertexBuffer ) {
 			glBindBufferX( GL_ARRAY_BUFFER, 0 );
 		}
-#endif
 	}
 	else {
-#ifdef EL_USE_VBO
 		GLRELASSERT( vertexBuffer );
 		GLRELASSERT( indexBuffer );
 		GLRELASSERT( stream.stride == sizeof(Vertex) );	// Just a current limitation that only Vertex structs go in a VBO. Could be fixed.
@@ -714,9 +713,6 @@ void GPUShader::Draw()
 
 		glBindBufferX( GL_ARRAY_BUFFER, 0 );
 		glBindBufferX( GL_ELEMENT_ARRAY_BUFFER, 0 );
-#else	
-		GLASSERT( 0 );
-#endif
 	}
 	CHECK_GL_ERROR;
 }

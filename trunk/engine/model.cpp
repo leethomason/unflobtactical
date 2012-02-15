@@ -30,10 +30,8 @@ using namespace grinliz;
 void ModelResource::Free()
 {
 	for( unsigned i=0; i<header.nGroups; ++i ) {
-#ifdef EL_USE_VBO
 		atom[i].vertexBuffer.Destroy();
 		atom[i].indexBuffer.Destroy();
-#endif
 		memset( &atom[i], 0, sizeof( ModelAtom ) );
 	}
 	delete [] allVertex;
@@ -44,12 +42,10 @@ void ModelResource::Free()
 
 void ModelResource::DeviceLoss()
 {
-#ifdef EL_USE_VBO
 	for( unsigned i=0; i<header.nGroups; ++i ) {
 		atom[i].vertexBuffer.Destroy();
 		atom[i].indexBuffer.Destroy();
 	}
-#endif
 }
 
 
@@ -350,7 +346,6 @@ void Model::Queue( RenderQueue* queue, GPUShader* opaque, GPUShader* transparent
 
 void ModelAtom::LowerBind( GPUShader* shader, const GPUStream& stream ) const
 {
-#ifdef EL_USE_VBO
 	if ( GPUShader::SupportsVBOs() && !vertexBuffer.IsValid() ) {
 		GLRELASSERT( !indexBuffer.IsValid() );
 
@@ -361,7 +356,6 @@ void ModelAtom::LowerBind( GPUShader* shader, const GPUStream& stream ) const
 	if ( vertexBuffer.IsValid() && indexBuffer.IsValid() ) 
 		shader->SetStream( stream, vertexBuffer, nIndex, indexBuffer );
 	else
-#endif
 		shader->SetStream( stream, vertex, nIndex, index );
 }
 
