@@ -17,12 +17,13 @@
 #include "../grinliz/glutil.h"
 #include "../grinliz/glrandom.h"
 #include "gamelimits.h"
-#include "../tinyxml/tinyxml.h"
+#include "../tinyxml2/tinyxml2.h"
 #include "unit.h"
 #include "../grinliz//glgeometry.h"
 #include "../engine/serialize.h"
 
 using namespace grinliz;
+using namespace tinyxml2;
 
 
 int Stats::GenStat( grinliz::Random* rand, int min, int max ) 
@@ -88,28 +89,20 @@ int Stats::PsiPower() const
 }
 
 
-void Stats::Save( FILE* fp, int depth ) const
+void Stats::Save( XMLPrinter* printer ) const
 {
-	/*
-	TiXmlElement* element = new TiXmlElement( "Stats" );
-	element->SetAttribute( "STR", _STR );
-	element->SetAttribute( "DEX", _DEX );
-	element->SetAttribute( "PSY", _PSY );
-	element->SetAttribute( "rank", rank );
-	doc->LinkEndChild( element );
-	*/
-	XMLUtil::OpenElement( fp, depth, "Stats" );
-	XMLUtil::Attribute( fp, "STR", _STR );
-	XMLUtil::Attribute( fp, "DEX", _DEX );
-	XMLUtil::Attribute( fp, "PSY", _PSY );
-	XMLUtil::Attribute( fp, "rank", rank );
-	XMLUtil::SealCloseElement( fp );
+	printer->OpenElement( "Stats" );
+	printer->PushAttribute( "STR", _STR );
+	printer->PushAttribute( "DEX", _DEX );
+	printer->PushAttribute( "PSY", _PSY );
+	printer->PushAttribute( "rank", rank );
+	printer->CloseElement();
 }
 
 
-void Stats::Load( const TiXmlElement* parent )
+void Stats::Load( const XMLElement* parent )
 {
-	const TiXmlElement* ele = parent->FirstChildElement( "Stats" );
+	const XMLElement* ele = parent->FirstChildElement( "Stats" );
 	GLASSERT( ele );
 	if ( ele ) {
 		ele->QueryIntAttribute( "STR", &_STR );

@@ -14,10 +14,12 @@
 */
 
 #include "settings.h"
-#include "../tinyxml/tinyxml.h"
+#include "../tinyxml2/tinyxml2.h"
 #include "../engine/serialize.h"
 
 using namespace grinliz;
+using namespace tinyxml2;
+
 SettingsManager* SettingsManager::instance = 0;
 
 void SettingsManager::Create( const char* savepath )
@@ -52,9 +54,9 @@ SettingsManager::SettingsManager( const char* savepath )
 void SettingsManager::Load()
 {
 	// Parse actuals.
-	TiXmlDocument doc;
+	XMLDocument doc;
 	if ( doc.LoadFile( path.c_str() ) ) {
-		TiXmlElement* root = doc.RootElement();
+		XMLElement* root = doc.RootElement();
 		if ( root ) {
 			ReadAttributes( root );
 		}
@@ -88,15 +90,17 @@ void SettingsManager::Save()
 {
 	FILE* fp = fopen( path.c_str(), "w" );
 	if ( fp ) {
-		XMLUtil::OpenElement( fp, 0, "Settings" );
-		WriteAttributes( fp );
-		XMLUtil::SealCloseElement( fp );
+		XMLPrinter printer( fp );
+
+		printer.OpenElement( "Settings" );
+		WriteAttributes( &printer );
+		printer.CloseElement();
 		fclose( fp );
 	}
 }
 
 
-void SettingsManager::ReadAttributes( const TiXmlElement* root )
+void SettingsManager::ReadAttributes( const XMLElement* root )
 {
 	// Actuals:
 	root->QueryIntAttribute( "audioOn", &audioOn );
@@ -105,8 +109,8 @@ void SettingsManager::ReadAttributes( const TiXmlElement* root )
 }
 
 
-void SettingsManager::WriteAttributes( FILE* fp )
+void SettingsManager::WriteAttributes( XMLPrinter* printer )
 {
-	XMLUtil::Attribute( fp, "audioOn", audioOn );
-	XMLUtil::Attribute( fp, "nWalkingMaps", nWalkingMaps );
+	printer->PushAttribute( "audioOn", audioOn );
+	printer->PushAttribute( "nWalkingMaps", nWalkingMaps );
 }

@@ -91,10 +91,7 @@
     <ClCompile Include="importers\ac3d.c" />
     <ClCompile Include="importers\import.cpp" />
     <ClCompile Include="importers\off.cpp" />
-    <ClCompile Include="tinyxml\tinystr.cpp" />
-    <ClCompile Include="tinyxml\tinyxml.cpp" />
-    <ClCompile Include="tinyxml\tinyxmlerror.cpp" />
-    <ClCompile Include="tinyxml\tinyxmlparser.cpp" />
+    <ClCompile Include="tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="ufobuilder\builder.cpp" />
     <ClCompile Include="ufobuilder\dither.cpp" />
     <ClCompile Include="shared\gamedbwriter.cpp" />
@@ -103,8 +100,7 @@
   <ItemGroup>
     <ClInclude Include="importers\ac3d.h" />
     <ClInclude Include="importers\import.h" />
-    <ClInclude Include="tinyxml\tinystr.h" />
-    <ClInclude Include="tinyxml\tinyxml.h" />
+    <ClInclude Include="tinyxml2\tinyxml2.h" />
     <ClInclude Include="ufobuilder\builder.h" />
     <ClInclude Include="ufobuilder\dither.h" />
     <ClInclude Include="shared\gamedbwriter.h" />

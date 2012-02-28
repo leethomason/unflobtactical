@@ -23,6 +23,7 @@
 #include "../grinliz/glvector.h"
 #include "../grinliz/glbitarray.h"
 #include "../engine/enginelimits.h"
+#include "../tinyxml2/tinyxml2.h"
 
 #include "stats.h"
 #include "inventory.h"
@@ -187,10 +188,10 @@ public:
 	static int XPToRank( int xp );
 	const U32 Body() const			{ return body; }
 
-	void Save( FILE* fp, int depth ) const;
+	void Save( tinyxml2::XMLPrinter* printer ) const;
 
 	// Loads the model. Follow with InitModel() if models needed.
-	void Load( const TiXmlElement* doc, const ItemDefArr& arr );
+	void Load( const tinyxml2::XMLElement* doc, const ItemDefArr& arr );
 	void InitLoc(  TacMap* tacmap );
 	void Create(	int team,
 					int alienType,

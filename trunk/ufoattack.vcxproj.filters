@@ -114,18 +114,6 @@
     <ClCompile Include="game\ufosound.cpp">
       <Filter>game</Filter>
     </ClCompile>
-    <ClCompile Include="tinyxml\tinystr.cpp">
-      <Filter>tinyxml</Filter>
-    </ClCompile>
-    <ClCompile Include="tinyxml\tinyxml.cpp">
-      <Filter>tinyxml</Filter>
-    </ClCompile>
-    <ClCompile Include="tinyxml\tinyxmlerror.cpp">
-      <Filter>tinyxml</Filter>
-    </ClCompile>
-    <ClCompile Include="tinyxml\tinyxmlparser.cpp">
-      <Filter>tinyxml</Filter>
-    </ClCompile>
     <ClCompile Include="engine\gpustatemanager.cpp">
       <Filter>engine</Filter>
     </ClCompile>
@@ -227,6 +215,9 @@
     </ClCompile>
     <ClCompile Include="engine\shadermanager.cpp">
       <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml2\tinyxml2.cpp">
+      <Filter>tinyxml</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -332,12 +323,6 @@
     <ClInclude Include="game\ufosound.h">
       <Filter>game</Filter>
     </ClInclude>
-    <ClInclude Include="tinyxml\tinystr.h">
-      <Filter>tinyxml</Filter>
-    </ClInclude>
-    <ClInclude Include="tinyxml\tinyxml.h">
-      <Filter>tinyxml</Filter>
-    </ClInclude>
     <ClInclude Include="engine\gpustatemanager.h">
       <Filter>engine</Filter>
     </ClInclude>
@@ -442,6 +427,9 @@
     </ClInclude>
     <ClInclude Include="engine\shadermanager.h">
       <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyxml2\tinyxml2.h">
+      <Filter>tinyxml</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

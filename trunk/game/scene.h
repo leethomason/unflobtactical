@@ -22,6 +22,7 @@
 #include "../gamui/gamui.h"
 #include "../engine/uirendering.h"
 #include "gamelimits.h"
+#include "../tinyxml2/tinyxml2.h"
 
 #include <stdio.h>
 
@@ -84,8 +85,8 @@ public:
 	virtual void CancelInput()									{}
 
 	virtual SavePathType CanSave()								{ return SAVEPATH_NONE; }
-	virtual void Save( FILE* fp, int depth )					{}
-	virtual void Load( const TiXmlElement* doc )				{}
+	virtual void Save( tinyxml2::XMLPrinter* )					{}
+	virtual void Load( const tinyxml2::XMLElement* doc )		{}
 	virtual void HandleHotKeyMask( int mask )					{}
 	virtual void Resize()										{}
 

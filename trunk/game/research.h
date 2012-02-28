@@ -21,6 +21,7 @@
 #include "../grinliz/glstringutil.h"
 #include "../shared/glmap.h"
 #include "../shared/gamedbreader.h"
+#include "../tinyxml2/tinyxml2.h"
 
 class ItemDefArr;
 class ItemDef;
@@ -87,8 +88,8 @@ public:
 	};
 	int GetStatus( const char* name ) const;
 
-	void Save( FILE* fp, int depth );
-	void Load( const TiXmlElement* doc );
+	void Save( tinyxml2::XMLPrinter* );
+	void Load( const tinyxml2::XMLElement* doc );
 
 private:
 	static int SortTasks( const void* _a, const void* _b );

@@ -14,10 +14,12 @@
 */
 
 #include "gamesettings.h"
-#include "../tinyxml/tinyxml.h"
+#include "../tinyxml2/tinyxml2.h"
 #include "../engine/serialize.h"
 
 using namespace grinliz;
+using namespace tinyxml2;
+
 GameSettingsManager* GameSettingsManager::gameInstance = 0;
 
 void GameSettingsManager::Create( const char* savepath )
@@ -51,7 +53,7 @@ GameSettingsManager::GameSettingsManager( const char* savepath ) : SettingsManag
 }
 
 
-void GameSettingsManager::ReadAttributes( const TiXmlElement* root )
+void GameSettingsManager::ReadAttributes( const XMLElement* root )
 {
 	SettingsManager::ReadAttributes( root );
 
@@ -68,17 +70,17 @@ void GameSettingsManager::ReadAttributes( const TiXmlElement* root )
 }
 
 
-void GameSettingsManager::WriteAttributes( FILE* fp )
+void GameSettingsManager::WriteAttributes( XMLPrinter* printer )
 {
-	SettingsManager::WriteAttributes( fp );
+	SettingsManager::WriteAttributes( printer );
 
-	XMLUtil::Attribute( fp, "currentMod", currentMod.c_str() );
-	XMLUtil::Attribute( fp, "suppressCrashLog", suppressCrashLog );
-	XMLUtil::Attribute( fp, "playerAI", playerAI );
-	XMLUtil::Attribute( fp, "battleShipParty", battleShipParty );
-	XMLUtil::Attribute( fp, "confirmMove", confirmMove );
-	XMLUtil::Attribute( fp, "allowDrag", allowDrag );
-	XMLUtil::Attribute( fp, "testAlien", testAlien );
+	printer->PushAttribute( "currentMod", currentMod.c_str() );
+	printer->PushAttribute( "suppressCrashLog", suppressCrashLog );
+	printer->PushAttribute( "playerAI", playerAI );
+	printer->PushAttribute( "battleShipParty", battleShipParty );
+	printer->PushAttribute( "confirmMove", confirmMove );
+	printer->PushAttribute( "allowDrag", allowDrag );
+	printer->PushAttribute( "testAlien", testAlien );
 }
 
 

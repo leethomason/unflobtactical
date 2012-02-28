@@ -16,11 +16,12 @@
 #include "research.h"
 #include "../grinliz/glstringutil.h"
 #include "../engine/serialize.h"
-#include "../tinyxml/tinyxml.h"
+#include "../tinyxml2/tinyxml2.h"
 #include "../grinliz/glstringutil.h"
 #include "item.h"
 
 using namespace grinliz;
+using namespace tinyxml2;
 
 int Research::SortTasks( const void* _a, const void* _b )
 {
@@ -223,30 +224,29 @@ int Research::GetStatus( const char* name ) const
 }
 
 
-void Research::Save( FILE* fp, int depth )
+void Research::Save( XMLPrinter* printer )
 {
-	XMLUtil::OpenElement( fp, depth, "Research" );
+	printer->OpenElement( "Research" );
 	if ( current )
-		XMLUtil::Attribute( fp, "current", current-taskArr );
-	XMLUtil::SealElement( fp );
+		printer->PushAttribute( "current", current-taskArr );
 
 	for( int i=0; i<nTasks; ++i ) {
-		XMLUtil::OpenElement( fp, depth+1, "Task" );
-		XMLUtil::Attribute( fp, "name", taskArr[i].name );
-		XMLUtil::Attribute( fp, "rp", taskArr[i].rp );
-		XMLUtil::SealCloseElement( fp );
+		printer->OpenElement( "Task" );
+		printer->PushAttribute( "name", taskArr[i].name );
+		printer->PushAttribute( "rp", taskArr[i].rp );
+		printer->CloseElement();
 	}
 	for( int i=0; i<nItems; ++i ) {
-		XMLUtil::OpenElement( fp, depth+1, "Item" );
-		XMLUtil::Attribute( fp, "name", itemArr[i].name );
-		XMLUtil::Attribute( fp, "found", itemArr[i].found );
-		XMLUtil::SealCloseElement( fp );
+		printer->OpenElement( "Item" );
+		printer->PushAttribute( "name", itemArr[i].name );
+		printer->PushAttribute( "found", itemArr[i].found );
+		printer->CloseElement();
 	}
-	XMLUtil::CloseElement( fp, depth, "Research" );
+	printer->CloseElement();
 }
 
 
-void Research::Load( const TiXmlElement* doc )
+void Research::Load( const XMLElement* doc )
 {
 	if ( !doc ) {
 		GLASSERT( 0 );
@@ -256,18 +256,18 @@ void Research::Load( const TiXmlElement* doc )
 	GLASSERT( StrEqual( doc->Value(), "Research" ) );
 	current = 0;
 	int c = -1;
-	if ( doc->QueryIntAttribute( "current", &c ) == TIXML_SUCCESS ) {
+	if ( doc->QueryIntAttribute( "current", &c ) == XML_SUCCESS ) {
 		current = &taskArr[c];
 	}
 
-	for( const TiXmlElement* ele=doc->FirstChildElement( "Task" ); ele; ele=ele->NextSiblingElement( "Task" ) ) {
+	for( const XMLElement* ele=doc->FirstChildElement( "Task" ); ele; ele=ele->NextSiblingElement( "Task" ) ) {
 		Task* t = 0;
 		const char* name = ele->Attribute( "name" );
 		if ( taskMap.Query( name, &t ) ) {
 			ele->QueryIntAttribute( "rp", &t->rp );
 		}
 	}
-	for( const TiXmlElement* ele=doc->FirstChildElement( "Item" ); ele; ele=ele->NextSiblingElement( "Item" ) ) {
+	for( const XMLElement* ele=doc->FirstChildElement( "Item" ); ele; ele=ele->NextSiblingElement( "Item" ) ) {
 		Item* t = 0;
 		const char* name = ele->Attribute( "name" );
 		if ( itemMap.Query( name, &t ) ) {

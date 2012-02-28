@@ -15,10 +15,11 @@
 
 #include "inventory.h"
 #include "game.h"
-#include "../tinyxml/tinyxml.h"
+#include "../tinyxml2/tinyxml2.h"
 #include "../grinliz/glstringutil.h"
 
 using namespace grinliz;
+using namespace tinyxml2;
 
 
 Inventory::Inventory()
@@ -325,23 +326,22 @@ void Inventory::GetDamageReduction( DamageDesc* dd )
 }
 
 
-void Inventory::Save( FILE* fp, int depth ) const
+void Inventory::Save( XMLPrinter* printer ) const
 {
-	XMLUtil::OpenElement( fp, depth, "Inventory" );
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "Inventory" );
 	for( int i=0; i<NUM_SLOTS; ++i ) {
-		slots[i].Save( fp, depth+1 );
+		slots[i].Save( printer );
 	}	
-	XMLUtil::CloseElement( fp, depth, "Inventory" );
+	printer->CloseElement();
 }
 
 
-void Inventory::Load( const TiXmlElement* parent, const ItemDefArr& arr )
+void Inventory::Load( const XMLElement* parent, const ItemDefArr& arr )
 {
-	const TiXmlElement* ele = parent->FirstChildElement( "Inventory" );
+	const XMLElement* ele = parent->FirstChildElement( "Inventory" );
 	int count = 0;
 	if ( ele ) {
-		for( const TiXmlElement* slot = ele->FirstChildElement( "Item" );
+		for( const XMLElement* slot = ele->FirstChildElement( "Item" );
 			 slot && count<NUM_SLOTS;
 			 slot = slot->NextSiblingElement( "Item" ) )
 		{

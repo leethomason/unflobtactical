@@ -41,8 +41,8 @@ public:
 		return (result==VICTORY) || (result==DEFEAT);
 	}
 
-	void Save( FILE* fp, int depth );
-	void Load( const TiXmlElement* doc );
+	void Save( tinyxml2::XMLPrinter* );
+	void Load( const tinyxml2::XMLElement* doc );
 
 	const Unit* Units( int start=0 ) const  { GLASSERT( start >= 0 && start < MAX_UNITS ); return units + start; }
 	const Storage& GetStorage() const		{ return storage; }

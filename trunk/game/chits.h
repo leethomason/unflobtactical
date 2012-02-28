@@ -19,6 +19,7 @@
 #include "../grinliz/gltypes.h"
 #include "../grinliz/gldebug.h"
 #include "../grinliz/glvector.h"
+#include "../tinyxml2/tinyxml2.h"
 
 #include "unit.h"
 
@@ -144,8 +145,8 @@ public:
 	int ID() const						{ return id; }
 	Chit* Next()						{ return next; }
 
-	virtual void Save( FILE* fp, int depth );
-	virtual void Load( const TiXmlElement* doc );
+	virtual void Save( tinyxml2::XMLPrinter* );
+	virtual void Load( const tinyxml2::XMLElement* doc );
 
 protected:
 	grinliz::Vector2F pos;		// in map units - NOT normalized
@@ -216,8 +217,8 @@ public:
 	float Radius() const;
 	void DoDamage( float d );
 
-	virtual void Save( FILE* fp, int depth );
-	virtual void Load( const TiXmlElement* doc );
+	virtual void Save( tinyxml2::XMLPrinter* );
+	virtual void Load( const tinyxml2::XMLElement* doc );
 
 private:
 	void Init();
@@ -247,8 +248,8 @@ public:
 
 	virtual int DoTick( U32 deltaTime );
 
-	virtual void Save( FILE* fp, int depth );
-	virtual void Load( const TiXmlElement* doc );
+	virtual void Save( tinyxml2::XMLPrinter* );
+	virtual void Load( const tinyxml2::XMLElement* doc );
 
 private:
 	void Init( U32 seed );
@@ -267,8 +268,8 @@ public:
 
 	virtual int DoTick( U32 deltaTime )	{ return MSG_NONE; }
 
-	virtual void Save( FILE* fp, int depth );
-	virtual void Load( const TiXmlElement* doc );
+	virtual void Save( tinyxml2::XMLPrinter* );
+	virtual void Load( const tinyxml2::XMLElement* doc );
 
 	virtual CityChit*	IsCityChit()	{ return this; }
 
@@ -332,8 +333,8 @@ public:
 		return IsFacilityComplete( FACILITY_CARGO ) && IsFacilityComplete( FACILITY_SCILAB );
 	}
 
-	virtual void Save( FILE* fp, int depth );
-	virtual void Load( const TiXmlElement* doc, Game* game );
+	virtual void Save( tinyxml2::XMLPrinter* );
+	virtual void Load( const tinyxml2::XMLElement* doc, Game* game );
 
 private:
 	void Init();
@@ -361,8 +362,8 @@ public:
 	int Type() const { return type; }
 	void CheckDest( const ChitBag& chitBag );	// make sure we're going somewhere...
 
-	virtual void Save( FILE* fp, int depth );
-	virtual void Load( const TiXmlElement* doc );
+	virtual void Save( tinyxml2::XMLPrinter* );
+	virtual void Load( const tinyxml2::XMLElement* doc );
 
 	const grinliz::Vector2I& Dest() const { return dest; }
 	const grinliz::Vector2I& Origin() const { return origin; }
@@ -436,8 +437,8 @@ public:
 		MAX_BASES = 4
 	};
 
-	void Save( FILE* fp, int depth );
-	void Load(	const TiXmlElement* doc, 
+	virtual void Save( tinyxml2::XMLPrinter* );
+	void Load(	const tinyxml2::XMLElement* doc, 
 				SpaceTree* tree, 
 				const ItemDefArr& arr, 
 				Game* game );

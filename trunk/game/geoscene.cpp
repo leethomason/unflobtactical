@@ -28,6 +28,7 @@
 
 using namespace grinliz;
 using namespace gamui;
+using namespace tinyxml2;
 
 // t: tundra
 // a: farm
@@ -195,30 +196,29 @@ void RegionData::Free()
 }
 
 
-void RegionData::Save( FILE* fp, int depth )
+void RegionData::Save( XMLPrinter* printer )
 {
-	XMLUtil::OpenElement( fp, depth, "Region" );
-	XMLUtil::Attribute( fp, "traits", traits );
-	XMLUtil::Attribute( fp, "influence", influence );
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "Region" );
+	printer->PushAttribute( "traits", traits );
+	printer->PushAttribute( "influence", influence );
 
 	for( int i=0; i<HISTORY; ++i ) {
-		XMLUtil::OpenElement( fp, depth+1, "History" );
-		XMLUtil::Attribute( fp, "value", history[i] );
-		XMLUtil::SealCloseElement( fp );
+		printer->OpenElement( "History" );
+		printer->PushAttribute( "value", history[i] );
+		printer->CloseElement();
 	}
-	XMLUtil::CloseElement( fp, depth, "Region" );
+	printer->CloseElement();
 }
 
 
-void RegionData::Load( const TiXmlElement* doc )
+void RegionData::Load( const XMLElement* doc )
 {
 	GLASSERT( StrEqual( doc->Value(), "Region" ));
 	doc->QueryIntAttribute( "traits", &traits );
 	doc->QueryFloatAttribute( "influence", &influence );
 
 	int count=0;
-	for( const TiXmlElement* historyEle = doc->FirstChildElement( "History" ); 
+	for( const XMLElement* historyEle = doc->FirstChildElement( "History" ); 
 		 historyEle && count<HISTORY; 
 		 historyEle=historyEle->NextSiblingElement( "History" ), ++count ) 
 	{
@@ -1020,7 +1020,7 @@ void GeoScene::DoBattle( CargoChit* landerChit, UFOChit* ufoChit )
 void GeoScene::ChildActivated( int childID, Scene* childScene, SceneData* data )
 {
 	if ( childID == Game::BATTLE_SCENE ) {
-		TiXmlDocument doc;
+		XMLDocument doc;
 
 		if ( !data ) {
 			// Load existing map
@@ -1052,10 +1052,10 @@ void GeoScene::ChildActivated( int childID, Scene* childScene, SceneData* data )
 		GLASSERT( doc.FirstChildElement() );
 		GLASSERT( !doc.Error() );
 		if ( !doc.Error() ) {
-			TiXmlElement* game = doc.FirstChildElement( "Game" );
+			XMLElement* game = doc.FirstChildElement( "Game" );
 			GLASSERT( game );
 			if ( game ) {
-				TiXmlElement* scene = game->FirstChildElement( "BattleScene" );
+				XMLElement* scene = game->FirstChildElement( "BattleScene" );
 				GLASSERT( scene );
 				if ( scene ) {
 					((BattleScene*)childScene)->Load( scene );
@@ -1788,7 +1788,7 @@ void GeoScene::CalcTimeState( U32 msec, TimeState* state )
 }
 
 
-void GeoScene::Save( FILE* fp, int depth )
+void GeoScene::Save( XMLPrinter* printer )
 {
 	// Scene
 	// GeoScene
@@ -1798,36 +1798,34 @@ void GeoScene::Save( FILE* fp, int depth )
 	// Units
 
 	// ----------- main scene --------- //
-	XMLUtil::OpenElement( fp, depth, "GeoScene" );
-	XMLUtil::Attribute( fp, "timeline", timeline );
-	XMLUtil::Attribute( fp, "difficulty", difficulty );
-	XMLUtil::Attribute( fp, "alienTimer", alienTimer );
-	XMLUtil::Attribute( fp, "missileTimer0", missileTimer[0] );
-	XMLUtil::Attribute( fp, "missileTimer1", missileTimer[1] );
-	XMLUtil::Attribute( fp, "researchTimer", researchTimer );
-	XMLUtil::Attribute( fp, "cash", cash );
-	XMLUtil::Attribute( fp, "firstBase", firstBase );
-	XMLUtil::Attribute( fp, "nBattles", nBattles );
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "GeoScene" );
+	XML_PUSH_ATTRIB( printer, timeline );
+	XML_PUSH_ATTRIB( printer, difficulty );
+	XML_PUSH_ATTRIB( printer, alienTimer );
+	printer->PushAttribute( "missileTimer0", missileTimer[0] );
+	printer->PushAttribute( "missileTimer1", missileTimer[1] );
+	XML_PUSH_ATTRIB( printer, researchTimer );
+	XML_PUSH_ATTRIB( printer, cash );
+	XML_PUSH_ATTRIB( printer, firstBase );
+	XML_PUSH_ATTRIB( printer, nBattles );
 
 	// ---------- regions ----------- //
-	XMLUtil::OpenElement( fp, depth+1, "RegionData" );
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "RegionData" );
 	for( int i=0; i<GEO_REGIONS; ++i ) {
-		regionData[i].Save( fp, depth+2 );
+		regionData[i].Save( printer );
 	}
-	XMLUtil::CloseElement( fp, depth+1, "RegionData" );
+	printer->CloseElement();	// RegionData
 
 	// ----------- chits ---------- //
-	chitBag.Save( fp, depth+1 );
+	chitBag.Save( printer );
 	// ----------- research ------- //
-	research.Save( fp, depth+1 );
+	research.Save( printer );
 
-	XMLUtil::CloseElement( fp, depth, "GeoScene" );
+	printer->CloseElement();	// GeoScene
 }
 
 
-void GeoScene::Load( const TiXmlElement* scene )
+void GeoScene::Load( const XMLElement* scene )
 {
 	GLASSERT( StrEqual( scene->Value(), "GeoScene" ) );
 	scene->QueryUnsignedAttribute( "timeline", &timeline );
@@ -1842,9 +1840,9 @@ void GeoScene::Load( const TiXmlElement* scene )
 	scene->QueryIntAttribute( "nBattles", &nBattles );
 
 	int i=0;
-	const TiXmlElement* rdEle = scene->FirstChildElement( "RegionData" );
+	const XMLElement* rdEle = scene->FirstChildElement( "RegionData" );
 	if ( rdEle ) {
-		for( const TiXmlElement* region=rdEle->FirstChildElement("Region"); region; ++i, region=region->NextSiblingElement( "Region" ) ) {
+		for( const XMLElement* region=rdEle->FirstChildElement("Region"); region; ++i, region=region->NextSiblingElement( "Region" ) ) {
 			regionData[i].Load( region );
 			areaWidget[i]->SetInfluence( (float)regionData[i].influence );
 			areaWidget[i]->SetTraits( regionData[i].traits );

@@ -68,7 +68,9 @@ struct ModelHeader
 	void Save(	gamedb::WItem* parent );	// database connection
 };
 
+#define XML_PUSH_ATTRIB( printer, value ) { printer->PushAttribute( #value, value ); }
 
+/*
 class XMLUtil
 {
 public:
@@ -87,5 +89,6 @@ public:
 private:
 	static void Space( FILE* fp, int depth );
 };
+*/
 
 #endif // UFOATTACK_SERIALIZE_INCLUDED

@@ -33,6 +33,7 @@
 
 using namespace grinliz;
 using namespace gamui;
+using namespace tinyxml2;
 
 
 TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
@@ -302,16 +303,16 @@ void TacticalIntroScene::SceneResult( int sceneID, int r )
 	//			GroundDebris
 	//		Units
 	//			Unit
-	
-	XMLUtil::OpenElement( fp, 0, "Game" );
-	XMLUtil::Attribute( fp, "version", VERSION );
-	XMLUtil::Attribute( fp, "sceneID", Game::BATTLE_SCENE );
-	XMLUtil::SealElement( fp );
 
-	XMLUtil::OpenElement( fp, 1, "BattleScene" );
-	XMLUtil::Attribute( fp, "dayTime", data->dayTime ? 1 : 0 );
-	XMLUtil::Attribute( fp, "scenario", data->scenario );
-	XMLUtil::SealElement( fp );
+	XMLPrinter printer( fp );
+
+	printer.OpenElement( "Game" );
+	printer.PushAttribute( "version", VERSION );
+	printer.PushAttribute( "sceneID", Game::BATTLE_SCENE );
+
+	printer.OpenElement( "BattleScene" );
+	printer.PushAttribute( "dayTime", data->dayTime ? 1 : 0 );
+	printer.PushAttribute( "scenario", data->scenario );
 
 	Random random;
 	random.SetSeedFromTime();
@@ -346,9 +347,9 @@ void TacticalIntroScene::SceneResult( int sceneID, int r )
 					 itemDefArr, 
 					 random.Rand() );
 
-	battleData.Save( fp, 1 );
-	XMLUtil::CloseElement( fp, 1, "BattleScene" );
-	XMLUtil::CloseElement( fp, 0, "Game" );		
+	battleData.Save( &printer );
+	printer.CloseElement();
+	printer.CloseElement();
 }
 
 
@@ -382,7 +383,7 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 											const char* type,
 											const gamedb::Reader* database,
 											const gamedb::Item* parent,
-											TiXmlElement* mapElement,
+											XMLElement* mapElement,
 											int _seed )
 {
 	const gamedb::Item* itemMatch[ MAX_ITEM_MATCH ];
@@ -395,18 +396,22 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 	random.Rand();
 	int seed = random.Rand( nItemMatch );
 	const gamedb::Item* item = itemMatch[ seed ];
-	//item = database->ChainItem( item );
 
 	const char* xmlText = (const char*) database->AccessData( item, "binary" );
 
-	TiXmlDocument snippet;
+	// Snippet is the XML to append. We need to be
+	// a little careful sticking them together due
+	// to the memory model.
+	XMLDocument snippet;
 	snippet.Parse( xmlText );
 	GLASSERT( !snippet.Error() );
 
-	TiXmlElement* itemsElement = mapElement->FirstChildElement( "Items" );
+	XMLDocument* mapDocument = mapElement->GetDocument();
+
+	XMLElement* itemsElement = mapElement->FirstChildElement( "Items" );
 	if ( !itemsElement ) {
-		itemsElement = new TiXmlElement( "Items" );
-		mapElement->LinkEndChild( itemsElement );
+		itemsElement = mapDocument->NewElement( "Items" );
+		mapElement->InsertEndChild( itemsElement );
 	}
 
 	// Append the <Items>, account for (x,y) changes.
@@ -426,10 +431,13 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 	Vector2I cr1 = m * crashRect.max;
 	crashRect0.FromPair( cr0.x, cr0.y, cr1.x, cr1.y );
 
-	for( TiXmlElement* ele = snippet.FirstChildElement( "Map" )->FirstChildElement( "Items" )->FirstChildElement( "Item" );
-		 ele;
-		 ele = ele->NextSiblingElement() )
+	for( XMLElement* eleIt = snippet.FirstChildElement( "Map" )->FirstChildElement( "Items" )->FirstChildElement( "Item" );
+		 eleIt;
+		 eleIt = eleIt->NextSiblingElement() )
 	{
+		GLASSERT( eleIt->FirstChild() == 0 );	// this is a shallow clone.
+		XMLElement* ele = snippet.ShallowClone( mapDocument )->ToElement();
+
 		Vector2I v = { 0, 0 };
 		int rot = 0;
 		ele->QueryIntAttribute( "x", &v.x );
@@ -449,20 +457,20 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 			}
 		}
 
-		itemsElement->InsertEndChild( *ele );
+		itemsElement->InsertEndChild( ele );
 	}
 
 	// And add the image data
-	TiXmlElement* imagesElement = mapElement->FirstChildElement( "Images" );
+	XMLElement* imagesElement = mapElement->FirstChildElement( "Images" );
 	if ( !imagesElement ) {
-		imagesElement = new TiXmlElement( "Images" );
-		mapElement->LinkEndChild( imagesElement );
+		imagesElement = mapDocument->NewElement( "Images" );
+		mapElement->InsertEndChild( imagesElement );
 	}
 
 	char buffer[64];
 	SNPrintf( buffer, 64, "%4s_%02d_%4s_%02d", set, size, type, seed );
 
-	TiXmlElement* image = new TiXmlElement( "Image" );
+	XMLElement* image = mapDocument->NewElement( "Image" );
 	image->SetAttribute( "name", buffer );
 	image->SetAttribute( "x", dx );
 	image->SetAttribute( "y", dy );
@@ -471,15 +479,15 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 	imagesElement->LinkEndChild( image );
 
 	if ( crash ) {
-		TiXmlElement* pgElement = mapElement->FirstChildElement( "PyroGroup" );
+		XMLElement* pgElement = mapElement->FirstChildElement( "PyroGroup" );
 		if ( !pgElement ) {
-			pgElement = new TiXmlElement( "PyroGroup" );
+			pgElement = mapDocument->NewElement( "PyroGroup" );
 			mapElement->LinkEndChild( pgElement );
 		}
 		for( int j=crashRect0.min.y; j<=crashRect0.max.y; ++j ) {
 			for( int i=crashRect0.min.x; i<=crashRect0.max.x; ++i ) {
-				if ( random.Bit() ) {
-					TiXmlElement* fire = new TiXmlElement( "Pyro" );
+				if ( random.Bit() ) {					
+					XMLElement* fire = mapDocument->NewElement( "Pyro" );
 					fire->SetAttribute( "x", i );
 					fire->SetAttribute( "y", j );
 					fire->SetAttribute( "fire", 1 );
@@ -500,12 +508,15 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 	// Max world size is 64x64 units, in 16x16 unit blocks. That gives 4x4 blocks max.
 	BitArray< 4, 4, 1 > blocks;
 
-	TiXmlElement mapElement( "Map" );
+	XMLDocument doc;
+	XMLElement* mapElement = doc.NewElement( "Map" );
+	doc.InsertEndChild( mapElement );
+
 	const gamedb::Item* dataItem = database->Root()->Child( "data" );
 
 	Vector2I size = info.Size();
-	mapElement.SetAttribute( "sizeX", size.x*16 );
-	mapElement.SetAttribute( "sizeY", size.y*16 );
+	mapElement->SetAttribute( "sizeX", size.x*16 );
+	mapElement->SetAttribute( "sizeY", size.y*16 );
 	
 	Random random( seed );
 
@@ -533,7 +544,7 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 			blocks.Set( pos.x, pos.y );
 			int tileRotation = random.Rand(4);
 
-			AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.Base(), 16, false, "LAND", database, dataItem, &mapElement, random.Rand() );	
+			AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.Base(), 16, false, "LAND", database, dataItem, mapElement, random.Rand() );	
 		}
 
 		// UFO
@@ -558,7 +569,7 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 					blocks.Set( i, j );
 
 			int tileRotation = random.Rand(4);
-			AppendMapSnippet( pos.min.x*16, pos.min.y*16, tileRotation, info.Base(), 16*ufoSize, info.crash, info.UFO(), database, dataItem, &mapElement, random.Rand() );
+			AppendMapSnippet( pos.min.x*16, pos.min.y*16, tileRotation, info.Base(), 16*ufoSize, info.crash, info.UFO(), database, dataItem, mapElement, random.Rand() );
 		}
 
 		for( int j=0; j<size.y; ++j ) {
@@ -566,7 +577,7 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 				if ( !blocks.IsSet( i, j ) ) {
 					Vector2I pos = { i, j };
 					int tileRotation = random.Rand(4);
-					AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.Base(), 16, false, "TILE", database, dataItem, &mapElement, random.Rand() );	
+					AppendMapSnippet( pos.x*16, pos.y*16, tileRotation, info.Base(), 16, false, "TILE", database, dataItem, mapElement, random.Rand() );	
 				}
 			}
 		}
@@ -588,43 +599,43 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 		{
 			int tileRotation = random.Rand(4);
 			lander = open[random.Rand(4)];
-			AppendMapSnippet( lander.x*16, lander.y*16, tileRotation, "CITY", 16, false, "LAND", database, dataItem, &mapElement, random.Rand() );	
+			AppendMapSnippet( lander.x*16, lander.y*16, tileRotation, "CITY", 16, false, "LAND", database, dataItem, mapElement, random.Rand() );	
 		}
 
 		// Open
 		for( int i=0; i<4; ++i ) {
 			if ( lander != open[i] ) {
 				int tileRotation = random.Rand(4);
-				AppendMapSnippet( open[i].x*16, open[i].y*16, tileRotation, "CITY", 16, false, "OPEN", database, dataItem, &mapElement, random.Rand() );	
+				AppendMapSnippet( open[i].x*16, open[i].y*16, tileRotation, "CITY", 16, false, "OPEN", database, dataItem, mapElement, random.Rand() );	
 			}
 		}
 		// Roads
 		for( int i=0; i<4; ++i ) {
-			AppendMapSnippet( hroad[i].x*16, hroad[i].y*16, 1, "CITY", 16, false, "ROAD", database, dataItem, &mapElement, random.Rand() );	
+			AppendMapSnippet( hroad[i].x*16, hroad[i].y*16, 1, "CITY", 16, false, "ROAD", database, dataItem, mapElement, random.Rand() );	
 		}
 		for( int i=0; i<4; ++i ) {
-			AppendMapSnippet( vroad[i].x*16, vroad[i].y*16, 0, "CITY", 16, false, "ROAD", database, dataItem, &mapElement, random.Rand() );	
+			AppendMapSnippet( vroad[i].x*16, vroad[i].y*16, 0, "CITY", 16, false, "ROAD", database, dataItem, mapElement, random.Rand() );	
 		}
 		for( int i=0; i<4; ++i ) {
-			AppendMapSnippet( inter[i].x*16, inter[i].y*16, 1, "CITY", 16, false, "INTR", database, dataItem, &mapElement, random.Rand() );	
+			AppendMapSnippet( inter[i].x*16, inter[i].y*16, 1, "CITY", 16, false, "INTR", database, dataItem, mapElement, random.Rand() );	
 		}
 		
 	}
 	else if ( info.scenario == BATTLESHIP ) {
-		AppendMapSnippet( 0, 0, 0, "BATT", 48, false, "TILE", database, dataItem, &mapElement, random.Rand() );	
+		AppendMapSnippet( 0, 0, 0, "BATT", 48, false, "TILE", database, dataItem, mapElement, random.Rand() );	
 	}
 	else if ( info.scenario == ALIEN_BASE ) {
-		AppendMapSnippet( 0, 0, 0, "ALIN", 48, false, "TILE", database, dataItem, &mapElement, random.Rand() );	
+		AppendMapSnippet( 0, 0, 0, "ALIN", 48, false, "TILE", database, dataItem, mapElement, random.Rand() );	
 	}
 	else if ( info.scenario == TERRAN_BASE ) {
-		AppendMapSnippet( 0, 0, 0, "BASE", 48, false, "TILE", database, dataItem, &mapElement, random.Rand() );	
+		AppendMapSnippet( 0, 0, 0, "BASE", 48, false, "TILE", database, dataItem, mapElement, random.Rand() );	
 	}
 	else {
 		GLASSERT( 0 );
 	}
 
-
-	mapElement.Print( fp, 2 );
+	XMLPrinter printer( fp );
+	mapElement->Accept( &printer );
 }
 
 

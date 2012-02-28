@@ -26,6 +26,7 @@
 #include "gamelimits.h"
 #include "stats.h"
 #include "../grinliz/glstringutil.h"
+#include "../tinyxml2/tinyxml2.h"
 
 class ModelResource;
 class TiXmlElement;
@@ -296,8 +297,8 @@ public:
 	bool IsNothing() const							{ return itemDef == 0; }
 	bool IsSomething() const						{ return itemDef != 0; }
 
-	void Save( FILE* fp, int depth ) const;
-	void Load( const TiXmlElement* doc, const ItemDefArr& itemDefArr );
+	void Save( tinyxml2::XMLPrinter* printer ) const;
+	void Load( const tinyxml2::XMLElement* doc, const ItemDefArr& itemDefArr );
 
 private:
 	int rounds;
@@ -350,8 +351,8 @@ public:
 	int GetCount( const ItemDef* ) const;	// the number of items, corrected for the rounds
 	int GetCount( int index ) const;
 
-	void Save( FILE* fp, int depth );
-	void Load( const TiXmlElement* mapNode );
+	void Save( tinyxml2::XMLPrinter* printer );
+	void Load( const tinyxml2::XMLElement* mapNode );
 
 	const ModelResource* VisualRep( bool* zRotate ) const;
 

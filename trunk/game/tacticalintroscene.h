@@ -19,7 +19,7 @@
 #include "scene.h"
 #include "unit.h"
 #include "gamelimits.h"
-#include "../tinyxml/tinyxml.h"
+#include "../tinyxml2/tinyxml2.h"
 #include "../shared/gamedbreader.h"
 #include "../gamui/gamui.h"
 #include "../engine/uirendering.h"
@@ -181,7 +181,7 @@ private:
 									const char* type,
 									const gamedb::Reader* database,
 									const gamedb::Item* parent,
-									TiXmlElement* mapElement,
+									tinyxml2::XMLElement* mapElement,
 									int seed );
 
 	grinliz::Random random;

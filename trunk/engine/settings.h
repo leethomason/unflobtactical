@@ -19,6 +19,7 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glstringutil.h"
+#include "../tinyxml2/tinyxml2.h"
 #include <stdio.h>
 
 class TiXmlElement;
@@ -46,8 +47,8 @@ protected:
 	void Load();
 	void Save();
 
-	virtual void ReadAttributes( const TiXmlElement* element );
-	virtual void WriteAttributes( FILE* fp );
+	virtual void ReadAttributes( const tinyxml2::XMLElement* element );
+	virtual void WriteAttributes( tinyxml2::XMLPrinter* fp );
 
 private:
 	static SettingsManager* instance;
