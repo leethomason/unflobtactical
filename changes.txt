@@ -35,7 +35,9 @@
 	- check on Samsung
 
 
-Beta b804
+Beta v2.7 b813
+Adds difficulty selection for the Geo game. Many bug fixes and mainentance issues addressed.
+
 - T3 armor/weapons now always available after research. Region traits determine cost, not availability.
 - scissor rectangle fixed, should clean up right hand edge noise
 - difficulty levels

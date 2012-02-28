@@ -68,6 +68,7 @@ void ModelGroup::Load( const gamedb::Item* item )
 }
 
 
+/*
 void XMLUtil::OpenElement( FILE* fp, int depth, const char* value )
 {
 	Space( fp, depth );
@@ -129,3 +130,5 @@ void XMLUtil::Space( FILE* fp, int depth )
 
 	fprintf( fp, "%s", &space[LEN] - depth*SPACES );
 }
+
+*/

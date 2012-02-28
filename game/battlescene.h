@@ -112,8 +112,8 @@ public:
 	virtual void HandleHotKeyMask( int mask );
 
 	virtual SavePathType CanSave()										{ return SAVEPATH_TACTICAL; }
-	virtual void Save( FILE* fp, int depth );
-	virtual void Load( const TiXmlElement* doc );
+	virtual void Save( tinyxml2::XMLPrinter* );
+	virtual void Load( const tinyxml2::XMLElement* doc );
 
 	// debugging / MapMaker
 	void MouseMove( int x, int y );

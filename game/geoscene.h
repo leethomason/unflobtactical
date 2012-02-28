@@ -217,8 +217,8 @@ public:
 	// Set the storage to "normal" for the region, tech level, and traits.
 	void SetStorageNormal( const Research& research, Storage* storage, bool tech, bool manufacture );
 
-	void Save( FILE* fp, int depth );
-	void Load( const TiXmlElement* doc );
+	void Save( tinyxml2::XMLPrinter* );
+	void Load( const tinyxml2::XMLElement* doc );
 
 private:
 
@@ -268,8 +268,8 @@ public:
 	virtual void Draw3D();
 
 	virtual SavePathType CanSave()										{ return SAVEPATH_GEO; }
-	virtual void Save( FILE* fp, int depth );
-	virtual void Load( const TiXmlElement* doc );
+	virtual void Save( tinyxml2::XMLPrinter* );
+	virtual void Load( const tinyxml2::XMLElement* doc );
 
 	virtual void DrawHUD();
 	virtual void ChildActivated( int childID, Scene* childScene, SceneData* data );

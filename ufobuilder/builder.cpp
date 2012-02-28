@@ -34,7 +34,7 @@
 #include "../grinliz/gldynamic.h"
 #include "../grinliz/glutil.h"
 #include "../grinliz/glstringutil.h"
-#include "../tinyxml/tinyxml.h"
+#include "../tinyxml2/tinyxml2.h"
 
 #include "modelbuilder.h"
 #include "../engine/serialize.h"
@@ -47,6 +47,7 @@
 
 using namespace std;
 using namespace grinliz;
+using namespace tinyxml2;
 
 typedef SDL_Surface* (SDLCALL * PFN_IMG_LOAD) (const char *file);
 PFN_IMG_LOAD libIMG_Load;
@@ -274,14 +275,23 @@ void PutPixel(SDL_Surface *surface, int x, int y, const Color4U8& c )
 }
 
 
-void ParseNames( const TiXmlElement* element, GLString* _assetName, GLString* _fullPath, GLString* _extension )
+template <class STRING>
+void AssignIf( STRING& a, const XMLElement* element, const char* attribute ) {
+	const char* attrib = element->Attribute( attribute );
+	if ( attrib ) {
+		a = element->Attribute( attribute );
+	}
+}
+
+
+void ParseNames( const XMLElement* element, GLString* _assetName, GLString* _fullPath, GLString* _extension )
 {
 	string filename;
-	element->QueryStringAttribute( "filename", &filename );
+	AssignIf( filename, element, "filename" );
 
 	string assetName;
-	element->QueryStringAttribute( "modelName", &assetName );
-	element->QueryStringAttribute( "assetName", &assetName );
+	AssignIf( assetName, element, "modelName" );
+	AssignIf( assetName, element, "assetName" );
 
 	GLString fullIn = inputDirectory.c_str();
 	fullIn += filename.c_str();	
@@ -301,15 +311,15 @@ void ParseNames( const TiXmlElement* element, GLString* _assetName, GLString* _f
 }
 
 
-void ProcessTreeRec( gamedb::WItem* parent, TiXmlElement* ele )
+void ProcessTreeRec( gamedb::WItem* parent, XMLElement* ele )
 {
-	string name = ele->ValueStr();
+	string name = ele->Value();
 	gamedb::WItem* witem = parent->CreateChild( name.c_str() );
 
-	for( TiXmlAttribute* attrib=ele->FirstAttribute(); attrib; attrib=attrib->Next() ) {		
+	for( const XMLAttribute* attrib=ele->FirstAttribute(); attrib; attrib=attrib->Next() ) {		
 		int i;
 
-		if ( TIXML_SUCCESS == attrib->QueryIntValue( &i ) ) {
+		if ( XML_SUCCESS == attrib->QueryIntValue( &i ) ) {
 			witem->SetInt( attrib->Name(), i );
 		}
 		else {
@@ -321,13 +331,13 @@ void ProcessTreeRec( gamedb::WItem* parent, TiXmlElement* ele )
 		witem->SetData( "text", ele->GetText(), strlen( ele->GetText() ) );
 	}
 
-	for( TiXmlElement* child=ele->FirstChildElement(); child; child=child->NextSiblingElement() ) {
+	for( XMLElement* child=ele->FirstChildElement(); child; child=child->NextSiblingElement() ) {
 		ProcessTreeRec( witem, child );
 	}
 }
 
 
-void ProcessTree( TiXmlElement* data )
+void ProcessTree( XMLElement* data )
 {
 	// Create the root tree "research"
 	gamedb::WItem* witem = writer->Root()->FetchChild( "tree" );
@@ -338,7 +348,7 @@ void ProcessTree( TiXmlElement* data )
 
 
 
-void ProcessData( TiXmlElement* data )
+void ProcessData( XMLElement* data )
 {
 	bool compression = true;
 	const char* compress = data->Attribute( "compress" );
@@ -347,7 +357,7 @@ void ProcessData( TiXmlElement* data )
 	}
 
 	string filename;
-	data->QueryStringAttribute( "filename", &filename );
+	AssignIf( filename, data, "filename" );
 	string fullIn = inputDirectory + filename;
 
 	GLString assetName, pathName;
@@ -384,7 +394,7 @@ void ProcessData( TiXmlElement* data )
 }
 
 
-class TextBuilder : public TiXmlVisitor
+class TextBuilder : public XMLVisitor
 {
 public:
 	string str;
@@ -395,7 +405,7 @@ public:
 
 	TextBuilder() : textOn( false ), depth( 0 ) {}
 
-	virtual bool VisitEnter( const TiXmlElement& element, const TiXmlAttribute* firstAttribute )
+	virtual bool VisitEnter( const XMLElement& element, const XMLAttribute* firstAttribute )
 	{
 		++depth;
 
@@ -403,14 +413,14 @@ public:
 		// depth = 2 <p>
 		if ( depth == 2 ) {
 			string platform;
-			int hasPlatform = element.QueryStringAttribute( "system", &platform );
+			AssignIf( platform, &element, "system" );
 
-			if ( hasPlatform == TIXML_NO_ATTRIBUTE || platform == filter )
+			if ( platform.empty() || platform == filter )
 				textOn = true;
 		}
 		return true;
 	}
-	virtual bool VisitExit( const TiXmlElement& element )
+	virtual bool VisitExit( const XMLElement& element )
 	{
 		if ( depth == 2 ) {
 			if ( textOn ) {
@@ -421,22 +431,22 @@ public:
 		--depth;
 		return true;
 	}
-	virtual bool Visit( const TiXmlText& text) {
+	virtual bool Visit( const XMLText& text) {
 		if ( textOn )
-			str += text.ValueStr();
+			str += text.Value();
 		return true;
 	}
 };
 
 
-void ProcessText( TiXmlElement* textEle )
+void ProcessText( XMLElement* textEle )
 {
 	string name;
-	textEle->QueryStringAttribute( "name", &name );
+	AssignIf( name, textEle, "name" );
 	gamedb::WItem* textItem = writer->Root()->FetchChild( "text" )->CreateChild( name.c_str() );
 	int index = 0;
 
-	for( TiXmlElement* pageEle = textEle->FirstChildElement( "page" ); pageEle; pageEle = pageEle->NextSiblingElement( "page" ) ) {
+	for( XMLElement* pageEle = textEle->FirstChildElement( "page" ); pageEle; pageEle = pageEle->NextSiblingElement( "page" ) ) {
 		string pcText, androidText;
 
 		TextBuilder textBuilder;
@@ -479,7 +489,7 @@ void StringToVector( const char* str, Vector3F* vec )
 }
 
 
-void ProcessModel( TiXmlElement* model )
+void ProcessModel( XMLElement* model )
 {
 	int nTotalIndex = 0;
 	int nTotalVertex = 0;
@@ -720,7 +730,7 @@ SDL_Surface* CreateScaledSurface( int w, int h, SDL_Surface* surface )
 }
 
 
-void BlitTexture( const TiXmlElement* element, SDL_Surface* target )
+void BlitTexture( const XMLElement* element, SDL_Surface* target )
 {
 	int sx=0, sy=0, sw=0, sh=0, tx=0, ty=0, tw=target->w, th=target->h;
 	element->QueryIntAttribute( "sx", &sx );
@@ -780,10 +790,10 @@ void BlitTexture( const TiXmlElement* element, SDL_Surface* target )
 }
 
 
-void ProcessTexture( TiXmlElement* texture )
+void ProcessTexture( XMLElement* texture )
 {
 	bool isImage = false;
-	if ( texture->ValueStr() == "image" ) {
+	if ( StrEqual( texture->Value(), "image" )) {
 		isImage = true;
 		printf( "Image" );
 	}
@@ -839,7 +849,7 @@ void ProcessTexture( TiXmlElement* texture )
 	// run through child tags.
 	// interpolate in
 	bool sub=false;
-	for( TiXmlElement* blit=texture->FirstChildElement( "blit" );
+	for( XMLElement* blit=texture->FirstChildElement( "blit" );
 		 blit;
 		 blit=blit->NextSiblingElement( "blit" ) ) 
 	{
@@ -935,7 +945,7 @@ void ProcessTexture( TiXmlElement* texture )
 }
 
 
-void ProcessPalette( TiXmlElement* pal )
+void ProcessPalette( XMLElement* pal )
 {
 	int dx=0;
 	int dy=0;
@@ -981,7 +991,7 @@ void ProcessPalette( TiXmlElement* pal )
 }
 
 
-void ProcessFont( TiXmlElement* font )
+void ProcessFont( XMLElement* font )
 {
 	GLString pathName, assetName;
 	ParseNames( font, &assetName, &pathName, 0 );
@@ -1003,7 +1013,7 @@ void ProcessFont( TiXmlElement* font )
 	for( int i=0; tags[i]; ++i ) {
 		const char* tag = tags[i];
 		
-		const TiXmlElement* element = font->FirstChildElement( tag );
+		const XMLElement* element = font->FirstChildElement( tag );
 		if ( !element ) {
 			char buf[90];
 			SNPrintf( buf, 90, "XML Element %s not found.", tag );
@@ -1011,7 +1021,7 @@ void ProcessFont( TiXmlElement* font )
 		}
 		
 		gamedb::WItem* tagItem = witem->CreateChild( tag );
-		for( const TiXmlAttribute* attrib=element->FirstAttribute();
+		for( const XMLAttribute* attrib=element->FirstAttribute();
 			 attrib;
 			 attrib = attrib->Next() )
 		{
@@ -1020,13 +1030,13 @@ void ProcessFont( TiXmlElement* font )
 	}
 
 	// Character data.
-	const TiXmlElement* charsElement = font->FirstChildElement( "chars" );
+	const XMLElement* charsElement = font->FirstChildElement( "chars" );
 	if ( !charsElement ) {
 		ExitError( "Font", pathName.c_str(), assetName.c_str(), "Font contains no 'chars' XML Element." );
 	}
 
 	gamedb::WItem* charsItem = witem->CreateChild( "chars" );
-	for( const TiXmlElement* charElement = charsElement->FirstChildElement( "char" );
+	for( const XMLElement* charElement = charsElement->FirstChildElement( "char" );
 		 charElement;
 		 charElement = charElement->NextSiblingElement( "char" ) )
 	{
@@ -1037,7 +1047,7 @@ void ProcessFont( TiXmlElement* font )
 		buffer[4] = id;
 		gamedb::WItem* charItem = charsItem->CreateChild( buffer );
 
-		for( const TiXmlAttribute* attrib=charElement->FirstAttribute();
+		for( const XMLAttribute* attrib=charElement->FirstAttribute();
 			 attrib;
 			 attrib = attrib->Next() )
 		{
@@ -1047,12 +1057,12 @@ void ProcessFont( TiXmlElement* font )
 		}
 	}
 
-	const TiXmlElement* kerningsElement = font->FirstChildElement( "kernings" );
+	const XMLElement* kerningsElement = font->FirstChildElement( "kernings" );
 	if ( !kerningsElement ) {
 		return;
 	}
 	gamedb::WItem* kerningsItem = witem->CreateChild( "kernings" );
-	for( const TiXmlElement* kerningElement = kerningsElement->FirstChildElement( "kerning" );
+	for( const XMLElement* kerningElement = kerningsElement->FirstChildElement( "kerning" );
 		 kerningElement;
 		 kerningElement = kerningElement->NextSiblingElement( "kerning" ) )
 	{
@@ -1140,10 +1150,10 @@ int main( int argc, char* argv[] )
 		}
 	}
 
-	TiXmlDocument xmlDoc;
-	xmlDoc.LoadFile( inputFullPath );
+	XMLDocument xmlDoc;
+	xmlDoc.LoadFile( inputFullPath.c_str() );
 	if ( xmlDoc.Error() || !xmlDoc.FirstChildElement() ) {
-		printf( "Failed to parse XML file. err=%s\n", xmlDoc.ErrorDesc() );
+		xmlDoc.PrintError();
 		exit( 2 );
 	}
 
@@ -1152,31 +1162,31 @@ int main( int argc, char* argv[] )
 	// Remove the old table.
 	writer = new gamedb::Writer();
 
-	for( TiXmlElement* child = xmlDoc.FirstChildElement()->FirstChildElement();
+	for( XMLElement* child = xmlDoc.FirstChildElement()->FirstChildElement();
 		 child;
 		 child = child->NextSiblingElement() )
 	{
-		if (    child->ValueStr() == "texture" 
-			 || child->ValueStr() == "image" ) 
+		if (    StrEqual( child->Value(), "texture" )
+			 || StrEqual( child->Value(), "image" ))
 		{
 			ProcessTexture( child );
 		}
-		else if ( child->ValueStr() == "model" ) {
+		else if ( StrEqual( child->Value(),  "model" )) {
 			ProcessModel( child );
 		}
-		else if ( child->ValueStr() == "data" ) {
+		else if ( StrEqual( child->Value(), "data" )) {
 			ProcessData( child );
 		}
-		else if ( child->ValueStr() == "text" ) {
+		else if ( StrEqual( child->Value(), "text" )) {
 			ProcessText( child );
 		}
-		else if ( child->ValueStr() == "tree" ) {
+		else if ( StrEqual( child->Value(), "tree" )) {
 			ProcessTree( child );
 		}
-		else if ( child->ValueStr() == "palette" ) {
+		else if ( StrEqual( child->Value(), "palette" )) {
 			ProcessPalette( child );
 		}
-		else if ( child->ValueStr() == "font" ) {
+		else if ( StrEqual( child->Value(), "font" )) {
 			ProcessFont( child );
 		}
 		else {

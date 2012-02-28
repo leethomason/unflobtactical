@@ -17,6 +17,7 @@
 #define TACMAP_INCLUDED
 
 #include "../engine/map.h"
+#include "../tinyxml2/tinyxml2.h"
 
 
 class Storage;
@@ -59,8 +60,8 @@ public:
 	const Model* GetLanderModel();
 
 protected:
-	virtual void SubSave( FILE* fp, int depth );
-	virtual void SubLoad( const TiXmlElement* mapNode );
+	virtual void SubSave( tinyxml2::XMLPrinter* printer );
+	virtual void SubLoad( const tinyxml2::XMLElement* mapNode );
 
 private:
 	const MapItem* FindLander();
@@ -69,8 +70,8 @@ private:
 		Storage* storage;
 		Model* crate;
 	};
-	void SaveDebris( const Debris& d, FILE* fp, int depth );
-	void LoadDebris( const TiXmlElement* mapNode );
+	void SaveDebris( const Debris& d, tinyxml2::XMLPrinter* printer );
+	void LoadDebris( const tinyxml2::XMLElement* mapNode );
 
 	CDynArray< Debris > debris;
 	const ItemDefArr& gameItemDefArr;

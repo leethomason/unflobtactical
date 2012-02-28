@@ -129,10 +129,7 @@
     <ClCompile Include="game\tacticalunitscorescene.cpp" />
     <ClCompile Include="game\ufosound.cpp" />
     <ClCompile Include="game\unit.cpp" />
-    <ClCompile Include="tinyxml\tinystr.cpp" />
-    <ClCompile Include="tinyxml\tinyxml.cpp" />
-    <ClCompile Include="tinyxml\tinyxmlerror.cpp" />
-    <ClCompile Include="tinyxml\tinyxmlparser.cpp" />
+    <ClCompile Include="tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="win32\audio.cpp" />
     <ClCompile Include="win32\glew.c" />
     <ClCompile Include="win32\main.cpp" />
@@ -201,8 +198,7 @@
     <ClInclude Include="game\targets.h" />
     <ClInclude Include="game\ufosound.h" />
     <ClInclude Include="game\unit.h" />
-    <ClInclude Include="tinyxml\tinystr.h" />
-    <ClInclude Include="tinyxml\tinyxml.h" />
+    <ClInclude Include="tinyxml2\tinyxml2.h" />
     <ClInclude Include="win32\audio.h" />
     <ClInclude Include="win32\glew.h" />
     <ClInclude Include="win32\wglew.h" />

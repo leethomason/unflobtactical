@@ -1,6 +1,8 @@
 #include "battledata.h"
 #include "../engine/serialize.h"
-#include "../tinyxml/tinyxml.h"
+#include "../tinyxml2/tinyxml2.h"
+
+using namespace tinyxml2;
 
 void BattleData::CopyUnit( int i, const Unit& copyFrom )
 {
@@ -24,44 +26,42 @@ int BattleData::CalcResult() const
 }
 
 
-void BattleData::Save( FILE* fp, int depth )
+void BattleData::Save( XMLPrinter* printer )
 {
-	XMLUtil::OpenElement( fp, depth, "BattleData" );
-	XMLUtil::Attribute( fp, "dayTime", dayTime );
-	XMLUtil::Attribute( fp, "scenario", scenario );
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "BattleData" );
+	printer->PushAttribute( "dayTime", dayTime );
+	printer->PushAttribute( "scenario", scenario );
 
-	storage.Save( fp, depth+1 );
+	storage.Save( printer );
 
-	XMLUtil::OpenElement( fp, depth+1, "Units" );
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "Units" );
 	for( int i=0; i<MAX_UNITS; ++i ) {
-		units[i].Save( fp, depth+2 );
+		units[i].Save( printer );
 	}
-	XMLUtil::CloseElement( fp, depth+1, "Units" );
-	XMLUtil::CloseElement( fp, depth, "BattleData" );
+	printer->CloseElement();	// Units
+	printer->CloseElement();	// BattleData
 }
 
 
-void BattleData::Load( const TiXmlElement* doc )
+void BattleData::Load( const XMLElement* doc )
 {
 	for( int i=0; i<MAX_UNITS; ++i )
 		units[i].Free();
 	storage.Clear();
 
-	const TiXmlElement* ele = doc->FirstChildElement( "BattleData" );
+	const XMLElement* ele = doc->FirstChildElement( "BattleData" );
 	GLASSERT( ele );
 
 	ele->QueryBoolAttribute( "dayTime", &dayTime );
 	ele->QueryIntAttribute( "scenario", &scenario );
 
 	storage.Load( ele );
-	const TiXmlElement* unitsEle = ele->FirstChildElement( "Units" );
+	const XMLElement* unitsEle = ele->FirstChildElement( "Units" );
 	GLASSERT( unitsEle );
 
 	int team[3] = { TERRAN_UNITS_START, CIV_UNITS_START, ALIEN_UNITS_START };
 	if ( unitsEle ) {
-		for( const TiXmlElement* unitElement = unitsEle->FirstChildElement( "Unit" );
+		for( const XMLElement* unitElement = unitsEle->FirstChildElement( "Unit" );
 			 unitElement;
 			 unitElement = unitElement->NextSiblingElement( "Unit" ) ) 
 		{

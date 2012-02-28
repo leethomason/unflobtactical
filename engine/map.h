@@ -26,6 +26,7 @@
 #include "../grinliz/glgeometry.h"
 
 #include "../micropather/micropather.h"
+#include "../tinyxml2/tinyxml2.h"
 
 #include "../shared/glmap.h"
 
@@ -354,8 +355,8 @@ public:
 	bool ProcessDoors( const grinliz::Vector2I* openers, int nOpeners );
 	void SetPyro( int x, int y, int duration, bool fire, bool flare );
 
-	void Save( FILE* fp, int depth );
-	void Load( const TiXmlElement* mapNode );
+	void Save( tinyxml2::XMLPrinter* );
+	void Load( const tinyxml2::XMLElement* mapNode );
 
 
 	static void MapImageToWorld( int x, int y, int w, int h, int tileRotation, Matrix2I* mat );
@@ -370,8 +371,8 @@ public:
 	grinliz::Random random;
 
 protected:
-	virtual void SubSave( FILE* fp, int depth ) = 0;
-	virtual void SubLoad( const TiXmlElement* mapNode ) = 0;
+	virtual void SubSave( tinyxml2::XMLPrinter* ) = 0;
+	virtual void SubLoad( const tinyxml2::XMLElement* mapNode ) = 0;
 	virtual void InitWalkingMapAtoms( gamui::RenderAtom* atoms, int nWalkingMaps ) = 0;	// 3 colors per walking map
 
 	// 0,90,180,270 rotation

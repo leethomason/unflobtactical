@@ -191,11 +191,15 @@ class BitArray
 		ClearAll();
 		for( int i=0; i<TOTAL_MEM32; ++i ) {
 			for( int nybble = 7; nybble >= 0; --nybble, ++str ) {
-				if ( *str >= '0' && *str <= '9') {
-					array[i] |= (*str-'0')<<(nybble*4);
+				char s = *str;
+				if ( s == '\n' ) {
+					continue;	// ignore newlines
+				} 
+				else if ( s >= '0' && s <= '9') {
+					array[i] |= (s-'0')<<(nybble*4);
 				}
-				else if (*str >= 'a' && *str <= 'f' ) {
-					array[i] |= (*str-'a'+10)<<(nybble*4);
+				else if (s >= 'a' && s <= 'f' ) {
+					array[i] |= (s-'a'+10)<<(nybble*4);
 				}
 				else {
 					GLASSERT( 0 );

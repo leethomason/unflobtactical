@@ -49,8 +49,8 @@ protected:
 	GameSettingsManager( const char* path );
 	virtual ~GameSettingsManager()	{ gameInstance = 0; }
 
-	virtual void ReadAttributes( const TiXmlElement* element );
-	virtual void WriteAttributes( FILE* fp );
+	virtual void ReadAttributes( const tinyxml2::XMLElement* element );
+	virtual void WriteAttributes( tinyxml2::XMLPrinter* );
 
 private:
 	static GameSettingsManager* gameInstance;

@@ -20,11 +20,12 @@
 #include "gamelimits.h"
 #include "../engine/particleeffect.h"
 #include "../engine/particle.h"
-#include "../tinyxml/tinyxml.h"
+#include "../tinyxml2/tinyxml2.h"
 #include "../grinliz/glstringutil.h"
 #include "stats.h"
 
 using namespace grinliz;
+using namespace tinyxml2;
 
 float WeaponItemDef::accPredicted = 0;
 int   WeaponItemDef::accHit = 0;
@@ -305,20 +306,20 @@ void Item::UseRounds( int i )
 }
 
 
-void Item::Save( FILE* fp, int depth ) const
+void Item::Save( XMLPrinter* printer ) const
 {
 	if ( itemDef && rounds > 0 ) {
-		XMLUtil::OpenElement( fp, depth, "Item" );
-		XMLUtil::Attribute( fp, "name", itemDef->name );
+		printer->OpenElement( "Item" );
+		printer->PushAttribute( "name", itemDef->name );
 		if ( rounds != 1 ) {
-			XMLUtil::Attribute( fp, "rounds", rounds );
+			printer->PushAttribute( "rounds", rounds );
 		}
-		XMLUtil::SealCloseElement( fp );
+		printer->CloseElement();
 	}
 }
 
 
-void Item::Load( const TiXmlElement* ele, const ItemDefArr& itemDefArr )
+void Item::Load( const XMLElement* ele, const ItemDefArr& itemDefArr )
 {
 	Clear();
 	GLASSERT( StrEqual( ele->Value(), "Item" ) );
@@ -486,30 +487,29 @@ int Storage::GetCount( const ItemDef* itemDef) const
 }
 
 
-void Storage::Save( FILE* fp, int depth )
+void Storage::Save( XMLPrinter* printer )
 {
-	XMLUtil::OpenElement( fp, depth, "Storage" );
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "Storage" );
 
 	for( int i=0; i<itemDefArr.Size(); ++i ) {
 		if ( rounds[i] > 0 ) {
-			XMLUtil::OpenElement( fp, depth+1, "Rounds" );
-			XMLUtil::Attribute( fp, "name", itemDefArr.Query(i)->name );
-			XMLUtil::Attribute( fp, "n", rounds[i] );
-			XMLUtil::SealCloseElement( fp );
+			printer->OpenElement( "Rounds" );
+			printer->PushAttribute( "name", itemDefArr.Query(i)->name );
+			printer->PushAttribute( "n", rounds[i] );
+			printer->CloseElement();
 		}
 	}
 
-	XMLUtil::CloseElement( fp, depth, "Storage" );
+	printer->CloseElement();
 }
 
 
-void Storage::Load( const TiXmlElement* element )
+void Storage::Load( const XMLElement* element )
 {
 	memset( rounds, 0, sizeof(int)*EL_MAX_ITEM_DEFS );
-	const TiXmlElement* storageElement = element->FirstChildElement( "Storage" );
+	const XMLElement* storageElement = element->FirstChildElement( "Storage" );
 	if ( storageElement ) {
-		for( const TiXmlElement* roundElement = storageElement->FirstChildElement( "Rounds" );
+		for( const XMLElement* roundElement = storageElement->FirstChildElement( "Rounds" );
 			 roundElement;
 			 roundElement = roundElement->NextSiblingElement( "Rounds" ) )
 		{

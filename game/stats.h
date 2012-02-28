@@ -19,6 +19,7 @@
 #include "../grinliz/gldebug.h"
 #include "../grinliz/gltypes.h"
 #include "../grinliz/glvector.h"
+#include "../tinyxml2/tinyxml2.h"
 #include "gamelimits.h"
 
 #include <stdio.h>
@@ -73,8 +74,8 @@ public:
 	float Reaction() const		{ return reaction; }		// 0.0-1.0. The chance of reaction fire
 	float Constitution() const	{ return constitution; }	// 0-100
 
-	void Save( FILE* fp, int depth ) const;
-	void Load( const TiXmlElement* doc );
+	void Save( tinyxml2::XMLPrinter* printer ) const;
+	void Load( const tinyxml2::XMLElement* doc );
 
 private:
 	void CalcBaselines();

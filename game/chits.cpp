@@ -26,7 +26,7 @@
 #include "ufosound.h"
 
 using namespace grinliz;
-
+using namespace tinyxml2;
 
 void Chit::SetMapPos( int x, int y ) 
 { 
@@ -42,15 +42,15 @@ void Chit::SetPos( float x, float y ) {
 }
 
 
-void Chit::Save( FILE* fp, int depth )
+void Chit::Save( XMLPrinter* printer )
 {
-	XMLUtil::Attribute( fp, "pos.x", pos.x );
-	XMLUtil::Attribute( fp, "pos.y", pos.y );
-	XMLUtil::Attribute( fp, "id", id );
+	printer->PushAttribute( "pos.x", pos.x );
+	printer->PushAttribute( "pos.y", pos.y );
+	printer->PushAttribute( "id", id );
 }
 
 
-void Chit::Load( const TiXmlElement* doc )
+void Chit::Load( const XMLElement* doc )
 {
 	doc->QueryFloatAttribute( "pos.x", &pos.x );
 	doc->QueryFloatAttribute( "pos.y", &pos.y );
@@ -138,25 +138,25 @@ void UFOChit::Init()
 }
 
 
-void UFOChit::Save( FILE* fp, int depth )
+void UFOChit::Save( XMLPrinter* printer )
 {
-	XMLUtil::OpenElement( fp, depth, "UFOChit" );
-	Chit::Save( fp, depth );
+	printer->OpenElement( "UFOChit" );
+	Chit::Save( printer );
 
-	XMLUtil::Attribute( fp, "dest.x", dest.x );
-	XMLUtil::Attribute( fp, "dest.y", dest.y );
-	XMLUtil::Attribute( fp, "type", type );
-	XMLUtil::Attribute( fp, "ai", ai );
-	XMLUtil::Attribute( fp, "speed", speed );
-	XMLUtil::Attribute( fp, "hp", hp );
-	XMLUtil::Attribute( fp, "effectTimer", effectTimer );
-	XMLUtil::Attribute( fp, "jobTimer", jobTimer );
+	printer->PushAttribute( "dest.x", dest.x );
+	printer->PushAttribute( "dest.y", dest.y );
+	printer->PushAttribute( "type", type );
+	printer->PushAttribute( "ai", ai );
+	printer->PushAttribute( "speed", speed );
+	printer->PushAttribute( "hp", hp );
+	printer->PushAttribute( "effectTimer", effectTimer );
+	printer->PushAttribute( "jobTimer", jobTimer );
 
-	XMLUtil::SealCloseElement( fp );
+	printer->CloseElement();	// UFOChit
 }
 
 
-void UFOChit::Load( const TiXmlElement* doc )
+void UFOChit::Load( const XMLElement* doc )
 {
 	Chit::Load( doc );
 
@@ -525,18 +525,18 @@ CropCircle::~CropCircle()
 }
 
 
-void CropCircle::Save( FILE* fp, int depth )
+void CropCircle::Save( XMLPrinter* printer )
 {
-	XMLUtil::OpenElement( fp, depth, "CropCircle" );
-	Chit::Save( fp, depth );
+	printer->OpenElement( "CropCircle" );
+	Chit::Save( printer );
 
-	XMLUtil::Attribute( fp, "jobTimer", jobTimer );
+	printer->PushAttribute( "jobTimer", jobTimer );
 
-	XMLUtil::SealCloseElement( fp );
+	printer->CloseElement();	// CropCirle
 }
 
 
-void CropCircle::Load( const TiXmlElement* doc )
+void CropCircle::Load( const XMLElement* doc )
 {
 	Chit::Load( doc );
 	doc->QueryUnsignedAttribute( "jobTimer", &jobTimer );
@@ -575,7 +575,7 @@ void CityChit::Init()
 }
 
 
-void CityChit::Save( FILE* fp, int depth )
+void CityChit::Save( XMLPrinter* printer )
 {
 	// Don't save or load. Generated from region data.
 	/*
@@ -589,7 +589,7 @@ void CityChit::Save( FILE* fp, int depth )
 }
 
 
-void CityChit::Load( const TiXmlElement* doc )
+void CityChit::Load( const XMLElement* doc )
 {
 	// Don't save or load. Generated from region data.
 	/*
@@ -644,38 +644,34 @@ BaseChit::~BaseChit()
 }
 
 
-void BaseChit::Save( FILE* fp, int depth )
+void BaseChit::Save( XMLPrinter* printer )
 {
-	XMLUtil::OpenElement( fp, depth, "BaseChit" );
-	Chit::Save( fp, depth );
+	printer->OpenElement( "BaseChit" );
+	Chit::Save( printer );
 
-	XMLUtil::Attribute( fp, "index", index );
-	XMLUtil::Attribute( fp, "nScientists", nScientists );
-	XMLUtil::SealElement( fp );
+	printer->PushAttribute( "index", index );
+	printer->PushAttribute( "nScientists", nScientists );
 
-	storage->Save( fp, depth+1 );
+	storage->Save( printer );
 	
-	XMLUtil::OpenElement( fp, depth+1, "Facilities" );
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "Facilities" );
 	for( int i=0; i<NUM_FACILITIES; ++i ) {
-		XMLUtil::OpenElement( fp, depth+2, "Facility" );
-		XMLUtil::Attribute( fp, "facilityStatus", facilityStatus[i] );
-		XMLUtil::SealCloseElement( fp );
+		printer->OpenElement( "Facility" );
+		printer->PushAttribute( "facilityStatus", facilityStatus[i] );
+		printer->CloseElement();
 	}
-	XMLUtil::CloseElement( fp, depth+1, "Facilities" );
+	printer->CloseElement();	// Facilities
 
-	XMLUtil::OpenElement( fp, depth+1, "Units" );
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "Units" );
 	for( int i=0; i<MAX_TERRANS; ++i ) {
-		units[i].Save( fp, depth+2 );
+		units[i].Save( printer );
 	}
-	XMLUtil::CloseElement( fp, depth+1, "Units" );
-
-	XMLUtil::CloseElement( fp, depth, "BaseChit" );
+	printer->CloseElement();	// Units
+	printer->CloseElement();	// BaseChit
 }
 
 
-void BaseChit::Load( const TiXmlElement* doc, Game* game )
+void BaseChit::Load( const XMLElement* doc, Game* game )
 {
 	Chit::Load( doc );
 	doc->QueryIntAttribute( "index", &index );
@@ -684,18 +680,18 @@ void BaseChit::Load( const TiXmlElement* doc, Game* game )
 	storage->Clear();
 	storage->Load( doc );
 
-	const TiXmlElement* facilities = doc->FirstChildElement( "Facilities" );
+	const XMLElement* facilities = doc->FirstChildElement( "Facilities" );
 	if ( facilities ) {
 		int i=0;
-		for( const TiXmlElement* f=facilities->FirstChildElement( "Facility" ); f && i<NUM_FACILITIES; f=f->NextSiblingElement( "Facility" ), ++i ) {
+		for( const XMLElement* f=facilities->FirstChildElement( "Facility" ); f && i<NUM_FACILITIES; f=f->NextSiblingElement( "Facility" ), ++i ) {
 			f->QueryIntAttribute( "facilityStatus", &facilityStatus[i] );
 		}
 	}
 
-	const TiXmlElement* unitsEle = doc->FirstChildElement( "Units" );
+	const XMLElement* unitsEle = doc->FirstChildElement( "Units" );
 	if ( unitsEle ) {
 		int i=0;
-		for( const TiXmlElement* unitEle=unitsEle->FirstChildElement( "Unit" ); unitEle && i<MAX_TERRANS; unitEle=unitEle->NextSiblingElement( "Unit" ), ++i ) {
+		for( const XMLElement* unitEle=unitsEle->FirstChildElement( "Unit" ); unitEle && i<MAX_TERRANS; unitEle=unitEle->NextSiblingElement( "Unit" ), ++i ) {
 			units[i].Load( unitEle, game->GetItemDefArr() );
 		}
 	}
@@ -830,23 +826,23 @@ void CargoChit::Init()
 }
 
 
-void CargoChit::Save( FILE* fp, int depth )
+void CargoChit::Save( XMLPrinter* printer )
 {
-	XMLUtil::OpenElement( fp, depth, "CargoChit" );
-	Chit::Save( fp, depth );
+	printer->OpenElement( "CargoChit" );
+	Chit::Save( printer );
 
-	XMLUtil::Attribute( fp, "type", type );
-	XMLUtil::Attribute( fp, "outbound", outbound );
-	XMLUtil::Attribute( fp, "origin.x", origin.x );
-	XMLUtil::Attribute( fp, "origin.y", origin.y );
-	XMLUtil::Attribute( fp, "dest.x", dest.x );
-	XMLUtil::Attribute( fp, "dest.y", dest.y );
+	printer->PushAttribute( "type", type );
+	printer->PushAttribute( "outbound", outbound );
+	printer->PushAttribute( "origin.x", origin.x );
+	printer->PushAttribute( "origin.y", origin.y );
+	printer->PushAttribute( "dest.x", dest.x );
+	printer->PushAttribute( "dest.y", dest.y );
 
-	XMLUtil::SealCloseElement( fp );
+	printer->CloseElement();
 }
 
 
-void CargoChit::Load( const TiXmlElement* doc )
+void CargoChit::Load( const XMLElement* doc )
 {
 	Chit::Load( doc );
 	doc->QueryIntAttribute( "type", &type );
@@ -1111,28 +1107,26 @@ UFOChit* ChitBag::GetUFOBase()
 }
 
 
-void ChitBag::Save( FILE* fp, int depth )
+void ChitBag::Save( XMLPrinter* printer )
 {
-	XMLUtil::OpenElement( fp, depth, "ChitBag" );
-	XMLUtil::Attribute( fp, "battleUFOID", battleUFOID );
-	XMLUtil::Attribute( fp, "battleLanderID", battleLanderID );
-	XMLUtil::Attribute( fp, "battleScenario", battleScenario );
-
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "ChitBag" );
+	printer->PushAttribute( "battleUFOID", battleUFOID );
+	printer->PushAttribute( "battleLanderID", battleLanderID );
+	printer->PushAttribute( "battleScenario", battleScenario );
 
 	// Save all the chits. But the bases at the bottom for readability.
 	for( int i=0; i<2; ++i ) {
 		for( Chit* it=Begin(); it!=End(); it=it->Next() ) {
 			if ( i ^ (it->IsBaseChit() ? 0 : 1 ) )
-				it->Save( fp, depth+1 );
+				it->Save( printer );
 		}
 	}
-	XMLUtil::CloseElement( fp, depth, "ChitBag" );
+	printer->CloseElement();	// ChitBag
 
 }
 
 
-void ChitBag::Load( const TiXmlElement* doc, 
+void ChitBag::Load( const XMLElement* doc, 
 					SpaceTree* tree, 
 					const ItemDefArr& arr, 
 					Game* game )
@@ -1140,14 +1134,14 @@ void ChitBag::Load( const TiXmlElement* doc,
 	Vector2F v0 = {0,0}, v1 = {0,0};
 	Vector2I vi0 = {0,0}, vi1 = {0,0};
 
-	const TiXmlElement* bag = doc->FirstChildElement( "ChitBag" );
+	const XMLElement* bag = doc->FirstChildElement( "ChitBag" );
 	Clear();
 	if ( bag ) {
 		bag->QueryIntAttribute( "battleUFOID", &battleUFOID );
 		bag->QueryIntAttribute( "battleLanderID", &battleLanderID );
 		bag->QueryIntAttribute( "battleScenario", &battleScenario );
 
-		for( const TiXmlElement* chitEle = bag->FirstChildElement(); chitEle; chitEle=chitEle->NextSiblingElement() ) {
+		for( const XMLElement* chitEle = bag->FirstChildElement(); chitEle; chitEle=chitEle->NextSiblingElement() ) {
 			if ( StrEqual( chitEle->Value(), "UFOChit" ) ) {
 				UFOChit* ufoChit = new UFOChit( tree, 0, v0, v1 );
 				ufoChit->Load( chitEle );

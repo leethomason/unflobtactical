@@ -27,7 +27,7 @@
 #include "../engine/particleeffect.h"
 #include "../engine/particle.h"
 
-#include "../tinyxml/tinyxml.h"
+#include "../tinyxml2/tinyxml2.h"
 
 #include "../grinliz/glstringutil.h"
 #include "../grinliz/glrectangle.h"
@@ -35,6 +35,7 @@
 
 using namespace grinliz;
 using namespace micropather;
+using namespace tinyxml2;
 
 
 const float DIAGONAL_COST = 1.414f;
@@ -953,66 +954,62 @@ void Map::DeleteItem( MapItem* item )
 }
 
 
-void Map::Save( FILE* fp, int depth )
+void Map::Save( XMLPrinter* printer )
 {
 
-	XMLUtil::OpenElement( fp, depth, "Map" );
-	XMLUtil::Attribute( fp, "sizeX", width );
-	XMLUtil::Attribute( fp, "sizeY", height );
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "Map" );
+	printer->PushAttribute( "sizeX", width );
+	printer->PushAttribute( "sizeY", height );
 
 	if ( !Engine::mapMakerMode ) {
 
-		XMLUtil::OpenElement( fp, depth+1, "Seen" );
-		XMLUtil::SealElement( fp );
+		printer->OpenElement( "Seen" );
 	
 		char buf[BitArray<Map::SIZE, Map::SIZE, 1>::STRING_SIZE];
 		pastSeenFOW.ToString( buf );
-		XMLUtil::Text( fp, buf );
+		printer->PushText( buf );
 
-		XMLUtil::CloseElement( fp, depth+1, "Seen" );
+		printer->CloseElement();	// Seen
 	}
 
-	SubSave( fp, depth+1 );
+	SubSave( printer );
 
-	XMLUtil::OpenElement( fp, depth+1, "Images" );
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "Images" );
 
 	for( int i=0; i<nImageData; ++i ) {
-		XMLUtil::OpenElement( fp, depth+2, "Image" );
+		printer->OpenElement( "Image" );
 
-		XMLUtil::Attribute( fp, "x", imageData[i].x );
-		XMLUtil::Attribute( fp, "y", imageData[i].y );
-		XMLUtil::Attribute( fp, "size", imageData[i].size );
-		XMLUtil::Attribute( fp, "tileRotation", imageData[i].tileRotation );
-		XMLUtil::Attribute( fp, "name", imageData[i].name.c_str() );
+		printer->PushAttribute( "x", imageData[i].x );
+		printer->PushAttribute( "y", imageData[i].y );
+		printer->PushAttribute( "size", imageData[i].size );
+		printer->PushAttribute( "tileRotation", imageData[i].tileRotation );
+		printer->PushAttribute( "name", imageData[i].name.c_str() );
 
-		XMLUtil::SealCloseElement( fp );
+		printer->CloseElement();	// Image
 	}
-	XMLUtil::CloseElement( fp, depth+1, "Images" );
+	printer->CloseElement();	// Images
 
-	XMLUtil::OpenElement( fp, depth+1, "PyroGroup" );
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "PyroGroup" );
 	for( int i=0; i<SIZE*SIZE; ++i ) {
 		if ( pyro[i] ) {
 			int y = i / SIZE;
 			int x = i - SIZE*y;
 
-			XMLUtil::OpenElement( fp, depth+2, "Pyro" );
-			XMLUtil::Attribute( fp, "x", x );
-			XMLUtil::Attribute( fp, "y", y );
-			XMLUtil::Attribute( fp, "fire", PyroFire( x, y ) ? 1 : 0 );
-			XMLUtil::Attribute( fp, "flare", PyroFlare( x, y ) ? 1 : 0 );
-			XMLUtil::Attribute( fp, "duration", PyroDuration( x, y ) );
-			XMLUtil::SealCloseElement( fp );
+			printer->OpenElement( "Pyro" );
+			printer->PushAttribute( "x", x );
+			printer->PushAttribute( "y", y );
+			printer->PushAttribute( "fire", PyroFire( x, y ) ? 1 : 0 );
+			printer->PushAttribute( "flare", PyroFlare( x, y ) ? 1 : 0 );
+			printer->PushAttribute( "duration", PyroDuration( x, y ) );
+			printer->CloseElement();	// Pyro
 		}
 	}
-	XMLUtil::CloseElement( fp, depth+1, "PyroGroup" );
-	XMLUtil::CloseElement( fp, depth, "Map" );
+	printer->CloseElement();	// PyroGroup
+	printer->CloseElement();	// Map
 }
 
 
-void Map::Load( const TiXmlElement* mapElement )
+void Map::Load( const XMLElement* mapElement )
 {
 	GLASSERT( mapElement );
 	if ( strcmp( mapElement->Value(), "Game" ) == 0 ) {
@@ -1029,7 +1026,7 @@ void Map::Load( const TiXmlElement* mapElement )
 	nImageData = 0;
 
 	pastSeenFOW.ClearAll();
-	const TiXmlElement* pastSeenElement = mapElement->FirstChildElement( "Seen" );
+	const XMLElement* pastSeenElement = mapElement->FirstChildElement( "Seen" );
 	if ( pastSeenElement ) {
 		const char* p = pastSeenElement->GetText();
 		if ( p ) {
@@ -1037,9 +1034,9 @@ void Map::Load( const TiXmlElement* mapElement )
 		}
 	}
 
-	const TiXmlElement* imagesElement = mapElement->FirstChildElement( "Images" );
+	const XMLElement* imagesElement = mapElement->FirstChildElement( "Images" );
 	if ( imagesElement ) {
-		for(	const TiXmlElement* image = imagesElement->FirstChildElement( "Image" );
+		for(	const XMLElement* image = imagesElement->FirstChildElement( "Image" );
 				image;
 				image = image->NextSiblingElement( "Image" ) )
 		{
@@ -1079,9 +1076,9 @@ void Map::Load( const TiXmlElement* mapElement )
 
 	SubLoad( mapElement );
 
-	const TiXmlElement* pyroGroupElement = mapElement->FirstChildElement( "PyroGroup" );
+	const XMLElement* pyroGroupElement = mapElement->FirstChildElement( "PyroGroup" );
 	if ( pyroGroupElement ) {
-		for( const TiXmlElement* pyroElement = pyroGroupElement->FirstChildElement( "Pyro" );
+		for( const XMLElement* pyroElement = pyroGroupElement->FirstChildElement( "Pyro" );
 			 pyroElement;
 			 pyroElement = pyroElement->NextSiblingElement( "Pyro" ) )
 		{

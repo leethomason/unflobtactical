@@ -17,7 +17,7 @@
 #include "game.h"
 #include "../engine/engine.h"
 #include "material.h"
-#include "../tinyxml/tinyxml.h"
+#include "../tinyxml2/tinyxml2.h"
 #include "../grinliz/glstringutil.h"
 #include "ai.h"
 #include "ufosound.h"
@@ -25,6 +25,7 @@
 #include "../engine/loosequadtree.h"
 
 using namespace grinliz;
+using namespace tinyxml2;
 
 // Name first name length: 6
 const char* gMaleFirstNames[64] = 
@@ -493,9 +494,10 @@ void Unit::NewTurn()
 
 
 
-void Unit::Save( FILE* fp, int depth ) const
+void Unit::Save( XMLPrinter* printer ) const
 {
 	if ( status != STATUS_NOT_INIT ) {
+		/*
 		XMLUtil::OpenElement( fp, depth, "Unit" );
 
 		XMLUtil::Attribute( fp, "team", team );
@@ -518,11 +520,32 @@ void Unit::Save( FILE* fp, int depth ) const
 		XMLUtil::Attribute( fp, "yRot", rot );
 
 		XMLUtil::SealElement( fp );
+		*/
 
-		stats.Save( fp, depth+1 );
-		inventory.Save( fp, depth+1 );
+		printer->OpenElement( "Unit" );
+		XML_PUSH_ATTRIB( printer, team );
+		XML_PUSH_ATTRIB( printer, type );
+		XML_PUSH_ATTRIB( printer, status );
+		XML_PUSH_ATTRIB( printer, body );
+		XML_PUSH_ATTRIB( printer, version );
+		XML_PUSH_ATTRIB( printer, hp );
+		XML_PUSH_ATTRIB( printer, kills );
+		XML_PUSH_ATTRIB( printer, nMissions );
+		XML_PUSH_ATTRIB( printer, allMissionKills );
+		XML_PUSH_ATTRIB( printer, allMissionOvals );
+		XML_PUSH_ATTRIB( printer, gunner );
+		XML_PUSH_ATTRIB( printer, tu );
+		if ( ai == AI::AI_GUARD ) {
+			printer->PushAttribute( "ai", "guard" );
+		}
+		printer->PushAttribute( "modelX", pos.x );
+		printer->PushAttribute( "modelZ", pos.z );
+		printer->PushAttribute( "yRot", rot );
 
-		XMLUtil::CloseElement( fp, depth, "Unit" );
+		stats.Save( printer );
+		inventory.Save( printer );
+
+		printer->CloseElement();
 	}
 }
 
@@ -539,7 +562,7 @@ void Unit::InitLoc( TacMap* tacmap )
 }
 
 
-void Unit::Load( const TiXmlElement* ele, const ItemDefArr& itemDefArr )
+void Unit::Load( const XMLElement* ele, const ItemDefArr& itemDefArr )
 {
 	Free();
 

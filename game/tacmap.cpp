@@ -19,9 +19,10 @@
 
 #include "../engine/loosequadtree.h"
 #include "../grinliz/glrectangle.h"
-#include "../tinyxml/tinyxml.h"
+#include "../tinyxml2/tinyxml2.h"
 
 using namespace grinliz;
+using namespace tinyxml2;
 
 static const int HP_LOW		= 10;
 static const int HP_MEDLOW		= 40;
@@ -337,20 +338,19 @@ void TacMap::PopLocation( int team, bool guard, grinliz::Vector2I* pos, float* r
 
 
 
-void TacMap::SaveDebris( const Debris& d, FILE* fp, int depth )
+void TacMap::SaveDebris( const Debris& d, XMLPrinter* printer )
 {
-	XMLUtil::OpenElement( fp, depth, "Debris" );
-	XMLUtil::Attribute( fp, "x", d.storage->X() );
-	XMLUtil::Attribute( fp, "y", d.storage->Y() );
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "Debris" );
+	printer->PushAttribute( "x", d.storage->X() );
+	printer->PushAttribute( "y", d.storage->Y() );
 
-	d.storage->Save( fp, depth+1 );
+	d.storage->Save( printer );
 
-	XMLUtil::CloseElement( fp, depth, "Debris" );
+	printer->CloseElement();
 }
 
 
-void TacMap::LoadDebris( const TiXmlElement* debrisElement )
+void TacMap::LoadDebris( const XMLElement* debrisElement )
 {
 	GLASSERT( StrEqual( debrisElement->Value(), "Debris" ) );
 	GLRELASSERT( debrisElement );
@@ -367,50 +367,49 @@ void TacMap::LoadDebris( const TiXmlElement* debrisElement )
 }
 
 
-void TacMap::SubSave( FILE* fp, int depth )
+void TacMap::SubSave( XMLPrinter* printer )
 {
-	XMLUtil::OpenElement( fp, depth+1, "Items" );
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "Items" );
 
 	Rectangle2I b = Bounds();
 	MapItem* item = quadTree.FindItems( b, 0, MapItem::MI_NOT_IN_DATABASE );
 
 	for( ; item; item=item->next ) {
-		XMLUtil::OpenElement( fp, depth+2, "Item" );
+		printer->OpenElement( "Item" );
 
 		int x, y, r;
 		WorldToXYR( item->XForm(), &x, &y, &r, true );
 
-		XMLUtil::Attribute( fp, "x", x );
-		XMLUtil::Attribute( fp, "y", y );
-
-		if ( r != 0 )
-			XMLUtil::Attribute( fp, "rot", r );
-		XMLUtil::Attribute( fp, "name", item->def->Name() );
+		printer->PushAttribute( "x", x );
+		printer->PushAttribute( "y", y );
+		if ( r != 0 ) {
+			printer->PushAttribute( "rot", r );
+		}
+		printer->PushAttribute( "name", item->def->Name() );
 
 		if ( item->hp != item->def->hp )
-			XMLUtil::Attribute( fp, "hp", item->hp );
+			printer->PushAttribute( "hp", item->hp );
 		if ( item->flags )
-			XMLUtil::Attribute( fp, "flags", item->flags );
-		XMLUtil::SealCloseElement( fp );
+			printer->PushAttribute( "flags", item->flags );
+
+		printer->CloseElement();
 	}
-	XMLUtil::CloseElement( fp, depth+1, "Items" );
+	printer->CloseElement();
 
 
-		XMLUtil::OpenElement( fp, depth+1, "GroundDebris" );
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "GroundDebris" );
 	for( int i=0; i<debris.Size(); ++i ) {
-		SaveDebris( debris[i], fp, depth+2 );
+		SaveDebris( debris[i], printer );
 	}
-	XMLUtil::CloseElement( fp, depth+1, "GroundDebris" );
+	printer->CloseElement();
 }
 
 
-void TacMap::SubLoad( const TiXmlElement* mapElement )
+void TacMap::SubLoad( const XMLElement* mapElement )
 {
-	const TiXmlElement* itemsElement = mapElement->FirstChildElement( "Items" );
+	const XMLElement* itemsElement = mapElement->FirstChildElement( "Items" );
 	if ( itemsElement ) {
-		for(	const TiXmlElement* item = itemsElement->FirstChildElement( "Item" );
+		for(	const XMLElement* item = itemsElement->FirstChildElement( "Item" );
 				item;
 				item = item->NextSiblingElement( "Item" ) )
 		{
@@ -426,7 +425,7 @@ void TacMap::SubLoad( const TiXmlElement* mapElement )
 			item->QueryIntAttribute( "rot", &rot );
 			item->QueryIntAttribute( "flags", &flags );
 
-			if ( item->QueryIntAttribute( "index", &index ) != TIXML_NO_ATTRIBUTE ) {
+			if ( item->QueryIntAttribute( "index", &index ) != NO_ATTRIBUTE ) {
 				// good to go - have the deprecated 'index' value.
 			}
 			else if ( item->Attribute( "name" ) ) {
@@ -450,9 +449,9 @@ void TacMap::SubLoad( const TiXmlElement* mapElement )
 		}
 	}
 
-	const TiXmlElement* groundDebrisElement = mapElement->FirstChildElement( "GroundDebris" );
+	const XMLElement* groundDebrisElement = mapElement->FirstChildElement( "GroundDebris" );
 	if ( groundDebrisElement ) {
-		for( const TiXmlElement* debrisElement = groundDebrisElement->FirstChildElement( "Debris" );
+		for( const XMLElement* debrisElement = groundDebrisElement->FirstChildElement( "Debris" );
 			 debrisElement;
 			 debrisElement = debrisElement->NextSiblingElement( "Debris" ) )
 		{

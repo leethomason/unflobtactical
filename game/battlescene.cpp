@@ -39,11 +39,12 @@
 #include "../grinliz/glstringutil.h"
 #include "../grinliz/glgeometry.h"
 
-#include "../tinyxml/tinyxml.h"
+#include "../tinyxml2/tinyxml2.h"
 #include "battlescenedata.h"
 
 using namespace grinliz;
 using namespace gamui;
+using namespace tinyxml2;
 
 //#define REACTION_FIRE_EVENT_ONLY
 
@@ -498,20 +499,19 @@ void BattleScene::OrderNextPrev()
 }
 
 
-void BattleScene::Save( FILE* fp, int depth )
+void BattleScene::Save( XMLPrinter* printer )
 {
-	XMLUtil::OpenElement( fp, depth, "BattleScene" );
-	XMLUtil::Attribute( fp, "currentTeamTurn", currentTeamTurn );
-	XMLUtil::Attribute( fp, "turnCount", turnCount );
-	XMLUtil::SealElement( fp );
+	printer->OpenElement( "BattleScene" );
+	printer->PushAttribute( "currentTeamTurn", currentTeamTurn );
+	printer->PushAttribute( "turnCount", turnCount );
 
-	tacMap->Save( fp, depth+1 );
-	game->battleData.Save( fp, depth+1 );
-	XMLUtil::CloseElement( fp, depth, "BattleScene" );
+	tacMap->Save( printer );
+	game->battleData.Save( printer );
+	printer->CloseElement();
 }
 
 
-void BattleScene::Load( const TiXmlElement* battleElement )
+void BattleScene::Load( const XMLElement* battleElement )
 {
 	// FIXME: Save/Load AI? Memory state is lost.
 

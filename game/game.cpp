@@ -46,7 +46,7 @@
 #include "../grinliz/glutil.h"
 #include "../grinliz/glperformance.h"
 #include "../grinliz/glstringutil.h"
-#include "../tinyxml/tinyxml.h"
+#include "../tinyxml2/tinyxml2.h"
 #include "../version.h"
 
 #include "ufosound.h"
@@ -56,6 +56,7 @@
 
 using namespace grinliz;
 using namespace gamui;
+using namespace tinyxml2;
 
 extern long memNewCount;
 
@@ -135,8 +136,8 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	PushPopScene();
 	engine->GetMap()->SetSize( base.size, base.size );
 
-	TiXmlDocument doc( mapmaker_xmlFile.c_str() );
-	doc.LoadFile();
+	XMLDocument doc;
+	doc.LoadFile( mapmaker_xmlFile.c_str() );
 	if ( !doc.Error() )
 		engine->GetMap()->Load( doc.FirstChildElement( "Map" ) );
 	
@@ -234,7 +235,8 @@ Game::~Game()
 		FILE* fp = fopen( mapmaker_xmlFile.c_str(), "w" );
 		GLASSERT( fp );
 		if ( fp ) {
-			engine->GetMap()->Save( fp, 0 );
+			XMLPrinter printer( fp );
+			engine->GetMap()->Save( &printer );
 			fclose( fp );
 		}
 	}
@@ -409,9 +411,9 @@ void Game::PushPopScene()
 			SavePathType savePath = node->scene->CanSave();
 			FILE* fp = GameSavePath( savePath, SAVEPATH_READ, loadSlot );
 			if ( fp ) {
-				TiXmlDocument doc;
+				XMLDocument doc;
 				doc.LoadFile( fp );
-				//GLASSERT( !doc.Error() );
+
 				if ( !doc.Error() ) {
 					Load( doc );
 				}
@@ -480,16 +482,16 @@ const gamui::ButtonLook& Game::GetButtonLook( int id )
 }
 
 
-void Game::Load( const TiXmlDocument& doc )
+void Game::Load( const XMLDocument& doc )
 {
 	ParticleSystem::Instance()->Clear();
 
 	// Already pushed the BattleScene. Note that the
 	// BOTTOM of the stack loads. (BattleScene or GeoScene).
 	// A GeoScene will in turn load a BattleScene.
-	const TiXmlElement* game = doc.RootElement();
+	const XMLElement* game = doc.RootElement();
 	GLASSERT( StrEqual( game->Value(), "Game" ) );
-	const TiXmlElement* scene = game->FirstChildElement();
+	const XMLElement* scene = game->FirstChildElement();
 	sceneStack.Top()->scene->Load( scene );
 }
 
@@ -554,9 +556,10 @@ void Game::Save( int slot, bool saveGeo, bool saveTac )
 			FILE* fp = GameSavePath( node->scene->CanSave(), SAVEPATH_WRITE, slot );
 			GLASSERT( fp );
 			if ( fp ) {
-				XMLUtil::OpenElement( fp, 0, "Game" );
-				XMLUtil::Attribute( fp, "version", VERSION );
-				XMLUtil::Attribute( fp, "sceneID", node->sceneID );
+				XMLPrinter printer( fp );
+				printer.OpenElement( "Game" );
+				printer.PushAttribute( "version", VERSION );
+				printer.PushAttribute( "sceneID", node->sceneID );
 
 				// Somewhat scary c code to get the current time.
 				char buf[40];
@@ -569,13 +572,11 @@ void Game::Save( int slot, bool saveGeo, bool saveTac )
 				StrNCpy( buf, atime, 40 );
 				buf[ strlen(buf)-1 ] = 0;	// remove trailing newline.
 
-				XMLUtil::Attribute( fp, "timestamp", buf );
-				XMLUtil::SealElement( fp );
+				printer.PushAttribute( "timestamp", buf );
 
-				node->scene->Save( fp, 1 );
+				node->scene->Save( &printer );
 	
-				XMLUtil::CloseElement( fp, 0, "Game" );
-
+				printer.CloseElement();		// Game
 				fclose( fp );
 			}
 		}
