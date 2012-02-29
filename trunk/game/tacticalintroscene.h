@@ -157,7 +157,7 @@ public:
 									const ItemDefArr&,
 									int seed=0 );
 
-	static void CreateMap(	FILE* fp, 
+	static void CreateMap(	tinyxml2::XMLPrinter*, 
 							int seed,
 							const SceneInfo& info,
 							const gamedb::Reader* database );
