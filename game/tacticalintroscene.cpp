@@ -320,8 +320,7 @@ void TacticalIntroScene::SceneResult( int sceneID, int r )
 	int nCivs = ( data->scenario == TERRAN_BASE ) ? data->nScientists : CivsInScenario( data->scenario );
 	SceneInfo info( data->scenario, data->crash, nCivs );
 
-	CreateMap( fp, random.Rand(), info, database );
-	fprintf( fp, "\n" );
+	CreateMap( &printer, random.Rand(), info, database );
 
 	BattleData battleData( itemDefArr );
 	battleData.SetDayTime( data->dayTime );
@@ -436,7 +435,7 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 		 eleIt = eleIt->NextSiblingElement() )
 	{
 		GLASSERT( eleIt->FirstChild() == 0 );	// this is a shallow clone.
-		XMLElement* ele = snippet.ShallowClone( mapDocument )->ToElement();
+		XMLElement* ele = eleIt->ShallowClone( mapDocument )->ToElement();
 
 		Vector2I v = { 0, 0 };
 		int rot = 0;
@@ -500,7 +499,7 @@ void TacticalIntroScene::AppendMapSnippet(	int dx, int dy, int tileRotation,
 }
 
 
-void TacticalIntroScene::CreateMap(	FILE* fp, 
+void TacticalIntroScene::CreateMap(	XMLPrinter* printer, 
 									int seed,
 									const SceneInfo& info,
 									const gamedb::Reader* database )
@@ -634,8 +633,7 @@ void TacticalIntroScene::CreateMap(	FILE* fp,
 		GLASSERT( 0 );
 	}
 
-	XMLPrinter printer( fp );
-	mapElement->Accept( &printer );
+	mapElement->Accept( printer );
 }
 
 

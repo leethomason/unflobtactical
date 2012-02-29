@@ -524,6 +524,7 @@ void XMLNode::Unlink( XMLNode* child )
 
 void XMLNode::DeleteChild( XMLNode* node )
 {
+	TIXMLASSERT( node->document == this->document );
 	TIXMLASSERT( node->parent == this );
 	DELETE_NODE( node );
 }
@@ -531,6 +532,7 @@ void XMLNode::DeleteChild( XMLNode* node )
 
 XMLNode* XMLNode::InsertEndChild( XMLNode* addThis )
 {
+	TIXMLASSERT( addThis->document == this->document );
 	if ( lastChild ) {
 		TIXMLASSERT( firstChild );
 		TIXMLASSERT( lastChild->next == 0 );
@@ -554,6 +556,7 @@ XMLNode* XMLNode::InsertEndChild( XMLNode* addThis )
 
 XMLNode* XMLNode::InsertFirstChild( XMLNode* addThis )
 {
+	TIXMLASSERT( addThis->document == this->document );
 	if ( firstChild ) {
 		TIXMLASSERT( lastChild );
 		TIXMLASSERT( firstChild->prev == 0 );
@@ -578,6 +581,7 @@ XMLNode* XMLNode::InsertFirstChild( XMLNode* addThis )
 
 XMLNode* XMLNode::InsertAfterChild( XMLNode* afterThis, XMLNode* addThis )
 {
+	TIXMLASSERT( afterThis->document == this->document );
 	TIXMLASSERT( afterThis->parent == this );
 	if ( afterThis->parent != this )
 		return 0;
