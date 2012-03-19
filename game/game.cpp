@@ -409,15 +409,17 @@ void Game::PushPopScene()
 			 && sceneStack.Size() == 1 ) 
 		{
 			SavePathType savePath = node->scene->CanSave();
-			FILE* fp = GameSavePath( savePath, SAVEPATH_READ, loadSlot );
-			if ( fp ) {
-				XMLDocument doc;
-				doc.LoadFile( fp );
+			if ( HasSaveFile( savePath, loadSlot ) ) {
+				FILE* fp = GameSavePath( savePath, SAVEPATH_READ, loadSlot );
+				if ( fp ) {
+					XMLDocument doc;
+					doc.LoadFile( fp );
 
-				if ( !doc.Error() ) {
-					Load( doc );
+					if ( !doc.Error() ) {
+						Load( doc );
+					}
+					fclose( fp );
 				}
-				fclose( fp );
 			}
 			loadSlot = 0;	// queried during the load; don't clear until after load.
 		}

@@ -319,7 +319,7 @@ void ProcessTreeRec( gamedb::WItem* parent, XMLElement* ele )
 	for( const XMLAttribute* attrib=ele->FirstAttribute(); attrib; attrib=attrib->Next() ) {		
 		int i;
 
-		if ( XML_SUCCESS == attrib->QueryIntValue( &i ) ) {
+		if ( XML_NO_ERROR == attrib->QueryIntValue( &i ) ) {
 			witem->SetInt( attrib->Name(), i );
 		}
 		else {
