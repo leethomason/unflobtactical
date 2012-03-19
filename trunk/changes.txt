@@ -1,5 +1,6 @@
 - sync to source control
 - run setversion
+- set XENOENGINE_OPENGL == 1
 - build win32 debug & release
 - run makeres.bat
 - check android API version. manifest: <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7"/> (easy to tweak during dev and forget.)

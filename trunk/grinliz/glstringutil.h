@@ -200,6 +200,7 @@ public:
 
 	unsigned size() const							{ return m_size; }
 	const char* c_str() const						{ return m_buf; }
+	bool empty() const								{ return size() == 0; }
 
 private:
 	void ensureSize( unsigned s );

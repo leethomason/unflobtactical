@@ -12,6 +12,7 @@ for i in range( 2, len( sys.argv ) ):
 
 	compArr = sys.argv[i].split( '.' )
 	fileWrite.write( "static const char* " + compArr[0] + "_" + compArr[1] + ' = {\n' )
+	print( "Writing:" + sys.argv[i] );
 	
 	for line in fileRead:
 		line = line.rstrip( '\n' )
