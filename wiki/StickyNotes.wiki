@@ -1,16 +1,28 @@
 Useful code and links from the web. And sometimes a sort of development blog.
 
+= PreMultiplied Alpha =
+
+http://www.opengl.org/wiki/Blending
+http://home.comcast.net/~tom_forsyth/blog.wiki.html#%5B%5BPremultiplied%20alpha%5D%5D
+
+what we want:
+FB.rgb = texel.rgb + FB.rgb * (1-texel.a)
+
+done with: 
+glBlendFunc( glGL_ONE, GL_ONE_MINUS_SRC_ALPHA )
+
+
 = Xeno Engine = 
 
   * TinyXML2
-    * (in progress) Memory use of TinyXML.
-    * (in progress) Clean up XML output utility
+    * (done) Memory use of TinyXML.
+    * (done) Clean up XML output utility
   
   * XenoEngine 2.0
     * 32 bit (opaque) textures
-    * ETC-1 support
+    * (deferred) ETC-1 support
     * (done) Basic shader support
-    * instancing
+    * (done) instancing
     * atlasing
     * effect pipeline
 
