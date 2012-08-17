@@ -533,6 +533,14 @@ void BattleScene::Load( const XMLElement* battleElement )
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		if ( units[i].InUse() )
 			units[i].InitLoc( tacMap );
+
+		// Turn off guard AI behavior for final battle, so
+		// aliens aren't just standing around the temple.
+		if ( game->battleData.GetScenario() == ALIEN_BASE ) {
+			if ( units[i].AI() == AI::AI_GUARD ) {
+				units[i].SetAI( AI::AI_NORMAL );
+			}
+		}
 	}
 
 	ProcessDoors();
