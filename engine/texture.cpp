@@ -60,7 +60,7 @@ void TextureManager::DeviceLoss()
 	gpuMap.Clear();
 	gpuMemArr.Clear();
 	for( unsigned i=0; i<textureArr.Size(); ++i ) {
-		textureArr[i].gpuMem = 0;
+		textureArr[i].m_gpuMem = 0;
 	}
 }
 
@@ -70,7 +70,7 @@ void TextureManager::Reload()
 	DeviceLoss();
 	for ( unsigned i=0; i<textureArr.Size(); ++i ) {
 		Texture* tex = &textureArr[i];
-		if ( tex->creator == 0 ) {
+		if ( tex->m_creator == 0 ) {
 			if ( tex->Name() ) {
 				CStr< Texture::MAX_TEXTURE_NAME > name = tex->Name();
 				if ( !name.empty() ) {
@@ -129,7 +129,7 @@ Texture* TextureManager::GetTexture( const char* name, bool reload )
 				t = textureArr.Push();
 			}
 			t->Set( name, w, h, format, flags );
-			t->item = item;
+			t->m_item = item;
 
 			if ( !reload )
 				map.Add( t->Name(), t );
@@ -163,7 +163,7 @@ Texture* TextureManager::CreateTexture( const char* name, int w, int h, int form
 	GLASSERT( t );
 
 	t->Set( name, w, h, format, flags );
-	t->creator = creator;
+	t->m_creator = creator;
 	map.Add( t->Name(), t );
 	return t;
 }
@@ -177,7 +177,7 @@ void TextureManager::DeleteTexture( Texture* t )
 	ContextShift();
 
 	map.Remove( t->Name() );
-	GLASSERT( t->gpuMem == 0 );
+	GLASSERT( t->m_gpuMem == 0 );
 	++emptySpace;
 	memset( t, 0, sizeof( Texture ) );
 }
@@ -186,13 +186,13 @@ void TextureManager::DeleteTexture( Texture* t )
 void TextureManager::ContextShift()
 {
 	for( unsigned i=0; i<textureArr.Size(); ++i ) {
-		if ( textureArr[i].gpuMem ) {
-			GLASSERT( textureArr[i].gpuMem->inUse );
+		if ( textureArr[i].m_gpuMem ) {
+			GLASSERT( textureArr[i].m_gpuMem->inUse );
 			// const to the texture, not const to this object.
 			// (and this is not a const method)
-			GPUMem* gpuMem = const_cast< GPUMem* >( textureArr[i].gpuMem );
+			GPUMem* gpuMem = const_cast< GPUMem* >( textureArr[i].m_gpuMem );
 			gpuMem->inUse = false;
-			textureArr[i].gpuMem = 0;
+			textureArr[i].m_gpuMem = 0;
 		}
 	}
 }
@@ -257,47 +257,47 @@ const GPUMem* TextureManager::AllocGPUMemory(	int w, int h, int format, int flag
 
 void Texture::Set( const char* p_name, int p_w, int p_h, int p_format, Param p_flags )
 {
-	name = p_name;
-	w = p_w;
-	h = p_h;
-	format = p_format;
-	flags = p_flags;
-	creator = 0;
-	item = 0;
-	gpuMem = 0;
+	m_name = p_name;
+	m_w = p_w;
+	m_h = p_h;
+	m_format = p_format;
+	m_flags = p_flags;
+	m_creator = 0;
+	m_item = 0;
+	m_gpuMem = 0;
 }
 
 
 U32 Texture::GLID() 
 {
-	if ( gpuMem ) 
-		return gpuMem->glID;
+	if ( m_gpuMem ) 
+		return m_gpuMem->glID;
 	
 	TextureManager* manager = TextureManager::Instance();
 	bool inCache = false;
 
 	// Allocate memory to store this. The memory should always be available. We
 	// may even get memory that already contains the correct pixels.
-	gpuMem = manager->AllocGPUMemory( w, h, format, flags, item, &inCache );
+	m_gpuMem = manager->AllocGPUMemory( m_w, m_h, m_format, m_flags, m_item, &inCache );
 
-	if ( creator || !inCache ) {
+	if ( m_creator || !inCache ) {
 		// Need to actually generate the texture. Either pull it from 
 		// the database, or call the ICreator to push it to the GPU.
-		if ( item ) {
-			const gamedb::Reader* database = gamedb::Reader::GetContext( item );
-			GLASSERT( item->HasAttribute( "pixels" ) );
+		if ( m_item ) {
+			const gamedb::Reader* database = gamedb::Reader::GetContext( m_item );
+			GLASSERT( m_item->HasAttribute( "pixels" ) );
 			int size;
-			const void* pixels = database->AccessData( item, "pixels", &size );
+			const void* pixels = database->AccessData( m_item, "pixels", &size );
 			Upload( pixels, size );
 		}
-		else if ( creator ) {
-			creator->CreateTexture( this );
+		else if ( m_creator ) {
+			m_creator->CreateTexture( this );
 		}
 		else {
 			GLASSERT( 0 );
 		}
 	}
-	return gpuMem->glID;
+	return m_gpuMem->glID;
 }
 
 
@@ -342,23 +342,16 @@ U32 TextureManager::CreateGLTexture( int w, int h, int format, int flags )
 	glGenTextures( 1, &texID );
 	glBindTexture( GL_TEXTURE_2D, texID );
 
-	if ( flags & Texture::PARAM_NEAREST ) {
-		glTexParameteri(	GL_TEXTURE_2D,
-							GL_GENERATE_MIPMAP,
-							GL_FALSE );
+	if ( flags & Texture::PARAM_LINEAR ) {
+		// Some devices report white squares
+		// for text, which is the only LINEAR
+		// sampled texture. I wasn't generating
+		// mipmaps. But turn that on in case
+		// it fixes something.
 
 		glTexParameteri(	GL_TEXTURE_2D,
-							GL_TEXTURE_MAG_FILTER,
-							GL_NEAREST );
-
-		glTexParameteri(	GL_TEXTURE_2D,
-							GL_TEXTURE_MIN_FILTER,
-							GL_NEAREST );
-	}
-	else if ( flags & Texture::PARAM_LINEAR ) {
-		glTexParameteri(	GL_TEXTURE_2D,
 							GL_GENERATE_MIPMAP,
-							GL_FALSE );
+							GL_TRUE );
 
 		glTexParameteri(	GL_TEXTURE_2D,
 							GL_TEXTURE_MAG_FILTER,
@@ -394,34 +387,34 @@ void Texture::Upload( const void* pixels, int size )
 	GLASSERT( pixels );
 	GLASSERT( size == BytesInImage() );
 	GLID();
-	GLASSERT( gpuMem );
-	GLASSERT( gpuMem->glID );
+	GLASSERT( m_gpuMem );
+	GLASSERT( m_gpuMem->glID );
 
 	int glFormat, glType;
-	TextureManager::Instance()->CalcOpenGL( format, &glFormat, &glType );
-	glBindTexture( GL_TEXTURE_2D, gpuMem->glID );
+	TextureManager::Instance()->CalcOpenGL( m_format, &glFormat, &glType );
+	glBindTexture( GL_TEXTURE_2D, m_gpuMem->glID );
 
 #if defined( UFO_WIN32_SDL ) && defined( DEBUG )
 	int data;
 	glGetTexLevelParameteriv( GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &data );
-	GLASSERT( data == 0 || data == w );
+	GLASSERT( data == 0 || data == m_w );
 	glGetTexLevelParameteriv( GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &data );
-	GLASSERT( data == 0 || data == h );
+	GLASSERT( data == 0 || data == m_h );
 	if ( data > 0 ) {
 		glGetTexLevelParameteriv( GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &data );
 		GLASSERT( data == glFormat );
 	}
 #endif
-
 	glTexImage2D(	GL_TEXTURE_2D,
 					0,
 					glFormat,
-					w,
-					h,
+					m_w,
+					m_h,
 					0,
 					glFormat,
 					glType,
 					pixels );
+
 //	GLOUTPUT(( "OpenGL texture %d Upload.\n", gpuMem->glID ));
 	CHECK_GL_ERROR;
 }

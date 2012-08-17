@@ -425,7 +425,7 @@ void TacMap::SubLoad( const XMLElement* mapElement )
 			item->QueryIntAttribute( "rot", &rot );
 			item->QueryIntAttribute( "flags", &flags );
 
-			if ( item->QueryIntAttribute( "index", &index ) != NO_ATTRIBUTE ) {
+			if ( item->QueryIntAttribute( "index", &index ) == tinyxml2::XML_SUCCESS ) {
 				// good to go - have the deprecated 'index' value.
 			}
 			else if ( item->Attribute( "name" ) ) {
