@@ -162,6 +162,7 @@ TacMap::TacMap( SpaceTree* tree, const ItemDefArr& _itemDefArr ) : Map( tree ),
 {
 	lander = 0;
 	nLanderPos = 0;
+	random.SetSeedFromTime();	// was putting the battleship units in the same place each time.
 
 	gamui::RenderAtom borderAtom = Game::CalcPaletteAtom( Game::PALETTE_BLUE, Game::PALETTE_BLUE, Game::PALETTE_DARK, true );
 #ifdef DEBUG_VISIBILITY
