@@ -1,0 +1,36 @@
+Name "Xenowar"
+Caption "Xenowar"
+
+# define the name of the installer
+outfile "XenowarInstaller.exe"
+ 
+# define the directory to install to, the desktop in this case as specified  
+# by the predefined $DESKTOP variable
+installDir $DESKTOP\Xenowar
+
+LicenseData "gpl.txt"
+CompletedText "Thanks for installing Xenowar!"
+page license
+page directory
+page instfiles
+
+
+# default section
+section
+ 
+# define the output path for this file
+setOutPath $INSTDIR
+ 
+# define what to install and place it in the output path
+File /r .\Xenowar\*
+
+sectionEnd
+
+Section -Prerequisites
+  SetOutPath $INSTDIR\Prerequisites
+  MessageBox MB_YESNO "Install Microsoft Visual Studio 2010 Redistributable Package? Required if not already installed." /SD IDYES IDNO endRedist
+    File "vcredist_x86.exe"
+    ExecWait "$INSTDIR\vcredist_x86.exe"
+    Goto endRedist
+  endRedist:
+SectionEnd
