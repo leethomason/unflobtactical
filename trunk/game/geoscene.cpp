@@ -639,6 +639,7 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 	else if ( type == CM_UFO ) {
 		for( int i=0; i<MAX_BASES; ++i ) {
 			BaseChit* baseChit = chitBag.GetBaseChit( i );
+
 			if ( baseChit ) {
 				context[i].SetVisible( true );
 				context[i].SetText( baseChit->Name() );
@@ -659,6 +660,10 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 					context[i].SetEnabled( false );
 				}
 			}
+			else {
+				context[i].SetVisible( false );
+				context[i].SetText( "none" );
+			}
 		}
 		for( int i=MAX_BASES; i<MAX_CONTEXT; ++i ) {
 			context[i].SetVisible( false );
@@ -673,12 +678,14 @@ void GeoScene::InitContextMenu( int type, Chit* chit )
 void GeoScene::UpdateContextMenu()
 {
 	Chit* contextChit = chitBag.GetChit( contextChitID );
-	if ( context[0].Visible() && contextChit ) {
+	int size = 0;
+	for( int i=0; i<MAX_CONTEXT; ++i ) {
+		if ( context[i].Visible() && contextChit ) {
+			size = i+1;
+		}
+	}
 
-		int size=0;
-		while( context[size].Visible() && size < MAX_CONTEXT )
-			++size;
-		
+	if ( size > 0 ) {
 		Vector2F pos = contextChit->Pos();
 		Vector3F pos3 = { pos.x, 0, pos.y };
 		Vector2F ui0, ui1;
