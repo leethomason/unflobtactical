@@ -1058,7 +1058,7 @@ Chit* ChitBag::GetParkedChitAt( const grinliz::Vector2I& pos ) const
 BaseChit* ChitBag::GetBaseChit( const char* name )
 {
 	for( int i=0; i<MAX_BASES; ++i ) {
-		if ( StrEqual( baseChitArr[i]->Name(), name ) )
+		if ( baseChitArr[i] && StrEqual( baseChitArr[i]->Name(), name ) )
 			return baseChitArr[i];
 	}
 	return 0;
