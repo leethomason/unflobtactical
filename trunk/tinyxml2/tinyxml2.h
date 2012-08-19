@@ -24,11 +24,21 @@ distribution.
 #ifndef TINYXML2_INCLUDED
 #define TINYXML2_INCLUDED
 
-#include <cctype>
-#include <climits>
-#include <cstdio>
-#include <cstring>
-#include <cstdarg>
+#ifdef ANDROID_NDK
+	#include <ctype.h>
+	#include <limits.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <string.h>
+	#include <stdarg.h>
+#else
+	#include <cctype>
+	#include <climits>
+	#include <cstdio>
+	#include <cstdlib>
+	#include <cstring>
+	#include <cstdarg>
+#endif
 
 /* 
    TODO: intern strings instead of allocation.

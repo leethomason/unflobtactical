@@ -33,7 +33,7 @@ HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ),
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 	//static const char* const text[NUM_BUTTONS] = { "<", ">", "X", "" };
 	static const int deco[NUM_BUTTONS] = { DECO_BUTTON_PREV, DECO_BUTTON_NEXT, DECO_OKAY_CHECK, DECO_NONE };
-	UIItem* items[NUM_BUTTONS] = { 0 };
+	//UIItem* items[NUM_BUTTONS] = { 0 };
 
 	for( int i=0; i<NUM_BUTTONS; ++i ) {
 		buttons[i].Init( &gamui2D, blue );
@@ -41,7 +41,7 @@ HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ),
 		//buttons[i].SetText( text[i] );
 		buttons[i].SetDeco( Game::CalcDecoAtom( deco[i], true ), 
 							Game::CalcDecoAtom( deco[i], false ) );
-		items[i] = &buttons[i];
+		//items[i] = &buttons[i];
 	}
 
 	buttons[SETTINGS_BUTTON].SetDeco( Game::CalcDecoAtom( DECO_SETTINGS, true ), Game::CalcDecoAtom( DECO_SETTINGS, false ) );
@@ -97,7 +97,7 @@ void HelpScene::Resize()
 		text = (const char*)reader->AccessData( pageItem, "text", 0 );
 	}
 
-	float tw = port.UIWidth() - GAME_GUTTER*2.0f;
+	//float tw = port.UIWidth() - GAME_GUTTER*2.0f;
 	//float th = buttons[PREV_BUTTON].Y() - GAME_GUTTER*2.0f;
 
 	image.SetVisible( false );
@@ -120,7 +120,7 @@ void HelpScene::Resize()
 		image.SetAtom( atom );
 		image.SetPos( port.UIWidth()-width, 0 );
 		image.SetSize( width, height );
-		tw = image.X()-GAME_GUTTER;
+		//tw = image.X()-GAME_GUTTER;
 		image.SetVisible( true );
 	}
 
