@@ -28,13 +28,12 @@
 
 
 - test incredible (from website)
-- test galaxy tab (from website)
+- test kindle (from website)
 
 - Sign & Publish
 	- http://developer.android.com/guide/publishing/app-signing.html#ExportWizard
 	- publish
 	- check on Samsung
-
 
 Beta v2.7 b813
 Adds difficulty selection for the Geo game. Many bug fixes and mainentance issues addressed.

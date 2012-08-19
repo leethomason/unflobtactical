@@ -402,7 +402,7 @@ void GeoScene::HandleItemTapped( const gamui::UIItem* item )
 	Chit* contextChit = chitBag.GetChit( contextChitID );
 
 	if ( item == &context[CONTEXT_CARGO] && contextChit && contextChit->IsBaseChit() ) {
-		Vector2I mapi = contextChit->MapPos();
+		//Vector2I mapi = contextChit->MapPos();
 		
 #ifdef IMMEDIATE_BUY
 		if ( contextChit->IsBaseChit()->IsFacilityComplete( BaseChit::FACILITY_CARGO ) ) {
@@ -1652,7 +1652,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 					0.2f,
 					particleVel, 0.1f );
 			}
-			Vector2I mapi = chitIt->MapPos();
+			//Vector2I mapi = chitIt->MapPos();
 
 			// Very important to clean up cargo and lander!
 			CargoChit* cargoChit = 0;

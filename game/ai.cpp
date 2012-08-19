@@ -254,7 +254,7 @@ int AI::ThinkShoot(	const Unit* theUnit,
 	int best = -1;
 	float bestScore = 0.0f;
 	int bestMode = 0;
-	float bestChance = 0.0f;
+	//float bestChance = 0.0f;
 
 	const WeaponItemDef* wid = theUnit->GetWeaponDef();
 	GLASSERT( wid );
@@ -308,7 +308,7 @@ int AI::ThinkShoot(	const Unit* theUnit,
 							bestScore = score;
 							best = i;
 							bestMode = mode;
-							bestChance = chance;
+							//bestChance = chance;
 						}
 					}
 				}

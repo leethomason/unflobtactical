@@ -13,7 +13,7 @@ LOCAL_SRC_FILES := \
 include $(LOCAL_PATH)/../../../gamui/sources.mk
 include $(LOCAL_PATH)/../../../shared/sources.mk
 include $(LOCAL_PATH)/../../../grinliz/sources.mk
-include $(LOCAL_PATH)/../../../tinyxml/sources.mk
+include $(LOCAL_PATH)/../../../tinyxml2/sources.mk
 include $(LOCAL_PATH)/../../../micropather/sources.mk
 include $(LOCAL_PATH)/../../../engine/sources.mk
 include $(LOCAL_PATH)/../../../game/sources.mk

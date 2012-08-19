@@ -1466,9 +1466,9 @@ void BattleScene::StopForNewTeamTarget()
 	if ( currentTeamTurn == CIV_TEAM )
 		return;
 
-	int antiTeam = ALIEN_TEAM;
-	if ( currentTeamTurn == ALIEN_TEAM )
-		antiTeam = TERRAN_TEAM;
+	//int antiTeam = ALIEN_TEAM;
+	//if ( currentTeamTurn == ALIEN_TEAM )
+	//	antiTeam = TERRAN_TEAM;
 
 	if ( actionStack.Size() == 1 ) {
 		const Action& action = *actionStack.Top();
@@ -1573,7 +1573,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 		Action* action = actionStack.Top();
 
 		Unit* unit = 0;
-		const Model* model = 0;
+		//const Model* model = 0;
 
 		if ( action->unit ) {
 			if ( !action->unit->IsAlive() ) {
@@ -1581,7 +1581,7 @@ int BattleScene::ProcessAction( U32 deltaTime )
 				return true;
 			}
 			unit = action->unit;
-			model = GetModel( action->unit );
+			//model = GetModel( action->unit );
 		}
 
 		switch ( action->actionID ) {
