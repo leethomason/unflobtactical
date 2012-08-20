@@ -3,7 +3,8 @@
 - set XENOENGINE_OPENGL == 1
 - build win32 debug & release
 - run makeres.bat
-- check android API version. manifest: <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7"/> (easy to tweak during dev and forget.)
+- check android API version. manifest: <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="8"/> (easy to tweak during dev and forget.)
+	WAS: check android API version. manifest: <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7"/> (easy to tweak during dev and forget.)
 - set android manifest debuggable=false
 - check Win32 build=Release
 - check NDK APP_OPTIM := release in Application.mk
@@ -34,6 +35,15 @@
 	- http://developer.android.com/guide/publishing/app-signing.html#ExportWizard
 	- publish
 	- check on Samsung
+
+Beta v2.8 b835
+Stability and gameplay bug fixes.
+- Improved memory usage when saving / loading (upgrade from TinyXML-1 to TinyXML-2)
+- Fixed bug where battleships have the same unit starting position. Actually a global bug; the aliens units should be generally much better randomized now.
+- Crashing bug where if you have an Alpha and Bravo base, and Alpha base is destroyed, the game will crash whenever you deploy units.
+- "Text is unreadable on some devices." Possible fix implemented.
+- An installer for windows! Installs xenowar to the desktop and gives you the option to install the Visual Studio runtime.
+- Fix a bug in the final battle where part of the alien team guards nothing, and stands around an empty temple.
 
 Beta v2.7 b813
 Adds difficulty selection for the Geo game. Many bug fixes and mainentance issues addressed.
