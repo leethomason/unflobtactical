@@ -1150,7 +1150,7 @@ int main( int argc, char* argv[] )
 		}
 	}
 
-	XMLDocument xmlDoc;
+	XMLDocument xmlDoc( true, COLLAPSE_WHITESPACE );
 	xmlDoc.LoadFile( inputFullPath.c_str() );
 	if ( xmlDoc.Error() || !xmlDoc.FirstChildElement() ) {
 		xmlDoc.PrintError();
