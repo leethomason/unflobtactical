@@ -55,7 +55,8 @@ void SettingsManager::Load()
 {
 	// Parse actuals.
 	XMLDocument doc;
-	if ( doc.LoadFile( path.c_str() ) ) {
+	doc.LoadFile( path.c_str() );
+	if ( !doc.Error() ) {
 		XMLElement* root = doc.RootElement();
 		if ( root ) {
 			ReadAttributes( root );
