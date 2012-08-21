@@ -44,6 +44,8 @@ Stability and gameplay bug fixes.
 - "Text is unreadable on some devices." Possible fix implemented.
 - An installer for windows! Installs xenowar to the desktop and gives you the option to install the Visual Studio runtime.
 - Fix a bug in the final battle where part of the alien team guards nothing, and stands around an empty temple.
+Beta fixes;
+- Fix settings not getting loaded
 
 Beta v2.7 b813
 Adds difficulty selection for the Geo game. Many bug fixes and mainentance issues addressed.
