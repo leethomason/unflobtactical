@@ -101,6 +101,7 @@ void HelpScene::Resize()
 	//float th = buttons[PREV_BUTTON].Y() - GAME_GUTTER*2.0f;
 
 	image.SetVisible( false );
+	float imageWidth = 0;
 
 	if ( pageItem->HasAttribute( "image" ) ) {
 		const char* imageName = pageItem->GetString( "image" );
@@ -120,12 +121,12 @@ void HelpScene::Resize()
 		image.SetAtom( atom );
 		image.SetPos( port.UIWidth()-width, 0 );
 		image.SetSize( width, height );
-		//tw = image.X()-GAME_GUTTER;
 		image.SetVisible( true );
+		imageWidth = width;
 	}
 
 	textBox.SetPos( GAME_GUTTER, GAME_GUTTER );
-	textBox.SetSize( port.UIWidth()-GAME_GUTTER*2.f, port.UIHeight()-GAME_GUTTER*2.f );
+	textBox.SetSize( port.UIWidth()-GAME_GUTTER*2.f - imageWidth, port.UIHeight()-GAME_GUTTER*2.f );
 	textBox.SetText( text ? text : "" );
 
 	buttons[PREV_BUTTON].SetEnabled( currentScreen > 0 );
