@@ -61,22 +61,22 @@ BaseTradeScene::BaseTradeScene( Game* _game, BaseTradeSceneData* data ) : Scene(
 	const gamui::ButtonLook& red = _game->GetButtonLook( Game::RED_BUTTON );
 
 	helpButton.Init( &gamui2D, green );
-	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	helpButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	helpButton.SetDeco(  Game::CalcDecoAtom( DECO_HELP, true ), Game::CalcDecoAtom( DECO_HELP, false ) );	
 
 	okay.Init( &gamui2D, blue );
-	okay.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	okay.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	okay.SetDeco(  Game::CalcDecoAtom( DECO_OKAY_CHECK, true ), 
 		           Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
-	float w = GAME_BUTTON_SIZE_F*0.95f;
-	float h = GAME_BUTTON_SIZE_F*0.95f;
+	float w = GAME_BUTTON_SIZE_F()*0.95f;
+	float h = GAME_BUTTON_SIZE_F()*0.95f;
 
 	baseWidget = new StorageWidget( &gamui2D, green, tab, game->GetItemDefArr(), data->base, w, h );
 	baseWidget->SetFudgeFactor( -5, -5 );
 
 	sellAll.Init( &gamui2D, red );
-	sellAll.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	sellAll.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	sellAll.SetText( "Sell" );
 	sellAll.SetText2( "All" );
 
@@ -112,9 +112,9 @@ void BaseTradeScene::Resize()
 	const Screenport& port = GetEngine()->GetScreenport();
 	background.SetSize( port.UIWidth(), port.UIHeight() );
 
-	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
-	okay.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
-	sellAll.SetPos( baseWidget->X()+baseWidget->Width()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F ); 
+	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F(), port.UIHeight()-GAME_BUTTON_SIZE_F() );
+	okay.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F() );
+	sellAll.SetPos( baseWidget->X()+baseWidget->Width()-GAME_BUTTON_SIZE_F(), port.UIHeight()-GAME_BUTTON_SIZE_F() ); 
 
 	static const float TEXTSPACE = 16.0f;
 	baseWidget->SetOrigin( 0, TEXTSPACE );

@@ -27,16 +27,16 @@ DialogScene::DialogScene( Game* _game, const DialogSceneData* _data ) : Scene( _
 	background.SetSize( port.UIWidth(), port.UIHeight() );
 
 	textBox.Init( &gamui2D );
-	textBox.SetSize( port.UIWidth()-GAME_GUTTER*2.0f, port.UIHeight()-GAME_GUTTER*2.0f );
+	textBox.SetSize( port.UIWidth()-GAME_GUTTER()*2.0f, port.UIHeight()-GAME_GUTTER()*2.0f );
 	textBox.SetText( data->text.c_str() );
 
 	const ButtonLook& look = game->GetButtonLook( Game::BLUE_BUTTON );
 
 	button0.Init( &gamui2D, look );
-	button0.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
+	button0.SetSize( GAME_BUTTON_SIZE_F()*2.0f, GAME_BUTTON_SIZE_F() );
 
 	button1.Init( &gamui2D, look );
-	button1.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
+	button1.SetSize( GAME_BUTTON_SIZE_F()*2.0f, GAME_BUTTON_SIZE_F() );
 
 	switch ( data->type ) {
 	case DialogSceneData::DS_YESNO:
@@ -57,9 +57,9 @@ void DialogScene::Resize()
 {
 	const Screenport& port = GetEngine()->GetScreenport();
 	background.SetSize( port.UIWidth(), port.UIHeight() );
-	textBox.SetPos( GAME_GUTTER, GAME_GUTTER );
-	button0.SetPos( GAME_GUTTER, port.UIHeight()-GAME_GUTTER-GAME_BUTTON_SIZE_F );
-	button1.SetPos( port.UIWidth()-GAME_GUTTER-GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_GUTTER-GAME_BUTTON_SIZE_F );
+	textBox.SetPos( GAME_GUTTER(), GAME_GUTTER() );
+	button0.SetPos( GAME_GUTTER(), port.UIHeight()-GAME_GUTTER()-GAME_BUTTON_SIZE_F() );
+	button1.SetPos( port.UIWidth()-GAME_GUTTER()-GAME_BUTTON_SIZE_F()*2.0f, port.UIHeight()-GAME_GUTTER()-GAME_BUTTON_SIZE_F() );
 }
 
 

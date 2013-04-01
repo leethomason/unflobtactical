@@ -265,22 +265,22 @@ GeoScene::GeoScene( Game* _game, const GeoSceneData* data ) : Scene( _game ), re
 	}
 
 	helpButton.Init(&gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
-	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	helpButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	helpButton.SetDeco(  Game::CalcDecoAtom( DECO_HELP, true ), Game::CalcDecoAtom( DECO_HELP, false ) );	
 
 	researchButton.Init(&gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
-	researchButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	researchButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	researchButton.SetDeco(  Game::CalcDecoAtom( DECO_RESEARCH, true ), Game::CalcDecoAtom( DECO_RESEARCH, false ) );	
 
 	baseButton.Init(&gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
-	baseButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	baseButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	baseButton.SetDeco(  Game::CalcDecoAtom( DECO_BASE, true ), Game::CalcDecoAtom( DECO_BASE, false ) );
 
 	//cashImage.Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK ), false );
 	cashImage.Init( &gamui2D, 
 		Game::CalcPaletteAtom( Game::PALETTE_GREEN, Game::PALETTE_GREEN, Game::PALETTE_NORM ),
 		false );
-	cashImage.SetSize( GAME_BUTTON_SIZE_F*1.7f, GAME_BUTTON_SIZE_F );
+	cashImage.SetSize( GAME_BUTTON_SIZE_F()*1.7f, GAME_BUTTON_SIZE_F() );
 	cashImage.SetSlice( true );
 
 	cashLabel.Init( &gamui2D );
@@ -288,7 +288,7 @@ GeoScene::GeoScene( Game* _game, const GeoSceneData* data ) : Scene( _game ), re
 	for( int i=0; i<MAX_CONTEXT; ++i ) {
 		context[i].Init( &gamui2D, game->GetButtonLook( Game::BLUE_BUTTON ) );
 		context[i].SetVisible( false );
-		context[i].SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
+		context[i].SetSize( GAME_BUTTON_SIZE_F()*2.0f, GAME_BUTTON_SIZE_F() );
 	}
 	GenerateCities();
 	savedCameraX = -1.0f;
@@ -313,11 +313,11 @@ void GeoScene::Resize()
 {
 	const Screenport& port = GetEngine()->GetScreenport();
 
-	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, 0 );
+	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F(), 0 );
 	researchButton.SetPos( 0, 0 );
-	baseButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
-	cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F*1.8f, 
-					  port.UIHeight()-GAME_BUTTON_SIZE_F*0.4f );
+	baseButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F() );
+	cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F()*1.8f, 
+					  port.UIHeight()-GAME_BUTTON_SIZE_F()*0.4f );
 	cashLabel.SetPos( cashImage.X()+5.0f, cashImage.Y()+5.0f );
 
 	GetEngine()->CameraIso( false, false, (float)GeoMap::MAP_X, (float)GeoMap::MAP_Y );
@@ -525,7 +525,7 @@ void GeoScene::Tap(	int action,
 			// Whatever it was, on this path, closes the context menu.
 			InitContextMenu( CM_NONE, 0 );
 		}
-		else if ( (dragLast-dragStart).Length() < GAME_BUTTON_SIZE_F / 2.0f ) {
+		else if ( (dragLast-dragStart).Length() < GAME_BUTTON_SIZE_F() / 2.0f ) {
 			Matrix4 mvpi;
 			Ray ray;
 

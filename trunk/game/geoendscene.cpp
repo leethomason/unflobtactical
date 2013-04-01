@@ -29,7 +29,7 @@ GeoEndScene::GeoEndScene(  Game* game, const GeoEndSceneData* data ) : Scene(gam
 		backgroundUI.backgroundText.SetAtom( game->GetRenderAtom( Game::ATOM_GEO_DEFEAT ) );
 
 	okayButton.Init( &gamui2D, game->GetButtonLook( Game::GREEN_BUTTON ) );
-	okayButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	okayButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	okayButton.SetDeco(	Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
 						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 }
@@ -46,8 +46,8 @@ void GeoEndScene::Resize()
 
 	backgroundUI.background.SetSize( port.UIWidth(), port.UIHeight() );
 
-	okayButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE-GAME_GUTTER, 
-					   port.UIHeight()-GAME_BUTTON_SIZE-GAME_GUTTER );
+	okayButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE()-GAME_GUTTER(), 
+					   port.UIHeight()-GAME_BUTTON_SIZE()-GAME_GUTTER() );
 }
 
 

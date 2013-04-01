@@ -22,7 +22,7 @@ extern "C" {
 
 
 // --- Platform to Core --- //
-void* NewGame( int width, int height, int rotation, const char* savePath );
+void* NewGame( int width, int height, int rotation, const char* savePath, bool tvMode );
 void DeleteGame( void* handle );	// does not save! use GameSave if needed.
 
 void GameDeviceLoss( void* handle );

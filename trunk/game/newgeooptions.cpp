@@ -16,14 +16,14 @@ NewGeoOptions::NewGeoOptions( Game* game ) : Scene( game )
 	const gamui::ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 
 	goButton.Init( &gamui2D, blue );
-	goButton.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
+	goButton.SetSize( GAME_BUTTON_SIZE_F()*2.0f, GAME_BUTTON_SIZE_F() );
 	goButton.SetText( "Go!" );
 
 	const static char* TEXT[NUM_DIFFICULTY] = { "Easier", "Normal", "Hard", "Smoking Crater" };
 
 	for( int i=0; i<NUM_DIFFICULTY; ++i ) {
 		toggle[i].Init( &gamui2D, green );
-		toggle[i].SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
+		toggle[i].SetSize( GAME_BUTTON_SIZE_F()*2.0f, GAME_BUTTON_SIZE_F() );
 		toggle[i].SetText( TEXT[i] );
 		toggle[0].AddToToggleGroup( &toggle[i] );
 	}
@@ -36,9 +36,9 @@ void NewGeoOptions::Resize()
 	const Screenport& port = GetEngine()->GetScreenport();
 
 	LayoutCalculator layout( port.UIWidth(), port.UIHeight() );
-	layout.SetGutter( GAME_GUTTER );
-	layout.SetSpacing( GAME_BUTTON_SPACING );
-	layout.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
+	layout.SetGutter( GAME_GUTTER() );
+	layout.SetSpacing( GAME_BUTTON_SPACING() );
+	layout.SetSize( GAME_BUTTON_SIZE_F()*2.0f, GAME_BUTTON_SIZE_F() );
 
 	backgroundUI.background.SetSize( port.UIWidth(), port.UIHeight() );
 	for( int i=0; i<NUM_DIFFICULTY; ++i ) {

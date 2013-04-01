@@ -54,24 +54,24 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	const gamui::ButtonLook& blueTab	= game->GetButtonLook( Game::BLUE_TAB_BUTTON );
 
 	backButton.Init( &gamui2D, blue );
-	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	backButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	backButton.SetDeco(	Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
 						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	prevButton.Init( &gamui2D, blue );
-	prevButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	prevButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	prevButton.SetDeco( Game::CalcDecoAtom( DECO_UNIT_PREV, true ),  
 						Game::CalcDecoAtom( DECO_UNIT_PREV, false ) );
 	prevButton.SetVisible( input->nUnits > 1 );
 
 	nextButton.Init( &gamui2D, blue );
-	nextButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	nextButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	nextButton.SetDeco( Game::CalcDecoAtom( DECO_UNIT_NEXT, true ),  
 						Game::CalcDecoAtom( DECO_UNIT_NEXT, false ) );
 	nextButton.SetVisible( input->nUnits > 1 );
 
 	helpButton.Init( &gamui2D, blue );
-	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	helpButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	helpButton.SetDeco( Game::CalcDecoAtom( DECO_HELP, true ),  Game::CalcDecoAtom( DECO_HELP, false ) );
 
 	gamui::UIItem* controlArr[NUM_CONTROL+1] = { &helpButton };
@@ -80,7 +80,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 		control[i].Init( &gamui2D, blue );
 		if ( i > 0 ) 
 			control[0].AddToToggleGroup( &control[i] );
-		control[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+		control[i].SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 		control[i].SetText( controlLabel[i] );
 		controlArr[i+1] = &control[i];
 	}
@@ -101,7 +101,7 @@ CharacterScene::CharacterScene( Game* _game, CharacterSceneData* _input )
 	unitCounter.SetVisible( false );
 	SetCounter( 0 );
 
-	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE), storageWidget->Width(), GAME_BUTTON_SIZE_F );
+	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE() ), storageWidget->Width(), GAME_BUTTON_SIZE_F() );
 
 	/* works, but not really what you want. 
 	localEngine = new Engine( &game->screenport, game->GetDatabase() );
@@ -125,15 +125,15 @@ void CharacterScene::Resize()
 {
 	const Screenport& port = game->engine->GetScreenport();
 	background.SetSize( port.UIWidth(), port.UIHeight() );
-	backButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
-	prevButton.SetPos( GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
-	nextButton.SetPos( GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	backButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F() );
+	prevButton.SetPos( GAME_BUTTON_SIZE_F(), port.UIHeight()-GAME_BUTTON_SIZE_F() );
+	nextButton.SetPos( GAME_BUTTON_SIZE_F()*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F() );
 
 	storageWidget->SetOrigin( (float)port.UIWidth()-storageWidget->Width(), 0 );
 	unitCounter.SetPos( 190, inventoryWidget->TextY() );
 
 	gamui::UIItem* controlArr[NUM_CONTROL+1] = { &helpButton, &control[0], &control[1], &control[2] };
-	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE), storageWidget->Width(), GAME_BUTTON_SIZE_F );
+	gamui::Gamui::Layout( controlArr, NUM_CONTROL+1, NUM_CONTROL+1, 1, storageWidget->X(), (float)(port.UIHeight()-GAME_BUTTON_SIZE() ), storageWidget->Width(), GAME_BUTTON_SIZE_F() );
 
 	statWidget.SetPos( storageWidget->X(), 0 );
 	compWidget.SetPos( storageWidget->X(), 0 );

@@ -28,8 +28,8 @@ public:
 					const gamui::ButtonLook& blue,
 					const ItemDefArr& itemDefArr,
 					const Storage* storage,
-					float width=GAME_BUTTON_SIZE_F,
-					float height=GAME_BUTTON_SIZE_F,
+					float width=GAME_BUTTON_SIZE_F(),
+					float height=GAME_BUTTON_SIZE_F(),
 					int costFlag=0 );
 
 	~StorageWidget();	

@@ -47,8 +47,8 @@ FastBattleScene::FastBattleScene( Game* _game, BattleSceneData* data ) : Scene( 
 
 	const ButtonLook& look = game->GetButtonLook( Game::BLUE_BUTTON );
 	button.Init( &gamui2D, look );
-	button.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
-	button.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	button.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
+	button.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F() );
 	button.SetText( "Okay" );
 
 	TacticalIntroScene::GenerateAlienTeamUpper( data->scenario, data->crash, data->alienRank, aliens, game->GetItemDefArr(), random.Rand() );

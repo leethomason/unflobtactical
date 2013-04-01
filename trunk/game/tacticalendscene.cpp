@@ -160,7 +160,7 @@ TacticalEndScene::TacticalEndScene( Game* _game ) : Scene( _game )
 	//okayButton.SetText( "OK" );
 	okayButton.SetDeco(  Game::CalcDecoAtom( DECO_OKAY_CHECK, true ), 
 		                 Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
-	okayButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	okayButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 }
 
 
@@ -182,10 +182,10 @@ void TacticalEndScene::Resize()
 	backgroundUI.background.SetSize( port.UIWidth(), port.UIHeight() );
 
 	//									description  count				 score					items
-	static const float X_ORIGIN[4]  = { GAME_GUTTER, GAME_GUTTER+150.0f, GAME_GUTTER+200.0f,	GAME_GUTTER+270.0f };
-	static const float Y_ORIGIN		= GAME_GUTTER;
-	static const float SPACING		= GAME_GUTTER;
-	float yPos = GAME_GUTTER;
+	const float X_ORIGIN[4]  = { GAME_GUTTER(), GAME_GUTTER()+150.0f, GAME_GUTTER()+200.0f,	GAME_GUTTER()+270.0f };
+	const float Y_ORIGIN		= GAME_GUTTER();
+	const float SPACING		= GAME_GUTTER();
+	float yPos = GAME_GUTTER();
 
 	victory.SetPos( X_ORIGIN[DESC], yPos );
 	yPos += SPACING;
@@ -201,7 +201,7 @@ void TacticalEndScene::Resize()
 	}
 	totalScoreValue.SetPos( X_ORIGIN[SCORE], yPos );
 	totalScoreLabel.SetPos( X_ORIGIN[DESC], yPos );
-	okayButton.SetPos( 0, (float)(port.UIHeight() - (GAME_BUTTON_SIZE + 5)) );
+	okayButton.SetPos( 0, (float)(port.UIHeight() - (GAME_BUTTON_SIZE() + 5)) );
 }
 
 

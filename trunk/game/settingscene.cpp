@@ -22,12 +22,12 @@ SettingScene::SettingScene( Game* _game ) : Scene( _game )
 	const ButtonLook& green = game->GetButtonLook( Game::GREEN_BUTTON );
 
 	doneButton.Init( &gamui2D, blue );
-	doneButton.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
+	doneButton.SetSize( GAME_BUTTON_SIZE_B(), GAME_BUTTON_SIZE_B() );
 	doneButton.SetDeco( Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
 						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );
 
 	const float SIZE = gamui2D.GetTextHeight()*2.8f;
-	float y = GAME_GUTTER / 4;
+	float y = GAME_GUTTER() / 4;
 	float deltaY = SIZE + 2.0f;
 	//float x = 196.0f + GAME_GUTTER*2.f;
 	//float deltaX = SIZE + 5.0f;
@@ -147,8 +147,8 @@ void SettingScene::Resize()
 	background.SetSize( port.UIWidth(), port.UIHeight() );
 
 	gamui::LayoutCalculator layout( port.UIWidth(), port.UIHeight() );
-	layout.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
-	layout.SetSpacing( GAME_BUTTON_SPACING*0.25f );
+	layout.SetSize( GAME_BUTTON_SIZE_B(), GAME_BUTTON_SIZE_B() );
+	layout.SetSpacing( GAME_BUTTON_SPACING()*0.25f );
 
 	layout.PosAbs( &doneButton, 0, -1 );
 

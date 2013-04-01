@@ -60,7 +60,18 @@ using namespace tinyxml2;
 
 extern long memNewCount;
 
-Game::Game( int width, int height, int rotation, const char* path ) :
+bool	gTVMode = false;
+int		GAME_BUTTON_SIZE()		{ return 60; }
+float	GAME_BUTTON_SIZE_F()	{ return 60; }
+float	GAME_BUTTON_SIZE_B()	{ return 50.0f; }
+float	GAME_GUTTER()			{ return 20.0f; }
+float	GAME_BUTTON_SPACING()	{ return 10.0f; }
+float	GAME_CROWDED_YTWEAK()	{ return -32.0f; }
+float	GAME_TEXT_HEIGHT()		{ return 18.0f; }
+float	GAME_VIRTUAL_SCREEN_HEIGHT()	{ return 320.0f; }
+
+
+Game::Game( int width, int height, int rotation, const char* path, bool p_tvMode ) :
 	battleData( itemDefArr ),
 	screenport( width, height, rotation ),
 	markFrameTime( 0 ),
@@ -68,6 +79,7 @@ Game::Game( int width, int height, int rotation, const char* path ) :
 	framesPerSecond( 0 ),
 	debugLevel( 0 ),
 	suppressText( false ),
+	tvMode( p_tvMode ),
 	previousTime( 0 ),
 	isDragging( false )
 {
@@ -99,6 +111,7 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	framesPerSecond( 0 ),
 	debugLevel( 0 ),
 	suppressText( false ),
+	tvMode( false ),
 	previousTime( 0 ),
 	isDragging( false )
 {

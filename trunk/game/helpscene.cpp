@@ -27,8 +27,8 @@ HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ),
 
 	textBox.Init( &gamui2D );
 
-	textBox.SetPos( GAME_GUTTER, GAME_GUTTER );
-	textBox.SetSize( port.UIWidth()-GAME_GUTTER*2.0f, port.UIHeight()-GAME_GUTTER*2.0f );
+	textBox.SetPos( GAME_GUTTER(), GAME_GUTTER() );
+	textBox.SetSize( port.UIWidth()-GAME_GUTTER()*2.0f, port.UIHeight()-GAME_GUTTER()*2.0f );
 
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 	//static const char* const text[NUM_BUTTONS] = { "<", ">", "X", "" };
@@ -37,7 +37,7 @@ HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ),
 
 	for( int i=0; i<NUM_BUTTONS; ++i ) {
 		buttons[i].Init( &gamui2D, blue );
-		buttons[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+		buttons[i].SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 		//buttons[i].SetText( text[i] );
 		buttons[i].SetDeco( Game::CalcDecoAtom( deco[i], true ), 
 							Game::CalcDecoAtom( deco[i], false ) );
@@ -97,8 +97,8 @@ void HelpScene::Resize()
 		text = (const char*)reader->AccessData( pageItem, "text", 0 );
 	}
 
-	//float tw = port.UIWidth() - GAME_GUTTER*2.0f;
-	//float th = buttons[PREV_BUTTON].Y() - GAME_GUTTER*2.0f;
+	//float tw = port.UIWidth() - GAME_GUTTER()*2.0f;
+	//float th = buttons[PREV_BUTTON].Y() - GAME_GUTTER()*2.0f;
 
 	image.SetVisible( false );
 	float imageWidth = 0;
@@ -110,8 +110,8 @@ void HelpScene::Resize()
 		
 		float width = 100.0f;
 		float height = width / texture->AspectRatio();
-		if ( height > 320.f - GAME_BUTTON_SIZE_F - GAME_GUTTER ) {
-			height = 320.f - GAME_BUTTON_SIZE_F - GAME_GUTTER;
+		if ( height > 320.f - GAME_BUTTON_SIZE_F() - GAME_GUTTER() ) {
+			height = 320.f - GAME_BUTTON_SIZE_F() - GAME_GUTTER();
 			width = height * texture->AspectRatio();
 		}
 
@@ -125,18 +125,18 @@ void HelpScene::Resize()
 		imageWidth = width;
 	}
 
-	textBox.SetPos( GAME_GUTTER, GAME_GUTTER );
-	textBox.SetSize( port.UIWidth()-GAME_GUTTER*2.f - imageWidth, port.UIHeight()-GAME_GUTTER*2.f );
+	textBox.SetPos( GAME_GUTTER(), GAME_GUTTER() );
+	textBox.SetSize( port.UIWidth()-GAME_GUTTER()*2.f - imageWidth, port.UIHeight()-GAME_GUTTER()*2.f );
 	textBox.SetText( text ? text : "" );
 
 	buttons[PREV_BUTTON].SetEnabled( currentScreen > 0 );
 	buttons[NEXT_BUTTON].SetEnabled( currentScreen < nPages - 1 );
 
-	buttons[PREV_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*2.0f, port.UIHeight() - GAME_BUTTON_SIZE_F );
-	buttons[NEXT_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F,		 port.UIHeight() - GAME_BUTTON_SIZE_F );
-	buttons[DONE_BUTTON].SetPos( 0, port.UIHeight() - GAME_BUTTON_SIZE_F );
-	buttons[SETTINGS_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*3.0f, port.UIHeight() - GAME_BUTTON_SIZE_F );
-	buttons[SAVE_LOAD_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F*4.f, port.UIHeight() - GAME_BUTTON_SIZE_F );
+	buttons[PREV_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F()*2.0f, port.UIHeight() - GAME_BUTTON_SIZE_F() );
+	buttons[NEXT_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F(),		 port.UIHeight() - GAME_BUTTON_SIZE_F() );
+	buttons[DONE_BUTTON].SetPos( 0, port.UIHeight() - GAME_BUTTON_SIZE_F() );
+	buttons[SETTINGS_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F()*3.0f, port.UIHeight() - GAME_BUTTON_SIZE_F() );
+	buttons[SAVE_LOAD_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F()*4.f, port.UIHeight() - GAME_BUTTON_SIZE_F() );
 }
 
 

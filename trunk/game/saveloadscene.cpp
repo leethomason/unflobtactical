@@ -16,26 +16,26 @@ SaveLoadScene::SaveLoadScene( Game* _game, const SaveLoadSceneData* _data ) : Sc
 	
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 	
-	//static const float deltaY = GAME_BUTTON_SIZE_F + 2.0f;
+	//static const float deltaY = GAME_BUTTON_SIZE_F() + 2.0f;
 
 	backButton.Init( &gamui2D, blue );
-	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	backButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	backButton.SetDeco(	Game::CalcDecoAtom( DECO_CANCEL, true ),
 						Game::CalcDecoAtom( DECO_CANCEL, false ) );	
 
 	okayButton.Init( &gamui2D, blue );
-	okayButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	okayButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	okayButton.SetDeco(	Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
 						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	confirmText.Init( &gamui2D );
 
 	saveButton.Init( &gamui2D, blue );
-	saveButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	saveButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	saveButton.SetText( "Save" );
 
 	loadButton.Init( &gamui2D, blue );
-	loadButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	loadButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	loadButton.SetText( "Load" );
 
 	saveButton.AddToToggleGroup( &loadButton );
@@ -46,7 +46,7 @@ SaveLoadScene::SaveLoadScene( Game* _game, const SaveLoadSceneData* _data ) : Sc
 
 	for( int i=0; i<SAVE_SLOTS; ++i ) {
 		slotButton[i].Init( &gamui2D, blue );
-		slotButton[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+		slotButton[i].SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 		char buf[10];
 		SNPrintf( buf, 10, "%d", i+1 );
 		slotButton[i].SetText( buf );
@@ -83,8 +83,8 @@ void SaveLoadScene::Resize()
 
 	LayoutCalculator layout( port.UIWidth(), port.UIHeight() );
 
-	layout.SetGutter( GAME_GUTTER );
-	layout.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	layout.SetGutter( GAME_GUTTER() );
+	layout.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	//layout.SetSpacing( GAME_BUTTON_SPACING * 0.5f );
 
 	layout.PosAbs( &backButton, 0, -1 );
