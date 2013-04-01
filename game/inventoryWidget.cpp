@@ -46,12 +46,12 @@ InventoryWidget::InventoryWidget(	Game* game,
 	nameRankUI.Init( g, game );
 
 	for( int i=0; i<NUM_BUTTONS; ++i ) {
-		button[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+		button[i].SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	}
 
 	RenderAtom nullAtom;
 	dragImage.Init( g, nullAtom, true );
-	dragImage.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F*2.0f );
+	dragImage.SetSize( GAME_BUTTON_SIZE_F()*2.0f, GAME_BUTTON_SIZE_F()*2.0f );
 	dragImage.SetVisible( false );
 
 	dragIndex = -1;
@@ -80,11 +80,11 @@ void InventoryWidget::DoLayout()
 	y = nameRankUI.name.Y() + NameRankUI::FACE_SIZE;
 
 
-	y = GAME_BUTTON_SIZE_F;
+	y = GAME_BUTTON_SIZE_F();
 
 	button[ARMOR].SetPos( pos.x, y );
-	button[WEAPON].SetPos( pos.x+GAME_BUTTON_SIZE_F, y );
-	y += GAME_BUTTON_SIZE_F;
+	button[WEAPON].SetPos( pos.x+GAME_BUTTON_SIZE_F(), y );
+	y += GAME_BUTTON_SIZE_F();
 
 	//y += SPACE;
 
@@ -102,7 +102,7 @@ void InventoryWidget::DoLayout()
 	//descriptionLabel.SetPos( pos.x, y );
 	//y += TEXTHEIGHT;
 
-	info.SetPos( pos.x, y+GAME_BUTTON_SIZE_F*2.f ); 
+	info.SetPos( pos.x, y+GAME_BUTTON_SIZE_F()*2.f ); 
 }
 
 

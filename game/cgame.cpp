@@ -48,11 +48,11 @@ bool CheckThread::active = false;
 static char* modDatabases[ GAME_MAX_MOD_DATABASES ] = { 0 };
 
 
-void* NewGame( int width, int height, int rotation, const char* path )
+void* NewGame( int width, int height, int rotation, const char* path, bool tvMode )
 {
 	CheckThread check;
 
-	Game* game = new Game( width, height, rotation, path );
+	Game* game = new Game( width, height, rotation, path, tvMode );
 	GLOUTPUT(( "NewGame.\n" ));
 
 	for( int i=0; i<GAME_MAX_MOD_DATABASES; ++i ) {

@@ -49,15 +49,14 @@
 #define NEXUS_ONE_SCREEN_WIDTH  480
 #define NEXUS_ONE_SCREEN_HEIGHT  800
 
-#if 0
-static const int SCREEN_WIDTH  = IPOD_SCREEN_WIDTH*2;
-static const int SCREEN_HEIGHT = IPOD_SCREEN_HEIGHT*2;
-#endif
+#define TV_SCREEN_WIDTH 1280
+#define TV_SCREEN_HEIGHT 720
+
 #if 0
 static const int SCREEN_WIDTH  = IPOD_SCREEN_WIDTH;
 static const int SCREEN_HEIGHT = IPOD_SCREEN_HEIGHT;
 #endif
-#if 1
+#if 0
 // A default screenshot size for market.
 static const int SCREEN_WIDTH  = NEXUS_ONE_SCREEN_WIDTH;
 static const int SCREEN_HEIGHT = NEXUS_ONE_SCREEN_HEIGHT;
@@ -67,7 +66,26 @@ static const int SCREEN_HEIGHT = NEXUS_ONE_SCREEN_HEIGHT;
 static const int SCREEN_WIDTH = 384;
 static const int SCREEN_HEIGHT = 640;
 #endif
+#if 0
+// OUYA
+// Flipped. Will have to test on actual device.
+static const int SCREEN_WIDTH  = TV_SCREEN_HEIGHT;
+static const int SCREEN_HEIGHT = TV_SCREEN_WIDTH;
+#define TV_MODE
+#endif
+#if 1
+// OUYA on laptop
+// Flipped. Will have to test on actual device.
+static const int SCREEN_WIDTH  = TV_SCREEN_HEIGHT * 3 / 4;
+static const int SCREEN_HEIGHT = TV_SCREEN_WIDTH * 3 / 4;
+#define TV_MODE
+#endif
 
+#ifdef TV_MODE
+static const bool tvMode = true;
+#else
+static const bool tvMode = false;
+#endif
 
 const int multisample = 2;
 bool fullscreen = false;
@@ -302,7 +320,7 @@ int main( int argc, char **argv )
 		mapMakerMode = true;
 	}
 	else {
-		game = NewGame( screenWidth, screenHeight, rotation, ".\\" );
+		game = NewGame( screenWidth, screenHeight, rotation, ".\\", tvMode );
 	}
 
 

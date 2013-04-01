@@ -21,6 +21,8 @@
 #include "../grinliz/glutil.h"
 #include "../grinliz/glmatrix.h"
 
+#include "../game/gamelimits.h"
+
 using namespace grinliz;
 
 
@@ -53,11 +55,11 @@ void Screenport::Resize( int w, int h, int r )
 	// Try #3.
 
 	if ( (rotation&1) == 0 ) {
-		screenHeight = 320.0f;
+		screenHeight = GAME_VIRTUAL_SCREEN_HEIGHT();
 		screenWidth = screenHeight * physicalWidth / physicalHeight;
 	}
 	else {
-		screenWidth  = 320.0f;
+		screenWidth  = GAME_VIRTUAL_SCREEN_HEIGHT();
 		screenHeight = screenWidth * physicalHeight / physicalWidth;
 	}
 

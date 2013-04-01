@@ -43,23 +43,23 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 	title.Init( &gamui2D );
 	title.SetText( "title" );
 
-	static const float X0 = GAME_BUTTON_SIZE_F + GAME_GUTTER;
+	const float X0 = GAME_BUTTON_SIZE_F() + GAME_GUTTER();
 
 	mainDescription.Init( &gamui2D );
-	mainDescription.SetSize( port.UIWidth() - GAME_GUTTER - X0, 200 );
+	mainDescription.SetSize( port.UIWidth() - GAME_GUTTER() - X0, 200 );
 	mainDescription.SetText( "description" );
 
 	image.Init( &gamui2D, Game::CalcDecoAtom( DECO_RESEARCH, true ), true );
-	image.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	image.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 
 	RenderAtom nullAtom;
 	researchImage.Init( &gamui2D, nullAtom, true );
-	researchImage.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F*2.0f );
+	researchImage.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F()*2.0f );
 
 	for( int i=0; i<MAX_OPTIONS; ++i ) {
 
 		optionButton[i].Init( &gamui2D, blue );
-		optionButton[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+		optionButton[i].SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 		optionButton[i].SetText( "test" );
 
 		optionName[i].Init( &gamui2D );
@@ -74,12 +74,12 @@ ResearchScene::ResearchScene( Game* _game, ResearchSceneData* _data ) : Scene( _
 	}
 
 	okayButton.Init( &gamui2D, blue );
-	okayButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	okayButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	okayButton.SetDeco(	Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
 						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	helpButton.Init( &gamui2D, green );
-	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	helpButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	helpButton.SetDeco(  Game::CalcDecoAtom( DECO_HELP, true ), Game::CalcDecoAtom( DECO_HELP, false ) );	
 
 	SetOptions();
@@ -98,22 +98,22 @@ void ResearchScene::Resize()
 	background.SetSize( port.UIWidth(), port.UIHeight() );
 
 	static const float SPACE = 5.0f;
-	static const float X0 = GAME_BUTTON_SIZE_F + GAME_GUTTER;
+	static const float X0 = GAME_BUTTON_SIZE_F() + GAME_GUTTER();
 	title.SetPos( X0, 0 );
-	mainDescription.SetPos( X0, GAME_GUTTER );
-	mainDescription.SetSize( port.UIWidth() - GAME_GUTTER - X0, 200 );
+	mainDescription.SetPos( X0, GAME_GUTTER() );
+	mainDescription.SetSize( port.UIWidth() - GAME_GUTTER() - X0, 200 );
 	image.SetPos( 0, 0 );
 
-	researchImage.SetPos( image.X(), image.Y()+image.Height()+GAME_GUTTER );
+	researchImage.SetPos( image.X(), image.Y()+image.Height()+GAME_GUTTER() );
 
 	for( int i=0; i<MAX_OPTIONS; ++i ) {
-		float y = port.UIHeight() - (SPACE+GAME_BUTTON_SIZE_F)*(float)(MAX_OPTIONS-i) + SPACE;
+		float y = port.UIHeight() - (SPACE+GAME_BUTTON_SIZE_F())*(float)(MAX_OPTIONS-i) + SPACE;
 		optionButton[i].SetPos( X0, y );
-		optionName[i].SetPos( X0+GAME_GUTTER+GAME_BUTTON_SIZE_F, y+5 );
-		optionRequires[i].SetPos(  X0+GAME_GUTTER+GAME_BUTTON_SIZE_F, y+25 );
+		optionName[i].SetPos( X0+GAME_GUTTER()+GAME_BUTTON_SIZE_F(), y+5 );
+		optionRequires[i].SetPos(  X0+GAME_GUTTER()+GAME_BUTTON_SIZE_F(), y+25 );
 	}
-	okayButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
-	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, port.UIHeight()-GAME_BUTTON_SIZE_F );
+	okayButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F() );
+	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F(), port.UIHeight()-GAME_BUTTON_SIZE_F() );
 }
 
 

@@ -22,12 +22,12 @@ BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene(
 	const gamui::ButtonLook& green		= game->GetButtonLook( Game::GREEN_BUTTON );
 
 	backButton.Init( &gamui2D, blue );
-	backButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	backButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	backButton.SetDeco(	Game::CalcDecoAtom( DECO_OKAY_CHECK, true ),
 						Game::CalcDecoAtom( DECO_OKAY_CHECK, false ) );	
 
 	helpButton.Init( &gamui2D, green );
-	helpButton.SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+	helpButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	helpButton.SetDeco(  Game::CalcDecoAtom( DECO_HELP, true ), Game::CalcDecoAtom( DECO_HELP, false ) );	
 
 	//const float ORIGIN_X = (port.UIWidth()-256.0f)/2.0f;
@@ -42,7 +42,7 @@ BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene(
 
 	for( int i=0; i<NUM_FACILITIES; ++i ) {
 		buyButton[i].Init( &gamui2D, green );
-		buyButton[i].SetSize( GAME_BUTTON_SIZE_F, GAME_BUTTON_SIZE_F );
+		buyButton[i].SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 		buyButton[i].SetText( facilityNames[i] );
 
 		SNPrintf( buf, 16, "$%d", facilityCost[i] );
@@ -53,7 +53,7 @@ BuildBaseScene::BuildBaseScene( Game* _game, BuildBaseSceneData* data ) : Scene(
 	}
 
 	cashImage.Init( &gamui2D, Game::CalcIconAtom( ICON_GREEN_STAND_MARK ), false );
-	cashImage.SetSize( GAME_BUTTON_SIZE_F*2.0f, GAME_BUTTON_SIZE_F );
+	cashImage.SetSize( GAME_BUTTON_SIZE_F()*2.0f, GAME_BUTTON_SIZE_F() );
 	cashImage.SetSlice( true );
 
 	cashLabel.Init( &gamui2D );
@@ -69,23 +69,23 @@ void BuildBaseScene::Resize()
 	const float ORIGIN_Y = 0;
 	const float SIZE = 256;
 
-	backButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F );
-	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F, 0 );
+	backButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F() );
+	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F(), 0 );
 	mapImage.SetPos( ORIGIN_X, ORIGIN_Y );
 
 	static const Vector2F pos[NUM_FACILITIES] = {
-		{ SIZE-GAME_BUTTON_SIZE_F, (SIZE-GAME_BUTTON_SIZE_F)/2 },
-		{ SIZE-GAME_BUTTON_SIZE_F, 0 },
-		{ (SIZE-GAME_BUTTON_SIZE_F)/2, 0 },
+		{ SIZE-GAME_BUTTON_SIZE_F(), (SIZE-GAME_BUTTON_SIZE_F())/2 },
+		{ SIZE-GAME_BUTTON_SIZE_F(), 0 },
+		{ (SIZE-GAME_BUTTON_SIZE_F())/2, 0 },
 		{ 0, 0 },
-		{ 0, (SIZE-GAME_BUTTON_SIZE_F)/2 }
+		{ 0, (SIZE-GAME_BUTTON_SIZE_F())/2 }
 	};
 	for( int i=0; i<NUM_FACILITIES; ++i ) {
 		buyButton[i].SetPos( ORIGIN_X+pos[i].x, ORIGIN_Y+pos[i].y );
 		progressLabel[i].SetCenterPos( buyButton[i].X() + buyButton[i].Width()/2,
 									   buyButton[i].Y() + gamui2D.GetTextHeight() );
 	}
-	cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F*0.5f );
+	cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F()*2.0f, port.UIHeight()-GAME_BUTTON_SIZE_F()*0.5f );
 	cashLabel.SetPos( cashImage.X()+10.0f, cashImage.Y()+10.0f );
 }
 

@@ -49,25 +49,25 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	const gamui::ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 
 	continueButton.Init( &gamui2D, green );
-	continueButton.SetSize( GAME_BUTTON_SIZE_B*2.5F, GAME_BUTTON_SIZE_B );
+	continueButton.SetSize( GAME_BUTTON_SIZE_B()*2.5F, GAME_BUTTON_SIZE_B() );
 	continueButton.SetText( "Continue" );
 
 	loadButton.Init( &gamui2D, green );
-	loadButton.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
+	loadButton.SetSize( GAME_BUTTON_SIZE_B(), GAME_BUTTON_SIZE_B() );
 	loadButton.SetDeco( Game::CalcDecoAtom( DECO_SAVE_LOAD, true ),
 						Game::CalcDecoAtom( DECO_SAVE_LOAD, false ) );	 
 
 	newTactical.Init( &gamui2D, green );
-	newTactical.SetSize( GAME_BUTTON_SIZE_B*2.0F, GAME_BUTTON_SIZE_B );
+	newTactical.SetSize( GAME_BUTTON_SIZE_B()*2.0F, GAME_BUTTON_SIZE_B() );
 	newTactical.SetText( "New Tactical" );
 	
 	newGeo.Init( &gamui2D, green );
-	newGeo.SetSize( GAME_BUTTON_SIZE_B*2.0F, GAME_BUTTON_SIZE_B );
+	newGeo.SetSize( GAME_BUTTON_SIZE_B()*2.0F, GAME_BUTTON_SIZE_B() );
 	newGeo.SetText( "New Geo" );
 	
 	// Same place as new geo
 	newGame.Init( &gamui2D, blue );
-	newGame.SetSize( GAME_BUTTON_SIZE_B*2.2F, GAME_BUTTON_SIZE_B );
+	newGame.SetSize( GAME_BUTTON_SIZE_B()*2.2F, GAME_BUTTON_SIZE_B() );
 	newGame.SetText( "New Game" );
 
 	newGameWarning.Init( &gamui2D );
@@ -90,15 +90,15 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	}
 
 	helpButton.Init( &gamui2D, green );
-	helpButton.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
+	helpButton.SetSize( GAME_BUTTON_SIZE_B(), GAME_BUTTON_SIZE_B() );
 	helpButton.SetDeco( Game::CalcDecoAtom( DECO_HELP, true ),
 						Game::CalcDecoAtom( DECO_HELP, false ) );	
 
 	audioButton.Init( &gamui2D, green );
-	audioButton.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
+	audioButton.SetSize( GAME_BUTTON_SIZE_B(), GAME_BUTTON_SIZE_B() );
 
 	settingButton.Init( &gamui2D, green );
-	settingButton.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
+	settingButton.SetSize( GAME_BUTTON_SIZE_B(), GAME_BUTTON_SIZE_B() );
 	settingButton.SetDeco(	Game::CalcDecoAtom( DECO_SETTINGS, true ),
 							Game::CalcDecoAtom( DECO_SETTINGS, false ) );	
 
@@ -121,11 +121,11 @@ void TacticalIntroScene::Resize()
 	GLOUTPUT(( "TacticalIntroScene Resize screen=%.1f,%.1f\n", port.UIWidth(), port.UIHeight() ));
 
 	LayoutCalculator layout( port.UIWidth(), port.UIHeight() );
-	layout.SetGutter( GAME_GUTTER );
-	layout.SetSpacing( GAME_GUTTER/2 );
+	layout.SetGutter( GAME_GUTTER() );
+	layout.SetSpacing( GAME_GUTTER()/2 );
 
 	// Double wide buttons
-	layout.SetSize( GAME_BUTTON_SIZE_B*2.0f, GAME_BUTTON_SIZE_B );
+	layout.SetSize( GAME_BUTTON_SIZE_B()*2.0f, GAME_BUTTON_SIZE_B() );
 	layout.PosAbs( &continueButton, 0, -1 );
 	loadButton.SetPos( continueButton.X() + continueButton.Width(), continueButton.Y() );
 	
@@ -135,14 +135,14 @@ void TacticalIntroScene::Resize()
 	newGameWarning.SetPos( newGeo.X()-15, newGeo.Y() + newGeo.Height()+2 );
 
 	// Square buttons
-	layout.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
+	layout.SetSize( GAME_BUTTON_SIZE_B(), GAME_BUTTON_SIZE_B() );
 	layout.PosAbs( &helpButton,		-1, 0 );
 	layout.PosAbs( &audioButton,	-1, 1 );
 	layout.PosAbs( &settingButton,  -1, 2 );
 
-	backgroundUI.backgroundText.SetPos( GAME_GUTTER, GAME_GUTTER );
-	float maxX = settingButton.X() - GAME_GUTTER*2.0f;
-	float maxY = continueButton.Y() - GAME_GUTTER*2.0f;
+	backgroundUI.backgroundText.SetPos( GAME_GUTTER(), GAME_GUTTER() );
+	float maxX = settingButton.X() - GAME_GUTTER()*2.0f;
+	float maxY = continueButton.Y() - GAME_GUTTER()*2.0f;
 	if ( maxX < maxY*2.0f ) {
 		backgroundUI.backgroundText.SetSize( maxX, maxX*0.5f );
 	}

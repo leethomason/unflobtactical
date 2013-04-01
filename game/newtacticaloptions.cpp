@@ -31,7 +31,7 @@ NewTacticalOptions::NewTacticalOptions( Game* _game ) : Scene( _game )
 		GLASSERT( toggleLabel[i] );
 		toggles[i].Init( &gamui2D, green );
 		toggles[i].SetText( toggleLabel[i] );
-		toggles[i].SetSize( GAME_BUTTON_SIZE_B*(float)toggleSize[i], GAME_BUTTON_SIZE_B );
+		toggles[i].SetSize( GAME_BUTTON_SIZE_B()*(float)toggleSize[i], GAME_BUTTON_SIZE_B() );
 	}
 
 	toggles[SQUAD_4].AddToToggleGroup( &toggles[SQUAD_6] );
@@ -75,7 +75,7 @@ NewTacticalOptions::NewTacticalOptions( Game* _game ) : Scene( _game )
 		toggles[FARM_SCOUT].AddToToggleGroup( &toggles[i] );
 							
 	goButton.Init( &gamui2D, blue );
-	goButton.SetSize( GAME_BUTTON_SIZE_B*2.0f, GAME_BUTTON_SIZE_B );
+	goButton.SetSize( GAME_BUTTON_SIZE_B()*2.0f, GAME_BUTTON_SIZE_B() );
 	goButton.SetText( "Go!" );
 }
 
@@ -84,10 +84,10 @@ void NewTacticalOptions::Resize()
 {
 	const Screenport& port = GetEngine()->GetScreenport();
 	LayoutCalculator layout( port.UIWidth(), port.UIHeight() );
-	layout.SetSize( GAME_BUTTON_SIZE_B, GAME_BUTTON_SIZE_B );
+	layout.SetSize( GAME_BUTTON_SIZE_B(), GAME_BUTTON_SIZE_B() );
 	layout.SetGutter( 0 );
 	layout.SetSpacing( 0 );
-	layout.SetOffset( 0, GAME_CROWDED_YTWEAK );
+	layout.SetOffset( 0, GAME_CROWDED_YTWEAK() );
 	layout.SetTextOffset( 5.f, 32.f );
 
 	// Left group.
