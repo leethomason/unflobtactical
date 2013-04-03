@@ -36,6 +36,18 @@
 	- publish
 	- check on Samsung
 
+Release v2.10 b840
+Stability and gameplay bug fixes.
+- Improved memory usage when saving / loading (upgrade from TinyXML-1 to TinyXML-2)
+- Fixed bug where battleships have the same unit starting position. Actually a global bug; the aliens units should be generally much better randomized now.
+- Crashing bug where if you have an Alpha and Bravo base, and Alpha base is destroyed, the game will crash whenever you deploy units.
+- "Text is unreadable on some devices." Possible fix implemented.
+- An installer for windows! Installs xenowar to the desktop and gives you the option to install the Visual Studio runtime.
+- Fix a bug in the final battle where part of the alien team guards nothing, and stands around an empty temple.
+- Fix text overflowing images in help screens.
+
+
+Beta v2.9 b839
 Beta v2.8 b835
 Stability and gameplay bug fixes.
 - Improved memory usage when saving / loading (upgrade from TinyXML-1 to TinyXML-2)
@@ -46,6 +58,9 @@ Stability and gameplay bug fixes.
 - Fix a bug in the final battle where part of the alien team guards nothing, and stands around an empty temple.
 Beta fixes;
 - Fix settings not getting loaded
+- Fix text having too much whitespace
+- Fix text overflowing images 
+- Fix giant zip file
 
 Beta v2.7 b813
 Adds difficulty selection for the Geo game. Many bug fixes and mainentance issues addressed.

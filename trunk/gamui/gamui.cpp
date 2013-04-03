@@ -93,6 +93,7 @@ UIItem::UIItem( int p_level )
 	  m_y( 0 ),
 	  m_level( p_level ),
 	  m_visible( true ),
+	  m_focused( false ),
 	  m_rotationX( 0 ),
 	  m_rotationY( 0 ),
 	  m_rotationZ( 0 ),

@@ -71,6 +71,28 @@ void GameDoTick( void* handle, unsigned int timeInMSec );
 
 void GameHotKey( void* handle, int mask );
 
+#define GAME_JOY_BUTTON_DOWN	1		// select
+#define GAME_JOY_BUTTON_LEFT	2
+#define GAME_JOY_BUTTON_UP		3
+#define GAME_JOY_BUTTON_RIGHT	4	// cancel
+#define GAME_JOY_L1				5
+#define GAME_JOY_R1				6
+#define GAME_JOY_L2				7
+#define GAME_JOY_R2				8
+void GameJoyButton( void* handle, int id, bool down );
+
+#define GAME_JOY_DPAD_UP	1
+#define GAME_JOY_DPAD_RIGHT	2
+#define GAME_JOY_DPAD_DOWN	4
+#define GAME_JOY_DPAD_LEFT	8
+void GameJoyDPad( void* handle, int dir );
+
+// id: 0 or 1
+// axis: x:0 or y:1
+// value: [-1,1]
+void GameJoyStick( void* handle, int id, int axis, float value );
+
+
 #define GAME_MAX_MOD_DATABASES			16
 void GameAddDatabase( const char* path );
 

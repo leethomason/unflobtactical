@@ -384,6 +384,16 @@ public:
 		}
 	}
 	bool Visible() const						{ return m_visible; }
+
+	/*
+	virtual bool SetFocused( bool focused )	{
+		if ( m_focused != focused ) {
+			m_focused = focused;
+			Modify();
+		}
+	}
+	bool Focused() const						{ return m_focused; }
+	*/
 	
 	void SetLevel( int level )					
 	{
@@ -424,6 +434,7 @@ private:
 	float m_y;
 	int m_level;
 	bool m_visible;
+	bool m_focused;
 	float m_rotationX;
 	float m_rotationY;
 	float m_rotationZ;

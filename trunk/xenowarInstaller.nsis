@@ -22,7 +22,7 @@ section
 setOutPath $INSTDIR
  
 # define what to install and place it in the output path
-File /r .\Xenowar\*
+File /r .\XenowarInstaller\*
 
 sectionEnd
 
