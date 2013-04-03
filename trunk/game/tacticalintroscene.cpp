@@ -121,34 +121,60 @@ void TacticalIntroScene::Resize()
 	GLOUTPUT(( "TacticalIntroScene Resize screen=%.1f,%.1f\n", port.UIWidth(), port.UIHeight() ));
 
 	LayoutCalculator layout( port.UIWidth(), port.UIHeight() );
-	layout.SetGutter( GAME_GUTTER() );
-	layout.SetSpacing( GAME_GUTTER()/2 );
+	layout.SetGutter( GAME_GUTTER_X(), GAME_GUTTER_Y() );
+	layout.SetSpacing( GAME_BUTTON_SPACING() );
 
 	// Double wide buttons
 	layout.SetSize( GAME_BUTTON_SIZE_B()*2.0f, GAME_BUTTON_SIZE_B() );
-	layout.PosAbs( &continueButton, 0, -1 );
-	loadButton.SetPos( continueButton.X() + continueButton.Width(), continueButton.Y() );
+	int x = 0;
+
+	layout.PosAbs( &continueButton, x++, -1, true );	
+
+	if ( TVMode() ) {
+		layout.PosAbs( &loadButton, x++, -1, true );
+	}
+	else {
+		layout.PosAbs( &loadButton, x++, -1, true );
+	}
 	
-	layout.PosAbs( &newGeo,			-2, -1 );
-	layout.PosAbs( &newTactical,	-1, -1 );
-	layout.PosAbs( &newGame,		-2, -1 );
+	layout.PosAbs( &newGame,		x, -1, true );
+	layout.PosAbs( &newGeo,			x++, -1, true );
+	layout.PosAbs( &newTactical,	x++, -1, true );
 	newGameWarning.SetPos( newGeo.X()-15, newGeo.Y() + newGeo.Height()+2 );
 
 	// Square buttons
 	layout.SetSize( GAME_BUTTON_SIZE_B(), GAME_BUTTON_SIZE_B() );
-	layout.PosAbs( &helpButton,		-1, 0 );
-	layout.PosAbs( &audioButton,	-1, 1 );
-	layout.PosAbs( &settingButton,  -1, 2 );
-
-	backgroundUI.backgroundText.SetPos( GAME_GUTTER(), GAME_GUTTER() );
-	float maxX = settingButton.X() - GAME_GUTTER()*2.0f;
-	float maxY = continueButton.Y() - GAME_GUTTER()*2.0f;
-	if ( maxX < maxY*2.0f ) {
-		backgroundUI.backgroundText.SetSize( maxX, maxX*0.5f );
+	if ( TVMode() ) {
+		x = -2;
+		audioButton.SetVisible( false );
+		layout.PosAbs( &helpButton,		x++, -1 );
+		layout.PosAbs( &settingButton,  x++, -1 );
 	}
 	else {
-		backgroundUI.backgroundText.SetSize( maxY*2.0f, maxY );
+		audioButton.SetVisible( true );
+		layout.PosAbs( &helpButton,		-1, 0 );
+		layout.PosAbs( &audioButton,	-1, 1 );
+		layout.PosAbs( &settingButton,  -1, 2 );
 	}
+	backgroundUI.backgroundText.SetPos( GAME_GUTTER_X(), GAME_GUTTER_Y() );
+	if ( TVMode() ) {
+		float dy = helpButton.Y() - GAME_GUTTER_Y()*2.0f;
+		float cx = backgroundUI.backgroundText.Width();
+		float cy = backgroundUI.backgroundText.Height();
+		backgroundUI.backgroundText.SetSize( cx*dy/cy, dy );
+		backgroundUI.backgroundText.SetCenterPos( port.UIWidth()*0.5f, GAME_GUTTER_Y() + dy*0.5f );
+	}
+	else {
+		float maxX = settingButton.X() - GAME_GUTTER_X()*2.0f;
+		float maxY = continueButton.Y() - GAME_GUTTER_Y()*2.0f;
+		if ( maxX < maxY*2.0f ) {
+			backgroundUI.backgroundText.SetSize( maxX, maxX*0.5f );
+		}
+		else {
+			backgroundUI.backgroundText.SetSize( maxY*2.0f, maxY );
+		}
+	}
+
 	backgroundUI.background.SetSize( port.UIWidth(), port.UIHeight() );
 }
 

@@ -34,8 +34,8 @@ TacticalUnitScoreScene::TacticalUnitScoreScene( Game* _game ) : Scene( _game )
 	backgroundUI.Init( game, &gamui2D, false );
 
 	int count=0;
-	float yPos			= GAME_GUTTER();
-	static const float xPosName		= GAME_GUTTER()/2.0f+GAME_BUTTON_SIZE_F();
+	float yPos			= GAME_GUTTER_Y();
+	static const float xPosName		= GAME_GUTTER_X()/2.0f+GAME_BUTTON_SIZE_F();
 	static const float xPosStatus	= xPosName+180.0f;
 	static const float xPosAward	= xPosStatus+100.0f;
 	static const float size = 20.0f;

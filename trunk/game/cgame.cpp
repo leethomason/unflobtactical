@@ -52,7 +52,8 @@ void* NewGame( int width, int height, int rotation, const char* path, bool tvMod
 {
 	CheckThread check;
 
-	Game* game = new Game( width, height, rotation, path, tvMode );
+	SetTVMode( tvMode );
+	Game* game = new Game( width, height, rotation, path );
 	GLOUTPUT(( "NewGame.\n" ));
 
 	for( int i=0; i<GAME_MAX_MOD_DATABASES; ++i ) {

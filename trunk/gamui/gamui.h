@@ -369,6 +369,8 @@ public:
 	float Y() const								{ return m_y; }
 	virtual float Width() const = 0;
 	virtual float Height() const = 0;
+	// Not always supported.
+	virtual void SetSize( float sx, float sy )	{}
 
 	int Level() const							{ return m_level; }
 
@@ -889,13 +891,13 @@ public:
 	~LayoutCalculator();
 
 	void SetSize( float width, float height )	{ this->width = width; this->height = height; }
-	void SetGutter( float gutter )				{ this->gutter = gutter; }
+	void SetGutter( float gutterX, float gutterY )	{ this->gutterX = gutterX; this->gutterY = gutterY; }
 	void SetSpacing( float spacing )			{ this->spacing = spacing; }
 
 	void SetOffset( float x, float y )			{ this->offsetX = x; this->offsetY = y; }
 	void SetTextOffset( float x, float y )		{ this->textOffsetX = x; this->textOffsetY = y; }
 
-	void PosAbs( UIItem* item, int x, int y );
+	void PosAbs( UIItem* item, int x, int y, bool setSize=false );
 	void PosAbs( TextLabel* label, int x, int y ) {
 		useTextOffset = true;
 		PosAbs( (UIItem*) label, x, y ); 
@@ -907,7 +909,8 @@ private:
 	float screenHeight;
 	float width;
 	float height;
-	float gutter;
+	float gutterX;
+	float gutterY;
 	float spacing;
 	float textOffsetX;
 	float textOffsetY;

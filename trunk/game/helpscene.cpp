@@ -27,8 +27,8 @@ HelpScene::HelpScene( Game* _game, const HelpSceneData* data ) : Scene( _game ),
 
 	textBox.Init( &gamui2D );
 
-	textBox.SetPos( GAME_GUTTER(), GAME_GUTTER() );
-	textBox.SetSize( port.UIWidth()-GAME_GUTTER()*2.0f, port.UIHeight()-GAME_GUTTER()*2.0f );
+	textBox.SetPos( GAME_GUTTER_X(), GAME_GUTTER_Y() );
+	textBox.SetSize( port.UIWidth()-GAME_GUTTER_X()*2.0f, port.UIHeight()-GAME_GUTTER_Y()*2.0f );
 
 	const ButtonLook& blue = game->GetButtonLook( Game::BLUE_BUTTON );
 	//static const char* const text[NUM_BUTTONS] = { "<", ">", "X", "" };
@@ -97,9 +97,6 @@ void HelpScene::Resize()
 		text = (const char*)reader->AccessData( pageItem, "text", 0 );
 	}
 
-	//float tw = port.UIWidth() - GAME_GUTTER()*2.0f;
-	//float th = buttons[PREV_BUTTON].Y() - GAME_GUTTER()*2.0f;
-
 	image.SetVisible( false );
 	float imageWidth = 0;
 
@@ -110,8 +107,8 @@ void HelpScene::Resize()
 		
 		float width = 100.0f;
 		float height = width / texture->AspectRatio();
-		if ( height > 320.f - GAME_BUTTON_SIZE_F() - GAME_GUTTER() ) {
-			height = 320.f - GAME_BUTTON_SIZE_F() - GAME_GUTTER();
+		if ( height > 320.f - GAME_BUTTON_SIZE_F() - GAME_GUTTER_Y() ) {
+			height = 320.f - GAME_BUTTON_SIZE_F() - GAME_GUTTER_Y();
 			width = height * texture->AspectRatio();
 		}
 
@@ -125,8 +122,8 @@ void HelpScene::Resize()
 		imageWidth = width;
 	}
 
-	textBox.SetPos( GAME_GUTTER(), GAME_GUTTER() );
-	textBox.SetSize( port.UIWidth()-GAME_GUTTER()*2.f - imageWidth, port.UIHeight()-GAME_GUTTER()*2.f );
+	textBox.SetPos( GAME_GUTTER_X(), GAME_GUTTER_Y() );
+	textBox.SetSize( port.UIWidth()-GAME_GUTTER_X()*2.f - imageWidth, port.UIHeight()-GAME_GUTTER_Y()*2.f );
 	textBox.SetText( text ? text : "" );
 
 	buttons[PREV_BUTTON].SetEnabled( currentScreen > 0 );

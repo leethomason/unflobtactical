@@ -182,10 +182,10 @@ void TacticalEndScene::Resize()
 	backgroundUI.background.SetSize( port.UIWidth(), port.UIHeight() );
 
 	//									description  count				 score					items
-	const float X_ORIGIN[4]  = { GAME_GUTTER(), GAME_GUTTER()+150.0f, GAME_GUTTER()+200.0f,	GAME_GUTTER()+270.0f };
-	const float Y_ORIGIN		= GAME_GUTTER();
-	const float SPACING		= GAME_GUTTER();
-	float yPos = GAME_GUTTER();
+	const float X_ORIGIN[4]  = { GAME_GUTTER_X(), GAME_GUTTER_X()+150.0f, GAME_GUTTER_X()+200.0f,	GAME_GUTTER_X()+270.0f };
+	const float Y_ORIGIN		= GAME_GUTTER_Y();
+	const float SPACING		= GAME_GUTTER_X();
+	float yPos = GAME_GUTTER_Y();
 
 	victory.SetPos( X_ORIGIN[DESC], yPos );
 	yPos += SPACING;

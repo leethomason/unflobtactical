@@ -820,7 +820,14 @@ void Button::SetSizeByScale( float sx, float sy )
 
 void Button::SetText( const char* text )
 {
-	m_label[0].SetText( text );	// calls Modify()
+	const char* p = strchr( text, '\n' );
+	if ( p && *(p+1) ) {
+		m_label[0].SetText( text, p );	// calls Modify()
+		SetText2( p+1 );
+	}
+	else {
+		m_label[0].SetText( text );	// calls Modify()
+	}
 }
 
 
@@ -1541,7 +1548,8 @@ LayoutCalculator::LayoutCalculator( float w, float h )
 	  screenHeight( h ),
 	  width( 10 ),
 	  height( 10 ),
-	  gutter( 0 ), 
+	  gutterX( 0 ), 
+	  gutterY( 0 ), 
 	  spacing( 0 ),
 	  textOffsetX( 0 ),
 	  textOffsetY( 0 ),
@@ -1557,23 +1565,24 @@ LayoutCalculator::~LayoutCalculator()
 }
 
 
-void LayoutCalculator::PosAbs( UIItem* item, int _x, int _y )
+void LayoutCalculator::PosAbs( UIItem* item, int _x, int _y, bool setSize )
 {
 	float pos[2] = { 0, 0 };
 	int xArr[2] = { _x, _y };
 	float size[2] = { width, height };
 	float screen[2] = { screenWidth, screenHeight };
+	float gutter[3] = { gutterX, gutterY };
 
 	for( int i=0; i<2; ++i ) {
 		if ( xArr[i] >= 0 ) {
 			float x = (float)xArr[i];	// 0 based
 			float space = spacing*x;
-			pos[i] = gutter + space + size[i]*x;
+			pos[i] = gutter[i] + space + size[i]*x;
 		}
 		else {
 			float x = -(float)xArr[i]; // 1 based
 			float space = spacing*(x-1.0f);
-			pos[i] = screen[i] - gutter - space - size[i]*x; 
+			pos[i] = screen[i] - gutter[i] - space - size[i]*x; 
 		}
 	}
 	if ( useTextOffset ) {
@@ -1581,5 +1590,9 @@ void LayoutCalculator::PosAbs( UIItem* item, int _x, int _y )
 		pos[1] += textOffsetY;
 	}
 	item->SetPos( pos[0]+offsetX, pos[1]+offsetY );
+
+	if ( setSize ) {
+		item->SetSize( width, height );
+	}
 }
 

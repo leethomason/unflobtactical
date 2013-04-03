@@ -100,7 +100,7 @@ struct TileSetDesc {
 class Game : public ITextureCreator 
 {
 public:
-	Game( int width, int height, int rotation, const char* savepath, bool tvMode );
+	Game( int width, int height, int rotation, const char* savepath );
 	Game( int width, int height, int rotation, const char* path, const TileSetDesc& tileSetDesc );
 	~Game();
 
@@ -118,6 +118,7 @@ public:
 	// debugging / testing / mapmaker
 	void MouseMove( int x, int y );
 	void HandleHotKeyMask( int mask );
+	void ToggleTV();
 
 	void RotateSelection( int delta );
 	void DeleteAtSelection();
@@ -235,8 +236,6 @@ public:
 	const grinliz::GLString* GetModDatabasePaths() const { return modDatabase; }		
 	void LoadModDatabase( const char* path, bool preload );
 
-	bool TVMode() const { return tvMode; }
-
 //private:
 	Screenport screenport;
 public:
@@ -281,7 +280,6 @@ private:
 	float framesPerSecond;
 	int debugLevel;
 	bool suppressText;
-	bool tvMode;
 
 	ModelLoader* modelLoader;
 	gamedb::Reader* database0;		// the basic, complete database
