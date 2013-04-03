@@ -52,7 +52,7 @@
 #define TV_SCREEN_WIDTH 1280
 #define TV_SCREEN_HEIGHT 720
 
-#if 1
+#if 0
 static const int SCREEN_WIDTH  = IPOD_SCREEN_WIDTH;
 static const int SCREEN_HEIGHT = IPOD_SCREEN_HEIGHT;
 #endif
@@ -66,7 +66,7 @@ static const int SCREEN_HEIGHT = NEXUS_ONE_SCREEN_HEIGHT;
 static const int SCREEN_WIDTH = 384;
 static const int SCREEN_HEIGHT = 640;
 #endif
-#if 0
+#if 1
 // OUYA
 // Flipped. Will have to test on actual device.
 static const int SCREEN_WIDTH  = TV_SCREEN_HEIGHT;
@@ -175,7 +175,7 @@ int main( int argc, char **argv )
 	SDL_Surface *surface = 0;
 
 	// SDL initialization steps.
-    if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE | SDL_INIT_TIMER | SDL_INIT_AUDIO ) < 0 )
+    if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE | SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK ) < 0 )
 	{
 	    fprintf( stderr, "SDL initialization failed: %s\n", SDL_GetError( ) );
 		exit( 1 );
@@ -236,6 +236,12 @@ int main( int argc, char **argv )
     if ( !surface ) {
 	    fprintf( stderr,  "Video mode set failed: %s\n", SDL_GetError( ) );
 	    exit( 1 );
+	}
+
+    SDL_JoystickEventState(SDL_ENABLE);
+    SDL_Joystick* joystick = SDL_JoystickOpen(0);
+	if ( joystick ) {
+		GLOUTPUT(( "Joystick '%s' open.\n", SDL_JoystickName(0) ));
 	}
 
 	int r = glewInit();
@@ -353,6 +359,8 @@ int main( int argc, char **argv )
 	SDL_TimerID timerID = SDL_AddTimer( TIME_BETWEEN_FRAMES, TimerCallback, 0 );
 #endif
 
+	bool L2Down = false;
+	bool R2Down = false;
 
 	// ---- Main Loop --- //
 #ifdef TEST_FULLSPEED	
@@ -384,6 +392,82 @@ int main( int argc, char **argv )
 				surface = SDL_SetVideoMode( screenWidth, screenHeight, 32, videoFlags );
 				GameDeviceLoss( game );
 				GameResize( game, event.resize.w, event.resize.h, rotation );
+				break;
+
+			/*
+				A: 0		Triggers: axis=2
+				X: 2
+				Y: 3
+				B: 1
+				L1: 4
+				R1: 5
+			*/
+
+			case SDL_JOYBUTTONDOWN:
+			case SDL_JOYBUTTONUP:
+				//GLOUTPUT(( "Button %d.\n", event.jbutton.button ));
+				switch( event.jbutton.button ) {
+				case 0:	GameJoyButton( game, GAME_JOY_BUTTON_DOWN,	event.type == SDL_JOYBUTTONDOWN );	break;
+				case 1:	GameJoyButton( game, GAME_JOY_BUTTON_RIGHT,	event.type == SDL_JOYBUTTONDOWN );	break;
+				case 2:	GameJoyButton( game, GAME_JOY_BUTTON_LEFT,	event.type == SDL_JOYBUTTONDOWN );	break;
+				case 3:	GameJoyButton( game, GAME_JOY_BUTTON_UP,	event.type == SDL_JOYBUTTONDOWN );	break;
+				case 4: GameJoyButton( game, GAME_JOY_L1,			event.type == SDL_JOYBUTTONDOWN );	break;
+				case 5: GameJoyButton( game, GAME_JOY_R1,			event.type == SDL_JOYBUTTONDOWN );	break;
+				}
+				break;
+
+			case SDL_JOYAXISMOTION:
+				//GLOUTPUT(( "Axis %d to %d.\n", event.jaxis.axis, event.jaxis.value ));
+
+				// axis2, posL, negR
+				if ( event.jaxis.axis == 2 ) {
+					int value = event.jaxis.value;
+					static const int T = 10*1000;
+					if ( value > 10 ) {
+						if ( !L2Down && value > T ) {
+							L2Down = true;
+							GameJoyButton( game, GAME_JOY_L2, true );
+						}
+						else if ( L2Down && value < T ) {
+							L2Down = false;
+							GameJoyButton( game, GAME_JOY_L2, false );
+						}
+					}
+					else if ( value < -10 ) {
+						if ( !R2Down && value < -T ) {
+							R2Down = true;
+							GameJoyButton( game, GAME_JOY_R2, true );
+						}
+						else if ( R2Down && value > -T ) {
+							R2Down = false;
+							GameJoyButton( game, GAME_JOY_R2, false );
+						}
+					}
+				}
+				else {
+					int value = event.jaxis.value;
+					double normal = (double)value/32768.0f;
+					int axis = -1;
+					int stick = -1;
+
+					switch( event.jaxis.axis ) {
+						case 0:	axis=0;	stick=0;					break;
+						case 1: axis=1; stick=0; normal *= -1.0;	break;
+						case 3: axis=0;	stick=1;					break;
+						case 4: axis=1; stick=1; normal *= -1.0f;	break;
+						default: break;
+					}
+
+					if ( axis >= 0 && stick >= 0 ) {
+						GameJoyStick( game, stick, axis, (float)normal );
+					}
+				}
+
+
+				break;
+
+			case SDL_JOYHATMOTION:
+				GameJoyDPad( game, event.jhat.value );
 				break;
 
 			case SDL_KEYDOWN:

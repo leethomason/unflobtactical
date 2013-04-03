@@ -269,3 +269,42 @@ void PlayWAVSound( int offset, int nBytes )
 #endif
 }
 */
+
+
+void GameJoyButton( void* handle, int id, bool down )
+{
+	static const char* bNames[9] = {
+		"none",
+		"buttonDown",
+		"buttonLeft",
+		"buttonUp",
+		"buttonRight",
+		"L1",
+		"R1",
+		"L2",
+		"R2"
+	};
+
+	if ( id >= 0 && id <9 ) {
+		GLOUTPUT(( "JoyButton %s %s\n", bNames[id], down ? "down" : "up" ));
+	}
+}
+
+
+void GameJoyDPad( void* handle, int dir )
+{
+	GLOUTPUT(( "DPad: " ));
+	if ( dir & GAME_JOY_DPAD_UP )		GLOUTPUT(( "up " ));
+	if ( dir & GAME_JOY_DPAD_DOWN )		GLOUTPUT(( "down " ));
+	if ( dir & GAME_JOY_DPAD_LEFT )		GLOUTPUT(( "left " ));
+	if ( dir & GAME_JOY_DPAD_RIGHT )	GLOUTPUT(( "right " ));
+	if ( dir == 0 )						GLOUTPUT(( "center" ));
+	GLOUTPUT(( "\n" ));
+}
+
+void GameJoyStick( void* handle, int id, int axis, float value )
+{
+	GLOUTPUT(( "Stick %s axis=%s value=%f\n", id ? "right" : "left", axis ? "y" : "x", value ));
+}
+
+
