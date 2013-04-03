@@ -46,8 +46,8 @@ void GeoEndScene::Resize()
 
 	backgroundUI.background.SetSize( port.UIWidth(), port.UIHeight() );
 
-	okayButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE()-GAME_GUTTER(), 
-					   port.UIHeight()-GAME_BUTTON_SIZE()-GAME_GUTTER() );
+	okayButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE()-GAME_GUTTER_X(), 
+					   port.UIHeight()-GAME_BUTTON_SIZE()-GAME_GUTTER_Y() );
 }
 
 

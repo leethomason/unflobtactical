@@ -61,17 +61,21 @@ using namespace tinyxml2;
 extern long memNewCount;
 
 bool	gTVMode = false;
-int		GAME_BUTTON_SIZE()		{ return 60; }
-float	GAME_BUTTON_SIZE_F()	{ return 60; }
-float	GAME_BUTTON_SIZE_B()	{ return 50.0f; }
-float	GAME_GUTTER()			{ return 20.0f; }
-float	GAME_BUTTON_SPACING()	{ return 10.0f; }
-float	GAME_CROWDED_YTWEAK()	{ return -32.0f; }
-float	GAME_TEXT_HEIGHT()		{ return 18.0f; }
-float	GAME_VIRTUAL_SCREEN_HEIGHT()	{ return 320.0f; }
+void SetTVMode( bool tv ) { gTVMode = tv; }
+bool TVMode() { return gTVMode; }
 
+// TV: 1280x720
+int		GAME_BUTTON_SIZE()				{ return gTVMode ? 86 : 60; }
+float	GAME_BUTTON_SIZE_F()			{ return gTVMode ? 86.f : 60.f; }
+float	GAME_BUTTON_SIZE_B()			{ return gTVMode ? 86.f : 50.0f; }
+float	GAME_GUTTER_X()					{ return gTVMode ? 128.f : 20.0f; }	// 128 by suggestion
+float	GAME_GUTTER_Y()					{ return gTVMode ? 54.f : 20.0f; }	// 72
+float	GAME_BUTTON_SPACING()			{ return gTVMode ? 10.f : 10.0f; }
+float	GAME_CROWDED_YTWEAK()			{ return gTVMode ? 0.f  : -32.0f; }
+float	GAME_TEXT_HEIGHT()				{ return gTVMode ? 32.f : 18.0f; }
+float	GAME_VIRTUAL_SCREEN_HEIGHT()	{ return gTVMode ? 720.f : 320.0f; }
 
-Game::Game( int width, int height, int rotation, const char* path, bool p_tvMode ) :
+Game::Game( int width, int height, int rotation, const char* path ) :
 	battleData( itemDefArr ),
 	screenport( width, height, rotation ),
 	markFrameTime( 0 ),
@@ -79,7 +83,6 @@ Game::Game( int width, int height, int rotation, const char* path, bool p_tvMode
 	framesPerSecond( 0 ),
 	debugLevel( 0 ),
 	suppressText( false ),
-	tvMode( p_tvMode ),
 	previousTime( 0 ),
 	isDragging( false )
 {
@@ -111,7 +114,6 @@ Game::Game( int width, int height, int rotation, const char* path, const TileSet
 	framesPerSecond( 0 ),
 	debugLevel( 0 ),
 	suppressText( false ),
-	tvMode( false ),
 	previousTime( 0 ),
 	isDragging( false )
 {
@@ -861,6 +863,13 @@ void Game::DeviceLoss()
 void Game::Resize( int width, int height, int rotation ) 
 {
 	screenport.Resize( width, height, rotation );
+	sceneStack.Top()->scene->Resize();
+}
+
+
+void Game::ToggleTV()
+{
+	gTVMode = !gTVMode;
 	sceneStack.Top()->scene->Resize();
 }
 

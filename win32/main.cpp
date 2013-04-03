@@ -52,7 +52,7 @@
 #define TV_SCREEN_WIDTH 1280
 #define TV_SCREEN_HEIGHT 720
 
-#if 0
+#if 1
 static const int SCREEN_WIDTH  = IPOD_SCREEN_WIDTH;
 static const int SCREEN_HEIGHT = IPOD_SCREEN_HEIGHT;
 #endif
@@ -73,7 +73,7 @@ static const int SCREEN_WIDTH  = TV_SCREEN_HEIGHT;
 static const int SCREEN_HEIGHT = TV_SCREEN_WIDTH;
 #define TV_MODE
 #endif
-#if 1
+#if 0
 // OUYA on laptop
 // Flipped. Will have to test on actual device.
 static const int SCREEN_WIDTH  = TV_SCREEN_HEIGHT * 3 / 4;
@@ -566,6 +566,10 @@ int main( int argc, char **argv )
 					case SDLK_t:
 						if ( mapMakerMode )
 							((Game*)game)->engine->GetMap()->SetDayTime( !((Game*)game)->engine->GetMap()->DayTime() );
+						break;
+
+					case SDLK_v:
+						((Game*)game)->ToggleTV();
 						break;
 
 					case SDLK_m:

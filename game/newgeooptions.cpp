@@ -19,7 +19,7 @@ NewGeoOptions::NewGeoOptions( Game* game ) : Scene( game )
 	goButton.SetSize( GAME_BUTTON_SIZE_F()*2.0f, GAME_BUTTON_SIZE_F() );
 	goButton.SetText( "Go!" );
 
-	const static char* TEXT[NUM_DIFFICULTY] = { "Easier", "Normal", "Hard", "Smoking Crater" };
+	const static char* TEXT[NUM_DIFFICULTY] = { "Easier", "Normal", "Hard", "Smoking\nCrater" };
 
 	for( int i=0; i<NUM_DIFFICULTY; ++i ) {
 		toggle[i].Init( &gamui2D, green );
@@ -36,7 +36,7 @@ void NewGeoOptions::Resize()
 	const Screenport& port = GetEngine()->GetScreenport();
 
 	LayoutCalculator layout( port.UIWidth(), port.UIHeight() );
-	layout.SetGutter( GAME_GUTTER() );
+	layout.SetGutter( GAME_GUTTER_X(), GAME_GUTTER_Y() );
 	layout.SetSpacing( GAME_BUTTON_SPACING() );
 	layout.SetSize( GAME_BUTTON_SIZE_F()*2.0f, GAME_BUTTON_SIZE_F() );
 

@@ -55,13 +55,13 @@ SaveLoadScene::SaveLoadScene( Game* _game, const SaveLoadSceneData* _data ) : Sc
 		slotTime[i].Init( &gamui2D );
 		
 		GLString t;
-		CStr<16> str = "<empty>";
+		CStr<16> str = " <empty>";
 		if ( game->HasSaveFile( SAVEPATH_GEO, i+1 )) {
-			str = "Geo";
+			str = " Geo";
 			game->SavePathTimeStamp( SAVEPATH_GEO, i+1, &t );
 		}
 		else if ( game->HasSaveFile( SAVEPATH_TACTICAL, i+1 )) {
-			str = "Tactical";
+			str = " Tactical";
 			game->SavePathTimeStamp( SAVEPATH_TACTICAL, i+1, &t );
 		}
 		slotText[i].SetText( str.c_str() );
@@ -83,13 +83,13 @@ void SaveLoadScene::Resize()
 
 	LayoutCalculator layout( port.UIWidth(), port.UIHeight() );
 
-	layout.SetGutter( GAME_GUTTER() );
+	layout.SetGutter( GAME_GUTTER_X(), GAME_GUTTER_Y() );
+	layout.SetSpacing( GAME_BUTTON_SPACING() );
 	layout.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
-	//layout.SetSpacing( GAME_BUTTON_SPACING * 0.5f );
 
 	layout.PosAbs( &backButton, 0, -1 );
 	layout.PosAbs( &okayButton, -1, -1 );
-	confirmText.SetPos( okayButton.X() - 150, okayButton.Y()+40 );
+	layout.PosAbs( &confirmText, -5, -1 );
 
 	layout.PosAbs( &saveButton, 0, 0 );
 	layout.PosAbs( &loadButton, 0, 1 );
@@ -97,7 +97,7 @@ void SaveLoadScene::Resize()
 	for( int i=0; i<SAVE_SLOTS; ++i ) {
 		layout.PosAbs( &slotButton[i], 2, i );
 		layout.PosAbs( &slotText[i], 3, i );
-		layout.PosAbs( &slotTime[i], 4, i );
+		layout.PosAbs( &slotTime[i], 5, i );
 	}
 }
 
