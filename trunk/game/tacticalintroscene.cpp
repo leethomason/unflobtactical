@@ -158,7 +158,7 @@ void TacticalIntroScene::Resize()
 		x = -2;
 		audioButton.SetVisible( false );
 		layout.PosAbs( &helpButton,		x++, -1 );
-		layout.PosAbs( &settingButton,  x++, -1 );
+		settingButton.SetVisible( false );
 	}
 	else {
 		audioButton.SetVisible( true );
