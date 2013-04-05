@@ -236,6 +236,7 @@
   <texture filename="shelf_can_top_0.png" width="32" height="32" />
   <texture filename="base.png" width="64" height="64" />
   <texture filename="basewall.png" />
+  <texture filename="controller.png" width="512" height="128" />
 
   <!-- UI elements -->
   <texture filename="intro.png" width="64" height="64" />
@@ -959,8 +960,9 @@
     <page>
       <p>[Xenowar]</p>
       <p>
-        Xenowar. Copyright 2011 Lee Thomason / Grinning Lizard Software. 
-        'Face' renderer, icons, and additional art by Johan Forsberg.</p>
+        Xenowar. Copyright 2011-2013 Lee Thomason / Grinning Lizard Software.
+        'Face' renderer, icons, and additional art by Johan Forsberg. OUYA icons
+        by Arruku at deviantART.</p>
       <p>
         Welcome to Xenowar! You can
         submit feedback, read the community forum, or get more gameplay information
