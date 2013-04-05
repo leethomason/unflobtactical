@@ -232,6 +232,8 @@ int main( int argc, char **argv )
 	RenderAtom decoAtomD = decoAtom;
 	decoAtomD.renderState = (const void*) RENDERSTATE_DISABLED;
 
+	RenderAtom focusAtom( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0.0f, 0.25f, 0.25f, 0.50f );
+
 	TextMetrics textMetrics;
 	Renderer renderer;
 
@@ -301,6 +303,11 @@ int main( int argc, char **argv )
 	button1.SetText( "Button" );
 	button1.SetEnabled( false );
 
+	gamui.AddToFocusGroup( &button0, 0 );
+	gamui.AddToFocusGroup( &button1, 0 );
+	gamui.SetFocusLook( focusAtom, 0 );
+	gamui.SetFocus( &button1 );
+
 	ToggleButton toggle( &gamui, up, upD, down, downD, decoAtom, decoAtomD );
 	toggle.SetPos( 350, 250 );
 	toggle.SetSize( 150, 50 );
@@ -324,6 +331,10 @@ int main( int argc, char **argv )
 
 	toggle0.AddToToggleGroup( &toggle1 );
 	toggle0.AddToToggleGroup( &toggle2 );
+
+	gamui.AddToFocusGroup( &toggle0, 0 );
+	gamui.AddToFocusGroup( &toggle1, 0 );
+	gamui.AddToFocusGroup( &toggle2, 0 );
 
 	// 15x30
 	RenderAtom tick0( (const void*)RENDERSTATE_NORMAL, (const void*)imageTextureID, 0, 0, 0, 0 );
@@ -361,6 +372,10 @@ int main( int argc, char **argv )
 						case SDLK_ESCAPE:
 							done = true;
 							break;
+						case SDLK_UP:		gamui.MoveFocus( 0, -1 );	break;
+						case SDLK_DOWN:		gamui.MoveFocus( 0, 1 );	break;
+						case SDLK_LEFT:		gamui.MoveFocus( -1, 0 );	break;
+						case SDLK_RIGHT:	gamui.MoveFocus( 1, 0 );	break;
 					}
 				}
 				break;
@@ -377,6 +392,9 @@ int main( int argc, char **argv )
 							if ( range > 1.0f )
 								range = 0.0f;
 							bar.SetRange( 0, range );
+						}
+						if ( item == &button0 || item == &button1 ) {
+							gamui.SetFocus( item );
 						}
 					}
 					break;

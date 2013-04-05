@@ -93,7 +93,6 @@ UIItem::UIItem( int p_level )
 	  m_y( 0 ),
 	  m_level( p_level ),
 	  m_visible( true ),
-	  m_focused( false ),
 	  m_rotationX( 0 ),
 	  m_rotationY( 0 ),
 	  m_rotationZ( 0 ),
@@ -788,6 +787,7 @@ void Button::PositionChildren()
 	m_label[0].SetVisible( Visible() );
 	m_deco.SetVisible( Visible() );
 	m_face.SetVisible( Visible() );
+
 	// Modify(); don't call let sub-functions check
 }
 
@@ -809,14 +809,6 @@ void Button::SetSize( float width, float height )
 	m_deco.SetSize( size, size );
 	// Modify(); don't call let sub-functions check
 }
-
-/*
-void Button::SetSizeByScale( float sx, float sy )
-{
-	m_face.SetSize( m_face.GetRenderAtom()->srcWidth*sx, m_face.GetRenderAtom()->srcHeight*sy );
-	// Modify(); don't call let sub-functions check
-}
-*/
 
 
 void Button::SetText( const char* text )
@@ -1148,7 +1140,9 @@ Gamui::Gamui()
 		m_nItemsAllocated( 0 ),
 		m_dragStart( 0 ),
 		m_dragEnd( 0 ),
-		m_textHeight( 16 )
+		m_textHeight( 16 ),
+		m_focus( -1 ),
+		m_focusImage( 0 )
 {
 }
 
@@ -1164,7 +1158,9 @@ Gamui::Gamui(	IGamuiRenderer* renderer,
 		m_itemArr( 0 ),
 		m_nItems( 0 ),
 		m_nItemsAllocated( 0 ),
-		m_textHeight( 16 )
+		m_textHeight( 16 ),
+		m_focus( -1 ),
+		m_focusImage( 0 )
 {
 	Init( renderer, textEnabled, textDisabled, iText );
 }
@@ -1172,6 +1168,7 @@ Gamui::Gamui(	IGamuiRenderer* renderer,
 
 Gamui::~Gamui()
 {
+	delete m_focusImage;
 	for( int i=0; i<m_nItems; ++i ) {
 		m_itemArr[i]->Clear();
 	}
@@ -1204,6 +1201,14 @@ void Gamui::Add( UIItem* item )
 
 void Gamui::Remove( UIItem* item )
 {
+	// Remove from the focus list.
+	for( int i=0; i<m_focusItems.Size(); ++i ) {
+		if ( m_focusItems[i].item == item ) {
+			m_focusItems.SwapRemove( i );
+			break;
+		}
+	}
+
 	// hmm...linear search. could be better.
 	for( int i=0; i<m_nItems; ++i ) {
 		if ( m_itemArr[i] == item ) {
@@ -1331,6 +1336,17 @@ int Gamui::SortItems( const void* _a, const void* _b )
 
 void Gamui::Render()
 {
+	if ( m_focusImage ) {
+		const UIItem* focused = GetFocus();
+		if ( focused ) {
+			m_focusImage->SetVisible( true );
+			m_focusImage->SetCenterPos( focused->X() + focused->Width()*0.5f, focused->Y() + focused->Height()*0.5f );
+		}
+		else {
+			m_focusImage->SetVisible( false );
+		}
+	}
+
 	if ( m_orderChanged ) {
 		qsort( m_itemArr, m_nItems, sizeof(UIItem*), SortItems );
 		m_orderChanged = false;
@@ -1540,6 +1556,81 @@ void Gamui::LayoutTextBlock(	const char* text,
 	while( i < nText ) {
 		textLabels[i].ClearText();
 		++i;
+	}
+}
+
+
+void Gamui::AddToFocusGroup( const UIItem* item, int id )
+{
+	FocusItem* fi = m_focusItems.PushArr(1);
+	fi->item = item;
+	fi->group = id;
+}
+
+
+void Gamui::SetFocus( const UIItem* item )
+{
+	m_focus = -1;
+	for( int i=0; i<m_focusItems.Size(); ++i ) {
+		if ( m_focusItems[i].item == item ) {
+			m_focus = i;
+			break;
+		}
+	}
+}
+
+
+const UIItem* Gamui::GetFocus() const
+{
+	if ( m_focus >= 0 && m_focus < m_focusItems.Size() ) {
+		return m_focusItems[m_focus].item;
+	}
+	return 0;
+}
+
+
+void Gamui::SetFocusLook( const RenderAtom& atom, float zRotation )
+{
+	if ( !m_focusImage ) {
+		m_focusImage = new Image( this, atom, true );
+		m_focusImage->SetLevel( LEVEL_FOCUS );
+	}
+	m_focusImage->SetAtom( atom );
+	m_focusImage->SetRotationZ( zRotation );
+}
+
+
+void Gamui::MoveFocus( float x, float y )
+{
+	if ( m_focusItems.Size() == 0 ) return;
+	if ( m_focusItems.Size() == 1 ) SetFocus( m_focusItems[0].item );
+
+	float bestDist = 1000000.0f;
+	int bestIndex  = -1;
+
+	const UIItem* focused = GetFocus();
+	for( int i=0; i<m_focusItems.Size(); ++i ) {
+		const UIItem* item = m_focusItems[i].item;
+		if ( item == focused ) {
+			continue;
+		}
+		if ( !item->Enabled() || !item->Visible() ) {
+			continue; 
+		}
+		float dx = item->CenterX() - focused->CenterX();
+		float dy = item->CenterY() - focused->CenterY();
+
+		float score = dx*x + dy*y;
+		if ( score > 0 ) {
+			float dist = sqrt( dx*dx + dy*dy );
+			if ( dist < bestDist ) {
+				bestDist = dist;
+				bestIndex = i;
+			}
+		}
+	}
+	if ( bestIndex >= 0 ) {
+		SetFocus( m_focusItems[bestIndex].item );
 	}
 }
 

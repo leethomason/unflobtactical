@@ -104,9 +104,16 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 
 	backgroundUI.Init( game, &gamui2D, true );
 
-
 	// Is there a current game?
 	continueButton.SetEnabled( game->HasSaveFile( SAVEPATH_GEO, 0 ) || game->HasSaveFile( SAVEPATH_TACTICAL, 0 ) );
+
+	gamui2D.AddToFocusGroup( &continueButton, 0 );
+	gamui2D.AddToFocusGroup( &loadButton, 0 );
+	gamui2D.AddToFocusGroup( &newTactical, 0 );
+	gamui2D.AddToFocusGroup( &newGeo, 0 );
+	gamui2D.AddToFocusGroup( &newGame, 0 );
+	gamui2D.AddToFocusGroup( &helpButton, 0 );
+	gamui2D.SetFocus( &continueButton );
 }
 
 

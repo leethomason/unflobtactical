@@ -49,6 +49,7 @@ class IGamuiText;
 class UIItem;
 class ToggleButton;
 class TextLabel;
+class Image;
 
 
 template < class T > 
@@ -84,6 +85,10 @@ public:
 	bool Empty() const		{ return size==0; }
 	const T* Mem() const	{ return vec; }
 	T* Mem()				{ return vec; }
+	void SwapRemove( int i )	{ 
+		(*this)[i] = (*this)[size-1];
+		--size;
+	}	
 
 private:
 	enum { ALLOCATE=1000 };
@@ -196,7 +201,8 @@ public:
 		LEVEL_BACKGROUND = 0,
 		LEVEL_FOREGROUND = 1,
 		LEVEL_DECO		 = 2,
-		LEVEL_TEXT		 = 3
+		LEVEL_TEXT		 = 3,
+		LEVEL_FOCUS		 = 4
 	};
 
 	/// Description of a vertex used by Gamui.
@@ -286,6 +292,12 @@ public:
 							float originX, float originY,
 							float width );
 
+	void			SetFocusLook( const RenderAtom& atom, float zRotation );
+	void			AddToFocusGroup( const UIItem* item, int id );
+	void			SetFocus( const UIItem* item );
+	const UIItem*	GetFocus() const;
+	void			MoveFocus( float x, float y );
+
 private:
 	static int SortItems( const void* a, const void* b );
 
@@ -303,6 +315,8 @@ private:
 	const UIItem*	m_dragStart;
 	const UIItem*	m_dragEnd;
 	float			m_textHeight;
+	int				m_focus;
+	Image*			m_focusImage;
 
 	struct State {
 		uint16_t	vertexStart;
@@ -313,6 +327,12 @@ private:
 		const void* textureHandle;
 	};
 
+	struct FocusItem {
+		const UIItem*	item;
+		int				group;
+	};
+
+	CDynArray< FocusItem >			m_focusItems;
 	CDynArray< State >				m_stateBuffer;
 	CDynArray< uint16_t >			m_indexBuffer;
 	CDynArray< Vertex >				m_vertexBuffer;
@@ -369,6 +389,9 @@ public:
 	float Y() const								{ return m_y; }
 	virtual float Width() const = 0;
 	virtual float Height() const = 0;
+	float CenterX() const						{ return X() + Width()*0.5f; }
+	float CenterY() const						{ return Y() + Height()*0.5f; }
+
 	// Not always supported.
 	virtual void SetSize( float sx, float sy )	{}
 
@@ -385,16 +408,6 @@ public:
 	}
 	bool Visible() const						{ return m_visible; }
 
-	/*
-	virtual bool SetFocused( bool focused )	{
-		if ( m_focused != focused ) {
-			m_focused = focused;
-			Modify();
-		}
-	}
-	bool Focused() const						{ return m_focused; }
-	*/
-	
 	void SetLevel( int level )					
 	{
 		if ( m_level != level ) {
@@ -434,7 +447,6 @@ private:
 	float m_y;
 	int m_level;
 	bool m_visible;
-	bool m_focused;
 	float m_rotationX;
 	float m_rotationY;
 	float m_rotationZ;
@@ -731,7 +743,7 @@ private:
 	float		m_textDX;
 	float		m_textDY;
 	float		m_decoDX;
-	float		m_decoDY;	
+	float		m_decoDY;
 	TextLabel	m_label[2];
 };
 
