@@ -812,6 +812,23 @@ void Game::Tap( int action, int wx, int wy )
 }
 
 
+void Game::JoyButton( int id, bool down )
+{
+	sceneStack.Top()->scene->JoyButton( id, down );
+}
+
+void Game::JoyDPad( int dir )
+{
+	sceneStack.Top()->scene->JoyDPad( dir );
+}
+
+
+void Game::JoyStick( int id, int axis, float value )
+{
+	sceneStack.Top()->scene->JoyStick( id, axis, value );
+}
+
+
 void Game::MouseMove( int x, int y )
 {
 	//GLASSERT( Engine::mapMakerMode );

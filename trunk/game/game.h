@@ -112,6 +112,10 @@ public:
 	void Zoom( int style, float distance );
 	void Rotate( float degreesFromStart );
 	void CancelInput();
+
+	void JoyButton( int id, bool down );
+	void JoyDPad( int dir );
+	void JoyStick( int id, int axis, float value );
 	
 	const ItemDefArr&	GetItemDefArr() const	{ return itemDefArr; }
 

@@ -33,6 +33,7 @@ public:
 		RENDERSTATE_UI_TEXT_DISABLED,
 		RENDERSTATE_UI_DECO,			// deco rendering
 		RENDERSTATE_UI_DECO_DISABLED,
+		RENDERSTATE_UI_FOCUS,
 	};
 
 	UIRenderer() : shader( true ), textRed( 1 ), textGreen( 1 ), textBlue( 1 ) {}

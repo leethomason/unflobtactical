@@ -1340,6 +1340,7 @@ void Gamui::Render()
 		const UIItem* focused = GetFocus();
 		if ( focused ) {
 			m_focusImage->SetVisible( true );
+			m_focusImage->SetSize( GetTextHeight()*2.5f, GetTextHeight()*2.5f );
 			m_focusImage->SetCenterPos( focused->X() + focused->Width()*0.5f, focused->Y() + focused->Height()*0.5f );
 		}
 		else {
@@ -1586,6 +1587,26 @@ const UIItem* Gamui::GetFocus() const
 		return m_focusItems[m_focus].item;
 	}
 	return 0;
+}
+
+
+float Gamui::GetFocusX()
+{
+	const UIItem* item = GetFocus();
+	if ( item ) {
+		return item->CenterX();
+	}
+	return -1;
+}
+
+
+float Gamui::GetFocusY()
+{
+	const UIItem* item = GetFocus();
+	if ( item ) {
+		return item->CenterY();
+	}
+	return -1;
 }
 
 

@@ -107,6 +107,9 @@ TacticalIntroScene::TacticalIntroScene( Game* _game ) : Scene( _game )
 	// Is there a current game?
 	continueButton.SetEnabled( game->HasSaveFile( SAVEPATH_GEO, 0 ) || game->HasSaveFile( SAVEPATH_TACTICAL, 0 ) );
 
+	RenderAtom decoAtom = Game::CalcDecoAtom( DECO_CORE, true );
+	decoAtom.renderState = (const void*)UIRenderer::RENDERSTATE_UI_FOCUS;
+	gamui2D.SetFocusLook( decoAtom, 0 );
 	gamui2D.AddToFocusGroup( &continueButton, 0 );
 	gamui2D.AddToFocusGroup( &loadButton, 0 );
 	gamui2D.AddToFocusGroup( &newTactical, 0 );
@@ -205,6 +208,55 @@ void TacticalIntroScene::Activate()
 
 void TacticalIntroScene::DrawHUD()
 {
+}
+
+
+
+void TacticalIntroScene::DoTick( U32 currentTime, U32 deltaTime )
+{
+	if ( TVMode() ) {
+		RenderAtom decoAtom = Game::CalcDecoAtom( DECO_CORE, true );
+		decoAtom.renderState = (const void*)UIRenderer::RENDERSTATE_UI_FOCUS;
+
+		U32 r = currentTime % (360*20);
+		float angle = (float)r / 20.0f;
+		gamui2D.SetFocusLook( decoAtom, angle );
+	}
+}
+
+void TacticalIntroScene::JoyDPad( int dir )
+{
+	float x=0, y=0;
+	if ( dir & GAME_JOY_DPAD_UP ) {
+		y = -1.0f;
+	}
+	else if ( dir & GAME_JOY_DPAD_DOWN ) {
+		y = 1.0f;
+	}
+	if ( dir & GAME_JOY_DPAD_RIGHT ) {
+		x = 1.0f;
+	}
+	else if ( dir & GAME_JOY_DPAD_LEFT ) {
+		x = -1.0f;
+	}
+
+	gamui2D.MoveFocus( x, y );
+}
+
+
+void TacticalIntroScene::JoyButton( int id, bool down )
+{
+	if ( id == GAME_JOY_BUTTON_SELECT ) {
+		const Screenport& port = GetEngine()->GetScreenport();
+		Vector2F ui = { gamui2D.GetFocusX(), gamui2D.GetFocusY() };
+		Vector2F screen;
+		port.UIToView( ui, &screen );
+		Ray world;
+		world.direction.Set( 0, -1, 0 );
+		world.origin.Zero();
+
+		Tap( down ? GAME_TAP_DOWN : GAME_TAP_UP, screen, world );
+	}
 }
 
 

@@ -297,6 +297,8 @@ public:
 	void			SetFocus( const UIItem* item );
 	const UIItem*	GetFocus() const;
 	void			MoveFocus( float x, float y );
+	float			GetFocusX();
+	float			GetFocusY();
 
 private:
 	static int SortItems( const void* a, const void* b );

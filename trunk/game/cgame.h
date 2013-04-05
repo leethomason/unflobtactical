@@ -79,6 +79,10 @@ void GameHotKey( void* handle, int mask );
 #define GAME_JOY_R1				6
 #define GAME_JOY_L2				7
 #define GAME_JOY_R2				8
+
+#define GAME_JOY_BUTTON_SELECT	GAME_JOY_BUTTON_DOWN
+#define GAME_JOY_BUTTON_CANCEL	GAME_JOY_BUTTON_RIGHT
+
 void GameJoyButton( void* handle, int id, bool down );
 
 #define GAME_JOY_DPAD_UP	1

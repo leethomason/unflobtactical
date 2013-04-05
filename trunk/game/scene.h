@@ -84,6 +84,10 @@ public:
 	virtual void Rotate( float degrees )						{}
 	virtual void CancelInput()									{}
 
+	virtual void JoyButton( int id, bool down )					{}
+	virtual void JoyDPad( int dir )								{}
+	virtual void JoyStick( int id, int axis, float value )		{}
+
 	virtual SavePathType CanSave()								{ return SAVEPATH_NONE; }
 	virtual void Save( tinyxml2::XMLPrinter* )					{}
 	virtual void Load( const tinyxml2::XMLElement* doc )		{}
