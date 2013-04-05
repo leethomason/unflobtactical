@@ -286,13 +286,16 @@ void GameJoyButton( void* handle, int id, bool down )
 	};
 
 	if ( id >= 0 && id <9 ) {
-		GLOUTPUT(( "JoyButton %s %s\n", bNames[id], down ? "down" : "up" ));
+		//GLOUTPUT(( "JoyButton %s %s\n", bNames[id], down ? "down" : "up" ));
+		Game* game = (Game*)handle;
+		game->JoyButton( id, down );
 	}
 }
 
 
 void GameJoyDPad( void* handle, int dir )
 {
+	/*
 	GLOUTPUT(( "DPad: " ));
 	if ( dir & GAME_JOY_DPAD_UP )		GLOUTPUT(( "up " ));
 	if ( dir & GAME_JOY_DPAD_DOWN )		GLOUTPUT(( "down " ));
@@ -300,11 +303,17 @@ void GameJoyDPad( void* handle, int dir )
 	if ( dir & GAME_JOY_DPAD_RIGHT )	GLOUTPUT(( "right " ));
 	if ( dir == 0 )						GLOUTPUT(( "center" ));
 	GLOUTPUT(( "\n" ));
+	*/
+	Game* game = (Game*)handle;
+	game->JoyDPad( dir );
 }
 
 void GameJoyStick( void* handle, int id, int axis, float value )
 {
-	GLOUTPUT(( "Stick %s axis=%s value=%f\n", id ? "right" : "left", axis ? "y" : "x", value ));
+	//GLOUTPUT(( "Stick %s axis=%s value=%f\n", id ? "right" : "left", axis ? "y" : "x", value ));
+	Game* game = (Game*)handle;
+	game->JoyStick( id, axis, value );
+
 }
 
 

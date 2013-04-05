@@ -74,6 +74,11 @@ void UIRenderer::BeginRenderState( const void* renderState )
 		shader.SetBlend( true );
 		break;
 
+	case RENDERSTATE_UI_FOCUS:
+		shader.SetColor( 1, 1, 1, 0.3f );
+		shader.SetBlend( true );
+		break;
+
 	default:
 		GLASSERT( 0 );
 		break;
