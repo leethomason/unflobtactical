@@ -44,6 +44,9 @@ public:
 						const grinliz::Vector2F& screen,
 						const grinliz::Ray& world );
 
+	virtual void JoyButton( int id, bool down );
+	virtual void JoyDPad( int dir );
+
 	// Rendering
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	
 	{ 

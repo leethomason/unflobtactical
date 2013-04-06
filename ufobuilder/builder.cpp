@@ -447,7 +447,7 @@ void ProcessText( XMLElement* textEle )
 	int index = 0;
 
 	for( XMLElement* pageEle = textEle->FirstChildElement( "page" ); pageEle; pageEle = pageEle->NextSiblingElement( "page" ) ) {
-		string pcText, androidText;
+		string pcText, androidText, tvText;
 
 		TextBuilder textBuilder;
 		textBuilder.filter = "pc";
@@ -459,17 +459,24 @@ void ProcessText( XMLElement* textEle )
 		pageEle->Accept( &textBuilder );
 		androidText = textBuilder.str;
 
+		textBuilder.str.clear();
+		textBuilder.filter = "tv";
+		pageEle->Accept( &textBuilder );
+		tvText = textBuilder.str;
+
 		gamedb::WItem* pageItem = textItem->CreateChild( index );
 
-		if ( pcText == androidText ) {
+		if ( pcText == androidText && pcText == tvText ) {
 			pageItem->SetData( "text", pcText.c_str(), pcText.size() );
 			totalDataMem += pcText.size();
 		}
 		else {
 			pageItem->SetData( "text_pc", pcText.c_str(), pcText.size() );
 			pageItem->SetData( "text_android", androidText.c_str(), androidText.size() );
+			pageItem->SetData( "text_tv", tvText.c_str(), tvText.size() );
 			totalDataMem += pcText.size();
 			totalDataMem += androidText.size();
+			totalDataMem += tvText.size();
 		}
 
 		if ( pageEle->Attribute( "image" ) ) {

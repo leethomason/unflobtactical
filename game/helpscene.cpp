@@ -122,18 +122,28 @@ void HelpScene::Resize()
 		imageWidth = width;
 	}
 
-	textBox.SetPos( GAME_GUTTER_X(), GAME_GUTTER_Y() );
-	textBox.SetSize( port.UIWidth()-GAME_GUTTER_X()*2.f - imageWidth, port.UIHeight()-GAME_GUTTER_Y()*2.f );
-	textBox.SetText( text ? text : "" );
+	if ( TVMode() ) {
+		buttons[PREV_BUTTON].SetVisible( false );
+		buttons[NEXT_BUTTON].SetVisible( false );
+		buttons[DONE_BUTTON].SetVisible( false );
+	}
+
+	LayoutCalculator layout( port.UIWidth(), port.UIHeight() );
+	layout.SetGutter( GAME_GUTTER_X(), GAME_GUTTER_Y() );
+	layout.SetSpacing( GAME_BUTTON_SPACING() );
+	layout.SetSize( GAME_BUTTON_SIZE_B(), GAME_BUTTON_SIZE_B() );
 
 	buttons[PREV_BUTTON].SetEnabled( currentScreen > 0 );
 	buttons[NEXT_BUTTON].SetEnabled( currentScreen < nPages - 1 );
 
-	buttons[PREV_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F()*2.0f, port.UIHeight() - GAME_BUTTON_SIZE_F() );
-	buttons[NEXT_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F(),		 port.UIHeight() - GAME_BUTTON_SIZE_F() );
-	buttons[DONE_BUTTON].SetPos( 0, port.UIHeight() - GAME_BUTTON_SIZE_F() );
-	buttons[SETTINGS_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F()*3.0f, port.UIHeight() - GAME_BUTTON_SIZE_F() );
-	buttons[SAVE_LOAD_BUTTON].SetPos( port.UIWidth() - GAME_BUTTON_SIZE_F()*4.f, port.UIHeight() - GAME_BUTTON_SIZE_F() );
+	layout.PosAbs( &buttons[PREV_BUTTON], -2, -1 );
+	layout.PosAbs( &buttons[NEXT_BUTTON], -1, -1 );
+	layout.PosAbs( &buttons[DONE_BUTTON],  0, -1 );
+	layout.PosAbs( &buttons[SETTINGS_BUTTON],  -1, 0 );
+	layout.PosAbs( &buttons[SAVE_LOAD_BUTTON], -1, 1 );
+
+	layout.PosInner( &textBox, 0 );
+	textBox.SetText( text ? text : "" );
 }
 
 
@@ -178,6 +188,36 @@ void HelpScene::Tap( int action, const grinliz::Vector2F& screen, const grinliz:
 	}
 	else if ( item == &buttons[SAVE_LOAD_BUTTON] ) {
 		game->PushScene( Game::SAVE_LOAD_SCENE, new SaveLoadSceneData( true ) ); 
+	}
+	Resize();
+}
+
+
+void HelpScene::JoyButton( int id, bool down )
+{
+	if ( down ) {
+		if ( id == GAME_JOY_BUTTON_SELECT || id == GAME_JOY_BUTTON_CANCEL ) {
+			game->PopScene();
+		}
+		else if ( id == GAME_JOY_L1 ) {
+			--currentScreen;
+			Resize();
+		}
+		else if ( id == GAME_JOY_R1 ) {
+			++currentScreen;
+			Resize();
+		}
+	}
+}
+
+
+void HelpScene::JoyDPad( int dir )
+{
+	if ( dir == GAME_JOY_DPAD_RIGHT ) {
+		++currentScreen;
+	}
+	else if ( dir == GAME_JOY_DPAD_LEFT ) {
+		--currentScreen;
 	}
 	Resize();
 }

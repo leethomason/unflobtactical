@@ -40,7 +40,7 @@
 //#define TEST_ROTATION
 //#define TEST_FULLSPEED
 //#define SEND_CRASH_LOGS
-
+#define SIM_GAMEPAD
 #define TIME_BETWEEN_FRAMES	30
 
 #define IPOD_SCREEN_WIDTH	320
@@ -532,18 +532,17 @@ int main( int argc, char **argv )
 							done = true;
 						break;
 
-						/*
-					case SDLK_KP_PLUS:
-					case SDLK_KP_MINUS:
-						{
-							float zoom;
-							GameCameraGet( game, GAME_CAMERA_ZOOM, &zoom );
-							zoom += event.key.keysym.sym == SDLK_KP_PLUS ? 0.1f : -0.1f;
-							GameCameraSet( game, GAME_CAMERA_ZOOM, zoom );
-						}
-						break;
-						*/
+#ifdef SIM_GAMEPAD
+					case SDLK_RIGHT:	GameJoyDPad( game, GAME_JOY_DPAD_RIGHT );	break;
+					case SDLK_LEFT:		GameJoyDPad( game, GAME_JOY_DPAD_LEFT );	break;
+					case SDLK_UP:		GameJoyDPad( game, GAME_JOY_DPAD_UP );		break;
+					case SDLK_DOWN:		GameJoyDPad( game, GAME_JOY_DPAD_DOWN );	break;
+					case SDLK_1:		GameJoyButton( game, 1, true );				break;
+					case SDLK_2:		GameJoyButton( game, 2, true );				break;
+					case SDLK_3:		GameJoyButton( game, 3, true );				break;
+					case SDLK_4:		GameJoyButton( game, 4, true );				break;
 
+#else
 					case SDLK_RIGHT:
 						if ( !mapMakerMode ) {
 							if ( sdlMod & (KMOD_RCTRL|KMOD_LCTRL) )
@@ -561,7 +560,7 @@ int main( int argc, char **argv )
 								GameHotKey( game, GAME_HK_PREV_UNIT );
 						}
 						break;
-
+#endif
 					case SDLK_u:
 						if ( mapMakerMode ) {
 							((Game*)game)->engine->camera.SetTilt( -90.0f );
@@ -671,6 +670,20 @@ int main( int argc, char **argv )
 */
 			}
 			break;
+
+#ifdef SIM_GAMEPAD
+			case SDL_KEYUP:
+			{
+				switch ( event.key.keysym.sym )
+				{
+					case SDLK_1:		GameJoyButton( game, 1, false );				break;
+					case SDLK_2:		GameJoyButton( game, 2, false );				break;
+					case SDLK_3:		GameJoyButton( game, 3, false );				break;
+					case SDLK_4:		GameJoyButton( game, 4, false );				break;
+				}
+			}
+			break;
+#endif
 
 			case SDL_MOUSEBUTTONDOWN:
 			{

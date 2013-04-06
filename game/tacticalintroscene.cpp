@@ -166,25 +166,7 @@ void TacticalIntroScene::Resize()
 		layout.PosAbs( &audioButton,	-1, 1 );
 		layout.PosAbs( &settingButton,  -1, 2 );
 	}
-	backgroundUI.backgroundText.SetPos( GAME_GUTTER_X(), GAME_GUTTER_Y() );
-	if ( TVMode() ) {
-		float dy = helpButton.Y() - GAME_GUTTER_Y()*2.0f;
-		float cx = backgroundUI.backgroundText.Width();
-		float cy = backgroundUI.backgroundText.Height();
-		backgroundUI.backgroundText.SetSize( cx*dy/cy, dy );
-		backgroundUI.backgroundText.SetCenterPos( port.UIWidth()*0.5f, GAME_GUTTER_Y() + dy*0.5f );
-	}
-	else {
-		float maxX = settingButton.X() - GAME_GUTTER_X()*2.0f;
-		float maxY = continueButton.Y() - GAME_GUTTER_Y()*2.0f;
-		if ( maxX < maxY*2.0f ) {
-			backgroundUI.backgroundText.SetSize( maxX, maxX*0.5f );
-		}
-		else {
-			backgroundUI.backgroundText.SetSize( maxY*2.0f, maxY );
-		}
-	}
-
+	layout.PosInner( &backgroundUI.backgroundText, 2.0f );
 	backgroundUI.background.SetSize( port.UIWidth(), port.UIHeight() );
 }
 
