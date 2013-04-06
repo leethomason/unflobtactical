@@ -961,14 +961,16 @@
       <p>[Xenowar]</p>
       <p>
         Xenowar. Copyright 2011-2013 Lee Thomason / Grinning Lizard Software.
-        'Face' renderer, icons, and additional art by Johan Forsberg. OUYA icons
-        by Arruku at deviantART.</p>
+        'Face' renderer, icons, and additional art by Johan Forsberg.</p>
+      <p system="tv">OUYA icons by Arruku at deviantART.</p>
       <p>
         Welcome to Xenowar! You can
         submit feedback, read the community forum, or get more gameplay information
         at xenowar.net. The gameplay wiki is at xenowar.wikispaces.com
       </p>
-      <p> The buttons on the lower right navigate help, the lower left exits help.</p>
+      <p system="pc"> The buttons on the lower right navigate help, the lower left exits help.</p>
+      <p system="android"> The buttons on the lower right navigate help, the lower left exits help.</p>
+      <p system="tv"> The DPad moves between screens, and the red A button goes back.</p>
     </page>
     <page>
       <p>[Overview]</p>

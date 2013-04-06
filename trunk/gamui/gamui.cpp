@@ -1668,7 +1668,11 @@ LayoutCalculator::LayoutCalculator( float w, float h )
 	  textOffsetY( 0 ),
 	  offsetX( 0 ),
 	  offsetY( 0 ),
-	  useTextOffset( false )
+	  useTextOffset( false ),
+	  innerX0( 0 ),
+	  innerY0( 0 ),
+	  innerX1( w ),
+	  innerY1( h )
 {
 }
 
@@ -1684,7 +1688,7 @@ void LayoutCalculator::PosAbs( UIItem* item, int _x, int _y, bool setSize )
 	int xArr[2] = { _x, _y };
 	float size[2] = { width, height };
 	float screen[2] = { screenWidth, screenHeight };
-	float gutter[3] = { gutterX, gutterY };
+	float gutter[2] = { gutterX, gutterY };
 
 	for( int i=0; i<2; ++i ) {
 		if ( xArr[i] >= 0 ) {
@@ -1706,6 +1710,74 @@ void LayoutCalculator::PosAbs( UIItem* item, int _x, int _y, bool setSize )
 
 	if ( setSize ) {
 		item->SetSize( width, height );
+	}
+
+	if ( item->Visible() ) {
+		// Track the inner rectangle.
+		float x0, x1, y0, y1;
+
+		if ( _x >= 0 ) {
+			x0 = item->X() + item->Width() + gutter[0];
+			x1 = screenWidth;
+		}
+		else {
+			x0 = 0;
+			x1 = item->X() - gutter[0];
+		}
+		if ( _y >= 0 ) {
+			y0 = item->Y() + item->Height() + gutter[1];
+			y1 = screenHeight;
+		}
+		else {
+			y0 = 0;
+			y1 = item->Y() - gutter[1];
+		}
+	
+		innerX0 = Max( innerX0, gutter[0] );
+		innerY0 = Max( innerY0, gutter[1] );
+		innerX1 = Min( innerX1, screenWidth  - gutter[0] );
+		innerY1 = Min( innerY1, screenHeight - gutter[1] );
+
+		// Can trim to y or x. Which one?
+		float areaX = ( Min( innerX1, x1 ) - Max( innerX0, x0 ) ) * ( innerY1 - innerY0 );
+		float areaY = ( innerX1 - innerX0 ) * ( Min( innerY1, y1 ) - Max( innerY0, y0 ));
+		if ( areaX > areaY ) {
+			innerX0 = Max( innerX0, x0 );
+			innerX1 = Min( innerX1, x1 );
+		}
+		else {
+			innerY0 = Max( innerY0, y0 );
+			innerY1 = Min( innerY1, y1 );
+		}
+	}
+}
+
+
+void LayoutCalculator::PosInner( UIItem* item, float wDivH )
+{
+	innerX0 = Max( innerX0, gutterX );
+	innerX1 = Min( innerX1, screenWidth - gutterX );
+	innerY0 = Max( innerY0, gutterY );
+	innerY1 = Min( innerY1, screenHeight - gutterY );
+
+	float dx = innerX1 - innerX0;
+	float dy = innerY1 - innerY0;
+
+	if ( wDivH == 0 ) {
+		item->SetPos( innerX0, innerY0 );
+		item->SetSize( dx, dy );
+	}
+	else {
+		if ( wDivH > (dx/dy) ) {
+			float cy = dx / wDivH;
+			item->SetPos( innerX0, innerY0 + (dy-cy)*0.5f );
+			item->SetSize( dx, cy );
+		}
+		else {
+			float cx = dy * wDivH;
+			item->SetPos( innerX0 + (dx-cx)*0.5f, innerY0 );
+			item->SetSize( cx, dy );
+		}
 	}
 }
 

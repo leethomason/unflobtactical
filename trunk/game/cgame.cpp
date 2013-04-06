@@ -220,6 +220,9 @@ void PlatformPathToResource( char* buffer, int bufferLen, int* offset, int* leng
 
 const char* PlatformName()
 {
+	if ( TVMode() ) {
+		return "tv";
+	}
 #if defined( UFO_WIN32_SDL )
 	return "pc";
 #elif defined (ANDROID_NDK)
