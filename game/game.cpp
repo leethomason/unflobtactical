@@ -60,20 +60,21 @@ using namespace tinyxml2;
 
 extern long memNewCount;
 
-bool	gTVMode = false;
+bool gTVMode = false;
 void SetTVMode( bool tv ) { gTVMode = tv; }
 bool TVMode() { return gTVMode; }
 
 // TV: 1280x720
-int		GAME_BUTTON_SIZE()				{ return gTVMode ? 86 : 60; }
-float	GAME_BUTTON_SIZE_F()			{ return gTVMode ? 86.f : 60.f; }
-float	GAME_BUTTON_SIZE_B()			{ return gTVMode ? 86.f : 50.0f; }
-float	GAME_GUTTER_X()					{ return gTVMode ? 128.f : 20.0f; }	// 128 by suggestion
-float	GAME_GUTTER_Y()					{ return gTVMode ? 54.f : 20.0f; }	// 72
-float	GAME_BUTTON_SPACING()			{ return gTVMode ? 10.f : 10.0f; }
-float	GAME_CROWDED_YTWEAK()			{ return gTVMode ? 0.f  : -32.0f; }
-float	GAME_TEXT_HEIGHT()				{ return gTVMode ? 32.f : 18.0f; }
-float	GAME_VIRTUAL_SCREEN_HEIGHT()	{ return gTVMode ? 720.f : 320.0f; }
+int		GAME_BUTTON_SIZE()				{ return gTVMode ? 86		: 60; }
+float	GAME_BUTTON_SIZE_F()			{ return gTVMode ? 86.f		: 60.f; }
+float	GAME_BUTTON_SIZE_B()			{ return gTVMode ? 86.f		: 50.0f; }
+float	GAME_ICON_SIZE()				{ return gTVMode ? 50.f		: 25.f; }
+float	GAME_GUTTER_X()					{ return gTVMode ? 128.f	: 20.0f; }	// 128 by suggestion
+float	GAME_GUTTER_Y()					{ return gTVMode ? 54.f		: 20.0f; }	// 72
+float	GAME_BUTTON_SPACING()			{ return gTVMode ? 10.f		: 10.0f; }
+float	GAME_CROWDED_YTWEAK()			{ return gTVMode ? 0.f		: -32.0f; }
+float	GAME_TEXT_HEIGHT()				{ return gTVMode ? 32.f		: 18.0f; }
+float	GAME_VIRTUAL_SCREEN_HEIGHT()	{ return gTVMode ? 720.f	: 320.0f; }
 
 Game::Game( int width, int height, int rotation, const char* path ) :
 	battleData( itemDefArr ),
@@ -932,6 +933,56 @@ RenderAtom Game::CalcDecoAtom( int id, bool enabled )
 		ty1 = ty0 + 1.f/4.f;
 	}
 	return RenderAtom( (const void*)(enabled ? UIRenderer::RENDERSTATE_UI_DECO : UIRenderer::RENDERSTATE_UI_DECO_DISABLED), (const void*)texture, tx0, ty0, tx1, ty1 );
+}
+
+
+RenderAtom Game::CalcControllerAtom( bool dpad, int id, bool enabled )
+{
+	// Hardcoded coordinates. That's how the OUYA port rolls.
+	static const float cx = 1024.0f;
+	static const float cy = 256.0f;
+	static const float UV[] = { 
+		6, 13, 84, 84,		// O
+		99, 13, 84, 84,		// U
+		186, 13, 84, 84,	// Y
+		271, 13, 84, 84,	// A
+		420, 13, 137, 84,	// L1
+		850, 13, 137, 84,	// R1
+		563, 13, 137, 84,	// L2
+		705, 13, 137, 84,	// R2
+		3, 123, 112, 112,	// all dir
+		130, 123, 112, 112,	// up
+		265, 123, 112, 112,	// right
+		394, 123, 112, 112,	// down
+		522, 123, 112, 112	// left
+	};
+
+	Texture* texture = TextureManager::Instance()->GetTexture( "controller" );
+	Rectangle2F uv;
+	int index = 0;
+
+	if ( dpad ) {
+		switch( id ) {
+		case 0:					index = 8;	break;
+		case GAME_JOY_DPAD_UP:	index = 9;	break;
+		case GAME_JOY_DPAD_RIGHT:	index = 10;	break;
+		case GAME_JOY_DPAD_DOWN:	index = 11;	break;
+		case GAME_JOY_DPAD_LEFT:	index = 12; break;
+		default: GLASSERT( 0 );
+		}
+	}
+	else {
+		GLASSERT( id >= GAME_JOY_BUTTON_DOWN && id <= GAME_JOY_R2 );
+		index = id;
+	}
+	float x0 = UV[index*4+0];
+	float y0 = cy - UV[index*4+1] - UV[index*4+3];
+	float x1 = UV[index*4+0] + UV[index*4+2];
+	float y1 = cy - UV[index*4+1];
+	uv.Set( x0/cx, y0/cy, x1/cx, y1/cy );
+	return RenderAtom( (const void*)( enabled ? UIRenderer::RENDERSTATE_UI_DECO : UIRenderer::RENDERSTATE_UI_DECO_DISABLED), 
+					   (const void*)texture, 
+					   uv.min.x, uv.min.y, uv.max.x, uv.max.y );
 }
 
 

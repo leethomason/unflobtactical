@@ -688,6 +688,10 @@ void Button::Init(	Gamui* gamui,
 	m_deco.Init( gamui, decoEnabled, false );	// does nothing; we set the level to deco
 	m_deco.SetLevel( Gamui::LEVEL_DECO );
 
+	RenderAtom nullAtom;
+	m_icon.Init( gamui, nullAtom, false );
+	m_icon.SetLevel( Gamui::LEVEL_ICON );
+
 	m_label[0].Init( gamui );
 	m_label[1].Init( gamui );
 	gamui->Add( this );
@@ -762,6 +766,13 @@ void Button::PositionChildren()
 		m_label[1].SetVisible( Visible() );
 	}
 
+	// --- icon -- //
+	float iconSize = Min( m_face.Height(), m_face.Width() ) * 0.5f;
+	m_icon.SetSize( iconSize, iconSize );
+	m_icon.SetPos( m_face.X() + m_face.Width() - iconSize, m_face.Y() + m_face.Height() - iconSize );
+
+	// --- text --- //
+
 	float w = m_label[0].Width();
 	if ( m_usingText1 ) {
 		w = Max( w, m_label[1].Width() );
@@ -787,6 +798,7 @@ void Button::PositionChildren()
 	m_label[0].SetVisible( Visible() );
 	m_deco.SetVisible( Visible() );
 	m_face.SetVisible( Visible() );
+	m_icon.SetVisible( Visible() );
 
 	// Modify(); don't call let sub-functions check
 }
@@ -797,6 +809,7 @@ void Button::SetPos( float x, float y )
 	UIItem::SetPos( x, y );
 	m_face.SetPos( x, y );
 	m_deco.SetPos( x, y );
+	m_icon.SetPos( x, y );
 	m_label[0].SetPos( x, y );
 	m_label[1].SetPos( x, y );
 	// Modify(); don't call let sub-functions check
@@ -807,6 +820,7 @@ void Button::SetSize( float width, float height )
 	m_face.SetSize( width, height );
 	float size = Min( width, height );
 	m_deco.SetSize( size, size );
+	m_icon.SetSize( size*0.5f, size*0.5f );
 	// Modify(); don't call let sub-functions check
 }
 
@@ -836,6 +850,7 @@ void Button::SetState()
 {
 	int faceIndex = UP;
 	int decoIndex = DECO;
+	int iconIndex = ICON;
 	if ( m_enabled ) {
 		if ( m_up ) {
 			// defaults set
@@ -848,14 +863,17 @@ void Button::SetState()
 		if ( m_up ) {
 			faceIndex = UP_D;
 			decoIndex = DECO_D;
+			iconIndex = ICON_D;
 		}
 		else {
 			faceIndex = DOWN_D;
 			decoIndex = DECO_D;
+			iconIndex = ICON_D;
 		}
 	}
 	m_face.SetAtom( m_atoms[faceIndex] );
 	m_deco.SetAtom( m_atoms[decoIndex] );
+	m_icon.SetAtom( m_atoms[iconIndex] );
 	m_label[0].SetEnabled( m_enabled );
 	m_label[1].SetEnabled( m_enabled );
 	//Modify(); sub functions should call

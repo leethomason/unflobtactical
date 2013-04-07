@@ -71,7 +71,7 @@ void GameDoTick( void* handle, unsigned int timeInMSec );
 
 void GameHotKey( void* handle, int mask );
 
-#define GAME_JOY_BUTTON_DOWN	1		// select
+#define GAME_JOY_BUTTON_DOWN	1	// select
 #define GAME_JOY_BUTTON_LEFT	2
 #define GAME_JOY_BUTTON_UP		3
 #define GAME_JOY_BUTTON_RIGHT	4	// cancel
@@ -85,10 +85,11 @@ void GameHotKey( void* handle, int mask );
 
 void GameJoyButton( void* handle, int id, bool down );
 
-#define GAME_JOY_DPAD_UP	1
-#define GAME_JOY_DPAD_RIGHT	2
-#define GAME_JOY_DPAD_DOWN	4
-#define GAME_JOY_DPAD_LEFT	8
+#define GAME_JOY_DPAD_CENTER	0
+#define GAME_JOY_DPAD_UP		1
+#define GAME_JOY_DPAD_RIGHT		2
+#define GAME_JOY_DPAD_DOWN		4
+#define GAME_JOY_DPAD_LEFT		8
 void GameJoyDPad( void* handle, int dir );
 
 // id: 0 or 1

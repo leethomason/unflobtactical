@@ -89,11 +89,11 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	const ButtonLook& red = game->GetButtonLook( Game::RED_BUTTON );
 
 	turnImage.Init( &gamui3D, Game::CalcDecoAtom( DECO_ALIEN ), true );
-	turnImage.SetSize( 50, 50 );
+	turnImage.SetSize( GAME_BUTTON_SIZE_B(), GAME_BUTTON_SIZE_B() );
 	decoEffect.Attach( &turnImage );
 	
 	alienTargetImage.Init( &gamui3D, Game::CalcIconAtom( ICON_ALIEN_TARGETS ), true );
-	alienTargetImage.SetSize( 20, 20 );
+	alienTargetImage.SetSize( GAME_TEXT_HEIGHT()*1.25f, GAME_TEXT_HEIGHT()*1.25f );
 	alienTargetImage.SetVisible( false );
 
 	alienTargetText.Init( &gamui3D );
@@ -126,7 +126,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		dragBar[i].SetVisible( false );
 	}
 
-	const float SIZE = 50.0f;
+	const float SIZE = TVMode() ? GAME_ICON_SIZE() : GAME_BUTTON_SIZE_B();
 	{
 		exitButton.Init( &gamui2D, blue );
 		exitButton.SetDeco( Game::CalcDecoAtom( DECO_LAUNCH, true ), Game::CalcDecoAtom( DECO_LAUNCH, false ) );
@@ -159,6 +159,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 			controlButton[i].Init( (i==0) ? &gamui2D : &gamui3D, green );
 			controlButton[i].SetDeco( Game::CalcDecoAtom( controlDecoID[i], true ), Game::CalcDecoAtom( controlDecoID[i], false ) );
 			controlButton[i].SetSize( SIZE, SIZE );
+			controlButton[i].SetVisible( !TVMode() );
 		}
 
 		UIItem* items[6] = { &invButton,  
@@ -174,10 +175,12 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 		orbitButton.Init( &gamui2D, green );
 		orbitButton.SetDeco( Game::CalcDecoAtom( DECO_ORBIT, true ), Game::CalcDecoAtom( DECO_ORBIT, false ) );
 		orbitButton.SetSize( SIZE, SIZE );
+		orbitButton.SetVisible( !TVMode() );
 
 		RenderAtom menuImageAtom( (const void*)UIRenderer::RENDERSTATE_UI_NORMAL, (const void*)TextureManager::Instance()->GetTexture( "commandBarV" ), 0, 0, 1, 1 );
 		menuImage.Init( &gamui2D, menuImageAtom, false );
 		menuImage.SetSize( SIZE, port.UIHeight() );
+		menuImage.SetVisible( false );
 
 		if ( Engine::mapMakerMode ) {
 			for( int i=0; i<6; ++i ) {
@@ -189,6 +192,10 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 			menuImage.SetVisible( false );
 			orbitButton.SetVisible( false );
 		}
+
+		RenderAtom dpadAtom = Game::CalcControllerAtom( true, GAME_JOY_DPAD_CENTER );
+		dpad.Init( &gamui2D, dpadAtom, true );
+		dpad.SetVisible( false );
 	}
 
 	fireWidget.Init( &gamui3D, red );	
@@ -216,6 +223,11 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	}
 	//consoleWidget = new ConsoleWidget( &gamui2D );
 	//consoleWidget->SetOrigin( 150, 20 );
+
+	if ( TVMode() ) {
+		invButton.SetIcon( Game::CalcControllerAtom( false, GAME_JOY_BUTTON_UP, true ),
+						   Game::CalcControllerAtom( false, GAME_JOY_BUTTON_UP, false ));
+	}
 
 	currentTeamTurn = ALIEN_TEAM;
 	NextTurn( false );
@@ -250,14 +262,31 @@ void BattleScene::Resize()
 	alienTargetImage.SetPos( float(port.UIWidth()-SIZE/2), 0 );
 	alienTargetText.SetPos( alienTargetImage.X()+5, alienTargetImage.Y()+2 );
 
-	UIItem* items[6] = { &invButton,  
+	dpad.SetVisible( TVMode() );
+
+	UIItem* items[6] = {	&invButton,  
 							&nextTurnButton,
 			                &helpButton, 
 							&exitButton,
 							&targetButton, 
 							&controlButton[0] };
 
-	Gamui::Layout( items, 6, 1, 6, 0, 0, SIZE, (float)port.UIHeight() );
+	if ( TVMode() ) {		
+		LayoutCalculator layout( port.UIWidth(), port.UIHeight() );
+		layout.SetSize( GAME_ICON_SIZE(), GAME_ICON_SIZE() );
+		layout.SetGutter( GAME_GUTTER_X(), GAME_GUTTER_Y() );
+
+		layout.PosAbs( &nextTurnButton, 2, -2 );
+		layout.PosAbs( &helpButton,		1, -3 );
+		layout.PosAbs( &exitButton,		0, -2 );
+		layout.PosAbs( &targetButton,	1, -1 );
+		layout.PosAbs( &dpad,			1, -2 );
+
+		layout.PosAbs( &invButton, -2, -1 );
+	}
+	else {
+		Gamui::Layout( items, 6, 1, 6, 0, 0, SIZE, (float)port.UIHeight() );
+	}
 
 	controlButton[1].SetPos( SIZE, port.UIHeight()-SIZE );
 	controlButton[2].SetPos( port.UIWidth()-SIZE*2.f, port.UIHeight()-SIZE );
@@ -665,12 +694,14 @@ int BattleScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I*
 		return RENDER_3D | RENDER_2D; 
 	}
 	else {
+		/*
 		Vector2F size;
 		size.x = menuImage.Width();
 		size.y = menuImage.Height();
-		const Screenport& port = engine->GetScreenport();
-
 		clip3D->Set( (int)size.x, 0, (int)port.UIWidth(), (int)port.UIHeight() );
+		*/
+		const Screenport& port = engine->GetScreenport();
+		clip3D->Set( 0, 0, (int)port.UIWidth(), (int)port.UIHeight() );
 		clip2D->Set(0, 0, (int)port.UIWidth(), (int)port.UIHeight() );
 		return RENDER_3D | RENDER_2D; 
 	}
@@ -1549,7 +1580,7 @@ bool BattleScene::ProcessActionCameraBounds( U32 deltaTime, Action* action )
 		Vector2F center = inset.Center();
 		inset.min = center;
 		inset.max = center;
-		inset.Outset( 50 );		// There is a 50 pixel sidebar that throws off this computation. Just make sure outset is large enough.
+		inset.Outset( 70 );		// There is a 50 pixel sidebar that throws off this computation. Just make sure outset is large enough.
 	}
 
 	/*GLOUTPUT(( "ProcessActionCameraBounds\n" )); 

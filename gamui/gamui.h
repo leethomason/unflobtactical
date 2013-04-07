@@ -201,8 +201,9 @@ public:
 		LEVEL_BACKGROUND = 0,
 		LEVEL_FOREGROUND = 1,
 		LEVEL_DECO		 = 2,
-		LEVEL_TEXT		 = 3,
-		LEVEL_FOCUS		 = 4
+		LEVEL_ICON		 = 3,
+		LEVEL_TEXT		 = 4,
+		LEVEL_FOCUS		 = 5
 	};
 
 	/// Description of a vertex used by Gamui.
@@ -681,6 +682,7 @@ public:
 	bool Down() const	{ return !m_up; }
 	void SetDeco( const RenderAtom& atom, const RenderAtom& atomD )			{ m_atoms[DECO] = atom; m_atoms[DECO_D] = atomD; SetState(); Modify(); }
 	void SetDecoRotationY( float degrees )									{ m_deco.SetRotationY( degrees ); }
+	void SetIcon( const RenderAtom& atom, const RenderAtom& atomD )			{ m_atoms[ICON] = atom; m_atoms[ICON_D] = atomD; SetState(); Modify(); }
 
 	void SetText( const char* text );
 	const char* GetText() const { return m_label[0].GetText(); }
@@ -732,12 +734,15 @@ private:
 		DOWN_D,
 		DECO,
 		DECO_D,
+		ICON,
+		ICON_D,
 		COUNT
 	};
 	RenderAtom m_atoms[COUNT];
 	
 	Image		m_face;
 	Image		m_deco;
+	Image		m_icon;
 
 	bool		m_usingText1;
 	int			m_textLayout;

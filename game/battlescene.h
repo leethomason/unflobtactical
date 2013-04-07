@@ -358,8 +358,7 @@ private:
 	NameRankUI			nameRankUI;
 	OKCancelUI			moveOkayCancelUI;
 	DecoEffect			decoEffect;
-	//Works, just not sure if it is a good thing:
-	//ConsoleWidget*		consoleWidget;
+	gamui::Image		dpad;
 
 	gamui::Image		unitImage0[MAX_UNITS];			// map space
 	gamui::Image		unitImage1[MAX_UNITS];			// map space
