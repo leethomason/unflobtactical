@@ -135,6 +135,7 @@ enum {
 int		GAME_BUTTON_SIZE();
 float	GAME_BUTTON_SIZE_F();
 float	GAME_BUTTON_SIZE_B();
+float	GAME_ICON_SIZE();
 float	GAME_GUTTER_X();
 float	GAME_GUTTER_Y();
 float	GAME_BUTTON_SPACING();
