@@ -105,6 +105,10 @@ public:
 	virtual void CancelInput() {}
 	virtual void SceneResult( int sceneID, int result );
 
+	virtual void JoyButton( int id, bool down );
+	virtual void JoyDPad( int dir );
+	virtual void JoyStick( int id, int axis, float value );
+
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D );
 	virtual void DoTick( U32 currentTime, U32 deltaTime );
 	virtual void Draw3D();
@@ -342,8 +346,8 @@ private:
 
 	UIRenderer			uiRenderer;
 
-	gamui::Image		turnImage, alienTargetImage;
-	gamui::TextLabel	alienTargetText;
+	gamui::Image		turnImage;
+	gamui::PushButton	alienTarget;
 
 	gamui::Image		menuImage;
 	gamui::PushButton	exitButton;
@@ -359,6 +363,7 @@ private:
 	OKCancelUI			moveOkayCancelUI;
 	DecoEffect			decoEffect;
 	gamui::Image		dpad;
+	gamui::Image		imageL1, imageR1, imageL2, imageR2;
 
 	gamui::Image		unitImage0[MAX_UNITS];			// map space
 	gamui::Image		unitImage1[MAX_UNITS];			// map space

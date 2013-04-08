@@ -214,7 +214,7 @@ public:
 	Texture* CalcFaceTexture( const Unit* unit, grinliz::Rectangle2F* uv );
 
 	static gamui::RenderAtom CalcDecoAtom( int id, bool enabled=true );
-	static gamui::RenderAtom CalcControllerAtom( bool dpad, int id, bool enabled=true );
+	static gamui::RenderAtom CalcControllerAtom( bool dpad, int id, bool enabled, float* widthRatio );
 	static gamui::RenderAtom CalcParticleAtom( int id, bool enabled=true );
 	static gamui::RenderAtom CalcIconAtom( int id, bool enabled=true );
 	static gamui::RenderAtom CalcIcon2Atom( int id, bool enabled=true );

@@ -1,10 +1,17 @@
 Bugs 
 
+TV Port
+	- need non-button icons
+	- battle: l/r character selection
+	- make alien count a button
+	- battle: l/r alien selection
+	- joystick for character move
+	- joystick for target fire
+	- fire widget button support
+
 x test sound on fire
 x save/load bug. going into tactical where it should be in geo. (maybe fixed.)
-
 X need slightly larger than unit plate model for UFO effects
-
 X more sophisticated psi ai. 
 X	- be aware civ vs. terran
 X	- use if below a certain % of known locations
