@@ -936,7 +936,7 @@ RenderAtom Game::CalcDecoAtom( int id, bool enabled )
 }
 
 
-RenderAtom Game::CalcControllerAtom( bool dpad, int id, bool enabled )
+RenderAtom Game::CalcControllerAtom( bool dpad, int id, bool enabled, float *widthRatio )
 {
 	// Hardcoded coordinates. That's how the OUYA port rolls.
 	static const float cx = 1024.0f;
@@ -973,13 +973,17 @@ RenderAtom Game::CalcControllerAtom( bool dpad, int id, bool enabled )
 	}
 	else {
 		GLASSERT( id >= GAME_JOY_BUTTON_DOWN && id <= GAME_JOY_R2 );
-		index = id;
+		index = id-1;
 	}
 	float x0 = UV[index*4+0];
 	float y0 = cy - UV[index*4+1] - UV[index*4+3];
 	float x1 = UV[index*4+0] + UV[index*4+2];
 	float y1 = cy - UV[index*4+1];
 	uv.Set( x0/cx, y0/cy, x1/cx, y1/cy );
+
+	if ( widthRatio ) {
+		*widthRatio = (x1-x0) / (y1-y0);
+	}
 	return RenderAtom( (const void*)( enabled ? UIRenderer::RENDERSTATE_UI_DECO : UIRenderer::RENDERSTATE_UI_DECO_DISABLED), 
 					   (const void*)texture, 
 					   uv.min.x, uv.min.y, uv.max.x, uv.max.y );

@@ -91,17 +91,15 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	turnImage.Init( &gamui3D, Game::CalcDecoAtom( DECO_ALIEN ), true );
 	turnImage.SetSize( GAME_BUTTON_SIZE_B(), GAME_BUTTON_SIZE_B() );
 	decoEffect.Attach( &turnImage );
-	
-	alienTargetImage.Init( &gamui3D, Game::CalcIconAtom( ICON_ALIEN_TARGETS ), true );
-	alienTargetImage.SetSize( GAME_TEXT_HEIGHT()*1.25f, GAME_TEXT_HEIGHT()*1.25f );
-	alienTargetImage.SetVisible( false );
 
-	alienTargetText.Init( &gamui3D );
-	alienTargetText.SetVisible( false );
+	gamui::RenderAtom nullAtom;
+
+	RenderAtom alienTargetAtom = Game::CalcIconAtom( ICON_ALIEN_TARGETS, true );
+	alienTarget.Init( &gamui2D, alienTargetAtom, alienTargetAtom, alienTargetAtom, alienTargetAtom, nullAtom, nullAtom ); 
+	alienTarget.SetVisible( false );
 
 	nameRankUI.Init( &gamui3D, game );
 
-	gamui::RenderAtom nullAtom;
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		unitImage0[i].Init( &tacMap->overlay[Map::LAYER_UNDER_LOW], nullAtom, false );
 		unitImage0[i].SetVisible( false );
@@ -193,9 +191,27 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 			orbitButton.SetVisible( false );
 		}
 
-		RenderAtom dpadAtom = Game::CalcControllerAtom( true, GAME_JOY_DPAD_CENTER );
+		RenderAtom dpadAtom = Game::CalcControllerAtom( true, GAME_JOY_DPAD_CENTER, true, 0 );
 		dpad.Init( &gamui2D, dpadAtom, true );
 		dpad.SetVisible( false );
+
+		float ratio = 1.0f;
+		float SHSIZE = GAME_ICON_SIZE();
+		RenderAtom shAtom = Game::CalcControllerAtom( false, GAME_JOY_L1, true, &ratio );
+		imageL1.Init( &gamui2D, shAtom, true );
+		imageL1.SetSize( SHSIZE*ratio, SHSIZE );
+
+		shAtom = Game::CalcControllerAtom( false, GAME_JOY_L2, true, &ratio );
+		imageL2.Init( &gamui2D, shAtom, true );
+		imageL2.SetSize( SHSIZE*ratio, SHSIZE );
+
+		shAtom = Game::CalcControllerAtom( false, GAME_JOY_R1, true, &ratio );
+		imageR1.Init( &gamui2D, shAtom, true );
+		imageR1.SetSize( SHSIZE*ratio, SHSIZE );
+
+		shAtom = Game::CalcControllerAtom( false, GAME_JOY_R2, true, &ratio );
+		imageR2.Init( &gamui2D, shAtom, true );
+		imageR2.SetSize( SHSIZE*ratio, SHSIZE );
 	}
 
 	fireWidget.Init( &gamui3D, red );	
@@ -225,8 +241,8 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	//consoleWidget->SetOrigin( 150, 20 );
 
 	if ( TVMode() ) {
-		invButton.SetIcon( Game::CalcControllerAtom( false, GAME_JOY_BUTTON_UP, true ),
-						   Game::CalcControllerAtom( false, GAME_JOY_BUTTON_UP, false ));
+		invButton.SetIcon( Game::CalcControllerAtom( false, GAME_JOY_BUTTON_UP, true, 0 ),
+						   Game::CalcControllerAtom( false, GAME_JOY_BUTTON_UP, false, 0 ));
 	}
 
 	currentTeamTurn = ALIEN_TEAM;
@@ -259,8 +275,9 @@ void BattleScene::Resize()
 	const Screenport& port = GetEngine()->GetScreenport();
 
 	turnImage.SetPos( float(port.UIWidth()-SIZE), 0 );
-	alienTargetImage.SetPos( float(port.UIWidth()-SIZE/2), 0 );
-	alienTargetText.SetPos( alienTargetImage.X()+5, alienTargetImage.Y()+2 );
+
+	alienTarget.SetSize( SIZE*0.5f, SIZE*0.5f );
+	alienTarget.SetPos( float(port.UIWidth()-SIZE/2), 0 );
 
 	dpad.SetVisible( TVMode() );
 
@@ -282,7 +299,19 @@ void BattleScene::Resize()
 		layout.PosAbs( &targetButton,	1, -1 );
 		layout.PosAbs( &dpad,			1, -2 );
 
-		layout.PosAbs( &invButton, -2, -1 );
+		layout.PosAbs( &invButton,   -1, -1 );
+		imageL1.SetPos( invButton.X() - imageL1.Width(),   invButton.Y() );	// do NOT set size
+		imageR1.SetPos( invButton.X() + invButton.Width(), invButton.Y() );	// do NOT set size
+		imageL1.SetVisible( TVMode() );
+		imageR1.SetVisible( TVMode() );
+
+		layout.PosAbs( &alienTarget, -1, 0 );
+		imageL2.SetPos( alienTarget.X() - imageR2.Width(), alienTarget.Y() );	// do NOT set size
+		imageR2.SetPos( alienTarget.X() + alienTarget.Width(), alienTarget.Y() );	// do NOT set size
+		imageL2.SetVisible( false );
+		imageR2.SetVisible( false );
+
+		layout.PosAbs( &turnImage, -1, 1 );
 	}
 	else {
 		Gamui::Layout( items, 6, 1, 6, 0, 0, SIZE, (float)port.UIHeight() );
@@ -395,8 +424,9 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 			currentUnitAI = ALIEN_UNITS_START;
 
 			decoEffect.Play( 1000, false );
-			alienTargetImage.SetVisible( false );
-			alienTargetText.SetVisible( false );
+			alienTarget.SetVisible( false );
+			imageL2.SetVisible( false );
+			imageR2.SetVisible( false );
 			turnImage.SetAtom( Game::CalcDecoAtom( DECO_ALIEN ) );
 			break;
 
@@ -407,8 +437,9 @@ void BattleScene::NextTurn( bool saveOnTerranTurn )
 			currentUnitAI = CIV_UNITS_START;
 
 			decoEffect.Play( 1000, false );
-			alienTargetImage.SetVisible( false );
-			alienTargetText.SetVisible( false );
+			alienTarget.SetVisible( false );
+			imageL2.SetVisible( false );
+			imageR2.SetVisible( false );
 			turnImage.SetAtom( Game::CalcDecoAtom( DECO_HUMAN ) );
 			break;
 
@@ -2440,6 +2471,54 @@ void BattleScene::SceneResult( int sceneID, int result )
 }
 
 
+void BattleScene::JoyButton( int id, bool down )
+{
+	if ( down ) {
+		switch( id ) {
+		case GAME_JOY_BUTTON_UP:
+			HandleIconTap( &invButton );
+			break;
+		case GAME_JOY_L1:
+			HandleIconTap( &controlButton[PREV_BUTTON] );
+			break;
+		case GAME_JOY_R1:
+			HandleIconTap( &controlButton[NEXT_BUTTON] );
+			break;
+
+		default:
+			break;
+		}
+	}
+}
+
+
+void BattleScene::JoyDPad( int dir )
+{
+	switch ( dir ) {
+	case GAME_JOY_DPAD_UP:
+		HandleIconTap( &helpButton );
+		break;
+	case GAME_JOY_DPAD_LEFT:
+		HandleIconTap( &exitButton );
+		break;
+	case GAME_JOY_DPAD_RIGHT:
+		HandleIconTap( &nextTurnButton );
+		break;
+	case GAME_JOY_DPAD_DOWN:
+		HandleIconTap( &targetButton );
+		break;
+	default:
+		break;
+	}
+}
+
+
+void BattleScene::JoyStick( int id, int axis, float value )
+{
+
+}
+
+
 /*
 	Handle a tap.
 
@@ -3119,18 +3198,27 @@ void BattleScene::DrawHUD()
 				else
 					str = "+";
 
-				alienTargetText.SetText( str.c_str() );
-				alienTargetText.SetVisible( true );
-				alienTargetImage.SetVisible( true );
+				alienTarget.SetText( str.c_str() );
+				alienTarget.SetVisible( true );
+				if ( TVMode() && count > 1 ) {
+					imageL2.SetVisible( true );
+					imageR2.SetVisible( true );
+				}
 			}
 			else {
-				alienTargetText.SetVisible( false );
-				alienTargetImage.SetVisible( false );
+				alienTarget.SetVisible( false );
+				imageL2.SetVisible( false );
+				imageR2.SetVisible( false );
 			}
 		}
 
 		nameRankUI.SetVisible( SelectedSoldierUnit() != 0 );
-		nameRankUI.Set( 50, 0, SelectedSoldierUnit(), ~NameRankUI::DISPLAY_FACE );
+		if ( TVMode() ) {
+			nameRankUI.Set( GAME_GUTTER_X(), GAME_GUTTER_Y(), SelectedSoldierUnit(), ~NameRankUI::DISPLAY_FACE );
+		}
+		else {
+			nameRankUI.Set( 50, 0, SelectedSoldierUnit(), ~NameRankUI::DISPLAY_FACE );
+		}
 		if ( SelectedSoldierUnit() ) {
 			Rectangle2F uv;
 			Texture* faceTex = game->CalcFaceTexture( SelectedSoldierUnit(), &uv );
