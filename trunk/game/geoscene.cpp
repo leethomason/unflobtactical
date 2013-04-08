@@ -276,14 +276,10 @@ GeoScene::GeoScene( Game* _game, const GeoSceneData* data ) : Scene( _game ), re
 	baseButton.SetSize( GAME_BUTTON_SIZE_F(), GAME_BUTTON_SIZE_F() );
 	baseButton.SetDeco(  Game::CalcDecoAtom( DECO_BASE, true ), Game::CalcDecoAtom( DECO_BASE, false ) );
 
-	//cashImage.Init( &gamui2D, UIRenderer::CalcIconAtom( ICON_GREEN_STAND_MARK ), false );
-	cashImage.Init( &gamui2D, 
-		Game::CalcPaletteAtom( Game::PALETTE_GREEN, Game::PALETTE_GREEN, Game::PALETTE_NORM ),
-		false );
+	RenderAtom cashAtom = Game::CalcIconAtom( ICON_GREEN_STAND_MARK, true );
+	RenderAtom nullAtom;
+	cashImage.Init( &gamui2D, cashAtom, cashAtom, cashAtom, cashAtom, nullAtom, nullAtom );
 	cashImage.SetSize( GAME_BUTTON_SIZE_F()*1.7f, GAME_BUTTON_SIZE_F() );
-	cashImage.SetSlice( true );
-
-	cashLabel.Init( &gamui2D );
 
 	for( int i=0; i<MAX_CONTEXT; ++i ) {
 		context[i].Init( &gamui2D, game->GetButtonLook( Game::BLUE_BUTTON ) );
@@ -313,18 +309,36 @@ void GeoScene::Resize()
 {
 	const Screenport& port = GetEngine()->GetScreenport();
 
-	helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F(), 0 );
-	researchButton.SetPos( 0, 0 );
-	baseButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F() );
-	cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F()*1.8f, 
-					  port.UIHeight()-GAME_BUTTON_SIZE_F()*0.4f );
-	cashLabel.SetPos( cashImage.X()+5.0f, cashImage.Y()+5.0f );
+	if ( TVMode() ) {
+		LayoutCalculator layout( port.UIWidth(), port.UIHeight() );
+		layout.SetGutter( GAME_GUTTER_X(), GAME_GUTTER_Y() );
+		layout.SetSize( GAME_ICON_SIZE(), GAME_ICON_SIZE() );
 
-	GetEngine()->CameraIso( false, false, (float)GeoMap::MAP_X, (float)GeoMap::MAP_Y );
-	if ( savedCameraX >= 0 ) {
-		Vector3F cameraPos = GetEngine()->camera.PosWC();
-		cameraPos.x = savedCameraX;
-		GetEngine()->camera.SetPosWC( cameraPos );
+		layout.PosAbs( &helpButton, 0, 0 );
+		layout.PosAbs( &researchButton, 1, 0 );
+		layout.PosAbs( &baseButton, 2, 0 );
+
+		layout.SetSize( GAME_ICON_SIZE()*4.0f, GAME_ICON_SIZE() );
+		layout.PosAbs( &cashImage, -1, -1 );
+	}
+	else {
+		helpButton.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F(), 0 );
+		researchButton.SetPos( 0, 0 );
+		baseButton.SetPos( 0, port.UIHeight()-GAME_BUTTON_SIZE_F() );
+		cashImage.SetPos( port.UIWidth()-GAME_BUTTON_SIZE_F()*1.8f, 
+						  port.UIHeight()-GAME_BUTTON_SIZE_F()*0.4f );
+	}
+
+	if ( TVMode() ) {
+		GetEngine()->CameraIso( false, true, (float)GeoMap::MAP_X/2+2, (float)GeoMap::MAP_Y );
+	}
+	else {
+		GetEngine()->CameraIso( false, false, (float)GeoMap::MAP_X, (float)GeoMap::MAP_Y );
+		if ( savedCameraX >= 0 ) {
+			Vector3F cameraPos = GetEngine()->camera.PosWC();
+			cameraPos.x = savedCameraX;
+			GetEngine()->camera.SetPosWC( cameraPos );
+		}
 	}
 	SetMapLocation();
 }
@@ -1335,7 +1349,7 @@ void GeoScene::DoTick( U32 currentTime, U32 deltaTime )
 
 	char cashBuf[16];
 	SNPrintf( cashBuf, 16, "$%d", cash );
-	cashLabel.SetText( cashBuf );
+	cashImage.SetText( cashBuf );
 
 	alienTimer += deltaTime;
 

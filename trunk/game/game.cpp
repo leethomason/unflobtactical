@@ -824,9 +824,10 @@ void Game::JoyDPad( int dir )
 }
 
 
-void Game::JoyStick( int id, int axis, float value )
+void Game::JoyStick( int id, float x, float y )
 {
-	sceneStack.Top()->scene->JoyStick( id, axis, value );
+	Vector2F value = { x, y };
+	sceneStack.Top()->scene->JoyStick( id, value );
 }
 
 

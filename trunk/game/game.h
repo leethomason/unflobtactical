@@ -115,7 +115,7 @@ public:
 
 	void JoyButton( int id, bool down );
 	void JoyDPad( int dir );
-	void JoyStick( int id, int axis, float value );
+	void JoyStick( int id, float x, float y );
 	
 	const ItemDefArr&	GetItemDefArr() const	{ return itemDefArr; }
 

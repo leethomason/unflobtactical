@@ -107,7 +107,7 @@ public:
 
 	virtual void JoyButton( int id, bool down );
 	virtual void JoyDPad( int dir );
-	virtual void JoyStick( int id, int axis, float value );
+	virtual void JoyStick( int id, const grinliz::Vector2F& value );
 
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D );
 	virtual void DoTick( U32 currentTime, U32 deltaTime );

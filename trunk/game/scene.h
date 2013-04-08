@@ -86,7 +86,7 @@ public:
 
 	virtual void JoyButton( int id, bool down )					{}
 	virtual void JoyDPad( int dir )								{}
-	virtual void JoyStick( int id, int axis, float value )		{}
+	virtual void JoyStick( int id, const grinliz::Vector2F& value )		{}
 
 	virtual SavePathType CanSave()								{ return SAVEPATH_NONE; }
 	virtual void Save( tinyxml2::XMLPrinter* )					{}

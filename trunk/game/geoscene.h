@@ -349,8 +349,7 @@ private:
 
 	gamui::PushButton	helpButton, researchButton;
 	gamui::ToggleButton baseButton;
-	gamui::Image		cashImage;
-	gamui::TextLabel	cashLabel;
+	gamui::PushButton	cashImage;
 
 	ChitBag				chitBag;
 	int					contextChitID;
