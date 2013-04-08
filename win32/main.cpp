@@ -66,14 +66,14 @@ static const int SCREEN_HEIGHT = NEXUS_ONE_SCREEN_HEIGHT;
 static const int SCREEN_WIDTH = 384;
 static const int SCREEN_HEIGHT = 640;
 #endif
-#if 0
+#if 1
 // OUYA
 // Flipped. Will have to test on actual device.
 static const int SCREEN_WIDTH  = TV_SCREEN_HEIGHT;
 static const int SCREEN_HEIGHT = TV_SCREEN_WIDTH;
 #define TV_MODE
 #endif
-#if 1
+#if 0
 // OUYA on laptop
 // Flipped. Will have to test on actual device.
 static const int SCREEN_WIDTH  = TV_SCREEN_HEIGHT * 3 / 4;
@@ -361,6 +361,7 @@ int main( int argc, char **argv )
 
 	bool L2Down = false;
 	bool R2Down = false;
+	grinliz::Vector2F joystickAxis[2] = { 0, 0 };
 
 	// ---- Main Loop --- //
 #ifdef TEST_FULLSPEED	
@@ -451,15 +452,15 @@ int main( int argc, char **argv )
 					int stick = -1;
 
 					switch( event.jaxis.axis ) {
-						case 0:	axis=0;	stick=0;					break;
-						case 1: axis=1; stick=0; normal *= -1.0;	break;
-						case 3: axis=0;	stick=1;					break;
-						case 4: axis=1; stick=1; normal *= -1.0f;	break;
+						case 0:	axis=1;	stick=0;					break;
+						case 1: axis=0; stick=0; normal *= -1.0;	break;
+						case 3: axis=1;	stick=1;					break;
+						case 4: axis=0; stick=1; normal *= -1.0f;	break;
 						default: break;
 					}
 
 					if ( axis >= 0 && stick >= 0 ) {
-						GameJoyStick( game, stick, axis, (float)normal );
+						joystickAxis[stick].X(axis) = (float)normal;
 					}
 				}
 
@@ -750,6 +751,11 @@ int main( int argc, char **argv )
 				glEnable( GL_DEPTH_TEST );
 				glDepthFunc( GL_LEQUAL );
 
+				for( int stick=0; stick<2; ++stick ) {
+					if ( joystickAxis[stick].x || joystickAxis[stick].y ) {
+						GameJoyStick( game, stick, joystickAxis[stick].x, joystickAxis[stick].y );
+					}
+				}
 				GameDoTick( game, SDL_GetTicks() );
 				SDL_GL_SwapBuffers();
 

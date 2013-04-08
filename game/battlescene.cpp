@@ -2513,9 +2513,12 @@ void BattleScene::JoyDPad( int dir )
 }
 
 
-void BattleScene::JoyStick( int id, int axis, float value )
+void BattleScene::JoyStick( int id, const Vector2F& axis )
 {
-
+	if ( id == 1 ) {	// right stick is camera
+		engine->camera.Orbit( axis.x*2.f );
+		this->Zoom( GAME_ZOOM_DISTANCE, axis.y*0.012f );
+	}
 }
 
 

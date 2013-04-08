@@ -95,7 +95,7 @@ void GameJoyDPad( void* handle, int dir );
 // id: 0 or 1
 // axis: x:0 or y:1
 // value: [-1,1]
-void GameJoyStick( void* handle, int id, int axis, float value );
+void GameJoyStick( void* handle, int id, float x, float y );
 
 
 #define GAME_MAX_MOD_DATABASES			16
