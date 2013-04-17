@@ -16,6 +16,7 @@
 #include "geomap.h"
 #include "../engine/loosequadtree.h"
 #include "../engine/model.h"
+#include "gamelimits.h"
 
 GeoMap::GeoMap( SpaceTree* _tree ) : tree( _tree )
 {
@@ -35,6 +36,7 @@ GeoMap::GeoMap( SpaceTree* _tree ) : tree( _tree )
 
 	geoModel[0] = geoModel[1] = 0;
 	dayNightTex = TextureManager::Instance()->CreateTexture( "GeoDayNight", DAYNIGHT_TEX_SIZE, 2, Surface::RGB16, Texture::PARAM_NONE, this );
+
 }
 
 
@@ -86,6 +88,10 @@ void GeoMap::DoTick( U32 currentTime, U32 deltaTime )
 			geoModel[i]->SetFlag( Model::MODEL_OWNED_BY_MAP );
 		}
 		geoModel[1]->SetPos( MAP_X, 0, 0 );
+		if ( TVMode() )
+			geoModel[1]->SetFlag( Model::MODEL_INVISIBLE );
+		else
+			geoModel[1]->ClearFlag( Model::MODEL_INVISIBLE );
 	}
 
 	if ( dayNightOffset > 1.0f ) {

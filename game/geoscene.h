@@ -257,13 +257,7 @@ public:
 						const grinliz::Ray& world );
 
 	// Rendering
-	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	
-	{ 
-		clip3D->SetInvalid(); 
-		clip2D->SetInvalid(); 
-		return RENDER_2D | RENDER_3D;
-	}	
-
+	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D );
 	virtual void DoTick( U32 currentTime, U32 deltaTime );
 	virtual void Draw3D();
 
@@ -350,6 +344,7 @@ private:
 	gamui::PushButton	helpButton, researchButton;
 	gamui::ToggleButton baseButton;
 	gamui::PushButton	cashImage;
+	gamui::Image		mask0, mask1;
 
 	ChitBag				chitBag;
 	int					contextChitID;

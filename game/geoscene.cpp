@@ -288,6 +288,11 @@ GeoScene::GeoScene( Game* _game, const GeoSceneData* data ) : Scene( _game ), re
 	}
 	GenerateCities();
 	savedCameraX = -1.0f;
+
+	Texture* black = TextureManager::Instance()->GetTexture( "black" );
+	RenderAtom blackAtom(  (const void*)UIRenderer::RENDERSTATE_UI_NORMAL_OPAQUE, (const void*)black, 0, 0, 1, 1 );
+	mask0.Init( &gamui2D, blackAtom, false );
+	mask1.Init( &gamui2D, blackAtom, false );
 }
 
 
@@ -330,7 +335,30 @@ void GeoScene::Resize()
 	}
 
 	if ( TVMode() ) {
-		GetEngine()->CameraIso( false, true, (float)GeoMap::MAP_X/2+2, (float)GeoMap::MAP_Y );
+		float h = 4.5f / tanf( ToRadian( EL_FOV*0.5f ) );
+		GetEngine()->CameraIso( false, true, h, (float)GeoMap::MAP_Y );
+
+		Vector3F cameraPos = GetEngine()->camera.PosWC();
+		cameraPos.x = 10.0f;
+		GetEngine()->camera.SetPosWC( cameraPos );
+
+		Screenport aPort = port;
+		aPort.SetPerspective( 0 );
+		aPort.SetUI( 0 );
+		aPort.SetViewMatrices( GetEngine()->camera.ViewMatrix() );
+
+		Vector3F world = { 0, 0, 0 };
+		Vector2F ui;
+		aPort.WorldToUI( world, &ui );
+
+		float s = port.UIHeight();
+		mask0.SetSize( s, s );
+		mask0.SetPos( ui.x-s, 0 );
+
+		world.Set( GeoMap::MAP_X, 0, 0 );
+		aPort.WorldToUI( world, &ui );
+		mask1.SetSize( s, s );
+		mask1.SetPos( ui.x, 0 );
 	}
 	else {
 		GetEngine()->CameraIso( false, false, (float)GeoMap::MAP_X, (float)GeoMap::MAP_Y );
@@ -342,6 +370,14 @@ void GeoScene::Resize()
 	}
 	SetMapLocation();
 }
+
+
+int GeoScene::RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D )	
+{ 
+	clip3D->SetInvalid(); 
+	clip2D->SetInvalid(); 
+	return RENDER_2D | RENDER_3D;
+}	
 
 
 void GeoScene::Activate()
@@ -752,13 +788,14 @@ void GeoScene::SetMapLocation()
 	float d = cameraPos.y * tanf( ToRadian( EL_FOV*0.5f ) );
 	float leftEdge = cameraPos.x - d;
 
-	if ( leftEdge < 0 ) {
-		GetEngine()->camera.DeltaPosWC( GeoMap::MAP_X, 0, 0 );
+	if ( !TVMode() ) {
+		if ( leftEdge < 0 ) {
+			GetEngine()->camera.DeltaPosWC( GeoMap::MAP_X, 0, 0 );
+		}
+		if ( leftEdge > (float)GeoMap::MAP_X ) {
+			GetEngine()->camera.DeltaPosWC( -GeoMap::MAP_X, 0, 0 );
+		}
 	}
-	if ( leftEdge > (float)GeoMap::MAP_X ) {
-		GetEngine()->camera.DeltaPosWC( -GeoMap::MAP_X, 0, 0 );
-	}
-
 	static const Vector2F pos[GEO_REGIONS] = {	// "North", "South", "Europe", "Asia", "Africa", "Under"
 		{ 64.f/1000.f, 9.f/500.f },
 		{ 97.f/1000.f, 455.f/500.f },

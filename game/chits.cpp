@@ -210,7 +210,9 @@ void UFOChit::DoDamage( float d )
 		static const Color4F colorVec	= { 0.0f, -0.1f, -0.1f, -0.5f };
 		static const Vector3F particleVel = { 0.4f, 0, 0 };
 
-		for( int i=0; i<2; ++i ) {
+		//int count = TVMode() ? 1 : 2;
+		int count = 2;
+		for( int i=0; i<count; ++i ) {
 			ParticleSystem::Instance()->EmitPoint( 
 							40, ParticleSystem::PARTICLE_SPHERE, 
 							particleColor, colorVec,
@@ -245,8 +247,10 @@ void UFOChit::EmitEntryExitBurn( U32 deltaTime, const Vector3F& p0, const Vector
 
 		float halfSize = model[0]->AABB().SizeX()* 0.5f;
 		static const float GROW = 0.2f;
-
-		for( int i=0; i<2; ++i ) {
+		
+		//int count = TVMode() ? 1 : 2;
+		int count = 2;
+		for( int i=0; i<count; ++i ) {
 			if ( entry ) {
 				ps->EmitQuad( ParticleSystem::SMOKE,
 							  smokeColor,
@@ -277,7 +281,6 @@ void UFOChit::Decal( U32 timer, float speed, int id )
 			gamui::RenderAtom atom = Game::CalcIcon2Atom( id, true );
 			decal[i]->SetTexture( (Texture*)atom.textureHandle );
 			decal[i]->SetTexXForm( 0, atom.tx1-atom.tx0, atom.ty1-atom.ty0, atom.tx0, atom.ty0 );
-			
 		}
 	}
 	for( int i=0; i<2; ++i ) {
@@ -285,6 +288,9 @@ void UFOChit::Decal( U32 timer, float speed, int id )
 		Vector3F pos = model[i]->Pos();
 		decal[i]->SetPos( pos );
 	}
+	//if ( TVMode() ) {
+	//	decal[1]->SetFlag( Model::MODEL_INVISIBLE );
+	//}
 }
 
 
@@ -370,7 +376,9 @@ int UFOChit::DoTick( U32 deltaTime )
 			static const Color4F colorVec	= { 0.0f, -0.1f, -0.1f, -0.5f };
 			static const Vector3F particleVel = { 0.4f, 0, 0 };
 
-			for( int i=0; i<2; ++i ) {
+			//int count = TVMode() ? 1 : 2;
+			int count = 2;
+			for( int i=0; i<count; ++i ) {
 				ParticleSystem::Instance()->EmitPoint( 
 								40, ParticleSystem::PARTICLE_SPHERE, 
 								particleColor, colorVec,
@@ -396,7 +404,9 @@ int UFOChit::DoTick( U32 deltaTime )
 				static const Color4F colorVec	= { -0.2f, -0.2f, -0.2f, -0.4f };
 				static const Vector3F particleVel = { -0.2f, 0.2f, -0.2f };
 
-				for( int i=0; i<2; ++i ) {
+				//int count = TVMode() ? 1 : 2;
+				int count = 2;
+				for( int i=0; i<count; ++i ) {
 
 					ParticleSystem::Instance()->EmitPoint( 
 									1, ParticleSystem::PARTICLE_RAY, 
@@ -484,6 +494,16 @@ int UFOChit::DoTick( U32 deltaTime )
 		model[1]->SetRotation( 30.0, 2 );
 	}
 
+	/*
+	if ( TVMode() ) {
+		model[0]->ClearFlag( Model::MODEL_INVISIBLE );
+		model[1]->ClearFlag( Model::MODEL_INVISIBLE );
+		if ( model[0]->Pos().x < 0 )
+			model[0]->SetFlag( Model::MODEL_INVISIBLE );
+		if ( model[1]->Pos().x > GEO_MAP_XF )
+			model[1]->SetFlag( Model::MODEL_INVISIBLE );
+	}
+	*/
 	return msg;
 }
 
@@ -509,6 +529,9 @@ void CropCircle::Init( U32 seed )
 		model[i]->SetTexture( texture );
 		model[i]->SetTexXForm( 0, 1.f/(float)CROP_CIRCLES_X, 1.f/(float)CROP_CIRCLES_Y, dx, dy );
 	}
+	
+	//if ( TVMode() )
+	//	model[1]->SetFlag( Model::MODEL_INVISIBLE );
 
 	Vector3F pos3 = { pos.x, UFO_HEIGHT*0.1f, pos.y };
 	while( pos3.x < 0 ) pos3.x += GEO_MAP_X;	
@@ -571,7 +594,8 @@ void CityChit::Init()
 	}
 	model[0]->SetPos( pos.x, 0, pos.y );
 	model[1]->SetPos( pos.x+(float)GEO_MAP_X, 0, pos.y  );
-
+	//if ( TVMode() )
+	//	model[1]->SetFlag( Model::MODEL_INVISIBLE );
 }
 
 
@@ -635,6 +659,8 @@ void BaseChit::Init()
 
 	model[0]->SetPos( pos.x, 0, pos.y );
 	model[1]->SetPos( pos.x+(float)GEO_MAP_X, 0, pos.y  );
+	//if ( TVMode() )
+	//	model[1]->SetFlag( Model::MODEL_INVISIBLE );
 }
 
 
@@ -912,6 +938,17 @@ int CargoChit::DoTick( U32 deltaTime )
 		model[0]->SetPos( p );
 		p.x += GEO_MAP_XF;
 		model[1]->SetPos( p );
+
+		/*
+		if ( TVMode() ) {
+			model[0]->ClearFlag( Model::MODEL_INVISIBLE );
+			model[1]->ClearFlag( Model::MODEL_INVISIBLE );
+			if ( model[0]->Pos().x < 0 )
+				model[0]->SetFlag( Model::MODEL_INVISIBLE );
+			if ( model[1]->Pos().x > GEO_MAP_XF )
+				model[1]->SetFlag( Model::MODEL_INVISIBLE );
+		}
+		*/
 	}
 	return msg;
 }

@@ -940,22 +940,22 @@ RenderAtom Game::CalcDecoAtom( int id, bool enabled )
 RenderAtom Game::CalcControllerAtom( bool dpad, int id, bool enabled, float *widthRatio )
 {
 	// Hardcoded coordinates. That's how the OUYA port rolls.
-	static const float cx = 1024.0f;
-	static const float cy = 256.0f;
+	static const float cx = 512.0f;
+	static const float cy = 512.0f;
 	static const float UV[] = { 
-		6, 13, 84, 84,		// O
-		99, 13, 84, 84,		// U
-		186, 13, 84, 84,	// Y
-		271, 13, 84, 84,	// A
-		420, 13, 137, 84,	// L1
-		850, 13, 137, 84,	// R1
-		563, 13, 137, 84,	// L2
-		705, 13, 137, 84,	// R2
-		3, 123, 112, 112,	// all dir
-		130, 123, 112, 112,	// up
-		265, 123, 112, 112,	// right
-		394, 123, 112, 112,	// down
-		522, 123, 112, 112	// left
+		109, 366, 101, 100,	// O
+		2,   366, 101, 100,	// U
+		344, 332, 101, 100,	// Y
+		216, 366, 101, 100,	// A
+		174, 256, 164, 104,	// L1
+		2,   256, 166, 104,	// R1
+		2,   129, 191, 121,	// L2
+		2,   2,   191, 121,	// R2
+		344, 222, 104, 104,	// all dir
+		309, 2,   104, 104,	// up
+		199, 2,	  104, 104,	// right
+		199, 113, 104, 104,	// down
+		309, 112, 104, 140	// left
 	};
 
 	Texture* texture = TextureManager::Instance()->GetTexture( "controller" );

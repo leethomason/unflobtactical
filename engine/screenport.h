@@ -55,7 +55,7 @@ public:
 	//Screenport( const Screenport& other );
 
 	void Resize( int w, int h, int r );
-	float UIAspectRatio()		{ return UIHeight() / UIWidth(); }
+	float UIAspectRatio() const		{ return UIHeight() / UIWidth(); }
 
 	int Rotation() const		{ return rotation; }
 
