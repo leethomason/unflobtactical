@@ -49,11 +49,10 @@ AreaWidget::AreaWidget( Game* game,
 
 void AreaWidget::SetOrigin( float x, float y ) 
 {
-	static const float DY = 16.0f;
 	static const float SPACE = 0.0f;
 
 	name.SetPos( x, y );
-	bar.SetPos( x, y+DY );
+	bar.SetPos( x, y+name.Height() );
 
 	trait[0].SetPos( name.X() + name.Width() + SPACE, 
 		             name.Y()+name.Height()-trait[0].Height() );
