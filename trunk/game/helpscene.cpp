@@ -211,7 +211,7 @@ void HelpScene::JoyButton( int id, bool down )
 }
 
 
-void HelpScene::JoyDPad( int dir )
+void HelpScene::JoyDPad( int id, int dir )
 {
 	if ( dir == GAME_JOY_DPAD_RIGHT ) {
 		++currentScreen;

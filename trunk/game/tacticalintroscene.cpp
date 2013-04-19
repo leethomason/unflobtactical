@@ -206,7 +206,7 @@ void TacticalIntroScene::DoTick( U32 currentTime, U32 deltaTime )
 	}
 }
 
-void TacticalIntroScene::JoyDPad( int dir )
+void TacticalIntroScene::JoyDPad( int id, int dir )
 {
 	float x=0, y=0;
 	if ( dir & GAME_JOY_DPAD_UP ) {

@@ -313,13 +313,14 @@ void GameJoyDPad( void* handle, int dir )
 
 void GameJoyStick( void* handle, int id, float x, float y )
 {
-	if ( x > -0.2f && x < 0.2f ) x = 0;
-	if ( y > -0.2f && y < 0.2f ) y = 0;
+	float DEAD_ZONE = 0.30f;
+	if ( x > -DEAD_ZONE && x < DEAD_ZONE ) x = 0;
+	if ( y > -DEAD_ZONE && y < DEAD_ZONE ) y = 0;
 
-	//GLOUTPUT(( "Stick %s axis=%s value=%f\n", id ? "right" : "left", axis ? "y" : "x", value ));
-	Game* game = (Game*)handle;
-	game->JoyStick( id, x, y );
-
+	if ( x || y ) {
+		Game* game = (Game*)handle;
+		game->JoyStick( id, x, y );
+	}
 }
 
 

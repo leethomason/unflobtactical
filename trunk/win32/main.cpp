@@ -452,10 +452,10 @@ int main( int argc, char **argv )
 					int stick = -1;
 
 					switch( event.jaxis.axis ) {
-						case 0:	axis=1;	stick=0;					break;
-						case 1: axis=0; stick=0; normal *= -1.0;	break;
-						case 3: axis=1;	stick=1;					break;
-						case 4: axis=0; stick=1; normal *= -1.0f;	break;
+						case 0:	axis=0;	stick=0;					break;
+						case 1: axis=1; stick=0; normal *= -1.0;	break;
+						case 3: axis=1;	stick=1; normal *= -1.0f;	break;
+						case 4: axis=0; stick=1;					break;
 						default: break;
 					}
 

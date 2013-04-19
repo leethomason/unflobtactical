@@ -285,6 +285,7 @@ private:
 	float framesPerSecond;
 	int debugLevel;
 	bool suppressText;
+	grinliz::Vector2F joyStickAccum;
 
 	ModelLoader* modelLoader;
 	gamedb::Reader* database0;		// the basic, complete database

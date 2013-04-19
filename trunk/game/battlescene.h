@@ -106,7 +106,7 @@ public:
 	virtual void SceneResult( int sceneID, int result );
 
 	virtual void JoyButton( int id, bool down );
-	virtual void JoyDPad( int dir );
+	virtual void JoyDPad( int id, int dir );
 	virtual void JoyStick( int id, const grinliz::Vector2F& value );
 
 	virtual int RenderPass( grinliz::Rectangle2I* clip3D, grinliz::Rectangle2I* clip2D );
@@ -328,6 +328,10 @@ private:
 	void UpgradeCrawlerToSpitter( Unit* unit );
 
 	void Drag( int action, bool uiActivated, const grinliz::Vector2F& view );
+	void DragUnitStart( const grinliz::Vector2I& map );
+	void DragUnitMove( const grinliz::Vector2I& map );
+	void DragUnitEnd( const grinliz::Vector2I& map );
+
 	bool GamuiHasCapture()	{ return gamui2D.TapCaptured() || gamui3D.TapCaptured(); }
 
 	bool isDragging;
@@ -336,6 +340,7 @@ private:
 	grinliz::Vector3F	dragEnd3D;
 	grinliz::Vector2F	dragStartUI;
 	grinliz::Vector2F	dragEndUI;
+	grinliz::Vector2F	joyDrag;
 
 	float				dragLength;
 	grinliz::Vector3F	dragStartCameraWC;
@@ -385,6 +390,7 @@ private:
 	int				currentUnitAI;
 	bool			battleEnding;		// not saved - used to prevent event loops
 	bool			cameraSet;
+	float			orbit;
 
 	struct TargetEvent
 	{

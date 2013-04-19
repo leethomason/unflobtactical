@@ -169,6 +169,7 @@ void Game::Init()
 	loadSlot = 0;
 	currentFrame = 0;
 	surface.Set( Surface::RGBA16, 256, 256 );		// All the memory we will ever need (? or that is the intention)
+	joyStickAccum.Set( 0, 0 );
 
 	// Load the database.
 	char buffer[260];
@@ -820,14 +821,38 @@ void Game::JoyButton( int id, bool down )
 
 void Game::JoyDPad( int dir )
 {
-	sceneStack.Top()->scene->JoyDPad( dir );
+	sceneStack.Top()->scene->JoyDPad( 0, dir );
 }
 
 
 void Game::JoyStick( int id, float x, float y )
 {
+	GLOUTPUT(( "Game::JoyStick %s value=%.2f,%.2f\n", id ? "right" : "left", x, y ));
 	Vector2F value = { x, y };
 	sceneStack.Top()->scene->JoyStick( id, value );
+
+	if ( id == 0 ) {
+		if ( x == 0 && y == 0 ) {
+			joyStickAccum.Set( 0, 0 );
+		}
+		else { 
+			joyStickAccum.x += x;
+			joyStickAccum.y += y;
+			if ( joyStickAccum.Length() > 4.0f ) {
+				
+				joyStickAccum.Normalize();
+
+				int dir = 0;
+				if ( joyStickAccum.x > 0.5f )  dir |= GAME_JOY_DPAD_RIGHT;
+				if ( joyStickAccum.x < -0.5f ) dir |= GAME_JOY_DPAD_LEFT;
+				if ( joyStickAccum.y > 0.5f )  dir |= GAME_JOY_DPAD_UP;
+				if ( joyStickAccum.y < -0.5f ) dir |= GAME_JOY_DPAD_DOWN;
+
+				sceneStack.Top()->scene->JoyDPad( 1, dir );
+				joyStickAccum.Set( 0, 0 );
+			}
+		}
+	}
 }
 
 
