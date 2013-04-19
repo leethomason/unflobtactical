@@ -85,7 +85,8 @@ public:
 	virtual void CancelInput()									{}
 
 	virtual void JoyButton( int id, bool down )					{}
-	virtual void JoyDPad( int dir )								{}
+	// id=0 the actual dpad, id=1 the virtual dpad (left stick)
+	virtual void JoyDPad( int id, int dir )						{}
 	virtual void JoyStick( int id, const grinliz::Vector2F& value )		{}
 
 	virtual SavePathType CanSave()								{ return SAVEPATH_NONE; }

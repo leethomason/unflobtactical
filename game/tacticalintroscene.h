@@ -54,7 +54,7 @@ public:
 						const grinliz::Ray& world );
 	virtual void SceneResult( int sceneID, int result );
 
-	virtual void JoyDPad( int dir );
+	virtual void JoyDPad( int id, int dir );
 	virtual void JoyButton( int id, bool down );
 	virtual void DoTick( U32 currentTime, U32 deltaTime );
 

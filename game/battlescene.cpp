@@ -59,6 +59,7 @@ BattleScene::BattleScene( Game* game ) : Scene( game )
 	battleEnding = false;
 	confirmDest.Set( -1, -1 );
 	random.SetSeedFromTime();
+	orbit = 0;
 
 	engine  = game->engine;
 	tacMap = new TacMap( engine->GetSpaceTree(), game->GetItemDefArr() );
@@ -326,9 +327,14 @@ void BattleScene::Resize()
 void BattleScene::Activate()
 {
 	engine->SetMap( tacMap );
-	if ( !cameraSet )
-		engine->CameraLookAt( (float)tacMap->Width()/2.0f, (float)tacMap->Height()/2.0f, 25.0f, -45.0f, -50.0f );
+	if ( !cameraSet ) {
+		engine->CameraLookAt(	(float)tacMap->Width()/2.0f, 
+								(float)tacMap->Height()/2.0f, 
+								TVMode() ? 35.0f : 25.0f, 
+								-45.0f, -50.0f );
+	}
 	cameraSet = true;
+
 	engine->SetLightDirection( 0 );
 }
 
@@ -970,6 +976,7 @@ void BattleScene::DoTick( U32 currentTime, U32 deltaTime )
 	for( int i=0; i<MAX_UNITS; ++i ) {
 		unitRenderers[i].Update( GetEngine()->GetSpaceTree(), &units[i] );
 	}
+	engine->camera.Orbit( orbit );
 	//consoleWidget->DoTick( deltaTime );
 }
 
@@ -2473,6 +2480,8 @@ void BattleScene::SceneResult( int sceneID, int result )
 
 void BattleScene::JoyButton( int id, bool down )
 {
+	static const float ORBIT = 2.0f;
+
 	if ( down ) {
 		switch( id ) {
 		case GAME_JOY_BUTTON_UP:
@@ -2485,6 +2494,58 @@ void BattleScene::JoyButton( int id, bool down )
 			HandleIconTap( &controlButton[NEXT_BUTTON] );
 			break;
 
+		case GAME_JOY_L2:
+			orbit = -ORBIT;
+			break;
+		case GAME_JOY_R2:
+			orbit = ORBIT;
+			break;
+
+		case GAME_JOY_BUTTON_SELECT:
+			if ( isDragging ) {
+				isDragging = false;
+				Vector2I jdi = { (int)joyDrag.x, (int)joyDrag.y };
+				DragUnitEnd( jdi );
+			}
+			break;
+
+		case GAME_JOY_BUTTON_CANCEL:
+			isDragging = false;
+			break;
+
+		default:
+			break;
+		}
+	}
+	else {
+		switch( id ) {
+		case GAME_JOY_L2:
+			orbit = 0;
+			break;
+		case GAME_JOY_R2:
+			orbit = 0;
+			break;
+		}
+	}
+}
+
+
+void BattleScene::JoyDPad( int id, int dir )
+{
+	if ( id == 0 ) {
+		switch ( dir ) {
+		case GAME_JOY_DPAD_UP:
+			HandleIconTap( &helpButton );
+			break;
+		case GAME_JOY_DPAD_LEFT:
+			HandleIconTap( &exitButton );
+			break;
+		case GAME_JOY_DPAD_RIGHT:
+			HandleIconTap( &nextTurnButton );
+			break;
+		case GAME_JOY_DPAD_DOWN:
+			HandleIconTap( &targetButton );
+			break;
 		default:
 			break;
 		}
@@ -2492,32 +2553,43 @@ void BattleScene::JoyButton( int id, bool down )
 }
 
 
-void BattleScene::JoyDPad( int dir )
-{
-	switch ( dir ) {
-	case GAME_JOY_DPAD_UP:
-		HandleIconTap( &helpButton );
-		break;
-	case GAME_JOY_DPAD_LEFT:
-		HandleIconTap( &exitButton );
-		break;
-	case GAME_JOY_DPAD_RIGHT:
-		HandleIconTap( &nextTurnButton );
-		break;
-	case GAME_JOY_DPAD_DOWN:
-		HandleIconTap( &targetButton );
-		break;
-	default:
-		break;
-	}
-}
-
-
 void BattleScene::JoyStick( int id, const Vector2F& axis )
 {
-	if ( id == 1 ) {	// right stick is camera
-		engine->camera.Orbit( axis.x*2.f );
-		this->Zoom( GAME_ZOOM_DISTANCE, axis.y*0.012f );
+	const Screenport& port = engine->GetScreenport();
+	Screenport aPort = port;
+	aPort.SetPerspective( 0 );
+	aPort.SetUI( 0 );
+	aPort.SetViewMatrices( GetEngine()->camera.ViewMatrix() );
+	Matrix4 v = aPort.ViewMatrix3D();
+	Matrix4 vi;
+	v.Invert( &vi );
+		
+	Vector4F axis4 = { axis.x, axis.y, 0, 0 };
+	Vector4F dir = vi * axis4;
+
+	//GLOUTPUT(( "Joystick: axis=(%.1f,%.1f) dir=(%.1f,%.1f,%.1f)\n",
+	//		   axis.x, axis.y,
+	//		   dir.x, dir.y, dir.z ));
+	static const float SCALE = 0.5f;
+	Vector2F dir2 = { dir.x, dir.z };
+	dir2.Multiply( SCALE );
+
+	if ( id == 0 ) {
+		if ( !isDragging && selection.soldierUnit ) {
+			isDragging = true;
+			joyDrag.Set( selection.soldierUnit->Pos().x, selection.soldierUnit->Pos().z );
+			DragUnitStart( selection.soldierUnit->MapPos() );
+			joyDrag += dir2;
+		}
+		else if ( isDragging ) {
+			joyDrag += dir2;
+			Vector2I jdi = { (int)joyDrag.x, (int)joyDrag.y };
+			DragUnitMove( jdi );
+		}
+	}
+	else if ( id == 1 ) {	// right stick is camera
+		engine->camera.DeltaPosWC( dir2.x, 0, dir2.y );
+		engine->RestrictCamera();
 	}
 }
 
@@ -2919,6 +2991,101 @@ void BattleScene::CalcTeamTargets()
 }
 
 
+void BattleScene::DragUnitStart( const grinliz::Vector2I& map )
+{
+	for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
+		if ( units[i].IsAlive() && ( map == units[i].MapPos() ) ) {
+			dragUnit = units + i;
+			if ( selection.soldierUnit != dragUnit )
+				SetSelection( dragUnit );
+
+			dragBar[0].SetSize( (float)tacMap->Width(), 0.5f );
+			dragBar[1].SetSize( 0.5f, (float)tacMap->Height() );
+
+			return;
+		}
+	}
+}
+
+
+void BattleScene::DragUnitMove( const grinliz::Vector2I& map )
+{
+	Vector2<S16> start = { (S16)selection.soldierUnit->MapPos().x, (S16)selection.soldierUnit->MapPos().y };
+	Vector2<S16> end   = { map.x, map.y };
+
+	bool visible = false;
+	if (    end != start 
+			&& end.x >= 0 && end.x < tacMap->Width() 
+			&& end.y >= 0 && end.y < tacMap->Height()
+			&& confirmDest.x < 0 ) 
+	{
+		float cost;
+		gamui::RenderAtom atom;
+
+		int result = tacMap->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
+		if ( result == micropather::MicroPather::SOLVED ) {
+			int tuLeft = selection.soldierUnit->CalcWeaponTURemaining( cost );
+			visible = true;
+			if ( tuLeft >= 1 ) {
+				atom = Game::CalcPaletteAtom( Game::PALETTE_GREEN, Game::PALETTE_GREEN, 0 );
+			}
+			else if ( tuLeft == 0 ) {
+				atom = Game::CalcPaletteAtom( Game::PALETTE_YELLOW, Game::PALETTE_YELLOW, 0 );
+			}
+			else if ( cost <= selection.soldierUnit->TU() ) {
+				atom = Game::CalcPaletteAtom( Game::PALETTE_YELLOW, Game::PALETTE_RED, 0 );
+			}
+			else {
+				atom = Game::CalcPaletteAtom( Game::PALETTE_RED, Game::PALETTE_RED, 0 );
+			}
+			dragBar[0].SetPos( 0, (float)end.y+0.25f );
+			dragBar[1].SetPos( (float)end.x+0.25f, 0 );
+		}
+		tacMap->ClearNearPath();
+		atom.renderState = (const void*) Map::RENDERSTATE_MAP_NORMAL;
+		dragBar[0].SetAtom( atom );
+		dragBar[1].SetAtom( atom );
+	}
+	dragBar[0].SetVisible( visible );
+	dragBar[1].SetVisible( visible );
+
+}
+
+
+void BattleScene::DragUnitEnd( const grinliz::Vector2I& map )
+{
+	Vector2<S16> start = { (S16)selection.soldierUnit->MapPos().x, (S16)selection.soldierUnit->MapPos().y };
+	Vector2<S16> end   = { map.x, map.y };
+
+	if (    end != start 
+			&& end.x >= 0 && end.x < tacMap->Width() 
+			&& end.y >= 0 && end.y < tacMap->Height() ) 
+	{
+		float cost;
+
+		int result = tacMap->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
+		confirmDest.Set( -1, -1 );
+		if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
+			// TU for a move gets used up "as we go" to account for reaction fire and changes.
+			// Go!
+			if ( GameSettingsManager::Instance()->GetConfirmMove() ) {
+				confirmDest.Set( end.x, end.y );
+			}
+			else {
+				Action* action = actionStack.Push();
+				action->Init( ACTION_MOVE, SelectedSoldierUnit() );
+				action->type.move.path.Init( pathCache );
+			}
+		}
+	}
+	dragUnit = 0;
+	dragBar[0].SetVisible( false );
+	dragBar[1].SetVisible( false );
+	nearPathState.Clear();
+
+}
+
+
 void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& view )
 {
 	Vector2F ui;
@@ -2945,18 +3112,7 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 			// Drag a unit or drag the camera?
 			if ( uiActivated && !panning && GameSettingsManager::Instance()->GetAllowDrag() ) {
 				Vector2I mapPos = { (int)dragStart3D.x, (int)dragStart3D.z };
-				for( int i=TERRAN_UNITS_START; i<TERRAN_UNITS_END; ++i ) {
-					if ( units[i].IsAlive() && ( mapPos == units[i].MapPos() ) ) {
-						dragUnit = units + i;
-						if ( selection.soldierUnit != dragUnit )
-							SetSelection( dragUnit );
-
-						dragBar[0].SetSize( (float)tacMap->Width(), 0.5f );
-						dragBar[1].SetSize( 0.5f, (float)tacMap->Height() );
-
-						break;
-					}
-				}
+				DragUnitStart( mapPos );
 			}
 		}
 		break;
@@ -2972,45 +3128,8 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 
 				engine->GetScreenport().ViewProjectionInverse3D( &mvpi );
 				engine->RayFromViewToYPlane( view, mvpi, &ray, &intersection );
-
-				Vector2<S16> start = { (S16)selection.soldierUnit->MapPos().x, (S16)selection.soldierUnit->MapPos().y };
-				Vector2<S16> end   = { (S16)intersection.x, (S16)intersection.z };
-
-				bool visible = false;
-				if (    end != start 
-					 && end.x >= 0 && end.x < tacMap->Width() 
-					 && end.y >= 0 && end.y < tacMap->Height()
-					 && confirmDest.x < 0 ) 
-				{
-					float cost;
-					gamui::RenderAtom atom;
-
-					int result = tacMap->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
-					if ( result == micropather::MicroPather::SOLVED ) {
-						int tuLeft = selection.soldierUnit->CalcWeaponTURemaining( cost );
-						visible = true;
-						if ( tuLeft >= 1 ) {
-							atom = Game::CalcPaletteAtom( Game::PALETTE_GREEN, Game::PALETTE_GREEN, 0 );
-						}
-						else if ( tuLeft == 0 ) {
-							atom = Game::CalcPaletteAtom( Game::PALETTE_YELLOW, Game::PALETTE_YELLOW, 0 );
-						}
-						else if ( cost <= selection.soldierUnit->TU() ) {
-							atom = Game::CalcPaletteAtom( Game::PALETTE_YELLOW, Game::PALETTE_RED, 0 );
-						}
-						else {
-							atom = Game::CalcPaletteAtom( Game::PALETTE_RED, Game::PALETTE_RED, 0 );
-						}
-						dragBar[0].SetPos( 0, (float)end.y+0.25f );
-						dragBar[1].SetPos( (float)end.x+0.25f, 0 );
-					}
-					tacMap->ClearNearPath();
-					atom.renderState = (const void*) Map::RENDERSTATE_MAP_NORMAL;
-					dragBar[0].SetAtom( atom );
-					dragBar[1].SetAtom( atom );
-				}
-				dragBar[0].SetVisible( visible );
-				dragBar[1].SetVisible( visible );
+				Vector2I end   = { (int)intersection.x, (int)intersection.z };
+				DragUnitMove( end );
 			}
 			else {
 				// Dragging world (NOT unit)
@@ -3053,34 +3172,8 @@ void BattleScene::Drag( int action, bool uiActivated, const grinliz::Vector2F& v
 				engine->GetScreenport().ViewProjectionInverse3D( &mvpi );
 				engine->RayFromViewToYPlane( view, mvpi, &ray, &intersection );
 
-				Vector2<S16> start = { (S16)selection.soldierUnit->MapPos().x, (S16)selection.soldierUnit->MapPos().y };
-				Vector2<S16> end   = { (S16)intersection.x, (S16)intersection.z };
-
-				if (    end != start 
-					 && end.x >= 0 && end.x < tacMap->Width() 
-					 && end.y >= 0 && end.y < tacMap->Height() ) 
-				{
-					float cost;
-
-					int result = tacMap->SolvePath( selection.soldierUnit, start, end, &cost, &pathCache );
-					confirmDest.Set( -1, -1 );
-					if ( result == micropather::MicroPather::SOLVED && cost <= selection.soldierUnit->TU() ) {
-						// TU for a move gets used up "as we go" to account for reaction fire and changes.
-						// Go!
-						if ( GameSettingsManager::Instance()->GetConfirmMove() ) {
-							confirmDest.Set( end.x, end.y );
-						}
-						else {
-							Action* action = actionStack.Push();
-							action->Init( ACTION_MOVE, SelectedSoldierUnit() );
-							action->type.move.path.Init( pathCache );
-						}
-					}
-				}
-				dragUnit = 0;
-				dragBar[0].SetVisible( false );
-				dragBar[1].SetVisible( false );
-				nearPathState.Clear();
+				Vector2I end   = { (int)intersection.x, (int)intersection.z };
+				DragUnitEnd( end );
 			}
 			else {
 				// Dragging world
