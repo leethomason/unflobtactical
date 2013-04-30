@@ -827,7 +827,7 @@ void Game::JoyDPad( int dir )
 
 void Game::JoyStick( int id, float x, float y )
 {
-	GLOUTPUT(( "Game::JoyStick %s value=%.2f,%.2f\n", id ? "right" : "left", x, y ));
+	//GLOUTPUT(( "Game::JoyStick %s value=%.2f,%.2f\n", id ? "right" : "left", x, y ));
 	Vector2F value = { x, y };
 	sceneStack.Top()->scene->JoyStick( id, value );
 
