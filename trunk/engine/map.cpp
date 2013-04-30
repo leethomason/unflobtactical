@@ -1572,6 +1572,32 @@ int Map::SolvePath( const void* user, const Vector2<S16>& start, const Vector2<S
 }
 
 
+bool Map::InStateCost( int x, int y ) const
+{
+	Vector2<S16> v = {x,y};
+	void* state = VecToState( v );
+	for( unsigned i=0; i<stateCostArr.size(); ++i ) {
+		if ( stateCostArr[i].state == state )
+			return true;
+	}
+	return false;
+}
+
+
+bool Map::InStateCostBounds( int x, int y ) const
+{
+	Rectangle2I r;
+	r.SetInvalid();
+
+	for( unsigned i=0; i<stateCostArr.size(); ++i ) {
+		Vector2<S16> pos;
+		StateToVec( stateCostArr[i].state, &pos );
+		r.DoUnion( pos.x, pos.y );
+	}
+	return r.Contains( x, y );
+}
+
+
 void Map::ShowNearPath(	const grinliz::Vector2I& unitPos,
 						const void* user, 
 						const grinliz::Vector2<S16>& start, 

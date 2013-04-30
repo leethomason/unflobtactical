@@ -370,6 +370,9 @@ public:
 	gamui::Gamui	overlay[NUM_LAYERS];
 	grinliz::Random random;
 
+	bool InStateCost( int x, int y ) const;
+	bool InStateCostBounds( int x, int y ) const;
+
 protected:
 	virtual void SubSave( tinyxml2::XMLPrinter* ) = 0;
 	virtual void SubLoad( const tinyxml2::XMLElement* mapNode ) = 0;
@@ -463,8 +466,8 @@ private:
 					 const grinliz::Vector2<S16>& from,
 					 const grinliz::Vector2<S16>& delta );
 
-	void StateToVec( const void* state, grinliz::Vector2<S16>* vec ) { *vec = *((grinliz::Vector2<S16>*)&state); }
-	void* VecToState( const grinliz::Vector2<S16>& vec )			 { return (void*)(*(int*)&vec); }
+	void StateToVec( const void* state, grinliz::Vector2<S16>* vec ) const	{ *vec = *((grinliz::Vector2<S16>*)&state); }
+	void* VecToState( const grinliz::Vector2<S16>& vec ) const				{ return (void*)(*(int*)&vec); }
 
 	void ClearVisPathMap( grinliz::Rectangle2I& bounds );
 	void CalcVisPathMap( grinliz::Rectangle2I& bounds );
